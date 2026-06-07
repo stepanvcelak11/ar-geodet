@@ -17,7 +17,7 @@ if ('serviceWorker' in navigator) {
             });
         }
         proj4.defs("EPSG:5514","+proj=krovak +lat_0=49.5 +lon_0=24.83333333333333 +alpha=30.28813972222222 +k=0.9999 +x_0=0 +y_0=0 +ellps=bessel +towgs84=570.8,85.7,462.8,4.998,1.587,5.261,3.56 +units=m +no_defs");
-        const map = L.map('map', { maxZoom: 22, minZoom: 15, zoomControl: false, dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false });
+        const map = L.map('map', { maxZoom: 22, minZoom: 15, zoomSnap: 0, zoomDelta: 1, zoomControl: false, dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false });
         const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 18, zIndex: 1 });
         // Podklady CUZK (overeno: WMS 1.3.0, EPSG:3857). Ortofoto = base, katastr KN = pruhledny overlay nad base.
         const ortofotoLayer = L.tileLayer.wms('https://ags.cuzk.gov.cz/arcgis1/services/ORTOFOTO/MapServer/WMSServer', { layers: '0', format: 'image/jpeg', version: '1.3.0', maxZoom: 22, zIndex: 1, attribution: '© ČÚZK' });
@@ -103,7 +103,6 @@ if ('serviceWorker' in navigator) {
         
         async function saveForOffline() {
             if (!userLat || !userLng) { alert("Počkejte prosím na načtení GPS polohy."); return; }
-            alert("Spouštím stahování bodů a mapy...\nProsím, nevyplínejte aplikaci.");
             const officialPoints = arPoints.filter(p => p.cat !== 'CUSTOM');
             if (!setStoredData('arOfflinePoints12', JSON.stringify(officialPoints))) { return; }
             const r = mapRadius; const latOffset = r / 111320; const lonOffset = r / (111320 * Math.cos(userLat * Math.PI / 180));
@@ -114,7 +113,19 @@ if ('serviceWorker' in navigator) {
                 let minY = Math.floor((1 - Math.log(Math.tan(maxLat * Math.PI / 180) + 1 / Math.cos(maxLat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, z)); let maxY = Math.floor((1 - Math.log(Math.tan(minLat * Math.PI / 180) + 1 / Math.cos(minLat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, z));
                 for (let x = minX; x <= maxX; x++) { for (let y = minY; y <= maxY; y++) { urlsToCache.push(`https://tile.openstreetmap.org/${z}/${x}/${y}.png`); } }
             });
-            if ('caches' in window) { try { const cache = await caches.open('argeodet-offline-v12'); let count = 0; const total = urlsToCache.length; for (let i = 0; i < total; i += 10) { const chunk = urlsToCache.slice(i, i + 10); await Promise.all(chunk.map(async url => { try { const response = await fetch(url, {mode: 'cors'}); if(response.ok) await cache.put(url, response); } catch(e) {} count++; })); } alert(`Úspěšně uloženo ${officialPoints.length} bodů a ${total} dílků mapy pro tuto zakázku.`); } catch(e) {} }
+            if (!('caches' in window)) { alert("Tento prohlížeč nepodporuje offline ukládání mapy."); return; }
+            const total = urlsToCache.length; let done = 0, okTiles = 0;
+            showOfflineProgress(0, total);
+            try {
+                const cache = await caches.open('argeodet-offline-v12');
+                for (let i = 0; i < total; i += 10) {
+                    const chunk = urlsToCache.slice(i, i + 10);
+                    await Promise.all(chunk.map(async url => { try { const response = await fetch(url, {mode: 'cors'}); if (response.ok) { await cache.put(url, response); okTiles++; } } catch(e) {} done++; }));
+                    updateOfflineProgress(done, total);
+                }
+                hideOfflineProgress();
+                alert(`Hotovo. Uloženo ${officialPoints.length} bodů a ${okTiles} z ${total} dílků mapy pro tuto zakázku.`);
+            } catch(e) { hideOfflineProgress(); alert("Stahování mapy se nezdařilo: " + ((e && e.message) ? e.message : e)); }
         }
 
         function hideCurrentPoint() { if (hideBtnLogic) hideBtnLogic(); closeBottomSheet(); } function restoreHiddenPoints() { arPoints.forEach(p => p.hidden = false); initARMarkers(); drawAllMarkersOnMap(); document.getElementById('settings-modal').style.display = 'none'; updateInfoPanel(); } function clearAllPoints() { arPoints.forEach(p => { if(p.element) p.element.remove(); }); arPoints = []; removeStoredData('arOfflinePoints12'); document.getElementById('settings-modal').style.display = 'none'; if (userLat && userLng) initFetch(userLat, userLng); } function getVisiblePointsCount() { return arPoints.filter(p => !p.hidden && p.currentDist <= arRadius && (!searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase()))).length; }

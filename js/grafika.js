@@ -282,16 +282,52 @@
         }
         let mapReturnTimer;
         function recenterOnUser() { if (userLat == null) return; clearTimeout(mapReturnTimer); map.setView([userLat, userLng], map.getZoom(), { animate: true }); lastCenterLat = userLat; lastCenterLng = userLng; }
-        let isDraggingMap = false; let startTouchX = 0, startTouchY = 0; let lastTouchX = 0, lastTouchY = 0; const mapContainerEl = document.getElementById('map-container');
-        mapContainerEl.addEventListener('touchstart', (e) => { if (e.touches.length === 1 && !e.target.closest('.glass-panel')) { isDraggingMap = true; clearTimeout(mapReturnTimer); document.getElementById('map-controls').classList.remove('expanded'); startTouchX = e.touches[0].clientX; startTouchY = e.touches[0].clientY; lastTouchX = startTouchX; lastTouchY = startTouchY; } }, { passive: true });
-        mapContainerEl.addEventListener('touchmove', (e) => { if (!isDraggingMap || e.touches.length !== 1) return; const dx = e.touches[0].clientX - lastTouchX; const dy = e.touches[0].clientY - lastTouchY;
-            // SMER: vezmi skutecne otoceni mapy z CSS matice wrapperu, aby posun vzdy sledoval prst (i kdyz je mapa otocena podle kompasu)
-            let cos = 1, sin = 0; const tr = getComputedStyle(mapWrapper).transform; if (tr && tr.indexOf('matrix') === 0) { const v = tr.slice(tr.indexOf('(') + 1, -1).split(',').map(parseFloat); cos = v[0]; sin = v[1]; }
-            const mapDx = (dx * cos - dy * sin); const mapDy = (dy * cos + dx * sin); map.panBy([mapDx, mapDy], { animate: false });
+        // OVLADANI MAPY: jeden prst = posun (obsah sleduje prst i pri otocene mape), dva prsty = plynuly zoom (pinch).
+        map.options.zoomSnap = 0;  // plynuly pinch zoom (zlomkove stupne); kdyby logika.js byla stara, vynutime to i tady
+        let isDraggingMap = false, isPinchingMap = false; let lastTouchX = 0, lastTouchY = 0; let pinchStartDist = 0, pinchStartZoom = 0; const mapContainerEl = document.getElementById('map-container');
+        function _touchDist(t) { const dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY; return Math.hypot(dx, dy); }
+        function _zoomAnchor() { return (userLat != null) ? L.latLng(userLat, userLng) : map.getCenter(); }
+        mapContainerEl.addEventListener('touchstart', (e) => {
+            if (e.target.closest('.glass-panel')) return;
+            clearTimeout(mapReturnTimer); document.getElementById('map-controls').classList.remove('expanded');
+            if (e.touches.length >= 2) { isPinchingMap = true; isDraggingMap = false; pinchStartDist = _touchDist(e.touches); pinchStartZoom = map.getZoom(); }
+            else if (e.touches.length === 1) { isDraggingMap = true; isPinchingMap = false; lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; }
+        }, { passive: true });
+        mapContainerEl.addEventListener('touchmove', (e) => {
+            if (e.touches.length >= 2) {
+                if (!isPinchingMap) { isPinchingMap = true; isDraggingMap = false; pinchStartDist = _touchDist(e.touches); pinchStartZoom = map.getZoom(); }
+                const d = _touchDist(e.touches);
+                if (pinchStartDist > 0 && d > 0) { let nz = pinchStartZoom + Math.log2(d / pinchStartDist); nz = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), nz)); map.setZoomAround(_zoomAnchor(), nz, { animate: false }); }
+                if (e.cancelable) e.preventDefault(); return;
+            }
+            if (!isDraggingMap || e.touches.length !== 1) return;
+            const dx = e.touches[0].clientX - lastTouchX; const dy = e.touches[0].clientY - lastTouchY;
+            // SMER: posun prstu (obrazovka) prevedeme do souradnic mapy pres CSS matici wrapperu, aby obsah vzdy sledoval prst (i kdyz je mapa otocena podle kompasu)
+            let a = 1, b = 0; const tr = getComputedStyle(mapWrapper).transform; if (tr && tr.indexOf('matrix') === 0) { const v = tr.slice(tr.indexOf('(') + 1, -1).split(',').map(parseFloat); a = v[0]; b = v[1]; }
+            const contDx = a * dx + b * dy; const contDy = -b * dx + a * dy; map.panBy([-contDx, -contDy], { animate: false });
             // OMEZENI: drz uzivatele ve viditelne plose, at nedojede do prazdne (cerne) mapy
             if (userLat != null) { const c = map.getSize().divideBy(2); const up = map.latLngToContainerPoint([userLat, userLng]); const offX = up.x - c.x, offY = up.y - c.y; const dist = Math.hypot(offX, offY); const maxOff = Math.min(mapContainerEl.clientWidth, mapContainerEl.clientHeight) * 0.4; if (dist > maxOff) { const k = dist - maxOff; map.panBy([offX / dist * k, offY / dist * k], { animate: false }); } }
-            lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; if(e.cancelable) e.preventDefault(); }, { passive: false });
-        mapContainerEl.addEventListener('touchend', (e) => { if (isDraggingMap) { isDraggingMap = false; clearTimeout(mapReturnTimer); mapReturnTimer = setTimeout(recenterOnUser, 5000); } }); 
+            lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; if (e.cancelable) e.preventDefault();
+        }, { passive: false });
+        mapContainerEl.addEventListener('touchend', (e) => {
+            if (e.touches.length === 0) { if (isDraggingMap || isPinchingMap) { clearTimeout(mapReturnTimer); mapReturnTimer = setTimeout(recenterOnUser, 5000); } isDraggingMap = false; isPinchingMap = false; }
+            else if (e.touches.length === 1) { isPinchingMap = false; isDraggingMap = true; lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; }
+        });
+
+        // OFFLINE STAHOVANI: celoobrazovkovy ukazatel postupu (vytvari se za behu, nezasahuje do HTML/CSS)
+        function _ensureOfflineProgress() {
+            let el = document.getElementById('offline-progress');
+            if (!el) {
+                el = document.createElement('div'); el.id = 'offline-progress';
+                el.style.cssText = 'position:fixed; top:0; right:0; bottom:0; left:0; z-index:999999; display:none; align-items:center; justify-content:center; background:rgba(4,8,12,0.55); backdrop-filter:blur(2px);';
+                el.innerHTML = '<div style="width:min(82vw,320px); padding:22px; border-radius:18px; background:rgba(14,18,24,0.96); border:1px solid rgba(255,255,255,0.12); box-shadow:0 20px 50px rgba(0,0,0,0.5); text-align:center; color:#fff;"><div style="font-size:14.5px; font-weight:700; margin-bottom:14px;">Stahuji mapu pro offline…</div><div style="width:100%; height:10px; background:rgba(255,255,255,0.12); border-radius:99px; overflow:hidden;"><div id="offline-progress-bar" style="height:100%; width:0%; background:var(--accent-grad,#34d399); border-radius:99px; transition:width 0.15s linear;"></div></div><div id="offline-progress-txt" style="margin-top:10px; font-size:12px; color:var(--accent-bright,#34d399); font-family:var(--font-mono,monospace);">0 %</div></div>';
+                document.body.appendChild(el);
+            }
+            return el;
+        }
+        function showOfflineProgress(done, total) { const el = _ensureOfflineProgress(); el.style.display = 'flex'; updateOfflineProgress(done, total); }
+        function updateOfflineProgress(done, total) { const pct = total > 0 ? Math.round(done / total * 100) : 0; const bar = document.getElementById('offline-progress-bar'); if (bar) bar.style.width = pct + '%'; const txt = document.getElementById('offline-progress-txt'); if (txt) txt.innerText = pct + ' % · ' + done + ' / ' + total + ' dílků'; }
+        function hideOfflineProgress() { const el = document.getElementById('offline-progress'); if (el) el.style.display = 'none'; } 
 
         function showDetails(pt, distance) {
             activePointIdForModal = pt.id; initARMarkers(); arPoints.forEach(p => { if (p.element) p.element.classList.remove('active-reading'); }); if (pt.element) pt.element.classList.add('active-reading');
