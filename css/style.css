@@ -7,26 +7,31 @@
 
 /* ---- Design tokens ---------------------------------------------------- */
 :root {
-    /* Písma — UI v systémovém sans, DATA v monospace (přístrojový charakter) */
-    --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+    /* Písma — Inter pro UI, JetBrains Mono pro data (přístrojový charakter) */
+    --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
 
-    /* Plochy a text — čistá grafitová slate, vlasové linky, méně "skla" */
-    --bg-color: #0d1117;
-    --surface-1: rgba(22, 27, 34, 0.86);
-    --surface-2: rgba(28, 34, 42, 0.86);
-    --glass-bg: rgba(19, 24, 31, 0.88);
-    --glass-border: rgba(255, 255, 255, 0.07);
-    --glass-border-strong: rgba(255, 255, 255, 0.14);
-    --text-color: #e6edf3;
-    --text-muted: #828d9a;
-    --map-bg: #0d1117;
+    /* Plochy a text — hluboký ink, vrstvené plochy, vlasové linky */
+    --bg-color: #0a0e14;
+    --bg-elev: #0f1520;
+    --surface-1: rgba(20, 26, 35, 0.92);
+    --surface-2: rgba(28, 36, 48, 0.92);
+    --surface-3: rgba(40, 50, 64, 0.90);
+    --glass-bg: rgba(15, 20, 29, 0.82);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-border-strong: rgba(255, 255, 255, 0.16);
+    --text-color: #eaf0f7;
+    --text-muted: #8b97a8;
+    --text-faint: #5e6a7a;
+    --map-bg: #0a0e14;
 
     /* Značková paleta */
     --accent: #34d399;          /* emerald — primární akcent */
+    --accent-bright: #6ee7c4;   /* mátový highlight */
     --accent-strong: #10b981;   /* sytější odstín pro gradienty */
     --accent-soft: rgba(52, 211, 153, 0.12);   /* jemný podklad */
     --accent-line: rgba(52, 211, 153, 0.40);   /* zvýrazněná linka */
+    --accent-glow: 0 8px 30px rgba(16, 185, 129, 0.35);
     --accent-blue: #3b82f6;
     --warning: #fbbf24;
     --danger: #ef4444;
@@ -51,19 +56,19 @@
     --hud-side: 15px;
     --ring-top: 150%;
 
-    /* Poloměry — ostřejší, technické */
-    --r-xs: 5px;
-    --r-sm: 8px;
-    --r-md: 11px;
-    --r-lg: 14px;
-    --r-xl: 18px;
+    /* Poloměry — přátelské, premium */
+    --r-xs: 6px;
+    --r-sm: 9px;
+    --r-md: 12px;
+    --r-lg: 16px;
+    --r-xl: 22px;
     --r-pill: 999px;
 
-    /* Stíny — jemnější, plošší (čistý app vzhled) */
-    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.5);
-    --shadow-pop: 0 20px 50px rgba(0, 0, 0, 0.65);
-    --shadow-accent: 0 6px 18px rgba(52, 211, 153, 0.22);
+    /* Stíny — měkké, vrstvené */
+    --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --shadow-2: 0 10px 30px rgba(0, 0, 0, 0.55);
+    --shadow-pop: 0 24px 70px rgba(0, 0, 0, 0.70);
+    --shadow-accent: 0 8px 24px rgba(16, 185, 129, 0.30);
 
     /* Pohyb */
     --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
@@ -124,12 +129,24 @@ body {
 }
 
 /* Mikro-popisek: drobné verzálky s prostrkáním (jako štítky na přístroji) */
-.geo-label, .hud-name, .cluster-item-subtitle, .modal-content label {
+.geo-label, .hud-name, .cluster-item-subtitle {
     text-transform: uppercase;
     letter-spacing: 0.07em;
     font-size: 11px;
     color: var(--text-muted);
 }
+
+/* Tenké, nenápadné scrollbary (premium detail) */
+.modal-body::-webkit-scrollbar, .sheet-content::-webkit-scrollbar,
+#manage-list::-webkit-scrollbar, #cluster-list::-webkit-scrollbar { width: 6px; }
+.modal-body::-webkit-scrollbar-thumb, .sheet-content::-webkit-scrollbar-thumb,
+#manage-list::-webkit-scrollbar-thumb, #cluster-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.14);
+    border-radius: var(--r-pill);
+}
+.modal-body, .sheet-content { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.14) transparent; }
+
+::selection { background: var(--accent-soft); color: var(--accent-bright); }
 
 /* Plynulé skrývání ovládání po nečinnosti (JS přidává .ui-faded) */
 .ui-faded {
@@ -139,8 +156,14 @@ body {
 }
 
 /* =========================================================================
-   Úvodní obrazovka — čistá slate plocha s jemnou technickou mřížkou
+   Úvodní obrazovka — hero s aurora září a jemnou mřížkou
    ========================================================================= */
+@keyframes aurora {
+    0%   { transform: translate(-4%, -3%) scale(1);    opacity: 0.85; }
+    50%  { transform: translate(4%, 3%) scale(1.15);   opacity: 1; }
+    100% { transform: translate(-4%, -3%) scale(1);    opacity: 0.85; }
+}
+
 #welcome-screen {
     position: fixed;
     inset: 0;
@@ -148,43 +171,66 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden;
     background-color: var(--bg-color);
     background-image:
-        radial-gradient(140% 90% at 50% -20%, rgba(52, 211, 153, 0.10), transparent 55%),
-        linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
-    background-size: 100% 100%, 32px 32px, 32px 32px;
+        linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+    background-size: 34px 34px, 34px 34px;
     transition: opacity 0.4s ease;
+}
+/* Dvě barevné záře driftující za kartou (hloubka + život) */
+#welcome-screen::before, #welcome-screen::after {
+    content: "";
+    position: absolute;
+    width: 72vmin;
+    height: 72vmin;
+    border-radius: 50%;
+    filter: blur(72px);
+    pointer-events: none;
+    z-index: 0;
+}
+#welcome-screen::before {
+    top: -22%; left: -12%;
+    background: radial-gradient(circle, rgba(52, 211, 153, 0.30), transparent 65%);
+    animation: aurora 16s ease-in-out infinite;
+}
+#welcome-screen::after {
+    bottom: -25%; right: -14%;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.20), transparent 65%);
+    animation: aurora 22s ease-in-out infinite reverse;
 }
 
 #welcome-screen .modal-content {
+    position: relative;
+    z-index: 1;
     width: 90%;
-    max-width: 420px;
+    max-width: 410px;
     max-height: 90%;
-    padding: 30px 26px;
+    padding: 32px 26px 26px;
     border-radius: var(--r-xl);
-    background: var(--surface-1);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-pop);
+    background: linear-gradient(180deg, rgba(26, 33, 44, 0.80), rgba(13, 18, 27, 0.84));
+    backdrop-filter: blur(26px) saturate(140%);
+    -webkit-backdrop-filter: blur(26px) saturate(140%);
+    border: 1px solid var(--glass-border-strong);
+    box-shadow: var(--shadow-pop), inset 0 1px 0 rgba(255, 255, 255, 0.08);
     overflow-y: auto;
     touch-action: pan-y;
 }
 
 @keyframes float {
     0%   { transform: translateY(0); }
-    50%  { transform: translateY(-9px); }
+    50%  { transform: translateY(-8px); }
     100% { transform: translateY(0); }
 }
 
 .welcome-logo {
-    width: 68px;
-    height: 68px;
-    margin: 0 auto 14px;
+    width: 78px;
+    height: 78px;
+    margin: 4px auto 16px;
     display: block;
     animation: float 5s ease-in-out infinite;
-    filter: drop-shadow(0 12px 18px rgba(52, 211, 153, 0.45));
+    filter: drop-shadow(0 14px 26px rgba(52, 211, 153, 0.42));
 }
 
 /* =========================================================================
@@ -909,3 +955,7 @@ details[open] summary::after { content: " ⌄"; }
 /* Nadpisy modálů s ikonou */
 .modal-content h3 .icon,
 .modal-content h2 .icon { vertical-align: -0.16em; margin-right: 8px; }
+
+#gps-avg { position: absolute; top: max(calc(var(--hud-top) + 100px), calc(env(safe-area-inset-top) + 100px)); left: var(--hud-side); z-index: 9999; padding: 8px 14px; font-size: 12px; font-weight: 600; line-height: 1.5; display: none; transform: scale(var(--menu-scale)); transform-origin: top left; pointer-events: none; font-variant-numeric: tabular-nums; max-width: 78%; }
+#gps-avg .ga-title { color: var(--accent); font-size: 11px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
+#gps-avg #ga-line2 { font-family: monospace; opacity: 0.9; }

@@ -16,7 +16,7 @@ function renderProjectSelect() {
         }
 
         function switchTab(tabId, btnEl) { document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(tabId).classList.add('active'); btnEl.classList.add('active'); }
-        function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); } function toggleHudElements() { document.getElementById('info').style.display = document.getElementById('tgl-info').checked ? 'block' : 'none'; document.getElementById('compass-debug').style.display = document.getElementById('tgl-compass').checked ? 'block' : 'none'; }
+        function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); } function toggleHudElements() { document.getElementById('info').style.display = document.getElementById('tgl-info').checked ? 'block' : 'none'; document.getElementById('compass-debug').style.display = document.getElementById('tgl-compass').checked ? 'block' : 'none'; updateGpsAvgPanel(); }
         function fixAppLayout() { setTimeout(() => { window.scrollTo(0, 0); document.body.scrollTop = 0; }, 100); } document.querySelectorAll('input').forEach(input => { input.addEventListener('blur', fixAppLayout); });
         
         function openKatastr() { 
@@ -67,7 +67,7 @@ function renderProjectSelect() {
                 const ptLatLng = L.latLng(pt.lat, pt.lng); const ptPoint = map.latLngToContainerPoint(ptLatLng); const pixelDist = clickPoint.distanceTo(ptPoint);
                 if (pixelDist <= 25) { nearbyPoints.push(pt); }
             });
-            if (nearbyPoints.length === 1) { const distToUser = getDistance(userLat, userLng, nearbyPoints[0].lat, nearbyPoints[0].lng); showDetails(nearbyPoints[0], distToUser); } 
+            if (nearbyPoints.length === 1) { highlightPoint(nearbyPoints[0]); } 
             else if (nearbyPoints.length > 1) { showClusterList(nearbyPoints); }
             else {
                 // KLIKNUTÍ DO PRÁZDNA - STAŽENÍ VZDÁLENÉ OBLASTI
@@ -82,7 +82,7 @@ function renderProjectSelect() {
                 const dist = getDistance(userLat, userLng, pt.lat, pt.lng); const item = document.createElement('div'); item.className = 'cluster-list-item';
                 let col = visSettings.colTb; if(pt.cat === 'ZHB') col = visSettings.colZhb; if(pt.cat === 'PBPP') col = visSettings.colPbpp; if(pt.cat === 'NIVEL') col = visSettings.colNivel; if(pt.cat === 'CUSTOM') col = visSettings.colCustom;
                 item.innerHTML = `<div><div class="cluster-item-title" style="color: ${col};">#${pt.name}</div><div class="cluster-item-subtitle">${typBodu}</div></div><div style="font-weight: 600; font-size: 14px;">${dist.toFixed(1)} m</div>`;
-                item.addEventListener('click', () => { document.getElementById('cluster-modal').style.display = 'none'; showDetails(pt, dist); }); listDiv.appendChild(item);
+                item.addEventListener('click', () => { document.getElementById('cluster-modal').style.display = 'none'; highlightPoint(pt); }); listDiv.appendChild(item);
             });
             document.getElementById('cluster-modal').style.display = 'flex';
         }
@@ -121,6 +121,27 @@ function renderProjectSelect() {
         function closeBottomSheet() { document.getElementById('bottom-sheet').classList.remove('open'); arPoints.forEach(p => { if (p.element) p.element.classList.remove('active-reading'); }); activePointIdForModal = null; }
 
         function toggleHighlight() { if (highlightedPointId === activePointIdForModal) { highlightedPointId = null; } else { highlightedPointId = activePointIdForModal; } closeBottomSheet(); arPoints.forEach(p => { if (p.element) { if (p.id === highlightedPointId) { p.element.classList.add('highlighted'); } else { p.element.classList.remove('highlighted'); } } }); if (!highlightedPointId) { document.getElementById('ar-hud').style.display = 'none'; } }
+
+        // klik na bod v mape -> rovnou nastavit jako cil navigace v AR (zlata znacka + sipka)
+        function highlightPoint(pt) {
+            highlightedPointId = (highlightedPointId === pt.id) ? null : pt.id;
+            initARMarkers();
+            arPoints.forEach(p => { if (p.element) { if (p.id === highlightedPointId) p.element.classList.add('highlighted'); else p.element.classList.remove('highlighted'); } });
+            if (!highlightedPointId) document.getElementById('ar-hud').style.display = 'none';
+            drawAllMarkersOnMap();
+            if (visSettings.vibrationEnabled && navigator.vibrate) navigator.vibrate(40);
+        }
+        // panel prumerovani GPS (vykresleni); data pocita updateGpsAveraging v logika.js
+        function updateGpsAvgPanel() {
+            const el = document.getElementById('gps-avg'); if (!el) return;
+            const tgl = document.getElementById('tgl-gpsavg');
+            if (!appStarted || !tgl || !tgl.checked) { el.style.display = 'none'; return; }
+            el.style.display = 'block';
+            if (!gpsAvgResult || gpsAvgResult.n < 2) { document.getElementById('ga-line1').innerText = 'sb\u00edr\u00e1m data\u2026'; document.getElementById('ga-line2').innerText = ''; return; }
+            const r = gpsAvgResult; const sjtsk = proj4("EPSG:4326", "EPSG:5514", [r.lng, r.lat]);
+            document.getElementById('ga-line1').innerText = `N=${r.n}${r.total > r.n ? ' (z ' + r.total + ')' : ''} \u00b7 st\u0159. chyba \u00b1${r.sterr.toFixed(2)} m`;
+            document.getElementById('ga-line2').innerText = `\u03c3 ${r.sigma.toFixed(2)} m \u00b7 Y ${Math.abs(sjtsk[0]).toFixed(2)} X ${Math.abs(sjtsk[1]).toFixed(2)}`;
+        }
 
         const arOverlay = document.getElementById('ar-overlay');
         function initARMarkers() {
@@ -176,6 +197,7 @@ function renderProjectSelect() {
             compassDebug.innerHTML = `Azimut: ${displayAzimut}`;
             mapWrapper.style.transform = `translate(-50%, -50%) rotate(${-heading}deg)`; const dirContainer = document.getElementById('user-direction-container'); if (dirContainer) dirContainer.style.transform = `rotate(${heading}deg)`;
             document.querySelectorAll('.map-label-text').forEach(el => { el.style.transform = `rotate(${heading}deg)`; });
+            document.querySelectorAll('.leaflet-popup-content-wrapper').forEach(el => { el.style.transform = `rotate(${heading}deg)`; });
             
             // AR PROJEKCE: realny zorny uhel kamery + sklon telefonu (z beta)
             let beta = (event.beta !== null) ? event.beta : 90;

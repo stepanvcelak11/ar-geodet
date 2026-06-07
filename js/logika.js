@@ -26,6 +26,7 @@ if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navi
         let userLat = null, userLng = null, userAlt = null, userMarker = null, lastFetchLat = null, lastFetchLng = null;
         let currentHeading = 0, currentGpsAccuracy = 0, accuracyCircle = null;
         let smoothedHeading = null, gpsCourse = null, gpsSpeed = 0, headingCorrection = 0;
+        let gpsSamples = [], gpsAvgResult = null;
         let arPoints = [], persistentCustomPoints = [], hideBtnLogic = null, editingCustomPointId = null, highlightedPointId = null, activePointIdForModal = null;
         let compassUnit = 'deg'; let compassZeroOffset = 0; let lastVibeTime = 0;
         let measA = null, measB = null;
@@ -108,6 +109,31 @@ if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navi
         function angDiff(a, b) { return ((a - b + 540) % 360) - 180; }
         // cyklicke vyhlazeni uhlu (resi prechod 359 -> 0); alpha 0..1 (vyssi = rychlejsi)
         function smoothAngle(prev, next, alpha) { if (prev === null) return ((next % 360) + 360) % 360; return ((prev + alpha * angDiff(next, prev)) % 360 + 360) % 360; }
+        // PRUMEROVANI GPS: pri stani sbira fixy, prumeruje a odstranuje hrube chyby (>2 sigma)
+        function updateGpsAveraging(lat, lng, acc, speed) {
+            if (gpsSamples.length) {
+                let ml = 0, mg = 0; gpsSamples.forEach(s => { ml += s.lat; mg += s.lng; }); ml /= gpsSamples.length; mg /= gpsSamples.length;
+                let moved = getDistance(ml, mg, lat, lng);
+                if ((speed && speed > 0.5) || moved > 15) gpsSamples = [];
+            }
+            gpsSamples.push({ lat: lat, lng: lng, acc: acc });
+            if (gpsSamples.length > 300) gpsSamples.shift();
+            let cnt = gpsSamples.length, ml = 0, mg = 0;
+            gpsSamples.forEach(s => { ml += s.lat; mg += s.lng; }); ml /= cnt; mg /= cnt;
+            let dists = gpsSamples.map(s => getDistance(ml, mg, s.lat, s.lng));
+            let sigma = Math.sqrt(dists.reduce((a, d) => a + d * d, 0) / cnt);
+            let total = cnt;
+            if (cnt >= 5 && sigma > 0) {
+                let inl = gpsSamples.filter((s, i) => dists[i] <= 2 * sigma);
+                if (inl.length >= 3) {
+                    cnt = inl.length; ml = 0; mg = 0; inl.forEach(s => { ml += s.lat; mg += s.lng; }); ml /= cnt; mg /= cnt;
+                    sigma = Math.sqrt(inl.reduce((a, s) => a + Math.pow(getDistance(ml, mg, s.lat, s.lng), 2), 0) / cnt);
+                }
+            }
+            let sterr = cnt > 0 ? sigma / Math.sqrt(cnt) : 0;
+            gpsAvgResult = { lat: ml, lng: mg, n: cnt, total: total, sigma: sigma, sterr: sterr };
+            updateGpsAvgPanel();
+        }
 
         async function fetchGeodata(lat, lng, radius, clearExisting = false) {
             if (clearExisting) { arPoints.forEach(p => { if(p.element) p.element.remove(); }); arPoints = []; persistentCustomPoints.forEach(pt => arPoints.push({...pt})); }
@@ -134,6 +160,7 @@ if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navi
                     currentGpsAccuracy = position.coords.accuracy; updateInfoPanel();
                     gpsSpeed = (position.coords.speed != null && !isNaN(position.coords.speed)) ? position.coords.speed : 0;
                     if (position.coords.heading != null && !isNaN(position.coords.heading) && gpsSpeed > 0.5) gpsCourse = position.coords.heading;
+                    updateGpsAveraging(userLat, userLng, currentGpsAccuracy, gpsSpeed);
                     if (accuracyCircle) { accuracyCircle.setLatLng([userLat, userLng]); accuracyCircle.setRadius(currentGpsAccuracy); accuracyCircle.setStyle({ color: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillColor: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399' }); } else { accuracyCircle = L.circle([userLat, userLng], { radius: currentGpsAccuracy, color: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillColor: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillOpacity: 0.15, weight: 2 }).addTo(map); }
                     
                     if (highlightedPointId) { let hlPt = arPoints.find(p => p.id === highlightedPointId); if (hlPt) { if (hlPt.bestAccuracy === null || currentGpsAccuracy < hlPt.bestAccuracy) { hlPt.bestAccuracy = currentGpsAccuracy; } } }

@@ -5,11 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>AR Geodet</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0a0d12">
+    <meta name="theme-color" content="#0a0e14">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Geodet">
-    <link rel="apple-touch-icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Compass_icon.svg/512px-Compass_icon.svg.png">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
@@ -46,8 +50,19 @@
 
     <div id="welcome-screen">
         <div class="modal-content">
-            <svg class="welcome-logo" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+            <svg class="welcome-logo" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="wl-badge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16361f"/><stop offset="1" stop-color="#0b1812"/></linearGradient>
+                    <linearGradient id="wl-stroke" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6ee7c4"/><stop offset="1" stop-color="#10b981"/></linearGradient>
+                </defs>
+                <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#wl-badge)" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
+                <path d="M32 16 L46 44 L18 44 Z" fill="rgba(52,211,153,0.06)" stroke="url(#wl-stroke)" stroke-width="2.4" stroke-linejoin="round"/>
+                <g stroke="url(#wl-stroke)" stroke-width="2" stroke-linecap="round">
+                    <line x1="32" y1="8" x2="32" y2="14"/><line x1="32" y1="52" x2="32" y2="58"/>
+                    <line x1="8" y1="34" x2="14" y2="34"/><line x1="50" y1="34" x2="56" y2="34"/>
+                </g>
+                <circle cx="32" cy="34" r="8" stroke="url(#wl-stroke)" stroke-width="2"/>
+                <circle cx="32" cy="34" r="3.2" fill="#6ee7c4"/>
             </svg>
             <h1 style="color: var(--text-color); margin: 0; text-align: center; font-size: 30px; font-weight: 700; letter-spacing: -0.5px;">AR&nbsp;Geodet</h1>
             <div style="text-align:center; margin: 6px 0 26px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-muted);">Geodetický AR nástroj</div>
@@ -105,10 +120,16 @@
         <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
         <label class="menu-toggle-row"><input type="checkbox" id="tgl-info" checked onchange="toggleHudElements()"> Info panel a přesnost</label>
         <label class="menu-toggle-row"><input type="checkbox" id="tgl-compass" checked onchange="toggleHudElements()"> Kompas (Azimut)</label>
+        <label class="menu-toggle-row"><input type="checkbox" id="tgl-gpsavg" checked onchange="toggleHudElements()"> Průměrování GPS na místě</label>
     </div>
 
     <div id="info" class="glass-panel">Čekám na spuštění...</div>
     <div id="compass-debug" class="glass-panel" onclick="openCompassModal()">Azimut: --</div>
+    <div id="gps-avg" class="glass-panel">
+        <div class="ga-title"><svg class="icon"><use href="#i-locate"/></svg> Průměr GPS</div>
+        <div id="ga-line1">—</div>
+        <div id="ga-line2"></div>
+    </div>
 
     <div class="modal-overlay" id="measure-modal">
         <div class="modal-content">
