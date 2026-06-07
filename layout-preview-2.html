@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AR Geodet — rozložení 2/3/4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Sora:wght@700;800&display=swap">
+<style>
+  :root{--teal:#2dd4bf;--violet:#8b5cf6;--grad:linear-gradient(95deg,#2dd4bf,#8b5cf6);--ink:#0b1020;--txt:#eef1f8;--mut:#aab2c8;--gb:rgba(255,255,255,.12);}
+  *{box-sizing:border-box;}
+  body{margin:0;padding:26px 14px 70px;background:#070a12;color:var(--txt);font-family:"Inter",system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+  h1{font-family:"Sora";font-size:22px;font-weight:800;letter-spacing:-.4px;text-align:center;margin:0 0 4px;}
+  .lead{text-align:center;color:var(--mut);font-size:13px;max-width:600px;margin:0 auto 26px;line-height:1.6;}
+  .row{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;align-items:flex-start;}
+  .col{width:300px;}
+  .tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);text-align:center;margin-bottom:3px;}
+  .vname{font-family:"Sora";text-align:center;font-weight:700;font-size:16px;margin:0 0 12px;}
+  .phone{position:relative;height:560px;border-radius:32px;overflow:hidden;border:1px solid var(--gb);box-shadow:0 24px 60px rgba(0,0,0,.55);}
+  .m{position:absolute;inset:0;background:linear-gradient(160deg,#1a2740,#0b1020 60%);}
+  .m::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 32%,rgba(255,255,255,.05),transparent 60%);}
+  .ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .note{margin-top:14px;font-size:12.5px;line-height:1.65;color:var(--mut);}
+  .note b{color:var(--teal);font-weight:600;}
+  /* společné prvky */
+  .chip{position:absolute;backdrop-filter:blur(12px);background:rgba(17,22,42,.78);border:1px solid var(--gb);border-radius:13px;padding:7px 11px;}
+  .chip .l{font-family:"JetBrains Mono",monospace;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);}
+  .chip .v{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:700;}
+  .mk{position:absolute;background:rgba(13,18,27,.74);border:1px solid rgba(255,255,255,.22);border-left:4px solid var(--teal);border-radius:12px;padding:5px 10px;font-size:12.5px;font-weight:700;backdrop-filter:blur(8px);}
+  .mk small{display:block;font-family:"JetBrains Mono",monospace;font-size:9.5px;font-weight:500;color:var(--mut);}
+  .navp{position:absolute;left:50%;transform:translateX(-50%);background:rgba(8,11,15,.78);border:1px solid rgba(139,92,246,.5);border-radius:999px;padding:7px 18px;font-family:"JetBrains Mono",monospace;font-weight:700;font-size:15px;box-shadow:0 0 22px rgba(45,212,191,.3);}
+  .fbtn{display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(17,22,42,.9);border:1px solid var(--gb);color:#fff;backdrop-filter:blur(12px);box-shadow:0 8px 20px rgba(0,0,0,.5);}
+</style>
+</head>
+<body>
+  <h1>Další rozložení — 2 / 3 / 4</h1>
+  <p class="lead">Tři další způsoby ovládání hlavní obrazovky (úvod zůstává minimalistický u všech). Vyber, co ti sedí — klidně kombinuj „chci tohle, ale s tímhle".</p>
+
+  <div class="row">
+
+    <!-- VARIANTA 2: Radiální FAB -->
+    <div class="col">
+      <div class="tag">Varianta 2</div><div class="vname">Radiální tlačítko (FAB)</div>
+      <div class="phone"><div class="m">
+        <div class="chip" style="top:14px;left:14px;"><div class="l">Přesnost</div><div class="v" style="color:#2dd4bf;">±2.4 m</div></div>
+        <div class="chip" style="top:14px;right:14px;"><div class="l">Azimut</div><div class="v">142°</div></div>
+        <div class="mk" style="top:170px;left:80px;">TB-512<small>24.6 m</small></div>
+        <div class="navp" style="top:250px;">↑ 24.6 m</div>
+        <!-- rozevřený vějíř akcí -->
+        <div class="fbtn" style="width:42px;height:42px;right:24px;bottom:170px;"><svg class="ico" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div>
+        <div class="fbtn" style="width:42px;height:42px;right:78px;bottom:140px;"><svg class="ico" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></div>
+        <div class="fbtn" style="width:42px;height:42px;right:118px;bottom:88px;"><svg class="ico" viewBox="0 0 24 24"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/></svg></div>
+        <div class="fbtn" style="width:42px;height:42px;right:130px;bottom:30px;"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.92 1V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 3.6 14H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 5 8.6l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 5.6V5a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 16 7l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 20.4 12H21a2 2 0 1 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15Z"/></svg></div>
+        <!-- hlavní FAB -->
+        <div class="fbtn" style="width:62px;height:62px;right:18px;bottom:18px;background:var(--grad);border:3px solid var(--ink);box-shadow:0 12px 28px rgba(139,92,246,.6);"><svg class="ico" viewBox="0 0 24 24" style="width:28px;height:28px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      </div></div>
+      <div class="note">Jediné velké tlačítko vpravo dole. <b>Klepnutím se rozevře vějíř</b> nástrojů (Vrstvy, Katastr, Měření, Nastavení). Jinak je obrazovka úplně čistá — maximum místa pro AR.</div>
+    </div>
+
+    <!-- VARIANTA 3: Boční rail -->
+    <div class="col">
+      <div class="tag">Varianta 3</div><div class="vname">Boční pilíř (rail)</div>
+      <div class="phone"><div class="m">
+        <div class="chip" style="top:14px;left:14px;"><div class="l">Přesnost</div><div class="v" style="color:#2dd4bf;">±2.4 m</div></div>
+        <div class="chip" style="top:14px;left:120px;"><div class="l">Azimut</div><div class="v">142°</div></div>
+        <div class="mk" style="top:180px;left:60px;">TB-512<small>24.6 m</small></div>
+        <div class="navp" style="top:270px;left:42%;">↑ 24.6 m</div>
+        <!-- vertikální rail vpravo -->
+        <div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;padding:10px 8px;border-radius:22px;background:rgba(17,22,42,.86);border:1px solid var(--gb);backdrop-filter:blur(16px);box-shadow:0 14px 36px rgba(0,0,0,.5);">
+          <div class="fbtn" style="width:44px;height:44px;position:static;background:transparent;border:none;box-shadow:none;color:var(--mut);"><svg class="ico" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div>
+          <div class="fbtn" style="width:44px;height:44px;position:static;background:transparent;border:none;box-shadow:none;color:var(--mut);"><svg class="ico" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></div>
+          <div class="fbtn" style="width:46px;height:46px;position:static;background:var(--grad);border:none;color:#fff;box-shadow:0 8px 18px rgba(139,92,246,.5);"><svg class="ico" viewBox="0 0 24 24" style="width:24px;height:24px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          <div class="fbtn" style="width:44px;height:44px;position:static;background:transparent;border:none;box-shadow:none;color:var(--mut);"><svg class="ico" viewBox="0 0 24 24"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/></svg></div>
+          <div class="fbtn" style="width:44px;height:44px;position:static;background:transparent;border:none;box-shadow:none;color:var(--mut);"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.92 1V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 3.6 14H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 5 8.6l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 5.6V5a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 16 7l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 20.4 12H21a2 2 0 1 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15Z"/></svg></div>
+        </div>
+      </div></div>
+      <div class="note">Tenký <b>svislý pruh nástrojů</b> u pravého okraje, vždy po ruce (palec dosáhne). Nic se neschovává, a přesto zůstává skoro celá plocha volná pro AR/mapu.</div>
+    </div>
+
+    <!-- VARIANTA 4: Horní lišta + pull-up seznam -->
+    <div class="col">
+      <div class="tag">Varianta 4</div><div class="vname">Lišta + seznam bodů</div>
+      <div class="phone"><div class="m">
+        <!-- horní app bar -->
+        <div style="position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(11,16,32,.7);backdrop-filter:blur(14px);border-bottom:1px solid var(--gb);">
+          <span style="font-family:Sora;font-weight:700;font-size:15px;">AR Geodet</span>
+          <div style="display:flex;gap:14px;color:var(--mut);">
+            <svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.92 1V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 3.6 14H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 5 8.6l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 5.6V5a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 16 7l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 20.4 12H21a2 2 0 1 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15Z"/></svg>
+          </div>
+        </div>
+        <div class="mk" style="top:90px;left:70px;">TB-512<small>24.6 m</small></div>
+        <div class="navp" style="top:150px;">↑ 24.6 m</div>
+        <!-- vytahovací seznam bodů -->
+        <div style="position:absolute;left:0;right:0;bottom:0;height:230px;background:rgba(14,19,34,.92);backdrop-filter:blur(20px);border-top:1px solid var(--gb);border-radius:22px 22px 0 0;padding:10px 16px;box-shadow:0 -12px 40px rgba(0,0,0,.5);">
+          <div style="width:40px;height:5px;border-radius:999px;background:rgba(255,255,255,.25);margin:2px auto 12px;"></div>
+          <div style="font-family:Sora;font-weight:700;font-size:14px;margin-bottom:10px;">Nejbližší body</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--gb);">
+            <div><div style="font-weight:700;font-size:14px;color:#2dd4bf;">TB-512</div><div style="font-size:11px;color:var(--mut);">Trigonometrický</div></div>
+            <div style="font-family:JetBrains Mono;font-weight:700;">24.6 m</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--gb);">
+            <div><div style="font-weight:700;font-size:14px;">ZHB-203</div><div style="font-size:11px;color:var(--mut);">Zhušťovací</div></div>
+            <div style="font-family:JetBrains Mono;font-weight:700;">88.1 m</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;">
+            <div><div style="font-weight:700;font-size:14px;">412-7</div><div style="font-size:11px;color:var(--mut);">Podrobný</div></div>
+            <div style="font-family:JetBrains Mono;font-weight:700;">133 m</div>
+          </div>
+        </div>
+      </div></div>
+      <div class="note">Nahoře <b>klasická lišta</b> (název, hledání, nastavení). Dole <b>vytahovací seznam nejbližších bodů</b> seřazený podle vzdálenosti — ťukneš na bod a appka tě k němu navádí. Datově nejpraktičtější pro hledání.</div>
+    </div>
+
+  </div>
+</body>
+</html>
