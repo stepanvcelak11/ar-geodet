@@ -2,7 +2,11 @@
 // AR znacky a sipka, mapa, kompas, modaly, nastaveni vzhledu, ovladani displeje.
 // Nacita se PO logika.js (pouziva jeji promenne a funkce).
 
-function renderProjectSelect() {
+// PWA: nova verze ceka -> nabidnout obnovu (resi matouci starou cache)
+        function showUpdateBanner() { const b = document.getElementById('update-banner'); if (b) b.style.display = 'flex'; }
+        function applyUpdate() { navigator.serviceWorker.getRegistration().then(reg => { if (reg && reg.waiting) reg.waiting.postMessage('SKIP_WAITING'); }); const b = document.getElementById('update-banner'); if (b) b.style.display = 'none'; }
+
+        function renderProjectSelect() {
             const sel = document.getElementById('w-project-select'); sel.innerHTML = '';
             projects.forEach(p => { const opt = document.createElement('option'); opt.value = p.id; opt.innerText = p.name; if(p.id === activeProjectId) opt.selected = true; sel.appendChild(opt); });
         }

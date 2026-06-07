@@ -1253,3 +1253,14 @@ body.outdoor-mode .ar-marker-dist { opacity: 1; }
 #map-controls:not(.expanded) #map-ctrl-stack { opacity: 0; transform: translateY(12px) scale(0.85); pointer-events: none; }
 #map-controls.expanded #map-ctrl-toggle { background: var(--accent); color: #04130c; border-color: var(--accent); }
 #map-controls.expanded #map-ctrl-toggle .icon { stroke: #04130c; }
+
+/* PWA: lista upozorneni na novou verzi (klepnutim obnovit) */
+#update-banner {
+    position: fixed; top: max(10px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+    z-index: 999998; display: none; align-items: center; gap: 8px;
+    padding: 10px 18px; border-radius: var(--r-pill);
+    background: var(--accent-grad); color: #fff; font-size: 13.5px; font-weight: 700;
+    box-shadow: var(--accent-glow), var(--shadow-2); cursor: pointer; border: 1px solid rgba(255,255,255,0.3);
+    animation: menu-pop 0.3s var(--ease-out) both;
+}
+#update-banner .icon { width: 18px; height: 18px; }

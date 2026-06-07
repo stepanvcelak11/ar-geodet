@@ -7,7 +7,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  — mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v15';
+const SHELL_CACHE = 'argeodet-shell-v16';
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -43,7 +43,7 @@ self.addEventListener('install', event => {
                 if (res && (res.ok || res.type === 'opaque')) await cache.put(url, res);
             } catch (e) { /* offline / blokovany CDN — preskocit, nevadi */ }
         }));
-        await self.skipWaiting();
+        // skipWaiting az na vyzadani z appky (po souhlasu uzivatele s obnovou)
     })());
 });
 
@@ -54,6 +54,8 @@ self.addEventListener('activate', event => {
             .then(() => self.clients.claim())
     );
 });
+
+self.addEventListener('message', e => { if (e.data === 'SKIP_WAITING') self.skipWaiting(); });
 
 self.addEventListener('fetch', event => {
     const url = event.request.url;
