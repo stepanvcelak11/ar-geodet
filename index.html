@@ -64,12 +64,12 @@
             <h1 style="color: var(--text-color); margin: 0; text-align: center; font-family: var(--font-display); font-size: 32px; font-weight: 800; letter-spacing: -0.6px;">AR&nbsp;Geodet</h1>
             <div style="text-align:center; margin: 6px 0 26px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-muted);">Geodetický AR nástroj</div>
 
-            <div style="background: var(--surface-2); padding: 15px; border-radius: var(--r-lg); margin-bottom: 20px; border: 1px solid var(--glass-border);">
-                <label style="margin-top: 0; display:block; margin-bottom:8px;"><svg class="icon"><use href="#i-folder"/></svg> Aktivní zakázka</label>
-                <select id="w-project-select" style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.3); color: white; border: 1px solid var(--glass-border); outline: none; margin-bottom: 10px;" onchange="changeProject()"></select>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn btn-secondary" style="margin-top:0; padding: 10px; font-size: 13px;" onclick="createNewProject()"><svg class="icon"><use href="#i-plus"/></svg> Nová zakázka</button>
-                    <button class="btn btn-danger" style="margin-top:0; padding: 10px; font-size: 13px;" onclick="deleteProject()"><svg class="icon"><use href="#i-trash"/></svg> Smazat</button>
+            <div style="margin-bottom: 24px;">
+                <label style="margin: 0 0 9px; display:block;">Aktivní zakázka</label>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <select id="w-project-select" class="w-proj-select" onchange="changeProject()"></select>
+                    <button class="w-proj-icon" onclick="createNewProject()" aria-label="Nová zakázka"><svg class="icon"><use href="#i-plus"/></svg></button>
+                    <button class="w-proj-icon danger" onclick="deleteProject()" aria-label="Smazat zakázku"><svg class="icon"><use href="#i-trash"/></svg></button>
                 </div>
             </div>
 
@@ -343,6 +343,62 @@
             if (btn) btn.classList.add('active');
             if (typeof applyViewMode === 'function') applyViewMode();
         }
+
+        // ===== Ruční posun HUD prvků přetažením (pozice se ukládají) =====
+        (function () {
+            const KEY = 'hudPositions_v1';
+            const IDS = ['info', 'compass-debug', 'view-seg', 'gps-avg'];
+            let pos = {};
+            try { pos = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { pos = {}; }
+            const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+            function place(el, x, y) {
+                el.style.left = clamp(x, 4, window.innerWidth - el.offsetWidth - 4) + 'px';
+                el.style.top = clamp(y, 4, window.innerHeight - el.offsetHeight - 4) + 'px';
+                el.style.right = 'auto';
+                el.style.transform = (el.id === 'view-seg') ? 'none' : el.style.transform.replace(/translateX\([^)]*\)/g, '').trim();
+            }
+            function applySaved() {
+                IDS.forEach(id => { const el = document.getElementById(id); if (el && pos[id]) place(el, pos[id].x, pos[id].y); });
+            }
+            function makeDraggable(el) {
+                if (!el) return;
+                let sx, sy, ox, oy, moved = false, dragging = false;
+                el.addEventListener('pointerdown', e => {
+                    dragging = true; moved = false;
+                    sx = e.clientX; sy = e.clientY;
+                    const r = el.getBoundingClientRect(); ox = r.left; oy = r.top;
+                    try { el.setPointerCapture(e.pointerId); } catch (err) {}
+                });
+                el.addEventListener('pointermove', e => {
+                    if (!dragging) return;
+                    const dx = e.clientX - sx, dy = e.clientY - sy;
+                    if (!moved && Math.hypot(dx, dy) > 6) { moved = true; el.classList.add('hud-dragging'); }
+                    if (moved) { e.preventDefault(); place(el, ox + dx, oy + dy); }
+                });
+                function end() {
+                    if (!dragging) return; dragging = false;
+                    el.classList.remove('hud-dragging');
+                    if (moved) {
+                        const r = el.getBoundingClientRect();
+                        pos[el.id] = { x: Math.round(r.left), y: Math.round(r.top) };
+                        try { localStorage.setItem(KEY, JSON.stringify(pos)); } catch (err) {}
+                        // potlačit klik, který by jinak hned po tažení sepnul (např. kompas)
+                        const sup = ev => { ev.stopPropagation(); ev.preventDefault(); el.removeEventListener('click', sup, true); };
+                        el.addEventListener('click', sup, true);
+                        setTimeout(() => el.removeEventListener('click', sup, true), 50);
+                    }
+                }
+                el.addEventListener('pointerup', end);
+                el.addEventListener('pointercancel', end);
+            }
+            window.addEventListener('load', () => {
+                const info = document.getElementById('info');
+                if (info) info.style.pointerEvents = 'auto'; // aby šel chytit i info panel
+                IDS.forEach(id => makeDraggable(document.getElementById(id)));
+                applySaved();
+            });
+        })();
     </script>
 </body>
 </html>
