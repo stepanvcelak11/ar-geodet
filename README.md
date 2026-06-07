@@ -56,3 +56,12 @@ V nastavení repozitáře (**Settings → Pages**) vyber zdroj `Deploy from a br
 
 > `js/logika.js` se načítá **před** `js/grafika.js` — sdílejí stejný globální prostor,
 > takže grafická část používá proměnné a funkce z technické části.
+
+
+## Upozornění, soukromí a data
+
+**Upozornění:** AR Geodet je orientační pomůcka, nikoli měřicí přístroj. Zobrazená poloha bodů závisí na přesnosti GPS a kompasu telefonu (běžně ±3–7 m). Body v terénu vždy ověřte; za rozhodnutí na základě aplikace odpovídá uživatel.
+
+**Soukromí:** Aplikace běží výhradně v zařízení uživatele. Poloha (GPS) ani obraz z kamery se nikam neodesílají; vlastní body a nastavení jsou uloženy pouze lokálně.
+
+**Zdroje dat:** Bodová pole, ortofoto a katastrální mapa — Podkladová data © ČÚZK (užití dle Podmínek poskytování ČÚZK a Zásad užívání dat a služeb ZÚ). Mapový podklad © přispěvatelé OpenStreetMap (ODbL).

@@ -107,7 +107,8 @@
                     </div>
                 </details>
             </div>
-            <button class="btn btn-primary" style="margin-top: 25px; font-size: 20px; padding: 18px; box-shadow: 0 10px 20px rgba(52,211,153,0.3);" onclick="startAppFromWelcome()"><svg class="icon"><use href="#i-navigation"/></svg> Spustit vyhledávání</button>
+            <p style="text-align:center; font-size:11px; line-height:1.5; color:var(--text-muted); margin:18px 4px 0;">Orientační pomůcka, ne měřicí přístroj — zobrazená poloha závisí na přesnosti GPS a kompasu telefonu. <a href="#" onclick="openAbout(); return false;" style="color:var(--accent);">O aplikaci a soukromí</a></p>
+            <button class="btn btn-primary" style="margin-top: 16px; font-size: 20px; padding: 18px; box-shadow: 0 10px 20px rgba(52,211,153,0.3);" onclick="startAppFromWelcome()"><svg class="icon"><use href="#i-navigation"/></svg> Spustit vyhledávání</button>
         </div>
     </div>
 
@@ -118,6 +119,7 @@
         <button class="menu-btn" onclick="openSettings(); toggleMenu();"><svg class="icon"><use href="#i-settings"/></svg> Otevřít Nastavení</button>
         <button class="menu-btn" onclick="openManageModal(); toggleMenu();"><svg class="icon"><use href="#i-wrench"/></svg> Spravovat vlastní body</button>
         <button class="menu-btn" style="background:var(--accent-blue);" onclick="saveForOffline(); toggleMenu();"><svg class="icon"><use href="#i-download"/></svg> Uložit pro Offline</button>
+        <button class="menu-btn" onclick="openAbout(); toggleMenu();"><svg class="icon"><use href="#i-file-text"/></svg> O aplikaci</button>
         <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
         <label class="menu-toggle-row"><input type="checkbox" id="tgl-info" checked onchange="toggleHudElements()"> Info panel a přesnost</label>
         <label class="menu-toggle-row"><input type="checkbox" id="tgl-compass" checked onchange="toggleHudElements()"> Kompas (Azimut)</label>
@@ -199,7 +201,8 @@
                     <button class="btn btn-secondary" id="btn-unit-gon" onclick="setCompassUnit('gon')">Grady (g)</button>
                 </div>
             </div>
-            <button class="btn btn-secondary" style="margin-top: 20px;" onclick="document.getElementById('compass-modal').style.display='none';">Zavřít</button>
+            <button class="btn btn-secondary" style="margin-top: 15px;" onclick="document.getElementById('compass-modal').style.display='none'; showCompassCalibHint(true);"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Jak zkalibrovat kompas</button>
+                <button class="btn btn-secondary" style="margin-top: 20px;" onclick="document.getElementById('compass-modal').style.display='none';">Zavřít</button>
         </div>
     </div>
 
@@ -341,6 +344,32 @@
     <div class="modal-overlay" id="manage-modal"><div class="modal-content"><h2 style="color: var(--accent); margin-top:0;">Mé body (S-JTSK)</h2><div class="row-buttons" style="margin-top:0; margin-bottom: 15px;"><button class="btn btn-secondary" style="margin-top:0;" onclick="exportPoints()"><svg class="icon"><use href="#i-upload"/></svg> JSON</button><button class="btn btn-secondary" style="margin-top:0;" onclick="exportPointsCSV()"><svg class="icon"><use href="#i-upload"/></svg> CSV</button><button class="btn btn-blue" style="margin-top:0;" onclick="document.getElementById('import-file').click()"><svg class="icon"><use href="#i-folder"/></svg> Import</button><input type="file" id="import-file" style="display:none" accept=".json,.csv,.txt" onchange="importPoints(event)"></div><div class="modal-body" id="manage-list"></div><button class="btn btn-secondary" style="margin-top: 15px;" onclick="closeManageModal()">Zpět</button></div></div>
     <div class="modal-overlay" id="custom-modal-overlay"><div class="modal-content"><h3 id="custom-modal-title" style="color: var(--accent); margin-top:0;">Vložit vlastní bod</h3><div class="modal-body"><button class="btn btn-blue" onclick="fillCurrentGPS()"><svg class="icon"><use href="#i-locate"/></svg> Získat GPS a převést na S-JTSK</button><label>Název / Číslo bodu:</label><input type="text" id="custom-name" placeholder="Např. Mezník 1"><label>S-JTSK Y (v metrech):</label><input type="number" id="custom-y" step="any" placeholder="Např. 596956.46"><label>S-JTSK X (v metrech):</label><input type="number" id="custom-x" step="any" placeholder="Např. 1163343.34"></div><div class="row-buttons"><button class="btn btn-secondary" onclick="closeCustomModal()">Zrušit</button><button class="btn btn-primary" onclick="saveCustomPoint()">Uložit</button></div></div></div>
 
+    <div class="modal-overlay" id="about-modal">
+        <div class="modal-content">
+            <h2 style="margin-top:0;">O aplikaci</h2>
+            <div class="modal-body">
+                <p style="margin-top:0; font-size:13px; opacity:0.8;">AR Geodet — geodetický AR nástroj pro vyhledávání bodů. Verze <span id="about-version">1.0</span>.</p>
+                <div class="geo-highlight" style="border-left-color:#fbbf24;">
+                    <strong><svg class="icon" style="vertical-align:-0.18em; color:#fbbf24;"><use href="#i-alert"/></svg> Upozornění</strong>
+                    <p style="font-size:13px; line-height:1.55; margin:8px 0 0;">Aplikace je <b>orientační pomůcka</b>, nikoli měřicí přístroj. Zobrazená poloha bodů závisí na přesnosti GPS a kompasu telefonu (běžně ±3–7 m, kompas je citlivý na magnetické rušení). Body v terénu vždy ověřte a nehledejte je na centimetr přímo na AR značce. Za rozhodnutí učiněná na základě aplikace nese odpovědnost uživatel.</p>
+                </div>
+                <h4 style="color:var(--accent); margin-top:18px; border-bottom:1px solid var(--glass-border); padding-bottom:5px;">Soukromí</h4>
+                <p style="font-size:13px; line-height:1.55;">Aplikace běží <b>výhradně ve vašem telefonu</b>. Poloha (GPS) i obraz z kamery se zpracovávají lokálně a <b>nikam se neodesílají</b>. Vlastní body a nastavení jsou uloženy pouze v tomto zařízení. Internet se používá jen ke stažení bodů a mapových podkladů z níže uvedených služeb.</p>
+                <h4 style="color:var(--accent); margin-top:18px; border-bottom:1px solid var(--glass-border); padding-bottom:5px;">Zdroje dat</h4>
+                <p style="font-size:13px; line-height:1.55;">Bodová pole, ortofoto a katastrální mapa: <b>Podkladová data © ČÚZK</b> — užití se řídí Podmínkami poskytování ČÚZK a Zásadami užívání dat a služeb ZÚ.<br>Mapový podklad: © přispěvatelé <b>OpenStreetMap</b> (licence ODbL).<br>Odkazy na katastr: Mapy.cz, iKatastr.cz, Geoprohlížeč ČÚZK.</p>
+            </div>
+            <button class="btn btn-secondary" style="margin-top:15px;" onclick="document.getElementById('about-modal').style.display='none'">Zavřít</button>
+        </div>
+    </div>
+    <div class="modal-overlay" id="compass-calib-modal">
+        <div class="modal-content" style="text-align:center;">
+            <div style="font-size:54px; line-height:1; margin:6px 0 10px; color:var(--accent);">∞</div>
+            <h3 style="color:var(--accent); margin:0 0 10px;">Zkalibrujte kompas</h3>
+            <p style="font-size:14px; line-height:1.55; opacity:0.9;">Než začnete navigovat, několikrát otočte telefonem ve vzduchu do tvaru <b>ležaté osmičky</b> (∞) a nakloňte ho přitom do všech směrů.</p>
+            <p style="font-size:13px; line-height:1.5; opacity:0.75;">Bez kalibrace může směr ukazovat chybně. Kalibraci zopakujte, když se u azimutu objeví značka ⚠ nebo jste poblíž kovu či elektrického vedení.</p>
+            <button class="btn btn-primary" style="margin-top:12px;" onclick="dismissCompassCalib()">Rozumím</button>
+        </div>
+    </div>
     <div id="camera-container"><video id="camera-feed" autoplay playsinline></video><div id="ar-hud"><div id="ar-hud-arrow-container"><svg id="arrow-target" viewBox="0 0 100 100" style="display:none;"><circle cx="50" cy="50" r="40" fill="none" stroke-width="8" stroke-dasharray="10, 10" id="target-circle-out" /><circle cx="50" cy="50" r="20" id="target-circle-in" /><circle cx="50" cy="50" r="10" fill="#000" /></svg><svg id="arrow-straight" viewBox="0 0 100 100" style="display:none;"><path id="main-arrow-path" d="M50 10 L90 50 L70 50 L70 95 L30 95 L30 50 L10 50 Z" /></svg><svg id="arrow-right" viewBox="0 0 100 100" style="display:none; filter: drop-shadow(0 15px 15px rgba(251,191,36,0.5));"><path d="M95 50 L55 10 L55 30 C20 30 10 60 10 95 C25 75 35 55 55 55 L55 75 Z" fill="#fbbf24"/></svg><svg id="arrow-left" viewBox="0 0 100 100" style="display:none; filter: drop-shadow(0 15px 15px rgba(251,191,36,0.5));"><path d="M5 50 L45 10 L45 30 C80 30 90 60 90 95 C75 75 65 55 45 55 L45 75 Z" fill="#fbbf24"/></svg><svg id="arrow-uturn" viewBox="0 0 100 100" style="display:none; filter: drop-shadow(0 15px 15px rgba(239,68,68,0.5));"><path d="M25 95 L5 55 L20 55 L20 35 C20 15 80 15 80 35 L80 95 L60 95 L60 35 C60 25 40 25 40 35 L40 55 L55 55 Z" fill="#ef4444"/></svg><svg id="arrow-bullseye" viewBox="0 0 100 100" style="display:none; filter: drop-shadow(0 0 15px #fbbf24);"><circle cx="50" cy="50" r="45" fill="none" stroke="#fbbf24" stroke-width="4"/><circle cx="50" cy="50" r="30" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="5,5"/><line x1="50" y1="0" x2="50" y2="100" stroke="#fbbf24" stroke-width="2"/><line x1="0" y1="50" x2="100" y2="50" stroke="#fbbf24" stroke-width="2"/><circle cx="50" cy="50" r="5" fill="#ef4444"/></svg></div><div id="ar-hud-info"><div class="hud-name" id="ar-hud-name">BOD</div><div id="ar-hud-dist">0.0 m</div></div></div><div id="ar-overlay"></div></div>
     <div id="resizer"><div class="grabber"></div></div>
     <div id="map-container"><div id="map-wrapper"><div id="map"></div></div><div id="map-controls"><div id="map-ctrl-stack"><button class="map-ctrl-btn glass-panel" id="btn-baselayer" onclick="cycleBaseLayer()" aria-label="Podklad mapy (OSM / ortofoto)"><svg class="icon"><use href="#i-layers"/></svg></button><button class="map-ctrl-btn glass-panel" id="btn-katastr" onclick="toggleKatastr()" aria-label="Katastrální mapa"><svg class="icon"><use href="#i-grid"/></svg></button><button class="map-ctrl-btn glass-panel" onclick="map.zoomIn()" aria-label="Přiblížit">+</button><button class="map-ctrl-btn glass-panel" onclick="map.zoomOut()" aria-label="Oddálit">−</button><button class="map-ctrl-btn glass-panel" onclick="recenterOnUser()" aria-label="Vycentrovat na mě"><svg class="icon"><use href="#i-crosshair"/></svg></button></div><button class="map-ctrl-btn glass-panel" id="map-ctrl-toggle" onclick="toggleMapControls()" aria-label="Nástroje mapy"><svg class="icon"><use href="#i-sliders"/></svg></button></div></div>
