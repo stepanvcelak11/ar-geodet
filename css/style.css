@@ -1196,12 +1196,13 @@ details[open] summary::after { content: " ⌄"; }
 /* Editor HUD prvku (otevře se podržením prvku) */
 #hud-editor {
     position: fixed;
-    left: 50%;
+    left: 12px;
+    right: 12px;
+    margin: 0 auto;
     bottom: 104px;
-    transform: translateX(-50%);
     z-index: 10002;
     display: none;
-    width: min(340px, 90vw);
+    width: min(340px, calc(100vw - 24px));
     padding: 16px 18px;
     background: var(--glass-bg);
     border: 1px solid var(--glass-border-strong);
