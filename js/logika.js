@@ -1,0 +1,143 @@
+// ===== AR Geodet - TECHNICKA CAST (logika) =====
+// Vypocty, prevody souradnic, stahovani dat z CUZK, GPS, ukladani, zakazky.
+// Nacita se PRED grafika.js a sdili s ni globalni promenne.
+
+if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); }); }
+        proj4.defs("EPSG:5514","+proj=krovak +lat_0=49.5 +lon_0=24.83333333333333 +alpha=30.28813972222222 +k=0.9999 +x_0=0 +y_0=0 +ellps=bessel +towgs84=570.8,85.7,462.8,4.998,1.587,5.261,3.56 +units=m +no_defs");
+        const map = L.map('map', { maxZoom: 22, zoomControl: false, dragging: false });
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 18 }).addTo(map);
+        const markersGroup = L.layerGroup().addTo(map);
+        
+        let projects = JSON.parse(localStorage.getItem('arProjectsList')) || [{id:'default', name:'Výchozí zakázka'}];
+        let activeProjectId = localStorage.getItem('arActiveProjectId') || 'default';
+        if (!localStorage.getItem('arProjects_migrated')) {
+            ['arFilters12', 'arRadiusMap', 'arRadiusAR', 'arOfflinePoints12', 'arCustomPoints12', 'arVisSettings12'].forEach(k => {
+                let v = localStorage.getItem(k); if(v) localStorage.setItem('default_' + k, v);
+            });
+            localStorage.setItem('arProjects_migrated', 'true');
+        }
+        function getStoreKey(key) { return `${activeProjectId}_${key}`; }
+        function getStoredData(key) { return localStorage.getItem(getStoreKey(key)); }
+        function setStoredData(key, val) { localStorage.setItem(getStoreKey(key), val); }
+        function removeStoredData(key) { localStorage.removeItem(getStoreKey(key)); }
+
+        let appStarted = false, viewMode = 'both', searchQuery = '', cameraStarted = false, currentVideoStream = null;
+        let mapRadius = 1000, arRadius = 150;
+        let userLat = null, userLng = null, userAlt = null, userMarker = null, lastFetchLat = null, lastFetchLng = null;
+        let currentHeading = 0, currentGpsAccuracy = 0, accuracyCircle = null;
+        let arPoints = [], persistentCustomPoints = [], hideBtnLogic = null, editingCustomPointId = null, highlightedPointId = null, activePointIdForModal = null;
+        let compassUnit = 'deg'; let compassZeroOffset = 0; let lastVibeTime = 0;
+        let measA = null, measB = null;
+        let wakeLock = null;
+        let filters = { tb: true, zhb: true, pbpp: true, nivel: true, custom: true };
+
+        let visSettings = { maxARPoints: 100, arVerticalOffset: 0, markerScale: 1.0, markerOpacity: 100, colTb: '#8b5cf6', colZhb: '#0ea5e9', colPbpp: '#3b82f6', colNivel: '#ef4444', colCustom: '#34d399', arrowScale: 1.0, arrowOpacity: 90, arrowShape: '1', colArrow: '#34d399', panelOpacity: 85, menuScale: 1.0, hudTop: 55, hudSide: 15, wakeLockEnabled: true, vibrationEnabled: true, ringOnGround: true, katastrSource: 'mapycz' };
+        
+        function changeProject() { activeProjectId = document.getElementById('w-project-select').value; localStorage.setItem('arActiveProjectId', activeProjectId); loadProjectSettings(); }
+        function createNewProject() { let name = prompt("Název nové zakázky:"); if(name) { let id = 'proj_' + Date.now(); projects.push({id: id, name: name}); localStorage.setItem('arProjectsList', JSON.stringify(projects)); activeProjectId = id; localStorage.setItem('arActiveProjectId', activeProjectId); renderProjectSelect(); loadProjectSettings(); } }
+        function deleteProject() { if(projects.length <= 1) return alert("Nelze smazat poslední zakázku."); if(!confirm("Opravdu smazat aktuální zakázku a všechny její uložené body?")) return; projects = projects.filter(p => p.id !== activeProjectId); localStorage.setItem('arProjectsList', JSON.stringify(projects)); activeProjectId = projects[0].id; localStorage.setItem('arActiveProjectId', activeProjectId); renderProjectSelect(); loadProjectSettings(); }
+
+        function loadProjectSettings() {
+            let f = getStoredData('arFilters12'); if(f) filters = JSON.parse(f); else filters = { tb: true, zhb: true, pbpp: true, nivel: true, custom: true };
+            let m = getStoredData('arRadiusMap'); if(m) mapRadius = parseInt(m); else mapRadius = 1000;
+            let a = getStoredData('arRadiusAR'); if(a) arRadius = parseInt(a); else arRadius = 150;
+            let vs = getStoredData('arVisSettings12'); if(vs) visSettings = Object.assign(visSettings, JSON.parse(vs));
+            
+            arPoints.forEach(p => { if(p.element) p.element.remove(); }); arPoints = []; persistentCustomPoints = [];
+            let off = getStoredData('arOfflinePoints12'); if(off) { try { JSON.parse(off).forEach(p => { p.element=null; p.distElement=null; p.ringElement=null; p.bestAccuracy=null; p.hidden=false; arPoints.push(p); }); }catch(e){} }
+            let cust = getStoredData('arCustomPoints12'); if(cust) { persistentCustomPoints = JSON.parse(cust); }
+
+            document.getElementById('w-map-radius-slider').value = mapRadius; document.getElementById('w-map-radius-val').innerText = mapRadius;
+            document.getElementById('w-ar-radius-slider').value = arRadius; document.getElementById('w-ar-radius-val').innerText = arRadius;
+            document.getElementById('w-f-tb').checked = filters.tb; document.getElementById('w-f-zhb').checked = filters.zhb; document.getElementById('w-f-pbpp').checked = filters.pbpp; document.getElementById('w-f-nivel').checked = filters.nivel; document.getElementById('w-f-custom').checked = filters.custom;
+            
+            applyVisualSettings();
+            if(appStarted) { drawAllMarkersOnMap(); initARMarkers(); if(userLat && userLng) initFetch(userLat, userLng); }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => { renderProjectSelect(); loadProjectSettings(); });
+
+        async function requestWakeLock() { if ('wakeLock' in navigator && visSettings.wakeLockEnabled) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } }
+        document.addEventListener('visibilitychange', () => { if (wakeLock !== null && document.visibilityState === 'visible' && visSettings.wakeLockEnabled) { requestWakeLock(); } });
+
+        function setMeasurePoint(type) { if (!userLat || !userLng) return alert("Hledám GPS pozici. Počkejte chvíli..."); const pt = { lat: userLat, lng: userLng, alt: userAlt }; let altStr = pt.alt !== null ? `Výška: ${pt.alt.toFixed(1)} m` : "Výška: nedostupná"; let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); let coordsStr = `Y: ${Math.abs(sjtsk[0]).toFixed(2)} | X: ${Math.abs(sjtsk[1]).toFixed(2)}<br><span style="opacity:0.7;">${altStr}</span>`; if (type === 'A') { measA = pt; document.getElementById('meas-a-coords').innerHTML = coordsStr; } else { measB = pt; document.getElementById('meas-b-coords').innerHTML = coordsStr; } calcMeasure(); }
+        function calcMeasure() { if (!measA || !measB) return; const hDist = getDistance(measA.lat, measA.lng, measB.lat, measB.lng); document.getElementById('meas-horiz').innerText = `${hDist.toFixed(2)} m`; if (measA.alt !== null && measB.alt !== null) { const elev = measB.alt - measA.alt; const slant = Math.sqrt(hDist * hDist + elev * elev); document.getElementById('meas-elev').innerText = `${elev > 0 ? '+' : ''}${elev.toFixed(2)} m`; document.getElementById('meas-slant').innerText = `${slant.toFixed(2)} m`; } else { document.getElementById('meas-elev').innerText = "Nedostupné"; document.getElementById('meas-slant').innerText = "Nedostupné"; } }
+        function resetMeasure() { measA = null; measB = null; document.getElementById('meas-a-coords').innerHTML = "Nenastaveno"; document.getElementById('meas-b-coords').innerHTML = "Nenastaveno"; document.getElementById('meas-horiz').innerText = "-- m"; document.getElementById('meas-elev').innerText = "-- m"; document.getElementById('meas-slant').innerText = "-- m"; }
+        function updateFilters() { filters.tb = document.getElementById('f-tb').checked; filters.zhb = document.getElementById('f-zhb').checked; filters.pbpp = document.getElementById('f-pbpp').checked; filters.nivel = document.getElementById('f-nivel').checked; filters.custom = document.getElementById('f-custom').checked; setStoredData('arFilters12', JSON.stringify(filters)); drawAllMarkersOnMap(); }
+        
+        window.fetchDistantArea = async function(lat, lng) {
+            map.closePopup(); document.getElementById('info').innerHTML = `Stahuji vzdálenou oblast...`;
+            let found = await fetchGeodata(lat, lng, mapRadius, false);
+            alert(`Staženo ${found} bodů ve vybrané oblasti.\n\nPokud si chcete tuto oblast zachovat i bez internetu, klikněte v Menu na '💾 Uložit pro Offline'.`);
+        };
+
+        
+        async function saveForOffline() {
+            if (!userLat || !userLng) { alert("Počkejte prosím na načtení GPS polohy."); return; }
+            alert("Spouštím stahování bodů a mapy...\nProsím, nevyplínejte aplikaci.");
+            const officialPoints = arPoints.filter(p => p.cat !== 'CUSTOM');
+            try { setStoredData('arOfflinePoints12', JSON.stringify(officialPoints)); } catch(e) { alert('Paměť je plná.'); return; }
+            const r = mapRadius; const latOffset = r / 111320; const lonOffset = r / (111320 * Math.cos(userLat * Math.PI / 180));
+            const minLat = userLat - latOffset; const maxLat = userLat + latOffset; const minLon = userLng - lonOffset; const maxLon = userLng + lonOffset;
+            let urlsToCache = [];
+            [15, 16, 17].forEach(z => {
+                let minX = Math.floor((minLon + 180) / 360 * Math.pow(2, z)); let maxX = Math.floor((maxLon + 180) / 360 * Math.pow(2, z));
+                let minY = Math.floor((1 - Math.log(Math.tan(maxLat * Math.PI / 180) + 1 / Math.cos(maxLat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, z)); let maxY = Math.floor((1 - Math.log(Math.tan(minLat * Math.PI / 180) + 1 / Math.cos(minLat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, z));
+                for (let x = minX; x <= maxX; x++) { for (let y = minY; y <= maxY; y++) { urlsToCache.push(`https://tile.openstreetmap.org/${z}/${x}/${y}.png`); } }
+            });
+            if ('caches' in window) { try { const cache = await caches.open('argeodet-offline-v12'); let count = 0; const total = urlsToCache.length; for (let i = 0; i < total; i += 10) { const chunk = urlsToCache.slice(i, i + 10); await Promise.all(chunk.map(async url => { try { const response = await fetch(url, {mode: 'cors'}); if(response.ok) await cache.put(url, response); } catch(e) {} count++; })); } alert(`Úspěšně uloženo ${officialPoints.length} bodů a ${total} dílků mapy pro tuto zakázku.`); } catch(e) {} }
+        }
+
+        function hideCurrentPoint() { if (hideBtnLogic) hideBtnLogic(); closeBottomSheet(); } function restoreHiddenPoints() { arPoints.forEach(p => p.hidden = false); initARMarkers(); drawAllMarkersOnMap(); document.getElementById('settings-modal').style.display = 'none'; updateInfoPanel(); } function clearAllPoints() { arPoints.forEach(p => { if(p.element) p.element.remove(); }); arPoints = []; removeStoredData('arOfflinePoints12'); document.getElementById('settings-modal').style.display = 'none'; if (userLat && userLng) initFetch(userLat, userLng); } function getVisiblePointsCount() { return arPoints.filter(p => !p.hidden && p.currentDist <= arRadius && (!searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase()))).length; }
+        function exportPoints() { if (persistentCustomPoints.length === 0) return alert("Nemáte žádné body."); const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(persistentCustomPoints)); const downloadAnchorNode = document.createElement('a'); downloadAnchorNode.setAttribute("href", dataStr); downloadAnchorNode.setAttribute("download", `moje_body_${activeProjectId}.json`); document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove(); }
+        function importPoints(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const imported = JSON.parse(e.target.result); let added = 0; imported.forEach(p => { if (!persistentCustomPoints.find(ex => ex.name === p.name && Math.abs(ex.lat - p.lat) < 0.0001)) { p.id = 'cp_' + Date.now() + '_' + Math.random(); persistentCustomPoints.push(p); added++; } }); setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); drawAllMarkersOnMap(); renderManageList(); alert(`Importováno ${added} bodů do aktuální zakázky.`); if (userLat && userLng) initFetch(userLat, userLng); } catch(err) { alert("Chyba při čtení."); } }; reader.readAsText(file); }
+        function deleteCustomPoint(id) { if(!confirm("Smazat?")) return; persistentCustomPoints = persistentCustomPoints.filter(p => p.id !== id); setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); renderManageList(); drawAllMarkersOnMap(); const idx = arPoints.findIndex(p => p.id === id); if(idx !== -1) { if(arPoints[idx].element) arPoints[idx].element.remove(); arPoints.splice(idx, 1); } updateInfoPanel(); }
+        function fillCurrentGPS() { if (userLat && userLng) { let sjtsk = proj4("EPSG:4326", "EPSG:5514", [userLng, userLat]); document.getElementById('custom-y').value = Math.abs(sjtsk[0]).toFixed(2); document.getElementById('custom-x').value = Math.abs(sjtsk[1]).toFixed(2); } else { alert("GPS zatím není načtená."); } }
+        
+        function saveCustomPoint() { 
+            const name = document.getElementById('custom-name').value || "Bod"; let inputY = parseFloat(document.getElementById('custom-y').value); let inputX = parseFloat(document.getElementById('custom-x').value); if (isNaN(inputY) || isNaN(inputX)) return alert("Vyplňte souřadnice!"); let krovakY = inputY > 0 ? -inputY : inputY; let krovakX = inputX > 0 ? -inputX : inputX; let wgs84 = proj4("EPSG:5514", "EPSG:4326", [krovakY, krovakX]); let lng = wgs84[0]; let lat = wgs84[1]; 
+            if (editingCustomPointId) { const idx = persistentCustomPoints.findIndex(p => p.id === editingCustomPointId); if(idx !== -1) { persistentCustomPoints[idx].name = name; persistentCustomPoints[idx].lat = lat; persistentCustomPoints[idx].lng = lng; } const arIdx = arPoints.findIndex(p => p.id === editingCustomPointId); if (arIdx !== -1) { arPoints[arIdx].name = name; arPoints[arIdx].lat = lat; arPoints[arIdx].lng = lng; if(arPoints[arIdx].element) { arPoints[arIdx].element.remove(); arPoints[arIdx].element = null; } } } else { const newPoint = { id: 'cp_' + Date.now(), name: name, lat: lat, lng: lng, cat: "CUSTOM", type: "custom" }; persistentCustomPoints.push(newPoint); arPoints.push({...newPoint, hidden: false}); } setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); drawAllMarkersOnMap(); closeCustomModal(); initARMarkers(); if (userLat && userLng) { updateInfoPanel(); } fixAppLayout(); 
+        }
+
+
+        function extractPointNumber(props) { if (!props) return "Bod"; const upperProps = {}; for (let key in props) upperProps[key.toUpperCase()] = props[key]; let name = upperProps['CISLO'] || upperProps['CISLO_BODU'] || upperProps['VLASTNI_CISLO'] || upperProps['OZNACENI'] || upperProps['UPLNE_CISLO'] || upperProps['NAZEV']; if (name && String(name).trim() !== "" && String(name).trim() !== "Null") return String(name).trim(); return "Bod"; }
+        function getDistance(lat1, lon1, lat2, lon2) { const R = 6371e3, f1 = lat1 * Math.PI/180, f2 = lat2 * Math.PI/180; const df = (lat2-lat1) * Math.PI/180, dl = (lon2-lon1) * Math.PI/180; const a = Math.sin(df/2) * Math.sin(df/2) + Math.cos(f1) * Math.cos(f2) * Math.sin(dl/2) * Math.sin(dl/2); return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
+        function getBearing(lat1, lon1, lat2, lon2) { const toRad = deg => deg * Math.PI / 180; const toDeg = rad => rad * 180 / Math.PI; const dLon = toRad(lon2 - lon1); const y = Math.sin(dLon) * Math.cos(toRad(lat2)); const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) - Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon); return (toDeg(Math.atan2(y, x)) + 360) % 360; }
+
+        async function fetchGeodata(lat, lng, radius, clearExisting = false) {
+            if (clearExisting) { arPoints.forEach(p => { if(p.element) p.element.remove(); }); arPoints = []; persistentCustomPoints.forEach(pt => arPoints.push({...pt})); }
+            const fetchRadius = mapRadius; const latOffset = fetchRadius / 111320; const lngOffset = fetchRadius / (111320 * Math.cos(lat * Math.PI / 180)); const bbox = `${lng - lngOffset},${lat - latOffset},${lng + lngOffset},${lat + latOffset}`; let newFoundCount = 0;
+            for (let layerId of [1, 2, 4, 5, 6]) { 
+                const url = `https://ags.cuzk.gov.cz/arcgis/rest/services/BodovaPole/MapServer/${layerId}/query?where=1%3D1&geometry=${bbox}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&outSR=4326&f=json`;
+                try { const response = await fetch(url); const data = await response.json(); if (data.features && data.features.length > 0) { data.features.forEach(feat => { const dist = getDistance(lat, lng, feat.geometry.y, feat.geometry.x); if (dist <= mapRadius + 5) { const props = feat.attributes; const layerNum = parseInt(layerId, 10); const cisloBodu = extractPointNumber(props); const nameUpper = cisloBodu.toUpperCase(); let cat = "PBPP"; if (layerNum === 1) cat = "TB"; else if (layerNum === 2) cat = "ZHB"; else if (layerNum === 4 || layerNum === 5 || nameUpper.includes('-') || nameUpper.includes('NIVEL')) cat = "NIVEL"; const existing = arPoints.find(p => p.name === cisloBodu && Math.abs(p.lat - feat.geometry.y) < 0.00001); if (!existing) { arPoints.push({ id: Math.random().toString(), name: cisloBodu, lat: feat.geometry.y, lng: feat.geometry.x, cat: cat, type: (cat==="NIVEL"?"vyskovy":"polohovy"), rawData: props, hidden: false, currentDist: dist, bestAccuracy: null }); newFoundCount++; } else if (existing.hidden) { existing.hidden = false; newFoundCount++; } } }); } } catch(e) {}
+            }
+            if (newFoundCount === 0 || !clearExisting) {
+                const mapExtent = `${lng-0.005},${lat-0.005},${lng+0.005},${lat+0.005}`; const idUrl = `https://ags.cuzk.gov.cz/arcgis/rest/services/BodovaPole/MapServer/identify?geometry=${lng},${lat}&geometryType=esriGeometryPoint&sr=4326&layers=all&tolerance=${Math.max(mapRadius, 40)}&mapExtent=${mapExtent}&imageDisplay=1000,1000,96&returnGeometry=true&f=json`;
+                try { const idRes = await fetch(idUrl); const idData = await idRes.json(); if (idData.results && idData.results.length > 0) { idData.results.forEach(res => { const dist = getDistance(lat, lng, res.geometry.y, res.geometry.x); if (dist <= mapRadius + 5) { const props = res.attributes; const layerNum = parseInt(res.layerId, 10); const cisloBodu = extractPointNumber(props); const nameUpper = cisloBodu.toUpperCase(); let cat = "PBPP"; if (layerNum === 1) cat = "TB"; else if (layerNum === 2) cat = "ZHB"; else if (layerNum === 4 || layerNum === 5 || nameUpper.includes('-') || nameUpper.includes('NIVEL')) cat = "NIVEL"; const existing = arPoints.find(p => p.name === cisloBodu && Math.abs(p.lat - res.geometry.y) < 0.00001); if (!existing) { arPoints.push({ id: Math.random().toString(), name: cisloBodu, lat: res.geometry.y, lng: res.geometry.x, cat: cat, type: (cat==="NIVEL"?"vyskovy":"polohovy"), rawData: props, hidden: false, currentDist: dist, bestAccuracy: null }); newFoundCount++; } else if (existing.hidden) { existing.hidden = false; newFoundCount++; } } }); } } catch(e) {}
+            }
+            initARMarkers(); drawAllMarkersOnMap(); return newFoundCount;
+        }
+
+        async function initFetch(lat, lng) { document.getElementById('info').innerHTML = `Stahuji data...`; await fetchGeodata(lat, lng, mapRadius, false); updateInfoPanel(); }
+
+
+        if ("geolocation" in navigator) {
+            navigator.geolocation.watchPosition(
+                (position) => {
+                    userLat = position.coords.latitude; userLng = position.coords.longitude; 
+                    userAlt = position.coords.altitude || null; 
+                    currentGpsAccuracy = position.coords.accuracy; updateInfoPanel();
+                    if (accuracyCircle) { accuracyCircle.setLatLng([userLat, userLng]); accuracyCircle.setRadius(currentGpsAccuracy); accuracyCircle.setStyle({ color: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillColor: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399' }); } else { accuracyCircle = L.circle([userLat, userLng], { radius: currentGpsAccuracy, color: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillColor: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillOpacity: 0.15, weight: 2 }).addTo(map); }
+                    
+                    if (highlightedPointId) { let hlPt = arPoints.find(p => p.id === highlightedPointId); if (hlPt) { if (hlPt.bestAccuracy === null || currentGpsAccuracy < hlPt.bestAccuracy) { hlPt.bestAccuracy = currentGpsAccuracy; } } }
+                    
+                    arPoints.forEach(p => p.currentDist = getDistance(userLat, userLng, p.lat, p.lng)); arPoints.sort((a, b) => a.currentDist - b.currentDist);
+                    if (activePointIdForModal) { const activePt = arPoints.find(p => p.id === activePointIdForModal); if (activePt) { const newDist = getDistance(userLat, userLng, activePt.lat, activePt.lng); const distEl = document.getElementById('sheet-distance-val'); if (distEl) distEl.innerText = `${newDist.toFixed(1)} m`; const gpsEl = document.getElementById('sheet-gps-val'); if (gpsEl) gpsEl.innerText = currentGpsAccuracy.toFixed(1); } }
+                    if (lastFetchLat === null || lastFetchLng === null) { map.setView([userLat, userLng], 19); lastFetchLat = userLat; lastFetchLng = userLng; if (appStarted) setTimeout(() => initFetch(userLat, userLng), 1000); } else { const moved = getDistance(lastFetchLat, lastFetchLng, userLat, userLng); if (moved > 25) { lastFetchLat = userLat; lastFetchLng = userLng; if (appStarted) initFetch(userLat, userLng); } }
+                    const userIcon = L.divIcon({ className: 'custom-user-icon', html: `<div id="user-direction-container" style="transition: transform 0.1s linear; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center;"><div style="position:absolute; width: 28px; height: 28px; background: rgba(52, 211, 153, 0.3); border-radius: 50%; filter: blur(3px);"></div><svg width="24" height="24" viewBox="0 0 24 24" style="z-index: 2; transform: translateY(-3px); filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.6));"><path d="M12,2 L22,20 L12,16 L2,20 Z" fill="#34d399" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg></div>`, iconSize: [44, 44], iconAnchor: [22, 22] });
+                    if (userMarker) userMarker.setLatLng([userLat, userLng]); else userMarker = L.marker([userLat, userLng], {icon: userIcon, zIndexOffset: 1000}).addTo(map);
+                },
+                (error) => { if (appStarted) document.getElementById('info').innerHTML = `Chyba GPS: ${error.message}`; },
+                { enableHighAccuracy: true, maximumAge: 10000, timeout: 27000 }
+            );
+        }

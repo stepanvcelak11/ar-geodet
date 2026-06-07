@@ -43,8 +43,16 @@ V nastavení repozitáře (**Settings → Pages**) vyber zdroj `Deploy from a br
 
 ```
 .
-├── index.html      # celá aplikace (UI + logika)
-├── manifest.json   # PWA manifest
-├── sw.js           # service worker (offline cache)
+├── index.html        # HTML struktura aplikace
+├── css/
+│   └── style.css     # všechny styly
+├── js/
+│   ├── logika.js     # TECHNICKÁ část (výpočty, převody souřadnic, ČÚZK, GPS, ukládání, zakázky)
+│   └── grafika.js    # GRAFICKÁ část (AR značky/šipka, mapa, kompas, modály, vzhled)
+├── manifest.json     # PWA manifest
+├── sw.js             # service worker (offline cache)
 └── README.md
 ```
+
+> `js/logika.js` se načítá **před** `js/grafika.js` — sdílejí stejný globální prostor,
+> takže grafická část používá proměnné a funkce z technické části.
