@@ -220,11 +220,11 @@ function renderProjectSelect() {
             let rawCompass = event.webkitCompassHeading || (event.alpha !== null ? 360 - event.alpha : null); if (rawCompass === null) return;
             // SMER: pri pohybu auto-koriguj magneticky kompas podle GPS kurzu (potlaci magneticke ruseni)
             if (visSettings.autoCompassCorrection && gpsCourse !== null && gpsSpeed > 0.7) {
-                let want = angDiff(gpsCourse, rawCompass);
+                let want = angDiff(gpsCourse, rawCompass + magneticDeclination);
                 headingCorrection += 0.05 * angDiff(want, headingCorrection);
                 if (headingCorrection > 180) headingCorrection -= 360; else if (headingCorrection < -180) headingCorrection += 360;
             }
-            let corrected = (rawCompass + headingCorrection + 360) % 360;
+            let corrected = (rawCompass + magneticDeclination + headingCorrection + 360) % 360;
             // SMER: cyklicke vyhlazeni (mene roztreseny obraz); sila dle nastaveni
             let smoothAlpha = Math.max(0.05, 1 - (visSettings.headingSmoothing || 0) / 100);
             smoothedHeading = smoothAngle(smoothedHeading, corrected, smoothAlpha);

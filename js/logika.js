@@ -24,7 +24,7 @@ if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navi
         let appStarted = false, viewMode = 'both', searchQuery = '', cameraStarted = false, currentVideoStream = null;
         let mapRadius = 1000, arRadius = 150;
         let userLat = null, userLng = null, userAlt = null, userMarker = null, lastFetchLat = null, lastFetchLng = null, lastCenterLat = null, lastCenterLng = null;
-        let currentHeading = 0, currentGpsAccuracy = 0, accuracyCircle = null;
+        let currentHeading = 0, currentGpsAccuracy = 0, accuracyCircle = null, magneticDeclination = 0;
         let smoothedHeading = null, gpsCourse = null, gpsSpeed = 0, headingCorrection = 0;
         let gpsSamples = [], gpsAvgResult = null;
         let arPoints = [], persistentCustomPoints = [], hideBtnLogic = null, editingCustomPointId = null, highlightedPointId = null, activePointIdForModal = null;
@@ -109,6 +109,13 @@ if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navi
         function angDiff(a, b) { return ((a - b + 540) % 360) - 180; }
         // cyklicke vyhlazeni uhlu (resi prechod 359 -> 0); alpha 0..1 (vyssi = rychlejsi)
         function smoothAngle(prev, next, alpha) { if (prev === null) return ((next % 360) + 360) % 360; return ((prev + alpha * angDiff(next, prev)) % 360 + 360) % 360; }
+        // MAGNETICKA DEKLINACE: kompas (senzor) meri magneticky sever, ale azimuty (getBearing)
+        // pocitame k zemepisnemu severu. V CR je deklinace ~+5-6 vychodne a roste -> bez korekce
+        // systematicka chyba smeru. Aproximace WMM2025 (linearni fit pro CR), driftuje +0.13 /rok.
+        function getDeclination(lat, lng) {
+            const now = new Date(); const year = now.getFullYear() + now.getMonth() / 12;
+            return 5.65 + 0.25 * (lng - 15.5) - 0.05 * (lat - 49.8) + 0.13 * (year - 2025);
+        }
         // PRUMEROVANI GPS: pri stani sbira fixy, prumeruje a odstranuje hrube chyby (>2 sigma)
         function updateGpsAveraging(lat, lng, acc, speed) {
             if (gpsSamples.length) {
@@ -159,7 +166,7 @@ if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navi
         if ("geolocation" in navigator) {
             navigator.geolocation.watchPosition(
                 (position) => {
-                    userLat = position.coords.latitude; userLng = position.coords.longitude; 
+                    userLat = position.coords.latitude; userLng = position.coords.longitude; magneticDeclination = getDeclination(userLat, userLng); 
                     userAlt = position.coords.altitude || null; 
                     currentGpsAccuracy = position.coords.accuracy; updateInfoPanel();
                     gpsSpeed = (position.coords.speed != null && !isNaN(position.coords.speed)) ? position.coords.speed : 0;
@@ -177,6 +184,6 @@ if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navi
                     if (userMarker) userMarker.setLatLng([userLat, userLng]); else userMarker = L.marker([userLat, userLng], {icon: userIcon, zIndexOffset: 1000}).addTo(map);
                 },
                 (error) => { if (appStarted) document.getElementById('info').innerHTML = `Chyba GPS: ${error.message}`; },
-                { enableHighAccuracy: true, maximumAge: 10000, timeout: 27000 }
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 27000 }
             );
         }
