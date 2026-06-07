@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AR Geodet — náhled vzhledu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Sora:wght@600;700;800&display=swap">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0; padding:26px 14px 70px; background:#070a10; color:#e8edf4; font-family:"Inter",system-ui,sans-serif; -webkit-font-smoothing:antialiased;}
+  h1{font-size:22px; font-weight:800; letter-spacing:-.4px; text-align:center; margin:0 0 4px;}
+  .lead{text-align:center; color:#8b97a8; font-size:13px; margin:0 auto 26px; max-width:520px; line-height:1.6;}
+  .row{display:flex; flex-wrap:wrap; gap:24px; justify-content:center; align-items:flex-start;}
+  .col{width:300px;}
+  .tag{font-family:"JetBrains Mono",monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#8b97a8; text-align:center; margin:0 0 4px;}
+  .vname{text-align:center; font-weight:700; font-size:16px; margin:0 0 12px;}
+  .vdesc{text-align:center; color:#8b97a8; font-size:12.5px; line-height:1.55; margin:12px 4px 0;}
+  /* telefon */
+  .phone{position:relative; height:540px; border-radius:30px; overflow:hidden; border:1px solid rgba(255,255,255,.12); box-shadow:0 24px 60px rgba(0,0,0,.55);}
+  .scr{position:absolute; inset:0; display:flex; flex-direction:column;}
+  .hero{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:26px; position:relative; overflow:hidden;}
+  .hud{height:150px; border-top:1px solid rgba(255,255,255,.12); position:relative; overflow:hidden;}
+  .mk{position:absolute; padding:5px 11px; font-size:12px; font-weight:700; white-space:nowrap;}
+  .mkd{font-size:10px; font-weight:500; opacity:.8;}
+  .pill{position:absolute; left:50%; transform:translateX(-50%); padding:7px 16px; border-radius:999px; font-weight:700; font-size:15px; white-space:nowrap;}
+  .info{position:absolute; top:12px; left:12px; padding:8px 12px; border-radius:12px; font-size:11px; line-height:1.5;}
+  .lbl{font-size:9px; letter-spacing:.1em; text-transform:uppercase; opacity:.6;}
+  .logo{width:62px; height:62px; margin-bottom:14px;}
+  .btn{margin-top:18px; padding:14px 22px; border-radius:14px; font-weight:700; font-size:15px; border:none;}
+
+  /* ===== A: AURORA GLASS ===== */
+  .v1 .phone{background:#0b1020;}
+  .v1 .hero{background:radial-gradient(60% 50% at 20% 10%,rgba(45,212,191,.45),transparent 60%),radial-gradient(55% 45% at 85% 25%,rgba(139,92,246,.5),transparent 60%),radial-gradient(60% 50% at 60% 100%,rgba(244,114,182,.35),transparent 60%),#0b1020;}
+  .v1 .card{background:rgba(255,255,255,.07); backdrop-filter:blur(18px); border:1px solid rgba(255,255,255,.18); border-radius:26px; padding:26px 22px; text-align:center; width:100%; box-shadow:0 20px 50px rgba(0,0,0,.4);}
+  .v1 h2{font-family:"Sora",sans-serif; font-size:28px; font-weight:800; margin:0; letter-spacing:-.5px;}
+  .v1 .s{font-size:12px; color:#c7d0e0; margin-top:6px;}
+  .v1 .btn{background:linear-gradient(90deg,#2dd4bf,#8b5cf6); color:#fff; width:100%; box-shadow:0 10px 24px rgba(139,92,246,.5);}
+  .v1 .hud{background:linear-gradient(180deg,#11162a,#0b1020);}
+  .v1 .info{background:rgba(255,255,255,.08); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.15);}
+  .v1 .mk{background:rgba(255,255,255,.12); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.25); border-radius:14px; top:30px; left:30px; color:#fff;}
+  .v1 .pill{bottom:24px; background:linear-gradient(90deg,#2dd4bf,#8b5cf6); color:#fff;}
+
+  /* ===== B: TACTICAL INSTRUMENT ===== */
+  .v2 .phone{background:#07090c; font-family:"JetBrains Mono",monospace;}
+  .v2 .hero{background:#07090c; background-image:linear-gradient(rgba(52,211,153,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(52,211,153,.05) 1px,transparent 1px); background-size:22px 22px;}
+  .v2 .card{width:100%; text-align:center; border:1px solid rgba(52,211,153,.3); border-radius:4px; padding:24px 18px; background:rgba(7,14,11,.6); position:relative;}
+  .v2 .card::before,.v2 .card::after{content:""; position:absolute; width:14px; height:14px; border:2px solid #34d399;}
+  .v2 .card::before{top:-1px; left:-1px; border-right:0; border-bottom:0;}
+  .v2 .card::after{bottom:-1px; right:-1px; border-left:0; border-top:0;}
+  .v2 h2{font-family:"JetBrains Mono",monospace; font-size:23px; font-weight:700; margin:0; letter-spacing:1px; color:#34d399;}
+  .v2 .s{font-size:10px; color:#7d8a82; margin-top:8px; letter-spacing:.2em;}
+  .v2 .btn{background:#34d399; color:#04130c; width:100%; border-radius:4px; font-family:"JetBrains Mono",monospace; letter-spacing:.1em;}
+  .v2 .hud{background:#0a0f0c;}
+  .v2 .info{background:rgba(7,14,11,.85); border:1px solid rgba(52,211,153,.35); font-family:"JetBrains Mono",monospace;}
+  .v2 .info b{color:#34d399;}
+  .v2 .mk{background:rgba(7,14,11,.85); border:1px solid #34d399; border-radius:3px; top:30px; left:30px; color:#34d399; font-family:"JetBrains Mono",monospace;}
+  .v2 .pill{bottom:22px; background:rgba(7,14,11,.9); border:1px solid #fbbf24; color:#fbbf24; font-family:"JetBrains Mono",monospace; border-radius:4px;}
+
+  /* ===== C: DAYLIGHT TOPO (světlý) ===== */
+  .v3 .phone{background:#f4f1ea; border-color:rgba(0,0,0,.12);}
+  .v3 .hero{background:radial-gradient(circle at 50% 38%,rgba(15,157,107,.10),transparent 60%),#f4f1ea; color:#1f2937;}
+  .v3 .hero::before{content:""; position:absolute; inset:0; background:repeating-radial-gradient(circle at 50% 40%, transparent 0 16px, rgba(31,41,55,.05) 16px 17px); pointer-events:none;}
+  .v3 .card{width:100%; text-align:center; background:#fff; border:1px solid rgba(0,0,0,.06); border-radius:22px; padding:26px 22px; box-shadow:0 16px 40px rgba(31,41,55,.12); position:relative;}
+  .v3 h2{font-family:"Sora",sans-serif; font-size:27px; font-weight:800; margin:0; color:#111827; letter-spacing:-.5px;}
+  .v3 .s{font-size:11px; color:#6b7280; margin-top:6px; letter-spacing:.18em; text-transform:uppercase; font-family:"JetBrains Mono",monospace;}
+  .v3 .btn{background:#0f9d6b; color:#fff; width:100%; box-shadow:0 10px 22px rgba(15,157,107,.35);}
+  .v3 .hud{background:#e9e4d8; border-top-color:rgba(0,0,0,.1);}
+  .v3 .info{background:#fff; border:1px solid rgba(0,0,0,.08); color:#1f2937; box-shadow:0 4px 12px rgba(0,0,0,.08);}
+  .v3 .info .lbl{opacity:.55;}
+  .v3 .mk{background:#fff; border:1px solid rgba(0,0,0,.1); border-left:4px solid #0f9d6b; border-radius:12px; top:30px; left:30px; color:#1f2937; box-shadow:0 4px 12px rgba(0,0,0,.12);}
+  .v3 .pill{bottom:22px; background:#0f9d6b; color:#fff; box-shadow:0 6px 16px rgba(15,157,107,.4);}
+</style>
+</head>
+<body>
+  <h1>Náhled vzhledu — 3 směry</h1>
+  <p class="lead">Každý je úplně jiný svět (barvy, písmo, nálada). Nahoře úvodní obrazovka, dole ukázka AR vrstvy. Vyber, kterým směrem appku „skoro nepoznáš".</p>
+
+  <div class="row">
+
+    <!-- A -->
+    <div class="col v1">
+      <div class="tag">Směr A</div><div class="vname">Aurora Glass</div>
+      <div class="phone"><div class="scr">
+        <div class="hero">
+          <div class="card">
+            <svg class="logo" viewBox="0 0 96 96" fill="none"><path d="M48 12C32 12 20 24 20 40c0 21 28 44 28 44s28-23 28-44c0-16-12-28-28-28Z" fill="rgba(255,255,255,.9)"/><circle cx="48" cy="39" r="13" fill="#0b1020"/><circle cx="48" cy="39" r="4" fill="#fff"/></svg>
+            <h2>AR Geodet</h2>
+            <div class="s">Najdi geodetický bod v realitě</div>
+            <button class="btn">Spustit hledání</button>
+          </div>
+        </div>
+        <div class="hud">
+          <div class="info"><div class="lbl">Přesnost</div>±2.4 m</div>
+          <div class="mk">TB-512<div class="mkd">24.6 m</div></div>
+          <div class="pill">↑ 24.6 m</div>
+        </div>
+      </div></div>
+      <div class="vdesc">Živé barevné záře, prosklené karty, velká přátelská typografie. Konzumně „wow", jako moderní appka, kterou chceš ukazovat.</div>
+    </div>
+
+    <!-- B -->
+    <div class="col v2">
+      <div class="tag">Směr B</div><div class="vname">Tactical Instrument</div>
+      <div class="phone"><div class="scr">
+        <div class="hero">
+          <div class="card">
+            <svg class="logo" viewBox="0 0 96 96" fill="none" stroke="#34d399" stroke-width="3" stroke-linejoin="round"><rect x="32" y="32" width="32" height="32" rx="4" transform="rotate(45 48 48)"/><circle cx="48" cy="48" r="5" fill="#34d399" stroke="none"/></svg>
+            <h2>AR&nbsp;GEODET</h2>
+            <div class="s">PRECISION · FIELD · TOOL</div>
+            <button class="btn">▶ START</button>
+          </div>
+        </div>
+        <div class="hud">
+          <div class="info"><div class="lbl">ACC</div><b>±2.4 m</b> · HDG 142°</div>
+          <div class="mk">TB-512<div class="mkd">24.6 m</div></div>
+          <div class="pill">▲ 24.6 m</div>
+        </div>
+      </div></div>
+      <div class="vdesc">Černá, monospace, nitkové kříže, rohové „závorky", datové readouty. Působí jako profesionální měřický přístroj.</div>
+    </div>
+
+    <!-- C -->
+    <div class="col v3">
+      <div class="tag">Směr C</div><div class="vname">Daylight Topo (světlý)</div>
+      <div class="phone"><div class="scr">
+        <div class="hero">
+          <div class="card">
+            <svg class="logo" viewBox="0 0 96 96" fill="none"><path d="M48 12C32 12 20 24 20 40c0 21 28 44 28 44s28-23 28-44c0-16-12-28-28-28Z" fill="#0f9d6b"/><circle cx="48" cy="39" r="13" fill="#fff"/><circle cx="48" cy="39" r="4" fill="#0f9d6b"/></svg>
+            <h2>AR Geodet</h2>
+            <div class="s">Geodetický AR nástroj</div>
+            <button class="btn">Spustit hledání</button>
+          </div>
+        </div>
+        <div class="hud">
+          <div class="info"><div class="lbl">Přesnost</div>±2.4 m</div>
+          <div class="mk">TB-512<div class="mkd">24.6 m</div></div>
+          <div class="pill">↑ 24.6 m</div>
+        </div>
+      </div></div>
+      <div class="vdesc">Světlý „papírový" motiv s vrstevnicemi. Čitelný i na ostrém slunci v terénu a hned působí úplně jinak než dnešní tmavá verze.</div>
+    </div>
+
+  </div>
+</body>
+</html>
