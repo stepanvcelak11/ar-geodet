@@ -1264,3 +1264,9 @@ body.outdoor-mode .ar-marker-dist { opacity: 1; }
     animation: menu-pop 0.3s var(--ease-out) both;
 }
 #update-banner .icon { width: 18px; height: 18px; }
+
+/* Zameren bod prumerovanim: tlacitko v panelu + info v modalu */
+#ga-save-btn { pointer-events: auto; width: 100%; margin-top: 8px; padding: 8px; border: none; border-radius: var(--r-sm); background: var(--accent-grad); color: #fff; font-family: var(--font-ui); font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+#ga-save-btn .icon { width: 15px; height: 15px; }
+#ga-save-btn:active { transform: scale(0.97); }
+#custom-acc-note { margin: 4px 0 6px; padding: 10px 12px; background: var(--accent-soft); border: 1px solid var(--accent-line); border-radius: var(--r-sm); font-size: 12.5px; line-height: 1.4; color: var(--accent-bright); }

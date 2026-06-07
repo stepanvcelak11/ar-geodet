@@ -150,6 +150,7 @@
         <div class="ga-row"><span>Měření:</span> <b id="ga-n">—</b></div>
         <div class="ga-row"><span>Stř. chyba ⌀:</span> <b id="ga-pos">—</b></div>
         <div class="ga-row"><span>Rozptyl σ:</span> <b id="ga-se">—</b></div>
+        <button id="ga-save-btn" onclick="measureAveragedPoint()"><svg class="icon"><use href="#i-map-pin"/></svg> Zaměřit bod</button>
     </div>
 
     <!-- Editor HUD prvku (otevře se podržením prvku) -->
@@ -342,7 +343,7 @@
     </div>
 
     <div class="modal-overlay" id="manage-modal"><div class="modal-content"><h2 style="color: var(--accent); margin-top:0;">Mé body (S-JTSK)</h2><div class="row-buttons" style="margin-top:0; margin-bottom: 15px;"><button class="btn btn-secondary" style="margin-top:0;" onclick="exportPoints()"><svg class="icon"><use href="#i-upload"/></svg> JSON</button><button class="btn btn-secondary" style="margin-top:0;" onclick="exportPointsCSV()"><svg class="icon"><use href="#i-upload"/></svg> CSV</button><button class="btn btn-blue" style="margin-top:0;" onclick="document.getElementById('import-file').click()"><svg class="icon"><use href="#i-folder"/></svg> Import</button><input type="file" id="import-file" style="display:none" accept=".json,.csv,.txt" onchange="importPoints(event)"></div><div class="modal-body" id="manage-list"></div><button class="btn btn-secondary" style="margin-top: 15px;" onclick="closeManageModal()">Zpět</button></div></div>
-    <div class="modal-overlay" id="custom-modal-overlay"><div class="modal-content"><h3 id="custom-modal-title" style="color: var(--accent); margin-top:0;">Vložit vlastní bod</h3><div class="modal-body"><button class="btn btn-blue" onclick="fillCurrentGPS()"><svg class="icon"><use href="#i-locate"/></svg> Získat GPS a převést na S-JTSK</button><label>Název / Číslo bodu:</label><input type="text" id="custom-name" placeholder="Např. Mezník 1"><label>S-JTSK Y (v metrech):</label><input type="number" id="custom-y" step="any" placeholder="Např. 596956.46"><label>S-JTSK X (v metrech):</label><input type="number" id="custom-x" step="any" placeholder="Např. 1163343.34"></div><div class="row-buttons"><button class="btn btn-secondary" onclick="closeCustomModal()">Zrušit</button><button class="btn btn-primary" onclick="saveCustomPoint()">Uložit</button></div></div></div>
+    <div class="modal-overlay" id="custom-modal-overlay"><div class="modal-content"><h3 id="custom-modal-title" style="color: var(--accent); margin-top:0;">Vložit vlastní bod</h3><div class="modal-body"><button class="btn btn-blue" onclick="fillCurrentGPS()"><svg class="icon"><use href="#i-locate"/></svg> Získat GPS a převést na S-JTSK</button><div id="custom-acc-note" style="display:none;"></div><label>Název / Číslo bodu:</label><input type="text" id="custom-name" placeholder="Např. Mezník 1"><label>S-JTSK Y (v metrech):</label><input type="number" id="custom-y" step="any" placeholder="Např. 596956.46"><label>S-JTSK X (v metrech):</label><input type="number" id="custom-x" step="any" placeholder="Např. 1163343.34"></div><div class="row-buttons"><button class="btn btn-secondary" onclick="closeCustomModal()">Zrušit</button><button class="btn btn-primary" onclick="saveCustomPoint()">Uložit</button></div></div></div>
 
     <div class="modal-overlay" id="about-modal">
         <div class="modal-content">
