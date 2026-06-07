@@ -177,6 +177,8 @@ function renderProjectSelect() {
         }
         function cycleBaseLayer() { visSettings.baseLayer = (visSettings.baseLayer === 'ortofoto') ? 'osm' : 'ortofoto'; setStoredData('arVisSettings12', JSON.stringify(visSettings)); applyMapLayers(); }
         function toggleKatastr() { visSettings.showKatastr = !visSettings.showKatastr; setStoredData('arVisSettings12', JSON.stringify(visSettings)); applyMapLayers(); }
+        // Vyjizdejici panel ovladani mapy: sbaleno = jen prepinaci tlacitko
+        function toggleMapControls() { document.getElementById('map-controls').classList.toggle('expanded'); }
 
         const arOverlay = document.getElementById('ar-overlay');
         let arRing = null, arStem = null;
@@ -201,7 +203,7 @@ function renderProjectSelect() {
         let mapReturnTimer;
         function recenterOnUser() { if (userLat == null) return; clearTimeout(mapReturnTimer); map.setView([userLat, userLng], map.getZoom(), { animate: true }); lastCenterLat = userLat; lastCenterLng = userLng; }
         let isDraggingMap = false; let startTouchX = 0, startTouchY = 0; let lastTouchX = 0, lastTouchY = 0; const mapContainerEl = document.getElementById('map-container');
-        mapContainerEl.addEventListener('touchstart', (e) => { if (e.touches.length === 1 && !e.target.closest('.glass-panel')) { isDraggingMap = true; clearTimeout(mapReturnTimer); startTouchX = e.touches[0].clientX; startTouchY = e.touches[0].clientY; lastTouchX = startTouchX; lastTouchY = startTouchY; } }, { passive: true });
+        mapContainerEl.addEventListener('touchstart', (e) => { if (e.touches.length === 1 && !e.target.closest('.glass-panel')) { isDraggingMap = true; clearTimeout(mapReturnTimer); document.getElementById('map-controls').classList.remove('expanded'); startTouchX = e.touches[0].clientX; startTouchY = e.touches[0].clientY; lastTouchX = startTouchX; lastTouchY = startTouchY; } }, { passive: true });
         mapContainerEl.addEventListener('touchmove', (e) => { if (!isDraggingMap || e.touches.length !== 1) return; const dx = e.touches[0].clientX - lastTouchX; const dy = e.touches[0].clientY - lastTouchY;
             // SMER: vezmi skutecne otoceni mapy z CSS matice wrapperu, aby posun vzdy sledoval prst (i kdyz je mapa otocena podle kompasu)
             let cos = 1, sin = 0; const tr = getComputedStyle(mapWrapper).transform; if (tr && tr.indexOf('matrix') === 0) { const v = tr.slice(tr.indexOf('(') + 1, -1).split(',').map(parseFloat); cos = v[0]; sin = v[1]; }
