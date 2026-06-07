@@ -119,6 +119,29 @@
             document.getElementById('cluster-modal').style.display = 'flex';
         }
 
+        // Seznam bodu v okoli serazeny podle vzdalenosti; klepnuti = navigace (highlightPoint)
+        function openNearbyModal() { if (userLat == null) { alert("Čekám na GPS pozici..."); return; } renderNearbyList(); document.getElementById('nearby-modal').style.display = 'flex'; }
+        function renderNearbyList() {
+            const listDiv = document.getElementById('nearby-list'); listDiv.innerHTML = '';
+            const pts = arPoints.filter(pt => {
+                if (pt.hidden) return false;
+                if (pt.cat === 'TB' && !filters.tb) return false; if (pt.cat === 'ZHB' && !filters.zhb) return false;
+                if (pt.cat === 'PBPP' && !filters.pbpp) return false; if (pt.cat === 'NIVEL' && !filters.nivel) return false;
+                if (pt.cat === 'CUSTOM' && !filters.custom) return false;
+                if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+                return true;
+            }).map(pt => ({ pt, d: getDistance(userLat, userLng, pt.lat, pt.lng) })).sort((a, b) => a.d - b.d).slice(0, 50);
+            if (!pts.length) { listDiv.innerHTML = '<p style="text-align:center; opacity:0.7;">Žádné body v dosahu.</p>'; return; }
+            pts.forEach(({ pt, d }) => {
+                let typBodu = "Podrobný polohový bod"; if (pt.cat === 'TB') typBodu = "Trigonometrický bod"; if (pt.cat === 'ZHB') typBodu = "Zhušťovací bod"; if (pt.cat === 'NIVEL') typBodu = "Nivelační / Výškový bod"; if (pt.cat === 'CUSTOM') typBodu = "Vlastní bod";
+                let col = visSettings.colTb; if (pt.cat === 'ZHB') col = visSettings.colZhb; if (pt.cat === 'PBPP') col = visSettings.colPbpp; if (pt.cat === 'NIVEL') col = visSettings.colNivel; if (pt.cat === 'CUSTOM') col = visSettings.colCustom;
+                const item = document.createElement('div'); item.className = 'cluster-list-item';
+                item.innerHTML = `<div><div class="cluster-item-title" style="color:${col};">#${pt.name}</div><div class="cluster-item-subtitle">${typBodu}</div></div><div style="font-weight:600; font-size:14px;">${d.toFixed(1)} m</div>`;
+                item.addEventListener('click', () => { document.getElementById('nearby-modal').style.display = 'none'; highlightPoint(pt); });
+                listDiv.appendChild(item);
+            });
+        }
+
         function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; applyVisualSettings(); }
         
         function saveSettings() { 
