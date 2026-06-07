@@ -39,9 +39,18 @@
 
         const APP_VERSION = '1.0';
         function openAbout() { const v = document.getElementById('about-version'); if (v) v.innerText = APP_VERSION; document.getElementById('about-modal').style.display = 'flex'; }
-        function dismissCompassCalib() { try { localStorage.setItem('arCompassCalibShown', '1'); } catch (e) {} document.getElementById('compass-calib-modal').style.display = 'none'; }
+        let _calibActive = false, _calibSeen = null;
+        function dismissCompassCalib() { _calibActive = false; try { localStorage.setItem('arCompassCalibShown', '1'); } catch (e) {} const m = document.getElementById('compass-calib-modal'); if (m) m.style.display = 'none'; }
         // Onboarding kalibrace kompasu: jednorazove pri prvnim startu AR; force=true znovu z nastaveni kompasu.
-        function showCompassCalibHint(force) { try { if (!force && localStorage.getItem('arCompassCalibShown')) return; } catch (e) {} const m = document.getElementById('compass-calib-modal'); if (m) m.style.display = 'flex'; }
+        function showCompassCalibHint(force) { try { if (!force && localStorage.getItem('arCompassCalibShown')) return; } catch (e) {} const m = document.getElementById('compass-calib-modal'); if (m) { m.style.display = 'flex'; _calibActive = true; _calibSeen = new Set(); } }
+        // Po "osmicce" (telefon projde vice smery) se napoveda sama zavre. Bezi i pred zamerenim GPS.
+        function trackCalibMotion(event) {
+            if (!_calibActive || !_calibSeen) return;
+            let h = (event.webkitCompassHeading != null) ? event.webkitCompassHeading : (event.alpha != null ? 360 - event.alpha : null);
+            if (h == null) return;
+            _calibSeen.add(((Math.floor(h / 45) % 8) + 8) % 8);
+            if (_calibSeen.size >= 6) dismissCompassCalib();
+        }
 
         function openMeasureModal() { document.getElementById('measure-modal').style.display = 'flex'; }
 
@@ -282,7 +291,7 @@
         // VYKON: udalosti senzoru chodi i 60+x/s; prekreslujeme max 1x za snimek (requestAnimationFrame)
         let _orientPending = false, _lastOrientEvent = null;
         function handleOrientation(event) {
-            _lastOrientEvent = event;
+            _lastOrientEvent = event; if (_calibActive) trackCalibMotion(event);
             if (_orientPending) return;
             _orientPending = true;
             requestAnimationFrame(() => { _orientPending = false; renderAR(_lastOrientEvent); });
