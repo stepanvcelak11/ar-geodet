@@ -1,4 +1,7 @@
-const CACHE_NAME = 'argeodet-offline-v12';
+// AR Geodet — Service Worker (v14)
+// Strategie: vlastni kod = NEJDRIV SIT (vzdy cerstvy), CDN/dlazdice = NEJDRIV CACHE.
+// Instalace je ODOLNA: jeden nedostupny soubor neshodi prevzeti nove verze.
+const CACHE_NAME = 'argeodet-offline-v12'; // shodne s ulozenim pro offline (logika.js) — nemenit
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -14,18 +17,32 @@ const ASSETS_TO_CACHE = [
 ];
 
 self.addEventListener('install', event => {
-    event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS_TO_CACHE)).then(() => self.skipWaiting()));
+    event.waitUntil((async () => {
+        const cache = await caches.open(CACHE_NAME);
+        // Kazdy soubor zvlast — selhani jednoho nesmi zablokovat instalaci (a tim i aktualizaci).
+        await Promise.allSettled(ASSETS_TO_CACHE.map(async url => {
+            try {
+                const res = await fetch(new Request(url, { cache: 'reload' }));
+                if (res && (res.ok || res.type === 'opaque')) await cache.put(url, res);
+            } catch (e) { /* offline / blokovany CDN — preskocit, nevadi */ }
+        }));
+        await self.skipWaiting();
+    })());
 });
 
 self.addEventListener('activate', event => {
-    event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+    event.waitUntil(
+        caches.keys()
+            .then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
+            .then(() => self.clients.claim())
+    );
 });
 
 self.addEventListener('fetch', event => {
     const url = event.request.url;
     if (url.includes('cuzk.gov.cz/arcgis/rest')) return;
 
-    // Vlastni kod aplikace (stejny puvod): NEJDRIV SIT - aby byl vzdy cerstvy.
+    // Vlastni kod aplikace (stejny puvod): NEJDRIV SIT — aby byl vzdy cerstvy.
     // Pri vypadku site se pouzije cache (offline rezim funguje dal).
     if (url.startsWith(self.location.origin)) {
         event.respondWith(
@@ -38,7 +55,7 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // Knihovny z CDN a dlazdice map: NEJDRIV CACHE (rychle, setri data).
+    // Knihovny z CDN, fonty a dlazdice map: NEJDRIV CACHE (rychle, setri data, funguje offline).
     event.respondWith(
         caches.match(event.request).then(cachedResponse => {
             if (cachedResponse) return cachedResponse;
