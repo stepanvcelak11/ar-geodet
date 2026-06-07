@@ -60,8 +60,20 @@ function renderProjectSelect() {
             });
         }
 
+        function getMapClickLatLng(e) {
+            const mapEl = document.getElementById('map'); const rect = mapEl.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+            const oe = e.originalEvent || {};
+            const px = (oe.touches && oe.touches[0]) ? oe.touches[0].clientX : (oe.changedTouches && oe.changedTouches[0] ? oe.changedTouches[0].clientX : oe.clientX);
+            const py = (oe.touches && oe.touches[0]) ? oe.touches[0].clientY : (oe.changedTouches && oe.changedTouches[0] ? oe.changedTouches[0].clientY : oe.clientY);
+            if (px == null || py == null) return e.latlng;
+            const rad = currentHeading * Math.PI / 180; const dx = px - cx, dy = py - cy;
+            const lx = dx * Math.cos(rad) - dy * Math.sin(rad); const ly = dx * Math.sin(rad) + dy * Math.cos(rad);
+            const size = map.getSize();
+            return map.containerPointToLatLng(L.point(size.x / 2 + lx, size.y / 2 + ly));
+        }
         map.on('click', (e) => {
-            if (!appStarted) return; const clickPoint = map.latLngToContainerPoint(e.latlng); const nearbyPoints = [];
+            if (!appStarted) return; const clickLatLng = getMapClickLatLng(e); const clickPoint = map.latLngToContainerPoint(clickLatLng); const nearbyPoints = [];
             arPoints.forEach(pt => {
                 if (pt.hidden) return; if (pt.cat === 'TB' && !filters.tb) return; if (pt.cat === 'ZHB' && !filters.zhb) return; if (pt.cat === 'PBPP' && !filters.pbpp) return; if (pt.cat === 'NIVEL' && !filters.nivel) return; if (pt.cat === 'CUSTOM' && !filters.custom) return; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return;
                 const ptLatLng = L.latLng(pt.lat, pt.lng); const ptPoint = map.latLngToContainerPoint(ptLatLng); const pixelDist = clickPoint.distanceTo(ptPoint);
@@ -71,7 +83,7 @@ function renderProjectSelect() {
             else if (nearbyPoints.length > 1) { showClusterList(nearbyPoints); }
             else {
                 // KLIKNUTÍ DO PRÁZDNA - STAŽENÍ VZDÁLENÉ OBLASTI
-                L.popup().setLatLng(e.latlng).setContent(`<div style="text-align:center;"><div style="font-weight:bold; margin-bottom:8px; color:#000;">Vzdálená oblast</div><button class="btn btn-blue" style="padding:8px; width:100%; margin:0;" onclick="fetchDistantArea(${e.latlng.lat}, ${e.latlng.lng})"><svg class="icon"><use href="#i-download"/></svg> Stáhnout okolí do mapy</button></div>`).openOn(map);
+                L.popup().setLatLng(clickLatLng).setContent(`<div style="text-align:center;"><div style="font-weight:bold; margin-bottom:6px; color:#000;">Vzdálená oblast</div><div style="color:#000; font-size:12px;">Poloměr: <span id="dl-radius-val">${mapRadius}</span> m</div><input type="range" id="dl-radius" min="200" max="5000" step="100" value="${mapRadius}" style="width:100%; margin:4px 0;" oninput="document.getElementById('dl-radius-val').innerText=this.value"><button class="btn btn-blue" style="padding:8px; width:100%; margin:6px 0 0 0;" onclick="fetchDistantArea(${clickLatLng.lat}, ${clickLatLng.lng}, parseInt(document.getElementById('dl-radius').value))"><svg class="icon"><use href="#i-download"/></svg> Stáhnout okolí</button></div>`).openOn(map);
             }
         });
 
@@ -137,10 +149,13 @@ function renderProjectSelect() {
             const tgl = document.getElementById('tgl-gpsavg');
             if (!appStarted || !tgl || !tgl.checked) { el.style.display = 'none'; return; }
             el.style.display = 'block';
-            if (!gpsAvgResult || gpsAvgResult.n < 2) { document.getElementById('ga-line1').innerText = 'sb\u00edr\u00e1m data\u2026'; document.getElementById('ga-line2').innerText = ''; return; }
-            const r = gpsAvgResult; const sjtsk = proj4("EPSG:4326", "EPSG:5514", [r.lng, r.lat]);
-            document.getElementById('ga-line1').innerText = `N=${r.n}${r.total > r.n ? ' (z ' + r.total + ')' : ''} \u00b7 st\u0159. chyba \u00b1${r.sterr.toFixed(2)} m`;
-            document.getElementById('ga-line2').innerText = `\u03c3 ${r.sigma.toFixed(2)} m \u00b7 Y ${Math.abs(sjtsk[0]).toFixed(2)} X ${Math.abs(sjtsk[1]).toFixed(2)}`;
+            const r = gpsAvgResult;
+            if (!r || r.n < 2) { document.getElementById('ga-n').innerText = '\u2014'; document.getElementById('ga-yx').innerText = 'sb\u00edr\u00e1m data\u2026'; document.getElementById('ga-acc').innerText = '\u2014'; document.getElementById('ga-se').innerText = '\u2014'; return; }
+            const sjtsk = proj4("EPSG:4326", "EPSG:5514", [r.lng, r.lat]);
+            document.getElementById('ga-n').innerText = r.total > r.n ? (r.n + ' (z ' + r.total + ')') : ('' + r.n);
+            document.getElementById('ga-yx').innerText = 'Y ' + Math.abs(sjtsk[0]).toFixed(2) + '  X ' + Math.abs(sjtsk[1]).toFixed(2);
+            document.getElementById('ga-acc').innerText = '\u00b1' + r.sterr.toFixed(2) + ' m';
+            document.getElementById('ga-se').innerText = '\u00b1' + r.sigma.toFixed(2) + ' m';
         }
 
         const arOverlay = document.getElementById('ar-overlay');

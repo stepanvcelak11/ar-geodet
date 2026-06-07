@@ -126,9 +126,11 @@
     <div id="info" class="glass-panel">Čekám na spuštění...</div>
     <div id="compass-debug" class="glass-panel" onclick="openCompassModal()">Azimut: --</div>
     <div id="gps-avg" class="glass-panel">
-        <div class="ga-title"><svg class="icon"><use href="#i-locate"/></svg> Průměr GPS</div>
-        <div id="ga-line1">—</div>
-        <div id="ga-line2"></div>
+        <div class="ga-title"><svg class="icon"><use href="#i-locate"/></svg> Průměrování GPS</div>
+        <div class="ga-row"><span>Měření:</span> <b id="ga-n">—</b></div>
+        <div class="ga-yx" id="ga-yx">sbírám data…</div>
+        <div class="ga-row"><span>Přesnost:</span> <b id="ga-acc">—</b></div>
+        <div class="ga-row"><span>Stř. chyba:</span> <b id="ga-se">—</b></div>
     </div>
 
     <div class="modal-overlay" id="measure-modal">

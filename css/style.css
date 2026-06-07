@@ -984,4 +984,40 @@ details[open] summary::after { content: " ⌄"; }
 
 #gps-avg { position: absolute; top: max(calc(var(--hud-top) + 100px), calc(env(safe-area-inset-top) + 100px)); left: var(--hud-side); z-index: 9999; padding: 8px 14px; font-size: 12px; font-weight: 600; line-height: 1.5; display: none; transform: scale(var(--menu-scale)); transform-origin: top left; pointer-events: none; font-variant-numeric: tabular-nums; max-width: 78%; }
 #gps-avg .ga-title { color: var(--accent); font-size: 11px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
-#gps-avg #ga-line2 { font-family: monospace; opacity: 0.9; }
+#gps-avg .ga-row { display: flex; justify-content: space-between; gap: 12px; }
+#gps-avg .ga-row span { opacity: 0.7; font-weight: 500; }
+#gps-avg .ga-row b { font-variant-numeric: tabular-nums; }
+#gps-avg .ga-yx { font-family: var(--font-mono); opacity: 0.95; margin: 1px 0 3px 0; }
+
+/* =========================================================================
+   Animace a mikrointerakce
+   ========================================================================= */
+@keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modal-in {
+    from { opacity: 0; transform: translateY(10px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes menu-pop {
+    from { opacity: 0; transform: translateX(14px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+.modal-overlay { animation: overlay-in 0.22s ease both; }
+.modal-content { animation: modal-in 0.32s var(--ease-out) both; }
+
+/* Postupný nájezd položek bočního menu */
+#side-menu.open .menu-btn { animation: menu-pop 0.30s var(--ease-out) both; }
+#side-menu.open .menu-btn:nth-child(1) { animation-delay: 0.02s; }
+#side-menu.open .menu-btn:nth-child(2) { animation-delay: 0.06s; }
+#side-menu.open .menu-btn:nth-child(3) { animation-delay: 0.10s; }
+#side-menu.open .menu-btn:nth-child(4) { animation-delay: 0.14s; }
+#side-menu.open .menu-btn:nth-child(5) { animation-delay: 0.18s; }
+
+/* Respekt k systémovému nastavení omezeného pohybu (přístupnost) */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+    }
+}
