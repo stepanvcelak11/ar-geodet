@@ -1,4 +1,4 @@
-// AR Geodet — Service Worker (v14)
+// AR Geodet — Service Worker (v15)
 // Strategie: vlastni kod = NEJDRIV SIT (vzdy cerstvy), CDN/dlazdice = NEJDRIV CACHE.
 // Instalace je ODOLNA: jeden nedostupny soubor neshodi prevzeti nove verze.
 const CACHE_NAME = 'argeodet-offline-v12'; // shodne s ulozenim pro offline (logika.js) — nemenit

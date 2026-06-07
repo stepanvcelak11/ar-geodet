@@ -2,7 +2,12 @@
 // Vypocty, prevody souradnic, stahovani dat z CUZK, GPS, ukladani, zakazky.
 // Nacita se PRED grafika.js a sdili s ni globalni promenne.
 
-if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); }); }
+if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); });
+            // AUTO-UPDATE: jakmile prevezme kontrolu nova verze SW, jednou prekresli stranku, aby bezel cerstvy kod
+            let _swReloaded = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => { if (_swReloaded) return; _swReloaded = true; window.location.reload(); });
+        }
         proj4.defs("EPSG:5514","+proj=krovak +lat_0=49.5 +lon_0=24.83333333333333 +alpha=30.28813972222222 +k=0.9999 +x_0=0 +y_0=0 +ellps=bessel +towgs84=570.8,85.7,462.8,4.998,1.587,5.261,3.56 +units=m +no_defs");
         const map = L.map('map', { maxZoom: 22, minZoom: 15, zoomControl: false, dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false });
         const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 18, zIndex: 1 });
