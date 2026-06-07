@@ -155,7 +155,7 @@ body {
 /* Plynulé skrývání ovládání po nečinnosti (JS přidává .ui-faded) */
 #gps-avg.ui-faded { opacity: 0.3 !important; }
 .ui-faded {
-    opacity: 0 !important;
+    opacity: 0.3 !important;
     pointer-events: none !important;
     transition: opacity 0.6s ease;
 }
