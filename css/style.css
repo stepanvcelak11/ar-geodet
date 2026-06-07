@@ -1270,3 +1270,15 @@ body.outdoor-mode .ar-marker-dist { opacity: 1; }
 #ga-save-btn .icon { width: 15px; height: 15px; }
 #ga-save-btn:active { transform: scale(0.97); }
 #custom-acc-note { margin: 4px 0 6px; padding: 10px 12px; background: var(--accent-soft); border: 1px solid var(--accent-line); border-radius: var(--r-sm); font-size: 12.5px; line-height: 1.4; color: var(--accent-bright); }
+
+/* Rezim 'bod z mapy': napoveda nahore */
+#map-pick-hint {
+    position: fixed; top: max(10px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+    z-index: 999998; display: none; align-items: center; gap: 12px; white-space: nowrap;
+    padding: 9px 10px 9px 16px; border-radius: var(--r-pill);
+    background: rgba(8, 11, 15, 0.92); color: #fff; font-size: 13px; font-weight: 600;
+    box-shadow: var(--shadow-2); border: 1px solid var(--warning);
+    animation: menu-pop 0.3s var(--ease-out) both;
+}
+#map-pick-hint .icon { width: 16px; height: 16px; color: var(--warning); vertical-align: -0.2em; margin-right: 4px; }
+#map-pick-hint button { border: none; background: rgba(255,255,255,0.12); color: #fff; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: var(--r-pill); cursor: pointer; }

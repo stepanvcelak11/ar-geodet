@@ -54,7 +54,7 @@ if ('serviceWorker' in navigator) {
         let gpsSamples = [], gpsAvgResult = null;
         let arPoints = [], persistentCustomPoints = [], hideBtnLogic = null, editingCustomPointId = null, highlightedPointId = null, activePointIdForModal = null;
         let compassUnit = 'deg'; let compassZeroOffset = 0; let lastVibeTime = 0;
-        let measA = null, measB = null, pendingPointAccuracy = null;
+        let measA = null, measB = null, pendingPointAccuracy = null, mapAddMode = false;
         let wakeLock = null;
         let filters = { tb: true, zhb: true, pbpp: true, nivel: true, custom: true };
 

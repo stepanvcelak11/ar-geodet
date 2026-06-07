@@ -93,7 +93,9 @@
             return map.containerPointToLatLng(L.point(P.x + lx, P.y + ly));
         }
         map.on('click', (e) => {
-            if (!appStarted) return; const clickLatLng = getMapClickLatLng(e); const clickPoint = map.latLngToContainerPoint(clickLatLng); const nearbyPoints = [];
+            if (!appStarted) return; const clickLatLng = getMapClickLatLng(e);
+            if (mapAddMode) { mapAddMode = false; const _h = document.getElementById('map-pick-hint'); if (_h) _h.style.display = 'none'; openNewPointFromMap(clickLatLng.lat, clickLatLng.lng); return; }
+            const clickPoint = map.latLngToContainerPoint(clickLatLng); const nearbyPoints = [];
             arPoints.forEach(pt => {
                 if (pt.hidden) return; if (pt.cat === 'TB' && !filters.tb) return; if (pt.cat === 'ZHB' && !filters.zhb) return; if (pt.cat === 'PBPP' && !filters.pbpp) return; if (pt.cat === 'NIVEL' && !filters.nivel) return; if (pt.cat === 'CUSTOM' && !filters.custom) return; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return;
                 const ptLatLng = L.latLng(pt.lat, pt.lng); const ptPoint = map.latLngToContainerPoint(ptLatLng); const pixelDist = clickPoint.distanceTo(ptPoint);
@@ -171,6 +173,24 @@
         function closeManageModal() { document.getElementById('manage-modal').style.display = 'none'; fixAppLayout(); }
         function renderManageList() { const listDiv = document.getElementById('manage-list'); listDiv.innerHTML = ''; if (persistentCustomPoints.length === 0) { listDiv.innerHTML = '<p style="text-align:center;">Žádné body v této zakázce.</p>'; return; } persistentCustomPoints.forEach(pt => { let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); let dispY = Math.abs(sjtsk[0]).toFixed(2); let dispX = Math.abs(sjtsk[1]).toFixed(2); const item = document.createElement('div'); item.className = 'cp-item'; item.innerHTML = ` <div class="cp-title">${pt.name}</div> <div class="cp-coords">Y: ${dispY}<br>X: ${dispX}${pt.acc != null ? '<br>⌀ ±'+pt.acc+' m' : ''}</div> <div class="cp-actions"> <button class="cp-btn cp-btn-edit" onclick="editCustomPoint('${pt.id}')"><svg class="icon"><use href="#i-edit"/></svg></button> <button class="cp-btn cp-btn-delete" onclick="deleteCustomPoint('${pt.id}')"><svg class="icon"><use href="#i-trash"/></svg></button></div>`; listDiv.appendChild(item); }); }
         function editCustomPoint(id) { const pt = persistentCustomPoints.find(p => p.id === id); if(!pt) return; editingCustomPointId = id; pendingPointAccuracy = null; { const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none'; } document.getElementById('custom-modal-title').innerText = "Upravit bod"; document.getElementById('custom-name').value = pt.name; let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); document.getElementById('custom-y').value = Math.abs(sjtsk[0]).toFixed(2); document.getElementById('custom-x').value = Math.abs(sjtsk[1]).toFixed(2); document.getElementById('manage-modal').style.display = 'none'; document.getElementById('custom-modal-overlay').style.display = 'flex'; }
+        // BOD Z MAPY: tlacitko v modalu spusti rezim, dalsi TAP do mapy umisti bod (tah dal posouva mapu)
+        function startMapPick() {
+            if (viewMode === 'ar') { alert("Přepni na zobrazení s mapou (Split nebo Mapa)."); return; }
+            closeCustomModal(); mapAddMode = true;
+            const h = document.getElementById('map-pick-hint'); if (h) h.style.display = 'flex';
+            document.getElementById('map-controls').classList.remove('expanded');
+        }
+        function cancelMapPick() { mapAddMode = false; const h = document.getElementById('map-pick-hint'); if (h) h.style.display = 'none'; }
+        function openNewPointFromMap(lat, lng) {
+            editingCustomPointId = null; pendingPointAccuracy = null;
+            const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none';
+            document.getElementById('custom-modal-title').innerText = "Bod z mapy";
+            document.getElementById('custom-name').value = '';
+            let sjtsk = proj4("EPSG:4326", "EPSG:5514", [lng, lat]);
+            document.getElementById('custom-y').value = Math.abs(sjtsk[0]).toFixed(2);
+            document.getElementById('custom-x').value = Math.abs(sjtsk[1]).toFixed(2);
+            document.getElementById('custom-modal-overlay').style.display = 'flex';
+        }
         function openNewPointModal() { editingCustomPointId = null; pendingPointAccuracy = null; { const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none'; } document.getElementById('custom-modal-title').innerText = "Vložit bod"; document.getElementById('custom-name').value = ''; document.getElementById('custom-y').value = ''; document.getElementById('custom-x').value = ''; document.getElementById('custom-modal-overlay').style.display = 'flex'; }
         function closeCustomModal() { document.getElementById('custom-modal-overlay').style.display = 'none'; fixAppLayout(); }
         function closeBottomSheet() { document.getElementById('bottom-sheet').classList.remove('open'); arPoints.forEach(p => { if (p.element) p.element.classList.remove('active-reading'); }); activePointIdForModal = null; }
