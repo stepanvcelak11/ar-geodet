@@ -39,17 +39,26 @@
 
         const APP_VERSION = '1.0';
         function openAbout() { const v = document.getElementById('about-version'); if (v) v.innerText = APP_VERSION; document.getElementById('about-modal').style.display = 'flex'; }
-        let _calibActive = false, _calibSeen = null;
+        let _calibActive = false, _calibSeen = null, _calibBeta = null, _calibGamma = null;
         function dismissCompassCalib() { _calibActive = false; try { localStorage.setItem('arCompassCalibShown', '1'); } catch (e) {} const m = document.getElementById('compass-calib-modal'); if (m) m.style.display = 'none'; }
         // Onboarding kalibrace kompasu: jednorazove pri prvnim startu AR; force=true znovu z nastaveni kompasu.
-        function showCompassCalibHint(force) { try { if (!force && localStorage.getItem('arCompassCalibShown')) return; } catch (e) {} const m = document.getElementById('compass-calib-modal'); if (m) { m.style.display = 'flex'; _calibActive = true; _calibSeen = new Set(); } }
+        function showCompassCalibHint(force) { try { if (!force && localStorage.getItem('arCompassCalibShown')) return; } catch (e) {} const m = document.getElementById('compass-calib-modal'); if (m) { m.style.display = 'flex'; _calibActive = true; _calibSeen = new Set(); _calibBeta = { min: Infinity, max: -Infinity }; _calibGamma = { min: Infinity, max: -Infinity }; const _b = document.getElementById('calib-progress'); if (_b) _b.style.width = '0%'; const _t = document.getElementById('calib-progress-txt'); if (_t) _t.innerText = '0 %'; } }
         // Po "osmicce" (telefon projde vice smery) se napoveda sama zavre. Bezi i pred zamerenim GPS.
         function trackCalibMotion(event) {
             if (!_calibActive || !_calibSeen) return;
             let h = (event.webkitCompassHeading != null) ? event.webkitCompassHeading : (event.alpha != null ? 360 - event.alpha : null);
-            if (h == null) return;
-            _calibSeen.add(((Math.floor(h / 45) % 8) + 8) % 8);
-            if (_calibSeen.size >= 6) dismissCompassCalib();
+            if (h != null) _calibSeen.add(((Math.floor(h / 45) % 8) + 8) % 8);
+            if (event.beta != null) { _calibBeta.min = Math.min(_calibBeta.min, event.beta); _calibBeta.max = Math.max(_calibBeta.max, event.beta); }
+            if (event.gamma != null) { _calibGamma.min = Math.min(_calibGamma.min, event.gamma); _calibGamma.max = Math.max(_calibGamma.max, event.gamma); }
+            let bSpan = (_calibBeta.max - _calibBeta.min); if (!isFinite(bSpan)) bSpan = 0;
+            let gSpan = (_calibGamma.max - _calibGamma.min); if (!isFinite(gSpan)) gSpan = 0;
+            // skutecna osmicka = naklon v OBOU osach (beta x gamma); alternativne plne otoceni dokola (azimut)
+            let tiltProg = Math.min(bSpan / 90, 1) * Math.min(gSpan / 90, 1);
+            let headProg = _calibSeen.size / 6;
+            let prog = Math.min(1, Math.max(tiltProg, headProg));
+            const bar = document.getElementById('calib-progress'); if (bar) bar.style.width = Math.round(prog * 100) + '%';
+            const txt = document.getElementById('calib-progress-txt'); if (txt) txt.innerText = Math.round(prog * 100) + ' %';
+            if (prog >= 1) dismissCompassCalib();
         }
 
         function openMeasureModal() { document.getElementById('measure-modal').style.display = 'flex'; }
