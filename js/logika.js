@@ -111,7 +111,65 @@ if ('serviceWorker' in navigator) {
 
         function hideCurrentPoint() { if (hideBtnLogic) hideBtnLogic(); closeBottomSheet(); } function restoreHiddenPoints() { arPoints.forEach(p => p.hidden = false); initARMarkers(); drawAllMarkersOnMap(); document.getElementById('settings-modal').style.display = 'none'; updateInfoPanel(); } function clearAllPoints() { arPoints.forEach(p => { if(p.element) p.element.remove(); }); arPoints = []; removeStoredData('arOfflinePoints12'); document.getElementById('settings-modal').style.display = 'none'; if (userLat && userLng) initFetch(userLat, userLng); } function getVisiblePointsCount() { return arPoints.filter(p => !p.hidden && p.currentDist <= arRadius && (!searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase()))).length; }
         function exportPoints() { if (persistentCustomPoints.length === 0) return alert("Nemáte žádné body."); const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(persistentCustomPoints)); const downloadAnchorNode = document.createElement('a'); downloadAnchorNode.setAttribute("href", dataStr); downloadAnchorNode.setAttribute("download", `moje_body_${activeProjectId}.json`); document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove(); }
-        function importPoints(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const imported = JSON.parse(e.target.result); let added = 0; imported.forEach(p => { if (!persistentCustomPoints.find(ex => ex.name === p.name && Math.abs(ex.lat - p.lat) < 0.0001)) { p.id = 'cp_' + Date.now() + '_' + Math.random(); persistentCustomPoints.push(p); added++; } }); setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); drawAllMarkersOnMap(); renderManageList(); alert(`Importováno ${added} bodů do aktuální zakázky.`); if (userLat && userLng) initFetch(userLat, userLng); } catch(err) { alert("Chyba při čtení."); } }; reader.readAsText(file); }
+        // Export do CSV (seznam souradnic): radky "nazev;Y;X" v S-JTSK. BOM kvuli diakritice v Excelu.
+        function exportPointsCSV() {
+            if (persistentCustomPoints.length === 0) return alert("Nemáte žádné body.");
+            let lines = persistentCustomPoints.map(pt => {
+                let sj = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]);
+                let y = Math.abs(sj[0]).toFixed(2), x = Math.abs(sj[1]).toFixed(2);
+                let nm = String(pt.name == null ? 'Bod' : pt.name).replace(/[;\r\n]/g, ' ');
+                return nm + ';' + y + ';' + x;
+            });
+            const csv = "\uFEFF" + lines.join("\r\n") + "\r\n";
+            const a = document.createElement('a');
+            a.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(csv));
+            a.setAttribute("download", `body_${activeProjectId}.csv`);
+            document.body.appendChild(a); a.click(); a.remove();
+        }
+        // S-JTSK Y,X (kladne) -> WGS84; mensi hodnota = Y, vetsi = X (Krovak: Y~400-900k, X~900-1280k)
+        function sjtskToLatLng(a, b) {
+            let Y = Math.min(Math.abs(a), Math.abs(b)), X = Math.max(Math.abs(a), Math.abs(b));
+            let wgs = proj4("EPSG:5514", "EPSG:4326", [-Y, -X]); return { lat: wgs[1], lng: wgs[0] };
+        }
+        // Parser seznamu souradnic: radky "cislo Y X [Z]" oddelene ; , tab nebo mezerou.
+        function parseCoordsCSV(text) {
+            let out = [];
+            text.split(/\r?\n/).forEach(line => {
+                line = line.trim(); if (!line || line.startsWith('#') || line.startsWith('//')) return;
+                let delim = line.indexOf(';') >= 0 ? ';' : (line.indexOf(',') >= 0 ? ',' : (line.indexOf('\t') >= 0 ? '\t' : /\s+/));
+                let parts = line.split(delim).map(t => t.trim()).filter(t => t !== '');
+                if (parts.length < 3) return;
+                let nums = parts.slice(1).map(t => parseFloat(t.replace(',', '.'))).filter(v => !isNaN(v));
+                if (nums.length < 2) return;
+                let c = sjtskToLatLng(nums[0], nums[1]);
+                out.push({ name: parts[0], lat: c.lat, lng: c.lng });
+            });
+            return out;
+        }
+        function importPoints(event) {
+            const file = event.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let txt = e.target.result, imported = null;
+                try { let j = JSON.parse(txt); if (Array.isArray(j)) imported = j; } catch (err) {}
+                if (!imported) imported = parseCoordsCSV(txt);
+                if (!imported || imported.length === 0) { alert("V souboru se nenašly žádné body.\n\nPodporováno: JSON, nebo CSV/TXT s řádky 'číslo;Y;X' (oddělovač ; , tab nebo mezera)."); event.target.value = ''; return; }
+                let added = 0;
+                imported.forEach(p => {
+                    if (typeof p.lat !== 'number' || typeof p.lng !== 'number' || isNaN(p.lat) || isNaN(p.lng)) return;
+                    if (!persistentCustomPoints.find(ex => ex.name === p.name && Math.abs(ex.lat - p.lat) < 0.0001)) {
+                        persistentCustomPoints.push({ id: 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6), name: p.name || 'Bod', lat: p.lat, lng: p.lng, cat: "CUSTOM", type: "custom" });
+                        added++;
+                    }
+                });
+                setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
+                drawAllMarkersOnMap(); renderManageList();
+                alert("Importováno " + added + " bodů do aktuální zakázky.");
+                if (userLat && userLng) initFetch(userLat, userLng);
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
         function deleteCustomPoint(id) { if(!confirm("Smazat?")) return; persistentCustomPoints = persistentCustomPoints.filter(p => p.id !== id); setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); renderManageList(); drawAllMarkersOnMap(); const idx = arPoints.findIndex(p => p.id === id); if(idx !== -1) { if(arPoints[idx].element) arPoints[idx].element.remove(); arPoints.splice(idx, 1); } updateInfoPanel(); }
         function fillCurrentGPS() { if (userLat && userLng) { let sjtsk = proj4("EPSG:4326", "EPSG:5514", [userLng, userLat]); document.getElementById('custom-y').value = Math.abs(sjtsk[0]).toFixed(2); document.getElementById('custom-x').value = Math.abs(sjtsk[1]).toFixed(2); } else { alert("GPS zatím není načtená."); } }
         
