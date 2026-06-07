@@ -565,6 +565,7 @@ body {
 #map { width: 100%; height: 100%; cursor: crosshair; }
 /* Popup: mapa se otaci podle smeru, proto sipku (tip) skryvame - jinak by pri otoceni telefonu prekryvala obsah. Obsah se narovnava v renderAR. */
 .leaflet-popup-tip-container { display: none; }
+.leaflet-popup-close-button { display: none; } /* mizi pri otoceni mapy mimo zaber; nahrazeno tlacitkem Zrusit v obsahu */
 .leaflet-popup-content-wrapper { box-shadow: 0 6px 20px rgba(0,0,0,0.22); border-radius: 12px; }
 
 .custom-map-marker { background: transparent; border: none; pointer-events: none; }
@@ -1038,6 +1039,8 @@ details[open] summary::after { content: " ⌄"; }
 .map-ctrl-btn { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--glass-border); color: var(--text-color); font-size: 24px; font-weight: 700; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
 .map-ctrl-btn:active { transform: scale(0.94); }
 .map-ctrl-btn .icon { width: 20px; height: 20px; }
+.map-ctrl-btn.ctrl-active { background: var(--accent); color: #04130c; border-color: var(--accent); }
+.map-ctrl-btn.ctrl-active .icon { stroke: #04130c; }
 
 /* =========================================================================
    Nové rozložení (Koncept 1): spodní dok + přepínač zobrazení
