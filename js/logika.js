@@ -4,7 +4,7 @@
 
 if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); }); }
         proj4.defs("EPSG:5514","+proj=krovak +lat_0=49.5 +lon_0=24.83333333333333 +alpha=30.28813972222222 +k=0.9999 +x_0=0 +y_0=0 +ellps=bessel +towgs84=570.8,85.7,462.8,4.998,1.587,5.261,3.56 +units=m +no_defs");
-        const map = L.map('map', { maxZoom: 22, zoomControl: false, dragging: false });
+        const map = L.map('map', { maxZoom: 22, zoomControl: false, dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false });
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 18 }).addTo(map);
         const markersGroup = L.layerGroup().addTo(map);
         
@@ -116,22 +116,26 @@ if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navi
                 let moved = getDistance(ml, mg, lat, lng);
                 if ((speed && speed > 0.5) || moved > 15) gpsSamples = [];
             }
-            gpsSamples.push({ lat: lat, lng: lng, acc: acc });
+            gpsSamples.push({ lat: lat, lng: lng, acc: (acc || 0) });
             if (gpsSamples.length > 300) gpsSamples.shift();
-            let cnt = gpsSamples.length, ml = 0, mg = 0;
-            gpsSamples.forEach(s => { ml += s.lat; mg += s.lng; }); ml /= cnt; mg /= cnt;
-            let dists = gpsSamples.map(s => getDistance(ml, mg, s.lat, s.lng));
-            let sigma = Math.sqrt(dists.reduce((a, d) => a + d * d, 0) / cnt);
-            let total = cnt;
-            if (cnt >= 5 && sigma > 0) {
+            let total = gpsSamples.length;
+            let used = gpsSamples;
+            let mlat = used.reduce((a, s) => a + s.lat, 0) / used.length;
+            let mlng = used.reduce((a, s) => a + s.lng, 0) / used.length;
+            let dists = used.map(s => getDistance(mlat, mlng, s.lat, s.lng));
+            let sigma = Math.sqrt(dists.reduce((a, d) => a + d * d, 0) / used.length);
+            if (used.length >= 5 && sigma > 0) {
                 let inl = gpsSamples.filter((s, i) => dists[i] <= 2 * sigma);
                 if (inl.length >= 3) {
-                    cnt = inl.length; ml = 0; mg = 0; inl.forEach(s => { ml += s.lat; mg += s.lng; }); ml /= cnt; mg /= cnt;
-                    sigma = Math.sqrt(inl.reduce((a, s) => a + Math.pow(getDistance(ml, mg, s.lat, s.lng), 2), 0) / cnt);
+                    used = inl;
+                    mlat = used.reduce((a, s) => a + s.lat, 0) / used.length;
+                    mlng = used.reduce((a, s) => a + s.lng, 0) / used.length;
+                    sigma = Math.sqrt(used.reduce((a, s) => a + Math.pow(getDistance(mlat, mlng, s.lat, s.lng), 2), 0) / used.length);
                 }
             }
-            let sterr = cnt > 0 ? sigma / Math.sqrt(cnt) : 0;
-            gpsAvgResult = { lat: ml, lng: mg, n: cnt, total: total, sigma: sigma, sterr: sterr };
+            let meanAcc = used.reduce((a, s) => a + (s.acc || 0), 0) / used.length;
+            let sterr = used.length > 0 ? sigma / Math.sqrt(used.length) : 0;
+            gpsAvgResult = { lat: mlat, lng: mlng, n: used.length, total: total, sigma: sigma, sterr: sterr, acc: meanAcc };
             updateGpsAvgPanel();
         }
 
@@ -167,7 +171,8 @@ if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navi
                     
                     arPoints.forEach(p => p.currentDist = getDistance(userLat, userLng, p.lat, p.lng)); arPoints.sort((a, b) => a.currentDist - b.currentDist);
                     if (activePointIdForModal) { const activePt = arPoints.find(p => p.id === activePointIdForModal); if (activePt) { const newDist = getDistance(userLat, userLng, activePt.lat, activePt.lng); const distEl = document.getElementById('sheet-distance-val'); if (distEl) distEl.innerText = `${newDist.toFixed(1)} m`; const gpsEl = document.getElementById('sheet-gps-val'); if (gpsEl) gpsEl.innerText = currentGpsAccuracy.toFixed(1); } }
-                    if (lastFetchLat === null || lastFetchLng === null) { map.setView([userLat, userLng], 19); lastFetchLat = userLat; lastFetchLng = userLng; if (appStarted) setTimeout(() => initFetch(userLat, userLng), 1000); } else { const moved = getDistance(lastFetchLat, lastFetchLng, userLat, userLng); if (moved > 25) { lastFetchLat = userLat; lastFetchLng = userLng; if (appStarted) initFetch(userLat, userLng); } }
+                    map.setView([userLat, userLng], 19, { animate: false });
+                    if (lastFetchLat === null || lastFetchLng === null) { lastFetchLat = userLat; lastFetchLng = userLng; if (appStarted) setTimeout(() => initFetch(userLat, userLng), 1000); } else { const moved = getDistance(lastFetchLat, lastFetchLng, userLat, userLng); if (moved > 25) { lastFetchLat = userLat; lastFetchLng = userLng; if (appStarted) initFetch(userLat, userLng); } }
                     const userIcon = L.divIcon({ className: 'custom-user-icon', html: `<div id="user-direction-container" style="transition: transform 0.1s linear; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center;"><div style="position:absolute; width: 28px; height: 28px; background: rgba(52, 211, 153, 0.3); border-radius: 50%; filter: blur(3px);"></div><svg width="24" height="24" viewBox="0 0 24 24" style="z-index: 2; transform: translateY(-3px); filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.6));"><path d="M12,2 L22,20 L12,16 L2,20 Z" fill="#34d399" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg></div>`, iconSize: [44, 44], iconAnchor: [22, 22] });
                     if (userMarker) userMarker.setLatLng([userLat, userLng]); else userMarker = L.marker([userLat, userLng], {icon: userIcon, zIndexOffset: 1000}).addTo(map);
                 },

@@ -157,6 +157,7 @@ function renderProjectSelect() {
             el.style.display = 'block';
             const r = gpsAvgResult;
             document.getElementById('ga-n').innerText = (r && r.total) ? ((r.total > r.n) ? (r.n + ' (z ' + r.total + ')') : ('' + r.n)) : '0';
+            document.getElementById('ga-pos').innerText = (r && r.acc) ? ('\u00b1' + r.acc.toFixed(1) + ' m') : '\u2026';
             document.getElementById('ga-se').innerText = (r && r.n >= 2) ? ('\u00b1' + r.sigma.toFixed(2) + ' m') : '\u2026';
         }
 
@@ -181,7 +182,7 @@ function renderProjectSelect() {
             });
         }
         let isDraggingMap = false; let startTouchX = 0, startTouchY = 0; let lastTouchX = 0, lastTouchY = 0; const mapContainerEl = document.getElementById('map-container');
-        mapContainerEl.addEventListener('touchstart', (e) => { if (e.touches.length === 1 && !e.target.closest('.glass-panel')) { isDraggingMap = true; startTouchX = e.touches[0].clientX; startTouchY = e.touches[0].clientY; lastTouchX = startTouchX; lastTouchY = startTouchY; } }, { passive: true });
+        mapContainerEl.addEventListener('touchstart', (e) => { if (e.touches.length === 1 && !e.target.closest('.glass-panel')) { isDraggingMap = false; startTouchX = e.touches[0].clientX; startTouchY = e.touches[0].clientY; lastTouchX = startTouchX; lastTouchY = startTouchY; } }, { passive: true });
         mapContainerEl.addEventListener('touchmove', (e) => { if (!isDraggingMap || e.touches.length !== 1) return; const dx = e.touches[0].clientX - lastTouchX; const dy = e.touches[0].clientY - lastTouchY; const rad = currentHeading * Math.PI / 180; const mapDx = dx * Math.cos(rad) - dy * Math.sin(rad); const mapDy = dx * Math.sin(rad) + dy * Math.cos(rad); map.panBy([-mapDx, -mapDy], { animate: false }); lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; if(e.cancelable) e.preventDefault(); }, { passive: false });
         mapContainerEl.addEventListener('touchend', (e) => { if (isDraggingMap) { isDraggingMap = false; } }); 
 
@@ -259,9 +260,6 @@ function renderProjectSelect() {
                     
                     if (pt.id === highlightedPointId) { 
                         pt.element.style.zIndex = 99999; scale = scale * 1.25; 
-                        markerY = Math.max(3, groundY - 14);
-                        let acc = pt.bestAccuracy !== null ? pt.bestAccuracy : currentGpsAccuracy;
-                        showGroundRing(xPct, groundY, markerY, acc, scale); ringShown = true;
                     } else { 
                         pt.element.style.zIndex = Math.round(1000 - distance); 
                     }
