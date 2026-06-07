@@ -188,7 +188,7 @@ function renderProjectSelect() {
         mapContainerEl.addEventListener('touchmove', (e) => { if (!isDraggingMap || e.touches.length !== 1) return; const dx = e.touches[0].clientX - lastTouchX; const dy = e.touches[0].clientY - lastTouchY;
             // SMER: vezmi skutecne otoceni mapy z CSS matice wrapperu, aby posun vzdy sledoval prst (i kdyz je mapa otocena podle kompasu)
             let cos = 1, sin = 0; const tr = getComputedStyle(mapWrapper).transform; if (tr && tr.indexOf('matrix') === 0) { const v = tr.slice(tr.indexOf('(') + 1, -1).split(',').map(parseFloat); cos = v[0]; sin = v[1]; }
-            const mapDx = (dx * cos + dy * sin); const mapDy = (dy * cos - dx * sin); map.panBy([mapDx, mapDy], { animate: false });
+            const mapDx = (dx * cos - dy * sin); const mapDy = (dy * cos + dx * sin); map.panBy([mapDx, mapDy], { animate: false });
             // OMEZENI: drz uzivatele ve viditelne plose, at nedojede do prazdne (cerne) mapy
             if (userLat != null) { const c = map.getSize().divideBy(2); const up = map.latLngToContainerPoint([userLat, userLng]); const offX = up.x - c.x, offY = up.y - c.y; const dist = Math.hypot(offX, offY); const maxOff = Math.min(mapContainerEl.clientWidth, mapContainerEl.clientHeight) * 0.4; if (dist > maxOff) { const k = dist - maxOff; map.panBy([offX / dist * k, offY / dist * k], { animate: false }); } }
             lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; if(e.cancelable) e.preventDefault(); }, { passive: false });
