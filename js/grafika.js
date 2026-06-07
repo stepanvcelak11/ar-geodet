@@ -61,16 +61,22 @@ function renderProjectSelect() {
         }
 
         function getMapClickLatLng(e) {
-            const mapEl = document.getElementById('map'); const rect = mapEl.getBoundingClientRect();
-            const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
             const oe = e.originalEvent || {};
             const px = (oe.touches && oe.touches[0]) ? oe.touches[0].clientX : (oe.changedTouches && oe.changedTouches[0] ? oe.changedTouches[0].clientX : oe.clientX);
             const py = (oe.touches && oe.touches[0]) ? oe.touches[0].clientY : (oe.changedTouches && oe.changedTouches[0] ? oe.changedTouches[0].clientY : oe.clientY);
             if (px == null || py == null) return e.latlng;
-            const rad = currentHeading * Math.PI / 180; const dx = px - cx, dy = py - cy;
+            const userEl = document.getElementById('user-direction-container');
+            let Px, Py, P;
+            if (userEl && userLat != null) {
+                const ur = userEl.getBoundingClientRect(); Px = ur.left + ur.width / 2; Py = ur.top + ur.height / 2;
+                P = map.latLngToContainerPoint([userLat, userLng]);
+            } else {
+                const rect = document.getElementById('map').getBoundingClientRect(); Px = rect.left + rect.width / 2; Py = rect.top + rect.height / 2;
+                const sz = map.getSize(); P = L.point(sz.x / 2, sz.y / 2);
+            }
+            const rad = currentHeading * Math.PI / 180; const dx = px - Px, dy = py - Py;
             const lx = dx * Math.cos(rad) - dy * Math.sin(rad); const ly = dx * Math.sin(rad) + dy * Math.cos(rad);
-            const size = map.getSize();
-            return map.containerPointToLatLng(L.point(size.x / 2 + lx, size.y / 2 + ly));
+            return map.containerPointToLatLng(L.point(P.x + lx, P.y + ly));
         }
         map.on('click', (e) => {
             if (!appStarted) return; const clickLatLng = getMapClickLatLng(e); const clickPoint = map.latLngToContainerPoint(clickLatLng); const nearbyPoints = [];
@@ -150,15 +156,22 @@ function renderProjectSelect() {
             if (!appStarted || !tgl || !tgl.checked) { el.style.display = 'none'; return; }
             el.style.display = 'block';
             const r = gpsAvgResult;
-            if (!r || r.n < 2) { document.getElementById('ga-n').innerText = '\u2014'; document.getElementById('ga-yx').innerText = 'sb\u00edr\u00e1m data\u2026'; document.getElementById('ga-acc').innerText = '\u2014'; document.getElementById('ga-se').innerText = '\u2014'; return; }
-            const sjtsk = proj4("EPSG:4326", "EPSG:5514", [r.lng, r.lat]);
-            document.getElementById('ga-n').innerText = r.total > r.n ? (r.n + ' (z ' + r.total + ')') : ('' + r.n);
-            document.getElementById('ga-yx').innerText = 'Y ' + Math.abs(sjtsk[0]).toFixed(2) + '  X ' + Math.abs(sjtsk[1]).toFixed(2);
-            document.getElementById('ga-acc').innerText = '\u00b1' + r.sterr.toFixed(2) + ' m';
-            document.getElementById('ga-se').innerText = '\u00b1' + r.sigma.toFixed(2) + ' m';
+            document.getElementById('ga-n').innerText = (r && r.total) ? ((r.total > r.n) ? (r.n + ' (z ' + r.total + ')') : ('' + r.n)) : '0';
+            document.getElementById('ga-se').innerText = (r && r.n >= 2) ? ('\u00b1' + r.sigma.toFixed(2) + ' m') : '\u2026';
         }
 
         const arOverlay = document.getElementById('ar-overlay');
+        let arRing = null, arStem = null;
+        function showGroundRing(xPct, groundY, markerY, acc, scale) {
+            if (!arRing) { arRing = document.createElement('div'); arRing.className = 'ar-accuracy-ring'; arRing.style.zIndex = '2'; arOverlay.appendChild(arRing); }
+            if (!arStem) { arStem = document.createElement('div'); arStem.className = 'ar-ground-stem'; arOverlay.appendChild(arStem); }
+            let size = Math.max(24, acc * 70 * scale);
+            arRing.style.left = xPct + '%'; arRing.style.top = groundY + '%';
+            arRing.style.width = size + 'px'; arRing.style.height = size + 'px'; arRing.style.display = 'block';
+            arStem.style.left = xPct + '%'; arStem.style.top = markerY + '%';
+            arStem.style.height = Math.max(0, groundY - markerY) + '%'; arStem.style.display = 'block';
+        }
+        function hideGroundRing() { if (arRing) arRing.style.display = 'none'; if (arStem) arStem.style.display = 'none'; }
         function initARMarkers() {
             arPoints.forEach((pt) => {
                 let matchesSearch = true; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) { matchesSearch = false; }
@@ -210,7 +223,7 @@ function renderProjectSelect() {
             let relativeHeadingDeg = (heading - compassZeroOffset + 360) % 360; let displayAzimut = "";
             if (compassUnit === 'gon') { let gonTotal = relativeHeadingDeg * (400 / 360); let grad = Math.floor(gonTotal); let centigrad = Math.floor((gonTotal - grad) * 100); displayAzimut = `${grad}<sup>g</sup> ${centigrad.toString().padStart(2, '0')}<sup>c</sup>`; } else { displayAzimut = `${relativeHeadingDeg.toFixed(1)} °`; }
             compassDebug.innerHTML = `Azimut: ${displayAzimut}`;
-            mapWrapper.style.transform = `translate(-50%, -50%) rotate(${-heading}deg)`; const dirContainer = document.getElementById('user-direction-container'); if (dirContainer) dirContainer.style.transform = `rotate(${heading}deg)`;
+            mapWrapper.style.transformOrigin = (function(){ const p = map.latLngToContainerPoint([userLat, userLng]); return p.x + 'px ' + p.y + 'px'; })(); mapWrapper.style.transform = `translate(-50%, -50%) rotate(${-heading}deg)`; const dirContainer = document.getElementById('user-direction-container'); if (dirContainer) dirContainer.style.transform = `rotate(${heading}deg)`;
             document.querySelectorAll('.map-label-text').forEach(el => { el.style.transform = `rotate(${heading}deg)`; });
             document.querySelectorAll('.leaflet-popup-content-wrapper').forEach(el => { el.style.transform = `rotate(${heading}deg)`; });
             
@@ -219,7 +232,7 @@ function renderProjectSelect() {
             let cameraPitchDown = 90 - beta;                 // o kolik stupnu pod horizont miri kamera
             let fovH = visSettings.fovH || 90, fovV = visSettings.fovV || 75, eyeH = visSettings.eyeHeight || 1.6;
             let halfH = fovH / 2, halfV = fovV / 2, cullH = halfH + 8;
-            let highlightedPointData = null; let renderedCount = 0;
+            let highlightedPointData = null; let renderedCount = 0; let ringShown = false;
 
             let maxPts = visSettings.maxARPoints || 100; let vOffset = visSettings.arVerticalOffset || 0;
 
@@ -238,24 +251,25 @@ function renderProjectSelect() {
                     // svisle: depresni uhel k bodu na zemi vs. kam miri kamera, promitnuty pres svisly FOV
                     let depression = Math.atan2(eyeH, Math.max(distance, 0.5)) * 180 / Math.PI;
                     let screenAng = depression - cameraPitchDown;
-                    let yPct = 50 + (screenAng / halfV) * 50 - vOffset;
-                    if (yPct < 3) yPct = 3; else if (yPct > 97) yPct = 97;
+                    let groundY = 50 + (screenAng / halfV) * 50 - vOffset;
+                    if (groundY < 3) groundY = 3; else if (groundY > 97) groundY = 97;
+                    let markerY = groundY;
                     let normDist = distance / Math.max(arRadius, 100); if (normDist > 1) normDist = 1;
                     let scale = (0.9 - (normDist * 0.4)) * visSettings.markerScale;
                     
                     if (pt.id === highlightedPointId) { 
                         pt.element.style.zIndex = 99999; scale = scale * 1.25; 
-                        if (!pt.ringElement) { pt.ringElement = document.createElement('div'); pt.ringElement.className = 'ar-accuracy-ring'; pt.element.appendChild(pt.ringElement); }
+                        markerY = Math.max(3, groundY - 14);
                         let acc = pt.bestAccuracy !== null ? pt.bestAccuracy : currentGpsAccuracy;
-                        let baseSize = acc * 70; pt.ringElement.style.width = `${baseSize}px`; pt.ringElement.style.height = `${baseSize}px`; pt.ringElement.style.display = 'block';
+                        showGroundRing(xPct, groundY, markerY, acc, scale); ringShown = true;
                     } else { 
                         pt.element.style.zIndex = Math.round(1000 - distance); 
-                        if (pt.ringElement) pt.ringElement.style.display = 'none';
                     }
-                    if (pt.element) { pt.element.style.left = `${xPct}%`; pt.element.style.top = `${yPct}%`; pt.element.style.transform = `translate(-50%, -50%) scale(${scale}) translateZ(0)`; pt.element.style.opacity = '1'; pt.element.style.pointerEvents = 'auto'; pt.distElement.innerText = `${distance.toFixed(1)} m`; }
+                    if (pt.element) { pt.element.style.left = `${xPct}%`; pt.element.style.top = `${markerY}%`; pt.element.style.transform = `translate(-50%, -50%) scale(${scale}) translateZ(0)`; pt.element.style.opacity = '1'; pt.element.style.pointerEvents = 'auto'; pt.distElement.innerText = `${distance.toFixed(1)} m`; }
                 } else { if (pt.element) pt.element.style.opacity = '0'; }
             });
             
+            if (!ringShown) hideGroundRing();
             if (highlightedPointData) {
                 document.getElementById('ar-hud').style.display = 'flex'; const arrTarget = document.getElementById('arrow-target'); const arrStraight = document.getElementById('arrow-straight'); const arrLeft = document.getElementById('arrow-left'); const arrRight = document.getElementById('arrow-right'); const arrUturn = document.getElementById('arrow-uturn'); const arrBull = document.getElementById('arrow-bullseye'); const hudDistText = document.getElementById('ar-hud-dist'); const hudInfoBox = document.getElementById('ar-hud-info');
                 arrTarget.style.display = 'none'; arrStraight.style.display = 'none'; arrLeft.style.display = 'none'; arrRight.style.display = 'none'; arrUturn.style.display = 'none'; arrBull.style.display = 'none';
