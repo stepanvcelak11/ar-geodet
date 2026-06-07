@@ -287,6 +287,16 @@
         let isDraggingMap = false, isPinchingMap = false; let lastTouchX = 0, lastTouchY = 0; let pinchStartDist = 0, pinchStartZoom = 0; const mapContainerEl = document.getElementById('map-container');
         function _touchDist(t) { const dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY; return Math.hypot(dx, dy); }
         function _zoomAnchor() { return (userLat != null) ? L.latLng(userLat, userLng) : map.getCenter(); }
+        // prevede bod na obrazovce (stred mezi prsty) na bod v mape se zohlednenim otoceni mapy -> zoom drzi stred stistnuti na miste
+        function _screenToContainerPoint(px, py) {
+            const userEl = document.getElementById('user-direction-container');
+            let Px, Py, P;
+            if (userEl && userLat != null) { const ur = userEl.getBoundingClientRect(); Px = ur.left + ur.width / 2; Py = ur.top + ur.height / 2; P = map.latLngToContainerPoint([userLat, userLng]); }
+            else { const rect = document.getElementById('map').getBoundingClientRect(); Px = rect.left + rect.width / 2; Py = rect.top + rect.height / 2; const sz = map.getSize(); P = L.point(sz.x / 2, sz.y / 2); }
+            const rad = currentHeading * Math.PI / 180; const dx = px - Px, dy = py - Py;
+            const lx = dx * Math.cos(rad) - dy * Math.sin(rad); const ly = dx * Math.sin(rad) + dy * Math.cos(rad);
+            return L.point(P.x + lx, P.y + ly);
+        }
         mapContainerEl.addEventListener('touchstart', (e) => {
             if (e.target.closest('.glass-panel')) return;
             clearTimeout(mapReturnTimer); document.getElementById('map-controls').classList.remove('expanded');
@@ -297,7 +307,7 @@
             if (e.touches.length >= 2) {
                 if (!isPinchingMap) { isPinchingMap = true; isDraggingMap = false; pinchStartDist = _touchDist(e.touches); pinchStartZoom = map.getZoom(); }
                 const d = _touchDist(e.touches);
-                if (pinchStartDist > 0 && d > 0) { let nz = pinchStartZoom + Math.log2(d / pinchStartDist); nz = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), nz)); map.setZoomAround(_zoomAnchor(), nz, { animate: false }); }
+                if (pinchStartDist > 0 && d > 0) { let nz = pinchStartZoom + Math.log2(d / pinchStartDist); nz = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), nz)); const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2, my = (e.touches[0].clientY + e.touches[1].clientY) / 2; map.setZoomAround(_screenToContainerPoint(mx, my), nz, { animate: false }); }
                 if (e.cancelable) e.preventDefault(); return;
             }
             if (!isDraggingMap || e.touches.length !== 1) return;
@@ -314,19 +324,20 @@
             else if (e.touches.length === 1) { isPinchingMap = false; isDraggingMap = true; lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; }
         });
 
-        // OFFLINE STAHOVANI: celoobrazovkovy ukazatel postupu (vytvari se za behu, nezasahuje do HTML/CSS)
+        // STAHOVANI: celoobrazovkovy ukazatel postupu (sdileny pro offline mapu i stahovani oblasti; vytvari se za behu, nezasahuje do HTML/CSS)
         function _ensureOfflineProgress() {
             let el = document.getElementById('offline-progress');
             if (!el) {
                 el = document.createElement('div'); el.id = 'offline-progress';
                 el.style.cssText = 'position:fixed; top:0; right:0; bottom:0; left:0; z-index:999999; display:none; align-items:center; justify-content:center; background:rgba(4,8,12,0.55); backdrop-filter:blur(2px);';
-                el.innerHTML = '<div style="width:min(82vw,320px); padding:22px; border-radius:18px; background:rgba(14,18,24,0.96); border:1px solid rgba(255,255,255,0.12); box-shadow:0 20px 50px rgba(0,0,0,0.5); text-align:center; color:#fff;"><div style="font-size:14.5px; font-weight:700; margin-bottom:14px;">Stahuji mapu pro offline…</div><div style="width:100%; height:10px; background:rgba(255,255,255,0.12); border-radius:99px; overflow:hidden;"><div id="offline-progress-bar" style="height:100%; width:0%; background:var(--accent-grad,#34d399); border-radius:99px; transition:width 0.15s linear;"></div></div><div id="offline-progress-txt" style="margin-top:10px; font-size:12px; color:var(--accent-bright,#34d399); font-family:var(--font-mono,monospace);">0 %</div></div>';
+                el.innerHTML = '<div style="width:min(82vw,320px); padding:22px; border-radius:18px; background:rgba(14,18,24,0.96); border:1px solid rgba(255,255,255,0.12); box-shadow:0 20px 50px rgba(0,0,0,0.5); text-align:center; color:#fff;"><div id="offline-progress-title" style="font-size:14.5px; font-weight:700; margin-bottom:14px;">Stahuji\u2026</div><div style="width:100%; height:10px; background:rgba(255,255,255,0.12); border-radius:99px; overflow:hidden;"><div id="offline-progress-bar" style="height:100%; width:0%; background:var(--accent-grad,#34d399); border-radius:99px; transition:width 0.15s linear;"></div></div><div id="offline-progress-txt" style="margin-top:10px; font-size:12px; color:var(--accent-bright,#34d399); font-family:var(--font-mono,monospace);">0 %</div></div>';
                 document.body.appendChild(el);
             }
             return el;
         }
-        function showOfflineProgress(done, total) { const el = _ensureOfflineProgress(); el.style.display = 'flex'; updateOfflineProgress(done, total); }
-        function updateOfflineProgress(done, total) { const pct = total > 0 ? Math.round(done / total * 100) : 0; const bar = document.getElementById('offline-progress-bar'); if (bar) bar.style.width = pct + '%'; const txt = document.getElementById('offline-progress-txt'); if (txt) txt.innerText = pct + ' % · ' + done + ' / ' + total + ' dílků'; }
+        let _offlineProgUnit = 'd\u00edlk\u016f';
+        function showOfflineProgress(done, total, label, unit) { const el = _ensureOfflineProgress(); el.style.display = 'flex'; _offlineProgUnit = unit || 'd\u00edlk\u016f'; const ti = document.getElementById('offline-progress-title'); if (ti) ti.innerText = label || 'Stahuji mapu pro offline\u2026'; updateOfflineProgress(done, total); }
+        function updateOfflineProgress(done, total) { const pct = total > 0 ? Math.round(done / total * 100) : 0; const bar = document.getElementById('offline-progress-bar'); if (bar) bar.style.width = pct + '%'; const txt = document.getElementById('offline-progress-txt'); if (txt) txt.innerText = pct + ' % \u00b7 ' + done + ' / ' + total + ' ' + _offlineProgUnit; }
         function hideOfflineProgress() { const el = document.getElementById('offline-progress'); if (el) el.style.display = 'none'; } 
 
         function showDetails(pt, distance) {
