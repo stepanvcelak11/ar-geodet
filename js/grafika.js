@@ -66,6 +66,15 @@
         function startCompass() { if (compassStarted) return; compassStarted = true; showCompassCalibHint(); if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') { DeviceOrientationEvent.requestPermission().then(permission => { if (permission === 'granted') window.addEventListener('deviceorientation', handleOrientation); }); } else { window.addEventListener('deviceorientationabsolute', handleOrientation); window.addEventListener('deviceorientation', handleOrientation); } }
         function startCameraAndCompass(forceRestart = false) { startCompass(); if (cameraStarted && !forceRestart) return; cameraStarted = true; if (currentVideoStream) { currentVideoStream.getTracks().forEach(track => track.stop()); } const camId = document.getElementById('s-camera-select') ? document.getElementById('s-camera-select').value : null; const videoConstraints = camId ? { deviceId: { exact: camId } } : { facingMode: "environment" }; navigator.mediaDevices.getUserMedia({ video: videoConstraints }).then(stream => { currentVideoStream = stream; const videoElement = document.getElementById('camera-feed'); videoElement.srcObject = stream; videoElement.style.display = "block"; }).catch(err => { alert("Chyba kamery: " + err.message); }); }
 
+        // Po navratu do appky (napr. z otevreneho Katastru) prohlizec casto ukonci kamerovy
+        // stream -> cerna obrazovka. Pokud je track mrtvy, kameru automaticky restartujeme.
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState !== 'visible' || !appStarted || viewMode === 'map') return;
+            const track = (currentVideoStream && currentVideoStream.getVideoTracks) ? currentVideoStream.getVideoTracks()[0] : null;
+            if (!currentVideoStream || !track || track.readyState === 'ended') { startCameraAndCompass(true); }
+            else { const v = document.getElementById('camera-feed'); if (v && v.paused) v.play().catch(() => {}); }
+        });
+
         const resizer = document.getElementById('resizer'); const camCont = document.getElementById('camera-container'); let lastTapTime = 0; let isCamMaximized = false;
         resizer.addEventListener('touchmove', (e) => { const h = (e.touches[0].clientY / window.innerHeight) * 100; camCont.style.flex = `0 0 ${h}%`; });
         resizer.addEventListener('touchend', (e) => { const currentTime = new Date().getTime(); const tapLength = currentTime - lastTapTime; if (tapLength < 300 && tapLength > 0) { if (isCamMaximized) { camCont.style.transition = 'flex 0.3s ease'; camCont.style.flex = `0 0 50%`; isCamMaximized = false; } else { camCont.style.transition = 'flex 0.3s ease'; camCont.style.flex = `0 0 85%`; isCamMaximized = true; } setTimeout(() => { camCont.style.transition = 'none'; map.invalidateSize(); }, 300); } lastTapTime = currentTime; });
