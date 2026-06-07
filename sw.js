@@ -3,6 +3,7 @@ const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './manifest.json',
+    './icon.svg',
     './css/style.css',
     './js/logika.js',
     './js/grafika.js',
