@@ -1,0 +1,18 @@
+{
+  "name": "AR Geodet",
+  "short_name": "Geodet",
+  "description": "Nástroj pro geodety k vyhledávání bodů v AR",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Compass_icon.svg/512px-Compass_icon.svg.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+    

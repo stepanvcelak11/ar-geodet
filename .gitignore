@@ -1,0 +1,16 @@
+# OS soubory
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# Editory / IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# Logy a dočasné soubory
+*.log
+tmp/
+temp/
