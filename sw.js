@@ -1,7 +1,16 @@
 // AR Geodet — Service Worker (v15)
 // Strategie: vlastni kod = NEJDRIV SIT (vzdy cerstvy), CDN/dlazdice = NEJDRIV CACHE.
 // Instalace je ODOLNA: jeden nedostupny soubor neshodi prevzeti nove verze.
-const CACHE_NAME = 'argeodet-offline-v12'; // shodne s ulozenim pro offline (logika.js) — nemenit
+//
+// DVE oddelene cache:
+//   SHELL_CACHE — kod appky + knihovny z CDN. Verzuje se (bump pri vydani), pri aktivaci
+//                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
+//   TILE_CACHE  — mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
+//                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
+const SHELL_CACHE = 'argeodet-shell-v15';
+const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
+const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
+
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -16,9 +25,17 @@ const ASSETS_TO_CACHE = [
     'https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js'
 ];
 
+// Mapove dlazdice (OSM, CUZK WMS) ukladame do TILE_CACHE, aby prezily update kodu.
+function isTile(url) {
+    return url.includes('tile.openstreetmap.org')
+        || url.includes('cuzk.gov.cz/arcgis1')   // ortofoto WMS
+        || url.includes('services.cuzk.cz/wms')   // katastr WMS
+        || url.includes('services.cuzk.gov.cz/wms');
+}
+
 self.addEventListener('install', event => {
     event.waitUntil((async () => {
-        const cache = await caches.open(CACHE_NAME);
+        const cache = await caches.open(SHELL_CACHE);
         // Kazdy soubor zvlast — selhani jednoho nesmi zablokovat instalaci (a tim i aktualizaci).
         await Promise.allSettled(ASSETS_TO_CACHE.map(async url => {
             try {
@@ -33,14 +50,14 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys()
-            .then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
+            .then(keys => Promise.all(keys.filter(key => !KEEP_CACHES.includes(key)).map(key => caches.delete(key))))
             .then(() => self.clients.claim())
     );
 });
 
 self.addEventListener('fetch', event => {
     const url = event.request.url;
-    if (url.includes('cuzk.gov.cz/arcgis/rest')) return;
+    if (url.includes('cuzk.gov.cz/arcgis/rest')) return; // dotazy na bodova pole vzdy ze site
 
     // Vlastni kod aplikace (stejny puvod): NEJDRIV SIT — aby byl vzdy cerstvy.
     // Pri vypadku site se pouzije cache (offline rezim funguje dal).
@@ -48,7 +65,7 @@ self.addEventListener('fetch', event => {
         event.respondWith(
             fetch(event.request).then(response => {
                 const clone = response.clone();
-                caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                caches.open(SHELL_CACHE).then(cache => cache.put(event.request, clone));
                 return response;
             }).catch(() => caches.match(event.request))
         );
@@ -56,13 +73,15 @@ self.addEventListener('fetch', event => {
     }
 
     // Knihovny z CDN, fonty a dlazdice map: NEJDRIV CACHE (rychle, setri data, funguje offline).
+    // caches.match() prohledava obe cache, takze najde i offline ulozene dlazdice.
     event.respondWith(
         caches.match(event.request).then(cachedResponse => {
             if (cachedResponse) return cachedResponse;
             return fetch(event.request).then(response => {
                 if (url.startsWith('http')) {
+                    const targetCache = isTile(url) ? TILE_CACHE : SHELL_CACHE;
                     const responseClone = response.clone();
-                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
+                    caches.open(targetCache).then(cache => cache.put(event.request, responseClone));
                 }
                 return response;
             }).catch(() => {});
