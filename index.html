@@ -49,10 +49,11 @@
             <svg class="welcome-logo" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
             </svg>
-            <h1 style="color: var(--accent); margin-top: 0; text-align: center; font-size: 32px; letter-spacing: 1px;">AR Geodet</h1>
-            
-            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px solid var(--glass-border);">
-                <label style="margin-top: 0; color: var(--accent); display:block; font-weight:bold; margin-bottom:8px;"><svg class="icon"><use href="#i-folder"/></svg> Aktivní zakázka</label>
+            <h1 style="color: var(--text-color); margin: 0; text-align: center; font-size: 30px; font-weight: 700; letter-spacing: -0.5px;">AR&nbsp;Geodet</h1>
+            <div style="text-align:center; margin: 6px 0 26px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-muted);">Geodetický AR nástroj</div>
+
+            <div style="background: var(--surface-2); padding: 15px; border-radius: var(--r-lg); margin-bottom: 20px; border: 1px solid var(--glass-border);">
+                <label style="margin-top: 0; display:block; margin-bottom:8px;"><svg class="icon"><use href="#i-folder"/></svg> Aktivní zakázka</label>
                 <select id="w-project-select" style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.3); color: white; border: 1px solid var(--glass-border); outline: none; margin-bottom: 10px;" onchange="changeProject()"></select>
                 <div style="display:flex; gap:10px;">
                     <button class="btn btn-secondary" style="margin-top:0; padding: 10px; font-size: 13px;" onclick="createNewProject()"><svg class="icon"><use href="#i-plus"/></svg> Nová zakázka</button>

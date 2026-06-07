@@ -7,20 +7,26 @@
 
 /* ---- Design tokens ---------------------------------------------------- */
 :root {
-    /* Plochy a text */
-    --bg-color: #0a0d12;
-    --surface-1: rgba(22, 27, 35, 0.72);
-    --surface-2: rgba(30, 36, 46, 0.70);
-    --glass-bg: rgba(18, 23, 31, 0.78);
-    --glass-border: rgba(255, 255, 255, 0.10);
-    --glass-border-strong: rgba(255, 255, 255, 0.18);
-    --text-color: #eef2f6;
-    --text-muted: #9aa6b4;
-    --map-bg: #0a0d12;
+    /* Písma — UI v systémovém sans, DATA v monospace (přístrojový charakter) */
+    --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+
+    /* Plochy a text — čistá grafitová slate, vlasové linky, méně "skla" */
+    --bg-color: #0d1117;
+    --surface-1: rgba(22, 27, 34, 0.86);
+    --surface-2: rgba(28, 34, 42, 0.86);
+    --glass-bg: rgba(19, 24, 31, 0.88);
+    --glass-border: rgba(255, 255, 255, 0.07);
+    --glass-border-strong: rgba(255, 255, 255, 0.14);
+    --text-color: #e6edf3;
+    --text-muted: #828d9a;
+    --map-bg: #0d1117;
 
     /* Značková paleta */
     --accent: #34d399;          /* emerald — primární akcent */
     --accent-strong: #10b981;   /* sytější odstín pro gradienty */
+    --accent-soft: rgba(52, 211, 153, 0.12);   /* jemný podklad */
+    --accent-line: rgba(52, 211, 153, 0.40);   /* zvýrazněná linka */
     --accent-blue: #3b82f6;
     --warning: #fbbf24;
     --danger: #ef4444;
@@ -45,19 +51,19 @@
     --hud-side: 15px;
     --ring-top: 150%;
 
-    /* Poloměry */
-    --r-xs: 6px;
-    --r-sm: 10px;
-    --r-md: 14px;
-    --r-lg: 18px;
-    --r-xl: 24px;
+    /* Poloměry — ostřejší, technické */
+    --r-xs: 5px;
+    --r-sm: 8px;
+    --r-md: 11px;
+    --r-lg: 14px;
+    --r-xl: 18px;
     --r-pill: 999px;
 
-    /* Stíny */
-    --shadow-1: 0 2px 8px rgba(0, 0, 0, 0.35);
-    --shadow-2: 0 10px 30px rgba(0, 0, 0, 0.45);
-    --shadow-pop: 0 24px 60px rgba(0, 0, 0, 0.6);
-    --shadow-accent: 0 8px 24px rgba(52, 211, 153, 0.28);
+    /* Stíny — jemnější, plošší (čistý app vzhled) */
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.5);
+    --shadow-pop: 0 20px 50px rgba(0, 0, 0, 0.65);
+    --shadow-accent: 0 6px 18px rgba(52, 211, 153, 0.22);
 
     /* Pohyb */
     --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
@@ -96,8 +102,9 @@ body {
     flex-direction: column;
     background-color: var(--bg-color);
     color: var(--text-color);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: var(--font-ui);
     font-feature-settings: "tnum" 1, "cv05" 1;
+    letter-spacing: 0.1px;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     -webkit-user-select: none;
@@ -109,10 +116,19 @@ body {
 .modal-body, .sheet-content { touch-action: pan-y; }
 #map-container { touch-action: none; }
 
-/* Číselné hodnoty (souřadnice, vzdálenosti) zarovnané na šířku číslic */
+/* Číselná/technická data — monospace, na šířku číslic (přístrojový readout) */
 .geo-value, .ar-marker-dist, #ar-hud-dist, #compass-debug, .cp-coords,
 .map-label-text {
+    font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
+}
+
+/* Mikro-popisek: drobné verzálky s prostrkáním (jako štítky na přístroji) */
+.geo-label, .hud-name, .cluster-item-subtitle, .modal-content label {
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-size: 11px;
+    color: var(--text-muted);
 }
 
 /* Plynulé skrývání ovládání po nečinnosti (JS přidává .ui-faded) */
@@ -123,14 +139,8 @@ body {
 }
 
 /* =========================================================================
-   Úvodní obrazovka
+   Úvodní obrazovka — čistá slate plocha s jemnou technickou mřížkou
    ========================================================================= */
-@keyframes gradientBG {
-    0%   { background-position: 0% 50%; }
-    50%  { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
 #welcome-screen {
     position: fixed;
     inset: 0;
@@ -138,25 +148,26 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background:
-        radial-gradient(120% 80% at 50% -10%, rgba(52, 211, 153, 0.12), transparent 60%),
-        linear-gradient(-45deg, #0b1220, #06231b, #05070b, #0b1220);
-    background-size: 100% 100%, 400% 400%;
-    animation: gradientBG 22s ease infinite;
+    background-color: var(--bg-color);
+    background-image:
+        radial-gradient(140% 90% at 50% -20%, rgba(52, 211, 153, 0.10), transparent 55%),
+        linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+    background-size: 100% 100%, 32px 32px, 32px 32px;
     transition: opacity 0.4s ease;
 }
 
 #welcome-screen .modal-content {
     width: 90%;
-    max-width: 440px;
+    max-width: 420px;
     max-height: 90%;
-    padding: 32px 28px;
+    padding: 30px 26px;
     border-radius: var(--r-xl);
-    background: rgba(12, 16, 22, 0.66);
-    backdrop-filter: blur(28px) saturate(140%);
-    -webkit-backdrop-filter: blur(28px) saturate(140%);
+    background: var(--surface-1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-pop), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    box-shadow: var(--shadow-pop);
     overflow-y: auto;
     touch-action: pan-y;
 }
@@ -233,23 +244,28 @@ body {
     left: var(--hud-side);
     z-index: 9999;
     display: none;
-    padding: 10px 16px;
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1.45;
+    min-width: 148px;
+    padding: 10px 14px;
+    line-height: 1.4;
     pointer-events: none;
     transform: scale(var(--menu-scale));
     transform-origin: top left;
 }
+/* Přístrojový readout v info panelu */
+#info .rdt { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+#info .rdt + .rdt { margin-top: 3px; }
+#info .rdt-l { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+#info .rdt-v { font-family: var(--font-mono); font-size: 14px; font-weight: 700; }
 
 #compass-debug {
     position: absolute;
-    top: max(calc(var(--hud-top) + 55px), calc(env(safe-area-inset-top) + 55px));
+    top: max(calc(var(--hud-top) + 60px), calc(env(safe-area-inset-top) + 60px));
     left: var(--hud-side);
     z-index: 9999;
     display: none;
-    padding: 8px 16px;
-    font-size: 16px;
+    padding: 7px 14px;
+    font-family: var(--font-mono);
+    font-size: 15px;
     font-weight: 700;
     color: var(--accent);
     cursor: pointer;
@@ -688,27 +704,30 @@ body {
 .btn {
     width: 100%;
     margin-top: 10px;
-    padding: 14px;
-    border: none;
+    padding: 13px 16px;
+    border: 1px solid transparent;
     border-radius: var(--r-md);
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 0.2px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.1px;
     cursor: pointer;
-    transition: filter 0.18s ease, transform 0.1s ease, box-shadow 0.18s ease;
+    transition: filter 0.16s ease, transform 0.1s ease, background 0.16s ease, border-color 0.16s ease;
 }
-.btn:active { transform: scale(0.97); }
-.btn:hover { filter: brightness(1.08); }
+.btn:active { transform: scale(0.98); }
+.btn:hover { filter: brightness(1.06); }
 
 .btn-primary {
-    background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+    background: var(--accent);
     color: #04130c;
     box-shadow: var(--shadow-accent);
 }
 .btn-warning   { margin-top: 15px; background: var(--warning); color: #1a1206; }
-.btn-secondary { background: rgba(255, 255, 255, 0.10); color: #fff; border: 1px solid var(--glass-border); }
-.btn-danger    { margin-top: 10px; background: var(--danger); color: #fff; }
-.btn-blue      { background: var(--accent-blue); color: #fff; }
+.btn-secondary { background: rgba(255, 255, 255, 0.06); color: var(--text-color); border-color: var(--glass-border); }
+.btn-secondary:hover { background: rgba(255, 255, 255, 0.10); filter: none; }
+.btn-danger    { margin-top: 10px; background: transparent; color: #ff8585; border-color: rgba(239, 68, 68, 0.45); }
+.btn-danger:hover { background: rgba(239, 68, 68, 0.12); filter: none; }
+.btn-blue      { background: transparent; color: #93c5fd; border-color: rgba(59, 130, 246, 0.45); }
+.btn-blue:hover { background: rgba(59, 130, 246, 0.14); filter: none; }
 
 /* Odkaz stylizovaný jako tlačítko (např. "Otevřít nákres") */
 .btn-link {
@@ -825,7 +844,7 @@ details[open] summary::after { content: " ⌄"; }
     transition: background 0.2s ease, color 0.2s ease;
 }
 .tab-btn.active {
-    background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+    background: var(--accent);
     color: #04130c;
 }
 
