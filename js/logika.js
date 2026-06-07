@@ -28,7 +28,14 @@ if ('serviceWorker' in navigator) {
         }
         function getStoreKey(key) { return `${activeProjectId}_${key}`; }
         function getStoredData(key) { return localStorage.getItem(getStoreKey(key)); }
-        function setStoredData(key, val) { localStorage.setItem(getStoreKey(key), val); }
+        let _quotaWarned = false;
+        function setStoredData(key, val) {
+            try { localStorage.setItem(getStoreKey(key), val); return true; }
+            catch (e) {
+                if (!_quotaWarned) { _quotaWarned = true; alert('Úložiště telefonu je plné — data se neuložila. Uvolněte místo (smažte starou zakázku nebo stáhnuté offline okolí v Nastavení).'); }
+                return false;
+            }
+        }
         function removeStoredData(key) { localStorage.removeItem(getStoreKey(key)); }
 
         let appStarted = false, viewMode = 'both', searchQuery = '', cameraStarted = false, currentVideoStream = null;
@@ -80,6 +87,8 @@ if ('serviceWorker' in navigator) {
         window.fetchDistantArea = async function(lat, lng, radius) {
             map.closePopup(); document.getElementById('info').innerHTML = `Stahuji vzdálenou oblast...`;
             let found = await fetchGeodata(lat, lng, radius || mapRadius, false);
+            updateInfoPanel();
+            if (lastFetchNetworkError && found === 0) { alert("ČÚZK je nedostupné nebo jste offline. Zkuste to prosím znovu."); return; }
             alert(`Staženo ${found} bodů ve vybrané oblasti.\n\nPokud si chcete tuto oblast zachovat i bez internetu, klikněte v Menu na 'Uložit pro Offline'.`);
         };
 
@@ -88,7 +97,7 @@ if ('serviceWorker' in navigator) {
             if (!userLat || !userLng) { alert("Počkejte prosím na načtení GPS polohy."); return; }
             alert("Spouštím stahování bodů a mapy...\nProsím, nevyplínejte aplikaci.");
             const officialPoints = arPoints.filter(p => p.cat !== 'CUSTOM');
-            try { setStoredData('arOfflinePoints12', JSON.stringify(officialPoints)); } catch(e) { alert('Paměť je plná.'); return; }
+            if (!setStoredData('arOfflinePoints12', JSON.stringify(officialPoints))) { return; }
             const r = mapRadius; const latOffset = r / 111320; const lonOffset = r / (111320 * Math.cos(userLat * Math.PI / 180));
             const minLat = userLat - latOffset; const maxLat = userLat + latOffset; const minLon = userLng - lonOffset; const maxLon = userLng + lonOffset;
             let urlsToCache = [];
@@ -160,21 +169,41 @@ if ('serviceWorker' in navigator) {
             updateGpsAvgPanel();
         }
 
+        // FETCH s timeoutem: aby se stahovani nezaseklo navzdy, kdyz CUZK neodpovida.
+        // Pri chybe site/timeoutu nastavi lastFetchNetworkError a chybu znovu vyhodi (puvodni try/catch ji spolkne).
+        let lastFetchNetworkError = false;
+        function fetchWithTimeout(url, ms = 12000) {
+            const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), ms);
+            return fetch(url, { signal: ctrl.signal })
+                .catch(err => { lastFetchNetworkError = true; throw err; })
+                .finally(() => clearTimeout(t));
+        }
+        // stabilni ID z polohy bodu -> pri opakovanem fetchi si bod udrzi stejne id (zvyrazneni, detail)
+        function stableId(lat, lng) { return 'p_' + lat.toFixed(6) + '_' + lng.toFixed(6); }
+
         async function fetchGeodata(lat, lng, radius, clearExisting = false) {
+            lastFetchNetworkError = false;
             if (clearExisting) { arPoints.forEach(p => { if(p.element) p.element.remove(); }); arPoints = []; persistentCustomPoints.forEach(pt => arPoints.push({...pt})); }
             const fetchRadius = radius || mapRadius; const latOffset = fetchRadius / 111320; const lngOffset = fetchRadius / (111320 * Math.cos(lat * Math.PI / 180)); const bbox = `${lng - lngOffset},${lat - latOffset},${lng + lngOffset},${lat + latOffset}`; let newFoundCount = 0;
             for (let layerId of [1, 2, 4, 5, 6]) { 
                 const url = `https://ags.cuzk.gov.cz/arcgis/rest/services/BodovaPole/MapServer/${layerId}/query?where=1%3D1&geometry=${bbox}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&outSR=4326&f=json`;
-                try { const response = await fetch(url); const data = await response.json(); if (data.features && data.features.length > 0) { data.features.forEach(feat => { const dist = getDistance(lat, lng, feat.geometry.y, feat.geometry.x); if (dist <= fetchRadius + 5) { const props = feat.attributes; const layerNum = parseInt(layerId, 10); const cisloBodu = extractPointNumber(props); const nameUpper = cisloBodu.toUpperCase(); let cat = "PBPP"; if (layerNum === 1) cat = "TB"; else if (layerNum === 2) cat = "ZHB"; else if (layerNum === 4 || layerNum === 5 || nameUpper.includes('-') || nameUpper.includes('NIVEL')) cat = "NIVEL"; const existing = arPoints.find(p => p.name === cisloBodu && Math.abs(p.lat - feat.geometry.y) < 0.00001); if (!existing) { arPoints.push({ id: Math.random().toString(), name: cisloBodu, lat: feat.geometry.y, lng: feat.geometry.x, cat: cat, type: (cat==="NIVEL"?"vyskovy":"polohovy"), rawData: props, hidden: false, currentDist: dist, bestAccuracy: null }); newFoundCount++; } else if (existing.hidden) { existing.hidden = false; newFoundCount++; } } }); } } catch(e) {}
+                try { const response = await fetchWithTimeout(url); const data = await response.json(); if (data.features && data.features.length > 0) { data.features.forEach(feat => { const dist = getDistance(lat, lng, feat.geometry.y, feat.geometry.x); if (dist <= fetchRadius + 5) { const props = feat.attributes; const layerNum = parseInt(layerId, 10); const cisloBodu = extractPointNumber(props); const nameUpper = cisloBodu.toUpperCase(); let cat = "PBPP"; if (layerNum === 1) cat = "TB"; else if (layerNum === 2) cat = "ZHB"; else if (layerNum === 4 || layerNum === 5 || nameUpper.includes('-') || nameUpper.includes('NIVEL')) cat = "NIVEL"; const existing = arPoints.find(p => p.name === cisloBodu && Math.abs(p.lat - feat.geometry.y) < 0.00001); if (!existing) { arPoints.push({ id: stableId(feat.geometry.y, feat.geometry.x), name: cisloBodu, lat: feat.geometry.y, lng: feat.geometry.x, cat: cat, type: (cat==="NIVEL"?"vyskovy":"polohovy"), rawData: props, hidden: false, currentDist: dist, bestAccuracy: null }); newFoundCount++; } else if (existing.hidden) { existing.hidden = false; newFoundCount++; } } }); } } catch(e) {}
             }
             if (newFoundCount === 0 || !clearExisting) {
                 const mapExtent = `${lng-0.005},${lat-0.005},${lng+0.005},${lat+0.005}`; const idUrl = `https://ags.cuzk.gov.cz/arcgis/rest/services/BodovaPole/MapServer/identify?geometry=${lng},${lat}&geometryType=esriGeometryPoint&sr=4326&layers=all&tolerance=${Math.max(fetchRadius, 40)}&mapExtent=${mapExtent}&imageDisplay=1000,1000,96&returnGeometry=true&f=json`;
-                try { const idRes = await fetch(idUrl); const idData = await idRes.json(); if (idData.results && idData.results.length > 0) { idData.results.forEach(res => { const dist = getDistance(lat, lng, res.geometry.y, res.geometry.x); if (dist <= fetchRadius + 5) { const props = res.attributes; const layerNum = parseInt(res.layerId, 10); const cisloBodu = extractPointNumber(props); const nameUpper = cisloBodu.toUpperCase(); let cat = "PBPP"; if (layerNum === 1) cat = "TB"; else if (layerNum === 2) cat = "ZHB"; else if (layerNum === 4 || layerNum === 5 || nameUpper.includes('-') || nameUpper.includes('NIVEL')) cat = "NIVEL"; const existing = arPoints.find(p => p.name === cisloBodu && Math.abs(p.lat - res.geometry.y) < 0.00001); if (!existing) { arPoints.push({ id: Math.random().toString(), name: cisloBodu, lat: res.geometry.y, lng: res.geometry.x, cat: cat, type: (cat==="NIVEL"?"vyskovy":"polohovy"), rawData: props, hidden: false, currentDist: dist, bestAccuracy: null }); newFoundCount++; } else if (existing.hidden) { existing.hidden = false; newFoundCount++; } } }); } } catch(e) {}
+                try { const idRes = await fetchWithTimeout(idUrl); const idData = await idRes.json(); if (idData.results && idData.results.length > 0) { idData.results.forEach(res => { const dist = getDistance(lat, lng, res.geometry.y, res.geometry.x); if (dist <= fetchRadius + 5) { const props = res.attributes; const layerNum = parseInt(res.layerId, 10); const cisloBodu = extractPointNumber(props); const nameUpper = cisloBodu.toUpperCase(); let cat = "PBPP"; if (layerNum === 1) cat = "TB"; else if (layerNum === 2) cat = "ZHB"; else if (layerNum === 4 || layerNum === 5 || nameUpper.includes('-') || nameUpper.includes('NIVEL')) cat = "NIVEL"; const existing = arPoints.find(p => p.name === cisloBodu && Math.abs(p.lat - res.geometry.y) < 0.00001); if (!existing) { arPoints.push({ id: stableId(res.geometry.y, res.geometry.x), name: cisloBodu, lat: res.geometry.y, lng: res.geometry.x, cat: cat, type: (cat==="NIVEL"?"vyskovy":"polohovy"), rawData: props, hidden: false, currentDist: dist, bestAccuracy: null }); newFoundCount++; } else if (existing.hidden) { existing.hidden = false; newFoundCount++; } } }); } } catch(e) {}
             }
             initARMarkers(); drawAllMarkersOnMap(); return newFoundCount;
         }
 
-        async function initFetch(lat, lng) { document.getElementById('info').innerHTML = `Stahuji data...`; await fetchGeodata(lat, lng, mapRadius, false); updateInfoPanel(); }
+        async function initFetch(lat, lng) {
+            document.getElementById('info').innerHTML = `Stahuji data…`;
+            await fetchGeodata(lat, lng, mapRadius, false);
+            const officialCount = arPoints.filter(p => p.cat !== 'CUSTOM').length;
+            if (lastFetchNetworkError && officialCount === 0) {
+                document.getElementById('info').innerHTML = `<div class="rdt"><span class="rdt-l">ČÚZK</span><span class="rdt-v" style="color:var(--danger);">nedostupné / offline</span></div>`;
+            } else { updateInfoPanel(); }
+        }
 
 
         if ("geolocation" in navigator) {
