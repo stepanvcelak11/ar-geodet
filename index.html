@@ -253,7 +253,8 @@
 
                     <h4 style="color:var(--accent); margin-top:20px; border-bottom: 1px solid var(--glass-border); padding-bottom:5px;"><svg class="icon" style="vertical-align:-0.16em; margin-right:6px;"><use href="#i-crosshair"/></svg>Přesnost & kalibrace AR</h4>
                     <div class="filter-group" style="margin-bottom: 10px;">
-                        <label class="filter-row" style="margin-bottom:0;"><input type="checkbox" id="s-auto-compass"> Auto-korekce kompasu podle pohybu (GPS)</label>
+                        <label class="filter-row"><input type="checkbox" id="s-auto-compass"> Auto-korekce kompasu podle pohybu (GPS)</label>
+                        <label class="filter-row" style="margin-bottom:0;"><input type="checkbox" id="s-tilt-comp"> Kompenzace náklonu telefonu (přesnější svislé umístění)</label>
                     </div>
                     <label>Vyhlazení kompasu: <span id="s-heading-smooth-val">75</span> %</label>
                     <input type="range" id="s-heading-smooth" min="0" max="95" step="5" value="75" oninput="document.getElementById('s-heading-smooth-val').innerText = this.value">
