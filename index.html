@@ -13,7 +13,7 @@
     <link rel="apple-touch-icon" href="icon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Sora:wght@600;700;800&display=swap">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
@@ -50,21 +50,18 @@
 
     <div id="welcome-screen">
         <div class="modal-content">
-            <svg class="welcome-logo" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="wl-badge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16361f"/><stop offset="1" stop-color="#0b1812"/></linearGradient>
-                    <linearGradient id="wl-stroke" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6ee7c4"/><stop offset="1" stop-color="#10b981"/></linearGradient>
-                </defs>
-                <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#wl-badge)" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
-                <path d="M32 16 L46 44 L18 44 Z" fill="rgba(52,211,153,0.06)" stroke="url(#wl-stroke)" stroke-width="2.4" stroke-linejoin="round"/>
-                <g stroke="url(#wl-stroke)" stroke-width="2" stroke-linecap="round">
-                    <line x1="32" y1="8" x2="32" y2="14"/><line x1="32" y1="52" x2="32" y2="58"/>
-                    <line x1="8" y1="34" x2="14" y2="34"/><line x1="50" y1="34" x2="56" y2="34"/>
+            <svg class="welcome-logo" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs><linearGradient id="wl-pin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2dd4bf"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>
+                <path d="M48 10C31 10 18 23 18 40c0 22 30 46 30 46s30-24 30-46c0-17-13-30-30-30Z" fill="url(#wl-pin)"/>
+                <circle cx="48" cy="39" r="15.5" fill="#0b1020"/>
+                <circle cx="48" cy="39" r="11.5" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.5"/>
+                <g stroke="#ffffff" stroke-width="2.6" stroke-linecap="round">
+                    <line x1="48" y1="25" x2="48" y2="34"/><line x1="48" y1="44" x2="48" y2="53"/>
+                    <line x1="34" y1="39" x2="43" y2="39"/><line x1="53" y1="39" x2="62" y2="39"/>
                 </g>
-                <circle cx="32" cy="34" r="8" stroke="url(#wl-stroke)" stroke-width="2"/>
-                <circle cx="32" cy="34" r="3.2" fill="#6ee7c4"/>
+                <circle cx="48" cy="39" r="3.3" fill="#ffffff"/>
             </svg>
-            <h1 style="color: var(--text-color); margin: 0; text-align: center; font-size: 30px; font-weight: 700; letter-spacing: -0.5px;">AR&nbsp;Geodet</h1>
+            <h1 style="color: var(--text-color); margin: 0; text-align: center; font-family: var(--font-display); font-size: 32px; font-weight: 800; letter-spacing: -0.6px;">AR&nbsp;Geodet</h1>
             <div style="text-align:center; margin: 6px 0 26px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-muted);">Geodetický AR nástroj</div>
 
             <div style="background: var(--surface-2); padding: 15px; border-radius: var(--r-lg); margin-bottom: 20px; border: 1px solid var(--glass-border);">

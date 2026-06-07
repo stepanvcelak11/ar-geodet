@@ -1,22 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#10202a"/>
-      <stop offset="1" stop-color="#070b10"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#141a33"/>
+      <stop offset="1" stop-color="#0a0e1c"/>
     </linearGradient>
-    <linearGradient id="mk" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#6ee7c4"/>
-      <stop offset="1" stop-color="#10b981"/>
+    <linearGradient id="pin" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2dd4bf"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <path d="M256 128 L368 352 L144 352 Z" fill="rgba(52,211,153,0.07)" stroke="url(#mk)" stroke-width="18" stroke-linejoin="round"/>
-  <g stroke="url(#mk)" stroke-width="16" stroke-linecap="round">
-    <line x1="256" y1="64" x2="256" y2="112"/>
-    <line x1="256" y1="400" x2="256" y2="448"/>
-    <line x1="64" y1="272" x2="112" y2="272"/>
-    <line x1="400" y1="272" x2="448" y2="272"/>
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <path d="M256 86 C194 86 144 136 144 198 C144 290 256 470 256 470 C256 470 368 290 368 198 C368 136 318 86 256 86 Z" fill="url(#pin)"/>
+  <circle cx="256" cy="196" r="74" fill="#0a0e1c"/>
+  <circle cx="256" cy="196" r="55" fill="none" stroke="#ffffff" stroke-width="6" opacity="0.5"/>
+  <g stroke="#ffffff" stroke-width="12" stroke-linecap="round">
+    <line x1="256" y1="128" x2="256" y2="174"/><line x1="256" y1="218" x2="256" y2="264"/>
+    <line x1="188" y1="196" x2="234" y2="196"/><line x1="278" y1="196" x2="324" y2="196"/>
   </g>
-  <circle cx="256" cy="272" r="62" fill="none" stroke="url(#mk)" stroke-width="16"/>
-  <circle cx="256" cy="272" r="24" fill="#6ee7c4"/>
+  <circle cx="256" cy="196" r="16" fill="#ffffff"/>
 </svg>

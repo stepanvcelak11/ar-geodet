@@ -7,34 +7,38 @@
 
 /* ---- Design tokens ---------------------------------------------------- */
 :root {
-    /* Písma — Inter pro UI, JetBrains Mono pro data (přístrojový charakter) */
+    /* Písma — Sora pro nadpisy, Inter pro UI, JetBrains Mono pro data */
+    --font-display: "Sora", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
 
-    /* Plochy a text — hluboký ink, vrstvené plochy, vlasové linky */
-    --bg-color: #0a0e14;
-    --bg-elev: #0f1520;
-    --surface-1: rgba(20, 26, 35, 0.92);
-    --surface-2: rgba(28, 36, 48, 0.92);
-    --surface-3: rgba(40, 50, 64, 0.90);
-    --glass-bg: rgba(15, 20, 29, 0.82);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-border-strong: rgba(255, 255, 255, 0.16);
-    --text-color: #eaf0f7;
-    --text-muted: #8b97a8;
-    --text-faint: #5e6a7a;
-    --map-bg: #0a0e14;
+    /* Plochy a text — Aurora: indigo-navy základ, prosklené plochy, světlé linky */
+    --bg-color: #0b1020;
+    --bg-elev: #11162a;
+    --surface-1: rgba(255, 255, 255, 0.06);
+    --surface-2: rgba(255, 255, 255, 0.09);
+    --surface-3: rgba(255, 255, 255, 0.13);
+    --glass-bg: rgba(17, 22, 42, 0.80);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-border-strong: rgba(255, 255, 255, 0.22);
+    --text-color: #eef1f8;
+    --text-muted: #aab2c8;
+    --text-faint: #6b7490;
+    --map-bg: #0b1020;
 
-    /* Značková paleta */
-    --accent: #34d399;          /* emerald — primární akcent */
-    --accent-bright: #6ee7c4;   /* mátový highlight */
-    --accent-strong: #10b981;   /* sytější odstín pro gradienty */
-    --accent-soft: rgba(52, 211, 153, 0.12);   /* jemný podklad */
-    --accent-line: rgba(52, 211, 153, 0.40);   /* zvýrazněná linka */
-    --accent-glow: 0 8px 30px rgba(16, 185, 129, 0.35);
+    /* Značková paleta — Aurora (teal → violet → pink) */
+    --accent: #2dd4bf;          /* teal — primární akcent */
+    --accent-bright: #5eead4;   /* světlý teal highlight */
+    --accent-strong: #14b8a6;
+    --accent2: #8b5cf6;         /* violet */
+    --accent3: #f472b6;         /* pink */
+    --accent-grad: linear-gradient(95deg, #2dd4bf, #8b5cf6);
+    --accent-soft: rgba(45, 212, 191, 0.14);
+    --accent-line: rgba(139, 92, 246, 0.50);
+    --accent-glow: 0 10px 34px rgba(139, 92, 246, 0.50);
     --accent-blue: #3b82f6;
     --warning: #fbbf24;
-    --danger: #ef4444;
+    --danger: #fb7185;
 
     /* Kategorie bodů (přepisuje JS) */
     --color-tb: #8b5cf6;
@@ -149,6 +153,7 @@ body {
 ::selection { background: var(--accent-soft); color: var(--accent-bright); }
 
 /* Plynulé skrývání ovládání po nečinnosti (JS přidává .ui-faded) */
+#gps-avg.ui-faded { opacity: 0.3 !important; }
 .ui-faded {
     opacity: 0 !important;
     pointer-events: none !important;
