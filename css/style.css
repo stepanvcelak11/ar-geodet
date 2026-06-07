@@ -1035,3 +1035,100 @@ details[open] summary::after { content: " ⌄"; }
 .map-ctrl-btn { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--glass-border); color: var(--text-color); font-size: 24px; font-weight: 700; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
 .map-ctrl-btn:active { transform: scale(0.94); }
 .map-ctrl-btn .icon { width: 20px; height: 20px; }
+
+/* =========================================================================
+   Nové rozložení (Koncept 1): spodní dok + přepínač zobrazení
+   ========================================================================= */
+/* Starý hamburger nahrazen dokem — ponechán v DOM kvůli JS, jen skrytý */
+#menu-toggle-btn, #side-menu { display: none !important; }
+
+/* Azimut jako chip vpravo nahoře */
+#compass-debug { left: auto; right: var(--hud-side); transform-origin: top right; border-radius: 14px; }
+#info { border-radius: 14px; }
+
+/* Přepínač zobrazení AR / Split / Mapa (nahoře uprostřed) */
+#view-seg {
+    position: absolute;
+    top: max(var(--hud-top), env(safe-area-inset-top));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9000;
+    display: flex;
+    gap: 3px;
+    padding: 4px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-pill);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    box-shadow: var(--shadow-1);
+    opacity: var(--panel-opacity);
+}
+.seg-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: var(--r-pill);
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease;
+}
+.seg-btn.active { background: var(--accent-grad); color: #fff; }
+
+/* Spodní dok s nástroji */
+#dock {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    z-index: 9000;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 8px;
+    border-radius: 22px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    box-shadow: var(--shadow-2);
+    opacity: var(--panel-opacity);
+}
+.dock-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-ui);
+    font-size: 9.5px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 6px 2px;
+    transition: color 0.15s ease;
+}
+.dock-btn .icon { width: 22px; height: 22px; }
+.dock-btn:active { color: var(--accent-bright); transform: scale(0.95); }
+.dock-primary { color: var(--text-color); }
+.dock-fab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    margin-top: -24px;
+    border-radius: 50%;
+    background: var(--accent-grad);
+    border: 3px solid var(--bg-color);
+    box-shadow: var(--accent-glow);
+}
+.dock-fab .icon { width: 24px; height: 24px; color: #fff; }
+
+/* Ovládání mapy posunout nad dok */
+#map-controls { bottom: 92px; }

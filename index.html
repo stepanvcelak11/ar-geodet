@@ -73,7 +73,8 @@
                 </div>
             </div>
 
-            <div class="modal-body" style="padding-right: 0;">
+            <!-- Pokročilé volby přesunuty do Nastavení; ponecháno skryté kvůli startAppFromWelcome() -->
+            <div class="modal-body" style="padding-right: 0; display: none;">
                 <label>Poloměr pro mapu (Stahování): <span id="w-map-radius-val" style="color:var(--accent); font-size: 16px;">1000</span> m</label>
                 <input type="range" id="w-map-radius-slider" min="50" max="5000" step="50" value="1000" oninput="document.getElementById('w-map-radius-val').innerText = this.value">
                 <label>Viditelnost v AR kameře: <span id="w-ar-radius-val" style="color:var(--accent); font-size: 16px;">150</span> m</label>
@@ -122,6 +123,22 @@
 
     <div id="info" class="glass-panel">Čekám na spuštění...</div>
     <div id="compass-debug" class="glass-panel" onclick="openCompassModal()">Azimut: --</div>
+
+    <!-- Přepínač zobrazení (AR / Split / Mapa) -->
+    <div id="view-seg">
+        <button class="seg-btn" data-view="ar" onclick="setView('ar', this)">AR</button>
+        <button class="seg-btn active" data-view="both" onclick="setView('both', this)">Split</button>
+        <button class="seg-btn" data-view="map" onclick="setView('map', this)">Mapa</button>
+    </div>
+
+    <!-- Spodní dok s nástroji -->
+    <nav id="dock">
+        <button class="dock-btn" onclick="openKatastr()"><svg class="icon"><use href="#i-map-pin"/></svg><span>Katastr</span></button>
+        <button class="dock-btn" onclick="openMeasureModal()"><svg class="icon"><use href="#i-ruler"/></svg><span>Měření</span></button>
+        <button class="dock-btn dock-primary" onclick="openNewPointModal()"><span class="dock-fab"><svg class="icon"><use href="#i-plus"/></svg></span><span>Nový bod</span></button>
+        <button class="dock-btn" onclick="openManageModal()"><svg class="icon"><use href="#i-wrench"/></svg><span>Body</span></button>
+        <button class="dock-btn" onclick="openSettings()"><svg class="icon"><use href="#i-settings"/></svg><span>Nastavení</span></button>
+    </nav>
     <div id="gps-avg" class="glass-panel">
         <div class="ga-title"><svg class="icon"><use href="#i-locate"/></svg> Průměrování GPS</div>
         <div class="ga-row"><span>Měření:</span> <b id="ga-n">—</b></div>
@@ -256,7 +273,8 @@
                     </div>
                     <label style="margin-top: 15px;">Výběr objektivu kamery</label>
                     <select id="s-camera-select"><option value="">Výchozí zadní kamera</option></select>
-                    <button class="btn btn-secondary" style="margin-top: 20px;" onclick="restoreHiddenPoints()"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Obnovit skryté body</button>
+                    <button class="btn btn-blue" style="margin-top: 20px;" onclick="saveForOffline()"><svg class="icon"><use href="#i-download"/></svg> Uložit pro Offline</button>
+                    <button class="btn btn-secondary" style="margin-top: 10px;" onclick="restoreHiddenPoints()"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Obnovit skryté body</button>
                     <button class="btn btn-danger" style="margin-top: 10px;" onclick="clearAllPoints()"><svg class="icon"><use href="#i-trash"/></svg> Vymazat stáhnuté okolí z této zakázky</button>
                 </div>
                 <div id="tab-vzhled" class="settings-tab">
@@ -316,5 +334,15 @@
     <script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js"></script>
     <script src="js/logika.js"></script>
     <script src="js/grafika.js"></script>
+    <script>
+        // Přepínač zobrazení v doku (AR / Split / Mapa) — využívá globální viewMode a applyViewMode() z grafika.js
+        function setView(mode, btn) {
+            if (typeof viewMode === 'undefined') return;
+            viewMode = mode;
+            document.querySelectorAll('#view-seg .seg-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            if (typeof applyViewMode === 'function') applyViewMode();
+        }
+    </script>
 </body>
 </html>
