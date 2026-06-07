@@ -37,6 +37,12 @@
         function openCompassModal() { document.getElementById('compass-modal').style.display = 'flex'; updateCompassButtons(); } function setCompassZero() { compassZeroOffset = currentHeading; alert("Nula nastavena na aktuální směr."); document.getElementById('compass-modal').style.display = 'none'; } function resetCompassZero() { compassZeroOffset = 0; alert("Nula zrušena."); document.getElementById('compass-modal').style.display = 'none'; } function setCompassUnit(u) { compassUnit = u; updateCompassButtons(); }
         function updateCompassButtons() { document.getElementById('btn-unit-deg').style.background = compassUnit === 'deg' ? 'var(--accent)' : '#555'; document.getElementById('btn-unit-deg').style.color = compassUnit === 'deg' ? '#000' : '#fff'; document.getElementById('btn-unit-gon').style.background = compassUnit === 'gon' ? 'var(--accent)' : '#555'; document.getElementById('btn-unit-gon').style.color = compassUnit === 'gon' ? '#000' : '#fff'; }
 
+        const APP_VERSION = '1.0';
+        function openAbout() { const v = document.getElementById('about-version'); if (v) v.innerText = APP_VERSION; document.getElementById('about-modal').style.display = 'flex'; }
+        function dismissCompassCalib() { try { localStorage.setItem('arCompassCalibShown', '1'); } catch (e) {} document.getElementById('compass-calib-modal').style.display = 'none'; }
+        // Onboarding kalibrace kompasu: jednorazove pri prvnim startu AR; force=true znovu z nastaveni kompasu.
+        function showCompassCalibHint(force) { try { if (!force && localStorage.getItem('arCompassCalibShown')) return; } catch (e) {} const m = document.getElementById('compass-calib-modal'); if (m) m.style.display = 'flex'; }
+
         function openMeasureModal() { document.getElementById('measure-modal').style.display = 'flex'; }
 
         async function loadCameras() { const btn = document.getElementById('camera-load-btn'); btn.innerText = "Načítám..."; try { const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); const devices = await navigator.mediaDevices.enumerateDevices(); const videoDevices = devices.filter(d => d.kind === 'videoinput'); const wSelect = document.getElementById('w-camera-select'); const sSelect = document.getElementById('s-camera-select'); wSelect.innerHTML = '<option value="">Výchozí zadní kamera</option>'; sSelect.innerHTML = '<option value="">Výchozí zadní kamera</option>'; videoDevices.forEach(cam => { if (!cam.label.toLowerCase().includes('front') && !cam.label.toLowerCase().includes('přední')) { const labelText = cam.label || `Kamera ${wSelect.options.length}`; const opt1 = document.createElement('option'); opt1.value = cam.deviceId; opt1.text = labelText; wSelect.appendChild(opt1); const opt2 = document.createElement('option'); opt2.value = cam.deviceId; opt2.text = labelText; sSelect.appendChild(opt2); } }); stream.getTracks().forEach(t => t.stop()); btn.style.display = 'none'; wSelect.style.display = 'block'; } catch(e) { alert("Nepodařilo se načíst seznam kamer."); btn.innerHTML = '<svg class="icon"><use href="#i-camera"/></svg> Zkusit znovu načíst kamery'; } }
@@ -48,7 +54,7 @@
         function applyViewMode() { const camCont = document.getElementById('camera-container'); const mapCont = document.getElementById('map-container'); const resizer = document.getElementById('resizer'); if (viewMode === 'both') { camCont.style.display = 'block'; camCont.style.flex = '0 0 50%'; mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'flex'; startCameraAndCompass(); } else if (viewMode === 'map') { camCont.style.display = 'none'; mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'none'; startCompass(); } else if (viewMode === 'ar') { camCont.style.display = 'block'; camCont.style.flex = '1'; mapCont.style.display = 'none'; resizer.style.display = 'none'; startCameraAndCompass(); } setTimeout(() => { map.invalidateSize(); }, 300); }
 
         let compassStarted = false;
-        function startCompass() { if (compassStarted) return; compassStarted = true; if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') { DeviceOrientationEvent.requestPermission().then(permission => { if (permission === 'granted') window.addEventListener('deviceorientation', handleOrientation); }); } else { window.addEventListener('deviceorientationabsolute', handleOrientation); window.addEventListener('deviceorientation', handleOrientation); } }
+        function startCompass() { if (compassStarted) return; compassStarted = true; showCompassCalibHint(); if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') { DeviceOrientationEvent.requestPermission().then(permission => { if (permission === 'granted') window.addEventListener('deviceorientation', handleOrientation); }); } else { window.addEventListener('deviceorientationabsolute', handleOrientation); window.addEventListener('deviceorientation', handleOrientation); } }
         function startCameraAndCompass(forceRestart = false) { startCompass(); if (cameraStarted && !forceRestart) return; cameraStarted = true; if (currentVideoStream) { currentVideoStream.getTracks().forEach(track => track.stop()); } const camId = document.getElementById('s-camera-select') ? document.getElementById('s-camera-select').value : null; const videoConstraints = camId ? { deviceId: { exact: camId } } : { facingMode: "environment" }; navigator.mediaDevices.getUserMedia({ video: videoConstraints }).then(stream => { currentVideoStream = stream; const videoElement = document.getElementById('camera-feed'); videoElement.srcObject = stream; videoElement.style.display = "block"; }).catch(err => { alert("Chyba kamery: " + err.message); }); }
 
         const resizer = document.getElementById('resizer'); const camCont = document.getElementById('camera-container'); let lastTapTime = 0; let isCamMaximized = false;
@@ -264,11 +270,14 @@
 
             // AR PROJEKCE: realny zorny uhel kamery + sklon telefonu (z beta)
             let beta = (event.beta !== null) ? event.beta : 90;
-            let cameraPitchDown;
+            let cameraPitchDown, imgRoll = 0;
             if (visSettings.tiltCompensation !== false && event.gamma !== null && event.beta !== null) {
                 let br = beta * Math.PI / 180, gr = event.gamma * Math.PI / 180;
                 let vUp = -Math.cos(br) * Math.cos(gr); // svisla slozka osy zadni kamery (jednotkovy vektor)
                 cameraPitchDown = Math.atan2(-vUp, Math.sqrt(Math.max(0, 1 - vUp * vUp))) * 180 / Math.PI;
+                // VODOROVNE: naklon obrazu kamery (roll kolem opticke osy) -> srovnat znacky s horizontem;
+                // 0 pri svislem telefonu (beta~90), roste pri pohledu dolu se sklonem do strany.
+                imgRoll = Math.atan2(Math.cos(br) * Math.sin(gr), Math.sin(br));
             } else cameraPitchDown = 90 - beta;                 // o kolik stupnu pod horizont miri kamera
             let fovH = visSettings.fovH || 90, fovV = visSettings.fovV || 75, eyeH = visSettings.eyeHeight || 1.6;
             let halfH = fovH / 2, halfV = fovV / 2, cullH = halfH + 8;
@@ -287,11 +296,14 @@
                 const pointBearing = getBearing(userLat, userLng, pt.lat, pt.lng); let diff = ((pointBearing - heading + 540) % 360) - 180;
                 if (pt.id === highlightedPointId) { highlightedPointData = { diff: diff, dist: distance, name: pt.name }; }
                 if (Math.abs(diff) < cullH) {
-                    const xPct = 50 + (diff / halfH) * 50;
                     // svisle: depresni uhel k bodu na zemi vs. kam miri kamera, promitnuty pres svisly FOV
                     let depression = Math.atan2(eyeH, Math.max(distance, 0.5)) * 180 / Math.PI;
                     let screenAng = depression - cameraPitchDown;
-                    let groundY = 50 + (screenAng / halfV) * 50 - vOffset;
+                    // tilt: rotace odsazeni (azimut x svisly uhel) o naklon obrazu, aby znacky drzely horizont
+                    let uH = diff, vV = screenAng;
+                    if (imgRoll) { let cr = Math.cos(imgRoll), sr = Math.sin(imgRoll); let t = uH * cr - vV * sr; vV = uH * sr + vV * cr; uH = t; }
+                    const xPct = 50 + (uH / halfH) * 50;
+                    let groundY = 50 + (vV / halfV) * 50 - vOffset;
                     if (groundY < 3) groundY = 3; else if (groundY > 97) groundY = 97;
                     let markerY = groundY;
                     let normDist = distance / Math.max(arRadius, 100); if (normDist > 1) normDist = 1;
