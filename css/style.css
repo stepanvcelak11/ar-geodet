@@ -1226,3 +1226,23 @@ details[open] summary::after { content: " ⌄"; }
 #hud-editor input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); border: 3px solid var(--bg-color); cursor: pointer; }
 #hud-editor .he-reset { width: 100%; margin-top: 16px; background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); border-radius: var(--r-md); padding: 11px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 #hud-editor .he-reset:active { background: rgba(255,255,255,0.06); }
+
+/* =========================================================================
+   Venkovni rezim (vysoky kontrast) — citelnost na primem slunci
+   ========================================================================= */
+body.outdoor-mode { --text-muted: #dfe3ee; }
+body.outdoor-mode .glass-panel, body.outdoor-mode #view-seg, body.outdoor-mode #dock,
+body.outdoor-mode .modal-content, body.outdoor-mode #bottom-sheet, body.outdoor-mode #hud-editor,
+body.outdoor-mode #side-menu, body.outdoor-mode #ar-hud-info {
+    background: #0a0e1a !important;
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+    border-color: rgba(255, 255, 255, 0.85) !important;
+    opacity: 1 !important;
+}
+/* Znacky: jen plne pozadi + silny okraj; opacitu NEsahat (ridi zobrazeni/skryti v renderAR) */
+body.outdoor-mode .ar-marker {
+    background: #0a0e1a !important;
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+    border-color: rgba(255, 255, 255, 0.85);
+}
+body.outdoor-mode .ar-marker-dist { opacity: 1; }
