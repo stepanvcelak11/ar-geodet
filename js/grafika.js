@@ -157,7 +157,7 @@ function renderProjectSelect() {
             el.style.display = 'block';
             const r = gpsAvgResult;
             document.getElementById('ga-n').innerText = (r && r.total) ? ((r.total > r.n) ? (r.n + ' (z ' + r.total + ')') : ('' + r.n)) : '0';
-            document.getElementById('ga-pos').innerText = (r && r.acc) ? ('\u00b1' + r.acc.toFixed(1) + ' m') : '\u2026';
+            document.getElementById('ga-pos').innerText = (r && r.n >= 2) ? ('\u00b1' + r.sterr.toFixed(2) + ' m') : '\u2026';
             document.getElementById('ga-se').innerText = (r && r.n >= 2) ? ('\u00b1' + r.sigma.toFixed(2) + ' m') : '\u2026';
         }
 
