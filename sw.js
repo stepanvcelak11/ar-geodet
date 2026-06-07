@@ -21,12 +21,28 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-    if (event.request.url.includes('cuzk.gov.cz/arcgis/rest')) return;
+    const url = event.request.url;
+    if (url.includes('cuzk.gov.cz/arcgis/rest')) return;
+
+    // Vlastni kod aplikace (stejny puvod): NEJDRIV SIT - aby byl vzdy cerstvy.
+    // Pri vypadku site se pouzije cache (offline rezim funguje dal).
+    if (url.startsWith(self.location.origin)) {
+        event.respondWith(
+            fetch(event.request).then(response => {
+                const clone = response.clone();
+                caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                return response;
+            }).catch(() => caches.match(event.request))
+        );
+        return;
+    }
+
+    // Knihovny z CDN a dlazdice map: NEJDRIV CACHE (rychle, setri data).
     event.respondWith(
         caches.match(event.request).then(cachedResponse => {
             if (cachedResponse) return cachedResponse;
             return fetch(event.request).then(response => {
-                if (event.request.url.startsWith('http')) {
+                if (url.startsWith('http')) {
                     const responseClone = response.clone();
                     caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
                 }

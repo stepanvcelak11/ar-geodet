@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>AR Geodet</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#000000">
+    <meta name="theme-color" content="#0a0d12">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Geodet">
@@ -16,6 +16,34 @@
 </head>
 <body>
 
+    <!-- Ikonová sada (Lucide-style). Použití: <svg class="icon"><use href="#i-nazev"/></svg> -->
+    <svg id="icon-sprite" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+        <symbol id="i-menu" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></symbol>
+        <symbol id="i-map-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol>
+        <symbol id="i-ruler" viewBox="0 0 24 24"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></symbol>
+        <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="3"/></symbol>
+        <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/></symbol>
+        <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+        <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></symbol>
+        <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+        <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></symbol>
+        <symbol id="i-camera" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/><circle cx="12" cy="13" r="3"/></symbol>
+        <symbol id="i-navigation" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></symbol>
+        <symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
+        <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></symbol>
+        <symbol id="i-edit" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></symbol>
+        <symbol id="i-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2Z"/></symbol>
+        <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></symbol>
+        <symbol id="i-crosshair" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></symbol>
+        <symbol id="i-rotate-ccw" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></symbol>
+        <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+        <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></symbol>
+        <symbol id="i-vibrate" viewBox="0 0 24 24"><path d="m2 8 2 2-2 2 2 2-2 2"/><path d="m22 8-2 2 2 2-2 2 2 2"/><rect width="8" height="14" x="8" y="5" rx="1"/></symbol>
+        <symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></symbol>
+        <symbol id="i-locate" viewBox="0 0 24 24"><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><circle cx="12" cy="12" r="6"/></symbol>
+        <symbol id="i-sliders" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></symbol>
+    </svg>
+
     <div id="welcome-screen">
         <div class="modal-content">
             <svg class="welcome-logo" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -24,11 +52,11 @@
             <h1 style="color: var(--accent); margin-top: 0; text-align: center; font-size: 32px; letter-spacing: 1px;">AR Geodet</h1>
             
             <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px solid var(--glass-border);">
-                <label style="margin-top: 0; color: var(--accent); display:block; font-weight:bold; margin-bottom:8px;">📂 Aktivní zakázka</label>
+                <label style="margin-top: 0; color: var(--accent); display:block; font-weight:bold; margin-bottom:8px;"><svg class="icon"><use href="#i-folder"/></svg> Aktivní zakázka</label>
                 <select id="w-project-select" style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.3); color: white; border: 1px solid var(--glass-border); outline: none; margin-bottom: 10px;" onchange="changeProject()"></select>
                 <div style="display:flex; gap:10px;">
-                    <button class="btn btn-secondary" style="margin-top:0; padding: 10px; font-size: 13px;" onclick="createNewProject()">➕ Nová zakázka</button>
-                    <button class="btn btn-danger" style="margin-top:0; padding: 10px; font-size: 13px;" onclick="deleteProject()">🗑️ Smazat</button>
+                    <button class="btn btn-secondary" style="margin-top:0; padding: 10px; font-size: 13px;" onclick="createNewProject()"><svg class="icon"><use href="#i-plus"/></svg> Nová zakázka</button>
+                    <button class="btn btn-danger" style="margin-top:0; padding: 10px; font-size: 13px;" onclick="deleteProject()"><svg class="icon"><use href="#i-trash"/></svg> Smazat</button>
                 </div>
             </div>
 
@@ -39,14 +67,14 @@
                 <input type="range" id="w-ar-radius-slider" min="50" max="5000" step="50" value="150" oninput="document.getElementById('w-ar-radius-val').innerText = this.value">
                 <label style="margin-top: 20px;">Druh hledaných bodů</label>
                 <div class="filter-group">
-                    <label class="filter-row"><input type="checkbox" id="w-f-tb" checked> 🔺 Trigonometrické</label>
-                    <label class="filter-row"><input type="checkbox" id="w-f-zhb" checked> 🟥 Zhušťovací</label>
-                    <label class="filter-row"><input type="checkbox" id="w-f-pbpp" checked> 🔵 Podrobné polohové</label>
-                    <label class="filter-row"><input type="checkbox" id="w-f-nivel" checked> 🔴 Výškové / Nivelační</label>
-                    <label class="filter-row"><input type="checkbox" id="w-f-custom" checked> 🟢 Vlastní body</label>
+                    <label class="filter-row"><input type="checkbox" id="w-f-tb" checked><svg class="cat-ic" viewBox="0 0 24 24"><polygon points="12,3 22,21 2,21" fill="#8b5cf6"/></svg> Trigonometrické</label>
+                    <label class="filter-row"><input type="checkbox" id="w-f-zhb" checked><svg class="cat-ic" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" fill="#0ea5e9"/></svg> Zhušťovací</label>
+                    <label class="filter-row"><input type="checkbox" id="w-f-pbpp" checked><svg class="cat-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#3b82f6"/></svg> Podrobné polohové</label>
+                    <label class="filter-row"><input type="checkbox" id="w-f-nivel" checked><svg class="cat-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#ef4444" stroke-width="3"/><circle cx="12" cy="12" r="3" fill="#ef4444"/></svg> Výškové / Nivelační</label>
+                    <label class="filter-row"><input type="checkbox" id="w-f-custom" checked><svg class="cat-ic" viewBox="0 0 24 24"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7Z" fill="#34d399"/></svg> Vlastní body</label>
                 </div>
                 <details style="margin-top: 20px;">
-                    <summary style="color: #bbb; border: 1px solid var(--glass-border); border-radius: 10px; padding: 12px; text-align: center;">⚙️ Zobrazit pokročilé nastavení</summary>
+                    <summary style="color: #bbb; border: 1px solid var(--glass-border); border-radius: 10px; padding: 12px; text-align: center;"><svg class="icon"><use href="#i-settings"/></svg> Zobrazit pokročilé nastavení</summary>
                     <div style="padding: 10px;">
                         <label>Rozvržení displeje</label>
                         <div class="filter-group" style="display: flex; flex-direction: column; gap: 8px;">
@@ -57,22 +85,22 @@
                         <label style="margin-top: 15px;">Hledat konkrétní bod (Plný název)</label>
                         <input type="text" id="w-search-name" placeholder="Např. 567 nebo celá značka">
                         <label style="margin-top: 15px;">Širokoúhlý objektiv (0.5x)</label>
-                        <button id="camera-load-btn" class="btn btn-secondary" onclick="loadCameras()" style="padding: 10px; font-size: 14px;">📸 Vyhledat zadní objektivy</button>
+                        <button id="camera-load-btn" class="btn btn-secondary" onclick="loadCameras()" style="padding: 10px; font-size: 14px;"><svg class="icon"><use href="#i-camera"/></svg> Vyhledat zadní objektivy</button>
                         <select id="w-camera-select" style="display:none;"><option value="">Výchozí zadní kamera</option></select>
                     </div>
                 </details>
             </div>
-            <button class="btn btn-primary" style="margin-top: 25px; font-size: 20px; padding: 18px; box-shadow: 0 10px 20px rgba(52,211,153,0.3);" onclick="startAppFromWelcome()">Spustit vyhledávání 🚀</button>
+            <button class="btn btn-primary" style="margin-top: 25px; font-size: 20px; padding: 18px; box-shadow: 0 10px 20px rgba(52,211,153,0.3);" onclick="startAppFromWelcome()"><svg class="icon"><use href="#i-navigation"/></svg> Spustit vyhledávání</button>
         </div>
     </div>
 
-    <button id="menu-toggle-btn" class="glass-panel" onclick="toggleMenu()">☰ Menu</button>
+    <button id="menu-toggle-btn" class="glass-panel" onclick="toggleMenu()"><svg class="icon"><use href="#i-menu"/></svg> Menu</button>
     <div id="side-menu">
-        <button class="menu-btn" onclick="openKatastr(); toggleMenu();" style="background: rgba(52,211,153,0.15); border-color: var(--accent); color: var(--accent);">🗺️ Otevřít Katastr (Zde stojím)</button>
-        <button class="menu-btn" onclick="openMeasureModal(); toggleMenu();">📏 Měření vzdálenosti</button>
-        <button class="menu-btn" onclick="openSettings(); toggleMenu();">⚙️ Otevřít Nastavení</button>
-        <button class="menu-btn" onclick="openManageModal(); toggleMenu();">🛠️ Spravovat vlastní body</button>
-        <button class="menu-btn" style="background:var(--accent-blue);" onclick="saveForOffline(); toggleMenu();">💾 Uložit pro Offline</button>
+        <button class="menu-btn" onclick="openKatastr(); toggleMenu();" style="background: rgba(52,211,153,0.15); border-color: var(--accent); color: var(--accent);"><svg class="icon"><use href="#i-map-pin"/></svg> Otevřít Katastr (Zde stojím)</button>
+        <button class="menu-btn" onclick="openMeasureModal(); toggleMenu();"><svg class="icon"><use href="#i-ruler"/></svg> Měření vzdálenosti</button>
+        <button class="menu-btn" onclick="openSettings(); toggleMenu();"><svg class="icon"><use href="#i-settings"/></svg> Otevřít Nastavení</button>
+        <button class="menu-btn" onclick="openManageModal(); toggleMenu();"><svg class="icon"><use href="#i-wrench"/></svg> Spravovat vlastní body</button>
+        <button class="menu-btn" style="background:var(--accent-blue);" onclick="saveForOffline(); toggleMenu();"><svg class="icon"><use href="#i-download"/></svg> Uložit pro Offline</button>
         <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
         <label class="menu-toggle-row"><input type="checkbox" id="tgl-info" checked onchange="toggleHudElements()"> Info panel a přesnost</label>
         <label class="menu-toggle-row"><input type="checkbox" id="tgl-compass" checked onchange="toggleHudElements()"> Kompas (Azimut)</label>
@@ -83,18 +111,18 @@
 
     <div class="modal-overlay" id="measure-modal">
         <div class="modal-content">
-            <h3 style="color: var(--accent); margin-top:0;">📏 Měření vzdálenosti</h3>
+            <h3 style="color: var(--accent); margin-top:0;"><svg class="icon"><use href="#i-ruler"/></svg>Měření vzdálenosti</h3>
             <p style="font-size: 13px; margin-top:0; opacity: 0.8;">Vypočítá vzdálenost a převýšení mezi dvěma místy podle GPS.</p>
             <div class="modal-body">
                 <div class="cp-item">
                     <div class="cp-title" style="color: #fff;">Bod A (Výchozí bod)</div>
                     <div class="cp-coords" id="meas-a-coords">Nenastaveno</div>
-                    <button class="btn btn-blue" style="margin-top:5px; padding: 10px; width: 100%;" onclick="setMeasurePoint('A')">📍 Uložit moji aktuální pozici</button>
+                    <button class="btn btn-blue" style="margin-top:5px; padding: 10px; width: 100%;" onclick="setMeasurePoint('A')"><svg class="icon"><use href="#i-map-pin"/></svg> Uložit moji aktuální pozici</button>
                 </div>
                 <div class="cp-item">
                     <div class="cp-title" style="color: #fff;">Bod B (Cílový bod)</div>
                     <div class="cp-coords" id="meas-b-coords">Nenastaveno</div>
-                    <button class="btn btn-blue" style="margin-top:5px; padding: 10px; width: 100%;" onclick="setMeasurePoint('B')">📍 Uložit moji aktuální pozici</button>
+                    <button class="btn btn-blue" style="margin-top:5px; padding: 10px; width: 100%;" onclick="setMeasurePoint('B')"><svg class="icon"><use href="#i-map-pin"/></svg> Uložit moji aktuální pozici</button>
                 </div>
                 <div class="geo-highlight" style="margin-top: 15px; border-left-color: var(--accent);">
                     <div class="geo-data-row"><span class="geo-label">Vodorovná délka:</span><span class="geo-value" style="font-size: 16px; color: var(--accent);" id="meas-horiz">-- m</span></div>
@@ -113,8 +141,8 @@
         <div class="modal-content" style="max-height: auto;">
             <h3 style="color: var(--accent); margin-top:0;">Nastavení Kompasu</h3>
             <div class="modal-body">
-                <button class="btn btn-primary" onclick="setCompassZero()">🎯 Nastavit aktuální směr jako NULU (0)</button>
-                <button class="btn btn-warning" onclick="resetCompassZero()">🔄 Zrušit uživatelskou nulu</button>
+                <button class="btn btn-primary" onclick="setCompassZero()"><svg class="icon"><use href="#i-crosshair"/></svg> Nastavit aktuální směr jako NULU (0)</button>
+                <button class="btn btn-warning" onclick="resetCompassZero()"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Zrušit uživatelskou nulu</button>
                 <hr style="border-color: var(--glass-border); width: 100%; margin: 20px 0;">
                 <label>Zobrazované jednotky:</label>
                 <div class="row-buttons" style="margin-top: 10px;">
@@ -141,8 +169,8 @@
             <h2 id="det-title" style="margin:0 0 5px 0;">#Bod</h2>
             <div id="det-subtitle" style="font-weight: 600; margin-bottom: 15px; font-size: 14px;">Typ bodu</div>
             <div id="det-body" style="margin-bottom: 15px; font-size: 15px;"></div>
-            <button class="btn btn-warning" id="highlight-btn" onclick="toggleHighlight()">⭐ Zvýraznit bod a navigovat</button>
-            <button class="btn btn-danger" onclick="hideCurrentPoint()">👁️ Skrýt tento bod z AR</button>
+            <button class="btn btn-warning" id="highlight-btn" onclick="toggleHighlight()"><svg class="icon"><use href="#i-star"/></svg> Zvýraznit bod a navigovat</button>
+            <button class="btn btn-danger" onclick="hideCurrentPoint()"><svg class="icon"><use href="#i-eye-off"/></svg> Skrýt tento bod z AR</button>
             <button class="btn btn-secondary" style="margin-top: 10px;" onclick="closeBottomSheet()">Zavřít kartu</button>
         </div>
     </div>
@@ -152,16 +180,16 @@
             <h2 style="margin-top:0;">Nastavení</h2>
             <div class="tab-buttons">
                 <div class="tab-btn active" onclick="switchTab('tab-funkce', this)">Funkce a Data</div>
-                <div class="tab-btn" onclick="switchTab('tab-vzhled', this)">🎨 Vzhled a Barvy</div>
+                <div class="tab-btn" onclick="switchTab('tab-vzhled', this)"><svg class="icon"><use href="#i-sliders"/></svg> Vzhled a Barvy</div>
             </div>
             <div class="modal-body">
                 <div id="tab-funkce" class="settings-tab active">
-                    <button class="btn btn-blue" onclick="openNewPointModal(); document.getElementById('settings-modal').style.display='none';" style="margin-top:0; margin-bottom: 15px;">➕ Vytvořit vlastní bod</button>
-                    
+                    <button class="btn btn-blue" onclick="openNewPointModal(); document.getElementById('settings-modal').style.display='none';" style="margin-top:0; margin-bottom: 15px;"><svg class="icon"><use href="#i-plus"/></svg> Vytvořit vlastní bod</button>
+
                     <div class="filter-group" style="margin-bottom: 15px;">
-                        <label class="filter-row"><input type="checkbox" id="s-wakelock" checked> 💡 Zamezit zhasínání displeje</label>
-                        <label class="filter-row"><input type="checkbox" id="s-vibration" checked> 📳 Vibrace při dohledávání bodu</label>
-                        <label class="filter-row"><input type="checkbox" id="s-ring-ground" checked> ⭕ Umístit kruh přesnosti nízko na zem</label>
+                        <label class="filter-row"><input type="checkbox" id="s-wakelock" checked><svg class="icon" style="margin-right:8px;"><use href="#i-bulb"/></svg> Zamezit zhasínání displeje</label>
+                        <label class="filter-row"><input type="checkbox" id="s-vibration" checked><svg class="icon" style="margin-right:8px;"><use href="#i-vibrate"/></svg> Vibrace při dohledávání bodu</label>
+                        <label class="filter-row"><input type="checkbox" id="s-ring-ground" checked><svg class="icon" style="margin-right:8px;"><use href="#i-circle"/></svg> Umístit kruh přesnosti nízko na zem</label>
                     </div>
 
                     <label style="margin-top: 15px;">Zdroj mapy (Katastr)</label>
@@ -177,6 +205,19 @@
                     <input type="range" id="s-ar-radius-slider" min="50" max="5000" step="50" value="150" oninput="document.getElementById('s-ar-radius-val').innerText = this.value">
                     <label style="margin-top: 15px;">Max. zobrazených bodů v AR (Výkon): <span id="s-max-ar-val">100</span></label>
                     <input type="range" id="s-max-ar-slider" min="10" max="200" step="10" value="100" oninput="document.getElementById('s-max-ar-val').innerText = this.value">
+
+                    <h4 style="color:var(--accent); margin-top:20px; border-bottom: 1px solid var(--glass-border); padding-bottom:5px;"><svg class="icon" style="vertical-align:-0.16em; margin-right:6px;"><use href="#i-crosshair"/></svg>Přesnost & kalibrace AR</h4>
+                    <div class="filter-group" style="margin-bottom: 10px;">
+                        <label class="filter-row" style="margin-bottom:0;"><input type="checkbox" id="s-auto-compass"> Auto-korekce kompasu podle pohybu (GPS)</label>
+                    </div>
+                    <label>Vyhlazení kompasu: <span id="s-heading-smooth-val">75</span> %</label>
+                    <input type="range" id="s-heading-smooth" min="0" max="95" step="5" value="75" oninput="document.getElementById('s-heading-smooth-val').innerText = this.value">
+                    <label style="margin-top: 10px;">Zorný úhel kamery – šířka: <span id="s-fovh-val">90</span> °</label>
+                    <input type="range" id="s-fovh" min="40" max="120" step="2" value="90" oninput="document.getElementById('s-fovh-val').innerText = this.value">
+                    <label style="margin-top: 10px;">Zorný úhel kamery – výška: <span id="s-fovv-val">75</span> °</label>
+                    <input type="range" id="s-fovv" min="40" max="130" step="2" value="75" oninput="document.getElementById('s-fovv-val').innerText = this.value">
+                    <label style="margin-top: 10px;">Výška očí nad zemí: <span id="s-eyeh-val">1.6</span> m</label>
+                    <input type="range" id="s-eyeh" min="1.0" max="2.0" step="0.05" value="1.6" oninput="document.getElementById('s-eyeh-val').innerText = this.value">
                     <label style="margin-top: 20px;">Druh hledaných bodů</label>
                     <div class="filter-group">
                         <label class="filter-row"><input type="checkbox" id="f-tb" checked onchange="updateFilters()"> Trigonometrické</label>
@@ -195,8 +236,8 @@
                     </div>
                     <label style="margin-top: 15px;">Výběr objektivu kamery</label>
                     <select id="s-camera-select"><option value="">Výchozí zadní kamera</option></select>
-                    <button class="btn btn-secondary" style="margin-top: 20px;" onclick="restoreHiddenPoints()">🔄 Obnovit skryté body</button>
-                    <button class="btn btn-danger" style="margin-top: 10px;" onclick="clearAllPoints()">🗑️ Vymazat stáhnuté okolí z této zakázky</button>
+                    <button class="btn btn-secondary" style="margin-top: 20px;" onclick="restoreHiddenPoints()"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Obnovit skryté body</button>
+                    <button class="btn btn-danger" style="margin-top: 10px;" onclick="clearAllPoints()"><svg class="icon"><use href="#i-trash"/></svg> Vymazat stáhnuté okolí z této zakázky</button>
                 </div>
                 <div id="tab-vzhled" class="settings-tab">
                     <h4 style="color:var(--accent); margin-top:0; border-bottom: 1px solid var(--glass-border); padding-bottom:5px;">Pozice ovládacích panelů (Menu, Info)</h4>
@@ -244,8 +285,8 @@
         </div>
     </div>
 
-    <div class="modal-overlay" id="manage-modal"><div class="modal-content"><h2 style="color: var(--accent); margin-top:0;">Mé body (S-JTSK)</h2><div class="row-buttons" style="margin-top:0; margin-bottom: 15px;"><button class="btn btn-secondary" style="margin-top:0;" onclick="exportPoints()">💾 Export</button><button class="btn btn-blue" style="margin-top:0;" onclick="document.getElementById('import-file').click()">📂 Import</button><input type="file" id="import-file" style="display:none" accept=".json" onchange="importPoints(event)"></div><div class="modal-body" id="manage-list"></div><button class="btn btn-secondary" style="margin-top: 15px;" onclick="closeManageModal()">Zpět</button></div></div>
-    <div class="modal-overlay" id="custom-modal-overlay"><div class="modal-content"><h3 id="custom-modal-title" style="color: var(--accent); margin-top:0;">Vložit vlastní bod</h3><div class="modal-body"><button class="btn btn-blue" onclick="fillCurrentGPS()">📍 Získat GPS a převést na S-JTSK</button><label>Název / Číslo bodu:</label><input type="text" id="custom-name" placeholder="Např. Mezník 1"><label>S-JTSK Y (v metrech):</label><input type="number" id="custom-y" step="any" placeholder="Např. 596956.46"><label>S-JTSK X (v metrech):</label><input type="number" id="custom-x" step="any" placeholder="Např. 1163343.34"></div><div class="row-buttons"><button class="btn btn-secondary" onclick="closeCustomModal()">Zrušit</button><button class="btn btn-primary" onclick="saveCustomPoint()">Uložit</button></div></div></div>
+    <div class="modal-overlay" id="manage-modal"><div class="modal-content"><h2 style="color: var(--accent); margin-top:0;">Mé body (S-JTSK)</h2><div class="row-buttons" style="margin-top:0; margin-bottom: 15px;"><button class="btn btn-secondary" style="margin-top:0;" onclick="exportPoints()"><svg class="icon"><use href="#i-upload"/></svg> Export</button><button class="btn btn-blue" style="margin-top:0;" onclick="document.getElementById('import-file').click()"><svg class="icon"><use href="#i-folder"/></svg> Import</button><input type="file" id="import-file" style="display:none" accept=".json" onchange="importPoints(event)"></div><div class="modal-body" id="manage-list"></div><button class="btn btn-secondary" style="margin-top: 15px;" onclick="closeManageModal()">Zpět</button></div></div>
+    <div class="modal-overlay" id="custom-modal-overlay"><div class="modal-content"><h3 id="custom-modal-title" style="color: var(--accent); margin-top:0;">Vložit vlastní bod</h3><div class="modal-body"><button class="btn btn-blue" onclick="fillCurrentGPS()"><svg class="icon"><use href="#i-locate"/></svg> Získat GPS a převést na S-JTSK</button><label>Název / Číslo bodu:</label><input type="text" id="custom-name" placeholder="Např. Mezník 1"><label>S-JTSK Y (v metrech):</label><input type="number" id="custom-y" step="any" placeholder="Např. 596956.46"><label>S-JTSK X (v metrech):</label><input type="number" id="custom-x" step="any" placeholder="Např. 1163343.34"></div><div class="row-buttons"><button class="btn btn-secondary" onclick="closeCustomModal()">Zrušit</button><button class="btn btn-primary" onclick="saveCustomPoint()">Uložit</button></div></div></div>
 
     <div id="camera-container"><video id="camera-feed" autoplay playsinline></video><div id="ar-hud"><div id="ar-hud-arrow-container"><svg id="arrow-target" viewBox="0 0 100 100" style="display:none;"><circle cx="50" cy="50" r="40" fill="none" stroke-width="8" stroke-dasharray="10, 10" id="target-circle-out" /><circle cx="50" cy="50" r="20" id="target-circle-in" /><circle cx="50" cy="50" r="10" fill="#000" /></svg><svg id="arrow-straight" viewBox="0 0 100 100" style="display:none;"><path id="main-arrow-path" d="M50 10 L90 50 L70 50 L70 95 L30 95 L30 50 L10 50 Z" /></svg><svg id="arrow-right" viewBox="0 0 100 100" style="display:none; filter: drop-shadow(0 15px 15px rgba(251,191,36,0.5));"><path d="M95 50 L55 10 L55 30 C20 30 10 60 10 95 C25 75 35 55 55 55 L55 75 Z" fill="#fbbf24"/></svg><svg id="arrow-left" viewBox="0 0 100 100" style="display:none; filter: drop-shadow(0 15px 15px rgba(251,191,36,0.5));"><path d="M5 50 L45 10 L45 30 C80 30 90 60 90 95 C75 75 65 55 45 55 L45 75 Z" fill="#fbbf24"/></svg><svg id="arrow-uturn" viewBox="0 0 100 100" style="display:none; filter: drop-shadow(0 15px 15px rgba(239,68,68,0.5));"><path d="M25 95 L5 55 L20 55 L20 35 C20 15 80 15 80 35 L80 95 L60 95 L60 35 C60 25 40 25 40 35 L40 55 L55 55 Z" fill="#ef4444"/></svg><svg id="arrow-bullseye" viewBox="0 0 100 100" style="display:none; filter: drop-shadow(0 0 15px #fbbf24);"><circle cx="50" cy="50" r="45" fill="none" stroke="#fbbf24" stroke-width="4"/><circle cx="50" cy="50" r="30" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="5,5"/><line x1="50" y1="0" x2="50" y2="100" stroke="#fbbf24" stroke-width="2"/><line x1="0" y1="50" x2="100" y2="50" stroke="#fbbf24" stroke-width="2"/><circle cx="50" cy="50" r="5" fill="#ef4444"/></svg></div><div id="ar-hud-info"><div class="hud-name" id="ar-hud-name">BOD</div><div id="ar-hud-dist">0.0 m</div></div></div><div id="ar-overlay"></div></div>
     <div id="resizer"><div class="grabber"></div></div>

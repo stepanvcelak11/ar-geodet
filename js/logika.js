@@ -25,13 +25,14 @@ if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navi
         let mapRadius = 1000, arRadius = 150;
         let userLat = null, userLng = null, userAlt = null, userMarker = null, lastFetchLat = null, lastFetchLng = null;
         let currentHeading = 0, currentGpsAccuracy = 0, accuracyCircle = null;
+        let smoothedHeading = null, gpsCourse = null, gpsSpeed = 0, headingCorrection = 0;
         let arPoints = [], persistentCustomPoints = [], hideBtnLogic = null, editingCustomPointId = null, highlightedPointId = null, activePointIdForModal = null;
         let compassUnit = 'deg'; let compassZeroOffset = 0; let lastVibeTime = 0;
         let measA = null, measB = null;
         let wakeLock = null;
         let filters = { tb: true, zhb: true, pbpp: true, nivel: true, custom: true };
 
-        let visSettings = { maxARPoints: 100, arVerticalOffset: 0, markerScale: 1.0, markerOpacity: 100, colTb: '#8b5cf6', colZhb: '#0ea5e9', colPbpp: '#3b82f6', colNivel: '#ef4444', colCustom: '#34d399', arrowScale: 1.0, arrowOpacity: 90, arrowShape: '1', colArrow: '#34d399', panelOpacity: 85, menuScale: 1.0, hudTop: 55, hudSide: 15, wakeLockEnabled: true, vibrationEnabled: true, ringOnGround: true, katastrSource: 'mapycz' };
+        let visSettings = { maxARPoints: 100, arVerticalOffset: 0, markerScale: 1.0, markerOpacity: 100, colTb: '#8b5cf6', colZhb: '#0ea5e9', colPbpp: '#3b82f6', colNivel: '#ef4444', colCustom: '#34d399', arrowScale: 1.0, arrowOpacity: 90, arrowShape: '1', colArrow: '#34d399', panelOpacity: 85, menuScale: 1.0, hudTop: 55, hudSide: 15, wakeLockEnabled: true, vibrationEnabled: true, ringOnGround: true, katastrSource: 'mapycz', headingSmoothing: 75, autoCompassCorrection: true, fovH: 90, fovV: 75, eyeHeight: 1.6 };
         
         function changeProject() { activeProjectId = document.getElementById('w-project-select').value; localStorage.setItem('arActiveProjectId', activeProjectId); loadProjectSettings(); }
         function createNewProject() { let name = prompt("Název nové zakázky:"); if(name) { let id = 'proj_' + Date.now(); projects.push({id: id, name: name}); localStorage.setItem('arProjectsList', JSON.stringify(projects)); activeProjectId = id; localStorage.setItem('arActiveProjectId', activeProjectId); renderProjectSelect(); loadProjectSettings(); } }
@@ -68,7 +69,7 @@ if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navi
         window.fetchDistantArea = async function(lat, lng) {
             map.closePopup(); document.getElementById('info').innerHTML = `Stahuji vzdálenou oblast...`;
             let found = await fetchGeodata(lat, lng, mapRadius, false);
-            alert(`Staženo ${found} bodů ve vybrané oblasti.\n\nPokud si chcete tuto oblast zachovat i bez internetu, klikněte v Menu na '💾 Uložit pro Offline'.`);
+            alert(`Staženo ${found} bodů ve vybrané oblasti.\n\nPokud si chcete tuto oblast zachovat i bez internetu, klikněte v Menu na 'Uložit pro Offline'.`);
         };
 
         
@@ -103,6 +104,10 @@ if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navi
         function extractPointNumber(props) { if (!props) return "Bod"; const upperProps = {}; for (let key in props) upperProps[key.toUpperCase()] = props[key]; let name = upperProps['CISLO'] || upperProps['CISLO_BODU'] || upperProps['VLASTNI_CISLO'] || upperProps['OZNACENI'] || upperProps['UPLNE_CISLO'] || upperProps['NAZEV']; if (name && String(name).trim() !== "" && String(name).trim() !== "Null") return String(name).trim(); return "Bod"; }
         function getDistance(lat1, lon1, lat2, lon2) { const R = 6371e3, f1 = lat1 * Math.PI/180, f2 = lat2 * Math.PI/180; const df = (lat2-lat1) * Math.PI/180, dl = (lon2-lon1) * Math.PI/180; const a = Math.sin(df/2) * Math.sin(df/2) + Math.cos(f1) * Math.cos(f2) * Math.sin(dl/2) * Math.sin(dl/2); return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
         function getBearing(lat1, lon1, lat2, lon2) { const toRad = deg => deg * Math.PI / 180; const toDeg = rad => rad * 180 / Math.PI; const dLon = toRad(lon2 - lon1); const y = Math.sin(dLon) * Math.cos(toRad(lat2)); const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) - Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon); return (toDeg(Math.atan2(y, x)) + 360) % 360; }
+        // rozdil dvou azimutu normalizovany do <-180, 180>
+        function angDiff(a, b) { return ((a - b + 540) % 360) - 180; }
+        // cyklicke vyhlazeni uhlu (resi prechod 359 -> 0); alpha 0..1 (vyssi = rychlejsi)
+        function smoothAngle(prev, next, alpha) { if (prev === null) return ((next % 360) + 360) % 360; return ((prev + alpha * angDiff(next, prev)) % 360 + 360) % 360; }
 
         async function fetchGeodata(lat, lng, radius, clearExisting = false) {
             if (clearExisting) { arPoints.forEach(p => { if(p.element) p.element.remove(); }); arPoints = []; persistentCustomPoints.forEach(pt => arPoints.push({...pt})); }
@@ -127,6 +132,8 @@ if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navi
                     userLat = position.coords.latitude; userLng = position.coords.longitude; 
                     userAlt = position.coords.altitude || null; 
                     currentGpsAccuracy = position.coords.accuracy; updateInfoPanel();
+                    gpsSpeed = (position.coords.speed != null && !isNaN(position.coords.speed)) ? position.coords.speed : 0;
+                    if (position.coords.heading != null && !isNaN(position.coords.heading) && gpsSpeed > 0.5) gpsCourse = position.coords.heading;
                     if (accuracyCircle) { accuracyCircle.setLatLng([userLat, userLng]); accuracyCircle.setRadius(currentGpsAccuracy); accuracyCircle.setStyle({ color: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillColor: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399' }); } else { accuracyCircle = L.circle([userLat, userLng], { radius: currentGpsAccuracy, color: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillColor: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillOpacity: 0.15, weight: 2 }).addTo(map); }
                     
                     if (highlightedPointId) { let hlPt = arPoints.find(p => p.id === highlightedPointId); if (hlPt) { if (hlPt.bestAccuracy === null || currentGpsAccuracy < hlPt.bestAccuracy) { hlPt.bestAccuracy = currentGpsAccuracy; } } }
