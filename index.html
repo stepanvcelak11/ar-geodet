@@ -150,7 +150,7 @@
     <!-- Spodní dok s nástroji -->
     <nav id="dock">
         <button class="dock-btn" onclick="openKatastr()"><svg class="icon"><use href="#i-map-pin"/></svg><span>Katastr</span></button>
-        <button class="dock-btn" onclick="openMeasureModal()"><svg class="icon"><use href="#i-ruler"/></svg><span>Měření</span></button>
+        <button class="dock-btn" onclick="document.getElementById('tools-modal').style.display='flex'"><svg class="icon"><use href="#i-ruler"/></svg><span>Měření</span></button>
         <button class="dock-btn dock-primary" onclick="openNewPointModal()"><span class="dock-fab"><svg class="icon"><use href="#i-plus"/></svg></span><span>Nový bod</span></button>
         <button class="dock-btn" onclick="openManageModal()"><svg class="icon"><use href="#i-wrench"/></svg><span>Body</span></button>
         <button class="dock-btn" onclick="openSettings()"><svg class="icon"><use href="#i-settings"/></svg><span>Nastavení</span></button>
@@ -187,6 +187,20 @@
         <button class="he-reset" id="he-reset"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Obnovit výchozí polohu a velikost</button>
     </div>
 
+    <div class="modal-overlay" id="tools-modal">
+        <div class="modal-content">
+            <h3 style="color: var(--accent); margin-top:0;"><svg class="icon"><use href="#i-ruler"/></svg> Měření a nástroje</h3>
+            <div class="modal-body">
+                <button class="btn btn-secondary" style="margin-top:0;" onclick="document.getElementById('tools-modal').style.display='none'; openMeasureModal();"><svg class="icon"><use href="#i-ruler"/></svg> Měření vzdálenosti</button>
+                <button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('tools-modal').style.display='none'; startAreaMode();"><svg class="icon"><use href="#i-area"/></svg> Měření plochy v mapě</button>
+                <button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('tools-modal').style.display='none'; openCalcModal();"><svg class="icon"><use href="#i-calc"/></svg> Geodetická kalkulačka</button>
+                <button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('tools-modal').style.display='none'; openSatModal();"><svg class="icon"><use href="#i-satellite"/></svg> GNSS satelity (AR)</button>
+                <button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('tools-modal').style.display='none'; openStakeoutModal();"><svg class="icon"><use href="#i-check"/></svg> Vytyčovací checklist</button>
+                <button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('tools-modal').style.display='none'; openDictModal();"><svg class="icon"><use href="#i-book"/></svg> Geodetický slovník</button>
+            </div>
+            <button class="btn btn-secondary" style="margin-top: 15px;" onclick="document.getElementById('tools-modal').style.display='none'">Zavřít</button>
+        </div>
+    </div>
     <div class="modal-overlay" id="measure-modal">
         <div class="modal-content">
             <h3 style="color: var(--accent); margin-top:0;"><svg class="icon"><use href="#i-ruler"/></svg>Měření vzdálenosti</h3>
@@ -208,10 +222,6 @@
                     <div class="geo-data-row" style="border-bottom:none;"><span class="geo-label">Šikmá délka (3D):</span><span class="geo-value" id="meas-slant">-- m</span></div>
                 </div>
                 <button class="btn btn-blue" style="margin-top: 12px;" onclick="startAreaMode()"><svg class="icon"><use href="#i-area"/></svg> Měření plochy v mapě</button>
-                <label style="display:block; margin:14px 0 2px; font-size:12px; letter-spacing:0.06em; text-transform:uppercase; opacity:0.65;">Další nástroje</label>
-                <button class="btn btn-secondary" style="margin-top:6px;" onclick="document.getElementById('measure-modal').style.display='none'; openCalcModal();"><svg class="icon"><use href="#i-calc"/></svg> Geodetická kalkulačka</button>
-                <button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('measure-modal').style.display='none'; openSatModal();"><svg class="icon"><use href="#i-satellite"/></svg> GNSS satelity (AR)</button>
-                <button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('measure-modal').style.display='none'; openStakeoutModal();"><svg class="icon"><use href="#i-check"/></svg> Vytyčovací checklist</button>
             </div>
             <div class="row-buttons">
                 <button class="btn btn-danger" onclick="resetMeasure()">Vymazat</button>
