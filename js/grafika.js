@@ -323,12 +323,14 @@
             return L.point(P.x + lx, P.y + ly);
         }
         mapContainerEl.addEventListener('touchstart', (e) => {
-            if (e.target.closest('.glass-panel')) return;
+            if (e.target.closest('.glass-panel, .leaflet-popup')) return;
             clearTimeout(mapReturnTimer); document.getElementById('map-controls').classList.remove('expanded');
             if (e.touches.length >= 2) { isPinchingMap = true; isDraggingMap = false; pinchStartDist = _touchDist(e.touches); pinchStartZoom = map.getZoom(); }
             else if (e.touches.length === 1) { isDraggingMap = true; isPinchingMap = false; lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; }
         }, { passive: true });
         mapContainerEl.addEventListener('touchmove', (e) => {
+            // dotyk zacinajici na popupu (napr. 'Vzdalena oblast') patri popupu, ne mape -- jinak tah po popupu hybe mapou a preventDefault rusi klik na tlacitka
+            if (e.target.closest('.glass-panel, .leaflet-popup')) return;
             if (e.touches.length >= 2) {
                 if (!isPinchingMap) { isPinchingMap = true; isDraggingMap = false; pinchStartDist = _touchDist(e.touches); pinchStartZoom = map.getZoom(); }
                 window._mapHold = true;
@@ -354,6 +356,9 @@
         }
         mapContainerEl.addEventListener('touchend', onMapTouchEnd);
         mapContainerEl.addEventListener('touchcancel', onMapTouchEnd);
+        // POPUP: srovnat vodorovne hned pri otevreni -- renderAR ho behem _mapHold neaktualizuje,
+        // takze by po rucnim posunu mapy zustal natoceny spolu s mapou.
+        map.on('popupopen', (e) => { const el = e.popup.getElement(); const w = el && el.querySelector('.leaflet-popup-content-wrapper'); if (w) w.style.transform = `rotate(${mapRotation}deg)`; });
 
         // STAHOVANI: celoobrazovkovy ukazatel postupu (sdileny pro offline mapu i stahovani oblasti; vytvari se za behu, nezasahuje do HTML/CSS)
         function _ensureOfflineProgress() {
