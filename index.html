@@ -171,6 +171,21 @@
         <div class="ap-hint">Klepni do mapy pro přidání vrcholu — nebo obejdi pozemek a přidávej „Můj bod" (použije průměrovanou GPS).</div>
     </div>
     <div id="update-banner" onclick="applyUpdate()"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Nová verze — klepni pro obnovení</div>
+    <div id="edge-glow"></div>
+    <div id="dyn-island" onclick="toggleDynIsland()">
+        <div class="di-row">
+            <svg class="di-dir" viewBox="0 0 24 24" style="fill: currentColor; stroke: none;"><path d="M12 2.5 L19.5 21 L12 17 L4.5 21 Z"/></svg>
+            <span class="di-name" id="di-name">BOD</span>
+            <span class="di-dist" id="di-dist">— m</span>
+        </div>
+        <div class="di-more">
+            <div class="di-info" id="di-info"></div>
+            <div class="di-actions">
+                <button class="di-btn" onclick="dynIslandDetail(event)">Detail bodu</button>
+                <button class="di-btn di-stop" onclick="dynIslandStop(event)">Ukončit</button>
+            </div>
+        </div>
+    </div>
     <div id="gps-avg" class="glass-panel">
         <div class="ga-title"><svg class="icon"><use href="#i-locate"/></svg> Průměrování GPS</div>
         <div class="ga-row"><span>Měření:</span> <b id="ga-n">—</b></div>
@@ -276,6 +291,7 @@
 
                     <div class="filter-group" style="margin-bottom: 15px;">
                         <label class="filter-row"><input type="checkbox" id="s-wakelock" checked><svg class="icon" style="margin-right:8px;"><use href="#i-bulb"/></svg> Zamezit zhasínání displeje</label>
+                        <label class="filter-row"><input type="checkbox" id="s-haptics" checked><svg class="icon" style="margin-right:8px;"><use href="#i-vibrate"/></svg> Jemné vibrace tlačítek (haptika)</label>
                         <label class="filter-row" style="margin-bottom:0;"><input type="checkbox" id="s-outdoor"><svg class="icon" style="margin-right:8px;"><use href="#i-sun"/></svg> Venkovní režim (vysoký kontrast)</label>
                     </div>
 
@@ -330,7 +346,18 @@
                     <button class="btn btn-danger" style="margin-top: 10px;" onclick="clearAllPoints()"><svg class="icon"><use href="#i-trash"/></svg> Vymazat stáhnuté okolí z této zakázky</button>
                 </div>
                 <div id="tab-vzhled" class="settings-tab">
-                    <h4 style="color:var(--accent); margin-top:0; border-bottom: 1px solid var(--glass-border); padding-bottom:5px;">AR Body (Pozice a Barvy)</h4>
+                    <h4 style="color:var(--accent); margin-top:0; border-bottom: 1px solid var(--glass-border); padding-bottom:5px;">Barevný motiv aplikace</h4>
+                    <select id="v-theme" onchange="previewTheme(this.value)">
+                        <option value="aurora">Aurora (tyrkysová–fialová)</option>
+                        <option value="sunset">Západ slunce (jantarová)</option>
+                        <option value="ocean">Oceán (modrá)</option>
+                        <option value="forest">Les (zelená)</option>
+                        <option value="graphite">Grafit (šedá)</option>
+                    </select>
+                    <div class="filter-group" style="margin-top:12px;">
+                        <label class="filter-row" style="margin-bottom:0;"><input type="checkbox" id="v-adaptive-glass" checked><svg class="icon" style="margin-right:8px;"><use href="#i-sun"/></svg> Adaptivní sklo podle jasu kamery</label>
+                    </div>
+                    <h4 style="color:var(--accent); margin-top:20px; border-bottom: 1px solid var(--glass-border); padding-bottom:5px;">AR Body (Pozice a Barvy)</h4>
                     <label style="margin-top: 5px;">Výškový posun bodů v AR kameře: <span id="v-ar-height-val">0</span></label>
                     <p style="font-size: 11px; margin-top: 0; opacity: 0.8;">Posuňte body níže nebo výše, pokud držíte telefon zešikma a body vám letí nahoru.</p>
                     <input type="range" id="v-ar-height-slider" min="-50" max="50" step="5" value="0" oninput="document.getElementById('v-ar-height-val').innerText = this.value">
@@ -358,6 +385,8 @@
                     <input type="range" id="v-arrow-scale" min="50" max="200" step="10" value="100" oninput="document.getElementById('v-arrow-scale-val').innerText = this.value">
                     <label>Průhlednost šipky: <span id="v-arrow-opacity-val">90</span> %</label>
                     <input type="range" id="v-arrow-opacity" min="20" max="100" step="10" value="90" oninput="document.getElementById('v-arrow-opacity-val').innerText = this.value">
+                    <label>Velikost navigačního štítku: <span id="v-hud-scale-val">100</span> %</label>
+                    <input type="range" id="v-hud-scale" min="50" max="200" step="10" value="100" oninput="document.getElementById('v-hud-scale-val').innerText = this.value">
                     <h4 style="color:var(--accent); margin-top:20px; border-bottom: 1px solid var(--glass-border); padding-bottom:5px;">Další vlastnosti</h4>
                     <label>Průhlednost panelů na skle: <span id="v-panel-opacity-val">85</span> %</label>
                     <input type="range" id="v-panel-opacity" min="10" max="100" step="5" value="85" oninput="document.getElementById('v-panel-opacity-val').innerText = this.value">
@@ -478,7 +507,7 @@
                 sizeEl.value = Math.round((el._scale || 1) * 100);
                 document.getElementById('he-size-val').innerHTML = sizeEl.value + '&nbsp;%';
                 document.getElementById('hud-editor').classList.add('open');
-                if (navigator.vibrate) { try { navigator.vibrate(15); } catch (e) {} }
+                if (typeof haptic === 'function') haptic('medium');
             }
             function closeEditor() {
                 if (editEl) editEl.classList.remove('hud-editing');

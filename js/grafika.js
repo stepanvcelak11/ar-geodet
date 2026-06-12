@@ -16,8 +16,10 @@
             applyMapLayers();
             document.body.classList.toggle('outdoor-mode', !!visSettings.outdoorMode);
             document.documentElement.style.setProperty('--hud-top', visSettings.hudTop + 'px'); document.documentElement.style.setProperty('--hud-side', visSettings.hudSide + 'px'); document.documentElement.style.setProperty('--marker-opacity', visSettings.markerOpacity / 100); document.documentElement.style.setProperty('--color-tb', visSettings.colTb); document.documentElement.style.setProperty('--color-zhb', visSettings.colZhb); document.documentElement.style.setProperty('--color-pbpp', visSettings.colPbpp); document.documentElement.style.setProperty('--color-nivel', visSettings.colNivel); document.documentElement.style.setProperty('--color-custom', visSettings.colCustom); document.documentElement.style.setProperty('--arrow-size', (100 * visSettings.arrowScale) + 'px'); document.documentElement.style.setProperty('--arrow-opacity', visSettings.arrowOpacity / 100); document.documentElement.style.setProperty('--color-arrow', visSettings.colArrow); document.documentElement.style.setProperty('--panel-opacity', visSettings.panelOpacity / 100); document.documentElement.style.setProperty('--menu-scale', visSettings.menuScale);
+            document.documentElement.style.setProperty('--hud-scale', visSettings.hudScale || 1);
+            previewTheme(visSettings.theme);
             const arrPath = document.getElementById('main-arrow-path'); if(arrPath) { arrPath.setAttribute('d', arrowPaths[visSettings.arrowShape]); arrPath.setAttribute('fill', visSettings.colArrow); document.getElementById('arrow-straight').style.filter = `drop-shadow(0 15px 15px ${visSettings.colArrow}80)`; document.getElementById('target-circle-out').setAttribute('stroke', visSettings.colArrow); document.getElementById('target-circle-in').setAttribute('fill', visSettings.colArrow); document.getElementById('arrow-target').style.filter = `drop-shadow(0 15px 15px ${visSettings.colArrow}90)`; }
-            if (document.getElementById('s-max-ar-slider')) { document.getElementById('s-wakelock').checked = visSettings.wakeLockEnabled; document.getElementById('s-outdoor').checked = !!visSettings.outdoorMode; document.getElementById('s-katastr-source').value = visSettings.katastrSource || 'mapycz'; document.getElementById('s-max-ar-slider').value = visSettings.maxARPoints; document.getElementById('s-max-ar-val').innerText = visSettings.maxARPoints; document.getElementById('v-ar-height-slider').value = visSettings.arVerticalOffset; document.getElementById('v-ar-height-val').innerText = visSettings.arVerticalOffset; document.getElementById('v-marker-scale').value = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-scale-val').innerText = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-opacity').value = visSettings.markerOpacity; document.getElementById('v-marker-opacity-val').innerText = visSettings.markerOpacity; document.getElementById('col-tb').value = visSettings.colTb; document.getElementById('col-zhb').value = visSettings.colZhb; document.getElementById('col-pbpp').value = visSettings.colPbpp; document.getElementById('col-nivel').value = visSettings.colNivel; document.getElementById('col-custom').value = visSettings.colCustom; document.getElementById('col-arrow').value = visSettings.colArrow; document.getElementById('v-arrow-shape').value = visSettings.arrowShape; document.getElementById('v-arrow-scale').value = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-scale-val').innerText = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-opacity').value = visSettings.arrowOpacity; document.getElementById('v-arrow-opacity-val').innerText = visSettings.arrowOpacity; document.getElementById('v-panel-opacity').value = visSettings.panelOpacity; document.getElementById('v-panel-opacity-val').innerText = visSettings.panelOpacity; document.getElementById('v-menu-scale').value = Math.round(visSettings.menuScale * 100); document.getElementById('v-menu-scale-val').innerText = Math.round(visSettings.menuScale * 100); document.getElementById('s-auto-compass').checked = visSettings.autoCompassCorrection; document.getElementById('s-tilt-comp').checked = visSettings.tiltCompensation !== false; document.getElementById('s-heading-smooth').value = visSettings.headingSmoothing; document.getElementById('s-heading-smooth-val').innerText = visSettings.headingSmoothing; document.getElementById('s-fovh').value = visSettings.fovH; document.getElementById('s-fovh-val').innerText = visSettings.fovH; document.getElementById('s-fovv').value = visSettings.fovV; document.getElementById('s-fovv-val').innerText = visSettings.fovV; document.getElementById('s-eyeh').value = visSettings.eyeHeight; document.getElementById('s-eyeh-val').innerText = visSettings.eyeHeight; }
+            if (document.getElementById('s-max-ar-slider')) { document.getElementById('s-wakelock').checked = visSettings.wakeLockEnabled; document.getElementById('s-outdoor').checked = !!visSettings.outdoorMode; document.getElementById('s-katastr-source').value = visSettings.katastrSource || 'mapycz'; document.getElementById('s-max-ar-slider').value = visSettings.maxARPoints; document.getElementById('s-max-ar-val').innerText = visSettings.maxARPoints; document.getElementById('v-ar-height-slider').value = visSettings.arVerticalOffset; document.getElementById('v-ar-height-val').innerText = visSettings.arVerticalOffset; document.getElementById('v-marker-scale').value = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-scale-val').innerText = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-opacity').value = visSettings.markerOpacity; document.getElementById('v-marker-opacity-val').innerText = visSettings.markerOpacity; document.getElementById('col-tb').value = visSettings.colTb; document.getElementById('col-zhb').value = visSettings.colZhb; document.getElementById('col-pbpp').value = visSettings.colPbpp; document.getElementById('col-nivel').value = visSettings.colNivel; document.getElementById('col-custom').value = visSettings.colCustom; document.getElementById('col-arrow').value = visSettings.colArrow; document.getElementById('v-arrow-shape').value = visSettings.arrowShape; document.getElementById('v-arrow-scale').value = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-scale-val').innerText = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-opacity').value = visSettings.arrowOpacity; document.getElementById('v-arrow-opacity-val').innerText = visSettings.arrowOpacity; document.getElementById('v-panel-opacity').value = visSettings.panelOpacity; document.getElementById('v-panel-opacity-val').innerText = visSettings.panelOpacity; document.getElementById('v-menu-scale').value = Math.round(visSettings.menuScale * 100); document.getElementById('v-menu-scale-val').innerText = Math.round(visSettings.menuScale * 100); document.getElementById('s-auto-compass').checked = visSettings.autoCompassCorrection; document.getElementById('s-tilt-comp').checked = visSettings.tiltCompensation !== false; document.getElementById('s-heading-smooth').value = visSettings.headingSmoothing; document.getElementById('s-heading-smooth-val').innerText = visSettings.headingSmoothing; document.getElementById('s-fovh').value = visSettings.fovH; document.getElementById('s-fovh-val').innerText = visSettings.fovH; document.getElementById('s-fovv').value = visSettings.fovV; document.getElementById('s-fovv-val').innerText = visSettings.fovV; document.getElementById('s-eyeh').value = visSettings.eyeHeight; document.getElementById('s-eyeh-val').innerText = visSettings.eyeHeight; document.getElementById('s-haptics').checked = visSettings.hapticsEnabled !== false; document.getElementById('v-adaptive-glass').checked = visSettings.adaptiveGlass !== false; document.getElementById('v-theme').value = visSettings.theme || 'aurora'; document.getElementById('v-hud-scale').value = Math.round((visSettings.hudScale || 1) * 100); document.getElementById('v-hud-scale-val').innerText = Math.round((visSettings.hudScale || 1) * 100); }
         }
 
         function switchTab(tabId, btnEl) { document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(tabId).classList.add('active'); btnEl.classList.add('active'); }
@@ -192,6 +194,7 @@
             visSettings.arrowScale = parseInt(document.getElementById('v-arrow-scale').value) / 100; visSettings.arrowOpacity = parseInt(document.getElementById('v-arrow-opacity').value); visSettings.arrowShape = document.getElementById('v-arrow-shape').value; visSettings.colArrow = document.getElementById('col-arrow').value;
             visSettings.panelOpacity = parseInt(document.getElementById('v-panel-opacity').value); visSettings.menuScale = parseInt(document.getElementById('v-menu-scale').value) / 100;
             visSettings.autoCompassCorrection = document.getElementById('s-auto-compass').checked; visSettings.tiltCompensation = document.getElementById('s-tilt-comp').checked; visSettings.headingSmoothing = parseInt(document.getElementById('s-heading-smooth').value); visSettings.fovH = parseInt(document.getElementById('s-fovh').value); visSettings.fovV = parseInt(document.getElementById('s-fovv').value); visSettings.eyeHeight = parseFloat(document.getElementById('s-eyeh').value);
+            visSettings.theme = document.getElementById('v-theme').value; visSettings.hapticsEnabled = document.getElementById('s-haptics').checked; visSettings.adaptiveGlass = document.getElementById('v-adaptive-glass').checked; visSettings.hudScale = parseInt(document.getElementById('v-hud-scale').value) / 100;
             setStoredData('arVisSettings12', JSON.stringify(visSettings)); applyVisualSettings(); drawAllMarkersOnMap();
             document.getElementById('settings-modal').style.display = 'none';
             if (oldCam !== newCam && viewMode !== 'map') { startCameraAndCompass(true); applyViewMode(); } else { applyViewMode(); }
@@ -223,7 +226,7 @@
         function closeCustomModal() { document.getElementById('custom-modal-overlay').style.display = 'none'; fixAppLayout(); }
         function closeBottomSheet() { document.getElementById('bottom-sheet').classList.remove('open'); arPoints.forEach(p => { if (p.element) p.element.classList.remove('active-reading'); }); activePointIdForModal = null; }
 
-        function toggleHighlight() { if (highlightedPointId === activePointIdForModal) { highlightedPointId = null; } else { highlightedPointId = activePointIdForModal; } closeBottomSheet(); arPoints.forEach(p => { if (p.element) { if (p.id === highlightedPointId) { p.element.classList.add('highlighted'); } else { p.element.classList.remove('highlighted'); } } }); if (!highlightedPointId) { document.getElementById('ar-hud').style.display = 'none'; } }
+        function toggleHighlight() { if (highlightedPointId === activePointIdForModal) { highlightedPointId = null; } else { highlightedPointId = activePointIdForModal; } closeBottomSheet(); arPoints.forEach(p => { if (p.element) { if (p.id === highlightedPointId) { p.element.classList.add('highlighted'); } else { p.element.classList.remove('highlighted'); } } }); if (!highlightedPointId) { document.getElementById('ar-hud').style.display = 'none'; } updateDynIsland(); }
 
         // klik na bod v mape -> rovnou nastavit jako cil navigace v AR (zlata znacka + sipka)
         function highlightPoint(pt) {
@@ -232,6 +235,7 @@
             arPoints.forEach(p => { if (p.element) { if (p.id === highlightedPointId) p.element.classList.add('highlighted'); else p.element.classList.remove('highlighted'); } });
             if (!highlightedPointId) document.getElementById('ar-hud').style.display = 'none';
             drawAllMarkersOnMap();
+            updateDynIsland();
         }
         // panel prumerovani GPS (vykresleni); data pocita updateGpsAveraging v logika.js
         function updateGpsAvgPanel() {
@@ -385,6 +389,7 @@
                 document.querySelectorAll('.leaflet-popup-content-wrapper').forEach(el => { el.style.transform = `rotate(${heading}deg)`; });
             }
             const dirContainer = document.getElementById('user-direction-container'); if (dirContainer) dirContainer.style.transform = `rotate(${heading}deg)`;
+            updateDynIsland();
             if (viewMode === 'map') return; // v samostatne mape jen otacime mapu, AR projekci (kamera) preskakujeme
 
             // AR PROJEKCE: realny zorny uhel kamery + sklon telefonu (z beta)
@@ -651,3 +656,112 @@
             if (e.target.closest('#side-menu') || e.target.closest('#menu-toggle-btn')) return;
             menu.classList.remove('open');
         }, true);
+        // ===== HAPTIKA ROZHRANI: jemna odezva 10/20/30 ms (tuknuti / prepnuti / otevreni) =====
+        // Pozn.: vychozi hodnoty novych voleb (hapticsEnabled, adaptiveGlass, theme, hudScale)
+        // nejsou v logika.js - vsude se proto pouziva fallback (=== false, || 1, || 'aurora').
+        function haptic(level) {
+            if (visSettings.hapticsEnabled === false || !navigator.vibrate) return;
+            try { navigator.vibrate(level === 'heavy' ? 30 : (level === 'medium' ? 20 : 10)); } catch (e) {}
+        }
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('input, select, .filter-row, .menu-toggle-row')) return; // prepinace resi udalost 'change'
+            if (e.target.closest('.btn, .dock-btn, .seg-btn, .menu-btn, .map-ctrl-btn, .tab-btn, .cp-btn, .w-proj-icon, .cluster-list-item, .ar-marker, .di-btn, #dyn-island, #compass-debug, .btn-link, .he-done, .he-reset')) haptic('light');
+        }, true);
+        document.addEventListener('change', (e) => {
+            if (e.target.matches('input[type="checkbox"], input[type="radio"], select')) haptic('medium');
+        }, true);
+
+        // ===== PROSTOROVE OTEVIRANI: modaly a karta bodu vyrustaji z mista posledniho tuknuti =====
+        let _lastTapX = null, _lastTapY = null, _lastTapTime = 0;
+        document.addEventListener('pointerdown', (e) => { _lastTapX = e.clientX; _lastTapY = e.clientY; _lastTapTime = Date.now(); }, true);
+        function _setSpawnOrigin(el, onlyX) {
+            if (!el) return;
+            const fresh = _lastTapX != null && (Date.now() - _lastTapTime) < 1500;
+            if (!fresh) { el.style.removeProperty('--spawn-ox'); el.style.removeProperty('--spawn-oy'); return; }
+            if (onlyX) { el.style.setProperty('--spawn-ox', Math.round(_lastTapX) + 'px'); return; }
+            // getBoundingClientRect by behem startujici animace vracel zkreslene hodnoty ->
+            // pozici vycentrovaneho modalu spocitame z layoutu (offsetWidth/Height transform nemeni)
+            const w = el.offsetWidth, h = el.offsetHeight;
+            const left = (window.innerWidth - w) / 2, top = (window.innerHeight - h) / 2;
+            const clampv = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+            el.style.setProperty('--spawn-ox', Math.round(clampv(_lastTapX - left, -0.3 * w, 1.3 * w)) + 'px');
+            el.style.setProperty('--spawn-oy', Math.round(clampv(_lastTapY - top, -0.3 * h, 1.3 * h)) + 'px');
+        }
+        (function () {
+            document.querySelectorAll('.modal-overlay').forEach(ov => {
+                let wasOpen = ov.style.display === 'flex';
+                new MutationObserver(() => {
+                    const open = ov.style.display === 'flex';
+                    if (open && !wasOpen) { _setSpawnOrigin(ov.querySelector('.modal-content')); haptic('heavy'); }
+                    wasOpen = open;
+                }).observe(ov, { attributes: true, attributeFilter: ['style'] });
+            });
+            const sheet = document.getElementById('bottom-sheet');
+            if (sheet) {
+                let wasOpen = false;
+                new MutationObserver(() => {
+                    const open = sheet.classList.contains('open');
+                    if (open && !wasOpen) { _setSpawnOrigin(sheet, true); haptic('heavy'); }
+                    wasOpen = open;
+                }).observe(sheet, { attributes: true, attributeFilter: ['class'] });
+            }
+        })();
+
+        // ===== BAREVNE MOTIVY: trida na <body>; 'aurora' = vychozi bez tridy =====
+        function previewTheme(t) {
+            ['theme-sunset', 'theme-ocean', 'theme-forest', 'theme-graphite'].forEach(c => document.body.classList.remove(c));
+            if (t && t !== 'aurora') document.body.classList.add('theme-' + t);
+        }
+
+        // ===== DYNAMIC ISLAND: navigacni pilulka nahore (cil, smer, vzdalenost); aktualizuje renderAR =====
+        let _diExpanded = false;
+        function toggleDynIsland() { _diExpanded = !_diExpanded; document.getElementById('dyn-island').classList.toggle('expanded', _diExpanded); }
+        function dynIslandDetail(e) {
+            e.stopPropagation();
+            _diExpanded = false; document.getElementById('dyn-island').classList.remove('expanded');
+            const pt = arPoints.find(p => p.id === highlightedPointId);
+            if (pt && userLat != null) showDetails(pt, getDistance(userLat, userLng, pt.lat, pt.lng));
+        }
+        function dynIslandStop(e) {
+            e.stopPropagation();
+            const pt = arPoints.find(p => p.id === highlightedPointId);
+            if (pt) { highlightPoint(pt); } else { highlightedPointId = null; updateDynIsland(); }
+        }
+        function updateDynIsland() {
+            const pt = highlightedPointId ? arPoints.find(p => p.id === highlightedPointId) : null;
+            const active = !!(pt && appStarted && userLat != null);
+            document.body.classList.toggle('nav-active', active);
+            const eg = document.getElementById('edge-glow');
+            if (!active) {
+                _diExpanded = false;
+                const isl = document.getElementById('dyn-island'); if (isl) isl.classList.remove('expanded');
+                if (eg) eg.classList.remove('on');
+                return;
+            }
+            const dist = getDistance(userLat, userLng, pt.lat, pt.lng);
+            const bearing = getBearing(userLat, userLng, pt.lat, pt.lng);
+            const diff = ((bearing - currentHeading + 540) % 360) - 180;
+            document.getElementById('di-name').innerText = '#' + pt.name;
+            document.getElementById('di-dist').innerText = dist >= 1000 ? (dist / 1000).toFixed(2) + ' km' : dist.toFixed(1) + ' m';
+            const dir = document.querySelector('#dyn-island .di-dir'); if (dir) dir.style.transform = 'rotate(' + Math.round(diff) + 'deg)';
+            const info = document.getElementById('di-info'); if (info) info.innerText = 'Azimut ' + Math.round(bearing) + '° · GPS ±' + currentGpsAccuracy.toFixed(1) + ' m';
+            if (eg) eg.classList.toggle('on', dist <= 2.0); // duhovy okraj displeje pri dohledavani
+        }
+
+        // ===== ADAPTIVNI SKLO: vzorkuje jas obrazu kamery (~1x za 0.7 s) a prepina svetly rezim AR panelu =====
+        const _lumaCanvas = document.createElement('canvas'); _lumaCanvas.width = 24; _lumaCanvas.height = 16;
+        const _lumaCtx = _lumaCanvas.getContext('2d', { willReadFrequently: true });
+        setInterval(() => {
+            if (visSettings.adaptiveGlass === false || visSettings.outdoorMode || !appStarted || viewMode === 'map' || document.visibilityState !== 'visible') { document.body.classList.remove('cam-light'); return; }
+            const v = document.getElementById('camera-feed');
+            if (!v || v.readyState < 2 || !v.videoWidth) return;
+            try {
+                _lumaCtx.drawImage(v, 0, 0, 24, 16);
+                const d = _lumaCtx.getImageData(0, 0, 24, 16).data;
+                let sum = 0; for (let i = 0; i < d.length; i += 4) sum += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+                const luma = sum / (d.length / 4);
+                // hystereze, aby panely na hranici svetla/tmy neblikaly
+                if (luma > 150) document.body.classList.add('cam-light');
+                else if (luma < 115) document.body.classList.remove('cam-light');
+            } catch (e) { /* video jeste neni pripravene */ }
+        }, 700);
