@@ -202,7 +202,23 @@
         }
         function openManageModal() { document.getElementById('settings-modal').style.display = 'none'; renderManageList(); document.getElementById('manage-modal').style.display = 'flex'; }
         function closeManageModal() { document.getElementById('manage-modal').style.display = 'none'; fixAppLayout(); }
-        function renderManageList() { const listDiv = document.getElementById('manage-list'); listDiv.innerHTML = ''; if (persistentCustomPoints.length === 0) { listDiv.innerHTML = '<p style="text-align:center;">Žádné body v této zakázce.</p>'; return; } persistentCustomPoints.forEach(pt => { let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); let dispY = Math.abs(sjtsk[0]).toFixed(2); let dispX = Math.abs(sjtsk[1]).toFixed(2); const item = document.createElement('div'); item.className = 'cp-item'; item.innerHTML = ` <div class="cp-title">${pt.name}</div> <div class="cp-coords">Y: ${dispY}<br>X: ${dispX}${pt.acc != null ? '<br>⌀ ±'+pt.acc+' m' : ''}</div> <div class="cp-actions"> <button class="cp-btn cp-btn-edit" onclick="editCustomPoint('${pt.id}')"><svg class="icon"><use href="#i-edit"/></svg></button> <button class="cp-btn cp-btn-delete" onclick="deleteCustomPoint('${pt.id}')"><svg class="icon"><use href="#i-trash"/></svg></button></div>`; listDiv.appendChild(item); }); }
+        function renderManageList() { const listDiv = document.getElementById('manage-list'); listDiv.innerHTML = ''; if (persistentCustomPoints.length === 0) { listDiv.innerHTML = '<p style="text-align:center;">Žádné body v této zakázce.</p>'; } else persistentCustomPoints.forEach(pt => { let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); let dispY = Math.abs(sjtsk[0]).toFixed(2); let dispX = Math.abs(sjtsk[1]).toFixed(2); const item = document.createElement('div'); item.className = 'cp-item'; item.innerHTML = ` <div class="cp-title">${pt.name}</div> <div class="cp-coords">Y: ${dispY}<br>X: ${dispX}${pt.acc != null ? '<br>⌀ ±'+pt.acc+' m' : ''}</div> <div class="cp-actions"> <button class="cp-btn cp-btn-edit" onclick="editCustomPoint('${pt.id}')"><svg class="icon"><use href="#i-edit"/></svg></button> <button class="cp-btn cp-btn-delete" onclick="deleteCustomPoint('${pt.id}')"><svg class="icon"><use href="#i-trash"/></svg></button></div>`; listDiv.appendChild(item); }); renderLinesList(listDiv); }
+        // Seznam spojnic ve sprave bodu — spolehliva cesta ke smazani (vedle tapnuti na caru v mape)
+        function renderLinesList(listDiv) {
+            if (!pointLines || !pointLines.length) return;
+            const head = document.createElement('div');
+            head.innerHTML = '<h4 style="color:#fbbf24; margin:18px 0 8px; border-bottom:1px solid var(--glass-border); padding-bottom:5px;"><svg class="icon" style="vertical-align:-0.18em;"><use href="#i-line"/></svg> Spojnice bodů</h4>';
+            listDiv.appendChild(head);
+            pointLines.forEach(ln => {
+                const A = resolveLineEnd(ln.aId, ln.aLat, ln.aLng), B = resolveLineEnd(ln.bId, ln.bLat, ln.bLng);
+                const d = getDistance(A.lat, A.lng, B.lat, B.lng);
+                const an = _escHtml(lineEndName(ln.aId, ln.aName)), bn = _escHtml(lineEndName(ln.bId, ln.bName));
+                const item = document.createElement('div'); item.className = 'cp-item';
+                item.innerHTML = `<div class="cp-title" style="color:#fbbf24;">#${an} \u2194 #${bn}</div><div class="cp-coords">Délka: ${d.toFixed(1)} m</div><div class="cp-actions"><button class="cp-btn cp-btn-delete" onclick="deleteLineFromList('${ln.id}')"><svg class="icon"><use href="#i-trash"/></svg></button></div>`;
+                listDiv.appendChild(item);
+            });
+        }
+        function deleteLineFromList(id) { if (!confirm('Smazat tuto spojnici?')) return; deleteLine(id); renderManageList(); }
         function editCustomPoint(id) { const pt = persistentCustomPoints.find(p => p.id === id); if(!pt) return; editingCustomPointId = id; pendingPointAccuracy = null; { const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none'; } document.getElementById('custom-modal-title').innerText = "Upravit bod"; document.getElementById('custom-name').value = pt.name; let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); document.getElementById('custom-y').value = Math.abs(sjtsk[0]).toFixed(2); document.getElementById('custom-x').value = Math.abs(sjtsk[1]).toFixed(2); document.getElementById('manage-modal').style.display = 'none'; document.getElementById('custom-modal-overlay').style.display = 'flex'; }
         // BOD Z MAPY: tlacitko v modalu spusti rezim, dalsi TAP do mapy umisti bod (tah dal posouva mapu)
         function startMapPick() {
@@ -476,9 +492,11 @@
             linesGroup.clearLayers();
             (pointLines || []).forEach(ln => {
                 const A = resolveLineEnd(ln.aId, ln.aLat, ln.aLng), B = resolveLineEnd(ln.bId, ln.bLat, ln.bLng);
-                const poly = L.polyline([[A.lat, A.lng], [B.lat, B.lng]], { color: '#fbbf24', weight: 3, opacity: 0.85 });
-                poly.on('click', (ev) => { L.DomEvent.stopPropagation(ev); if (confirm('Smazat tuto spojnici?')) deleteLine(ln.id); });
-                poly.addTo(linesGroup);
+                L.polyline([[A.lat, A.lng], [B.lat, B.lng]], { color: '#fbbf24', weight: 3, opacity: 0.85, interactive: false }).addTo(linesGroup);
+                // neviditelna siroka cara = dotykova plocha (tenkou caru je tezke trefit prstem)
+                const hit = L.polyline([[A.lat, A.lng], [B.lat, B.lng]], { color: '#000', weight: 24, opacity: 0 });
+                hit.on('click', (ev) => { L.DomEvent.stopPropagation(ev); if (confirm('Smazat tuto spojnici (' + lineEndName(ln.aId, ln.aName) + ' \u2194 ' + lineEndName(ln.bId, ln.bName) + ')?')) { deleteLine(ln.id); } });
+                hit.addTo(linesGroup);
                 const d = getDistance(A.lat, A.lng, B.lat, B.lng);
                 const mid = L.divIcon({ className: 'custom-map-marker', html: `<div style="position:relative; width:0; height:0;"><div class="map-label-text line-len-label" style="left:-16px; top:-18px; transform: rotate(${currentHeading}deg);">${d.toFixed(1)} m</div></div>`, iconSize: [0, 0] });
                 L.marker([(A.lat + B.lat) / 2, (A.lng + B.lng) / 2], { icon: mid, interactive: false }).addTo(linesGroup);
