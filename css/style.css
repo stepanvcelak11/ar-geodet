@@ -1455,3 +1455,8 @@ body.cam-light #ar-hud-info .hud-name { color: #1e293b; }
 .exp-menu summary .icon { width: 16px; height: 16px; }
 .exp-menu[open] summary { border-color: var(--accent); color: var(--accent); }
 .exp-menu .exp-opts { display: flex; flex-direction: column; padding: 2px; }
+
+/* Kolonka spojnic ve sprave bodu */
+.lines-menu { margin-top: 16px; }
+.lines-menu summary { color: #fbbf24; border-color: rgba(251, 191, 36, 0.35); }
+.lines-menu[open] summary { border-color: #fbbf24; color: #fbbf24; }
