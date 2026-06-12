@@ -19,7 +19,7 @@
             document.documentElement.style.setProperty('--hud-scale', visSettings.hudScale || 1);
             previewTheme(visSettings.theme);
             const arrPath = document.getElementById('main-arrow-path'); if(arrPath) { arrPath.setAttribute('d', arrowPaths[visSettings.arrowShape]); arrPath.setAttribute('fill', visSettings.colArrow); document.getElementById('arrow-straight').style.filter = `drop-shadow(0 15px 15px ${visSettings.colArrow}80)`; document.getElementById('target-circle-out').setAttribute('stroke', visSettings.colArrow); document.getElementById('target-circle-in').setAttribute('fill', visSettings.colArrow); document.getElementById('arrow-target').style.filter = `drop-shadow(0 15px 15px ${visSettings.colArrow}90)`; }
-            if (document.getElementById('s-max-ar-slider')) { document.getElementById('s-wakelock').checked = visSettings.wakeLockEnabled; document.getElementById('s-outdoor').checked = !!visSettings.outdoorMode; document.getElementById('s-katastr-source').value = visSettings.katastrSource || 'mapycz'; document.getElementById('s-max-ar-slider').value = visSettings.maxARPoints; document.getElementById('s-max-ar-val').innerText = visSettings.maxARPoints; document.getElementById('v-ar-height-slider').value = visSettings.arVerticalOffset; document.getElementById('v-ar-height-val').innerText = visSettings.arVerticalOffset; document.getElementById('v-marker-scale').value = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-scale-val').innerText = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-opacity').value = visSettings.markerOpacity; document.getElementById('v-marker-opacity-val').innerText = visSettings.markerOpacity; document.getElementById('col-tb').value = visSettings.colTb; document.getElementById('col-zhb').value = visSettings.colZhb; document.getElementById('col-pbpp').value = visSettings.colPbpp; document.getElementById('col-nivel').value = visSettings.colNivel; document.getElementById('col-custom').value = visSettings.colCustom; document.getElementById('col-arrow').value = visSettings.colArrow; document.getElementById('v-arrow-shape').value = visSettings.arrowShape; document.getElementById('v-arrow-scale').value = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-scale-val').innerText = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-opacity').value = visSettings.arrowOpacity; document.getElementById('v-arrow-opacity-val').innerText = visSettings.arrowOpacity; document.getElementById('v-panel-opacity').value = visSettings.panelOpacity; document.getElementById('v-panel-opacity-val').innerText = visSettings.panelOpacity; document.getElementById('v-menu-scale').value = Math.round(visSettings.menuScale * 100); document.getElementById('v-menu-scale-val').innerText = Math.round(visSettings.menuScale * 100); document.getElementById('s-auto-compass').checked = visSettings.autoCompassCorrection; document.getElementById('s-tilt-comp').checked = visSettings.tiltCompensation !== false; document.getElementById('s-heading-smooth').value = visSettings.headingSmoothing; document.getElementById('s-heading-smooth-val').innerText = visSettings.headingSmoothing; document.getElementById('s-fovh').value = visSettings.fovH; document.getElementById('s-fovh-val').innerText = visSettings.fovH; document.getElementById('s-fovv').value = visSettings.fovV; document.getElementById('s-fovv-val').innerText = visSettings.fovV; document.getElementById('s-eyeh').value = visSettings.eyeHeight; document.getElementById('s-eyeh-val').innerText = visSettings.eyeHeight; document.getElementById('s-haptics-level').value = hapticLevel(); document.getElementById('v-adaptive-glass').checked = visSettings.adaptiveGlass !== false; document.getElementById('v-theme').value = visSettings.theme || 'aurora'; document.getElementById('v-hud-scale').value = Math.round((visSettings.hudScale || 1) * 100); document.getElementById('v-hud-scale-val').innerText = Math.round((visSettings.hudScale || 1) * 100); }
+            if (document.getElementById('s-max-ar-slider')) { document.getElementById('s-wakelock').checked = visSettings.wakeLockEnabled; document.getElementById('s-outdoor').checked = !!visSettings.outdoorMode; document.getElementById('s-katastr-source').value = visSettings.katastrSource || 'mapycz'; document.getElementById('s-max-ar-slider').value = visSettings.maxARPoints; document.getElementById('s-max-ar-val').innerText = visSettings.maxARPoints; document.getElementById('v-ar-height-slider').value = visSettings.arVerticalOffset; document.getElementById('v-ar-height-val').innerText = visSettings.arVerticalOffset; document.getElementById('v-marker-scale').value = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-scale-val').innerText = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-opacity').value = visSettings.markerOpacity; document.getElementById('v-marker-opacity-val').innerText = visSettings.markerOpacity; document.getElementById('col-tb').value = visSettings.colTb; document.getElementById('col-zhb').value = visSettings.colZhb; document.getElementById('col-pbpp').value = visSettings.colPbpp; document.getElementById('col-nivel').value = visSettings.colNivel; document.getElementById('col-custom').value = visSettings.colCustom; document.getElementById('col-arrow').value = visSettings.colArrow; document.getElementById('v-arrow-shape').value = visSettings.arrowShape; document.getElementById('v-arrow-scale').value = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-scale-val').innerText = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-opacity').value = visSettings.arrowOpacity; document.getElementById('v-arrow-opacity-val').innerText = visSettings.arrowOpacity; document.getElementById('v-panel-opacity').value = visSettings.panelOpacity; document.getElementById('v-panel-opacity-val').innerText = visSettings.panelOpacity; document.getElementById('v-menu-scale').value = Math.round(visSettings.menuScale * 100); document.getElementById('v-menu-scale-val').innerText = Math.round(visSettings.menuScale * 100); document.getElementById('s-auto-compass').checked = visSettings.autoCompassCorrection; document.getElementById('s-tilt-comp').checked = visSettings.tiltCompensation !== false; document.getElementById('s-heading-smooth').value = visSettings.headingSmoothing; document.getElementById('s-heading-smooth-val').innerText = visSettings.headingSmoothing; document.getElementById('s-fovh').value = visSettings.fovH; document.getElementById('s-fovh-val').innerText = visSettings.fovH; document.getElementById('s-fovv').value = visSettings.fovV; document.getElementById('s-fovv-val').innerText = visSettings.fovV; document.getElementById('s-eyeh').value = visSettings.eyeHeight; document.getElementById('s-eyeh-val').innerText = visSettings.eyeHeight; document.getElementById('v-adaptive-glass').checked = visSettings.adaptiveGlass !== false; document.getElementById('v-theme').value = visSettings.theme || 'aurora'; document.getElementById('v-hud-scale').value = Math.round((visSettings.hudScale || 1) * 100); document.getElementById('v-hud-scale-val').innerText = Math.round((visSettings.hudScale || 1) * 100); }
         }
 
         function switchTab(tabId, btnEl) { document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(tabId).classList.add('active'); btnEl.classList.add('active'); }
@@ -38,7 +38,7 @@
         function openCompassModal() { document.getElementById('compass-modal').style.display = 'flex'; updateCompassButtons(); } function setCompassZero() { compassZeroOffset = currentHeading; alert("Nula nastavena na aktuální směr."); document.getElementById('compass-modal').style.display = 'none'; } function resetCompassZero() { compassZeroOffset = 0; alert("Nula zrušena."); document.getElementById('compass-modal').style.display = 'none'; } function setCompassUnit(u) { compassUnit = u; updateCompassButtons(); }
         function updateCompassButtons() { document.getElementById('btn-unit-deg').style.background = compassUnit === 'deg' ? 'var(--accent)' : '#555'; document.getElementById('btn-unit-deg').style.color = compassUnit === 'deg' ? '#000' : '#fff'; document.getElementById('btn-unit-gon').style.background = compassUnit === 'gon' ? 'var(--accent)' : '#555'; document.getElementById('btn-unit-gon').style.color = compassUnit === 'gon' ? '#000' : '#fff'; }
 
-        const APP_VERSION = '1.4';
+        const APP_VERSION = '1.5';
         function openAbout() { const v = document.getElementById('about-version'); if (v) v.innerText = APP_VERSION; document.getElementById('about-modal').style.display = 'flex'; }
         let _calibActive = false, _calibSeen = null, _calibBeta = null, _calibGamma = null;
         function dismissCompassCalib() { _calibActive = false; try { localStorage.setItem('arCompassCalibShown', '1'); } catch (e) {} const m = document.getElementById('compass-calib-modal'); if (m) m.style.display = 'none'; }
@@ -194,7 +194,7 @@
             visSettings.arrowScale = parseInt(document.getElementById('v-arrow-scale').value) / 100; visSettings.arrowOpacity = parseInt(document.getElementById('v-arrow-opacity').value); visSettings.arrowShape = document.getElementById('v-arrow-shape').value; visSettings.colArrow = document.getElementById('col-arrow').value;
             visSettings.panelOpacity = parseInt(document.getElementById('v-panel-opacity').value); visSettings.menuScale = parseInt(document.getElementById('v-menu-scale').value) / 100;
             visSettings.autoCompassCorrection = document.getElementById('s-auto-compass').checked; visSettings.tiltCompensation = document.getElementById('s-tilt-comp').checked; visSettings.headingSmoothing = parseInt(document.getElementById('s-heading-smooth').value); visSettings.fovH = parseInt(document.getElementById('s-fovh').value); visSettings.fovV = parseInt(document.getElementById('s-fovv').value); visSettings.eyeHeight = parseFloat(document.getElementById('s-eyeh').value);
-            visSettings.theme = document.getElementById('v-theme').value; visSettings.hapticsLevel = document.getElementById('s-haptics-level').value; visSettings.hapticsEnabled = (visSettings.hapticsLevel !== 'off'); visSettings.adaptiveGlass = document.getElementById('v-adaptive-glass').checked; visSettings.hudScale = parseInt(document.getElementById('v-hud-scale').value) / 100;
+            visSettings.theme = document.getElementById('v-theme').value; visSettings.adaptiveGlass = document.getElementById('v-adaptive-glass').checked; visSettings.hudScale = parseInt(document.getElementById('v-hud-scale').value) / 100;
             setStoredData('arVisSettings12', JSON.stringify(visSettings)); applyVisualSettings(); drawAllMarkersOnMap();
             document.getElementById('settings-modal').style.display = 'none';
             if (oldCam !== newCam && viewMode !== 'map') { startCameraAndCompass(true); applyViewMode(); } else { applyViewMode(); }
@@ -709,39 +709,6 @@
             e.preventDefault(); e.stopPropagation();
             closeBottomSheet();
         }, true);
-        // ===== HAPTIKA ROZHRANI: odezva pri tuknuti / prepnuti / otevreni, volitelna sila =====
-        // Delky pulzu podle urovne; kratke pulzy (<30 ms) rada motorku vubec nerozjede,
-        // proto jde sila nastavit. Zmena v Nastaveni hned zavibruje (testHaptics) - kdyz neni
-        // citit ani 'Silna', blokuje vibrace zarizeni/system, ne aplikace.
-        // Pozn.: vychozi hodnoty novych voleb nejsou v logika.js - vsude fallbacky.
-        const HAPTIC_MS = {
-            soft:   { light: 20, medium: 30, heavy: 45 },
-            normal: { light: 35, medium: 55, heavy: 80 },
-            strong: { light: 60, medium: 90, heavy: 130 }
-        };
-        function hapticLevel() {
-            if (visSettings.hapticsLevel) return visSettings.hapticsLevel;
-            return visSettings.hapticsEnabled === false ? 'off' : 'normal';
-        }
-        function haptic(kind) {
-            const lvl = hapticLevel();
-            if (lvl === 'off' || !navigator.vibrate) return;
-            const t = (HAPTIC_MS[lvl] || HAPTIC_MS.normal)[kind] || 35;
-            try { navigator.vibrate(t); } catch (e) {}
-        }
-        // zivy nahled ze selectu v Nastaveni: hned ulozi uroven do pameti a dvakrat zavibruje
-        function testHaptics(v) {
-            visSettings.hapticsLevel = v; visSettings.hapticsEnabled = (v !== 'off');
-            if (v !== 'off' && navigator.vibrate) { const t = (HAPTIC_MS[v] || HAPTIC_MS.normal).heavy; try { navigator.vibrate([t, 90, t]); } catch (e) {} }
-        }
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('input, select, .filter-row, .menu-toggle-row')) return; // prepinace resi udalost 'change'
-            if (e.target.closest('.btn, .dock-btn, .seg-btn, .menu-btn, .map-ctrl-btn, .tab-btn, .cp-btn, .w-proj-icon, .cluster-list-item, .ar-marker, #compass-debug, .btn-link, .he-done, .he-reset')) haptic('light');
-        }, true);
-        document.addEventListener('change', (e) => {
-            if (e.target.matches('input[type="checkbox"], input[type="radio"], select')) haptic('medium');
-        }, true);
-
         // ===== PROSTOROVE OTEVIRANI: modaly a karta bodu vyrustaji z mista posledniho tuknuti =====
         let _lastTapX = null, _lastTapY = null, _lastTapTime = 0;
         document.addEventListener('pointerdown', (e) => { _lastTapX = e.clientX; _lastTapY = e.clientY; _lastTapTime = Date.now(); }, true);
@@ -763,7 +730,7 @@
                 let wasOpen = ov.style.display === 'flex';
                 new MutationObserver(() => {
                     const open = ov.style.display === 'flex';
-                    if (open && !wasOpen) { _setSpawnOrigin(ov.querySelector('.modal-content')); haptic('heavy'); }
+                    if (open && !wasOpen) _setSpawnOrigin(ov.querySelector('.modal-content'));
                     wasOpen = open;
                 }).observe(ov, { attributes: true, attributeFilter: ['style'] });
             });
@@ -772,7 +739,7 @@
                 let wasOpen = false;
                 new MutationObserver(() => {
                     const open = sheet.classList.contains('open');
-                    if (open && !wasOpen) { _setSpawnOrigin(sheet, true); haptic('heavy'); }
+                    if (open && !wasOpen) { _setSpawnOrigin(sheet, true); }
                     wasOpen = open;
                 }).observe(sheet, { attributes: true, attributeFilter: ['class'] });
             }
