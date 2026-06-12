@@ -1,0 +1,162 @@
+// ===== AR Geodet - VYTYCOVACI CHECKLIST =====
+// Odskrtavani vytycenych bodu v terenu: dojdu k bodu, zatlucu kolik, odkliknu hotovo.
+// Stav je per zakazka (getStoreKey) v 'arStakeout12' jako mapa { idBodu: {t: cas, acc: presnost} }.
+// Uredni body maji stabilni id z polohy (stableId), vlastni body cp_..., takze stav prezije refetch.
+// Nacita se PO logika.js a grafika.js; modal a styly si vytvari sama (nezasahuje do HTML/CSS).
+
+let stakeoutData = {};
+let stakeoutOnlyCustom = true;
+
+function loadStakeout() {
+    stakeoutData = {};
+    try { const s = getStoredData('arStakeout12'); if (s) stakeoutData = JSON.parse(s) || {}; } catch (e) {}
+}
+function saveStakeout() { setStoredData('arStakeout12', JSON.stringify(stakeoutData)); }
+function isStaked(id) { return !!stakeoutData[id]; }
+
+function toggleStaked(pt) {
+    if (stakeoutData[pt.id]) { delete stakeoutData[pt.id]; }
+    else {
+        // pri odkliknuti ulozime i dosazenou presnost (mini-protokol o vytyceni)
+        let acc = null;
+        if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.n >= 3) acc = Math.round(gpsAvgResult.sterr * 100) / 100;
+        else if (typeof currentGpsAccuracy !== 'undefined' && currentGpsAccuracy) acc = Math.round(currentGpsAccuracy * 10) / 10;
+        stakeoutData[pt.id] = { t: Date.now(), acc: acc };
+    }
+    saveStakeout();
+    if (pt.element) pt.element.classList.toggle('staked', isStaked(pt.id));
+    drawAllMarkersOnMap();
+    const m = document.getElementById('stakeout-modal');
+    if (m && m.style.display === 'flex') renderStakeoutList();
+}
+
+// pocet kandidatu / hotovych pro progres (kandidat = vlastni bod nebo cokoli uz odskrtnuteho)
+function stakeoutCandidates() {
+    return arPoints.filter(p => !p.hidden && ((stakeoutOnlyCustom ? p.cat === 'CUSTOM' : true) || stakeoutData[p.id]));
+}
+
+// ---------- tlacitko "Vytyceno" v karte bodu (bottom sheet) ----------
+(function () {
+    const _orig = showDetails;
+    showDetails = function (pt, distance) {
+        _orig(pt, distance);
+        let btn = document.getElementById('stake-btn');
+        if (!btn) {
+            btn = document.createElement('button');
+            btn.id = 'stake-btn'; btn.className = 'btn';
+            const hl = document.getElementById('highlight-btn');
+            hl.parentNode.insertBefore(btn, hl);
+        }
+        const paint = () => {
+            const done = isStaked(pt.id);
+            if (done) {
+                const rec = stakeoutData[pt.id];
+                const when = rec && rec.t ? new Date(rec.t).toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                btn.innerHTML = `<svg class="icon"><use href="#i-check"/></svg> Vytyčeno ${when}${rec && rec.acc != null ? ' · ±' + rec.acc + ' m' : ''} — zrušit`;
+                btn.style.background = 'rgba(16,185,129,0.25)'; btn.style.border = '1px solid #10b981'; btn.style.color = '#34d399';
+            } else {
+                btn.innerHTML = '<svg class="icon"><use href="#i-check"/></svg> Vytyčeno — hotovo';
+                btn.style.background = '#10b981'; btn.style.border = 'none'; btn.style.color = '#04110b';
+            }
+        };
+        btn.onclick = () => { toggleStaked(pt); paint(); };
+        paint();
+    };
+})();
+
+// ---------- nacitani stavu pri startu a pri prepnuti zakazky ----------
+(function () {
+    const _orig = loadProjectSettings;
+    loadProjectSettings = function () { loadStakeout(); _orig(); };
+})();
+loadStakeout();
+
+// ---------- checklist modal ----------
+function ensureStakeoutModal() {
+    if (document.getElementById('stakeout-modal')) return;
+    const el = document.createElement('div');
+    el.className = 'modal-overlay'; el.id = 'stakeout-modal';
+    el.innerHTML = `
+        <div class="modal-content">
+            <h3 style="color:var(--accent); margin-top:0; margin-bottom:5px;"><svg class="icon"><use href="#i-check"/></svg> Vytyčovací checklist</h3>
+            <div id="stk-progress-row" style="display:flex; align-items:center; gap:10px; margin:8px 0 4px;">
+                <div style="flex:1; height:9px; background:rgba(255,255,255,0.12); border-radius:99px; overflow:hidden;"><div id="stk-progress-bar" style="height:100%; width:0%; background:#10b981; border-radius:99px; transition:width 0.2s;"></div></div>
+                <b id="stk-progress-txt" style="font-family:var(--font-mono,monospace); font-size:13px; color:var(--accent); white-space:nowrap;">0 / 0</b>
+            </div>
+            <label class="filter-row" style="margin:6px 0 2px; font-size:13px;"><input type="checkbox" id="stk-only-custom" checked onchange="stakeoutOnlyCustom = this.checked; renderStakeoutList();"> Jen vlastní body (vytyčované)</label>
+            <div class="modal-body" id="stakeout-list" style="margin-top:8px;"></div>
+            <div class="row-buttons">
+                <button class="btn btn-danger" onclick="resetStakeout()">Vymazat odškrtnutí</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('stakeout-modal').style.display='none'">Zavřít</button>
+            </div>
+        </div>`;
+    document.body.appendChild(el);
+}
+
+function openStakeoutModal() {
+    ensureStakeoutModal();
+    document.getElementById('stk-only-custom').checked = stakeoutOnlyCustom;
+    renderStakeoutList();
+    document.getElementById('stakeout-modal').style.display = 'flex';
+}
+
+function resetStakeout() {
+    if (!confirm('Zrušit odškrtnutí všech bodů v této zakázce?')) return;
+    stakeoutData = {}; saveStakeout();
+    arPoints.forEach(p => { if (p.element) p.element.classList.remove('staked'); });
+    drawAllMarkersOnMap(); renderStakeoutList();
+}
+
+function renderStakeoutList() {
+    const listDiv = document.getElementById('stakeout-list'); if (!listDiv) return;
+    listDiv.innerHTML = '';
+    const cands = stakeoutCandidates()
+        .map(pt => ({ pt: pt, d: (userLat != null) ? getDistance(userLat, userLng, pt.lat, pt.lng) : null }))
+        .sort((a, b) => {
+            const sa = isStaked(a.pt.id) ? 1 : 0, sb = isStaked(b.pt.id) ? 1 : 0;
+            if (sa !== sb) return sa - sb; // nevytycene nahore
+            return (a.d == null || b.d == null) ? 0 : a.d - b.d;
+        });
+    const doneCount = cands.filter(c => isStaked(c.pt.id)).length;
+    const bar = document.getElementById('stk-progress-bar'); if (bar) bar.style.width = (cands.length ? Math.round(doneCount / cands.length * 100) : 0) + '%';
+    const txt = document.getElementById('stk-progress-txt'); if (txt) txt.innerText = doneCount + ' / ' + cands.length;
+    if (!cands.length) {
+        listDiv.innerHTML = '<p style="text-align:center; opacity:0.7; font-size:13px;">Žádné body k vytyčení.<br>Naimportujte nebo vložte vlastní body, případně vypněte filtr „Jen vlastní body".</p>';
+        return;
+    }
+    cands.forEach(({ pt, d }) => {
+        const done = isStaked(pt.id);
+        const rec = stakeoutData[pt.id];
+        const item = document.createElement('div');
+        item.className = 'cluster-list-item';
+        if (done) item.style.opacity = '0.55';
+        let sub = d != null ? d.toFixed(1) + ' m' : '';
+        let detail = '';
+        if (done && rec) {
+            const when = rec.t ? new Date(rec.t).toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+            detail = `<div class="cluster-item-subtitle" style="color:#34d399;">✓ ${when}${rec.acc != null ? ' · ±' + rec.acc + ' m' : ''}</div>`;
+        } else {
+            detail = `<div class="cluster-item-subtitle">klepni na název = navigovat</div>`;
+        }
+        item.innerHTML = `
+            <div class="stk-check ${done ? 'done' : ''}" role="button" aria-label="Odškrtnout">${done ? '✓' : ''}</div>
+            <div style="flex:1; min-width:0; padding:0 10px;"><div class="cluster-item-title" style="${done ? 'text-decoration:line-through;' : ''}">#${pt.name}</div>${detail}</div>
+            <div style="font-weight:600; font-size:13px; white-space:nowrap;">${sub}</div>`;
+        item.style.display = 'flex'; item.style.alignItems = 'center';
+        item.querySelector('.stk-check').addEventListener('click', (e) => { e.stopPropagation(); toggleStaked(pt); });
+        item.addEventListener('click', () => { document.getElementById('stakeout-modal').style.display = 'none'; highlightPoint(pt); });
+        listDiv.appendChild(item);
+    });
+}
+
+// ---------- styly (injektovane, at se nesaha do style.css) ----------
+(function () {
+    const st = document.createElement('style');
+    st.textContent = `
+        .ar-marker.staked { opacity: 0.55 !important; filter: grayscale(0.5); }
+        .ar-marker.staked .ar-marker-title::before { content: '✓ '; color: #34d399; }
+        .stk-check { flex: 0 0 30px; width: 30px; height: 30px; border-radius: 9px; border: 2px solid rgba(255,255,255,0.35); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; color: #04110b; cursor: pointer; }
+        .stk-check.done { background: #10b981; border-color: #10b981; }
+    `;
+    document.head.appendChild(st);
+})();

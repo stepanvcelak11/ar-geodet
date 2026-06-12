@@ -56,6 +56,8 @@ if ('serviceWorker' in navigator) {
         let compassUnit = 'deg'; let compassZeroOffset = 0;
         let measA = null, measB = null, pendingPointAccuracy = null, mapAddMode = false;
         let wakeLock = null;
+        let pointLines = []; let connectFirstPt = null; let areaVertices = [];
+        let connectMode = false, areaMode = false;
         let filters = { tb: true, zhb: true, pbpp: true, nivel: true, custom: true };
 
         let visSettings = { maxARPoints: 100, arVerticalOffset: 0, markerScale: 1.0, markerOpacity: 100, colTb: '#8b5cf6', colZhb: '#0ea5e9', colPbpp: '#3b82f6', colNivel: '#ef4444', colCustom: '#34d399', arrowScale: 1.0, arrowOpacity: 90, arrowShape: '1', colArrow: '#34d399', panelOpacity: 85, menuScale: 1.0, hudTop: 55, hudSide: 15, wakeLockEnabled: true, outdoorMode: false, katastrSource: 'mapycz', baseLayer: 'osm', showKatastr: false, headingSmoothing: 75, autoCompassCorrection: true, tiltCompensation: true, fovH: 90, fovV: 75, eyeHeight: 1.6 };
@@ -73,6 +75,7 @@ if ('serviceWorker' in navigator) {
             arPoints.forEach(p => { if(p.element) p.element.remove(); }); arPoints = []; persistentCustomPoints = [];
             let off = getStoredData('arOfflinePoints12'); if(off) { try { JSON.parse(off).forEach(p => { p.element=null; p.distElement=null; p.ringElement=null; p.bestAccuracy=null; p.hidden=false; arPoints.push(p); }); }catch(e){} }
             let cust = getStoredData('arCustomPoints12'); if(cust) { try { persistentCustomPoints = JSON.parse(cust); } catch(e) {} }
+            loadLines();
             // OPRAVA: vlastni body musi po startu i do arPoints (AR + mapa), ne jen do seznamu spravy
             persistentCustomPoints.forEach(pt => arPoints.push({...pt, hidden: false}));
 
@@ -206,7 +209,7 @@ if ('serviceWorker' in navigator) {
             };
             reader.readAsText(file);
         }
-        function deleteCustomPoint(id) { if(!confirm("Smazat?")) return; persistentCustomPoints = persistentCustomPoints.filter(p => p.id !== id); setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); renderManageList(); drawAllMarkersOnMap(); const idx = arPoints.findIndex(p => p.id === id); if(idx !== -1) { if(arPoints[idx].element) arPoints[idx].element.remove(); arPoints.splice(idx, 1); } updateInfoPanel(); }
+        function deleteCustomPoint(id) { if(!confirm("Smazat?")) return; persistentCustomPoints = persistentCustomPoints.filter(p => p.id !== id); setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); pointLines = pointLines.filter(l => l.aId !== id && l.bId !== id); saveLines(); renderManageList(); drawAllMarkersOnMap(); const idx = arPoints.findIndex(p => p.id === id); if(idx !== -1) { if(arPoints[idx].element) arPoints[idx].element.remove(); arPoints.splice(idx, 1); } updateInfoPanel(); }
         // Vyplnit Y/X z PRUMEROVANE GPS polohy (presnejsi nez jeden odecet) + ulozit dosazenou presnost
         function fillAveragedGPS() {
             if (!gpsAvgResult || gpsAvgResult.n < 2) { alert("Počkejte na ustálení průměrování GPS (stůjte chvíli na místě)."); return; }
@@ -332,4 +335,112 @@ if ('serviceWorker' in navigator) {
                 (error) => { if (appStarted) document.getElementById('info').innerHTML = `Chyba GPS: ${error.message}`; },
                 { enableHighAccuracy: true, maximumAge: 0, timeout: 27000 }
             );
+        }
+
+        // ===== SPOJNICE BODU (datova cast) =====
+        // Ulozene cary mezi body: {id, aId, bId, aLat, aLng, bLat, bLng}. Per zakazka (klic arLines12).
+        // Souradnice se ukladaji i primo do spojnice -> cara drzi, i kdyz bod zrovna neni stazeny.
+        function loadLines() { pointLines = []; const l = getStoredData('arLines12'); if (l) { try { pointLines = JSON.parse(l); } catch (e) {} } }
+        function saveLines() { setStoredData('arLines12', JSON.stringify(pointLines)); }
+        function resolveLineEnd(id, fLat, fLng) { const p = arPoints.find(q => q.id === id) || persistentCustomPoints.find(q => q.id === id); return p ? { lat: p.lat, lng: p.lng } : { lat: fLat, lng: fLng }; }
+        function addLine(a, b) {
+            if (!a || !b || a.id === b.id) return false;
+            if (pointLines.find(l => (l.aId === a.id && l.bId === b.id) || (l.aId === b.id && l.bId === a.id))) return false;
+            pointLines.push({ id: 'ln_' + Date.now() + '_' + Math.round(Math.random() * 1e6), aId: a.id, bId: b.id, aLat: a.lat, aLng: a.lng, bLat: b.lat, bLng: b.lng });
+            saveLines(); return true;
+        }
+        function deleteLine(id) { pointLines = pointLines.filter(l => l.id !== id); saveLines(); drawAllLinesOnMap(); }
+        // spolecny test filtru a vyhledavani (stejna logika jako pri kresleni mapy/AR)
+        function passesFilters(pt) {
+            if (pt.hidden) return false;
+            if (pt.cat === 'TB' && !filters.tb) return false; if (pt.cat === 'ZHB' && !filters.zhb) return false;
+            if (pt.cat === 'PBPP' && !filters.pbpp) return false; if (pt.cat === 'NIVEL' && !filters.nivel) return false;
+            if (pt.cat === 'CUSTOM' && !filters.custom) return false;
+            if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+            return true;
+        }
+
+        // ===== MERENI PLOCHY =====
+        // Plocha Gaussovou (shoelace) formuli a obvod v ROVINNYCH souradnicich S-JTSK -> pro CR presne.
+        function polygonAreaPerimeter(verts) {
+            if (!verts || verts.length < 2) return { area: 0, perim: 0 };
+            const pts = verts.map(v => proj4("EPSG:4326", "EPSG:5514", [v.lng, v.lat]));
+            let perim = 0;
+            for (let i = 1; i < pts.length; i++) perim += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+            let area = 0;
+            if (verts.length >= 3) {
+                for (let i = 0; i < pts.length; i++) { const j = (i + 1) % pts.length; area += pts[i][0] * pts[j][1] - pts[j][0] * pts[i][1]; }
+                area = Math.abs(area) / 2;
+                perim += Math.hypot(pts[0][0] - pts[pts.length - 1][0], pts[0][1] - pts[pts.length - 1][1]); // uzavreni obvodu
+            }
+            return { area: area, perim: perim };
+        }
+
+        // ===== OCR: precteni cisla bodu a souradnic S-JTSK z fotky =====
+        // Tesseract.js se nacita az pri prvnim pouziti (velka knihovna + jazykova data) -> prvni
+        // pouziti vyzaduje internet, pak uz drzi v cache (SW caching CDN).
+        let _tessLoadPromise = null;
+        function ensureTesseract() {
+            if (window.Tesseract) return Promise.resolve();
+            if (!_tessLoadPromise) {
+                _tessLoadPromise = new Promise((resolve, reject) => {
+                    const sc = document.createElement('script');
+                    sc.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+                    sc.onload = () => resolve();
+                    sc.onerror = () => { _tessLoadPromise = null; reject(new Error('Nepodařilo se stáhnout OCR knihovnu — první použití vyžaduje internet.')); };
+                    document.head.appendChild(sc);
+                });
+            }
+            return _tessLoadPromise;
+        }
+        function _loadImageFromFile(file) { return new Promise((resolve, reject) => { const im = new Image(); im.onload = () => resolve(im); im.onerror = () => reject(new Error('Fotku se nepodařilo načíst.')); im.src = URL.createObjectURL(file); }); }
+        // zmenseni fotky na rozumnou velikost (rychlost OCR)
+        function _downscaleForOcr(img, maxDim) { const k = Math.min(1, maxDim / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(img.width * k)); c.height = Math.max(1, Math.round(img.height * k)); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); return c; }
+        // Z prectenych cisel vybere Y (400-910 km) a X (930-1230 km) dle rozsahu S-JTSK v CR;
+        // rozsahy se neprekryvaji -> prirazeni je jednoznacne. Cislo bodu = prvni male cele cislo.
+        function parseOcrCoords(text) {
+            const raw = text.match(/\d+(?:[.,]\d+)?/g) || [];
+            let y = null, x = null, name = null;
+            raw.forEach(t => {
+                const v = parseFloat(t.replace(',', '.'));
+                if (y === null && v >= 400000 && v <= 910000) y = v;
+                else if (x === null && v >= 930000 && v <= 1230000) x = v;
+                else if (name === null && v >= 1 && v < 100000 && t.indexOf('.') < 0 && t.indexOf(',') < 0) name = t;
+            });
+            return { y: y, x: x, name: name };
+        }
+        async function ocrFromPhoto(event) {
+            const file = event.target.files[0]; event.target.value = ''; if (!file) return;
+            showOfflineProgress(0, 100, 'Čtu souřadnice z fotky\u2026', '%');
+            let worker = null;
+            try {
+                await ensureTesseract();
+                const img = await _loadImageFromFile(file);
+                const canvas = _downscaleForOcr(img, 1600);
+                worker = await Tesseract.createWorker('eng', 1, { logger: m => { if (m.status === 'recognizing text') updateOfflineProgress(Math.round((m.progress || 0) * 100), 100); } });
+                await worker.setParameters({ tessedit_char_whitelist: '0123456789.,;:-/YXZyxz ' });
+                const res = await worker.recognize(canvas);
+                hideOfflineProgress();
+                applyOcrResult((res && res.data && res.data.text) ? res.data.text : '');
+            } catch (e) {
+                hideOfflineProgress();
+                alert('Čtení z fotky se nezdařilo: ' + ((e && e.message) ? e.message : e));
+            } finally { if (worker) { try { await worker.terminate(); } catch (e) {} } }
+        }
+        // Vysledek OCR jen PREDVYPLNI formular — ulozeni az po kontrole uzivatelem
+        // (nepozorovany preklep od OCR je horsi nez rucni prepis).
+        function applyOcrResult(text) {
+            const r = parseOcrCoords(text);
+            const note = document.getElementById('ocr-note');
+            if (r.y === null && r.x === null && r.name === null) {
+                if (note) { note.style.display = 'block'; note.innerHTML = 'Z fotky se nepodařilo nic přečíst. Zkuste ostřejší záběr zblízka, kolmo na text.'; }
+                return;
+            }
+            if (r.name !== null && !document.getElementById('custom-name').value) document.getElementById('custom-name').value = r.name;
+            if (r.y !== null) document.getElementById('custom-y').value = r.y.toFixed(2);
+            if (r.x !== null) document.getElementById('custom-x').value = r.x.toFixed(2);
+            if (note) {
+                note.style.display = 'block';
+                note.innerHTML = 'Přečteno z fotky: ' + (r.name !== null ? 'bod <b>' + r.name + '</b> · ' : '') + (r.y !== null ? 'Y <b>' + r.y.toFixed(2) + '</b>' : 'Y se nenašlo') + ' · ' + (r.x !== null ? 'X <b>' + r.x.toFixed(2) + '</b>' : 'X se nenašlo') + '<br><b>Zkontrolujte hodnoty proti originálu</b> — OCR se může splést.';
+            }
         }

@@ -19,10 +19,14 @@ const ASSETS_TO_CACHE = [
     './css/style.css',
     './js/logika.js',
     './js/grafika.js',
+    './js/vytycovani.js',
+    './js/satelity.js',
+    './js/kalkulacka.js',
     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
     'https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.min.js',
     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-    'https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js'
+    'https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js',
+    'https://unpkg.com/satellite.js@5.0.0/dist/satellite.min.js'
 ];
 
 // Mapove dlazdice (OSM, CUZK WMS) ukladame do TILE_CACHE, aby prezily update kodu.
@@ -60,6 +64,7 @@ self.addEventListener('message', e => { if (e.data === 'SKIP_WAITING') self.skip
 self.addEventListener('fetch', event => {
     const url = event.request.url;
     if (url.includes('cuzk.gov.cz/arcgis/rest')) return; // dotazy na bodova pole vzdy ze site
+    if (url.includes('celestrak.org')) return; // drahy druzic (TLE) vzdy ze site — appka si je cachuje sama v localStorage
 
     // Vlastni kod aplikace (stejny puvod): NEJDRIV SIT — aby byl vzdy cerstvy.
     // Pri vypadku site se pouzije cache (offline rezim funguje dal).
