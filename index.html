@@ -208,6 +208,10 @@
                     <div class="geo-data-row" style="border-bottom:none;"><span class="geo-label">Šikmá délka (3D):</span><span class="geo-value" id="meas-slant">-- m</span></div>
                 </div>
                 <button class="btn btn-blue" style="margin-top: 12px;" onclick="startAreaMode()"><svg class="icon"><use href="#i-area"/></svg> Měření plochy v mapě</button>
+                <label style="display:block; margin:14px 0 2px; font-size:12px; letter-spacing:0.06em; text-transform:uppercase; opacity:0.65;">Další nástroje</label>
+                <button class="btn btn-secondary" style="margin-top:6px;" onclick="document.getElementById('measure-modal').style.display='none'; openCalcModal();"><svg class="icon"><use href="#i-calc"/></svg> Geodetická kalkulačka</button>
+                <button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('measure-modal').style.display='none'; openSatModal();"><svg class="icon"><use href="#i-satellite"/></svg> GNSS satelity (AR)</button>
+                <button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('measure-modal').style.display='none'; openStakeoutModal();"><svg class="icon"><use href="#i-check"/></svg> Vytyčovací checklist</button>
             </div>
             <div class="row-buttons">
                 <button class="btn btn-danger" onclick="resetMeasure()">Vymazat</button>
