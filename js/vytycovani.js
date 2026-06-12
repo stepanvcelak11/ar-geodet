@@ -85,6 +85,7 @@ function ensureStakeoutModal() {
             </div>
             <label class="filter-row" style="margin:6px 0 2px; font-size:13px;"><input type="checkbox" id="stk-only-custom" checked onchange="stakeoutOnlyCustom = this.checked; renderStakeoutList();"> Jen vlastní body (vytyčované)</label>
             <div class="modal-body" id="stakeout-list" style="margin-top:8px;"></div>
+            <button class="btn btn-secondary" style="margin-top:10px;" onclick="exportStakeoutCSV()"><svg class="icon"><use href="#i-upload"/></svg> Export protokolu vytyčení (CSV)</button>
             <div class="row-buttons">
                 <button class="btn btn-danger" onclick="resetStakeout()">Vymazat odškrtnutí</button>
                 <button class="btn btn-secondary" onclick="document.getElementById('stakeout-modal').style.display='none'">Zavřít</button>
@@ -134,7 +135,7 @@ function renderStakeoutList() {
         let detail = '';
         if (done && rec) {
             const when = rec.t ? new Date(rec.t).toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-            detail = `<div class="cluster-item-subtitle" style="color:#34d399;">✓ ${when}${rec.acc != null ? ' · ±' + rec.acc + ' m' : ''}</div>`;
+            detail = `<div class="cluster-item-subtitle" style="color:#34d399;">✓ ${when}${rec.acc != null ? ' · ±' + rec.acc + ' m' : ''} · klepni = detail</div>`;
         } else {
             detail = `<div class="cluster-item-subtitle">klepni na název = navigovat</div>`;
         }
@@ -144,9 +145,69 @@ function renderStakeoutList() {
             <div style="font-weight:600; font-size:13px; white-space:nowrap;">${sub}</div>`;
         item.style.display = 'flex'; item.style.alignItems = 'center';
         item.querySelector('.stk-check').addEventListener('click', (e) => { e.stopPropagation(); toggleStaked(pt); });
-        item.addEventListener('click', () => { document.getElementById('stakeout-modal').style.display = 'none'; highlightPoint(pt); });
+        if (done) item.addEventListener('click', () => openStakeRecord(pt));
+        else item.addEventListener('click', () => { document.getElementById('stakeout-modal').style.display = 'none'; highlightPoint(pt); });
         listDiv.appendChild(item);
     });
+}
+
+// ---------- detail vytyceneho bodu (mini-protokol) ----------
+let _stakeDetailPt = null;
+function _stakeTypeLabel(cat) {
+    if (cat === 'TB') return 'Trigonometrický bod';
+    if (cat === 'ZHB') return 'Zhušťovací bod';
+    if (cat === 'NIVEL') return 'Nivelační / Výškový bod';
+    if (cat === 'CUSTOM') return 'Vlastní bod';
+    return 'Podrobný polohový bod';
+}
+function openStakeRecord(pt) {
+    const rec = stakeoutData[pt.id]; if (!rec) return;
+    _stakeDetailPt = pt;
+    let el = document.getElementById('stake-detail-modal');
+    if (!el) {
+        el = document.createElement('div');
+        el.className = 'modal-overlay'; el.id = 'stake-detail-modal'; el.style.zIndex = '100002';
+        el.innerHTML = `<div class="modal-content">
+            <h3 style="color:#34d399; margin-top:0; margin-bottom:5px;"><svg class="icon"><use href="#i-check"/></svg> <span id="stkd-title">Bod</span></h3>
+            <div id="stkd-sub" style="font-size:13px; opacity:0.75; margin-bottom:8px;"></div>
+            <div class="modal-body" id="stkd-body"></div>
+            <button class="btn btn-warning" style="margin-top:12px;" onclick="document.getElementById('stake-detail-modal').style.display='none'; document.getElementById('stakeout-modal').style.display='none'; highlightPoint(_stakeDetailPt);"><svg class="icon"><use href="#i-star"/></svg> Navigovat k bodu (kontrola)</button>
+            <button class="btn btn-danger" onclick="toggleStaked(_stakeDetailPt); document.getElementById('stake-detail-modal').style.display='none';">Zrušit odškrtnutí</button>
+            <button class="btn btn-secondary" style="margin-top:10px;" onclick="document.getElementById('stake-detail-modal').style.display='none'">Zavřít</button>
+        </div>`;
+        document.body.appendChild(el);
+    }
+    const sj = proj4('EPSG:4326', 'EPSG:5514', [pt.lng, pt.lat]);
+    const when = rec.t ? new Date(rec.t).toLocaleString('cs-CZ') : '—';
+    const d = (userLat != null) ? getDistance(userLat, userLng, pt.lat, pt.lng) : null;
+    const row = (l, v) => `<div class="geo-data-row"><span class="geo-label">${l}</span><span class="geo-value">${v}</span></div>`;
+    document.getElementById('stkd-title').innerText = '#' + pt.name;
+    document.getElementById('stkd-sub').innerText = _stakeTypeLabel(pt.cat);
+    document.getElementById('stkd-body').innerHTML =
+        row('S-JTSK Y', Math.abs(sj[0]).toFixed(2))
+        + row('S-JTSK X', Math.abs(sj[1]).toFixed(2))
+        + row('Vytyčeno', when)
+        + row('Přesnost při vytyčení', rec.acc != null ? '±' + rec.acc + ' m' : 'nezaznamenána')
+        + (d != null ? row('Aktuální vzdálenost', d.toFixed(1) + ' m') : '');
+    el.style.display = 'flex';
+}
+
+// export protokolu: nazev;Y;X;vytyceno;presnost_m (BOM kvuli diakritice v Excelu)
+function exportStakeoutCSV() {
+    const done = arPoints.filter(p => stakeoutData[p.id]);
+    if (!done.length) return alert('Zatím není vytyčen žádný bod.');
+    const lines = ['název;Y;X;vytyčeno;přesnost_m'].concat(done.map(pt => {
+        const rec = stakeoutData[pt.id];
+        const sj = proj4('EPSG:4326', 'EPSG:5514', [pt.lng, pt.lat]);
+        const when = rec.t ? new Date(rec.t).toLocaleString('cs-CZ') : '';
+        const nm = String(pt.name == null ? 'Bod' : pt.name).replace(/[;\r\n]/g, ' ');
+        return nm + ';' + Math.abs(sj[0]).toFixed(2) + ';' + Math.abs(sj[1]).toFixed(2) + ';' + when + ';' + (rec.acc != null ? rec.acc : '');
+    }));
+    const csv = '\uFEFF' + lines.join('\r\n') + '\r\n';
+    const a = document.createElement('a');
+    a.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv));
+    a.setAttribute('download', `vytyceni_${activeProjectId}.csv`);
+    document.body.appendChild(a); a.click(); a.remove();
 }
 
 // ---------- styly (injektovane, at se nesaha do style.css) ----------

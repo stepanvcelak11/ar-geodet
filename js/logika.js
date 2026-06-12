@@ -245,33 +245,40 @@ if ('serviceWorker' in navigator) {
         // undulaci kvazigeoidu CR-2005 (~44-47 m). Linearni aproximace, presnost ~1-2 m
         // (hluboko pod svislou chybou telefonni GPS), odstranuje systematicky posun ~45 m.
         function getGeoidUndulation(lat, lng) { return 45.5 + 0.55 * (lng - 15.5) - 0.4 * (lat - 49.8); }
-        // PRUMEROVANI GPS: pri stani sbira fixy, prumeruje a odstranuje hrube chyby (>2 sigma)
+        // ROBUSTNI PRUMEROVANI GPS: median + MAD filtr hrubych chyb (prumer i 2-sigma prah
+        // si outlier nafoukne sam, median ne), pak vazeny prumer podle hlasene presnosti fixu.
+        // sterr pocitame z efektivniho n (po sobe jdouci fixy jsou korelovane, nejsou nezavisle).
+        function _median(arr) { const a = arr.slice().sort((p, q) => p - q); const m = a.length >> 1; return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; }
         function updateGpsAveraging(lat, lng, acc, speed) {
             if (gpsSamples.length) {
-                let ml = 0, mg = 0; gpsSamples.forEach(s => { ml += s.lat; mg += s.lng; }); ml /= gpsSamples.length; mg /= gpsSamples.length;
-                let moved = getDistance(ml, mg, lat, lng);
+                const ref = gpsAvgResult || gpsSamples[gpsSamples.length - 1];
+                const moved = getDistance(ref.lat, ref.lng, lat, lng);
                 if ((speed && speed > 0.5) || moved > 15) gpsSamples = [];
             }
             gpsSamples.push({ lat: lat, lng: lng, acc: (acc || 0) });
             if (gpsSamples.length > 300) gpsSamples.shift();
-            let total = gpsSamples.length;
-            let used = gpsSamples;
-            let mlat = used.reduce((a, s) => a + s.lat, 0) / used.length;
-            let mlng = used.reduce((a, s) => a + s.lng, 0) / used.length;
-            let dists = used.map(s => getDistance(mlat, mlng, s.lat, s.lng));
-            let sigma = Math.sqrt(dists.reduce((a, d) => a + d * d, 0) / used.length);
-            if (used.length >= 5 && sigma > 0) {
-                let inl = gpsSamples.filter((s, i) => dists[i] <= 2 * sigma);
-                if (inl.length >= 3) {
-                    used = inl;
-                    mlat = used.reduce((a, s) => a + s.lat, 0) / used.length;
-                    mlng = used.reduce((a, s) => a + s.lng, 0) / used.length;
-                    sigma = Math.sqrt(used.reduce((a, s) => a + Math.pow(getDistance(mlat, mlng, s.lat, s.lng), 2), 0) / used.length);
-                }
+            const total = gpsSamples.length;
+            // lokalni rovinne souradnice v metrech (kolem prvniho vzorku)
+            const lat0 = gpsSamples[0].lat, lng0 = gpsSamples[0].lng;
+            const mLat = 111320, mLng = 111320 * Math.cos(lat0 * Math.PI / 180);
+            let used = gpsSamples.map(s => ({ s: s, x: (s.lng - lng0) * mLng, y: (s.lat - lat0) * mLat }));
+            let cx = _median(used.map(p => p.x)), cy = _median(used.map(p => p.y));
+            for (let it = 0; it < 3 && used.length >= 5; it++) {
+                const r = used.map(p => Math.hypot(p.x - cx, p.y - cy));
+                const thr = Math.max(3 * 1.4826 * _median(r), 1.5); // prah min 1.5 m, at nezahazujeme bezny sum
+                const inl = used.filter((p, i) => r[i] <= thr);
+                if (inl.length < 3 || inl.length === used.length) { if (inl.length >= 3) used = inl; break; }
+                used = inl;
+                cx = _median(used.map(p => p.x)); cy = _median(used.map(p => p.y));
             }
-            let meanAcc = used.reduce((a, s) => a + (s.acc || 0), 0) / used.length;
-            let sterr = used.length > 0 ? sigma / Math.sqrt(used.length) : 0;
-            gpsAvgResult = { lat: mlat, lng: mlng, n: used.length, total: total, sigma: sigma, sterr: sterr, acc: meanAcc };
+            let sw = 0, swx = 0, swy = 0;
+            used.forEach(p => { const w = 1 / Math.pow(Math.max(p.s.acc || 5, 1), 2); sw += w; swx += w * p.x; swy += w * p.y; });
+            const wx = swx / sw, wy = swy / sw;
+            const sigma = Math.sqrt(used.reduce((a, p) => a + Math.pow(p.x - wx, 2) + Math.pow(p.y - wy, 2), 0) / used.length);
+            const neff = Math.max(1, used.length / 4); // fixy ~1/s jsou korelovane v radu sekund
+            const sterr = sigma / Math.sqrt(neff);
+            const meanAcc = used.reduce((a, p) => a + (p.s.acc || 0), 0) / used.length;
+            gpsAvgResult = { lat: lat0 + wy / mLat, lng: lng0 + wx / mLng, n: used.length, total: total, sigma: sigma, sterr: sterr, acc: meanAcc };
             updateGpsAvgPanel();
         }
 
@@ -346,10 +353,11 @@ if ('serviceWorker' in navigator) {
         function addLine(a, b) {
             if (!a || !b || a.id === b.id) return false;
             if (pointLines.find(l => (l.aId === a.id && l.bId === b.id) || (l.aId === b.id && l.bId === a.id))) return false;
-            pointLines.push({ id: 'ln_' + Date.now() + '_' + Math.round(Math.random() * 1e6), aId: a.id, bId: b.id, aLat: a.lat, aLng: a.lng, bLat: b.lat, bLng: b.lng });
+            pointLines.push({ id: 'ln_' + Date.now() + '_' + Math.round(Math.random() * 1e6), aId: a.id, bId: b.id, aName: a.name, bName: b.name, aLat: a.lat, aLng: a.lng, bLat: b.lat, bLng: b.lng });
             saveLines(); return true;
         }
         function deleteLine(id) { pointLines = pointLines.filter(l => l.id !== id); saveLines(); drawAllLinesOnMap(); }
+        function lineEndName(id, stored) { const p = arPoints.find(q => q.id === id) || persistentCustomPoints.find(q => q.id === id); return (p && p.name) || stored || '?'; }
         // spolecny test filtru a vyhledavani (stejna logika jako pri kresleni mapy/AR)
         function passesFilters(pt) {
             if (pt.hidden) return false;
