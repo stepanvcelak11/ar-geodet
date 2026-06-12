@@ -36,7 +36,7 @@
         function openCompassModal() { document.getElementById('compass-modal').style.display = 'flex'; updateCompassButtons(); } function setCompassZero() { compassZeroOffset = currentHeading; alert("Nula nastavena na aktuální směr."); document.getElementById('compass-modal').style.display = 'none'; } function resetCompassZero() { compassZeroOffset = 0; alert("Nula zrušena."); document.getElementById('compass-modal').style.display = 'none'; } function setCompassUnit(u) { compassUnit = u; updateCompassButtons(); }
         function updateCompassButtons() { document.getElementById('btn-unit-deg').style.background = compassUnit === 'deg' ? 'var(--accent)' : '#555'; document.getElementById('btn-unit-deg').style.color = compassUnit === 'deg' ? '#000' : '#fff'; document.getElementById('btn-unit-gon').style.background = compassUnit === 'gon' ? 'var(--accent)' : '#555'; document.getElementById('btn-unit-gon').style.color = compassUnit === 'gon' ? '#000' : '#fff'; }
 
-        const APP_VERSION = '1.0';
+        const APP_VERSION = '1.2';
         function openAbout() { const v = document.getElementById('about-version'); if (v) v.innerText = APP_VERSION; document.getElementById('about-modal').style.display = 'flex'; }
         let _calibActive = false, _calibSeen = null, _calibBeta = null, _calibGamma = null;
         function dismissCompassCalib() { _calibActive = false; try { localStorage.setItem('arCompassCalibShown', '1'); } catch (e) {} const m = document.getElementById('compass-calib-modal'); if (m) m.style.display = 'none'; }
@@ -99,6 +99,7 @@
                 const icon = L.divIcon({ className: 'custom-map-marker', html: htmlContent, iconSize: [24, 24], iconAnchor: [12, 12] });
                 L.marker([pt.lat, pt.lng], { icon: icon }).addTo(markersGroup);
             });
+            drawAllLinesOnMap();
         }
 
         function getMapClickLatLng(e) {
@@ -122,6 +123,8 @@
         map.on('click', (e) => {
             if (!appStarted) return; const clickLatLng = getMapClickLatLng(e);
             if (mapAddMode) { mapAddMode = false; const _h = document.getElementById('map-pick-hint'); if (_h) _h.style.display = 'none'; openNewPointFromMap(clickLatLng.lat, clickLatLng.lng); return; }
+            if (areaMode) { areaVertices.push({ lat: clickLatLng.lat, lng: clickLatLng.lng }); afterAreaChange(); return; }
+            if (connectMode) { handleConnectTap(clickLatLng); return; }
             const clickPoint = map.latLngToContainerPoint(clickLatLng); const nearbyPoints = [];
             arPoints.forEach(pt => {
                 if (pt.hidden) return; if (pt.cat === 'TB' && !filters.tb) return; if (pt.cat === 'ZHB' && !filters.zhb) return; if (pt.cat === 'PBPP' && !filters.pbpp) return; if (pt.cat === 'NIVEL' && !filters.nivel) return; if (pt.cat === 'CUSTOM' && !filters.custom) return; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return;
@@ -435,6 +438,7 @@
                     if (pt.element) { pt.element.style.left = `${xPct}%`; pt.element.style.top = `${markerY}%`; pt.element.style.transform = `translate(-50%, -50%) scale(${scale}) translateZ(0)`; pt.element.style.opacity = '1'; pt.element.style.pointerEvents = 'auto'; pt.distElement.innerText = `${distance.toFixed(1)} m`; }
                 } else { if (pt.element) pt.element.style.opacity = '0'; }
             });
+            drawARLines(heading, cameraPitchDown, imgRoll, halfH, halfV, vOffset, eyeH);
             
             if (highlightedPointData) {
                 document.getElementById('ar-hud').style.display = 'flex'; const arrTarget = document.getElementById('arrow-target'); const arrStraight = document.getElementById('arrow-straight'); const arrLeft = document.getElementById('arrow-left'); const arrRight = document.getElementById('arrow-right'); const arrUturn = document.getElementById('arrow-uturn'); const arrBull = document.getElementById('arrow-bullseye'); const hudDistText = document.getElementById('ar-hud-dist'); const hudInfoBox = document.getElementById('ar-hud-info');
@@ -460,3 +464,190 @@
             inactivityTimer = setTimeout(() => { fadeElements.forEach(id => { const el = document.getElementById(id); const bottomSheetOpen = document.getElementById('bottom-sheet').classList.contains('open'); const settingsOpen = document.getElementById('settings-modal').style.display === 'flex'; const customOpen = document.getElementById('custom-modal-overlay').style.display === 'flex'; const clusterOpen = document.getElementById('cluster-modal').style.display === 'flex'; const measureOpen = document.getElementById('measure-modal').style.display === 'flex'; const welcomeOpen = document.getElementById('welcome-screen').style.display !== 'none'; const menuOpen = document.getElementById('side-menu').classList.contains('open'); if (el && !bottomSheetOpen && !settingsOpen && !customOpen && !welcomeOpen && !menuOpen && !clusterOpen && !measureOpen) { el.classList.add('ui-faded'); } }); }, 4000);
         }
         ['touchstart', 'click', 'mousemove'].forEach(evt => { document.addEventListener(evt, resetInactivityTimer, { passive: true }); }); resetInactivityTimer();
+
+        // ===== SPOJNICE BODU — vykresleni v mape a AR + rezim spojovani =====
+        const linesGroup = L.layerGroup().addTo(map);
+        function drawAllLinesOnMap() {
+            linesGroup.clearLayers();
+            (pointLines || []).forEach(ln => {
+                const A = resolveLineEnd(ln.aId, ln.aLat, ln.aLng), B = resolveLineEnd(ln.bId, ln.bLat, ln.bLng);
+                const poly = L.polyline([[A.lat, A.lng], [B.lat, B.lng]], { color: '#fbbf24', weight: 3, opacity: 0.85 });
+                poly.on('click', (ev) => { L.DomEvent.stopPropagation(ev); if (confirm('Smazat tuto spojnici?')) deleteLine(ln.id); });
+                poly.addTo(linesGroup);
+                const d = getDistance(A.lat, A.lng, B.lat, B.lng);
+                const mid = L.divIcon({ className: 'custom-map-marker', html: `<div style="position:relative; width:0; height:0;"><div class="map-label-text line-len-label" style="left:-16px; top:-18px; transform: rotate(${currentHeading}deg);">${d.toFixed(1)} m</div></div>`, iconSize: [0, 0] });
+                L.marker([(A.lat + B.lat) / 2, (A.lng + B.lng) / 2], { icon: mid, interactive: false }).addTo(linesGroup);
+            });
+        }
+        function toggleConnectMode() {
+            connectMode = !connectMode; connectFirstPt = null;
+            const b = document.getElementById('btn-connect'); if (b) b.classList.toggle('ctrl-active', connectMode);
+            const h = document.getElementById('connect-hint'); if (h) h.style.display = connectMode ? 'flex' : 'none';
+            const t = document.getElementById('connect-hint-txt'); if (t) t.innerText = 'Klepni na první bod spojnice';
+            if (connectMode) { cancelMapPick(); document.getElementById('map-controls').classList.remove('expanded'); }
+        }
+        function handleConnectTap(clickLatLng) {
+            const cp = map.latLngToContainerPoint(clickLatLng); let nearest = null, nd = 30;
+            arPoints.forEach(pt => { if (!passesFilters(pt)) return; const pp = map.latLngToContainerPoint(L.latLng(pt.lat, pt.lng)); const dd = cp.distanceTo(pp); if (dd < nd) { nd = dd; nearest = pt; } });
+            const t = document.getElementById('connect-hint-txt');
+            if (!nearest) { if (t) t.innerText = 'Klepni přímo na bod v mapě' + (connectFirstPt ? ' (první: #' + connectFirstPt.name + ')' : ''); return; }
+            if (!connectFirstPt) {
+                connectFirstPt = nearest; if (t) t.innerText = 'První: #' + nearest.name + ' — klepni na další bod';
+            } else if (nearest.id !== connectFirstPt.id) {
+                addLine(connectFirstPt, nearest); connectFirstPt = nearest; drawAllLinesOnMap();
+                if (t) t.innerText = 'Spojeno — pokračuj od #' + nearest.name + ', nebo Hotovo';
+                if (visSettings.vibrationEnabled && navigator.vibrate) navigator.vibrate(30);
+            }
+        }
+        // AR: stejna projekce jako u znacek v renderAR (azimut x svisly uhel + korekce naklonu obrazu)
+        function _projectARPoint(lat, lng, heading, cameraPitchDown, imgRoll, halfH, halfV, vOffset, eyeH) {
+            const dist = getDistance(userLat, userLng, lat, lng);
+            const bearing = getBearing(userLat, userLng, lat, lng);
+            const diff = ((bearing - heading + 540) % 360) - 180;
+            let uH = diff, vV = Math.atan2(eyeH, Math.max(dist, 0.5)) * 180 / Math.PI - cameraPitchDown;
+            if (imgRoll) { const cr = Math.cos(imgRoll), sr = Math.sin(imgRoll); const tt = uH * cr - vV * sr; vV = uH * sr + vV * cr; uH = tt; }
+            return { x: 50 + (uH / halfH) * 50, y: 50 + (vV / halfV) * 50 - vOffset, diff: diff, dist: dist };
+        }
+        let _arLinesSvg = null;
+        function drawARLines(heading, cameraPitchDown, imgRoll, halfH, halfV, vOffset, eyeH) {
+            if (!pointLines || !pointLines.length) { if (_arLinesSvg) _arLinesSvg.innerHTML = ''; return; }
+            if (!_arLinesSvg) {
+                _arLinesSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                _arLinesSvg.setAttribute('viewBox', '0 0 100 100'); _arLinesSvg.setAttribute('preserveAspectRatio', 'none');
+                _arLinesSvg.style.cssText = 'position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:1;';
+                arOverlay.insertBefore(_arLinesSvg, arOverlay.firstChild);
+            }
+            let html = '';
+            pointLines.forEach(ln => {
+                const A = resolveLineEnd(ln.aId, ln.aLat, ln.aLng), B = resolveLineEnd(ln.bId, ln.bLat, ln.bLng);
+                const pa = _projectARPoint(A.lat, A.lng, heading, cameraPitchDown, imgRoll, halfH, halfV, vOffset, eyeH);
+                const pb = _projectARPoint(B.lat, B.lng, heading, cameraPitchDown, imgRoll, halfH, halfV, vOffset, eyeH);
+                if (Math.min(pa.dist, pb.dist) > arRadius) return;              // aspon jeden konec v AR dosahu
+                if (Math.abs(pa.diff) > 120 || Math.abs(pb.diff) > 120) return; // konec za zady -> nekreslit (artefakty pres obrazovku)
+                html += '<line x1="' + pa.x.toFixed(2) + '" y1="' + pa.y.toFixed(2) + '" x2="' + pb.x.toFixed(2) + '" y2="' + pb.y.toFixed(2) + '" stroke="#fbbf24" stroke-width="3" stroke-linecap="round" opacity="0.85" vector-effect="non-scaling-stroke"/>';
+            });
+            _arLinesSvg.innerHTML = html;
+        }
+
+        // ===== MERENI PLOCHY (rezim v mape) =====
+        const areaGroup = L.layerGroup().addTo(map);
+        function startAreaMode() {
+            if (viewMode === 'ar') { alert('Měření plochy funguje v mapě — přepni na Split nebo Mapu.'); return; }
+            document.getElementById('measure-modal').style.display = 'none';
+            areaMode = true; areaVertices = [];
+            const p = document.getElementById('area-panel'); if (p) p.style.display = 'flex';
+            document.getElementById('map-controls').classList.remove('expanded');
+            redrawAreaPolygon(); updateAreaPanel();
+        }
+        function stopAreaMode() { areaMode = false; areaVertices = []; areaGroup.clearLayers(); const p = document.getElementById('area-panel'); if (p) p.style.display = 'none'; fixAppLayout(); }
+        function areaAddGps() {
+            if (gpsAvgResult && gpsAvgResult.n >= 2) areaVertices.push({ lat: gpsAvgResult.lat, lng: gpsAvgResult.lng });
+            else if (userLat != null) areaVertices.push({ lat: userLat, lng: userLng });
+            else { alert('Čekám na GPS pozici...'); return; }
+            afterAreaChange();
+        }
+        function areaUndo() { areaVertices.pop(); afterAreaChange(); }
+        function afterAreaChange() { redrawAreaPolygon(); updateAreaPanel(); if (visSettings.vibrationEnabled && navigator.vibrate) navigator.vibrate(20); }
+        function redrawAreaPolygon() {
+            areaGroup.clearLayers();
+            if (!areaVertices.length) return;
+            const latlngs = areaVertices.map(v => [v.lat, v.lng]);
+            if (areaVertices.length >= 3) L.polygon(latlngs, { color: '#34d399', weight: 3, fillColor: '#34d399', fillOpacity: 0.18 }).addTo(areaGroup);
+            else if (areaVertices.length === 2) L.polyline(latlngs, { color: '#34d399', weight: 3 }).addTo(areaGroup);
+            areaVertices.forEach(v => L.circleMarker([v.lat, v.lng], { radius: 5, color: '#fff', weight: 1.5, fillColor: '#34d399', fillOpacity: 1 }).addTo(areaGroup));
+        }
+        function updateAreaPanel() {
+            const r = polygonAreaPerimeter(areaVertices);
+            const av = document.getElementById('area-val'), ap = document.getElementById('area-perim'), ac = document.getElementById('area-count');
+            if (av) av.innerText = areaVertices.length >= 3 ? (r.area >= 50000 ? (r.area / 10000).toFixed(3) + ' ha' : r.area.toFixed(1) + ' m\u00b2') : '\u2014';
+            if (ap) ap.innerText = areaVertices.length >= 2 ? r.perim.toFixed(1) + ' m' : '\u2014';
+            if (ac) ac.innerText = areaVertices.length;
+        }
+
+        // ===== GEODETICKY SLOVNIK (vestavene pojmy + vlastni v localStorage, spolecne pro vsechny zakazky) =====
+        const GEO_DICT = [
+            { t: 'TB — trigonometrický bod', d: 'Bod základního polohového bodového pole s přesně určenými souřadnicemi. V terénu zpravidla žulový hranol s křížkem, často chráněný betonovou skruží. V aplikaci fialový trojúhelník.' },
+            { t: 'ZhB — zhušťovací bod', d: 'Bod doplňující (zhušťující) síť trigonometrických bodů polohového pole. V aplikaci modrý čtverec.' },
+            { t: 'PBPP — podrobný bod polohového pole', d: 'Pomocný měřický bod pro připojení podrobného měření. V aplikaci kruhová značka.' },
+            { t: 'Nivelační bod', d: 'Bod výškového bodového pole se známou nadmořskou výškou (Bpv). Stabilizace čepovou nebo hřebovou značkou, např. na budovách a mostech. V aplikaci červené mezikruží.' },
+            { t: 'Bodové pole', d: 'Souhrn geodetických bodů na území státu: polohové (TB, ZhB, PBPP), výškové (nivelační) a tíhové.' },
+            { t: 'S-JTSK', d: 'Systém Jednotné trigonometrické sítě katastrální — závazný souřadnicový systém ČR (Křovákovo zobrazení). Souřadnice Y a X v metrech; matematicky jsou záporné, v praxi se píší kladné (Y ~ 430–905 km, X ~ 935–1230 km).' },
+            { t: 'Křovákovo zobrazení', d: 'Dvojité kuželové konformní zobrazení v obecné poloze, základ S-JTSK. Navrhl Josef Křovák (1922).' },
+            { t: 'Bpv — Balt po vyrovnání', d: 'Závazný výškový systém ČR; nadmořské výšky vztažené k hladině Baltského moře (vyrovnání 1957).' },
+            { t: 'WGS84', d: 'Světový geodetický systém používaný GPS — zeměpisná šířka a délka na elipsoidu. Telefonní GPS vrací polohu právě v něm; aplikace ji převádí do S-JTSK.' },
+            { t: 'ETRS89', d: 'Evropský terestrický referenční systém — realizace souřadnicového systému pro přesná GNSS měření v Evropě.' },
+            { t: 'GNSS', d: 'Souhrnné označení globálních družicových navigačních systémů: GPS, Galileo, GLONASS, BeiDou.' },
+            { t: 'RTK — Real Time Kinematic', d: 'Metoda GNSS měření s korekcemi v reálném čase (z referenční stanice nebo sítě). Přesnost v řádu centimetrů.' },
+            { t: 'CZEPOS', d: 'Síť permanentních GNSS stanic spravovaná Zeměměřickým úřadem; poskytuje korekce pro RTK měření v ČR.' },
+            { t: 'Totální stanice', d: 'Elektronický přístroj měřící vodorovné i svislé úhly a délky (dálkoměr); základní nástroj podrobného měření.' },
+            { t: 'Teodolit', d: 'Přístroj na přesné měření vodorovných a svislých úhlů (bez dálkoměru).' },
+            { t: 'Nivelace', d: 'Měření převýšení mezi body pomocí nivelačního přístroje a latí. Geometrická nivelace ze středu je nejpřesnější běžná metoda určování výšek.' },
+            { t: 'Polygonový pořad', d: 'Řada navazujících bodů, mezi nimiž se měří délky a vrcholové úhly; slouží k určení souřadnic nových bodů.' },
+            { t: 'Polární metoda', d: 'Určení polohy bodu měřením směru (úhlu) a vzdálenosti od stanoviska. Dnes nejběžnější metoda podrobného měření.' },
+            { t: 'Ortogonální metoda', d: 'Určení polohy bodu staničením (podél měřické přímky) a kolmicí; historicky častá metoda, dodnes v náčrtech.' },
+            { t: 'Měřická přímka', d: 'Spojnice dvou bodů, od níž se ortogonálně (staničení + kolmice) určují podrobné body.' },
+            { t: 'Vytyčení', d: 'Přenesení polohy bodů (např. hranice pozemku nebo stavby) z dokumentace do terénu — opak zaměření.' },
+            { t: 'Vytyčovací náčrt', d: 'Grafický doklad o vytyčení hranice pozemku; spolu s protokolem se předává vlastníkům a dokumentuje vytyčení.' },
+            { t: 'ZPMZ — záznam podrobného měření změn', d: 'Technický podklad a dokumentace měření pro změny v katastru (podklad geometrického plánu).' },
+            { t: 'GP — geometrický plán', d: 'Technický podklad pro zápis změny do katastru nemovitostí (dělení pozemku, vyznačení budovy, věcné břemeno…). Ověřuje ÚOZI, potvrzuje katastrální pracoviště.' },
+            { t: 'ÚOZI', d: 'Úředně oprávněný zeměměřický inženýr — osoba s oprávněním ověřovat výsledky zeměměřických činností (GP, vytyčení…).' },
+            { t: 'KN — katastr nemovitostí', d: 'Veřejný seznam obsahující soupis, popis a geometrické a polohové určení nemovitostí, včetně práv k nim.' },
+            { t: 'LV — list vlastnictví', d: 'Výpis z katastru prokazující vlastnictví; obsahuje vlastníky, nemovitosti, omezení a poznámky v daném k.ú.' },
+            { t: 'k.ú. — katastrální území', d: 'Technická jednotka, kterou tvoří místopisně uzavřený a v katastru společně evidovaný soubor nemovitostí.' },
+            { t: 'Parcela', d: 'Pozemek, který je geometricky a polohově určen, zobrazen v katastrální mapě a označen parcelním číslem.' },
+            { t: 'BPEJ', d: 'Bonitovaná půdně ekologická jednotka — pětimístný kód vyjadřující kvalitu zemědělské půdy (ovlivňuje cenu).' },
+            { t: 'Věcné břemeno', d: 'Právo k cizí nemovitosti zapsané v KN (např. vedení inženýrské sítě, právo cesty, služebnost).' },
+            { t: 'Mezník', d: 'Kámen nebo plastový znak trvale stabilizující lomový bod hranice pozemku. Hlavička bývá označena křížkem nebo důlkem.' },
+            { t: 'Stabilizace', d: 'Trvalé osazení bodu v terénu: kámen (mezník), hřeb, trubka, čep, vytesaný křížek. Údaj „stabilizace" u bodu říká, co v terénu hledat.' },
+            { t: 'Signalizace', d: 'Dočasné zviditelnění bodu pro měření — výtyčka, terč, reflexní štítek.' },
+            { t: 'Hřebová značka', d: 'Stabilizace bodu ocelovým hřebem, typicky v obrubníku, skále nebo zpevněné ploše.' },
+            { t: 'Azimut', d: 'Vodorovný úhel měřený od severu po směru hodinových ručiček: 0–360° nebo 0–400 gon. Aplikace jej ukazuje v HUD (klepnutím lze přepnout jednotky).' },
+            { t: 'Gon (grad)', d: 'Úhlová jednotka běžná v geodézii: pravý úhel = 100 gon, plný kruh = 400 gon. 1 gon = 0,9°.' },
+            { t: 'Převýšení', d: 'Výškový rozdíl mezi dvěma body. V aplikaci jej spočítá nástroj Měření vzdálenosti (z GPS výšek — jen orientačně).' },
+            { t: 'Magnetická deklinace', d: 'Úhel mezi magnetickým a zeměpisným severem. V ČR aktuálně zhruba +5° až +6° východně a roste; aplikace ji automaticky koriguje.' },
+            { t: 'Undulace geoidu', d: 'Rozdíl mezi elipsoidickou výškou (GPS) a nadmořskou výškou (Bpv). V ČR přibližně 44–47 m; aplikace ji při výpočtu výšek odečítá.' },
+            { t: 'ČÚZK', d: 'Český úřad zeměměřický a katastrální — správce katastru, bodových polí, ortofota a dalších dat, která aplikace používá.' },
+            { t: 'RÚIAN', d: 'Registr územní identifikace, adres a nemovitostí — jeden ze základních registrů státu (adresy, ulice, parcely, budovy).' },
+            { t: 'ZABAGED', d: 'Základní báze geografických dat ČR — digitální topografický model území spravovaný Zeměměřickým úřadem.' }
+        ];
+        function getCustomDict() { try { return JSON.parse(localStorage.getItem('arDictCustom')) || []; } catch (e) { return []; } }
+        function saveCustomDict(list) { try { localStorage.setItem('arDictCustom', JSON.stringify(list)); } catch (e) {} }
+        function openDictModal() { renderDictList(); document.getElementById('dict-modal').style.display = 'flex'; }
+        function addDictEntry() {
+            const t = document.getElementById('dict-new-term').value.trim();
+            const d = document.getElementById('dict-new-def').value.trim();
+            if (!t || !d) { alert('Vyplňte pojem i vysvětlení.'); return; }
+            const list = getCustomDict(); list.push({ t: t, d: d }); saveCustomDict(list);
+            document.getElementById('dict-new-term').value = ''; document.getElementById('dict-new-def').value = '';
+            renderDictList();
+        }
+        function deleteDictEntry(idx) { if (!confirm('Smazat tento vlastní pojem?')) return; const list = getCustomDict(); list.splice(idx, 1); saveCustomDict(list); renderDictList(); }
+        function _escHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+        function renderDictList() {
+            const listDiv = document.getElementById('dict-list'); if (!listDiv) return;
+            const q = (document.getElementById('dict-search').value || '').trim().toLowerCase();
+            const match = (e) => !q || e.t.toLowerCase().includes(q) || e.d.toLowerCase().includes(q);
+            let html = '';
+            getCustomDict().forEach((e, i) => { if (!match(e)) return; html += '<div class="dict-item custom"><div><div class="dict-term">' + _escHtml(e.t) + '</div><div class="dict-def">' + _escHtml(e.d) + '</div></div><button class="dict-del" onclick="deleteDictEntry(' + i + ')" aria-label="Smazat pojem"><svg class="icon"><use href="#i-trash"/></svg></button></div>'; });
+            GEO_DICT.forEach(e => { if (!match(e)) return; html += '<div class="dict-item"><div class="dict-term">' + _escHtml(e.t) + '</div><div class="dict-def">' + _escHtml(e.d) + '</div></div>'; });
+            listDiv.innerHTML = html || '<p style="text-align:center; opacity:0.7;">Nic nenalezeno.</p>';
+        }
+
+        // ===== ZAVRENI KLEPNUTIM MIMO OBSAH =====
+        // Klepnuti na ztmavle pozadi zavre dialog stejne jako tlacitko Zavrit; kde existuje
+        // specialni zaviraci funkce (uklid stavu), pouzije se ona.
+        const _overlayCloseFns = { 'manage-modal': closeManageModal, 'custom-modal-overlay': closeCustomModal, 'compass-calib-modal': dismissCompassCalib };
+        document.querySelectorAll('.modal-overlay').forEach(ov => {
+            ov.addEventListener('click', (e) => {
+                if (e.target !== ov) return;
+                const fn = _overlayCloseFns[ov.id];
+                if (fn) fn(); else { ov.style.display = 'none'; fixAppLayout(); }
+            });
+        });
+        // postranni menu: klepnuti kamkoliv mimo nej ho zavre
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('side-menu');
+            if (!menu || !menu.classList.contains('open')) return;
+            if (e.target.closest('#side-menu') || e.target.closest('#menu-toggle-btn')) return;
+            menu.classList.remove('open');
+        }, true);
