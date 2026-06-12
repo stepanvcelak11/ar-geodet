@@ -38,7 +38,7 @@
         function openCompassModal() { document.getElementById('compass-modal').style.display = 'flex'; updateCompassButtons(); } function setCompassZero() { compassZeroOffset = currentHeading; alert("Nula nastavena na aktuální směr."); document.getElementById('compass-modal').style.display = 'none'; } function resetCompassZero() { compassZeroOffset = 0; alert("Nula zrušena."); document.getElementById('compass-modal').style.display = 'none'; } function setCompassUnit(u) { compassUnit = u; updateCompassButtons(); }
         function updateCompassButtons() { document.getElementById('btn-unit-deg').style.background = compassUnit === 'deg' ? 'var(--accent)' : '#555'; document.getElementById('btn-unit-deg').style.color = compassUnit === 'deg' ? '#000' : '#fff'; document.getElementById('btn-unit-gon').style.background = compassUnit === 'gon' ? 'var(--accent)' : '#555'; document.getElementById('btn-unit-gon').style.color = compassUnit === 'gon' ? '#000' : '#fff'; }
 
-        const APP_VERSION = '1.2';
+        const APP_VERSION = '1.3';
         function openAbout() { const v = document.getElementById('about-version'); if (v) v.innerText = APP_VERSION; document.getElementById('about-modal').style.display = 'flex'; }
         let _calibActive = false, _calibSeen = null, _calibBeta = null, _calibGamma = null;
         function dismissCompassCalib() { _calibActive = false; try { localStorage.setItem('arCompassCalibShown', '1'); } catch (e) {} const m = document.getElementById('compass-calib-modal'); if (m) m.style.display = 'none'; }
@@ -226,7 +226,7 @@
         function closeCustomModal() { document.getElementById('custom-modal-overlay').style.display = 'none'; fixAppLayout(); }
         function closeBottomSheet() { document.getElementById('bottom-sheet').classList.remove('open'); arPoints.forEach(p => { if (p.element) p.element.classList.remove('active-reading'); }); activePointIdForModal = null; }
 
-        function toggleHighlight() { if (highlightedPointId === activePointIdForModal) { highlightedPointId = null; } else { highlightedPointId = activePointIdForModal; } closeBottomSheet(); arPoints.forEach(p => { if (p.element) { if (p.id === highlightedPointId) { p.element.classList.add('highlighted'); } else { p.element.classList.remove('highlighted'); } } }); if (!highlightedPointId) { document.getElementById('ar-hud').style.display = 'none'; } updateDynIsland(); }
+        function toggleHighlight() { if (highlightedPointId === activePointIdForModal) { highlightedPointId = null; } else { highlightedPointId = activePointIdForModal; } closeBottomSheet(); arPoints.forEach(p => { if (p.element) { if (p.id === highlightedPointId) { p.element.classList.add('highlighted'); } else { p.element.classList.remove('highlighted'); } } }); if (!highlightedPointId) { document.getElementById('ar-hud').style.display = 'none'; } updateNavGlow(); }
 
         // klik na bod v mape -> rovnou nastavit jako cil navigace v AR (zlata znacka + sipka)
         function highlightPoint(pt) {
@@ -235,7 +235,7 @@
             arPoints.forEach(p => { if (p.element) { if (p.id === highlightedPointId) p.element.classList.add('highlighted'); else p.element.classList.remove('highlighted'); } });
             if (!highlightedPointId) document.getElementById('ar-hud').style.display = 'none';
             drawAllMarkersOnMap();
-            updateDynIsland();
+            updateNavGlow();
         }
         // panel prumerovani GPS (vykresleni); data pocita updateGpsAveraging v logika.js
         function updateGpsAvgPanel() {
@@ -389,7 +389,7 @@
                 document.querySelectorAll('.leaflet-popup-content-wrapper').forEach(el => { el.style.transform = `rotate(${heading}deg)`; });
             }
             const dirContainer = document.getElementById('user-direction-container'); if (dirContainer) dirContainer.style.transform = `rotate(${heading}deg)`;
-            updateDynIsland();
+            updateNavGlow();
             if (viewMode === 'map') return; // v samostatne mape jen otacime mapu, AR projekci (kamera) preskakujeme
 
             // AR PROJEKCE: realny zorny uhel kamery + sklon telefonu (z beta)
@@ -656,16 +656,27 @@
             if (e.target.closest('#side-menu') || e.target.closest('#menu-toggle-btn')) return;
             menu.classList.remove('open');
         }, true);
-        // ===== HAPTIKA ROZHRANI: jemna odezva 10/20/30 ms (tuknuti / prepnuti / otevreni) =====
+        // karta bodu (bottom sheet): klepnuti mimo ni kartu zavre; tuknuti se spolkne,
+        // aby nepropadlo do mapy/AR (nahodne stahovani oblasti apod.)
+        document.addEventListener('click', (e) => {
+            const sheet = document.getElementById('bottom-sheet');
+            if (!sheet || !sheet.classList.contains('open')) return;
+            if (sheet.contains(e.target)) return;
+            if (e.target.closest('.ar-marker')) return; // tuknuti na jiny bod = rovnou prepnout detail
+            e.preventDefault(); e.stopPropagation();
+            closeBottomSheet();
+        }, true);
+        // ===== HAPTIKA ROZHRANI: jemna odezva 20/35/50 ms (tuknuti / prepnuti / otevreni) =====
+        // Kratsi pulzy (10-20 ms) bezne vibracni motorky nestihnou roztocit a nejsou citit.
         // Pozn.: vychozi hodnoty novych voleb (hapticsEnabled, adaptiveGlass, theme, hudScale)
         // nejsou v logika.js - vsude se proto pouziva fallback (=== false, || 1, || 'aurora').
         function haptic(level) {
             if (visSettings.hapticsEnabled === false || !navigator.vibrate) return;
-            try { navigator.vibrate(level === 'heavy' ? 30 : (level === 'medium' ? 20 : 10)); } catch (e) {}
+            try { navigator.vibrate(level === 'heavy' ? 50 : (level === 'medium' ? 35 : 20)); } catch (e) {}
         }
         document.addEventListener('click', (e) => {
             if (e.target.closest('input, select, .filter-row, .menu-toggle-row')) return; // prepinace resi udalost 'change'
-            if (e.target.closest('.btn, .dock-btn, .seg-btn, .menu-btn, .map-ctrl-btn, .tab-btn, .cp-btn, .w-proj-icon, .cluster-list-item, .ar-marker, .di-btn, #dyn-island, #compass-debug, .btn-link, .he-done, .he-reset')) haptic('light');
+            if (e.target.closest('.btn, .dock-btn, .seg-btn, .menu-btn, .map-ctrl-btn, .tab-btn, .cp-btn, .w-proj-icon, .cluster-list-item, .ar-marker, #compass-debug, .btn-link, .he-done, .he-reset')) haptic('light');
         }, true);
         document.addEventListener('change', (e) => {
             if (e.target.matches('input[type="checkbox"], input[type="radio"], select')) haptic('medium');
@@ -713,39 +724,13 @@
             if (t && t !== 'aurora') document.body.classList.add('theme-' + t);
         }
 
-        // ===== DYNAMIC ISLAND: navigacni pilulka nahore (cil, smer, vzdalenost); aktualizuje renderAR =====
-        let _diExpanded = false;
-        function toggleDynIsland() { _diExpanded = !_diExpanded; document.getElementById('dyn-island').classList.toggle('expanded', _diExpanded); }
-        function dynIslandDetail(e) {
-            e.stopPropagation();
-            _diExpanded = false; document.getElementById('dyn-island').classList.remove('expanded');
-            const pt = arPoints.find(p => p.id === highlightedPointId);
-            if (pt && userLat != null) showDetails(pt, getDistance(userLat, userLng, pt.lat, pt.lng));
-        }
-        function dynIslandStop(e) {
-            e.stopPropagation();
-            const pt = arPoints.find(p => p.id === highlightedPointId);
-            if (pt) { highlightPoint(pt); } else { highlightedPointId = null; updateDynIsland(); }
-        }
-        function updateDynIsland() {
+        // ===== DUHOVY OKRAJ: zari po celou navigaci na bod, zesili a zrychli pri dohledavani (< 2 m) =====
+        function updateNavGlow() {
+            const eg = document.getElementById('edge-glow'); if (!eg) return;
             const pt = highlightedPointId ? arPoints.find(p => p.id === highlightedPointId) : null;
             const active = !!(pt && appStarted && userLat != null);
-            document.body.classList.toggle('nav-active', active);
-            const eg = document.getElementById('edge-glow');
-            if (!active) {
-                _diExpanded = false;
-                const isl = document.getElementById('dyn-island'); if (isl) isl.classList.remove('expanded');
-                if (eg) eg.classList.remove('on');
-                return;
-            }
-            const dist = getDistance(userLat, userLng, pt.lat, pt.lng);
-            const bearing = getBearing(userLat, userLng, pt.lat, pt.lng);
-            const diff = ((bearing - currentHeading + 540) % 360) - 180;
-            document.getElementById('di-name').innerText = '#' + pt.name;
-            document.getElementById('di-dist').innerText = dist >= 1000 ? (dist / 1000).toFixed(2) + ' km' : dist.toFixed(1) + ' m';
-            const dir = document.querySelector('#dyn-island .di-dir'); if (dir) dir.style.transform = 'rotate(' + Math.round(diff) + 'deg)';
-            const info = document.getElementById('di-info'); if (info) info.innerText = 'Azimut ' + Math.round(bearing) + '° · GPS ±' + currentGpsAccuracy.toFixed(1) + ' m';
-            if (eg) eg.classList.toggle('on', dist <= 2.0); // duhovy okraj displeje pri dohledavani
+            eg.classList.toggle('on', active);
+            eg.classList.toggle('near', active && getDistance(userLat, userLng, pt.lat, pt.lng) <= 2.0);
         }
 
         // ===== ADAPTIVNI SKLO: vzorkuje jas obrazu kamery (~1x za 0.7 s) a prepina svetly rezim AR panelu =====
