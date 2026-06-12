@@ -1408,14 +1408,17 @@ body.outdoor-mode .ar-marker-dist { opacity: 1; }
     position: fixed;
     inset: 0;
     z-index: 99990;
-    padding: 6px;
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.6s ease;
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    mask-composite: exclude;
+    /* Maska = rameček s měkkým vnitřním přechodem: plný u kraje displeje,
+       plynule mizí ~28 px dovnitř (sjednocení vodorovného a svislého gradientu). */
+    -webkit-mask-image:
+        linear-gradient(to right, #000, transparent 28px, transparent calc(100% - 28px), #000),
+        linear-gradient(to bottom, #000, transparent 28px, transparent calc(100% - 28px), #000);
+    mask-image:
+        linear-gradient(to right, #000, transparent 28px, transparent calc(100% - 28px), #000),
+        linear-gradient(to bottom, #000, transparent 28px, transparent calc(100% - 28px), #000);
 }
 #edge-glow::before {
     content: "";
@@ -1426,10 +1429,10 @@ body.outdoor-mode .ar-marker-dist { opacity: 1; }
     height: 250vmax;
     margin: -125vmax 0 0 -125vmax;
     background: conic-gradient(#ff5f6d, #ffc371, #fde047, #4ade80, #22d3ee, #818cf8, #e879f9, #ff5f6d);
-    filter: blur(6px);
+    filter: blur(10px);
     animation: edge-spin 3.5s linear infinite;
 }
-#edge-glow.on { opacity: 0.55; }
+#edge-glow.on { opacity: 0.6; }
 #edge-glow.near { opacity: 1; }
 #edge-glow.near::before { animation-duration: 1.4s; }
 
