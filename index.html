@@ -251,8 +251,6 @@
 
                     <div class="filter-group" style="margin-bottom: 15px;">
                         <label class="filter-row"><input type="checkbox" id="s-wakelock" checked><svg class="icon" style="margin-right:8px;"><use href="#i-bulb"/></svg> Zamezit zhasínání displeje</label>
-                        <label class="filter-row"><input type="checkbox" id="s-vibration" checked><svg class="icon" style="margin-right:8px;"><use href="#i-vibrate"/></svg> Vibrace při dohledávání bodu</label>
-                        <label class="filter-row"><input type="checkbox" id="s-ring-ground" checked><svg class="icon" style="margin-right:8px;"><use href="#i-circle"/></svg> Umístit kruh přesnosti nízko na zem</label>
                         <label class="filter-row" style="margin-bottom:0;"><input type="checkbox" id="s-outdoor"><svg class="icon" style="margin-right:8px;"><use href="#i-sun"/></svg> Venkovní režim (vysoký kontrast)</label>
                     </div>
 
@@ -308,11 +306,7 @@
                 </div>
                 <div id="tab-vzhled" class="settings-tab">
                     <h4 style="color:var(--accent); margin-top:0; border-bottom: 1px solid var(--glass-border); padding-bottom:5px;">Pozice ovládacích panelů (Menu, Info)</h4>
-                    <p style="font-size: 12px; margin-top: 0; opacity: 0.8;">Posuňte si zobrazení např. zcela dolů na mapu (aby nepřekáželo kameře) nebo od krajů (kvůli zaoblení displeje).</p>
-                    <label>Posun shora (Výška / Y): <span id="v-hud-top-val">55</span> px</label>
-                    <input type="range" id="v-hud-top" min="10" max="600" step="5" value="55" oninput="document.getElementById('v-hud-top-val').innerText = this.value">
-                    <label>Posun od krajů (Šířka / X): <span id="v-hud-side-val">15</span> px</label>
-                    <input type="range" id="v-hud-side" min="0" max="150" step="5" value="15" oninput="document.getElementById('v-hud-side-val').innerText = this.value">
+                    <p style="font-size: 12px; margin-top: 0; opacity: 0.8;">Pozici a velikost panelů upravíte přímo na obrazovce: podržte prvek prstem a táhněte; dlouhý stisk otevře úpravu velikosti.</p>
                     <h4 style="color:var(--accent); margin-top:20px; border-bottom: 1px solid var(--glass-border); padding-bottom:5px;">AR Body (Pozice a Barvy)</h4>
                     <label style="margin-top: 5px;">Výškový posun bodů v AR kameře: <span id="v-ar-height-val">0</span></label>
                     <p style="font-size: 11px; margin-top: 0; opacity: 0.8;">Posuňte body níže nebo výše, pokud držíte telefon zešikma a body vám letí nahoru.</p>
@@ -352,7 +346,7 @@
         </div>
     </div>
 
-    <div class="modal-overlay" id="manage-modal"><div class="modal-content"><h2 style="color: var(--accent); margin-top:0;">Mé body (S-JTSK)</h2><div class="row-buttons" style="margin-top:0; margin-bottom: 15px;"><button class="btn btn-secondary" style="margin-top:0;" onclick="exportPoints()"><svg class="icon"><use href="#i-upload"/></svg> JSON</button><button class="btn btn-secondary" style="margin-top:0;" onclick="exportPointsCSV()"><svg class="icon"><use href="#i-upload"/></svg> CSV</button><button class="btn btn-blue" style="margin-top:0;" onclick="document.getElementById('import-file').click()"><svg class="icon"><use href="#i-folder"/></svg> Import</button><input type="file" id="import-file" style="display:none" accept=".json,.csv,.txt" onchange="importPoints(event)"></div><div class="modal-body" id="manage-list"></div><button class="btn btn-secondary" style="margin-top: 15px;" onclick="closeManageModal()">Zpět</button></div></div>
+    <div class="modal-overlay" id="manage-modal"><div class="modal-content"><h2 style="color: var(--accent); margin-top:0;">Mé body (S-JTSK)</h2><div class="row-buttons" style="margin-top:0; margin-bottom: 15px;"><button class="btn btn-secondary" style="margin-top:0;" onclick="exportPoints()"><svg class="icon"><use href="#i-upload"/></svg> JSON</button><button class="btn btn-secondary" style="margin-top:0;" onclick="exportPointsCSV()"><svg class="icon"><use href="#i-upload"/></svg> CSV</button><button class="btn btn-secondary" style="margin-top:0;" onclick="exportPointsTXT()"><svg class="icon"><use href="#i-upload"/></svg> TXT</button><button class="btn btn-blue" style="margin-top:0;" onclick="document.getElementById('import-file').click()"><svg class="icon"><use href="#i-folder"/></svg> Import</button><input type="file" id="import-file" style="display:none" accept=".json,.csv,.txt" onchange="importPoints(event)"></div><div class="modal-body" id="manage-list"></div><button class="btn btn-secondary" style="margin-top: 15px;" onclick="closeManageModal()">Zpět</button></div></div>
     <div class="modal-overlay" id="custom-modal-overlay"><div class="modal-content"><h3 id="custom-modal-title" style="color: var(--accent); margin-top:0;">Vložit vlastní bod</h3><div class="modal-body"><button class="btn btn-blue" onclick="fillAveragedGPS()"><svg class="icon"><use href="#i-locate"/></svg> Vyplnit z průměru GPS (přesnější)</button><button class="btn btn-secondary" onclick="startMapPick()"><svg class="icon"><use href="#i-map-pin"/></svg> Vybrat polohu z mapy</button><div id="custom-acc-note" style="display:none;"></div><label>Název / Číslo bodu:</label><input type="text" id="custom-name" placeholder="Např. Mezník 1"><label>S-JTSK Y (v metrech):</label><input type="number" id="custom-y" step="any" placeholder="Např. 596956.46"><label>S-JTSK X (v metrech):</label><input type="number" id="custom-x" step="any" placeholder="Např. 1163343.34"></div><div class="row-buttons"><button class="btn btn-secondary" onclick="closeCustomModal()">Zrušit</button><button class="btn btn-primary" onclick="saveCustomPoint()">Uložit</button></div></div></div>
 
     <div class="modal-overlay" id="about-modal">

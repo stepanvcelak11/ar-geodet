@@ -16,9 +16,8 @@
             applyMapLayers();
             document.body.classList.toggle('outdoor-mode', !!visSettings.outdoorMode);
             document.documentElement.style.setProperty('--hud-top', visSettings.hudTop + 'px'); document.documentElement.style.setProperty('--hud-side', visSettings.hudSide + 'px'); document.documentElement.style.setProperty('--marker-opacity', visSettings.markerOpacity / 100); document.documentElement.style.setProperty('--color-tb', visSettings.colTb); document.documentElement.style.setProperty('--color-zhb', visSettings.colZhb); document.documentElement.style.setProperty('--color-pbpp', visSettings.colPbpp); document.documentElement.style.setProperty('--color-nivel', visSettings.colNivel); document.documentElement.style.setProperty('--color-custom', visSettings.colCustom); document.documentElement.style.setProperty('--arrow-size', (100 * visSettings.arrowScale) + 'px'); document.documentElement.style.setProperty('--arrow-opacity', visSettings.arrowOpacity / 100); document.documentElement.style.setProperty('--color-arrow', visSettings.colArrow); document.documentElement.style.setProperty('--panel-opacity', visSettings.panelOpacity / 100); document.documentElement.style.setProperty('--menu-scale', visSettings.menuScale);
-            document.documentElement.style.setProperty('--ring-top', visSettings.ringOnGround ? '160%' : '50%');
             const arrPath = document.getElementById('main-arrow-path'); if(arrPath) { arrPath.setAttribute('d', arrowPaths[visSettings.arrowShape]); arrPath.setAttribute('fill', visSettings.colArrow); document.getElementById('arrow-straight').style.filter = `drop-shadow(0 15px 15px ${visSettings.colArrow}80)`; document.getElementById('target-circle-out').setAttribute('stroke', visSettings.colArrow); document.getElementById('target-circle-in').setAttribute('fill', visSettings.colArrow); document.getElementById('arrow-target').style.filter = `drop-shadow(0 15px 15px ${visSettings.colArrow}90)`; }
-            if (document.getElementById('s-max-ar-slider')) { document.getElementById('s-wakelock').checked = visSettings.wakeLockEnabled; document.getElementById('s-vibration').checked = visSettings.vibrationEnabled; document.getElementById('s-ring-ground').checked = visSettings.ringOnGround; document.getElementById('s-outdoor').checked = !!visSettings.outdoorMode; document.getElementById('s-katastr-source').value = visSettings.katastrSource || 'mapycz'; document.getElementById('s-max-ar-slider').value = visSettings.maxARPoints; document.getElementById('s-max-ar-val').innerText = visSettings.maxARPoints; document.getElementById('v-ar-height-slider').value = visSettings.arVerticalOffset; document.getElementById('v-ar-height-val').innerText = visSettings.arVerticalOffset; document.getElementById('v-hud-top').value = visSettings.hudTop; document.getElementById('v-hud-top-val').innerText = visSettings.hudTop; document.getElementById('v-hud-side').value = visSettings.hudSide; document.getElementById('v-hud-side-val').innerText = visSettings.hudSide; document.getElementById('v-marker-scale').value = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-scale-val').innerText = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-opacity').value = visSettings.markerOpacity; document.getElementById('v-marker-opacity-val').innerText = visSettings.markerOpacity; document.getElementById('col-tb').value = visSettings.colTb; document.getElementById('col-zhb').value = visSettings.colZhb; document.getElementById('col-pbpp').value = visSettings.colPbpp; document.getElementById('col-nivel').value = visSettings.colNivel; document.getElementById('col-custom').value = visSettings.colCustom; document.getElementById('col-arrow').value = visSettings.colArrow; document.getElementById('v-arrow-shape').value = visSettings.arrowShape; document.getElementById('v-arrow-scale').value = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-scale-val').innerText = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-opacity').value = visSettings.arrowOpacity; document.getElementById('v-arrow-opacity-val').innerText = visSettings.arrowOpacity; document.getElementById('v-panel-opacity').value = visSettings.panelOpacity; document.getElementById('v-panel-opacity-val').innerText = visSettings.panelOpacity; document.getElementById('v-menu-scale').value = Math.round(visSettings.menuScale * 100); document.getElementById('v-menu-scale-val').innerText = Math.round(visSettings.menuScale * 100); document.getElementById('s-auto-compass').checked = visSettings.autoCompassCorrection; document.getElementById('s-tilt-comp').checked = visSettings.tiltCompensation !== false; document.getElementById('s-heading-smooth').value = visSettings.headingSmoothing; document.getElementById('s-heading-smooth-val').innerText = visSettings.headingSmoothing; document.getElementById('s-fovh').value = visSettings.fovH; document.getElementById('s-fovh-val').innerText = visSettings.fovH; document.getElementById('s-fovv').value = visSettings.fovV; document.getElementById('s-fovv-val').innerText = visSettings.fovV; document.getElementById('s-eyeh').value = visSettings.eyeHeight; document.getElementById('s-eyeh-val').innerText = visSettings.eyeHeight; }
+            if (document.getElementById('s-max-ar-slider')) { document.getElementById('s-wakelock').checked = visSettings.wakeLockEnabled; document.getElementById('s-outdoor').checked = !!visSettings.outdoorMode; document.getElementById('s-katastr-source').value = visSettings.katastrSource || 'mapycz'; document.getElementById('s-max-ar-slider').value = visSettings.maxARPoints; document.getElementById('s-max-ar-val').innerText = visSettings.maxARPoints; document.getElementById('v-ar-height-slider').value = visSettings.arVerticalOffset; document.getElementById('v-ar-height-val').innerText = visSettings.arVerticalOffset; document.getElementById('v-marker-scale').value = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-scale-val').innerText = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-opacity').value = visSettings.markerOpacity; document.getElementById('v-marker-opacity-val').innerText = visSettings.markerOpacity; document.getElementById('col-tb').value = visSettings.colTb; document.getElementById('col-zhb').value = visSettings.colZhb; document.getElementById('col-pbpp').value = visSettings.colPbpp; document.getElementById('col-nivel').value = visSettings.colNivel; document.getElementById('col-custom').value = visSettings.colCustom; document.getElementById('col-arrow').value = visSettings.colArrow; document.getElementById('v-arrow-shape').value = visSettings.arrowShape; document.getElementById('v-arrow-scale').value = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-scale-val').innerText = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-opacity').value = visSettings.arrowOpacity; document.getElementById('v-arrow-opacity-val').innerText = visSettings.arrowOpacity; document.getElementById('v-panel-opacity').value = visSettings.panelOpacity; document.getElementById('v-panel-opacity-val').innerText = visSettings.panelOpacity; document.getElementById('v-menu-scale').value = Math.round(visSettings.menuScale * 100); document.getElementById('v-menu-scale-val').innerText = Math.round(visSettings.menuScale * 100); document.getElementById('s-auto-compass').checked = visSettings.autoCompassCorrection; document.getElementById('s-tilt-comp').checked = visSettings.tiltCompensation !== false; document.getElementById('s-heading-smooth').value = visSettings.headingSmoothing; document.getElementById('s-heading-smooth-val').innerText = visSettings.headingSmoothing; document.getElementById('s-fovh').value = visSettings.fovH; document.getElementById('s-fovh-val').innerText = visSettings.fovH; document.getElementById('s-fovv').value = visSettings.fovV; document.getElementById('s-fovv-val').innerText = visSettings.fovV; document.getElementById('s-eyeh').value = visSettings.eyeHeight; document.getElementById('s-eyeh-val').innerText = visSettings.eyeHeight; }
         }
 
         function switchTab(tabId, btnEl) { document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(tabId).classList.add('active'); btnEl.classList.add('active'); }
@@ -95,7 +94,8 @@
             arPoints.forEach(pt => {
                 if (pt.hidden) return; if (pt.cat === 'TB' && !filters.tb) return; if (pt.cat === 'ZHB' && !filters.zhb) return; if (pt.cat === 'PBPP' && !filters.pbpp) return; if (pt.cat === 'NIVEL' && !filters.nivel) return; if (pt.cat === 'CUSTOM' && !filters.custom) return; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return;
                 let col = visSettings.colTb; if(pt.cat === 'ZHB') col = visSettings.colZhb; if(pt.cat === 'PBPP') col = visSettings.colPbpp; if(pt.cat === 'NIVEL') col = visSettings.colNivel; if(pt.cat === 'CUSTOM') col = visSettings.colCustom;
-                const svgIcon = getMapMarkerSVG(pt.cat, col); const htmlContent = `<div style="position: relative; width: 24px; height: 24px; pointer-events:none;">${svgIcon}<div class="map-label-text" style="transform: rotate(${currentHeading}deg);">${pt.name}</div></div>`;
+                const stakedBadge = (window.isStaked && isStaked(pt.id)) ? `<div style="position:absolute; top:-7px; right:-7px; width:13px; height:13px; border-radius:50%; background:#10b981; border:1.5px solid #fff; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>` : '';
+                const svgIcon = getMapMarkerSVG(pt.cat, col); const htmlContent = `<div style="position: relative; width: 24px; height: 24px; pointer-events:none;${stakedBadge ? ' opacity:0.65;' : ''}">${svgIcon}${stakedBadge}<div class="map-label-text" style="transform: rotate(${mapRotation}deg);">${pt.name}</div></div>`;
                 const icon = L.divIcon({ className: 'custom-map-marker', html: htmlContent, iconSize: [24, 24], iconAnchor: [12, 12] });
                 L.marker([pt.lat, pt.lng], { icon: icon }).addTo(markersGroup);
             });
@@ -115,7 +115,7 @@
                 const rect = document.getElementById('map').getBoundingClientRect(); Px = rect.left + rect.width / 2; Py = rect.top + rect.height / 2;
                 const sz = map.getSize(); P = L.point(sz.x / 2, sz.y / 2);
             }
-            const rad = currentHeading * Math.PI / 180; const dx = px - Px, dy = py - Py;
+            const rad = mapRotation * Math.PI / 180; const dx = px - Px, dy = py - Py;
             const lx = dx * Math.cos(rad) - dy * Math.sin(rad); const ly = dx * Math.sin(rad) + dy * Math.cos(rad);
             return map.containerPointToLatLng(L.point(P.x + lx, P.y + ly));
         }
@@ -180,12 +180,10 @@
             const sViewRadios = document.getElementsByName('s-view'); for(let r of sViewRadios) { if(r.checked) viewMode = r.value; }
             const oldCam = document.getElementById('w-camera-select').value; const newCam = document.getElementById('s-camera-select').value; document.getElementById('w-camera-select').value = newCam; 
             visSettings.wakeLockEnabled = document.getElementById('s-wakelock').checked;
-            visSettings.vibrationEnabled = document.getElementById('s-vibration').checked;
-            visSettings.ringOnGround = document.getElementById('s-ring-ground').checked; visSettings.outdoorMode = document.getElementById('s-outdoor').checked;
+            visSettings.outdoorMode = document.getElementById('s-outdoor').checked;
             visSettings.katastrSource = document.getElementById('s-katastr-source').value;
             visSettings.maxARPoints = parseInt(document.getElementById('s-max-ar-slider').value);
             visSettings.arVerticalOffset = parseInt(document.getElementById('v-ar-height-slider').value);
-            visSettings.hudTop = parseInt(document.getElementById('v-hud-top').value); visSettings.hudSide = parseInt(document.getElementById('v-hud-side').value);
             visSettings.markerScale = parseInt(document.getElementById('v-marker-scale').value) / 100; visSettings.markerOpacity = parseInt(document.getElementById('v-marker-opacity').value);
             visSettings.colTb = document.getElementById('col-tb').value; visSettings.colZhb = document.getElementById('col-zhb').value; visSettings.colPbpp = document.getElementById('col-pbpp').value; visSettings.colNivel = document.getElementById('col-nivel').value; visSettings.colCustom = document.getElementById('col-custom').value;
             visSettings.arrowScale = parseInt(document.getElementById('v-arrow-scale').value) / 100; visSettings.arrowOpacity = parseInt(document.getElementById('v-arrow-opacity').value); visSettings.arrowShape = document.getElementById('v-arrow-shape').value; visSettings.colArrow = document.getElementById('col-arrow').value;
@@ -231,7 +229,6 @@
             arPoints.forEach(p => { if (p.element) { if (p.id === highlightedPointId) p.element.classList.add('highlighted'); else p.element.classList.remove('highlighted'); } });
             if (!highlightedPointId) document.getElementById('ar-hud').style.display = 'none';
             drawAllMarkersOnMap();
-            if (visSettings.vibrationEnabled && navigator.vibrate) navigator.vibrate(40);
         }
         // panel prumerovani GPS (vykresleni); data pocita updateGpsAveraging v logika.js
         function updateGpsAvgPanel() {
@@ -261,29 +258,22 @@
         function toggleMapControls() { document.getElementById('map-controls').classList.toggle('expanded'); }
 
         const arOverlay = document.getElementById('ar-overlay');
-        let arRing = null, arStem = null;
-        function showGroundRing(xPct, groundY, markerY, acc, scale) {
-            if (!arRing) { arRing = document.createElement('div'); arRing.className = 'ar-accuracy-ring'; arRing.style.zIndex = '2'; arOverlay.appendChild(arRing); }
-            if (!arStem) { arStem = document.createElement('div'); arStem.className = 'ar-ground-stem'; arOverlay.appendChild(arStem); }
-            let size = Math.max(24, acc * 70 * scale);
-            arRing.style.left = xPct + '%'; arRing.style.top = groundY + '%';
-            arRing.style.width = size + 'px'; arRing.style.height = size + 'px'; arRing.style.display = 'block';
-            arStem.style.left = xPct + '%'; arStem.style.top = markerY + '%';
-            arStem.style.height = Math.max(0, groundY - markerY) + '%'; arStem.style.display = 'block';
-        }
-        function hideGroundRing() { if (arRing) arRing.style.display = 'none'; if (arStem) arStem.style.display = 'none'; }
         function initARMarkers() {
             arPoints.forEach((pt) => {
                 let matchesSearch = true; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) { matchesSearch = false; }
                 let outOfReach = (pt.currentDist > arRadius); let isSelectedForDetail = (pt.id === activePointIdForModal);
                 if (pt.hidden || !matchesSearch || (outOfReach && pt.id !== highlightedPointId && !isSelectedForDetail)) { if (pt.element && pt.element.parentNode) pt.element.parentNode.removeChild(pt.element); return; }
-                if (!pt.element) { const marker = document.createElement('div'); marker.className = `ar-marker cat-${pt.cat.toLowerCase()}`; if (pt.id === highlightedPointId) marker.classList.add('highlighted'); marker.style.opacity = '0'; const title = document.createElement('div'); title.className = 'ar-marker-title'; title.innerText = pt.name; const dist = document.createElement('div'); dist.className = 'ar-marker-dist'; marker.appendChild(title); marker.appendChild(dist); marker.addEventListener('click', () => { const currentDist = getDistance(userLat, userLng, pt.lat, pt.lng); showDetails(pt, currentDist); }); pt.element = marker; pt.distElement = dist; arOverlay.appendChild(marker); } else if (!pt.element.parentNode) { arOverlay.appendChild(pt.element); }
+                if (!pt.element) { const marker = document.createElement('div'); marker.className = `ar-marker cat-${pt.cat.toLowerCase()}`; if (pt.id === highlightedPointId) marker.classList.add('highlighted'); if (window.isStaked && isStaked(pt.id)) marker.classList.add('staked'); marker.style.opacity = '0'; const title = document.createElement('div'); title.className = 'ar-marker-title'; title.innerText = pt.name; const dist = document.createElement('div'); dist.className = 'ar-marker-dist'; marker.appendChild(title); marker.appendChild(dist); marker.addEventListener('click', () => { const currentDist = getDistance(userLat, userLng, pt.lat, pt.lng); showDetails(pt, currentDist); }); pt.element = marker; pt.distElement = dist; arOverlay.appendChild(marker); } else if (!pt.element.parentNode) { arOverlay.appendChild(pt.element); }
             });
         }
         let mapReturnTimer;
-        function recenterOnUser() { if (userLat == null) return; clearTimeout(mapReturnTimer); map.setView([userLat, userLng], map.getZoom(), { animate: true }); lastCenterLat = userLat; lastCenterLng = userLng; }
+        function recenterOnUser() { if (userLat == null) return; clearTimeout(mapReturnTimer); window._mapHold = false; map.setView([userLat, userLng], map.getZoom(), { animate: true }); lastCenterLat = userLat; lastCenterLng = userLng; }
         // OVLADANI MAPY: jeden prst = posun (obsah sleduje prst i pri otocene mape), dva prsty = plynuly zoom (pinch).
         map.options.zoomSnap = 0;  // plynuly pinch zoom (zlomkove stupne); kdyby logika.js byla stara, vynutime to i tady
+        // mapRotation = uhel SKUTECNE aplikovany na mapu. Behem rucniho posunu (window._mapHold)
+        // se rotace zmrazi -- otaceni kolem uzivatele mimo stred by mapou smykalo po obrazovce.
+        // Klikani i posun prepocitavaji souradnice pres mapRotation, ne pres zivy currentHeading.
+        let mapRotation = 0;
         let isDraggingMap = false, isPinchingMap = false; let lastTouchX = 0, lastTouchY = 0; let pinchStartDist = 0, pinchStartZoom = 0; const mapContainerEl = document.getElementById('map-container');
         function _touchDist(t) { const dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY; return Math.hypot(dx, dy); }
         function _zoomAnchor() { return (userLat != null) ? L.latLng(userLat, userLng) : map.getCenter(); }
@@ -293,7 +283,7 @@
             let Px, Py, P;
             if (userEl && userLat != null) { const ur = userEl.getBoundingClientRect(); Px = ur.left + ur.width / 2; Py = ur.top + ur.height / 2; P = map.latLngToContainerPoint([userLat, userLng]); }
             else { const rect = document.getElementById('map').getBoundingClientRect(); Px = rect.left + rect.width / 2; Py = rect.top + rect.height / 2; const sz = map.getSize(); P = L.point(sz.x / 2, sz.y / 2); }
-            const rad = currentHeading * Math.PI / 180; const dx = px - Px, dy = py - Py;
+            const rad = mapRotation * Math.PI / 180; const dx = px - Px, dy = py - Py;
             const lx = dx * Math.cos(rad) - dy * Math.sin(rad); const ly = dx * Math.sin(rad) + dy * Math.cos(rad);
             return L.point(P.x + lx, P.y + ly);
         }
@@ -306,18 +296,18 @@
         mapContainerEl.addEventListener('touchmove', (e) => {
             if (e.touches.length >= 2) {
                 if (!isPinchingMap) { isPinchingMap = true; isDraggingMap = false; pinchStartDist = _touchDist(e.touches); pinchStartZoom = map.getZoom(); }
+                window._mapHold = true;
                 const d = _touchDist(e.touches);
                 if (pinchStartDist > 0 && d > 0) { let nz = pinchStartZoom + Math.log2(d / pinchStartDist); nz = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), nz)); const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2, my = (e.touches[0].clientY + e.touches[1].clientY) / 2; map.setZoomAround(_screenToContainerPoint(mx, my), nz, { animate: false }); }
                 if (e.cancelable) e.preventDefault(); return;
             }
             if (!isDraggingMap || e.touches.length !== 1) return;
+            window._mapHold = true;
             const dx = e.touches[0].clientX - lastTouchX; const dy = e.touches[0].clientY - lastTouchY;
-            // SMER: posun prstu prepocteme do souradnic mapy STEJNYM otocenim, jake pouziva klikani do mapy (currentHeading) -- aby obsah sledoval prst pri jakemkoliv natoceni kompasu
-            const rad = currentHeading * Math.PI / 180;
+            // SMER: posun prstu prepocteme do souradnic mapy otocenim, ktere je na mape SKUTECNE aplikovane (mapRotation; behem posunu zmrazene) -- obsah tak sleduje prst pri jakemkoliv natoceni
+            const rad = mapRotation * Math.PI / 180;
             const lx = dx * Math.cos(rad) - dy * Math.sin(rad); const ly = dx * Math.sin(rad) + dy * Math.cos(rad);
             map.panBy([-lx, -ly], { animate: false });
-            // OMEZENI: drz uzivatele ve viditelne plose, at nedojede do prazdne (cerne) mapy
-            if (userLat != null) { const c = map.getSize().divideBy(2); const up = map.latLngToContainerPoint([userLat, userLng]); const offX = up.x - c.x, offY = up.y - c.y; const dist = Math.hypot(offX, offY); const maxOff = Math.min(mapContainerEl.clientWidth, mapContainerEl.clientHeight) * 0.4; if (dist > maxOff) { const k = dist - maxOff; map.panBy([offX / dist * k, offY / dist * k], { animate: false }); } }
             lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; if (e.cancelable) e.preventDefault();
         }, { passive: false });
         mapContainerEl.addEventListener('touchend', (e) => {
@@ -381,9 +371,12 @@
             let cAcc = event.webkitCompassAccuracy; let calWarn = (cAcc != null && (cAcc < 0 || cAcc > 20));
             compassDebug.innerHTML = `Azimut: ${displayAzimut}` + (calWarn ? ' <span style="color:var(--warning);">⚠</span>' : '');
             compassDebug.title = calWarn ? 'Kompas vyzaduje kalibraci – proveďte telefonem osmicku' : '';
-            mapWrapper.style.transformOrigin = (function(){ const p = map.latLngToContainerPoint([userLat, userLng]); return p.x + 'px ' + p.y + 'px'; })(); mapWrapper.style.transform = `translate(-50%, -50%) rotate(${-heading}deg)`; const dirContainer = document.getElementById('user-direction-container'); if (dirContainer) dirContainer.style.transform = `rotate(${heading}deg)`;
-            document.querySelectorAll('.map-label-text').forEach(el => { el.style.transform = `rotate(${heading}deg)`; });
-            document.querySelectorAll('.leaflet-popup-content-wrapper').forEach(el => { el.style.transform = `rotate(${heading}deg)`; });
+            if (!window._mapHold) {
+                mapWrapper.style.transformOrigin = (function(){ const p = map.latLngToContainerPoint([userLat, userLng]); return p.x + 'px ' + p.y + 'px'; })(); mapWrapper.style.transform = `translate(-50%, -50%) rotate(${-heading}deg)`; mapRotation = heading;
+                document.querySelectorAll('.map-label-text').forEach(el => { el.style.transform = `rotate(${heading}deg)`; });
+                document.querySelectorAll('.leaflet-popup-content-wrapper').forEach(el => { el.style.transform = `rotate(${heading}deg)`; });
+            }
+            const dirContainer = document.getElementById('user-direction-container'); if (dirContainer) dirContainer.style.transform = `rotate(${heading}deg)`;
             if (viewMode === 'map') return; // v samostatne mape jen otacime mapu, AR projekci (kamera) preskakujeme
 
             // AR PROJEKCE: realny zorny uhel kamery + sklon telefonu (z beta)
@@ -399,7 +392,9 @@
             } else cameraPitchDown = 90 - beta;                 // o kolik stupnu pod horizont miri kamera
             let fovH = visSettings.fovH || 90, fovV = visSettings.fovV || 75, eyeH = visSettings.eyeHeight || 1.6;
             let halfH = fovH / 2, halfV = fovV / 2, cullH = halfH + 8;
-            let highlightedPointData = null; let renderedCount = 0; let ringShown = false;
+            // export projekce pro dalsi AR vrstvy (satelity.js) — at nemusi duplikovat vypocet naklonu
+            window._arProj = { pitch: cameraPitchDown, roll: imgRoll, halfH: halfH, halfV: halfV };
+            let highlightedPointData = null; let renderedCount = 0;
 
             let maxPts = visSettings.maxARPoints || 100; let vOffset = visSettings.arVerticalOffset || 0;
 
@@ -436,7 +431,6 @@
                 } else { if (pt.element) pt.element.style.opacity = '0'; }
             });
             
-            if (!ringShown) hideGroundRing();
             if (highlightedPointData) {
                 document.getElementById('ar-hud').style.display = 'flex'; const arrTarget = document.getElementById('arrow-target'); const arrStraight = document.getElementById('arrow-straight'); const arrLeft = document.getElementById('arrow-left'); const arrRight = document.getElementById('arrow-right'); const arrUturn = document.getElementById('arrow-uturn'); const arrBull = document.getElementById('arrow-bullseye'); const hudDistText = document.getElementById('ar-hud-dist'); const hudInfoBox = document.getElementById('ar-hud-info');
                 arrTarget.style.display = 'none'; arrStraight.style.display = 'none'; arrLeft.style.display = 'none'; arrRight.style.display = 'none'; arrUturn.style.display = 'none'; arrBull.style.display = 'none';
@@ -452,10 +446,6 @@
                 }
                 document.getElementById('ar-hud-name').innerText = `#${highlightedPointData.name}`;
 
-                if (visSettings.vibrationEnabled && navigator.vibrate) {
-                    let now = Date.now(); let interval = highlightedPointData.dist <= 1.0 ? 300 : (highlightedPointData.dist <= 5.0 ? 800 : 0);
-                    if (interval > 0 && now - lastVibeTime > interval) { navigator.vibrate(50); lastVibeTime = now; }
-                }
             } else { document.getElementById('ar-hud').style.display = 'none'; }
         }
         
