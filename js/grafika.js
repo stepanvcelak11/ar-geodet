@@ -267,7 +267,7 @@
             });
         }
         let mapReturnTimer;
-        function recenterOnUser() { if (userLat == null) return; clearTimeout(mapReturnTimer); window._mapHold = false; map.setView([userLat, userLng], map.getZoom(), { animate: true }); lastCenterLat = userLat; lastCenterLng = userLng; }
+        function recenterOnUser() { clearTimeout(mapReturnTimer); window._mapHold = false; if (userLat == null) return; map.setView([userLat, userLng], map.getZoom(), { animate: true }); lastCenterLat = userLat; lastCenterLng = userLng; }
         // OVLADANI MAPY: jeden prst = posun (obsah sleduje prst i pri otocene mape), dva prsty = plynuly zoom (pinch).
         map.options.zoomSnap = 0;  // plynuly pinch zoom (zlomkove stupne); kdyby logika.js byla stara, vynutime to i tady
         // mapRotation = uhel SKUTECNE aplikovany na mapu. Behem rucniho posunu (window._mapHold)
@@ -310,10 +310,15 @@
             map.panBy([-lx, -ly], { animate: false });
             lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; if (e.cancelable) e.preventDefault();
         }, { passive: false });
-        mapContainerEl.addEventListener('touchend', (e) => {
-            if (e.touches.length === 0) { if (isDraggingMap || isPinchingMap) { clearTimeout(mapReturnTimer); mapReturnTimer = setTimeout(recenterOnUser, 5000); } isDraggingMap = false; isPinchingMap = false; }
+        // KONEC DOTYKU: timer navratu je navazany na _mapHold (ne jen na lokalni flagy) a bezi
+        // i pri 'touchcancel' (gesto prevezme system/prohlizec) -- jinak by _mapHold zustal true
+        // navzdy a mapa by se uz nikdy neotocila podle kompasu.
+        function onMapTouchEnd(e) {
+            if (e.touches.length === 0) { if (isDraggingMap || isPinchingMap || window._mapHold) { clearTimeout(mapReturnTimer); mapReturnTimer = setTimeout(recenterOnUser, 5000); } isDraggingMap = false; isPinchingMap = false; }
             else if (e.touches.length === 1) { isPinchingMap = false; isDraggingMap = true; lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; }
-        });
+        }
+        mapContainerEl.addEventListener('touchend', onMapTouchEnd);
+        mapContainerEl.addEventListener('touchcancel', onMapTouchEnd);
 
         // STAHOVANI: celoobrazovkovy ukazatel postupu (sdileny pro offline mapu i stahovani oblasti; vytvari se za behu, nezasahuje do HTML/CSS)
         function _ensureOfflineProgress() {
