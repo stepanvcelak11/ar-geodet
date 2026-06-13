@@ -31,7 +31,7 @@
         if (!toast) {
             toast = document.createElement('div');
             toast.id = 'undo-toast';
-            toast.style.cssText = 'position:fixed; left:50%; bottom:24px; transform:translateX(-50%); z-index:3000; '
+            toast.style.cssText = 'position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom, 0px) + 88px); transform:translateX(-50%); z-index:1000001; '
                 + 'display:flex; align-items:center; gap:14px; max-width:90%; padding:11px 14px 11px 16px; '
                 + 'border-radius:14px; background:rgba(17,22,33,0.96); color:#fff; '
                 + 'font-family:var(--font-display,sans-serif); font-size:14px; '
