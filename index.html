@@ -115,12 +115,14 @@
                 </details>
             </div>
             <p style="text-align:center; font-size:11px; line-height:1.5; color:var(--text-muted); margin:18px 4px 0;">Orientační pomůcka, ne měřicí přístroj — zobrazená poloha závisí na přesnosti GPS a kompasu telefonu. <a href="#" onclick="openAbout(); return false;" style="color:var(--accent);">O aplikaci a soukromí</a></p>
+            <button id="pruv-welcome-btn" class="btn btn-secondary" style="margin-top:12px; border-color:var(--accent); color:var(--accent);" onclick="openPruvodce()"><svg class="icon"><use href="#i-navigation"/></svg> Průvodce úkolem (provede tě krok za krokem)</button>
             <button class="btn btn-primary" style="margin-top: 16px; font-size: 20px; padding: 18px; box-shadow: 0 10px 20px rgba(52,211,153,0.3);" onclick="startAppFromWelcome()"><svg class="icon"><use href="#i-navigation"/></svg> Spustit vyhledávání</button>
         </div>
     </div>
 
     <button id="menu-toggle-btn" class="glass-panel" onclick="toggleMenu()"><svg class="icon"><use href="#i-menu"/></svg> Menu</button>
     <div id="side-menu">
+        <button id="pruv-menu-btn" class="menu-btn" style="background: rgba(52,211,153,0.15); border-color: var(--accent); color: var(--accent);" onclick="openPruvodce()"><svg class="icon"><use href="#i-navigation"/></svg> Průvodce úkolem</button>
         <button class="menu-btn" onclick="openKatastr(); toggleMenu();" style="background: rgba(52,211,153,0.15); border-color: var(--accent); color: var(--accent);"><svg class="icon"><use href="#i-map-pin"/></svg> Otevřít Katastr (Zde stojím)</button>
         <button class="menu-btn" onclick="openMeasureModal(); toggleMenu();"><svg class="icon"><use href="#i-ruler"/></svg> Měření vzdálenosti</button>
         <button class="menu-btn" onclick="openStakeoutModal(); toggleMenu();"><svg class="icon"><use href="#i-check"/></svg> Vytyčovací checklist</button>
