@@ -7,7 +7,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  — mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v29';
+const SHELL_CACHE = 'argeodet-shell-v30';
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -23,6 +23,9 @@ const ASSETS_TO_CACHE = [
     './js/satelity.js',
     './js/kalkulacka.js',
     './js/export.js',
+    './js/kompas-check.js',
+    './js/zaloha.js',
+    './js/undo.js',
     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
     './js/lib/proj4-2.9.0.min.js',
     './js/lib/leaflet-1.9.4.js',
