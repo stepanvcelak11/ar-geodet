@@ -78,16 +78,21 @@ function openCalcPicker(idp) {
 }
 
 // ---------- kostra modalu ----------
+const CALC_GROUPS = [
+    { g: 'poloha', name: 'Polohové úlohy' },
+    { g: 'vyrovnani', name: 'Vyrovnání a pořady' },
+    { g: 'vysky', name: 'Výšky a tachymetrie' }
+];
 const CALC_TOOLS = [
-    { id: 'smer', name: 'Směrník a délka', desc: 'ze souřadnic dvou bodů' },
-    { id: 'rajon', name: 'Rajón', desc: 'polární metoda — bod ze směru a délky' },
-    { id: 'orto', name: 'Ortogonální metoda', desc: 'staničení a kolmice od přímky' },
-    { id: 'protuhel', name: 'Protínání vpřed z úhlů', desc: 'ze dvou stanovisek' },
-    { id: 'protdelka', name: 'Protínání z délek', desc: 'ze dvou délek' },
-    { id: 'volne', name: 'Volné stanovisko', desc: 'vyrovnání ze 2+ bodů' },
-    { id: 'polygon', name: 'Polygonový pořad', desc: 'oboustranně připojený a orientovaný' },
-    { id: 'tachy', name: 'Tachymetrie', desc: 'polární dávka, volitelně s výškami' },
-    { id: 'nivel', name: 'Nivelační zápisník', desc: 'výšky z čtení zpět/vpřed' }
+    { id: 'smer', g: 'poloha', name: 'Směrník a délka', desc: 'ze souřadnic dvou bodů' },
+    { id: 'rajon', g: 'poloha', name: 'Rajón', desc: 'polární metoda — bod ze směru a délky' },
+    { id: 'orto', g: 'poloha', name: 'Ortogonální metoda', desc: 'staničení a kolmice od přímky' },
+    { id: 'protuhel', g: 'poloha', name: 'Protínání vpřed z úhlů', desc: 'ze dvou stanovisek' },
+    { id: 'protdelka', g: 'poloha', name: 'Protínání z délek', desc: 'ze dvou délek' },
+    { id: 'volne', g: 'vyrovnani', name: 'Volné stanovisko', desc: 'vyrovnání ze 2+ bodů' },
+    { id: 'polygon', g: 'vyrovnani', name: 'Polygonový pořad', desc: 'oboustranně připojený a orientovaný' },
+    { id: 'tachy', g: 'vysky', name: 'Tachymetrie', desc: 'polární dávka, volitelně s výškami' },
+    { id: 'nivel', g: 'vysky', name: 'Nivelační zápisník', desc: 'výšky z čtení zpět/vpřed' }
 ];
 
 function ensureCalcModal() {
@@ -109,8 +114,14 @@ function showCalcHome() {
     document.getElementById('calc-back').style.display = 'none';
     document.getElementById('calc-title').innerHTML = '<svg class="icon"><use href="#i-calc"/></svg> Geodetická kalkulačka';
     const body = document.getElementById('calc-body');
-    body.innerHTML = '<p style="margin:0 0 10px; font-size:12.5px; opacity:0.75;">Výpočty v rovině S-JTSK, úhly v gonech, plně offline. Výsledky lze uložit jako vlastní body.</p>'
-        + CALC_TOOLS.map(t => `<div class="cluster-list-item" onclick="showCalcTool('${t.id}')"><div><div class="cluster-item-title">${t.name}</div><div class="cluster-item-subtitle">${t.desc}</div></div><div style="opacity:0.5;">›</div></div>`).join('');
+    const tile = t => `<div class="cluster-list-item" onclick="showCalcTool('${t.id}')"><div><div class="cluster-item-title">${t.name}</div><div class="cluster-item-subtitle">${t.desc}</div></div><div style="opacity:0.5;">›</div></div>`;
+    let html = '<p style="margin:0 0 10px; font-size:12.5px; opacity:0.75;">Výpočty v rovině S-JTSK, úhly v gonech, plně offline. Výsledky lze uložit jako vlastní body.</p>';
+    CALC_GROUPS.forEach(gr => {
+        const tools = CALC_TOOLS.filter(t => t.g === gr.g);
+        if (!tools.length) return;
+        html += `<div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; opacity:0.5; margin:14px 0 6px;">${gr.name}</div>` + tools.map(tile).join('');
+    });
+    body.innerHTML = html;
 }
 function showCalcTool(id) {
     const t = CALC_TOOLS.find(x => x.id === id); if (!t) return;
@@ -144,7 +155,7 @@ function renderCalc_rajon(body) {
         + _fld('rj-cteni-or', 'Čtení na orientaci [gon]', 'např. 0.0000')
         + _fld('rj-cteni', 'Čtení na určovaný bod [gon]', '')
         + _fld('rj-d', 'Vodorovná délka na bod [m]', '')
-        + _fld('rj-dor', 'Kontrolní délka na orientaci [m] (nepovinné)', '')
+        + _fld('rj-dor', 'Kontrolní délka na orient. [m]', 'nepovinné')
         + _fld('rj-name', 'Název nového bodu', 'např. 4001')
         + `<button class="btn btn-blue" style="margin-top:14px;" onclick="calcRajon()">Spočítat</button><div id="calc-result"></div>`;
 }
@@ -176,7 +187,7 @@ function calcRajon() {
 function renderCalc_orto(body) {
     body.innerHTML = _ptFld('or-a', 'Počátek měřické přímky A') + _ptFld('or-b', 'Konec měřické přímky B')
         + _fld('or-s', 'Staničení od A [m]', '')
-        + _fld('or-k', 'Kolmice [m] (vpravo od A→B kladná, vlevo záporná)', '')
+        + _fld('or-k', 'Kolmice [m]', 'vpravo +, vlevo −')
         + _fld('or-name', 'Název nového bodu', '')
         + `<button class="btn btn-blue" style="margin-top:14px;" onclick="calcOrto()">Spočítat</button><div id="calc-result"></div>`;
 }
@@ -409,7 +420,7 @@ let _tcRows = 0;
 function renderCalc_tachy(body) {
     _tcRows = 0;
     body.innerHTML = _ptFld('tc-st', 'Stanovisko')
-        + `<div style="display:flex; gap:8px;"><div style="flex:1;">${_fld('tc-z', 'Výška stanoviska Z [m] (nepovinné)', '')}</div><div style="flex:1;">${_fld('tc-vp', 'Výška přístroje [m]', '')}</div></div>`
+        + `<div style="display:flex; gap:8px;"><div style="flex:1;">${_fld('tc-z', 'Výška stanoviska Z [m]', 'nepovinné')}</div><div style="flex:1;">${_fld('tc-vp', 'Výška přístroje [m]', '')}</div></div>`
         + _ptFld('tc-or', 'Orientační bod') + _fld('tc-cteni-or', 'Čtení na orientaci [gon]', 'např. 0.0000')
         + `<label class="filter-row" style="margin-top:10px;"><input type="checkbox" id="tc-sikme" checked> Šikmé délky + zenitové úhly (jinak vodorovné)</label>
         <div id="tc-rows"></div>
@@ -471,7 +482,7 @@ function renderCalc_nivel(body) {
     body.innerHTML = _fld('nv-ha', 'Výška výchozího bodu A [m]', '')
         + `<div id="nv-rows"></div>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="addNvRow()"><svg class="icon"><use href="#i-plus"/></svg> Přidat sestavu</button>`
-        + _fld('nv-hb', 'Známá výška koncového bodu B [m] (nepovinné — pro uzávěr)', '')
+        + _fld('nv-hb', 'Výška koncového bodu B [m]', 'nepovinné — pro uzávěr')
         + `<button class="btn btn-blue" style="margin-top:14px;" onclick="calcNivel()">Spočítat</button><div id="calc-result"></div>`;
     addNvRow(); addNvRow();
 }

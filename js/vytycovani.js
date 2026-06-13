@@ -44,8 +44,8 @@ function stakeoutCandidates() {
         if (!btn) {
             btn = document.createElement('button');
             btn.id = 'stake-btn'; btn.className = 'btn';
-            const hl = document.getElementById('highlight-btn');
-            hl.parentNode.insertBefore(btn, hl);
+            const anchor = document.getElementById('close-card-btn') || document.getElementById('highlight-btn');
+            anchor.parentNode.insertBefore(btn, anchor);
         }
         const paint = () => {
             const done = isStaked(pt.id);
