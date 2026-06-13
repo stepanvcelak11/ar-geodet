@@ -548,7 +548,8 @@ function renderCalc_sci(body) {
         <div class="sci-pad sci-fn">
             ${k("sciFunc('sin(')", 'sin')}${k("sciFunc('cos(')", 'cos')}${k("sciFunc('tan(')", 'tan')}${k("sciDel()", '⌫', 'sci-warn')}
             ${k("sciFunc('asin(')", 'asin')}${k("sciFunc('acos(')", 'acos')}${k("sciFunc('atan(')", 'atan')}${k("sciClear()", 'C', 'sci-warn')}
-            ${k("sciFunc('ln(')", 'ln')}${k("sciFunc('log(')", 'log')}${k("sciFunc('√(')", '√')}${k("sciTok('^2')", 'x²')}
+            ${k("sciFunc('√(')", '√')}${k("sciFunc('ⁿ√(')", 'ⁿ√')}${k("sciPost('^2')", 'x²')}${k("sciPost('^(−1)')", 'x⁻¹')}
+            ${k("sciFunc('ln(')", 'ln')}${k("sciFunc('log(')", 'log')}${k("sciTok('%')", '%')}${k("sciTok(',')", ',')}
             ${k("sciTok('π')", 'π')}${k("sciTok('e')", 'e')}${k("sciTok('(')", '(')}${k("sciTok(')')", ')')}
         </div>
         <div class="sci-pad sci-num">
@@ -597,6 +598,7 @@ function _sciMaybeMult(t) {
 }
 function sciTok(t) { _sciAfterEval('+−×÷^'.indexOf(t) >= 0); _sciMaybeMult(t); _sciTokens.push(t); _sciRender(); }
 function sciFunc(t) { _sciAfterEval(false); _sciMaybeMult(t); _sciTokens.push(t); _sciRender(); }
+function sciPost(t) { _sciAfterEval(true); _sciTokens.push(t); _sciRender(); }
 function sciDel() { _sciJustEval = false; _sciTokens.pop(); _sciRender(); }
 function sciClear() {
     _sciTokens = []; _sciJustEval = false; _sciError = false;
@@ -624,12 +626,13 @@ function _sciEval(expr) {
     const js = expr
         .replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-')
         .replace(/π/g, '(PI)').replace(/e/g, '(E)')
-        .replace(/√/g, 'sqrt').replace(/\^/g, '**').replace(/%/g, '/100');
+        .replace(/ⁿ√/g, 'nroot').replace(/√/g, 'sqrt').replace(/\^/g, '**').replace(/%/g, '/100');
     const ctx = {
         PI: Math.PI, E: Math.E,
         sin: x => Math.sin(x * f), cos: x => Math.cos(x * f), tan: x => Math.tan(x * f),
         asin: x => Math.asin(x) * g, acos: x => Math.acos(x) * g, atan: x => Math.atan(x) * g,
-        sqrt: Math.sqrt, ln: Math.log, log: x => Math.log(x) / Math.LN10, abs: Math.abs
+        sqrt: Math.sqrt, ln: Math.log, log: x => Math.log(x) / Math.LN10, abs: Math.abs,
+        nroot: (n, x) => (x < 0 && Math.abs(n % 2) === 1) ? -Math.pow(-x, 1 / n) : Math.pow(x, 1 / n)
     };
     const names = Object.keys(ctx);
     const fn = new Function(...names, 'return (' + js + ');');
