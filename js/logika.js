@@ -138,7 +138,6 @@ if ('serviceWorker' in navigator) {
         let userLat = null, userLng = null, userAlt = null, userMarker = null, lastFetchLat = null, lastFetchLng = null, lastCenterLat = null, lastCenterLng = null;
         let currentHeading = 0, currentGpsAccuracy = 0, accuracyCircle = null, magneticDeclination = 0;
         let smoothedHeading = null, gpsCourse = null, gpsSpeed = 0, headingCorrection = 0, userHeadingOffset = 0;
-        let _reachArmedFor = null, _reachArmed = false; // auto-zruseni dohledavani az po prichodu z dalky
         function quickToast(msg) {
             let t = document.getElementById('quick-toast');
             if (!t) { t = document.createElement('div'); t.id = 'quick-toast'; t.style.cssText = 'position:fixed; left:50%; top:calc(env(safe-area-inset-top,0px) + 70px); transform:translateX(-50%); z-index:1000002; background:rgba(20,24,30,0.92); color:#fff; padding:10px 16px; border-radius:10px; font-size:14px; border:1px solid rgba(255,255,255,0.15); pointer-events:none; transition:opacity 0.3s; max-width:80vw; text-align:center;'; document.body.appendChild(t); }
@@ -154,7 +153,7 @@ if ('serviceWorker' in navigator) {
         let connectMode = false, areaMode = false;
         let filters = { tb: true, zhb: true, pbpp: true, nivel: true, custom: true };
 
-        let visSettings = { maxARPoints: 20, reachClear: 1.5, arVerticalOffset: 0, markerScale: 1.0, markerOpacity: 100, colTb: '#8b5cf6', colZhb: '#0ea5e9', colPbpp: '#3b82f6', colNivel: '#ef4444', colCustom: '#34d399', arrowScale: 1.0, arrowOpacity: 90, arrowShape: '1', colArrow: '#34d399', panelOpacity: 85, menuScale: 1.0, hudTop: 55, hudSide: 15, wakeLockEnabled: true, outdoorMode: false, katastrSource: 'mapycz', baseLayer: 'osm', showKatastr: false, headingSmoothing: 75, autoCompassCorrection: false, tiltCompensation: true, fovH: 90, fovV: 75, eyeHeight: 1.6 };
+        let visSettings = { maxARPoints: 20, arVerticalOffset: 0, markerScale: 1.0, markerOpacity: 100, colTb: '#8b5cf6', colZhb: '#0ea5e9', colPbpp: '#3b82f6', colNivel: '#ef4444', colCustom: '#34d399', arrowScale: 1.0, arrowOpacity: 90, arrowShape: '1', colArrow: '#34d399', panelOpacity: 85, menuScale: 1.0, hudTop: 55, hudSide: 15, wakeLockEnabled: true, outdoorMode: false, katastrSource: 'mapycz', baseLayer: 'osm', showKatastr: false, headingSmoothing: 75, autoCompassCorrection: false, tiltCompensation: true, fovH: 90, fovV: 75, eyeHeight: 1.6 };
         
         function changeProject() { activeProjectId = document.getElementById('w-project-select').value; localStorage.setItem('arActiveProjectId', activeProjectId); hydrateActiveProject().then(loadProjectSettings); }
         function createNewProject() { let name = prompt("Název nové zakázky:"); if(name) { let id = 'proj_' + Date.now(); projects.push({id: id, name: name}); localStorage.setItem('arProjectsList', JSON.stringify(projects)); activeProjectId = id; localStorage.setItem('arActiveProjectId', activeProjectId); renderProjectSelect(); hydrateActiveProject().then(loadProjectSettings); } }
@@ -215,12 +214,16 @@ if ('serviceWorker' in navigator) {
             const latOffset = radius / 111320; const lonOffset = radius / (111320 * Math.cos(centerLat * Math.PI / 180));
             const minLat = centerLat - latOffset, maxLat = centerLat + latOffset, minLon = centerLng - lonOffset, maxLon = centerLng + lonOffset;
             let urls = [];
-            [15, 16, 17].forEach(z => {
+            // Mapa se otevira na zoomu 19, ale OSM vrstva ma maxNativeZoom 18 -> Leaflet stahuje dlazdice z18.
+            // Proto MUSI byt z18 v cache, jinak je offline v zakladnim pohledu prazdno. 14-15 = kontext pri odzoomovani.
+            [14, 15, 16, 17, 18].forEach(z => {
                 let minX = Math.floor((minLon + 180) / 360 * Math.pow(2, z)); let maxX = Math.floor((maxLon + 180) / 360 * Math.pow(2, z));
                 let minY = Math.floor((1 - Math.log(Math.tan(maxLat * Math.PI / 180) + 1 / Math.cos(maxLat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, z));
                 let maxY = Math.floor((1 - Math.log(Math.tan(minLat * Math.PI / 180) + 1 / Math.cos(minLat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, z));
                 for (let x = minX; x <= maxX; x++) { for (let y = minY; y <= maxY; y++) { urls.push(`https://tile.openstreetmap.org/${z}/${x}/${y}.png`); } }
             });
+            // Pojistka: pri velkem polomeru by z18 znamenal tisice dlazdic (zatez serveru i uloziste, proti pravidlum OSM).
+            if (urls.length > 3000) return { tooMany: true, ok: 0, total: urls.length, net: 0, http: 0, quota: 0 };
             const total = urls.length; let done = 0, ok = 0, net = 0, http = 0, quota = 0;
             showOfflineProgress(0, total);
             const cache = await caches.open('argeodet-offline-v12');
@@ -242,6 +245,7 @@ if ('serviceWorker' in navigator) {
         // Srozumitelna hlaska z vysledku cacheTilesForArea (misto tiche castecne chyby).
         function offlineResultMsg(res) {
             if (res.unsupported) return "Tento prohlížeč nepodporuje offline ukládání mapy.";
+            if (res.tooMany) return `Oblast je příliš velká (${res.total} dílků mapy). Zmenšete poloměr stahování a zkuste to znovu.`;
             if (res.total === 0) return "V oblasti nejsou žádné mapové dlaždice ke stažení.";
             let msg = `Uloženo ${res.ok} z ${res.total} dílků mapy.`;
             const failed = res.total - res.ok;
@@ -460,23 +464,7 @@ if ('serviceWorker' in navigator) {
                     updateGpsAveraging(userLat, userLng, currentGpsAccuracy, gpsSpeed);
                     if (accuracyCircle) { accuracyCircle.setLatLng([userLat, userLng]); accuracyCircle.setRadius(currentGpsAccuracy); accuracyCircle.setStyle({ color: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillColor: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399' }); } else { accuracyCircle = L.circle([userLat, userLng], { radius: currentGpsAccuracy, color: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillColor: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillOpacity: 0.15, weight: 2 }).addTo(map); }
                     
-                    if (highlightedPointId) { let hlPt = arPoints.find(p => p.id === highlightedPointId); if (hlPt) {
-                        if (hlPt.bestAccuracy === null || currentGpsAccuracy < hlPt.bestAccuracy) { hlPt.bestAccuracy = currentGpsAccuracy; }
-                        // AUTO-ZRUSENI DOHLEDAVANI: az kdyz uzivatel prisel z dalky (armed) a je do reachClear metru u bodu.
-                        const reach = visSettings.reachClear || 0;
-                        if (reach > 0) {
-                            const dToHl = getDistance(userLat, userLng, hlPt.lat, hlPt.lng);
-                            if (_reachArmedFor !== highlightedPointId) { _reachArmedFor = highlightedPointId; _reachArmed = false; }
-                            if (dToHl > reach + 1.0) _reachArmed = true;
-                            else if (_reachArmed && dToHl <= reach) {
-                                _reachArmed = false; _reachArmedFor = null;
-                                highlightedPointId = null;
-                                const hud = document.getElementById('ar-hud'); if (hud) hud.style.display = 'none';
-                                updateNavGlow();
-                                quickToast(`Jste u bodu #${hlPt.name} (${dToHl.toFixed(1)} m) — dohledávání ukončeno`);
-                            }
-                        }
-                    } } else { _reachArmedFor = null; _reachArmed = false; }
+                    if (highlightedPointId) { let hlPt = arPoints.find(p => p.id === highlightedPointId); if (hlPt) { if (hlPt.bestAccuracy === null || currentGpsAccuracy < hlPt.bestAccuracy) { hlPt.bestAccuracy = currentGpsAccuracy; } } }
 
                     arPoints.forEach(p => { p.currentDist = getDistance(userLat, userLng, p.lat, p.lng); p.currentBearing = getBearing(userLat, userLng, p.lat, p.lng); }); arPoints.sort((a, b) => a.currentDist - b.currentDist);
                     if (activePointIdForModal) { const activePt = arPoints.find(p => p.id === activePointIdForModal); if (activePt) { const newDist = getDistance(userLat, userLng, activePt.lat, activePt.lng); const distEl = document.getElementById('sheet-distance-val'); if (distEl) distEl.innerText = `${newDist.toFixed(1)} m`; const gpsEl = document.getElementById('sheet-gps-val'); if (gpsEl) gpsEl.innerText = currentGpsAccuracy.toFixed(1); } }
