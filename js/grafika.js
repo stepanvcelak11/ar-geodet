@@ -83,11 +83,17 @@
 
         // Po navratu do appky (napr. z otevreneho Katastru) prohlizec casto ukonci kamerovy
         // stream -> cerna obrazovka. Pokud je track mrtvy, kameru automaticky restartujeme.
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState !== 'visible' || !appStarted || viewMode === 'map') return;
+        // Obnova kamery: pri force=true vzdy restartujeme (po tezkem prekresleni, napr. undo, video casto "zamrzne"
+        // i kdyz track zije a neni paused — pouhe play() to nespravi). Jinak restart jen kdyz je track mrtvy.
+        function ensureCameraAlive(force) {
+            if (!appStarted || viewMode === 'map') return;
             const track = (currentVideoStream && currentVideoStream.getVideoTracks) ? currentVideoStream.getVideoTracks()[0] : null;
-            if (!currentVideoStream || !track || track.readyState === 'ended') { startCameraAndCompass(true); }
+            if (force || !currentVideoStream || !track || track.readyState === 'ended') { startCameraAndCompass(true); }
             else { const v = document.getElementById('camera-feed'); if (v && v.paused) v.play().catch(() => {}); }
+        }
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState !== 'visible') return;
+            ensureCameraAlive(false);
         });
 
         const resizer = document.getElementById('resizer'); const camCont = document.getElementById('camera-container'); let lastTapTime = 0; let isCamMaximized = false;

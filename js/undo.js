@@ -50,6 +50,8 @@
         try { if (typeof renderProjectSelect === 'function') renderProjectSelect(); } catch (e) { }
         try { if (typeof loadProjectSettings === 'function') { loadProjectSettings(); ok = true; } } catch (e) { }
         try { if (typeof renderManageList === 'function') renderManageList(); } catch (e) { }
+        // Tezke prekresleni nad zivou kamerou ji umi "zamrznout" -> proaktivne ji oziv (jinak by ji uzivatel restartoval rucne).
+        try { if (typeof ensureCameraAlive === 'function') setTimeout(() => ensureCameraAlive(true), 250); } catch (e) { }
         if (!ok) location.reload(); // kdyby app funkce nebyly k dispozici
     }
 
