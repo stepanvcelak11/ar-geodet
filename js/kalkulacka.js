@@ -786,10 +786,9 @@ function calcRedukce() {
 
 // ============================================================
 // FOTO-DOKUMENTACE U BODU (#2)
-// K libovolnemu bodu lze pripojit fotku (stabilizace/znacka) + poznamku.
-// Ulozeno v IndexedDB pod klicem 'doc_<idBodu>' (per zakazka), takze se to
-// veze i v plne zaloze (zaloha.js dumpuje cely IDB). Zadny zasah do grafika.js:
-// karta bodu se rozsiruje obalenim showDetails, export/import se obaluji taky.
+// K bodu lze pripojit az 3 fotky (kamera/galerie) + poznamku; fotku lze opatrit
+// poloprusvitnou sipkou k hrebu. Ulozeno v IndexedDB pod 'doc_<idBodu>' (per zakazka),
+// takze se to veze i v plne zaloze. Karta bodu se rozsiruje obalenim showDetails.
 
 function loadPointDoc(id) {
     return _idbGet(getStoreKey('doc_' + id)).then(s => { try { return s ? JSON.parse(s) : null; } catch (e) { return null; } });
@@ -797,17 +796,46 @@ function loadPointDoc(id) {
 function savePointDoc(id, doc) { return _idbSet(getStoreKey('doc_' + id), JSON.stringify(doc)); }
 function deletePointDoc(id) { return _idbDel(getStoreKey('doc_' + id)); }
 function _pdEsc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+// sjednoti stary format {photo} na novy {photos:[...]}
+function _normalizeDoc(doc) {
+    if (!doc) return doc;
+    if (!Array.isArray(doc.photos)) doc.photos = doc.photo ? [doc.photo] : [];
+    delete doc.photo;
+    return doc;
+}
+// zmensi obrazek na max px a vrati JPEG dataURL
+function _photoToDataUrl(img, max) {
+    max = max || 1280;
+    let w = img.width, h = img.height;
+    if (w >= h && w > max) { h = Math.round(h * max / w); w = max; }
+    else if (h > w && h > max) { w = Math.round(w * max / h); h = max; }
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    cv.getContext('2d').drawImage(img, 0, 0, w, h);
+    try { return cv.toDataURL('image/jpeg', 0.72); } catch (e) { return null; }
+}
 
 function renderPointDoc(id) {
     const view = document.getElementById('pd-view'); if (!view) return;
     loadPointDoc(id).then(doc => {
         if (document.getElementById('pd-view') !== view) return; // karta se mezitim prekreslila
-        if (!doc || (!doc.photo && !doc.note)) { view.innerHTML = '<div class="pd-empty">Zatím bez fotky a poznámky.</div>'; return; }
+        _normalizeDoc(doc);
+        const photos = (doc && doc.photos) ? doc.photos : [];
+        const note = (doc && doc.note) ? doc.note : '';
         let h = '';
-        if (doc.photo) h += `<img class="pd-img" src="${doc.photo}" onclick="viewPhotoFull('${id}')">`;
-        if (doc.note) h += `<div class="pd-note">${_pdEsc(doc.note)}</div>`;
-        if (doc.photo) h += `<button class="pd-del" onclick="removePointPhoto('${id}')"><svg class="icon"><use href="#i-trash"/></svg> Odebrat fotku</button>`;
+        if (photos.length) {
+            h += '<div class="pd-thumbs">';
+            photos.forEach((src, i) => {
+                h += `<div class="pd-thumb"><img src="${src}" onclick="viewPhotoFull('${id}',${i})">`
+                    + `<button class="pd-th-edit" onclick="editPhoto('${id}',${i})" title="Šipka">✎</button>`
+                    + `<button class="pd-th-del" onclick="removePointPhoto('${id}',${i})" title="Odebrat">✕</button></div>`;
+            });
+            h += '</div>';
+        }
+        if (note) h += `<div class="pd-note">${_pdEsc(note)}</div>`;
+        if (!photos.length && !note) h = '<div class="pd-empty">Zatím bez fotky a poznámky.</div>';
         view.innerHTML = h;
+        const addBtn = document.getElementById('pd-add-btn');
+        if (addBtn) addBtn.style.display = (photos.length >= 3) ? 'none' : '';
     });
 }
 
@@ -819,15 +847,12 @@ function onPointPhoto(ev) {
     reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
-            const max = 1280; let w = img.width, h = img.height;
-            if (w >= h && w > max) { h = Math.round(h * max / w); w = max; }
-            else if (h > w && h > max) { w = Math.round(w * max / h); h = max; }
-            const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
-            cv.getContext('2d').drawImage(img, 0, 0, w, h);
-            let dataUrl;
-            try { dataUrl = cv.toDataURL('image/jpeg', 0.7); } catch (er) { alert('Fotku se nepodařilo zpracovat.'); return; }
+            const dataUrl = _photoToDataUrl(img);
+            if (!dataUrl) { alert('Fotku se nepodařilo zpracovat.'); return; }
             loadPointDoc(id).then(doc => {
-                doc = doc || {}; doc.photo = dataUrl; doc.t = Date.now();
+                doc = _normalizeDoc(doc || {});
+                if (doc.photos.length >= 3) { alert('Maximálně 3 fotky na bod.'); return; }
+                doc.photos.push(dataUrl); doc.t = Date.now();
                 savePointDoc(id, doc).then(() => renderPointDoc(id));
             });
         };
@@ -837,33 +862,122 @@ function onPointPhoto(ev) {
     reader.readAsDataURL(file);
 }
 
+function removePointPhoto(id, idx) {
+    loadPointDoc(id).then(doc => {
+        _normalizeDoc(doc);
+        if (!doc || !doc.photos || idx < 0 || idx >= doc.photos.length) return;
+        doc.photos.splice(idx, 1);
+        if (!doc.photos.length && !doc.note) { deletePointDoc(id).then(() => renderPointDoc(id)); return; }
+        savePointDoc(id, doc).then(() => renderPointDoc(id));
+    });
+}
+
+function viewPhotoFull(id, idx) {
+    loadPointDoc(id).then(doc => {
+        _normalizeDoc(doc);
+        const src = (doc && doc.photos) ? doc.photos[idx || 0] : null;
+        if (!src) return;
+        let v = document.getElementById('photo-viewer');
+        if (!v) { v = document.createElement('div'); v.id = 'photo-viewer'; v.className = 'photo-viewer'; v.onclick = () => v.remove(); document.body.appendChild(v); }
+        v.innerHTML = `<button class="pv-close" onclick="document.getElementById('photo-viewer').remove()">✕</button><img src="${src}">`;
+    });
+}
+
+// poznamka: vlastni modal (NE prompt — ten na mobilu blokuje a sekne se z nej kamera)
 function editPointNote() {
     const id = activePointIdForModal; if (!id) return;
     loadPointDoc(id).then(doc => {
-        doc = doc || {};
-        const txt = prompt('Poznámka k bodu (stabilizace, popis, číslo náčrtu…):', doc.note || '');
-        if (txt === null) return;
-        doc.note = txt.trim(); doc.t = Date.now();
-        if (!doc.note && !doc.photo) { deletePointDoc(id).then(() => renderPointDoc(id)); return; }
-        savePointDoc(id, doc).then(() => renderPointDoc(id));
+        doc = _normalizeDoc(doc || {});
+        let ov = document.getElementById('note-modal'); if (ov) ov.remove();
+        ov = document.createElement('div'); ov.id = 'note-modal'; ov.className = 'modal-overlay'; ov.style.zIndex = '100051'; ov.style.display = 'flex';
+        ov.innerHTML = `<div class="modal-content"><h3 style="color:var(--accent); margin-top:0;">Poznámka k bodu</h3>
+            <textarea id="note-ta" rows="4" placeholder="Stabilizace, popis, číslo náčrtu…"></textarea>
+            <div class="row-buttons">
+                <button class="btn btn-secondary" onclick="document.getElementById('note-modal').remove()">Zrušit</button>
+                <button class="btn btn-primary" id="note-save">Uložit</button>
+            </div></div>`;
+        document.body.appendChild(ov);
+        const ta = document.getElementById('note-ta'); ta.value = doc.note || ''; ta.focus();
+        document.getElementById('note-save').onclick = () => {
+            const v = ta.value.trim(); ov.remove();
+            doc.note = v; doc.t = Date.now();
+            if (!doc.note && (!doc.photos || !doc.photos.length)) { deletePointDoc(id).then(() => renderPointDoc(id)); return; }
+            savePointDoc(id, doc).then(() => renderPointDoc(id));
+        };
     });
 }
 
-function removePointPhoto(id) {
+// ---------- editor fotky: poloprusvitna sipka k hrebu ----------
+let _peState = null;
+function editPhoto(id, idx) {
     loadPointDoc(id).then(doc => {
-        if (!doc) return;
-        delete doc.photo;
-        if (!doc.note) { deletePointDoc(id).then(() => renderPointDoc(id)); return; }
-        savePointDoc(id, doc).then(() => renderPointDoc(id));
+        _normalizeDoc(doc);
+        const src = (doc && doc.photos) ? doc.photos[idx] : null;
+        if (!src) return;
+        const img = new Image();
+        img.onload = () => {
+            let ov = document.getElementById('photo-editor'); if (ov) ov.remove();
+            ov = document.createElement('div'); ov.id = 'photo-editor'; ov.className = 'photo-editor';
+            ov.innerHTML = `<div class="pe-hint">Táhni prstem od kraje k hřebu — vznikne poloprůhledná šipka.</div>
+                <canvas id="pe-canvas"></canvas>
+                <div class="pe-bar">
+                    <button class="pe-btn" onclick="_peClear()">Smazat šipku</button>
+                    <button class="pe-btn pe-cancel" onclick="_peClose()">Zrušit</button>
+                    <button class="pe-btn pe-save" onclick="_peSave()">Uložit</button>
+                </div>`;
+            document.body.appendChild(ov);
+            const cv = document.getElementById('pe-canvas');
+            cv.width = img.naturalWidth; cv.height = img.naturalHeight;
+            _peState = { id: id, idx: idx, img: img, cv: cv, ctx: cv.getContext('2d'), arrow: null, drawing: false };
+            _peRedraw();
+            const getXY = (ev) => {
+                const r = cv.getBoundingClientRect();
+                const t = (ev.touches && ev.touches[0]) ? ev.touches[0] : ev;
+                return { x: (t.clientX - r.left) * (cv.width / r.width), y: (t.clientY - r.top) * (cv.height / r.height) };
+            };
+            cv.addEventListener('pointerdown', (ev) => { ev.preventDefault(); const p = getXY(ev); _peState.arrow = { x1: p.x, y1: p.y, x2: p.x, y2: p.y }; _peState.drawing = true; _peRedraw(); });
+            cv.addEventListener('pointermove', (ev) => { if (!_peState || !_peState.drawing) return; ev.preventDefault(); const p = getXY(ev); _peState.arrow.x2 = p.x; _peState.arrow.y2 = p.y; _peRedraw(); });
+            cv.addEventListener('pointerup', () => { if (_peState) _peState.drawing = false; });
+            cv.addEventListener('pointercancel', () => { if (_peState) _peState.drawing = false; });
+        };
+        img.src = src;
     });
 }
-
-function viewPhotoFull(id) {
+function _peRedraw() {
+    const s = _peState; if (!s) return;
+    s.ctx.drawImage(s.img, 0, 0);
+    if (s.arrow) _peDrawArrow(s.ctx, s.arrow, Math.max(s.cv.width, s.cv.height));
+}
+function _peDrawArrow(ctx, a, dim) {
+    const dx = a.x2 - a.x1, dy = a.y2 - a.y1; const len = Math.hypot(dx, dy); if (len < 4) return;
+    const w = Math.max(4, dim / 90); const head = w * 4.5; const ang = Math.atan2(dy, dx);
+    ctx.save();
+    ctx.globalAlpha = 0.6;                 // poloprusvitne — at je videt, co je za sipkou
+    ctx.strokeStyle = '#ff2d2d'; ctx.fillStyle = '#ff2d2d';
+    ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.shadowColor = 'rgba(255,255,255,0.9)'; ctx.shadowBlur = w * 1.3;   // bila kontura pro citelnost
+    const bx = a.x2 - Math.cos(ang) * head * 0.8, by = a.y2 - Math.sin(ang) * head * 0.8;
+    ctx.beginPath(); ctx.moveTo(a.x1, a.y1); ctx.lineTo(bx, by); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(a.x2, a.y2);
+    ctx.lineTo(a.x2 - head * Math.cos(ang - 0.45), a.y2 - head * Math.sin(ang - 0.45));
+    ctx.lineTo(a.x2 - head * Math.cos(ang + 0.45), a.y2 - head * Math.sin(ang + 0.45));
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+}
+function _peClear() { if (_peState) { _peState.arrow = null; _peRedraw(); } }
+function _peClose() { const ov = document.getElementById('photo-editor'); if (ov) ov.remove(); _peState = null; }
+function _peSave() {
+    const s = _peState; if (!s) return;
+    if (!s.arrow) { _peClose(); return; }
+    let dataUrl; try { dataUrl = s.cv.toDataURL('image/jpeg', 0.72); } catch (e) { alert('Uložení se nezdařilo.'); return; }
+    const id = s.id, idx = s.idx;
     loadPointDoc(id).then(doc => {
-        if (!doc || !doc.photo) return;
-        let v = document.getElementById('photo-viewer');
-        if (!v) { v = document.createElement('div'); v.id = 'photo-viewer'; v.className = 'photo-viewer'; v.onclick = () => v.remove(); document.body.appendChild(v); }
-        v.innerHTML = `<button class="pv-close" onclick="document.getElementById('photo-viewer').remove()">✕</button><img src="${doc.photo}">`;
+        _normalizeDoc(doc);
+        if (doc && doc.photos && doc.photos[idx] != null) {
+            doc.photos[idx] = dataUrl; doc.t = Date.now();
+            savePointDoc(id, doc).then(() => { _peClose(); renderPointDoc(id); });
+        } else { _peClose(); }
     });
 }
 
@@ -879,7 +993,7 @@ function viewPhotoFull(id) {
         sec.innerHTML = `<div class="pd-head">Foto-dokumentace</div>
             <div class="pd-view" id="pd-view"></div>
             <div class="pd-actions">
-                <label class="pd-btn"><svg class="icon"><use href="#i-camera"/></svg> Vyfotit / vybrat<input type="file" accept="image/*" capture="environment" style="display:none;" onchange="onPointPhoto(event)"></label>
+                <label class="pd-btn" id="pd-add-btn"><svg class="icon"><use href="#i-camera"/></svg> Vyfotit / vybrat<input type="file" accept="image/*" capture="environment" style="display:none;" onchange="onPointPhoto(event)"></label>
                 <button class="pd-btn" onclick="editPointNote()"><svg class="icon"><use href="#i-edit"/></svg> Poznámka</button>
             </div>`;
         body.appendChild(sec);
@@ -889,13 +1003,12 @@ function viewPhotoFull(id) {
 
 // export bodu (JSON) vc. foto-dokumentace
 (function () {
-    const _origExport = window.exportPoints;
     window.exportPoints = async function () {
         if (typeof persistentCustomPoints === 'undefined' || persistentCustomPoints.length === 0) return alert('Nemáte žádné body.');
         const out = [];
         for (const pt of persistentCustomPoints) {
             const o = Object.assign({}, pt);
-            try { const doc = await loadPointDoc(pt.id); if (doc && (doc.photo || doc.note)) o.doc = doc; } catch (e) {}
+            try { const doc = await loadPointDoc(pt.id); _normalizeDoc(doc); if (doc && ((doc.photos && doc.photos.length) || doc.note)) o.doc = doc; } catch (e) {}
             out.push(o);
         }
         const a = document.createElement('a');
@@ -921,7 +1034,7 @@ function viewPhotoFull(id) {
                 if (!persistentCustomPoints.find(ex => ex.name === p.name && Math.abs(ex.lat - p.lat) < 0.0001)) {
                     const id = 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6);
                     persistentCustomPoints.push({ id: id, name: p.name || 'Bod', lat: p.lat, lng: p.lng, cat: 'CUSTOM', type: 'custom' });
-                    if (p.doc && (p.doc.photo || p.doc.note)) { try { savePointDoc(id, p.doc); } catch (er) {} }
+                    if (p.doc) { try { savePointDoc(id, _normalizeDoc(p.doc)); } catch (er) {} }
                     added++;
                 }
             });
@@ -953,15 +1066,26 @@ function viewPhotoFull(id) {
         .point-doc { margin-top: 14px; border-top: 1px solid var(--glass-border); padding-top: 12px; }
         .pd-head { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.55; margin-bottom: 8px; }
         .pd-empty { font-size: 13px; opacity: 0.5; font-style: italic; padding: 2px 0 10px; }
-        .pd-img { width: 100%; border-radius: 12px; display: block; margin-bottom: 8px; }
+        .pd-thumbs { display: flex; gap: 8px; margin-bottom: 8px; }
+        .pd-thumb { position: relative; flex: 1 1 0; min-width: 0; }
+        .pd-thumb img { width: 100%; height: 88px; object-fit: cover; border-radius: 10px; display: block; }
+        .pd-th-edit, .pd-th-del { position: absolute; top: 5px; width: 26px; height: 26px; border-radius: 50%; border: none; color: #fff; font-size: 13px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .pd-th-edit { left: 5px; background: rgba(0,0,0,0.55); }
+        .pd-th-del { right: 5px; background: rgba(239,68,68,0.82); }
         .pd-note { font-size: 14px; line-height: 1.4; background: rgba(255,255,255,0.05); border-radius: 10px; padding: 9px 12px; margin-bottom: 8px; white-space: pre-wrap; word-break: break-word; }
         .pd-actions { display: flex; gap: 8px; }
         .pd-btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 11px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.06); color: var(--text-color); font-size: 14px; font-weight: 600; cursor: pointer; }
         .pd-btn:active { transform: scale(0.97); }
-        .pd-del { width: 100%; margin-top: 2px; padding: 9px; border-radius: 10px; border: 1px solid rgba(239,68,68,0.45); background: transparent; color: #ff8585; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+        #note-modal textarea { width: 100%; resize: vertical; background: rgba(0,0,0,0.25); border: 1px solid var(--glass-border); border-radius: 10px; color: var(--text-color); padding: 10px; font-size: 15px; font-family: inherit; box-sizing: border-box; }
         .photo-viewer { position: fixed; inset: 0; z-index: 100050; background: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center; padding: 16px; }
         .photo-viewer img { max-width: 100%; max-height: 92%; border-radius: 8px; }
         .photo-viewer .pv-close { position: absolute; top: 16px; right: 16px; width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.16); color: #fff; border: none; font-size: 20px; cursor: pointer; }
+        .photo-editor { position: fixed; inset: 0; z-index: 100060; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .photo-editor .pe-hint { color: #fff; font-size: 13px; padding: 10px 16px; opacity: 0.85; text-align: center; }
+        .photo-editor canvas { max-width: 100%; max-height: calc(100% - 130px); touch-action: none; border-radius: 6px; }
+        .photo-editor .pe-bar { display: flex; gap: 8px; padding: 14px; width: 100%; max-width: 480px; box-sizing: border-box; }
+        .photo-editor .pe-btn { flex: 1; padding: 12px 6px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.1); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .photo-editor .pe-save { background: var(--accent); color: #04211c; border: none; }
     `;
     document.head.appendChild(st);
 })();
