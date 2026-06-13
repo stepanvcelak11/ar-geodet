@@ -35,16 +35,103 @@ if ('serviceWorker' in navigator) {
             localStorage.setItem('arProjects_migrated', 'true');
         }
         function getStoreKey(key) { return `${activeProjectId}_${key}`; }
-        function getStoredData(key) { return localStorage.getItem(getStoreKey(key)); }
+
+        // ---- IndexedDB pro velka data (body): bez ~5MB limitu localStorage ----
+        // Velka pole bodu drzime v IndexedDB; v pameti je synchronni cache (_idbMem),
+        // aby getStoredData/setStoredData zustaly synchronni jako dosud.
+        const IDB_KEYS = ['arOfflinePoints12', 'arCustomPoints12'];
+        let _idb = null, _idbOk = false, _idbMem = {};
+        function _openIdb() {
+            return new Promise((resolve) => {
+                if (_idb) return resolve(_idb);
+                let req; try { req = indexedDB.open('argeodet', 1); } catch (e) { return resolve(null); }
+                req.onupgradeneeded = () => { try { req.result.createObjectStore('kv'); } catch (e) {} };
+                req.onsuccess = () => { _idb = req.result; _idbOk = true; resolve(_idb); };
+                req.onerror = () => resolve(null);
+            });
+        }
+        function _idbOp(mode, fn) {
+            return new Promise((resolve) => {
+                _openIdb().then((db) => {
+                    if (!db) return resolve(null);
+                    try {
+                        const tx = db.transaction('kv', mode), store = tx.objectStore('kv');
+                        const r = fn(store);
+                        tx.oncomplete = () => resolve(r ? r.result : null);
+                        tx.onerror = () => resolve(null);
+                    } catch (e) { resolve(null); }
+                });
+            });
+        }
+        function _idbGet(fk) { return _idbOp('readonly', s => s.get(fk)); }
+        function _idbSet(fk, v) { return _idbOp('readwrite', s => s.put(v, fk)); }
+        function _idbDel(fk) { return _idbOp('readwrite', s => s.delete(fk)); }
+        // dump/restore celeho kv storu — pro zalohu vsech dat (zaloha.js)
+        function idbDumpAll() {
+            return new Promise((resolve) => {
+                _openIdb().then((db) => {
+                    if (!db) return resolve({});
+                    try {
+                        const out = {};
+                        const tx = db.transaction('kv', 'readonly');
+                        const req = tx.objectStore('kv').openCursor();
+                        req.onsuccess = (e) => { const c = e.target.result; if (c) { out[c.key] = c.value; c.continue(); } };
+                        tx.oncomplete = () => resolve(out);
+                        tx.onerror = () => resolve(out);
+                    } catch (e) { resolve({}); }
+                });
+            });
+        }
+        function idbRestoreAll(obj) {
+            return new Promise((resolve) => {
+                if (!obj || typeof obj !== 'object') return resolve();
+                _openIdb().then((db) => {
+                    if (!db) return resolve();
+                    try {
+                        const tx = db.transaction('kv', 'readwrite');
+                        const store = tx.objectStore('kv');
+                        Object.keys(obj).forEach(k => store.put(obj[k], k));
+                        tx.oncomplete = () => resolve();
+                        tx.onerror = () => resolve();
+                    } catch (e) { resolve(); }
+                });
+            });
+        }
+        // nahydruje velka data aktivni zakazky do synchronni cache (+ jednorazova migrace z localStorage)
+        async function hydrateActiveProject() {
+            for (const key of IDB_KEYS) {
+                const fk = `${activeProjectId}_${key}`;
+                let val = await _idbGet(fk);
+                if (val == null) {
+                    const ls = localStorage.getItem(fk);
+                    if (ls != null) { await _idbSet(fk, ls); val = ls; if (_idbOk) { try { localStorage.removeItem(fk); } catch (e) {} } }
+                }
+                if (val != null) _idbMem[fk] = val; else delete _idbMem[fk];
+            }
+        }
+        function getStoredData(key) {
+            const fk = getStoreKey(key);
+            if (IDB_KEYS.indexOf(key) >= 0) return (fk in _idbMem) ? _idbMem[fk] : localStorage.getItem(fk);
+            return localStorage.getItem(fk);
+        }
         let _quotaWarned = false;
         function setStoredData(key, val) {
-            try { localStorage.setItem(getStoreKey(key), val); return true; }
+            const fk = getStoreKey(key);
+            if (IDB_KEYS.indexOf(key) >= 0) {
+                _idbMem[fk] = val;
+                if (_idbOk) { _idbSet(fk, val); try { localStorage.removeItem(fk); } catch (e) {} return true; }
+            }
+            try { localStorage.setItem(fk, val); return true; }
             catch (e) {
                 if (!_quotaWarned) { _quotaWarned = true; alert('Úložiště telefonu je plné — data se neuložila. Uvolněte místo (smažte starou zakázku nebo stáhnuté offline okolí v Nastavení).'); }
                 return false;
             }
         }
-        function removeStoredData(key) { localStorage.removeItem(getStoreKey(key)); }
+        function removeStoredData(key) {
+            const fk = getStoreKey(key);
+            if (IDB_KEYS.indexOf(key) >= 0) { delete _idbMem[fk]; if (_idbOk) _idbDel(fk); }
+            localStorage.removeItem(fk);
+        }
 
         let appStarted = false, viewMode = 'both', searchQuery = '', cameraStarted = false, currentVideoStream = null;
         let mapRadius = 1000, arRadius = 150;
@@ -62,9 +149,9 @@ if ('serviceWorker' in navigator) {
 
         let visSettings = { maxARPoints: 100, arVerticalOffset: 0, markerScale: 1.0, markerOpacity: 100, colTb: '#8b5cf6', colZhb: '#0ea5e9', colPbpp: '#3b82f6', colNivel: '#ef4444', colCustom: '#34d399', arrowScale: 1.0, arrowOpacity: 90, arrowShape: '1', colArrow: '#34d399', panelOpacity: 85, menuScale: 1.0, hudTop: 55, hudSide: 15, wakeLockEnabled: true, outdoorMode: false, katastrSource: 'mapycz', baseLayer: 'osm', showKatastr: false, headingSmoothing: 75, autoCompassCorrection: true, tiltCompensation: true, fovH: 90, fovV: 75, eyeHeight: 1.6 };
         
-        function changeProject() { activeProjectId = document.getElementById('w-project-select').value; localStorage.setItem('arActiveProjectId', activeProjectId); loadProjectSettings(); }
-        function createNewProject() { let name = prompt("Název nové zakázky:"); if(name) { let id = 'proj_' + Date.now(); projects.push({id: id, name: name}); localStorage.setItem('arProjectsList', JSON.stringify(projects)); activeProjectId = id; localStorage.setItem('arActiveProjectId', activeProjectId); renderProjectSelect(); loadProjectSettings(); } }
-        function deleteProject() { if(projects.length <= 1) return alert("Nelze smazat poslední zakázku."); if(!confirm("Opravdu smazat aktuální zakázku a všechny její uložené body?")) return; projects = projects.filter(p => p.id !== activeProjectId); localStorage.setItem('arProjectsList', JSON.stringify(projects)); activeProjectId = projects[0].id; localStorage.setItem('arActiveProjectId', activeProjectId); renderProjectSelect(); loadProjectSettings(); }
+        function changeProject() { activeProjectId = document.getElementById('w-project-select').value; localStorage.setItem('arActiveProjectId', activeProjectId); hydrateActiveProject().then(loadProjectSettings); }
+        function createNewProject() { let name = prompt("Název nové zakázky:"); if(name) { let id = 'proj_' + Date.now(); projects.push({id: id, name: name}); localStorage.setItem('arProjectsList', JSON.stringify(projects)); activeProjectId = id; localStorage.setItem('arActiveProjectId', activeProjectId); renderProjectSelect(); hydrateActiveProject().then(loadProjectSettings); } }
+        function deleteProject() { if(projects.length <= 1) return alert("Nelze smazat poslední zakázku."); if(!confirm("Opravdu smazat aktuální zakázku a všechny její uložené body?")) return; IDB_KEYS.forEach(k => { _idbDel(activeProjectId + "_" + k); try { localStorage.removeItem(activeProjectId + "_" + k); } catch(e){} }); projects = projects.filter(p => p.id !== activeProjectId); localStorage.setItem('arProjectsList', JSON.stringify(projects)); activeProjectId = projects[0].id; localStorage.setItem('arActiveProjectId', activeProjectId); renderProjectSelect(); hydrateActiveProject().then(loadProjectSettings); }
 
         function loadProjectSettings() {
             let f = getStoredData('arFilters12'); if(f) filters = JSON.parse(f); else filters = { tb: true, zhb: true, pbpp: true, nivel: true, custom: true };
@@ -87,7 +174,7 @@ if ('serviceWorker' in navigator) {
             if(appStarted) { drawAllMarkersOnMap(); initARMarkers(); if(userLat && userLng) initFetch(userLat, userLng); }
         }
 
-        window.addEventListener('DOMContentLoaded', () => { renderProjectSelect(); loadProjectSettings(); });
+        window.addEventListener('DOMContentLoaded', () => { renderProjectSelect(); hydrateActiveProject().then(loadProjectSettings); });
 
         async function requestWakeLock() { if ('wakeLock' in navigator && visSettings.wakeLockEnabled) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } }
         document.addEventListener('visibilitychange', () => { if (wakeLock !== null && document.visibilityState === 'visible' && visSettings.wakeLockEnabled) { requestWakeLock(); } });

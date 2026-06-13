@@ -94,7 +94,9 @@ const CALC_TOOLS = [
     { id: 'polygon', g: 'vyrovnani', name: 'Polygonový pořad', desc: 'oboustranně připojený a orientovaný' },
     { id: 'tachy', g: 'vysky', name: 'Tachymetrie', desc: 'polární dávka, volitelně s výškami' },
     { id: 'nivel', g: 'vysky', name: 'Nivelační zápisník', desc: 'výšky z čtení zpět/vpřed' },
-    { id: 'sci', g: 'pomucky', name: 'Vědecká kalkulačka', desc: 'běžné výpočty a funkce, ° / gon / rad' }
+    { id: 'sci', g: 'pomucky', name: 'Vědecká kalkulačka', desc: 'běžné výpočty a funkce, ° / gon / rad' },
+    { id: 'prevod', g: 'pomucky', name: 'Převodník souřadnic', desc: 'S-JTSK ↔ WGS84 ↔ UTM 33N' },
+    { id: 'redukce', g: 'pomucky', name: 'Redukce délky do S-JTSK', desc: 'měřítkové zkreslení Křováka' }
 ];
 
 function ensureCalcModal() {
@@ -534,6 +536,7 @@ let _sciTokens = [];
 let _sciAngle = 'gon';        // 'deg' | 'gon' | 'rad'
 let _sciJustEval = false;
 let _sciError = false;
+let _sciHist = [];
 
 function renderCalc_sci(body) {
     _sciTokens = []; _sciJustEval = false; _sciError = false;
@@ -544,6 +547,7 @@ function renderCalc_sci(body) {
             <button data-m="gon" onclick="sciSetAngle('gon')">gony</button>
             <button data-m="rad" onclick="sciSetAngle('rad')">rad</button>
         </div>
+        <div class="sci-hist" id="sci-hist"></div>
         <div class="sci-display"><div class="sci-expr" id="sci-expr">0</div><div class="sci-res" id="sci-res">&nbsp;</div></div>
         <div class="sci-pad sci-fn">
             ${k("sciFunc('sin(')", 'sin')}${k("sciFunc('cos(')", 'cos')}${k("sciFunc('tan(')", 'tan')}${k("sciDel()", '⌫', 'sci-warn')}
@@ -561,6 +565,7 @@ function renderCalc_sci(body) {
         <button class="btn btn-blue sci-eq" onclick="sciEquals()">=</button>`;
     sciSetAngle(_sciAngle);
     _sciRender();
+    _sciHistRender();
 }
 
 function sciSetAngle(m) {
@@ -651,6 +656,7 @@ function sciEquals() {
         return;
     }
     if (res) res.innerText = '= ' + out;
+    _sciHist.unshift(out); if (_sciHist.length > 12) _sciHist.pop(); _sciHistRender();
     _sciTokens = [out];
     _sciJustEval = true; _sciError = false;
     _sciRender();
@@ -673,6 +679,106 @@ function sciEquals() {
         .sci-key.sci-op { background:rgba(59,130,246,0.18); color:#bcd7ff; }
         .sci-key.sci-warn { background:rgba(239,68,68,0.16); color:#ff9d9d; }
         .sci-eq { margin-top:0; padding:8px; font-size:15px; }
+        .sci-hist { display:none; gap:5px; overflow-x:auto; white-space:nowrap; margin-bottom:6px; }
+        .sci-hchip { flex:0 0 auto; padding:4px 9px; border-radius:8px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.05); color:var(--text-color); font-family:var(--font-mono,monospace); font-size:12.5px; cursor:pointer; }
     `;
     document.head.appendChild(st);
 })();
+
+
+// ============================================================
+// HISTORIE vedecke kalkulacky (#7), PREVODNIK (#3), REDUKCE DELKY (#4)
+
+function _sciHistRender() {
+    const el = document.getElementById('sci-hist'); if (!el) return;
+    if (!_sciHist.length) { el.innerHTML = ''; el.style.display = 'none'; return; }
+    el.style.display = 'flex';
+    el.innerHTML = _sciHist.map(v => `<button class="sci-hchip" onclick="sciRecall('${v}')">${v}</button>`).join('');
+}
+function sciRecall(v) {
+    _sciAfterEval(false);
+    if (_sciTokens.length && _sciValueEnd(_sciTokens[_sciTokens.length - 1])) _sciTokens.push('×');
+    _sciTokens.push(String(v));
+    _sciRender();
+}
+
+// ---------- 3) PREVODNIK SOURADNIC (S-JTSK / WGS84 / UTM 33N) ----------
+function renderCalc_prevod(body) {
+    body.innerHTML = `<label style="margin-top:0;">Zdrojový systém</label>
+        <select id="pv-src" onchange="pvSrcChanged()">
+            <option value="sjtsk">S-JTSK (Y, X)</option>
+            <option value="wgs">WGS84 (šířka, délka)</option>
+            <option value="utm">UTM 33N (E, N)</option>
+        </select>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+            <div style="flex:1;"><label id="pv-la" style="margin-top:0;">Y</label><input type="text" inputmode="decimal" autocomplete="off" id="pv-a"></div>
+            <div style="flex:1;"><label id="pv-lb" style="margin-top:0;">X</label><input type="text" inputmode="decimal" autocomplete="off" id="pv-b"></div>
+        </div>
+        <button class="btn btn-blue" style="margin-top:14px;" onclick="calcPrevod()">Převést</button><div id="calc-result"></div>`;
+    pvSrcChanged();
+}
+function pvSrcChanged() {
+    const s = document.getElementById('pv-src').value;
+    const la = document.getElementById('pv-la'), lb = document.getElementById('pv-lb');
+    const a = document.getElementById('pv-a'), b = document.getElementById('pv-b');
+    if (s === 'sjtsk') { la.innerText = 'Y [m]'; lb.innerText = 'X [m]'; a.placeholder = '740000'; b.placeholder = '1043000'; }
+    else if (s === 'wgs') { la.innerText = 'Šířka N [°]'; lb.innerText = 'Délka E [°]'; a.placeholder = '50.08'; b.placeholder = '14.42'; }
+    else { la.innerText = 'Easting [m]'; lb.innerText = 'Northing [m]'; a.placeholder = '458000'; b.placeholder = '5548000'; }
+}
+function calcPrevod() {
+    try {
+        const s = document.getElementById('pv-src').value;
+        const a = _cv('pv-a'), b = _cv('pv-b');
+        if (a == null || b == null) throw 'Vyplňte obě souřadnice.';
+        proj4.defs('UTM33N', '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs');
+        let lat, lng;
+        if (s === 'sjtsk') { const c = sjtskToLatLng(Math.abs(a), Math.abs(b)); lat = c.lat; lng = c.lng; }
+        else if (s === 'wgs') { lat = a; lng = b; }
+        else { const w = proj4('UTM33N', 'EPSG:4326', [a, b]); lng = w[0]; lat = w[1]; }
+        if (!isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) throw 'Souřadnice jsou mimo rozsah.';
+        const sj = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]);
+        const utm = proj4('EPSG:4326', 'UTM33N', [lng, lat]);
+        document.getElementById('calc-result').innerHTML = _resBox(
+            _row('<b>S-JTSK Y</b>', '<b>' + Math.abs(sj[0]).toFixed(2) + '</b>') + _row('<b>S-JTSK X</b>', '<b>' + Math.abs(sj[1]).toFixed(2) + '</b>')
+            + _row('WGS84 šířka', lat.toFixed(7) + ' °') + _row('WGS84 délka', lng.toFixed(7) + ' °')
+            + _row('UTM 33N E', utm[0].toFixed(2) + ' m') + _row('UTM 33N N', utm[1].toFixed(2) + ' m'));
+    } catch (e) { _calcErr(e); }
+}
+
+// ---------- 4) REDUKCE DELKY DO S-JTSK (meritkove zkresleni Krovaka) ----------
+// Meritkovy faktor numericky: 1000 m v rovine S-JTSK / skutecna elipsoidalni delka na Besselu.
+function _sjtskScale(Y, X) {
+    proj4.defs('BESSEL_LL', '+proj=longlat +ellps=bessel +no_defs');
+    proj4.defs('KROVAK_ND', '+proj=krovak +lat_0=49.5 +lon_0=24.83333333333333 +alpha=30.28813972222222 +k=0.9999 +x_0=0 +y_0=0 +ellps=bessel +units=m +no_defs');
+    const ll1 = proj4('KROVAK_ND', 'BESSEL_LL', [-Y, -X]);
+    const ll2 = proj4('KROVAK_ND', 'BESSEL_LL', [-Y, -(X + 1000)]);
+    const a = 6377397.155, f = 1 / 299.15281285, e2 = f * (2 - f);
+    const ecef = (lon, lat) => {
+        const la = lat * Math.PI / 180, lo = lon * Math.PI / 180;
+        const Nr = a / Math.sqrt(1 - e2 * Math.sin(la) * Math.sin(la));
+        return [Nr * Math.cos(la) * Math.cos(lo), Nr * Math.cos(la) * Math.sin(lo), Nr * (1 - e2) * Math.sin(la)];
+    };
+    const p1 = ecef(ll1[0], ll1[1]), p2 = ecef(ll2[0], ll2[1]);
+    const dTrue = Math.hypot(p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]);
+    return 1000 / dTrue;
+}
+function renderCalc_redukce(body) {
+    body.innerHTML = `<p style="font-size:12px; opacity:0.75; margin:0 0 4px;">Změřenou vodorovnou délku zredukuje do roviny S-JTSK podle měřítkového zkreslení Křováka v dané poloze (−10 až +14 cm/km napříč ČR). Pro krátké úlohy zanedbatelné, pro dlouhé pořady zásadní.</p>`
+        + _ptFld('rd-p', 'Poloha (kdekoli v oblasti měření)')
+        + _fld('rd-d', 'Změřená vodorovná délka [m]', 'nepovinné — pro přepočet')
+        + `<button class="btn btn-blue" style="margin-top:14px;" onclick="calcRedukce()">Spočítat</button><div id="calc-result"></div>`;
+}
+function calcRedukce() {
+    try {
+        const P = _getPt('rd-p', 'polohu');
+        const m = _sjtskScale(P.y, P.x);
+        const cmkm = (m - 1) * 100000;
+        const dm = _cv('rd-d');
+        let dRow = '';
+        if (dm != null) dRow = _row('<b>Délka v S-JTSK</b>', '<b>' + (dm * m).toFixed(3) + ' m</b>') + _row('Oprava délky', ((dm * m - dm) * 1000).toFixed(1) + ' mm');
+        document.getElementById('calc-result').innerHTML = _resBox(
+            _row('Měřítkový faktor m', m.toFixed(7))
+            + _row('Délkové zkreslení', (cmkm >= 0 ? '+' : '') + cmkm.toFixed(1) + ' cm/km')
+            + dRow);
+    } catch (e) { _calcErr(e); }
+}

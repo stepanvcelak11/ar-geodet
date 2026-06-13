@@ -268,3 +268,41 @@ function findBestSatTime() {
     document.head.appendChild(st);
     loadTleFromCache();
 })();
+
+
+// ---------- PDOP v hlavnim info panelu (#5: kvalita geometrie druzic) ----------
+// Rozsiruje updateInfoPanel z grafika.js o radek "Druzice N · PDOP x".
+// Pocita se max 1x za 8 s (SGP4 je levne, ale zbytecne kazdy snimek); pri prazdne
+// cache TLE se jednou potichu stahnou drahy, at se PDOP objevi i bez otevreni Satelitu.
+(function () {
+    if (typeof updateInfoPanel !== 'function') return;
+    const _orig = updateInfoPanel;
+    let _pdopT = 0, _pdopCache = null, _triedFetch = false;
+    updateInfoPanel = function () {
+        _orig();
+        const infoEl = document.getElementById('info');
+        if (!infoEl || !appStarted || userLat == null) return;
+        if (!tleSats.length) {
+            if (!_triedFetch && navigator.onLine && typeof refreshTLE === 'function') {
+                _triedFetch = true;
+                refreshTLE(true).then(() => { try { updateInfoPanel(); } catch (e) {} });
+            }
+            return;
+        }
+        const now = Date.now();
+        if (now - _pdopT > 8000) {
+            _pdopT = now;
+            try {
+                const obs = computeSatPositions(new Date());
+                _pdopCache = { pdop: computePDOP(obs), vis: obs.filter(o => o.el >= SAT_EL_MASK).length };
+            } catch (e) { _pdopCache = null; }
+        }
+        if (!_pdopCache) return;
+        const p = _pdopCache.pdop;
+        let col = '#34d399';
+        if (p == null) col = 'var(--warning)';
+        else if (p > 6) col = 'var(--danger)';
+        else if (p > 3) col = '#fbbf24';
+        infoEl.innerHTML += `<div class="rdt"><span class="rdt-l">Družice</span><span class="rdt-v" style="color:${col};">${_pdopCache.vis} · PDOP ${p != null ? p.toFixed(1) : '—'}</span></div>`;
+    };
+})();
