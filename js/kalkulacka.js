@@ -531,7 +531,7 @@ function calcNivel() {
 // VEDECKA KALKULACKA (bezne vypocty + funkce; uhly v ° / gon / rad)
 // Vstup je ciste tlacitkovy (pole tokenu), takze vyraz nikdy neobsahuje volny text uzivatele.
 let _sciTokens = [];
-let _sciAngle = 'deg';        // 'deg' | 'gon' | 'rad'
+let _sciAngle = 'gon';        // 'deg' | 'gon' | 'rad'
 let _sciJustEval = false;
 let _sciError = false;
 
@@ -576,8 +576,27 @@ function _sciAfterEval(isOperator) {
     const res = document.getElementById('sci-res'); if (res) res.innerHTML = '&nbsp;';
 }
 
-function sciTok(t) { _sciAfterEval('+−×÷^'.indexOf(t) >= 0); _sciTokens.push(t); _sciRender(); }
-function sciFunc(t) { _sciAfterEval(false); _sciTokens.push(t); _sciRender(); }
+function _sciIsDigit(t) { return t.length === 1 && t >= '0' && t <= '9'; }
+function _sciValueEnd(t) {
+    if (!t) return false;
+    if (t === ')' || t === 'π' || t === 'e' || t === '^2') return true;
+    return /^-?\d*\.?\d+$/.test(t);   // cislice nebo cele cislo z vysledku
+}
+function _sciValueStart(t) {
+    return t === '(' || t === 'π' || t === 'e' || t === '√(' || (t.length > 1 && t.charAt(t.length - 1) === '(');
+}
+// vlozi nasobeni jen kde je implicitni (2π, 3sin(, )(, )2) — ne mezi cislice jednoho cisla
+function _sciMaybeMult(t) {
+    if (!_sciTokens.length) return;
+    const L = _sciTokens[_sciTokens.length - 1];
+    const tDigit = _sciIsDigit(t) || t === '.';
+    let mult = false;
+    if (_sciValueStart(t) && _sciValueEnd(L)) mult = true;
+    else if (tDigit && (L === ')' || L === 'π' || L === 'e' || L === '^2')) mult = true;
+    if (mult) _sciTokens.push('×');
+}
+function sciTok(t) { _sciAfterEval('+−×÷^'.indexOf(t) >= 0); _sciMaybeMult(t); _sciTokens.push(t); _sciRender(); }
+function sciFunc(t) { _sciAfterEval(false); _sciMaybeMult(t); _sciTokens.push(t); _sciRender(); }
 function sciDel() { _sciJustEval = false; _sciTokens.pop(); _sciRender(); }
 function sciClear() {
     _sciTokens = []; _sciJustEval = false; _sciError = false;
@@ -638,19 +657,19 @@ function sciEquals() {
 (function () {
     const st = document.createElement('style');
     st.textContent = `
-        .sci-angle { display:flex; gap:6px; margin-bottom:10px; }
-        .sci-angle button { flex:1; padding:9px 4px; border-radius:10px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.05); color:var(--text-color); font-size:13px; font-weight:600; cursor:pointer; }
+        .sci-angle { display:flex; gap:6px; margin-bottom:7px; }
+        .sci-angle button { flex:1; padding:6px 4px; border-radius:9px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.05); color:var(--text-color); font-size:12px; font-weight:600; cursor:pointer; }
         .sci-angle button.active { background:var(--accent); color:#04211c; border-color:var(--accent); }
-        .sci-display { background:rgba(0,0,0,0.28); border:1px solid var(--glass-border); border-radius:12px; padding:12px 14px; margin-bottom:12px; }
-        .sci-expr { font-family:var(--font-mono,monospace); font-size:22px; font-weight:600; text-align:right; overflow-x:auto; white-space:nowrap; }
-        .sci-res { font-family:var(--font-mono,monospace); font-size:15px; text-align:right; color:var(--accent); margin-top:4px; overflow-x:auto; white-space:nowrap; min-height:18px; }
-        .sci-pad { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:8px; }
-        .sci-key { padding:14px 4px; border-radius:12px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.06); color:var(--text-color); font-size:17px; font-weight:600; cursor:pointer; transition:filter 0.12s ease, transform 0.06s ease; }
+        .sci-display { background:rgba(0,0,0,0.28); border:1px solid var(--glass-border); border-radius:10px; padding:7px 11px; margin-bottom:7px; }
+        .sci-expr { font-family:var(--font-mono,monospace); font-size:18px; font-weight:600; text-align:right; overflow-x:auto; white-space:nowrap; }
+        .sci-res { font-family:var(--font-mono,monospace); font-size:13px; text-align:right; color:var(--accent); margin-top:2px; overflow-x:auto; white-space:nowrap; min-height:15px; }
+        .sci-pad { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:6px; }
+        .sci-key { padding:9px 4px; border-radius:10px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.06); color:var(--text-color); font-size:15px; font-weight:600; cursor:pointer; transition:filter 0.12s ease, transform 0.06s ease; }
         .sci-key:active { transform:scale(0.95); }
-        .sci-fn .sci-key { font-size:14px; background:rgba(255,255,255,0.03); }
+        .sci-fn .sci-key { font-size:12.5px; padding:8px 3px; background:rgba(255,255,255,0.03); }
         .sci-key.sci-op { background:rgba(59,130,246,0.18); color:#bcd7ff; }
         .sci-key.sci-warn { background:rgba(239,68,68,0.16); color:#ff9d9d; }
-        .sci-eq { margin-top:2px; font-size:18px; }
+        .sci-eq { margin-top:0; padding:10px; font-size:16px; }
     `;
     document.head.appendChild(st);
 })();
