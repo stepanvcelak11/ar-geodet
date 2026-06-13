@@ -8,22 +8,37 @@
 (function () {
     'use strict';
 
+    // Snapshot bere localStorage I IndexedDB-cache (_idbMem z logika.js). Body se ukladaji do
+    // IndexedDB, ne do localStorage — bez snimku _idbMem by se zmena (smazani bodu) nepoznala.
+    // _idbMem drzi data AKTIVNI zakazky, takze pokryje i smazani bodu i smazani aktivni zakazky.
     function snap() {
-        const o = {};
-        for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); o[k] = localStorage.getItem(k); }
-        return o;
+        const ls = {};
+        for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); ls[k] = localStorage.getItem(k); }
+        let mem = null;
+        try { if (typeof _idbMem !== 'undefined' && _idbMem) mem = JSON.parse(JSON.stringify(_idbMem)); } catch (e) {}
+        return { ls: ls, mem: mem };
     }
-    function changed(a, b) {
+    function objChanged(a, b) {
+        if (!a && !b) return false;
+        if (!a || !b) return true;
         const ka = Object.keys(a), kb = Object.keys(b);
         if (ka.length !== kb.length) return true;
         for (const k of ka) { if (a[k] !== b[k]) return true; }
         return false;
     }
+    function changed(a, b) { return objChanged(a.ls, b.ls) || objChanged(a.mem, b.mem); }
     function restore(s) {
         const cur = [];
         for (let i = 0; i < localStorage.length; i++) cur.push(localStorage.key(i));
-        cur.forEach(k => { if (!(k in s)) localStorage.removeItem(k); });
-        Object.keys(s).forEach(k => localStorage.setItem(k, s[k]));
+        cur.forEach(k => { if (!(k in s.ls)) localStorage.removeItem(k); });
+        Object.keys(s.ls).forEach(k => localStorage.setItem(k, s.ls[k]));
+        // IndexedDB (velka data: body) — vrat synchronni cache i samotne IDB
+        if (s.mem && typeof _idbMem !== 'undefined' && _idbMem) {
+            try {
+                Object.keys(_idbMem).forEach(k => { if (!(k in s.mem)) { delete _idbMem[k]; if (typeof _idbDel === 'function') _idbDel(k); } });
+                Object.keys(s.mem).forEach(k => { _idbMem[k] = s.mem[k]; if (typeof _idbSet === 'function') _idbSet(k, s.mem[k]); });
+            } catch (e) {}
+        }
     }
     // Obnova bez reloadu: vrati localStorage a necha appku prekreslit se z nej.
     function applyRestore(snapshot) {
