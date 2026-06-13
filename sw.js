@@ -7,7 +7,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  — mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v27';
+const SHELL_CACHE = 'argeodet-shell-v28';
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -23,10 +23,10 @@ const ASSETS_TO_CACHE = [
     './js/satelity.js',
     './js/kalkulacka.js',
     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-    'https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.min.js',
-    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-    'https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js',
-    'https://unpkg.com/satellite.js@5.0.0/dist/satellite.min.js'
+    './js/lib/proj4-2.9.0.min.js',
+    './js/lib/leaflet-1.9.4.js',
+    './js/lib/esri-leaflet-3.0.12.js',
+    './js/lib/satellite-5.0.0.min.js'
 ];
 
 // Mapove dlazdice (OSM, CUZK WMS) ukladame do TILE_CACHE, aby prezily update kodu.

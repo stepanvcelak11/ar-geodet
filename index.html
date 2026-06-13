@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Sora:wght@600;700;800&display=swap">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.min.js"></script>
+    <script src="js/lib/proj4-2.9.0.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -446,11 +446,11 @@
     <div id="resizer"><div class="grabber"></div></div>
     <div id="map-container"><div id="map-wrapper"><div id="map"></div></div><div id="map-controls"><div id="map-ctrl-stack"><button class="map-ctrl-btn glass-panel" id="btn-baselayer" onclick="cycleBaseLayer()" aria-label="Podklad mapy (OSM / ortofoto)"><svg class="icon"><use href="#i-layers"/></svg></button><button class="map-ctrl-btn glass-panel" id="btn-katastr" onclick="toggleKatastr()" aria-label="Katastrální mapa"><svg class="icon"><use href="#i-grid"/></svg></button><button class="map-ctrl-btn glass-panel" onclick="map.zoomIn()" aria-label="Přiblížit">+</button><button class="map-ctrl-btn glass-panel" onclick="map.zoomOut()" aria-label="Oddálit">−</button><button class="map-ctrl-btn glass-panel" onclick="recenterOnUser()" aria-label="Vycentrovat na mě"><svg class="icon"><use href="#i-crosshair"/></svg></button><button class="map-ctrl-btn glass-panel" onclick="openNearbyModal()" aria-label="Body v okolí"><svg class="icon"><use href="#i-list"/></svg></button><button class="map-ctrl-btn glass-panel" id="btn-connect" onclick="toggleConnectMode()" aria-label="Spojování bodů čarou"><svg class="icon"><use href="#i-line"/></svg></button></div><button class="map-ctrl-btn glass-panel" id="map-ctrl-toggle" onclick="toggleMapControls()" aria-label="Nástroje mapy"><svg class="icon"><use href="#i-sliders"/></svg></button></div></div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js"></script>
+    <script src="js/lib/leaflet-1.9.4.js"></script>
+    <script src="js/lib/esri-leaflet-3.0.12.js"></script>
     <script src="js/logika.js"></script>
     <script src="js/grafika.js"></script>
-    <script src="https://unpkg.com/satellite.js@5.0.0/dist/satellite.min.js"></script>
+    <script src="js/lib/satellite-5.0.0.min.js"></script>
     <script src="js/vytycovani.js"></script>
     <script src="js/satelity.js"></script>
     <script src="js/kalkulacka.js"></script>
