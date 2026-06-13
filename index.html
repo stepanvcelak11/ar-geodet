@@ -128,6 +128,7 @@
         <button class="menu-btn" onclick="openSatModal(); toggleMenu();"><svg class="icon"><use href="#i-satellite"/></svg> GNSS satelity (AR)</button>
         <button class="menu-btn" onclick="openSettings(); toggleMenu();"><svg class="icon"><use href="#i-settings"/></svg> Otevřít Nastavení</button>
         <button class="menu-btn" onclick="openManageModal(); toggleMenu();"><svg class="icon"><use href="#i-wrench"/></svg> Spravovat vlastní body</button>
+        <button class="menu-btn" onclick="openTachymetrie(); toggleMenu();"><svg class="icon"><use href="#i-grid"/></svg> Náčrt / Tachymetrie (beta)</button>
         <button class="menu-btn" style="background:var(--accent-blue);" onclick="saveForOffline(); toggleMenu();"><svg class="icon"><use href="#i-download"/></svg> Uložit pro Offline</button>
         <button class="menu-btn" onclick="openDictModal(); toggleMenu();"><svg class="icon"><use href="#i-book"/></svg> Geodetický slovník</button>
         <button class="menu-btn" onclick="startTutorial(); toggleMenu();"><svg class="icon"><use href="#i-bulb"/></svg> Návod a prohlídka aplikace</button>
@@ -479,6 +480,7 @@
     <script src="js/lib/qrcode.min.js"></script>
     <script src="js/lib/jsqr.min.js"></script>
     <script src="js/sdileni.js"></script>
+    <script src="js/tachymetrie.js"></script>
     <script>
         // Přepínač zobrazení v doku (AR / Split / Mapa) — využívá globální viewMode a applyViewMode() z grafika.js
         function setView(mode, btn) {
