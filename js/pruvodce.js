@@ -557,5 +557,3 @@
         document.head.appendChild(st);
     })();
 })();
-</content>
-</invoke>
