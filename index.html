@@ -130,6 +130,7 @@
         <button class="menu-btn" onclick="openManageModal(); toggleMenu();"><svg class="icon"><use href="#i-wrench"/></svg> Spravovat vlastní body</button>
         <button class="menu-btn" style="background:var(--accent-blue);" onclick="saveForOffline(); toggleMenu();"><svg class="icon"><use href="#i-download"/></svg> Uložit pro Offline</button>
         <button class="menu-btn" onclick="openDictModal(); toggleMenu();"><svg class="icon"><use href="#i-book"/></svg> Geodetický slovník</button>
+        <button class="menu-btn" onclick="startTutorial(); toggleMenu();"><svg class="icon"><use href="#i-bulb"/></svg> Návod a prohlídka aplikace</button>
         <button class="menu-btn" onclick="openAbout(); toggleMenu();"><svg class="icon"><use href="#i-file-text"/></svg> O aplikaci</button>
         <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
         <label class="menu-toggle-row"><input type="checkbox" id="tgl-info" checked onchange="toggleHudElements()"> Info panel a přesnost</label>
@@ -289,6 +290,8 @@
                 <div id="tab-funkce" class="settings-tab active">
                     <label style="margin-top:4px;">Aktivní zakázka</label>
                     <div style="display:flex; gap:8px; align-items:center; margin-bottom:15px;"><select id="s-project-select" class="w-proj-select" style="flex:1;" onchange="changeProjectFromSettings()"></select><button class="w-proj-icon" onclick="createNewProject()" aria-label="Nová zakázka"><svg class="icon"><use href="#i-plus"/></svg></button><button class="w-proj-icon danger" onclick="deleteProject()" aria-label="Smazat zakázku"><svg class="icon"><use href="#i-trash"/></svg></button></div>
+
+                    <button class="btn btn-secondary" style="margin-bottom: 15px;" onclick="startTutorial()"><svg class="icon"><use href="#i-bulb"/></svg> Spustit návod a prohlídku aplikace</button>
 
                     <div class="filter-group" style="margin-bottom: 15px;">
                         <label class="filter-row"><input type="checkbox" id="s-wakelock" checked><svg class="icon" style="margin-right:8px;"><use href="#i-bulb"/></svg> Zamezit zhasínání displeje</label>
@@ -461,6 +464,7 @@
     <script src="js/zaloha.js"></script>
     <script src="js/undo.js"></script>
     <script src="js/zakazky.js"></script>
+    <script src="js/tutorial.js"></script>
     <script>
         // Přepínač zobrazení v doku (AR / Split / Mapa) — využívá globální viewMode a applyViewMode() z grafika.js
         function setView(mode, btn) {
