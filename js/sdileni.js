@@ -1,0 +1,163 @@
+// ===== AR Geodet - SDILENI BODU PŘES QR =====
+// Bez serveru: kolega zobrazi QR ze svych vlastnich bodu, ja ho naskenuji kamerou
+// a body se mi pridaji (read-only kopie — cizi body neprepisuji, jen pridavam).
+// Vlastni body = persistentCustomPoints (cat 'CUSTOM'). Foto se do QR nevejde -> prenasi se
+// jen cislo + souradnice. Pouziva vendorovane knihovny: qrcode-generator (gen) a jsQR (scan).
+// Modul je samostatny: modaly i styly si vytvari sam, do zbytku kodu saha jen pres globaly.
+
+(function () {
+    'use strict';
+
+    const PREFIX = 'AG1';          // hlavicka payloadu (verze formatu)
+    let _scanStream = null, _scanRAF = null;
+
+    // ---------- Kodovani / dekodovani ----------
+    // Kompaktni format: "AG1\n<jmeno>\t<lat>\t<lng>\n..." (lat/lng na 6 mist ~0,1 m).
+    function encodePoints(pts) {
+        const lines = pts.map(p => {
+            const name = String(p.name || 'Bod').replace(/[\t\n\r]/g, ' ').slice(0, 40);
+            return name + '\t' + (+p.lat).toFixed(6) + '\t' + (+p.lng).toFixed(6);
+        });
+        return PREFIX + '\n' + lines.join('\n');
+    }
+    function decodePoints(txt) {
+        if (!txt) return null;
+        const rows = txt.replace(/\r/g, '').split('\n');
+        if (rows[0] !== PREFIX) return null;
+        const out = [];
+        for (let i = 1; i < rows.length; i++) {
+            if (!rows[i]) continue;
+            const c = rows[i].split('\t');
+            if (c.length < 3) continue;
+            const lat = parseFloat(c[1]), lng = parseFloat(c[2]);
+            if (isNaN(lat) || isNaN(lng)) continue;
+            out.push({ name: c[0] || 'Bod', lat: lat, lng: lng });
+        }
+        return out;
+    }
+
+    // ---------- Pridani naskenovanych bodu (nikdy neprepisuje, jen pridava) ----------
+    function importDecoded(pts) {
+        if (typeof persistentCustomPoints === 'undefined') { alert('Aplikace ještě není připravená.'); return; }
+        let added = 0, skipped = 0;
+        pts.forEach(np => {
+            // duplicita = stejne jmeno a poloha do ~0,5 m -> nepridavat znovu
+            const dup = persistentCustomPoints.some(ep => ep.name === np.name &&
+                (typeof getDistance === 'function' ? getDistance(ep.lat, ep.lng, np.lat, np.lng) < 0.5
+                    : Math.abs(ep.lat - np.lat) < 1e-5 && Math.abs(ep.lng - np.lng) < 1e-5));
+            if (dup) { skipped++; return; }
+            const pt = { id: 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6), name: np.name, lat: np.lat, lng: np.lng, cat: 'CUSTOM', type: 'custom', shared: true };
+            persistentCustomPoints.push(pt);
+            if (typeof arPoints !== 'undefined') arPoints.push({ ...pt, hidden: false });
+            added++;
+        });
+        if (added) {
+            try { setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); } catch (e) {}
+            try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) {}
+            try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) {}
+            try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) {}
+        }
+        const msg = `Přidáno ${added} bodů` + (skipped ? `, ${skipped} přeskočeno (už je máte)` : '') + '.';
+        if (typeof quickToast === 'function') quickToast(msg); else alert(msg);
+    }
+
+    // ---------- Modal: vytvoreni QR ----------
+    function buildShareModal() {
+        if (document.getElementById('qr-share-modal')) return;
+        const m = document.createElement('div');
+        m.className = 'modal-overlay'; m.id = 'qr-share-modal';
+        m.innerHTML = `<div class="modal-content" style="max-width:420px;">
+            <h3 style="color:var(--accent); margin-top:0;">Sdílet body přes QR</h3>
+            <div style="font-size:13px; color:var(--text-dim); margin-bottom:10px;">Kolega naskenuje tento kód a vaše vybrané body se mu přidají. Foto se nepřenáší.</div>
+            <div id="qr-share-list" class="modal-body" style="max-height:30vh; text-align:left;"></div>
+            <button class="btn btn-primary" id="qr-share-gen" style="margin-top:10px;">Vytvořit QR z vybraných</button>
+            <div id="qr-share-out" style="text-align:center; margin-top:12px;"></div>
+            <button class="btn btn-secondary" style="margin-top:14px;" onclick="document.getElementById('qr-share-modal').style.display='none';">Zavřít</button>
+        </div>`;
+        document.body.appendChild(m);
+        m.querySelector('#qr-share-gen').addEventListener('click', generateFromSelection);
+    }
+
+    window.openShareQR = function () {
+        if (typeof persistentCustomPoints === 'undefined' || !persistentCustomPoints.length) { alert('Nemáte žádné vlastní body ke sdílení.'); return; }
+        buildShareModal();
+        const list = document.getElementById('qr-share-list');
+        list.innerHTML = persistentCustomPoints.map((p, i) =>
+            `<label class="filter-row"><input type="checkbox" class="qr-share-cb" data-i="${i}" checked> #${(p.name || 'Bod')} <span style="color:var(--text-muted); font-size:11px;">(${(+p.lat).toFixed(5)}, ${(+p.lng).toFixed(5)})</span></label>`
+        ).join('');
+        document.getElementById('qr-share-out').innerHTML = '';
+        document.getElementById('qr-share-modal').style.display = 'flex';
+    };
+
+    function generateFromSelection() {
+        const cbs = document.querySelectorAll('.qr-share-cb');
+        const sel = [];
+        cbs.forEach(cb => { if (cb.checked) sel.push(persistentCustomPoints[+cb.dataset.i]); });
+        const out = document.getElementById('qr-share-out');
+        if (!sel.length) { out.innerHTML = '<span style="color:var(--warning);">Vyberte alespoň jeden bod.</span>'; return; }
+        if (typeof qrcode === 'undefined') { out.innerHTML = '<span style="color:var(--danger);">Knihovna QR se nenačetla.</span>'; return; }
+        const payload = encodePoints(sel);
+        try {
+            if (qrcode.stringToBytesFuncs && qrcode.stringToBytesFuncs['UTF-8']) qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
+            const qr = qrcode(0, 'M');     // 0 = automaticka velikost, M = stredni korekce chyb
+            qr.addData(payload, 'Byte');
+            qr.make();
+            const url = qr.createDataURL(6, 12);
+            out.innerHTML = `<img src="${url}" alt="QR" style="width:100%; max-width:300px; image-rendering:pixelated; background:#fff; border-radius:8px;"><div style="font-size:12px; color:var(--text-dim); margin-top:6px;">${sel.length} bodů — ukažte kolegovi k naskenování</div>`;
+        } catch (e) {
+            out.innerHTML = `<span style="color:var(--danger);">Příliš mnoho bodů pro jeden QR kód (${sel.length}). Vyberte méně bodů, nebo použijte Export souboru.</span>`;
+        }
+    }
+
+    // ---------- Modal: skenovani QR ----------
+    function buildScanModal() {
+        if (document.getElementById('qr-scan-modal')) return;
+        const m = document.createElement('div');
+        m.className = 'modal-overlay'; m.id = 'qr-scan-modal';
+        m.innerHTML = `<div class="modal-content" style="max-width:420px;">
+            <h3 style="color:var(--accent); margin-top:0;">Načíst body z QR</h3>
+            <div style="font-size:13px; color:var(--text-dim); margin-bottom:10px;">Namiřte kameru na QR kód kolegy.</div>
+            <video id="qr-scan-video" playsinline muted style="width:100%; border-radius:10px; background:#000;"></video>
+            <div id="qr-scan-status" style="text-align:center; font-size:13px; margin-top:8px; color:var(--text-dim);">Spouštím kameru…</div>
+            <button class="btn btn-secondary" style="margin-top:14px;" onclick="closeScanQR()">Zrušit</button>
+        </div>`;
+        document.body.appendChild(m);
+    }
+
+    window.openScanQR = function () {
+        if (typeof jsQR === 'undefined') { alert('Knihovna pro čtení QR se nenačetla.'); return; }
+        buildScanModal();
+        document.getElementById('qr-scan-modal').style.display = 'flex';
+        const video = document.getElementById('qr-scan-video');
+        const status = document.getElementById('qr-scan-status');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(stream => {
+            _scanStream = stream; video.srcObject = stream; video.setAttribute('playsinline', true);
+            video.play();
+            status.innerText = 'Hledám QR kód…';
+            const tick = () => {
+                if (!_scanStream) return;
+                if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth) {
+                    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+                    if (code && code.data) {
+                        const pts = decodePoints(code.data);
+                        if (pts && pts.length) { closeScanQR(); importDecoded(pts); return; }
+                        else { status.innerText = 'Tento QR neobsahuje body AR Geodet.'; }
+                    }
+                }
+                _scanRAF = requestAnimationFrame(tick);
+            };
+            _scanRAF = requestAnimationFrame(tick);
+        }).catch(err => { status.innerHTML = '<span style="color:var(--danger);">Kameru nelze spustit: ' + (err && err.message ? err.message : err) + '</span>'; });
+    };
+
+    window.closeScanQR = function () {
+        if (_scanRAF) { cancelAnimationFrame(_scanRAF); _scanRAF = null; }
+        if (_scanStream) { _scanStream.getTracks().forEach(t => t.stop()); _scanStream = null; }
+        const m = document.getElementById('qr-scan-modal'); if (m) m.style.display = 'none';
+    };
+})();
