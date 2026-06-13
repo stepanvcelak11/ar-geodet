@@ -287,6 +287,8 @@ function findBestSatTime() {
                 _triedFetch = true;
                 refreshTLE(true).then(() => { try { updateInfoPanel(); } catch (e) {} });
             }
+            // Bez drah druzic (TLE) se PDOP nespocita. Dej to najevo misto tiche prazdne kolonky.
+            infoEl.innerHTML += `<div class="rdt"><span class="rdt-l">Družice</span><span class="rdt-v" style="color:var(--warning);">${navigator.onLine ? 'načítám…' : 'offline – chybí data drah'}</span></div>`;
             return;
         }
         const now = Date.now();
@@ -303,6 +305,11 @@ function findBestSatTime() {
         if (p == null) col = 'var(--warning)';
         else if (p > 6) col = 'var(--danger)';
         else if (p > 3) col = '#fbbf24';
-        infoEl.innerHTML += `<div class="rdt"><span class="rdt-l">Družice</span><span class="rdt-v" style="color:${col};">${_pdopCache.vis} · PDOP ${p != null ? p.toFixed(1) : '—'}</span></div>`;
+        // Stari drah druzic: po vyprseni cache je predikce nepresna a offline se neobnovi.
+        const ageH = tleFetchedAt ? (now - tleFetchedAt) / 3600000 : null;
+        let staleTxt = '';
+        if (ageH == null) staleTxt = ' <span style="color:var(--warning);" title="Dráhy družic nejsou stažené">⚠</span>';
+        else if (ageH > TLE_MAX_AGE_H) staleTxt = ` <span style="color:var(--warning);" title="Dráhy družic staré ${Math.round(ageH)} h – ${navigator.onLine ? 'obnoví se' : 'offline, neaktualizuje se'}">⚠ ${Math.round(ageH / 24)} d</span>`;
+        infoEl.innerHTML += `<div class="rdt"><span class="rdt-l">Družice</span><span class="rdt-v" style="color:${col};">${_pdopCache.vis} · PDOP ${p != null ? p.toFixed(1) : '—'}${staleTxt}</span></div>`;
     };
 })();
