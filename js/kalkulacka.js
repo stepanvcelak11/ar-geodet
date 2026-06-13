@@ -782,3 +782,186 @@ function calcRedukce() {
             + dRow);
     } catch (e) { _calcErr(e); }
 }
+
+
+// ============================================================
+// FOTO-DOKUMENTACE U BODU (#2)
+// K libovolnemu bodu lze pripojit fotku (stabilizace/znacka) + poznamku.
+// Ulozeno v IndexedDB pod klicem 'doc_<idBodu>' (per zakazka), takze se to
+// veze i v plne zaloze (zaloha.js dumpuje cely IDB). Zadny zasah do grafika.js:
+// karta bodu se rozsiruje obalenim showDetails, export/import se obaluji taky.
+
+function loadPointDoc(id) {
+    return _idbGet(getStoreKey('doc_' + id)).then(s => { try { return s ? JSON.parse(s) : null; } catch (e) { return null; } });
+}
+function savePointDoc(id, doc) { return _idbSet(getStoreKey('doc_' + id), JSON.stringify(doc)); }
+function deletePointDoc(id) { return _idbDel(getStoreKey('doc_' + id)); }
+function _pdEsc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+function renderPointDoc(id) {
+    const view = document.getElementById('pd-view'); if (!view) return;
+    loadPointDoc(id).then(doc => {
+        if (document.getElementById('pd-view') !== view) return; // karta se mezitim prekreslila
+        if (!doc || (!doc.photo && !doc.note)) { view.innerHTML = '<div class="pd-empty">Zatím bez fotky a poznámky.</div>'; return; }
+        let h = '';
+        if (doc.photo) h += `<img class="pd-img" src="${doc.photo}" onclick="viewPhotoFull('${id}')">`;
+        if (doc.note) h += `<div class="pd-note">${_pdEsc(doc.note)}</div>`;
+        if (doc.photo) h += `<button class="pd-del" onclick="removePointPhoto('${id}')"><svg class="icon"><use href="#i-trash"/></svg> Odebrat fotku</button>`;
+        view.innerHTML = h;
+    });
+}
+
+function onPointPhoto(ev) {
+    const file = ev.target.files && ev.target.files[0]; ev.target.value = '';
+    if (!file) return;
+    const id = activePointIdForModal; if (!id) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+            const max = 1280; let w = img.width, h = img.height;
+            if (w >= h && w > max) { h = Math.round(h * max / w); w = max; }
+            else if (h > w && h > max) { w = Math.round(w * max / h); h = max; }
+            const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+            cv.getContext('2d').drawImage(img, 0, 0, w, h);
+            let dataUrl;
+            try { dataUrl = cv.toDataURL('image/jpeg', 0.7); } catch (er) { alert('Fotku se nepodařilo zpracovat.'); return; }
+            loadPointDoc(id).then(doc => {
+                doc = doc || {}; doc.photo = dataUrl; doc.t = Date.now();
+                savePointDoc(id, doc).then(() => renderPointDoc(id));
+            });
+        };
+        img.onerror = () => alert('Soubor není platný obrázek.');
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function editPointNote() {
+    const id = activePointIdForModal; if (!id) return;
+    loadPointDoc(id).then(doc => {
+        doc = doc || {};
+        const txt = prompt('Poznámka k bodu (stabilizace, popis, číslo náčrtu…):', doc.note || '');
+        if (txt === null) return;
+        doc.note = txt.trim(); doc.t = Date.now();
+        if (!doc.note && !doc.photo) { deletePointDoc(id).then(() => renderPointDoc(id)); return; }
+        savePointDoc(id, doc).then(() => renderPointDoc(id));
+    });
+}
+
+function removePointPhoto(id) {
+    loadPointDoc(id).then(doc => {
+        if (!doc) return;
+        delete doc.photo;
+        if (!doc.note) { deletePointDoc(id).then(() => renderPointDoc(id)); return; }
+        savePointDoc(id, doc).then(() => renderPointDoc(id));
+    });
+}
+
+function viewPhotoFull(id) {
+    loadPointDoc(id).then(doc => {
+        if (!doc || !doc.photo) return;
+        let v = document.getElementById('photo-viewer');
+        if (!v) { v = document.createElement('div'); v.id = 'photo-viewer'; v.className = 'photo-viewer'; v.onclick = () => v.remove(); document.body.appendChild(v); }
+        v.innerHTML = `<button class="pv-close" onclick="document.getElementById('photo-viewer').remove()">✕</button><img src="${doc.photo}">`;
+    });
+}
+
+// rozsireni karty bodu o sekci foto-dokumentace (bez zasahu do grafika.js)
+(function () {
+    if (typeof showDetails !== 'function') return;
+    const _orig = showDetails;
+    showDetails = function (pt, distance) {
+        _orig(pt, distance);
+        const body = document.getElementById('det-body'); if (!body) return;
+        const sec = document.createElement('div');
+        sec.className = 'point-doc';
+        sec.innerHTML = `<div class="pd-head">Foto-dokumentace</div>
+            <div class="pd-view" id="pd-view"></div>
+            <div class="pd-actions">
+                <label class="pd-btn"><svg class="icon"><use href="#i-camera"/></svg> Vyfotit / vybrat<input type="file" accept="image/*" capture="environment" style="display:none;" onchange="onPointPhoto(event)"></label>
+                <button class="pd-btn" onclick="editPointNote()"><svg class="icon"><use href="#i-edit"/></svg> Poznámka</button>
+            </div>`;
+        body.appendChild(sec);
+        renderPointDoc(pt.id);
+    };
+})();
+
+// export bodu (JSON) vc. foto-dokumentace
+(function () {
+    const _origExport = window.exportPoints;
+    window.exportPoints = async function () {
+        if (typeof persistentCustomPoints === 'undefined' || persistentCustomPoints.length === 0) return alert('Nemáte žádné body.');
+        const out = [];
+        for (const pt of persistentCustomPoints) {
+            const o = Object.assign({}, pt);
+            try { const doc = await loadPointDoc(pt.id); if (doc && (doc.photo || doc.note)) o.doc = doc; } catch (e) {}
+            out.push(o);
+        }
+        const a = document.createElement('a');
+        a.setAttribute('href', 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(out)));
+        a.setAttribute('download', `moje_body_${activeProjectId}.json`);
+        document.body.appendChild(a); a.click(); a.remove();
+    };
+})();
+
+// import bodu (JSON/CSV) vc. obnovy foto-dokumentace pod novymi id
+(function () {
+    window.importPoints = function (event) {
+        const file = event.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            let txt = e.target.result, imported = null;
+            try { let j = JSON.parse(txt); if (Array.isArray(j)) imported = j; } catch (err) {}
+            if (!imported) imported = parseCoordsCSV(txt);
+            if (!imported || imported.length === 0) { alert("V souboru se nenašly žádné body.\n\nPodporováno: JSON, nebo CSV/TXT s řádky 'číslo;Y;X' (oddělovač ; , tab nebo mezera)."); event.target.value = ''; return; }
+            let added = 0;
+            imported.forEach(p => {
+                if (typeof p.lat !== 'number' || typeof p.lng !== 'number' || isNaN(p.lat) || isNaN(p.lng)) return;
+                if (!persistentCustomPoints.find(ex => ex.name === p.name && Math.abs(ex.lat - p.lat) < 0.0001)) {
+                    const id = 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6);
+                    persistentCustomPoints.push({ id: id, name: p.name || 'Bod', lat: p.lat, lng: p.lng, cat: 'CUSTOM', type: 'custom' });
+                    if (p.doc && (p.doc.photo || p.doc.note)) { try { savePointDoc(id, p.doc); } catch (er) {} }
+                    added++;
+                }
+            });
+            setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
+            drawAllMarkersOnMap(); if (typeof renderManageList === 'function') renderManageList();
+            alert('Importováno ' + added + ' bodů do aktuální zakázky.');
+            if (userLat && userLng) initFetch(userLat, userLng);
+            event.target.value = '';
+        };
+        reader.readAsText(file);
+    };
+})();
+
+// pri smazani vlastniho bodu uklidit i jeho foto-dokumentaci (jen kdyz user potvrdil)
+(function () {
+    if (typeof window.deleteCustomPoint !== 'function') return;
+    const _origDel = window.deleteCustomPoint;
+    window.deleteCustomPoint = function (id) {
+        const before = (typeof persistentCustomPoints !== 'undefined') ? persistentCustomPoints.length : 0;
+        _origDel(id);
+        if (typeof persistentCustomPoints !== 'undefined' && persistentCustomPoints.length < before) { try { deletePointDoc(id); } catch (e) {} }
+    };
+})();
+
+// styly foto-dokumentace
+(function () {
+    const st = document.createElement('style');
+    st.textContent = `
+        .point-doc { margin-top: 14px; border-top: 1px solid var(--glass-border); padding-top: 12px; }
+        .pd-head { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.55; margin-bottom: 8px; }
+        .pd-empty { font-size: 13px; opacity: 0.5; font-style: italic; padding: 2px 0 10px; }
+        .pd-img { width: 100%; border-radius: 12px; display: block; margin-bottom: 8px; }
+        .pd-note { font-size: 14px; line-height: 1.4; background: rgba(255,255,255,0.05); border-radius: 10px; padding: 9px 12px; margin-bottom: 8px; white-space: pre-wrap; word-break: break-word; }
+        .pd-actions { display: flex; gap: 8px; }
+        .pd-btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 11px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.06); color: var(--text-color); font-size: 14px; font-weight: 600; cursor: pointer; }
+        .pd-btn:active { transform: scale(0.97); }
+        .pd-del { width: 100%; margin-top: 2px; padding: 9px; border-radius: 10px; border: 1px solid rgba(239,68,68,0.45); background: transparent; color: #ff8585; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+        .photo-viewer { position: fixed; inset: 0; z-index: 100050; background: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center; padding: 16px; }
+        .photo-viewer img { max-width: 100%; max-height: 92%; border-radius: 8px; }
+        .photo-viewer .pv-close { position: absolute; top: 16px; right: 16px; width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.16); color: #fff; border: none; font-size: 20px; cursor: pointer; }
+    `;
+    document.head.appendChild(st);
+})();
