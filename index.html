@@ -238,6 +238,16 @@
                 <button class="btn btn-primary" onclick="setCompassZero()"><svg class="icon"><use href="#i-crosshair"/></svg> Nastavit aktuální směr jako NULU (0)</button>
                 <button class="btn btn-warning" onclick="resetCompassZero()"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Zrušit uživatelskou nulu</button>
                 <hr style="border-color: var(--glass-border); width: 100%; margin: 20px 0;">
+                <label>Srovnání severu (AR i mapa):</label>
+                <div style="text-align:center; font-size:13px; color:var(--text-dim); margin:4px 0 8px;">Když AR/mapa ukazují směr jinam než realita, dolaď otočení. Korekce: <b><span id="heading-offset-val">0</span>°</b></div>
+                <div class="row-buttons">
+                    <button class="btn btn-secondary" onclick="nudgeHeadingOffset(-10)">−10°</button>
+                    <button class="btn btn-secondary" onclick="nudgeHeadingOffset(-1)">−1°</button>
+                    <button class="btn btn-secondary" onclick="nudgeHeadingOffset(1)">+1°</button>
+                    <button class="btn btn-secondary" onclick="nudgeHeadingOffset(10)">+10°</button>
+                </div>
+                <button class="btn btn-warning" style="margin-top:10px;" onclick="resetHeadingOffset()"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Vynulovat korekci severu</button>
+                <hr style="border-color: var(--glass-border); width: 100%; margin: 20px 0;">
                 <label>Zobrazované jednotky:</label>
                 <div class="row-buttons" style="margin-top: 10px;">
                     <button class="btn btn-secondary" id="btn-unit-deg" onclick="setCompassUnit('deg')">Stupně (°)</button>
@@ -309,8 +319,10 @@
                     <input type="range" id="s-map-radius-slider" min="50" max="5000" step="50" value="1000" oninput="document.getElementById('s-map-radius-val').innerText = this.value">
                     <label style="margin-top: 15px; color: var(--accent);">Viditelnost v AR kameře: <span id="s-ar-radius-val">150</span> m</label>
                     <input type="range" id="s-ar-radius-slider" min="50" max="5000" step="50" value="150" oninput="document.getElementById('s-ar-radius-val').innerText = this.value">
-                    <label style="margin-top: 15px;">Max. zobrazených bodů v AR (Výkon): <span id="s-max-ar-val">100</span></label>
-                    <input type="range" id="s-max-ar-slider" min="10" max="200" step="10" value="100" oninput="document.getElementById('s-max-ar-val').innerText = this.value">
+                    <label style="margin-top: 15px;">Max. zobrazených bodů v AR (Výkon): <span id="s-max-ar-val">20</span></label>
+                    <input type="range" id="s-max-ar-slider" min="10" max="200" step="10" value="20" oninput="document.getElementById('s-max-ar-val').innerText = this.value">
+                    <label style="margin-top: 15px;">Ukončit dohledávání v blízkosti bodu: <span id="s-reach-clear-val">1.5</span> m</label>
+                    <input type="range" id="s-reach-clear-slider" min="0" max="5" step="0.5" value="1.5" oninput="document.getElementById('s-reach-clear-val').innerText = (this.value==0?'vypnuto':this.value)">
 
                     <h4 style="color:var(--accent); margin-top:20px; border-bottom: 1px solid var(--glass-border); padding-bottom:5px;"><svg class="icon" style="vertical-align:-0.16em; margin-right:6px;"><use href="#i-crosshair"/></svg>Přesnost & kalibrace AR</h4>
                     <div class="filter-group" style="margin-bottom: 10px;">

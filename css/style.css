@@ -1525,4 +1525,11 @@ body.cam-light #ar-hud-info .hud-name { color: #1e293b; }
 .tut-back { background: transparent; color: var(--text-muted); }
 .tut-next { background: var(--accent-grad); color: #06121a; border-color: transparent; }
 .tut-next:hover { filter: brightness(1.06); }
+.tut-more {
+    width: 100%; margin-bottom: 10px;
+    background: var(--accent-soft); color: var(--accent-bright);
+    border-color: var(--accent-line);
+}
+.tut-more[hidden] { display: none; }
+.tut-more:hover { filter: brightness(1.08); }
 .tut-active { overflow: hidden; }

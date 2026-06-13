@@ -19,7 +19,7 @@
             document.documentElement.style.setProperty('--hud-scale', visSettings.hudScale || 1);
             previewTheme(visSettings.theme);
             const arrPath = document.getElementById('main-arrow-path'); if(arrPath) { arrPath.setAttribute('d', arrowPaths[visSettings.arrowShape]); arrPath.setAttribute('fill', visSettings.colArrow); document.getElementById('arrow-straight').style.filter = `drop-shadow(0 15px 15px ${visSettings.colArrow}80)`; document.getElementById('target-circle-out').setAttribute('stroke', visSettings.colArrow); document.getElementById('target-circle-in').setAttribute('fill', visSettings.colArrow); document.getElementById('arrow-target').style.filter = `drop-shadow(0 15px 15px ${visSettings.colArrow}90)`; }
-            if (document.getElementById('s-max-ar-slider')) { document.getElementById('s-wakelock').checked = visSettings.wakeLockEnabled; document.getElementById('s-outdoor').checked = !!visSettings.outdoorMode; document.getElementById('s-katastr-source').value = visSettings.katastrSource || 'mapycz'; document.getElementById('s-max-ar-slider').value = visSettings.maxARPoints; document.getElementById('s-max-ar-val').innerText = visSettings.maxARPoints; document.getElementById('v-ar-height-slider').value = visSettings.arVerticalOffset; document.getElementById('v-ar-height-val').innerText = visSettings.arVerticalOffset; document.getElementById('v-marker-scale').value = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-scale-val').innerText = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-opacity').value = visSettings.markerOpacity; document.getElementById('v-marker-opacity-val').innerText = visSettings.markerOpacity; document.getElementById('col-tb').value = visSettings.colTb; document.getElementById('col-zhb').value = visSettings.colZhb; document.getElementById('col-pbpp').value = visSettings.colPbpp; document.getElementById('col-nivel').value = visSettings.colNivel; document.getElementById('col-custom').value = visSettings.colCustom; document.getElementById('col-arrow').value = visSettings.colArrow; document.getElementById('v-arrow-shape').value = visSettings.arrowShape; document.getElementById('v-arrow-scale').value = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-scale-val').innerText = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-opacity').value = visSettings.arrowOpacity; document.getElementById('v-arrow-opacity-val').innerText = visSettings.arrowOpacity; document.getElementById('v-panel-opacity').value = visSettings.panelOpacity; document.getElementById('v-panel-opacity-val').innerText = visSettings.panelOpacity; document.getElementById('v-menu-scale').value = Math.round(visSettings.menuScale * 100); document.getElementById('v-menu-scale-val').innerText = Math.round(visSettings.menuScale * 100); document.getElementById('s-auto-compass').checked = visSettings.autoCompassCorrection; document.getElementById('s-tilt-comp').checked = visSettings.tiltCompensation !== false; document.getElementById('s-heading-smooth').value = visSettings.headingSmoothing; document.getElementById('s-heading-smooth-val').innerText = visSettings.headingSmoothing; document.getElementById('s-fovh').value = visSettings.fovH; document.getElementById('s-fovh-val').innerText = visSettings.fovH; document.getElementById('s-fovv').value = visSettings.fovV; document.getElementById('s-fovv-val').innerText = visSettings.fovV; document.getElementById('s-eyeh').value = visSettings.eyeHeight; document.getElementById('s-eyeh-val').innerText = visSettings.eyeHeight; document.getElementById('v-adaptive-glass').checked = visSettings.adaptiveGlass !== false; document.getElementById('v-theme').value = visSettings.theme || 'aurora'; document.getElementById('v-hud-scale').value = Math.round((visSettings.hudScale || 1) * 100); document.getElementById('v-hud-scale-val').innerText = Math.round((visSettings.hudScale || 1) * 100); }
+            if (document.getElementById('s-max-ar-slider')) { document.getElementById('s-wakelock').checked = visSettings.wakeLockEnabled; document.getElementById('s-outdoor').checked = !!visSettings.outdoorMode; document.getElementById('s-katastr-source').value = visSettings.katastrSource || 'mapycz'; document.getElementById('s-max-ar-slider').value = visSettings.maxARPoints; document.getElementById('s-max-ar-val').innerText = visSettings.maxARPoints; if (document.getElementById('s-reach-clear-slider')) { const _rc = (visSettings.reachClear != null ? visSettings.reachClear : 1.5); document.getElementById('s-reach-clear-slider').value = _rc; document.getElementById('s-reach-clear-val').innerText = (_rc == 0 ? 'vypnuto' : _rc); } document.getElementById('v-ar-height-slider').value = visSettings.arVerticalOffset; document.getElementById('v-ar-height-val').innerText = visSettings.arVerticalOffset; document.getElementById('v-marker-scale').value = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-scale-val').innerText = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-opacity').value = visSettings.markerOpacity; document.getElementById('v-marker-opacity-val').innerText = visSettings.markerOpacity; document.getElementById('col-tb').value = visSettings.colTb; document.getElementById('col-zhb').value = visSettings.colZhb; document.getElementById('col-pbpp').value = visSettings.colPbpp; document.getElementById('col-nivel').value = visSettings.colNivel; document.getElementById('col-custom').value = visSettings.colCustom; document.getElementById('col-arrow').value = visSettings.colArrow; document.getElementById('v-arrow-shape').value = visSettings.arrowShape; document.getElementById('v-arrow-scale').value = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-scale-val').innerText = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-opacity').value = visSettings.arrowOpacity; document.getElementById('v-arrow-opacity-val').innerText = visSettings.arrowOpacity; document.getElementById('v-panel-opacity').value = visSettings.panelOpacity; document.getElementById('v-panel-opacity-val').innerText = visSettings.panelOpacity; document.getElementById('v-menu-scale').value = Math.round(visSettings.menuScale * 100); document.getElementById('v-menu-scale-val').innerText = Math.round(visSettings.menuScale * 100); document.getElementById('s-auto-compass').checked = visSettings.autoCompassCorrection; document.getElementById('s-tilt-comp').checked = visSettings.tiltCompensation !== false; document.getElementById('s-heading-smooth').value = visSettings.headingSmoothing; document.getElementById('s-heading-smooth-val').innerText = visSettings.headingSmoothing; document.getElementById('s-fovh').value = visSettings.fovH; document.getElementById('s-fovh-val').innerText = visSettings.fovH; document.getElementById('s-fovv').value = visSettings.fovV; document.getElementById('s-fovv-val').innerText = visSettings.fovV; document.getElementById('s-eyeh').value = visSettings.eyeHeight; document.getElementById('s-eyeh-val').innerText = visSettings.eyeHeight; document.getElementById('v-adaptive-glass').checked = visSettings.adaptiveGlass !== false; document.getElementById('v-theme').value = visSettings.theme || 'aurora'; document.getElementById('v-hud-scale').value = Math.round((visSettings.hudScale || 1) * 100); document.getElementById('v-hud-scale-val').innerText = Math.round((visSettings.hudScale || 1) * 100); }
         }
 
         function switchTab(tabId, btnEl) { document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(tabId).classList.add('active'); btnEl.classList.add('active'); }
@@ -35,7 +35,12 @@
             window.open(url, '_blank'); 
         }
 
-        function openCompassModal() { document.getElementById('compass-modal').style.display = 'flex'; updateCompassButtons(); } function setCompassZero() { compassZeroOffset = currentHeading; alert("Nula nastavena na aktuální směr."); document.getElementById('compass-modal').style.display = 'none'; } function resetCompassZero() { compassZeroOffset = 0; alert("Nula zrušena."); document.getElementById('compass-modal').style.display = 'none'; } function setCompassUnit(u) { compassUnit = u; updateCompassButtons(); }
+        function openCompassModal() { document.getElementById('compass-modal').style.display = 'flex'; updateCompassButtons(); updateHeadingOffsetVal(); }
+        // Korekce severu pro AR i mapu (na rozdil od "uzivatelske nuly", ktera meni jen zobrazene cislo azimutu).
+        function updateHeadingOffsetVal() { const el = document.getElementById('heading-offset-val'); if (el) { let v = ((userHeadingOffset + 180) % 360 + 360) % 360 - 180; el.innerText = Math.round(v); } }
+        function nudgeHeadingOffset(d) { userHeadingOffset = ((userHeadingOffset + d) % 360 + 360) % 360; setStoredData('arHeadingOffset', String(userHeadingOffset)); updateHeadingOffsetVal(); }
+        function resetHeadingOffset() { userHeadingOffset = 0; headingCorrection = 0; setStoredData('arHeadingOffset', '0'); updateHeadingOffsetVal(); }
+        function setCompassZero() { compassZeroOffset = currentHeading; alert("Nula nastavena na aktuální směr."); document.getElementById('compass-modal').style.display = 'none'; } function resetCompassZero() { compassZeroOffset = 0; alert("Nula zrušena."); document.getElementById('compass-modal').style.display = 'none'; } function setCompassUnit(u) { compassUnit = u; updateCompassButtons(); }
         function updateCompassButtons() { document.getElementById('btn-unit-deg').style.background = compassUnit === 'deg' ? 'var(--accent)' : '#555'; document.getElementById('btn-unit-deg').style.color = compassUnit === 'deg' ? '#000' : '#fff'; document.getElementById('btn-unit-gon').style.background = compassUnit === 'gon' ? 'var(--accent)' : '#555'; document.getElementById('btn-unit-gon').style.color = compassUnit === 'gon' ? '#000' : '#fff'; }
 
         const APP_VERSION = '1.6';
@@ -188,6 +193,7 @@
             visSettings.outdoorMode = document.getElementById('s-outdoor').checked;
             visSettings.katastrSource = document.getElementById('s-katastr-source').value;
             visSettings.maxARPoints = parseInt(document.getElementById('s-max-ar-slider').value);
+            visSettings.reachClear = parseFloat(document.getElementById('s-reach-clear-slider').value);
             visSettings.arVerticalOffset = parseInt(document.getElementById('v-ar-height-slider').value);
             visSettings.markerScale = parseInt(document.getElementById('v-marker-scale').value) / 100; visSettings.markerOpacity = parseInt(document.getElementById('v-marker-opacity').value);
             visSettings.colTb = document.getElementById('col-tb').value; visSettings.colZhb = document.getElementById('col-zhb').value; visSettings.colPbpp = document.getElementById('col-pbpp').value; visSettings.colNivel = document.getElementById('col-nivel').value; visSettings.colCustom = document.getElementById('col-custom').value;
@@ -397,25 +403,44 @@
             _orientPending = true;
             requestAnimationFrame(() => { _orientPending = false; renderAR(_lastOrientEvent); });
         }
+        let _haveAbsoluteHeading = false;
         function renderAR(event) {
             if (!userLat || !userLng) return;
-            let rawCompass = event.webkitCompassHeading || (event.alpha !== null ? 360 - event.alpha : null); if (rawCompass === null) return;
-            // SMER: pri pohybu auto-koriguj magneticky kompas podle GPS kurzu (potlaci magneticke ruseni)
-            if (visSettings.autoCompassCorrection && gpsCourse !== null && gpsSpeed > 0.7) {
-                let want = angDiff(gpsCourse, rawCompass + magneticDeclination);
-                headingCorrection += 0.05 * angDiff(want, headingCorrection);
-                if (headingCorrection > 180) headingCorrection -= 360; else if (headingCorrection < -180) headingCorrection += 360;
+            // ZDROJ AZIMUTU:
+            // iOS: webkitCompassHeading je uz vztazeny k PRAVEMU severu (deklinaci resi OS) -> NEpridavat deklinaci.
+            // Android: event.alpha je magneticky, spolehlivy jen kdyz event.absolute (deviceorientationabsolute);
+            //          plain deviceorientation je relativni k orientaci pri startu -> mohlo by hodit sever o desitky stupnu.
+            let rawCompass = null, headingIsTrueNorth = false, headingReliable = true;
+            if (typeof event.webkitCompassHeading === 'number' && !isNaN(event.webkitCompassHeading)) {
+                rawCompass = event.webkitCompassHeading; headingIsTrueNorth = true; headingReliable = true;
+            } else if (event.alpha != null) {
+                if (event.absolute === true) _haveAbsoluteHeading = true;
+                // kdyz uz mame absolutni zdroj, ignoruj relativni udalosti (jinak by se sever rozhazel)
+                if (_haveAbsoluteHeading && event.absolute !== true) return;
+                let so = 0;
+                if (window.screen && screen.orientation && typeof screen.orientation.angle === 'number') so = screen.orientation.angle;
+                else if (typeof window.orientation === 'number') so = window.orientation;
+                rawCompass = ((360 - event.alpha) + so + 360) % 360; // kompenzace orientace displeje (landscape ±90°)
+                headingReliable = (event.absolute === true);
             }
-            let corrected = (rawCompass + magneticDeclination + headingCorrection + 360) % 360;
+            if (rawCompass === null) return;
+            // SMER: volitelna auto-korekce magnetickeho kompasu podle GPS kurzu (jen pri jednoznacnem pohybu).
+            // GPS kurz je za chuze nespolehlivy, proto vysoky prah rychlosti a strop korekce ±25°.
+            if (visSettings.autoCompassCorrection && !headingIsTrueNorth && gpsCourse !== null && gpsSpeed > 1.4) {
+                let want = angDiff(gpsCourse, rawCompass + magneticDeclination);
+                headingCorrection += 0.03 * angDiff(want, headingCorrection);
+                if (headingCorrection > 25) headingCorrection = 25; else if (headingCorrection < -25) headingCorrection = -25;
+            }
+            let corrected = (rawCompass + (headingIsTrueNorth ? 0 : magneticDeclination) + headingCorrection + userHeadingOffset + 360) % 360;
             // SMER: cyklicke vyhlazeni (mene roztreseny obraz); sila dle nastaveni
             let smoothAlpha = Math.max(0.05, 1 - (visSettings.headingSmoothing || 0) / 100);
             smoothedHeading = smoothAngle(smoothedHeading, corrected, smoothAlpha);
             let heading = smoothedHeading; currentHeading = heading;
             let relativeHeadingDeg = (heading - compassZeroOffset + 360) % 360; let displayAzimut = "";
             if (compassUnit === 'gon') { let gonTotal = relativeHeadingDeg * (400 / 360); let grad = Math.floor(gonTotal); let centigrad = Math.floor((gonTotal - grad) * 100); displayAzimut = `${grad}<sup>g</sup> ${centigrad.toString().padStart(2, '0')}<sup>c</sup>`; } else { displayAzimut = `${relativeHeadingDeg.toFixed(1)} °`; }
-            let cAcc = event.webkitCompassAccuracy; let calWarn = (cAcc != null && (cAcc < 0 || cAcc > 20));
+            let cAcc = event.webkitCompassAccuracy; let calWarn = (cAcc != null && (cAcc < 0 || cAcc > 20)) || !headingReliable;
             compassDebug.innerHTML = `Azimut: ${displayAzimut}` + (calWarn ? ' <span style="color:var(--warning);">⚠</span>' : '');
-            compassDebug.title = calWarn ? 'Kompas vyzaduje kalibraci – proveďte telefonem osmicku' : '';
+            compassDebug.title = !headingReliable ? 'Zařízení neposkytuje absolutní azimut – sever může být nepřesný. Dolaďte v Nastavení kompasu „Srovnání severu".' : (calWarn ? 'Kompas vyzaduje kalibraci – proveďte telefonem osmicku' : '');
             if (!window._mapHold && !window._popupOpen) {
                 mapWrapper.style.transformOrigin = (function(){ const p = map.latLngToContainerPoint([userLat, userLng]); return p.x + 'px ' + p.y + 'px'; })(); mapWrapper.style.transform = `translate(-50%, -50%) rotate(${-heading}deg)`; mapRotation = heading;
                 if (window._labelsDirty) { window._mapLabelEls = document.querySelectorAll('.map-label-text'); window._labelsDirty = false; }

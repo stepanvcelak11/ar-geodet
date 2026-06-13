@@ -137,7 +137,14 @@ if ('serviceWorker' in navigator) {
         let mapRadius = 1000, arRadius = 150;
         let userLat = null, userLng = null, userAlt = null, userMarker = null, lastFetchLat = null, lastFetchLng = null, lastCenterLat = null, lastCenterLng = null;
         let currentHeading = 0, currentGpsAccuracy = 0, accuracyCircle = null, magneticDeclination = 0;
-        let smoothedHeading = null, gpsCourse = null, gpsSpeed = 0, headingCorrection = 0;
+        let smoothedHeading = null, gpsCourse = null, gpsSpeed = 0, headingCorrection = 0, userHeadingOffset = 0;
+        let _reachArmedFor = null, _reachArmed = false; // auto-zruseni dohledavani az po prichodu z dalky
+        function quickToast(msg) {
+            let t = document.getElementById('quick-toast');
+            if (!t) { t = document.createElement('div'); t.id = 'quick-toast'; t.style.cssText = 'position:fixed; left:50%; top:calc(env(safe-area-inset-top,0px) + 70px); transform:translateX(-50%); z-index:1000002; background:rgba(20,24,30,0.92); color:#fff; padding:10px 16px; border-radius:10px; font-size:14px; border:1px solid rgba(255,255,255,0.15); pointer-events:none; transition:opacity 0.3s; max-width:80vw; text-align:center;'; document.body.appendChild(t); }
+            t.innerText = msg; t.style.opacity = '1'; clearTimeout(t._timer);
+            t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2600);
+        }
         let gpsSamples = [], gpsAvgResult = null;
         let arPoints = [], persistentCustomPoints = [], hideBtnLogic = null, editingCustomPointId = null, highlightedPointId = null, activePointIdForModal = null;
         let compassUnit = 'deg'; let compassZeroOffset = 0;
@@ -147,7 +154,7 @@ if ('serviceWorker' in navigator) {
         let connectMode = false, areaMode = false;
         let filters = { tb: true, zhb: true, pbpp: true, nivel: true, custom: true };
 
-        let visSettings = { maxARPoints: 100, arVerticalOffset: 0, markerScale: 1.0, markerOpacity: 100, colTb: '#8b5cf6', colZhb: '#0ea5e9', colPbpp: '#3b82f6', colNivel: '#ef4444', colCustom: '#34d399', arrowScale: 1.0, arrowOpacity: 90, arrowShape: '1', colArrow: '#34d399', panelOpacity: 85, menuScale: 1.0, hudTop: 55, hudSide: 15, wakeLockEnabled: true, outdoorMode: false, katastrSource: 'mapycz', baseLayer: 'osm', showKatastr: false, headingSmoothing: 75, autoCompassCorrection: true, tiltCompensation: true, fovH: 90, fovV: 75, eyeHeight: 1.6 };
+        let visSettings = { maxARPoints: 20, reachClear: 1.5, arVerticalOffset: 0, markerScale: 1.0, markerOpacity: 100, colTb: '#8b5cf6', colZhb: '#0ea5e9', colPbpp: '#3b82f6', colNivel: '#ef4444', colCustom: '#34d399', arrowScale: 1.0, arrowOpacity: 90, arrowShape: '1', colArrow: '#34d399', panelOpacity: 85, menuScale: 1.0, hudTop: 55, hudSide: 15, wakeLockEnabled: true, outdoorMode: false, katastrSource: 'mapycz', baseLayer: 'osm', showKatastr: false, headingSmoothing: 75, autoCompassCorrection: false, tiltCompensation: true, fovH: 90, fovV: 75, eyeHeight: 1.6 };
         
         function changeProject() { activeProjectId = document.getElementById('w-project-select').value; localStorage.setItem('arActiveProjectId', activeProjectId); hydrateActiveProject().then(loadProjectSettings); }
         function createNewProject() { let name = prompt("Název nové zakázky:"); if(name) { let id = 'proj_' + Date.now(); projects.push({id: id, name: name}); localStorage.setItem('arProjectsList', JSON.stringify(projects)); activeProjectId = id; localStorage.setItem('arActiveProjectId', activeProjectId); renderProjectSelect(); hydrateActiveProject().then(loadProjectSettings); } }
@@ -158,7 +165,8 @@ if ('serviceWorker' in navigator) {
             let m = getStoredData('arRadiusMap'); if(m) mapRadius = parseInt(m); else mapRadius = 1000;
             let a = getStoredData('arRadiusAR'); if(a) arRadius = parseInt(a); else arRadius = 150;
             let vs = getStoredData('arVisSettings12'); if(vs) visSettings = Object.assign(visSettings, JSON.parse(vs));
-            
+            let ho = getStoredData('arHeadingOffset'); userHeadingOffset = ho ? (parseFloat(ho) || 0) : 0;
+
             arPoints.forEach(p => { if(p.element) p.element.remove(); }); arPoints = []; persistentCustomPoints = [];
             let off = getStoredData('arOfflinePoints12'); if(off) { try { JSON.parse(off).forEach(p => { p.element=null; p.distElement=null; p.ringElement=null; p.bestAccuracy=null; p.hidden=false; arPoints.push(p); }); }catch(e){} }
             let cust = getStoredData('arCustomPoints12'); if(cust) { try { persistentCustomPoints = JSON.parse(cust); } catch(e) {} }
@@ -187,39 +195,74 @@ if ('serviceWorker' in navigator) {
         window.fetchDistantArea = async function(lat, lng, radius) {
             map.closePopup(); document.getElementById('info').innerHTML = `Stahuji vzdálenou oblast...`;
             showOfflineProgress(0, 6, 'Stahuji body v oblasti\u2026', 'krok\u016f');
-            let found = await fetchGeodata(lat, lng, radius || mapRadius, false, function(dn, tt) { updateOfflineProgress(dn, tt); });
+            const rad = radius || mapRadius;
+            let found = await fetchGeodata(lat, lng, rad, false, function(dn, tt) { updateOfflineProgress(dn, tt); });
             hideOfflineProgress();
             updateInfoPanel();
             if (lastFetchNetworkError && found === 0) { alert("ČÚZK je nedostupné nebo jste offline. Zkuste to prosím znovu."); return; }
-            alert(`Staženo ${found} bodů ve vybrané oblasti.\n\nPokud si chcete tuto oblast zachovat i bez internetu, klikněte v Menu na 'Uložit pro Offline'.`);
+            // Body i mapu rovnou ulozime pro offline -> kliknuti do mapy = oblast funguje i bez internetu.
+            setStoredData('arOfflinePoints12', JSON.stringify(arPoints.filter(p => p.cat !== 'CUSTOM')));
+            let tileMsg = '';
+            if ('caches' in window) { try { const res = await cacheTilesForArea(lat, lng, rad); tileMsg = '\n' + offlineResultMsg(res); } catch (e) { tileMsg = '\nMapu se nepodařilo uložit offline: ' + ((e && e.message) ? e.message : e); } }
+            alert(`Staženo ${found} bodů ve vybrané oblasti — uloženo pro offline.` + tileMsg);
         };
 
         
+        // Stazeni mapovych dlazdic (OSM, zoom 15-17) pro oblast do TILE_CACHE, aby mapa fungovala offline.
+        // Vraci podrobny vysledek vc. duvodu selhani — at nezustava nejasne "ulozeno X z Y".
+        async function cacheTilesForArea(centerLat, centerLng, radius) {
+            if (!('caches' in window)) return { unsupported: true, ok: 0, total: 0, net: 0, http: 0, quota: 0 };
+            const latOffset = radius / 111320; const lonOffset = radius / (111320 * Math.cos(centerLat * Math.PI / 180));
+            const minLat = centerLat - latOffset, maxLat = centerLat + latOffset, minLon = centerLng - lonOffset, maxLon = centerLng + lonOffset;
+            let urls = [];
+            [15, 16, 17].forEach(z => {
+                let minX = Math.floor((minLon + 180) / 360 * Math.pow(2, z)); let maxX = Math.floor((maxLon + 180) / 360 * Math.pow(2, z));
+                let minY = Math.floor((1 - Math.log(Math.tan(maxLat * Math.PI / 180) + 1 / Math.cos(maxLat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, z));
+                let maxY = Math.floor((1 - Math.log(Math.tan(minLat * Math.PI / 180) + 1 / Math.cos(minLat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, z));
+                for (let x = minX; x <= maxX; x++) { for (let y = minY; y <= maxY; y++) { urls.push(`https://tile.openstreetmap.org/${z}/${x}/${y}.png`); } }
+            });
+            const total = urls.length; let done = 0, ok = 0, net = 0, http = 0, quota = 0;
+            showOfflineProgress(0, total);
+            const cache = await caches.open('argeodet-offline-v12');
+            for (let i = 0; i < total; i += 10) {
+                const chunk = urls.slice(i, i + 10);
+                await Promise.all(chunk.map(async url => {
+                    try {
+                        const response = await fetch(url, { mode: 'cors' });
+                        if (response.ok) { try { await cache.put(url, response); ok++; } catch (e) { quota++; } }
+                        else http++;
+                    } catch (e) { net++; }
+                    done++;
+                }));
+                updateOfflineProgress(done, total);
+            }
+            hideOfflineProgress();
+            return { ok, total, net, http, quota };
+        }
+        // Srozumitelna hlaska z vysledku cacheTilesForArea (misto tiche castecne chyby).
+        function offlineResultMsg(res) {
+            if (res.unsupported) return "Tento prohlížeč nepodporuje offline ukládání mapy.";
+            if (res.total === 0) return "V oblasti nejsou žádné mapové dlaždice ke stažení.";
+            let msg = `Uloženo ${res.ok} z ${res.total} dílků mapy.`;
+            const failed = res.total - res.ok;
+            if (failed > 0) {
+                let why = [];
+                if (res.net) why.push(`${res.net}× výpadek sítě / offline`);
+                if (res.http) why.push(`${res.http}× server odmítl`);
+                if (res.quota) why.push(`${res.quota}× plné úložiště`);
+                msg += `\n⚠ ${failed} dílků se NEULOŽILO` + (why.length ? ` (${why.join(', ')})` : '') + `.\nMísto se může offline zobrazit prázdné. Zkuste to znovu s lepším signálem nebo menším poloměrem.`;
+            }
+            return msg;
+        }
         async function saveForOffline() {
             if (!userLat || !userLng) { alert("Počkejte prosím na načtení GPS polohy."); return; }
             const officialPoints = arPoints.filter(p => p.cat !== 'CUSTOM');
             if (!setStoredData('arOfflinePoints12', JSON.stringify(officialPoints))) { return; }
-            const r = mapRadius; const latOffset = r / 111320; const lonOffset = r / (111320 * Math.cos(userLat * Math.PI / 180));
-            const minLat = userLat - latOffset; const maxLat = userLat + latOffset; const minLon = userLng - lonOffset; const maxLon = userLng + lonOffset;
-            let urlsToCache = [];
-            [15, 16, 17].forEach(z => {
-                let minX = Math.floor((minLon + 180) / 360 * Math.pow(2, z)); let maxX = Math.floor((maxLon + 180) / 360 * Math.pow(2, z));
-                let minY = Math.floor((1 - Math.log(Math.tan(maxLat * Math.PI / 180) + 1 / Math.cos(maxLat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, z)); let maxY = Math.floor((1 - Math.log(Math.tan(minLat * Math.PI / 180) + 1 / Math.cos(minLat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, z));
-                for (let x = minX; x <= maxX; x++) { for (let y = minY; y <= maxY; y++) { urlsToCache.push(`https://tile.openstreetmap.org/${z}/${x}/${y}.png`); } }
-            });
             if (!('caches' in window)) { alert("Tento prohlížeč nepodporuje offline ukládání mapy."); return; }
-            const total = urlsToCache.length; let done = 0, okTiles = 0;
-            showOfflineProgress(0, total);
             try {
-                const cache = await caches.open('argeodet-offline-v12');
-                for (let i = 0; i < total; i += 10) {
-                    const chunk = urlsToCache.slice(i, i + 10);
-                    await Promise.all(chunk.map(async url => { try { const response = await fetch(url, {mode: 'cors'}); if (response.ok) { await cache.put(url, response); okTiles++; } } catch(e) {} done++; }));
-                    updateOfflineProgress(done, total);
-                }
-                hideOfflineProgress();
-                alert(`Hotovo. Uloženo ${officialPoints.length} bodů a ${okTiles} z ${total} dílků mapy pro tuto zakázku.`);
-            } catch(e) { hideOfflineProgress(); alert("Stahování mapy se nezdařilo: " + ((e && e.message) ? e.message : e)); }
+                const res = await cacheTilesForArea(userLat, userLng, mapRadius);
+                alert(`Uloženo ${officialPoints.length} bodů pro tuto zakázku.\n` + offlineResultMsg(res));
+            } catch (e) { hideOfflineProgress(); alert("Stahování mapy se nezdařilo: " + ((e && e.message) ? e.message : e)); }
         }
 
         function hideCurrentPoint() { if (hideBtnLogic) hideBtnLogic(); closeBottomSheet(); } function restoreHiddenPoints() { arPoints.forEach(p => p.hidden = false); initARMarkers(); drawAllMarkersOnMap(); document.getElementById('settings-modal').style.display = 'none'; updateInfoPanel(); } function clearAllPoints() { arPoints.forEach(p => { if(p.element) p.element.remove(); }); arPoints = []; removeStoredData('arOfflinePoints12'); document.getElementById('settings-modal').style.display = 'none'; if (userLat && userLng) initFetch(userLat, userLng); } function getVisiblePointsCount() { return arPoints.filter(p => !p.hidden && p.currentDist <= arRadius && (!searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase()))).length; }
@@ -417,8 +460,24 @@ if ('serviceWorker' in navigator) {
                     updateGpsAveraging(userLat, userLng, currentGpsAccuracy, gpsSpeed);
                     if (accuracyCircle) { accuracyCircle.setLatLng([userLat, userLng]); accuracyCircle.setRadius(currentGpsAccuracy); accuracyCircle.setStyle({ color: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillColor: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399' }); } else { accuracyCircle = L.circle([userLat, userLng], { radius: currentGpsAccuracy, color: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillColor: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillOpacity: 0.15, weight: 2 }).addTo(map); }
                     
-                    if (highlightedPointId) { let hlPt = arPoints.find(p => p.id === highlightedPointId); if (hlPt) { if (hlPt.bestAccuracy === null || currentGpsAccuracy < hlPt.bestAccuracy) { hlPt.bestAccuracy = currentGpsAccuracy; } } }
-                    
+                    if (highlightedPointId) { let hlPt = arPoints.find(p => p.id === highlightedPointId); if (hlPt) {
+                        if (hlPt.bestAccuracy === null || currentGpsAccuracy < hlPt.bestAccuracy) { hlPt.bestAccuracy = currentGpsAccuracy; }
+                        // AUTO-ZRUSENI DOHLEDAVANI: az kdyz uzivatel prisel z dalky (armed) a je do reachClear metru u bodu.
+                        const reach = visSettings.reachClear || 0;
+                        if (reach > 0) {
+                            const dToHl = getDistance(userLat, userLng, hlPt.lat, hlPt.lng);
+                            if (_reachArmedFor !== highlightedPointId) { _reachArmedFor = highlightedPointId; _reachArmed = false; }
+                            if (dToHl > reach + 1.0) _reachArmed = true;
+                            else if (_reachArmed && dToHl <= reach) {
+                                _reachArmed = false; _reachArmedFor = null;
+                                highlightedPointId = null;
+                                const hud = document.getElementById('ar-hud'); if (hud) hud.style.display = 'none';
+                                updateNavGlow();
+                                quickToast(`Jste u bodu #${hlPt.name} (${dToHl.toFixed(1)} m) — dohledávání ukončeno`);
+                            }
+                        }
+                    } } else { _reachArmedFor = null; _reachArmed = false; }
+
                     arPoints.forEach(p => { p.currentDist = getDistance(userLat, userLng, p.lat, p.lng); p.currentBearing = getBearing(userLat, userLng, p.lat, p.lng); }); arPoints.sort((a, b) => a.currentDist - b.currentDist);
                     if (activePointIdForModal) { const activePt = arPoints.find(p => p.id === activePointIdForModal); if (activePt) { const newDist = getDistance(userLat, userLng, activePt.lat, activePt.lng); const distEl = document.getElementById('sheet-distance-val'); if (distEl) distEl.innerText = `${newDist.toFixed(1)} m`; const gpsEl = document.getElementById('sheet-gps-val'); if (gpsEl) gpsEl.innerText = currentGpsAccuracy.toFixed(1); } }
                     if (lastCenterLat === null) { map.setView([userLat, userLng], 19, { animate: false }); lastCenterLat = userLat; lastCenterLng = userLng; } else if (!window._mapHold && getDistance(lastCenterLat, lastCenterLng, userLat, userLng) > 1.5) { map.setView([userLat, userLng], map.getZoom(), { animate: false }); lastCenterLat = userLat; lastCenterLng = userLng; }
