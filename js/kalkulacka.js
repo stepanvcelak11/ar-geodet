@@ -81,7 +81,8 @@ function openCalcPicker(idp) {
 const CALC_GROUPS = [
     { g: 'poloha', name: 'Polohové úlohy' },
     { g: 'vyrovnani', name: 'Vyrovnání a pořady' },
-    { g: 'vysky', name: 'Výšky a tachymetrie' }
+    { g: 'vysky', name: 'Výšky a tachymetrie' },
+    { g: 'pomucky', name: 'Pomůcky' }
 ];
 const CALC_TOOLS = [
     { id: 'smer', g: 'poloha', name: 'Směrník a délka', desc: 'ze souřadnic dvou bodů' },
@@ -92,7 +93,8 @@ const CALC_TOOLS = [
     { id: 'volne', g: 'vyrovnani', name: 'Volné stanovisko', desc: 'vyrovnání ze 2+ bodů' },
     { id: 'polygon', g: 'vyrovnani', name: 'Polygonový pořad', desc: 'oboustranně připojený a orientovaný' },
     { id: 'tachy', g: 'vysky', name: 'Tachymetrie', desc: 'polární dávka, volitelně s výškami' },
-    { id: 'nivel', g: 'vysky', name: 'Nivelační zápisník', desc: 'výšky z čtení zpět/vpřed' }
+    { id: 'nivel', g: 'vysky', name: 'Nivelační zápisník', desc: 'výšky z čtení zpět/vpřed' },
+    { id: 'sci', g: 'pomucky', name: 'Vědecká kalkulačka', desc: 'běžné výpočty a funkce, ° / gon / rad' }
 ];
 
 function ensureCalcModal() {
@@ -524,3 +526,131 @@ function calcNivel() {
             + '<hr style="border-color:rgba(255,255,255,0.12); margin:8px 0;">' + out);
     } catch (e) { _calcErr(e); }
 }
+
+// ============================================================
+// VEDECKA KALKULACKA (bezne vypocty + funkce; uhly v ° / gon / rad)
+// Vstup je ciste tlacitkovy (pole tokenu), takze vyraz nikdy neobsahuje volny text uzivatele.
+let _sciTokens = [];
+let _sciAngle = 'deg';        // 'deg' | 'gon' | 'rad'
+let _sciJustEval = false;
+let _sciError = false;
+
+function renderCalc_sci(body) {
+    _sciTokens = []; _sciJustEval = false; _sciError = false;
+    const k = (call, label, cls) => `<button class="sci-key${cls ? ' ' + cls : ''}" onclick="${call}">${label}</button>`;
+    body.innerHTML = `
+        <div class="sci-angle" id="sci-angle">
+            <button data-m="deg" onclick="sciSetAngle('deg')">stupně °</button>
+            <button data-m="gon" onclick="sciSetAngle('gon')">gony</button>
+            <button data-m="rad" onclick="sciSetAngle('rad')">rad</button>
+        </div>
+        <div class="sci-display"><div class="sci-expr" id="sci-expr">0</div><div class="sci-res" id="sci-res">&nbsp;</div></div>
+        <div class="sci-pad sci-fn">
+            ${k("sciFunc('sin(')", 'sin')}${k("sciFunc('cos(')", 'cos')}${k("sciFunc('tan(')", 'tan')}${k("sciDel()", '⌫', 'sci-warn')}
+            ${k("sciFunc('asin(')", 'asin')}${k("sciFunc('acos(')", 'acos')}${k("sciFunc('atan(')", 'atan')}${k("sciClear()", 'C', 'sci-warn')}
+            ${k("sciFunc('ln(')", 'ln')}${k("sciFunc('log(')", 'log')}${k("sciFunc('√(')", '√')}${k("sciTok('^2')", 'x²')}
+            ${k("sciTok('π')", 'π')}${k("sciTok('e')", 'e')}${k("sciTok('(')", '(')}${k("sciTok(')')", ')')}
+        </div>
+        <div class="sci-pad sci-num">
+            ${k("sciTok('7')", '7')}${k("sciTok('8')", '8')}${k("sciTok('9')", '9')}${k("sciTok('÷')", '÷', 'sci-op')}
+            ${k("sciTok('4')", '4')}${k("sciTok('5')", '5')}${k("sciTok('6')", '6')}${k("sciTok('×')", '×', 'sci-op')}
+            ${k("sciTok('1')", '1')}${k("sciTok('2')", '2')}${k("sciTok('3')", '3')}${k("sciTok('−')", '−', 'sci-op')}
+            ${k("sciTok('0')", '0')}${k("sciTok('.')", '.')}${k("sciTok('^')", '^')}${k("sciTok('+')", '+', 'sci-op')}
+        </div>
+        <button class="btn btn-blue sci-eq" onclick="sciEquals()">=</button>`;
+    sciSetAngle(_sciAngle);
+    _sciRender();
+}
+
+function sciSetAngle(m) {
+    _sciAngle = m;
+    const wrap = document.getElementById('sci-angle');
+    if (wrap) wrap.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.getAttribute('data-m') === m));
+}
+
+// po '=' dalsi cislice/funkce zacne novy vyraz; operator pokracuje z vysledku
+function _sciAfterEval(isOperator) {
+    if (!_sciJustEval) return;
+    if (_sciError || !isOperator) _sciTokens = [];
+    _sciJustEval = false; _sciError = false;
+    const res = document.getElementById('sci-res'); if (res) res.innerHTML = '&nbsp;';
+}
+
+function sciTok(t) { _sciAfterEval('+−×÷^'.indexOf(t) >= 0); _sciTokens.push(t); _sciRender(); }
+function sciFunc(t) { _sciAfterEval(false); _sciTokens.push(t); _sciRender(); }
+function sciDel() { _sciJustEval = false; _sciTokens.pop(); _sciRender(); }
+function sciClear() {
+    _sciTokens = []; _sciJustEval = false; _sciError = false;
+    const res = document.getElementById('sci-res'); if (res) res.innerHTML = '&nbsp;';
+    _sciRender();
+}
+function _sciRender() {
+    const ex = document.getElementById('sci-expr');
+    if (ex) ex.innerText = _sciTokens.length ? _sciTokens.join('') : '0';
+}
+
+function _sciFmt(n) {
+    if (typeof n !== 'number' || !isFinite(n)) return 'Error';
+    let r = Math.round(n * 1e10) / 1e10;
+    if (Object.is(r, -0)) r = 0;
+    let s = String(r);
+    if (s.indexOf('e') >= 0 || s.indexOf('E') >= 0) s = r.toFixed(10).replace(/\.?0+$/, '');
+    return s;
+}
+
+// prevede tokenovy vyraz na JS a vyhodnoti; trig respektuje zvolenou jednotku uhlu
+function _sciEval(expr) {
+    const f = _sciAngle === 'gon' ? (Math.PI / 200) : (_sciAngle === 'rad' ? 1 : (Math.PI / 180)); // jednotka -> rad
+    const g = _sciAngle === 'gon' ? (200 / Math.PI) : (_sciAngle === 'rad' ? 1 : (180 / Math.PI));  // rad -> jednotka
+    const js = expr
+        .replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-')
+        .replace(/π/g, '(PI)').replace(/e/g, '(E)')
+        .replace(/√/g, 'sqrt').replace(/\^/g, '**').replace(/%/g, '/100');
+    const ctx = {
+        PI: Math.PI, E: Math.E,
+        sin: x => Math.sin(x * f), cos: x => Math.cos(x * f), tan: x => Math.tan(x * f),
+        asin: x => Math.asin(x) * g, acos: x => Math.acos(x) * g, atan: x => Math.atan(x) * g,
+        sqrt: Math.sqrt, ln: Math.log, log: x => Math.log(x) / Math.LN10, abs: Math.abs
+    };
+    const names = Object.keys(ctx);
+    const fn = new Function(...names, 'return (' + js + ');');
+    return fn(...names.map(n => ctx[n]));
+}
+
+function sciEquals() {
+    if (!_sciTokens.length) return;
+    const res = document.getElementById('sci-res');
+    let val;
+    try { val = _sciEval(_sciTokens.join('')); } catch (e) { val = NaN; }
+    const out = _sciFmt(val);
+    if (out === 'Error') {
+        if (res) res.innerText = 'Chyba výrazu';
+        _sciError = true; _sciJustEval = true;
+        return;
+    }
+    if (res) res.innerText = '= ' + out;
+    _sciTokens = [out];
+    _sciJustEval = true; _sciError = false;
+    _sciRender();
+}
+
+// styly vedecke kalkulacky (injektovane, at se nesaha do style.css)
+(function () {
+    const st = document.createElement('style');
+    st.textContent = `
+        .sci-angle { display:flex; gap:6px; margin-bottom:10px; }
+        .sci-angle button { flex:1; padding:9px 4px; border-radius:10px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.05); color:var(--text-color); font-size:13px; font-weight:600; cursor:pointer; }
+        .sci-angle button.active { background:var(--accent); color:#04211c; border-color:var(--accent); }
+        .sci-display { background:rgba(0,0,0,0.28); border:1px solid var(--glass-border); border-radius:12px; padding:12px 14px; margin-bottom:12px; }
+        .sci-expr { font-family:var(--font-mono,monospace); font-size:22px; font-weight:600; text-align:right; overflow-x:auto; white-space:nowrap; }
+        .sci-res { font-family:var(--font-mono,monospace); font-size:15px; text-align:right; color:var(--accent); margin-top:4px; overflow-x:auto; white-space:nowrap; min-height:18px; }
+        .sci-pad { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:8px; }
+        .sci-key { padding:14px 4px; border-radius:12px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.06); color:var(--text-color); font-size:17px; font-weight:600; cursor:pointer; transition:filter 0.12s ease, transform 0.06s ease; }
+        .sci-key:active { transform:scale(0.95); }
+        .sci-fn .sci-key { font-size:14px; background:rgba(255,255,255,0.03); }
+        .sci-key.sci-op { background:rgba(59,130,246,0.18); color:#bcd7ff; }
+        .sci-key.sci-warn { background:rgba(239,68,68,0.16); color:#ff9d9d; }
+        .sci-eq { margin-top:2px; font-size:18px; }
+    `;
+    document.head.appendChild(st);
+})();
