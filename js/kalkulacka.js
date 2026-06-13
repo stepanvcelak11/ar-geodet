@@ -549,7 +549,7 @@ function renderCalc_sci(body) {
             ${k("sciFunc('sin(')", 'sin')}${k("sciFunc('cos(')", 'cos')}${k("sciFunc('tan(')", 'tan')}${k("sciDel()", '⌫', 'sci-warn')}
             ${k("sciFunc('asin(')", 'asin')}${k("sciFunc('acos(')", 'acos')}${k("sciFunc('atan(')", 'atan')}${k("sciClear()", 'C', 'sci-warn')}
             ${k("sciFunc('√(')", '√')}${k("sciFunc('ⁿ√(')", 'ⁿ√')}${k("sciPost('^2')", 'x²')}${k("sciPost('^(−1)')", 'x⁻¹')}
-            ${k("sciFunc('ln(')", 'ln')}${k("sciFunc('log(')", 'log')}${k("sciTok('%')", '%')}${k("sciTok(',')", ',')}
+            ${k("sciFunc('ln(')", 'ln')}${k("sciFunc('log(')", 'log')}${k("sciTok('^')", 'xⁿ')}${k("sciTok(',')", ',')}
             ${k("sciTok('π')", 'π')}${k("sciTok('e')", 'e')}${k("sciTok('(')", '(')}${k("sciTok(')')", ')')}
         </div>
         <div class="sci-pad sci-num">
@@ -660,19 +660,19 @@ function sciEquals() {
 (function () {
     const st = document.createElement('style');
     st.textContent = `
-        .sci-angle { display:flex; gap:6px; margin-bottom:7px; }
-        .sci-angle button { flex:1; padding:6px 4px; border-radius:9px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.05); color:var(--text-color); font-size:12px; font-weight:600; cursor:pointer; }
+        .sci-angle { display:flex; gap:5px; margin-bottom:6px; }
+        .sci-angle button { flex:1; padding:5px 4px; border-radius:8px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.05); color:var(--text-color); font-size:11.5px; font-weight:600; cursor:pointer; }
         .sci-angle button.active { background:var(--accent); color:#04211c; border-color:var(--accent); }
-        .sci-display { background:rgba(0,0,0,0.28); border:1px solid var(--glass-border); border-radius:10px; padding:7px 11px; margin-bottom:7px; }
-        .sci-expr { font-family:var(--font-mono,monospace); font-size:18px; font-weight:600; text-align:right; overflow-x:auto; white-space:nowrap; }
-        .sci-res { font-family:var(--font-mono,monospace); font-size:13px; text-align:right; color:var(--accent); margin-top:2px; overflow-x:auto; white-space:nowrap; min-height:15px; }
-        .sci-pad { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:6px; }
-        .sci-key { padding:9px 4px; border-radius:10px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.06); color:var(--text-color); font-size:15px; font-weight:600; cursor:pointer; transition:filter 0.12s ease, transform 0.06s ease; }
+        .sci-display { background:rgba(0,0,0,0.28); border:1px solid var(--glass-border); border-radius:10px; padding:6px 10px; margin-bottom:6px; }
+        .sci-expr { font-family:var(--font-mono,monospace); font-size:17px; font-weight:600; text-align:right; overflow-x:auto; white-space:nowrap; }
+        .sci-res { font-family:var(--font-mono,monospace); font-size:12.5px; text-align:right; color:var(--accent); margin-top:2px; overflow-x:auto; white-space:nowrap; min-height:14px; }
+        .sci-pad { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; margin-bottom:5px; }
+        .sci-key { padding:7px 4px; border-radius:9px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.06); color:var(--text-color); font-size:14px; font-weight:600; cursor:pointer; transition:filter 0.12s ease, transform 0.06s ease; }
         .sci-key:active { transform:scale(0.95); }
-        .sci-fn .sci-key { font-size:12.5px; padding:8px 3px; background:rgba(255,255,255,0.03); }
+        .sci-fn .sci-key { font-size:11.5px; padding:6px 3px; background:rgba(255,255,255,0.03); }
         .sci-key.sci-op { background:rgba(59,130,246,0.18); color:#bcd7ff; }
         .sci-key.sci-warn { background:rgba(239,68,68,0.16); color:#ff9d9d; }
-        .sci-eq { margin-top:0; padding:10px; font-size:16px; }
+        .sci-eq { margin-top:0; padding:8px; font-size:15px; }
     `;
     document.head.appendChild(st);
 })();
