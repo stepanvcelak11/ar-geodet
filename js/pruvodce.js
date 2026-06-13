@@ -35,7 +35,7 @@
     function ensureModal() {
         if (document.getElementById('pruvodce-modal')) return;
         var el = document.createElement('div');
-        el.className = 'modal-overlay'; el.id = 'pruvodce-modal'; el.style.zIndex = '100050';
+        el.className = 'modal-overlay'; el.id = 'pruvodce-modal'; el.style.zIndex = '1000000';
         el.innerHTML =
             '<div class="modal-content">'
             + '<div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">'
@@ -43,7 +43,7 @@
             + '<h3 id="pruv-title" style="color:var(--accent); margin:0;">Průvodce úkolem</h3></div>'
             + '<div id="pruv-crumb" style="font-size:12px; opacity:0.65; margin:2px 0 10px; min-height:14px;"></div>'
             + '<div class="modal-body" id="pruv-body"></div>'
-            + '<div class="row-buttons" id="pruv-footer"></div>'
+            + '<div id="pruv-footer" style="margin-top:16px;"></div>'
             + '</div>';
         document.body.appendChild(el);
     }
@@ -553,7 +553,7 @@
             + '.pruv-badge.off{background:rgba(251,191,36,0.18);color:#fbbf24;}'
             + '.pruv-check{font-size:13px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);}'
             + '.pruv-warn{font-size:13px;line-height:1.5;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.35);color:#fbbf24;border-radius:10px;padding:10px;}'
-            + '#pruvodce-modal .modal-body{max-height:60vh;overflow-y:auto;}';
+            + '#pruv-footer .btn{margin-top:10px;}';
         document.head.appendChild(st);
     })();
 })();
