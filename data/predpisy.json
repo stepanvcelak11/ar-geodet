@@ -172,6 +172,41 @@
           "zdroj": "Zákon č. 200/1994 Sb. o zeměměřictví a prováděcí vyhláška č. 31/1995 Sb.",
           "odkaz": "https://www.zakonyprolidi.cz/cs/1995-31",
           "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Kód způsobu určení výměry",
+          "tagy": ["kód", "způsob určení výměry", "výměra", "0", "1", "2", "číselník"],
+          "telo": "Kód udává, jak byla výměra parcely určena (a tím její spolehlivost):",
+          "tabulka": {
+            "hlavicka": ["Kód", "Způsob určení výměry"],
+            "radky": [
+              ["2", "ze souřadnic v S-JTSK, kód kvality 3 nebo 4 (nejpřesnější)"],
+              ["1", "z přímo měřených měr nebo ze souřadnic v místním systému"],
+              ["0", "ze souřadnic v S-JTSK s aspoň jedním bodem kvality 5–8, nebo graficky"]
+            ]
+          },
+          "pozn": "Kód 2 = nejvyšší přesnost. Graficky určená výměra spadá pod kód 0.",
+          "zdroj": "Katastrální vyhláška č. 357/2013 Sb.",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Způsob využití pozemku",
+          "tagy": ["způsob využití", "pozemek", "číselník", "skleník", "manipulační plocha", "skládka"],
+          "telo": "Doplňková charakteristika k druhu pozemku — upřesňuje, k čemu pozemek slouží. Příklady: skleník / pařeniště, manipulační plocha, pozemek se zbořeništěm, dálnice / silnice, hřbitov a urnový háj, skládka odpadu, fotovoltaická elektrárna, pozemek vodní plochy s budovou. Číselník je rozsáhlý.",
+          "pozn": "Kompletní číselník vede ČÚZK (Číselníky ISKN → Způsob využití pozemku).",
+          "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha; číselník ČÚZK",
+          "odkaz": "https://cuzk.gov.cz/Katastr-nemovitosti/Poskytovani-udaju-z-KN/Ciselniky-ISKN/Ciselniky-k-nemovitosti/Zpusob-vyuziti-pozemku.aspx",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Způsob ochrany nemovitosti",
+          "tagy": ["způsob ochrany", "ochrana", "číselník", "kulturní památka", "ZPF", "chráněné území", "ochranné pásmo"],
+          "telo": "Eviduje, zda a jak je nemovitost chráněna podle zvláštních předpisů. Příklady: nemovitá kulturní památka (památková ochrana), ochrana zemědělského půdního fondu (ZPF), ochrana přírody a krajiny, chráněné území či ochranné pásmo.",
+          "pozn": "Kompletní číselník vede ČÚZK. Pozor: na pozemku s ochranou ZPF je před stavbou nutné vynětí ze ZPF.",
+          "zdroj": "Číselník ČÚZK (ISKN)",
+          "odkaz": "https://cuzk.gov.cz/Katastr-nemovitosti/Poskytovani-udaju-z-KN/Ciselniky-ISKN/Ciselniky-k-nemovitosti/Zpusob-ochrany-nemovitosti.aspx",
+          "platnost": "2026-06-14"
         }
       ]
     },
@@ -195,6 +230,32 @@
           "telo": "ZPMZ je měřická dokumentace ukládaná u katastrálního úřadu — výsledek zeměměřických činností pro změnu (mj. měřická část geometrického plánu). Obsahuje zejména popisové pole, měřický náčrt (body geometrického základu, identické body, měřickou síť; nový stav se kreslí ČERVENĚ), zápisník měřených údajů, protokol o výpočtech a seznam souřadnic.",
           "pozn": "Náležitosti upravuje bod 16 přílohy. Jeden ZPMZ lze využít jako podklad pro více souvisejících geometrických plánů.",
           "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 16",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Kdy se vyhotovuje geometrický plán (§ 79)",
+          "tagy": ["geometrický plán", "GP", "kdy", "účel", "rozdělení pozemku", "budova", "věcné břemeno"],
+          "telo": "GP se vyhotovuje pro: a) změnu hranice katastrálního území, b) rozdělení pozemku, c) změnu hranice pozemku, d) vyznačení/změnu obvodu budovy (hlavní stavby) a vodního díla, e) určení hranic při pozemkových úpravách, f) doplnění pozemku evidovaného zjednodušeným způsobem, g) opravu geometrického a polohového určení, h) upřesnění/rekonstrukci podle přídělového řízení, i) průběh vytyčené nebo vlastníky zpřesněné hranice, j) průběh hranice určené soudem, k) vymezení věcného břemene k části pozemku.",
+          "pozn": "GP se NEvyhotovuje, když se změna týká celého pozemku bez změny hranice. Věcné břemeno: GP jen u části pozemku, ne u celého.",
+          "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 79 odst. 1",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Označování a stabilizace hranic (§ 91)",
+          "tagy": ["hranice", "označení", "stabilizace", "hraniční znak", "mezník", "kámen", "plast"],
+          "telo": "Lomové body hranic se označují trvale: kameny s opracovanou hlavou, znaky z plastu nebo železobetonové (nejméně 80×80×500 mm); přípustná je i zabetonovaná železná trubka ø 20–40 mm nebo ocelová armatura ø 10–40 mm. Střed znaku se kryje s bodem lomu hranice. Hranice se označí tak, aby z každého znaku bylo vidět na oba sousední a na přímých úsecích nebyly znaky dál než 200 m.",
+          "pozn": "Lze označit i jiným trvalým způsobem (např. zdí). Neoznačují se hranice sloučené do větších celků. Neoznačí-li vlastník hranice, může KÚ označit na jeho náklad a uložit pokutu (§ 37 odst. 2 katastrálního zákona).",
+          "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 91",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Číslování podrobných bodů a ZPMZ",
+          "tagy": ["číslování", "číslo bodu", "ZPMZ", "podrobný bod", "katastrální území"],
+          "telo": "Číslo podrobného bodu je dvanáctimístné a skládá se ze tří částí: pořadové číslo katastrálního území, číslo ZPMZ a vlastní číslo bodu (kód kvality se uvádí pod bodem). Jednotkou číslování ZPMZ je katastrální území. Stávající body se nepřečíslovávají — v měřickém náčrtu se u nich uvádí jen číslo ZPMZ; nově zaměřené kontrolní a identické body se uvádějí s původními čísly.",
+          "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha",
           "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
           "platnost": "2026-06-14"
         }
@@ -228,6 +289,22 @@
           "telo": "Katastrální úřad přezkoumá geometrický plán (zda má náležitosti dle vyhlášky a správné očíslování parcel) a potvrdí jej ve lhůtě zpravidla 10 dní.",
           "zdroj": "Katastrální vyhláška č. 357/2013 Sb.; správní řád",
           "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Oprava chyby v katastru (§ 36)",
+          "tagy": ["oprava chyby", "lhůta", "30 dní", "60 dní", "nesouhlas", "katastrální operát"],
+          "telo": "Opravou chyby se dává do souladu zápis v katastru s listinami (neslouží k nápravě nesouladu s faktickým právním stavem). KÚ provede opravu na návrh do 30 dnů, ve zvlášť odůvodněných případech do 60 dnů od doručení návrhu (může i bez návrhu, z moci úřední). Výsledek oznámí; nesouhlasí-li vlastník/oprávněný do 30 dnů od doručení oznámení, vydá KÚ rozhodnutí ve věci (lze se odvolat).",
+          "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon) § 36",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Druhy zápisů (vklad / záznam / poznámka)",
+          "tagy": ["zápis", "vklad", "záznam", "poznámka", "věcné právo", "spornost"],
+          "telo": "Do katastru se zapisuje třemi způsoby: VKLADEM se zapisují věcná práva (vlastnictví, zástavní právo, věcné břemeno…), práva ujednaná jako věcná, nájem a pacht — vkladové řízení s 20denní ochrannou lhůtou. ZÁZNAMEM se zapisují práva odvozená od práva vlastnického (typicky na základě rozhodnutí/listin orgánů). POZNÁMKOU se zapisují významné informace (např. exekuce, poznámka spornosti).",
+          "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon)",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
           "platnost": "2026-06-14"
         }
       ]
