@@ -288,6 +288,91 @@
     }
 
     // --------------------------------------------------------------------------------
+    // 6) DXF EXPORT do CADu (AutoCAD / Kokeš / MicroStation)
+    //    Souřadnice: WGS84 -> EPSG:5514 (S-JTSK) přes proj4. Kreslíme (X=sj[0], Y=sj[1]),
+    //    což dává VÝKRESOVOU orientaci — sever nahoru, východ vpravo, v metrech (1:1).
+    //    Hodnoty jsou u S-JTSK ve výkresu běžně záporné; georeferencovaný CAD je zvládne.
+    //    Minimální DXF R12 (AC1009) bez TABLES — vrstvy se v CADu vytvoří automaticky.
+    // --------------------------------------------------------------------------------
+    function toSJTSK(lng, lat) {
+        // vrací [X_kresleni, Y_kresleni] = [sj[0], sj[1]] (sever nahoru)
+        if (typeof proj4 !== 'function') return null;
+        try { const sj = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return [sj[0], sj[1]]; }
+        catch (e) { return null; }
+    }
+    function dxfDownload(filename, text) {
+        try {
+            const blob = new Blob([text], { type: 'application/dxf;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = filename;
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+        } catch (e) { agAlert({ title: 'Export selhal', message: 'Nepodařilo se stáhnout soubor.' }); }
+    }
+    function dxfClean(s) { return String(s == null ? '' : s).replace(/[\r\n]+/g, ' ').slice(0, 250); }
+
+    window.exportPointsDXF = function () {
+        if (typeof proj4 !== 'function') { agAlert({ title: 'Chybí proj4', message: 'Knihovna pro převod souřadnic se nenačetla.' }); return; }
+        const pts = (typeof persistentCustomPoints !== 'undefined') ? persistentCustomPoints : [];
+        const lines = (typeof pointLines !== 'undefined') ? pointLines : [];
+        if (!pts.length && !lines.length) { agAlert({ title: 'Není co exportovat', message: 'Tato zakázka nemá žádné vlastní body ani spojnice.' }); return; }
+
+        const TXT_H = 2.0; // výška popisku v metrech (uživatel si v CADu přeškáluje)
+        let e = ''; // ENTITIES
+        let nOk = 0, nSkip = 0;
+
+        pts.forEach(function (p) {
+            if (typeof p.lat !== 'number' || typeof p.lng !== 'number') { nSkip++; return; }
+            const c = toSJTSK(p.lng, p.lat);
+            if (!c) { nSkip++; return; }
+            const x = c[0].toFixed(3), y = c[1].toFixed(3);
+            // bod
+            e += '0\nPOINT\n8\nBODY\n10\n' + x + '\n20\n' + y + '\n30\n0.0\n';
+            // číslo bodu jako TEXT vedle bodu
+            const tx = (c[0] + TXT_H * 0.6).toFixed(3), ty = (c[1] + TXT_H * 0.6).toFixed(3);
+            e += '0\nTEXT\n8\nCISLA\n10\n' + tx + '\n20\n' + ty + '\n30\n0.0\n40\n' + TXT_H.toFixed(3) + '\n1\n' + dxfClean(p.name || 'Bod') + '\n';
+            nOk++;
+        });
+
+        lines.forEach(function (l) {
+            const a = toSJTSK(+l.aLng, +l.aLat), b = toSJTSK(+l.bLng, +l.bLat);
+            if (!a || !b) { nSkip++; return; }
+            e += '0\nLINE\n8\nSPOJNICE\n10\n' + a[0].toFixed(3) + '\n20\n' + a[1].toFixed(3) + '\n30\n0.0\n'
+                + '11\n' + b[0].toFixed(3) + '\n21\n' + b[1].toFixed(3) + '\n31\n0.0\n';
+        });
+
+        if (!nOk && !lines.length) { agAlert({ title: 'Není co exportovat', message: 'Body nemají platné souřadnice.' }); return; }
+
+        const dxf =
+            '999\nAR Geodet — S-JTSK (EPSG:5514), vykresova orientace (sever nahoru), metry\n' +
+            '0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1009\n9\n$INSUNITS\n70\n6\n0\nENDSEC\n' +
+            '0\nSECTION\n2\nENTITIES\n' + e + '0\nENDSEC\n0\nEOF\n';
+
+        const proj = (typeof activeProjectId !== 'undefined') ? activeProjectId : 'body';
+        dxfDownload('body_' + proj + '.dxf', dxf);
+        if (nSkip) {
+            agAlert({ title: 'Hotovo (s výhradou)', message: 'Export DXF vytvořen. <b>' + nSkip + '</b> ' + (nSkip === 1 ? 'prvek byl přeskočen' : 'prvků bylo přeskočeno') + ' (chybějící/neplatné souřadnice).' });
+        }
+    };
+
+    function injectDxfButton() {
+        // přidá tlačítko do existujícího exportního menu (manage-modal) vedle ostatních exportů
+        const opts = document.querySelector('#manage-modal .exp-opts');
+        if (!opts || document.getElementById('ag-export-dxf')) return;
+        const btn = document.createElement('button');
+        btn.id = 'ag-export-dxf';
+        btn.className = 'btn btn-secondary';
+        btn.type = 'button';
+        btn.innerHTML = '<svg class="icon"><use href="#i-upload"/></svg> Export DXF (CAD)';
+        btn.addEventListener('click', function () { try { window.exportPointsDXF(); } catch (e) { console.warn(e); } });
+        // vlož za GeoJSON (poslední z "Export ..." řady), před tlačítko Importu pokud existuje
+        const importBtn = opts.querySelector('button.btn-blue');
+        if (importBtn) opts.insertBefore(btn, importBtn);
+        else opts.appendChild(btn);
+    }
+
+    // --------------------------------------------------------------------------------
     // Pomocné
     // --------------------------------------------------------------------------------
     function escapeHtml(s) {
@@ -305,6 +390,7 @@
         try { injectGpsNote(); } catch (e) { console.warn('[vylepseni] gps-note', e); }
         try { injectGloveToggle(); applyGlove(); } catch (e) { console.warn('[vylepseni] glove', e); }
         try { injectQuota(); hookSettings(); } catch (e) { console.warn('[vylepseni] quota', e); }
+        try { injectDxfButton(); } catch (e) { console.warn('[vylepseni] dxf', e); }
     }
 
     if (document.readyState === 'loading') {
