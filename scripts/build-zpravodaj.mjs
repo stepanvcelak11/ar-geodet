@@ -20,21 +20,20 @@ const OUT = 'data/zpravodaj.json';
 
 // --- Zdroje (RSS/Atom). Klidně přidávej/odebírej; neexistující se přeskočí. -----
 const FEEDS = [
-    // Svět
-    { source: 'GPS World', url: 'https://www.gpsworld.com/feed/' },
+    // ČR — „Z domova" (ověřené RSS 2.0)
+    { source: 'ČÚZK', url: 'https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice.aspx?rss=b02d6eea-7d16-47a4-9816-21dea74247ce' },
+    // Svět (ověřeno, že jdou stáhnout ze serveru)
     { source: 'xyHt', url: 'https://www.xyht.com/feed/' },
-    { source: 'GIM International', url: 'https://www.gim-international.com/feed' },
-    { source: 'Geo Week News', url: 'https://www.geoweeknews.com/rss.xml' },
-    { source: 'GoGeomatics', url: 'https://gogeomatics.ca/feed/' },
-    // ČR (pokud feed nefunguje, jen se přeskočí — uprav dle potřeby)
-    { source: 'ČÚZK', url: 'https://www.cuzk.cz/Rss.aspx' },
-    { source: 'Zeměměřič', url: 'https://www.zememeric.cz/rss.php' },
+    { source: 'The American Surveyor', url: 'https://amerisurv.com/feed/' },
+    { source: 'LiDAR Magazine', url: 'https://lidarmag.com/feed/' },
+    // Pozn.: GPS World / Geospatial World / GoGeomatics / Esri blog blokují roboty (HTTP 403),
+    // GIM International nemá veřejné RSS. Přidávej jen feedy, co projdou serverovým stažením.
 ];
 
 const RUBRIKY = ['Z domova', 'Ze světa', 'Přístroje', 'Technologie', 'Zákon', 'Z praxe', 'Tip', 'Akce', 'Vzdělávání'];
 const SNIPPET_MAX = 500;       // ořez úryvku na položku
 const MAX_TO_MODEL = 28;       // kolik kandidátů pošleme modelu
-const MAX_AGE_DAYS = 5;        // jak staré zprávy ještě bereme
+const HARD_MAX_AGE_DAYS = 120; // vyřaď jen opravdu staré zprávy; jinak ber nejnovější (obor je pomalý)
 const MIN_ITEMS = 4;           // míň než tohle = nepřepisovat staré vydání
 const MAX_ITEMS = 8;
 
@@ -94,7 +93,12 @@ async function fetchText(url) {
     const t = setTimeout(() => ctrl.abort(), 15000);
     try {
         const r = await fetch(url, {
-            headers: { 'User-Agent': 'AR-Geodet-Zpravodaj/1.0 (+https://github.com/stepanvcelak11/ar-geodet)', 'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*' },
+            headers: {
+                // Prohlížečová hlavička — část serverů blokuje „robotí" User-Agent (HTTP 403).
+                'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:124.0) Gecko/20100101 Firefox/124.0',
+                'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
+                'Accept-Language': 'cs,en;q=0.8',
+            },
             signal: ctrl.signal,
             redirect: 'follow',
         });
@@ -202,16 +206,19 @@ async function main() {
         }
     }
 
-    // dedup dle titulku, filtr na čerstvost, řazení od nejnovějšího
-    const byTitle = new Set();
-    const cutoff = Date.now() - MAX_AGE_DAYS * 86400000;
+    // dedup (titulek i odkaz), nejnovější první; zprávu bez data bereme jako čerstvou
+    const seenT = new Set(), seenL = new Set();
     items = items.filter((x) => {
-        const k = x.title.toLowerCase();
-        if (byTitle.has(k)) return false; byTitle.add(k);
-        if (x.ts != null && x.ts < cutoff) return false;       // staré pryč (bez data necháme)
+        const kt = x.title.toLowerCase();
+        if (seenT.has(kt) || seenL.has(x.link)) return false;
+        seenT.add(kt); seenL.add(x.link);
         return true;
     });
-    items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    const now = Date.now();
+    const hardCut = now - HARD_MAX_AGE_DAYS * 86400000;
+    items.forEach((x) => { if (x.ts == null) x.ts = now; });   // bez data = bereme jako čerstvé
+    items = items.filter((x) => x.ts >= hardCut);              // vyřaď jen opravdu staré (>120 dní)
+    items.sort((a, b) => b.ts - a.ts);                         // od nejnovějšího
     items = items.slice(0, MAX_TO_MODEL);
     console.log('[sběr] kandidátů pro model:', items.length);
 
