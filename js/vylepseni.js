@@ -373,6 +373,129 @@
     }
 
     // --------------------------------------------------------------------------------
+    // 7) AR KALIBRAČNÍ PRŮVODCE — sever + zorný úhel
+    //    Řídí jen EXISTUJÍCÍ ověřené funkce: nudgeHeadingOffset/resetHeadingOffset
+    //    (korekce severu) a visSettings.fovH (AR ji čte každý snímek -> živě), persistuje
+    //    přes setStoredData. Žádná nová "magie" -> nemůže být hůř než stávající posuvníky.
+    // --------------------------------------------------------------------------------
+    let _calib = null, _calibStep = 1, _calibTimer = null;
+
+    function normDeg(v) { return ((v % 360) + 360) % 360; }
+    function getHeading() { try { return (typeof currentHeading !== 'undefined' && isFinite(currentHeading)) ? normDeg(currentHeading) : null; } catch (e) { return null; } }
+    function getOffset() { try { let v = (typeof userHeadingOffset !== 'undefined') ? userHeadingOffset : 0; v = ((v + 180) % 360 + 360) % 360 - 180; return Math.round(v); } catch (e) { return 0; } }
+    function getFov() { try { return (typeof visSettings !== 'undefined' && visSettings.fovH) ? visSettings.fovH : 90; } catch (e) { return 90; } }
+
+    function nudgeNorth(d) { try { if (typeof nudgeHeadingOffset === 'function') nudgeHeadingOffset(d); } catch (e) {} renderCalib(); }
+    function resetNorth() { try { if (typeof resetHeadingOffset === 'function') resetHeadingOffset(); } catch (e) {} renderCalib(); }
+    function setFov(v) {
+        v = Math.max(40, Math.min(120, v));
+        try {
+            if (typeof visSettings !== 'undefined') visSettings.fovH = v;
+            if (typeof setStoredData === 'function') setStoredData('arVisSettings12', JSON.stringify(visSettings));
+        } catch (e) {}
+        // sync s posuvníkem v Nastavení, ať to spolu sedí
+        const sl = document.getElementById('s-fovh'); if (sl) sl.value = v;
+        const lbl = document.getElementById('s-fovh-val'); if (lbl) lbl.innerText = v;
+        renderCalib();
+    }
+
+    function buildCalib() {
+        if (_calib) return _calib;
+        _calib = document.createElement('div');
+        _calib.id = 'ag-calib';
+        document.body.appendChild(_calib);
+        return _calib;
+    }
+
+    function renderCalib() {
+        if (!_calib) return;
+        const az = getHeading();
+        if (_calibStep === 1) {
+            const off = getOffset();
+            _calib.innerHTML =
+                '<div class="ag-calib-head"><span class="ag-calib-step">Kalibrace AR · krok 1 / 2</span><button type="button" class="ag-calib-x" data-act="close" aria-label="Zavřít">×</button></div>' +
+                '<h3 class="ag-calib-title">Srovnání severu</h3>' +
+                '<p class="ag-calib-desc">Namiř střed obrazu na <b>známý orientační bod</b> (roh budovy, komín, sloup) viditelný i v AR. Pak laď, dokud značka/šipka nesedí na realitu.</p>' +
+                '<div class="ag-calib-read"><span class="lbl">Azimut</span><span class="val" id="ag-calib-az">' + (az == null ? '—' : Math.round(az) + '°') + '</span><span class="lbl">· korekce ' + (off > 0 ? '+' : '') + off + '°</span></div>' +
+                '<div class="ag-calib-grid">' +
+                '<button type="button" class="ag-calib-btn" data-nudge="-5">−5°</button>' +
+                '<button type="button" class="ag-calib-btn" data-nudge="-1">−1°</button>' +
+                '<button type="button" class="ag-calib-btn" data-nudge="1">+1°</button>' +
+                '<button type="button" class="ag-calib-btn" data-nudge="5">+5°</button>' +
+                '</div>' +
+                '<div class="ag-calib-foot">' +
+                '<button type="button" class="ag-calib-btn" data-act="resetN">Vynulovat</button>' +
+                '<button type="button" class="ag-calib-btn prim" data-act="next">Dále →</button>' +
+                '</div>';
+        } else {
+            const fov = getFov();
+            _calib.innerHTML =
+                '<div class="ag-calib-head"><span class="ag-calib-step">Kalibrace AR · krok 2 / 2</span><button type="button" class="ag-calib-x" data-act="close" aria-label="Zavřít">×</button></div>' +
+                '<h3 class="ag-calib-title">Zorný úhel kamery</h3>' +
+                '<p class="ag-calib-desc">Když značky <b>utíkají do stran</b> rychleji/pomaleji než realita, uprav šířku záběru, dokud okraj značky nesedí s reálným objektem na kraji obrazu.</p>' +
+                '<div class="ag-calib-read"><span class="lbl">Šířka záběru</span><span class="val">' + fov + '°</span></div>' +
+                '<div class="ag-calib-grid">' +
+                '<button type="button" class="ag-calib-btn" data-fov="-5">−5°</button>' +
+                '<button type="button" class="ag-calib-btn" data-fov="-2">−2°</button>' +
+                '<button type="button" class="ag-calib-btn" data-fov="2">+2°</button>' +
+                '<button type="button" class="ag-calib-btn" data-fov="5">+5°</button>' +
+                '</div>' +
+                '<div class="ag-calib-foot">' +
+                '<button type="button" class="ag-calib-btn" data-act="back">← Zpět</button>' +
+                '<button type="button" class="ag-calib-btn prim" data-act="done">Hotovo ✓</button>' +
+                '</div>';
+        }
+        // handlery
+        _calib.querySelectorAll('[data-nudge]').forEach(function (b) { b.addEventListener('click', function () { nudgeNorth(parseInt(b.getAttribute('data-nudge'), 10)); }); });
+        _calib.querySelectorAll('[data-fov]').forEach(function (b) { b.addEventListener('click', function () { setFov(getFov() + parseInt(b.getAttribute('data-fov'), 10)); }); });
+        _calib.querySelectorAll('[data-act]').forEach(function (b) {
+            b.addEventListener('click', function () {
+                const a = b.getAttribute('data-act');
+                if (a === 'close') closeCalib();
+                else if (a === 'resetN') resetNorth();
+                else if (a === 'next') { _calibStep = 2; renderCalib(); }
+                else if (a === 'back') { _calibStep = 1; renderCalib(); }
+                else if (a === 'done') { closeCalib(); agAlert({ title: 'Kalibrace uložena', message: 'Korekce severu i zorný úhel jsou uložené. V terénu klidně dolaď znovu — magnetické rušení a různé objektivy to ovlivňují.' }); }
+            });
+        });
+    }
+
+    function openCalib() {
+        buildCalib();
+        _calibStep = 1;
+        renderCalib();
+        _calib.classList.add('open');
+        if (_calibTimer) clearInterval(_calibTimer);
+        // živá aktualizace azimutu jen v kroku 1
+        _calibTimer = setInterval(function () {
+            if (_calibStep !== 1) return;
+            const el = document.getElementById('ag-calib-az');
+            if (el) { const az = getHeading(); el.textContent = (az == null ? '—' : Math.round(az) + '°'); }
+        }, 250);
+    }
+    function closeCalib() {
+        if (_calibTimer) { clearInterval(_calibTimer); _calibTimer = null; }
+        if (_calib) _calib.classList.remove('open');
+    }
+    window.openARCalibration = openCalib;
+
+    function injectCalibButton() {
+        const body = document.querySelector('#compass-modal .modal-body');
+        if (!body || document.getElementById('ag-calib-launch')) return;
+        const btn = document.createElement('button');
+        btn.id = 'ag-calib-launch';
+        btn.className = 'btn btn-primary';
+        btn.type = 'button';
+        btn.style.marginBottom = '6px';
+        btn.innerHTML = '<svg class="icon"><use href="#i-crosshair"/></svg> Průvodce kalibrací AR (sever + záběr)';
+        btn.addEventListener('click', function () {
+            const m = document.getElementById('compass-modal'); if (m) m.style.display = 'none';
+            openCalib();
+        });
+        body.insertBefore(btn, body.firstChild);
+    }
+
+    // --------------------------------------------------------------------------------
     // Pomocné
     // --------------------------------------------------------------------------------
     function escapeHtml(s) {
@@ -391,6 +514,7 @@
         try { injectGloveToggle(); applyGlove(); } catch (e) { console.warn('[vylepseni] glove', e); }
         try { injectQuota(); hookSettings(); } catch (e) { console.warn('[vylepseni] quota', e); }
         try { injectDxfButton(); } catch (e) { console.warn('[vylepseni] dxf', e); }
+        try { injectCalibButton(); } catch (e) { console.warn('[vylepseni] calib', e); }
     }
 
     if (document.readyState === 'loading') {
