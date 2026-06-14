@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AR Geodet — návrh Nastavení</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1216; --panel:#161b21; --panelSolid:#1b2128; --border:rgba(255,255,255,.10); --hair:rgba(255,255,255,.07);
+    --text:#eceef2; --muted:#9aa1ac; --accent:#2f9e74; --onAccent:#04130c; --data:#e6bd76;
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:"Inter",system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:48px;}
+  .wrap{max-width:430px;margin:0 auto;padding:18px 16px;}
+  h1{font-family:"Sora",sans-serif;font-size:19px;font-weight:800;margin:0 0 4px;}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 4px;line-height:1.5;}
+  .note{font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:14px;}
+  .note b{color:var(--data);}
+  .icon{width:1.2em;height:1.2em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+  .modal{margin-top:16px;border-radius:18px;background:var(--panelSolid);border:1px solid var(--border);box-shadow:0 16px 40px rgba(0,0,0,.35),inset 0 1px 0 var(--hair);overflow:hidden;}
+  .mhead{display:flex;align-items:center;gap:9px;padding:18px 18px 0;font-family:"Sora",sans-serif;font-weight:800;font-size:20px;}
+  .tabs{display:flex;gap:5px;margin:14px 16px 0;padding:5px;background:rgba(0,0,0,.28);border-radius:13px;}
+  .tab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 4px;border-radius:9px;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;}
+  .tab .icon{width:15px;height:15px;}
+  .tab.on{background:var(--accent);color:var(--onAccent);}
+  .body{padding:8px 18px 20px;}
+  .pane{display:none;} .pane.on{display:block;}
+
+  .grp{font-family:"Sora",sans-serif;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:18px 0 4px;}
+  .field{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--hair);}
+  .field:last-child{border-bottom:none;}
+  .lab{font-size:14.5px;font-weight:600;}
+  .lab small{display:block;color:var(--muted);font-size:11.5px;font-weight:400;margin-top:2px;}
+
+  .seg{display:inline-flex;gap:3px;padding:3px;border-radius:99px;background:rgba(0,0,0,.28);flex:none;}
+  .seg b{font-size:12px;font-weight:600;color:var(--muted);padding:6px 11px;border-radius:99px;}
+  .seg b.on{background:var(--accent);color:var(--onAccent);}
+  .sw{width:46px;height:27px;border-radius:99px;background:rgba(255,255,255,.16);position:relative;flex:none;}
+  .sw::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#fff;transition:.2s;}
+  .sw.on{background:var(--accent);} .sw.on::after{left:22px;}
+  .sel{display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;background:rgba(0,0,0,.28);border:1px solid var(--border);font-size:13px;font-weight:600;flex:none;}
+  .sel .icon{width:14px;height:14px;color:var(--muted);}
+  .sld{position:relative;flex:none;width:140px;height:6px;border-radius:99px;background:rgba(255,255,255,.14);}
+  .sld .fill{position:absolute;left:0;top:0;height:100%;border-radius:99px;background:var(--accent);}
+  .sld .fill::after{content:"";position:absolute;right:-9px;top:50%;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;background:var(--accent);border:3px solid var(--bg);box-shadow:0 1px 4px rgba(0,0,0,.5);}
+  .val{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--data);min-width:42px;text-align:right;}
+  .ctl{display:flex;align-items:center;gap:10px;flex:none;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 14px;border-radius:11px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--text);font-size:13.5px;font-weight:600;width:100%;justify-content:center;margin-top:10px;}
+  .btn.accent{background:var(--accent);color:var(--onAccent);border-color:transparent;}
+  .btn.blue{color:#93c5fd;border-color:rgba(59,130,246,.45);background:transparent;}
+  .btn.danger{color:#fca5a5;border-color:rgba(248,113,113,.4);background:transparent;}
+  .btn .icon{width:16px;height:16px;}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:99px;border:1px solid var(--border);font-size:12.5px;font-weight:600;color:var(--muted);}
+  .chip.on{background:var(--accent);color:var(--onAccent);border-color:transparent;}
+  .proj{display:flex;gap:8px;align-items:center;}
+  .proj .sel{flex:1;justify-content:space-between;}
+  .iconbtn{width:42px;height:42px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--text);}
+  .iconbtn.danger{color:#fca5a5;}
+
+  details.adv{margin-top:14px;border:1px solid var(--border);border-radius:12px;background:var(--panel);overflow:hidden;}
+  details.adv>summary{list-style:none;display:flex;align-items:center;gap:8px;padding:13px 14px;font-size:13.5px;font-weight:600;color:var(--text);cursor:pointer;}
+  details.adv>summary::-webkit-details-marker{display:none;}
+  details.adv>summary::after{content:"▾";margin-left:auto;color:var(--muted);transition:.2s;}
+  details.adv[open]>summary::after{transform:rotate(180deg);}
+  details.adv .advbody{padding:2px 14px 8px;}
+  .quota{margin-top:6px;}
+  .qbar{height:7px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:6px;}
+  .qfill{height:100%;width:38%;background:var(--accent);border-radius:99px;}
+</style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></symbol>
+    <symbol id="i-crosshair" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2Z"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></symbol>
+    <symbol id="i-rotate-ccw" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/><circle cx="12" cy="13" r="3"/></symbol>
+  </defs></svg>
+
+  <div class="wrap">
+    <h1>Návrh Nastavení</h1>
+    <p class="sub">3 jasné záložky + „Pokročilé" schované. Nahoře jen to, co se mění běžně; detaily na jedno klepnutí. (Klikni do záložek i do „Pokročilé".)</p>
+
+    <div class="modal">
+      <div class="mhead"><svg class="icon" style="color:var(--accent)"><use href="#i-settings"/></svg> Nastavení</div>
+      <div class="tabs" id="tabs">
+        <div class="tab on" data-p="p1"><svg class="icon"><use href="#i-sliders"/></svg> Vzhled</div>
+        <div class="tab" data-p="p2"><svg class="icon"><use href="#i-crosshair"/></svg> AR &amp; přesnost</div>
+        <div class="tab" data-p="p3"><svg class="icon"><use href="#i-folder"/></svg> Data</div>
+      </div>
+      <div class="body">
+
+        <!-- VZHLED -->
+        <div class="pane on" id="p1">
+          <div class="field"><span class="lab">Režim</span><span class="seg"><b>Světlý</b><b class="on">Tmavý</b></span></div>
+          <div class="field"><span class="lab">Barevný odstín</span><span class="sel">Smaragd <svg class="icon"><use href="#i-sliders"/></svg></span></div>
+          <div class="field"><span class="lab">Velikost UI a textu</span><span class="ctl"><span class="sld"><span class="fill" style="width:50%"></span></span><span class="val">100%</span></span></div>
+          <div class="field"><span class="lab">Venkovní režim<small>vysoký kontrast na slunci</small></span><span class="sw"></span></div>
+          <details class="adv"><summary><svg class="icon" style="width:16px;height:16px;color:var(--accent)"><use href="#i-sliders"/></svg> Pokročilé — barvy a HUD</summary>
+            <div class="advbody">
+              <div class="field"><span class="lab">Barvy typů bodů</span><span class="val" style="color:var(--muted)">5 barev ›</span></div>
+              <div class="field"><span class="lab">Štítky bodů</span><span class="val" style="color:var(--muted)">velikost · průhl. ›</span></div>
+              <div class="field"><span class="lab">3D navigační šipka</span><span class="val" style="color:var(--muted)">tvar · barva ›</span></div>
+              <div class="field"><span class="lab">Velikost HUD panelů</span><span class="ctl"><span class="sld" style="width:110px"><span class="fill" style="width:50%"></span></span></span></div>
+              <div class="field"><span class="lab">Adaptivní sklo dle jasu</span><span class="sw on"></span></div>
+            </div>
+          </details>
+        </div>
+
+        <!-- AR & PŘESNOST -->
+        <div class="pane" id="p2">
+          <div class="field"><span class="lab">Rozvržení</span><span class="seg"><b>AR</b><b class="on">Dělené</b><b>Mapa</b></span></div>
+          <div class="field"><span class="lab">Viditelnost bodů v AR</span><span class="ctl"><span class="sld"><span class="fill" style="width:30%"></span></span><span class="val">150 m</span></span></div>
+          <div class="field"><span class="lab">Max. bodů v AR<small>výkon</small></span><span class="ctl"><span class="sld"><span class="fill" style="width:15%"></span></span><span class="val">20</span></span></div>
+          <button class="btn"><svg class="icon"><use href="#i-crosshair"/></svg> Kalibrovat kompas</button>
+          <details class="adv"><summary><svg class="icon" style="width:16px;height:16px;color:var(--accent)"><use href="#i-crosshair"/></svg> Pokročilé — jemné doladění AR</summary>
+            <div class="advbody">
+              <div class="field"><span class="lab">Auto‑korekce kompasu (GPS)</span><span class="sw"></span></div>
+              <div class="field"><span class="lab">Kompenzace náklonu telefonu</span><span class="sw on"></span></div>
+              <div class="field"><span class="lab">Vyhlazení kompasu</span><span class="ctl"><span class="sld" style="width:110px"><span class="fill" style="width:75%"></span></span><span class="val">75%</span></span></div>
+              <div class="field"><span class="lab">Zorný úhel – šířka</span><span class="ctl"><span class="sld" style="width:110px"><span class="fill" style="width:50%"></span></span><span class="val">90°</span></span></div>
+              <div class="field"><span class="lab">Zorný úhel – výška</span><span class="ctl"><span class="sld" style="width:110px"><span class="fill" style="width:40%"></span></span><span class="val">75°</span></span></div>
+              <div class="field"><span class="lab">Výška očí nad zemí</span><span class="ctl"><span class="sld" style="width:110px"><span class="fill" style="width:60%"></span></span><span class="val">1.6 m</span></span></div>
+              <div class="field"><span class="lab">Objektiv kamery</span><span class="sel">Výchozí <svg class="icon"><use href="#i-camera"/></svg></span></div>
+            </div>
+          </details>
+        </div>
+
+        <!-- DATA -->
+        <div class="pane" id="p3">
+          <div class="grp">Zakázka</div>
+          <div class="proj"><span class="sel">Zakázka — Dvůr u lesa <svg class="icon"><use href="#i-folder"/></svg></span><span class="iconbtn"><svg class="icon"><use href="#i-plus"/></svg></span><span class="iconbtn danger"><svg class="icon"><use href="#i-trash"/></svg></span></div>
+
+          <div class="grp">Body</div>
+          <div class="field" style="border:none;padding-bottom:6px;"><span class="lab">Druh hledaných bodů</span></div>
+          <div class="chips"><span class="chip on">Trigonom.</span><span class="chip on">Zhušťov.</span><span class="chip on">Podrobné</span><span class="chip on">Výškové</span><span class="chip on">Vlastní</span></div>
+          <div class="field" style="margin-top:6px;"><span class="lab">Poloměr stahování</span><span class="ctl"><span class="sld"><span class="fill" style="width:20%"></span></span><span class="val">1000 m</span></span></div>
+          <div class="field"><span class="lab">Zdroj katastru</span><span class="sel">Mapy.cz <svg class="icon"><use href="#i-folder"/></svg></span></div>
+
+          <button class="btn blue"><svg class="icon"><use href="#i-download"/></svg> Uložit pro offline</button>
+
+          <details class="adv"><summary><svg class="icon" style="width:16px;height:16px;color:var(--accent)"><use href="#i-rotate-ccw"/></svg> Údržba a záloha</summary>
+            <div class="advbody">
+              <div class="quota">
+                <div class="field" style="border:none;padding:8px 0 0;"><span class="lab" style="font-size:12.5px;">Úložiště v zařízení</span><span class="val" style="color:var(--muted)">~38&nbsp;%</span></div>
+                <div class="qbar"><div class="qfill"></div></div>
+              </div>
+              <button class="btn"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Obnovit skryté body</button>
+              <button class="btn danger"><svg class="icon"><use href="#i-trash"/></svg> Vymazat stažené okolí</button>
+              <div class="field" style="margin-top:6px;"><span class="lab">Režim rukavic<small>větší tlačítka</small></span><span class="sw"></span></div>
+              <button class="btn"><svg class="icon"><use href="#i-download"/></svg> Stáhnout zálohu (vše)</button>
+              <button class="btn blue"><svg class="icon"><use href="#i-upload"/></svg> Obnovit ze zálohy</button>
+            </div>
+          </details>
+        </div>
+
+      </div>
+    </div>
+
+    <p class="note"><b>Co se mění:</b> dnešní záložka „Funkce a Data" je rozdělena na <b>AR &amp; přesnost</b> a <b>Data</b>; jemné věci (FOV, výška očí, vyhlazení, barvy kategorií, šipka…) jsou pod <b>„Pokročilé"</b>. Návod, Náčrt a Průvodce z Nastavení zmizí — přesunou se do <b>Nástrojů / Více</b> (jak jsme řešili u navigace).</p>
+  </div>
+
+<script>
+  document.querySelectorAll('#tabs .tab').forEach(function(t){
+    t.onclick=function(){
+      document.querySelectorAll('#tabs .tab').forEach(function(x){x.classList.toggle('on',x===t);});
+      document.querySelectorAll('.pane').forEach(function(p){p.classList.toggle('on',p.id===t.dataset.p);});
+    };
+  });
+</script>
+</body>
+</html>
