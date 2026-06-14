@@ -1,0 +1,187 @@
+/* ===== AR Geodet — PŘEDPISY / PRÁVNÍ TAHÁK (odpojitelná vrstva) ===============
+   Sladěno s design tokeny appky. Odstranění: smaž tento soubor + js/predpisy.js
+   + data/predpisy.json + řádky "PŘEDPISY" v index.html.
+   ============================================================================ */
+
+.prd-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1000000;            /* nad úvodní obrazovkou i modály */
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    padding: env(safe-area-inset-top, 0) 0 env(safe-area-inset-bottom, 0);
+}
+.prd-overlay.open { display: flex; }
+
+.prd-sheet {
+    width: 94%;
+    max-width: 600px;
+    max-height: 92%;
+    display: flex;
+    flex-direction: column;
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-xl, 20px);
+    box-shadow: var(--shadow-pop, 0 24px 60px rgba(0, 0, 0, 0.55)), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    color: var(--text-color);
+    overflow: hidden;
+}
+
+/* Hlavička */
+.prd-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 16px 18px 12px;
+    border-bottom: 1px solid var(--glass-border);
+}
+.prd-head-l { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.prd-head-ic { width: 22px; height: 22px; color: var(--accent); flex: 0 0 auto; }
+.prd-title { font-family: var(--font-display); font-weight: 700; font-size: 18px; letter-spacing: -0.3px; }
+.prd-sub { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+.prd-x {
+    flex: 0 0 auto;
+    width: 34px; height: 34px;
+    border: 0; border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-color);
+    font-size: 22px; line-height: 1; cursor: pointer;
+}
+.prd-x:active { transform: scale(0.94); }
+
+/* Vyhledávání */
+.prd-searchbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--glass-border);
+}
+.prd-search-ic { width: 16px; height: 16px; color: var(--text-muted); flex: 0 0 auto; }
+#prd-search {
+    flex: 1;
+    min-width: 0;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-pill, 999px);
+    color: var(--text-color);
+    font: inherit;
+    font-size: 15px;
+    padding: 9px 14px;
+    outline: none;
+}
+#prd-search:focus { border-color: var(--accent); }
+#prd-search::placeholder { color: var(--text-muted); }
+
+/* Tělo */
+.prd-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 12px 16px 4px;
+    touch-action: pan-y;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+}
+.prd-body::-webkit-scrollbar { width: 6px; }
+.prd-body::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.14); border-radius: 999px; }
+.prd-empty { padding: 28px 8px; text-align: center; color: var(--text-muted); font-size: 14px; line-height: 1.5; }
+
+/* Kategorie */
+.prd-cat { margin-bottom: 8px; }
+.prd-cat-h {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 10px 2px 8px;
+}
+
+/* Záznam */
+.prd-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-md, 14px);
+    padding: 13px 15px;
+    margin-bottom: 11px;
+}
+.prd-h {
+    font-family: var(--font-display);
+    font-size: 15.5px;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.2px;
+    margin: 0 0 6px;
+}
+.prd-telo { font-size: 13.5px; line-height: 1.55; margin: 0 0 10px; opacity: 0.94; }
+
+/* Tabulka */
+.prd-tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 0 10px; }
+.prd-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    font-family: var(--font-mono);
+}
+.prd-table th, .prd-table td {
+    text-align: left;
+    padding: 6px 9px;
+    border-bottom: 1px solid var(--glass-border);
+    white-space: nowrap;
+}
+.prd-table thead th {
+    color: var(--accent);
+    font-weight: 700;
+    border-bottom: 1px solid var(--accent-line, rgba(139, 92, 246, 0.4));
+}
+.prd-table tbody tr:nth-child(odd) td { background: rgba(255, 255, 255, 0.03); }
+
+/* Poznámka + zdroj */
+.prd-pozn {
+    font-size: 12.5px;
+    line-height: 1.5;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-line, rgba(139, 92, 246, 0.35));
+    border-radius: var(--r-sm, 10px);
+    padding: 8px 11px;
+    margin: 0 0 10px;
+}
+.prd-src {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    border-top: 1px dashed var(--glass-border);
+    padding-top: 9px;
+}
+.prd-cite { font-size: 11.5px; color: var(--text-muted); }
+.prd-link {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent-bright);
+    text-decoration: none;
+    padding: 6px 12px;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-line, rgba(139, 92, 246, 0.4));
+    border-radius: var(--r-pill, 999px);
+}
+.prd-link:active { transform: scale(0.98); }
+
+/* Patička */
+.prd-foot { padding: 10px 16px 13px; border-top: 1px solid var(--glass-border); }
+.prd-note { font-size: 11.5px; line-height: 1.45; color: #f0b86e; }
+
+/* Režim rukavic */
+body.ag-glove #prd-search { padding: 12px 16px; }
+body.ag-glove .prd-link { padding: 9px 15px; }
+body.ag-glove .prd-x { width: 42px; height: 42px; }

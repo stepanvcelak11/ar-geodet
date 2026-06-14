@@ -1,0 +1,49 @@
+{
+  "aktualizovano": "2026-06-14",
+  "disclaimer": "Orientační tahák, ne právní výklad. Hodnoty ověřuj v plném znění u zdroje — předpisy se mění.",
+  "kategorie": [
+    {
+      "id": "odchylky",
+      "nazev": "Mezní odchylky a přesnost",
+      "zaznamy": [
+        {
+          "nazev": "Kód kvality podrobných bodů (mxy a mezní odchylky)",
+          "tagy": ["odchylka", "odchylky", "přesnost", "kód kvality", "mxy", "mezní", "souřadnicová chyba", "podrobný bod"],
+          "telo": "Přesnost souřadnic podrobného bodu v S-JTSK je vyjádřena kódem kvality 3 až 8. Každému kódu odpovídá základní střední souřadnicová chyba mxy. Z ní se odvozuje mezní souřadnicová chyba uxy = 2·mxy a mezní polohová odchylka = 2·√2·mxy. Kódy 3–5 jsou body zaměřené v terénu, kódy 6–8 pocházejí z digitalizace dřívějších map.",
+          "tabulka": {
+            "hlavicka": ["Kód", "Původ", "mxy [m]", "uxy = 2·mxy [m]", "Mezní polohová [m]"],
+            "radky": [
+              ["3", "zaměření v terénu", "0,14", "0,28", "0,39"],
+              ["4", "zaměření v terénu", "0,26", "0,52", "0,74"],
+              ["5", "zaměření v terénu", "0,50", "1,00", "1,41"],
+              ["6", "digitalizace", "0,21", "0,42", "0,59"],
+              ["7", "digitalizace", "0,50", "1,00", "1,41"],
+              ["8", "digitalizace", "1,00", "2,00", "2,82"]
+            ]
+          },
+          "pozn": "uxy = 2·mxy · mezní polohová odchylka = 2·√2·mxy. Nejpřesnější jsou body s kódem 3 (nově geodeticky zaměřené).",
+          "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 13",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Barvy bodů v Nahlížení do KN (kontrola přesnosti)",
+          "tagy": ["nahlížení", "barva", "zelená", "červená", "kód kvality", "přesnost", "hranice"],
+          "telo": "V aplikaci Nahlížení do KN se ve vrstvě „Hranice parcel s vyjádřením přesnosti“ / „Podrobné body s vyjádřením přesnosti“ zobrazují body podle kódu kvality barevně: ZELENĚ body s kódem kvality 3 (nejpřesnější, geodeticky zaměřené), ČERVENĚ body s kódem kvality 4 až 8. Rychlá vizuální kontrola, jak spolehlivá je hranice.",
+          "zdroj": "ČÚZK — Nahlížení do KN",
+          "odkaz": "https://nahlizenidokn.cuzk.gov.cz",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Způsob určení výměry parcely vs. kód kvality",
+          "tagy": ["výměra", "způsob určení výměry", "kód kvality", "parcela"],
+          "telo": "Způsob určení výměry parcely souvisí s kódem kvality lomových bodů: ze souřadnic v S-JTSK s kódem kvality 3 nebo 4 se výměra označuje kódem způsobu určení 2; pokud má aspoň jeden lomový bod souřadnici s kódem kvality 5 až 8, označuje se kódem 0. (Graficky určená výměra z mapy má kód 1.)",
+          "pozn": "Vyšší přesnost lomových bodů (kód 3–4) = přesnější a „silnější“ výměra parcely.",
+          "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+          "platnost": "2026-06-14"
+        }
+      ]
+    }
+  ]
+}
