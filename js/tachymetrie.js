@@ -28,32 +28,64 @@
     function save() { try { localStorage.setItem(KEY, JSON.stringify(sketch)); } catch (e) {} }
 
     // ---------- UI ----------
+    function injectStyle() {
+        if (document.getElementById('tachy-style')) return;
+        const st = document.createElement('style'); st.id = 'tachy-style';
+        st.textContent = `
+            #tachy-modal{position:fixed;inset:0;z-index:1000000;background:#0b0f14;display:none;flex-direction:column;font-family:var(--font-ui,sans-serif);}
+            #tachy-top{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 10px;background:#11161d;border-bottom:1px solid rgba(255,255,255,0.08);}
+            #tachy-top .tt-title{display:flex;align-items:center;gap:8px;font-family:var(--font-display,sans-serif);font-weight:700;font-size:16px;color:#fff;margin-right:auto;}
+            #tachy-top .tt-title .icon{width:20px;height:20px;color:var(--accent,#34d399);}
+            #tachy-x{flex:none;width:36px;height:36px;border:none;border-radius:10px;background:rgba(255,255,255,0.08);color:#fff;font-size:20px;line-height:1;cursor:pointer;}
+            #tachy-x:active{transform:scale(0.95);}
+            #tachy-bar{display:flex;align-items:center;gap:7px;padding:9px 12px;background:#0e1319;border-bottom:1px solid rgba(255,255,255,0.06);overflow-x:auto;-webkit-overflow-scrolling:touch;}
+            #tachy-bar::-webkit-scrollbar{height:0;}
+            .tb-btn{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 13px;border-radius:11px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#e6edf3;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;}
+            .tb-btn .icon{width:17px;height:17px;}
+            .tb-btn:active{transform:scale(0.97);}
+            .tb-btn.prim{background:var(--accent,#34d399);border-color:transparent;color:#06231a;}
+            .tb-btn.warn{color:#fca5a5;border-color:rgba(248,113,113,0.4);}
+            .tb-btn.active{background:var(--accent,#34d399);border-color:transparent;color:#06231a;}
+            .tb-sel{flex:0 0 auto;height:40px;padding:0 10px;border-radius:11px;background:rgba(255,255,255,0.06);color:#e6edf3;border:1px solid rgba(255,255,255,0.12);font-size:13px;}
+            .tb-sep{flex:0 0 auto;width:1px;height:24px;background:rgba(255,255,255,0.12);margin:0 3px;}
+            #tachy-hint{color:#9aa4b2;font-size:12px;padding:7px 14px;background:#0b0f14;border-bottom:1px solid rgba(255,255,255,0.05);min-height:16px;}
+            #tachy-wrap{position:relative;flex:1;min-height:0;}
+            #tachy-map{position:absolute;inset:0;background:#0b0f14;}
+            #tachy-canvas{position:absolute;inset:0;pointer-events:none;z-index:500;}
+        `;
+        document.head.appendChild(st);
+    }
     function build() {
         if (document.getElementById('tachy-modal')) return;
+        injectStyle();
         const opts = LINE_TYPES.map((t, i) => `<option value="${i}">${t.name}</option>`).join('');
         const m = document.createElement('div');
         m.id = 'tachy-modal';
-        m.style.cssText = 'position:fixed; inset:0; z-index:1000000; background:#0e1116; display:none; flex-direction:column;';
         m.innerHTML = `
-            <div style="display:flex; align-items:center; gap:6px; padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 8px; background:#161b22; flex-wrap:wrap;">
-                <b style="color:#34d399; margin-right:auto;">Náčrt / Tachymetrie</b>
-                <button class="btn btn-primary" style="padding:7px 10px; width:auto;" onclick="tachyAddCurrent()">+ Bod (GPS)</button>
-                <button class="btn btn-secondary" style="padding:7px 10px; width:auto;" onclick="tachyAddFromPoints()">+ Z bodů</button>
-                <button class="btn btn-secondary" id="tachy-connect" style="padding:7px 10px; width:auto;" onclick="tachySetMode('connect')">Spojit</button>
-                <select id="tachy-linetype" title="Typ čáry" style="padding:7px; border-radius:8px; background:#21262d; color:#e6edf3; border:1px solid var(--glass-border,#333);">${opts}</select>
-                <button class="btn btn-secondary" id="tachy-label" style="padding:7px 10px; width:auto;" onclick="tachySetMode('label')">Popisek</button>
-                <select id="tachy-bg" title="Podklad" style="padding:7px; border-radius:8px; background:#21262d; color:#e6edf3; border:1px solid var(--glass-border,#333);" onchange="tachySetBg(this.value)">
+            <div id="tachy-top">
+                <span class="tt-title"><svg class="icon"><use href="#i-grid"/></svg> Náčrt / Tachymetrie</span>
+                <button id="tachy-x" onclick="closeTachymetrie()" aria-label="Zavřít">×</button>
+            </div>
+            <div id="tachy-bar">
+                <button class="tb-btn prim" onclick="tachyAddCurrent()"><svg class="icon"><use href="#i-plus"/></svg> Bod (GPS)</button>
+                <button class="tb-btn" onclick="tachyAddFromPoints()"><svg class="icon"><use href="#i-map-pin"/></svg> Z bodů</button>
+                <span class="tb-sep"></span>
+                <button class="tb-btn" id="tachy-connect" onclick="tachySetMode('connect')"><svg class="icon"><use href="#i-line"/></svg> Spojit</button>
+                <select id="tachy-linetype" class="tb-sel" title="Typ čáry">${opts}</select>
+                <button class="tb-btn" id="tachy-label" onclick="tachySetMode('label')"><svg class="icon"><use href="#i-edit"/></svg> Popisek</button>
+                <span class="tb-sep"></span>
+                <select id="tachy-bg" class="tb-sel" title="Podklad" onchange="tachySetBg(this.value)">
                     <option value="osm">Mapa</option><option value="ortofoto">Ortofoto</option><option value="none">Bez podkladu</option>
                 </select>
-                <button class="btn btn-secondary" style="padding:7px 10px; width:auto;" onclick="tachyUndo()">Zpět</button>
-                <button class="btn btn-secondary" style="padding:7px 10px; width:auto;" onclick="tachyExport()">Export PNG</button>
-                <button class="btn btn-warning" style="padding:7px 10px; width:auto;" onclick="tachyClear()">Vymazat</button>
-                <button class="btn btn-secondary" style="padding:7px 10px; width:auto;" onclick="closeTachymetrie()">Zavřít</button>
+                <span class="tb-sep"></span>
+                <button class="tb-btn" onclick="tachyUndo()"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Zpět</button>
+                <button class="tb-btn" onclick="tachyExport()"><svg class="icon"><use href="#i-download"/></svg> PNG</button>
+                <button class="tb-btn warn" onclick="tachyClear()"><svg class="icon"><use href="#i-trash"/></svg> Vymazat</button>
             </div>
-            <div id="tachy-hint" style="color:#9aa4b2; font-size:12px; padding:4px 12px;"></div>
-            <div id="tachy-wrap" style="position:relative; flex:1; min-height:0;">
-                <div id="tachy-map" style="position:absolute; inset:0; background:#0e1116;"></div>
-                <canvas id="tachy-canvas" style="position:absolute; inset:0; pointer-events:none; z-index:500;"></canvas>
+            <div id="tachy-hint"></div>
+            <div id="tachy-wrap">
+                <div id="tachy-map"></div>
+                <canvas id="tachy-canvas"></canvas>
             </div>`;
         document.body.appendChild(m);
         canvas = document.getElementById('tachy-canvas');
@@ -93,7 +125,12 @@
         mode = 'view'; selIdx = -1; updateModeButtons();
         setTimeout(() => { ensureMap(); tmap.invalidateSize(); fitView(); redraw(); }, 60);
     };
-    window.closeTachymetrie = function () { const m = document.getElementById('tachy-modal'); if (m) m.style.display = 'none'; };
+    window.closeTachymetrie = function () {
+        const m = document.getElementById('tachy-modal'); if (m) m.style.display = 'none';
+        // Těžký full-screen modal s vlastní Leaflet mapou umí "zamrznout" hlavní kameru -> oživit ji
+        // (stejně jako po undo v undo.js). Bez toho zůstane po zavření černá/zaseklá kamera.
+        try { if (typeof ensureCameraAlive === 'function') setTimeout(function () { ensureCameraAlive(true); }, 150); } catch (e) {}
+    };
 
     // ---------- Přidávání ----------
     function nextName() { let n = 1; const used = new Set(sketch.pts.map(p => p.name)); while (used.has(String(n))) n++; return String(n); }
@@ -130,8 +167,8 @@
     };
     function updateModeButtons() {
         const c = document.getElementById('tachy-connect'), l = document.getElementById('tachy-label');
-        if (c) { c.style.background = mode === 'connect' ? 'var(--accent)' : ''; c.style.color = mode === 'connect' ? '#000' : ''; }
-        if (l) { l.style.background = mode === 'label' ? 'var(--accent)' : ''; l.style.color = mode === 'label' ? '#000' : ''; }
+        if (c) c.classList.toggle('active', mode === 'connect');
+        if (l) l.classList.toggle('active', mode === 'label');
     }
     function curLineType() { const s = document.getElementById('tachy-linetype'); return s ? (parseInt(s.value) || 0) : 0; }
 
