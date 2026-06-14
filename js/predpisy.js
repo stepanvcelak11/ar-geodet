@@ -16,6 +16,7 @@
     var K_DATA = 'agPredpisyData';
     var _data = null;
     var _ov = null;
+    var _activeCat = 'all';   // aktivní téma (id kategorie) nebo 'all'
 
     function esc(s) {
         return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -43,7 +44,7 @@
             .then(function (j) {
                 if (!j || !Array.isArray(j.kategorie)) throw new Error('bad json');
                 _data = j; lsSet(K_DATA, JSON.stringify(j));
-                if (_ov && _ov.classList.contains('open')) render(currentQuery());
+                if (_ov && _ov.classList.contains('open')) { renderChips(); render(currentQuery()); }
             })
             .catch(function () { /* zůstaneme u cache */ });
     }
@@ -99,6 +100,7 @@
         var html = '';
         var hits = 0;
         _data.kategorie.forEach(function (kat) {
+            if (_activeCat !== 'all' && kat.id !== _activeCat) return;
             var zazn = (kat.zaznamy || []).filter(function (z) { return !needle || entryHaystack(z).indexOf(needle) >= 0; });
             if (!zazn.length) return;
             hits += zazn.length;
@@ -109,6 +111,24 @@
         }
         body.innerHTML = html;
         body.scrollTop = 0;
+    }
+
+    function renderChips() {
+        var box = document.getElementById('prd-chips');
+        if (!box) return;
+        if (!_data || !Array.isArray(_data.kategorie)) { box.innerHTML = ''; return; }
+        var html = '<button type="button" class="prd-chip' + (_activeCat === 'all' ? ' active' : '') + '" data-cat="all">Vše</button>';
+        html += _data.kategorie.map(function (k) {
+            return '<button type="button" class="prd-chip' + (_activeCat === k.id ? ' active' : '') + '" data-cat="' + esc(k.id) + '">' + esc(k.nazev) + '</button>';
+        }).join('');
+        box.innerHTML = html;
+        box.querySelectorAll('.prd-chip').forEach(function (c) {
+            c.addEventListener('click', function () {
+                _activeCat = c.getAttribute('data-cat');
+                renderChips();
+                render(currentQuery());
+            });
+        });
     }
 
     function buildOverlay() {
@@ -125,6 +145,7 @@
             '  <div class="prd-searchbar"><svg class="icon prd-search-ic"><use href="#i-crosshair"/></svg>' +
             '    <input type="search" id="prd-search" placeholder="Hledat: odchylka, kód kvality, výměra…" autocomplete="off" autocapitalize="none">' +
             '  </div>' +
+            '  <div class="prd-chips" id="prd-chips"></div>' +
             '  <div class="prd-body" id="prd-body"></div>' +
             '  <div class="prd-foot" id="prd-foot"></div>' +
             '</div>';
@@ -136,6 +157,7 @@
             if (_ov.classList.contains('open') && e.key === 'Escape') { e.preventDefault(); closeReader(); }
         });
         _ov.querySelector('#prd-search').addEventListener('input', function () { render(this.value); });
+        renderChips();
 
         var sub = _ov.querySelector('#prd-sub');
         if (sub && _data && _data.aktualizovano) sub.textContent = 'Aktualizováno ' + _data.aktualizovano;
@@ -146,6 +168,8 @@
 
     function openReader() {
         buildOverlay();
+        _activeCat = 'all';
+        renderChips();
         render('');
         var i = document.getElementById('prd-search'); if (i) i.value = '';
         var sub = document.getElementById('prd-sub');
