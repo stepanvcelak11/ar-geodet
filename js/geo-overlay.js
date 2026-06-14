@@ -400,3 +400,35 @@
     else init();
     window.addEventListener('load', function () { setTimeout(init, 400); });
 })();
+
+/* === DOPLNĚK: křížek (zavřít) v rohu + scroll modálu pro AR resekci ============
+   Uživatel hlásil: terénní moduly nemají v rohu X a AR resekce "nic nedělá".
+   AR resekce (cizí modul ar-resection.js) má modál bez scrollu -> tlačítka mimo
+   obrazovku. Tento doplněk NEEDITUJE cizí moduly: jen injektuje CSS scroll pro
+   #agrx-modal a přidá zavírací X do tool-modálů podle ID (idempotentně, i lazy).
+   Odpojitelné spolu s geo-overlay.js. */
+(function () {
+    'use strict';
+    var IDS = ['agof-modal', 'agor-modal', 'agtr-modal', 'agsl-modal', 'aggo-modal', 'aggd-modal', 'agrx-modal'];
+    function injectCss() {
+        if (document.getElementById('ag-modalx-css')) return;
+        var st = document.createElement('style'); st.id = 'ag-modalx-css';
+        st.textContent =
+            '#agrx-modal>.modal-content{display:block;max-height:88vh;max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;}'
+            + '.ag-modal-x{position:sticky;top:0;z-index:6;height:0;text-align:right;pointer-events:none;}'
+            + '.ag-modal-x>button{pointer-events:auto;position:relative;top:-10px;right:-6px;width:34px;height:34px;border:none;border-radius:50%;background:rgba(0,0,0,0.45);color:#fff;font:300 23px/1 system-ui,sans-serif;cursor:pointer;}';
+        (document.head || document.documentElement).appendChild(st);
+    }
+    function ensureX(modal) {
+        var c = modal.querySelector('.modal-content'); if (!c) return;
+        if (c.querySelector('.ag-modal-x')) return;
+        var wrap = document.createElement('div'); wrap.className = 'ag-modal-x';
+        var b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', 'Zavřít'); b.textContent = '×';
+        b.addEventListener('click', function () { try { modal.style.display = 'none'; } catch (e) {} });
+        wrap.appendChild(b); c.insertBefore(wrap, c.firstChild);
+    }
+    function tick() { try { injectCss(); for (var i = 0; i < IDS.length; i++) { var m = document.getElementById(IDS[i]); if (m) ensureX(m); } } catch (e) {} }
+    function init() { try { injectCss(); if (!window.__agModalXTimer) window.__agModalXTimer = setInterval(tick, 800); tick(); } catch (e) {} }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+    window.addEventListener('load', function () { setTimeout(init, 500); });
+})();
