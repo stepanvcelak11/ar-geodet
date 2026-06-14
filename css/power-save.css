@@ -1,0 +1,101 @@
+/* ===== AR Geodet — ÚSPORA BATERIE A STAV GPS (odpojitelná vrstva) ==============
+   Vzhled indikátoru stavu GPS (#ag-pwr) a skrytí varování na rušení kompasu.
+   Logiku řídí js/power-save.js. Sladěno s design tokeny v css/style.css.
+   Odstranění: smaž tento soubor + js/power-save.js a jejich řádky v index.html/sw.js.
+   ============================================================================= */
+
+/* ---- Indikátor stavu GPS: malá kontrolka nad dokem (vlevo dole) ------------ */
+#ag-pwr {
+    position: fixed;
+    left: 12px;
+    bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + 78px);
+    z-index: 9100;
+
+    display: none;            /* zobrazí se až s .show (po startu appky) */
+    align-items: center;
+    gap: 7px;
+    padding: 6px 11px;
+    box-sizing: border-box;
+
+    border-radius: var(--r-pill, 999px);
+    background: var(--glass-bg, rgba(24, 28, 33, 0.84));
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.10));
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.40);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+
+    color: var(--text-color, #eceef2);
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+
+    opacity: 0.92;
+    pointer-events: none;     /* nesmí blokovat dotyk pod sebou */
+    transition: opacity 0.25s ease;
+}
+#ag-pwr.show { display: inline-flex; }
+
+#ag-pwr .ag-pwr-dot {
+    flex: 0 0 auto;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--text-muted, #8b95a1);
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+}
+
+/* stav: běží + chodí fixy */
+#ag-pwr.on { color: var(--text-color, #eceef2); }
+#ag-pwr.on .ag-pwr-dot {
+    background: #34d399;
+    box-shadow: 0 0 7px rgba(52, 211, 153, 0.85);
+    animation: ag-pwr-beat 1.8s ease-in-out infinite;
+}
+/* stav: běží, ale zatím bez fixu */
+#ag-pwr.wait .ag-pwr-dot {
+    background: var(--warning, #e6bd76);
+    box-shadow: 0 0 7px rgba(230, 189, 118, 0.7);
+    animation: ag-pwr-beat 1s ease-in-out infinite;
+}
+/* stav: úmyslně uspaná kvůli úspoře */
+#ag-pwr.sleep { opacity: 0.7; }
+#ag-pwr.sleep .ag-pwr-dot { background: var(--text-muted, #8b95a1); box-shadow: none; }
+/* stav: watch neběží (nemělo by nastat) */
+#ag-pwr.off .ag-pwr-dot { background: var(--danger, #ef4444); box-shadow: 0 0 7px rgba(239, 68, 68, 0.8); }
+
+/* malá „lístek" tečka, když se reálně šetří (uspaná kamera/kompas/GPS) */
+#ag-pwr.saving::after {
+    content: "🔋";
+    font-size: 11px;
+    margin-left: 1px;
+    filter: grayscale(0.15);
+}
+
+@keyframes ag-pwr-beat {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.35); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #ag-pwr .ag-pwr-dot { animation: none !important; }
+}
+
+/* respektuj „režim rukavic" z vylepseni.js */
+body.ag-glove #ag-pwr { font-size: 13px; padding: 8px 13px; }
+
+/* ---- 3) Skrytí varování na rušení kompasu (z js/kompas-check.js) ----------- */
+/* kompas-check.js nastavuje display:block inline → musíme přebít přes !important */
+body.ag-no-compass-warn #compass-interference { display: none !important; }
+
+/* ---- Karta v Nastavení (záložka AR & přesnost) ---------------------------- */
+#agp-card { margin-top: 6px; }
+#agp-card .agp-note {
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--text-muted, #8b95a1);
+}
+#agp-card .filter-row:has(input:disabled) { opacity: 0.5; }
