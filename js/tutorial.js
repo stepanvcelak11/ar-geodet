@@ -37,7 +37,7 @@
         {
             sel: '#dock .dock-btn:nth-child(4)',
             title: 'Moje body',
-            body: 'Seznam tvých bodů. Tady je upravíš, skryješ, smažeš a <b>exportuješ či importuješ</b> (CSV, TXT, GPX, GeoJSON, JSON).'
+            body: 'Seznam tvých bodů. Tady je upravíš, skryješ, smažeš a <b>exportuješ či importuješ</b> (CSV, TXT, GPX, GeoJSON, JSON) — nebo je <b>sdílíš s kolegou přes QR kód</b>. Omylem smazaný bod jde <b>vrátit zpět</b>.'
         },
         {
             sel: '#dock .dock-btn:nth-child(5)',
@@ -47,7 +47,7 @@
         {
             sel: '#menu-toggle-btn',
             title: 'Menu',
-            body: 'Plné menu se všemi funkcemi a rychlými přepínači — info panel, kompas a průměrování GPS.'
+            body: 'Plné menu se všemi funkcemi — <b>Průvodce úkolem</b> (provede tě krok za krokem), <b>Náčrt&nbsp;/&nbsp;Tachymetrie</b>, katastr, měření, kalkulačka, satelity i slovník — plus rychlé přepínače info panelu, kompasu a průměrování GPS.'
         },
         {
             sel: '#info',
@@ -93,10 +93,22 @@
             body: '<b>Měření vzdálenosti</b> (mezi body A a B), <b>plocha</b> obejitím pozemku, <b>geodetická kalkulačka</b>, <b>GNSS satelity</b> v AR, <b>vytyčovací checklist</b> a <b>slovník</b> pojmů a značek.'
         },
         {
+            center: true, icon: '📐',
+            before: function () { closeTourModals(); },
+            title: 'Náčrt / Tachymetrie',
+            body: 'V <b>Menu</b> najdeš digitální <b>tachymetrický náčrt</b>. Body přidáš z GPS nebo ze svých uložených bodů, <b>spojíš je čarami</b> (plná, hranice, plot…) a vložíš <b>popisky</b> (např. „kámen"). Nově lze <b>kreslit volně prstem nebo stylusem</b>. Délky čar a plochu dopočítá sám a vše <b>vyexportuješ do PNG</b>.'
+        },
+        {
+            center: true, icon: '🧭',
+            before: function () { closeTourModals(); },
+            title: 'Průvodce úkolem',
+            body: 'Nevíš, kde začít? <b>Průvodce úkolem</b> (v Menu i na úvodní obrazovce) tě krok za krokem provede typickou prací — <b>vytyčování</b>, <b>sběr bodů</b>, <b>úřední body</b> i <b>měření</b> — a sám pospojuje funkce, které appka umí. U každé volby uvidíš, zda funguje offline.'
+        },
+        {
             bottom: true,
             before: function () { closeTourModals(); if (typeof openManageModal === 'function') openManageModal(); },
             title: 'Správa a export bodů',
-            body: 'Seznam tvých bodů — úprava, skrytí z AR i mazání. Nahoře v <b>Export / Import</b> data přeneseš ven i dovnitř: <b>CSV, TXT, GPX, GeoJSON, JSON</b>.'
+            body: 'Seznam tvých bodů — úprava, skrytí z AR i mazání (smazání jde <b>vrátit zpět</b>). Nahoře v <b>Export / Import</b> data přeneseš ven i dovnitř: <b>CSV, TXT, GPX, GeoJSON, JSON</b> — a body také <b>nasdílíš kolegovi přes QR kód</b> nebo je z QR <b>načteš</b>.'
         },
         {
             bottom: true,
@@ -310,6 +322,8 @@
         closeTourModals();
         if (els) els.root.classList.remove('on');
         document.body.classList.remove('tut-active');
+        // Po dokonceni/preskoceni tutorialu spustime jednorazovou kalibraci kompasu (na 1. startu odlozenou).
+        try { if (typeof window.showCompassCalibHint === 'function') setTimeout(function () { window.showCompassCalibHint(); }, 400); } catch (e) {}
     }
 
     // Verejne API

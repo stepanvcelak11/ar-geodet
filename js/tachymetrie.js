@@ -17,14 +17,15 @@
         { name: 'Čárkovaná', color: '#2563eb', dash: [9, 7] },
         { name: 'Plot', color: '#dc2626', dash: [2, 5] }
     ];
-    // pts: {name, lat, lng}; lines: [i, j, typeIdx]; labels: {lat, lng, text}; log: ['pt'|'line'|'label']
-    let sketch = { pts: [], lines: [], labels: [], log: [] };
+    // pts: {name, lat, lng}; lines: [i, j, typeIdx]; labels: {lat, lng, text}; strokes: {type, pts:[{lat,lng}]}; log: ['pt'|'line'|'label'|'stroke']
+    let sketch = { pts: [], lines: [], labels: [], strokes: [], log: [] };
     let tmap = null, osmL = null, ortoL = null, curBg = 'osm';
     let canvas, ctx;
     let mode = 'view', selIdx = -1;
+    let drawing = false, curStroke = null, activePid = null;
 
     function load() { try { const s = localStorage.getItem(KEY); if (s) sketch = JSON.parse(s); } catch (e) {} normalize(); try { curBg = localStorage.getItem(BG_KEY) || 'osm'; } catch (e) { curBg = 'osm'; } }
-    function normalize() { if (!sketch || typeof sketch !== 'object') sketch = {}; sketch.pts = sketch.pts || []; sketch.lines = sketch.lines || []; sketch.labels = sketch.labels || []; sketch.log = sketch.log || []; }
+    function normalize() { if (!sketch || typeof sketch !== 'object') sketch = {}; sketch.pts = sketch.pts || []; sketch.lines = sketch.lines || []; sketch.labels = sketch.labels || []; sketch.strokes = sketch.strokes || []; sketch.log = sketch.log || []; }
     function save() { try { localStorage.setItem(KEY, JSON.stringify(sketch)); } catch (e) {} }
 
     // ---------- UI ----------
@@ -73,6 +74,7 @@
                 <button class="tb-btn" id="tachy-connect" onclick="tachySetMode('connect')"><svg class="icon"><use href="#i-line"/></svg> Spojit</button>
                 <select id="tachy-linetype" class="tb-sel" title="Typ čáry">${opts}</select>
                 <button class="tb-btn" id="tachy-label" onclick="tachySetMode('label')"><svg class="icon"><use href="#i-edit"/></svg> Popisek</button>
+                <button class="tb-btn" id="tachy-draw" onclick="tachySetMode('draw')"><svg class="icon"><use href="#i-edit"/></svg> Kreslit</button>
                 <span class="tb-sep"></span>
                 <select id="tachy-bg" class="tb-sel" title="Podklad" onchange="tachySetBg(this.value)">
                     <option value="osm">Mapa</option><option value="ortofoto">Ortofoto</option><option value="none">Bez podkladu</option>
@@ -90,6 +92,10 @@
         document.body.appendChild(m);
         canvas = document.getElementById('tachy-canvas');
         ctx = canvas.getContext('2d');
+        canvas.addEventListener('pointerdown', onDrawStart);
+        canvas.addEventListener('pointermove', onDrawMove);
+        canvas.addEventListener('pointerup', onDrawEnd);
+        canvas.addEventListener('pointercancel', onDrawEnd);
     }
 
     function ensureMap() {
@@ -123,9 +129,10 @@
         document.getElementById('tachy-modal').style.display = 'flex';
         document.getElementById('tachy-bg').value = curBg;
         mode = 'view'; selIdx = -1; updateModeButtons();
-        setTimeout(() => { ensureMap(); tmap.invalidateSize(); fitView(); redraw(); }, 60);
+        setTimeout(() => { ensureMap(); tmap.invalidateSize(); fitView(); applyDrawInteraction(); redraw(); }, 60);
     };
     window.closeTachymetrie = function () {
+        mode = 'view'; applyDrawInteraction(); updateModeButtons();
         const m = document.getElementById('tachy-modal'); if (m) m.style.display = 'none';
         // Těžký full-screen modal s vlastní Leaflet mapou umí "zamrznout" hlavní kameru -> oživit ji
         // (stejně jako po undo v undo.js). Bez toho zůstane po zavření černá/zaseklá kamera.
@@ -162,24 +169,26 @@
 
     // ---------- Režimy ----------
     window.tachySetMode = function (mWanted) {
-        mode = (mode === mWanted) ? 'view' : mWanted; selIdx = -1; updateModeButtons(); redraw();
-        hint(mode === 'connect' ? 'Spojování: klepněte na první a pak druhý bod. Typ čáry vyberte vlevo.' : mode === 'label' ? 'Popisek: klepněte do prázdna pro nový text, na popisek pro úpravu/smazání.' : 'Mapu lze posouvat a zoomovat.');
+        mode = (mode === mWanted) ? 'view' : mWanted; selIdx = -1; updateModeButtons(); applyDrawInteraction(); redraw();
+        hint(mode === 'connect' ? 'Spojování: klepněte na první a pak druhý bod. Typ čáry vyberte vlevo.' : mode === 'label' ? 'Popisek: klepněte do prázdna pro nový text, na popisek pro úpravu/smazání.' : mode === 'draw' ? 'Kreslení: tahněte prstem nebo stylusem. Barvu zvolíte typem čáry vlevo. Mapu posunete v režimu Zobrazení.' : 'Mapu lze posouvat a zoomovat.');
     };
     function updateModeButtons() {
-        const c = document.getElementById('tachy-connect'), l = document.getElementById('tachy-label');
+        const c = document.getElementById('tachy-connect'), l = document.getElementById('tachy-label'), d = document.getElementById('tachy-draw');
         if (c) c.classList.toggle('active', mode === 'connect');
         if (l) l.classList.toggle('active', mode === 'label');
+        if (d) d.classList.toggle('active', mode === 'draw');
     }
     function curLineType() { const s = document.getElementById('tachy-linetype'); return s ? (parseInt(s.value) || 0) : 0; }
 
     window.tachyUndo = function () {
-        const last = sketch.log.length ? sketch.log.pop() : (sketch.lines.length ? 'line' : (sketch.labels.length ? 'label' : (sketch.pts.length ? 'pt' : null)));
+        const last = sketch.log.length ? sketch.log.pop() : (sketch.lines.length ? 'line' : (sketch.labels.length ? 'label' : (sketch.strokes.length ? 'stroke' : (sketch.pts.length ? 'pt' : null))));
         if (last === 'line') sketch.lines.pop();
         else if (last === 'label') sketch.labels.pop();
+        else if (last === 'stroke') sketch.strokes.pop();
         else if (last === 'pt') { const ri = sketch.pts.length - 1; sketch.pts.pop(); sketch.lines = sketch.lines.filter(l => l[0] !== ri && l[1] !== ri); }
         save(); redraw();
     };
-    window.tachyClear = function () { if ((!sketch.pts.length && !sketch.labels.length) || confirm('Vymazat celý náčrt?')) { sketch = { pts: [], lines: [], labels: [], log: [] }; selIdx = -1; save(); redraw(); } };
+    window.tachyClear = function () { if ((!sketch.pts.length && !sketch.labels.length && !sketch.strokes.length) || confirm('Vymazat celý náčrt?')) { sketch = { pts: [], lines: [], labels: [], strokes: [], log: [] }; selIdx = -1; save(); redraw(); } };
 
     // ---------- Interakce (přes klik do mapy) ----------
     function onMapClick(e) {
@@ -203,6 +212,57 @@
 
     // projekce lat/lng -> pixel v canvasu (= container point mapy)
     function scr(p) { const pt = tmap.latLngToContainerPoint([p.lat, p.lng]); return { x: pt.x, y: pt.y }; }
+
+    // ---------- Kreslení od ruky (prst / stylus) ----------
+    // Tahy se ukladaji jako body lat/lng -> drzi na miste pri posunu/zoomu (stejne jako body a cary).
+    function evXY(e) { const cp = tmap.mouseEventToContainerPoint(e); return { x: cp.x, y: cp.y }; }
+    function applyDrawInteraction() {
+        if (!tmap || !canvas) return;
+        if (mode === 'draw') {
+            canvas.style.pointerEvents = 'auto'; canvas.style.touchAction = 'none'; canvas.style.cursor = 'crosshair';
+            if (tmap.dragging) tmap.dragging.disable();
+            if (tmap.doubleClickZoom) tmap.doubleClickZoom.disable();
+        } else {
+            canvas.style.pointerEvents = 'none'; canvas.style.cursor = '';
+            if (tmap.dragging) tmap.dragging.enable();
+            if (tmap.doubleClickZoom) tmap.doubleClickZoom.enable();
+            drawing = false; curStroke = null; activePid = null;
+        }
+    }
+    function onDrawStart(e) {
+        if (mode !== 'draw' || !tmap || drawing) return;   // jediny aktivni pointer => odmitnuti dlane / druheho prstu
+        e.preventDefault();
+        drawing = true; activePid = e.pointerId;
+        try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+        const ll = tmap.containerPointToLatLng(tmap.mouseEventToContainerPoint(e));
+        curStroke = { type: curLineType(), pts: [{ lat: ll.lat, lng: ll.lng }], _last: evXY(e) };
+        redraw();
+    }
+    function onDrawMove(e) {
+        if (!drawing || e.pointerId !== activePid) return;
+        e.preventDefault();
+        const xy = evXY(e), last = curStroke._last;
+        if (last && Math.abs(xy.x - last.x) + Math.abs(xy.y - last.y) < 2) return;   // zahodit drobne pohyby
+        const ll = tmap.containerPointToLatLng(tmap.mouseEventToContainerPoint(e));
+        curStroke.pts.push({ lat: ll.lat, lng: ll.lng }); curStroke._last = xy;
+        redraw();
+    }
+    function onDrawEnd(e) {
+        if (!drawing || (activePid != null && e.pointerId !== activePid)) return;
+        e.preventDefault();
+        drawing = false; activePid = null;
+        try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+        if (curStroke && curStroke.pts.length >= 2) { delete curStroke._last; sketch.strokes.push(curStroke); sketch.log.push('stroke'); save(); }
+        curStroke = null; redraw();
+    }
+    function drawStrokePath(c, s) {
+        if (!s || !s.pts || s.pts.length < 2) return;
+        const col = (LINE_TYPES[s.type] && LINE_TYPES[s.type].color) || '#111';
+        c.save(); c.setLineDash([]); c.strokeStyle = col; c.lineWidth = 2.6; c.lineJoin = 'round'; c.lineCap = 'round';
+        c.beginPath(); const p0 = scr(s.pts[0]); c.moveTo(p0.x, p0.y);
+        for (let i = 1; i < s.pts.length; i++) { const p = scr(s.pts[i]); c.lineTo(p.x, p.y); }
+        c.stroke(); c.restore();
+    }
 
     // ---------- Měření: délky čar + plocha uzavřeného polygonu ----------
     function lineMeters(l) {
@@ -296,6 +356,9 @@
             ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
         });
         ctx.setLineDash([]);
+        // tahy od ruky (prst / stylus)
+        (sketch.strokes || []).forEach(s => drawStrokePath(ctx, s));
+        if (curStroke) drawStrokePath(ctx, curStroke);
         // popisky
         sketch.labels.forEach(lb => {
             const s = scr(lb);
@@ -316,7 +379,7 @@
             ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.strokeText(p.name, s.x + 9, s.y - 7); ctx.fillText(p.name, s.x + 9, s.y - 7);
         });
         const _ring = drawMeasure(ctx, false);
-        hint(`${sketch.pts.length} bodů · ${sketch.lines.length} čar · ${sketch.labels.length} popisků` + (_ring ? ` · plocha ${fmtArea(_ring.area)} · obvod ${fmtLen(_ring.perim)}` : '') + (mode === 'connect' ? ' · spojuji' : mode === 'label' ? ' · popisek' : ''));
+        hint(`${sketch.pts.length} bodů · ${sketch.lines.length} čar · ${sketch.labels.length} popisků` + (sketch.strokes.length ? ` · ${sketch.strokes.length} tahů` : '') + (_ring ? ` · plocha ${fmtArea(_ring.area)} · obvod ${fmtLen(_ring.perim)}` : '') + (mode === 'connect' ? ' · spojuji' : mode === 'label' ? ' · popisek' : mode === 'draw' ? ' · kreslím' : ''));
     }
 
     function roundRect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
@@ -340,13 +403,14 @@
     }
 
     window.tachyExport = function () {
-        if (!sketch.pts.length) { alert('Náčrt je prázdný.'); return; }
+        if (!sketch.pts.length && !sketch.strokes.length && !sketch.labels.length) { alert('Náčrt je prázdný.'); return; }
         // vektorovy nacrt na bilem podkladu (mapove dlazdice se kvuli CORS do PNG spolehlive neprenesou)
         const exp = document.createElement('canvas'); exp.width = canvas.width; exp.height = canvas.height;
         const c = exp.getContext('2d');
         c.fillStyle = '#fff'; c.fillRect(0, 0, exp.width, exp.height);
         sketch.lines.forEach(l => { const t = LINE_TYPES[l[2] || 0] || LINE_TYPES[0]; const a = scr(sketch.pts[l[0]]), b = scr(sketch.pts[l[1]]); c.strokeStyle = t.color; c.lineWidth = 2.5; c.setLineDash(t.dash || []); c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke(); });
         c.setLineDash([]);
+        (sketch.strokes || []).forEach(s => drawStrokePath(c, s));
         c.textBaseline = 'middle'; c.textAlign = 'center';
         sketch.labels.forEach(lb => { const s = scr(lb); c.font = 'bold 14px sans-serif'; c.fillStyle = '#7c2d12'; c.fillText(lb.text, s.x, s.y); });
         c.textBaseline = 'alphabetic'; c.textAlign = 'left';
