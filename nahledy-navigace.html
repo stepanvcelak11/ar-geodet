@@ -25,33 +25,43 @@
   .note b{color:var(--data);}
   .ic{font-size:21px;line-height:1;}
 
-  /* DOK */
-  .phone{position:relative;height:230px;border-radius:24px;overflow:hidden;border:1px solid var(--border);
+  /* prepinac variant */
+  .bar{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--border);padding:14px 16px 12px;margin:0 -16px 0;}
+  .bar .inner{max-width:430px;margin:0 auto;padding:0 16px;}
+  .vrow{display:flex;gap:8px;margin-top:12px;}
+  .vbtn{flex:1;padding:10px 6px;border-radius:11px;border:1px solid var(--border);background:var(--panelSolid);color:var(--muted);font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;}
+  .vbtn.on{background:var(--accent);color:var(--onAccent);border-color:transparent;}
+
+  /* DOK / telefon */
+  .phone{position:relative;height:240px;border-radius:24px;overflow:hidden;border:1px solid var(--border);
     background:radial-gradient(60% 40% at 80% 10%, rgba(47,158,116,.10), transparent 70%),linear-gradient(160deg,var(--bg2),var(--bg));}
-  .phone .hint{position:absolute;top:14px;left:0;right:0;text-align:center;color:var(--muted);font-size:12px;}
+  .topseg{position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;gap:3px;padding:4px;border-radius:99px;background:rgba(22,27,33,.92);border:1px solid var(--border);}
+  .topseg b{font-size:11px;font-weight:600;color:var(--muted);padding:5px 11px;border-radius:99px;}
+  .topseg b.on{background:var(--accent);color:#fff;}
+  .topmore{position:absolute;top:14px;right:14px;display:none;align-items:center;gap:5px;padding:7px 12px;border-radius:99px;background:rgba(22,27,33,.92);border:1px solid var(--border);color:var(--text);font-size:12px;font-weight:600;}
+  .phone.show-topmore .topmore{display:inline-flex;}
   .dock{position:absolute;left:12px;right:12px;bottom:12px;display:flex;justify-content:space-between;align-items:flex-end;
-    padding:8px;border-radius:22px;background:rgba(22,27,33,.92);border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.4),inset 0 1px 0 var(--hair);}
-  .dbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:10px;font-weight:600;}
+    padding:8px;border-radius:22px;background:rgba(22,27,33,.94);border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.4),inset 0 1px 0 var(--hair);}
+  .dbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:10px;font-weight:600;text-align:center;line-height:1.1;}
   .dbtn.act{color:var(--accent);}
+  .fabw{color:var(--text);}
   .fab{display:flex;align-items:center;justify-content:center;width:50px;height:50px;margin-top:-26px;border-radius:50%;
     background:var(--accent);border:3px solid var(--bg);box-shadow:0 6px 18px rgba(47,158,116,.4);color:#fff;font-size:28px;}
+  .cap{margin-top:10px;font-size:12.5px;color:var(--muted);line-height:1.5;min-height:34px;}
+  .cap b{color:var(--data);}
 
-  /* MODAL karta */
+  /* karty modalu */
   .card{padding:18px;border-radius:18px;background:var(--panelSolid);border:1px solid var(--border);box-shadow:0 16px 40px rgba(0,0,0,.35),inset 0 1px 0 var(--hair);}
   .card h3{font-family:"Sora",sans-serif;font-size:17px;font-weight:700;margin:0 0 14px;display:flex;align-items:center;gap:9px;}
   .card h3 .ic{color:var(--accent);}
-
-  /* Nástroje – mřížka dlaždic */
   .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-  .tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:16px 6px;
+  .tile{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:16px 6px;
     border-radius:14px;background:var(--panel);border:1px solid var(--border);text-align:center;}
   .tile .ic{font-size:24px;}
   .tile span{font-size:12px;font-weight:600;line-height:1.2;}
-  .tile.beta::after{content:"beta";font-size:9px;color:var(--onAccent);background:var(--accent);padding:1px 6px;border-radius:99px;font-weight:700;}
-
-  /* Více – seznam */
-  .list{display:flex;flex-direction:column;gap:2px;}
-  .row{display:flex;align-items:center;gap:13px;padding:14px 10px;border-radius:12px;border:1px solid transparent;}
+  .tile .bdg{position:absolute;top:6px;right:6px;font-size:8.5px;color:var(--onAccent);background:var(--accent);padding:1px 5px;border-radius:99px;font-weight:700;}
+  .list{display:flex;flex-direction:column;}
+  .row{display:flex;align-items:center;gap:13px;padding:14px 10px;}
   .row+.row{border-top:1px solid var(--hair);}
   .row .ic{width:24px;text-align:center;color:var(--accent);}
   .row .tx{flex:1;}
@@ -59,29 +69,30 @@
   .row .tx small{color:var(--muted);font-size:11.5px;}
   .row .chev{color:var(--muted);}
   .sheet-handle{width:42px;height:5px;border-radius:99px;background:rgba(255,255,255,.22);margin:2px auto 16px;}
-
   .twocol{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
   .mini{padding:12px;border-radius:12px;background:var(--panel);border:1px solid var(--border);font-size:12.5px;line-height:1.5;}
   .mini b{color:var(--data);}
 </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="bar"><div class="inner">
     <h1>Návrh nové navigace</h1>
-    <p class="sub">Cíl: jedno logické místo pro nástroje, jedno „Více" pro zbytek. Konec roztříštěnosti a skrytého menu. (Mockup ve stávajícím tmavém vzhledu.)</p>
-
-    <div class="secT">Spodní dok</div>
-    <div class="phone">
-      <div class="hint">nahoře zůstává přepínač AR / Dělené / Mapa</div>
-      <div class="dock">
-        <div class="dbtn"><span class="ic">🗺️</span>Katastr</div>
-        <div class="dbtn act"><span class="ic">🧰</span>Nástroje</div>
-        <div class="dbtn"><span class="fab">＋</span>Nový bod</div>
-        <div class="dbtn"><span class="ic">📍</span>Body</div>
-        <div class="dbtn"><span class="ic">⋯</span>Více</div>
-      </div>
+    <p class="sub">Vyber variantu doku — dok dole se překreslí. Nástroje a „Více" jsou ve všech stejné.</p>
+    <div class="vrow" id="vrow">
+      <button class="vbtn" data-v="A">Varianta A</button>
+      <button class="vbtn" data-v="B">Varianta B</button>
+      <button class="vbtn" data-v="C">Varianta C</button>
     </div>
-    <p class="note">Změna oproti dnešku: „Měření" → <b>Nástroje</b> (sloučí všechny nástroje) a „Nastavení" → <b>Více</b> (Nastavení uvnitř). Tím se uvolní slot a všechno má jasné místo.</p>
+  </div></div>
+
+  <div class="wrap">
+    <div class="secT">Spodní dok</div>
+    <div class="phone" id="phone">
+      <div class="topseg"><b>AR</b><b class="on">Dělené</b><b>Mapa</b></div>
+      <div class="topmore"><span class="ic" style="font-size:15px;">⋯</span> Více</div>
+      <div class="dock" id="dock"></div>
+    </div>
+    <p class="cap" id="cap"></p>
 
     <div class="secT">Nástroje (po klepnutí na 🧰)</div>
     <div class="card">
@@ -92,12 +103,12 @@
         <div class="tile"><span class="ic">🧮</span><span>Kalkulačka</span></div>
         <div class="tile"><span class="ic">🛰️</span><span>GNSS<br>satelity</span></div>
         <div class="tile"><span class="ic">✓</span><span>Vytyčovací<br>checklist</span></div>
-        <div class="tile beta"><span class="ic">▦</span><span>Náčrt /<br>Tachymetrie</span></div>
+        <div class="tile"><span class="bdg">beta</span><span class="ic">▦</span><span>Náčrt /<br>Tachymetrie</span></div>
         <div class="tile"><span class="ic">📖</span><span>Slovník</span></div>
         <div class="tile"><span class="ic">📋</span><span>Předpisy /<br>tahák</span></div>
       </div>
     </div>
-    <p class="note">Mřížka ikon místo dlouhého sloupce tlačítek — rychlejší orientace a vejde se sem i <b>Náčrt</b> a <b>Předpisy</b> (dnes schované jinde).</p>
+    <p class="note">Mřížka ikon místo dlouhého sloupce — rychlejší orientace; vejde se sem i <b>Náčrt</b> a <b>Předpisy</b> (dnes schované jinde).</p>
 
     <div class="secT">Více (po klepnutí na ⋯)</div>
     <div class="card">
@@ -111,15 +122,39 @@
         <div class="row"><span class="ic">ℹ️</span><span class="tx"><b>O aplikaci</b><small>verze, zdroje dat, soukromí</small></span><span class="chev">›</span></div>
       </div>
     </div>
-    <p class="note">„Více" nahradí dnešní <b>skryté boční menu</b> (kam si Předpisy/Zpravodaj přidávají tlačítka, ale v appce je skoro nejde otevřít). QR sdílení zůstává v <b>Body</b>, Režim rukavic v <b>Nastavení</b>.</p>
+    <p class="note">„Více" nahradí dnešní <b>skryté boční menu</b>. QR sdílení zůstává v <b>Body</b>, Režim rukavic v <b>Nastavení</b>.</p>
 
     <div class="secT">Co se vyřeší</div>
     <div class="twocol">
       <div class="mini"><b>Dřív:</b> Náčrt jen v Nastavení, Průvodce v úvodu+Nastavení, satelity/slovník v „Měření", skryté menu s duplicitami.</div>
-      <div class="mini"><b>Nově:</b> nástroje na jednom místě (mřížka), zbytek ve „Více", skryté menu pryč. Jasné, kde co je.</div>
+      <div class="mini"><b>Nově:</b> nástroje na jednom místě (mřížka), zbytek ve „Více", skryté menu pryč.</div>
     </div>
-
-    <p class="note" style="margin-top:22px;">Ikony jsou tu jen orientační (emoji) — ve appce budou stejné čárové ikony jako teď. Rozvržení a uspořádání je to podstatné.</p>
   </div>
+
+<script>
+  var FAB = {fab:true,l:'Nový bod'};
+  var VARIANTS = {
+    A: { items:[{i:'🗺️',l:'Katastr'},{i:'🧰',l:'Nástroje',act:1},FAB,{i:'📍',l:'Body'},{i:'⋯',l:'Více'}],
+         topmore:false, cap:'<b>Doporučeno.</b> Nastavení se přesune dovnitř „Více". Nejčistší — všechno tool‑ové v Nástrojích, zbytek ve Více.' },
+    B: { items:[{i:'🧰',l:'Nástroje',act:1},{i:'🗺️',l:'Katastr'},FAB,{i:'📍',l:'Body'},{i:'⚙️',l:'Nastavení'}],
+         topmore:true, cap:'Nastavení zůstává v doku; <b>„Více" je tlačítko nahoře</b> (vpravo, vedle přepínače zobrazení).' },
+    C: { items:[{i:'🧰',l:'Nástroje',act:1},{i:'📍',l:'Body'},FAB,{i:'⋯',l:'Více'},{i:'⚙️',l:'Nastavení'}],
+         topmore:false, cap:'Bez Katastru v doku — <b>Katastr se otevírá z mapy / Nástrojů</b>. Nejvíc místa pro časté akce.' }
+  };
+  function render(v){
+    var def=VARIANTS[v], dock=document.getElementById('dock');
+    dock.innerHTML = def.items.map(function(it){
+      if(it.fab) return '<div class="dbtn fabw"><span class="fab">＋</span>'+it.l+'</div>';
+      return '<div class="dbtn'+(it.act?' act':'')+'"><span class="ic">'+it.i+'</span>'+it.l+'</div>';
+    }).join('');
+    document.getElementById('phone').classList.toggle('show-topmore', !!def.topmore);
+    document.getElementById('cap').innerHTML = def.cap;
+    document.querySelectorAll('#vrow .vbtn').forEach(function(b){ b.classList.toggle('on', b.dataset.v===v); });
+    try{ localStorage.setItem('navVar', v); }catch(e){}
+  }
+  document.querySelectorAll('#vrow .vbtn').forEach(function(b){ b.onclick=function(){ render(b.dataset.v); }; });
+  var v0='A'; try{ v0=localStorage.getItem('navVar')||'A'; }catch(e){}
+  render(v0);
+</script>
 </body>
 </html>
