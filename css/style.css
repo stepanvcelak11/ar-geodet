@@ -215,6 +215,7 @@ body.theme-graphite {
 /* ---- Reset & base ----------------------------------------------------- */
 *, *::before, *::after { box-sizing: border-box; }
 
+html { background-color: #0e1216; }
 html, body {
     position: fixed;
     top: 0;
