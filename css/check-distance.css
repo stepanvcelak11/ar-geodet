@@ -1,0 +1,64 @@
+/* ===== AR Geodet — Oměrné kontrolní míry (odpojitelná vrstva) =================
+   Vzhled nástroje. Logiku řídí js/check-distance.js.
+   Odstranění: smaž tento soubor + js/check-distance.js a jejich řádky v index.html/sw.js.
+   ============================================================================= */
+
+.omr-overlay {
+    position: fixed; inset: 0; z-index: 100040; display: none;
+    background: rgba(4, 8, 12, 0.72);
+    -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+}
+.omr-overlay.open { display: flex; align-items: center; justify-content: center; }
+
+.omr-sheet {
+    width: min(96vw, 640px);
+    max-height: 92vh;
+    display: flex; flex-direction: column;
+    background: var(--bg, #11151a);
+    color: var(--text-color, #eceef2);
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.14));
+    border-radius: 16px;
+    padding: 14px;
+    box-sizing: border-box;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+.omr-head { display: flex; align-items: center; justify-content: space-between; }
+.omr-title { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: 16px; color: var(--accent, #34d399); }
+.omr-x { background: transparent; border: none; color: var(--text-color, #eceef2); font-size: 20px; line-height: 1; padding: 4px 8px; cursor: pointer; }
+.omr-sub { font-size: 12.5px; color: var(--text-muted, #9aa4af); margin: 4px 0 12px; line-height: 1.4; }
+
+.omr-add { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.omr-sel { flex: 1 1 110px; min-width: 0; background: rgba(255, 255, 255, 0.06); color: var(--text-color, #eceef2); border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.14)); border-radius: 9px; padding: 8px; font-size: 13px; }
+.omr-dash { color: var(--text-muted, #9aa4af); }
+.omr-meas { flex: 0 0 110px; width: 110px; background: rgba(255, 255, 255, 0.06); color: var(--text-color, #eceef2); border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.14)); border-radius: 9px; padding: 8px; font-family: var(--font-mono, monospace); font-size: 13px; }
+
+.omr-btn { background: var(--glass-bg, rgba(255, 255, 255, 0.08)); border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.14)); color: var(--text-color, #eceef2); border-radius: 10px; padding: 8px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.omr-btn:active { transform: scale(0.97); }
+.omr-btn-acc { background: var(--accent, #34d399); color: #06281c; border-color: transparent; }
+.omr-btn-sec { opacity: 0.85; }
+
+.omr-tol { font-size: 12.5px; color: var(--text-muted, #9aa4af); margin: 10px 0; }
+.omr-num { width: 56px; background: rgba(255, 255, 255, 0.06); color: var(--text-color, #eceef2); border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.14)); border-radius: 7px; padding: 5px 7px; font-family: var(--font-mono, monospace); font-size: 13px; }
+
+.omr-table-wrap { flex: 1 1 auto; overflow: auto; border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1)); border-radius: 10px; }
+.omr-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.omr-table th { position: sticky; top: 0; background: #161b21; color: var(--text-muted, #9aa4af); font-weight: 600; text-align: right; padding: 7px 8px; font-size: 11.5px; border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12)); }
+.omr-table th:first-child { text-align: left; }
+.omr-table td { padding: 7px 8px; text-align: right; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+.omr-table td:first-child { text-align: left; }
+.omr-mono { font-family: var(--font-mono, monospace); }
+.omr-pn { font-weight: 600; }
+.omr-ok { color: #34d399; }
+.omr-fail { color: #f87171; font-weight: 800; }
+.omr-bad { color: var(--warning, #e6bd76); text-align: center; }
+.omr-empty { text-align: center; color: var(--text-muted, #9aa4af); padding: 18px; }
+.omr-del { background: transparent; border: none; color: #f87171; cursor: pointer; font-size: 14px; padding: 2px 6px; }
+
+.omr-summary { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.omr-chip { display: inline-flex; flex-direction: column; gap: 1px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1)); border-radius: 9px; padding: 5px 9px; }
+.omr-chip i { font-style: normal; font-size: 10px; color: var(--text-muted, #9aa4af); }
+.omr-chip b { font-family: var(--font-mono, monospace); font-size: 13px; }
+
+.omr-foot { display: flex; gap: 8px; margin-top: 12px; }
+.omr-foot .omr-btn { flex: 1; text-align: center; }
