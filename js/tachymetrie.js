@@ -10,23 +10,41 @@
 
 (function () {
     'use strict';
-    const KEY = 'arTachySketch1', BG_KEY = 'arTachyBg';
+    const KEY = 'arTachySketch1', BG_KEY = 'arTachyBg', STYLE_KEY = 'arTachyStyle';
+    // Stavebnice stylu — uzivatel si slozi vlastni caru (barva x tloustka x typ).
+    const COLORS = ['#16a34a', '#22c55e', '#2563eb', '#06b6d4', '#d97706', '#dc2626', '#7c3aed', '#db2777', '#0f172a', '#f8fafc'];
+    const WIDTHS = [{ name: 'Tenká', w: 2 }, { name: 'Střední', w: 3.5 }, { name: 'Silná', w: 6 }];
+    const DASHES = [{ name: 'Plná', d: [] }, { name: 'Čárkovaná', d: [10, 7] }, { name: 'Tečkovaná', d: [2, 6] }, { name: 'Čerchovaná', d: [14, 6, 3, 6] }];
+    // Zpetna kompatibilita: stare cary maji l[2] = index do LINE_TYPES (a stare tahy s.type).
     const LINE_TYPES = [
-        { name: 'Plná', color: '#16a34a', dash: [] },
-        { name: 'Hranice', color: '#d97706', dash: [] },
-        { name: 'Čárkovaná', color: '#2563eb', dash: [9, 7] },
-        { name: 'Plot', color: '#dc2626', dash: [2, 5] }
+        { color: '#16a34a', dash: [] }, { color: '#d97706', dash: [] },
+        { color: '#2563eb', dash: [9, 7] }, { color: '#dc2626', dash: [2, 5] }
     ];
-    // pts: {name, lat, lng}; lines: [i, j, typeIdx]; labels: {lat, lng, text}; strokes: {type, pts:[{lat,lng}]}; log: ['pt'|'line'|'label'|'stroke']
+    // pts:{name,lat,lng}; lines:[i,j,style]; labels:{lat,lng,text}; strokes:{style,pts:[{lat,lng}]}; log:[...]
+    // style = {color,width,dash}. (Stary format: l[2]/s.type = cislo -> LINE_TYPES.)
     let sketch = { pts: [], lines: [], labels: [], strokes: [], log: [] };
     let tmap = null, osmL = null, ortoL = null, curBg = 'osm';
     let canvas, ctx;
     let mode = 'view', selIdx = -1;
     let drawing = false, curStroke = null, activePid = null;
+    let curStyle = { color: '#16a34a', width: 3.5, dash: [] };   // aktualni styl pro caru i kresleni
 
-    function load() { try { const s = localStorage.getItem(KEY); if (s) sketch = JSON.parse(s); } catch (e) {} normalize(); try { curBg = localStorage.getItem(BG_KEY) || 'osm'; } catch (e) { curBg = 'osm'; } }
+    function load() { try { const s = localStorage.getItem(KEY); if (s) sketch = JSON.parse(s); } catch (e) {} normalize(); try { curBg = localStorage.getItem(BG_KEY) || 'osm'; } catch (e) { curBg = 'osm'; } try { const st = JSON.parse(localStorage.getItem(STYLE_KEY) || 'null'); if (st && st.color) curStyle = { color: st.color, width: st.width || 3.5, dash: Array.isArray(st.dash) ? st.dash : [] }; } catch (e) {} }
     function normalize() { if (!sketch || typeof sketch !== 'object') sketch = {}; sketch.pts = sketch.pts || []; sketch.lines = sketch.lines || []; sketch.labels = sketch.labels || []; sketch.strokes = sketch.strokes || []; sketch.log = sketch.log || []; }
     function save() { try { localStorage.setItem(KEY, JSON.stringify(sketch)); } catch (e) {} }
+    function saveStyle() { try { localStorage.setItem(STYLE_KEY, JSON.stringify(curStyle)); } catch (e) {} }
+    // Dekodovani stylu (novy objekt {color,width,dash}, nebo stary index do LINE_TYPES).
+    function lineStyleOf(l) {
+        const t = l[2];
+        if (t && typeof t === 'object') return { color: t.color || '#16a34a', width: t.width || 3, dash: Array.isArray(t.dash) ? t.dash : [] };
+        const p = LINE_TYPES[t || 0] || LINE_TYPES[0];
+        return { color: p.color, width: 3, dash: p.dash || [] };
+    }
+    function strokeStyleOf(s) {
+        if (s && s.style && typeof s.style === 'object') return { color: s.style.color || '#111827', width: s.style.width || 2.6, dash: Array.isArray(s.style.dash) ? s.style.dash : [] };
+        const p = LINE_TYPES[(s && s.type) || 0] || LINE_TYPES[0];
+        return { color: p.color, width: 2.6, dash: p.dash || [] };
+    }
 
     // ---------- UI ----------
     function injectStyle() {
@@ -39,16 +57,36 @@
             #tachy-top .tt-title .icon{width:20px;height:20px;color:var(--accent,#34d399);}
             #tachy-x{flex:none;width:36px;height:36px;border:none;border-radius:10px;background:rgba(255,255,255,0.08);color:#fff;font-size:20px;line-height:1;cursor:pointer;}
             #tachy-x:active{transform:scale(0.95);}
-            #tachy-bar{display:flex;align-items:center;gap:7px;padding:9px 12px;background:#0e1319;border-bottom:1px solid rgba(255,255,255,0.06);overflow-x:auto;-webkit-overflow-scrolling:touch;}
-            #tachy-bar::-webkit-scrollbar{height:0;}
-            .tb-btn{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 13px;border-radius:11px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#e6edf3;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;}
+            #tachy-modes{display:flex;gap:4px;padding:8px 12px;background:#11161d;border-bottom:1px solid rgba(255,255,255,0.06);}
+            .tm-btn{flex:1 1 0;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:5px;height:38px;padding:0 4px;border-radius:10px;border:1px solid transparent;background:rgba(255,255,255,0.05);color:#cbd5e1;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;}
+            .tm-btn .icon{width:16px;height:16px;}
+            .tm-btn:active{transform:scale(0.97);}
+            .tm-btn.active{background:var(--accent,#34d399);border-color:transparent;color:#06231a;box-shadow:0 2px 10px rgba(52,211,153,0.25);}
+            #tachy-stylebar{display:none;flex-direction:column;gap:9px;padding:11px 12px;background:#0e1319;border-bottom:1px solid rgba(255,255,255,0.06);}
+            #tachy-stylebar.on{display:flex;}
+            .ts-row{display:flex;align-items:center;gap:9px;}
+            .ts-lab{flex:0 0 56px;font-size:11px;font-weight:700;color:#9aa4b2;text-transform:uppercase;letter-spacing:0.04em;}
+            .ts-items{display:flex;align-items:center;gap:7px;flex:1;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;}
+            .ts-items::-webkit-scrollbar{height:0;}
+            .ts-sw{flex:0 0 auto;width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,0.2);cursor:pointer;padding:0;}
+            .ts-sw:active{transform:scale(0.92);}
+            .ts-sw.active{border-color:#fff;box-shadow:0 0 0 2px var(--accent,#34d399);}
+            .ts-custom{position:relative;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.1);font-size:14px;}
+            .ts-custom input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+            .ts-chip{flex:0 0 auto;height:32px;padding:0 12px;border-radius:9px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);color:#e6edf3;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+            .ts-chip:active{transform:scale(0.97);}
+            .ts-chip.active{background:var(--accent,#34d399);border-color:transparent;color:#06231a;}
+            .ts-chip .pv{display:inline-block;width:26px;border-top:3px solid currentColor;}
+            #tachy-actions{display:flex;align-items:center;gap:7px;padding:9px 12px;background:#0b0f14;border-bottom:1px solid rgba(255,255,255,0.06);overflow-x:auto;-webkit-overflow-scrolling:touch;}
+            #tachy-actions::-webkit-scrollbar{height:0;}
+            .tb-btn{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 13px;border-radius:11px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#e6edf3;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;}
             .tb-btn .icon{width:17px;height:17px;}
             .tb-btn:active{transform:scale(0.97);}
             .tb-btn.prim{background:var(--accent,#34d399);border-color:transparent;color:#06231a;}
             .tb-btn.warn{color:#fca5a5;border-color:rgba(248,113,113,0.4);}
-            .tb-btn.active{background:var(--accent,#34d399);border-color:transparent;color:#06231a;}
-            .tb-sel{flex:0 0 auto;height:40px;padding:0 10px;border-radius:11px;background:rgba(255,255,255,0.06);color:#e6edf3;border:1px solid rgba(255,255,255,0.12);font-size:13px;}
-            .tb-sep{flex:0 0 auto;width:1px;height:24px;background:rgba(255,255,255,0.12);margin:0 3px;}
+            .tb-btn.tb-icon{width:38px;padding:0;justify-content:center;}
+            .tb-sel{flex:0 0 auto;height:38px;padding:0 10px;border-radius:11px;background:rgba(255,255,255,0.06);color:#e6edf3;border:1px solid rgba(255,255,255,0.12);font-size:13px;}
+            .tb-sep{flex:0 0 auto;width:1px;height:22px;background:rgba(255,255,255,0.12);margin:0 3px;}
             #tachy-hint{color:#9aa4b2;font-size:12px;padding:7px 14px;background:#0b0f14;border-bottom:1px solid rgba(255,255,255,0.05);min-height:16px;}
             #tachy-wrap{position:relative;flex:1;min-height:0;}
             #tachy-map{position:absolute;inset:0;background:#0b0f14;}
@@ -59,7 +97,9 @@
     function build() {
         if (document.getElementById('tachy-modal')) return;
         injectStyle();
-        const opts = LINE_TYPES.map((t, i) => `<option value="${i}">${t.name}</option>`).join('');
+        const colorSw = COLORS.map(c => `<button class="ts-sw" data-col="${c}" style="background:${c}" onclick="tachySetColor('${c}')" aria-label="barva ${c}"></button>`).join('');
+        const widthCh = WIDTHS.map(x => `<button class="ts-chip" data-w="${x.w}" onclick="tachySetWidth(${x.w})"><span class="pv" style="border-top-width:${Math.round(x.w)}px"></span>${x.name}</button>`).join('');
+        const dashCh = DASHES.map(x => `<button class="ts-chip" data-d="${x.d.join(',')}" onclick="tachySetDash('${x.d.join(',')}')">${x.name}</button>`).join('');
         const m = document.createElement('div');
         m.id = 'tachy-modal';
         m.innerHTML = `
@@ -67,22 +107,27 @@
                 <span class="tt-title"><svg class="icon"><use href="#i-grid"/></svg> Náčrt / Tachymetrie</span>
                 <button id="tachy-x" onclick="closeTachymetrie()" aria-label="Zavřít">×</button>
             </div>
-            <div id="tachy-bar">
+            <div id="tachy-modes">
+                <button class="tm-btn" id="tachy-view" onclick="tachySetMode('view')"><svg class="icon"><use href="#i-map-pin"/></svg> Zobrazit</button>
+                <button class="tm-btn" id="tachy-connect" onclick="tachySetMode('connect')"><svg class="icon"><use href="#i-line"/></svg> Spojit</button>
+                <button class="tm-btn" id="tachy-draw" onclick="tachySetMode('draw')"><svg class="icon"><use href="#i-edit"/></svg> Kreslit</button>
+                <button class="tm-btn" id="tachy-label" onclick="tachySetMode('label')"><svg class="icon"><use href="#i-edit"/></svg> Popisek</button>
+            </div>
+            <div id="tachy-stylebar">
+                <div class="ts-row"><span class="ts-lab">Barva</span><div class="ts-items" id="tachy-colors">${colorSw}<label class="ts-sw ts-custom" title="Vlastní barva">🎨<input type="color" id="tachy-color-pick" onchange="tachySetColor(this.value)"></label></div></div>
+                <div class="ts-row"><span class="ts-lab">Tloušťka</span><div class="ts-items" id="tachy-widths">${widthCh}</div></div>
+                <div class="ts-row"><span class="ts-lab">Styl</span><div class="ts-items" id="tachy-dashes">${dashCh}</div></div>
+            </div>
+            <div id="tachy-actions">
                 <button class="tb-btn prim" onclick="tachyAddCurrent()"><svg class="icon"><use href="#i-plus"/></svg> Bod (GPS)</button>
                 <button class="tb-btn" onclick="tachyAddFromPoints()"><svg class="icon"><use href="#i-map-pin"/></svg> Z bodů</button>
                 <span class="tb-sep"></span>
-                <button class="tb-btn" id="tachy-connect" onclick="tachySetMode('connect')"><svg class="icon"><use href="#i-line"/></svg> Spojit</button>
-                <select id="tachy-linetype" class="tb-sel" title="Typ čáry">${opts}</select>
-                <button class="tb-btn" id="tachy-label" onclick="tachySetMode('label')"><svg class="icon"><use href="#i-edit"/></svg> Popisek</button>
-                <button class="tb-btn" id="tachy-draw" onclick="tachySetMode('draw')"><svg class="icon"><use href="#i-edit"/></svg> Kreslit</button>
-                <span class="tb-sep"></span>
+                <button class="tb-btn tb-icon" onclick="tachyUndo()" title="Zpět"><svg class="icon"><use href="#i-rotate-ccw"/></svg></button>
                 <select id="tachy-bg" class="tb-sel" title="Podklad" onchange="tachySetBg(this.value)">
                     <option value="osm">Mapa</option><option value="ortofoto">Ortofoto</option><option value="none">Bez podkladu</option>
                 </select>
-                <span class="tb-sep"></span>
-                <button class="tb-btn" onclick="tachyUndo()"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Zpět</button>
-                <button class="tb-btn" onclick="tachyExport()"><svg class="icon"><use href="#i-download"/></svg> PNG</button>
-                <button class="tb-btn warn" onclick="tachyClear()"><svg class="icon"><use href="#i-trash"/></svg> Vymazat</button>
+                <button class="tb-btn tb-icon" onclick="tachyExport()" title="Export do PNG"><svg class="icon"><use href="#i-download"/></svg></button>
+                <button class="tb-btn tb-icon warn" onclick="tachyClear()" title="Vymazat náčrt"><svg class="icon"><use href="#i-trash"/></svg></button>
             </div>
             <div id="tachy-hint"></div>
             <div id="tachy-wrap">
@@ -128,11 +173,11 @@
         load(); build();
         document.getElementById('tachy-modal').style.display = 'flex';
         document.getElementById('tachy-bg').value = curBg;
-        mode = 'view'; selIdx = -1; updateModeButtons();
+        mode = 'view'; selIdx = -1; updateModeButtons(); updateStylePanel();
         setTimeout(() => { ensureMap(); tmap.invalidateSize(); fitView(); applyDrawInteraction(); redraw(); }, 60);
     };
     window.closeTachymetrie = function () {
-        mode = 'view'; applyDrawInteraction(); updateModeButtons();
+        mode = 'view'; applyDrawInteraction(); updateModeButtons(); updateStylePanel();
         const m = document.getElementById('tachy-modal'); if (m) m.style.display = 'none';
         // Těžký full-screen modal s vlastní Leaflet mapou umí "zamrznout" hlavní kameru -> oživit ji
         // (stejně jako po undo v undo.js). Bez toho zůstane po zavření černá/zaseklá kamera.
@@ -169,16 +214,32 @@
 
     // ---------- Režimy ----------
     window.tachySetMode = function (mWanted) {
-        mode = (mode === mWanted) ? 'view' : mWanted; selIdx = -1; updateModeButtons(); applyDrawInteraction(); redraw();
-        hint(mode === 'connect' ? 'Spojování: klepněte na první a pak druhý bod. Typ čáry vyberte vlevo.' : mode === 'label' ? 'Popisek: klepněte do prázdna pro nový text, na popisek pro úpravu/smazání.' : mode === 'draw' ? 'Kreslení: tahněte prstem nebo stylusem. Barvu zvolíte typem čáry vlevo. Mapu posunete v režimu Zobrazení.' : 'Mapu lze posouvat a zoomovat.');
+        mode = mWanted; selIdx = -1; updateModeButtons(); updateStylePanel(); applyDrawInteraction(); redraw();
+        hint(mode === 'connect' ? 'Spojování: klepněte na první a pak druhý bod. Styl čáry nastavíte nahoře.' : mode === 'label' ? 'Popisek: klepněte do prázdna pro nový text, na popisek pro úpravu/smazání.' : mode === 'draw' ? 'Kreslení: tahněte prstem nebo stylusem. Barvu, tloušťku a typ čáry nastavíte nahoře.' : 'Zobrazení: mapu lze posouvat a přibližovat.');
     };
     function updateModeButtons() {
-        const c = document.getElementById('tachy-connect'), l = document.getElementById('tachy-label'), d = document.getElementById('tachy-draw');
-        if (c) c.classList.toggle('active', mode === 'connect');
-        if (l) l.classList.toggle('active', mode === 'label');
-        if (d) d.classList.toggle('active', mode === 'draw');
+        ['view', 'connect', 'draw', 'label'].forEach(function (mm) { const b = document.getElementById('tachy-' + mm); if (b) b.classList.toggle('active', mode === mm); });
     }
-    function curLineType() { const s = document.getElementById('tachy-linetype'); return s ? (parseInt(s.value) || 0) : 0; }
+
+    // ---------- Styl čáry / kreslení (barva × tloušťka × typ) ----------
+    function updateStylePanel() {
+        const sb = document.getElementById('tachy-stylebar');
+        if (sb) sb.classList.toggle('on', mode === 'connect' || mode === 'draw');
+        updateStyleButtons();
+    }
+    function updateStyleButtons() {
+        const cw = document.getElementById('tachy-colors');
+        if (cw) cw.querySelectorAll('.ts-sw[data-col]').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-col').toLowerCase() === curStyle.color.toLowerCase()); });
+        const pick = document.getElementById('tachy-color-pick'); if (pick && /^#[0-9a-fA-F]{6}$/.test(curStyle.color)) pick.value = curStyle.color;
+        const ww = document.getElementById('tachy-widths');
+        if (ww) ww.querySelectorAll('.ts-chip').forEach(function (b) { b.classList.toggle('active', parseFloat(b.getAttribute('data-w')) === curStyle.width); });
+        const dw = document.getElementById('tachy-dashes');
+        if (dw) dw.querySelectorAll('.ts-chip').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-d') === curStyle.dash.join(',')); });
+    }
+    window.tachySetColor = function (c) { curStyle.color = c; saveStyle(); updateStyleButtons(); };
+    window.tachySetWidth = function (w) { curStyle.width = w; saveStyle(); updateStyleButtons(); };
+    window.tachySetDash = function (s) { curStyle.dash = (s && s.length) ? s.split(',').map(Number) : []; saveStyle(); updateStyleButtons(); };
+    function styleSnapshot() { return { color: curStyle.color, width: curStyle.width, dash: curStyle.dash.slice() }; }
 
     window.tachyUndo = function () {
         const last = sketch.log.length ? sketch.log.pop() : (sketch.lines.length ? 'line' : (sketch.labels.length ? 'label' : (sketch.strokes.length ? 'stroke' : (sketch.pts.length ? 'pt' : null))));
@@ -205,7 +266,7 @@
         if (best < 0) { selIdx = -1; redraw(); return; }
         if (mode === 'connect') {
             if (selIdx < 0) selIdx = best;
-            else if (selIdx !== best) { const ex = sketch.lines.some(l => (l[0] === selIdx && l[1] === best) || (l[0] === best && l[1] === selIdx)); if (!ex) { sketch.lines.push([selIdx, best, curLineType()]); sketch.log.push('line'); } selIdx = best; save(); }
+            else if (selIdx !== best) { const ex = sketch.lines.some(l => (l[0] === selIdx && l[1] === best) || (l[0] === best && l[1] === selIdx)); if (!ex) { sketch.lines.push([selIdx, best, styleSnapshot()]); sketch.log.push('line'); } selIdx = best; save(); }
         } else selIdx = (selIdx === best ? -1 : best);
         redraw();
     }
@@ -235,7 +296,7 @@
         drawing = true; activePid = e.pointerId;
         try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
         const ll = tmap.containerPointToLatLng(tmap.mouseEventToContainerPoint(e));
-        curStroke = { type: curLineType(), pts: [{ lat: ll.lat, lng: ll.lng }], _last: evXY(e) };
+        curStroke = { style: styleSnapshot(), pts: [{ lat: ll.lat, lng: ll.lng }], _last: evXY(e) };
         redraw();
     }
     function onDrawMove(e) {
@@ -257,8 +318,8 @@
     }
     function drawStrokePath(c, s) {
         if (!s || !s.pts || s.pts.length < 2) return;
-        const col = (LINE_TYPES[s.type] && LINE_TYPES[s.type].color) || '#111';
-        c.save(); c.setLineDash([]); c.strokeStyle = col; c.lineWidth = 2.6; c.lineJoin = 'round'; c.lineCap = 'round';
+        const st = strokeStyleOf(s);
+        c.save(); c.setLineDash(st.dash || []); c.strokeStyle = st.color; c.lineWidth = st.width; c.lineJoin = 'round'; c.lineCap = 'round';
         c.beginPath(); const p0 = scr(s.pts[0]); c.moveTo(p0.x, p0.y);
         for (let i = 1; i < s.pts.length; i++) { const p = scr(s.pts[i]); c.lineTo(p.x, p.y); }
         c.stroke(); c.restore();
@@ -350,12 +411,13 @@
         drawScaleBar();
         // čáry
         sketch.lines.forEach(l => {
-            const t = LINE_TYPES[l[2] || 0] || LINE_TYPES[0];
+            if (!sketch.pts[l[0]] || !sketch.pts[l[1]]) return;
+            const st = lineStyleOf(l);
             const a = scr(sketch.pts[l[0]]), b = scr(sketch.pts[l[1]]);
-            ctx.strokeStyle = t.color; ctx.lineWidth = 3; ctx.setLineDash(t.dash || []);
+            ctx.strokeStyle = st.color; ctx.lineWidth = st.width; ctx.setLineDash(st.dash || []); ctx.lineCap = 'round';
             ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
         });
-        ctx.setLineDash([]);
+        ctx.setLineDash([]); ctx.lineCap = 'butt';
         // tahy od ruky (prst / stylus)
         (sketch.strokes || []).forEach(s => drawStrokePath(ctx, s));
         if (curStroke) drawStrokePath(ctx, curStroke);
@@ -408,8 +470,8 @@
         const exp = document.createElement('canvas'); exp.width = canvas.width; exp.height = canvas.height;
         const c = exp.getContext('2d');
         c.fillStyle = '#fff'; c.fillRect(0, 0, exp.width, exp.height);
-        sketch.lines.forEach(l => { const t = LINE_TYPES[l[2] || 0] || LINE_TYPES[0]; const a = scr(sketch.pts[l[0]]), b = scr(sketch.pts[l[1]]); c.strokeStyle = t.color; c.lineWidth = 2.5; c.setLineDash(t.dash || []); c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke(); });
-        c.setLineDash([]);
+        sketch.lines.forEach(l => { if (!sketch.pts[l[0]] || !sketch.pts[l[1]]) return; const st = lineStyleOf(l); const a = scr(sketch.pts[l[0]]), b = scr(sketch.pts[l[1]]); c.strokeStyle = st.color; c.lineWidth = st.width; c.setLineDash(st.dash || []); c.lineCap = 'round'; c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke(); });
+        c.setLineDash([]); c.lineCap = 'butt';
         (sketch.strokes || []).forEach(s => drawStrokePath(c, s));
         c.textBaseline = 'middle'; c.textAlign = 'center';
         sketch.labels.forEach(lb => { const s = scr(lb); c.font = 'bold 14px sans-serif'; c.fillStyle = '#7c2d12'; c.fillText(lb.text, s.x, s.y); });
