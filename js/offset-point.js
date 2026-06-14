@@ -155,3 +155,47 @@
     window.addEventListener('load', function () { setTimeout(register, 350); });
     window.agOpenOffsetTool = openTool;   // ať jde navázat i ručně (např. na tlačítko v doku)
 })();
+
+/* === DOPLNĚK: scroll + zavírací X v rohu pro VŠECHNY modály terénních nástrojů =
+   (Umístěno zde, protože offset-point.js je vždy zadrátovaný/načtený. Dřív byl
+   tento doplněk v geo-overlay.js, který ale NENÍ v index.html -> neběžel.)
+   Každý .modal-overlay, jehož .modal-content nemá .modal-body (= „plochý"
+   nástrojový modál), dostane scroll + přilepený zavírací křížek. Nativní okna
+   appky (Nastavení/Export/Kalkulačka…) mají modal-body / jsou na denylistu. */
+(function () {
+    'use strict';
+    var SKIP = { 'settings-modal': 1, 'manage-modal': 1, 'calc-modal': 1, 'about-modal': 1, 'dict-modal': 1, 'tools-modal': 1, 'compass-modal': 1, 'welcome-screen': 1, 'stakeout-modal': 1, 'stake-detail-modal': 1 };
+    function injectCss() {
+        if (document.getElementById('ag-modalx-css')) return;
+        var st = document.createElement('style'); st.id = 'ag-modalx-css';
+        st.textContent =
+            '.modal-content.ag-scrollable{display:block;max-height:88vh;max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;}'
+            + '.ag-modal-x{position:sticky;top:0;z-index:6;height:0;text-align:right;pointer-events:none;}'
+            + '.ag-modal-x>button{pointer-events:auto;position:relative;top:-10px;right:-6px;width:34px;height:34px;border:none;border-radius:50%;background:rgba(0,0,0,0.5);color:#fff;font:300 23px/1 system-ui,sans-serif;cursor:pointer;}';
+        (document.head || document.documentElement).appendChild(st);
+    }
+    function isToolModal(ov, c) {
+        if (!c) return false;
+        if (ov.id && SKIP[ov.id]) return false;
+        if (c.querySelector('.modal-body')) return false;
+        return true;
+    }
+    function enhance(ov, c) {
+        if (!c.classList.contains('ag-scrollable')) c.classList.add('ag-scrollable');
+        if (c.querySelector('.ag-modal-x')) return;
+        var wrap = document.createElement('div'); wrap.className = 'ag-modal-x';
+        var b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', 'Zavřít'); b.textContent = '×';
+        b.addEventListener('click', function () { try { ov.style.display = 'none'; } catch (e) {} });
+        wrap.appendChild(b); c.insertBefore(wrap, c.firstChild);
+    }
+    function tick() {
+        try {
+            injectCss();
+            var ovs = document.querySelectorAll('.modal-overlay');
+            for (var i = 0; i < ovs.length; i++) { var ov = ovs[i], c = ov.querySelector('.modal-content'); if (isToolModal(ov, c)) enhance(ov, c); }
+        } catch (e) {}
+    }
+    function init() { try { injectCss(); if (!window.__agModalXTimer) window.__agModalXTimer = setInterval(tick, 400); tick(); } catch (e) {} }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+    window.addEventListener('load', function () { setTimeout(init, 500); });
+})();
