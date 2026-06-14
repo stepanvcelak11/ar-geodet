@@ -9,17 +9,69 @@
       "zaznamy": [
         {
           "nazev": "Kód kvality podrobných bodů (mxy a mezní odchylky)",
-          "tagy": ["odchylka", "odchylky", "přesnost", "kód kvality", "mxy", "uxy", "mezní", "souřadnicová chyba", "podrobný bod"],
+          "tagy": [
+            "odchylka",
+            "odchylky",
+            "přesnost",
+            "kód kvality",
+            "mxy",
+            "uxy",
+            "mezní",
+            "souřadnicová chyba",
+            "podrobný bod"
+          ],
           "telo": "Přesnost souřadnic podrobného bodu v S-JTSK je vyjádřena kódem kvality 3 až 8. Každému kódu odpovídá základní střední souřadnicová chyba mxy. Z ní se odvozuje mezní souřadnicová chyba uxy = 2·mxy a mezní polohová odchylka = 2·√2·mxy. Kódy 3–5 jsou body zaměřené v terénu, kódy 6–8 pocházejí z digitalizace dřívějších map.",
           "tabulka": {
-            "hlavicka": ["Kód", "Původ", "mxy [m]", "uxy = 2·mxy [m]", "Mezní polohová [m]"],
+            "hlavicka": [
+              "Kód",
+              "Původ",
+              "mxy [m]",
+              "uxy = 2·mxy [m]",
+              "Mezní polohová [m]"
+            ],
             "radky": [
-              ["3", "zaměření v terénu", "0,14", "0,28", "0,39"],
-              ["4", "zaměření v terénu", "0,26", "0,52", "0,74"],
-              ["5", "zaměření v terénu", "0,50", "1,00", "1,41"],
-              ["6", "digitalizace", "0,21", "0,42", "0,59"],
-              ["7", "digitalizace", "0,50", "1,00", "1,41"],
-              ["8", "digitalizace", "1,00", "2,00", "2,82"]
+              [
+                "3",
+                "zaměření v terénu",
+                "0,14",
+                "0,28",
+                "0,39"
+              ],
+              [
+                "4",
+                "zaměření v terénu",
+                "0,26",
+                "0,52",
+                "0,74"
+              ],
+              [
+                "5",
+                "zaměření v terénu",
+                "0,50",
+                "1,00",
+                "1,41"
+              ],
+              [
+                "6",
+                "digitalizace",
+                "0,21",
+                "0,42",
+                "0,59"
+              ],
+              [
+                "7",
+                "digitalizace",
+                "0,50",
+                "1,00",
+                "1,41"
+              ],
+              [
+                "8",
+                "digitalizace",
+                "1,00",
+                "2,00",
+                "2,82"
+              ]
             ]
           },
           "pozn": "uxy = 2·mxy · mezní polohová odchylka = 2·√2·mxy. Nejpřesnější jsou body s kódem 3 (nově geodeticky zaměřené).",
@@ -29,17 +81,45 @@
         },
         {
           "nazev": "Mezní odchylka výměry parcely",
-          "tagy": ["výměra", "mezní odchylka", "odchylka výměry", "parcela", "tolerance", "m2"],
+          "tagy": [
+            "výměra",
+            "mezní odchylka",
+            "odchylka výměry",
+            "parcela",
+            "tolerance",
+            "m2"
+          ],
           "telo": "Mezní odchylka výměry říká, o kolik se smí lišit dvě výměry téže parcely (např. nová a evidovaná), aniž se výměra v katastru změní. Závisí na kódu kvality lomových bodů a na výměře P (větší z porovnávaných výměr v m²):",
           "tabulka": {
-            "hlavicka": ["Kód kvality", "Mezní odchylka výměry [m²]"],
+            "hlavicka": [
+              "Kód kvality",
+              "Mezní odchylka výměry [m²]"
+            ],
             "radky": [
-              ["3", "2"],
-              ["4", "0,4·√P + 4"],
-              ["5", "1,2·√P + 12"],
-              ["6", "0,3·√P + 3"],
-              ["7", "0,8·√P + 8"],
-              ["8", "2,0·√P + 20"]
+              [
+                "3",
+                "2"
+              ],
+              [
+                "4",
+                "0,4·√P + 4"
+              ],
+              [
+                "5",
+                "1,2·√P + 12"
+              ],
+              [
+                "6",
+                "0,3·√P + 3"
+              ],
+              [
+                "7",
+                "0,8·√P + 8"
+              ],
+              [
+                "8",
+                "2,0·√P + 20"
+              ]
             ]
           },
           "pozn": "P = větší z porovnávaných výměr [m²]. Pro skupinu parcel / kód způsobu určení 0 nebo kombinaci se bere dvojnásobek. Příklad: parcela 1000 m² s kódem 8 → 2,0·√1000 + 20 ≈ 83 m². Přesné znění vzorců ověř v příloze.",
@@ -49,7 +129,15 @@
         },
         {
           "nazev": "Barvy bodů v Nahlížení do KN (kontrola přesnosti)",
-          "tagy": ["nahlížení", "barva", "zelená", "červená", "kód kvality", "přesnost", "hranice"],
+          "tagy": [
+            "nahlížení",
+            "barva",
+            "zelená",
+            "červená",
+            "kód kvality",
+            "přesnost",
+            "hranice"
+          ],
           "telo": "V aplikaci Nahlížení do KN se ve vrstvě „Hranice parcel s vyjádřením přesnosti“ / „Podrobné body s vyjádřením přesnosti“ zobrazují body podle kódu kvality barevně: ZELENĚ body s kódem kvality 3 (nejpřesnější, geodeticky zaměřené), ČERVENĚ body s kódem kvality 4 až 8. Rychlá vizuální kontrola, jak spolehlivá je hranice.",
           "zdroj": "ČÚZK — Nahlížení do KN",
           "odkaz": "https://nahlizenidokn.cuzk.gov.cz",
@@ -57,7 +145,12 @@
         },
         {
           "nazev": "Způsob určení výměry parcely vs. kód kvality",
-          "tagy": ["výměra", "způsob určení výměry", "kód kvality", "parcela"],
+          "tagy": [
+            "výměra",
+            "způsob určení výměry",
+            "kód kvality",
+            "parcela"
+          ],
           "telo": "Způsob určení výměry parcely se značí kódem: kód 2 = ze souřadnic v S-JTSK s kódem kvality 3 nebo 4 (nejpřesnější); kód 1 = z přímo měřených měr nebo ze souřadnic v místním systému; kód 0 = ze souřadnic v S-JTSK, z nichž aspoň jeden lomový bod má kód kvality 5 až 8, NEBO graficky (planimetrováním, z měr odměřených na mapě, ze souřadnic odměřených na mapě).",
           "pozn": "Vyšší přesnost lomových bodů (kód 3–4) = přesnější a „silnější“ výměra parcely.",
           "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha",
@@ -67,13 +160,21 @@
       ]
     },
     {
-      "id": "mereni",
-      "nazev": "Měřické postupy a kontrola přesnosti",
-      "zkratka": "Měření",
+      "id": "kontrola",
+      "nazev": "Přesnost a kontrola měření",
+      "zkratka": "Kontrola",
       "zaznamy": [
         {
           "nazev": "Dvojí (nezávislé) určení bodu + připojení na body",
-          "tagy": ["měření", "dvojí určení", "nezávislé", "kontrola", "připojení", "metoda", "postup"],
+          "tagy": [
+            "měření",
+            "dvojí určení",
+            "nezávislé",
+            "kontrola",
+            "připojení",
+            "metoda",
+            "postup"
+          ],
           "telo": "Zaměření každého podrobného bodu se provede nezávisle nejméně dvakrát. Měření musí být připojeno na body nejméně takové přesnosti, jaká má být dosažena u nově určovaných bodů (tj. nelze získat přesnější bod opřením o méně přesné body). Platí to bez ohledu na metodu (GNSS, polární metoda apod.) — rozhodující je dosažená a ověřená přesnost.",
           "pozn": "Z dvojího určení se počítá kontrola přesnosti (viz výběrová střední chyba níže).",
           "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 13",
@@ -82,7 +183,15 @@
         },
         {
           "nazev": "Ověření přesnosti kontrolním měřením délek",
-          "tagy": ["ověření", "kontrolní měření", "oměrné", "délka", "mezní rozdíl", "ud", "kontrola"],
+          "tagy": [
+            "ověření",
+            "kontrolní měření",
+            "oměrné",
+            "délka",
+            "mezní rozdíl",
+            "ud",
+            "kontrola"
+          ],
           "telo": "Dosažení přesnosti se ověřuje oměrnými mírami nebo kontrolním měřením délek přímých spojnic jiných vybraných dvojic podrobných bodů a jejich porovnáním s délkami vypočtenými ze souřadnic. Vyhovuje, když rozdíl kontrolně měřené délky a délky ze souřadnic je menší než mezní rozdíl délky ud = 2·md (md = základní střední chyba délky).",
           "pozn": "U souboru s více než 20 rozdíly platí navíc statistické kritérium (podíl rozdílů menších než md) — viz bod 13 přílohy.",
           "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 13",
@@ -91,16 +200,39 @@
         },
         {
           "nazev": "Výběrová střední souřadnicová chyba (test polohy)",
-          "tagy": ["výběrová střední chyba", "sxy", "uxy", "kontrolní určení", "ověření", "mezní", "koeficient k"],
+          "tagy": [
+            "výběrová střední chyba",
+            "sxy",
+            "uxy",
+            "kontrolní určení",
+            "ověření",
+            "mezní",
+            "koeficient k"
+          ],
           "telo": "Při ověření kontrolním (druhým) určením souřadnic téhož bodu se počítá výběrová střední souřadnicová chyba sxy = √(0,5·(Δx² + Δy²)), kde Δx, Δy jsou rozdíly souřadnic z prvního a kontrolního určení. Přesnost vyhovuje, když sxy nepřekročí mezní souřadnicovou chybu uxy = 2·mxy příslušného kódu kvality (např. kód 3 → uxy = 0,28 m).",
           "pozn": "Koeficient k = 2, má-li kontrolní určení stejnou přesnost jako podrobné měření; k = 1, je-li kontrola podstatně přesnější (mxy < 0,10 m). Mezní hodnoty uxy viz tabulka kódů kvality.",
           "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 13",
           "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
           "platnost": "2026-06-14"
-        },
+        }
+      ]
+    },
+    {
+      "id": "metody",
+      "nazev": "Polohové měřické metody",
+      "zkratka": "Metody",
+      "zaznamy": [
         {
           "nazev": "Měřické metody pro podrobné body",
-          "tagy": ["metoda", "polární", "ortogonální", "oměrné", "protínání", "měření", "podrobný bod"],
+          "tagy": [
+            "metoda",
+            "polární",
+            "ortogonální",
+            "oměrné",
+            "protínání",
+            "měření",
+            "podrobný bod"
+          ],
           "telo": "Podrobné body polohopisu se zaměřují zpravidla POLÁRNÍ metodou (vodorovný úhel od orientačního směru + délka ze stanoviska). Doplňkové metody (když polární nelze nebo není účelná): ORTOGONÁLNÍ (pravoúhlé souřadnice k měřické přímce — staničení a kolmice; vhodná v úzké zástavbě), metoda KONSTRUKČNÍCH OMĚRNÝCH a PROTÍNÁNÍ ze směrů nebo z délek.",
           "pozn": "Bez ohledu na metodu musí být dosažena a ověřena požadovaná přesnost (kód kvality) — viz dvojí určení a kontrola výše.",
           "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha; vyhláška č. 31/1995 Sb.",
@@ -109,7 +241,16 @@
         },
         {
           "nazev": "GNSS / RTK měření v katastru",
-          "tagy": ["GNSS", "RTK", "GPS", "permanentní stanice", "VRS", "CZEPOS", "měření", "metoda"],
+          "tagy": [
+            "GNSS",
+            "RTK",
+            "GPS",
+            "permanentní stanice",
+            "VRS",
+            "CZEPOS",
+            "měření",
+            "metoda"
+          ],
           "telo": "Souřadnice lze určovat technologií GNSS, v praxi metodou RTK. Kromě vlastní referenční stanice lze využít sítě permanentních stanic (např. CZEPOS) — korekce z konkrétní nebo z virtuální referenční stanice (VRS). Každý bod se určuje nezávisle nejméně dvakrát a výsledky se kontrolují. Technické postupy GNSS upravuje bod 9 přílohy vyhlášky č. 31/1995 Sb.",
           "pozn": "Připojení/orientace na body nejméně té přesnosti, jaká má být dosažena. Dvě nezávislá GNSS určení by měla mít časový odstup (jiná konstelace družic).",
           "zdroj": "Vyhláška č. 31/1995 Sb., příloha bod 9; katastrální vyhláška č. 357/2013 Sb.",
@@ -118,51 +259,62 @@
         },
         {
           "nazev": "Geometrický základ a orientace měření",
-          "tagy": ["geometrický základ", "orientace", "připojení", "měřická síť", "polygonový pořad", "rajon", "bodové pole"],
+          "tagy": [
+            "geometrický základ",
+            "orientace",
+            "připojení",
+            "měřická síť",
+            "polygonový pořad",
+            "rajon",
+            "bodové pole"
+          ],
           "telo": "Geometrickým základem podrobného měření jsou body bodových polí a měřické sítě: body určené metodou RTK, polygonové pořady a rajony dle potřeby. Měření musí být připojeno a orientováno na body nejméně takové přesnosti, jaká má být dosažena u nově určovaných bodů — přesnější bod nelze získat opřením o méně přesné body.",
           "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha",
           "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
           "platnost": "2026-06-14"
         },
         {
-          "nazev": "Vytyčování hranic pozemků",
-          "tagy": ["vytyčení", "vytyčování", "hranice", "dokumentace", "protokol", "vytyčovací náčrt", "ÚOZI", "mezní odchylka"],
-          "telo": "Vytyčení hranice je zeměměřická činnost ve veřejném zájmu (§ 80–90 vyhlášky + body 16.28–16.32 přílohy). Přesnost vytyčení závisí na podkladech: jsou-li číselná data, lomové body se vytyčí se střední souřadnicovou chybou ±0,14 m (kód 3); je-li jen grafická mapa 1:2880 (či z ní digitalizovaná), jen ±1,00 m. O vytyčení se vyhotoví DOKUMENTACE (vytyčovací náčrt + protokol o vytyčení) ověřená ÚOZI; dotčení vlastníci se zvou k seznámení.",
-          "pozn": "Lhůty: stejnopis objednateli do 30 dnů, kopie dotčeným vlastníkům; do 90 dnů kopie katastrálnímu úřadu. KÚ hranice v mapě nemění, jen doplní značky trvalé stabilizace (není-li nesouhlas). Vytyčením se právní vztahy nemění; vlastníci nemusí vytyčení respektovat a mohou průběh v rámci mezních odchylek upřesnit.",
-          "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 80–90 + příloha body 16.28–16.32; zeměměřický zákon č. 200/1994 Sb. § 12",
-          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
-          "platnost": "2026-06-14"
-        },
-        {
-          "nazev": "Nivelace — druhy a podmínky měření",
-          "tagy": ["nivelace", "technická nivelace", "přesná", "velmi přesná", "záměra", "délka záměry", "výška záměry", "uzávěr", "převýšení"],
-          "telo": "Geometrická nivelace se podle přesnosti dělí na technickou (TN), přesnou (PN), velmi přesnou (VPN) a zvlášť přesnou (ZPN). Liší se délkou záměry, minimální výškou záměry nad terénem (kvůli refrakci u země) a mezní odchylkou uzávěru pořadu (R = délka pořadu v km, výsledek v mm):",
-          "tabulka": {
-            "hlavicka": ["Druh", "Max. délka záměry", "Min. výška nad terénem", "Mezní odchylka uzávěru"],
-            "radky": [
-              ["Technická (normální)", "120 m", "0,5 m", "40·√R mm"],
-              ["Technická (zvýšená)", "80 m (opt. 40–50)", "0,3 m", "20·√R mm"],
-              ["Velmi přesná / zvlášť přesná", "50 m (často ≤40)", "0,5 m", "obousměrně, dle ČSN"]
-            ]
-          },
-          "pozn": "TN: vždy vycházej ze dvou ověřených nivelačních bodů; max délka pořadu 3–5 km. VPN/ZPN: měří se tam i zpět (obousměrně), dvoustupnicové latě, připojení na dva body vzdálené min 1 km. Hodnoty z výukových materiálů ČVUT/VUT — závazné znění ověř v ČSN.",
-          "zdroj": "ČSN 73 0415 (Geodetické body) a navazující předpisy; výukové materiály ČVUT/VUT",
-          "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch11s05.html",
-          "platnost": "2026-06-14"
-        },
-        {
           "nazev": "Polygonový pořad — geometrické podmínky",
-          "tagy": ["polygonový pořad", "polygon", "strana", "poměr stran", "úhlový uzávěr", "vrcholy", "měřická síť"],
+          "tagy": [
+            "polygonový pořad",
+            "polygon",
+            "strana",
+            "poměr stran",
+            "úhlový uzávěr",
+            "vrcholy",
+            "měřická síť"
+          ],
           "telo": "Při volbě bodů polygonového pořadu se dodržují geometrické parametry (orientační, podle třídy přesnosti / normy):",
           "tabulka": {
-            "hlavicka": ["Parametr", "Zpravidla"],
+            "hlavicka": [
+              "Parametr",
+              "Zpravidla"
+            ],
             "radky": [
-              ["Mezní (max.) délka strany", "300 m"],
-              ["Poměr délek sousedních stran", "do 1:2 (jinde 1:3)"],
-              ["Poměr nejdelší a nejkratší strany v pořadu", "do 1:3"],
-              ["Max. součet délek (hlavní pořad)", "2000–2500 m"],
-              ["Max. součet délek (vedlejší pořad)", "1200–1600 m"],
-              ["Max. počet vrcholů", "17–25"]
+              [
+                "Mezní (max.) délka strany",
+                "300 m"
+              ],
+              [
+                "Poměr délek sousedních stran",
+                "do 1:2 (jinde 1:3)"
+              ],
+              [
+                "Poměr nejdelší a nejkratší strany v pořadu",
+                "do 1:3"
+              ],
+              [
+                "Max. součet délek (hlavní pořad)",
+                "2000–2500 m"
+              ],
+              [
+                "Max. součet délek (vedlejší pořad)",
+                "1200–1600 m"
+              ],
+              [
+                "Max. počet vrcholů",
+                "17–25"
+              ]
             ]
           },
           "pozn": "Volný (jednostranně připojený) pořad: max 3 nové vrcholy, délka do 250 m. Mezní odchylka úhlového uzávěru Δω = c·√n (n = počet úhlů; c dle třídy/normy). Konkrétní hodnoty se mezi zdroji/normami liší — ověř v ČSN 73 0415.",
@@ -172,7 +324,14 @@
         },
         {
           "nazev": "Rajón — podmínky určení pomocného bodu",
-          "tagy": ["rajón", "rajon", "pomocný bod", "délka rajónu", "orientace", "měřická síť"],
+          "tagy": [
+            "rajón",
+            "rajon",
+            "pomocný bod",
+            "délka rajónu",
+            "orientace",
+            "měřická síť"
+          ],
           "telo": "Rajón = určení nového bodu ze známého bodu měřeným směrníkem a délkou (volný pořad o jedné straně). Pro pomocné měřické body (dle Návodu pro obnovu KO): max délka 1500 m a ne víc než délka nejvzdálenější orientace. Orientace buď na daném bodě na 2 body bodového pole (mxy ≤ 0,04 m), nebo na určovaném bodě na ≥3 body — úhel mezi směrem s měřenou délkou a ostatními 30–170 gon.",
           "pozn": "Délka > 800 m → úhly ve dvou skupinách. Výchozí bod s chybou 0,04–0,06 m → max 300 m. Body na technických objektech zpravidla do 50 m. Bod nesmí být určen jen jedním rajónem (nutná kontrola).",
           "zdroj": "ČÚZK — Návod pro obnovu katastrálního operátu a převod",
@@ -181,7 +340,14 @@
         },
         {
           "nazev": "Volné stanovisko a orientace",
-          "tagy": ["volné stanovisko", "orientace", "stanovisko", "připojení", "protínání", "gon"],
+          "tagy": [
+            "volné stanovisko",
+            "orientace",
+            "stanovisko",
+            "připojení",
+            "protínání",
+            "gon"
+          ],
           "telo": "Volné stanovisko: přístroj stojí na libovolném bodě, jeho poloha se určí měřením na dané body. Orientace na stanovisku se provede vždy nejméně na 2 body bodových polí / pomocné body a nejméně na jeden z nich se měří i délka. Pro jednoznačné určení stačí 2 body (směr + délka) nebo 3 body (jen směry); pro kontrolu a vyrovnání (MNČ) se volí nadbytečné body.",
           "pozn": "Úhel na určovaném bodě mezi směry na dva dané body má být v rozmezí 30–170 gon. Úhly se měří/registrují s přesností aspoň 0,001 gon.",
           "zdroj": "ČÚZK — Návod pro obnovu KO; katastrální vyhláška č. 357/2013 Sb.",
@@ -190,7 +356,15 @@
         },
         {
           "nazev": "Protínání (vpřed / zpět / z délek)",
-          "tagy": ["protínání", "vpřed", "zpět", "z délek", "resekce", "nebezpečná kružnice", "úhel protnutí"],
+          "tagy": [
+            "protínání",
+            "vpřed",
+            "zpět",
+            "z délek",
+            "resekce",
+            "nebezpečná kružnice",
+            "úhel protnutí"
+          ],
           "telo": "Protínání VPŘED: poloha nového bodu jako průsečík směrů (nebo délek) z daných bodů. Protínání ZPĚT (resekce): stanovisko se určí zaměřením na ≥3 dané body. Protínání z délek: z měřených délek na/ze známých bodů. Úhel protnutí na určovaném bodě má být 30–170 gon (ne příliš ostrý ani tupý).",
           "pozn": "Protínání zpět: POZOR na „nebezpečnou kružnici“ — leží-li stanovisko blízko kružnice procházející třemi danými body, úloha nemá spolehlivé řešení.",
           "zdroj": "Katastrální vyhláška č. 357/2013 Sb.; výukové materiály ČVUT/ZČU",
@@ -198,26 +372,127 @@
           "platnost": "2026-06-14"
         },
         {
-          "nazev": "Trigonometrická nivelace (určení výšek)",
-          "tagy": ["trigonometrická nivelace", "výška", "převýšení", "zenitový úhel", "refrakce", "totální stanice"],
-          "telo": "Převýšení se určí ze zenitové (svislé) vzdálenosti a šikmé délky — typicky totální stanicí. Hodí se pro výšky nepřístupných bodů a na větší vzdálenosti, kde nivelace nelze. Na delších záměrách roste vliv refrakce a zakřivení Země — je nutné je opravit; spolehlivost zvyšuje měření tam i zpět (oboustranně) a kratší záměry.",
-          "pozn": "Přesnost závisí na délce záměry a přesnosti zenitového úhlu — posuzuje se samostatně (zákon hromadění chyb). Pro přesné výšky volit kratší záměry a oboustranné měření.",
-          "zdroj": "Výukové materiály ČVUT/VUT/SPŠ zeměměřická; ČSN pro výšková měření",
-          "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch11s05.html",
-          "platnost": "2026-06-14"
-        },
-        {
           "nazev": "Tachymetrie (podrobné body totální stanicí)",
-          "tagy": ["tachymetrie", "podrobné body", "totální stanice", "polární", "mapování", "výškopis", "přesnost"],
+          "tagy": [
+            "tachymetrie",
+            "podrobné body",
+            "totální stanice",
+            "polární",
+            "mapování",
+            "výškopis",
+            "přesnost"
+          ],
           "telo": "Tachymetrie = současné určení polohy (polárně: vodorovný úhel + délka) a výšky (trigonometricky ze zenitového úhlu a délky) podrobných bodů z jednoho stanoviska — základ polohopisného a výškopisného mapování. Moderní totální stanice: střední chyba bodu řádově 0,02–0,05 m, délky i přes 200 m (přesnost se vzdáleností klesá).",
           "pozn": "Kontrola: před opuštěním stanoviska zaměř kontrolně aspoň jeden daný bod (ověření, že se během sběru nezměnila orientace / vodorovný kruh). Požadovaná přesnost podrobných bodů dle kódu kvality (katastr) / ČSN 01 3410 pro mapy velkých měřítek.",
           "zdroj": "Výukové materiály ČVUT/ZČU; ČSN 01 3410; katastrální vyhláška č. 357/2013 Sb.",
           "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch15.html",
           "platnost": "2026-06-14"
+        }
+      ]
+    },
+    {
+      "id": "vysky",
+      "nazev": "Výškové měření (nivelace)",
+      "zkratka": "Výšky",
+      "zaznamy": [
+        {
+          "nazev": "Nivelace — druhy a podmínky měření",
+          "tagy": [
+            "nivelace",
+            "technická nivelace",
+            "přesná",
+            "velmi přesná",
+            "záměra",
+            "délka záměry",
+            "výška záměry",
+            "uzávěr",
+            "převýšení"
+          ],
+          "telo": "Geometrická nivelace se podle přesnosti dělí na technickou (TN), přesnou (PN), velmi přesnou (VPN) a zvlášť přesnou (ZPN). Liší se délkou záměry, minimální výškou záměry nad terénem (kvůli refrakci u země) a mezní odchylkou uzávěru pořadu (R = délka pořadu v km, výsledek v mm):",
+          "tabulka": {
+            "hlavicka": [
+              "Druh",
+              "Max. délka záměry",
+              "Min. výška nad terénem",
+              "Mezní odchylka uzávěru"
+            ],
+            "radky": [
+              [
+                "Technická (normální)",
+                "120 m",
+                "0,5 m",
+                "40·√R mm"
+              ],
+              [
+                "Technická (zvýšená)",
+                "80 m (opt. 40–50)",
+                "0,3 m",
+                "20·√R mm"
+              ],
+              [
+                "Velmi přesná / zvlášť přesná",
+                "50 m (často ≤40)",
+                "0,5 m",
+                "obousměrně, dle ČSN"
+              ]
+            ]
+          },
+          "pozn": "TN: vždy vycházej ze dvou ověřených nivelačních bodů; max délka pořadu 3–5 km. VPN/ZPN: měří se tam i zpět (obousměrně), dvoustupnicové latě, připojení na dva body vzdálené min 1 km. Hodnoty z výukových materiálů ČVUT/VUT — závazné znění ověř v ČSN.",
+          "zdroj": "ČSN 73 0415 (Geodetické body) a navazující předpisy; výukové materiály ČVUT/VUT",
+          "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch11s05.html",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Trigonometrická nivelace (určení výšek)",
+          "tagy": [
+            "trigonometrická nivelace",
+            "výška",
+            "převýšení",
+            "zenitový úhel",
+            "refrakce",
+            "totální stanice"
+          ],
+          "telo": "Převýšení se určí ze zenitové (svislé) vzdálenosti a šikmé délky — typicky totální stanicí. Hodí se pro výšky nepřístupných bodů a na větší vzdálenosti, kde nivelace nelze. Na delších záměrách roste vliv refrakce a zakřivení Země — je nutné je opravit; spolehlivost zvyšuje měření tam i zpět (oboustranně) a kratší záměry.",
+          "pozn": "Přesnost závisí na délce záměry a přesnosti zenitového úhlu — posuzuje se samostatně (zákon hromadění chyb). Pro přesné výšky volit kratší záměry a oboustranné měření.",
+          "zdroj": "Výukové materiály ČVUT/VUT/SPŠ zeměměřická; ČSN pro výšková měření",
+          "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch11s05.html",
+          "platnost": "2026-06-14"
+        }
+      ]
+    },
+    {
+      "id": "vytyceni",
+      "nazev": "Vytyčování",
+      "zkratka": "Vytyčování",
+      "zaznamy": [
+        {
+          "nazev": "Vytyčování hranic pozemků",
+          "tagy": [
+            "vytyčení",
+            "vytyčování",
+            "hranice",
+            "dokumentace",
+            "protokol",
+            "vytyčovací náčrt",
+            "ÚOZI",
+            "mezní odchylka"
+          ],
+          "telo": "Vytyčení hranice je zeměměřická činnost ve veřejném zájmu (§ 80–90 vyhlášky + body 16.28–16.32 přílohy). Přesnost vytyčení závisí na podkladech: jsou-li číselná data, lomové body se vytyčí se střední souřadnicovou chybou ±0,14 m (kód 3); je-li jen grafická mapa 1:2880 (či z ní digitalizovaná), jen ±1,00 m. O vytyčení se vyhotoví DOKUMENTACE (vytyčovací náčrt + protokol o vytyčení) ověřená ÚOZI; dotčení vlastníci se zvou k seznámení.",
+          "pozn": "Lhůty: stejnopis objednateli do 30 dnů, kopie dotčeným vlastníkům; do 90 dnů kopie katastrálnímu úřadu. KÚ hranice v mapě nemění, jen doplní značky trvalé stabilizace (není-li nesouhlas). Vytyčením se právní vztahy nemění; vlastníci nemusí vytyčení respektovat a mohou průběh v rámci mezních odchylek upřesnit.",
+          "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 80–90 + příloha body 16.28–16.32; zeměměřický zákon č. 200/1994 Sb. § 12",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+          "platnost": "2026-06-14"
         },
         {
           "nazev": "Vytyčování staveb (ČSN 73 0420)",
-          "tagy": ["vytyčování staveb", "ČSN 73 0420", "vytyčovací odchylka", "mezní", "stavební tolerance", "stavba"],
+          "tagy": [
+            "vytyčování staveb",
+            "ČSN 73 0420",
+            "vytyčovací odchylka",
+            "mezní",
+            "stavební tolerance",
+            "stavba"
+          ],
           "telo": "Přesnost vytyčování stavebních objektů upravuje ČSN 73 0420: část 1 (Základní požadavky) — zásady a výpočet kritérií přesnosti vytyčení; část 2 (Vytyčovací odchylky) — konkrétní hodnoty mezních vytyčovacích odchylek pro liniové, plošné a prostorové stavby. Mezní vytyčovací odchylka se odvozuje ze stavební tolerance (směrodatná odchylka ze stavební tolerance).",
           "pozn": "Konkrétní číselné hodnoty jsou v placené ČSN 73 0420-2 (zde je jen reference). Souvisí ČSN ISO 4463 (měřické metody ve výstavbě).",
           "zdroj": "ČSN 73 0420-1 a ČSN 73 0420-2 (Přesnost vytyčování staveb)",
@@ -233,21 +508,65 @@
       "zaznamy": [
         {
           "nazev": "Druhy pozemků (kódy)",
-          "tagy": ["druh pozemku", "kód", "číselník", "orná", "zahrada", "trvalý travní porost", "lesní", "vodní", "zastavěná", "ostatní"],
+          "tagy": [
+            "druh pozemku",
+            "kód",
+            "číselník",
+            "orná",
+            "zahrada",
+            "trvalý travní porost",
+            "lesní",
+            "vodní",
+            "zastavěná",
+            "ostatní"
+          ],
           "telo": "Druh pozemku je závazná charakteristika evidovaná v katastru. Kódy druhu pozemku:",
           "tabulka": {
-            "hlavicka": ["Kód", "Druh pozemku"],
+            "hlavicka": [
+              "Kód",
+              "Druh pozemku"
+            ],
             "radky": [
-              ["2", "orná půda"],
-              ["3", "chmelnice"],
-              ["4", "vinice"],
-              ["5", "zahrada"],
-              ["6", "ovocný sad"],
-              ["7", "trvalý travní porost"],
-              ["10", "lesní pozemek"],
-              ["11", "vodní plocha"],
-              ["13", "zastavěná plocha a nádvoří"],
-              ["14", "ostatní plocha"]
+              [
+                "2",
+                "orná půda"
+              ],
+              [
+                "3",
+                "chmelnice"
+              ],
+              [
+                "4",
+                "vinice"
+              ],
+              [
+                "5",
+                "zahrada"
+              ],
+              [
+                "6",
+                "ovocný sad"
+              ],
+              [
+                "7",
+                "trvalý travní porost"
+              ],
+              [
+                "10",
+                "lesní pozemek"
+              ],
+              [
+                "11",
+                "vodní plocha"
+              ],
+              [
+                "13",
+                "zastavěná plocha a nádvoří"
+              ],
+              [
+                "14",
+                "ostatní plocha"
+              ]
             ]
           },
           "pozn": "Kódy 2–7 jsou zemědělské pozemky (ZPF). Druh pozemku v katastru ≠ možnost stavět (o tom rozhoduje územní plán).",
@@ -257,7 +576,18 @@
         },
         {
           "nazev": "Typy geodetických bodových polí",
-          "tagy": ["bodové pole", "TB", "ZhB", "PBPP", "trigonometrický", "zhušťovací", "nivelační", "polohové", "výškové", "tíhové"],
+          "tagy": [
+            "bodové pole",
+            "TB",
+            "ZhB",
+            "PBPP",
+            "trigonometrický",
+            "zhušťovací",
+            "nivelační",
+            "polohové",
+            "výškové",
+            "tíhové"
+          ],
           "telo": "Bodová pole se dělí na polohové, výškové a tíhové. V polohovém poli jsou body trigonometrické (TB), zhušťovací (ZhB) a podrobné polohové bodové pole (PBPP) — od nejpřesnějších/řídkých k hustším a méně přesným. Výškové pole tvoří nivelační body, tíhové pole tíhové body.",
           "pozn": "Konkrétní přesnosti a třídy stanoví předpisy o bodových polích (zákon o zeměměřictví a prováděcí vyhláška).",
           "zdroj": "Zákon č. 200/1994 Sb. o zeměměřictví a prováděcí vyhláška č. 31/1995 Sb.",
@@ -266,14 +596,34 @@
         },
         {
           "nazev": "Kód způsobu určení výměry",
-          "tagy": ["kód", "způsob určení výměry", "výměra", "0", "1", "2", "číselník"],
+          "tagy": [
+            "kód",
+            "způsob určení výměry",
+            "výměra",
+            "0",
+            "1",
+            "2",
+            "číselník"
+          ],
           "telo": "Kód udává, jak byla výměra parcely určena (a tím její spolehlivost):",
           "tabulka": {
-            "hlavicka": ["Kód", "Způsob určení výměry"],
+            "hlavicka": [
+              "Kód",
+              "Způsob určení výměry"
+            ],
             "radky": [
-              ["2", "ze souřadnic v S-JTSK, kód kvality 3 nebo 4 (nejpřesnější)"],
-              ["1", "z přímo měřených měr nebo ze souřadnic v místním systému"],
-              ["0", "ze souřadnic v S-JTSK s aspoň jedním bodem kvality 5–8, nebo graficky"]
+              [
+                "2",
+                "ze souřadnic v S-JTSK, kód kvality 3 nebo 4 (nejpřesnější)"
+              ],
+              [
+                "1",
+                "z přímo měřených měr nebo ze souřadnic v místním systému"
+              ],
+              [
+                "0",
+                "ze souřadnic v S-JTSK s aspoň jedním bodem kvality 5–8, nebo graficky"
+              ]
             ]
           },
           "pozn": "Kód 2 = nejvyšší přesnost. Graficky určená výměra spadá pod kód 0.",
@@ -283,7 +633,14 @@
         },
         {
           "nazev": "Způsob využití pozemku",
-          "tagy": ["způsob využití", "pozemek", "číselník", "skleník", "manipulační plocha", "skládka"],
+          "tagy": [
+            "způsob využití",
+            "pozemek",
+            "číselník",
+            "skleník",
+            "manipulační plocha",
+            "skládka"
+          ],
           "telo": "Doplňková charakteristika k druhu pozemku — upřesňuje, k čemu pozemek slouží. Příklady: skleník / pařeniště, manipulační plocha, pozemek se zbořeništěm, dálnice / silnice, hřbitov a urnový háj, skládka odpadu, fotovoltaická elektrárna, pozemek vodní plochy s budovou. Číselník je rozsáhlý.",
           "pozn": "Kompletní číselník vede ČÚZK (Číselníky ISKN → Způsob využití pozemku).",
           "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha; číselník ČÚZK",
@@ -292,7 +649,15 @@
         },
         {
           "nazev": "Způsob ochrany nemovitosti",
-          "tagy": ["způsob ochrany", "ochrana", "číselník", "kulturní památka", "ZPF", "chráněné území", "ochranné pásmo"],
+          "tagy": [
+            "způsob ochrany",
+            "ochrana",
+            "číselník",
+            "kulturní památka",
+            "ZPF",
+            "chráněné území",
+            "ochranné pásmo"
+          ],
           "telo": "Eviduje, zda a jak je nemovitost chráněna podle zvláštních předpisů. Příklady: nemovitá kulturní památka (památková ochrana), ochrana zemědělského půdního fondu (ZPF), ochrana přírody a krajiny, chráněné území či ochranné pásmo.",
           "pozn": "Kompletní číselník vede ČÚZK. Pozor: na pozemku s ochranou ZPF je před stavbou nutné vynětí ze ZPF.",
           "zdroj": "Číselník ČÚZK (ISKN)",
@@ -308,7 +673,15 @@
       "zaznamy": [
         {
           "nazev": "Geometrický plán — kdy a co obsahuje",
-          "tagy": ["geometrický plán", "GP", "náležitosti", "popisové pole", "výkaz", "ÚOZI", "potvrzení"],
+          "tagy": [
+            "geometrický plán",
+            "GP",
+            "náležitosti",
+            "popisové pole",
+            "výkaz",
+            "ÚOZI",
+            "potvrzení"
+          ],
           "telo": "Geometrický plán je technický podklad pro zápis změny v katastru (rozdělení/scelení parcel, vyznačení budovy, věcné břemeno k části pozemku ad.). Obsahuje zejména popisové pole, grafické znázornění dosavadního a nového stavu a výkaz dosavadního a nového stavu údajů katastru (případně seznam souřadnic a výkaz BPEJ). Musí být ověřen úředně oprávněným zeměměřickým inženýrem (ÚOZI) a potvrzen katastrálním úřadem.",
           "pozn": "Úprava: § 79–86 vyhlášky a přílohy č. 17 a 18. Katastrální úřad GP potvrzuje ve lhůtě 10 dní.",
           "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 79–86 + přílohy 17 a 18",
@@ -317,7 +690,14 @@
         },
         {
           "nazev": "Záznam podrobného měření změn (ZPMZ)",
-          "tagy": ["ZPMZ", "záznam podrobného měření změn", "náčrt", "zápisník", "měřická dokumentace", "souřadnice"],
+          "tagy": [
+            "ZPMZ",
+            "záznam podrobného měření změn",
+            "náčrt",
+            "zápisník",
+            "měřická dokumentace",
+            "souřadnice"
+          ],
           "telo": "ZPMZ je měřická dokumentace ukládaná u katastrálního úřadu — výsledek zeměměřických činností pro změnu (mj. měřická část geometrického plánu). Obsahuje zejména popisové pole, měřický náčrt (body geometrického základu, identické body, měřickou síť; nový stav se kreslí ČERVENĚ), zápisník měřených údajů, protokol o výpočtech a seznam souřadnic.",
           "pozn": "Náležitosti upravuje bod 16 přílohy. Jeden ZPMZ lze využít jako podklad pro více souvisejících geometrických plánů.",
           "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 16",
@@ -326,7 +706,15 @@
         },
         {
           "nazev": "Kdy se vyhotovuje geometrický plán (§ 79)",
-          "tagy": ["geometrický plán", "GP", "kdy", "účel", "rozdělení pozemku", "budova", "věcné břemeno"],
+          "tagy": [
+            "geometrický plán",
+            "GP",
+            "kdy",
+            "účel",
+            "rozdělení pozemku",
+            "budova",
+            "věcné břemeno"
+          ],
           "telo": "GP se vyhotovuje pro: a) změnu hranice katastrálního území, b) rozdělení pozemku, c) změnu hranice pozemku, d) vyznačení/změnu obvodu budovy (hlavní stavby) a vodního díla, e) určení hranic při pozemkových úpravách, f) doplnění pozemku evidovaného zjednodušeným způsobem, g) opravu geometrického a polohového určení, h) upřesnění/rekonstrukci podle přídělového řízení, i) průběh vytyčené nebo vlastníky zpřesněné hranice, j) průběh hranice určené soudem, k) vymezení věcného břemene k části pozemku.",
           "pozn": "GP se NEvyhotovuje, když se změna týká celého pozemku bez změny hranice. Věcné břemeno: GP jen u části pozemku, ne u celého.",
           "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 79 odst. 1",
@@ -335,7 +723,15 @@
         },
         {
           "nazev": "Označování a stabilizace hranic (§ 91)",
-          "tagy": ["hranice", "označení", "stabilizace", "hraniční znak", "mezník", "kámen", "plast"],
+          "tagy": [
+            "hranice",
+            "označení",
+            "stabilizace",
+            "hraniční znak",
+            "mezník",
+            "kámen",
+            "plast"
+          ],
           "telo": "Lomové body hranic se označují trvale: kameny s opracovanou hlavou, znaky z plastu nebo železobetonové (nejméně 80×80×500 mm); přípustná je i zabetonovaná železná trubka ø 20–40 mm nebo ocelová armatura ø 10–40 mm. Střed znaku se kryje s bodem lomu hranice. Hranice se označí tak, aby z každého znaku bylo vidět na oba sousední a na přímých úsecích nebyly znaky dál než 200 m.",
           "pozn": "Lze označit i jiným trvalým způsobem (např. zdí). Neoznačují se hranice sloučené do větších celků. Neoznačí-li vlastník hranice, může KÚ označit na jeho náklad a uložit pokutu (§ 37 odst. 2 katastrálního zákona).",
           "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 91",
@@ -344,7 +740,13 @@
         },
         {
           "nazev": "Číslování podrobných bodů a ZPMZ",
-          "tagy": ["číslování", "číslo bodu", "ZPMZ", "podrobný bod", "katastrální území"],
+          "tagy": [
+            "číslování",
+            "číslo bodu",
+            "ZPMZ",
+            "podrobný bod",
+            "katastrální území"
+          ],
           "telo": "Číslo podrobného bodu je dvanáctimístné a skládá se ze tří částí: pořadové číslo katastrálního území, číslo ZPMZ a vlastní číslo bodu (kód kvality se uvádí pod bodem). Jednotkou číslování ZPMZ je katastrální území. Stávající body se nepřečíslovávají — v měřickém náčrtu se u nich uvádí jen číslo ZPMZ; nově zaměřené kontrolní a identické body se uvádějí s původními čísly.",
           "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha",
           "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
@@ -359,7 +761,14 @@
       "zaznamy": [
         {
           "nazev": "Ochranná lhůta u vkladu (20 dní)",
-          "tagy": ["lhůta", "ochranná lhůta", "vklad", "20 dní", "plomba", "řízení"],
+          "tagy": [
+            "lhůta",
+            "ochranná lhůta",
+            "vklad",
+            "20 dní",
+            "plomba",
+            "řízení"
+          ],
           "telo": "Po podání návrhu na vklad běží ochranná lhůta 20 dnů. Katastrální úřad informuje vlastníka o dotčení jeho nemovitosti (plomba) a vklad nesmí povolit dříve než po uplynutí 20 dnů od tohoto vyrozumění. Lhůta dává prostor bránit se proti podvodnému převodu — je prekluzivní (po uplynutí už námitku podat nelze).",
           "pozn": "Po ochranné lhůtě má úřad zpravidla další lhůtu (až ~30 dní) na rozhodnutí; celé řízení tak může trvat řádově 50 dní.",
           "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon) § 18",
@@ -368,7 +777,13 @@
         },
         {
           "nazev": "Plomba (poznámka o probíhajícím řízení)",
-          "tagy": ["plomba", "P", "list vlastnictví", "řízení", "lhůta"],
+          "tagy": [
+            "plomba",
+            "P",
+            "list vlastnictví",
+            "řízení",
+            "lhůta"
+          ],
           "telo": "Plomba (písmeno „P“ u nemovitosti, v praxi v části D / u příslušných údajů) značí, že probíhá řízení dotýkající se zapsaných práv. Vyznačí se nejpozději následující pracovní den po doručení návrhu; vyrozumění vlastníkovi úřad zašle do jednoho dne. Plomba zanikne po provedení vkladu, zastavení nebo zamítnutí řízení.",
           "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon)",
           "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
@@ -376,7 +791,13 @@
         },
         {
           "nazev": "Potvrzení geometrického plánu katastrálním úřadem",
-          "tagy": ["lhůta", "geometrický plán", "potvrzení", "10 dní", "katastrální úřad"],
+          "tagy": [
+            "lhůta",
+            "geometrický plán",
+            "potvrzení",
+            "10 dní",
+            "katastrální úřad"
+          ],
           "telo": "Katastrální úřad přezkoumá geometrický plán (zda má náležitosti dle vyhlášky a správné očíslování parcel) a potvrdí jej ve lhůtě zpravidla 10 dní.",
           "zdroj": "Katastrální vyhláška č. 357/2013 Sb.; správní řád",
           "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
@@ -384,7 +805,14 @@
         },
         {
           "nazev": "Oprava chyby v katastru (§ 36)",
-          "tagy": ["oprava chyby", "lhůta", "30 dní", "60 dní", "nesouhlas", "katastrální operát"],
+          "tagy": [
+            "oprava chyby",
+            "lhůta",
+            "30 dní",
+            "60 dní",
+            "nesouhlas",
+            "katastrální operát"
+          ],
           "telo": "Opravou chyby se dává do souladu zápis v katastru s listinami (neslouží k nápravě nesouladu s faktickým právním stavem). KÚ provede opravu na návrh do 30 dnů, ve zvlášť odůvodněných případech do 60 dnů od doručení návrhu (může i bez návrhu, z moci úřední). Výsledek oznámí; nesouhlasí-li vlastník/oprávněný do 30 dnů od doručení oznámení, vydá KÚ rozhodnutí ve věci (lze se odvolat).",
           "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon) § 36",
           "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
@@ -392,7 +820,14 @@
         },
         {
           "nazev": "Druhy zápisů (vklad / záznam / poznámka)",
-          "tagy": ["zápis", "vklad", "záznam", "poznámka", "věcné právo", "spornost"],
+          "tagy": [
+            "zápis",
+            "vklad",
+            "záznam",
+            "poznámka",
+            "věcné právo",
+            "spornost"
+          ],
           "telo": "Do katastru se zapisuje třemi způsoby: VKLADEM se zapisují věcná práva (vlastnictví, zástavní právo, věcné břemeno…), práva ujednaná jako věcná, nájem a pacht — vkladové řízení s 20denní ochrannou lhůtou. ZÁZNAMEM se zapisují práva odvozená od práva vlastnického (typicky na základě rozhodnutí/listin orgánů). POZNÁMKOU se zapisují významné informace (např. exekuce, poznámka spornosti).",
           "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon)",
           "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
