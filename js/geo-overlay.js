@@ -191,7 +191,7 @@
         if (!_img) { agAlert('Není obrázek', 'Nejdřív načti obrázek podkladu.'); return; }
         var ov = document.createElement('div'); ov.className = 'modal-overlay'; ov.style.display = 'flex'; ov.style.zIndex = '100003';
         ov.innerHTML =
-            '<div class="modal-content" style="max-width:96vw;">'
+            '<div class="modal-content" style="max-width:96vw;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">Označ vlícovací bod na obrázku</h3>'
             + '<p style="font-size:12px;opacity:.7;margin:2px 0 8px;">Táhni = posun, +/− = lupa, ťukni = umísti křížek na známé místo (roh, kříž sítě).</p>'
             + '<div id="agpk-wrap" style="position:relative;width:100%;height:54vh;background:#0a0e14;border-radius:10px;overflow:hidden;touch-action:none;">'
@@ -321,7 +321,7 @@
         if (document.getElementById('aggo-modal')) return;
         var el = document.createElement('div'); el.className = 'modal-overlay'; el.id = 'aggo-modal'; el.style.zIndex = '100001';
         el.innerHTML =
-            '<div class="modal-content">'
+            '<div class="modal-content" style="display:block;max-height:88vh;max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Vlastní georeferencovaný podklad</h3>'
             + '<input type="file" id="aggo-file" accept="image/*" style="display:none;">'
             + '<button class="btn btn-secondary" id="aggo-load"><svg class="icon"><use href="#i-upload"/></svg> Načíst obrázek (plán / situace)</button>'

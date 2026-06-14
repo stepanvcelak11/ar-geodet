@@ -103,7 +103,7 @@
         var el = document.createElement('div');
         el.className = 'modal-overlay'; el.id = 'agsl-modal'; el.style.zIndex = '100001';
         el.innerHTML =
-            '<div class="modal-content">'
+            '<div class="modal-content" style="display:block;max-height:88vh;max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Vytyčení přímky + staničení</h3>'
             + '<div style="display:flex;gap:8px;">'
             + '  <div style="flex:1;"><label>Bod A (počátek)</label><select id="agsl-a"></select></div>'

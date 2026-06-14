@@ -102,7 +102,7 @@
         var el = document.createElement('div');
         el.className = 'modal-overlay'; el.id = 'agor-modal'; el.style.zIndex = '100001';
         el.innerHTML =
-            '<div class="modal-content">'
+            '<div class="modal-content" style="display:block;max-height:88vh;max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Srovnat sever podle bodu</h3>'
             + '<ol style="font-size:12.5px;opacity:.8;margin:2px 0 10px;padding-left:18px;line-height:1.45;">'
             + '<li>Vyber <b>viditelný</b> známý bod (ideálně trig./BP nebo roh).</li>'

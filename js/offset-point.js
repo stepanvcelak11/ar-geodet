@@ -89,7 +89,7 @@
         var el = document.createElement('div');
         el.className = 'modal-overlay'; el.id = 'agof-modal'; el.style.zIndex = '100001';
         el.innerHTML =
-            '<div class="modal-content">'
+            '<div class="modal-content" style="display:block;max-height:88vh;max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON.replace('width="20"', '') + ' Offset bod (nepřístupný bod)</h3>'
             + '<p style="font-size:12.5px;opacity:.7;margin:2px 0 10px;">Spočítá bod, kam se nedá stoupnout: ze základu + zeměpisného azimutu (0°=sever) + vodorovné délky.</p>'
             + '<label class="filter-row" style="font-size:13px;"><input type="radio" name="agof-base" value="gps" checked> Z mé polohy (GPS)</label>'
