@@ -1,7 +1,7 @@
 // ===== AR Geodet — NOVÝ TUTORIÁL: základní + pokročilá prohlídka (ODPOJITELNÁ vrstva) =====
 // Neinvazivní modul ve stylu ostatních odpojitelných vrstev (IIFE + try/catch +
 // idempotentní + fail-silent). NEEDITUJE logika.js ani grafika.js. Má vlastní
-// spotlight (coachmark) engine — nesahá do stávajícího js/tutorial.js.
+// spotlight (coachmark) engine. NAHRAZUJE původní js/tutorial.js (ten je odpojený).
 //
 // Dvě prohlídky:
 //   • ZÁKLADNÍ — ovládání: zobrazení (AR/Split/Mapa), stav & přesnost, kompas,
@@ -10,11 +10,12 @@
 //     AR resekce & orientace, kubatury/vrstevnice (DMR 5G), oměrné/kontrola,
 //     import projektu/DXF + vektorový katastr, AR na terénu (DMR 5G).
 //
-// Vstup: tlačítko „Nový návod" v menu „Více" (injektuje se za běhu), nebo přímo
+// Vstup: existující tlačítko „Návod a prohlídka" v menu „Více" (modul převezme
+//   window.startTutorial), nebo přímo:
 //   window.agOpenTutorialPro()  — rozcestník
 //   window.agStartBasicTour()   — rovnou základní
 //   window.agStartAdvancedTour()— rovnou pokročilá
-// ZÁMĚRNĚ BEZ auto-startu (aby nekolidoval s prvním spuštěním stávajícího tutoriálu).
+// Auto-start ZÁKLADNÍ prohlídky na 1. spuštění (flag agTutProSeen).
 //
 // Odstranění: smaž js/tutorial-pro.js + řádek <script> v index.html (a v sw.js).
 // ================================================================================
@@ -259,6 +260,7 @@
     function finish() {
         show(false);
         closeAllModals();
+        var wasAuto = autoFirstRun; autoFirstRun = false;
         steps = []; curTargetSel = null;
         if (listening) {
             window.removeEventListener('resize', reposition);
@@ -266,6 +268,8 @@
             window.removeEventListener('scroll', reposition, true);
             listening = false;
         }
+        // po onboardingu na 1. spuštění nabídni kalibraci kompasu (jako původní tutoriál)
+        if (wasAuto) { try { if (typeof window.showCompassCalibHint === 'function') setTimeout(function () { window.showCompassCalibHint(); }, 400); } catch (e) {} }
     }
 
     // ---- rozcestník (chooser) --------------------------------------------------
@@ -299,30 +303,38 @@
     function openPicker() { ensurePicker(); var el = document.getElementById('agtp-pick'); if (el) el.style.display = 'flex'; }
     function closePicker() { var el = document.getElementById('agtp-pick'); if (el) el.style.display = 'none'; }
 
-    // ---- vstup do menu „Více" --------------------------------------------------
-    function injectMenuButton() {
-        var menu = document.getElementById('side-menu');
-        if (!menu || document.getElementById('agtp-menu-btn')) return;
-        var btn = document.createElement('button');
-        btn.id = 'agtp-menu-btn';
-        btn.className = 'menu-btn';
-        btn.innerHTML = '<svg class="icon"><use href="#i-bulb"/></svg> Nový návod (základní / pokročilý)';
-        btn.addEventListener('click', function () { try { if (typeof toggleMenu === 'function') toggleMenu(); } catch (e) {} openPicker(); });
-        var anchor = menu.querySelector('button[onclick*="startTutorial"]');
-        if (anchor && anchor.parentNode === menu) menu.insertBefore(btn, anchor.nextSibling);
-        else menu.appendChild(btn);
+    // ---- první spuštění (auto-start ZÁKLADNÍ prohlídky) ------------------------
+    var SEEN_KEY = 'agTutProSeen';
+    var autoFirstRun = false;
+    function maybeStart() {
+        var seen = false; try { seen = localStorage.getItem(SEEN_KEY) === '1'; } catch (e) {}
+        if (seen) return;
+        try { localStorage.setItem(SEEN_KEY, '1'); } catch (e) {}
+        autoFirstRun = true;
+        setTimeout(function () { startTour(BASIC); }, 700);
     }
 
-    // ---- veřejné API -----------------------------------------------------------
+    // ---- veřejné API (modul NAHRAZUJE původní js/tutorial.js) ------------------
     window.agOpenTutorialPro = openPicker;
     window.agStartBasicTour = function () { startTour(BASIC); };
     window.agStartAdvancedTour = function () { startTour(ADV); };
     window.agCloseTutorialPro = function () { finish(); closePicker(); };
+    // Převzetí vstupů původního tutoriálu — tlačítko „Návod a prohlídka" v menu Více:
+    window.startTutorial = function () {
+        var sm = document.getElementById('settings-modal'); if (sm) sm.style.display = 'none';
+        var menu = document.getElementById('side-menu'); if (menu) menu.classList.remove('open');
+        setTimeout(openPicker, 60);
+    };
+    window.maybeStartTutorial = maybeStart;
 
-    function init() {
-        try { injectMenuButton(); } catch (e) {}
-    }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-    else init();
-    window.addEventListener('load', function () { setTimeout(init, 400); });
+    // Auto-start po prvním spuštění z úvodní obrazovky — obalíme startAppFromWelcome
+    // (stejný princip jako původní tutorial.js, který je teď odpojený).
+    window.addEventListener('load', function () {
+        var orig = window.startAppFromWelcome;
+        if (typeof orig === 'function' && !orig.__agtpWrapped) {
+            var wrapped = function () { var r = orig.apply(this, arguments); try { maybeStart(); } catch (e) {} return r; };
+            wrapped.__agtpWrapped = true;
+            window.startAppFromWelcome = wrapped;
+        }
+    });
 })();
