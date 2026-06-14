@@ -17,6 +17,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="js/lib/proj4-2.9.0.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
+    <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
+    <link rel="stylesheet" href="css/vylepseni.css">
 </head>
 <body>
 
@@ -490,6 +492,8 @@
     <script src="js/lib/jsqr.min.js"></script>
     <script src="js/sdileni.js"></script>
     <script src="js/tachymetrie.js"></script>
+    <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + js/vylepseni.js + css/vylepseni.css) — musí být POSLEDNÍ modul kvůli override -->
+    <script src="js/vylepseni.js"></script>
     <script>
         // Přepínač zobrazení v doku (AR / Split / Mapa) — využívá globální viewMode a applyViewMode() z grafika.js
         function setView(mode, btn) {
