@@ -20,12 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TZ: Europe/Prague
+      # Posune obalové akce (checkout) na Node 24 → zmizí varování o deprecaci Node 20.
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+      # Node je na ubuntu-latest předinstalovaný (v20+), skript používá jen vestavěné moduly.
 
       - name: Sestavit vydání
         env:
