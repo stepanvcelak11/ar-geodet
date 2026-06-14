@@ -34,6 +34,8 @@
     <link rel="stylesheet" href="css/ar-stabilize.css">
     <link rel="stylesheet" href="css/dmr-terrain.css">
     <link rel="stylesheet" href="css/power-save.css">
+    <link rel="stylesheet" href="css/dmt-volume.css">
+    <link rel="stylesheet" href="css/check-distance.css">
 </head>
 <body>
 
@@ -213,6 +215,8 @@
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openSatModal();"><svg class="icon"><use href="#i-satellite"/></svg><span>GNSS<br>satelity</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openStakeoutModal();"><svg class="icon"><use href="#i-check"/></svg><span>Vytyčovací<br>checklist</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openTachymetrie();"><svg class="icon"><use href="#i-grid"/></svg><span>Náčrt /<br>Tachymetrie</span></button>
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openDmtVolume();"><svg class="icon"><use href="#i-area"/></svg><span>Kubatury /<br>vrstevnice</span></button>
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openCheckDist();"><svg class="icon"><use href="#i-ruler"/></svg><span>Oměrné /<br>kontrola</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openDictModal();"><svg class="icon"><use href="#i-book"/></svg><span>Slovník</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openKatastr();"><svg class="icon"><use href="#i-map-pin"/></svg><span>Katastr<br>(zde stojím)</span></button>
                 </div>
@@ -534,6 +538,8 @@
     <script src="js/power-save.js"></script>
     <script src="js/logika.js"></script>
     <script src="js/grafika.js"></script>
+    <script src="js/dmt-volume.js"></script>
+    <script src="js/check-distance.js"></script>
     <script src="js/lib/satellite-5.0.0.min.js"></script>
     <script src="js/vytycovani.js"></script>
     <script src="js/satelity.js"></script>
