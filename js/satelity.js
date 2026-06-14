@@ -83,7 +83,7 @@ function computeSatPositions(date) {
     const out = [];
     if (typeof satellite === 'undefined' || !tleSats.length || userLat == null) return out;
     const gmst = satellite.gstime(date);
-    const obs = { latitude: userLat * Math.PI / 180, longitude: userLng * Math.PI / 180, height: ((userAlt || 300) / 1000) };
+    const obs = { latitude: userLat * Math.PI / 180, longitude: userLng * Math.PI / 180, height: ((userAlt == null ? 300 : userAlt) / 1000) };
     tleSats.forEach(s => {
         try {
             const pv = satellite.propagate(s.satrec, date);

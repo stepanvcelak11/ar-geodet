@@ -29,7 +29,7 @@ if ('serviceWorker' in navigator) {
         let projects = JSON.parse(localStorage.getItem('arProjectsList')) || [{id:'default', name:'Výchozí zakázka'}];
         let activeProjectId = localStorage.getItem('arActiveProjectId') || 'default';
         if (!localStorage.getItem('arProjects_migrated')) {
-            ['arFilters12', 'arRadiusMap', 'arRadiusAR', 'arOfflinePoints12', 'arCustomPoints12', 'arVisSettings12'].forEach(k => {
+            ['arFilters12', 'arRadiusMap', 'arRadiusAR', 'arOfflinePoints12', 'arCustomPoints12', 'arVisSettings12', 'arLines12', 'arHeadingOffset'].forEach(k => {
                 let v = localStorage.getItem(k); if(v) localStorage.setItem('default_' + k, v);
             });
             localStorage.setItem('arProjects_migrated', 'true');
@@ -155,8 +155,11 @@ if ('serviceWorker' in navigator) {
 
         let visSettings = { maxARPoints: 20, arVerticalOffset: 0, markerScale: 1.0, markerOpacity: 100, colTb: '#8b5cf6', colZhb: '#0ea5e9', colPbpp: '#3b82f6', colNivel: '#ef4444', colCustom: '#34d399', arrowScale: 1.0, arrowOpacity: 90, arrowShape: '1', colArrow: '#34d399', panelOpacity: 85, menuScale: 1.0, hudTop: 55, hudSide: 15, wakeLockEnabled: true, outdoorMode: false, katastrSource: 'mapycz', baseLayer: 'osm', showKatastr: false, headingSmoothing: 75, autoCompassCorrection: false, tiltCompensation: true, fovH: 90, fovV: 75, eyeHeight: 1.6 };
         
-        function changeProject() { activeProjectId = document.getElementById('w-project-select').value; localStorage.setItem('arActiveProjectId', activeProjectId); hydrateActiveProject().then(loadProjectSettings); }
-        function createNewProject() { let name = prompt("Název nové zakázky:"); if(name) { let id = 'proj_' + Date.now(); projects.push({id: id, name: name}); localStorage.setItem('arProjectsList', JSON.stringify(projects)); activeProjectId = id; localStorage.setItem('arActiveProjectId', activeProjectId); renderProjectSelect(); hydrateActiveProject().then(loadProjectSettings); } }
+        // Stazene uredni body ziji jen v pameti (initFetch je pridava, neubira) -> pred prepnutim
+        // zakazky je ulozime, at se neztrati. Jen kdyz nejake jsou (neprepiseme ulozena data prazdnem).
+        function _persistOfficialPoints() { try { if (arPoints.some(p => p.cat !== 'CUSTOM')) setStoredData('arOfflinePoints12', JSON.stringify(arPoints.filter(p => p.cat !== 'CUSTOM'))); } catch (e) {} }
+        function changeProject() { _persistOfficialPoints(); activeProjectId = document.getElementById('w-project-select').value; localStorage.setItem('arActiveProjectId', activeProjectId); hydrateActiveProject().then(loadProjectSettings); }
+        function createNewProject() { let name = prompt("Název nové zakázky:"); if(name) { _persistOfficialPoints(); let id = 'proj_' + Date.now(); projects.push({id: id, name: name}); localStorage.setItem('arProjectsList', JSON.stringify(projects)); activeProjectId = id; localStorage.setItem('arActiveProjectId', activeProjectId); renderProjectSelect(); hydrateActiveProject().then(loadProjectSettings); } }
         function deleteProject() { if(projects.length <= 1) return alert("Nelze smazat poslední zakázku."); if(!confirm("Opravdu smazat aktuální zakázku a všechny její uložené body?")) return; IDB_KEYS.forEach(k => { _idbDel(activeProjectId + "_" + k); try { localStorage.removeItem(activeProjectId + "_" + k); } catch(e){} }); projects = projects.filter(p => p.id !== activeProjectId); localStorage.setItem('arProjectsList', JSON.stringify(projects)); activeProjectId = projects[0].id; localStorage.setItem('arActiveProjectId', activeProjectId); renderProjectSelect(); hydrateActiveProject().then(loadProjectSettings); }
 
         function loadProjectSettings() {
@@ -309,7 +312,7 @@ if ('serviceWorker' in navigator) {
             let out = [];
             text.split(/\r?\n/).forEach(line => {
                 line = line.trim(); if (!line || line.startsWith('#') || line.startsWith('//')) return;
-                let delim = line.indexOf(';') >= 0 ? ';' : (line.indexOf(',') >= 0 ? ',' : (line.indexOf('\t') >= 0 ? '\t' : /\s+/));
+                let delim = line.indexOf(';') >= 0 ? ';' : (line.indexOf('\t') >= 0 ? '\t' : (/\s/.test(line) ? /\s+/ : ','));
                 let parts = line.split(delim).map(t => t.trim()).filter(t => t !== '');
                 if (parts.length < 3) return;
                 let nums = parts.slice(1).map(t => parseFloat(t.replace(',', '.'))).filter(v => !isNaN(v));
@@ -319,6 +322,25 @@ if ('serviceWorker' in navigator) {
             });
             return out;
         }
+        // Jediny zdroj vkladani vlastnich bodu do zakazky: dedup podle cisla+lat+lng (vc. lng!),
+        // obnova foto-dokumentace (p.doc). Pouziva import ze souboru i vlozeni v pruvodci.
+        window.addImportedPoints = function (arr) {
+            if (typeof persistentCustomPoints === 'undefined' || !Array.isArray(arr)) return 0;
+            let added = 0;
+            arr.forEach(p => {
+                if (typeof p.lat !== 'number' || typeof p.lng !== 'number' || isNaN(p.lat) || isNaN(p.lng)) return;
+                if (persistentCustomPoints.find(ex => ex.name === p.name && Math.abs(ex.lat - p.lat) < 0.0001 && Math.abs(ex.lng - p.lng) < 0.0001)) return;
+                const id = 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6);
+                persistentCustomPoints.push({ id: id, name: p.name || 'Bod', lat: p.lat, lng: p.lng, cat: 'CUSTOM', type: 'custom' });
+                if (p.doc && typeof savePointDoc === 'function') { try { savePointDoc(id, (typeof _normalizeDoc === 'function' ? _normalizeDoc(p.doc) : p.doc)); } catch (e) {} }
+                added++;
+            });
+            setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
+            if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap();
+            if (typeof renderManageList === 'function') renderManageList();
+            if (userLat && userLng && typeof initFetch === 'function') initFetch(userLat, userLng);
+            return added;
+        };
         function importPoints(event) {
             const file = event.target.files[0]; if (!file) return;
             const reader = new FileReader();
@@ -327,18 +349,8 @@ if ('serviceWorker' in navigator) {
                 try { let j = JSON.parse(txt); if (Array.isArray(j)) imported = j; } catch (err) {}
                 if (!imported) imported = parseCoordsCSV(txt);
                 if (!imported || imported.length === 0) { alert("V souboru se nenašly žádné body.\n\nPodporováno: JSON, nebo CSV/TXT s řádky 'číslo;Y;X' (oddělovač ; , tab nebo mezera)."); event.target.value = ''; return; }
-                let added = 0;
-                imported.forEach(p => {
-                    if (typeof p.lat !== 'number' || typeof p.lng !== 'number' || isNaN(p.lat) || isNaN(p.lng)) return;
-                    if (!persistentCustomPoints.find(ex => ex.name === p.name && Math.abs(ex.lat - p.lat) < 0.0001)) {
-                        persistentCustomPoints.push({ id: 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6), name: p.name || 'Bod', lat: p.lat, lng: p.lng, cat: "CUSTOM", type: "custom" });
-                        added++;
-                    }
-                });
-                setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
-                drawAllMarkersOnMap(); renderManageList();
+                const added = window.addImportedPoints(imported);
                 alert("Importováno " + added + " bodů do aktuální zakázky.");
-                if (userLat && userLng) initFetch(userLat, userLng);
                 event.target.value = '';
             };
             reader.readAsText(file);

@@ -145,6 +145,7 @@
     }
 
     function createProject(name) {
+        try { if (typeof _persistOfficialPoints === 'function') _persistOfficialPoints(); } catch (e) {}
         var id = 'proj_' + Date.now();
         projects.push({ id: id, name: name });
         try { localStorage.setItem('arProjectsList', JSON.stringify(projects)); } catch (e) {}
@@ -156,6 +157,7 @@
     }
     function selectProject(id) {
         if (!id) return;
+        try { if (typeof _persistOfficialPoints === 'function') _persistOfficialPoints(); } catch (e) {}
         activeProjectId = id;
         try { localStorage.setItem('arActiveProjectId', id); } catch (e) {}
         var w = document.getElementById('w-project-select'); if (w) w.value = id;
@@ -244,22 +246,10 @@
         go(stepReadyStake);
     }
 
-    // vlozeni rozparsovanych bodu — zrcadli logiku importPoints() z logika.js
+    // vlozeni rozparsovanych bodu — deleguje na jednotny zdroj window.addImportedPoints() v logika.js
     function addParsedPoints(arr) {
-        if (typeof persistentCustomPoints === 'undefined') return 0;
-        var added = 0;
-        arr.forEach(function (p) {
-            if (typeof p.lat !== 'number' || typeof p.lng !== 'number' || isNaN(p.lat) || isNaN(p.lng)) return;
-            if (!persistentCustomPoints.find(function (ex) { return ex.name === p.name && Math.abs(ex.lat - p.lat) < 0.0001; })) {
-                persistentCustomPoints.push({ id: 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6), name: p.name || 'Bod', lat: p.lat, lng: p.lng, cat: 'CUSTOM', type: 'custom' });
-                added++;
-            }
-        });
-        try { setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); } catch (e) {}
-        if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap();
-        if (typeof renderManageList === 'function') renderManageList();
-        if (typeof userLat !== 'undefined' && userLat && userLng && typeof initFetch === 'function') initFetch(userLat, userLng);
-        return added;
+        // jednotny zdroj vkladani v logika.js (dedup vc. lng + foto-dokumentace)
+        return (typeof window.addImportedPoints === 'function') ? window.addImportedPoints(arr) : 0;
     }
 
     function stepReadyStake() {

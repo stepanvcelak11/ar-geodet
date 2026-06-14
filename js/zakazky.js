@@ -24,6 +24,7 @@
     window.changeProjectFromSettings = function () {
         const sel = document.getElementById('s-project-select');
         if (!sel || !sel.value) return;
+        try { if (typeof _persistOfficialPoints === 'function') _persistOfficialPoints(); } catch (e) { }
         try { if (typeof activeProjectId !== 'undefined') activeProjectId = sel.value; } catch (e) { }
         try { localStorage.setItem('arActiveProjectId', sel.value); } catch (e) { }
         if (typeof loadProjectSettings === 'function') loadProjectSettings();

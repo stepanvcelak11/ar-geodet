@@ -327,7 +327,7 @@ function calcVolne() {
             const vy = py - o.gy, vx = px - o.gx; vv += vy * vy + vx * vx;
             return _row('Záměra ' + (i + 1) + ' — odchylka', 'ΔY ' + (vy * 100).toFixed(1) + ' cm · ΔX ' + (vx * 100).toFixed(1) + ' cm');
         }).join('');
-        const m0 = (2 * n - 4) > 0 ? Math.sqrt(vv / (2 * n - 4)) : null;
+        const m0 = (2 * n - 3) > 0 ? Math.sqrt(vv / (2 * n - 3)) : null;
         const oposun = gonNorm(-th / GON);
         _vsRes = { name: _cs('vs-name') || 'Stanovisko', y: S.y, x: S.x };
         document.getElementById('calc-result').innerHTML = _resBox(
@@ -1018,35 +1018,8 @@ function _peSave() {
     };
 })();
 
-// import bodu (JSON/CSV) vc. obnovy foto-dokumentace pod novymi id
-(function () {
-    window.importPoints = function (event) {
-        const file = event.target.files[0]; if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            let txt = e.target.result, imported = null;
-            try { let j = JSON.parse(txt); if (Array.isArray(j)) imported = j; } catch (err) {}
-            if (!imported) imported = parseCoordsCSV(txt);
-            if (!imported || imported.length === 0) { alert("V souboru se nenašly žádné body.\n\nPodporováno: JSON, nebo CSV/TXT s řádky 'číslo;Y;X' (oddělovač ; , tab nebo mezera)."); event.target.value = ''; return; }
-            let added = 0;
-            imported.forEach(p => {
-                if (typeof p.lat !== 'number' || typeof p.lng !== 'number' || isNaN(p.lat) || isNaN(p.lng)) return;
-                if (!persistentCustomPoints.find(ex => ex.name === p.name && Math.abs(ex.lat - p.lat) < 0.0001)) {
-                    const id = 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6);
-                    persistentCustomPoints.push({ id: id, name: p.name || 'Bod', lat: p.lat, lng: p.lng, cat: 'CUSTOM', type: 'custom' });
-                    if (p.doc) { try { savePointDoc(id, _normalizeDoc(p.doc)); } catch (er) {} }
-                    added++;
-                }
-            });
-            setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
-            drawAllMarkersOnMap(); if (typeof renderManageList === 'function') renderManageList();
-            alert('Importováno ' + added + ' bodů do aktuální zakázky.');
-            if (userLat && userLng) initFetch(userLat, userLng);
-            event.target.value = '';
-        };
-        reader.readAsText(file);
-    };
-})();
+// import bodu (JSON/CSV) je sjednocen v logika.js: importPoints() -> window.addImportedPoints()
+// (jeden zdroj vkladani vc. dedup podle cisla+lat+lng a obnovy foto-dokumentace).
 
 // pri smazani vlastniho bodu uklidit i jeho foto-dokumentaci (jen kdyz user potvrdil)
 (function () {
