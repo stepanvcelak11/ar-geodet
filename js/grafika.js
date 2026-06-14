@@ -516,7 +516,8 @@
                 if (pt.id === highlightedPointId) { highlightedPointData = { diff: diff, dist: distance, name: pt.name }; }
                 if (Math.abs(diff) < cullH) {
                     // svisle: depresni uhel k bodu na zemi vs. kam miri kamera, promitnuty pres svisly FOV
-                    let depression = Math.atan2(eyeH, Math.max(distance, 0.5)) * 180 / Math.PI;
+                    let _tdz = (typeof terrainDZ === 'function') ? terrainDZ(pt.lat, pt.lng) : 0;
+                    let depression = Math.atan2(eyeH - _tdz, Math.max(distance, 0.5)) * 180 / Math.PI;
                     let screenAng = depression - cameraPitchDown;
                     // tilt: rotace odsazeni (azimut x svisly uhel) o naklon obrazu, aby znacky drzely horizont
                     let uH = diff, vV = screenAng;
@@ -608,7 +609,8 @@
             const dist = getDistance(userLat, userLng, lat, lng);
             const bearing = getBearing(userLat, userLng, lat, lng);
             const diff = ((bearing - heading + 540) % 360) - 180;
-            let uH = diff, vV = Math.atan2(eyeH, Math.max(dist, 0.5)) * 180 / Math.PI - cameraPitchDown;
+            let _tdz = (typeof terrainDZ === 'function') ? terrainDZ(lat, lng) : 0;
+            let uH = diff, vV = Math.atan2(eyeH - _tdz, Math.max(dist, 0.5)) * 180 / Math.PI - cameraPitchDown;
             if (imgRoll) { const cr = Math.cos(imgRoll), sr = Math.sin(imgRoll); const tt = uH * cr - vV * sr; vV = uH * sr + vV * cr; uH = tt; }
             return { x: 50 + (uH / halfH) * 50, y: 50 + (vV / halfV) * 50 - vOffset, diff: diff, dist: dist };
         }
