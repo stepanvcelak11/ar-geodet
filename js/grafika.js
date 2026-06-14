@@ -722,7 +722,7 @@
         document.addEventListener('click', (e) => {
             const menu = document.getElementById('side-menu');
             if (!menu || !menu.classList.contains('open')) return;
-            if (e.target.closest('#side-menu') || e.target.closest('#menu-toggle-btn')) return;
+            if (e.target.closest('#side-menu') || e.target.closest('#menu-toggle-btn') || e.target.closest('#dock-vice-btn')) return;
             menu.classList.remove('open');
         }, true);
         // karta bodu (bottom sheet): klepnuti mimo ni kartu zavre; tuknuti se spolkne,

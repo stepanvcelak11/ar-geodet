@@ -130,18 +130,10 @@
 
     <button id="menu-toggle-btn" class="glass-panel" onclick="toggleMenu()"><svg class="icon"><use href="#i-menu"/></svg> Menu</button>
     <div id="side-menu">
-        <button id="pruv-menu-btn" class="menu-btn" style="background: rgba(52,211,153,0.15); border-color: var(--accent); color: var(--accent);" onclick="openPruvodce()"><svg class="icon"><use href="#i-navigation"/></svg> Průvodce úkolem</button>
-        <button class="menu-btn" onclick="openKatastr(); toggleMenu();" style="background: rgba(52,211,153,0.15); border-color: var(--accent); color: var(--accent);"><svg class="icon"><use href="#i-map-pin"/></svg> Otevřít Katastr (Zde stojím)</button>
-        <button class="menu-btn" onclick="openMeasureModal(); toggleMenu();"><svg class="icon"><use href="#i-ruler"/></svg> Měření vzdálenosti</button>
-        <button class="menu-btn" onclick="openStakeoutModal(); toggleMenu();"><svg class="icon"><use href="#i-check"/></svg> Vytyčovací checklist</button>
-        <button class="menu-btn" onclick="openCalcModal(); toggleMenu();"><svg class="icon"><use href="#i-calc"/></svg> Geodetická kalkulačka</button>
-        <button class="menu-btn" onclick="openSatModal(); toggleMenu();"><svg class="icon"><use href="#i-satellite"/></svg> GNSS satelity (AR)</button>
-        <button class="menu-btn" onclick="openSettings(); toggleMenu();"><svg class="icon"><use href="#i-settings"/></svg> Otevřít Nastavení</button>
-        <button class="menu-btn" onclick="openManageModal(); toggleMenu();"><svg class="icon"><use href="#i-wrench"/></svg> Spravovat vlastní body</button>
-        <button class="menu-btn" onclick="openTachymetrie(); toggleMenu();"><svg class="icon"><use href="#i-grid"/></svg> Náčrt / Tachymetrie (beta)</button>
-        <button class="menu-btn" style="background:var(--accent-blue);" onclick="saveForOffline(); toggleMenu();"><svg class="icon"><use href="#i-download"/></svg> Uložit pro Offline</button>
-        <button class="menu-btn" onclick="openDictModal(); toggleMenu();"><svg class="icon"><use href="#i-book"/></svg> Geodetický slovník</button>
-        <button class="menu-btn" onclick="startTutorial(); toggleMenu();"><svg class="icon"><use href="#i-bulb"/></svg> Návod a prohlídka aplikace</button>
+        <div class="menu-head"><svg class="icon"><use href="#i-menu"/></svg> Více</div>
+        <button id="pruv-menu-btn" class="menu-btn" style="background: rgba(47,158,116,0.15); border-color: var(--accent); color: var(--accent);" onclick="openPruvodce(); toggleMenu();"><svg class="icon"><use href="#i-navigation"/></svg> Průvodce úkolem</button>
+        <button class="menu-btn" onclick="saveForOffline(); toggleMenu();"><svg class="icon"><use href="#i-download"/></svg> Uložit pro offline</button>
+        <button class="menu-btn" onclick="startTutorial(); toggleMenu();"><svg class="icon"><use href="#i-bulb"/></svg> Návod a prohlídka</button>
         <button class="menu-btn" onclick="openAbout(); toggleMenu();"><svg class="icon"><use href="#i-file-text"/></svg> O aplikaci</button>
         <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
         <label class="menu-toggle-row"><input type="checkbox" id="tgl-info" checked onchange="toggleHudElements()"> Info panel a přesnost</label>
@@ -161,10 +153,10 @@
 
     <!-- Spodní dok s nástroji -->
     <nav id="dock">
-        <button class="dock-btn" onclick="openKatastr()"><svg class="icon"><use href="#i-map-pin"/></svg><span>Katastr</span></button>
-        <button class="dock-btn" onclick="document.getElementById('tools-modal').style.display='flex'"><svg class="icon"><use href="#i-ruler"/></svg><span>Měření</span></button>
+        <button class="dock-btn" onclick="document.getElementById('tools-modal').style.display='flex'"><svg class="icon"><use href="#i-ruler"/></svg><span>Nástroje</span></button>
+        <button class="dock-btn" onclick="openManageModal()"><svg class="icon"><use href="#i-map-pin"/></svg><span>Body</span></button>
         <button class="dock-btn dock-primary" onclick="openNewPointModal()"><span class="dock-fab"><svg class="icon"><use href="#i-plus"/></svg></span><span>Nový bod</span></button>
-        <button class="dock-btn" onclick="openManageModal()"><svg class="icon"><use href="#i-wrench"/></svg><span>Body</span></button>
+        <button class="dock-btn" id="dock-vice-btn" onclick="toggleMenu()"><svg class="icon"><use href="#i-menu"/></svg><span>Více</span></button>
         <button class="dock-btn" onclick="openSettings()"><svg class="icon"><use href="#i-settings"/></svg><span>Nastavení</span></button>
     </nav>
     <div id="map-pick-hint"><span><svg class="icon"><use href="#i-map-pin"/></svg> Klepni do mapy pro umístění bodu</span><button onclick="cancelMapPick()">Zrušit</button></div>
@@ -201,14 +193,18 @@
 
     <div class="modal-overlay" id="tools-modal">
         <div class="modal-content">
-            <h3 style="color: var(--accent); margin-top:0;"><svg class="icon"><use href="#i-ruler"/></svg> Měření a nástroje</h3>
+            <h3 style="color: var(--accent); margin-top:0;"><svg class="icon"><use href="#i-ruler"/></svg> Nástroje</h3>
             <div class="modal-body">
-                <button class="btn btn-secondary" style="margin-top:0;" onclick="document.getElementById('tools-modal').style.display='none'; openMeasureModal();"><svg class="icon"><use href="#i-ruler"/></svg> Měření vzdálenosti</button>
-                <button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('tools-modal').style.display='none'; startAreaMode();"><svg class="icon"><use href="#i-area"/></svg> Měření plochy v mapě</button>
-                <button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('tools-modal').style.display='none'; openCalcModal();"><svg class="icon"><use href="#i-calc"/></svg> Geodetická kalkulačka</button>
-                <button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('tools-modal').style.display='none'; openSatModal();"><svg class="icon"><use href="#i-satellite"/></svg> GNSS satelity (AR)</button>
-                <button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('tools-modal').style.display='none'; openStakeoutModal();"><svg class="icon"><use href="#i-check"/></svg> Vytyčovací checklist</button>
-                <button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('tools-modal').style.display='none'; openDictModal();"><svg class="icon"><use href="#i-book"/></svg> Geodetický slovník</button>
+                <div class="tool-grid">
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openMeasureModal();"><svg class="icon"><use href="#i-ruler"/></svg><span>Měření<br>vzdálenosti</span></button>
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; startAreaMode();"><svg class="icon"><use href="#i-area"/></svg><span>Měření<br>plochy</span></button>
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openCalcModal();"><svg class="icon"><use href="#i-calc"/></svg><span>Kalkulačka</span></button>
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openSatModal();"><svg class="icon"><use href="#i-satellite"/></svg><span>GNSS<br>satelity</span></button>
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openStakeoutModal();"><svg class="icon"><use href="#i-check"/></svg><span>Vytyčovací<br>checklist</span></button>
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openTachymetrie();"><svg class="icon"><use href="#i-grid"/></svg><span>Náčrt /<br>Tachymetrie</span></button>
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openDictModal();"><svg class="icon"><use href="#i-book"/></svg><span>Slovník</span></button>
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openKatastr();"><svg class="icon"><use href="#i-map-pin"/></svg><span>Katastr<br>(zde stojím)</span></button>
+                </div>
             </div>
             <button class="btn btn-secondary" style="margin-top: 15px;" onclick="document.getElementById('tools-modal').style.display='none'">Zavřít</button>
         </div>
