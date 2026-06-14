@@ -119,7 +119,7 @@
         if (!_data || !Array.isArray(_data.kategorie)) { box.innerHTML = ''; return; }
         var html = '<button type="button" class="prd-chip' + (_activeCat === 'all' ? ' active' : '') + '" data-cat="all">Vše</button>';
         html += _data.kategorie.map(function (k) {
-            return '<button type="button" class="prd-chip' + (_activeCat === k.id ? ' active' : '') + '" data-cat="' + esc(k.id) + '">' + esc(k.nazev) + '</button>';
+            return '<button type="button" class="prd-chip' + (_activeCat === k.id ? ' active' : '') + '" data-cat="' + esc(k.id) + '">' + esc(k.zkratka || k.nazev) + '</button>';
         }).join('');
         box.innerHTML = html;
         box.querySelectorAll('.prd-chip').forEach(function (c) {

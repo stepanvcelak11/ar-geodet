@@ -5,6 +5,7 @@
     {
       "id": "odchylky",
       "nazev": "Mezní odchylky a přesnost",
+      "zkratka": "Odchylky",
       "zaznamy": [
         {
           "nazev": "Kód kvality podrobných bodů (mxy a mezní odchylky)",
@@ -48,6 +49,7 @@
     {
       "id": "mereni",
       "nazev": "Měřické postupy a kontrola přesnosti",
+      "zkratka": "Měření",
       "zaznamy": [
         {
           "nazev": "Dvojí (nezávislé) určení bodu + připojení na body",
@@ -81,6 +83,7 @@
     {
       "id": "ciselniky",
       "nazev": "Kódy a číselníky",
+      "zkratka": "Číselníky",
       "zaznamy": [
         {
           "nazev": "Druhy pozemků (kódy)",
@@ -120,6 +123,7 @@
     {
       "id": "gp-zpmz",
       "nazev": "Náležitosti GP a ZPMZ",
+      "zkratka": "GP / ZPMZ",
       "zaznamy": [
         {
           "nazev": "Geometrický plán — kdy a co obsahuje",
@@ -144,6 +148,7 @@
     {
       "id": "lhuty",
       "nazev": "Lhůty a postupy",
+      "zkratka": "Lhůty",
       "zaznamy": [
         {
           "nazev": "Ochranná lhůta u vkladu (20 dní)",
