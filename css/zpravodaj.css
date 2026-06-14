@@ -22,7 +22,7 @@
 .zpr-overlay {
     position: absolute;
     inset: 0;
-    z-index: 20050;
+    z-index: 1000000; /* nad úvodní obrazovkou (#welcome-screen má 999999) i nad modály */
     display: none;
     justify-content: center;
     align-items: center;

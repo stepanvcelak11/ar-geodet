@@ -89,9 +89,9 @@
     // Odznak (tečka) v menu
     // --------------------------------------------------------------------------------
     function updateDot() {
-        var dot = document.getElementById('zpr-dot');
-        if (!dot) return;
-        dot.hidden = !isFresh();
+        var fresh = isFresh();
+        var dots = document.querySelectorAll('.zpr-dot');
+        for (var i = 0; i < dots.length; i++) dots[i].hidden = !fresh;
     }
 
     // --------------------------------------------------------------------------------
@@ -257,18 +257,40 @@
         updateDot();
     }
 
+    // Vstup i na úvodní obrazovku — boční menu je dostupné až po spuštění AR,
+    // ale zpravodaj má jít číst hned (i bez kamery/GPS).
+    function injectWelcomeButton() {
+        var wrap = document.querySelector('#welcome-screen .modal-content');
+        if (!wrap || document.getElementById('zpr-welcome-btn')) return;
+        var btn = document.createElement('button');
+        btn.id = 'zpr-welcome-btn';
+        btn.type = 'button';
+        btn.className = 'btn btn-secondary';
+        btn.style.marginTop = '12px';
+        btn.innerHTML = '<svg class="icon"><use href="#i-news"/></svg> Geo zpravodaj<span class="zpr-dot" hidden></span>';
+        btn.addEventListener('click', openReader);
+        // vlož za „Průvodce úkolem" (před primární „Spustit vyhledávání")
+        var pruv = document.getElementById('pruv-welcome-btn');
+        if (pruv) wrap.insertBefore(btn, pruv.nextSibling);
+        else wrap.appendChild(btn);
+        updateDot();
+    }
+
     // --------------------------------------------------------------------------------
     // Init
     // --------------------------------------------------------------------------------
     function init() {
         try { injectMenuButton(); } catch (e) { console.warn('[zpravodaj] menu', e); }
+        try { injectWelcomeButton(); } catch (e) { console.warn('[zpravodaj] welcome', e); }
         try { loadEdition(); } catch (e) { console.warn('[zpravodaj] load', e); }
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
-    // druhý průchod — menu může vznikat později
-    window.addEventListener('load', function () { setTimeout(injectMenuButton, 400); });
+    // druhý průchod — menu/úvodní obrazovka mohou vznikat později
+    window.addEventListener('load', function () {
+        setTimeout(function () { try { injectMenuButton(); } catch (e) {} try { injectWelcomeButton(); } catch (e) {} }, 400);
+    });
     // když se přepne online, zkus dotáhnout čerstvé vydání
     window.addEventListener('online', function () { try { loadEdition(); } catch (e) {} });
 })();
