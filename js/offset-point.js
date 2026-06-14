@@ -164,7 +164,8 @@
    appky (Nastavení/Export/Kalkulačka…) mají modal-body / jsou na denylistu. */
 (function () {
     'use strict';
-    var SKIP = { 'settings-modal': 1, 'manage-modal': 1, 'calc-modal': 1, 'about-modal': 1, 'dict-modal': 1, 'tools-modal': 1, 'compass-modal': 1, 'welcome-screen': 1, 'stakeout-modal': 1, 'stake-detail-modal': 1 };
+    // nativní okna appky (staticky v index.html + známé dynamické) — nikdy nešahat
+    var SKIP = { 'settings-modal': 1, 'manage-modal': 1, 'calc-modal': 1, 'about-modal': 1, 'dict-modal': 1, 'tools-modal': 1, 'compass-modal': 1, 'compass-calib-modal': 1, 'cluster-modal': 1, 'nearby-modal': 1, 'measure-modal': 1, 'custom-modal-overlay': 1, 'welcome-screen': 1, 'stakeout-modal': 1, 'stake-detail-modal': 1 };
     function injectCss() {
         if (document.getElementById('ag-modalx-css')) return;
         var st = document.createElement('style'); st.id = 'ag-modalx-css';
@@ -176,13 +177,13 @@
     }
     function isToolModal(ov, c) {
         if (!c) return false;
-        if (ov.id && SKIP[ov.id]) return false;
-        if (c.querySelector('.modal-body')) return false;
-        return true;
+        if (ov.id && SKIP[ov.id]) return false;   // nativní okno appky -> přeskočit
+        return true;                               // vše ostatní = nástrojový modál (i s modal-body, např. parcela)
     }
     function enhance(ov, c) {
-        if (!c.classList.contains('ag-scrollable')) c.classList.add('ag-scrollable');
-        if (c.querySelector('.ag-modal-x')) return;
+        // scroll override JEN pro „ploché" modály (bez modal-body) — s modal-body by display:block rozbil layout
+        if (!c.querySelector('.modal-body') && !c.classList.contains('ag-scrollable')) c.classList.add('ag-scrollable');
+        if (c.querySelector('.ag-modal-x')) return;   // křížek přidáváme VŽDY (i k modálům s modal-body)
         var wrap = document.createElement('div'); wrap.className = 'ag-modal-x';
         var b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', 'Zavřít'); b.textContent = '×';
         b.addEventListener('click', function () { try { ov.style.display = 'none'; } catch (e) {} });
