@@ -28,6 +28,26 @@
           "platnost": "2026-06-14"
         },
         {
+          "nazev": "Mezní odchylka výměry parcely",
+          "tagy": ["výměra", "mezní odchylka", "odchylka výměry", "parcela", "tolerance", "m2"],
+          "telo": "Mezní odchylka výměry říká, o kolik se smí lišit dvě výměry téže parcely (např. nová a evidovaná), aniž se výměra v katastru změní. Závisí na kódu kvality lomových bodů a na výměře P (větší z porovnávaných výměr v m²):",
+          "tabulka": {
+            "hlavicka": ["Kód kvality", "Mezní odchylka výměry [m²]"],
+            "radky": [
+              ["3", "2"],
+              ["4", "0,4·√P + 4"],
+              ["5", "1,2·√P + 12"],
+              ["6", "0,3·√P + 3"],
+              ["7", "0,8·√P + 8"],
+              ["8", "2,0·√P + 20"]
+            ]
+          },
+          "pozn": "P = větší z porovnávaných výměr [m²]. Pro skupinu parcel / kód způsobu určení 0 nebo kombinaci se bere dvojnásobek. Příklad: parcela 1000 m² s kódem 8 → 2,0·√1000 + 20 ≈ 83 m². Přesné znění vzorců ověř v příloze.",
+          "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha (mezní odchylky výměr)",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+          "platnost": "2026-06-14"
+        },
+        {
           "nazev": "Barvy bodů v Nahlížení do KN (kontrola přesnosti)",
           "tagy": ["nahlížení", "barva", "zelená", "červená", "kód kvality", "přesnost", "hranice"],
           "telo": "V aplikaci Nahlížení do KN se ve vrstvě „Hranice parcel s vyjádřením přesnosti“ / „Podrobné body s vyjádřením přesnosti“ zobrazují body podle kódu kvality barevně: ZELENĚ body s kódem kvality 3 (nejpřesnější, geodeticky zaměřené), ČERVENĚ body s kódem kvality 4 až 8. Rychlá vizuální kontrola, jak spolehlivá je hranice.",
@@ -38,7 +58,7 @@
         {
           "nazev": "Způsob určení výměry parcely vs. kód kvality",
           "tagy": ["výměra", "způsob určení výměry", "kód kvality", "parcela"],
-          "telo": "Způsob určení výměry parcely souvisí s kódem kvality lomových bodů: ze souřadnic v S-JTSK s kódem kvality 3 nebo 4 se výměra označuje kódem způsobu určení 2; pokud má aspoň jeden lomový bod souřadnici s kódem kvality 5 až 8, označuje se kódem 0. (Graficky určená výměra z mapy má kód 1.)",
+          "telo": "Způsob určení výměry parcely se značí kódem: kód 2 = ze souřadnic v S-JTSK s kódem kvality 3 nebo 4 (nejpřesnější); kód 1 = z přímo měřených měr nebo ze souřadnic v místním systému; kód 0 = ze souřadnic v S-JTSK, z nichž aspoň jeden lomový bod má kód kvality 5 až 8, NEBO graficky (planimetrováním, z měr odměřených na mapě, ze souřadnic odměřených na mapě).",
           "pozn": "Vyšší přesnost lomových bodů (kód 3–4) = přesnější a „silnější“ výměra parcely.",
           "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha",
           "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
@@ -75,6 +95,41 @@
           "telo": "Při ověření kontrolním (druhým) určením souřadnic téhož bodu se počítá výběrová střední souřadnicová chyba sxy = √(0,5·(Δx² + Δy²)), kde Δx, Δy jsou rozdíly souřadnic z prvního a kontrolního určení. Přesnost vyhovuje, když sxy nepřekročí mezní souřadnicovou chybu uxy = 2·mxy příslušného kódu kvality (např. kód 3 → uxy = 0,28 m).",
           "pozn": "Koeficient k = 2, má-li kontrolní určení stejnou přesnost jako podrobné měření; k = 1, je-li kontrola podstatně přesnější (mxy < 0,10 m). Mezní hodnoty uxy viz tabulka kódů kvality.",
           "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 13",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Měřické metody pro podrobné body",
+          "tagy": ["metoda", "polární", "ortogonální", "oměrné", "protínání", "měření", "podrobný bod"],
+          "telo": "Podrobné body polohopisu se zaměřují zpravidla POLÁRNÍ metodou (vodorovný úhel od orientačního směru + délka ze stanoviska). Doplňkové metody (když polární nelze nebo není účelná): ORTOGONÁLNÍ (pravoúhlé souřadnice k měřické přímce — staničení a kolmice; vhodná v úzké zástavbě), metoda KONSTRUKČNÍCH OMĚRNÝCH a PROTÍNÁNÍ ze směrů nebo z délek.",
+          "pozn": "Bez ohledu na metodu musí být dosažena a ověřena požadovaná přesnost (kód kvality) — viz dvojí určení a kontrola výše.",
+          "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha; vyhláška č. 31/1995 Sb.",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "GNSS / RTK měření v katastru",
+          "tagy": ["GNSS", "RTK", "GPS", "permanentní stanice", "VRS", "CZEPOS", "měření", "metoda"],
+          "telo": "Souřadnice lze určovat technologií GNSS, v praxi metodou RTK. Kromě vlastní referenční stanice lze využít sítě permanentních stanic (např. CZEPOS) — korekce z konkrétní nebo z virtuální referenční stanice (VRS). Každý bod se určuje nezávisle nejméně dvakrát a výsledky se kontrolují. Technické postupy GNSS upravuje bod 9 přílohy vyhlášky č. 31/1995 Sb.",
+          "pozn": "Připojení/orientace na body nejméně té přesnosti, jaká má být dosažena. Dvě nezávislá GNSS určení by měla mít časový odstup (jiná konstelace družic).",
+          "zdroj": "Vyhláška č. 31/1995 Sb., příloha bod 9; katastrální vyhláška č. 357/2013 Sb.",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/1995-31",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Geometrický základ a orientace měření",
+          "tagy": ["geometrický základ", "orientace", "připojení", "měřická síť", "polygonový pořad", "rajon", "bodové pole"],
+          "telo": "Geometrickým základem podrobného měření jsou body bodových polí a měřické sítě: body určené metodou RTK, polygonové pořady a rajony dle potřeby. Měření musí být připojeno a orientováno na body nejméně takové přesnosti, jaká má být dosažena u nově určovaných bodů — přesnější bod nelze získat opřením o méně přesné body.",
+          "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Vytyčování hranic pozemků",
+          "tagy": ["vytyčení", "vytyčování", "hranice", "dokumentace", "protokol", "vytyčovací náčrt", "ÚOZI", "mezní odchylka"],
+          "telo": "Vytyčení hranice je zeměměřická činnost ve veřejném zájmu (§ 80–90 vyhlášky + body 16.28–16.32 přílohy). Přesnost vytyčení závisí na podkladech: jsou-li číselná data, lomové body se vytyčí se střední souřadnicovou chybou ±0,14 m (kód 3); je-li jen grafická mapa 1:2880 (či z ní digitalizovaná), jen ±1,00 m. O vytyčení se vyhotoví DOKUMENTACE (vytyčovací náčrt + protokol o vytyčení) ověřená ÚOZI; dotčení vlastníci se zvou k seznámení.",
+          "pozn": "Lhůty: stejnopis objednateli do 30 dnů, kopie dotčeným vlastníkům; do 90 dnů kopie katastrálnímu úřadu. KÚ hranice v mapě nemění, jen doplní značky trvalé stabilizace (není-li nesouhlas). Vytyčením se právní vztahy nemění; vlastníci nemusí vytyčení respektovat a mohou průběh v rámci mezních odchylek upřesnit.",
+          "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 80–90 + příloha body 16.28–16.32; zeměměřický zákon č. 200/1994 Sb. § 12",
           "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
           "platnost": "2026-06-14"
         }
