@@ -3,67 +3,58 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>AR Geodet — návrh navigace</title>
+<title>AR Geodet — návrh navigace (C)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0f1216; --bg2:#171b20; --panel:#161b21; --panelSolid:#1b2128;
     --border:rgba(255,255,255,.10); --hair:rgba(255,255,255,.06);
-    --text:#eceef2; --muted:#9aa1ac; --accent:#2f9e74; --accentStrong:#3eb487;
-    --onAccent:#04130c; --data:#e6bd76;
+    --text:#eceef2; --muted:#9aa1ac; --accent:#2f9e74; --onAccent:#04130c; --data:#e6bd76;
   }
   *,*::before,*::after{box-sizing:border-box;}
   body{margin:0;background:var(--bg);color:var(--text);font-family:"Inter",system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:48px;}
   .wrap{max-width:430px;margin:0 auto;padding:18px 16px;}
   h1{font-family:"Sora",sans-serif;font-size:19px;font-weight:800;margin:0 0 4px;}
-  .sub{color:var(--muted);font-size:13px;margin:0 0 4px;line-height:1.5;}
+  .sub{color:var(--muted);font-size:13px;margin:0;line-height:1.5;}
   .secT{display:flex;align-items:center;gap:8px;font-family:"Sora",sans-serif;font-weight:700;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:28px 2px 12px;}
   .secT::before{content:"";width:14px;height:3px;border-radius:3px;background:var(--accent);}
   .note{font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:10px;}
   .note b{color:var(--data);}
-  .ic{font-size:21px;line-height:1;}
 
-  /* prepinac variant */
-  .bar{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--border);padding:14px 16px 12px;margin:0 -16px 0;}
-  .bar .inner{max-width:430px;margin:0 auto;padding:0 16px;}
-  .vrow{display:flex;gap:8px;margin-top:12px;}
-  .vbtn{flex:1;padding:10px 6px;border-radius:11px;border:1px solid var(--border);background:var(--panelSolid);color:var(--muted);font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;}
-  .vbtn.on{background:var(--accent);color:var(--onAccent);border-color:transparent;}
+  .icon{width:1.2em;height:1.2em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 
   /* DOK / telefon */
-  .phone{position:relative;height:240px;border-radius:24px;overflow:hidden;border:1px solid var(--border);
+  .phone{position:relative;height:230px;border-radius:24px;overflow:hidden;border:1px solid var(--border);
     background:radial-gradient(60% 40% at 80% 10%, rgba(47,158,116,.10), transparent 70%),linear-gradient(160deg,var(--bg2),var(--bg));}
   .topseg{position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;gap:3px;padding:4px;border-radius:99px;background:rgba(22,27,33,.92);border:1px solid var(--border);}
   .topseg b{font-size:11px;font-weight:600;color:var(--muted);padding:5px 11px;border-radius:99px;}
   .topseg b.on{background:var(--accent);color:#fff;}
-  .topmore{position:absolute;top:14px;right:14px;display:none;align-items:center;gap:5px;padding:7px 12px;border-radius:99px;background:rgba(22,27,33,.92);border:1px solid var(--border);color:var(--text);font-size:12px;font-weight:600;}
-  .phone.show-topmore .topmore{display:inline-flex;}
   .dock{position:absolute;left:12px;right:12px;bottom:12px;display:flex;justify-content:space-between;align-items:flex-end;
     padding:8px;border-radius:22px;background:rgba(22,27,33,.94);border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.4),inset 0 1px 0 var(--hair);}
-  .dbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:10px;font-weight:600;text-align:center;line-height:1.1;}
+  .dbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--muted);font-size:10px;font-weight:600;text-align:center;line-height:1.1;}
+  .dbtn .icon{width:23px;height:23px;}
   .dbtn.act{color:var(--accent);}
-  .fabw{color:var(--text);}
   .fab{display:flex;align-items:center;justify-content:center;width:50px;height:50px;margin-top:-26px;border-radius:50%;
-    background:var(--accent);border:3px solid var(--bg);box-shadow:0 6px 18px rgba(47,158,116,.4);color:#fff;font-size:28px;}
-  .cap{margin-top:10px;font-size:12.5px;color:var(--muted);line-height:1.5;min-height:34px;}
-  .cap b{color:var(--data);}
+    background:var(--accent);border:3px solid var(--bg);box-shadow:0 6px 18px rgba(47,158,116,.4);color:#fff;}
+  .fab .icon{width:26px;height:26px;stroke-width:2.4;}
+  .fabw{color:var(--text);}
 
   /* karty modalu */
   .card{padding:18px;border-radius:18px;background:var(--panelSolid);border:1px solid var(--border);box-shadow:0 16px 40px rgba(0,0,0,.35),inset 0 1px 0 var(--hair);}
   .card h3{font-family:"Sora",sans-serif;font-size:17px;font-weight:700;margin:0 0 14px;display:flex;align-items:center;gap:9px;}
-  .card h3 .ic{color:var(--accent);}
+  .card h3 .icon{width:20px;height:20px;color:var(--accent);}
   .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-  .tile{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:16px 6px;
+  .tile{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;padding:16px 6px;
     border-radius:14px;background:var(--panel);border:1px solid var(--border);text-align:center;}
-  .tile .ic{font-size:24px;}
+  .tile .icon{width:24px;height:24px;color:var(--text);}
   .tile span{font-size:12px;font-weight:600;line-height:1.2;}
   .tile .bdg{position:absolute;top:6px;right:6px;font-size:8.5px;color:var(--onAccent);background:var(--accent);padding:1px 5px;border-radius:99px;font-weight:700;}
   .list{display:flex;flex-direction:column;}
-  .row{display:flex;align-items:center;gap:13px;padding:14px 10px;}
+  .row{display:flex;align-items:center;gap:13px;padding:14px 8px;}
   .row+.row{border-top:1px solid var(--hair);}
-  .row .ic{width:24px;text-align:center;color:var(--accent);}
+  .row .icon{width:21px;height:21px;color:var(--accent);flex:none;}
   .row .tx{flex:1;}
   .row .tx b{display:block;font-size:14.5px;font-weight:600;}
   .row .tx small{color:var(--muted);font-size:11.5px;}
@@ -75,86 +66,78 @@
 </style>
 </head>
 <body>
-  <div class="bar"><div class="inner">
-    <h1>Návrh nové navigace</h1>
-    <p class="sub">Vyber variantu doku — dok dole se překreslí. Nástroje a „Více" jsou ve všech stejné.</p>
-    <div class="vrow" id="vrow">
-      <button class="vbtn" data-v="A">Varianta A</button>
-      <button class="vbtn" data-v="B">Varianta B</button>
-      <button class="vbtn" data-v="C">Varianta C</button>
-    </div>
-  </div></div>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+    <symbol id="i-menu" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></symbol>
+    <symbol id="i-map-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol>
+    <symbol id="i-ruler" viewBox="0 0 24 24"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+    <symbol id="i-area" viewBox="0 0 24 24"><path d="M4 8 L14 4 L20 10 L16 20 L5 18 Z"/><circle cx="4" cy="8" r="1.4"/><circle cx="14" cy="4" r="1.4"/><circle cx="20" cy="10" r="1.4"/><circle cx="16" cy="20" r="1.4"/><circle cx="5" cy="18" r="1.4"/></symbol>
+    <symbol id="i-calc" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10.5" x2="8.01" y2="10.5"/><line x1="12" y1="10.5" x2="12.01" y2="10.5"/><line x1="16" y1="10.5" x2="16.01" y2="10.5"/><line x1="8" y1="14" x2="8.01" y2="14"/><line x1="12" y1="14" x2="12.01" y2="14"/><line x1="16" y1="14" x2="16.01" y2="14"/><line x1="8" y1="17.5" x2="8.01" y2="17.5"/><line x1="12" y1="17.5" x2="12.01" y2="17.5"/><line x1="16" y1="17.5" x2="16.01" y2="17.5"/></symbol>
+    <symbol id="i-satellite" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M20.34 8.5A9 9 0 1 1 8.5 3.66"/><circle cx="19" cy="5" r="2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
+    <symbol id="i-scale" viewBox="0 0 24 24"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></symbol>
+    <symbol id="i-navigation" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></symbol>
+    <symbol id="i-news" viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8Z"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></symbol>
+    <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></symbol>
+  </defs></svg>
 
   <div class="wrap">
-    <div class="secT">Spodní dok</div>
-    <div class="phone" id="phone">
-      <div class="topseg"><b>AR</b><b class="on">Dělené</b><b>Mapa</b></div>
-      <div class="topmore"><span class="ic" style="font-size:15px;">⋯</span> Více</div>
-      <div class="dock" id="dock"></div>
-    </div>
-    <p class="cap" id="cap"></p>
+    <h1>Návrh navigace — varianta C</h1>
+    <p class="sub">Se skutečnými čárovými ikonami (jako v appce), bez emoji. Dok: Nástroje · Body · ➕ · Více · Nastavení.</p>
 
-    <div class="secT">Nástroje (po klepnutí na 🧰)</div>
-    <div class="card">
-      <h3><span class="ic">🧰</span> Nástroje</h3>
-      <div class="grid">
-        <div class="tile"><span class="ic">📏</span><span>Měření<br>vzdálenosti</span></div>
-        <div class="tile"><span class="ic">⬠</span><span>Měření<br>plochy</span></div>
-        <div class="tile"><span class="ic">🧮</span><span>Kalkulačka</span></div>
-        <div class="tile"><span class="ic">🛰️</span><span>GNSS<br>satelity</span></div>
-        <div class="tile"><span class="ic">✓</span><span>Vytyčovací<br>checklist</span></div>
-        <div class="tile"><span class="bdg">beta</span><span class="ic">▦</span><span>Náčrt /<br>Tachymetrie</span></div>
-        <div class="tile"><span class="ic">📖</span><span>Slovník</span></div>
-        <div class="tile"><span class="ic">📋</span><span>Předpisy /<br>tahák</span></div>
+    <div class="secT">Spodní dok</div>
+    <div class="phone">
+      <div class="topseg"><b>AR</b><b class="on">Dělené</b><b>Mapa</b></div>
+      <div class="dock">
+        <div class="dbtn act"><svg class="icon"><use href="#i-ruler"/></svg>Nástroje</div>
+        <div class="dbtn"><svg class="icon"><use href="#i-map-pin"/></svg>Body</div>
+        <div class="dbtn fabw"><span class="fab"><svg class="icon"><use href="#i-plus"/></svg></span>Nový bod</div>
+        <div class="dbtn"><svg class="icon"><use href="#i-menu"/></svg>Více</div>
+        <div class="dbtn"><svg class="icon"><use href="#i-settings"/></svg>Nastavení</div>
       </div>
     </div>
-    <p class="note">Mřížka ikon místo dlouhého sloupce — rychlejší orientace; vejde se sem i <b>Náčrt</b> a <b>Předpisy</b> (dnes schované jinde).</p>
+    <p class="note">Katastr se otevírá <b>z mapy / z Nástrojů</b> (uvolní místo v doku pro časté akce).</p>
 
-    <div class="secT">Více (po klepnutí na ⋯)</div>
+    <div class="secT">Nástroje</div>
+    <div class="card">
+      <h3><svg class="icon"><use href="#i-ruler"/></svg> Nástroje</h3>
+      <div class="grid">
+        <div class="tile"><svg class="icon"><use href="#i-ruler"/></svg><span>Měření<br>vzdálenosti</span></div>
+        <div class="tile"><svg class="icon"><use href="#i-area"/></svg><span>Měření<br>plochy</span></div>
+        <div class="tile"><svg class="icon"><use href="#i-calc"/></svg><span>Kalkulačka</span></div>
+        <div class="tile"><svg class="icon"><use href="#i-satellite"/></svg><span>GNSS<br>satelity</span></div>
+        <div class="tile"><svg class="icon"><use href="#i-check"/></svg><span>Vytyčovací<br>checklist</span></div>
+        <div class="tile"><span class="bdg">beta</span><svg class="icon"><use href="#i-grid"/></svg><span>Náčrt /<br>Tachymetrie</span></div>
+        <div class="tile"><svg class="icon"><use href="#i-book"/></svg><span>Slovník</span></div>
+        <div class="tile"><svg class="icon"><use href="#i-scale"/></svg><span>Předpisy /<br>tahák</span></div>
+        <div class="tile"><svg class="icon"><use href="#i-map-pin"/></svg><span>Katastr<br>(zde stojím)</span></div>
+      </div>
+    </div>
+    <p class="note">Mřížka ikon místo dlouhého sloupce. Je tu i <b>Náčrt</b>, <b>Předpisy</b> a (jako rychlý odkaz) <b>Katastr</b>.</p>
+
+    <div class="secT">Více</div>
     <div class="card">
       <div class="sheet-handle"></div>
       <div class="list">
-        <div class="row"><span class="ic">🧭</span><span class="tx"><b>Průvodce úkolem</b><small>provede tě krok za krokem</small></span><span class="chev">›</span></div>
-        <div class="row"><span class="ic">📰</span><span class="tx"><b>Zpravodaj</b><small>denní geodetické zprávy</small></span><span class="chev">›</span></div>
-        <div class="row"><span class="ic">⬇️</span><span class="tx"><b>Uložit pro offline</b><small>mapy a data do terénu</small></span><span class="chev">›</span></div>
-        <div class="row"><span class="ic">⚙️</span><span class="tx"><b>Nastavení</b><small>vzhled, přesnost, zakázky, záloha</small></span><span class="chev">›</span></div>
-        <div class="row"><span class="ic">💡</span><span class="tx"><b>Návod a prohlídka</b><small>interaktivní tutoriál</small></span><span class="chev">›</span></div>
-        <div class="row"><span class="ic">ℹ️</span><span class="tx"><b>O aplikaci</b><small>verze, zdroje dat, soukromí</small></span><span class="chev">›</span></div>
+        <div class="row"><svg class="icon"><use href="#i-navigation"/></svg><span class="tx"><b>Průvodce úkolem</b><small>provede tě krok za krokem</small></span><span class="chev">›</span></div>
+        <div class="row"><svg class="icon"><use href="#i-news"/></svg><span class="tx"><b>Zpravodaj</b><small>denní geodetické zprávy</small></span><span class="chev">›</span></div>
+        <div class="row"><svg class="icon"><use href="#i-download"/></svg><span class="tx"><b>Uložit pro offline</b><small>mapy a data do terénu</small></span><span class="chev">›</span></div>
+        <div class="row"><svg class="icon"><use href="#i-bulb"/></svg><span class="tx"><b>Návod a prohlídka</b><small>interaktivní tutoriál</small></span><span class="chev">›</span></div>
+        <div class="row"><svg class="icon"><use href="#i-file-text"/></svg><span class="tx"><b>O aplikaci</b><small>verze, zdroje dat, soukromí</small></span><span class="chev">›</span></div>
       </div>
     </div>
-    <p class="note">„Více" nahradí dnešní <b>skryté boční menu</b>. QR sdílení zůstává v <b>Body</b>, Režim rukavic v <b>Nastavení</b>.</p>
+    <p class="note">„Více" nahradí dnešní <b>skryté boční menu</b>. Nastavení je v doku, QR sdílení zůstává v <b>Body</b>, Režim rukavic v <b>Nastavení</b>.</p>
 
     <div class="secT">Co se vyřeší</div>
     <div class="twocol">
-      <div class="mini"><b>Dřív:</b> Náčrt jen v Nastavení, Průvodce v úvodu+Nastavení, satelity/slovník v „Měření", skryté menu s duplicitami.</div>
+      <div class="mini"><b>Dřív:</b> Náčrt jen v Nastavení, satelity/slovník v „Měření", skryté menu s duplicitami.</div>
       <div class="mini"><b>Nově:</b> nástroje na jednom místě (mřížka), zbytek ve „Více", skryté menu pryč.</div>
     </div>
   </div>
-
-<script>
-  var FAB = {fab:true,l:'Nový bod'};
-  var VARIANTS = {
-    A: { items:[{i:'🗺️',l:'Katastr'},{i:'🧰',l:'Nástroje',act:1},FAB,{i:'📍',l:'Body'},{i:'⋯',l:'Více'}],
-         topmore:false, cap:'<b>Doporučeno.</b> Nastavení se přesune dovnitř „Více". Nejčistší — všechno tool‑ové v Nástrojích, zbytek ve Více.' },
-    B: { items:[{i:'🧰',l:'Nástroje',act:1},{i:'🗺️',l:'Katastr'},FAB,{i:'📍',l:'Body'},{i:'⚙️',l:'Nastavení'}],
-         topmore:true, cap:'Nastavení zůstává v doku; <b>„Více" je tlačítko nahoře</b> (vpravo, vedle přepínače zobrazení).' },
-    C: { items:[{i:'🧰',l:'Nástroje',act:1},{i:'📍',l:'Body'},FAB,{i:'⋯',l:'Více'},{i:'⚙️',l:'Nastavení'}],
-         topmore:false, cap:'Bez Katastru v doku — <b>Katastr se otevírá z mapy / Nástrojů</b>. Nejvíc místa pro časté akce.' }
-  };
-  function render(v){
-    var def=VARIANTS[v], dock=document.getElementById('dock');
-    dock.innerHTML = def.items.map(function(it){
-      if(it.fab) return '<div class="dbtn fabw"><span class="fab">＋</span>'+it.l+'</div>';
-      return '<div class="dbtn'+(it.act?' act':'')+'"><span class="ic">'+it.i+'</span>'+it.l+'</div>';
-    }).join('');
-    document.getElementById('phone').classList.toggle('show-topmore', !!def.topmore);
-    document.getElementById('cap').innerHTML = def.cap;
-    document.querySelectorAll('#vrow .vbtn').forEach(function(b){ b.classList.toggle('on', b.dataset.v===v); });
-    try{ localStorage.setItem('navVar', v); }catch(e){}
-  }
-  document.querySelectorAll('#vrow .vbtn').forEach(function(b){ b.onclick=function(){ render(b.dataset.v); }; });
-  var v0='A'; try{ v0=localStorage.getItem('navVar')||'A'; }catch(e){}
-  render(v0);
-</script>
 </body>
 </html>
