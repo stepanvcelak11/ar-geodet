@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AR Geodet — náhled barevných palet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* ===== Palety (4× tmavý/světlý). Toto je MOCKUP pro výběr barvy, ne živá appka. ===== */
+  :root[data-pal="aurora"][data-mode="dark"]{--bg:#0b1020;--bg2:#161a2e;--panel:rgba(17,22,42,.82);--panelSolid:#11162a;--border:rgba(255,255,255,.12);--text:#eef1f8;--muted:#aab2c8;--accent:#2dd4bf;--accentStrong:#5eead4;--onAccent:#04130c;--primaryBg:linear-gradient(95deg,#2dd4bf,#8b5cf6);--glow:0 10px 30px rgba(139,92,246,.45);--markerBg:rgba(13,18,27,.72);}
+  :root[data-pal="aurora"][data-mode="light"]{--bg:#eef1f5;--bg2:#dfe5ee;--panel:rgba(255,255,255,.82);--panelSolid:#fff;--border:rgba(15,23,42,.10);--text:#0f172a;--muted:#64748b;--accent:#14b8a6;--accentStrong:#0d9488;--onAccent:#fff;--primaryBg:linear-gradient(95deg,#2dd4bf,#8b5cf6);--glow:0 8px 24px rgba(139,92,246,.30);--markerBg:rgba(255,255,255,.82);}
+
+  :root[data-pal="steel"][data-mode="dark"]{--bg:#0e141c;--bg2:#19222f;--panel:rgba(22,30,42,.82);--panelSolid:#161e2a;--border:rgba(255,255,255,.10);--text:#e8edf4;--muted:#8aa0b8;--accent:#4f86c6;--accentStrong:#5e95d6;--onAccent:#06101c;--primaryBg:var(--accent);--glow:0 6px 18px rgba(0,0,0,.45);--markerBg:rgba(16,22,32,.74);}
+  :root[data-pal="steel"][data-mode="light"]{--bg:#eef1f5;--bg2:#e1e7ef;--panel:rgba(255,255,255,.86);--panelSolid:#fff;--border:rgba(15,23,42,.10);--text:#14202e;--muted:#5a6b80;--accent:#2f6fb0;--accentStrong:#28639e;--onAccent:#fff;--primaryBg:var(--accent);--glow:0 6px 16px rgba(31,57,90,.16);--markerBg:rgba(255,255,255,.86);}
+
+  :root[data-pal="orange"][data-mode="dark"]{--bg:#14130f;--bg2:#221f17;--panel:rgba(32,29,22,.85);--panelSolid:#201d16;--border:rgba(255,255,255,.10);--text:#efe9df;--muted:#a89e8c;--accent:#e3873a;--accentStrong:#f0974b;--onAccent:#1a1206;--primaryBg:var(--accent);--glow:0 6px 18px rgba(0,0,0,.45);--markerBg:rgba(26,22,16,.74);}
+  :root[data-pal="orange"][data-mode="light"]{--bg:#f7f5f1;--bg2:#ece7df;--panel:rgba(255,255,255,.86);--panelSolid:#fff;--border:rgba(40,30,15,.12);--text:#241d12;--muted:#7a6f5c;--accent:#c96a1f;--accentStrong:#b65d16;--onAccent:#fff;--primaryBg:var(--accent);--glow:0 6px 16px rgba(120,80,30,.16);--markerBg:rgba(255,255,255,.86);}
+
+  :root[data-pal="teal"][data-mode="dark"]{--bg:#0d1417;--bg2:#172225;--panel:rgba(21,33,36,.85);--panelSolid:#152124;--border:rgba(255,255,255,.10);--text:#e6eeec;--muted:#8aa6a2;--accent:#3d9488;--accentStrong:#4ba89b;--onAccent:#04140f;--primaryBg:var(--accent);--glow:0 6px 18px rgba(0,0,0,.45);--markerBg:rgba(13,21,23,.74);}
+  :root[data-pal="teal"][data-mode="light"]{--bg:#f2f6f5;--bg2:#e3ebe9;--panel:rgba(255,255,255,.86);--panelSolid:#fff;--border:rgba(15,40,35,.10);--text:#10201c;--muted:#5a716c;--accent:#2a7d72;--accentStrong:#236b62;--onAccent:#fff;--primaryBg:var(--accent);--glow:0 6px 16px rgba(20,70,60,.14);--markerBg:rgba(255,255,255,.86);}
+
+  *,*::before,*::after{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:"Inter",system-ui,sans-serif;-webkit-font-smoothing:antialiased;transition:background .25s ease,color .25s ease;padding-bottom:40px;}
+  h1{font-family:"Sora",sans-serif;font-size:18px;font-weight:800;margin:0 0 2px;}
+  .sub{color:var(--muted);font-size:12.5px;margin:0;}
+  .mono{font-family:"JetBrains Mono",monospace;}
+
+  /* ovládací lišta */
+  .bar{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--border);padding:14px 16px calc(env(safe-area-inset-top,0px) + 12px);padding-top:max(14px,env(safe-area-inset-top));}
+  .pal-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .pal-chip{display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:12px;border:1px solid var(--border);background:var(--panelSolid);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;}
+  .pal-chip .dot{width:16px;height:16px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);}
+  .pal-chip.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent);}
+  .pal-chip small{color:var(--muted);font-weight:500;font-family:"JetBrains Mono",monospace;font-size:10.5px;}
+  .mode-row{display:flex;gap:8px;margin-top:10px;}
+  .mode-btn{flex:1;padding:9px;border-radius:11px;border:1px solid var(--border);background:var(--panelSolid);color:var(--muted);font-weight:600;font-size:13px;cursor:pointer;}
+  .mode-btn.on{background:var(--accent);color:var(--onAccent);border-color:transparent;}
+
+  .wrap{max-width:430px;margin:0 auto;padding:18px 16px;}
+  .secT{font-family:"Sora",sans-serif;font-weight:700;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:26px 2px 10px;}
+
+  /* telefon / scéna */
+  .phone{position:relative;height:420px;border-radius:26px;overflow:hidden;border:1px solid var(--border);box-shadow:0 16px 40px rgba(0,0,0,.35);
+    background:
+      radial-gradient(40% 30% at 78% 22%, rgba(127,127,127,.18), transparent 70%),
+      radial-gradient(45% 35% at 18% 80%, rgba(127,127,127,.14), transparent 70%),
+      linear-gradient(160deg,var(--bg2),var(--bg));}
+  .glass{background:var(--panel);-webkit-backdrop-filter:blur(12px) saturate(140%);backdrop-filter:blur(12px) saturate(140%);border:1px solid var(--border);}
+
+  .seg{position:absolute;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:3px;padding:4px;border-radius:999px;}
+  .seg-btn{border:none;background:transparent;color:var(--muted);font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;cursor:pointer;font-family:inherit;}
+  .seg-btn.active{background:var(--primaryBg);color:#fff;}
+
+  .info{position:absolute;top:58px;left:12px;padding:10px 13px;border-radius:14px;min-width:140px;}
+  .info .rdt{display:flex;justify-content:space-between;gap:16px;align-items:baseline;}
+  .info .rdt+.rdt{margin-top:3px;}
+  .info .l{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .info .v{font-family:"JetBrains Mono",monospace;font-size:14px;font-weight:700;}
+  .compass{position:absolute;top:58px;right:12px;padding:7px 13px;border-radius:14px;font-family:"JetBrains Mono",monospace;font-size:15px;font-weight:700;color:var(--accent);}
+
+  .marker{position:absolute;padding:5px 12px;border-radius:12px;background:var(--markerBg);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--border);border-left:4px solid var(--accent);color:var(--text);font-size:13px;font-weight:700;line-height:1.15;box-shadow:0 6px 16px rgba(0,0,0,.4);}
+  .marker .d{font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:500;opacity:.8;}
+  .marker.m1{top:150px;left:40px;}
+  .marker.hi{top:215px;left:160px;border:2px solid #fbbf24;border-left:2px solid #fbbf24;box-shadow:0 6px 18px rgba(0,0,0,.4),0 0 22px rgba(251,191,36,.55);}
+
+  .dock{position:absolute;left:12px;right:12px;bottom:12px;display:flex;justify-content:space-between;align-items:flex-end;padding:8px;border-radius:22px;}
+  .dock-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;border:none;background:transparent;color:var(--muted);font-size:9.5px;font-weight:600;cursor:pointer;font-family:inherit;}
+  .dock-btn i{font-style:normal;font-size:21px;line-height:1;}
+  .dock-btn.act{color:var(--accent);}
+  .fab{display:flex;align-items:center;justify-content:center;width:48px;height:48px;margin-top:-24px;border-radius:50%;background:var(--primaryBg);border:3px solid var(--bg);box-shadow:var(--glow);color:#fff;font-size:26px;line-height:1;}
+
+  /* tlačítka */
+  .btns{display:flex;flex-direction:column;gap:10px;}
+  .b{width:100%;padding:14px 16px;border:1px solid transparent;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .b-prim{background:var(--primaryBg);color:#fff;box-shadow:var(--glow);}
+  .b-sec{background:var(--panelSolid);color:var(--text);border-color:var(--border);}
+  .b-ghost{background:transparent;color:var(--accent);border-color:var(--accent);}
+  .b-danger{background:transparent;color:#f87171;border-color:rgba(248,113,113,.5);}
+
+  /* mini modal */
+  .card{padding:20px;border-radius:18px;background:var(--panelSolid);border:1px solid var(--border);box-shadow:0 16px 40px rgba(0,0,0,.3);}
+  .card h3{font-family:"Sora",sans-serif;font-size:18px;font-weight:700;margin:0 0 4px;}
+  .card .lbl{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:14px 0 6px;}
+  .inp{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:rgba(127,127,127,.10);color:var(--text);font-size:16px;outline:none;}
+  .inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 30%,transparent);}
+  .card .row{display:flex;gap:10px;margin-top:18px;}
+
+  /* pruh náčrtu (styl čáry) */
+  .sketch{padding:12px;border-radius:16px;background:var(--panelSolid);border:1px solid var(--border);}
+  .modes{display:flex;gap:4px;margin-bottom:11px;}
+  .tm{flex:1;padding:9px 4px;border-radius:10px;border:1px solid transparent;background:rgba(127,127,127,.10);color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;text-align:center;}
+  .tm.on{background:var(--accent);color:var(--onAccent);}
+  .srow{display:flex;align-items:center;gap:9px;margin-top:9px;}
+  .srow .k{flex:0 0 56px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);}
+  .sw{width:26px;height:26px;border-radius:50%;border:2px solid rgba(127,127,127,.35);cursor:pointer;}
+  .sw.on{border-color:var(--text);box-shadow:0 0 0 2px var(--accent);}
+  .chip{padding:7px 12px;border-radius:9px;border:1px solid var(--border);background:rgba(127,127,127,.10);color:var(--text);font-size:12.5px;font-weight:600;}
+  .chip.on{background:var(--accent);color:var(--onAccent);border-color:transparent;}
+
+  .note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px;}
+</style>
+</head>
+<body>
+  <div class="bar">
+    <h1>Náhled barevných palet</h1>
+    <p class="sub">Vyber paletu a světlý/tmavý režim. Toto je mockup pro výběr barvy, ne živá appka.</p>
+    <div class="pal-row" id="palRow">
+      <button class="pal-chip" data-pal="aurora"><span class="dot" style="background:linear-gradient(95deg,#2dd4bf,#8b5cf6)"></span>Současná<small>Aurora</small></button>
+      <button class="pal-chip" data-pal="steel"><span class="dot" style="background:#4f86c6"></span>Ocelová modrá<small>#4f86c6</small></button>
+      <button class="pal-chip" data-pal="orange"><span class="dot" style="background:#e3873a"></span>Geodet. oranžová<small>#e3873a</small></button>
+      <button class="pal-chip" data-pal="teal"><span class="dot" style="background:#3d9488"></span>Tlumený teal<small>#3d9488</small></button>
+    </div>
+    <div class="mode-row" id="modeRow">
+      <button class="mode-btn" data-mode="dark">Tmavý</button>
+      <button class="mode-btn" data-mode="light">Světlý</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="secT">Hlavní obrazovka</div>
+    <div class="phone">
+      <div class="seg glass">
+        <button class="seg-btn">AR</button>
+        <button class="seg-btn active">Dělené</button>
+        <button class="seg-btn">Mapa</button>
+      </div>
+      <div class="info glass">
+        <div class="rdt"><span class="l">Přesnost</span><span class="v">±0.4 m</span></div>
+        <div class="rdt"><span class="l">V AR</span><span class="v">3 / 12</span></div>
+      </div>
+      <div class="compass glass">142°</div>
+      <div class="marker m1">Mezník 7<br><span class="d">12 m · JZ</span></div>
+      <div class="marker hi">TB 218<br><span class="d">4 m · cíl</span></div>
+      <div class="dock glass">
+        <button class="dock-btn"><i>▣</i><span>Katastr</span></button>
+        <button class="dock-btn act"><i>⌖</i><span>Nástroje</span></button>
+        <button class="dock-btn"><span class="fab">＋</span><span>Bod</span></button>
+        <button class="dock-btn"><i>≡</i><span>Body</span></button>
+        <button class="dock-btn"><i>⋯</i><span>Více</span></button>
+      </div>
+    </div>
+
+    <div class="secT">Tlačítka</div>
+    <div class="btns">
+      <button class="b b-prim">Spustit vyhledávání</button>
+      <button class="b b-sec">Z průměru GPS</button>
+      <button class="b b-ghost">Otevřít katastr</button>
+      <button class="b b-danger">Smazat bod</button>
+    </div>
+
+    <div class="secT">Dialog / modal</div>
+    <div class="card">
+      <h3>Vložit vlastní bod</h3>
+      <span class="lbl">Název / číslo bodu</span>
+      <input class="inp" value="Mezník 1">
+      <span class="lbl">S-JTSK Y (m)</span>
+      <input class="inp mono" value="596956.46">
+      <div class="row">
+        <button class="b b-sec" style="margin:0">Zrušit</button>
+        <button class="b b-prim" style="margin:0">Uložit</button>
+      </div>
+    </div>
+
+    <div class="secT">Náčrt — styl čáry</div>
+    <div class="sketch">
+      <div class="modes">
+        <button class="tm">Zobrazit</button>
+        <button class="tm on">Spojit</button>
+        <button class="tm">Kreslit</button>
+        <button class="tm">Popisek</button>
+      </div>
+      <div class="srow"><span class="k">Barva</span>
+        <span class="sw on" style="background:var(--accent)"></span>
+        <span class="sw" style="background:#22c55e"></span>
+        <span class="sw" style="background:#dc2626"></span>
+        <span class="sw" style="background:#d97706"></span>
+        <span class="sw" style="background:#0f172a"></span>
+      </div>
+      <div class="srow"><span class="k">Tloušťka</span>
+        <span class="chip">Tenká</span><span class="chip on">Střední</span><span class="chip">Silná</span>
+      </div>
+      <div class="srow"><span class="k">Styl</span>
+        <span class="chip on">Plná</span><span class="chip">Čárkovaná</span><span class="chip">Tečkovaná</span>
+      </div>
+    </div>
+
+    <p class="note">Pozn.: pozadí „telefonu" je neutrální schválně, ať barvu nezkresluje. V appce bude pod panely živá kamera/mapa. Akcent je použitý jen na primární akce, aktivní stav a data — ne plošně.</p>
+  </div>
+
+<script>
+  var root = document.documentElement;
+  function setPal(p){ root.dataset.pal = p; document.querySelectorAll('#palRow .pal-chip').forEach(function(b){ b.classList.toggle('on', b.dataset.pal===p); }); try{ localStorage.setItem('palPrev', p); }catch(e){} }
+  function setMode(m){ root.dataset.mode = m; document.querySelectorAll('#modeRow .mode-btn').forEach(function(b){ b.classList.toggle('on', b.dataset.mode===m); }); try{ localStorage.setItem('palMode', m); }catch(e){} }
+  document.querySelectorAll('#palRow .pal-chip').forEach(function(b){ b.onclick=function(){ setPal(b.dataset.pal); }; });
+  document.querySelectorAll('#modeRow .mode-btn').forEach(function(b){ b.onclick=function(){ setMode(b.dataset.mode); }; });
+  var p='steel', m='dark';
+  try{ p = localStorage.getItem('palPrev') || 'steel'; m = localStorage.getItem('palMode') || 'dark'; }catch(e){}
+  setPal(p); setMode(m);
+</script>
+</body>
+</html>
