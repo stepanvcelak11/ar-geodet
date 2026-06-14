@@ -132,6 +132,43 @@
           "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 80–90 + příloha body 16.28–16.32; zeměměřický zákon č. 200/1994 Sb. § 12",
           "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
           "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Nivelace — druhy a podmínky měření",
+          "tagy": ["nivelace", "technická nivelace", "přesná", "velmi přesná", "záměra", "délka záměry", "výška záměry", "uzávěr", "převýšení"],
+          "telo": "Geometrická nivelace se podle přesnosti dělí na technickou (TN), přesnou (PN), velmi přesnou (VPN) a zvlášť přesnou (ZPN). Liší se délkou záměry, minimální výškou záměry nad terénem (kvůli refrakci u země) a mezní odchylkou uzávěru pořadu (R = délka pořadu v km, výsledek v mm):",
+          "tabulka": {
+            "hlavicka": ["Druh", "Max. délka záměry", "Min. výška nad terénem", "Mezní odchylka uzávěru"],
+            "radky": [
+              ["Technická (normální)", "120 m", "0,5 m", "40·√R mm"],
+              ["Technická (zvýšená)", "80 m (opt. 40–50)", "0,3 m", "20·√R mm"],
+              ["Velmi přesná / zvlášť přesná", "50 m (často ≤40)", "0,5 m", "obousměrně, dle ČSN"]
+            ]
+          },
+          "pozn": "TN: vždy vycházej ze dvou ověřených nivelačních bodů; max délka pořadu 3–5 km. VPN/ZPN: měří se tam i zpět (obousměrně), dvoustupnicové latě, připojení na dva body vzdálené min 1 km. Hodnoty z výukových materiálů ČVUT/VUT — závazné znění ověř v ČSN.",
+          "zdroj": "ČSN 73 0415 (Geodetické body) a navazující předpisy; výukové materiály ČVUT/VUT",
+          "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch11s05.html",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Polygonový pořad — geometrické podmínky",
+          "tagy": ["polygonový pořad", "polygon", "strana", "poměr stran", "úhlový uzávěr", "vrcholy", "měřická síť"],
+          "telo": "Při volbě bodů polygonového pořadu se dodržují geometrické parametry (orientační, podle třídy přesnosti / normy):",
+          "tabulka": {
+            "hlavicka": ["Parametr", "Zpravidla"],
+            "radky": [
+              ["Mezní (max.) délka strany", "300 m"],
+              ["Poměr délek sousedních stran", "do 1:2 (jinde 1:3)"],
+              ["Poměr nejdelší a nejkratší strany v pořadu", "do 1:3"],
+              ["Max. součet délek (hlavní pořad)", "2000–2500 m"],
+              ["Max. součet délek (vedlejší pořad)", "1200–1600 m"],
+              ["Max. počet vrcholů", "17–25"]
+            ]
+          },
+          "pozn": "Volný (jednostranně připojený) pořad: max 3 nové vrcholy, délka do 250 m. Mezní odchylka úhlového uzávěru Δω = c·√n (n = počet úhlů; c dle třídy/normy). Konkrétní hodnoty se mezi zdroji/normami liší — ověř v ČSN 73 0415.",
+          "zdroj": "ČSN 73 0415 (Geodetické body); výukové materiály VUT/ZČU",
+          "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch07s04.html",
+          "platnost": "2026-06-14"
         }
       ]
     },
