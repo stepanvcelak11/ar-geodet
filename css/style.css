@@ -12,19 +12,19 @@
     --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
 
-    /* Plochy a text — Smaragd: zelenočerný základ, prosklené plochy */
-    --bg-color: #0b1310;
-    --bg-elev: #11201a;
+    /* Plochy a text — neutrální tmavá (zelená jen jako akcent, ne závoj přes celou obrazovku) */
+    --bg-color: #0f1216;
+    --bg-elev: #171b20;
     --surface-1: rgba(255, 255, 255, 0.06);
     --surface-2: rgba(255, 255, 255, 0.09);
     --surface-3: rgba(255, 255, 255, 0.13);
-    --glass-bg: rgba(18, 32, 25, 0.84);
+    --glass-bg: rgba(24, 28, 33, 0.84);
     --glass-border: rgba(255, 255, 255, 0.10);
     --glass-border-strong: rgba(255, 255, 255, 0.20);
-    --text-color: #ecf1ec;
-    --text-muted: #93a89c;
-    --text-faint: #6b7e76;
-    --map-bg: #0b1310;
+    --text-color: #eceef2;
+    --text-muted: #9aa1ac;
+    --text-faint: #6b727d;
+    --map-bg: #0f1216;
 
     /* Značková paleta — Smaragd + písková (klidný duotón: jeden akcent + teplá data) */
     --accent: #2f9e74;          /* smaragdová — primární akcent */
@@ -61,10 +61,10 @@
     --hud-side: 15px;
     --hud-scale: 1;
 
-    /* Záře úvodní obrazovky (mění barevné motivy) */
-    --glow1: rgba(47, 158, 116, 0.38);
-    --glow2: rgba(230, 189, 118, 0.26);
-    --glow3: rgba(47, 158, 116, 0.16);
+    /* Záře úvodní obrazovky — jen jemný náznak, ne mlha přes celou obrazovku */
+    --glow1: rgba(47, 158, 116, 0.16);
+    --glow2: rgba(230, 189, 118, 0.10);
+    --glow3: rgba(47, 158, 116, 0.05);
 
     /* Poloměry — přátelské, premium */
     --r-xs: 6px;
@@ -86,18 +86,18 @@
 }
 
 body.light-mode {
-    --bg-color: #f3f3ed;
-    --bg-elev: #ebe9df;
+    --bg-color: #f4f5f7;
+    --bg-elev: #eceef1;
     --surface-1: rgba(0, 0, 0, 0.04);
     --surface-2: rgba(0, 0, 0, 0.06);
     --surface-3: rgba(0, 0, 0, 0.09);
-    --glass-bg: rgba(255, 255, 255, 0.90);
-    --glass-border: rgba(40, 40, 20, 0.12);
-    --glass-border-strong: rgba(40, 40, 20, 0.20);
-    --text-color: #172017;
-    --text-muted: #5f6b60;
-    --text-faint: #98a09a;
-    --map-bg: #e3e7e1;
+    --glass-bg: rgba(255, 255, 255, 0.92);
+    --glass-border: rgba(15, 23, 42, 0.12);
+    --glass-border-strong: rgba(15, 23, 42, 0.18);
+    --text-color: #141821;
+    --text-muted: #5b626c;
+    --text-faint: #99a0aa;
+    --map-bg: #e6e8ec;
     --accent: #1f8a63;
     --accent-bright: #15724f;
     --accent-strong: #136448;
@@ -106,9 +106,9 @@ body.light-mode {
     --accent-line: rgba(31, 138, 99, 0.38);
     --accent-glow: 0 6px 16px rgba(20, 90, 65, 0.16);
     --data: #a9701f;
-    --glow1: rgba(31, 138, 99, 0.22);
-    --glow2: rgba(169, 112, 31, 0.16);
-    --glow3: rgba(31, 138, 99, 0.10);
+    --glow1: rgba(31, 138, 99, 0.12);
+    --glow2: rgba(169, 112, 31, 0.08);
+    --glow3: rgba(31, 138, 99, 0.05);
 }
 /* Světlý režim: pole formulářů (jinak tmavá) přebarvit na světlá */
 body.light-mode .modal-content input[type="text"],
@@ -217,10 +217,7 @@ body.theme-graphite {
 
 html, body {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     overflow: hidden;
     touch-action: none;
 }
