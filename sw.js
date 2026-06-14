@@ -1,4 +1,4 @@
-// AR Geodet — Service Worker (v77)
+// AR Geodet — Service Worker (v78)
 // Strategie: vlastni kod = NEJDRIV SIT (vzdy cerstvy), CDN/dlazdice = NEJDRIV CACHE.
 // Instalace je ODOLNA: jeden nedostupny soubor neshodi prevzeti nove verze.
 //
@@ -7,7 +7,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  — mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v77';
+const SHELL_CACHE = 'argeodet-shell-v78';
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -59,6 +59,10 @@ const ASSETS_TO_CACHE = [
     './css/ar-stabilize.css',
     './js/power-save.js',
     './css/power-save.css',
+    './js/dmt-volume.js',
+    './css/dmt-volume.css',
+    './js/check-distance.js',
+    './css/check-distance.css',
     './js/vylepseni.js',
     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
     './js/lib/proj4-2.9.0.min.js',
