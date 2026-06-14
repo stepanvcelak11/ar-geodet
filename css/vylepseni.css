@@ -113,6 +113,15 @@
 }
 #ag-gps-note b { color: #fbbf24; }
 
+/* Sbalitelný panel průměrování GPS — defaultně jen titulek, detail po klepnutí */
+#gps-avg.ag-collapsible .ga-title { cursor: pointer; display: flex; align-items: center; gap: 6px; margin-bottom: 0; }
+#gps-avg.ag-collapsible .ga-title::after { content: '▾'; margin-left: auto; font-size: 11px; opacity: 0.7; transition: transform 0.15s ease; }
+#gps-avg.ag-collapsible:not(.ag-collapsed) .ga-title { margin-bottom: 6px; }
+#gps-avg.ag-collapsed .ga-title::after { transform: rotate(-90deg); }
+#gps-avg.ag-collapsed .ga-row,
+#gps-avg.ag-collapsed #ag-gps-note { display: none; }
+#gps-avg.ag-collapsed { min-width: 0; }
+
 /* --------------------------------------------------------------------------------
    3) Indikátor zaplnění úložiště (Nastavení → Funkce a Data)
    -------------------------------------------------------------------------------- */

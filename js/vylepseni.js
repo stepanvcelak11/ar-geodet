@@ -203,6 +203,23 @@
         panel.appendChild(note);
     }
 
+    // Panel průměrování GPS je defaultně SBALENÝ (jen titulek) — detaily se ukážou po klepnutí.
+    function makeGpsCollapsible() {
+        const panel = document.getElementById('gps-avg');
+        if (!panel || panel._agCollapsible) return;
+        const title = panel.querySelector('.ga-title');
+        if (!title) return;
+        panel._agCollapsible = true;
+        panel.classList.add('ag-collapsible');
+        let open = false; try { open = localStorage.getItem('agGpsOpen') === '1'; } catch (e) {}
+        panel.classList.toggle('ag-collapsed', !open);
+        title.addEventListener('click', function () {
+            const willOpen = panel.classList.contains('ag-collapsed');
+            panel.classList.toggle('ag-collapsed', !willOpen);
+            try { localStorage.setItem('agGpsOpen', willOpen ? '1' : '0'); } catch (e) {}
+        });
+    }
+
     // --------------------------------------------------------------------------------
     // 4) REŽIM RUKAVIC — přepínač v bočním menu
     // --------------------------------------------------------------------------------
@@ -723,7 +740,7 @@
     function init() {
         try { rewireProjects(); } catch (e) { console.warn('[vylepseni] zakázky', e); }
         try { injectRename(); } catch (e) { console.warn('[vylepseni] rename', e); }
-        try { injectGpsNote(); } catch (e) { console.warn('[vylepseni] gps-note', e); }
+        try { injectGpsNote(); makeGpsCollapsible(); } catch (e) { console.warn('[vylepseni] gps-note', e); }
         try { injectGloveToggle(); applyGlove(); } catch (e) { console.warn('[vylepseni] glove', e); }
         try { injectQuota(); hookSettings(); } catch (e) { console.warn('[vylepseni] quota', e); }
         try { injectDxfButton(); } catch (e) { console.warn('[vylepseni] dxf', e); }

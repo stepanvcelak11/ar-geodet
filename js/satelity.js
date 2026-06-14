@@ -144,15 +144,37 @@ function hideSatAR() { for (const k in _satElems) _satElems[k].style.display = '
 function renderSatellitesAR() {
     if (!satARenabled || viewMode === 'map' || !window._arProj || userLat == null) { hideSatAR(); return; }
     const pr = window._arProj;
+    const DEG = Math.PI / 180;
+    // Plné 3D promítání. Původní plochý model (u = azimut−heading, v = elevace) selhával nad
+    // hlavou: družice vysoko/za zády se kvůli rozdílu azimutů kully nebo skákaly. Tady postavíme
+    // skutečný směr kamery (forward z headingu + sklonu, vpravo/nahoru s rollem) a promítneme.
+    const azF = (typeof currentHeading === 'number' ? currentHeading : 0) * DEG;
+    const elF = (-pr.pitch) * DEG;                         // pr.pitch = stupně POD horizont
+    const cf = Math.cos(elF), sf = Math.sin(elF);
+    const f = [cf * Math.sin(azF), cf * Math.cos(azF), sf]; // forward v ENU (East,North,Up)
+    let r = [f[1], -f[0], 0];                               // cross(forward, nahoru) = "vpravo"
+    let rn = Math.hypot(r[0], r[1], r[2]);
+    if (rn < 1e-4) { r = [Math.cos(azF), -Math.sin(azF), 0]; rn = 1; } // pohled (skoro) svisle
+    r = [r[0] / rn, r[1] / rn, r[2] / rn];
+    let cu = [r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0]]; // up
+    if (pr.roll) {
+        const cr = Math.cos(pr.roll), sr = Math.sin(pr.roll);
+        const r2 = [r[0] * cr + cu[0] * sr, r[1] * cr + cu[1] * sr, r[2] * cr + cu[2] * sr];
+        cu = [cu[0] * cr - r[0] * sr, cu[1] * cr - r[1] * sr, cu[2] * cr - r[2] * sr];
+        r = r2;
+    }
     const seen = {};
     satObs.forEach(o => {
-        if (o.el < -5) return;
-        let u = angDiff(o.az, currentHeading);
-        if (Math.abs(u) > pr.halfH + 12) return;
-        let v = (-o.el) - pr.pitch; // nad horizontem = nahoru na obrazovce
-        if (pr.roll) { const cr = Math.cos(pr.roll), sr = Math.sin(pr.roll); const t = u * cr - v * sr; v = u * sr + v * cr; u = t; }
-        const x = 50 + (u / pr.halfH) * 50, y = 50 + (v / pr.halfV) * 50;
-        if (y < -4 || y > 104) return;
+        if (o.el < -2) return;
+        const ce = Math.cos(o.el * DEG), se = Math.sin(o.el * DEG), ca = o.az * DEG;
+        const d = [ce * Math.sin(ca), ce * Math.cos(ca), se];   // směr k družici (ENU)
+        const fc = d[0] * f[0] + d[1] * f[1] + d[2] * f[2];     // složka dopředu
+        if (fc <= 0.06) return;                                 // za kamerou / mimo záběr
+        const angX = Math.atan2(d[0] * r[0] + d[1] * r[1] + d[2] * r[2], fc) * 180 / Math.PI;
+        const angY = Math.atan2(d[0] * cu[0] + d[1] * cu[1] + d[2] * cu[2], fc) * 180 / Math.PI;
+        if (Math.abs(angX) > pr.halfH + 6 || Math.abs(angY) > pr.halfV + 6) return;
+        const x = 50 + (angX / pr.halfH) * 50;
+        const y = 50 - (angY / pr.halfV) * 50;                  // nahoru = menší top %
         let el = _satElems[o.name];
         if (!el) {
             el = document.createElement('div'); el.className = 'sat-marker';
@@ -164,7 +186,7 @@ function renderSatellitesAR() {
         const trend = o.rising === true ? ' ↗' : (o.rising === false ? ' ↘' : '');
         el.querySelector('.sat-lbl').innerText = o.short + ' ' + Math.round(o.el) + '°' + trend;
         el.querySelector('.sat-lbl').style.color = o.col;
-        el.style.left = x + '%'; el.style.top = Math.max(1, Math.min(99, y)) + '%';
+        el.style.left = Math.max(1, Math.min(99, x)) + '%'; el.style.top = Math.max(1, Math.min(99, y)) + '%';
         el.style.opacity = o.el < SAT_EL_MASK ? '0.45' : '1';
         el.style.display = 'block';
         seen[o.name] = true;
@@ -194,7 +216,7 @@ function ensureSatModal() {
                 <div id="sat-best" style="font-size:13px; margin-top:8px;"></div>
                 <div id="sat-tle-info" style="font-size:12px; opacity:0.7; margin-top:12px;"></div>
                 <button class="btn btn-secondary" id="sat-refresh-btn" style="margin-top:8px;" onclick="refreshTLE(false)"><svg class="icon"><use href="#i-download"/></svg> Aktualizovat dráhy (TLE)</button>
-                <p style="font-size:11px; opacity:0.55; margin:10px 0 0;">Výpočet probíhá v telefonu (SGP4). Dráhy družic: CelesTrak. PDOP = kvalita geometrie (nižší je lepší, &lt;3 dobré, &gt;6 slabé). Maska elevace ${SAT_EL_MASK}°.</p>
+                <p style="font-size:11px; opacity:0.55; margin:10px 0 0;">Výpočet probíhá v telefonu (SGP4). Dráhy družic: CelesTrak. Maska elevace ${SAT_EL_MASK}°.</p>
             </div>
             <button class="btn btn-secondary" style="margin-top:15px;" onclick="document.getElementById('sat-modal').style.display='none'">Zavřít</button>
         </div>`;
@@ -224,18 +246,12 @@ function renderSatModalStats() {
     const vis = satObs.filter(o => o.el >= SAT_EL_MASK);
     const counts = {}; SAT_SYS.forEach(s => counts[s.key] = 0);
     vis.forEach(o => { if (counts[o.sys] != null) counts[o.sys]++; });
-    const pdop = computePDOP(satObs);
-    let pdopCol = '#34d399', pdopTxt = 'dobrá';
-    if (pdop == null) { pdopCol = 'var(--danger)'; pdopTxt = 'málo družic'; }
-    else if (pdop > 6) { pdopCol = 'var(--danger)'; pdopTxt = 'slabá'; }
-    else if (pdop > 3) { pdopCol = '#fbbf24'; pdopTxt = 'průměrná'; }
     div.innerHTML = `
-        <div class="geo-highlight" style="border-left-color:${pdopCol}; margin:0;">
+        <div class="geo-highlight" style="border-left-color:var(--accent); margin:0;">
             <div class="geo-data-row" style="border:none; padding:3px 0;"><span class="geo-label">Viditelné družice (nad ${SAT_EL_MASK}°)</span><span class="geo-value">${vis.length}</span></div>
             <div style="display:flex; gap:10px; flex-wrap:wrap; padding:4px 0; font-size:12.5px;">
                 ${SAT_SYS.map(s => `<span style="color:${s.col}; font-weight:600;">● ${s.label}: ${counts[s.key]}</span>`).join('')}
             </div>
-            <div class="geo-data-row" style="border:none; padding:3px 0;"><span class="geo-label">Geometrie PDOP</span><span class="geo-value" style="color:${pdopCol};">${pdop != null ? pdop.toFixed(1) : '—'} (${pdopTxt})</span></div>
         </div>`;
 }
 
@@ -253,7 +269,7 @@ function findBestSatTime() {
         }
         if (!best) { out.innerText = 'V příštích 3 hodinách není dost viditelných družic.'; return; }
         const when = new Date(t0 + best.min * 60000).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
-        out.innerHTML = `Nejlepší geometrie: <b style="color:var(--accent);">${best.min === 0 ? 'právě teď' : 'v ' + when + ' (za ' + best.min + ' min)'}</b> — PDOP ${best.pdop.toFixed(1)}, ${best.n} družic.`;
+        out.innerHTML = `Nejlepší rozmístění družic: <b style="color:var(--accent);">${best.min === 0 ? 'právě teď' : 'v ' + when + ' (za ' + best.min + ' min)'}</b> — ${best.n} družic nad ${SAT_EL_MASK}°.`;
     }, 30);
 }
 
@@ -274,10 +290,13 @@ function findBestSatTime() {
 // Rozsiruje updateInfoPanel z grafika.js o radek "Druzice N · PDOP x".
 // Pocita se max 1x za 8 s (SGP4 je levne, ale zbytecne kazdy snimek); pri prazdne
 // cache TLE se jednou potichu stahnou drahy, at se PDOP objevi i bez otevreni Satelitu.
+// Aplikace je primárně offline -> PDOP záměrně NEzobrazujeme (mátlo by). Ukazujeme jen
+// POČET viditelných družic nad maskou. Počítá se max 1x za 8 s; při prázdné cache TLE se
+// jednou potichu stáhnou dráhy, ať se počet objeví i bez otevření Satelitů.
 (function () {
     if (typeof updateInfoPanel !== 'function') return;
     const _orig = updateInfoPanel;
-    let _pdopT = 0, _pdopCache = null, _triedFetch = false;
+    let _t = 0, _cache = null, _triedFetch = false;
     updateInfoPanel = function () {
         _orig();
         const infoEl = document.getElementById('info');
@@ -287,29 +306,23 @@ function findBestSatTime() {
                 _triedFetch = true;
                 refreshTLE(true).then(() => { try { updateInfoPanel(); } catch (e) {} });
             }
-            // Bez drah druzic (TLE) se PDOP nespocita. Dej to najevo misto tiche prazdne kolonky.
             infoEl.innerHTML += `<div class="rdt"><span class="rdt-l">Družice</span><span class="rdt-v" style="color:var(--warning);">${navigator.onLine ? 'načítám…' : 'offline – chybí data drah'}</span></div>`;
             return;
         }
         const now = Date.now();
-        if (now - _pdopT > 8000) {
-            _pdopT = now;
-            try {
-                const obs = computeSatPositions(new Date());
-                _pdopCache = { pdop: computePDOP(obs), vis: obs.filter(o => o.el >= SAT_EL_MASK).length };
-            } catch (e) { _pdopCache = null; }
+        if (now - _t > 8000) {
+            _t = now;
+            try { const obs = computeSatPositions(new Date()); _cache = { vis: obs.filter(o => o.el >= SAT_EL_MASK).length }; }
+            catch (e) { _cache = null; }
         }
-        if (!_pdopCache) return;
-        const p = _pdopCache.pdop;
-        let col = '#34d399';
-        if (p == null) col = 'var(--warning)';
-        else if (p > 6) col = 'var(--danger)';
-        else if (p > 3) col = '#fbbf24';
-        // Stari drah druzic: po vyprseni cache je predikce nepresna a offline se neobnovi.
+        if (!_cache) return;
+        const vis = _cache.vis;
+        const col = vis >= 4 ? '#34d399' : '#fbbf24';
+        // Stáří drah družic: po vypršení cache je predikce nepřesná a offline se neobnoví.
         const ageH = tleFetchedAt ? (now - tleFetchedAt) / 3600000 : null;
         let staleTxt = '';
         if (ageH == null) staleTxt = ' <span style="color:var(--warning);" title="Dráhy družic nejsou stažené">⚠</span>';
         else if (ageH > TLE_MAX_AGE_H) staleTxt = ` <span style="color:var(--warning);" title="Dráhy družic staré ${Math.round(ageH)} h – ${navigator.onLine ? 'obnoví se' : 'offline, neaktualizuje se'}">⚠ ${Math.round(ageH / 24)} d</span>`;
-        infoEl.innerHTML += `<div class="rdt"><span class="rdt-l">Družice</span><span class="rdt-v" style="color:${col};">${_pdopCache.vis} · PDOP ${p != null ? p.toFixed(1) : '—'}${staleTxt}</span></div>`;
+        infoEl.innerHTML += `<div class="rdt"><span class="rdt-l">Družice</span><span class="rdt-v" style="color:${col};">${vis} nad ${SAT_EL_MASK}°${staleTxt}</span></div>`;
     };
 })();
