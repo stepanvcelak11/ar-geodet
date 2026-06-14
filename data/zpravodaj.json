@@ -1,112 +1,66 @@
 {
   "vydani": "2026-06-14",
-  "uvodnik": "Ukázkové vydání — náhled formátu. Ostrá vydání se budou plnit sama každé ráno z ověřených zdrojů; u každé zprávy je odkaz na originál.",
+  "uvodnik": "Přinášíme aktuální zprávy ze světa geodézie a geoinformatiky.",
   "polozky": [
     {
-      "rubrika": "Zákon",
+      "rubrika": "Z domova",
       "top": true,
-      "nadpis": "Katastr nemovitostí: bezplatné nahlížení online",
-      "perex": "Údaje o parcelách, budovách a vlastnictví lze zdarma ověřit přes web ČÚZK — bez registrace.",
-      "telo": "Aplikace Nahlížení do katastru nemovitostí umožňuje zdarma a bez přihlášení zjistit základní údaje o parcelách, budovách, jednotkách a o tom, na jakém listu vlastnictví leží. Dohledáš parcelu podle čísla a katastrálního území, zobrazíš ji v mapě a ověříš druh pozemku, výměru i způsob ochrany. Pro úplné výpisy z LV a placené výstupy slouží Dálkový přístup, ale pro rychlou kontrolu v terénu většinou stačí bezplatné nahlížení.",
-      "body": [
-        "Vyhledání parcely podle čísla a katastrálního území",
-        "Náhled v katastrální mapě a ortofotu",
-        "Druh pozemku, výměra, způsob ochrany"
-      ],
-      "proc": "V terénu rychle ověříš, na jaké parcele stojíš a co na ní katastr eviduje.",
+      "nadpis": "Společný metodický pokyn ČÚZK a MMR k zápisu drobných staveb do KN",
+      "perex": "Nový metodický pokyn se zaměřuje na zápis drobných staveb do katastru nemovitostí.",
+      "telo": "Český úřad zeměměřický a katastrální (ČÚZK) ve spolupráci s Ministerstvem pro místní rozvoj (MMR) vydal nový Společný metodický pokyn, který se týká zápisu drobných staveb do katastru nemovitostí. Tento pokyn je důležitým krokem k zjednodušení a zefektivnění procesu registrace drobných staveb, což může přinést výhody jak pro vlastníky, tak pro geodety. V dokumentu jsou uvedeny jasné pokyny a doporučení, jak správně postupovat při zápisu těchto staveb.",
+      "body": [],
+      "proc": "Zpráva je důležitá pro geodety, kteří se zabývají zápisem nemovitostí.",
       "zdroj": "ČÚZK",
-      "odkaz": "https://nahlizenidokn.cuzk.gov.cz",
-      "datum": "2026-06-14"
-    },
-    {
-      "rubrika": "Přístroje",
-      "nadpis": "GNSS přijímače s kompenzací náklonu (IMU)",
-      "perex": "Moderní RTK rovery měří i nakloněnou výtyčkou — IMU dopočítá svislici a ušetří libelování.",
-      "telo": "Inerciální měřicí jednotka (IMU) v hlavě přijímače sleduje náklon a směr výtyčky a z toho dopočítá polohu hrotu, i když výtyčka není přesně svislá. Geodet tak nemusí u každého bodu pracně urovnávat libelu, což zrychluje vytyčování i sběr dat — zvlášť u rohů budov a hůře přístupných míst. Přesnost závisí na kvalitě IMU, na délce výtyčky a na tom, jak dobře je systém zkalibrovaný; výrobci běžně uvádějí náklon do desítek stupňů při zachování centimetrové přesnosti.",
-      "body": [
-        "Měření nakloněnou výtyčkou bez urovnávání libely",
-        "Rychlejší práce u rohů a překážek",
-        "Přesnost roste s kvalitou IMU a kalibrací"
-      ],
-      "proc": "Méně času u každého bodu a dosažitelnost míst, kam se se svislou výtyčkou nedostaneš.",
-      "zdroj": "GIM International",
-      "odkaz": "https://www.gim-international.com",
-      "datum": "2026-06-13"
+      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/Spolecny-metodicky-pokyn-CUZK-a-MMR-k-zapisu-drobn.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
+      "datum": "2026-03-06"
     },
     {
       "rubrika": "Ze světa",
-      "nadpis": "Galileo: evropský globální navigační systém",
-      "perex": "Evropská alternativa k GPS dnes patří k nejpřesnějším civilním GNSS a doplňuje polohu i v ČR.",
-      "telo": "Galileo je civilní globální navigační satelitní systém Evropské unie, provozovaný agenturou EUSPA a ESA. Pro geodety je zajímavý hlavně jako další zdroj signálů, které moderní vícefrekvenční přijímače kombinují s GPS, GLONASS a BeiDou — víc viditelných družic znamená lepší geometrii (nižší DOP), spolehlivější fix a kratší dobu inicializace ve stínu zástavby či porostu. Služba High Accuracy poskytuje korekce zdarma a míří na decimetrovou až centimetrovou přesnost bez nutnosti vlastní referenční stanice.",
-      "body": [
-        "Další konstelace pro vícefrekvenční přijímače",
-        "Lepší geometrie a fix v zastavěném terénu",
-        "High Accuracy Service: bezplatné korekce"
-      ],
-      "proc": "Více družic = stabilnější a přesnější poloha tam, kde sám GPS nestačí.",
-      "zdroj": "EUSPA",
-      "odkaz": "https://www.euspa.europa.eu/eu-space-programme/galileo",
+      "top": false,
+      "nadpis": "SimActive umožňuje rychlou produkci ortomosaik pro mapování plánovaných požárů",
+      "perex": "Software Correlator3D od SimActive se využívá pro rychlé generování ortomosaik v Austrálii.",
+      "telo": "Montreal, Kanada, 9. června 2026 – Společnost SimActive Inc. oznámila, že její software Correlator3D je používán firmou Landair Surveys k rychlému generování ortomosaik pro projekty mapování plánovaných požárů v Austrálii. Tato technologie podporuje časově citlivé letecké mapovací operace, kde jsou rychlé a přesné geodetické výstupy klíčové pro prevenci požárů a správu půdy. Landair Surveys spoléhá na Correlator3D, aby zpracovával letecké snímky v rámci těsných časových limitů, přičemž si zachovává přesnost.",
+      "body": [],
+      "proc": "Zpráva ukazuje na inovace v oblasti leteckého mapování a jejich aplikaci v prevenci požárů.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/06/12/simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping",
       "datum": "2026-06-12"
     },
     {
       "rubrika": "Technologie",
-      "nadpis": "Laserové skenování a mračna bodů v praxi",
-      "perex": "Skener zachytí miliony bodů za vteřiny — z mračna pak vznikají řezy, modely i podklady pro BIM.",
-      "telo": "Pozemní (TLS) i mobilní laserové skenování zaznamenává geometrii prostředí jako husté mračno bodů. Z něj se odvozují řezy, půdorysy, objemy nebo 3D modely a stále častěji slouží jako vstup pro BIM a digitální dvojčata staveb. Pro geodeta je klíčová registrace skenů do jednoho souřadnicového systému (přes vlícovací body nebo GNSS/IMU) a čištění dat. Výhodou je bezkontaktní záběr nepřístupných nebo nebezpečných míst; nevýhodou objem dat, který klade nároky na úložiště i výpočetní výkon.",
-      "body": [
-        "Miliony bodů, řezy a 3D modely",
-        "Vstup pro BIM a digitální dvojčata",
-        "Klíčová je registrace a čištění dat"
-      ],
-      "proc": "Zachytíš složitou geometrii a nebezpečná místa bez kontaktu, v jednom záběru.",
-      "zdroj": "GIM International",
-      "odkaz": "https://www.gim-international.com",
+      "top": false,
+      "nadpis": "YellowScan LiDAR Convention 2026 – Den 2",
+      "perex": "Druhý den konference přinesl zajímavé informace o technologii RTX od Trimble.",
+      "telo": "Na druhém dni konference YellowScan LiDAR Convention 2026 se účastníci dozvěděli o technologii Trimble RTX, kterou prezentoval Dr. Ulrich Weinbach. Tato technologie zahrnuje stovky síťových stanic a modely ionosférických a troposférických vlivů na regionální úrovni. Prezentace byla bohatá na informace a ukázala, jak RTX přispívá k přesnosti a efektivitě v oblasti geodézie a mapování.",
+      "body": [],
+      "proc": "Zpráva informuje o pokrocích v oblasti GNSS a jejich aplikacích.",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/06/11/yellowscan-lidar-convention-2026-day-2/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=yellowscan-lidar-convention-2026-day-2",
       "datum": "2026-06-11"
     },
     {
-      "rubrika": "Z praxe",
-      "nadpis": "Monitoring posunů a deformací staveb",
-      "perex": "Mosty, přehrady i tunely se geodeticky sledují — opakovaná měření odhalí pohyby dřív než porucha.",
-      "telo": "Geodetický monitoring sleduje, zda se stavba nebo terén v čase nepohybuje. Na objektu se osadí stabilní vztažné a pozorovací body a ty se opakovaně zaměřují totální stanicí, nivelací nebo trvale instalovanými senzory; u rozsáhlých území pomáhá i družicová radarová interferometrie (InSAR). Měření se vztahují k bodům mimo dosah pohybu a vyhodnocují se v čase. Hlavní výzvou je odlišit skutečný posun od chyby měření, proto se klade důraz na přesnost, opakovatelnost a stabilní vztažnou síť.",
-      "body": [
-        "Stabilní vztažné a pozorovací body",
-        "Opakovaná měření a sledování v čase",
-        "Odlišit skutečný posun od chyby měření"
-      ],
-      "proc": "Včasné zachycení pohybu může předejít poruše konstrukce.",
-      "zdroj": "FIG",
-      "odkaz": "https://www.fig.net",
-      "datum": "2026-06-10"
-    },
-    {
-      "rubrika": "Tip",
-      "nadpis": "Tip do terénu: kontrola orientace na známý bod",
-      "perex": "Než začneš měřit, zacíl na vzdálený jednoznačný bod a porovnej azimut s mapou — rychle odhalíš chybu severu.",
-      "telo": "Jednoduchá kontrola, která ušetří přeměřování: po postavení přístroje (nebo při kalibraci AR) zacíl na vzdálený, jednoznačně identifikovatelný bod — roh budovy, komín, stožár — a porovnej naměřený směr s tím, co plyne z mapy nebo ze známých souřadnic. Pokud azimut nesedí, máš špatně orientaci (sever) ještě dřív, než nasbíráš data. V AR Geodetovi k tomu slouží Průvodce kalibrací AR.",
-      "body": [
-        "Zacíl na vzdálený jednoznačný bod",
-        "Porovnej azimut s mapou / souřadnicemi",
-        "Nesedí-li, oprav orientaci před měřením"
-      ],
-      "proc": "Chybu severu odhalíš na začátku, ne až nad hotovými daty.",
-      "zdroj": "",
-      "odkaz": "",
-      "datum": "2026-06-14"
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Smart Pixels: Stavební blok pro novou evoluci digitálních dvojčat",
+      "perex": "Koncept Smart Pixels má potenciál revolučně změnit digitální dvojčata.",
+      "telo": "Článek představuje revoluční změnu filozofie a architektury, která je potřebná k tomu, aby digitální dvojčata překonala pouhou vizualizaci a naplnila svůj potenciál. Smart Pixels se ukazují jako stavební bloky pro digitální dvojčata nové generace, což může zásadně ovlivnit design, analýzu a rozhodování v oblasti stavebního prostředí. Tento koncept naznačuje vznik nové éry v geospatialních technologiích.",
+      "body": [],
+      "proc": "Zpráva ukazuje na inovativní přístupy v oblasti digitálních dvojčat a jejich budoucnost.",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/06/09/smart-pixels-the-building-block-for-next-evolution-of-digital-twins/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=smart-pixels-the-building-block-for-next-evolution-of-digital-twins",
+      "datum": "2026-06-09"
     },
     {
       "rubrika": "Akce",
-      "nadpis": "INTERGEO: největší přehlídka geodézie a geoinformatiky",
-      "perex": "Každoroční veletrh a konference, kde výrobci ukazují novou techniku a řeší se trendy oboru.",
-      "telo": "INTERGEO je mezinárodní veletrh a konference pro geodézii, geoinformace a správu území, který se každoročně koná v Německu. Potkávají se tu výrobci přístrojů, softwaru i dronů s odbornou veřejností; vedle expozic běží přednáškový program k aktuálním tématům — BIM, digitální dvojčata, UAV, GNSS nebo umělá inteligence ve zpracování dat. Pro přehled o tom, kam obor směřuje a co přijde na trh, je to jedna z hlavních událostí roku.",
-      "body": [
-        "Výrobci přístrojů, softwaru a dronů",
-        "Přednášky k trendům oboru",
-        "Koná se každoročně v Německu"
-      ],
-      "proc": "Přehled o nové technice a směřování oboru na jednom místě.",
-      "zdroj": "INTERGEO",
-      "odkaz": "https://www.intergeo.de/en/",
-      "datum": "2026-06-09"
+      "top": false,
+      "nadpis": "Geo Week 2027 hledá významné prezentace",
+      "perex": "Organizátoři Geo Week 2027 vyzývají k účasti na konferenci.",
+      "telo": "Organizátoři Geo Week, přední konference a výstavy, která spojuje odborníky na geodézii a mapování, oznámili otevření výzvy pro přednášející. Hledají praktikanty, projektové vedoucí a inovátory, kteří by sdíleli odborné poznatky a případové studie o unikátních výzvách, transformacích pracovních toků a moderních projektech využívajících lidar, snímkování, reality capture a další geodetické technologie. Uzávěrka pro přihlášky je 17. července.",
+      "body": [],
+      "proc": "Zpráva je důležitá pro odborníky, kteří chtějí prezentovat své zkušenosti na významné akci.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/05/26/geo-week-seeks-impactful-presentations-accepting-speaker-submissions-through-july-17/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=geo-week-seeks-impactful-presentations-accepting-speaker-submissions-through-july-17",
+      "datum": "2026-05-26"
     }
   ]
 }
