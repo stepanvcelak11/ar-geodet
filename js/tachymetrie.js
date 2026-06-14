@@ -167,6 +167,81 @@
     // projekce lat/lng -> pixel v canvasu (= container point mapy)
     function scr(p) { const pt = tmap.latLngToContainerPoint([p.lat, p.lng]); return { x: pt.x, y: pt.y }; }
 
+    // ---------- Měření: délky čar + plocha uzavřeného polygonu ----------
+    function lineMeters(l) {
+        const a = sketch.pts[l[0]], b = sketch.pts[l[1]];
+        if (!a || !b || !tmap) return null;
+        try { return tmap.distance([a.lat, a.lng], [b.lat, b.lng]); } catch (e) { return null; }
+    }
+    // metrické souřadnice pro výpočet plochy — proj4 do S-JTSK (EPSG:5514) jako jinde v appce
+    function metric(p) {
+        try { if (typeof proj4 === 'function') { const s = proj4('EPSG:4326', 'EPSG:5514', [p.lng, p.lat]); return [s[0], s[1]]; } } catch (e) {}
+        const R = 6378137, la = p.lat * Math.PI / 180; return [p.lng * Math.PI / 180 * R * Math.cos(la), p.lat * Math.PI / 180 * R];
+    }
+    function fmtLen(m) { return m >= 1000 ? (m / 1000).toFixed(3) + ' km' : m.toFixed(m < 10 ? 2 : 1) + ' m'; }
+    function fmtArea(a) { return a >= 10000 ? (a / 10000).toFixed(3) + ' ha' : a.toFixed(a < 100 ? 2 : 1) + ' m²'; }
+    // Detekuje JEDINÝ uzavřený polygon z čar (každý vrchol stupně 2, jeden cyklus). Jinak null
+    // -> nepočítáme plochu u nejednoznačných náčrtů (lepší nic než špatné číslo).
+    function ringInfo() {
+        if (!sketch.lines || sketch.lines.length < 3) return null;
+        const adj = new Map();
+        for (const l of sketch.lines) {
+            if (!sketch.pts[l[0]] || !sketch.pts[l[1]]) return null;
+            if (!adj.has(l[0])) adj.set(l[0], new Set());
+            if (!adj.has(l[1])) adj.set(l[1], new Set());
+            adj.get(l[0]).add(l[1]); adj.get(l[1]).add(l[0]);
+        }
+        for (const nb of adj.values()) if (nb.size !== 2) return null;
+        const start = adj.keys().next().value;
+        const order = []; let cur = start, prev = -1;
+        do {
+            order.push(cur);
+            const nbs = [...adj.get(cur)];
+            const next = (nbs[0] !== prev) ? nbs[0] : nbs[1];
+            prev = cur; cur = next;
+        } while (cur !== start && order.length <= adj.size + 1);
+        if (cur !== start || order.length !== adj.size) return null;
+        const m = order.map(i => metric(sketch.pts[i]));
+        let area = 0, perim = 0;
+        for (let k = 0; k < m.length; k++) {
+            const a = m[k], b = m[(k + 1) % m.length];
+            area += a[0] * b[1] - b[0] * a[1];
+            perim += Math.hypot(b[0] - a[0], b[1] - a[1]);
+        }
+        return { order: order, area: Math.abs(area) / 2, perim: perim };
+    }
+    // Vykreslí délky čar a (je-li) plochu polygonu do daného kontextu. onWhite = pro PNG export.
+    function drawMeasure(c, onWhite) {
+        const txt = onWhite ? '#111' : '#fff';
+        const halo = onWhite ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.7)';
+        const ring = ringInfo();
+        if (ring) {
+            const sp = ring.order.map(i => scr(sketch.pts[i]));
+            c.save();
+            c.beginPath(); c.moveTo(sp[0].x, sp[0].y);
+            for (let k = 1; k < sp.length; k++) c.lineTo(sp[k].x, sp[k].y);
+            c.closePath();
+            c.fillStyle = onWhite ? 'rgba(37,99,235,0.08)' : 'rgba(52,211,153,0.16)'; c.fill();
+            c.restore();
+            const cx = sp.reduce((s, p) => s + p.x, 0) / sp.length, cy = sp.reduce((s, p) => s + p.y, 0) / sp.length;
+            c.font = 'bold 15px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+            const label = fmtArea(ring.area);
+            c.lineWidth = 4; c.strokeStyle = halo; c.strokeText(label, cx, cy);
+            c.fillStyle = txt; c.fillText(label, cx, cy);
+            c.textBaseline = 'alphabetic';
+        }
+        c.font = 'bold 12px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+        sketch.lines.forEach(l => {
+            const d = lineMeters(l); if (d == null) return;
+            const a = scr(sketch.pts[l[0]]), b = scr(sketch.pts[l[1]]);
+            const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, s = fmtLen(d);
+            c.lineWidth = 4; c.strokeStyle = halo; c.strokeText(s, mx, my);
+            c.fillStyle = txt; c.fillText(s, mx, my);
+        });
+        c.textBaseline = 'alphabetic'; c.textAlign = 'left';
+        return ring;
+    }
+
     // ---------- Vykreslení ----------
     function syncSize() { if (!tmap) return; const s = tmap.getSize(); if (canvas.width !== s.x || canvas.height !== s.y) { canvas.width = s.x; canvas.height = s.y; } }
     function hint(t) { const h = document.getElementById('tachy-hint'); if (h) h.innerText = t; }
@@ -203,7 +278,8 @@
             ctx.fillStyle = '#fff'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'left';
             ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.strokeText(p.name, s.x + 9, s.y - 7); ctx.fillText(p.name, s.x + 9, s.y - 7);
         });
-        hint(`${sketch.pts.length} bodů · ${sketch.lines.length} čar · ${sketch.labels.length} popisků` + (mode === 'connect' ? ' · spojuji' : mode === 'label' ? ' · popisek' : ''));
+        const _ring = drawMeasure(ctx, false);
+        hint(`${sketch.pts.length} bodů · ${sketch.lines.length} čar · ${sketch.labels.length} popisků` + (_ring ? ` · plocha ${fmtArea(_ring.area)} · obvod ${fmtLen(_ring.perim)}` : '') + (mode === 'connect' ? ' · spojuji' : mode === 'label' ? ' · popisek' : ''));
     }
 
     function roundRect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
@@ -238,6 +314,7 @@
         sketch.labels.forEach(lb => { const s = scr(lb); c.font = 'bold 14px sans-serif'; c.fillStyle = '#7c2d12'; c.fillText(lb.text, s.x, s.y); });
         c.textBaseline = 'alphabetic'; c.textAlign = 'left';
         sketch.pts.forEach(p => { const s = scr(p); c.beginPath(); c.arc(s.x, s.y, 4.5, 0, 2 * Math.PI); c.fillStyle = '#2563eb'; c.fill(); c.fillStyle = '#111'; c.font = 'bold 13px sans-serif'; c.fillText(p.name, s.x + 8, s.y - 6); });
+        drawMeasure(c, true); // délky čar + plocha do exportu
         try {
             const url = exp.toDataURL('image/png');
             const a = document.createElement('a'); a.href = url;
