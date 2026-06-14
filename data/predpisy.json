@@ -8,7 +8,7 @@
       "zaznamy": [
         {
           "nazev": "Kód kvality podrobných bodů (mxy a mezní odchylky)",
-          "tagy": ["odchylka", "odchylky", "přesnost", "kód kvality", "mxy", "mezní", "souřadnicová chyba", "podrobný bod"],
+          "tagy": ["odchylka", "odchylky", "přesnost", "kód kvality", "mxy", "uxy", "mezní", "souřadnicová chyba", "podrobný bod"],
           "telo": "Přesnost souřadnic podrobného bodu v S-JTSK je vyjádřena kódem kvality 3 až 8. Každému kódu odpovídá základní střední souřadnicová chyba mxy. Z ní se odvozuje mezní souřadnicová chyba uxy = 2·mxy a mezní polohová odchylka = 2·√2·mxy. Kódy 3–5 jsou body zaměřené v terénu, kódy 6–8 pocházejí z digitalizace dřívějších map.",
           "tabulka": {
             "hlavicka": ["Kód", "Původ", "mxy [m]", "uxy = 2·mxy [m]", "Mezní polohová [m]"],
@@ -40,6 +40,133 @@
           "telo": "Způsob určení výměry parcely souvisí s kódem kvality lomových bodů: ze souřadnic v S-JTSK s kódem kvality 3 nebo 4 se výměra označuje kódem způsobu určení 2; pokud má aspoň jeden lomový bod souřadnici s kódem kvality 5 až 8, označuje se kódem 0. (Graficky určená výměra z mapy má kód 1.)",
           "pozn": "Vyšší přesnost lomových bodů (kód 3–4) = přesnější a „silnější“ výměra parcely.",
           "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+          "platnost": "2026-06-14"
+        }
+      ]
+    },
+    {
+      "id": "mereni",
+      "nazev": "Měřické postupy a kontrola přesnosti",
+      "zaznamy": [
+        {
+          "nazev": "Dvojí (nezávislé) určení bodu + připojení na body",
+          "tagy": ["měření", "dvojí určení", "nezávislé", "kontrola", "připojení", "metoda", "postup"],
+          "telo": "Zaměření každého podrobného bodu se provede nezávisle nejméně dvakrát. Měření musí být připojeno na body nejméně takové přesnosti, jaká má být dosažena u nově určovaných bodů (tj. nelze získat přesnější bod opřením o méně přesné body). Platí to bez ohledu na metodu (GNSS, polární metoda apod.) — rozhodující je dosažená a ověřená přesnost.",
+          "pozn": "Z dvojího určení se počítá kontrola přesnosti (viz výběrová střední chyba níže).",
+          "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 13",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Ověření přesnosti kontrolním měřením délek",
+          "tagy": ["ověření", "kontrolní měření", "oměrné", "délka", "mezní rozdíl", "ud", "kontrola"],
+          "telo": "Dosažení přesnosti se ověřuje oměrnými mírami nebo kontrolním měřením délek přímých spojnic jiných vybraných dvojic podrobných bodů a jejich porovnáním s délkami vypočtenými ze souřadnic. Vyhovuje, když rozdíl kontrolně měřené délky a délky ze souřadnic je menší než mezní rozdíl délky ud = 2·md (md = základní střední chyba délky).",
+          "pozn": "U souboru s více než 20 rozdíly platí navíc statistické kritérium (podíl rozdílů menších než md) — viz bod 13 přílohy.",
+          "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 13",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Výběrová střední souřadnicová chyba (test polohy)",
+          "tagy": ["výběrová střední chyba", "sxy", "uxy", "kontrolní určení", "ověření", "mezní", "koeficient k"],
+          "telo": "Při ověření kontrolním (druhým) určením souřadnic téhož bodu se počítá výběrová střední souřadnicová chyba sxy = √(0,5·(Δx² + Δy²)), kde Δx, Δy jsou rozdíly souřadnic z prvního a kontrolního určení. Přesnost vyhovuje, když sxy nepřekročí mezní souřadnicovou chybu uxy = 2·mxy příslušného kódu kvality (např. kód 3 → uxy = 0,28 m).",
+          "pozn": "Koeficient k = 2, má-li kontrolní určení stejnou přesnost jako podrobné měření; k = 1, je-li kontrola podstatně přesnější (mxy < 0,10 m). Mezní hodnoty uxy viz tabulka kódů kvality.",
+          "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 13",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+          "platnost": "2026-06-14"
+        }
+      ]
+    },
+    {
+      "id": "ciselniky",
+      "nazev": "Kódy a číselníky",
+      "zaznamy": [
+        {
+          "nazev": "Druhy pozemků (kódy)",
+          "tagy": ["druh pozemku", "kód", "číselník", "orná", "zahrada", "trvalý travní porost", "lesní", "vodní", "zastavěná", "ostatní"],
+          "telo": "Druh pozemku je závazná charakteristika evidovaná v katastru. Kódy druhu pozemku:",
+          "tabulka": {
+            "hlavicka": ["Kód", "Druh pozemku"],
+            "radky": [
+              ["2", "orná půda"],
+              ["3", "chmelnice"],
+              ["4", "vinice"],
+              ["5", "zahrada"],
+              ["6", "ovocný sad"],
+              ["7", "trvalý travní porost"],
+              ["10", "lesní pozemek"],
+              ["11", "vodní plocha"],
+              ["13", "zastavěná plocha a nádvoří"],
+              ["14", "ostatní plocha"]
+            ]
+          },
+          "pozn": "Kódy 2–7 jsou zemědělské pozemky (ZPF). Druh pozemku v katastru ≠ možnost stavět (o tom rozhoduje územní plán).",
+          "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon) § 3; vyhláška č. 357/2013 Sb.",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Typy geodetických bodových polí",
+          "tagy": ["bodové pole", "TB", "ZhB", "PBPP", "trigonometrický", "zhušťovací", "nivelační", "polohové", "výškové", "tíhové"],
+          "telo": "Bodová pole se dělí na polohové, výškové a tíhové. V polohovém poli jsou body trigonometrické (TB), zhušťovací (ZhB) a podrobné polohové bodové pole (PBPP) — od nejpřesnějších/řídkých k hustším a méně přesným. Výškové pole tvoří nivelační body, tíhové pole tíhové body.",
+          "pozn": "Konkrétní přesnosti a třídy stanoví předpisy o bodových polích (zákon o zeměměřictví a prováděcí vyhláška).",
+          "zdroj": "Zákon č. 200/1994 Sb. o zeměměřictví a prováděcí vyhláška č. 31/1995 Sb.",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/1995-31",
+          "platnost": "2026-06-14"
+        }
+      ]
+    },
+    {
+      "id": "gp-zpmz",
+      "nazev": "Náležitosti GP a ZPMZ",
+      "zaznamy": [
+        {
+          "nazev": "Geometrický plán — kdy a co obsahuje",
+          "tagy": ["geometrický plán", "GP", "náležitosti", "popisové pole", "výkaz", "ÚOZI", "potvrzení"],
+          "telo": "Geometrický plán je technický podklad pro zápis změny v katastru (rozdělení/scelení parcel, vyznačení budovy, věcné břemeno k části pozemku ad.). Obsahuje zejména popisové pole, grafické znázornění dosavadního a nového stavu a výkaz dosavadního a nového stavu údajů katastru (případně seznam souřadnic a výkaz BPEJ). Musí být ověřen úředně oprávněným zeměměřickým inženýrem (ÚOZI) a potvrzen katastrálním úřadem.",
+          "pozn": "Úprava: § 79–86 vyhlášky a přílohy č. 17 a 18. Katastrální úřad GP potvrzuje ve lhůtě 10 dní.",
+          "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 79–86 + přílohy 17 a 18",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Záznam podrobného měření změn (ZPMZ)",
+          "tagy": ["ZPMZ", "záznam podrobného měření změn", "náčrt", "zápisník", "měřická dokumentace", "souřadnice"],
+          "telo": "ZPMZ je měřická dokumentace ukládaná u katastrálního úřadu — výsledek zeměměřických činností pro změnu (mj. měřická část geometrického plánu). Obsahuje zejména popisové pole, měřický náčrt (body geometrického základu, identické body, měřickou síť; nový stav se kreslí ČERVENĚ), zápisník měřených údajů, protokol o výpočtech a seznam souřadnic.",
+          "pozn": "Náležitosti upravuje bod 16 přílohy. Jeden ZPMZ lze využít jako podklad pro více souvisejících geometrických plánů.",
+          "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 16",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+          "platnost": "2026-06-14"
+        }
+      ]
+    },
+    {
+      "id": "lhuty",
+      "nazev": "Lhůty a postupy",
+      "zaznamy": [
+        {
+          "nazev": "Ochranná lhůta u vkladu (20 dní)",
+          "tagy": ["lhůta", "ochranná lhůta", "vklad", "20 dní", "plomba", "řízení"],
+          "telo": "Po podání návrhu na vklad běží ochranná lhůta 20 dnů. Katastrální úřad informuje vlastníka o dotčení jeho nemovitosti (plomba) a vklad nesmí povolit dříve než po uplynutí 20 dnů od tohoto vyrozumění. Lhůta dává prostor bránit se proti podvodnému převodu — je prekluzivní (po uplynutí už námitku podat nelze).",
+          "pozn": "Po ochranné lhůtě má úřad zpravidla další lhůtu (až ~30 dní) na rozhodnutí; celé řízení tak může trvat řádově 50 dní.",
+          "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon) § 18",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Plomba (poznámka o probíhajícím řízení)",
+          "tagy": ["plomba", "P", "list vlastnictví", "řízení", "lhůta"],
+          "telo": "Plomba (písmeno „P“ u nemovitosti, v praxi v části D / u příslušných údajů) značí, že probíhá řízení dotýkající se zapsaných práv. Vyznačí se nejpozději následující pracovní den po doručení návrhu; vyrozumění vlastníkovi úřad zašle do jednoho dne. Plomba zanikne po provedení vkladu, zastavení nebo zamítnutí řízení.",
+          "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon)",
+          "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Potvrzení geometrického plánu katastrálním úřadem",
+          "tagy": ["lhůta", "geometrický plán", "potvrzení", "10 dní", "katastrální úřad"],
+          "telo": "Katastrální úřad přezkoumá geometrický plán (zda má náležitosti dle vyhlášky a správné očíslování parcel) a potvrdí jej ve lhůtě zpravidla 10 dní.",
+          "zdroj": "Katastrální vyhláška č. 357/2013 Sb.; správní řád",
           "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
           "platnost": "2026-06-14"
         }
