@@ -1,0 +1,48 @@
+name: Geo zpravodaj (denní vydání)
+
+# Sestaví data/zpravodaj.json z RSS zdrojů přes GitHub Models a commitne ho.
+# Spouští se každé ráno (cron, UTC) a jde spustit i ručně (Run workflow).
+on:
+  schedule:
+    - cron: '30 5 * * *'   # 05:30 UTC ≈ 07:30 Praha (léto) / 06:30 (zima)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write   # aby bot mohl commitnout nové vydání
+  models: read      # přístup k GitHub Models pro GITHUB_TOKEN
+
+concurrency:
+  group: zpravodaj
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Europe/Prague
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Sestavit vydání
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Volitelné: když GITHUB_TOKEN nemá k Models přístup, vlož PAT s oprávněním Models
+          # jako repo secret MODELS_TOKEN — skript ho upřednostní.
+          MODELS_TOKEN: ${{ secrets.MODELS_TOKEN }}
+        run: node scripts/build-zpravodaj.mjs
+
+      - name: Commitnout, pokud se vydání změnilo
+        run: |
+          if git diff --quiet -- data/zpravodaj.json; then
+            echo "Beze změny — necommituji."
+          else
+            git config user.name  "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/zpravodaj.json
+            git commit -m "Zpravodaj: vydání $(date +%F) [skip ci]"
+            git push
+          fi
