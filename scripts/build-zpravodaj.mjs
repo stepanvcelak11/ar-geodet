@@ -14,7 +14,7 @@
 // Zdroje upravíš v poli FEEDS níže. Mrtvý/nedostupný feed se jen přeskočí.
 // Token: použije se MODELS_TOKEN (secret), jinak GITHUB_TOKEN z Actions.
 // =============================================================================
-import { writeFileSync, readFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 
 const OUT = 'data/zpravodaj.json';
 
@@ -253,18 +253,8 @@ async function main() {
     const raw = extractJson(content);
     if (!raw) { console.error('[stop] model nevrátil platný JSON — NEPŘEPISUJI.\n', content.slice(0, 400)); process.exit(1); }
 
-    // 3) Validace + zápis
+    // 3) Validace + zápis (na bezpečí stačí MIN_ITEMS uvnitř normEdition)
     const edition = normEdition(raw, today);
-
-    // drobná kontrola proti regresi: kdyby model vyrobil míň, než už máme, raději zachovej staré
-    try {
-        const prev = JSON.parse(readFileSync(OUT, 'utf8'));
-        if (Array.isArray(prev.polozky) && prev.vydani === today && prev.polozky.length > edition.polozky.length + 1) {
-            console.error('[stop] nové vydání má míň položek než dnešní existující — NEPŘEPISUJI.');
-            process.exit(1);
-        }
-    } catch (e) { /* žádné/nečitelné staré vydání — pokračuj */ }
-
     writeFileSync(OUT, JSON.stringify(edition, null, 2) + '\n', 'utf8');
     console.log('[hotovo] zapsáno', OUT, '·', edition.polozky.length, 'položek, top:', edition.polozky.find((p) => p.top)?.nadpis);
 }
