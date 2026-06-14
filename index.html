@@ -309,81 +309,13 @@
         <div class="modal-content">
             <h2 style="margin-top:0;">Nastavení</h2>
             <div class="tab-buttons">
-                <div class="tab-btn active" onclick="switchTab('tab-funkce', this)">Funkce a Data</div>
-                <div class="tab-btn" onclick="switchTab('tab-vzhled', this)"><svg class="icon"><use href="#i-sliders"/></svg> Vzhled a Barvy</div>
-                <div class="tab-btn" onclick="switchTab('tab-dodatecne', this)"><svg class="icon"><use href="#i-grid"/></svg> Dodatečné funkce</div>
+                <div class="tab-btn active" onclick="switchTab('tab-vzhled', this)"><svg class="icon"><use href="#i-sliders"/></svg> Vzhled</div>
+                <div class="tab-btn" onclick="switchTab('tab-ar', this)"><svg class="icon"><use href="#i-crosshair"/></svg> AR &amp; přesnost</div>
+                <div class="tab-btn" onclick="switchTab('tab-data', this)"><svg class="icon"><use href="#i-folder"/></svg> Data</div>
             </div>
             <div class="modal-body">
-                <div id="tab-funkce" class="settings-tab active">
-                    <label style="margin-top:4px;">Aktivní zakázka</label>
-                    <div style="display:flex; gap:8px; align-items:center; margin-bottom:15px;"><select id="s-project-select" class="w-proj-select" style="flex:1;" onchange="changeProjectFromSettings()"></select><button class="w-proj-icon" onclick="createNewProject()" aria-label="Nová zakázka"><svg class="icon"><use href="#i-plus"/></svg></button><button class="w-proj-icon danger" onclick="deleteProject()" aria-label="Smazat zakázku"><svg class="icon"><use href="#i-trash"/></svg></button></div>
-
-                    <button class="btn btn-secondary" style="margin-bottom: 15px;" onclick="startTutorial()"><svg class="icon"><use href="#i-bulb"/></svg> Spustit návod a prohlídku aplikace</button>
-
-                    <div class="filter-group" style="margin-bottom: 15px;">
-                        <label class="filter-row"><input type="checkbox" id="s-wakelock" checked><svg class="icon" style="margin-right:8px;"><use href="#i-bulb"/></svg> Zamezit zhasínání displeje</label>
-                        <label class="filter-row" style="margin-bottom:0;"><input type="checkbox" id="s-outdoor"><svg class="icon" style="margin-right:8px;"><use href="#i-sun"/></svg> Venkovní režim (vysoký kontrast)</label>
-                    </div>
-
-                    <label style="margin-top: 15px;">Zdroj mapy (Katastr)</label>
-                    <select id="s-katastr-source">
-                        <option value="mapycz">Mapy.cz (Katastrální)</option>
-                        <option value="ikatastr">iKatastr.cz</option>
-                        <option value="cuzk">ČÚZK Geoprohlížeč</option>
-                    </select>
-
-                    <label style="margin-top: 15px;">Poloměr pro mapu (Stahování): <span id="s-map-radius-val">1000</span> m</label>
-                    <input type="range" id="s-map-radius-slider" min="50" max="5000" step="50" value="1000" oninput="document.getElementById('s-map-radius-val').innerText = this.value">
-                    <label style="margin-top: 15px; color: var(--accent);">Viditelnost v AR kameře: <span id="s-ar-radius-val">150</span> m</label>
-                    <input type="range" id="s-ar-radius-slider" min="50" max="5000" step="50" value="150" oninput="document.getElementById('s-ar-radius-val').innerText = this.value">
-                    <label style="margin-top: 15px;">Max. zobrazených bodů v AR (Výkon): <span id="s-max-ar-val">20</span></label>
-                    <input type="range" id="s-max-ar-slider" min="10" max="200" step="10" value="20" oninput="document.getElementById('s-max-ar-val').innerText = this.value">
-
-                    <h4 style="color:var(--accent); margin-top:20px; border-bottom: 1px solid var(--glass-border); padding-bottom:5px;"><svg class="icon" style="vertical-align:-0.16em; margin-right:6px;"><use href="#i-crosshair"/></svg>Přesnost & kalibrace AR</h4>
-                    <div class="filter-group" style="margin-bottom: 10px;">
-                        <label class="filter-row"><input type="checkbox" id="s-auto-compass"> Auto-korekce kompasu podle pohybu (GPS)</label>
-                        <label class="filter-row" style="margin-bottom:0;"><input type="checkbox" id="s-tilt-comp"> Kompenzace náklonu telefonu (přesnější svislé umístění)</label>
-                    </div>
-                    <label>Vyhlazení kompasu: <span id="s-heading-smooth-val">75</span> %</label>
-                    <input type="range" id="s-heading-smooth" min="0" max="95" step="5" value="75" oninput="document.getElementById('s-heading-smooth-val').innerText = this.value">
-                    <label style="margin-top: 10px;">Zorný úhel kamery – šířka: <span id="s-fovh-val">90</span> °</label>
-                    <input type="range" id="s-fovh" min="40" max="120" step="2" value="90" oninput="document.getElementById('s-fovh-val').innerText = this.value">
-                    <label style="margin-top: 10px;">Zorný úhel kamery – výška: <span id="s-fovv-val">75</span> °</label>
-                    <input type="range" id="s-fovv" min="40" max="130" step="2" value="75" oninput="document.getElementById('s-fovv-val').innerText = this.value">
-                    <label style="margin-top: 10px;">Výška očí nad zemí: <span id="s-eyeh-val">1.6</span> m</label>
-                    <input type="range" id="s-eyeh" min="1.0" max="2.0" step="0.05" value="1.6" oninput="document.getElementById('s-eyeh-val').innerText = this.value">
-                    <label style="margin-top: 20px;">Druh hledaných bodů</label>
-                    <div class="filter-group">
-                        <label class="filter-row"><input type="checkbox" id="f-tb" checked onchange="updateFilters()"> Trigonometrické</label>
-                        <label class="filter-row"><input type="checkbox" id="f-zhb" checked onchange="updateFilters()"> Zhušťovací</label>
-                        <label class="filter-row"><input type="checkbox" id="f-pbpp" checked onchange="updateFilters()"> Podrobné polohové</label>
-                        <label class="filter-row"><input type="checkbox" id="f-nivel" checked onchange="updateFilters()"> Výškové / Nivelační</label>
-                        <label class="filter-row"><input type="checkbox" id="f-custom" checked onchange="updateFilters()"> Vlastní</label>
-                    </div>
-                    <label style="margin-top: 15px;">Hledat konkrétní bod (Plný název)</label>
-                    <input type="text" id="s-search-name" placeholder="Např. 567 nebo celá značka">
-                    <label style="margin-top: 15px;">Rozvržení aplikace</label>
-                    <div class="filter-group" style="display: flex; flex-direction: column; gap: 8px;">
-                        <label class="filter-row"><input type="radio" name="s-view" value="both"> Mapa i AR</label>
-                        <label class="filter-row"><input type="radio" name="s-view" value="map"> Pouze Mapa</label>
-                        <label class="filter-row"><input type="radio" name="s-view" value="ar"> Pouze AR</label>
-                    </div>
-                    <label style="margin-top: 15px;">Výběr objektivu kamery</label>
-                    <button class="btn btn-secondary" style="margin-top: 6px;" onclick="loadCameras()"><svg class="icon"><use href="#i-camera"/></svg> Načíst dostupné kamery</button>
-                    <select id="s-camera-select" style="margin-top: 8px;"><option value="">Výchozí zadní kamera</option></select>
-                    <button class="btn btn-blue" style="margin-top: 20px;" onclick="saveForOffline()"><svg class="icon"><use href="#i-download"/></svg> Uložit pro Offline</button>
-                    <button class="btn btn-secondary" style="margin-top: 10px;" onclick="restoreHiddenPoints()"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Obnovit skryté body</button>
-                    <button class="btn btn-danger" style="margin-top: 10px;" onclick="clearAllPoints()"><svg class="icon"><use href="#i-trash"/></svg> Vymazat stáhnuté okolí z této zakázky</button><hr style="border-color: var(--glass-border); width: 100%; margin: 20px 0;"><label>Záloha všech zakázek a nastavení</label><button class="btn btn-secondary" style="margin-top: 8px;" onclick="exportAllData()"><svg class="icon"><use href="#i-download"/></svg> Stáhnout zálohu (vše)</button><button class="btn btn-blue" style="margin-top: 10px;" onclick="document.getElementById('restore-file').click()"><svg class="icon"><use href="#i-upload"/></svg> Obnovit ze zálohy</button><input type="file" id="restore-file" style="display:none" accept=".json,application/json" onchange="importAllData(event)">
-                </div>
-                <div id="tab-dodatecne" class="settings-tab">
-                    <h4 style="color:var(--accent); margin-top:0; border-bottom: 1px solid var(--glass-border); padding-bottom:5px;">Dodatečné funkce</h4>
-                    <button class="btn btn-secondary" style="margin-top:4px; border-color:var(--accent); color:var(--accent);" onclick="document.getElementById('settings-modal').style.display='none'; openPruvodce();"><svg class="icon"><use href="#i-navigation"/></svg> Průvodce úkolem (krok za krokem)</button>
-                    <button class="btn btn-secondary" style="margin-top:12px; border-color:var(--accent); color:var(--accent);" onclick="document.getElementById('settings-modal').style.display='none'; openTachymetrie();"><svg class="icon"><use href="#i-grid"/></svg> Náčrt / Tachymetrie (beta)</button>
-                    <p style="font-size:12px; color:var(--text-muted); line-height:1.5; margin-top:14px;">Náčrt: digitální tachymetrický náčrt — přidáš body, spojíš je čarami a vložíš popisky (např. „kámen"). Průvodce úkolem tě provede krok za krokem.</p>
-                </div>
-                <div id="tab-vzhled" class="settings-tab">
-                    <h4 style="color:var(--accent); margin-top:0; border-bottom: 1px solid var(--glass-border); padding-bottom:5px;">Barevný motiv aplikace</h4>
-                    <label style="margin-top:0;">Světlost</label>
+                <div id="tab-vzhled" class="settings-tab active">
+                    <label style="margin-top:4px;">Světlost</label>
                     <select id="v-mode" onchange="previewMode(this.value)">
                         <option value="light">Světlý režim</option>
                         <option value="dark">Tmavý režim</option>
@@ -397,44 +329,115 @@
                         <option value="forest">Les (zelená)</option>
                         <option value="graphite">Grafit (šedá)</option>
                     </select>
-                    <div class="filter-group" style="margin-top:12px;">
-                        <label class="filter-row" style="margin-bottom:0;"><input type="checkbox" id="v-adaptive-glass" checked><svg class="icon" style="margin-right:8px;"><use href="#i-sun"/></svg> Adaptivní sklo podle jasu kamery</label>
-                    </div>
-                    <h4 style="color:var(--accent); margin-top:20px; border-bottom: 1px solid var(--glass-border); padding-bottom:5px;">AR Body (Pozice a Barvy)</h4>
-                    <label style="margin-top: 5px;">Výškový posun bodů v AR kameře: <span id="v-ar-height-val">0</span></label>
-                    <p style="font-size: 11px; margin-top: 0; opacity: 0.8;">Posuňte body níže nebo výše, pokud držíte telefon zešikma a body vám letí nahoru.</p>
-                    <input type="range" id="v-ar-height-slider" min="-50" max="50" step="5" value="0" oninput="document.getElementById('v-ar-height-val').innerText = this.value">
-                    <div class="color-row" style="margin-top: 10px;">
-                        <div><label>Trigono.</label><input type="color" id="col-tb" value="#8b5cf6"></div>
-                        <div><label>Zhušťov.</label><input type="color" id="col-zhb" value="#0ea5e9"></div>
-                        <div><label>Podrob.</label><input type="color" id="col-pbpp" value="#3b82f6"></div>
-                    </div>
-                    <div class="color-row">
-                        <div style="flex:0 0 45%;"><label>Výškové</label><input type="color" id="col-nivel" value="#ef4444"></div>
-                        <div style="flex:0 0 45%;"><label>Vlastní</label><input type="color" id="col-custom" value="#34d399"></div>
-                    </div>
-                    <label style="margin-top: 15px;">Velikost štítků: <span id="v-marker-scale-val">100</span> %</label>
-                    <input type="range" id="v-marker-scale" min="50" max="200" step="10" value="100" oninput="document.getElementById('v-marker-scale-val').innerText = this.value">
-                    <label>Průhlednost (Viditelnost): <span id="v-marker-opacity-val">100</span> %</label>
-                    <input type="range" id="v-marker-opacity" min="20" max="100" step="10" value="100" oninput="document.getElementById('v-marker-opacity-val').innerText = this.value">
-                    <h4 style="color:var(--accent); margin-top:20px; border-bottom: 1px solid var(--glass-border); padding-bottom:5px;">3D Navigační Šipka</h4>
-                    <div class="color-row"><div style="flex: 0 0 50%;"><label>Barva šipky a cíle</label><input type="color" id="col-arrow" value="#34d399"></div></div>
-                    <label>Tvar šipky na zemi</label>
-                    <select id="v-arrow-shape">
-                        <option value="1">Klasická masivní</option><option value="2">Tenká a úzká</option><option value="3">Chevron (Zlomená)</option>
-                        <option value="4">Vlaštovka (Ostrý trojúhelník)</option><option value="5">Kosočtverec / Diamant</option>
-                    </select>
-                    <label>Velikost 3D objektu: <span id="v-arrow-scale-val">100</span> %</label>
-                    <input type="range" id="v-arrow-scale" min="50" max="200" step="10" value="100" oninput="document.getElementById('v-arrow-scale-val').innerText = this.value">
-                    <label>Průhlednost šipky: <span id="v-arrow-opacity-val">90</span> %</label>
-                    <input type="range" id="v-arrow-opacity" min="20" max="100" step="10" value="90" oninput="document.getElementById('v-arrow-opacity-val').innerText = this.value">
-                    <label>Velikost navigačního štítku: <span id="v-hud-scale-val">100</span> %</label>
-                    <input type="range" id="v-hud-scale" min="50" max="200" step="10" value="100" oninput="document.getElementById('v-hud-scale-val').innerText = this.value">
-                    <h4 style="color:var(--accent); margin-top:20px; border-bottom: 1px solid var(--glass-border); padding-bottom:5px;">Další vlastnosti</h4>
-                    <label>Průhlednost panelů na skle: <span id="v-panel-opacity-val">85</span> %</label>
-                    <input type="range" id="v-panel-opacity" min="10" max="100" step="5" value="85" oninput="document.getElementById('v-panel-opacity-val').innerText = this.value">
-                    <label>Velikost textu a Menu: <span id="v-menu-scale-val">100</span> %</label>
+                    <label>Velikost textu a menu: <span id="v-menu-scale-val">100</span> %</label>
                     <input type="range" id="v-menu-scale" min="50" max="150" step="10" value="100" oninput="document.getElementById('v-menu-scale-val').innerText = this.value">
+                    <div class="filter-group" style="margin-top:14px;">
+                        <label class="filter-row"><input type="checkbox" id="s-wakelock" checked><svg class="icon" style="margin-right:8px;"><use href="#i-bulb"/></svg> Zamezit zhasínání displeje</label>
+                        <label class="filter-row" style="margin-bottom:0;"><input type="checkbox" id="s-outdoor"><svg class="icon" style="margin-right:8px;"><use href="#i-sun"/></svg> Venkovní režim (vysoký kontrast)</label>
+                    </div>
+                    <details class="adv"><summary><svg class="icon"><use href="#i-sliders"/></svg> Pokročilé — barvy bodů, štítky, šipka, HUD</summary>
+                        <div class="adv-body">
+                            <div class="filter-group" style="margin-top:4px;">
+                                <label class="filter-row" style="margin-bottom:0;"><input type="checkbox" id="v-adaptive-glass" checked><svg class="icon" style="margin-right:8px;"><use href="#i-sun"/></svg> Adaptivní sklo podle jasu kamery</label>
+                            </div>
+                            <label style="margin-top: 12px;">Výškový posun bodů v AR kameře: <span id="v-ar-height-val">0</span></label>
+                            <input type="range" id="v-ar-height-slider" min="-50" max="50" step="5" value="0" oninput="document.getElementById('v-ar-height-val').innerText = this.value">
+                            <div class="color-row" style="margin-top: 10px;">
+                                <div><label>Trigono.</label><input type="color" id="col-tb" value="#8b5cf6"></div>
+                                <div><label>Zhušťov.</label><input type="color" id="col-zhb" value="#0ea5e9"></div>
+                                <div><label>Podrob.</label><input type="color" id="col-pbpp" value="#3b82f6"></div>
+                            </div>
+                            <div class="color-row">
+                                <div style="flex:0 0 45%;"><label>Výškové</label><input type="color" id="col-nivel" value="#ef4444"></div>
+                                <div style="flex:0 0 45%;"><label>Vlastní</label><input type="color" id="col-custom" value="#34d399"></div>
+                            </div>
+                            <label style="margin-top: 15px;">Velikost štítků: <span id="v-marker-scale-val">100</span> %</label>
+                            <input type="range" id="v-marker-scale" min="50" max="200" step="10" value="100" oninput="document.getElementById('v-marker-scale-val').innerText = this.value">
+                            <label>Průhlednost (Viditelnost): <span id="v-marker-opacity-val">100</span> %</label>
+                            <input type="range" id="v-marker-opacity" min="20" max="100" step="10" value="100" oninput="document.getElementById('v-marker-opacity-val').innerText = this.value">
+                            <label style="margin-top:15px;">3D navigační šipka</label>
+                            <div class="color-row"><div style="flex: 0 0 50%;"><label>Barva šipky a cíle</label><input type="color" id="col-arrow" value="#34d399"></div></div>
+                            <label>Tvar šipky na zemi</label>
+                            <select id="v-arrow-shape">
+                                <option value="1">Klasická masivní</option><option value="2">Tenká a úzká</option><option value="3">Chevron (Zlomená)</option>
+                                <option value="4">Vlaštovka (Ostrý trojúhelník)</option><option value="5">Kosočtverec / Diamant</option>
+                            </select>
+                            <label>Velikost 3D objektu: <span id="v-arrow-scale-val">100</span> %</label>
+                            <input type="range" id="v-arrow-scale" min="50" max="200" step="10" value="100" oninput="document.getElementById('v-arrow-scale-val').innerText = this.value">
+                            <label>Průhlednost šipky: <span id="v-arrow-opacity-val">90</span> %</label>
+                            <input type="range" id="v-arrow-opacity" min="20" max="100" step="10" value="90" oninput="document.getElementById('v-arrow-opacity-val').innerText = this.value">
+                            <label>Velikost navigačního štítku: <span id="v-hud-scale-val">100</span> %</label>
+                            <input type="range" id="v-hud-scale" min="50" max="200" step="10" value="100" oninput="document.getElementById('v-hud-scale-val').innerText = this.value">
+                            <label>Průhlednost panelů na skle: <span id="v-panel-opacity-val">85</span> %</label>
+                            <input type="range" id="v-panel-opacity" min="10" max="100" step="5" value="85" oninput="document.getElementById('v-panel-opacity-val').innerText = this.value">
+                        </div>
+                    </details>
+                </div>
+                <div id="tab-ar" class="settings-tab">
+                    <label style="margin-top:4px;">Rozvržení aplikace</label>
+                    <div class="filter-group" style="display: flex; flex-direction: column; gap: 8px;">
+                        <label class="filter-row"><input type="radio" name="s-view" value="both"> Mapa i AR</label>
+                        <label class="filter-row"><input type="radio" name="s-view" value="map"> Pouze Mapa</label>
+                        <label class="filter-row" style="margin-bottom:0;"><input type="radio" name="s-view" value="ar"> Pouze AR</label>
+                    </div>
+                    <label style="margin-top: 15px; color: var(--accent);">Viditelnost v AR kameře: <span id="s-ar-radius-val">150</span> m</label>
+                    <input type="range" id="s-ar-radius-slider" min="50" max="5000" step="50" value="150" oninput="document.getElementById('s-ar-radius-val').innerText = this.value">
+                    <label style="margin-top: 15px;">Max. zobrazených bodů v AR (Výkon): <span id="s-max-ar-val">20</span></label>
+                    <input type="range" id="s-max-ar-slider" min="10" max="200" step="10" value="20" oninput="document.getElementById('s-max-ar-val').innerText = this.value">
+                    <button class="btn btn-secondary" style="margin-top:16px;" onclick="document.getElementById('settings-modal').style.display='none'; openCompassModal();"><svg class="icon"><use href="#i-crosshair"/></svg> Kompas a kalibrace</button>
+                    <details class="adv"><summary><svg class="icon"><use href="#i-crosshair"/></svg> Pokročilé — jemné doladění AR</summary>
+                        <div class="adv-body">
+                            <div class="filter-group" style="margin-bottom: 10px; margin-top:4px;">
+                                <label class="filter-row"><input type="checkbox" id="s-auto-compass"> Auto-korekce kompasu podle pohybu (GPS)</label>
+                                <label class="filter-row" style="margin-bottom:0;"><input type="checkbox" id="s-tilt-comp"> Kompenzace náklonu telefonu (přesnější svislé umístění)</label>
+                            </div>
+                            <label>Vyhlazení kompasu: <span id="s-heading-smooth-val">75</span> %</label>
+                            <input type="range" id="s-heading-smooth" min="0" max="95" step="5" value="75" oninput="document.getElementById('s-heading-smooth-val').innerText = this.value">
+                            <label style="margin-top: 10px;">Zorný úhel kamery – šířka: <span id="s-fovh-val">90</span> °</label>
+                            <input type="range" id="s-fovh" min="40" max="120" step="2" value="90" oninput="document.getElementById('s-fovh-val').innerText = this.value">
+                            <label style="margin-top: 10px;">Zorný úhel kamery – výška: <span id="s-fovv-val">75</span> °</label>
+                            <input type="range" id="s-fovv" min="40" max="130" step="2" value="75" oninput="document.getElementById('s-fovv-val').innerText = this.value">
+                            <label style="margin-top: 10px;">Výška očí nad zemí: <span id="s-eyeh-val">1.6</span> m</label>
+                            <input type="range" id="s-eyeh" min="1.0" max="2.0" step="0.05" value="1.6" oninput="document.getElementById('s-eyeh-val').innerText = this.value">
+                            <label style="margin-top: 15px;">Výběr objektivu kamery</label>
+                            <button class="btn btn-secondary" style="margin-top: 6px;" onclick="loadCameras()"><svg class="icon"><use href="#i-camera"/></svg> Načíst dostupné kamery</button>
+                            <select id="s-camera-select" style="margin-top: 8px;"><option value="">Výchozí zadní kamera</option></select>
+                        </div>
+                    </details>
+                </div>
+                <div id="tab-data" class="settings-tab">
+                    <label style="margin-top:4px;">Aktivní zakázka</label>
+                    <div style="display:flex; gap:8px; align-items:center; margin-bottom:15px;"><select id="s-project-select" class="w-proj-select" style="flex:1;" onchange="changeProjectFromSettings()"></select><button class="w-proj-icon" onclick="createNewProject()" aria-label="Nová zakázka"><svg class="icon"><use href="#i-plus"/></svg></button><button class="w-proj-icon danger" onclick="deleteProject()" aria-label="Smazat zakázku"><svg class="icon"><use href="#i-trash"/></svg></button></div>
+                    <label>Druh hledaných bodů</label>
+                    <div class="filter-group">
+                        <label class="filter-row"><input type="checkbox" id="f-tb" checked onchange="updateFilters()"> Trigonometrické</label>
+                        <label class="filter-row"><input type="checkbox" id="f-zhb" checked onchange="updateFilters()"> Zhušťovací</label>
+                        <label class="filter-row"><input type="checkbox" id="f-pbpp" checked onchange="updateFilters()"> Podrobné polohové</label>
+                        <label class="filter-row"><input type="checkbox" id="f-nivel" checked onchange="updateFilters()"> Výškové / Nivelační</label>
+                        <label class="filter-row" style="margin-bottom:0;"><input type="checkbox" id="f-custom" checked onchange="updateFilters()"> Vlastní</label>
+                    </div>
+                    <label style="margin-top: 15px;">Poloměr pro mapu (Stahování): <span id="s-map-radius-val">1000</span> m</label>
+                    <input type="range" id="s-map-radius-slider" min="50" max="5000" step="50" value="1000" oninput="document.getElementById('s-map-radius-val').innerText = this.value">
+                    <label style="margin-top: 15px;">Zdroj mapy (Katastr)</label>
+                    <select id="s-katastr-source">
+                        <option value="mapycz">Mapy.cz (Katastrální)</option>
+                        <option value="ikatastr">iKatastr.cz</option>
+                        <option value="cuzk">ČÚZK Geoprohlížeč</option>
+                    </select>
+                    <label style="margin-top: 15px;">Hledat konkrétní bod (Plný název)</label>
+                    <input type="text" id="s-search-name" placeholder="Např. 567 nebo celá značka">
+                    <button class="btn btn-blue" style="margin-top: 18px;" onclick="saveForOffline()"><svg class="icon"><use href="#i-download"/></svg> Uložit pro Offline</button>
+                    <details class="adv"><summary><svg class="icon"><use href="#i-rotate-ccw"/></svg> Údržba a záloha</summary>
+                        <div class="adv-body">
+                            <button class="btn btn-secondary" style="margin-top: 4px;" onclick="restoreHiddenPoints()"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Obnovit skryté body</button>
+                            <button class="btn btn-danger" style="margin-top: 10px;" onclick="clearAllPoints()"><svg class="icon"><use href="#i-trash"/></svg> Vymazat stáhnuté okolí z této zakázky</button>
+                            <hr style="border-color: var(--glass-border); width: 100%; margin: 16px 0;">
+                            <label>Záloha všech zakázek a nastavení</label>
+                            <button class="btn btn-secondary" style="margin-top: 8px;" onclick="exportAllData()"><svg class="icon"><use href="#i-download"/></svg> Stáhnout zálohu (vše)</button>
+                            <button class="btn btn-blue" style="margin-top: 10px;" onclick="document.getElementById('restore-file').click()"><svg class="icon"><use href="#i-upload"/></svg> Obnovit ze zálohy</button>
+                            <input type="file" id="restore-file" style="display:none" accept=".json,application/json" onchange="importAllData(event)">
+                        </div>
+                    </details>
                 </div>
             </div>
             <button class="btn btn-primary" style="margin-top: 20px;" onclick="saveSettings()">Uložit vše a Zavřít</button>
