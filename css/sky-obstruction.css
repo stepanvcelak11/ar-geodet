@@ -1,0 +1,156 @@
+/* ===== AR Geodet — PREDIKCE GNSS SIGNÁLU (skyplot) =============================
+   Neinvazivní, ODPOJITELNÁ vrstva. Načítá se AŽ ZA style.css. Drží se design-tokenů
+   (--accent, --glass-bg, --glass-border, --text-color, --text-muted, --r-md, --warning).
+   Odstranění: smaž css/sky-obstruction.css + js/sky-obstruction.js a řádky v index.html.
+   ============================================================================== */
+
+/* Skyplot */
+.sky-plot-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 4px 0 12px;
+}
+.sky-svg {
+    width: min(280px, 78vw);
+    height: auto;
+    display: block;
+}
+.sky-svg .sky-horizon {
+    fill: rgba(0, 0, 0, 0.30);
+    stroke: var(--glass-border, rgba(255, 255, 255, 0.12));
+    stroke-width: 1;
+}
+.sky-svg .sky-clear {
+    fill: var(--accent-soft, rgba(47, 158, 116, 0.14));
+    stroke: none;
+}
+.sky-svg .sky-grid {
+    fill: none;
+    stroke: var(--glass-border, rgba(255, 255, 255, 0.12));
+    stroke-width: 0.8;
+}
+.sky-svg .sky-mask-line {
+    fill: none;
+    stroke: var(--accent-line, var(--accent, #2f9e74));
+    stroke-width: 1.4;
+    stroke-dasharray: 3 3;
+}
+.sky-svg .sky-card {
+    fill: var(--text-muted, #9aa1ac);
+    font-family: var(--font-mono, monospace);
+    font-size: 11px;
+    font-weight: 700;
+    text-anchor: middle;
+}
+.sky-svg .sky-sat {
+    stroke: rgba(255, 255, 255, 0.85);
+    stroke-width: 1;
+}
+.sky-svg .sky-sat.blocked {
+    opacity: 0.32;
+    stroke: none;
+}
+
+/* Posuvník elevační masky */
+.sky-mask-row { margin: 4px 0 12px; }
+.sky-mask-row > label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-color, #eceef2);
+    margin-bottom: 6px;
+}
+.sky-mask-ctl {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.sky-mask-ctl input[type="range"] {
+    flex: 1;
+    accent-color: var(--accent, #2f9e74);
+    height: 26px;
+}
+.sky-mask-val {
+    flex: 0 0 auto;
+    min-width: 42px;
+    text-align: right;
+    font-family: var(--font-mono, monospace);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent, #2f9e74);
+}
+.sky-hint {
+    margin-top: 6px;
+    font-size: 10.5px;
+    line-height: 1.45;
+    color: var(--text-muted, #9aa1ac);
+}
+
+/* Verdikt (hodnocení) */
+.sky-verdict {
+    margin: 0 0 10px;
+    padding: 12px 14px;
+    border-radius: var(--r-md, 12px);
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
+    border-left-width: 4px;
+    background: rgba(0, 0, 0, 0.18);
+    text-align: center;
+}
+.sky-verdict-big {
+    font-family: var(--font-mono, monospace);
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.05;
+    color: var(--text-color, #eceef2);
+}
+.sky-verdict-big span {
+    font-family: var(--font-ui, sans-serif);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted, #9aa1ac);
+}
+.sky-verdict-txt {
+    margin-top: 4px;
+    font-size: 13.5px;
+    font-weight: 600;
+}
+.sky-verdict.good { border-left-color: var(--accent, #2f9e74); }
+.sky-verdict.good .sky-verdict-txt { color: var(--accent-bright, #3eb487); }
+.sky-verdict.ok { border-left-color: var(--accent, #2f9e74); }
+.sky-verdict.ok .sky-verdict-txt { color: var(--text-color, #eceef2); }
+.sky-verdict.weak { border-left-color: var(--warning, #fbbf24); }
+.sky-verdict.weak .sky-verdict-txt { color: var(--warning, #fbbf24); }
+.sky-verdict.bad { border-left-color: var(--danger, #fb7185); }
+.sky-verdict.bad .sky-verdict-txt { color: var(--danger, #fb7185); }
+
+/* Rozpad po systémech */
+.sky-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    margin: 0 0 10px;
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
+/* PDOP řádek */
+.sky-pdop {
+    font-size: 12.5px;
+    color: var(--text-muted, #9aa1ac);
+    margin: 0 0 10px;
+}
+.sky-pdop b { color: var(--text-color, #eceef2); font-family: var(--font-mono, monospace); }
+.sky-pdop-note { opacity: 0.7; font-size: 10.5px; }
+
+/* Poznámky */
+.sky-note {
+    margin: 6px 0 0;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-muted, #9aa1ac);
+}
+.sky-note.sky-warn { color: var(--warning, #fbbf24); }
+
+/* Venkovní režim — čitelnost v ostrém slunci (sladěno s body.outdoor-mode) */
+body.outdoor-mode .sky-svg .sky-horizon { fill: rgba(0, 0, 0, 0.55); }
+body.outdoor-mode .sky-verdict { background: #0a0e1a; border-color: rgba(255, 255, 255, 0.6); }

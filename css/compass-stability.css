@@ -1,0 +1,98 @@
+/* ===== AR Geodet — STABILITA KOMPASU (UI/UX vrstva) ============================
+   Neinvazivní, ODPOJITELNÁ vrstva. Načítá se AŽ ZA style.css, jen doplňuje.
+   Drží se design-tokenů (--accent, --glass-bg, --glass-border, --r-pill, …).
+   Odstranění: smaž css/compass-stability.css + js/compass-stability.js a řádky
+   se značkou v index.html / sw.js.
+   ================================================================================ */
+
+/* Malý semafor stability poblíž azimutu (#compass-debug je vpravo nahoře). */
+#ag-cstab {
+    position: absolute;
+    /* pod chipem azimutu (#compass-debug: hud-top + 60px, výška ~34px) */
+    top: max(calc(var(--hud-top) + 100px), calc(env(safe-area-inset-top) + 100px));
+    right: var(--hud-side);
+    z-index: 9999;
+    display: none;               /* zviditelní JS přes .show, jen když appStarted */
+    align-items: center;
+    gap: 7px;
+    padding: 5px 11px 5px 9px;
+    background: var(--glass-bg, rgba(24, 28, 33, 0.84));
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.10));
+    border-radius: var(--r-pill, 999px);
+    box-shadow: var(--shadow-1, 0 1px 3px rgba(0, 0, 0, 0.5)), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    color: var(--text-color, #eceef2);
+    font-family: var(--font-ui, sans-serif);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    line-height: 1;
+    white-space: nowrap;
+    pointer-events: none;        /* jen indikátor, nezachytává dotyk */
+    opacity: var(--panel-opacity, 0.85);
+    transform: scale(var(--menu-scale, 1));
+    transform-origin: top right;
+    transition: opacity 0.3s ease;
+}
+#ag-cstab.show { display: inline-flex; }
+
+#ag-cstab .ag-cstab-dot {
+    width: 9px;
+    height: 9px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--text-faint, #6b727d);
+    box-shadow: 0 0 0 0 transparent;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+#ag-cstab .ag-cstab-val {
+    font-family: var(--font-mono, monospace);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: var(--text-color, #eceef2);
+    min-width: 30px;
+    text-align: right;
+}
+
+/* Stavy semaforu */
+#ag-cstab.good .ag-cstab-dot {
+    background: var(--accent, #2f9e74);
+    box-shadow: 0 0 8px var(--accent-soft, rgba(47, 158, 116, 0.45));
+}
+#ag-cstab.warn .ag-cstab-dot {
+    background: var(--warning, #fbbf24);
+    box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+}
+#ag-cstab.bad .ag-cstab-dot {
+    background: var(--danger, #fb7185);
+    box-shadow: 0 0 9px rgba(251, 113, 133, 0.6);
+    animation: ag-cstab-blink 1.1s ease-in-out infinite;
+}
+#ag-cstab.bad .ag-cstab-val { color: var(--danger, #fb7185); }
+#ag-cstab.init .ag-cstab-dot { background: var(--text-faint, #6b727d); }
+#ag-cstab.init .ag-cstab-val { color: var(--text-muted, #9aa1ac); }
+
+@keyframes ag-cstab-blink {
+    0%, 100% { box-shadow: 0 0 9px rgba(251, 113, 133, 0.6); }
+    50%      { box-shadow: 0 0 14px rgba(251, 113, 133, 0.95); }
+}
+
+/* Venkovní režim — i tento prvek musí být v ostrém slunci čitelný
+   (sladěno s body.outdoor-mode v style.css: neprůhledné, bez blur, výrazný okraj) */
+body.outdoor-mode #ag-cstab {
+    background: #0a0e1a;
+    border-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    opacity: 1;
+}
+
+/* Režim rukavic — větší terč i pro tento drobný indikátor */
+body.ag-glove #ag-cstab { font-size: 12.5px; padding: 7px 13px 7px 11px; }
+body.ag-glove #ag-cstab .ag-cstab-dot { width: 11px; height: 11px; }
+
+/* Respekt k omezenému pohybu */
+@media (prefers-reduced-motion: reduce) {
+    #ag-cstab.bad .ag-cstab-dot { animation: none; }
+}

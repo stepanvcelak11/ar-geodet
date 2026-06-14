@@ -1,0 +1,78 @@
+/* ===== AR Geodet — GNSS KVALITA (odpojitelná vrstva) ============================
+   Neinvazivní, ODPOJITELNÁ vrstva. Načítá se AŽ ZA style.css (a klidně i za
+   css/vylepseni.css), takže jen doplňuje. Drží se design-tokenů z style.css.
+   Odstranění celé vrstvy: smaž css/gnss-quality.css + js/gnss-quality.js a řádky
+   se značkou "GNSS KVALITA" v index.html (+ záznam v sw.js).
+   Řádek s kvalitou GNSS se injektuje do satelitního modálu (#sat-modal) hned
+   za blok statistik (#sat-stats).
+   ================================================================================ */
+
+.gq-row {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
+    border-left: 3px solid var(--accent, #2f9e74);
+    border-radius: var(--r-md, 12px);
+    background: var(--accent-soft, rgba(47, 158, 116, 0.14));
+    color: var(--text-color, #eceef2);
+    font-family: var(--font-ui, sans-serif);
+}
+
+.gq-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.gq-label {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-muted, #9aa1ac);
+}
+.gq-pdop {
+    font-family: var(--font-mono, monospace);
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Slovní hodnocení geometrie — barva podle prahů PDOP */
+.gq-pdop.gq-great { color: var(--accent-bright, #3eb487); }
+.gq-pdop.gq-good { color: var(--accent, #2f9e74); }
+.gq-pdop.gq-ok { color: var(--warning, #fbbf24); }
+.gq-pdop.gq-weak { color: var(--danger, #fb7185); }
+
+/* Nejlepší okno pro měření dnes */
+.gq-best {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--glass-border, rgba(255, 255, 255, 0.14));
+}
+.gq-best-lbl {
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted, #9aa1ac);
+}
+.gq-best-val {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--accent, #2f9e74);
+}
+.gq-best-sub {
+    font-family: var(--font-mono, monospace);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted, #9aa1ac);
+}
+
+/* Venkovní režim — čitelnost v ostrém slunci (sladěno s body.outdoor-mode). */
+body.outdoor-mode .gq-row {
+    background: #0a0e1a !important;
+    border-color: rgba(255, 255, 255, 0.6) !important;
+    border-left-color: var(--accent-bright, #3eb487) !important;
+}

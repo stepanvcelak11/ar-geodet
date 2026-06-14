@@ -7,7 +7,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  — mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v70';
+const SHELL_CACHE = 'argeodet-shell-v71';
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -38,6 +38,24 @@ const ASSETS_TO_CACHE = [
     './js/tachymetrie.js',
     './js/zpravodaj.js',
     './js/predpisy.js',
+    './js/gnss-quality.js',
+    './css/gnss-quality.css',
+    './js/gps-warn.js',
+    './css/gps-warn.css',
+    './js/csv-validate.js',
+    './js/kml-export.js',
+    './js/compass-stability.js',
+    './css/compass-stability.css',
+    './js/calib-profiles.js',
+    './css/calib-profiles.css',
+    './js/ref-calibration.js',
+    './css/ref-calibration.css',
+    './js/sky-obstruction.js',
+    './css/sky-obstruction.css',
+    './js/cadastre-area.js',
+    './css/cadastre-area.css',
+    './js/ar-stabilize.js',
+    './css/ar-stabilize.css',
     './js/vylepseni.js',
     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
     './js/lib/proj4-2.9.0.min.js',
