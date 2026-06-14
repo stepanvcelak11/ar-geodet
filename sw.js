@@ -74,6 +74,7 @@ const ASSETS_TO_CACHE = [
     './css/dmt-volume.css',
     './js/check-distance.js',
     './css/check-distance.css',
+    './js/tutorial-pro.js',
     './js/vylepseni.js',
     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
     './js/lib/proj4-2.9.0.min.js',
