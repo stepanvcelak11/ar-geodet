@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AR Geodet — návrh navigace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1216; --bg2:#171b20; --panel:#161b21; --panelSolid:#1b2128;
+    --border:rgba(255,255,255,.10); --hair:rgba(255,255,255,.06);
+    --text:#eceef2; --muted:#9aa1ac; --accent:#2f9e74; --accentStrong:#3eb487;
+    --onAccent:#04130c; --data:#e6bd76;
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:"Inter",system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:48px;}
+  .wrap{max-width:430px;margin:0 auto;padding:18px 16px;}
+  h1{font-family:"Sora",sans-serif;font-size:19px;font-weight:800;margin:0 0 4px;}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 4px;line-height:1.5;}
+  .secT{display:flex;align-items:center;gap:8px;font-family:"Sora",sans-serif;font-weight:700;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:28px 2px 12px;}
+  .secT::before{content:"";width:14px;height:3px;border-radius:3px;background:var(--accent);}
+  .note{font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:10px;}
+  .note b{color:var(--data);}
+  .ic{font-size:21px;line-height:1;}
+
+  /* DOK */
+  .phone{position:relative;height:230px;border-radius:24px;overflow:hidden;border:1px solid var(--border);
+    background:radial-gradient(60% 40% at 80% 10%, rgba(47,158,116,.10), transparent 70%),linear-gradient(160deg,var(--bg2),var(--bg));}
+  .phone .hint{position:absolute;top:14px;left:0;right:0;text-align:center;color:var(--muted);font-size:12px;}
+  .dock{position:absolute;left:12px;right:12px;bottom:12px;display:flex;justify-content:space-between;align-items:flex-end;
+    padding:8px;border-radius:22px;background:rgba(22,27,33,.92);border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.4),inset 0 1px 0 var(--hair);}
+  .dbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:10px;font-weight:600;}
+  .dbtn.act{color:var(--accent);}
+  .fab{display:flex;align-items:center;justify-content:center;width:50px;height:50px;margin-top:-26px;border-radius:50%;
+    background:var(--accent);border:3px solid var(--bg);box-shadow:0 6px 18px rgba(47,158,116,.4);color:#fff;font-size:28px;}
+
+  /* MODAL karta */
+  .card{padding:18px;border-radius:18px;background:var(--panelSolid);border:1px solid var(--border);box-shadow:0 16px 40px rgba(0,0,0,.35),inset 0 1px 0 var(--hair);}
+  .card h3{font-family:"Sora",sans-serif;font-size:17px;font-weight:700;margin:0 0 14px;display:flex;align-items:center;gap:9px;}
+  .card h3 .ic{color:var(--accent);}
+
+  /* Nástroje – mřížka dlaždic */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:16px 6px;
+    border-radius:14px;background:var(--panel);border:1px solid var(--border);text-align:center;}
+  .tile .ic{font-size:24px;}
+  .tile span{font-size:12px;font-weight:600;line-height:1.2;}
+  .tile.beta::after{content:"beta";font-size:9px;color:var(--onAccent);background:var(--accent);padding:1px 6px;border-radius:99px;font-weight:700;}
+
+  /* Více – seznam */
+  .list{display:flex;flex-direction:column;gap:2px;}
+  .row{display:flex;align-items:center;gap:13px;padding:14px 10px;border-radius:12px;border:1px solid transparent;}
+  .row+.row{border-top:1px solid var(--hair);}
+  .row .ic{width:24px;text-align:center;color:var(--accent);}
+  .row .tx{flex:1;}
+  .row .tx b{display:block;font-size:14.5px;font-weight:600;}
+  .row .tx small{color:var(--muted);font-size:11.5px;}
+  .row .chev{color:var(--muted);}
+  .sheet-handle{width:42px;height:5px;border-radius:99px;background:rgba(255,255,255,.22);margin:2px auto 16px;}
+
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+  .mini{padding:12px;border-radius:12px;background:var(--panel);border:1px solid var(--border);font-size:12.5px;line-height:1.5;}
+  .mini b{color:var(--data);}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Návrh nové navigace</h1>
+    <p class="sub">Cíl: jedno logické místo pro nástroje, jedno „Více" pro zbytek. Konec roztříštěnosti a skrytého menu. (Mockup ve stávajícím tmavém vzhledu.)</p>
+
+    <div class="secT">Spodní dok</div>
+    <div class="phone">
+      <div class="hint">nahoře zůstává přepínač AR / Dělené / Mapa</div>
+      <div class="dock">
+        <div class="dbtn"><span class="ic">🗺️</span>Katastr</div>
+        <div class="dbtn act"><span class="ic">🧰</span>Nástroje</div>
+        <div class="dbtn"><span class="fab">＋</span>Nový bod</div>
+        <div class="dbtn"><span class="ic">📍</span>Body</div>
+        <div class="dbtn"><span class="ic">⋯</span>Více</div>
+      </div>
+    </div>
+    <p class="note">Změna oproti dnešku: „Měření" → <b>Nástroje</b> (sloučí všechny nástroje) a „Nastavení" → <b>Více</b> (Nastavení uvnitř). Tím se uvolní slot a všechno má jasné místo.</p>
+
+    <div class="secT">Nástroje (po klepnutí na 🧰)</div>
+    <div class="card">
+      <h3><span class="ic">🧰</span> Nástroje</h3>
+      <div class="grid">
+        <div class="tile"><span class="ic">📏</span><span>Měření<br>vzdálenosti</span></div>
+        <div class="tile"><span class="ic">⬠</span><span>Měření<br>plochy</span></div>
+        <div class="tile"><span class="ic">🧮</span><span>Kalkulačka</span></div>
+        <div class="tile"><span class="ic">🛰️</span><span>GNSS<br>satelity</span></div>
+        <div class="tile"><span class="ic">✓</span><span>Vytyčovací<br>checklist</span></div>
+        <div class="tile beta"><span class="ic">▦</span><span>Náčrt /<br>Tachymetrie</span></div>
+        <div class="tile"><span class="ic">📖</span><span>Slovník</span></div>
+        <div class="tile"><span class="ic">📋</span><span>Předpisy /<br>tahák</span></div>
+      </div>
+    </div>
+    <p class="note">Mřížka ikon místo dlouhého sloupce tlačítek — rychlejší orientace a vejde se sem i <b>Náčrt</b> a <b>Předpisy</b> (dnes schované jinde).</p>
+
+    <div class="secT">Více (po klepnutí na ⋯)</div>
+    <div class="card">
+      <div class="sheet-handle"></div>
+      <div class="list">
+        <div class="row"><span class="ic">🧭</span><span class="tx"><b>Průvodce úkolem</b><small>provede tě krok za krokem</small></span><span class="chev">›</span></div>
+        <div class="row"><span class="ic">📰</span><span class="tx"><b>Zpravodaj</b><small>denní geodetické zprávy</small></span><span class="chev">›</span></div>
+        <div class="row"><span class="ic">⬇️</span><span class="tx"><b>Uložit pro offline</b><small>mapy a data do terénu</small></span><span class="chev">›</span></div>
+        <div class="row"><span class="ic">⚙️</span><span class="tx"><b>Nastavení</b><small>vzhled, přesnost, zakázky, záloha</small></span><span class="chev">›</span></div>
+        <div class="row"><span class="ic">💡</span><span class="tx"><b>Návod a prohlídka</b><small>interaktivní tutoriál</small></span><span class="chev">›</span></div>
+        <div class="row"><span class="ic">ℹ️</span><span class="tx"><b>O aplikaci</b><small>verze, zdroje dat, soukromí</small></span><span class="chev">›</span></div>
+      </div>
+    </div>
+    <p class="note">„Více" nahradí dnešní <b>skryté boční menu</b> (kam si Předpisy/Zpravodaj přidávají tlačítka, ale v appce je skoro nejde otevřít). QR sdílení zůstává v <b>Body</b>, Režim rukavic v <b>Nastavení</b>.</p>
+
+    <div class="secT">Co se vyřeší</div>
+    <div class="twocol">
+      <div class="mini"><b>Dřív:</b> Náčrt jen v Nastavení, Průvodce v úvodu+Nastavení, satelity/slovník v „Měření", skryté menu s duplicitami.</div>
+      <div class="mini"><b>Nově:</b> nástroje na jednom místě (mřížka), zbytek ve „Více", skryté menu pryč. Jasné, kde co je.</div>
+    </div>
+
+    <p class="note" style="margin-top:22px;">Ikony jsou tu jen orientační (emoji) — ve appce budou stejné čárové ikony jako teď. Rozvržení a uspořádání je to podstatné.</p>
+  </div>
+</body>
+</html>
