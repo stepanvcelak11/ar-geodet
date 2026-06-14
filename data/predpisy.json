@@ -169,6 +169,60 @@
           "zdroj": "ČSN 73 0415 (Geodetické body); výukové materiály VUT/ZČU",
           "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch07s04.html",
           "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Rajón — podmínky určení pomocného bodu",
+          "tagy": ["rajón", "rajon", "pomocný bod", "délka rajónu", "orientace", "měřická síť"],
+          "telo": "Rajón = určení nového bodu ze známého bodu měřeným směrníkem a délkou (volný pořad o jedné straně). Pro pomocné měřické body (dle Návodu pro obnovu KO): max délka 1500 m a ne víc než délka nejvzdálenější orientace. Orientace buď na daném bodě na 2 body bodového pole (mxy ≤ 0,04 m), nebo na určovaném bodě na ≥3 body — úhel mezi směrem s měřenou délkou a ostatními 30–170 gon.",
+          "pozn": "Délka > 800 m → úhly ve dvou skupinách. Výchozí bod s chybou 0,04–0,06 m → max 300 m. Body na technických objektech zpravidla do 50 m. Bod nesmí být určen jen jedním rajónem (nutná kontrola).",
+          "zdroj": "ČÚZK — Návod pro obnovu katastrálního operátu a převod",
+          "odkaz": "https://cuzk.gov.cz/Predpisy/Resortni-predpisy-a-opatreni/Navody-CUZK/Navod_150150022.aspx",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Volné stanovisko a orientace",
+          "tagy": ["volné stanovisko", "orientace", "stanovisko", "připojení", "protínání", "gon"],
+          "telo": "Volné stanovisko: přístroj stojí na libovolném bodě, jeho poloha se určí měřením na dané body. Orientace na stanovisku se provede vždy nejméně na 2 body bodových polí / pomocné body a nejméně na jeden z nich se měří i délka. Pro jednoznačné určení stačí 2 body (směr + délka) nebo 3 body (jen směry); pro kontrolu a vyrovnání (MNČ) se volí nadbytečné body.",
+          "pozn": "Úhel na určovaném bodě mezi směry na dva dané body má být v rozmezí 30–170 gon. Úhly se měří/registrují s přesností aspoň 0,001 gon.",
+          "zdroj": "ČÚZK — Návod pro obnovu KO; katastrální vyhláška č. 357/2013 Sb.",
+          "odkaz": "https://cuzk.gov.cz/Predpisy/Resortni-predpisy-a-opatreni/Navody-CUZK/Navod_150150022.aspx",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Protínání (vpřed / zpět / z délek)",
+          "tagy": ["protínání", "vpřed", "zpět", "z délek", "resekce", "nebezpečná kružnice", "úhel protnutí"],
+          "telo": "Protínání VPŘED: poloha nového bodu jako průsečík směrů (nebo délek) z daných bodů. Protínání ZPĚT (resekce): stanovisko se určí zaměřením na ≥3 dané body. Protínání z délek: z měřených délek na/ze známých bodů. Úhel protnutí na určovaném bodě má být 30–170 gon (ne příliš ostrý ani tupý).",
+          "pozn": "Protínání zpět: POZOR na „nebezpečnou kružnici“ — leží-li stanovisko blízko kružnice procházející třemi danými body, úloha nemá spolehlivé řešení.",
+          "zdroj": "Katastrální vyhláška č. 357/2013 Sb.; výukové materiály ČVUT/ZČU",
+          "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch07s03.html",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Trigonometrická nivelace (určení výšek)",
+          "tagy": ["trigonometrická nivelace", "výška", "převýšení", "zenitový úhel", "refrakce", "totální stanice"],
+          "telo": "Převýšení se určí ze zenitové (svislé) vzdálenosti a šikmé délky — typicky totální stanicí. Hodí se pro výšky nepřístupných bodů a na větší vzdálenosti, kde nivelace nelze. Na delších záměrách roste vliv refrakce a zakřivení Země — je nutné je opravit; spolehlivost zvyšuje měření tam i zpět (oboustranně) a kratší záměry.",
+          "pozn": "Přesnost závisí na délce záměry a přesnosti zenitového úhlu — posuzuje se samostatně (zákon hromadění chyb). Pro přesné výšky volit kratší záměry a oboustranné měření.",
+          "zdroj": "Výukové materiály ČVUT/VUT/SPŠ zeměměřická; ČSN pro výšková měření",
+          "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch11s05.html",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Tachymetrie (podrobné body totální stanicí)",
+          "tagy": ["tachymetrie", "podrobné body", "totální stanice", "polární", "mapování", "výškopis", "přesnost"],
+          "telo": "Tachymetrie = současné určení polohy (polárně: vodorovný úhel + délka) a výšky (trigonometricky ze zenitového úhlu a délky) podrobných bodů z jednoho stanoviska — základ polohopisného a výškopisného mapování. Moderní totální stanice: střední chyba bodu řádově 0,02–0,05 m, délky i přes 200 m (přesnost se vzdáleností klesá).",
+          "pozn": "Kontrola: před opuštěním stanoviska zaměř kontrolně aspoň jeden daný bod (ověření, že se během sběru nezměnila orientace / vodorovný kruh). Požadovaná přesnost podrobných bodů dle kódu kvality (katastr) / ČSN 01 3410 pro mapy velkých měřítek.",
+          "zdroj": "Výukové materiály ČVUT/ZČU; ČSN 01 3410; katastrální vyhláška č. 357/2013 Sb.",
+          "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch15.html",
+          "platnost": "2026-06-14"
+        },
+        {
+          "nazev": "Vytyčování staveb (ČSN 73 0420)",
+          "tagy": ["vytyčování staveb", "ČSN 73 0420", "vytyčovací odchylka", "mezní", "stavební tolerance", "stavba"],
+          "telo": "Přesnost vytyčování stavebních objektů upravuje ČSN 73 0420: část 1 (Základní požadavky) — zásady a výpočet kritérií přesnosti vytyčení; část 2 (Vytyčovací odchylky) — konkrétní hodnoty mezních vytyčovacích odchylek pro liniové, plošné a prostorové stavby. Mezní vytyčovací odchylka se odvozuje ze stavební tolerance (směrodatná odchylka ze stavební tolerance).",
+          "pozn": "Konkrétní číselné hodnoty jsou v placené ČSN 73 0420-2 (zde je jen reference). Souvisí ČSN ISO 4463 (měřické metody ve výstavbě).",
+          "zdroj": "ČSN 73 0420-1 a ČSN 73 0420-2 (Přesnost vytyčování staveb)",
+          "odkaz": "https://www.technicke-normy-csn.cz/csn-73-0420-1-730420-221530.html",
+          "platnost": "2026-06-14"
         }
       ]
     },
