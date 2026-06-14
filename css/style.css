@@ -1636,3 +1636,53 @@ body.cam-light #ar-hud-info .hud-name { color: #1e293b; }
 #settings-modal details.adv[open] > summary::after { transform: rotate(180deg); }
 #settings-modal details.adv .adv-body { padding: 0 14px 12px; }
 #settings-modal details.adv .adv-body > label:first-child { margin-top: 4px; }
+
+
+/* =========================================================================
+   Nastaveni: moderni ovladaci prvky (switch / segment / chips / slider)
+   Sladeno s navrhem nahledy-nastaveni.html. Funkcni ID zustavaji beze zmeny.
+   ========================================================================= */
+/* Radek: popisek vlevo, ovladac vpravo */
+#settings-modal .st-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--glass-border); }
+#settings-modal .st-row:last-child { border-bottom: none; }
+#settings-modal .st-lab { font-size: 14.5px; font-weight: 600; color: var(--text-color); margin: 0; letter-spacing: 0; }
+#settings-modal .st-lab small { display: block; color: var(--text-muted); font-size: 11.5px; font-weight: 400; margin-top: 2px; letter-spacing: 0; }
+
+/* Prepinac (switch) z checkboxu */
+#settings-modal .st-sw { position: relative; display: inline-block; width: 46px; height: 27px; flex: none; cursor: pointer; margin: 0; }
+#settings-modal .st-sw input { position: absolute; opacity: 0; width: 0; height: 0; }
+#settings-modal .st-sw .st-sw-face { position: absolute; inset: 0; border-radius: 99px; background: var(--surface-3); transition: background .2s ease; }
+#settings-modal .st-sw .st-sw-face::after { content: ""; position: absolute; top: 3px; left: 3px; width: 21px; height: 21px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.4); transition: transform .2s ease; }
+#settings-modal .st-sw input:checked + .st-sw-face { background: var(--accent); }
+#settings-modal .st-sw input:checked + .st-sw-face::after { transform: translateX(19px); }
+#settings-modal .st-sw input:focus-visible + .st-sw-face { box-shadow: 0 0 0 3px var(--accent-soft); }
+
+/* Segment (Svetly/Tmavy, Rozvrzeni) */
+#settings-modal .st-seg { display: inline-flex; gap: 3px; padding: 3px; border-radius: 99px; background: rgba(0,0,0,.22); flex: none; }
+#settings-modal .st-seg label { display: inline-flex; margin: 0; position: relative; }
+#settings-modal .st-seg input { position: absolute; opacity: 0; width: 0; height: 0; }
+#settings-modal .st-seg .st-seg-b,
+#settings-modal .st-seg label > span { display: block; padding: 7px 13px; border: none; background: none; border-radius: 99px; font-size: 12.5px; font-weight: 600; font-family: inherit; color: var(--text-muted); cursor: pointer; white-space: nowrap; transition: background .18s ease, color .18s ease; }
+#settings-modal .st-seg .st-seg-b.on,
+#settings-modal .st-seg input:checked + span { background: var(--accent); color: #fff; }
+body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
+
+/* Chips (druh hledanych bodu) */
+#settings-modal .st-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+#settings-modal .st-chip { display: inline-flex; margin: 0; position: relative; cursor: pointer; }
+#settings-modal .st-chip input { position: absolute; opacity: 0; width: 0; height: 0; }
+#settings-modal .st-chip .st-chip-face { display: inline-flex; align-items: center; padding: 8px 13px; border-radius: 99px; border: 1px solid var(--glass-border); font-size: 12.5px; font-weight: 600; color: var(--text-muted); transition: background .15s ease, color .15s ease, border-color .15s ease; }
+#settings-modal .st-chip input:checked + .st-chip-face { background: var(--accent); color: #fff; border-color: transparent; }
+#settings-modal .st-chip input:focus-visible + .st-chip-face { box-shadow: 0 0 0 3px var(--accent-soft); }
+
+/* Slider: popisek + hodnota nahore, jezdec pres celou sirku (uzky mobil) */
+#settings-modal .st-slider { margin-top: 16px; }
+#settings-modal .st-slider-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+#settings-modal .st-slider-head .st-lab { font-size: 13.5px; }
+#settings-modal .st-val { font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; color: var(--data); white-space: nowrap; }
+#settings-modal .st-slider input[type="range"] { margin-top: 10px; height: 6px; background: var(--surface-3); }
+#settings-modal .st-slider input[type="range"]::-webkit-slider-thumb { width: 18px; height: 18px; }
+#settings-modal .st-slider input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; }
+
+/* Selecty stylovane jako "pill" (odstin, katastr, sipka, objektiv) */
+#settings-modal select.st-sel { border-radius: var(--r-md); font-weight: 600; }

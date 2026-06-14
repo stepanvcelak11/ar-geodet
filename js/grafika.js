@@ -75,11 +75,13 @@
 
         function startAppFromWelcome() { mapRadius = parseInt(document.getElementById('w-map-radius-slider').value); arRadius = parseInt(document.getElementById('w-ar-radius-slider').value); filters.tb = document.getElementById('w-f-tb').checked; filters.zhb = document.getElementById('w-f-zhb').checked; filters.pbpp = document.getElementById('w-f-pbpp').checked; filters.nivel = document.getElementById('w-f-nivel').checked; filters.custom = document.getElementById('w-f-custom').checked; searchQuery = document.getElementById('w-search-name').value.trim(); const viewRadios = document.getElementsByName('w-view'); for(let r of viewRadios) { if(r.checked) viewMode = r.value; } document.getElementById('s-map-radius-slider').value = mapRadius; document.getElementById('s-map-radius-val').innerText = mapRadius; document.getElementById('s-ar-radius-slider').value = arRadius; document.getElementById('s-ar-radius-val').innerText = arRadius; document.getElementById('f-tb').checked = filters.tb; document.getElementById('f-zhb').checked = filters.zhb; document.getElementById('f-pbpp').checked = filters.pbpp; document.getElementById('f-nivel').checked = filters.nivel; document.getElementById('f-custom').checked = filters.custom; document.getElementById('s-search-name').value = searchQuery; document.getElementById('s-camera-select').value = document.getElementById('w-camera-select').value; const sViewRadios = document.getElementsByName('s-view'); for(let r of sViewRadios) { if(r.value === viewMode) r.checked = true; } document.getElementById('menu-toggle-btn').style.display = "block"; appStarted = true; toggleHudElements(); document.getElementById('welcome-screen').style.opacity = '0'; setTimeout(() => { document.getElementById('welcome-screen').style.display = 'none'; }, 400); applyViewMode(); drawAllMarkersOnMap(); if (userLat && userLng) { initFetch(userLat, userLng); } else { document.getElementById('info').innerHTML = "Hledám GPS signál..."; } requestWakeLock(); }
 
-        function applyViewMode() { const camCont = document.getElementById('camera-container'); const mapCont = document.getElementById('map-container'); const resizer = document.getElementById('resizer'); if (viewMode === 'both') { camCont.style.display = 'block'; camCont.style.flex = '0 0 50%'; mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'flex'; startCameraAndCompass(); } else if (viewMode === 'map') { camCont.style.display = 'none'; mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'none'; startCompass(); } else if (viewMode === 'ar') { camCont.style.display = 'block'; camCont.style.flex = '1'; mapCont.style.display = 'none'; resizer.style.display = 'none'; startCameraAndCompass(); } setTimeout(() => { map.invalidateSize(); }, 300); }
+        function applyViewMode() { const camCont = document.getElementById('camera-container'); const mapCont = document.getElementById('map-container'); const resizer = document.getElementById('resizer'); if (viewMode === 'both') { camCont.style.display = 'block'; camCont.style.flex = '0 0 50%'; mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'flex'; startCameraAndCompass(); } else if (viewMode === 'map') { camCont.style.display = 'none'; mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'none'; stopCameraStream(); startCompass(); } else if (viewMode === 'ar') { camCont.style.display = 'block'; camCont.style.flex = '1'; mapCont.style.display = 'none'; resizer.style.display = 'none'; startCameraAndCompass(); } setTimeout(() => { map.invalidateSize(); }, 300); }
 
         let compassStarted = false;
         function startCompass() { if (compassStarted) return; compassStarted = true; showCompassCalibHint(); if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') { DeviceOrientationEvent.requestPermission().then(permission => { if (permission === 'granted') window.addEventListener('deviceorientation', handleOrientation); }); } else { window.addEventListener('deviceorientationabsolute', handleOrientation); window.addEventListener('deviceorientation', handleOrientation); } }
         function startCameraAndCompass(forceRestart = false) { startCompass(); if (cameraStarted && !forceRestart) return; cameraStarted = true; if (currentVideoStream) { currentVideoStream.getTracks().forEach(track => track.stop()); } const camId = document.getElementById('s-camera-select') ? document.getElementById('s-camera-select').value : null; const videoConstraints = camId ? { deviceId: { exact: camId } } : { facingMode: "environment" }; navigator.mediaDevices.getUserMedia({ video: videoConstraints }).then(stream => { currentVideoStream = stream; const videoElement = document.getElementById('camera-feed'); videoElement.srcObject = stream; videoElement.style.display = "block"; }).catch(err => { alert("Chyba kamery: " + err.message); }); }
+        // Uspani kamery (uspora baterie / rezim mapy): zastavi stopu a vynuluje stav, aby sla znovu nahodit.
+        function stopCameraStream() { try { if (currentVideoStream) { currentVideoStream.getTracks().forEach(t => { try { t.stop(); } catch (e) {} }); } } catch (e) {} currentVideoStream = null; cameraStarted = false; const v = document.getElementById('camera-feed'); if (v) { try { v.srcObject = null; } catch (e) {} } }
 
         // Po navratu do appky (napr. z otevreneho Katastru) prohlizec casto ukonci kamerovy
         // stream -> cerna obrazovka. Pokud je track mrtvy, kameru automaticky restartujeme.
@@ -187,7 +189,35 @@
             });
         }
 
-        function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; applyVisualSettings(); }
+        function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; applyVisualSettings(); syncSettingsControls(); }
+
+        // ===== Moderni ovladaci prvky Nastaveni (switch/segment/chips/slider) =====
+        // Funkcni ID zustavaji; tyto funkce jen drzi vizual v souladu se stavem.
+        function fillRange(el) {
+            if (!el || el.type !== 'range') return;
+            var min = parseFloat(el.min) || 0, max = parseFloat(el.max); if (!isFinite(max)) max = 100;
+            var v = parseFloat(el.value); if (!isFinite(v)) v = min;
+            var pct = max > min ? Math.max(0, Math.min(100, ((v - min) / (max - min)) * 100)) : 0;
+            el.style.background = 'linear-gradient(90deg, var(--accent) ' + pct + '%, var(--surface-3) ' + pct + '%)';
+        }
+        function setModeSeg(m) {
+            var sel = document.getElementById('v-mode'); if (sel) sel.value = m;
+            if (typeof previewMode === 'function') previewMode(m);
+            var seg = document.getElementById('seg-mode');
+            if (seg) seg.querySelectorAll('.st-seg-b').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === m); });
+        }
+        function syncSettingsControls() {
+            var sm = document.getElementById('settings-modal'); if (!sm) return;
+            var sel = document.getElementById('v-mode'); var m = (sel && sel.value) ? sel.value : 'dark';
+            var seg = document.getElementById('seg-mode');
+            if (seg) seg.querySelectorAll('.st-seg-b').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === m); });
+            if (typeof viewMode !== 'undefined') { var r = sm.querySelector('input[name="s-view"][value="' + viewMode + '"]'); if (r) r.checked = true; }
+            sm.querySelectorAll('input[type="range"]').forEach(fillRange);
+        }
+        // Zive plneni jezdcu pri tazeni
+        document.addEventListener('input', function (e) {
+            if (e.target && e.target.matches && e.target.matches('#settings-modal input[type="range"]')) fillRange(e.target);
+        });
         
         function saveSettings() { 
             mapRadius = parseInt(document.getElementById('s-map-radius-slider').value); setStoredData('arRadiusMap', mapRadius); 
