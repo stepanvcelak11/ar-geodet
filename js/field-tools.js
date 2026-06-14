@@ -30,17 +30,19 @@
             '  box-shadow:0 6px 16px rgba(0,0,0,0.45);cursor:pointer;-webkit-tap-highlight-color:transparent;}',
             '#ag-ft-fab.show{display:flex;}',
             '#ag-ft-fab svg{width:24px;height:24px;}',
-            '#ag-ft-fab.on{background:var(--surface-2,#1c2230);color:var(--accent,#34d399);outline:2px solid var(--accent,#34d399);}',
+            '#ag-ft-fab.on{background:var(--glass-bg,#11151a);color:var(--accent,#34d399);outline:2px solid var(--accent,#34d399);}',
             '#ag-ft-menu{position:fixed;left:12px;bottom:160px;z-index:99991;display:none;flex-direction:column;gap:8px;',
             '  max-width:min(78vw,300px);}',
             '#ag-ft-menu.open{display:flex;}',
-            '#ag-ft-menu .ag-ft-btn{display:flex;align-items:center;gap:10px;padding:11px 14px;border:none;border-radius:12px;',
-            '  background:var(--surface-2,#1c2230);color:var(--text,#e8edf2);font:600 14px/1.1 var(--font,system-ui),sans-serif;',
-            '  text-align:left;box-shadow:0 4px 14px rgba(0,0,0,0.4);cursor:pointer;}',
+            '#ag-ft-menu .ag-ft-btn{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));border-radius:12px;',
+            '  background:var(--glass-bg,#11151a);color:var(--text-color,#e8edf2);font:600 14px/1.1 var(--font-display,system-ui),sans-serif;',
+            '  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);',
+            '  text-align:left;box-shadow:0 6px 18px rgba(0,0,0,0.55);cursor:pointer;}',
             '#ag-ft-menu .ag-ft-btn:active{transform:scale(0.98);}',
             '#ag-ft-menu .ag-ft-btn svg{width:20px;height:20px;flex:0 0 20px;color:var(--accent,#34d399);}',
-            '#ag-ft-menu .ag-ft-head{font:700 11px/1 var(--font,system-ui),sans-serif;letter-spacing:.08em;text-transform:uppercase;',
-            '  opacity:.6;color:var(--text,#e8edf2);padding:2px 4px 4px;}'
+            '#ag-ft-menu .ag-ft-head{font:700 11px/1 var(--font-display,system-ui),sans-serif;letter-spacing:.08em;text-transform:uppercase;',
+            '  color:var(--text-color,#e8edf2);opacity:.85;padding:4px 8px;border-radius:8px;align-self:flex-start;',
+            '  background:var(--glass-bg,#11151a);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);text-shadow:0 1px 2px rgba(0,0,0,0.6);}'
         ].join('\n');
         document.head.appendChild(st);
     }
