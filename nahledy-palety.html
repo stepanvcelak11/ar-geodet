@@ -3,23 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>AR Geodet — náhled barevných palet</title>
+<title>AR Geodet — náhled barevných palet v2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
-  /* ===== Palety (4× tmavý/světlý). Toto je MOCKUP pro výběr barvy, ne živá appka. ===== */
-  :root[data-pal="aurora"][data-mode="dark"]{--bg:#0b1020;--bg2:#161a2e;--panel:rgba(17,22,42,.82);--panelSolid:#11162a;--border:rgba(255,255,255,.12);--text:#eef1f8;--muted:#aab2c8;--accent:#2dd4bf;--accentStrong:#5eead4;--onAccent:#04130c;--primaryBg:linear-gradient(95deg,#2dd4bf,#8b5cf6);--glow:0 10px 30px rgba(139,92,246,.45);--markerBg:rgba(13,18,27,.72);}
-  :root[data-pal="aurora"][data-mode="light"]{--bg:#eef1f5;--bg2:#dfe5ee;--panel:rgba(255,255,255,.82);--panelSolid:#fff;--border:rgba(15,23,42,.10);--text:#0f172a;--muted:#64748b;--accent:#14b8a6;--accentStrong:#0d9488;--onAccent:#fff;--primaryBg:linear-gradient(95deg,#2dd4bf,#8b5cf6);--glow:0 8px 24px rgba(139,92,246,.30);--markerBg:rgba(255,255,255,.82);}
+  /* ===== Palety v2 — zelená rodina, klidná ale s charakterem (duotón + hloubka). Mockup. ===== */
+  /* --data = teplý sekundární akcent jen na čísla/azimut (to dělá "designově", ne neonově). */
+  :root[data-pal="aurora"][data-mode="dark"]{--bg:#0b1020;--bg2:#161a2e;--panel:rgba(17,22,42,.82);--panelSolid:#11162a;--border:rgba(255,255,255,.12);--hair:rgba(255,255,255,.10);--text:#eef1f8;--muted:#aab2c8;--accent:#2dd4bf;--accentStrong:#5eead4;--onAccent:#04130c;--data:#5eead4;--primaryBg:linear-gradient(95deg,#2dd4bf,#8b5cf6);--glow:0 10px 30px rgba(139,92,246,.45);--markerBg:rgba(13,18,27,.72);--tint:rgba(139,92,246,.16);}
+  :root[data-pal="aurora"][data-mode="light"]{--bg:#eef1f5;--bg2:#dfe5ee;--panel:rgba(255,255,255,.82);--panelSolid:#fff;--border:rgba(15,23,42,.10);--hair:rgba(255,255,255,.7);--text:#0f172a;--muted:#64748b;--accent:#14b8a6;--accentStrong:#0d9488;--onAccent:#fff;--data:#0d9488;--primaryBg:linear-gradient(95deg,#2dd4bf,#8b5cf6);--glow:0 8px 24px rgba(139,92,246,.30);--markerBg:rgba(255,255,255,.82);--tint:rgba(139,92,246,.10);}
 
-  :root[data-pal="steel"][data-mode="dark"]{--bg:#0e141c;--bg2:#19222f;--panel:rgba(22,30,42,.82);--panelSolid:#161e2a;--border:rgba(255,255,255,.10);--text:#e8edf4;--muted:#8aa0b8;--accent:#4f86c6;--accentStrong:#5e95d6;--onAccent:#06101c;--primaryBg:var(--accent);--glow:0 6px 18px rgba(0,0,0,.45);--markerBg:rgba(16,22,32,.74);}
-  :root[data-pal="steel"][data-mode="light"]{--bg:#eef1f5;--bg2:#e1e7ef;--panel:rgba(255,255,255,.86);--panelSolid:#fff;--border:rgba(15,23,42,.10);--text:#14202e;--muted:#5a6b80;--accent:#2f6fb0;--accentStrong:#28639e;--onAccent:#fff;--primaryBg:var(--accent);--glow:0 6px 16px rgba(31,57,90,.16);--markerBg:rgba(255,255,255,.86);}
+  :root[data-pal="emerald"][data-mode="dark"]{--bg:#0b1310;--bg2:#10201a;--panel:rgba(18,32,25,.84);--panelSolid:#122019;--border:rgba(255,255,255,.10);--hair:rgba(255,255,255,.10);--text:#e9f1ec;--muted:#8aa79c;--accent:#2f9e74;--accentStrong:#3eb487;--onAccent:#03130c;--data:#bfe7d4;--primaryBg:var(--accent);--glow:0 8px 22px rgba(47,158,116,.30);--markerBg:rgba(11,21,17,.76);--tint:rgba(47,158,116,.14);}
+  :root[data-pal="emerald"][data-mode="light"]{--bg:#eef4f0;--bg2:#e3ece7;--panel:rgba(255,255,255,.86);--panelSolid:#fff;--border:rgba(15,40,30,.10);--hair:rgba(255,255,255,.7);--text:#0f201a;--muted:#5b7268;--accent:#1f8a63;--accentStrong:#177553;--onAccent:#fff;--data:#1f8a63;--primaryBg:var(--accent);--glow:0 6px 16px rgba(20,90,65,.16);--markerBg:rgba(255,255,255,.88);--tint:rgba(31,138,99,.10);}
 
-  :root[data-pal="orange"][data-mode="dark"]{--bg:#14130f;--bg2:#221f17;--panel:rgba(32,29,22,.85);--panelSolid:#201d16;--border:rgba(255,255,255,.10);--text:#efe9df;--muted:#a89e8c;--accent:#e3873a;--accentStrong:#f0974b;--onAccent:#1a1206;--primaryBg:var(--accent);--glow:0 6px 18px rgba(0,0,0,.45);--markerBg:rgba(26,22,16,.74);}
-  :root[data-pal="orange"][data-mode="light"]{--bg:#f7f5f1;--bg2:#ece7df;--panel:rgba(255,255,255,.86);--panelSolid:#fff;--border:rgba(40,30,15,.12);--text:#241d12;--muted:#7a6f5c;--accent:#c96a1f;--accentStrong:#b65d16;--onAccent:#fff;--primaryBg:var(--accent);--glow:0 6px 16px rgba(120,80,30,.16);--markerBg:rgba(255,255,255,.86);}
+  :root[data-pal="sand"][data-mode="dark"]{--bg:#0b1310;--bg2:#11201a;--panel:rgba(18,32,25,.84);--panelSolid:#122019;--border:rgba(255,255,255,.10);--hair:rgba(255,255,255,.11);--text:#ecf1ec;--muted:#93a89c;--accent:#2f9e74;--accentStrong:#3eb487;--onAccent:#03130c;--data:#e6bd76;--primaryBg:var(--accent);--glow:0 8px 22px rgba(47,158,116,.30);--markerBg:rgba(12,21,17,.76);--tint:rgba(230,189,118,.12);}
+  :root[data-pal="sand"][data-mode="light"]{--bg:#f3f3ed;--bg2:#ebe9df;--panel:rgba(255,255,255,.88);--panelSolid:#fff;--border:rgba(40,40,20,.10);--hair:rgba(255,255,255,.75);--text:#172017;--muted:#6b7064;--accent:#1f8a63;--accentStrong:#177553;--onAccent:#fff;--data:#a9701f;--primaryBg:var(--accent);--glow:0 6px 16px rgba(20,90,65,.15);--markerBg:rgba(255,255,255,.9);--tint:rgba(169,112,31,.10);}
 
-  :root[data-pal="teal"][data-mode="dark"]{--bg:#0d1417;--bg2:#172225;--panel:rgba(21,33,36,.85);--panelSolid:#152124;--border:rgba(255,255,255,.10);--text:#e6eeec;--muted:#8aa6a2;--accent:#3d9488;--accentStrong:#4ba89b;--onAccent:#04140f;--primaryBg:var(--accent);--glow:0 6px 18px rgba(0,0,0,.45);--markerBg:rgba(13,21,23,.74);}
-  :root[data-pal="teal"][data-mode="light"]{--bg:#f2f6f5;--bg2:#e3ebe9;--panel:rgba(255,255,255,.86);--panelSolid:#fff;--border:rgba(15,40,35,.10);--text:#10201c;--muted:#5a716c;--accent:#2a7d72;--accentStrong:#236b62;--onAccent:#fff;--primaryBg:var(--accent);--glow:0 6px 16px rgba(20,70,60,.14);--markerBg:rgba(255,255,255,.86);}
+  :root[data-pal="pine"][data-mode="dark"]{--bg:#0a120f;--bg2:#0e1a15;--panel:rgba(16,27,22,.86);--panelSolid:#101b16;--border:rgba(255,255,255,.09);--hair:rgba(255,255,255,.10);--text:#e6efe9;--muted:#86a096;--accent:#2a8c66;--accentStrong:#38a87c;--onAccent:#02120b;--data:#d9b878;--primaryBg:var(--accent);--glow:0 8px 22px rgba(0,0,0,.5);--markerBg:rgba(10,18,15,.78);--tint:rgba(217,184,120,.10);}
+  :root[data-pal="pine"][data-mode="light"]{--bg:#eef3f0;--bg2:#e2ebe6;--panel:rgba(255,255,255,.88);--panelSolid:#fff;--border:rgba(15,40,30,.10);--hair:rgba(255,255,255,.7);--text:#0e1c16;--muted:#566b62;--accent:#1c7a57;--accentStrong:#136448;--onAccent:#fff;--data:#9c7a2a;--primaryBg:var(--accent);--glow:0 6px 16px rgba(15,80,55,.15);--markerBg:rgba(255,255,255,.9);--tint:rgba(156,122,42,.10);}
 
   *,*::before,*::after{box-sizing:border-box;}
   body{margin:0;background:var(--bg);color:var(--text);font-family:"Inter",system-ui,sans-serif;-webkit-font-smoothing:antialiased;transition:background .25s ease,color .25s ease;padding-bottom:40px;}
@@ -27,8 +28,7 @@
   .sub{color:var(--muted);font-size:12.5px;margin:0;}
   .mono{font-family:"JetBrains Mono",monospace;}
 
-  /* ovládací lišta */
-  .bar{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--border);padding:14px 16px calc(env(safe-area-inset-top,0px) + 12px);padding-top:max(14px,env(safe-area-inset-top));}
+  .bar{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--border);padding:max(14px,env(safe-area-inset-top)) 16px 12px;}
   .pal-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
   .pal-chip{display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:12px;border:1px solid var(--border);background:var(--panelSolid);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;}
   .pal-chip .dot{width:16px;height:16px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);}
@@ -39,56 +39,57 @@
   .mode-btn.on{background:var(--accent);color:var(--onAccent);border-color:transparent;}
 
   .wrap{max-width:430px;margin:0 auto;padding:18px 16px;}
-  .secT{font-family:"Sora",sans-serif;font-weight:700;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:26px 2px 10px;}
+  .secT{display:flex;align-items:center;gap:8px;font-family:"Sora",sans-serif;font-weight:700;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:26px 2px 10px;}
+  .secT::before{content:"";width:14px;height:3px;border-radius:3px;background:var(--accent);}
 
-  /* telefon / scéna */
-  .phone{position:relative;height:420px;border-radius:26px;overflow:hidden;border:1px solid var(--border);box-shadow:0 16px 40px rgba(0,0,0,.35);
+  /* telefon / scéna — jemné akcentové záře pro hloubku (ne neon) */
+  .phone{position:relative;height:420px;border-radius:26px;overflow:hidden;border:1px solid var(--border);box-shadow:0 18px 44px rgba(0,0,0,.4);
     background:
-      radial-gradient(40% 30% at 78% 22%, rgba(127,127,127,.18), transparent 70%),
-      radial-gradient(45% 35% at 18% 80%, rgba(127,127,127,.14), transparent 70%),
+      radial-gradient(42% 32% at 80% 16%, var(--tint), transparent 70%),
+      radial-gradient(46% 34% at 14% 86%, var(--tint), transparent 72%),
       linear-gradient(160deg,var(--bg2),var(--bg));}
-  .glass{background:var(--panel);-webkit-backdrop-filter:blur(12px) saturate(140%);backdrop-filter:blur(12px) saturate(140%);border:1px solid var(--border);}
+  .phone::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 90px rgba(0,0,0,.35);}
+  .glass{background:var(--panel);-webkit-backdrop-filter:blur(13px) saturate(140%);backdrop-filter:blur(13px) saturate(140%);border:1px solid var(--border);box-shadow:0 4px 14px rgba(0,0,0,.25),inset 0 1px 0 var(--hair);}
 
-  .seg{position:absolute;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:3px;padding:4px;border-radius:999px;}
+  .seg{position:absolute;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:3px;padding:4px;border-radius:999px;z-index:3;}
   .seg-btn{border:none;background:transparent;color:var(--muted);font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;cursor:pointer;font-family:inherit;}
   .seg-btn.active{background:var(--primaryBg);color:#fff;}
 
-  .info{position:absolute;top:58px;left:12px;padding:10px 13px;border-radius:14px;min-width:140px;}
+  .info{position:absolute;top:58px;left:12px;padding:10px 13px;border-radius:14px;min-width:142px;z-index:3;}
   .info .rdt{display:flex;justify-content:space-between;gap:16px;align-items:baseline;}
-  .info .rdt+.rdt{margin-top:3px;}
+  .info .rdt+.rdt{margin-top:4px;}
   .info .l{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
-  .info .v{font-family:"JetBrains Mono",monospace;font-size:14px;font-weight:700;}
-  .compass{position:absolute;top:58px;right:12px;padding:7px 13px;border-radius:14px;font-family:"JetBrains Mono",monospace;font-size:15px;font-weight:700;color:var(--accent);}
+  .info .v{font-family:"JetBrains Mono",monospace;font-size:14px;font-weight:700;color:var(--data);}
+  .compass{position:absolute;top:58px;right:12px;padding:7px 13px;border-radius:14px;font-family:"JetBrains Mono",monospace;font-size:15px;font-weight:700;color:var(--data);z-index:3;}
 
-  .marker{position:absolute;padding:5px 12px;border-radius:12px;background:var(--markerBg);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--border);border-left:4px solid var(--accent);color:var(--text);font-size:13px;font-weight:700;line-height:1.15;box-shadow:0 6px 16px rgba(0,0,0,.4);}
-  .marker .d{font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:500;opacity:.8;}
+  .marker{position:absolute;padding:5px 12px;border-radius:12px;background:var(--markerBg);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--border);border-left:4px solid var(--accent);color:var(--text);font-size:13px;font-weight:700;line-height:1.18;box-shadow:0 6px 16px rgba(0,0,0,.45),inset 0 1px 0 var(--hair);z-index:2;}
+  .marker .d{font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:500;color:var(--muted);}
   .marker.m1{top:150px;left:40px;}
-  .marker.hi{top:215px;left:160px;border:2px solid #fbbf24;border-left:2px solid #fbbf24;box-shadow:0 6px 18px rgba(0,0,0,.4),0 0 22px rgba(251,191,36,.55);}
+  .marker.hi{top:212px;left:158px;border:2px solid #fbbf24;border-left:2px solid #fbbf24;box-shadow:0 6px 18px rgba(0,0,0,.45),0 0 22px rgba(251,191,36,.5);}
+  .marker.hi .d{color:#fbbf24;}
 
-  .dock{position:absolute;left:12px;right:12px;bottom:12px;display:flex;justify-content:space-between;align-items:flex-end;padding:8px;border-radius:22px;}
+  .dock{position:absolute;left:12px;right:12px;bottom:12px;display:flex;justify-content:space-between;align-items:flex-end;padding:8px;border-radius:22px;z-index:3;}
   .dock-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;border:none;background:transparent;color:var(--muted);font-size:9.5px;font-weight:600;cursor:pointer;font-family:inherit;}
   .dock-btn i{font-style:normal;font-size:21px;line-height:1;}
   .dock-btn.act{color:var(--accent);}
   .fab{display:flex;align-items:center;justify-content:center;width:48px;height:48px;margin-top:-24px;border-radius:50%;background:var(--primaryBg);border:3px solid var(--bg);box-shadow:var(--glow);color:#fff;font-size:26px;line-height:1;}
 
-  /* tlačítka */
   .btns{display:flex;flex-direction:column;gap:10px;}
   .b{width:100%;padding:14px 16px;border:1px solid transparent;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;}
   .b-prim{background:var(--primaryBg);color:#fff;box-shadow:var(--glow);}
-  .b-sec{background:var(--panelSolid);color:var(--text);border-color:var(--border);}
+  .b-sec{background:var(--panelSolid);color:var(--text);border-color:var(--border);box-shadow:inset 0 1px 0 var(--hair);}
   .b-ghost{background:transparent;color:var(--accent);border-color:var(--accent);}
   .b-danger{background:transparent;color:#f87171;border-color:rgba(248,113,113,.5);}
 
-  /* mini modal */
-  .card{padding:20px;border-radius:18px;background:var(--panelSolid);border:1px solid var(--border);box-shadow:0 16px 40px rgba(0,0,0,.3);}
+  .card{padding:20px;border-radius:18px;background:var(--panelSolid);border:1px solid var(--border);box-shadow:0 16px 40px rgba(0,0,0,.3),inset 0 1px 0 var(--hair);}
   .card h3{font-family:"Sora",sans-serif;font-size:18px;font-weight:700;margin:0 0 4px;}
   .card .lbl{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:14px 0 6px;}
   .inp{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:rgba(127,127,127,.10);color:var(--text);font-size:16px;outline:none;}
+  .inp.mono{color:var(--data);}
   .inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 30%,transparent);}
   .card .row{display:flex;gap:10px;margin-top:18px;}
 
-  /* pruh náčrtu (styl čáry) */
-  .sketch{padding:12px;border-radius:16px;background:var(--panelSolid);border:1px solid var(--border);}
+  .sketch{padding:12px;border-radius:16px;background:var(--panelSolid);border:1px solid var(--border);box-shadow:inset 0 1px 0 var(--hair);}
   .modes{display:flex;gap:4px;margin-bottom:11px;}
   .tm{flex:1;padding:9px 4px;border-radius:10px;border:1px solid transparent;background:rgba(127,127,127,.10);color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;text-align:center;}
   .tm.on{background:var(--accent);color:var(--onAccent);}
@@ -100,17 +101,18 @@
   .chip.on{background:var(--accent);color:var(--onAccent);border-color:transparent;}
 
   .note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px;}
+  .note b{color:var(--data);}
 </style>
 </head>
 <body>
   <div class="bar">
-    <h1>Náhled barevných palet</h1>
-    <p class="sub">Vyber paletu a světlý/tmavý režim. Toto je mockup pro výběr barvy, ne živá appka.</p>
+    <h1>Náhled palet — v2 (klidné, ale s charakterem)</h1>
+    <p class="sub">Zelená rodina + jeden teplý akcent na čísla (duotón) + víc hloubky. Vyber a porovnej.</p>
     <div class="pal-row" id="palRow">
       <button class="pal-chip" data-pal="aurora"><span class="dot" style="background:linear-gradient(95deg,#2dd4bf,#8b5cf6)"></span>Současná<small>Aurora</small></button>
-      <button class="pal-chip" data-pal="steel"><span class="dot" style="background:#4f86c6"></span>Ocelová modrá<small>#4f86c6</small></button>
-      <button class="pal-chip" data-pal="orange"><span class="dot" style="background:#e3873a"></span>Geodet. oranžová<small>#e3873a</small></button>
-      <button class="pal-chip" data-pal="teal"><span class="dot" style="background:#3d9488"></span>Tlumený teal<small>#3d9488</small></button>
+      <button class="pal-chip" data-pal="emerald"><span class="dot" style="background:#2f9e74"></span>Smaragdová<small>jen zelená</small></button>
+      <button class="pal-chip" data-pal="sand"><span class="dot" style="background:linear-gradient(95deg,#2f9e74 55%,#e6bd76 55%)"></span>Smaragd + písková<small>duotón</small></button>
+      <button class="pal-chip" data-pal="pine"><span class="dot" style="background:linear-gradient(95deg,#2a8c66 55%,#d9b878 55%)"></span>Borovice + mosaz<small>tmavší</small></button>
     </div>
     <div class="mode-row" id="modeRow">
       <button class="mode-btn" data-mode="dark">Tmavý</button>
@@ -186,17 +188,17 @@
       </div>
     </div>
 
-    <p class="note">Pozn.: pozadí „telefonu" je neutrální schválně, ať barvu nezkresluje. V appce bude pod panely živá kamera/mapa. Akcent je použitý jen na primární akce, aktivní stav a data — ne plošně.</p>
+    <p class="note">Co dělá „charakter" a ne nudu: <b>teplý akcent na číslech</b> (přesnost, azimut, souřadnice, vzdálenosti) proti zelenému UI = duotón; <b>hloubka</b> (jemné záře v pozadí, světlá hrana skla, stíny); akcent jen na to důležité. Porovnej „Smaragdová" (jen zelená) vs „Smaragd + písková" (duotón) — uvidíš ten rozdíl na číslech.</p>
   </div>
 
 <script>
   var root = document.documentElement;
-  function setPal(p){ root.dataset.pal = p; document.querySelectorAll('#palRow .pal-chip').forEach(function(b){ b.classList.toggle('on', b.dataset.pal===p); }); try{ localStorage.setItem('palPrev', p); }catch(e){} }
-  function setMode(m){ root.dataset.mode = m; document.querySelectorAll('#modeRow .mode-btn').forEach(function(b){ b.classList.toggle('on', b.dataset.mode===m); }); try{ localStorage.setItem('palMode', m); }catch(e){} }
+  function setPal(p){ root.dataset.pal = p; document.querySelectorAll('#palRow .pal-chip').forEach(function(b){ b.classList.toggle('on', b.dataset.pal===p); }); try{ localStorage.setItem('palPrev2', p); }catch(e){} }
+  function setMode(m){ root.dataset.mode = m; document.querySelectorAll('#modeRow .mode-btn').forEach(function(b){ b.classList.toggle('on', b.dataset.mode===m); }); try{ localStorage.setItem('palMode2', m); }catch(e){} }
   document.querySelectorAll('#palRow .pal-chip').forEach(function(b){ b.onclick=function(){ setPal(b.dataset.pal); }; });
   document.querySelectorAll('#modeRow .mode-btn').forEach(function(b){ b.onclick=function(){ setMode(b.dataset.mode); }; });
-  var p='steel', m='dark';
-  try{ p = localStorage.getItem('palPrev') || 'steel'; m = localStorage.getItem('palMode') || 'dark'; }catch(e){}
+  var p='sand', m='dark';
+  try{ p = localStorage.getItem('palPrev2') || 'sand'; m = localStorage.getItem('palMode2') || 'dark'; }catch(e){}
   setPal(p); setMode(m);
 </script>
 </body>
