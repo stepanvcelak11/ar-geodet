@@ -10,24 +10,19 @@
     // Kroky, jejichz cil neni viditelny (skryty panel, jine rozvrzeni), se za behu preskoci.
     var STEPS = [
         {
-            center: true, icon: '👋',
+            center: true, icon: '\uD83D\uDC4B',
             title: 'Vítej v AR&nbsp;Geodet',
-            body: 'Krátká prohlídka ti ukáže, kde co najdeš a co která tlačítka dělají. Zabere necelou minutu a kdykoli ji můžeš přeskočit. Vrátit se k ní jde v <b>Nastavení</b>.'
+            body: 'Krátká prohlídka ti ukáže, kde co najdeš. Zabere necelou minutu a kdykoli ji přeskočíš. Znovu ji spustíš ve <b>Více → Návod</b>.'
         },
         {
             sel: '#view-seg',
             title: 'Přepínání zobrazení',
-            body: 'Přepínej mezi <b>AR kamerou</b>, <b>děleným</b> pohledem a <b>mapou</b>. AR ukazuje body skrz kameru telefonu, mapa je klasická 2D mapa s katastrem a ortofotem.'
+            body: 'Přepínej mezi <b>AR kamerou</b>, <b>děleným</b> pohledem a <b>mapou</b>. AR ukazuje body skrz kameru, mapa je 2D s katastrem a ortofotem.'
         },
         {
             sel: '#dock .dock-btn:nth-child(1)',
-            title: 'Katastr',
-            body: 'Otevře katastrální mapu přesně tam, kde právě stojíš. Zdroj (Mapy.cz / iKatastr / ČÚZK) si zvolíš v Nastavení.'
-        },
-        {
-            sel: '#dock .dock-btn:nth-child(2)',
-            title: 'Měření a nástroje',
-            body: 'Měření vzdálenosti a plochy, geodetická kalkulačka, GNSS satelity v AR, vytyčovací checklist a geodetický slovník — vše pohromadě.'
+            title: 'Nástroje',
+            body: 'Všechny nástroje na jednom místě: <b>měření vzdálenosti a plochy</b>, <b>kalkulačka</b>, <b>GNSS satelity</b>, <b>vytyčovací checklist</b>, <b>náčrt / tachymetrie</b>, <b>slovník</b> i rychlé otevření <b>katastru</b>.'
         },
         {
             sel: '#dock .dock-primary',
@@ -35,19 +30,19 @@
             body: 'Přidá vlastní bod — z <b>průměrované GPS</b>, klepnutím do mapy, ručním zadáním S‑JTSK, nebo <b>přečtením z fotky (OCR)</b>. K bodu připojíš fotku a poznámku.'
         },
         {
-            sel: '#dock .dock-btn:nth-child(4)',
-            title: 'Moje body',
-            body: 'Seznam tvých bodů. Tady je upravíš, skryješ, smažeš a <b>exportuješ či importuješ</b> (CSV, TXT, GPX, GeoJSON, JSON) — nebo je <b>sdílíš s kolegou přes QR kód</b>. Omylem smazaný bod jde <b>vrátit zpět</b>.'
+            sel: '#dock .dock-btn:nth-child(2)',
+            title: 'Body',
+            body: 'Seznam tvých bodů — úprava, skrytí, mazání (jde <b>vrátit zpět</b>), <b>export/import</b> (CSV, TXT, GPX, GeoJSON, JSON) a <b>sdílení přes QR</b>.'
+        },
+        {
+            sel: '#dock-vice-btn',
+            title: 'Více',
+            body: 'Vše ostatní: <b>Průvodce úkolem</b>, <b>Zpravodaj</b>, uložení pro <b>offline</b>, tento <b>návod</b> a <b>o aplikaci</b> — plus rychlé přepínače info panelu, kompasu a průměrování GPS.'
         },
         {
             sel: '#dock .dock-btn:nth-child(5)',
             title: 'Nastavení',
-            body: 'Přesnost a kalibrace AR, vzhled a barvy, přepínání zakázek a záloha všech dat. Tady taky kdykoli znovu spustíš tento návod.'
-        },
-        {
-            sel: '#menu-toggle-btn',
-            title: 'Menu',
-            body: 'Plné menu se všemi funkcemi — <b>Průvodce úkolem</b> (provede tě krok za krokem), <b>Náčrt&nbsp;/&nbsp;Tachymetrie</b>, katastr, měření, kalkulačka, satelity i slovník — plus rychlé přepínače info panelu, kompasu a průměrování GPS.'
+            body: 'Tři přehledné záložky — <b>Vzhled</b>, <b>AR&nbsp;&amp; přesnost</b> a <b>Data</b>. Jemné doladění je schované pod „Pokročilé", ať se v tom neztratíš.'
         },
         {
             sel: '#info',
@@ -65,9 +60,9 @@
             body: 'Rozbalí ovládání mapy — podklad (OSM/ortofoto), katastr, přiblížení, vycentrování na mě, body v okolí a spojování bodů čarou.'
         },
         {
-            center: true, icon: '🎯',
+            center: true, icon: '\uD83C\uDFAF',
             title: 'A to je vše!',
-            body: 'Tím máš základ za sebou. <b>Tip:</b> panely přesnosti a kompasu lze podržením posouvat a dvěma prsty zvětšit. Chceš projít jednotlivé funkce podrobněji? Pokračuj na podrobný návod, nebo prohlídku ukonči — kdykoli ji znovu spustíš v <b>Nastavení</b>.'
+            body: 'Základ máš za sebou. <b>Tip:</b> panely přesnosti a kompasu lze podržením posouvat a dvěma prsty zvětšit. Chceš projít funkce podrobněji? Pokračuj na podrobný návod, nebo prohlídku ukonči.'
         }
     ];
 
@@ -75,58 +70,52 @@
     // Karta je dole, obrazovka zustava videt nad ni. `before` otevre prislusny modal.
     var DETAIL_STEPS = [
         {
-            center: true, icon: '📖',
+            center: true, icon: '\uD83D\uDCD6',
             before: function () { closeTourModals(); },
             title: 'Podrobný návod',
-            body: 'Teď si projdeme hlavní obrazovky aplikace o něco důkladněji — postupně je pro tebe otevřu a u každé popíšu, k čemu slouží.'
+            body: 'Teď si projdeme hlavní obrazovky důkladněji — postupně je otevřu a u každé popíšu, k čemu slouží.'
         },
         {
             bottom: true,
             before: function () { closeTourModals(); if (typeof openNewPointModal === 'function') openNewPointModal(); },
             title: 'Založení vlastního bodu',
-            body: '<b>Z průměru GPS</b> — nejpřesnější, chvíli stůj na místě. <b>Z mapy</b> — klepneš do mapy. <b>Z fotky (OCR)</b> — přečte souřadnice z fotky. Nebo ručně zadáš <b>S‑JTSK Y/X</b>. Po uložení můžeš k bodu připojit <b>fotku a poznámku</b>.'
+            body: '<b>Z průměru GPS</b> — nejpřesnější, chvíli stůj na místě. <b>Z mapy</b> — klepneš do mapy. <b>Z fotky (OCR)</b> — přečte souřadnice z fotky. Nebo ručně zadáš <b>S‑JTSK Y/X</b>. Po uložení připojíš <b>fotku a poznámku</b>.'
         },
         {
             bottom: true,
             before: function () { closeTourModals(); var m = document.getElementById('tools-modal'); if (m) m.style.display = 'flex'; },
-            title: 'Měření a nástroje',
-            body: '<b>Měření vzdálenosti</b> (mezi body A a B), <b>plocha</b> obejitím pozemku, <b>geodetická kalkulačka</b>, <b>GNSS satelity</b> v AR, <b>vytyčovací checklist</b> a <b>slovník</b> pojmů a značek.'
+            title: 'Nástroje',
+            body: 'Mřížka všech nástrojů: <b>měření vzdálenosti</b> a <b>plochy</b>, <b>kalkulačka</b>, <b>GNSS satelity</b>, <b>vytyčovací checklist</b>, <b>náčrt / tachymetrie</b>, <b>slovník</b> a rychlý <b>katastr</b>.'
         },
         {
-            center: true, icon: '📐',
+            center: true, icon: '\uD83D\uDCD0',
             before: function () { closeTourModals(); },
             title: 'Náčrt / Tachymetrie',
-            body: 'V <b>Menu</b> najdeš digitální <b>tachymetrický náčrt</b>. Body přidáš z GPS nebo ze svých uložených bodů, <b>spojíš je čarami</b> (plná, hranice, plot…) a vložíš <b>popisky</b> (např. „kámen"). Nově lze <b>kreslit volně prstem nebo stylusem</b>. Délky čar a plochu dopočítá sám a vše <b>vyexportuješ do PNG</b>.'
-        },
-        {
-            center: true, icon: '🧭',
-            before: function () { closeTourModals(); },
-            title: 'Průvodce úkolem',
-            body: 'Nevíš, kde začít? <b>Průvodce úkolem</b> (v Menu i na úvodní obrazovce) tě krok za krokem provede typickou prací — <b>vytyčování</b>, <b>sběr bodů</b>, <b>úřední body</b> i <b>měření</b> — a sám pospojuje funkce, které appka umí. U každé volby uvidíš, zda funguje offline.'
+            body: 'V <b>Nástrojích</b> je digitální <b>tachymetrický náčrt</b>. Body přidáš z GPS nebo ze svých bodů, <b>spojíš je čarami</b> a vložíš <b>popisky</b>. Nově lze <b>kreslit prstem nebo stylusem</b> (barva, tloušťka, typ čáry). Délky a plochu dopočítá sám a vše <b>vyexportuješ do PNG</b>.'
         },
         {
             bottom: true,
             before: function () { closeTourModals(); if (typeof openManageModal === 'function') openManageModal(); },
-            title: 'Správa a export bodů',
-            body: 'Seznam tvých bodů — úprava, skrytí z AR i mazání (smazání jde <b>vrátit zpět</b>). Nahoře v <b>Export / Import</b> data přeneseš ven i dovnitř: <b>CSV, TXT, GPX, GeoJSON, JSON</b> — a body také <b>nasdílíš kolegovi přes QR kód</b> nebo je z QR <b>načteš</b>.'
+            title: 'Body — správa a sdílení',
+            body: 'Seznam tvých bodů — úprava, skrytí z AR i mazání (jde <b>vrátit zpět</b>). Nahoře v <b>Export / Import</b> data přeneseš ven i dovnitř (<b>CSV, TXT, GPX, GeoJSON, JSON</b>) a body <b>nasdílíš kolegovi přes QR</b> nebo z QR <b>načteš</b>.'
+        },
+        {
+            center: true, icon: '\uD83E\uDDED',
+            before: function () { closeTourModals(); var m = document.getElementById('side-menu'); if (m) m.classList.add('open'); },
+            title: 'Více',
+            body: 'Pod „Více" je <b>Průvodce úkolem</b> (provede tě krok za krokem), <b>Zpravodaj</b> (denní geodetické zprávy), uložení pro <b>offline</b>, tento <b>návod</b> a <b>o aplikaci</b>.'
         },
         {
             bottom: true,
-            before: function () { closeTourModals(); if (typeof openSettings === 'function') openSettings(); var t = document.querySelector('#settings-modal .tab-btn'); if (t) t.click(); },
-            title: 'Nastavení — Funkce a data',
-            body: 'Poloměr stahování a viditelnost bodů v AR, <b>přesnost a kalibrace kompasu</b> (auto‑korekce, kompenzace náklonu, zorný úhel, výška očí), filtry typů bodů, <b>přepínání zakázek</b>, uložení pro offline a <b>záloha všech dat</b>.'
+            before: function () { closeTourModals(); if (typeof openSettings === 'function') openSettings(); },
+            title: 'Nastavení',
+            body: 'Tři záložky: <b>Vzhled</b> (světlý/tmavý, odstín, velikost UI), <b>AR&nbsp;&amp; přesnost</b> (viditelnost, kalibrace, jemné doladění) a <b>Data</b> (zakázky, filtry, offline, záloha). Detaily jsou schované pod <b>„Pokročilé"</b>.'
         },
         {
-            bottom: true,
-            before: function () { closeTourModals(); if (typeof openSettings === 'function') openSettings(); var tabs = document.querySelectorAll('#settings-modal .tab-btn'); if (tabs[1]) tabs[1].click(); },
-            title: 'Nastavení — Vzhled a barvy',
-            body: 'Barevné <b>motivy</b>, barvy jednotlivých typů bodů, velikost a průhlednost štítků, tvar a barva <b>3D navigační šipky</b>, výškový posun bodů v AR a velikost textu a menu.'
-        },
-        {
-            center: true, icon: '✅',
+            center: true, icon: '\u2705',
             before: function () { closeTourModals(); },
             title: 'Hotovo!',
-            body: 'Teď znáš celou aplikaci. Návod i podrobnou prohlídku kdykoli znovu spustíš v <b>Nastavení</b> nebo v <b>Menu</b>. Hodně zdaru v terénu!'
+            body: 'Teď znáš celou aplikaci. Návod i podrobnou prohlídku kdykoli znovu spustíš ve <b>Více → Návod</b>. Hodně zdaru v terénu!'
         }
     ];
 
