@@ -4,8 +4,8 @@
   "description": "Nástroj pro geodety k vyhledávání bodů v AR",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0a0e14",
-  "theme_color": "#0a0e14",
+  "background_color": "#f4f5f7",
+  "theme_color": "#f4f5f7",
   "orientation": "portrait",
   "icons": [
     {

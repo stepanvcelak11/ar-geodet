@@ -776,7 +776,7 @@
             ['theme-aurora', 'theme-sunset', 'theme-ocean', 'theme-forest', 'theme-graphite'].forEach(c => document.body.classList.remove(c));
             if (t && t !== 'smaragd') document.body.classList.add('theme-' + t);
         }
-        function previewMode(m) { document.body.classList.toggle('light-mode', m !== 'dark'); }
+        function previewMode(m) { var light = m !== 'dark'; document.body.classList.toggle('light-mode', light); var mc = document.querySelector('meta[name="theme-color"]'); if (mc) mc.setAttribute('content', light ? '#f4f5f7' : '#0f1216'); }
 
         // ===== DUHOVY OKRAJ: zari po celou navigaci na bod, zesili a zrychli pri dohledavani (< 2 m) =====
         function updateNavGlow() {
