@@ -262,7 +262,7 @@
         return t;
     }
     function injectQuota() {
-        const tab = document.getElementById('tab-funkce');
+        const tab = document.getElementById('tab-data');
         if (!tab || document.getElementById('ag-quota')) return;
         const box = document.createElement('div');
         box.id = 'ag-quota';
