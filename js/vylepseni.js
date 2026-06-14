@@ -213,7 +213,8 @@
         panel.classList.add('ag-collapsible');
         let open = false; try { open = localStorage.getItem('agGpsOpen') === '1'; } catch (e) {}
         panel.classList.toggle('ag-collapsed', !open);
-        title.addEventListener('click', function () {
+        // Klik na celý panel přepíná (robustnější s HUD pointer-capture; HUD potlačí klik po tažení).
+        panel.addEventListener('click', function () {
             const willOpen = panel.classList.contains('ag-collapsed');
             panel.classList.toggle('ag-collapsed', !willOpen);
             try { localStorage.setItem('agGpsOpen', willOpen ? '1' : '0'); } catch (e) {}
