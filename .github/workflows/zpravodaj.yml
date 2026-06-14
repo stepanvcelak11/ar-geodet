@@ -24,6 +24,8 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # plná historie kvůli rebase při souběžném pushi
 
       # Node je na ubuntu-latest předinstalovaný (v20+), skript používá jen vestavěné moduly.
 
@@ -39,10 +41,18 @@ jobs:
         run: |
           if git diff --quiet -- data/zpravodaj.json; then
             echo "Beze změny — necommituji."
-          else
-            git config user.name  "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add data/zpravodaj.json
-            git commit -m "Zpravodaj: vydání $(date +%F) [skip ci]"
-            git push
+            exit 0
           fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/zpravodaj.json
+          git commit -m "Zpravodaj: vydání $(date +%F) [skip ci]"
+          # Robustní push: když mezitím někdo pushne na main, rebasni a zkus znovu.
+          # (Bot sahá jen na data/zpravodaj.json, takže rebase je bezkonfliktní.)
+          for i in 1 2 3 4 5; do
+            if git push origin HEAD:main; then echo "pushnuto"; exit 0; fi
+            echo "push odmítnut (pokus $i) — stahuji origin/main a rebasuji…"
+            git pull --rebase --autostash origin main || true
+          done
+          echo "push se nepodařil ani po opakování" >&2
+          exit 1
