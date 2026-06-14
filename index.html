@@ -22,7 +22,7 @@
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
 </head>
-<body>
+<body class="light-mode">
 
     <!-- Ikonová sada (Lucide-style). Použití: <svg class="icon"><use href="#i-nazev"/></svg> -->
     <svg id="icon-sprite" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
@@ -375,7 +375,14 @@
                 </div>
                 <div id="tab-vzhled" class="settings-tab">
                     <h4 style="color:var(--accent); margin-top:0; border-bottom: 1px solid var(--glass-border); padding-bottom:5px;">Barevný motiv aplikace</h4>
+                    <label style="margin-top:0;">Světlost</label>
+                    <select id="v-mode" onchange="previewMode(this.value)">
+                        <option value="light">Světlý režim</option>
+                        <option value="dark">Tmavý režim</option>
+                    </select>
+                    <label>Barevný odstín</label>
                     <select id="v-theme" onchange="previewTheme(this.value)">
+                        <option value="smaragd">Smaragd (výchozí)</option>
                         <option value="aurora">Aurora (tyrkysová–fialová)</option>
                         <option value="sunset">Západ slunce (jantarová)</option>
                         <option value="ocean">Oceán (modrá)</option>

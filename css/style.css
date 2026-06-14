@@ -12,33 +12,34 @@
     --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
 
-    /* Plochy a text — Aurora: indigo-navy základ, prosklené plochy, světlé linky */
-    --bg-color: #0b1020;
-    --bg-elev: #11162a;
+    /* Plochy a text — Smaragd: zelenočerný základ, prosklené plochy */
+    --bg-color: #0b1310;
+    --bg-elev: #11201a;
     --surface-1: rgba(255, 255, 255, 0.06);
     --surface-2: rgba(255, 255, 255, 0.09);
     --surface-3: rgba(255, 255, 255, 0.13);
-    --glass-bg: rgba(17, 22, 42, 0.80);
-    --glass-border: rgba(255, 255, 255, 0.12);
-    --glass-border-strong: rgba(255, 255, 255, 0.22);
-    --text-color: #eef1f8;
-    --text-muted: #aab2c8;
-    --text-faint: #6b7490;
-    --map-bg: #0b1020;
+    --glass-bg: rgba(18, 32, 25, 0.84);
+    --glass-border: rgba(255, 255, 255, 0.10);
+    --glass-border-strong: rgba(255, 255, 255, 0.20);
+    --text-color: #ecf1ec;
+    --text-muted: #93a89c;
+    --text-faint: #6b7e76;
+    --map-bg: #0b1310;
 
-    /* Značková paleta — Aurora (teal → violet → pink) */
-    --accent: #2dd4bf;          /* teal — primární akcent */
-    --accent-bright: #5eead4;   /* světlý teal highlight */
-    --accent-strong: #14b8a6;
-    --accent2: #8b5cf6;         /* violet */
-    --accent3: #f472b6;         /* pink */
-    --accent-grad: linear-gradient(95deg, #2dd4bf, #8b5cf6);
-    --accent-soft: rgba(45, 212, 191, 0.14);
-    --accent-line: rgba(139, 92, 246, 0.50);
-    --accent-glow: 0 10px 34px rgba(139, 92, 246, 0.50);
+    /* Značková paleta — Smaragd + písková (klidný duotón: jeden akcent + teplá data) */
+    --accent: #2f9e74;          /* smaragdová — primární akcent */
+    --accent-bright: #3eb487;   /* světlejší smaragd */
+    --accent-strong: #248a63;
+    --accent2: #2f9e74;         /* bez druhé „neonové" barvy */
+    --accent3: #e6bd76;
+    --accent-grad: var(--accent);   /* jeden plný akcent místo gradientu */
+    --accent-soft: rgba(47, 158, 116, 0.14);
+    --accent-line: rgba(47, 158, 116, 0.42);
+    --accent-glow: 0 8px 22px rgba(47, 158, 116, 0.30);
     --accent-blue: #3b82f6;
     --warning: #fbbf24;
     --danger: #fb7185;
+    --data: #e6bd76;            /* teplý akcent jen na čísla (azimut, přesnost…) */
 
     /* Kategorie bodů (přepisuje JS) */
     --color-tb: #8b5cf6;
@@ -61,9 +62,9 @@
     --hud-scale: 1;
 
     /* Záře úvodní obrazovky (mění barevné motivy) */
-    --glow1: rgba(45, 212, 191, 0.45);
-    --glow2: rgba(139, 92, 246, 0.50);
-    --glow3: rgba(244, 114, 182, 0.22);
+    --glow1: rgba(47, 158, 116, 0.38);
+    --glow2: rgba(230, 189, 118, 0.26);
+    --glow3: rgba(47, 158, 116, 0.16);
 
     /* Poloměry — přátelské, premium */
     --r-xs: 6px;
@@ -85,15 +86,54 @@
 }
 
 body.light-mode {
-    --bg-color: #f1f3f5;
-    --surface-1: rgba(255, 255, 255, 0.86);
-    --surface-2: rgba(248, 250, 252, 0.92);
+    --bg-color: #f3f3ed;
+    --bg-elev: #ebe9df;
+    --surface-1: rgba(0, 0, 0, 0.04);
+    --surface-2: rgba(0, 0, 0, 0.06);
+    --surface-3: rgba(0, 0, 0, 0.09);
     --glass-bg: rgba(255, 255, 255, 0.90);
-    --glass-border: rgba(15, 23, 42, 0.10);
-    --glass-border-strong: rgba(15, 23, 42, 0.18);
-    --text-color: #0f172a;
-    --text-muted: #64748b;
-    --map-bg: #e2e8f0;
+    --glass-border: rgba(40, 40, 20, 0.12);
+    --glass-border-strong: rgba(40, 40, 20, 0.20);
+    --text-color: #172017;
+    --text-muted: #5f6b60;
+    --text-faint: #98a09a;
+    --map-bg: #e3e7e1;
+    --accent: #1f8a63;
+    --accent-bright: #15724f;
+    --accent-strong: #136448;
+    --accent2: #1f8a63;
+    --accent-soft: rgba(31, 138, 99, 0.12);
+    --accent-line: rgba(31, 138, 99, 0.38);
+    --accent-glow: 0 6px 16px rgba(20, 90, 65, 0.16);
+    --data: #a9701f;
+    --glow1: rgba(31, 138, 99, 0.22);
+    --glow2: rgba(169, 112, 31, 0.16);
+    --glow3: rgba(31, 138, 99, 0.10);
+}
+/* Světlý režim: pole formulářů (jinak tmavá) přebarvit na světlá */
+body.light-mode .modal-content input[type="text"],
+body.light-mode .modal-content input[type="number"],
+body.light-mode .modal-content select,
+body.light-mode .modal-content input[type="color"],
+body.light-mode .ag-dlg-input,
+body.light-mode .tab-buttons { background: rgba(0, 0, 0, 0.04); }
+body.light-mode .modal-content input[type="text"]:focus,
+body.light-mode .modal-content input[type="number"]:focus,
+body.light-mode .modal-content select:focus { background: rgba(0, 0, 0, 0.06); }
+
+/* Motiv „Aurora" (původní tyrkys–fialová) — nově jen volitelný, ne výchozí */
+body.theme-aurora {
+    --bg-color: #0b1020; --bg-elev: #11162a; --map-bg: #0b1020;
+    --glass-bg: rgba(17, 22, 42, 0.80);
+    --text-color: #eef1f8; --text-muted: #aab2c8;
+    --accent: #2dd4bf; --accent-bright: #5eead4; --accent-strong: #14b8a6;
+    --accent2: #8b5cf6; --accent3: #f472b6;
+    --accent-grad: linear-gradient(95deg, #2dd4bf, #8b5cf6);
+    --accent-soft: rgba(45, 212, 191, 0.14);
+    --accent-line: rgba(139, 92, 246, 0.50);
+    --accent-glow: 0 10px 34px rgba(139, 92, 246, 0.50);
+    --data: #5eead4;
+    --glow1: rgba(45, 212, 191, 0.45); --glow2: rgba(139, 92, 246, 0.50); --glow3: rgba(244, 114, 182, 0.22);
 }
 /* =========================================================================
    Barevné motivy (Nastavení → Vzhled → Barevný motiv)
@@ -296,7 +336,7 @@ body {
     max-height: 90%;
     padding: 32px 26px 26px;
     border-radius: var(--r-xl);
-    background: rgba(255, 255, 255, 0.07);
+    background: var(--glass-bg);
     backdrop-filter: blur(30px) saturate(150%);
     -webkit-backdrop-filter: blur(30px) saturate(150%);
     border: 1px solid rgba(255, 255, 255, 0.20);
@@ -317,7 +357,7 @@ body {
     margin: 4px auto 16px;
     display: block;
     animation: float 5s ease-in-out infinite;
-    filter: drop-shadow(0 16px 30px rgba(139, 92, 246, 0.50));
+    filter: drop-shadow(0 14px 26px rgba(47, 158, 116, 0.40));
 }
 
 /* =========================================================================
@@ -388,7 +428,7 @@ body {
 #info .rdt { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
 #info .rdt + .rdt { margin-top: 3px; }
 #info .rdt-l { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
-#info .rdt-v { font-family: var(--font-mono); font-size: 14px; font-weight: 700; }
+#info .rdt-v { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--data); }
 
 #compass-debug {
     position: absolute;
@@ -400,7 +440,7 @@ body {
     font-family: var(--font-mono);
     font-size: 15px;
     font-weight: 700;
-    color: var(--accent);
+    color: var(--data);
     cursor: pointer;
     pointer-events: auto;
     transform: scale(var(--menu-scale));
@@ -1006,7 +1046,7 @@ details[open] summary::after { content: " ⌄"; }
 }
 .tab-btn.active {
     background: var(--accent);
-    color: #04130c;
+    color: #fff;
 }
 
 .color-row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
@@ -1117,8 +1157,8 @@ details[open] summary::after { content: " ⌄"; }
 .map-ctrl-btn { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--glass-border); color: var(--text-color); font-size: 24px; font-weight: 700; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
 .map-ctrl-btn:active { transform: scale(0.94); }
 .map-ctrl-btn .icon { width: 20px; height: 20px; }
-.map-ctrl-btn.ctrl-active { background: var(--accent); color: #04130c; border-color: var(--accent); }
-.map-ctrl-btn.ctrl-active .icon { stroke: #04130c; }
+.map-ctrl-btn.ctrl-active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.map-ctrl-btn.ctrl-active .icon { stroke: #fff; }
 
 /* =========================================================================
    Nové rozložení (Koncept 1): spodní dok + přepínač zobrazení
@@ -1332,8 +1372,8 @@ body.outdoor-mode .ar-marker-dist { opacity: 1; }
 #map-controls { align-items: flex-end; }
 #map-ctrl-stack { display: flex; flex-direction: row; flex-wrap: wrap-reverse; justify-content: flex-end; gap: 8px; max-width: calc(100vw - 92px); transform-origin: bottom right; transition: opacity 0.25s var(--ease-out), transform 0.25s var(--ease-out); }
 #map-controls:not(.expanded) #map-ctrl-stack { opacity: 0; transform: translateX(12px) scale(0.85); pointer-events: none; }
-#map-controls.expanded #map-ctrl-toggle { background: var(--accent); color: #04130c; border-color: var(--accent); }
-#map-controls.expanded #map-ctrl-toggle .icon { stroke: #04130c; }
+#map-controls.expanded #map-ctrl-toggle { background: var(--accent); color: #fff; border-color: var(--accent); }
+#map-controls.expanded #map-ctrl-toggle .icon { stroke: #fff; }
 
 /* PWA: lista upozorneni na novou verzi (klepnutim obnovit) */
 #update-banner {
