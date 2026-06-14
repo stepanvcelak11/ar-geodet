@@ -496,6 +496,174 @@
     }
 
     // --------------------------------------------------------------------------------
+    // 8) FOTODOKUMENTACE + PROTOKOL VYTYČENÍ
+    //    Foto u vytyčeného bodu (zmenšené JPEG) + tiskový protokol (PDF) s fotkami.
+    //    Fotky jdou do SAMOSTATNÉ IndexedDB ('arGeodetFotky') — NE do localStorage (kvóta)
+    //    a NE do _idbMem (undo snapshoty). Napojeno obalením globálů z vytycovani.js.
+    // --------------------------------------------------------------------------------
+    const PDB = 'arGeodetFotky', PSTORE = 'fotky';
+    let _curStakePt = null;
+
+    function photoKey(pt) { const proj = (typeof activeProjectId !== 'undefined') ? activeProjectId : 'def'; return proj + '_' + (pt && pt.id != null ? pt.id : '?'); }
+    function photoDB() {
+        return new Promise(function (res, rej) {
+            if (typeof indexedDB === 'undefined') { rej(new Error('no idb')); return; }
+            const r = indexedDB.open(PDB, 1);
+            r.onupgradeneeded = function () { try { r.result.createObjectStore(PSTORE); } catch (e) {} };
+            r.onsuccess = function () { res(r.result); };
+            r.onerror = function () { rej(r.error); };
+        });
+    }
+    function photoPut(k, v) { return photoDB().then(function (db) { return new Promise(function (res, rej) { const tx = db.transaction(PSTORE, 'readwrite'); tx.objectStore(PSTORE).put(v, k); tx.oncomplete = function () { res(); }; tx.onerror = function () { rej(tx.error); }; }); }); }
+    function photoGet(k) { return photoDB().then(function (db) { return new Promise(function (res, rej) { const tx = db.transaction(PSTORE, 'readonly'); const rq = tx.objectStore(PSTORE).get(k); rq.onsuccess = function () { res(rq.result || null); }; rq.onerror = function () { rej(rq.error); }; }); }); }
+    function photoDel(k) { return photoDB().then(function (db) { return new Promise(function (res, rej) { const tx = db.transaction(PSTORE, 'readwrite'); tx.objectStore(PSTORE).delete(k); tx.oncomplete = function () { res(); }; tx.onerror = function () { rej(tx.error); }; }); }); }
+
+    function downscale(file, maxDim, quality) {
+        return new Promise(function (res) {
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = function () {
+                let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+                const sc = Math.min(1, maxDim / Math.max(w, h));
+                const cw = Math.max(1, Math.round(w * sc)), ch = Math.max(1, Math.round(h * sc));
+                const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+                try { cv.getContext('2d').drawImage(img, 0, 0, cw, ch); } catch (e) {}
+                URL.revokeObjectURL(url);
+                try { res(cv.toDataURL('image/jpeg', quality)); } catch (e) { res(null); }
+            };
+            img.onerror = function () { URL.revokeObjectURL(url); res(null); };
+            img.src = url;
+        });
+    }
+
+    function showThumb(pt) {
+        const t = document.getElementById('ag-stk-thumb'); if (!t) return;
+        photoGet(photoKey(pt)).then(function (data) {
+            if (document.getElementById('ag-stk-thumb') !== t) return; // mezitím se přepnul bod
+            if (data) {
+                t.innerHTML = '<img src="' + data + '" alt="foto vytyčení"><button type="button" class="ag-stk-del" id="ag-stk-del">Smazat foto</button>';
+                const del = document.getElementById('ag-stk-del');
+                if (del) del.addEventListener('click', function () { photoDel(photoKey(pt)).then(function () { showThumb(pt); }).catch(function () {}); });
+            } else {
+                t.innerHTML = '<div class="ag-stk-empty">Bez fotky — zdokumentuj stabilizaci bodu.</div>';
+            }
+        }).catch(function () { t.innerHTML = '<div class="ag-stk-empty">Foto nelze načíst (úložiště nedostupné).</div>'; });
+    }
+
+    function injectPhotoUI(pt) {
+        if (!pt) return;
+        const mc = document.querySelector('#stake-detail-modal .modal-content');
+        if (!mc) return;
+        let sec = document.getElementById('ag-stk-photo');
+        if (!sec) {
+            sec = document.createElement('div');
+            sec.id = 'ag-stk-photo';
+            sec.innerHTML =
+                '<div id="ag-stk-thumb" class="ag-stk-thumb"></div>' +
+                '<input type="file" id="ag-stk-file" accept="image/*" capture="environment" style="display:none">' +
+                '<button type="button" class="btn btn-secondary" id="ag-stk-cap" style="margin-top:8px;"><svg class="icon"><use href="#i-camera"/></svg> Vyfotit / nahradit foto</button>';
+            const body = document.getElementById('stkd-body');
+            if (body && body.nextSibling) mc.insertBefore(sec, body.nextSibling); else mc.appendChild(sec);
+            document.getElementById('ag-stk-cap').addEventListener('click', function () { const f = document.getElementById('ag-stk-file'); if (f) f.click(); });
+            document.getElementById('ag-stk-file').addEventListener('change', function (e) {
+                const f = e.target.files && e.target.files[0]; e.target.value = '';
+                if (!f) return;
+                const cap = document.getElementById('ag-stk-cap'); const old = cap ? cap.innerHTML : '';
+                if (cap) { cap.disabled = true; cap.textContent = 'Zpracovávám…'; }
+                downscale(f, 1280, 0.7).then(function (data) {
+                    if (!data) throw new Error('img');
+                    return photoPut(photoKey(_curStakePt), data);
+                }).then(function () { showThumb(_curStakePt); }).catch(function () {
+                    agAlert({ title: 'Foto se neuložilo', message: 'Zkus to znovu, nebo zkontroluj místo v úložišti.' });
+                }).then(function () { if (cap) { cap.disabled = false; cap.innerHTML = old; } });
+            });
+        }
+        _curStakePt = pt;
+        showThumb(pt);
+    }
+
+    function buildProtocolHtml(proj, rows) {
+        const today = new Date().toLocaleString('cs-CZ');
+        const esc = escapeHtml;
+        const cards = rows.map(function (r, idx) {
+            return '<div class="card"><div class="hd"><span class="num">#' + esc(r.name) + '</span><span class="t">' + esc(r.when) + '</span></div>' +
+                '<table><tr><th>S-JTSK Y</th><td>' + r.Y + '</td><th>S-JTSK X</th><td>' + r.X + '</td></tr>' +
+                '<tr><th>Přesnost</th><td>' + esc(r.acc) + '</td><th>Pořadí</th><td>' + (idx + 1) + ' / ' + rows.length + '</td></tr></table>' +
+                (r.photo ? '<img class="ph" src="' + r.photo + '">' : '<div class="nophoto">bez fotodokumentace</div>') +
+                '</div>';
+        }).join('');
+        const css = 'body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:0;padding:16px;}' +
+            'h1{font-size:20px;margin:0 0 4px;}.meta{font-size:12px;color:#444;margin-bottom:8px;}' +
+            '.prn{padding:10px 16px;border:0;border-radius:8px;background:#10b981;color:#04110b;font-weight:700;font-size:14px;cursor:pointer;}' +
+            '.note{font-size:11px;color:#92400e;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:8px 10px;margin:10px 0 14px;line-height:1.4;}' +
+            '.card{border:1px solid #ddd;border-radius:10px;padding:10px 12px;margin-bottom:12px;page-break-inside:avoid;}' +
+            '.hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}' +
+            '.num{font-size:16px;font-weight:700;}.t{font-size:12px;color:#555;}' +
+            'table{width:100%;border-collapse:collapse;font-size:12.5px;}th,td{text-align:left;padding:3px 6px;border-bottom:1px solid #eee;}th{color:#555;font-weight:600;width:90px;}' +
+            '.ph{max-width:100%;max-height:340px;margin-top:8px;border-radius:8px;display:block;}' +
+            '.nophoto{margin-top:8px;font-size:11px;color:#999;font-style:italic;}' +
+            '@media print{.prn{display:none;}body{padding:0;}}';
+        return '<!DOCTYPE html><html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
+            '<title>Protokol vytyčení — ' + esc(proj) + '</title><style>' + css + '</style></head><body>' +
+            '<h1>Protokol vytyčení</h1>' +
+            '<div class="meta">Zakázka: <b>' + esc(proj) + '</b> · Vytištěno: ' + esc(today) + ' · Bodů: ' + rows.length + '</div>' +
+            '<button class="prn" onclick="window.print()">Tisk / Uložit PDF</button>' +
+            '<div class="note">Orientační pomůcka, ne měřicí přístroj. Zaznamenaná „přesnost" je odhad z GPS telefonu — ten má systematickou chybu ~5–15 m, kterou průměrování neodstraní. Body v terénu ověřte.</div>' +
+            cards +
+            '<script>window.onload=function(){setTimeout(function(){try{window.print()}catch(e){}},500)}<\/script>' +
+            '</body></html>';
+    }
+
+    window.exportStakeoutProtocol = function () {
+        const pts = (typeof arPoints !== 'undefined') ? arPoints : [];
+        const done = pts.filter(function (p) { return typeof stakeoutData !== 'undefined' && stakeoutData[p.id]; });
+        if (!done.length) { agAlert({ title: 'Nic k tisku', message: 'Zatím není vytyčen žádný bod.' }); return; }
+        if (typeof proj4 !== 'function') { agAlert({ title: 'Chybí proj4', message: 'Knihovna pro převod souřadnic se nenačetla.' }); return; }
+        const proj = projName(typeof activeProjectId !== 'undefined' ? activeProjectId : '') || (typeof activeProjectId !== 'undefined' ? activeProjectId : '');
+        Promise.all(done.map(function (pt) {
+            const rec = stakeoutData[pt.id];
+            const sj = proj4('EPSG:4326', 'EPSG:5514', [pt.lng, pt.lat]);
+            const when = rec.t ? new Date(rec.t).toLocaleString('cs-CZ') : '';
+            return photoGet(photoKey(pt)).catch(function () { return null; }).then(function (photo) {
+                return { name: pt.name, Y: Math.abs(sj[0]).toFixed(2), X: Math.abs(sj[1]).toFixed(2), when: when, acc: rec.acc != null ? '±' + rec.acc + ' m' : '—', photo: photo };
+            });
+        })).then(function (rows) {
+            const w = window.open('', '_blank');
+            if (!w) { agAlert({ title: 'Okno blokováno', message: 'Povol vyskakovací okna a zkus to znovu — protokol se otevře jako tisknutelná stránka.' }); return; }
+            const html = buildProtocolHtml(proj, rows);
+            w.document.open(); w.document.write(html); w.document.close();
+        });
+    };
+
+    function injectProtocolButton() {
+        const modal = document.getElementById('stakeout-modal');
+        if (!modal || document.getElementById('ag-stk-protocol')) return;
+        const rowBtns = modal.querySelector('.row-buttons');
+        const btn = document.createElement('button');
+        btn.id = 'ag-stk-protocol';
+        btn.className = 'btn btn-secondary';
+        btn.type = 'button';
+        btn.style.marginTop = '8px';
+        btn.innerHTML = '<svg class="icon"><use href="#i-file-text"/></svg> Protokol s fotkami (PDF / tisk)';
+        btn.addEventListener('click', function () { try { window.exportStakeoutProtocol(); } catch (e) { console.warn(e); } });
+        if (rowBtns) modal.querySelector('.modal-content').insertBefore(btn, rowBtns);
+        else modal.querySelector('.modal-content').appendChild(btn);
+    }
+
+    function hookStakeout() {
+        if (typeof window.openStakeRecord === 'function' && !window.openStakeRecord._agPhoto) {
+            const orig = window.openStakeRecord;
+            const wrapped = function (pt) { const r = orig.apply(this, arguments); try { injectPhotoUI(pt); } catch (e) { console.warn('[vylepseni] photoUI', e); } return r; };
+            wrapped._agPhoto = true; window.openStakeRecord = wrapped;
+        }
+        if (typeof window.openStakeoutModal === 'function' && !window.openStakeoutModal._agProto) {
+            const orig = window.openStakeoutModal;
+            const wrapped = function () { const r = orig.apply(this, arguments); try { injectProtocolButton(); } catch (e) { console.warn('[vylepseni] protoBtn', e); } return r; };
+            wrapped._agProto = true; window.openStakeoutModal = wrapped;
+        }
+    }
+
+    // --------------------------------------------------------------------------------
     // Pomocné
     // --------------------------------------------------------------------------------
     function escapeHtml(s) {
@@ -515,6 +683,7 @@
         try { injectQuota(); hookSettings(); } catch (e) { console.warn('[vylepseni] quota', e); }
         try { injectDxfButton(); } catch (e) { console.warn('[vylepseni] dxf', e); }
         try { injectCalibButton(); } catch (e) { console.warn('[vylepseni] calib', e); }
+        try { hookStakeout(); } catch (e) { console.warn('[vylepseni] stakeout', e); }
     }
 
     if (document.readyState === 'loading') {

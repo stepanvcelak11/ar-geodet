@@ -251,7 +251,15 @@ body.ag-glove .modal-content select { padding: 15px 14px; font-size: 16px; }
 body.ag-glove .ag-calib-btn { min-height: 54px; font-size: 16px; }
 
 /* --------------------------------------------------------------------------------
-   9) Drobná dostupnost — viditelný focus pro klávesnici (neruší dotyk)
+   9) Fotodokumentace vytyčení — náhled v detailu bodu
+   -------------------------------------------------------------------------------- */
+#ag-stk-photo { margin-top: 12px; }
+.ag-stk-thumb img { display: block; width: 100%; max-height: 220px; object-fit: cover; border-radius: 12px; border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.14)); }
+.ag-stk-del { margin-top: 6px; background: transparent; border: none; color: var(--danger, #ef4444); font-size: 12px; text-decoration: underline; cursor: pointer; padding: 4px; }
+.ag-stk-empty { padding: 14px; text-align: center; font-size: 12px; color: var(--text-muted, #aab2c8); border: 1px dashed var(--glass-border, rgba(255, 255, 255, 0.18)); border-radius: 12px; }
+
+/* --------------------------------------------------------------------------------
+   10) Drobná dostupnost — viditelný focus pro klávesnici (neruší dotyk)
    -------------------------------------------------------------------------------- */
 .btn:focus-visible, .menu-btn:focus-visible, .dock-btn:focus-visible,
 .map-ctrl-btn:focus-visible, .seg-btn:focus-visible, .ag-dlg-btn:focus-visible,
