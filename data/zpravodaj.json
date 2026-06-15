@@ -1,66 +1,81 @@
 {
-  "vydani": "2026-06-14",
-  "uvodnik": "Přinášíme aktuální zprávy ze světa geodézie a geoinformatiky.",
+  "vydani": "2026-06-15",
+  "uvodnik": "Přinášíme aktuální zprávy z oblasti geodézie a geoinformatiky.",
   "polozky": [
     {
-      "rubrika": "Z domova",
+      "rubrika": "Akce",
       "top": true,
-      "nadpis": "Společný metodický pokyn ČÚZK a MMR k zápisu drobných staveb do KN",
-      "perex": "Nový metodický pokyn se zaměřuje na zápis drobných staveb do katastru nemovitostí.",
-      "telo": "Český úřad zeměměřický a katastrální (ČÚZK) ve spolupráci s Ministerstvem pro místní rozvoj (MMR) vydal nový Společný metodický pokyn, který se týká zápisu drobných staveb do katastru nemovitostí. Tento pokyn je důležitým krokem k zjednodušení a zefektivnění procesu registrace drobných staveb, což může přinést výhody jak pro vlastníky, tak pro geodety. V dokumentu jsou uvedeny jasné pokyny a doporučení, jak správně postupovat při zápisu těchto staveb.",
-      "body": [],
-      "proc": "Zpráva je důležitá pro geodety, kteří se zabývají zápisem nemovitostí.",
+      "nadpis": "GEO Business 2026 láme rekordy v účasti s více než 6200 profesionály",
+      "perex": "Akce GEO Business 2026 potvrdila svou pozici jako nejvýznamnější událost v oblasti geospatial technologií ve Velké Británii.",
+      "telo": "Na akci GEO Business 2026, která se konala 3. a 4. června v Excel London, se sešlo více než 6200 profesionálů. V rámci akce proběhlo více než 160 odborných sezení a zúčastnilo se přes 100 vystavovatelů. Tento ročník přinesl širokou škálu interaktivních networkingových a vzdělávacích příležitostí, které spojily odborníky z oblasti geodézie, GIS, dat, plánování a průmyslu. Kromě nejnovějších technologií poskytla GEO Business platformu pro sdílení znalostí a zkušeností.",
+      "body": [
+        "Více než 6200 účastníků",
+        "160 odborných sezení"
+      ],
+      "proc": "GEO Business 2026 se etablovalo jako klíčová událost pro geospatial komunitu.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/06/15/geo-business-2026-breaks-attendance-records-with-6200-professionals/?utm_source=rss&utm_medium=rss&utm_campaign=geo-business-2026-breaks-attendance-records-with-6200-professionals",
+      "datum": "2026-06-15"
+    },
+    {
+      "rubrika": "Z domova",
+      "top": false,
+      "nadpis": "Ukončení provozu WSGP verze 2.10",
+      "perex": "ČÚZK oznamuje ukončení provozu starší verze webových služeb pro geometrické plány.",
+      "telo": "Český úřad zeměměřický a katastrální informoval, že na podzim 2026 dojde k ukončení provozu verze 2.10 webových služeb pro vyhotovitele a ověřovatele geometrických plánů (WSGP). Po tomto termínu budou k dispozici pouze služby verze 3.1. Uživatelé jsou vyzváni, aby se na tento přechod připravili.",
+      "body": [
+        "Ukončení verze 2.10 na podzim 2026",
+        "Provoz pouze verze 3.1"
+      ],
+      "proc": "Uživatelé by měli být připraveni na přechod na novou verzi služeb.",
+      "zdroj": "ČÚZK",
+      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
+      "datum": "2026-05-29"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "SimActive umožňuje rychlou výrobu ortomosaiků pro mapování plánovaných požárů",
+      "perex": "Software Correlator3D od SimActive urychluje proces tvorby ortomosaiků pro projekty mapování požárů.",
+      "telo": "Společnost SimActive oznámila, že její software Correlator3D je využíván firmou Landair Surveys k rychlé výrobě ortomosaiků pro projekty mapování plánovaných požárů v Austrálii. Tato technologie podporuje časově citlivé letecké mapovací operace, kde jsou rychlé a přesné geospatial výstupy zásadní pro prevenci požárů a správu pozemků. Landair Surveys spoléhá na Correlator3D, aby zpracovávala letecké snímky v rámci přísných časových limitů.",
+      "body": [
+        "Rychlá výroba ortomosaiků",
+        "Podpora pro prevenci požárů"
+      ],
+      "proc": "Technologie je klíčová pro efektivní správu přírodních zdrojů.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/06/12/simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping/?utm_source=rss&utm_medium=rss&utm_campaign=simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping",
+      "datum": "2026-06-12"
+    },
+    {
+      "rubrika": "Z domova",
+      "top": false,
+      "nadpis": "Společný metodický pokyn k zápisu drobných staveb do KN",
+      "perex": "ČÚZK a MMR vydaly nový metodický pokyn pro zápis drobných staveb.",
+      "telo": "Český úřad zeměměřický a katastrální ve spolupráci s Ministerstvem pro místní rozvoj zveřejnily nový Společný metodický pokyn k zápisu drobných staveb do katastru nemovitostí. Tento pokyn je určen pro všechny, kteří se podílejí na procesu zápisu drobných staveb a měl by usnadnit orientaci v legislativních požadavcích.",
+      "body": [
+        "Nový metodický pokyn",
+        "Usnadnění zápisu drobných staveb"
+      ],
+      "proc": "Pokyn má za cíl zjednodušit proces zápisu staveb.",
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/Spolecny-metodicky-pokyn-CUZK-a-MMR-k-zapisu-drobn.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-03-06"
     },
     {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "SimActive umožňuje rychlou produkci ortomosaik pro mapování plánovaných požárů",
-      "perex": "Software Correlator3D od SimActive se využívá pro rychlé generování ortomosaik v Austrálii.",
-      "telo": "Montreal, Kanada, 9. června 2026 – Společnost SimActive Inc. oznámila, že její software Correlator3D je používán firmou Landair Surveys k rychlému generování ortomosaik pro projekty mapování plánovaných požárů v Austrálii. Tato technologie podporuje časově citlivé letecké mapovací operace, kde jsou rychlé a přesné geodetické výstupy klíčové pro prevenci požárů a správu půdy. Landair Surveys spoléhá na Correlator3D, aby zpracovával letecké snímky v rámci těsných časových limitů, přičemž si zachovává přesnost.",
-      "body": [],
-      "proc": "Zpráva ukazuje na inovace v oblasti leteckého mapování a jejich aplikaci v prevenci požárů.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/12/simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping",
-      "datum": "2026-06-12"
-    },
-    {
       "rubrika": "Technologie",
       "top": false,
-      "nadpis": "YellowScan LiDAR Convention 2026 – Den 2",
-      "perex": "Druhý den konference přinesl zajímavé informace o technologii RTX od Trimble.",
-      "telo": "Na druhém dni konference YellowScan LiDAR Convention 2026 se účastníci dozvěděli o technologii Trimble RTX, kterou prezentoval Dr. Ulrich Weinbach. Tato technologie zahrnuje stovky síťových stanic a modely ionosférických a troposférických vlivů na regionální úrovni. Prezentace byla bohatá na informace a ukázala, jak RTX přispívá k přesnosti a efektivitě v oblasti geodézie a mapování.",
-      "body": [],
-      "proc": "Zpráva informuje o pokrocích v oblasti GNSS a jejich aplikacích.",
+      "nadpis": "Smart Pixels: Klíčový prvek pro novou evoluci digitálních dvojčat",
+      "perex": "Nový koncept Smart Pixels mění přístup k digitálním dvojčatům.",
+      "telo": "Článek představuje revoluční změnu filozofie a architektury, která je potřebná k tomu, aby digitální dvojčata překročila pouhou vizualizaci a splnila svůj potenciál. Smart Pixels se ukazují jako stavební bloky pro novou generaci digitálních dvojčat. Tento koncept má potenciál revolucionalizovat design, analýzu a rozhodování v oblasti vybudovaných prostředí.",
+      "body": [
+        "Revoluční koncept Smart Pixels",
+        "Změna v designu a analýze"
+      ],
+      "proc": "Smart Pixels mohou transformovat způsob, jakým pracujeme s digitálními dvojčaty.",
       "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/06/11/yellowscan-lidar-convention-2026-day-2/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=yellowscan-lidar-convention-2026-day-2",
-      "datum": "2026-06-11"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Smart Pixels: Stavební blok pro novou evoluci digitálních dvojčat",
-      "perex": "Koncept Smart Pixels má potenciál revolučně změnit digitální dvojčata.",
-      "telo": "Článek představuje revoluční změnu filozofie a architektury, která je potřebná k tomu, aby digitální dvojčata překonala pouhou vizualizaci a naplnila svůj potenciál. Smart Pixels se ukazují jako stavební bloky pro digitální dvojčata nové generace, což může zásadně ovlivnit design, analýzu a rozhodování v oblasti stavebního prostředí. Tento koncept naznačuje vznik nové éry v geospatialních technologiích.",
-      "body": [],
-      "proc": "Zpráva ukazuje na inovativní přístupy v oblasti digitálních dvojčat a jejich budoucnost.",
-      "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/06/09/smart-pixels-the-building-block-for-next-evolution-of-digital-twins/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=smart-pixels-the-building-block-for-next-evolution-of-digital-twins",
+      "odkaz": "https://lidarmag.com/2026/06/09/smart-pixels-the-building-block-for-next-evolution-of-digital-twins/?utm_source=rss&utm_medium=rss&utm_campaign=smart-pixels-the-building-block-for-next-evolution-of-digital-twins",
       "datum": "2026-06-09"
-    },
-    {
-      "rubrika": "Akce",
-      "top": false,
-      "nadpis": "Geo Week 2027 hledá významné prezentace",
-      "perex": "Organizátoři Geo Week 2027 vyzývají k účasti na konferenci.",
-      "telo": "Organizátoři Geo Week, přední konference a výstavy, která spojuje odborníky na geodézii a mapování, oznámili otevření výzvy pro přednášející. Hledají praktikanty, projektové vedoucí a inovátory, kteří by sdíleli odborné poznatky a případové studie o unikátních výzvách, transformacích pracovních toků a moderních projektech využívajících lidar, snímkování, reality capture a další geodetické technologie. Uzávěrka pro přihlášky je 17. července.",
-      "body": [],
-      "proc": "Zpráva je důležitá pro odborníky, kteří chtějí prezentovat své zkušenosti na významné akci.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/05/26/geo-week-seeks-impactful-presentations-accepting-speaker-submissions-through-july-17/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=geo-week-seeks-impactful-presentations-accepting-speaker-submissions-through-july-17",
-      "datum": "2026-05-26"
     }
   ]
 }
