@@ -1,18 +1,18 @@
 {
-  "vydani": "2026-06-15",
-  "uvodnik": "Přinášíme aktuální zprávy z oblasti geodézie a geoinformatiky.",
+  "vydani": "2026-06-16",
+  "uvodnik": "Přinášíme aktuální zprávy ze světa geodézie a geoinformatiky.",
   "polozky": [
     {
       "rubrika": "Akce",
       "top": true,
-      "nadpis": "GEO Business 2026 láme rekordy v účasti s více než 6200 profesionály",
-      "perex": "Akce GEO Business 2026 potvrdila svou pozici jako nejvýznamnější událost v oblasti geospatial technologií ve Velké Británii.",
-      "telo": "Na akci GEO Business 2026, která se konala 3. a 4. června v Excel London, se sešlo více než 6200 profesionálů. V rámci akce proběhlo více než 160 odborných sezení a zúčastnilo se přes 100 vystavovatelů. Tento ročník přinesl širokou škálu interaktivních networkingových a vzdělávacích příležitostí, které spojily odborníky z oblasti geodézie, GIS, dat, plánování a průmyslu. Kromě nejnovějších technologií poskytla GEO Business platformu pro sdílení znalostí a zkušeností.",
+      "nadpis": "GEO Business 2026 překonává rekordy návštěvnosti s více než 6 200 profesionály",
+      "perex": "Na GEO Business 2026 se sešlo přes 6 200 odborníků, což potvrzuje jeho postavení jako přední akce pro geospatial technologie.",
+      "telo": "Akce se konala ve dnech 3. a 4. června v Excel London a zahrnovala více než 160 odborných přednášek a přes 100 vystavovatelů. Účastníci měli možnost se zapojit do interaktivních networkingových a vzdělávacích aktivit, které spojily profesionály z oblasti geodézie, GIS, dat, plánování a průmyslu. Kromě nejnovějších technologií GEO Business poskytlo platformu pro diskuzi o trendech a výzvách v oboru.",
       "body": [
-        "Více než 6200 účastníků",
-        "160 odborných sezení"
+        "Více než 6 200 účastníků",
+        "Více než 160 odborných přednášek"
       ],
-      "proc": "GEO Business 2026 se etablovalo jako klíčová událost pro geospatial komunitu.",
+      "proc": "Tato akce je klíčová pro networking a sdílení znalostí v geodetickém oboru.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/06/15/geo-business-2026-breaks-attendance-records-with-6200-professionals/?utm_source=rss&utm_medium=rss&utm_campaign=geo-business-2026-breaks-attendance-records-with-6200-professionals",
       "datum": "2026-06-15"
@@ -20,44 +20,29 @@
     {
       "rubrika": "Z domova",
       "top": false,
-      "nadpis": "Ukončení provozu WSGP verze 2.10",
-      "perex": "ČÚZK oznamuje ukončení provozu starší verze webových služeb pro geometrické plány.",
-      "telo": "Český úřad zeměměřický a katastrální informoval, že na podzim 2026 dojde k ukončení provozu verze 2.10 webových služeb pro vyhotovitele a ověřovatele geometrických plánů (WSGP). Po tomto termínu budou k dispozici pouze služby verze 3.1. Uživatelé jsou vyzváni, aby se na tento přechod připravili.",
+      "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
+      "perex": "ČÚZK oznámil ukončení provozu starší verze webových služeb WSGP.",
+      "telo": "Uživatelé webových služeb pro vyhotovitele a ověřovatele geometrických plánů (WSGP) by měli být informováni, že na podzim 2026 dojde k ukončení provozu verze 2.10. Od tohoto termínu budou k dispozici pouze služby verze 3.1. ČÚZK se omlouvá za případné komplikace a děkuje za pochopení.",
       "body": [
         "Ukončení verze 2.10 na podzim 2026",
-        "Provoz pouze verze 3.1"
+        "Přechod na verzi 3.1"
       ],
-      "proc": "Uživatelé by měli být připraveni na přechod na novou verzi služeb.",
+      "proc": "Tato změna je důležitá pro všechny uživatele WSGP, kteří musí přejít na novou verzi.",
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-05-29"
     },
     {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "SimActive umožňuje rychlou výrobu ortomosaiků pro mapování plánovaných požárů",
-      "perex": "Software Correlator3D od SimActive urychluje proces tvorby ortomosaiků pro projekty mapování požárů.",
-      "telo": "Společnost SimActive oznámila, že její software Correlator3D je využíván firmou Landair Surveys k rychlé výrobě ortomosaiků pro projekty mapování plánovaných požárů v Austrálii. Tato technologie podporuje časově citlivé letecké mapovací operace, kde jsou rychlé a přesné geospatial výstupy zásadní pro prevenci požárů a správu pozemků. Landair Surveys spoléhá na Correlator3D, aby zpracovávala letecké snímky v rámci přísných časových limitů.",
-      "body": [
-        "Rychlá výroba ortomosaiků",
-        "Podpora pro prevenci požárů"
-      ],
-      "proc": "Technologie je klíčová pro efektivní správu přírodních zdrojů.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/12/simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping/?utm_source=rss&utm_medium=rss&utm_campaign=simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping",
-      "datum": "2026-06-12"
-    },
-    {
       "rubrika": "Z domova",
       "top": false,
-      "nadpis": "Společný metodický pokyn k zápisu drobných staveb do KN",
-      "perex": "ČÚZK a MMR vydaly nový metodický pokyn pro zápis drobných staveb.",
-      "telo": "Český úřad zeměměřický a katastrální ve spolupráci s Ministerstvem pro místní rozvoj zveřejnily nový Společný metodický pokyn k zápisu drobných staveb do katastru nemovitostí. Tento pokyn je určen pro všechny, kteří se podílejí na procesu zápisu drobných staveb a měl by usnadnit orientaci v legislativních požadavcích.",
+      "nadpis": "Společný metodický pokyn ČÚZK a MMR k zápisu drobných staveb do KN",
+      "perex": "Byl zveřejněn nový metodický pokyn k zápisu drobných staveb do katastru nemovitostí.",
+      "telo": "Český úřad zeměměřického a katastrálního spolu s Ministerstvem pro místní rozvoj vydal nový společný metodický pokyn, který se týká zápisu drobných staveb do katastru nemovitostí. Tento pokyn je důležitým nástrojem pro geodety a stavebníky, kteří se zabývají evidencí a správou nemovitostí.",
       "body": [
-        "Nový metodický pokyn",
-        "Usnadnění zápisu drobných staveb"
+        "Nový pokyn pro zápis drobných staveb",
+        "Spolupráce ČÚZK a MMR"
       ],
-      "proc": "Pokyn má za cíl zjednodušit proces zápisu staveb.",
+      "proc": "Pokyn usnadní proces zápisu drobných staveb do katastru nemovitostí.",
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/Spolecny-metodicky-pokyn-CUZK-a-MMR-k-zapisu-drobn.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-03-06"
@@ -65,17 +50,47 @@
     {
       "rubrika": "Technologie",
       "top": false,
-      "nadpis": "Smart Pixels: Klíčový prvek pro novou evoluci digitálních dvojčat",
-      "perex": "Nový koncept Smart Pixels mění přístup k digitálním dvojčatům.",
-      "telo": "Článek představuje revoluční změnu filozofie a architektury, která je potřebná k tomu, aby digitální dvojčata překročila pouhou vizualizaci a splnila svůj potenciál. Smart Pixels se ukazují jako stavební bloky pro novou generaci digitálních dvojčat. Tento koncept má potenciál revolucionalizovat design, analýzu a rozhodování v oblasti vybudovaných prostředí.",
+      "nadpis": "SimActive umožňuje rychlou produkci ortomosaik pro mapování plánovaných požárů",
+      "perex": "SimActive Inc. oznámil využití svého softwaru Correlator3D pro rychlou produkci ortomosaik.",
+      "telo": "Společnost SimActive Inc. oznámila, že její software Correlator3D je využíván firmou Landair Surveys k rychlé produkci ortomosaik pro projekty mapování plánovaných požárů v Austrálii. Tato technologie podporuje časově citlivé letecké mapovací operace, kde jsou rychlé a přesné geospatial výstupy nezbytné pro prevenci požárů a správu pozemků. Landair Surveys spoléhá na Correlator3D k zpracování leteckých snímků v těsných časových rámcích.",
       "body": [
-        "Revoluční koncept Smart Pixels",
-        "Změna v designu a analýze"
+        "Rychlá produkce ortomosaik",
+        "Podpora pro prevenci požárů"
       ],
-      "proc": "Smart Pixels mohou transformovat způsob, jakým pracujeme s digitálními dvojčaty.",
+      "proc": "Tato technologie je klíčová pro efektivní řízení přírodních zdrojů a prevenci požárů.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/06/12/simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping/?utm_source=rss&utm_medium=rss&utm_campaign=simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping",
+      "datum": "2026-06-12"
+    },
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "Lidar a jeho role v dodávce datových center",
+      "perex": "Lidar hraje klíčovou roli v rychlé a bezchybné výstavbě datových center.",
+      "telo": "Výstavba datových center se stala významným segmentem současné infrastruktury. Růst v oblasti cloud computingu a hyperscale nasazení zvyšuje poptávku po nových zařízeních a rozšířeních. Lidar technologie podporuje rychlé a přesné 3D snímání, což je zásadní pro úspěšnou a efektivní výstavbu datových center. Podle průmyslových zpráv byl globální trh výstavby datových center v roce 2025 oceněn na 227,6 miliardy dolarů.",
+      "body": [
+        "Rychlá a bezchybně provedená výstavba",
+        "Podpora pro cloud computing"
+      ],
+      "proc": "Lidar technologie je klíčová pro moderní výstavbu a efektivní řízení projektů.",
       "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/06/09/smart-pixels-the-building-block-for-next-evolution-of-digital-twins/?utm_source=rss&utm_medium=rss&utm_campaign=smart-pixels-the-building-block-for-next-evolution-of-digital-twins",
+      "odkaz": "https://lidarmag.com/2026/06/09/precision-and-pace-lidars-role-in-data-center-delivery/?utm_source=rss&utm_medium=rss&utm_campaign=precision-and-pace-lidars-role-in-data-center-delivery",
       "datum": "2026-06-09"
+    },
+    {
+      "rubrika": "Vzdělávání",
+      "top": false,
+      "nadpis": "Pilot Institute přináší vzdělávání pro piloty dronů na Commercial UAV Expo 2026",
+      "perex": "Na Commercial UAV Expo 2026 budou k dispozici praktické sezení zaměřené na vzdělávání pilotů dronů.",
+      "telo": "Na Commercial UAV Expo 2026, která se koná od 1. do 3. září v Las Vegas, bude Pilot Institute nabízet osm praktických sezení zaměřených na růst podnikání s drony, termografii, bezpečnost ve výstavbě a další témata. Tato iniciativa má za cíl vzdělávat účastníky o nejnovějších trendech a technologiích v oblasti dronů a jejich aplikací v různých průmyslových odvětvích.",
+      "body": [
+        "Praktická sezení pro piloty dronů",
+        "Zaměření na růst podnikání a bezpečnost"
+      ],
+      "proc": "Vzdělávání pilotů dronů je klíčové pro rozvoj této rychle se rozvíjející oblasti.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/05/27/pilot-institute-to-bring-drone-pilot-education-to-every-attendee-at-commercial-uav-expo-2026/?utm_source=rss&utm_medium=rss&utm_campaign=pilot-institute-to-bring-drone-pilot-education-to-every-attendee-at-commercial-uav-expo-2026",
+      "datum": "2026-05-27"
     }
   ]
 }
