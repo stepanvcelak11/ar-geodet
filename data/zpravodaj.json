@@ -1,18 +1,27 @@
 {
-  "vydani": "2026-06-18",
+  "vydani": "2026-06-19",
   "uvodnik": "Přinášíme aktuální zprávy ze světa geodézie a geoinformatiky.",
   "polozky": [
     {
-      "rubrika": "Ze světa",
+      "rubrika": "Z domova",
       "top": true,
-      "nadpis": "1 cm GSD z letadla: Jak pevně křídlo redefinuje možnosti v mapování koridorů",
-      "perex": "Nové výzkumy ukazují, že pevně křídlo může dosáhnout centimetrového rozlišení.",
-      "telo": "V geoinformačním průmyslu panuje přesvědčení, že pro centimetrové rozlišení potřebujete dron. Nové práce evropských specialistů však toto tvrzení zpochybňují. Studie ukázala, že pevně křídlo může nabídnout srovnatelné detaily, přičemž se zaměřuje na efektivní pokrytí. Tímto způsobem se mění pohled na možnosti leteckého mapování a jeho aplikace v různých projektech.",
-      "body": [
-        "pevně křídlo může dosáhnout centimetrového rozlišení",
-        "nové metody v mapování koridorů"
-      ],
-      "proc": "Tato zpráva ukazuje na inovace v oblasti leteckého mapování, které mohou změnit dosavadní přístupy.",
+      "nadpis": "Společný metodický pokyn ČÚZK a MMR k zápisu drobných staveb do KN",
+      "perex": "Nový pokyn usnadní zápis drobných staveb do katastru nemovitostí.",
+      "telo": "Český úřad zeměměřického a katastrálního a Ministerstvo pro místní rozvoj zveřejnily nový Společný metodický pokyn, který se zaměřuje na zápis drobných staveb do katastru nemovitostí. Tento pokyn má za cíl sjednotit postupy a usnadnit tak práci geodetů a dalších odborníků v oblasti katastru. V rámci dokumentu jsou uvedeny konkrétní pokyny a doporučení, jak správně postupovat při zápisu těchto staveb. Důležitost tohoto pokynu spočívá v jeho potenciálu zjednodušit a zefektivnit administrativní procesy spojené s katastrálními úkony.",
+      "body": [],
+      "proc": "Zpráva je důležitá pro geodety, kteří se zabývají zápisem staveb do katastru nemovitostí.",
+      "zdroj": "ČÚZK",
+      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/Spolecny-metodicky-pokyn-CUZK-a-MMR-k-zapisu-drobn.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
+      "datum": "2026-03-06"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "1 cm GSD z letadla: Jak letadla s pevným křídlem redefinují možnosti mapování koridorů",
+      "perex": "Nové studie ukazují, že letadla s pevným křídlem mohou dosáhnout centimetrového rozlišení.",
+      "telo": "V geospatialním průmyslu panuje přesvědčení, že pro dosažení centimetrového rozlišení je nutné používat drony. Nedávné studie však ukazují, že letadla s pevným křídlem mohou tento předpoklad zpochybnit. Výzkum provedený evropskými specialisty ukazuje, že tato letadla dokážou nabídnout rozsah a detail, který je srovnatelný s drony. Tato zjištění mohou mít zásadní dopad na budoucí metody mapování a sběru dat.",
+      "body": [],
+      "proc": "Zpráva je relevantní pro geodety, kteří se zabývají mapováním a sběrem dat.",
       "zdroj": "LiDAR Magazine",
       "odkaz": "https://lidarmag.com/2026/06/17/1-cm-gsd-from-a-plane-how-fixed-wing-aircraft-are-redefining-whats-possible-in-corridor-mapping/?utm_source=rss&utm_medium=rss&utm_campaign=1-cm-gsd-from-a-plane-how-fixed-wing-aircraft-are-redefining-whats-possible-in-corridor-mapping",
       "datum": "2026-06-17"
@@ -20,62 +29,38 @@
     {
       "rubrika": "Akce",
       "top": false,
-      "nadpis": "GEO Business 2026 překonalo rekordy návštěvnosti s více než 6200 profesionály",
-      "perex": "Na GEO Business 2026 se sešlo více než 6200 odborníků z oblasti geospatial technologie.",
-      "telo": "GEO Business 2026, konané v Londýně, přilákalo více než 6200 profesionálů a potvrdilo svou pozici jako přední událost v oblasti geospatial technologie. Akce zahrnovala více než 160 odborně vedených sezení a přes 100 vystavovatelů. Účastníci měli možnost navázat kontakty a učit se o nejnovějších trendech a technologiích v oblasti geodézie, GIS a datového plánování.",
-      "body": [
-        "více než 6200 účastníků",
-        "160 odborných sezení"
-      ],
-      "proc": "Zpráva ukazuje na rostoucí zájem o geoinformační technologie a networking v oboru.",
+      "nadpis": "GEO Business 2026 překonává rekordy návštěvnosti s více než 6200 odborníky",
+      "perex": "GEO Business 2026 se stal největší akcí v oblasti geospatialní technologie ve Velké Británii.",
+      "telo": "Na akci GEO Business 2026, která se konala 3. a 4. června v Londýně, se zúčastnilo více než 6200 odborníků. Akce zahrnovala více než 160 odborných přednášek a přes 100 vystavovatelů, což podtrhuje její význam v oblasti geospatialní technologie a umístění. Kromě nejnovějších technologií nabídla GEO Business platformu pro networking a sdílení znalostí mezi profesionály z oblasti geodézie, GIS a plánování.",
+      "body": [],
+      "proc": "Zpráva informuje o důležité akci pro odborníky v oblasti geodézie a geoinformatiky.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/06/15/geo-business-2026-breaks-attendance-records-with-6200-professionals/?utm_source=rss&utm_medium=rss&utm_campaign=geo-business-2026-breaks-attendance-records-with-6200-professionals",
       "datum": "2026-06-15"
     },
     {
-      "rubrika": "Technologie",
+      "rubrika": "Z praxe",
       "top": false,
-      "nadpis": "SimActive umožňuje rychlou produkci ortomosaiků pro mapování plánovaných požárů",
-      "perex": "Software Correlator3D od SimActive se používá pro rychlou produkci ortomosaiků.",
-      "telo": "SimActive Inc. oznámila, že její software Correlator3D je využíván firmou Landair Surveys k rychlé výrobě ortomosaiků pro projekty mapování plánovaných požárů v Austrálii. Tato technologie podporuje časově citlivé letecké mapovací operace, kde jsou rychlé a přesné geospatial výstupy nezbytné pro prevenci požárů a správu půdy. Landair Surveys spoléhá na Correlator3D k zpracování leteckých snímků pod přísnými časovými limity.",
-      "body": [
-        "rychlá produkce ortomosaiků",
-        "podpora pro prevenci požárů"
-      ],
-      "proc": "Zpráva ukazuje na důležitost rychlých geospatial výstupů v krizových situacích.",
+      "nadpis": "SimActive umožňuje rychlou produkci ortomosaik pro mapování plánovaných požárů",
+      "perex": "Nová technologie zrychluje proces mapování pro prevenci požárů.",
+      "telo": "Společnost SimActive Inc. oznámila, že její software Correlator3D je používán firmou Landair Surveys pro rychlou produkci ortomosaik v projektech mapování plánovaných požárů v Austrálii. Tato technologie podporuje časově citlivé operace leteckého mapování, kde jsou rychlé a přesné geospatialní výstupy klíčové pro prevenci požárů a správu půdy. Landair Surveys spoléhá na Correlator3D pro zpracování leteckých snímků v rámci striktních časových rámců.",
+      "body": [],
+      "proc": "Zpráva ukazuje praktické využití softwaru pro geodetické práce v oblasti ochrany životního prostředí.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/06/12/simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping/?utm_source=rss&utm_medium=rss&utm_campaign=simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping",
       "datum": "2026-06-12"
     },
     {
-      "rubrika": "Z domova",
+      "rubrika": "Přístroje",
       "top": false,
-      "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
-      "perex": "ČÚZK upozorňuje na ukončení provozu starší verze WSGP.",
-      "telo": "Český úřad zeměměřický a katastrální informuje, že na podzim 2026 dojde k ukončení provozu WSGP verze 2.10. Po tomto datu budou dostupné pouze služby WSGP verze 3.1. Uživatelé jsou vyzváni k přechodu na novější verzi, aby se vyhnuli komplikacím.",
-      "body": [
-        "ukončení provozu verze 2.10",
-        "přechod na verzi 3.1"
-      ],
-      "proc": "Zpráva je důležitá pro uživatele služeb WSGP v ČR, kteří musí reagovat na změny.",
-      "zdroj": "ČÚZK",
-      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
-      "datum": "2026-05-29"
-    },
-    {
-      "rubrika": "Zákon",
-      "top": false,
-      "nadpis": "Společný metodický pokyn ČÚZK a MMR k zápisu drobných staveb do KN",
-      "perex": "Nový metodický pokyn pro zápis drobných staveb byl zveřejněn.",
-      "telo": "Český úřad zeměměřický a katastrální ve spolupráci s Ministerstvem pro místní rozvoj zveřejnil nový společný metodický pokyn k zápisu drobných staveb do katastru nemovitostí. Tento pokyn je důležitý pro geodety a stavebníky, kteří se zabývají zápisem menších staveb.",
-      "body": [
-        "nový metodický pokyn",
-        "důležitost pro geodety a stavebníky"
-      ],
-      "proc": "Zpráva přináší důležité informace pro praxi geodetů v oblasti zápisu staveb.",
-      "zdroj": "ČÚZK",
-      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/Spolecny-metodicky-pokyn-CUZK-a-MMR-k-zapisu-drobn.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
-      "datum": "2026-03-06"
+      "nadpis": "Leica CoastalMapper: Nový senzor pro letecké hydrografické mapování",
+      "perex": "Nový senzor Leica CoastalMapper přináší revoluci do hydrografického mapování.",
+      "telo": "Leica CoastalMapper je nový čtyřkanálový bathymetrický senzor, který redefinuje možnosti leteckého hydrografického mapování. Tento senzor umožňuje rychlé a efektivní mapování podvodních oblastí, což je klíčové pro mnohé aplikace v oblasti ochrany životního prostředí a správy vodních zdrojů. Jeho schopnost pronikat vodou a poskytovat přesná data z něj činí revoluční nástroj pro geodety a hydrografy.",
+      "body": [],
+      "proc": "Zpráva informuje o novém přístroji, který může zlepšit geodetické měření.",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/aerialuas/seeing-through-the-water-inside-leicas-coastalmapper/",
+      "datum": "2026-05-04"
     }
   ]
 }
