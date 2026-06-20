@@ -82,17 +82,51 @@
     function compassUnreliable() { return compassWarnDom() || compassJittery(); }
 
     // ===========================================================================
-    //  PLOVOUCÍ TLAČÍTKO (FAB)
+    //  PLOVOUCÍ TLAČÍTKO (FAB) — přesun prstem, nastavitelná velikost, idle-fade
     // ===========================================================================
+    // Poloha a velikost se ukládají do localStorage GLOBÁLNĚ (napříč zakázkami).
+    var FAB_POS_KEY = 'agcalFabPos', FAB_SCALE_KEY = 'agcalFabScale';
+    var _editOpen = false;      // otevřený režim úpravy velikosti
+    var _fadeTimer = null;      // timer ztlumení po nečinnosti
+
+    function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+    function applyFabScale(b) {
+        var s = parseFloat(lsGet(FAB_SCALE_KEY));
+        if (!isFinite(s)) s = 1;
+        s = Math.max(0.8, Math.min(1.7, s));
+        b.style.setProperty('--agcal-scale', s);
+        return s;
+    }
+    function applyFabPos(b) {
+        var raw = lsGet(FAB_POS_KEY); if (!raw) return false;
+        try { var p = JSON.parse(raw); if (p && isFinite(p.x) && isFinite(p.y)) { clampInto(b, p.x, p.y); return true; } } catch (e) {}
+        return false;
+    }
+    // udrž tlačítko v rámci displeje (přepne z výchozí CSS pozice na inline left/top)
+    function clampInto(b, x, y) {
+        var r = b.getBoundingClientRect();
+        var w = r.width || 170, h = r.height || 44, m = 6;
+        var maxX = Math.max(m, window.innerWidth - w - m), maxY = Math.max(m, window.innerHeight - h - m);
+        x = Math.max(m, Math.min(maxX, x));
+        y = Math.max(m, Math.min(maxY, y));
+        b.style.left = x + 'px'; b.style.top = y + 'px'; b.style.right = 'auto'; b.style.bottom = 'auto';
+        return { x: x, y: y };
+    }
+
     function ensureFab() {
         if (document.getElementById('agcal-fab')) return;
         var b = document.createElement('button');
         b.id = 'agcal-fab'; b.type = 'button';
-        b.title = 'Srovnat sever podle známého bodu';
+        b.title = 'Srovnat sever — klepni; táhni prstem pro přesun; podrž pro velikost';
         b.setAttribute('aria-label', 'Srovnat sever');
         b.innerHTML = '<span class="agcal-fab-ic">' + FAB_ICON + '</span><span class="agcal-fab-tx">Srovnat sever</span>';
-        b.addEventListener('click', openTool);
         (document.body || document.documentElement).appendChild(b);
+        applyFabScale(b);
+        applyFabPos(b);
+        bindFabGestures(b);
+        bindFabIdleFade(b);
     }
 
     function refreshFab() {
@@ -102,11 +136,108 @@
         var visible = started() && !inMap();
         b.style.display = visible ? 'flex' : 'none';
         if (!visible) return;
-        // varovný stav: rozsvítit + textová pobídka
+        // varovný stav: rozsvítit + textová pobídka (ve varování neztlumovat)
         var warn = compassUnreliable();
         b.classList.toggle('agcal-warn', warn);
+        if (warn) b.classList.remove('agcal-faded');
         var tx = b.querySelector('.agcal-fab-tx');
         if (tx) tx.textContent = warn ? 'Kompas blbne → srovnat' : 'Srovnat sever';
+    }
+
+    // ---- gesta: tap = otevřít, táhnutí = přesun, podržení = velikost ----------
+    function bindFabGestures(b) {
+        var dragging = false, moved = false, sx = 0, sy = 0, ox = 0, oy = 0, lp = null, pid = null;
+        b.addEventListener('pointerdown', function (e) {
+            if (e.button != null && e.button !== 0) return;
+            dragging = true; moved = false; pid = e.pointerId;
+            sx = e.clientX; sy = e.clientY;
+            var r = b.getBoundingClientRect(); ox = r.left; oy = r.top;
+            try { b.setPointerCapture(e.pointerId); } catch (err) {}
+            wakeFab(b);
+            if (!_editOpen) { lp = setTimeout(function () { if (!moved && dragging) openEdit(b); }, 550); }
+        });
+        b.addEventListener('pointermove', function (e) {
+            if (!dragging) return;
+            var dx = e.clientX - sx, dy = e.clientY - sy;
+            if (!moved && (dx * dx + dy * dy) > 49) { moved = true; if (lp) { clearTimeout(lp); lp = null; } b.classList.add('agcal-dragging'); }
+            if (moved) { e.preventDefault(); clampInto(b, ox + dx, oy + dy); }
+        }, { passive: false });
+        function up() {
+            if (!dragging) return;
+            dragging = false;
+            if (lp) { clearTimeout(lp); lp = null; }
+            try { b.releasePointerCapture(pid); } catch (err) {}
+            if (moved) {
+                moved = false; b.classList.remove('agcal-dragging');
+                var x = parseFloat(b.style.left), y = parseFloat(b.style.top);
+                if (isFinite(x) && isFinite(y)) lsSet(FAB_POS_KEY, JSON.stringify({ x: x, y: y }));
+            } else if (!_editOpen) {
+                openTool();
+            }
+        }
+        b.addEventListener('pointerup', up);
+        b.addEventListener('pointercancel', up);
+    }
+
+    // ---- režim úpravy velikosti (podržení tlačítka) ---------------------------
+    function openEdit(b) {
+        _editOpen = true;
+        b.classList.add('agcal-edit');
+        wakeFab(b);
+        if (navigator.vibrate) { try { navigator.vibrate(15); } catch (e) {} }
+        var panel = document.getElementById('agcal-fabedit');
+        if (!panel) {
+            panel = document.createElement('div');
+            panel.id = 'agcal-fabedit';
+            panel.innerHTML =
+                '<div class="agcal-fe-row"><span>Velikost tlačítka „Srovnat sever"</span><b id="agcal-fe-val"></b></div>'
+                + '<input type="range" id="agcal-fe-size" min="80" max="170" step="5">'
+                + '<div class="agcal-fe-hint">Táhni tlačítko prstem = přesun. Tady měň velikost.</div>'
+                + '<button class="btn" id="agcal-fe-done">Hotovo</button>';
+            document.body.appendChild(panel);
+            var rng = panel.querySelector('#agcal-fe-size');
+            rng.addEventListener('input', function () {
+                var s = parseInt(rng.value, 10) / 100;
+                b.style.setProperty('--agcal-scale', s);
+                var v = document.getElementById('agcal-fe-val'); if (v) v.textContent = rng.value + ' %';
+                var rr = b.getBoundingClientRect();
+                clampInto(b, parseFloat(b.style.left) || rr.left, parseFloat(b.style.top) || rr.top);
+            });
+            panel.querySelector('#agcal-fe-done').addEventListener('click', function () { closeEdit(b); });
+        }
+        var cur = applyFabScale(b);
+        var r2 = panel.querySelector('#agcal-fe-size');
+        r2.value = Math.round(cur * 100);
+        var v2 = document.getElementById('agcal-fe-val'); if (v2) v2.textContent = r2.value + ' %';
+        panel.classList.add('on');
+    }
+    function closeEdit(b) {
+        _editOpen = false;
+        b.classList.remove('agcal-edit');
+        var panel = document.getElementById('agcal-fabedit'); if (panel) panel.classList.remove('on');
+        var s = parseFloat(b.style.getPropertyValue('--agcal-scale')) || 1;
+        lsSet(FAB_SCALE_KEY, String(s));
+        var x = parseFloat(b.style.left), y = parseFloat(b.style.top);
+        if (isFinite(x) && isFinite(y)) lsSet(FAB_POS_KEY, JSON.stringify({ x: x, y: y }));
+        wakeFab(b);
+    }
+
+    // ---- ztlumení po nečinnosti (jako zbytek HUD) -----------------------------
+    function modalOpenNow() { var m = document.getElementById('agcal-modal'); return !!(m && m.style.display === 'flex'); }
+    function wakeFab(b) {
+        b = b || document.getElementById('agcal-fab'); if (!b) return;
+        b.classList.remove('agcal-faded');
+        if (_fadeTimer) clearTimeout(_fadeTimer);
+        _fadeTimer = setTimeout(function () {
+            var f = document.getElementById('agcal-fab');
+            if (f && !_editOpen && !modalOpenNow() && !f.classList.contains('agcal-warn')) f.classList.add('agcal-faded');
+        }, 4000);
+    }
+    function bindFabIdleFade(b) {
+        ['pointerdown', 'touchstart', 'mousemove', 'click'].forEach(function (ev) {
+            document.addEventListener(ev, function () { var f = document.getElementById('agcal-fab'); if (f && f.style.display !== 'none') wakeFab(f); }, { passive: true });
+        });
+        wakeFab(b);
     }
 
     // ===========================================================================
@@ -125,6 +256,7 @@
             + '<p class="agcal-lead">Vyber <b>viditelný</b> známý bod (ideálně trig./ZhB nebo roh). Pak na něj namíříš křížem kamery a chvíli podržíš — appka srovná sever podle skutečného směru k němu. Funguje i tam, kde magnetometr blbne.</p>'
             + '<div id="agcal-list" class="agcal-list"></div>'
             + '<div id="agcal-live" class="agcal-live"></div>'
+            + '<button class="btn btn-secondary" id="agcal-clear" style="margin-bottom:10px;display:none;">✕ Zrušit výběr (nenavádět)</button>'
             + '<button class="btn" id="agcal-start"><svg class="icon"><use href="#i-crosshair"/></svg> Zamířit a srovnat</button>'
             + '<button class="btn btn-warning" id="agcal-undo" style="margin-top:10px;display:none;"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Vrátit poslední srovnání</button>'
             + more
@@ -132,6 +264,7 @@
             + '</div>';
         document.body.appendChild(el);
         document.getElementById('agcal-start').addEventListener('click', startAim);
+        document.getElementById('agcal-clear').addEventListener('click', clearSelection);
         document.getElementById('agcal-undo').addEventListener('click', undo);
         var mo = document.getElementById('agcal-more');
         if (mo) mo.addEventListener('click', function () { window.agCloseCalibrate(); try { window.agOpenOrientTool(); } catch (e) {} });
@@ -142,9 +275,9 @@
         var list = nearestPoints(5);
         if (!list.length) {
             box.innerHTML = '<div class="agcal-empty">Žádné body v okolí — stáhni okolí (ČÚZK) nebo přidej vlastní bod se souřadnicemi.</div>';
-            _selId = null; return;
+            _selId = null; updateClearBtn(); return;
         }
-        if (_selId == null || !list.some(function (x) { return x.p.id === _selId; })) _selId = list[0].p.id;
+        // BEZ automatického výběru — bod si zvolí uživatel sám (na přání); nejbližší se jen nenavrhuje.
         box.innerHTML = list.map(function (x) {
             var on = x.p.id === _selId;
             var bear = haveUser() ? getBearing(userLat, userLng, x.p.lat, x.p.lng) : null;
@@ -161,6 +294,28 @@
                 renderList(); renderLive();
             });
         });
+        updateClearBtn();
+    }
+
+    // má appka teď aktivní cíl navádění (z modalu nebo z klepnutí na bod v AR/mapě)?
+    function hasTarget() {
+        if (_selId != null) return true;
+        try { return (typeof highlightedPointId !== 'undefined' && highlightedPointId != null); } catch (e) { return false; }
+    }
+    function updateClearBtn() {
+        var c = document.getElementById('agcal-clear'); if (c) c.style.display = hasTarget() ? 'block' : 'none';
+    }
+    // zruš výběr + zastav navádění (zlatá značka + AR šipka) — pro omylem vybraný bod
+    function clearSelection() {
+        _selId = null;
+        try {
+            if (typeof highlightedPointId !== 'undefined' && highlightedPointId != null) {
+                var hp = ptById(highlightedPointId);
+                if (hp && typeof highlightPoint === 'function') highlightPoint(hp); // toggle → vypne navádění
+            }
+        } catch (e) {}
+        renderList(); renderLive(); updateClearBtn();
+        toast('Výběr zrušen — nenaviguje se');
     }
 
     function renderLive() {
@@ -289,13 +444,15 @@
     //  OTEVŘENÍ / ZAVŘENÍ
     // ===========================================================================
     function openTool() {
-        ensureModal(); renderList(); renderLive();
-        // navádění hned po otevření: zvýrazni nejbližší (vybraný) bod
-        try { var p = ptById(_selId); if (p && typeof highlightPoint === 'function' && (typeof highlightedPointId === 'undefined' || highlightedPointId !== p.id)) highlightPoint(p); } catch (e) {}
+        ensureModal();
+        // BEZ auto-výběru: zrcadlíme jen už aktivní cíl (pokud nějaký je), jinak nic nevybráno.
+        try { _selId = (typeof highlightedPointId !== 'undefined' && highlightedPointId != null) ? highlightedPointId : null; } catch (e) { _selId = null; }
+        renderList(); renderLive(); updateClearBtn();
         document.getElementById('agcal-modal').style.display = 'flex';
+        wakeFab();
         if (!_liveTimer) _liveTimer = setInterval(function () {
             var m = document.getElementById('agcal-modal');
-            if (m && m.style.display === 'flex') { renderLive(); }
+            if (m && m.style.display === 'flex') { renderLive(); updateClearBtn(); }
         }, 280);
     }
     window.agCloseCalibrate = function () {
