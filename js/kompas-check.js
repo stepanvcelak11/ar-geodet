@@ -15,27 +15,39 @@
     function _calibOpen() { const m = document.getElementById('compass-calib-modal'); return m && m.style.display !== 'none' && m.style.display !== ''; }
 
     // ---------- 1) VAROVANI NA RUSENI ----------
-    let banner = null, samples = [], shownSince = 0, hiddenSince = 0, t0 = 0;
+    // dismissed = uzivatel zavrel varovani krizkem (napr. kompas nejde zkalibrovat).
+    // Plati do restartu appky (pri pristim spusteni se muze objevit znovu — bezpecnostni hlaska).
+    let banner = null, samples = [], shownSince = 0, hiddenSince = 0, t0 = 0, dismissed = false;
 
     function ensureBanner() {
         if (banner) return banner;
         banner = document.createElement('div');
         banner.id = 'compass-interference';
         banner.style.cssText = 'position:fixed; left:50%; transform:translateX(-50%); top:96px; z-index:1500; '
-            + 'display:none; max-width:88%; padding:9px 14px; border-radius:12px; '
+            + 'display:none; align-items:center; gap:8px; max-width:90%; padding:9px 10px 9px 14px; border-radius:12px; '
             + 'background:rgba(239,68,68,0.92); color:#fff; font-family:var(--font-display,sans-serif); '
-            + 'font-size:13px; font-weight:600; line-height:1.25; text-align:center; '
+            + 'font-size:13px; font-weight:600; line-height:1.25; text-align:left; '
             + 'box-shadow:0 6px 20px rgba(0,0,0,0.45); backdrop-filter:blur(4px); pointer-events:none;';
-        banner.innerHTML = '⚠ Kompas pravděpodobně rušen (kov poblíž) — ověř směr, AR šipka může mířit mimo';
+        // Text varovani nereaguje na dotek (pointer-events:none na kontejneru), klikaci je jen krizek.
+        banner.innerHTML = '<span style="flex:1 1 auto;">⚠ Kompas pravděpodobně rušen (kov poblíž) — ověř směr, AR šipka může mířit mimo</span>'
+            + '<button type="button" id="compass-interference-x" aria-label="Skrýt upozornění" '
+            + 'style="flex:0 0 auto; pointer-events:auto; width:26px; height:26px; padding:0; border:none; border-radius:50%; '
+            + 'background:rgba(255,255,255,0.22); color:#fff; font-size:17px; line-height:1; cursor:pointer; '
+            + '-webkit-tap-highlight-color:transparent;">×</button>';
         document.body.appendChild(banner);
+        banner.querySelector('#compass-interference-x').addEventListener('click', function () {
+            dismissed = true;
+            banner.style.display = 'none';
+        });
         return banner;
     }
 
     function setBanner(show, now) {
+        if (dismissed) { if (banner) banner.style.display = 'none'; return; }
         const b = ensureBanner();
         if (show) {
             if (b.style.display === 'none') shownSince = now;
-            b.style.display = 'block';
+            b.style.display = 'flex';
             hiddenSince = 0;
         } else {
             // hystereze: skryt az po 2 s klidu, at to neblika
