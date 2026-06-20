@@ -192,6 +192,11 @@
     }
 
     function setDot(d, cls) { d.className = 'aghs-dot ' + cls; }
+    // přepne JEN stavové třídy karty (nav/kvalita), ZACHOVÁ aghs-faded a aghs-edit
+    function setState(cls) {
+        card.classList.remove('nav', 'q-ok', 'q-warn', 'q-bad');
+        if (cls) card.classList.add(cls);
+    }
 
     // ---- aktualizace obsahu ---------------------------------------------------
     function update() {
@@ -212,17 +217,17 @@
         if (hl && pts && pts.length) { for (var i = 0; i < pts.length; i++) if (pts[i].id === hl) { pt = pts[i]; break; } }
 
         if (lat == null) {
-            card.className = ''; bigEl.textContent = '—'; subEl.textContent = 'Hledám GPS…';
+            setState(''); bigEl.textContent = '—'; subEl.textContent = 'Hledám GPS…';
         } else if (pt) {
             var d = (pt.currentDist != null) ? pt.currentDist : (typeof getDistance === 'function' ? getDistance(lat, lng, pt.lat, pt.lng) : 0);
             var b = (pt.currentBearing != null) ? pt.currentBearing : (typeof getBearing === 'function' ? getBearing(lat, lng, pt.lat, pt.lng) : 0);
-            card.className = 'nav';
+            setState('nav');
             chevEl.style.transform = 'rotate(' + angDiff(b, heading).toFixed(0) + 'deg)';
             bigEl.innerHTML = (d < 10 ? d.toFixed(1) : Math.round(d)) + '<small> m</small>';
             subEl.textContent = '#' + (pt.name || 'bod') + ' · směr ' + Math.round(b) + '°';
         } else {
             var q = (acc == null) ? '' : (acc < ACC_OK ? 'q-ok' : (acc < ACC_WARN ? 'q-warn' : 'q-bad'));
-            card.className = q;
+            setState(q);
             bigEl.innerHTML = (acc == null ? '—' : '±' + acc.toFixed(acc < 10 ? 1 : 0)) + '<small> m</small>';
             var so = gv(function () { return satObs; }), mask = gv(function () { return SAT_EL_MASK; });
             var nsat = (so && so.length && typeof mask === 'number') ? so.filter(function (o) { return o.el >= mask; }).length : null;
