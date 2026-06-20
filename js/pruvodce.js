@@ -509,12 +509,14 @@
         // bocni menu — nahoru
         var menu = document.getElementById('side-menu');
         if (menu && !document.getElementById('pruv-menu-btn')) {
+            // Vkládáme na začátek scrollovací části, ať dole zůstává pevné jen „Zavřít".
+            var host = menu.querySelector('.menu-scroll') || menu;
             var b = document.createElement('button');
             b.id = 'pruv-menu-btn'; b.className = 'menu-btn';
             b.style.background = 'rgba(52,211,153,0.15)'; b.style.borderColor = 'var(--accent)'; b.style.color = 'var(--accent)';
             b.innerHTML = '<svg class="icon"><use href="#i-navigation"/></svg> Průvodce úkolem';
             b.onclick = function () { window.openPruvodce(); };
-            menu.insertBefore(b, menu.firstChild);
+            host.insertBefore(b, host.firstChild);
         }
         // uvodni obrazovka — pred tlacitkem Spustit
         var startBtn = document.querySelector('#welcome-screen button.btn-primary');

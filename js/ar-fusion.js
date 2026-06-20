@@ -221,6 +221,8 @@
     function injectToggle() {
         var menu = document.getElementById('side-menu');
         if (!menu || document.getElementById('ag-arfusion-row')) return;
+        // Vkládáme do scrollovací části, ať položka scrolluje a dole zůstává pevné jen „Zavřít".
+        var host = menu.querySelector('.menu-scroll') || menu;
 
         var row = document.createElement('label');
         row.className = 'menu-toggle-row';
@@ -239,8 +241,8 @@
         hint.className = 'ag-arfusion-hint';
         hint.textContent = 'Spojí gyroskop a kompas: směr je svižný a plynulý při otáčení, ale dlouhodobě neujíždí. Doporučeno zapnuté.';
 
-        menu.appendChild(row);
-        menu.appendChild(hint);
+        host.appendChild(row);
+        host.appendChild(hint);
         syncToggleUi();
     }
 

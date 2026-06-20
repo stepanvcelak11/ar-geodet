@@ -355,6 +355,8 @@
     function injectMenuButton() {
         var menu = document.getElementById('side-menu');
         if (!menu || document.getElementById('cad-area-btn')) return;
+        // Vkládáme do scrollovací části, ať položka scrolluje a dole zůstává pevné jen „Zavřít".
+        var host = menu.querySelector('.menu-scroll') || menu;
         var btn = document.createElement('button');
         btn.id = 'cad-area-btn';
         btn.className = 'menu-btn';
@@ -366,9 +368,9 @@
             setTimeout(function () { try { runImport(); } catch (err) { console.warn('[cadastre-area]', err); } }, 250);
         });
         // vlož za „Spravovat vlastní body", ať to logicky sedí k práci s body
-        var ref = menu.querySelector('button[onclick*="openManageModal"]');
-        if (ref && ref.nextSibling) menu.insertBefore(btn, ref.nextSibling);
-        else menu.appendChild(btn);
+        var ref = host.querySelector('button[onclick*="openManageModal"]');
+        if (ref && ref.nextSibling) host.insertBefore(btn, ref.nextSibling);
+        else host.appendChild(btn);
     }
 
     // --------------------------------------------------------------------------------

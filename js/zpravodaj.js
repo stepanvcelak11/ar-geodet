@@ -240,6 +240,8 @@
     function injectMenuButton() {
         var menu = document.getElementById('side-menu');
         if (!menu || document.getElementById('zpr-menu-btn')) return;
+        // Vkládáme do scrollovací části, ať položka scrolluje a dole zůstává pevné jen „Zavřít".
+        var host = menu.querySelector('.menu-scroll') || menu;
         var btn = document.createElement('button');
         btn.id = 'zpr-menu-btn';
         btn.className = 'menu-btn';
@@ -250,11 +252,11 @@
             if (typeof toggleMenu === 'function') try { toggleMenu(); } catch (e) {}
         });
         // vlož před oddělovač (hr) / přepínače HUD, ať akční tlačítka zůstanou pohromadě
-        var hr = menu.querySelector('hr');
-        var firstToggle = menu.querySelector('.menu-toggle-row');
-        if (hr) menu.insertBefore(btn, hr);
-        else if (firstToggle) menu.insertBefore(btn, firstToggle);
-        else menu.appendChild(btn);
+        var hr = host.querySelector('hr');
+        var firstToggle = host.querySelector('.menu-toggle-row');
+        if (hr) host.insertBefore(btn, hr);
+        else if (firstToggle) host.insertBefore(btn, firstToggle);
+        else host.appendChild(btn);
         updateDot();
     }
 

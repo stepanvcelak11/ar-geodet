@@ -230,6 +230,8 @@
     function injectGloveToggle() {
         const menu = document.getElementById('side-menu');
         if (!menu || document.getElementById('ag-glove-row')) return;
+        // Vkládáme do scrollovací části, ať položka scrolluje a dole zůstává pevné jen „Zavřít".
+        const host = menu.querySelector('.menu-scroll') || menu;
         const row = document.createElement('label');
         row.className = 'menu-toggle-row';
         row.id = 'ag-glove-row';
@@ -243,7 +245,7 @@
         });
         row.appendChild(cb);
         row.appendChild(document.createTextNode(' Režim rukavic (větší tlačítka)'));
-        menu.appendChild(row);
+        host.appendChild(row);
     }
 
     // --------------------------------------------------------------------------------

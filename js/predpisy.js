@@ -185,12 +185,14 @@
     function injectMenuButton() {
         var menu = document.getElementById('side-menu');
         if (!menu || document.getElementById('prd-menu-btn')) return;
+        // Vkládáme do scrollovací části, ať položka scrolluje a dole zůstává pevné jen „Zavřít".
+        var host = menu.querySelector('.menu-scroll') || menu;
         var btn = document.createElement('button');
         btn.id = 'prd-menu-btn'; btn.className = 'menu-btn'; btn.type = 'button';
         btn.innerHTML = '<svg class="icon"><use href="#i-scale"/></svg> Předpisy & odchylky';
         btn.addEventListener('click', function () { openReader(); if (typeof toggleMenu === 'function') try { toggleMenu(); } catch (e) {} });
-        var hr = menu.querySelector('hr'); var firstToggle = menu.querySelector('.menu-toggle-row');
-        if (hr) menu.insertBefore(btn, hr); else if (firstToggle) menu.insertBefore(btn, firstToggle); else menu.appendChild(btn);
+        var hr = host.querySelector('hr'); var firstToggle = host.querySelector('.menu-toggle-row');
+        if (hr) host.insertBefore(btn, hr); else if (firstToggle) host.insertBefore(btn, firstToggle); else host.appendChild(btn);
     }
     function injectWelcomeButton() {
         var wrap = document.querySelector('#welcome-screen .modal-content');

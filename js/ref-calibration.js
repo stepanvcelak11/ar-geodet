@@ -322,6 +322,8 @@
     function injectMenuButton() {
         var menu = document.getElementById('side-menu');
         if (!menu || document.getElementById('agref-launch')) return;
+        // Vkládáme do scrollovací části, ať položka scrolluje a dole zůstává pevné jen „Zavřít".
+        var host = menu.querySelector('.menu-scroll') || menu;
         var btn = document.createElement('button');
         btn.id = 'agref-launch';
         btn.className = 'menu-btn';
@@ -332,8 +334,8 @@
             open();
         });
         // vlož před tlačítko "O aplikaci", ať destruktivní/informační akce zůstanou dole
-        var about = menu.querySelector('button[onclick*="openAbout"]');
-        if (about) menu.insertBefore(btn, about); else menu.appendChild(btn);
+        var about = host.querySelector('button[onclick*="openAbout"]');
+        if (about) host.insertBefore(btn, about); else host.appendChild(btn);
     }
 
     // --------------------------------------------------------------------------------

@@ -260,6 +260,8 @@
     function injectMenuButton() {
         var menu = document.getElementById('side-menu');
         if (!menu || document.getElementById(BTN_ID)) return;
+        // Vkládáme do scrollovací části, ať položka scrolluje a dole zůstává pevné jen „Zavřít".
+        var host = menu.querySelector('.menu-scroll') || menu;
         var btn = document.createElement('button');
         btn.id = BTN_ID;
         btn.className = 'menu-btn';
@@ -271,14 +273,14 @@
         });
         // vlož hned za tlačítko "GNSS satelity (AR)", ať jsou družicové funkce u sebe
         var satBtn = null;
-        var btns = menu.querySelectorAll('button.menu-btn');
+        var btns = host.querySelectorAll('button.menu-btn');
         for (var i = 0; i < btns.length; i++) {
             var oc = btns[i].getAttribute('onclick') || '';
             if (oc.indexOf('openSatModal') >= 0) { satBtn = btns[i]; break; }
         }
-        if (satBtn && satBtn.nextSibling) menu.insertBefore(btn, satBtn.nextSibling);
-        else if (satBtn) menu.appendChild(btn);
-        else menu.appendChild(btn);
+        if (satBtn && satBtn.nextSibling) host.insertBefore(btn, satBtn.nextSibling);
+        else if (satBtn) host.appendChild(btn);
+        else host.appendChild(btn);
     }
 
     function injectSatModalButton() {
