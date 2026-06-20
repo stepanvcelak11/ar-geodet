@@ -311,6 +311,15 @@
             if (!appStarted || !tgl || !tgl.checked) { el.style.display = 'none'; return; }
             el.style.display = 'block';
             const r = gpsAvgResult;
+            const warn = document.getElementById('ga-warn');
+            if (r && r.coarse) {
+                if (warn) { warn.style.display = 'block'; warn.innerText = 'Slab\u00fd GNSS (s\u00ed\u0165ov\u00e1 poloha \u00b1' + Math.round(r.acc) + ' m) \u2014 po\u010dkej na satelitn\u00ed fix'; }
+                document.getElementById('ga-n').innerText = '0';
+                document.getElementById('ga-pos').innerText = '\u2026';
+                document.getElementById('ga-se').innerText = '\u2026';
+                return;
+            }
+            if (warn) warn.style.display = 'none';
             document.getElementById('ga-n').innerText = (r && r.total) ? ((r.total > r.n) ? (r.n + ' (z ' + r.total + ')') : ('' + r.n)) : '0';
             document.getElementById('ga-pos').innerText = (r && r.n >= 2) ? ('\u00b1' + r.sterr.toFixed(2) + ' m') : '\u2026';
             document.getElementById('ga-se').innerText = (r && r.n >= 2) ? ('\u00b1' + r.sigma.toFixed(2) + ' m') : '\u2026';

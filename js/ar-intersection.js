@@ -1,20 +1,22 @@
 // ===== AR Geodet — PROTÍNÁNÍ VPŘED Z ÚHLŮ (ODPOJITELNÁ vrstva) ================
 // Neinvazivní vrstva. NEEDITUJE logika.js ani grafika.js. Doplněk k „AR resekci"
-// (js/ar-resection.js) — řeší OPAČNOU úlohu: z DVOU známých bodů určí souřadnice
+// (js/ar-resection.js) — řeší OPAČNOU úlohu: ze ZNÁMÝCH bodů určí souřadnice
 // jednoho NEZNÁMÉHO bodu, na který se nedá dojít (přes potok, na střeše, v poli…).
 //
 //   Klasické protínání vpřed (jako totálkou, jen telefonem):
-//     1) Postav se na známý bod A. Křížem kamery zaměř druhý známý bod B
-//        (orientace), pak zaměř NEZNÁMÝ cíl P.
-//     2) Přejdi na známý bod B. Zaměř zpět na A (orientace), pak zaměř cíl P.
+//     Na KAŽDÉM známém stanovisku zaměříš křížem kamery nejdřív jiný známý bod
+//     (orientace), pak NEZNÁMÝ cíl P. Stačí 2 stanoviska; lze přidat DALŠÍ
+//     (3, 4, …) → úloha je PŘEURČENÁ a vyrovná se metodou nejmenších čtverců.
 //   Z VODOROVNÝCH ÚHLŮ na každém stanovisku (rozdíl dvou zaměření) a ze známých
-//   souřadnic A,B se protnou dva paprsky → poloha P. Protože se počítá ROZDÍL
-//   dvou azimutů ze stejného stanoviska, KONSTANTNÍ CHYBA KOMPASU se vyruší
-//   (stejný princip jako u resekce) — funguje i tam, kde magnetometr blbne, a
-//   bez ohledu na přesnost GPS (stanoviska jsou dané body, ne GPS).
+//   souřadnic se protnou paprsky → poloha P. Protože se počítá ROZDÍL dvou azimutů
+//   ze stejného stanoviska, KONSTANTNÍ CHYBA KOMPASU se vyruší (jako u resekce) —
+//   funguje i tam, kde magnetometr blbne, a bez ohledu na přesnost GPS.
+//
+//   Víc stanovisek = kontrola (vidíš, jak dobře paprsky souhlasí: „shoda paprsků")
+//   a robustnější poloha. Při 2 stanoviscích je výsledek čistý průsečík (shoda 0).
 //
 //   Během zaměřování se obrazovka „vyčistí": zůstane jen kamera, zaměřovač a
-//   štítek bodu, na který právě míříš — ať se cíl pohodlně srovná s realitou.
+//   štítek bodu, na který právě míříš.
 //
 // Vstup: dlaždice „Protínání vpřed (neznámý bod)" v Nástrojích (js/field-tools.js);
 //        když launcher chybí, modul si vyrobí vlastní plovoucí tlačítko.
@@ -30,12 +32,11 @@
     var D2R = Math.PI / 180, R2D = 180 / Math.PI;
 
     // stav nástroje
-    var _selA = null, _selB = null;     // id stanoviska A a B (známé body)
-    var _targetName = '';               // název neznámého cíle
-    var _steps = [];                    // [{st,role,aimId,key}]
-    var _shots = {};                    // key -> azimut zařízení (stupně)
-    var _capIdx = -1;                   // index právě zaměřovaného kroku (>=0 = běží)
-    var _gateDone = false;              // potvrzen přesun na stanovisko B
+    var _stations = [];   // [{stId, orientId, devOrient, devTarget}]  — stanoviska (≥2)
+    var _targetName = '';
+    var _steps = [];      // [{sIdx, role:'orient'|'target'}]  — rozvinuté kroky zaměřování
+    var _arrived = {};    // sIdx -> true (potvrzen přesun na stanovisko); první je automaticky
+    var _capIdx = -1;     // index právě zaměřovaného kroku (>=0 = běží)
     var _capSamples = [], _capTimer = null;
     var _result = null;
 
@@ -54,7 +55,6 @@
     function ptById(id) { if (typeof arPoints === 'undefined') return null; return arPoints.find(function (q) { return q.id === id; }) || null; }
     function dist2(a, b) { return getDistance(a.lat, a.lng, b.lat, b.lng); }
 
-    // body vhodné jako stanovisko: úřední (autoritativní souřadnice) napřed
     function candidatePoints() {
         if (typeof arPoints === 'undefined') return [];
         return arPoints.filter(function (p) { return !p.hidden; })
@@ -66,47 +66,67 @@
             });
     }
 
-    // ---- jádro: protínání vpřed -----------------------------------------------
-    // A,B = {lat,lng} známé. Zaměření zařízení (stupně): devAB,devAP na stanovisku A,
-    // devBA,devBP na stanovisku B. Vrací polohu P + ukazatele kvality.
-    function solveIntersection(A, B, devAB, devAP, devBA, devBP) {
-        var lat0 = A.lat, lng0 = A.lng;
+    // ---- jádro: protínání vpřed z N stanovisek (vyrovnání MNČ) -----------------
+    // stations = [{stId,orientId,devOrient,devTarget}], musí mít ≥2 vyplněná.
+    // Každé stanovisko dá paprsek (počátek = stanovisko, směr = směrník na cíl).
+    // Hledáme bod P nejblíž VŠEM paprskům: (Σ(I-uuᵀ))·P = Σ(I-uuᵀ)·s  (2×2 soustava).
+    function solveMulti(stations) {
+        var S0 = ptById(stations[0].stId); if (!S0) return null;
+        var lat0 = S0.lat, lng0 = S0.lng;
         var mLat = 111320, mLng = 111320 * Math.cos(lat0 * D2R);
-        var EA = 0, NA = 0;
-        var EB = (B.lng - lng0) * mLng, NB = (B.lat - lat0) * mLat;
-        var base = Math.hypot(EB, NB);
-        if (base < 0.5) return null;
 
-        var beta_AB = (Math.atan2(EB - EA, NB - NA) * R2D + 360) % 360;   // směrník A→B
-        var beta_BA = (Math.atan2(EA - EB, NA - NB) * R2D + 360) % 360;   // směrník B→A
-        var inclA = angNormDeg(devAP - devAB);   // vodorovný úhel na A (B→P), ruší bias kompasu
-        var inclB = angNormDeg(devBP - devBA);   // vodorovný úhel na B (A→P)
-        var thA = (beta_AB + inclA) % 360;        // směrník A→P
-        var thB = (beta_BA + inclB) % 360;        // směrník B→P
+        var rays = [];
+        for (var i = 0; i < stations.length; i++) {
+            var st = stations[i];
+            var S = ptById(st.stId), O = ptById(st.orientId);
+            if (!S || !O) return null;
+            var Se = (S.lng - lng0) * mLng, Sn = (S.lat - lat0) * mLat;
+            var Oe = (O.lng - lng0) * mLng, On = (O.lat - lat0) * mLat;
+            if (Math.hypot(Oe - Se, On - Sn) < 0.5) return null;     // orientace moc blízko stanoviska
+            var betaSO = (Math.atan2(Oe - Se, On - Sn) * R2D + 360) % 360;  // směrník stanovisko→orientace
+            var ang = angNormDeg(st.devTarget - st.devOrient);              // vodorovný úhel (ruší bias kompasu)
+            var theta = ((betaSO + ang) % 360 + 360) % 360;                 // směrník stanovisko→cíl
+            rays.push({ e: Se, n: Sn, ue: Math.sin(theta * D2R), un: Math.cos(theta * D2R), theta: theta, name: S.name });
+        }
 
-        var sA = Math.sin(thA * D2R), cA = Math.cos(thA * D2R);
-        var sB = Math.sin(thB * D2R), cB = Math.cos(thB * D2R);
-        var det = sA * (-cB) - (-sB) * cA;        // = sin(thB - thA)
-        if (Math.abs(det) < 1e-6) return null;    // paprsky rovnoběžné
-        var tA = ((EB - EA) * (-cB) - (-sB) * (NB - NA)) / det;   // délka A→P (m)
-        var tB = ((EB - EA) * (-cA) - (-sA) * (NB - NA)) / det;   // délka B→P (m)
+        // normální rovnice
+        var Axx = 0, Axy = 0, Ayy = 0, bx = 0, by = 0;
+        rays.forEach(function (r) {
+            var ee = 1 - r.ue * r.ue, en = -r.ue * r.un, nn = 1 - r.un * r.un;
+            Axx += ee; Axy += en; Ayy += nn;
+            bx += ee * r.e + en * r.n;
+            by += en * r.e + nn * r.n;
+        });
+        var det = Axx * Ayy - Axy * Axy;
+        if (Math.abs(det) < 1e-9) return null;                  // všechny paprsky ~rovnoběžné
+        var Pe = (bx * Ayy - Axy * by) / det;
+        var Pn = (Axx * by - Axy * bx) / det;
 
-        var EP = EA + tA * sA, NP = NA + tA * cA;
-        var latP = lat0 + NP / mLat, lngP = lng0 + EP / mLng;
+        // rezidua: kolmá vzdálenost P od každého paprsku + délka podél paprsku
+        var miss = [], dists = [], behind = false, sse = 0;
+        rays.forEach(function (r) {
+            var dx = Pe - r.e, dy = Pn - r.n;
+            var t = dx * r.ue + dy * r.un; dists.push(t); if (t <= 0) behind = true;
+            var px = dx - t * r.ue, py = dy - t * r.un;
+            var d = Math.hypot(px, py); miss.push(d); sse += d * d;
+        });
+        var rms = Math.sqrt(sse / rays.length);
+        var maxMiss = miss.reduce(function (a, b2) { return Math.max(a, b2); }, 0);
 
-        // úhel protnutí u P (kvalita geometrie): ideál ~90°, špatně blízko 0/180°
-        var angP = Math.abs(angNormDeg(thB - thA)); if (angP > 90) angP = 180 - angP;
-        // jak dobře se shodne poloha P spočtená z paprsku A a z paprsku B (u 2 paprsků 0)
-        var EP2 = EB + tB * sB, NP2 = NB + tB * cB;
-        var closure = Math.hypot(EP - EP2, NP - NP2);
+        // kvalita geometrie: nejlepší (největší) úhel protnutí mezi dvojicí paprsků
+        var bestAngle = 0;
+        for (var a = 0; a < rays.length; a++) for (var b = a + 1; b < rays.length; b++) {
+            var ang2 = Math.abs(angNormDeg(rays[b].theta - rays[a].theta)); if (ang2 > 90) ang2 = 180 - ang2;
+            if (ang2 > bestAngle) bestAngle = ang2;
+        }
 
+        var latP = lat0 + Pn / mLat, lngP = lng0 + Pe / mLng;
         var sj = null; try { sj = proj4('EPSG:4326', 'EPSG:5514', [lngP, latP]); } catch (e) {}
         return {
             lat: latP, lng: lngP,
             Y: sj ? Math.abs(sj[0]) : null, X: sj ? Math.abs(sj[1]) : null,
-            base: base, distA: tA, distB: tB, angleP: angP, closure: closure,
-            inclA: inclA, inclB: inclB, thA: thA, thB: thB,
-            behind: (tA <= 0 || tB <= 0)
+            n: rays.length, rms: rms, maxMiss: maxMiss, angleP: bestAngle,
+            behind: behind, dists: dists, rays: rays
         };
     }
 
@@ -116,15 +136,14 @@
         var el = document.createElement('div');
         el.className = 'modal-overlay'; el.id = 'agix-modal'; el.style.zIndex = '100001';
         el.innerHTML =
-            '<div class="modal-content">'
+            '<div class="modal-content" style="display:block;max-height:88vh;max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Protínání vpřed — neznámý bod</h3>'
-            + '<p style="font-size:12.5px;opacity:.82;margin:2px 0 10px;line-height:1.45;">Urči bod, na který se nedá dojít, ze <b>dvou známých bodů</b>. '
-            + 'Postav se na <b>A</b>, zaměř <b>B</b> i cíl; pak na <b>B</b>, zaměř <b>A</b> i cíl. '
-            + 'Z vodorovných úhlů se protnou dva paprsky. Rozdíl úhlů ruší chybu kompasu — funguje i bez přesné GPS.</p>'
-            + '<label class="agix-fld"><span>Stanovisko A (1. známý bod)</span><select id="agix-selA"></select></label>'
-            + '<label class="agix-fld"><span>Stanovisko B (2. známý bod)</span><select id="agix-selB"></select></label>'
+            + '<p style="font-size:12.5px;opacity:.82;margin:2px 0 10px;line-height:1.45;">Urči bod, na který se nedá dojít, ze <b>známých bodů</b>. '
+            + 'Na každém stanovisku zaměříš orientační bod a cíl. Stačí <b>2 stanoviska</b>; přidej další pro <b>kontrolu a zpřesnění</b> (vyrovná se MNČ). '
+            + 'Rozdíl úhlů ruší chybu kompasu — funguje i bez přesné GPS.</p>'
+            + '<div id="agix-stations"></div>'
+            + '<button class="btn btn-secondary" id="agix-add" style="margin:2px 0 8px;"><svg class="icon"><use href="#i-plus"/></svg> Přidat stanovisko</button>'
             + '<label class="agix-fld"><span>Název neznámého cíle</span><input type="text" id="agix-name" placeholder="např. P1" maxlength="24"></label>'
-            + '<div id="agix-base" class="agix-base"></div>'
             + '<div id="agix-warn" style="font-size:12px;color:#fbbf24;margin:4px 2px;"></div>'
             + '<button class="btn" id="agix-start"><svg class="icon"><use href="#i-crosshair"/></svg> Spustit zaměřování</button>'
             + '<div id="agix-result" class="agix-result" style="display:none;"></div>'
@@ -135,49 +154,64 @@
             + '<button class="btn btn-secondary" style="margin-top:12px;" onclick="window.agCloseIntersection&&window.agCloseIntersection()">Zavřít</button>'
             + '</div>';
         document.body.appendChild(el);
-        document.getElementById('agix-selA').addEventListener('change', onSelChange);
-        document.getElementById('agix-selB').addEventListener('change', onSelChange);
         document.getElementById('agix-name').addEventListener('input', function (e) { _targetName = e.target.value; });
+        document.getElementById('agix-add').addEventListener('click', function () { _stations.push({ stId: null, orientId: null, devOrient: null, devTarget: null }); fillStations(); onModelChange(); });
         document.getElementById('agix-start').addEventListener('click', startCapture);
         document.getElementById('agix-save').addEventListener('click', saveTarget);
-        document.getElementById('agix-redo').addEventListener('click', function () { _shots = {}; _result = null; renderResult(); });
+        document.getElementById('agix-redo').addEventListener('click', function () { clearShots(); _result = null; renderResult(); updateWarn(); });
     }
 
-    function fillSelects() {
+    function ensureMinStations() { while (_stations.length < 2) _stations.push({ stId: null, orientId: null, devOrient: null, devTarget: null }); }
+    function clearShots() { _stations.forEach(function (s) { s.devOrient = null; s.devTarget = null; }); _arrived = {}; }
+    function onModelChange() { _result = null; clearShots(); renderResult(); updateWarn(); }
+
+    function stationOptions(selId) {
         var list = candidatePoints();
-        var selA = document.getElementById('agix-selA'), selB = document.getElementById('agix-selB');
-        if (!selA || !selB) return;
-        function opts(selId) {
-            var h = '<option value="">— vyber bod —</option>';
-            list.slice(0, 80).forEach(function (x) {
-                var tag = (x.p.cat && x.p.cat !== 'CUSTOM') ? ' [' + x.p.cat + ']' : '';
-                var dd = (x.d != null ? ' · ' + x.d.toFixed(0) + ' m' : '');
-                h += '<option value="' + x.p.id + '"' + (selId === x.p.id ? ' selected' : '') + '>#' + x.p.name + tag + dd + '</option>';
-            });
-            return h;
-        }
-        selA.innerHTML = opts(_selA); selB.innerHTML = opts(_selB);
+        var h = '<option value="">— vyber bod —</option>';
+        list.slice(0, 80).forEach(function (x) {
+            var tag = (x.p.cat && x.p.cat !== 'CUSTOM') ? ' [' + x.p.cat + ']' : '';
+            var dd = (x.d != null ? ' · ' + x.d.toFixed(0) + ' m' : '');
+            h += '<option value="' + x.p.id + '"' + (selId === x.p.id ? ' selected' : '') + '>#' + x.p.name + tag + dd + '</option>';
+        });
+        return h;
     }
-    function onSelChange() {
-        _selA = document.getElementById('agix-selA').value || null;
-        _selB = document.getElementById('agix-selB').value || null;
-        _shots = {}; _result = null; renderResult();
-        updateWarn();
+    function fillStations() {
+        var host = document.getElementById('agix-stations'); if (!host) return;
+        ensureMinStations();
+        var html = '';
+        _stations.forEach(function (s, k) {
+            html += '<div class="agix-st">'
+                + '<div class="agix-st-h">Stanovisko ' + (k + 1) + (k >= 2 ? '<button type="button" class="agix-st-rm" data-k="' + k + '" title="Odebrat">✕</button>' : '') + '</div>'
+                + '<label class="agix-fld"><span>stojím na</span><select class="agix-st-id" data-k="' + k + '">' + stationOptions(s.stId) + '</select></label>'
+                + '<label class="agix-fld"><span>orientace — zaměřím známý bod</span><select class="agix-or-id" data-k="' + k + '">' + stationOptions(s.orientId) + '</select></label>'
+                + '</div>';
+        });
+        host.innerHTML = html;
+        Array.prototype.forEach.call(host.querySelectorAll('.agix-st-id'), function (sel) {
+            sel.addEventListener('change', function () { _stations[+sel.getAttribute('data-k')].stId = sel.value || null; onModelChange(); });
+        });
+        Array.prototype.forEach.call(host.querySelectorAll('.agix-or-id'), function (sel) {
+            sel.addEventListener('change', function () { _stations[+sel.getAttribute('data-k')].orientId = sel.value || null; onModelChange(); });
+        });
+        Array.prototype.forEach.call(host.querySelectorAll('.agix-st-rm'), function (b) {
+            b.addEventListener('click', function () { _stations.splice(+b.getAttribute('data-k'), 1); fillStations(); onModelChange(); });
+        });
     }
+
+    function filledStations() { return _stations.filter(function (s) { return s.stId && s.orientId; }); }
 
     function updateWarn() {
-        var w = document.getElementById('agix-warn'), btn = document.getElementById('agix-start'), baseEl = document.getElementById('agix-base');
+        var w = document.getElementById('agix-warn'), btn = document.getElementById('agix-start');
         if (!w) return;
-        var A = ptById(_selA), B = ptById(_selB), msg = '', ok = true;
-        if (baseEl) baseEl.innerHTML = '';
+        var msg = '', ok = true;
+        var filled = filledStations();
         if (heading() == null) { msg = 'Kompas zatím nedává směr — podrž telefon svisle a chvíli počkej.'; ok = false; }
         else if (curViewMode() === 'map') { msg = 'Zapni zobrazení s kamerou (AR nebo Split) — zaměřuje se přes kameru.'; ok = false; }
-        if (!A || !B) { if (!msg) msg = 'Vyber dvě stanoviska (známé body A a B).'; ok = false; }
-        else if (_selA === _selB) { msg = 'A a B musí být různé body.'; ok = false; }
+        if (filled.length < 2) { if (!msg) msg = 'Vyplň aspoň 2 stanoviska (kde stojíš + na co se orientuješ).'; ok = false; }
         else {
-            var base = dist2(A, B);
-            if (baseEl) baseEl.innerHTML = 'Základna A–B: <b>' + base.toFixed(1) + ' m</b>';
-            if (base < 2) { msg = msg || 'Body A a B jsou příliš blízko (krátká základna = nejistý výsledek).'; }
+            var sids = {}; filled.forEach(function (s) { sids[s.stId] = 1; });
+            if (Object.keys(sids).length < 2) { msg = 'Stanoviska musí být aspoň dvě různá místa.'; ok = false; }
+            filled.forEach(function (s) { if (s.stId === s.orientId) { msg = 'Na stanovisku se orientuj na JINÝ bod, než na kterém stojíš.'; ok = false; } });
         }
         w.innerHTML = msg;
         if (btn) btn.disabled = !ok;
@@ -201,34 +235,36 @@
             + '<circle cx="50" cy="50" r="2.5" fill="#34d399"/></svg><div id="agix-cross-prog"></div></div>'
             + '<div id="agix-step"></div>'
             + '<div id="agix-aim-btns">'
-            + '  <button id="agix-gate" class="btn" style="display:none;">Jsem na bodu B → pokračovat</button>'
+            + '  <button id="agix-gate" class="btn" style="display:none;">Jsem na stanovisku → pokračovat</button>'
             + '  <button id="agix-shot" class="btn">Zaměřit</button>'
             + '  <button id="agix-back" class="btn btn-secondary">← Zpět</button>'
             + '  <button id="agix-aim-cancel" class="btn btn-secondary">Zrušit</button>'
             + '</div>';
         document.body.appendChild(a);
         document.getElementById('agix-shot').addEventListener('click', takeShot);
-        document.getElementById('agix-gate').addEventListener('click', function () { _gateDone = true; promptStep(); });
+        document.getElementById('agix-gate').addEventListener('click', function () { var s = _steps[_capIdx]; if (s) _arrived[s.sIdx] = true; promptStep(); });
         document.getElementById('agix-back').addEventListener('click', stepBack);
         document.getElementById('agix-aim-cancel').addEventListener('click', cancelCapture);
     }
     function showAim(on) { ensureAim(); document.getElementById('agix-aim').classList.toggle('on', !!on); }
 
     function buildSteps() {
-        _steps = [
-            { st: 'A', role: 'orient', aimId: _selB, key: 'AB' },
-            { st: 'A', role: 'target', aimId: null, key: 'AP' },
-            { st: 'B', role: 'orient', aimId: _selA, key: 'BA' },
-            { st: 'B', role: 'target', aimId: null, key: 'BP' }
-        ];
+        _steps = [];
+        _stations.forEach(function (s, k) {
+            if (!s.stId || !s.orientId) return;
+            _steps.push({ sIdx: k, role: 'orient' });
+            _steps.push({ sIdx: k, role: 'target' });
+        });
     }
 
     function startCapture() {
-        var A = ptById(_selA), B = ptById(_selB);
-        if (!A || !B || _selA === _selB || heading() == null) { updateWarn(); return; }
+        updateWarn();
+        var startBtn = document.getElementById('agix-start'); if (startBtn && startBtn.disabled) return;
         if (curViewMode() === 'map') { agAlert('Zapni kameru', 'Přepni zobrazení na AR nebo Split — zaměřuje se přes kameru.'); return; }
-        _shots = {}; _result = null; _gateDone = false; _capIdx = 0;
         buildSteps();
+        if (_steps.length < 4) { updateWarn(); return; }
+        clearShots(); _result = null; _capIdx = 0;
+        _arrived[_steps[0].sIdx] = true;   // na prvním stanovisku už stojím
         document.getElementById('agix-modal').style.display = 'none';
         declutter(true);
         showAim(true);
@@ -238,17 +274,17 @@
     function promptStep() {
         if (_capIdx >= _steps.length) { finishCapture(); return; }
         var step = _steps[_capIdx];
+        var st = _stations[step.sIdx];
+        var stPt = ptById(st.stId), orPt = ptById(st.orientId);
         var bar = document.getElementById('agix-aim-txt'), stepEl = document.getElementById('agix-step');
         var gate = document.getElementById('agix-gate'), shot = document.getElementById('agix-shot'), back = document.getElementById('agix-back');
         var ring = document.getElementById('agix-ring');
-        var stPt = ptById(step.st === 'A' ? _selA : _selB);
-        var aimPt = step.aimId ? ptById(step.aimId) : null;
 
-        // brána přesunu A→B (před prvním krokem na stanovisku B)
-        if (step.st === 'B' && !_gateDone) {
-            if (bar) bar.innerHTML = 'Hotovo na <b>#' + (ptById(_selA) ? ptById(_selA).name : 'A') + '</b>.<br>Přejdi a postav se přesně na <b>#' + (stPt ? stPt.name : 'B') + '</b>.';
-            if (stepEl) stepEl.innerHTML = 'přesun na 2. stanovisko';
-            if (gate) gate.style.display = 'block';
+        // brána přesunu na stanovisko (před prvním krokem stanoviska, kam jsme ještě nepřišli)
+        if (step.role === 'orient' && !_arrived[step.sIdx]) {
+            if (bar) bar.innerHTML = 'Přejdi a postav se přesně na <b>#' + (stPt ? stPt.name : '?') + '</b> (stanovisko ' + (step.sIdx + 1) + ').';
+            if (stepEl) stepEl.innerHTML = 'přesun na stanovisko ' + (step.sIdx + 1);
+            if (gate) { gate.style.display = 'block'; gate.innerText = 'Jsem na #' + (stPt ? stPt.name : '') + ' → pokračovat'; }
             if (shot) shot.style.display = 'none';
             if (back) back.style.display = 'inline-flex';
             return;
@@ -262,29 +298,27 @@
         var crossSvg = document.querySelectorAll('#agix-cross svg line, #agix-cross svg circle');
         crossSvg.forEach(function (n) { if (n.getAttribute('fill') === '#34d399' || n.getAttribute('fill') === '#fbbf24') n.setAttribute('fill', isTarget ? '#fbbf24' : '#34d399'); if (n.getAttribute('stroke')) n.setAttribute('stroke', isTarget ? '#fbbf24' : '#34d399'); });
 
-        var dTxt = '';
-        if (!isTarget && aimPt && stPt) dTxt = ' · ' + dist2(stPt, aimPt).toFixed(0) + ' m';
         if (isTarget) {
             if (bar) bar.innerHTML = 'Stoj na <b>#' + (stPt ? stPt.name : '?') + '</b> · zaměř <b style="color:#fbbf24">NEZNÁMÝ CÍL</b>'
-                + (_targetName ? ' (' + _targetName + ')' : '') + (step.key === 'BP' ? '<br><span style="opacity:.75;font-size:12px">stejný bod jako z prvního stanoviska!</span>' : '');
+                + (_targetName ? ' (' + _targetName + ')' : '') + (step.sIdx > 0 ? '<br><span style="opacity:.75;font-size:12px">stejný bod jako z ostatních stanovisek!</span>' : '');
         } else {
-            if (bar) bar.innerHTML = 'Stoj na <b>#' + (stPt ? stPt.name : '?') + '</b> · zaměř známý <b>#' + (aimPt ? aimPt.name : '?') + '</b>' + dTxt
+            var dTxt = (orPt && stPt) ? ' · ' + dist2(stPt, orPt).toFixed(0) + ' m' : '';
+            if (bar) bar.innerHTML = 'Stoj na <b>#' + (stPt ? stPt.name : '?') + '</b> · zaměř známý <b>#' + (orPt ? orPt.name : '?') + '</b>' + dTxt
                 + '<br><span style="opacity:.75;font-size:12px">orientace — srovná stanovisko</span>';
         }
-        if (stepEl) stepEl.innerHTML = 'krok ' + (_capIdx + 1) + ' z 4 · stanovisko ' + step.st;
-        if (shot) { shot.disabled = false; shot.innerText = isTarget ? 'Zaměřit cíl' : 'Zaměřit #' + (aimPt ? aimPt.name : ''); }
+        if (stepEl) stepEl.innerHTML = 'krok ' + (_capIdx + 1) + ' z ' + _steps.length + ' · stanovisko ' + (step.sIdx + 1);
+        if (shot) { shot.disabled = false; shot.innerText = isTarget ? 'Zaměřit cíl' : 'Zaměřit #' + (orPt ? orPt.name : ''); }
     }
 
     function stepBack() {
         if (_capTimer) { clearInterval(_capTimer); _capTimer = null; }
         if (_capIdx <= 0) { cancelCapture(); return; }
-        // pokud jsme na začátku stanoviska B (brána splněna), krok zpět vrátí na konec A
-        if (_steps[_capIdx] && _steps[_capIdx].st === 'B' && _gateDone && (_capIdx === 0 || _steps[_capIdx - 1].st === 'A')) {
-            // jsme za bránou na prvním kroku B → zruš bránu a vrať na poslední krok A
-            _gateDone = false;
-        }
+        var cur = _steps[_capIdx];
+        // jsme-li na začátku nového stanoviska, krok zpět zruší jeho „příchod" (vrátí bránu)
+        if (cur && cur.role === 'orient' && _steps[_capIdx - 1] && _steps[_capIdx - 1].sIdx !== cur.sIdx) { _arrived[cur.sIdx] = false; }
         _capIdx--;
-        delete _shots[_steps[_capIdx].key];
+        var prev = _steps[_capIdx];
+        if (prev.role === 'orient') _stations[prev.sIdx].devOrient = null; else _stations[prev.sIdx].devTarget = null;
         promptStep();
     }
 
@@ -300,7 +334,8 @@
                 clearInterval(_capTimer); _capTimer = null; if (prog) prog.style.width = '0%';
                 if (!_capSamples.length) { if (shotBtn) shotBtn.disabled = false; toast('Nezachyceno'); return; }
                 var az = (circMeanDeg(_capSamples) + 360) % 360;
-                _shots[_steps[_capIdx].key] = az;
+                var step = _steps[_capIdx];
+                if (step.role === 'orient') _stations[step.sIdx].devOrient = az; else _stations[step.sIdx].devTarget = az;
                 if (navigator.vibrate) try { navigator.vibrate(25); } catch (e) {}
                 _capIdx++;
                 promptStep();
@@ -312,21 +347,21 @@
         if (_capTimer) { clearInterval(_capTimer); _capTimer = null; }
         _capIdx = -1; showAim(false); declutter(false);
         var m = document.getElementById('agix-modal'); if (m) m.style.display = 'flex';
-        fillSelects(); updateWarn(); renderResult();
+        fillStations(); updateWarn(); renderResult();
     }
     function finishCapture() {
         if (_capTimer) { clearInterval(_capTimer); _capTimer = null; }
         _capIdx = -1; showAim(false); declutter(false);
         var m = document.getElementById('agix-modal'); if (m) m.style.display = 'flex';
         compute();
-        fillSelects(); updateWarn(); renderResult();
+        fillStations(); updateWarn(); renderResult();
     }
 
     function compute() {
-        var A = ptById(_selA), B = ptById(_selB);
-        if (!A || !B || ['AB', 'AP', 'BA', 'BP'].some(function (k) { return _shots[k] == null; })) { _result = null; return; }
-        _result = solveIntersection(A, B, _shots.AB, _shots.AP, _shots.BA, _shots.BP);
-        if (_result) { _result.Aname = A.name; _result.Bname = B.name; }
+        var filled = _stations.filter(function (s) { return s.stId && s.orientId && s.devOrient != null && s.devTarget != null; });
+        if (filled.length < 2) { _result = null; return; }
+        _result = solveMulti(filled);
+        if (_result) _result.names = filled.map(function (s) { var p = ptById(s.stId); return p ? p.name : '?'; });
     }
 
     function renderResult() {
@@ -335,22 +370,24 @@
         if (!_result) { box.style.display = 'none'; if (acts) acts.style.display = 'none'; return; }
         var r = _result;
         var qCol = r.angleP < 20 ? '#f87171' : (r.angleP < 35 ? '#fbbf24' : '#34d399');
-        var html = '<div class="agix-big">Neznámý cíl ' + (_targetName ? '<b>' + _targetName + '</b> ' : '') + 'určen</div>'
+        var html = '<div class="agix-big">Neznámý cíl ' + (_targetName ? '<b>' + _targetName + '</b> ' : '') + 'určen <span style="opacity:.7;font-size:12px">(' + r.n + ' stanoviska)</span></div>'
             + '<div style="margin:6px 0;font-family:var(--font-mono,monospace);font-size:13px;">'
             + 'S-JTSK:&nbsp; <b>Y</b> ' + (r.Y != null ? r.Y.toFixed(2) : '—') + ' &nbsp; <b>X</b> ' + (r.X != null ? r.X.toFixed(2) : '—') + '</div>'
             + '<div style="font-size:12.5px;opacity:.9;line-height:1.5;">'
-            + 'Základna #' + r.Aname + '–#' + r.Bname + ': <b>' + r.base.toFixed(1) + ' m</b><br>'
-            + 'Délka #' + r.Aname + '→cíl: <b>' + r.distA.toFixed(1) + ' m</b> · #' + r.Bname + '→cíl: <b>' + r.distB.toFixed(1) + ' m</b><br>'
+            + 'Stanoviska: <b>#' + r.names.join('</b>, #') + '</b><br>'
             + 'Úhel protnutí: <b style="color:' + qCol + '">' + r.angleP.toFixed(0) + '°</b> <span style="opacity:.7">(ideál ~90°)</span>'
+            + (r.n > 2 ? '<br>Shoda paprsků: <b>' + fmtMiss(r.rms) + '</b> <span style="opacity:.7">(rms odchylka, ⌀ jak dobře paprsky souhlasí)</span>' : '')
             + '</div>';
         var warn = '';
-        if (r.behind) warn += '<div style="color:#f87171;font-size:12px;margin-top:6px;">⚠ Cíl vyšel „za zády" jednoho stanoviska — nejspíš zaměněné body nebo špatné zaměření. Zkontroluj a zaměř znovu.</div>';
+        if (r.behind) warn += '<div style="color:#f87171;font-size:12px;margin-top:6px;">⚠ Cíl vyšel „za zády" některého stanoviska — nejspíš zaměněné body nebo špatné zaměření. Zkontroluj a zaměř znovu.</div>';
         if (r.angleP < 20) warn += '<div style="color:#f87171;font-size:12px;margin-top:4px;">⚠ Velmi ostrý úhel protnutí — poloha je nejistá. Zvol stanoviska tak, ať svírají s cílem úhel blíž 90°.</div>';
         else if (r.angleP < 35) warn += '<div style="color:#fbbf24;font-size:12px;margin-top:4px;">Úhel protnutí je malý — výsledek je citlivý na přesnost zaměření.</div>';
+        if (r.n > 2 && r.maxMiss > 1.0) warn += '<div style="color:#fbbf24;font-size:12px;margin-top:4px;">Paprsky se rozcházejí až o ' + fmtMiss(r.maxMiss) + ' — některé stanovisko může být zaměřené nepřesně.</div>';
         box.innerHTML = html + warn;
         box.style.display = 'block';
         if (acts) acts.style.display = 'block';
     }
+    function fmtMiss(d) { return d < 1 ? (d * 100).toFixed(0) + ' cm' : d.toFixed(2) + ' m'; }
 
     function saveTarget() {
         if (!_result) return;
@@ -358,14 +395,14 @@
         var name = _targetName;
         try { name = prompt('Název bodu:', _targetName || 'P_protnuti') || _targetName || 'P_protnuti'; } catch (e) { name = _targetName || 'P_protnuti'; }
         var added = window.addImportedPoints([{ name: name, lat: _result.lat, lng: _result.lng }]);
-        if (added > 0) agAlert('Bod uložen', '#' + name + ' uložen do zakázky (protínání vpřed, úhel ' + _result.angleP.toFixed(0) + '°).\nNajdeš ho v seznamu Body.');
+        if (added > 0) agAlert('Bod uložen', '#' + name + ' uložen do zakázky (protínání vpřed z ' + _result.n + ' stanovisek, úhel ' + _result.angleP.toFixed(0) + '°).\nNajdeš ho v seznamu Body.');
         else agAlert('Neuloženo', 'Bod se stejným názvem a polohou už v zakázce je.');
     }
 
     // ---- otevření/zavření + živá obnova ---------------------------------------
     var _liveTimer = null;
     function openTool() {
-        ensureModal(); injectStyles(); fillSelects(); updateWarn(); renderResult();
+        ensureModal(); injectStyles(); fillStations(); updateWarn(); renderResult();
         document.getElementById('agix-modal').style.display = 'flex';
         if (!_liveTimer) _liveTimer = setInterval(function () {
             var m = document.getElementById('agix-modal');
@@ -388,7 +425,9 @@
             '#agix-modal .agix-fld>span{display:block;font-size:12px;opacity:.75;margin-bottom:3px;}',
             '#agix-modal .agix-fld select,#agix-modal .agix-fld input{width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);color:var(--text-color,#e8edf2);font:600 14px/1.1 var(--font,system-ui),sans-serif;}',
-            '#agix-modal .agix-base{font-size:12.5px;opacity:.85;margin:6px 2px;font-family:var(--font-mono,monospace);}',
+            '#agix-modal .agix-st{border:1px solid var(--glass-border,rgba(255,255,255,0.12));border-radius:12px;padding:6px 12px 10px;margin:8px 0;background:rgba(255,255,255,0.025);}',
+            '#agix-modal .agix-st-h{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;font-weight:700;color:var(--accent);margin-top:6px;}',
+            '#agix-modal .agix-st-rm{background:rgba(239,68,68,0.18);color:#f87171;border:none;border-radius:8px;width:26px;height:26px;font-size:13px;line-height:1;cursor:pointer;}',
             '#agix-modal .agix-result{margin:12px 0;padding:12px 14px;border-radius:10px;background:rgba(52,211,153,0.12);}',
             '#agix-modal .agix-big{font-size:15px;margin-bottom:2px;}',
             // VYČIŠTĚNÁ obrazovka během zaměřování: jen kamera + zaměřovač + štítek

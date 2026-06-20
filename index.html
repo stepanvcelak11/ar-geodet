@@ -151,7 +151,7 @@
                 </details>
             </div>
             <div class="w-c-actions">
-                <button class="btn btn-primary w-c-start" onclick="startAppFromWelcome()"><svg class="icon"><use href="#i-navigation"/></svg> Spustit vyhledávání</button>
+                <button id="welcome-start-btn" class="btn btn-primary w-c-start" onclick="startAppFromWelcome()"><svg class="icon"><use href="#i-navigation"/></svg> Spustit vyhledávání</button>
                 <button id="pruv-welcome-btn" class="btn btn-secondary w-c-pruv" onclick="openPruvodce()"><svg class="icon"><use href="#i-navigation"/></svg> Průvodce úkolem</button>
             </div>
             <p class="w-c-foot">Orientační pomůcka, ne měřicí přístroj — poloha závisí na GPS a kompasu telefonu.</p>
@@ -211,6 +211,7 @@
         <div class="ga-row"><span>Měření:</span> <b id="ga-n">—</b></div>
         <div class="ga-row"><span>Stř. chyba ⌀:</span> <b id="ga-pos">—</b></div>
         <div class="ga-row"><span>Rozptyl σ:</span> <b id="ga-se">—</b></div>
+        <div class="ga-row" id="ga-warn" style="display:none; color:var(--danger); font-weight:600;"></div>
     </div>
 
     <!-- Editor HUD prvku (otevře se podržením prvku) -->
@@ -599,10 +600,14 @@
     <script src="js/track-log.js"></script>
     <script src="js/ar-resection.js"></script>
     <script src="js/ar-intersection.js"></script>
+    <!-- OPTICKÝ DÁLKOMĚR (odpojitelné: smaž tento řádek + js/rangefinder.js) — odhad vzdálenosti z náklonu -->
+    <script src="js/rangefinder.js"></script>
     <script src="js/project-import.js"></script>
     <script src="js/cadastre-vector.js"></script>
     <!-- NOVÝ TUTORIÁL (odpojitelné: smaž tento řádek + js/tutorial-pro.js) — základní + pokročilá prohlídka -->
     <script src="js/tutorial-pro.js"></script>
+    <!-- CELÁ OBRAZOVKA / immersive (odpojitelné: smaž tento řádek + js/fullscreen.js) — schová systémovou lištu dole -->
+    <script src="js/fullscreen.js"></script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + js/vylepseni.js + css/vylepseni.css) — musí být POSLEDNÍ modul kvůli override -->
     <script src="js/vylepseni.js"></script>
     <!-- Karta zakázky na úvodu (Návrh C) — až za vším, ať obalí finální loadProjectSettings/renderProjectSelect -->

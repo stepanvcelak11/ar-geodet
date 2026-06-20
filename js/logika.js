@@ -358,6 +358,7 @@ if ('serviceWorker' in navigator) {
         function deleteCustomPoint(id) { if(!confirm("Smazat?")) return; persistentCustomPoints = persistentCustomPoints.filter(p => p.id !== id); setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); pointLines = pointLines.filter(l => l.aId !== id && l.bId !== id); saveLines(); renderManageList(); drawAllMarkersOnMap(); const idx = arPoints.findIndex(p => p.id === id); if(idx !== -1) { if(arPoints[idx].element) arPoints[idx].element.remove(); arPoints.splice(idx, 1); } updateInfoPanel(); }
         // Vyplnit Y/X z PRUMEROVANE GPS polohy (presnejsi nez jeden odecet) + ulozit dosazenou presnost
         function fillAveragedGPS() {
+            if (gpsAvgResult && gpsAvgResult.coarse) { alert("Slabý GNSS signál — telefon hlásí síťovou polohu ±" + Math.round(gpsAvgResult.acc) + " m, ne satelitní fix.\n\nVyjdi pod volné nebe a počkej, až se přesnost zlepší pod 20 m."); return; }
             if (!gpsAvgResult || gpsAvgResult.n < 2) { alert("Počkejte na ustálení průměrování GPS (stůjte chvíli na místě)."); return; }
             const r = gpsAvgResult; let sjtsk = proj4("EPSG:4326", "EPSG:5514", [r.lng, r.lat]);
             document.getElementById('custom-y').value = Math.abs(sjtsk[0]).toFixed(2);
@@ -396,6 +397,15 @@ if ('serviceWorker' in navigator) {
         // sterr pocitame z efektivniho n (po sobe jdouci fixy jsou korelovane, nejsou nezavisle).
         function _median(arr) { const a = arr.slice().sort((p, q) => p - q); const m = a.length >> 1; return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; }
         function updateGpsAveraging(lat, lng, acc, speed) {
+            // HRUBY FIX: presnost horsi nez GPS_COARSE_ACC = sitova/fused poloha (Wi-Fi/cell), ne
+            // realny satelitni GNSS. Takove vzorky do presneho prumeru NEpoustime — jinak vyleze
+            // klidne +-17 m i na otevrenem poli (garbage in). Misto toho oznacime stav "coarse"
+            // a appka rekne "cekam na satelitni fix". Mame-li uz dobre vzorky, hruby fix ignorujeme.
+            const GPS_COARSE_ACC = 20;
+            if (acc && acc > GPS_COARSE_ACC) {
+                if (!gpsSamples.length) { gpsAvgResult = { coarse: true, acc: acc, n: 0, total: 0 }; updateGpsAvgPanel(); }
+                return;
+            }
             if (gpsSamples.length) {
                 const ref = gpsAvgResult || gpsSamples[gpsSamples.length - 1];
                 const moved = getDistance(ref.lat, ref.lng, lat, lng);
@@ -424,7 +434,7 @@ if ('serviceWorker' in navigator) {
             const neff = Math.max(1, used.length / 4); // fixy ~1/s jsou korelovane v radu sekund
             const sterr = sigma / Math.sqrt(neff);
             const meanAcc = used.reduce((a, p) => a + (p.s.acc || 0), 0) / used.length;
-            gpsAvgResult = { lat: lat0 + wy / mLat, lng: lng0 + wx / mLng, n: used.length, total: total, sigma: sigma, sterr: sterr, acc: meanAcc };
+            gpsAvgResult = { lat: lat0 + wy / mLat, lng: lng0 + wx / mLng, n: used.length, total: total, sigma: sigma, sterr: sterr, acc: meanAcc, coarse: false };
             updateGpsAvgPanel();
         }
 

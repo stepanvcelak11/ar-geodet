@@ -222,6 +222,7 @@
     }
 
     function openReader() {
+        try { loadEdition(); } catch (e) {}   // při otevření vždy zkus dotáhnout nejčerstvější vydání
         buildOverlay();
         render();
         _ov.classList.add('open');
@@ -293,4 +294,14 @@
     });
     // když se přepne online, zkus dotáhnout čerstvé vydání
     window.addEventListener('online', function () { try { loadEdition(); } catch (e) {} });
+    // PWA může běžet dny v paměti — po návratu do popředí zkus dotáhnout nové vydání
+    // (jinak init() znovu neproběhne a 'online' se nespustí → uživatel vidí staré zprávy).
+    var _lastFgFetch = 0;
+    document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState !== 'visible') return;
+        var now = Date.now();
+        if (now - _lastFgFetch < 300000) return;   // max 1×/5 min, ať nezatěžujeme síť
+        _lastFgFetch = now;
+        try { loadEdition(); } catch (e) {}
+    });
 })();
