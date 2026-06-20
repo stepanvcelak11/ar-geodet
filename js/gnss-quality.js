@@ -113,7 +113,7 @@
 
         row.innerHTML =
             '<div class="gq-head">' +
-            '<span class="gq-label">Kvalita GNSS (geometrie družic)</span>' +
+            '<span class="gq-label">Geometrie GNSS (teoretická, všechny družice)</span>' +
             '<span class="gq-pdop ' + rate.cls + '">PDOP ' + fmtPdop(p) + ' · ' + rate.txt + '</span>' +
             '</div>' +
             bestHtml;

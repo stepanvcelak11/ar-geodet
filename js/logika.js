@@ -432,7 +432,13 @@ if ('serviceWorker' in navigator) {
             const wx = swx / sw, wy = swy / sw;
             const sigma = Math.sqrt(used.reduce((a, p) => a + Math.pow(p.x - wx, 2) + Math.pow(p.y - wy, 2), 0) / used.length);
             const neff = Math.max(1, used.length / 4); // fixy ~1/s jsou korelovane v radu sekund
-            const sterr = sigma / Math.sqrt(neff);
+            // POZOR na falesnou presnost: sterr je jen VNITRNI rozptyl prumeru. Mobilni GNSS bez
+            // RTK ma ale dominantni SYSTEMATICKOU slozku (multipath/troposfera/konstelace), kterou
+            // prumerovani NEodstrani. Proto sterr zdola omezime realnou mezi ~0.3x nejlepsi hlasena
+            // presnost (min 0.2 m), at panel nehlasi centimetry tam, kde je realna chyba metr.
+            const bestAcc = used.reduce((m, p) => Math.min(m, (p.s.acc || 99)), 99);
+            const sterrFloor = Math.max(0.3 * bestAcc, 0.2);
+            const sterr = Math.max(sigma / Math.sqrt(neff), sterrFloor);
             const meanAcc = used.reduce((a, p) => a + (p.s.acc || 0), 0) / used.length;
             gpsAvgResult = { lat: lat0 + wy / mLat, lng: lng0 + wx / mLng, n: used.length, total: total, sigma: sigma, sterr: sterr, acc: meanAcc, coarse: false };
             updateGpsAvgPanel();
