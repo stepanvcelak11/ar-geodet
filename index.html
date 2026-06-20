@@ -198,7 +198,7 @@
             <button class="menu-btn" onclick="openAbout(); toggleMenu();"><svg class="icon"><use href="#i-file-text"/></svg> O aplikaci</button>
             <button class="menu-btn" onclick="toggleMapControls(); toggleMenu();"><svg class="icon"><use href="#i-sliders"/></svg> Nástroje mapy (vrstvy, zoom)</button>
             <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
-            <label class="menu-toggle-row"><input type="checkbox" id="tgl-info" onchange="toggleHudElements()"> Info panel (přesnost, body v AR, družice)</label>
+            <label class="menu-toggle-row"><input type="checkbox" id="tgl-info" checked onchange="toggleHudElements()"> Info panel (přesnost, body v AR, družice)</label>
             <label class="menu-toggle-row"><input type="checkbox" id="tgl-compass" checked onchange="toggleHudElements()"> Kompas (Azimut)</label>
             <label class="menu-toggle-row"><input type="checkbox" id="tgl-gpsavg" checked onchange="toggleHudElements()"> Průměrování GPS na místě</label>
             <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
@@ -390,7 +390,7 @@
                 <div class="tab-btn active" onclick="switchTab('tab-vzhled', this)"><svg class="icon"><use href="#i-sliders"/></svg><span class="tb-tx"><b>Vzhled</b><small>Motiv, velikost, světlo</small></span></div>
                 <div class="tab-btn" onclick="switchTab('tab-ar', this)"><svg class="icon"><use href="#i-crosshair"/></svg><span class="tb-tx"><b>AR &amp; přesnost</b><small>Radius, výkon</small></span></div>
                 <div class="tab-btn" onclick="switchTab('tab-data', this)"><svg class="icon"><use href="#i-folder"/></svg><span class="tb-tx"><b>Data</b><small>Zakázky, export</small></span></div>
-                <div class="tab-btn" onclick="openCompassModal()"><svg class="icon"><use href="#i-navigation"/></svg><span class="tb-tx"><b>Kompas</b><small>Kalibrace, sever</small></span></div>
+                <div class="tab-btn" onclick="document.getElementById('settings-modal').style.display='none'; openCompassModal();"><svg class="icon"><use href="#i-navigation"/></svg><span class="tb-tx"><b>Kompas</b><small>Kalibrace, sever</small></span></div>
             </div>
             <div class="modal-body">
                 <div id="tab-vzhled" class="settings-tab active">

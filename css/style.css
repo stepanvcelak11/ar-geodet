@@ -1910,10 +1910,10 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
 }
 /* Jemný oblouk: krajní chipy mírně k středu, prostřední u kraje */
 #dock .dock-btn:nth-child(1),
-#dock .dock-btn:nth-child(5) { transform: translateX(-12px); }
+#dock .dock-btn:nth-child(5) { transform: translateX(0); }
 #dock .dock-btn:nth-child(2),
-#dock .dock-btn:nth-child(4) { transform: translateX(-4px); }
-#dock .dock-btn:nth-child(3) { transform: translateX(0); }
+#dock .dock-btn:nth-child(4) { transform: translateX(-7px); }
+#dock .dock-btn:nth-child(3) { transform: translateX(-13px); }
 
 /* ---- Horní HUD pruh (Návrh 1): azimut vlevo, GPS vpravo, přesnost pod ním */
 #compass-debug {
@@ -1934,11 +1934,49 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
     left: var(--hud-side);
 }
 
-/* ---- GPS indikátor (power-save) → do spodního rohu (dok už není dole) --- */
-#ag-pwr {
-    left: 12px !important;
-    bottom: max(12px, env(safe-area-inset-bottom)) !important;
-}
+/* ---- GPS indikátor (power-save) → úplně skryt na přání uživatele --- */
+#ag-pwr { display: none !important; }
 
 /* ---- Posuvníky map. ovládání přesunuty do „Více" → skrýt z obrazovky --- */
 #map-ctrl-toggle { display: none !important; }
+
+/* ---- HUD pruh: po startu vždy zobrazit azimut a GPS panel ----------------
+   (pojistka nezávislá na pořadí modulů; bez !important, aby šel #tgl-compass
+   i fade .ui-faded dál uplatnit) */
+body.app-started #compass-debug,
+body.app-started #gps-avg { display: block; }
+
+/* === SVĚTLÝ REŽIM: boční menu „Více" === */
+body.light-mode #side-menu {
+    background: rgba(248, 249, 251, 0.98);
+    color: var(--text-color);
+}
+body.light-mode #side-menu .menu-head { color: var(--text-color); }
+body.light-mode .menu-btn {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: var(--glass-border);
+    color: var(--text-color);
+}
+body.light-mode .menu-btn:hover  { background: rgba(0, 0, 0, 0.08); }
+body.light-mode .menu-btn:active { background: rgba(0, 0, 0, 0.11); }
+body.light-mode #side-menu .menu-close { background: rgba(0, 0, 0, 0.06); }
+body.light-mode #view-seg { background: rgba(0, 0, 0, 0.06); }
+body.light-mode .seg-btn { color: var(--text-muted); }
+
+/* === SVĚTLÝ REŽIM: AR značky bodů === */
+body.light-mode .ar-marker {
+    background: rgba(252, 252, 253, 0.92);
+    border-color: var(--glass-border-strong);
+    color: #141821;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* ---- Modály Nastavení/Body/Nástroje: stejný slide-in zprava jako „Více" ---- */
+@keyframes modal-slide-in-right {
+    from { opacity: 0; transform: translateX(100%); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+.modal-overlay .modal-content {
+    animation: modal-slide-in-right 0.32s var(--ease-out) both;
+    transform-origin: center center;
+}
