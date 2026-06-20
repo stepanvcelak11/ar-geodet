@@ -618,7 +618,8 @@ body {
 .ar-marker.active-reading { border: 2px dashed #fff !important; }
 .ar-marker.highlighted {
     border: 2px solid var(--warning) !important;
-    background: rgba(251, 191, 36, 0.20) !important;
+    /* neprusvitne tmave pozadi kvuli citelnosti nad kamerou; zlaty ramecek + puls = vybrano */
+    background: rgba(13, 18, 27, 0.9) !important;
     color: #fff !important;
     z-index: 99999 !important;
     animation: pulse-gold 2s infinite ease-in-out !important;
@@ -626,6 +627,7 @@ body {
 
 .ar-marker-title { font-size: 14px; font-weight: 700; letter-spacing: 0.2px; }
 .ar-marker-dist  { font-family: var(--font-mono); font-size: 11px; font-weight: 500; opacity: 0.85; margin-top: 1px; }
+.ar-marker.highlighted .ar-marker-title, .ar-marker.highlighted .ar-marker-dist { opacity: 1; }
 
 /* =========================================================================
    Rozdělovač kamera / mapa
