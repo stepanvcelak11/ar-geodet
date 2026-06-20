@@ -1,0 +1,61 @@
+/* ===== AR Geodet — CHYTRÝ HUD (Design D, ODPOJITELNÁ vrstva) ===================
+   Konsoliduje roztroušené indikátory do JEDNÉ kontextové karty + 3 teček
+   (GPS / kompas / kalibrace). Karta i tečky vyblednou po 3 s, jdou táhnout a
+   měnit velikost. Potlačuje původní #info, #compass-debug, #gps-warn, FAB
+   „Srovnat sever" a semafor kompasu. Odstranění: smaž css/hud-smart.css +
+   js/hud-smart.js a jejich řádky v index.html (a sw.js).
+   ============================================================================ */
+
+#aghs-card {
+    position: fixed;
+    z-index: 9500;
+    min-width: 132px;
+    max-width: 78vw;
+    padding: 9px 13px 8px;
+    border-radius: 16px;
+    background: var(--glass-bg, rgba(24,28,33,0.84));
+    border: 1px solid var(--glass-border, rgba(255,255,255,0.10));
+    backdrop-filter: blur(10px) saturate(140%);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    box-shadow: var(--shadow-2, 0 10px 30px rgba(0,0,0,0.55));
+    color: var(--text-color, #eceef2);
+    text-align: center;
+    transition: opacity .45s ease;
+    touch-action: none;
+    user-select: none; -webkit-user-select: none;
+    will-change: transform, left, top;
+}
+#aghs-card.aghs-faded { opacity: .26; }
+#aghs-card.aghs-edit { outline: 2px dashed var(--accent, #2f9e74); outline-offset: 3px; opacity: 1 !important; }
+
+.aghs-main { display: flex; align-items: center; justify-content: center; gap: 8px; line-height: 1; }
+.aghs-chev { width: 22px; height: 22px; flex: 0 0 auto; display: none; color: var(--accent-bright, #3eb487); transition: transform .15s linear; }
+.aghs-chev svg { width: 100%; height: 100%; display: block; }
+#aghs-card.nav .aghs-chev { display: block; }
+.aghs-big { font-size: 25px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.aghs-big small { font-size: 14px; font-weight: 600; opacity: .7; }
+.aghs-sub { font-size: 11.5px; opacity: .72; margin-top: 3px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* barva hlavní hodnoty dle kvality */
+#aghs-card.q-ok  .aghs-big { color: var(--accent, #2f9e74); }
+#aghs-card.q-warn .aghs-big { color: var(--warning, #fbbf24); }
+#aghs-card.q-bad .aghs-big { color: var(--danger, #fb7185); }
+
+/* tři stavové tečky */
+.aghs-dots { display: flex; justify-content: center; gap: 14px; margin-top: 8px; }
+.aghs-dot { position: relative; width: 30px; height: 22px; border: none; background: none; padding: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.aghs-dot::after { content: attr(data-lbl); position: absolute; top: 17px; font-size: 8px; letter-spacing: .03em; color: var(--text-muted, #9aa1ac); }
+.aghs-dot i { width: 11px; height: 11px; border-radius: 50%; display: block; background: var(--text-muted, #9aa1ac); transition: background .2s, box-shadow .2s; }
+.aghs-dot.ok i   { background: var(--accent, #2f9e74);   box-shadow: 0 0 8px var(--accent, #2f9e74); }
+.aghs-dot.warn i { background: var(--warning, #fbbf24);  box-shadow: 0 0 8px var(--warning, #fbbf24); }
+.aghs-dot.bad i  { background: var(--danger, #fb7185);   box-shadow: 0 0 8px var(--danger, #fb7185); }
+.aghs-dot.off i  { background: var(--text-muted, #9aa1ac); box-shadow: none; opacity: .5; }
+
+/* ovládání v režimu úprav */
+.aghs-ctrls { display: none; justify-content: center; gap: 8px; margin-top: 9px; }
+#aghs-card.aghs-edit .aghs-ctrls { display: flex; }
+#aghs-card.aghs-edit .aghs-dots { display: none; }
+.aghs-ctrls button { width: 34px; height: 30px; border-radius: 9px; border: 1px solid var(--glass-border, rgba(255,255,255,0.12)); background: rgba(255,255,255,0.07); color: var(--text-color, #fff); font-size: 17px; font-weight: 700; cursor: pointer; }
+.aghs-ctrls button.done { background: var(--accent, #2f9e74); color: #06281d; border-color: transparent; }
+.aghs-edit-hint { display: none; font-size: 10px; color: var(--text-muted, #9aa1ac); margin-top: 6px; }
+#aghs-card.aghs-edit .aghs-edit-hint { display: block; }
