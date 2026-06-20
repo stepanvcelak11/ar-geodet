@@ -76,10 +76,10 @@
     function computeStakePoint() {
         var g = geometry(); if (!g) { agAlert('Chybí přímka', 'Vyber dva různé body.'); return null; }
         var s = num('agsl-stat'); if (isNaN(s)) { agAlert('Chybí staničení', 'Zadej staničení v metrech.'); return null; }
-        var o = num('agsl-off'); if (isNaN(o)) o = 0;   // + = vpravo (kladný posun ve směru jízdy doprava)
-        // bod na ose: A + s*u ; kolmice: vlevo = (-uN, uE), tedy vpravo = (uN, -uE)
-        var e = s * g.uE + o * (g.uN);
-        var n = s * g.uN + o * (-g.uE);
+        var o = num('agsl-off'); if (isNaN(o)) o = 0;   // + = VLEVO, − = vpravo (SHODNĚ se živým odečtem)
+        // bod na ose: A + s*u ; kolmice vlevo = (-uN, uE) [+], vpravo = (uN, -uE) [−]
+        var e = s * g.uE + o * (-g.uN);
+        var n = s * g.uN + o * (g.uE);
         var ll = fromEnu(g.A.lat, g.A.lng, e, n);
         var sj = proj4('EPSG:4326', 'EPSG:5514', [ll.lng, ll.lat]);
         return { lat: ll.lat, lng: ll.lng, Y: Math.abs(sj[0]).toFixed(2), X: Math.abs(sj[1]).toFixed(2), s: s, o: o, g: g };
@@ -87,7 +87,7 @@
     function previewStake() {
         var r = computeStakePoint(); var out = document.getElementById('agsl-stake-out'); if (!out) return;
         if (!r) { out.innerHTML = ''; return; }
-        out.innerHTML = '<b>Y</b> ' + r.Y + ' &nbsp; <b>X</b> ' + r.X + '<br><span style="opacity:.65;font-size:12px">staničení ' + r.s.toFixed(2) + ' m' + (r.o ? ', odstup ' + r.o.toFixed(2) + ' m vpravo' : ' na ose') + '</span>';
+        out.innerHTML = '<b>Y</b> ' + r.Y + ' &nbsp; <b>X</b> ' + r.X + '<br><span style="opacity:.65;font-size:12px">staničení ' + r.s.toFixed(2) + ' m' + (r.o ? ', odstup ' + Math.abs(r.o).toFixed(2) + ' m ' + (r.o > 0 ? 'vlevo' : 'vpravo') : ' na ose') + '</span>';
     }
     function saveStake() {
         var r = computeStakePoint(); if (!r) return;
@@ -113,7 +113,7 @@
             + '<div id="agsl-live" style="margin:6px 0 12px;padding:12px 14px;border-radius:10px;background:rgba(52,211,153,0.12);font-family:var(--font-mono,monospace);font-size:14px;"></div>'
             + '<details class="adv"><summary><svg class="icon"><use href="#i-crosshair"/></svg> Vytyčit bod na staničení</summary><div class="adv-body">'
             + '  <label>Staničení od A (m)</label><input type="number" id="agsl-stat" step="0.01" inputmode="decimal" placeholder="např. 25.00">'
-            + '  <label style="margin-top:6px;">Kolmý odstup (m, + = vpravo)</label><input type="number" id="agsl-off" step="0.01" inputmode="decimal" placeholder="0">'
+            + '  <label style="margin-top:6px;">Kolmý odstup (m, + vlevo / − vpravo)</label><input type="number" id="agsl-off" step="0.01" inputmode="decimal" placeholder="0">'
             + '  <label style="margin-top:6px;">Název bodu</label><input type="text" id="agsl-name" placeholder="ST25">'
             + '  <div id="agsl-stake-out" style="margin:10px 0;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.06);font-family:var(--font-mono,monospace);"></div>'
             + '  <button class="btn" id="agsl-save"><svg class="icon"><use href="#i-plus"/></svg> Uložit vytyčovaný bod</button>'

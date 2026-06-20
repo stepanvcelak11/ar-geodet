@@ -192,7 +192,10 @@
         return triArea2(a, b, c) * ((a.z - H0) + (b.z - H0) + (c.z - H0)) / 3;
     }
     function interpAtLevel(A, B, H0) {
-        var t = (H0 - A.z) / (B.z - A.z);
+        var dz = B.z - A.z;
+        if (Math.abs(dz) < 1e-9) return { ex: A.ex, ny: A.ny, z: H0 };  // hrana ve vodorovné rovině → bez dělení nulou
+        var t = (H0 - A.z) / dz;
+        if (t < 0) t = 0; else if (t > 1) t = 1;                         // clamp kvůli FP u degenerované geometrie
         return { ex: A.ex + t * (B.ex - A.ex), ny: A.ny + t * (B.ny - A.ny), z: H0 };
     }
     // rozdělí trojúhelník rovinou H0 a vrátí {fill, cut} (kladné objemy)
@@ -208,14 +211,14 @@
         else { apex = below[0]; base1 = above[0]; base2 = above[1]; apexAbove = false; }
         var c1 = interpAtLevel(apex, base1, H0);
         var c2 = interpAtLevel(apex, base2, H0);
-        var apexVol = prismVolume(apex, c1, c2, H0); // jeden subtrojúhelník
-        // základna = quad (base1, base2, c2, c1) -> dva subtrojúhelníky
-        var q1 = prismVolume(base1, base2, c2, H0);
-        var q2 = prismVolume(base1, c2, c1, H0);
-        var fill = 0, cut = 0;
-        function add(vol) { if (vol >= 0) fill += vol; else cut += -vol; }
-        add(apexVol); add(q1); add(q2);
-        return { fill: fill, cut: cut };
+        // ROBUSTNÍ ZNAMÉNKO: apex je celý nad/pod H0 (apexAbove), takže jeho strana je
+        // jednoznačně násyp/výkop a základna ta opačná. Bereme |objemy| a přiřadíme je
+        // podle apexAbove — nespoléháme na znaménko jednotlivých subtrojúhelníků (FP u
+        // degenerované geometrie by mohlo objem započítat do špatné kategorie).
+        var apexVol = Math.abs(prismVolume(apex, c1, c2, H0));               // apexová část
+        var baseVol = Math.abs(prismVolume(base1, base2, c2, H0)) + Math.abs(prismVolume(base1, c2, c1, H0)); // základnová část (quad)
+        if (apexAbove) return { fill: apexVol, cut: baseVol };
+        return { fill: baseVol, cut: apexVol };
     }
 
     function recompute() {
