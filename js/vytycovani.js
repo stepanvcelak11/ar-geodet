@@ -37,14 +37,18 @@ function stakeoutCandidates() {
 
 // ---------- tlacitko "Vytyceno" v karte bodu (bottom sheet) ----------
 (function () {
+    if (typeof showDetails !== 'function' || showDetails._stakeWrapped) return;  // idempotence (dvojí načtení)
     const _orig = showDetails;
     showDetails = function (pt, distance) {
         _orig(pt, distance);
         let btn = document.getElementById('stake-btn');
         if (!btn) {
+            // kotva může v jiné verzi karty chybět → bez null-checku by null.parentNode shodil
+            // CELOU kartu bodu pro všechny body. Když kotva není, tlačítko prostě nevkládáme.
+            const anchor = document.getElementById('close-card-btn') || document.getElementById('highlight-btn');
+            if (!anchor || !anchor.parentNode) return;
             btn = document.createElement('button');
             btn.id = 'stake-btn'; btn.className = 'btn';
-            const anchor = document.getElementById('close-card-btn') || document.getElementById('highlight-btn');
             anchor.parentNode.insertBefore(btn, anchor);
         }
         const paint = () => {
@@ -62,12 +66,15 @@ function stakeoutCandidates() {
         btn.onclick = () => { toggleStaked(pt); paint(); };
         paint();
     };
+    showDetails._stakeWrapped = true;
 })();
 
 // ---------- nacitani stavu pri startu a pri prepnuti zakazky ----------
 (function () {
+    if (typeof loadProjectSettings !== 'function' || loadProjectSettings._stakeWrapped) return;  // idempotence
     const _orig = loadProjectSettings;
     loadProjectSettings = function () { loadStakeout(); _orig(); };
+    loadProjectSettings._stakeWrapped = true;
 })();
 loadStakeout();
 

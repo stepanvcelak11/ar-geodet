@@ -95,13 +95,19 @@
         m.querySelector('#qr-share-gen').addEventListener('click', generateFromSelection);
     }
 
+    // názvy bodů mohou pocházet z NASKENOVANÉHO cizího QR / importu = nedůvěryhodný vstup →
+    // escapovat před vložením do innerHTML (jinak uložené XSS z názvu typu <img onerror=…>).
+    function escHtml(s) {
+        return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
+    }
+
     window.openShareQR = function () {
         if (typeof persistentCustomPoints === 'undefined' || !persistentCustomPoints.length) { alert('Nemáte žádné vlastní body ke sdílení.'); return; }
         ensureLib('js/lib/qrcode.min.js').catch(function () {});   // predehrat, nez uzivatel klikne na "Vytvorit"
         buildShareModal();
         const list = document.getElementById('qr-share-list');
         list.innerHTML = persistentCustomPoints.map((p, i) =>
-            `<label class="filter-row"><input type="checkbox" class="qr-share-cb" data-i="${i}" checked> #${(p.name || 'Bod')} <span style="color:var(--text-muted); font-size:11px;">(${(+p.lat).toFixed(5)}, ${(+p.lng).toFixed(5)})</span></label>`
+            `<label class="filter-row"><input type="checkbox" class="qr-share-cb" data-i="${i}" checked> #${escHtml(p.name || 'Bod')} <span style="color:var(--text-muted); font-size:11px;">(${(+p.lat).toFixed(5)}, ${(+p.lng).toFixed(5)})</span></label>`
         ).join('');
         document.getElementById('qr-share-out').innerHTML = '';
         document.getElementById('qr-share-modal').style.display = 'flex';
