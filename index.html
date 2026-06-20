@@ -183,24 +183,27 @@
 
     <button id="menu-toggle-btn" class="glass-panel" onclick="toggleMenu()"><svg class="icon"><use href="#i-menu"/></svg> Menu</button>
     <div id="side-menu">
-        <div class="menu-head"><svg class="icon"><use href="#i-menu"/></svg> Více</div>
-        <button id="pruv-menu-btn" class="menu-btn" style="background: rgba(47,158,116,0.15); border-color: var(--accent); color: var(--accent);" onclick="openPruvodce(); toggleMenu();"><svg class="icon"><use href="#i-navigation"/></svg> Průvodce úkolem</button>
-        <button class="menu-btn" onclick="saveForOffline(); toggleMenu();"><svg class="icon"><use href="#i-download"/></svg> Uložit pro offline</button>
-        <button class="menu-btn" onclick="startTutorial(); toggleMenu();"><svg class="icon"><use href="#i-bulb"/></svg> Návod a prohlídka</button>
-        <button class="menu-btn" onclick="openAbout(); toggleMenu();"><svg class="icon"><use href="#i-file-text"/></svg> O aplikaci</button>
-        <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
-        <label class="menu-toggle-row"><input type="checkbox" id="tgl-info" checked onchange="toggleHudElements()"> Info panel a přesnost</label>
-        <label class="menu-toggle-row"><input type="checkbox" id="tgl-compass" checked onchange="toggleHudElements()"> Kompas (Azimut)</label>
-        <label class="menu-toggle-row"><input type="checkbox" id="tgl-gpsavg" checked onchange="toggleHudElements()"> Průměrování GPS na místě</label>
-        <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
-        <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.07em; color: var(--text-muted); margin: 2px 2px 4px;">Zobrazení</div>
-        <!-- Přepínač zobrazení (AR / Split / Mapa) — přesunut z horní lišty sem do „Více" -->
-        <div id="view-seg">
-            <button class="seg-btn" data-view="ar" onclick="setView('ar', this)">AR</button>
-            <button class="seg-btn active" data-view="both" onclick="setView('both', this)">Split</button>
-            <button class="seg-btn" data-view="map" onclick="setView('map', this)">Mapa</button>
+        <!-- Scrollovací obsah; tlačítko Zavřít je PEVNÁ patička dole (jako u Nástrojů) -->
+        <div class="menu-scroll">
+            <div class="menu-head"><svg class="icon"><use href="#i-menu"/></svg> Více</div>
+            <button id="pruv-menu-btn" class="menu-btn" style="background: rgba(47,158,116,0.15); border-color: var(--accent); color: var(--accent);" onclick="openPruvodce(); toggleMenu();"><svg class="icon"><use href="#i-navigation"/></svg> Průvodce úkolem</button>
+            <button class="menu-btn" onclick="saveForOffline(); toggleMenu();"><svg class="icon"><use href="#i-download"/></svg> Uložit pro offline</button>
+            <button class="menu-btn" onclick="startTutorial(); toggleMenu();"><svg class="icon"><use href="#i-bulb"/></svg> Návod a prohlídka</button>
+            <button class="menu-btn" onclick="openAbout(); toggleMenu();"><svg class="icon"><use href="#i-file-text"/></svg> O aplikaci</button>
+            <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
+            <label class="menu-toggle-row"><input type="checkbox" id="tgl-info" checked onchange="toggleHudElements()"> Info panel a přesnost</label>
+            <label class="menu-toggle-row"><input type="checkbox" id="tgl-compass" checked onchange="toggleHudElements()"> Kompas (Azimut)</label>
+            <label class="menu-toggle-row"><input type="checkbox" id="tgl-gpsavg" checked onchange="toggleHudElements()"> Průměrování GPS na místě</label>
+            <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
+            <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.07em; color: var(--text-muted); margin: 2px 2px 4px;">Zobrazení</div>
+            <!-- Přepínač zobrazení (AR / Split / Mapa) — přesunut z horní lišty sem do „Více" -->
+            <div id="view-seg">
+                <button class="seg-btn" data-view="ar" onclick="setView('ar', this)">AR</button>
+                <button class="seg-btn active" data-view="both" onclick="setView('both', this)">Split</button>
+                <button class="seg-btn" data-view="map" onclick="setView('map', this)">Mapa</button>
+            </div>
         </div>
-        <button class="menu-btn" onclick="toggleMenu()" style="margin-top:auto; justify-content:center; background:rgba(255,255,255,0.06);">Zavřít</button>
+        <button class="menu-btn menu-close" onclick="toggleMenu()">Zavřít</button>
     </div>
 
     <div id="info" class="glass-panel">Čekám na spuštění...</div>

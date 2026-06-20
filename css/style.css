@@ -1668,33 +1668,47 @@ body.cam-light #ar-hud-info .hud-name { color: #1e293b; }
 }
 #side-menu .menu-head .icon { width: 18px; height: 18px; color: var(--accent); }
 
-/* „Více" přes CELOU obrazovku (na přání) — žádné okraje s mapou; vjede zprava. */
+/* „Více" přes CELOU obrazovku (na přání) — žádné okraje s mapou; vjede zprava.
+   Obsah scrolluje uvnitř .menu-scroll, tlačítko Zavřít je PEVNÁ patička dole
+   (na iOS `margin-top:auto` ve flex sloupci s overflow nefunguje, proto wrapper). */
 #side-menu {
     top: 0;
     right: -100%;
     bottom: 0;
     left: auto;
     width: 100%;
+    max-width: none;
     height: 100%;
     max-height: none;
+    margin: 0;
+    flex-direction: column;
     border: none;
     border-radius: 0;
     transform: none;
     opacity: 1;
     pointer-events: none;
+    overflow: hidden;
     background: rgba(14, 18, 24, 0.97);
     transition: right 0.32s var(--ease-out);
     padding: max(16px, calc(env(safe-area-inset-top, 0px) + 12px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, calc(env(safe-area-inset-bottom, 0px) + 12px)) max(16px, env(safe-area-inset-left, 0px));
-    overflow-y: auto;
 }
 #side-menu.open { right: 0; transform: none; opacity: 1; pointer-events: auto; }
 #side-menu .menu-head { font-size: 20px; padding-bottom: 10px; }
-/* „Zavřít" připnout úplně dolů a nescrollovat (jako close u Nástrojů). */
-#side-menu > .menu-btn:last-child {
-    position: sticky;
-    bottom: 0;
-    margin-top: auto;
-    background: rgba(20, 26, 34, 0.98) !important;
+#side-menu .menu-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+/* Zavřít = pevná patička úplně dole, nescrolluje (stejně jako close u Nástrojů) */
+#side-menu .menu-close {
+    flex: 0 0 auto;
+    margin-top: 10px;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.06);
 }
 
 /* Mřížka nástrojů (Nástroje) */
