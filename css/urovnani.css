@@ -49,8 +49,16 @@
 .lvl-sup.down .lvl-arrow{ fill: var(--warning, #fbbf24); }
 .lvl-sup.level .lvl-foot{ fill: rgba(52,211,153,0.10); stroke: rgba(52,211,153,0.5); }
 .lvl-sup.level .lvl-arrow { fill: var(--accent, #34d399); }
-.lvl-sup.dom .lvl-foot  { stroke-width: 3.5; }
-.lvl-sup.dom .lvl-arrow { font-size: 24px; }
+.lvl-sup.dom .lvl-foot  { stroke-width: 4; }
+.lvl-sup.dom .lvl-arrow { font-size: 26px; }
+.lvl-sup.faded { opacity: .32; }                 /* nedominantní opěry ztlumit, ať to není chaotické */
+
+/* legenda barev */
+.lvl-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; margin: 0 0 12px; font-size: 12px; opacity: .85; }
+.lvl-legend .lg { display: inline-flex; align-items: center; gap: 6px; }
+.lvl-legend .lg i { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; font-style: normal; font-size: 12px; font-weight: 800; }
+.lvl-legend .lg.up i   { background: var(--accent, #34d399); color: #06281d; }
+.lvl-legend .lg.down i { background: var(--warning, #fbbf24); color: #3a2a00; }
 
 /* úhel */
 .lvl-angle { text-align: center; font-variant-numeric: tabular-nums; font-weight: 800; line-height: 1; margin: 2px 0 8px; }
@@ -66,13 +74,19 @@
 .lvl-status.bad  { background: rgba(239,68,68,0.16);  color: var(--danger, #ef4444); }
 .lvl-status.good { background: rgba(52,211,153,0.16); color: var(--accent, #34d399); }
 
-/* pokyny */
-.lvl-instr { min-height: 44px; margin: 0 0 14px; text-align: center; }
-.lvl-do { font-size: 16px; font-weight: 700; line-height: 1.35; }
-.lvl-do b { color: var(--accent, #34d399); }
-.lvl-hint { font-size: 12px; opacity: .62; margin-top: 6px; line-height: 1.4; font-variant-numeric: tabular-nums; }
+/* pokyny — hlavní akce velkým, barevně dle směru */
+.lvl-instr { min-height: 56px; margin: 2px 0 12px; text-align: center; }
+.lvl-do { font-size: 19px; font-weight: 800; line-height: 1.3; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 12px; border-radius: 12px; }
+.lvl-do .lvl-ico { font-size: 24px; line-height: 1; }
+.lvl-do.up   { background: rgba(52,211,153,0.14); color: var(--accent, #34d399); }
+.lvl-do.down { background: rgba(251,191,36,0.14); color: var(--warning, #fbbf24); }
+.lvl-do b { color: inherit; }
+.lvl-hint { font-size: 12px; opacity: .62; margin-top: 6px; line-height: 1.4; }
 .lvl-hint b { color: var(--text, #e7eaee); }
-.lvl-ok { font-size: 18px; font-weight: 800; color: var(--accent, #34d399); }
+.lvl-ok { font-size: 20px; font-weight: 800; color: var(--accent, #34d399); padding: 10px; }
+
+/* info ke kalibraci (vystouplá kamera) */
+.lvl-cal-info { font-size: 12px; line-height: 1.5; opacity: .78; margin: 0; }
 
 /* kalibrace */
 .lvl-cal { background: rgba(255,255,255,0.04); border-radius: 12px; padding: 12px; margin: 0 0 10px; }

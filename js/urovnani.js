@@ -184,16 +184,18 @@
             + '<p class="lvl-sub" id="lvl-sub"></p>'
             + '<div class="lvl-vial-wrap"><div class="lvl-vial">' + vialSvg() + '</div></div>'
             + '<div class="lvl-angle"><span id="lvl-ang">–</span><small>°</small></div>'
-            + '<div class="lvl-status" id="lvl-status">Polož telefon na hlavu stativu, displejem nahoru.</div>'
             + '<div class="lvl-instr" id="lvl-instr"></div>'
+            + '<div class="lvl-legend" id="lvl-legend"></div>'
+            + '<div class="lvl-status" id="lvl-status">Polož telefon na hlavu stativu, displejem nahoru.</div>'
             + '<div class="lvl-cal">'
-            + '<label class="lvl-switch"><input type="checkbox" id="lvl-cal-on"><span></span>Kalibrace otočením o 180° (přesnější)</label>'
+            + '<label class="lvl-switch"><input type="checkbox" id="lvl-cal-on"><span></span>Kalibrace otočením o 180° — srovná i vystouplou kameru</label>'
             + '<div class="lvl-cal-body lvl-hidden" id="lvl-cal-body">'
+            + '<p class="lvl-cal-info">Telefon kvůli vystouplé zadní kameře neleží na hlavě úplně rovně. Tahle kalibrace ten náklon odečte: změříš, otočíš telefon o 180° na stejné místo, změříš znovu — appka rozdíl vyruší. Dělej to na hlavě stativu (ne jinde).</p>'
             + '<button class="lvl-btn ghost" type="button" id="lvl-cal-start">Spustit kalibraci</button>'
             + '<div class="lvl-cal-state" id="lvl-cal-state"></div>'
             + '</div>'
             + '</div>'
-            + '<button class="lvl-btn ghost" type="button" id="lvl-recenter">Vynulovat na aktuální polohu (tára)</button>';
+            + '<button class="lvl-btn ghost" type="button" id="lvl-recenter">Vynulovat na aktuální polohu (jen na ověřené rovině!)</button>';
         document.body.appendChild(el);
 
         el.querySelector('#lvl-close').addEventListener('click', close);
@@ -220,11 +222,13 @@
         _mode = m;
         if (!_ui) return;
         _ui.querySelectorAll('.lvl-segbtn').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-mode') === m); });
-        var sub = $('lvl-sub');
+        var sub = $('lvl-sub'), leg = $('lvl-legend');
         if (m === 'tripod') {
             sub.innerHTML = 'Postav stativ, postav se k němu tak, aby <b>přední noha mířila od tebe</b> a zbylé dvě byly vlevo a vpravo. Polož telefon na hlavu, <b>delší stranou k sobě</b>. Aplikace ti řekne, kterou nohou a kam pohnout.';
+            if (leg) leg.innerHTML = '<span class="lg up"><i></i>zelená = vysunout nohu (nahoru)</span><span class="lg down"><i></i>oranžová = zasunout nohu (dolů)</span>';
         } else {
-            sub.innerHTML = 'Telefon polož na tribrach (nad šrouby). Drž rozložení: jeden šroub od tebe, dva k tobě. Doporučená <b>dvoušroubová metoda</b>: vycentruj nejdřív dvojicí šroubů, pak třetím kolmý směr. Závěr vždy dolaď krabicovou libelou přístroje.';
+            sub.innerHTML = 'Telefon polož na tribrach (nad šrouby). Drž rozložení: jeden šroub od tebe, dva k tobě. Appka řekne, kterým šroubem a <b>na kterou stranu otočit</b>. Závěr vždy dolaď krabicovou libelou přístroje.';
+            if (leg) leg.innerHTML = '<span class="lg up"><i>↻</i>zelená = otoč doprava</span><span class="lg down"><i>↺</i>oranžová = otoč doleva</span>';
         }
     }
 
@@ -248,7 +252,7 @@
         _bias = { x: (_calR1.x + _ax) / 2, y: (_calR1.y + _ay) / 2 };
         _calStep = 0;
         var mag = Math.hypot(_bias.x, _bias.y) / G * 180 / Math.PI;
-        setCalState('Hotovo — bias senzoru ' + mag.toFixed(2) + '° odstraněn. Náklon teď ukazuje reálnou rovinu.');
+        setCalState('Hotovo — odečten náklon ' + mag.toFixed(2) + '° (kamera + bias senzoru). Náklon teď ukazuje reálnou rovinu hlavy.');
         $('lvl-cal-start').textContent = 'Kalibrovat znovu';
         $('lvl-cal-start').onclick = calStart;
     }
@@ -294,29 +298,32 @@
             if (!g) return;
             var arrow = g.querySelector('.lvl-arrow');
             var isDom = (c === dom) && t.ang > tol.ok;
-            // c>0 = roh nízko → zvednout/prodloužit (▲), c<0 → spustit/zkrátit (▼)
+            // c>0 = roh nízko → zvednout (stativ ▲ / šroub doprava ↻), c<0 → opačně
             var up = c.c > 0;
-            if (t.ang <= tol.ok) { arrow.textContent = '✓'; }
-            else { arrow.textContent = up ? '▲' : '▼'; }
-            g.setAttribute('class', 'lvl-sup' + (isDom ? ' dom ' : ' ') + (t.ang <= tol.ok ? 'level' : (up ? 'up' : 'down')));
+            if (t.ang <= tol.ok) arrow.textContent = '✓';
+            else if (_mode === 'instrument') arrow.textContent = up ? '↻' : '↺';
+            else arrow.textContent = up ? '▲' : '▼';
+            var faded = !isDom && t.ang > tol.ok ? ' faded' : '';   // jen dominantní opěra výrazná
+            g.setAttribute('class', 'lvl-sup' + (isDom ? ' dom' : '') + faded + ' ' + (t.ang <= tol.ok ? 'level' : (up ? 'up' : 'down')));
         });
 
-        // textové pokyny
+        // hlavní pokyn — jedna jasná akce slovy
         var instr = $('lvl-instr');
         if (instr) {
             if (t.ang <= tol.ok) {
-                instr.innerHTML = '<div class="lvl-ok">V rovině ✓</div>';
+                instr.innerHTML = '<div class="lvl-ok">✓ V rovině</div>';
             } else if (_mode === 'tripod') {
-                var verb = dom.c > 0 ? 'vysuň (prodluž)' : 'zasuň (zkrať)';
+                var verb = dom.c > 0 ? 'Vysuň (prodluž)' : 'Zasuň (zkrať)';
                 var cm = Math.abs(dom.mm) / 10;
-                instr.innerHTML = '<div class="lvl-do"><b>' + dom.s.label + ' noha</b> — ' + verb + ' o cca <b>' + cm.toFixed(cm < 5 ? 1 : 0) + ' cm</b></div>'
-                    + '<div class="lvl-hint">' + corr.filter(function (c) { return c !== dom; }).map(function (c) {
-                        return c.s.label + ': ' + (c.c > 0 ? '↑ ' : '↓ ') + (Math.abs(c.mm) / 10).toFixed(1) + ' cm';
-                    }).join(' · ') + '</div>';
+                instr.innerHTML = '<div class="lvl-do ' + (dom.c > 0 ? 'up' : 'down') + '">'
+                    + '<span class="lvl-ico">' + (dom.c > 0 ? '▲' : '▼') + '</span>'
+                    + verb + ' <b>' + dom.s.label + ' nohu</b> o cca <b>' + cm.toFixed(cm < 5 ? 1 : 0) + ' cm</b></div>';
             } else {
-                var dir = dom.c > 0 ? 'zvedni roh (povol/zašroubuj tak, aby šel nahoru)' : 'spusť roh (otoč opačně)';
-                instr.innerHTML = '<div class="lvl-do"><b>' + dom.s.label + ' šroub</b> — ' + dir + '</div>'
-                    + '<div class="lvl-hint">Tip: natoč přístroj tak, aby byla bublina v ose dvou šroubů, vycentruj je <b>oběma palci současně</b>, pak třetím dorovnej kolmo.</div>';
+                var turn = dom.c > 0 ? 'doprava ↻' : 'doleva ↺';
+                instr.innerHTML = '<div class="lvl-do ' + (dom.c > 0 ? 'up' : 'down') + '">'
+                    + '<span class="lvl-ico">' + (dom.c > 0 ? '↻' : '↺') + '</span>'
+                    + 'Otoč <b>' + dom.s.label + ' šroubem ' + turn + '</b></div>'
+                    + '<div class="lvl-hint">Kdyby bublina šla od středu, toč opačně (závity přístrojů se liší).</div>';
             }
         }
 
@@ -326,7 +333,7 @@
             if (!_wasLevel) { try { if (navigator.vibrate) navigator.vibrate([40, 60, 40]); } catch (e) {} }
             _wasLevel = true;
         } else {
-            setStatus('Náklon ' + t.ang.toFixed(2) + '° — uprav podle šipky.', col === 'bad' ? 'bad' : 'warn');
+            setStatus('Náklon ' + t.ang.toFixed(2) + '° — uprav podle pokynu níže.', col === 'bad' ? 'bad' : 'warn');
             _wasLevel = false;
         }
     }
