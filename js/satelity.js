@@ -325,7 +325,7 @@ function findBestSatTime() {
         let staleTxt = '';
         if (ageH == null) staleTxt = ' <span style="color:var(--warning);" title="Dráhy družic nejsou stažené">⚠</span>';
         else if (ageH > TLE_MAX_AGE_H) staleTxt = ` <span style="color:var(--warning);" title="Dráhy družic staré ${Math.round(ageH)} h – ${navigator.onLine ? 'obnoví se' : 'offline, neaktualizuje se'}">⚠ ${Math.round(ageH / 24)} d</span>`;
-        infoEl.innerHTML += `<div class="rdt"><span class="rdt-l">Družice</span><span class="rdt-v" style="color:${col};">${vis} nad ${SAT_EL_MASK}°${staleTxt}</span></div>`;
+        infoEl.innerHTML += `<div class="rdt"><span class="rdt-l">Družice</span><span class="rdt-v" style="color:${col};">${vis}${staleTxt}</span></div>`;
     };
     updateInfoPanel._satWrapped = true;
 })();

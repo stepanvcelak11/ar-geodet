@@ -1987,25 +1987,28 @@ body.light-mode:not(.cam-light) .ar-marker .ar-marker-dist { color: #fff; }
 /* ---- Modály Nastavení/Body/Nástroje: vyjetí zprava při OTEVŘENÍ I ZAVŘENÍ
    (jako „Více"). transition-behavior: allow-discrete + @starting-style;
    na starších prohlížečích degraduje na okamžité zobrazení (bez animace). --- */
-#settings-modal, #manage-modal, #tools-modal {
+#settings-modal, #manage-modal, #tools-modal, #custom-modal-overlay {
     opacity: 0;
-    transition: opacity 0.34s var(--ease-out), display 0.34s allow-discrete;
+    transition: opacity 0.3s var(--ease-out), display 0.3s;
+    transition-behavior: allow-discrete;
 }
-#settings-modal[style*="flex"], #manage-modal[style*="flex"], #tools-modal[style*="flex"] { opacity: 1; }
+#settings-modal[style*="flex"], #manage-modal[style*="flex"], #tools-modal[style*="flex"], #custom-modal-overlay[style*="flex"] { opacity: 1; }
 @starting-style {
-    #settings-modal[style*="flex"], #manage-modal[style*="flex"], #tools-modal[style*="flex"] { opacity: 0; }
+    #settings-modal[style*="flex"], #manage-modal[style*="flex"], #tools-modal[style*="flex"], #custom-modal-overlay[style*="flex"] { opacity: 0; }
 }
-#settings-modal .modal-content, #manage-modal .modal-content, #tools-modal .modal-content {
-    transition: transform 0.36s var(--ease-spring);
+#settings-modal .modal-content, #manage-modal .modal-content, #tools-modal .modal-content, #custom-modal-overlay .modal-content {
+    transition: transform 0.34s var(--ease-spring);
     transform: translateX(100%);
 }
 #settings-modal[style*="flex"] .modal-content,
 #manage-modal[style*="flex"] .modal-content,
-#tools-modal[style*="flex"] .modal-content { transform: translateX(0); }
+#tools-modal[style*="flex"] .modal-content,
+#custom-modal-overlay[style*="flex"] .modal-content { transform: translateX(0); }
 @starting-style {
     #settings-modal[style*="flex"] .modal-content,
     #manage-modal[style*="flex"] .modal-content,
-    #tools-modal[style*="flex"] .modal-content { transform: translateX(100%); }
+    #tools-modal[style*="flex"] .modal-content,
+    #custom-modal-overlay[style*="flex"] .modal-content { transform: translateX(100%); }
 }
 
 /* ---- SVĚTLÝ REŽIM: fullscreen modály mají natvrdo tmavé pozadí (rgba(14,18,24))
