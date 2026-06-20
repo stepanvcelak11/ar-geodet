@@ -78,6 +78,7 @@ const ASSETS_TO_CACHE = [
     './css/brutal-gps.css',
     './js/tutorial-pro.js',
     './js/vylepseni.js',
+    './js/welcome-card.js',
     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
     './js/lib/proj4-2.9.0.min.js',
     './js/lib/leaflet-1.9.4.js',

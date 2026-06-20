@@ -1307,6 +1307,40 @@ details[open] summary::after { content: " ⌄"; }
 .w-proj-icon .icon { width: 20px; height: 20px; }
 
 /* =========================================================================
+   Úvod — Návrh C „Zakázka v centru": vodorovná hlavička + karta s kontextem
+   ========================================================================= */
+.w-topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+.w-mini-logo { width: 44px; height: 44px; margin: 0; flex: 0 0 auto; animation: none; }
+.w-brand { flex: 1; min-width: 0; }
+.w-brand-name { font-family: var(--font-display); font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: var(--text-color); line-height: 1.05; }
+.w-brand-tag { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); margin-top: 4px; }
+.w-info-btn { flex: 0 0 auto; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: var(--r-md); color: var(--text-muted); cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }
+.w-info-btn:active { transform: scale(0.94); }
+.w-info-btn .icon { width: 20px; height: 20px; }
+
+.w-c-label { display: block; margin: 0 0 9px; }
+
+.w-proj-row { display: flex; gap: 8px; align-items: stretch; margin-bottom: 24px; }
+.w-proj-card { position: relative; flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 13px 14px; background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border); border-radius: var(--r-md); }
+.w-proj-card:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45,212,191,0.22); }
+.w-proj-folder { flex: 0 0 auto; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 11px; background: rgba(47,158,116,0.16); color: var(--accent); }
+.w-proj-folder .icon { width: 20px; height: 20px; }
+.w-proj-meta { flex: 1; min-width: 0; }
+.w-proj-name { font-size: 16px; font-weight: 700; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.w-proj-stats { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.w-proj-stats b { color: var(--text-color); font-weight: 700; }
+.w-proj-chev { flex: 0 0 auto; color: var(--text-muted); display: flex; }
+.w-proj-chev .icon { width: 18px; height: 18px; }
+/* Průhledný nativní select přes celou kartu (mimo "+" vedle) — ťuknutí kamkoli otevře výběr zakázky */
+.w-proj-select-ov { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; border: none; background: transparent; color: transparent; opacity: 0; -webkit-appearance: none; appearance: none; cursor: pointer; font-size: 16px; }
+.w-proj-select-ov option { color: var(--text-color); background: var(--bg-color); }
+
+.w-c-actions { display: flex; flex-direction: column; gap: 10px; }
+.w-c-start { font-size: 19px; padding: 17px; box-shadow: 0 10px 20px rgba(52, 211, 153, 0.3); }
+.w-c-pruv { border-color: var(--accent); color: var(--accent); }
+.w-c-foot { text-align: center; font-size: 11px; line-height: 1.5; color: var(--text-muted); margin: 16px 6px 0; }
+
+/* =========================================================================
    Ruční posun HUD prvků (přesnost, azimut, přepínač, GPS) — přetažením
    ========================================================================= */
 #info, #compass-debug, #view-seg, #gps-avg { touch-action: none; }
