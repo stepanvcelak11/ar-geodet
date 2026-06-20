@@ -76,7 +76,8 @@
 /* --- brána ukládání / info dialog ----------------------------------------- */
 .qc-gate-ov {
     position: fixed;
-    inset: 0;
+    top: 0; left: 0; right: 0;
+    height: var(--app-vh, 100dvh);
     z-index: 1000050;
     display: none;
     align-items: center;

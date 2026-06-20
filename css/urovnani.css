@@ -6,7 +6,8 @@
 
 #ag-lvl-overlay {
     position: fixed;
-    inset: 0;
+    top: 0; left: 0; right: 0;
+    height: var(--app-vh, 100dvh);
     z-index: 100002;
     display: none;
     flex-direction: column;

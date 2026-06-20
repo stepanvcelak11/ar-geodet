@@ -890,5 +890,34 @@
             window.addEventListener('load', function () { setTimeout(window.agExpInit, 200); });
         })();
     </script>
+    <script>
+    // ===== Otevírací animace modálů (Nastavení/Body/Nástroje/Nový bod) =====
+    // Spolehlivě i při PRVNÍM otevření: třídu .ag-open přidáme AŽ po vykreslení
+    // výchozího (skrytého, odsunutého) stavu — proto dvojitý requestAnimationFrame.
+    // Funguje se všemi stávajícími přepínači přes element.style.display.
+    (function () {
+        var IDS = ['settings-modal', 'manage-modal', 'tools-modal', 'custom-modal-overlay'];
+        function wire(el) {
+            if (!el) return;
+            var open = false;
+            new MutationObserver(function () {
+                if (el.style.display === 'flex') {
+                    if (open) return;
+                    open = true;
+                    void el.offsetWidth; // zafixuj výchozí stav (opacity:0, panel vpravo)
+                    requestAnimationFrame(function () {
+                        requestAnimationFrame(function () { if (open) el.classList.add('ag-open'); });
+                    });
+                } else {
+                    open = false;
+                    el.classList.remove('ag-open');
+                }
+            }).observe(el, { attributes: true, attributeFilter: ['style'] });
+        }
+        function init() { IDS.forEach(function (id) { wire(document.getElementById(id)); }); }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+        else init();
+    })();
+    </script>
 </body>
 </html>
