@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AR Geodet — návrhy HUD (přehlednější obrazovka)</title>
+<style>
+  :root{
+    --bg:#0f1216; --accent:#2f9e74; --accent-bright:#3eb487; --text:#eceef2; --muted:#9aa1ac;
+    --warning:#fbbf24; --danger:#fb7185; --data:#e6bd76;
+    --glass-bg:rgba(24,28,33,0.84); --glass-border:rgba(255,255,255,0.10);
+    --tb:#8b5cf6; --pbpp:#3b82f6; --custom:#34d399;
+    --r:14px; --shadow:0 10px 30px rgba(0,0,0,0.55);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:#07090c;color:var(--text);font-family:system-ui,'Segoe UI',sans-serif;line-height:1.5}
+  header{padding:18px 16px 6px;max-width:980px;margin:0 auto}
+  header h1{margin:0 0 2px;font-size:20px}
+  header p{margin:0;color:var(--muted);font-size:13px}
+
+  .tabs{position:sticky;top:0;z-index:20;background:#07090c;border-bottom:1px solid #1b2026;
+        display:flex;gap:6px;padding:10px 16px;max-width:980px;margin:0 auto;overflow-x:auto}
+  .tab{flex:0 0 auto;padding:9px 14px;border-radius:999px;border:1px solid #2a323b;background:#11151a;
+       color:var(--muted);font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap}
+  .tab.on{background:var(--accent);color:#06281d;border-color:transparent}
+
+  main{max-width:980px;margin:0 auto;padding:16px}
+  .pane{display:none}
+  .pane.on{display:grid;grid-template-columns:300px 1fr;gap:22px}
+  @media(max-width:760px){.pane.on{grid-template-columns:1fr}}
+
+  /* ----- telefon / maketa ----- */
+  .phone{justify-self:center;width:300px;height:620px;border-radius:36px;padding:10px;
+         background:#1a1d22;box-shadow:var(--shadow),0 0 0 2px #2a2f36;position:relative}
+  .screen{position:relative;width:100%;height:100%;border-radius:28px;overflow:hidden;
+          background:linear-gradient(160deg,#3a4a55 0%,#5b6b63 40%,#7d7a5e 70%,#4a4034 100%)}
+  /* fingovaný AR terén */
+  .screen::before{content:"";position:absolute;inset:0;
+    background:
+      repeating-linear-gradient(115deg,transparent 0 38px,rgba(255,255,255,0.05) 38px 39px),
+      repeating-linear-gradient(65deg,transparent 0 38px,rgba(0,0,0,0.06) 38px 39px);}
+  .horizon{position:absolute;left:0;right:0;top:42%;height:42%;
+    background:linear-gradient(180deg,rgba(120,140,120,0.0),rgba(40,50,40,0.35));}
+  /* fingované AR značky bodů */
+  .ar-pt{position:absolute;width:30px;height:30px;border-radius:50%;border:2px solid #fff;
+    display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;
+    box-shadow:0 4px 10px rgba(0,0,0,.5);transform:translate(-50%,-50%)}
+  .ar-pt small{position:absolute;top:32px;font-size:8px;background:rgba(0,0,0,.45);padding:1px 4px;border-radius:5px;white-space:nowrap}
+
+  /* sdílené HUD primitivy */
+  .glass{background:var(--glass-bg);border:1px solid var(--glass-border);backdrop-filter:blur(8px);
+         border-radius:var(--r);box-shadow:var(--shadow)}
+  .pill{position:absolute;display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:999px;
+        font-size:11px;font-weight:700;background:var(--glass-bg);border:1px solid var(--glass-border);backdrop-filter:blur(8px)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+  .dot.warn{background:var(--warning);box-shadow:0 0 8px var(--warning)}
+  .ico{width:16px;height:16px;display:inline-block;vertical-align:-3px}
+  .fab{position:absolute;width:54px;height:54px;border-radius:50%;background:var(--accent);color:#06281d;
+       display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);font-size:26px;font-weight:300}
+  .badge{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+         background:var(--glass-bg);border:1px solid var(--glass-border);backdrop-filter:blur(8px);font-size:15px}
+  .faded{opacity:.28}
+
+  /* spodní lišta */
+  .dock{position:absolute;left:10px;right:10px;bottom:12px;height:58px;border-radius:18px;
+        display:flex;align-items:center;justify-content:space-around;padding:0 8px;
+        background:var(--glass-bg);border:1px solid var(--glass-border);backdrop-filter:blur(10px)}
+  .dock b{font-size:10px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;font-weight:600}
+  .dock .big{width:50px;height:50px;border-radius:50%;background:var(--accent);color:#06281d;
+             display:flex;align-items:center;justify-content:center;font-size:26px;margin-top:-22px;box-shadow:var(--shadow)}
+
+  /* popis vedle telefonu */
+  .desc h2{font-size:17px;margin:2px 0 4px;color:var(--accent-bright)}
+  .desc .lead{color:var(--muted);font-size:13px;margin:0 0 12px}
+  .desc h3{font-size:13px;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.05em;color:var(--data)}
+  .desc ul{margin:0;padding-left:18px;font-size:13.5px}
+  .desc li{margin:4px 0}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;margin:0 4px 4px 0}
+  .tag.move{background:rgba(59,130,246,.18);color:#93c5fd}
+  .tag.size{background:rgba(139,92,246,.18);color:#c4b5fd}
+  .tag.fade{background:rgba(52,211,153,.18);color:#6ee7b7}
+  .note{font-size:12px;color:var(--muted);border-left:3px solid var(--accent);padding:6px 10px;margin-top:14px;background:rgba(255,255,255,.03);border-radius:0 8px 8px 0}
+  .legend{max-width:980px;margin:8px auto 30px;padding:0 16px;color:var(--muted);font-size:12.5px}
+  .seg{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:flex;border-radius:11px;overflow:hidden;
+       background:var(--glass-bg);border:1px solid var(--glass-border);backdrop-filter:blur(8px);font-size:11px;font-weight:700}
+  .seg span{padding:6px 11px;color:var(--muted)}.seg span.on{background:var(--accent);color:#06281d}
+</style>
+</head>
+<body>
+<header>
+  <h1>AR Geodet — 4 návrhy přehlednější obrazovky</h1>
+  <p>Cíl: míň bordelu v AR. Každý návrh řeší i tvé tři přání — <b>posouvat</b>, <b>měnit velikost</b> a <b>vyblednutí po pár vteřinách</b>. Přepínej nahoře.</p>
+</header>
+
+<div class="tabs">
+  <button class="tab on" data-p="a">A · Minimal</button>
+  <button class="tab" data-p="b">B · Jedna lišta</button>
+  <button class="tab" data-p="c">C · Šuplík</button>
+  <button class="tab" data-p="d">D · Chytrý kontext</button>
+</div>
+
+<main>
+
+<!-- ============ A — MINIMAL ============ -->
+<section class="pane on" data-pane="a">
+  <div class="phone"><div class="screen">
+    <div class="horizon"></div>
+    <div class="ar-pt" style="left:32%;top:46%;background:var(--pbpp)">PB<small>12 m</small></div>
+    <div class="ar-pt" style="left:64%;top:52%;background:var(--tb)">TB<small>31 m</small></div>
+    <!-- jediná stavová pilulka nahoře, splývá vše do jednoho -->
+    <div class="pill" style="top:12px;left:50%;transform:translateX(-50%)"><span class="dot"></span>±1,4 m · 9 sat · 287°</div>
+    <!-- jediné akční tlačítko, ostatní skryté -->
+    <div class="fab" style="right:14px;bottom:16px">＋</div>
+    <div class="badge faded" style="position:absolute;left:14px;bottom:18px">☰</div>
+  </div></div>
+  <div class="desc">
+    <h2>A · Minimal (maximum AR)</h2>
+    <p class="lead">Na obrazovce skoro nic — jen jedna stavová pilulka (přesnost + družice + azimut v jednom) a jedno tlačítko ＋. Všechno ostatní je schované, vyjede na ťuknutí.</p>
+    <h3>Jak řeší tvoje přání</h3>
+    <span class="tag fade">fade 3 s</span><span class="tag move">tah = posun</span><span class="tag size">pinch = velikost</span>
+    <ul>
+      <li>Pilulka i tlačítka <b>vyblednou na 28 % po 3 s</b> nečinnosti, ťuknutím se zase rozsvítí.</li>
+      <li>Podržení pilulky → <b>tažení</b> kamkoliv; <b>pinch</b> (dva prsty) mění velikost.</li>
+      <li>Indikátory (kompas, kalibrace, slabá GPS) se ukážou jen <b>když je problém</b>, jinak nikde.</li>
+    </ul>
+    <div class="note">Nejčistší obraz, nejvíc vidět terén. Nevýhoda: víc ťukání, než se dostaneš k nástroji.</div>
+  </div>
+</section>
+
+<!-- ============ B — JEDNA LIŠTA ============ -->
+<section class="pane" data-pane="b">
+  <div class="phone"><div class="screen">
+    <div class="horizon"></div>
+    <div class="ar-pt" style="left:38%;top:44%;background:var(--pbpp)">PB<small>12 m</small></div>
+    <div class="ar-pt" style="left:70%;top:55%;background:var(--custom)">N1<small>8 m</small></div>
+    <!-- slim status strip nahoře -->
+    <div class="pill" style="top:12px;left:12px"><span class="dot"></span>±1,4 m</div>
+    <div class="pill" style="top:12px;right:12px">287° · 9 🛰</div>
+    <!-- skupina malých ikon (rozbalí se) vpravo -->
+    <div style="position:absolute;right:12px;top:50px;display:flex;flex-direction:column;gap:7px">
+      <div class="badge">🧭</div><div class="badge faded">⚠</div>
+    </div>
+    <!-- JEDNA spodní lišta: vše pohromadě -->
+    <div class="dock">
+      <b><span class="ico">🗺️</span>Mapa</b>
+      <b><span class="ico">📷</span>AR</b>
+      <div class="big">＋</div>
+      <b><span class="ico">🧰</span>Nástroje</b>
+      <b><span class="ico">☰</span>Více</b>
+    </div>
+  </div></div>
+  <div class="desc">
+    <h2>B · Jedna spodní lišta</h2>
+    <p class="lead">Všechno ovládání spojené do <b>jedné spodní lišty</b> (přepínač zobrazení + Nástroje + ＋Nový bod + Více). Nahoře jen tenké stavové pilulky. Boční odznaky jen 2 malé ikony.</p>
+    <h3>Jak řeší tvoje přání</h3>
+    <span class="tag fade">fade 4 s</span><span class="tag move">tah pilulek</span><span class="tag size">posuvník v Nastavení</span>
+    <ul>
+      <li>Horní pilulky a boční odznaky <b>vyblednou po 4 s</b>; spodní lišta zůstává (hlavní ovládání).</li>
+      <li>Pilulky/odznaky jdou <b>podržet a přetáhnout</b>, velikost přes jeden posuvník „Velikost HUD".</li>
+      <li>Vše roztroušené (kompas, kalibrace, GPS warn) se sloučí do <b>jednoho sloupce ikon</b> vpravo.</li>
+    </ul>
+    <div class="note">Nejznámější a nejjistější ovládání palcem. Drží přehled bez učení.</div>
+  </div>
+</section>
+
+<!-- ============ C — ŠUPLÍK ============ -->
+<section class="pane" data-pane="c">
+  <div class="phone"><div class="screen">
+    <div class="horizon"></div>
+    <div class="ar-pt" style="left:30%;top:48%;background:var(--pbpp)">PB<small>12 m</small></div>
+    <div class="ar-pt" style="left:58%;top:42%;background:var(--tb)">TB<small>31 m</small></div>
+    <div class="ar-pt" style="left:78%;top:58%;background:var(--custom)">N1<small>8 m</small></div>
+    <!-- jen status vlevo nahoře -->
+    <div class="pill" style="top:12px;left:12px"><span class="dot"></span>±1,4 m · 287°</div>
+    <!-- úchyt šuplíku vpravo -->
+    <div style="position:absolute;right:0;top:46%;transform:translateY(-50%);width:30px;height:88px;
+        background:var(--glass-bg);border:1px solid var(--glass-border);border-right:none;border-radius:12px 0 0 12px;
+        display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px)">‹</div>
+    <!-- náznak vysunutého panelu -->
+    <div class="glass" style="position:absolute;right:0;top:120px;width:118px;padding:10px;font-size:11px">
+      <div style="font-weight:800;color:var(--accent);margin-bottom:6px">Nástroje</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <div class="badge">🧭</div><div class="badge">🎯</div><div class="badge">📐</div>
+        <div class="badge">📊</div><div class="badge">🧮</div><div class="badge">⚙</div>
+      </div>
+    </div>
+    <div class="fab" style="right:14px;bottom:16px">＋</div>
+  </div></div>
+  <div class="desc">
+    <h2>C · Vysouvací šuplík</h2>
+    <p class="lead">Obrazovka skoro prázdná — vpravo jen <b>úchyt</b>. Ťuknutím vyjede <b>šuplík</b> se VŠEMI nástroji a indikátory roztříděnými do skupin. Po zavření zase čisto.</p>
+    <h3>Jak řeší tvoje přání</h3>
+    <span class="tag fade">fade 3 s</span><span class="tag move">úchyt nahoru/dolů</span><span class="tag size">velikost v šuplíku</span>
+    <ul>
+      <li>Úchyt i status <b>vyblednou po 3 s</b>; šuplík je zavřený, takže <b>žádný bordel</b> v AR.</li>
+      <li>Úchyt jde <b>posunout</b> nahoru/dolů; v šuplíku je posuvník velikosti panelů.</li>
+      <li>Všechny moduly žijí <b>uvnitř šuplíku</b> — na hlavní obrazovce nepřekáží nic.</li>
+    </ul>
+    <div class="note">Nejlepší pro „čistý" pohled. Vhodné, když nástroje používáš občas, ne pořád.</div>
+  </div>
+</section>
+
+<!-- ============ D — CHYTRÝ KONTEXT ============ -->
+<section class="pane" data-pane="d">
+  <div class="phone"><div class="screen">
+    <div class="horizon"></div>
+    <div class="ar-pt" style="left:50%;top:40%;background:var(--custom);width:38px;height:38px">◎<small>cíl 4,2 m</small></div>
+    <!-- jen 1 kontextová karta podle toho, co děláš -->
+    <div class="glass" style="position:absolute;left:12px;right:12px;top:12px;padding:10px 12px">
+      <div style="font-size:11px;color:var(--muted)">Vytyčuji bod N1</div>
+      <div style="font-size:20px;font-weight:800;color:var(--accent)">4,2 m <span style="font-size:12px;color:var(--muted)">· vlevo 1,1 m</span></div>
+    </div>
+    <!-- malé tečky-indikátory, rozbalí na kartu -->
+    <div style="position:absolute;right:12px;top:74px;display:flex;gap:7px">
+      <span class="dot"></span><span class="dot"></span><span class="dot warn"></span>
+    </div>
+    <div class="fab" style="right:14px;bottom:16px">✓</div>
+    <div class="badge faded" style="position:absolute;left:14px;bottom:18px">☰</div>
+  </div></div>
+  <div class="desc">
+    <h2>D · Chytrý kontext</h2>
+    <p class="lead">HUD ukazuje <b>jen to, co se právě hodí</b>. Vytyčuješ bod? Vidíš vzdálenost a směr. Měříš? Vidíš konvergenci přesnosti. Ostatní stavy jsou jen <b>malé tečky</b>, co se na ťuknutí rozbalí do karty.</p>
+    <h3>Jak řeší tvoje přání</h3>
+    <span class="tag fade">fade 3 s</span><span class="tag move">tah karty</span><span class="tag size">pinch</span>
+    <ul>
+      <li>Kontextová karta <b>vybledne po 3 s</b>, tečky zůstanou (malé, neruší).</li>
+      <li>Karta jde <b>přetáhnout</b> a <b>pinchem</b> zvětšit; poloha se pamatuje.</li>
+      <li>Žádných 6 odznaků naráz — jen <b>3 tečky</b> (kompas/GPS/kalibrace), barva = stav.</li>
+    </ul>
+    <div class="note">Nejchytřejší, nejmíň prvků. Vyžaduje trochu logiky „co ukázat kdy" — víc práce na implementaci.</div>
+  </div>
+</section>
+
+</main>
+
+<p class="legend">
+  Pozn.: tohle jsou jen <b>statické náhledy</b> rozložení (klikací přepínání nahoře), ne živá appka.
+  Barvy/sklo/typografie odpovídají reálným tokenům appky. Až vybereš návrh, zapojím ho do <code>index.html</code> +
+  napojím nové prvky (FAB „Srovnat sever", gps-warn, kompas semafor…) na <b>vyblednutí, tažení i změnu velikosti</b>.
+</p>
+
+<script>
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(){
+      document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on')});
+      document.querySelectorAll('.pane').forEach(function(x){x.classList.remove('on')});
+      t.classList.add('on');
+      document.querySelector('.pane[data-pane="'+t.dataset.p+'"]').classList.add('on');
+    });
+  });
+</script>
+</body>
+</html>
