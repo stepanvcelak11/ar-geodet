@@ -148,10 +148,10 @@
                     var ageMin = s.t ? (Date.now() - s.t) / 60000 : null;
                     var farM = (isFinite(s.lat) && isFinite(s.lng)) ? planarDist(s.lat, s.lng, p.lat, p.lng) : null;
                     if ((ageMin != null && ageMin > MAX_AGE_MS / 60000) || (farM != null && farM > MAX_DIST_M)) {
-                        toastSafe('⚠ Ref-kalibrace zastaralá/daleko' +
-                            (ageMin != null ? (' (' + Math.round(ageMin) + ' min') : ' (') +
-                            (farM != null ? (', ' + Math.round(farM) + ' m od ref. bodu') : '') +
-                            ') — přesnost posunu klesá, změř referenční bod znovu.');
+                        var det = [];
+                        if (ageMin != null) det.push(Math.round(ageMin) + ' min');
+                        if (farM != null) det.push(Math.round(farM) + ' m od ref. bodu');
+                        toastSafe('⚠ Ref-kalibrace zastaralá/daleko (' + det.join(', ') + ') — přesnost posunu klesá, změř referenční bod znovu.');
                     }
                 } catch (e) {}
 
