@@ -14,6 +14,10 @@
                 var d = document.documentElement;
                 d.style.height = h + 'px';
                 if (document.body) document.body.style.height = h + 'px';
+                // Stejnou (spolehlivou) výšku dáme i celoobrazovkovým překryvům modálů.
+                // Na iOS standalone počítá prohlížeč pro position:fixed občas jinou výšku
+                // než skutečný displej → modály nesahaly k hraně. Tahle proměnná to srovná.
+                d.style.setProperty('--app-vh', h + 'px');
             } catch (e) {}
         }
         setH();

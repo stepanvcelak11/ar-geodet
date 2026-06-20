@@ -708,10 +708,15 @@ body {
    Modály a spodní karta (bottom sheet)
    ========================================================================= */
 .modal-overlay {
-    /* fixed (ne absolute) — kryje VŽDY celý viewport bez ohledu na JS-dopočítanou
-       výšku <body>; jinak po změně viewportu/fullscreenu zůstávaly mezery nahoře/dole. */
+    /* Celá obrazovka přesně jako <body> (JS dopočítává --app-vh z window.innerHeight).
+       Na iOS standalone počítá prohlížeč pro position:fixed + inset:0 občas menší výšku
+       než skutečný displej → nahoře/dole zůstával proužek. Pevná výška z --app-vh to řeší. */
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: var(--app-vh, 100dvh);
     z-index: 19999;
     display: none;
     justify-content: center;
