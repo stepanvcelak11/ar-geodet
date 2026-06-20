@@ -62,6 +62,7 @@ const ASSETS_TO_CACHE = [
     './js/track-log.js',
     './js/ar-resection.js',
     './js/ar-intersection.js',
+    './js/rangefinder.js',
     './js/project-import.js',
     './js/cadastre-vector.js',
     './css/ar-stabilize.css',
