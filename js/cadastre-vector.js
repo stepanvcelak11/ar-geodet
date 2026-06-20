@@ -204,13 +204,19 @@
         }
         return _arSvg;
     }
+    var _lastArHeading = null, _lastArPitch = null, _lastArLat = null, _lastArLng = null;
     function arLoop() {
         _arRAF = requestAnimationFrame(arLoop);
         var svg = _arSvg; if (!svg) return;
-        if (!_arOn || !_parcels.length || !haveUser() || (typeof viewMode !== 'undefined' && viewMode === 'map') || !window._arProj) { if (svg.childNodes.length) svg.innerHTML = ''; return; }
+        if (!_arOn || !_parcels.length || !haveUser() || (typeof viewMode !== 'undefined' && viewMode === 'map') || !window._arProj) { if (svg.childNodes.length) svg.innerHTML = ''; _lastArHeading = null; return; }
         var pj = window._arProj;
         var heading = (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null;
-        if (heading == null) { svg.innerHTML = ''; return; }
+        if (heading == null) { if (svg.childNodes.length) svg.innerHTML = ''; _lastArHeading = null; return; }
+        // VYKON: hranice prekresluj jen kdyz se smer/sklon/poloha realne zmenily; jinak desitky parcel x Haversine
+        // kazdy snimek (60/s) zbytecne zahlcuji a hreji mobil. Pri klidu drzi posledni vykresleni.
+        var _pitch = pj.pitch || 0;
+        if (_lastArHeading != null && Math.abs(heading - _lastArHeading) < 0.3 && Math.abs(_pitch - (_lastArPitch || 0)) < 0.3 && _lastArLat === userLat && _lastArLng === userLng) return;
+        _lastArHeading = heading; _lastArPitch = _pitch; _lastArLat = userLat; _lastArLng = userLng;
         var eyeH = 1.6, vOff = 0; try { eyeH = visSettings.eyeHeight || 1.6; vOff = visSettings.arVerticalOffset || 0; } catch (e) {}
         var rad = (typeof arRadius !== 'undefined' && arRadius) ? arRadius : 150;
         var html = '';
