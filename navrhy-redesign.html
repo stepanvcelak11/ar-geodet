@@ -187,13 +187,15 @@
   </defs></svg>
 
   <div class="wrap">
-    <h1>AR Geodet — překopání vzhledu (1. část: 3 návrhy)</h1>
-    <p class="sub">Pět směrů, jak appku <b>vizuálně přeskládat</b>, aby byla modernější a příjemnější — barvy, písmo i všechny funkce zůstávají, mění se jen <b>rozmístění ovládání</b>. Tady jsou <b>první 3 návrhy</b>, každý se třemi obrazovkami: <b>úvodní → hlavní (pracovní) → nastavení</b>. Návrhy 4 a 5 doplním vzápětí. Přepínej je nahoře.</p>
+    <h1>AR Geodet — překopání vzhledu (5 návrhů)</h1>
+    <p class="sub">Pět směrů, jak appku <b>vizuálně přeskládat</b>, aby byla modernější a příjemnější — barvy, písmo i všechny funkce zůstávají, mění se jen <b>rozmístění ovládání</b>. Každý návrh má tři obrazovky: <b>úvodní → hlavní (pracovní) → nastavení</b>, a dole vysvětlení „co se mění". Přepínej je nahoře.</p>
 
     <div class="switch" id="switch">
       <b class="on" data-v="1">Návrh 1<small>Orbita — akční kruh</small></b>
       <b data-v="2">Návrh 2<small>Velín — spodní list</small></b>
       <b data-v="3">Návrh 3<small>Pilot — boční lišta</small></b>
+      <b data-v="4">Návrh 4<small>Chameleon — kontextová lišta</small></b>
+      <b data-v="5">Návrh 5<small>Paluba — rozcestník</small></b>
     </div>
 
     <!-- ===================================================================
@@ -576,7 +578,293 @@
       </div>
     </section>
 
-    <p class="legend">Statické náhledy ve <b>stejném vizuálním stylu</b> jako appka (barvy, písmo i ikony jsou původní) — slouží k rozhodnutí, který směr <b>rozmístění</b> se ti líbí. Návrhy <b>4 a 5</b> doplním do téhle galerie hned. Vybraný směr pak zapojím do <b>index.html</b>.</p>
+    <!-- ===================================================================
+         NÁVRH 4 — CHAMELEON (kontextová plovoucí lišta)
+    ==================================================================== -->
+    <section class="variant" data-v="4">
+      <div class="vhead">
+        <div class="vt">Návrh 4 — <em>Chameleon</em> (kontextová lišta)</div>
+        <div class="vd">Místo stálé lišty plovoucí <b>pilulka dole</b>, která se <b>mění podle činnosti</b>: jiná tlačítka při běžném vyhledávání, jiná při měření, ploše, vytyčování. Vždy ukazuje jen to, co teď potřebuješ — méně přemýšlení, větší terče. Nahoře přepínač AR / Split / Mapa. Nastavení = jedna scrollovací stránka s hledáním (bez záložek).</div>
+      </div>
+      <div class="screens">
+
+        <!-- ÚVOD -->
+        <div class="stage">
+          <div class="scrlabel">Úvodní <span>· start</span></div>
+          <div class="phone"><div class="screen">
+            <div class="notch"></div>
+            <div class="fill" style="background:radial-gradient(65% 45% at 50% 8%,var(--glow1),transparent 60%),var(--bg);"></div>
+            <div class="sb"><span>10:23</span><span class="r">●●● ▮ 81</span></div>
+            <div class="scr-pad" style="justify-content:center;padding-top:48px;">
+              <svg width="54" height="54" style="display:block;margin:0 auto 12px;filter:drop-shadow(0 10px 18px rgba(47,158,116,.4));"><use href="#i-logo"/></svg>
+              <div style="font-family:'Sora';font-size:25px;font-weight:800;text-align:center;letter-spacing:-.5px;">AR&nbsp;Geodet</div>
+              <div style="text-align:center;font-family:'JetBrains Mono';font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-top:5px;">Geodetický AR nástroj</div>
+
+              <div style="margin-top:24px;background:rgba(0,0,0,.28);border:1px solid var(--border);border-radius:15px;padding:13px;display:flex;align-items:center;gap:10px;">
+                <span style="width:36px;height:36px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(47,158,116,.16);color:var(--accent2);"><svg class="icon" style="width:17px;"><use href="#i-folder"/></svg></span>
+                <div style="flex:1;"><div style="font-size:14.5px;font-weight:700;">Dvůr u lesa</div><div style="font-size:10px;color:var(--muted);">128 bodů · S-JTSK</div></div>
+                <svg class="icon" style="width:16px;color:var(--muted);"><use href="#i-chevron-down"/></svg>
+              </div>
+
+              <button class="btn primary" style="margin-top:16px;font-size:16px;padding:16px;"><svg class="icon"><use href="#i-navigation"/></svg> Spustit vyhledávání</button>
+
+              <div class="flabel" style="margin:18px 0 8px;text-align:center;">Lišta se přizpůsobí činnosti</div>
+              <div style="display:flex;gap:7px;justify-content:center;">
+                <span class="cm-chip on"><svg class="icon"><use href="#i-eye"/></svg> Hledání</span>
+                <span class="cm-chip"><svg class="icon"><use href="#i-ruler"/></svg> Měření</span>
+                <span class="cm-chip"><svg class="icon"><use href="#i-flag"/></svg> Vytyčení</span>
+              </div>
+            </div>
+            <style>
+              .cm-chip{display:inline-flex;align-items:center;gap:6px;padding:8px 11px;border-radius:99px;background:rgba(255,255,255,.05);border:1px solid var(--hair);font-size:11px;font-weight:600;color:var(--muted);}
+              .cm-chip .icon{width:14px;height:14px;}
+              .cm-chip.on{background:var(--accent-soft,rgba(47,158,116,.16));border-color:var(--accent-line,rgba(47,158,116,.42));color:var(--accent2);}
+            </style>
+          </div></div>
+        </div>
+
+        <!-- HLAVNÍ -->
+        <div class="stage">
+          <div class="scrlabel">Hlavní <span>· režim Měření</span></div>
+          <div class="phone"><div class="screen">
+            <div class="notch"></div>
+            <div class="fill bg-ar"></div>
+            <div class="sb"><span>10:23</span><span class="r">●●● ▮ 81</span></div>
+
+            <!-- horní přepínač zobrazení + přesnost -->
+            <div style="position:absolute;top:42px;left:0;right:0;display:flex;justify-content:center;z-index:10;">
+              <span class="miniseg"><b>AR</b><b class="on">Split</b><b>Mapa</b></span>
+            </div>
+            <div style="position:absolute;top:80px;left:10px;z-index:9;"><span class="gchip ok"><svg class="icon"><use href="#i-locate"/></svg><span class="v">±7 m</span></span></div>
+
+            <!-- zaměřovací kříž -->
+            <svg width="58" height="58" viewBox="0 0 24 24" style="position:absolute;top:210px;left:50%;transform:translate(-50%,-50%);stroke:var(--accent2);fill:none;stroke-width:1.4;opacity:.9;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));"><circle cx="12" cy="12" r="9"/><line x1="12" y1="1" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="23"/><line x1="1" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="23" y2="12"/><circle cx="12" cy="12" r="1.4" fill="var(--accent2)"/></svg>
+            <div class="armk cu" style="top:150px;left:54px;">A<small>bod A ✓</small></div>
+            <div class="armk" style="top:250px;right:46px;border-color:var(--data);">B<small>cíl</small></div>
+
+            <!-- KONTEXTOVÁ PILULKA -->
+            <div style="position:absolute;bottom:22px;left:12px;right:12px;z-index:20;">
+              <div style="text-align:center;margin-bottom:9px;"><span style="display:inline-flex;align-items:center;gap:6px;background:rgba(15,18,22,.82);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:99px;padding:5px 12px;font-size:10.5px;font-weight:700;color:var(--data);"><svg class="icon" style="width:13px;height:13px;color:var(--data);"><use href="#i-ruler"/></svg> Měření délky — zaměř bod B</span></div>
+              <div class="cpill">
+                <span class="pbtn"><svg class="icon"><use href="#i-x"/></svg></span>
+                <span class="pseg"><b style="color:var(--accent2);">A</b><small>✓</small></span>
+                <span class="pfab"><svg class="icon"><use href="#i-plus"/></svg></span>
+                <span class="pseg"><b>B</b><small>…</small></span>
+                <span class="pres">12.4&nbsp;m</span>
+              </div>
+            </div>
+            <style>
+              .cpill{display:flex;align-items:center;gap:7px;padding:8px;border-radius:99px;background:var(--glass);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.16);box-shadow:0 14px 34px rgba(0,0,0,.5);}
+              .cpill .pbtn{width:40px;height:40px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.07);color:var(--text);}
+              .cpill .pbtn .icon{width:17px;height:17px;}
+              .cpill .pseg{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;line-height:1.05;}
+              .cpill .pseg b{font-size:15px;font-weight:800;} .cpill .pseg small{font-family:'JetBrains Mono';font-size:9px;color:var(--muted);}
+              .cpill .pfab{width:52px;height:52px;flex:none;border-radius:50%;background:linear-gradient(180deg,var(--accent2),var(--accent));color:var(--onAccent);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(47,158,116,.5);}
+              .cpill .pfab .icon{width:23px;height:23px;}
+              .cpill .pres{flex:none;font-family:'JetBrains Mono';font-size:12px;font-weight:700;color:var(--data);padding:0 8px;}
+            </style>
+          </div></div>
+        </div>
+
+        <!-- NASTAVENÍ -->
+        <div class="stage">
+          <div class="scrlabel">Nastavení <span>· hledání + scroll</span></div>
+          <div class="phone"><div class="screen">
+            <div class="notch"></div>
+            <div class="fill" style="background:var(--bg);"></div>
+            <div class="sb"><span>10:23</span><span class="r">●●● ▮ 81</span></div>
+            <div class="scr-pad" style="gap:10px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-family:'Sora';font-size:18px;font-weight:800;">Nastavení</span>
+                <span style="margin-left:auto;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:9px;background:rgba(255,255,255,.06);color:var(--muted);"><svg class="icon" style="width:16px;"><use href="#i-x"/></svg></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding:11px 13px;border-radius:12px;background:rgba(0,0,0,.3);border:1px solid var(--border);color:var(--muted);font-size:12.5px;"><svg class="icon" style="width:16px;"><use href="#i-search"/></svg> Hledat v nastavení…</div>
+              <div style="overflow:hidden;display:flex;flex-direction:column;gap:8px;">
+                <div class="sgrouph" style="margin-top:4px;">Vzhled</div>
+                <div class="strow"><span class="ic"><svg class="icon"><use href="#i-palette"/></svg></span><div class="tx"><div class="tt">Barevný motiv</div><div class="ds">Smaragd · tmavý</div></div><svg class="icon" style="width:15px;color:var(--muted);"><use href="#i-chevron-right"/></svg></div>
+                <div class="strow"><span class="ic"><svg class="icon"><use href="#i-eye"/></svg></span><div class="tx"><div class="tt">Zamezit zhasnutí displeje</div></div><span class="toggle"></span></div>
+                <div class="sgrouph">AR &amp; přesnost</div>
+                <div class="strow"><span class="ic"><svg class="icon"><use href="#i-target"/></svg></span><div class="tx"><div class="tt">Viditelnost bodů v AR</div><div class="ds">do 500 m</div></div><svg class="icon" style="width:15px;color:var(--muted);"><use href="#i-chevron-right"/></svg></div>
+                <div class="strow"><span class="ic"><svg class="icon"><use href="#i-compass"/></svg></span><div class="tx"><div class="tt">Kompas a kalibrace</div></div><svg class="icon" style="width:15px;color:var(--muted);"><use href="#i-chevron-right"/></svg></div>
+                <div class="sgrouph">Data</div>
+                <div class="strow"><span class="ic"><svg class="icon"><use href="#i-database"/></svg></span><div class="tx"><div class="tt">Zakázky a export</div></div><svg class="icon" style="width:15px;color:var(--muted);"><use href="#i-chevron-right"/></svg></div>
+              </div>
+            </div>
+          </div></div>
+        </div>
+
+      </div>
+
+      <div class="note">
+        <div class="h"><svg class="icon"><use href="#i-ruler"/></svg> Co se mění a proč je to lepší</div>
+        <ul>
+          <li>Spodní lišta je <b>plovoucí pilulka</b>, která se mění podle činnosti — při měření ukazuje body A/B a výsledek, při ploše vrcholy, při vytyčování odchylku.</li>
+          <li>Vždy je vidět <b>jen to podstatné</b> pro aktuální úkon → menší přetížení, velká hlavní akce uprostřed.</li>
+          <li>Přepínač <b>AR / Split / Mapa</b> je nahoře po ruce, ne schovaný v menu.</li>
+          <li>Nastavení = <b>jedna scrollovací stránka s hledáním</b>, žádné záložky — najdeš položku rychleji.</li>
+        </ul>
+        <div class="keep"><b>Funkce zůstávají všechny</b> — Nový bod, Nástroje, Body, Více, Nastavení i všechny režimy (měření, plocha, vytyčování, katastr) jen „obarvují" jednu pilulku podle kontextu.</div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         NÁVRH 5 — PALUBA (dashboard / rozcestník)
+    ==================================================================== -->
+    <section class="variant" data-v="5">
+      <div class="vhead">
+        <div class="vt">Návrh 5 — <em>Paluba</em> (rozcestník)</div>
+        <div class="vd">Úvod není jen „start", ale plnohodnotný <b>rozcestník (dashboard)</b>: zakázka, rychlé dlaždice a poslední body na jedné ploše. Hlavní obrazovka má nahoře přepínač zobrazení, <b>vodorovný pás rychlých nástrojů</b> a útlou spodní lištu se třemi tlačítky. Nastavení vede přes <b>hledání + rychlé skoky</b>.</div>
+      </div>
+      <div class="screens">
+
+        <!-- ÚVOD -->
+        <div class="stage">
+          <div class="scrlabel">Úvodní <span>· dashboard</span></div>
+          <div class="phone"><div class="screen">
+            <div class="notch"></div>
+            <div class="fill" style="background:radial-gradient(60% 35% at 85% 5%,var(--glow1),transparent 60%),var(--bg);"></div>
+            <div class="sb"><span>10:23</span><span class="r">●●● ▮ 81</span></div>
+            <div class="scr-pad" style="gap:0;padding:42px 12px 12px;overflow:hidden;">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:13px;">
+                <svg width="34" height="34"><use href="#i-logo"/></svg>
+                <div style="line-height:1;"><div style="font-family:'Sora';font-size:16px;font-weight:800;">AR Geodet</div></div>
+                <span style="margin-left:auto;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:9px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--muted);"><svg class="icon" style="width:15px;"><use href="#i-info"/></svg></span>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;background:linear-gradient(180deg,rgba(62,180,135,.16),rgba(47,158,116,.07));border:1px solid var(--accent-line,rgba(47,158,116,.42));">
+                <span style="width:36px;height:36px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,0,0,.25);color:var(--accent2);"><svg class="icon" style="width:17px;"><use href="#i-folder"/></svg></span>
+                <div style="flex:1;"><div style="font-size:14.5px;font-weight:700;">Dvůr u lesa</div><div style="font-size:10px;color:var(--muted);">128 bodů · upraveno dnes</div></div>
+                <svg class="icon" style="width:15px;color:var(--muted);"><use href="#i-chevron-down"/></svg>
+              </div>
+
+              <div class="flabel" style="margin:15px 0 8px;">Rychlý start</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+                <div class="dtile prim"><svg class="icon"><use href="#i-navigation"/></svg><b>Spustit vyhledávání</b></div>
+                <div class="dtile"><svg class="icon"><use href="#i-plus"/></svg><b>Nový bod</b></div>
+                <div class="dtile"><svg class="icon"><use href="#i-ruler"/></svg><b>Měření</b></div>
+                <div class="dtile"><svg class="icon"><use href="#i-route"/></svg><b>Průvodce úkolem</b></div>
+              </div>
+
+              <div class="flabel" style="margin:15px 0 8px;">Poslední body</div>
+              <div style="display:flex;flex-direction:column;gap:7px;">
+                <div class="lrow"><span class="ld cu"></span><div><div class="lt">A-12</div><div class="ls">Vlastní · 18 m</div></div><span class="lgo">Navigovat</span></div>
+                <div class="lrow"><span class="ld zhb"></span><div><div class="lt">405-1</div><div class="ls">ZhB · 72 m</div></div><span class="lgo">Navigovat</span></div>
+              </div>
+            </div>
+            <style>
+              .dtile{display:flex;flex-direction:column;gap:6px;padding:13px 12px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--border);min-height:74px;justify-content:center;}
+              .dtile .icon{width:21px;height:21px;color:var(--accent2);} .dtile b{font-size:13px;font-weight:700;line-height:1.2;}
+              .dtile.prim{background:linear-gradient(180deg,var(--accent2),var(--accent));border-color:transparent;box-shadow:0 8px 18px rgba(47,158,116,.32);}
+              .dtile.prim .icon,.dtile.prim b{color:var(--onAccent);}
+              .lrow{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--hair);}
+              .lrow .ld{width:9px;height:9px;border-radius:50%;flex:none;background:var(--accent2);} .lrow .ld.cu{background:var(--custom);} .lrow .ld.zhb{background:var(--zhb);}
+              .lrow .lt{font-size:13px;font-weight:700;} .lrow .ls{font-size:10px;color:var(--muted);}
+              .lrow .lgo{margin-left:auto;font-size:10.5px;font-weight:700;color:var(--accent2);}
+            </style>
+          </div></div>
+        </div>
+
+        <!-- HLAVNÍ -->
+        <div class="stage">
+          <div class="scrlabel">Hlavní <span>· pás nástrojů</span></div>
+          <div class="phone"><div class="screen">
+            <div class="notch"></div>
+            <div class="fill bg-ar" style="bottom:46%;"></div>
+            <div class="fill bg-map" style="top:54%;"></div>
+            <span class="parcel" style="bottom:78px;left:22px;transform:rotate(-16deg);">248</span>
+            <span class="parcel" style="bottom:130px;right:50px;transform:rotate(7deg);font-size:10px;">117/2</span>
+            <div style="position:absolute;top:calc(54% - 7px);left:0;right:0;height:14px;display:flex;align-items:center;justify-content:center;"><span style="width:46px;height:5px;border-radius:99px;background:var(--accent);opacity:.7;"></span></div>
+            <div class="sb"><span>10:23</span><span class="r">●●● ▮ 81</span></div>
+
+            <!-- horní segment + HUD -->
+            <div style="position:absolute;top:42px;left:0;right:0;display:flex;justify-content:center;z-index:10;">
+              <span class="miniseg"><b>AR</b><b class="on">Split</b><b>Mapa</b></span>
+            </div>
+            <div style="position:absolute;top:80px;left:10px;display:flex;flex-direction:column;gap:5px;z-index:9;">
+              <span class="gchip ok"><svg class="icon"><use href="#i-locate"/></svg><span class="v">±7 m</span></span>
+              <span class="gchip"><span class="k">AZ</span><span class="v">80°</span></span>
+            </div>
+            <div class="armk cu" style="top:120px;left:80px;">A-12<small>18 m</small></div>
+
+            <!-- vodorovný pás rychlých nástrojů -->
+            <div style="position:absolute;left:0;right:0;bottom:62px;z-index:15;padding:0 8px;">
+              <div style="display:flex;gap:8px;overflow:hidden;-webkit-mask:linear-gradient(90deg,#000 88%,transparent);">
+                <span class="qstr"><svg class="icon"><use href="#i-ruler"/></svg> Měřit</span>
+                <span class="qstr"><svg class="icon"><use href="#i-square"/></svg> Plocha</span>
+                <span class="qstr"><svg class="icon"><use href="#i-flag"/></svg> Vytyčit</span>
+                <span class="qstr"><svg class="icon"><use href="#i-grid"/></svg> Katastr</span>
+                <span class="qstr"><svg class="icon"><use href="#i-cube"/></svg> Kubat…</span>
+              </div>
+            </div>
+
+            <!-- útlá spodní lišta 3 tlačítka -->
+            <div style="position:absolute;left:0;right:0;bottom:0;height:58px;background:var(--glass);backdrop-filter:blur(14px);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;z-index:18;">
+              <span class="tb3"><svg class="icon"><use href="#i-map-pin"/></svg><small>Body</small></span>
+              <span class="tb3 fab"><svg class="icon"><use href="#i-plus"/></svg></span>
+              <span class="tb3"><svg class="icon"><use href="#i-settings"/></svg><small>Nastavení</small></span>
+            </div>
+            <style>
+              .qstr{flex:none;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:99px;background:var(--glass);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.14);font-size:11px;font-weight:700;color:var(--text);box-shadow:0 4px 12px rgba(0,0,0,.3);}
+              .qstr .icon{width:15px;height:15px;color:var(--accent2);}
+              .tb3{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);font-size:9.5px;font-weight:600;}
+              .tb3 .icon{width:20px;height:20px;}
+              .tb3.fab{width:50px;height:50px;border-radius:50%;background:linear-gradient(180deg,var(--accent2),var(--accent));color:var(--onAccent);justify-content:center;margin-top:-22px;box-shadow:0 10px 22px rgba(47,158,116,.5);border:3px solid var(--bg);}
+              .tb3.fab .icon{width:24px;height:24px;}
+            </style>
+          </div></div>
+        </div>
+
+        <!-- NASTAVENÍ -->
+        <div class="stage">
+          <div class="scrlabel">Nastavení <span>· hledání + skoky</span></div>
+          <div class="phone"><div class="screen">
+            <div class="notch"></div>
+            <div class="fill" style="background:var(--bg);"></div>
+            <div class="sb"><span>10:23</span><span class="r">●●● ▮ 81</span></div>
+            <div class="scr-pad" style="gap:10px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-family:'Sora';font-size:18px;font-weight:800;">Nastavení</span>
+                <span style="margin-left:auto;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:9px;background:rgba(255,255,255,.06);color:var(--muted);"><svg class="icon" style="width:16px;"><use href="#i-x"/></svg></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding:11px 13px;border-radius:12px;background:rgba(0,0,0,.3);border:1px solid var(--border);color:var(--muted);font-size:12.5px;"><svg class="icon" style="width:16px;"><use href="#i-search"/></svg> Hledat nastavení…</div>
+              <!-- rychlé skoky -->
+              <div style="display:flex;gap:7px;flex-wrap:wrap;">
+                <span class="jchip on"><svg class="icon"><use href="#i-palette"/></svg> Vzhled</span>
+                <span class="jchip"><svg class="icon"><use href="#i-target"/></svg> AR</span>
+                <span class="jchip"><svg class="icon"><use href="#i-database"/></svg> Data</span>
+                <span class="jchip"><svg class="icon"><use href="#i-compass"/></svg> Kompas</span>
+              </div>
+              <div style="overflow:hidden;display:flex;flex-direction:column;gap:8px;">
+                <div class="sgrouph" style="margin-top:4px;">Vzhled</div>
+                <div class="strow" style="flex-direction:column;align-items:stretch;gap:8px;"><div class="tt">Režim</div><div class="miniseg" style="border-radius:10px;"><b>Světlý</b><b class="on">Tmavý</b></div></div>
+                <div class="strow"><span class="ic"><svg class="icon"><use href="#i-sliders"/></svg></span><div class="tx"><div class="tt">Velikost textu / menu</div><div class="ds">100 %</div></div></div>
+                <div class="strow"><span class="ic"><svg class="icon"><use href="#i-eye"/></svg></span><div class="tx"><div class="tt">Zamezit zhasnutí</div></div><span class="toggle"></span></div>
+                <div class="strow"><span class="ic"><svg class="icon"><use href="#i-sun"/></svg></span><div class="tx"><div class="tt">Venkovní režim</div></div><span class="toggle off"></span></div>
+              </div>
+            </div>
+            <style>
+              .jchip{display:inline-flex;align-items:center;gap:6px;padding:8px 11px;border-radius:99px;background:rgba(255,255,255,.05);border:1px solid var(--hair);font-size:11px;font-weight:700;color:var(--muted);}
+              .jchip .icon{width:14px;height:14px;}
+              .jchip.on{background:var(--accent-soft,rgba(47,158,116,.16));border-color:var(--accent-line,rgba(47,158,116,.42));color:var(--accent2);}
+            </style>
+          </div></div>
+        </div>
+
+      </div>
+
+      <div class="note">
+        <div class="h"><svg class="icon"><use href="#i-grid"/></svg> Co se mění a proč je to lepší</div>
+        <ul>
+          <li>Úvod je <b>rozcestník</b>: zakázka, rychlé dlaždice (Spustit, Nový bod, Měření, Průvodce) a <b>poslední body</b> hned po ruce — rychlejší rozjezd.</li>
+          <li>Na hlavní obrazovce <b>vodorovný pás nástrojů</b> (odsouvatelný prstem) místo modálu — nejčastější nástroje na jedno klepnutí.</li>
+          <li>Spodní lišta je <b>útlá, jen 3 tlačítka</b> (Body · Nový bod · Nastavení) — zbytek řeší pás a horní segment.</li>
+          <li>Nastavení vede přes <b>hledání + rychlé skoky</b> na sekce.</li>
+        </ul>
+        <div class="keep"><b>Funkce zůstávají všechny</b> — celý arzenál nástrojů je v pásu a dlaždicích, Body/Nový/Nastavení v liště, přepínač AR/Split/Mapa nahoře, HUD i AR značky beze změny.</div>
+      </div>
+    </section>
+
+    <p class="legend">Statické náhledy ve <b>stejném vizuálním stylu</b> jako appka (barvy, písmo i ikony jsou původní) — slouží k rozhodnutí, který směr <b>rozmístění</b> se ti líbí. Můžeš vybrat i <b>kombinaci</b> (např. úvod z jednoho návrhu + ovládání z druhého). Vybraný směr pak zapojím do <b>index.html</b>.</p>
   </div>
 
 <script>
