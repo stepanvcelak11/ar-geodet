@@ -50,6 +50,8 @@
     var _sensor = null;                             // 'motion' | 'orient' | null
     var _prevView = null, _camWasLive = false;
     var _wasLevel = false;                          // pro pípnutí při dosažení roviny
+    var _screwInvert = false;                       // přístroj s opačným závitem šroubů (otáčí naopak)
+    try { _screwInvert = localStorage.getItem('agLvlScrewInvert') === '1'; } catch (e) {}
 
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function deg2rad(d) { return d * Math.PI / 180; }
@@ -148,7 +150,8 @@
     }
 
     function vialSvg() {
-        var parts = ['<svg viewBox="0 0 ' + VB + ' ' + VB + '" id="lvl-svg">'];
+        // viewBox s okrajem, ať se popisky opěr (Levá/Pravá/Přední) u kraje neořezávají
+        var parts = ['<svg viewBox="-12 -14 ' + (VB + 24) + ' ' + (VB + 28) + '" id="lvl-svg">'];
         // vial
         parts.push('<circle cx="' + CN + '" cy="' + CN + '" r="' + R_VIAL + '" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>');
         // tolerance kruh (cíl)
@@ -186,6 +189,7 @@
             + '<div class="lvl-angle"><span id="lvl-ang">–</span><small>°</small></div>'
             + '<div class="lvl-instr" id="lvl-instr"></div>'
             + '<div class="lvl-legend" id="lvl-legend"></div>'
+            + '<label class="lvl-switch lvl-screw-opt lvl-hidden" id="lvl-screw-opt"><input type="checkbox" id="lvl-screw-inv"><span></span>Můj přístroj má opačné šrouby (otáčí se naopak)</label>'
             + '<div class="lvl-status" id="lvl-status">Polož telefon na hlavu stativu, displejem nahoru.</div>'
             + '<div class="lvl-cal">'
             + '<label class="lvl-switch"><input type="checkbox" id="lvl-cal-on"><span></span>Kalibrace otočením o 180° — srovná i vystouplou kameru</label>'
@@ -210,6 +214,12 @@
         });
         el.querySelector('#lvl-cal-start').addEventListener('click', calStart);
         el.querySelector('#lvl-recenter').addEventListener('click', recenter);
+        var inv = el.querySelector('#lvl-screw-inv');
+        inv.checked = _screwInvert;
+        inv.addEventListener('change', function () {
+            _screwInvert = this.checked;
+            try { localStorage.setItem('agLvlScrewInvert', _screwInvert ? '1' : '0'); } catch (e) {}
+        });
         _ui = el;
         return el;
     }
@@ -223,6 +233,7 @@
         if (!_ui) return;
         _ui.querySelectorAll('.lvl-segbtn').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-mode') === m); });
         var sub = $('lvl-sub'), leg = $('lvl-legend');
+        var sopt = $('lvl-screw-opt'); if (sopt) sopt.classList.toggle('lvl-hidden', m !== 'instrument');
         if (m === 'tripod') {
             sub.innerHTML = 'Postav stativ, postav se k němu tak, aby <b>přední noha mířila od tebe</b> a zbylé dvě byly vlevo a vpravo. Polož telefon na hlavu, <b>delší stranou k sobě</b>. Aplikace ti řekne, kterou nohou a kam pohnout.';
             if (leg) leg.innerHTML = '<span class="lg up"><i></i>zelená = vysunout nohu (nahoru)</span><span class="lg down"><i></i>oranžová = zasunout nohu (dolů)</span>';
@@ -293,37 +304,40 @@
         // opěry: šipky a zvýraznění dominantní
         var corr = corrections(t);
         var dom = corr.slice().sort(function (a, b) { return Math.abs(b.c) - Math.abs(a.c); })[0];
+        // pro přístroj s opačným závitem otočíme směr (doprava↔doleva)
+        function shown(c) { var low = c > 0; return (_mode === 'instrument' && _screwInvert) ? !low : low; }
+
         corr.forEach(function (c) {
             var g = _ui.querySelector('#lvl-sup-' + c.s.key);
             if (!g) return;
             var arrow = g.querySelector('.lvl-arrow');
             var isDom = (c === dom) && t.ang > tol.ok;
-            // c>0 = roh nízko → zvednout (stativ ▲ / šroub doprava ↻), c<0 → opačně
-            var up = c.c > 0;
+            var s = shown(c.c);   // true = zvednout / doprava
             if (t.ang <= tol.ok) arrow.textContent = '✓';
-            else if (_mode === 'instrument') arrow.textContent = up ? '↻' : '↺';
-            else arrow.textContent = up ? '▲' : '▼';
+            else if (_mode === 'instrument') arrow.textContent = s ? '↻' : '↺';
+            else arrow.textContent = s ? '▲' : '▼';
             var faded = !isDom && t.ang > tol.ok ? ' faded' : '';   // jen dominantní opěra výrazná
-            g.setAttribute('class', 'lvl-sup' + (isDom ? ' dom' : '') + faded + ' ' + (t.ang <= tol.ok ? 'level' : (up ? 'up' : 'down')));
+            g.setAttribute('class', 'lvl-sup' + (isDom ? ' dom' : '') + faded + ' ' + (t.ang <= tol.ok ? 'level' : (s ? 'up' : 'down')));
         });
 
         // hlavní pokyn — jedna jasná akce slovy
         var instr = $('lvl-instr');
         if (instr) {
+            var ds = shown(dom.c);
             if (t.ang <= tol.ok) {
                 instr.innerHTML = '<div class="lvl-ok">✓ V rovině</div>';
             } else if (_mode === 'tripod') {
-                var verb = dom.c > 0 ? 'Vysuň (prodluž)' : 'Zasuň (zkrať)';
+                var verb = ds ? 'Vysuň (prodluž)' : 'Zasuň (zkrať)';
                 var cm = Math.abs(dom.mm) / 10;
-                instr.innerHTML = '<div class="lvl-do ' + (dom.c > 0 ? 'up' : 'down') + '">'
-                    + '<span class="lvl-ico">' + (dom.c > 0 ? '▲' : '▼') + '</span>'
+                instr.innerHTML = '<div class="lvl-do ' + (ds ? 'up' : 'down') + '">'
+                    + '<span class="lvl-ico">' + (ds ? '▲' : '▼') + '</span>'
                     + verb + ' <b>' + dom.s.label + ' nohu</b> o cca <b>' + cm.toFixed(cm < 5 ? 1 : 0) + ' cm</b></div>';
             } else {
-                var turn = dom.c > 0 ? 'doprava ↻' : 'doleva ↺';
-                instr.innerHTML = '<div class="lvl-do ' + (dom.c > 0 ? 'up' : 'down') + '">'
-                    + '<span class="lvl-ico">' + (dom.c > 0 ? '↻' : '↺') + '</span>'
+                var turn = ds ? 'doprava ↻' : 'doleva ↺';
+                instr.innerHTML = '<div class="lvl-do ' + (ds ? 'up' : 'down') + '">'
+                    + '<span class="lvl-ico">' + (ds ? '↻' : '↺') + '</span>'
                     + 'Otoč <b>' + dom.s.label + ' šroubem ' + turn + '</b></div>'
-                    + '<div class="lvl-hint">Kdyby bublina šla od středu, toč opačně (závity přístrojů se liší).</div>';
+                    + '<div class="lvl-hint">Kdyby bublina šla od středu, zapni „opačné šrouby" výše (závity přístrojů se liší).</div>';
             }
         }
 

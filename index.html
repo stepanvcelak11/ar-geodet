@@ -138,12 +138,15 @@
             <label class="w-c-label">Aktivní zakázka</label>
             <div class="w-proj-row">
                 <div class="w-proj-card">
-                    <span class="w-proj-folder"><svg class="icon"><use href="#i-folder"/></svg></span>
-                    <div class="w-proj-meta">
-                        <div class="w-proj-name" id="w-proj-name">Načítám…</div>
-                        <div class="w-proj-stats" id="w-proj-stats">&nbsp;</div>
+                    <div class="w-proj-top">
+                        <span class="w-proj-folder"><svg class="icon"><use href="#i-folder"/></svg></span>
+                        <div class="w-proj-meta">
+                            <div class="w-proj-name" id="w-proj-name">Načítám…</div>
+                            <div class="w-proj-sub" id="w-proj-sub">S-JTSK · Křovák</div>
+                        </div>
+                        <span class="w-proj-chev"><svg class="icon"><use href="#i-chevron-down"/></svg></span>
                     </div>
-                    <span class="w-proj-chev"><svg class="icon"><use href="#i-chevron-down"/></svg></span>
+                    <div class="w-proj-chips" id="w-proj-chips"></div>
                     <!-- Nativní select leží průhledně přes kartu: ťuknutí kamkoli otevře výběr zakázky -->
                     <select id="w-project-select" class="w-proj-select-ov" onchange="changeProject()" aria-label="Vybrat zakázku"></select>
                 </div>

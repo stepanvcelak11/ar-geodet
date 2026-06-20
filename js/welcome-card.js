@@ -1,5 +1,5 @@
 // AR Geodet — karta aktivní zakázky na úvodu (Návrh C „Zakázka v centru").
-// Plní #w-proj-name a #w-proj-stats reálnými daty (název zakázky + počet uložených bodů).
+// Plní #w-proj-name a #w-proj-chips reálnými daty (název zakázky + chip počtu bodů a data vzniku).
 // Samostatný soubor: NEzasahuje do logika.js/grafika.js, jen obaluje jejich funkce
 // (loadProjectSettings / renderProjectSelect), aby se karta přepočítala při každé změně.
 // Načítat AŽ PO logika.js, grafika.js a zakazky.js.
@@ -39,16 +39,42 @@
         return 0;
     }
 
+    // Datum vzniku zakázky z id 'proj_<timestamp>' (výchozí zakázka razítko nemá → null)
+    function projectCreatedDate() {
+        try {
+            var id = (typeof activeProjectId !== 'undefined') ? activeProjectId : null;
+            var sel = document.getElementById('w-project-select');
+            if (!id && sel && sel.value) id = sel.value;
+            var m = /^proj_(\d{10,})$/.exec(id || '');
+            if (!m) return null;
+            var ts = parseInt(m[1], 10);
+            return isFinite(ts) ? new Date(ts) : null;
+        } catch (e) { return null; }
+    }
+    function relDate(d) {
+        var now = new Date();
+        var a = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        var b = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        var diff = Math.round((a - b) / 86400000);
+        if (diff <= 0) return 'dnes';
+        if (diff === 1) return 'včera';
+        return d.getDate() + '. ' + (d.getMonth() + 1) + '.';
+    }
+    var CLOCK_SVG = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+
     function updateWelcomeProjectCard() {
         var nameEl = document.getElementById('w-proj-name');
-        var statsEl = document.getElementById('w-proj-stats');
-        if (!nameEl && !statsEl) return; // jiný návrh úvodu — nic neděláme
+        var chipsEl = document.getElementById('w-proj-chips');
+        if (!nameEl && !chipsEl) return; // jiný návrh úvodu — nic neděláme
         if (nameEl) nameEl.textContent = activeName();
-        if (statsEl) {
+        if (chipsEl) {
             var n = savedPointCount();
-            statsEl.innerHTML = (n > 0)
-                ? '<b>' + n + '</b> ' + bodWord(n) + ' · S-JTSK'
-                : 'zatím bez uložených bodů · S-JTSK';
+            var html = (n > 0)
+                ? '<span class="w-proj-chip"><svg class="icon"><use href="#i-map-pin"/></svg><span><b>' + n + '</b> ' + bodWord(n) + '</span></span>'
+                : '<span class="w-proj-chip empty"><svg class="icon"><use href="#i-map-pin"/></svg><span>zatím bez bodů</span></span>';
+            var d = projectCreatedDate();
+            if (d) html += '<span class="w-proj-chip">' + CLOCK_SVG + '<span>' + relDate(d) + '</span></span>';
+            chipsEl.innerHTML = html;
         }
     }
     window.updateWelcomeProjectCard = updateWelcomeProjectCard;
