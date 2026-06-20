@@ -717,15 +717,30 @@ body {
     -webkit-backdrop-filter: blur(4px);
 }
 
-/* Modály jedou přes CELOU obrazovku (na přání) — žádné okraje s mapou na pozadí,
-   víc místa a větší ovládací prvky. Respektuje safe-area (notch / indikátor plochy). */
+/* Základní karta (používá ji i ÚVODNÍ obrazovka #welcome-screen — proto NEfullscreen). */
 .modal-content {
+    width: 90%;
+    max-width: 450px;
+    max-height: 90%;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-pop), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    color: var(--text-color);
+    overflow: hidden;
+}
+/* Skutečné modály (uvnitř .modal-overlay) jedou přes CELOU obrazovku (na přání) —
+   žádné okraje s mapou, víc místa, respektuje safe-area. Úvodní karta zůstává malá. */
+.modal-overlay .modal-content {
     width: 100%;
     max-width: 100%;
     height: 100%;
     max-height: 100%;
-    display: flex;
-    flex-direction: column;
     padding: calc(env(safe-area-inset-top, 0px) + 20px) max(20px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 18px) max(20px, env(safe-area-inset-left, 0px));
     background: rgba(14, 18, 24, 0.97);
     -webkit-backdrop-filter: blur(8px);
@@ -733,8 +748,6 @@ body {
     border: none;
     border-radius: 0;
     box-shadow: none;
-    color: var(--text-color);
-    overflow: hidden;
 }
 
 .modal-body {
@@ -1676,6 +1689,13 @@ body.cam-light #ar-hud-info .hud-name { color: #1e293b; }
 }
 #side-menu.open { right: 0; transform: none; opacity: 1; pointer-events: auto; }
 #side-menu .menu-head { font-size: 20px; padding-bottom: 10px; }
+/* „Zavřít" připnout úplně dolů a nescrollovat (jako close u Nástrojů). */
+#side-menu > .menu-btn:last-child {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+    background: rgba(20, 26, 34, 0.98) !important;
+}
 
 /* Mřížka nástrojů (Nástroje) */
 .tool-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
