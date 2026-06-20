@@ -189,37 +189,25 @@
     }
 
     // --------------------------------------------------------------------------------
-    // 3) POCTIVÁ PŘESNOST — vysvětlivka + varování v panelu Průměrování GPS
+    // 3) POCTIVÁ PŘESNOST — vysvětlivka + varování v DETAILU průměrování GPS (modál)
     // --------------------------------------------------------------------------------
+    // Vysvětlivka + varování patří do DETAILU (modál #gpsavg-modal, otevře se klikem
+    // na kompaktní panel „GPS: ±X m"), ne do hlavního pohledu — ať na obrazovce
+    // nepřekáží, ale je dohledatelná u měření / rozptylu / kódu kvality.
     function injectGpsNote() {
-        const panel = document.getElementById('gps-avg');
-        if (!panel || document.getElementById('ag-gps-note')) return;
+        const body = document.querySelector('#gpsavg-modal .modal-body');
+        if (!body || document.getElementById('ag-gps-note')) return;
         const note = document.createElement('div');
         note.id = 'ag-gps-note';
         note.innerHTML =
             'σ = rozptyl měření · stř. chyba = odhad polohy.<br>' +
             '<b>Pozor:</b> telefonní GPS má systematickou chybu ~5–15 m, kterou průměrování ' +
             '<u>neodstraní</u>. Bod v terénu vždy ověř.';
-        panel.appendChild(note);
+        body.appendChild(note);   // za řádky měření/rozptyl i čip kódu kvality (#gaq-qc)
     }
 
-    // Panel průměrování GPS je defaultně SBALENÝ (jen titulek) — detaily se ukážou po klepnutí.
-    function makeGpsCollapsible() {
-        const panel = document.getElementById('gps-avg');
-        if (!panel || panel._agCollapsible) return;
-        const title = panel.querySelector('.ga-title');
-        if (!title) return;
-        panel._agCollapsible = true;
-        panel.classList.add('ag-collapsible');
-        let open = false; try { open = localStorage.getItem('agGpsOpen') === '1'; } catch (e) {}
-        panel.classList.toggle('ag-collapsed', !open);
-        // Klik na celý panel přepíná (robustnější s HUD pointer-capture; HUD potlačí klik po tažení).
-        panel.addEventListener('click', function () {
-            const willOpen = panel.classList.contains('ag-collapsed');
-            panel.classList.toggle('ag-collapsed', !willOpen);
-            try { localStorage.setItem('agGpsOpen', willOpen ? '1' : '0'); } catch (e) {}
-        });
-    }
+    // (Pozn.: dřívější sbalovací panel „Průměrování GPS" nahradil kompaktní jednořádkový
+    // panel „GPS: ±X m" s detailem v modálu — viz index.html / grafika.js.)
 
     // --------------------------------------------------------------------------------
     // 4) REŽIM RUKAVIC — přepínač v bočním menu
@@ -743,7 +731,7 @@
     function init() {
         try { rewireProjects(); } catch (e) { console.warn('[vylepseni] zakázky', e); }
         try { injectRename(); } catch (e) { console.warn('[vylepseni] rename', e); }
-        try { injectGpsNote(); makeGpsCollapsible(); } catch (e) { console.warn('[vylepseni] gps-note', e); }
+        try { injectGpsNote(); } catch (e) { console.warn('[vylepseni] gps-note', e); }
         try { injectGloveToggle(); applyGlove(); } catch (e) { console.warn('[vylepseni] glove', e); }
         try { injectQuota(); hookSettings(); } catch (e) { console.warn('[vylepseni] quota', e); }
         try { injectDxfButton(); } catch (e) { console.warn('[vylepseni] dxf', e); }
