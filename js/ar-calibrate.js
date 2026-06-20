@@ -95,7 +95,7 @@
     function applyFabScale(b) {
         var s = parseFloat(lsGet(FAB_SCALE_KEY));
         if (!isFinite(s)) s = 1;
-        s = Math.max(0.8, Math.min(1.7, s));
+        s = Math.max(0.5, Math.min(1.5, s));
         b.style.setProperty('--agcal-scale', s);
         return s;
     }
@@ -191,7 +191,7 @@
             panel.id = 'agcal-fabedit';
             panel.innerHTML =
                 '<div class="agcal-fe-row"><span>Velikost tlačítka „Srovnat sever"</span><b id="agcal-fe-val"></b></div>'
-                + '<input type="range" id="agcal-fe-size" min="80" max="170" step="5">'
+                + '<input type="range" id="agcal-fe-size" min="50" max="150" step="5">'
                 + '<div class="agcal-fe-hint">Táhni tlačítko prstem = přesun. Tady měň velikost.</div>'
                 + '<button class="btn" id="agcal-fe-done">Hotovo</button>';
             document.body.appendChild(panel);

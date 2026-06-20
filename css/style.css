@@ -226,6 +226,16 @@ html, body {
     overflow: hidden;
     touch-action: none;
 }
+/* iOS appka z plochy (standalone): 100dvh občas nedosáhne až na spodní hranu displeje
+   a vznikne tmavý pruh dole. Ve standalme proto ukotvíme obsah na VŠECHNY čtyři hrany
+   (= celá obrazovka, díky viewport-fit=cover sahá i pod indikátor plochy). V Safari
+   to NEMĚNÍME — tam 100dvh drží spodní dok nad lištou prohlížeče. */
+html.ag-standalone, html.ag-standalone body {
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
+}
 
 body {
     margin: 0;
