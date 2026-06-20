@@ -21,7 +21,8 @@
     'use strict';
 
     var LS = 'agHudSmart';
-    var SUPPRESS = ['info', 'compass-debug', 'gps-warn', 'agcal-fab', 'ag-cstab'];
+    // potlačené (redundantní s kartou) — POZOR: bez 'ag-cstab' (procenta kompasu nechat, uživatel je chce)
+    var SUPPRESS = ['info', 'compass-debug', 'gps-warn', 'agcal-fab'];
     var FADE_MS = 3000;
     var ACC_OK = 7, ACC_WARN = 12;          // prahy kvality (shodné s appkou)
 
@@ -177,18 +178,18 @@
     }
 
     // ---- potlačení původních indikátorů ---------------------------------------
+    // Potlačení přes vložený <style> s !important — ROBUSTNÍ: nepere se s moduly, které si
+    // svůj prvek samy zobrazují (dřív JS-smyčka display:none vs ar-calibrate → blikání FABu).
     function suppress() {
-        for (var i = 0; i < SUPPRESS.length; i++) {
-            var el = $(SUPPRESS[i]);
-            if (el && el.style.display !== 'none') {
-                if (!(SUPPRESS[i] in suppressedSaved)) suppressedSaved[SUPPRESS[i]] = el.style.display || '';
-                el.style.display = 'none';
-            }
-        }
+        if (document.getElementById('aghs-suppress-style')) return;
+        var st = document.createElement('style');
+        st.id = 'aghs-suppress-style';
+        st.textContent = '#' + SUPPRESS.join(',#') + '{display:none!important}';
+        (document.head || document.documentElement).appendChild(st);
     }
     function unsuppress() {
-        for (var id in suppressedSaved) { var el = $(id); if (el) el.style.display = suppressedSaved[id]; }
-        suppressedSaved = {};
+        var st = document.getElementById('aghs-suppress-style');
+        if (st) st.remove();
     }
 
     function setDot(d, cls) { d.className = 'aghs-dot ' + cls; }
