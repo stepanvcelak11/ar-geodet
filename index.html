@@ -56,6 +56,8 @@
         <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></symbol>
         <symbol id="i-edit" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></symbol>
         <symbol id="i-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2Z"/></symbol>
+        <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+        <symbol id="i-chevron-down" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
         <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></symbol>
         <symbol id="i-crosshair" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></symbol>
         <symbol id="i-rotate-ccw" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></symbol>
@@ -81,27 +83,39 @@
 
     <div id="welcome-screen">
         <div class="modal-content">
-            <svg class="welcome-logo" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs><linearGradient id="wl-pin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3eb487"/><stop offset="1" stop-color="#2f9e74"/></linearGradient></defs>
-                <path d="M48 10C31 10 18 23 18 40c0 22 30 46 30 46s30-24 30-46c0-17-13-30-30-30Z" fill="url(#wl-pin)"/>
-                <circle cx="48" cy="39" r="15.5" fill="#0e1216"/>
-                <circle cx="48" cy="39" r="11.5" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.5"/>
-                <g stroke="#ffffff" stroke-width="2.6" stroke-linecap="round">
-                    <line x1="48" y1="25" x2="48" y2="34"/><line x1="48" y1="44" x2="48" y2="53"/>
-                    <line x1="34" y1="39" x2="43" y2="39"/><line x1="53" y1="39" x2="62" y2="39"/>
-                </g>
-                <circle cx="48" cy="39" r="3.3" fill="#ffffff"/>
-            </svg>
-            <h1 style="color: var(--text-color); margin: 0; text-align: center; font-family: var(--font-display); font-size: 32px; font-weight: 800; letter-spacing: -0.6px;">AR&nbsp;Geodet</h1>
-            <div style="text-align:center; margin: 6px 0 26px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-muted);">Geodetický AR nástroj</div>
-
-            <div style="margin-bottom: 24px;">
-                <label style="margin: 0 0 9px; display:block;">Aktivní zakázka</label>
-                <div style="display:flex; gap:8px; align-items:center;">
-                    <select id="w-project-select" class="w-proj-select" onchange="changeProject()"></select>
-                    <button class="w-proj-icon" onclick="createNewProject()" aria-label="Nová zakázka"><svg class="icon"><use href="#i-plus"/></svg></button>
-                    <button class="w-proj-icon danger" onclick="deleteProject()" aria-label="Smazat zakázku"><svg class="icon"><use href="#i-trash"/></svg></button>
+            <!-- Návrh C „Zakázka v centru": vodorovná hlavička + karta aktivní zakázky s kontextem -->
+            <div class="w-topbar">
+                <svg class="welcome-logo w-mini-logo" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs><linearGradient id="wl-pin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3eb487"/><stop offset="1" stop-color="#2f9e74"/></linearGradient></defs>
+                    <path d="M48 10C31 10 18 23 18 40c0 22 30 46 30 46s30-24 30-46c0-17-13-30-30-30Z" fill="url(#wl-pin)"/>
+                    <circle cx="48" cy="39" r="15.5" fill="#0e1216"/>
+                    <circle cx="48" cy="39" r="11.5" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.5"/>
+                    <g stroke="#ffffff" stroke-width="2.6" stroke-linecap="round">
+                        <line x1="48" y1="25" x2="48" y2="34"/><line x1="48" y1="44" x2="48" y2="53"/>
+                        <line x1="34" y1="39" x2="43" y2="39"/><line x1="53" y1="39" x2="62" y2="39"/>
+                    </g>
+                    <circle cx="48" cy="39" r="3.3" fill="#ffffff"/>
+                </svg>
+                <div class="w-brand">
+                    <div class="w-brand-name">AR&nbsp;Geodet</div>
+                    <div class="w-brand-tag">Geodetický AR nástroj</div>
                 </div>
+                <button class="w-info-btn" onclick="openAbout()" aria-label="O aplikaci a soukromí"><svg class="icon"><use href="#i-info"/></svg></button>
+            </div>
+
+            <label class="w-c-label">Aktivní zakázka</label>
+            <div class="w-proj-row">
+                <div class="w-proj-card">
+                    <span class="w-proj-folder"><svg class="icon"><use href="#i-folder"/></svg></span>
+                    <div class="w-proj-meta">
+                        <div class="w-proj-name" id="w-proj-name">Načítám…</div>
+                        <div class="w-proj-stats" id="w-proj-stats">&nbsp;</div>
+                    </div>
+                    <span class="w-proj-chev"><svg class="icon"><use href="#i-chevron-down"/></svg></span>
+                    <!-- Nativní select leží průhledně přes kartu: ťuknutí kamkoli otevře výběr zakázky -->
+                    <select id="w-project-select" class="w-proj-select-ov" onchange="changeProject()" aria-label="Vybrat zakázku"></select>
+                </div>
+                <button class="w-proj-icon" onclick="createNewProject()" aria-label="Nová zakázka"><svg class="icon"><use href="#i-plus"/></svg></button>
             </div>
 
             <!-- Pokročilé volby přesunuty do Nastavení; ponecháno skryté kvůli startAppFromWelcome() -->
@@ -135,9 +149,11 @@
                     </div>
                 </details>
             </div>
-            <p style="text-align:center; font-size:11px; line-height:1.5; color:var(--text-muted); margin:18px 4px 0;">Orientační pomůcka, ne měřicí přístroj — zobrazená poloha závisí na přesnosti GPS a kompasu telefonu. <a href="#" onclick="openAbout(); return false;" style="color:var(--accent);">O aplikaci a soukromí</a></p>
-            <button id="pruv-welcome-btn" class="btn btn-secondary" style="margin-top:12px; border-color:var(--accent); color:var(--accent);" onclick="openPruvodce()"><svg class="icon"><use href="#i-navigation"/></svg> Průvodce úkolem (provede tě krok za krokem)</button>
-            <button class="btn btn-primary" style="margin-top: 16px; font-size: 20px; padding: 18px; box-shadow: 0 10px 20px rgba(52,211,153,0.3);" onclick="startAppFromWelcome()"><svg class="icon"><use href="#i-navigation"/></svg> Spustit vyhledávání</button>
+            <div class="w-c-actions">
+                <button class="btn btn-primary w-c-start" onclick="startAppFromWelcome()"><svg class="icon"><use href="#i-navigation"/></svg> Spustit vyhledávání</button>
+                <button id="pruv-welcome-btn" class="btn btn-secondary w-c-pruv" onclick="openPruvodce()"><svg class="icon"><use href="#i-navigation"/></svg> Průvodce úkolem</button>
+            </div>
+            <p class="w-c-foot">Orientační pomůcka, ne měřicí přístroj — poloha závisí na GPS a kompasu telefonu.</p>
         </div>
     </div>
 
@@ -587,6 +603,8 @@
     <script src="js/tutorial-pro.js"></script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + js/vylepseni.js + css/vylepseni.css) — musí být POSLEDNÍ modul kvůli override -->
     <script src="js/vylepseni.js"></script>
+    <!-- Karta zakázky na úvodu (Návrh C) — až za vším, ať obalí finální loadProjectSettings/renderProjectSelect -->
+    <script src="js/welcome-card.js"></script>
     <script>
         // Přepínač zobrazení v doku (AR / Split / Mapa) — využívá globální viewMode a applyViewMode() z grafika.js
         function setView(mode, btn) {
