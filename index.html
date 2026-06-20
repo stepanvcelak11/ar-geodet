@@ -385,10 +385,11 @@
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-content">
             <h2 style="margin-top:0;"><svg class="icon" style="color:var(--accent);"><use href="#i-settings"/></svg> Nastavení</h2>
-            <div class="tab-buttons">
-                <div class="tab-btn active" onclick="switchTab('tab-vzhled', this)"><svg class="icon"><use href="#i-sliders"/></svg> Vzhled</div>
-                <div class="tab-btn" onclick="switchTab('tab-ar', this)"><svg class="icon"><use href="#i-crosshair"/></svg> AR &amp; přesnost</div>
-                <div class="tab-btn" onclick="switchTab('tab-data', this)"><svg class="icon"><use href="#i-folder"/></svg> Data</div>
+            <div class="tab-buttons settings-tiles">
+                <div class="tab-btn active" onclick="switchTab('tab-vzhled', this)"><svg class="icon"><use href="#i-sliders"/></svg><span class="tb-tx"><b>Vzhled</b><small>Motiv, velikost, světlo</small></span></div>
+                <div class="tab-btn" onclick="switchTab('tab-ar', this)"><svg class="icon"><use href="#i-crosshair"/></svg><span class="tb-tx"><b>AR &amp; přesnost</b><small>Radius, výkon</small></span></div>
+                <div class="tab-btn" onclick="switchTab('tab-data', this)"><svg class="icon"><use href="#i-folder"/></svg><span class="tb-tx"><b>Data</b><small>Zakázky, export</small></span></div>
+                <div class="tab-btn" onclick="openCompassModal()"><svg class="icon"><use href="#i-navigation"/></svg><span class="tb-tx"><b>Kompas</b><small>Kalibrace, sever</small></span></div>
             </div>
             <div class="modal-body">
                 <div id="tab-vzhled" class="settings-tab active">
