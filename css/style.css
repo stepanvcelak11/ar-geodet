@@ -1874,3 +1874,71 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
 }
 .settings-tiles .tab-btn.active .icon { color: var(--accent-bright); }
 .settings-tiles .tab-btn.active .tb-tx b { color: var(--text-color); }
+
+/* =========================================================================
+   REDESIGN „Kombinace" 2/2 — oblouk boční lišty, horní HUD pruh,
+   přesun GPS indikátoru a posuvníků mapy do „Více".
+   ========================================================================= */
+
+/* ---- Boční lišta: samostatné skleněné chipy v jemném oblouku ----------- */
+/* (palec klouže po křivce, ne po rovné čáře) */
+#dock {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    padding: 0;
+    gap: 8px;
+}
+.dock-btn {
+    width: 56px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-1);
+}
+/* „Nový bod" zůstává čistý akcentní kruh (bez skleněného chipu kolem) */
+.dock-primary {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+/* Jemný oblouk: krajní chipy mírně k středu, prostřední u kraje */
+#dock .dock-btn:nth-child(1),
+#dock .dock-btn:nth-child(5) { transform: translateX(-12px); }
+#dock .dock-btn:nth-child(2),
+#dock .dock-btn:nth-child(4) { transform: translateX(-4px); }
+#dock .dock-btn:nth-child(3) { transform: translateX(0); }
+
+/* ---- Horní HUD pruh (Návrh 1): azimut vlevo, GPS vpravo, přesnost pod ním */
+#compass-debug {
+    left: var(--hud-side);
+    right: auto;
+    top: max(var(--hud-top), env(safe-area-inset-top));
+    transform-origin: top left;
+    border-radius: 12px;
+}
+#gps-avg {
+    left: auto !important;
+    right: var(--hud-side);
+    top: max(var(--hud-top), env(safe-area-inset-top)) !important;
+    transform-origin: top right;
+}
+#info {
+    top: max(calc(var(--hud-top) + 46px), calc(env(safe-area-inset-top) + 46px));
+    left: var(--hud-side);
+}
+
+/* ---- GPS indikátor (power-save) → do spodního rohu (dok už není dole) --- */
+#ag-pwr {
+    left: 12px !important;
+    bottom: max(12px, env(safe-area-inset-bottom)) !important;
+}
+
+/* ---- Posuvníky map. ovládání přesunuty do „Více" → skrýt z obrazovky --- */
+#map-ctrl-toggle { display: none !important; }
