@@ -256,6 +256,14 @@
     }
     function start() { try { if (!timer) timer = setInterval(sample, SAMPLE_MS); } catch (e) {} }
 
+    // Vystaveni skore pro jine moduly (ar-fusion vazi duveru magnetometru kvalitou kompasu).
+    try {
+        window.AGCompassStability = {
+            get score() { return lastScore; },                                  // 0-100 (null dokud neni dost vzorku)
+            get spread() { var st = circStats(samples); return st ? st.spread : null; } // stupne
+        };
+    } catch (e) {}
+
     function init() {
         try {
             if (!document.getElementById(EL_ID)) build();

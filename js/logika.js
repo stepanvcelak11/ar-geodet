@@ -26,7 +26,9 @@ if ('serviceWorker' in navigator) {
         osmLayer.addTo(map);
         const markersGroup = L.layerGroup().addTo(map);
         
-        let projects = JSON.parse(localStorage.getItem('arProjectsList')) || [{id:'default', name:'Výchozí zakázka'}];
+        let projects;
+        try { projects = JSON.parse(localStorage.getItem('arProjectsList')); } catch (e) { projects = null; } // poskozeny zapis nesmi shodit start
+        if (!Array.isArray(projects) || !projects.length) projects = [{id:'default', name:'Výchozí zakázka'}];
         let activeProjectId = localStorage.getItem('arActiveProjectId') || 'default';
         if (!localStorage.getItem('arProjects_migrated')) {
             ['arFilters12', 'arRadiusMap', 'arRadiusAR', 'arOfflinePoints12', 'arCustomPoints12', 'arVisSettings12', 'arLines12', 'arHeadingOffset'].forEach(k => {
@@ -163,15 +165,15 @@ if ('serviceWorker' in navigator) {
         function deleteProject() { if(projects.length <= 1) return alert("Nelze smazat poslední zakázku."); if(!confirm("Opravdu smazat aktuální zakázku a všechny její uložené body?")) return; IDB_KEYS.forEach(k => { _idbDel(activeProjectId + "_" + k); try { localStorage.removeItem(activeProjectId + "_" + k); } catch(e){} }); projects = projects.filter(p => p.id !== activeProjectId); localStorage.setItem('arProjectsList', JSON.stringify(projects)); activeProjectId = projects[0].id; localStorage.setItem('arActiveProjectId', activeProjectId); renderProjectSelect(); hydrateActiveProject().then(loadProjectSettings); }
 
         function loadProjectSettings() {
-            let f = getStoredData('arFilters12'); if(f) filters = JSON.parse(f); else filters = { tb: true, zhb: true, pbpp: true, nivel: true, custom: true };
+            let f = getStoredData('arFilters12'); try { filters = f ? JSON.parse(f) : null; } catch (e) { filters = null; } if (!filters || typeof filters !== 'object') filters = { tb: true, zhb: true, pbpp: true, nivel: true, custom: true };
             let m = getStoredData('arRadiusMap'); if(m) mapRadius = parseInt(m); else mapRadius = 1000;
             let a = getStoredData('arRadiusAR'); if(a) arRadius = parseInt(a); else arRadius = 150;
-            let vs = getStoredData('arVisSettings12'); if(vs) visSettings = Object.assign(visSettings, JSON.parse(vs));
+            let vs = getStoredData('arVisSettings12'); if(vs) { try { var _vs = JSON.parse(vs); if (_vs && typeof _vs === 'object') visSettings = Object.assign(visSettings, _vs); } catch (e) {} }
             let ho = getStoredData('arHeadingOffset'); userHeadingOffset = ho ? (parseFloat(ho) || 0) : 0;
 
             arPoints.forEach(p => { if(p.element) p.element.remove(); }); arPoints = []; persistentCustomPoints = [];
-            let off = getStoredData('arOfflinePoints12'); if(off) { try { JSON.parse(off).forEach(p => { p.element=null; p.distElement=null; p.ringElement=null; p.bestAccuracy=null; p.hidden=false; arPoints.push(p); }); }catch(e){} }
-            let cust = getStoredData('arCustomPoints12'); if(cust) { try { persistentCustomPoints = JSON.parse(cust); } catch(e) {} }
+            let off = getStoredData('arOfflinePoints12'); if(off) { try { var _off = JSON.parse(off); if (Array.isArray(_off)) _off.forEach(p => { if (!p || typeof p.lat !== 'number' || typeof p.lng !== 'number' || !isFinite(p.lat) || !isFinite(p.lng)) return; p.element=null; p.distElement=null; p.ringElement=null; p.bestAccuracy=null; p.hidden=false; arPoints.push(p); }); }catch(e){} }
+            let cust = getStoredData('arCustomPoints12'); if(cust) { try { var _cust = JSON.parse(cust); if (Array.isArray(_cust)) persistentCustomPoints = _cust.filter(p => p && typeof p.lat === 'number' && typeof p.lng === 'number' && isFinite(p.lat) && isFinite(p.lng)); } catch(e) {} }
             loadLines();
             // OPRAVA: vlastni body musi po startu i do arPoints (AR + mapa), ne jen do seznamu spravy
             persistentCustomPoints.forEach(pt => arPoints.push({...pt, hidden: false}));
@@ -281,7 +283,7 @@ if ('serviceWorker' in navigator) {
                 let sj = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]);
                 let y = Math.abs(sj[0]).toFixed(2), x = Math.abs(sj[1]).toFixed(2);
                 let nm = String(pt.name == null ? 'Bod' : pt.name).replace(/[;\r\n]/g, ' ');
-                return nm + ';' + y + ';' + x;
+                return nm + ';' + y + ';' + x + (pt.vyska != null ? ';' + Number(pt.vyska).toFixed(2) : '');
             });
             const csv = "\uFEFF" + lines.join("\r\n") + "\r\n";
             const a = document.createElement('a');
@@ -295,7 +297,7 @@ if ('serviceWorker' in navigator) {
             let lines = persistentCustomPoints.map(pt => {
                 let sj = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]);
                 let nm = String(pt.name == null ? 'Bod' : pt.name).replace(/[;\r\n]/g, ' ');
-                return nm + ';' + Math.abs(sj[0]).toFixed(2) + ';' + Math.abs(sj[1]).toFixed(2);
+                return nm + ';' + Math.abs(sj[0]).toFixed(2) + ';' + Math.abs(sj[1]).toFixed(2) + (pt.vyska != null ? ';' + Number(pt.vyska).toFixed(2) : '');
             });
             const a = document.createElement('a');
             a.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(lines.join("\r\n") + "\r\n"));
@@ -318,7 +320,8 @@ if ('serviceWorker' in navigator) {
                 let nums = parts.slice(1).map(t => parseFloat(t.replace(',', '.'))).filter(v => !isNaN(v));
                 if (nums.length < 2) return;
                 let c = sjtskToLatLng(nums[0], nums[1]);
-                out.push({ name: parts[0], lat: c.lat, lng: c.lng });
+                // volitelny 4. sloupec = vyska Z (Bpv)
+                out.push({ name: parts[0], lat: c.lat, lng: c.lng, vyska: (nums.length >= 3 && isFinite(nums[2]) ? nums[2] : null) });
             });
             return out;
         }
@@ -331,7 +334,9 @@ if ('serviceWorker' in navigator) {
                 if (typeof p.lat !== 'number' || typeof p.lng !== 'number' || isNaN(p.lat) || isNaN(p.lng)) return;
                 if (persistentCustomPoints.find(ex => ex.name === p.name && Math.abs(ex.lat - p.lat) < 0.0001 && Math.abs(ex.lng - p.lng) < 0.0001)) return;
                 const id = 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6);
-                persistentCustomPoints.push({ id: id, name: p.name || 'Bod', lat: p.lat, lng: p.lng, cat: 'CUSTOM', type: 'custom' });
+                const np = { id: id, name: p.name || 'Bod', lat: p.lat, lng: p.lng, cat: 'CUSTOM', type: 'custom' };
+                if (p.vyska != null && isFinite(p.vyska)) np.vyska = Math.round(p.vyska * 100) / 100;
+                persistentCustomPoints.push(np);
                 if (p.doc && typeof savePointDoc === 'function') { try { savePointDoc(id, (typeof _normalizeDoc === 'function' ? _normalizeDoc(p.doc) : p.doc)); } catch (e) {} }
                 added++;
             });
@@ -376,13 +381,23 @@ if ('serviceWorker' in navigator) {
             document.getElementById('custom-y').value = Math.abs(sjtsk[0]).toFixed(2);
             document.getElementById('custom-x').value = Math.abs(sjtsk[1]).toFixed(2);
             pendingPointAccuracy = r.sterr;
+            // VYSKA: prumerovana elipsoidicka vyska -> Bpv (odecet undulace geoidu). Chybi-li (desktop), Z necham.
+            let bpv = null;
+            const _z = document.getElementById('custom-z');
+            if (r.alt != null) { bpv = r.alt - getGeoidUndulation(r.lat, r.lng); if (_z) _z.value = bpv.toFixed(2); }
+            else if (_z) _z.value = '';
             const note = document.getElementById('custom-acc-note');
-            if (note) { note.style.display = 'block'; note.innerHTML = `Zprůměrováno z <b>${r.n}</b> měření · ⌀ přesnost <b>±${r.sterr.toFixed(2)} m</b> · σ ±${r.sigma.toFixed(2)} m`; }
+            if (note) {
+                note.style.display = 'block';
+                let h = `Zprůměrováno z <b>${r.n}</b> měření · ⌀ přesnost <b>±${r.sterr.toFixed(2)} m</b> · σ ±${r.sigma.toFixed(2)} m`;
+                h += bpv != null ? ` · výška Bpv <b>${bpv.toFixed(2)} m</b>${r.altSterr != null ? ` (±${r.altSterr.toFixed(2)} m, ${r.altN}×)` : ''}` : ` · <span style="opacity:.7">výšku telefon nehlásí</span>`;
+                note.innerHTML = h;
+            }
         }
         
         function saveCustomPoint() { 
-            const name = document.getElementById('custom-name').value || "Bod"; let inputY = parseFloat(document.getElementById('custom-y').value); let inputX = parseFloat(document.getElementById('custom-x').value); if (isNaN(inputY) || isNaN(inputX)) return alert("Vyplňte souřadnice!"); let krovakY = inputY > 0 ? -inputY : inputY; let krovakX = inputX > 0 ? -inputX : inputX; let wgs84 = proj4("EPSG:5514", "EPSG:4326", [krovakY, krovakX]); let lng = wgs84[0]; let lat = wgs84[1]; 
-            if (editingCustomPointId) { const idx = persistentCustomPoints.findIndex(p => p.id === editingCustomPointId); if(idx !== -1) { persistentCustomPoints[idx].name = name; persistentCustomPoints[idx].lat = lat; persistentCustomPoints[idx].lng = lng; } const arIdx = arPoints.findIndex(p => p.id === editingCustomPointId); if (arIdx !== -1) { arPoints[arIdx].name = name; arPoints[arIdx].lat = lat; arPoints[arIdx].lng = lng; if(arPoints[arIdx].element) { arPoints[arIdx].element.remove(); arPoints[arIdx].element = null; } } } else { const newPoint = { id: 'cp_' + Date.now(), name: name, lat: lat, lng: lng, cat: "CUSTOM", type: "custom" }; if (pendingPointAccuracy != null) newPoint.acc = Math.round(pendingPointAccuracy * 100) / 100; persistentCustomPoints.push(newPoint); arPoints.push({...newPoint, hidden: false}); } pendingPointAccuracy = null; setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); drawAllMarkersOnMap(); closeCustomModal(); initARMarkers(); if (userLat && userLng) { updateInfoPanel(); } fixAppLayout(); 
+            const name = document.getElementById('custom-name').value || "Bod"; let inputY = parseFloat(document.getElementById('custom-y').value); let inputX = parseFloat(document.getElementById('custom-x').value); if (isNaN(inputY) || isNaN(inputX)) return alert("Vyplňte souřadnice!"); let krovakY = inputY > 0 ? -inputY : inputY; let krovakX = inputX > 0 ? -inputX : inputX; let wgs84 = proj4("EPSG:5514", "EPSG:4326", [krovakY, krovakX]); let lng = wgs84[0]; let lat = wgs84[1]; var _zin = parseFloat((document.getElementById('custom-z') || {}).value); var vyska = isFinite(_zin) ? Math.round(_zin * 100) / 100 : null;
+            if (editingCustomPointId) { const idx = persistentCustomPoints.findIndex(p => p.id === editingCustomPointId); if(idx !== -1) { persistentCustomPoints[idx].name = name; persistentCustomPoints[idx].lat = lat; persistentCustomPoints[idx].lng = lng; persistentCustomPoints[idx].vyska = vyska; } const arIdx = arPoints.findIndex(p => p.id === editingCustomPointId); if (arIdx !== -1) { arPoints[arIdx].name = name; arPoints[arIdx].lat = lat; arPoints[arIdx].lng = lng; arPoints[arIdx].vyska = vyska; if(arPoints[arIdx].element) { arPoints[arIdx].element.remove(); arPoints[arIdx].element = null; } } } else { const newPoint = { id: 'cp_' + Date.now(), name: name, lat: lat, lng: lng, cat: "CUSTOM", type: "custom" }; if (vyska != null) newPoint.vyska = vyska; if (pendingPointAccuracy != null) newPoint.acc = Math.round(pendingPointAccuracy * 100) / 100; persistentCustomPoints.push(newPoint); arPoints.push({...newPoint, hidden: false}); } pendingPointAccuracy = null; setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); drawAllMarkersOnMap(); closeCustomModal(); initARMarkers(); if (userLat && userLng) { updateInfoPanel(); } fixAppLayout(); 
         }
 
 
@@ -408,7 +423,7 @@ if ('serviceWorker' in navigator) {
         // si outlier nafoukne sam, median ne), pak vazeny prumer podle hlasene presnosti fixu.
         // sterr pocitame z efektivniho n (po sobe jdouci fixy jsou korelovane, nejsou nezavisle).
         function _median(arr) { const a = arr.slice().sort((p, q) => p - q); const m = a.length >> 1; return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; }
-        function updateGpsAveraging(lat, lng, acc, speed) {
+        function updateGpsAveraging(lat, lng, acc, speed, alt, altAcc) {
             // HRUBY FIX: presnost horsi nez GPS_COARSE_ACC = sitova/fused poloha (Wi-Fi/cell), ne
             // realny satelitni GNSS. Takove vzorky do presneho prumeru NEpoustime — jinak vyleze
             // klidne +-17 m i na otevrenem poli (garbage in). Misto toho oznacime stav "coarse"
@@ -423,7 +438,7 @@ if ('serviceWorker' in navigator) {
                 const moved = getDistance(ref.lat, ref.lng, lat, lng);
                 if ((speed && speed > 0.5) || moved > 15) gpsSamples = [];
             }
-            gpsSamples.push({ lat: lat, lng: lng, acc: (acc || 0) });
+            gpsSamples.push({ lat: lat, lng: lng, acc: (acc || 0), alt: (alt != null && isFinite(alt) ? alt : null), altAcc: (altAcc != null && isFinite(altAcc) ? altAcc : null) });
             if (gpsSamples.length > 300) gpsSamples.shift();
             const total = gpsSamples.length;
             // lokalni rovinne souradnice v metrech (kolem prvniho vzorku)
@@ -452,7 +467,29 @@ if ('serviceWorker' in navigator) {
             const sterrFloor = Math.max(0.3 * bestAcc, 0.2);
             const sterr = Math.max(sigma / Math.sqrt(neff), sterrFloor);
             const meanAcc = used.reduce((a, p) => a + (p.s.acc || 0), 0) / used.length;
-            gpsAvgResult = { lat: lat0 + wy / mLat, lng: lng0 + wx / mLng, n: used.length, total: total, sigma: sigma, sterr: sterr, acc: meanAcc, coarse: false };
+            // --- VYSKA (Z): robustni prumer ELIPSOIDICKE vysky z dobrych (polohove inlier) fixu.
+            // Svisla GPS chyba je 1.5-3x horsi nez vodorovna -> stejne jako polohu ji prumerujeme
+            // (median + MAD orez svislych outlieru, vazeny prumer podle altitudeAccuracy). Prevod na
+            // Bpv (odecet undulace geoidu) az pri vyplneni do bodu. alt==null (desktop) -> neurci se.
+            let altMean = null, altSterr = null, altN = 0;
+            {
+                let aS = used.map(p => p.s).filter(s => s.alt != null && isFinite(s.alt));
+                if (aS.length >= 2) {
+                    const amed = _median(aS.map(s => s.alt));
+                    if (aS.length >= 5) {
+                        const athr = Math.max(3 * 1.4826 * _median(aS.map(s => Math.abs(s.alt - amed))), 1.0); // min 1 m svisle
+                        const inl = aS.filter(s => Math.abs(s.alt - amed) <= athr);
+                        if (inl.length >= 3) aS = inl;
+                    }
+                    let asw = 0, asum = 0;
+                    aS.forEach(s => { const w = 1 / Math.pow(Math.max(s.altAcc || 10, 1), 2); asw += w; asum += w * s.alt; });
+                    altMean = asum / asw;
+                    const asig = Math.sqrt(aS.reduce((a, s) => a + Math.pow(s.alt - altMean, 2), 0) / aS.length);
+                    altSterr = asig / Math.sqrt(Math.max(1, aS.length / 4));
+                    altN = aS.length;
+                }
+            }
+            gpsAvgResult = { lat: lat0 + wy / mLat, lng: lng0 + wx / mLng, n: used.length, total: total, sigma: sigma, sterr: sterr, acc: meanAcc, coarse: false, alt: altMean, altSterr: altSterr, altN: altN };
             updateGpsAvgPanel();
         }
 
@@ -497,6 +534,8 @@ if ('serviceWorker' in navigator) {
         // nečinnosti. Požádáme o trvalé úložiště — pomáhá na Androidu/desktopu, na iOS neuškodí.
         try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {}); } catch (e) {}
 
+        // Stav pro preskok prepoctu vzdalenosti/azimutu, kdyz uzivatel stoji (setri CPU pri stovkach bodu).
+        let _lastCalcLat = null, _lastCalcLng = null, _lastCalcCount = 0;
         if ("geolocation" in navigator) {
             navigator.geolocation.watchPosition(
                 (position) => {
@@ -505,12 +544,13 @@ if ('serviceWorker' in navigator) {
                     currentGpsAccuracy = position.coords.accuracy; updateInfoPanel();
                     gpsSpeed = (position.coords.speed != null && !isNaN(position.coords.speed)) ? position.coords.speed : 0;
                     if (position.coords.heading != null && !isNaN(position.coords.heading) && gpsSpeed > 0.5) gpsCourse = position.coords.heading;
-                    updateGpsAveraging(userLat, userLng, currentGpsAccuracy, gpsSpeed);
+                    updateGpsAveraging(userLat, userLng, currentGpsAccuracy, gpsSpeed, position.coords.altitude, position.coords.altitudeAccuracy);
                     if (accuracyCircle) { accuracyCircle.setLatLng([userLat, userLng]); accuracyCircle.setRadius(currentGpsAccuracy); accuracyCircle.setStyle({ color: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillColor: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399' }); } else { accuracyCircle = L.circle([userLat, userLng], { radius: currentGpsAccuracy, color: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillColor: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillOpacity: 0.15, weight: 2 }).addTo(map); }
                     
                     if (highlightedPointId) { let hlPt = arPoints.find(p => p.id === highlightedPointId); if (hlPt) { if (hlPt.bestAccuracy === null || currentGpsAccuracy < hlPt.bestAccuracy) { hlPt.bestAccuracy = currentGpsAccuracy; } } }
 
-                    arPoints.forEach(p => { p.currentDist = getDistance(userLat, userLng, p.lat, p.lng); p.currentBearing = getBearing(userLat, userLng, p.lat, p.lng); }); arPoints.sort((a, b) => a.currentDist - b.currentDist);
+                    var _movedCalc = (_lastCalcLat === null) ? 999 : getDistance(_lastCalcLat, _lastCalcLng, userLat, userLng);
+                    if (_movedCalc > 0.25 || arPoints.length !== _lastCalcCount) { arPoints.forEach(p => { p.currentDist = getDistance(userLat, userLng, p.lat, p.lng); p.currentBearing = getBearing(userLat, userLng, p.lat, p.lng); }); arPoints.sort((a, b) => a.currentDist - b.currentDist); _lastCalcLat = userLat; _lastCalcLng = userLng; _lastCalcCount = arPoints.length; }
                     if (activePointIdForModal) { const activePt = arPoints.find(p => p.id === activePointIdForModal); if (activePt) { const newDist = getDistance(userLat, userLng, activePt.lat, activePt.lng); const distEl = document.getElementById('sheet-distance-val'); if (distEl) distEl.innerText = `${newDist.toFixed(1)} m`; const gpsEl = document.getElementById('sheet-gps-val'); if (gpsEl) gpsEl.innerText = currentGpsAccuracy.toFixed(1); } }
                     if (lastCenterLat === null) { map.setView([userLat, userLng], 19, { animate: false }); lastCenterLat = userLat; lastCenterLng = userLng; } else if (!window._mapHold && getDistance(lastCenterLat, lastCenterLng, userLat, userLng) > 1.5) { map.setView([userLat, userLng], map.getZoom(), { animate: false }); lastCenterLat = userLat; lastCenterLng = userLng; }
                     if (lastFetchLat === null || lastFetchLng === null) { lastFetchLat = userLat; lastFetchLng = userLng; if (appStarted) setTimeout(() => initFetch(userLat, userLng), 1000); } else { const moved = getDistance(lastFetchLat, lastFetchLng, userLat, userLng); if (moved > 25) { lastFetchLat = userLat; lastFetchLng = userLng; if (appStarted) initFetch(userLat, userLng); } }
