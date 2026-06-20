@@ -35,13 +35,21 @@
             window.open(url, '_blank'); 
         }
 
-        function openCompassModal() { document.getElementById('compass-modal').style.display = 'flex'; updateCompassButtons(); updateHeadingOffsetVal(); }
+        // Kompas je nyní ZÁLOŽKA v Nastavení (stejně jako Vzhled/AR/Data) — ne samostatný modál.
+        function openCompassModal() { openSettings(); showCompassTab(); }
+        function showCompassTab() {
+            document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('#settings-modal .tab-btn').forEach(b => b.classList.remove('active'));
+            const tab = document.getElementById('tab-kompas'); if (tab) tab.classList.add('active');
+            const btn = document.getElementById('tabbtn-kompas'); if (btn) btn.classList.add('active');
+            updateCompassButtons(); updateHeadingOffsetVal();
+        }
         function openGpsAvgModal() { const m = document.getElementById('gpsavg-modal'); if (!m) return; m.style.display = 'flex'; updateGpsAvgPanel(); }
         // Korekce severu pro AR i mapu (na rozdil od "uzivatelske nuly", ktera meni jen zobrazene cislo azimutu).
         function updateHeadingOffsetVal() { const el = document.getElementById('heading-offset-val'); if (el) { let v = ((userHeadingOffset + 180) % 360 + 360) % 360 - 180; el.innerText = Math.round(v); } }
         function nudgeHeadingOffset(d) { userHeadingOffset = ((userHeadingOffset + d) % 360 + 360) % 360; setStoredData('arHeadingOffset', String(userHeadingOffset)); updateHeadingOffsetVal(); }
         function resetHeadingOffset() { userHeadingOffset = 0; headingCorrection = 0; setStoredData('arHeadingOffset', '0'); updateHeadingOffsetVal(); }
-        function setCompassZero() { compassZeroOffset = currentHeading; alert("Nula nastavena na aktuální směr."); document.getElementById('compass-modal').style.display = 'none'; } function resetCompassZero() { compassZeroOffset = 0; alert("Nula zrušena."); document.getElementById('compass-modal').style.display = 'none'; } function setCompassUnit(u) { compassUnit = u; updateCompassButtons(); }
+        function setCompassZero() { compassZeroOffset = currentHeading; alert("Nula nastavena na aktuální směr."); } function resetCompassZero() { compassZeroOffset = 0; alert("Nula zrušena."); } function setCompassUnit(u) { compassUnit = u; updateCompassButtons(); }
         function updateCompassButtons() { document.getElementById('btn-unit-deg').style.background = compassUnit === 'deg' ? 'var(--accent)' : '#555'; document.getElementById('btn-unit-deg').style.color = compassUnit === 'deg' ? '#000' : '#fff'; document.getElementById('btn-unit-gon').style.background = compassUnit === 'gon' ? 'var(--accent)' : '#555'; document.getElementById('btn-unit-gon').style.color = compassUnit === 'gon' ? '#000' : '#fff'; }
 
         const APP_VERSION = '1.9';

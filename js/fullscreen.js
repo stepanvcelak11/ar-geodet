@@ -21,15 +21,18 @@
     }
 
     function bind() {
+        // Fullscreen vyžadujeme POUZE při odchodu z úvodní obrazovky (jakékoli tlačítko
+        // uvnitř #welcome-screen). Tím je fullscreen aktivní DŘÍV, než se uživatel dotkne
+        // doku — vstup do fullscreenu totiž přeskládá layout (skryjí se systémové lišty),
+        // a kdyby k tomu došlo na stejném kliknutí, které otevírá Nastavení/Body/Nástroje,
+        // přeruší to jejich otevírací animaci (a tap by se mohl „sníst"). „Více" je odolné,
+        // protože nemění display. Proto NEvážeme na globální první klik v dokumentu.
+        var ws = document.getElementById('welcome-screen');
+        if (ws) ws.addEventListener('click', function (e) {
+            if (e.target && e.target.closest && e.target.closest('button')) enterFullscreen();
+        }, { passive: true });
         var btn = document.getElementById('welcome-start-btn');
         if (btn) btn.addEventListener('click', enterFullscreen, { passive: true });
-        // Průvodce i jiné vstupy: po prvním KLIKU kdekoli se taky pokusíme (jen jednou),
-        // aby fullscreen naskočil, i když uživatel nezačne hlavním tlačítkem.
-        // POZOR: záměrně 'click', NE 'pointerdown' — vstup do fullscreenu přeskládá layout
-        // (skryjí se systémové lišty) a kdyby se spustil na pointerdown, prvek se uhne a
-        // první tap na tlačítko (Nastavení/Body/Více…) by se „snědl" a nic by neotevřel.
-        // Na 'click' se tlačítko stihne provést a fullscreen naskočí až po něm.
-        document.addEventListener('click', enterFullscreen, { once: true, passive: true });
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);

@@ -330,34 +330,6 @@
         </div>
     </div>
 
-    <div class="modal-overlay" id="compass-modal">
-        <div class="modal-content" style="max-height: auto;">
-            <h3 style="color: var(--accent); margin-top:0;">Nastavení Kompasu</h3>
-            <div class="modal-body">
-                <button class="btn btn-primary" onclick="setCompassZero()"><svg class="icon"><use href="#i-crosshair"/></svg> Nastavit aktuální směr jako NULU (0)</button>
-                <button class="btn btn-warning" onclick="resetCompassZero()"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Zrušit uživatelskou nulu</button>
-                <hr style="border-color: var(--glass-border); width: 100%; margin: 20px 0;">
-                <label>Srovnání severu (AR i mapa):</label>
-                <div style="text-align:center; font-size:13px; color:var(--text-dim); margin:4px 0 8px;">Když AR/mapa ukazují směr jinam než realita, dolaď otočení. Korekce: <b><span id="heading-offset-val">0</span>°</b></div>
-                <div class="row-buttons">
-                    <button class="btn btn-secondary" onclick="nudgeHeadingOffset(-10)">−10°</button>
-                    <button class="btn btn-secondary" onclick="nudgeHeadingOffset(-1)">−1°</button>
-                    <button class="btn btn-secondary" onclick="nudgeHeadingOffset(1)">+1°</button>
-                    <button class="btn btn-secondary" onclick="nudgeHeadingOffset(10)">+10°</button>
-                </div>
-                <button class="btn btn-warning" style="margin-top:10px;" onclick="resetHeadingOffset()"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Vynulovat korekci severu</button>
-                <hr style="border-color: var(--glass-border); width: 100%; margin: 20px 0;">
-                <label>Zobrazované jednotky:</label>
-                <div class="row-buttons" style="margin-top: 10px;">
-                    <button class="btn btn-secondary" id="btn-unit-deg" onclick="setCompassUnit('deg')">Stupně (°)</button>
-                    <button class="btn btn-secondary" id="btn-unit-gon" onclick="setCompassUnit('gon')">Grady (g)</button>
-                </div>
-            </div>
-            <button class="btn btn-secondary" style="margin-top: 15px;" onclick="document.getElementById('compass-modal').style.display='none'; showCompassCalibHint(true);"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Jak zkalibrovat kompas</button><button class="btn btn-secondary" style="margin-top: 10px;" onclick="openSunCheck()"><svg class="icon"><use href="#i-sun"/></svg> Zkontrolovat kompas podle Slunce</button>
-                <button class="btn btn-secondary" style="margin-top: 20px;" onclick="document.getElementById('compass-modal').style.display='none';">Zavřít</button>
-        </div>
-    </div>
-
     <div class="modal-overlay" id="cluster-modal">
         <div class="modal-content">
             <h3 style="color: var(--accent); margin-top:0; margin-bottom: 5px;">Skupina bodů</h3>
@@ -395,7 +367,7 @@
                 <div class="tab-btn active" onclick="switchTab('tab-vzhled', this)"><svg class="icon"><use href="#i-sliders"/></svg><span class="tb-tx"><b>Vzhled</b><small>Motiv, velikost, světlo</small></span></div>
                 <div class="tab-btn" onclick="switchTab('tab-ar', this)"><svg class="icon"><use href="#i-crosshair"/></svg><span class="tb-tx"><b>AR &amp; přesnost</b><small>Radius, výkon</small></span></div>
                 <div class="tab-btn" onclick="switchTab('tab-data', this)"><svg class="icon"><use href="#i-folder"/></svg><span class="tb-tx"><b>Data</b><small>Zakázky, export</small></span></div>
-                <div class="tab-btn" onclick="document.getElementById('settings-modal').style.display='none'; openCompassModal();"><svg class="icon"><use href="#i-navigation"/></svg><span class="tb-tx"><b>Kompas</b><small>Kalibrace, sever</small></span></div>
+                <div class="tab-btn" id="tabbtn-kompas" onclick="switchTab('tab-kompas', this); updateCompassButtons(); updateHeadingOffsetVal();"><svg class="icon"><use href="#i-navigation"/></svg><span class="tb-tx"><b>Kompas</b><small>Kalibrace, sever</small></span></div>
             </div>
             <div class="modal-body">
                 <div id="tab-vzhled" class="settings-tab active">
@@ -491,7 +463,7 @@
                         <div class="st-slider-head"><span class="st-lab">Max. bodů v AR (výkon)</span><span class="st-val"><span id="s-max-ar-val">20</span></span></div>
                         <input type="range" id="s-max-ar-slider" min="10" max="200" step="10" value="20" oninput="document.getElementById('s-max-ar-val').innerText = this.value">
                     </div>
-                    <button class="btn btn-secondary" style="margin-top:16px;" onclick="document.getElementById('settings-modal').style.display='none'; openCompassModal();"><svg class="icon"><use href="#i-crosshair"/></svg> Kompas a kalibrace</button>
+                    <button class="btn btn-secondary" style="margin-top:16px;" onclick="showCompassTab();"><svg class="icon"><use href="#i-crosshair"/></svg> Kompas a kalibrace</button>
                     <details class="adv"><summary><svg class="icon"><use href="#i-crosshair"/></svg> Pokročilé — jemné doladění AR</summary>
                         <div class="adv-body">
                             <div class="st-row" style="border-bottom:none;"><span class="st-lab">Auto-korekce kompasu<small>podle pohybu (GPS)</small></span>
@@ -555,6 +527,28 @@
                             <input type="file" id="restore-file" style="display:none" accept=".json,application/json" onchange="importAllData(event)">
                         </div>
                     </details>
+                </div>
+                <div id="tab-kompas" class="settings-tab">
+                    <button class="btn btn-primary" onclick="setCompassZero()"><svg class="icon"><use href="#i-crosshair"/></svg> Nastavit aktuální směr jako NULU (0)</button>
+                    <button class="btn btn-warning" style="margin-top:10px;" onclick="resetCompassZero()"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Zrušit uživatelskou nulu</button>
+                    <hr style="border-color: var(--glass-border); width: 100%; margin: 20px 0;">
+                    <label>Srovnání severu (AR i mapa):</label>
+                    <div style="text-align:center; font-size:13px; color:var(--text-dim); margin:4px 0 8px;">Když AR/mapa ukazují směr jinam než realita, dolaď otočení. Korekce: <b><span id="heading-offset-val">0</span>°</b></div>
+                    <div class="row-buttons">
+                        <button class="btn btn-secondary" onclick="nudgeHeadingOffset(-10)">−10°</button>
+                        <button class="btn btn-secondary" onclick="nudgeHeadingOffset(-1)">−1°</button>
+                        <button class="btn btn-secondary" onclick="nudgeHeadingOffset(1)">+1°</button>
+                        <button class="btn btn-secondary" onclick="nudgeHeadingOffset(10)">+10°</button>
+                    </div>
+                    <button class="btn btn-warning" style="margin-top:10px;" onclick="resetHeadingOffset()"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Vynulovat korekci severu</button>
+                    <hr style="border-color: var(--glass-border); width: 100%; margin: 20px 0;">
+                    <label>Zobrazované jednotky:</label>
+                    <div class="row-buttons" style="margin-top: 10px;">
+                        <button class="btn btn-secondary" id="btn-unit-deg" onclick="setCompassUnit('deg')">Stupně (°)</button>
+                        <button class="btn btn-secondary" id="btn-unit-gon" onclick="setCompassUnit('gon')">Grady (g)</button>
+                    </div>
+                    <button class="btn btn-secondary" style="margin-top: 18px;" onclick="document.getElementById('settings-modal').style.display='none'; showCompassCalibHint(true);"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Jak zkalibrovat kompas</button>
+                    <button class="btn btn-secondary" style="margin-top: 10px;" onclick="openSunCheck()"><svg class="icon"><use href="#i-sun"/></svg> Zkontrolovat kompas podle Slunce</button>
                 </div>
             </div>
             <button class="btn btn-primary" style="margin-top: 20px;" onclick="saveSettings()">Uložit vše a Zavřít</button>

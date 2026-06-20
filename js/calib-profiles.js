@@ -209,7 +209,7 @@
     }
 
     function injectSection() {
-        var body = document.querySelector('#compass-modal .modal-body');
+        var body = document.querySelector('#tab-kompas');
         if (!body || document.getElementById(SEC_ID)) return;
         var sec = document.createElement('div');
         sec.id = SEC_ID;

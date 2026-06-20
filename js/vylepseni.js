@@ -488,7 +488,7 @@
     window.openARCalibration = openCalib;
 
     function injectCalibButton() {
-        const body = document.querySelector('#compass-modal .modal-body');
+        const body = document.querySelector('#tab-kompas');
         if (!body || document.getElementById('ag-calib-launch')) return;
         const btn = document.createElement('button');
         btn.id = 'ag-calib-launch';
@@ -497,7 +497,7 @@
         btn.style.marginBottom = '6px';
         btn.innerHTML = '<svg class="icon"><use href="#i-crosshair"/></svg> Průvodce kalibrací AR (sever + záběr)';
         btn.addEventListener('click', function () {
-            const m = document.getElementById('compass-modal'); if (m) m.style.display = 'none';
+            const m = document.getElementById('settings-modal'); if (m) m.style.display = 'none';
             openCalib();
         });
         body.insertBefore(btn, body.firstChild);

@@ -177,7 +177,7 @@
     }
 
     window.openSunCheck = function () {
-        const cm = document.getElementById('compass-modal');
+        const cm = document.getElementById('settings-modal');
         if (cm) cm.style.display = 'none';
         if (!sunModal) buildSunModal();
         sunModal.style.display = 'flex';
