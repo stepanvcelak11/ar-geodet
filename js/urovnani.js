@@ -36,9 +36,9 @@
     // tři opěry po 120° (matematický úhel, y nahoru). Jedna od uživatele (nahoře),
     // dvě k uživateli (dolů vlevo/vpravo) — uživatel stojí v mezeře dole.
     var SUPPORTS = [
-        { key: 'front', ang: 90,  label: 'Přední' },   // od tebe (nahoře)
-        { key: 'left',  ang: 210, label: 'Levá' },     // dolů vlevo
-        { key: 'right', ang: 330, label: 'Pravá' }     // dolů vpravo
+        { key: 'front', ang: 90,  label: 'Vpředu', pos: 'vpředu' },   // od tebe (nahoře)
+        { key: 'left',  ang: 210, label: 'Vlevo',  pos: 'vlevo' },    // dolů vlevo
+        { key: 'right', ang: 330, label: 'Vpravo', pos: 'vpravo' }    // dolů vpravo
     ];
 
     // ---- stav -----------------------------------------------------------------
@@ -142,7 +142,7 @@
     }
 
     // ====== UI =================================================================
-    var VB = 320, CN = 160, R_VIAL = 120, R_SUP = 142, R_LAB = 158;
+    var VB = 320, CN = 160, R_VIAL = 92, R_SUP = 116, R_LAB = 148, R_ARROW = 84;
 
     function supScreen(ang, r) {
         var a = deg2rad(ang);
@@ -150,26 +150,29 @@
     }
 
     function vialSvg() {
-        // viewBox s okrajem, ať se popisky opěr (Levá/Pravá/Přední) u kraje neořezávají
-        var parts = ['<svg viewBox="-12 -14 ' + (VB + 24) + ' ' + (VB + 28) + '" id="lvl-svg">'];
+        // viewBox s okrajem, ať se popisky opěr u kraje neořezávají
+        var parts = ['<svg viewBox="-8 -12 ' + (VB + 16) + ' ' + (VB + 28) + '" id="lvl-svg">'];
         // vial
         parts.push('<circle cx="' + CN + '" cy="' + CN + '" r="' + R_VIAL + '" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>');
         // tolerance kruh (cíl)
-        parts.push('<circle id="lvl-tol" cx="' + CN + '" cy="' + CN + '" r="22" fill="none" stroke="rgba(255,255,255,0.30)" stroke-width="1.5" stroke-dasharray="3 4"/>');
+        parts.push('<circle id="lvl-tol" cx="' + CN + '" cy="' + CN + '" r="18" fill="none" stroke="rgba(255,255,255,0.30)" stroke-width="1.5" stroke-dasharray="3 4"/>');
         // nitkový kříž
-        parts.push('<line x1="' + (CN - 14) + '" y1="' + CN + '" x2="' + (CN + 14) + '" y2="' + CN + '" stroke="rgba(255,255,255,0.35)" stroke-width="1.5"/>');
-        parts.push('<line x1="' + CN + '" y1="' + (CN - 14) + '" x2="' + CN + '" y2="' + (CN + 14) + '" stroke="rgba(255,255,255,0.35)" stroke-width="1.5"/>');
-        // opěry: noha + šipka + popisek
+        parts.push('<line x1="' + (CN - 12) + '" y1="' + CN + '" x2="' + (CN + 12) + '" y2="' + CN + '" stroke="rgba(255,255,255,0.35)" stroke-width="1.5"/>');
+        parts.push('<line x1="' + CN + '" y1="' + (CN - 12) + '" x2="' + CN + '" y2="' + (CN + 12) + '" stroke="rgba(255,255,255,0.35)" stroke-width="1.5"/>');
+        // opěry: kolečko (poloha nohy/šroubu) + radiální šipka + ↻/↺ glyf + popisek mimo kolečko
         SUPPORTS.forEach(function (s) {
-            var p = supScreen(s.ang, R_SUP), pl = supScreen(s.ang, R_LAB);
+            var p = supScreen(s.ang, R_SUP), pl = supScreen(s.ang, R_LAB), pa = supScreen(s.ang, R_ARROW);
             parts.push('<g id="lvl-sup-' + s.key + '" class="lvl-sup">');
-            parts.push('<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="17" class="lvl-foot"/>');
-            parts.push('<text class="lvl-arrow" x="' + p.x.toFixed(1) + '" y="' + (p.y + 6).toFixed(1) + '">·</text>');
+            parts.push('<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="14" class="lvl-foot"/>');
+            // radiální šipka (stativ): míří K patě = vysunout / OD paty = zasunout; transform nastaví render
+            parts.push('<polygon class="lvl-rad" points="-7,-7 9,0 -7,7 -1,0" transform="translate(' + pa.x.toFixed(1) + ',' + pa.y.toFixed(1) + ')" />');
+            // glyf uvnitř kolečka (přístroj ↻/↺, nebo ✓ v rovině)
+            parts.push('<text class="lvl-glyph" x="' + p.x.toFixed(1) + '" y="' + (p.y + 0.5).toFixed(1) + '"></text>');
             parts.push('<text class="lvl-lab" x="' + pl.x.toFixed(1) + '" y="' + (pl.y + 4).toFixed(1) + '">' + s.label + '</text>');
             parts.push('</g>');
         });
         // bublina
-        parts.push('<circle id="lvl-bubble" cx="' + CN + '" cy="' + CN + '" r="18" fill="rgba(52,211,153,0.85)" stroke="#fff" stroke-width="1.5"/>');
+        parts.push('<circle id="lvl-bubble" cx="' + CN + '" cy="' + CN + '" r="15" fill="rgba(52,211,153,0.85)" stroke="#fff" stroke-width="1.5"/>');
         parts.push('</svg>');
         return parts.join('');
     }
@@ -188,7 +191,6 @@
             + '<div class="lvl-vial-wrap"><div class="lvl-vial">' + vialSvg() + '</div></div>'
             + '<div class="lvl-angle"><span id="lvl-ang">–</span><small>°</small></div>'
             + '<div class="lvl-instr" id="lvl-instr"></div>'
-            + '<div class="lvl-legend" id="lvl-legend"></div>'
             + '<label class="lvl-switch lvl-screw-opt lvl-hidden" id="lvl-screw-opt"><input type="checkbox" id="lvl-screw-inv"><span></span>Můj přístroj má opačné šrouby (otáčí se naopak)</label>'
             + '<div class="lvl-status" id="lvl-status">Polož telefon na hlavu stativu, displejem nahoru.</div>'
             + '<div class="lvl-cal">'
@@ -232,14 +234,12 @@
         _mode = m;
         if (!_ui) return;
         _ui.querySelectorAll('.lvl-segbtn').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-mode') === m); });
-        var sub = $('lvl-sub'), leg = $('lvl-legend');
+        var sub = $('lvl-sub');
         var sopt = $('lvl-screw-opt'); if (sopt) sopt.classList.toggle('lvl-hidden', m !== 'instrument');
         if (m === 'tripod') {
-            sub.innerHTML = 'Postav stativ, postav se k němu tak, aby <b>přední noha mířila od tebe</b> a zbylé dvě byly vlevo a vpravo. Polož telefon na hlavu, <b>delší stranou k sobě</b>. Aplikace ti řekne, kterou nohou a kam pohnout.';
-            if (leg) leg.innerHTML = '<span class="lg up"><i></i>zelená = vysunout nohu (nahoru)</span><span class="lg down"><i></i>oranžová = zasunout nohu (dolů)</span>';
+            sub.innerHTML = 'Postav se ke stativu tak, aby <b>přední noha mířila od tebe</b>, zbylé dvě vlevo/vpravo. Telefon polož na hlavu <b>delší stranou k sobě</b>. Šipka <b>k patě = vysunout</b>, <b>od paty = zasunout</b>.';
         } else {
-            sub.innerHTML = 'Telefon polož na tribrach (nad šrouby). Drž rozložení: jeden šroub od tebe, dva k tobě. Appka řekne, kterým šroubem a <b>na kterou stranu otočit</b>. Závěr vždy dolaď krabicovou libelou přístroje.';
-            if (leg) leg.innerHTML = '<span class="lg up"><i>↻</i>zelená = otoč doprava</span><span class="lg down"><i>↺</i>oranžová = otoč doleva</span>';
+            sub.innerHTML = 'Telefon polož na tribrach nad šrouby (jeden od tebe, dva k tobě). Appka řekne, <b>kterým šroubem a kam otočit</b>. Závěr dolaď krabicovou libelou přístroje.';
         }
     }
 
@@ -306,38 +306,49 @@
         var dom = corr.slice().sort(function (a, b) { return Math.abs(b.c) - Math.abs(a.c); })[0];
         // pro přístroj s opačným závitem otočíme směr (doprava↔doleva)
         function shown(c) { var low = c > 0; return (_mode === 'instrument' && _screwInvert) ? !low : low; }
+        var level = t.ang <= tol.ok;
 
         corr.forEach(function (c) {
             var g = _ui.querySelector('#lvl-sup-' + c.s.key);
             if (!g) return;
-            var arrow = g.querySelector('.lvl-arrow');
-            var isDom = (c === dom) && t.ang > tol.ok;
-            var s = shown(c.c);   // true = zvednout / doprava
-            if (t.ang <= tol.ok) arrow.textContent = '✓';
-            else if (_mode === 'instrument') arrow.textContent = s ? '↻' : '↺';
-            else arrow.textContent = s ? '▲' : '▼';
-            var faded = !isDom && t.ang > tol.ok ? ' faded' : '';   // jen dominantní opěra výrazná
-            g.setAttribute('class', 'lvl-sup' + (isDom ? ' dom' : '') + faded + ' ' + (t.ang <= tol.ok ? 'level' : (s ? 'up' : 'down')));
+            var poly = g.querySelector('.lvl-rad');
+            var glyph = g.querySelector('.lvl-glyph');
+            var isDom = (c === dom) && !level;
+            var s = shown(c.c);   // true = vysunout / doprava
+            if (level) {
+                if (glyph) glyph.textContent = '✓';
+                if (poly) poly.style.display = 'none';
+            } else if (_mode === 'instrument') {
+                if (glyph) glyph.textContent = s ? '↻' : '↺';   // směr otáčení šroubu
+                if (poly) poly.style.display = 'none';
+            } else {
+                if (glyph) glyph.textContent = '';
+                if (poly) {
+                    var pa = supScreen(c.s.ang, R_ARROW);
+                    var rot = -c.s.ang + (s ? 0 : 180);          // s=vysunout → šipka K patě (ven); jinak OD paty (dovnitř)
+                    poly.style.display = '';
+                    poly.setAttribute('transform', 'translate(' + pa.x.toFixed(1) + ',' + pa.y.toFixed(1) + ') rotate(' + rot.toFixed(1) + ')');
+                }
+            }
+            var faded = !isDom && !level ? ' faded' : '';        // jen dominantní opěra výrazná
+            g.setAttribute('class', 'lvl-sup' + (isDom ? ' dom' : '') + faded + ' ' + (level ? 'level' : (s ? 'up' : 'down')));
         });
 
-        // hlavní pokyn — jedna jasná akce slovy
+        // hlavní pokyn — jedna jasná akce slovy (gramaticky: poloha místo „levá šroubem")
         var instr = $('lvl-instr');
         if (instr) {
             var ds = shown(dom.c);
-            if (t.ang <= tol.ok) {
+            if (level) {
                 instr.innerHTML = '<div class="lvl-ok">✓ V rovině</div>';
             } else if (_mode === 'tripod') {
-                var verb = ds ? 'Vysuň (prodluž)' : 'Zasuň (zkrať)';
+                var verb = ds ? 'vysuň' : 'zasuň';
                 var cm = Math.abs(dom.mm) / 10;
                 instr.innerHTML = '<div class="lvl-do ' + (ds ? 'up' : 'down') + '">'
-                    + '<span class="lvl-ico">' + (ds ? '▲' : '▼') + '</span>'
-                    + verb + ' <b>' + dom.s.label + ' nohu</b> o cca <b>' + cm.toFixed(cm < 5 ? 1 : 0) + ' cm</b></div>';
+                    + 'Noha <b>' + dom.s.pos + '</b>: ' + verb + ' o ~<b>' + cm.toFixed(cm < 5 ? 1 : 0) + ' cm</b></div>';
             } else {
-                var turn = ds ? 'doprava ↻' : 'doleva ↺';
                 instr.innerHTML = '<div class="lvl-do ' + (ds ? 'up' : 'down') + '">'
-                    + '<span class="lvl-ico">' + (ds ? '↻' : '↺') + '</span>'
-                    + 'Otoč <b>' + dom.s.label + ' šroubem ' + turn + '</b></div>'
-                    + '<div class="lvl-hint">Kdyby bublina šla od středu, zapni „opačné šrouby" výše (závity přístrojů se liší).</div>';
+                    + 'Šroub <b>' + dom.s.pos + '</b>: otoč <b>' + (ds ? 'doprava ↻' : 'doleva ↺') + '</b></div>'
+                    + '<div class="lvl-hint">Kdyby bublina šla od středu, zapni „opačné šrouby" níže.</div>';
             }
         }
 
@@ -365,6 +376,7 @@
         pauseCamera(); startSensors(); lockScreen();
         document.addEventListener('visibilitychange', onVis);
         _ui.classList.add('on');
+        render();
         if (!_tick) _tick = setInterval(render, 120);
     }
     function close() {
