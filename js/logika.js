@@ -26,7 +26,9 @@ if ('serviceWorker' in navigator) {
         osmLayer.addTo(map);
         const markersGroup = L.layerGroup().addTo(map);
         
-        let projects = JSON.parse(localStorage.getItem('arProjectsList')) || [{id:'default', name:'Výchozí zakázka'}];
+        let projects;
+        try { projects = JSON.parse(localStorage.getItem('arProjectsList')); } catch (e) { projects = null; } // poskozeny zapis nesmi shodit start
+        if (!Array.isArray(projects) || !projects.length) projects = [{id:'default', name:'Výchozí zakázka'}];
         let activeProjectId = localStorage.getItem('arActiveProjectId') || 'default';
         if (!localStorage.getItem('arProjects_migrated')) {
             ['arFilters12', 'arRadiusMap', 'arRadiusAR', 'arOfflinePoints12', 'arCustomPoints12', 'arVisSettings12', 'arLines12', 'arHeadingOffset'].forEach(k => {
@@ -163,15 +165,15 @@ if ('serviceWorker' in navigator) {
         function deleteProject() { if(projects.length <= 1) return alert("Nelze smazat poslední zakázku."); if(!confirm("Opravdu smazat aktuální zakázku a všechny její uložené body?")) return; IDB_KEYS.forEach(k => { _idbDel(activeProjectId + "_" + k); try { localStorage.removeItem(activeProjectId + "_" + k); } catch(e){} }); projects = projects.filter(p => p.id !== activeProjectId); localStorage.setItem('arProjectsList', JSON.stringify(projects)); activeProjectId = projects[0].id; localStorage.setItem('arActiveProjectId', activeProjectId); renderProjectSelect(); hydrateActiveProject().then(loadProjectSettings); }
 
         function loadProjectSettings() {
-            let f = getStoredData('arFilters12'); if(f) filters = JSON.parse(f); else filters = { tb: true, zhb: true, pbpp: true, nivel: true, custom: true };
+            let f = getStoredData('arFilters12'); try { filters = f ? JSON.parse(f) : null; } catch (e) { filters = null; } if (!filters || typeof filters !== 'object') filters = { tb: true, zhb: true, pbpp: true, nivel: true, custom: true };
             let m = getStoredData('arRadiusMap'); if(m) mapRadius = parseInt(m); else mapRadius = 1000;
             let a = getStoredData('arRadiusAR'); if(a) arRadius = parseInt(a); else arRadius = 150;
-            let vs = getStoredData('arVisSettings12'); if(vs) visSettings = Object.assign(visSettings, JSON.parse(vs));
+            let vs = getStoredData('arVisSettings12'); if(vs) { try { var _vs = JSON.parse(vs); if (_vs && typeof _vs === 'object') visSettings = Object.assign(visSettings, _vs); } catch (e) {} }
             let ho = getStoredData('arHeadingOffset'); userHeadingOffset = ho ? (parseFloat(ho) || 0) : 0;
 
             arPoints.forEach(p => { if(p.element) p.element.remove(); }); arPoints = []; persistentCustomPoints = [];
-            let off = getStoredData('arOfflinePoints12'); if(off) { try { JSON.parse(off).forEach(p => { p.element=null; p.distElement=null; p.ringElement=null; p.bestAccuracy=null; p.hidden=false; arPoints.push(p); }); }catch(e){} }
-            let cust = getStoredData('arCustomPoints12'); if(cust) { try { persistentCustomPoints = JSON.parse(cust); } catch(e) {} }
+            let off = getStoredData('arOfflinePoints12'); if(off) { try { var _off = JSON.parse(off); if (Array.isArray(_off)) _off.forEach(p => { if (!p || typeof p.lat !== 'number' || typeof p.lng !== 'number' || !isFinite(p.lat) || !isFinite(p.lng)) return; p.element=null; p.distElement=null; p.ringElement=null; p.bestAccuracy=null; p.hidden=false; arPoints.push(p); }); }catch(e){} }
+            let cust = getStoredData('arCustomPoints12'); if(cust) { try { var _cust = JSON.parse(cust); if (Array.isArray(_cust)) persistentCustomPoints = _cust.filter(p => p && typeof p.lat === 'number' && typeof p.lng === 'number' && isFinite(p.lat) && isFinite(p.lng)); } catch(e) {} }
             loadLines();
             // OPRAVA: vlastni body musi po startu i do arPoints (AR + mapa), ne jen do seznamu spravy
             persistentCustomPoints.forEach(pt => arPoints.push({...pt, hidden: false}));
@@ -510,6 +512,8 @@ if ('serviceWorker' in navigator) {
         }
 
 
+        // Stav pro preskok prepoctu vzdalenosti/azimutu, kdyz uzivatel stoji (setri CPU pri stovkach bodu).
+        let _lastCalcLat = null, _lastCalcLng = null, _lastCalcCount = 0;
         if ("geolocation" in navigator) {
             navigator.geolocation.watchPosition(
                 (position) => {
@@ -523,7 +527,8 @@ if ('serviceWorker' in navigator) {
                     
                     if (highlightedPointId) { let hlPt = arPoints.find(p => p.id === highlightedPointId); if (hlPt) { if (hlPt.bestAccuracy === null || currentGpsAccuracy < hlPt.bestAccuracy) { hlPt.bestAccuracy = currentGpsAccuracy; } } }
 
-                    arPoints.forEach(p => { p.currentDist = getDistance(userLat, userLng, p.lat, p.lng); p.currentBearing = getBearing(userLat, userLng, p.lat, p.lng); }); arPoints.sort((a, b) => a.currentDist - b.currentDist);
+                    var _movedCalc = (_lastCalcLat === null) ? 999 : getDistance(_lastCalcLat, _lastCalcLng, userLat, userLng);
+                    if (_movedCalc > 0.25 || arPoints.length !== _lastCalcCount) { arPoints.forEach(p => { p.currentDist = getDistance(userLat, userLng, p.lat, p.lng); p.currentBearing = getBearing(userLat, userLng, p.lat, p.lng); }); arPoints.sort((a, b) => a.currentDist - b.currentDist); _lastCalcLat = userLat; _lastCalcLng = userLng; _lastCalcCount = arPoints.length; }
                     if (activePointIdForModal) { const activePt = arPoints.find(p => p.id === activePointIdForModal); if (activePt) { const newDist = getDistance(userLat, userLng, activePt.lat, activePt.lng); const distEl = document.getElementById('sheet-distance-val'); if (distEl) distEl.innerText = `${newDist.toFixed(1)} m`; const gpsEl = document.getElementById('sheet-gps-val'); if (gpsEl) gpsEl.innerText = currentGpsAccuracy.toFixed(1); } }
                     if (lastCenterLat === null) { map.setView([userLat, userLng], 19, { animate: false }); lastCenterLat = userLat; lastCenterLng = userLng; } else if (!window._mapHold && getDistance(lastCenterLat, lastCenterLng, userLat, userLng) > 1.5) { map.setView([userLat, userLng], map.getZoom(), { animate: false }); lastCenterLat = userLat; lastCenterLng = userLng; }
                     if (lastFetchLat === null || lastFetchLng === null) { lastFetchLat = userLat; lastFetchLng = userLng; if (appStarted) setTimeout(() => initFetch(userLat, userLng), 1000); } else { const moved = getDistance(lastFetchLat, lastFetchLng, userLat, userLng); if (moved > 25) { lastFetchLat = userLat; lastFetchLng = userLng; if (appStarted) initFetch(userLat, userLng); } }
