@@ -41,9 +41,9 @@
         }
     }
 
-    function coordStr(lng, lat) {
+    function coordStr(lng, lat, alt) {
         // KML pořadí: longitude,latitude,altitude
-        return (+lng).toFixed(8) + ',' + (+lat).toFixed(8) + ',0';
+        return (+lng).toFixed(8) + ',' + (+lat).toFixed(8) + ',' + (alt != null && isFinite(alt) ? (+alt).toFixed(2) : '0');
     }
 
     // --- generátor KML 2.2 -------------------------------------------------------
@@ -66,7 +66,7 @@
                 body += '    <Placemark>\n' +
                     '      <name>' + xmlEsc(p.name || 'Bod') + '</name>\n' +
                     '      <styleUrl>#agPoint</styleUrl>\n' +
-                    '      <Point><coordinates>' + coordStr(p.lng, p.lat) + '</coordinates></Point>\n' +
+                    '      <Point>' + (p.vyska != null ? '<altitudeMode>absolute</altitudeMode>' : '') + '<coordinates>' + coordStr(p.lng, p.lat, p.vyska) + '</coordinates></Point>\n' +
                     '    </Placemark>\n';
                 nPts++;
             });

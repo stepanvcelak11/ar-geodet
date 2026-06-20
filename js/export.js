@@ -31,7 +31,7 @@
         out += '<gpx version="1.1" creator="AR Geodet" xmlns="http://www.topografix.com/GPX/1/1">\n';
         pts.forEach(p => {
             if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
-            out += `  <wpt lat="${p.lat.toFixed(8)}" lon="${p.lng.toFixed(8)}"><name>${_xml(p.name || 'Bod')}</name></wpt>\n`;
+            out += `  <wpt lat="${p.lat.toFixed(8)}" lon="${p.lng.toFixed(8)}">${p.vyska != null ? `<ele>${(+p.vyska).toFixed(2)}</ele>` : ''}<name>${_xml(p.name || 'Bod')}</name></wpt>\n`;
         });
         lines.forEach(l => {
             out += `  <trk><name>${_xml((l.aName || '?') + '-' + (l.bName || '?'))}</name><trkseg>`;
@@ -54,8 +54,8 @@
             if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
             features.push({
                 type: 'Feature',
-                geometry: { type: 'Point', coordinates: [p.lng, p.lat] },
-                properties: { name: p.name || 'Bod' }
+                geometry: { type: 'Point', coordinates: p.vyska != null ? [p.lng, p.lat, +p.vyska] : [p.lng, p.lat] },
+                properties: { name: p.name || 'Bod', vyska: (p.vyska != null ? +p.vyska : null) }
             });
         });
         lines.forEach(l => {
