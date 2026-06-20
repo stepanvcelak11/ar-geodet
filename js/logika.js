@@ -341,11 +341,23 @@ if ('serviceWorker' in navigator) {
             if (userLat && userLng && typeof initFetch === 'function') initFetch(userLat, userLng);
             return added;
         };
+        // Detekce kódování: české seznamy souřadnic (Kokeš/Groma/VKM/GP) bývají Windows-1250,
+        // ne UTF-8. Zkusíme UTF-8; když vzniknou náhradní znaky (�), spadneme na Windows-1250.
+        function _agDecodeText(buf) {
+            try {
+                var utf = new TextDecoder('utf-8', { fatal: false }).decode(buf);
+                if (utf.indexOf('�') >= 0) { try { return new TextDecoder('windows-1250').decode(buf); } catch (e) {} }
+                return utf;
+            } catch (e) { try { return new TextDecoder('windows-1250').decode(buf); } catch (e2) { return ''; } }
+        }
+        window._agDecodeBuf = _agDecodeText;
         function importPoints(event) {
             const file = event.target.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
-                let txt = e.target.result, imported = null;
+                // čteme binárně a detekujeme kódování (kvůli diakritice v číslech/názvech bodů)
+                let txt = (typeof e.target.result === 'string') ? e.target.result : _agDecodeText(e.target.result);
+                let imported = null;
                 try { let j = JSON.parse(txt); if (Array.isArray(j)) imported = j; } catch (err) {}
                 if (!imported) imported = parseCoordsCSV(txt);
                 if (!imported || imported.length === 0) { alert("V souboru se nenašly žádné body.\n\nPodporováno: JSON, nebo CSV/TXT s řádky 'číslo;Y;X' (oddělovač ; , tab nebo mezera)."); event.target.value = ''; return; }
@@ -353,7 +365,7 @@ if ('serviceWorker' in navigator) {
                 alert("Importováno " + added + " bodů do aktuální zakázky.");
                 event.target.value = '';
             };
-            reader.readAsText(file);
+            reader.readAsArrayBuffer(file);
         }
         function deleteCustomPoint(id) { if(!confirm("Smazat?")) return; persistentCustomPoints = persistentCustomPoints.filter(p => p.id !== id); setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); pointLines = pointLines.filter(l => l.aId !== id && l.bId !== id); saveLines(); renderManageList(); drawAllMarkersOnMap(); const idx = arPoints.findIndex(p => p.id === id); if(idx !== -1) { if(arPoints[idx].element) arPoints[idx].element.remove(); arPoints.splice(idx, 1); } updateInfoPanel(); }
         // Vyplnit Y/X z PRUMEROVANE GPS polohy (presnejsi nez jeden odecet) + ulozit dosazenou presnost
@@ -432,7 +444,13 @@ if ('serviceWorker' in navigator) {
             const wx = swx / sw, wy = swy / sw;
             const sigma = Math.sqrt(used.reduce((a, p) => a + Math.pow(p.x - wx, 2) + Math.pow(p.y - wy, 2), 0) / used.length);
             const neff = Math.max(1, used.length / 4); // fixy ~1/s jsou korelovane v radu sekund
-            const sterr = sigma / Math.sqrt(neff);
+            // POZOR na falesnou presnost: sterr je jen VNITRNI rozptyl prumeru. Mobilni GNSS bez
+            // RTK ma ale dominantni SYSTEMATICKOU slozku (multipath/troposfera/konstelace), kterou
+            // prumerovani NEodstrani. Proto sterr zdola omezime realnou mezi ~0.3x nejlepsi hlasena
+            // presnost (min 0.2 m), at panel nehlasi centimetry tam, kde je realna chyba metr.
+            const bestAcc = used.reduce((m, p) => Math.min(m, (p.s.acc || 99)), 99);
+            const sterrFloor = Math.max(0.3 * bestAcc, 0.2);
+            const sterr = Math.max(sigma / Math.sqrt(neff), sterrFloor);
             const meanAcc = used.reduce((a, p) => a + (p.s.acc || 0), 0) / used.length;
             gpsAvgResult = { lat: lat0 + wy / mLat, lng: lng0 + wx / mLng, n: used.length, total: total, sigma: sigma, sterr: sterr, acc: meanAcc, coarse: false };
             updateGpsAvgPanel();
@@ -474,6 +492,10 @@ if ('serviceWorker' in navigator) {
             } else { updateInfoPanel(); }
         }
 
+
+        // TRVALÉ ÚLOŽIŠTĚ: na iOS hrozí smazání dat (localStorage i IndexedDB) po ~7 dnech
+        // nečinnosti. Požádáme o trvalé úložiště — pomáhá na Androidu/desktopu, na iOS neuškodí.
+        try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {}); } catch (e) {}
 
         if ("geolocation" in navigator) {
             navigator.geolocation.watchPosition(

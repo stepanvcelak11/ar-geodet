@@ -686,7 +686,7 @@
     // --------------------------------------------------------------------------------
     // 9) ZÁLOHA — razítko po stažení + nenásilná připomínka (data jsou jen v telefonu)
     //    Nezálohuje automaticky (to by nutilo stahovat soubor bez svolení); jen připomene
-    //    max 1×/den, když je poslední záloha starší 14 dní a v zakázkách jsou data.
+    //    max 1×/den, když je poslední záloha starší 5 dní a v zakázkách jsou data.
     // --------------------------------------------------------------------------------
     let _backupNudged = false;
     function wrapBackup() {
@@ -714,7 +714,7 @@
         try { nudged = parseInt(localStorage.getItem('agBackupNudgedAt') || '0', 10) || 0; } catch (e) {}
         const now = Date.now(), DAY = 86400000;
         if (now - nudged < DAY) return;            // ne víc než 1× denně
-        if (last && now - last < 14 * DAY) return; // záloha je čerstvá
+        if (last && now - last < 5 * DAY) return;  // záloha je čerstvá (pod iOS ~7denním eviction oknem)
         if (!hasData()) return;                    // není co zálohovat
         if (typeof window.exportAllData !== 'function') return;
         _backupNudged = true;

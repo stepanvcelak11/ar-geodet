@@ -194,8 +194,10 @@ function renderSatellitesAR() {
     for (const k in _satElems) { if (!seen[k]) _satElems[k].style.display = 'none'; }
 }
 (function () {
+    if (typeof renderAR !== 'function' || renderAR._satWrapped) return;   // idempotence (dvojí načtení)
     const _orig = renderAR;
     renderAR = function (event) { _orig(event); try { renderSatellitesAR(); } catch (e) {} };
+    renderAR._satWrapped = true;
 })();
 
 // ---------- modal ----------
@@ -294,7 +296,7 @@ function findBestSatTime() {
 // POČET viditelných družic nad maskou. Počítá se max 1x za 8 s; při prázdné cache TLE se
 // jednou potichu stáhnou dráhy, ať se počet objeví i bez otevření Satelitů.
 (function () {
-    if (typeof updateInfoPanel !== 'function') return;
+    if (typeof updateInfoPanel !== 'function' || updateInfoPanel._satWrapped) return;   // idempotence (dvojí načtení)
     const _orig = updateInfoPanel;
     let _t = 0, _cache = null, _triedFetch = false;
     updateInfoPanel = function () {
@@ -325,4 +327,5 @@ function findBestSatTime() {
         else if (ageH > TLE_MAX_AGE_H) staleTxt = ` <span style="color:var(--warning);" title="Dráhy družic staré ${Math.round(ageH)} h – ${navigator.onLine ? 'obnoví se' : 'offline, neaktualizuje se'}">⚠ ${Math.round(ageH / 24)} d</span>`;
         infoEl.innerHTML += `<div class="rdt"><span class="rdt-l">Družice</span><span class="rdt-v" style="color:${col};">${vis} nad ${SAT_EL_MASK}°${staleTxt}</span></div>`;
     };
+    updateInfoPanel._satWrapped = true;
 })();

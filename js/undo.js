@@ -86,13 +86,14 @@
 
     function wrap(name, msg) {
         const orig = window[name];
-        if (typeof orig !== 'function') return;
+        if (typeof orig !== 'function' || orig._undoWrapped) return;   // idempotence (dvojí načtení)
         window[name] = function () {
             const before = snap();
             const ret = orig.apply(this, arguments);
             try { if (changed(before, snap())) showUndo(msg, before); } catch (e) { }
             return ret;
         };
+        window[name]._undoWrapped = true;
     }
 
     wrap('deleteProject', 'Zakázka smazána');

@@ -506,10 +506,11 @@
             var N = parseInt((document.getElementById('agpc-div-n') || {}).value, 10);
             if (!(N >= 2)) { agAlert('Zadej N', 'Počet dílů musí být alespoň 2.'); return; }
             var edgeI = parseInt(document.getElementById('agpc-div-edge').value, 10) || 0;
-            var lines = [], pts = [], areas = [];
+            var lines = [], pts = [], areas = [], warnNC = false;
             for (var k = 1; k < N; k++) {
                 var sol = solveParallel(state.verts, edgeI, total * k / N);
                 if (!sol || sol.crossings.length < 2) continue;
+                if (sol.crossings.length > 2) warnNC = true;       // nekonvexní: víc průsečíků s hranicí
                 var cs = sol.crossings.slice(0, 2);
                 lines.push([cs[0], cs[1]]);
                 cs.forEach(function (p) { pts.push(p); });
@@ -517,6 +518,7 @@
             for (var q = 0; q < N; q++) areas.push(total / N);
             state.division = { lines: lines, points: enrich(pts), areas: areas, label: 'Rovnoměrné dělení na ' + N + ' dílů' };
             resEl.innerHTML = divResultHTML('Rozděleno na ' + N + ' dílů po ' + fmtArea(total / N) + '.', pts.length);
+            if (warnNC) resEl.innerHTML += ncWarnHTML();
         } else if (method === 'vertex') {
             var vI = parseInt(document.getElementById('agpc-div-vert').value, 10) || 0;
             var tA = parseFloat(String((document.getElementById('agpc-div-area') || {}).value).replace(',', '.'));
@@ -536,6 +538,7 @@
             state.division = { lines: [[cs2[0], cs2[1]]], points: enrich(cs2), areas: [sp.area1, sp.area2], label: 'Rovnoběžně s hranou ' + (eI + 1) };
             resEl.innerHTML = divResultHTML('Díl A (u hrany) = ' + fmtArea(sp.area1) + '<br>Díl B = ' + fmtArea(sp.area2)
                 + '<br><span style="opacity:.7">P1: ' + fmtYX(cs2[0].Y, cs2[0].X) + '<br>P2: ' + fmtYX(cs2[1].Y, cs2[1].X) + '</span>', 2);
+            if (sp.crossings.length > 2) resEl.innerHTML += ncWarnHTML();   // nekonvexní parcela
         }
         drawMap();
         var dc = document.getElementById('agpc-div-savebtn');
@@ -544,6 +547,12 @@
     function divResultHTML(inner, nPts) {
         return '<div class="agpc-divbox">' + inner
             + '<button class="btn" id="agpc-div-savebtn" style="margin-top:10px;"><svg class="icon"><use href="#i-plus"/></svg> Uložit ' + nPts + ' lomových bodů do zakázky</button></div>';
+    }
+    // Nekonvexní parcela: dělicí čára protíná hranici na více než 2 místech. Výměry dílů
+    // (areaClip) jsou správné, ale nakreslená čára / uložené body popíší jen první dva
+    // průsečíky — varuj, ať uživatel nedůvěřuje neúplné čáře.
+    function ncWarnHTML() {
+        return '<div style="margin-top:8px;color:#fbbf24;font-size:12px;line-height:1.4;">⚠ Parcela je nekonvexní – dělicí čára protíná hranici na více místech. Výměry dílů jsou správné, ale nakreslená čára a uložené body nemusí dělení popsat úplně. Ověř geometrii ručně.</div>';
     }
     function enrich(pts) {
         return pts.map(function (p) { var ll = yxToLL(p.Y, p.X); return { Y: p.Y, X: p.X, lat: ll.lat, lng: ll.lng }; });

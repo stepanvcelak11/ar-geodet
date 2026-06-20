@@ -42,13 +42,25 @@
         }
         var m = pointMap(); return m[name] || null;
     }
-    // délka ze souřadnic (S-JTSK rovina) mezi dvěma jmény
+    // TERÉNNÍ délka mezi dvěma body (z lokálních poloměrů křivosti WGS84).
+    // POZOR: pásmo měří TERÉNNÍ (vodorovnou) délku, kdežto rovinná S-JTSK délka je
+    // redukovaná do Křovákova zobrazení (zkreslení −10..+14 cm/km, u dlouhých oměrných
+    // i přes toleranci). Proto pro porovnání s pásmem vracíme terénní délku — bez té
+    // systematiky a přesněji než haversine.
+    function groundDist(pa, pb) {
+        var aE = 6378137, e2 = 0.00669437999014;          // WGS84
+        var latm = (pa.lat + pb.lat) / 2 * Math.PI / 180;
+        var sn = Math.sin(latm), W = Math.sqrt(1 - e2 * sn * sn);
+        var M = aE * (1 - e2) / (W * W * W);              // meridionální poloměr křivosti
+        var N = aE / W;                                   // příčný poloměr křivosti
+        var dN = (pb.lat - pa.lat) * Math.PI / 180 * M;
+        var dE = (pb.lng - pa.lng) * Math.PI / 180 * N * Math.cos(latm);
+        return Math.hypot(dN, dE);
+    }
     function coordDist(a, b) {
         var pa = resolve(a), pb = resolve(b);
         if (!pa || !pb) return null;
-        var sa = toSJTSK(pa.lat, pa.lng), sb = toSJTSK(pb.lat, pb.lng);
-        if (!sa || !sb) return null;
-        return Math.hypot(sa.Y - sb.Y, sa.X - sb.X);
+        return groundDist(pa, pb);
     }
     function tolFor(d) { return cfg.baseMm / 1000 + cfg.ppm * d / 1e6; }
 
@@ -85,7 +97,7 @@
             '    <div class="omr-title">Oměrné kontrolní míry</div>' +
             '    <button class="omr-x" id="omr-close" aria-label="Zavřít">✕</button>' +
             '  </div>' +
-            '  <div class="omr-sub">Porovná pásmem měřené délky s délkami ze souřadnic (S-JTSK). Δ = měřeno − ze souřadnic.</div>' +
+            '  <div class="omr-sub">Porovná pásmem měřené délky s délkami ze souřadnic (redukováno na terén, bez zkreslení Křováka). Δ = měřeno − ze souřadnic.</div>' +
             '  <div class="omr-add">' +
             '    <select id="omr-a" class="omr-sel"></select>' +
             '    <span class="omr-dash">—</span>' +

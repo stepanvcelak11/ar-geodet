@@ -389,14 +389,38 @@
     }
     function fmtMiss(d) { return d < 1 ? (d * 100).toFixed(0) + ' cm' : d.toFixed(2) + ' m'; }
 
+    function confirmBox(title, msg, okText, cancelText, danger) {
+        if (typeof window.agConfirm === 'function') return window.agConfirm({ title: title, message: msg, okText: okText, cancelText: cancelText, danger: !!danger });
+        try { return Promise.resolve(window.confirm(title + '\n\n' + String(msg).replace(/<[^>]*>/g, ''))); } catch (e) { return Promise.resolve(false); }
+    }
+    function promptName(def) {
+        if (typeof window.agPrompt === 'function') return window.agPrompt({ title: 'Název bodu', value: def, okText: 'Uložit' });
+        try { return Promise.resolve(prompt('Název bodu:', def)); } catch (e) { return Promise.resolve(def); }
+    }
     function saveTarget() {
         if (!_result) return;
         if (typeof window.addImportedPoints !== 'function') { agAlert('Nelze uložit', 'Vkládání bodů není dostupné.'); return; }
-        var name = _targetName;
-        try { name = prompt('Název bodu:', _targetName || 'P_protnuti') || _targetName || 'P_protnuti'; } catch (e) { name = _targetName || 'P_protnuti'; }
-        var added = window.addImportedPoints([{ name: name, lat: _result.lat, lng: _result.lng }]);
-        if (added > 0) agAlert('Bod uložen', '#' + name + ' uložen do zakázky (protínání vpřed z ' + _result.n + ' stanovisek, úhel ' + _result.angleP.toFixed(0) + '°).\nNajdeš ho v seznamu Body.');
-        else agAlert('Neuloženo', 'Bod se stejným názvem a polohou už v zakázce je.');
+        var r = _result;
+        // BRÁNA na hrubou chybu: u 2 paprsků je rms vždy 0 (žádná kontrola), takže špatnou
+        // geometrii (cíl „za zády" / velmi ostrý úhel < 20°) odchytíme zde a necháme uživatele
+        // potvrdit — jinak by se nejistá poloha tiše uložila jako „určený" bod.
+        var risky = r.behind || r.angleP < 20;
+        var gate = risky
+            ? confirmBox('Nejistý výsledek',
+                (r.behind ? 'Cíl vyšel „za zády" některého stanoviska. ' : '')
+                + (r.angleP < 20 ? 'Úhel protnutí je jen ' + r.angleP.toFixed(0) + '° (velmi ostrý). ' : '')
+                + 'Poloha může být hrubě chybná. Opravdu uložit?', 'Přesto uložit', 'Zpět', true)
+            : Promise.resolve(true);
+        gate.then(function (ok) {
+            if (!ok) return;
+            promptName(_targetName || 'P_protnuti').then(function (nm) {
+                if (nm == null) return;                       // zrušeno
+                var name = (String(nm).trim() || _targetName || 'P_protnuti');
+                var added = window.addImportedPoints([{ name: name, lat: r.lat, lng: r.lng }]);
+                if (added > 0) agAlert('Bod uložen', '#' + name + ' uložen do zakázky (protínání vpřed z ' + r.n + ' stanovisek, úhel ' + r.angleP.toFixed(0) + '°).\nNajdeš ho v seznamu Body.');
+                else agAlert('Neuloženo', 'Bod se stejným názvem a polohou už v zakázce je.');
+            });
+        });
     }
 
     // ---- otevření/zavření + živá obnova ---------------------------------------

@@ -18,6 +18,15 @@
 
     var LS_KEY = 'agRefShift';
     var EARTH_M_LAT = 111320; // m na stupeň zeměpisné šířky (konstanta)
+    // Platnost lokální kalibrace: konstantní posun GPS platí jen krátce a blízko ref. bodu
+    // (systematika GPS se mění s časem i polohou). Mimo tyto meze posun varovně označíme.
+    var MAX_AGE_MS = 20 * 60 * 1000;   // 20 min
+    var MAX_DIST_M = 300;              // 300 m
+    function planarDist(lat1, lng1, lat2, lng2) {
+        var mLng = EARTH_M_LAT * Math.cos(((lat1 + lat2) / 2) * Math.PI / 180);
+        return Math.hypot((lng2 - lng1) * mLng, (lat2 - lat1) * EARTH_M_LAT);
+    }
+    function toastSafe(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
 
     // --------------------------------------------------------------------------------
     // Stav: window.agRefShift {dlat,dlng,t,acc,on}
@@ -29,7 +38,7 @@
             if (raw) {
                 var o = JSON.parse(raw);
                 if (o && isFinite(o.dlat) && isFinite(o.dlng)) {
-                    window.agRefShift = { dlat: +o.dlat, dlng: +o.dlng, t: o.t || 0, acc: o.acc, on: !!o.on };
+                    window.agRefShift = { dlat: +o.dlat, dlng: +o.dlng, t: o.t || 0, acc: o.acc, on: !!o.on, lat: (isFinite(o.lat) ? +o.lat : null), lng: (isFinite(o.lng) ? +o.lng : null) };
                     return window.agRefShift;
                 }
             }
@@ -132,6 +141,19 @@
                 p.lng += s.dlng;
                 p._agRefShifted = true;
                 p.refShift = { dlat: s.dlat, dlng: s.dlng, t: s.t };
+
+                // EXPIRACE: konstantní posun platí jen krátce a blízko ref. bodu. Mimo meze
+                // varuj (posun neblokujeme — uživatel může vědět, co dělá).
+                try {
+                    var ageMin = s.t ? (Date.now() - s.t) / 60000 : null;
+                    var farM = (isFinite(s.lat) && isFinite(s.lng)) ? planarDist(s.lat, s.lng, p.lat, p.lng) : null;
+                    if ((ageMin != null && ageMin > MAX_AGE_MS / 60000) || (farM != null && farM > MAX_DIST_M)) {
+                        var det = [];
+                        if (ageMin != null) det.push(Math.round(ageMin) + ' min');
+                        if (farM != null) det.push(Math.round(farM) + ' m od ref. bodu');
+                        toastSafe('⚠ Ref-kalibrace zastaralá/daleko (' + det.join(', ') + ') — přesnost posunu klesá, změř referenční bod znovu.');
+                    }
+                } catch (e) {}
 
                 // zrcadlo v arPoints (twin se stejným id), pokud existuje
                 try {
@@ -278,7 +300,7 @@
 
         var dlat = refLat - a.lat;
         var dlng = refLng - a.lng;
-        var s = { dlat: dlat, dlng: dlng, t: Date.now(), acc: (isFinite(a.sterr) ? a.sterr : null), on: true };
+        var s = { dlat: dlat, dlng: dlng, t: Date.now(), acc: (isFinite(a.sterr) ? a.sterr : null), on: true, lat: a.lat, lng: a.lng };
         var dist = fmtShift(s);
 
         // bezpečnostní brzda na nesmyslně velký posun (špatně zadané souřadnice / jiný kat. systém)

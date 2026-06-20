@@ -362,12 +362,23 @@
         document.getElementById('agpi-pane-ras').style.display = tab === 'ras' ? 'block' : 'none';
     }
 
+    // DXF z českých CADů bývá Windows-1250 (názvy vrstev s diakritikou). Zkus UTF-8,
+    // při náhradních znacích spadni na Windows-1250. (Sdílí logiku s window._agDecodeBuf.)
+    function decodeBuf(buf) {
+        if (typeof buf === 'string') return buf;
+        if (typeof window._agDecodeBuf === 'function') return window._agDecodeBuf(buf);
+        try {
+            var utf = new TextDecoder('utf-8', { fatal: false }).decode(buf);
+            if (utf.indexOf('�') >= 0) { try { return new TextDecoder('windows-1250').decode(buf); } catch (e) {} }
+            return utf;
+        } catch (e) { try { return new TextDecoder('windows-1250').decode(buf); } catch (e2) { return ''; } }
+    }
     function onDxfFile(ev) {
         var f = ev.target.files && ev.target.files[0]; if (!f) return;
         var rd = new FileReader();
         rd.onload = function () {
             try {
-                var d = parseDXF(String(rd.result));
+                var d = parseDXF(decodeBuf(rd.result));
                 var nLand = 0, nTot = 0;
                 d.points.forEach(function (q) { nTot++; if (inCZ(q)) nLand++; });
                 d.segs.forEach(function (s) { nTot += 2; if (inCZ(s.a)) nLand++; if (inCZ(s.b)) nLand++; });
@@ -379,7 +390,7 @@
                 toast('Načteno: ' + d.points.length + ' bodů, ' + d.segs.length + ' úseků');
             } catch (e) { agAlert('Chyba čtení DXF', String(e && e.message || e)); }
         };
-        rd.readAsText(f);
+        rd.readAsArrayBuffer(f);   // binárně kvůli detekci kódování (Windows-1250 / UTF-8)
         ev.target.value = '';
     }
 
@@ -458,30 +469,33 @@
         else s.innerHTML = 'Klepni na obrázek na <b>kontrolní bod ' + (_rasTmp.length + 1) + '</b> (roh, známý bod…), pak zadáš jeho reálnou polohu.';
     }
     function askControlPoint(ix, iy) {
-        var opts = ['Zadat S-JTSK (Y X)'];
         var canGps = haveUser();
         var msg = 'Kontrolní bod ' + (_rasTmp.length + 1) + ': zadej reálnou polohu.\n\n'
             + 'Napiš "Y X" v metrech (S-JTSK), NEBO nech prázdné a potvrď pro použití aktuální GPS' + (canGps ? '' : ' (GPS zatím není)') + '.';
-        var inp;
-        try { inp = prompt(msg, ''); } catch (e) { inp = null; }
-        if (inp === null) return;
-        var lat, lng;
-        inp = inp.trim();
-        if (inp === '') {
-            if (!canGps) { agAlert('Bez GPS', 'GPS poloha zatím není dostupná.'); return; }
-            lat = userLat; lng = userLng;
-        } else {
-            var nums = inp.split(/[\s;,]+/).map(function (t) { return parseFloat(t.replace(',', '.')); }).filter(function (v) { return !isNaN(v); });
-            if (nums.length < 2) { agAlert('Špatný vstup', 'Zadej dvě čísla: Y X v metrech.'); return; }
-            var ll = sj2ll(nums[0], nums[1]); lat = ll.lat; lng = ll.lng;
-        }
-        _rasTmp.push({ ix: ix, iy: iy, lat: lat, lng: lng });
-        drawRasCanvas(); updateRasStep();
-        if (_rasTmp.length === 2) {
-            _raster.cp = _rasTmp.slice();
-            ensureRasterEl(); _rasterEl.src = _raster.url; drawRaster(); persist();
-            toast('Situace umístěna na mapu');
-        }
+        // nativní prompt() je v iOS PWA (standalone) nespolehlivý → použij agPrompt s fallbackem
+        var getInput = (typeof window.agPrompt === 'function')
+            ? window.agPrompt({ title: 'Kontrolní bod ' + (_rasTmp.length + 1), message: msg, value: '', okText: 'Potvrdit' })
+            : Promise.resolve((function () { try { return prompt(msg, ''); } catch (e) { return null; } })());
+        getInput.then(function (inp) {
+            if (inp === null || inp === undefined) return;
+            var lat, lng;
+            inp = String(inp).trim();
+            if (inp === '') {
+                if (!canGps) { agAlert('Bez GPS', 'GPS poloha zatím není dostupná.'); return; }
+                lat = userLat; lng = userLng;
+            } else {
+                var nums = inp.split(/[\s;,]+/).map(function (t) { return parseFloat(t.replace(',', '.')); }).filter(function (v) { return !isNaN(v); });
+                if (nums.length < 2) { agAlert('Špatný vstup', 'Zadej dvě čísla: Y X v metrech.'); return; }
+                var ll = sj2ll(nums[0], nums[1]); lat = ll.lat; lng = ll.lng;
+            }
+            _rasTmp.push({ ix: ix, iy: iy, lat: lat, lng: lng });
+            drawRasCanvas(); updateRasStep();
+            if (_rasTmp.length === 2) {
+                _raster.cp = _rasTmp.slice();
+                ensureRasterEl(); _rasterEl.src = _raster.url; drawRaster(); persist();
+                toast('Situace umístěna na mapu');
+            }
+        });
     }
     function clearRaster() {
         _raster = null; _rasImg = null; _rasTmp = []; _rasStep = 0;

@@ -111,7 +111,13 @@
         var wx = swx / sw, wy = swy / sw;
         var sigma = Math.sqrt(pts.reduce(function (a, p) { return a + Math.pow(p.x - wx, 2) + Math.pow(p.y - wy, 2); }, 0) / pts.length);
         var neff = Math.max(1, pts.length / 4);        // po sobě jdoucí fixy jsou korelované
-        _result = { lat: lat0 + wy / m.lat, lng: lng0 + wx / m.lng, n: pts.length, sigma: sigma, sterr: sigma / Math.sqrt(neff) };
+        // FALEŠNÁ PŘESNOST: sterr je jen vnitřní rozptyl. Systematickou chybu mobilní GNSS
+        // (multipath/troposféra) průměrování neodstraní → sterr zdola omezíme realnou mezí
+        // (~0.3× nejlepší hlášená accuracy, min 0.2 m), ať nehlásíme nereálné centimetry.
+        var bestAcc = pts.reduce(function (mn, p) { return Math.min(mn, (p.s.acc || 99)); }, 99);
+        var sterrFloor = Math.max(0.3 * bestAcc, 0.2);
+        var sterr = Math.max(sigma / Math.sqrt(neff), sterrFloor);
+        _result = { lat: lat0 + wy / m.lat, lng: lng0 + wx / m.lng, n: pts.length, sigma: sigma, sterr: sterr };
     }
 
     // ---- příjem jednoho fixu --------------------------------------------------
@@ -434,6 +440,9 @@
                 lat += sh.dlat; lng += sh.dlng;
                 var m = mPerDeg(lat); var mag = Math.hypot(sh.dlng * m.lng, sh.dlat * m.lat);
                 calibTxt = '\nKalibrace aplikována: +' + (mag * 100).toFixed(0) + ' cm';
+                // expirace: konstantní posun stárne (systematika GPS se mění) → varuj nad 20 min
+                var ageMin = sh.t ? (Date.now() - sh.t) / 60000 : null;
+                if (ageMin != null && ageMin > 20) calibTxt += ' ⚠ kalibrace stará ' + Math.round(ageMin) + ' min (přesnost klesá)';
             }
         } catch (e) {}
         var name = ($('bgps-name').value || '').trim() || ('BG' + Date.now().toString().slice(-4));
