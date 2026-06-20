@@ -1915,24 +1915,38 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
 #dock .dock-btn:nth-child(4) { transform: translateX(-7px); }
 #dock .dock-btn:nth-child(3) { transform: translateX(-13px); }
 
-/* ---- Horní HUD pruh (Návrh 1): azimut vlevo, GPS vpravo, přesnost pod ním */
+/* ---- Horní HUD: kompaktní „chip" vzhled (jako návrh); pozice beze změny,
+   BEZ !important — aby šly prvky zase posouvat (drag/HUD editor). ---------- */
 #compass-debug {
     left: var(--hud-side);
     right: auto;
     top: max(var(--hud-top), env(safe-area-inset-top));
     transform-origin: top left;
-    border-radius: 12px;
+    padding: 5px 11px;
+    border-radius: var(--r-pill);
+    font-size: 12px;
 }
 #gps-avg {
-    left: auto !important;
+    left: auto;
     right: var(--hud-side);
-    top: max(var(--hud-top), env(safe-area-inset-top)) !important;
+    top: max(var(--hud-top), env(safe-area-inset-top));
     transform-origin: top right;
+    padding: 5px 11px;
+    border-radius: var(--r-pill);
+    font-size: 11.5px;
 }
 #info {
-    top: max(calc(var(--hud-top) + 46px), calc(env(safe-area-inset-top) + 46px));
+    top: max(calc(var(--hud-top) + 42px), calc(env(safe-area-inset-top) + 42px));
     left: var(--hud-side);
+    padding: 7px 12px;
+    border-radius: var(--r-lg);
+    min-width: 0;
 }
+#info .rdt { gap: 12px; }
+#info .rdt-l { font-size: 9px; }
+#info .rdt-v { font-size: 12px; }
+/* ztlumený mini-štítek v chipu (např. „AZ") */
+.hud-k { color: var(--text-muted); font-weight: 700; font-size: 0.82em; letter-spacing: 0.04em; margin-right: 2px; }
 
 /* ---- GPS indikátor (power-save) → úplně skryt na přání uživatele --- */
 #ag-pwr { display: none !important; }
@@ -1963,20 +1977,38 @@ body.light-mode #side-menu .menu-close { background: rgba(0, 0, 0, 0.06); }
 body.light-mode #view-seg { background: rgba(0, 0, 0, 0.06); }
 body.light-mode .seg-btn { color: var(--text-muted); }
 
-/* === SVĚTLÝ REŽIM: AR značky bodů === */
-body.light-mode .ar-marker {
-    background: rgba(252, 252, 253, 0.92);
-    border-color: var(--glass-border-strong);
-    color: #141821;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+/* === SVĚTLÝ REŽIM: AR značky bodů ===
+   Značky jsou nad KAMEROU (ne nad UI) → nechat tmavý chip s BÍLÝM textem.
+   Jas pozadí podle kamery řeší samostatný body.cam-light (proto :not). */
+body.light-mode:not(.cam-light) .ar-marker,
+body.light-mode:not(.cam-light) .ar-marker .ar-marker-title,
+body.light-mode:not(.cam-light) .ar-marker .ar-marker-dist { color: #fff; }
+
+/* ---- Modály Nastavení/Body/Nástroje: vyjetí zprava při OTEVŘENÍ I ZAVŘENÍ
+   (jako „Více"). transition-behavior: allow-discrete + @starting-style;
+   na starších prohlížečích degraduje na okamžité zobrazení (bez animace). --- */
+#settings-modal, #manage-modal, #tools-modal {
+    opacity: 0;
+    transition: opacity 0.34s var(--ease-out), display 0.34s allow-discrete;
+}
+#settings-modal[style*="flex"], #manage-modal[style*="flex"], #tools-modal[style*="flex"] { opacity: 1; }
+@starting-style {
+    #settings-modal[style*="flex"], #manage-modal[style*="flex"], #tools-modal[style*="flex"] { opacity: 0; }
+}
+#settings-modal .modal-content, #manage-modal .modal-content, #tools-modal .modal-content {
+    transition: transform 0.36s var(--ease-spring);
+    transform: translateX(100%);
+}
+#settings-modal[style*="flex"] .modal-content,
+#manage-modal[style*="flex"] .modal-content,
+#tools-modal[style*="flex"] .modal-content { transform: translateX(0); }
+@starting-style {
+    #settings-modal[style*="flex"] .modal-content,
+    #manage-modal[style*="flex"] .modal-content,
+    #tools-modal[style*="flex"] .modal-content { transform: translateX(100%); }
 }
 
-/* ---- Modály Nastavení/Body/Nástroje: stejný slide-in zprava jako „Více" ---- */
-@keyframes modal-slide-in-right {
-    from { opacity: 0; transform: translateX(100%); }
-    to   { opacity: 1; transform: translateX(0); }
-}
-.modal-overlay .modal-content {
-    animation: modal-slide-in-right 0.32s var(--ease-out) both;
-    transform-origin: center center;
-}
+/* ---- SVĚTLÝ REŽIM: fullscreen modály mají natvrdo tmavé pozadí (rgba(14,18,24))
+   → ve světlém režimu přepsat na světlé, jinak je tmavý text nečitelný. ------ */
+body.light-mode .modal-overlay .modal-content { background: rgba(247, 248, 250, 0.98); }
+body.light-mode .settings-tiles .tab-btn { background: rgba(0, 0, 0, 0.04); }

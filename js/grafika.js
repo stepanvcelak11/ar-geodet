@@ -317,13 +317,13 @@
             const line = document.getElementById('ga-line');   // kompaktn\u00ed \u0159\u00e1dek panelu
             const warn = document.getElementById('ga-warn');   // detail je v mod\u00e1lu #gpsavg-modal
             if (r && r.coarse) {
-                if (line) line.innerText = 'GPS: s\u00ed\u0165ov\u00e1 \u00b1' + Math.round(r.acc) + ' m';
+                if (line) line.innerText = 's\u00ed\u0165 \u00b1' + Math.round(r.acc) + ' m';
                 if (warn) { warn.style.display = 'block'; warn.innerText = 'Slab\u00fd GNSS (s\u00ed\u0165ov\u00e1 poloha \u00b1' + Math.round(r.acc) + ' m) \u2014 po\u010dkej na satelitn\u00ed fix'; }
                 setTxt('ga-n', '0'); setTxt('ga-pos', '\u2026'); setTxt('ga-se', '\u2026');
                 return;
             }
             if (warn) warn.style.display = 'none';
-            if (line) line.innerText = (r && r.n >= 2) ? ('GPS: \u00b1' + r.sterr.toFixed(2) + ' m') : 'GPS: pr\u016fm\u011bruji\u2026';
+            if (line) line.innerText = (r && r.n >= 2) ? ('\u00b1' + r.sterr.toFixed(2) + ' m') : 'pr\u016fm\u011bruji\u2026';
             setTxt('ga-n', (r && r.total) ? ((r.total > r.n) ? (r.n + ' (z ' + r.total + ')') : ('' + r.n)) : '0');
             setTxt('ga-pos', (r && r.n >= 2) ? ('\u00b1' + r.sterr.toFixed(2) + ' m') : '\u2026');
             setTxt('ga-se', (r && r.n >= 2) ? ('\u00b1' + r.sigma.toFixed(2) + ' m') : '\u2026');
@@ -498,7 +498,7 @@
             if (compassUnit === 'gon') { let gonTotal = relativeHeadingDeg * (400 / 360); let grad = Math.floor(gonTotal); let centigrad = Math.floor((gonTotal - grad) * 100); displayAzimut = `${grad}<sup>g</sup> ${centigrad.toString().padStart(2, '0')}<sup>c</sup>`; } else { displayAzimut = `${relativeHeadingDeg.toFixed(1)} °`; }
             let cAcc = event.webkitCompassAccuracy; let calWarn = (cAcc != null && (cAcc < 0 || cAcc > 20)) || !headingReliable;
             // VYKON: innerHTML/title prepisujeme jen kdyz se text opravdu zmenil (ne 60/s)
-            const _cdHtml = `Azimut: ${displayAzimut}` + (calWarn ? ' <span style="color:var(--warning);">⚠</span>' : '');
+            const _cdHtml = `<span class="hud-k">AZ</span> ${displayAzimut}` + (calWarn ? ' <span style="color:var(--warning);">⚠</span>' : '');
             if (_cdHtml !== _lastCdHtml) { compassDebug.innerHTML = _cdHtml; _lastCdHtml = _cdHtml; }
             const _cdTitle = !headingReliable ? 'Zařízení neposkytuje absolutní azimut – sever může být nepřesný. Dolaďte v Nastavení kompasu „Srovnání severu".' : (calWarn ? 'Kompas vyzaduje kalibraci – proveďte telefonem osmicku' : '');
             if (_cdTitle !== _lastCdTitle) { compassDebug.title = _cdTitle; _lastCdTitle = _cdTitle; }
