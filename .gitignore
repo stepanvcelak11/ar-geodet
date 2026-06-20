@@ -18,3 +18,7 @@ temp/
 # Build tooling (opt-in)
 node_modules/
 dist/
+
+# Screenshoty od uživatele k nahlédnutí (NEverzovat — bloat repa)
+IMG_*.png
+*foto*.png

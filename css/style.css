@@ -226,16 +226,8 @@ html, body {
     overflow: hidden;
     touch-action: none;
 }
-/* iOS appka z plochy (standalone): 100dvh občas nedosáhne až na spodní hranu displeje
-   a vznikne tmavý pruh dole. Ve standalme proto ukotvíme obsah na VŠECHNY čtyři hrany
-   (= celá obrazovka, díky viewport-fit=cover sahá i pod indikátor plochy). V Safari
-   to NEMĚNÍME — tam 100dvh drží spodní dok nad lištou prohlížeče. */
-html.ag-standalone, html.ag-standalone body {
-    right: 0;
-    bottom: 0;
-    width: auto;
-    height: auto;
-}
+/* Skutečnou výšku <html>/<body> dopočítává JS z window.innerHeight (viz inline skript
+   v <head>) — kvůli iOS, kde 100dvh občas nedosáhne až na spodní hranu (černý pruh). */
 
 body {
     margin: 0;
@@ -725,19 +717,22 @@ body {
     -webkit-backdrop-filter: blur(4px);
 }
 
+/* Modály jedou přes CELOU obrazovku (na přání) — žádné okraje s mapou na pozadí,
+   víc místa a větší ovládací prvky. Respektuje safe-area (notch / indikátor plochy). */
 .modal-content {
-    width: 90%;
-    max-width: 450px;
-    max-height: 90%;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
     display: flex;
     flex-direction: column;
-    padding: 24px;
-    background: var(--glass-bg);
-    backdrop-filter: blur(24px) saturate(150%);
-    -webkit-backdrop-filter: blur(24px) saturate(150%);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--r-xl);
-    box-shadow: var(--shadow-pop), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    padding: calc(env(safe-area-inset-top, 0px) + 20px) max(20px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 18px) max(20px, env(safe-area-inset-left, 0px));
+    background: rgba(14, 18, 24, 0.97);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
     color: var(--text-color);
     overflow: hidden;
 }
@@ -1659,6 +1654,28 @@ body.cam-light #ar-hud-info .hud-name { color: #1e293b; }
     color: var(--text-color);
 }
 #side-menu .menu-head .icon { width: 18px; height: 18px; color: var(--accent); }
+
+/* „Více" přes CELOU obrazovku (na přání) — žádné okraje s mapou; vjede zprava. */
+#side-menu {
+    top: 0;
+    right: -100%;
+    bottom: 0;
+    left: auto;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border: none;
+    border-radius: 0;
+    transform: none;
+    opacity: 1;
+    pointer-events: none;
+    background: rgba(14, 18, 24, 0.97);
+    transition: right 0.32s var(--ease-out);
+    padding: max(16px, calc(env(safe-area-inset-top, 0px) + 12px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, calc(env(safe-area-inset-bottom, 0px) + 12px)) max(16px, env(safe-area-inset-left, 0px));
+    overflow-y: auto;
+}
+#side-menu.open { right: 0; transform: none; opacity: 1; pointer-events: auto; }
+#side-menu .menu-head { font-size: 20px; padding-bottom: 10px; }
 
 /* Mřížka nástrojů (Nástroje) */
 .tool-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }

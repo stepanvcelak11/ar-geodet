@@ -41,9 +41,11 @@
 
     // ---- prodlevy (ms) ---------------------------------------------------------
     var POLL_MS = 500;
-    var CAM_DELAY_TOOL = 1200, CAM_DELAY_HIDDEN = 0;       // kamera: nejvíc šetří, uspat rychle
-    var COMPASS_DELAY_TOOL = 1500, COMPASS_DELAY_HIDDEN = 0;
-    var GPS_DELAY_TOOL = 12000, GPS_DELAY_HIDDEN = 4000;   // GPS: nechat „nahřátou", uspat až po chvíli
+    // Prodleva ~2,5 s u všech senzorů = ochrana proti omylenému tapnutí (krátké nahlédnutí
+    // nic nevypne); po ~2,5 s v otevřeném panelu se uspí kamera/kompas/GPS kvůli baterii.
+    var CAM_DELAY_TOOL = 2500, CAM_DELAY_HIDDEN = 0;
+    var COMPASS_DELAY_TOOL = 2500, COMPASS_DELAY_HIDDEN = 0;
+    var GPS_DELAY_TOOL = 2500, GPS_DELAY_HIDDEN = 4000;
     var FIX_FRESH_MS = 6000;                                // do kolika ms od fixu považujeme GPS za živou
 
     // =====================================================================
@@ -175,14 +177,20 @@
     // =====================================================================
     function isLive() { try { return (typeof appStarted !== 'undefined') && !!appStarted; } catch (e) { return false; } }
 
-    // „Těžké" nástroje přes celou obrazovku — senzory u nich nedávají smysl.
-    var HEAVY_IDS = ['calc-modal', 'settings-modal', 'about-modal', 'dict-modal', 'manage-modal'];
+    // Panely přes/přes část obrazovky, u kterých chceme šetřit baterii (uspat senzory).
+    // Vč. doku „Nástroje" a „Nový bod" + menu „Více" (na přání — viz sideMenuOpen).
+    var HEAVY_IDS = ['calc-modal', 'settings-modal', 'about-modal', 'dict-modal', 'manage-modal', 'tools-modal', 'custom-modal-overlay'];
     function shownById(id) {
         var el = document.getElementById(id);
         return !!(el && el.style && el.style.display && el.style.display !== 'none');
     }
+    function sideMenuOpen() {
+        var el = document.getElementById('side-menu');
+        return !!(el && el.classList && el.classList.contains('open'));
+    }
     function heavyOpen() {
         try { if (document.querySelector('.zpr-overlay.open, .prd-overlay.open')) return true; } catch (e) {}
+        if (sideMenuOpen()) return true;                  // „Více"
         for (var i = 0; i < HEAVY_IDS.length; i++) if (shownById(HEAVY_IDS[i])) return true;
         return false;
     }

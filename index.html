@@ -3,9 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <!-- iOS PWA z plochy (standalone): označ <html>, ať CSS ukotví obsah až na spodní hranu
-         displeje (jinak 100dvh nedosáhne dolů a vznikne černý pruh). Musí běžet brzy. -->
-    <script>try{var _mm=window.matchMedia;if(window.navigator.standalone===true||(_mm&&(_mm('(display-mode: standalone)').matches||_mm('(display-mode: fullscreen)').matches||_mm('(display-mode: minimal-ui)').matches))){document.documentElement.classList.add('ag-standalone');}}catch(e){}</script>
+    <!-- iOS (i z plochy ve standalone/fullscreen) občas nedopočítá 100dvh a dole zůstane
+         černý pruh. Nastavíme skutečnou výšku z window.innerHeight (spolehlivější než dvh).
+         Bez posluchače 'resize' (ten spouští i klávesnice) — jen start/load/rotace. -->
+    <script>
+    (function () {
+        function setH() {
+            try {
+                var h = window.innerHeight; if (!h) return;
+                var d = document.documentElement;
+                d.style.height = h + 'px';
+                if (document.body) document.body.style.height = h + 'px';
+            } catch (e) {}
+        }
+        setH();
+        document.addEventListener('DOMContentLoaded', setH);
+        window.addEventListener('load', function () { setH(); setTimeout(setH, 250); setTimeout(setH, 800); });
+        window.addEventListener('orientationchange', function () { setH(); setTimeout(setH, 250); setTimeout(setH, 600); });
+    })();
+    </script>
     <title>AR Geodet</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f1216">
@@ -182,6 +198,7 @@
             <button class="seg-btn active" data-view="both" onclick="setView('both', this)">Split</button>
             <button class="seg-btn" data-view="map" onclick="setView('map', this)">Mapa</button>
         </div>
+        <button class="menu-btn" onclick="toggleMenu()" style="margin-top:auto; justify-content:center; background:rgba(255,255,255,0.06);">Zavřít</button>
     </div>
 
     <div id="info" class="glass-panel">Čekám na spuštění...</div>
