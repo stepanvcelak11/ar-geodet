@@ -708,7 +708,9 @@ body {
    Modály a spodní karta (bottom sheet)
    ========================================================================= */
 .modal-overlay {
-    position: absolute;
+    /* fixed (ne absolute) — kryje VŽDY celý viewport bez ohledu na JS-dopočítanou
+       výšku <body>; jinak po změně viewportu/fullscreenu zůstávaly mezery nahoře/dole. */
+    position: fixed;
     inset: 0;
     z-index: 19999;
     display: none;

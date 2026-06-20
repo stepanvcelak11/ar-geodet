@@ -23,9 +23,13 @@
     function bind() {
         var btn = document.getElementById('welcome-start-btn');
         if (btn) btn.addEventListener('click', enterFullscreen, { passive: true });
-        // Průvodce i jiné vstupy: po prvním tapu kdekoli se taky pokusíme (jen jednou),
+        // Průvodce i jiné vstupy: po prvním KLIKU kdekoli se taky pokusíme (jen jednou),
         // aby fullscreen naskočil, i když uživatel nezačne hlavním tlačítkem.
-        document.addEventListener('pointerdown', enterFullscreen, { once: true, passive: true });
+        // POZOR: záměrně 'click', NE 'pointerdown' — vstup do fullscreenu přeskládá layout
+        // (skryjí se systémové lišty) a kdyby se spustil na pointerdown, prvek se uhne a
+        // první tap na tlačítko (Nastavení/Body/Více…) by se „snědl" a nic by neotevřel.
+        // Na 'click' se tlačítko stihne provést a fullscreen naskočí až po něm.
+        document.addEventListener('click', enterFullscreen, { once: true, passive: true });
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
