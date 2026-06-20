@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <!-- iOS PWA z plochy (standalone): označ <html>, ať CSS ukotví obsah až na spodní hranu
          displeje (jinak 100dvh nedosáhne dolů a vznikne černý pruh). Musí běžet brzy. -->
-    <script>try{if(window.navigator.standalone===true||(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)){document.documentElement.classList.add('ag-standalone');}}catch(e){}</script>
+    <script>try{var _mm=window.matchMedia;if(window.navigator.standalone===true||(_mm&&(_mm('(display-mode: standalone)').matches||_mm('(display-mode: fullscreen)').matches||_mm('(display-mode: minimal-ui)').matches))){document.documentElement.classList.add('ag-standalone');}}catch(e){}</script>
     <title>AR Geodet</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f1216">
@@ -223,7 +223,7 @@
     <div id="hud-editor">
         <div class="he-head"><span id="he-title">Úprava prvku</span><button class="he-done" id="he-done">Hotovo</button></div>
         <label class="he-lbl">Velikost <span id="he-size-val">100&nbsp;%</span></label>
-        <input type="range" id="he-size" min="60" max="240" step="5" value="100">
+        <input type="range" id="he-size" min="50" max="150" step="5" value="100">
         <button class="he-reset" id="he-reset"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Obnovit výchozí polohu a velikost</button>
     </div>
 
@@ -616,8 +616,6 @@
     <script defer src="js/fullscreen.js"></script>
     <!-- iOS tip „Přidat na plochu" (odpojitelné: smaž tento řádek + js/ios-home-hint.js) — kvůli spodní liště Safari -->
     <script defer src="js/ios-home-hint.js"></script>
-    <!-- Přesun + velikost HUD panelů GPS/azimut (odpojitelné: smaž tento řádek + js/hud-arrange.js) -->
-    <script defer src="js/hud-arrange.js"></script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + js/vylepseni.js + css/vylepseni.css) — musí být POSLEDNÍ modul kvůli override -->
     <script defer src="js/pdf-protocol.js"></script>
     <script defer src="js/vylepseni.js"></script>
@@ -684,7 +682,7 @@
                 const sizeEl = document.getElementById('he-size');
                 sizeEl.addEventListener('input', () => {
                     if (!editEl) return;
-                    editEl._scale = clamp(parseInt(sizeEl.value, 10) / 100, 0.6, 2.4);
+                    editEl._scale = clamp(parseInt(sizeEl.value, 10) / 100, 0.5, 1.5);
                     applyScale(editEl);
                     document.getElementById('he-size-val').innerHTML = sizeEl.value + '&nbsp;%';
                     persist(editEl);
@@ -737,7 +735,7 @@
                         e.preventDefault();
                         const p = [...ptrs.values()];
                         const d = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
-                        el._scale = clamp(baseScale * (d / startDist), 0.6, 2.4);
+                        el._scale = clamp(baseScale * (d / startDist), 0.5, 1.5);
                         applyScale(el);
                     } else if (mode === 'drag') {
                         const dx = e.clientX - startX, dy = e.clientY - startY;
@@ -780,6 +778,23 @@
                     el._detached = true;
                 });
             }
+            // Veřejné API: prvky vytvořené později (např. plovoucí tlačítko „Srovnat sever")
+            // lze zapojit do STEJNÉHO systému přesun/velikost/editor (jednotný design).
+            window.AGHud = {
+                register: function (el, name) {
+                    if (!el || el._hudReg) return; el._hudReg = true;
+                    if (name) NAMES[el.id] = name;
+                    el.style.pointerEvents = 'auto';
+                    init(el);
+                    if (store[el.id]) {
+                        el.style.right = 'auto'; el.style.transformOrigin = 'top left';
+                        el._scale = store[el.id].s || 1; el.style.transform = 'scale(' + el._scale + ')';
+                        if (store[el.id].x != null) { el.style.left = store[el.id].x + 'px'; el.style.top = store[el.id].y + 'px'; }
+                        el._detached = true;
+                    }
+                },
+                openEditor: function (el) { try { openEditor(el); } catch (e) {} }
+            };
             window.addEventListener('load', () => {
                 ['info', 'gps-avg'].forEach(id => { const el = document.getElementById(id); if (el) el.style.pointerEvents = 'auto'; });
                 IDS.forEach(id => init(document.getElementById(id)));
