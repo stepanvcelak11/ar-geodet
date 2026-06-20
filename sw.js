@@ -1,4 +1,4 @@
-// AR Geodet — Service Worker (v91)
+// AR Geodet — Service Worker (v95)
 // Strategie: vlastni kod = NEJDRIV SIT (vzdy cerstvy), CDN/dlazdice = NEJDRIV CACHE.
 // Instalace je ODOLNA: jeden nedostupny soubor neshodi prevzeti nove verze.
 //
@@ -7,7 +7,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  — mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v91';
+const SHELL_CACHE = 'argeodet-shell-v95';
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -22,6 +22,7 @@ const ASSETS_TO_CACHE = [
     './data/zpravodaj.json',
     './css/predpisy.css',
     './data/predpisy.json',
+    './js/geo-core.js',
     './js/logika.js',
     './js/grafika.js',
     './js/vytycovani.js',
@@ -53,18 +54,21 @@ const ASSETS_TO_CACHE = [
     './css/sky-obstruction.css',
     './js/cadastre-area.js',
     './css/cadastre-area.css',
-    './js/ar-stabilize.js',
+    './js/ar-fusion.js',
     './js/theme-dark.js',
     './js/field-tools.js',
     './js/orient-point.js',
     './js/offset-point.js',
     './js/stakeout-line.js',
     './js/track-log.js',
+    './js/linalg.js',
     './js/ar-resection.js',
     './js/ar-intersection.js',
+    './js/ar-calibrate.js',
+    './css/ar-calibrate.css',
     './js/project-import.js',
     './js/cadastre-vector.js',
-    './css/ar-stabilize.css',
+    './css/ar-fusion.css',
     './js/dmr-terrain.js',
     './css/dmr-terrain.css',
     './js/power-save.js',
@@ -75,6 +79,7 @@ const ASSETS_TO_CACHE = [
     './js/check-distance.js',
     './css/check-distance.css',
     './js/tutorial-pro.js',
+    './js/pdf-protocol.js',
     './js/vylepseni.js',
     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
     './js/lib/proj4-2.9.0.min.js',

@@ -14,3 +14,7 @@ Desktop.ini
 *.log
 tmp/
 temp/
+
+# Build tooling (opt-in)
+node_modules/
+dist/

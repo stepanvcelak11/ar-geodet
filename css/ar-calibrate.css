@@ -1,0 +1,104 @@
+/* ===== AR Geodet — jednodotyková kalibrace severu (ar-calibrate.js) ==========
+   Odpojitelné. Stejný vizuální jazyk jako zbytek (glass panel, accent #34d399).
+   Odstranění: smaž tento soubor + js/ar-calibrate.js + odpovídající řádky v index.html a sw.js.
+   ============================================================================ */
+
+/* ---- plovoucí tlačítko (FAB): vlevo nahoře, pod kompasovým panelem -------- */
+#agcal-fab {
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 64px);
+    left: max(12px, env(safe-area-inset-left, 0px));
+    z-index: 99980;
+    display: none; /* zapne JS jen v AR/Split režimu */
+    align-items: center;
+    gap: 8px;
+    max-width: 78vw;
+    padding: 9px 14px 9px 11px;
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.18));
+    border-radius: 999px;
+    background: var(--glass-bg, rgba(16, 20, 26, 0.62));
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    color: var(--text, #eef2f6);
+    font: 600 13.5px/1 var(--font, system-ui), sans-serif;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.42);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background .2s, border-color .2s, box-shadow .2s, transform .12s;
+}
+#agcal-fab:active { transform: scale(0.96); }
+
+#agcal-fab .agcal-fab-ic {
+    display: inline-flex;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
+    color: var(--accent, #34d399);
+}
+#agcal-fab .agcal-fab-ic svg { width: 22px; height: 22px; }
+#agcal-fab .agcal-fab-tx { white-space: nowrap; }
+
+/* varovný stav — kompas blbne: rozsvítit accentem a pulsovat */
+#agcal-fab.agcal-warn {
+    background: rgba(251, 191, 36, 0.18);
+    border-color: rgba(251, 191, 36, 0.65);
+    box-shadow: 0 6px 20px rgba(251, 191, 36, 0.35);
+    animation: agcalPulse 1.6s ease-in-out infinite;
+}
+#agcal-fab.agcal-warn .agcal-fab-ic { color: #fbbf24; }
+@keyframes agcalPulse {
+    0%, 100% { box-shadow: 0 6px 18px rgba(251, 191, 36, 0.30); }
+    50% { box-shadow: 0 6px 26px rgba(251, 191, 36, 0.62); }
+}
+@media (prefers-reduced-motion: reduce) {
+    #agcal-fab.agcal-warn { animation: none; }
+}
+
+/* ---- modal výběru bodu ---------------------------------------------------- */
+#agcal-modal .agcal-card { display: block; max-height: 88vh; max-height: 88dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+#agcal-modal .agcal-h3 { color: var(--accent, #34d399); margin-top: 0; display: flex; align-items: center; gap: 8px; }
+#agcal-modal .agcal-h3 svg { width: 22px; height: 22px; flex: 0 0 22px; }
+#agcal-modal .agcal-lead { font-size: 12.5px; opacity: .82; margin: 2px 0 10px; line-height: 1.45; }
+
+#agcal-modal .agcal-list { margin: 4px 0 8px; display: flex; flex-direction: column; gap: 6px; }
+#agcal-modal .agcal-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    width: 100%; text-align: left;
+    padding: 11px 12px; border-radius: 11px;
+    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.05);
+    color: inherit; font: inherit; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+#agcal-modal .agcal-row.on { background: rgba(52, 211, 153, 0.16); border-color: rgba(52, 211, 153, 0.55); }
+#agcal-modal .agcal-name { font-weight: 600; }
+#agcal-modal .agcal-cat { font-size: 10px; opacity: .72; border: 1px solid currentColor; border-radius: 5px; padding: 0 4px; margin-left: 4px; }
+#agcal-modal .agcal-meta { font-family: var(--font-mono, monospace); font-size: 12px; opacity: .78; white-space: nowrap; }
+#agcal-modal .agcal-empty { opacity: .6; font-size: 13px; padding: 10px 2px; line-height: 1.4; }
+
+#agcal-modal .agcal-live {
+    margin: 12px 0; padding: 10px 12px; border-radius: 10px;
+    background: rgba(52, 211, 153, 0.12);
+    font-family: var(--font-mono, monospace); font-size: 13px; line-height: 1.5;
+}
+#agcal-modal .agcal-dim { opacity: .6; }
+
+/* ---- zaměřovací režim (kříž přes kameru) ---------------------------------- */
+#agcal-aim { position: fixed; inset: 0; z-index: 100050; display: none; pointer-events: none; }
+#agcal-aim.on { display: block; }
+#agcal-aim-bar {
+    position: absolute; top: max(16px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+    max-width: 90vw; background: rgba(8, 12, 16, 0.82); color: #fff;
+    padding: 10px 16px; border-radius: 12px;
+    font: 600 14px/1.35 var(--font, system-ui), sans-serif; text-align: center; pointer-events: none;
+}
+#agcal-aim-bar .agcal-dim { opacity: .7; font-weight: 400; font-size: 12px; }
+#agcal-cross { position: absolute; top: 50%; left: 50%; width: 120px; height: 120px; margin: -60px 0 0 -60px; pointer-events: none; }
+#agcal-cross svg { width: 100%; height: 100%; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6)); }
+#agcal-cross-prog { position: absolute; left: 10%; bottom: -10px; height: 4px; width: 0; background: var(--accent, #34d399); border-radius: 2px; transition: width .05s linear; }
+#agcal-aim-btns {
+    position: absolute; left: 0; right: 0; bottom: max(24px, env(safe-area-inset-bottom));
+    display: flex; gap: 10px; justify-content: center; pointer-events: auto; padding: 0 16px;
+}
+#agcal-aim-btns .btn { width: auto; flex: 0 0 auto; min-width: 150px; }
+#agcal-aim-cancel { min-width: 96px !important; }
