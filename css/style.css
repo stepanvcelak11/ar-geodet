@@ -471,6 +471,9 @@ body {
     flex-direction: column;
     gap: 8px;
     padding: 14px;
+    max-height: 78dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     background: var(--glass-bg);
     backdrop-filter: blur(22px) saturate(140%);
     -webkit-backdrop-filter: blur(22px) saturate(140%);
@@ -1191,31 +1194,26 @@ details[open] summary::after { content: " ⌄"; }
 #info { border-radius: 14px; }
 
 /* Přepínač zobrazení AR / Split / Mapa (nahoře uprostřed) */
+/* Přepínač zobrazení (AR / Split / Mapa) — přesunut z horní lišty do bočního menu „Více". */
 #view-seg {
-    position: absolute;
-    top: max(10px, calc(env(safe-area-inset-top) + 6px));
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 9000;
     display: flex;
     gap: 3px;
     padding: 4px;
-    background: var(--glass-bg);
+    width: 100%;
+    background: rgba(255, 255, 255, 0.06);
     border: 1px solid var(--glass-border);
     border-radius: var(--r-pill);
-    backdrop-filter: blur(14px) saturate(140%);
-    -webkit-backdrop-filter: blur(14px) saturate(140%);
-    box-shadow: var(--shadow-1);
-    opacity: var(--panel-opacity);
 }
 .seg-btn {
+    flex: 1;
+    text-align: center;
     border: none;
     background: transparent;
     color: var(--text-muted);
     font-family: var(--font-ui);
     font-size: 12px;
     font-weight: 600;
-    padding: 6px 14px;
+    padding: 8px 10px;
     border-radius: var(--r-pill);
     cursor: pointer;
     transition: color 0.15s ease, background 0.15s ease;

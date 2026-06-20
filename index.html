@@ -174,17 +174,18 @@
         <label class="menu-toggle-row"><input type="checkbox" id="tgl-info" checked onchange="toggleHudElements()"> Info panel a přesnost</label>
         <label class="menu-toggle-row"><input type="checkbox" id="tgl-compass" checked onchange="toggleHudElements()"> Kompas (Azimut)</label>
         <label class="menu-toggle-row"><input type="checkbox" id="tgl-gpsavg" checked onchange="toggleHudElements()"> Průměrování GPS na místě</label>
+        <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.07em; color: var(--text-muted); margin: 2px 2px 4px;">Zobrazení</div>
+        <!-- Přepínač zobrazení (AR / Split / Mapa) — přesunut z horní lišty sem do „Více" -->
+        <div id="view-seg">
+            <button class="seg-btn" data-view="ar" onclick="setView('ar', this)">AR</button>
+            <button class="seg-btn active" data-view="both" onclick="setView('both', this)">Split</button>
+            <button class="seg-btn" data-view="map" onclick="setView('map', this)">Mapa</button>
+        </div>
     </div>
 
     <div id="info" class="glass-panel">Čekám na spuštění...</div>
     <div id="compass-debug" class="glass-panel" onclick="openCompassModal()">Azimut: --</div>
-
-    <!-- Přepínač zobrazení (AR / Split / Mapa) -->
-    <div id="view-seg">
-        <button class="seg-btn" data-view="ar" onclick="setView('ar', this)">AR</button>
-        <button class="seg-btn active" data-view="both" onclick="setView('both', this)">Split</button>
-        <button class="seg-btn" data-view="map" onclick="setView('map', this)">Mapa</button>
-    </div>
 
     <!-- Spodní dok s nástroji -->
     <nav id="dock">
@@ -242,6 +243,7 @@
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openCheckDist();"><svg class="icon"><use href="#i-ruler"/></svg><span>Oměrné /<br>kontrola</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openDictModal();"><svg class="icon"><use href="#i-book"/></svg><span>Slovník</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openKatastr();"><svg class="icon"><use href="#i-map-pin"/></svg><span>Katastr<br>(zde stojím)</span></button>
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; if(window.agOpenCalibrate) window.agOpenCalibrate();"><svg class="icon"><use href="#i-navigation"/></svg><span>Srovnat<br>sever</span></button>
                 </div>
             </div>
             <button class="btn btn-secondary" style="margin-top: 15px;" onclick="document.getElementById('tools-modal').style.display='none'">Zavřít</button>
@@ -634,7 +636,7 @@
         // ===== HUD prvky: posun jedním prstem + zvětšení/zmenšení dvěma prsty (uloží se) =====
         (function () {
             const KEY = 'hudLayout_v1';
-            const IDS = ['info', 'compass-debug', 'view-seg', 'gps-avg'];
+            const IDS = ['info', 'compass-debug', 'gps-avg'];
             let store = {};
             try { store = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { store = {}; }
             const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));

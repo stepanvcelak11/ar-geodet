@@ -3,63 +3,8 @@
    Odstranění: smaž tento soubor + js/ar-calibrate.js + odpovídající řádky v index.html a sw.js.
    ============================================================================ */
 
-/* ---- plovoucí tlačítko (FAB): výchozí poloha vlevo nahoře, pod kompasovým
-   panelem. Přesun/velikost/editor řeší sdílený HUD systém (window.AGHud) —
-   stejně jako panely Azimut / Průměrování GPS. Tady jen vzhled + ztlumení. */
-#agcal-fab {
-    position: fixed;
-    top: calc(env(safe-area-inset-top, 0px) + 64px);
-    left: max(12px, env(safe-area-inset-left, 0px));
-    z-index: 99980;
-    display: none; /* zapne JS jen v AR/Split režimu */
-    align-items: center;
-    gap: 8px;
-    max-width: 88vw;
-    padding: 10px 16px 10px 12px;
-    border: 1px solid var(--accent, #34d399);
-    border-radius: 999px;
-    /* o něco solidnější než běžné sklo, ať je dobře čitelné, dokud neztlumí */
-    background: rgba(14, 18, 24, 0.86);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-    color: var(--text, #eef2f6);
-    font: 600 14px/1 var(--font, system-ui), sans-serif;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
-    cursor: pointer;
-    touch-action: none; /* aby táhnutí prstem nehýbalo stránkou */
-    -webkit-tap-highlight-color: transparent;
-    transform-origin: top left; /* AGHud škáluje přes inline transform z tohoto rohu */
-    transition: background .2s, border-color .2s, box-shadow .2s, opacity .5s ease;
-}
-/* ztlumení po nečinnosti (zůstává klepatelné — jeden tap rovnou otevře) */
-#agcal-fab.agcal-faded { opacity: 0.4; }
-#agcal-fab.hud-dragging { opacity: 1; }
-
-#agcal-fab .agcal-fab-ic {
-    display: inline-flex;
-    width: 22px;
-    height: 22px;
-    flex: 0 0 22px;
-    color: var(--accent, #34d399);
-}
-#agcal-fab .agcal-fab-ic svg { width: 22px; height: 22px; }
-#agcal-fab .agcal-fab-tx { white-space: nowrap; }
-
-/* varovný stav — kompas blbne: rozsvítit accentem a pulsovat */
-#agcal-fab.agcal-warn {
-    background: rgba(251, 191, 36, 0.18);
-    border-color: rgba(251, 191, 36, 0.65);
-    box-shadow: 0 6px 20px rgba(251, 191, 36, 0.35);
-    animation: agcalPulse 1.6s ease-in-out infinite;
-}
-#agcal-fab.agcal-warn .agcal-fab-ic { color: #fbbf24; }
-@keyframes agcalPulse {
-    0%, 100% { box-shadow: 0 6px 18px rgba(251, 191, 36, 0.30); }
-    50% { box-shadow: 0 6px 26px rgba(251, 191, 36, 0.62); }
-}
-@media (prefers-reduced-motion: reduce) {
-    #agcal-fab.agcal-warn { animation: none; }
-}
+/* Plovoucí tlačítko (FAB) bylo odebráno — nástroj se otevírá z doku „Nástroje"
+   (dlaždice „Srovnat sever"). FAB_ICON se používá už jen v nadpisu modalu. */
 
 /* ---- modal výběru bodu ---------------------------------------------------- */
 #agcal-modal .agcal-card { display: block; max-height: 88vh; max-height: 88dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; }

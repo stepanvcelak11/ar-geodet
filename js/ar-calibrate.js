@@ -32,7 +32,6 @@
     var _capSamples = [];       // vzorky currentHeading během zaměřování
     var _lastDelta = null;      // poslední aplikovaná korekce (pro „vrátit")
     var _liveTimer = null;      // živá obnova seznamu/info v modalu
-    var _fabTimer = null;       // hlídání viditelnosti + varovného stavu FAB
 
     // ---- pomocné: opatrné mosty na globály appky ------------------------------
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} try { alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) {} }
@@ -82,70 +81,10 @@
     function compassUnreliable() { return compassWarnDom() || compassJittery(); }
 
     // ===========================================================================
-    //  PLOVOUCÍ TLAČÍTKO (FAB)
+    //  BEZ PLOVOUCÍHO TLAČÍTKA — nástroj se otevírá z doku „Nástroje" (dlaždice
+    //  „Srovnat sever" → window.agOpenCalibrate). Na přání: plovoucí tlačítko
+    //  překrývalo modály a na obrazovce není třeba (appka sama hlásí stav kompasu).
     // ===========================================================================
-    // Přesun + velikost + editor řeší SDÍLENÝ HUD systém (window.AGHud z index.html),
-    // takže má STEJNÝ design i chování jako panely Azimut / Průměrování GPS (rozsah
-    // 50–150 %, poloha/velikost se ukládají do hudLayout_v1). Tady jen: tap = otevřít
-    // nástroj + ztlumení po nečinnosti (jako zbytek HUD).
-    var _fadeTimer = null;
-
-    function ensureFab() {
-        if (document.getElementById('agcal-fab')) return;
-        var b = document.createElement('button');
-        b.id = 'agcal-fab'; b.type = 'button';
-        b.title = 'Srovnat sever — klepni; táhni prstem pro přesun; podrž pro velikost';
-        b.setAttribute('aria-label', 'Srovnat sever');
-        b.innerHTML = '<span class="agcal-fab-ic">' + FAB_ICON + '</span><span class="agcal-fab-tx">Srovnat sever</span>';
-        // krátký tap = otevřít nástroj (po přesunu/podržení AGHud klik sám potlačí)
-        b.addEventListener('click', openTool);
-        (document.body || document.documentElement).appendChild(b);
-        registerFab(b);
-        bindFabIdleFade(b);
-    }
-
-    // zapojení do sdíleného systému přesun/velikost/editor (jednotný design s ostatními HUD)
-    function registerFab(b) {
-        if (!b || b._agReg) return;
-        if (window.AGHud && typeof window.AGHud.register === 'function') {
-            try { window.AGHud.register(b, 'Srovnat sever'); b._agReg = true; } catch (e) {}
-        }
-    }
-
-    function refreshFab() {
-        var b = document.getElementById('agcal-fab');
-        if (!b) return;
-        if (!b._agReg) registerFab(b);   // AGHud mohlo vzniknout později
-        // viditelný jen v AR/Split (ne v samostatné mapě) a po startu appky
-        var visible = started() && !inMap();
-        b.style.display = visible ? 'flex' : 'none';
-        if (!visible) return;
-        // varovný stav: rozsvítit + textová pobídka (ve varování neztlumovat)
-        var warn = compassUnreliable();
-        b.classList.toggle('agcal-warn', warn);
-        if (warn) b.classList.remove('agcal-faded');
-        var tx = b.querySelector('.agcal-fab-tx');
-        if (tx) tx.textContent = warn ? 'Kompas blbne → srovnat' : 'Srovnat sever';
-    }
-
-    // ---- ztlumení po nečinnosti (jako zbytek HUD) -----------------------------
-    function modalOpenNow() { var m = document.getElementById('agcal-modal'); return !!(m && m.style.display === 'flex'); }
-    function wakeFab(b) {
-        b = b || document.getElementById('agcal-fab'); if (!b) return;
-        b.classList.remove('agcal-faded');
-        if (_fadeTimer) clearTimeout(_fadeTimer);
-        _fadeTimer = setTimeout(function () {
-            var f = document.getElementById('agcal-fab');
-            if (f && !modalOpenNow() && !f.classList.contains('agcal-warn')
-                && !f.classList.contains('hud-editing') && !f.classList.contains('hud-dragging')) f.classList.add('agcal-faded');
-        }, 4000);
-    }
-    function bindFabIdleFade(b) {
-        ['pointerdown', 'touchstart', 'mousemove', 'click'].forEach(function (ev) {
-            document.addEventListener(ev, function () { var f = document.getElementById('agcal-fab'); if (f && f.style.display !== 'none') wakeFab(f); }, { passive: true });
-        });
-        wakeFab(b);
-    }
 
     // ===========================================================================
     //  MODAL VÝBĚRU BODU + ŽIVÉ INFO
@@ -311,7 +250,7 @@
         showAim(false);
         var m = document.getElementById('agcal-modal'); if (m) m.style.display = 'flex';
         var undoBtn = document.getElementById('agcal-undo'); if (undoBtn) undoBtn.style.display = 'block';
-        renderList(); renderLive(); refreshFab();
+        renderList(); renderLive();
         agAlert('Sever srovnán',
             'Sever srovnán podle #' + esc(pt.name) + '.\nPosun severu: <b>' + (delta >= 0 ? '+' : '') + delta.toFixed(1) + '°</b>'
             + ' (z ' + _capSamples.length + ' vzorků).\n\nPři pomalé chůzi to drží. Pokud máš zapnutou auto-korekci podle GPS, za rychlé chůze se může dolaďovat sama.');
@@ -336,7 +275,7 @@
         if (applyDelta(-_lastDelta)) {
             _lastDelta = null;
             var u = document.getElementById('agcal-undo'); if (u) u.style.display = 'none';
-            renderLive(); refreshFab(); toast('Poslední srovnání vráceno');
+            renderLive(); toast('Poslední srovnání vráceno');
         }
     }
 
@@ -356,7 +295,6 @@
         try { _selId = (typeof highlightedPointId !== 'undefined' && highlightedPointId != null) ? highlightedPointId : null; } catch (e) { _selId = null; }
         renderList(); renderLive(); updateClearBtn();
         document.getElementById('agcal-modal').style.display = 'flex';
-        wakeFab();
         if (!_liveTimer) _liveTimer = setInterval(function () {
             var m = document.getElementById('agcal-modal');
             if (m && m.style.display === 'flex') { renderLive(); updateClearBtn(); }
@@ -373,17 +311,6 @@
     // ---- drobné: escapování do HTML ------------------------------------------
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
 
-    // ===========================================================================
-    //  INIT — idempotentní, na DOMContentLoaded i window.load (DOM/globály vznikají později)
-    // ===========================================================================
-    function init() {
-        try {
-            ensureFab();
-            refreshFab();
-            if (!_fabTimer) _fabTimer = setInterval(function () { try { refreshFab(); } catch (e) {} }, 700);
-        } catch (e) { try { console.warn('[ar-calibrate] init', e); } catch (e2) {} }
-    }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-    else init();
-    window.addEventListener('load', function () { setTimeout(init, 350); });
+    // Nástroj se otevírá z doku „Nástroje" přes window.agOpenCalibrate (žádná init
+    // vrstva ani plovoucí tlačítko netřeba — modal se vytvoří líně při otevření).
 })();
