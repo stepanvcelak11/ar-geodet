@@ -20,6 +20,9 @@
     var _recording = false;
     var _poll = null;
     var _line = null;
+    var _persistTimer = null, _dirty = false;
+    var PERSIST_MS = 10000;    // localStorage zápis je SYNCHRONNÍ a blokuje hlavní vlákno (a tím
+                               // i obraz kamery) — proto stopu neukládáme každý vzorek, ale dávkově.
 
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function getMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
@@ -29,6 +32,15 @@
         try { var s = (typeof getStoredData === 'function') ? getStoredData(KEY) : null; if (s) _track = JSON.parse(s) || []; } catch (e) { _track = []; }
     }
     function persist() { try { if (typeof setStoredData === 'function') setStoredData(KEY, JSON.stringify(_track)); } catch (e) {} }
+    // DÁVKOVÉ UKLÁDÁNÍ: stringify celé stopy + zápis do localStorage je synchronní a při delší
+    // stopě blokuje hlavní vlákno (a tím i obraz kamery). Ukládáme max 1×/PERSIST_MS a vždy
+    // naplno při zastavení / odchodu z appky, ať se o data nepřijde.
+    function schedulePersist() {
+        _dirty = true;
+        if (_persistTimer) return;
+        _persistTimer = setTimeout(function () { _persistTimer = null; if (_dirty) { _dirty = false; persist(); } }, PERSIST_MS);
+    }
+    function flushPersist() { if (_persistTimer) { clearTimeout(_persistTimer); _persistTimer = null; } if (_dirty) { _dirty = false; } persist(); }
 
     function totalLength() {
         var L = 0; for (var i = 1; i < _track.length; i++) { try { L += getDistance(_track[i - 1].lat, _track[i - 1].lng, _track[i].lat, _track[i].lng); } catch (e) {} } return L;
@@ -46,6 +58,14 @@
         }
     }
     function clearLine() { var m = getMap(); if (_line && m) { try { m.removeLayer(_line); } catch (e) {} } _line = null; }
+    // Přírůstkové přidání jednoho bodu na čáru — O(1) místo přestavby celé polyline (O(n))
+    // při každém vzorku, což u dlouhé stopy taky zatěžovalo hlavní vlákno.
+    function appendPoint(lat, lng) {
+        var m = getMap();
+        if (!m || typeof L === 'undefined') return;
+        if (_line) { try { _line.addLatLng([lat, lng]); } catch (e) {} }
+        else { redraw(); }
+    }
 
     function sample() {
         if (!_recording) return;
@@ -54,8 +74,9 @@
             var last = _track[_track.length - 1];
             if (last) { var moved = getDistance(last.lat, last.lng, userLat, userLng); if (moved < MIN_MOVE_M) return; }
             _track.push({ lat: userLat, lng: userLng, t: Date.now(), a: (typeof currentGpsAccuracy !== 'undefined' ? Math.round(currentGpsAccuracy * 10) / 10 : null) });
-            if (_track.length > MAX_PTS) { _track.shift(); }
-            persist(); redraw(); refreshPanel();
+            if (_track.length > MAX_PTS) { _track.shift(); redraw(); }   // po oříznutí nutný plný překres
+            else { appendPoint(userLat, userLng); }                      // jinak jen připoj nový bod
+            schedulePersist(); refreshPanel();
         } catch (e) {}
     }
 
@@ -64,12 +85,13 @@
         if (on && !_poll) _poll = setInterval(sample, POLL_MS);
         if (!on && _poll) { clearInterval(_poll); _poll = null; }
         if (on) sample();
+        else flushPersist();   // při zastavení ulož hned, ať nezůstane viset v dávce
         refreshPanel();
     }
 
     function clearTrack() {
         if (!confirm('Smazat zaznamenanou stopu v této zakázce?')) return;
-        _track = []; persist(); clearLine(); refreshPanel();
+        _track = []; if (_persistTimer) { clearTimeout(_persistTimer); _persistTimer = null; } _dirty = false; persist(); clearLine(); refreshPanel();
     }
 
     // ---- GPX export ------------------------------------------------------------
@@ -150,5 +172,8 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
     window.addEventListener('load', function () { setTimeout(init, 350); });
+    // ulož dávku, když appka jde na pozadí nebo se zavírá (jinak by se ztratilo až PERSIST_MS dat)
+    window.addEventListener('pagehide', function () { try { flushPersist(); } catch (e) {} });
+    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') { try { flushPersist(); } catch (e) {} } });
     window.agOpenTrackLog = openTool;
 })();
