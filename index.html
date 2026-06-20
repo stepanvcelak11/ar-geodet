@@ -234,12 +234,23 @@
     </div>
     <div id="update-banner" onclick="applyUpdate()"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Nová verze — klepni pro obnovení</div>
     <div id="edge-glow"></div>
-    <div id="gps-avg" class="glass-panel">
-        <div class="ga-title"><svg class="icon"><use href="#i-locate"/></svg> Průměrování GPS</div>
-        <div class="ga-row"><span>Měření:</span> <b id="ga-n">—</b></div>
-        <div class="ga-row"><span>Stř. chyba ⌀:</span> <b id="ga-pos">—</b></div>
-        <div class="ga-row"><span>Rozptyl σ:</span> <b id="ga-se">—</b></div>
-        <div class="ga-row" id="ga-warn" style="display:none; color:var(--danger); font-weight:600;"></div>
+    <!-- Kompaktní panel průměrování GPS (jeden řádek) — klik otevře detail v modálu (vzor Azimut) -->
+    <div id="gps-avg" class="glass-panel" onclick="openGpsAvgModal()">
+        <span class="ga-line-wrap"><svg class="icon"><use href="#i-locate"/></svg> <span id="ga-line">GPS: …</span></span>
+    </div>
+    <!-- Detail průměrování GPS (otevírá se z kompaktního panelu) -->
+    <div class="modal-overlay" id="gpsavg-modal">
+        <div class="modal-content" style="max-height: auto;">
+            <h3 style="color: var(--accent); margin-top:0;"><svg class="icon"><use href="#i-locate"/></svg> Průměrování GPS</h3>
+            <div class="modal-body">
+                <div class="ga-row"><span>Měření:</span> <b id="ga-n">—</b></div>
+                <div class="ga-row"><span>Stř. chyba ⌀:</span> <b id="ga-pos">—</b></div>
+                <div class="ga-row"><span>Rozptyl σ:</span> <b id="ga-se">—</b></div>
+                <div class="ga-row" id="ga-warn" style="display:none; color:var(--danger); font-weight:600;"></div>
+                <div id="gaq-qc"></div>
+            </div>
+            <button class="btn btn-secondary" style="margin-top: 15px;" onclick="document.getElementById('gpsavg-modal').style.display='none';">Zavřít</button>
+        </div>
     </div>
 
     <!-- Editor HUD prvku (otevře se podržením prvku) -->

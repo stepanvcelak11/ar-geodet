@@ -45,12 +45,14 @@
 .qc-inline { display: block; }
 .qc-inline.qc-center .qc-chip { justify-content: center; text-align: center; }
 
-/* panel Průměrování GPS — verdikt + výběr cílové třídy */
-.qc-panel { margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.10); }
+/* kompaktní jednořádkový panel GPS (klik otevře detail v modálu, vzor Azimut) */
+#gps-avg { cursor: pointer; }
+.ga-line-wrap { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-weight: 600; }
+.ga-line-wrap .icon { width: 16px; height: 16px; flex: 0 0 auto; }
 
-/* živý čip v panelu GPS se po pár vteřinách sbalí, ať nezabírá plochu */
-#gps-qc { max-height: 140px; overflow: hidden; transition: opacity .45s ease, max-height .45s ease, margin .45s ease, padding .45s ease; }
-#gps-qc.qc-collapsed { opacity: 0; max-height: 0; margin-top: 0; padding-top: 0; border-top-color: transparent; pointer-events: none; }
+/* slot verdiktu kódu kvality v modálu Průměrování GPS */
+#gaq-qc { margin-top: 6px; }
+#gaq-qc:empty { display: none; }
 .qc-target {
     display: flex;
     align-items: center;

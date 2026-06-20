@@ -158,29 +158,18 @@
         window[name] = wrapped; return true;
     }
 
-    // živý verdikt v panelu Průměrování GPS (#gps-avg) — krátce ukáže kód kvality,
-    // po pár vteřinách se sám sbalí, ať trvale nezabírá plochu; znovu vyskočí jen
-    // při změně kódu kvality. (Cílovou třídu se nastavuje v dialogu uložení bodu.)
-    var _gpsKey = null, _gpsTimer = null;
-    function afterGpsPanel() {
-        var panel = document.getElementById('gps-avg'); if (!panel) return;
+    // verdikt v modálu Průměrování GPS (#gpsavg-modal) — vyplní slot #gaq-qc
+    // (čip kódu kvality + výběr cílové třídy). Panel samotný je jen kompaktní řádek.
+    function fillGpsModal() {
+        var slot = document.getElementById('gaq-qc'); if (!slot) return;
         var r = null; try { r = (typeof gpsAvgResult !== 'undefined') ? gpsAvgResult : null; } catch (e) {}
-        var box = document.getElementById('gps-qc');
-        if (!box) { box = document.createElement('div'); box.id = 'gps-qc'; box.className = 'qc-panel'; panel.appendChild(box); }
-        if (!r || r.coarse || typeof r.sterr !== 'number' || !isFinite(r.sterr) || (r.n || 0) < 2) {
-            box.classList.add('qc-collapsed'); box.innerHTML = ''; _gpsKey = null; clearTimeout(_gpsTimer); return;
-        }
-        var got = codeForSigma(r.sterr);
-        var key = '' + (got ? got.kod : 'x');
-        if (key !== _gpsKey) {
-            _gpsKey = key;
-            box.innerHTML = chipHtml(r.sterr);
-            box.classList.remove('qc-collapsed');
-            clearTimeout(_gpsTimer);
-            _gpsTimer = setTimeout(function () { box.classList.add('qc-collapsed'); }, 4500);
-        } else if (!box.classList.contains('qc-collapsed')) {
-            box.innerHTML = chipHtml(r.sterr);   // dokud je vidět, drž číslo živé
-        }
+        if (!r || r.coarse || typeof r.sterr !== 'number' || !isFinite(r.sterr) || (r.n || 0) < 2) { slot.innerHTML = ''; return; }
+        slot.innerHTML = chipHtml(r.sterr) + targetSelectHtml();
+    }
+    // dokud je modál otevřený, drž verdikt živý (volá se z obalu updateGpsAvgPanel)
+    function afterGpsPanel() {
+        var m = document.getElementById('gpsavg-modal');
+        if (m && m.style.display === 'flex') fillGpsModal();
     }
 
     // verdikt + výběr cílové třídy v dialogu „Vložit bod" po vyplnění z průměrované GPS
@@ -281,7 +270,7 @@
     window.AGQc = {
         codeForSigma: codeForSigma, evaluate: evaluate, target: target, setTarget: setTarget,
         chipHtml: chipHtml, codeSuffix: codeSuffix, why: openWhy,
-        onResection: onResection, onBrutal: onBrutal, refreshAll: refreshAll
+        onResection: onResection, onBrutal: onBrutal, refreshAll: refreshAll, fillGpsModal: fillGpsModal
     };
 
     // --- instalace obalů (opakovaně, ať chytí i pozdě definované funkce) -------

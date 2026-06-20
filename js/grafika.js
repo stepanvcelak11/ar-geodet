@@ -36,6 +36,7 @@
         }
 
         function openCompassModal() { document.getElementById('compass-modal').style.display = 'flex'; updateCompassButtons(); updateHeadingOffsetVal(); }
+        function openGpsAvgModal() { const m = document.getElementById('gpsavg-modal'); if (!m) return; m.style.display = 'flex'; updateGpsAvgPanel(); }
         // Korekce severu pro AR i mapu (na rozdil od "uzivatelske nuly", ktera meni jen zobrazene cislo azimutu).
         function updateHeadingOffsetVal() { const el = document.getElementById('heading-offset-val'); if (el) { let v = ((userHeadingOffset + 180) % 360 + 360) % 360 - 180; el.innerText = Math.round(v); } }
         function nudgeHeadingOffset(d) { userHeadingOffset = ((userHeadingOffset + d) % 360 + 360) % 360; setStoredData('arHeadingOffset', String(userHeadingOffset)); updateHeadingOffsetVal(); }
@@ -311,18 +312,20 @@
             if (!appStarted || !tgl || !tgl.checked) { el.style.display = 'none'; return; }
             el.style.display = 'block';
             const r = gpsAvgResult;
-            const warn = document.getElementById('ga-warn');
+            const setTxt = (id, v) => { const n = document.getElementById(id); if (n) n.innerText = v; };
+            const line = document.getElementById('ga-line');   // kompaktn\u00ed \u0159\u00e1dek panelu
+            const warn = document.getElementById('ga-warn');   // detail je v mod\u00e1lu #gpsavg-modal
             if (r && r.coarse) {
+                if (line) line.innerText = 'GPS: s\u00ed\u0165ov\u00e1 \u00b1' + Math.round(r.acc) + ' m';
                 if (warn) { warn.style.display = 'block'; warn.innerText = 'Slab\u00fd GNSS (s\u00ed\u0165ov\u00e1 poloha \u00b1' + Math.round(r.acc) + ' m) \u2014 po\u010dkej na satelitn\u00ed fix'; }
-                document.getElementById('ga-n').innerText = '0';
-                document.getElementById('ga-pos').innerText = '\u2026';
-                document.getElementById('ga-se').innerText = '\u2026';
+                setTxt('ga-n', '0'); setTxt('ga-pos', '\u2026'); setTxt('ga-se', '\u2026');
                 return;
             }
             if (warn) warn.style.display = 'none';
-            document.getElementById('ga-n').innerText = (r && r.total) ? ((r.total > r.n) ? (r.n + ' (z ' + r.total + ')') : ('' + r.n)) : '0';
-            document.getElementById('ga-pos').innerText = (r && r.n >= 2) ? ('\u00b1' + r.sterr.toFixed(2) + ' m') : '\u2026';
-            document.getElementById('ga-se').innerText = (r && r.n >= 2) ? ('\u00b1' + r.sigma.toFixed(2) + ' m') : '\u2026';
+            if (line) line.innerText = (r && r.n >= 2) ? ('GPS: \u00b1' + r.sterr.toFixed(2) + ' m') : 'GPS: pr\u016fm\u011bruji\u2026';
+            setTxt('ga-n', (r && r.total) ? ((r.total > r.n) ? (r.n + ' (z ' + r.total + ')') : ('' + r.n)) : '0');
+            setTxt('ga-pos', (r && r.n >= 2) ? ('\u00b1' + r.sterr.toFixed(2) + ' m') : '\u2026');
+            setTxt('ga-se', (r && r.n >= 2) ? ('\u00b1' + r.sigma.toFixed(2) + ' m') : '\u2026');
         }
 
                 // PODKLADY MAPY: prepinani OSM/ortofoto + pruhledny katastr (CUZK WMS). Stav v visSettings, persistuje se hned.
