@@ -1,66 +1,81 @@
 {
-  "vydani": "2026-06-19",
+  "vydani": "2026-06-20",
   "uvodnik": "Přinášíme aktuální zprávy ze světa geodézie a geoinformatiky.",
   "polozky": [
     {
-      "rubrika": "Z domova",
+      "rubrika": "Ze světa",
       "top": true,
-      "nadpis": "Společný metodický pokyn ČÚZK a MMR k zápisu drobných staveb do KN",
-      "perex": "Nový pokyn usnadní zápis drobných staveb do katastru nemovitostí.",
-      "telo": "Český úřad zeměměřického a katastrálního a Ministerstvo pro místní rozvoj zveřejnily nový Společný metodický pokyn, který se zaměřuje na zápis drobných staveb do katastru nemovitostí. Tento pokyn má za cíl sjednotit postupy a usnadnit tak práci geodetů a dalších odborníků v oblasti katastru. V rámci dokumentu jsou uvedeny konkrétní pokyny a doporučení, jak správně postupovat při zápisu těchto staveb. Důležitost tohoto pokynu spočívá v jeho potenciálu zjednodušit a zefektivnit administrativní procesy spojené s katastrálními úkony.",
-      "body": [],
-      "proc": "Zpráva je důležitá pro geodety, kteří se zabývají zápisem staveb do katastru nemovitostí.",
-      "zdroj": "ČÚZK",
-      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/Spolecny-metodicky-pokyn-CUZK-a-MMR-k-zapisu-drobn.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
-      "datum": "2026-03-06"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
       "nadpis": "1 cm GSD z letadla: Jak letadla s pevným křídlem redefinují možnosti mapování koridorů",
-      "perex": "Nové studie ukazují, že letadla s pevným křídlem mohou dosáhnout centimetrového rozlišení.",
-      "telo": "V geospatialním průmyslu panuje přesvědčení, že pro dosažení centimetrového rozlišení je nutné používat drony. Nedávné studie však ukazují, že letadla s pevným křídlem mohou tento předpoklad zpochybnit. Výzkum provedený evropskými specialisty ukazuje, že tato letadla dokážou nabídnout rozsah a detail, který je srovnatelný s drony. Tato zjištění mohou mít zásadní dopad na budoucí metody mapování a sběru dat.",
-      "body": [],
-      "proc": "Zpráva je relevantní pro geodety, kteří se zabývají mapováním a sběrem dat.",
+      "perex": "Nové výzkumy ukazují, že letadla s pevným křídlem mohou dosahovat centimetrového rozlišení.",
+      "telo": "V geospatialním průmyslu panuje přesvědčení, že pro centimetrové rozlišení je nutné používat drony. Avšak nedávné práce evropských specialistů ukazují, že letadla s pevným křídlem mohou dosáhnout srovnatelného detailu. Studie provedená na platformě Kavel 10 ukazuje, že tato letadla mohou efektivně pokrýt velké oblasti a přitom zachovat vysokou kvalitu dat.",
+      "body": [
+        "Centimetrové rozlišení je nyní dosažitelné i z letadel.",
+        "Drony nejsou jedinou možností pro detailní mapování."
+      ],
+      "proc": "Tato zpráva ukazuje na inovace v oblasti leteckého mapování.",
       "zdroj": "LiDAR Magazine",
       "odkaz": "https://lidarmag.com/2026/06/17/1-cm-gsd-from-a-plane-how-fixed-wing-aircraft-are-redefining-whats-possible-in-corridor-mapping/?utm_source=rss&utm_medium=rss&utm_campaign=1-cm-gsd-from-a-plane-how-fixed-wing-aircraft-are-redefining-whats-possible-in-corridor-mapping",
       "datum": "2026-06-17"
     },
     {
+      "rubrika": "Z domova",
+      "top": false,
+      "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
+      "perex": "ČÚZK oznamuje ukončení provozu starší verze webových služeb WSGP.",
+      "telo": "Český úřad zeměměřický a katastrální informuje, že na podzim 2026 dojde k ukončení provozu verze 2.10 webových služeb pro vyhotovitele a ověřovatele geometrických plánů (WSGP). Po tomto termínu budou k dispozici pouze služby verze 3.1. Uživatelé jsou vyzváni, aby se na tuto změnu připravili.",
+      "body": [
+        "Ukončení provozu starší verze WSGP.",
+        "Přechod na novou verzi 3.1."
+      ],
+      "proc": "Důležité upozornění pro uživatele geodetických služeb.",
+      "zdroj": "ČÚZK",
+      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
+      "datum": "2026-05-29"
+    },
+    {
       "rubrika": "Akce",
       "top": false,
-      "nadpis": "GEO Business 2026 překonává rekordy návštěvnosti s více než 6200 odborníky",
-      "perex": "GEO Business 2026 se stal největší akcí v oblasti geospatialní technologie ve Velké Británii.",
-      "telo": "Na akci GEO Business 2026, která se konala 3. a 4. června v Londýně, se zúčastnilo více než 6200 odborníků. Akce zahrnovala více než 160 odborných přednášek a přes 100 vystavovatelů, což podtrhuje její význam v oblasti geospatialní technologie a umístění. Kromě nejnovějších technologií nabídla GEO Business platformu pro networking a sdílení znalostí mezi profesionály z oblasti geodézie, GIS a plánování.",
-      "body": [],
-      "proc": "Zpráva informuje o důležité akci pro odborníky v oblasti geodézie a geoinformatiky.",
+      "nadpis": "GEO Business 2026 překonává rekordy účasti s více než 6200 profesionály",
+      "perex": "Na akci GEO Business 2026 se sešlo přes 6200 odborníků z oblasti geospatialních technologií.",
+      "telo": "GEO Business 2026, která se konala 3.–4. června v Londýně, přilákala více než 6200 odborníků a potvrdila svůj status jako přední událost v oblasti geospatialních technologií a prostorové inteligence ve Velké Británii. Akce zahrnovala více než 160 odborných přednášek a více než 100 vystavovatelů, což poskytlo platformu pro networking a sdílení znalostí v oboru.",
+      "body": [
+        "Přes 6200 účastníků z různých oblastí geodézie.",
+        "Více než 160 odborných přednášek a 100 vystavovatelů."
+      ],
+      "proc": "Skvělá příležitost pro profesionály v oboru k navázání kontaktů.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/06/15/geo-business-2026-breaks-attendance-records-with-6200-professionals/?utm_source=rss&utm_medium=rss&utm_campaign=geo-business-2026-breaks-attendance-records-with-6200-professionals",
       "datum": "2026-06-15"
     },
     {
-      "rubrika": "Z praxe",
+      "rubrika": "Technologie",
       "top": false,
-      "nadpis": "SimActive umožňuje rychlou produkci ortomosaik pro mapování plánovaných požárů",
-      "perex": "Nová technologie zrychluje proces mapování pro prevenci požárů.",
-      "telo": "Společnost SimActive Inc. oznámila, že její software Correlator3D je používán firmou Landair Surveys pro rychlou produkci ortomosaik v projektech mapování plánovaných požárů v Austrálii. Tato technologie podporuje časově citlivé operace leteckého mapování, kde jsou rychlé a přesné geospatialní výstupy klíčové pro prevenci požárů a správu půdy. Landair Surveys spoléhá na Correlator3D pro zpracování leteckých snímků v rámci striktních časových rámců.",
-      "body": [],
-      "proc": "Zpráva ukazuje praktické využití softwaru pro geodetické práce v oblasti ochrany životního prostředí.",
+      "nadpis": "SimActive umožňuje rychlou výrobu ortomosaiků pro mapování plánovaných požárů",
+      "perex": "Software Correlator3D od SimActive urychluje generaci ortomosaiků pro mapování požárů.",
+      "telo": "SimActive Inc. oznámila, že její software Correlator3D se používá k rychlé výrobě ortomosaiků pro mapování plánovaných požárů v Austrálii. Tato technologie podporuje časově citlivé letecké mapovací operace, kde jsou rychlé a přesné geospatialní výstupy klíčové pro prevenci požárů a správu pozemků. Společnost Landair Surveys spoléhá na Correlator3D, aby zpracovávala letecké snímky pod tlakem časových limitů, přičemž zachovává přesnost.",
+      "body": [
+        "Rychlá výroba ortomosaiků pro urgentní projekty.",
+        "Technologie podporující prevenci požárů."
+      ],
+      "proc": "Důležitý nástroj pro geodety pracující na prevenci požárů.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/06/12/simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping/?utm_source=rss&utm_medium=rss&utm_campaign=simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping",
       "datum": "2026-06-12"
     },
     {
-      "rubrika": "Přístroje",
+      "rubrika": "Z praxe",
       "top": false,
-      "nadpis": "Leica CoastalMapper: Nový senzor pro letecké hydrografické mapování",
-      "perex": "Nový senzor Leica CoastalMapper přináší revoluci do hydrografického mapování.",
-      "telo": "Leica CoastalMapper je nový čtyřkanálový bathymetrický senzor, který redefinuje možnosti leteckého hydrografického mapování. Tento senzor umožňuje rychlé a efektivní mapování podvodních oblastí, což je klíčové pro mnohé aplikace v oblasti ochrany životního prostředí a správy vodních zdrojů. Jeho schopnost pronikat vodou a poskytovat přesná data z něj činí revoluční nástroj pro geodety a hydrografy.",
-      "body": [],
-      "proc": "Zpráva informuje o novém přístroji, který může zlepšit geodetické měření.",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/aerialuas/seeing-through-the-water-inside-leicas-coastalmapper/",
-      "datum": "2026-05-04"
+      "nadpis": "Jak Utah využívá data k řešení dostupnosti bydlení",
+      "perex": "Utah čelí výzvám v oblasti dostupnosti bydlení a využívá data pro efektivní rozhodování.",
+      "telo": "Když čelí krizi, guvernéři často kladou otázku: „Ukažte mi, kde jsme.“ V roce 2024 se dostupnost bydlení dostala na vrchol politických agend států. V Utah se vedoucí představitelé obrátili na mapy, aby porozuměli aktuálnímu stavu a identifikovali místa pro nové jednotky. Vzhledem k omezením, která činí každé rozhodnutí o bydlení kritickým, je pro Utah klíčové využívat data efektivně.",
+      "body": [
+        "Využití dat pro plánování bydlení.",
+        "Mapy jako nástroj pro rozhodování."
+      ],
+      "proc": "Zpráva ukazuje, jak data mohou ovlivnit politiku bydlení.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/06/01/how-utah-americas-most-urban-state-uses-data-to-solve-housing-affordability/?utm_source=rss&utm_medium=rss&utm_campaign=how-utah-americas-most-urban-state-uses-data-to-solve-housing-affordability",
+      "datum": "2026-06-01"
     }
   ]
 }
