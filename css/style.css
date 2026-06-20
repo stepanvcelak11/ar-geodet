@@ -2007,7 +2007,12 @@ body.light-mode:not(.cam-light) .ar-marker .ar-marker-dist { color: #fff; }
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.28s var(--ease-out);
+    /* Vypnout vstupní keyframe animaci (overlay-in/modal-in má fill:both → držela by
+       opacity:1 a modál by byl po startu vidět). Tyhle 4 animujeme přes .ag-open. */
+    animation: none !important;
 }
+#settings-modal .modal-content, #manage-modal .modal-content,
+#tools-modal .modal-content, #custom-modal-overlay .modal-content { animation: none !important; }
 #settings-modal.ag-open, #manage-modal.ag-open, #tools-modal.ag-open, #custom-modal-overlay.ag-open {
     opacity: 1;
     pointer-events: auto;
