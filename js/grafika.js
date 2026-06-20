@@ -454,6 +454,8 @@
             requestAnimationFrame(() => { _orientPending = false; renderAR(_lastOrientEvent); });
         }
         let _haveAbsoluteHeading = false;
+        // STABILITA: watchdog render smycky - casy posledniho vykresleni a posledni platne udalosti
+        let _lastRenderTs = 0, _lastGoodEvent = null, _lastAbsoluteTs = 0;
         function renderAR(event) {
             if (!userLat || !userLng) return;
             // ZDROJ AZIMUTU:
@@ -464,9 +466,13 @@
             if (typeof event.webkitCompassHeading === 'number' && !isNaN(event.webkitCompassHeading)) {
                 rawCompass = event.webkitCompassHeading; headingIsTrueNorth = true; headingReliable = true;
             } else if (event.alpha != null) {
-                if (event.absolute === true) _haveAbsoluteHeading = true;
-                // kdyz uz mame absolutni zdroj, ignoruj relativni udalosti (jinak by se sever rozhazel)
-                if (_haveAbsoluteHeading && event.absolute !== true) return;
+                if (event.absolute === true) { _haveAbsoluteHeading = true; _lastAbsoluteTs = performance.now(); }
+                // kdyz uz mame absolutni zdroj, ignoruj relativni udalosti (jinak by se sever rozhazel);
+                // ALE kdyz absolutni zdroj prestal chodit (>2 s), radeji degraduj na relativni nez zamrznout
+                if (_haveAbsoluteHeading && event.absolute !== true) {
+                    if (performance.now() - _lastAbsoluteTs < 2000) return;
+                    headingReliable = false;
+                }
                 let so = 0;
                 if (window.screen && screen.orientation && typeof screen.orientation.angle === 'number') so = screen.orientation.angle;
                 else if (typeof window.orientation === 'number') so = window.orientation;
@@ -474,6 +480,7 @@
                 headingReliable = (event.absolute === true);
             }
             if (rawCompass === null) return;
+            _lastRenderTs = performance.now(); _lastGoodEvent = event;   // pro watchdog: posledni udalost s platnym smerem
             // SMER: volitelna auto-korekce magnetickeho kompasu podle GPS kurzu (jen pri jednoznacnem pohybu).
             // GPS kurz je za chuze nespolehlivy, proto vysoky prah rychlosti a strop korekce ±25°.
             if (visSettings.autoCompassCorrection && !headingIsTrueNorth && gpsCourse !== null && gpsSpeed > 1.4) {
@@ -521,14 +528,15 @@
             let highlightedPointData = null; let renderedCount = 0;
 
             let maxPts = visSettings.maxARPoints || 100; let vOffset = visSettings.arVerticalOffset || 0;
+            const _sqLC = searchQuery ? searchQuery.toLowerCase() : '';
 
             arPoints.forEach(pt => {
-                let isVisible = true; if (pt.hidden) isVisible = false; if (pt.cat === 'TB' && !filters.tb) isVisible = false; if (pt.cat === 'ZHB' && !filters.zhb) isVisible = false; if (pt.cat === 'PBPP' && !filters.pbpp) isVisible = false; if (pt.cat === 'NIVEL' && !filters.nivel) isVisible = false; if (pt.cat === 'CUSTOM' && !filters.custom) isVisible = false; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) isVisible = false;
+                let isVisible = true; if (pt.hidden) isVisible = false; if (pt.cat === 'TB' && !filters.tb) isVisible = false; if (pt.cat === 'ZHB' && !filters.zhb) isVisible = false; if (pt.cat === 'PBPP' && !filters.pbpp) isVisible = false; if (pt.cat === 'NIVEL' && !filters.nivel) isVisible = false; if (pt.cat === 'CUSTOM' && !filters.custom) isVisible = false; if (_sqLC && !pt.name.toLowerCase().includes(_sqLC)) isVisible = false;
                 const distance = pt.currentDist || getDistance(userLat, userLng, pt.lat, pt.lng);
                 let isSelectedForDetail = (pt.id === activePointIdForModal);
                 if (distance > arRadius && pt.id !== highlightedPointId && !isSelectedForDetail) isVisible = false;
                 if (isVisible && pt.id !== highlightedPointId && !isSelectedForDetail) { if (renderedCount >= maxPts) { isVisible = false; } else { renderedCount++; } }
-                if (!isVisible) { if (pt.element) pt.element.style.opacity = '0'; return; }
+                if (!isVisible) { if (pt.element && pt.element.style.opacity !== '0') pt.element.style.opacity = '0'; return; }
 
                 const pointBearing = (pt.currentBearing != null) ? pt.currentBearing : getBearing(userLat, userLng, pt.lat, pt.lng); let diff = ((pointBearing - heading + 540) % 360) - 180;
                 if (pt.id === highlightedPointId) { highlightedPointData = { diff: diff, dist: distance, name: pt.name }; }
@@ -553,7 +561,7 @@
                         pt.element.style.zIndex = Math.round(1000 - distance); 
                     }
                     if (pt.element) { pt.element.style.left = `${xPct}%`; pt.element.style.top = `${markerY}%`; pt.element.style.transform = `translate(-50%, -50%) scale(${scale}) translateZ(0)`; pt.element.style.opacity = '1'; pt.element.style.pointerEvents = 'auto'; pt.distElement.innerText = `${distance.toFixed(1)} m`; }
-                } else { if (pt.element) pt.element.style.opacity = '0'; }
+                } else { if (pt.element && pt.element.style.opacity !== '0') pt.element.style.opacity = '0'; }
             });
             drawARLines(heading, cameraPitchDown, imgRoll, halfH, halfV, vOffset, eyeH);
             
@@ -575,6 +583,17 @@
             inactivityTimer = setTimeout(() => { fadeElements.forEach(id => { const el = document.getElementById(id); const bottomSheetOpen = document.getElementById('bottom-sheet').classList.contains('open'); const settingsOpen = document.getElementById('settings-modal').style.display === 'flex'; const customOpen = document.getElementById('custom-modal-overlay').style.display === 'flex'; const clusterOpen = document.getElementById('cluster-modal').style.display === 'flex'; const measureOpen = document.getElementById('measure-modal').style.display === 'flex'; const welcomeOpen = document.getElementById('welcome-screen').style.display !== 'none'; const menuOpen = document.getElementById('side-menu').classList.contains('open'); if (el && !bottomSheetOpen && !settingsOpen && !customOpen && !welcomeOpen && !menuOpen && !clusterOpen && !measureOpen) { el.classList.add('ui-faded'); } }); }, 4000);
         }
         ['touchstart', 'click', 'mousemove'].forEach(evt => { document.addEventListener(evt, resetInactivityTimer, { passive: true }); }); resetInactivityTimer();
+
+        // STABILITA: watchdog AR render smycky. Jediny "motor" AR jsou udalosti kompasu; kdyz prestanou
+        // chodit (navrat z pozadi, uspani senzoru, iOS), AR by zamrzlo / "zmizely body". Kdyz se >0.4 s nic
+        // nevykreslilo, prekreslime z posledni platne udalosti (drzi posledni znamy smer, AR zustane naziva).
+        setInterval(function () {
+            if (!appStarted || !_lastGoodEvent) return;
+            if (performance.now() - _lastRenderTs < 400) return;   // udalosti chodi, watchdog netreba
+            if (_orientPending) return;
+            _orientPending = true;
+            requestAnimationFrame(function () { _orientPending = false; renderAR(_lastGoodEvent); });
+        }, 250);
 
         // ===== SPOJNICE BODU — vykresleni v mape a AR + rezim spojovani =====
         const linesGroup = L.layerGroup().addTo(map);
@@ -833,7 +852,9 @@
             const pt = highlightedPointId ? arPoints.find(p => p.id === highlightedPointId) : null;
             const active = !!(pt && appStarted && userLat != null);
             eg.classList.toggle('on', active);
-            eg.classList.toggle('near', active && getDistance(userLat, userLng, pt.lat, pt.lng) <= 2.0);
+            // VYKON: bezi kazdy snimek -> pouzij uz spoctenou vzdalenost (pt.currentDist) misto Haversine
+            const _nd = active ? ((pt.currentDist != null) ? pt.currentDist : getDistance(userLat, userLng, pt.lat, pt.lng)) : Infinity;
+            eg.classList.toggle('near', active && _nd <= 2.0);
         }
 
         // ===== ADAPTIVNI SKLO: vzorkuje jas obrazu kamery (~1x za 0.7 s) a prepina svetly rezim AR panelu =====
