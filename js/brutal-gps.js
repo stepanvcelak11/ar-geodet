@@ -283,6 +283,7 @@
             if (cur) { cur.setAttribute('r', ringRadius(st).toFixed(1)); cur.setAttribute('stroke', col); cur.setAttribute('fill', 'transparent'); }
             if (val) val.innerHTML = '±' + st.toFixed(2) + '<small> m</small>';
             if (sub) sub.textContent = 'rozptyl σ ±' + _result.sigma.toFixed(2) + ' m';
+            try { if (window.AGQc) window.AGQc.onBrutal(st); } catch (e) {}   // QC: kód kvality (odpojitelné)
         } else if (cur) { cur.setAttribute('r', '110'); }
 
         // otočení o 180° v půlce zvolené doby (natvrdo) — spustí se jednou

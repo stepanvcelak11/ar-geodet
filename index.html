@@ -58,6 +58,8 @@
     <link rel="stylesheet" href="css/dmt-volume.css">
     <link rel="stylesheet" href="css/check-distance.css">
     <link rel="stylesheet" href="css/brutal-gps.css">
+    <!-- QC INSPEKTOR / kód kvality (odpojitelné: smaž tento řádek + css/qc-engine.css + js/qc-engine.js) -->
+    <link rel="stylesheet" href="css/qc-engine.css">
 </head>
 <body>
 
@@ -647,6 +649,8 @@
     <script defer src="js/vylepseni.js"></script>
     <!-- Karta zakázky na úvodu (Návrh C) — až za vším, ať obalí finální loadProjectSettings/renderProjectSelect -->
     <script defer src="js/welcome-card.js"></script>
+    <!-- QC inspektor / kód kvality — až za logikou, grafikou, brutal-gps a pdf-protocol (obaluje jejich funkce) -->
+    <script defer src="js/qc-engine.js"></script>
     <script>
         // Přepínač zobrazení v doku (AR / Split / Mapa) — využívá globální viewMode a applyViewMode() z grafika.js
         function setView(mode, btn) {

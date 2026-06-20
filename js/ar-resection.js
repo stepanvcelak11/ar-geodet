@@ -354,6 +354,7 @@
         if (acts) acts.style.display = 'block';
         var apply = document.getElementById('agrx-apply'); if (apply) apply.innerHTML = '<svg class="icon"><use href="#i-check"/></svg> Srovnat sever (' + (r.delta >= 0 ? '+' : '') + r.delta.toFixed(1) + '°)';
         var save = document.getElementById('agrx-save'); if (save) save.style.display = (r.mode === 'full') ? 'block' : 'none';
+        try { if (window.AGQc) window.AGQc.onResection(box, r); } catch (e) {}   // QC: kód kvality z posSigma (odpojitelné)
     }
 
     function applyNorth() {

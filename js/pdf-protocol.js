@@ -355,7 +355,7 @@
                 name: '#' + (p.name == null ? 'Bod' : p.name),
                 y: sj ? sj.y.toFixed(2) : '—',
                 x: sj ? sj.x.toFixed(2) : '—',
-                acc: accVal != null ? '±' + accVal.toFixed(2) + ' m' : '—',
+                acc: accVal != null ? '±' + accVal.toFixed(2) + ' m' + (window.AGQc ? window.AGQc.codeSuffix(accVal) : '') : '—',
                 staked: staked ? 'ANO' : '—'
             };
 
