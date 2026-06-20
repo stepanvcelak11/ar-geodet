@@ -1,4 +1,4 @@
-// AR Geodet — Service Worker (v123)
+// AR Geodet — Service Worker (v124)
 // Strategie: vlastni kod = CACHE HNED + aktualizace na pozadi (stale-while-revalidate),
 //            CDN/dlazdice = NEJDRIV CACHE.
 // Instalace je ODOLNA: jeden nedostupny soubor neshodi prevzeti nove verze.
@@ -8,7 +8,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  — mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v123';
+const SHELL_CACHE = 'argeodet-shell-v124';
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -83,6 +83,8 @@ const ASSETS_TO_CACHE = [
     './css/check-distance.css',
     './js/brutal-gps.js',
     './css/brutal-gps.css',
+    './js/urovnani.js',
+    './css/urovnani.css',
     './js/qc-engine.js',
     './css/qc-engine.css',
     './js/tutorial-pro.js',
