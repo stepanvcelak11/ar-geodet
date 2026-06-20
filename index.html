@@ -110,15 +110,21 @@
             <!-- Návrh C „Zakázka v centru": vodorovná hlavička + karta aktivní zakázky s kontextem -->
             <div class="w-topbar">
                 <svg class="welcome-logo w-mini-logo" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs><linearGradient id="wl-pin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3eb487"/><stop offset="1" stop-color="#2f9e74"/></linearGradient></defs>
-                    <path d="M48 10C31 10 18 23 18 40c0 22 30 46 30 46s30-24 30-46c0-17-13-30-30-30Z" fill="url(#wl-pin)"/>
-                    <circle cx="48" cy="39" r="15.5" fill="#0e1216"/>
-                    <circle cx="48" cy="39" r="11.5" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.5"/>
-                    <g stroke="#ffffff" stroke-width="2.6" stroke-linecap="round">
-                        <line x1="48" y1="25" x2="48" y2="34"/><line x1="48" y1="44" x2="48" y2="53"/>
-                        <line x1="34" y1="39" x2="43" y2="39"/><line x1="53" y1="39" x2="62" y2="39"/>
+                    <defs><linearGradient id="wl-vf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4ccd99"/><stop offset="1" stop-color="#2a945f"/></linearGradient></defs>
+                    <g fill="none" stroke="url(#wl-vf)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 33 L22 26 Q22 22 26 22 L33 22"/>
+                        <path d="M63 22 L70 22 Q74 22 74 26 L74 33"/>
+                        <path d="M74 63 L74 70 Q74 74 70 74 L63 74"/>
+                        <path d="M33 74 L26 74 Q22 74 22 70 L22 63"/>
                     </g>
-                    <circle cx="48" cy="39" r="3.3" fill="#ffffff"/>
+                    <circle cx="48" cy="48" r="14" fill="none" stroke="#3eb487" stroke-opacity="0.25" stroke-width="1.5"/>
+                    <circle cx="48" cy="48" r="9.5" fill="none" stroke="#3eb487" stroke-opacity="0.5" stroke-width="1.5"/>
+                    <g stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity="0.9">
+                        <line x1="48" y1="38.5" x2="48" y2="42.5"/><line x1="48" y1="53.5" x2="48" y2="57.5"/>
+                        <line x1="38.5" y1="48" x2="42.5" y2="48"/><line x1="53.5" y1="48" x2="57.5" y2="48"/>
+                    </g>
+                    <circle cx="48" cy="48" r="4.2" fill="url(#wl-vf)"/>
+                    <circle cx="48" cy="48" r="1.8" fill="#ffffff"/>
                 </svg>
                 <div class="w-brand">
                     <div class="w-brand-name">AR&nbsp;Geodet</div>
@@ -191,7 +197,7 @@
             <button class="menu-btn" onclick="startTutorial(); toggleMenu();"><svg class="icon"><use href="#i-bulb"/></svg> Návod a prohlídka</button>
             <button class="menu-btn" onclick="openAbout(); toggleMenu();"><svg class="icon"><use href="#i-file-text"/></svg> O aplikaci</button>
             <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
-            <label class="menu-toggle-row"><input type="checkbox" id="tgl-info" checked onchange="toggleHudElements()"> Info panel a přesnost</label>
+            <label class="menu-toggle-row"><input type="checkbox" id="tgl-info" onchange="toggleHudElements()"> Info panel (přesnost, body v AR, družice)</label>
             <label class="menu-toggle-row"><input type="checkbox" id="tgl-compass" checked onchange="toggleHudElements()"> Kompas (Azimut)</label>
             <label class="menu-toggle-row"><input type="checkbox" id="tgl-gpsavg" checked onchange="toggleHudElements()"> Průměrování GPS na místě</label>
             <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
