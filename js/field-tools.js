@@ -95,7 +95,7 @@
     function init() {
         try {
             syncTiles();
-            if (!window.__agFtTimer) window.__agFtTimer = setInterval(tick, 1500);
+            if (!window.__agFtTimer) window.__agFtTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(tick, 1500);
         } catch (e) { console.warn('[field-tools] init', e); }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

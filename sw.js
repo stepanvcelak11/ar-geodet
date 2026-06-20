@@ -1,5 +1,6 @@
-// AR Geodet — Service Worker (v97)
-// Strategie: vlastni kod = NEJDRIV SIT (vzdy cerstvy), CDN/dlazdice = NEJDRIV CACHE.
+// AR Geodet — Service Worker (v98)
+// Strategie: vlastni kod = CACHE HNED + aktualizace na pozadi (stale-while-revalidate),
+//            CDN/dlazdice = NEJDRIV CACHE.
 // Instalace je ODOLNA: jeden nedostupny soubor neshodi prevzeti nove verze.
 //
 // DVE oddelene cache:
@@ -7,7 +8,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  — mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v97';
+const SHELL_CACHE = 'argeodet-shell-v98';
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -74,6 +75,7 @@ const ASSETS_TO_CACHE = [
     './css/dmr-terrain.css',
     './js/power-save.js',
     './css/power-save.css',
+    './js/idle-timers.js',
     './js/parcela.js',
     './js/dmt-volume.js',
     './css/dmt-volume.css',
@@ -134,15 +136,22 @@ self.addEventListener('fetch', event => {
     if (url.includes('cuzk.gov.cz/arcgis/rest')) return; // dotazy na bodova pole vzdy ze site
     if (url.includes('celestrak.org')) return; // drahy druzic (TLE) vzdy ze site — appka si je cachuje sama v localStorage
 
-    // Vlastni kod aplikace (stejny puvod): NEJDRIV SIT — aby byl vzdy cerstvy.
-    // Pri vypadku site se pouzije cache (offline rezim funguje dal).
+    // Vlastni kod aplikace (stejny puvod): STALE-WHILE-REVALIDATE — odpovez HNED z cache
+    // (rychly start i pri slabem signalu v terenu) a na pozadi stahni cerstvou verzi do cache.
+    // Cerstvy kod se k uzivateli dostane pres update-banner (bump verze SW -> install znovu
+    // stahne vsechny ASSETS_TO_CACHE -> SKIP_WAITING -> reload), tahle vetev jen zrychluje start.
     if (url.startsWith(self.location.origin)) {
         event.respondWith(
-            fetch(event.request).then(response => {
-                const clone = response.clone();
-                caches.open(SHELL_CACHE).then(cache => cache.put(event.request, clone));
-                return response;
-            }).catch(() => caches.match(event.request))
+            caches.match(event.request).then(cached => {
+                const network = fetch(event.request).then(response => {
+                    if (response && response.ok) {
+                        const clone = response.clone();
+                        caches.open(SHELL_CACHE).then(cache => cache.put(event.request, clone));
+                    }
+                    return response;
+                }).catch(() => cached);   // offline -> co je v cache
+                return cached || network; // cache hned, jinak cekej na sit
+            })
         );
         return;
     }

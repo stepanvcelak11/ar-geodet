@@ -131,11 +131,11 @@
     function openTool() {
         ensureModal(); fillSelects(); refresh(); previewStake();
         document.getElementById('agsl-modal').style.display = 'flex';
-        if (!_timer) _timer = setInterval(function () { var m = document.getElementById('agsl-modal'); if (m && m.style.display === 'flex') refresh(); }, 300);
+        if (!_timer) _timer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(function () { var m = document.getElementById('agsl-modal'); if (m && m.style.display === 'flex') refresh(); }, 300);
     }
     window.agCloseStakeLine = function () {
         var m = document.getElementById('agsl-modal'); if (m) m.style.display = 'none';
-        if (_timer) { clearInterval(_timer); _timer = null; }
+        if (_timer) { (window.AG && AG.clearUiInterval ? AG.clearUiInterval : clearInterval)(_timer); _timer = null; }
     };
 
     function register() {

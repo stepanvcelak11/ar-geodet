@@ -11,6 +11,23 @@
     const PREFIX = 'AG1';          // hlavicka payloadu (verze formatu)
     let _scanStream = null, _scanRAF = null;
 
+    // ---------- Line nacitani QR knihoven (jsqr ~10k radku + qrcode) ----------
+    // Nactou se az pri prvnim pouziti QR, ne pri startu appky. Promise se cachuje,
+    // takze opakovane volani nestahuje knihovnu znovu. Offline funguje, protoze
+    // oba soubory jsou v cache service workeru.
+    const _libCache = {};
+    function ensureLib(src) {
+        if (_libCache[src]) return _libCache[src];
+        _libCache[src] = new Promise(function (resolve, reject) {
+            const s = document.createElement('script');
+            s.src = src; s.async = true;
+            s.onload = function () { resolve(); };
+            s.onerror = function () { _libCache[src] = null; reject(new Error('nelze nacist ' + src)); };
+            (document.head || document.documentElement).appendChild(s);
+        });
+        return _libCache[src];
+    }
+
     // ---------- Kodovani / dekodovani ----------
     // Kompaktni format: "AG1\n<jmeno>\t<lat>\t<lng>\n..." (lat/lng na 6 mist ~0,1 m).
     function encodePoints(pts) {
@@ -80,6 +97,7 @@
 
     window.openShareQR = function () {
         if (typeof persistentCustomPoints === 'undefined' || !persistentCustomPoints.length) { alert('Nemáte žádné vlastní body ke sdílení.'); return; }
+        ensureLib('js/lib/qrcode.min.js').catch(function () {});   // predehrat, nez uzivatel klikne na "Vytvorit"
         buildShareModal();
         const list = document.getElementById('qr-share-list');
         list.innerHTML = persistentCustomPoints.map((p, i) =>
@@ -95,7 +113,12 @@
         cbs.forEach(cb => { if (cb.checked) sel.push(persistentCustomPoints[+cb.dataset.i]); });
         const out = document.getElementById('qr-share-out');
         if (!sel.length) { out.innerHTML = '<span style="color:var(--warning);">Vyberte alespoň jeden bod.</span>'; return; }
-        if (typeof qrcode === 'undefined') { out.innerHTML = '<span style="color:var(--danger);">Knihovna QR se nenačetla.</span>'; return; }
+        if (typeof qrcode === 'undefined') {
+            out.innerHTML = '<span style="color:var(--text-dim);">Načítám knihovnu QR…</span>';
+            ensureLib('js/lib/qrcode.min.js').then(generateFromSelection)
+                .catch(function () { out.innerHTML = '<span style="color:var(--danger);">Knihovnu QR se nepodařilo načíst.</span>'; });
+            return;
+        }
         const payload = encodePoints(sel);
         try {
             if (qrcode.stringToBytesFuncs && qrcode.stringToBytesFuncs['UTF-8']) qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
@@ -125,7 +148,11 @@
     }
 
     window.openScanQR = function () {
-        if (typeof jsQR === 'undefined') { alert('Knihovna pro čtení QR se nenačetla.'); return; }
+        if (typeof jsQR === 'undefined') {
+            ensureLib('js/lib/jsqr.min.js').then(window.openScanQR)
+                .catch(function () { alert('Knihovnu pro čtení QR se nepodařilo načíst.'); });
+            return;
+        }
         buildScanModal();
         document.getElementById('qr-scan-modal').style.display = 'flex';
         const video = document.getElementById('qr-scan-video');
