@@ -107,6 +107,34 @@
             ensureCameraAlive(false);
         });
 
+        // HLÍDAČ KAMERY: na iOS celoobrazovkový (neprůhledný) překryv nástroje občas
+        // „zamrazí" dekodér kamery a po zavření zůstane AR zaseklé (play() to nespraví).
+        // Když je AR aktivní a žádný překryv nepřekrývá, ale obraz se ~3 s nehýbe,
+        // restartujeme stream. Bezpečné vůči power-save (pauza/null/ended → přeskočíme).
+        (function () {
+            let lastT = -1, stall = 0;
+            function anyOverlayOpen() {
+                const mods = document.querySelectorAll('.dmt-overlay, .omr-overlay, #ag-bgps-overlay, #ag-lvl-overlay, .qc-gate-ov, #cad-sel-overlay');
+                for (let i = 0; i < mods.length; i++) { if (getComputedStyle(mods[i]).display !== 'none') return true; }
+                const mo = document.querySelectorAll('.modal-overlay');
+                for (let j = 0; j < mo.length; j++) { if (mo[j].style.display === 'flex') return true; }
+                return false;
+            }
+            setInterval(function () {
+                try {
+                    if (!appStarted || viewMode === 'map' || document.visibilityState !== 'visible') { stall = 0; lastT = -1; return; }
+                    if (anyOverlayOpen()) { stall = 0; lastT = -1; return; }
+                    const v = document.getElementById('camera-feed');
+                    if (!v || v.paused || v.readyState < 2 || !currentVideoStream) { stall = 0; return; }
+                    const tr = currentVideoStream.getVideoTracks ? currentVideoStream.getVideoTracks()[0] : null;
+                    if (!tr || tr.readyState !== 'live') return; // mrtvou stopu řeší jiné cesty
+                    const t = v.currentTime;
+                    if (t === lastT) { if (++stall >= 3) { ensureCameraAlive(true); stall = 0; lastT = -1; } }
+                    else { stall = 0; lastT = t; }
+                } catch (e) {}
+            }, 1000);
+        })();
+
         const resizer = document.getElementById('resizer'); const camCont = document.getElementById('camera-container'); let lastTapTime = 0; let isCamMaximized = false;
         resizer.addEventListener('touchmove', (e) => { const h = (e.touches[0].clientY / window.innerHeight) * 100; camCont.style.flex = `0 0 ${h}%`; });
         resizer.addEventListener('touchend', (e) => { const currentTime = new Date().getTime(); const tapLength = currentTime - lastTapTime; if (tapLength < 300 && tapLength > 0) { if (isCamMaximized) { camCont.style.transition = 'flex 0.3s ease'; camCont.style.flex = `0 0 50%`; isCamMaximized = false; } else { camCont.style.transition = 'flex 0.3s ease'; camCont.style.flex = `0 0 85%`; isCamMaximized = true; } setTimeout(() => { camCont.style.transition = 'none'; map.invalidateSize(); }, 300); } lastTapTime = currentTime; });
