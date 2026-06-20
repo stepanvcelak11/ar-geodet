@@ -1662,6 +1662,19 @@ body.cam-light #ar-hud-info .hud-name { color: #1e293b; }
 
 /* Mřížka nástrojů (Nástroje) */
 .tool-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+/* Nadpis kategorie v Nástrojích — přes celou šířku mřížky (stejný jazyk jako „Terénní nástroje") */
+.tool-cat {
+    grid-column: 1 / -1;
+    margin: 10px 2px 0;
+    padding-top: 10px;
+    border-top: 1px solid var(--glass-border);
+    font: 700 11px/1 var(--font-display, system-ui), sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-align: left;
+}
+.tool-grid > .tool-cat:first-child { margin-top: 0; padding-top: 0; border-top: none; }
 .tool-tile {
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
     min-height: 86px; padding: 16px 6px;

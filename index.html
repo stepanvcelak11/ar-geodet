@@ -233,16 +233,23 @@
             <h3 style="color: var(--accent); margin-top:0;"><svg class="icon"><use href="#i-ruler"/></svg> Nástroje</h3>
             <div class="modal-body">
                 <div class="tool-grid">
+                    <div class="tool-cat">Měření</div>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openMeasureModal();"><svg class="icon"><use href="#i-ruler"/></svg><span>Měření<br>vzdálenosti</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; startAreaMode();"><svg class="icon"><use href="#i-area"/></svg><span>Měření<br>plochy</span></button>
-                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openCalcModal();"><svg class="icon"><use href="#i-calc"/></svg><span>Kalkulačka</span></button>
-                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openSatModal();"><svg class="icon"><use href="#i-satellite"/></svg><span>GNSS<br>satelity</span></button>
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openCheckDist();"><svg class="icon"><use href="#i-ruler"/></svg><span>Oměrné /<br>kontrola</span></button>
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openDmtVolume();"><svg class="icon"><use href="#i-area"/></svg><span>Kubatury /<br>vrstevnice</span></button>
+
+                    <div class="tool-cat">Vytyčování a náčrt</div>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openStakeoutModal();"><svg class="icon"><use href="#i-check"/></svg><span>Vytyčovací<br>checklist</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openTachymetrie();"><svg class="icon"><use href="#i-grid"/></svg><span>Náčrt /<br>Tachymetrie</span></button>
-                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openDmtVolume();"><svg class="icon"><use href="#i-area"/></svg><span>Kubatury /<br>vrstevnice</span></button>
-                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openCheckDist();"><svg class="icon"><use href="#i-ruler"/></svg><span>Oměrné /<br>kontrola</span></button>
-                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openDictModal();"><svg class="icon"><use href="#i-book"/></svg><span>Slovník</span></button>
+
+                    <div class="tool-cat">Katastr a data</div>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openKatastr();"><svg class="icon"><use href="#i-map-pin"/></svg><span>Katastr<br>(zde stojím)</span></button>
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openSatModal();"><svg class="icon"><use href="#i-satellite"/></svg><span>GNSS<br>satelity</span></button>
+
+                    <div class="tool-cat">Pomůcky</div>
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openCalcModal();"><svg class="icon"><use href="#i-calc"/></svg><span>Kalkulačka</span></button>
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openDictModal();"><svg class="icon"><use href="#i-book"/></svg><span>Slovník</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; if(window.agOpenCalibrate) window.agOpenCalibrate();"><svg class="icon"><use href="#i-navigation"/></svg><span>Srovnat<br>sever</span></button>
                 </div>
             </div>
