@@ -196,7 +196,7 @@
             for (var i = 0; i < ovs.length; i++) { var ov = ovs[i], c = ov.querySelector('.modal-content'); if (isToolModal(ov, c)) enhance(ov, c); }
         } catch (e) {}
     }
-    function init() { try { injectCss(); if (!window.__agModalXTimer) window.__agModalXTimer = setInterval(tick, 400); tick(); } catch (e) {} }
+    function init() { try { injectCss(); if (!window.__agModalXTimer) window.__agModalXTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(tick, 400); tick(); } catch (e) {} }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
     window.addEventListener('load', function () { setTimeout(init, 500); });
 })();

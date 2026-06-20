@@ -124,11 +124,11 @@
     function openTool() {
         ensureModal(); fillSelect(); refresh();
         document.getElementById('agor-modal').style.display = 'flex';
-        if (!_timer) _timer = setInterval(function () { var m = document.getElementById('agor-modal'); if (m && m.style.display === 'flex') refresh(); }, 250);
+        if (!_timer) _timer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(function () { var m = document.getElementById('agor-modal'); if (m && m.style.display === 'flex') refresh(); }, 250);
     }
     window.agCloseOrientTool = function () {
         var m = document.getElementById('agor-modal'); if (m) m.style.display = 'none';
-        if (_timer) { clearInterval(_timer); _timer = null; }
+        if (_timer) { (window.AG && AG.clearUiInterval ? AG.clearUiInterval : clearInterval)(_timer); _timer = null; }
     };
 
     function register() {

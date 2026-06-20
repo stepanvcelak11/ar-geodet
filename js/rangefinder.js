@@ -141,10 +141,10 @@
         _frozen = null;
         declutter(true); showAim(true);
         unfreeze();
-        if (!_poll) _poll = setInterval(renderLive, 120);
+        if (!_poll) _poll = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(renderLive, 120);
     }
     function closeAim() {
-        if (_poll) { clearInterval(_poll); _poll = null; }
+        if (_poll) { (window.AG && AG.clearUiInterval ? AG.clearUiInterval : clearInterval)(_poll); _poll = null; }
         _frozen = null;
         showAim(false); declutter(false);
     }

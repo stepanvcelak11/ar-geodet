@@ -321,7 +321,7 @@
 
     // periodicky aktualizuj „kde stojím" když je modal otevřený
     var _liveTimer = null;
-    function startLive() { if (!_liveTimer) _liveTimer = setInterval(function () { var m = document.getElementById('agcv-modal'); if (m && m.style.display === 'flex') { whereAmI(); renderInfo(); } }, 1500); }
+    function startLive() { if (!_liveTimer) _liveTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(function () { var m = document.getElementById('agcv-modal'); if (m && m.style.display === 'flex') { whereAmI(); renderInfo(); } }, 1500); }
 
     function injectStyles() {
         if (document.getElementById('agcv-style')) return;

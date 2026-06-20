@@ -170,11 +170,11 @@
         if (!sunModal) buildSunModal();
         sunModal.style.display = 'flex';
         renderSun();
-        if (sunTimer) clearInterval(sunTimer);
-        sunTimer = setInterval(renderSun, 250);
+        if (sunTimer) (window.AG && AG.clearUiInterval ? AG.clearUiInterval : clearInterval)(sunTimer);
+        sunTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(renderSun, 250);
     };
     window.closeSunCheck = function () {
-        if (sunTimer) { clearInterval(sunTimer); sunTimer = null; }
+        if (sunTimer) { (window.AG && AG.clearUiInterval ? AG.clearUiInterval : clearInterval)(sunTimer); sunTimer = null; }
         if (sunModal) sunModal.style.display = 'none';
     };
 })();

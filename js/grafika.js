@@ -437,6 +437,11 @@
             document.getElementById('det-body').innerHTML = html; document.getElementById('bottom-sheet').classList.add('open');
         }
         const mapWrapper = document.getElementById('map-wrapper'); const compassDebug = document.getElementById('compass-debug');
+        // VYKON: HUD prvky ziskame JEN JEDNOU (drive se hledaly pres getElementById kazdy snimek -> ~1000 lookupu/s)
+        const userDirContainer = document.getElementById('user-direction-container');
+        const arHud = document.getElementById('ar-hud'), arHudName = document.getElementById('ar-hud-name'), arHudDist = document.getElementById('ar-hud-dist'), arHudInfo = document.getElementById('ar-hud-info'), arHudArrowContainer = document.getElementById('ar-hud-arrow-container');
+        const arrTarget = document.getElementById('arrow-target'), arrStraight = document.getElementById('arrow-straight'), arrLeft = document.getElementById('arrow-left'), arrRight = document.getElementById('arrow-right'), arrUturn = document.getElementById('arrow-uturn'), arrBull = document.getElementById('arrow-bullseye');
+        let _lastCdHtml = '', _lastCdTitle = '';   // posledni text azimutu — prekreslit jen pri zmene
         // VYKON: udalosti senzoru chodi i 60+x/s; prekreslujeme max 1x za snimek (requestAnimationFrame)
         let _orientPending = false, _lastOrientEvent = null;
         function handleOrientation(event) {
@@ -481,14 +486,17 @@
             let relativeHeadingDeg = (heading - compassZeroOffset + 360) % 360; let displayAzimut = "";
             if (compassUnit === 'gon') { let gonTotal = relativeHeadingDeg * (400 / 360); let grad = Math.floor(gonTotal); let centigrad = Math.floor((gonTotal - grad) * 100); displayAzimut = `${grad}<sup>g</sup> ${centigrad.toString().padStart(2, '0')}<sup>c</sup>`; } else { displayAzimut = `${relativeHeadingDeg.toFixed(1)} °`; }
             let cAcc = event.webkitCompassAccuracy; let calWarn = (cAcc != null && (cAcc < 0 || cAcc > 20)) || !headingReliable;
-            compassDebug.innerHTML = `Azimut: ${displayAzimut}` + (calWarn ? ' <span style="color:var(--warning);">⚠</span>' : '');
-            compassDebug.title = !headingReliable ? 'Zařízení neposkytuje absolutní azimut – sever může být nepřesný. Dolaďte v Nastavení kompasu „Srovnání severu".' : (calWarn ? 'Kompas vyzaduje kalibraci – proveďte telefonem osmicku' : '');
+            // VYKON: innerHTML/title prepisujeme jen kdyz se text opravdu zmenil (ne 60/s)
+            const _cdHtml = `Azimut: ${displayAzimut}` + (calWarn ? ' <span style="color:var(--warning);">⚠</span>' : '');
+            if (_cdHtml !== _lastCdHtml) { compassDebug.innerHTML = _cdHtml; _lastCdHtml = _cdHtml; }
+            const _cdTitle = !headingReliable ? 'Zařízení neposkytuje absolutní azimut – sever může být nepřesný. Dolaďte v Nastavení kompasu „Srovnání severu".' : (calWarn ? 'Kompas vyzaduje kalibraci – proveďte telefonem osmicku' : '');
+            if (_cdTitle !== _lastCdTitle) { compassDebug.title = _cdTitle; _lastCdTitle = _cdTitle; }
             if (!window._mapHold && !window._popupOpen) {
                 mapWrapper.style.transformOrigin = (function(){ const p = map.latLngToContainerPoint([userLat, userLng]); return p.x + 'px ' + p.y + 'px'; })(); mapWrapper.style.transform = `translate(-50%, -50%) rotate(${-heading}deg)`; mapRotation = heading;
                 if (window._labelsDirty) { window._mapLabelEls = document.querySelectorAll('.map-label-text'); window._labelsDirty = false; }
                 if (window._mapLabelEls) window._mapLabelEls.forEach(el => { el.style.transform = `rotate(${heading}deg)`; });
             }
-            const dirContainer = document.getElementById('user-direction-container'); if (dirContainer) dirContainer.style.transform = `rotate(${heading}deg)`;
+            if (userDirContainer) userDirContainer.style.transform = `rotate(${heading}deg)`;
             updateNavGlow();
             if (viewMode === 'map') return; // v samostatne mape jen otacime mapu, AR projekci (kamera) preskakujeme
 
@@ -547,16 +555,15 @@
             drawARLines(heading, cameraPitchDown, imgRoll, halfH, halfV, vOffset, eyeH);
             
             if (highlightedPointData) {
-                document.getElementById('ar-hud').style.display = 'flex'; const arrTarget = document.getElementById('arrow-target'); const arrStraight = document.getElementById('arrow-straight'); const arrLeft = document.getElementById('arrow-left'); const arrRight = document.getElementById('arrow-right'); const arrUturn = document.getElementById('arrow-uturn'); const arrBull = document.getElementById('arrow-bullseye'); const hudDistText = document.getElementById('ar-hud-dist'); const hudInfoBox = document.getElementById('ar-hud-info');
+                arHud.style.display = 'flex';
                 arrTarget.style.display = 'none'; arrStraight.style.display = 'none'; arrLeft.style.display = 'none'; arrRight.style.display = 'none'; arrUturn.style.display = 'none'; arrBull.style.display = 'none';
-                let diff = highlightedPointData.diff; const arrowContainer = document.getElementById('ar-hud-arrow-container');
-                
-                hudDistText.style.color = '#fff'; hudInfoBox.style.borderColor = 'rgba(255,255,255,0.4)';
-                if (Math.abs(diff) <= 35) { arrStraight.style.display = 'block'; arrowContainer.style.transform = `perspective(800px) rotateX(65deg) rotateZ(${diff}deg)`; } else if (diff < -35 && diff >= -110) { arrLeft.style.display = 'block'; arrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; } else if (diff > 35 && diff <= 110) { arrRight.style.display = 'block'; arrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; } else { arrUturn.style.display = 'block'; arrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; }
-                hudDistText.innerText = `${highlightedPointData.dist.toFixed(1)} m`;
-                document.getElementById('ar-hud-name').innerText = `#${highlightedPointData.name}`;
+                let diff = highlightedPointData.diff;
+                arHudDist.style.color = '#fff'; arHudInfo.style.borderColor = 'rgba(255,255,255,0.4)';
+                if (Math.abs(diff) <= 35) { arrStraight.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg) rotateZ(${diff}deg)`; } else if (diff < -35 && diff >= -110) { arrLeft.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; } else if (diff > 35 && diff <= 110) { arrRight.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; } else { arrUturn.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; }
+                arHudDist.innerText = `${highlightedPointData.dist.toFixed(1)} m`;
+                arHudName.innerText = `#${highlightedPointData.name}`;
 
-            } else { document.getElementById('ar-hud').style.display = 'none'; }
+            } else { arHud.style.display = 'none'; }
         }
         
         let inactivityTimer; const fadeElements = ['menu-toggle-btn', 'compass-debug', 'info', 'resizer', 'gps-avg'];
@@ -829,7 +836,7 @@
         // ===== ADAPTIVNI SKLO: vzorkuje jas obrazu kamery (~1x za 0.7 s) a prepina svetly rezim AR panelu =====
         const _lumaCanvas = document.createElement('canvas'); _lumaCanvas.width = 24; _lumaCanvas.height = 16;
         const _lumaCtx = _lumaCanvas.getContext('2d', { willReadFrequently: true });
-        setInterval(() => {
+        (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(() => {
             if (visSettings.adaptiveGlass === false || visSettings.outdoorMode || !appStarted || viewMode === 'map' || document.visibilityState !== 'visible') { document.body.classList.remove('cam-light'); return; }
             const v = document.getElementById('camera-feed');
             if (!v || v.readyState < 2 || !v.videoWidth) return;
