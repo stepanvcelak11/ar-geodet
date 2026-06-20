@@ -173,11 +173,20 @@
     // ---- zapnuti / vypnuti -----------------------------------------------------
     function startListening() {
         if (listening) return;
+        var attach = function () { try { window.addEventListener('devicemotion', onMotion, true); listening = true; } catch (e) {} };
         try {
-            window.addEventListener('devicemotion', onMotion, true);
-            listening = true;
+            // iOS 13+: devicemotion (gyro) vyžaduje VLASTNÍ souhlas. Když byl udělen dřív
+            // (start kamery hlavní appkou ve stejném gestu), requestPermission projde hned;
+            // jinak listener nepřipojíme a fúze tiše použije fallback (žádný „mrtvý" listener).
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission().then(function (p) { if (p === 'granted') attach(); }).catch(function () {});
+            } else {
+                attach();
+            }
         } catch (e) {}
     }
+    // Hook pro hlavní appku: zavolat z user-gesta (start kamery/AR), ať se na iOS doptá na motion.
+    window.agFusionRequestMotion = startListening;
     function stopListening() {
         if (!listening) return;
         try { window.removeEventListener('devicemotion', onMotion, true); } catch (e) {}

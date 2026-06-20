@@ -341,11 +341,23 @@ if ('serviceWorker' in navigator) {
             if (userLat && userLng && typeof initFetch === 'function') initFetch(userLat, userLng);
             return added;
         };
+        // Detekce kódování: české seznamy souřadnic (Kokeš/Groma/VKM/GP) bývají Windows-1250,
+        // ne UTF-8. Zkusíme UTF-8; když vzniknou náhradní znaky (�), spadneme na Windows-1250.
+        function _agDecodeText(buf) {
+            try {
+                var utf = new TextDecoder('utf-8', { fatal: false }).decode(buf);
+                if (utf.indexOf('�') >= 0) { try { return new TextDecoder('windows-1250').decode(buf); } catch (e) {} }
+                return utf;
+            } catch (e) { try { return new TextDecoder('windows-1250').decode(buf); } catch (e2) { return ''; } }
+        }
+        window._agDecodeBuf = _agDecodeText;
         function importPoints(event) {
             const file = event.target.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
-                let txt = e.target.result, imported = null;
+                // čteme binárně a detekujeme kódování (kvůli diakritice v číslech/názvech bodů)
+                let txt = (typeof e.target.result === 'string') ? e.target.result : _agDecodeText(e.target.result);
+                let imported = null;
                 try { let j = JSON.parse(txt); if (Array.isArray(j)) imported = j; } catch (err) {}
                 if (!imported) imported = parseCoordsCSV(txt);
                 if (!imported || imported.length === 0) { alert("V souboru se nenašly žádné body.\n\nPodporováno: JSON, nebo CSV/TXT s řádky 'číslo;Y;X' (oddělovač ; , tab nebo mezera)."); event.target.value = ''; return; }
@@ -353,7 +365,7 @@ if ('serviceWorker' in navigator) {
                 alert("Importováno " + added + " bodů do aktuální zakázky.");
                 event.target.value = '';
             };
-            reader.readAsText(file);
+            reader.readAsArrayBuffer(file);
         }
         function deleteCustomPoint(id) { if(!confirm("Smazat?")) return; persistentCustomPoints = persistentCustomPoints.filter(p => p.id !== id); setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); pointLines = pointLines.filter(l => l.aId !== id && l.bId !== id); saveLines(); renderManageList(); drawAllMarkersOnMap(); const idx = arPoints.findIndex(p => p.id === id); if(idx !== -1) { if(arPoints[idx].element) arPoints[idx].element.remove(); arPoints.splice(idx, 1); } updateInfoPanel(); }
         // Vyplnit Y/X z PRUMEROVANE GPS polohy (presnejsi nez jeden odecet) + ulozit dosazenou presnost
@@ -480,6 +492,10 @@ if ('serviceWorker' in navigator) {
             } else { updateInfoPanel(); }
         }
 
+
+        // TRVALÉ ÚLOŽIŠTĚ: na iOS hrozí smazání dat (localStorage i IndexedDB) po ~7 dnech
+        // nečinnosti. Požádáme o trvalé úložiště — pomáhá na Androidu/desktopu, na iOS neuškodí.
+        try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {}); } catch (e) {}
 
         if ("geolocation" in navigator) {
             navigator.geolocation.watchPosition(
