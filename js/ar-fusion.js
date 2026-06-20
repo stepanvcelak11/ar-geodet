@@ -102,12 +102,20 @@
         // lehke vyhlazeni rate (potlaci sum gyra), reaguje rychle nahoru
         var k = Math.abs(yr) > Math.abs(yawRate) ? 0.6 : 0.3;
         yawRate = yawRate + k * (yr - yawRate);
+        // Na pozadi (jina zalozka, otevreny Katastr, zhasnuto) se renderAR zastavi a pendingYaw
+        // by se neomezene nascital -> po navratu obri skok znacky. Kdyz neni viditelne, integraci
+        // resetujeme a nepokracujeme.
+        if (typeof document !== 'undefined' && document.visibilityState && document.visibilityState !== 'visible') {
+            pendingYaw = 0; lastMotionT = 0; return;
+        }
         if (lastMotionT) {
             var dt = (now - lastMotionT) / 1000;
             if (dt > 0 && dt < 0.5) {
                 pendingYaw += yawRate * dt; // integruj na uhel (deg)
             }
         }
+        // pojistka: nenech pendingYaw narust nad +-90 (kdyby fuse() dlouho nebezel)
+        if (pendingYaw > 90) pendingYaw = 90; else if (pendingYaw < -90) pendingYaw = -90;
         lastMotionT = now;
         haveGyro = true;
     }
@@ -159,6 +167,21 @@
             // restartu senzoru) — kdyz je rozdil obrovsky, pritahni razneji
             var err = adiff(corrected, predicted);
             if (Math.abs(err) > 45) w = Math.max(w, 0.2);
+
+            // KVALITA KOMPASU: kdyz je magnetometr ruseny/neklidny (kov — typicky u geodetickych
+            // bodu), snizime tah k nemu a vic se oprime o gyro (dead-reckoning). Skore bere z
+            // compass-stability (0-100) a z iOS webkitCompassAccuracy (stupne). Bez info q=1 (beze zmeny).
+            var q = 1;
+            try {
+                var sc = (window.AGCompassStability && window.AGCompassStability.score);
+                if (sc != null && isFinite(sc)) q = Math.max(0.2, Math.min(1, sc / 100));
+                var ca = event && event.webkitCompassAccuracy;
+                if (ca != null && isFinite(ca)) {
+                    var qa = (ca < 0) ? 0.2 : Math.max(0.2, Math.min(1, 1 - (ca - 8) / 30));
+                    if (qa < q) q = qa;
+                }
+            } catch (e) {}
+            w *= q;
 
             var out = predicted + w * err;
             return norm360(out);
