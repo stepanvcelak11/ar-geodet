@@ -223,7 +223,6 @@ html, body {
     width: 100%;
     height: 100%;
     height: 100dvh;
-    height: 100lvh;   /* celá FYZICKÁ výška displeje (i plocha pod gesture/nav lištou), ne dvh co se zmenšuje → žádný pruh dole */
     overflow: hidden;
     touch-action: none;
 }
