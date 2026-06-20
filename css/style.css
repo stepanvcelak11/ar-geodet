@@ -1137,13 +1137,18 @@ details[open] summary::after { content: " ⌄"; }
 /* Prostorové otevírání: JS nastaví --spawn-ox/--spawn-oy na místo ťuknutí */
 .modal-content { animation: modal-in 0.32s var(--ease-out) both; transform-origin: var(--spawn-ox, 50%) var(--spawn-oy, 110%); }
 
-/* Postupný nájezd položek bočního menu */
-#side-menu.open .menu-btn { animation: menu-pop 0.30s var(--ease-out) both; }
-#side-menu.open .menu-btn:nth-child(1) { animation-delay: 0.02s; }
-#side-menu.open .menu-btn:nth-child(2) { animation-delay: 0.06s; }
-#side-menu.open .menu-btn:nth-child(3) { animation-delay: 0.10s; }
-#side-menu.open .menu-btn:nth-child(4) { animation-delay: 0.14s; }
-#side-menu.open .menu-btn:nth-child(5) { animation-delay: 0.18s; }
+/* Postupný nájezd VŠECH položek bočního menu (tlačítka, oddělovač i přepínací řádky) */
+#side-menu.open > * { animation: menu-pop 0.30s var(--ease-out) both; }
+#side-menu.open > *:nth-child(1) { animation-delay: 0.02s; }
+#side-menu.open > *:nth-child(2) { animation-delay: 0.05s; }
+#side-menu.open > *:nth-child(3) { animation-delay: 0.08s; }
+#side-menu.open > *:nth-child(4) { animation-delay: 0.11s; }
+#side-menu.open > *:nth-child(5) { animation-delay: 0.14s; }
+#side-menu.open > *:nth-child(6) { animation-delay: 0.17s; }
+#side-menu.open > *:nth-child(7) { animation-delay: 0.20s; }
+#side-menu.open > *:nth-child(8) { animation-delay: 0.23s; }
+#side-menu.open > *:nth-child(9) { animation-delay: 0.26s; }
+#side-menu.open > *:nth-child(n+10) { animation-delay: 0.28s; }
 
 /* Respekt k systémovému nastavení omezeného pohybu (přístupnost) */
 @media (prefers-reduced-motion: reduce) {
