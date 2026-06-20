@@ -476,7 +476,7 @@
             let corrected = (rawCompass + (headingIsTrueNorth ? 0 : magneticDeclination) + headingCorrection + userHeadingOffset + 360) % 360;
             // SMER: cyklicke vyhlazeni (mene roztreseny obraz); sila dle nastaveni
             let smoothAlpha = Math.max(0.05, 1 - (visSettings.headingSmoothing || 0) / 100);
-            smoothedHeading = smoothAngle(smoothedHeading, corrected, smoothAlpha);
+            if (window.ARFusion && window.ARFusion.enabled) { smoothedHeading = window.ARFusion.fuse(corrected, smoothedHeading, event); } else { smoothedHeading = smoothAngle(smoothedHeading, corrected, smoothAlpha); }
             let heading = smoothedHeading; currentHeading = heading;
             let relativeHeadingDeg = (heading - compassZeroOffset + 360) % 360; let displayAzimut = "";
             if (compassUnit === 'gon') { let gonTotal = relativeHeadingDeg * (400 / 360); let grad = Math.floor(gonTotal); let centigrad = Math.floor((gonTotal - grad) * 100); displayAzimut = `${grad}<sup>g</sup> ${centigrad.toString().padStart(2, '0')}<sup>c</sup>`; } else { displayAzimut = `${relativeHeadingDeg.toFixed(1)} °`; }

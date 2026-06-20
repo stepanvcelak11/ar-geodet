@@ -1,0 +1,22 @@
+/* ===== AR Geodet — FUZE SMERU (gyro + magnetometr) — styly ======================
+   Odpojitelna vrstva k js/ar-fusion.js. Pouziva pouze sdilene design tokeny.
+   Nahrazuje css/ar-stabilize.css.
+   Odstraneni: smaz tento soubor + js/ar-fusion.js a oba radky v index.html.
+   ================================================================================ */
+
+/* Napoveda pod prepinacem v bocnim menu (drobny ztlumeny text). */
+#side-menu .ag-arfusion-hint {
+    margin: -2px 2px 4px 28px;          /* odsazeni zarovna text pod popisek checkboxu */
+    font-size: 11px;
+    line-height: 1.35;
+    color: var(--text-muted);
+    letter-spacing: 0.1px;
+}
+
+/* Jemna akcentova linka vlevo (nenapadne odlisi prepinac). */
+#side-menu #ag-arfusion-row {
+    padding-left: 8px;
+    border-left: 2px solid var(--accent-line);
+    border-radius: var(--r-xs);
+}
+#side-menu #ag-arfusion-row input { accent-color: var(--accent); }

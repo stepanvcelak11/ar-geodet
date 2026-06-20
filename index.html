@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Sora:wght@600;700;800&display=swap">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="js/lib/proj4-2.9.0.min.js"></script>
+    <script src="js/geo-core.js"></script>
     <link rel="stylesheet" href="css/style.css">
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
     <link rel="stylesheet" href="css/vylepseni.css">
@@ -31,7 +32,8 @@
     <link rel="stylesheet" href="css/ref-calibration.css">
     <link rel="stylesheet" href="css/sky-obstruction.css">
     <link rel="stylesheet" href="css/cadastre-area.css">
-    <link rel="stylesheet" href="css/ar-stabilize.css">
+    <link rel="stylesheet" href="css/ar-fusion.css">
+    <link rel="stylesheet" href="css/ar-calibrate.css">
     <link rel="stylesheet" href="css/dmr-terrain.css">
     <link rel="stylesheet" href="css/power-save.css">
     <link rel="stylesheet" href="css/dmt-volume.css">
@@ -586,7 +588,7 @@
     <script src="js/ref-calibration.js"></script>
     <script src="js/sky-obstruction.js"></script>
     <script src="js/cadastre-area.js"></script>
-    <script src="js/ar-stabilize.js"></script>
+    <script src="js/ar-fusion.js"></script>
     <script src="js/theme-dark.js"></script>
     <script src="js/dmr-terrain.js"></script>
     <!-- PARCELA (odpojitelné: smaž tento řádek + js/parcela.js) — geometrie & dělení parcel; styly injektované z JS -->
@@ -598,10 +600,12 @@
     <script src="js/brutal-gps.js"></script>
     <script src="js/stakeout-line.js"></script>
     <script src="js/track-log.js"></script>
+    <script src="js/linalg.js"></script>
     <script src="js/ar-resection.js"></script>
     <script src="js/ar-intersection.js"></script>
     <!-- OPTICKÝ DÁLKOMĚR (odpojitelné: smaž tento řádek + js/rangefinder.js) — odhad vzdálenosti z náklonu -->
     <script src="js/rangefinder.js"></script>
+    <script src="js/ar-calibrate.js"></script>
     <script src="js/project-import.js"></script>
     <script src="js/cadastre-vector.js"></script>
     <!-- NOVÝ TUTORIÁL (odpojitelné: smaž tento řádek + js/tutorial-pro.js) — základní + pokročilá prohlídka -->
@@ -609,6 +613,7 @@
     <!-- CELÁ OBRAZOVKA / immersive (odpojitelné: smaž tento řádek + js/fullscreen.js) — schová systémovou lištu dole -->
     <script src="js/fullscreen.js"></script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + js/vylepseni.js + css/vylepseni.css) — musí být POSLEDNÍ modul kvůli override -->
+    <script src="js/pdf-protocol.js"></script>
     <script src="js/vylepseni.js"></script>
     <!-- Karta zakázky na úvodu (Návrh C) — až za vším, ať obalí finální loadProjectSettings/renderProjectSelect -->
     <script src="js/welcome-card.js"></script>
