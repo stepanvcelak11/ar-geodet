@@ -51,7 +51,7 @@
         if (document.getElementById('tachy-style')) return;
         const st = document.createElement('style'); st.id = 'tachy-style';
         st.textContent = `
-            #tachy-modal{position:fixed;inset:0;z-index:1000000;background:#0b0f14;display:none;flex-direction:column;font-family:var(--font-ui,sans-serif);}
+            #tachy-modal{position:fixed;top:0;left:0;right:0;height:var(--app-vh,100dvh);z-index:1000000;background:#0b0f14;display:none;flex-direction:column;font-family:var(--font-ui,sans-serif);}
             #tachy-top{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 10px;background:#11161d;border-bottom:1px solid rgba(255,255,255,0.08);}
             #tachy-top .tt-title{display:flex;align-items:center;gap:8px;font-family:var(--font-display,sans-serif);font-weight:700;font-size:16px;color:#fff;margin-right:auto;}
             #tachy-top .tt-title .icon{width:20px;height:20px;color:var(--accent,#34d399);}

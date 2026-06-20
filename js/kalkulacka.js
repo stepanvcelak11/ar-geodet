@@ -1050,10 +1050,10 @@ function _peSave() {
         .pd-btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 11px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.06); color: var(--text-color); font-size: 14px; font-weight: 600; cursor: pointer; }
         .pd-btn:active { transform: scale(0.97); }
         #note-modal textarea { width: 100%; resize: vertical; background: rgba(0,0,0,0.25); border: 1px solid var(--glass-border); border-radius: 10px; color: var(--text-color); padding: 10px; font-size: 15px; font-family: inherit; box-sizing: border-box; }
-        .photo-viewer { position: fixed; inset: 0; z-index: 100050; background: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center; padding: 16px; }
+        .photo-viewer { position: fixed; top: 0; left: 0; right: 0; height: var(--app-vh, 100dvh); z-index: 100050; background: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center; padding: 16px; }
         .photo-viewer img { max-width: 100%; max-height: 92%; border-radius: 8px; }
         .photo-viewer .pv-close { position: absolute; top: 16px; right: 16px; width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.16); color: #fff; border: none; font-size: 20px; cursor: pointer; }
-        .photo-editor { position: fixed; inset: 0; z-index: 100060; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .photo-editor { position: fixed; top: 0; left: 0; right: 0; height: var(--app-vh, 100dvh); z-index: 100060; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .photo-editor .pe-hint { color: #fff; font-size: 13px; padding: 10px 16px; opacity: 0.85; text-align: center; }
         .photo-editor canvas { max-width: 100%; max-height: calc(100% - 130px); touch-action: none; border-radius: 6px; }
         .photo-editor .pe-bar { display: flex; gap: 8px; padding: 14px; width: 100%; max-width: 480px; box-sizing: border-box; }

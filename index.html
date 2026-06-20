@@ -892,26 +892,17 @@
     </script>
     <script>
     // ===== Otevírací animace modálů (Nastavení/Body/Nástroje/Nový bod) =====
-    // Spolehlivě i při PRVNÍM otevření: třídu .ag-open přidáme AŽ po vykreslení
-    // výchozího (skrytého, odsunutého) stavu — proto dvojitý requestAnimationFrame.
-    // Funguje se všemi stávajícími přepínači přes element.style.display.
+    // STEJNÝ princip jako „Více" (#side-menu): prvek je v CSS VŽDY display:flex,
+    // takže je trvale v layoutu a transition naběhne i při PRVNÍM otevření.
+    // Kód appky dál přepíná element.style.display 'flex'/'none' (to CSS !important
+    // přebíjí) — my jen podle toho přepneme třídu .ag-open, která řídí viditelnost.
     (function () {
         var IDS = ['settings-modal', 'manage-modal', 'tools-modal', 'custom-modal-overlay'];
         function wire(el) {
             if (!el) return;
-            var open = false;
+            el.classList.toggle('ag-open', el.style.display === 'flex');
             new MutationObserver(function () {
-                if (el.style.display === 'flex') {
-                    if (open) return;
-                    open = true;
-                    void el.offsetWidth; // zafixuj výchozí stav (opacity:0, panel vpravo)
-                    requestAnimationFrame(function () {
-                        requestAnimationFrame(function () { if (open) el.classList.add('ag-open'); });
-                    });
-                } else {
-                    open = false;
-                    el.classList.remove('ag-open');
-                }
+                el.classList.toggle('ag-open', el.style.display === 'flex');
             }).observe(el, { attributes: true, attributeFilter: ['style'] });
         }
         function init() { IDS.forEach(function (id) { wire(document.getElementById(id)); }); }

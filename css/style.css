@@ -1997,15 +1997,28 @@ body.light-mode:not(.cam-light) .ar-marker,
 body.light-mode:not(.cam-light) .ar-marker .ar-marker-title,
 body.light-mode:not(.cam-light) .ar-marker .ar-marker-dist { color: #fff; }
 
-/* ---- Modály Nastavení/Body/Nástroje: vyjetí zprava při otevření.
-   Řízeno třídou .ag-open, kterou přidává JS (MutationObserver v index.html) AŽ
-   po vykreslení výchozího stavu — proto se animace spustí spolehlivě i při PRVNÍM
-   otevření po startu (dřívější @starting-style na iOS první otevření neanimoval). --- */
+/* ---- Modály Nastavení/Body/Nástroje/Nový bod: vyjetí zprava (jako „Více").
+   STEJNÝ princip jako #side-menu: prvek je VŽDY v layoutu (display:flex !important),
+   nikdy display:none → transition tak naběhne spolehlivě i při PRVNÍM otevření.
+   Viditelnost řídí jen třída .ag-open (přidává JS podle inline display:flex/none).
+   Zavřeno: opacity:0 + pointer-events:none + panel odsunutý vpravo (translateX 100%). */
 #settings-modal, #manage-modal, #tools-modal, #custom-modal-overlay {
+    display: flex !important;
     opacity: 0;
+    pointer-events: none;
     transition: opacity 0.28s var(--ease-out);
 }
-#settings-modal.ag-open, #manage-modal.ag-open, #tools-modal.ag-open, #custom-modal-overlay.ag-open { opacity: 1; }
+#settings-modal.ag-open, #manage-modal.ag-open, #tools-modal.ag-open, #custom-modal-overlay.ag-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+/* Zavřené modály nesmí žrát výkon (4 fullscreen vrstvy stále v DOM) — vypnout blur. */
+#settings-modal:not(.ag-open), #manage-modal:not(.ag-open), #tools-modal:not(.ag-open), #custom-modal-overlay:not(.ag-open),
+#settings-modal:not(.ag-open) .modal-content, #manage-modal:not(.ag-open) .modal-content,
+#tools-modal:not(.ag-open) .modal-content, #custom-modal-overlay:not(.ag-open) .modal-content {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
 #settings-modal .modal-content, #manage-modal .modal-content, #tools-modal .modal-content, #custom-modal-overlay .modal-content {
     transition: transform 0.34s var(--ease-spring);
     transform: translateX(100%);
