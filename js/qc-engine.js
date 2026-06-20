@@ -158,25 +158,39 @@
         window[name] = wrapped; return true;
     }
 
-    // živý verdikt v panelu Průměrování GPS (#gps-avg)
+    // živý verdikt v panelu Průměrování GPS (#gps-avg) — krátce ukáže kód kvality,
+    // po pár vteřinách se sám sbalí, ať trvale nezabírá plochu; znovu vyskočí jen
+    // při změně kódu kvality. (Cílovou třídu se nastavuje v dialogu uložení bodu.)
+    var _gpsKey = null, _gpsTimer = null;
     function afterGpsPanel() {
         var panel = document.getElementById('gps-avg'); if (!panel) return;
         var r = null; try { r = (typeof gpsAvgResult !== 'undefined') ? gpsAvgResult : null; } catch (e) {}
         var box = document.getElementById('gps-qc');
         if (!box) { box = document.createElement('div'); box.id = 'gps-qc'; box.className = 'qc-panel'; panel.appendChild(box); }
-        if (!r || r.coarse || typeof r.sterr !== 'number' || !isFinite(r.sterr) || (r.n || 0) < 2) { box.innerHTML = ''; box.style.display = 'none'; return; }
-        box.style.display = 'block';
-        box.innerHTML = chipHtml(r.sterr) + targetSelectHtml();
+        if (!r || r.coarse || typeof r.sterr !== 'number' || !isFinite(r.sterr) || (r.n || 0) < 2) {
+            box.classList.add('qc-collapsed'); box.innerHTML = ''; _gpsKey = null; clearTimeout(_gpsTimer); return;
+        }
+        var got = codeForSigma(r.sterr);
+        var key = '' + (got ? got.kod : 'x');
+        if (key !== _gpsKey) {
+            _gpsKey = key;
+            box.innerHTML = chipHtml(r.sterr);
+            box.classList.remove('qc-collapsed');
+            clearTimeout(_gpsTimer);
+            _gpsTimer = setTimeout(function () { box.classList.add('qc-collapsed'); }, 4500);
+        } else if (!box.classList.contains('qc-collapsed')) {
+            box.innerHTML = chipHtml(r.sterr);   // dokud je vidět, drž číslo živé
+        }
     }
 
-    // verdikt v dialogu „Přidat vlastní bod" po vyplnění z průměrované GPS
+    // verdikt + výběr cílové třídy v dialogu „Vložit bod" po vyplnění z průměrované GPS
     function afterFillGps() {
         var note = document.getElementById('custom-acc-note'); if (!note) return;
         var r = null; try { r = (typeof gpsAvgResult !== 'undefined') ? gpsAvgResult : null; } catch (e) {}
         if (!r || typeof r.sterr !== 'number' || !isFinite(r.sterr)) return;
         var add = document.getElementById('qc-note-add');
         if (!add) { add = document.createElement('div'); add.id = 'qc-note-add'; note.appendChild(add); }
-        add.innerHTML = chipHtml(r.sterr);
+        add.innerHTML = chipHtml(r.sterr) + targetSelectHtml();
     }
 
     // BRÁNA: obalí saveCustomPoint tak, aby u podlimitního NOVÉHO bodu z GPS
