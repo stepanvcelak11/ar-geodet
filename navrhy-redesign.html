@@ -177,21 +177,31 @@
     <symbol id="i-eye" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
     <symbol id="i-logo" viewBox="0 0 96 96">
-      <defs><linearGradient id="lg-pin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3eb487"/><stop offset="1" stop-color="#2f9e74"/></linearGradient></defs>
-      <path d="M48 10C31 10 18 23 18 40c0 22 30 46 30 46s30-24 30-46c0-17-13-30-30-30Z" fill="url(#lg-pin)"/>
-      <circle cx="48" cy="39" r="15.5" fill="#0e1216"/>
-      <circle cx="48" cy="39" r="11.5" fill="none" stroke="#fff" stroke-width="1.5" opacity=".5"/>
-      <g stroke="#fff" stroke-width="2.6" stroke-linecap="round"><line x1="48" y1="25" x2="48" y2="34"/><line x1="48" y1="44" x2="48" y2="53"/><line x1="34" y1="39" x2="43" y2="39"/><line x1="53" y1="39" x2="62" y2="39"/></g>
-      <circle cx="48" cy="39" r="3.3" fill="#fff"/>
+      <defs><linearGradient id="lg-vf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4ccd99"/><stop offset="1" stop-color="#2a945f"/></linearGradient></defs>
+      <g fill="none" stroke="url(#lg-vf)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 33 L22 26 Q22 22 26 22 L33 22"/>
+        <path d="M63 22 L70 22 Q74 22 74 26 L74 33"/>
+        <path d="M74 63 L74 70 Q74 74 70 74 L63 74"/>
+        <path d="M33 74 L26 74 Q22 74 22 70 L22 63"/>
+      </g>
+      <circle cx="48" cy="48" r="14" fill="none" stroke="#3eb487" stroke-opacity="0.25" stroke-width="1.5"/>
+      <circle cx="48" cy="48" r="9.5" fill="none" stroke="#3eb487" stroke-opacity="0.5" stroke-width="1.5"/>
+      <g stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity="0.9">
+        <line x1="48" y1="38.5" x2="48" y2="42.5"/><line x1="48" y1="53.5" x2="48" y2="57.5"/>
+        <line x1="38.5" y1="48" x2="42.5" y2="48"/><line x1="53.5" y1="48" x2="57.5" y2="48"/>
+      </g>
+      <circle cx="48" cy="48" r="4.2" fill="url(#lg-vf)"/>
+      <circle cx="48" cy="48" r="1.8" fill="#ffffff"/>
     </symbol>
   </defs></svg>
 
   <div class="wrap">
-    <h1>AR Geodet — překopání vzhledu (5 návrhů)</h1>
-    <p class="sub">Pět směrů, jak appku <b>vizuálně přeskládat</b>, aby byla modernější a příjemnější — barvy, písmo i všechny funkce zůstávají, mění se jen <b>rozmístění ovládání</b>. Každý návrh má tři obrazovky: <b>úvodní → hlavní (pracovní) → nastavení</b>, a dole vysvětlení „co se mění". Přepínej je nahoře.</p>
+    <h1>AR Geodet — překopání vzhledu</h1>
+    <p class="sub">První záložka <b>★ Kombinace</b> je tvůj vybraný směr: <b>úvodní + hlavní obrazovka z Návrhu 3 (Pilot)</b>, <b>HUD panel + nastavení z Návrhu 1 (Orbita)</b>. Pod ní zůstává všech 5 původních návrhů pro porovnání. Barvy, písmo i všechny funkce zůstávají, mění se jen <b>rozmístění ovládání</b>. Logo je už <b>nové (Hledáček AR)</b>.</p>
 
     <div class="switch" id="switch">
-      <b class="on" data-v="1">Návrh 1<small>Orbita — akční kruh</small></b>
+      <b class="on" data-v="x">★ Kombinace<small>úvod+hlavní z 3 · HUD+nastavení z 1</small></b>
+      <b data-v="1">Návrh 1<small>Orbita — akční kruh</small></b>
       <b data-v="2">Návrh 2<small>Velín — spodní list</small></b>
       <b data-v="3">Návrh 3<small>Pilot — boční lišta</small></b>
       <b data-v="4">Návrh 4<small>Chameleon — kontextová lišta</small></b>
@@ -199,9 +209,122 @@
     </div>
 
     <!-- ===================================================================
+         ★ KOMBINACE — úvod+hlavní (Návrh 3 Pilot) + HUD+nastavení (Návrh 1 Orbita)
+    ==================================================================== -->
+    <section class="variant on" data-v="x">
+      <div class="vhead">
+        <div class="vt">★ <em>Kombinace</em> — tvůj vybraný směr</div>
+        <div class="vd">Úvodní a hlavní obrazovka podle <b>Návrhu 3 (Pilot)</b> — svislá lišta u pravého okraje, víc místa pro split AR+mapa. K tomu <b>vodorovný HUD pruh z Návrhu 1 (Orbita)</b> nahoře (přesnost · azimut · družice na jednom řádku) a <b>nastavení z Návrhu 1</b> (velké dlaždice). Nové logo Hledáček AR.</div>
+      </div>
+      <div class="screens">
+
+        <!-- ÚVOD (Pilot) -->
+        <div class="stage">
+          <div class="scrlabel">Úvodní <span>· z Návrhu 3</span></div>
+          <div class="phone"><div class="screen">
+            <div class="notch"></div>
+            <div class="fill" style="background:radial-gradient(60% 45% at 80% 10%,var(--glow1),transparent 60%),radial-gradient(50% 40% at 10% 100%,var(--glow2),transparent 60%),var(--bg);"></div>
+            <div class="sb"><span>10:23</span><span class="r">●●● ▮ 81</span></div>
+            <div class="scr-pad" style="justify-content:center;padding:50px 16px 16px;">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:22px;">
+                <svg width="46" height="46"><use href="#i-logo"/></svg>
+                <div><div style="font-family:'Sora';font-size:22px;font-weight:800;letter-spacing:-.4px;">AR Geodet</div><div style="font-size:9px;color:var(--muted);font-family:'JetBrains Mono';letter-spacing:.18em;text-transform:uppercase;margin-top:2px;">Geodetický AR nástroj</div></div>
+                <span style="margin-left:auto;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--muted);"><svg class="icon" style="width:16px;"><use href="#i-info"/></svg></span>
+              </div>
+              <div class="flabel">Aktivní zakázka</div>
+              <div style="padding:14px;border-radius:16px;background:rgba(0,0,0,.26);border:1px solid var(--border);">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span style="width:38px;height:38px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:11px;background:rgba(47,158,116,.16);color:var(--accent2);"><svg class="icon"><use href="#i-folder"/></svg></span>
+                  <div style="flex:1;"><div style="font-size:15px;font-weight:700;">Dvůr u lesa</div><div style="font-size:10.5px;color:var(--muted);">S-JTSK · Křovák</div></div>
+                  <svg class="icon" style="width:16px;color:var(--muted);"><use href="#i-chevron-down"/></svg>
+                </div>
+                <div style="display:flex;gap:7px;margin-top:11px;">
+                  <span style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:99px;background:rgba(255,255,255,.05);border:1px solid var(--hair);font-size:11px;color:var(--muted);"><svg class="icon" style="width:12px;color:var(--accent2);"><use href="#i-map-pin"/></svg> <b style="color:var(--text);">128</b> bodů</span>
+                  <span style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:99px;background:rgba(255,255,255,.05);border:1px solid var(--hair);font-size:11px;color:var(--muted);"><svg class="icon" style="width:12px;color:var(--accent2);"><use href="#i-clock"/></svg> dnes</span>
+                </div>
+              </div>
+              <button class="btn primary" style="margin-top:18px;font-size:16px;padding:16px;"><svg class="icon"><use href="#i-navigation"/></svg> Spustit vyhledávání</button>
+              <button class="btn ghost" style="margin-top:10px;"><svg class="icon"><use href="#i-route"/></svg> Průvodce úkolem</button>
+            </div>
+          </div></div>
+        </div>
+
+        <!-- HLAVNÍ (Pilot layout + Orbita HUD) -->
+        <div class="stage">
+          <div class="scrlabel">Hlavní <span>· Pilot + HUD z 1</span></div>
+          <div class="phone"><div class="screen">
+            <div class="notch"></div>
+            <div class="fill bg-ar" style="bottom:48%;"></div>
+            <div class="fill bg-map" style="top:52%;"></div>
+            <span class="parcel" style="bottom:60px;left:24px;transform:rotate(-18deg);">248</span>
+            <span class="parcel" style="bottom:120px;right:60px;transform:rotate(6deg);font-size:10px;">117/2</span>
+            <div style="position:absolute;top:calc(52% - 7px);left:0;right:0;height:14px;display:flex;align-items:center;justify-content:center;"><span style="width:46px;height:5px;border-radius:99px;background:var(--accent);opacity:.7;"></span></div>
+            <div class="sb"><span>10:23</span><span class="r">●●● ▮ 81</span></div>
+
+            <!-- HUD z Návrhu 1: vodorovný pruh nahoře -->
+            <div style="position:absolute;top:42px;left:10px;right:58px;display:flex;gap:6px;align-items:center;z-index:10;">
+              <span class="gchip ok"><svg class="icon"><use href="#i-locate"/></svg><span class="v">±7 m</span></span>
+              <span class="gchip"><span class="k">AZ</span><span class="v">80°</span></span>
+              <span class="gchip"><svg class="icon"><use href="#i-radio"/></svg><span class="v">12</span></span>
+            </div>
+            <div class="armk cu" style="top:130px;left:54px;">A-12<small>18 m</small></div>
+
+            <!-- svislá lišta vpravo (Pilot) -->
+            <div style="position:absolute;top:50%;right:9px;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;align-items:center;z-index:20;">
+              <span class="rail prim"><svg class="icon"><use href="#i-plus"/></svg></span>
+              <span class="rail"><svg class="icon"><use href="#i-ruler"/></svg></span>
+              <span class="rail"><svg class="icon"><use href="#i-map-pin"/></svg></span>
+              <span class="rail"><svg class="icon"><use href="#i-layers"/></svg></span>
+              <span class="rail"><svg class="icon"><use href="#i-more"/></svg></span>
+              <span class="rail"><svg class="icon"><use href="#i-settings"/></svg></span>
+            </div>
+          </div></div>
+        </div>
+
+        <!-- NASTAVENÍ (Orbita dlaždice) -->
+        <div class="stage">
+          <div class="scrlabel">Nastavení <span>· z Návrhu 1</span></div>
+          <div class="phone"><div class="screen">
+            <div class="notch"></div>
+            <div class="fill" style="background:var(--bg);"></div>
+            <div class="sb"><span>10:23</span><span class="r">●●● ▮ 81</span></div>
+            <div class="scr-pad" style="gap:11px;">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:2px;">
+                <span style="font-family:'Sora';font-size:18px;font-weight:800;">Nastavení</span>
+                <span style="margin-left:auto;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:9px;background:rgba(255,255,255,.06);color:var(--muted);"><svg class="icon" style="width:16px;height:16px;"><use href="#i-x"/></svg></span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div class="settile"><svg class="icon"><use href="#i-palette"/></svg><b>Vzhled</b><small>Motiv, velikost, světlo</small></div>
+                <div class="settile"><svg class="icon"><use href="#i-target"/></svg><b>AR &amp; přesnost</b><small>Radius, výkon</small></div>
+                <div class="settile"><svg class="icon"><use href="#i-database"/></svg><b>Data</b><small>Zakázky, export</small></div>
+                <div class="settile"><svg class="icon"><use href="#i-compass"/></svg><b>Kompas</b><small>Kalibrace, sever</small></div>
+              </div>
+              <div class="sgrouph">Rychlé přepínače</div>
+              <div class="strow"><span class="ic"><svg class="icon"><use href="#i-eye"/></svg></span><div class="tx"><div class="tt">Zamezit zhasnutí displeje</div></div><span class="toggle"></span></div>
+              <div class="strow"><span class="ic"><svg class="icon"><use href="#i-sun"/></svg></span><div class="tx"><div class="tt">Venkovní režim</div></div><span class="toggle off"></span></div>
+              <button class="btn primary" style="margin-top:auto;"><svg class="icon"><use href="#i-check"/></svg> Uložit a zavřít</button>
+            </div>
+          </div></div>
+        </div>
+
+      </div>
+
+      <div class="note">
+        <div class="h"><svg class="icon"><use href="#i-check"/></svg> Z čeho je kombinace složená</div>
+        <ul>
+          <li><b>Úvodní obrazovka</b> = Návrh 3 (Pilot): vodorovná hlavička s logem, karta zakázky s kontextem (počet bodů, „dnes"), Spustit + Průvodce.</li>
+          <li><b>Hlavní obrazovka</b> = Návrh 3 (Pilot): svislá lišta vpravo (palec), víc výšky pro split AR+mapa.</li>
+          <li><b>HUD panel</b> = Návrh 1 (Orbita): jeden vodorovný pruh nahoře (přesnost · azimut · družice) místo tří roztroušených panelů.</li>
+          <li><b>Nastavení</b> = Návrh 1 (Orbita): velké dotykové dlaždice + rychlé přepínače.</li>
+        </ul>
+        <div class="keep"><b>Funkce zůstávají všechny</b> — na svislé liště: Nový bod, Nástroje, Body, Vrstvy/režim, Více, Nastavení; HUD, AR značky, split mapa i resizer beze změny. Nové logo Hledáček AR.</div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
          NÁVRH 1 — ORBITA
     ==================================================================== -->
-    <section class="variant on" data-v="1">
+    <section class="variant" data-v="1">
       <div class="vhead">
         <div class="vt">Návrh 1 — <em>Orbita</em> (akční kruh)</div>
         <div class="vd">Spodní lišta s pěti tlačítky <b>mizí</b>. Místo ní je dole uprostřed jediné velké kruhové tlačítko, které se na klepnutí rozevře do oblouku akcí. Obraz je čistý, ovládání je palcem na dosah, hlavní akce „Nový bod" dominuje.</div>
