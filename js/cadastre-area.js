@@ -90,10 +90,47 @@
         var geom = bbox.w + ',' + bbox.s + ',' + bbox.e + ',' + bbox.n;
         var out = [], seen = {};
         var idx = 0, errCount = 0;
+        var TOTAL = LAYERS.length + 1;   // +1 za identify krok
+
+        // přidá bod (jen uvnitř bboxu, dedup podle jméno+poloha)
+        function addPoint(g, attrs) {
+            if (!g || typeof g.x !== 'number' || typeof g.y !== 'number') return;
+            var lat = g.y, lng = g.x;
+            if (lat < bbox.s - 1e-9 || lat > bbox.n + 1e-9 || lng < bbox.w - 1e-9 || lng > bbox.e + 1e-9) return;
+            var nm = pointName(attrs);
+            var key = nm + '@' + lat.toFixed(6) + ',' + lng.toFixed(6);
+            if (seen[key]) return;
+            seen[key] = 1;
+            out.push({ name: nm, lat: lat, lng: lng });
+        }
+
+        // KLÍČOVÉ: stejně jako fetchGeodata() použijeme i /identify. Vrstvy BodovaPole
+        // mají přes /query/envelope omezený výstup (často vrací prázdno) — body reálně
+        // tahá až identify (to je důvod, proč body na mapě jsou, ale import je „neviděl").
+        function identifyStep() {
+            if (typeof onProgress === 'function') { try { onProgress(LAYERS.length, TOTAL); } catch (e) {} }
+            var lat = (bbox.s + bbox.n) / 2, lng = (bbox.w + bbox.e) / 2;
+            var mapExtent = bbox.w + ',' + bbox.s + ',' + bbox.e + ',' + bbox.n;
+            // geometrie = střed, tolerance velká → identify vrátí VŠE v mapExtent (= bbox)
+            var idUrl = ENDPOINT + '/identify?geometry=' + lng + ',' + lat +
+                '&geometryType=esriGeometryPoint&sr=4326&layers=all&tolerance=1000' +
+                '&mapExtent=' + encodeURIComponent(mapExtent) +
+                '&imageDisplay=1000,1000,96&returnGeometry=true&f=json';
+            return fetchJson(idUrl).then(function (idData) {
+                if (idData && idData.results && idData.results.length) {
+                    idData.results.forEach(function (res) { addPoint(res.geometry, res.attributes); });
+                }
+            }).catch(function () { errCount++; });
+        }
+
         function next() {
-            if (idx >= LAYERS.length) return Promise.resolve({ points: out, errCount: errCount, total: LAYERS.length });
+            if (idx >= LAYERS.length) {
+                return identifyStep().then(function () {
+                    return { points: out, errCount: errCount, total: TOTAL };
+                });
+            }
             var layerId = LAYERS[idx++];
-            if (typeof onProgress === 'function') { try { onProgress(idx - 1, LAYERS.length); } catch (e) {} }
+            if (typeof onProgress === 'function') { try { onProgress(idx - 1, TOTAL); } catch (e) {} }
             var url = ENDPOINT + '/' + layerId + '/query' +
                 '?where=1%3D1' +
                 '&geometry=' + encodeURIComponent(geom) +
@@ -102,21 +139,12 @@
                 '&outFields=*&returnGeometry=true&outSR=4326&f=json';
             return fetchJson(url).then(function (data) {
                 if (data && data.features && data.features.length) {
-                    data.features.forEach(function (feat) {
-                        if (!feat.geometry || typeof feat.geometry.x !== 'number' || typeof feat.geometry.y !== 'number') return;
-                        var lat = feat.geometry.y, lng = feat.geometry.x;
-                        var nm = pointName(feat.attributes);
-                        var key = nm + '@' + lat.toFixed(6) + ',' + lng.toFixed(6);
-                        if (seen[key]) return;
-                        seen[key] = 1;
-                        out.push({ name: nm, lat: lat, lng: lng });
-                    });
+                    data.features.forEach(function (feat) { addPoint(feat.geometry, feat.attributes); });
                 }
                 return next();
             }).catch(function (e) {
-                // jednu vrstvu necháme spadnout tiše (jako fetchGeodata), pokračujeme dál;
-                // počet selhání si pamatujeme, ať umíme odlišit „prázdná oblast" od
-                // „dotazy vůbec neprošly" (CORS/síť/timeout) — viz doFetch().
+                // jednu vrstvu necháme spadnout tiše, pokračujeme dál; počet selhání
+                // si pamatujeme (odlišit „prázdná oblast" od „dotazy neprošly") — doFetch().
                 errCount++;
                 return next();
             });
