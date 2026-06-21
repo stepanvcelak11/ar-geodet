@@ -1289,6 +1289,11 @@ details[open] summary::after { content: " ⌄"; }
     box-shadow: var(--accent-glow);
 }
 .dock-fab .icon { width: 24px; height: 24px; color: #fff; }
+/* Oblouček doku: prostřední tlačítka vyzvednutá → 5 tlačítek tvoří oblouk.
+   Sílu řídí --dock-arc (Nastavení → prohnutí ovládání). 0 = původní vzhled.
+   Symetrické (1&5 dole, 2&4 výš, 3 nejvýš) → funguje i při zrcadlení (row-reverse). */
+#dock .dock-btn:nth-child(2), #dock .dock-btn:nth-child(4) { margin-bottom: calc(var(--dock-arc, 0px) * 0.55); }
+#dock .dock-btn:nth-child(3) { margin-bottom: var(--dock-arc, 0px); }
 
 /* Ovládání mapy posunout nad dok (a s dokem se zvedat dle --dock-lift) */
 #map-controls { bottom: calc(max(12px, env(safe-area-inset-bottom)) + 100px + var(--dock-lift, 0px)); }
