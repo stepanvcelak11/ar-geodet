@@ -133,7 +133,7 @@
         var el = document.createElement('div');
         el.className = 'modal-overlay'; el.id = 'agtr-modal'; el.style.zIndex = '100001';
         el.innerHTML =
-            '<div class="modal-content" style="display:block;max-height:88vh;max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
+            '<div class="modal-content" style="display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:#f59e0b;margin-top:0;">' + ICON + ' Stopa trasy</h3>'
             + '<p style="font-size:12.5px;opacity:.7;margin:2px 0 10px;">Zaznamenává, kudy jdeš (oranžová čára na mapě). Šetří GPS šum — bere bod po posunu ≥ ' + MIN_MOVE_M + ' m.</p>'
             + '<div id="agtr-stats" style="font-family:var(--font-mono,monospace);margin:6px 0 12px;color:#fbbf24;"></div>'

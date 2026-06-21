@@ -89,7 +89,7 @@
         var el = document.createElement('div');
         el.className = 'modal-overlay'; el.id = 'agof-modal'; el.style.zIndex = '100001';
         el.innerHTML =
-            '<div class="modal-content" style="display:block;max-height:88vh;max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
+            '<div class="modal-content" style="display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON.replace('width="20"', '') + ' Offset bod (nepřístupný bod)</h3>'
             + '<p style="font-size:12.5px;opacity:.7;margin:2px 0 10px;">Spočítá bod, kam se nedá stoupnout: ze základu + zeměpisného azimutu (0°=sever) + vodorovné délky.</p>'
             + '<label class="filter-row" style="font-size:13px;"><input type="radio" name="agof-base" value="gps" checked> Z mé polohy (GPS)</label>'
@@ -170,7 +170,7 @@
         if (document.getElementById('ag-modalx-css')) return;
         var st = document.createElement('style'); st.id = 'ag-modalx-css';
         st.textContent =
-            '.modal-content.ag-scrollable{display:block;max-height:88vh;max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;}'
+            '.modal-overlay .modal-content.ag-scrollable{display:block;width:100%;max-width:100%;height:100%;max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;}'
             + '.ag-modal-x{position:sticky;top:0;z-index:6;height:0;text-align:right;pointer-events:none;}'
             + '.ag-modal-x>button{pointer-events:auto;position:relative;top:-10px;right:-6px;width:34px;height:34px;border:none;border-radius:50%;background:rgba(0,0,0,0.5);color:#fff;font:300 23px/1 system-ui,sans-serif;cursor:pointer;}';
         (document.head || document.documentElement).appendChild(st);

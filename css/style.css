@@ -1193,7 +1193,7 @@ details[open] summary::after { content: " ⌄"; }
 }
 
 
-#map-controls { position: absolute; right: 12px; bottom: 12px; z-index: 500; display: flex; flex-direction: row; align-items: flex-end; gap: 8px; }
+#map-controls { position: absolute; right: 12px; bottom: 12px; z-index: 500; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 .map-ctrl-btn { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--glass-border); color: var(--text-color); font-size: 24px; font-weight: 700; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
 .map-ctrl-btn:active { transform: scale(0.94); }
 .map-ctrl-btn .icon { width: 20px; height: 20px; }
@@ -1242,7 +1242,8 @@ details[open] summary::after { content: " ⌄"; }
     position: absolute;
     left: 12px;
     right: 12px;
-    bottom: max(12px, env(safe-area-inset-bottom));
+    /* --dock-lift: o kolik výš nad spodní hranou (Nastavení → výška ovládání) */
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + var(--dock-lift, 0px));
     z-index: 9000;
     display: flex;
     justify-content: space-between;
@@ -1289,8 +1290,8 @@ details[open] summary::after { content: " ⌄"; }
 }
 .dock-fab .icon { width: 24px; height: 24px; color: #fff; }
 
-/* Ovládání mapy posunout nad dok */
-#map-controls { bottom: calc(max(12px, env(safe-area-inset-bottom)) + 100px); }
+/* Ovládání mapy posunout nad dok (a s dokem se zvedat dle --dock-lift) */
+#map-controls { bottom: calc(max(12px, env(safe-area-inset-bottom)) + 100px + var(--dock-lift, 0px)); }
 
 /* 'O aplikaci a soukromi' musi jit otevrit i z uvodni obrazovky (ta ma z-index 999999) */
 #about-modal { z-index: 1000000; }
@@ -1443,7 +1444,8 @@ body.outdoor-mode .ar-marker-dist { opacity: 1; }
 
 /* Vyjizdejici panel ovladani mapy: sbaleno = jen prepinaci tlacitko, rozbaleno = cely sloupec */
 #map-controls { align-items: flex-end; }
-#map-ctrl-stack { display: flex; flex-direction: row; flex-wrap: wrap-reverse; justify-content: flex-end; gap: 8px; max-width: calc(100vw - 92px); transform-origin: bottom right; transition: opacity 0.25s var(--ease-out), transform 0.25s var(--ease-out); }
+/* Urovnané ke straně: svislý sloupec nad přepínačem (ne rozsypaná řada tlačítek). */
+#map-ctrl-stack { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; transform-origin: bottom right; transition: opacity 0.25s var(--ease-out), transform 0.25s var(--ease-out); }
 #map-controls:not(.expanded) #map-ctrl-stack { opacity: 0; transform: translateX(12px) scale(0.85); pointer-events: none; }
 #map-controls.expanded #map-ctrl-toggle { background: var(--accent); color: #fff; border-color: var(--accent); }
 #map-controls.expanded #map-ctrl-toggle .icon { stroke: #fff; }
@@ -1723,6 +1725,24 @@ body.cam-light #ar-hud-info .hud-name { color: #1e293b; }
     justify-content: center;
     background: rgba(255, 255, 255, 0.06);
 }
+
+/* Vyhledávací pole nad mřížkou nástrojů */
+.tools-search {
+    width: 100%;
+    margin: 0 0 14px;
+    padding: 11px 14px;
+    border-radius: var(--r-md);
+    border: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-color);
+    font-family: var(--font-ui);
+    font-size: 15px;
+    -webkit-appearance: none;
+    appearance: none;
+}
+.tools-search::placeholder { color: var(--text-muted); }
+.tools-search:focus { outline: none; border-color: var(--accent); background: rgba(255, 255, 255, 0.09); }
+body.light-mode .tools-search { background: rgba(0, 0, 0, 0.04); }
 
 /* Mřížka nástrojů (Nástroje) */
 .tool-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -2039,13 +2059,13 @@ body.light-mode .modal-overlay .modal-content { background: rgba(247, 248, 250, 
 body.light-mode .settings-tiles .tab-btn { background: rgba(0, 0, 0, 0.04); }
 
 /* =========================================================================
-   REŽIM LEVÉ RUKY — zrcadlení ovládání na opačnou (levou) stranu displeje.
-   Výchozí HUD je stavěný pro pravou ruku (mapové ovládání + azimut vpravo).
-   Při zapnutí (#s-lefthand → body.left-hand) se strany prohodí: ovládání,
-   která palec pravé ruky dosáhne vpravo, jdou doleva a naopak. Spodní dok je
-   přes celou šířku (symetrický) a boční menu je fullscreen → ty se neřeší.
+   REŽIM LEVÉ RUKY — zrcadlí OVLÁDÁNÍ na opačnou stranu displeje (HUD zůstává).
+   Na přání: HUD (info/azimut/GPS) necháváme, kde byl. Zrcadlí se jen ovládací
+   prvky, na které sahá palec: spodní dok (pořadí tlačítek) a mapové ovládání.
    ========================================================================= */
-body.left-hand #map-controls { right: auto; left: 12px; }
-body.left-hand #compass-debug { right: auto; left: var(--hud-side); transform-origin: top left; }
-body.left-hand #info { left: auto; right: var(--hud-side); transform-origin: top right; }
-body.left-hand #gps-avg { left: auto; right: var(--hud-side); transform-origin: top right; }
+/* Spodní dok: zrcadlené pořadí tlačítek (Nastavení/Více … vlevo). */
+body.left-hand #dock { flex-direction: row-reverse; }
+/* Mapové ovládání z pravého do levého dolního rohu. */
+body.left-hand #map-controls { right: auto; left: 12px; align-items: flex-start; }
+body.left-hand #map-ctrl-stack { align-items: flex-start; transform-origin: bottom left; }
+body.left-hand #map-controls:not(.expanded) #map-ctrl-stack { transform: translateX(-12px) scale(0.85); }

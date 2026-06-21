@@ -674,7 +674,7 @@
         var el = document.createElement('div');
         el.className = 'modal-overlay'; el.id = 'agpc-modal'; el.style.zIndex = '100001';
         el.innerHTML =
-            '<div class="modal-content" style="max-width:580px;">'
+            '<div class="modal-content">'
             + '<div class="agpc-head">'
             + '  <h3 style="color:var(--accent);margin:0;flex:1;">' + ICON + ' Parcela — geometrie &amp; dělení</h3>'
             + '  <button type="button" class="agpc-hbtn" id="agpc-min" title="Minimalizovat (ukázat mapu)">—</button>'

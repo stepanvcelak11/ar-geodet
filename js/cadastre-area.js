@@ -249,6 +249,17 @@
         var m = getMap();
         if (!m) { alertMsg('Mapa není připravená', 'Počkej, až se načte mapa, a zkus to znovu.'); return; }
         if (typeof fetch === 'undefined') { alertMsg('Nelze stahovat', 'Tento prohlížeč neumí stahovat data (chybí fetch).'); return; }
+        // Výběr obdélníku se přepočítává přes viditelnou mapu. V AR (kamera) je mapa
+        // skrytá → tah by se přepočítal podle staré polohy mapy a stáhlo by se špatné
+        // (často prázdné) místo. Proto vyžadujeme zobrazení s mapou (jako Měření plochy).
+        try {
+            if (typeof viewMode !== 'undefined' && viewMode === 'ar') {
+                alertMsg('Přepni na mapu',
+                    'Import oblasti z katastru pracuje s mapou. Přepni zobrazení na <b>Mapa</b> nebo <b>Split</b> ' +
+                    '(přes tlačítko „Více"), najdi a přibliž místo na mapě a pak vyber oblast tahem.');
+                return;
+            }
+        } catch (e) {}
 
         startSelection().then(function (bbox) {
             if (!bbox) return; // zrušeno / příliš malý výběr

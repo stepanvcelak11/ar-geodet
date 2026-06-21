@@ -136,7 +136,7 @@
         var el = document.createElement('div');
         el.className = 'modal-overlay'; el.id = 'agix-modal'; el.style.zIndex = '100001';
         el.innerHTML =
-            '<div class="modal-content" style="display:block;max-height:88vh;max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
+            '<div class="modal-content" style="display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Protínání vpřed — neznámý bod</h3>'
             + '<p style="font-size:12.5px;opacity:.82;margin:2px 0 10px;line-height:1.45;">Urči bod, na který se nedá dojít, ze <b>známých bodů</b>. '
             + 'Na každém stanovisku zaměříš orientační bod a cíl. Stačí <b>2 stanoviska</b>; přidej další pro <b>kontrolu a zpřesnění</b> (vyrovná se MNČ). '

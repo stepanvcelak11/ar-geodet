@@ -71,7 +71,35 @@
             });
             grid.appendChild(btn);
         });
+        try { applyFilter(); } catch (e) {}   // znovu aplikuj aktivní hledání i na čerstvě vložené dlaždice
     }
+
+    // ---- vyhledávání nástroje podle názvu --------------------------------------
+    function norm(s) {
+        s = String(s == null ? '' : s).toLowerCase();
+        try { s = s.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) {}
+        return s.replace(/\s+/g, ' ').trim();
+    }
+    function applyFilter() {
+        var grid = getGrid(); if (!grid) return;
+        var inp = document.getElementById('tools-search');
+        var q = norm(inp ? inp.value : '');
+        var kids = grid.children, lastHead = null, headHasHit = false;
+        function flushHead() { if (lastHead) lastHead.style.display = headHasHit ? '' : 'none'; }
+        for (var i = 0; i < kids.length; i++) {
+            var el = kids[i];
+            if (el.classList.contains('tool-cat') || el.classList.contains('ag-ft-head')) {
+                flushHead(); lastHead = el; headHasHit = false; continue;
+            }
+            if (el.classList.contains('tool-tile') || el.classList.contains('ag-ft-tile')) {
+                var hit = !q || norm(el.textContent).indexOf(q) !== -1;
+                el.style.display = hit ? '' : 'none';
+                if (hit) headHasHit = true;
+            }
+        }
+        flushHead();
+    }
+    window.agFilterTools = applyFilter;
 
     // ---- veřejné API: registrace nástroje --------------------------------------
     window.agRegisterFieldTool = function (item) {
@@ -90,7 +118,18 @@
         if (!grid) return false;
         return grid.querySelectorAll('.ag-ft-tile').length !== _items.length;
     }
-    function tick() { try { if (needsSync()) syncTiles(); } catch (e) {} }
+    var _wasOpen = false;
+    function tick() {
+        try {
+            if (needsSync()) syncTiles();
+            // Vyhledávání vyresetuj při zavření modalu, ať se příště otevře čisté.
+            var m = document.getElementById('tools-modal');
+            var open = !!(m && m.style.display !== 'none' && m.style.display !== '');
+            var inp = document.getElementById('tools-search');
+            if (_wasOpen && !open && inp && inp.value) { inp.value = ''; applyFilter(); }
+            _wasOpen = open;
+        } catch (e) {}
+    }
 
     function init() {
         try {
