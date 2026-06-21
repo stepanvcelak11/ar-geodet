@@ -89,9 +89,9 @@
     function fetchPointsInBbox(bbox, onProgress) {
         var geom = bbox.w + ',' + bbox.s + ',' + bbox.e + ',' + bbox.n;
         var out = [], seen = {};
-        var idx = 0;
+        var idx = 0, errCount = 0;
         function next() {
-            if (idx >= LAYERS.length) return Promise.resolve(out);
+            if (idx >= LAYERS.length) return Promise.resolve({ points: out, errCount: errCount, total: LAYERS.length });
             var layerId = LAYERS[idx++];
             if (typeof onProgress === 'function') { try { onProgress(idx - 1, LAYERS.length); } catch (e) {} }
             var url = ENDPOINT + '/' + layerId + '/query' +
@@ -115,12 +115,12 @@
                 return next();
             }).catch(function (e) {
                 // jednu vrstvu necháme spadnout tiše (jako fetchGeodata), pokračujeme dál;
-                // celkové selhání řešíme až podle prázdného výsledku + síťové chyby
-                lastNetErr = true;
+                // počet selhání si pamatujeme, ať umíme odlišit „prázdná oblast" od
+                // „dotazy vůbec neprošly" (CORS/síť/timeout) — viz doFetch().
+                errCount++;
                 return next();
             });
         }
-        var lastNetErr = false;
         return next();
     }
 
@@ -268,12 +268,26 @@
     function doFetch(bbox) {
         _busy = true;
         showProgress(0, LAYERS.length);
-        fetchPointsInBbox(bbox, function (i, total) { showProgress(i, total); }).then(function (pts) {
+        fetchPointsInBbox(bbox, function (i, total) { showProgress(i, total); }).then(function (res) {
             hideProgress();
             _busy = false;
-            if (!pts || !pts.length) {
+            var pts = (res && res.points) || [];
+            var errCount = (res && res.errCount) || 0;
+            var total = (res && res.total) || LAYERS.length;
+            // KLÍČOVÉ: když dotazy vůbec neprošly (CORS/síť/timeout — selhaly všechny
+            // vrstvy) a nic se nestáhlo, NEHLÁSIT „žádné body" (to mate — uživatel pak
+            // na místě body normálně vidí). Je to selhání spojení, ne prázdná oblast.
+            if (!pts.length && errCount >= total) {
+                alertMsg('Stažení selhalo',
+                    'Nepodařilo se spojit s katastrem (ČÚZK) — neprošel žádný z dotazů ' +
+                    '(server neodpovídá, jsi offline, nebo prohlížeč dotaz blokuje / CORS).<br><br>' +
+                    '<b>Neznamená to, že tam body nejsou.</b> Zkus to prosím znovu za chvíli.');
+                return;
+            }
+            if (!pts.length) {
                 alertMsg('Žádné body',
-                    'V označené oblasti ČÚZK nevrátil žádné body bodových polí. ' +
+                    'V označené oblasti ČÚZK nevrátil žádné body bodových polí' +
+                    (errCount ? ' (část vrstev se ale nestáhla, výsledek může být neúplný)' : '') + '. ' +
                     'Buď tam žádné nejsou, nebo je server právě nedostupný (zkus to za chvíli).');
                 return;
             }
@@ -287,7 +301,9 @@
                 title: 'Přidat body z katastru?',
                 message: 'V oblasti jsem našel <b>' + pts.length + '</b> ' + plural(pts.length, 'bod', 'body', 'bodů') +
                     (fresh.length !== pts.length ? (' (z toho <b>' + fresh.length + '</b> ' + plural(fresh.length, 'nový', 'nové', 'nových') + ')') : '') +
-                    '.<br>Přidat je do aktuální zakázky jako vlastní body?<br><span style="font-size:12px;opacity:.7;">Data © ČÚZK</span>',
+                    '.<br>Přidat je do aktuální zakázky jako vlastní body?' +
+                    (errCount ? '<br><span style="font-size:12px;color:var(--warning,#fbbf24);">Pozor: ' + errCount + ' z ' + total + ' vrstev se nestáhlo — výsledek může být neúplný.</span>' : '') +
+                    '<br><span style="font-size:12px;opacity:.7;">Data © ČÚZK</span>',
                 okText: 'Přidat (' + fresh.length + ')', cancelText: 'Zrušit'
             }).then(function (ok) {
                 if (!ok) return;

@@ -191,7 +191,7 @@
         if (!_img) { agAlert('Není obrázek', 'Nejdřív načti obrázek podkladu.'); return; }
         var ov = document.createElement('div'); ov.className = 'modal-overlay'; ov.style.display = 'flex'; ov.style.zIndex = '100003';
         ov.innerHTML =
-            '<div class="modal-content" style="max-width:96vw;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
+            '<div class="modal-content" style="overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">Označ vlícovací bod na obrázku</h3>'
             + '<p style="font-size:12px;opacity:.7;margin:2px 0 8px;">Táhni = posun, +/− = lupa, ťukni = umísti křížek na známé místo (roh, kříž sítě).</p>'
             + '<div id="agpk-wrap" style="position:relative;width:100%;height:54vh;background:#0a0e14;border-radius:10px;overflow:hidden;touch-action:none;">'
@@ -321,7 +321,7 @@
         if (document.getElementById('aggo-modal')) return;
         var el = document.createElement('div'); el.className = 'modal-overlay'; el.id = 'aggo-modal'; el.style.zIndex = '100001';
         el.innerHTML =
-            '<div class="modal-content" style="display:block;max-height:88vh;max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
+            '<div class="modal-content" style="display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Vlastní georeferencovaný podklad</h3>'
             + '<input type="file" id="aggo-file" accept="image/*" style="display:none;">'
             + '<button class="btn btn-secondary" id="aggo-load"><svg class="icon"><use href="#i-upload"/></svg> Načíst obrázek (plán / situace)</button>'
@@ -418,7 +418,9 @@
         if (document.getElementById('ag-modalx-css')) return;
         var st = document.createElement('style'); st.id = 'ag-modalx-css';
         st.textContent =
-            '.modal-content.ag-scrollable{display:block;max-height:88vh;max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;}'
+            // Terénní nástroje jedou (na přání) PŘES CELOU OBRAZOVKU — scroll je
+            // uvnitř fullscreen plochy, ne v 88vh kartě (ta nechávala mezery nahoře/dole).
+            '.modal-overlay .modal-content.ag-scrollable{display:block;width:100%;max-width:100%;height:100%;max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;}'
             + '.ag-modal-x{position:sticky;top:0;z-index:6;height:0;text-align:right;pointer-events:none;}'
             + '.ag-modal-x>button{pointer-events:auto;position:relative;top:-10px;right:-6px;width:34px;height:34px;border:none;border-radius:50%;background:rgba(0,0,0,0.5);color:#fff;font:300 23px/1 system-ui,sans-serif;cursor:pointer;}';
         (document.head || document.documentElement).appendChild(st);

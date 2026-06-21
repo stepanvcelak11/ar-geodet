@@ -24,6 +24,11 @@
         document.addEventListener('DOMContentLoaded', setH);
         window.addEventListener('load', function () { setH(); setTimeout(setH, 250); setTimeout(setH, 800); });
         window.addEventListener('orientationchange', function () { setH(); setTimeout(setH, 250); setTimeout(setH, 600); });
+        // Návrat do appky z pozadí (standalone na ploše): iOS občas vrátí jinak
+        // dopočítaný viewport a dole zůstane pruh. Přepočítat — pageshow i
+        // visibilitychange (NE 'resize', ten spouští i klávesnice → poskakování).
+        window.addEventListener('pageshow', function () { setH(); setTimeout(setH, 200); });
+        document.addEventListener('visibilitychange', function () { if (!document.hidden) { setH(); setTimeout(setH, 200); } });
     })();
     </script>
     <title>AR Geodet</title>
@@ -399,6 +404,8 @@
                         <label class="st-sw"><input type="checkbox" id="s-wakelock" checked><span class="st-sw-face"></span></label></div>
                     <div class="st-row"><span class="st-lab">Venkovní režim<small>vysoký kontrast na slunci</small></span>
                         <label class="st-sw"><input type="checkbox" id="s-outdoor"><span class="st-sw-face"></span></label></div>
+                    <div class="st-row"><span class="st-lab">Ovládání pro levou ruku<small>zrcadlí ovládání na levou stranu displeje</small></span>
+                        <label class="st-sw"><input type="checkbox" id="s-lefthand"><span class="st-sw-face"></span></label></div>
                     <details class="adv"><summary><svg class="icon"><use href="#i-sliders"/></svg> Pokročilé — barvy bodů, štítky, šipka, HUD</summary>
                         <div class="adv-body">
                             <div class="st-row" style="border-bottom:none;"><span class="st-lab">Adaptivní sklo dle jasu<small>ztmaví panely na světlé scéně</small></span>

@@ -2037,3 +2037,15 @@ body.light-mode:not(.cam-light) .ar-marker .ar-marker-dist { color: #fff; }
    → ve světlém režimu přepsat na světlé, jinak je tmavý text nečitelný. ------ */
 body.light-mode .modal-overlay .modal-content { background: rgba(247, 248, 250, 0.98); }
 body.light-mode .settings-tiles .tab-btn { background: rgba(0, 0, 0, 0.04); }
+
+/* =========================================================================
+   REŽIM LEVÉ RUKY — zrcadlení ovládání na opačnou (levou) stranu displeje.
+   Výchozí HUD je stavěný pro pravou ruku (mapové ovládání + azimut vpravo).
+   Při zapnutí (#s-lefthand → body.left-hand) se strany prohodí: ovládání,
+   která palec pravé ruky dosáhne vpravo, jdou doleva a naopak. Spodní dok je
+   přes celou šířku (symetrický) a boční menu je fullscreen → ty se neřeší.
+   ========================================================================= */
+body.left-hand #map-controls { right: auto; left: 12px; }
+body.left-hand #compass-debug { right: auto; left: var(--hud-side); transform-origin: top left; }
+body.left-hand #info { left: auto; right: var(--hud-side); transform-origin: top right; }
+body.left-hand #gps-avg { left: auto; right: var(--hud-side); transform-origin: top right; }

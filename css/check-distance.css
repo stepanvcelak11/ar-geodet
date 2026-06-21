@@ -8,19 +8,20 @@
     background: rgba(4, 8, 12, 0.72);
     -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
 }
-.omr-overlay.open { display: flex; align-items: center; justify-content: center; }
+.omr-overlay.open { display: flex; }
 
+/* Na přání: terénní nástroj přes CELOU obrazovku (žádná vycentrovaná karta). */
 .omr-sheet {
-    width: min(96vw, 640px);
-    max-height: 92vh;
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
     display: flex; flex-direction: column;
     background: var(--bg, #11151a);
     color: var(--text-color, #eceef2);
-    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.14));
-    border-radius: 16px;
-    padding: 14px;
+    border: none;
+    border-radius: 0;
+    padding: calc(env(safe-area-inset-top, 0px) + 14px) max(14px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 14px) max(14px, env(safe-area-inset-left, 0px));
     box-sizing: border-box;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
 }
 
 .omr-head { display: flex; align-items: center; justify-content: space-between; }
