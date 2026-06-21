@@ -2077,7 +2077,26 @@ body.left-hand #dock { right: auto; left: max(8px, env(safe-area-inset-left)); }
 body.left-hand #dock .dock-btn:nth-child(2),
 body.left-hand #dock .dock-btn:nth-child(4) { transform: translateX(calc(var(--dock-arc, 13px) * 0.55)); }
 body.left-hand #dock .dock-btn:nth-child(3) { transform: translateX(var(--dock-arc, 13px)); }
-/* Mapové ovládání z pravého (vedle lišty) na levý okraj */
-body.left-hand #map-controls { right: auto; left: 74px; align-items: flex-start; }
-body.left-hand #map-ctrl-stack { align-items: flex-start; transform-origin: bottom left; }
-body.left-hand #map-controls:not(.expanded) #map-ctrl-stack { transform: translateX(-12px) scale(0.85); }
+
+/* =========================================================================
+   MAPOVÁ TLAČÍTKA — na přání: vodorovná řada na spodní hraně displeje, vždy
+   viditelná (nepřekáží v rohu, nesbaluje se). Přepínač už není potřeba.
+   Přebíjí svislý sloupec i „Kombinace" (right:74px) z dřívějška.
+   ========================================================================= */
+#map-controls {
+    flex-direction: row !important;
+    align-items: center !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%);
+    bottom: max(10px, env(safe-area-inset-bottom)) !important;
+    gap: 10px;
+}
+#map-ctrl-stack {
+    flex-direction: row !important;
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: auto !important;
+    max-width: none;
+}
+#map-ctrl-toggle { display: none !important; }

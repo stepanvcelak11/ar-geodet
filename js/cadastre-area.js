@@ -169,6 +169,15 @@
     }
 
     function screenToLatLng(px, py) {
+        // Nejdřív zkus SDÍLENOU funkci z grafika.js (běží v jejím scope → správné
+        // mapRotation/userLat/userLng; přesně stejný převod jako kliknutí do mapy).
+        try {
+            if (typeof window.agScreenToLatLng === 'function') {
+                var ll = window.agScreenToLatLng(px, py);
+                if (ll && isFinite(ll.lat) && isFinite(ll.lng)) return ll;
+            }
+        } catch (e) {}
+        // Fallback (kdyby grafika.js chyběla): vlastní převod.
         var m = getMap(); if (!m) return null;
         var cp = screenToContainerPoint(px, py); if (!cp) return null;
         try { return m.containerPointToLatLng(cp); } catch (e) { return null; }

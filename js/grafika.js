@@ -174,6 +174,22 @@
             const lx = dx * Math.cos(rad) - dy * Math.sin(rad); const ly = dx * Math.sin(rad) + dy * Math.cos(rad);
             return map.containerPointToLatLng(L.point(P.x + lx, P.y + ly));
         }
+        // Sdílený převod BOD NA OBRAZOVCE (clientX/Y) -> LatLng, se zohledněním otočení
+        // mapy kolem polohy uživatele. Stejná matematika jako getMapClickLatLng, ale z
+        // holých px/py — používá ji „Import oblasti z katastru" (cadastre-area.js), aby
+        // měl PŘESNĚ stejný (ověřený) převod jako kliknutí do mapy.
+        window.agScreenToLatLng = function (px, py) {
+            try {
+                if (px == null || py == null || typeof map === 'undefined' || !map) return null;
+                const userEl = document.getElementById('user-direction-container');
+                let Px, Py, P;
+                if (userEl && userLat != null) { const ur = userEl.getBoundingClientRect(); Px = ur.left + ur.width / 2; Py = ur.top + ur.height / 2; P = map.latLngToContainerPoint([userLat, userLng]); }
+                else { const rect = document.getElementById('map').getBoundingClientRect(); Px = rect.left + rect.width / 2; Py = rect.top + rect.height / 2; const sz = map.getSize(); P = L.point(sz.x / 2, sz.y / 2); }
+                const rad = mapRotation * Math.PI / 180; const dx = px - Px, dy = py - Py;
+                const lx = dx * Math.cos(rad) - dy * Math.sin(rad); const ly = dx * Math.sin(rad) + dy * Math.cos(rad);
+                return map.containerPointToLatLng(L.point(P.x + lx, P.y + ly));
+            } catch (e) { return null; }
+        };
         map.on('click', (e) => {
             if (!appStarted) return; const clickLatLng = getMapClickLatLng(e);
             if (mapAddMode) { mapAddMode = false; const _h = document.getElementById('map-pick-hint'); if (_h) _h.style.display = 'none'; openNewPointFromMap(clickLatLng.lat, clickLatLng.lng); return; }
