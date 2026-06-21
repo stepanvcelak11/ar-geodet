@@ -217,12 +217,16 @@ body.theme-graphite {
 
 html { background-color: #0e1216; }
 html, body {
+    /* Plné pokrytí displeje ve standalone: ukotvit ke VŠEM hranám (inset:0).
+       Spolehlivější než height:100dvh i než JS výška z innerHeight, které na
+       iOS standalone nechávaly dole černý pruh (mapa nedosáhla ke spodní hraně). */
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    height: 100dvh;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
     overflow: hidden;
     touch-action: none;
 }
@@ -1242,8 +1246,7 @@ details[open] summary::after { content: " ⌄"; }
     position: absolute;
     left: 12px;
     right: 12px;
-    /* --dock-lift: o kolik výš nad spodní hranou (Nastavení → výška ovládání) */
-    bottom: calc(max(12px, env(safe-area-inset-bottom)) + var(--dock-lift, 0px));
+    bottom: max(12px, env(safe-area-inset-bottom));
     z-index: 9000;
     display: flex;
     justify-content: space-between;
@@ -1289,14 +1292,9 @@ details[open] summary::after { content: " ⌄"; }
     box-shadow: var(--accent-glow);
 }
 .dock-fab .icon { width: 24px; height: 24px; color: #fff; }
-/* Oblouček doku: prostřední tlačítka vyzvednutá → 5 tlačítek tvoří oblouk.
-   Sílu řídí --dock-arc (Nastavení → prohnutí ovládání). 0 = původní vzhled.
-   Symetrické (1&5 dole, 2&4 výš, 3 nejvýš) → funguje i při zrcadlení (row-reverse). */
-#dock .dock-btn:nth-child(2), #dock .dock-btn:nth-child(4) { margin-bottom: calc(var(--dock-arc, 0px) * 0.55); }
-#dock .dock-btn:nth-child(3) { margin-bottom: var(--dock-arc, 0px); }
 
-/* Ovládání mapy posunout nad dok (a s dokem se zvedat dle --dock-lift) */
-#map-controls { bottom: calc(max(12px, env(safe-area-inset-bottom)) + 100px + var(--dock-lift, 0px)); }
+/* Ovládání mapy posunout nad dok */
+#map-controls { bottom: calc(max(12px, env(safe-area-inset-bottom)) + 100px); }
 
 /* 'O aplikaci a soukromi' musi jit otevrit i z uvodni obrazovky (ta ma z-index 999999) */
 #about-modal { z-index: 1000000; }
@@ -1946,12 +1944,16 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
 }
-/* Jemný oblouk: krajní chipy mírně k středu, prostřední u kraje */
+/* Jemný oblouk: krajní chipy u kraje, prostřední vystrčené ke středu displeje.
+   Sílu („poloměr" oblouku) řídí --dock-arc (Nastavení → Prohnutí ovládání).
+   Default 13px = původní vzhled. Záporný translateX = doleva (dok je vpravo). */
 #dock .dock-btn:nth-child(1),
 #dock .dock-btn:nth-child(5) { transform: translateX(0); }
 #dock .dock-btn:nth-child(2),
-#dock .dock-btn:nth-child(4) { transform: translateX(-7px); }
-#dock .dock-btn:nth-child(3) { transform: translateX(-13px); }
+#dock .dock-btn:nth-child(4) { transform: translateX(calc(var(--dock-arc, 13px) * -0.55)); }
+#dock .dock-btn:nth-child(3) { transform: translateX(calc(var(--dock-arc, 13px) * -1)); }
+/* Popisek tlačítek (hlavně plovoucí „Nový bod" bez podkladu) čitelný i na bílé mapě */
+.dock-btn span { text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.7); }
 
 /* ---- Horní HUD: kompaktní „chip" vzhled (jako návrh); pozice beze změny,
    BEZ !important — aby šly prvky zase posouvat (drag/HUD editor). ---------- */
@@ -2065,12 +2067,17 @@ body.light-mode .settings-tiles .tab-btn { background: rgba(0, 0, 0, 0.04); }
 
 /* =========================================================================
    REŽIM LEVÉ RUKY — zrcadlí OVLÁDÁNÍ na opačnou stranu displeje (HUD zůstává).
-   Na přání: HUD (info/azimut/GPS) necháváme, kde byl. Zrcadlí se jen ovládací
-   prvky, na které sahá palec: spodní dok (pořadí tlačítek) a mapové ovládání.
+   Layout je „Kombinace": ovládání je SVISLÁ LIŠTA u PRAVÉHO okraje. Pro leváka
+   ji i s obloučkem překlopíme k LEVÉMU okraji. HUD (azimut/přesnost/družice)
+   necháváme, kde byl. NEsahat na flex-direction (dok MUSÍ zůstat sloupec!).
    ========================================================================= */
-/* Spodní dok: zrcadlené pořadí tlačítek (Nastavení/Více … vlevo). */
-body.left-hand #dock { flex-direction: row-reverse; }
-/* Mapové ovládání z pravého do levého dolního rohu. */
-body.left-hand #map-controls { right: auto; left: 12px; align-items: flex-start; }
+/* Boční lišta z pravého okraje na levý */
+body.left-hand #dock { right: auto; left: max(8px, env(safe-area-inset-left)); }
+/* Oblouk se prohne na opačnou stranu (vystrčený ke středu = doprava) */
+body.left-hand #dock .dock-btn:nth-child(2),
+body.left-hand #dock .dock-btn:nth-child(4) { transform: translateX(calc(var(--dock-arc, 13px) * 0.55)); }
+body.left-hand #dock .dock-btn:nth-child(3) { transform: translateX(var(--dock-arc, 13px)); }
+/* Mapové ovládání z pravého (vedle lišty) na levý okraj */
+body.left-hand #map-controls { right: auto; left: 74px; align-items: flex-start; }
 body.left-hand #map-ctrl-stack { align-items: flex-start; transform-origin: bottom left; }
 body.left-hand #map-controls:not(.expanded) #map-ctrl-stack { transform: translateX(-12px) scale(0.85); }

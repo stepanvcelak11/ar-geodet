@@ -10,13 +10,12 @@
     (function () {
         function setH() {
             try {
-                var h = window.innerHeight; if (!h) return;
                 var d = document.documentElement;
-                d.style.height = h + 'px';
-                if (document.body) document.body.style.height = h + 'px';
-                // Stejnou (spolehlivou) výšku dáme i celoobrazovkovým překryvům modálů.
-                // Na iOS standalone počítá prohlížeč pro position:fixed občas jinou výšku
-                // než skutečný displej → modály nesahaly k hraně. Tahle proměnná to srovná.
+                // Tělo appky teď drží displej přes inset:0 (CSS) — výšku NEpřepisujeme
+                // (přepis na innerHeight nechával dole černý pruh). Pro celoobrazovkové
+                // modály dáme --app-vh = skutečná výška kořene (po inset:0 = celý displej),
+                // s fallbackem na innerHeight.
+                var h = d.clientHeight || window.innerHeight; if (!h) return;
                 d.style.setProperty('--app-vh', h + 'px');
             } catch (e) {}
         }
@@ -408,12 +407,8 @@
                     <div class="st-row"><span class="st-lab">Ovládání pro levou ruku<small>zrcadlí ovládání na levou stranu displeje</small></span>
                         <label class="st-sw"><input type="checkbox" id="s-lefthand"><span class="st-sw-face"></span></label></div>
                     <div class="st-slider">
-                        <div class="st-slider-head"><span class="st-lab">Výška ovládání<small>jak vysoko nad spodní hranou je dok</small></span><span class="st-val"><span id="v-dock-lift-val">0</span> px</span></div>
-                        <input type="range" id="v-dock-lift" min="0" max="160" step="8" value="0" oninput="document.getElementById('v-dock-lift-val').innerText = this.value">
-                    </div>
-                    <div class="st-slider">
-                        <div class="st-slider-head"><span class="st-lab">Prohnutí ovládání<small>jak výrazný je oblouček 5 tlačítek</small></span><span class="st-val"><span id="v-dock-arc-val">0</span> px</span></div>
-                        <input type="range" id="v-dock-arc" min="0" max="48" step="4" value="0" oninput="document.getElementById('v-dock-arc-val').innerText = this.value">
+                        <div class="st-slider-head"><span class="st-lab">Prohnutí ovládání<small>jak výrazný je oblouček boční lišty</small></span><span class="st-val"><span id="v-dock-arc-val">13</span> px</span></div>
+                        <input type="range" id="v-dock-arc" min="0" max="32" step="2" value="13" oninput="document.getElementById('v-dock-arc-val').innerText = this.value">
                     </div>
                     <details class="adv"><summary><svg class="icon"><use href="#i-sliders"/></svg> Pokročilé — barvy bodů, štítky, šipka, HUD</summary>
                         <div class="adv-body">

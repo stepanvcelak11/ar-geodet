@@ -140,17 +140,32 @@
     }
 
     // screen (clientX/Y) -> container point mapy se zohledněním aplikované CSS rotace
+    // POZOR: musí přesně kopírovat _screenToContainerPoint() z grafika.js. Mapa se
+    // otáčí kolem polohy UŽIVATELE (transform-origin = jeho container point), NE kolem
+    // středu obrazovky. Když koukáš na vzdálené místo, je uživatel mimo střed → otáčení
+    // kolem středu dávalo úplně jiné souřadnice → prázdný výřez → „žádné body".
     function screenToContainerPoint(px, py) {
         var m = getMap(); if (!m) return null;
-        var el = mapContainerEl(); if (!el) return null;
-        var rect = el.getBoundingClientRect();
-        var cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
-        var rad = getRotation() * Math.PI / 180;
-        var dx = px - cx, dy = py - cy;
-        var lx = dx * Math.cos(rad) - dy * Math.sin(rad);
-        var ly = dx * Math.sin(rad) + dy * Math.cos(rad);
-        var center = m.getSize();
-        try { return L.point(center.x / 2 + lx, center.y / 2 + ly); } catch (e) { return null; }
+        try {
+            var Px, Py, P;
+            var userEl = document.getElementById('user-direction-container');
+            var hasUser = userEl && typeof userLat !== 'undefined' && userLat != null && isFinite(userLat);
+            if (hasUser) {
+                var ur = userEl.getBoundingClientRect();
+                Px = ur.left + ur.width / 2; Py = ur.top + ur.height / 2;
+                P = m.latLngToContainerPoint([userLat, userLng]);
+            } else {
+                var el = mapContainerEl(); if (!el) return null;
+                var rect = el.getBoundingClientRect();
+                Px = rect.left + rect.width / 2; Py = rect.top + rect.height / 2;
+                var sz = m.getSize(); P = L.point(sz.x / 2, sz.y / 2);
+            }
+            var rad = getRotation() * Math.PI / 180;
+            var dx = px - Px, dy = py - Py;
+            var lx = dx * Math.cos(rad) - dy * Math.sin(rad);
+            var ly = dx * Math.sin(rad) + dy * Math.cos(rad);
+            return L.point(P.x + lx, P.y + ly);
+        } catch (e) { return null; }
     }
 
     function screenToLatLng(px, py) {
