@@ -2079,11 +2079,13 @@ body.left-hand #dock .dock-btn:nth-child(4) { transform: translateX(calc(var(--d
 body.left-hand #dock .dock-btn:nth-child(3) { transform: translateX(var(--dock-arc, 13px)); }
 
 /* =========================================================================
-   MAPOVÁ TLAČÍTKA — na přání: vodorovná řada na spodní hraně displeje, vždy
-   viditelná (nepřekáží v rohu, nesbaluje se). Přepínač už není potřeba.
-   Přebíjí svislý sloupec i „Kombinace" (right:74px) z dřívějška.
+   MAPOVÁ TLAČÍTKA — na přání: SKRYTÁ, dokud je nezapneš ve „Více → Nástroje mapy".
+   Po zapnutí (#map-controls.expanded) = vodorovná řada vystředěná na spodní hraně
+   (nepřekáží v rohu). Vlastní přepínač (sliders) je skrytý — řídí to „Více".
    ========================================================================= */
-#map-controls {
+#map-controls:not(.expanded) { display: none !important; }
+#map-controls.expanded {
+    display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
     left: 50% !important;
@@ -2092,7 +2094,7 @@ body.left-hand #dock .dock-btn:nth-child(3) { transform: translateX(var(--dock-a
     bottom: max(10px, env(safe-area-inset-bottom)) !important;
     gap: 10px;
 }
-#map-ctrl-stack {
+#map-controls.expanded #map-ctrl-stack {
     flex-direction: row !important;
     opacity: 1 !important;
     transform: none !important;

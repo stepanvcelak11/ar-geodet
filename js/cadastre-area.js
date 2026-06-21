@@ -273,31 +273,33 @@
         var m = getMap();
         if (!m) { alertMsg('Mapa není připravená', 'Počkej, až se načte mapa, a zkus to znovu.'); return; }
         if (typeof fetch === 'undefined') { alertMsg('Nelze stahovat', 'Tento prohlížeč neumí stahovat data (chybí fetch).'); return; }
-        // Výběr obdélníku se přepočítává přes viditelnou mapu. V AR (kamera) je mapa
-        // skrytá → tah by se přepočítal podle staré polohy mapy a stáhlo by se špatné
-        // (často prázdné) místo. Proto vyžadujeme zobrazení s mapou (jako Měření plochy).
+        // V AR (kamera) je mapa skrytá a nemá smysluplný výřez. Vyžadujeme mapu.
         try {
             if (typeof viewMode !== 'undefined' && viewMode === 'ar') {
                 alertMsg('Přepni na mapu',
-                    'Import oblasti z katastru pracuje s mapou. Přepni zobrazení na <b>Mapa</b> nebo <b>Split</b> ' +
-                    '(přes tlačítko „Více"), najdi a přibliž místo na mapě a pak vyber oblast tahem.');
+                    'Import bere body z <b>aktuálního výřezu mapy</b>. Přepni zobrazení na <b>Mapa</b> nebo ' +
+                    '<b>Split</b> (přes „Více"), najdi a přibliž místo na mapě a spusť import znovu.');
                 return;
             }
         } catch (e) {}
 
-        startSelection().then(function (bbox) {
-            if (!bbox) return; // zrušeno / příliš malý výběr
-            // pojistka na velikost oblasti
-            var widthM = metersBetween((bbox.s + bbox.n) / 2, bbox.w, (bbox.s + bbox.n) / 2, bbox.e);
-            var heightM = metersBetween(bbox.s, (bbox.w + bbox.e) / 2, bbox.n, (bbox.w + bbox.e) / 2);
-            if (widthM > MAX_BBOX_M || heightM > MAX_BBOX_M) {
-                alertMsg('Příliš velká oblast',
-                    'Vybraná oblast je ~' + Math.round(widthM) + ' × ' + Math.round(heightM) + ' m. ' +
-                    'Max. strana je ' + MAX_BBOX_M + ' m — přibliž mapu a vyber menší výřez (šetří ČÚZK i baterii).');
-                return;
-            }
-            doFetch(bbox);
-        });
+        // SPOLEHLIVĚ: bereme přímo viditelný výřez mapy (Leaflet map.getBounds()) —
+        // žádný ruční přepočet obrazovka→souřadnice (ten dělal špatný bbox → „žádné
+        // body" i nad viditelnými body). Uživatel si prostě najede/přiblíží na místo.
+        var bb;
+        try { bb = m.getBounds(); } catch (e) { bb = null; }
+        if (!bb || typeof bb.getSouth !== 'function') { alertMsg('Mapa není připravená', 'Počkej, až se mapa načte, a zkus to znovu.'); return; }
+        var bbox = { s: bb.getSouth(), n: bb.getNorth(), w: bb.getWest(), e: bb.getEast() };
+        // pojistka na velikost oblasti
+        var widthM = metersBetween((bbox.s + bbox.n) / 2, bbox.w, (bbox.s + bbox.n) / 2, bbox.e);
+        var heightM = metersBetween(bbox.s, (bbox.w + bbox.e) / 2, bbox.n, (bbox.w + bbox.e) / 2);
+        if (widthM > MAX_BBOX_M || heightM > MAX_BBOX_M) {
+            alertMsg('Přibliž mapu blíž',
+                'Aktuální výřez mapy je ~' + Math.round(widthM) + ' × ' + Math.round(heightM) + ' m. ' +
+                'Přibliž mapu (max. ' + MAX_BBOX_M + ' m na stranu), ať stahuješ jen okolí — pak spusť import znovu.');
+            return;
+        }
+        doFetch(bbox);
     }
 
     function doFetch(bbox) {
@@ -412,7 +414,7 @@
         btn.id = 'cad-area-btn';
         btn.className = 'menu-btn';
         btn.type = 'button';
-        btn.innerHTML = '<svg class="icon"><use href="#i-grid"/></svg> Import oblasti z katastru';
+        btn.innerHTML = '<svg class="icon"><use href="#i-grid"/></svg> Stáhnout body z výřezu mapy';
         btn.addEventListener('click', function () {
             try { if (typeof toggleMenu === 'function') toggleMenu(); } catch (e) {}
             // menu se zavírá animací; spustíme výběr až po něm
