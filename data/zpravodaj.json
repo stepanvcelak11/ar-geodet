@@ -1,51 +1,63 @@
 {
-  "vydani": "2026-06-22",
-  "uvodnik": "Přinášíme aktuální zprávy z oblasti geodézie a geoinformatiky.",
+  "vydani": "2026-06-23",
+  "uvodnik": "Dnešní vydání přináší zajímavé novinky ze světa geodézie a technologií.",
   "polozky": [
     {
-      "rubrika": "Z domova",
-      "top": true,
-      "nadpis": "Společný metodický pokyn ČÚZK a MMR k zápisu drobných staveb do KN",
-      "perex": "Nový metodický pokyn se týká zápisu drobných staveb.",
-      "telo": "Český úřad zeměměřický a katastrální (ČÚZK) ve spolupráci s Ministerstvem pro místní rozvoj (MMR) zveřejnil nový metodický pokyn, který se zaměřuje na zápis drobných staveb do katastru nemovitostí. Tento pokyn má za cíl zjednodušit a zpřehlednit proces zápisu a zajistit, aby byly všechny drobné stavby řádně evidovány. Uživatelé a odborníci v oblasti geodézie by měli tento pokyn pečlivě prostudovat, aby se vyhnuli případným komplikacím při zápisu.",
-      "body": [],
-      "proc": "Zpráva je důležitá pro všechny geodety a odborníky v oblasti katastru nemovitostí.",
-      "zdroj": "ČÚZK",
-      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/Spolecny-metodicky-pokyn-CUZK-a-MMR-k-zapisu-drobn.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
-      "datum": "2026-03-06"
-    },
-    {
       "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "GEO Business 2026 láme rekordy v návštěvnosti s více než 6200 profesionály",
-      "perex": "GEO Business 2026 se konal v Londýně a přilákal rekordní počet účastníků.",
-      "telo": "Na akci GEO Business 2026, která se konala v Londýně, se sešlo více než 6200 profesionálů z oblasti geospatial technologie a location intelligence. V rámci dvoudenní akce proběhlo více než 160 odborně vedených sezení a přes 100 vystavovatelů prezentovalo své inovace. Akce se stala významným místem pro networking a výměnu znalostí mezi odborníky z různých oblastí, včetně geodézie, GIS a plánování.",
-      "body": [],
-      "proc": "Zpráva ukazuje na rostoucí zájem o geodetické technologie a networking v oboru.",
+      "top": true,
+      "nadpis": "SFL Missions zahajuje studii pro projekt lunar mapping Moonraker",
+      "perex": "SFL Missions Inc. byla vybrána Evropskou kosmickou agenturou pro projekt Moonraker.",
+      "telo": "Toronto, Ontario, Kanada, 23. června 2026 – SFL Missions Inc. se stala členem týmu vedeného hlavním dodavatelem NUVIEW GmbH, který byl vybrán Evropskou kosmickou agenturou (ESA) k provedení studie fáze A projektu Moonraker. SFL Missions je zodpovědná za vývoj malé satelitní platformy, která bude hostit LiDAR payload. Kromě toho provádí analýzu mise a plánování pro start a provoz kosmické lodi Moonraker.",
+      "body": [
+        "SFL se zaměřuje na laserové skenování.",
+        "Projekt Moonraker má za cíl mapování Měsíce."
+      ],
+      "proc": "Zpráva ukazuje na důležitost geodetických technologií v kosmickém výzkumu.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/15/geo-business-2026-breaks-attendance-records-with-6200-professionals/?utm_source=rss&utm_medium=rss&utm_campaign=geo-business-2026-breaks-attendance-records-with-6200-professionals",
-      "datum": "2026-06-15"
+      "odkaz": "https://amerisurv.com/2026/06/23/sfl-missions-inc-begins-phase-a-study-for-esa-moonraker-lunar-mapping-project/?utm_source=rss&utm_medium=rss&utm_campaign=sfl-missions-inc-begins-phase-a-study-for-esa-moonraker-lunar-mapping-project",
+      "datum": "2026-06-23"
     },
     {
       "rubrika": "Technologie",
       "top": false,
-      "nadpis": "1 cm GSD z letadla: Jak letadla s pevným křídlem redefinují možnosti mapování koridorů",
-      "perex": "Nový přístup k mapování s pevným křídlem přináší překvapivé výsledky.",
-      "telo": "V geospatial průmyslu panuje dlouhodobé přesvědčení, že pro centimetrickou přesnost je nutné použít dron. Avšak nedávné studie evropských specialistů ukazují, že letadla s pevným křídlem mohou dosáhnout srovnatelných výsledků. Tyto nové metody přinášejí efektivitu a pokrývají větší oblasti, aniž by obětovaly detailnost dat. Tento posun v myšlení může mít dalekosáhlé důsledky pro budoucnost mapování.",
-      "body": [],
-      "proc": "Zpráva ukazuje na inovace v oblasti mapování a využití letadel s pevným křídlem.",
+      "nadpis": "Jak pevné křídlo redefinuje mapování koridorů",
+      "perex": "Nové studie ukazují, že pevná letadla mohou dosáhnout centimetrové přesnosti v mapování.",
+      "telo": "Existuje přetrvávající předpoklad v geospatialním průmyslu, že pro dosažení centimetrového rozlišení je nutný dron. Nová studie provedená evropskými geospatialními specialisty však tento předpoklad zpochybňuje. Práce ukazuje, že pevná letadla mohou dosáhnout vysokého rozlišení a pokrytí, což mění pravidla hry v oblasti mapování koridorů.",
+      "body": [
+        "Studie zpochybňuje tradiční názory na mapování.",
+        "Pevná letadla nabízejí efektivní alternativu k dronům."
+      ],
+      "proc": "Zpráva zdůrazňuje inovace v geodetických metodách.",
       "zdroj": "LiDAR Magazine",
       "odkaz": "https://lidarmag.com/2026/06/17/1-cm-gsd-from-a-plane-how-fixed-wing-aircraft-are-redefining-whats-possible-in-corridor-mapping/?utm_source=rss&utm_medium=rss&utm_campaign=1-cm-gsd-from-a-plane-how-fixed-wing-aircraft-are-redefining-whats-possible-in-corridor-mapping",
       "datum": "2026-06-17"
     },
     {
+      "rubrika": "Z domova",
+      "top": false,
+      "nadpis": "Ukončení provozu WSGP verze 2.10",
+      "perex": "ČÚZK oznámil ukončení provozu starší verze služeb WSGP.",
+      "telo": "Český úřad zeměměřický a katastrální (ČÚZK) upozorňuje, že na podzim 2026 dojde k ukončení provozu služeb verze 2.10 systému WSGP. Po tomto termínu budou k dispozici pouze služby verze 3.1. Uživatelé jsou vyzváni, aby se na tuto změnu připravili.",
+      "body": [
+        "Ukončení starší verze může ovlivnit uživatele.",
+        "Doporučuje se přechod na novější verzi."
+      ],
+      "proc": "Tato změna je důležitá pro všechny uživatele geodetických služeb v ČR.",
+      "zdroj": "ČÚZK",
+      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
+      "datum": "2026-05-29"
+    },
+    {
       "rubrika": "Z praxe",
       "top": false,
-      "nadpis": "SimActive umožňuje rychlou produkci ortomosaik pro mapování plánovaných požárů",
-      "perex": "Nová technologie zrychluje proces mapování pro prevenci požárů.",
-      "telo": "Společnost SimActive Inc. oznámila, že její software Correlator3D byl použit společností Landair Surveys k rychlé výrobě ortomosaik pro projekty mapování plánovaných požárů v Austrálii. Tato technologie podporuje časově citlivé operace leteckého mapování, kde jsou rychlé a přesné geospatial výstupy zásadní pro prevenci požárů a správu půdy. Rychlost a přesnost zpracování leteckých snímků jsou klíčové pro úspěšné provádění těchto operací.",
-      "body": [],
-      "proc": "Zpráva ilustruje praktické využití softwaru v oblasti prevence požárů.",
+      "nadpis": "SimActive umožňuje rychlou produkci ortomosaiků pro mapování plánovaných požárů",
+      "perex": "Software Correlator3D od SimActive se používá pro rychlé generování ortomosaiků.",
+      "telo": "SimActive Inc. oznámila, že její software Correlator3D je využíván firmou Landair Surveys k rychlému generování ortomosaiků pro mapování plánovaných požárů v Austrálii. Tato technologie podporuje časově citlivé letecké mapovací operace, kde jsou rychlé a přesné geospatialní výstupy nezbytné pro prevenci požárů a správu půdy.",
+      "body": [
+        "Rychlá produkce ortomosaiků je klíčová pro prevenci požárů.",
+        "Technologie zajišťuje přesnost a efektivitu."
+      ],
+      "proc": "Zpráva ukazuje na důležitost efektivních geodetických nástrojů v prevenci přírodních katastrof.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/06/12/simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping/?utm_source=rss&utm_medium=rss&utm_campaign=simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping",
       "datum": "2026-06-12"
@@ -53,14 +65,17 @@
     {
       "rubrika": "Akce",
       "top": false,
-      "nadpis": "INTERGEO 2026 v Mnichově: Kde geodata, AI a živé zážitky formují budoucnost průmyslu",
-      "perex": "INTERGEO 2026 se blíží a slibuje bohatý program pro odborníky.",
-      "telo": "Od 15. do 17. září 2026 se Mnichov stane mezinárodním centrem pro geospatial komunitu na akci INTERGEO 2026. Tato akce přinese dohromady přední odborníky, firmy, startupy, výzkumníky a uživatele z oblastí geodézie, geoinformací, správy pozemků a digitalizace. INTERGEO se neustále vyvíjí a integruje expo, konferenci a networking do jednoho celku, což zajišťuje, že účastníci získají aktuální informace a příležitosti k výměně znalostí.",
-      "body": [],
-      "proc": "Zpráva informuje o nadcházející významné akci v oboru geodézie.",
+      "nadpis": "GEO Business 2026 překonává rekordy účasti",
+      "perex": "Na akci GEO Business 2026 se sešlo více než 6200 profesionálů.",
+      "telo": "Na akci GEO Business 2026, která se konala 3. a 4. června v Londýně, se sešlo přes 6200 profesionálů, což potvrzuje její postavení jako přední události v oblasti geospatialních technologií. Akce zahrnovala více než 160 odborně vedených sezení a přes 100 vystavovatelů, což poskytlo platformu pro sdílení znalostí a networking mezi odborníky v oblasti geodézie, GIS a plánování.",
+      "body": [
+        "Akce zahrnovala interaktivní networking a vzdělávací zkušenosti.",
+        "Přilákala široké spektrum odborníků z různých oblastí."
+      ],
+      "proc": "Zpráva ukazuje na rostoucí význam geodetických akcí pro profesní rozvoj.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/05/29/intergeo-2026-in-munich-where-geodata-ai-and-live-experiences-shape-the-future-of-the-industry/?utm_source=rss&utm_medium=rss&utm_campaign=intergeo-2026-in-munich-where-geodata-ai-and-live-experiences-shape-the-future-of-the-industry",
-      "datum": "2026-05-29"
+      "odkaz": "https://amerisurv.com/2026/06/15/geo-business-2026-breaks-attendance-records-with-6200-professionals/?utm_source=rss&utm_medium=rss&utm_campaign=geo-business-2026-breaks-attendance-records-with-6200-professionals",
+      "datum": "2026-06-15"
     }
   ]
 }
