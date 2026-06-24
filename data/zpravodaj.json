@@ -1,18 +1,27 @@
 {
-  "vydani": "2026-06-23",
-  "uvodnik": "Dnešní vydání přináší zajímavé novinky ze světa geodézie a technologií.",
+  "vydani": "2026-06-24",
+  "uvodnik": "Dnešní vydání přináší zajímavé novinky z oblasti geodetických technologií a legislativy.",
   "polozky": [
     {
-      "rubrika": "Ze světa",
+      "rubrika": "Z domova",
       "top": true,
-      "nadpis": "SFL Missions zahajuje studii pro projekt lunar mapping Moonraker",
-      "perex": "SFL Missions Inc. byla vybrána Evropskou kosmickou agenturou pro projekt Moonraker.",
-      "telo": "Toronto, Ontario, Kanada, 23. června 2026 – SFL Missions Inc. se stala členem týmu vedeného hlavním dodavatelem NUVIEW GmbH, který byl vybrán Evropskou kosmickou agenturou (ESA) k provedení studie fáze A projektu Moonraker. SFL Missions je zodpovědná za vývoj malé satelitní platformy, která bude hostit LiDAR payload. Kromě toho provádí analýzu mise a plánování pro start a provoz kosmické lodi Moonraker.",
-      "body": [
-        "SFL se zaměřuje na laserové skenování.",
-        "Projekt Moonraker má za cíl mapování Měsíce."
-      ],
-      "proc": "Zpráva ukazuje na důležitost geodetických technologií v kosmickém výzkumu.",
+      "nadpis": "Společný metodický pokyn ČÚZK a MMR k zápisu drobných staveb do KN",
+      "perex": "Nový metodický pokyn se zaměřuje na zápis drobných staveb do katastru nemovitostí.",
+      "telo": "Český úřad zeměměřický a katastrální (ČÚZK) ve spolupráci s Ministerstvem pro místní rozvoj (MMR) zveřejnil nový společný metodický pokyn. Tento pokyn se týká zápisu drobných staveb do katastru nemovitostí a měl by usnadnit proces pro geodety a stavebníky. Je důležité, aby všichni zainteresovaní byli informováni o nových postupech a požadavcích, které tento pokyn přináší.",
+      "body": [],
+      "proc": "Zpráva je důležitá pro geodety, kteří se zabývají zápisem staveb do katastru.",
+      "zdroj": "ČÚZK",
+      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/Spolecny-metodicky-pokyn-CUZK-a-MMR-k-zapisu-drobn.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
+      "datum": "2026-06-06"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "SFL Missions Begins Phase A Study for ESA Moonraker Lunar Mapping Project",
+      "perex": "SFL Missions Inc. zahájila studii pro projekt lunární mapování Moonraker.",
+      "telo": "SFL Missions Inc. byla vybrána Evropskou kosmickou agenturou (ESA) k provedení studie fáze A pro projekt Moonraker. Tým SFL se zaměřuje na vývoj malé satelitní platformy, která bude hostit laserové skenovací zařízení (LiDAR). Kromě toho provádí analýzu mise a plánování pro start a provoz satelitu Moonraker.",
+      "body": [],
+      "proc": "Zpráva ukazuje pokrok v oblasti lunárního mapování a využití LiDAR technologie.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/06/23/sfl-missions-inc-begins-phase-a-study-for-esa-moonraker-lunar-mapping-project/?utm_source=rss&utm_medium=rss&utm_campaign=sfl-missions-inc-begins-phase-a-study-for-esa-moonraker-lunar-mapping-project",
       "datum": "2026-06-23"
@@ -20,62 +29,50 @@
     {
       "rubrika": "Technologie",
       "top": false,
-      "nadpis": "Jak pevné křídlo redefinuje mapování koridorů",
-      "perex": "Nové studie ukazují, že pevná letadla mohou dosáhnout centimetrové přesnosti v mapování.",
-      "telo": "Existuje přetrvávající předpoklad v geospatialním průmyslu, že pro dosažení centimetrového rozlišení je nutný dron. Nová studie provedená evropskými geospatialními specialisty však tento předpoklad zpochybňuje. Práce ukazuje, že pevná letadla mohou dosáhnout vysokého rozlišení a pokrytí, což mění pravidla hry v oblasti mapování koridorů.",
-      "body": [
-        "Studie zpochybňuje tradiční názory na mapování.",
-        "Pevná letadla nabízejí efektivní alternativu k dronům."
-      ],
-      "proc": "Zpráva zdůrazňuje inovace v geodetických metodách.",
-      "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/06/17/1-cm-gsd-from-a-plane-how-fixed-wing-aircraft-are-redefining-whats-possible-in-corridor-mapping/?utm_source=rss&utm_medium=rss&utm_campaign=1-cm-gsd-from-a-plane-how-fixed-wing-aircraft-are-redefining-whats-possible-in-corridor-mapping",
-      "datum": "2026-06-17"
-    },
-    {
-      "rubrika": "Z domova",
-      "top": false,
-      "nadpis": "Ukončení provozu WSGP verze 2.10",
-      "perex": "ČÚZK oznámil ukončení provozu starší verze služeb WSGP.",
-      "telo": "Český úřad zeměměřický a katastrální (ČÚZK) upozorňuje, že na podzim 2026 dojde k ukončení provozu služeb verze 2.10 systému WSGP. Po tomto termínu budou k dispozici pouze služby verze 3.1. Uživatelé jsou vyzváni, aby se na tuto změnu připravili.",
-      "body": [
-        "Ukončení starší verze může ovlivnit uživatele.",
-        "Doporučuje se přechod na novější verzi."
-      ],
-      "proc": "Tato změna je důležitá pro všechny uživatele geodetických služeb v ČR.",
-      "zdroj": "ČÚZK",
-      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
-      "datum": "2026-05-29"
+      "nadpis": "Qfactor’s New DoneDeal E-signature Feature Saves Its Customers Time and Money on Proposals",
+      "perex": "Nová funkce e-podpisu od Qfactor šetří čas a peníze zákazníkům.",
+      "telo": "Qfactor, lídr v oblasti softwaru pro správu pracovních toků v geodetickém průmyslu, oznámil přidání softwaru pro e-podpis DoneDeal do svého pracovního postupu. Zákazníci nyní ušetří tisíce dolarů a uvolní měsíce produktivního času pro své týmy. Tato novinka má potenciál výrazně zefektivnit procesy spojené s návrhy a smlouvami.",
+      "body": [],
+      "proc": "Zpráva je relevantní pro geodety, kteří hledají efektivní nástroje pro zpracování návrhů.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/06/23/qfactors-new-donedeal-e-signature-feature-saves-its-customers-time-and-money-on-proposals/?utm_source=rss&utm_medium=rss&utm_campaign=qfactors-new-donedeal-e-signature-feature-saves-its-customers-time-and-money-on-proposals",
+      "datum": "2026-06-23"
     },
     {
       "rubrika": "Z praxe",
       "top": false,
-      "nadpis": "SimActive umožňuje rychlou produkci ortomosaiků pro mapování plánovaných požárů",
-      "perex": "Software Correlator3D od SimActive se používá pro rychlé generování ortomosaiků.",
-      "telo": "SimActive Inc. oznámila, že její software Correlator3D je využíván firmou Landair Surveys k rychlému generování ortomosaiků pro mapování plánovaných požárů v Austrálii. Tato technologie podporuje časově citlivé letecké mapovací operace, kde jsou rychlé a přesné geospatialní výstupy nezbytné pro prevenci požárů a správu půdy.",
-      "body": [
-        "Rychlá produkce ortomosaiků je klíčová pro prevenci požárů.",
-        "Technologie zajišťuje přesnost a efektivitu."
-      ],
-      "proc": "Zpráva ukazuje na důležitost efektivních geodetických nástrojů v prevenci přírodních katastrof.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/12/simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping/?utm_source=rss&utm_medium=rss&utm_campaign=simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping",
-      "datum": "2026-06-12"
+      "nadpis": "Emergency Mapping for Documenting and Managing Natural Hazards",
+      "perex": "Efektivní metody pro dokumentaci a řízení přírodních katastrof.",
+      "telo": "Zpráva se zaměřuje na zvyšující se frekvenci a intenzitu extrémních povětrnostních jevů a potřebu efektivních metod pro dokumentaci, analýzu a řízení přírodních katastrof. Případová studie z La Chaux-de-Fonds ve Švýcarsku ukazuje, jak geomatika přispívá k řízení krizí a analýze po události. Vysokorozlišovací letecké průzkumy kombinující ortofotomapy jsou klíčové pro prevenci a řízení přírodních katastrof.",
+      "body": [],
+      "proc": "Zpráva je důležitá pro geodety pracující v oblasti krizového managementu.",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/06/09/emergency-mapping-for-documenting-and-managing-natural-hazards/?utm_source=rss&utm_medium=rss&utm_campaign=emergency-mapping-for-documenting-and-managing-natural-hazards",
+      "datum": "2026-06-09"
     },
     {
       "rubrika": "Akce",
       "top": false,
-      "nadpis": "GEO Business 2026 překonává rekordy účasti",
-      "perex": "Na akci GEO Business 2026 se sešlo více než 6200 profesionálů.",
-      "telo": "Na akci GEO Business 2026, která se konala 3. a 4. června v Londýně, se sešlo přes 6200 profesionálů, což potvrzuje její postavení jako přední události v oblasti geospatialních technologií. Akce zahrnovala více než 160 odborně vedených sezení a přes 100 vystavovatelů, což poskytlo platformu pro sdílení znalostí a networking mezi odborníky v oblasti geodézie, GIS a plánování.",
-      "body": [
-        "Akce zahrnovala interaktivní networking a vzdělávací zkušenosti.",
-        "Přilákala široké spektrum odborníků z různých oblastí."
-      ],
-      "proc": "Zpráva ukazuje na rostoucí význam geodetických akcí pro profesní rozvoj.",
+      "nadpis": "GEO Business 2026 Breaks Attendance Records with 6,200+ Professionals",
+      "perex": "GEO Business 2026 přilákal více než 6200 profesionálů z oblasti geospatial.",
+      "telo": "Na akci GEO Business 2026, která se konala v Londýně, se zúčastnilo více než 6200 odborníků, čímž se potvrdila její pozice jako přední události v oblasti geospatial technologií a prostorové inteligence. Akce zahrnovala více než 160 odborně vedených sezení a více než 100 vystavovatelů, což poskytlo platformu pro networking a sdílení znalostí mezi profesionály v oblasti geodézie, GIS a plánování.",
+      "body": [],
+      "proc": "Zpráva ukazuje význam akce pro profesionály v oblasti geodézie a geoinformatiky.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/06/15/geo-business-2026-breaks-attendance-records-with-6200-professionals/?utm_source=rss&utm_medium=rss&utm_campaign=geo-business-2026-breaks-attendance-records-with-6200-professionals",
       "datum": "2026-06-15"
+    },
+    {
+      "rubrika": "Vzdělávání",
+      "top": false,
+      "nadpis": "Advisory Board Announced for Geo Week 2027",
+      "perex": "Bylo oznámeno složení poradního výboru pro Geo Week 2027.",
+      "telo": "Organizátoři Geo Week, prestižní konference a výstavy pro geodetické a mapovací profesionály, oznámili složení poradního výboru pro rok 2027. Tento výbor bude zodpovědný za doporučování témat konference a přednášejících, čímž přispěje k zajištění relevantnosti a kvality akce pro účastníky. Zpráva je důležitá pro všechny, kteří se chtějí aktivně zapojit do budoucích trendů v geodetickém průmyslu.",
+      "body": [],
+      "proc": "Zpráva je relevantní pro profesionály, kteří se zajímají o budoucnost geodetických akcí.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/06/04/advisory-board-announced-for-geo-week-2027/?utm_source=rss&utm_medium=rss&utm_campaign=advisory-board-announced-for-geo-week-2027",
+      "datum": "2026-06-04"
     }
   ]
 }
