@@ -1,78 +1,78 @@
 {
-  "vydani": "2026-06-26",
-  "uvodnik": "Přinášíme aktuální zprávy ze světa geodetů a geoinformatiky.",
+  "vydani": "2026-06-27",
+  "uvodnik": "Přinášíme aktuální zprávy z oblasti geodetického a geoinformačního sektoru.",
   "polozky": [
     {
-      "rubrika": "Z domova",
+      "rubrika": "Akce",
       "top": true,
-      "nadpis": "Společný metodický pokyn ČÚZK a MMR k zápisu drobných staveb do KN",
-      "perex": "Byl zveřejněn nový metodický pokyn pro zápis drobných staveb.",
-      "telo": "Český úřad zeměměřický a katastrální (ČÚZK) ve spolupráci s Ministerstvem pro místní rozvoj (MMR) vydal nový Společný metodický pokyn, který se týká zápisu drobných staveb do katastru nemovitostí. Tento pokyn má za cíl zjednodušit a sjednotit postupy při evidenci drobných staveb, což je důležité pro správné fungování katastrálního systému. Uživatelé mohou najít podrobnosti v sekci Předpisy na webových stránkách ČÚZK.",
+      "nadpis": "175. výročí počátečního bodu Mount Diablo oslaví kalifornské geodetické dědictví",
+      "perex": "Kalifornie se chystá na oslavu významného geodetického milníku.",
+      "telo": "Dne 18. července 2026 se v kalifornském státním parku Mount Diablo uskuteční veřejná oslava 175. výročí počátečního bodu Mount Diablo. Tato akce, organizovaná Kalifornskými státními parky a Historickou společností geodetů Mount Diablo, nabídne celodenní program zaměřený na historii a důležitost tohoto významného geodetického bodu. Oslava bude zdarma a je určena pro návštěvníky všech věkových kategorií, kteří se chtějí dozvědět více o geodetickém dědictví regionu.",
       "body": [
-        "Zjednodušení procesu zápisu",
-        "Sjednocení postupů"
+        "Oslava se koná 18. července 2026.",
+        "Akce je zdarma a otevřená pro všechny."
       ],
-      "proc": "Zpráva je důležitá pro geodety a stavebníky, kteří se zabývají evidencí drobných staveb.",
-      "zdroj": "ČÚZK",
-      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/Spolecny-metodicky-pokyn-CUZK-a-MMR-k-zapisu-drobn.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
-      "datum": "2026-03-06"
-    },
-    {
-      "rubrika": "Z domova",
-      "top": false,
-      "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
-      "perex": "Ukončení starší verze WSGP služeb se blíží.",
-      "telo": "Uživatelé webových služeb pro vyhotovitele a ověřovatele geometrických plánů (WSGP) by měli být připraveni na ukončení provozu verze 2.10, které je plánováno na podzim 2026. Po tomto datu budou k dispozici pouze služby verze 3.1. Je důležité, aby uživatelé přešli na novější verzi včas, aby se vyhnuli komplikacím.",
-      "body": [
-        "Přechod na verzi 3.1",
-        "Důležitost včasného přechodu"
-      ],
-      "proc": "Tato zpráva je klíčová pro uživatele WSGP, aby se připravili na změny v poskytovaných službách.",
-      "zdroj": "ČÚZK",
-      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
-      "datum": "2026-05-29"
-    },
-    {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "SFL Missions Begins Phase A Study for ESA Moonraker Lunar Mapping Project",
-      "perex": "SFL Missions zahájila studii pro projekt lunární mapování Moonraker.",
-      "telo": "SFL Missions Inc. byla vybrána Evropskou kosmickou agenturou (ESA) jako součást týmu pro provedení studie fáze A projektu Moonraker. Tato studie se zaměřuje na vývoj malého satelitního platformy, která bude hostit laserové skenování (LiDAR) pro mapování Měsíce. SFL se také podílí na analýze mise a plánování jejího spuštění a operací.",
-      "body": [
-        "Vývoj malého satelitu",
-        "Mapování Měsíce pomocí LiDAR"
-      ],
-      "proc": "Zpráva je relevantní pro geodety a odborníky v oblasti vesmírného mapování.",
+      "proc": "Tato akce zdůrazňuje význam geodetických milníků v historii Kalifornie.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/23/sfl-missions-inc-begins-phase-a-study-for-esa-moonraker-lunar-mapping-project/?utm_source=rss&utm_medium=rss&utm_campaign=sfl-missions-inc-begins-phase-a-study-for-esa-moonraker-lunar-mapping-project",
-      "datum": "2026-06-23"
+      "odkaz": "https://amerisurv.com/2026/06/26/mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage/?utm_source=rss&utm_medium=rss&utm_campaign=mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage",
+      "datum": "2026-06-26"
     },
     {
       "rubrika": "Technologie",
       "top": false,
-      "nadpis": "Qfactor’s New DoneDeal E-signature Feature Saves Its Customers Time and Money on Proposals",
-      "perex": "Nová funkce e-podpisu od Qfactor šetří čas a peníze.",
-      "telo": "Qfactor, lídr v oblasti softwaru pro správu pracovních procesů v geodetickém průmyslu, oznámil přidání funkce e-podpisu DoneDeal do svého pracovního postupu. Tato novinka umožňuje zákazníkům ušetřit tisíce dolarů a uvolnit měsíce produktivního času pro své týmy. Tato funkce je považována za významný krok vpřed v efektivitě procesů v oblasti geodézie.",
+      "nadpis": "Nová funkce e-podpisu DoneDeal od Qfactor šetří čas a peníze",
+      "perex": "Qfactor představuje novou funkci, která zefektivňuje procesy v oblasti geodetických návrhů.",
+      "telo": "Qfactor, lídr v oblasti softwaru pro správu pracovních toků v geodetickém průmyslu, oznámil přidání e-podpisu DoneDeal do svého pracovního postupu. Tato nová funkce umožňuje zákazníkům ušetřit až šest měsíců pracovní doby ročně a značné množství peněz. Zakladatel Qfactor, Frederick Dyste, uvedl, že tato inovace výrazně zefektivňuje procesy a zvyšuje produktivitu týmů.",
       "body": [
-        "Úspora času a nákladů",
-        "Zvýšení produktivity týmů"
+        "Zákazníci ušetří až šest měsíců práce ročně.",
+        "Funkce zjednodušuje procesy návrhů."
       ],
-      "proc": "Zpráva je důležitá pro geodety, kteří hledají efektivní nástroje pro správu pracovních procesů.",
+      "proc": "Tato funkce přináší významné úspory a zefektivnění pracovních postupů.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/06/23/qfactors-new-donedeal-e-signature-feature-saves-its-customers-time-and-money-on-proposals/?utm_source=rss&utm_medium=rss&utm_campaign=qfactors-new-donedeal-e-signature-feature-saves-its-customers-time-and-money-on-proposals",
       "datum": "2026-06-23"
     },
     {
-      "rubrika": "Z praxe",
+      "rubrika": "Z domova",
       "top": false,
-      "nadpis": "1 cm GSD from a Plane: How Fixed-Wing Aircraft Are Redefining What’s Possible in Corridor Mapping",
-      "perex": "Nové možnosti mapování s pevnokřídlými letadly.",
-      "telo": "Nové studie ukazují, že pevná křídla letadel mohou dosahovat centimetrové rozlišení při mapování, což zpochybňuje dosavadní předpoklady o nutnosti dronů pro detailní snímání. Tato inovace přináší nové možnosti pro geodetické a mapovací projekty, zejména v oblastech, kde je potřeba pokrýt větší území s vysokou přesností.",
+      "nadpis": "Ukončení provozu WSGP verze 2.10 na podzim 2026",
+      "perex": "Český úřad zeměměřický a katastrální oznamuje změny v provozu webových služeb.",
+      "telo": "Český úřad zeměměřický a katastrální (ČÚZK) informoval, že na podzim 2026 dojde k ukončení provozu služeb verze 2.10 webových služeb pro vyhotovitele a ověřovatele geometrických plánů (WSGP). Od tohoto data budou k dispozici pouze služby verze 3.1. Uživatelé jsou vyzváni, aby se na tuto změnu připravili.",
       "body": [
-        "Centimetrové rozlišení",
-        "Využití pevnokřídlých letadel"
+        "Ukončení provozu verze 2.10 na podzim 2026.",
+        "Pouze verze 3.1 bude nadále v provozu."
       ],
-      "proc": "Zpráva je relevantní pro geodety a odborníky na mapování, kteří hledají nové technologie pro své projekty.",
+      "proc": "Uživatelé musí být připraveni na změny v poskytovaných službách.",
+      "zdroj": "ČÚZK",
+      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
+      "datum": "2026-05-29"
+    },
+    {
+      "rubrika": "Z domova",
+      "top": false,
+      "nadpis": "Společný metodický pokyn k zápisu drobných staveb do KN",
+      "perex": "ČÚZK a MMR zveřejnily nový pokyn pro geodety.",
+      "telo": "Český úřad zeměměřický a katastrální (ČÚZK) ve spolupráci s Ministerstvem pro místní rozvoj (MMR) vydal nový společný metodický pokyn, který se týká zápisu drobných staveb do katastru nemovitostí. Tento pokyn je nyní dostupný v sekci Předpisy na webových stránkách ČÚZK.",
+      "body": [
+        "Nový pokyn je dostupný na webu ČÚZK.",
+        "Týká se zápisu drobných staveb do KN."
+      ],
+      "proc": "Pokyn usnadní práci geodetům a vyhotovitelům geometrických plánů.",
+      "zdroj": "ČÚZK",
+      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/Spolecny-metodicky-pokyn-CUZK-a-MMR-k-zapisu-drobn.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
+      "datum": "2026-03-06"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Jak pevné křídlo redefinuje možnosti mapování koridorů",
+      "perex": "Nové studie ukazují, že pevná křídla mohou dosáhnout vysokého rozlišení.",
+      "telo": "V geospatialním průmyslu panuje přesvědčení, že pro dosažení centimetrického rozlišení je nutné použít dron. Nové studie však ukazují, že pevná křídla mohou nabídnout srovnatelné výsledky. Skupina evropských specialistů na geodézii prováděla výzkum, který ukazuje, že pevná křídla mohou efektivně mapovat s vysokým rozlišením, což může změnit přístup k mapování koridorů.",
+      "body": [
+        "Pevná křídla mohou dosáhnout centimetrického rozlišení.",
+        "Nové studie zpochybňují tradiční názory na mapování."
+      ],
+      "proc": "Tyto poznatky mohou posunout hranice v oblasti mapování a geodetických technik.",
       "zdroj": "LiDAR Magazine",
       "odkaz": "https://lidarmag.com/2026/06/17/1-cm-gsd-from-a-plane-how-fixed-wing-aircraft-are-redefining-whats-possible-in-corridor-mapping/?utm_source=rss&utm_medium=rss&utm_campaign=1-cm-gsd-from-a-plane-how-fixed-wing-aircraft-are-redefining-whats-possible-in-corridor-mapping",
       "datum": "2026-06-17"
