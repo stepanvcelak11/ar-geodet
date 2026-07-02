@@ -1,66 +1,81 @@
 {
-  "vydani": "2026-07-01",
-  "uvodnik": "Přinášíme přehled aktuálních zpráv ze světa geodézie.",
+  "vydani": "2026-07-02",
+  "uvodnik": "Přinášíme aktuální zprávy ze světa geodézie a geoinformatiky.",
   "polozky": [
     {
-      "rubrika": "Z domova",
+      "rubrika": "Z praxe",
       "top": true,
-      "nadpis": "Společný metodický pokyn ČÚZK a MMR k zápisu drobných staveb do KN",
-      "perex": "Nový metodický pokyn se zaměřuje na zápis drobných staveb do katastru nemovitostí.",
-      "telo": "Český úřad zeměměřický a katastrální ve spolupráci s Ministerstvem pro místní rozvoj zveřejnil nový Společný metodický pokyn, který se týká zápisu drobných staveb do katastru nemovitostí. Tento pokyn má za cíl sjednotit postupy a usnadnit tak práci geodetům a dalším odborníkům v oblasti katastru. V dokumentu jsou uvedeny konkrétní pokyny a doporučení, jak správně postupovat při zápisu těchto staveb.",
-      "body": [],
-      "proc": "Tato zpráva je důležitá pro geodety a odborníky zabývající se katastrálními pracemi.",
-      "zdroj": "ČÚZK",
-      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/Spolecny-metodicky-pokyn-CUZK-a-MMR-k-zapisu-drobn.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
-      "datum": "2026-03-06"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Improving Mapping Accuracy Through Aerial Triangulation",
-      "perex": "Nové funkce v softwaru Correlator3D přinášejí zlepšení v přesnosti mapování.",
-      "telo": "Aerial triangulation se ukazuje jako klíčový krok při výrobě přesných mapových produktů. Nová verze softwaru Correlator3D přináší významná vylepšení, která umožňují robustnější výsledky na náročných datech. Mezi novinkami jsou zlepšená extrakce spojovacích bodů, nové validační nástroje a podpora přímého georeferencování. Tyto funkce zjednodušují nastavení projektů s více kamerami a urychlují proces úpravy balíčků.",
-      "body": [],
-      "proc": "Zpráva je relevantní pro geodety a odborníky na mapování, kteří hledají způsoby, jak zlepšit přesnost svých výstupů.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/29/improving-mapping-accuracy-through-aerial-triangulation/?utm_source=rss&utm_medium=rss&utm_campaign=improving-mapping-accuracy-through-aerial-triangulation",
+      "nadpis": "Leave No Fingerprints: Survey-Grade Accuracy in an Era of Zero Disruption",
+      "perex": "Nové technologie umožňují provádět geodetické práce bez narušení provozu.",
+      "telo": "V oblasti geodézie se objevují inovativní přístupy, které umožňují provádět přesné měření bez jakéhokoli narušení. Příkladem je barevně zpracované LiDAR mračno bodů mostu Cape Fear Memorial v Severní Karolíně, které bylo zachyceno bez nutnosti uzavírat silnice nebo mít pracovníky na místě. Tento způsob měření přináší výhody v podobě minimalizace rušení pro okolní dopravu a plavbu.",
+      "body": [
+        "Bez nutnosti uzavírat silnice",
+        "Minimalizace rušení okolí"
+      ],
+      "proc": "Zpráva ukazuje, jak moderní technologie mění přístup k geodetickým pracím.",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/civiltransportation/leave-no-fingerprints-survey-grade-accuracy-in-an-era-of-zero-disruption/",
       "datum": "2026-06-29"
     },
     {
-      "rubrika": "Z domova",
+      "rubrika": "Vzdělávání",
       "top": false,
-      "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
-      "perex": "Uživatelé webových služeb WSGP by měli být připraveni na změny.",
-      "telo": "Český úřad zeměměřický a katastrální upozorňuje na plánované ukončení provozu WSGP verze 2.10 na podzim 2026. Po tomto termínu budou k dispozici pouze služby WSGP verze 3.1. Uživatelé by se měli připravit na tuto změnu a přizpůsobit své procesy novým podmínkám.",
-      "body": [],
-      "proc": "Tato zpráva je důležitá pro všechny uživatele WSGP, kteří se podílejí na vyhotovování geometrických plánů.",
-      "zdroj": "ČÚZK",
-      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluze.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
-      "datum": "2026-05-29"
-    },
-    {
-      "rubrika": "Z praxe",
-      "top": false,
-      "nadpis": "Leave No Fingerprints: Survey-Grade Accuracy in an Era of Zero Disruption",
-      "perex": "Nové metody skenování umožňují dosáhnout vysoké přesnosti bez narušení provozu.",
-      "telo": "Nové skenovací techniky umožnily vytvořit 3D model Cape Fear Memorial Bridge bez nutnosti uzavírat silnice nebo mít na místě pracovníky. Tato metoda, kterou realizovala firma McKim & Creed, ukazuje, jak lze dosáhnout vysoké přesnosti při geodetických pracích bez narušení běžného provozu. Tímto způsobem se zvyšuje efektivita a snižují náklady spojené s tradičními metodami skenování.",
-      "body": [],
-      "proc": "Zpráva ilustruje inovativní přístupy v geodetických pracích, které mohou inspirovat další odborníky v oboru.",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/civiltransportation/leave-no-fingerprints-survey-grade-accuracy-in-an-era-of-zero-disruption/",
+      "nadpis": "Improving Mapping Accuracy Through Aerial Triangulation",
+      "perex": "Webinář se zaměří na zlepšení přesnosti mapování pomocí letecké triangulace.",
+      "telo": "Aerial triangulation je klíčovým krokem k dosažení přesných mapovacích výstupů. Nová verze softwaru Correlator3D přináší vylepšení, která usnadňují nastavení projektů s více kamerami a zrychlují proces úpravy dat. Webinář představí nové funkce, jako je zlepšené extrakce spojovacích bodů a nové validační nástroje.",
+      "body": [
+        "Vylepšení workflow v mapování",
+        "Nové nástroje pro validaci dat"
+      ],
+      "proc": "Zpráva se zaměřuje na pokrok v technologii letecké triangulace.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/06/29/improving-mapping-accuracy-through-aerial-triangulation/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=improving-mapping-accuracy-through-aerial-triangulation",
       "datum": "2026-06-29"
     },
     {
       "rubrika": "Akce",
       "top": false,
       "nadpis": "Mount Diablo Initial Point’s 175th Anniversary to Celebrate California's Surveying Heritage",
-      "perex": "Kalifornie si připomene významné výročí v oblasti geodézie.",
-      "telo": "Dne 18. července 2026 se v Kalifornii uskuteční veřejná oslava 175. výročí Mount Diablo Initial Point. Akce, kterou pořádají Kalifornské státní parky a Mount Diablo Surveyors Historical Society, se zaměří na historii a důležitost tohoto významného geodetického místa. Oslava bude trvat od 10:00 do 16:00 a je určena pro návštěvníky všech věkových kategorií.",
-      "body": [],
-      "proc": "Tato akce je příležitostí pro geodety a zájemce o historii geodézie, aby se setkali a sdíleli zkušenosti.",
+      "perex": "Kalifornie oslaví významné výročí v oblasti geodézie.",
+      "telo": "Dne 18. července 2026 se v Kalifornii uskuteční veřejná oslava 175. výročí Mount Diablo Initial Point. Akce, pořádaná Kalifornskými státními parky a Mount Diablo Surveyors Historical Society, nabídne vzdělávací program pro návštěvníky všech věkových kategorií. Oslava se koná od 10:00 do 16:00 v Mount Diablo State Park.",
+      "body": [
+        "Vzdělávací program pro veřejnost",
+        "Oslava geodetického dědictví"
+      ],
+      "proc": "Akce připomíná důležitost geodetických milníků v historii.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/26/mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage/?utm_source=rss&utm_medium=rss&utm_campaign=mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage",
+      "odkaz": "https://amerisurv.com/2026/06/26/mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage",
       "datum": "2026-06-27"
+    },
+    {
+      "rubrika": "Z domova",
+      "top": false,
+      "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
+      "perex": "ČÚZK upozorňuje na ukončení starší verze služeb WSGP.",
+      "telo": "Český úřad zeměměřický a katastrální oznámil, že na podzim 2026 dojde k ukončení provozu služeb WSGP verze 2.10. Po tomto termínu budou k dispozici pouze služby WSGP verze 3.1. Uživatelé jsou vyzváni, aby se na tuto změnu připravili.",
+      "body": [
+        "Ukončení starší verze WSGP",
+        "Přechod na novou verzi 3.1"
+      ],
+      "proc": "Informace je důležitá pro všechny uživatele geodetických služeb.",
+      "zdroj": "ČÚZK",
+      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
+      "datum": "2026-05-29"
+    },
+    {
+      "rubrika": "Zákon",
+      "top": false,
+      "nadpis": "Společný metodický pokyn ČÚZK a MMR k zápisu drobných staveb do KN",
+      "perex": "Nový metodický pokyn usnadní zápis drobných staveb.",
+      "telo": "Český úřad zeměměřický a katastrální ve spolupráci s Ministerstvem pro místní rozvoj zveřejnil nový metodický pokyn k zápisu drobných staveb do katastru nemovitostí. Tento pokyn má za cíl usnadnit proces zápisu a zjednodušit administrativní postupy pro geodety a stavebníky.",
+      "body": [
+        "Zjednodušení zápisu drobných staveb",
+        "Spolupráce ČÚZK a MMR"
+      ],
+      "proc": "Zpráva je důležitá pro geodety a stavebníky, kteří se zabývají drobnými stavbami.",
+      "zdroj": "ČÚZK",
+      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/Spolecny-metodicky-pokyn-CUZK-a-MMR-k-zapisu-drobn.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
+      "datum": "2026-03-06"
     }
   ]
 }
