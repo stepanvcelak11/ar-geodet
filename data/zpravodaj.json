@@ -1,27 +1,39 @@
 {
-  "vydani": "2026-07-03",
-  "uvodnik": "Přinášíme aktuální zprávy z oblasti geodézie a geoinformatiky.",
+  "vydani": "2026-07-04",
+  "uvodnik": "Přinášíme aktuální přehled zajímavých zpráv ze světa geodézie.",
   "polozky": [
     {
       "rubrika": "Z domova",
       "top": true,
-      "nadpis": "Společný metodický pokyn ČÚZK a MMR k zápisu drobných staveb do KN",
-      "perex": "Nový metodický pokyn se zaměřuje na zápis drobných staveb do katastru nemovitostí.",
-      "telo": "Český úřad zeměměřického a katastrálního (ČÚZK) ve spolupráci s Ministerstvem pro místní rozvoj (MMR) zveřejnil nový Společný metodický pokyn. Tento pokyn se týká zápisu drobných staveb do katastru nemovitostí a je určen pro vyhotovitele a ověřovatele geometrických plánů. Cílem je zjednodušit a zefektivnit proces zápisu těchto staveb, což by mělo přispět k lepší správě nemovitostí v České republice.",
+      "nadpis": "Ukončení provozu služeb WSGP verze 2.10",
+      "perex": "Na podzim 2026 dojde k ukončení provozu starší verze webových služeb WSGP.",
+      "telo": "Český úřad zeměměřický a katastrální upozorňuje uživatele, že v podzimních měsících letošního roku bude ukončen provoz verze 2.10 služeb WSGP, které slouží pro vyhotovitele a ověřovatele geometrických plánů. Po tomto termínu budou dostupné pouze služby verze 3.1. Uživatelé jsou vyzváni, aby se na tuto změnu připravili a přizpůsobili své postupy novým požadavkům.",
       "body": [],
-      "proc": "Zpráva je důležitá pro geodety a odborníky na katastr nemovitostí.",
+      "proc": "Tato změna ovlivní všechny uživatele starší verze služeb.",
       "zdroj": "ČÚZK",
-      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/Spolecny-metodicky-pokyn-CUZK-a-MMR-k-zapisu-drobn.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
-      "datum": "2026-03-06"
+      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
+      "datum": "2026-05-29"
     },
     {
       "rubrika": "Z praxe",
       "top": false,
-      "nadpis": "Mount Diablo Initial Point’s 175th Anniversary to Celebrate California's Surveying Heritage",
-      "perex": "Kalifornie si připomene 175. výročí významného měřického bodu.",
-      "telo": "Dne 18. července 2026 se v Kalifornii uskuteční veřejná oslava 175. výročí Mount Diablo Initial Point. Akce, kterou pořádají Kalifornské státní parky a Mount Diablo Surveyors Historical Society, se zaměří na historii a význam tohoto důležitého měřického bodu na západním pobřeží. Oslava bude zahrnovat vzdělávací aktivity a je určena pro návštěvníky všech věkových kategorií.",
+      "nadpis": "Zlepšení přesnosti mapování pomocí letecké triangulace",
+      "perex": "Nové funkce v softwaru Correlator3D přinášejí zlepšení v oblasti letecké triangulace.",
+      "telo": "Letecká triangulace je klíčovým krokem při výrobě přesných mapových výstupů. S verzí 11.1 softwaru Correlator3D bylo dosaženo významného zlepšení, které zajišťuje robustnější výsledky i na náročných datech. Tento webinář představí nejnovější schopnosti letecké triangulace, včetně zlepšené extrakce spojovacích bodů a nových validačních nástrojů, které urychlují zpracování a zvyšují přesnost.",
       "body": [],
-      "proc": "Oslava přispěje k povědomí o významu měření a geodézie v historii Kalifornie.",
+      "proc": "Zlepšení v oblasti letecké triangulace je důležité pro geodety pracující s náročnými datovými sadami.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/06/29/improving-mapping-accuracy-through-aerial-triangulation/?utm_source=rss&utm_medium=rss&utm_campaign=improving-mapping-accuracy-through-aerial-triangulation",
+      "datum": "2026-06-29"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "Oslava 175. výročí počátečního bodu Mount Diablo",
+      "perex": "Kalifornie se chystá oslavit významné výročí v oblasti geodézie.",
+      "telo": "Dne 18. července 2026 se v Kalifornii uskuteční veřejná oslava 175. výročí počátečního bodu Mount Diablo, jednoho z nejvýznamnějších geodetických památek na západě USA. Akce, pořádaná Kalifornskými státními parky a Mount Diablo Surveyors Historical Society, se bude konat od 10:00 do 16:00 a je určena pro návštěvníky všech věkových kategorií. Cílem je zvýšit povědomí o historickém významu této lokality.",
+      "body": [],
+      "proc": "Oslava je příležitostí pro veřejnost seznámit se s geodetickou historií regionu.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/06/26/mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage/?utm_source=rss&utm_medium=rss&utm_campaign=mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage",
       "datum": "2026-06-27"
@@ -29,50 +41,38 @@
     {
       "rubrika": "Technologie",
       "top": false,
-      "nadpis": "Leave No Fingerprints: Survey-Grade Accuracy in an Era of Zero Disruption",
-      "perex": "Nové technologie umožňují přesné měření bez narušení provozu.",
-      "telo": "Případová studie z Wilmingtonu v Severní Karolíně ukazuje, jak byla vytvořena 3D modelace Cape Fear Memorial Bridge pomocí barevného LiDARu. Tento přístup umožnil provést měření bez nutnosti uzavírat silnice nebo mít pracovníky na živých strukturách, což minimalizovalo narušení procházejících plavidel. Takovéto technologie představují budoucnost měření, kde je možné dosáhnout vysoké přesnosti bez tradičních omezení.",
+      "nadpis": "Nové funkce e-podpisu v Qfactor",
+      "perex": "Qfactor přináší novou funkci e-podpisu, která šetří čas a peníze.",
+      "telo": "Qfactor, lídr v oblasti softwaru pro správu pracovních toků v geodetickém průmyslu, oznámil přidání funkce e-podpisu DoneDeal do svého pracovního postupu. Tato novinka umožňuje zákazníkům ušetřit až šest měsíců pracovní doby ročně a výrazně zjednodušuje proces schvalování návrhů. Podle zakladatele společnosti, Fredericka Dyste, tato funkce šetří nejen čas, ale i náklady pro firmy.",
       "body": [],
-      "proc": "Zpráva ilustruje pokrok v technologiích měření a jejich aplikaci v praxi.",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/civiltransportation/leave-no-fingerprints-survey-grade-accuracy-in-an-era-of-zero-disruption/",
-      "datum": "2026-06-29"
+      "proc": "Zavedení e-podpisu je krokem k modernizaci pracovních procesů v geodézii.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/06/23/qfactors-new-donedeal-e-signature-feature-saves-its-customers-time-and-money-on-proposals/?utm_source=rss&utm_medium=rss&utm_campaign=qfactors-new-donedeal-e-signature-feature-saves-its-customers-time-and-money-on-proposals",
+      "datum": "2026-06-23"
+    },
+    {
+      "rubrika": "Akce",
+      "top": false,
+      "nadpis": "GEO Business 2026 láme rekordy návštěvnosti",
+      "perex": "Na GEO Business 2026 se sešlo více než 6200 odborníků.",
+      "telo": "Akce GEO Business 2026, která se konala ve dnech 3. a 4. června v Londýně, přilákala více než 6200 odborníků a potvrdila tak svou pozici jako přední událost v oblasti geospatialních technologií a lokalizační inteligence ve Velké Británii. V rámci akce proběhlo více než 160 odborných přednášek a více než 100 vystavovatelů představilo své inovace. GEO Business poskytlo platformu pro networking a vzdělávání pro profesionály z oblasti geodézie, GIS a dat.",
+      "body": [],
+      "proc": "Rekordní účast svědčí o rostoucím zájmu o geodetické technologie.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/06/15/geo-business-2026-breaks-attendance-records-with-6200-professionals/?utm_source=rss&utm_medium=rss&utm_campaign=geo-business-2026-breaks-attendance-records-with-6200-professionals",
+      "datum": "2026-06-15"
     },
     {
       "rubrika": "Vzdělávání",
       "top": false,
-      "nadpis": "Improving Mapping Accuracy Through Aerial Triangulation",
-      "perex": "Webinář se zaměří na zlepšení přesnosti mapování pomocí letecké triangulace.",
-      "telo": "Webinář, který představí nové možnosti letecké triangulace v softwaru Correlator3D, se zaměří na zlepšení extrakce bodů, nové validační nástroje a zpracování RTK/PPK. Tato vylepšení by měla usnadnit nastavení projektů s více kamerami a urychlit procesy, což povede k robustnějším výsledkům i na náročných datech.",
+      "nadpis": "Advisory Board pro Geo Week 2027",
+      "perex": "Bylo oznámeno složení poradního výboru pro Geo Week 2027.",
+      "telo": "Organizátoři Geo Week, přední konference a výstavy zaměřené na geodetické a mapovací profesionály, oznámili složení poradního výboru pro rok 2027. Tento výbor, složený z předních odborníků v oboru, bude zodpovědný za doporučení témat konference a výběr přednášejících. Jejich cílem je poskytnout cenné poznatky a zlepšit kvalitu akce pro účastníky.",
       "body": [],
-      "proc": "Zpráva je relevantní pro odborníky v oblasti mapování a letecké fotogrammetrie.",
+      "proc": "Poradní výbor přispěje k zajištění relevantnosti a kvality obsahu konference.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/29/improving-mapping-accuracy-through-aerial-triangulation/?utm_source=rss&utm_medium=rss&utm_campaign=improving-mapping-accuracy-through-aerial-triangulation",
-      "datum": "2026-06-29"
-    },
-    {
-      "rubrika": "Zákon",
-      "top": false,
-      "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
-      "perex": "Ukončení provozu starší verze služeb WSGP.",
-      "telo": "ČÚZK oznámil, že na podzim 2026 dojde k ukončení provozu služeb verze 2.10 systému WSGP. Po tomto datu budou k dispozici pouze služby verze 3.1. Uživatelé jsou vyzváni, aby se na tuto změnu připravili, aby předešli komplikacím v práci.",
-      "body": [],
-      "proc": "Důležité informace pro uživatele služeb WSGP a geodety.",
-      "zdroj": "ČÚZK",
-      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluze.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
-      "datum": "2026-05-29"
-    },
-    {
-      "rubrika": "Z praxe",
-      "top": false,
-      "nadpis": "Qfactor’s New DoneDeal E-signature Feature Saves Its Customers Time and Money on Proposals",
-      "perex": "Nová funkce e-podpisu šetří čas a peníze uživatelům.",
-      "telo": "Qfactor, známý poskytovatel softwaru pro správu pracovních toků v oblasti zeměměřictví, představil novou funkci e-podpisu DoneDeal. Tato novinka umožňuje uživatelům ušetřit až šest měsíců času ročně a výrazně snižuje náklady spojené s návrhy. Podle zakladatele Fredericka Dysteho, tato funkce přináší významné úspory a zefektivnění procesů pro týmy v oboru.",
-      "body": [],
-      "proc": "Zpráva ukazuje, jak technologie mohou zjednodušit pracovní procesy v geodézii.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/23/qfactors-new-donedeal-e-signature-feature-saves-its-customers-time-and-money-on-proposals/?utm_source=rss&utm_medium=rss&utm_campaign=qfactors-new-donedeal-e-signature-feature-saves-its-customers-time-and-money-on-proposals",
-      "datum": "2026-06-23"
+      "odkaz": "https://amerisurv.com/2026/06/04/advisory-board-announced-for-geo-week-2027/?utm_source=rss&utm_medium=rss&utm_campaign=advisory-board-announced-for-geo-week-2027",
+      "datum": "2026-06-04"
     }
   ]
 }
