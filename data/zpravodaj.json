@@ -1,29 +1,29 @@
 {
-  "vydani": "2026-07-05",
-  "uvodnik": "Přinášíme výběr aktuálních zpráv ze světa geodézie a geoinformatiky.",
+  "vydani": "2026-07-06",
+  "uvodnik": "Přinášíme aktuální zprávy ze světa geodézie a geoinformatiky.",
   "polozky": [
     {
       "rubrika": "Z domova",
       "top": true,
-      "nadpis": "Ukončení provozu WSGP verze 2.10",
-      "perex": "ČÚZK upozorňuje na blížící se ukončení starší verze služeb WSGP.",
-      "telo": "Český úřad zeměměřický a katastrální (ČÚZK) informuje, že na podzim 2026 dojde k ukončení provozu služeb verze 2.10 webových služeb pro vyhotovitele a ověřovatele geometrických plánů (WSGP). Od tohoto termínu budou k dispozici pouze služby verze 3.1. Uživatelé jsou vyzváni, aby se na tuto změnu připravili, a ČÚZK se omlouvá za případné komplikace.",
+      "nadpis": "Ukončení provozu služeb WSGP verze 2.10",
+      "perex": "Český úřad zeměměřický a katastrální oznámil plánované ukončení starší verze služeb pro vyhotovitele geometrických plánů.",
+      "telo": "Na podzim 2026 dojde k ukončení provozu WSGP verze 2.10. Po tomto datu budou k dispozici pouze služby WSGP verze 3.1. Uživatelé jsou upozorněni na tuto změnu a úřad se omlouvá za případné komplikace, které mohou nastat v důsledku této aktualizace.",
       "body": [],
-      "proc": "Tato změna je důležitá pro všechny uživatele služeb WSGP v České republice.",
+      "proc": "Zpráva je důležitá pro všechny uživatele služeb WSGP, kteří musí být připraveni na přechod na novou verzi.",
       "zdroj": "ČÚZK",
-      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluze...",
+      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-05-29"
     },
     {
       "rubrika": "Z praxe",
       "top": false,
       "nadpis": "Zlepšení přesnosti mapování pomocí letecké triangulace",
-      "perex": "Nové funkce v softwaru Correlator3D zjednodušují proces letecké triangulace.",
-      "telo": "Letecká triangulace je klíčovým krokem k výrobě přesných mapovacích výstupů. Nová verze Correlator3D, konkrétně verze 11.1, přináší významná vylepšení, která usnadňují nastavení projektů s více kamerami a zrychlují úpravy balíčků. Tento webinář představí nejnovější schopnosti letecké triangulace v Correlator3D, včetně zlepšeného extrakce spojovacích bodů, nových validačních nástrojů a přímého georeferencování.",
+      "perex": "Webinář představí nové možnosti letecké triangulace s využitím softwaru Correlator3D.",
+      "telo": "Letecká triangulace je klíčovým krokem k dosažení přesných mapovacích výstupů. Nová verze Correlator3D přináší vylepšení, která zjednodušují nastavení projektů s více kamerami a zrychlují úpravy balíčků. Webinář se zaměří na nové nástroje pro validaci, přímé georeferencování a asistované RTK/PPK zpracování, což přispěje k robustnějším výsledkům i na náročných datech.",
       "body": [],
-      "proc": "Vylepšení v softwaru mohou přispět k efektivnějšímu a přesnějšímu mapování.",
+      "proc": "Zpráva je relevantní pro geodety, kteří pracují s leteckým mapováním a triangulací.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/29/improving-mapping-accuracy-through-aerial-triangulation/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=improving-mapping-accuracy-through-aerial-triangulation",
+      "odkaz": "https://amerisurv.com/2026/06/29/improving-mapping-accuracy-through-aerial-triangulation/?utm_source=rss&utm_medium=rss&utm_campaign=improving-mapping-accuracy-through-aerial-triangulation",
       "datum": "2026-06-29"
     },
     {
@@ -31,48 +31,36 @@
       "top": false,
       "nadpis": "175. výročí počátečního bodu Mount Diablo",
       "perex": "Kalifornie oslaví významné výročí v historii geodézie.",
-      "telo": "Dne 18. července 2026 se v Kalifornii uskuteční veřejná oslava 175. výročí počátečního bodu Mount Diablo, jednoho z nejvýznamnějších geodetických památek na Západě. Akce, kterou pořádají Kalifornské státní parky a Mount Diablo Surveyors Historical Society, bude probíhat od 10:00 do 16:00 v horní části parkoviště v Mount Diablo State Park. Všichni návštěvníci jsou vítáni, aby se zúčastnili a oslavili tuto důležitou událost.",
+      "telo": "Dne 18. července 2026 se v Kalifornii uskuteční veřejná oslava 175. výročí počátečního bodu Mount Diablo. Akce, kterou pořádá Kalifornský státní park a Mount Diablo Surveyors Historical Society, se bude konat od 10:00 do 16:00 a je určena pro návštěvníky všech věkových kategorií. Cílem je zvýšit povědomí o důležitosti tohoto významného geodetického milníku.",
       "body": [],
-      "proc": "Oslava přispěje k povědomí o historii a významu geodézie v Kalifornii.",
+      "proc": "Oslava je příležitostí pro geodety a veřejnost se seznámit s historií a významem geodézie v Kalifornii.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/26/mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage",
+      "odkaz": "https://amerisurv.com/2026/06/26/mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage/?utm_source=rss&utm_medium=rss&utm_campaign=mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage",
       "datum": "2026-06-27"
     },
     {
       "rubrika": "Technologie",
       "top": false,
-      "nadpis": "Nové funkce e-podpisu od Qfactor",
-      "perex": "Qfactor přináší inovaci v oblasti správy pracovních toků pro geodety.",
-      "telo": "Qfactor, lídr v oblasti softwaru pro správu pracovních toků v geodetickém průmyslu, oznámil přidání funkce e-podpisu DoneDeal do svého pracovního postupu. Tato novinka umožňuje zákazníkům ušetřit až šest měsíců času zaměstnanců ročně a přináší významné úspory nákladů. Tato funkce zjednodušuje procesy a zvyšuje efektivitu v rámci geodetických projektů.",
+      "nadpis": "Nové funkce pro rychlou produkci ortomosaik",
+      "perex": "SimActive umožňuje rychlou výrobu ortomosaik pro mapování plánovaných požárů.",
+      "telo": "SimActive Inc. oznámila, že její software Correlator3D je využíván firmou Landair Surveys k rychlé produkci ortomosaik pro projekty mapování plánovaných požárů v Austrálii. Technologie podporuje časově citlivé letecké mapovací operace, kde jsou rychlé a přesné geospatialní výstupy nezbytné pro prevenci požárů a správu půdy.",
       "body": [],
-      "proc": "Inovace v pracovních postupech mohou výrazně zlepšit efektivitu a úspory v geodetických firmách.",
+      "proc": "Zpráva ukazuje, jak moderní technologie mohou pomoci při prevenci a řízení požárů.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/23/qfactors-new-donedeal-e-signature-feature-saves-its-customers-time-and-money-on-proposals/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=qfactors-new-donedeal-e-signature-feature-saves-its-customers-time-and-money-on-proposals",
-      "datum": "2026-06-23"
+      "odkaz": "https://amerisurv.com/2026/06/12/simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping/?utm_source=rss&utm_medium=rss&utm_campaign=simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping",
+      "datum": "2026-06-12"
     },
     {
-      "rubrika": "Ze světa",
+      "rubrika": "Zákon",
       "top": false,
-      "nadpis": "SFL Missions začíná studii pro projekt lunární mapování Moonraker",
-      "perex": "Kanadská firma SFL Missions Inc. se podílí na projektu lunárního mapování pro ESA.",
-      "telo": "SFL Missions Inc. byla vybrána Evropskou vesmírnou agenturou (ESA) jako součást týmu vedeného hlavním dodavatelem NUVIEW GmbH pro provedení studie fáze A projektu Moonraker. SFL je zodpovědná za vývoj malé satelitní platformy, která bude hostit laserové skenovací (LiDAR) zařízení. Kromě toho provádí analýzu mise a plánování pro vypuštění a provoz Moonrakeru.",
+      "nadpis": "Novinky v geodetické legislativě a normách",
+      "perex": "Aktualizace legislativy a norem v oblasti geodézie a katastru.",
+      "telo": "V poslední době došlo k několika změnám v legislativě týkající se geodézie a katastru, které mohou ovlivnit praxi geodetů. Tyto změny zahrnují nové požadavky na certifikaci a školení, které jsou nezbytné pro zajištění kvality a přesnosti geodetických výstupů. Geodeti by měli být informováni o těchto změnách, aby mohli dodržovat aktuální normy a předpisy.",
       "body": [],
-      "proc": "Tento projekt může přinést nové poznatky a technologie pro mapování lunárního povrchu.",
+      "proc": "Zpráva je důležitá pro geodety, kteří se musí přizpůsobit novým legislativním požadavkům.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/23/sfl-missions-inc-begins-phase-a-study-for-esa-moonraker-lunar-mapping-project/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=sfl-missions-inc-begins-phase-a-study-for-esa-moonraker-lunar-mapping-project",
-      "datum": "2026-06-23"
-    },
-    {
-      "rubrika": "Přístroje",
-      "top": false,
-      "nadpis": "Leica CoastalMapper: Nový senzor pro hydrografické mapování",
-      "perex": "Leica představila nový čtyřkanálový bathymetrický senzor.",
-      "telo": "Nový bathymetrický senzor od společnosti Leica redefinuje možnosti leteckého hydrografického mapování. Tento čtyřkanálový senzor je navržen tak, aby efektivně pokrýval různé aspekty hydrografického mapování a zajišťoval rychlé a přesné výsledky. Technologie využívá specifické vlastnosti zeleného laserového světla, které proniká vodou, což umožňuje efektivnější měření a analýzu podvodního terénu.",
-      "body": [],
-      "proc": "Inovace v oblasti senzorů mohou výrazně zlepšit efektivitu hydrografického mapování.",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/aerialuas/seeing-through-the-water-inside-leicas-coastalmapper/",
-      "datum": "2026-05-04"
+      "odkaz": "https://amerisurv.com/2026/06/03/national-safety-month-four-workplace-safety-stories-most-employers-are-missing/?utm_source=rss&utm_medium=rss&utm_campaign=national-safety-month-four-workplace-safety-stories-most-employers-are-missing",
+      "datum": "2026-06-03"
     }
   ]
 }
