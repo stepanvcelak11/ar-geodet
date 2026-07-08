@@ -1,39 +1,63 @@
 {
-  "vydani": "2026-07-07",
-  "uvodnik": "Dnešní vydání přináší zajímavé novinky ze světa geodetických technologií a akcí.",
+  "vydani": "2026-07-08",
+  "uvodnik": "Přinášíme nejnovější zprávy ze světa geodetických technologií a legislativy.",
   "polozky": [
     {
       "rubrika": "Z domova",
       "top": true,
-      "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
-      "perex": "Upozornění pro uživatele webových služeb pro vyhotovitele a ověřovatele geometrických plánů.",
-      "telo": "Na podzim 2026 dojde k ukončení provozu WSGP verze 2.10. Po tomto termínu budou v provozu pouze služby WSGP verze 3.1. Uživatelé jsou vyzváni, aby se na tuto změnu připravili, aby nedošlo k narušení jejich pracovních procesů. Omlouváme se za případné komplikace a děkujeme za pochopení.",
-      "body": [],
-      "proc": "Tato zpráva je důležitá pro všechny geodety, kteří používají WSGP služby.",
+      "nadpis": "Ukončení provozu služeb WSGP verze 2.10",
+      "perex": "Na podzim 2026 dojde k ukončení provozu starší verze WSGP.",
+      "telo": "Český úřad zeměměřický a katastrální upozorňuje uživatele webových služeb pro vyhotovitele a ověřovatele geometrických plánů, že na podzim 2026 bude ukončen provoz WSGP verze 2.10. Od tohoto termínu budou k dispozici pouze služby WSGP verze 3.1. Uživatelé by měli být připraveni na tuto změnu a přizpůsobit své procesy novým požadavkům.",
+      "body": [
+        "Ukončení verze 2.10 plánováno na podzim 2026.",
+        "Přechod na verzi 3.1 je nutný pro pokračování služeb."
+      ],
+      "proc": "Tato změna je důležitá pro všechny uživatele služeb WSGP.",
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-05-29"
     },
     {
-      "rubrika": "Z praxe",
+      "rubrika": "Přístroje",
       "top": false,
-      "nadpis": "Leave No Fingerprints: Survey-Grade Accuracy in an Era of Zero Disruption",
-      "perex": "Nové technologie umožňují provádět geodetické práce bez narušení provozu.",
-      "telo": "Případová studie ukazuje, jak byla vytvořena barevná LiDAR mračna bodů mostu Cape Fear Memorial Bridge v Severní Karolíně bez jakýchkoliv narušení. Během procesu nebyly potřeba uzávěrky silnic, noční směny ani žádné viditelné cíle na povrchu mostu. Tato technologie umožňuje zachovat plynulost provozu a zároveň zajistit přesnost měření.",
-      "body": [],
-      "proc": "Zpráva ilustruje pokrok v oblasti geodetických technologií, které minimalizují narušení veřejného prostoru.",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/civiltransportation/leave-no-fingerprints-survey-grade-accuracy-in-an-era-of-zero-disruption/",
-      "datum": "2026-06-29"
+      "nadpis": "Eos Positioning Systems představuje nový držák Skadi pro range pole",
+      "perex": "Nový příslušenství pro GNSS přijímače Skadi usnadňuje práci geodetům v terénu.",
+      "telo": "Eos Positioning Systems oznámila uvedení nového držáku Skadi Handle Range Pole Bracket, který umožňuje technikům snadno přenášet Skadi rukojeť do terénu. Tento držák také umožňuje montáž jakéhokoliv telefonu nebo tabletu na jejich range pole bez potřeby dalšího hardwaru. Tento nový přírůstek zvyšuje efektivitu a pohodlí při práci v terénu.",
+      "body": [
+        "Usnadňuje přenos GNSS zařízení do terénu.",
+        "Možnost montáže mobilních zařízení přímo na range pole."
+      ],
+      "proc": "Tento produkt zvyšuje efektivitu geodetických prací.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/07/07/eos-positioning-systems-introduces-new-skadi-handle-range-pole-bracket/?utm_source=rss&utm_medium=rss&utm_campaign=eos-positioning-systems-introduces-new-skadi-handle-range-pole-bracket",
+      "datum": "2026-07-07"
     },
     {
       "rubrika": "Technologie",
       "top": false,
-      "nadpis": "Improving Mapping Accuracy Through Aerial Triangulation",
-      "perex": "Webinář se zaměří na zlepšení přesnosti mapování pomocí letecké triangulace.",
-      "telo": "Nová verze Correlator3D přináší vylepšení v oblasti letecké triangulace, což je klíčový krok pro přesné mapovací výstupy. Mezi novinkami jsou zlepšená extrakce vazebných bodů, nové validační nástroje a podpora přímého georeferencování. Tyto vylepšení zjednodušují nastavení projektů s více kamerami a zrychlují proces úpravy balíčků.",
-      "body": [],
-      "proc": "Tato zpráva je relevantní pro geodety, kteří se zabývají leteckým mapováním.",
+      "nadpis": "Pix4D: Od fotogrammetrického enginu k podnikové realitě",
+      "perex": "Pix4D se vyvíjí s UAV průmyslem a integruje nové technologie.",
+      "telo": "Pix4D, založená v roce 2011, se vyvinula v průběhu patnácti let revoluce softwaru UAV. Jejich CTO vidí, jak se technologie jako Gaussian splatting, AI-podporované úpravy a smartphone jako nástroj pro měření spojují do něčeho většího, než je jakýkoliv jednotlivý nástroj. Pix4D se zaměřuje na to, jak využít shromážděné snímky z dronů pro potřeby geodetů.",
+      "body": [
+        "Integrace AI a nových technologií do softwaru.",
+        "Zaměření na praktické využití dronů pro geodety."
+      ],
+      "proc": "Tento vývoj ukazuje směr, kterým se ubírá geodetický průmysl.",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/aerialuas/pix4ds-platform-moment-from-photogrammetry-engine-to-enterprise-reality/",
+      "datum": "2026-07-07"
+    },
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "Přesnost mapování pomocí letecké triangulace",
+      "perex": "Zlepšení mapovacích výstupů díky novým nástrojům v Correlator3D.",
+      "telo": "Letecká triangulace je klíčovým krokem k výrobě přesných mapovacích výstupů. Nová verze Correlator3D přináší vylepšené možnosti, které usnadňují nastavení projektů s více kamerami a urychlují úpravy balíčků. Tento webinář se zaměří na nové schopnosti triangulace, včetně zlepšené extrakce bodů a nástrojů pro validaci.",
+      "body": [
+        "Zjednodušení procesů pro komplexní datové sady.",
+        "Zrychlení zpracování mapovacích projektů."
+      ],
+      "proc": "Tato vylepšení přispívají k vyšší efektivitě v mapování.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/06/29/improving-mapping-accuracy-through-aerial-triangulation/?utm_source=rss&utm_medium=rss&utm_campaign=improving-mapping-accuracy-through-aerial-triangulation",
       "datum": "2026-06-29"
@@ -41,26 +65,17 @@
     {
       "rubrika": "Akce",
       "top": false,
-      "nadpis": "Mount Diablo Initial Point’s 175th Anniversary to Celebrate California's Surveying Heritage",
-      "perex": "Kalifornie oslaví 175. výročí významného geodetického bodu.",
-      "telo": "Dne 18. července 2026 se uskuteční veřejná oslava 175. výročí Mount Diablo Initial Point. Akce se koná v Mount Diablo State Park a je určena pro všechny věkové kategorie. Návštěvníci se mohou těšit na vzdělávací programy, které oslavují historii a význam tohoto významného geodetického místa.",
-      "body": [],
-      "proc": "Oslava je příležitostí pro geodety a veřejnost se seznámit s geodetickou historií Kalifornie.",
+      "nadpis": "175. výročí počátečního bodu Mount Diablo",
+      "perex": "Kalifornie oslaví významný milník v historii geodézie.",
+      "telo": "Dne 18. července 2026 se v Kalifornii uskuteční veřejná oslava 175. výročí počátečního bodu Mount Diablo. Akce, organizovaná Kalifornskými státními parky a Historickou společností geodetů Mount Diablo, bude probíhat od 10:00 do 16:00 a nabídne vzdělávací program pro návštěvníky všech věkových kategorií. Tento významný milník zdůrazňuje důležitost tohoto geodetického bodu v historii západního pobřeží USA.",
+      "body": [
+        "Oslava se koná na významném geodetickém místě.",
+        "Vzdělávací program pro širokou veřejnost."
+      ],
+      "proc": "Akce podporuje povědomí o historii geodézie v USA.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/06/26/mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage/?utm_source=rss&utm_medium=rss&utm_campaign=mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage",
       "datum": "2026-06-27"
-    },
-    {
-      "rubrika": "Vzdělávání",
-      "top": false,
-      "nadpis": "SimActive Enables Rapid Orthomosaic Production for Planned Burns Mapping",
-      "perex": "Nové technologie urychlují výrobu ortomosaik pro plánování požárů.",
-      "telo": "Společnost SimActive Inc. oznámila, že její software Correlator3D je využíván k rychlé výrobě ortomosaik pro projekty mapování plánovaných požárů v Austrálii. Tato technologie je klíčová pro operace, kde jsou rychlé a přesné geodetické výstupy nezbytné pro prevenci požárů a správu půdy.",
-      "body": [],
-      "proc": "Zpráva ukazuje, jak moderní technologie podporují rychlé geodetické procesy v urgentních situacích.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/12/simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping/?utm_source=rss&utm_medium=rss&utm_campaign=simactive-enables-rapid-orthomosaic-production-for-planned-burns-mapping",
-      "datum": "2026-06-12"
     }
   ]
 }
