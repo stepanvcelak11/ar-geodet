@@ -1,48 +1,48 @@
 {
-  "vydani": "2026-07-08",
-  "uvodnik": "Přinášíme nejnovější zprávy ze světa geodetických technologií a legislativy.",
+  "vydani": "2026-07-09",
+  "uvodnik": "Přinášíme aktuální přehled zajímavých zpráv z oblasti geodézie a geoinformatiky.",
   "polozky": [
     {
-      "rubrika": "Z domova",
+      "rubrika": "Přístroje",
       "top": true,
-      "nadpis": "Ukončení provozu služeb WSGP verze 2.10",
-      "perex": "Na podzim 2026 dojde k ukončení provozu starší verze WSGP.",
-      "telo": "Český úřad zeměměřický a katastrální upozorňuje uživatele webových služeb pro vyhotovitele a ověřovatele geometrických plánů, že na podzim 2026 bude ukončen provoz WSGP verze 2.10. Od tohoto termínu budou k dispozici pouze služby WSGP verze 3.1. Uživatelé by měli být připraveni na tuto změnu a přizpůsobit své procesy novým požadavkům.",
+      "nadpis": "SBG Systems uvádí nový Pulse-40 OEM s taktickou přesností a integrovanou inteligencí vibrací",
+      "perex": "Nová generace Pulse-40 OEM přináší vylepšený výkon a odolnost.",
+      "telo": "Společnost SBG Systems představila nový Pulse-40 OEM, který si zachovává vedoucí charakteristiky SWaP a zároveň nabízí vylepšený inerciální výkon a odolnost vůči vibracím a EMC. Tento miniaturizovaný taktický měřicí jednotka (IMU) má rozsah gyroskopu ±4000°/s, integrované magnetometry a real-time monitorování spektra vibrací až do 8 kHz. Nový model je navržen tak, aby splnil náročné požadavky moderního geodetického průmyslu.",
       "body": [
-        "Ukončení verze 2.10 plánováno na podzim 2026.",
-        "Přechod na verzi 3.1 je nutný pro pokračování služeb."
+        "Vylepšená inerciální výkonnost",
+        "Integrovaná inteligence vibrací"
       ],
-      "proc": "Tato změna je důležitá pro všechny uživatele služeb WSGP.",
+      "proc": "Nový Pulse-40 OEM představuje významný krok vpřed v technologii IMU pro geodety.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/07/08/sbg-systems-launches-the-new-pulse-40-oem-with-tactical-grade-performance-enhanced-resilience-and-built-in-vibration-intelligence/?utm_source=rss&utm_medium=rss&utm_campaign=sbg-systems-launches-the-new-pulse-40-oem-with-tactical-grade-performance-enhanced-resilience-and-built-in-vibration-intelligence",
+      "datum": "2026-07-08"
+    },
+    {
+      "rubrika": "Z domova",
+      "top": false,
+      "nadpis": "Ukončení provozu WSGP verze 2.10",
+      "perex": "ČÚZK oznamuje ukončení provozu starší verze webových služeb pro geodety.",
+      "telo": "ČÚZK upozorňuje, že na podzim 2026 bude ukončen provoz WSGP verze 2.10. Po tomto termínu budou k dispozici pouze služby WSGP verze 3.1. Uživatelé jsou vyzváni, aby se na tuto změnu připravili a přizpůsobili své pracovní postupy novým požadavkům.",
+      "body": [
+        "Přechod na novou verzi WSGP",
+        "Důležitost aktualizace pro uživatele"
+      ],
+      "proc": "Změna ve službách WSGP vyžaduje od uživatelů přizpůsobení se novým podmínkám.",
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-05-29"
     },
     {
-      "rubrika": "Přístroje",
-      "top": false,
-      "nadpis": "Eos Positioning Systems představuje nový držák Skadi pro range pole",
-      "perex": "Nový příslušenství pro GNSS přijímače Skadi usnadňuje práci geodetům v terénu.",
-      "telo": "Eos Positioning Systems oznámila uvedení nového držáku Skadi Handle Range Pole Bracket, který umožňuje technikům snadno přenášet Skadi rukojeť do terénu. Tento držák také umožňuje montáž jakéhokoliv telefonu nebo tabletu na jejich range pole bez potřeby dalšího hardwaru. Tento nový přírůstek zvyšuje efektivitu a pohodlí při práci v terénu.",
-      "body": [
-        "Usnadňuje přenos GNSS zařízení do terénu.",
-        "Možnost montáže mobilních zařízení přímo na range pole."
-      ],
-      "proc": "Tento produkt zvyšuje efektivitu geodetických prací.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/07/eos-positioning-systems-introduces-new-skadi-handle-range-pole-bracket/?utm_source=rss&utm_medium=rss&utm_campaign=eos-positioning-systems-introduces-new-skadi-handle-range-pole-bracket",
-      "datum": "2026-07-07"
-    },
-    {
       "rubrika": "Technologie",
       "top": false,
-      "nadpis": "Pix4D: Od fotogrammetrického enginu k podnikové realitě",
-      "perex": "Pix4D se vyvíjí s UAV průmyslem a integruje nové technologie.",
-      "telo": "Pix4D, založená v roce 2011, se vyvinula v průběhu patnácti let revoluce softwaru UAV. Jejich CTO vidí, jak se technologie jako Gaussian splatting, AI-podporované úpravy a smartphone jako nástroj pro měření spojují do něčeho většího, než je jakýkoliv jednotlivý nástroj. Pix4D se zaměřuje na to, jak využít shromážděné snímky z dronů pro potřeby geodetů.",
+      "nadpis": "Pix4D: Od fotogrammetrie k podnikové realitě",
+      "perex": "Pix4D se vyvíjí v oblasti UAV softwaru a přináší nové možnosti pro geodety.",
+      "telo": "Po patnácti letech od revoluce UAV softwaru vidí CTO Pix4D, že se technologie jako Gaussian splatting a AI-podporované editace spojují do něčeho většího, než je jakýkoli jednotlivý nástroj. Pix4D, založená v roce 2011, se snaží přetvářet snímky z dronů na užitečné produkty pro geodety a stále se vyvíjí s průmyslem UAV.",
       "body": [
-        "Integrace AI a nových technologií do softwaru.",
-        "Zaměření na praktické využití dronů pro geodety."
+        "Inovace v oblasti softwaru pro UAV",
+        "Spojení různých technologií pro efektivnější práci"
       ],
-      "proc": "Tento vývoj ukazuje směr, kterým se ubírá geodetický průmysl.",
+      "proc": "Pix4D se posouvá vpřed s novými technologiemi pro geodety.",
       "zdroj": "xyHt",
       "odkaz": "https://www.xyht.com/aerialuas/pix4ds-platform-moment-from-photogrammetry-engine-to-enterprise-reality/",
       "datum": "2026-07-07"
@@ -50,29 +50,29 @@
     {
       "rubrika": "Z praxe",
       "top": false,
-      "nadpis": "Přesnost mapování pomocí letecké triangulace",
-      "perex": "Zlepšení mapovacích výstupů díky novým nástrojům v Correlator3D.",
-      "telo": "Letecká triangulace je klíčovým krokem k výrobě přesných mapovacích výstupů. Nová verze Correlator3D přináší vylepšené možnosti, které usnadňují nastavení projektů s více kamerami a urychlují úpravy balíčků. Tento webinář se zaměří na nové schopnosti triangulace, včetně zlepšené extrakce bodů a nástrojů pro validaci.",
+      "nadpis": "Dokumentace jako důkaz: Využití UAV pro inspekce",
+      "perex": "UAV se stávají klíčovým nástrojem pro dokumentaci a inspekce.",
+      "telo": "Časově označené a lokalizované snímky se staly důvěryhodným záznamem pro geodetickou profesi. Systémy bezpilotních letadel jsou stále častěji využívány k dokumentaci těžko přístupných komponentů mostů, což přetváří inspekční snímky na součást záznamu o stavu mostu. Tato změna vyžaduje nové standardy, které zatím nedokázaly držet krok s rostoucími nároky.",
       "body": [
-        "Zjednodušení procesů pro komplexní datové sady.",
-        "Zrychlení zpracování mapovacích projektů."
+        "Zvýšení důvěryhodnosti dokumentace",
+        "Potřeba nových standardů"
       ],
-      "proc": "Tato vylepšení přispívají k vyšší efektivitě v mapování.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/29/improving-mapping-accuracy-through-aerial-triangulation/?utm_source=rss&utm_medium=rss&utm_campaign=improving-mapping-accuracy-through-aerial-triangulation",
-      "datum": "2026-06-29"
+      "proc": "Využití UAV pro inspekce mění způsob, jakým se dokumentují důležité struktury.",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/aerialuas/the-image-as-evidence/",
+      "datum": "2026-07-07"
     },
     {
       "rubrika": "Akce",
       "top": false,
       "nadpis": "175. výročí počátečního bodu Mount Diablo",
       "perex": "Kalifornie oslaví významný milník v historii geodézie.",
-      "telo": "Dne 18. července 2026 se v Kalifornii uskuteční veřejná oslava 175. výročí počátečního bodu Mount Diablo. Akce, organizovaná Kalifornskými státními parky a Historickou společností geodetů Mount Diablo, bude probíhat od 10:00 do 16:00 a nabídne vzdělávací program pro návštěvníky všech věkových kategorií. Tento významný milník zdůrazňuje důležitost tohoto geodetického bodu v historii západního pobřeží USA.",
+      "telo": "Dne 18. července 2026 se v Kalifornii uskuteční veřejná oslava 175. výročí počátečního bodu Mount Diablo. Akce, kterou pořádají Kalifornské státní parky a Historická společnost geodetů Mount Diablo, nabídne vzdělávací program a aktivity pro návštěvníky všech věkových kategorií. Cílem akce je zvýraznit důležitost tohoto významného geodetického místa.",
       "body": [
-        "Oslava se koná na významném geodetickém místě.",
-        "Vzdělávací program pro širokou veřejnost."
+        "Vzdělávací akce pro veřejnost",
+        "Oslava geodetické historie"
       ],
-      "proc": "Akce podporuje povědomí o historii geodézie v USA.",
+      "proc": "Oslava přitahuje pozornost k důležitosti geodetických milníků.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/06/26/mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage/?utm_source=rss&utm_medium=rss&utm_campaign=mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage",
       "datum": "2026-06-27"
