@@ -1,18 +1,48 @@
 {
-  "vydani": "2026-07-09",
-  "uvodnik": "Přinášíme aktuální přehled zajímavých zpráv z oblasti geodézie a geoinformatiky.",
+  "vydani": "2026-07-10",
+  "uvodnik": "Přinášíme přehled aktuálních zpráv ze světa geodézie a technologií.",
   "polozky": [
     {
-      "rubrika": "Přístroje",
+      "rubrika": "Technologie",
       "top": true,
-      "nadpis": "SBG Systems uvádí nový Pulse-40 OEM s taktickou přesností a integrovanou inteligencí vibrací",
-      "perex": "Nová generace Pulse-40 OEM přináší vylepšený výkon a odolnost.",
-      "telo": "Společnost SBG Systems představila nový Pulse-40 OEM, který si zachovává vedoucí charakteristiky SWaP a zároveň nabízí vylepšený inerciální výkon a odolnost vůči vibracím a EMC. Tento miniaturizovaný taktický měřicí jednotka (IMU) má rozsah gyroskopu ±4000°/s, integrované magnetometry a real-time monitorování spektra vibrací až do 8 kHz. Nový model je navržen tak, aby splnil náročné požadavky moderního geodetického průmyslu.",
+      "nadpis": "The Right Tool for the Right Layer: How Tetra Tech Rooney Is Rethinking Reality Capture",
+      "perex": "Smíšená strategie zachycování reality kombinuje různé technologie pro lepší výsledky.",
+      "telo": "Manažer designových technologií v jedné z největších inženýrských a technických služeb v USA vysvětluje, proč smíšená strategie zachycování reality — včetně terestrických skenerů, SLAM, dronů a telefonů — překonává jakýkoli přístup založený na jediné technologii. Tetra Tech, která zaměstnává přibližně 28 000 lidí po celém světě, se zaměřuje na široké spektrum oblastí, včetně vody, životního prostředí, energie a infrastruktury.",
       "body": [
-        "Vylepšená inerciální výkonnost",
-        "Integrovaná inteligence vibrací"
+        "smíšená strategie",
+        "kombinace různých technologií"
       ],
-      "proc": "Nový Pulse-40 OEM představuje významný krok vpřed v technologii IMU pro geodety.",
+      "proc": "Tato zpráva ukazuje na důležitost kombinace různých technologií pro efektivní zachycování reality.",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/bim/the-right-tool-for-the-right-layer-how-tetra-tech-rooney-is-rethinking-reality-capture/",
+      "datum": "2026-07-09"
+    },
+    {
+      "rubrika": "Vzdělávání",
+      "top": false,
+      "nadpis": "Commercial UAV Expo Debuts DRONERESPONDERS Program Management Course, Unveils Public Safety Summit Program",
+      "perex": "Nový dvoudenní program školení pro manažery se zaměřuje na drony jako první respondenty.",
+      "telo": "Na akci Commercial UAV Expo byl představen nový dvoudenní program školení pro manažery, který zahrnuje agendu zaměřenou na drony jako první respondenty, požární služby, aplikace na místě nehod a operace ve sdíleném vzdušném prostoru. Program také zahrnuje dvoudílnou lekci o zkušenostech s proti-UAS z FIFA World Cup 2026.",
+      "body": [
+        "dvoudenní školení",
+        "zaměření na veřejnou bezpečnost"
+      ],
+      "proc": "Tato akce přináší cenné vzdělávací příležitosti pro profesionály v oblasti dronů a veřejné bezpečnosti.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/07/09/commercial-uav-expo-debuts-droneresponders-program-management-course-unveils-public-safety-summit-program/?utm_source=rss&utm_medium=rss&utm_campaign=commercial-uav-expo-debuts-droneresponders-program-management-course-unveils-public-safety-summit-program",
+      "datum": "2026-07-09"
+    },
+    {
+      "rubrika": "Přístroje",
+      "top": false,
+      "nadpis": "SBG Systems Launches the new Pulse-40 OEM with Tactical-Grade Performance, Enhanced Resilience, and Built-In Vibration Intelligence",
+      "perex": "Nová generace Pulse-40 OEM nabízí vylepšené inertní výkony a odolnost.",
+      "telo": "SBG Systems oznámila uvedení nové generace Pulse-40 OEM, která si zachovává špičkové charakteristiky SWaP a poskytuje vylepšené inertní výkony, odolnost proti vibracím a EMC, a integrované magnetometry. Tento miniaturizovaný taktický měřicí jednotka (IMU) je navržena pro náročné podmínky a nabízí real-time monitorování vibrací.",
+      "body": [
+        "vylepšená odolnost",
+        "integrované magnetometry"
+      ],
+      "proc": "Nový Pulse-40 OEM představuje pokrok v oblasti inertních měřicích jednotek pro geodetické aplikace.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/07/08/sbg-systems-launches-the-new-pulse-40-oem-with-tactical-grade-performance-enhanced-resilience-and-built-in-vibration-intelligence/?utm_source=rss&utm_medium=rss&utm_campaign=sbg-systems-launches-the-new-pulse-40-oem-with-tactical-grade-performance-enhanced-resilience-and-built-in-vibration-intelligence",
       "datum": "2026-07-08"
@@ -20,62 +50,32 @@
     {
       "rubrika": "Z domova",
       "top": false,
-      "nadpis": "Ukončení provozu WSGP verze 2.10",
-      "perex": "ČÚZK oznamuje ukončení provozu starší verze webových služeb pro geodety.",
-      "telo": "ČÚZK upozorňuje, že na podzim 2026 bude ukončen provoz WSGP verze 2.10. Po tomto termínu budou k dispozici pouze služby WSGP verze 3.1. Uživatelé jsou vyzváni, aby se na tuto změnu připravili a přizpůsobili své pracovní postupy novým požadavkům.",
+      "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
+      "perex": "Ukončení provozu starší verze WSGP přináší změny pro uživatele.",
+      "telo": "ČÚZK upozorňuje, že na podzim 2026 bude ukončen provoz služeb WSGP verze 2.10. Od tohoto termínu budou v provozu pouze služby WSGP verze 3.1. Uživatelé jsou vyzváni k přizpůsobení se této změně.",
       "body": [
-        "Přechod na novou verzi WSGP",
-        "Důležitost aktualizace pro uživatele"
+        "ukončení verze 2.10",
+        "přechod na verzi 3.1"
       ],
-      "proc": "Změna ve službách WSGP vyžaduje od uživatelů přizpůsobení se novým podmínkám.",
+      "proc": "Tato změna ovlivní všechny uživatele WSGP a je důležité se na ni připravit.",
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-05-29"
     },
     {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Pix4D: Od fotogrammetrie k podnikové realitě",
-      "perex": "Pix4D se vyvíjí v oblasti UAV softwaru a přináší nové možnosti pro geodety.",
-      "telo": "Po patnácti letech od revoluce UAV softwaru vidí CTO Pix4D, že se technologie jako Gaussian splatting a AI-podporované editace spojují do něčeho většího, než je jakýkoli jednotlivý nástroj. Pix4D, založená v roce 2011, se snaží přetvářet snímky z dronů na užitečné produkty pro geodety a stále se vyvíjí s průmyslem UAV.",
-      "body": [
-        "Inovace v oblasti softwaru pro UAV",
-        "Spojení různých technologií pro efektivnější práci"
-      ],
-      "proc": "Pix4D se posouvá vpřed s novými technologiemi pro geodety.",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/aerialuas/pix4ds-platform-moment-from-photogrammetry-engine-to-enterprise-reality/",
-      "datum": "2026-07-07"
-    },
-    {
       "rubrika": "Z praxe",
       "top": false,
-      "nadpis": "Dokumentace jako důkaz: Využití UAV pro inspekce",
-      "perex": "UAV se stávají klíčovým nástrojem pro dokumentaci a inspekce.",
-      "telo": "Časově označené a lokalizované snímky se staly důvěryhodným záznamem pro geodetickou profesi. Systémy bezpilotních letadel jsou stále častěji využívány k dokumentaci těžko přístupných komponentů mostů, což přetváří inspekční snímky na součást záznamu o stavu mostu. Tato změna vyžaduje nové standardy, které zatím nedokázaly držet krok s rostoucími nároky.",
+      "nadpis": "Leave No Fingerprints: Survey-Grade Accuracy in an Era of Zero Disruption",
+      "perex": "Nové metody skenování umožňují přesné měření bez narušení provozu.",
+      "telo": "Nové techniky skenování, jako je barevný LiDAR point cloud, umožňují provádět přesné měření bez nutnosti uzavírat silnice nebo mít na místě pracovníky. Tento přístup minimalizuje narušení a zajišťuje, že důležité struktury mohou být skenovány bez jakýchkoli komplikací pro okolní provoz.",
       "body": [
-        "Zvýšení důvěryhodnosti dokumentace",
-        "Potřeba nových standardů"
+        "barevný LiDAR",
+        "minimalizace narušení"
       ],
-      "proc": "Využití UAV pro inspekce mění způsob, jakým se dokumentují důležité struktury.",
+      "proc": "Tato metoda ukazuje, jak lze dosáhnout přesnosti v geodetických měřeních bez narušení okolního prostředí.",
       "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/aerialuas/the-image-as-evidence/",
-      "datum": "2026-07-07"
-    },
-    {
-      "rubrika": "Akce",
-      "top": false,
-      "nadpis": "175. výročí počátečního bodu Mount Diablo",
-      "perex": "Kalifornie oslaví významný milník v historii geodézie.",
-      "telo": "Dne 18. července 2026 se v Kalifornii uskuteční veřejná oslava 175. výročí počátečního bodu Mount Diablo. Akce, kterou pořádají Kalifornské státní parky a Historická společnost geodetů Mount Diablo, nabídne vzdělávací program a aktivity pro návštěvníky všech věkových kategorií. Cílem akce je zvýraznit důležitost tohoto významného geodetického místa.",
-      "body": [
-        "Vzdělávací akce pro veřejnost",
-        "Oslava geodetické historie"
-      ],
-      "proc": "Oslava přitahuje pozornost k důležitosti geodetických milníků.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/26/mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage/?utm_source=rss&utm_medium=rss&utm_campaign=mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage",
-      "datum": "2026-06-27"
+      "odkaz": "https://www.xyht.com/civiltransportation/leave-no-fingerprints-survey-grade-accuracy-in-an-era-of-zero-disruption/",
+      "datum": "2026-06-29"
     }
   ]
 }
