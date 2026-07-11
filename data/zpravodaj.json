@@ -1,33 +1,33 @@
 {
-  "vydani": "2026-07-10",
-  "uvodnik": "Přinášíme přehled aktuálních zpráv ze světa geodézie a technologií.",
+  "vydani": "2026-07-11",
+  "uvodnik": "Přinášíme aktuální novinky ze světa geodetického a geoinformačního průmyslu.",
   "polozky": [
     {
-      "rubrika": "Technologie",
+      "rubrika": "Z domova",
       "top": true,
-      "nadpis": "The Right Tool for the Right Layer: How Tetra Tech Rooney Is Rethinking Reality Capture",
-      "perex": "Smíšená strategie zachycování reality kombinuje různé technologie pro lepší výsledky.",
-      "telo": "Manažer designových technologií v jedné z největších inženýrských a technických služeb v USA vysvětluje, proč smíšená strategie zachycování reality — včetně terestrických skenerů, SLAM, dronů a telefonů — překonává jakýkoli přístup založený na jediné technologii. Tetra Tech, která zaměstnává přibližně 28 000 lidí po celém světě, se zaměřuje na široké spektrum oblastí, včetně vody, životního prostředí, energie a infrastruktury.",
+      "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
+      "perex": "Uživatelé webových služeb pro vyhotovitele a ověřovatele geometrických plánů by měli být připraveni na změny.",
+      "telo": "Český úřad zeměměřický a katastrální upozorňuje, že na podzim 2026 dojde k ukončení provozu WSGP verze 2.10. Po tomto termínu budou k dispozici pouze služby WSGP verze 3.1. Uživatelé by se měli na tuto změnu připravit, aby nedošlo k přerušení jejich činnosti.",
       "body": [
-        "smíšená strategie",
-        "kombinace různých technologií"
+        "Ukončení provozu verze 2.10 na podzim 2026.",
+        "Pouze verze 3.1 bude nadále funkční."
       ],
-      "proc": "Tato zpráva ukazuje na důležitost kombinace různých technologií pro efektivní zachycování reality.",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/bim/the-right-tool-for-the-right-layer-how-tetra-tech-rooney-is-rethinking-reality-capture/",
-      "datum": "2026-07-09"
+      "proc": "Důležitá informace pro uživatele geodetických služeb.",
+      "zdroj": "ČÚZK",
+      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
+      "datum": "2026-05-29"
     },
     {
-      "rubrika": "Vzdělávání",
+      "rubrika": "Ze světa",
       "top": false,
-      "nadpis": "Commercial UAV Expo Debuts DRONERESPONDERS Program Management Course, Unveils Public Safety Summit Program",
-      "perex": "Nový dvoudenní program školení pro manažery se zaměřuje na drony jako první respondenty.",
-      "telo": "Na akci Commercial UAV Expo byl představen nový dvoudenní program školení pro manažery, který zahrnuje agendu zaměřenou na drony jako první respondenty, požární služby, aplikace na místě nehod a operace ve sdíleném vzdušném prostoru. Program také zahrnuje dvoudílnou lekci o zkušenostech s proti-UAS z FIFA World Cup 2026.",
+      "nadpis": "Commercial UAV Expo Debuts DRONERESPONDERS Program Management Course",
+      "perex": "Nový dvoudenní kurz pro správu programů byl představen na Commercial UAV Expo.",
+      "telo": "Na Commercial UAV Expo byl představen nový dvoudenní kurz DRONERESPONDERS pro správu programů. Tento kurz se zaměřuje na využití dronů jako prvního respondenta v různých situacích, včetně požárních služeb a havárií. Program také zahrnuje lekce o zkušenostech s proti-UAS z 2026 FIFA World Cup.",
       "body": [
-        "dvoudenní školení",
-        "zaměření na veřejnou bezpečnost"
+        "Zaměření na drony jako první respondenty.",
+        "Dvoudenní školení pro správu programů."
       ],
-      "proc": "Tato akce přináší cenné vzdělávací příležitosti pro profesionály v oblasti dronů a veřejné bezpečnosti.",
+      "proc": "Zajímavý krok v oblasti vzdělávání pro profesionály v oboru.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/07/09/commercial-uav-expo-debuts-droneresponders-program-management-course-unveils-public-safety-summit-program/?utm_source=rss&utm_medium=rss&utm_campaign=commercial-uav-expo-debuts-droneresponders-program-management-course-unveils-public-safety-summit-program",
       "datum": "2026-07-09"
@@ -35,47 +35,62 @@
     {
       "rubrika": "Přístroje",
       "top": false,
-      "nadpis": "SBG Systems Launches the new Pulse-40 OEM with Tactical-Grade Performance, Enhanced Resilience, and Built-In Vibration Intelligence",
-      "perex": "Nová generace Pulse-40 OEM nabízí vylepšené inertní výkony a odolnost.",
-      "telo": "SBG Systems oznámila uvedení nové generace Pulse-40 OEM, která si zachovává špičkové charakteristiky SWaP a poskytuje vylepšené inertní výkony, odolnost proti vibracím a EMC, a integrované magnetometry. Tento miniaturizovaný taktický měřicí jednotka (IMU) je navržena pro náročné podmínky a nabízí real-time monitorování vibrací.",
+      "nadpis": "SBG Systems Launches the new Pulse-40 OEM with Tactical-Grade Performance",
+      "perex": "Nová generace Pulse-40 OEM přináší vylepšené vlastnosti pro měření.",
+      "telo": "SBG Systems představila novou generaci Pulse-40 OEM, která si zachovává své přední charakteristiky SWaP a zároveň zlepšuje výkon inerciálního měření. Nový model nabízí vylepšenou odolnost proti vibracím a EMC, a to díky integrovaným magnetometrům a monitorování vibrací v reálném čase.",
       "body": [
-        "vylepšená odolnost",
-        "integrované magnetometry"
+        "Vylepšené vlastnosti inerciálního měření.",
+        "Odolnost proti vibracím a EMC."
       ],
-      "proc": "Nový Pulse-40 OEM představuje pokrok v oblasti inertních měřicích jednotek pro geodetické aplikace.",
+      "proc": "Zajímavé novinky v oblasti inerciálních měřicích jednotek.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/07/08/sbg-systems-launches-the-new-pulse-40-oem-with-tactical-grade-performance-enhanced-resilience-and-built-in-vibration-intelligence/?utm_source=rss&utm_medium=rss&utm_campaign=sbg-systems-launches-the-new-pulse-40-oem-with-tactical-grade-performance-enhanced-resilience-and-built-in-vibration-intelligence",
       "datum": "2026-07-08"
     },
     {
-      "rubrika": "Z domova",
+      "rubrika": "Technologie",
       "top": false,
-      "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
-      "perex": "Ukončení provozu starší verze WSGP přináší změny pro uživatele.",
-      "telo": "ČÚZK upozorňuje, že na podzim 2026 bude ukončen provoz služeb WSGP verze 2.10. Od tohoto termínu budou v provozu pouze služby WSGP verze 3.1. Uživatelé jsou vyzváni k přizpůsobení se této změně.",
+      "nadpis": "The Right Tool for the Right Layer: How Tetra Tech Rooney Is Rethinking Reality Capture",
+      "perex": "Tetra Tech přehodnocuje přístupy k zachycování reality.",
+      "telo": "Manažer designových technologií v Tetra Tech vysvětluje, proč smíšená strategie zachycování — kombinace terestrických skenerů, SLAM, dronů a telefonů — je efektivnější než použití jedné technologie. Tetra Tech, jako jedna z největších inženýrských firem v USA, se snaží optimalizovat procesy a zlepšit výsledky.",
       "body": [
-        "ukončení verze 2.10",
-        "přechod na verzi 3.1"
+        "Smíšená strategie zachycování reality.",
+        "Optimalizace procesů pro lepší výsledky."
       ],
-      "proc": "Tato změna ovlivní všechny uživatele WSGP a je důležité se na ni připravit.",
-      "zdroj": "ČÚZK",
-      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
-      "datum": "2026-05-29"
+      "proc": "Zajímavý pohled na moderní metody zachycování reality.",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/bim/the-right-tool-for-the-right-layer-how-tetra-tech-rooney-is-rethinking-reality-capture/",
+      "datum": "2026-07-09"
     },
     {
       "rubrika": "Z praxe",
       "top": false,
-      "nadpis": "Leave No Fingerprints: Survey-Grade Accuracy in an Era of Zero Disruption",
-      "perex": "Nové metody skenování umožňují přesné měření bez narušení provozu.",
-      "telo": "Nové techniky skenování, jako je barevný LiDAR point cloud, umožňují provádět přesné měření bez nutnosti uzavírat silnice nebo mít na místě pracovníky. Tento přístup minimalizuje narušení a zajišťuje, že důležité struktury mohou být skenovány bez jakýchkoli komplikací pro okolní provoz.",
+      "nadpis": "The Image as Evidence",
+      "perex": "Obrázky s časovými a prostorovými údaji se stávají důvěryhodným záznamem.",
+      "telo": "Obrázky s časovými a prostorovými údaji se vyvinuly z dokumentace na důvěryhodný záznam. Geodetické profese nyní produkují důkazy, ačkoli standardy zatím nedokázaly dostatečně reagovat na tuto změnu. Systémy bezpilotních letadel se stále častěji používají k dokumentaci těžko přístupných komponentů mostů, což zajišťuje, že inspekční obrázky se stávají součástí záznamu o stavu mostu.",
       "body": [
-        "barevný LiDAR",
-        "minimalizace narušení"
+        "Význam časově a prostorově uvědomělých obrázků.",
+        "Zvyšující se využití UAS pro inspekce."
       ],
-      "proc": "Tato metoda ukazuje, jak lze dosáhnout přesnosti v geodetických měřeních bez narušení okolního prostředí.",
+      "proc": "Důležitý posun v dokumentaci a inspekcích.",
       "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/civiltransportation/leave-no-fingerprints-survey-grade-accuracy-in-an-era-of-zero-disruption/",
-      "datum": "2026-06-29"
+      "odkaz": "https://www.xyht.com/aerialuas/the-image-as-evidence/",
+      "datum": "2026-07-07"
+    },
+    {
+      "rubrika": "Akce",
+      "top": false,
+      "nadpis": "Mount Diablo Initial Point’s 175th Anniversary to Celebrate California's Surveying Heritage",
+      "perex": "Kalifornie oslaví 175. výročí významného bodu v historii měření.",
+      "telo": "Dne 18. července 2026 se v Kalifornii uskuteční veřejná oslava 175. výročí Mount Diablo Initial Point. Akce, kterou pořádají Kalifornské státní parky a Mount Diablo Surveyors Historical Society, bude zahrnovat vzdělávací aktivity pro návštěvníky všech věkových kategorií a zdůrazní důležitost tohoto historického měřicího bodu.",
+      "body": [
+        "Veřejná oslava 18. července 2026.",
+        "Vzdělávací aktivity pro návštěvníky."
+      ],
+      "proc": "Oslava významného historického milníku v geodézii.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/06/26/mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage/?utm_source=rss&utm_medium=rss&utm_campaign=mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage",
+      "datum": "2026-06-27"
     }
   ]
 }
