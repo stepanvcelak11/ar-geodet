@@ -40,6 +40,7 @@
     var pendingYaw = 0;          // naintegrovany yaw od posledniho fuse() (deg)
     var haveGyro = false;        // dorazila aspon jedna pouzitelna rotationRate?
     var lastTilt = { beta: 90, gamma: 0 }; // posledni znamy sklon (z deviceorientation pres fuse)
+    var _lastFuseT = 0;          // cas posledniho fuse() - dt-normalizace vahy filtru
 
     // ---- lokalni helper (nezavisly na globalu angDiff z logika.js) ----
     function adiff(a, b) { return ((a - b + 540) % 360) - 180; } // nejkratsi rozdil uhlu (-180..180)
@@ -65,30 +66,28 @@
     // (beta~0), je to telefonni osa Z. Obecne projektujeme vektor uhlove rychlosti
     // na svetovou svislici pres aktualni sklon (beta) — dostatecne presne pro yaw,
     // ktery nas pro azimut zajima. Gamma (roll) ma na yaw druhotny vliv, zahrnuto.
+    // PROJEKCE PRES ROTACNI MATICI (spec W3C): rotationRate.beta = rotace kolem osy X
+    // telefonu, gamma = kolem Y, alpha = kolem Z (kolmo na displej), vse deg/s.
+    // Svetova svislice v souradnicich telefonu je treti RADEK matice R = Rz(a)Rx(b)Ry(g):
+    //   up_dev = (-cos(b)sin(g), sin(b), cos(b)cos(g))
+    // yaw kolem svisle osy sveta = skalarni soucin omega_dev . up_dev. Driv tu byl
+    // rucne slozeny vzorec s prohozenymi osami — presne ve svisle AR poloze (gimbal
+    // lock Euleru) degeneroval a v landscape mohl mit spatne znamenko.
     function worldYawRate(rr) {
-        var rx = rr.beta, ry = rr.alpha, rz = rr.gamma;
-        // pozn.: spec mapuje rotationRate.alpha->z(displej), beta->x, gamma->y telefonu;
-        // ruzne prohlizece se lisi, proto kombinujeme robustne pres sklon.
-        if (rx == null) rx = 0; if (ry == null) ry = 0; if (rz == null) rz = 0;
-        var bDeg = (lastTilt.beta != null) ? lastTilt.beta : 90;
-        var gDeg = (lastTilt.gamma != null) ? lastTilt.gamma : 0;
-        var b = bDeg * Math.PI / 180;
-        var g = gDeg * Math.PI / 180;
-        // Telefonni osa Z (kolma na displej) v souradnicich sveta ma svislou slozku
-        // cos(beta); telefonni osa Y (podel) ma svislou slozku sin(beta). Roll (gamma)
-        // primicha osu X (napric) pres sin(gamma). Slozeni je projekce vektoru
-        // uhlove rychlosti (rx,ry,rz) na svetovou svislici:
-        //   yaw_world = rz*cos(beta) + ry*sin(beta) - rx*sin(gamma)*cos(beta)
-        var aRot = rr.alpha; // u vetsiny zarizeni je rotationRate.alpha kolem osy Z displeje
-        if (aRot == null) aRot = 0;
-        var yaw =
-            aRot * Math.cos(b) +
-            rx * Math.sin(b) -
-            rz * Math.sin(g) * Math.cos(b);
-        // Kompenzace orientace displeje (landscape) — znamenko yaw musi sedet s azimutem,
-        // ktery v grafika.js roste po smeru hodinovych rucicek. rotationRate je proti.
-        return -yaw;
+        var wx = (rr.beta != null) ? rr.beta : 0;    // kolem X telefonu
+        var wy = (rr.gamma != null) ? rr.gamma : 0;  // kolem Y telefonu
+        var wz = (rr.alpha != null) ? rr.alpha : 0;  // kolem Z telefonu (displej)
+        var b = ((lastTilt.beta != null) ? lastTilt.beta : 90) * Math.PI / 180;
+        var g = ((lastTilt.gamma != null) ? lastTilt.gamma : 0) * Math.PI / 180;
+        var upX = -Math.cos(b) * Math.sin(g);
+        var upY = Math.sin(b);
+        var upZ = Math.cos(b) * Math.cos(g);
+        var yaw = wx * upX + wy * upY + wz * upZ;    // proti smeru hodin (kolem svislice)
+        return -yaw;                                  // azimut roste PO smeru hodin
     }
+    // GYRO BIAS: v klidu se pomalu uci systematicky drift gyra a odecita ho,
+    // aby predikce mezi magnetometr-updaty neujizdela.
+    var gyroBias = 0;
 
     function onMotion(ev) {
         if (!enabled) return;
@@ -99,6 +98,9 @@
             : (ev.timeStamp || Date.now());
         var yr = worldYawRate(rr);
         if (!isFinite(yr)) return;
+        // odhad biasu gyra: jen v klidu (mala rychlost), pomaly EMA
+        if (Math.abs(yr - gyroBias) < 1.0) gyroBias += 0.02 * (yr - gyroBias);
+        yr -= gyroBias;
         // lehke vyhlazeni rate (potlaci sum gyra), reaguje rychle nahoru
         var k = Math.abs(yr) > Math.abs(yawRate) ? 0.6 : 0.3;
         yawRate = yawRate + k * (yr - yawRate);
@@ -153,15 +155,21 @@
             //    vic (rychlejsi srovnani driftu), pri prudkem pohybu min (nech gyro
             //    vest, magnetometr za pohybu sumi a zaostava).
             var speed = Math.abs(yawRate);          // deg/s
-            var W_REST = 0.08;                       // klid: silnejsi tah k pravde
-            var W_FAST = 0.02;                       // rychlo: hlavne gyro
+            // dt-NORMALIZACE: fuse() bezi per-event (frekvence kolisa 30-120 Hz);
+            // konstantni vaha per-volani by menila casovou konstantu filtru s FPS.
+            // tau ekvivalentni puvodnim vaham pri 60 Hz: klid ~0.2 s, rychle ~0.85 s.
+            var TAU_REST = 0.2, TAU_FAST = 0.85;
             var REST = 6;                            // deg/s pod tim = klid
             var FAST = 90;                           // deg/s nad tim = rychle
             var t;
             if (speed <= REST) t = 0;
             else if (speed >= FAST) t = 1;
             else t = (speed - REST) / (FAST - REST);
-            var w = W_REST + (W_FAST - W_REST) * t;
+            var tau = TAU_REST + (TAU_FAST - TAU_REST) * t;
+            var nowF = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+            var dtF = _lastFuseT ? Math.min(0.25, Math.max(0.004, (nowF - _lastFuseT) / 1000)) : (1 / 60);
+            _lastFuseT = nowF;
+            var w = 1 - Math.exp(-dtF / tau);
 
             // pojistka proti velkemu rozjeti predikce vs. magnetometr (napr. po
             // restartu senzoru) — kdyz je rozdil obrovsky, pritahni razneji

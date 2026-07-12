@@ -532,10 +532,26 @@
                     if (performance.now() - _lastAbsoluteTs < 2000) return;
                     headingReliable = false;
                 }
-                let so = 0;
-                if (window.screen && screen.orientation && typeof screen.orientation.angle === 'number') so = screen.orientation.angle;
-                else if (typeof window.orientation === 'number') so = window.orientation;
-                rawCompass = ((360 - event.alpha) + so + 360) % 360; // kompenzace orientace displeje (landscape ±90°)
+                // TILT-KOMPENZACE (Android): azimut směru ZADNÍ KAMERY z plné rotační
+                // matice (α,β,γ). Vzorec 360−alpha platí jen pro telefon naplocho —
+                // ve svislé AR poloze (beta~90°) je alpha v gimbal locku a heading
+                // ujíždí se sklonem. Kamera je pevná v telefonu, takže tahle cesta
+                // nepotřebuje ani kompenzaci orientace displeje (landscape).
+                let _dr = Math.PI / 180;
+                let _cZ = Math.cos(event.alpha * _dr), _sZ = Math.sin(event.alpha * _dr);
+                let _cX = Math.cos((event.beta || 0) * _dr), _sX = Math.sin((event.beta || 0) * _dr);
+                let _cY = Math.cos((event.gamma || 0) * _dr), _sY = Math.sin((event.gamma || 0) * _dr);
+                let _Vx = -_cZ * _sY - _sZ * _sX * _cY;   // East složka směru kamery
+                let _Vy = -_sZ * _sY + _cZ * _sX * _cY;   // North složka
+                if (event.beta != null && event.gamma != null && Math.hypot(_Vx, _Vy) > 0.35) {
+                    rawCompass = (Math.atan2(_Vx, _Vy) / _dr + 360) % 360;
+                } else {
+                    // telefon naplocho (mapa v ruce): kamera míří k zemi -> starý vzorec z alpha
+                    let so = 0;
+                    if (window.screen && screen.orientation && typeof screen.orientation.angle === 'number') so = screen.orientation.angle;
+                    else if (typeof window.orientation === 'number') so = window.orientation;
+                    rawCompass = ((360 - event.alpha) + so + 360) % 360; // kompenzace orientace displeje (landscape ±90°)
+                }
                 headingReliable = (event.absolute === true);
             }
             if (rawCompass === null) return;
@@ -548,8 +564,16 @@
                 if (headingCorrection > 25) headingCorrection = 25; else if (headingCorrection < -25) headingCorrection = -25;
             }
             let corrected = (rawCompass + (headingIsTrueNorth ? 0 : magneticDeclination) + headingCorrection + userHeadingOffset + 360) % 360;
-            // SMER: cyklicke vyhlazeni (mene roztreseny obraz); sila dle nastaveni
-            let smoothAlpha = Math.max(0.05, 1 - (visSettings.headingSmoothing || 0) / 100);
+            // SMER: cyklicke vyhlazeni (mene roztreseny obraz); sila dle nastaveni.
+            // dt-NORMALIZACE: udalosti nechodi vzdy v 60 Hz — konstantni zisk per-event by
+            // menil casovou konstantu filtru s frekvenci. alphaEff = 1 - exp(-dt/tau),
+            // tau zvoleno tak, aby pri 60 Hz odpovidalo puvodnimu chovani.
+            let _alpha0 = Math.max(0.05, 1 - (visSettings.headingSmoothing || 0) / 100);
+            let _nowOri = performance.now();
+            let _dtOri = Math.min(0.25, Math.max(0.004, (window._lastOriTs ? (_nowOri - window._lastOriTs) : 16.7) / 1000));
+            window._lastOriTs = _nowOri;
+            let _tau = -(1 / 60) / Math.log(1 - Math.min(0.95, _alpha0));
+            let smoothAlpha = 1 - Math.exp(-_dtOri / _tau);
             if (window.ARFusion && window.ARFusion.enabled) { smoothedHeading = window.ARFusion.fuse(corrected, smoothedHeading, event); } else { smoothedHeading = smoothAngle(smoothedHeading, corrected, smoothAlpha); }
             let heading = smoothedHeading; currentHeading = heading;
             let relativeHeadingDeg = (heading - compassZeroOffset + 360) % 360; let displayAzimut = "";
