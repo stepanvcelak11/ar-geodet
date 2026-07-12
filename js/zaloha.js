@@ -40,9 +40,22 @@
             }
             const keys = Object.keys(payload.data);
             if (!confirm(`Obnovit zálohu (${keys.length} položek)?\n\nPřepíše současná data této aplikace a stránka se znovu načte.`)) return;
-            try { keys.forEach(k => localStorage.setItem(k, payload.data[k])); }
-            catch (err) { alert('Obnova se nezdařila (úložiště plné?): ' + ((err && err.message) ? err.message : err)); return; }
-            if (payload.idb && typeof idbRestoreAll === 'function') { try { await idbRestoreAll(payload.idb); } catch (e) {} }
+            // Atomicky: snapshot -> smazat -> zapsat; pri chybe (plna kvota) vratit snapshot,
+            // aby nikdy nezustal polovicne obnoveny stav (cast klicu novych, cast starych).
+            const snapshot = {};
+            for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); snapshot[k] = localStorage.getItem(k); }
+            try {
+                localStorage.clear();
+                keys.forEach(k => { if (typeof payload.data[k] === 'string') localStorage.setItem(k, payload.data[k]); });
+            } catch (err) {
+                try { localStorage.clear(); Object.keys(snapshot).forEach(k => localStorage.setItem(k, snapshot[k])); } catch (e2) {}
+                alert('Obnova se nezdařila (úložiště plné?), původní data byla vrácena beze změny: ' + ((err && err.message) ? err.message : err));
+                return;
+            }
+            if (payload.idb && typeof idbRestoreAll === 'function') {
+                try { await idbRestoreAll(payload.idb); }
+                catch (e3) { alert('Nastavení se obnovilo, ale databázi bodů se nepodařilo obnovit celou: ' + ((e3 && e3.message) ? e3.message : e3)); }
+            }
             location.reload();
         };
         r.readAsText(file);
