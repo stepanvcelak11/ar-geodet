@@ -6,6 +6,10 @@
 // Appka počítá posuny proti 1. (referenční) epoše, hlídá mezní odchylky (mm),
 // kreslí vývoj v čase + směrník posunu a umí export CSV.
 //
+// PROPOJENÍ S VLASTNÍMI BODY: sledovaný bod jde založit z existujícího vlastního
+// bodu, nový se po uložení 1. epochy sám přidá do vlastních bodů (addImportedPoints);
+// poloha propojeného bodu se pak drží na POSLEDNÍ epoše (mapa/AR ukazují aktuální stav).
+//
 // Data: per zakázka přes setStoredData/getStoredData (klíč 'agEpochy_v1').
 // OCR: znovupoužívá parseOcrCoords/ensureTesseract/_prepForOcr z logika.js.
 // Odstranění: smaž js/epochy.js + řádek <script> v index.html (a v sw.js).
@@ -22,6 +26,7 @@
     var S = { items: [] };          // {id,name,note,limP,limZ,epochs:[{t,y,x,z,src,note}]}
     var _view = { mode: 'list', itemId: null };
     var _ocrBusy = false;
+    var _prefill = null;            // {y,x,z} pro předvyplnění formuláře epochy po renderu
 
     // ---- util -------------------------------------------------------------------
     function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} try { alert(m); } catch (e2) {} }
@@ -33,6 +38,8 @@
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function num(v) { var n = parseFloat(String(v == null ? '' : v).replace(',', '.').trim()); return isFinite(n) ? n : null; }
     function fmtDate(t) { try { var d = new Date(t); return d.toLocaleDateString('cs-CZ') + ' ' + d.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
+    // datum a čas pod sebou (úzký sloupec — ať tabulka nepřetéká)
+    function fmtDate2r(t) { try { var d = new Date(t); return esc(d.toLocaleDateString('cs-CZ')) + '<br><span class="ag-ep-mini">' + esc(d.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })) + '</span>'; } catch (e) { return ''; } }
     function fmtMM(m) { if (m == null || !isFinite(m)) return '—'; var mm = m * 1000; var v = Math.abs(mm) >= 100 ? mm.toFixed(0) : mm.toFixed(1); return (mm > 0 ? '+' : '') + v; }
     function nowLocalISO(t) { var d = t ? new Date(t) : new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); }
 
@@ -135,6 +142,13 @@
         if (!body) return;
         body.innerHTML = (_view.mode === 'detail' && itemById(_view.itemId)) ? renderDetail(itemById(_view.itemId)) : renderList();
         bind(body);
+        if (_prefill && _view.mode === 'detail') {
+            var yEl = document.getElementById('ag-ep-y'), xEl = document.getElementById('ag-ep-x'), zEl = document.getElementById('ag-ep-z');
+            if (yEl) yEl.value = _prefill.y;
+            if (xEl) xEl.value = _prefill.x;
+            if (zEl && _prefill.z) zEl.value = _prefill.z;
+            _prefill = null;
+        }
     }
 
     function renderList() {
@@ -159,7 +173,10 @@
         }
         h += '<div class="ag-ep-form"><label class="ag-ep-fld"><span>Nový sledovaný bod (název)</span>'
             + '<input type="text" id="ag-ep-new-name" placeholder="např. 501 — římsa mostu"></label>'
-            + '<button class="btn" data-act="add-item">Založit sledovaný bod</button></div>';
+            + '<button class="btn" data-act="add-item">Založit sledovaný bod</button>'
+            + '<label class="ag-ep-fld" style="margin-top:10px;"><span>…nebo sledovat existující vlastní bod</span>'
+            + '<select id="ag-ep-from-pt"><option value="">— vyberte vlastní bod —</option>' + customPointOptions() + '</select></label>'
+            + '<div class="ag-ep-mini">Nový sledovaný bod se po uložení 1. epochy přidá i do vlastních bodů; poloha propojeného bodu se pak drží na poslední epoše.</div></div>';
         return h;
     }
 
@@ -168,6 +185,12 @@
         var h = '<div class="ag-ep-head"><button class="btn btn-secondary ag-ep-sm" data-act="back">‹ Zpět</button>'
             + '<h3 style="color:var(--accent);margin:0;flex:1;text-align:center;font-size:16px;">' + esc(it.name) + '</h3>'
             + '<button class="btn btn-danger ag-ep-sm" data-act="del-item">Smazat</button></div>';
+
+        // propojení s vlastním bodem
+        h += '<div class="ag-ep-mini" style="margin:0 0 6px;">'
+            + (it.ptId ? '● Propojeno s vlastním bodem — jeho poloha v mapě/AR se drží na poslední epoše.'
+                       : '○ Po uložení 1. epochy se bod přidá i do vlastních bodů.')
+            + '</div>';
 
         // stav
         if (it.epochs.length >= 2) {
@@ -196,7 +219,7 @@
             h += '<div class="ag-ep-tblwrap"><table class="ag-ep-tbl"><thead><tr><th>Datum</th><th>Y</th><th>X</th><th>Z</th><th>ΔP mm</th><th>ΔZ mm</th><th></th></tr></thead><tbody>';
             for (var i = 0; i < it.epochs.length; i++) {
                 var e = it.epochs[i];
-                h += '<tr' + (i === 0 ? ' class="ag-ep-ref"' : '') + '><td>' + esc(fmtDate(e.t)) + (i === 0 ? '<br><span class="ag-ep-mini">reference</span>' : '') + (e.src ? '<br><span class="ag-ep-mini">' + esc(e.src) + '</span>' : '') + '</td>'
+                h += '<tr' + (i === 0 ? ' class="ag-ep-ref"' : '') + '><td>' + fmtDate2r(e.t) + (i === 0 ? '<br><span class="ag-ep-mini">reference</span>' : '') + (e.src ? '<br><span class="ag-ep-mini">' + esc(e.src) + '</span>' : '') + '</td>'
                     + '<td>' + e.y.toFixed(2) + '</td><td>' + e.x.toFixed(2) + '</td><td>' + (e.z != null ? e.z.toFixed(2) : '—') + '</td>'
                     + '<td>' + (i === 0 ? '—' : fmtMM(d[i].dP)) + '</td><td>' + (i === 0 || d[i].dZ == null ? '—' : fmtMM(d[i].dZ)) + '</td>'
                     + '<td><button class="ag-ep-x" data-act="del-epoch" data-i="' + i + '" title="Smazat epochu">✕</button></td></tr>';
@@ -217,7 +240,7 @@
             + '<label class="ag-ep-fld"><span>Poznámka</span><input type="text" id="ag-ep-note" placeholder="—"></label></div>'
             + '<button class="btn" data-act="add-epoch">Uložit epochu</button>'
             + '<div class="ag-ep-helpers">'
-            + '<label class="btn btn-secondary ag-ep-sm" style="margin:0;">📷 OCR z fotky<input type="file" id="ag-ep-ocr" accept="image/*" style="display:none;"></label>'
+            + '<label class="btn btn-secondary ag-ep-sm" style="margin:0;"><svg class="icon" style="width:15px;height:15px;margin-right:5px;"><use href="#i-camera"/></svg>OCR z fotky<input type="file" id="ag-ep-ocr" accept="image/*" style="display:none;"></label>'
             + '<button class="btn btn-secondary ag-ep-sm" data-act="gps">GPS mobilu</button>'
             + '</div>'
             + '<label class="ag-ep-fld" style="margin-top:8px;"><span>…nebo převzít souřadnice z bodu v appce</span><select id="ag-ep-pt"><option value="">— vyberte bod —</option>' + pointOptions() + '</select></label>'
@@ -241,6 +264,89 @@
         } catch (e) {}
         return out;
     }
+    // jen VLASTNÍ body (cp_…) — pro zakládání sledovaného bodu z existujícího
+    function customPointOptions() {
+        var out = '';
+        try {
+            if (typeof persistentCustomPoints === 'undefined' || !Array.isArray(persistentCustomPoints)) return '';
+            var linked = {};
+            S.items.forEach(function (it) { if (it.ptId) linked[it.ptId] = true; });
+            var pts = persistentCustomPoints.slice(0, 300);
+            for (var i = 0; i < pts.length; i++) {
+                var p = pts[i];
+                if (!isFinite(p.lat) || !isFinite(p.lng) || linked[p.id]) continue;
+                out += '<option value="' + esc(p.id) + '">' + esc(p.name) + '</option>';
+            }
+        } catch (e) {}
+        return out;
+    }
+
+    // ---- propojení s vlastními body -------------------------------------------------
+    // nový sledovaný bod → po 1. epoše se založí i jako vlastní bod (dedup řeší addImportedPoints)
+    function ensureLinkedPoint(it) {
+        if (it.ptId || !it.epochs.length) return;
+        try {
+            if (typeof window.addImportedPoints !== 'function' || !window.GeoCore || typeof persistentCustomPoints === 'undefined') return;
+            var ref = it.epochs[it.epochs.length - 1];
+            var ll = GeoCore.fromSJTSK(ref.y, ref.x);
+            if (!ll || !isFinite(ll.lat)) return;
+            var obj = { name: it.name, lat: ll.lat, lng: ll.lng };
+            if (ref.z != null) obj.vyska = ref.z;
+            window.addImportedPoints([obj]);
+            // addImportedPoints vrací jen počet — id dohledáme (při dedupu se napojíme na existující bod)
+            for (var i = persistentCustomPoints.length - 1; i >= 0; i--) {
+                var p = persistentCustomPoints[i];
+                if (p.name === it.name && Math.abs(p.lat - ll.lat) < 1e-4 && Math.abs(p.lng - ll.lng) < 1e-4) {
+                    it.ptId = p.id; save();
+                    toast('Bod „' + it.name + '" přidán do vlastních bodů.');
+                    break;
+                }
+            }
+        } catch (e) {}
+    }
+    // poloha propojeného bodu = POSLEDNÍ epocha (mapa/AR ukazují aktuální stav)
+    function updateLinkedPoint(it) {
+        if (!it.ptId || !it.epochs.length) return;
+        try {
+            if (typeof persistentCustomPoints === 'undefined' || !window.GeoCore) return;
+            var last = it.epochs[it.epochs.length - 1];
+            var ll = GeoCore.fromSJTSK(last.y, last.x);
+            if (!ll || !isFinite(ll.lat)) return;
+            var found = false;
+            for (var i = 0; i < persistentCustomPoints.length; i++) {
+                var p = persistentCustomPoints[i];
+                if (p.id === it.ptId) { p.lat = ll.lat; p.lng = ll.lng; if (last.z != null) p.vyska = Math.round(last.z * 100) / 100; found = true; break; }
+            }
+            if (!found) { it.ptId = null; save(); return; }   // bod mezitím smazán → odpojit
+            try {
+                for (var j = 0; j < arPoints.length; j++) {
+                    if (arPoints[j].id === it.ptId) { arPoints[j].lat = ll.lat; arPoints[j].lng = ll.lng; if (last.z != null) arPoints[j].vyska = Math.round(last.z * 100) / 100; break; }
+                }
+            } catch (e2) {}
+            if (typeof setStoredData === 'function') setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
+            try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e3) {}
+            try { if (typeof renderManageList === 'function') renderManageList(); } catch (e4) {}
+        } catch (e) {}
+    }
+    // založení sledovaného bodu z existujícího vlastního bodu (+ předvyplnění 1. epochy)
+    function createItemFromPoint(pid) {
+        if (!pid) return;
+        try {
+            var p = null;
+            for (var i = 0; i < persistentCustomPoints.length; i++) if (persistentCustomPoints[i].id === pid) { p = persistentCustomPoints[i]; break; }
+            if (!p) return;
+            var id = 'ep_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+            S.items.push({ id: id, name: p.name, limP: 0, limZ: 0, epochs: [], ptId: p.id });
+            save();
+            if (window.GeoCore && GeoCore.toSJTSK) {
+                var s = GeoCore.toSJTSK(p.lat, p.lng);
+                _prefill = { y: s.y.toFixed(2), x: s.x.toFixed(2), z: (p.vyska != null ? Number(p.vyska).toFixed(2) : '') };
+            }
+            _view = { mode: 'detail', itemId: id };
+            render();
+            toast('Souřadnice bodu jsou předvyplněné — zkontroluj a ulož jako referenční epochu.');
+        } catch (e) {}
+    }
 
     // ---- akce -------------------------------------------------------------------
     function bind(body) {
@@ -255,6 +361,8 @@
         if (ocr) ocr.addEventListener('change', function () { if (ocr.files && ocr.files[0]) runOcr(ocr.files[0]); ocr.value = ''; });
         var sel = body.querySelector('#ag-ep-pt');
         if (sel) sel.addEventListener('change', function () { fillFromPoint(sel.value); });
+        var fromPt = body.querySelector('#ag-ep-from-pt');
+        if (fromPt) fromPt.addEventListener('change', function () { createItemFromPoint(fromPt.value); });
     }
 
     function onAct(act, el) {
@@ -285,7 +393,9 @@
             var i = parseInt(el.getAttribute('data-i'), 10);
             agConfirmX('Smazat epochu?', fmtDate(it.epochs[i] && it.epochs[i].t) + (i === 0 ? ' — je to REFERENČNÍ epocha, referencí se stane další v pořadí.' : '')).then(function (ok) {
                 if (!ok) return;
-                it.epochs.splice(i, 1); save(); render();
+                it.epochs.splice(i, 1); save();
+                updateLinkedPoint(it);
+                render();
             });
             return;
         }
@@ -315,7 +425,10 @@
             note: ((document.getElementById('ag-ep-note') || {}).value || '').trim()
         });
         sortEpochs(it);
-        save(); render();
+        save();
+        ensureLinkedPoint(it);      // 1. epocha → bod se přidá i do vlastních bodů
+        updateLinkedPoint(it);      // propojený bod drží polohu poslední epochy
+        render();
         toast('Epocha uložena (' + it.epochs.length + ' celkem).');
     }
 
@@ -441,8 +554,9 @@
             '#' + MODAL_ID + ' .ag-ep-status{font-size:13px;line-height:1.5;padding:9px 12px;border-radius:12px;margin:6px 0 10px;',
             '  background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);}',
             '#' + MODAL_ID + ' .ag-ep-status-bad{background:rgba(248,113,113,0.12);border-color:rgba(248,113,113,0.4);}',
-            '#' + MODAL_ID + ' .ag-ep-row{display:flex;gap:8px;}',
-            '#' + MODAL_ID + ' .ag-ep-fld{display:block;flex:1;margin:7px 0 3px;}',
+            '#' + MODAL_ID + ' .ag-ep-row{display:flex;gap:8px;flex-wrap:wrap;}',
+            // flex-basis + min-width:0 — jinak datetime-local svou vnitřní šířkou přeteče z formuláře
+            '#' + MODAL_ID + ' .ag-ep-fld{display:block;flex:1 1 140px;min-width:0;margin:7px 0 3px;}',
             '#' + MODAL_ID + ' .ag-ep-fld>span{display:block;font-size:11.5px;opacity:.75;margin-bottom:3px;}',
             '#' + MODAL_ID + ' .ag-ep-fld input,#' + MODAL_ID + ' .ag-ep-fld select{width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);color:var(--text-color,#e8edf2);font:600 15px/1.1 var(--font,system-ui),sans-serif;}',

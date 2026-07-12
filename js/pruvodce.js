@@ -331,7 +331,7 @@
             body: '<div style="text-align:center; margin:6px 0 12px;"><div style="font-size:34px; font-weight:800; color:var(--accent); font-family:var(--font-mono,monospace);">' + W.savedCount + '</div><div style="font-size:13px; opacity:0.7;">uložených bodů</div></div>'
                 + '<div class="pruv-check">Další bod dostane číslo <b>#' + esc(makeCollectName()) + '</b></div>'
                 + accTxt
-                + (c.foto ? '<div class="pruv-check">📷 Nezapomeň přidat fotku v kartě bodu</div>' : '')
+                + (c.foto ? '<div class="pruv-check"><svg class="icon" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"><use href="#i-camera"/></svg>Nezapomeň přidat fotku v kartě bodu</div>' : '')
                 + '<p style="font-size:13px; opacity:0.8; margin-top:10px;">Postav se na bod, nech ustálit GPS, klepni „Zaměřit bod" a v okně použij „Vyplnit z průměru GPS" + Uložit.</p>',
             footer: [
                 { label: 'Hotovo', cls: 'btn-secondary', act: function () { W.collecting = false; stepDone(); } },
