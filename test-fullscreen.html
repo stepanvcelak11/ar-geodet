@@ -2,7 +2,7 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, viewport-fit=cover">
     <title>FS Test</title>
     <link rel="manifest" href="manifest-test.json">
     <meta name="theme-color" content="#000000">
@@ -126,7 +126,7 @@
     <div id="sa-probe"></div>
 
     <div id="panel">
-        <div>verze testu: <b>5</b></div>
+        <div>verze testu: <b>6</b></div>
         <div>display-mode: <b id="d-mode">?</b></div>
         <div>navigator.standalone: <b id="d-standalone">?</b></div>
         <div>okno: <b id="d-inner">?</b></div>
@@ -180,20 +180,20 @@
                 parseInt(probe.paddingTop) + ' / ' + parseInt(probe.paddingRight) + ' / ' +
                 parseInt(probe.paddingBottom) + ' / ' + parseInt(probe.paddingLeft) + ' px');
 
-            // Rozhoduje výška TĚLA stránky vs. plná výška displeje (innerHeight je na
-            // iOS standalone o stavovou lištu menší, i když se kreslí celý displej).
+            // v6: testujeme height=device-height ve viewport meta. Vyhráno je,
+            // když samotný VIEWPORT (okno) má plnou výšku displeje — pak iOS
+            // nemá kde ořezávat a prvky dosáhnou na spodní hranu bez triků.
             var full = fullHeight();
-            var missing = full - document.body.clientHeight;
             var v = document.getElementById('verdict');
             if (mode === 'browser' && window.navigator.standalone !== true) {
                 v.className = '';
                 v.textContent = 'Běžím v prohlížeči — přidej mě na plochu a otevři z ikony.';
-            } else if (missing <= 1) {
+            } else if (window.innerHeight >= full - 1) {
                 v.className = 'ok';
-                v.textContent = '✅ Tělo stránky pokrývá celý displej (' + document.body.clientHeight + '/' + full + '). Červený pruh musí ležet na spodní hraně.';
+                v.textContent = '✅ VIEWPORT je plný (' + window.innerHeight + '/' + full + ') — device-height funguje, tohle je řešení. Červený pruh má být dole.';
             } else {
                 v.className = 'bad';
-                v.textContent = '❌ Tělu stránky chybí ' + missing + ' px (' + document.body.clientHeight + '/' + full + ').';
+                v.textContent = '⚠ Viewport pořád ' + window.innerHeight + '/' + full + ' (device-height nepomohl). Tělo je nataženo na ' + document.body.clientHeight + ', ale prvky pod čarou iOS ořezává.';
             }
         }
         update();
