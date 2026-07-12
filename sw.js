@@ -34,6 +34,7 @@ const ASSETS_TO_CACHE = [
     './js/kompas-check.js',
     './js/zaloha.js',
     './js/undo.js',
+    './js/kos.js',
     './js/zakazky.js',
     './js/pruvodce.js',
     './js/sdileni.js',
