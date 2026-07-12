@@ -22,8 +22,6 @@
     animation: ag-fade 0.14s ease;
 }
 .ag-dlg-overlay.open { display: flex; }
-/* iOS standalone: fixed inset:0 nedosáhne na spodek displeje (viz .ag-ios-fs v style.css) */
-html.ag-ios-fs .ag-dlg-overlay { height: var(--app-vh, 100%); bottom: auto; }
 .ag-dlg {
     width: 100%;
     max-width: 380px;

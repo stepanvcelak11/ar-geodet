@@ -11,17 +11,21 @@
         function setH() {
             try {
                 var d = document.documentElement;
-                // Tělo appky drží displej přes inset:0 (CSS) — NIC se nenatahuje.
-                // Řešení "černého pruhu dole" je neprůhledná stavová lišta (meta výše):
-                // viewport pak končí přesně na spodní hraně. Dřívější natahování
-                // <html>/<body> na screen.height NEfunguje — iOS prvky pod hranicí
-                // viewportu ořezává (ověřeno FS testy v5/v6). Pro celoobrazovkové
-                // modály dáme --app-vh = skutečná výška kořene, fallback innerHeight.
+                // Kořen appky je v NORMÁLNÍM toku (html,body height:100%, BEZ
+                // position:fixed/overflow:hidden — viz komentář u meta stavové
+                // lišty). Viewport je pak ve standalone plných 852 px a
+                // d.clientHeight = celý displej. Pro celoobrazovkové modály
+                // dáme --app-vh = tato výška, fallback innerHeight.
                 var h = d.clientHeight || window.innerHeight;
                 if (!h) return;
                 d.style.setProperty('--app-vh', h + 'px');
             } catch (e) {}
         }
+        // Zámek scrollu: kořen bez overflow:hidden → kdyby cokoli přeteklo,
+        // iOS by nechal celou appku rolovat/houpat. Držíme okno na nule.
+        window.addEventListener('scroll', function () {
+            if (window.scrollX !== 0 || window.scrollY !== 0) window.scrollTo(0, 0);
+        }, { passive: true });
         setH();
         document.addEventListener('DOMContentLoaded', setH);
         window.addEventListener('load', function () { setH(); setTimeout(setH, 250); setTimeout(setH, 800); });
@@ -37,12 +41,14 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f1216">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <!-- POZOR: NE black-translucent! S průhlednou lištou iOS hlásí viewport o výšku
-         lišty MENŠÍ, než kolik kreslí, a prvky pod hranicí viewportu OŘEZÁVÁ →
-         nespravitelný "černý pruh" dole (ověřeno test-fullscreen*.html). S neprůhlednou
-         lištou končí viewport přesně na spodní hraně displeje. Změna se projeví až po
-         novém PŘIDÁNÍ NA PLOCHU (iOS si meta ukládá při instalaci ikony). -->
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <!-- EDGE-TO-EDGE (ověřeno test-fullscreen.html v7): black-translucent SMÍ být
+         JEN s kořenem stránky v normálním toku! S position:fixed/overflow:hidden
+         na <html>/<body> hlásí iOS standalone viewport o stavovou lištu MENŠÍ
+         (např. 793 z 852) a prvky pod hranicí OŘEZÁVÁ = nespravitelný pruh dole.
+         S kořenem bez fixace je viewport plných 852 → obsah pod hodinami nahoře
+         i na spodní hraně. Scroll jistí zámek v inline skriptu níže. Změna meta
+         se projeví až po novém PŘIDÁNÍ NA PLOCHU (iOS si ji ukládá při instalaci). -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Geodet">
     <link rel="icon" type="image/svg+xml" href="icon.svg">
     <link rel="apple-touch-icon" href="icon.svg">

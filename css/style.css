@@ -229,37 +229,22 @@ body.theme-graphite {
 
 html { background-color: #0e1216; }
 html, body {
-    /* Plné pokrytí displeje ve standalone: ukotvit ke VŠEM hranám (inset:0).
-       Spolehlivější než height:100dvh i než JS výška z innerHeight, které na
-       iOS standalone nechávaly dole černý pruh (mapa nedosáhla ke spodní hraně). */
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: auto;
-    height: auto;
-    overflow: hidden;
+    /* KOŘEN V NORMÁLNÍM TOKU — KLÍČ K EDGE-TO-EDGE NA iOS (test-fullscreen.html v7):
+       position:fixed/overflow:hidden na kořeni způsobí, že iOS standalone hlásí
+       viewport o stavovou lištu MENŠÍ (793 z 852) a vše pod hranicí OŘEZÁVÁ =
+       černý pruh dole, nespravitelný z CSS/JS. Bez fixace je viewport plných
+       852 px a obsah jede od okraje k okraji (nahoře pod hodinami i dole).
+       NIKDY sem nevracet position:fixed, inset ani overflow:hidden!
+       Scroll jistí zámek v inline skriptu v <head> (dokument = přesně viewport,
+       není co rolovat; zámek je pojistka proti přetečení). */
+    height: 100%;
+    width: 100%;
     touch-action: none;
-}
-/* Skutečnou výšku <html>/<body> dopočítává JS z window.innerHeight (viz inline skript
-   v <head>) — kvůli iOS, kde 100dvh občas nedosáhne až na spodní hranu (černý pruh). */
-
-/* iOS standalone (třídu .ag-ios-fs přidává inline skript v <head>): position:fixed se
-   kotví ke zkrácenému layout viewportu (bez stavové lišty, např. 793 z 852 px), takže
-   celoplošné fixed overlaye končily ~59 px nad spodní hranou. Pevná výška --app-vh
-   (= plná výška displeje z JS) je protáhne až dolů. Absolutní prvky (dok, ovládání
-   mapy) to nepotřebují — kotví se k <body>, který už plnou výšku má. */
-html.ag-ios-fs #welcome-screen,
-html.ag-ios-fs #tut-root,
-html.ag-ios-fs .tut-blocker,
-html.ag-ios-fs #edge-glow,
-html.ag-ios-fs #side-menu {
-    height: var(--app-vh, 100%);
-    bottom: auto;
+    overscroll-behavior: none;
 }
 
 body {
+    position: relative; /* kotva pro absolute prvky (dok, ovládání mapy…) */
     margin: 0;
     padding: 0;
     display: flex;
