@@ -3,32 +3,34 @@
    + data/predpisy.json + řádky "PŘEDPISY" v index.html.
    ============================================================================ */
 
+/* Celá obrazovka jako jádrové modály (.modal-overlay .modal-content) — jednotný shell */
 .prd-overlay {
-    position: absolute;
-    inset: 0;
-    z-index: 1000000;            /* nad úvodní obrazovkou i modály */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: var(--app-vh, 100dvh);
+    z-index: var(--z-overlay, 1000000);  /* nad úvodní obrazovkou i modály */
     display: none;
     justify-content: center;
     align-items: center;
     background: rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    padding: env(safe-area-inset-top, 0) 0 env(safe-area-inset-bottom, 0);
 }
 .prd-overlay.open { display: flex; }
 
 .prd-sheet {
-    width: 94%;
-    max-width: 600px;
-    max-height: 92%;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
     display: flex;
     flex-direction: column;
-    background: var(--glass-bg);
-    backdrop-filter: blur(24px) saturate(150%);
-    -webkit-backdrop-filter: blur(24px) saturate(150%);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--r-xl, 20px);
-    box-shadow: var(--shadow-pop, 0 24px 60px rgba(0, 0, 0, 0.55)), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    background: var(--modal-bg, rgba(14, 18, 24, 0.97));
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: none;
+    border-radius: 0;
     color: var(--text-color);
     overflow: hidden;
 }
@@ -39,7 +41,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    padding: 16px 18px 12px;
+    padding: calc(env(safe-area-inset-top, 0px) + 16px) max(18px, env(safe-area-inset-right, 0px)) 12px max(18px, env(safe-area-inset-left, 0px));
     border-bottom: 1px solid var(--glass-border);
 }
 .prd-head-l { display: flex; align-items: center; gap: 11px; min-width: 0; }
@@ -47,10 +49,11 @@
 .prd-title { font-family: var(--font-display); font-weight: 700; font-size: 18px; letter-spacing: -0.3px; }
 .prd-sub { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
 .prd-x {
+    /* jednotné zavírací „×" (stejné jako .lvl-x / .zpr-x): kruh 38 px */
     flex: 0 0 auto;
-    width: 34px; height: 34px;
+    width: 38px; height: 38px;
     border: 0; border-radius: 50%;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.08);
     color: var(--text-color);
     font-size: 22px; line-height: 1; cursor: pointer;
 }
@@ -105,7 +108,7 @@
 .prd-chip.active {
     background: var(--accent-soft);
     color: var(--accent-bright);
-    border-color: var(--accent-line, rgba(139, 92, 246, 0.5));
+    border-color: var(--accent-line,rgba(47,158,116,0.42));
 }
 .prd-chip:active { transform: scale(0.97); }
 body.ag-glove .prd-chip { padding: 9px 14px; font-size: 13.5px; }
@@ -171,7 +174,7 @@ body.ag-glove .prd-chip { padding: 9px 14px; font-size: 13.5px; }
 .prd-table thead th {
     color: var(--accent);
     font-weight: 700;
-    border-bottom: 1px solid var(--accent-line, rgba(139, 92, 246, 0.4));
+    border-bottom: 1px solid var(--accent-line,rgba(47,158,116,0.42));
 }
 .prd-table tbody tr:nth-child(odd) td { background: rgba(255, 255, 255, 0.03); }
 
@@ -202,13 +205,13 @@ body.ag-glove .prd-chip { padding: 9px 14px; font-size: 13.5px; }
     text-decoration: none;
     padding: 6px 12px;
     background: var(--accent-soft);
-    border: 1px solid var(--accent-line, rgba(139, 92, 246, 0.4));
+    border: 1px solid var(--accent-line,rgba(47,158,116,0.42));
     border-radius: var(--r-pill, 999px);
 }
 .prd-link:active { transform: scale(0.98); }
 
 /* Patička */
-.prd-foot { padding: 10px 16px 13px; border-top: 1px solid var(--glass-border); }
+.prd-foot { padding: 10px 16px calc(env(safe-area-inset-bottom, 0px) + 13px); border-top: 1px solid var(--glass-border); }
 .prd-note { font-size: 11.5px; line-height: 1.45; color: #f0b86e; }
 
 /* Režim rukavic */

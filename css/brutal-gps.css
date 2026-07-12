@@ -11,8 +11,8 @@
     z-index: 100002;
     display: none;
     flex-direction: column;
-    background: var(--bg, #0b0f14);
-    color: var(--text, #e7eaee);
+    background: var(--bg-color, #0b0f14);
+    color: var(--text-color, #e7eaee);
     font-family: var(--font-display, system-ui), sans-serif;
     -webkit-overflow-scrolling: touch;
     overflow-y: auto;
@@ -21,7 +21,7 @@
 #ag-bgps-overlay.on { display: flex; }
 
 .bgps-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
-.bgps-top h2 { margin: 0; font-size: 17px; color: var(--accent, #34d399); display: flex; align-items: center; gap: 8px; }
+.bgps-top h2 { margin: 0; font-size: 17px; color: var(--accent,#2f9e74); display: flex; align-items: center; gap: 8px; }
 .bgps-top h2 svg { width: 22px; height: 22px; }
 .bgps-x { width: 38px; height: 38px; flex: 0 0 auto; border: none; border-radius: 50%; background: rgba(255,255,255,0.08); color: #fff; font: 300 25px/1 system-ui, sans-serif; cursor: pointer; }
 
@@ -32,7 +32,7 @@
 .bgps-dur-lbl { font-size: 11.5px; opacity: .6; }
 .bgps-dur-chips { display: flex; gap: 7px; flex-wrap: wrap; }
 .bgps-chip { padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.04); color: inherit; font-size: 13px; font-weight: 700; cursor: pointer; font-variant-numeric: tabular-nums; }
-.bgps-chip.on { background: var(--accent, #34d399); color: #06281d; border-color: transparent; }
+.bgps-chip.on { background: var(--accent,#2f9e74); color: #06281d; border-color: transparent; }
 
 /* konvergenční kruh */
 .bgps-ring-wrap { display: flex; justify-content: center; align-items: center; margin: 2px 0 8px; }
@@ -46,8 +46,8 @@
 /* stavový pruh */
 .bgps-status { text-align: center; font-size: 14px; font-weight: 600; padding: 9px 12px; border-radius: 10px; margin: 4px 0 12px; background: rgba(255,255,255,0.06); }
 .bgps-status.warn { background: rgba(251,191,36,0.16); color: var(--warning, #fbbf24); }
-.bgps-status.bad  { background: rgba(239,68,68,0.16);  color: var(--danger, #ef4444); }
-.bgps-status.good { background: rgba(52,211,153,0.16); color: var(--accent, #34d399); }
+.bgps-status.bad  { background: rgba(239,68,68,0.16);  color: var(--danger,#fb7185); }
+.bgps-status.good { background: rgba(47,158,116,0.16); color: var(--accent,#2f9e74); }
 
 /* statistický grid */
 .bgps-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
@@ -58,8 +58,8 @@
 .bgps-rej { font-size: 11.5px; opacity: .55; text-align: center; margin: -4px 0 12px; line-height: 1.5; }
 
 /* karty (návod, re-okupace) */
-.bgps-card { background: rgba(255,255,255,0.05); border-left: 3px solid var(--accent, #34d399); border-radius: 8px; padding: 10px 12px; font-size: 12.5px; line-height: 1.5; margin-bottom: 12px; }
-.bgps-card b { color: var(--accent, #34d399); }
+.bgps-card { background: rgba(255,255,255,0.05); border-left: 3px solid var(--accent,#2f9e74); border-radius: 8px; padding: 10px 12px; font-size: 12.5px; line-height: 1.5; margin-bottom: 12px; }
+.bgps-card b { color: var(--accent,#2f9e74); }
 .bgps-card.amber { border-left-color: var(--warning, #fbbf24); }
 .bgps-card.amber b { color: var(--warning, #fbbf24); }
 
@@ -73,8 +73,8 @@
 .bgps-btns { display: flex; flex-direction: column; gap: 9px; margin-top: 2px; }
 .bgps-btn { width: 100%; box-sizing: border-box; padding: 13px; border: none; border-radius: 11px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .bgps-btn svg { width: 18px; height: 18px; }
-.bgps-btn.primary { background: var(--accent, #34d399); color: #06281d; }
-.bgps-btn.stop { background: var(--danger, #ef4444); color: #fff; }
+.bgps-btn.primary { background: var(--accent,#2f9e74); color: #06281d; }
+.bgps-btn.stop { background: var(--danger,#fb7185); color: #fff; }
 .bgps-btn.ghost { background: rgba(255,255,255,0.08); color: inherit; }
 .bgps-btn:disabled { opacity: .4; cursor: default; }
 

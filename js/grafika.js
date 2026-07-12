@@ -93,7 +93,22 @@
 
         let compassStarted = false;
         function startCompass() { if (compassStarted) return; compassStarted = true; showCompassCalibHint(); if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') { DeviceOrientationEvent.requestPermission().then(permission => { if (permission === 'granted') window.addEventListener('deviceorientation', handleOrientation); }); } else { window.addEventListener('deviceorientationabsolute', handleOrientation); window.addEventListener('deviceorientation', handleOrientation); } }
-        function startCameraAndCompass(forceRestart = false) { startCompass(); if (cameraStarted && !forceRestart) return; cameraStarted = true; if (currentVideoStream) { currentVideoStream.getTracks().forEach(track => track.stop()); } const camId = document.getElementById('s-camera-select') ? document.getElementById('s-camera-select').value : null; const videoConstraints = camId ? { deviceId: { exact: camId } } : { facingMode: "environment" }; navigator.mediaDevices.getUserMedia({ video: videoConstraints }).then(stream => { currentVideoStream = stream; const videoElement = document.getElementById('camera-feed'); videoElement.srcObject = stream; videoElement.style.display = "block"; }).catch(err => { alert("Chyba kamery: " + err.message); }); }
+        function startCameraAndCompass(forceRestart = false) { startCompass(); if (cameraStarted && !forceRestart) return; cameraStarted = true; if (currentVideoStream) { currentVideoStream.getTracks().forEach(track => track.stop()); } const camId = document.getElementById('s-camera-select') ? document.getElementById('s-camera-select').value : null; const videoConstraints = camId ? { deviceId: { exact: camId } } : { facingMode: "environment" }; navigator.mediaDevices.getUserMedia({ video: videoConstraints }).then(stream => { currentVideoStream = stream; const videoElement = document.getElementById('camera-feed'); videoElement.srcObject = stream; videoElement.style.display = "block"; }).catch(err => { handleCameraError(err); }); }
+        // Kamera selhala (typicky omylem zamítnuté oprávnění): místo surového alertu s technickou
+        // hláškou řekni co dělat a přepni do Mapy, ať se dá pracovat dál (AR bez kamery = černá obrazovka).
+        function handleCameraError(err) {
+            cameraStarted = false;
+            const name = (err && err.name) || '';
+            const denied = name === 'NotAllowedError' || name === 'SecurityError' || name === 'PermissionDeniedError';
+            const busy = name === 'NotReadableError' || name === 'AbortError';
+            let msg;
+            if (denied) msg = 'Aplikace nemá povolený přístup ke kameře, takže AR nejde spustit.<br><br><b>Jak kameru povolit:</b><br>• iPhone: Nastavení → aplikace <b>AR Geodet</b> (příp. Safari) → Kamera → Povolit.<br>• Android / Chrome: ikona zámku v adresním řádku → Oprávnění → Kamera.<br><br>Zatím je zapnutý režim <b>Mapa</b> — vše kromě AR funguje dál.';
+            else if (busy) msg = 'Kameru právě drží jiná aplikace nebo ji systém nedokázal spustit. Zavři ostatní aplikace s kamerou a zkus to znovu.<br><br>Zatím je zapnutý režim <b>Mapa</b>.';
+            else msg = 'Kameru se nepodařilo spustit (' + ((err && (err.message || err.name)) || 'neznámá chyba') + ').<br><br>Zatím je zapnutý režim <b>Mapa</b> — AR zkusíš znovu přepnutím zobrazení.';
+            if (typeof viewMode !== 'undefined' && viewMode !== 'map') { viewMode = 'map'; applyViewMode(); try { if (typeof window.agSyncViewControls === 'function') window.agSyncViewControls(); } catch (e) {} }
+            if (window.agAlert) window.agAlert({ title: 'Kamera nejde spustit', message: msg });
+            else alert(msg.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ''));
+        }
         // Uspani kamery (uspora baterie / rezim mapy): zastavi stopu a vynuluje stav, aby sla znovu nahodit.
         function stopCameraStream() { try { if (currentVideoStream) { currentVideoStream.getTracks().forEach(t => { try { t.stop(); } catch (e) {} }); } } catch (e) {} currentVideoStream = null; cameraStarted = false; const v = document.getElementById('camera-feed'); if (v) { try { v.srcObject = null; } catch (e) {} } }
 
@@ -515,7 +530,7 @@
             if (!el) {
                 el = document.createElement('div'); el.id = 'offline-progress';
                 el.style.cssText = 'position:fixed; top:0; right:0; bottom:0; left:0; z-index:999999; display:none; align-items:center; justify-content:center; background:rgba(4,8,12,0.55); backdrop-filter:blur(2px);';
-                el.innerHTML = '<div style="width:min(82vw,320px); padding:22px; border-radius:18px; background:rgba(14,18,24,0.96); border:1px solid rgba(255,255,255,0.12); box-shadow:0 20px 50px rgba(0,0,0,0.5); text-align:center; color:#fff;"><div id="offline-progress-title" style="font-size:14.5px; font-weight:700; margin-bottom:14px;">Stahuji\u2026</div><div style="width:100%; height:10px; background:rgba(255,255,255,0.12); border-radius:99px; overflow:hidden;"><div id="offline-progress-bar" style="height:100%; width:0%; background:var(--accent-grad,#34d399); border-radius:99px; transition:width 0.15s linear;"></div></div><div id="offline-progress-txt" style="margin-top:10px; font-size:12px; color:var(--accent-bright,#34d399); font-family:var(--font-mono,monospace);">0 %</div></div>';
+                el.innerHTML = '<div style="width:min(82vw,320px); padding:22px; border-radius:18px; background:rgba(14,18,24,0.96); border:1px solid rgba(255,255,255,0.12); box-shadow:0 20px 50px rgba(0,0,0,0.5); text-align:center; color:#fff;"><div id="offline-progress-title" style="font-size:14.5px; font-weight:700; margin-bottom:14px;">Stahuji\u2026</div><div style="width:100%; height:10px; background:rgba(255,255,255,0.12); border-radius:99px; overflow:hidden;"><div id="offline-progress-bar" style="height:100%; width:0%; background:var(--accent-grad,#34d399); border-radius:99px; transition:width 0.15s linear;"></div></div><div id="offline-progress-txt" style="margin-top:10px; font-size:12px; color:var(--accent-bright,#3eb487); font-family:var(--font-mono,monospace);">0 %</div></div>';
                 document.body.appendChild(el);
             }
             return el;
@@ -811,7 +826,45 @@
             document.getElementById('map-controls').classList.remove('expanded');
             redrawAreaPolygon(); updateAreaPanel();
         }
-        function stopAreaMode() { areaMode = false; areaVertices = []; areaGroup.clearLayers(); const p = document.getElementById('area-panel'); if (p) p.style.display = 'none'; fixAppLayout(); }
+        // „Ukončit" leží hned vedle „Vrátit" — omylné klepnutí dřív zahodilo celý obejitý
+        // polygon bez záchrany. Teď se vrcholy zálohují a toast 8 s nabídne „Vrátit zpět".
+        function stopAreaMode() {
+            const backup = (areaMode && areaVertices.length >= 2) ? areaVertices.slice() : null;
+            areaMode = false; areaVertices = []; areaGroup.clearLayers();
+            const p = document.getElementById('area-panel'); if (p) p.style.display = 'none';
+            fixAppLayout();
+            if (backup) showAreaUndoToast(backup);
+        }
+        let _areaToast = null, _areaToastTimer = null;
+        function hideAreaUndoToast() { if (_areaToastTimer) { clearTimeout(_areaToastTimer); _areaToastTimer = null; } if (_areaToast) _areaToast.style.display = 'none'; }
+        function showAreaUndoToast(verts) {
+            if (!_areaToast) {
+                _areaToast = document.createElement('div');
+                _areaToast.id = 'ag-area-toast';
+                _areaToast.style.cssText = 'position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom, 0px) + 88px); transform:translateX(-50%); z-index:var(--z-dialog,2000000); '
+                    + 'display:flex; align-items:center; gap:10px; max-width:90%; padding:8px 8px 8px 16px; '
+                    + 'border-radius:12px; background:rgba(17,22,33,0.96); color:#fff; font-family:var(--font-display,sans-serif); '
+                    + 'box-shadow:0 8px 26px rgba(0,0,0,0.55); border:1px solid var(--glass-border,rgba(255,255,255,0.12));';
+                const label = document.createElement('span'); label.id = 'ag-area-toast-label';
+                label.style.cssText = 'font-size:14px; line-height:1.2; white-space:nowrap;';
+                const btn = document.createElement('button'); btn.id = 'ag-area-toast-btn';
+                btn.textContent = 'Vrátit zpět';
+                btn.style.cssText = 'flex:none; padding:8px 16px; border:none; border-radius:9px; cursor:pointer; '
+                    + 'background:var(--accent,#2f9e74); color:#0b1020; font-weight:700; font-size:13px; line-height:1; white-space:nowrap;';
+                _areaToast.appendChild(label); _areaToast.appendChild(btn);
+                document.body.appendChild(_areaToast);
+            }
+            document.getElementById('ag-area-toast-label').textContent = 'Měření plochy ukončeno (' + verts.length + ' vrcholů)';
+            document.getElementById('ag-area-toast-btn').onclick = function () {
+                hideAreaUndoToast();
+                areaMode = true; areaVertices = verts.slice();
+                const p = document.getElementById('area-panel'); if (p) p.style.display = 'flex';
+                redrawAreaPolygon(); updateAreaPanel();
+            };
+            _areaToast.style.display = 'flex';
+            if (_areaToastTimer) clearTimeout(_areaToastTimer);
+            _areaToastTimer = setTimeout(hideAreaUndoToast, 8000);
+        }
         function areaAddGps() {
             if (gpsAvgResult && gpsAvgResult.n >= 2) areaVertices.push({ lat: gpsAvgResult.lat, lng: gpsAvgResult.lng });
             else if (userLat != null) areaVertices.push({ lat: userLat, lng: userLng });

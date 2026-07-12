@@ -172,7 +172,7 @@
             parts.push('</g>');
         });
         // bublina
-        parts.push('<circle id="lvl-bubble" cx="' + CN + '" cy="' + CN + '" r="15" fill="rgba(52,211,153,0.85)" stroke="#fff" stroke-width="1.5"/>');
+        parts.push('<circle id="lvl-bubble" cx="' + CN + '" cy="' + CN + '" r="15" fill="rgba(47,158,116,0.85)" stroke="#fff" stroke-width="1.5"/>');
         parts.push('</svg>');
         return parts.join('');
     }
@@ -297,7 +297,7 @@
         if (bub) {
             bub.setAttribute('cx', (CN + bx).toFixed(1));
             bub.setAttribute('cy', (CN - byUp).toFixed(1));      // SVG y dolů
-            var fill = col === 'ok' ? 'rgba(52,211,153,0.9)' : (col === 'warn' ? 'rgba(251,191,36,0.9)' : 'rgba(239,68,68,0.9)');
+            var fill = col === 'ok' ? 'rgba(47,158,116,0.9)' : (col === 'warn' ? 'rgba(251,191,36,0.9)' : 'rgba(239,68,68,0.9)');
             bub.setAttribute('fill', fill);
         }
 

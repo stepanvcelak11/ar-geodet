@@ -83,6 +83,16 @@
     /* Pohyb */
     --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
     --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* Vrstvení — jednotná z-index škála (nové vrstvy berou odsud, nečíslovat od boku):
+       HUD/panely < jádrové modály < celoobrazovkové nástroje < overlaye vrstev < dialogy/toasty */
+    --z-modal: 19999;      /* .modal-overlay (jádro) */
+    --z-tool: 100000;      /* celoobrazovkové nástroje (urovnání, brutal-gps…) */
+    --z-overlay: 1000000;  /* vrstvy nad úvodní obrazovkou (předpisy, zpravodaj, o aplikaci…) */
+    --z-dialog: 2000000;   /* potvrzovací dialogy a toasty (musí přebít vše) */
+
+    /* Neprůhledné pozadí celoobrazovkových modálů (jádro i moduly — držet stejné) */
+    --modal-bg: rgba(14, 18, 24, 0.97);
 }
 
 body.light-mode {
@@ -737,7 +747,7 @@ body {
     right: 0;
     width: 100%;
     height: var(--app-vh, 100dvh);
-    z-index: 19999;
+    z-index: var(--z-modal, 19999);
     display: none;
     justify-content: center;
     align-items: center;
@@ -771,7 +781,7 @@ body {
     height: 100%;
     max-height: 100%;
     padding: calc(env(safe-area-inset-top, 0px) + 20px) max(20px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 18px) max(20px, env(safe-area-inset-left, 0px));
-    background: rgba(14, 18, 24, 0.97);
+    background: var(--modal-bg, rgba(14, 18, 24, 0.97));
     -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
     border: none;
@@ -884,7 +894,7 @@ body {
 .modal-content textarea:focus,
 .modal-content select:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.22);
+    box-shadow: 0 0 0 3px var(--accent-line,rgba(47,158,116,0.42));
     background: rgba(0, 0, 0, 0.32);
 }
 .modal-content input::placeholder { color: rgba(154, 166, 180, 0.55); }
@@ -1168,7 +1178,7 @@ details[open] summary::after { content: " ⌄"; }
     transition: background 0.18s ease, border-color 0.18s ease;
 }
 .cluster-list-item:hover { background: rgba(255, 255, 255, 0.07); }
-.cluster-list-item:active { background: rgba(45, 212, 191, 0.16); border-color: var(--accent); }
+.cluster-list-item:active { background: var(--accent-soft,rgba(47,158,116,0.14)); border-color: var(--accent); }
 .cluster-item-title { font-size: 16px; font-weight: 700; }
 .cluster-item-subtitle { margin-top: 2px; font-size: 12px; opacity: 0.75; }
 
@@ -1379,7 +1389,7 @@ details[open] summary::after { content: " ⌄"; }
     outline: none;
     cursor: pointer;
 }
-.w-proj-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.22); }
+.w-proj-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-line,rgba(47,158,116,0.42)); }
 .w-proj-icon {
     flex: 0 0 auto;
     width: 48px;
@@ -1414,7 +1424,7 @@ details[open] summary::after { content: " ⌄"; }
 
 .w-proj-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 30px; }
 .w-proj-card { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 15px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 16px; }
-.w-proj-card:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45,212,191,0.22); }
+.w-proj-card:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-line,rgba(47,158,116,0.42)); }
 .w-proj-top { display: flex; align-items: center; gap: 12px; }
 .w-proj-folder { flex: 0 0 auto; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: rgba(47,158,116,0.16); color: var(--accent); }
 .w-proj-folder .icon { width: 21px; height: 21px; }
@@ -1669,7 +1679,7 @@ body.cam-light .ar-marker.highlighted .ar-marker-dist { color: #334155; }
 }
 .tut-hole::after {
     content: ""; position: absolute; inset: -2px; border-radius: 14px;
-    box-shadow: 0 0 0 3px var(--accent-soft), 0 0 22px rgba(45, 212, 191, 0.35);
+    box-shadow: 0 0 0 3px var(--accent-soft), 0 0 22px rgba(47,158,116,0.35);
     animation: tut-pulse 1.6s ease-in-out infinite;
 }
 @keyframes tut-pulse { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
@@ -2177,5 +2187,5 @@ body.left-hand #dock .dock-btn:nth-child(3) { transform: translateX(var(--dock-a
 }
 #map-ctrl-toggle { display: none !important; }
 /* Zavření nástrojů mapy přímo z hlavní obrazovky (bez cesty přes „Více") */
-#map-ctrl-close { border-color: var(--danger, #ef4444); }
-#map-ctrl-close .icon { color: var(--danger, #ef4444); }
+#map-ctrl-close { border-color: var(--danger,#fb7185); }
+#map-ctrl-close .icon { color: var(--danger,#fb7185); }

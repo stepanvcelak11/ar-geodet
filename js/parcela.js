@@ -791,7 +791,7 @@
             '#agpc-modal .agpc-head{display:flex;align-items:center;gap:6px;margin-bottom:8px;}',
             '#agpc-modal .agpc-hbtn{width:34px;height:34px;flex:0 0 34px;border:1px solid var(--glass-border,rgba(255,255,255,.1));border-radius:10px;',
             '  background:var(--surface-2,rgba(255,255,255,.09));color:var(--text-color,#e8edf2);font-size:16px;line-height:1;cursor:pointer;}',
-            '#agpc-modal .agpc-sec-h{font:700 12px/1 var(--font,system-ui),sans-serif;letter-spacing:.06em;text-transform:uppercase;',
+            '#agpc-modal .agpc-sec-h{font:700 12px/1 var(--font-ui,system-ui),sans-serif;letter-spacing:.06em;text-transform:uppercase;',
             '  color:var(--text-muted,#9aa1ac);margin:6px 0 8px;display:flex;align-items:center;gap:6px;}',
             '#agpc-modal .agpc-sec-h svg{width:15px;height:15px;}',
             '#agpc-verts{display:flex;flex-direction:column;gap:4px;max-height:34vh;overflow:auto;}',

@@ -390,7 +390,7 @@
         // fallback: vlastní plovoucí tlačítko, když launcher chybí
         if (document.getElementById('aggo-fab')) return;
         var b = document.createElement('button'); b.id = 'aggo-fab'; b.type = 'button'; b.title = item.label;
-        b.style.cssText = 'position:fixed;left:12px;bottom:104px;z-index:99980;width:auto;padding:9px 13px;border:none;border-radius:12px;background:var(--accent,#34d399);color:#04110b;font:600 13px sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.4);';
+        b.style.cssText = 'position:fixed;left:12px;bottom:104px;z-index:99980;width:auto;padding:9px 13px;border:none;border-radius:12px;background:var(--accent,#2f9e74);color:#04110b;font:600 13px sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.4);';
         b.textContent = 'Podklad'; b.addEventListener('click', openTool); document.body.appendChild(b);
     }
     function init() {

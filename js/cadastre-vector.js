@@ -337,7 +337,7 @@
             '.agcv-here-in{padding:12px 14px;border-radius:10px;background:rgba(34,211,238,0.16);outline:1px solid rgba(34,211,238,0.5);font-size:15px;}',
             '.agcv-here-out{padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.06);font-size:13px;opacity:.85;}',
             '.agcv-sw{display:flex;align-items:center;gap:8px;font-size:14px;}',
-            '.agcv-sw input{width:18px;height:18px;accent-color:var(--accent,#34d399);}'
+            '.agcv-sw input{width:18px;height:18px;accent-color:var(--accent,#2f9e74);}'
         ].join('\n');
         document.head.appendChild(st);
     }
@@ -352,7 +352,7 @@
     function ensureFallbackFab() {
         if (document.getElementById('agcv-fab') || typeof window.agRegisterFieldTool === 'function') return;
         var b = document.createElement('button'); b.id = 'agcv-fab'; b.type = 'button'; b.title = 'Katastr — parcely'; b.innerHTML = ICON;
-        b.style.cssText = 'position:fixed;left:12px;bottom:264px;z-index:99990;width:48px;height:48px;border:none;border-radius:14px;background:var(--accent,#34d399);color:#04110b;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,0.45);';
+        b.style.cssText = 'position:fixed;left:12px;bottom:264px;z-index:99990;width:48px;height:48px;border:none;border-radius:14px;background:var(--accent,#2f9e74);color:#04110b;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,0.45);';
         b.querySelector('svg').style.cssText = 'width:24px;height:24px;';
         b.addEventListener('click', openTool);
         if (document.body) document.body.appendChild(b);

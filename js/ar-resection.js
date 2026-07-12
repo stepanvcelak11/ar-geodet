@@ -436,20 +436,20 @@
         st.textContent = [
             '#agrx-modal .agrx-list{max-height:34vh;overflow:auto;margin:4px 0 8px;}',
             '.agrx-row{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;background:rgba(255,255,255,0.05);margin-bottom:6px;cursor:pointer;}',
-            '.agrx-row.on{background:rgba(52,211,153,0.16);outline:1px solid rgba(52,211,153,0.5);}',
-            '.agrx-row input{width:18px;height:18px;flex:0 0 18px;accent-color:var(--accent,#34d399);}',
+            '.agrx-row.on{background:rgba(47,158,116,0.16);outline:1px solid rgba(47,158,116,0.5);}',
+            '.agrx-row input{width:18px;height:18px;flex:0 0 18px;accent-color:var(--accent,#2f9e74);}',
             '.agrx-name{font-weight:600;flex:1;}',
             '.agrx-cat{font-size:10px;opacity:.7;border:1px solid currentColor;border-radius:5px;padding:0 4px;margin-left:4px;}',
             '.agrx-meta{font-family:var(--font-mono,monospace);font-size:12px;opacity:.75;white-space:nowrap;}',
-            '.agrx-result{margin:12px 0;padding:12px 14px;border-radius:10px;background:rgba(52,211,153,0.12);}',
+            '.agrx-result{margin:12px 0;padding:12px 14px;border-radius:10px;background:rgba(47,158,116,0.12);}',
             '.agrx-big{font-size:15px;margin-bottom:2px;}',
             '#agrx-aim{position:fixed;inset:0;z-index:100050;display:none;pointer-events:none;}',
             '#agrx-aim.on{display:block;}',
             '#agrx-aim-bar{position:absolute;top:max(16px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);max-width:90vw;',
-            '  background:rgba(8,12,16,0.82);color:#fff;padding:10px 16px;border-radius:12px;font:600 14px/1.3 var(--font,system-ui),sans-serif;text-align:center;pointer-events:none;}',
+            '  background:rgba(8,12,16,0.82);color:#fff;padding:10px 16px;border-radius:12px;font:600 14px/1.3 var(--font-ui,system-ui),sans-serif;text-align:center;pointer-events:none;}',
             '#agrx-cross{position:absolute;top:50%;left:50%;width:120px;height:120px;margin:-60px 0 0 -60px;pointer-events:none;}',
             '#agrx-cross svg{width:100%;height:100%;filter:drop-shadow(0 0 4px rgba(0,0,0,0.6));}',
-            '#agrx-cross-prog{position:absolute;left:10%;bottom:-10px;height:4px;width:0;background:var(--accent,#34d399);border-radius:2px;transition:width .05s linear;}',
+            '#agrx-cross-prog{position:absolute;left:10%;bottom:-10px;height:4px;width:0;background:var(--accent,#2f9e74);border-radius:2px;transition:width .05s linear;}',
             '#agrx-aim-btns{position:absolute;left:0;right:0;bottom:max(24px,env(safe-area-inset-bottom));display:flex;gap:10px;justify-content:center;pointer-events:auto;padding:0 16px;}',
             '#agrx-aim-btns .btn{width:auto;flex:0 0 auto;min-width:140px;}',
             '#agrx-aim-cancel{min-width:96px!important;}'
@@ -470,7 +470,7 @@
         if (document.getElementById('agrx-fab') || typeof window.agRegisterFieldTool === 'function') return;
         var b = document.createElement('button'); b.id = 'agrx-fab'; b.type = 'button';
         b.title = 'AR resekce'; b.innerHTML = ICON;
-        b.style.cssText = 'position:fixed;left:12px;bottom:160px;z-index:99990;width:48px;height:48px;border:none;border-radius:14px;background:var(--accent,#34d399);color:#04110b;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,0.45);';
+        b.style.cssText = 'position:fixed;left:12px;bottom:160px;z-index:99990;width:48px;height:48px;border:none;border-radius:14px;background:var(--accent,#2f9e74);color:#04110b;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,0.45);';
         b.querySelector('svg').style.cssText = 'width:24px;height:24px;';
         b.addEventListener('click', openTool);
         if (document.body) document.body.appendChild(b);

@@ -218,7 +218,7 @@
         return '<svg viewBox="0 0 248 248">'
             + '<circle cx="124" cy="124" r="118" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="2"/>'
             + '<circle id="bgps-ring-target" cx="124" cy="124" r="40" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2" stroke-dasharray="4 5"/>'
-            + '<circle id="bgps-ring-cur" cx="124" cy="124" r="110" fill="rgba(52,211,153,0.08)" stroke="var(--accent,#34d399)" stroke-width="4"/>'
+            + '<circle id="bgps-ring-cur" cx="124" cy="124" r="110" fill="rgba(47,158,116,0.08)" stroke="var(--accent,#2f9e74)" stroke-width="4"/>'
             + '</svg>';
     }
     function build() {
@@ -297,7 +297,7 @@
         var val = $('bgps-val'), sub = $('bgps-val-sub');
         if (_result && _samples.length >= 3) {
             var st = _result.sterr;
-            var col = st <= TARGET_M ? 'var(--accent,#34d399)' : (st <= GOOD_M ? 'var(--warning,#fbbf24)' : 'var(--danger,#ef4444)');
+            var col = st <= TARGET_M ? 'var(--accent,#2f9e74)' : (st <= GOOD_M ? 'var(--warning,#fbbf24)' : 'var(--danger,#fb7185)');
             if (cur) { cur.setAttribute('r', ringRadius(st).toFixed(1)); cur.setAttribute('stroke', col); cur.setAttribute('fill', 'transparent'); }
             if (val) val.innerHTML = '±' + st.toFixed(2) + '<small> m</small>';
             if (sub) sub.textContent = 'rozptyl σ ±' + _result.sigma.toFixed(2) + ' m';

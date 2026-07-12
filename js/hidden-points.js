@@ -54,8 +54,8 @@
             '#' + MODAL_ID + ' .hp-name{flex:1;min-width:0;font-weight:700;color:var(--text-color,#e8edf2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
             '#' + MODAL_ID + ' .hp-name small{display:block;font-weight:400;font-size:11.5px;color:var(--text-muted,#9aa1ac);}',
             '#' + MODAL_ID + ' .hp-show{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:var(--r-sm,8px);',
-            '  border:1px solid var(--accent,#34d399);background:rgba(47,158,116,0.12);color:var(--accent,#34d399);',
-            '  font:600 13px/1 var(--font,system-ui),sans-serif;cursor:pointer;}',
+            '  border:1px solid var(--accent,#2f9e74);background:rgba(47,158,116,0.12);color:var(--accent,#2f9e74);',
+            '  font:600 13px/1 var(--font-ui,system-ui),sans-serif;cursor:pointer;}',
             '#' + MODAL_ID + ' .hp-show svg{width:15px;height:15px;}',
             '#' + MODAL_ID + ' .hp-empty{text-align:center;padding:18px 6px;color:var(--text-muted,#9aa1ac);font-size:14px;}'
         ].join('\n');

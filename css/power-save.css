@@ -51,7 +51,7 @@
 #ag-pwr.on { color: var(--text-color, #eceef2); }
 #ag-pwr.on .ag-pwr-dot {
     background: #34d399;
-    box-shadow: 0 0 7px rgba(52, 211, 153, 0.85);
+    box-shadow: 0 0 7px rgba(47,158,116, 0.85);
     animation: ag-pwr-beat 1.8s ease-in-out infinite;
 }
 /* stav: běží, ale zatím bez fixu */
@@ -64,7 +64,7 @@
 #ag-pwr.sleep { opacity: 0.7; }
 #ag-pwr.sleep .ag-pwr-dot { background: var(--text-muted, #8b95a1); box-shadow: none; }
 /* stav: watch neběží (nemělo by nastat) */
-#ag-pwr.off .ag-pwr-dot { background: var(--danger, #ef4444); box-shadow: 0 0 7px rgba(239, 68, 68, 0.8); }
+#ag-pwr.off .ag-pwr-dot { background: var(--danger,#fb7185); box-shadow: 0 0 7px rgba(239, 68, 68, 0.8); }
 
 /* malá „lístek" tečka, když se reálně šetří (uspaná kamera/kompas/GPS) */
 #ag-pwr.saving::after {

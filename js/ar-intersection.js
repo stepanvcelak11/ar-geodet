@@ -475,11 +475,11 @@
             '#agix-modal .agix-fld{display:block;margin:8px 0;}',
             '#agix-modal .agix-fld>span{display:block;font-size:12px;opacity:.75;margin-bottom:3px;}',
             '#agix-modal .agix-fld select,#agix-modal .agix-fld input{width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;',
-            '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);color:var(--text-color,#e8edf2);font:600 14px/1.1 var(--font,system-ui),sans-serif;}',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);color:var(--text-color,#e8edf2);font:600 14px/1.1 var(--font-ui,system-ui),sans-serif;}',
             '#agix-modal .agix-st{border:1px solid var(--glass-border,rgba(255,255,255,0.12));border-radius:12px;padding:6px 12px 10px;margin:8px 0;background:rgba(255,255,255,0.025);}',
             '#agix-modal .agix-st-h{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;font-weight:700;color:var(--accent);margin-top:6px;}',
             '#agix-modal .agix-st-rm{background:rgba(239,68,68,0.18);color:#f87171;border:none;border-radius:8px;width:26px;height:26px;font-size:13px;line-height:1;cursor:pointer;}',
-            '#agix-modal .agix-result{margin:12px 0;padding:12px 14px;border-radius:10px;background:rgba(52,211,153,0.12);}',
+            '#agix-modal .agix-result{margin:12px 0;padding:12px 14px;border-radius:10px;background:rgba(47,158,116,0.12);}',
             '#agix-modal .agix-big{font-size:15px;margin-bottom:2px;}',
             // VYČIŠTĚNÁ obrazovka během zaměřování: jen kamera + zaměřovač + štítek
             'body.agix-clean #ar-overlay{opacity:0!important;pointer-events:none!important;}',
@@ -491,10 +491,10 @@
             '#agix-aim{position:fixed;inset:0;z-index:100050;display:none;pointer-events:none;}',
             '#agix-aim.on{display:block;}',
             '#agix-aim-bar{position:absolute;top:max(16px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);max-width:92vw;',
-            '  background:rgba(8,12,16,0.82);color:#fff;padding:10px 16px;border-radius:12px;font:600 14px/1.35 var(--font,system-ui),sans-serif;text-align:center;pointer-events:none;}',
+            '  background:rgba(8,12,16,0.82);color:#fff;padding:10px 16px;border-radius:12px;font:600 14px/1.35 var(--font-ui,system-ui),sans-serif;text-align:center;pointer-events:none;}',
             '#agix-cross{position:absolute;top:50%;left:50%;width:120px;height:120px;margin:-60px 0 0 -60px;pointer-events:none;}',
             '#agix-cross svg{width:100%;height:100%;filter:drop-shadow(0 0 4px rgba(0,0,0,0.7));}',
-            '#agix-cross-prog{position:absolute;left:10%;bottom:-10px;height:4px;width:0;background:var(--accent,#34d399);border-radius:2px;transition:width .05s linear;}',
+            '#agix-cross-prog{position:absolute;left:10%;bottom:-10px;height:4px;width:0;background:var(--accent,#2f9e74);border-radius:2px;transition:width .05s linear;}',
             '#agix-step{position:absolute;top:calc(50% + 70px);left:50%;transform:translateX(-50%);background:rgba(8,12,16,0.7);color:#cbd5e1;',
             '  padding:4px 10px;border-radius:8px;font:600 11.5px/1 var(--font-mono,monospace);pointer-events:none;}',
             '#agix-aim-btns{position:absolute;left:0;right:0;bottom:max(24px,env(safe-area-inset-bottom));display:flex;gap:10px;justify-content:center;flex-wrap:wrap;pointer-events:auto;padding:0 16px;}',
@@ -517,7 +517,7 @@
         if (document.getElementById('agix-fab') || typeof window.agRegisterFieldTool === 'function') return;
         var b = document.createElement('button'); b.id = 'agix-fab'; b.type = 'button';
         b.title = 'Protínání vpřed'; b.innerHTML = ICON;
-        b.style.cssText = 'position:fixed;left:12px;bottom:212px;z-index:99990;width:48px;height:48px;border:none;border-radius:14px;background:var(--accent,#34d399);color:#04110b;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,0.45);';
+        b.style.cssText = 'position:fixed;left:12px;bottom:212px;z-index:99990;width:48px;height:48px;border:none;border-radius:14px;background:var(--accent,#2f9e74);color:#04110b;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,0.45);';
         b.querySelector('svg').style.cssText = 'width:24px;height:24px;';
         b.addEventListener('click', openTool);
         if (document.body) document.body.appendChild(b);

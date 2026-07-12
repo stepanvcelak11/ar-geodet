@@ -513,7 +513,7 @@
             var host = menu.querySelector('.menu-scroll') || menu;
             var b = document.createElement('button');
             b.id = 'pruv-menu-btn'; b.className = 'menu-btn';
-            b.style.background = 'rgba(52,211,153,0.15)'; b.style.borderColor = 'var(--accent)'; b.style.color = 'var(--accent)';
+            b.style.background = 'rgba(47,158,116,0.15)'; b.style.borderColor = 'var(--accent)'; b.style.color = 'var(--accent)';
             b.innerHTML = '<svg class="icon"><use href="#i-navigation"/></svg> Průvodce úkolem';
             b.onclick = function () { window.openPruvodce(); };
             host.insertBefore(b, host.firstChild);
@@ -537,7 +537,7 @@
         var st = document.createElement('style');
         st.textContent =
             '.pruv-card{display:block;width:100%;text-align:left;background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:12px;padding:14px;margin-bottom:10px;color:var(--text-color);cursor:pointer;transition:background .15s,border-color .15s;}'
-            + '.pruv-card:hover,.pruv-card:active{background:rgba(52,211,153,0.12);border-color:var(--accent);}'
+            + '.pruv-card:hover,.pruv-card:active{background:rgba(47,158,116,0.12);border-color:var(--accent);}'
             + '.pruv-card-t{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}'
             + '.pruv-card-s{font-size:13px;opacity:0.72;margin-top:4px;line-height:1.4;}'
             + '.pruv-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap;}'

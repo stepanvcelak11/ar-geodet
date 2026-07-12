@@ -54,7 +54,7 @@
         if (baseEl) {
             baseEl.innerHTML = base
                 ? (base.label + (base.acc != null ? ' · ±' + base.acc.toFixed(1) + ' m' : ''))
-                : '<span style="color:var(--danger,#ef4444)">Není poloha — počkej na GPS, nebo vyber bod.</span>';
+                : '<span style="color:var(--danger,#fb7185)">Není poloha — počkej na GPS, nebo vyber bod.</span>';
         }
         var out = document.getElementById('agof-result');
         var az = num('agof-az'), d = num('agof-dist');
@@ -105,7 +105,7 @@
             + '<input type="number" id="agof-dist" step="0.01" inputmode="decimal" placeholder="např. 4.20">'
             + '<label style="margin-top:8px;">Název bodu</label>'
             + '<input type="text" id="agof-name" placeholder="OFF1">'
-            + '<div style="margin:12px 0;padding:10px 12px;border-radius:10px;background:rgba(52,211,153,0.12);font-family:var(--font-mono,monospace);" id="agof-result"></div>'
+            + '<div style="margin:12px 0;padding:10px 12px;border-radius:10px;background:rgba(47,158,116,0.12);font-family:var(--font-mono,monospace);" id="agof-result"></div>'
             + '<button class="btn" id="agof-save"><svg class="icon"><use href="#i-plus"/></svg> Uložit bod</button>'
             + '<button class="btn btn-secondary" style="margin-top:10px;" onclick="document.getElementById(\'agof-modal\').style.display=\'none\'">Zavřít</button>'
             + '</div>';

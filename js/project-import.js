@@ -522,19 +522,19 @@
         var st = document.createElement('style'); st.id = 'agpi-style';
         st.textContent = [
             '.agpi-tabs{display:flex;gap:6px;margin:4px 0 12px;}',
-            '.agpi-tab{flex:1;padding:9px;border:none;border-radius:10px;background:rgba(255,255,255,0.06);color:var(--text,#e8edf2);font:600 13px/1 var(--font,system-ui),sans-serif;cursor:pointer;}',
-            '.agpi-tab.on{background:var(--accent,#34d399);color:#04110b;}',
+            '.agpi-tab{flex:1;padding:9px;border:none;border-radius:10px;background:rgba(255,255,255,0.06);color:var(--text-color,#e8edf2);font:600 13px/1 var(--font-ui,system-ui),sans-serif;cursor:pointer;}',
+            '.agpi-tab.on{background:var(--accent,#2f9e74);color:#04110b;}',
             '.agpi-layers{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;}',
             '.agpi-lay{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,0.05);font-size:13px;cursor:pointer;}',
-            '.agpi-lay input{accent-color:var(--accent,#34d399);}',
+            '.agpi-lay input{accent-color:var(--accent,#2f9e74);}',
             '.agpi-toggles{margin:10px 0;}',
             '.agpi-sw{display:flex;align-items:center;gap:8px;font-size:14px;}',
-            '.agpi-sw input{width:18px;height:18px;accent-color:var(--accent,#34d399);}',
+            '.agpi-sw input{width:18px;height:18px;accent-color:var(--accent,#2f9e74);}',
             '.agpi-stake{max-height:30vh;overflow:auto;}',
             '.agpi-srow{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;background:rgba(255,255,255,0.05);margin-bottom:5px;}',
             '.agpi-sname{flex:1;font-weight:600;}',
             '.agpi-sd{font-family:var(--font-mono,monospace);font-size:12px;opacity:.75;}',
-            '.agpi-stk{border:none;border-radius:8px;padding:6px 12px;background:var(--accent,#34d399);color:#04110b;font-weight:700;font-size:12.5px;cursor:pointer;}',
+            '.agpi-stk{border:none;border-radius:8px;padding:6px 12px;background:var(--accent,#2f9e74);color:#04110b;font-weight:700;font-size:12.5px;cursor:pointer;}',
             '.agpi-txt span{background:rgba(0,0,0,0.5);color:#fde68a;font-size:11px;padding:1px 4px;border-radius:4px;white-space:nowrap;transform:translate(-50%,-50%);display:inline-block;}'
         ].join('\n');
         document.head.appendChild(st);
@@ -551,7 +551,7 @@
     function ensureFallbackFab() {
         if (document.getElementById('agpi-fab') || typeof window.agRegisterFieldTool === 'function') return;
         var b = document.createElement('button'); b.id = 'agpi-fab'; b.type = 'button'; b.title = 'Import projektu'; b.innerHTML = ICON;
-        b.style.cssText = 'position:fixed;left:12px;bottom:212px;z-index:99990;width:48px;height:48px;border:none;border-radius:14px;background:var(--accent,#34d399);color:#04110b;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,0.45);';
+        b.style.cssText = 'position:fixed;left:12px;bottom:212px;z-index:99990;width:48px;height:48px;border:none;border-radius:14px;background:var(--accent,#2f9e74);color:#04110b;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,0.45);';
         b.querySelector('svg').style.cssText = 'width:24px;height:24px;';
         b.addEventListener('click', openTool);
         if (document.body) document.body.appendChild(b);

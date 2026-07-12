@@ -195,10 +195,10 @@
             '#agrf-modal .agrf-fld{display:block;margin:8px 0 4px;}',
             '#agrf-modal .agrf-fld>span{display:block;font-size:12px;opacity:.75;margin-bottom:3px;}',
             '#agrf-modal .agrf-fld input{width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;',
-            '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);color:var(--text-color,#e8edf2);font:600 16px/1.1 var(--font,system-ui),sans-serif;}',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);color:var(--text-color,#e8edf2);font:600 16px/1.1 var(--font-ui,system-ui),sans-serif;}',
             '#agrf-modal .agrf-hrow{display:flex;gap:8px;margin:6px 0 14px;}',
             '#agrf-modal .agrf-chip{flex:1;padding:7px 4px;border-radius:9px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));',
-            '  background:rgba(255,255,255,0.04);color:var(--text-color,#e8edf2);font:600 12px/1 var(--font,system-ui),sans-serif;}',
+            '  background:rgba(255,255,255,0.04);color:var(--text-color,#e8edf2);font:600 12px/1 var(--font-ui,system-ui),sans-serif;}',
             // vyčištěná obrazovka během zaměřování (stejný princip jako protínání)
             'body.agrf-clean #ar-overlay{opacity:0!important;pointer-events:none!important;}',
             'body.agrf-clean #ar-hud{display:none!important;}',
@@ -209,11 +209,11 @@
             '#agrf-readout{position:absolute;top:max(18px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);min-width:160px;text-align:center;',
             '  background:rgba(8,12,16,0.82);padding:10px 18px;border-radius:14px;pointer-events:none;}',
             '#agrf-d{font:800 32px/1 var(--font-mono,monospace);color:#34d399;}',
-            '#agrf-sub{margin-top:4px;font:600 12px/1.4 var(--font,system-ui),sans-serif;color:#cbd5e1;}',
+            '#agrf-sub{margin-top:4px;font:600 12px/1.4 var(--font-ui,system-ui),sans-serif;color:#cbd5e1;}',
             '#agrf-cross{position:absolute;top:50%;left:50%;width:108px;height:108px;margin:-54px 0 0 -54px;pointer-events:none;}',
             '#agrf-cross svg{width:100%;height:100%;filter:drop-shadow(0 0 4px rgba(0,0,0,0.7));}',
             '#agrf-hint{position:absolute;top:calc(50% + 64px);left:50%;transform:translateX(-50%);background:rgba(8,12,16,0.7);color:#e2e8f0;',
-            '  padding:5px 12px;border-radius:8px;font:600 12.5px/1.2 var(--font,system-ui),sans-serif;white-space:nowrap;pointer-events:none;}',
+            '  padding:5px 12px;border-radius:8px;font:600 12.5px/1.2 var(--font-ui,system-ui),sans-serif;white-space:nowrap;pointer-events:none;}',
             '#agrf-btns{position:absolute;left:0;right:0;bottom:max(24px,env(safe-area-inset-bottom));display:flex;gap:10px;justify-content:center;flex-wrap:wrap;pointer-events:auto;padding:0 16px;}',
             '#agrf-btns .btn{width:auto;flex:0 0 auto;min-width:120px;}'
         ].join('\n');
@@ -233,7 +233,7 @@
         if (document.getElementById('agrf-fab') || typeof window.agRegisterFieldTool === 'function') return;
         var b = document.createElement('button'); b.id = 'agrf-fab'; b.type = 'button';
         b.title = 'Optický dálkoměr'; b.innerHTML = ICON;
-        b.style.cssText = 'position:fixed;left:12px;bottom:268px;z-index:99990;width:48px;height:48px;border:none;border-radius:14px;background:var(--accent,#34d399);color:#04110b;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,0.45);';
+        b.style.cssText = 'position:fixed;left:12px;bottom:268px;z-index:99990;width:48px;height:48px;border:none;border-radius:14px;background:var(--accent,#2f9e74);color:#04110b;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,0.45);';
         b.querySelector('svg').style.cssText = 'width:24px;height:24px;';
         b.addEventListener('click', openTool);
         if (document.body) document.body.appendChild(b);

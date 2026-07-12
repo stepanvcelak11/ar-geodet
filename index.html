@@ -311,10 +311,12 @@
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openSatModal();"><svg class="icon"><use href="#i-satellite"/></svg><span>GNSS<br>satelity</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openDronView();"><svg class="icon"><use href="#i-drone"/></svg><span>Dronové zóny<br>(DronView)</span></button>
 
+                    <div class="tool-cat">AR a kalibrace</div>
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; if(window.agOpenCalibrate) window.agOpenCalibrate();"><svg class="icon"><use href="#i-navigation"/></svg><span>Srovnat<br>sever</span></button>
+
                     <div class="tool-cat">Pomůcky</div>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openCalcModal();"><svg class="icon"><use href="#i-calc"/></svg><span>Kalkulačka</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openDictModal();"><svg class="icon"><use href="#i-book"/></svg><span>Slovník</span></button>
-                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; if(window.agOpenCalibrate) window.agOpenCalibrate();"><svg class="icon"><use href="#i-navigation"/></svg><span>Srovnat<br>sever</span></button>
                 </div>
             </div>
             <button class="btn btn-secondary" style="margin-top: 15px;" onclick="document.getElementById('tools-modal').style.display='none'">Zavřít</button>
@@ -731,6 +733,8 @@
     <script defer src="js/tools-plus.js"></script>
     <!-- CELÁ OBRAZOVKA / immersive (odpojitelné: smaž tento řádek + js/fullscreen.js) — schová systémovou lištu dole -->
     <script defer src="js/fullscreen.js"></script>
+    <!-- PŘEPÍNAČ ZOBRAZENÍ NA 1 TAP (odpojitelné: smaž tento řádek + js/view-cycle.js) — kolečko AR/Split/Mapa vpravo dole -->
+    <script defer src="js/view-cycle.js"></script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + js/vylepseni.js + css/vylepseni.css) — musí být POSLEDNÍ modul kvůli override -->
     <script defer src="js/pdf-protocol.js"></script>
     <script defer src="js/vylepseni.js"></script>

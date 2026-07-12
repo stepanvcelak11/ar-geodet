@@ -70,7 +70,7 @@
             const btn = document.createElement('button'); btn.id = 'undo-toast-btn';
             btn.textContent = 'Vrátit zpět';
             btn.style.cssText = 'flex:none; padding:8px 16px; border:none; border-radius:9px; cursor:pointer; '
-                + 'background:var(--accent,#34d399); color:#0b1020; font-weight:700; font-size:13px; line-height:1; white-space:nowrap;';
+                + 'background:var(--accent,#2f9e74); color:#0b1020; font-weight:700; font-size:13px; line-height:1; white-space:nowrap;';
             toast.appendChild(label); toast.appendChild(btn);
             document.body.appendChild(toast);
         }

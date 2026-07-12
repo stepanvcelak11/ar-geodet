@@ -111,7 +111,7 @@
             + '<li>Klepni <b>Srovnat sever</b>.</li></ol>'
             + '<label>Známý bod</label>'
             + '<select id="agor-point"></select>'
-            + '<div id="agor-live" style="margin:12px 0;padding:10px 12px;border-radius:10px;background:rgba(52,211,153,0.12);font-family:var(--font-mono,monospace);font-size:13px;"></div>'
+            + '<div id="agor-live" style="margin:12px 0;padding:10px 12px;border-radius:10px;background:rgba(47,158,116,0.12);font-family:var(--font-mono,monospace);font-size:13px;"></div>'
             + '<button class="btn" id="agor-apply"></button>'
             + '<button class="btn btn-warning" id="agor-undo" style="margin-top:10px;display:none;"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Vrátit poslední srovnání</button>'
             + '<button class="btn btn-secondary" style="margin-top:10px;" onclick="window.agCloseOrientTool&&window.agCloseOrientTool()">Zavřít</button>'

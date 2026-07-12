@@ -113,13 +113,13 @@
             '#' + MODAL_ID + ' .vr-ico{flex:0 0 auto;width:42px;height:40px;display:flex;align-items:center;justify-content:center;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.15));border-radius:var(--r-sm,8px);background:rgba(255,255,255,0.05);',
             '  color:var(--text-color,#e8edf2);cursor:pointer;}',
-            '#' + MODAL_ID + ' .vr-ico.danger{color:var(--danger,#ef4444);border-color:rgba(239,68,68,0.4);}',
+            '#' + MODAL_ID + ' .vr-ico.danger{color:var(--danger,#fb7185);border-color:rgba(239,68,68,0.4);}',
             '#' + MODAL_ID + ' .vr-ico svg{width:17px;height:17px;}',
             // výsledek NAHOŘE
-            '#' + MODAL_ID + ' .vr-res{margin:2px 0 12px;padding:14px;border-radius:var(--r-md,12px);border:1px solid var(--accent,#34d399);',
+            '#' + MODAL_ID + ' .vr-res{margin:2px 0 12px;padding:14px;border-radius:var(--r-md,12px);border:1px solid var(--accent,#2f9e74);',
             '  background:rgba(47,158,116,0.10);}',
             '#' + MODAL_ID + ' .vr-res .vr-total{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:800;font-size:15px;}',
-            '#' + MODAL_ID + ' .vr-res .vr-total b{font-family:var(--font-mono,monospace);font-size:24px;color:var(--accent,#34d399);white-space:nowrap;}',
+            '#' + MODAL_ID + ' .vr-res .vr-total b{font-family:var(--font-mono,monospace);font-size:24px;color:var(--accent,#2f9e74);white-space:nowrap;}',
             '#' + MODAL_ID + ' .vr-res .vr-line{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;margin-top:7px;color:var(--text-color,#e8edf2);opacity:0.85;}',
             '#' + MODAL_ID + ' .vr-res .vr-line span:last-child{font-family:var(--font-mono,monospace);white-space:nowrap;}',
             // řez
@@ -139,7 +139,7 @@
             '#' + MODAL_ID + ' .vr-btns{display:flex;gap:4px;}',
             '#' + MODAL_ID + ' .vr-btns button{flex:1;height:38px;border:1px solid var(--glass-border,rgba(255,255,255,0.15));',
             '  border-radius:var(--r-sm,8px);background:rgba(255,255,255,0.05);color:var(--text-color,#e8edf2);cursor:pointer;font-size:14px;line-height:1;}',
-            '#' + MODAL_ID + ' .vr-btns button.vr-del{color:var(--danger,#ef4444);}',
+            '#' + MODAL_ID + ' .vr-btns button.vr-del{color:var(--danger,#fb7185);}',
             // katalog — řádky se zalamují, popis je vidět celý
             '#' + MODAL_ID + ' .vr-addrow{display:flex;gap:8px;margin-top:6px;}',
             '#' + MODAL_ID + ' .vr-addrow .btn{flex:1;margin:0;padding:10px;}',
@@ -153,13 +153,13 @@
             '#' + MODAL_ID + ' .vr-cat .vr-catrow:last-child{border-bottom:none;}',
             '#' + MODAL_ID + ' .vr-cat .vr-catrow:active{background:rgba(255,255,255,0.06);}',
             '#' + MODAL_ID + ' .vr-cat .vr-r1{display:flex;align-items:baseline;gap:8px;}',
-            '#' + MODAL_ID + ' .vr-cat .vr-r1 b{flex:0 0 auto;color:var(--accent,#34d399);}',
+            '#' + MODAL_ID + ' .vr-cat .vr-r1 b{flex:0 0 auto;color:var(--accent,#2f9e74);}',
             '#' + MODAL_ID + ' .vr-cat .vr-r1 span{flex:1;min-width:0;font-size:12.5px;}',
             '#' + MODAL_ID + ' .vr-cat .vr-r1 small{flex:0 0 auto;font-family:var(--font-mono,monospace);font-size:11.5px;color:var(--text-muted,#9aa1ac);}',
             '#' + MODAL_ID + ' .vr-cat .vr-r2{margin-top:3px;font-size:11.5px;line-height:1.4;color:var(--text-muted,#9aa1ac);}',
             // slovníček
             '#' + MODAL_ID + ' .vr-dict p{margin:8px 0;font-size:12.5px;line-height:1.5;color:var(--text-color,#e8edf2);}',
-            '#' + MODAL_ID + ' .vr-dict b{color:var(--accent,#34d399);}',
+            '#' + MODAL_ID + ' .vr-dict b{color:var(--accent,#2f9e74);}',
             '#' + MODAL_ID + ' .vr-hint{margin-top:10px;font-size:12px;line-height:1.45;color:var(--text-muted,#9aa1ac);}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
@@ -453,7 +453,7 @@
             var col = GRP_COLOR[g] || GRP_COLOR.a;
             var txt = GRP_TEXT[g] || '#fff';
             var isLay = (i === lay);
-            svg.push('<polygon points="' + bandPoints(y, h, prof) + '" fill="' + col + '" stroke="' + (isLay ? 'var(--accent,#34d399)' : 'rgba(255,255,255,0.25)') + '" stroke-width="' + (isLay ? 2.5 : 1) + '"/>');
+            svg.push('<polygon points="' + bandPoints(y, h, prof) + '" fill="' + col + '" stroke="' + (isLay ? 'var(--accent,#2f9e74)' : 'rgba(255,255,255,0.25)') + '" stroke-width="' + (isLay ? 2.5 : 1) + '"/>');
             // popisek u levé hrany (u střechy je levá hrana níž o dy)
             var labY = y + (prof.roof ? dy : 0) + h / 2;
             var nm = String(L.n || ('vrstva ' + (i + 1)));
