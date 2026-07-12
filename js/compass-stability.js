@@ -7,8 +7,10 @@
 //   a počítá z něj skóre stability 0–100 % (malý rozkmit = vysoké). Zobrazuje malý
 //   "semafor" (zelená ≥70 · oranžová 40–70 · červená <40), jen když appStarted.
 //   - VYBLEDÁVÁ s ostatním HUD (zrcadlí třídu .ui-faded z #compass-debug).
-//   - Polohu i VELIKOST si uživatel nastaví: DLOUHÝ STISK → režim úprav (táhni
-//     pro přesun, −/+ pro velikost, ✓ hotovo). Uloží se do localStorage 'agCstabUI'.
+//   - Přesun/velikost: JEDNOTNĚ s ostatními HUD prvky přes window.AGHud
+//     (tažení prstem, pinch dvěma prsty, dlouhý stisk → sdílený editor #hud-editor,
+//     ukládá se do hudLayout_v1). Vlastní starší režim úprav (−/+/✓, 'agCstabUI')
+//     zůstává jen jako fallback, kdyby AGHud nebyl k dispozici.
 //
 // Odstranění: smaž js/compass-stability.js + css/compass-stability.css a řádky v
 // index.html / sw.js. Aplikace pak funguje přesně jako předtím.
@@ -115,8 +117,14 @@
             '  <button type="button" data-act="done" aria-label="Hotovo">✓</button>' +
             '</span>';
         document.body.appendChild(el);
-        loadUI(); applyUI();
-        wireEdit();
+        loadUI(); applyUI();   // stará uložená poloha/velikost zůstane, dokud prvek nepřesuneš přes AGHud
+        if (window.AGHud && typeof window.AGHud.register === 'function') {
+            // jednotné ovládání jako Azimut / Přesnost / GPS (drag, pinch, dlouhý stisk → editor)
+            window.AGHud.register(el, 'Stabilita kompasu');
+            el.title = 'Stabilita kompasu — táhni pro přesun, dlouhý stisk = velikost';
+        } else {
+            wireEdit();   // fallback: vlastní režim úprav (starší index.html bez AGHud)
+        }
         mirrorFade();
         return el;
     }
@@ -124,7 +132,8 @@
     // ---- vyblednutí: zrcadli .ui-faded z #compass-debug -----------------------
     function syncFade() {
         if (!el) return;
-        if (editing) { el.classList.remove('ui-faded'); return; }
+        // nefadeovat během úprav (vlastní .editing i sdílený AGHud editor .hud-editing)
+        if (editing || el.classList.contains('editing') || el.classList.contains('hud-editing')) { el.classList.remove('ui-faded'); return; }
         try {
             var src = document.getElementById('compass-debug');
             el.classList.toggle('ui-faded', !!(src && src.classList.contains('ui-faded')));
