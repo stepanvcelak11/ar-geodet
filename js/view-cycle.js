@@ -22,8 +22,10 @@
         st.textContent = [
             // vzhled = chip z doku (.dock-btn): stejné sklo, rám i průhlednost (--panel-opacity,
             // bez ní působil tmavší než okolní tlačítka), jen KULATÝ; kousek od kraje, ne nalepený
+            // z-index 9000 = stejná vrstva jako dok — menu „Více" (10000), bottom-sheet
+            // i modály ho tak správně PŘEKRYJÍ (dřív 10500 plavalo nad menu Více)
             '#' + BTN_ID + '{position:fixed;right:max(16px,env(safe-area-inset-right,0px));',
-            '  bottom:max(6px,env(safe-area-inset-bottom,0px));z-index:10500;',
+            '  bottom:max(6px,env(safe-area-inset-bottom,0px));z-index:9000;',
             '  width:54px;height:54px;padding:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:2px;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.10));border-radius:50%;',
             '  background:var(--glass-bg,rgba(24,28,33,0.84));backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);',
@@ -37,6 +39,8 @@
             '#' + BTN_ID + ':active{transform:scale(0.93);}',
             'body.ag-glove #' + BTN_ID + '{width:64px;height:64px;font-size:9.5px;}',
             'body.ag-glove #' + BTN_ID + ' .icon{width:24px;height:24px;}',
+            // rozbalené nástroje mapy = vodorovná řada vystředěná na spodní hraně → kolečko uhne nahoru
+            '#' + BTN_ID + '.ag-vc-lift{bottom:calc(max(6px,env(safe-area-inset-bottom,0px)) + 62px);}',
             'body.outdoor-mode #' + BTN_ID + '{background:#0a0e1a;border-color:rgba(255,255,255,0.85);}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
@@ -56,6 +60,8 @@
             // (třídu řídí resetInactivityTimer v grafika.js, vzor js/compass-stability.js)
             var mt = document.getElementById('menu-toggle-btn');
             b.classList.toggle('ui-faded', !!(mt && mt.classList.contains('ui-faded')));
+            // uhnout před rozbalenou řadou nástrojů mapy (bez .expanded je display:none)
+            b.classList.toggle('ag-vc-lift', !!document.querySelector('#map-controls.expanded'));
         }
         try {
             document.querySelectorAll('#view-seg .seg-btn').forEach(function (x) {
@@ -95,6 +101,9 @@
             if (b) b.classList.remove('ui-faded');
         }, { passive: true });
     });
+    // po klepnutí hned přepočítat i uhýbání/popisek (zapnutí nástrojů mapy z „Více"
+    // by jinak čekalo až na 1,5s tick)
+    document.addEventListener('click', function () { setTimeout(function () { try { sync(); } catch (e) {} }, 50); }, { passive: true });
 
     function tick() { try { injectStyles(); ensureBtn(); sync(); } catch (e) {} }
     function init() {
