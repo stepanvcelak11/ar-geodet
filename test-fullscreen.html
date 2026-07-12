@@ -2,7 +2,7 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>FS Test</title>
     <link rel="manifest" href="manifest-test.json">
     <meta name="theme-color" content="#000000">
@@ -12,22 +12,27 @@
     <link rel="apple-touch-icon" href="icon.svg">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        /* v7 — ARCHITEKTURA "ROLOVACÍ DOKUMENT SE ZAMČENÝM SCROLLEM" (jako Deník
+           pokroku): ŽÁDNÉ position:fixed na kořeni (fixní podstrom iOS ořezává na
+           zmenšeném viewportu). Dokument je normální tok o plné výšce displeje
+           (852; nastaví JS), body je position:relative (kotva pro absolute děti).
+           Scroll drží JS na nule. Obsah by se pak měl malovat i do spodní zóny,
+           kam fixed vrstvy nedosáhnou — jako obsah za lištou Safari. */
         html, body {
-            position: fixed;
-            inset: 0;
-            overflow: hidden;
             color: #fff;
             font-family: -apple-system, system-ui, sans-serif;
+            overscroll-behavior: none;
+            touch-action: none;
         }
+        body { position: relative; }
         /* ROZLIŠENÍ VRSTEV: zelená = jen podklad plátna (html pozadí se roztahuje na
            celý displej vždy); FIALOVÁ = skutečně vykreslené TĚLO stránky. Pokud je
            dole u hrany zelený (ne fialový) pás, iOS ořezává kreslení obsahu na
            zmenšený viewport a tělo tam nedosáhne. */
         html { background: #16a34a; }
         body { background: #7c3aed; }
-        /* absolute (ne fixed): fixed se na iOS standalone kotví ke zkrácenému layout
-           viewportu (bez stavové lišty); absolute se kotví k <body>, kterému JS níže
-           nastaví plnou výšku displeje. */
+        /* absolute (ne fixed): fixed podstrom iOS ořezává; absolute se kotví
+           k <body> (relative) s plnou výškou displeje. */
         .edge {
             position: absolute;
             left: 0; right: 0;
@@ -126,13 +131,14 @@
     <div id="sa-probe"></div>
 
     <div id="panel">
-        <div>verze testu: <b>6</b></div>
+        <div>verze testu: <b>7</b></div>
         <div>display-mode: <b id="d-mode">?</b></div>
         <div>navigator.standalone: <b id="d-standalone">?</b></div>
         <div>okno: <b id="d-inner">?</b></div>
         <div>displej: <b id="d-screen">?</b></div>
         <div>visualViewport: <b id="d-vv">?</b></div>
         <div>tělo stránky: <b id="d-body">?</b></div>
+        <div>scroll: <b id="d-scroll">?</b></div>
         <div>safe-area t/r/b/l: <b id="d-safe">?</b></div>
         <div id="verdict">měřím…</div>
     </div>
@@ -141,10 +147,9 @@
     (function () {
         function txt(id, v) { document.getElementById(id).textContent = v; }
 
-        // OPRAVA: iOS ve standalone hlásí layout viewport BEZ stavové lišty
-        // (např. 793 px z 852), ale WebView kreslí celý displej. Prvky se tak
-        // kotvily 59 px nad spodní hranu. Řešení: <html>/<body> natáhnout
-        // natvrdo na plnou výšku displeje.
+        // v7: dokument v normálním toku o plné výšce displeje (bez fixed kořene),
+        // scroll zamčený na nule. Prvky by se měly malovat i do spodní zóny,
+        // kam fixní vrstvy nedosáhnou (chování jako obsah za lištou Safari).
         function fullHeight() {
             var land = window.matchMedia('(orientation: landscape)').matches;
             return land ? Math.min(screen.width, screen.height)
@@ -159,6 +164,10 @@
                 document.body.style.height = full + 'px';
             }
         }
+        // zámek scrollu (dokument je o ~59 px vyšší než viewport → iOS by nechal rolovat)
+        window.addEventListener('scroll', function () {
+            if (window.scrollY !== 0) window.scrollTo(0, 0);
+        }, { passive: true });
 
         function update() {
             applyFix();
@@ -174,26 +183,24 @@
                 ? Math.round(window.visualViewport.width) + ' × ' + Math.round(window.visualViewport.height) + ' px'
                 : 'není');
             txt('d-body', document.body.clientWidth + ' × ' + document.body.clientHeight + ' px');
+            var se = document.scrollingElement || document.documentElement;
+            txt('d-scroll', window.scrollY + ' px (max ' + Math.max(0, se.scrollHeight - window.innerHeight) + ')');
 
             var probe = getComputedStyle(document.getElementById('sa-probe'));
             txt('d-safe',
                 parseInt(probe.paddingTop) + ' / ' + parseInt(probe.paddingRight) + ' / ' +
                 parseInt(probe.paddingBottom) + ' / ' + parseInt(probe.paddingLeft) + ' px');
 
-            // v6: testujeme height=device-height ve viewport meta. Vyhráno je,
-            // když samotný VIEWPORT (okno) má plnou výšku displeje — pak iOS
-            // nemá kde ořezávat a prvky dosáhnou na spodní hranu bez triků.
+            // v7: rozhoduje OKO — je červený pruh (a bílá/tyrkysová čára pravítka)
+            // vidět u fyzické spodní hrany? Čísla jen popisují stav.
             var full = fullHeight();
             var v = document.getElementById('verdict');
             if (mode === 'browser' && window.navigator.standalone !== true) {
                 v.className = '';
                 v.textContent = 'Běžím v prohlížeči — přidej mě na plochu a otevři z ikony.';
-            } else if (window.innerHeight >= full - 1) {
-                v.className = 'ok';
-                v.textContent = '✅ VIEWPORT je plný (' + window.innerHeight + '/' + full + ') — device-height funguje, tohle je řešení. Červený pruh má být dole.';
             } else {
-                v.className = 'bad';
-                v.textContent = '⚠ Viewport pořád ' + window.innerHeight + '/' + full + ' (device-height nepomohl). Tělo je nataženo na ' + document.body.clientHeight + ', ale prvky pod čarou iOS ořezává.';
+                v.className = 'ok';
+                v.textContent = 'v7 (rolovací dokument, zamčený scroll): rozhoduje OKO — je červený pruh dole na hraně a modrý nahoře pod hodinami?';
             }
         }
         update();
