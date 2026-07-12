@@ -23,6 +23,7 @@ const ASSETS_TO_CACHE = [
     './data/zpravodaj.json',
     './css/predpisy.css',
     './data/predpisy.json',
+    './js/err-log.js',
     './js/geo-core.js',
     './js/logika.js',
     './js/grafika.js',

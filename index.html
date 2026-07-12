@@ -620,6 +620,8 @@
     <div id="resizer"><div class="grabber"></div></div>
     <div id="map-container"><div id="map-wrapper"><div id="map"></div></div><div id="map-controls"><div id="map-ctrl-stack"><button class="map-ctrl-btn glass-panel" id="btn-baselayer" onclick="cycleBaseLayer()" aria-label="Podklad mapy (OSM / ortofoto)"><svg class="icon"><use href="#i-layers"/></svg></button><button class="map-ctrl-btn glass-panel" id="btn-katastr" onclick="toggleKatastr()" aria-label="Katastrální mapa"><svg class="icon"><use href="#i-grid"/></svg></button><button class="map-ctrl-btn glass-panel" onclick="recenterOnUser()" aria-label="Vycentrovat na mě"><svg class="icon"><use href="#i-crosshair"/></svg></button><button class="map-ctrl-btn glass-panel" onclick="openNearbyModal()" aria-label="Body v okolí"><svg class="icon"><use href="#i-list"/></svg></button><button class="map-ctrl-btn glass-panel" id="btn-connect" onclick="toggleConnectMode()" aria-label="Spojování bodů čarou"><svg class="icon"><use href="#i-line"/></svg></button></div><button class="map-ctrl-btn glass-panel" id="map-ctrl-toggle" onclick="toggleMapControls()" aria-label="Nástroje mapy"><svg class="icon"><use href="#i-sliders"/></svg></button></div></div>
 
+    <!-- PROTOKOL CHYB (odpojitelné: smaž tento řádek + js/err-log.js) — MUSÍ být první, chytá chyby startu ostatních modulů -->
+    <script defer src="js/err-log.js"></script>
     <script defer src="js/lib/leaflet-1.9.4.js"></script>
     <script defer src="js/lib/esri-leaflet-3.0.12.js"></script>
     <script defer src="js/power-save.js"></script>
