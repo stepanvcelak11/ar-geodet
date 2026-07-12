@@ -378,8 +378,9 @@
                 <div class="tab-btn active" onclick="switchTab('tab-vzhled', this)"><svg class="icon"><use href="#i-sliders"/></svg><span class="tb-tx"><b>Vzhled</b><small>Motiv, velikost, světlo</small></span></div>
                 <div class="tab-btn" onclick="switchTab('tab-ar', this)"><svg class="icon"><use href="#i-crosshair"/></svg><span class="tb-tx"><b>AR &amp; přesnost</b><small>Radius, výkon</small></span></div>
                 <div class="tab-btn" onclick="switchTab('tab-data', this)"><svg class="icon"><use href="#i-folder"/></svg><span class="tb-tx"><b>Data</b><small>Zakázky, export</small></span></div>
-                <!-- Kompas je samostatný modál (přání: neskákat kvůli němu do Nastavení) — dlaždice ho jen otevírá -->
-                <div class="tab-btn" id="tabbtn-kompas" onclick="openCompassModal()"><svg class="icon"><use href="#i-navigation"/></svg><span class="tb-tx"><b>Kompas</b><small>Kalibrace, sever</small></span></div>
+                <!-- Kompas z dlaždic ODEBRÁN na přání (duplikoval panel Azimut na hlavní obrazovce;
+                     kalibrace zůstává klepnutím na Azimut a tlačítkem v AR & přesnost) -->
+                <div class="tab-btn" id="tabbtn-udrzba" onclick="switchTab('tab-udrzba', this)"><svg class="icon"><use href="#i-wrench"/></svg><span class="tb-tx"><b>Údržba</b><small>Záloha, skryté body</small></span></div>
             </div>
             <div class="modal-body">
                 <div id="tab-vzhled" class="settings-tab active">
@@ -542,17 +543,20 @@
                     <label style="margin-top: 15px;">Hledat konkrétní bod (Plný název)</label>
                     <input type="text" id="s-search-name" placeholder="Např. 567 nebo celá značka">
                     <button class="btn btn-blue" style="margin-top: 18px;" onclick="saveForOffline()"><svg class="icon"><use href="#i-download"/></svg> Uložit pro Offline</button>
-                    <details class="adv"><summary><svg class="icon"><use href="#i-rotate-ccw"/></svg> Údržba a záloha</summary>
-                        <div class="adv-body">
-                            <button class="btn btn-secondary" style="margin-top: 4px;" onclick="restoreHiddenPoints()"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Obnovit skryté body</button>
-                            <button class="btn btn-danger" style="margin-top: 10px;" onclick="clearAllPoints()"><svg class="icon"><use href="#i-trash"/></svg> Vymazat stáhnuté okolí z této zakázky</button>
-                            <hr style="border-color: var(--glass-border); width: 100%; margin: 16px 0;">
-                            <label>Záloha všech zakázek a nastavení</label>
-                            <button class="btn btn-secondary" style="margin-top: 8px;" onclick="exportAllData()"><svg class="icon"><use href="#i-download"/></svg> Stáhnout zálohu (vše)</button>
-                            <button class="btn btn-blue" style="margin-top: 10px;" onclick="document.getElementById('restore-file').click()"><svg class="icon"><use href="#i-upload"/></svg> Obnovit ze zálohy</button>
-                            <input type="file" id="restore-file" style="display:none" accept=".json,application/json" onchange="importAllData(event)">
-                        </div>
-                    </details>
+                </div>
+                <!-- Údržba — bývalá sbalená sekce „Údržba a záloha" z Data, teď vlastní záložka
+                     (nahradila dlaždici Kompas) -->
+                <div id="tab-udrzba" class="settings-tab">
+                    <label style="margin-top:4px;">Skryté body</label>
+                    <button class="btn btn-secondary" style="margin-top: 6px;" onclick="if (window.agOpenHiddenPoints) { document.getElementById('settings-modal').style.display='none'; window.agOpenHiddenPoints(); } else { restoreHiddenPoints(); }"><svg class="icon"><use href="#i-eye-off"/></svg> Zobrazit a obnovit skryté body</button>
+                    <hr style="border-color: var(--glass-border); width: 100%; margin: 16px 0;">
+                    <label>Záloha všech zakázek a nastavení</label>
+                    <button class="btn btn-secondary" style="margin-top: 8px;" onclick="exportAllData()"><svg class="icon"><use href="#i-download"/></svg> Stáhnout zálohu (vše)</button>
+                    <button class="btn btn-blue" style="margin-top: 10px;" onclick="document.getElementById('restore-file').click()"><svg class="icon"><use href="#i-upload"/></svg> Obnovit ze zálohy</button>
+                    <input type="file" id="restore-file" style="display:none" accept=".json,application/json" onchange="importAllData(event)">
+                    <hr style="border-color: var(--glass-border); width: 100%; margin: 16px 0;">
+                    <label>Úklid</label>
+                    <button class="btn btn-danger" style="margin-top: 8px;" onclick="clearAllPoints()"><svg class="icon"><use href="#i-trash"/></svg> Vymazat stáhnuté okolí z této zakázky</button>
                 </div>
             </div>
             <button class="btn btn-primary" style="margin-top: 20px;" onclick="saveSettings()">Uložit vše a Zavřít</button>
@@ -594,7 +598,7 @@
     </div>
 
     <div class="modal-overlay" id="manage-modal"><div class="modal-content"><h2 style="color: var(--accent); margin-top:0;">Mé body (S-JTSK)</h2><details class="exp-menu" style="margin-bottom: 12px;"><summary><svg class="icon"><use href="#i-upload"/></svg> Export / Import bodů</summary><div class="exp-opts"><div class="exp-fmt-wrap"><label style="display:flex;justify-content:space-between;align-items:center;margin:0 2px 6px;font-size:13px;">Formát exportu <b id="exp-fmt-name" style="color:var(--accent);">CSV (číslo;Y;X)</b></label><input type="range" id="exp-fmt" min="0" max="6" step="1" value="0" oninput="window.agExpFmt&&agExpFmt()" onfocus="window.agExpInit&&agExpInit()"><div style="font-size:11px;opacity:.6;text-align:center;margin-top:2px;">posuň a vyber formát</div><button class="btn" style="margin-top:10px;" onclick="window.agExpDo&&agExpDo()"><svg class="icon"><use href="#i-upload"/></svg> Exportovat</button></div><button class="btn btn-blue" onclick="document.getElementById('import-file').click()"><svg class="icon"><use href="#i-folder"/></svg> Import souboru</button><input type="file" id="import-file" style="display:none" accept=".json,.csv,.txt" onchange="importPoints(event)"><button class="btn btn-secondary" onclick="openShareQR()"><svg class="icon"><use href="#i-upload"/></svg> Sdílet body (QR)</button><button class="btn btn-blue" onclick="openScanQR()"><svg class="icon"><use href="#i-camera"/></svg> Načíst body z QR</button></div></details><div class="modal-body" id="manage-list"></div><button class="btn btn-secondary" style="margin-top: 15px;" onclick="closeManageModal()">Zpět</button></div></div>
-    <div class="modal-overlay" id="custom-modal-overlay"><div class="modal-content"><h3 id="custom-modal-title" style="color: var(--accent); margin-top:0;">Vložit vlastní bod</h3><div class="modal-body"><button class="btn btn-blue" onclick="fillAveragedGPS()"><svg class="icon"><use href="#i-locate"/></svg> Vyplnit z průměru GPS</button><button class="btn btn-secondary" onclick="startMapPick()"><svg class="icon"><use href="#i-map-pin"/></svg> Vybrat polohu z mapy</button><button class="btn btn-secondary" onclick="document.getElementById('ocr-file').click()"><svg class="icon"><use href="#i-camera"/></svg> Přečíst z fotky (OCR)</button><input type="file" id="ocr-file" style="display:none" accept="image/*" capture="environment" onchange="ocrFromPhoto(event)"><div id="ocr-note" style="display:none;"></div><div id="custom-acc-note" style="display:none;"></div><label>Název / Číslo bodu:</label><input type="text" id="custom-name" placeholder="Např. Mezník 1"><label>S-JTSK Y (v metrech):</label><input type="number" id="custom-y" step="any" placeholder="Např. 596956.46"><label>S-JTSK X (v metrech):</label><input type="number" id="custom-x" step="any" placeholder="Např. 1163343.34"><label>Výška Z / Bpv (v metrech) — volitelné:</label><input type="number" id="custom-z" step="any" placeholder="Např. 312.45"><label>Popis / poznámka — volitelné:</label><textarea id="custom-note" rows="2" placeholder="Stabilizace, popis místa, číslo náčrtu…"></textarea><button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('custom-photo').click()"><svg class="icon"><use href="#i-camera"/></svg> Přiložit fotku bodu</button><input type="file" id="custom-photo" style="display:none" accept="image/*" capture="environment" onchange="agNewPointPhoto(event)"><div id="custom-photo-note" style="display:none; margin-top:6px; font-size:12.5px; color:var(--accent-bright);"></div></div><div class="row-buttons"><button class="btn btn-secondary" onclick="closeCustomModal()">Zrušit</button><button class="btn btn-primary" onclick="saveCustomPoint()">Uložit</button></div></div></div>
+    <div class="modal-overlay" id="custom-modal-overlay"><div class="modal-content"><h3 id="custom-modal-title" style="color: var(--accent); margin-top:0;">Vložit vlastní bod</h3><div class="modal-body"><!-- pomocníci vyplnění jen pro NOVÝ bod — při úpravě je grafika.js skryje --><div id="custom-create-helpers"><button class="btn btn-blue" onclick="fillAveragedGPS()"><svg class="icon"><use href="#i-locate"/></svg> Vyplnit z průměru GPS</button><button class="btn btn-secondary" onclick="startMapPick()"><svg class="icon"><use href="#i-map-pin"/></svg> Vybrat polohu z mapy</button><button class="btn btn-secondary" onclick="document.getElementById('ocr-file').click()"><svg class="icon"><use href="#i-camera"/></svg> Přečíst z fotky (OCR)</button><input type="file" id="ocr-file" style="display:none" accept="image/*" capture="environment" onchange="ocrFromPhoto(event)"><div id="ocr-note" style="display:none;"></div></div><div id="custom-acc-note" style="display:none;"></div><label>Název / Číslo bodu:</label><input type="text" id="custom-name" placeholder="Např. Mezník 1"><label>S-JTSK Y (v metrech):</label><input type="number" id="custom-y" step="any" placeholder="Např. 596956.46"><label>S-JTSK X (v metrech):</label><input type="number" id="custom-x" step="any" placeholder="Např. 1163343.34"><label>Výška Z / Bpv (v metrech) — volitelné:</label><input type="number" id="custom-z" step="any" placeholder="Např. 312.45"><label>Popis / poznámka — volitelné:</label><textarea id="custom-note" rows="2" placeholder="Stabilizace, popis místa, číslo náčrtu…"></textarea><button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('custom-photo').click()"><svg class="icon"><use href="#i-camera"/></svg> Přiložit fotku bodu</button><input type="file" id="custom-photo" style="display:none" accept="image/*" capture="environment" onchange="agNewPointPhoto(event)"><div id="custom-photo-note" style="display:none; margin-top:6px; font-size:12.5px; color:var(--accent-bright);"></div></div><div class="row-buttons"><button class="btn btn-secondary" onclick="closeCustomModal()">Zrušit</button><button class="btn btn-primary" onclick="saveCustomPoint()">Uložit</button></div></div></div>
 
     <div class="modal-overlay" id="dict-modal">
         <div class="modal-content">
@@ -688,6 +692,7 @@
     <script defer src="js/parcela.js"></script>
     <!-- TERÉNNÍ NÁSTROJE (odpojitelné) — launcher field-tools.js MUSÍ být první, registrují se do něj -->
     <script defer src="js/field-tools.js"></script>
+    <script defer src="js/hidden-points.js"></script>
     <script defer src="js/orient-point.js"></script>
     <script defer src="js/offset-point.js"></script>
     <script defer src="js/brutal-gps.js"></script>

@@ -1047,21 +1047,35 @@ details[open] summary::after { content: " ⌄"; }
     font-size: 12px;
     color: var(--text-muted);
 }
-.cp-actions { display: flex; gap: 8px; }
+.cp-actions { display: flex; gap: 8px; justify-content: flex-end; }
+/* Akce u bodu: decentní ikonová tlačítka (dřív plné barevné obdélníky přes celou šířku) */
 .cp-btn {
-    flex: 1;
-    padding: 9px;
-    border: none;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 38px;
+    padding: 0;
+    border: 1px solid;
     border-radius: var(--r-sm);
-    color: #fff;
+    background: transparent;
     font-size: 14px;
-    font-weight: 600;
     cursor: pointer;
-    transition: filter 0.18s ease;
+    transition: filter 0.18s ease, background 0.18s ease;
 }
-.cp-btn:hover { filter: brightness(1.1); }
-.cp-btn-edit { background: var(--accent-blue); }
-.cp-btn-delete { background: var(--danger); }
+.cp-btn .icon { width: 17px; height: 17px; }
+.cp-btn:hover { filter: brightness(1.15); }
+.cp-btn-edit {
+    color: var(--accent-blue);
+    border-color: rgba(59, 130, 246, 0.45);
+    background: rgba(59, 130, 246, 0.10);
+}
+.cp-btn-delete {
+    color: var(--danger);
+    border-color: rgba(239, 68, 68, 0.40);
+    background: rgba(239, 68, 68, 0.08);
+}
 /* Hezčí přehled bodů: barevný proužek dle typu, poznámka a miniatura fotky u položky */
 .cp-item { border-left: 4px solid var(--color-custom, #34d399); position: relative; }
 .cp-item .cp-note {

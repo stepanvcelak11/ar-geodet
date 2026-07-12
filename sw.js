@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  — mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v144';
+const SHELL_CACHE = 'argeodet-shell-v145';
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -61,6 +61,7 @@ const ASSETS_TO_CACHE = [
     './js/ar-fusion.js',
     './js/theme-dark.js',
     './js/field-tools.js',
+    './js/hidden-points.js',
     './js/orient-point.js',
     './js/offset-point.js',
     './js/stakeout-line.js',

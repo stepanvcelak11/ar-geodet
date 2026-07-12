@@ -48,7 +48,8 @@
         'predpisy': { t: 'Předpisy & odchylky', h: '<p>Offline tahák z katastrálních předpisů: mezní odchylky, kódy kvality, lhůty a paragrafy. Kurátorovaný obsah s uvedeným zdrojem, hledej fulltextem.</p>' },
         'ref-calibration': { t: 'Kalibrace na ref. bod', h: '<p>Oprava GPS podle známého bodu: postav se na bod se známými souřadnicemi a appka spočítá posun, který pak průběžně aplikuje na tvoji polohu.</p><p>Pomáhá, když GPS systematicky „táhne" stranou. Posun zrušíš opětovnou kalibrací.</p>' },
         'sky-obstruction': { t: 'Predikce signálu', h: '<p>Skyplot pro aktuální polohu a čas: posuvníkem nastavíš elevační masku (kolik oblohy zaclání domy, stromy, svah) a appka ukáže, kolik družic zbude nad maskou a jak dobrá bude geometrie (PDOP).</p><p>Hodí se pro plánování měření v zástavbě nebo u lesa.</p>' },
-        'cadastre-area': { t: 'Stáhnout body z výřezu mapy', h: '<p>Hromadný import bodů bodových polí z ČÚZK: tahem po mapě vybereš obdélník a body v něm se nabídnou k přidání do zakázky.</p><p>Vyžaduje internet; stažené body pak fungují offline.</p>' }
+        'cadastre-area': { t: 'Stáhnout body z výřezu mapy', h: '<p>Hromadný import bodů bodových polí z ČÚZK: tahem po mapě vybereš obdélník a body v něm se nabídnou k přidání do zakázky.</p><p>Vyžaduje internet; stažené body pak fungují offline.</p>' },
+        'hidden-points': { t: 'Skryté body', h: '<p>Přehled bodů skrytých tlačítkem „Skrýt tento bod z AR". Klepnutím na <b>Zobrazit</b> vrátíš jednotlivý bod, nebo obnovíš všechny najednou.</p><p>Skrytí platí do restartu appky — po novém spuštění jsou body zase viditelné.</p>' }
     };
 
     // ---- styly ---------------------------------------------------------------------
