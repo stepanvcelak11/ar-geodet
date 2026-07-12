@@ -12,24 +12,29 @@
     var STYLE_ID = 'ag-vc-style';
     var BTN_ID = 'ag-view-wheel';
     var ORDER = ['ar', 'both', 'map'];
-    var LABEL = { ar: 'AR', both: 'SPLIT', map: 'MAPA' };
+    var LABEL = { ar: 'AR', both: 'Split', map: 'Mapa' };
+    var ICON = { ar: '#i-camera', both: '#i-grid', map: '#i-map-pin' };
 
     function injectStyles() {
         if (document.getElementById(STYLE_ID)) return;
         var st = document.createElement('style');
         st.id = STYLE_ID;
         st.textContent = [
-            '#' + BTN_ID + '{position:fixed;right:max(10px,env(safe-area-inset-right,0px));',
-            // nad atribucí mapy (© ČÚZK/OSM v rohu) a mimo ovládání mapy (right:74px)
-            '  bottom:calc(env(safe-area-inset-bottom,0px) + 64px);z-index:10500;',
-            '  width:50px;height:50px;border-radius:50%;border:1px solid var(--glass-border-strong,rgba(255,255,255,0.2));',
-            '  background:var(--glass-bg,rgba(24,28,33,0.84));backdrop-filter:blur(12px) saturate(140%);-webkit-backdrop-filter:blur(12px) saturate(140%);',
-            '  color:var(--text-color,#eceef2);font:700 10.5px/1 var(--font-display,system-ui),sans-serif;letter-spacing:.04em;',
-            '  display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow-1,0 1px 3px rgba(0,0,0,0.5));}',
+            // vzhled = chip z doku (.dock-btn): stejné sklo, rám, poloměr, ikona 21px + mini popisek
+            '#' + BTN_ID + '{position:fixed;right:max(4px,env(safe-area-inset-right,0px));',
+            '  bottom:max(4px,env(safe-area-inset-bottom,0px));z-index:10500;',
+            '  width:54px;padding:7px 2px;display:none;flex-direction:column;align-items:center;gap:3px;',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.10));border-radius:16px;',
+            '  background:var(--glass-bg,rgba(24,28,33,0.84));backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);',
+            '  color:var(--text-color,#eceef2);font:600 8.5px/1.15 var(--font-ui,system-ui),sans-serif;letter-spacing:.02em;',
+            '  cursor:pointer;box-shadow:var(--shadow-1,0 1px 3px rgba(0,0,0,0.5));}',
+            '#' + BTN_ID + ' .icon{width:21px;height:21px;color:var(--accent-bright,#3eb487);}',
+            '#' + BTN_ID + ' span{text-shadow:0 1px 3px rgba(0,0,0,0.9),0 0 2px rgba(0,0,0,0.7);}',
             'body.app-started #' + BTN_ID + '{display:flex;}',
-            'body.left-hand #' + BTN_ID + '{right:auto;left:max(10px,env(safe-area-inset-left,0px));}',
+            'body.left-hand #' + BTN_ID + '{right:auto;left:max(4px,env(safe-area-inset-left,0px));}',
             '#' + BTN_ID + ':active{transform:scale(0.93);}',
-            'body.ag-glove #' + BTN_ID + '{width:60px;height:60px;font-size:12px;}',
+            'body.ag-glove #' + BTN_ID + '{width:62px;font-size:10px;}',
+            'body.ag-glove #' + BTN_ID + ' .icon{width:25px;height:25px;}',
             'body.outdoor-mode #' + BTN_ID + '{background:#0a0e1a;border-color:rgba(255,255,255,0.85);}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
@@ -41,7 +46,15 @@
     // segment v „Více" i radia v Nastavení. Volá se i z grafika.js (fallback kamery).
     function sync() {
         var b = document.getElementById(BTN_ID);
-        if (b) b.textContent = LABEL[cur()];
+        if (b) {
+            var u = b.querySelector('use'), s = b.querySelector('span');
+            if (u) u.setAttribute('href', ICON[cur()]);
+            if (s) s.textContent = LABEL[cur()];
+            // vybledá s ostatním HUD po nečinnosti — zrcadlí .ui-faded z tlačítka Menu
+            // (třídu řídí resetInactivityTimer v grafika.js, vzor js/compass-stability.js)
+            var mt = document.getElementById('menu-toggle-btn');
+            b.classList.toggle('ui-faded', !!(mt && mt.classList.contains('ui-faded')));
+        }
         try {
             document.querySelectorAll('#view-seg .seg-btn').forEach(function (x) {
                 x.classList.toggle('active', x.getAttribute('data-view') === cur());
@@ -66,10 +79,20 @@
         var b = document.createElement('button');
         b.id = BTN_ID; b.type = 'button';
         b.setAttribute('aria-label', 'Přepnout zobrazení (AR / Split / Mapa)');
+        b.innerHTML = '<svg class="icon"><use href="' + ICON.both + '"/></svg><span></span>';
         b.addEventListener('click', next);
         document.body.appendChild(b);
         sync();
     }
+
+    // probuzení hned při dotyku (stejné události jako resetInactivityTimer v grafika.js);
+    // zpětné VYblednutí zajistí zrcadlení v tick() — drobné zpoždění tam nevadí
+    ['touchstart', 'click', 'mousemove'].forEach(function (evt) {
+        document.addEventListener(evt, function () {
+            var b = document.getElementById(BTN_ID);
+            if (b) b.classList.remove('ui-faded');
+        }, { passive: true });
+    });
 
     function tick() { try { injectStyles(); ensureBtn(); sync(); } catch (e) {} }
     function init() {
