@@ -38,6 +38,8 @@
 /* ---- zaměřovací režim (kříž přes kameru) ---------------------------------- */
 #agcal-aim { position: fixed; inset: 0; z-index: 100050; display: none; pointer-events: none; }
 #agcal-aim.on { display: block; }
+/* iOS standalone: fixed inset:0 nedosáhne na spodek displeje (viz .ag-ios-fs v style.css) */
+html.ag-ios-fs #agcal-aim { height: var(--app-vh, 100%); bottom: auto; }
 #agcal-aim-bar {
     position: absolute; top: max(16px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
     max-width: 90vw; background: rgba(8, 12, 16, 0.82); color: #fff;

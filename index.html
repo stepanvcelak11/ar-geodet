@@ -11,11 +11,26 @@
         function setH() {
             try {
                 var d = document.documentElement;
-                // Tělo appky teď drží displej přes inset:0 (CSS) — výšku NEpřepisujeme
-                // (přepis na innerHeight nechával dole černý pruh). Pro celoobrazovkové
-                // modály dáme --app-vh = skutečná výška kořene (po inset:0 = celý displej),
-                // s fallbackem na innerHeight.
-                var h = d.clientHeight || window.innerHeight; if (!h) return;
+                var h = d.clientHeight || window.innerHeight;
+                // iOS standalone (z plochy): layout viewport je o stavovou lištu NIŽŠÍ než
+                // displej (např. 793 vs 852 px), ale WebView kreslí celou plochu. Prvky
+                // ukotvené dole (dok, mapa) proto končily ~59 px nad spodní hranou a zbytek
+                // vyplňovalo tmavé pozadí = "černý pruh" (ověřeno test-fullscreen.html).
+                // Oprava: <html>/<body> natáhnout natvrdo na plnou výšku displeje; absolutně
+                // pozicované prvky se svezou s <body>, fixed overlaye řeší CSS (.ag-ios-fs).
+                if (window.navigator.standalone === true) {
+                    var land = window.matchMedia('(orientation: landscape)').matches;
+                    var full = land ? Math.min(screen.width, screen.height)
+                                    : Math.max(screen.width, screen.height);
+                    var gap = full - window.innerHeight;
+                    if (gap > 0 && gap <= 120) { // ne iPad Split View apod.
+                        h = full;
+                        d.style.height = full + 'px';
+                        if (document.body) document.body.style.height = full + 'px';
+                        d.classList.add('ag-ios-fs');
+                    }
+                }
+                if (!h) return;
                 d.style.setProperty('--app-vh', h + 'px');
             } catch (e) {}
         }

@@ -235,6 +235,20 @@ html, body {
 /* Skutečnou výšku <html>/<body> dopočítává JS z window.innerHeight (viz inline skript
    v <head>) — kvůli iOS, kde 100dvh občas nedosáhne až na spodní hranu (černý pruh). */
 
+/* iOS standalone (třídu .ag-ios-fs přidává inline skript v <head>): position:fixed se
+   kotví ke zkrácenému layout viewportu (bez stavové lišty, např. 793 z 852 px), takže
+   celoplošné fixed overlaye končily ~59 px nad spodní hranou. Pevná výška --app-vh
+   (= plná výška displeje z JS) je protáhne až dolů. Absolutní prvky (dok, ovládání
+   mapy) to nepotřebují — kotví se k <body>, který už plnou výšku má. */
+html.ag-ios-fs #welcome-screen,
+html.ag-ios-fs #tut-root,
+html.ag-ios-fs .tut-blocker,
+html.ag-ios-fs #edge-glow,
+html.ag-ios-fs #side-menu {
+    height: var(--app-vh, 100%);
+    bottom: auto;
+}
+
 body {
     margin: 0;
     padding: 0;

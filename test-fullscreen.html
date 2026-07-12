@@ -20,8 +20,11 @@
             color: #fff;
             font-family: -apple-system, system-ui, sans-serif;
         }
+        /* absolute (ne fixed): fixed se na iOS standalone kotví ke zkrácenému layout
+           viewportu (bez stavové lišty); absolute se kotví k <body>, kterému JS níže
+           nastaví plnou výšku displeje. */
         .edge {
-            position: fixed;
+            position: absolute;
             left: 0; right: 0;
             height: 26px;
             display: flex;
@@ -36,7 +39,7 @@
         #edge-bottom { bottom: 0; background: #dc2626; }
         /* žlutá linka = kde končí bezpečná zóna (nad home indikátorem) */
         #safe-line {
-            position: fixed;
+            position: absolute;
             left: 0; right: 0;
             bottom: env(safe-area-inset-bottom, 0px);
             height: 3px;
@@ -44,7 +47,7 @@
             z-index: 11;
         }
         #panel {
-            position: fixed;
+            position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             width: min(92vw, 420px);
@@ -68,7 +71,7 @@
         #verdict.bad { background: #dc2626; }
         /* skrytý měřič safe-area (env() nejde číst přímo z JS) */
         #sa-probe {
-            position: fixed;
+            position: absolute;
             visibility: hidden;
             padding-top: env(safe-area-inset-top, 0px);
             padding-right: env(safe-area-inset-right, 0px);
@@ -78,18 +81,19 @@
     </style>
 </head>
 <body>
-    <div id="edge-top">▲ HORNÍ OKRAJ WEBU ▲</div>
-    <div id="edge-bottom">▼ SPODNÍ OKRAJ WEBU ▼</div>
+    <div id="edge-top" class="edge">▲ HORNÍ OKRAJ WEBU ▲</div>
+    <div id="edge-bottom" class="edge">▼ SPODNÍ OKRAJ WEBU ▼</div>
     <div id="safe-line"></div>
     <div id="sa-probe"></div>
 
     <div id="panel">
-        <div>verze testu: <b>3</b></div>
+        <div>verze testu: <b>4</b></div>
         <div>display-mode: <b id="d-mode">?</b></div>
         <div>navigator.standalone: <b id="d-standalone">?</b></div>
         <div>okno: <b id="d-inner">?</b></div>
         <div>displej: <b id="d-screen">?</b></div>
         <div>visualViewport: <b id="d-vv">?</b></div>
+        <div>tělo stránky: <b id="d-body">?</b></div>
         <div>safe-area t/r/b/l: <b id="d-safe">?</b></div>
         <div id="verdict">měřím…</div>
     </div>
@@ -97,7 +101,28 @@
     <script>
     (function () {
         function txt(id, v) { document.getElementById(id).textContent = v; }
+
+        // OPRAVA: iOS ve standalone hlásí layout viewport BEZ stavové lišty
+        // (např. 793 px z 852), ale WebView kreslí celý displej. Prvky se tak
+        // kotvily 59 px nad spodní hranu. Řešení: <html>/<body> natáhnout
+        // natvrdo na plnou výšku displeje.
+        function fullHeight() {
+            var land = window.matchMedia('(orientation: landscape)').matches;
+            return land ? Math.min(screen.width, screen.height)
+                        : Math.max(screen.width, screen.height);
+        }
+        function applyFix() {
+            if (window.navigator.standalone !== true) return;
+            var full = fullHeight();
+            var gap = full - window.innerHeight;
+            if (gap > 0 && gap <= 120) { // ne iPad Split View apod.
+                document.documentElement.style.height = full + 'px';
+                document.body.style.height = full + 'px';
+            }
+        }
+
         function update() {
+            applyFix();
             var mode = 'browser';
             ['fullscreen', 'standalone', 'minimal-ui'].forEach(function (m) {
                 if (window.matchMedia('(display-mode: ' + m + ')').matches) mode = m;
@@ -109,23 +134,27 @@
             txt('d-vv', window.visualViewport
                 ? Math.round(window.visualViewport.width) + ' × ' + Math.round(window.visualViewport.height) + ' px'
                 : 'není');
+            txt('d-body', document.body.clientWidth + ' × ' + document.body.clientHeight + ' px');
 
             var probe = getComputedStyle(document.getElementById('sa-probe'));
             txt('d-safe',
                 parseInt(probe.paddingTop) + ' / ' + parseInt(probe.paddingRight) + ' / ' +
                 parseInt(probe.paddingBottom) + ' / ' + parseInt(probe.paddingLeft) + ' px');
 
-            var missing = screen.height - window.innerHeight;
+            // Rozhoduje výška TĚLA stránky vs. plná výška displeje (innerHeight je na
+            // iOS standalone o stavovou lištu menší, i když se kreslí celý displej).
+            var full = fullHeight();
+            var missing = full - document.body.clientHeight;
             var v = document.getElementById('verdict');
-            if (mode === 'browser') {
+            if (mode === 'browser' && window.navigator.standalone !== true) {
                 v.className = '';
                 v.textContent = 'Běžím v prohlížeči — přidej mě na plochu a otevři z ikony.';
             } else if (missing <= 1) {
                 v.className = 'ok';
-                v.textContent = '✅ Web sahá až po okraj displeje (' + window.innerHeight + '/' + screen.height + ')';
+                v.textContent = '✅ Tělo stránky pokrývá celý displej (' + document.body.clientHeight + '/' + full + '). Červený pruh musí ležet na spodní hraně.';
             } else {
                 v.className = 'bad';
-                v.textContent = '❌ Webu chybí ' + missing + ' px na výšku (' + window.innerHeight + '/' + screen.height + ') — pruh dělá systém, ne stránka.';
+                v.textContent = '❌ Tělu stránky chybí ' + missing + ' px (' + document.body.clientHeight + '/' + full + ').';
             }
         }
         update();
