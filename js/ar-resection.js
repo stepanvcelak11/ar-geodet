@@ -70,7 +70,8 @@
         var n = shots.length;
         if (n < 2) return null;
         var lat0 = origin.lat, lng0 = origin.lng;
-        var mLat = 111320, mLng = 111320 * Math.cos(lat0 * D2R);
+        var _m = (typeof GeoCore !== 'undefined' && GeoCore.metersPerDeg) ? GeoCore.metersPerDeg(lat0) : { lat: 111320, lng: 111320 * Math.cos(lat0 * D2R) };
+        var mLat = _m.lat, mLng = _m.lng;
         var T = shots.map(function (s) {
             return { E: (s.lng - lng0) * mLng, N: (s.lat - lat0) * mLat, az: s.az * D2R, name: s.name };
         });

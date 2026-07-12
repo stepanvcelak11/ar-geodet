@@ -73,7 +73,8 @@
     function solveMulti(stations) {
         var S0 = ptById(stations[0].stId); if (!S0) return null;
         var lat0 = S0.lat, lng0 = S0.lng;
-        var mLat = 111320, mLng = 111320 * Math.cos(lat0 * D2R);
+        var _m = (typeof GeoCore !== 'undefined' && GeoCore.metersPerDeg) ? GeoCore.metersPerDeg(lat0) : { lat: 111320, lng: 111320 * Math.cos(lat0 * D2R) };
+        var mLat = _m.lat, mLng = _m.lng;
 
         var rays = [];
         for (var i = 0; i < stations.length; i++) {

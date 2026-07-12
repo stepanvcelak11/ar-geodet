@@ -20,14 +20,18 @@
     function num(id) { var el = document.getElementById(id); var v = el ? parseFloat(String(el.value).replace(',', '.')) : NaN; return isFinite(v) ? v : NaN; }
     function ptById(id) { if (typeof arPoints === 'undefined') return null; return arPoints.find(function (q) { return q.id === id; }) || (typeof persistentCustomPoints !== 'undefined' ? persistentCustomPoints.find(function (q) { return q.id === id; }) : null) || null; }
 
-    // lokální rovinné metry kolem referenčního bodu (lat0,lng0)
+    // lokální rovinné metry kolem referenčního bodu (lat0,lng0);
+    // poloměry křivosti elipsoidu (GeoCore) místo konstanty 111320 (~0,15 % chyba)
+    function _mpd(lat0) {
+        return (typeof GeoCore !== 'undefined' && GeoCore.metersPerDeg) ? GeoCore.metersPerDeg(lat0) : { lat: 111320, lng: 111320 * Math.cos(lat0 * Math.PI / 180) };
+    }
     function enu(lat0, lng0, lat, lng) {
-        var mLat = 111320, mLng = 111320 * Math.cos(lat0 * Math.PI / 180);
-        return { e: (lng - lng0) * mLng, n: (lat - lat0) * mLat };
+        var m = _mpd(lat0);
+        return { e: (lng - lng0) * m.lng, n: (lat - lat0) * m.lat };
     }
     function fromEnu(lat0, lng0, e, n) {
-        var mLat = 111320, mLng = 111320 * Math.cos(lat0 * Math.PI / 180);
-        return { lat: lat0 + n / mLat, lng: lng0 + e / mLng };
+        var m = _mpd(lat0);
+        return { lat: lat0 + n / m.lat, lng: lng0 + e / m.lng };
     }
 
     function geometry() {
