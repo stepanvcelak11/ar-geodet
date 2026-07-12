@@ -41,14 +41,14 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f1216">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <!-- EDGE-TO-EDGE (ověřeno test-fullscreen.html v7): black-translucent SMÍ být
-         JEN s kořenem stránky v normálním toku! S position:fixed/overflow:hidden
-         na <html>/<body> hlásí iOS standalone viewport o stavovou lištu MENŠÍ
-         (např. 793 z 852) a prvky pod hranicí OŘEZÁVÁ = nespravitelný pruh dole.
-         S kořenem bez fixace je viewport plných 852 → obsah pod hodinami nahoře
-         i na spodní hraně. Scroll jistí zámek v inline skriptu níže. Změna meta
-         se projeví až po novém PŘIDÁNÍ NA PLOCHU (iOS si ji ukládá při instalaci). -->
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- FINÁLNÍ ROZHODNUTÍ (na přání uživatele): NEPRŮHLEDNÁ černá lišta = varianta B.
+         Viewport pak končí přesně na spodní hraně displeje → spodek edge-to-edge,
+         nahoře systémová lišta (jako nativní appky). black-translucent sice v
+         izolovaném testu (test-fullscreen.html v7, kořen v normálním toku) dával
+         plný viewport, ale v plné appce spodní pruh přetrvával — NEVRACET bez
+         nového ověření testem. Změna meta se projeví až po novém PŘIDÁNÍ NA
+         PLOCHU (iOS si ji ukládá při instalaci ikony). -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Geodet">
     <link rel="icon" type="image/svg+xml" href="icon.svg">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -61,7 +61,7 @@
     <!-- style.css s verzí v adrese: kořenové styly NESMÍ přijít ze staré cache
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
-    <link rel="stylesheet" href="css/style.css?v=163">
+    <link rel="stylesheet" href="css/style.css?v=164">
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
     <link rel="stylesheet" href="css/vylepseni.css">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->

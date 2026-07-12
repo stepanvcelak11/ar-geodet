@@ -2157,18 +2157,33 @@ body.left-hand #dock .dock-btn:nth-child(3) { transform: translateX(var(--dock-a
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
-    left: 50% !important;
-    right: auto !important;
-    transform: translateX(-50%);
+    justify-content: center;
+    /* Řada NECHÁVÁ pravý dolní roh volný pro kolečko přepínání zobrazení
+       (js/view-cycle.js: 54 px + 16 px od kraje) — dřív byla vystředěná přes
+       celou šířku a křížek zavření končil schovaný POD kolečkem. */
+    left: max(10px, env(safe-area-inset-left)) !important;
+    right: calc(max(16px, env(safe-area-inset-right)) + 66px) !important;
+    transform: none;
     bottom: max(10px, env(safe-area-inset-bottom)) !important;
-    gap: 10px;
+    gap: 8px;
+    flex-wrap: wrap; /* kdyby se řada nevešla (rukavice…), zalomí se nad sebe místo schování pod kolečko */
 }
+/* V režimu levé ruky je kolečko vlevo → volný roh nechat na levé straně */
+body.left-hand #map-controls.expanded {
+    left: calc(max(16px, env(safe-area-inset-left)) + 66px) !important;
+    right: max(10px, env(safe-area-inset-right)) !important;
+}
+/* Drobnější tlačítka, ať se řada (5 nástrojů + křížek) vejde i na užší displej */
+#map-controls.expanded .map-ctrl-btn { width: 40px; height: 40px; }
 #map-controls.expanded #map-ctrl-stack {
     flex-direction: row !important;
     opacity: 1 !important;
     transform: none !important;
     pointer-events: auto !important;
     max-width: none;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 #map-ctrl-toggle { display: none !important; }
 /* Zavření nástrojů mapy přímo z hlavní obrazovky (bez cesty přes „Více") */
