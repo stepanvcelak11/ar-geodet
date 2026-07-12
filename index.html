@@ -212,13 +212,11 @@
             <button class="menu-btn" onclick="saveForOffline(); toggleMenu();"><svg class="icon"><use href="#i-download"/></svg> Uložit pro offline</button>
             <button class="menu-btn" onclick="startTutorial(); toggleMenu();"><svg class="icon"><use href="#i-bulb"/></svg> Návod a prohlídka</button>
             <button class="menu-btn" onclick="openAbout(); toggleMenu();"><svg class="icon"><use href="#i-file-text"/></svg> O aplikaci</button>
-            <button class="menu-btn" onclick="toggleMapControls(); toggleMenu();"><svg class="icon"><use href="#i-sliders"/></svg> Nástroje mapy (vrstvy)</button>
-            <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
-            <label class="menu-toggle-row"><input type="checkbox" id="tgl-info" checked onchange="toggleHudElements()"> Info panel (přesnost, body v AR, družice)</label>
-            <label class="menu-toggle-row"><input type="checkbox" id="tgl-compass" checked onchange="toggleHudElements()"> Kompas (Azimut)</label>
-            <label class="menu-toggle-row"><input type="checkbox" id="tgl-gpsavg" checked onchange="toggleHudElements()"> Průměrování GPS na místě</label>
+            <!-- Přepínače HUD prvků (info panel, azimut, průměrování GPS) přesunuty do Nastavení → Vzhled;
+                 nástroje (Předpisy, Predikce signálu, Kalibrace na ref. bod, Stáhnout body) do sekce Nástroje. -->
             <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
             <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.07em; color: var(--text-muted); margin: 2px 2px 4px;">Zobrazení</div>
+            <button class="menu-btn" onclick="toggleMapControls(); toggleMenu();"><svg class="icon"><use href="#i-sliders"/></svg> Nástroje mapy (vrstvy)</button>
             <!-- Přepínač zobrazení (AR / Split / Mapa) — přesunut z horní lišty sem do „Více" -->
             <div id="view-seg">
                 <button class="seg-btn" data-view="ar" onclick="setView('ar', this)">AR</button>
@@ -415,6 +413,14 @@
                         <div class="st-slider-head"><span class="st-lab">Prohnutí ovládání<small>jak výrazný je oblouček boční lišty</small></span><span class="st-val"><span id="v-dock-arc-val">13</span> px</span></div>
                         <input type="range" id="v-dock-arc" min="0" max="32" step="2" value="13" oninput="document.getElementById('v-dock-arc-val').innerText = this.value">
                     </div>
+                    <!-- Prvky na obrazovce — přesunuto z menu „Více" (ids tgl-* čte toggleHudElements v grafika.js) -->
+                    <label style="margin-top:15px;">Prvky na obrazovce</label>
+                    <div class="st-row"><span class="st-lab">Info panel<small>přesnost, body v AR, družice</small></span>
+                        <label class="st-sw"><input type="checkbox" id="tgl-info" checked onchange="toggleHudElements()"><span class="st-sw-face"></span></label></div>
+                    <div class="st-row"><span class="st-lab">Kompas (Azimut)</span>
+                        <label class="st-sw"><input type="checkbox" id="tgl-compass" checked onchange="toggleHudElements()"><span class="st-sw-face"></span></label></div>
+                    <div class="st-row"><span class="st-lab">Průměrování GPS na místě</span>
+                        <label class="st-sw"><input type="checkbox" id="tgl-gpsavg" checked onchange="toggleHudElements()"><span class="st-sw-face"></span></label></div>
                     <details class="adv"><summary><svg class="icon"><use href="#i-sliders"/></svg> Pokročilé — barvy bodů, štítky, šipka, HUD</summary>
                         <div class="adv-body">
                             <div class="st-row" style="border-bottom:none;"><span class="st-lab">Adaptivní sklo dle jasu<small>ztmaví panely na světlé scéně</small></span>

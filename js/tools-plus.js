@@ -43,7 +43,12 @@
         'track-log': { t: 'Stopa trasy', h: '<p>Záznam prošlé trasy (GPS stopa) do mapy: obchůzka hranice, zaměření cesty. Stopu jde uložit a exportovat (GPX/KML).</p>' },
         'urovnani': { t: 'Urovnání stativu', h: '<p>Chytrá libela: telefon položený na stativu/přístroji ukáže, kterou nohou či šroubem a kam točit, aby byl přístroj v rovině.</p>' },
         'postupy': { t: 'Postupy měření', h: '<p>Tahák krok za krokem pro běžné metody: rajón, volné stanovisko, tachymetrie, polygonový pořad, technická nivelace, GNSS-RTK…</p><p>Vychází z oficiálních předpisů (Návod pro obnovu katastrálního operátu, katastrální vyhláška). U limitů je vždy uveden zdroj.</p>' },
-        'zapisnik': { t: 'Zápisníky', h: '<p>Digitální zápisník místo papíru: <b>technická nivelace</b> (čtení zpět/vpřed → převýšení, výšky, uzávěr) a <b>vodorovné směry</b> (skupiny → redukce, průměry).</p><p>Výpočty běží průběžně (lze vypnout v hlavičce zápisníku). Data se ukládají per zakázka a jdou exportovat.</p>' }
+        'zapisnik': { t: 'Zápisníky', h: '<p>Digitální zápisník místo papíru: <b>technická nivelace</b> (čtení zpět/vpřed → převýšení, výšky, uzávěr) a <b>vodorovné směry</b> (skupiny → redukce, průměry).</p><p>Výpočty běží průběžně (lze vypnout v hlavičce zápisníku). Data se ukládají per zakázka a jdou exportovat.</p>' },
+        // nástroje přesunuté z menu „Více" do sekce Nástroje
+        'predpisy': { t: 'Předpisy & odchylky', h: '<p>Offline tahák z katastrálních předpisů: mezní odchylky, kódy kvality, lhůty a paragrafy. Kurátorovaný obsah s uvedeným zdrojem, hledej fulltextem.</p>' },
+        'ref-calibration': { t: 'Kalibrace na ref. bod', h: '<p>Oprava GPS podle známého bodu: postav se na bod se známými souřadnicemi a appka spočítá posun, který pak průběžně aplikuje na tvoji polohu.</p><p>Pomáhá, když GPS systematicky „táhne" stranou. Posun zrušíš opětovnou kalibrací.</p>' },
+        'sky-obstruction': { t: 'Predikce signálu', h: '<p>Skyplot pro aktuální polohu a čas: posuvníkem nastavíš elevační masku (kolik oblohy zaclání domy, stromy, svah) a appka ukáže, kolik družic zbude nad maskou a jak dobrá bude geometrie (PDOP).</p><p>Hodí se pro plánování měření v zástavbě nebo u lesa.</p>' },
+        'cadastre-area': { t: 'Stáhnout body z výřezu mapy', h: '<p>Hromadný import bodů bodových polí z ČÚZK: tahem po mapě vybereš obdélník a body v něm se nabídnou k přidání do zakázky.</p><p>Vyžaduje internet; stažené body pak fungují offline.</p>' }
     };
 
     // ---- styly ---------------------------------------------------------------------

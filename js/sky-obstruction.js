@@ -258,6 +258,13 @@
     // Injekce tlačítek (idempotentní)
     // --------------------------------------------------------------------------------
     function injectMenuButton() {
+        // Primárně dlaždice v „Nástroje" (kategorie Katastr a data, u GNSS satelitů);
+        // boční menu „Více" je jen nouzový fallback, když field-tools.js chybí.
+        if (typeof window.agRegisterFieldTool === 'function') {
+            window.agRegisterFieldTool({ id: 'sky-obstruction', label: 'Predikce signálu', icon: '<svg class="icon"><use href="#i-satellite"/></svg>', cat: 'Katastr a data', onClick: openModal, order: 30 });
+            var stale = document.getElementById(BTN_ID); if (stale) stale.remove();
+            return;
+        }
         var menu = document.getElementById('side-menu');
         if (!menu || document.getElementById(BTN_ID)) return;
         // Vkládáme do scrollovací části, ať položka scrolluje a dole zůstává pevné jen „Zavřít".
