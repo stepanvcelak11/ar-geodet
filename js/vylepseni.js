@@ -498,6 +498,8 @@
         btn.innerHTML = '<svg class="icon"><use href="#i-crosshair"/></svg> Průvodce kalibrací AR (sever + záběr)';
         btn.addEventListener('click', function () {
             const m = document.getElementById('settings-modal'); if (m) m.style.display = 'none';
+            // kompas je nyní samostatný modál — před AR kalibrací (potřebuje vidět kameru) ho zavřít
+            const cm = document.getElementById('compass-modal'); if (cm) cm.style.display = 'none';
             openCalib();
         });
         body.insertBefore(btn, body.firstChild);

@@ -28,7 +28,10 @@
         function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); } function toggleHudElements() { document.getElementById('info').style.display = document.getElementById('tgl-info').checked ? 'block' : 'none'; document.getElementById('compass-debug').style.display = document.getElementById('tgl-compass').checked ? 'block' : 'none'; updateGpsAvgPanel(); }
         function fixAppLayout() { setTimeout(() => { window.scrollTo(0, 0); document.body.scrollTop = 0; }, 100); } document.querySelectorAll('input').forEach(input => { input.addEventListener('blur', fixAppLayout); });
         
-        function openKatastr() { 
+        // DRONOVÉ ZÓNY: oficiální mapa omezení letového provozu ŘLP ČR (DronView).
+        // Info pro létání s dronem na zakázce — otevírá se v prohlížeči (data ŘLP nejde vkládat do mapy).
+        function openDronView() { window.open('https://dronview.rlp.cz/', '_blank'); }
+        function openKatastr() {
             if(!userLat || !userLng) return alert("Čekám na GPS pozici..."); 
             let src = visSettings.katastrSource || 'mapycz';
             let url = `https://mapy.cz/katastralni?x=${userLng}&y=${userLat}&z=19`;
@@ -37,15 +40,15 @@
             window.open(url, '_blank'); 
         }
 
-        // Kompas je nyní ZÁLOŽKA v Nastavení (stejně jako Vzhled/AR/Data) — ne samostatný modál.
-        function openCompassModal() { openSettings(); showCompassTab(); }
-        function showCompassTab() {
-            document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('#settings-modal .tab-btn').forEach(b => b.classList.remove('active'));
-            const tab = document.getElementById('tab-kompas'); if (tab) tab.classList.add('active');
-            const btn = document.getElementById('tabbtn-kompas'); if (btn) btn.classList.add('active');
+        // Kompas je SAMOSTATNÝ modál (#compass-modal) — klik na Azimut v HUD ani dlaždice
+        // v Nastavení už neskáčou do záložek Nastavení (na přání uživatele).
+        function openCompassModal() {
+            const m = document.getElementById('compass-modal'); if (!m) return;
+            m.style.display = 'flex';
             updateCompassButtons(); updateHeadingOffsetVal();
         }
+        // zpětná kompatibilita pro starší volání
+        function showCompassTab() { openCompassModal(); }
         function openGpsAvgModal() { const m = document.getElementById('gpsavg-modal'); if (!m) return; m.style.display = 'flex'; updateGpsAvgPanel(); }
         // Korekce severu pro AR i mapu (na rozdil od "uzivatelske nuly", ktera meni jen zobrazene cislo azimutu).
         function updateHeadingOffsetVal() { const el = document.getElementById('heading-offset-val'); if (el) { let v = ((userHeadingOffset + 180) % 360 + 360) % 360 - 180; el.innerText = Math.round(v); } }
@@ -298,7 +301,22 @@
         }
         function openManageModal() { document.getElementById('settings-modal').style.display = 'none'; renderManageList(); document.getElementById('manage-modal').style.display = 'flex'; }
         function closeManageModal() { document.getElementById('manage-modal').style.display = 'none'; fixAppLayout(); }
-        function renderManageList() { const listDiv = document.getElementById('manage-list'); listDiv.innerHTML = ''; if (persistentCustomPoints.length === 0) { listDiv.innerHTML = '<p style="text-align:center;">Žádné body v této zakázce.</p>'; } else persistentCustomPoints.forEach(pt => { let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); let dispY = Math.abs(sjtsk[0]).toFixed(2); let dispX = Math.abs(sjtsk[1]).toFixed(2); const item = document.createElement('div'); item.className = 'cp-item'; item.innerHTML = ` <div class="cp-title">${pt.name}</div> <div class="cp-coords">Y: ${dispY}<br>X: ${dispX}${pt.vyska != null ? '<br>Z: '+Number(pt.vyska).toFixed(2)+' m' : ''}${pt.acc != null ? '<br>⌀ ±'+pt.acc+' m' : ''}</div> <div class="cp-actions"> <button class="cp-btn cp-btn-edit" onclick="editCustomPoint('${pt.id}')"><svg class="icon"><use href="#i-edit"/></svg></button> <button class="cp-btn cp-btn-delete" onclick="deleteCustomPoint('${pt.id}')"><svg class="icon"><use href="#i-trash"/></svg></button></div>`; listDiv.appendChild(item); }); renderLinesList(listDiv); }
+        function renderManageList() { const listDiv = document.getElementById('manage-list'); listDiv.innerHTML = ''; if (persistentCustomPoints.length === 0) { listDiv.innerHTML = '<p style="text-align:center;">Žádné body v této zakázce.</p>'; } else persistentCustomPoints.forEach(pt => { let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); let dispY = Math.abs(sjtsk[0]).toFixed(2); let dispX = Math.abs(sjtsk[1]).toFixed(2); const item = document.createElement('div'); item.className = 'cp-item'; item.innerHTML = ` <div class="cp-title">${pt.name}</div> <div class="cp-coords">Y: ${dispY}<br>X: ${dispX}${pt.vyska != null ? '<br>Z: '+Number(pt.vyska).toFixed(2)+' m' : ''}${pt.acc != null ? '<br>⌀ ±'+pt.acc+' m' : ''}</div> <div class="cp-actions"> <button class="cp-btn cp-btn-edit" onclick="editCustomPoint('${pt.id}')"><svg class="icon"><use href="#i-edit"/></svg></button> <button class="cp-btn cp-btn-delete" onclick="deleteCustomPoint('${pt.id}')"><svg class="icon"><use href="#i-trash"/></svg></button></div>`; if (typeof decoratePointItem === 'function') { try { decoratePointItem(item, pt); } catch (e) {} } listDiv.appendChild(item); }); renderHiddenPointsRow(listDiv); renderLinesList(listDiv); }
+        // Skryte body: dohledatelne primo v sekci Body (drive jen hluboko v Nastaveni -> Udrzba)
+        function renderHiddenPointsRow(listDiv) {
+            const n = arPoints.filter(p => p.hidden).length;
+            if (!n) return;
+            const row = document.createElement('div');
+            row.className = 'cp-item hidden-pts-row';
+            row.innerHTML = `<div class="cp-title" style="color:var(--text-muted);"><svg class="icon" style="vertical-align:-0.2em;"><use href="#i-eye-off"/></svg> Skryté body: ${n}</div><div class="cp-coords">Body skryté z AR a mapy tlačítkem „Skrýt tento bod".</div>`;
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-secondary';
+            btn.style.cssText = 'margin-top:8px; padding:10px;';
+            btn.innerHTML = '<svg class="icon"><use href="#i-rotate-ccw"/></svg> Obnovit skryté body';
+            btn.onclick = function () { restoreHiddenPoints(); };
+            row.appendChild(btn);
+            listDiv.appendChild(row);
+        }
         // Spojnice ve sprave bodu: vlastni sbalena kolonka — NEJSOU to ulozene body, jen cary mezi nimi
         let _linesBoxOpen = false;
         function renderLinesList(listDiv) {
@@ -327,7 +345,19 @@
             listDiv.appendChild(det);
         }
         function deleteLineFromList(id) { if (!confirm('Smazat tuto spojnici?')) return; _linesBoxOpen = true; deleteLine(id); renderManageList(); }
-        function editCustomPoint(id) { const pt = persistentCustomPoints.find(p => p.id === id); if(!pt) return; editingCustomPointId = id; pendingPointAccuracy = null; { const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none'; } document.getElementById('custom-modal-title').innerText = "Upravit bod"; document.getElementById('custom-name').value = pt.name; let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); document.getElementById('custom-y').value = Math.abs(sjtsk[0]).toFixed(2); document.getElementById('custom-x').value = Math.abs(sjtsk[1]).toFixed(2); { const _z = document.getElementById('custom-z'); if (_z) _z.value = (pt.vyska != null ? pt.vyska : ''); } document.getElementById('manage-modal').style.display = 'none'; document.getElementById('custom-modal-overlay').style.display = 'flex'; }
+        // reset polí „popis + fotka" ve formuláři bodu; u editace předvyplní uloženou poznámku
+        function resetNewPointExtras(loadNoteForId) {
+            window._agNewPtPhoto = null;
+            const pv = document.getElementById('custom-photo-note'); if (pv) { pv.style.display = 'none'; pv.innerHTML = ''; }
+            const ta = document.getElementById('custom-note');
+            if (ta) {
+                ta.value = '';
+                if (loadNoteForId && typeof loadPointDoc === 'function') {
+                    loadPointDoc(loadNoteForId).then(doc => { if (doc && doc.note && editingCustomPointId === loadNoteForId) ta.value = doc.note; });
+                }
+            }
+        }
+        function editCustomPoint(id) { const pt = persistentCustomPoints.find(p => p.id === id); if(!pt) return; editingCustomPointId = id; pendingPointAccuracy = null; { const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none'; } document.getElementById('custom-modal-title').innerText = "Upravit bod"; document.getElementById('custom-name').value = pt.name; let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); document.getElementById('custom-y').value = Math.abs(sjtsk[0]).toFixed(2); document.getElementById('custom-x').value = Math.abs(sjtsk[1]).toFixed(2); { const _z = document.getElementById('custom-z'); if (_z) _z.value = (pt.vyska != null ? pt.vyska : ''); } resetNewPointExtras(id); document.getElementById('manage-modal').style.display = 'none'; document.getElementById('custom-modal-overlay').style.display = 'flex'; }
         // BOD Z MAPY: tlacitko v modalu spusti rezim, dalsi TAP do mapy umisti bod (tah dal posouva mapu)
         function startMapPick() {
             if (viewMode === 'ar') { alert("Přepni na zobrazení s mapou (Split nebo Mapa)."); return; }
@@ -345,9 +375,10 @@
             document.getElementById('custom-y').value = Math.abs(sjtsk[0]).toFixed(2);
             document.getElementById('custom-x').value = Math.abs(sjtsk[1]).toFixed(2);
             { const _z = document.getElementById('custom-z'); if (_z) _z.value = ''; } // bod z mapy nemá výšku
+            resetNewPointExtras(null);
             document.getElementById('custom-modal-overlay').style.display = 'flex';
         }
-        function openNewPointModal() { editingCustomPointId = null; pendingPointAccuracy = null; { const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none'; } document.getElementById('custom-modal-title').innerText = "Vložit bod"; document.getElementById('custom-name').value = ''; document.getElementById('custom-y').value = ''; document.getElementById('custom-x').value = ''; { const _z = document.getElementById('custom-z'); if (_z) _z.value = ''; } document.getElementById('custom-modal-overlay').style.display = 'flex'; }
+        function openNewPointModal() { editingCustomPointId = null; pendingPointAccuracy = null; { const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none'; } document.getElementById('custom-modal-title').innerText = "Vložit bod"; document.getElementById('custom-name').value = ''; document.getElementById('custom-y').value = ''; document.getElementById('custom-x').value = ''; { const _z = document.getElementById('custom-z'); if (_z) _z.value = ''; } resetNewPointExtras(null); document.getElementById('custom-modal-overlay').style.display = 'flex'; }
         function closeCustomModal() { document.getElementById('custom-modal-overlay').style.display = 'none'; fixAppLayout(); }
         function closeBottomSheet() { document.getElementById('bottom-sheet').classList.remove('open'); arPoints.forEach(p => { if (p.element) p.element.classList.remove('active-reading'); }); activePointIdForModal = null; }
 
@@ -500,7 +531,14 @@
         }
         const mapWrapper = document.getElementById('map-wrapper'); const compassDebug = document.getElementById('compass-debug');
         // VYKON: HUD prvky ziskame JEN JEDNOU (drive se hledaly pres getElementById kazdy snimek -> ~1000 lookupu/s)
-        const userDirContainer = document.getElementById('user-direction-container');
+        // POZOR: znacka uzivatele (#user-direction-container) vznika az s prvnim GPS fixem
+        // (userMarker ve watchPosition) — pri nacteni skriptu jeste NEEXISTUJE. Musi se tedy
+        // dohledat lize (jinak by se sipka uzivatele na mape nikdy neotacela podle kompasu).
+        let userDirContainer = null;
+        function getUserDirContainer() {
+            if (!userDirContainer || !userDirContainer.isConnected) userDirContainer = document.getElementById('user-direction-container');
+            return userDirContainer;
+        }
         const arHud = document.getElementById('ar-hud'), arHudName = document.getElementById('ar-hud-name'), arHudDist = document.getElementById('ar-hud-dist'), arHudInfo = document.getElementById('ar-hud-info'), arHudArrowContainer = document.getElementById('ar-hud-arrow-container');
         const arrTarget = document.getElementById('arrow-target'), arrStraight = document.getElementById('arrow-straight'), arrLeft = document.getElementById('arrow-left'), arrRight = document.getElementById('arrow-right'), arrUturn = document.getElementById('arrow-uturn'), arrBull = document.getElementById('arrow-bullseye');
         let _lastCdHtml = '', _lastCdTitle = '';   // posledni text azimutu — prekreslit jen pri zmene
@@ -565,7 +603,7 @@
                 if (window._labelsDirty) { window._mapLabelEls = document.querySelectorAll('.map-label-text'); window._labelsDirty = false; }
                 if (window._mapLabelEls) window._mapLabelEls.forEach(el => { el.style.transform = `rotate(${heading}deg)`; });
             }
-            if (userDirContainer) userDirContainer.style.transform = `rotate(${heading}deg)`;
+            { const _udc = getUserDirContainer(); if (_udc) _udc.style.transform = `rotate(${heading}deg)`; }
             updateNavGlow();
             if (viewMode === 'map') return; // v samostatne mape jen otacime mapu, AR projekci (kamera) preskakujeme
 
@@ -628,7 +666,9 @@
                 arHud.style.display = 'flex';
                 arrTarget.style.display = 'none'; arrStraight.style.display = 'none'; arrLeft.style.display = 'none'; arrRight.style.display = 'none'; arrUturn.style.display = 'none'; arrBull.style.display = 'none';
                 let diff = highlightedPointData.diff;
-                arHudDist.style.color = '#fff'; arHudInfo.style.borderColor = 'rgba(255,255,255,0.4)';
+                // barvu NEnastavovat inline na bilou — na slunci (body.cam-light) ma stitek svetle
+                // pozadi a bily text by nesel precist; barvu ridi CSS (#ar-hud-info + cam-light)
+                arHudDist.style.color = ''; arHudInfo.style.borderColor = 'rgba(255,255,255,0.4)';
                 if (Math.abs(diff) <= 35) { arrStraight.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg) rotateZ(${diff}deg)`; } else if (diff < -35 && diff >= -110) { arrLeft.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; } else if (diff > 35 && diff <= 110) { arrRight.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; } else { arrUturn.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; }
                 arHudDist.innerText = `${highlightedPointData.dist.toFixed(1)} m`;
                 arHudName.innerText = `#${highlightedPointData.name}`;

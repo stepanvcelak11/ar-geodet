@@ -981,6 +981,31 @@ function _peSave() {
     });
 }
 
+// obohaceni polozky v prehledu „Mé body": poznamka + miniatura fotky z foto-dokumentace.
+// Vola ji renderManageList (grafika.js) pres hook decoratePointItem — kdyz modul chybi, nic se nedeje.
+function decoratePointItem(item, pt) {
+    if (!item || !pt || !pt.id) return;
+    loadPointDoc(pt.id).then(doc => {
+        _normalizeDoc(doc);
+        if (!doc || !item.isConnected) return;
+        if (doc.note) {
+            const n = document.createElement('div');
+            n.className = 'cp-note';
+            n.textContent = doc.note;
+            const coords = item.querySelector('.cp-coords');
+            if (coords && coords.nextSibling) item.insertBefore(n, coords.nextSibling); else item.appendChild(n);
+        }
+        if (doc.photos && doc.photos.length) {
+            const img = document.createElement('img');
+            img.className = 'cp-thumb';
+            img.src = doc.photos[0];
+            img.alt = 'Fotka bodu';
+            img.addEventListener('click', () => viewPhotoFull(pt.id, 0));
+            item.appendChild(img);
+        }
+    });
+}
+
 // rozsireni karty bodu o sekci foto-dokumentace (bez zasahu do grafika.js)
 (function () {
     if (typeof showDetails !== 'function') return;

@@ -26,6 +26,10 @@
     var _accEl = null;
     var _timer = null;
     var _hiddenSince = 0;
+    // „Rozumím": uživatel varování odklikl — nepřekážet. Pamatujeme si přesnost při
+    // odkliknutí; varování se znovu ukáže, až se signál VÝRAZNĚ zhorší (>1.5×),
+    // nebo poté, co se mezitím zlepšil pod práh (nová situace = nové varování).
+    var _dismissedAcc = null;
 
     // --- čtení globálů (vždy obezřetně) -----------------------------------------
     function isLive() {
@@ -64,6 +68,19 @@
             '<rect x="11" y="17" width="2" height="2" rx="1" fill="#1a1205"></rect>' +
             '</svg>' +
             '<span class="gps-warn-txt">Slabá GPS (±<b id="gps-warn-acc">?</b> m) — teď neměř</span>';
+        var ok = document.createElement('button');
+        ok.type = 'button'; ok.id = 'gps-warn-ok';
+        ok.setAttribute('aria-label', 'Rozumím, skrýt varování');
+        ok.style.cssText = 'margin-left:8px; border:1px solid rgba(0,0,0,0.35); background:rgba(0,0,0,0.18); color:inherit; font-size:11px; font-weight:600; line-height:1; padding:5px 9px; border-radius:99px; cursor:pointer; pointer-events:auto;';
+        ok.textContent = 'Rozumím ✕';
+        ok.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            var acc = getAccuracy();
+            _dismissedAcc = (acc != null) ? acc : WEAK_GPS_THRESHOLD_M;
+            if (_el) _el.classList.remove('on');
+            _hiddenSince = 0;
+        });
+        _el.appendChild(ok);
         document.body.appendChild(_el);
         _accEl = _el.querySelector('#gps-warn-acc');
         return _el;
@@ -91,8 +108,15 @@
         try {
             if (!isLive() || !arVisible()) { hideWarn(); return; }
             var acc = getAccuracy();
-            if (acc != null && acc > WEAK_GPS_THRESHOLD_M) showWarn(acc);
-            else hideWarn();
+            if (acc != null && acc > WEAK_GPS_THRESHOLD_M) {
+                // odklepnuto „Rozumím": mlčet, dokud se signál výrazně nezhorší
+                if (_dismissedAcc != null && acc <= _dismissedAcc * 1.5) { hideWarn(); return; }
+                _dismissedAcc = null;
+                showWarn(acc);
+            } else {
+                _dismissedAcc = null;   // signál se spravil — příští zhoršení je nová situace
+                hideWarn();
+            }
         } catch (e) { /* fail-silent */ }
     }
 
