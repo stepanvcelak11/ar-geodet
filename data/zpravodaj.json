@@ -1,48 +1,27 @@
 {
-  "vydani": "2026-07-11",
-  "uvodnik": "Přinášíme aktuální novinky ze světa geodetického a geoinformačního průmyslu.",
+  "vydani": "2026-07-12",
+  "uvodnik": "Dnešní vydání přináší novinky ze světa geodézie a technologií.",
   "polozky": [
     {
       "rubrika": "Z domova",
       "top": true,
-      "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
-      "perex": "Uživatelé webových služeb pro vyhotovitele a ověřovatele geometrických plánů by měli být připraveni na změny.",
-      "telo": "Český úřad zeměměřický a katastrální upozorňuje, že na podzim 2026 dojde k ukončení provozu WSGP verze 2.10. Po tomto termínu budou k dispozici pouze služby WSGP verze 3.1. Uživatelé by se měli na tuto změnu připravit, aby nedošlo k přerušení jejich činnosti.",
-      "body": [
-        "Ukončení provozu verze 2.10 na podzim 2026.",
-        "Pouze verze 3.1 bude nadále funkční."
-      ],
-      "proc": "Důležitá informace pro uživatele geodetických služeb.",
+      "nadpis": "Ukončení provozu WSGP verze 2.10",
+      "perex": "ČÚZK oznámil ukončení provozu starší verze webových služeb pro geometrické plány.",
+      "telo": "Český úřad zeměměřický a katastrální (ČÚZK) upozorňuje, že na podzim 2026 dojde k ukončení provozu služeb WSGP verze 2.10. Od tohoto termínu budou k dispozici pouze služby WSGP verze 3.1. Uživatelé jsou vyzváni, aby se na tuto změnu připravili, a ČÚZK se omlouvá za případné komplikace, které mohou vzniknout.",
+      "body": [],
+      "proc": "Tato zpráva je důležitá pro všechny geodety a uživatele služeb ČÚZK.",
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-05-29"
     },
     {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "Commercial UAV Expo Debuts DRONERESPONDERS Program Management Course",
-      "perex": "Nový dvoudenní kurz pro správu programů byl představen na Commercial UAV Expo.",
-      "telo": "Na Commercial UAV Expo byl představen nový dvoudenní kurz DRONERESPONDERS pro správu programů. Tento kurz se zaměřuje na využití dronů jako prvního respondenta v různých situacích, včetně požárních služeb a havárií. Program také zahrnuje lekce o zkušenostech s proti-UAS z 2026 FIFA World Cup.",
-      "body": [
-        "Zaměření na drony jako první respondenty.",
-        "Dvoudenní školení pro správu programů."
-      ],
-      "proc": "Zajímavý krok v oblasti vzdělávání pro profesionály v oboru.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/09/commercial-uav-expo-debuts-droneresponders-program-management-course-unveils-public-safety-summit-program/?utm_source=rss&utm_medium=rss&utm_campaign=commercial-uav-expo-debuts-droneresponders-program-management-course-unveils-public-safety-summit-program",
-      "datum": "2026-07-09"
-    },
-    {
       "rubrika": "Přístroje",
       "top": false,
-      "nadpis": "SBG Systems Launches the new Pulse-40 OEM with Tactical-Grade Performance",
-      "perex": "Nová generace Pulse-40 OEM přináší vylepšené vlastnosti pro měření.",
-      "telo": "SBG Systems představila novou generaci Pulse-40 OEM, která si zachovává své přední charakteristiky SWaP a zároveň zlepšuje výkon inerciálního měření. Nový model nabízí vylepšenou odolnost proti vibracím a EMC, a to díky integrovaným magnetometrům a monitorování vibrací v reálném čase.",
-      "body": [
-        "Vylepšené vlastnosti inerciálního měření.",
-        "Odolnost proti vibracím a EMC."
-      ],
-      "proc": "Zajímavé novinky v oblasti inerciálních měřicích jednotek.",
+      "nadpis": "SBG Systems uvádí nový Pulse-40 OEM",
+      "perex": "Nový Pulse-40 OEM nabízí vylepšené vlastnosti pro měření a odolnost.",
+      "telo": "SBG Systems představuje novou generaci svého miniaturizovaného taktického měřicího zařízení Pulse-40 OEM. Tento přístroj si zachovává špičkové parametry SWaP a zároveň přináší vylepšený inerciální výkon a odolnost vůči vibracím a elektromagnetickému rušení. S gyroskopem s rozsahem ±4000°/s a integrovanými magnetometry je Pulse-40 ideální volbou pro náročné geodetické aplikace.",
+      "body": [],
+      "proc": "Nové technologie v oblasti měření mohou zlepšit přesnost a efektivitu geodetických prací.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/07/08/sbg-systems-launches-the-new-pulse-40-oem-with-tactical-grade-performance-enhanced-resilience-and-built-in-vibration-intelligence/?utm_source=rss&utm_medium=rss&utm_campaign=sbg-systems-launches-the-new-pulse-40-oem-with-tactical-grade-performance-enhanced-resilience-and-built-in-vibration-intelligence",
       "datum": "2026-07-08"
@@ -50,29 +29,23 @@
     {
       "rubrika": "Technologie",
       "top": false,
-      "nadpis": "The Right Tool for the Right Layer: How Tetra Tech Rooney Is Rethinking Reality Capture",
-      "perex": "Tetra Tech přehodnocuje přístupy k zachycování reality.",
-      "telo": "Manažer designových technologií v Tetra Tech vysvětluje, proč smíšená strategie zachycování — kombinace terestrických skenerů, SLAM, dronů a telefonů — je efektivnější než použití jedné technologie. Tetra Tech, jako jedna z největších inženýrských firem v USA, se snaží optimalizovat procesy a zlepšit výsledky.",
-      "body": [
-        "Smíšená strategie zachycování reality.",
-        "Optimalizace procesů pro lepší výsledky."
-      ],
-      "proc": "Zajímavý pohled na moderní metody zachycování reality.",
+      "nadpis": "Pix4D: Od fotogrammetrie k podnikové realitě",
+      "perex": "Pix4D se vyvíjí s UAV průmyslem a přináší nové technologie.",
+      "telo": "Pix4D, známý poskytovatel softwaru pro UAV, se posunul od základního fotogrammetrického enginu k platformě pro podnikové aplikace. CTO společnosti vidí, jak se technologie jako Gaussian splatting, AI asistované úpravy a smartphone jako měřicí přístroj spojují do většího celku, který překračuje možnosti jednotlivých nástrojů. Tento vývoj ukazuje na rostoucí význam integrace různých technologií v geodetických aplikacích.",
+      "body": [],
+      "proc": "Inovace v softwaru pro geodetické aplikace jsou klíčové pro zlepšení efektivity a přesnosti.",
       "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/bim/the-right-tool-for-the-right-layer-how-tetra-tech-rooney-is-rethinking-reality-capture/",
-      "datum": "2026-07-09"
+      "odkaz": "https://www.xyht.com/aerialuas/pix4ds-platform-moment-from-photogrammetry-engine-to-enterprise-reality/",
+      "datum": "2026-07-07"
     },
     {
       "rubrika": "Z praxe",
       "top": false,
-      "nadpis": "The Image as Evidence",
-      "perex": "Obrázky s časovými a prostorovými údaji se stávají důvěryhodným záznamem.",
-      "telo": "Obrázky s časovými a prostorovými údaji se vyvinuly z dokumentace na důvěryhodný záznam. Geodetické profese nyní produkují důkazy, ačkoli standardy zatím nedokázaly dostatečně reagovat na tuto změnu. Systémy bezpilotních letadel se stále častěji používají k dokumentaci těžko přístupných komponentů mostů, což zajišťuje, že inspekční obrázky se stávají součástí záznamu o stavu mostu.",
-      "body": [
-        "Význam časově a prostorově uvědomělých obrázků.",
-        "Zvyšující se využití UAS pro inspekce."
-      ],
-      "proc": "Důležitý posun v dokumentaci a inspekcích.",
+      "nadpis": "Pohled na mosty: Důležitost dokumentace pomocí UAV",
+      "perex": "Drony se stávají klíčovým nástrojem pro dokumentaci mostních komponent.",
+      "telo": "V geodetické profesi se stále více prosazuje použití bezpilotních letadel pro dokumentaci těžko přístupných komponent mostů. Snímek pořízený dronem se stává součástí záznamu o stavu mostu. Tato technologie umožňuje efektivní a přesné shromažďování dat, což je zásadní pro údržbu a bezpečnost mostních konstrukcí. Nicméně standardy pro takové dokumentace zatím nedokázaly dostatečně reagovat na rostoucí význam těchto praktik.",
+      "body": [],
+      "proc": "Tato zpráva ukazuje, jak moderní technologie mění přístupy k inspekcím a dokumentaci.",
       "zdroj": "xyHt",
       "odkaz": "https://www.xyht.com/aerialuas/the-image-as-evidence/",
       "datum": "2026-07-07"
@@ -80,17 +53,26 @@
     {
       "rubrika": "Akce",
       "top": false,
-      "nadpis": "Mount Diablo Initial Point’s 175th Anniversary to Celebrate California's Surveying Heritage",
-      "perex": "Kalifornie oslaví 175. výročí významného bodu v historii měření.",
-      "telo": "Dne 18. července 2026 se v Kalifornii uskuteční veřejná oslava 175. výročí Mount Diablo Initial Point. Akce, kterou pořádají Kalifornské státní parky a Mount Diablo Surveyors Historical Society, bude zahrnovat vzdělávací aktivity pro návštěvníky všech věkových kategorií a zdůrazní důležitost tohoto historického měřicího bodu.",
-      "body": [
-        "Veřejná oslava 18. července 2026.",
-        "Vzdělávací aktivity pro návštěvníky."
-      ],
-      "proc": "Oslava významného historického milníku v geodézii.",
+      "nadpis": "Nový program DRONERESPONDERS na Commercial UAV Expo",
+      "perex": "Nový dvoudenní kurz pro správu programů byl představen na expo.",
+      "telo": "Na Commercial UAV Expo byl představen nový dvoudenní kurz DRONERESPONDERS, který se zaměřuje na školení v oblasti veřejné bezpečnosti a aplikací dronů jako prvního reagenta. Program zahrnuje témata jako služby hasičů, aplikace na místě nehod a operace ve sdíleném vzdušném prostoru. Tento kurz je součástí širšího programu, který se snaží vzdělávat odborníky v oblasti dronů a jejich využití pro záchranné a bezpečnostní operace.",
+      "body": [],
+      "proc": "Vzdělávání v oblasti dronů je klíčové pro jejich efektivní využití v krizových situacích.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/26/mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage/?utm_source=rss&utm_medium=rss&utm_campaign=mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage",
-      "datum": "2026-06-27"
+      "odkaz": "https://amerisurv.com/2026/07/09/commercial-uav-expo-debuts-droneresponders-program-management-course-unveils-public-safety-summit-program/?utm_source=rss&utm_medium=rss&utm_campaign=commercial-uav-expo-debuts-droneresponders-program-management-course-unveils-public-safety-summit-program",
+      "datum": "2026-07-09"
+    },
+    {
+      "rubrika": "Vzdělávání",
+      "top": false,
+      "nadpis": "Zlepšení přesnosti mapování pomocí letecké triangulace",
+      "perex": "Webinář se zaměří na nové schopnosti triangulace v Correlator3D.",
+      "telo": "Webinář se zaměří na zlepšení přesnosti mapování prostřednictvím letecké triangulace s novou verzí Correlator3D. Tato verze přináší robustnější výsledky na náročných datech a zjednodušuje nastavení projektů s více kamerami. Účastníci se dozvědí o nových nástrojích pro validaci a přímé georeferencování, což může výrazně zlepšit kvalitu mapovacích výstupů.",
+      "body": [],
+      "proc": "Získání nových znalostí a dovedností v oblasti triangulace je pro geodety zásadní.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/06/29/improving-mapping-accuracy-through-aerial-triangulation/?utm_source=rss&utm_medium=rss&utm_campaign=improving-mapping-accuracy-through-aerial-triangulation",
+      "datum": "2026-06-29"
     }
   ]
 }
