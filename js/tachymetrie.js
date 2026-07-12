@@ -361,9 +361,11 @@
         if (cur !== start || order.length !== adj.size) return null;
         const m = order.map(i => metric(sketch.pts[i]));
         let area = 0, perim = 0;
+        // shoelace s redukci o prvni vrchol (S-JTSK ~10^6 -> souciny by ztracely presnost)
+        const y0 = m[0][0], x0 = m[0][1];
         for (let k = 0; k < m.length; k++) {
             const a = m[k], b = m[(k + 1) % m.length];
-            area += a[0] * b[1] - b[0] * a[1];
+            area += (a[0] - y0) * (b[1] - x0) - (b[0] - y0) * (a[1] - x0);
             perim += Math.hypot(b[0] - a[0], b[1] - a[1]);
         }
         return { order: order, area: Math.abs(area) / 2, perim: perim };

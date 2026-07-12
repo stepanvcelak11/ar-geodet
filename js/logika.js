@@ -304,8 +304,10 @@ if ('serviceWorker' in navigator) {
             a.setAttribute("download", `body_${activeProjectId}.txt`);
             document.body.appendChild(a); a.click(); a.remove();
         }
-        // S-JTSK Y,X (kladne) -> WGS84; mensi hodnota = Y, vetsi = X (Krovak: Y~400-900k, X~900-1280k)
+        // S-JTSK Y,X (kladne) -> WGS84. Pořadí os podle ROZSAHŮ pro ČR (Y 400-935k,
+        // X 935-1300k) — sdílená logika v GeoCore.fromSJTSK; mimo rozsah padá na min/max.
         function sjtskToLatLng(a, b) {
+            if (typeof GeoCore !== 'undefined' && GeoCore.fromSJTSK) return GeoCore.fromSJTSK(a, b);
             let Y = Math.min(Math.abs(a), Math.abs(b)), X = Math.max(Math.abs(a), Math.abs(b));
             let wgs = proj4("EPSG:5514", "EPSG:4326", [-Y, -X]); return { lat: wgs[1], lng: wgs[0] };
         }
@@ -412,13 +414,14 @@ if ('serviceWorker' in navigator) {
         // pocitame k zemepisnemu severu. V CR je deklinace ~+5-6 vychodne a roste -> bez korekce
         // systematicka chyba smeru. Aproximace WMM2025 (linearni fit pro CR), driftuje +0.13 /rok.
         function getDeclination(lat, lng) {
+            if (typeof GeoCore !== 'undefined' && GeoCore.declination) return GeoCore.declination(lat, lng); // + clamp na bbox CR
             const now = new Date(); const year = now.getFullYear() + now.getMonth() / 12;
             return 5.65 + 0.25 * (lng - 15.5) - 0.05 * (lat - 49.8) + 0.13 * (year - 2025);
         }
         // VYSKA: coords.altitude je elipsoidicka (WGS84). Pro Bpv (vyska nad morem v CR) odecist
         // undulaci kvazigeoidu CR-2005 (~44-47 m). Linearni aproximace, presnost ~1-2 m
         // (hluboko pod svislou chybou telefonni GPS), odstranuje systematicky posun ~45 m.
-        function getGeoidUndulation(lat, lng) { return 45.5 + 0.55 * (lng - 15.5) - 0.4 * (lat - 49.8); }
+        function getGeoidUndulation(lat, lng) { if (typeof GeoCore !== 'undefined' && GeoCore.geoidUndulation) return GeoCore.geoidUndulation(lat, lng); return 45.5 + 0.55 * (lng - 15.5) - 0.4 * (lat - 49.8); }
         // ROBUSTNI PRUMEROVANI GPS: median + MAD filtr hrubych chyb (prumer i 2-sigma prah
         // si outlier nafoukne sam, median ne), pak vazeny prumer podle hlasene presnosti fixu.
         // sterr pocitame z efektivniho n (po sobe jdouci fixy jsou korelovane, nejsou nezavisle).
@@ -607,7 +610,10 @@ if ('serviceWorker' in navigator) {
             for (let i = 1; i < pts.length; i++) perim += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
             let area = 0;
             if (verts.length >= 3) {
-                for (let i = 0; i < pts.length; i++) { const j = (i + 1) % pts.length; area += pts[i][0] * pts[j][1] - pts[j][0] * pts[i][1]; }
+                // redukce o prvni vrchol: souciny surovych S-JTSK souradnic (~10^12) by
+                // v double ztracely presnost vzajemnym rusenim clenu
+                const y0 = pts[0][0], x0 = pts[0][1];
+                for (let i = 0; i < pts.length; i++) { const j = (i + 1) % pts.length; area += (pts[i][0] - y0) * (pts[j][1] - x0) - (pts[j][0] - y0) * (pts[i][1] - x0); }
                 area = Math.abs(area) / 2;
                 perim += Math.hypot(pts[0][0] - pts[pts.length - 1][0], pts[0][1] - pts[pts.length - 1][1]); // uzavreni obvodu
             }

@@ -87,9 +87,12 @@
     function shoelace(pts) {
         var n = pts.length, s = 0;
         if (n < 3) return 0;
+        // redukce o prvni vrchol: souciny surovych S-JTSK souradnic (~10^12) by
+        // v double ztracely presnost vzajemnym rusenim clenu
+        var Y0 = pts[0].Y, X0 = pts[0].X;
         for (var i = 0; i < n; i++) {
             var j = (i + 1) % n;
-            s += pts[i].Y * pts[j].X - pts[j].Y * pts[i].X;
+            s += (pts[i].Y - Y0) * (pts[j].X - X0) - (pts[j].Y - Y0) * (pts[i].X - X0);
         }
         return Math.abs(s) / 2;
     }
