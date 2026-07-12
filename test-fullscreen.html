@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>FS Test</title>
+    <link rel="manifest" href="manifest-test.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FS Test">
+    <link rel="apple-touch-icon" href="icon.svg">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            background: #16a34a; /* zelená = plocha webu; černá = kam web nedosáhne */
+            color: #fff;
+            font-family: -apple-system, system-ui, sans-serif;
+        }
+        .edge {
+            position: fixed;
+            left: 0; right: 0;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            z-index: 10;
+        }
+        #edge-top    { top: 0;    background: #2563eb; }
+        #edge-bottom { bottom: 0; background: #dc2626; }
+        /* žlutá linka = kde končí bezpečná zóna (nad home indikátorem) */
+        #safe-line {
+            position: fixed;
+            left: 0; right: 0;
+            bottom: env(safe-area-inset-bottom, 0px);
+            height: 3px;
+            background: #facc15;
+            z-index: 11;
+        }
+        #panel {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: min(92vw, 420px);
+            background: rgba(0, 0, 0, 0.72);
+            border-radius: 14px;
+            padding: 16px;
+            font-family: ui-monospace, Menlo, monospace;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+        #panel b { color: #facc15; }
+        #verdict {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            font-family: -apple-system, system-ui, sans-serif;
+            font-weight: 700;
+            text-align: center;
+        }
+        #verdict.ok  { background: #16a34a; }
+        #verdict.bad { background: #dc2626; }
+        /* skrytý měřič safe-area (env() nejde číst přímo z JS) */
+        #sa-probe {
+            position: fixed;
+            visibility: hidden;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-right: env(safe-area-inset-right, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            padding-left: env(safe-area-inset-left, 0px);
+        }
+    </style>
+</head>
+<body>
+    <div id="edge-top">▲ HORNÍ OKRAJ WEBU ▲</div>
+    <div id="edge-bottom">▼ SPODNÍ OKRAJ WEBU ▼</div>
+    <div id="safe-line"></div>
+    <div id="sa-probe"></div>
+
+    <div id="panel">
+        <div>verze testu: <b>3</b></div>
+        <div>display-mode: <b id="d-mode">?</b></div>
+        <div>navigator.standalone: <b id="d-standalone">?</b></div>
+        <div>okno: <b id="d-inner">?</b></div>
+        <div>displej: <b id="d-screen">?</b></div>
+        <div>visualViewport: <b id="d-vv">?</b></div>
+        <div>safe-area t/r/b/l: <b id="d-safe">?</b></div>
+        <div id="verdict">měřím…</div>
+    </div>
+
+    <script>
+    (function () {
+        function txt(id, v) { document.getElementById(id).textContent = v; }
+        function update() {
+            var mode = 'browser';
+            ['fullscreen', 'standalone', 'minimal-ui'].forEach(function (m) {
+                if (window.matchMedia('(display-mode: ' + m + ')').matches) mode = m;
+            });
+            txt('d-mode', mode);
+            txt('d-standalone', String(window.navigator.standalone));
+            txt('d-inner', window.innerWidth + ' × ' + window.innerHeight + ' px');
+            txt('d-screen', screen.width + ' × ' + screen.height + ' px');
+            txt('d-vv', window.visualViewport
+                ? Math.round(window.visualViewport.width) + ' × ' + Math.round(window.visualViewport.height) + ' px'
+                : 'není');
+
+            var probe = getComputedStyle(document.getElementById('sa-probe'));
+            txt('d-safe',
+                parseInt(probe.paddingTop) + ' / ' + parseInt(probe.paddingRight) + ' / ' +
+                parseInt(probe.paddingBottom) + ' / ' + parseInt(probe.paddingLeft) + ' px');
+
+            var missing = screen.height - window.innerHeight;
+            var v = document.getElementById('verdict');
+            if (mode === 'browser') {
+                v.className = '';
+                v.textContent = 'Běžím v prohlížeči — přidej mě na plochu a otevři z ikony.';
+            } else if (missing <= 1) {
+                v.className = 'ok';
+                v.textContent = '✅ Web sahá až po okraj displeje (' + window.innerHeight + '/' + screen.height + ')';
+            } else {
+                v.className = 'bad';
+                v.textContent = '❌ Webu chybí ' + missing + ' px na výšku (' + window.innerHeight + '/' + screen.height + ') — pruh dělá systém, ne stránka.';
+            }
+        }
+        update();
+        window.addEventListener('resize', update);
+        window.addEventListener('orientationchange', function () { setTimeout(update, 300); });
+        setInterval(update, 1000);
+    })();
+    </script>
+</body>
+</html>

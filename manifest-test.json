@@ -1,0 +1,18 @@
+{
+  "name": "FS Test",
+  "short_name": "FS Test",
+  "description": "Test celoobrazovkoveho rezimu",
+  "start_url": "./test-fullscreen.html",
+  "scope": "./test-fullscreen.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
