@@ -73,7 +73,8 @@
     function solveMulti(stations) {
         var S0 = ptById(stations[0].stId); if (!S0) return null;
         var lat0 = S0.lat, lng0 = S0.lng;
-        var mLat = 111320, mLng = 111320 * Math.cos(lat0 * D2R);
+        var _m = (typeof GeoCore !== 'undefined' && GeoCore.metersPerDeg) ? GeoCore.metersPerDeg(lat0) : { lat: 111320, lng: 111320 * Math.cos(lat0 * D2R) };
+        var mLat = _m.lat, mLng = _m.lng;
 
         var rays = [];
         for (var i = 0; i < stations.length; i++) {
@@ -102,6 +103,29 @@
         var Pe = (bx * Ayy - Axy * by) / det;
         var Pn = (Axx * by - Axy * bx) / det;
 
+        // 2. průchod: VÁŽENÉ vyrovnání + odhad přesnosti polohy. Kolmá chyba paprsku
+        // roste se vzdáleností (sigma_perp = t * sigma_uhlu), takže vzdálená stanoviska
+        // dostanou menší váhu. sigma_uhlu ~0.8° (dva směry po ~0.55°, třes ruky).
+        var SIG_ANG = 0.8 * D2R;
+        var tPrior = rays.map(function (r) { return Math.max(1, (Pe - r.e) * r.ue + (Pn - r.n) * r.un); });
+        var wAxx = 0, wAxy = 0, wAyy = 0, wbx = 0, wby = 0;
+        rays.forEach(function (r, i) {
+            var w = 1 / Math.pow(tPrior[i] * SIG_ANG, 2);
+            var ee = w * (1 - r.ue * r.ue), en = w * (-r.ue * r.un), nn2 = w * (1 - r.un * r.un);
+            wAxx += ee; wAxy += en; wAyy += nn2;
+            wbx += ee * r.e + en * r.n;
+            wby += en * r.e + nn2 * r.n;
+        });
+        var wdet = wAxx * wAyy - wAxy * wAxy;
+        var posSigma = null;
+        if (Math.abs(wdet) > 1e-12) {
+            Pe = (wbx * wAyy - wAxy * wby) / wdet;
+            Pn = (wAxx * wby - wAxy * wbx) / wdet;
+            // kovariance = N^-1 (vážené jednotkové pozorování) -> stř. chyba polohy
+            var cee = wAyy / wdet, cnn = wAxx / wdet;
+            posSigma = Math.sqrt(Math.max(0, cee + cnn));
+        }
+
         // rezidua: kolmá vzdálenost P od každého paprsku + délka podél paprsku
         var miss = [], dists = [], behind = false, sse = 0;
         rays.forEach(function (r) {
@@ -126,6 +150,7 @@
             lat: latP, lng: lngP,
             Y: sj ? Math.abs(sj[0]) : null, X: sj ? Math.abs(sj[1]) : null,
             n: rays.length, rms: rms, maxMiss: maxMiss, angleP: bestAngle,
+            posSigma: posSigma,
             behind: behind, dists: dists, rays: rays
         };
     }
@@ -376,7 +401,9 @@
             + '<div style="font-size:12.5px;opacity:.9;line-height:1.5;">'
             + 'Stanoviska: <b>#' + r.names.join('</b>, #') + '</b><br>'
             + 'Úhel protnutí: <b style="color:' + qCol + '">' + r.angleP.toFixed(0) + '°</b> <span style="opacity:.7">(ideál ~90°)</span>'
-            + (r.n > 2 ? '<br>Shoda paprsků: <b>' + fmtMiss(r.rms) + '</b> <span style="opacity:.7">(rms odchylka, ⌀ jak dobře paprsky souhlasí)</span>' : '')
+            + (r.posSigma != null ? '<br>Odhad stř. chyby polohy: <b>±' + fmtMiss(r.posSigma) + '</b> <span style="opacity:.7">(z geometrie a ~0,8° chyby směru)</span>' : '')
+            + (r.n > 2 ? '<br>Shoda paprsků: <b>' + fmtMiss(r.rms) + '</b> <span style="opacity:.7">(rms odchylka, ⌀ jak dobře paprsky souhlasí)</span>'
+                       : '<br><span style="color:#fbbf24;">2 stanoviska = bez nadbytečného měření — výsledek NENÍ ničím kontrolován. Přidej třetí stanovisko.</span>')
             + '</div>';
         var warn = '';
         if (r.behind) warn += '<div style="color:#f87171;font-size:12px;margin-top:6px;">⚠ Cíl vyšel „za zády" některého stanoviska — nejspíš zaměněné body nebo špatné zaměření. Zkontroluj a zaměř znovu.</div>';

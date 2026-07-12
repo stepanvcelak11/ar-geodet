@@ -66,7 +66,7 @@ function openCalcPicker(idp) {
         const sj = proj4('EPSG:4326', 'EPSG:5514', [p.lng, p.lat]);
         const Y = Math.abs(sj[0]), X = Math.abs(sj[1]);
         const item = document.createElement('div'); item.className = 'cluster-list-item';
-        item.innerHTML = `<div><div class="cluster-item-title">#${p.name}</div><div class="cluster-item-subtitle">Y ${Y.toFixed(2)} · X ${X.toFixed(2)}</div></div><div style="font-size:12px; opacity:0.7;">${p.cat}</div>`;
+        item.innerHTML = `<div><div class="cluster-item-title">#${_escHtml(p.name)}</div><div class="cluster-item-subtitle">Y ${Y.toFixed(2)} · X ${X.toFixed(2)}</div></div><div style="font-size:12px; opacity:0.7;">${p.cat}</div>`;
         item.addEventListener('click', () => {
             const fy = document.getElementById(_pickerTarget + '-y'), fx = document.getElementById(_pickerTarget + '-x');
             if (fy) fy.value = Y.toFixed(2); if (fx) fx.value = X.toFixed(2);
@@ -427,6 +427,7 @@ function renderCalc_tachy(body) {
         + `<div style="display:flex; gap:8px;"><div style="flex:1;">${_fld('tc-z', 'Výška stanoviska Z [m]', 'nepovinné')}</div><div style="flex:1;">${_fld('tc-vp', 'Výška přístroje [m]', '')}</div></div>`
         + _ptFld('tc-or', 'Orientační bod') + _fld('tc-cteni-or', 'Čtení na orientaci [gon]', 'např. 0.0000')
         + `<label class="filter-row" style="margin-top:10px;"><input type="checkbox" id="tc-sikme" checked> Šikmé délky + zenitové úhly (jinak vodorovné)</label>
+        <label class="filter-row"><input type="checkbox" id="tc-red"> Redukovat délky do S-JTSK (zkreslení Křováka, −10 až +14 cm/km)</label>
         <div id="tc-rows"></div>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="addTcRow()"><svg class="icon"><use href="#i-plus"/></svg> Přidat bod</button>
         <button class="btn btn-blue" style="margin-top:14px;" onclick="calcTachy()">Spočítat dávku</button><div id="calc-result"></div>`;
@@ -449,6 +450,10 @@ function calcTachy() {
         const ctO = _req('tc-cteni-or', 'čtení na orientaci');
         const Zst = _cv('tc-z'), vp = _cv('tc-vp') || 0;
         const sikme = document.getElementById('tc-sikme').checked;
+        const redEl = document.getElementById('tc-red');
+        // redukce meritkoveho zkresleni Krovaka (funkce vyse v "Redukce delky"):
+        // meritko se v ramci jedne davky prakticky nemeni -> staci u stanoviska
+        const mRed = (redEl && redEl.checked) ? _sjtskScale(ST.y, ST.x) : 1;
         const oposun = gonNorm(smernik(ST.y, ST.x, OR.y, OR.x) - ctO);
         _tcRes = [];
         let rows = '';
@@ -466,14 +471,16 @@ function calcTachy() {
                 dz = dd * Math.cos(zen * GON);
             }
             const sm = gonNorm(oposun + psi);
-            const P = polarYX(ST.y, ST.x, sm, dh);
+            const P = polarYX(ST.y, ST.x, sm, dh * mRed);
             let Z = null;
             if (Zst != null && dz != null) Z = Zst + vp + dz - vc;
             _tcRes.push({ name: name, y: P.y, x: P.x, z: Z });
             rows += _row('<b>' + name + '</b>', 'Y ' + P.y.toFixed(2) + ' · X ' + P.x.toFixed(2) + (Z != null ? ' · Z ' + Z.toFixed(2) : ''));
         }
         if (!_tcRes.length) throw 'Zadejte alespoň jeden bod.';
-        document.getElementById('calc-result').innerHTML = _resBox(_row('Orientační posun', fmtGon(oposun) + ' gon') + rows)
+        document.getElementById('calc-result').innerHTML = _resBox(_row('Orientační posun', fmtGon(oposun) + ' gon')
+            + (mRed !== 1 ? _row('Redukce do S-JTSK', 'm = ' + mRed.toFixed(7) + ' (' + (((mRed - 1) * 100000) >= 0 ? '+' : '') + ((mRed - 1) * 100000).toFixed(1) + ' cm/km)') : '')
+            + rows)
             + `<button class="btn btn-primary" style="margin-top:10px;" onclick="_tcRes.forEach(p => calcSavePoint(p.name, p.y, p.x)); this.innerText='Uloženo ✓ (' + _tcRes.length + ')'; this.disabled=true;"><svg class="icon"><use href="#i-plus"/></svg> Uložit vše jako body (${_tcRes.length})</button>`;
     } catch (e) { _calcErr(e); }
 }

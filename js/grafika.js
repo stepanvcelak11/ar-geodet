@@ -62,7 +62,7 @@
         let _calibActive = false, _calibSeen = null, _calibBeta = null, _calibGamma = null;
         function dismissCompassCalib() { _calibActive = false; try { localStorage.setItem('arCompassCalibShown', '1'); } catch (e) {} const m = document.getElementById('compass-calib-modal'); if (m) m.style.display = 'none'; }
         // Onboarding kalibrace kompasu: jednorazove pri prvnim startu AR; force=true znovu z nastaveni kompasu.
-        function showCompassCalibHint(force) { try { if (!force && localStorage.getItem('arCompassCalibShown')) return; } catch (e) {} try { if (!force && localStorage.getItem('arTutorialSeen_v1') !== '1') return; } catch (e) {} /* na 1. startu nejdriv tutorial; kalibraci spusti tutorial.js po dokonceni */ const m = document.getElementById('compass-calib-modal'); if (m) { m.style.display = 'flex'; _calibActive = true; _calibSeen = new Set(); _calibBeta = { min: Infinity, max: -Infinity }; _calibGamma = { min: Infinity, max: -Infinity }; const _b = document.getElementById('calib-progress'); if (_b) _b.style.width = '0%'; const _t = document.getElementById('calib-progress-txt'); if (_t) _t.innerText = '0 %'; } }
+        function showCompassCalibHint(force) { try { if (!force && localStorage.getItem('arCompassCalibShown')) return; } catch (e) {} try { if (!force && localStorage.getItem('arTutorialSeen_v1') !== '1') return; } catch (e) {} /* na 1. startu nejdriv tutorial; kalibraci spusti tutorial-pro.js po dokonceni */ const m = document.getElementById('compass-calib-modal'); if (m) { m.style.display = 'flex'; _calibActive = true; _calibSeen = new Set(); _calibBeta = { min: Infinity, max: -Infinity }; _calibGamma = { min: Infinity, max: -Infinity }; const _b = document.getElementById('calib-progress'); if (_b) _b.style.width = '0%'; const _t = document.getElementById('calib-progress-txt'); if (_t) _t.innerText = '0 %'; } }
         // Po "osmicce" (telefon projde vice smery) se napoveda sama zavre. Bezi i pred zamerenim GPS.
         function trackCalibMotion(event) {
             if (!_calibActive || !_calibSeen) return;
@@ -152,7 +152,7 @@
                 if (pt.hidden) return; if (pt.cat === 'TB' && !filters.tb) return; if (pt.cat === 'ZHB' && !filters.zhb) return; if (pt.cat === 'PBPP' && !filters.pbpp) return; if (pt.cat === 'NIVEL' && !filters.nivel) return; if (pt.cat === 'CUSTOM' && !filters.custom) return; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return;
                 let col = visSettings.colTb; if(pt.cat === 'ZHB') col = visSettings.colZhb; if(pt.cat === 'PBPP') col = visSettings.colPbpp; if(pt.cat === 'NIVEL') col = visSettings.colNivel; if(pt.cat === 'CUSTOM') col = visSettings.colCustom;
                 const stakedBadge = (window.isStaked && isStaked(pt.id)) ? `<div style="position:absolute; top:-7px; right:-7px; width:13px; height:13px; border-radius:50%; background:#10b981; border:1.5px solid #fff; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>` : '';
-                const svgIcon = getMapMarkerSVG(pt.cat, col); const htmlContent = `<div style="position: relative; width: 24px; height: 24px; pointer-events:none;${stakedBadge ? ' opacity:0.65;' : ''}">${svgIcon}${stakedBadge}<div class="map-label-text" style="transform: rotate(${mapRotation}deg);">${pt.name}</div></div>`;
+                const svgIcon = getMapMarkerSVG(pt.cat, col); const htmlContent = `<div style="position: relative; width: 24px; height: 24px; pointer-events:none;${stakedBadge ? ' opacity:0.65;' : ''}">${svgIcon}${stakedBadge}<div class="map-label-text" style="transform: rotate(${mapRotation}deg);">${_escHtml(pt.name)}</div></div>`;
                 const icon = L.divIcon({ className: 'custom-map-marker', html: htmlContent, iconSize: [24, 24], iconAnchor: [12, 12] });
                 L.marker([pt.lat, pt.lng], { icon: icon }).addTo(markersGroup);
             });
@@ -216,7 +216,7 @@
                 let typBodu = "Podrobný polohový bod"; if(pt.cat === 'TB') typBodu = "Trigonometrický bod"; if(pt.cat === 'ZHB') typBodu = "Zhušťovací bod"; if(pt.cat === 'NIVEL') typBodu = "Nivelační / Výškový bod"; if(pt.cat === 'CUSTOM') typBodu = "Vlastní bod";
                 const dist = getDistance(userLat, userLng, pt.lat, pt.lng); const item = document.createElement('div'); item.className = 'cluster-list-item';
                 let col = visSettings.colTb; if(pt.cat === 'ZHB') col = visSettings.colZhb; if(pt.cat === 'PBPP') col = visSettings.colPbpp; if(pt.cat === 'NIVEL') col = visSettings.colNivel; if(pt.cat === 'CUSTOM') col = visSettings.colCustom;
-                item.innerHTML = `<div><div class="cluster-item-title" style="color: ${col};">#${pt.name}</div><div class="cluster-item-subtitle">${typBodu}</div></div><div style="font-weight: 600; font-size: 14px;">${dist.toFixed(1)} m</div>`;
+                item.innerHTML = `<div><div class="cluster-item-title" style="color: ${col};">#${_escHtml(pt.name)}</div><div class="cluster-item-subtitle">${typBodu}</div></div><div style="font-weight: 600; font-size: 14px;">${dist.toFixed(1)} m</div>`;
                 item.addEventListener('click', () => { document.getElementById('cluster-modal').style.display = 'none'; highlightPoint(pt); }); listDiv.appendChild(item);
             });
             document.getElementById('cluster-modal').style.display = 'flex';
@@ -239,7 +239,7 @@
                 let typBodu = "Podrobný polohový bod"; if (pt.cat === 'TB') typBodu = "Trigonometrický bod"; if (pt.cat === 'ZHB') typBodu = "Zhušťovací bod"; if (pt.cat === 'NIVEL') typBodu = "Nivelační / Výškový bod"; if (pt.cat === 'CUSTOM') typBodu = "Vlastní bod";
                 let col = visSettings.colTb; if (pt.cat === 'ZHB') col = visSettings.colZhb; if (pt.cat === 'PBPP') col = visSettings.colPbpp; if (pt.cat === 'NIVEL') col = visSettings.colNivel; if (pt.cat === 'CUSTOM') col = visSettings.colCustom;
                 const item = document.createElement('div'); item.className = 'cluster-list-item';
-                item.innerHTML = `<div><div class="cluster-item-title" style="color:${col};">#${pt.name}</div><div class="cluster-item-subtitle">${typBodu}</div></div><div style="font-weight:600; font-size:14px;">${d.toFixed(1)} m</div>`;
+                item.innerHTML = `<div><div class="cluster-item-title" style="color:${col};">#${_escHtml(pt.name)}</div><div class="cluster-item-subtitle">${typBodu}</div></div><div style="font-weight:600; font-size:14px;">${d.toFixed(1)} m</div>`;
                 item.addEventListener('click', () => { document.getElementById('nearby-modal').style.display = 'none'; highlightPoint(pt); });
                 listDiv.appendChild(item);
             });
@@ -301,7 +301,7 @@
         }
         function openManageModal() { document.getElementById('settings-modal').style.display = 'none'; renderManageList(); document.getElementById('manage-modal').style.display = 'flex'; }
         function closeManageModal() { document.getElementById('manage-modal').style.display = 'none'; fixAppLayout(); }
-        function renderManageList() { const listDiv = document.getElementById('manage-list'); listDiv.innerHTML = ''; if (persistentCustomPoints.length === 0) { listDiv.innerHTML = '<p style="text-align:center;">Žádné body v této zakázce.</p>'; } else persistentCustomPoints.forEach(pt => { let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); let dispY = Math.abs(sjtsk[0]).toFixed(2); let dispX = Math.abs(sjtsk[1]).toFixed(2); const item = document.createElement('div'); item.className = 'cp-item'; item.innerHTML = ` <div class="cp-title">${pt.name}</div> <div class="cp-coords">Y: ${dispY}<br>X: ${dispX}${pt.vyska != null ? '<br>Z: '+Number(pt.vyska).toFixed(2)+' m' : ''}${pt.acc != null ? '<br>⌀ ±'+pt.acc+' m' : ''}</div> <div class="cp-actions"> <button class="cp-btn cp-btn-edit" onclick="editCustomPoint('${pt.id}')"><svg class="icon"><use href="#i-edit"/></svg></button> <button class="cp-btn cp-btn-delete" onclick="deleteCustomPoint('${pt.id}')"><svg class="icon"><use href="#i-trash"/></svg></button></div>`; if (typeof decoratePointItem === 'function') { try { decoratePointItem(item, pt); } catch (e) {} } listDiv.appendChild(item); }); renderHiddenPointsRow(listDiv); renderLinesList(listDiv); }
+        function renderManageList() { const listDiv = document.getElementById('manage-list'); listDiv.innerHTML = ''; if (persistentCustomPoints.length === 0) { listDiv.innerHTML = '<p style="text-align:center;">Žádné body v této zakázce.</p>'; } else persistentCustomPoints.forEach(pt => { let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); let dispY = Math.abs(sjtsk[0]).toFixed(2); let dispX = Math.abs(sjtsk[1]).toFixed(2); const item = document.createElement('div'); item.className = 'cp-item'; item.innerHTML = ` <div class="cp-title">${_escHtml(pt.name)}</div> <div class="cp-coords">Y: ${dispY}<br>X: ${dispX}${pt.vyska != null ? '<br>Z: '+Number(pt.vyska).toFixed(2)+' m' : ''}${pt.acc != null ? '<br>⌀ ±'+_escHtml(pt.acc)+' m' : ''}</div> <div class="cp-actions"> <button class="cp-btn cp-btn-edit"><svg class="icon"><use href="#i-edit"/></svg></button> <button class="cp-btn cp-btn-delete"><svg class="icon"><use href="#i-trash"/></svg></button></div>`; item.querySelector('.cp-btn-edit').addEventListener('click', () => editCustomPoint(pt.id)); item.querySelector('.cp-btn-delete').addEventListener('click', () => deleteCustomPoint(pt.id)); if (typeof decoratePointItem === 'function') { try { decoratePointItem(item, pt); } catch (e) {} } listDiv.appendChild(item); }); renderHiddenPointsRow(listDiv); renderLinesList(listDiv); }
         // Skryte body: dohledatelne primo v sekci Body (drive jen hluboko v Nastaveni -> Udrzba)
         function renderHiddenPointsRow(listDiv) {
             const n = arPoints.filter(p => p.hidden).length;
@@ -521,7 +521,7 @@
         function showDetails(pt, distance) {
             activePointIdForModal = pt.id; initARMarkers(); arPoints.forEach(p => { if (p.element) p.element.classList.remove('active-reading'); }); if (pt.element) pt.element.classList.add('active-reading');
             let typBodu = "Podrobný polohový bod"; if(pt.cat === 'TB') typBodu = "Trigonometrický bod"; if(pt.cat === 'ZHB') typBodu = "Zhušťovací bod"; if(pt.cat === 'NIVEL') typBodu = "Nivelační / Výškový bod"; if(pt.cat === 'CUSTOM') typBodu = "Vlastní zadaný bod";
-            document.getElementById('det-title').innerHTML = `#${pt.name}`; document.getElementById('det-title').style.color = "var(--accent)"; document.getElementById('det-subtitle').innerHTML = typBodu; 
+            document.getElementById('det-title').innerHTML = `#${_escHtml(pt.name)}`; document.getElementById('det-title').style.color = "var(--accent)"; document.getElementById('det-subtitle').innerHTML = typBodu; 
             const hlBtn = document.getElementById('highlight-btn'); if (highlightedPointId === pt.id) { hlBtn.innerHTML = '<svg class="icon"><use href="#i-star"/></svg> Zrušit zvýraznění'; hlBtn.style.background = "#fff"; } else { hlBtn.innerHTML = '<svg class="icon"><use href="#i-star"/></svg> Zvýraznit bod a navigovat'; hlBtn.style.background = "#fbbf24"; }
             hideBtnLogic = () => { pt.hidden = true; if(pt.element) { pt.element.style.opacity = '0'; setTimeout(() => { if(pt.element && pt.element.parentNode) pt.element.parentNode.removeChild(pt.element); }, 200); } if (highlightedPointId === pt.id) { highlightedPointId = null; document.getElementById('ar-hud').style.display = 'none'; } updateInfoPanel(); drawAllMarkersOnMap(); };
             let sjtskY = "Neznámé", sjtskX = "Neznámé"; if (pt.type === "custom") { let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); sjtskY = Math.abs(sjtsk[0]).toFixed(2); sjtskX = Math.abs(sjtsk[1]).toFixed(2); } else if (pt.rawData) { const getVal = (keys) => { for (let k in pt.rawData) { if (keys.includes(k.toUpperCase()) && pt.rawData[k] !== "Null" && pt.rawData[k] !== null && String(pt.rawData[k]).trim() !== "") return pt.rawData[k]; } return null; }; let sY = parseFloat(getVal(['Y', 'SOURADNICE_Y'])); let sX = parseFloat(getVal(['X', 'SOURADNICE_X'])); if (!isNaN(sY) && !isNaN(sX)) { if (sY < sX) { sjtskY = sY; sjtskX = sX; } else { sjtskY = sX; sjtskX = sY; } } }
@@ -570,10 +570,26 @@
                     if (performance.now() - _lastAbsoluteTs < 2000) return;
                     headingReliable = false;
                 }
-                let so = 0;
-                if (window.screen && screen.orientation && typeof screen.orientation.angle === 'number') so = screen.orientation.angle;
-                else if (typeof window.orientation === 'number') so = window.orientation;
-                rawCompass = ((360 - event.alpha) + so + 360) % 360; // kompenzace orientace displeje (landscape ±90°)
+                // TILT-KOMPENZACE (Android): azimut směru ZADNÍ KAMERY z plné rotační
+                // matice (α,β,γ). Vzorec 360−alpha platí jen pro telefon naplocho —
+                // ve svislé AR poloze (beta~90°) je alpha v gimbal locku a heading
+                // ujíždí se sklonem. Kamera je pevná v telefonu, takže tahle cesta
+                // nepotřebuje ani kompenzaci orientace displeje (landscape).
+                let _dr = Math.PI / 180;
+                let _cZ = Math.cos(event.alpha * _dr), _sZ = Math.sin(event.alpha * _dr);
+                let _cX = Math.cos((event.beta || 0) * _dr), _sX = Math.sin((event.beta || 0) * _dr);
+                let _cY = Math.cos((event.gamma || 0) * _dr), _sY = Math.sin((event.gamma || 0) * _dr);
+                let _Vx = -_cZ * _sY - _sZ * _sX * _cY;   // East složka směru kamery
+                let _Vy = -_sZ * _sY + _cZ * _sX * _cY;   // North složka
+                if (event.beta != null && event.gamma != null && Math.hypot(_Vx, _Vy) > 0.35) {
+                    rawCompass = (Math.atan2(_Vx, _Vy) / _dr + 360) % 360;
+                } else {
+                    // telefon naplocho (mapa v ruce): kamera míří k zemi -> starý vzorec z alpha
+                    let so = 0;
+                    if (window.screen && screen.orientation && typeof screen.orientation.angle === 'number') so = screen.orientation.angle;
+                    else if (typeof window.orientation === 'number') so = window.orientation;
+                    rawCompass = ((360 - event.alpha) + so + 360) % 360; // kompenzace orientace displeje (landscape ±90°)
+                }
                 headingReliable = (event.absolute === true);
             }
             if (rawCompass === null) return;
@@ -586,8 +602,16 @@
                 if (headingCorrection > 25) headingCorrection = 25; else if (headingCorrection < -25) headingCorrection = -25;
             }
             let corrected = (rawCompass + (headingIsTrueNorth ? 0 : magneticDeclination) + headingCorrection + userHeadingOffset + 360) % 360;
-            // SMER: cyklicke vyhlazeni (mene roztreseny obraz); sila dle nastaveni
-            let smoothAlpha = Math.max(0.05, 1 - (visSettings.headingSmoothing || 0) / 100);
+            // SMER: cyklicke vyhlazeni (mene roztreseny obraz); sila dle nastaveni.
+            // dt-NORMALIZACE: udalosti nechodi vzdy v 60 Hz — konstantni zisk per-event by
+            // menil casovou konstantu filtru s frekvenci. alphaEff = 1 - exp(-dt/tau),
+            // tau zvoleno tak, aby pri 60 Hz odpovidalo puvodnimu chovani.
+            let _alpha0 = Math.max(0.05, 1 - (visSettings.headingSmoothing || 0) / 100);
+            let _nowOri = performance.now();
+            let _dtOri = Math.min(0.25, Math.max(0.004, (window._lastOriTs ? (_nowOri - window._lastOriTs) : 16.7) / 1000));
+            window._lastOriTs = _nowOri;
+            let _tau = -(1 / 60) / Math.log(1 - Math.min(0.95, _alpha0));
+            let smoothAlpha = 1 - Math.exp(-_dtOri / _tau);
             if (window.ARFusion && window.ARFusion.enabled) { smoothedHeading = window.ARFusion.fuse(corrected, smoothedHeading, event); } else { smoothedHeading = smoothAngle(smoothedHeading, corrected, smoothAlpha); }
             let heading = smoothedHeading; currentHeading = heading;
             let relativeHeadingDeg = (heading - compassZeroOffset + 360) % 360; let displayAzimut = "";

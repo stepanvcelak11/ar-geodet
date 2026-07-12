@@ -1,5 +1,6 @@
-// AR Geodet — Service Worker (v127)
-// Strategie: vlastni kod = CACHE HNED + aktualizace na pozadi (stale-while-revalidate),
+// AR Geodet — Service Worker (verze = SHELL_CACHE niz; TENTO komentar needituj)
+// Strategie: vlastni kod = CACHE-FIRST (verzovano bumpem SHELL_CACHE + update banner),
+//            index.html (navigace) = stale-while-revalidate (pojistka),
 //            CDN/dlazdice = NEJDRIV CACHE.
 // Instalace je ODOLNA: jeden nedostupny soubor neshodi prevzeti nove verze.
 //
@@ -23,6 +24,7 @@ const ASSETS_TO_CACHE = [
     './data/zpravodaj.json',
     './css/predpisy.css',
     './data/predpisy.json',
+    './js/err-log.js',
     './js/geo-core.js',
     './js/logika.js',
     './js/grafika.js',
@@ -33,6 +35,7 @@ const ASSETS_TO_CACHE = [
     './js/kompas-check.js',
     './js/zaloha.js',
     './js/undo.js',
+    './js/kos.js',
     './js/zakazky.js',
     './js/pruvodce.js',
     './js/sdileni.js',
@@ -141,22 +144,38 @@ self.addEventListener('fetch', event => {
     if (url.includes('cuzk.gov.cz/arcgis/rest')) return; // dotazy na bodova pole vzdy ze site
     if (url.includes('celestrak.org')) return; // drahy druzic (TLE) vzdy ze site — appka si je cachuje sama v localStorage
 
-    // Vlastni kod aplikace (stejny puvod): STALE-WHILE-REVALIDATE — odpovez HNED z cache
-    // (rychly start i pri slabem signalu v terenu) a na pozadi stahni cerstvou verzi do cache.
-    // Cerstvy kod se k uzivateli dostane pres update-banner (bump verze SW -> install znovu
-    // stahne vsechny ASSETS_TO_CACHE -> SKIP_WAITING -> reload), tahle vetev jen zrychluje start.
+    // Vlastni kod aplikace (stejny puvod): CACHE-FIRST. Cerstvy kod se k uzivateli
+    // dostava JEN pres bump verze SW (install znovu stahne ASSETS_TO_CACHE ->
+    // update banner -> SKIP_WAITING -> reload). Driv tu byl stale-while-revalidate
+    // na KAZDY soubor: v terenu zbytecne stahoval JS znovu a znovu a per-file
+    // revalidace umela namichat nekompatibilni verze (index v141 + logika v140).
+    // Vyjimka: NAVIGACE (index.html) zustava SWR jako pojistka, kdyby se pri
+    // vydani zapomnel bumpnout SHELL_CACHE.
     if (url.startsWith(self.location.origin)) {
+        const isNav = event.request.mode === 'navigate' || url === self.location.origin + '/' || url.endsWith('/index.html');
+        if (isNav) {
+            event.respondWith(
+                caches.match(event.request).then(cached => {
+                    const network = fetch(event.request).then(response => {
+                        if (response && response.ok) {
+                            const clone = response.clone();
+                            caches.open(SHELL_CACHE).then(cache => cache.put(event.request, clone));
+                        }
+                        return response;
+                    }).catch(() => cached);
+                    return cached || network;
+                })
+            );
+            return;
+        }
         event.respondWith(
-            caches.match(event.request).then(cached => {
-                const network = fetch(event.request).then(response => {
-                    if (response && response.ok) {
-                        const clone = response.clone();
-                        caches.open(SHELL_CACHE).then(cache => cache.put(event.request, clone));
-                    }
-                    return response;
-                }).catch(() => cached);   // offline -> co je v cache
-                return cached || network; // cache hned, jinak cekej na sit
-            })
+            caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
+                if (response && response.ok) {
+                    const clone = response.clone();
+                    caches.open(SHELL_CACHE).then(cache => cache.put(event.request, clone));
+                }
+                return response;
+            }))
         );
         return;
     }

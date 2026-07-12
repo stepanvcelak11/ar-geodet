@@ -87,13 +87,38 @@
     function shoelace(pts) {
         var n = pts.length, s = 0;
         if (n < 3) return 0;
+        // redukce o prvni vrchol: souciny surovych S-JTSK souradnic (~10^12) by
+        // v double ztracely presnost vzajemnym rusenim clenu
+        var Y0 = pts[0].Y, X0 = pts[0].X;
         for (var i = 0; i < n; i++) {
             var j = (i + 1) % n;
-            s += pts[i].Y * pts[j].X - pts[j].Y * pts[i].X;
+            s += (pts[i].Y - Y0) * (pts[j].X - X0) - (pts[j].Y - Y0) * (pts[i].X - X0);
         }
         return Math.abs(s) / 2;
     }
     function segLen(a, b) { var dY = b.Y - a.Y, dX = b.X - a.X; return Math.sqrt(dY * dY + dX * dX); }
+    // ---- testy pro validaci dělení z vrcholu (nekonvexní parcely) ----------
+    function _cross3(o, a, b) { return (a.Y - o.Y) * (b.X - o.X) - (a.X - o.X) * (b.Y - o.Y); }
+    // pravé protnutí úsečky AB s hranou polygonu (dotek v koncovém bodě nevadí)
+    function segCrossesBoundary(pts, A, B) {
+        var n = pts.length, eps = 1e-7;
+        for (var i = 0; i < n; i++) {
+            var C = pts[i], D = pts[(i + 1) % n];
+            var d1 = _cross3(A, B, C), d2 = _cross3(A, B, D), d3 = _cross3(C, D, A), d4 = _cross3(C, D, B);
+            if (((d1 > eps && d2 < -eps) || (d1 < -eps && d2 > eps)) &&
+                ((d3 > eps && d4 < -eps) || (d3 < -eps && d4 > eps))) return true;
+        }
+        return false;
+    }
+    function pointInPolyYX(pts, P) {
+        var inside = false, n = pts.length;
+        for (var i = 0, j = n - 1; i < n; j = i++) {
+            var yi = pts[i].Y, xi = pts[i].X, yj = pts[j].Y, xj = pts[j].X;
+            var hit = ((xi > P.X) !== (xj > P.X)) && (P.Y < (yj - yi) * (P.X - xi) / ((xj - xi) || 1e-12) + yi);
+            if (hit) inside = !inside;
+        }
+        return inside;
+    }
     function perimeter(pts) {
         var n = pts.length, p = 0;
         if (n < 2) return 0;
@@ -225,7 +250,12 @@
             P = sa.P;
         }
         var a1 = subArea(mid).area;
-        return { P: P, V: { Y: pts[vIndex].Y, X: pts[vIndex].X }, area1: a1, area2: total - a1, total: total };
+        // VALIDACE (nekonvexní parcela): pokud spojnice V->P vybíhá z polygonu,
+        // sub-polygon je self-intersecting a shoelace/bisekce vrací ŠPATNOU výměru.
+        var V = { Y: pts[vIndex].Y, X: pts[vIndex].X };
+        var midPt = { Y: (V.Y + P.Y) / 2, X: (V.X + P.X) / 2 };
+        var valid = !segCrossesBoundary(pts, V, P) && pointInPolyYX(pts, midPt);
+        return { P: P, V: V, area1: a1, area2: total - a1, total: total, valid: valid };
     }
 
     // =====================================================================
@@ -525,6 +555,11 @@
             if (!isFinite(tA) || tA <= 0 || tA >= total) { agAlert('Neplatná výměra', 'Zadej díl 0 < S < ' + total.toFixed(2) + ' m².'); return; }
             var sv = solveVertex(state.verts, vI, tA);
             if (!sv) { agAlert('Nepovedlo se', 'Zkontroluj geometrii parcely.'); return; }
+            if (!sv.valid) {
+                agAlert('Dělení z tohoto vrcholu nelze',
+                    'Parcela je nekonvexní a dělicí spojnice z vrcholu ' + (vI + 1) + ' vybíhá mimo parcelu — vypočtené výměry by byly ŠPATNĚ.\n\nZkus jiný vrchol, nebo metodu „rovnoběžně s hranou" (ta je korektní i pro nekonvexní tvary).');
+                return;
+            }
             state.division = { lines: [[sv.V, sv.P]], points: enrich([sv.P]), areas: [sv.area1, sv.area2], label: 'Dělení z vrcholu ' + (vI + 1) };
             resEl.innerHTML = divResultHTML('Díl A = ' + fmtArea(sv.area1) + '<br>Díl B = ' + fmtArea(sv.area2)
                 + '<br><span style="opacity:.7">Bod P: ' + fmtYX(sv.P.Y, sv.P.X) + '</span>', 1);

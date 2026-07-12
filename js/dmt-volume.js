@@ -135,7 +135,12 @@
         var det = (ax * ax + ay * ay) * (bx * cy - by * cx)
             - (bx * bx + by * by) * (ax * cy - ay * cx)
             + (cx * cx + cy * cy) * (ax * by - ay * bx);
-        return det > 1e-9;
+        // RELATIVNÍ práh: det škáluje ~ (rozsah souřadnic)^4, takže pevné epsilon
+        // (1e-9) bylo při rozsahu stovek metrů bezvýznamné a u malých trojúhelníků
+        // naopak moc hrubé -> chybná triangulace. Hraniční (kocirkulární) = "není uvnitř".
+        var s = Math.max(Math.abs(ax), Math.abs(ay), Math.abs(bx), Math.abs(by), Math.abs(cx), Math.abs(cy), 1e-6);
+        var eps = 1e-12 * s * s * s * s;
+        return det > eps;
     }
     function triangulate(points) {
         var n = points.length;
@@ -389,7 +394,9 @@
             row('Plocha (2D)', fmtArea(result.area)) +
             row('Násyp (nad H₀)', result.fill.toFixed(1) + ' m³', '#34d399') +
             row('Výkop (pod H₀)', result.cut.toFixed(1) + ' m³', '#f87171') +
-            row('Netto (násyp − výkop)', (result.net >= 0 ? '+' : '') + result.net.toFixed(1) + ' m³', result.net >= 0 ? '#34d399' : '#f87171');
+            row('Netto (násyp − výkop)', (result.net >= 0 ? '+' : '') + result.net.toFixed(1) + ' m³', result.net >= 0 ? '#34d399' : '#f87171') +
+            '<div class="dmt-muted" style="font-size:11px; margin-top:6px; line-height:1.35;">TIN pokrývá KONVEXNÍ obálku bodů — u nekonvexního obvodu (tvar L, koryto) '
+            + 'plochu i objem nadhodnotí. Zaměř obvod hustěji, nebo počítej po konvexních částech.</div>';
     }
     function fmtArea(a) {
         if (a >= 10000) return (a / 10000).toFixed(3) + ' ha (' + Math.round(a) + ' m²)';

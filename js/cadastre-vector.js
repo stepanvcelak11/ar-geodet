@@ -111,7 +111,7 @@
     }
 
     // ---- geometrie -------------------------------------------------------------
-    function enu(lat0, lng0, lat, lng) { var mLat = 111320, mLng = 111320 * Math.cos(lat0 * Math.PI / 180); return { e: (lng - lng0) * mLng, n: (lat - lat0) * mLat }; }
+    function enu(lat0, lng0, lat, lng) { var m = (typeof GeoCore !== 'undefined' && GeoCore.metersPerDeg) ? GeoCore.metersPerDeg(lat0) : { lat: 111320, lng: 111320 * Math.cos(lat0 * Math.PI / 180) }; return { e: (lng - lng0) * m.lng, n: (lat - lat0) * m.lat }; }
     function pointInRing(lat, lng, ring) {
         var inside = false;
         for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {

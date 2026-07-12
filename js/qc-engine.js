@@ -42,9 +42,15 @@
 
     // dosažený kód kvality z vnitřní stř. chyby polohy (m) — nejlepší (nejnižší číslo),
     // jehož práh měření splňuje; null = horší než kód 5 (pro zaměření v terénu nevyhovuje)
+    //
+    // DEFINICE: appka počítá RADIÁLNÍ střední chybu polohy σr = √(mx²+my²).
+    // Vyhlášková mxy je STŘEDNÍ SOUŘADNICOVÁ chyba mxy = √((mx²+my²)/2) = σr/√2.
+    // Porovnává se tedy σr/√2 ≤ mxy (dřív se porovnávalo σr přímo → o √2 přísnější,
+    // bod splňující kód 3 mohl být chybně odmítnut).
     function codeForSigma(s) {
         if (s == null || !isFinite(s) || s < 0) return null;
-        for (var i = 0; i < CODES.length; i++) if (s <= CODES[i].mxy + 1e-9) return CODES[i];
+        var mxy = s / Math.SQRT2;
+        for (var i = 0; i < CODES.length; i++) if (mxy <= CODES[i].mxy + 1e-9) return CODES[i];
         return null;
     }
 
@@ -116,7 +122,9 @@
         } else {
             gateInfo('Kód kvality podrobných bodů',
                 'mxy ≤ 0,14 m → kód 3 (kataster) · ≤ 0,26 m → kód 4 · ≤ 0,50 m → kód 5.<br>' +
-                'uxy = 2·mxy (mezní souřadnicová chyba). Zdroj: ' + CITACE + '.');
+                'uxy = 2·mxy (mezní souřadnicová chyba). Zdroj: ' + CITACE + '.<br>' +
+                'Měřená ±hodnota je radiální chyba polohy; na mxy se převádí dělením √2. ' +
+                'Verdikt vychází z VNITŘNÍ přesnosti měření — absolutní polohu vždy ověř na kontrolním bodě.');
         }
     }
 

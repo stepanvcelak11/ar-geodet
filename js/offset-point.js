@@ -39,8 +39,10 @@
     }
 
     // ZEMĚPISNÝ forward: lokální rovinná aproximace (přesná na metry–km offsetů v ČR).
+    // Poloměry křivosti elipsoidu (GeoCore) — konstanta 111320 měla ~0,15 % chybu (15 cm/100 m).
     function forward(lat, lng, azDeg, dist) {
-        var mLat = 111320, mLng = 111320 * Math.cos(lat * Math.PI / 180);
+        var _m = (typeof GeoCore !== 'undefined' && GeoCore.metersPerDeg) ? GeoCore.metersPerDeg(lat) : { lat: 111320, lng: 111320 * Math.cos(lat * Math.PI / 180) };
+        var mLat = _m.lat, mLng = _m.lng;
         var a = azDeg * Math.PI / 180;
         var dN = dist * Math.cos(a), dE = dist * Math.sin(a);
         return { lat: lat + dN / mLat, lng: lng + dE / mLng };
