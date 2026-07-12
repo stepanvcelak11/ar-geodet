@@ -438,12 +438,14 @@ if ('serviceWorker' in navigator) {
                 const moved = getDistance(ref.lat, ref.lng, lat, lng);
                 if ((speed && speed > 0.5) || moved > 15) gpsSamples = [];
             }
-            gpsSamples.push({ lat: lat, lng: lng, acc: (acc || 0), alt: (alt != null && isFinite(alt) ? alt : null), altAcc: (altAcc != null && isFinite(altAcc) ? altAcc : null) });
+            gpsSamples.push({ t: Date.now(), lat: lat, lng: lng, acc: (acc || 0), alt: (alt != null && isFinite(alt) ? alt : null), altAcc: (altAcc != null && isFinite(altAcc) ? altAcc : null) });
             if (gpsSamples.length > 300) gpsSamples.shift();
             const total = gpsSamples.length;
-            // lokalni rovinne souradnice v metrech (kolem prvniho vzorku)
+            // lokalni rovinne souradnice v metrech (kolem prvniho vzorku); poloměry
+            // křivosti elipsoidu místo konstanty 111320 (ta má ~0,15 % systematickou chybu)
             const lat0 = gpsSamples[0].lat, lng0 = gpsSamples[0].lng;
-            const mLat = 111320, mLng = 111320 * Math.cos(lat0 * Math.PI / 180);
+            const _mpd = GeoCore.metersPerDeg(lat0);
+            const mLat = _mpd.lat, mLng = _mpd.lng;
             let used = gpsSamples.map(s => ({ s: s, x: (s.lng - lng0) * mLng, y: (s.lat - lat0) * mLat }));
             let cx = _median(used.map(p => p.x)), cy = _median(used.map(p => p.y));
             for (let it = 0; it < 3 && used.length >= 5; it++) {
@@ -457,8 +459,14 @@ if ('serviceWorker' in navigator) {
             let sw = 0, swx = 0, swy = 0;
             used.forEach(p => { const w = 1 / Math.pow(Math.max(p.s.acc || 5, 1), 2); sw += w; swx += w * p.x; swy += w * p.y; });
             const wx = swx / sw, wy = swy / sw;
-            const sigma = Math.sqrt(used.reduce((a, p) => a + Math.pow(p.x - wx, 2) + Math.pow(p.y - wy, 2), 0) / used.length);
-            const neff = Math.max(1, used.length / 4); // fixy ~1/s jsou korelovane v radu sekund
+            // sigma kolem TEHOZ stredu, ktery hlasime (vazeny prumer), s N-2 stupni
+            // volnosti (2D stred). Drive se pocitalo kolem prumeru, ale delilo plnym N.
+            const _resX = used.map(p => p.x - wx), _resY = used.map(p => p.y - wy);
+            const sigma = Math.sqrt(_resX.reduce((a, v, i) => a + v * v + _resY[i] * _resY[i], 0) / Math.max(1, used.length - 2));
+            // Efektivni pocet NEZAVISLYCH vzorku: fixy 1 Hz jsou silne korelovane
+            // (multipath se dekoreluje az za desitky sekund). Lag-1 autokorelace
+            // rezidui + cap podle delky mereni (tau ~30 s). Drive N/4 — ~10x optimisticke.
+            const neff = GeoCore.effectiveN(_resX, _resY, used.map(p => p.s.t || 0), 30);
             // POZOR na falesnou presnost: sterr je jen VNITRNI rozptyl prumeru. Mobilni GNSS bez
             // RTK ma ale dominantni SYSTEMATICKOU slozku (multipath/troposfera/konstelace), kterou
             // prumerovani NEodstrani. Proto sterr zdola omezime realnou mezi ~0.3x nejlepsi hlasena
@@ -484,8 +492,12 @@ if ('serviceWorker' in navigator) {
                     let asw = 0, asum = 0;
                     aS.forEach(s => { const w = 1 / Math.pow(Math.max(s.altAcc || 10, 1), 2); asw += w; asum += w * s.alt; });
                     altMean = asum / asw;
-                    const asig = Math.sqrt(aS.reduce((a, s) => a + Math.pow(s.alt - altMean, 2), 0) / aS.length);
-                    altSterr = asig / Math.sqrt(Math.max(1, aS.length / 4));
+                    const _resZ = aS.map(s => s.alt - altMean);
+                    const asig = Math.sqrt(_resZ.reduce((a, v) => a + v * v, 0) / Math.max(1, aS.length - 1));
+                    // svisla chyba je korelovana jeste silneji nez poloha (ionosfera) -> tau 45 s
+                    const neffV = GeoCore.effectiveN(_resZ, null, aS.map(s => s.t || 0), 45);
+                    const bestAltAcc = aS.reduce((mn, s) => Math.min(mn, (s.altAcc || 99)), 99);
+                    altSterr = Math.max(asig / Math.sqrt(neffV), Math.max(0.5 * bestAltAcc, 0.4));
                     altN = aS.length;
                 }
             }
@@ -540,7 +552,7 @@ if ('serviceWorker' in navigator) {
             navigator.geolocation.watchPosition(
                 (position) => {
                     userLat = position.coords.latitude; userLng = position.coords.longitude; magneticDeclination = getDeclination(userLat, userLng); 
-                    userAlt = position.coords.altitude || null; 
+                    userAlt = (position.coords.altitude != null && isFinite(position.coords.altitude)) ? position.coords.altitude : null;
                     currentGpsAccuracy = position.coords.accuracy; updateInfoPanel();
                     gpsSpeed = (position.coords.speed != null && !isNaN(position.coords.speed)) ? position.coords.speed : 0;
                     if (position.coords.heading != null && !isNaN(position.coords.heading) && gpsSpeed > 0.5) gpsCourse = position.coords.heading;

@@ -58,7 +58,12 @@
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
 
     // ---- geometrie ------------------------------------------------------------
-    function mPerDeg(lat) { return { lat: 111320, lng: 111320 * Math.cos(lat * Math.PI / 180) }; }
+    // poloměry křivosti elipsoidu (GeoCore); fallback na starou konstantu jen kdyby
+    // geo-core.js chyběl (odpojitelnost modulů)
+    function mPerDeg(lat) {
+        if (typeof GeoCore !== 'undefined' && GeoCore.metersPerDeg) return GeoCore.metersPerDeg(lat);
+        return { lat: 111320, lng: 111320 * Math.cos(lat * Math.PI / 180) };
+    }
     function planarDist(aLat, aLng, bLat, bLng) {
         var m = mPerDeg((aLat + bLat) / 2);
         return Math.hypot((aLng - bLng) * m.lng, (aLat - bLat) * m.lat);
@@ -109,8 +114,15 @@
             var w = wa * wp; sw += w; swx += w * p.x; swy += w * p.y;
         });
         var wx = swx / sw, wy = swy / sw;
-        var sigma = Math.sqrt(pts.reduce(function (a, p) { return a + Math.pow(p.x - wx, 2) + Math.pow(p.y - wy, 2); }, 0) / pts.length);
-        var neff = Math.max(1, pts.length / 4);        // po sobě jdoucí fixy jsou korelované
+        // sigma kolem hlaseneho stredu (vazeny prumer) s N-2 stupni volnosti
+        var resX = pts.map(function (p) { return p.x - wx; });
+        var resY = pts.map(function (p) { return p.y - wy; });
+        var sigma = Math.sqrt(resX.reduce(function (a, v, i) { return a + v * v + resY[i] * resY[i]; }, 0) / Math.max(1, pts.length - 2));
+        // efektivni N z autokorelace rezidui + delky mereni (tau ~30 s); drive N/4
+        // hlasilo centimetry tam, kde je realna nejistota decimetry az metr
+        var neff = (typeof GeoCore !== 'undefined' && GeoCore.effectiveN)
+            ? GeoCore.effectiveN(resX, resY, pts.map(function (p) { return p.s.t || 0; }), 30)
+            : Math.max(1, Math.min(pts.length, 1 + ((pts[pts.length - 1].s.t || 0) - (pts[0].s.t || 0)) / 30000));
         // FALEŠNÁ PŘESNOST: sterr je jen vnitřní rozptyl. Systematickou chybu mobilní GNSS
         // (multipath/troposféra) průměrování neodstraní → sterr zdola omezíme realnou mezí
         // (~0.3× nejlepší hlášená accuracy, min 0.2 m), ať nehlásíme nereálné centimetry.
@@ -354,7 +366,10 @@
         var wx = sx / sw, wy = sy / sw;
         var lat = lat0 + wy / m.lat, lng = lng0 + wx / m.lng;
         var spread = 0; grp.forEach(function (s) { spread = Math.max(spread, planarDist(s.lat, s.lng, lat, lng)); });
-        return { lat: lat, lng: lng, sterr: 1 / Math.sqrt(sw), n: grp.length, spread: spread };
+        // 1/sqrt(sum w) plati jen pro NEZAVISLA sezeni; multipath tehoz dne je ale
+        // korelovany -> sterr zdola omezime realnym rozptylem mezi sezenimi
+        var sterr = Math.max(1 / Math.sqrt(sw), spread / Math.sqrt(grp.length));
+        return { lat: lat, lng: lng, sterr: sterr, n: grp.length, spread: spread };
     }
 
     function loadSessions() { try { var r = localStorage.getItem(LS_SESS); _sessions = r ? (JSON.parse(r) || []) : []; } catch (e) { _sessions = []; } if (!Array.isArray(_sessions)) _sessions = []; }
