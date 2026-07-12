@@ -43,7 +43,7 @@
         'track-log': { t: 'Stopa trasy', h: '<p>Záznam prošlé trasy (GPS stopa) do mapy: obchůzka hranice, zaměření cesty. Stopu jde uložit a exportovat (GPX/KML).</p>' },
         'urovnani': { t: 'Urovnání stativu', h: '<p>Chytrá libela: telefon položený na stativu/přístroji ukáže, kterou nohou či šroubem a kam točit, aby byl přístroj v rovině.</p>' },
         'postupy': { t: 'Postupy měření', h: '<p>Tahák krok za krokem pro běžné metody: rajón, volné stanovisko, tachymetrie, polygonový pořad, technická nivelace, GNSS-RTK…</p><p>Vychází z oficiálních předpisů (Návod pro obnovu katastrálního operátu, katastrální vyhláška). U limitů je vždy uveden zdroj.</p>' },
-        'zapisnik': { t: 'Zápisníky', h: '<p>Digitální zápisník místo papíru: <b>technická nivelace</b> (čtení zpět/vpřed → převýšení, výšky, uzávěr) a <b>vodorovné směry</b> (skupiny → redukce, průměry).</p><p>Výpočty běží průběžně (lze vypnout v hlavičce zápisníku). Data se ukládají per zakázka a jdou exportovat.</p>' }
+        'zapisnik': { t: 'Zápisníky', h: '<p>Digitální zápisník místo papíru: <b>technická nivelace</b> (čtení zpět/vpřed → převýšení, výšky, uzávěr) a <b>vodorovné směry</b> — pro každý cíl skupiny s Hz v I./II. poloze (redukce + průměry), zenitové úhly v obou polohách (zprůměruje se) a šikmá či vodorovná délka (šikmá se zenitem se přepočte na vodorovnou a převýšení).</p><p>Výpočty běží průběžně (lze vypnout v hlavičce zápisníku). Data se ukládají per zakázka a jdou exportovat.</p>' }
     };
 
     // ---- styly ---------------------------------------------------------------------
@@ -53,16 +53,18 @@
         st.id = STYLE_ID;
         st.textContent = [
             '#tools-modal .tool-tile{position:relative;}',
-            '.ag-tp-help{position:absolute;top:4px;right:4px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;',
+            // badge je <i> (NE <span>!) — field-tools má pravidlo `#tools-modal .ag-ft-tile span{display:block}`,
+            // které by span-badge u terénních nástrojů natvrdo zviditelnilo/roztáhlo
+            'i.ag-tp-help{position:absolute;top:4px;right:4px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;',
             '  border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid var(--glass-border,rgba(255,255,255,0.14));',
-            '  color:var(--text-muted,#9aa1ac);font:700 12px/1 var(--font-ui,system-ui);cursor:pointer;z-index:2;}',
-            '.ag-tp-help:active{background:var(--accent-soft,rgba(52,211,153,0.18));color:var(--accent,#34d399);}',
-            '.ag-tp-star{position:absolute;top:4px;left:4px;width:24px;height:24px;display:none;align-items:center;justify-content:center;',
-            '  border-radius:50%;background:rgba(0,0,0,0.35);border:1px solid rgba(251,191,36,0.6);color:#fbbf24;font-size:14px;cursor:pointer;z-index:2;}',
-            'body.ag-tp-edit .ag-tp-star{display:flex;}',
+            '  color:var(--text-muted,#9aa1ac);font:700 12px/1 var(--font-ui,system-ui);font-style:normal;cursor:pointer;z-index:2;}',
+            'i.ag-tp-help:active{background:var(--accent-soft,rgba(52,211,153,0.18));color:var(--accent,#34d399);}',
+            '#tools-modal .tool-tile i.ag-tp-star{position:absolute;top:4px;left:4px;width:24px;height:24px;display:none !important;align-items:center;justify-content:center;',
+            '  border-radius:50%;background:rgba(0,0,0,0.35);border:1px solid rgba(251,191,36,0.6);color:#fbbf24;font-size:14px;font-style:normal;cursor:pointer;z-index:2;}',
+            'body.ag-tp-edit #tools-modal .tool-tile i.ag-tp-star{display:flex !important;}',
             'body.ag-tp-edit #tools-modal .tool-tile{outline:1px dashed var(--glass-border,rgba(255,255,255,0.2));}',
-            '.ag-tp-star.on{background:#fbbf24;color:#1a1205;}',
-            '#ag-tp-editbtn{margin:8px 0 0;width:100%;padding:9px;border-radius:12px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));',
+            '#tools-modal .tool-tile i.ag-tp-star.on{background:#fbbf24;color:#1a1205;}',
+            '#ag-tp-editbtn{margin:2px 0 10px;width:100%;padding:9px;border-radius:12px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));',
             '  background:transparent;color:var(--text-muted,#9aa1ac);font-size:12.5px;font-weight:600;cursor:pointer;}',
             'body.ag-tp-edit #ag-tp-editbtn{background:var(--accent-soft,rgba(52,211,153,0.15));color:var(--accent,#34d399);border-color:var(--accent-line,rgba(52,211,153,0.4));}',
             '#ag-fav-head{color:#fbbf24 !important;}',
@@ -129,14 +131,14 @@
         for (var i = 0; i < tiles.length; i++) {
             (function (tile) {
                 if (!tile.querySelector('.ag-tp-help')) {
-                    var b = document.createElement('span');
+                    var b = document.createElement('i');   // <i>, ne <span> — viz komentář u stylů
                     b.className = 'ag-tp-help'; b.textContent = '?';
                     b.setAttribute('role', 'button'); b.setAttribute('aria-label', 'Návod k nástroji');
                     b.addEventListener('click', function (e) { e.stopPropagation(); e.preventDefault(); openHelp(tileKey(tile), tileLabel(tile)); });
                     tile.appendChild(b);
                 }
                 if (!tile.querySelector('.ag-tp-star')) {
-                    var s = document.createElement('span');
+                    var s = document.createElement('i');
                     s.className = 'ag-tp-star'; s.textContent = '★';
                     s.setAttribute('role', 'button'); s.setAttribute('aria-label', 'Oblíbený nástroj');
                     s.addEventListener('click', function (e) { e.stopPropagation(); e.preventDefault(); toggleFav(tile); });
@@ -211,7 +213,8 @@
     function injectEditButton() {
         var m = document.getElementById('tools-modal'); if (!m) return;
         if (document.getElementById('ag-tp-editbtn')) return;
-        var search = m.querySelector('#tools-search'); if (!search) return;
+        // dovnitř .modal-body PŘED mřížku — vedle vyhledávání se překrýval s nadpisem „Měření"
+        var body = m.querySelector('.modal-body'); if (!body) return;
         var btn = document.createElement('button');
         btn.type = 'button'; btn.id = 'ag-tp-editbtn';
         btn.innerHTML = '★ Upravit oblíbené (nástroje nahoře)';
@@ -219,7 +222,7 @@
             var on = document.body.classList.toggle('ag-tp-edit');
             btn.innerHTML = on ? '✓ Hotovo — ukončit úpravy' : '★ Upravit oblíbené (nástroje nahoře)';
         });
-        search.parentNode.insertBefore(btn, search.nextSibling);
+        body.insertBefore(btn, body.firstChild);
     }
     // při zavření modálu režim úprav vypnout
     function watchModalClose() {

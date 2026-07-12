@@ -3,12 +3,17 @@
 //   1) TECHNICKÁ NIVELACE — řádky: bod, čtení zpět (z), čtení vpřed (p).
 //      Auto-výpočet: převýšení h = z − p, průběžné výšky od zadané výchozí výšky,
 //      součty Σz/Σp/Σh a uzávěr proti známé koncové výšce (mez 40·√R mm pro TN).
-//   2) VODOROVNÉ SMĚRY — cíle × skupiny, čtení v I. a II. poloze (gon).
-//      Auto-výpočet: průměr z poloh (II − 200g), redukce na první směr, průměr
-//      redukovaných směrů ze skupin + největší rozdíl mezi skupinami.
+//   2) VODOROVNÉ SMĚRY — karta pro každý CÍL: skupiny s čtením Hz v I. a II. poloze
+//      (gon) → průměr z poloh, redukce na první cíl, průměr redukovaných směrů ze
+//      skupin + rozptyl. K cíli lze zapsat i ZENITOVÝ ÚHEL (I. a II. poloha,
+//      zprůměruje se) a DÉLKU (šikmou či vodorovnou — šikmá se zenitem se přepočte
+//      na vodorovnou a převýšení).
 // Auto-výpočet jde v hlavičce zápisníku VYPNOUT (na přání: možnost jen zapisovat).
 // Data se ukládají per ZAKÁZKA (getStoredData/setStoredData z logika.js) a jdou
 // exportovat jako textový soubor.
+//
+// POZOR: žádný prompt()/blokující dialog — na iOS zmrazí kamerový stream (AR pak
+// stojí). Název zápisníku se zadává vlastním nemodálním dialogem (askName).
 //
 // NEEDITUJE logika.js ani grafika.js. Odstranění: smaž js/zapisnik.js + řádek
 // <script> v index.html (a v sw.js).
@@ -27,7 +32,22 @@
         if (!d || typeof d !== 'object') d = {};
         if (!Array.isArray(d.niv)) d.niv = [];
         if (!Array.isArray(d.sm)) d.sm = [];
+        d.sm.forEach(migrateSm);
         return d;
+    }
+    // starší zápisníky směrů (bez zenitů/délek) doplnit o nová pole
+    function migrateSm(nb) {
+        if (!Array.isArray(nb.targets)) nb.targets = [''];
+        if (!Array.isArray(nb.groups) || !nb.groups.length) nb.groups = [{}];
+        if (!Array.isArray(nb.dist)) nb.dist = nb.targets.map(function () { return ''; });
+        while (nb.dist.length < nb.targets.length) nb.dist.push('');
+        if (nb.distType !== 'vodor' && nb.distType !== 'sikma') nb.distType = 'sikma';
+        nb.groups.forEach(function (gr) {
+            ['a', 'b', 'za', 'zb'].forEach(function (k) {
+                if (!Array.isArray(gr[k])) gr[k] = [];
+                while (gr[k].length < nb.targets.length) gr[k].push('');
+            });
+        });
     }
     function saveAll(d) {
         var s = JSON.stringify(d);
@@ -36,7 +56,6 @@
     }
     function num(v) { if (v == null || v === '') return null; var n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; }
     function f3(v) { return v == null ? '—' : v.toFixed(3); }
-    function f4(v) { return v == null ? '—' : v.toFixed(4); }
     function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
     function uid() { return 'zb_' + Date.now() + '_' + Math.round(Math.random() * 1e5); }
     // rozdíl úhlů v gon do <-200,200>
@@ -66,10 +85,16 @@
             '.ag-zb-meta input{width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);color:inherit;font-size:14px;}',
             '.ag-zb-auto{display:flex;align-items:center;gap:8px;margin:4px 0 12px;font-size:13px;color:var(--text-muted,#9aa1ac);}',
             '.ag-zb-auto input{width:18px;height:18px;accent-color:var(--accent,#34d399);}',
+            '.ag-zb-seg{display:inline-flex;border:1px solid var(--glass-border,rgba(255,255,255,0.16));border-radius:99px;overflow:hidden;}',
+            '.ag-zb-seg button{border:none;background:transparent;color:var(--text-muted,#9aa1ac);padding:7px 13px;font-size:12.5px;font-weight:600;cursor:pointer;}',
+            '.ag-zb-seg button.on{background:var(--accent-soft,rgba(52,211,153,0.18));color:var(--accent,#34d399);}',
+            // --- nivelace: tabulka ---
             '.ag-zb-tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--glass-border,rgba(255,255,255,0.1));border-radius:12px;}',
             '.ag-zb-tbl{border-collapse:collapse;width:100%;min-width:520px;font-size:13px;}',
             '.ag-zb-tbl th{position:sticky;top:0;background:rgba(20,25,32,0.97);padding:8px 6px;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted,#9aa1ac);border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.12));text-align:left;}',
             '.ag-zb-tbl td{padding:4px 4px;border-bottom:1px solid rgba(255,255,255,0.06);vertical-align:middle;}',
+            '.ag-zb-tbl tbody tr:nth-child(even) td{background:rgba(255,255,255,0.03);}',   // zebra = lepší čitelnost
+            '.ag-zb-tbl .ag-zb-idx{color:var(--text-muted,#9aa1ac);font-size:11px;padding:0 2px;}',
             '.ag-zb-tbl input{width:86px;box-sizing:border-box;padding:8px 8px;border-radius:8px;border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:rgba(255,255,255,0.05);color:inherit;font-size:14px;font-family:var(--font-mono,monospace);}',
             '.ag-zb-tbl input.ag-zb-name{width:96px;font-family:inherit;}',
             '.ag-zb-comp{font-family:var(--font-mono,monospace);color:var(--accent-bright,#34d399);white-space:nowrap;}',
@@ -80,9 +105,52 @@
             '.ag-zb-rowbtns{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}',
             '.ag-zb-rowbtns button{flex:1 1 130px;padding:11px;border-radius:12px;border:1px solid var(--glass-border,rgba(255,255,255,0.16));background:rgba(255,255,255,0.05);color:inherit;font-weight:600;cursor:pointer;}',
             '.ag-zb-rowbtns .primary{background:var(--accent-soft,rgba(52,211,153,0.12));border-color:var(--accent-line,rgba(52,211,153,0.4));color:var(--accent,#34d399);}',
+            // --- směry: karta cíle ---
+            '.ag-zb-card{margin-bottom:12px;padding:12px;border-radius:14px;border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:rgba(255,255,255,0.035);}',
+            '.ag-zb-card-head{display:flex;gap:8px;align-items:center;margin-bottom:8px;}',
+            '.ag-zb-card-head .ag-zb-cname{flex:1 1 110px;min-width:90px;padding:9px 10px;border-radius:10px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);color:inherit;font-size:14.5px;font-weight:600;}',
+            '.ag-zb-card-head .ag-zb-cdist{flex:0 1 110px;width:110px;padding:9px 10px;border-radius:10px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);color:inherit;font-size:14px;font-family:var(--font-mono,monospace);}',
+            '.ag-zb-gtbl{border-collapse:collapse;width:100%;font-size:12.5px;}',
+            '.ag-zb-gtbl th{padding:4px 4px;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted,#9aa1ac);text-align:left;}',
+            '.ag-zb-gtbl td{padding:3px 3px;}',
+            '.ag-zb-gtbl input{width:100%;min-width:62px;box-sizing:border-box;padding:8px 6px;border-radius:8px;border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:rgba(255,255,255,0.05);color:inherit;font-size:13.5px;font-family:var(--font-mono,monospace);}',
+            '.ag-zb-gwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}',
+            '.ag-zb-gtbl .ag-zb-gno{color:var(--text-muted,#9aa1ac);font-size:11px;white-space:nowrap;padding-right:4px;}',
+            '.ag-zb-csum{margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--accent-soft,rgba(52,211,153,0.07));border:1px solid var(--accent-line,rgba(52,211,153,0.25));font-size:12.5px;line-height:1.7;}',
+            '.ag-zb-csum b{font-family:var(--font-mono,monospace);color:var(--accent-bright,#34d399);}',
+            // --- dialog pro zadání názvu (náhrada prompt(), který mrazil kameru) ---
+            '#ag-zb-ask{position:fixed;inset:0;z-index:1000061;display:none;align-items:center;justify-content:center;background:rgba(4,8,12,0.6);}',
+            '#ag-zb-ask.open{display:flex;}',
+            '#ag-zb-ask .ag-zb-askcard{width:min(92vw,360px);padding:18px;border-radius:16px;background:var(--glass-bg,rgba(14,18,24,0.97));border:1px solid var(--glass-border-strong,rgba(255,255,255,0.16));color:var(--text-color,#eceef2);}',
+            '#ag-zb-ask h3{margin:0 0 10px;font-size:15.5px;color:var(--accent,#34d399);}',
+            '#ag-zb-ask input{width:100%;box-sizing:border-box;padding:11px 12px;border-radius:10px;border:1px solid var(--glass-border,rgba(255,255,255,0.16));background:rgba(255,255,255,0.06);color:inherit;font-size:15px;}',
+            '#ag-zb-ask .ag-zb-askbtns{display:flex;gap:8px;margin-top:12px;}',
+            '#ag-zb-ask .ag-zb-askbtns button{flex:1;padding:11px;border-radius:10px;border:1px solid var(--glass-border,rgba(255,255,255,0.16));background:rgba(255,255,255,0.06);color:inherit;font-weight:600;cursor:pointer;}',
+            '#ag-zb-ask .ag-zb-askbtns .ok{background:var(--accent-soft,rgba(52,211,153,0.16));border-color:var(--accent-line,rgba(52,211,153,0.4));color:var(--accent,#34d399);}',
             'body.outdoor-mode #ag-zb-ov{background:#000;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
+    }
+
+    // ---- vlastní dialog místo prompt() (prompt na iOS mrazí kamerový stream) ------------
+    function askName(title, placeholder, cb) {
+        injectStyles();
+        var d = document.getElementById('ag-zb-ask');
+        if (!d) {
+            d = document.createElement('div'); d.id = 'ag-zb-ask';
+            d.innerHTML = '<div class="ag-zb-askcard"><h3 id="ag-zb-ask-t"></h3><input type="text" id="ag-zb-ask-i"><div class="ag-zb-askbtns"><button type="button" class="cancel">Zrušit</button><button type="button" class="ok">Vytvořit</button></div></div>';
+            document.body.appendChild(d);
+            d.addEventListener('click', function (e) { if (e.target === d) d.classList.remove('open'); });
+        }
+        d.querySelector('#ag-zb-ask-t').textContent = title;
+        var inp = d.querySelector('#ag-zb-ask-i');
+        inp.value = ''; inp.placeholder = placeholder || '';
+        var ok = d.querySelector('.ok'), cancel = d.querySelector('.cancel');
+        ok.onclick = function () { d.classList.remove('open'); cb(inp.value.trim()); };
+        cancel.onclick = function () { d.classList.remove('open'); };
+        inp.onkeydown = function (e) { if (e.key === 'Enter') ok.onclick(); };
+        d.classList.add('open');
+        setTimeout(function () { try { inp.focus(); } catch (e) {} }, 60);
     }
 
     // ---- overlay ------------------------------------------------------------------------
@@ -122,7 +190,7 @@
         d.niv.forEach(function (n) {
             h += '<div class="ag-zb-item" data-open="niv:' + n.id + '"><b>' + esc(n.name || 'Nivelace') + '</b><small>' + n.rows.length + ' sestav</small><button type="button" class="ag-zb-del" data-del="niv:' + n.id + '" aria-label="Smazat">✕</button></div>';
         });
-        h += '<div class="ag-zb-sec">Vodorovné směry</div>';
+        h += '<div class="ag-zb-sec">Vodorovné směry (+ zenit, délka)</div>';
         h += '<button type="button" class="ag-zb-newbtn" data-new="sm">＋ Nový zápisník směrů</button>';
         d.sm.forEach(function (n) {
             h += '<div class="ag-zb-item" data-open="sm:' + n.id + '"><b>' + esc(n.name || 'Směry') + '</b><small>' + n.targets.length + ' cílů · ' + n.groups.length + ' skupin</small><button type="button" class="ag-zb-del" data-del="sm:' + n.id + '" aria-label="Smazat">✕</button></div>';
@@ -150,16 +218,20 @@
         });
     }
     function createNotebook(type) {
-        var name = prompt(type === 'niv' ? 'Název nivelačního pořadu (např. „ČB-101 → ČB-102"):' : 'Název zápisníku směrů (např. „Stanovisko 4001"):');
-        if (name === null) return;
-        var d = loadAll();
-        if (type === 'niv') {
-            var n = { id: uid(), name: name || 'Nivelace', h0: '', hEnd: '', lenKm: '', autoCalc: true, rows: [{ bod: '', z: '', p: '', note: '' }] };
-            d.niv.push(n); saveAll(d); renderNiv(n.id);
-        } else {
-            var s = { id: uid(), name: name || 'Směry', stan: '', autoCalc: true, targets: ['', ''], groups: [{ a: ['', ''], b: ['', ''] }] };
-            d.sm.push(s); saveAll(d); renderSm(s.id);
-        }
+        askName(
+            type === 'niv' ? 'Název nivelačního pořadu' : 'Název zápisníku směrů',
+            type === 'niv' ? 'např. ČB-101 → ČB-102' : 'např. Stanovisko 4001',
+            function (name) {
+                var d = loadAll();
+                if (type === 'niv') {
+                    var n = { id: uid(), name: name || 'Nivelace', h0: '', hEnd: '', lenKm: '', autoCalc: true, rows: [{ bod: '', z: '', p: '', note: '' }] };
+                    d.niv.push(n); saveAll(d); renderNiv(n.id);
+                } else {
+                    var s = { id: uid(), name: name || 'Směry', stan: '', autoCalc: true, distType: 'sikma', targets: [''], dist: [''], groups: [{ a: [''], b: [''], za: [''], zb: [''] }] };
+                    d.sm.push(s); saveAll(d); renderSm(s.id);
+                }
+            }
+        );
     }
     function getNb(type, id) {
         var d = loadAll();
@@ -201,9 +273,10 @@
             + '<label>Délka pořadu R (km)<input inputmode="decimal" data-meta="lenKm" value="' + esc(nb.lenKm) + '" placeholder="pro mez 40·√R"></label>'
             + '</div>'
             + '<label class="ag-zb-auto"><input type="checkbox" data-meta="autoCalc"' + (nb.autoCalc ? ' checked' : '') + '> Počítat průběžně (převýšení, výšky, uzávěr)</label>';
-        h += '<div class="ag-zb-tblwrap"><table class="ag-zb-tbl"><thead><tr><th>Bod</th><th>Zpět z (m)</th><th>Vpřed p (m)</th><th>h = z−p</th><th>Výška (m)</th><th></th></tr></thead><tbody>';
+        h += '<div class="ag-zb-tblwrap"><table class="ag-zb-tbl"><thead><tr><th></th><th>Bod</th><th>Zpět z (m)</th><th>Vpřed p (m)</th><th>h = z−p</th><th>Výška (m)</th><th></th></tr></thead><tbody>';
         nb.rows.forEach(function (r, i) {
             h += '<tr>'
+                + '<td class="ag-zb-idx">' + (i + 1) + '.</td>'
                 + '<td><input class="ag-zb-name" data-row="' + i + '" data-f="bod" value="' + esc(r.bod) + '" placeholder="bod ' + (i + 1) + '"></td>'
                 + '<td><input inputmode="decimal" data-row="' + i + '" data-f="z" value="' + esc(r.z) + '"></td>'
                 + '<td><input inputmode="decimal" data-row="' + i + '" data-f="p" value="' + esc(r.p) + '"></td>'
@@ -276,12 +349,12 @@
         sum.innerHTML = hh;
     }
 
-    // ==== VODOROVNÉ SMĚRY ==================================================================
-    // skupina: a[i] = čtení I. poloha na cíl i, b[i] = čtení II. poloha (gon)
+    // ==== VODOROVNÉ SMĚRY (+ zenit, délka) =================================================
+    // gr.a/gr.b = Hz čtení I./II. poloha (gon); gr.za/gr.zb = zenitový úhel I./II. poloha (gon)
     function smCompute(nb) {
         var nT = nb.targets.length;
         var groups = nb.groups.map(function (gr) {
-            var means = [], reds = [];
+            var means = [], zmeans = [];
             for (var i = 0; i < nT; i++) {
                 var a = num(gr.a[i]), b2 = num(gr.b[i]);
                 var m = null;
@@ -289,25 +362,42 @@
                 else if (a != null) m = a;
                 else if (b2 != null) m = ((b2 - 200) % 400 + 400) % 400;
                 means.push(m);
+                // zenit: I. poloha z1, II. poloha z2; průměr = (z1 + (400 − z2)) / 2
+                var z1 = num(gr.za[i]), z2 = num(gr.zb[i]);
+                var zm = null;
+                if (z1 != null && z2 != null) zm = (z1 + (400 - z2)) / 2;
+                else if (z1 != null) zm = z1;
+                else if (z2 != null) zm = 400 - z2;
+                zmeans.push(zm);
             }
-            var base = means[0];
-            for (var j = 0; j < nT; j++) {
-                reds.push((means[j] != null && base != null) ? ((means[j] - base) % 400 + 400) % 400 : null);
-            }
-            return { means: means, reds: reds };
+            var base = means[0], reds = [];
+            for (var j = 0; j < nT; j++) reds.push((means[j] != null && base != null) ? ((means[j] - base) % 400 + 400) % 400 : null);
+            return { means: means, reds: reds, zmeans: zmeans };
         });
-        // průměr redukovaných směrů přes skupiny + největší rozdíl
-        var avg = [], span = [];
+        // průměry přes skupiny
+        var avg = [], span = [], zavg = [], hdist = [], dh = [];
         for (var i = 0; i < nT; i++) {
             var vals = [];
             groups.forEach(function (gr) { if (gr.reds[i] != null) vals.push(gr.reds[i]); });
-            if (!vals.length) { avg.push(null); span.push(null); continue; }
-            var ref = vals[0], s = 0, mn = 0, mx = 0;
-            vals.forEach(function (v, k) { var dv = gDiff(v, ref); s += dv; if (k === 0 || dv < mn) mn = dv; if (k === 0 || dv > mx) mx = dv; });
-            avg.push(((ref + s / vals.length) % 400 + 400) % 400);
-            span.push((mx - mn) * 1000); // mgon
+            if (!vals.length) { avg.push(null); span.push(null); }
+            else {
+                var ref = vals[0], s = 0, mn = 0, mx = 0;
+                vals.forEach(function (v, k) { var dv = gDiff(v, ref); s += dv; if (k === 0 || dv < mn) mn = dv; if (k === 0 || dv > mx) mx = dv; });
+                avg.push(((ref + s / vals.length) % 400 + 400) % 400);
+                span.push((mx - mn) * 1000); // mgon
+            }
+            var zv = [];
+            groups.forEach(function (gr) { if (gr.zmeans[i] != null) zv.push(gr.zmeans[i]); });
+            zavg.push(zv.length ? zv.reduce(function (x, y) { return x + y; }, 0) / zv.length : null);
+            // délka: šikmá + zenit → vodorovná d·sin(z) a převýšení d·cos(z); vodorovná se bere jak je
+            var d0 = num(nb.dist[i]), hd = null, dhv = null;
+            if (d0 != null) {
+                if (nb.distType === 'vodor') hd = d0;
+                else if (zavg[i] != null) { var zr = zavg[i] * Math.PI / 200; hd = d0 * Math.sin(zr); dhv = d0 * Math.cos(zr); }
+            }
+            hdist.push(hd); dh.push(dhv);
         }
-        return { groups: groups, avg: avg, span: span };
+        return { groups: groups, avg: avg, span: span, zavg: zavg, hdist: hdist, dh: dh };
     }
     function renderSm(id) {
         var g = getNb('sm', id); if (!g) { renderHome(); return; }
@@ -318,24 +408,33 @@
         var b = ov.querySelector('#ag-zb-body');
         var h = '<div class="ag-zb-meta">'
             + '<label>Stanovisko<input data-meta="stan" value="' + esc(nb.stan) + '" placeholder="číslo bodu"></label>'
+            + '<label>Zapisuji délku<span class="ag-zb-seg"><button type="button" data-dt="sikma" class="' + (nb.distType !== 'vodor' ? 'on' : '') + '">šikmou</button><button type="button" data-dt="vodor" class="' + (nb.distType === 'vodor' ? 'on' : '') + '">vodorovnou</button></span></label>'
             + '</div>'
-            + '<label class="ag-zb-auto"><input type="checkbox" data-meta="autoCalc"' + (nb.autoCalc ? ' checked' : '') + '> Počítat průběžně (průměry poloh, redukce, průměr ze skupin)</label>';
-        h += '<div class="ag-zb-tblwrap"><table class="ag-zb-tbl"><thead><tr><th>Cíl</th>';
-        nb.groups.forEach(function (_, gi) { h += '<th>' + (gi + 1) + '. sk — I (gon)</th><th>II (gon)</th><th>red.</th>'; });
-        h += '<th>Ø red. (gon)</th><th>rozptyl</th><th></th></tr></thead><tbody>';
+            + '<label class="ag-zb-auto"><input type="checkbox" data-meta="autoCalc"' + (nb.autoCalc ? ' checked' : '') + '> Počítat průběžně (průměry poloh, redukce, zenit, vodorovná délka)</label>';
+        // karta pro každý cíl: skupiny pod sebou (přehlednější než jedna široká tabulka)
         nb.targets.forEach(function (t, ti) {
-            h += '<tr><td><input class="ag-zb-name" data-t="' + ti + '" value="' + esc(t) + '" placeholder="cíl ' + (ti + 1) + '"></td>';
+            h += '<div class="ag-zb-card">'
+                + '<div class="ag-zb-card-head">'
+                + '<input class="ag-zb-cname" data-t="' + ti + '" value="' + esc(t) + '" placeholder="Cíl ' + (ti + 1) + ' — číslo bodu">'
+                + '<input class="ag-zb-cdist" inputmode="decimal" data-dist="' + ti + '" value="' + esc(nb.dist[ti] || '') + '" placeholder="' + (nb.distType === 'vodor' ? 'vodor. délka (m)' : 'šikmá délka (m)') + '">'
+                + '<button type="button" class="ag-zb-del" data-delt="' + ti + '" aria-label="Smazat cíl">✕</button>'
+                + '</div>'
+                + '<div class="ag-zb-gwrap"><table class="ag-zb-gtbl"><thead><tr><th></th><th>Hz I (gon)</th><th>Hz II (gon)</th><th>red.</th><th>Zenit I (gon)</th><th>Zenit II (gon)</th></tr></thead><tbody>';
             nb.groups.forEach(function (gr, gi) {
-                h += '<td><input inputmode="decimal" data-g="' + gi + '" data-ab="a" data-i="' + ti + '" value="' + esc(gr.a[ti] || '') + '"></td>'
+                h += '<tr><td class="ag-zb-gno">' + (gi + 1) + '. sk</td>'
+                    + '<td><input inputmode="decimal" data-g="' + gi + '" data-ab="a" data-i="' + ti + '" value="' + esc(gr.a[ti] || '') + '"></td>'
                     + '<td><input inputmode="decimal" data-g="' + gi + '" data-ab="b" data-i="' + ti + '" value="' + esc(gr.b[ti] || '') + '"></td>'
-                    + '<td><span class="ag-zb-comp" data-red="' + gi + ':' + ti + '">—</span></td>';
+                    + '<td><span class="ag-zb-comp" data-red="' + gi + ':' + ti + '">—</span></td>'
+                    + '<td><input inputmode="decimal" data-g="' + gi + '" data-ab="za" data-i="' + ti + '" value="' + esc(gr.za[ti] || '') + '"></td>'
+                    + '<td><input inputmode="decimal" data-g="' + gi + '" data-ab="zb" data-i="' + ti + '" value="' + esc(gr.zb[ti] || '') + '"></td>'
+                    + '</tr>';
             });
-            h += '<td><span class="ag-zb-comp" data-avg="' + ti + '">—</span></td><td><span class="ag-zb-comp" data-span="' + ti + '">—</span></td>'
-                + '<td><button type="button" class="ag-zb-del" data-delt="' + ti + '" aria-label="Smazat cíl">✕</button></td></tr>';
+            h += '</tbody></table></div>'
+                + '<div class="ag-zb-csum" data-csum="' + ti + '">—</div>'
+                + '</div>';
         });
-        h += '</tbody></table></div>';
         h += '<div class="ag-zb-rowbtns"><button type="button" class="primary" id="ag-zb-addt">＋ Přidat cíl</button><button type="button" id="ag-zb-addg">＋ Přidat skupinu</button>' + (nb.groups.length > 1 ? '<button type="button" id="ag-zb-delg">− Odebrat poslední skupinu</button>' : '') + '</div>';
-        h += '<p style="font-size:11.5px;color:var(--text-muted,#9aa1ac);line-height:1.5;">Čtení v gon. II. poloha se převádí o 200<sup>g</sup>; „red." = směr redukovaný na první cíl skupiny. „Rozptyl" = největší rozdíl redukovaných směrů mezi skupinami (mgon) — velká hodnota znamená chybu čtení nebo pohnutý přístroj.</p>';
+        h += '<p style="font-size:11.5px;color:var(--text-muted,#9aa1ac);line-height:1.5;">Čtení v gon. II. poloha Hz se převádí o 200<sup>g</sup>, zenit průměrem (z<sub>I</sub> + 400 − z<sub>II</sub>)/2. „red." = směr redukovaný na první cíl skupiny; Ø red. je průměr ze skupin, rozptyl = největší rozdíl mezi skupinami (mgon). Šikmá délka se zenitem přepočte na vodorovnou a převýšení.</p>';
         b.innerHTML = h;
         b.querySelectorAll('[data-meta]').forEach(function (inp) {
             var ev = inp.type === 'checkbox' ? 'change' : 'input';
@@ -345,11 +444,25 @@
                 saveAll(gg.d); smRefresh(id);
             });
         });
+        b.querySelectorAll('[data-dt]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var gg = getNb('sm', id); if (!gg) return;
+                gg.nb.distType = btn.getAttribute('data-dt');
+                saveAll(gg.d); renderSm(id);
+            });
+        });
         b.querySelectorAll('input[data-t]').forEach(function (inp) {
             inp.addEventListener('input', function () {
                 var gg = getNb('sm', id); if (!gg) return;
                 gg.nb.targets[parseInt(inp.getAttribute('data-t'), 10)] = inp.value;
                 saveAll(gg.d);
+            });
+        });
+        b.querySelectorAll('input[data-dist]').forEach(function (inp) {
+            inp.addEventListener('input', function () {
+                var gg = getNb('sm', id); if (!gg) return;
+                gg.nb.dist[parseInt(inp.getAttribute('data-dist'), 10)] = inp.value;
+                saveAll(gg.d); smRefresh(id);
             });
         });
         b.querySelectorAll('input[data-g]').forEach(function (inp) {
@@ -364,8 +477,9 @@
                 var gg = getNb('sm', id); if (!gg) return;
                 var ti = parseInt(btn.getAttribute('data-delt'), 10);
                 gg.nb.targets.splice(ti, 1);
-                gg.nb.groups.forEach(function (gr) { gr.a.splice(ti, 1); gr.b.splice(ti, 1); });
-                if (!gg.nb.targets.length) { gg.nb.targets.push(''); gg.nb.groups.forEach(function (gr) { gr.a.push(''); gr.b.push(''); }); }
+                gg.nb.dist.splice(ti, 1);
+                gg.nb.groups.forEach(function (gr) { gr.a.splice(ti, 1); gr.b.splice(ti, 1); gr.za.splice(ti, 1); gr.zb.splice(ti, 1); });
+                if (!gg.nb.targets.length) { gg.nb.targets.push(''); gg.nb.dist.push(''); gg.nb.groups.forEach(function (gr) { gr.a.push(''); gr.b.push(''); gr.za.push(''); gr.zb.push(''); }); }
                 saveAll(gg.d); renderSm(id);
             });
         });
@@ -373,13 +487,15 @@
         if (addT) addT.addEventListener('click', function () {
             var gg = getNb('sm', id); if (!gg) return;
             gg.nb.targets.push('');
-            gg.nb.groups.forEach(function (gr) { gr.a.push(''); gr.b.push(''); });
+            gg.nb.dist.push('');
+            gg.nb.groups.forEach(function (gr) { gr.a.push(''); gr.b.push(''); gr.za.push(''); gr.zb.push(''); });
             saveAll(gg.d); renderSm(id);
         });
         var addG = b.querySelector('#ag-zb-addg');
         if (addG) addG.addEventListener('click', function () {
             var gg = getNb('sm', id); if (!gg) return;
-            gg.nb.groups.push({ a: gg.nb.targets.map(function () { return ''; }), b: gg.nb.targets.map(function () { return ''; }) });
+            var blank = gg.nb.targets.map(function () { return ''; });
+            gg.nb.groups.push({ a: blank.slice(), b: blank.slice(), za: blank.slice(), zb: blank.slice() });
             saveAll(gg.d); renderSm(id);
         });
         var delG = b.querySelector('#ag-zb-delg');
@@ -394,7 +510,8 @@
         var g = getNb('sm', id); if (!g || !_ov) return;
         var nb = g.nb;
         if (!nb.autoCalc) {
-            _ov.querySelectorAll('[data-red],[data-avg],[data-span]').forEach(function (el) { el.textContent = '·'; });
+            _ov.querySelectorAll('[data-red]').forEach(function (el) { el.textContent = '·'; });
+            _ov.querySelectorAll('[data-csum]').forEach(function (el) { el.textContent = 'Průběžný výpočet je vypnutý — jen zapisuješ.'; });
             return;
         }
         var res = smCompute(nb);
@@ -404,11 +521,15 @@
                 if (el) el.textContent = r == null ? '—' : r.toFixed(4);
             });
         });
-        res.avg.forEach(function (a, ti) {
-            var el = _ov.querySelector('[data-avg="' + ti + '"]');
-            if (el) el.textContent = a == null ? '—' : a.toFixed(4);
-            var sp = _ov.querySelector('[data-span="' + ti + '"]');
-            if (sp) sp.textContent = res.span[ti] == null ? '—' : res.span[ti].toFixed(1) + ' mgon';
+        nb.targets.forEach(function (_, ti) {
+            var el = _ov.querySelector('[data-csum="' + ti + '"]'); if (!el) return;
+            var parts = [];
+            if (res.avg[ti] != null) parts.push('Ø red. <b>' + res.avg[ti].toFixed(4) + '<sup>g</sup></b>');
+            if (res.span[ti] != null && res.groups.length > 1) parts.push('rozptyl <b>' + res.span[ti].toFixed(1) + ' mgon</b>');
+            if (res.zavg[ti] != null) parts.push('Ø zenit <b>' + res.zavg[ti].toFixed(4) + '<sup>g</sup></b>');
+            if (res.hdist[ti] != null) parts.push('vodorovná <b>' + res.hdist[ti].toFixed(3) + ' m</b>');
+            if (res.dh[ti] != null) parts.push('Δh <b>' + (res.dh[ti] > 0 ? '+' : '') + res.dh[ti].toFixed(3) + ' m</b>');
+            el.innerHTML = parts.length ? parts.join(' · ') : 'Zapiš čtení — výsledky se dopočítají.';
         });
     }
 
@@ -419,6 +540,7 @@
         a.download = name;
         document.body.appendChild(a); a.click(); a.remove();
     }
+    function safeName(s) { return String(s || 'zapisnik').replace(/[^\wěščřžýáíéúůóťďň-]+/gi, '_'); }
     function exportCurrent() {
         if (_view.mode === 'niv') {
             var g = getNb('niv', _view.id); if (!g) return;
@@ -431,24 +553,27 @@
             L.push('');
             L.push('Σz=' + f3(res.sz) + ' m; Σp=' + f3(res.sp) + ' m; Σh=' + f3(res.sh) + ' m');
             if (res.odch != null) L.push('Uzávěr: ' + res.odch.toFixed(1) + ' mm' + (res.mez != null ? ' (mez 40·√R = ' + res.mez.toFixed(0) + ' mm)' : ''));
-            dl('nivelace_' + (nb.name || 'zapisnik').replace(/[^\wěščřžýáíéúůóťďň-]+/gi, '_') + '.csv', L.join('\r\n'));
+            dl('nivelace_' + safeName(nb.name) + '.csv', L.join('\r\n'));
         } else if (_view.mode === 'sm') {
             var g2 = getNb('sm', _view.id); if (!g2) return;
             var nb2 = g2.nb, res2 = smCompute(nb2);
-            var L2 = ['ZÁPISNÍK VODOROVNÝCH SMĚRŮ — ' + (nb2.name || ''), 'Stanovisko: ' + (nb2.stan || '—'), ''];
-            var head = ['cíl'];
-            nb2.groups.forEach(function (_, gi) { head.push((gi + 1) + '.sk I (gon)', 'II (gon)', 'red. (gon)'); });
-            head.push('Ø red. (gon)', 'rozptyl (mgon)');
-            L2.push(head.join(';'));
+            var L2 = ['ZÁPISNÍK VODOROVNÝCH SMĚRŮ — ' + (nb2.name || ''), 'Stanovisko: ' + (nb2.stan || '—') + '; délky zapsané jako: ' + (nb2.distType === 'vodor' ? 'vodorovné' : 'šikmé'), ''];
+            L2.push('cíl;skupina;Hz I (gon);Hz II (gon);red. (gon);zenit I (gon);zenit II (gon);Ø red. (gon);rozptyl (mgon);Ø zenit (gon);délka zapsaná (m);vodorovná (m);převýšení (m)');
             nb2.targets.forEach(function (t, ti) {
-                var row = [t];
                 nb2.groups.forEach(function (gr, gi) {
-                    row.push(gr.a[ti] || '', gr.b[ti] || '', res2.groups[gi].reds[ti] == null ? '' : res2.groups[gi].reds[ti].toFixed(4));
+                    var row = [t, gi + 1, gr.a[ti] || '', gr.b[ti] || '', res2.groups[gi].reds[ti] == null ? '' : res2.groups[gi].reds[ti].toFixed(4), gr.za[ti] || '', gr.zb[ti] || ''];
+                    if (gi === 0) {
+                        row.push(res2.avg[ti] == null ? '' : res2.avg[ti].toFixed(4));
+                        row.push(res2.span[ti] == null ? '' : res2.span[ti].toFixed(1));
+                        row.push(res2.zavg[ti] == null ? '' : res2.zavg[ti].toFixed(4));
+                        row.push(nb2.dist[ti] || '');
+                        row.push(res2.hdist[ti] == null ? '' : res2.hdist[ti].toFixed(3));
+                        row.push(res2.dh[ti] == null ? '' : res2.dh[ti].toFixed(3));
+                    }
+                    L2.push(row.join(';'));
                 });
-                row.push(res2.avg[ti] == null ? '' : res2.avg[ti].toFixed(4), res2.span[ti] == null ? '' : res2.span[ti].toFixed(1));
-                L2.push(row.join(';'));
             });
-            dl('smery_' + (nb2.name || 'zapisnik').replace(/[^\wěščřžýáíéúůóťďň-]+/gi, '_') + '.csv', L2.join('\r\n'));
+            dl('smery_' + safeName(nb2.name) + '.csv', L2.join('\r\n'));
         }
     }
 
