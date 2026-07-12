@@ -179,7 +179,7 @@
 
     // Panely přes/přes část obrazovky, u kterých chceme šetřit baterii (uspat senzory).
     // Vč. doku „Nástroje" a „Nový bod" + menu „Více" (na přání — viz sideMenuOpen).
-    var HEAVY_IDS = ['calc-modal', 'settings-modal', 'about-modal', 'dict-modal', 'manage-modal', 'tools-modal', 'custom-modal-overlay', 'hidden-pts-modal', 'vrstvy-modal', 'sklonomer-modal'];
+    var HEAVY_IDS = ['calc-modal', 'settings-modal', 'about-modal', 'dict-modal', 'manage-modal', 'tools-modal', 'custom-modal-overlay', 'hidden-pts-modal', 'vrstvy-modal'];
     function shownById(id) {
         var el = document.getElementById(id);
         return !!(el && el.style && el.style.display && el.style.display !== 'none');

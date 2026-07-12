@@ -9,10 +9,20 @@ if ('serviceWorker' in navigator) {
             navigator.serviceWorker.addEventListener('controllerchange', () => { if (_swReloaded) return; _swReloaded = true; window.location.reload(); });
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js').then(reg => {
+                    // Nová verze už čeká z minulého běhu (banner tehdy nikdo neklepl)
+                    // → bez tohohle by se lišta při dalším startu už NEUKÁZALA.
+                    if (reg.waiting && navigator.serviceWorker.controller) showUpdateBanner();
                     reg.addEventListener('updatefound', () => {
                         const nw = reg.installing; if (!nw) return;
                         nw.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdateBanner(); });
                     });
+                    // PWA se na mobilu většinou jen PROBUDÍ z pozadí (žádná navigace),
+                    // takže prohlížeč sám novou verzi sw.js nezkontroluje třeba celý den.
+                    // Kontrolujeme při každém návratu do popředí + každých 15 minut.
+                    const chk = () => { try { reg.update(); } catch (e) {} };
+                    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') chk(); });
+                    window.addEventListener('pageshow', chk);
+                    setInterval(chk, 15 * 60 * 1000);
                 }).catch(() => {});
             });
         }
