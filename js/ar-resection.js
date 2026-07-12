@@ -73,8 +73,16 @@
         var _m = (typeof GeoCore !== 'undefined' && GeoCore.metersPerDeg) ? GeoCore.metersPerDeg(lat0) : { lat: 111320, lng: 111320 * Math.cos(lat0 * D2R) };
         var mLat = _m.lat, mLng = _m.lng;
         var T = shots.map(function (s) {
-            return { E: (s.lng - lng0) * mLng, N: (s.lat - lat0) * mLat, az: s.az * D2R, name: s.name };
+            return { E: (s.lng - lng0) * mLng, N: (s.lat - lat0) * mLat, az: s.az * D2R, name: s.name, sdir: s.sdir };
         });
+        // stř. chyba jedné záměry (rad): kruhový rozptyl vzorků + člen zacílení
+        // (~0.15 m nejistota vycentrování kříže na cíl, úhlově větší u blízkých bodů)
+        function obsSig(t, e0, n0) {
+            var dE = t.E - e0, dN = t.N - n0, D = Math.max(1, Math.hypot(dE, dN));
+            var aimDeg = Math.atan2(0.15, D) * R2D;
+            var sd = (t.sdir != null && isFinite(t.sdir)) ? t.sdir : 0.6;
+            return Math.max(0.2, Math.sqrt(sd * sd + aimDeg * aimDeg)) * D2R;
+        }
 
         // --- jen orientace (2 body): poloha = GPS (origin), dopočítej Δ ---------
         if (n === 2) {
@@ -106,8 +114,12 @@
                 var r = angNormRad(alpha - T[i].az - delta);     // reziduum (rad)
                 // parc. derivace alpha podle (e,n): d alpha/de = -dN/D2 ; d alpha/dn = dE/D2
                 var je = -dN / D2, jn = dE / D2, jd = -1;
+                // VÁŽENÍ: řádek i reziduum dělíme stř. chybou záměry (klidnější a
+                // vzdálenější záměry dostanou větší váhu; dřív uniformní)
+                var sw = 1 / obsSig(T[i], e, nn);
+                r *= sw;
                 // r = alpha - az - delta  -> dr/de=je, dr/dn=jn, dr/ddelta=-1
-                var row = [je, jn, jd];
+                var row = [je * sw, jn * sw, jd * sw];
                 for (var a = 0; a < 3; a++) { Atr[a] += row[a] * r; for (var b = 0; b < 3; b++) AtA[a][b] += row[a] * row[b]; }
                 sumr2 += r * r;
             }
@@ -120,33 +132,40 @@
 
         // kovariance polohy + jednotková střední chyba
         var redun = n - 3;
-        var sumr2f = 0, residuals = [];
+        var sumr2f = 0, residuals = [], dirSigmaDeg = null;
+        var sumrRaw = 0;
         for (var k = 0; k < n; k++) {
             var dE2 = T[k].E - e, dN2 = T[k].N - nn;
             var rk = angNormRad(Math.atan2(dE2, dN2) - T[k].az - delta);
-            sumr2f += rk * rk; residuals.push({ name: T[k].name, r: rk * R2D });
+            var swk = 1 / obsSig(T[k], e, nn);
+            sumr2f += (rk * swk) * (rk * swk);              // vážená SSR (bezrozměrná)
+            sumrRaw += rk * rk;
+            residuals.push({ name: T[k].name, r: rk * R2D });
         }
         var posSigma = null, sigma0 = null;
         if (redun > 0) {
-            sigma0 = Math.sqrt(sumr2f / redun);            // rad (jednotková sm. chyba směru)
-            // znovu sestav AtA v řešení pro inverzi (kovariance neznámých = sigma0^2 * (AtA)^-1)
+            sigma0 = Math.sqrt(sumr2f / redun);            // jednotková stř. chyba (vážená, ~1 při dobré shodě)
+            dirSigmaDeg = Math.sqrt(sumrRaw / redun) * R2D; // pro zobrazení: skutečný rozptyl směrů
+            // kovariance neznámých = sigma0^2 * (A^T W A)^-1 (řádky už vážené jako v GN)
             var AtA2 = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
             for (var j = 0; j < n; j++) {
                 var dE3 = T[j].E - e, dN3 = T[j].N - nn, D3 = dE3 * dE3 + dN3 * dN3; if (D3 < 1e-6) D3 = 1e-6;
-                var row2 = [-dN3 / D3, dE3 / D3, -1];
+                var swj = 1 / obsSig(T[j], e, nn);
+                var row2 = [-dN3 / D3 * swj, dE3 / D3 * swj, -swj];
                 for (var aa = 0; aa < 3; aa++) for (var bb = 0; bb < 3; bb++) AtA2[aa][bb] += row2[aa] * row2[bb];
             }
             var inv = inv3(AtA2);
             if (inv) {
-                var s2 = sigma0 * sigma0;
+                // sigma0 < 1 znamená shodu lepší než apriorní model — nezmenšujeme pod apriorní odhad
+                var s2 = Math.max(1, sigma0 * sigma0);
                 var cee = s2 * inv[0][0], cnn = s2 * inv[1][1];
-                posSigma = Math.sqrt(Math.max(0, cee + cnn));   // ~ sm. chyba polohy (m), směr*vzdálenost
+                posSigma = Math.sqrt(Math.max(0, cee + cnn));   // ~ sm. chyba polohy (m)
             }
         }
         return {
             mode: 'full', e: e, n: nn, delta: delta * R2D,
             lat: lat0 + nn / mLat, lng: lng0 + e / mLng,
-            posSigma: posSigma, dirSigma: sigma0 != null ? sigma0 * R2D : null, redundancy: redun,
+            posSigma: posSigma, dirSigma: dirSigmaDeg, redundancy: redun,
             residuals: residuals
         };
     }
@@ -280,7 +299,7 @@
     function takeShot() {
         if (heading() == null) { toast('Kompas nedává směr'); return; }
         var shotBtn = document.getElementById('agrx-shot'); if (shotBtn) shotBtn.disabled = true;
-        _capSamples = []; var dur = 1100, step = 90, prog = document.getElementById('agrx-cross-prog');
+        _capSamples = []; var dur = 2000, step = 90, prog = document.getElementById('agrx-cross-prog');
         var t0 = 0;
         if (_capTimer) clearInterval(_capTimer);
         _capTimer = setInterval(function () {
@@ -289,9 +308,19 @@
             if (t0 >= dur) {
                 clearInterval(_capTimer); _capTimer = null; if (prog) prog.style.width = '0%';
                 if (!_capSamples.length) { if (shotBtn) shotBtn.disabled = false; toast('Nezachyceno'); return; }
+                // MAD ořez záškubů (klepnutí na tlačítko, třes ruky) kolem kruhového průměru
+                var az0 = circMeanDeg(_capSamples);
+                var devs = _capSamples.map(function (a) { return Math.abs(angNormDeg(a - az0)); }).sort(function (x, y) { return x - y; });
+                var mad = devs[devs.length >> 1];
+                var thr = Math.max(3 * 1.4826 * mad, 1.0);
+                var inl = _capSamples.filter(function (a) { return Math.abs(angNormDeg(a - az0)) <= thr; });
+                if (inl.length >= 3) _capSamples = inl;
                 var az = (circMeanDeg(_capSamples) + 360) % 360;
+                // kruhová stř. odchylka směru (deg) -> váha záměry ve vyrovnání
+                var varsum = _capSamples.reduce(function (s, a) { var d = angNormDeg(a - az); return s + d * d; }, 0);
+                var sdir = Math.max(0.3, Math.sqrt(varsum / Math.max(1, _capSamples.length - 1)));
                 var pt = ptById(_selIds[_capIdx]);
-                if (pt) _shots[pt.id] = { az: az, n: _capSamples.length, name: pt.name, lat: pt.lat, lng: pt.lng };
+                if (pt) _shots[pt.id] = { az: az, n: _capSamples.length, sdir: sdir, name: pt.name, lat: pt.lat, lng: pt.lng };
                 if (navigator.vibrate) try { navigator.vibrate(25); } catch (e) {}
                 _capIdx++;
                 promptNext();
