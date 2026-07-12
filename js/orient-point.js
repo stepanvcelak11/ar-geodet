@@ -84,7 +84,8 @@
         } else { agAlert('Nelze srovnat', 'Korekce kompasu není dostupná.'); return; }
         _lastDelta = delta;
         var undo = document.getElementById('agor-undo'); if (undo) undo.style.display = 'block';
-        agAlert('Sever srovnán', 'Sever srovnán podle #' + pt.name + ' (' + (delta >= 0 ? '+' : '') + delta.toFixed(1) + '°).\nPři pomalé chůzi to drží; pokud máš zapnutou auto-korekci podle GPS, za rychlé chůze se může dolaďovat sama.');
+        var _nm = String(pt.name).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        agAlert('Sever srovnán', 'Sever srovnán podle #' + _nm + ' (' + (delta >= 0 ? '+' : '') + delta.toFixed(1) + '°).\nPři pomalé chůzi to drží; pokud máš zapnutou auto-korekci podle GPS, za rychlé chůze se může dolaďovat sama.');
         refresh();
     }
 

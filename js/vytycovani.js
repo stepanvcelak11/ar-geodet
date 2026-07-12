@@ -148,7 +148,7 @@ function renderStakeoutList() {
         }
         item.innerHTML = `
             <div class="stk-check ${done ? 'done' : ''}" role="button" aria-label="Odškrtnout">${done ? '✓' : ''}</div>
-            <div style="flex:1; min-width:0; padding:0 10px;"><div class="cluster-item-title" style="${done ? 'text-decoration:line-through;' : ''}">#${pt.name}</div>${detail}</div>
+            <div style="flex:1; min-width:0; padding:0 10px;"><div class="cluster-item-title" style="${done ? 'text-decoration:line-through;' : ''}">#${_escHtml(pt.name)}</div>${detail}</div>
             <div style="font-weight:600; font-size:13px; white-space:nowrap;">${sub}</div>`;
         item.style.display = 'flex'; item.style.alignItems = 'center';
         item.querySelector('.stk-check').addEventListener('click', (e) => { e.stopPropagation(); toggleStaked(pt); });

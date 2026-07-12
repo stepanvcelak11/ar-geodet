@@ -66,7 +66,7 @@ function openCalcPicker(idp) {
         const sj = proj4('EPSG:4326', 'EPSG:5514', [p.lng, p.lat]);
         const Y = Math.abs(sj[0]), X = Math.abs(sj[1]);
         const item = document.createElement('div'); item.className = 'cluster-list-item';
-        item.innerHTML = `<div><div class="cluster-item-title">#${p.name}</div><div class="cluster-item-subtitle">Y ${Y.toFixed(2)} · X ${X.toFixed(2)}</div></div><div style="font-size:12px; opacity:0.7;">${p.cat}</div>`;
+        item.innerHTML = `<div><div class="cluster-item-title">#${_escHtml(p.name)}</div><div class="cluster-item-subtitle">Y ${Y.toFixed(2)} · X ${X.toFixed(2)}</div></div><div style="font-size:12px; opacity:0.7;">${p.cat}</div>`;
         item.addEventListener('click', () => {
             const fy = document.getElementById(_pickerTarget + '-y'), fx = document.getElementById(_pickerTarget + '-x');
             if (fy) fy.value = Y.toFixed(2); if (fx) fx.value = X.toFixed(2);
