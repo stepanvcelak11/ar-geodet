@@ -3,9 +3,11 @@
 // logika.js ani grafika.js. Ostatní moduly (orientace přes bod, offset bodu,
 // stopa trasy, vytyčení přímky, AR resekce, import projektu, katastr, parcela…)
 // se REGISTRUJÍ přes
-//   window.agRegisterFieldTool({ id, label, icon, onClick, order })
+//   window.agRegisterFieldTool({ id, label, icon, onClick, order, cat })
 // a tento launcher je vykreslí jako DLAŽDICE přímo do mřížky v modalu „Nástroje"
 // (#tools-modal .tool-grid), pod oddělovací nadpis „Terénní nástroje".
+// Volitelné `cat: 'Pomůcky'` zařadí dlaždici na konec existující statické
+// kategorie (.tool-cat se stejným názvem) místo sekce „Terénní nástroje".
 // Když tento soubor chybí, každý modul si vyrobí vlastní nouzové tlačítko, takže
 // je každý odpojitelný samostatně.
 //
@@ -42,6 +44,38 @@
     function closeToolsModal() { var m = document.getElementById('tools-modal'); if (m) m.style.display = 'none'; }
 
     // ---- vykreslení dlaždic do mřížky Nástrojů --------------------------------
+    function makeTile(it) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tool-tile ag-ft-tile';
+        btn.setAttribute('data-tool', it.id);
+        btn.innerHTML = (it.icon || '') + '<span>' + esc(it.label) + '</span>';
+        btn.addEventListener('click', function () {
+            closeToolsModal();
+            if (typeof it.onClick === 'function') {
+                try { it.onClick(); } catch (err) { console.warn('[field-tools]', err); }
+            }
+        });
+        return btn;
+    }
+    // Vloží dlaždici na KONEC pojmenované statické kategorie (např. cat: 'Pomůcky').
+    // Vrací false, když kategorie v mřížce není — dlaždice pak spadne do „Terénní nástroje".
+    function placeInCategory(grid, it) {
+        var cats = grid.querySelectorAll('.tool-cat');
+        for (var i = 0; i < cats.length; i++) {
+            if ((cats[i].textContent || '').trim() !== it.cat) continue;
+            // konec bloku kategorie = další nadpis (.tool-cat / .ag-ft-head), jinak konec mřížky
+            var node = cats[i].nextSibling;
+            while (node) {
+                if (node.nodeType === 1 && node.classList &&
+                    (node.classList.contains('tool-cat') || node.classList.contains('ag-ft-head'))) break;
+                node = node.nextSibling;
+            }
+            grid.insertBefore(makeTile(it), node);
+            return true;
+        }
+        return false;
+    }
     function syncTiles() {
         var grid = getGrid();
         if (!grid) return;
@@ -52,25 +86,15 @@
         if (!_items.length) return;
 
         var sorted = _items.slice().sort(function (a, b) { return (a.order || 50) - (b.order || 50); });
-        var head = document.createElement('div');
-        head.className = 'ag-ft-head';
-        head.textContent = 'Terénní nástroje';
-        grid.appendChild(head);
-
-        sorted.forEach(function (it) {
-            var btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'tool-tile ag-ft-tile';
-            btn.setAttribute('data-tool', it.id);
-            btn.innerHTML = (it.icon || '') + '<span>' + esc(it.label) + '</span>';
-            btn.addEventListener('click', function () {
-                closeToolsModal();
-                if (typeof it.onClick === 'function') {
-                    try { it.onClick(); } catch (err) { console.warn('[field-tools]', err); }
-                }
-            });
-            grid.appendChild(btn);
-        });
+        // dlaždice s cat jdou do své statické kategorie, zbytek pod „Terénní nástroje"
+        var rest = sorted.filter(function (it) { return !(it.cat && placeInCategory(grid, it)); });
+        if (rest.length) {
+            var head = document.createElement('div');
+            head.className = 'ag-ft-head';
+            head.textContent = 'Terénní nástroje';
+            grid.appendChild(head);
+            rest.forEach(function (it) { grid.appendChild(makeTile(it)); });
+        }
         try { applyFilter(); } catch (e) {}   // znovu aplikuj aktivní hledání i na čerstvě vložené dlaždice
     }
 
@@ -106,7 +130,7 @@
         if (!item || !item.id || typeof item.onClick !== 'function') return;
         // přepsat existující se stejným id (idempotentní při dvojím initu modulu)
         _items = _items.filter(function (x) { return x.id !== item.id; });
-        _items.push({ id: item.id, label: item.label || item.id, icon: item.icon || '', onClick: item.onClick, order: item.order });
+        _items.push({ id: item.id, label: item.label || item.id, icon: item.icon || '', onClick: item.onClick, order: item.order, cat: item.cat || '' });
         syncTiles();
     };
     // zpětná kompatibilita (dříve zavíralo plovoucí menu — teď není potřeba)

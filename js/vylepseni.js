@@ -210,19 +210,13 @@
     // panel „GPS: ±X m" s detailem v modálu — viz index.html / grafika.js.)
 
     // --------------------------------------------------------------------------------
-    // 4) REŽIM RUKAVIC — přepínač v bočním menu
+    // 4) REŽIM RUKAVIC — přepínač v Nastavení → Vzhled (dříve boční menu „Více")
     // --------------------------------------------------------------------------------
     function applyGlove() {
         try { document.body.classList.toggle('ag-glove', localStorage.getItem('agGlove') === '1'); } catch (e) {}
     }
     function injectGloveToggle() {
-        const menu = document.getElementById('side-menu');
-        if (!menu || document.getElementById('ag-glove-row')) return;
-        // Vkládáme do scrollovací části, ať položka scrolluje a dole zůstává pevné jen „Zavřít".
-        const host = menu.querySelector('.menu-scroll') || menu;
-        const row = document.createElement('label');
-        row.className = 'menu-toggle-row';
-        row.id = 'ag-glove-row';
+        if (document.getElementById('ag-glove-row')) return;
         const cb = document.createElement('input');
         cb.type = 'checkbox';
         cb.id = 'ag-glove-cb';
@@ -231,6 +225,35 @@
             try { localStorage.setItem('agGlove', cb.checked ? '1' : '0'); } catch (e) {}
             applyGlove();
         });
+        const tab = document.getElementById('tab-vzhled');
+        if (tab) {
+            // st-row ve stylu ostatních přepínačů v Nastavení → Vzhled
+            const row = document.createElement('div');
+            row.className = 'st-row';
+            row.id = 'ag-glove-row';
+            const lab = document.createElement('span');
+            lab.className = 'st-lab';
+            lab.innerHTML = 'Režim rukavic<small>větší tlačítka a dotykové plochy</small>';
+            const sw = document.createElement('label');
+            sw.className = 'st-sw';
+            const face = document.createElement('span');
+            face.className = 'st-sw-face';
+            sw.appendChild(cb); sw.appendChild(face);
+            row.appendChild(lab); row.appendChild(sw);
+            // hned za přepínač „Ovládání pro levou ruku", jinak na konec záložky
+            const lh = document.getElementById('s-lefthand');
+            const lhRow = lh ? lh.closest('.st-row') : null;
+            if (lhRow && lhRow.parentNode === tab) tab.insertBefore(row, lhRow.nextSibling);
+            else tab.appendChild(row);
+            return;
+        }
+        // Fallback (kdyby #tab-vzhled nebyl): původní řádek v bočním menu „Více"
+        const menu = document.getElementById('side-menu');
+        if (!menu) return;
+        const host = menu.querySelector('.menu-scroll') || menu;
+        const row = document.createElement('label');
+        row.className = 'menu-toggle-row';
+        row.id = 'ag-glove-row';
         row.appendChild(cb);
         row.appendChild(document.createTextNode(' Režim rukavic (větší tlačítka)'));
         host.appendChild(row);

@@ -20,8 +20,8 @@
 // smoothAngle, takze hook funguje VZDY a chovani je jako pred zapojenim.
 //
 // Vse je v IIFE, idempotentni init (DOMContentLoaded i window load), obranne
-// try/catch, zadne externi zavislosti. Default ZAPNUTO. Toggle v #side-menu,
-// volba v localStorage.
+// try/catch, zadne externi zavislosti. Default ZAPNUTO. Toggle v Nastaveni ->
+// AR & presnost (#tab-ar; fallback #side-menu), volba v localStorage.
 //
 // Odstraneni: smaz js/ar-fusion.js + css/ar-fusion.css, vrat hook v grafika.js na
 // puvodni radek smoothAngle a smaz oba radky v index.html (+ z sw.js cache).
@@ -253,35 +253,62 @@
         syncToggleUi();
     }
 
-    // ---- UI: prepinac v bocnim menu (stejny vzor jako ar-stabilize.js) ---------
+    // ---- UI: prepinac v Nastaveni -> AR & presnost (drive bocni menu "Vice") ----
     function syncToggleUi() {
         var cb = document.getElementById('ag-arfusion-cb');
         if (cb) cb.checked = !!enabled;
     }
     function injectToggle() {
+        if (document.getElementById('ag-arfusion-row')) return;
+        var tab = document.getElementById('tab-ar');
+        if (tab) {
+            // st-row ve stylu ostatnich prepinacu v Nastaveni
+            var row = document.createElement('div');
+            row.className = 'st-row';
+            row.id = 'ag-arfusion-row';
+            var lab = document.createElement('span');
+            lab.className = 'st-lab';
+            lab.innerHTML = 'Plynulý směr (fúze gyro)<small>spojí gyroskop a kompas — svižné otáčení, dlouhodobě neujíždí</small>';
+            var sw = document.createElement('label');
+            sw.className = 'st-sw';
+            var cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.id = 'ag-arfusion-cb';
+            cb.checked = !!enabled;
+            cb.addEventListener('change', function () { setEnabled(cb.checked); });
+            var face = document.createElement('span');
+            face.className = 'st-sw-face';
+            sw.appendChild(cb); sw.appendChild(face);
+            row.appendChild(lab); row.appendChild(sw);
+            // pod slider "Max. bodu v AR" — pred tlacitko "Kompas a kalibrace", jinak na konec
+            var anchor = tab.querySelector('button[onclick*="openCompassModal"]');
+            if (anchor) tab.insertBefore(row, anchor); else tab.appendChild(row);
+            syncToggleUi();
+            return;
+        }
+        // Fallback (kdyby #tab-ar nebyl): puvodni radek v bocnim menu "Vice"
         var menu = document.getElementById('side-menu');
-        if (!menu || document.getElementById('ag-arfusion-row')) return;
-        // Vkládáme do scrollovací části, ať položka scrolluje a dole zůstává pevné jen „Zavřít".
+        if (!menu) return;
         var host = menu.querySelector('.menu-scroll') || menu;
 
-        var row = document.createElement('label');
-        row.className = 'menu-toggle-row';
-        row.id = 'ag-arfusion-row';
+        var mrow = document.createElement('label');
+        mrow.className = 'menu-toggle-row';
+        mrow.id = 'ag-arfusion-row';
 
-        var cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.id = 'ag-arfusion-cb';
-        cb.checked = !!enabled;
-        cb.addEventListener('change', function () { setEnabled(cb.checked); });
+        var mcb = document.createElement('input');
+        mcb.type = 'checkbox';
+        mcb.id = 'ag-arfusion-cb';
+        mcb.checked = !!enabled;
+        mcb.addEventListener('change', function () { setEnabled(mcb.checked); });
 
-        row.appendChild(cb);
-        row.appendChild(document.createTextNode(' Plynulý směr (fúze gyro)'));
+        mrow.appendChild(mcb);
+        mrow.appendChild(document.createTextNode(' Plynulý směr (fúze gyro)'));
 
         var hint = document.createElement('div');
         hint.className = 'ag-arfusion-hint';
         hint.textContent = 'Spojí gyroskop a kompas: směr je svižný a plynulý při otáčení, ale dlouhodobě neujíždí. Doporučeno zapnuté.';
 
-        host.appendChild(row);
+        host.appendChild(mrow);
         host.appendChild(hint);
         syncToggleUi();
     }

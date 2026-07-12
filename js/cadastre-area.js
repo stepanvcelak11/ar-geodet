@@ -431,9 +431,18 @@
     function hideProgress() { if (_prog) _prog.classList.remove('open'); }
 
     // --------------------------------------------------------------------------------
-    // Tlačítko v bočním menu
+    // Vstup: dlaždice v „Nástroje" (kategorie Katastr a data).
+    // Boční menu „Více" je jen nouzový fallback, když field-tools.js chybí.
     // --------------------------------------------------------------------------------
     function injectMenuButton() {
+        if (typeof window.agRegisterFieldTool === 'function') {
+            window.agRegisterFieldTool({
+                id: 'cadastre-area', label: 'Stáhnout body z výřezu mapy', icon: '<svg class="icon"><use href="#i-grid"/></svg>', cat: 'Katastr a data', order: 40,
+                onClick: function () { try { runImport(); } catch (err) { console.warn('[cadastre-area]', err); } }
+            });
+            var stale = document.getElementById('cad-area-btn'); if (stale) stale.remove();
+            return;
+        }
         var menu = document.getElementById('side-menu');
         if (!menu || document.getElementById('cad-area-btn')) return;
         // Vkládáme do scrollovací části, ať položka scrolluje a dole zůstává pevné jen „Zavřít".

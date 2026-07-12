@@ -339,9 +339,15 @@
     window.openRefCalibration = open;
 
     // --------------------------------------------------------------------------------
-    // Injekce tlačítka do bočního menu (#side-menu) — přesně jako vylepseni.js
+    // Vstup: dlaždice v „Nástroje" (kategorie Pomůcky, vedle „Srovnat sever").
+    // Boční menu „Více" je jen nouzový fallback, když field-tools.js chybí.
     // --------------------------------------------------------------------------------
     function injectMenuButton() {
+        if (typeof window.agRegisterFieldTool === 'function') {
+            window.agRegisterFieldTool({ id: 'ref-calibration', label: 'Kalibrace na ref. bod', icon: '<svg class="icon"><use href="#i-crosshair"/></svg>', cat: 'Pomůcky', onClick: open, order: 70 });
+            var stale = document.getElementById('agref-launch'); if (stale) stale.remove();
+            return;
+        }
         var menu = document.getElementById('side-menu');
         if (!menu || document.getElementById('agref-launch')) return;
         // Vkládáme do scrollovací části, ať položka scrolluje a dole zůstává pevné jen „Zavřít".
