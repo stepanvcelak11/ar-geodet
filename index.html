@@ -225,12 +225,8 @@
             <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
             <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.07em; color: var(--text-muted); margin: 2px 2px 4px;">Zobrazení</div>
             <button class="menu-btn" onclick="toggleMapControls(); toggleMenu();"><svg class="icon"><use href="#i-sliders"/></svg> Nástroje mapy (vrstvy)</button>
-            <!-- Přepínač zobrazení (AR / Split / Mapa) — přesunut z horní lišty sem do „Více" -->
-            <div id="view-seg">
-                <button class="seg-btn" data-view="ar" onclick="setView('ar', this)">AR</button>
-                <button class="seg-btn active" data-view="both" onclick="setView('both', this)">Split</button>
-                <button class="seg-btn" data-view="map" onclick="setView('map', this)">Mapa</button>
-            </div>
+            <!-- Přepínač AR/Split/Mapa ODSTRANĚN (i „Rozvržení" v Nastavení → AR) — nahradilo
+                 ho kolečko vpravo dole (js/view-cycle.js). Na přání, NEvracet. -->
         </div>
         <button class="menu-btn menu-close" onclick="toggleMenu()">Zavřít</button>
     </div>
@@ -485,13 +481,7 @@
                     </details>
                 </div>
                 <div id="tab-ar" class="settings-tab">
-                    <div class="st-row"><span class="st-lab">Rozvržení</span>
-                        <span class="st-seg">
-                            <label><input type="radio" name="s-view" value="ar"><span>AR</span></label>
-                            <label><input type="radio" name="s-view" value="both"><span>Dělené</span></label>
-                            <label><input type="radio" name="s-view" value="map"><span>Mapa</span></label>
-                        </span>
-                    </div>
+                    <!-- „Rozvržení" (radia s-view) odstraněno — zobrazení přepíná kolečko vpravo dole (view-cycle.js) -->
                     <div class="st-slider">
                         <div class="st-slider-head"><span class="st-lab">Viditelnost bodů v AR kameře</span><span class="st-val"><span id="s-ar-radius-val">150</span> m</span></div>
                         <input type="range" id="s-ar-radius-slider" min="50" max="5000" step="50" value="150" oninput="document.getElementById('s-ar-radius-val').innerText = this.value">

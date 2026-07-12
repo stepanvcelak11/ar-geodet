@@ -20,21 +20,23 @@
         var st = document.createElement('style');
         st.id = STYLE_ID;
         st.textContent = [
-            // vzhled = chip z doku (.dock-btn): stejné sklo, rám, poloměr, ikona 21px + mini popisek
-            '#' + BTN_ID + '{position:fixed;right:max(4px,env(safe-area-inset-right,0px));',
-            '  bottom:max(4px,env(safe-area-inset-bottom,0px));z-index:10500;',
-            '  width:54px;padding:7px 2px;display:none;flex-direction:column;align-items:center;gap:3px;',
-            '  border:1px solid var(--glass-border,rgba(255,255,255,0.10));border-radius:16px;',
+            // vzhled = chip z doku (.dock-btn): stejné sklo, rám i průhlednost (--panel-opacity,
+            // bez ní působil tmavší než okolní tlačítka), jen KULATÝ; kousek od kraje, ne nalepený
+            '#' + BTN_ID + '{position:fixed;right:max(16px,env(safe-area-inset-right,0px));',
+            '  bottom:max(6px,env(safe-area-inset-bottom,0px));z-index:10500;',
+            '  width:54px;height:54px;padding:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:2px;',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.10));border-radius:50%;',
             '  background:var(--glass-bg,rgba(24,28,33,0.84));backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);',
-            '  color:var(--text-color,#eceef2);font:600 8.5px/1.15 var(--font-ui,system-ui),sans-serif;letter-spacing:.02em;',
+            '  opacity:var(--panel-opacity,0.85);',
+            '  color:var(--text-color,#eceef2);font:600 8px/1.1 var(--font-ui,system-ui),sans-serif;letter-spacing:.02em;',
             '  cursor:pointer;box-shadow:var(--shadow-1,0 1px 3px rgba(0,0,0,0.5));}',
-            '#' + BTN_ID + ' .icon{width:21px;height:21px;color:var(--accent-bright,#3eb487);}',
+            '#' + BTN_ID + ' .icon{width:20px;height:20px;color:var(--accent-bright,#3eb487);}',
             '#' + BTN_ID + ' span{text-shadow:0 1px 3px rgba(0,0,0,0.9),0 0 2px rgba(0,0,0,0.7);}',
             'body.app-started #' + BTN_ID + '{display:flex;}',
-            'body.left-hand #' + BTN_ID + '{right:auto;left:max(4px,env(safe-area-inset-left,0px));}',
+            'body.left-hand #' + BTN_ID + '{right:auto;left:max(16px,env(safe-area-inset-left,0px));}',
             '#' + BTN_ID + ':active{transform:scale(0.93);}',
-            'body.ag-glove #' + BTN_ID + '{width:62px;font-size:10px;}',
-            'body.ag-glove #' + BTN_ID + ' .icon{width:25px;height:25px;}',
+            'body.ag-glove #' + BTN_ID + '{width:64px;height:64px;font-size:9.5px;}',
+            'body.ag-glove #' + BTN_ID + ' .icon{width:24px;height:24px;}',
             'body.outdoor-mode #' + BTN_ID + '{background:#0a0e1a;border-color:rgba(255,255,255,0.85);}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
