@@ -16,10 +16,15 @@
             position: fixed;
             inset: 0;
             overflow: hidden;
-            background: #16a34a; /* zelená = plocha webu; černá = kam web nedosáhne */
             color: #fff;
             font-family: -apple-system, system-ui, sans-serif;
         }
+        /* ROZLIŠENÍ VRSTEV: zelená = jen podklad plátna (html pozadí se roztahuje na
+           celý displej vždy); FIALOVÁ = skutečně vykreslené TĚLO stránky. Pokud je
+           dole u hrany zelený (ne fialový) pás, iOS ořezává kreslení obsahu na
+           zmenšený viewport a tělo tam nedosáhne. */
+        html { background: #16a34a; }
+        body { background: #7c3aed; }
         /* absolute (ne fixed): fixed se na iOS standalone kotví ke zkrácenému layout
            viewportu (bez stavové lišty); absolute se kotví k <body>, kterému JS níže
            nastaví plnou výšku displeje. */
@@ -69,6 +74,36 @@
         }
         #verdict.ok  { background: #16a34a; }
         #verdict.bad { background: #dc2626; }
+        /* PRAVÍTKO u spodní hrany: podle toho, která čára je vidět, poznáme,
+           kde iOS přestává kreslit obsah. Kotveno k tělu (852 px). */
+        .mark {
+            position: absolute;
+            left: 0; right: 0;
+            height: 6px;
+            z-index: 12;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 6px;
+            padding-left: 6px;
+        }
+        #mark-cut  { bottom: 59px; background: #f97316; } /* oranžová = konec starého viewportu (793) */
+        #mark-mid  { bottom: 30px; background: #06b6d4; } /* tyrkysová = 822 */
+        #mark-low  { bottom: 4px;  background: #ffffff; color: #000; } /* bílá = 848 */
+        /* RŮŽOVÁ sonda: posunutá transformací DO spodní zóny. Pokud je vidět růžová,
+           transformované vrstvy ořezu unikají (→ cesta k opravě mapy v appce). */
+        #probe-tr {
+            position: absolute;
+            left: 20%; right: 20%;
+            bottom: 80px;
+            height: 22px;
+            background: #ec4899;
+            transform: translateY(62px);
+            z-index: 13;
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+            line-height: 22px;
+        }
         /* skrytý měřič safe-area (env() nejde číst přímo z JS) */
         #sa-probe {
             position: absolute;
@@ -84,10 +119,14 @@
     <div id="edge-top" class="edge">▲ HORNÍ OKRAJ WEBU ▲</div>
     <div id="edge-bottom" class="edge">▼ SPODNÍ OKRAJ WEBU ▼</div>
     <div id="safe-line"></div>
+    <div class="mark" id="mark-cut">▲ konec zmenšeného viewportu</div>
+    <div class="mark" id="mark-mid"></div>
+    <div class="mark" id="mark-low"></div>
+    <div id="probe-tr">transform sonda</div>
     <div id="sa-probe"></div>
 
     <div id="panel">
-        <div>verze testu: <b>4</b></div>
+        <div>verze testu: <b>5</b></div>
         <div>display-mode: <b id="d-mode">?</b></div>
         <div>navigator.standalone: <b id="d-standalone">?</b></div>
         <div>okno: <b id="d-inner">?</b></div>
