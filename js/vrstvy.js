@@ -6,11 +6,12 @@
 //   1) DO TABLETU (nahoře) — zvolíš, které vrstvě odpovídá model v kontroleru
 //      (horní plocha) a kterou vrstvu pokládáš. Appka sečte tloušťky mezi nimi
 //      (odsazení nahoru/dolů) + nadvýšení na hutnění pokládané vrstvy.
-//   2) ŘEZ SKLADBOU — vrstvy nakreslené v příčném řezu (se sklonem, převýšeno).
-//      Tažením čáry mezi vrstvami se mění tloušťka. Značky MODEL a POKLÁDÁM.
+//   2) ŘEZ SKLADBOU — vrstvy v příčném řezu (sklon jednostranný i střechovitý,
+//      převýšeno; tenké vrstvy zvětšené pro čitelnost). Tažením čáry mezi
+//      vrstvami se mění tloušťka. Značky MODEL a POKLÁDÁM.
 //   3) TABULKA VRSTEV — název, tloušťka po zhutnění, % nadvýšení na hutnění.
-//      Vrstvy jde přidat z KATALOGU (ACO, ACL, ACP, SMA, MZK, ŠD…) i vlastní.
-//   4) SLOVNÍČEK — co zkratky vrstev znamenají (sbalený dole).
+//      Vrstvy jde přidat z KATALOGU (řazen podle použití shora dolů) i vlastní.
+//   4) SLOVNÍČEK — jak číst zkratky (ACO/ACL/ACP, SMA…) — sbalený dole.
 //
 // Nadvýšení = tloušťka × % / 100. Výchozí procenta jsou ORIENTAČNÍ — vždy
 // uprav podle zhutňovací zkoušky / zkušenosti party.
@@ -30,32 +31,38 @@
     function num(v, def) { var n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : def; }
     function fmt(n) { return (Math.round(n * 10) / 10).toFixed(1).replace('.', ','); }
 
-    // ---- katalog vrstev (kód, celý název, popis, typická tl., % hutnění, skupina) --
-    // Skupiny: a = asfaltové, n = nestmelené, s = stmelené / beton.
-    // Tloušťky a % jsou TYPICKÉ hodnoty pro rychlé předvyplnění — na stavbě
-    // vždy platí projekt a zhutňovací zkouška.
+    // ---- katalog vrstev — ŘAZENO PODLE POUŽITÍ ve vozovce (shora dolů) ---------
+    // c = zkratka, nm = co to je česky, d = k čemu / čím se liší,
+    // t = typická tloušťka (cm), p = % nadvýšení, g = skupina barvy (a/n/s).
+    // U asfaltů: AC = asfaltový beton, třetí písmeno O/L/P = Obrusná/Ložná/
+    // Podkladní, číslo = největší zrno kameniva v mm.
     var CATALOG = [
-        { c: 'ACO 8',   nm: 'Asfaltový beton pro obrusné vrstvy',  d: 'Vrchní pojížděná vrstva (jemnější směs, tenčí).', t: 3,  p: 20, g: 'a' },
-        { c: 'ACO 11',  nm: 'Asfaltový beton pro obrusné vrstvy',  d: 'Nejběžnější obrusná vrstva — úplně nahoře, po ní se jezdí.', t: 4,  p: 20, g: 'a' },
-        { c: 'ACO 16',  nm: 'Asfaltový beton pro obrusné vrstvy',  d: 'Hrubší obrusná směs pro méně zatížené komunikace.', t: 5,  p: 20, g: 'a' },
-        { c: 'ACL 16',  nm: 'Asfaltový beton pro ložné vrstvy',    d: 'Mezivrstva mezi obrusnou a podkladní — roznáší zatížení.', t: 6,  p: 20, g: 'a' },
-        { c: 'ACL 22',  nm: 'Asfaltový beton pro ložné vrstvy',    d: 'Silnější ložná vrstva s hrubším kamenivem.', t: 7,  p: 20, g: 'a' },
-        { c: 'ACP 16',  nm: 'Asfaltový beton pro podkladní vrstvy', d: 'Spodní asfaltová vrstva na stmeleném/nestmeleném podkladu.', t: 7,  p: 20, g: 'a' },
-        { c: 'ACP 22',  nm: 'Asfaltový beton pro podkladní vrstvy', d: 'Silnější podkladní asfalt pro dálnice a těžkou dopravu.', t: 9,  p: 20, g: 'a' },
-        { c: 'SMA 8',   nm: 'Asfaltový koberec mastixový',          d: 'Obrusná vrstva s vyšší odolností — tenčí varianta.', t: 3,  p: 20, g: 'a' },
-        { c: 'SMA 11',  nm: 'Asfaltový koberec mastixový',          d: 'Obrusná vrstva pro dálnice a silně zatížené tahy.', t: 4,  p: 20, g: 'a' },
-        { c: 'BBTM',    nm: 'Asfaltový beton pro velmi tenké vrstvy', d: 'Tenká obrusná vrstva (2–3 cm), často při opravách.', t: 2.5, p: 20, g: 'a' },
-        { c: 'PA 8',    nm: 'Asfaltový koberec drenážní',           d: 'Propouští vodu, snižuje hluk a odstřik — obrusná.', t: 4,  p: 20, g: 'a' },
-        { c: 'MA 11',   nm: 'Litý asfalt',                          d: 'Lije se, NEhutní se válci — nadvýšení 0 %. Mosty, chodníky.', t: 3.5, p: 0, g: 'a' },
-        { c: 'MZK',     nm: 'Mechanicky zpevněné kamenivo',         d: 'Horní podkladní nestmelená vrstva z drceného kameniva.', t: 20, p: 25, g: 'n' },
-        { c: 'ŠD',      nm: 'Štěrkodrť',                            d: 'Podkladní/ochranná nestmelená vrstva z drceného kameniva.', t: 20, p: 25, g: 'n' },
-        { c: 'ŠP',      nm: 'Štěrkopísek',                          d: 'Ochranná nestmelená vrstva (mrazová ochrana, drenáž).', t: 15, p: 25, g: 'n' },
-        { c: 'MZ',      nm: 'Mechanicky zpevněná zemina',           d: 'Zlepšená zemina v aktivní zóně / spodní podkladní vrstvě.', t: 30, p: 25, g: 'n' },
-        { c: 'VŠ',      nm: 'Vibrovaný štěrk',                      d: 'Nestmelená podkladní vrstva hutněná vibrací.', t: 15, p: 25, g: 'n' },
-        { c: 'SC C8/10', nm: 'Stabilizace cementem',                d: 'Zemina/kamenivo stmelené cementem — podkladní vrstva.', t: 15, p: 10, g: 's' },
-        { c: 'KSC I',   nm: 'Kamenivo zpevněné cementem',           d: 'Stmelená podkladní vrstva pod asfalt nebo beton.', t: 15, p: 10, g: 's' },
-        { c: 'CB',      nm: 'Cementobetonový kryt',                 d: 'Betonová deska (dálnice, letiště) — pokládá se na hotovo, 0 %.', t: 22, p: 0, g: 's' },
-        { c: 'PM',      nm: 'Penetrační makadam',                   d: 'Kamenivo prolité asfaltem — starší technologie oprav.', t: 10, p: 20, g: 's' }
+        { sec: 'Obrusné vrstvy — úplně nahoře, po nich se jezdí' },
+        { c: 'ACO 11', nm: 'Asfaltový beton — Obrusná, zrno do 11 mm', d: 'Nejběžnější vrchní vrstva běžných silnic.', t: 4, p: 20, g: 'a' },
+        { c: 'ACO 8',  nm: 'Asfaltový beton — Obrusná, zrno do 8 mm',  d: 'Jemnější směs pro tenčí vrstvy a méně zatížené cesty.', t: 3, p: 20, g: 'a' },
+        { c: 'ACO 16', nm: 'Asfaltový beton — Obrusná, zrno do 16 mm', d: 'Hrubší obrusná, kde se tolik nehledí na hlučnost.', t: 5, p: 20, g: 'a' },
+        { c: 'SMA 11', nm: 'Mastixový koberec (Stone Mastic Asphalt), zrno do 11 mm', d: 'Odolnější než ACO — víc hrubého kameniva. Dálnice a těžká doprava.', t: 4, p: 20, g: 'a' },
+        { c: 'SMA 8',  nm: 'Mastixový koberec (Stone Mastic Asphalt), zrno do 8 mm', d: 'Tenčí varianta SMA.', t: 3, p: 20, g: 'a' },
+        { c: 'BBTM',   nm: 'Velmi tenká obrusná vrstva', d: 'Jen 2–3 cm — hlavně rychlé opravy povrchu.', t: 2.5, p: 20, g: 'a' },
+        { c: 'PA 8',   nm: 'Drenážní (porézní) koberec', d: 'Propouští vodu skrz — méně odstřiku, tišší jízda.', t: 4, p: 20, g: 'a' },
+        { c: 'MA 11',  nm: 'Litý asfalt', d: 'Lije se a NEhutní válci → nadvýšení 0 %. Mosty, chodníky.', t: 3.5, p: 0, g: 'a' },
+        { sec: 'Ložná vrstva — prostřední asfaltová' },
+        { c: 'ACL 16', nm: 'Asfaltový beton — Ložná, zrno do 16 mm', d: 'Mezi obrusnou a podkladní; roznáší zatížení od kol.', t: 6, p: 20, g: 'a' },
+        { c: 'ACL 22', nm: 'Asfaltový beton — Ložná, zrno do 22 mm', d: 'Silnější ložná s hrubším kamenivem.', t: 7, p: 20, g: 'a' },
+        { sec: 'Podkladní asfalt — spodní asfaltová' },
+        { c: 'ACP 16', nm: 'Asfaltový beton — Podkladní, zrno do 16 mm', d: 'První asfalt na štěrkovém/stmeleném podkladu.', t: 7, p: 20, g: 'a' },
+        { c: 'ACP 22', nm: 'Asfaltový beton — Podkladní, zrno do 22 mm', d: 'Silnější podkladní asfalt pro dálnice.', t: 9, p: 20, g: 'a' },
+        { sec: 'Nestmelené podklady — štěrky' },
+        { c: 'MZK', nm: 'Mechanicky zpevněné kamenivo', d: 'Horní podkladní vrstva z drceného kameniva, hutní se po vrstvách.', t: 20, p: 25, g: 'n' },
+        { c: 'ŠD',  nm: 'Štěrkodrť', d: 'Podkladní/ochranná vrstva z drceného kameniva.', t: 20, p: 25, g: 'n' },
+        { c: 'ŠP',  nm: 'Štěrkopísek', d: 'Ochranná vrstva — mrazová ochrana a odvodnění.', t: 15, p: 25, g: 'n' },
+        { c: 'VŠ',  nm: 'Vibrovaný štěrk', d: 'Nestmelený podklad hutněný vibrací.', t: 15, p: 25, g: 'n' },
+        { c: 'MZ',  nm: 'Mechanicky zpevněná zemina', d: 'Zlepšená zemina úplně dole (aktivní zóna).', t: 30, p: 25, g: 'n' },
+        { sec: 'Stmelené podklady a beton' },
+        { c: 'SC C8/10', nm: 'Stabilizace cementem', d: 'Zemina/kamenivo promíchané s cementem — tuhý podklad.', t: 15, p: 10, g: 's' },
+        { c: 'KSC I', nm: 'Kamenivo zpevněné cementem', d: 'Stmelená podkladní vrstva pod asfalt či beton.', t: 15, p: 10, g: 's' },
+        { c: 'CB', nm: 'Cementobetonový kryt', d: 'Betonová deska (dálnice, letiště) — pokládá se na hotovo, 0 %.', t: 22, p: 0, g: 's' },
+        { c: 'PM', nm: 'Penetrační makadam', d: 'Kamenivo prolité asfaltem — starší technologie oprav.', t: 10, p: 20, g: 's' }
     ];
     var GRP_COLOR = { a: '#31353d', n: '#8b7c5c', s: '#6f7f8c' };
     var GRP_TEXT = { a: '#f2f4f7', n: '#16181c', s: '#16181c' };
@@ -68,7 +75,7 @@
     }
 
     // ---- data ----------------------------------------------------------------
-    // { skladby: [{id, name, slope, layers:[{n, t, p, g}]}], sel: {sk, ref, lay} }
+    // { skladby: [{id, name, slope, roof, layers:[{n, t, p, g}]}], sel: {sk, ref, lay} }
     // layers SHORA dolů; t = projektová tloušťka po zhutnění (cm); p = % nadvýšení.
     var D = null;
 
@@ -80,6 +87,7 @@
                 id: 's' + Date.now(),
                 name: 'Ukázka — uprav podle stavby',
                 slope: 2.5,
+                roof: false,
                 layers: [
                     { n: 'ACO 11', t: 4, p: 20, g: 'a' },
                     { n: 'ACL 16', t: 6, p: 20, g: 'a' },
@@ -119,8 +127,10 @@
             '  background:rgba(255,255,255,0.03);padding:8px 8px 4px;}',
             '#' + MODAL_ID + ' .vr-sec svg{display:block;width:100%;height:auto;touch-action:none;}',
             '#' + MODAL_ID + ' .vr-sec .vr-drag{cursor:ns-resize;}',
-            '#' + MODAL_ID + ' .vr-secrow{display:flex;align-items:center;gap:8px;margin:6px 2px 8px;font-size:12px;color:var(--text-muted,#9aa1ac);}',
-            '#' + MODAL_ID + ' .vr-secrow input{width:64px;margin:0;padding:7px 8px;}',
+            '#' + MODAL_ID + ' .vr-secrow{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:6px 2px 8px;font-size:12px;color:var(--text-muted,#9aa1ac);}',
+            '#' + MODAL_ID + ' .vr-secrow input{width:60px;margin:0;padding:7px 8px;}',
+            '#' + MODAL_ID + ' .vr-secrow select{width:auto;margin:0;padding:7px 8px;}',
+            '#' + MODAL_ID + ' .vr-sechint{margin:0 2px 8px;font-size:11.5px;color:var(--text-muted,#9aa1ac);}',
             // tabulka vrstev
             '#' + MODAL_ID + ' .vr-head{display:grid;grid-template-columns:1fr 62px 62px 88px;gap:6px;margin:10px 0 4px;',
             '  font-size:10.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted,#9aa1ac);}',
@@ -130,19 +140,23 @@
             '#' + MODAL_ID + ' .vr-btns button{flex:1;height:38px;border:1px solid var(--glass-border,rgba(255,255,255,0.15));',
             '  border-radius:var(--r-sm,8px);background:rgba(255,255,255,0.05);color:var(--text-color,#e8edf2);cursor:pointer;font-size:14px;line-height:1;}',
             '#' + MODAL_ID + ' .vr-btns button.vr-del{color:var(--danger,#ef4444);}',
-            // katalog
+            // katalog — řádky se zalamují, popis je vidět celý
             '#' + MODAL_ID + ' .vr-addrow{display:flex;gap:8px;margin-top:6px;}',
             '#' + MODAL_ID + ' .vr-addrow .btn{flex:1;margin:0;padding:10px;}',
             '#' + MODAL_ID + ' .vr-cat{display:none;margin-top:8px;border:1px solid var(--glass-border,rgba(255,255,255,0.12));border-radius:var(--r-md,12px);overflow:hidden;}',
             '#' + MODAL_ID + ' .vr-cat.open{display:block;}',
-            '#' + MODAL_ID + ' .vr-cat .vr-catrow{display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;border:none;',
+            '#' + MODAL_ID + ' .vr-cat .vr-catsec{padding:9px 12px 5px;font-size:10.5px;text-transform:uppercase;letter-spacing:0.06em;',
+            '  color:var(--text-muted,#9aa1ac);background:rgba(255,255,255,0.03);border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.08));}',
+            '#' + MODAL_ID + ' .vr-cat .vr-catrow{display:block;width:100%;padding:10px 12px;border:none;',
             '  border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.08));background:transparent;color:var(--text-color,#e8edf2);',
             '  text-align:left;cursor:pointer;font:inherit;}',
             '#' + MODAL_ID + ' .vr-cat .vr-catrow:last-child{border-bottom:none;}',
             '#' + MODAL_ID + ' .vr-cat .vr-catrow:active{background:rgba(255,255,255,0.06);}',
-            '#' + MODAL_ID + ' .vr-cat .vr-catrow b{flex:0 0 74px;color:var(--accent,#34d399);}',
-            '#' + MODAL_ID + ' .vr-cat .vr-catrow span{flex:1;min-width:0;font-size:12.5px;color:var(--text-muted,#9aa1ac);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
-            '#' + MODAL_ID + ' .vr-cat .vr-catrow small{flex:0 0 auto;font-family:var(--font-mono,monospace);font-size:11.5px;color:var(--text-color,#e8edf2);}',
+            '#' + MODAL_ID + ' .vr-cat .vr-r1{display:flex;align-items:baseline;gap:8px;}',
+            '#' + MODAL_ID + ' .vr-cat .vr-r1 b{flex:0 0 auto;color:var(--accent,#34d399);}',
+            '#' + MODAL_ID + ' .vr-cat .vr-r1 span{flex:1;min-width:0;font-size:12.5px;}',
+            '#' + MODAL_ID + ' .vr-cat .vr-r1 small{flex:0 0 auto;font-family:var(--font-mono,monospace);font-size:11.5px;color:var(--text-muted,#9aa1ac);}',
+            '#' + MODAL_ID + ' .vr-cat .vr-r2{margin-top:3px;font-size:11.5px;line-height:1.4;color:var(--text-muted,#9aa1ac);}',
             // slovníček
             '#' + MODAL_ID + ' .vr-dict p{margin:8px 0;font-size:12.5px;line-height:1.5;color:var(--text-color,#e8edf2);}',
             '#' + MODAL_ID + ' .vr-dict b{color:var(--accent,#34d399);}',
@@ -155,9 +169,11 @@
     function ensureModal() {
         if (document.getElementById(MODAL_ID)) return;
         injectStyles();
-        var dict = CATALOG.map(function (it) {
-            return '<p><b>' + esc(it.c) + '</b> — ' + esc(it.nm) + '. ' + esc(it.d) + ' Typicky ' + fmt(it.t) + ' cm.</p>';
-        }).join('');
+        var dict = '<p>Jak číst zkratky asfaltů: <b>AC</b> = asfaltový beton, třetí písmeno <b>O/L/P</b> = Obrusná / Ložná / Podkladní vrstva, číslo = největší zrno kameniva v mm (ACO 11 = obrusný asfalt se zrnem do 11 mm). Vrstvy jdou shora: obrusná → ložná → podkladní asfalt → stmelený či štěrkový podklad → ochranná vrstva.</p>' +
+            CATALOG.map(function (it) {
+                if (it.sec) return '';
+                return '<p><b>' + esc(it.c) + '</b> — ' + esc(it.nm) + '. ' + esc(it.d) + ' Typicky ' + fmt(it.t) + ' cm.</p>';
+            }).join('');
         var ov = document.createElement('div');
         ov.className = 'modal-overlay';
         ov.id = MODAL_ID;
@@ -179,7 +195,11 @@
             '<select id="vr-lay" class="st-sel"></select>' +
             // ŘEZ
             '<div class="vr-sec"><div id="vr-svg"></div></div>' +
-            '<div class="vr-secrow"><span>Příčný sklon</span><input type="number" id="vr-slope" step="0.5" inputmode="decimal"><span>% (jen náhled, převýšeno) · tažením čáry mezi vrstvami změníš tloušťku</span></div>' +
+            '<div class="vr-secrow">' +
+            '<span>Sklon</span><input type="number" id="vr-slope" step="0.5" inputmode="decimal"><span>%</span>' +
+            '<select id="vr-prof" class="st-sel"><option value="jedno">jednostranný</option><option value="strecha">střechovitý</option></select>' +
+            '</div>' +
+            '<div class="vr-sechint">Tažením čáry mezi vrstvami změníš tloušťku. Sklon je jen náhled (převýšený); tenké vrstvy jsou v řezu zvětšené, ať jdou přečíst.</div>' +
             // TABULKA
             '<div class="vr-head"><span>Vrstva (shora dolů)</span><span>tl. cm</span><span>hutn. %</span><span></span></div>' +
             '<div id="vr-layers"></div>' +
@@ -200,7 +220,7 @@
         document.getElementById('vr-sk').addEventListener('change', function () { D.sel.sk = this.selectedIndex; D.sel.ref = 0; D.sel.lay = 0; save(); renderAll(); });
         document.getElementById('vr-sk-name').addEventListener('input', function () { var s = skladba(); if (s) { s.name = this.value; save(); renderSkladbaSelect(); } });
         document.getElementById('vr-sk-add').addEventListener('click', function () {
-            D.skladby.push({ id: 's' + Date.now(), name: 'Nová stavba', slope: 2.5, layers: [] });
+            D.skladby.push({ id: 's' + Date.now(), name: 'Nová stavba', slope: 2.5, roof: false, layers: [] });
             D.sel = { sk: D.skladby.length - 1, ref: 0, lay: 0 };
             save(); renderAll();
             var cat = document.getElementById('vr-cat'); if (cat) cat.classList.add('open');
@@ -227,6 +247,10 @@
             var s = skladba(); if (!s) return;
             s.slope = num(this.value, 2.5); save(); renderSection();
         });
+        document.getElementById('vr-prof').addEventListener('change', function () {
+            var s = skladba(); if (!s) return;
+            s.roof = (this.value === 'strecha'); save(); renderSection();
+        });
         document.getElementById('vr-ref').addEventListener('change', function () { D.sel.ref = this.selectedIndex; save(); renderCalc(); renderSection(); });
         document.getElementById('vr-lay').addEventListener('change', function () { D.sel.lay = this.selectedIndex; save(); renderCalc(); renderSection(); });
 
@@ -243,10 +267,19 @@
         if (!box) return;
         box.innerHTML = '';
         CATALOG.forEach(function (it) {
+            if (it.sec) {
+                var h = document.createElement('div');
+                h.className = 'vr-catsec';
+                h.textContent = it.sec;
+                box.appendChild(h);
+                return;
+            }
             var b = document.createElement('button');
             b.type = 'button';
             b.className = 'vr-catrow';
-            b.innerHTML = '<b>' + esc(it.c) + '</b><span>' + esc(it.nm) + '</span><small>' + fmt(it.t) + ' cm</small>';
+            b.innerHTML =
+                '<div class="vr-r1"><b>' + esc(it.c) + '</b><span>' + esc(it.nm) + '</span><small>' + fmt(it.t) + ' cm</small></div>' +
+                '<div class="vr-r2">' + esc(it.d) + '</div>';
             b.addEventListener('click', function () {
                 var s = skladba(); if (!s) return;
                 s.layers.push({ n: it.c, t: it.t, p: it.p, g: it.g });
@@ -277,6 +310,8 @@
         if (nameInp) nameInp.value = s ? (s.name || '') : '';
         var slopeInp = document.getElementById('vr-slope');
         if (slopeInp) slopeInp.value = s ? (s.slope != null ? s.slope : 2.5) : 2.5;
+        var profSel = document.getElementById('vr-prof');
+        if (profSel) profSel.value = (s && s.roof) ? 'strecha' : 'jedno';
         if (!s) return;
         if (!s.layers.length) {
             box.innerHTML = '<div style="text-align:center; padding:10px; font-size:13px; color:var(--text-muted);">Přidej vrstvy — nejrychleji „Z katalogu".</div>';
@@ -367,7 +402,21 @@
     }
 
     // ---- ŘEZ SKLADBOU (SVG, tažení hranic mezi vrstvami) -----------------------
-    var _drag = null; // {i, y0, t0, k}
+    var _drag = null; // {i, y0, t0, k, kScreen}
+    var W = 340;      // šířka viewBoxu (konstantní — používá se i pro přepočet tahu)
+
+    // Body horní hrany v dané výšce y (podle profilu: jednostranný / střechovitý).
+    // Vrací pole [x,y] zleva doprava. dy = svislý rozdíl hran (px).
+    function edgePts(y, prof) {
+        if (prof.roof) return [[0, y + prof.dy], [W / 2, y], [W, y + prof.dy]];
+        return [[0, y], [W, y + prof.dy]];
+    }
+    function ptsToStr(pts) { return pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' '); }
+    function bandPoints(y, h, prof) {
+        var top = edgePts(y, prof);
+        var bot = edgePts(y + h, prof).slice().reverse();
+        return ptsToStr(top.concat(bot));
+    }
 
     function renderSection(kOverride) {
         var host = document.getElementById('vr-svg');
@@ -375,53 +424,59 @@
         var s = skladba();
         if (!s || !s.layers.length) { host.innerHTML = '<div style="text-align:center; padding:14px 6px; font-size:13px; color:var(--text-muted);">Řez se vykreslí, jakmile přidáš vrstvy.</div>'; return; }
 
-        var W = 340, PAD = 6;
+        var PAD = 6;
+        var MINH = 20; // minimální výška pruhu, ať je popisek vždy čitelný
         var total = 0;
         s.layers.forEach(function (L) { total += Math.max(0.1, num(L.t, 0)); });
-        var k = kOverride || Math.max(1.2, Math.min(7, 200 / total)); // px na cm
+        var k = kOverride || Math.max(1.5, Math.min(9, 260 / total)); // px na cm
         var slope = num(s.slope != null ? s.slope : 2.5, 2.5);
-        var dy = W * (slope / 100) * 2; // převýšení sklonu 2× ať je vidět
+        // převýšení sklonu 2×, ať je zlom vidět; u střechy klesají OBĚ strany od středu
+        var dy = s.roof ? Math.abs((W / 2) * (slope / 100) * 2) : W * (slope / 100) * 2;
+        var prof = { roof: !!s.roof, dy: dy };
         var ref = Math.min(D.sel.ref, s.layers.length - 1);
         var lay = Math.min(D.sel.lay, s.layers.length - 1);
 
-        var H = PAD + Math.abs(dy) + total * k + PAD + 14;
-        var yl = PAD + (dy < 0 ? -dy : 0); // levý horní bod
+        // výšky pruhů: úměrné tloušťce, ale nikdy pod MINH (tenké vrstvy čitelné)
+        var hs = s.layers.map(function (L) { return Math.max(MINH, Math.max(0.1, num(L.t, 0)) * k); });
+        var sumH = 0; hs.forEach(function (h) { sumH += h; });
+
+        var yl = PAD + (prof.roof ? 0 : (dy < 0 ? -dy : 0)); // horní bod kresby
+        var H = PAD + Math.abs(dy) + sumH + PAD + 12;
         var svg = [];
         svg.push('<svg viewBox="0 0 ' + W + ' ' + Math.ceil(H) + '" xmlns="http://www.w3.org/2000/svg">');
 
         var y = yl;
-        var bounds = []; // y levé hrany SPODKU každé vrstvy (pro tažení)
+        var bounds = []; // {i, yBot} — levá výška spodní hrany vrstvy (pro tažení)
         s.layers.forEach(function (L, i) {
-            var h = Math.max(0.1, num(L.t, 0)) * k;
-            var col = GRP_COLOR[L.g || guessGroup(L.n)] || GRP_COLOR.a;
-            var txt = GRP_TEXT[L.g || guessGroup(L.n)] || '#fff';
-            var pts = [
-                '0,' + y, W + ',' + (y + dy), W + ',' + (y + dy + h), '0,' + (y + h)
-            ].join(' ');
+            var h = hs[i];
+            var g = L.g || guessGroup(L.n);
+            var col = GRP_COLOR[g] || GRP_COLOR.a;
+            var txt = GRP_TEXT[g] || '#fff';
             var isLay = (i === lay);
-            svg.push('<polygon points="' + pts + '" fill="' + col + '" stroke="' + (isLay ? 'var(--accent,#34d399)' : 'rgba(255,255,255,0.25)') + '" stroke-width="' + (isLay ? 2.5 : 1) + '"/>');
-            // popisek u levé hrany (dlouhé názvy zkrátit, SVG neumí ellipsis)
-            var midY = y + h / 2;
-            if (h >= 13) {
-                var nm = String(L.n || ('vrstva ' + (i + 1)));
-                if (nm.length > 20) nm = nm.slice(0, 19) + '…';
-                var label = esc(nm) + ' · ' + fmt(num(L.t, 0)) + ' cm';
-                svg.push('<text x="8" y="' + (midY + 3.5) + '" font-size="11" font-weight="700" fill="' + txt + '">' + label + (isLay ? '  ◀ POKLÁDÁM' : '') + '</text>');
-            }
+            svg.push('<polygon points="' + bandPoints(y, h, prof) + '" fill="' + col + '" stroke="' + (isLay ? 'var(--accent,#34d399)' : 'rgba(255,255,255,0.25)') + '" stroke-width="' + (isLay ? 2.5 : 1) + '"/>');
+            // popisek u levé hrany (u střechy je levá hrana níž o dy)
+            var labY = y + (prof.roof ? dy : 0) + h / 2;
+            var nm = String(L.n || ('vrstva ' + (i + 1)));
+            if (nm.length > 20) nm = nm.slice(0, 19) + '…';
+            var label = esc(nm) + ' · ' + fmt(num(L.t, 0)) + ' cm';
+            svg.push('<text x="8" y="' + (labY + 3.5) + '" font-size="11.5" font-weight="700" fill="' + txt + '">' + label + (isLay ? '  ◀ POKLÁDÁM' : '') + '</text>');
             bounds.push({ i: i, yBot: y + h });
             y += h;
         });
 
-        // značka MODEL na horní ploše vrstvy ref
-        var yRef = yl + depthOfTop(s.layers, ref) * k;
-        svg.push('<line x1="0" y1="' + yRef + '" x2="' + W + '" y2="' + (yRef + dy) + '" stroke="#60a5fa" stroke-width="2" stroke-dasharray="7 5"/>');
-        svg.push('<rect x="' + (W - 62) + '" y="' + Math.max(1, yRef + dy - 16) + '" width="60" height="15" rx="4" fill="#60a5fa"/>');
-        svg.push('<text x="' + (W - 32) + '" y="' + Math.max(12, yRef + dy - 4.5) + '" font-size="10" font-weight="800" fill="#0b1220" text-anchor="middle">MODEL</text>');
+        // značka MODEL na horní ploše vrstvy ref (sleduje profil)
+        var yRef = yl;
+        for (var m = 0; m < ref; m++) yRef += hs[m];
+        svg.push('<polyline points="' + ptsToStr(edgePts(yRef, prof)) + '" fill="none" stroke="#60a5fa" stroke-width="2" stroke-dasharray="7 5"/>');
+        var tagY = Math.max(1, yRef + (prof.roof ? dy : Math.max(0, dy)) - 16);
+        svg.push('<rect x="' + (W - 62) + '" y="' + tagY + '" width="60" height="15" rx="4" fill="#60a5fa"/>');
+        svg.push('<text x="' + (W - 32) + '" y="' + (tagY + 11.5) + '" font-size="10" font-weight="800" fill="#0b1220" text-anchor="middle">MODEL</text>');
 
-        // úchyty tažení: spodní hrana každé vrstvy (změna její tloušťky)
+        // úchyty tažení: spodní hrana každé vrstvy (mění JEJÍ tloušťku)
         bounds.forEach(function (b) {
-            svg.push('<polygon class="vr-drag" data-i="' + b.i + '" points="0,' + (b.yBot - 8) + ' ' + W + ',' + (b.yBot + dy - 8) + ' ' + W + ',' + (b.yBot + dy + 8) + ' 0,' + (b.yBot + 8) + '" fill="transparent"/>');
-            svg.push('<line x1="0" y1="' + b.yBot + '" x2="' + W + '" y2="' + (b.yBot + dy) + '" stroke="rgba(255,255,255,0.0)" stroke-width="1"/>');
+            var top = edgePts(b.yBot - 9, prof);
+            var bot = edgePts(b.yBot + 9, prof).slice().reverse();
+            svg.push('<polygon class="vr-drag" data-i="' + b.i + '" points="' + ptsToStr(top.concat(bot)) + '" fill="transparent"/>');
         });
 
         svg.push('</svg>');
