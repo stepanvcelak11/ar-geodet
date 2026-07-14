@@ -1,81 +1,81 @@
 {
-  "vydani": "2026-07-13",
-  "uvodnik": "Přinášíme výběr aktuálních zpráv z oblasti geodetických technologií a legislativy.",
+  "vydani": "2026-07-14",
+  "uvodnik": "Přinášíme aktuální informace ze světa geodézie a technologií.",
   "polozky": [
     {
-      "rubrika": "Z domova",
-      "top": true,
-      "nadpis": "Ukončení provozu služeb WSGP verze 2.10",
-      "perex": "ČÚZK oznámil, že na podzim 2026 dojde k ukončení provozu starší verze webových služeb WSGP.",
-      "telo": "Český úřad zeměměřický a katastrální (ČÚZK) upozornil uživatele, že verze 2.10 webových služeb pro vyhotovitele a ověřovatele geometrických plánů bude na podzim 2026 ukončena. Po tomto termínu budou k dispozici pouze služby verze 3.1. Uživatelé jsou vyzváni k přechodu na novou verzi, aby se vyhnuli komplikacím.",
-      "body": [
-        "Ukončení verze 2.10 na podzim 2026",
-        "Přechod na verzi 3.1 je nezbytný"
-      ],
-      "proc": "Důležité pro všechny uživatele geodetických služeb v ČR.",
-      "zdroj": "ČÚZK",
-      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
-      "datum": "2026-05-29"
-    },
-    {
       "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "SBG Systems uvádí nový Pulse-40 OEM s taktickou přesností",
-      "perex": "Nový Pulse-40 OEM od SBG Systems přináší vylepšenou odolnost a integrovanou inteligenci pro vibrace.",
-      "telo": "Nový Pulse-40 OEM, vyvinutý společností SBG Systems, zachovává průmyslové standardy SWaP a nabízí vylepšený výkon v oblasti inerciálních měření. Tento miniaturizovaný takticky-grade Inertial Measurement Unit (IMU) je vybaven gyroskopem s rozsahem ±4000°/s a integrovanými magnetometry, což zajišťuje vysokou přesnost a odolnost vůči vibracím. Je ideální pro aplikace, kde je důležitá robustnost a spolehlivost.",
+      "top": true,
+      "nadpis": "Pix4D's Platform Moment: From Photogrammetry Engine to Enterprise Reality",
+      "perex": "Pix4D se vyvíjí od svého vzniku jako spin-off z EPFL a nyní se zaměřuje na integraci různých technologií.",
+      "telo": "Fifteen years into the UAV software revolution, Pix4D's CTO vidí, jak se Gaussian splatting, AI-assisted editing a smartphone jako měřící nástroj spojují do něčeho většího než jakýkoli jednotlivý nástroj. Společnost se vyvinula spolu s průmyslem UAV a nyní se zaměřuje na to, jak tyto technologie integrovat pro lepší výsledky v geodézii. Pix4D se tak stává důležitým hráčem v oblasti, kde se technologie neustále vyvíjejí a zlepšují efektivitu práce geodetů.",
       "body": [
-        "Vylepšená odolnost a výkon",
-        "Integrované monitorování vibrací"
+        "Pokrok v oblasti UAV softwaru",
+        "Integrace AI do pracovních postupů"
       ],
-      "proc": "Nové technologie pro geodetické měření a navigaci.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/08/sbg-systems-launches-the-new-pulse-40-oem-with-tactical-grade-performance-enhanced-resilience-and-built-in-vibration-intelligence/?utm_source=rss&utm_medium=rss&utm_campaign=sbg-systems-launches-the-new-pulse-40-oem-with-tactical-grade-performance-enhanced-resilience-and-built-in-vibration-intelligence",
-      "datum": "2026-07-08"
-    },
-    {
-      "rubrika": "Z praxe",
-      "top": false,
-      "nadpis": "Jak Pix4D transformuje fotogrammetrii na podnikové řešení",
-      "perex": "Pix4D se vyvíjí z fotogrammetrického enginu na komplexní podnikové řešení.",
-      "telo": "Pix4D, známý svou inovativní platformou pro zpracování UAV dat, se posunul od jednoduchého fotogrammetrického enginu k robustnímu podnikatelskému řešení. CTO společnosti hovoří o tom, jak se technologie jako Gaussian splatting a AI-asistované úpravy stávají součástí širšího ekosystému. Důraz je kladen na integraci různých nástrojů a technologií, které podporují efektivní a přesné geodetické procesy.",
-      "body": [
-        "Integrace AI do fotogrammetrie",
-        "Transformace na podnikové řešení"
-      ],
-      "proc": "Zajímavý vývoj v oblasti zpracování geodetických dat.",
+      "proc": "Zpráva ukazuje, jak se technologie v geodézii mění a vyvíjejí.",
       "zdroj": "xyHt",
       "odkaz": "https://www.xyht.com/aerialuas/pix4ds-platform-moment-from-photogrammetry-engine-to-enterprise-reality/",
       "datum": "2026-07-07"
     },
     {
+      "rubrika": "Přístroje",
+      "top": false,
+      "nadpis": "SBG Systems Launches the new Pulse-40 OEM with Tactical-Grade Performance",
+      "perex": "Nový Pulse-40 OEM přináší vylepšené vlastnosti pro měření.",
+      "telo": "Nová generace Pulse-40 OEM zachovává své průmyslové standardy SWaP a zároveň nabízí vylepšený výkon a odolnost vůči vibracím. Tento přístroj je navržen tak, aby splnil náročné požadavky na měření v terénu a je vybaven gyroskopem s rozsahem ±4000°/s a integrovanými magnetometry. Jeho schopnosti v reálném čase pro monitoring vibrací až do 8 kHz z něj činí ideální volbu pro geodety, kteří potřebují přesné a spolehlivé měření.",
+      "body": [
+        "Vylepšená odolnost a výkon",
+        "Real-time monitoring vibrací"
+      ],
+      "proc": "Zpráva zdůrazňuje důležitost nových technologií v geodetických přístrojích.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/07/08/sbg-systems-launches-the-new-pulse-40-oem-with-tactical-grade-performance-enhanced-resilience-and-built-in-vibration-intelligence/",
+      "datum": "2026-07-08"
+    },
+    {
+      "rubrika": "Z domova",
+      "top": false,
+      "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
+      "perex": "ČÚZK oznamuje ukončení starší verze služeb pro geodety.",
+      "telo": "Český úřad zeměměřický a katastrální upozorňuje, že na podzim 2026 dojde k ukončení provozu WSGP verze 2.10. Po tomto datu budou k dispozici pouze služby WSGP verze 3.1. Uživatelé jsou vyzváni, aby se na tuto změnu připravili a přizpůsobili své pracovní postupy novým standardům.",
+      "body": [
+        "Přechod na novou verzi služeb",
+        "Důležitost aktualizace pro uživatele"
+      ],
+      "proc": "Zpráva je důležitá pro geodety, kteří využívají služby WSGP.",
+      "zdroj": "ČÚZK",
+      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
+      "datum": "2026-05-29"
+    },
+    {
       "rubrika": "Akce",
       "top": false,
-      "nadpis": "Nový program managementu DRONERESPONDERS na UAV Expo",
-      "perex": "Na Commercial UAV Expo byl představen nový dvoudenní program managementu pro drony.",
-      "telo": "Na letošním Commercial UAV Expo byl uveden nový dvoudenní program managementu DRONERESPONDERS, který se zaměřuje na využití dronů jako prvních respondentů v různých situacích, včetně hasičských zásahů a nehod. Program zahrnuje také lekce o proti-dronových opatřeních, které byly získány z události FIFA World Cup 2026. Tento program slibuje poskytnout důležité znalosti pro profesionály v oblasti veřejné bezpečnosti.",
+      "nadpis": "Commercial UAV Expo Debuts DRONERESPONDERS Program Management Course",
+      "perex": "Nový program školení pro správu dronů na Commercial UAV Expo.",
+      "telo": "Na Commercial UAV Expo byl představen nový dvoudenní kurz pro správu programů DRONERESPONDERS. Tento kurz se zaměřuje na aplikace dronů v oblasti veřejné bezpečnosti, včetně hasičských služeb a operací na místě nehod. Program také zahrnuje lekce o proti-dronových technikách, které byly získány z události FIFA World Cup 2026.",
       "body": [
-        "Zaměření na drony jako první respondenti",
-        "Lekce z FIFA World Cup 2026"
+        "Zaměření na veřejnou bezpečnost",
+        "Praktické aplikace dronů"
       ],
-      "proc": "Vzdělávání a zlepšení dovedností v oblasti dronů pro veřejnou bezpečnost.",
+      "proc": "Zpráva ukazuje na rostoucí význam dronů v oblasti veřejné bezpečnosti.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/07/09/commercial-uav-expo-debuts-droneresponders-program-management-course-unveils-public-safety-summit-program/?utm_source=rss&utm_medium=rss&utm_campaign=commercial-uav-expo-debuts-droneresponders-program-management-course-unveils-public-safety-summit-program",
       "datum": "2026-07-09"
     },
     {
-      "rubrika": "Z domova",
+      "rubrika": "Z praxe",
       "top": false,
-      "nadpis": "GEO Business 2026 přitahuje rekordní účast",
-      "perex": "Na GEO Business 2026 se sešlo přes 6200 odborníků z oblasti geoinformatiky.",
-      "telo": "GEO Business 2026 se konal v Londýně a přilákal více než 6200 odborníků, což potvrzuje jeho postavení jako přední akce v oblasti geoinformatiky. Účastníci měli možnost navštívit více než 160 odborně vedených sezení a 100 vystavovatelů, což přispělo k bohaté interakci a sdílení znalostí v oboru. Tato akce poskytla platformu pro prezentaci nejnovějších technologií a trendů v geodetických a GIS aplikacích.",
+      "nadpis": "Leave No Fingerprints: Survey-Grade Accuracy in an Era of Zero Disruption",
+      "perex": "Nový přístup k geodetickým pracím bez narušení provozu.",
+      "telo": "V Wilmingtonu v Severní Karolíně byla provedena geodetická práce na mostě Cape Fear Memorial, která ukázala, jak lze dosáhnout přesnosti bez jakéhokoli narušení. Využitím barevného LiDARu bylo možné vytvořit 3D model mostu bez potřeby uzavírek nebo přítomnosti pracovníků na místě. Tento přístup ukazuje, jak moderní technologie mohou zefektivnit geodetické práce a minimalizovat dopad na okolní provoz.",
       "body": [
-        "Více než 6200 účastníků",
-        "160 odborných sezení"
+        "Bezproblémové geodetické práce",
+        "Využití moderních technologií"
       ],
-      "proc": "Důležitá akce pro networking a vzdělávání v oboru geoinformatiky.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/15/geo-business-2026-breaks-attendance-records-with-6200-professionals/?utm_source=rss&utm_medium=rss&utm_campaign=geo-business-2026-breaks-attendance-records-with-6200-professionals",
-      "datum": "2026-06-15"
+      "proc": "Zpráva ilustruje inovativní přístupy v geodézii.",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/civiltransportation/leave-no-fingerprints-survey-grade-accuracy-in-an-era-of-zero-disruption/",
+      "datum": "2026-06-29"
     }
   ]
 }
