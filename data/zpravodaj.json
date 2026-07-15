@@ -1,81 +1,78 @@
 {
-  "vydani": "2026-07-14",
-  "uvodnik": "Přinášíme aktuální informace ze světa geodézie a technologií.",
+  "vydani": "2026-07-15",
+  "uvodnik": "Dnešní vydání přináší novinky ze světa geodetických technologií a vzdělávání.",
   "polozky": [
     {
-      "rubrika": "Technologie",
+      "rubrika": "Ze světa",
       "top": true,
-      "nadpis": "Pix4D's Platform Moment: From Photogrammetry Engine to Enterprise Reality",
-      "perex": "Pix4D se vyvíjí od svého vzniku jako spin-off z EPFL a nyní se zaměřuje na integraci různých technologií.",
-      "telo": "Fifteen years into the UAV software revolution, Pix4D's CTO vidí, jak se Gaussian splatting, AI-assisted editing a smartphone jako měřící nástroj spojují do něčeho většího než jakýkoli jednotlivý nástroj. Společnost se vyvinula spolu s průmyslem UAV a nyní se zaměřuje na to, jak tyto technologie integrovat pro lepší výsledky v geodézii. Pix4D se tak stává důležitým hráčem v oblasti, kde se technologie neustále vyvíjejí a zlepšují efektivitu práce geodetů.",
-      "body": [
-        "Pokrok v oblasti UAV softwaru",
-        "Integrace AI do pracovních postupů"
-      ],
-      "proc": "Zpráva ukazuje, jak se technologie v geodézii mění a vyvíjejí.",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/aerialuas/pix4ds-platform-moment-from-photogrammetry-engine-to-enterprise-reality/",
-      "datum": "2026-07-07"
+      "nadpis": "NASA malý satelit může zpřesnit globální polohování",
+      "perex": "Nový satelit NASA, který byl vypuštěn 7. července, má za cíl spojit různé pozorovací systémy a vést k přesnějšímu mapování Země.",
+      "telo": "Satelit GRITSS, velikosti kufru, byl vypuštěn z Vandenberg Space Force Base v Kalifornii a jeho cílem je demonstrovat proveditelnost nové techniky pro spojení různých pozorovacích systémů. Tento CubeSat by mohl znamenat revoluci v oblasti geodetického mapování, čímž by se zlepšila přesnost a dostupnost dat pro geodety a další odborníky.",
+      "body": [],
+      "proc": "Zpráva o významném pokroku v oblasti satelitního polohování a mapování.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/07/14/nasa-small-satellite-could-make-global-positioning-more-precise/?utm_source=rss&utm_medium=rss&utm_campaign=nasa-small-satellite-could-make-global-positioning-more-precise",
+      "datum": "2026-07-14"
     },
     {
       "rubrika": "Přístroje",
       "top": false,
-      "nadpis": "SBG Systems Launches the new Pulse-40 OEM with Tactical-Grade Performance",
-      "perex": "Nový Pulse-40 OEM přináší vylepšené vlastnosti pro měření.",
-      "telo": "Nová generace Pulse-40 OEM zachovává své průmyslové standardy SWaP a zároveň nabízí vylepšený výkon a odolnost vůči vibracím. Tento přístroj je navržen tak, aby splnil náročné požadavky na měření v terénu a je vybaven gyroskopem s rozsahem ±4000°/s a integrovanými magnetometry. Jeho schopnosti v reálném čase pro monitoring vibrací až do 8 kHz z něj činí ideální volbu pro geodety, kteří potřebují přesné a spolehlivé měření.",
-      "body": [
-        "Vylepšená odolnost a výkon",
-        "Real-time monitoring vibrací"
-      ],
-      "proc": "Zpráva zdůrazňuje důležitost nových technologií v geodetických přístrojích.",
+      "nadpis": "SBG Systems uvádí nový Pulse-40 OEM s taktickou přesností",
+      "perex": "Nová generace Pulse-40 OEM nabízí vylepšený výkon a odolnost.",
+      "telo": "Pulse-40 OEM je nejnovější generace miniaturizované takticko-úrovňové jednotky inerciálního měření (IMU), která si zachovává vedoucí charakteristiky SWaP. Nový model poskytuje vylepšený inerciální výkon, zvýšenou odolnost proti vibracím a EMC, a také integrované magnetometry.",
+      "body": [],
+      "proc": "Zpráva o novém geodetickém přístroji s vylepšenými vlastnostmi.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/08/sbg-systems-launches-the-new-pulse-40-oem-with-tactical-grade-performance-enhanced-resilience-and-built-in-vibration-intelligence/",
+      "odkaz": "https://amerisurv.com/2026/07/08/sbg-systems-launches-the-new-pulse-40-oem-with-tactical-grade-performance-enhanced-resilience-and-built-in-vibration-intelligence/?utm_source=rss&utm_medium=rss&utm_campaign=sbg-systems-launches-the-new-pulse-40-oem-with-tactical-grade-performance-enhanced-resilience-and-built-in-vibration-intelligence",
       "datum": "2026-07-08"
     },
     {
-      "rubrika": "Z domova",
+      "rubrika": "Z praxe",
       "top": false,
-      "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
-      "perex": "ČÚZK oznamuje ukončení starší verze služeb pro geodety.",
-      "telo": "Český úřad zeměměřický a katastrální upozorňuje, že na podzim 2026 dojde k ukončení provozu WSGP verze 2.10. Po tomto datu budou k dispozici pouze služby WSGP verze 3.1. Uživatelé jsou vyzváni, aby se na tuto změnu připravili a přizpůsobili své pracovní postupy novým standardům.",
-      "body": [
-        "Přechod na novou verzi služeb",
-        "Důležitost aktualizace pro uživatele"
-      ],
-      "proc": "Zpráva je důležitá pro geodety, kteří využívají služby WSGP.",
-      "zdroj": "ČÚZK",
-      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
-      "datum": "2026-05-29"
+      "nadpis": "Jak Phoenix LiDAR pomáhá budovat trh",
+      "perex": "Zakladatel Phoenix LiDAR Systems popisuje přechod společnosti do nové éry po akvizici.",
+      "telo": "Grayson Omans, zakladatel a CEO Phoenix LiDAR Systems, hovoří o přechodu společnosti po akvizici Revolution Geo Systems. Tento krok je pro něj důležitým milníkem, který umožní firmě zaměřit se na nové výzvy a příležitosti v oblasti LiDAR technologií.",
+      "body": [],
+      "proc": "Zpráva o strategickém posunu ve firmě zaměřené na LiDAR technologie.",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/aerialuas/inventing-the-workflow-how-phoenix-lidar-helped-build-the-market-it-now-serves/",
+      "datum": "2026-07-10"
     },
     {
-      "rubrika": "Akce",
+      "rubrika": "Vzdělávání",
       "top": false,
-      "nadpis": "Commercial UAV Expo Debuts DRONERESPONDERS Program Management Course",
-      "perex": "Nový program školení pro správu dronů na Commercial UAV Expo.",
-      "telo": "Na Commercial UAV Expo byl představen nový dvoudenní kurz pro správu programů DRONERESPONDERS. Tento kurz se zaměřuje na aplikace dronů v oblasti veřejné bezpečnosti, včetně hasičských služeb a operací na místě nehod. Program také zahrnuje lekce o proti-dronových technikách, které byly získány z události FIFA World Cup 2026.",
-      "body": [
-        "Zaměření na veřejnou bezpečnost",
-        "Praktické aplikace dronů"
-      ],
-      "proc": "Zpráva ukazuje na rostoucí význam dronů v oblasti veřejné bezpečnosti.",
+      "nadpis": "Nový program řízení DRONERESPONDERS na Commercial UAV Expo",
+      "perex": "Nový dvoudenní program školení pro manažery byl představen na Commercial UAV Expo.",
+      "telo": "Program DRONERESPONDERS, který se zaměřuje na použití dronů jako prvního respondenta, zahrnuje školení v oblastech jako je hasičská služba a aplikace při nehodách. Tento program je součástí širšího vzdělávacího agendy zaměřeného na zlepšení dovedností v oblasti dronových technologií.",
+      "body": [],
+      "proc": "Zpráva o novém vzdělávacím programu zaměřeném na drony.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/07/09/commercial-uav-expo-debuts-droneresponders-program-management-course-unveils-public-safety-summit-program/?utm_source=rss&utm_medium=rss&utm_campaign=commercial-uav-expo-debuts-droneresponders-program-management-course-unveils-public-safety-summit-program",
       "datum": "2026-07-09"
     },
     {
-      "rubrika": "Z praxe",
+      "rubrika": "Tip",
       "top": false,
-      "nadpis": "Leave No Fingerprints: Survey-Grade Accuracy in an Era of Zero Disruption",
-      "perex": "Nový přístup k geodetickým pracím bez narušení provozu.",
-      "telo": "V Wilmingtonu v Severní Karolíně byla provedena geodetická práce na mostě Cape Fear Memorial, která ukázala, jak lze dosáhnout přesnosti bez jakéhokoli narušení. Využitím barevného LiDARu bylo možné vytvořit 3D model mostu bez potřeby uzavírek nebo přítomnosti pracovníků na místě. Tento přístup ukazuje, jak moderní technologie mohou zefektivnit geodetické práce a minimalizovat dopad na okolní provoz.",
-      "body": [
-        "Bezproblémové geodetické práce",
-        "Využití moderních technologií"
-      ],
-      "proc": "Zpráva ilustruje inovativní přístupy v geodézii.",
+      "nadpis": "Jak Tetra Tech Rooney přehodnocuje zachycování reality",
+      "perex": "Tetra Tech Rooney představuje smíšenou strategii zachycování dat.",
+      "telo": "Design Technology Manager v Tetra Tech Rooney vysvětluje, proč je smíšená strategie zachycování dat, zahrnující terestrické skenery, SLAM, drony a mobilní telefony, efektivnější než použití jediné technologie. Tento přístup umožňuje dosáhnout lepších výsledků a efektivity v projektech.",
+      "body": [],
+      "proc": "Zpráva o inovativním přístupu k zachycování dat.",
       "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/civiltransportation/leave-no-fingerprints-survey-grade-accuracy-in-an-era-of-zero-disruption/",
-      "datum": "2026-06-29"
+      "odkaz": "https://www.xyht.com/bim/the-right-tool-for-the-right-layer-how-tetra-tech-rooney-is-rethinking-reality-capture/",
+      "datum": "2026-07-09"
+    },
+    {
+      "rubrika": "Z domova",
+      "top": false,
+      "nadpis": "Ukončení provozu WSGP verze 2.10",
+      "perex": "ČÚZK upozorňuje na blížící se ukončení starší verze služeb WSGP.",
+      "telo": "Český úřad zeměměřický a katastrální informuje, že na podzim 2026 bude ukončen provoz WSGP verze 2.10. Od tohoto termínu budou k dispozici pouze služby WSGP verze 3.1, což může mít dopad na uživatele, kteří dosud používají starší verzi.",
+      "body": [],
+      "proc": "Důležitá informace pro uživatele geodetických služeb v ČR.",
+      "zdroj": "ČÚZK",
+      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
+      "datum": "2026-05-29"
     }
   ]
 }
