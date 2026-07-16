@@ -1,15 +1,48 @@
 {
-  "vydani": "2026-07-15",
-  "uvodnik": "Dnešní vydání přináší novinky ze světa geodetických technologií a vzdělávání.",
+  "vydani": "2026-07-16",
+  "uvodnik": "Přinášíme přehled aktuálních zpráv ze světa geodézie a technologií.",
   "polozky": [
     {
-      "rubrika": "Ze světa",
+      "rubrika": "Akce",
       "top": true,
+      "nadpis": "Commercial UAV Expo oznamuje druhou keynote: Dvě oblohy, jeden rozhovor",
+      "perex": "Na závěrečný den Commercial UAV Expo 2026 vystoupí společně představitelé FAA a EASA.",
+      "telo": "Na závěrečný den Commercial UAV Expo 2026, který se koná 3. září, se uskuteční keynote s názvem \"Dvě oblohy, jeden rozhovor: Porovnání přístupů FAA a EASA k BVLOS operacím dronů\". Tato událost slibuje otevřenou diskusi o regulacích BVLOS na obou stranách Atlantiku, což je klíčové pro budoucnost komerčního využití dronů. V rámci konference se očekává velký zájem o srovnání přístupů obou regulačních orgánů.",
+      "body": [
+        "Diskuze o regulacích BVLOS",
+        "Očekávaný vysoký zájem účastníků"
+      ],
+      "proc": "Tato keynote je důležitá pro porozumění mezinárodním standardům v oblasti dronů.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/07/15/commercial-uav-expo-announces-second-keynote-two-skies-one-conversation/?utm_source=rss&utm_medium=rss&utm_campaign=commercial-uav-expo-announces-second-keynote-two-skies-one-conversation",
+      "datum": "2026-07-15"
+    },
+    {
+      "rubrika": "Z domova",
+      "top": false,
+      "nadpis": "Termín pro podání projektů geodetického průzkumu: 13. ledna 2027",
+      "perex": "NOAA připravuje implementaci modernizovaného Národního prostorového referenčního systému.",
+      "telo": "NOAA’s National Geodetic Survey (NGS) připravuje implementaci modernizovaného Národního prostorového referenčního systému (NSRS). V rámci této přípravy musí být všechny projekty OPUS a projekty diferenciálního nivelování, které mají za cíl vytvořit nebo aktualizovat geodetickou kontrolu v rámci aktuálního NSRS, podány do NGS do 13. ledna 2027. Po tomto datu NGS již nebude přijímat podání projektů GPS prostřednictvím OPUS Projects 5.",
+      "body": [
+        "Implementace modernizovaného NSRS",
+        "Důležitost termínu pro podání projektů"
+      ],
+      "proc": "Tato změna ovlivní všechny geodety, kteří pracují s NSRS.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/07/15/geodetic-survey-project-submission-deadline-january-13-2027/?utm_source=rss&utm_medium=rss&utm_campaign=geodetic-survey-project-submission-deadline-january-13-2027",
+      "datum": "2026-07-15"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
       "nadpis": "NASA malý satelit může zpřesnit globální polohování",
-      "perex": "Nový satelit NASA, který byl vypuštěn 7. července, má za cíl spojit různé pozorovací systémy a vést k přesnějšímu mapování Země.",
-      "telo": "Satelit GRITSS, velikosti kufru, byl vypuštěn z Vandenberg Space Force Base v Kalifornii a jeho cílem je demonstrovat proveditelnost nové techniky pro spojení různých pozorovacích systémů. Tento CubeSat by mohl znamenat revoluci v oblasti geodetického mapování, čímž by se zlepšila přesnost a dostupnost dat pro geodety a další odborníky.",
-      "body": [],
-      "proc": "Zpráva o významném pokroku v oblasti satelitního polohování a mapování.",
+      "perex": "Nový satelit NASA má za cíl zkombinovat různé pozorovací systémy pro přesnější mapování Země.",
+      "telo": "Satelit NASA velikosti kufru, známý jako Geodetic Reference Instrument Transponder for Small Satellites (GRITSS), byl vypuštěn 7. července z Vandenberg Space Force Base v Kalifornii. Tento novátorský CubeSat má za cíl demonstrovat proveditelnost nové techniky pro spojení různých pozorovacích systémů, což by mělo vést k přesnějšímu mapování Země. GRITSS by mohl mít významný dopad na geodetické aplikace a přesnost polohování.",
+      "body": [
+        "Vypuštění satelitu GRITSS",
+        "Zlepšení přesnosti mapování"
+      ],
+      "proc": "Tento satelit by mohl přinést revoluci v oblasti geodetického mapování.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/07/14/nasa-small-satellite-could-make-global-positioning-more-precise/?utm_source=rss&utm_medium=rss&utm_campaign=nasa-small-satellite-could-make-global-positioning-more-precise",
       "datum": "2026-07-14"
@@ -17,23 +50,29 @@
     {
       "rubrika": "Přístroje",
       "top": false,
-      "nadpis": "SBG Systems uvádí nový Pulse-40 OEM s taktickou přesností",
-      "perex": "Nová generace Pulse-40 OEM nabízí vylepšený výkon a odolnost.",
-      "telo": "Pulse-40 OEM je nejnovější generace miniaturizované takticko-úrovňové jednotky inerciálního měření (IMU), která si zachovává vedoucí charakteristiky SWaP. Nový model poskytuje vylepšený inerciální výkon, zvýšenou odolnost proti vibracím a EMC, a také integrované magnetometry.",
-      "body": [],
-      "proc": "Zpráva o novém geodetickém přístroji s vylepšenými vlastnostmi.",
+      "nadpis": "Eos Positioning Systems představuje nový držák pro range pole Skadi",
+      "perex": "Nový příslušenství pro GNSS přijímače Skadi zvyšuje pohodlí v terénu.",
+      "telo": "Eos Positioning Systems uvedla na trh nový držák pro range pole Skadi, který slouží dvojímu účelu: umožňuje technikům v terénu přinést si Skadi rukojeť a zároveň umožňuje montáž jakéhokoli telefonu nebo tabletu na jejich range pole bez dalšího hardwaru. Tento nový doplněk zvyšuje pohodlí a efektivitu práce geodetů v terénu.",
+      "body": [
+        "Zvýšení pohodlí pro techniky v terénu",
+        "Možnost montáže zařízení bez dalšího hardwaru"
+      ],
+      "proc": "Tento držák usnadní práci geodetům v terénu.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/08/sbg-systems-launches-the-new-pulse-40-oem-with-tactical-grade-performance-enhanced-resilience-and-built-in-vibration-intelligence/?utm_source=rss&utm_medium=rss&utm_campaign=sbg-systems-launches-the-new-pulse-40-oem-with-tactical-grade-performance-enhanced-resilience-and-built-in-vibration-intelligence",
-      "datum": "2026-07-08"
+      "odkaz": "https://amerisurv.com/2026/07/07/eos-positioning-systems-introduces-new-skadi-handle-range-pole-bracket/?utm_source=rss&utm_medium=rss&utm_campaign=eos-positioning-systems-introduces-new-skadi-handle-range-pole-bracket",
+      "datum": "2026-07-07"
     },
     {
       "rubrika": "Z praxe",
       "top": false,
-      "nadpis": "Jak Phoenix LiDAR pomáhá budovat trh",
-      "perex": "Zakladatel Phoenix LiDAR Systems popisuje přechod společnosti do nové éry po akvizici.",
-      "telo": "Grayson Omans, zakladatel a CEO Phoenix LiDAR Systems, hovoří o přechodu společnosti po akvizici Revolution Geo Systems. Tento krok je pro něj důležitým milníkem, který umožní firmě zaměřit se na nové výzvy a příležitosti v oblasti LiDAR technologií.",
-      "body": [],
-      "proc": "Zpráva o strategickém posunu ve firmě zaměřené na LiDAR technologie.",
+      "nadpis": "Jak Phoenix LiDAR pomáhá budovat trh, který nyní obsluhuje",
+      "perex": "Zakladatel Phoenix LiDAR Systems popisuje přechod společnosti po akvizici.",
+      "telo": "Zakladatel a generální ředitel Phoenix LiDAR Systems, Grayson Omans, popisuje přechod společnosti do další fáze po akvizici Revolution Geo Systems. Jeho slova ukazují, že se jedná o osobu, která strávila roky budováním společnosti a nyní je připravena předat části, které měl nejméně rád. Tento přechod naznačuje změny v přístupu a strategii společnosti v oblasti LiDAR technologií.",
+      "body": [
+        "Přechod po akvizici",
+        "Změny v přístupu a strategii"
+      ],
+      "proc": "Tento přechod může ovlivnit trh s LiDAR technologiemi.",
       "zdroj": "xyHt",
       "odkaz": "https://www.xyht.com/aerialuas/inventing-the-workflow-how-phoenix-lidar-helped-build-the-market-it-now-serves/",
       "datum": "2026-07-10"
@@ -41,38 +80,17 @@
     {
       "rubrika": "Vzdělávání",
       "top": false,
-      "nadpis": "Nový program řízení DRONERESPONDERS na Commercial UAV Expo",
-      "perex": "Nový dvoudenní program školení pro manažery byl představen na Commercial UAV Expo.",
-      "telo": "Program DRONERESPONDERS, který se zaměřuje na použití dronů jako prvního respondenta, zahrnuje školení v oblastech jako je hasičská služba a aplikace při nehodách. Tento program je součástí širšího vzdělávacího agendy zaměřeného na zlepšení dovedností v oblasti dronových technologií.",
-      "body": [],
-      "proc": "Zpráva o novém vzdělávacím programu zaměřeném na drony.",
+      "nadpis": "Zlepšení přesnosti mapování prostřednictvím letecké triangulace",
+      "perex": "Webinář představí nové schopnosti letecké triangulace v Correlator3D.",
+      "telo": "Letecká triangulace je kritickým krokem při výrobě přesných mapovacích výstupů. S verzí 11.1 Correlator3D byla tato pracovní postup výrazně vylepšena, což přináší robustnější výsledky na náročných datech. Webinář představí nejnovější schopnosti letecké triangulace, včetně zlepšené extrakce bodů, nových validačních nástrojů a asistovaného zpracování RTK/PPK.",
+      "body": [
+        "Zlepšení pracovního postupu letecké triangulace",
+        "Nové nástroje pro validaci"
+      ],
+      "proc": "Webinář je důležitý pro všechny, kteří se zabývají leteckým mapováním.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/09/commercial-uav-expo-debuts-droneresponders-program-management-course-unveils-public-safety-summit-program/?utm_source=rss&utm_medium=rss&utm_campaign=commercial-uav-expo-debuts-droneresponders-program-management-course-unveils-public-safety-summit-program",
-      "datum": "2026-07-09"
-    },
-    {
-      "rubrika": "Tip",
-      "top": false,
-      "nadpis": "Jak Tetra Tech Rooney přehodnocuje zachycování reality",
-      "perex": "Tetra Tech Rooney představuje smíšenou strategii zachycování dat.",
-      "telo": "Design Technology Manager v Tetra Tech Rooney vysvětluje, proč je smíšená strategie zachycování dat, zahrnující terestrické skenery, SLAM, drony a mobilní telefony, efektivnější než použití jediné technologie. Tento přístup umožňuje dosáhnout lepších výsledků a efektivity v projektech.",
-      "body": [],
-      "proc": "Zpráva o inovativním přístupu k zachycování dat.",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/bim/the-right-tool-for-the-right-layer-how-tetra-tech-rooney-is-rethinking-reality-capture/",
-      "datum": "2026-07-09"
-    },
-    {
-      "rubrika": "Z domova",
-      "top": false,
-      "nadpis": "Ukončení provozu WSGP verze 2.10",
-      "perex": "ČÚZK upozorňuje na blížící se ukončení starší verze služeb WSGP.",
-      "telo": "Český úřad zeměměřický a katastrální informuje, že na podzim 2026 bude ukončen provoz WSGP verze 2.10. Od tohoto termínu budou k dispozici pouze služby WSGP verze 3.1, což může mít dopad na uživatele, kteří dosud používají starší verzi.",
-      "body": [],
-      "proc": "Důležitá informace pro uživatele geodetických služeb v ČR.",
-      "zdroj": "ČÚZK",
-      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
-      "datum": "2026-05-29"
+      "odkaz": "https://amerisurv.com/2026/06/29/improving-mapping-accuracy-through-aerial-triangulation/?utm_source=rss&utm_medium=rss&utm_campaign=improving-mapping-accuracy-through-aerial-triangulation",
+      "datum": "2026-06-29"
     }
   ]
 }
