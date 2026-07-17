@@ -1,95 +1,80 @@
 {
-  "vydani": "2026-07-16",
-  "uvodnik": "Přinášíme přehled aktuálních zpráv ze světa geodézie a technologií.",
+  "vydani": "2026-07-17",
+  "uvodnik": "Přinášíme aktuální zprávy ze světa geodetů a technologií.",
   "polozky": [
     {
       "rubrika": "Akce",
       "top": true,
-      "nadpis": "Commercial UAV Expo oznamuje druhou keynote: Dvě oblohy, jeden rozhovor",
-      "perex": "Na závěrečný den Commercial UAV Expo 2026 vystoupí společně představitelé FAA a EASA.",
-      "telo": "Na závěrečný den Commercial UAV Expo 2026, který se koná 3. září, se uskuteční keynote s názvem \"Dvě oblohy, jeden rozhovor: Porovnání přístupů FAA a EASA k BVLOS operacím dronů\". Tato událost slibuje otevřenou diskusi o regulacích BVLOS na obou stranách Atlantiku, což je klíčové pro budoucnost komerčního využití dronů. V rámci konference se očekává velký zájem o srovnání přístupů obou regulačních orgánů.",
+      "nadpis": "Commercial UAV Expo Announces Second Keynote: Two Skies, One Conversation",
+      "perex": "Na závěr Commercial UAV Expo 2026 se uskuteční srovnání regulací BVLOS mezi FAA a EASA.",
+      "telo": "Na poslední den Commercial UAV Expo 2026, který se koná v Las Vegas, je naplánováno důležité vystoupení, kde se setkají představitelé FAA a EASA. Diskuze se zaměří na porovnání přístupů obou organizací k provozování dronů za viditelností (BVLOS). Tento dialog slibuje cenné informace o regulacích, které ovlivňují budoucnost leteckých operací s drony.",
       "body": [
-        "Diskuze o regulacích BVLOS",
-        "Očekávaný vysoký zájem účastníků"
+        "Diskuze mezi FAA a EASA",
+        "Důležitost regulace pro dronové operace"
       ],
-      "proc": "Tato keynote je důležitá pro porozumění mezinárodním standardům v oblasti dronů.",
+      "proc": "Zpráva se zaměřuje na klíčové regulace v oblasti dronů, což je důležité pro geodety a odborníky v oblasti UAV.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/15/commercial-uav-expo-announces-second-keynote-two-skies-one-conversation/?utm_source=rss&utm_medium=rss&utm_campaign=commercial-uav-expo-announces-second-keynote-two-skies-one-conversation",
+      "odkaz": "https://amerisurv.com/2026/07/15/commercial-uav-expo-announces-second-keynote-two-skies-one-conversation/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=commercial-uav-expo-announces-second-keynote-two-skies-one-conversation",
       "datum": "2026-07-15"
     },
     {
       "rubrika": "Z domova",
       "top": false,
-      "nadpis": "Termín pro podání projektů geodetického průzkumu: 13. ledna 2027",
-      "perex": "NOAA připravuje implementaci modernizovaného Národního prostorového referenčního systému.",
-      "telo": "NOAA’s National Geodetic Survey (NGS) připravuje implementaci modernizovaného Národního prostorového referenčního systému (NSRS). V rámci této přípravy musí být všechny projekty OPUS a projekty diferenciálního nivelování, které mají za cíl vytvořit nebo aktualizovat geodetickou kontrolu v rámci aktuálního NSRS, podány do NGS do 13. ledna 2027. Po tomto datu NGS již nebude přijímat podání projektů GPS prostřednictvím OPUS Projects 5.",
+      "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
+      "perex": "ČÚZK upozorňuje na blížící se ukončení provozu starší verze WSGP.",
+      "telo": "ČÚZK informuje uživatele webových služeb pro vyhotovitele a ověřovatele geometrických plánů, že na podzim 2026 dojde k ukončení provozu WSGP verze 2.10. Po tomto datu budou k dispozici pouze služby verze 3.1. Uživatelé by se měli připravit na tuto změnu a přizpůsobit své procesy novým podmínkám.",
       "body": [
-        "Implementace modernizovaného NSRS",
-        "Důležitost termínu pro podání projektů"
+        "Ukončení starší verze WSGP",
+        "Přechod na verzi 3.1"
       ],
-      "proc": "Tato změna ovlivní všechny geodety, kteří pracují s NSRS.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/15/geodetic-survey-project-submission-deadline-january-13-2027/?utm_source=rss&utm_medium=rss&utm_campaign=geodetic-survey-project-submission-deadline-january-13-2027",
-      "datum": "2026-07-15"
+      "proc": "Důležitá informace pro geodety a uživatele služeb WSGP v České republice.",
+      "zdroj": "ČÚZK",
+      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
+      "datum": "2026-05-29"
     },
     {
       "rubrika": "Technologie",
       "top": false,
-      "nadpis": "NASA malý satelit může zpřesnit globální polohování",
-      "perex": "Nový satelit NASA má za cíl zkombinovat různé pozorovací systémy pro přesnější mapování Země.",
-      "telo": "Satelit NASA velikosti kufru, známý jako Geodetic Reference Instrument Transponder for Small Satellites (GRITSS), byl vypuštěn 7. července z Vandenberg Space Force Base v Kalifornii. Tento novátorský CubeSat má za cíl demonstrovat proveditelnost nové techniky pro spojení různých pozorovacích systémů, což by mělo vést k přesnějšímu mapování Země. GRITSS by mohl mít významný dopad na geodetické aplikace a přesnost polohování.",
+      "nadpis": "NASA Small Satellite Could Make Global Positioning More Precise",
+      "perex": "NASA uvedla na trh nový satelit, který má zlepšit přesnost globálního polohování.",
+      "telo": "Nový satelit NASA, známý jako GRITSS, byl uveden do provozu s cílem spojit různé systémy pozorování a dosáhnout přesnějšího mapování Země. Tento CubeSat, který byl vypuštěn 7. července, se zaměří na demonstraci nových technik pro spojení různých datových zdrojů, což by mohlo mít významný dopad na geodetické aplikace a přesnost měření.",
       "body": [
-        "Vypuštění satelitu GRITSS",
-        "Zlepšení přesnosti mapování"
+        "Vylepšení přesnosti mapování",
+        "Nové techniky pro spojení dat"
       ],
-      "proc": "Tento satelit by mohl přinést revoluci v oblasti geodetického mapování.",
+      "proc": "Zpráva je relevantní pro geodety, kteří se zabývají přesností měření a polohováním.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/14/nasa-small-satellite-could-make-global-positioning-more-precise/?utm_source=rss&utm_medium=rss&utm_campaign=nasa-small-satellite-could-make-global-positioning-more-precise",
+      "odkaz": "https://amerisurv.com/2026/07/14/nasa-small-satellite-could-make-global-positioning-more-precise/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=nasa-small-satellite-could-make-global-positioning-more-precise",
       "datum": "2026-07-14"
     },
     {
       "rubrika": "Přístroje",
       "top": false,
-      "nadpis": "Eos Positioning Systems představuje nový držák pro range pole Skadi",
-      "perex": "Nový příslušenství pro GNSS přijímače Skadi zvyšuje pohodlí v terénu.",
-      "telo": "Eos Positioning Systems uvedla na trh nový držák pro range pole Skadi, který slouží dvojímu účelu: umožňuje technikům v terénu přinést si Skadi rukojeť a zároveň umožňuje montáž jakéhokoli telefonu nebo tabletu na jejich range pole bez dalšího hardwaru. Tento nový doplněk zvyšuje pohodlí a efektivitu práce geodetů v terénu.",
+      "nadpis": "SBG Systems Launches the new Pulse-40 OEM with Tactical-Grade Performance",
+      "perex": "SBG Systems představila novou generaci svého IMU Pulse-40 OEM.",
+      "telo": "Nový Pulse-40 OEM od SBG Systems přináší vylepšené inertní výkony a odolnost vůči vibracím. Tento kompaktní zařízení, které si zachovává své špičkové charakteristiky SWaP, je navrženo pro náročné aplikace v oblasti geodézie a měření. S integrovanými magnetometry a real-time monitoringem vibrací do 8 kHz, Pulse-40 OEM je ideální pro precizní geodetické aplikace.",
       "body": [
-        "Zvýšení pohodlí pro techniky v terénu",
-        "Možnost montáže zařízení bez dalšího hardwaru"
+        "Vylepšená inertní výkonnost",
+        "Real-time monitoring vibrací"
       ],
-      "proc": "Tento držák usnadní práci geodetům v terénu.",
+      "proc": "Zpráva informuje o novém zařízení, které může zlepšit geodetické měření.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/07/eos-positioning-systems-introduces-new-skadi-handle-range-pole-bracket/?utm_source=rss&utm_medium=rss&utm_campaign=eos-positioning-systems-introduces-new-skadi-handle-range-pole-bracket",
-      "datum": "2026-07-07"
+      "odkaz": "https://amerisurv.com/2026/07/08/sbg-systems-launches-the-new-pulse-40-oem-with-tactical-grade-performance-enhanced-resilience-and-built-in-vibration-intelligence/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=sbg-systems-launches-the-new-pulse-40-oem-with-tactical-grade-performance-enhanced-resilience-and-built-in-vibration-intelligence",
+      "datum": "2026-07-08"
     },
     {
       "rubrika": "Z praxe",
       "top": false,
-      "nadpis": "Jak Phoenix LiDAR pomáhá budovat trh, který nyní obsluhuje",
-      "perex": "Zakladatel Phoenix LiDAR Systems popisuje přechod společnosti po akvizici.",
-      "telo": "Zakladatel a generální ředitel Phoenix LiDAR Systems, Grayson Omans, popisuje přechod společnosti do další fáze po akvizici Revolution Geo Systems. Jeho slova ukazují, že se jedná o osobu, která strávila roky budováním společnosti a nyní je připravena předat části, které měl nejméně rád. Tento přechod naznačuje změny v přístupu a strategii společnosti v oblasti LiDAR technologií.",
+      "nadpis": "Improving Mapping Accuracy Through Aerial Triangulation",
+      "perex": "Webinář se zaměří na zlepšení přesnosti mapování pomocí letecké triangulace.",
+      "telo": "Letecká triangulace je klíčovým krokem pro výrobu přesných mapovacích výstupů. Nová verze Correlator3D přináší vylepšené možnosti pro zpracování složitých datových sad a zjednodušení nastavení projektů s více kamerami. Tento webinář představí nejnovější schopnosti letecké triangulace a nové nástroje pro validaci, které mohou pomoci zlepšit kvalitu mapování.",
       "body": [
-        "Přechod po akvizici",
-        "Změny v přístupu a strategii"
-      ],
-      "proc": "Tento přechod může ovlivnit trh s LiDAR technologiemi.",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/aerialuas/inventing-the-workflow-how-phoenix-lidar-helped-build-the-market-it-now-serves/",
-      "datum": "2026-07-10"
-    },
-    {
-      "rubrika": "Vzdělávání",
-      "top": false,
-      "nadpis": "Zlepšení přesnosti mapování prostřednictvím letecké triangulace",
-      "perex": "Webinář představí nové schopnosti letecké triangulace v Correlator3D.",
-      "telo": "Letecká triangulace je kritickým krokem při výrobě přesných mapovacích výstupů. S verzí 11.1 Correlator3D byla tato pracovní postup výrazně vylepšena, což přináší robustnější výsledky na náročných datech. Webinář představí nejnovější schopnosti letecké triangulace, včetně zlepšené extrakce bodů, nových validačních nástrojů a asistovaného zpracování RTK/PPK.",
-      "body": [
-        "Zlepšení pracovního postupu letecké triangulace",
+        "Zlepšení přesnosti mapování",
         "Nové nástroje pro validaci"
       ],
-      "proc": "Webinář je důležitý pro všechny, kteří se zabývají leteckým mapováním.",
+      "proc": "Zpráva je důležitá pro geodety zabývající se mapováním a zpracováním dat.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/29/improving-mapping-accuracy-through-aerial-triangulation/?utm_source=rss&utm_medium=rss&utm_campaign=improving-mapping-accuracy-through-aerial-triangulation",
+      "odkaz": "https://amerisurv.com/2026/06/29/improving-mapping-accuracy-through-aerial-triangulation/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=improving-mapping-accuracy-through-aerial-triangulation",
       "datum": "2026-06-29"
     }
   ]
