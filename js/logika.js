@@ -87,6 +87,25 @@ if ('serviceWorker' in navigator) {
         function _idbGet(fk) { return _idbOp('readonly', s => s.get(fk)); }
         function _idbSet(fk, v) { return _idbOp('readwrite', s => s.put(v, fk)); }
         function _idbDel(fk) { return _idbOp('readwrite', s => s.delete(fk)); }
+        // Smazani vsech klicu s danym prefixem (napr. "<zakazka>_doc_") — pro uklid pri mazani zakazky.
+        function _idbDelByPrefix(prefix) {
+            return _idbOp('readwrite', s => {
+                try {
+                    const kr = s.getAllKeys();
+                    kr.onsuccess = () => { (kr.result || []).forEach(k => { if (typeof k === 'string' && k.indexOf(prefix) === 0) { try { s.delete(k); } catch (e) {} } }); };
+                } catch (e) {
+                    try { const cur = s.openCursor(); cur.onsuccess = (ev) => { const c = ev.target.result; if (c) { if (typeof c.key === 'string' && c.key.indexOf(prefix) === 0) c.delete(); c.continue(); } }; } catch (e2) {}
+                }
+                return null;
+            });
+        }
+        // Jednorazove varovani, kdyz zapis bodu do IndexedDB tise selze (kvota / iOS eviction / poskozena tx).
+        // Bez tohohle vypadaly body ulozene (drzi je _idbMem cache), ale po reloadu byly PRYC.
+        let _idbWriteWarned = false;
+        function _warnStorageWriteFail() {
+            if (_idbWriteWarned) return; _idbWriteWarned = true;
+            try { alert('POZOR: bod se nepodařilo trvale uložit (databáze telefonu odmítla zápis — nejspíš plné úložiště). Data se mohou po zavření aplikace ztratit.\n\nUvolněte místo a udělejte zálohu (Nastavení → Údržba → Stáhnout zálohu).'); } catch (e) {}
+        }
         // dump/restore celeho kv storu — pro zalohu vsech dat (zaloha.js)
         function idbDumpAll() {
             return new Promise((resolve) => {
@@ -111,6 +130,9 @@ if ('serviceWorker' in navigator) {
                     try {
                         const tx = db.transaction('kv', 'readwrite');
                         const store = tx.objectStore('kv');
+                        // OPRAVA: napred vycistit cely store, jinak stare klice (z puvodniho stavu)
+                        // prezijou a smichaji se s obnovenymi daty. Clear+put v JEDNE tx = atomicke.
+                        try { store.clear(); } catch (e) {}
                         Object.keys(obj).forEach(k => store.put(obj[k], k));
                         tx.oncomplete = () => resolve();
                         tx.onerror = () => resolve();
@@ -140,7 +162,9 @@ if ('serviceWorker' in navigator) {
             const fk = getStoreKey(key);
             if (IDB_KEYS.indexOf(key) >= 0) {
                 _idbMem[fk] = val;
-                if (_idbOk) { _idbSet(fk, val); try { localStorage.removeItem(fk); } catch (e) {} return true; }
+                // Drive fire-and-forget: selhani zapisu (kvota) se NIKDE neprojevilo -> tichá ztráta bodů.
+                // Ted zapis pohlídáme a při selhání jednorazove varujeme uzivatele.
+                if (_idbOk) { _idbSet(fk, val).then(res => { if (res == null) _warnStorageWriteFail(); }); try { localStorage.removeItem(fk); } catch (e) {} return true; }
             }
             try { localStorage.setItem(fk, val); return true; }
             catch (e) {
@@ -186,7 +210,22 @@ if ('serviceWorker' in navigator) {
             if (window.agPrompt) window.agPrompt({ title: 'Nová zakázka', message: 'Zadej název nové zakázky:', placeholder: 'např. Vytyčení RD Lhota', okText: 'Založit' }).then(create);
             else create(prompt("Název nové zakázky:"));
         }
-        function deleteProject() { if(projects.length <= 1) return alert("Nelze smazat poslední zakázku."); if(!confirm("Opravdu smazat aktuální zakázku a všechny její uložené body?")) return; IDB_KEYS.forEach(k => { _idbDel(activeProjectId + "_" + k); try { localStorage.removeItem(activeProjectId + "_" + k); } catch(e){} }); projects = projects.filter(p => p.id !== activeProjectId); localStorage.setItem('arProjectsList', JSON.stringify(projects)); activeProjectId = projects[0].id; localStorage.setItem('arActiveProjectId', activeProjectId); renderProjectSelect(); hydrateActiveProject().then(loadProjectSettings); }
+        function deleteProject() {
+            if(projects.length <= 1) return alert("Nelze smazat poslední zakázku.");
+            if(!confirm("Opravdu smazat aktuální zakázku a všechny její uložené body?")) return;
+            const pid = activeProjectId;
+            // IndexedDB: velka data bodu + fotodokumentace (pid_doc_*) + DXF navrh (pid_agProjectDesign).
+            // DRIVE se mazaly jen body -> fotky a navrhy zustavaly navzdy jako sirotci a zabiraly kvotu.
+            IDB_KEYS.forEach(k => { _idbDel(pid + "_" + k); });
+            _idbDel(pid + "_agProjectDesign");
+            _idbDelByPrefix(pid + "_doc_");
+            // localStorage: vsechna per-zakazkova nastaveni teto zakazky (jinak sirotci).
+            ['arFilters12','arRadiusMap','arRadiusAR','arVisSettings12','arLines12','arHeadingOffset','arOfflinePoints12','arCustomPoints12','agProjectDesign'].forEach(k => { try { localStorage.removeItem(pid + "_" + k); } catch(e){} });
+            projects = projects.filter(p => p.id !== pid);
+            localStorage.setItem('arProjectsList', JSON.stringify(projects));
+            activeProjectId = projects[0].id; localStorage.setItem('arActiveProjectId', activeProjectId);
+            renderProjectSelect(); hydrateActiveProject().then(loadProjectSettings);
+        }
 
         function loadProjectSettings() {
             let f = getStoredData('arFilters12'); try { filters = f ? JSON.parse(f) : null; } catch (e) { filters = null; } if (!filters || typeof filters !== 'object') filters = { tb: true, zhb: true, pbpp: true, nivel: true, custom: true };
@@ -433,7 +472,7 @@ if ('serviceWorker' in navigator) {
         function saveCustomPoint() {
             const name = document.getElementById('custom-name').value || "Bod"; let inputY = parseFloat(document.getElementById('custom-y').value); let inputX = parseFloat(document.getElementById('custom-x').value); if (isNaN(inputY) || isNaN(inputX)) return alert("Vyplňte souřadnice!"); let krovakY = inputY > 0 ? -inputY : inputY; let krovakX = inputX > 0 ? -inputX : inputX; let wgs84 = proj4("EPSG:5514", "EPSG:4326", [krovakY, krovakX]); let lng = wgs84[0]; let lat = wgs84[1]; var _zin = parseFloat((document.getElementById('custom-z') || {}).value); var vyska = isFinite(_zin) ? Math.round(_zin * 100) / 100 : null;
             let savedId = editingCustomPointId;
-            if (editingCustomPointId) { const idx = persistentCustomPoints.findIndex(p => p.id === editingCustomPointId); if(idx !== -1) { persistentCustomPoints[idx].name = name; persistentCustomPoints[idx].lat = lat; persistentCustomPoints[idx].lng = lng; persistentCustomPoints[idx].vyska = vyska; } const arIdx = arPoints.findIndex(p => p.id === editingCustomPointId); if (arIdx !== -1) { arPoints[arIdx].name = name; arPoints[arIdx].lat = lat; arPoints[arIdx].lng = lng; arPoints[arIdx].vyska = vyska; if(arPoints[arIdx].element) { arPoints[arIdx].element.remove(); arPoints[arIdx].element = null; } } } else { const newPoint = { id: 'cp_' + Date.now(), name: name, lat: lat, lng: lng, cat: "CUSTOM", type: "custom" }; if (vyska != null) newPoint.vyska = vyska; if (pendingPointAccuracy != null) newPoint.acc = Math.round(pendingPointAccuracy * 100) / 100; persistentCustomPoints.push(newPoint); arPoints.push({...newPoint, hidden: false}); savedId = newPoint.id; } pendingPointAccuracy = null; setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
+            if (editingCustomPointId) { const idx = persistentCustomPoints.findIndex(p => p.id === editingCustomPointId); if(idx !== -1) { persistentCustomPoints[idx].name = name; persistentCustomPoints[idx].lat = lat; persistentCustomPoints[idx].lng = lng; persistentCustomPoints[idx].vyska = vyska; } const arIdx = arPoints.findIndex(p => p.id === editingCustomPointId); if (arIdx !== -1) { arPoints[arIdx].name = name; arPoints[arIdx].lat = lat; arPoints[arIdx].lng = lng; arPoints[arIdx].vyska = vyska; if(arPoints[arIdx].element) { arPoints[arIdx].element.remove(); arPoints[arIdx].element = null; } } } else { const newPoint = { id: 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6), name: name, lat: lat, lng: lng, cat: "CUSTOM", type: "custom" }; if (vyska != null) newPoint.vyska = vyska; if (pendingPointAccuracy != null) newPoint.acc = Math.round(pendingPointAccuracy * 100) / 100; persistentCustomPoints.push(newPoint); arPoints.push({...newPoint, hidden: false}); savedId = newPoint.id; } pendingPointAccuracy = null; setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
             saveNewPointDoc(savedId);
             drawAllMarkersOnMap(); closeCustomModal(); initARMarkers(); if (userLat && userLng) { updateInfoPanel(); } fixAppLayout();
             // BEZ GPS FIXU (offline/uvnitř): mapa by mohla mířit úplně jinam a v AR se bez
@@ -625,7 +664,36 @@ if ('serviceWorker' in navigator) {
 
         // TRVALÉ ÚLOŽIŠTĚ: na iOS hrozí smazání dat (localStorage i IndexedDB) po ~7 dnech
         // nečinnosti. Požádáme o trvalé úložiště — pomáhá na Androidu/desktopu, na iOS neuškodí.
-        try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {}); } catch (e) {}
+        // Vysledek si pamatujeme (window._agPersisted) -> ukazatel uloziste v Nastavenich pak muze
+        // uzivatele varovat, kdyz je trvale uloziste ODMITNUTE (typicky iOS) a data hrozi smazanim.
+        window._agPersisted = null;
+        try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().then(function (g) { window._agPersisted = !!g; }).catch(function () {}); } catch (e) {}
+
+        // Ukazatel obsazeni uloziste + stavu trvaleho uloziste + posledni zalohy (Nastaveni -> Udrzba).
+        // Dava uzivateli VIDITELNOST driv, nez narazi do kvoty a body se prestanou ukladat.
+        window.agRenderStorageUsage = async function () {
+            const el = document.getElementById('storage-usage'); if (!el) return;
+            let parts = [];
+            try {
+                if (navigator.storage && navigator.storage.estimate) {
+                    const est = await navigator.storage.estimate();
+                    const used = est.usage || 0, quota = est.quota || 0;
+                    const mb = n => (n / 1048576).toFixed(1);
+                    const pct = quota ? Math.round(used / quota * 100) : 0;
+                    let line = `Využito <b>${mb(used)} MB</b>` + (quota ? ` z ~${mb(quota)} MB (${pct} %)` : '');
+                    if (quota && pct >= 85) line += ' <span style="color:var(--danger);">⚠ skoro plné</span>';
+                    parts.push(line);
+                } else parts.push('Prohlížeč nehlásí obsazení úložiště.');
+            } catch (e) { parts.push('Obsazení úložiště se nepodařilo zjistit.'); }
+            if (window._agPersisted === true) parts.push('trvalé úložiště: <b>ano</b>');
+            else if (window._agPersisted === false) parts.push('trvalé: <b>ne</b> — na iOS hrozí smazání dat po ~7 dnech nečinnosti, dělejte zálohy');
+            try {
+                const last = parseInt(localStorage.getItem('arLastBackupAt') || '0', 10);
+                if (last) { const d = Math.round((Date.now() - last) / 86400000); parts.push('poslední záloha: <b>' + (d <= 0 ? 'dnes' : d + ' dní zpět') + '</b>'); }
+                else parts.push('<span style="color:var(--warning);">záloha zatím nebyla stažena</span>');
+            } catch (e) {}
+            el.innerHTML = parts.join(' · ');
+        };
 
         // Stav pro preskok prepoctu vzdalenosti/azimutu, kdyz uzivatel stoji (setri CPU pri stovkach bodu).
         let _lastCalcLat = null, _lastCalcLng = null, _lastCalcCount = 0;

@@ -395,7 +395,7 @@
                 <div class="tab-btn" onclick="switchTab('tab-data', this)"><svg class="icon"><use href="#i-folder"/></svg><span class="tb-tx"><b>Data</b><small>Zakázky, export</small></span></div>
                 <!-- Kompas z dlaždic ODEBRÁN na přání (duplikoval panel Azimut na hlavní obrazovce;
                      kalibrace zůstává klepnutím na Azimut a tlačítkem v AR & přesnost) -->
-                <div class="tab-btn" id="tabbtn-udrzba" onclick="switchTab('tab-udrzba', this)"><svg class="icon"><use href="#i-wrench"/></svg><span class="tb-tx"><b>Údržba</b><small>Záloha, skryté body</small></span></div>
+                <div class="tab-btn" id="tabbtn-udrzba" onclick="switchTab('tab-udrzba', this); window.agRenderStorageUsage && window.agRenderStorageUsage()"><svg class="icon"><use href="#i-wrench"/></svg><span class="tb-tx"><b>Údržba</b><small>Záloha, skryté body</small></span></div>
             </div>
             <div class="modal-body">
                 <div id="tab-vzhled" class="settings-tab active">
@@ -563,6 +563,7 @@
                     <button class="btn btn-secondary" style="margin-top: 8px;" onclick="exportAllData()"><svg class="icon"><use href="#i-download"/></svg> Stáhnout zálohu (vše)</button>
                     <button class="btn btn-blue" style="margin-top: 10px;" onclick="document.getElementById('restore-file').click()"><svg class="icon"><use href="#i-upload"/></svg> Obnovit ze zálohy</button>
                     <input type="file" id="restore-file" style="display:none" accept=".json,application/json" onchange="importAllData(event)">
+                    <div id="storage-usage" style="margin-top:10px; font-size:12px; color:var(--text-muted); line-height:1.5;"></div>
                     <hr style="border-color: var(--glass-border); width: 100%; margin: 16px 0;">
                     <label>Úklid</label>
                     <button class="btn btn-danger" style="margin-top: 8px;" onclick="clearAllPoints()"><svg class="icon"><use href="#i-trash"/></svg> Vymazat stáhnuté okolí z této zakázky</button>
