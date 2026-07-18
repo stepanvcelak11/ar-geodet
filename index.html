@@ -664,6 +664,8 @@
     <script defer src="js/idle-timers.js"></script>
     <script defer src="js/logika.js"></script>
     <script defer src="js/grafika.js"></script>
+    <!-- ŽURNÁL + PROVENIENCE BODU #5 (odpojitelné: smaž tento řádek + js/journal.js) — append-only historie změn bodů -->
+    <script defer src="js/journal.js"></script>
     <script defer src="js/dmt-volume.js"></script>
     <script defer src="js/check-distance.js"></script>
     <script defer src="js/lib/satellite-5.0.0.min.js"></script>
@@ -699,6 +701,8 @@
     <script defer src="js/sky-obstruction.js"></script>
     <script defer src="js/cadastre-area.js"></script>
     <script defer src="js/ar-fusion.js"></script>
+    <!-- VIZUÁLNÍ STABILIZACE AR / SLAM-lite #2 (odpojitelné: smaž tento řádek + js/ar-visual-track.js) — optický tok + WebXR kotvení, drží AR mezi GPS/kompas fixy; default vypnuto -->
+    <script defer src="js/ar-visual-track.js"></script>
     <script defer src="js/theme-dark.js"></script>
     <script defer src="js/dmr-terrain.js"></script>
     <!-- PARCELA (odpojitelné: smaž tento řádek + js/parcela.js) — geometrie & dělení parcel; styly injektované z JS -->
@@ -723,6 +727,14 @@
     <script defer src="js/ar-intersection.js"></script>
     <script defer src="js/rajon.js"></script>
     <script defer src="js/free-station.js"></script>
+    <!-- LOKALIZACE (HELMERT) #3 (odpojitelné: smaž tento řádek + js/localization-helmert.js) — srovnání systematiky GPS přes staveniště 2D podobnostní transformací -->
+    <script defer src="js/localization-helmert.js"></script>
+    <!-- FOTO-TOTÁLKA #8 (odpojitelné: smaž tento řádek + js/photo-shot.js) — bezkontaktní zaměření bodu klepnutím do obrazu (paprsek × DMR) -->
+    <script defer src="js/photo-shot.js"></script>
+    <!-- PODZEMNÍ SÍTĚ #7 (odpojitelné: smaž tento řádek + js/utility-networks.js) — trasy sítí pod terénem v AR z DXF/GeoJSON -->
+    <script defer src="js/utility-networks.js"></script>
+    <!-- PŘENOS ZAKÁZKY .argeo #6 (odpojitelné: smaž tento řádek + js/job-transfer.js) — export/import celé zakázky bez serveru -->
+    <script defer src="js/job-transfer.js"></script>
     <!-- OPTICKÝ DÁLKOMĚR (odpojitelné: smaž tento řádek + js/rangefinder.js) — odhad vzdálenosti z náklonu -->
     <script defer src="js/rangefinder.js"></script>
     <!-- VÝŠKA OBJEKTU (odpojitelné: smaž tento řádek + js/vyska-objektu.js) — trigonometricky pata+vrchol -->

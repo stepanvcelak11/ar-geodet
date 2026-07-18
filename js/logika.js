@@ -365,13 +365,26 @@ if ('serviceWorker' in navigator) {
             let added = 0;
             arr.forEach(p => {
                 if (typeof p.lat !== 'number' || typeof p.lng !== 'number' || isNaN(p.lat) || isNaN(p.lng)) return;
+                // #3 Helmertova lokalizace: srovnej systematiku GPS JEN u nově měřených GPS bodů
+                // (origin 'gps-avg'). Importované přesné S-JTSK, resekční a foto body se NEtransformují.
+                try {
+                    var _po = p.origin || (p.prov && p.prov.origin);
+                    if (window.AGLocalize && window.AGLocalize.active && _po === 'gps-avg' && !p._localized) {
+                        var _c = window.AGLocalize.apply(p.lat, p.lng);
+                        if (_c && isFinite(_c[0]) && isFinite(_c[1])) { p.lat = _c[0]; p.lng = _c[1]; if (p.vyska != null && window.AGLocalize.applyZ) p.vyska = window.AGLocalize.applyZ(_c[0], _c[1], p.vyska); p._localized = true; }
+                    }
+                } catch (e) {}
                 if (persistentCustomPoints.find(ex => ex.name === p.name && Math.abs(ex.lat - p.lat) < 0.0001 && Math.abs(ex.lng - p.lng) < 0.0001)) return;
                 const id = 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6);
                 const np = { id: id, name: p.name || 'Bod', lat: p.lat, lng: p.lng, cat: 'CUSTOM', type: 'custom' };
                 if (p.vyska != null && isFinite(p.vyska)) np.vyska = Math.round(p.vyska * 100) / 100;
+                if (p.acc != null && isFinite(p.acc)) np.acc = Math.round(p.acc * 100) / 100;
+                // #5 provenience: trvale u bodu drž, odkud vznikl (import/přenos/měření) + kdy + přesnost
+                np.prov = (p.prov && typeof p.prov === 'object') ? p.prov : { origin: p.origin || 'import', ts: Date.now(), acc: (np.acc != null ? np.acc : null) };
                 persistentCustomPoints.push(np);
                 arPoints.push({ ...np, hidden: false });   // OPRAVA: hned i do pameti (AR+mapa), jinak videt az po restartu
                 if (p.doc && typeof savePointDoc === 'function') { try { savePointDoc(id, (typeof _normalizeDoc === 'function' ? _normalizeDoc(p.doc) : p.doc)); } catch (e) {} }
+                try { if (window.AGJournal) window.AGJournal.commit({ op: 'add', id: id, after: np, origin: np.prov.origin }); } catch (e) {}
                 added++;
             });
             setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
@@ -436,7 +449,7 @@ if ('serviceWorker' in navigator) {
         function saveCustomPoint() {
             const name = document.getElementById('custom-name').value || "Bod"; let inputY = parseFloat(document.getElementById('custom-y').value); let inputX = parseFloat(document.getElementById('custom-x').value); if (isNaN(inputY) || isNaN(inputX)) return alert("Vyplňte souřadnice!"); let krovakY = inputY > 0 ? -inputY : inputY; let krovakX = inputX > 0 ? -inputX : inputX; let wgs84 = proj4("EPSG:5514", "EPSG:4326", [krovakY, krovakX]); let lng = wgs84[0]; let lat = wgs84[1]; var _zin = parseFloat((document.getElementById('custom-z') || {}).value); var vyska = isFinite(_zin) ? Math.round(_zin * 100) / 100 : null;
             let savedId = editingCustomPointId;
-            if (editingCustomPointId) { const idx = persistentCustomPoints.findIndex(p => p.id === editingCustomPointId); if(idx !== -1) { persistentCustomPoints[idx].name = name; persistentCustomPoints[idx].lat = lat; persistentCustomPoints[idx].lng = lng; persistentCustomPoints[idx].vyska = vyska; } const arIdx = arPoints.findIndex(p => p.id === editingCustomPointId); if (arIdx !== -1) { arPoints[arIdx].name = name; arPoints[arIdx].lat = lat; arPoints[arIdx].lng = lng; arPoints[arIdx].vyska = vyska; if(arPoints[arIdx].element) { arPoints[arIdx].element.remove(); arPoints[arIdx].element = null; } } } else { const newPoint = { id: 'cp_' + Date.now(), name: name, lat: lat, lng: lng, cat: "CUSTOM", type: "custom" }; if (vyska != null) newPoint.vyska = vyska; if (pendingPointAccuracy != null) newPoint.acc = Math.round(pendingPointAccuracy * 100) / 100; persistentCustomPoints.push(newPoint); arPoints.push({...newPoint, hidden: false}); savedId = newPoint.id; } pendingPointAccuracy = null; setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
+            if (editingCustomPointId) { const idx = persistentCustomPoints.findIndex(p => p.id === editingCustomPointId); if(idx !== -1) { persistentCustomPoints[idx].name = name; persistentCustomPoints[idx].lat = lat; persistentCustomPoints[idx].lng = lng; persistentCustomPoints[idx].vyska = vyska; } const arIdx = arPoints.findIndex(p => p.id === editingCustomPointId); if (arIdx !== -1) { arPoints[arIdx].name = name; arPoints[arIdx].lat = lat; arPoints[arIdx].lng = lng; arPoints[arIdx].vyska = vyska; if(arPoints[arIdx].element) { arPoints[arIdx].element.remove(); arPoints[arIdx].element = null; } } } else { const newPoint = { id: 'cp_' + Date.now(), name: name, lat: lat, lng: lng, cat: "CUSTOM", type: "custom" }; if (vyska != null) newPoint.vyska = vyska; if (pendingPointAccuracy != null) newPoint.acc = Math.round(pendingPointAccuracy * 100) / 100; newPoint.prov = { origin: (window._agPointOrigin || 'ruc'), ts: Date.now(), acc: (newPoint.acc != null ? newPoint.acc : null), qc: ((window.AGQc && AGQc.lastCode) || null) }; persistentCustomPoints.push(newPoint); arPoints.push({...newPoint, hidden: false}); savedId = newPoint.id; try { if (window.AGJournal) window.AGJournal.commit({ op: 'add', id: newPoint.id, after: newPoint, origin: newPoint.prov.origin }); } catch (e) {} } pendingPointAccuracy = null; window._agPointOrigin = null; setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
             saveNewPointDoc(savedId);
             drawAllMarkersOnMap(); closeCustomModal(); initARMarkers(); if (userLat && userLng) { updateInfoPanel(); } fixAppLayout();
             // BEZ GPS FIXU (offline/uvnitř): mapa by mohla mířit úplně jinam a v AR se bez
@@ -503,6 +516,90 @@ if ('serviceWorker' in navigator) {
         // undulaci kvazigeoidu CR-2005 (~44-47 m). Linearni aproximace, presnost ~1-2 m
         // (hluboko pod svislou chybou telefonni GPS), odstranuje systematicky posun ~45 m.
         function getGeoidUndulation(lat, lng) { if (typeof GeoCore !== 'undefined' && GeoCore.geoidUndulation) return GeoCore.geoidUndulation(lat, lng); return 45.5 + 0.55 * (lng - 15.5) - 0.4 * (lat - 49.8); }
+        // ============================================================================
+        // AGPose — JEDINÝ zdroj pravdy o poloze/orientaci "stanoviska" pro AR i měřické
+        // moduly. Dřív se přesná póza z resekce (solveResection) spočítala a ZAHODILA;
+        // AR dál kotvilo na syrový GPS fix a značky tančily ±3–7 m. Teď: resekce nastaví
+        // origin, renderAR z něj čte a syrová GPS slouží jen jako "drift detektor".
+        // Priorita zdrojů: resection > (gps s ref-shiftem) > raw. Vše 100% offline.
+        // ============================================================================
+        window.AGPose = window.AGPose || (function () {
+            var P = {
+                originLat: null, originLng: null, originZ: null,
+                headingOffset: 0, posSigma: null, eyeH: null,
+                source: 'gps', ts: 0, valid: false, note: ''
+            };
+            function _ensureBadge() {
+                var el = document.getElementById('agpose-badge');
+                if (el) return el;
+                if (!document.getElementById('agpose-badge-css')) {
+                    var st = document.createElement('style'); st.id = 'agpose-badge-css';
+                    st.textContent = '#agpose-badge{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 54px);z-index:640;display:none;align-items:center;gap:7px;'
+                        + 'background:rgba(16,32,22,.82);color:#d7ffe6;border:1px solid rgba(52,211,153,.5);border-radius:99px;padding:5px 6px 5px 12px;font-size:12.5px;font-weight:600;'
+                        + 'backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 4px 16px rgba(0,0,0,.35);pointer-events:auto;}'
+                        + '#agpose-badge .dot{width:8px;height:8px;border-radius:50%;background:#34d399;box-shadow:0 0 8px #34d399;animation:agposePulse 1.8s ease-in-out infinite;}'
+                        + '#agpose-badge button{border:none;background:rgba(255,255,255,.14);color:#fff;border-radius:99px;padding:3px 9px;font-size:11.5px;cursor:pointer;font-weight:600;}'
+                        + '@keyframes agposePulse{0%,100%{opacity:1}50%{opacity:.35}}'
+                        + 'body.left-hand #agpose-badge{}';
+                    (document.head || document.documentElement).appendChild(st);
+                }
+                el = document.createElement('div'); el.id = 'agpose-badge';
+                (document.body || document.documentElement).appendChild(el);
+                return el;
+            }
+            function _badge() {
+                var el = _ensureBadge();
+                if (!el) return;
+                if (P.valid && P.source === 'resection') {
+                    el.style.display = 'flex';
+                    el.innerHTML = '<span class="dot"></span>Zakotveno · resekce'
+                        + (P.posSigma != null ? ' ±' + P.posSigma.toFixed(2) + ' m' : '')
+                        + '<button type="button" onclick="window.AGPose.clear(true)">zrušit</button>';
+                } else { el.style.display = 'none'; }
+            }
+            P.set = function (pose) {
+                if (!pose || pose.originLat == null || pose.originLng == null) return;
+                P.originLat = pose.originLat; P.originLng = pose.originLng;
+                P.originZ = (pose.originZ != null) ? pose.originZ : null;
+                P.posSigma = (pose.posSigma != null) ? pose.posSigma : null;
+                P.eyeH = (pose.eyeH != null) ? pose.eyeH : null;
+                P.headingOffset = (pose.headingOffset != null) ? pose.headingOffset : 0;
+                P.source = pose.source || 'resection';
+                P.note = pose.note || '';
+                P.ts = Date.now(); P.valid = true;
+                try { window.dispatchEvent(new CustomEvent('agpose:change', { detail: { valid: true, source: P.source } })); } catch (e) {}
+                _badge();
+            };
+            // vrací [lat,lng] originu když platný, jinak fallback (typicky syrová GPS)
+            P.origin = function (fallLat, fallLng) {
+                return (P.valid && P.originLat != null) ? [P.originLat, P.originLng] : [fallLat, fallLng];
+            };
+            P.clear = function (userInitiated) {
+                var was = P.valid;
+                P.valid = false; P.source = 'gps'; P.originLat = P.originLng = P.originZ = P.posSigma = null;
+                if (was) { try { window.dispatchEvent(new CustomEvent('agpose:change', { detail: { valid: false } })); } catch (e) {} }
+                _badge();
+                if (userInitiated && typeof quickToast === 'function') quickToast('Kotvení zrušeno — AR jede zpět z GPS.');
+            };
+            // drift detektor: volá se z updateGpsAveraging s každým fixem. Když se telefon
+            // reálně posunul dál než k·posSigma (min 3 m) od originu, kotvení zneplatní.
+            P._driftFixes = 0;
+            P.checkDrift = function (lat, lng) {
+                if (!P.valid || P.source !== 'resection' || P.originLat == null || lat == null) return;
+                if (typeof getDistance !== 'function') return;
+                var d = getDistance(P.originLat, P.originLng, lat, lng);
+                var thr = Math.max(3, 2.5 * (P.posSigma || 1.2));
+                if (d > thr) {
+                    // hystereze: 3 fixy za sebou mimo práh, ať nás nerozhodí jeden výstřel GPS
+                    if (++P._driftFixes >= 3) {
+                        P._driftFixes = 0;
+                        P.clear(false);
+                        if (typeof quickToast === 'function') quickToast('Odešel jsi ze stanoviska — AR zpět na GPS. Znovu zakotvi resekcí.');
+                    }
+                } else { P._driftFixes = 0; }
+            };
+            return P;
+        })();
         // ROBUSTNI PRUMEROVANI GPS: median + MAD filtr hrubych chyb (prumer i 2-sigma prah
         // si outlier nafoukne sam, median ne), pak vazeny prumer podle hlasene presnosti fixu.
         // sterr pocitame z efektivniho n (po sobe jdouci fixy jsou korelovane, nejsou nezavisle).
@@ -645,6 +742,7 @@ if ('serviceWorker' in navigator) {
             navigator.geolocation.watchPosition(
                 (position) => {
                     userLat = position.coords.latitude; userLng = position.coords.longitude; magneticDeclination = getDeclination(userLat, userLng);
+                    try { if (window.AGPose) window.AGPose.checkDrift(userLat, userLng); } catch (e) {}   // #1: kotvení se zneplatní, když reálně odejdu ze stanoviska
                     userAlt = (position.coords.altitude != null && isFinite(position.coords.altitude)) ? position.coords.altitude : null;
                     currentGpsAccuracy = position.coords.accuracy; updateInfoPanel();
                     // posledni znama poloha pro vychozi pohled mapy pri pristim startu (i offline); max 1x/30 s
@@ -657,7 +755,11 @@ if ('serviceWorker' in navigator) {
                     if (highlightedPointId) { let hlPt = arPoints.find(p => p.id === highlightedPointId); if (hlPt) { if (hlPt.bestAccuracy === null || currentGpsAccuracy < hlPt.bestAccuracy) { hlPt.bestAccuracy = currentGpsAccuracy; } } }
 
                     var _movedCalc = (_lastCalcLat === null) ? 999 : getDistance(_lastCalcLat, _lastCalcLng, userLat, userLng);
-                    if (_movedCalc > 0.25 || arPoints.length !== _lastCalcCount) { arPoints.forEach(p => { p.currentDist = getDistance(userLat, userLng, p.lat, p.lng); p.currentBearing = getBearing(userLat, userLng, p.lat, p.lng); }); arPoints.sort((a, b) => a.currentDist - b.currentDist); _lastCalcLat = userLat; _lastCalcLng = userLng; _lastCalcCount = arPoints.length; }
+                    // #1 AGPose: když je stanovisko zakotvené (resekce), počítej AR vzdálenosti/azimuty
+                    // z originu, ne ze syrového GPS fixu — konec ±m tančení. Bez kotvení = GPS jako dřív.
+                    var _anch = !!(window.AGPose && window.AGPose.valid && window.AGPose.originLat != null);
+                    var _oc = _anch ? [window.AGPose.originLat, window.AGPose.originLng] : [userLat, userLng];
+                    if (_movedCalc > 0.25 || arPoints.length !== _lastCalcCount || _anch !== window._lastCalcAnchored) { window._lastCalcAnchored = _anch; arPoints.forEach(p => { p.currentDist = getDistance(_oc[0], _oc[1], p.lat, p.lng); p.currentBearing = getBearing(_oc[0], _oc[1], p.lat, p.lng); }); arPoints.sort((a, b) => a.currentDist - b.currentDist); _lastCalcLat = userLat; _lastCalcLng = userLng; _lastCalcCount = arPoints.length; }
                     if (activePointIdForModal) { const activePt = arPoints.find(p => p.id === activePointIdForModal); if (activePt) { const newDist = getDistance(userLat, userLng, activePt.lat, activePt.lng); const distEl = document.getElementById('sheet-distance-val'); if (distEl) distEl.innerText = `${newDist.toFixed(1)} m`; const gpsEl = document.getElementById('sheet-gps-val'); if (gpsEl) gpsEl.innerText = currentGpsAccuracy.toFixed(1); } }
                     if (lastCenterLat === null) { map.setView([userLat, userLng], 19, { animate: false }); lastCenterLat = userLat; lastCenterLng = userLng; } else if (!window._mapHold && getDistance(lastCenterLat, lastCenterLng, userLat, userLng) > 1.5) { map.setView([userLat, userLng], map.getZoom(), { animate: false }); lastCenterLat = userLat; lastCenterLng = userLng; }
                     if (lastFetchLat === null || lastFetchLng === null) { lastFetchLat = userLat; lastFetchLng = userLng; if (appStarted) setTimeout(() => initFetch(userLat, userLng), 1000); } else { const moved = getDistance(lastFetchLat, lastFetchLng, userLat, userLng); if (moved > 25) { lastFetchLat = userLat; lastFetchLng = userLng; if (appStarted) initFetch(userLat, userLng); } }
