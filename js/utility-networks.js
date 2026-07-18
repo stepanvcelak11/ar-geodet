@@ -104,6 +104,28 @@
         if (/(silnopr|\belektr|\bnn\b|\bvn\b|\bvvn\b|kabel|energ|\bčez\b|\bcez\b|edg|edeg)/.test(s)) return 'silnoproud';
         return 'ostatni';
     }
+    // #13: nápověda typu/hloubky pro GML — vylez od geometrie k nadřazenému feature prvku
+    // a poskládej jeho localName + atributy + textové property (jako u DXF vrstvy / GeoJSON).
+    function gmlFeatureHint(node) {
+        var parts = [], hops = 0, n = node ? node.parentNode : null;
+        var geomWrap = /(linestring|curve|geometry|pos|poslist|coordinates|segments|multi)/;
+        while (n && n.nodeType === 1 && hops < 8) {
+            var lname = (n.localName || '').toLowerCase();
+            if (!geomWrap.test(lname)) {
+                parts.push(lname);
+                if (n.attributes) for (var a = 0; a < n.attributes.length; a++) parts.push(n.attributes[a].value || '');
+                // textové property přímo pod feature (název/typ/materiál sítě)
+                var ch = n.children || [];
+                for (var c = 0; c < ch.length; c++) {
+                    var cl = (ch[c].localName || '').toLowerCase();
+                    if (!geomWrap.test(cl) && ch[c].children && ch[c].children.length === 0) parts.push(ch[c].textContent || '');
+                }
+                if (lname.indexOf('feature') >= 0 || lname.indexOf('member') >= 0) break;
+            }
+            n = n.parentNode; hops++;
+        }
+        return parts.join(' ');
+    }
 
     // ---- převody souřadnic (volba S-JTSK 5514 / WGS84) -------------------------
     function inCZ(ll) { return ll && ll.lat > 48 && ll.lat < 51.2 && ll.lng > 11.8 && ll.lng < 19.2; }
@@ -278,7 +300,11 @@
                 var ll = (srs === 'wgs') ? wgs2ll(nums[m], nums[m + 1]) : sj2ll(nums[m], nums[m + 1]);
                 if (ll && isFinite(ll.lat)) body.push({ lat: +ll.lat.toFixed(8), lng: +ll.lng.toFixed(8), z: null });
             }
-            if (body.length >= 2) nets.push({ vrstva: 'GML', typ: 'ostatni', barvaCSN: TYPES.ostatni.color, hloubka_m: null, body: body });
+            if (body.length >= 2) {
+                var hint = gmlFeatureHint(ls);                       // #13: klasifikuj z nadřazeného feature prvku
+                var typ = classifyType(hint), hl = depthFromLayer(hint);
+                nets.push({ vrstva: (hint ? 'GML ' + typ : 'GML'), typ: typ, barvaCSN: (TYPES[typ] || TYPES.ostatni).color, hloubka_m: hl, body: body });
+            }
         });
         return nets;
     }
@@ -432,7 +458,7 @@
         if (pj.roll) { var cr = Math.cos(pj.roll), sr = Math.sin(pj.roll); var tt = uH * cr - vV * sr; vV = uH * sr + vV * cr; uH = tt; }
         return { x: 50 + (uH / pj.halfH) * 50, y: 50 + (vV / pj.halfV) * 50 - vOff, diff: diff, dist: dist };
     }
-    var _lastH = null, _lastP = null, _lastLat = null, _lastLng = null;
+    var _lastH = null, _lastP = null, _lastLat = null, _lastLng = null, _lastR = null, _lastRad = null;
     function arLoop() {
         _arRAF = requestAnimationFrame(arLoop);
         var svg = _arSvg; if (!svg) return;
@@ -443,13 +469,14 @@
         var pj = window._arProj;
         var hd = heading();
         if (hd == null) { if (svg.childNodes.length) svg.innerHTML = ''; _lastH = null; return; }
-        // VÝKON: překresli jen když se směr/sklon/poloha reálně změnily (jinak drží obraz)
+        // VÝKON: překresli jen když se směr/sklon/NÁKLON/poloha/dosah reálně změnily (jinak drží obraz)
         var pitch = pj.pitch || 0;
-        if (_lastH != null && Math.abs(hd - _lastH) < 0.3 && Math.abs(pitch - (_lastP || 0)) < 0.3 && _lastLat === oLL.lat && _lastLng === oLL.lng) return;
-        _lastH = hd; _lastP = pitch; _lastLat = oLL.lat; _lastLng = oLL.lng;
+        var roll = pj.roll || 0;   // #12: roll do klíče — projUnder ho používá k rotaci vrcholů
+        var rad = (typeof arRadius !== 'undefined' && arRadius) ? arRadius : 150;
+        if (_lastH != null && Math.abs(hd - _lastH) < 0.3 && Math.abs(pitch - (_lastP || 0)) < 0.3 && Math.abs(roll - (_lastR || 0)) < 0.005 && _lastRad === rad && _lastLat === oLL.lat && _lastLng === oLL.lng) return;
+        _lastH = hd; _lastP = pitch; _lastR = roll; _lastRad = rad; _lastLat = oLL.lat; _lastLng = oLL.lng;
         var eyeH = 1.6, vOff = 0;
         try { eyeH = visSettings.eyeHeight || 1.6; vOff = visSettings.arVerticalOffset || 0; } catch (e) {}
-        var rad = (typeof arRadius !== 'undefined' && arRadius) ? arRadius : 150;
         var html = '';
         _nets.forEach(function (nt) {
             if (nt._hidden) return;

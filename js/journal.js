@@ -127,7 +127,7 @@
     }
 
     // ---- jednoduchý prohlížeč historie bodu -----------------------------------
-    var OP_CZ = { add: 'vznik', edit: 'úprava', delete: 'smazání', add_import: 'import' };
+    var OP_CZ = { add: 'vznik', edit: 'úprava', delete: 'smazání', add_import: 'import', restore: 'obnova' };
     var ORIG_CZ = { ruc: 'ruční zápis', import: 'import', 'gps-avg': 'GPS průměr', resekce: 'resekce', rajon: 'rajón', 'foto-shot': 'foto-totálka', transfer: 'přenos zakázky', legacy: '—' };
 
     function _fmt(ts) { try { var d = new Date(ts); return d.toLocaleDateString('cs-CZ') + ' ' + d.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return String(ts); } }

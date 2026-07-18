@@ -110,6 +110,8 @@
                     if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap();
                     if (typeof renderManageList === 'function') renderManageList();
                     if (typeof updateInfoPanel === 'function') updateInfoPanel();
+                    // #18: zapiš obnovu do žurnálu, ať auditní stopa sedí se stavem
+                    try { if (window.AGJournal) window.AGJournal.commit({ op: 'restore', id: rec.point.id, after: rec.point, origin: (rec.point.prov && rec.point.prov.origin) || null }); } catch (e) {}
                 }
                 toast('Bod #' + rec.point.name + ' obnoven' + (projExists ? '' : ' (do aktuální zakázky — původní už neexistuje)') + '.');
             } catch (e) { toast('Obnova bodu se nezdařila.'); }

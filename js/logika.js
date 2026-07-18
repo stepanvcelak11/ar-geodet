@@ -582,6 +582,8 @@ if ('serviceWorker' in navigator) {
                 P.gpsBaseLat = (typeof userLat === 'number' && isFinite(userLat)) ? userLat : null;
                 P.gpsBaseLng = (typeof userLng === 'number' && isFinite(userLng)) ? userLng : null;
                 P._driftFixes = 0;
+                // #10: přepočítej AR vzdálenosti/azimuty HNED z nového originu, ať značky neskáčou až po dalším GPS fixu
+                try { if (typeof arPoints !== 'undefined' && arPoints && arPoints.length && typeof getBearing === 'function') { arPoints.forEach(function (p) { p.currentDist = getDistance(P.originLat, P.originLng, p.lat, p.lng); p.currentBearing = getBearing(P.originLat, P.originLng, p.lat, p.lng); }); window._lastCalcAnchored = true; } } catch (e) {}
                 try { window.dispatchEvent(new CustomEvent('agpose:change', { detail: { valid: true, source: P.source } })); } catch (e) {}
                 _badge();
             };
@@ -593,6 +595,8 @@ if ('serviceWorker' in navigator) {
                 var was = P.valid;
                 P.valid = false; P.source = 'gps'; P.originLat = P.originLng = P.originZ = P.posSigma = null;
                 P.gpsBaseLat = P.gpsBaseLng = null; P._driftFixes = 0;
+                // #10: zpět na syrovou GPS — přepočítej hned
+                try { if (typeof arPoints !== 'undefined' && arPoints && arPoints.length && typeof getBearing === 'function' && typeof userLat === 'number' && userLat != null) { arPoints.forEach(function (p) { p.currentDist = getDistance(userLat, userLng, p.lat, p.lng); p.currentBearing = getBearing(userLat, userLng, p.lat, p.lng); }); window._lastCalcAnchored = false; } } catch (e) {}
                 if (was) { try { window.dispatchEvent(new CustomEvent('agpose:change', { detail: { valid: false } })); } catch (e) {} }
                 _badge();
                 if (userInitiated && typeof quickToast === 'function') quickToast('Kotvení zrušeno — AR jede zpět z GPS.');

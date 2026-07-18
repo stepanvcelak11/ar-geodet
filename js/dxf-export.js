@@ -38,11 +38,15 @@
         setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
     }
 
-    // WGS84 (lat/lng) -> S-JTSK [Y, X] kladné (shodně s exportPointsCSV v logika.js).
+    // POZN.: za běhu appky přebíjí window.exportPointsDXF verze z vylepseni.js (načítá se
+    // později) — tenhle modul je fallback, když je odpojitelná vrstva vylepseni.js pryč.
+    // WGS84 (lat/lng) -> S-JTSK. #15: NEPOUŽÍVAT Math.abs — proj4 5514 vrací pro ČR záporné
+    // hodnoty a kreslíme je přímo (DXF_X = Y_JTSK, DXF_Y = X_JTSK) => východ vpravo, sever
+    // nahoru. Absolutní hodnota obě osy negovala = výkres otočený o 180° (shodně s vylepseni.js).
     function toSJTSK(lat, lng) {
         try {
             var sj = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]);
-            var Y = Math.abs(sj[0]), X = Math.abs(sj[1]);
+            var Y = sj[0], X = sj[1];
             if (!isFinite(Y) || !isFinite(X)) return null;
             return { y: Y, x: X };
         } catch (e) { return null; }

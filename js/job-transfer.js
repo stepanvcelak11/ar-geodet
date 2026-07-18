@@ -341,13 +341,10 @@
         // 2) SPOJNICE — doplnit (best-effort remap podle názvu+souřadnic na nové body)
         var addedLines = mergeLines(pkg);
 
-        // 3) ŽURNÁL — append-only import (provenience se veze s sebou)
+        // 3) ŽURNÁL — #14: zdrojový žurnál NEreplayujeme. addImportedPoints přiděluje bodům NOVÁ
+        // id a samo commitne čerstvý 'add' (s proveniencí), takže replay starých id by vytvořil
+        // jen osiřelé (nedohledatelné) záznamy a druhý 'add'. Provenience i tak zůstává na bodu.
         var jP = Promise.resolve(0);
-        try {
-            if (window.AGJournal && typeof window.AGJournal.importRecords === 'function' && Array.isArray(pkg.journal) && pkg.journal.length) {
-                jP = window.AGJournal.importRecords(pkg.journal, targetPid).catch(function () { return 0; });
-            }
-        } catch (e) {}
 
         jP.then(function (jAdded) {
             var skipped = toImport.length - addedPts;

@@ -204,16 +204,19 @@
         var hull = convexHull(ME.map(function (e, i) { return { x: e, y: MN[i] }; }));
 
         // volitelný výškový trend: rovina dz = c0 + c1*KE + c2*KN přes dvojice,
-        // kde dz = knownH - measAlt (potřeba ≥3 dvojice s oběma výškami)
+        // kde dz = knownH(Bpv) - measAlt_Bpv (potřeba ≥3 dvojice s oběma výškami).
+        // #11: measAlt je ELIPSOIDICKÁ (WGS84) GPS výška — před fitem ji převeď na Bpv odečtením
+        // undulace geoidu, jinak by applyZ (vstup Bpv) vracel výšku posunutou o ~ -45 m.
+        function _bpv(p) { var u = (typeof getGeoidUndulation === 'function') ? getGeoidUndulation(p.measLat, p.measLng) : (45.5 + 0.55 * (p.measLng - 15.5) - 0.4 * (p.measLat - 49.8)); return p.measAlt - u; }
         var heightPlane = null;
         var HP = P.filter(function (p) { return isFinite(p.knownH) && isFinite(p.measAlt); });
         if (HP.length >= 3) {
             var Ah = [], bh = [];
-            HP.forEach(function (p) { Ah.push([1, p.knownY - kE0, p.knownX - kN0]); bh.push(p.knownH - p.measAlt); });
+            HP.forEach(function (p) { Ah.push([1, p.knownY - kE0, p.knownX - kN0]); bh.push(p.knownH - _bpv(p)); });
             var xh = solveLinear(Ah, bh);
             if (xh) {
                 var hres = 0, hn = 0;
-                HP.forEach(function (p) { var pred = xh[0] + xh[1] * (p.knownY - kE0) + xh[2] * (p.knownX - kN0); hres += Math.pow((p.knownH - p.measAlt) - pred, 2); hn++; });
+                HP.forEach(function (p) { var pred = xh[0] + xh[1] * (p.knownY - kE0) + xh[2] * (p.knownX - kN0); hres += Math.pow((p.knownH - _bpv(p)) - pred, 2); hn++; });
                 heightPlane = { c0: xh[0], c1: xh[1], c2: xh[2], n: hn, rms: hn > 3 ? Math.sqrt(hres / (hn - 3)) : null };
             }
         }
