@@ -48,6 +48,7 @@ const ASSETS_TO_CACHE = [
     './css/gps-warn.css',
     './js/csv-validate.js',
     './js/kml-export.js',
+    './js/vfk.js',
     './js/compass-stability.js',
     './css/compass-stability.css',
     './js/calib-profiles.js',

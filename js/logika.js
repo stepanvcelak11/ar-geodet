@@ -476,14 +476,23 @@ if ('serviceWorker' in navigator) {
         window._agDecodeBuf = _agDecodeText;
         function importPoints(event) {
             const file = event.target.files[0]; if (!file) return;
+            const fname = (file.name || '').toLowerCase();
             const reader = new FileReader();
             reader.onload = function(e) {
                 // čteme binárně a detekujeme kódování (kvůli diakritice v číslech/názvech bodů)
                 let txt = (typeof e.target.result === 'string') ? e.target.result : _agDecodeText(e.target.result);
+                // VFK (výměnný formát ČÚZK): detekce podle přípony nebo obsahu (&B/&D bloky)
+                const looksVfk = fname.endsWith('.vfk') || (/^&[HBD]/m.test(txt) && txt.indexOf('&D') >= 0);
+                if (looksVfk && typeof window.importVFKText === 'function') {
+                    const addedV = window.importVFKText(txt);
+                    if (addedV > 0) alert("Importováno " + addedV + " bodů z VFK do aktuální zakázky.");
+                    else alert("Ve VFK se nepodařilo najít body se souřadnicemi (S-JTSK).");
+                    event.target.value = ''; return;
+                }
                 let imported = null;
                 try { let j = JSON.parse(txt); if (Array.isArray(j)) imported = j; } catch (err) {}
                 if (!imported) imported = parseCoordsCSV(txt);
-                if (!imported || imported.length === 0) { alert("V souboru se nenašly žádné body.\n\nPodporováno: JSON, nebo CSV/TXT s řádky 'číslo;Y;X' (oddělovač ; , tab nebo mezera)."); event.target.value = ''; return; }
+                if (!imported || imported.length === 0) { alert("V souboru se nenašly žádné body.\n\nPodporováno: JSON, CSV/TXT s řádky 'číslo;Y;X' (oddělovač ; , tab nebo mezera), nebo VFK."); event.target.value = ''; return; }
                 const added = window.addImportedPoints(imported);
                 alert("Importováno " + added + " bodů do aktuální zakázky.");
                 event.target.value = '';
