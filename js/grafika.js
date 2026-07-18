@@ -577,6 +577,9 @@
         let _lastRenderTs = 0, _lastGoodEvent = null, _lastAbsoluteTs = 0;
         function renderAR(event) {
             if (!userLat || !userLng) return;
+            // #1 AGPose: origin AR = zakotvené stanovisko (resekce) když platné, jinak syrová GPS.
+            const _oLat = (window.AGPose && window.AGPose.valid && window.AGPose.originLat != null) ? window.AGPose.originLat : userLat;
+            const _oLng = (window.AGPose && window.AGPose.valid && window.AGPose.originLng != null) ? window.AGPose.originLng : userLng;
             // ZDROJ AZIMUTU:
             // iOS: webkitCompassHeading je uz vztazeny k PRAVEMU severu (deklinaci resi OS) -> NEpridavat deklinaci.
             // Android: event.alpha je magneticky, spolehlivy jen kdyz event.absolute (deviceorientationabsolute);
@@ -636,6 +639,9 @@
             let smoothAlpha = 1 - Math.exp(-_dtOri / _tau);
             if (window.ARFusion && window.ARFusion.enabled) { smoothedHeading = window.ARFusion.fuse(corrected, smoothedHeading, event); } else { smoothedHeading = smoothAngle(smoothedHeading, corrected, smoothAlpha); }
             let heading = smoothedHeading; currentHeading = heading;
+            // #2 vizuální stabilizace: krátkodobá drift-free korekce směru z optického toku/WebXR (default vypnuto, decayuje k senzoru)
+            window._sensorHeadingRaw = smoothedHeading;   // #4: SYROVÝ senzorový směr PŘED korekcí — modul ho čte jako referenci, ne vlastní výstup (jinak nestabilní filtr)
+            if (window.AGVisualTrack && window.AGVisualTrack.enabled) { var _vc = window.AGVisualTrack.getCorrection(); if (_vc && _vc.dyaw != null) { heading = ((heading + _vc.dyaw) % 360 + 360) % 360; currentHeading = heading; } }
             let relativeHeadingDeg = (heading - compassZeroOffset + 360) % 360; let displayAzimut = "";
             if (compassUnit === 'gon') { let gonTotal = relativeHeadingDeg * (400 / 360); let grad = Math.floor(gonTotal); let centigrad = Math.floor((gonTotal - grad) * 100); displayAzimut = `${grad}<sup>g</sup> ${centigrad.toString().padStart(2, '0')}<sup>c</sup>`; } else { displayAzimut = `${relativeHeadingDeg.toFixed(1)} °`; }
             let cAcc = event.webkitCompassAccuracy; let calWarn = (cAcc != null && (cAcc < 0 || cAcc > 20)) || !headingReliable;
@@ -667,6 +673,9 @@
             let fovH = visSettings.fovH || 90, fovV = visSettings.fovV || 75, eyeH = visSettings.eyeHeight || 1.6;
             let halfH = fovH / 2, halfV = fovV / 2, cullH = halfH + 8;
             // export projekce pro dalsi AR vrstvy (satelity.js) — at nemusi duplikovat vypocet naklonu
+            // #2 vizuální stabilizace: korekce sklonu ze stejného zdroje
+            window._sensorPitchRaw = cameraPitchDown;   // #4: SYROVÝ sklon PŘED korekcí (viz výše)
+            if (window.AGVisualTrack && window.AGVisualTrack.enabled) { var _vc2 = window.AGVisualTrack.getCorrection(); if (_vc2 && _vc2.dpitch != null) cameraPitchDown += _vc2.dpitch; }
             window._arProj = { pitch: cameraPitchDown, roll: imgRoll, halfH: halfH, halfV: halfV };
             let highlightedPointData = null; let renderedCount = 0;
 
@@ -675,13 +684,13 @@
 
             arPoints.forEach(pt => {
                 let isVisible = true; if (pt.hidden) isVisible = false; if (pt.cat === 'TB' && !filters.tb) isVisible = false; if (pt.cat === 'ZHB' && !filters.zhb) isVisible = false; if (pt.cat === 'PBPP' && !filters.pbpp) isVisible = false; if (pt.cat === 'NIVEL' && !filters.nivel) isVisible = false; if (pt.cat === 'CUSTOM' && !filters.custom) isVisible = false; if (_sqLC && !pt.name.toLowerCase().includes(_sqLC)) isVisible = false;
-                const distance = pt.currentDist || getDistance(userLat, userLng, pt.lat, pt.lng);
+                const distance = pt.currentDist || getDistance(_oLat, _oLng, pt.lat, pt.lng);
                 let isSelectedForDetail = (pt.id === activePointIdForModal);
                 if (distance > arRadius && pt.id !== highlightedPointId && !isSelectedForDetail) isVisible = false;
                 if (isVisible && pt.id !== highlightedPointId && !isSelectedForDetail) { if (renderedCount >= maxPts) { isVisible = false; } else { renderedCount++; } }
                 if (!isVisible) { if (pt.element && pt.element.style.opacity !== '0') pt.element.style.opacity = '0'; return; }
 
-                const pointBearing = (pt.currentBearing != null) ? pt.currentBearing : getBearing(userLat, userLng, pt.lat, pt.lng); let diff = ((pointBearing - heading + 540) % 360) - 180;
+                const pointBearing = (pt.currentBearing != null) ? pt.currentBearing : getBearing(_oLat, _oLng, pt.lat, pt.lng); let diff = ((pointBearing - heading + 540) % 360) - 180;
                 if (pt.id === highlightedPointId) { highlightedPointData = { diff: diff, dist: distance, name: pt.name }; }
                 if (Math.abs(diff) < cullH) {
                     // svisle: depresni uhel k bodu na zemi vs. kam miri kamera, promitnuty pres svisly FOV

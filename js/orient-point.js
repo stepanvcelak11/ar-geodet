@@ -55,9 +55,10 @@
             if (btn) btn.disabled = true;
             return;
         }
-        var bearing = getBearing(userLat, userLng, pt.lat, pt.lng);
+        var _o = (window.AGPose && window.AGPose.origin) ? window.AGPose.origin(userLat, userLng) : [userLat, userLng];   // #5: azimut z kotveného stanoviska, ne syrové GPS
+        var bearing = getBearing(_o[0], _o[1], pt.lat, pt.lng);
         var head = (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null;
-        var dist = getDistance(userLat, userLng, pt.lat, pt.lng);
+        var dist = getDistance(_o[0], _o[1], pt.lat, pt.lng);
         if (head == null) {
             if (info) info.innerHTML = 'Azimut k bodu <b>' + bearing.toFixed(1) + '°</b><br><span style="opacity:.6">Kompas zatím nedává směr — podrž telefon svisle.</span>';
             if (btn) btn.disabled = true;
@@ -75,7 +76,8 @@
         var pt = selectedPoint();
         if (!pt || typeof userLat === 'undefined' || userLat == null) return;
         if (typeof currentHeading !== 'number' || !isFinite(currentHeading)) { agAlert('Bez směru', 'Kompas zatím nedává směr.'); return; }
-        var bearing = getBearing(userLat, userLng, pt.lat, pt.lng);
+        var _o = (window.AGPose && window.AGPose.origin) ? window.AGPose.origin(userLat, userLng) : [userLat, userLng];   // #5
+        var bearing = getBearing(_o[0], _o[1], pt.lat, pt.lng);
         var delta = adiff(bearing, currentHeading);
         if (typeof nudgeHeadingOffset === 'function') { nudgeHeadingOffset(delta); }
         else if (typeof userHeadingOffset !== 'undefined') {

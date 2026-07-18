@@ -407,7 +407,30 @@
         else if (typeof userHeadingOffset !== 'undefined') {
             try { userHeadingOffset = ((userHeadingOffset + d) % 360 + 360) % 360; if (typeof setStoredData === 'function') setStoredData('arHeadingOffset', String(userHeadingOffset)); if (typeof updateHeadingOffsetVal === 'function') updateHeadingOffsetVal(); } catch (e) {}
         } else { agAlert('Nelze srovnat', 'Korekce kompasu není dostupná.'); return; }
+        // #1 AGPose: u plné resekce (3+ body) zakotvi STANOVISKO jako origin živého AR —
+        // přesná GPS-nezávislá poloha se dřív spočítala a zahodila. Teď z ní AR kotví.
+        var _anchored = false;
+        if (window.AGPose && _result.mode === 'full' && _result.lat != null) {
+            try {
+                window.AGPose.set({
+                    originLat: _result.lat, originLng: _result.lng,
+                    posSigma: _result.posSigma,
+                    eyeH: (typeof visSettings !== 'undefined' && visSettings && visSettings.eyeHeight) || 1.6,
+                    source: 'resection', note: _result.residuals.length + ' bodů'
+                });
+                _anchored = true;
+            } catch (e) {}
+        }
+        // #9: orient mód (2 body) slibuje „poloha = GPS". Pokud drží staré kotvení z DŘÍVĚJŠÍ
+        // plné resekce a reálně jsem se přesunul, zruš ho (na témže stanovisku ponech).
+        if (!_anchored && window.AGPose && window.AGPose.valid && window.AGPose.source === 'resection' && window.AGPose.originLat != null && haveUser()) {
+            try {
+                var _mv = getDistance(window.AGPose.originLat, window.AGPose.originLng, userLat, userLng);
+                if (_mv > Math.max(1.5, (window.AGPose.posSigma || 1.2))) window.AGPose.clear(false);
+            } catch (e) {}
+        }
         agAlert('Sever srovnán', 'Sever srovnán resekcí z ' + _result.residuals.length + ' bodů (' + (d >= 0 ? '+' : '') + d.toFixed(1) + '°).'
+            + (_anchored ? '\n\n📍 Stanovisko ZAKOTVENO jako počátek AR — značky teď nekotví na kolísavou GPS, ale na spočítanou polohu (±' + (_result.posSigma != null ? _result.posSigma.toFixed(2) : '?') + ' m). Až odejdeš, AR se vrátí na GPS.' : '')
             + (_result.mode === 'full' ? '\n\nStanovisko můžeš uložit jako bod (tlačítko níže).' : ''));
     }
 

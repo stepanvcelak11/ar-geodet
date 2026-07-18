@@ -314,7 +314,7 @@
         promptName(_targetName || 'R_rajon').then(function (nm) {
             if (nm == null) return;
             var name = (String(nm).trim() || _targetName || 'R_rajon');
-            var added = window.addImportedPoints([{ name: name, lat: r.lat, lng: r.lng }]);
+            var added = window.addImportedPoints([{ name: name, lat: r.lat, lng: r.lng, origin: 'rajon' }]);
             if (added > 0) agAlert('Bod uložen', '#' + name + ' uložen do zakázky (rajón: směrník ' + r.theta.toFixed(1) + '°, délka ' + r.dist.toFixed(2) + ' m).\nNajdeš ho v seznamu Body.');
             else agAlert('Neuloženo', 'Bod se stejným názvem a polohou už v zakázce je.');
         });
