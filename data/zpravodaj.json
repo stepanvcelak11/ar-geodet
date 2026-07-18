@@ -1,81 +1,66 @@
 {
-  "vydani": "2026-07-17",
-  "uvodnik": "Přinášíme aktuální zprávy ze světa geodetů a technologií.",
+  "vydani": "2026-07-18",
+  "uvodnik": "Přinášíme aktuální zprávy ze světa geodézie a technologií.",
   "polozky": [
     {
-      "rubrika": "Akce",
-      "top": true,
-      "nadpis": "Commercial UAV Expo Announces Second Keynote: Two Skies, One Conversation",
-      "perex": "Na závěr Commercial UAV Expo 2026 se uskuteční srovnání regulací BVLOS mezi FAA a EASA.",
-      "telo": "Na poslední den Commercial UAV Expo 2026, který se koná v Las Vegas, je naplánováno důležité vystoupení, kde se setkají představitelé FAA a EASA. Diskuze se zaměří na porovnání přístupů obou organizací k provozování dronů za viditelností (BVLOS). Tento dialog slibuje cenné informace o regulacích, které ovlivňují budoucnost leteckých operací s drony.",
-      "body": [
-        "Diskuze mezi FAA a EASA",
-        "Důležitost regulace pro dronové operace"
-      ],
-      "proc": "Zpráva se zaměřuje na klíčové regulace v oblasti dronů, což je důležité pro geodety a odborníky v oblasti UAV.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/15/commercial-uav-expo-announces-second-keynote-two-skies-one-conversation/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=commercial-uav-expo-announces-second-keynote-two-skies-one-conversation",
-      "datum": "2026-07-15"
-    },
-    {
       "rubrika": "Z domova",
-      "top": false,
+      "top": true,
       "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
-      "perex": "ČÚZK upozorňuje na blížící se ukončení provozu starší verze WSGP.",
-      "telo": "ČÚZK informuje uživatele webových služeb pro vyhotovitele a ověřovatele geometrických plánů, že na podzim 2026 dojde k ukončení provozu WSGP verze 2.10. Po tomto datu budou k dispozici pouze služby verze 3.1. Uživatelé by se měli připravit na tuto změnu a přizpůsobit své procesy novým podmínkám.",
-      "body": [
-        "Ukončení starší verze WSGP",
-        "Přechod na verzi 3.1"
-      ],
-      "proc": "Důležitá informace pro geodety a uživatele služeb WSGP v České republice.",
+      "perex": "Upozorňujeme na ukončení provozu starší verze webových služeb pro geometrické plány.",
+      "telo": "Český úřad zeměměřický a katastrální (ČÚZK) informoval, že na podzim 2026 dojde k ukončení provozu webových služeb pro vyhotovitele a ověřovatele geometrických plánů (WSGP) verze 2.10. Od tohoto termínu budou v provozu pouze služby WSGP verze 3.1. Uživatelé jsou vyzváni, aby se na tuto změnu připravili a omlouvají se za případné komplikace.",
+      "body": [],
+      "proc": "Tato změna se dotkne všech uživatelů služeb WSGP a je důležité se na ni připravit.",
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-05-29"
     },
     {
-      "rubrika": "Technologie",
+      "rubrika": "Ze světa",
       "top": false,
-      "nadpis": "NASA Small Satellite Could Make Global Positioning More Precise",
-      "perex": "NASA uvedla na trh nový satelit, který má zlepšit přesnost globálního polohování.",
-      "telo": "Nový satelit NASA, známý jako GRITSS, byl uveden do provozu s cílem spojit různé systémy pozorování a dosáhnout přesnějšího mapování Země. Tento CubeSat, který byl vypuštěn 7. července, se zaměří na demonstraci nových technik pro spojení různých datových zdrojů, což by mohlo mít významný dopad na geodetické aplikace a přesnost měření.",
-      "body": [
-        "Vylepšení přesnosti mapování",
-        "Nové techniky pro spojení dat"
-      ],
-      "proc": "Zpráva je relevantní pro geodety, kteří se zabývají přesností měření a polohováním.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/14/nasa-small-satellite-could-make-global-positioning-more-precise/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=nasa-small-satellite-could-make-global-positioning-more-precise",
-      "datum": "2026-07-14"
-    },
-    {
-      "rubrika": "Přístroje",
-      "top": false,
-      "nadpis": "SBG Systems Launches the new Pulse-40 OEM with Tactical-Grade Performance",
-      "perex": "SBG Systems představila novou generaci svého IMU Pulse-40 OEM.",
-      "telo": "Nový Pulse-40 OEM od SBG Systems přináší vylepšené inertní výkony a odolnost vůči vibracím. Tento kompaktní zařízení, které si zachovává své špičkové charakteristiky SWaP, je navrženo pro náročné aplikace v oblasti geodézie a měření. S integrovanými magnetometry a real-time monitoringem vibrací do 8 kHz, Pulse-40 OEM je ideální pro precizní geodetické aplikace.",
-      "body": [
-        "Vylepšená inertní výkonnost",
-        "Real-time monitoring vibrací"
-      ],
-      "proc": "Zpráva informuje o novém zařízení, které může zlepšit geodetické měření.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/08/sbg-systems-launches-the-new-pulse-40-oem-with-tactical-grade-performance-enhanced-resilience-and-built-in-vibration-intelligence/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=sbg-systems-launches-the-new-pulse-40-oem-with-tactical-grade-performance-enhanced-resilience-and-built-in-vibration-intelligence",
-      "datum": "2026-07-08"
+      "nadpis": "Topcon a GreenValley International spolupracují na inovacích v prostorové inteligenci",
+      "perex": "Topcon Positioning Systems uzavřel strategickou dohodu se společností GreenValley International.",
+      "telo": "Tato spolupráce se zaměří na technologie pro geodézii, mapování, výstavbu a lesnictví. Plánované inovace zahrnují integrovaná hardwarová a softwarová řešení pro sběr a zpracování dat pomocí LiDARu, a to jak z ručních, tak z leteckých a mobilních zařízení. Vývoj se také rozšíří do oblasti robotických systémů a autonomních monitorovacích řešení.",
+      "body": [],
+      "proc": "Spolupráce mezi těmito dvěma společnostmi může přinést nové technologie pro geodetické aplikace.",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/aerialuas/topcon-and-greenvalley-international-collaborate-on-spatial-intelligence-innovations/",
+      "datum": "2026-07-17"
     },
     {
       "rubrika": "Z praxe",
       "top": false,
-      "nadpis": "Improving Mapping Accuracy Through Aerial Triangulation",
-      "perex": "Webinář se zaměří na zlepšení přesnosti mapování pomocí letecké triangulace.",
-      "telo": "Letecká triangulace je klíčovým krokem pro výrobu přesných mapovacích výstupů. Nová verze Correlator3D přináší vylepšené možnosti pro zpracování složitých datových sad a zjednodušení nastavení projektů s více kamerami. Tento webinář představí nejnovější schopnosti letecké triangulace a nové nástroje pro validaci, které mohou pomoci zlepšit kvalitu mapování.",
-      "body": [
-        "Zlepšení přesnosti mapování",
-        "Nové nástroje pro validaci"
-      ],
-      "proc": "Zpráva je důležitá pro geodety zabývající se mapováním a zpracováním dat.",
+      "nadpis": "Geodetický projekt: Termín pro odevzdání do 13. ledna 2027",
+      "perex": "NOAA připravuje implementaci modernizovaného Národního systému prostorového referencování.",
+      "telo": "V rámci této modernizace musí být všechny projekty OPUS a projekty diferenciálního nivelování, které mají za cíl vytvořit nebo aktualizovat geodetickou kontrolu, odevzdány do 13. ledna 2027. Po tomto datu již NOAA nebude přijímat žádné projekty GPS prostřednictvím OPUS Projects 5, i když tento nástroj zůstane k dispozici pro jiné účely.",
+      "body": [],
+      "proc": "Tato informace je důležitá pro geodety, kteří plánují projekty v rámci NSRS.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/29/improving-mapping-accuracy-through-aerial-triangulation/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=improving-mapping-accuracy-through-aerial-triangulation",
-      "datum": "2026-06-29"
+      "odkaz": "https://amerisurv.com/2026/07/15/geodetic-survey-project-submission-deadline-january-13-2027/?utm_source=rss&utm_medium=rss&utm_campaign=geodetic-survey-project-submission-deadline-january-13-2027",
+      "datum": "2026-07-15"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "NASA malý satelit pro přesnější globální polohování",
+      "perex": "NASA uvedla na trh nový CubeSat pro zlepšení mapování Země.",
+      "telo": "Satelit GRITSS, velikosti kufru, byl vypuštěn 7. července a má za cíl sloučit různé pozorovací systémy a vést k přesnějšímu mapování. Tento satelit demonstruje novou techniku pro připojení různých geodetických systémů, což by mohlo mít významný dopad na budoucí geodetické projekty.",
+      "body": [],
+      "proc": "Tento satelit může přinést nové možnosti pro geodetické aplikace a přesnost měření.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/07/14/nasa-small-satellite-could-make-global-positioning-more-precise/?utm_source=rss&utm_medium=rss&utm_campaign=nasa-small-satellite-could-make-global-positioning-more-precise",
+      "datum": "2026-07-14"
+    },
+    {
+      "rubrika": "Akce",
+      "top": false,
+      "nadpis": "Výročí 175 let Mount Diablo Initial Point",
+      "perex": "Kalifornie oslaví významné výročí v oblasti geodézie.",
+      "telo": "Dne 18. července 2026 se v Kalifornii uskuteční veřejná oslava 175. výročí Mount Diablo Initial Point. Akce, kterou pořádá Kalifornský státní park a Mount Diablo Surveyors Historical Society, bude zahrnovat vzdělávací programy a aktivity pro návštěvníky všech věkových kategorií. Oslava se koná od 10:00 do 16:00 v Mount Diablo State Park.",
+      "body": [],
+      "proc": "Oslava má za cíl zvýšit povědomí o důležitosti historických geodetických bodů.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/06/26/mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage/?utm_source=rss&utm_medium=rss&utm_campaign=mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage",
+      "datum": "2026-06-27"
     }
   ]
 }
