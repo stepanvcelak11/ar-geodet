@@ -197,6 +197,10 @@
         var u = loadUsage();
         var top = Object.keys(u).filter(function (k) { return u[k] >= 2; })
             .sort(function (a, b) { return u[b] - u[a]; }).slice(0, 4);
+        // SEED: dokud si uzivatel „nenaklika" vlastni, nabidni bezne DENNI nastroje na 1 tap
+        // (mereni vzdalenosti/plochy, omerne, vytycovani) — jinak je vsechny schovava zed 35 dlazdic.
+        var DEFAULTS = ['openMeasureModal', 'startAreaMode', 'openCheckDist', 'openStakeoutModal'];
+        for (var di = 0; di < DEFAULTS.length && top.length < 4; di++) { if (top.indexOf(DEFAULTS[di]) === -1) top.push(DEFAULTS[di]); }
         var grid = getGrid();
         var chips = [];
         top.forEach(function (k) {

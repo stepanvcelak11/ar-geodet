@@ -52,13 +52,13 @@
     // {title, body, target?:selector|fn, before?:fn}  — bez target = vystředí kartu
     var BASIC = [
         { title: 'Vítej v AR&nbsp;Geodet', body: 'Krátká prohlídka základního ovládání. Posouvej tlačítkem <b>Další</b>.' },
-        { title: 'Přepínání zobrazení', target: '#view-seg', body: 'Přepínej mezi <b>AR</b> kamerou, <b>Split</b> (dělené) a 2D <b>Mapou</b> podle situace a baterie.' },
+        { title: 'Přepínání zobrazení', target: '#ag-view-wheel', body: 'Tímto kolečkem přepínáš jedním tapem mezi <b>AR</b> kamerou, <b>Split</b> (dělené) a 2D <b>Mapou</b> podle situace a baterie.' },
         { title: 'Stav a přesnost', target: '#info', body: 'Vidíš přesnost GPS a počet viditelných bodů. Čím nižší ± metry, tím spolehlivější poloha.' },
         { title: 'Azimut a kompas', target: '#compass-debug', body: 'Aktuální azimut. Klepnutím otevřeš kalibraci kompasu a srovnání severu (důležité pro AR).' },
         { title: 'Nový bod', target: '.dock-primary', body: 'Založ vlastní bod — z <b>průměru GPS</b> (nejpřesnější), klepnutím do <b>mapy</b>, nebo přečtením z <b>fotky (OCR)</b>.' },
         { title: 'Body', target: '#dock button[onclick*="openManageModal"]', body: 'Správa bodů: seznam, <b>import/export</b> (CSV, GPX, GeoJSON…) a <b>sdílení přes QR</b>.' },
         { title: 'Nástroje', target: '#dock button[onclick*="tools-modal"]', body: 'Měření vzdálenosti a plochy, kalkulačka, GNSS satelity, vytyčovací checklist, náčrt — a nové pokročilé nástroje.' },
-        { title: 'Více', target: '#dock-vice-btn', body: 'Průvodce úkolem, uložení okolí offline, návody, zpravodaj a přepínání zobrazení <b>AR / Split / Mapa</b>.' },
+        { title: 'Více', target: '#dock-vice-btn', body: 'Průvodce úkolem, uložení okolí offline, návody, zpravodaj a nástroje mapy (vrstvy).' },
         { title: 'Nastavení', target: '#dock button[onclick*="openSettings"]', body: 'Vzhled (motiv, barvy, prvky na obrazovce), <b>AR &amp; přesnost</b> (FOV, vyhlazení, fúze gyra) a správa zakázek a dat.' },
         { title: 'Základ máš za sebou', body: 'Pokračuj <b>Pokročilou prohlídkou</b> — ukáže nové geodetické nástroje, které appka umí navíc.' }
     ];
