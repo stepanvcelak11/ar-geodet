@@ -415,7 +415,7 @@
                 window.AGPose.set({
                     originLat: _result.lat, originLng: _result.lng,
                     posSigma: _result.posSigma,
-                    eyeH: (window.visSettings && visSettings.eyeHeight) || 1.6,
+                    eyeH: (typeof visSettings !== 'undefined' && visSettings && visSettings.eyeHeight) || 1.6,
                     source: 'resection', note: _result.residuals.length + ' bodů'
                 });
                 _anchored = true;

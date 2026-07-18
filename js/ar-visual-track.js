@@ -56,10 +56,11 @@
     function pageVisible() { try { return !document.hidden && document.visibilityState !== 'hidden'; } catch (e) { return true; } }
     function nowMs() { try { return (performance && performance.now) ? performance.now() : Date.now(); } catch (e) { return Date.now(); } }
     function angDiff(a, b) { return ((a - b + 540) % 360) - 180; }
-    function curHeading() { try { return (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null; } catch (e) { return null; } }
-    function fovH() { try { return (window.visSettings && visSettings.fovH) ? visSettings.fovH : (window._arProj ? window._arProj.halfH * 2 : 90); } catch (e) { return 90; } }
-    function fovV() { try { return (window.visSettings && visSettings.fovV) ? visSettings.fovV : (window._arProj ? window._arProj.halfV * 2 : 75); } catch (e) { return 75; } }
-    function sensorPitch() { try { return (window._arProj && isFinite(window._arProj.pitch)) ? window._arProj.pitch : null; } catch (e) { return null; } }
+    // #4: čti SYROVÝ senzorový směr/sklon (bez naší korekce), jinak by filtr četl vlastní výstup a rozkmital se
+    function curHeading() { try { if (typeof window._sensorHeadingRaw === 'number' && isFinite(window._sensorHeadingRaw)) return window._sensorHeadingRaw; return (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null; } catch (e) { return null; } }
+    function fovH() { try { return (typeof visSettings !== 'undefined' && visSettings && visSettings.fovH) ? visSettings.fovH : (window._arProj ? window._arProj.halfH * 2 : 90); } catch (e) { return 90; } }
+    function fovV() { try { return (typeof visSettings !== 'undefined' && visSettings && visSettings.fovV) ? visSettings.fovV : (window._arProj ? window._arProj.halfV * 2 : 75); } catch (e) { return 75; } }
+    function sensorPitch() { try { if (typeof window._sensorPitchRaw === 'number' && isFinite(window._sensorPitchRaw)) return window._sensorPitchRaw; return (window._arProj && isFinite(window._arProj.pitch)) ? window._arProj.pitch : null; } catch (e) { return null; } }
 
     // ==========================================================================
     //  STAV

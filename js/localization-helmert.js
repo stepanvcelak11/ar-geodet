@@ -273,7 +273,8 @@
         try {
             var raw = localStorage.getItem(lsKey()); if (!raw) return;
             var o = JSON.parse(raw);
-            if (o && o.m && isFinite(o.m.a)) { _model = o.m; if (Array.isArray(o.pairs)) _pairs = o.pairs; _model._on = (o.on !== false); }
+            // #17: dvojice obnov NEZÁVISLE na platnosti modelu (jinak se rozpracované páry po reloadu ztratí)
+            if (o) { if (Array.isArray(o.pairs)) _pairs = o.pairs; if (o.m && isFinite(o.m.a)) { _model = o.m; _model._on = (o.on !== false); } }
         } catch (e) {}
     }
     function clearModel() { try { localStorage.removeItem(lsKey()); } catch (e) {} _model = null; }
@@ -512,12 +513,13 @@
         if (acts) acts.style.display = 'block';
         // AGPose origin: nabídni srovnání jen když je platný a GPS-odvozený
         var pb = document.getElementById('aghl-apply-pose');
-        if (pb) { var showPose = !!(window.AGPose && window.AGPose.valid && window.AGPose.source === 'gps' && _activeModel()); pb.style.display = showPose ? 'block' : 'none'; }
+        // #6: NEvyžaduj valid (to nastaví až tenhle úkon sám) — stačí, že AR nekotví resekcí (source 'gps') a je hotový model
+        if (pb) { var showPose = !!(window.AGPose && window.AGPose.source === 'gps' && _activeModel()); pb.style.display = showPose ? 'block' : 'none'; }
     }
 
     function applyToPose() {
         try {
-            if (!(window.AGPose && window.AGPose.valid) || !_activeModel()) return;
+            if (!window.AGPose || !_activeModel()) return;   // #6: origin() vrátí fallback [userLat,userLng] i když ještě není valid
             var o = window.AGPose.origin(userLat, userLng);
             if (!o || o[0] == null) return;
             var c = _apply(o[0], o[1]);
@@ -526,8 +528,10 @@
                 originLat: c[0], originLng: c[1],
                 originZ: (window.AGPose.originZ != null ? _applyZ(o[0], o[1], window.AGPose.originZ) : null),
                 posSigma: (_model && _model.sigma0 != null) ? _model.sigma0 : window.AGPose.posSigma,
-                eyeH: window.AGPose.eyeH, source: 'gps', note: 'Helmert lokalizace'
+                eyeH: window.AGPose.eyeH, source: 'localized', note: 'Helmert lokalizace'
             });
+            // #6 idempotence: source 'localized' → showPose (vyžaduje 'gps') zhasne, druhý klik nemožný (žádný dvojitý posun)
+            try { renderResult(); } catch (e) {}
             agAlert('AR počátek srovnán', 'Počátek AR byl posunut Helmertovou lokalizací (' + (_model.n) + ' bodů).'
                 + (extr ? '\n\n⚠ Počátek leží MIMO obalový polygon referenčních bodů — jde o extrapolaci, ber s rezervou.' : ''));
         } catch (e) { agAlert('Nelze aplikovat', 'Srovnání AR počátku selhalo.'); }

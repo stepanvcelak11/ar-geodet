@@ -46,7 +46,7 @@
         return null;
     }
     function projNow() { try { var p = window._arProj; return (p && isFinite(p.pitch) && isFinite(p.halfH) && isFinite(p.halfV)) ? p : null; } catch (e) { return null; } }
-    function vOffsetNow() { try { return (window.visSettings && +visSettings.arVerticalOffset) || 0; } catch (e) { return 0; } }
+    function vOffsetNow() { try { return (typeof visSettings !== 'undefined' && visSettings && +visSettings.arVerticalOffset) || 0; } catch (e) { return 0; } }
     function metersPerDeg(lat) {
         if (typeof GeoCore !== 'undefined' && GeoCore && GeoCore.metersPerDeg) { try { return GeoCore.metersPerDeg(lat); } catch (e) {} }
         return { lat: 111320, lng: 111320 * Math.cos(lat * D2R) };
@@ -73,10 +73,10 @@
         // FOV telefon neposkytl → uživatel potvrdí posuvníkem (respektuje kalibraci ar-calib2)
         return { ok: false, note: 'Telefon FOV neposkytl (běžné na iOS). Potvrď/uprav šířku záběru níže — použije se kalibrace z „Srovnat obraz (2 body)", pokud jsi ji dělal.' };
     }
-    function fovH() { try { return (window.visSettings && +visSettings.fovH) || 90; } catch (e) { return 90; } }
+    function fovH() { try { return (typeof visSettings !== 'undefined' && visSettings && +visSettings.fovH) || 90; } catch (e) { return 90; } }
     function setFovH(v) {
         v = Math.max(50, Math.min(110, Math.round(v)));
-        try { if (window.visSettings) visSettings.fovH = v; } catch (e) {}
+        try { if (typeof visSettings !== 'undefined' && visSettings) visSettings.fovH = v; } catch (e) {}
         try { if (typeof setStoredData === 'function' && typeof visSettings !== 'undefined') setStoredData('arVisSettings12', JSON.stringify(visSettings)); } catch (e) {}
         return v;
     }
@@ -94,7 +94,7 @@
         } else if (haveUser()) {
             lat0 = userLat; lng0 = userLng; source = 'gps';
         } else { return null; }
-        try { if (window.visSettings && isFinite(visSettings.eyeHeight) && P && !(P.valid && P.eyeH != null)) eyeH = visSettings.eyeHeight; } catch (e) {}
+        try { if (typeof visSettings !== 'undefined' && visSettings && isFinite(visSettings.eyeHeight) && P && !(P.valid && P.eyeH != null)) eyeH = visSettings.eyeHeight; } catch (e) {}
         if (!(eyeH > 0)) eyeH = 1.6;
         // výška terénu stanoviska (Bpv), když je dostupný výškopis
         try { if (typeof terrainElev === 'function') { var e0 = terrainElev(lat0, lng0); if (e0 != null && isFinite(e0)) z0 = e0; } } catch (e) {}
@@ -122,7 +122,7 @@
     }
 
     // ---- KROK 3: průsečík paprsku se zemí (raymarching) -----------------------
-    function solveGround(ray, st) {
+    function solveGround(ray, st, proj) {
         if (ray.dep <= 0.4) return { err: 'Klepni na ZEM POD horizont (obzor). Namiř telefon níž a klepni na místo na zemi.' };
         var depR = ray.dep * D2R, t = Math.tan(depR);
         var eyeH = st.eyeH;
@@ -252,7 +252,7 @@
         var heading = headB.length ? circMeanDeg(headB) : h0;
 
         var ray = tapToRay(xPct, yPct, projS, heading);
-        var r = solveGround(ray, st);
+        var r = solveGround(ray, st, projS);
         // umísti značku na klepnuté místo
         var mk = document.getElementById('agps-mark');
         if (mk) { mk.style.left = xPct + '%'; mk.style.top = yPct + '%'; mk.style.display = 'block'; }
@@ -316,7 +316,7 @@
             var added = 0;
             try { added = window.addImportedPoints([obj]) || 0; } catch (e) { added = 0; }
             // volitelný žurnál (append-only) — když je k dispozici
-            try { if (added > 0 && window.AGJournal && typeof window.AGJournal.commit === 'function') window.AGJournal.commit({ op: 'add', after: obj, origin: 'foto-shot' }); } catch (e) {}
+            // #16: NEcommitovat žurnál znovu — addImportedPoints už 'add' zapsalo s id (přes obj.prov.origin='foto-shot')
             if (added > 0) agAlertX('Bod uložen', '#' + String(name).replace(/[<>&]/g, '') + ' uložen do zakázky (foto-totálka, ± ' + fmtM(r.accPlan) + ', orientačně).\nNajdeš ho v seznamu Body.');
             else agAlertX('Neuloženo', 'Bod se stejným názvem a polohou už v zakázce je.');
         });

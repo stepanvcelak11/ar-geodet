@@ -462,7 +462,9 @@
         } catch (e) {}
         var name = ($('bgps-name').value || '').trim() || ('BG' + Date.now().toString().slice(-4));
         if (typeof window.addImportedPoints !== 'function') { agAlert('Nelze uložit', 'Funkce pro vkládání bodů není dostupná.'); return; }
-        var added = window.addImportedPoints([{ name: name, lat: lat, lng: lng }]);
+        // #2/#5: provenience 'gps-avg' (= měřeno GPS průměrem). Pozn.: pokud je aktivní Helmert
+        // lokalizace (#3), tenhle bod se jí srovná — nekombinuj ji s ref-kalibrací (dvojí korekce).
+        var added = window.addImportedPoints([{ name: name, lat: lat, lng: lng, origin: 'gps-avg' }]);
         if (added > 0) {
             var sj = (typeof proj4 === 'function') ? proj4('EPSG:4326', 'EPSG:5514', [lng, lat]) : null;
             var coords = sj ? ('\nY ' + Math.abs(sj[0]).toFixed(2) + '  X ' + Math.abs(sj[1]).toFixed(2)) : '';

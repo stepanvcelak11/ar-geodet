@@ -432,6 +432,7 @@ if ('serviceWorker' in navigator) {
             document.getElementById('custom-y').value = Math.abs(sjtsk[0]).toFixed(2);
             document.getElementById('custom-x').value = Math.abs(sjtsk[1]).toFixed(2);
             pendingPointAccuracy = r.sterr;
+            window._agPointOrigin = 'gps-avg';   // #2/#5: tenhle bod vzniká z GPS průměru → správná provenience + brána pro Helmert (#3)
             // VYSKA: prumerovana elipsoidicka vyska -> Bpv (odecet undulace geoidu). Chybi-li (desktop), Z necham.
             let bpv = null;
             const _z = document.getElementById('custom-z');
@@ -448,6 +449,14 @@ if ('serviceWorker' in navigator) {
         
         function saveCustomPoint() {
             const name = document.getElementById('custom-name').value || "Bod"; let inputY = parseFloat(document.getElementById('custom-y').value); let inputX = parseFloat(document.getElementById('custom-x').value); if (isNaN(inputY) || isNaN(inputX)) return alert("Vyplňte souřadnice!"); let krovakY = inputY > 0 ? -inputY : inputY; let krovakX = inputX > 0 ? -inputX : inputX; let wgs84 = proj4("EPSG:5514", "EPSG:4326", [krovakY, krovakX]); let lng = wgs84[0]; let lat = wgs84[1]; var _zin = parseFloat((document.getElementById('custom-z') || {}).value); var vyska = isFinite(_zin) ? Math.round(_zin * 100) / 100 : null;
+            // #2/#3: nový bod z GPS průměru srovnej Helmertovou lokalizací staveniště (když je aktivní).
+            // Jen pro nově měřený GPS bod — ne při editaci ani u ručně zadaných S-JTSK.
+            try {
+                if (!editingCustomPointId && window._agPointOrigin === 'gps-avg' && window.AGLocalize && window.AGLocalize.active) {
+                    var _lc = window.AGLocalize.apply(lat, lng);
+                    if (_lc && isFinite(_lc[0]) && isFinite(_lc[1])) { lat = _lc[0]; lng = _lc[1]; if (vyska != null && window.AGLocalize.applyZ) vyska = window.AGLocalize.applyZ(lat, lng, vyska); }
+                }
+            } catch (e) {}
             let savedId = editingCustomPointId;
             if (editingCustomPointId) { const idx = persistentCustomPoints.findIndex(p => p.id === editingCustomPointId); if(idx !== -1) { persistentCustomPoints[idx].name = name; persistentCustomPoints[idx].lat = lat; persistentCustomPoints[idx].lng = lng; persistentCustomPoints[idx].vyska = vyska; } const arIdx = arPoints.findIndex(p => p.id === editingCustomPointId); if (arIdx !== -1) { arPoints[arIdx].name = name; arPoints[arIdx].lat = lat; arPoints[arIdx].lng = lng; arPoints[arIdx].vyska = vyska; if(arPoints[arIdx].element) { arPoints[arIdx].element.remove(); arPoints[arIdx].element = null; } } } else { const newPoint = { id: 'cp_' + Date.now(), name: name, lat: lat, lng: lng, cat: "CUSTOM", type: "custom" }; if (vyska != null) newPoint.vyska = vyska; if (pendingPointAccuracy != null) newPoint.acc = Math.round(pendingPointAccuracy * 100) / 100; newPoint.prov = { origin: (window._agPointOrigin || 'ruc'), ts: Date.now(), acc: (newPoint.acc != null ? newPoint.acc : null), qc: ((window.AGQc && AGQc.lastCode) || null) }; persistentCustomPoints.push(newPoint); arPoints.push({...newPoint, hidden: false}); savedId = newPoint.id; try { if (window.AGJournal) window.AGJournal.commit({ op: 'add', id: newPoint.id, after: newPoint, origin: newPoint.prov.origin }); } catch (e) {} } pendingPointAccuracy = null; window._agPointOrigin = null; setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
             saveNewPointDoc(savedId);
@@ -567,6 +576,12 @@ if ('serviceWorker' in navigator) {
                 P.source = pose.source || 'resection';
                 P.note = pose.note || '';
                 P.ts = Date.now(); P.valid = true;
+                // #3 drift baseline: ulož GPS polohu V OKAMŽIKU zakotvení. Drift pak měříme jako
+                // posun GPS_teď vs GPS_baseline (skutečná chůze), NE vzdálenost origin↔GPS (to je jen
+                // velikost GPS biasu, kterou resekce právě opravila → jinak by se dobrá resekce hned smazala).
+                P.gpsBaseLat = (typeof userLat === 'number' && isFinite(userLat)) ? userLat : null;
+                P.gpsBaseLng = (typeof userLng === 'number' && isFinite(userLng)) ? userLng : null;
+                P._driftFixes = 0;
                 try { window.dispatchEvent(new CustomEvent('agpose:change', { detail: { valid: true, source: P.source } })); } catch (e) {}
                 _badge();
             };
@@ -577,18 +592,22 @@ if ('serviceWorker' in navigator) {
             P.clear = function (userInitiated) {
                 var was = P.valid;
                 P.valid = false; P.source = 'gps'; P.originLat = P.originLng = P.originZ = P.posSigma = null;
+                P.gpsBaseLat = P.gpsBaseLng = null; P._driftFixes = 0;
                 if (was) { try { window.dispatchEvent(new CustomEvent('agpose:change', { detail: { valid: false } })); } catch (e) {} }
                 _badge();
                 if (userInitiated && typeof quickToast === 'function') quickToast('Kotvení zrušeno — AR jede zpět z GPS.');
             };
-            // drift detektor: volá se z updateGpsAveraging s každým fixem. Když se telefon
-            // reálně posunul dál než k·posSigma (min 3 m) od originu, kotvení zneplatní.
+            // drift detektor: volá se s každým GPS fixem. Měří posun GPS_teď vs GPS_baseline
+            // (z okamžiku zakotvení) = skutečná chůze. Práh 8 m je nad běžným šumem telefonní
+            // GPS (posSigma resekce sem NEpatří — to je bias, ne pohyb). Když baseline chybí,
+            // doplní se z prvního fixu (žádné falešné smazání).
             P._driftFixes = 0;
             P.checkDrift = function (lat, lng) {
-                if (!P.valid || P.source !== 'resection' || P.originLat == null || lat == null) return;
+                if (!P.valid || P.source !== 'resection' || lat == null) return;
                 if (typeof getDistance !== 'function') return;
-                var d = getDistance(P.originLat, P.originLng, lat, lng);
-                var thr = Math.max(3, 2.5 * (P.posSigma || 1.2));
+                if (P.gpsBaseLat == null || P.gpsBaseLng == null) { P.gpsBaseLat = lat; P.gpsBaseLng = lng; return; }
+                var d = getDistance(P.gpsBaseLat, P.gpsBaseLng, lat, lng);
+                var thr = 8;
                 if (d > thr) {
                     // hystereze: 3 fixy za sebou mimo práh, ať nás nerozhodí jeden výstřel GPS
                     if (++P._driftFixes >= 3) {

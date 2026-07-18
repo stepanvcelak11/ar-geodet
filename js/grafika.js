@@ -640,6 +640,7 @@
             if (window.ARFusion && window.ARFusion.enabled) { smoothedHeading = window.ARFusion.fuse(corrected, smoothedHeading, event); } else { smoothedHeading = smoothAngle(smoothedHeading, corrected, smoothAlpha); }
             let heading = smoothedHeading; currentHeading = heading;
             // #2 vizuální stabilizace: krátkodobá drift-free korekce směru z optického toku/WebXR (default vypnuto, decayuje k senzoru)
+            window._sensorHeadingRaw = smoothedHeading;   // #4: SYROVÝ senzorový směr PŘED korekcí — modul ho čte jako referenci, ne vlastní výstup (jinak nestabilní filtr)
             if (window.AGVisualTrack && window.AGVisualTrack.enabled) { var _vc = window.AGVisualTrack.getCorrection(); if (_vc && _vc.dyaw != null) { heading = ((heading + _vc.dyaw) % 360 + 360) % 360; currentHeading = heading; } }
             let relativeHeadingDeg = (heading - compassZeroOffset + 360) % 360; let displayAzimut = "";
             if (compassUnit === 'gon') { let gonTotal = relativeHeadingDeg * (400 / 360); let grad = Math.floor(gonTotal); let centigrad = Math.floor((gonTotal - grad) * 100); displayAzimut = `${grad}<sup>g</sup> ${centigrad.toString().padStart(2, '0')}<sup>c</sup>`; } else { displayAzimut = `${relativeHeadingDeg.toFixed(1)} °`; }
@@ -673,6 +674,7 @@
             let halfH = fovH / 2, halfV = fovV / 2, cullH = halfH + 8;
             // export projekce pro dalsi AR vrstvy (satelity.js) — at nemusi duplikovat vypocet naklonu
             // #2 vizuální stabilizace: korekce sklonu ze stejného zdroje
+            window._sensorPitchRaw = cameraPitchDown;   // #4: SYROVÝ sklon PŘED korekcí (viz výše)
             if (window.AGVisualTrack && window.AGVisualTrack.enabled) { var _vc2 = window.AGVisualTrack.getCorrection(); if (_vc2 && _vc2.dpitch != null) cameraPitchDown += _vc2.dpitch; }
             window._arProj = { pitch: cameraPitchDown, roll: imgRoll, halfH: halfH, halfV: halfV };
             let highlightedPointData = null; let renderedCount = 0;
