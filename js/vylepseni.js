@@ -115,24 +115,9 @@
     }
 
     function rewireProjects() {
-        if (typeof window.createNewProject === 'function' && !window.createNewProject._agWrapped) {
-            const orig = window.createNewProject;
-            const wrapped = function () {
-                agPrompt({
-                    title: 'Nová zakázka',
-                    message: 'Pojmenuj zakázku (lokalita / parcela / zakázkové číslo).',
-                    placeholder: 'Např. Pole u lesa 123/4',
-                    okText: 'Vytvořit'
-                }).then(function (name) {
-                    if (name == null || !name) return;
-                    const op = window.prompt;
-                    window.prompt = function () { return name; };
-                    try { orig.call(window); } finally { window.prompt = op; }
-                });
-            };
-            wrapped._agWrapped = true;
-            window.createNewProject = wrapped;
-        }
+        // POZN.: createNewProject se ZDE UŽ NEOBALUJE. Nativní logika.js zakládá zakázku
+        // přímo přes agPrompt(); staré obalení „podstrč window.prompt" tu otevíralo DRUHÝ
+        // dialog (originál agPrompt volá sám) → zakázku bylo nutné zadat 2×. (bug fix)
 
         if (typeof window.deleteProject === 'function' && !window.deleteProject._agWrapped) {
             const orig = window.deleteProject; // může už být obalená undo.js — to chceme zachovat

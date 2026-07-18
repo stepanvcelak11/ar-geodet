@@ -48,15 +48,21 @@
         return Math.atan2(s, c) * R2D;
     }
 
-    // body vhodné jako cíl resekce: úřední (autoritativní souřadnice) napřed
+    // body vhodné jako cíl resekce: NEJBLIŽŠÍ napřed (vlastní i úřední rovnocenně).
+    // Dřív se úřední řadily vždy před vlastní → vlastní GPS body padaly na konec a
+    // při >40 úředních bodech v okolí se do seznamu vůbec nedostaly (viz renderList).
     function candidatePoints() {
         if (typeof arPoints === 'undefined') return [];
         return arPoints.filter(function (p) { return !p.hidden; })
             .map(function (p) { return { p: p, d: haveUser() ? getDistance(userLat, userLng, p.lat, p.lng) : null }; })
             .sort(function (a, b) {
-                var oa = (a.p.cat && a.p.cat !== 'CUSTOM') ? 0 : 1, ob = (b.p.cat && b.p.cat !== 'CUSTOM') ? 0 : 1;
-                if (oa !== ob) return oa - ob;
-                return (a.d == null || b.d == null) ? 0 : a.d - b.d;
+                if (a.d == null && b.d == null) {   // bez GPS: úřední napřed (mají autoritativní souřadnice)
+                    var oa = (a.p.cat && a.p.cat !== 'CUSTOM') ? 0 : 1, ob = (b.p.cat && b.p.cat !== 'CUSTOM') ? 0 : 1;
+                    return oa - ob;
+                }
+                if (a.d == null) return 1;
+                if (b.d == null) return -1;
+                return a.d - b.d;               // s GPS: prostě nejbližší napřed
             });
     }
     function ptById(id) { if (typeof arPoints === 'undefined') return null; return arPoints.find(function (q) { return q.id === id; }) || null; }
@@ -226,8 +232,15 @@
         var box = document.getElementById('agrx-list'); if (!box) return;
         var list = candidatePoints();
         if (!list.length) { box.innerHTML = '<div style="opacity:.6;font-size:13px;padding:8px 2px;">Žádné body — stáhni okolí (ČÚZK) nebo přidej vlastní body se souřadnicemi.</div>'; return; }
+        // ukázat prvních 40 nejbližších + navíc VŽDY vlastní body a už vybrané body
+        // (i kdyby byly za hranicí 40) — jinak by vlastní GPS body při hustém okolí zmizely
+        var shown = list.slice(0, 40);
+        var seen = {}; shown.forEach(function (x) { seen[x.p.id] = 1; });
+        list.slice(40).forEach(function (x) {
+            if (!seen[x.p.id] && (x.p.cat === 'CUSTOM' || _selIds.indexOf(x.p.id) >= 0)) { shown.push(x); seen[x.p.id] = 1; }
+        });
         var html = '';
-        list.slice(0, 40).forEach(function (x) {
+        shown.forEach(function (x) {
             var id = x.p.id, on = _selIds.indexOf(id) >= 0, ord = _selIds.indexOf(id) + 1;
             var shot = _shots[id];
             html += '<label class="agrx-row' + (on ? ' on' : '') + '">'

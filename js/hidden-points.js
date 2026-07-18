@@ -33,9 +33,20 @@
         return ({ TB: 'trigonometrický', ZHB: 'zhušťovací', PBPP: 'podrobný', NIVEL: 'výškový', CUSTOM: 'vlastní' })[c] || '';
     }
 
+    // Skrytí bodu nastaví markeru opacity:0 a po 200 ms odpojí uzel, ALE element si
+    // drží. initARMarkers ho při obnově zase připojí — bez vynulování opacity by zůstal
+    // neviditelný, dokud ho render smyčka nepřekreslí. Proto reziduum opacity smažeme.
+    function clearOpacityResidue() {
+        try {
+            if (typeof arPoints === 'undefined' || !Array.isArray(arPoints)) return;
+            arPoints.forEach(function (p) { if (p && !p.hidden && p.element && p.element.style) p.element.style.opacity = ''; });
+        } catch (e) {}
+    }
+
     // Po obnově překreslit AR, mapu i případně otevřený seznam Body.
     function refreshApp() {
         try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) {}
+        clearOpacityResidue();
         try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) {}
         try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) {}
         try {
@@ -68,6 +79,9 @@
         var ov = document.createElement('div');
         ov.className = 'modal-overlay';
         ov.id = MODAL_ID;
+        // Nad bottom-sheet (z 20000) i jádrové modály (19999) — jinak vrstva nad seznamem
+        // požírá klepnutí a „Zobrazit"/„Zavřít" nereagují (bod se neobnoví, nic nejde zavřít).
+        ov.style.zIndex = '2000001';
         ov.innerHTML =
             '<div class="modal-content">' +
             '<h3 style="color: var(--accent); margin-top:0;">' + ICON + ' Skryté body</h3>' +
@@ -77,6 +91,8 @@
             '<button class="btn btn-secondary" style="margin-top:10px;" id="hp-close">Zavřít</button>' +
             '</div>';
         document.body.appendChild(ov);
+        // klepnutí na pozadí (mimo kartu) zavře — pojistka proti „zaseknutému" modálu
+        ov.addEventListener('click', function (e) { if (e.target === ov) closeModal(); });
         document.getElementById('hp-close').addEventListener('click', closeModal);
         document.getElementById('hp-restore-all').addEventListener('click', function () {
             hiddenPts().forEach(function (p) { p.hidden = false; });
@@ -117,6 +133,12 @@
 
     function openModal() {
         ensureModal();
+        // Zavřít vše, co by mohlo zůstat nad seznamem a požírat klepnutí:
+        // bottom-sheet (z 20000) i jádrové modály (observer .ag-open sleduje inline display).
+        try { var bs = document.getElementById('bottom-sheet'); if (bs) bs.classList.remove('open'); } catch (e) {}
+        ['settings-modal', 'manage-modal', 'tools-modal'].forEach(function (id) {
+            try { var m = document.getElementById(id); if (m && m.style.display !== 'none') m.style.display = 'none'; } catch (e) {}
+        });
         render();
         document.getElementById(MODAL_ID).style.display = 'flex';
     }

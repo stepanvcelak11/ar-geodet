@@ -183,7 +183,7 @@ if ('serviceWorker' in navigator) {
         function createNewProject() {
             const create = (name) => { if(!name) return; _persistOfficialPoints(); let id = 'proj_' + Date.now(); projects.push({id: id, name: name}); localStorage.setItem('arProjectsList', JSON.stringify(projects)); activeProjectId = id; localStorage.setItem('arActiveProjectId', activeProjectId); renderProjectSelect(); hydrateActiveProject().then(loadProjectSettings); };
             // in-app dialog místo nativního prompt() (vzhledem i chováním ladí se zbytkem appky)
-            if (window.agPrompt) window.agPrompt({ title: 'Nová zakázka', message: 'Zadej název nové zakázky:', placeholder: 'např. Vytyčení RD Lhota', okText: 'Založit' }).then(create);
+            if (window.agPrompt) window.agPrompt({ title: 'Nová zakázka', message: 'Pojmenuj zakázku (lokalita / parcela / zakázkové číslo).', placeholder: 'Např. Pole u lesa 123/4', okText: 'Vytvořit' }).then(create);
             else create(prompt("Název nové zakázky:"));
         }
         function deleteProject() { if(projects.length <= 1) return alert("Nelze smazat poslední zakázku."); if(!confirm("Opravdu smazat aktuální zakázku a všechny její uložené body?")) return; IDB_KEYS.forEach(k => { _idbDel(activeProjectId + "_" + k); try { localStorage.removeItem(activeProjectId + "_" + k); } catch(e){} }); projects = projects.filter(p => p.id !== activeProjectId); localStorage.setItem('arProjectsList', JSON.stringify(projects)); activeProjectId = projects[0].id; localStorage.setItem('arActiveProjectId', activeProjectId); renderProjectSelect(); hydrateActiveProject().then(loadProjectSettings); }
@@ -370,12 +370,15 @@ if ('serviceWorker' in navigator) {
                 const np = { id: id, name: p.name || 'Bod', lat: p.lat, lng: p.lng, cat: 'CUSTOM', type: 'custom' };
                 if (p.vyska != null && isFinite(p.vyska)) np.vyska = Math.round(p.vyska * 100) / 100;
                 persistentCustomPoints.push(np);
+                arPoints.push({ ...np, hidden: false });   // OPRAVA: hned i do pameti (AR+mapa), jinak videt az po restartu
                 if (p.doc && typeof savePointDoc === 'function') { try { savePointDoc(id, (typeof _normalizeDoc === 'function' ? _normalizeDoc(p.doc) : p.doc)); } catch (e) {} }
                 added++;
             });
             setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
             if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap();
+            if (typeof initARMarkers === 'function') initARMarkers();
             if (typeof renderManageList === 'function') renderManageList();
+            if (typeof updateInfoPanel === 'function') updateInfoPanel();
             if (userLat && userLng && typeof initFetch === 'function') initFetch(userLat, userLng);
             return added;
         };
