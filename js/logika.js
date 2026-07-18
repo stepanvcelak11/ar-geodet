@@ -165,7 +165,7 @@ if ('serviceWorker' in navigator) {
             t.innerText = msg; t.style.opacity = '1'; clearTimeout(t._timer);
             t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2600);
         }
-        let gpsSamples = [], gpsAvgResult = null;
+        let gpsSamples = [], gpsAvgResult = null, _gpsJump = 0;
         let arPoints = [], persistentCustomPoints = [], hideBtnLogic = null, editingCustomPointId = null, highlightedPointId = null, activePointIdForModal = null;
         let compassUnit = 'deg'; let compassZeroOffset = 0;
         let measA = null, measB = null, pendingPointAccuracy = null, mapAddMode = false;
@@ -520,7 +520,16 @@ if ('serviceWorker' in navigator) {
             if (gpsSamples.length) {
                 const ref = gpsAvgResult || gpsSamples[gpsSamples.length - 1];
                 const moved = getDistance(ref.lat, ref.lng, lat, lng);
-                if ((speed && speed > 0.5) || moved > 15) gpsSamples = [];
+                // Reset prumeru jen na SKUTECNY pohyb (chuze dle rychlosti), NE na ojedinely
+                // skok GPS sumu pri slabem signalu — jinak se prumer nikdy nenaakumuluje prave
+                // tam, kde je signal nejhorsi (u zastavby/lesa). Prah skoku skalujeme hlasenou
+                // presnosti a vyzadujeme 2 po sobe jdouci skoky, nez zahodime nasbirane vzorky
+                // (ojedinely spike stejne odfiltruje MAD orez nize).
+                const walking = (speed != null && isFinite(speed) && speed > 0.5);
+                const jumpThr = Math.max(15, 3 * (acc || 5));
+                if (walking) { gpsSamples = []; _gpsJump = 0; }
+                else if (moved > jumpThr) { if (++_gpsJump >= 2) { gpsSamples = []; _gpsJump = 0; } }
+                else { _gpsJump = 0; }
             }
             gpsSamples.push({ t: Date.now(), lat: lat, lng: lng, acc: (acc || 0), alt: (alt != null && isFinite(alt) ? alt : null), altAcc: (altAcc != null && isFinite(altAcc) ? altAcc : null) });
             if (gpsSamples.length > 300) gpsSamples.shift();

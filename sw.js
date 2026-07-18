@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  — mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v166';
+const SHELL_CACHE = 'argeodet-shell-v167';
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -34,6 +34,7 @@ const ASSETS_TO_CACHE = [
     './js/export.js',
     './js/kompas-check.js',
     './js/zaloha.js',
+    './js/auto-zaloha.js',
     './js/undo.js',
     './js/kos.js',
     './js/zakazky.js',
@@ -48,6 +49,7 @@ const ASSETS_TO_CACHE = [
     './css/gps-warn.css',
     './js/csv-validate.js',
     './js/kml-export.js',
+    './js/dxf-export.js',
     './js/compass-stability.js',
     './css/compass-stability.css',
     './js/calib-profiles.js',
@@ -76,6 +78,7 @@ const ASSETS_TO_CACHE = [
     './js/vyska-objektu.js',
     './js/epochy.js',
     './js/ar-calibrate.js',
+    './js/ar-calib2.js',
     './css/ar-calibrate.css',
     './js/project-import.js',
     './js/cadastre-vector.js',
