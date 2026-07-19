@@ -1,39 +1,18 @@
 {
-  "vydani": "2026-07-18",
-  "uvodnik": "Přinášíme aktuální zprávy ze světa geodézie a technologií.",
+  "vydani": "2026-07-19",
+  "uvodnik": "Dnešní vydání přináší novinky ze světa geodézie a technologií.",
   "polozky": [
     {
       "rubrika": "Z domova",
       "top": true,
-      "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
-      "perex": "Upozorňujeme na ukončení provozu starší verze webových služeb pro geometrické plány.",
-      "telo": "Český úřad zeměměřický a katastrální (ČÚZK) informoval, že na podzim 2026 dojde k ukončení provozu webových služeb pro vyhotovitele a ověřovatele geometrických plánů (WSGP) verze 2.10. Od tohoto termínu budou v provozu pouze služby WSGP verze 3.1. Uživatelé jsou vyzváni, aby se na tuto změnu připravili a omlouvají se za případné komplikace.",
-      "body": [],
-      "proc": "Tato změna se dotkne všech uživatelů služeb WSGP a je důležité se na ni připravit.",
-      "zdroj": "ČÚZK",
-      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
-      "datum": "2026-05-29"
-    },
-    {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "Topcon a GreenValley International spolupracují na inovacích v prostorové inteligenci",
-      "perex": "Topcon Positioning Systems uzavřel strategickou dohodu se společností GreenValley International.",
-      "telo": "Tato spolupráce se zaměří na technologie pro geodézii, mapování, výstavbu a lesnictví. Plánované inovace zahrnují integrovaná hardwarová a softwarová řešení pro sběr a zpracování dat pomocí LiDARu, a to jak z ručních, tak z leteckých a mobilních zařízení. Vývoj se také rozšíří do oblasti robotických systémů a autonomních monitorovacích řešení.",
-      "body": [],
-      "proc": "Spolupráce mezi těmito dvěma společnostmi může přinést nové technologie pro geodetické aplikace.",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/aerialuas/topcon-and-greenvalley-international-collaborate-on-spatial-intelligence-innovations/",
-      "datum": "2026-07-17"
-    },
-    {
-      "rubrika": "Z praxe",
-      "top": false,
-      "nadpis": "Geodetický projekt: Termín pro odevzdání do 13. ledna 2027",
-      "perex": "NOAA připravuje implementaci modernizovaného Národního systému prostorového referencování.",
-      "telo": "V rámci této modernizace musí být všechny projekty OPUS a projekty diferenciálního nivelování, které mají za cíl vytvořit nebo aktualizovat geodetickou kontrolu, odevzdány do 13. ledna 2027. Po tomto datu již NOAA nebude přijímat žádné projekty GPS prostřednictvím OPUS Projects 5, i když tento nástroj zůstane k dispozici pro jiné účely.",
-      "body": [],
-      "proc": "Tato informace je důležitá pro geodety, kteří plánují projekty v rámci NSRS.",
+      "nadpis": "Geodetický projekt: Termín pro podání žádostí do 13. ledna 2027",
+      "perex": "NOAA připravuje modernizaci Národního referenčního systému.",
+      "telo": "Národní geodetický úřad (NGS) USA připravuje implementaci modernizovaného Národního prostorového referenčního systému (NSRS). V rámci této přechodné fáze je důležité, aby všechny projekty OPUS a projekty diferenciálního nivelování, které mají za cíl vytvořit nebo aktualizovat geodetickou kontrolu, byly podány do NGS do 13. ledna 2027. Po tomto datu NGS již nebude přijímat žádné další projekty GPS prostřednictvím OPUS Projects 5.",
+      "body": [
+        "Důležitý termín pro geodety.",
+        "Modernizace referenčního systému."
+      ],
+      "proc": "Tato zpráva je důležitá pro geodety, kteří plánují projekty v USA.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/07/15/geodetic-survey-project-submission-deadline-january-13-2027/?utm_source=rss&utm_medium=rss&utm_campaign=geodetic-survey-project-submission-deadline-january-13-2027",
       "datum": "2026-07-15"
@@ -41,11 +20,44 @@
     {
       "rubrika": "Technologie",
       "top": false,
-      "nadpis": "NASA malý satelit pro přesnější globální polohování",
-      "perex": "NASA uvedla na trh nový CubeSat pro zlepšení mapování Země.",
-      "telo": "Satelit GRITSS, velikosti kufru, byl vypuštěn 7. července a má za cíl sloučit různé pozorovací systémy a vést k přesnějšímu mapování. Tento satelit demonstruje novou techniku pro připojení různých geodetických systémů, což by mohlo mít významný dopad na budoucí geodetické projekty.",
-      "body": [],
-      "proc": "Tento satelit může přinést nové možnosti pro geodetické aplikace a přesnost měření.",
+      "nadpis": "Topcon a GreenValley International spolupracují na inovacích v prostorové inteligenci",
+      "perex": "Topcon oznámil strategickou dohodu se společností GreenValley International.",
+      "telo": "Společnost Topcon Positioning Systems oznámila, že uzavřela strategickou dohodu se společností GreenValley International (GVI) za účelem spolupráce na technologiích pro geodézii, mapování, stavebnictví a lesnictví. Plánované inovace zahrnují integrovaná hardwarová a softwarová řešení pro sběr a zpracování dat z mobilního, leteckého a ručního LiDARu, přičemž vývoj se rozšíří i do robotických systémů a autonomních monitorovacích řešení.",
+      "body": [
+        "Nové technologie pro geodézii a mapování.",
+        "Spolupráce mezi významnými firmami."
+      ],
+      "proc": "Tato spolupráce může přinést nové technologie pro geodetickou praxi.",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/aerialuas/topcon-and-greenvalley-international-collaborate-on-spatial-intelligence-innovations/",
+      "datum": "2026-07-17"
+    },
+    {
+      "rubrika": "Přístroje",
+      "top": false,
+      "nadpis": "Eos Positioning Systems představuje nový držák pro range pole Skadi",
+      "perex": "Nový doplněk zlepšuje pohodlí v terénu pro techniky.",
+      "telo": "Eos Positioning Systems uvedl nový držák pro range pole Skadi, který slouží dvojímu účelu. Umožňuje technikům přinést do terénu jejich Skadi rukojeť a zároveň umožňuje montáž jakéhokoli telefonu nebo tabletu na jejich range pole bez potřeby dalšího hardwaru. Tento doplněk je nyní zahrnut u každého zařízení Skadi 2.",
+      "body": [
+        "Zlepšení pohodlí pro geodety.",
+        "Nové možnosti pro mobilní zařízení."
+      ],
+      "proc": "Tento produkt může usnadnit práci geodetům v terénu.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/07/07/eos-positioning-systems-introduces-new-skadi-handle-range-pole-bracket/?utm_source=rss&utm_medium=rss&utm_campaign=eos-positioning-systems-introduces-new-skadi-handle-range-pole-bracket",
+      "datum": "2026-07-07"
+    },
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "NASA malý satelit může zlepšit přesnost globálního polohování",
+      "perex": "Nový CubeSat od NASA slibuje přesnější mapování Země.",
+      "telo": "Satelit NASA o velikosti kufru, který má za cíl sloučit různé pozorovací systémy a vést k přesnějšímu mapování Země, byl vypuštěn 7. července z Vandenberg Space Force Base v Kalifornii. Satelit GRITSS, známý jako Geodetic Reference Instrument Transponder for Small Satellites, demonstruje proveditelnost nové techniky pro spojení různých měřicích systémů.",
+      "body": [
+        "Inovativní technologie pro geodézii.",
+        "Zlepšení přesnosti měření."
+      ],
+      "proc": "Tato technologie může mít významný dopad na geodetické měření.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/07/14/nasa-small-satellite-could-make-global-positioning-more-precise/?utm_source=rss&utm_medium=rss&utm_campaign=nasa-small-satellite-could-make-global-positioning-more-precise",
       "datum": "2026-07-14"
@@ -53,14 +65,32 @@
     {
       "rubrika": "Akce",
       "top": false,
-      "nadpis": "Výročí 175 let Mount Diablo Initial Point",
-      "perex": "Kalifornie oslaví významné výročí v oblasti geodézie.",
-      "telo": "Dne 18. července 2026 se v Kalifornii uskuteční veřejná oslava 175. výročí Mount Diablo Initial Point. Akce, kterou pořádá Kalifornský státní park a Mount Diablo Surveyors Historical Society, bude zahrnovat vzdělávací programy a aktivity pro návštěvníky všech věkových kategorií. Oslava se koná od 10:00 do 16:00 v Mount Diablo State Park.",
-      "body": [],
-      "proc": "Oslava má za cíl zvýšit povědomí o důležitosti historických geodetických bodů.",
+      "nadpis": "Commercial UAV Expo oznámila druhou hlavní přednášku",
+      "perex": "Důležitá akce pro drony se blíží.",
+      "telo": "Na závěrečný den Commercial UAV Expo 2026 vystoupí vůdci FAA a EASA, aby porovnali regulaci BVLOS napříč Atlantikem. Tato akce se koná v Las Vegas a druhá a poslední hlavní přednáška se zaměří na přístup FAA a EASA k operacím dronů BVLOS. Přednáška se uskuteční 3. září 2026.",
+      "body": [
+        "Příležitost k porovnání regulací.",
+        "Důležitá akce pro profesionály v oboru."
+      ],
+      "proc": "Tato akce je klíčová pro geodety a odborníky na drony.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/06/26/mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage/?utm_source=rss&utm_medium=rss&utm_campaign=mount-diablo-initial-points-175th-anniversary-to-celebrate-californias-surveying-heritage",
-      "datum": "2026-06-27"
+      "odkaz": "https://amerisurv.com/2026/07/15/commercial-uav-expo-announces-second-keynote-two-skies-one-conversation/?utm_source=rss&utm_medium=rss&utm_campaign=commercial-uav-expo-announces-second-keynote-two-skies-one-conversation",
+      "datum": "2026-07-15"
+    },
+    {
+      "rubrika": "Vzdělávání",
+      "top": false,
+      "nadpis": "Zlepšení přesnosti mapování prostřednictvím letecké triangulace",
+      "perex": "Webinář představí nové možnosti v mapování.",
+      "telo": "Letecká triangulace je klíčovým krokem při výrobě přesných mapovacích produktů. S verzí 11.1 Correlator3D byla tato pracovní postup výrazně vylepšena, což přináší robustnější výsledky na náročných datech, zjednodušuje nastavení projektů s více kamerami a zrychluje úpravy balíčků. Tento webinář představí nejnovější schopnosti letecké triangulace v Correlator3D včetně zlepšené extrakce bodů a nových validačních nástrojů.",
+      "body": [
+        "Vylepšení v mapovacích technikách.",
+        "Webinář zaměřený na nové technologie."
+      ],
+      "proc": "Tento webinář je důležitý pro geodety a specialisty na mapování.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/06/29/improving-mapping-accuracy-through-aerial-triangulation/?utm_source=rss&utm_medium=rss&utm_campaign=improving-mapping-accuracy-through-aerial-triangulation",
+      "datum": "2026-06-29"
     }
   ]
 }
