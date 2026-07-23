@@ -1,93 +1,78 @@
 {
-  "vydani": "2026-07-22",
-  "uvodnik": "Přinášíme přehled aktuálních zpráv ze světa geodézie a technologií.",
+  "vydani": "2026-07-23",
+  "uvodnik": "Přinášíme aktuální zprávy ze světa geodetických technologií a legislativy.",
   "polozky": [
     {
       "rubrika": "Přístroje",
       "top": true,
-      "nadpis": "První velké vylepšení ZIPLEVEL po 30 letech výroby v USA",
-      "perex": "Technidea Corporation představila nový model ZIPLEVEL® PRO-2030.",
-      "telo": "Nový ZIPLEVEL® PRO-2030 je nejrychlejší, nejjednodušší a nejvýkonnější nivelátor na trhu, který nabízí papírově tenkou přesnost bez omezení rotačních laserů. Tento přístroj, vyvinutý a vyrobený v USA, je určen pro dodavatele, inženýry, geodety a inspektory. Vylepšení zahrnuje rychlejší nastavení a zvýšenou produktivitu, což šetří čas a peníze.",
+      "nadpis": "První velké vylepšení ZIPLEVEL za 30 let výroby v USA",
+      "perex": "Technidea Corporation představila nový ZIPLEVEL PRO-2030.",
+      "telo": "Nový ZIPLEVEL® PRO-2030 je nejrychlejší, nejjednodušší a nejvýkonnější nivelátor, který byl navržen a vyroben v USA. Tento přístroj nahrazuje historické rotační lasery a bubliny v průhledných trubicích, přičemž nabízí papírově tenkou přesnost a neomezené rozsahy. ZIPLEVEL je ideální pro dodavatele, inženýry, geodety a inspektory, a díky rychlému nastavení a vyšší produktivitě šetří čas a peníze.",
       "body": [
-        "Rychlé nastavení a snadné použití",
-        "Papírově tenká přesnost"
+        "Papírově tenká přesnost",
+        "Rychlé nastavení a úspora nákladů"
       ],
-      "proc": "Nový model přináší významná vylepšení v oblasti přesnosti a efektivity.",
+      "proc": "Nový přístroj přináší revoluci v oblasti nivelace.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/07/19/first-major-ziplevel-upgrade-in-30-years-of-usa-production/?utm_source=rss&utm_medium=rss&utm_campaign=first-major-ziplevel-upgrade-in-30-years-of-usa-production",
       "datum": "2026-07-19"
     },
     {
-      "rubrika": "Ze světa",
+      "rubrika": "Technologie",
       "top": false,
-      "nadpis": "Topcon a GreenValley International spolupracují na inovacích prostorové inteligence",
-      "perex": "Topcon Positioning Systems oznámil strategickou dohodu s GreenValley International.",
-      "telo": "Tato spolupráce se zaměří na vývoj technologií pro geodézii, mapování, stavebnictví a lesnictví. Plánované inovace zahrnují integrovaná hardwarová a softwarová řešení pro sběr a zpracování dat z mobilního a leteckého LiDARu. Vývoj se rovněž zaměří na robotické systémy a autonomní monitorovací řešení.",
+      "nadpis": "Topcon a GreenValley International spolupracují na inovacích v oblasti prostorové inteligence",
+      "perex": "Topcon Positioning Systems uzavřel strategickou dohodu s GreenValley International.",
+      "telo": "Tato spolupráce se zaměří na technologie pro geodézii, mapování, stavebnictví a lesnictví. Plánované inovace zahrnují integrovaná hardwarová a softwarová řešení pro sběr a zpracování dat z handheld, leteckého a mobilního LiDARu. Vývoj se také rozšíří do oblasti robotických systémů a autonomních monitorovacích řešení.",
       "body": [
-        "Inovace v oblasti geodézie a mapování",
-        "Robotické systémy a autonomní monitorování"
+        "Integrovaná řešení pro sběr dat",
+        "Robotické a autonomní systémy"
       ],
-      "proc": "Tato spolupráce má potenciál přinést revoluci do geodetických technologií.",
+      "proc": "Spolupráce přinese nové možnosti v oblasti prostorové inteligence.",
       "zdroj": "xyHt",
       "odkaz": "https://www.xyht.com/aerialuas/topcon-and-greenvalley-international-collaborate-on-spatial-intelligence-innovations/",
       "datum": "2026-07-17"
     },
     {
-      "rubrika": "Z praxe",
+      "rubrika": "Z domova",
       "top": false,
-      "nadpis": "Jak Phoenix LiDAR pomohl vybudovat trh, který nyní obsluhuje",
-      "perex": "Grayson Omans, zakladatel Phoenix LiDAR Systems, popisuje přechod společnosti do nové kapitoly.",
-      "telo": "Po akvizici Revolution Geo Systems se společnost Phoenix LiDAR Systems transformuje a zaměřuje se na budování trhu, který obsluhuje. Omans se vyjadřuje k výzvám a úspěchům, které zažil při budování společnosti a předávání jejích částí novým majitelům. Jeho slova ukazují na složitost a tlak, které přicházejí s podnikáním v rychle se měnícím odvětví.",
+      "nadpis": "Ukončení provozu služeb verze 2.10 WSGP",
+      "perex": "ČÚZK oznamuje ukončení provozu starší verze WSGP.",
+      "telo": "Na podzim 2026 bude ukončen provoz webových služeb pro vyhotovitele a ověřovatele geometrických plánů (WSGP) verze 2.10. Od tohoto termínu budou k dispozici pouze služby WSGP verze 3.1. Uživatelé jsou vyzváni k přechodu na novější verzi, aby se vyhnuli komplikacím.",
       "body": [
-        "Přechod společnosti po akvizici",
-        "Výzvy a úspěchy v podnikání"
+        "Přechod na verzi 3.1",
+        "Ukončení starší verze"
       ],
-      "proc": "Příběh ukazuje, jak se mění trh s LiDAR technologiemi.",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/aerialuas/inventing-the-workflow-how-phoenix-lidar-helped-build-the-market-it-now-serves/",
-      "datum": "2026-07-10"
+      "proc": "Uživatelé by měli být připraveni na změnu a přechod na novou verzi.",
+      "zdroj": "ČÚZK",
+      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
+      "datum": "2026-05-29"
     },
     {
-      "rubrika": "Zákon",
+      "rubrika": "Vzdělávání",
       "top": false,
-      "nadpis": "Termín pro podání projektů geodetického průzkumu: 13. ledna 2027",
-      "perex": "NOAA připravuje implementaci modernizovaného Národního prostorového referenčního systému.",
-      "telo": "V rámci této přípravy musí být všechny projekty OPUS a diferenciální nivelace, které mají za cíl vytvořit nebo aktualizovat geodetickou kontrolu, podány k NGS do 13. ledna 2027. Po tomto datu NGS již nebude akceptovat podání projektů GPS prostřednictvím OPUS Projects 5, což může mít významný dopad na geodety a jejich práci.",
+      "nadpis": "Geodetický projekt: Termín pro podání žádostí 13. ledna 2027",
+      "perex": "NOAA připravuje modernizaci Národního referenčního systému.",
+      "telo": "V rámci přípravy na implementaci modernizovaného Národního prostorového referenčního systému (NSRS) musí být všechny projekty OPUS a diferenciální nivelace podány do 13. ledna 2027. Po tomto datu již NOAA nebude akceptovat žádosti o GPS projekty prostřednictvím OPUS Projects 5, což podtrhuje důležitost včasného podání.",
       "body": [
-        "Důležitost podání projektů včas",
-        "Změny v akceptaci projektů NGS"
+        "Termín podání žádostí",
+        "Modernizace NSRS"
       ],
-      "proc": "Tato změna může ovlivnit mnoho geodetů a jejich projekty.",
+      "proc": "Je důležité sledovat termíny pro podání žádostí o geodetické projekty.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/07/15/geodetic-survey-project-submission-deadline-january-13-2027/?utm_source=rss&utm_medium=rss&utm_campaign=geodetic-survey-project-submission-deadline-january-13-2027",
       "datum": "2026-07-15"
     },
     {
-      "rubrika": "Tip",
-      "top": false,
-      "nadpis": "NASA malý satelit by mohl zlepšit přesnost globálního polohování",
-      "perex": "NASA uvedla na trh nový CubeSat, který má za cíl zlepšit mapování Země.",
-      "telo": "CubeSat známý jako Geodetic Reference Instrument Transponder for Small Satellites (GRITSS) byl nedávno vypuštěn a jeho cílem je sloučit různé pozorovací systémy pro dosažení přesnějšího mapování. Tento satelit, velikosti kufru, by mohl přinést revoluci v geodetických technologiích a metodách.",
-      "body": [
-        "Zlepšení přesnosti mapování",
-        "Nové technologie pro geodetické aplikace"
-      ],
-      "proc": "GRITSS představuje nový krok v technologii geodetického pozorování.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/14/nasa-small-satellite-could-make-global-positioning-more-precise/?utm_source=rss&utm_medium=rss&utm_campaign=nasa-small-satellite-could-make-global-positioning-more-precise",
-      "datum": "2026-07-14"
-    },
-    {
       "rubrika": "Akce",
       "top": false,
-      "nadpis": "Komercializace UAV Expo oznámila druhý keynote: Dvě oblohy, jedna konverzace",
-      "perex": "Na závěrečném dni Commercial UAV Expo 2026 se sejdou vůdci FAA a EASA.",
-      "telo": "Tato akce, která se koná 3. září 2026, se zaměří na srovnání regulací BVLOS mezi FAA a EASA. Tato diskuse je důležitá pro všechny, kteří se zabývají drony a jejich použitím v komerčním sektoru. Očekává se, že účastníci získají cenné informace o budoucnosti regulace dronů.",
+      "nadpis": "Commercial UAV Expo oznámila druhou keynote: Dva nebe, jeden rozhovor",
+      "perex": "Na závěr Commercial UAV Expo 2026 vystoupí představitelé FAA a EASA.",
+      "telo": "Na závěr Commercial UAV Expo 2026, která se koná 3. září, se uskuteční keynote s názvem \"Dva nebe, jeden rozhovor\", kde se porovnají přístupy FAA a EASA k regulaci BVLOS operací dronů. Tato akce slibuje zajímavé srovnání a diskusi o transatlantických regulacích.",
       "body": [
-        "Srovnání regulací mezi USA a EU",
-        "Důležitost pro komerční využití dronů"
+        "Porovnání regulací FAA a EASA",
+        "Zajímavá diskuse"
       ],
-      "proc": "Tato akce přinese důležité informace pro všechny účastníky trhu s drony.",
+      "proc": "Akce přinese cenné informace o regulacích dronů.",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/07/15/commercial-uav-expo-announces-second-keynote-two-skies-one-conversation/?utm_source=rss&utm_medium=rss&utm_campaign=commercial-uav-expo-announces-second-keynote-two-skies-one-conversation",
       "datum": "2026-07-15"
