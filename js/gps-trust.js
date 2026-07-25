@@ -9,6 +9,11 @@
 //   • při ZTRACENÉ ztlumí AR overlay do šeda (ať je vidět, že značky nejsou živé)
 //   • window.agFixState() pro ostatní moduly (brány ukládání)
 // Bránu ukládání bodu z GPS průměru drží přímo logika.js (fillAveragedGPS).
+//
+// NEPLETAT s podobně pojmenovanými vrstvami:
+//   • js/gps-semafor.js  — skóre MÍSTA (multipath, geometrie družic) PŘED měřením, dlaždice
+//   • js/gps-warn.js     — varování na slabou PŘESNOST (±m) z posledního fixu
+//   • tenhle modul       — ČERSTVOST fixu (nechodí-li fixy, čísla i AR lžou beze zvuku)
 // Odstranění: smaž js/gps-trust.js + řádek <script> v index.html (a přegeneruj sw.js).
 // ================================================================================
 (function () {
