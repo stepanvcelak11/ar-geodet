@@ -44,8 +44,10 @@ Alternativně jde `worker.js` vložit přes webový editor v dashboardu
 - `POST /password` `{old, password}` — změna vlastního hesla
 - `POST /usage` `{events:[{ts,t,k,proj,dev}]}` · `GET /usage?from=ts`
   (admin / vedení s oprávněním) · `DELETE /usage` (admin)
-- `POST /chat` `{txt}` (max 500 znaků) · `GET /chat?after=id` — firemní chat;
-  server drží posledních ~500 zpráv na firmu
+- `POST /chat` `{txt, to?}` (max 500 znaků; `to` = id uživatele → soukromá
+  zpráva, bez `to` = všem ve firmě) · `GET /chat?after=id` — vrací veřejné
+  zprávy + soukromé pro mě/ode mě; server drží posledních ~500 zpráv na firmu
+  (vyžaduje sloupec `chat.to_uid` — u starší DB `ALTER TABLE chat ADD COLUMN to_uid TEXT;`)
 - `GET /stats` (admin) — vytížení: denní počty požadavků (celé API, posledních
   14 dní, tabulka `stats`) + počty záznamů firmy; klient z toho kreslí ukazatel
   proti limitu free plánu

@@ -60,6 +60,9 @@
         var st = document.createElement('style');
         st.id = STYLE_ID;
         st.textContent = [
+            // rozložení: sloupec + rolující tělo (jinak se obsah hroutil a tlačítka skákala)
+            '#agdo-modal .modal-content{display:flex;flex-direction:column;}',
+            '#agdo-modal .modal-body{min-height:0;}',
             '#agdo-modal .agdo-status{display:flex;align-items:center;gap:12px;background:var(--glass-bg,rgba(255,255,255,0.04));',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.1));border-radius:15px;padding:14px;margin:10px 0;}',
             '#agdo-modal .agdo-dot{width:12px;height:12px;border-radius:50%;background:var(--text-muted,#9aa1ac);flex:none;}',

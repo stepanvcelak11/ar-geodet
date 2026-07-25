@@ -204,7 +204,9 @@ export default {
         const url = new URL(req.url);
         const path = url.pathname.replace(/\/+$/, '') || '/';
         try {
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now() });
+            // v = verze API; klient podle ní pozná, že na serveru běží starý kód
+            // (chybějící v = původní nasazení bez chatu/statistik/zálohy)
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 2 });
 
             // ---------------- registrace firmy ------------------------------
             if (req.method === 'POST' && path === '/firms') {
@@ -356,8 +358,15 @@ export default {
                 const b = await req.json().catch(() => null);
                 const txt = b && typeof b.txt === 'string' ? b.txt.trim().slice(0, 500) : '';
                 if (!txt) return err(400, 'Prázdná zpráva.');
-                await env.DB.prepare('INSERT INTO chat(firm_id,uid,uname,ts,txt) VALUES(?,?,?,?,?)')
-                    .bind(me.firm_id, me.id, me.name, Date.now(), txt).run();
+                // příjemce: null = všem ve firmě; jinak id uživatele TÉŽE firmy
+                let to = null;
+                if (b.to) {
+                    const t = await env.DB.prepare('SELECT id FROM users WHERE id=? AND firm_id=?').bind(String(b.to), me.firm_id).first();
+                    if (!t) return err(400, 'Adresát není ve firmě.');
+                    to = t.id;
+                }
+                await env.DB.prepare('INSERT INTO chat(firm_id,uid,uname,ts,txt,to_uid) VALUES(?,?,?,?,?,?)')
+                    .bind(me.firm_id, me.id, me.name, Date.now(), txt, to).run();
                 // občasný úklid: server drží posledních ~500 zpráv na firmu
                 if (Math.random() < 0.05) {
                     await env.DB.prepare(
@@ -369,18 +378,25 @@ export default {
 
             if (req.method === 'GET' && path === '/chat') {
                 const after = parseInt(url.searchParams.get('after'), 10) || 0;
+                // vidím: zprávy všem (to_uid IS NULL), zprávy mně, a své vlastní
+                const vis = ' AND (to_uid IS NULL OR to_uid=? OR uid=?)';
                 let rows;
                 if (after > 0) {
                     rows = (await env.DB.prepare(
-                        'SELECT id, uid, uname AS u, ts, txt FROM chat WHERE firm_id=? AND id>? ORDER BY id LIMIT 200')
-                        .bind(me.firm_id, after).all()).results;
+                        'SELECT id, uid, uname AS u, ts, txt, to_uid FROM chat WHERE firm_id=? AND id>?' + vis + ' ORDER BY id LIMIT 200')
+                        .bind(me.firm_id, after, me.id, me.id).all()).results;
                 } else {
                     // první načtení: posledních 100 zpráv (vzestupně)
                     rows = (await env.DB.prepare(
-                        'SELECT id, uid, uname AS u, ts, txt FROM chat WHERE firm_id=? ORDER BY id DESC LIMIT 100')
-                        .bind(me.firm_id).all()).results.reverse();
+                        'SELECT id, uid, uname AS u, ts, txt, to_uid FROM chat WHERE firm_id=?' + vis + ' ORDER BY id DESC LIMIT 100')
+                        .bind(me.firm_id, me.id, me.id).all()).results.reverse();
                 }
-                return json({ messages: rows, serverTime: Date.now() });
+                // ke jménům adresátů (pro popisek „jen pro Petra")
+                const names = {};
+                (await env.DB.prepare('SELECT id, name FROM users WHERE firm_id=?').bind(me.firm_id).all())
+                    .results.forEach(r2 => { names[r2.id] = r2.name; });
+                rows.forEach(r3 => { if (r3.to_uid) r3.toName = names[r3.to_uid] || '?'; });
+                return json({ messages: rows, serverTime: Date.now(), me: { id: me.id, name: me.name } });
             }
 
             // ---------------- vytížení serveru (admin) -------------------------

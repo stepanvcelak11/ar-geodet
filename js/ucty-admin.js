@@ -37,12 +37,14 @@
         st.id = STYLE_ID;
         st.textContent = [
             // navigace: pilulky s ikonami, aktivní zvýrazněná
-            '#agfa-modal .agfa-nav{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;margin:4px 0 12px;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}',
-            '#agfa-modal .agfa-nav::-webkit-scrollbar{display:none;}',
-            '#agfa-modal .agfa-nav button{display:inline-flex;align-items:center;gap:6px;flex:none;border:1px solid var(--glass-border,rgba(255,255,255,0.13));',
-            '  background:var(--glass-bg,rgba(255,255,255,0.04));color:var(--text-muted,#9aa1ac);border-radius:999px;padding:9px 14px;',
-            '  font:600 12.5px/1 var(--font-ui,system-ui);cursor:pointer;transition:color .15s ease,border-color .15s ease,background .15s ease;}',
-            '#agfa-modal .agfa-nav button svg{width:14px;height:14px;}',
+            // POZOR: nav se MUSÍ zabalovat (wrap). Rolovací řádek schoval na mobilu
+            // půlku sekcí za okraj a admin je nenašel — proto mřížka pilulek.
+            '#agfa-modal .agfa-nav{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 12px;}',
+            '#agfa-modal .agfa-nav button{display:inline-flex;align-items:center;gap:6px;flex:1 1 auto;justify-content:center;',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.13));',
+            '  background:var(--glass-bg,rgba(255,255,255,0.04));color:var(--text-muted,#9aa1ac);border-radius:999px;padding:10px 13px;',
+            '  font:600 12.5px/1 var(--font-ui,system-ui);cursor:pointer;white-space:nowrap;transition:color .15s ease,border-color .15s ease,background .15s ease;}',
+            '#agfa-modal .agfa-nav button svg{width:14px;height:14px;flex:none;}',
             '#agfa-modal .agfa-nav button.act{border-color:var(--accent,#2f9e74);background:var(--accent-soft,rgba(47,158,116,0.14));color:var(--accent,#2f9e74);}',
             // řádky seznamů + avatary
             '#agfa-modal .agfa-row{display:flex;align-items:center;gap:10px;padding:10px 6px;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.07));}',
@@ -98,7 +100,25 @@
             '#agfa-modal .agfa-meter>i.warn{background:#d4a02c;}',
             '#agfa-modal .agfa-meter>i.crit{background:var(--danger,#e5534b);}',
             // rozpis docházky
-            '#agfa-modal .agfa-shift-day{font:700 12px/1 var(--font-ui,system-ui);color:var(--text,#e6e8eb);margin:12px 0 2px;}'
+            '#agfa-modal .agfa-shift-day{font:700 12px/1 var(--font-ui,system-ui);color:var(--text,#e6e8eb);margin:12px 0 2px;}',
+            // pojistka rozložení: obsah modálu je sloupec, tělo se roztahuje a scrolluje
+            // (bez toho se v některých prohlížečích obsah hroutil a tlačítka „skákala")
+            '#agfa-modal .modal-content{display:flex;flex-direction:column;}',
+            '#agfa-modal #agfa-body{min-height:0;}',
+            // Přehled (admin centrum): rychlé akce + lidé + chat + server na jedné stránce
+            '#agfa-modal .agfa-qa{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px;margin:8px 0;}',
+            '#agfa-modal .agfa-qa button{display:flex;align-items:center;gap:8px;justify-content:flex-start;border:1px solid var(--glass-border,rgba(255,255,255,0.12));',
+            '  background:var(--glass-bg,rgba(255,255,255,0.04));color:var(--text,#e6e8eb);border-radius:12px;padding:11px 12px;',
+            '  font:600 12.5px/1.2 var(--font-ui,system-ui);cursor:pointer;transition:border-color .15s ease,transform .12s ease;}',
+            '#agfa-modal .agfa-qa button:active{transform:scale(.96);border-color:var(--accent,#2f9e74);}',
+            '#agfa-modal .agfa-qa button svg{width:16px;height:16px;flex:none;color:var(--accent,#2f9e74);}',
+            '#agfa-modal .agfa-person-sub{font:500 11px/1.3 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);display:block;}',
+            '#agfa-modal .agfa-chatprev{background:var(--glass-bg,rgba(255,255,255,0.03));border:1px solid var(--glass-border,rgba(255,255,255,0.08));',
+            '  border-radius:13px;padding:8px 12px;margin:8px 0;}',
+            '#agfa-modal .agfa-chatprev .r{display:flex;gap:8px;padding:5px 0;font:500 12.5px/1.4 var(--font-ui,system-ui);color:var(--text,#e6e8eb);border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.06));}',
+            '#agfa-modal .agfa-chatprev .r:last-child{border-bottom:none;}',
+            '#agfa-modal .agfa-chatprev .w{font-weight:700;flex:none;}',
+            '#agfa-modal .agfa-chatprev .m{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-muted,#9aa1ac);}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
@@ -126,7 +146,7 @@
     function openModal(section) {
         var m = ensureModal();
         m.style.display = 'flex';
-        renderNav(section || 'uzivatele');
+        renderNav(section || (U() && U().isAdmin() ? 'prehled' : 'uzivani'));
         limitWarnCheck();
     }
 
@@ -162,12 +182,14 @@
 
     // ikonky navigace (čárová grafika ve stylu appky)
     var NAV_ICO = {
+        prehled: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
         uzivatele: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>',
         opravneni: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>',
         uzivani: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
         dochazka: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>',
         firma: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-4h6v4"/></svg>',
-        napoveda: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.33c-.8.32-1.4 1-1.4 1.87v.3"/><path d="M12 17h.01"/></svg>'
+        napoveda: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.33c-.8.32-1.4 1-1.4 1.87v.3"/><path d="M12 17h.01"/></svg>',
+        chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2.4-2.9A8 8 0 1 1 21 12z"/></svg>'
     };
 
     var _section = 'uzivatele';
@@ -178,7 +200,7 @@
         var nav = document.getElementById('agfa-nav');
         var items = [];
         if (admin) {
-            items = [['uzivatele', 'Uživatelé'], ['opravneni', 'Oprávnění'], ['uzivani', 'Užívání'], ['dochazka', 'Docházka'], ['firma', 'Firma'], ['napoveda', 'Nápověda']];
+            items = [['prehled', 'Přehled'], ['uzivatele', 'Uživatelé'], ['opravneni', 'Oprávnění'], ['uzivani', 'Užívání'], ['dochazka', 'Docházka'], ['firma', 'Firma'], ['napoveda', 'Nápověda']];
         } else {
             items = [['uzivani', 'Užívání'], ['dochazka', 'Docházka'], ['napoveda', 'Nápověda']];
             if (['uzivani', 'dochazka', 'napoveda'].indexOf(_section) === -1) _section = 'uzivani';
@@ -192,7 +214,13 @@
             if (b) renderNav(b.getAttribute('data-s'));
         };
         var body = document.getElementById('agfa-body');
-        if (_section === 'uzivatele') renderUsers(body);
+        // delegované handlery předchozí sekce zrušit, jinak reagují i v jiné
+        // sekci (odtud „tlačítka blbnou": jeden klik dělal dvě věci)
+        body.onclick = null;
+        body.onchange = null;
+        body.removeAttribute('data-permrole');
+        if (_section === 'prehled') renderPrehled(body);
+        else if (_section === 'uzivatele') renderUsers(body);
         else if (_section === 'opravneni') renderPerms(body);
         else if (_section === 'uzivani') renderUsage(body);
         else if (_section === 'dochazka') renderDochazka(body);
@@ -201,11 +229,156 @@
     }
 
     // ------------------------------------------------------------------
+    // Sekce PŘEHLED (admin centrum): všechno podstatné na jedné stránce —
+    // dnešní čísla, vytížení serveru, kdo je v práci a co kdo naposledy
+    // dělal, poslední zprávy chatu a rychlé akce. Jen pro admina; zaměstnanci
+    // a vedení vidí appku klasicky.
+    // ------------------------------------------------------------------
+    function qaBtn(id, ico, label) {
+        return '<button type="button" data-qa="' + id + '">' + (NAV_ICO[ico] || '') + esc(label) + '</button>';
+    }
+    function renderPrehled(body) {
+        var u = U(), f = u.getFirm(); if (!f) return;
+        body.innerHTML = '<div class="agfa-note">Načítám přehled…</div>';
+        var from = new Date(); from.setHours(0, 0, 0, 0);
+        var getEvents = (f.cloud
+            ? u.syncUsage().then(function () {
+                return u.cloudFetch('/usage?from=' + from.getTime()).then(function (r) {
+                    if (r.ok && r.data && Array.isArray(r.data.events)) return r.data.events;
+                    return u.usageQuery(from.getTime());
+                });
+            })
+            : u.usageQuery(from.getTime()));
+        getEvents.then(function (evs) {
+            // dnešní čísla + stav lidí (poslední aktivita, kdo je v práci)
+            var ptAdd = 0, act = {}, lastBy = {}, lastTsBy = {}, inWork = {};
+            evs.sort(function (a, b) { return a.ts - b.ts; }).forEach(function (ev) {
+                if (ev.t === 'pt-add') ptAdd++;
+                if (!ev.u || ev.u === '?') return;
+                act[ev.u] = 1;
+                lastTsBy[ev.u] = ev.ts;
+                var kk = String(ev.k || '').split('|')[0];
+                lastBy[ev.u] = ev.t === 'pt-add' ? 'přidal bod'
+                    : (ev.t === 'pt-edit' ? 'upravil bod'
+                    : (ev.t === 'tool' ? 'nástroj ' + kk.slice(0, 18)
+                    : (ev.t === 'shift' ? (kk === 'in' ? 'příchod' : 'odchod')
+                    : (ev.t === 'login' ? 'přihlášení' : 'aktivita'))));
+                if (ev.t === 'shift') inWork[ev.u] = (kk === 'in');
+            });
+            var workN = 0;
+            Object.keys(inWork).forEach(function (n) { if (inWork[n]) workN++; });
+
+            var html =
+                '<div class="agfa-cards">' +
+                '  <div class="agfa-card"><b>' + ptAdd + '</b><span>bodů dnes</span></div>' +
+                '  <div class="agfa-card"><b>' + Object.keys(act).length + '</b><span>aktivních dnes</span></div>' +
+                '  <div class="agfa-card"><b>' + workN + '</b><span>teď v práci</span></div>' +
+                '  <div class="agfa-card"><b>' + f.users.length + '</b><span>účtů ve firmě</span></div>' +
+                '</div>';
+
+            if (f.cloud) html += '<div class="agfa-pg">Server (Cloudflare)</div><div id="agfa-p-stats" class="agfa-note">Načítám vytížení…</div>';
+
+            html += '<div class="agfa-pg">Rychlé akce</div><div class="agfa-qa">' +
+                qaBtn('add-user', 'uzivatele', 'Přidat uživatele') +
+                qaBtn('opravneni', 'opravneni', 'Oprávnění') +
+                qaBtn('dochazka', 'dochazka', 'Docházka') +
+                qaBtn('uzivani', 'uzivani', 'Užívání a grafy') +
+                (f.cloud ? qaBtn('chat', 'chat', 'Otevřít chat') : '') +
+                qaBtn('firma', 'firma', 'Firma a záloha') +
+                '</div>';
+
+            html += '<div class="agfa-pg">Lidé</div><div class="agfa-list">';
+            f.users.forEach(function (us) {
+                var initials = (us.name || '?').trim().split(/\s+/).map(function (w) { return w.charAt(0); }).slice(0, 2).join('').toUpperCase();
+                var chipCls = us.role === 'admin' ? ' c-admin' : (us.role === 'vedeni' ? ' c-vedeni' : '');
+                var sub = lastTsBy[us.name]
+                    ? 'naposledy ' + new Date(lastTsBy[us.name]).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) + ' — ' + lastBy[us.name]
+                    : 'dnes bez aktivity';
+                html += '<div class="agfa-row">' +
+                    '<span class="agfa-av" style="' + (u.avatarStyle ? u.avatarStyle(us.name) : '') + '">' + esc(initials) + '</span>' +
+                    '<b>' + esc(us.name) + '<span class="agfa-person-sub">' + esc(sub) + '</span></b>' +
+                    (inWork[us.name] ? '<span class="agfa-chip c-accent">v práci</span>' : '') +
+                    '<span class="agfa-chip' + chipCls + '">' + roleTxt(us.role) + '</span>' +
+                    '</div>';
+            });
+            html += '</div>';
+
+            // poslední zprávy chatu — z mezipaměti zařízení, bez dalšího dotazu
+            if (f.cloud) {
+                var chatMsgs = [];
+                try {
+                    var cc = JSON.parse(localStorage.getItem('agChatCache_v1') || 'null');
+                    if (cc && cc.code === f.code && Array.isArray(cc.msgs)) chatMsgs = cc.msgs.slice(-3);
+                } catch (e) {}
+                if (chatMsgs.length) {
+                    html += '<div class="agfa-pg">Poslední zprávy</div><div class="agfa-chatprev">' +
+                        chatMsgs.map(function (msg) {
+                            var txt = String(msg.txt || '');
+                            if (txt.indexOf('AG1\n') === 0) txt = '📍 poslal body';
+                            return '<div class="r"><span class="w">' + esc(msg.u || '?') + '</span><span class="m">' + esc(txt) + '</span>' +
+                                '<span style="color:var(--text-muted);font-size:11px;flex:none;">' + new Date(msg.ts).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) + '</span></div>';
+                        }).join('') + '</div>';
+                }
+            }
+            body.innerHTML = html;
+
+            body.onclick = function (e) {
+                var b = e.target.closest ? e.target.closest('button[data-qa]') : null;
+                if (!b) return;
+                var qa = b.getAttribute('data-qa');
+                if (qa === 'chat') {
+                    document.getElementById('agfa-modal').style.display = 'none';
+                    if (window.AGFirmaChat) AGFirmaChat.open();
+                    return;
+                }
+                if (qa === 'add-user') {
+                    renderNav('uzivatele');
+                    var ab = document.getElementById('agfa-add');
+                    if (ab) ab.click();
+                    return;
+                }
+                renderNav(qa);
+            };
+
+            // vytížení serveru přímo v přehledu (a jasná hláška, když běží starý kód)
+            if (f.cloud) {
+                var el = body.querySelector('#agfa-p-stats');
+                u.cloudFetch('/stats').then(function (r) {
+                    if (!el) return;
+                    if (!r.ok || !r.data) {
+                        el.innerHTML = r.status === 404
+                            ? '<span style="color:#d4a02c;">⚠ Server běží na <b>staré verzi</b> — vytížení, chat i záloha začnou fungovat až po nasazení nového <b>cloud/worker.js</b> (Cloudflare dashboard → ar-geodet-api → Edit code; návod v cloud/README.md).</span>'
+                            : 'Vytížení se nepodařilo načíst (' + (r.status === 0 ? 'offline' : 'chyba ' + r.status) + ').';
+                        return;
+                    }
+                    var lim = (r.data.limits && r.data.limits.reqPerDay) || 100000;
+                    var n = 0;
+                    (r.data.days || []).forEach(function (x) { if (x.day === r.data.today) n = x.n; });
+                    var pct = Math.min(100, n / lim * 100);
+                    var cls = pct >= 80 ? 'crit' : (pct >= 50 ? 'warn' : '');
+                    el.innerHTML = '<b style="color:var(--text,#e6e8eb);">Dnes ' + n.toLocaleString('cs-CZ') + '</b> ze ' + lim.toLocaleString('cs-CZ') +
+                        ' požadavků = <b>' + (Math.round(pct * 10) / 10).toLocaleString('cs-CZ') + ' %</b> denního limitu (free plán)' +
+                        '<div class="agfa-meter"><i class="' + cls + '" style="width:' + Math.max(1, pct).toFixed(1) + '%"></i></div>' +
+                        'Zelená = pohoda, žlutá od 50 %, červená od 80 %. Graf po dnech a počty záznamů jsou v sekci Firma.';
+                });
+            }
+        });
+    }
+
+    // ------------------------------------------------------------------
     // Sekce Nápověda — jak celý firemní režim funguje (proti zmatkům)
     // ------------------------------------------------------------------
     function renderHelp(body) {
         var u = U(), f = u.getFirm() || {};
         body.innerHTML =
+            '<div class="agfa-pg">Kdo co vidí</div>' +
+            '<div class="agfa-note"><b>Zaměstnanec</b> používá appku klasicky — jen nástroje pro práci v terénu. ' +
+            '<b>Vedení</b> vidí navíc firemní přehledy (užívání, docházka). <b>Admin</b> má sekci <b>Přehled</b> — ' +
+            'admin centrum, kde je všechno pohromadě (dnešní čísla, kdo je v práci a co naposledy dělal, vytížení serveru, ' +
+            'poslední zprávy, rychlé akce) — a nikde ho neomezují oprávnění. Administrace je adminovi po ruce i v menu <b>Více</b>.</div>' +
+            '<div class="agfa-pg">Zámek při spuštění</div>' +
+            '<div class="agfa-note">Appka po každém spuštění chce přihlášení (naposledy přihlášený je předvybraný, stačí heslo/PIN). ' +
+            'Kdo to nechce, vypne v sekci <b>Firma → Zámek appky</b> — pak appka pokračuje pod posledním přihlášeným.</div>' +
             '<div class="agfa-pg">Jak funguje přihlašování</div>' +
             '<div class="agfa-note">Appka se otevře až po přihlášení. Každá firma má <b>kód</b> (např. K7M2PX) — ' +
             'zaměstnanec na svém mobilu zadá kód firmy + své jméno + heslo (účet mu předtím založí admin v sekci Uživatelé). ' +
@@ -237,7 +410,8 @@
             'Admin a vedení vidí spárovanou docházku všech, hodiny po zakázkách a umí <b>výkaz do CSV nebo tisk/PDF</b> (podklad pro mzdy). ' +
             'Je to orientační podklad, ne certifikovaný docházkový systém.</div>' +
             '<div class="agfa-pg">Firemní chat</div>' +
-            '<div class="agfa-note">Dlaždice <b>Firemní chat</b> v Nástrojích (Pomůcky) — jednoduché zprávy mezi všemi přihlášenými ve firmě. ' +
+            '<div class="agfa-note">Dlaždice <b>Firemní chat</b> v Nástrojích (Pomůcky). Nahoře se vybírá adresát: <b>Všem</b> (vidí celá firma), ' +
+            'nebo konkrétní kolega — pak je zpráva <b>soukromá</b> (🔒, vidí ji jen on a ty). ' +
             'Tlačítkem 📍 jde poslat <b>vlastní body</b> — příjemce je jedním klepnutím převezme do svých bodů (a může na ně rovnou navigovat). ' +
             'Nové zprávy se hlásí tečkou na dlaždici a proužkem po startu. Funguje jen u cloudové firmy a s internetem; server drží posledních ~500 zpráv.</div>' +
             '<div class="agfa-pg">Připojení zařízení QR kódem</div>' +
@@ -257,15 +431,30 @@
         document.getElementById('agfa-nav').innerHTML = '';
         var body = document.getElementById('agfa-body');
         body.innerHTML =
-            '<div class="agfa-note">Firemní režim zapne <b>přihlašování uživatelů</b>, role s různými oprávněními ' +
-            'a <b>přehled užívání</b> pro admina. Doporučená <b>cloud</b> varianta funguje mezi zařízeními ' +
-            '(server Cloudflare, zdarma) — stejné účty na všech mobilech firmy. Lokální varianta žije jen v tomto zařízení.</div>' +
-            '<button class="btn" style="width:100%;margin-top:8px;" id="agfa-w-cloud">Založit firmu v cloudu (více zařízení)</button>' +
-            '<button class="btn" style="width:100%;margin-top:8px;" id="agfa-w-join">Připojit toto zařízení k firmě (mám kód)</button>' +
-            '<button class="btn btn-secondary" style="width:100%;margin-top:8px;" id="agfa-w-local">Jen toto zařízení (bez cloudu)</button>';
-        body.querySelector('#agfa-w-cloud').onclick = function () { wizardCloud(body); };
+            '<div class="agfa-note"><b>Zaměstnanec</b> se jen přihlásí kódem firmy, který dostal od svého admina — nic nezakládá. ' +
+            'Firmu <b>zakládá a spravuje admin</b> (kdo firmu založí, je jejím adminem: spravuje účty, oprávnění i nastavení).</div>' +
+            '<button class="btn" style="width:100%;margin-top:8px;" id="agfa-w-join">Přihlásit se k firmě (mám kód)</button>' +
+            '<div class="agfa-pg">Jsem správce firmy</div>' +
+            '<button class="btn btn-secondary" style="width:100%;margin-top:4px;" id="agfa-w-cloud">Založit novou firmu v cloudu (více zařízení)</button>' +
+            '<button class="btn btn-secondary" style="width:100%;margin-top:8px;" id="agfa-w-local">Založit jen pro toto zařízení (bez cloudu)</button>' +
+            '<div class="agfa-note">Cloud = stejné účty na všech mobilech firmy, oprávnění i přehledy se propíší všude (server Cloudflare, zdarma). ' +
+            'Lokální = účty žijí jen v tomto telefonu.</div>';
+        body.querySelector('#agfa-w-cloud').onclick = function () {
+            agConfirm({
+                title: 'Založit novou firmu?',
+                message: 'Tohle dělá <b>jen správce</b>. Staneš se adminem nové firmy a budeš spravovat účty, oprávnění a nastavení.<br><br>' +
+                    'Jsi zaměstnanec a chceš se jen přihlásit? Dej Zrušit a použij „Přihlásit se k firmě (mám kód)".',
+                okText: 'Jsem správce, založit'
+            }).then(function (ok) { if (ok) wizardCloud(body); });
+        };
         body.querySelector('#agfa-w-join').onclick = function () { wizardJoin(body); };
-        body.querySelector('#agfa-w-local').onclick = function () { wizardLocal(body); };
+        body.querySelector('#agfa-w-local').onclick = function () {
+            agConfirm({
+                title: 'Založit lokální firmu?',
+                message: 'Účty budou jen v tomto telefonu a staneš se jejich adminem. Pro firmu na více mobilů zvol cloud.',
+                okText: 'Jsem správce, založit'
+            }).then(function (ok) { if (ok) wizardLocal(body); });
+        };
     }
 
     // ---- cloud: založení firmy na serveru -----------------------------
@@ -1121,6 +1310,21 @@
         });
     }
 
+    // ---- přihlášení při každém startu (per zařízení; výchozí ANO) --------
+    function lockStartHtml(u) {
+        var on = !u.getLockOnStart || u.getLockOnStart();
+        return '<div class="agfa-pg">Zámek appky</div>' +
+            '<label class="agfa-perm"><input type="checkbox" id="agfa-lockstart"' + (on ? ' checked' : '') + '> ' +
+            'Vyžadovat přihlášení při každém spuštění appky</label>' +
+            '<div class="agfa-note">Zapnuto (doporučeno): po každém spuštění appka rovnou ukáže přihlášení — naposledy přihlášený je předvybraný, ' +
+            'stačí heslo/PIN. Vypnuto: appka pokračuje pod posledním přihlášeným, dokud se někdo neodhlásí. Platí pro <b>toto zařízení</b>.</div>';
+    }
+    function wireLockStart(body, u) {
+        var cb = body.querySelector('#agfa-lockstart');
+        if (!cb || !u.setLockOnStart) return;
+        cb.onchange = function () { u.setLockOnStart(this.checked); };
+    }
+
     // ------------------------------------------------------------------
     // Přepínání mezi firmami uloženými v zařízení (profily z js/ucty.js)
     // ------------------------------------------------------------------
@@ -1208,6 +1412,7 @@
             '<label class="agfa-lb">Název firmy</label><input type="text" id="agfa-f-name" maxlength="60" value="' + esc(f.firmName || '') + '">' +
             '<label class="agfa-lb">Auto-zámek po nečinnosti (minuty; 0 = vypnuto)</label>' +
             '<input type="number" id="agfa-f-lock" min="0" max="480" step="1" value="' + (parseInt(f.autoLockMin, 10) || 0) + '">' +
+            lockStartHtml(u) +
             '<div class="agfa-pg">Přenos na další zařízení</div>' +
             '<div class="agfa-note">Export uloží účty (s PINy v podobě otisků, ne v čitelné podobě) a matici oprávnění do souboru ' +
             '<b>.argeofirma.json</b>. Ten naimportuješ na telefonech zaměstnanců — stejná firma, stejné účty, stejná pravidla. Body a zakázky se nepřenáší (na to je Přenos zakázky).</div>' +
@@ -1222,6 +1427,7 @@
             '<div class="agfa-note">Vypnutí smaže účty a oprávnění na tomto zařízení. Body, zakázky, žurnál i záznamy užívání zůstanou.</div>';
 
         wireFirms(body, u);
+        wireLockStart(body, u);
         body.querySelector('#agfa-f-name').onchange = function () { f.firmName = (this.value || '').trim() || 'Moje firma'; u.saveFirm(f); };
         body.querySelector('#agfa-f-lock').onchange = function () { f.autoLockMin = Math.max(0, parseInt(this.value, 10) || 0); u.saveFirm(f); };
 
@@ -1275,6 +1481,7 @@
             '<label class="agfa-lb">Název firmy</label><input type="text" id="agfa-f-name" maxlength="60" value="' + esc(f.firmName || '') + '">' +
             '<label class="agfa-lb">Auto-zámek po nečinnosti (minuty; 0 = vypnuto) — platí pro všechna zařízení</label>' +
             '<input type="number" id="agfa-f-lock" min="0" max="480" step="1" value="' + (parseInt(f.autoLockMin, 10) || 0) + '">' +
+            lockStartHtml(u) +
             '<div class="agfa-pg">Vytížení serveru</div>' +
             '<div id="agfa-stats" class="agfa-note">Načítám vytížení…</div>' +
             '<div class="agfa-pg">Server</div>' +
@@ -1293,6 +1500,7 @@
             });
         }
         wireFirms(body, u);
+        wireLockStart(body, u);
 
         // záloha celé firmy ze serveru (GET /backup, jen admin)
         body.querySelector('#agfa-f-backup').onclick = function () {
@@ -1374,7 +1582,7 @@
         if (!u) { agAlert('Chybí jádro', 'Modul js/ucty.js není načtený.'); return; }
         var f = u.getFirm();
         if (!f) { openWizard(); return; }
-        if (u.isAdmin()) { openModal('uzivatele'); return; }
+        if (u.isAdmin()) { openModal('prehled'); return; }
         if (u.can('x.dashboard')) { openModal('uzivani'); return; }
         agAlert('Jen pro admina', 'Administraci firmy otevře administrátor. Ty se můžeš odhlásit nebo přepnout v menu Více.');
     }
@@ -1383,19 +1591,36 @@
         var u = U(); if (!u) return;
         var f = u.getFirm();
         var btn = document.getElementById('agfa-switch-btn');
+        var adm = document.getElementById('agfa-admin-btn');
         var scroll = document.querySelector('#side-menu .menu-scroll');
-        if (!f) { if (btn) btn.remove(); return; }
-        if (!scroll || btn) return;
-        btn = document.createElement('button');
-        btn.id = 'agfa-switch-btn';
-        btn.className = 'menu-btn';
-        btn.innerHTML = '<svg class="icon"><use href="#i-users"/></svg> Přepnout uživatele / zamknout';
-        btn.onclick = function () {
-            try { if (typeof window.toggleMenu === 'function') toggleMenu(); } catch (e) {}
-            var uu = U(); if (uu) uu.lock();
-        };
+        if (!f) { if (btn) btn.remove(); if (adm) adm.remove(); return; }
+        if (!scroll) return;
         var hr = scroll.querySelector('hr');
-        scroll.insertBefore(btn, hr || null);
+        if (!btn) {
+            btn = document.createElement('button');
+            btn.id = 'agfa-switch-btn';
+            btn.className = 'menu-btn';
+            btn.innerHTML = '<svg class="icon"><use href="#i-users"/></svg> Přepnout uživatele / zamknout';
+            btn.onclick = function () {
+                try { if (typeof window.toggleMenu === 'function') toggleMenu(); } catch (e) {}
+                var uu = U(); if (uu) uu.lock();
+            };
+            scroll.insertBefore(btn, hr || null);
+        }
+        // admin má administraci po ruce (nemusí ji hledat v Nástrojích)
+        if (u.isAdmin()) {
+            if (!adm) {
+                adm = document.createElement('button');
+                adm.id = 'agfa-admin-btn';
+                adm.className = 'menu-btn';
+                adm.innerHTML = '<svg class="icon"><use href="#i-users"/></svg> Administrace firmy (admin)';
+                adm.onclick = function () {
+                    try { if (typeof window.toggleMenu === 'function') toggleMenu(); } catch (e) {}
+                    openEntry();
+                };
+                scroll.insertBefore(adm, btn);
+            }
+        } else if (adm) adm.remove();
     }
 
     function init() {

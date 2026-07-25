@@ -59,9 +59,13 @@ CREATE TABLE IF NOT EXISTS chat (
     uid     TEXT,                        -- id autora (může být smazán — jméno zůstává)
     uname   TEXT,
     ts      INTEGER NOT NULL,            -- čas zprávy v ms (čas serveru)
-    txt     TEXT NOT NULL                -- max 500 znaků (ořezává server)
+    txt     TEXT NOT NULL,               -- max 500 znaků (ořezává server)
+    to_uid  TEXT                         -- NULL = všem ve firmě; jinak soukromá zpráva
 );
 CREATE INDEX IF NOT EXISTS idx_chat_firm ON chat(firm_id, id);
+-- Když tabulka chat existuje z dřívějšího nasazení BEZ to_uid, přidej sloupec
+-- (SQLite neumí IF NOT EXISTS u ALTER — příkaz jednou selže a to je v pořádku):
+-- ALTER TABLE chat ADD COLUMN to_uid TEXT;
 
 -- denní počítadlo požadavků (hlídání limitu free plánu Workers: 100 000/den)
 CREATE TABLE IF NOT EXISTS stats (

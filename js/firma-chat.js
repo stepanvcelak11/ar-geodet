@@ -31,8 +31,18 @@
         var st = document.createElement('style');
         st.id = STYLE_ID;
         st.textContent = [
-            '#agch-modal .modal-body{display:flex;flex-direction:column;}',
-            '#agch-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:7px;padding:6px 2px;}',
+            // rozložení: obsah modálu je sloupec, seznam zpráv se roztahuje a roluje
+            '#agch-modal .modal-content{display:flex;flex-direction:column;}',
+            '#agch-modal .modal-body{display:flex;flex-direction:column;min-height:0;}',
+            '#agch-list{flex:1;min-height:120px;overflow-y:auto;display:flex;flex-direction:column;gap:7px;padding:6px 2px;}',
+            // volba adresáta (Všem / konkrétní člověk)
+            '#agch-to{display:flex;gap:6px;flex-wrap:wrap;flex:none;padding:0 0 8px;}',
+            '#agch-to button{border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:var(--glass-bg,rgba(255,255,255,0.04));',
+            '  color:var(--text-muted,#9aa1ac);border-radius:999px;padding:7px 12px;font:600 12px/1 var(--font-ui,system-ui);cursor:pointer;',
+            '  transition:color .15s ease,border-color .15s ease,background .15s ease;}',
+            '#agch-to button.act{border-color:var(--accent,#2f9e74);background:var(--accent-soft,rgba(47,158,116,0.14));color:var(--accent,#2f9e74);}',
+            '#agch-modal .agch-meta .lock{color:#d4a02c;font-weight:700;}',
+            '#agch-modal .priv .agch-bubble{border-color:rgba(212,160,44,0.4);background:rgba(212,160,44,0.08);}',
             '#agch-modal .agch-day{align-self:center;font:600 10.5px/1 var(--font-ui,system-ui);letter-spacing:.05em;text-transform:uppercase;',
             '  color:var(--text-muted,#9aa1ac);background:var(--glass-bg,rgba(255,255,255,0.06));border-radius:999px;padding:5px 11px;margin:6px 0 2px;}',
             '#agch-modal .agch-msg{max-width:82%;display:flex;flex-direction:column;gap:2px;align-self:flex-start;}',
@@ -64,6 +74,8 @@
             '#agch-modal .agch-ptbtn{flex:none;width:48px;height:44px;border:1px solid var(--glass-border,rgba(255,255,255,0.16));border-radius:12px;',
             '  background:var(--glass-bg,rgba(255,255,255,0.04));color:var(--text,#e6e8eb);font-size:19px;cursor:pointer;}',
             // výběr bodů k odeslání
+            '#agch-picker .modal-content{display:flex;flex-direction:column;}',
+            '#agch-picker .modal-body{min-height:0;}',
             '#agch-picker .agch-pk-row{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.07));',
             '  font:500 13px/1.3 var(--font-ui,system-ui);color:var(--text,#e6e8eb);}',
             '#agch-picker .agch-pk-row input{width:18px;height:18px;accent-color:var(--accent,#2f9e74);}',
@@ -99,11 +111,12 @@
             '<div class="modal-content">' +
             '  <h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Firemní chat</h3>' +
             '  <div class="modal-body" style="flex:1;min-height:0;">' +
+            '    <div class="agch-to" id="agch-to"></div>' +
             '    <div id="agch-list"></div>' +
             '    <div class="agch-off" id="agch-off"></div>' +
             '    <div class="agch-inrow">' +
             '      <button type="button" class="agch-ptbtn" id="agch-pt" title="Poslat body">📍</button>' +
-            '      <textarea id="agch-inp" maxlength="500" placeholder="Napiš zprávu firmě…"></textarea>' +
+            '      <textarea id="agch-inp" maxlength="500" placeholder="Napiš zprávu…"></textarea>' +
             '      <button type="button" class="agch-send" id="agch-send" aria-label="Odeslat">' +
             '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>' +
             '      </button>' +
@@ -115,6 +128,15 @@
         m.querySelector('#agch-close').onclick = close;
         m.querySelector('#agch-send').onclick = send;
         m.querySelector('#agch-pt').onclick = openPicker;
+        // volba adresáta: Všem / konkrétní člověk
+        m.querySelector('#agch-to').addEventListener('click', function (e) {
+            var b = e.target.closest ? e.target.closest('button[data-to]') : null;
+            if (!b) return;
+            _to = b.getAttribute('data-to') || '';
+            renderTo();
+            render();
+            try { m.querySelector('#agch-inp').focus(); } catch (err) {}
+        });
         m.querySelector('#agch-inp').addEventListener('keydown', function (e) {
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
         });
@@ -126,6 +148,35 @@
             if (pts) importPts(pts);
         });
         return m;
+    }
+
+    // ---- adresát zprávy: '' = všem ve firmě, jinak id uživatele -------------
+    var _to = '';
+    function meUser() { var u = U(); return u && u.currentUser ? u.currentUser() : null; }
+    function firmUsers() {
+        var u = U(); var f = u && u.getFirm();
+        var me = meUser();
+        return ((f && f.users) || []).filter(function (x) { return !me || x.id !== me.id; });
+    }
+    function toName(id) {
+        var us = firmUsers();
+        for (var i = 0; i < us.length; i++) if (us[i].id === id) return us[i].name;
+        var me = meUser();
+        if (me && me.id === id) return me.name;
+        return '?';
+    }
+    function renderTo() {
+        var box = document.getElementById('agch-to');
+        if (!box) return;
+        var users = firmUsers();
+        var html = '<button type="button" data-to="" class="' + (_to === '' ? 'act' : '') + '">Všem</button>';
+        users.forEach(function (x) {
+            html += '<button type="button" data-to="' + esc(x.id) + '" class="' + (_to === x.id ? 'act' : '') + '">' +
+                esc(String(x.name).slice(0, 14)) + '</button>';
+        });
+        box.innerHTML = html;
+        var inp = document.getElementById('agch-inp');
+        if (inp) inp.placeholder = _to ? ('Soukromě pro ' + toName(_to) + '…') : 'Napiš zprávu všem…';
     }
 
     // ---- body ve zprávě (stejný kompaktní formát jako QR sdílení, sdileni.js) ----
@@ -208,7 +259,7 @@
             if (payload.length > 490) { errEl.textContent = 'Do jedné zprávy se vejde méně bodů — odeber pár z výběru.'; return; }
             var u = U(); if (!u) return;
             errEl.textContent = 'Odesílám…';
-            u.cloudFetch('/chat', { method: 'POST', body: { txt: payload } }).then(function (r) {
+            u.cloudFetch('/chat', { method: 'POST', body: { txt: payload, to: _to || undefined } }).then(function (r) {
                 if (!r.ok) { errEl.textContent = r.status === 0 ? 'Bez internetu body nejde poslat.' : 'Odeslání selhalo (' + r.status + ').'; return; }
                 m.remove();
                 load();
@@ -222,19 +273,29 @@
         var u = U();
         var me = u && u.currentUser();
         var meId = me ? me.id : null;
-        if (!_msgs.length) {
-            list.innerHTML = '<div class="agch-empty">Zatím žádné zprávy.<br>Napiš první — uvidí ji všichni přihlášení ve firmě.</div>';
+        // zobrazené vlákno: „Všem" = veřejné zprávy; konkrétní člověk = jen zprávy
+        // mezi mnou a jím (soukromé oba směry)
+        var shown = _msgs.filter(function (msg) {
+            if (!_to) return !msg.to_uid;
+            return (msg.to_uid === _to && msg.uid === meId) || (msg.to_uid === meId && msg.uid === _to);
+        });
+        if (!shown.length) {
+            list.innerHTML = '<div class="agch-empty">' + (_to
+                ? 'Zatím žádná soukromá zpráva s ' + esc(toName(_to)) + '.<br>Co napíšeš, uvidí jen on.'
+                : 'Zatím žádné zprávy.<br>Napiš první — uvidí ji všichni ve firmě.') + '</div>';
             return;
         }
         var html = '', lastDay = '';
         _ptByMsg = {};
-        _msgs.forEach(function (msg) {
+        shown.forEach(function (msg) {
             var day = new Date(msg.ts).toDateString();
             if (day !== lastDay) { html += '<div class="agch-day">' + esc(fmtD(msg.ts)) + '</div>'; lastDay = day; }
             var mine = meId && msg.uid === meId;
-            html += '<div class="agch-msg' + (mine ? ' mine' : '') + '">' +
+            var priv = !!msg.to_uid;
+            html += '<div class="agch-msg' + (mine ? ' mine' : '') + (priv ? ' priv' : '') + '">' +
                 '<div class="agch-meta">' +
                 (mine ? '' : '<span class="who" style="color:hsl(' + hue(msg.u) + ',55%,62%);">' + esc(msg.u || '?') + '</span>') +
+                (priv ? '<span class="lock">🔒 ' + esc(mine ? ('jen pro ' + (msg.toName || toName(msg.to_uid))) : 'jen tobě') + '</span>' : '') +
                 '<span>' + fmtT(msg.ts) + '</span></div>';
             var pts = decodePts(msg.txt);
             if (pts) {
@@ -261,13 +322,31 @@
         if (el) el.textContent = msg || '';
     }
 
+    function setDisabled(on, why) {
+        var inp = document.getElementById('agch-inp');
+        var sd = document.getElementById('agch-send');
+        var pt = document.getElementById('agch-pt');
+        [inp, sd, pt].forEach(function (el) {
+            if (!el) return;
+            el.disabled = !!on;
+            el.style.opacity = on ? '0.45' : '';
+        });
+        if (on && why) setOff(why);
+    }
+
     function load() {
         var u = U(); if (!u) return;
         u.cloudFetch('/chat' + (_lastId ? '?after=' + _lastId : '')).then(function (r) {
             if (!r.ok || !r.data || !Array.isArray(r.data.messages)) {
+                if (r.status === 404) {
+                    // server běží na starém kódu (bez /chat) — jasně to říct, ne mlčet
+                    setDisabled(true, 'Server ještě neumí chat — je potřeba nasadit nový cloud/worker.js (viz cloud/README.md).');
+                    return;
+                }
                 setOff(r.status === 0 ? 'Offline — zobrazeny poslední načtené zprávy.' : (r.status ? 'Server vrátil chybu ' + r.status + '.' : ''));
                 return;
             }
+            setDisabled(false);
             setOff('');
             var seen = {};
             _msgs.forEach(function (msg) { seen[msg.id] = 1; });
@@ -350,10 +429,13 @@
         if (!txt) return;
         var u = U(); if (!u) return;
         _busySend = true;
-        u.cloudFetch('/chat', { method: 'POST', body: { txt: txt } }).then(function (r) {
+        setOff('Odesílám…');
+        u.cloudFetch('/chat', { method: 'POST', body: { txt: txt, to: _to || undefined } }).then(function (r) {
             _busySend = false;
             if (!r.ok) {
-                setOff(r.status === 0 ? 'Bez internetu zprávu nejde odeslat.' : 'Odeslání selhalo (' + ((r.data && r.data.error) || r.status) + ').');
+                setOff(r.status === 0 ? 'Bez internetu zprávu nejde odeslat.'
+                    : (r.status === 404 ? 'Server ještě neumí chat — je potřeba nasadit nový cloud/worker.js.'
+                        : 'Odeslání selhalo (' + ((r.data && r.data.error) || r.status) + ').'));
                 return;
             }
             inp.value = '';
@@ -381,6 +463,7 @@
         var m = ensureModal();
         m.style.display = 'flex';
         cacheLoad();
+        renderTo();
         render();
         load();
         if (_poll) clearInterval(_poll);

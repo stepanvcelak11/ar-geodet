@@ -60,6 +60,7 @@
     var LS_GUEST = 'agGuest_v1';       // režim bez přihlášení {ts} — velmi omezené funkce
     var LS_PROF = 'agFirmy_v1';        // uložené firmy tohoto zařízení [{key,label,code,cloud,ts,snap}]
     var LS_LAST = 'agFirmaLastUser_v1';// id naposledy přihlášeného (rychlé odemknutí)
+    var LS_LOCKSTART = 'agLockStart_v1'; // '0' = NEvyžadovat přihlášení při startu (výchozí: vyžadovat)
     var STYLE_ID = 'ag-ucty-style';
     var DB = 'argeodet-usage', STORE = 'ev', VER = 1;
     // adresa API (Cloudflare Worker, cloud/worker.js). Konstanta je jen výchozí —
@@ -132,6 +133,14 @@
     }
     function clearGuest() {
         try { localStorage.removeItem(LS_GUEST); } catch (e) {}
+    }
+
+    // vyžadovat přihlášení při každém startu appky (výchozí ANO; per zařízení)
+    function getLockOnStart() {
+        try { return localStorage.getItem(LS_LOCKSTART) !== '0'; } catch (e) { return true; }
+    }
+    function setLockOnStart(on) {
+        try { localStorage.setItem(LS_LOCKSTART, on ? '1' : '0'); } catch (e) {}
     }
 
     // ------------------------------------------------------------------
@@ -1161,7 +1170,12 @@
             rememberCurrentFirm();                 // ať je aktivní firma vždy v profilech
             var u = currentUser();
             if (!u) showLogin(false);
-            else {
+            else if (getLockOnStart()) {
+                // session z minula NEstačí: při startu appky se vždy přihlašuje
+                // (naposledy přihlášený je předvybraný, stačí heslo/PIN)
+                try { localStorage.setItem('arSurveyor', u.name); } catch (e) {}
+                lock();
+            } else {
                 try { localStorage.setItem('arSurveyor', u.name); } catch (e) {}
                 applyPerms();
             }
@@ -1207,6 +1221,8 @@
         rememberCurrentFirm: rememberCurrentFirm,
         profileKeyOf: profileKeyOf,
         avatarStyle: avStyle,   // barva avataru ze jména (užívá i administrace/chat)
+        getLockOnStart: getLockOnStart,
+        setLockOnStart: setLockOnStart,
         hashPin: hashPin,
         makeSalt: makeSalt,
         ensureLib: ensureLib,
