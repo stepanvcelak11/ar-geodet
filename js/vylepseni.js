@@ -533,6 +533,16 @@
         });
     }
     function photoPut(k, v) { return photoDB().then(function (db) { return new Promise(function (res, rej) { const tx = db.transaction(PSTORE, 'readwrite'); tx.objectStore(PSTORE).put(v, k); tx.oncomplete = function () { res(); }; tx.onerror = function () { rej(tx.error); }; }); }); }
+    // Uklid pri smazani zakazky (logika.js vyhlasi ag:project-deleted): fotky teto
+    // zakazky (klice `${pid}_...`) by jinak zustaly v arGeodetFotky navzdy jako sirotci.
+    document.addEventListener('ag:project-deleted', function (ev) {
+        var pid = ev && ev.detail && ev.detail.id; if (!pid) return;
+        photoDB().then(function (db) {
+            var tx = db.transaction(PSTORE, 'readwrite');
+            var cur = tx.objectStore(PSTORE).openCursor();
+            cur.onsuccess = function (e) { var c = e.target.result; if (c) { if (typeof c.key === 'string' && c.key.indexOf(pid + '_') === 0) { try { c.delete(); } catch (er) {} } c.continue(); } };
+        }).catch(function () {});
+    });
     function photoGet(k) { return photoDB().then(function (db) { return new Promise(function (res, rej) { const tx = db.transaction(PSTORE, 'readonly'); const rq = tx.objectStore(PSTORE).get(k); rq.onsuccess = function () { res(rq.result || null); }; rq.onerror = function () { rej(rq.error); }; }); }); }
     function photoDel(k) { return photoDB().then(function (db) { return new Promise(function (res, rej) { const tx = db.transaction(PSTORE, 'readwrite'); tx.objectStore(PSTORE).delete(k); tx.oncomplete = function () { res(); }; tx.onerror = function () { rej(tx.error); }; }); }); }
 

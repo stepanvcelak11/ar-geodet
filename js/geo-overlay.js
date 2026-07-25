@@ -50,6 +50,10 @@
     function idbPut(k, v) { return idb().then(function (db) { return new Promise(function (res, rej) { var t = db.transaction(STORE, 'readwrite'); t.objectStore(STORE).put(v, k); t.oncomplete = function () { res(); }; t.onerror = function () { rej(t.error); }; }); }); }
     function idbGet(k) { return idb().then(function (db) { return new Promise(function (res, rej) { var t = db.transaction(STORE, 'readonly'); var rq = t.objectStore(STORE).get(k); rq.onsuccess = function () { res(rq.result); }; rq.onerror = function () { rej(rq.error); }; }); }); }
     function idbDel(k) { return idb().then(function (db) { return new Promise(function (res) { var t = db.transaction(STORE, 'readwrite'); t.objectStore(STORE).delete(k); t.oncomplete = function () { res(); }; t.onerror = function () { res(); }; }); }).catch(function () {}); }
+    // Uklid rastru pri smazani zakazky (ag:project-deleted z logika.js) — klic je img_<pid>.
+    document.addEventListener('ag:project-deleted', function (ev) {
+        var pid = ev && ev.detail && ev.detail.id; if (pid) idbDel('img_' + pid);
+    });
 
     // =====================================================================
     // Transformace obrázek(px) -> svět(m)

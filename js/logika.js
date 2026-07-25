@@ -102,9 +102,12 @@ if ('serviceWorker' in navigator) {
         // Jednorazove varovani, kdyz zapis bodu do IndexedDB tise selze (kvota / iOS eviction / poskozena tx).
         // Bez tohohle vypadaly body ulozene (drzi je _idbMem cache), ale po reloadu byly PRYC.
         let _idbWriteWarned = false;
-        function _warnStorageWriteFail() {
+        function _warnStorageWriteFail(savedToFallback) {
             if (_idbWriteWarned) return; _idbWriteWarned = true;
-            try { alert('POZOR: bod se nepodařilo trvale uložit (databáze telefonu odmítla zápis — nejspíš plné úložiště). Data se mohou po zavření aplikace ztratit.\n\nUvolněte místo a udělejte zálohu (Nastavení → Údržba → Stáhnout zálohu).'); } catch (e) {}
+            const msg = savedToFallback
+                ? 'POZOR: databáze telefonu odmítla zápis bodů. Data jsou dočasně zachráněna v záložním úložišti a po restartu se vrátí, ale udělejte co nejdřív zálohu (Nastavení → Údržba → Stáhnout zálohu) a uvolněte místo v telefonu.'
+                : 'POZOR: bod se nepodařilo trvale uložit (databáze telefonu odmítla zápis — nejspíš plné úložiště). Data se mohou po zavření aplikace ztratit.\n\nUvolněte místo a udělejte zálohu (Nastavení → Údržba → Stáhnout zálohu).';
+            try { alert(msg); } catch (e) {}
         }
         // dump/restore celeho kv storu — pro zalohu vsech dat (zaloha.js)
         function idbDumpAll() {
@@ -162,9 +165,20 @@ if ('serviceWorker' in navigator) {
             const fk = getStoreKey(key);
             if (IDB_KEYS.indexOf(key) >= 0) {
                 _idbMem[fk] = val;
-                // Drive fire-and-forget: selhani zapisu (kvota) se NIKDE neprojevilo -> tichá ztráta bodů.
-                // Ted zapis pohlídáme a při selhání jednorazove varujeme uzivatele.
-                if (_idbOk) { _idbSet(fk, val).then(res => { if (res == null) _warnStorageWriteFail(); }); try { localStorage.removeItem(fk); } catch (e) {} return true; }
+                // POTVRZENY ZAPIS: drive fire-and-forget (selhani = ticha ztrata bodu po reloadu).
+                // Ted: 1 opakovani po 500 ms, pri trvalem selhani ZACHRANA do localStorage
+                // (hydrateActiveProject ji po startu umi nacist a vratit do IndexedDB).
+                // localStorage kopie se maze AZ po potvrzeni transakce, ne predem.
+                if (_idbOk) {
+                    const tryWrite = (attempt) => _idbSet(fk, val).then(res => {
+                        if (res != null) { try { localStorage.removeItem(fk); } catch (e) {} return; }
+                        if (attempt < 1) { setTimeout(() => tryWrite(attempt + 1), 500); return; }
+                        let saved = false; try { localStorage.setItem(fk, val); saved = true; } catch (e) {}
+                        _warnStorageWriteFail(saved);
+                    });
+                    tryWrite(0);
+                    return true;
+                }
             }
             try { localStorage.setItem(fk, val); return true; }
             catch (e) {
@@ -214,13 +228,15 @@ if ('serviceWorker' in navigator) {
             if(projects.length <= 1) return alert("Nelze smazat poslední zakázku.");
             if(!confirm("Opravdu smazat aktuální zakázku a všechny její uložené body?")) return;
             const pid = activeProjectId;
-            // IndexedDB: velka data bodu + fotodokumentace (pid_doc_*) + DXF navrh (pid_agProjectDesign).
-            // DRIVE se mazaly jen body -> fotky a navrhy zustavaly navzdy jako sirotci a zabiraly kvotu.
-            IDB_KEYS.forEach(k => { _idbDel(pid + "_" + k); });
-            _idbDel(pid + "_agProjectDesign");
-            _idbDelByPrefix(pid + "_doc_");
-            // localStorage: vsechna per-zakazkova nastaveni teto zakazky (jinak sirotci).
-            ['arFilters12','arRadiusMap','arRadiusAR','arVisSettings12','arLines12','arHeadingOffset','arOfflinePoints12','arCustomPoints12','agProjectDesign'].forEach(k => { try { localStorage.removeItem(pid + "_" + k); } catch(e){} });
+            // UKLID PODLE PREFIXU, ne rucnim vyctem: VSECHNA per-zakazkova data zacinaji
+            // `${pid}_` (getStoreKey). Rucni seznam klicu tu zastaraval — ~13 klicu modulu
+            // (vytycovaci checklist, Helmert, epochy, zapisniky, vrstvy...) zustavalo po
+            // smazani zakazky navzdy jako sirotci. Prefix smete i vsechny budouci klice.
+            _idbDelByPrefix(pid + "_");
+            try { for (let i = localStorage.length - 1; i >= 0; i--) { const k = localStorage.key(i); if (k && k.indexOf(pid + "_") === 0) localStorage.removeItem(k); } } catch (e) {}
+            // Moduly s VLASTNI IndexedDB (fotky vytyceni, rastr podkladu...) si uklidi samy.
+            // Zurnal (argeodet-journal) se ZAMERNE nemaze — auditni stopa prezije i zakazku.
+            try { document.dispatchEvent(new CustomEvent('ag:project-deleted', { detail: { id: pid } })); } catch (e) {}
             projects = projects.filter(p => p.id !== pid);
             localStorage.setItem('arProjectsList', JSON.stringify(projects));
             activeProjectId = projects[0].id; localStorage.setItem('arActiveProjectId', activeProjectId);
