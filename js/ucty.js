@@ -646,51 +646,117 @@
     // ------------------------------------------------------------------
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
+    // deterministická barva avataru ze jména — lidé se na obrazovce rychle najdou
+    function hueOf(name) {
+        var h = 0, s = String(name || '');
+        for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360;
+        return h;
+    }
+    function avStyle(name) {
+        var h = hueOf(name);
+        return 'background:linear-gradient(150deg,hsl(' + h + ',44%,48%),hsl(' + h + ',48%,33%));';
+    }
+    // značka: zaměřovací terčík (geodetický bod)
+    var MARK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="7.2"/><circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none"/><path d="M12 1.6v3.2M12 19.2v3.2M1.6 12h3.2M19.2 12h3.2"/></svg>';
+    var FIRM_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-4h6v4"/><path d="M9 10h.01M15 10h.01M9 14h.01M15 14h.01"/></svg>';
+    function brandHtml() {
+        return '<div class="agl-brand"><span class="agl-mark">' + MARK_SVG + '</span>' +
+            '<span class="agl-logo">AR <b>Geodet</b></span></div>';
+    }
+
     function injectStyles() {
         if (document.getElementById(STYLE_ID)) return;
         var st = document.createElement('style');
         st.id = STYLE_ID;
         st.textContent = [
-            '#ag-login{position:fixed;inset:0;z-index:999999;background:var(--bg,#0d1117);display:flex;flex-direction:column;',
-            '  align-items:center;justify-content:center;gap:14px;padding:24px calc(16px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));}',
-            '#ag-login .agl-logo,#ag-gate .agl-logo{font:800 22px/1.2 var(--font-display,system-ui);color:var(--accent,#2f9e74);letter-spacing:.02em;}',
-            '#ag-login .agl-firm,#ag-gate .agl-firm{font:600 14px/1.3 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);max-width:340px;text-align:center;}',
-            '#ag-login .agl-users{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:420px;max-height:38vh;overflow-y:auto;}',
-            '#ag-login .agl-user{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--glass-bg,rgba(255,255,255,0.06));',
-            '  border:1px solid var(--glass-border,rgba(255,255,255,0.12));border-radius:14px;padding:12px 14px;min-width:92px;cursor:pointer;color:var(--text,#e6e8eb);}',
-            '#ag-login .agl-user.sel{border-color:var(--accent,#2f9e74);background:var(--accent-soft,rgba(47,158,116,0.14));}',
-            '#ag-login .agl-av{width:44px;height:44px;border-radius:50%;background:var(--accent,#2f9e74);color:#fff;display:flex;align-items:center;justify-content:center;font:800 17px/1 var(--font-display,system-ui);}',
-            '#ag-login .agl-nm{font:600 12.5px/1.2 var(--font-ui,system-ui);max-width:110px;text-align:center;overflow:hidden;text-overflow:ellipsis;}',
-            '#ag-login .agl-role{font:500 10.5px/1 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
+            // ---- společná kostra brány a přihlášení (jemný nástup + zář nahoře) ----
+            '#ag-login,#ag-gate{position:fixed;inset:0;z-index:999999;background:var(--bg,#0d1117);display:flex;flex-direction:column;',
+            '  align-items:center;justify-content:center;gap:13px;overflow-y:auto;animation:aglin .28s ease-out;',
+            '  padding:calc(24px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));}',
+            '#ag-login::before,#ag-gate::before{content:"";position:absolute;top:-160px;left:50%;transform:translateX(-50%);width:460px;height:420px;',
+            '  border-radius:50%;background:radial-gradient(closest-side,var(--accent-soft,rgba(47,158,116,0.16)),transparent 72%);pointer-events:none;}',
+            '@keyframes aglin{from{opacity:0}to{opacity:1}}',
+            '#ag-login>*,#ag-gate>*{position:relative;}',   // obsah nad září
+            // značka: kulatý terčík (geodetický bod) + název
+            '.agl-brand{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:2px;}',
+            '.agl-mark{width:58px;height:58px;border-radius:18px;display:flex;align-items:center;justify-content:center;color:#fff;',
+            '  background:linear-gradient(150deg,var(--accent,#2f9e74),rgba(0,0,0,0.25)) var(--accent,#2f9e74);',
+            '  box-shadow:0 8px 24px var(--accent-soft,rgba(47,158,116,0.35)),inset 0 1px 0 rgba(255,255,255,0.25);}',
+            '.agl-mark svg{width:32px;height:32px;}',
+            '#ag-login .agl-logo,#ag-gate .agl-logo{font:800 23px/1.2 var(--font-display,system-ui);color:var(--text,#e6e8eb);letter-spacing:.02em;}',
+            '#ag-login .agl-logo b,#ag-gate .agl-logo b{color:var(--accent,#2f9e74);}',
+            '#ag-login .agl-firm,#ag-gate .agl-firm{font:600 13.5px/1.45 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);max-width:340px;text-align:center;}',
+            '#ag-login .agl-firmchip{display:inline-flex;align-items:center;gap:7px;background:var(--glass-bg,rgba(255,255,255,0.06));',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));border-radius:999px;padding:7px 14px;',
+            '  font:600 12.5px/1 var(--font-ui,system-ui);color:var(--text,#e6e8eb);}',
+            '#ag-login .agl-firmchip .dot{width:7px;height:7px;border-radius:50%;background:var(--accent,#2f9e74);}',
+            '#ag-login .agl-firmchip .lock{color:var(--warn,#d4a02c);}',
+            // dlaždice uživatelů
+            '#ag-login .agl-users{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:440px;max-height:38vh;overflow-y:auto;padding:4px;}',
+            '#ag-login .agl-user{display:flex;flex-direction:column;align-items:center;gap:7px;background:var(--glass-bg,rgba(255,255,255,0.05));',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.1));border-radius:16px;padding:13px 15px 11px;min-width:96px;cursor:pointer;',
+            '  color:var(--text,#e6e8eb);transition:transform .15s ease,border-color .15s ease,background .15s ease,box-shadow .15s ease;}',
+            '#ag-login .agl-user:active{transform:scale(.96);}',
+            '#ag-login .agl-user.sel{border-color:var(--accent,#2f9e74);background:var(--accent-soft,rgba(47,158,116,0.13));',
+            '  box-shadow:0 0 0 1px var(--accent,#2f9e74),0 6px 18px var(--accent-soft,rgba(47,158,116,0.25));}',
+            '#ag-login .agl-av{width:46px;height:46px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;',
+            '  font:800 17px/1 var(--font-display,system-ui);box-shadow:inset 0 1px 0 rgba(255,255,255,0.28),0 3px 8px rgba(0,0,0,0.28);}',
+            '#ag-login .agl-nm{font:600 12.5px/1.2 var(--font-ui,system-ui);max-width:116px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+            '#ag-login .agl-role{font:600 10px/1 var(--font-ui,system-ui);letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:3px 8px;',
+            '  color:var(--text-muted,#9aa1ac);background:var(--glass-bg,rgba(255,255,255,0.06));}',
+            '#ag-login .agl-role.r-admin{color:#d4a02c;background:rgba(212,160,44,0.12);}',
+            '#ag-login .agl-role.r-vedeni{color:#4a9eda;background:rgba(74,158,218,0.12);}',
+            // PIN / heslo
             '#ag-login .agl-pinbox{display:none;flex-direction:column;align-items:center;gap:10px;}',
-            '#ag-login .agl-pinbox.on{display:flex;}',
-            '#ag-login input.agl-pin{font:700 22px/1 var(--font-display,system-ui);letter-spacing:.35em;text-align:center;width:190px;',
-            '  background:var(--glass-bg,rgba(255,255,255,0.06));border:1px solid var(--glass-border,rgba(255,255,255,0.2));border-radius:12px;color:var(--text,#e6e8eb);padding:12px 8px;}',
-            '#ag-login .agl-err,#ag-gate .agl-err{color:var(--danger,#e5534b);font:600 13px/1.3 var(--font-ui,system-ui);min-height:17px;}',
-            '#ag-login .agl-btn,#ag-gate .agl-btn{border:1px solid var(--accent-line,rgba(47,158,116,0.42));background:var(--accent,#2f9e74);color:#fff;',
-            '  border-radius:12px;padding:12px 26px;font:700 15px/1 var(--font-ui,system-ui);cursor:pointer;}',
-            '#ag-login .agl-ghost,#ag-gate .agl-ghost{background:transparent;color:var(--text-muted,#9aa1ac);border:none;font:500 12.5px/1 var(--font-ui,system-ui);cursor:pointer;padding:8px;}',
+            '#ag-login .agl-pinbox.on{display:flex;animation:aglin .2s ease-out;}',
+            '#ag-login input.agl-pin,#ag-login input.agl-name,#ag-gate .agg-box input{box-sizing:border-box;width:230px;text-align:center;',
+            '  background:var(--glass-bg,rgba(255,255,255,0.06));border:1px solid var(--glass-border,rgba(255,255,255,0.18));border-radius:13px;',
+            '  color:var(--text,#e6e8eb);padding:13px 10px;outline:none;transition:border-color .15s ease,box-shadow .15s ease;}',
+            '#ag-login input.agl-pin{font:700 22px/1 var(--font-display,system-ui);letter-spacing:.35em;}',
+            '#ag-login input.agl-name,#ag-gate .agg-box input{font:600 15px/1.2 var(--font-ui,system-ui);}',
+            '#ag-login input.agl-pin:focus,#ag-login input.agl-name:focus,#ag-gate .agg-box input:focus{border-color:var(--accent,#2f9e74);',
+            '  box-shadow:0 0 0 3px var(--accent-soft,rgba(47,158,116,0.2));}',
+            '#ag-login .agl-err,#ag-gate .agl-err{color:var(--danger,#e5534b);font:600 13px/1.35 var(--font-ui,system-ui);min-height:18px;max-width:300px;text-align:center;}',
+            // tlačítka
+            '#ag-login .agl-btn,#ag-gate .agl-btn{border:none;color:#fff;border-radius:13px;padding:14px 30px;min-width:230px;box-sizing:border-box;',
+            '  font:700 15px/1 var(--font-ui,system-ui);cursor:pointer;background:linear-gradient(150deg,var(--accent,#2f9e74),rgba(0,0,0,0.22)) var(--accent,#2f9e74);',
+            '  box-shadow:0 6px 18px var(--accent-soft,rgba(47,158,116,0.3)),inset 0 1px 0 rgba(255,255,255,0.22);transition:transform .12s ease,filter .12s ease;}',
+            '#ag-login .agl-btn:active,#ag-gate .agl-btn:active{transform:scale(.97);filter:brightness(1.08);}',
+            '#ag-login .agl-ghost,#ag-gate .agl-ghost{background:transparent;color:var(--text-muted,#9aa1ac);border:none;',
+            '  font:600 12.5px/1 var(--font-ui,system-ui);cursor:pointer;padding:10px;text-decoration:underline;text-decoration-color:transparent;',
+            '  text-underline-offset:3px;transition:color .15s ease,text-decoration-color .15s ease;}',
+            '#ag-login .agl-ghost:active,#ag-gate .agl-ghost:active{color:var(--text,#e6e8eb);text-decoration-color:currentColor;}',
             '#ag-login.agl-shake .agl-pinbox{animation:aglshake .35s;}',
             '@keyframes aglshake{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}',
-            // brána při startu (výběr: přihlásit / založit / omezený režim)
-            '#ag-gate{position:fixed;inset:0;z-index:999999;background:var(--bg,#0d1117);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;',
-            '  padding:calc(24px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));overflow-y:auto;}',
-            '#ag-gate .agg-sec{font:700 11px/1 var(--font-ui,system-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);margin-top:4px;}',
-            '#ag-gate .agg-prof{display:flex;flex-direction:column;align-items:center;gap:3px;width:min(320px,86vw);background:var(--glass-bg,rgba(255,255,255,0.06));',
-            '  border:1px solid var(--glass-border,rgba(255,255,255,0.12));border-radius:14px;padding:10px 14px;cursor:pointer;color:var(--text,#e6e8eb);}',
-            '#ag-gate .agg-prof b{font:700 14px/1.2 var(--font-ui,system-ui);}',
+            // ---- brána při startu (přihlásit / založit / omezený režim) ----
+            '#ag-gate .agg-sec{font:700 10.5px/1 var(--font-ui,system-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);margin-top:6px;}',
+            '#ag-gate .agg-prof{display:flex;align-items:center;gap:12px;width:min(330px,88vw);box-sizing:border-box;text-align:left;',
+            '  background:var(--glass-bg,rgba(255,255,255,0.05));border:1px solid var(--glass-border,rgba(255,255,255,0.1));border-radius:15px;',
+            '  padding:11px 15px;cursor:pointer;color:var(--text,#e6e8eb);transition:transform .15s ease,border-color .15s ease;}',
+            '#ag-gate .agg-prof:active{transform:scale(.97);border-color:var(--accent,#2f9e74);}',
+            '#ag-gate .agg-prof .agg-pav{width:38px;height:38px;border-radius:12px;flex:none;display:flex;align-items:center;justify-content:center;',
+            '  color:var(--accent,#2f9e74);background:var(--accent-soft,rgba(47,158,116,0.13));}',
+            '#ag-gate .agg-prof .agg-pav svg{width:20px;height:20px;}',
+            '#ag-gate .agg-prof .agg-pt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}',
+            '#ag-gate .agg-prof b{font:700 14px/1.2 var(--font-ui,system-ui);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
             '#ag-gate .agg-prof span{font:500 11px/1.2 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
-            '#ag-gate .agg-box{display:none;flex-direction:column;gap:8px;width:min(320px,86vw);}',
-            '#ag-gate .agg-box.on{display:flex;}',
-            '#ag-gate .agg-box input{font:600 15px/1.2 var(--font-ui,system-ui);text-align:center;background:var(--glass-bg,rgba(255,255,255,0.06));',
-            '  border:1px solid var(--glass-border,rgba(255,255,255,0.2));border-radius:12px;color:var(--text,#e6e8eb);padding:12px 8px;}',
-            '#ag-gate .agg-alt{border:1px solid var(--glass-border,rgba(255,255,255,0.18));background:transparent;color:var(--text,#e6e8eb);',
-            '  border-radius:12px;padding:11px 22px;font:600 13.5px/1 var(--font-ui,system-ui);cursor:pointer;}',
-            '#ag-gate .agg-note{max-width:320px;text-align:center;font:500 11.5px/1.45 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
-            // štítek omezeného režimu
+            '#ag-gate .agg-prof .agg-go{flex:none;color:var(--text-muted,#9aa1ac);}',
+            '#ag-gate .agg-box{display:none;flex-direction:column;gap:9px;width:min(330px,88vw);align-items:center;}',
+            '#ag-gate .agg-box.on{display:flex;animation:aglin .2s ease-out;}',
+            '#ag-gate .agg-box input{width:100%;}',
+            '#ag-gate .agg-box .agl-btn{width:100%;}',
+            '#ag-gate .agg-alt{border:1px solid var(--glass-border,rgba(255,255,255,0.16));background:var(--glass-bg,rgba(255,255,255,0.04));',
+            '  color:var(--text,#e6e8eb);border-radius:13px;padding:13px 22px;min-width:230px;box-sizing:border-box;',
+            '  font:600 13.5px/1 var(--font-ui,system-ui);cursor:pointer;transition:transform .12s ease,border-color .15s ease;}',
+            '#ag-gate .agg-alt:active{transform:scale(.97);border-color:var(--accent,#2f9e74);}',
+            '#ag-gate #agg-show-join{width:min(330px,88vw);}',
+            '#ag-gate .agg-note{max-width:330px;text-align:center;font:500 11.5px/1.5 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
+            // ---- štítek omezeného režimu ----
             '#ag-guest-pill{position:fixed;top:calc(env(safe-area-inset-top) + 8px);left:50%;transform:translateX(-50%);z-index:9500;',
-            '  background:rgba(13,17,23,0.82);border:1px solid var(--glass-border,rgba(255,255,255,0.2));border-radius:999px;',
-            '  color:var(--text-muted,#9aa1ac);font:500 11.5px/1 var(--font-ui,system-ui);padding:7px 13px;cursor:pointer;}',
+            '  display:inline-flex;align-items:center;gap:7px;background:rgba(13,17,23,0.85);border:1px solid var(--glass-border,rgba(255,255,255,0.2));',
+            '  border-radius:999px;color:var(--text-muted,#9aa1ac);font:500 11.5px/1 var(--font-ui,system-ui);padding:8px 14px;cursor:pointer;',
+            '  box-shadow:0 4px 14px rgba(0,0,0,0.35);}',
+            '#ag-guest-pill::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--warn,#d4a02c);}',
             '#ag-guest-pill b{color:var(--accent,#2f9e74);font-weight:700;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
@@ -709,18 +775,20 @@
         var usersHtml = f.users.map(function (u) {
             var initials = (u.name || '?').trim().split(/\s+/).map(function (w) { return w.charAt(0); }).slice(0, 2).join('').toUpperCase();
             var roleTxt = u.role === 'admin' ? 'Admin' : (u.role === 'vedeni' ? 'Vedení' : 'Zaměstnanec');
+            var roleCls = u.role === 'admin' ? ' r-admin' : (u.role === 'vedeni' ? ' r-vedeni' : '');
             return '<button type="button" class="agl-user" data-id="' + esc(u.id) + '">' +
-                '<span class="agl-av">' + esc(initials) + '</span>' +
+                '<span class="agl-av" style="' + avStyle(u.name) + '">' + esc(initials) + '</span>' +
                 '<span class="agl-nm">' + esc(u.name) + '</span>' +
-                '<span class="agl-role">' + roleTxt + '</span></button>';
+                '<span class="agl-role' + roleCls + '">' + roleTxt + '</span></button>';
         }).join('');
         var cloud = !!f.cloud;
         ov.innerHTML =
-            '<div class="agl-logo">AR Geodet</div>' +
-            '<div class="agl-firm">' + esc(f.firmName || 'Firemní režim') + (cloud && f.code ? ' · ' + esc(f.code) : '') + (lockMode ? ' — zamčeno' : '') + '</div>' +
+            brandHtml() +
+            '<div class="agl-firmchip"><span class="dot"></span>' + esc(f.firmName || 'Firemní režim') +
+            (cloud && f.code ? ' · ' + esc(f.code) : '') + (lockMode ? ' <span class="lock">· zamčeno</span>' : '') + '</div>' +
             '<div class="agl-users">' + usersHtml + '</div>' +
             '<div class="agl-pinbox">' +
-            '  <input class="agl-name" type="text" autocomplete="username" maxlength="40" placeholder="Jméno" style="display:none;font:600 15px/1.2 var(--font-ui,system-ui);letter-spacing:0;text-align:center;width:190px;background:var(--glass-bg,rgba(255,255,255,0.06));border:1px solid var(--glass-border,rgba(255,255,255,0.2));border-radius:12px;color:var(--text,#e6e8eb);padding:12px 8px;">' +
+            '  <input class="agl-name" type="text" autocomplete="username" maxlength="40" placeholder="Jméno" style="display:none;">' +
             (cloud
                 ? '  <input class="agl-pin" type="password" autocomplete="current-password" maxlength="64" placeholder="Heslo" style="letter-spacing:.12em;font-size:17px;">'
                 : '  <input class="agl-pin" type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="PIN">') +
@@ -865,12 +933,14 @@
             profHtml = '<div class="agg-sec">Firmy na tomto zařízení</div>' +
                 profs.map(function (p) {
                     return '<button type="button" class="agg-prof" data-key="' + esc(p.key) + '">' +
-                        '<b>' + esc(p.label) + '</b>' +
-                        '<span>' + (p.cloud ? 'cloud · kód ' + esc(p.code || '?') : 'jen toto zařízení') + '</span></button>';
+                        '<span class="agg-pav">' + FIRM_SVG + '</span>' +
+                        '<span class="agg-pt"><b>' + esc(p.label) + '</b>' +
+                        '<span>' + (p.cloud ? 'cloud · kód ' + esc(p.code || '?') : 'jen toto zařízení') + '</span></span>' +
+                        '<span class="agg-go">›</span></button>';
                 }).join('');
         }
         ov.innerHTML =
-            '<div class="agl-logo">AR Geodet</div>' +
+            brandHtml() +
             '<div class="agl-firm">Přihlas se ke své firmě, nebo pokračuj bez přihlášení s omezenými funkcemi.</div>' +
             profHtml +
             '<div class="agg-box" id="agg-join">' +
@@ -1024,6 +1094,7 @@
         removeProfile: removeProfile,
         rememberCurrentFirm: rememberCurrentFirm,
         profileKeyOf: profileKeyOf,
+        avatarStyle: avStyle,   // barva avataru ze jména (užívá i administrace/chat)
         hashPin: hashPin,
         makeSalt: makeSalt,
         usageLog: usageLog,

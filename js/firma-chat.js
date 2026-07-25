@@ -1,0 +1,223 @@
+// ============================================================================
+// AR Geodet — FIREMNÍ CHAT (ODPOJITELNÁ vrstva nad js/ucty.js)
+// ----------------------------------------------------------------------------
+// Jednoduché zprávy mezi všemi přihlášenými ve firmě („pošli mi číslo bodu,
+// jsem u šachty B"). ŽÁDNÝ realtime — prosté dotazování serveru (Cloudflare
+// Worker, cloud/worker.js: POST/GET /chat) jednou za pár sekund, jen dokud je
+// chat otevřený, aby se šetřil limit požadavků i baterie.
+//   • funguje jen u CLOUDOVÉ firmy a s internetem (offline ukáže poslední
+//     načtené zprávy z mezipaměti zařízení)
+//   • server drží posledních ~500 zpráv na firmu, starší maže
+// Odstranění: smaž js/firma-chat.js + řádek <script> v index.html (a v sw.js).
+// ============================================================================
+(function () {
+    'use strict';
+    if (window.AGFirmaChat) return;
+
+    var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2.4-2.9A8 8 0 1 1 21 12z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01"/></svg>';
+    var STYLE_ID = 'ag-chat-style';
+    var LS_CACHE = 'agChatCache_v1';   // {code, msgs:[posledních ~80]} — offline náhled
+    var POLL_MS = 8000;
+
+    function U() { return window.AGUcty || null; }
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function fmtT(ts) { return new Date(ts).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }); }
+    function fmtD(ts) { return new Date(ts).toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'numeric' }); }
+
+    function injectStyles() {
+        if (document.getElementById(STYLE_ID)) return;
+        var st = document.createElement('style');
+        st.id = STYLE_ID;
+        st.textContent = [
+            '#agch-modal .modal-body{display:flex;flex-direction:column;}',
+            '#agch-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:7px;padding:6px 2px;}',
+            '#agch-modal .agch-day{align-self:center;font:600 10.5px/1 var(--font-ui,system-ui);letter-spacing:.05em;text-transform:uppercase;',
+            '  color:var(--text-muted,#9aa1ac);background:var(--glass-bg,rgba(255,255,255,0.06));border-radius:999px;padding:5px 11px;margin:6px 0 2px;}',
+            '#agch-modal .agch-msg{max-width:82%;display:flex;flex-direction:column;gap:2px;align-self:flex-start;}',
+            '#agch-modal .agch-msg.mine{align-self:flex-end;align-items:flex-end;}',
+            '#agch-modal .agch-meta{display:flex;align-items:center;gap:6px;font:600 10.5px/1 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);padding:0 4px;}',
+            '#agch-modal .agch-meta .who{font-weight:700;}',
+            '#agch-modal .agch-bubble{border-radius:14px;padding:9px 12px;font:500 13.5px/1.45 var(--font-ui,system-ui);color:var(--text,#e6e8eb);',
+            '  background:var(--glass-bg,rgba(255,255,255,0.06));border:1px solid var(--glass-border,rgba(255,255,255,0.09));',
+            '  border-bottom-left-radius:5px;word-break:break-word;white-space:pre-wrap;}',
+            '#agch-modal .mine .agch-bubble{background:var(--accent-soft,rgba(47,158,116,0.16));border-color:var(--accent-line,rgba(47,158,116,0.35));',
+            '  border-bottom-left-radius:14px;border-bottom-right-radius:5px;}',
+            '#agch-modal .agch-empty{align-self:center;text-align:center;font:500 12px/1.5 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);margin:22px 10px;}',
+            '#agch-modal .agch-inrow{display:flex;gap:8px;margin-top:10px;flex:none;}',
+            '#agch-modal .agch-inrow textarea{flex:1;resize:none;height:44px;box-sizing:border-box;background:var(--glass-bg,rgba(255,255,255,0.06));',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.16));border-radius:12px;color:var(--text,#e6e8eb);padding:11px 12px;',
+            '  font:500 14px/1.3 var(--font-ui,system-ui);outline:none;transition:border-color .15s ease;}',
+            '#agch-modal .agch-inrow textarea:focus{border-color:var(--accent,#2f9e74);}',
+            '#agch-modal .agch-send{flex:none;width:48px;height:44px;border:none;border-radius:12px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;',
+            '  background:linear-gradient(150deg,var(--accent,#2f9e74),rgba(0,0,0,0.22)) var(--accent,#2f9e74);',
+            '  box-shadow:0 4px 12px var(--accent-soft,rgba(47,158,116,0.3));transition:transform .12s ease;}',
+            '#agch-modal .agch-send:active{transform:scale(.94);}',
+            '#agch-modal .agch-send svg{width:20px;height:20px;}',
+            '#agch-modal .agch-off{font:600 11.5px/1.4 var(--font-ui,system-ui);color:#d4a02c;text-align:center;margin-top:6px;min-height:15px;}'
+        ].join('\n');
+        (document.head || document.documentElement).appendChild(st);
+    }
+
+    var _msgs = [];      // [{id, uid, u, ts, txt}]
+    var _lastId = 0;
+    var _poll = null;
+    var _busySend = false;
+
+    function firmCode() { var u = U(); var f = u && u.getFirm(); return (f && f.code) || null; }
+    function cacheLoad() {
+        try {
+            var c = JSON.parse(localStorage.getItem(LS_CACHE) || 'null');
+            if (c && c.code === firmCode() && Array.isArray(c.msgs)) { _msgs = c.msgs; _lastId = _msgs.length ? _msgs[_msgs.length - 1].id : 0; }
+        } catch (e) {}
+    }
+    function cacheSave() {
+        try { localStorage.setItem(LS_CACHE, JSON.stringify({ code: firmCode(), msgs: _msgs.slice(-80) })); } catch (e) {}
+    }
+
+    function ensureModal() {
+        var m = document.getElementById('agch-modal');
+        if (m) return m;
+        injectStyles();
+        m = document.createElement('div');
+        m.className = 'modal-overlay';
+        m.id = 'agch-modal';
+        m.innerHTML =
+            '<div class="modal-content">' +
+            '  <h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Firemní chat</h3>' +
+            '  <div class="modal-body" style="flex:1;min-height:0;">' +
+            '    <div id="agch-list"></div>' +
+            '    <div class="agch-off" id="agch-off"></div>' +
+            '    <div class="agch-inrow">' +
+            '      <textarea id="agch-inp" maxlength="500" placeholder="Napiš zprávu firmě…"></textarea>' +
+            '      <button type="button" class="agch-send" id="agch-send" aria-label="Odeslat">' +
+            '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>' +
+            '      </button>' +
+            '    </div>' +
+            '  </div>' +
+            '  <button class="btn btn-secondary" style="margin-top:12px;" id="agch-close">Zavřít</button>' +
+            '</div>';
+        document.body.appendChild(m);
+        m.querySelector('#agch-close').onclick = close;
+        m.querySelector('#agch-send').onclick = send;
+        m.querySelector('#agch-inp').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+        });
+        return m;
+    }
+
+    function render(scrollDown) {
+        var list = document.getElementById('agch-list');
+        if (!list) return;
+        var u = U();
+        var me = u && u.currentUser();
+        var meId = me ? me.id : null;
+        if (!_msgs.length) {
+            list.innerHTML = '<div class="agch-empty">Zatím žádné zprávy.<br>Napiš první — uvidí ji všichni přihlášení ve firmě.</div>';
+            return;
+        }
+        var html = '', lastDay = '';
+        _msgs.forEach(function (msg) {
+            var day = new Date(msg.ts).toDateString();
+            if (day !== lastDay) { html += '<div class="agch-day">' + esc(fmtD(msg.ts)) + '</div>'; lastDay = day; }
+            var mine = meId && msg.uid === meId;
+            html += '<div class="agch-msg' + (mine ? ' mine' : '') + '">' +
+                '<div class="agch-meta">' +
+                (mine ? '' : '<span class="who" style="color:hsl(' + hue(msg.u) + ',55%,62%);">' + esc(msg.u || '?') + '</span>') +
+                '<span>' + fmtT(msg.ts) + '</span></div>' +
+                '<div class="agch-bubble">' + esc(msg.txt) + '</div></div>';
+        });
+        list.innerHTML = html;
+        if (scrollDown !== false) list.scrollTop = list.scrollHeight;
+    }
+    function hue(name) {
+        var h = 0, s = String(name || '');
+        for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360;
+        return h;
+    }
+    function setOff(msg) {
+        var el = document.getElementById('agch-off');
+        if (el) el.textContent = msg || '';
+    }
+
+    function load() {
+        var u = U(); if (!u) return;
+        u.cloudFetch('/chat' + (_lastId ? '?after=' + _lastId : '')).then(function (r) {
+            if (!r.ok || !r.data || !Array.isArray(r.data.messages)) {
+                setOff(r.status === 0 ? 'Offline — zobrazeny poslední načtené zprávy.' : (r.status ? 'Server vrátil chybu ' + r.status + '.' : ''));
+                return;
+            }
+            setOff('');
+            var seen = {};
+            _msgs.forEach(function (msg) { seen[msg.id] = 1; });
+            var fresh = r.data.messages.filter(function (msg) { return msg && msg.id && !seen[msg.id]; });
+            if (fresh.length) {
+                var list = document.getElementById('agch-list');
+                var atBottom = !list || (list.scrollHeight - list.scrollTop - list.clientHeight < 60);
+                _msgs = _msgs.concat(fresh).slice(-300);
+                _lastId = _msgs[_msgs.length - 1].id;
+                cacheSave();
+                render(atBottom);
+            }
+        });
+    }
+
+    function send() {
+        if (_busySend) return;
+        var inp = document.getElementById('agch-inp');
+        var txt = (inp.value || '').trim();
+        if (!txt) return;
+        var u = U(); if (!u) return;
+        _busySend = true;
+        u.cloudFetch('/chat', { method: 'POST', body: { txt: txt } }).then(function (r) {
+            _busySend = false;
+            if (!r.ok) {
+                setOff(r.status === 0 ? 'Bez internetu zprávu nejde odeslat.' : 'Odeslání selhalo (' + ((r.data && r.data.error) || r.status) + ').');
+                return;
+            }
+            inp.value = '';
+            setOff('');
+            load();
+        });
+    }
+
+    function close() {
+        var m = document.getElementById('agch-modal');
+        if (m) m.style.display = 'none';
+        if (_poll) { clearInterval(_poll); _poll = null; }
+    }
+
+    function open() {
+        var u = U();
+        var f = u && u.getFirm();
+        function say(t, msg) {
+            try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: msg }); } catch (e) {}
+            alert(t + '\n\n' + msg);
+        }
+        if (!f) return say('Firemní chat', 'Chat funguje ve firemním režimu (Nástroje → Firma a účty).');
+        if (!f.cloud) return say('Firemní chat', 'Chat potřebuje CLOUDOVOU firmu (účty na serveru) — lokální firma nemá kam zprávy posílat.');
+        if (!u.currentUser()) return say('Firemní chat', 'Nejdřív se přihlas.');
+        var m = ensureModal();
+        m.style.display = 'flex';
+        cacheLoad();
+        render();
+        load();
+        if (_poll) clearInterval(_poll);
+        _poll = setInterval(function () {
+            var mm = document.getElementById('agch-modal');
+            if (!mm || mm.style.display === 'none') { close(); return; }
+            if (document.hidden) return;   // na pozadí nedotazovat (limit + baterie)
+            load();
+        }, POLL_MS);
+    }
+
+    function init() {
+        if (!U()) return;
+        if (typeof window.agRegisterFieldTool === 'function') {
+            window.agRegisterFieldTool({ id: 'firma-chat', label: 'Firemní chat', icon: ICON, onClick: open, order: 89, cat: 'Pomůcky' });
+        }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 400); });
+    else setTimeout(init, 400);
+
+    window.AGFirmaChat = { open: open };
+})();

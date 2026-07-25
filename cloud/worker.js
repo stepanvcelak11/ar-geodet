@@ -184,7 +184,15 @@ async function lastActiveAdminGuard(env, firmId, exceptUserId) {
 // hlavní router
 // ---------------------------------------------------------------------------
 export default {
-    async fetch(req, env) {
+    async fetch(req, env, ctx) {
+        // denní počítadlo požadavků (VČETNĚ preflightů — ty se do limitu počítají
+        // taky); na pozadí, aby nezdržovalo a jeho chyba neshodila API
+        try {
+            const day = new Date().toISOString().slice(0, 10);
+            const p = env.DB.prepare('INSERT INTO stats(day,n) VALUES(?,1) ON CONFLICT(day) DO UPDATE SET n=n+1')
+                .bind(day).run().catch(() => {});
+            if (ctx && ctx.waitUntil) ctx.waitUntil(p);
+        } catch (e) {}
         if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
         const url = new URL(req.url);
         const path = url.pathname.replace(/\/+$/, '') || '/';
@@ -334,6 +342,59 @@ export default {
                 const hash = await pbkdf2(String(b.password), salt, ITERS);
                 await env.DB.prepare('UPDATE users SET pass_hash=?, salt=?, iters=? WHERE id=?').bind(hash, salt, ITERS, me.id).run();
                 return json({ ok: true, offline: { salt: salt, iters: ITERS, hash: hash } });
+            }
+
+            // ---------------- firemní chat ------------------------------------
+            if (req.method === 'POST' && path === '/chat') {
+                const b = await req.json().catch(() => null);
+                const txt = b && typeof b.txt === 'string' ? b.txt.trim().slice(0, 500) : '';
+                if (!txt) return err(400, 'Prázdná zpráva.');
+                await env.DB.prepare('INSERT INTO chat(firm_id,uid,uname,ts,txt) VALUES(?,?,?,?,?)')
+                    .bind(me.firm_id, me.id, me.name, Date.now(), txt).run();
+                // občasný úklid: server drží posledních ~500 zpráv na firmu
+                if (Math.random() < 0.05) {
+                    await env.DB.prepare(
+                        'DELETE FROM chat WHERE firm_id=? AND id NOT IN (SELECT id FROM chat WHERE firm_id=? ORDER BY id DESC LIMIT 500)')
+                        .bind(me.firm_id, me.firm_id).run();
+                }
+                return json({ ok: true, ts: Date.now() });
+            }
+
+            if (req.method === 'GET' && path === '/chat') {
+                const after = parseInt(url.searchParams.get('after'), 10) || 0;
+                let rows;
+                if (after > 0) {
+                    rows = (await env.DB.prepare(
+                        'SELECT id, uid, uname AS u, ts, txt FROM chat WHERE firm_id=? AND id>? ORDER BY id LIMIT 200')
+                        .bind(me.firm_id, after).all()).results;
+                } else {
+                    // první načtení: posledních 100 zpráv (vzestupně)
+                    rows = (await env.DB.prepare(
+                        'SELECT id, uid, uname AS u, ts, txt FROM chat WHERE firm_id=? ORDER BY id DESC LIMIT 100')
+                        .bind(me.firm_id).all()).results.reverse();
+                }
+                return json({ messages: rows, serverTime: Date.now() });
+            }
+
+            // ---------------- vytížení serveru (admin) -------------------------
+            if (req.method === 'GET' && path === '/stats') {
+                if (me.role !== 'admin') return err(403, 'Jen admin.');
+                const days = (await env.DB.prepare('SELECT day, n FROM stats ORDER BY day DESC LIMIT 14').all()).results.reverse();
+                async function cnt(sql, ...b) {
+                    const row = await env.DB.prepare(sql).bind(...b).first();
+                    return row ? row.n : 0;
+                }
+                return json({
+                    limits: { reqPerDay: 100000, plan: 'Workers Free' },
+                    today: new Date().toISOString().slice(0, 10),
+                    days: days,   // [{day:'YYYY-MM-DD', n}] — požadavky CELÉHO API (všechny firmy)
+                    rows: {
+                        users: await cnt('SELECT COUNT(*) AS n FROM users WHERE firm_id=?', me.firm_id),
+                        usage: await cnt('SELECT COUNT(*) AS n FROM usage WHERE firm_id=?', me.firm_id),
+                        chat: await cnt('SELECT COUNT(*) AS n FROM chat WHERE firm_id=?', me.firm_id),
+                        firms: await cnt('SELECT COUNT(*) AS n FROM firms')
+                    }
+                });
             }
 
             // ---------------- záznamy užívání --------------------------------

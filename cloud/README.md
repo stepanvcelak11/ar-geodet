@@ -44,6 +44,15 @@ Alternativně jde `worker.js` vložit přes webový editor v dashboardu
 - `POST /password` `{old, password}` — změna vlastního hesla
 - `POST /usage` `{events:[{ts,t,k,proj,dev}]}` · `GET /usage?from=ts`
   (admin / vedení s oprávněním) · `DELETE /usage` (admin)
+- `POST /chat` `{txt}` (max 500 znaků) · `GET /chat?after=id` — firemní chat;
+  server drží posledních ~500 zpráv na firmu
+- `GET /stats` (admin) — vytížení: denní počty požadavků (celé API, posledních
+  14 dní, tabulka `stats`) + počty záznamů firmy; klient z toho kreslí ukazatel
+  proti limitu free plánu
+
+**Po přidání chatu/statistik (větev feat/auth-first-firmy-grafy) je potřeba
+znovu aplikovat `schema.sql` (nové tabulky `chat` a `stats`) a znovu nasadit
+`worker.js`** — jinak appka funguje po staru a chat/vytížení ohlásí chybu.
 
 ## Bezpečnost (poctivě)
 

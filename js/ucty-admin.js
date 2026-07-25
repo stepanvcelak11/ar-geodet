@@ -36,40 +36,69 @@
         var st = document.createElement('style');
         st.id = STYLE_ID;
         st.textContent = [
-            '#agfa-modal .agfa-nav{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 12px;}',
-            '#agfa-modal .agfa-nav button{border:1px solid var(--glass-border,rgba(255,255,255,0.15));background:var(--glass-bg,rgba(255,255,255,0.05));',
-            '  color:var(--text,#e6e8eb);border-radius:999px;padding:8px 14px;font:600 12.5px/1 var(--font-ui,system-ui);cursor:pointer;}',
+            // navigace: pilulky s ikonami, aktivní zvýrazněná
+            '#agfa-modal .agfa-nav{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;margin:4px 0 12px;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}',
+            '#agfa-modal .agfa-nav::-webkit-scrollbar{display:none;}',
+            '#agfa-modal .agfa-nav button{display:inline-flex;align-items:center;gap:6px;flex:none;border:1px solid var(--glass-border,rgba(255,255,255,0.13));',
+            '  background:var(--glass-bg,rgba(255,255,255,0.04));color:var(--text-muted,#9aa1ac);border-radius:999px;padding:9px 14px;',
+            '  font:600 12.5px/1 var(--font-ui,system-ui);cursor:pointer;transition:color .15s ease,border-color .15s ease,background .15s ease;}',
+            '#agfa-modal .agfa-nav button svg{width:14px;height:14px;}',
             '#agfa-modal .agfa-nav button.act{border-color:var(--accent,#2f9e74);background:var(--accent-soft,rgba(47,158,116,0.14));color:var(--accent,#2f9e74);}',
-            '#agfa-modal .agfa-row{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.08));}',
+            // řádky seznamů + avatary
+            '#agfa-modal .agfa-row{display:flex;align-items:center;gap:10px;padding:10px 6px;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.07));}',
+            '#agfa-modal .agfa-row:last-child{border-bottom:none;}',
             '#agfa-modal .agfa-row b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;}',
-            '#agfa-modal .agfa-chip{font:600 10.5px/1 var(--font-ui,system-ui);border-radius:999px;padding:4px 9px;background:var(--accent-soft,rgba(47,158,116,0.14));color:var(--accent,#2f9e74);white-space:nowrap;}',
-            '#agfa-modal .agfa-mini{border:1px solid var(--glass-border,rgba(255,255,255,0.18));background:transparent;color:var(--text,#e6e8eb);',
-            '  border-radius:9px;padding:6px 10px;font:600 12px/1 var(--font-ui,system-ui);cursor:pointer;}',
+            '#agfa-modal .agfa-list{background:var(--glass-bg,rgba(255,255,255,0.03));border:1px solid var(--glass-border,rgba(255,255,255,0.08));border-radius:14px;padding:2px 10px;margin:8px 0;}',
+            '#agfa-modal .agfa-av{width:34px;height:34px;border-radius:50%;flex:none;color:#fff;display:flex;align-items:center;justify-content:center;',
+            '  font:800 13px/1 var(--font-display,system-ui);box-shadow:inset 0 1px 0 rgba(255,255,255,0.25);}',
+            // barevné role (barva + text, ne jen barva)
+            '#agfa-modal .agfa-chip{font:600 10.5px/1 var(--font-ui,system-ui);border-radius:999px;padding:4px 9px;background:var(--glass-bg,rgba(255,255,255,0.07));color:var(--text-muted,#9aa1ac);white-space:nowrap;}',
+            '#agfa-modal .agfa-chip.c-accent{background:var(--accent-soft,rgba(47,158,116,0.14));color:var(--accent,#2f9e74);}',
+            '#agfa-modal .agfa-chip.c-admin{background:rgba(212,160,44,0.13);color:#d4a02c;}',
+            '#agfa-modal .agfa-chip.c-vedeni{background:rgba(74,158,218,0.13);color:#4a9eda;}',
+            '#agfa-modal .agfa-mini{border:1px solid var(--glass-border,rgba(255,255,255,0.16));background:var(--glass-bg,rgba(255,255,255,0.03));color:var(--text,#e6e8eb);',
+            '  border-radius:10px;padding:8px 11px;font:600 12px/1 var(--font-ui,system-ui);cursor:pointer;transition:border-color .15s ease,transform .12s ease;}',
+            '#agfa-modal .agfa-mini:active{transform:scale(.96);border-color:var(--accent,#2f9e74);}',
             '#agfa-modal .agfa-mini.danger{color:var(--danger,#e5534b);border-color:rgba(229,83,75,0.4);}',
             '#agfa-modal label.agfa-lb{display:block;font:600 12px/1.3 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);margin:10px 0 4px;}',
             '#agfa-modal input[type=text],#agfa-modal input[type=password],#agfa-modal input[type=number],#agfa-modal select{width:100%;box-sizing:border-box;',
-            '  background:var(--glass-bg,rgba(255,255,255,0.06));border:1px solid var(--glass-border,rgba(255,255,255,0.18));border-radius:10px;',
-            '  color:var(--text,#e6e8eb);padding:10px 12px;font:500 14px/1.2 var(--font-ui,system-ui);}',
-            '#agfa-modal .agfa-perm{display:flex;align-items:center;gap:10px;padding:7px 2px;}',
-            '#agfa-modal .agfa-perm input{width:18px;height:18px;accent-color:var(--accent,#2f9e74);}',
-            '#agfa-modal .agfa-pg{font:700 11px/1 var(--font-ui,system-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);margin:14px 0 4px;}',
-            '#agfa-modal .agfa-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin:8px 0;}',
-            '#agfa-modal .agfa-card{background:var(--glass-bg,rgba(255,255,255,0.05));border:1px solid var(--glass-border,rgba(255,255,255,0.1));border-radius:12px;padding:10px 12px;}',
-            '#agfa-modal .agfa-card b{display:block;font:800 19px/1.2 var(--font-display,system-ui);color:var(--accent,#2f9e74);}',
-            '#agfa-modal .agfa-card span{font:600 11px/1.3 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
-            '#agfa-modal table.agfa-tbl{width:100%;border-collapse:collapse;font:500 12.5px/1.35 var(--font-ui,system-ui);}',
-            '#agfa-modal table.agfa-tbl th{text-align:left;font:700 11px/1 var(--font-ui,system-ui);letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);padding:7px 6px;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.15));}',
-            '#agfa-modal table.agfa-tbl td{padding:7px 6px;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.07));}',
-            '#agfa-modal .agfa-note{font:500 12px/1.45 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);margin:8px 0;}',
+            '  background:var(--glass-bg,rgba(255,255,255,0.06));border:1px solid var(--glass-border,rgba(255,255,255,0.16));border-radius:11px;',
+            '  color:var(--text,#e6e8eb);padding:11px 12px;font:500 14px/1.2 var(--font-ui,system-ui);outline:none;transition:border-color .15s ease,box-shadow .15s ease;}',
+            '#agfa-modal input:focus,#agfa-modal select:focus{border-color:var(--accent,#2f9e74);box-shadow:0 0 0 3px var(--accent-soft,rgba(47,158,116,0.18));}',
+            '#agfa-modal .agfa-perm{display:flex;align-items:center;gap:10px;padding:8px 2px;}',
+            '#agfa-modal .agfa-perm input{width:19px;height:19px;accent-color:var(--accent,#2f9e74);}',
+            // nadpisy sekcí s akcentní linkou
+            '#agfa-modal .agfa-pg{display:flex;align-items:center;gap:8px;font:700 11px/1 var(--font-ui,system-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);margin:16px 0 5px;}',
+            '#agfa-modal .agfa-pg::before{content:"";width:14px;height:3px;border-radius:2px;background:var(--accent,#2f9e74);}',
+            // karty souhrnů
+            '#agfa-modal .agfa-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;margin:10px 0;}',
+            '#agfa-modal .agfa-card{background:var(--glass-bg,rgba(255,255,255,0.04));border:1px solid var(--glass-border,rgba(255,255,255,0.09));border-radius:13px;padding:11px 12px;',
+            '  border-top:2px solid var(--accent-soft,rgba(47,158,116,0.35));}',
+            '#agfa-modal .agfa-card b{display:block;font:800 20px/1.2 var(--font-display,system-ui);color:var(--text,#e6e8eb);}',
+            '#agfa-modal .agfa-card span{font:600 10.5px/1.3 var(--font-ui,system-ui);letter-spacing:.02em;color:var(--text-muted,#9aa1ac);}',
+            // tabulky: zebra + zaoblený rám
+            '#agfa-modal table.agfa-tbl{width:100%;border-collapse:collapse;font:500 12.5px/1.35 var(--font-ui,system-ui);margin:6px 0;}',
+            '#agfa-modal table.agfa-tbl th{text-align:left;font:700 10.5px/1 var(--font-ui,system-ui);letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);padding:8px 7px;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.14));}',
+            '#agfa-modal table.agfa-tbl td{padding:8px 7px;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.06));}',
+            '#agfa-modal table.agfa-tbl tr:nth-child(even) td{background:var(--glass-bg,rgba(255,255,255,0.025));}',
+            '#agfa-modal .agfa-note{font:500 12px/1.5 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);margin:8px 0;}',
             '#agfa-modal .agfa-filters{display:flex;gap:10px;flex-wrap:wrap;}',
             '#agfa-modal .agfa-filters>div{flex:1;min-width:130px;}',
             // grafy užívání (inline SVG): jedna barva appky, text v textových tónech
-            '#agfa-modal .agc-wrap{background:var(--glass-bg,rgba(255,255,255,0.04));border:1px solid var(--glass-border,rgba(255,255,255,0.08));border-radius:12px;padding:10px 12px 6px;margin:8px 0;}',
+            '#agfa-modal .agc-wrap{background:var(--glass-bg,rgba(255,255,255,0.03));border:1px solid var(--glass-border,rgba(255,255,255,0.08));border-radius:13px;padding:10px 12px 6px;margin:8px 0;}',
             '#agfa-modal .agc-bar{fill:var(--accent,#2f9e74);}',
+            '#agfa-modal .agc-bar.warn{fill:#d4a02c;}',
             '#agfa-modal .agc-axis{stroke:var(--glass-border,rgba(255,255,255,0.18));stroke-width:1;}',
             '#agfa-modal .agc-x{fill:var(--text-muted,#9aa1ac);font:500 10px var(--font-ui,system-ui);}',
             '#agfa-modal .agc-v{fill:var(--text,#e6e8eb);font:700 10.5px var(--font-ui,system-ui);}',
-            '#agfa-modal .agc-nm{fill:var(--text,#e6e8eb);font:600 11px var(--font-ui,system-ui);}'
+            '#agfa-modal .agc-nm{fill:var(--text,#e6e8eb);font:600 11px var(--font-ui,system-ui);}',
+            // vytížení serveru: vodorovný ukazatel limitu
+            '#agfa-modal .agfa-meter{height:10px;border-radius:999px;background:var(--glass-bg,rgba(255,255,255,0.07));overflow:hidden;margin:6px 0 4px;}',
+            '#agfa-modal .agfa-meter>i{display:block;height:100%;border-radius:999px;background:var(--accent,#2f9e74);min-width:2px;}',
+            '#agfa-modal .agfa-meter>i.warn{background:#d4a02c;}',
+            '#agfa-modal .agfa-meter>i.crit{background:var(--danger,#e5534b);}',
+            // rozpis docházky
+            '#agfa-modal .agfa-shift-day{font:700 12px/1 var(--font-ui,system-ui);color:var(--text,#e6e8eb);margin:12px 0 2px;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
@@ -100,6 +129,16 @@
         renderNav(section || 'uzivatele');
     }
 
+    // ikonky navigace (čárová grafika ve stylu appky)
+    var NAV_ICO = {
+        uzivatele: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>',
+        opravneni: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+        uzivani: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+        dochazka: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>',
+        firma: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-4h6v4"/></svg>',
+        napoveda: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.33c-.8.32-1.4 1-1.4 1.87v.3"/><path d="M12 17h.01"/></svg>'
+    };
+
     var _section = 'uzivatele';
     function renderNav(sec) {
         _section = sec;
@@ -108,13 +147,14 @@
         var nav = document.getElementById('agfa-nav');
         var items = [];
         if (admin) {
-            items = [['uzivatele', 'Uživatelé'], ['opravneni', 'Oprávnění'], ['uzivani', 'Užívání'], ['firma', 'Firma'], ['napoveda', 'Nápověda']];
+            items = [['uzivatele', 'Uživatelé'], ['opravneni', 'Oprávnění'], ['uzivani', 'Užívání'], ['dochazka', 'Docházka'], ['firma', 'Firma'], ['napoveda', 'Nápověda']];
         } else {
-            items = [['uzivani', 'Přehled užívání'], ['napoveda', 'Nápověda']];
-            if (_section !== 'napoveda') _section = 'uzivani';
+            items = [['uzivani', 'Užívání'], ['dochazka', 'Docházka'], ['napoveda', 'Nápověda']];
+            if (['uzivani', 'dochazka', 'napoveda'].indexOf(_section) === -1) _section = 'uzivani';
         }
         nav.innerHTML = items.map(function (it) {
-            return '<button type="button" data-s="' + it[0] + '" class="' + (it[0] === _section ? 'act' : '') + '">' + it[1] + '</button>';
+            return '<button type="button" data-s="' + it[0] + '" class="' + (it[0] === _section ? 'act' : '') + '">' +
+                (NAV_ICO[it[0]] || '') + it[1] + '</button>';
         }).join('');
         nav.onclick = function (e) {
             var b = e.target.closest ? e.target.closest('button[data-s]') : null;
@@ -124,6 +164,7 @@
         if (_section === 'uzivatele') renderUsers(body);
         else if (_section === 'opravneni') renderPerms(body);
         else if (_section === 'uzivani') renderUsage(body);
+        else if (_section === 'dochazka') renderDochazka(body);
         else if (_section === 'napoveda') renderHelp(body);
         else renderFirm(body);
     }
@@ -157,7 +198,17 @@
             '<div class="agfa-pg">Přehled užívání</div>' +
             '<div class="agfa-note">Appka si počítá přihlášení, přidané/upravené body, otevřené nástroje a hrubou stopu aktivity ' +
             '(max 1 záznam za 20 minut — z ní je odhad odpracovaných hodin). V cloudu se záznamy sbíhají ze všech zařízení firmy' +
-            (f.cloud ? '' : ' (tady běží lokální režim — jen toto zařízení)') + '. Nic z toho neodchází mimo firmu.</div>';
+            (f.cloud ? '' : ' (tady běží lokální režim — jen toto zařízení)') + '. Nic z toho neodchází mimo firmu.</div>' +
+            '<div class="agfa-pg">Docházka</div>' +
+            '<div class="agfa-note">Každý si značí příchod/odchod dlaždicí <b>Docházka</b> v Nástrojích (Pomůcky) — jedno velké tlačítko, ' +
+            'funguje i bez signálu (záznam se odešle, až je internet). Admin a vedení vidí spárovanou docházku všech v záložce Docházka. ' +
+            'Je to orientační podklad pro výkazy, ne certifikovaný docházkový systém.</div>' +
+            '<div class="agfa-pg">Firemní chat</div>' +
+            '<div class="agfa-note">Dlaždice <b>Firemní chat</b> v Nástrojích (Pomůcky) — jednoduché zprávy mezi všemi přihlášenými ve firmě ' +
+            '(např. „pošli mi číslo bodu"). Funguje jen u cloudové firmy a s internetem; server drží posledních ~500 zpráv.</div>' +
+            '<div class="agfa-pg">Vytížení serveru (admin)</div>' +
+            '<div class="agfa-note">V sekci Firma admin vidí, kolik z denního limitu 100 000 požadavků free plánu Cloudflare se čerpá ' +
+            'a kolik dat je uloženo. Malá firma limit prakticky nevyčerpá; kdyby ano, ukazatel zežloutne/zčervená.</div>';
     }
 
     // ------------------------------------------------------------------
@@ -327,16 +378,19 @@
             u.refreshConfig().then(function (ok) { if (ok && _section === 'uzivatele') renderUsers(body, true); });
         }
         var rows = f.users.map(function (us) {
+            var initials = (us.name || '?').trim().split(/\s+/).map(function (w) { return w.charAt(0); }).slice(0, 2).join('').toUpperCase();
+            var chipCls = us.role === 'admin' ? ' c-admin' : (us.role === 'vedeni' ? ' c-vedeni' : '');
             return '<div class="agfa-row" data-id="' + esc(us.id) + '">' +
+                '<span class="agfa-av" style="' + (u.avatarStyle ? u.avatarStyle(us.name) : '') + '">' + esc(initials) + '</span>' +
                 '<b>' + esc(us.name) + (me && me.id === us.id ? ' <span style="color:var(--text-muted);font-weight:500;">(ty)</span>' : '') + '</b>' +
-                '<span class="agfa-chip">' + roleTxt(us.role) + (!cloud && us.noPin ? ' · bez PINu' : '') + '</span>' +
+                '<span class="agfa-chip' + chipCls + '">' + roleTxt(us.role) + (!cloud && us.noPin ? ' · bez PINu' : '') + '</span>' +
                 '<button class="agfa-mini" data-act="edit">Upravit</button>' +
                 '<button class="agfa-mini danger" data-act="del">Smazat</button>' +
                 '</div>';
         }).join('');
         body.innerHTML =
             (cloud ? '<div class="agfa-note">Účty platí pro celou firmu — nový zaměstnanec se pak na svém mobilu přihlásí kódem firmy <b>' + esc(f.code || '') + '</b>, svým jménem a heslem.</div>' : '') +
-            '<div id="agfa-userlist">' + rows + '</div>' +
+            '<div id="agfa-userlist" class="agfa-list">' + rows + '</div>' +
             '<button class="btn" style="margin-top:12px;width:100%;" id="agfa-add">+ Přidat uživatele</button>' +
             '<div id="agfa-uform"></div>';
         body.querySelector('#agfa-add').onclick = function () { userForm(body, null); };
@@ -784,6 +838,118 @@
     }
 
     // ------------------------------------------------------------------
+    // Sekce Docházka (admin/vedení s dashboardem): páruje příchody a odchody
+    // ze všech zařízení. Data = události t='shift' (k='in'/'out'), které
+    // zapisuje dlaždice Docházka (js/dochazka.js) stejnou cestou jako užívání
+    // (IndexedDB fronta -> server), takže fungují i offline.
+    // ------------------------------------------------------------------
+    var _doRange = 7;
+    function pad2(n) { return (n < 10 ? '0' : '') + n; }
+    function fmtDur(ms) {
+        var m = Math.round(ms / 60000);
+        return Math.floor(m / 60) + ':' + pad2(m % 60);
+    }
+    function renderDochazka(body) {
+        var u = U(), f = u.getFirm(); if (!f) return;
+        body.innerHTML = '<div class="agfa-note">Načítám…</div>';
+        var from = new Date();
+        from.setHours(0, 0, 0, 0);
+        if (_doRange > 1) from.setDate(from.getDate() - (_doRange - 1));
+        var cloudNote = '';
+        var getEvents = (f.cloud
+            ? u.syncUsage().then(function () {
+                return u.cloudFetch('/usage?from=' + from.getTime()).then(function (r) {
+                    if (r.ok && r.data && Array.isArray(r.data.events)) {
+                        cloudNote = '<div class="agfa-note">Docházka ze všech zařízení firmy (server).</div>';
+                        return r.data.events;
+                    }
+                    cloudNote = '<div class="agfa-note" style="color:var(--danger,#e5534b);">⚠ Server nedostupný — jen záznamy z tohoto zařízení.</div>';
+                    return u.usageQuery(from.getTime());
+                });
+            })
+            : u.usageQuery(from.getTime()));
+        getEvents.then(function (all) {
+            var shifts = all.filter(function (ev) { return ev.t === 'shift'; })
+                .sort(function (a, b) { return a.ts - b.ts; });
+            // pairs: [{day,name,inTs,outTs|null,ms}] + souhrn na uživatele
+            var pairs = [], sum = {}, open = {};
+            var todayKey = (function (d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); })(new Date());
+            shifts.forEach(function (ev) {
+                var name = ev.u || '?';
+                if (ev.k === 'in') {
+                    if (open[name]) pairs.push(open[name]);   // dvojí příchod: starý zůstane bez odchodu
+                    var d = new Date(ev.ts);
+                    open[name] = { day: d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()), name: name, inTs: ev.ts, outTs: null, ms: 0 };
+                } else if (ev.k === 'out') {
+                    if (open[name]) {
+                        open[name].outTs = ev.ts;
+                        open[name].ms = Math.max(0, ev.ts - open[name].inTs);
+                        pairs.push(open[name]);
+                        open[name] = null;
+                        delete open[name];
+                    } else {
+                        var d2 = new Date(ev.ts);   // odchod bez příchodu (např. příchod mimo období)
+                        pairs.push({ day: d2.getFullYear() + '-' + pad2(d2.getMonth() + 1) + '-' + pad2(d2.getDate()), name: name, inTs: null, outTs: ev.ts, ms: 0 });
+                    }
+                }
+            });
+            Object.keys(open).forEach(function (n) { if (open[n]) pairs.push(open[n]); });   // stále „v práci"
+            pairs.forEach(function (p) {
+                var s = sum[p.name] = sum[p.name] || { ms: 0, days: {}, open: false };
+                s.days[p.day] = 1;
+                if (p.outTs) s.ms += p.ms;
+                else if (p.inTs) {
+                    if (p.day === todayKey) { s.ms += Date.now() - p.inTs; s.open = true; }
+                }
+            });
+
+            var html = cloudNote +
+                '<label class="agfa-lb">Období</label><select id="agfa-do-range">' +
+                '  <option value="1"' + (_doRange === 1 ? ' selected' : '') + '>Dnes</option>' +
+                '  <option value="7"' + (_doRange === 7 ? ' selected' : '') + '>Posledních 7 dní</option>' +
+                '  <option value="31"' + (_doRange === 31 ? ' selected' : '') + '>Posledních 31 dní</option>' +
+                '</select>';
+
+            var names = Object.keys(sum).sort();
+            if (!names.length) {
+                html += '<div class="agfa-note">Ve zvoleném období nikdo docházku nezapsal. Zaměstnanci si příchod/odchod ' +
+                    'značí dlaždicí <b>Docházka</b> v Nástrojích (kategorie Pomůcky) — funguje i bez signálu.</div>';
+            } else {
+                html += '<div class="agfa-pg">Souhrn (' + (_doRange === 1 ? 'dnes' : 'za období') + ')</div>' +
+                    '<table class="agfa-tbl"><tr><th>Uživatel</th><th>Dní</th><th>Hodin</th><th>Teď</th></tr>';
+                names.forEach(function (n) {
+                    var s = sum[n];
+                    html += '<tr><td><b>' + esc(n) + '</b></td><td>' + Object.keys(s.days).length + '</td><td>' + fmtDur(s.ms) + '</td>' +
+                        '<td>' + (s.open ? '<span class="agfa-chip c-accent">v práci</span>' : '') + '</td></tr>';
+                });
+                html += '</table>';
+
+                // rozpis po dnech (nejnovější nahoře)
+                var byDay = {};
+                pairs.forEach(function (p) { (byDay[p.day] = byDay[p.day] || []).push(p); });
+                html += '<div class="agfa-pg">Rozpis</div>';
+                Object.keys(byDay).sort().reverse().forEach(function (dk) {
+                    var parts = dk.split('-');
+                    html += '<div class="agfa-shift-day">' + parseInt(parts[2], 10) + '. ' + parseInt(parts[1], 10) + '. ' + parts[0] + '</div>' +
+                        '<table class="agfa-tbl"><tr><th>Uživatel</th><th>Příchod</th><th>Odchod</th><th>Hodin</th></tr>';
+                    byDay[dk].sort(function (a, b) { return (a.inTs || a.outTs) - (b.inTs || b.outTs); }).forEach(function (p) {
+                        var tIn = p.inTs ? new Date(p.inTs).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) : '<span style="color:var(--text-muted);">?</span>';
+                        var tOut = p.outTs ? new Date(p.outTs).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })
+                            : (p.day === todayKey ? '<span class="agfa-chip c-accent">v práci</span>' : '<span style="color:var(--text-muted);">chybí</span>');
+                        var dur = p.outTs && p.inTs ? fmtDur(p.ms) : (p.inTs && p.day === todayKey ? fmtDur(Date.now() - p.inTs) : '—');
+                        html += '<tr><td><b>' + esc(p.name) + '</b></td><td>' + tIn + '</td><td>' + tOut + '</td><td>' + dur + '</td></tr>';
+                    });
+                    html += '</table>';
+                });
+                html += '<div class="agfa-note">Docházka je orientační podklad (páruje se příchod→odchod v pořadí záznamů). ' +
+                    'Chybějící odchod z minulých dní se do součtu nepočítá — připomeň kolegovi, ať si docházku značí.</div>';
+            }
+            body.innerHTML = html;
+            body.querySelector('#agfa-do-range').onchange = function () { _doRange = parseInt(this.value, 10) || 7; renderDochazka(body); };
+        });
+    }
+
+    // ------------------------------------------------------------------
     // Přepínání mezi firmami uloženými v zařízení (profily z js/ucty.js)
     // ------------------------------------------------------------------
     function firmsHtml(u, f) {
@@ -793,14 +959,14 @@
             var cur = p.key === curKey;
             return '<div class="agfa-row" data-key="' + esc(p.key) + '">' +
                 '<b>' + esc(p.label) + '</b>' +
-                '<span class="agfa-chip">' + (p.cloud ? 'cloud · ' + esc(p.code || '?') : 'lokální') + (cur ? ' · aktivní' : '') + '</span>' +
+                '<span class="agfa-chip' + (cur ? ' c-accent' : '') + '">' + (p.cloud ? 'cloud · ' + esc(p.code || '?') : 'lokální') + (cur ? ' · aktivní' : '') + '</span>' +
                 (cur ? '' : '<button class="agfa-mini" data-act="sw">Přepnout</button><button class="agfa-mini danger" data-act="rm">Zapomenout</button>') +
                 '</div>';
         }).join('');
         return '<div class="agfa-pg">Firmy na tomto zařízení</div>' +
             '<div class="agfa-note">Můžeš být ve více firmách (třeba vlastní + zákaznická). Přepnutí zobrazí přihlášení zvolené firmy — ' +
             'vždy chce heslo/PIN. Body a zakázky v zařízení se nemění. Podrobněji v záložce Nápověda.</div>' +
-            '<div id="agfa-firms">' + rows + '</div>' +
+            '<div id="agfa-firms" class="agfa-list">' + rows + '</div>' +
             '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">' +
             '  <button class="agfa-mini" id="agfa-f-join2">+ Připojit další firmu (kód)</button>' +
             '  <button class="agfa-mini" id="agfa-f-new2">Založit další firmu</button>' +
@@ -937,6 +1103,8 @@
             '<label class="agfa-lb">Název firmy</label><input type="text" id="agfa-f-name" maxlength="60" value="' + esc(f.firmName || '') + '">' +
             '<label class="agfa-lb">Auto-zámek po nečinnosti (minuty; 0 = vypnuto) — platí pro všechna zařízení</label>' +
             '<input type="number" id="agfa-f-lock" min="0" max="480" step="1" value="' + (parseInt(f.autoLockMin, 10) || 0) + '">' +
+            '<div class="agfa-pg">Vytížení serveru</div>' +
+            '<div id="agfa-stats" class="agfa-note">Načítám vytížení…</div>' +
             '<div class="agfa-pg">Server</div>' +
             '<div class="agfa-note">Firma běží na Cloudflare (free plán, 100 000 požadavků/den). Adresa API: <code style="word-break:break-all;">' + esc(f.api || u.DEFAULT_API) + '</code><br>Kód serveru je v repu appky ve složce <b>cloud/</b> — provoz nezávisí na žádné AI.</div>' +
             firmsHtml(u, f) +
@@ -951,6 +1119,41 @@
             });
         }
         wireFirms(body, u);
+
+        // vytížení serveru: dnešek proti limitu + poslední dny + velikost dat
+        u.cloudFetch('/stats').then(function (r) {
+            var el = body.querySelector('#agfa-stats');
+            if (!el) return;
+            if (!r.ok || !r.data) {
+                el.innerHTML = 'Vytížení se nepodařilo načíst' + (r.status === 0 ? ' — server je offline nebo nemá nasazený nový kód (/stats).' : ' (chyba ' + r.status + ').');
+                return;
+            }
+            var d = r.data;
+            var lim = (d.limits && d.limits.reqPerDay) || 100000;
+            var todayN = 0;
+            (d.days || []).forEach(function (x) { if (x.day === d.today) todayN = x.n; });
+            var pct = Math.min(100, todayN / lim * 100);
+            var cls = pct >= 80 ? 'crit' : (pct >= 50 ? 'warn' : '');
+            var cols = (d.days || []).map(function (x, i, arr) {
+                return {
+                    l: (arr.length <= 7 || i % 2 === 0) ? (parseInt(x.day.slice(8), 10) + '.' + parseInt(x.day.slice(5, 7), 10) + '.') : '',
+                    v: x.n,
+                    t: x.day + ': ' + x.n.toLocaleString('cs-CZ') + ' požadavků'
+                };
+            });
+            var rows = d.rows || {};
+            el.innerHTML =
+                '<b style="color:var(--text,#e6e8eb);">Dnes ' + todayN.toLocaleString('cs-CZ') + '</b> z ' + lim.toLocaleString('cs-CZ') +
+                ' požadavků za den (' + (Math.round(pct * 10) / 10).toLocaleString('cs-CZ') + ' %, ' + esc((d.limits && d.limits.plan) || 'free') + ')' +
+                '<div class="agfa-meter"><i class="' + cls + '" style="width:' + Math.max(1, pct).toFixed(1) + '%"></i></div>' +
+                (cols.length > 1 ? '<div class="agc-wrap">' + svgCols(cols, { h: 90 }) + '</div>' : '') +
+                'Počítají se všechny požadavky na API (všechny firmy na serveru) včetně technických preflightů prohlížeče. ' +
+                'Přes ~80 % denně = čas zvážit placený plán.' +
+                '<br>Uloženo pro tuto firmu: užívání <b>' + (rows.usage != null ? rows.usage.toLocaleString('cs-CZ') : '?') + '</b> záznamů · chat <b>' +
+                (rows.chat != null ? rows.chat : '?') + '</b> zpráv · uživatelů <b>' + (rows.users != null ? rows.users : '?') + '</b>' +
+                (rows.firms != null ? ' · firem na serveru celkem <b>' + rows.firms + '</b>' : '');
+        });
+
         var nameInp = body.querySelector('#agfa-f-name');
         nameInp.onchange = function () { putCfg({ firmName: (this.value || '').trim() || 'Moje firma' }, this, f.firmName); };
         var lockInp = body.querySelector('#agfa-f-lock');
