@@ -627,34 +627,6 @@
             return userDirContainer;
         }
         const arHud = document.getElementById('ar-hud'), arHudName = document.getElementById('ar-hud-name'), arHudDist = document.getElementById('ar-hud-dist'), arHudInfo = document.getElementById('ar-hud-info'), arHudArrowContainer = document.getElementById('ar-hud-arrow-container');
-        const arHudDz = document.getElementById('ar-hud-dz'), arHudAcc = document.getElementById('ar-hud-acc');
-        // Nadmořská výška bodu (Bpv): vlastní bod má pt.vyska, úřední ji nese v rawData
-        // (stejné klíče jako detail bodu). Memoizace do pt._bpv — čte se každý snímek.
-        function pointBpv(pt) {
-            if (pt._bpv !== undefined) return pt._bpv;
-            let v = null;
-            if (typeof pt.vyska === 'number' && isFinite(pt.vyska)) v = pt.vyska;
-            else if (pt.rawData) {
-                const KEYS = ['VYSKA_BPV', 'NADMORSKA_VYSKA', 'VYSKA_BODU', 'VYSKA_H', 'H_BPV', 'VYSKA', 'H', 'Z'];
-                for (let k in pt.rawData) {
-                    if (KEYS.includes(k.toUpperCase()) && pt.rawData[k] !== 'Null' && pt.rawData[k] != null && String(pt.rawData[k]).trim() !== '') {
-                        const n = parseFloat(String(pt.rawData[k]).replace(',', '.'));
-                        if (isFinite(n) && n > 50 && n < 3000) { v = n; break; }
-                    }
-                }
-            }
-            pt._bpv = v; return v;
-        }
-        // Ukončení navigace přímo z HUD (křížek na štítku) — dřív šlo jen přes kartu bodu.
-        let _navVibed = false;
-        window.stopNavigation = function () {
-            highlightedPointId = null;
-            arPoints.forEach(p => { if (p.element) p.element.classList.remove('highlighted'); });
-            arHud.style.display = 'none';
-            _navVibed = false;
-            try { updateNavGlow(); } catch (e) {}
-            try { drawAllMarkersOnMap(); } catch (e) {}
-        };
         const arrTarget = document.getElementById('arrow-target'), arrStraight = document.getElementById('arrow-straight'), arrLeft = document.getElementById('arrow-left'), arrRight = document.getElementById('arrow-right'), arrUturn = document.getElementById('arrow-uturn'), arrBull = document.getElementById('arrow-bullseye');
         let _lastCdHtml = '', _lastCdTitle = '';   // posledni text azimutu — prekreslit jen pri zmene
         // VYKON: udalosti senzoru chodi i 60+x/s; prekreslujeme max 1x za snimek (requestAnimationFrame)
@@ -784,11 +756,7 @@
                 if (!isVisible) { if (pt.element && pt.element.style.opacity !== '0') pt.element.style.opacity = '0'; return; }
 
                 const pointBearing = (pt.currentBearing != null) ? pt.currentBearing : getBearing(_oLat, _oLng, pt.lat, pt.lng); let diff = ((pointBearing - heading + 540) % 360) - 180;
-                if (pt.id === highlightedPointId) {
-                    let _dz = null; const _pb = pointBpv(pt);
-                    if (_pb != null && typeof userAlt === 'number' && isFinite(userAlt) && userLat != null && typeof getGeoidUndulation === 'function') _dz = _pb - (userAlt - getGeoidUndulation(userLat, userLng));
-                    highlightedPointData = { diff: diff, dist: distance, name: pt.name, dz: _dz };
-                }
+                if (pt.id === highlightedPointId) { highlightedPointData = { diff: diff, dist: distance, name: pt.name }; }
                 if (Math.abs(diff) < cullH) {
                     // svisle: depresni uhel k bodu na zemi vs. kam miri kamera, promitnuty pres svisly FOV
                     let _tdz = (typeof terrainDZ === 'function') ? terrainDZ(pt.lat, pt.lng) : 0;
@@ -820,19 +788,10 @@
                 let diff = highlightedPointData.diff;
                 // barvu NEnastavovat inline na bilou — na slunci (body.cam-light) ma stitek svetle
                 // pozadi a bily text by nesel precist; barvu ridi CSS (#ar-hud-info + cam-light)
-                arHudDist.style.color = ''; arHudInfo.style.borderColor = '';   // barvy řídí CSS (#ar-hud-info + .near + cam-light)
+                arHudDist.style.color = ''; arHudInfo.style.borderColor = 'rgba(255,255,255,0.4)';
                 if (Math.abs(diff) <= 35) { arrStraight.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg) rotateZ(${diff}deg)`; } else if (diff < -35 && diff >= -110) { arrLeft.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; } else if (diff > 35 && diff <= 110) { arrRight.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; } else { arrUturn.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; }
-                // vzdálenost: zblízka jemněji (cm), zdálky bez desetin
-                const _d = highlightedPointData.dist;
-                arHudDist.innerText = (_d >= 100 ? Math.round(_d) + ' m' : _d >= 10 ? _d.toFixed(1) + ' m' : _d.toFixed(2) + ' m');
+                arHudDist.innerText = `${highlightedPointData.dist.toFixed(1)} m`;
                 arHudName.innerText = `#${highlightedPointData.name}`;
-                // převýšení k bodu (když známe výšku bodu i svoji) + aktuální přesnost GPS
-                if (arHudDz) { const dz = highlightedPointData.dz; arHudDz.innerText = (dz != null && Math.abs(dz) >= 0.3) ? ((dz > 0 ? '↑ ' : '↓ ') + Math.abs(dz).toFixed(1) + ' m') : ''; }
-                if (arHudAcc) arHudAcc.innerText = (typeof currentGpsAccuracy === 'number' && isFinite(currentGpsAccuracy)) ? ('GPS ±' + currentGpsAccuracy.toFixed(1) + ' m') : '';
-                // dohledání: štítek zezelená < 2 m, krátká vibrace při < 1 m (jednou)
-                arHudInfo.classList.toggle('near', _d <= 2.0);
-                if (_d <= 1.0) { if (!_navVibed) { _navVibed = true; try { if (typeof visSettings !== 'undefined' && visSettings.vibrationEnabled && navigator.vibrate) navigator.vibrate([40, 60, 40]); } catch (e) {} } }
-                else if (_d > 3) _navVibed = false;
 
             } else { arHud.style.display = 'none'; }
         }
