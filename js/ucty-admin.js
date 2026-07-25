@@ -314,7 +314,7 @@
                     html += '<div class="agfa-pg">Poslední zprávy</div><div class="agfa-chatprev">' +
                         chatMsgs.map(function (msg) {
                             var txt = String(msg.txt || '');
-                            if (txt.indexOf('AG1\n') === 0) txt = '📍 poslal body';
+                            if (txt.indexOf('AG1\n') === 0) txt = 'poslal body';
                             return '<div class="r"><span class="w">' + esc(msg.u || '?') + '</span><span class="m">' + esc(txt) + '</span>' +
                                 '<span style="color:var(--text-muted);font-size:11px;flex:none;">' + new Date(msg.ts).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) + '</span></div>';
                         }).join('') + '</div>';
@@ -405,14 +405,16 @@
             (f.cloud ? '' : ' (tady běží lokální režim — jen toto zařízení)') + '. Nic z toho neodchází mimo firmu.</div>' +
             '<div class="agfa-pg">Docházka</div>' +
             '<div class="agfa-note">Každý si značí příchod/odchod dlaždicí <b>Docházka</b> v Nástrojích (Pomůcky) — jedno velké tlačítko, ' +
-            'funguje i bez signálu (záznam se odešle, až je internet). Příchod se váže k <b>aktivní zakázce</b> a ukládá i hrubou polohu píchnutí (📍). ' +
+            'funguje i bez signálu (záznam se odešle, až je internet). Příchod se váže k <b>aktivní zakázce</b> a ukládá i hrubou polohu píchnutí ' +
+            '(v Rozpisu je u času ikona špendlíku — klepnutím se otevře v mapě). ' +
             'Když někdo zapomene odchod, appka mu ho druhý den nabídne doplnit; zpětně ho umí doplnit i admin v Rozpisu. ' +
             'Admin a vedení vidí spárovanou docházku všech, hodiny po zakázkách a umí <b>výkaz do CSV nebo tisk/PDF</b> (podklad pro mzdy). ' +
             'Je to orientační podklad, ne certifikovaný docházkový systém.</div>' +
             '<div class="agfa-pg">Firemní chat</div>' +
             '<div class="agfa-note">Dlaždice <b>Firemní chat</b> v Nástrojích (Pomůcky). Nahoře se vybírá adresát: <b>Všem</b> (vidí celá firma), ' +
-            'nebo konkrétní kolega — pak je zpráva <b>soukromá</b> (🔒, vidí ji jen on a ty). ' +
-            'Tlačítkem 📍 jde poslat <b>vlastní body</b> — příjemce je jedním klepnutím převezme do svých bodů (a může na ně rovnou navigovat). ' +
+            'nebo konkrétní kolega — pak je zpráva <b>soukromá</b> (se zámkem, vidí ji jen on a ty) a chat na to upozorní žlutým pruhem. ' +
+            'Soukromá vlákna se ve „Všem" nabízejí odkazem pod výběrem, takže se zprávy neztratí. ' +
+            'Tlačítkem se špendlíkem vlevo od psacího pole jde poslat <b>vlastní body</b> — příjemce je jedním klepnutím převezme do svých bodů. ' +
             'Nové zprávy se hlásí tečkou na dlaždici a proužkem po startu. Funguje jen u cloudové firmy a s internetem; server drží posledních ~500 zpráv.</div>' +
             '<div class="agfa-pg">Připojení zařízení QR kódem</div>' +
             '<div class="agfa-note">Admin v sekci Uživatelé klepne u člověka na <b>QR</b>; zaměstnanec na přihlašovací obrazovce dá „Naskenovat QR od admina" ' +
@@ -1131,8 +1133,9 @@
             // klíč může nést i polohu píchnutí: 'in|50.12345,14.67890'
             function kDir(ev) { var s = String(ev.k || '').split('|'); return s[0]; }
             function kPos(ev) { var s = String(ev.k || '').split('|'); return s[1] || null; }
+            var PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;vertical-align:-2px;"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>';
             function posLink(pos) {
-                return pos ? ' <a href="https://mapy.cz/zakladni?q=' + esc(pos) + '" target="_blank" rel="noopener" title="' + esc(pos) + '" style="text-decoration:none;">📍</a>' : '';
+                return pos ? ' <a href="https://mapy.cz/zakladni?q=' + esc(pos) + '" target="_blank" rel="noopener" title="Poloha píchnutí: ' + esc(pos) + '" style="text-decoration:none;color:var(--accent,#2f9e74);">' + PIN + '</a>' : '';
             }
             function projName(id) {
                 if (!id || id === 'default') return '';
@@ -1219,7 +1222,7 @@
                     html += '</table>';
                 }
 
-                // rozpis po dnech (nejnovější nahoře); 📍 = hrubá poloha píchnutí
+                // rozpis po dnech (nejnovější nahoře); ikona špendlíku = poloha píchnutí
                 var byDay = {};
                 pairs.forEach(function (p) { (byDay[p.day] = byDay[p.day] || []).push(p); });
                 html += '<div class="agfa-pg">Rozpis</div>';
@@ -1241,7 +1244,7 @@
                     });
                     html += '</table>';
                 });
-                html += '<div class="agfa-note">Docházka je orientační podklad (páruje se příchod→odchod v pořadí záznamů; 📍 = hrubá poloha píchnutí). ' +
+                html += '<div class="agfa-note">Docházka je orientační podklad (páruje se příchod→odchod v pořadí záznamů; ikona špendlíku = hrubá poloha píchnutí, klepnutím se otevře v mapě). ' +
                     'Chybějící odchod z minulých dní se do součtu nepočítá — admin ho může tlačítkem Doplnit zapsat zpětně.</div>';
             }
             body.innerHTML = html;

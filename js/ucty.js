@@ -130,6 +130,7 @@
         try { localStorage.setItem(LS_GUEST, JSON.stringify({ ts: Date.now() })); } catch (e) {}
         var g = document.getElementById('ag-gate'); if (g) g.remove();
         applyPerms();
+        enterApp();   // brána byla vstupní obrazovkou → úvodní kartu přeskočit
     }
     function clearGuest() {
         try { localStorage.removeItem(LS_GUEST); } catch (e) {}
@@ -709,6 +710,21 @@
         return '<div class="agl-brand"><span class="agl-mark">' + MARK_SVG + '</span>' +
             '<span class="agl-logo">AR <b>Geodet</b></span></div>';
     }
+    // aktivní zakázka + počet bodů (přihlašovací obrazovka je JEDINÝ úvod,
+    // tak nese i kontext, který dřív ukazovala úvodní karta)
+    function projInfoHtml() {
+        var name = null, n = null;
+        try {
+            var id = localStorage.getItem('arActiveProjectId');
+            if (typeof projects !== 'undefined' && Array.isArray(projects) && id) {
+                for (var i = 0; i < projects.length; i++) if (projects[i] && projects[i].id === id) name = projects[i].name;
+            }
+        } catch (e) {}
+        try { if (typeof persistentCustomPoints !== 'undefined' && persistentCustomPoints) n = persistentCustomPoints.length; } catch (e) {}
+        if (!name && n == null) return '';
+        return '<div class="agl-proj">' + (name ? 'Zakázka <b>' + esc(name) + '</b>' : 'Bez zakázky') +
+            (n != null ? ' · ' + n + ' ' + (n === 1 ? 'bod' : (n >= 2 && n <= 4 ? 'body' : 'bodů')) : '') + '</div>';
+    }
 
     function injectStyles() {
         if (document.getElementById(STYLE_ID)) return;
@@ -737,6 +753,8 @@
             '  font:600 12.5px/1 var(--font-ui,system-ui);color:var(--text,#e6e8eb);}',
             '#ag-login .agl-firmchip .dot{width:7px;height:7px;border-radius:50%;background:var(--accent,#2f9e74);}',
             '#ag-login .agl-firmchip .lock{color:var(--warn,#d4a02c);}',
+            '#ag-login .agl-proj{font:500 12px/1.3 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);text-align:center;}',
+            '#ag-login .agl-proj b{color:var(--text,#e6e8eb);font-weight:700;}',
             // dlaždice uživatelů
             '#ag-login .agl-users{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:440px;max-height:38vh;overflow-y:auto;padding:4px;}',
             '#ag-login .agl-user{display:flex;flex-direction:column;align-items:center;gap:7px;background:var(--glass-bg,rgba(255,255,255,0.05));',
@@ -808,6 +826,26 @@
         (document.head || document.documentElement).appendChild(st);
     }
 
+    // ------------------------------------------------------------------
+    // JEDNA úvodní obrazovka: přihlášení je vstupní branou, takže původní
+    // úvodní karta (#welcome-screen se „Spustit vyhledávání") se po přihlášení
+    // přeskočí — appka jde rovnou do práce. Bez firemního režimu (host) zůstává
+    // úvodní karta jako dřív, aby appka měla vždy PRÁVĚ JEDNU vstupní stránku.
+    // startAppFromWelcome() je globál z logika.js (obaluje ho i tutorial-pro.js,
+    // takže výuka na prvním spuštění dál funguje).
+    // ------------------------------------------------------------------
+    function enterApp() {
+        try {
+            var ws = document.getElementById('welcome-screen');
+            if (!ws) return;
+            var vis = ws.style.display !== 'none' && !document.body.classList.contains('app-started');
+            if (!vis) return;
+            if (typeof window.startAppFromWelcome === 'function') {
+                setTimeout(function () { try { window.startAppFromWelcome(); } catch (e) {} }, 60);
+            }
+        } catch (e) {}
+    }
+
     var _selUser = null;
     function showLogin(lockMode) {
         var f = getFirm(); if (!f) return;
@@ -832,6 +870,7 @@
             brandHtml() +
             '<div class="agl-firmchip"><span class="dot"></span>' + esc(f.firmName || 'Firemní režim') +
             (cloud && f.code ? ' · ' + esc(f.code) : '') + (lockMode ? ' <span class="lock">· zamčeno</span>' : '') + '</div>' +
+            projInfoHtml() +
             '<div class="agl-users">' + usersHtml + '</div>' +
             '<div class="agl-pinbox">' +
             '  <input class="agl-name" type="text" autocomplete="username" maxlength="40" placeholder="Jméno" style="display:none;">' +
@@ -877,6 +916,7 @@
             usageLog('login', lockMode ? 'unlock' : 'login');
             if (cloud) setTimeout(syncUsage, 2000);
             try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: u } })); } catch (e) {}
+            enterApp();
         }
         function fail(msg) {
             errEl.textContent = msg || 'Přihlášení selhalo.';
