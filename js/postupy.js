@@ -155,6 +155,25 @@
                 'Vytyčení ověřuje ÚOZI; bez ověření nemá listinné účinky.'
             ],
             pozn: 'V appce: „Vytyčovací checklist" tě navede na body a pohlídá odškrtání + foto; oměrné zkontroluje nástroj „Oměrné / kontrola".'
+        },
+        {
+            id: 'gps-mobil', t: 'Přesnější GPS jen mobilem (sada nástrojů)',
+            kdy: 'Když není k dispozici rover ani totálka a bod je potřeba určit co nejpřesněji holým telefonem — pomocné a orientační body, dohledávání, práce „na první přiblížení". Kombinuje nástroje appky: Skóre místa, Brutální GPS (+ kampaň), Dvoutelefonní DGPS a Krokový offset.',
+            kroky: [
+                'PŘED měřením otevři „Skóre místa (GPS)": vyber okolí (volné nebe / stromy / budovy) a řiď se semaforem — červená = posuň se od fasád (aspoň 3–5 m, radši 15 m) nebo počkej na lepší konstelaci.',
+                'Bod měř nástrojem „Brutální GPS": telefon na plocho na bod, zvol dobu (min. 5–10 min) a nech ležet; ve ¼, ½ a ¾ času otoč telefon o 90° po směru hodin, jak appka vyzve.',
+                'Výsledek přidej jako SEZENÍ (ne rovnou uložit) a klepni „Kdy se vrátit?" — appka poradí čas s jinou geometrií družic pro druhé sezení.',
+                'Pro nejvyšší nárok naplánuj kartou dole KAMPAŇ „3 návštěvy": tři sezení v různých konstelacích, appka je připomene a spojí inverzně-variančním průměrem.',
+                'Máš-li druhý telefon: polož ho jako DGPS ZÁKLADNU na spolehlivě známý bod (import S-JTSK) po celou dobu měření; po práci přenes soubor korekcí a v režimu „Korekce" body zpětně oprav.',
+                'Rohy budov a místa bez oblohy neměř GPS vůbec: dobře změř blízký volný bod a cíl urči „Krokovým offsetem" (nebo Offsetem s pásmem).'
+            ],
+            limity: [
+                'Mobilní GNSS má systematickou chybu, kterou jedno průměrování neodstraní — reálné minimum je ~±0,2 m i při dlouhém měření; odhad ± u bodu je poctivý, centimetrům nevěř.',
+                'Mezi sezeními re-okupace/kampaně drž odstup ALESPOŇ ~1 hodinu (jiná konstelace družic) — stejná zásada jako u opakovaného určení RTK (vyhl. č. 31/1995 Sb., příl. 9, analogicky).',
+                'DGPS korekce platí jen do ~2–3 km od základny a jen pro body měřené v době jejího běhu; základna nesmí ležet na bodu měřeném mobilem.',
+                'Výsledky NEJSOU určení pro katastr (kód 3 vyžaduje mxy ≤ 0,14 m, vyhl. č. 357/2013 Sb., příl. 13) — telefon nenahradí geodetickou aparaturu.'
+            ],
+            pozn: 'Nástroje najdeš v Nástroje → Měření. Kvalitu ohlídá i QC inspektor (kód kvality po měření); výšky z GPS jsou elipsoidické → Bpv řeší appka undulací, ale ber je jen orientačně.'
         }
     ];
 
