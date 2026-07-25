@@ -570,7 +570,7 @@
                                 <input type="range" id="s-heading-smooth" min="0" max="95" step="5" value="75" oninput="document.getElementById('s-heading-smooth-val').innerText = this.value">
                             </div>
                             <div class="st-slider">
-                                <div class="st-slider-head"><span class="st-lab">Zorný úhel kamery – šířka</span><span class="st-val"><span id="s-fovh-val">90</span> °</span></div>
+                                <div class="st-slider-head"><span class="st-lab">Zorný úhel kamery – šířka<small>nevíte kolik? <a href="#" onclick="event.preventDefault(); document.getElementById(&quot;settings-modal&quot;).style.display=&quot;none&quot;; window.agOpenFovKalibrace &amp;&amp; window.agOpenFovKalibrace();">změřit průvodcem</a></small></span><span class="st-val"><span id="s-fovh-val">90</span> °</span></div>
                                 <input type="range" id="s-fovh" min="40" max="120" step="2" value="90" oninput="document.getElementById('s-fovh-val').innerText = this.value">
                             </div>
                             <div class="st-slider">
@@ -799,6 +799,7 @@
     <script defer src="js/zapisnik.js"></script>
     <script defer src="js/stakeout-line.js"></script>
     <script defer src="js/track-log.js"></script>
+    <script defer src="js/fov-kalibrace.js"></script>
     <script defer src="js/tools-back.js"></script>
     <script defer src="js/track-ar.js"></script>
     <script defer src="js/linalg.js"></script>
