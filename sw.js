@@ -78,6 +78,7 @@ const ASSETS_TO_CACHE = [
     './js/gnss-quality.js',
     './js/gps-warn.js',
     './js/gps-trust.js',
+    './js/draft-store.js',
     './js/csv-validate.js',
     './js/kml-export.js',
     './js/dxf-export.js',
