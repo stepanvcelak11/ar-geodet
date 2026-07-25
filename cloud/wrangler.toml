@@ -7,5 +7,4 @@ compatibility_date = "2026-07-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "ar-geodet-db"
-# database_id doplň po vytvoření DB: wrangler d1 create ar-geodet-db
-database_id = "DOPLN-PO-VYTVORENI"
+database_id = "774b47e6-41c0-4e3a-a738-cfbd0a5657ae"

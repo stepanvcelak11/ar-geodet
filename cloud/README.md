@@ -4,6 +4,10 @@ Backend pro přihlašování mezi zařízeními: firmy, uživatelé, role, oprá
 sběr užívání. Běží na **Cloudflare Workers + D1** (free plán: 100 000
 požadavků/den, 5 GB databáze — pro malou firmu řádová rezerva, nepozastavuje se).
 
+**Nasazeno (25. 7. 2026):** `https://ar-geodet-api.ar-geodet.workers.dev`
+(worker `ar-geodet-api`, D1 `ar-geodet-db` id `774b47e6-41c0-4e3a-a738-cfbd0a5657ae`,
+region WEUR, účet Cloudflare uživatele). Otestováno end-to-end (18 testů prošlo).
+
 **Provoz je nezávislý na Claude.** Claude byl použit jen k napsání a prvnímu
 nasazení; všechno níže jde udělat ručně.
 

@@ -61,7 +61,7 @@
     var DB = 'argeodet-usage', STORE = 'ev', VER = 1;
     // adresa API (Cloudflare Worker, cloud/worker.js). Konstanta je jen výchozí —
     // skutečná adresa se ukládá do konfigurace firmy při založení/připojení.
-    var DEFAULT_API = 'https://AR-GEODET-API-URL-PLACEHOLDER.workers.dev';
+    var DEFAULT_API = 'https://ar-geodet-api.ar-geodet.workers.dev';
 
     // ------------------------------------------------------------------
     // Definice oprávnění. Klíč -> co se skrývá. Admin má vždy vše.
