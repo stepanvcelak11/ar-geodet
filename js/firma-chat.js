@@ -220,6 +220,11 @@
     var _ptByMsg = {};
     function decodePts(txt) {
         if (!txt || txt.indexOf(PT_PREFIX) !== 0) return null;
+        // formát drží sdileni.js (vč. výšky a poznámky) — dekódování má na starosti on
+        if (window.AGShare && typeof window.AGShare.decode === 'function') {
+            var d = window.AGShare.decode(txt);
+            return (d && d.length) ? d : null;
+        }
         var rows = txt.replace(/\r/g, '').split('\n');
         var out = [];
         for (var i = 1; i < rows.length; i++) {
@@ -235,6 +240,8 @@
     // import = stejná cesta jako naskenované QR body: přidává, nikdy nepřepisuje
     function importPts(pts) {
         if (typeof persistentCustomPoints === 'undefined') { setOff('Aplikace ještě není připravená na import bodů.'); return; }
+        // stejná cesta jako QR: uloží i poznámku k bodu, zapíše provenienci a žurnál
+        if (window.AGShare && typeof window.AGShare.importPoints === 'function') { window.AGShare.importPoints(pts, 'chat'); return; }
         var added = 0, skipped = 0;
         pts.forEach(function (np) {
             var dup = persistentCustomPoints.some(function (ep) {
@@ -289,10 +296,12 @@
             var cbs = m.querySelectorAll('input[data-i]');
             for (var i = 0; i < cbs.length; i++) if (cbs[i].checked) sel.push(persistentCustomPoints[+cbs[i].getAttribute('data-i')]);
             if (!sel.length) { errEl.textContent = 'Vyber aspoň jeden bod.'; return; }
-            var payload = PT_PREFIX + sel.map(function (p) {
-                var name = String(p.name || 'Bod').replace(/[\t\n\r]/g, ' ').slice(0, 40);
-                return name + '\t' + (+p.lat).toFixed(6) + '\t' + (+p.lng).toFixed(6);
-            }).join('\n');
+            var payload = (window.AGShare && typeof window.AGShare.encode === 'function')
+                ? window.AGShare.encode(sel)
+                : PT_PREFIX + sel.map(function (p) {
+                    var name = String(p.name || 'Bod').replace(/[\t\n\r]/g, ' ').slice(0, 40);
+                    return name + '\t' + (+p.lat).toFixed(6) + '\t' + (+p.lng).toFixed(6);
+                }).join('\n');
             if (payload.length > 490) { errEl.textContent = 'Do jedné zprávy se vejde méně bodů — odeber pár z výběru.'; return; }
             var u = U(); if (!u) return;
             errEl.textContent = 'Odesílám…';

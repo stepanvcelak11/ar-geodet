@@ -64,7 +64,7 @@
         st.textContent =
             '#agc2-modal{position:fixed;inset:0;z-index:9200;display:none;align-items:center;justify-content:center;background:rgba(6,8,12,0.72);padding:16px;box-sizing:border-box}'
             + '#agc2-modal.on{display:flex}'
-            + '#agc2-card{width:100%;max-width:440px;max-height:88vh;overflow:auto;background:#12151c;color:#eef2f7;border:1px solid rgba(255,255,255,0.12);border-radius:18px;padding:18px;box-sizing:border-box;box-shadow:0 18px 50px rgba(0,0,0,0.5)}'
+            + '#agc2-card{width:100%;max-width:440px;max-height:calc(var(--app-vh, 100dvh) * 0.88);overflow:auto;background:#12151c;color:#eef2f7;border:1px solid rgba(255,255,255,0.12);border-radius:18px;padding:18px;box-sizing:border-box;box-shadow:0 18px 50px rgba(0,0,0,0.5)}'
             + '#agc2-card h3{margin:0 0 6px;font-size:18px}'
             + '.agc2-dim{opacity:0.7;font-size:12.5px;line-height:1.45}'
             + '.agc2-row{display:flex;gap:8px;margin-top:10px}'

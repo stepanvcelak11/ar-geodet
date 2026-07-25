@@ -77,9 +77,11 @@
             + '<div style="display:flex;justify-content:space-between;"><span>Zbývá do #' + g.B.name + '</span><b>' + remain.toFixed(2) + ' m</b></div>';
     }
 
-    function computeStakePoint() {
-        var g = geometry(); if (!g) { agAlert('Chybí přímka', 'Vyber dva různé body.'); return null; }
-        var s = num('agsl-stat'); if (isNaN(s)) { agAlert('Chybí staničení', 'Zadej staničení v metrech.'); return null; }
+    // silent = jen náhled (otevření nástroje, psaní do políčka) → nehlásit prázdná pole;
+    // hláška patří až k pokusu o uložení, jinak vyskočí dřív, než uživatel stihne cokoli zadat.
+    function computeStakePoint(silent) {
+        var g = geometry(); if (!g) { if (!silent) agAlert('Chybí přímka', 'Vyber dva různé body.'); return null; }
+        var s = num('agsl-stat'); if (isNaN(s)) { if (!silent) agAlert('Chybí staničení', 'Zadej staničení v metrech.'); return null; }
         var o = num('agsl-off'); if (isNaN(o)) o = 0;   // + = VLEVO, − = vpravo (SHODNĚ se živým odečtem)
         // bod na ose: A + s*u ; kolmice vlevo = (-uN, uE) [+], vpravo = (uN, -uE) [−]
         var e = s * g.uE + o * (-g.uN);
@@ -89,7 +91,7 @@
         return { lat: ll.lat, lng: ll.lng, Y: Math.abs(sj[0]).toFixed(2), X: Math.abs(sj[1]).toFixed(2), s: s, o: o, g: g };
     }
     function previewStake() {
-        var r = computeStakePoint(); var out = document.getElementById('agsl-stake-out'); if (!out) return;
+        var r = computeStakePoint(true); var out = document.getElementById('agsl-stake-out'); if (!out) return;
         if (!r) { out.innerHTML = ''; return; }
         out.innerHTML = '<b>Y</b> ' + r.Y + ' &nbsp; <b>X</b> ' + r.X + '<br><span style="opacity:.65;font-size:12px">staničení ' + r.s.toFixed(2) + ' m' + (r.o ? ', odstup ' + Math.abs(r.o).toFixed(2) + ' m ' + (r.o > 0 ? 'vlevo' : 'vpravo') : ' na ose') + '</span>';
     }

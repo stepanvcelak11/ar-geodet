@@ -70,6 +70,8 @@ const ASSETS_TO_CACHE = [
     './js/offset-point.js',
     './js/stakeout-line.js',
     './js/track-log.js',
+    './js/tools-back.js',
+    './js/track-ar.js',
     './js/linalg.js',
     './js/ar-resection.js',
     './js/ar-intersection.js',

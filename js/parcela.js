@@ -388,11 +388,19 @@
     }
     function onPickTap(e) {
         try {
-            var mapEl = document.getElementById('map'); if (!mapEl || !map) return;
-            var rect = mapEl.getBoundingClientRect();
-            var x = e.clientX - rect.left, y = e.clientY - rect.top;
-            if (x < 0 || y < 0 || x > rect.width || y > rect.height) return;
-            var ll = map.containerPointToLatLng([x, y]);
+            if (!map) return;
+            // Mapa je v otočeném #map-wrapper (transform: rotate podle azimutu), takže
+            // prosté odečtení getBoundingClientRect() dává bod mimo klik. Sdílený převod
+            // v grafika.js rotaci zpětně vyruší — proto se používá přednostně.
+            var ll = (typeof window.agScreenToLatLng === 'function') ? window.agScreenToLatLng(e.clientX, e.clientY) : null;
+            if (!ll) {
+                var mapEl = document.getElementById('map'); if (!mapEl) return;
+                var rect = mapEl.getBoundingClientRect();
+                var x = e.clientX - rect.left, y = e.clientY - rect.top;
+                if (x < 0 || y < 0 || x > rect.width || y > rect.height) return;
+                ll = map.containerPointToLatLng([x, y]);
+            }
+            if (!ll || !isFinite(ll.lat) || !isFinite(ll.lng)) return;
             addVertexLL(ll.lat, ll.lng);
             toast('Vrchol ' + state.verts.length + ' přidán');
         } catch (err) {}
@@ -858,7 +866,9 @@
         stopPick();
         var modal = document.getElementById('agpc-modal'); if (modal) modal.style.display = 'none';
         var mini = document.getElementById('agpc-mini'); if (mini) mini.classList.remove('show');
-        // náhled na mapě necháváme (geodet ho chce vidět); smaže se přes „Vyčistit".
+        // Kresba parcely i dělení patří k otevřenému nástroji — po zavření by v mapě jen
+        // překážela. Data (vrcholy i dělení) zůstávají ve `state`, po otevření se překreslí.
+        clearLayer();
     }
     window.agOpenParcela = openTool;
     window.agCloseParcela = closeTool;

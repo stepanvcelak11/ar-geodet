@@ -148,7 +148,7 @@
                         + '<span class="geo-value" style="font-weight:400;font-size:12px;color:var(--text-muted);white-space:nowrap;">' + _fmt(r.ts) + '</span></div>';
                 }).join('');
             }
-            var html = '<div style="max-height:60vh;overflow:auto;font-size:13.5px;">' + rows + '</div>';
+            var html = '<div style="max-height:calc(var(--app-vh, 100dvh) * 0.6);overflow:auto;font-size:13.5px;">' + rows + '</div>';
             if (typeof window.agAlert === 'function') window.agAlert({ title: 'Historie bodu', message: html, cancelText: false });
             else alert('Historie bodu:\n' + recs.map(function (r) { return _fmt(r.ts) + ' ' + (OP_CZ[r.op] || r.op) + ' ' + (r.origin || ''); }).join('\n'));
         });

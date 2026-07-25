@@ -356,12 +356,38 @@
     // ---- první spuštění (auto-start ZÁKLADNÍ prohlídky) ------------------------
     var SEEN_KEY = 'agTutProSeen';
     var autoFirstRun = false;
+    var waiting = false;
+
+    // Přes bránu přihlášení, průvodce založením firmy ani úvodní obrazovku prohlídku
+    // spustit nejde — uživatel by ji neviděl a „viděno" by se přesto zapsalo.
+    function startBlocked() {
+        if (document.getElementById('ag-gate') || document.getElementById('ag-login')) return true;
+        var wiz = document.getElementById('agfa-modal');
+        if (wiz && wiz.style.display === 'flex') return true;
+        var w = document.getElementById('welcome-screen');
+        if (w && w.style.display !== 'none') return true;
+        return false;
+    }
     function maybeStart() {
         var seen = false; try { seen = localStorage.getItem(SEEN_KEY) === '1'; } catch (e) {}
-        if (seen) return;
-        try { localStorage.setItem(SEEN_KEY, '1'); } catch (e) {}
-        autoFirstRun = true;
-        setTimeout(function () { startTour(BASIC); }, 700);
+        if (seen || waiting) return;
+        waiting = true;
+        var waited = 0;
+        (function attempt() {
+            if (startBlocked()) {
+                waited += 500;
+                if (waited > 180000) { waiting = false; return; }   // vzdáno, „viděno" se nezapisuje
+                setTimeout(attempt, 500);
+                return;
+            }
+            waiting = false;
+            setTimeout(function () {
+                if (startBlocked()) { maybeStart(); return; }   // mezitím naskočila brána
+                try { localStorage.setItem(SEEN_KEY, '1'); } catch (e) {}
+                autoFirstRun = true;
+                startTour(BASIC);
+            }, 700);
+        })();
     }
 
     // ---- veřejné API (modul NAHRAZUJE původní js/tutorial.js) ------------------
@@ -386,5 +412,8 @@
             wrapped.__agtpWrapped = true;
             window.startAppFromWelcome = wrapped;
         }
+        // Pojistka: kdyby se do appky vstoupilo jinudy než tlačítkem na úvodní
+        // obrazovce, hlídač si stejně počká, až bude na prohlídku vidět.
+        setTimeout(maybeStart, 2500);
     });
 })();

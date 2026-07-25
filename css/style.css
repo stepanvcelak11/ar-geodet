@@ -1294,13 +1294,23 @@ details[open] summary::after { content: " ⌄"; }
 #side-menu.open > *:nth-child(9) { animation-delay: 0.26s; }
 #side-menu.open > *:nth-child(n+10) { animation-delay: 0.28s; }
 
-/* Respekt k systémovému nastavení omezeného pohybu (přístupnost) */
+/* Respekt k systémovému nastavení omezeného pohybu (přístupnost).
+   Právě tohle byl rozdíl „na iPhonu je víc animací než na Androidu": Android má
+   omezení pohybu často zapnuté systémově (Přístupnost → Odstranit animace, úsporný
+   režim, Animation scale = off ve vývojářských volbách), iOS ho má ve výchozím
+   stavu vypnuté. V Nastavení → Vzhled proto jde volbu ručně přebít na obou. */
 @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
+    html:not(.ag-anim-on) *, html:not(.ag-anim-on) *::before, html:not(.ag-anim-on) *::after {
         animation-duration: 0.001ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.001ms !important;
     }
+}
+/* ruční vypnutí animací (nezávisle na systému) */
+html.ag-anim-off *, html.ag-anim-off *::before, html.ag-anim-off *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
 }
 
 
@@ -1632,40 +1642,53 @@ body.outdoor-mode .ar-marker-dist { opacity: 1; }
 #dict-list .dict-del { margin-left: auto; flex: 0 0 auto; border: none; background: rgba(239, 68, 68, 0.15); color: #ef4444; border-radius: var(--r-sm); width: 32px; height: 32px; cursor: pointer; }
 #dict-list .dict-del .icon { width: 14px; height: 14px; }
 /* =========================================================================
-   Duhový okraj displeje při navigaci na bod (zesílí a zrychlí < 2 m od cíle)
+   Okraj displeje při navigaci na bod — přístrojový hledáček.
+   Dřív to byla rotující duha přes celý obvod; působila jako hračka a v ostrém
+   slunci navíc přebíjela obraz z kamery. Teď: tenký rámeček v barvě navigační
+   šipky + rohové značky jako v hledáčku měřického přístroje. Klidný stav se
+   nehýbe vůbec, „jsi u cíle" (< 2 m) přebarví na jantar a jemně dýchá.
+   Stavy řídí updateNavGlow() v grafika.js: .on = navigace běží, .near = < 2 m.
    ========================================================================= */
-@keyframes edge-spin { to { transform: rotate(360deg); } }
+@keyframes nav-edge-breath {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+}
 #edge-glow {
+    --nav-edge: var(--color-arrow, #34d399);
     position: fixed;
     inset: 0;
     z-index: 99990;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.6s ease;
-    /* Maska = rameček s měkkým vnitřním přechodem: plný u kraje displeje,
-       plynule mizí ~18 px dovnitř (sjednocení vodorovného a svislého gradientu). */
-    -webkit-mask-image:
-        linear-gradient(to right, #000, transparent 18px, transparent calc(100% - 18px), #000),
-        linear-gradient(to bottom, #000, transparent 18px, transparent calc(100% - 18px), #000);
-    mask-image:
-        linear-gradient(to right, #000, transparent 18px, transparent calc(100% - 18px), #000),
-        linear-gradient(to bottom, #000, transparent 18px, transparent calc(100% - 18px), #000);
+    transition: opacity 0.45s ease;
+    /* vlasový rámeček na hraně displeje + velmi měkký spád dovnitř */
+    box-shadow:
+        inset 0 0 0 1.5px var(--nav-edge),
+        inset 0 0 26px -8px var(--nav-edge),
+        inset 0 0 90px -40px var(--nav-edge);
 }
+/* rohové značky hledáčku (4 „L" v rozích) */
 #edge-glow::before {
     content: "";
     position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 250vmax;
-    height: 250vmax;
-    margin: -125vmax 0 0 -125vmax;
-    background: conic-gradient(#ff5f6d, #ffc371, #fde047, #4ade80, #22d3ee, #818cf8, #e879f9, #ff5f6d);
-    filter: blur(10px);
-    animation: edge-spin 3.5s linear infinite;
+    inset: 9px;
+    background:
+        linear-gradient(var(--nav-edge), var(--nav-edge)) left top / 24px 2px no-repeat,
+        linear-gradient(var(--nav-edge), var(--nav-edge)) left top / 2px 24px no-repeat,
+        linear-gradient(var(--nav-edge), var(--nav-edge)) right top / 24px 2px no-repeat,
+        linear-gradient(var(--nav-edge), var(--nav-edge)) right top / 2px 24px no-repeat,
+        linear-gradient(var(--nav-edge), var(--nav-edge)) left bottom / 24px 2px no-repeat,
+        linear-gradient(var(--nav-edge), var(--nav-edge)) left bottom / 2px 24px no-repeat,
+        linear-gradient(var(--nav-edge), var(--nav-edge)) right bottom / 24px 2px no-repeat,
+        linear-gradient(var(--nav-edge), var(--nav-edge)) right bottom / 2px 24px no-repeat;
 }
-#edge-glow.on { opacity: 0.6; }
-#edge-glow.near { opacity: 1; }
-#edge-glow.near::before { animation-duration: 1.4s; }
+#edge-glow.on { opacity: 0.75; }
+/* u cíle: jantarová a nenápadně dýchá — pozná se periferním viděním, neruší */
+#edge-glow.near {
+    --nav-edge: var(--warning, #fbbf24);
+    opacity: 1;
+    animation: nav-edge-breath 1.8s ease-in-out infinite;
+}
 
 /* =========================================================================
    Adaptivní sklo — JS přidá .cam-light na body, když kamera vidí světlou scénu
@@ -2203,6 +2226,44 @@ body.left-hand #dock .dock-btn:nth-child(2),
 body.left-hand #dock .dock-btn:nth-child(4) { transform: translateX(calc(var(--dock-arc, 13px) * 0.55)); }
 body.left-hand #dock .dock-btn:nth-child(3) { transform: translateX(var(--dock-arc, 13px)); }
 
+/* ---- Zavírací křížky a hlavičky nástrojů ------------------------------------
+   Křížek vpravo nahoře je pro leváka nejhůř dosažitelné místo displeje. Sdílený
+   křížek (.ag-modal-x, injektuje offset-point.js) i hlavičky jednotlivých
+   nástrojů se proto překlápějí doleva. Hlavičky jsou všechny flex se
+   space-between, takže stačí row-reverse. */
+body.left-hand .ag-modal-x { text-align: left; }
+body.left-hand .ag-modal-x > button { right: auto; left: -6px; }
+body.left-hand .lvl-top,
+body.left-hand .bgps-top,
+body.left-hand .prd-head,
+body.left-hand .zpr-head,
+body.left-hand .omr-head,
+body.left-hand .dmt-head,
+body.left-hand .ag-calib-head,
+body.left-hand .wx-top,
+body.left-hand #tachy-top { flex-direction: row-reverse; }
+body.left-hand #tachy-top .tt-title { margin-right: 0; margin-left: auto; }
+body.left-hand .photo-viewer .pv-close { right: auto; left: 16px; }
+body.left-hand .photo-editor .pv-close { right: auto; left: 16px; }
+/* nápověda „?" na dlaždici a odznak nepřečtených ať nekolidují s palcem */
+body.left-hand .ag-tp-help { right: auto; left: 4px; }
+/* tutoriál: „Přeskočit" na stranu palce */
+body.left-hand .tut-card .tut-skip { right: auto; left: 12px; }
+body.left-hand .tut-card .tut-title { padding-right: 0; padding-left: 70px; }
+/* modály vjíždějí z opačné strany, ať gesto sedí ke straně ovládání */
+body.left-hand #settings-modal .modal-content,
+body.left-hand #manage-modal .modal-content,
+body.left-hand #tools-modal .modal-content,
+body.left-hand #custom-modal-overlay .modal-content { transform: translateX(-100%); }
+body.left-hand #settings-modal .modal-content.ag-open,
+body.left-hand #manage-modal .modal-content.ag-open,
+body.left-hand #tools-modal .modal-content.ag-open,
+body.left-hand #custom-modal-overlay .modal-content.ag-open { transform: translateX(0); }
+/* Plovoucí tlačítka nástrojů mají polohu inline v JS → přebít lze jen !important */
+body.left-hand #agpc-fab,
+body.left-hand #ag-ft-fab { right: auto !important; left: 12px !important; }
+/* HUD (azimut, přesnost, družice) ZÁMĚRNĚ zůstává, kde je — není to ovládání. */
+
 /* =========================================================================
    MAPOVÁ TLAČÍTKA — na přání: SKRYTÁ, dokud je nezapneš ve „Více → Nástroje mapy".
    Po zapnutí (#map-controls.expanded) = vodorovná řada vystředěná na spodní hraně
@@ -2228,7 +2289,11 @@ body.left-hand #dock .dock-btn:nth-child(3) { transform: translateX(var(--dock-a
 body.left-hand #map-controls.expanded {
     left: calc(max(16px, env(safe-area-inset-left)) + 66px) !important;
     right: max(10px, env(safe-area-inset-right)) !important;
+    flex-direction: row-reverse !important;   /* křížek na stranu palce */
 }
+body.left-hand #map-controls.expanded #map-ctrl-stack { flex-direction: row-reverse !important; }
+/* sbalený stav uhýbá doku — ten je v levoruké variantě vlevo */
+body.left-hand #map-controls { right: auto; left: 74px; align-items: flex-start; }
 /* Drobnější tlačítka, ať se řada (5 nástrojů + křížek) vejde i na užší displej */
 #map-controls.expanded .map-ctrl-btn { width: 40px; height: 40px; }
 #map-controls.expanded #map-ctrl-stack {

@@ -35,6 +35,25 @@
         // visibilitychange (NE 'resize', ten spouští i klávesnice → poskakování).
         window.addEventListener('pageshow', function () { setH(); setTimeout(setH, 200); });
         document.addEventListener('visibilitychange', function () { if (!document.hidden) { setH(); setTimeout(setH, 200); } });
+        // Android Chrome při otevření klávesnice ZMENŠÍ layout viewport (iOS ne). Kdyby
+        // se výška spočítala v ten okamžik, zůstala by zamrzlá na půlce a všechny
+        // celoobrazovkové panely by byly poloviční. Proto na 'resize' reagujeme, ale
+        // přeskočíme ho, dokud je kurzor v nějakém poli (= nejspíš klávesnice).
+        var _rt = null;
+        function typing() {
+            var a = document.activeElement; if (!a) return false;
+            var t = (a.tagName || '').toLowerCase();
+            return t === 'input' || t === 'textarea' || t === 'select' || a.isContentEditable === true;
+        }
+        window.addEventListener('resize', function () {
+            if (typing()) return;
+            clearTimeout(_rt); _rt = setTimeout(setH, 180);
+        });
+        // vstup/výstup z celoobrazovkového režimu (jen Android) mění výšku viewportu
+        document.addEventListener('fullscreenchange', function () { setH(); setTimeout(setH, 250); });
+        document.addEventListener('webkitfullscreenchange', function () { setH(); setTimeout(setH, 250); });
+        // po zavření klávesnice dopočítat (blur přijde až po zmenšení)
+        document.addEventListener('focusout', function () { setTimeout(function () { if (!typing()) setH(); }, 300); });
     })();
     </script>
     <title>AR Geodet</title>
@@ -455,6 +474,12 @@
                     <div class="set-h">Ovládání</div>
                     <div class="st-row"><span class="st-lab">Ovládání pro levou ruku<small>zrcadlí ovládání na levou stranu displeje</small></span>
                         <label class="st-sw"><input type="checkbox" id="s-lefthand"><span class="st-sw-face"></span></label></div>
+                    <div class="st-row"><span class="st-lab">Animace<small>Android je často vypíná systémově, iPhone ne — tady je srovnáte</small></span>
+                        <select id="s-anim" style="width:auto; min-width:130px;">
+                            <option value="auto">Podle systému</option>
+                            <option value="on">Vždy zapnuté</option>
+                            <option value="off">Vypnuté</option>
+                        </select></div>
                     <div class="st-slider">
                         <div class="st-slider-head"><span class="st-lab">Prohnutí ovládání<small>jak výrazný je oblouček boční lišty</small></span><span class="st-val"><span id="v-dock-arc-val">13</span> px</span></div>
                         <input type="range" id="v-dock-arc" min="0" max="32" step="2" value="13" oninput="document.getElementById('v-dock-arc-val').innerText = this.value">
@@ -666,6 +691,11 @@
             <h2 style="margin-top:0;">O aplikaci</h2>
             <div class="modal-body">
                 <p style="margin-top:0; font-size:13px; opacity:0.8;">AR Geodet — geodetický AR nástroj pro vyhledávání bodů. Verze <span id="about-version">1.0</span>.</p>
+                <div class="geo-highlight">
+                    <strong><svg class="icon" style="vertical-align:-0.18em; color:var(--accent);"><use href="#i-star"/></svg> Autor a vlastník</strong>
+                    <p style="font-size:13px; line-height:1.55; margin:8px 0 0;">Aplikaci navrhl, vytvořil a vlastní <b>Štěpán Včelák</b>.<br>© 2026 Štěpán Včelák. Všechna práva vyhrazena.</p>
+                    <p style="font-size:12px; line-height:1.5; margin:8px 0 0; opacity:0.75;">AR Geodet je autorské dílo. Aplikaci ani její části není dovoleno kopírovat, upravovat, dále šířit ani nabízet jako vlastní produkt bez písemného souhlasu autora. Podkladová data třetích stran (ČÚZK, OpenStreetMap) zůstávají majetkem jejich poskytovatelů.</p>
+                </div>
                 <div class="geo-highlight" style="border-left-color:#fbbf24;">
                     <strong><svg class="icon" style="vertical-align:-0.18em; color:#fbbf24;"><use href="#i-alert"/></svg> Upozornění</strong>
                     <p style="font-size:13px; line-height:1.55; margin:8px 0 0;">Aplikace je <b>orientační pomůcka</b>, nikoli měřicí přístroj. Zobrazená poloha bodů závisí na přesnosti GPS a kompasu telefonu (běžně ±3–7 m, kompas je citlivý na magnetické rušení). Body v terénu vždy ověřte a nehledejte je na centimetr přímo na AR značce. Za rozhodnutí učiněná na základě aplikace nese odpovědnost uživatel.</p>
@@ -768,6 +798,8 @@
     <script defer src="js/zapisnik.js"></script>
     <script defer src="js/stakeout-line.js"></script>
     <script defer src="js/track-log.js"></script>
+    <script defer src="js/tools-back.js"></script>
+    <script defer src="js/track-ar.js"></script>
     <script defer src="js/linalg.js"></script>
     <script defer src="js/ar-resection.js"></script>
     <script defer src="js/ar-intersection.js"></script>
