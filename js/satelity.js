@@ -288,44 +288,8 @@ function findBestSatTime() {
 })();
 
 
-// ---------- PDOP v hlavnim info panelu (#5: kvalita geometrie druzic) ----------
-// Rozsiruje updateInfoPanel z grafika.js o radek "Druzice N · PDOP x".
-// Pocita se max 1x za 8 s (SGP4 je levne, ale zbytecne kazdy snimek); pri prazdne
-// cache TLE se jednou potichu stahnou drahy, at se PDOP objevi i bez otevreni Satelitu.
-// Aplikace je primárně offline -> PDOP záměrně NEzobrazujeme (mátlo by). Ukazujeme jen
-// POČET viditelných družic nad maskou. Počítá se max 1x za 8 s; při prázdné cache TLE se
-// jednou potichu stáhnou dráhy, ať se počet objeví i bez otevření Satelitů.
-(function () {
-    if (typeof updateInfoPanel !== 'function' || updateInfoPanel._satWrapped) return;   // idempotence (dvojí načtení)
-    const _orig = updateInfoPanel;
-    let _t = 0, _cache = null, _triedFetch = false;
-    updateInfoPanel = function () {
-        _orig();
-        const infoEl = document.getElementById('info');
-        if (!infoEl || !appStarted || userLat == null) return;
-        if (!tleSats.length) {
-            if (!_triedFetch && navigator.onLine && typeof refreshTLE === 'function') {
-                _triedFetch = true;
-                refreshTLE(true).then(() => { try { updateInfoPanel(); } catch (e) {} });
-            }
-            infoEl.innerHTML += `<div class="rdt"><span class="rdt-l">Družice</span><span class="rdt-v" style="color:var(--warning);">${navigator.onLine ? 'načítám…' : 'offline – chybí data drah'}</span></div>`;
-            return;
-        }
-        const now = Date.now();
-        if (now - _t > 8000) {
-            _t = now;
-            try { const obs = computeSatPositions(new Date()); _cache = { vis: obs.filter(o => o.el >= SAT_EL_MASK).length }; }
-            catch (e) { _cache = null; }
-        }
-        if (!_cache) return;
-        const vis = _cache.vis;
-        const col = vis >= 4 ? '#34d399' : '#fbbf24';
-        // Stáří drah družic: po vypršení cache je predikce nepřesná a offline se neobnoví.
-        const ageH = tleFetchedAt ? (now - tleFetchedAt) / 3600000 : null;
-        let staleTxt = '';
-        if (ageH == null) staleTxt = ' <span style="color:var(--warning);" title="Dráhy družic nejsou stažené">⚠</span>';
-        else if (ageH > TLE_MAX_AGE_H) staleTxt = ` <span style="color:var(--warning);" title="Dráhy družic staré ${Math.round(ageH)} h – ${navigator.onLine ? 'obnoví se' : 'offline, neaktualizuje se'}">⚠ ${Math.round(ageH / 24)} d</span>`;
-        infoEl.innerHTML += `<div class="rdt"><span class="rdt-l">Družice</span><span class="rdt-v" style="color:${col};">${vis}${staleTxt}</span></div>`;
-    };
-    updateInfoPanel._satWrapped = true;
-})();
+// ---------- (ODEBRÁNO na přání) řádek „Družice N" v hlavním info panelu ----------
+// Počet viditelných družic + stáří drah se na hlavní obrazovce NEZOBRAZUJE —
+// uživatel to nevnímal jako užitečné. Detail zůstává v nástroji „GNSS satelity"
+// (openSatModal). Na hlavní obrazovce zůstává azimut (#compass-debug) a přesnost
+// GPS (#gps-avg). NEVRACET bez pokynu.

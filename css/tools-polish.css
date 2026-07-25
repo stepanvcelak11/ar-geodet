@@ -1,0 +1,144 @@
+/* ===== AR Geodet — VIZUÁLNÍ DOLADĚNÍ NÁSTROJŮ (ODPOJITELNÁ vrstva) ============
+   Nástroje vznikaly postupně a některé působily „syrově" (holé nadpisy, výchozí
+   formuláře, nesourodé mezery). Tahle vrstva je sjednocuje NAD sdílenými třídami
+   (.modal-content, .btn, .geo-data-row, …) a design tokeny ze style.css — nemění
+   žádné ID ani JS chování, jen vzhled. Funguje ve tmavém i světlém režimu
+   (všechny barvy jdou přes CSS proměnné).
+   Odstranění: smaž css/tools-polish.css + <link> v index.html (a řádek v sw.js).
+   ============================================================================== */
+
+/* ---- Nadpis okna nástroje: pořádný titulek s linkou místo holého h3 -------- */
+.modal-content > h3 {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-family: var(--font-display);
+    font-size: 19px;
+    letter-spacing: 0.01em;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--glass-border);
+}
+.modal-content > h3 .icon {
+    width: 21px;
+    height: 21px;
+    flex: 0 0 auto;
+}
+/* popisek hned pod nadpisem (co nástroj dělá) — jednotně ztlumený */
+.modal-content > h3 + p {
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.45;
+    margin-top: 0;
+}
+
+/* ---- Formulářové prvky: jasný fokus, jednotné zaoblení ---------------------- */
+.modal-content input[type="text"]:focus,
+.modal-content input[type="number"]:focus,
+.modal-content input[type="search"]:focus,
+.modal-content textarea:focus,
+.modal-content select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* ---- Tlačítka: dotyková výška, měkké „stisknutí" ---------------------------- */
+.btn {
+    min-height: 44px;
+    transition: transform 0.12s var(--ease-out, ease), filter 0.12s ease;
+}
+.btn:active { transform: scale(0.97); filter: brightness(1.08); }
+
+/* ---- Datové řádky (výsledky měření): vzdušnější, hodnoty „přístrojově" ------ */
+.geo-data-row { padding: 7px 0; }
+.geo-data-row .geo-value { font-variant-numeric: tabular-nums; }
+
+/* ---- Rozbalovací sekce <details>: karta místo holého trojúhelníčku ----------
+   (vyjmuty prvky s vlastním hotovým stylem: .adv v Nastavení, .exp-menu/.lines-menu) */
+.modal-content details:not(.adv):not(.exp-menu):not(.lines-menu) {
+    margin: 10px 0;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-md);
+    background: var(--surface-1, rgba(255, 255, 255, 0.04));
+    overflow: hidden;
+}
+.modal-content details:not(.adv):not(.exp-menu):not(.lines-menu) > summary {
+    padding: 11px 13px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13.5px;
+    color: var(--text-muted);
+    -webkit-user-select: none;
+    user-select: none;
+    list-style: none;
+}
+.modal-content details:not(.adv):not(.exp-menu):not(.lines-menu) > summary::-webkit-details-marker { display: none; }
+.modal-content details:not(.adv):not(.exp-menu):not(.lines-menu) > summary::after {
+    content: "▾";
+    float: right;
+    color: var(--text-muted);
+    transition: transform 0.15s ease;
+}
+.modal-content details:not(.adv):not(.exp-menu):not(.lines-menu)[open] > summary::after { transform: rotate(180deg); }
+.modal-content details:not(.adv):not(.exp-menu):not(.lines-menu)[open] > summary { color: var(--text-color); }
+.modal-content details:not(.adv):not(.exp-menu):not(.lines-menu) > *:not(summary) { padding-left: 13px; padding-right: 13px; }
+.modal-content details:not(.adv):not(.exp-menu):not(.lines-menu) > *:last-child { padding-bottom: 11px; }
+
+/* ---- Tabulky v nástrojích (zápisník, epochy…): hlavička + zebra ------------- */
+.modal-content table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.modal-content th {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-align: left;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--glass-border-strong, var(--glass-border));
+}
+.modal-content td {
+    padding: 7px 8px;
+    border-bottom: 1px solid var(--glass-border);
+    font-variant-numeric: tabular-nums;
+}
+.modal-content tr:last-child td { border-bottom: none; }
+
+/* ---- Oddělovače a seznamy ---------------------------------------------------- */
+.modal-content hr { border: none; border-top: 1px solid var(--glass-border); margin: 12px 0; }
+.cluster-list-item { transition: background 0.12s ease, border-color 0.12s ease; }
+.cluster-list-item:active { background: var(--accent-soft); border-color: var(--accent-line); }
+
+/* ---- Plovoucí „×" fullscreen nástrojů (injektuje geo-overlay.js) ------------ */
+.ag-modal-x button {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 50% !important;
+    border: 1px solid var(--glass-border) !important;
+    background: var(--surface-2, rgba(255, 255, 255, 0.08)) !important;
+    color: var(--text-color) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-1);
+}
+
+/* ---- Tenký posuvník v obsahu nástrojů (místo systémového) ------------------- */
+.modal-body::-webkit-scrollbar,
+.ag-scrollable::-webkit-scrollbar { width: 4px; }
+.modal-body::-webkit-scrollbar-thumb,
+.ag-scrollable::-webkit-scrollbar-thumb {
+    background: var(--glass-border-strong, rgba(255, 255, 255, 0.2));
+    border-radius: 4px;
+}
+
+/* ---- Dlaždice v okně Nástroje: jemný rám, ať mřížka drží tvar --------------- */
+.tool-tile {
+    border: 1px solid var(--glass-border);
+    transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+.tool-tile:active { border-color: var(--accent-line); }

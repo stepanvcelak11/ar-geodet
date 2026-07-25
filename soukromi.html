@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Geodet — Zásady ochrany soukromí</title>
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <style>
+        :root { color-scheme: dark; }
+        body { margin: 0 auto; max-width: 720px; padding: 32px 20px 60px; background: #0f1216; color: #e8edf2;
+               font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif; }
+        h1 { font-size: 26px; margin: 0 0 4px; }
+        h2 { font-size: 18px; margin: 28px 0 8px; color: #4ccd99; }
+        p, li { color: #c7cdd6; }
+        .muted { color: #8b93a1; font-size: 13.5px; }
+        a { color: #4ccd99; }
+        ul { padding-left: 22px; }
+        code { background: rgba(255,255,255,0.08); border-radius: 5px; padding: 1px 6px; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <h1>Zásady ochrany soukromí</h1>
+    <p class="muted">Aplikace AR Geodet · poslední aktualizace 25. 7. 2026</p>
+
+    <h2>Shrnutí</h2>
+    <p><b>AR Geodet nemá žádný vlastní server, žádné uživatelské účty v cloudu, žádnou analytiku a žádné reklamy.</b>
+    Všechna vaše data (body, zakázky, měření, nastavení, fotky) zůstávají uložená výhradně ve vašem zařízení
+    (localStorage / IndexedDB prohlížeče). Nikam je neodesíláme a nemáme k nim přístup.</p>
+
+    <h2>Poloha (GPS)</h2>
+    <p>Poloha se zpracovává přímo v zařízení — slouží k zobrazení vaší pozice na mapě, k navigaci na body
+    a k měření. Souřadnice se odešlou mimo zařízení pouze jako parametr dotazu, když si vyžádáte data od
+    třetích stran (např. stažení bodů bodového pole z ČÚZK nebo mapových dlaždic v okolí). Tyto dotazy slouží
+    jen k vyřízení požadavku a aplikace si z nich nic neukládá mimo vaše zařízení.</p>
+
+    <h2>Kamera</h2>
+    <p>Obraz kamery slouží výhradně k zobrazení rozšířené reality (AR) a k funkcím jako čtení souřadnic z
+    fotografie (OCR) — vše se zpracovává lokálně v zařízení. Záběry ani fotografie se nikam neodesílají.</p>
+
+    <h2>Senzory (kompas, gyroskop)</h2>
+    <p>Údaje o orientaci zařízení se používají jen pro vykreslení AR scény a kompasu. Zařízení neopouštějí.</p>
+
+    <h2>Služby třetích stran</h2>
+    <p>Aby aplikace mohla zobrazit mapy a stáhnout geodetická data, komunikuje s těmito službami
+    (ty při požadavku standardně vidí vaši IP adresu):</p>
+    <ul>
+        <li><b>ČÚZK</b> — body bodového pole, katastrální mapa, výškopis (© ČÚZK)</li>
+        <li><b>OpenStreetMap / Mapy.cz</b> — mapové podklady</li>
+        <li><b>CelesTrak</b> — dráhy družic GNSS (predikce signálu)</li>
+        <li><b>Google Fonts, unpkg (CDN)</b> — písma a knihovna mapy při prvním načtení</li>
+        <li><b>GitHub Pages</b> — hosting aplikace a denního geodetického zpravodaje</li>
+    </ul>
+    <p>Po uložení pro offline použití aplikace funguje bez připojení a žádné požadavky neodesílá.</p>
+
+    <h2>Zálohy a sdílení</h2>
+    <p>Export dat (CSV, DXF, GeoJSON, .argeo…) i sdílení přes QR kód spouštíte vždy ručně vy a data
+    putují jen tam, kam je sami pošlete.</p>
+
+    <h2>Vaše práva</h2>
+    <p>Protože žádná vaše data neshromažďujeme, není co mazat na serveru — všechna data odstraníte
+    smazáním dat aplikace/prohlížeče ve svém zařízení.</p>
+
+    <h2>Kontakt</h2>
+    <p>Dotazy k soukromí: <a href="https://github.com/stepanvcelak11/ar-geodet/issues">github.com/stepanvcelak11/ar-geodet</a></p>
+</body>
+</html>

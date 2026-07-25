@@ -445,6 +445,10 @@ body {
     transform: scale(var(--menu-scale));
     transform-origin: top left;
 }
+/* Prázdný info panel se nezobrazuje (řádek „Družice" odebrán na přání — panel teď
+   nese jen přechodné stavy: hledám GPS, stahuji data, chyby ČÚZK). !important
+   přebíjí inline display:block z toggleHudElements(). */
+#info:empty { display: none !important; }
 /* Přístrojový readout v info panelu */
 #info .rdt { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
 #info .rdt + .rdt { margin-top: 3px; }
@@ -1947,10 +1951,12 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
    ========================================================================= */
 
 /* ---- Spodní dok → svislá lišta u pravého okraje (palec pravé ruky) ----- */
+/* Střed lišty v 60 % výšky (ne 50 %): telefon se drží ve spodní třetině,
+   palec tam pohodlně dosáhne. Na přání uživatele. */
 #dock {
     left: auto;
     right: max(8px, env(safe-area-inset-right));
-    top: 50%;
+    top: 60%;
     bottom: auto;
     transform: translateY(-50%);
     flex-direction: column;
@@ -1975,8 +1981,10 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
 /* Dok už není dole → mapové ovládání vrátit dolů a uhnout vlevo od lišty */
 #map-controls { bottom: max(12px, env(safe-area-inset-bottom)); right: 74px; }
 
-/* Na nízkých displejích lištu nezvětšovat přes celou výšku */
+/* Na nízkých displejích lištu nezvětšovat přes celou výšku (a posun dolů zmírnit,
+   ať se spodek lišty nepotká s kolečkem zobrazení / ovládáním mapy) */
 @media (max-height: 560px) {
+    #dock { top: 55%; }
     .dock-btn { width: 50px; padding: 5px 2px; }
     .dock-btn .icon { width: 19px; height: 19px; }
 }

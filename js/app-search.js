@@ -34,7 +34,7 @@
         { label: 'Body — správa a seznam bodů', keys: 'body sprava seznam points import export', run: function () { if (typeof openManageModal === 'function') openManageModal(); } },
         { label: 'Nový bod', keys: 'novy bod pridat vlozit new point souradnice', run: function () { if (typeof openNewPointModal === 'function') openNewPointModal(); } },
         { label: 'Nastavení', keys: 'nastaveni settings', run: function () { if (typeof openSettings === 'function') openSettings(); } },
-        { label: 'Nastavení — Vzhled', keys: 'vzhled barvy motiv tema svetly tmavy rezim velikost pisma rukavice leva ruka', run: tab('tab-vzhled', 0) },
+        { label: 'Nastavení — Vzhled', keys: 'vzhled barvy motiv tema svetly tmavy rezim rukavice leva ruka', run: tab('tab-vzhled', 0) },
         { label: 'Nastavení — AR a přesnost', keys: 'ar presnost kamera dosah fov filtry rozvrzeni', run: tab('tab-ar', 1) },
         { label: 'Nastavení — Data', keys: 'data zakazka zaloha katastr zdroj offline', run: tab('tab-data', 2) },
         { label: 'Nastavení — Údržba', keys: 'udrzba oprava reset chyby log vymazat', run: tab('tab-udrzba', 3) },

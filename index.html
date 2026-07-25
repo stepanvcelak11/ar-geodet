@@ -51,7 +51,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Geodet">
     <link rel="icon" type="image/svg+xml" href="icon.svg">
-    <link rel="apple-touch-icon" href="icon.svg">
+    <!-- iOS ikonu na plochu bere JEN z PNG (SVG ignoruje → obecný screenshot).
+         Projeví se až při novém „Přidat na plochu". -->
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Sora:wght@600;700;800&display=swap">
@@ -88,6 +90,8 @@
     <!-- QC INSPEKTOR / kód kvality (odpojitelné: smaž tento řádek + css/qc-engine.css + js/qc-engine.js) -->
     <link rel="stylesheet" href="css/qc-engine.css">
     <link rel="stylesheet" href="css/pocasi.css">
+    <!-- VIZUÁLNÍ DOLADĚNÍ NÁSTROJŮ — jednotný vzhled oken nástrojů (odpojitelné: smaž tento řádek + css/tools-polish.css) -->
+    <link rel="stylesheet" href="css/tools-polish.css">
 </head>
 <body>
 
@@ -425,10 +429,9 @@
                         <option value="graphite">Grafit (šedá)</option>
                     </select>
                     <div class="set-h">Displej a čitelnost</div>
-                    <div class="st-slider">
-                        <div class="st-slider-head"><span class="st-lab">Velikost textu a menu</span><span class="st-val"><span id="v-menu-scale-val">100</span> %</span></div>
-                        <input type="range" id="v-menu-scale" min="50" max="150" step="10" value="100" oninput="document.getElementById('v-menu-scale-val').innerText = this.value">
-                    </div>
+                    <!-- Jezdec „Velikost textu a menu" ODSTRANĚN na přání: měnil jen --menu-scale
+                         (transform pár HUD prvků mimo běžný pohled), text nikde — působil nefunkčně.
+                         Velikost AR štítků a nav. štítku mají vlastní jezdce v Pokročilé. -->
                     <div class="st-row"><span class="st-lab">Venkovní režim<small>vysoký kontrast na slunci</small></span>
                         <label class="st-sw"><input type="checkbox" id="s-outdoor"><span class="st-sw-face"></span></label></div>
                     <div class="st-row"><span class="st-lab">Zamezit zhasínání displeje</span>
@@ -442,7 +445,7 @@
                     </div>
                     <!-- Prvky na obrazovce — přesunuto z menu „Více" (ids tgl-* čte toggleHudElements v grafika.js) -->
                     <div class="set-h">Prvky na obrazovce</div>
-                    <div class="st-row"><span class="st-lab">Info panel<small>přesnost, body v AR, družice</small></span>
+                    <div class="st-row"><span class="st-lab">Info panel<small>stavové zprávy (hledám GPS, stahování dat)</small></span>
                         <label class="st-sw"><input type="checkbox" id="tgl-info" checked onchange="toggleHudElements()"><span class="st-sw-face"></span></label></div>
                     <div class="st-row"><span class="st-lab">Kompas (Azimut)</span>
                         <label class="st-sw"><input type="checkbox" id="tgl-compass" checked onchange="toggleHudElements()"><span class="st-sw-face"></span></label></div>
