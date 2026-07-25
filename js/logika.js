@@ -536,6 +536,10 @@ if ('serviceWorker' in navigator) {
         function deleteCustomPoint(id) { const _pt = persistentCustomPoints.find(p => p.id === id); if(!confirm('Smazat bod „' + ((_pt && _pt.name) || 'bez názvu') + '"?')) return; persistentCustomPoints = persistentCustomPoints.filter(p => p.id !== id); setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); pointLines = pointLines.filter(l => l.aId !== id && l.bId !== id); saveLines(); renderManageList(); drawAllMarkersOnMap(); const idx = arPoints.findIndex(p => p.id === id); if(idx !== -1) { if(arPoints[idx].element) arPoints[idx].element.remove(); arPoints.splice(idx, 1); } updateInfoPanel(); }
         // Vyplnit Y/X z PRUMEROVANE GPS polohy (presnejsi nez jeden odecet) + ulozit dosazenou presnost
         function fillAveragedGPS() {
+            // BRANA CERSTVOSTI: kdyz GPS prestala dodavat fixy (tunel, suspend), prumer je
+            // ze STARE polohy — bod by se tise ulozil jinam, nez clovek stoji.
+            const _fx = window.AGFix;
+            if (_fx && _fx.ts && (Date.now() - _fx.ts) > 10000) { alert('Poloha je stará ' + Math.round((Date.now() - _fx.ts) / 1000) + ' s — GPS teď nedodává čerstvé fixy.\n\nPočkejte pod volným nebem na obnovení signálu a zkuste to znovu.'); return; }
             if (gpsAvgResult && gpsAvgResult.coarse) { alert("Slabý GNSS signál — telefon hlásí síťovou polohu ±" + Math.round(gpsAvgResult.acc) + " m, ne satelitní fix.\n\nVyjdi pod volné nebe a počkej, až se přesnost zlepší pod 20 m."); return; }
             if (!gpsAvgResult || gpsAvgResult.n < 2) { alert("Počkejte na ustálení průměrování GPS (stůjte chvíli na místě)."); return; }
             const r = gpsAvgResult; let sjtsk = proj4("EPSG:4326", "EPSG:5514", [r.lng, r.lat]);
@@ -964,6 +968,10 @@ if ('serviceWorker' in navigator) {
                     try { if (window.AGPose) window.AGPose.checkDrift(userLat, userLng); } catch (e) {}   // #1: kotvení se zneplatní, když reálně odejdu ze stanoviska
                     userAlt = (position.coords.altitude != null && isFinite(position.coords.altitude)) ? position.coords.altitude : null;
                     currentGpsAccuracy = position.coords.accuracy; updateInfoPanel();
+                    // SEMAFOR DUVERY POLOHY: timestamp posledniho fixu pro js/gps-trust.js.
+                    // Bez nej se zamrzla GPS (tunel, iOS suspend) nepozna — userLat/acc drzi
+                    // posledni hodnotu a AR/mereni tise jede ze stare polohy.
+                    window.AGFix = { ts: Date.now(), lat: userLat, lng: userLng, acc: currentGpsAccuracy, alt: userAlt, err: null };
                     // posledni znama poloha pro vychozi pohled mapy pri pristim startu (i offline); max 1x/30 s
                     if (!window._agLastPosTs || Date.now() - window._agLastPosTs > 30000) { window._agLastPosTs = Date.now(); try { localStorage.setItem('arLastPos', JSON.stringify({ lat: userLat, lng: userLng })); } catch (e) {} }
                     gpsSpeed = (position.coords.speed != null && !isNaN(position.coords.speed)) ? position.coords.speed : 0;
@@ -985,7 +993,14 @@ if ('serviceWorker' in navigator) {
                     const userIcon = L.divIcon({ className: 'custom-user-icon', html: `<div id="user-direction-container" style="transition: transform 0.1s linear; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center;"><div style="position:absolute; width: 28px; height: 28px; background: rgba(47,158,116, 0.3); border-radius: 50%; filter: blur(3px);"></div><svg width="24" height="24" viewBox="0 0 24 24" style="z-index: 2; transform: translateY(-3px); filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.6));"><path d="M12,2 L22,20 L12,16 L2,20 Z" fill="#34d399" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg></div>`, iconSize: [44, 44], iconAnchor: [22, 22] });
                     if (userMarker) userMarker.setLatLng([userLat, userLng]); else userMarker = L.marker([userLat, userLng], {icon: userIcon, zIndexOffset: 1000}).addTo(map);
                 },
-                (error) => { if (appStarted) document.getElementById('info').innerHTML = `Chyba GPS: ${error.message}`; },
+                (error) => {
+                    // cesky a s akci (drive syrova anglicka hlaska prohlizece), + zaznam pro gps-trust
+                    window.AGFix = Object.assign(window.AGFix || {}, { err: (error && error.code) || 0, errTs: Date.now() });
+                    if (appStarted) {
+                        const czech = { 1: 'přístup k poloze je zakázán — povolte ho telefonu v nastavení', 2: 'poloha není dostupná (žádný signál GNSS)', 3: 'čekání na polohu vypršelo (slabý signál)' };
+                        document.getElementById('info').innerHTML = 'Chyba GPS: ' + (czech[error && error.code] || error.message);
+                    }
+                },
                 { enableHighAccuracy: true, maximumAge: 0, timeout: 27000 }
             );
         }
