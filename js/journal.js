@@ -136,15 +136,16 @@
         history(id).then(function (recs) {
             var rows;
             if (!recs.length) {
-                rows = '<div style="opacity:.7;padding:10px 0;">Pro tento bod zatím není žádný záznam v žurnálu. (Body vytvořené před zavedením žurnálu historii nemají.)</div>';
+                rows = '<div style="color:var(--text-muted);padding:10px 0;">Pro tento bod zatím není žádný záznam v žurnálu. (Body vytvořené před zavedením žurnálu historii nemají.)</div>';
             } else {
+                // sdílené třídy .geo-data-row/.geo-label/.geo-value (style.css) — jednotný vzhled s kartou bodu
                 rows = recs.map(function (r) {
                     var acc = (r.after && r.after.acc != null) ? (' · ±' + r.after.acc + ' m') : '';
                     var org = (r.origin && ORIG_CZ[r.origin]) || r.origin || '';
-                    return '<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.08);">'
-                        + '<div><b>' + (OP_CZ[r.op] || r.op) + '</b>' + (org ? ' · ' + org : '') + acc
-                        + (r.author ? '<br><span style="opacity:.6;font-size:12px;">' + r.author + '</span>' : '') + '</div>'
-                        + '<div style="opacity:.6;font-size:12px;white-space:nowrap;">' + _fmt(r.ts) + '</div></div>';
+                    return '<div class="geo-data-row" style="align-items:flex-start;">'
+                        + '<span class="geo-label" style="color:var(--text-color);"><b>' + (OP_CZ[r.op] || r.op) + '</b>' + (org ? ' · ' + org : '') + acc
+                        + (r.author ? '<br><span style="color:var(--text-muted);font-size:12px;font-weight:400;">' + r.author + '</span>' : '') + '</span>'
+                        + '<span class="geo-value" style="font-weight:400;font-size:12px;color:var(--text-muted);white-space:nowrap;">' + _fmt(r.ts) + '</span></div>';
                 }).join('');
             }
             var html = '<div style="max-height:60vh;overflow:auto;font-size:13.5px;">' + rows + '</div>';

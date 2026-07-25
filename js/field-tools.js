@@ -50,13 +50,9 @@
             '#tools-modal .tool-cat,#tools-modal .ag-ft-head{cursor:pointer;-webkit-user-select:none;user-select:none;}',
             '#tools-modal .tool-cat:not(#ag-fav-head)::after,#tools-modal .ag-ft-head::after{content:"▾";float:right;font-size:11px;color:var(--text-muted,#9aa1ac);}',
             '#tools-modal .ag-cat-closed::after{content:"▸" !important;}',
-            // řádek „Nejčastější" pod vyhledáváním
-            '#ag-ft-freq{display:none;flex-wrap:wrap;align-items:center;gap:6px;margin:2px 0 10px;}',
-            '#ag-ft-freq.on{display:flex;}',
-            '#ag-ft-freq .ag-ft-freq-l{font:700 11px/1 var(--font-display,system-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
-            '#ag-ft-freq .ag-ft-chip{border:1px solid var(--accent-line,rgba(47,158,116,0.42));background:var(--accent-soft,rgba(47,158,116,0.14));',
-            '  color:var(--accent,#2f9e74);border-radius:999px;padding:8px 13px;font:600 12.5px/1 var(--font-ui,system-ui);cursor:pointer;}',
-            'body.ag-tp-edit #ag-ft-freq{display:none !important;}'
+            // hlaska „nic nenalezeno" pri hledani bez zasahu
+            '#ag-ft-empty{grid-column:1/-1;display:none;padding:14px 8px;text-align:center;color:var(--text-muted,#9aa1ac);font:500 13px/1.4 var(--font-ui,system-ui),sans-serif;}',
+            '#ag-ft-empty.on{display:block;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
@@ -122,24 +118,132 @@
         try { applyFilter(); } catch (e) {}   // znovu aplikuj aktivní hledání i na čerstvě vložené dlaždice
     }
 
-    // ---- vyhledávání nástroje podle názvu --------------------------------------
+    // ---- CHYTRÉ vyhledávání nástrojů --------------------------------------------
+    // Víc než prosté „obsahuje": bez diakritiky, slova v libovolném pořadí,
+    // SYNONYMA (geodetický slang → dlaždice), tolerance překlepu (1 znak)
+    // a řazení výsledků podle relevance (+ lehký bonus často používaným).
     function norm(s) {
         s = String(s == null ? '' : s).toLowerCase();
         try { s = s.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) {}
         return s.replace(/\s+/g, ' ').trim();
     }
+    // Synonyma/klíčová slova: klíč = data-tool id NEBO název volané funkce (tileToolKey).
+    // Hodnota = slova bez diakritiky, kterými geodet nástroj reálně hledá.
+    var SEARCH_ALIASES = {
+        openMeasureModal: 'vzdalenost delka metry mezi body prevyseni sikma pasmo distance',
+        startAreaMode: 'plocha vymera obvod pozemek polygon hektar m2 area',
+        openCheckDist: 'omerne kontrolni miry kontrola delek pasmo overeni',
+        openDmtVolume: 'kubatura objem vrstevnice dmt teren vykop nasyp hromada',
+        openStakeoutModal: 'vytyceni vytycovaci checklist seznam protokol',
+        openTachymetrie: 'nacrt kresba skica tachymetrie zpmz polni nakres',
+        openKatastr: 'katastr parcela kn nahlizeni kde stojim mapa cuzk',
+        openSatModal: 'gnss satelity druzice obloha prekazky signal gps kvalita',
+        openDronView: 'dron drony zony letani omezeni vzdusny prostor uas',
+        agOpenCalibrate: 'sever kalibrace kompas azimut srovnat smer odchylka',
+        openCalcModal: 'kalkulacka vypocet prevod gon stupne uhly plocha',
+        openDictModal: 'slovnik pojmy zkratky vyznam terminologie',
+        'brutal-gps': 'presne gps mereni prumer prumerovani brutalni poloha bod',
+        'vyska-objektu': 'vyska objektu budova strom stozar uhel meridlo',
+        rangefinder: 'dalkomer opticky vzdalenost odhad zamereni',
+        epochy: 'epochy monitoring posuny deformace sledovani opakovane',
+        zapisnik: 'zapisnik polni denik poznamky mereni zaznamy',
+        'track-log': 'stopa trasa log gpx zaznam cesty prochazka',
+        'stakeout-line': 'vytyceni primky linie rovina stanoveni smeru',
+        'offset-point': 'odsazeny bod offset kolmice stanoveni vypocet',
+        vrstvy: 'vrstvy pokladka skladba silnice asfalt sklon rez finisher tablet',
+        'cadastre-vector': 'katastr vektor hranice parcely dxf import mapa kn',
+        parcela: 'parcela geometrie deleni vymera obvod smerniky dily',
+        'project-import': 'import projekt oblast stazeni csv dxf soubor nahrat',
+        'geo-overlay': 'podklad georeference obrazek plan situace vykres overlay',
+        'ar-resection': 'resekce protinani zpet stanovisko volne zname body',
+        'ar-intersection': 'protinani vpred uhly neznamy bod urceni',
+        'orient-point': 'orientace bod sever srovnani smer',
+        postupy: 'postupy navody checklisty pracovni kroky jak na',
+        urovnani: 'urovnani stativ libela vodorovne nohy srouby',
+        rajon: 'rajon polarni metoda uhel delka stanovisko novy bod',
+        'free-station': 'volne stanovisko pruvodce resekce prechodne',
+        'hidden-points': 'skryte body obnovit zobrazit schovane',
+        'kml-export': 'kml export google earth mapy soubor',
+        'dxf-export': 'dxf export cad vykres autocad soubor',
+        predpisy: 'predpisy vyhlaska odchylky kody lhuty tahak normy trida presnosti',
+        'sky-obstruction': 'predikce signalu obloha prekazky stromy budovy gnss planovani',
+        'job-transfer': 'prenos zakazky export import argeo sdileni telefon',
+        'utility-networks': 'site podzemni vedeni inzenyrske gml kabel plyn voda',
+        'photo-shot': 'foto totalka fotogrammetrie snimek zamereni z fotky',
+        'localization-helmert': 'helmert lokalizace transformace klic mistni system',
+        zpravodaj: 'zpravodaj zpravy novinky clanky geodezie',
+        kos: 'kos smazane body obnovit odpadky',
+        zaloha: 'zaloha export import obnova dat json'
+    };
     function loadClosed() { try { var a = JSON.parse(localStorage.getItem(COLL_KEY)); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
     function saveClosed(a) { try { localStorage.setItem(COLL_KEY, JSON.stringify(a)); } catch (e) {} }
+    // vzdalenost uprav max 1 (preklep/vynechany znak) — staci pro slova dlazdic
+    function within1(a, b) {
+        if (a === b) return true;
+        var la = a.length, lb = b.length;
+        if (Math.abs(la - lb) > 1) return false;
+        var i = 0, j = 0, diff = 0;
+        while (i < la && j < lb) {
+            if (a[i] === b[j]) { i++; j++; continue; }
+            if (++diff > 1) return false;
+            if (la > lb) i++; else if (lb > la) j++; else { i++; j++; }
+        }
+        return diff + (la - i) + (lb - j) <= 1;
+    }
+    // skóre jednoho tokenu proti seznamu slov (0 = nesedí)
+    function tokenScore(tok, words) {
+        var best = 0;
+        for (var i = 0; i < words.length; i++) {
+            var w = words[i];
+            if (w === tok) { best = Math.max(best, 3); }
+            else if (w.indexOf(tok) === 0) { best = Math.max(best, 2.5); }
+            else if (tok.length >= 3 && w.indexOf(tok) !== -1) { best = Math.max(best, 2); }
+            else if (tok.length >= 4 && within1(tok, w)) { best = Math.max(best, 1.2); }
+            if (best >= 3) break;
+        }
+        return best;
+    }
+    // celkové skóre dlaždice: všechna slova dotazu musí sedět (název NEBO synonyma)
+    function tileScore(tile, tokens, usage) {
+        var label = norm(tileToolLabel(tile));
+        var lWords = label.split(' ');
+        var key = tileToolKey(tile);
+        var alias = SEARCH_ALIASES[key] || '';
+        var aWords = alias ? alias.split(' ') : [];
+        var total = 0;
+        for (var t = 0; t < tokens.length; t++) {
+            var sL = tokenScore(tokens[t], lWords);
+            var sA = aWords.length ? tokenScore(tokens[t], aWords) : 0;
+            var s = Math.max(sL, sA * 0.8);   // shoda v názvu má přednost před synonymem
+            if (!s) return 0;
+            total += s;
+        }
+        // lehký bonus často používaným nástrojům (rozhoduje jen při stejné shodě)
+        var u = usage[key] || 0;
+        return total + Math.min(u, 10) * 0.03;
+    }
+    function ensureEmptyMsg(grid) {
+        var e = document.getElementById('ag-ft-empty');
+        if (!e) { e = document.createElement('div'); e.id = 'ag-ft-empty'; e.textContent = 'Nic nenalezeno — zkus jiné slovo (např. „výměra", „kubatura", „sever").'; grid.appendChild(e); }
+        else if (e.parentNode !== grid) grid.appendChild(e);
+        return e;
+    }
+    var _bestTile = null;   // nejlepší zásah pro Enter
     function applyFilter() {
         var grid = getGrid(); if (!grid) return;
         var inp = document.getElementById('tools-search');
         var q = norm(inp ? inp.value : '');
+        var tokens = q ? q.split(' ') : [];
         var closed = loadClosed();
+        var usage = loadUsage();
         var kids = grid.children, lastHead = null, headHasHit = false, secClosed = false;
+        var anyHit = false, bestScore = 0;
+        _bestTile = null;
         // při hledání se sbalení ignoruje (ukázat zásahy), bez hledání se nadpisy nechávají vidět
         function flushHead() { if (lastHead) lastHead.style.display = (q && !headHasHit) ? 'none' : ''; }
         for (var i = 0; i < kids.length; i++) {
             var el = kids[i];
+            if (el.id === 'ag-ft-empty') continue;
             if (el.classList.contains('tool-cat') || el.classList.contains('ag-ft-head')) {
                 flushHead(); lastHead = el; headHasHit = false;
                 secClosed = !q && el.id !== 'ag-fav-head' && closed.indexOf((el.textContent || '').trim()) !== -1;
@@ -147,14 +251,31 @@
                 continue;
             }
             if (el.classList.contains('tool-tile') || el.classList.contains('ag-ft-tile')) {
-                var hit = !q || norm(el.textContent).indexOf(q) !== -1;
-                el.style.display = (hit && !secClosed) ? '' : 'none';
-                if (hit) headHasHit = true;
+                if (!q) {
+                    el.style.display = secClosed ? 'none' : '';
+                    el.style.order = '';
+                    continue;
+                }
+                var score = tileScore(el, tokens, usage);
+                var hit = score > 0;
+                el.style.display = hit ? '' : 'none';
+                // řazení podle relevance: mřížka je CSS grid → stačí order (vyšší skóre dřív)
+                el.style.order = hit ? String(Math.max(0, 1000 - Math.round(score * 50))) : '';
+                if (hit) { headHasHit = true; anyHit = true; if (score > bestScore) { bestScore = score; _bestTile = el; } }
             }
         }
         flushHead();
+        var emptyMsg = ensureEmptyMsg(grid);
+        emptyMsg.classList.toggle('on', !!q && !anyHit);
     }
     window.agFilterTools = applyFilter;
+    // Enter ve vyhledávání = otevřít nejlepší zásah
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        var inp = document.getElementById('tools-search');
+        if (!inp || document.activeElement !== inp || !inp.value) return;
+        if (_bestTile) { e.preventDefault(); _bestTile.click(); }
+    });
     // klepnutí na nadpis kategorie = sbalit/rozbalit (mimo ★ Oblíbené)
     document.addEventListener('click', function (e) {
         var head = e.target.closest ? e.target.closest('#tools-modal .tool-cat, #tools-modal .ag-ft-head') : null;
@@ -165,7 +286,7 @@
         saveClosed(closed); applyFilter();
     });
 
-    // ---- počítadlo použití + řádek „Nejčastější" --------------------------------
+    // ---- počítadlo použití (řadí výsledky hledání; řádek „Nejčastější" ODEBRÁN na přání) ----
     function loadUsage() { try { var o = JSON.parse(localStorage.getItem(USE_KEY)); return (o && typeof o === 'object') ? o : {}; } catch (e) { return {}; } }
     function tileToolKey(tile) {
         var dt = tile.getAttribute('data-tool'); if (dt) return dt;
@@ -185,44 +306,6 @@
         if (!tile || e.target.closest('.ag-tp-star') || e.target.closest('.ag-tp-help')) return;
         var k = tileToolKey(tile); if (k) bumpUsage(k);
     });
-    var _freqSig = '';
-    function renderFreq() {
-        var m = document.getElementById('tools-modal'); if (!m) return;
-        var inp = document.getElementById('tools-search'); if (!inp) return;
-        var row = document.getElementById('ag-ft-freq');
-        if (!row) {
-            row = document.createElement('div'); row.id = 'ag-ft-freq';
-            inp.parentNode.insertBefore(row, inp.nextSibling);
-        }
-        var u = loadUsage();
-        var top = Object.keys(u).filter(function (k) { return u[k] >= 2; })
-            .sort(function (a, b) { return u[b] - u[a]; }).slice(0, 4);
-        var grid = getGrid();
-        var chips = [];
-        top.forEach(function (k) {
-            var tiles = grid ? grid.querySelectorAll('.tool-tile') : [];
-            for (var i = 0; i < tiles.length; i++) {
-                if (tileToolKey(tiles[i]) === k) { chips.push({ key: k, label: tileToolLabel(tiles[i]), tile: tiles[i] }); break; }
-            }
-        });
-        var sig = chips.map(function (c) { return c.key; }).join('|');
-        if (sig === _freqSig && row.childNodes.length) { return; }
-        _freqSig = sig;
-        row.innerHTML = '';
-        row.classList.toggle('on', chips.length >= 2);
-        if (chips.length < 2) return;
-        var l = document.createElement('span'); l.className = 'ag-ft-freq-l'; l.textContent = 'Nejčastější'; row.appendChild(l);
-        chips.forEach(function (c) {
-            var b = document.createElement('button'); b.type = 'button'; b.className = 'ag-ft-chip'; b.textContent = c.label;
-            b.addEventListener('click', function () {
-                var grid2 = getGrid(); if (!grid2) return;
-                var tiles = grid2.querySelectorAll('.tool-tile');
-                for (var i = 0; i < tiles.length; i++) { if (tileToolKey(tiles[i]) === c.key) { tiles[i].click(); return; } }
-            });
-            row.appendChild(b);
-        });
-    }
-
     // ---- veřejné API: registrace nástroje --------------------------------------
     window.agRegisterFieldTool = function (item) {
         if (!item || !item.id || typeof item.onClick !== 'function') return;
@@ -244,7 +327,8 @@
     function tick() {
         try {
             if (needsSync()) syncTiles();
-            renderFreq();
+            // (řádek „Nejčastější" odebrán; starý #ag-ft-freq z dřívější verze ukliď)
+            var oldFreq = document.getElementById('ag-ft-freq'); if (oldFreq) oldFreq.remove();
             // Vyhledávání vyresetuj při zavření modalu, ať se příště otevře čisté.
             var m = document.getElementById('tools-modal');
             var open = !!(m && m.style.display !== 'none' && m.style.display !== '');
