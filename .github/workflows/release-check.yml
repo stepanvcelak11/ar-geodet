@@ -1,0 +1,22 @@
+# Kontrola konzistence vydání: seznam ASSETS_TO_CACHE v sw.js + verze cache
+# (SHELL_CACHE vNNN == ?v=NNN u css/tokens.css i css/style.css, a to jak v sw.js,
+#  tak v <link> v index.html).
+# Žádný deploy — jen validace přes scripts/gen_sw_assets.py --check.
+name: Kontrola vydání (SW + verze)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Python 3 je na ubuntu-latest předinstalovaný, skript používá jen stdlib.
+      - name: Kontrola sw.js / index.html
+        run: python scripts/gen_sw_assets.py --check

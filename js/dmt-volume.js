@@ -25,6 +25,7 @@
     var contourStep = 1.0;
     var refLevel = null;          // referenční výška roviny (Bpv); null => min
     var view = { scale: 1, ox: 0, oy: 0, ready: false };
+    var _loaded = false;          // stav zakázky už byl načten z úložiště (resetuje se při přepnutí)
 
     // ---- pomocné: převod WGS84 -> S-JTSK (Y,X kladné) -------------------------
     function toSJTSK(lat, lng) {
@@ -52,9 +53,12 @@
     }
 
     // ---- sběr 3D bodů ---------------------------------------------------------
+    // POZOR: jen VLASTNÍ body zakázky (cat 'CUSTOM'). arPoints obsahuje i stažené body
+    // bodového pole ČÚZK — z těch se dřív stavěl model „cizího" terénu v okolí, který
+    // s měřením uživatele neměl nic společného.
     function gatherFromProject() {
         var src = [];
-        try { if (typeof arPoints !== 'undefined' && Array.isArray(arPoints)) src = src.concat(arPoints); } catch (e) {}
+        try { if (typeof arPoints !== 'undefined' && Array.isArray(arPoints)) src = src.concat(arPoints.filter(function (p) { return p && p.cat === 'CUSTOM'; })); } catch (e) {}
         try { if (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) src = src.concat(persistentCustomPoints); } catch (e) {}
         var out = [], seen = {};
         src.forEach(function (p) {
@@ -100,7 +104,7 @@
         return true;
     }
 
-    function quickToastSafe(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} try { alert(m); } catch (e) {} }
+    function quickToastSafe(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} try { agInfo(m); } catch (e) {} }
 
     // ---- perzistence (per zakázka) -------------------------------------------
     function save() {
@@ -464,7 +468,7 @@
         overlay.querySelector('#dmt-close2').addEventListener('click', close);
         overlay.querySelector('#dmt-load').addEventListener('click', function () {
             var list = gatherFromProject();
-            if (!list.length) { quickToastSafe('V zakázce nejsou body s výškou. Vlož seznam Y X Z.'); return; }
+            if (!list.length) { quickToastSafe('V zakázce nemáte vlastní body s výškou. Vlož seznam Y X Z.'); return; }
             if (setPoints(list)) quickToastSafe('Načteno bodů: ' + list.length);
         });
         overlay.querySelector('#dmt-paste').addEventListener('click', function () {
@@ -563,13 +567,37 @@
         } catch (e) { quickToastSafe('Export selhal.'); }
     }
 
+    // Přepnutí zakázky: model předchozí zakázky drží modulová proměnná `pts`, takže by
+    // se po přepnutí ukázal cizí terén. Vyprázdníme ho a necháme načíst stav nové zakázky.
+    function hookProjectSwitch() {
+        try {
+            if (typeof loadProjectSettings === 'function' && !loadProjectSettings.__agdmt) {
+                var _orig = loadProjectSettings;
+                loadProjectSettings = function () {
+                    pts = []; tris = []; result = null; refLevel = null; _loaded = false;
+                    var r = _orig.apply(this, arguments);
+                    try {
+                        if (overlay && overlay.classList.contains('open')) {
+                            _loaded = true; load();
+                            if (pts.length) { recompute(); fitView(); } else draw();
+                        }
+                    } catch (e) {}
+                    return r;
+                };
+                loadProjectSettings.__agdmt = true;
+            }
+        } catch (e) {}
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(hookProjectSwitch, 400); });
+    else setTimeout(hookProjectSwitch, 400);
+
     // veřejné API (volá dlaždice v Nástrojích)
     window.openDmtVolume = function () {
         build();
         overlay.classList.add('open');
         setTimeout(function () {
             resizeCanvas();
-            if (!pts.length) load();   // zkus poslední uložený stav
+            if (!_loaded) { _loaded = true; load(); }   // stav aktuální zakázky (i když je prázdný)
             // sync polí
             var rf = overlay.querySelector('#dmt-ref'); if (rf) rf.value = (refLevel != null ? refLevel : '');
             var sp = overlay.querySelector('#dmt-step'); if (sp) sp.value = (contourStep || '');

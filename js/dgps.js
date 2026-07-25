@@ -4,8 +4,9 @@
 // STEJNÉ. Telefon A („Základna") leží na PŘESNĚ ZNÁMÉM bodě a průběžně loguje,
 // o kolik a kterým směrem GPS právě „lže" (dE/dN[/dV] proti známé poloze,
 // průměrováno po minutových blocích). Telefon B („Rover") normálně měří body
-// (Brutální GPS / průměrovaná GPS). Po měření se korekční log přenese souborem
-// a tady se ZPĚTNĚ odečte od bodů roveru — společná chyba zmizí.
+// (Brutální GPS / průměrovaná GPS). Po měření se korekční log přenese QR kódem
+// z displeje základny (nebo souborem) a tady se ZPĚTNĚ odečte od bodů roveru —
+// společná chyba zmizí.
 //
 // Podmínky (řekne je i UI): oba telefony satelitní fix (ne Wi-Fi polohu),
 // vzdálenost do ~2–3 km, čas mají oba z GPS → synchronizace zadarmo. Funguje
@@ -128,6 +129,114 @@
         document.body.appendChild(a); a.click(); a.remove();
     }
 
+    // ---- QR přenos korekcí (bez souboru, bez internetu) ---------------------------
+    // Log základny je pár desítek čísel, takže se do QR vejde: rover ho jen naskenuje
+    // z displeje základny. Formát je textový a kompaktní:
+    //   AGD1
+    //   <t0 v sekundách>\t<délka bloku s>\t<lat>\t<lng>\t<název bodu>
+    //   <Δt s>\t<dE cm>\t<dN cm>\t<dU cm nebo ->\t<počet fixů>
+    // Když je log delší, než co ještě mobil z displeje přečte, bloky se po dvojicích
+    // slučují (z minutových udělá dvouminutové atd.) — přesnost korekce to prakticky
+    // nemění, jen zhrubne časové rozlišení.
+    var QR_PREFIX = 'AGD1';
+    var QR_MAX = 1100;
+
+    function mergePairs(bk) {
+        var out = [];
+        for (var i = 0; i < bk.length; i += 2) {
+            var a = bk[i], b = bk[i + 1];
+            if (!b) { out.push(a); break; }
+            var wa = a.n || 1, wb = b.n || 1, w = wa + wb;
+            var dU = null, nU = 0, sU = 0;
+            if (a.dU != null) { sU += wa * a.dU; nU += wa; }
+            if (b.dU != null) { sU += wb * b.dU; nU += wb; }
+            if (nU) dU = sU / nU;
+            out.push({ t: Math.round((a.t * wa + b.t * wb) / w), dE: (a.dE * wa + b.dE * wb) / w, dN: (a.dN * wa + b.dN * wb) / w, dU: dU, n: w });
+        }
+        return out;
+    }
+    function encodeLogQR(base, buckets) {
+        var bk = buckets.slice(), merged = 0, txt = '';
+        for (;;) {
+            var t0 = Math.round(bk[0].t / 1000);
+            var rows = bk.map(function (b) {
+                return [Math.round(b.t / 1000) - t0, Math.round(b.dE * 100), Math.round(b.dN * 100),
+                    (b.dU == null ? '-' : Math.round(b.dU * 100)), (b.n || 1)].join('\t');
+            });
+            txt = QR_PREFIX + '\n'
+                + [t0, BUCKET_S * Math.pow(2, merged), (+base.lat).toFixed(7), (+base.lng).toFixed(7),
+                    String(base.name || 'Základna').replace(/[\t\n\r]/g, ' ').slice(0, 24)].join('\t')
+                + '\n' + rows.join('\n');
+            if (txt.length <= QR_MAX || bk.length < 4) break;
+            bk = mergePairs(bk); merged++;
+        }
+        return { txt: txt, count: bk.length, merged: merged };
+    }
+    function decodeLogQR(txt) {
+        if (!txt) return null;
+        var rows = String(txt).replace(/\r/g, '').split('\n');
+        if (rows[0] !== QR_PREFIX || rows.length < 3) return null;
+        var h = rows[1].split('\t');
+        var t0 = parseInt(h[0], 10), bs = parseInt(h[1], 10) || BUCKET_S;
+        var lat = parseFloat(h[2]), lng = parseFloat(h[3]);
+        if (!isFinite(t0) || !isFinite(lat) || !isFinite(lng)) return null;
+        var buckets = [];
+        for (var i = 2; i < rows.length; i++) {
+            if (!rows[i]) continue;
+            var c = rows[i].split('\t');
+            if (c.length < 5) continue;
+            var dt = parseInt(c[0], 10), dE = parseInt(c[1], 10), dN = parseInt(c[2], 10);
+            if (!isFinite(dt) || !isFinite(dE) || !isFinite(dN)) continue;
+            var dU = (c[3] === '-' ? null : parseInt(c[3], 10));
+            buckets.push({ t: (t0 + dt) * 1000, dE: dE / 100, dN: dN / 100, dU: (dU == null || !isFinite(dU)) ? null : dU / 100, n: parseInt(c[4], 10) || 1 });
+        }
+        if (!buckets.length) return null;
+        return {
+            v: 1, app: 'ar-geodet', kind: 'dgps-log',
+            base: { name: h[4] || 'Základna', lat: lat, lng: lng },
+            t0: buckets[0].t, t1: buckets[buckets.length - 1].t, bucketS: bs, buckets: buckets
+        };
+    }
+    function showLogQR(base, buckets) {
+        if (!buckets || !buckets.length) { agAlert('DGPS', 'Log je prázdný — základna zatím nenasbírala žádný použitelný blok.'); return; }
+        var enc = encodeLogQR(base, buckets);
+        var body = document.getElementById('ag-dgps-body'); if (!body) return;
+        function draw() {
+            var url = (window.AGQR && window.AGQR.dataURL) ? window.AGQR.dataURL(enc.txt, 5) : null;
+            body.innerHTML = url
+                ? '<p style="font-size:12.5px; margin:0 0 8px;">Ukaž tenhle kód druhému telefonu: <b>DGPS → Korekce → Naskenovat QR</b>. Displej dej na maximální jas.</p>'
+                    + '<img src="' + url + '" alt="QR s korekcemi" style="width:100%; max-width:340px; display:block; margin:0 auto; image-rendering:pixelated; background:#fff; border-radius:8px;">'
+                    + '<p style="font-size:12px; opacity:.75; text-align:center; margin:8px 0 0;">Základna ' + esc(base.name) + ' · ' + enc.count + ' bloků'
+                    + (enc.merged ? ' · sloučeno po ' + (BUCKET_S * Math.pow(2, enc.merged) / 60) + ' min, ať se vejde do kódu' : '') + '</p>'
+                    + '<button class="btn btn-secondary" id="ag-dgps-qr-back" style="margin-top:12px;">← Zpět</button>'
+                : '<p style="font-size:13px; color:var(--danger,#fb7185);">QR se nepodařilo vytvořit. Použij export do souboru.</p>'
+                    + '<button class="btn btn-secondary" id="ag-dgps-qr-back" style="margin-top:12px;">← Zpět</button>';
+            var b = document.getElementById('ag-dgps-qr-back');
+            if (b) b.addEventListener('click', function () { _mode = 'menu'; renderModal(); });
+        }
+        if (typeof qrcode === 'undefined' && window.AGQR && window.AGQR.ensureGen) {
+            body.innerHTML = '<p style="font-size:13px; opacity:.75;">Připravuji QR…</p>';
+            window.AGQR.ensureGen().then(draw).catch(function () { agAlert('DGPS', 'Knihovnu QR se nepodařilo načíst.'); });
+        } else draw();
+    }
+    function scanLogQR() {
+        if (!window.AGQR || typeof window.AGQR.scan !== 'function') { agAlert('DGPS', 'Čtečka QR není dostupná.'); return; }
+        window.AGQR.scan({
+            title: 'Korekce ze základny',
+            hint: 'Namiř kameru na QR kód, který ukazuje telefon-základna.',
+            badMsg: 'Tohle nejsou korekce DGPS.',
+            onData: function (txt) {
+                var log = decodeLogQR(txt);
+                if (!log) return false;
+                window.AGQR.closeScan();
+                _roverLog = log;
+                _roverRows = candidates(log).map(function (c) { c.checked = c.state === 'ok'; return c; });
+                renderModal();
+                return true;
+            }
+        });
+    }
+
     // ---- ROVER: aplikace korekcí --------------------------------------------------
     function offsetAt(log, ts) {
         // vážený průměr bloků v okně [ts-6 min, ts]; fallback nejbližší blok do 15 min
@@ -231,13 +340,15 @@
         // menu
         var draft = loadDraft();
         body.innerHTML =
-            '<p style="font-size:12.5px; opacity:0.85; margin:0 0 10px;">Atmosférická chyba GPS je pro dva telefony do ~2 km stejná. Jeden telefon polož na <b>přesně známý bod</b> jako základnu, druhým měř. Pak korekce přeneseš souborem a body se zpětně opraví.</p>'
+            '<p style="font-size:12.5px; opacity:0.85; margin:0 0 10px;">Atmosférická chyba GPS je pro dva telefony do ~2 km stejná. Jeden telefon polož na <b>přesně známý bod</b> jako základnu, druhým měř. Korekce pak přeneseš <b>naskenováním QR</b> z displeje základny (nebo souborem) a body se zpětně opraví.</p>'
             + '<button class="btn" id="ag-dgps-mode-base" style="margin:4px 0;">📡 Základna — tento telefon leží na známém bodě</button>'
             + '<button class="btn" id="ag-dgps-mode-rover" style="margin:4px 0;">📥 Korekce — nahrát log základny a opravit body</button>'
-            + (draft && draft.buckets.length ? '<div class="bgps-card amber" style="margin-top:10px;"><b>Rozpracovaný log základny</b> (' + draft.buckets.length + ' bloků, ' + esc(draft.base.name) + ') — <button class="btn btn-secondary" id="ag-dgps-draft-exp" style="margin-top:6px;">Exportovat</button> <button class="btn btn-secondary" id="ag-dgps-draft-del" style="margin-top:6px; color:var(--danger,#fb7185);">Zahodit</button></div>' : '')
+            + (draft && draft.buckets.length ? '<div class="bgps-card amber" style="margin-top:10px;"><b>Rozpracovaný log základny</b> (' + draft.buckets.length + ' bloků, ' + esc(draft.base.name) + ') — <button class="btn btn-secondary" id="ag-dgps-draft-qr" style="margin-top:6px;">Ukázat QR</button> <button class="btn btn-secondary" id="ag-dgps-draft-exp" style="margin-top:6px;">Exportovat</button> <button class="btn btn-secondary" id="ag-dgps-draft-del" style="margin-top:6px; color:var(--danger,#fb7185);">Zahodit</button></div>' : '')
             + '<p style="font-size:11px; opacity:.55; margin:10px 0 0;">Zisk: na krátkou vzdálenost typicky poloviční až třetinová chyba. Oba telefony musí mít satelitní fix (venku, ne Wi-Fi polohu).</p>';
         document.getElementById('ag-dgps-mode-base').addEventListener('click', function () { _mode = 'base'; renderModal(); });
         document.getElementById('ag-dgps-mode-rover').addEventListener('click', function () { _mode = 'rover'; _roverLog = null; _roverRows = null; renderModal(); });
+        var dq = document.getElementById('ag-dgps-draft-qr');
+        if (dq) dq.addEventListener('click', function () { var d = loadDraft(); if (d) showLogQR(d.base, d.buckets); });
         var de = document.getElementById('ag-dgps-draft-exp');
         if (de) de.addEventListener('click', function () { var d = loadDraft(); if (d) exportLog(d.base, d.t0, d.buckets); });
         var dd = document.getElementById('ag-dgps-draft-del');
@@ -255,8 +366,16 @@
                 + '<div class="bgps-stat"><div class="k">GPS teď lže o</div><div class="v" id="ag-dgps-off">–</div></div>'
                 + '</div>'
                 + '<p style="font-size:12px; opacity:.75; margin:10px 0;">Nech běžet po CELOU dobu, kdy druhý telefon měří. Čím déle, tím víc bodů půjde opravit.</p>'
-                + '<button class="btn" id="ag-dgps-stop-exp">⏹ Zastavit a exportovat korekce</button>'
+                + '<button class="btn" id="ag-dgps-stop-qr">⏹ Zastavit a ukázat korekce jako QR</button>'
+                + '<button class="btn btn-secondary" id="ag-dgps-stop-exp" style="margin-top:8px;">Zastavit a uložit do souboru</button>'
                 + '<button class="btn btn-secondary" id="ag-dgps-stop" style="margin-top:8px; color:var(--danger,#fb7185);">Zastavit bez exportu</button>';
+            document.getElementById('ag-dgps-stop-qr').addEventListener('click', function () {
+                flushBucket();
+                var b = _base, bk = _buckets.slice();
+                stopBase(true);            // log necháváme, dokud si ho rover nenačte
+                _mode = 'menu'; renderModal();
+                showLogQR(b, bk);
+            });
             document.getElementById('ag-dgps-stop-exp').addEventListener('click', function () {
                 flushBucket();
                 var b = _base, bk = _buckets.slice(), t0 = _t0;
@@ -316,9 +435,12 @@
     function renderRover(body) {
         if (!_roverLog) {
             body.innerHTML =
-                '<p style="font-size:12.5px; margin:0 0 8px;">Nahraj soubor <b>dgps-korekce-*.json</b> ze základny (pošli si ho třeba zprávou nebo přes sdílení souborů).</p>'
+                '<p style="font-size:12.5px; margin:0 0 8px;">Nejrychleji přes <b>QR</b>: základna si nechá korekce zobrazit a ty je tímhle telefonem naskenuješ. Bez sítě, bez posílání souborů.</p>'
+                + '<button class="btn" id="ag-dgps-scan" style="margin:2px 0 10px;">📷 Naskenovat QR ze základny</button>'
+                + '<p style="font-size:12.5px; margin:0 0 8px;">Nebo nahraj soubor <b>dgps-korekce-*.json</b> ze základny (zprávou, přes sdílení souborů).</p>'
                 + '<input type="file" id="ag-dgps-file" accept=".json,application/json" style="width:100%; margin:6px 0 10px;">'
                 + '<button class="btn btn-secondary" id="ag-dgps-back">← Zpět</button>';
+            document.getElementById('ag-dgps-scan').addEventListener('click', scanLogQR);
             document.getElementById('ag-dgps-file').addEventListener('change', function (ev) {
                 var f = ev.target.files && ev.target.files[0]; if (!f) return;
                 var r = new FileReader();

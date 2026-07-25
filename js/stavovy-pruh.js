@@ -233,6 +233,8 @@
             .catch(function () { _tilesCached = false; });
     }
     function trackFix() {
+        // preferuj přesný timestamp fixu z logika.js (window.AGFix, čte ho i gps-trust.js)
+        if (window.AGFix && window.AGFix.ts) { _lastFixTs = window.AGFix.ts; return; }
         if (!haveUser()) return;
         if (userLat !== _lastLat || userLng !== _lastLng) { _lastLat = userLat; _lastLng = userLng; _lastFixTs = Date.now(); }
     }

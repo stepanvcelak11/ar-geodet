@@ -141,7 +141,7 @@
             footer: [
                 { label: 'Zpět', cls: 'btn-secondary', act: back },
                 existing.length ? { label: 'Pokračovat v této', cls: 'btn-secondary', act: function () { var s = document.getElementById('pruv-proj-sel'); selectProject(s.value); afterProject(); } } : null,
-                { label: 'Založit a pokračovat', cls: 'btn-primary', icon: 'plus', act: function () { var nm = (document.getElementById('pruv-proj-name').value || '').trim(); if (!nm) { alert('Zadej název zakázky, nebo vyber existující.'); return; } createProject(nm).then(afterProject); } }
+                { label: 'Založit a pokračovat', cls: 'btn-primary', icon: 'plus', act: function () { var nm = (document.getElementById('pruv-proj-name').value || '').trim(); if (!nm) { agInfo('Zadej název zakázky, nebo vyber existující.'); return; } createProject(nm).then(afterProject); } }
             ].filter(Boolean),
             onMount: function () { var i = document.getElementById('pruv-proj-name'); if (i) i.focus(); }
         });
@@ -193,7 +193,7 @@
 
     function triggerImport() {
         var inp = document.getElementById('import-file');
-        if (!inp) { alert('Import není dostupný.'); return; }
+        if (!inp) { agInfo('Import není dostupný.'); return; }
         inp.click();
         // importPoints() po vyberu sam naimportuje a zobrazi hlasku; pak nabidneme pokracovani
         render({
@@ -243,9 +243,9 @@
     }
     function commitPaste() {
         var pts = parsePasteField();
-        if (!pts.length) { alert('Nenašel jsem žádný platný bod. Zkontroluj formát „číslo;Y;X".'); return; }
+        if (!pts.length) { agInfo('Nenašel jsem žádný platný bod. Zkontroluj formát „číslo;Y;X".'); return; }
         var added = addParsedPoints(pts);
-        alert('Vloženo ' + added + ' bodů do zakázky.');
+        agInfo('Vloženo ' + added + ' bodů do zakázky.');
         go(stepReadyStake);
     }
 
@@ -417,7 +417,7 @@
                     ensureAppStarted(function () {
                         var f = window[it.fn];
                         if (typeof f === 'function') { closeWizard(); f(); }
-                        else alert('Nástroj se nepodařilo otevřít (modul není načtený).');
+                        else agInfo('Nástroj se nepodařilo otevřít (modul není načtený).');
                     });
                 } };
             })),

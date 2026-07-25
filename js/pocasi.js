@@ -37,10 +37,25 @@
     var FETCH_MS   = 9000;                   // timeout jednoho požadavku
     var SAME_KM    = 2.0;                    // cache platí pro stejné místo ±2 km
 
+    // Deset předpovědních modelů + MET Norway = 11 nezávislých zdrojů, ze kterých se
+    // dělá vážený průměr. Vybrané jsou JEN modely provozované národními
+    // meteorologickými službami, které skutečně pokrývají Česko (ověřeno dotazem na
+    // Prahu — u modelů mimo doménu, např. AROME France, vrací API prázdno, proto tu
+    // nejsou). Váha odpovídá tomu, jak jemné je rozlišení a jak si model pro střední
+    // Evropu stojí: nejvyšší mají ECMWF (referenční globál) a ICON-D2 (2,2 km, DWD).
+    // Modely s krátkým dosahem (D2, HARMONIE) dávají data jen na první dny — dál
+    // vrací null a průměr je prostě vynechá.
     var OM_MODELS = [
-        { id: 'ecmwf_ifs025', label: 'ECMWF',    w: 1.30 },
-        { id: 'icon_seamless', label: 'DWD ICON', w: 1.25 },
-        { id: 'gfs_seamless',  label: 'NOAA GFS', w: 0.90 }
+        { id: 'ecmwf_ifs025',                  label: 'ECMWF IFS 0,25°',    w: 1.35 },
+        { id: 'icon_d2',                       label: 'DWD ICON-D2 2 km',   w: 1.35 },
+        { id: 'icon_eu',                       label: 'DWD ICON-EU 7 km',   w: 1.25 },
+        { id: 'icon_global',                   label: 'DWD ICON 11 km',     w: 1.00 },
+        { id: 'knmi_harmonie_arome_europe',    label: 'KNMI HARMONIE',      w: 1.15 },
+        { id: 'dmi_harmonie_arome_europe',     label: 'DMI HARMONIE',       w: 1.15 },
+        { id: 'arpege_europe',                 label: 'Météo-France ARPEGE', w: 1.05 },
+        { id: 'ukmo_global_deterministic_10km', label: 'UK Met Office',     w: 1.05 },
+        { id: 'gfs_seamless',                  label: 'NOAA GFS',           w: 0.90 },
+        { id: 'gem_seamless',                  label: 'CMC GEM',            w: 0.85 }
     ];
     var METNO_W = 1.10;
 
@@ -50,6 +65,7 @@
     // Ikona dlaždice (slunce za mrakem, styl appky — stroke currentColor)
     var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2M4.9 4.9l1.4 1.4M2 12h2M19.1 4.9l-1.4 1.4M17.7 9.2A5 5 0 1 0 9 12.5"/><path d="M13 22H7a4 4 0 1 1 .6-7.96A5.5 5.5 0 0 1 18.4 16 3 3 0 0 1 18 22h-5z"/></svg>';
     var ICON_LOC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.6"/><path d="M12 1.5V5M12 19v3.5M1.5 12H5M19 12h3.5"/></svg>';
+    var ICON_PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
     var ICON_ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V5M6.5 10.5L12 5l5.5 5.5"/></svg>';
 
     // ---- stav -----------------------------------------------------------------
@@ -112,10 +128,13 @@
 
     // ---- URL zdrojů ---------------------------------------------------------------
     function omUrl(lat, lon) {
+        // hodinová řada jen na 48 h (UI ukazuje 24 h) — s deseti modely by sedmidenní
+        // hodinovka byla zbytečně velká stahovka do mobilních dat
         return 'https://api.open-meteo.com/v1/forecast?latitude=' + lat.toFixed(5) + '&longitude=' + lon.toFixed(5) +
-            '&models=ecmwf_ifs025,icon_seamless,gfs_seamless' +
+            '&models=' + OM_MODELS.map(function (m) { return m.id; }).join(',') +
+            '&forecast_hours=48' +
             '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,cloud_cover,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m' +
-            '&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_gusts_10m' +
+            '&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation_probability,precipitation,weather_code,cloud_cover,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m' +
             '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,sunrise,sunset' +
             '&timezone=auto&forecast_days=7&wind_speed_unit=ms&timeformat=unixtime';
     }
@@ -256,6 +275,19 @@
         if (Object.prototype.hasOwnProperty.call(block, name) && block[name] != null) return block[name];
         return undefined;
     }
+    // Blok `current` posílá Open-Meteo při dotazu na víc modelů JEN JEDNOU a BEZ
+    // přípony modelu — všechny modely by tedy hlásily tutéž hodnotu a „Shoda zdrojů"
+    // by byla vždycky nulová. Aktuální stav proto bereme z hodinové řady KAŽDÉHO
+    // modelu (ta příponu má) v nejbližší hodině; `current` slouží jen jako záloha.
+    function nearestHourIdx(times) {
+        var now = Date.now() / 1000, best = -1, bd = Infinity;
+        for (var i = 0; i < times.length; i++) {
+            var t = num(times[i]); if (t == null) continue;
+            var d = Math.abs(t - now);
+            if (d < bd) { bd = d; best = i; }
+        }
+        return bd <= 5400 ? best : -1;      // víc než 1,5 h od teď už není „aktuální"
+    }
     function parseOm(j) {
         var out = [];
         if (!j || typeof j !== 'object') return out;
@@ -264,9 +296,28 @@
         for (var i = 0; i < OM_MODELS.length; i++) {
             var m = OM_MODELS[i];
             var src = { id: m.id, label: m.label, w: m.w, off: off, cur: null, hourly: null, daily: null };
+            var h = j.hourly;
+            var suffixed = !!(j.current && Object.prototype.hasOwnProperty.call(j.current, 'temperature_2m_' + m.id));
+            try {
+                var hTime = h ? pick(h, 'time', m.id) : null;
+                var hi = (hTime && hTime.length) ? nearestHourIdx(hTime) : -1;
+                if (hi >= 0 && !suffixed) {
+                    var g = function (nm) { var a = pick(h, nm, m.id); return (a && a.length > hi) ? num(a[hi]) : null; };
+                    var th = g('temperature_2m');
+                    var curH = {
+                        t: th, feels: g('apparent_temperature'), hum: g('relative_humidity_2m'),
+                        precip: g('precipitation'), code: g('weather_code'), cloud: g('cloud_cover'),
+                        wind: g('wind_speed_10m'), dir: g('wind_direction_10m'), gusts: g('wind_gusts_10m'),
+                        pmsl: toMsl(g('surface_pressure'), elev, th)
+                    };
+                    if (curH.t != null || curH.wind != null || curH.code != null) src.cur = curH;
+                }
+            } catch (e) {}
             try {
                 var c = j.current;
-                if (c) {
+                // nesufixovaný `current` patří jen prvnímu modelu — ostatním by podstrčil
+                // cizí hodnotu a shoda zdrojů by vypadala lépe, než jaká ve skutečnosti je
+                if (c && !src.cur && (suffixed || i === 0)) {
                     var t = num(pick(c, 'temperature_2m', m.id));
                     var cur = {
                         t: t,
@@ -284,7 +335,6 @@
                 }
             } catch (e) {}
             try {
-                var h = j.hourly;
                 var time = h ? pick(h, 'time', m.id) : null;
                 if (time && time.length) {
                     src.hourly = {
@@ -460,7 +510,9 @@
         // --- denní (jen zdroje, které daily mají — tj. Open-Meteo modely) ---
         var dayS = sources.filter(function (x) { return x.daily; });
         if (dayS.length) {
+            // osa = model s nejdelší denní řadou (krátkodosahové modely mají kratší)
             var axisD = dayS[0].daily;
+            for (i = 1; i < dayS.length; i++) { if (dayS[i].daily.time.length > axisD.time.length) axisD = dayS[i].daily; }
             for (i = 0; i < axisD.time.length && i < 7; i++) {
                 var epoch = num(axisD.time[i]);
                 var row = { t: epoch, code: null, tmax: null, tmin: null, psum: null, pprob: null, wmax: null, sunrise: null, sunset: null };
@@ -623,6 +675,56 @@
         return day ? 'wx-bg-day' : 'wx-bg-night';
     }
 
+    // ---- Počasí v místě klepnutí do mapy ---------------------------------------------
+    // Vlastní překryv nad mapou (vzor js/cadastre-area.js): počasí se na dobu výběru
+    // schová, klepnutí se převede přes window.agScreenToLatLng, které zpětně vyruší
+    // otočení mapy podle azimutu — bez toho by místo padlo jinam, než se klepne.
+    function pickOnMap() {
+        var m = null; try { m = (typeof map !== 'undefined' && map) ? map : null; } catch (e) {}
+        var vm = null; try { vm = viewMode; } catch (e) {}
+        if (!m) { alert('Mapa zatím neběží — spusť nejdřív vyhledávání.'); return; }
+        if (vm === 'ar') { alert('Přepni na mapu nebo dělené zobrazení, pak vyber místo klepnutím.'); return; }
+
+        var ov = document.getElementById('ag-wx-pick');
+        if (!ov) {
+            ov = document.createElement('div');
+            ov.id = 'ag-wx-pick';
+            ov.style.cssText = 'position:fixed;inset:0;z-index:100001;display:none;cursor:crosshair;';
+            ov.innerHTML = '<div id="ag-wx-pick-hint" style="position:absolute;left:50%;transform:translateX(-50%);'
+                + 'bottom:max(18px,env(safe-area-inset-bottom));display:flex;gap:10px;align-items:center;'
+                + 'background:rgba(8,11,15,0.88);border:1px solid rgba(255,255,255,0.16);border-radius:999px;'
+                + 'padding:10px 14px;color:#fff;font-size:13px;white-space:nowrap;">'
+                + '<span>Klepni do mapy — ukážu počasí v tom místě</span>'
+                + '<button type="button" id="ag-wx-pick-x" style="border:none;border-radius:999px;padding:6px 12px;'
+                + 'background:rgba(255,255,255,0.14);color:#fff;font-size:13px;cursor:pointer;">Zrušit</button></div>';
+            document.body.appendChild(ov);
+            ov.addEventListener('click', function (e) {
+                if (e.target.closest && e.target.closest('#ag-wx-pick-hint')) return;
+                var ll = null;
+                try { if (typeof window.agScreenToLatLng === 'function') ll = window.agScreenToLatLng(e.clientX, e.clientY); } catch (err) {}
+                if (!ll) {
+                    try {
+                        var el = document.getElementById('map'), r = el.getBoundingClientRect();
+                        ll = m.containerPointToLatLng([e.clientX - r.left, e.clientY - r.top]);
+                    } catch (err2) {}
+                }
+                endPick();
+                if (!ll || !isFinite(ll.lat) || !isFinite(ll.lng)) return;
+                _place = { name: 'Místo na mapě · ' + ll.lat.toFixed(4) + ', ' + ll.lng.toFixed(4), lat: ll.lat, lon: ll.lng };
+                var inp = byId('ag-wx-search'); if (inp) inp.value = '';
+                hideResults();
+                loadWeather(true);
+            });
+            document.getElementById('ag-wx-pick-x').addEventListener('click', function (e) { e.stopPropagation(); endPick(); });
+        }
+        function endPick() {
+            ov.style.display = 'none';
+            if (_ui) _ui.classList.add('on');
+        }
+        if (_ui) _ui.classList.remove('on');    // uhni, ať je vidět mapa
+        ov.style.display = 'block';
+    }
+
     // ---- UI kostra ------------------------------------------------------------------
     function ensureUI() {
         if (_ui) return;
@@ -635,6 +737,7 @@
                     '<input type="text" id="ag-wx-search" placeholder="Hledat místo…" autocomplete="off" spellcheck="false">' +
                     '<div id="ag-wx-results" class="wx-results" style="display:none"></div>' +
                 '</div>' +
+                '<button type="button" class="wx-loc" id="ag-wx-mappick" title="Počasí v místě na mapě" aria-label="Počasí v místě na mapě">' + ICON_PIN + '</button>' +
                 '<button type="button" class="wx-loc" id="ag-wx-myloc" title="Moje poloha" aria-label="Moje poloha">' + ICON_LOC + '</button>' +
             '</div>' +
             '<div id="ag-wx-offline" class="wx-offline" style="display:none"></div>' +
@@ -656,6 +759,7 @@
         document.body.appendChild(_ui);
 
         byId('ag-wx-close').addEventListener('click', close);
+        byId('ag-wx-mappick').addEventListener('click', pickOnMap);
         byId('ag-wx-myloc').addEventListener('click', function () {
             _place = null;
             byId('ag-wx-search').value = '';

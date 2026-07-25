@@ -138,12 +138,16 @@
             + '<p style="font-size:12.5px;opacity:.7;margin:2px 0 10px;">Zaznamenává, kudy jdeš (oranžová čára na mapě). Šetří GPS šum — bere bod po posunu ≥ ' + MIN_MOVE_M + ' m.</p>'
             + '<div id="agtr-stats" style="font-family:var(--font-mono,monospace);margin:6px 0 12px;color:#fbbf24;"></div>'
             + '<button class="btn" id="agtr-toggle"></button>'
+            + '<label class="filter-row" style="margin-top:10px;"><input type="checkbox" id="agtr-ar"> Zobrazit stopu i v AR pohledu</label>'
             + '<button class="btn btn-secondary" id="agtr-gpx" style="margin-top:10px;"><svg class="icon"><use href="#i-upload"/></svg> Export GPX</button>'
             + '<button class="btn btn-danger" id="agtr-clear" style="margin-top:10px;"><svg class="icon"><use href="#i-trash"/></svg> Smazat stopu</button>'
             + '<button class="btn btn-secondary" style="margin-top:10px;" onclick="document.getElementById(\'agtr-modal\').style.display=\'none\'">Zavřít</button>'
             + '</div>';
         document.body.appendChild(el);
         document.getElementById('agtr-toggle').addEventListener('click', function () { setRecording(!_recording); });
+        var arCb = document.getElementById('agtr-ar');
+        arCb.checked = !!(window.AGTrackAR && window.AGTrackAR.isOn());
+        arCb.addEventListener('change', function () { if (window.AGTrackAR) window.AGTrackAR.set(this.checked); });
         document.getElementById('agtr-gpx').addEventListener('click', exportGPX);
         document.getElementById('agtr-clear').addEventListener('click', clearTrack);
     }
@@ -176,4 +180,6 @@
     window.addEventListener('pagehide', function () { try { flushPersist(); } catch (e) {} });
     document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') { try { flushPersist(); } catch (e) {} } });
     window.agOpenTrackLog = openTool;
+    // stopa pro AR vrstvu (js/track-ar.js) — kopie, ať do pole nikdo zvenčí nesahá
+    window.agTrackPoints = function () { return _track.slice(); };
 })();

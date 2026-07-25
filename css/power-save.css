@@ -50,7 +50,7 @@
 /* stav: běží + chodí fixy */
 #ag-pwr.on { color: var(--text-color, #eceef2); }
 #ag-pwr.on .ag-pwr-dot {
-    background: #34d399;
+    background: var(--accent-bright, #34d399);
     box-shadow: 0 0 7px rgba(47,158,116, 0.85);
     animation: ag-pwr-beat 1.8s ease-in-out infinite;
 }

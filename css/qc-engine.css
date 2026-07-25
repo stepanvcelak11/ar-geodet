@@ -14,7 +14,7 @@
     border-radius: 9px;
     font-size: 12.5px;
     line-height: 1.3;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
     background: rgba(255, 255, 255, 0.05);
 }
 .qc-chip .qc-chip-main { font-weight: 500; }
@@ -33,7 +33,7 @@
     flex: 0 0 auto;
     background: rgba(255, 255, 255, 0.10);
     color: inherit;
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.16));
     border-radius: 7px;
     padding: 3px 9px;
     font-size: 11.5px;
@@ -67,7 +67,7 @@
     min-width: 0;
     background: rgba(20, 24, 30, 0.6);
     color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.16));
     border-radius: 7px;
     padding: 4px 6px;
     font-size: 12px;
@@ -93,7 +93,7 @@
     max-width: 380px;
     background: #11161c;
     color: #e9eef2;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.14));
     border-radius: 16px;
     box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
     overflow: hidden;
@@ -128,7 +128,7 @@
     font-size: 13.5px;
     font-weight: 600;
     cursor: pointer;
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.16));
 }
 .qc-gate-wait { background: rgba(255, 255, 255, 0.08); color: #fff; }
 .qc-gate-save { background: rgba(251, 191, 36, 0.16); color: var(--warning, #fbbf24); border-color: rgba(251, 191, 36, 0.45); }

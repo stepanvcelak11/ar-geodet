@@ -16,12 +16,13 @@
             applyMapLayers();
             document.body.classList.toggle('outdoor-mode', !!visSettings.outdoorMode);
             document.body.classList.toggle('left-hand', !!visSettings.leftHand);
+            { const _an = visSettings.anim || 'auto'; const _r = document.documentElement; _r.classList.toggle('ag-anim-on', _an === 'on'); _r.classList.toggle('ag-anim-off', _an === 'off'); }
             document.documentElement.style.setProperty('--dock-arc', (visSettings.dockArc == null ? 13 : visSettings.dockArc) + 'px');
             document.documentElement.style.setProperty('--hud-top', visSettings.hudTop + 'px'); document.documentElement.style.setProperty('--hud-side', visSettings.hudSide + 'px'); document.documentElement.style.setProperty('--marker-opacity', visSettings.markerOpacity / 100); document.documentElement.style.setProperty('--color-tb', visSettings.colTb); document.documentElement.style.setProperty('--color-zhb', visSettings.colZhb); document.documentElement.style.setProperty('--color-pbpp', visSettings.colPbpp); document.documentElement.style.setProperty('--color-nivel', visSettings.colNivel); document.documentElement.style.setProperty('--color-custom', visSettings.colCustom); document.documentElement.style.setProperty('--arrow-size', (100 * visSettings.arrowScale) + 'px'); document.documentElement.style.setProperty('--arrow-opacity', visSettings.arrowOpacity / 100); document.documentElement.style.setProperty('--color-arrow', visSettings.colArrow); document.documentElement.style.setProperty('--panel-opacity', visSettings.panelOpacity / 100); /* --menu-scale: jezdec odstraněn (mrtvá volba), zůstává default 1 z :root */
             document.documentElement.style.setProperty('--hud-scale', visSettings.hudScale || 1);
             previewTheme(visSettings.theme); previewMode(visSettings.mode);
             const arrPath = document.getElementById('main-arrow-path'); if(arrPath) { arrPath.setAttribute('d', arrowPaths[visSettings.arrowShape]); arrPath.setAttribute('fill', visSettings.colArrow); document.getElementById('arrow-straight').style.filter = `drop-shadow(0 15px 15px ${visSettings.colArrow}80)`; document.getElementById('target-circle-out').setAttribute('stroke', visSettings.colArrow); document.getElementById('target-circle-in').setAttribute('fill', visSettings.colArrow); document.getElementById('arrow-target').style.filter = `drop-shadow(0 15px 15px ${visSettings.colArrow}90)`; }
-            if (document.getElementById('s-max-ar-slider')) { document.getElementById('s-wakelock').checked = visSettings.wakeLockEnabled; document.getElementById('s-outdoor').checked = !!visSettings.outdoorMode; { var _lh = document.getElementById('s-lefthand'); if (_lh) _lh.checked = !!visSettings.leftHand; } { var _da = document.getElementById('v-dock-arc'); if (_da) { var _av = (visSettings.dockArc == null ? 13 : visSettings.dockArc); _da.value = _av; document.getElementById('v-dock-arc-val').innerText = _av; } } document.getElementById('s-katastr-source').value = visSettings.katastrSource || 'mapycz'; document.getElementById('s-max-ar-slider').value = visSettings.maxARPoints; document.getElementById('s-max-ar-val').innerText = visSettings.maxARPoints; document.getElementById('v-ar-height-slider').value = visSettings.arVerticalOffset; document.getElementById('v-ar-height-val').innerText = visSettings.arVerticalOffset; document.getElementById('v-marker-scale').value = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-scale-val').innerText = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-opacity').value = visSettings.markerOpacity; document.getElementById('v-marker-opacity-val').innerText = visSettings.markerOpacity; document.getElementById('col-tb').value = visSettings.colTb; document.getElementById('col-zhb').value = visSettings.colZhb; document.getElementById('col-pbpp').value = visSettings.colPbpp; document.getElementById('col-nivel').value = visSettings.colNivel; document.getElementById('col-custom').value = visSettings.colCustom; document.getElementById('col-arrow').value = visSettings.colArrow; document.getElementById('v-arrow-shape').value = visSettings.arrowShape; document.getElementById('v-arrow-scale').value = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-scale-val').innerText = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-opacity').value = visSettings.arrowOpacity; document.getElementById('v-arrow-opacity-val').innerText = visSettings.arrowOpacity; document.getElementById('v-panel-opacity').value = visSettings.panelOpacity; document.getElementById('v-panel-opacity-val').innerText = visSettings.panelOpacity; document.getElementById('s-auto-compass').checked = visSettings.autoCompassCorrection; document.getElementById('s-tilt-comp').checked = visSettings.tiltCompensation !== false; document.getElementById('s-heading-smooth').value = visSettings.headingSmoothing; document.getElementById('s-heading-smooth-val').innerText = visSettings.headingSmoothing; document.getElementById('s-fovh').value = visSettings.fovH; document.getElementById('s-fovh-val').innerText = visSettings.fovH; document.getElementById('s-fovv').value = visSettings.fovV; document.getElementById('s-fovv-val').innerText = visSettings.fovV; document.getElementById('s-eyeh').value = visSettings.eyeHeight; document.getElementById('s-eyeh-val').innerText = visSettings.eyeHeight; document.getElementById('v-adaptive-glass').checked = visSettings.adaptiveGlass !== false; document.getElementById('v-theme').value = visSettings.theme || 'smaragd'; document.getElementById('v-mode').value = visSettings.mode || 'dark'; document.getElementById('v-hud-scale').value = Math.round((visSettings.hudScale || 1) * 100); document.getElementById('v-hud-scale-val').innerText = Math.round((visSettings.hudScale || 1) * 100); }
+            if (document.getElementById('s-max-ar-slider')) { document.getElementById('s-wakelock').checked = visSettings.wakeLockEnabled; document.getElementById('s-outdoor').checked = !!visSettings.outdoorMode; { var _lh = document.getElementById('s-lefthand'); if (_lh) _lh.checked = !!visSettings.leftHand; } { var _an2 = document.getElementById('s-anim'); if (_an2) _an2.value = visSettings.anim || 'auto'; } { var _da = document.getElementById('v-dock-arc'); if (_da) { var _av = (visSettings.dockArc == null ? 13 : visSettings.dockArc); _da.value = _av; document.getElementById('v-dock-arc-val').innerText = _av; } } document.getElementById('s-katastr-source').value = visSettings.katastrSource || 'mapycz'; document.getElementById('s-max-ar-slider').value = visSettings.maxARPoints; document.getElementById('s-max-ar-val').innerText = visSettings.maxARPoints; document.getElementById('v-ar-height-slider').value = visSettings.arVerticalOffset; document.getElementById('v-ar-height-val').innerText = visSettings.arVerticalOffset; document.getElementById('v-marker-scale').value = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-scale-val').innerText = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-opacity').value = visSettings.markerOpacity; document.getElementById('v-marker-opacity-val').innerText = visSettings.markerOpacity; document.getElementById('col-tb').value = visSettings.colTb; document.getElementById('col-zhb').value = visSettings.colZhb; document.getElementById('col-pbpp').value = visSettings.colPbpp; document.getElementById('col-nivel').value = visSettings.colNivel; document.getElementById('col-custom').value = visSettings.colCustom; document.getElementById('col-arrow').value = visSettings.colArrow; document.getElementById('v-arrow-shape').value = visSettings.arrowShape; document.getElementById('v-arrow-scale').value = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-scale-val').innerText = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-opacity').value = visSettings.arrowOpacity; document.getElementById('v-arrow-opacity-val').innerText = visSettings.arrowOpacity; document.getElementById('v-panel-opacity').value = visSettings.panelOpacity; document.getElementById('v-panel-opacity-val').innerText = visSettings.panelOpacity; document.getElementById('s-auto-compass').checked = visSettings.autoCompassCorrection; document.getElementById('s-tilt-comp').checked = visSettings.tiltCompensation !== false; document.getElementById('s-heading-smooth').value = visSettings.headingSmoothing; document.getElementById('s-heading-smooth-val').innerText = visSettings.headingSmoothing; document.getElementById('s-fovh').value = visSettings.fovH; document.getElementById('s-fovh-val').innerText = visSettings.fovH; document.getElementById('s-fovv').value = visSettings.fovV; document.getElementById('s-fovv-val').innerText = visSettings.fovV; document.getElementById('s-eyeh').value = visSettings.eyeHeight; document.getElementById('s-eyeh-val').innerText = visSettings.eyeHeight; document.getElementById('v-adaptive-glass').checked = visSettings.adaptiveGlass !== false; document.getElementById('v-theme').value = visSettings.theme || 'smaragd'; document.getElementById('v-mode').value = visSettings.mode || 'dark'; document.getElementById('v-hud-scale').value = Math.round((visSettings.hudScale || 1) * 100); document.getElementById('v-hud-scale-val').innerText = Math.round((visSettings.hudScale || 1) * 100); }
         }
 
         function switchTab(tabId, btnEl) { document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(tabId).classList.add('active'); btnEl.classList.add('active'); }
@@ -32,7 +33,7 @@
         // Info pro létání s dronem na zakázce — otevírá se v prohlížeči (data ŘLP nejde vkládat do mapy).
         function openDronView() { window.open('https://dronview.rlp.cz/', '_blank'); }
         function openKatastr() {
-            if(!userLat || !userLng) return alert("Čekám na GPS pozici..."); 
+            if(!userLat || !userLng) return agInfo("Čekám na GPS pozici..."); 
             let src = visSettings.katastrSource || 'mapycz';
             let url = `https://mapy.cz/katastralni?x=${userLng}&y=${userLat}&z=19`;
             if (src === 'ikatastr') url = `https://www.ikatastr.cz/ikatastr.htm#zoom=19&lat=${userLat}&lon=${userLng}`;
@@ -54,7 +55,7 @@
         function updateHeadingOffsetVal() { const el = document.getElementById('heading-offset-val'); if (el) { let v = ((userHeadingOffset + 180) % 360 + 360) % 360 - 180; el.innerText = Math.round(v); } }
         function nudgeHeadingOffset(d) { userHeadingOffset = ((userHeadingOffset + d) % 360 + 360) % 360; setStoredData('arHeadingOffset', String(userHeadingOffset)); updateHeadingOffsetVal(); }
         function resetHeadingOffset() { userHeadingOffset = 0; headingCorrection = 0; setStoredData('arHeadingOffset', '0'); updateHeadingOffsetVal(); }
-        function setCompassZero() { compassZeroOffset = currentHeading; alert("Nula nastavena na aktuální směr."); } function resetCompassZero() { compassZeroOffset = 0; alert("Nula zrušena."); } function setCompassUnit(u) { compassUnit = u; updateCompassButtons(); }
+        function setCompassZero() { compassZeroOffset = currentHeading; agInfo("Nula nastavena na aktuální směr."); } function resetCompassZero() { compassZeroOffset = 0; agInfo("Nula zrušena."); } function setCompassUnit(u) { compassUnit = u; updateCompassButtons(); }
         function updateCompassButtons() { document.getElementById('btn-unit-deg').style.background = compassUnit === 'deg' ? 'var(--accent)' : '#555'; document.getElementById('btn-unit-deg').style.color = compassUnit === 'deg' ? '#000' : '#fff'; document.getElementById('btn-unit-gon').style.background = compassUnit === 'gon' ? 'var(--accent)' : '#555'; document.getElementById('btn-unit-gon').style.color = compassUnit === 'gon' ? '#000' : '#fff'; }
 
         const APP_VERSION = '1.9';
@@ -83,7 +84,7 @@
 
         function openMeasureModal() { document.getElementById('measure-modal').style.display = 'flex'; }
 
-        async function loadCameras() { const btn = document.getElementById('camera-load-btn'); btn.innerText = "Načítám..."; try { const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); const devices = await navigator.mediaDevices.enumerateDevices(); const videoDevices = devices.filter(d => d.kind === 'videoinput'); const wSelect = document.getElementById('w-camera-select'); const sSelect = document.getElementById('s-camera-select'); wSelect.innerHTML = '<option value="">Výchozí zadní kamera</option>'; sSelect.innerHTML = '<option value="">Výchozí zadní kamera</option>'; videoDevices.forEach(cam => { if (!cam.label.toLowerCase().includes('front') && !cam.label.toLowerCase().includes('přední')) { const labelText = cam.label || `Kamera ${wSelect.options.length}`; const opt1 = document.createElement('option'); opt1.value = cam.deviceId; opt1.text = labelText; wSelect.appendChild(opt1); const opt2 = document.createElement('option'); opt2.value = cam.deviceId; opt2.text = labelText; sSelect.appendChild(opt2); } }); stream.getTracks().forEach(t => t.stop()); btn.style.display = 'none'; wSelect.style.display = 'block'; } catch(e) { alert("Nepodařilo se načíst seznam kamer."); btn.innerHTML = '<svg class="icon"><use href="#i-camera"/></svg> Zkusit znovu načíst kamery'; } }
+        async function loadCameras() { const btn = document.getElementById('camera-load-btn'); btn.innerText = "Načítám..."; try { const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); const devices = await navigator.mediaDevices.enumerateDevices(); const videoDevices = devices.filter(d => d.kind === 'videoinput'); const wSelect = document.getElementById('w-camera-select'); const sSelect = document.getElementById('s-camera-select'); wSelect.innerHTML = '<option value="">Výchozí zadní kamera</option>'; sSelect.innerHTML = '<option value="">Výchozí zadní kamera</option>'; videoDevices.forEach(cam => { if (!cam.label.toLowerCase().includes('front') && !cam.label.toLowerCase().includes('přední')) { const labelText = cam.label || `Kamera ${wSelect.options.length}`; const opt1 = document.createElement('option'); opt1.value = cam.deviceId; opt1.text = labelText; wSelect.appendChild(opt1); const opt2 = document.createElement('option'); opt2.value = cam.deviceId; opt2.text = labelText; sSelect.appendChild(opt2); } }); stream.getTracks().forEach(t => t.stop()); btn.style.display = 'none'; wSelect.style.display = 'block'; } catch(e) { agInfo("Nepodařilo se načíst seznam kamer."); btn.innerHTML = '<svg class="icon"><use href="#i-camera"/></svg> Zkusit znovu načíst kamery'; } }
 
         function updateInfoPanel() { const infoEl = document.getElementById('info'); if (!infoEl || !appStarted) return; if (!userLat) { infoEl.innerHTML = `<div class="rdt"><span class="rdt-l">GPS</span><span class="rdt-v" style="color:var(--warning);">hledám…</span></div>`; return; } infoEl.innerHTML = ''; }
 
@@ -107,7 +108,7 @@
             else msg = 'Kameru se nepodařilo spustit (' + ((err && (err.message || err.name)) || 'neznámá chyba') + ').<br><br>Zatím je zapnutý režim <b>Mapa</b> — AR zkusíš znovu přepnutím zobrazení.';
             if (typeof viewMode !== 'undefined' && viewMode !== 'map') { viewMode = 'map'; applyViewMode(); try { if (typeof window.agSyncViewControls === 'function') window.agSyncViewControls(); } catch (e) {} }
             if (window.agAlert) window.agAlert({ title: 'Kamera nejde spustit', message: msg });
-            else alert(msg.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ''));
+            else agInfo(msg.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ''));
         }
         // Uspani kamery (uspora baterie / rezim mapy): zastavi stopu a vynuluje stav, aby sla znovu nahodit.
         function stopCameraStream() { try { if (currentVideoStream) { currentVideoStream.getTracks().forEach(t => { try { t.stop(); } catch (e) {} }); } } catch (e) {} currentVideoStream = null; cameraStarted = false; const v = document.getElementById('camera-feed'); if (v) { try { v.srcObject = null; } catch (e) {} } }
@@ -238,7 +239,7 @@
         }
 
         // Seznam bodu v okoli serazeny podle vzdalenosti; klepnuti = navigace (highlightPoint)
-        function openNearbyModal() { if (userLat == null) { alert("Čekám na GPS pozici..."); return; } renderNearbyList(); document.getElementById('nearby-modal').style.display = 'flex'; }
+        function openNearbyModal() { if (userLat == null) { agInfo("Čekám na GPS pozici..."); return; } renderNearbyList(); document.getElementById('nearby-modal').style.display = 'flex'; }
         function renderNearbyList() {
             const listDiv = document.getElementById('nearby-list'); listDiv.innerHTML = '';
             const pts = arPoints.filter(pt => {
@@ -299,6 +300,7 @@
             visSettings.wakeLockEnabled = document.getElementById('s-wakelock').checked;
             visSettings.outdoorMode = document.getElementById('s-outdoor').checked;
             { var _lh = document.getElementById('s-lefthand'); if (_lh) visSettings.leftHand = _lh.checked; }
+            { var _an3 = document.getElementById('s-anim'); if (_an3) visSettings.anim = _an3.value; }
             { var _da = document.getElementById('v-dock-arc'); if (_da) visSettings.dockArc = parseInt(_da.value); }
             visSettings.katastrSource = document.getElementById('s-katastr-source').value;
             visSettings.maxARPoints = parseInt(document.getElementById('s-max-ar-slider').value);
@@ -381,7 +383,7 @@
         function editCustomPoint(id) { const pt = persistentCustomPoints.find(p => p.id === id); if(!pt) return; editingCustomPointId = id; pendingPointAccuracy = null; { const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none'; } { const _h = document.getElementById('custom-create-helpers'); if (_h) _h.style.display = 'none'; } document.getElementById('custom-modal-title').innerText = "Upravit bod"; document.getElementById('custom-name').value = pt.name; let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); document.getElementById('custom-y').value = Math.abs(sjtsk[0]).toFixed(2); document.getElementById('custom-x').value = Math.abs(sjtsk[1]).toFixed(2); { const _z = document.getElementById('custom-z'); if (_z) _z.value = (pt.vyska != null ? pt.vyska : ''); } resetNewPointExtras(id); document.getElementById('manage-modal').style.display = 'none'; document.getElementById('custom-modal-overlay').style.display = 'flex'; }
         // BOD Z MAPY: tlacitko v modalu spusti rezim, dalsi TAP do mapy umisti bod (tah dal posouva mapu)
         function startMapPick() {
-            if (viewMode === 'ar') { alert("Přepni na zobrazení s mapou (Split nebo Mapa)."); return; }
+            if (viewMode === 'ar') { agInfo("Přepni na zobrazení s mapou (Split nebo Mapa)."); return; }
             closeCustomModal(); mapAddMode = true;
             const h = document.getElementById('map-pick-hint'); if (h) h.style.display = 'flex';
             document.getElementById('map-controls').classList.remove('expanded');
@@ -903,7 +905,7 @@
         // ===== MERENI PLOCHY (rezim v mape) =====
         const areaGroup = L.layerGroup().addTo(map);
         function startAreaMode() {
-            if (viewMode === 'ar') { alert('Měření plochy funguje v mapě — přepni na Split nebo Mapu.'); return; }
+            if (viewMode === 'ar') { agInfo('Měření plochy funguje v mapě — přepni na Split nebo Mapu.'); return; }
             document.getElementById('measure-modal').style.display = 'none';
             areaMode = true; areaVertices = [];
             const p = document.getElementById('area-panel'); if (p) p.style.display = 'flex';
@@ -917,6 +919,7 @@
             areaMode = false; areaVertices = []; areaGroup.clearLayers();
             const p = document.getElementById('area-panel'); if (p) p.style.display = 'none';
             fixAppLayout();
+            try { if (window.AGDraft) AGDraft.clear('plocha'); } catch (e) {}   // ukonceno zamerne -> neni co obnovovat (zachranu drzi toast nize)
             if (backup) showAreaUndoToast(backup);
         }
         let _areaToast = null, _areaToastTimer = null;
@@ -943,7 +946,7 @@
                 hideAreaUndoToast();
                 areaMode = true; areaVertices = verts.slice();
                 const p = document.getElementById('area-panel'); if (p) p.style.display = 'flex';
-                redrawAreaPolygon(); updateAreaPanel();
+                afterAreaChange();   // prekresli + vrati i draft (ukonceni ho smazalo)
             };
             _areaToast.style.display = 'flex';
             if (_areaToastTimer) clearTimeout(_areaToastTimer);
@@ -952,11 +955,36 @@
         function areaAddGps() {
             if (gpsAvgResult && gpsAvgResult.n >= 2) areaVertices.push({ lat: gpsAvgResult.lat, lng: gpsAvgResult.lng });
             else if (userLat != null) areaVertices.push({ lat: userLat, lng: userLng });
-            else { alert('Čekám na GPS pozici...'); return; }
+            else { agInfo('Čekám na GPS pozici...'); return; }
             afterAreaChange();
         }
         function areaUndo() { areaVertices.pop(); afterAreaChange(); }
-        function afterAreaChange() { redrawAreaPolygon(); updateAreaPanel(); if (visSettings.vibrationEnabled && navigator.vibrate) navigator.vibrate(20); }
+        function afterAreaChange() {
+            redrawAreaPolygon(); updateAreaPanel(); if (visSettings.vibrationEnabled && navigator.vibrate) navigator.vibrate(20);
+            // DRAFT: obchazeny polygon zil jen v pameti — zabiti appky (iOS pri prepnuti
+            // na fotak) zahodilo cely obchod. Ukladame jen cista data vrcholu.
+            try {
+                if (window.AGDraft) {
+                    if (areaVertices.length) AGDraft.save('plocha', { verts: areaVertices.map(v => ({ lat: v.lat, lng: v.lng })) }, 'Měření plochy – ' + areaVertices.length + (areaVertices.length === 1 ? ' vrchol' : (areaVertices.length < 5 ? ' vrcholy' : ' vrcholů')));
+                    else AGDraft.clear('plocha');
+                }
+            } catch (e) {}
+        }
+        // Obnova rozdelane plochy po restartu appky (lista "Pokracovat" z draft-store.js).
+        try {
+            if (window.AGDraft) AGDraft.register('plocha', {
+                label: 'Měření plochy',
+                open: function (st) {
+                    if (!st || !Array.isArray(st.verts) || !st.verts.length) return;
+                    if (viewMode === 'ar') { viewMode = 'both'; try { applyViewMode(); } catch (e) {} }
+                    document.getElementById('measure-modal').style.display = 'none';
+                    areaMode = true; areaVertices = st.verts.slice();
+                    const p = document.getElementById('area-panel'); if (p) p.style.display = 'flex';
+                    redrawAreaPolygon(); updateAreaPanel();
+                    try { map.fitBounds(areaVertices.map(v => [v.lat, v.lng]), { padding: [40, 40], maxZoom: 19 }); } catch (e) {}
+                }
+            });
+        } catch (e) {}
         function redrawAreaPolygon() {
             areaGroup.clearLayers();
             if (!areaVertices.length) return;
@@ -1025,7 +1053,7 @@
         function addDictEntry() {
             const t = document.getElementById('dict-new-term').value.trim();
             const d = document.getElementById('dict-new-def').value.trim();
-            if (!t || !d) { alert('Vyplňte pojem i vysvětlení.'); return; }
+            if (!t || !d) { agInfo('Vyplňte pojem i vysvětlení.'); return; }
             const list = getCustomDict(); list.push({ t: t, d: d }); saveCustomDict(list);
             document.getElementById('dict-new-term').value = ''; document.getElementById('dict-new-def').value = '';
             renderDictList();

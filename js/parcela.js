@@ -46,6 +46,24 @@
     var layer = null;       // Leaflet vrstva s náhledem
 
     // =====================================================================
+    //  Draft (AGDraft je odpojitelný modul — vše fail-silent): rozdělaná
+    //  parcela přežije zabití appky. Ukládá se JEN serializovatelné jádro
+    //  (verts + division jsou čistá data), NE Leaflet vrstva ani DOM.
+    // =====================================================================
+    var DRAFT_KEY = 'parcela';
+    function draftSave() {
+        if (!window.AGDraft) return;
+        try {
+            // prázdná úloha se nedraftuje — místo starého draftu úklid
+            if (!state.verts.length) { window.AGDraft.clear(DRAFT_KEY); return; }
+            var n = state.verts.length;
+            window.AGDraft.save(DRAFT_KEY, { verts: state.verts, division: state.division },
+                'Parcela – ' + n + ' ' + (n === 1 ? 'vrchol' : (n <= 4 ? 'vrcholy' : 'vrcholů')));
+        } catch (e) {}
+    }
+    function draftClear() { if (window.AGDraft) try { window.AGDraft.clear(DRAFT_KEY); } catch (e) {} }
+
+    // =====================================================================
     //  Dialogy (sjednoceno s vylepseni.js, fallback na nativní)
     // =====================================================================
     function agAlert(t, m) {
@@ -266,21 +284,24 @@
         state.verts.push({ Y: yx.Y, X: yx.X, lat: lat, lng: lng, name: name || ('V' + (state.verts.length + 1)) });
         state.division = null;
         renderAll();
+        draftSave();
     }
     function addVertexYX(Y, X, name) {
         var ll = yxToLL(Y, X);
         state.verts.push({ Y: Math.abs(Y), X: Math.abs(X), lat: ll.lat, lng: ll.lng, name: name || ('V' + (state.verts.length + 1)) });
         state.division = null;
         renderAll();
+        draftSave();
     }
-    function removeVertex(i) { state.verts.splice(i, 1); state.division = null; renderAll(); }
+    function removeVertex(i) { state.verts.splice(i, 1); state.division = null; renderAll(); draftSave(); }
     function moveVertex(i, dir) {
         var j = i + dir; if (j < 0 || j >= state.verts.length) return;
         var tmp = state.verts[i]; state.verts[i] = state.verts[j]; state.verts[j] = tmp;
-        state.division = null; renderAll();
+        state.division = null; renderAll(); draftSave();
     }
     function clearAll() {
         state.verts = []; state.division = null; renderAll();
+        draftClear();   // ruční reset = úloha skončila, draft pryč
     }
     function addMyGps() {
         try {
@@ -388,11 +409,19 @@
     }
     function onPickTap(e) {
         try {
-            var mapEl = document.getElementById('map'); if (!mapEl || !map) return;
-            var rect = mapEl.getBoundingClientRect();
-            var x = e.clientX - rect.left, y = e.clientY - rect.top;
-            if (x < 0 || y < 0 || x > rect.width || y > rect.height) return;
-            var ll = map.containerPointToLatLng([x, y]);
+            if (!map) return;
+            // Mapa je v otočeném #map-wrapper (transform: rotate podle azimutu), takže
+            // prosté odečtení getBoundingClientRect() dává bod mimo klik. Sdílený převod
+            // v grafika.js rotaci zpětně vyruší — proto se používá přednostně.
+            var ll = (typeof window.agScreenToLatLng === 'function') ? window.agScreenToLatLng(e.clientX, e.clientY) : null;
+            if (!ll) {
+                var mapEl = document.getElementById('map'); if (!mapEl) return;
+                var rect = mapEl.getBoundingClientRect();
+                var x = e.clientX - rect.left, y = e.clientY - rect.top;
+                if (x < 0 || y < 0 || x > rect.width || y > rect.height) return;
+                ll = map.containerPointToLatLng([x, y]);
+            }
+            if (!ll || !isFinite(ll.lat) || !isFinite(ll.lng)) return;
             addVertexLL(ll.lat, ll.lng);
             toast('Vrchol ' + state.verts.length + ' přidán');
         } catch (err) {}
@@ -576,6 +605,7 @@
             if (sp.crossings.length > 2) resEl.innerHTML += ncWarnHTML();   // nekonvexní parcela
         }
         drawMap();
+        draftSave();   // spočítané dělení je součást rozdělané práce
         var dc = document.getElementById('agpc-div-savebtn');
         if (dc) dc.addEventListener('click', saveDivisionPoints);
     }
@@ -598,7 +628,7 @@
         var prefix = 'DEL';
         var arr = state.division.points.map(function (p, i) { return { name: prefix + (i + 1), lat: p.lat, lng: p.lng }; });
         var added = window.addImportedPoints(arr);
-        if (added > 0) { agAlert('Uloženo', added + ' lomových bodů uloženo do aktuální zakázky (názvy ' + prefix + '1…).'); }
+        if (added > 0) { draftClear(); agAlert('Uloženo', added + ' lomových bodů uloženo do aktuální zakázky (názvy ' + prefix + '1…).'); }
         else { agAlert('Neuloženo', 'Body se stejnou polohou už v zakázce jsou.'); }
     }
 
@@ -618,6 +648,7 @@
         if (state.verts.length < 1) { agAlert('Prázdné', 'Žádné vrcholy.'); return; }
         var lines = state.verts.map(function (v, i) { return (v.name || ('V' + (i + 1))) + ';' + Math.abs(v.Y).toFixed(2) + ';' + Math.abs(v.X).toFixed(2); });
         download('parcela_souradnice.csv', '﻿' + 'cislo;Y;X\n' + lines.join('\n'), 'text/csv');
+        draftClear();   // export = úloha dokončena
     }
     function exportProtokol() {
         if (state.verts.length < 3) { agAlert('Málo vrcholů', 'Protokol dává smysl od 3 vrcholů.'); return; }
@@ -647,6 +678,7 @@
         lines.push('');
         lines.push('Orientační podklad, ne nahrazuje úřední měření.');
         download('parcela_protokol.txt', lines.join('\n'), 'text/plain');
+        draftClear();   // export = úloha dokončena
     }
 
     // =====================================================================
@@ -858,7 +890,9 @@
         stopPick();
         var modal = document.getElementById('agpc-modal'); if (modal) modal.style.display = 'none';
         var mini = document.getElementById('agpc-mini'); if (mini) mini.classList.remove('show');
-        // náhled na mapě necháváme (geodet ho chce vidět); smaže se přes „Vyčistit".
+        // Kresba parcely i dělení patří k otevřenému nástroji — po zavření by v mapě jen
+        // překážela. Data (vrcholy i dělení) zůstávají ve `state`, po otevření se překreslí.
+        clearLayer();
     }
     window.agOpenParcela = openTool;
     window.agCloseParcela = closeTool;
@@ -877,6 +911,16 @@
     }
 
     function register() {
+        // obnova rozdělané parcely přes lištu „Pokračovat" (AGDraft je odpojitelný)
+        if (window.AGDraft) try {
+            window.AGDraft.register(DRAFT_KEY, {
+                label: 'Parcela',
+                open: function (st) {
+                    if (st && st.verts && st.verts.length) { state.verts = st.verts; state.division = st.division || null; }
+                    openTool();   // renderAll + drawMap uvnitř překreslí obnovený stav
+                }
+            });
+        } catch (e) {}
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'parcela', label: 'Parcela / dělení', icon: ICON, onClick: openTool, order: 15 });
         } else {

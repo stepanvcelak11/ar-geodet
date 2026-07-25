@@ -17,7 +17,7 @@
     var cfg = { baseMm: 20, ppm: 50 };       // tolerance: baseMm + ppm·D
 
     function num(v) { var n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; }
-    function quickToastSafe(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} try { alert(m); } catch (e) {} }
+    function quickToastSafe(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} try { agInfo(m); } catch (e) {} }
 
     function toSJTSK(lat, lng) {
         try { var r = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { Y: Math.abs(r[0]), X: Math.abs(r[1]) }; }

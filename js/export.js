@@ -25,7 +25,7 @@
     // ----- GPX 1.1: vlastni body jako <wpt>, spojnice jako <trk> -----
     window.exportPointsGPX = function () {
         const pts = (typeof persistentCustomPoints !== 'undefined') ? persistentCustomPoints : [];
-        if (!pts.length) { alert('Nemáte žádné body.'); return; }
+        if (!pts.length) { agInfo('Nemáte žádné body.'); return; }
         const lines = (typeof pointLines !== 'undefined') ? pointLines : [];
         let out = '<?xml version="1.0" encoding="UTF-8"?>\n';
         out += '<gpx version="1.1" creator="AR Geodet" xmlns="http://www.topografix.com/GPX/1/1">\n';
@@ -48,7 +48,7 @@
     // ----- GeoJSON FeatureCollection (WGS84): body (Point) + spojnice (LineString) -----
     window.exportPointsGeoJSON = function () {
         const pts = (typeof persistentCustomPoints !== 'undefined') ? persistentCustomPoints : [];
-        if (!pts.length) { alert('Nemáte žádné body.'); return; }
+        if (!pts.length) { agInfo('Nemáte žádné body.'); return; }
         const lines = (typeof pointLines !== 'undefined') ? pointLines : [];
         const features = [];
         pts.forEach(p => {

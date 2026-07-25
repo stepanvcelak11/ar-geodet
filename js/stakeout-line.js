@@ -18,6 +18,22 @@
 
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function num(id) { var el = document.getElementById(id); var v = el ? parseFloat(String(el.value).replace(',', '.')) : NaN; return isFinite(v) ? v : NaN; }
+
+    // ---- draft (AGDraft je odpojitelný, vše fail-silent) -----------------------
+    // Volá se JEN z uživatelských handlerů (change/input) → každý zápis = reálný
+    // krok uživatele; auto-předvyplněné A/B z fillSelects() se samo nedraftuje.
+    var DRAFT_KEY = 'vytyc-primka';
+    function _val(id) { var el = document.getElementById(id); return el ? String(el.value) : ''; }
+    function draftSave() {
+        if (!window.AGDraft) return;
+        try {
+            var A = ptById(_aId), B = ptById(_bId);
+            window.AGDraft.save(DRAFT_KEY,
+                { aId: _aId, bId: _bId, stat: _val('agsl-stat'), off: _val('agsl-off'), name: _val('agsl-name') },
+                'Vytyčení přímky' + (A && B ? ' #' + A.name + '→#' + B.name : ''));
+        } catch (e) {}
+    }
+    function draftClear() { if (window.AGDraft) try { window.AGDraft.clear(DRAFT_KEY); } catch (e) {} }
     function ptById(id) { if (typeof arPoints === 'undefined') return null; return arPoints.find(function (q) { return q.id === id; }) || (typeof persistentCustomPoints !== 'undefined' ? persistentCustomPoints.find(function (q) { return q.id === id; }) : null) || null; }
 
     // lokální rovinné metry kolem referenčního bodu (lat0,lng0);
@@ -77,9 +93,11 @@
             + '<div style="display:flex;justify-content:space-between;"><span>Zbývá do #' + g.B.name + '</span><b>' + remain.toFixed(2) + ' m</b></div>';
     }
 
-    function computeStakePoint() {
-        var g = geometry(); if (!g) { agAlert('Chybí přímka', 'Vyber dva různé body.'); return null; }
-        var s = num('agsl-stat'); if (isNaN(s)) { agAlert('Chybí staničení', 'Zadej staničení v metrech.'); return null; }
+    // silent = jen náhled (otevření nástroje, psaní do políčka) → nehlásit prázdná pole;
+    // hláška patří až k pokusu o uložení, jinak vyskočí dřív, než uživatel stihne cokoli zadat.
+    function computeStakePoint(silent) {
+        var g = geometry(); if (!g) { if (!silent) agAlert('Chybí přímka', 'Vyber dva různé body.'); return null; }
+        var s = num('agsl-stat'); if (isNaN(s)) { if (!silent) agAlert('Chybí staničení', 'Zadej staničení v metrech.'); return null; }
         var o = num('agsl-off'); if (isNaN(o)) o = 0;   // + = VLEVO, − = vpravo (SHODNĚ se živým odečtem)
         // bod na ose: A + s*u ; kolmice vlevo = (-uN, uE) [+], vpravo = (uN, -uE) [−]
         var e = s * g.uE + o * (-g.uN);
@@ -89,7 +107,7 @@
         return { lat: ll.lat, lng: ll.lng, Y: Math.abs(sj[0]).toFixed(2), X: Math.abs(sj[1]).toFixed(2), s: s, o: o, g: g };
     }
     function previewStake() {
-        var r = computeStakePoint(); var out = document.getElementById('agsl-stake-out'); if (!out) return;
+        var r = computeStakePoint(true); var out = document.getElementById('agsl-stake-out'); if (!out) return;
         if (!r) { out.innerHTML = ''; return; }
         out.innerHTML = '<b>Y</b> ' + r.Y + ' &nbsp; <b>X</b> ' + r.X + '<br><span style="opacity:.65;font-size:12px">staničení ' + r.s.toFixed(2) + ' m' + (r.o ? ', odstup ' + Math.abs(r.o).toFixed(2) + ' m ' + (r.o > 0 ? 'vlevo' : 'vpravo') : ' na ose') + '</span>';
     }
@@ -98,7 +116,7 @@
         if (typeof window.addImportedPoints !== 'function') { agAlert('Nelze uložit', 'Vkládání bodů není dostupné.'); return; }
         var name = (document.getElementById('agsl-name').value || '').trim() || ('ST' + Math.round(r.s));
         var added = window.addImportedPoints([{ name: name, lat: r.lat, lng: r.lng }]);
-        if (added > 0) agAlert('Bod uložen', '#' + name + ' (staničení ' + r.s.toFixed(2) + ' m) uložen do zakázky.\nNavigovat můžeš přes seznam Body.');
+        if (added > 0) { draftClear(); agAlert('Bod uložen', '#' + name + ' (staničení ' + r.s.toFixed(2) + ' m) uložen do zakázky.\nNavigovat můžeš přes seznam Body.'); }
         else agAlert('Neuloženo', 'Bod se stejným názvem a polohou už v zakázce je.');
     }
 
@@ -125,10 +143,11 @@
             + '<button class="btn btn-secondary" style="margin-top:12px;" onclick="window.agCloseStakeLine&&window.agCloseStakeLine()">Zavřít</button>'
             + '</div>';
         document.body.appendChild(el);
-        document.getElementById('agsl-a').addEventListener('change', function () { _aId = this.value; refresh(); });
-        document.getElementById('agsl-b').addEventListener('change', function () { _bId = this.value; refresh(); });
-        document.getElementById('agsl-stat').addEventListener('input', previewStake);
-        document.getElementById('agsl-off').addEventListener('input', previewStake);
+        document.getElementById('agsl-a').addEventListener('change', function () { _aId = this.value; refresh(); draftSave(); });
+        document.getElementById('agsl-b').addEventListener('change', function () { _bId = this.value; refresh(); draftSave(); });
+        document.getElementById('agsl-stat').addEventListener('input', function () { previewStake(); draftSave(); });
+        document.getElementById('agsl-off').addEventListener('input', function () { previewStake(); draftSave(); });
+        document.getElementById('agsl-name').addEventListener('input', draftSave);
         document.getElementById('agsl-save').addEventListener('click', saveStake);
     }
 
@@ -143,6 +162,24 @@
     };
 
     function register() {
+        // obnova rozdělaného vytyčení přes lištu „Pokračovat" (AGDraft je odpojitelný)
+        if (window.AGDraft) try {
+            window.AGDraft.register(DRAFT_KEY, {
+                label: 'Vytyčení přímky',
+                open: function (st) {
+                    if (st) { _aId = st.aId || null; _bId = st.bId || null; }
+                    openTool();   // fillSelects podrží obnovené _aId/_bId, pokud body existují
+                    try {
+                        if (st) {
+                            var s = document.getElementById('agsl-stat'); if (s) s.value = st.stat || '';
+                            var o = document.getElementById('agsl-off'); if (o) o.value = st.off || '';
+                            var nm = document.getElementById('agsl-name'); if (nm) nm.value = st.name || '';
+                            previewStake();
+                        }
+                    } catch (e) {}
+                }
+            });
+        } catch (e) {}
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'stakeout-line', label: 'Vytyčení přímky', icon: ICON, onClick: openTool, order: 40 });
         }

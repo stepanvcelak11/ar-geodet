@@ -187,7 +187,10 @@ body.ag-glove .modal-content select { padding: 15px 14px; font-size: 16px; }
     .modal-content { padding: 18px 16px; width: 94%; }
     .ag-dlg { padding: 16px; }
     .modal-content .btn, .ag-dlg-btn { font-size: 14px; }
-    #side-menu { width: min(250px, calc(100vw - 24px)); }
+    /* POZOR: tady bývalo #side-menu { width: min(250px, …) }. Běžné Androidy hlásí
+       360 CSS px, takže se pravidlo zaplo a menu „Více" se vysunulo jen do necelé
+       poloviny displeje, zatímco na širších iPhonech (390+) bylo přes celou obrazovku.
+       Menu je záměrně fullscreen (style.css) — NEVRACET sem šířkový override. */
     .modal-content label { font-size: 12px; }
 }
 
