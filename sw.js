@@ -50,6 +50,7 @@ const ASSETS_TO_CACHE = [
     './js/csv-validate.js',
     './js/kml-export.js',
     './js/dxf-export.js',
+    './js/vfk.js',
     './js/compass-stability.js',
     './css/compass-stability.css',
     './js/calib-profiles.js',

@@ -42,7 +42,8 @@
     }
 
     function coordStr(lng, lat, alt) {
-        // KML pořadí: longitude,latitude,altitude
+        // KML pořadí: longitude,latitude,altitude. altitudeMode=absolute je vůči hladině moře,
+        // takže Bpv (ortometrická) sem sedí — NEpřevádět na elipsoid (na rozdíl od GeoJSON).
         return (+lng).toFixed(8) + ',' + (+lat).toFixed(8) + ',' + (alt != null && isFinite(alt) ? (+alt).toFixed(2) : '0');
     }
 

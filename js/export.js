@@ -29,6 +29,7 @@
         const lines = (typeof pointLines !== 'undefined') ? pointLines : [];
         let out = '<?xml version="1.0" encoding="UTF-8"?>\n';
         out += '<gpx version="1.1" creator="AR Geodet" xmlns="http://www.topografix.com/GPX/1/1">\n';
+        // GPX <ele> je dle konvence výška nad mořem (ortometrická) — Bpv sem sedí, NEpřevádět na elipsoid.
         pts.forEach(p => {
             if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
             out += `  <wpt lat="${p.lat.toFixed(8)}" lon="${p.lng.toFixed(8)}">${p.vyska != null ? `<ele>${(+p.vyska).toFixed(2)}</ele>` : ''}<name>${_xml(p.name || 'Bod')}</name></wpt>\n`;
@@ -52,10 +53,18 @@
         const features = [];
         pts.forEach(p => {
             if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
+            // GeoJSON (RFC 7946): 3. souřadnice = výška nad elipsoidem WGS84. Uložená výška je
+            // Bpv (nad geoidem/quasigeoidem) -> pro geometrii přičteme undulaci geoidu (N).
+            // Do properties dáváme PŮVODNÍ Bpv + datum, ať uživatel ví, co je co.
+            let coords;
+            if (p.vyska != null) {
+                const N = (typeof getGeoidUndulation === 'function') ? getGeoidUndulation(p.lat, p.lng) : 0;
+                coords = [p.lng, p.lat, Math.round((+p.vyska + N) * 100) / 100];
+            } else coords = [p.lng, p.lat];
             features.push({
                 type: 'Feature',
-                geometry: { type: 'Point', coordinates: p.vyska != null ? [p.lng, p.lat, +p.vyska] : [p.lng, p.lat] },
-                properties: { name: p.name || 'Bod', vyska: (p.vyska != null ? +p.vyska : null) }
+                geometry: { type: 'Point', coordinates: coords },
+                properties: { name: p.name || 'Bod', vyska_bpv: (p.vyska != null ? +p.vyska : null), vyska_datum: 'Bpv' }
             });
         });
         lines.forEach(l => {

@@ -87,6 +87,25 @@ if ('serviceWorker' in navigator) {
         function _idbGet(fk) { return _idbOp('readonly', s => s.get(fk)); }
         function _idbSet(fk, v) { return _idbOp('readwrite', s => s.put(v, fk)); }
         function _idbDel(fk) { return _idbOp('readwrite', s => s.delete(fk)); }
+        // Smazani vsech klicu s danym prefixem (napr. "<zakazka>_doc_") — pro uklid pri mazani zakazky.
+        function _idbDelByPrefix(prefix) {
+            return _idbOp('readwrite', s => {
+                try {
+                    const kr = s.getAllKeys();
+                    kr.onsuccess = () => { (kr.result || []).forEach(k => { if (typeof k === 'string' && k.indexOf(prefix) === 0) { try { s.delete(k); } catch (e) {} } }); };
+                } catch (e) {
+                    try { const cur = s.openCursor(); cur.onsuccess = (ev) => { const c = ev.target.result; if (c) { if (typeof c.key === 'string' && c.key.indexOf(prefix) === 0) c.delete(); c.continue(); } }; } catch (e2) {}
+                }
+                return null;
+            });
+        }
+        // Jednorazove varovani, kdyz zapis bodu do IndexedDB tise selze (kvota / iOS eviction / poskozena tx).
+        // Bez tohohle vypadaly body ulozene (drzi je _idbMem cache), ale po reloadu byly PRYC.
+        let _idbWriteWarned = false;
+        function _warnStorageWriteFail() {
+            if (_idbWriteWarned) return; _idbWriteWarned = true;
+            try { alert('POZOR: bod se nepodařilo trvale uložit (databáze telefonu odmítla zápis — nejspíš plné úložiště). Data se mohou po zavření aplikace ztratit.\n\nUvolněte místo a udělejte zálohu (Nastavení → Údržba → Stáhnout zálohu).'); } catch (e) {}
+        }
         // dump/restore celeho kv storu — pro zalohu vsech dat (zaloha.js)
         function idbDumpAll() {
             return new Promise((resolve) => {
@@ -111,6 +130,9 @@ if ('serviceWorker' in navigator) {
                     try {
                         const tx = db.transaction('kv', 'readwrite');
                         const store = tx.objectStore('kv');
+                        // OPRAVA: napred vycistit cely store, jinak stare klice (z puvodniho stavu)
+                        // prezijou a smichaji se s obnovenymi daty. Clear+put v JEDNE tx = atomicke.
+                        try { store.clear(); } catch (e) {}
                         Object.keys(obj).forEach(k => store.put(obj[k], k));
                         tx.oncomplete = () => resolve();
                         tx.onerror = () => resolve();
@@ -140,7 +162,9 @@ if ('serviceWorker' in navigator) {
             const fk = getStoreKey(key);
             if (IDB_KEYS.indexOf(key) >= 0) {
                 _idbMem[fk] = val;
-                if (_idbOk) { _idbSet(fk, val); try { localStorage.removeItem(fk); } catch (e) {} return true; }
+                // Drive fire-and-forget: selhani zapisu (kvota) se NIKDE neprojevilo -> tichá ztráta bodů.
+                // Ted zapis pohlídáme a při selhání jednorazove varujeme uzivatele.
+                if (_idbOk) { _idbSet(fk, val).then(res => { if (res == null) _warnStorageWriteFail(); }); try { localStorage.removeItem(fk); } catch (e) {} return true; }
             }
             try { localStorage.setItem(fk, val); return true; }
             catch (e) {
@@ -186,7 +210,22 @@ if ('serviceWorker' in navigator) {
             if (window.agPrompt) window.agPrompt({ title: 'Nová zakázka', message: 'Pojmenuj zakázku (lokalita / parcela / zakázkové číslo).', placeholder: 'Např. Pole u lesa 123/4', okText: 'Vytvořit' }).then(create);
             else create(prompt("Název nové zakázky:"));
         }
-        function deleteProject() { if(projects.length <= 1) return alert("Nelze smazat poslední zakázku."); if(!confirm("Opravdu smazat aktuální zakázku a všechny její uložené body?")) return; IDB_KEYS.forEach(k => { _idbDel(activeProjectId + "_" + k); try { localStorage.removeItem(activeProjectId + "_" + k); } catch(e){} }); projects = projects.filter(p => p.id !== activeProjectId); localStorage.setItem('arProjectsList', JSON.stringify(projects)); activeProjectId = projects[0].id; localStorage.setItem('arActiveProjectId', activeProjectId); renderProjectSelect(); hydrateActiveProject().then(loadProjectSettings); }
+        function deleteProject() {
+            if(projects.length <= 1) return alert("Nelze smazat poslední zakázku.");
+            if(!confirm("Opravdu smazat aktuální zakázku a všechny její uložené body?")) return;
+            const pid = activeProjectId;
+            // IndexedDB: velka data bodu + fotodokumentace (pid_doc_*) + DXF navrh (pid_agProjectDesign).
+            // DRIVE se mazaly jen body -> fotky a navrhy zustavaly navzdy jako sirotci a zabiraly kvotu.
+            IDB_KEYS.forEach(k => { _idbDel(pid + "_" + k); });
+            _idbDel(pid + "_agProjectDesign");
+            _idbDelByPrefix(pid + "_doc_");
+            // localStorage: vsechna per-zakazkova nastaveni teto zakazky (jinak sirotci).
+            ['arFilters12','arRadiusMap','arRadiusAR','arVisSettings12','arLines12','arHeadingOffset','arOfflinePoints12','arCustomPoints12','agProjectDesign'].forEach(k => { try { localStorage.removeItem(pid + "_" + k); } catch(e){} });
+            projects = projects.filter(p => p.id !== pid);
+            localStorage.setItem('arProjectsList', JSON.stringify(projects));
+            activeProjectId = projects[0].id; localStorage.setItem('arActiveProjectId', activeProjectId);
+            renderProjectSelect(); hydrateActiveProject().then(loadProjectSettings);
+        }
 
         function loadProjectSettings() {
             let f = getStoredData('arFilters12'); try { filters = f ? JSON.parse(f) : null; } catch (e) { filters = null; } if (!filters || typeof filters !== 'object') filters = { tb: true, zhb: true, pbpp: true, nivel: true, custom: true };
@@ -227,18 +266,51 @@ if ('serviceWorker' in navigator) {
             let found = await fetchGeodata(lat, lng, rad, false, function(dn, tt) { updateOfflineProgress(dn, tt); });
             hideOfflineProgress();
             updateInfoPanel();
-            if (lastFetchNetworkError && found === 0) { alert("ČÚZK je nedostupné nebo jste offline. Zkuste to prosím znovu."); return; }
+            if ((lastFetchNetworkError || lastFetchServerError) && found === 0) { alert((lastFetchNetworkError ? "ČÚZK je nedostupné nebo jste offline." : "ČÚZK právě neodpovídá (možná dočasný limit).") + " Zkuste to prosím znovu.\n\nDříve uložené offline body zůstaly zachované."); return; }
             // Body i mapu rovnou ulozime pro offline -> kliknuti do mapy = oblast funguje i bez internetu.
-            setStoredData('arOfflinePoints12', JSON.stringify(arPoints.filter(p => p.cat !== 'CUSTOM')));
+            // POJISTKA: neprepisujeme ulozena data prazdnem (kdyz fetch vratil 0 kvuli chybe, ktera nebyla sit).
+            if (arPoints.some(p => p.cat !== 'CUSTOM')) setStoredData('arOfflinePoints12', JSON.stringify(arPoints.filter(p => p.cat !== 'CUSTOM')));
             let tileMsg = '';
-            if ('caches' in window) { try { const res = await cacheTilesForArea(lat, lng, rad); tileMsg = '\n' + offlineResultMsg(res); } catch (e) { tileMsg = '\nMapu se nepodařilo uložit offline: ' + ((e && e.message) ? e.message : e); } }
+            if ('caches' in window) { try { const res = await cacheTilesForArea(lat, lng, rad, true); tileMsg = '\n' + offlineResultMsg(res); } catch (e) { tileMsg = '\nMapu se nepodařilo uložit offline: ' + ((e && e.message) ? e.message : e); } }
             alert(`Staženo ${found} bodů ve vybrané oblasti — uloženo pro offline.` + tileMsg);
         };
 
         
         // Stazeni mapovych dlazdic (OSM, zoom 15-17) pro oblast do TILE_CACHE, aby mapa fungovala offline.
         // Vraci podrobny vysledek vc. duvodu selhani — at nezustava nejasne "ulozeno X z Y".
-        async function cacheTilesForArea(centerLat, centerLng, radius) {
+        // Offline ulozeni WMS dlazdic (katastr KN / ortofoto) pro oblast. URL generujeme PRES Leaflet
+        // getTileUrl teze vrstvy, kterou appka pouziva -> adresy se PRESNE shoduji s tim, co appka
+        // pozdeji zada, takze je SW offline najde (jinak by cache-miss = prazdna mapa). Setrime CUZK:
+        // jen pracovni zoomy a strop poctu dlazdic (jinak celou vrstvu preskocime).
+        async function _cacheWmsForArea(cache, layer, minLat, maxLat, minLon, maxLon, zooms, cap) {
+            const out = { ok: 0, total: 0, net: 0, http: 0, quota: 0, skipped: false };
+            if (!layer || typeof layer.getTileUrl !== 'function' || typeof L === 'undefined') return out;
+            const wasOnMap = map.hasLayer(layer);
+            if (!wasOnMap) { try { layer.addTo(map); } catch (e) { return out; } }   // onAdd nastavi _crs/_wmsVersion/_map
+            let urls = [];
+            try {
+                zooms.forEach(z => {
+                    let minX = Math.floor((minLon + 180) / 360 * Math.pow(2, z)), maxX = Math.floor((maxLon + 180) / 360 * Math.pow(2, z));
+                    let minY = Math.floor((1 - Math.log(Math.tan(maxLat * Math.PI / 180) + 1 / Math.cos(maxLat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, z));
+                    let maxY = Math.floor((1 - Math.log(Math.tan(minLat * Math.PI / 180) + 1 / Math.cos(minLat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, z));
+                    for (let x = minX; x <= maxX; x++) { for (let y = minY; y <= maxY; y++) { const c = L.point(x, y); c.z = z; try { urls.push(layer.getTileUrl(c)); } catch (e) {} } }
+                });
+            } catch (e) {}
+            if (!wasOnMap) { try { map.removeLayer(layer); } catch (e) {} }
+            out.total = urls.length;
+            if (urls.length === 0) return out;
+            if (urls.length > cap) { out.skipped = true; return out; }
+            for (let i = 0; i < urls.length; i += 8) {
+                const chunk = urls.slice(i, i + 8);
+                await Promise.all(chunk.map(async u => {
+                    // WMS dlazdice jsou cross-origin bez CORS -> no-cors (opaque), cachovat lze.
+                    try { const r = await fetch(u, { mode: 'no-cors' }); try { await cache.put(u, r); out.ok++; } catch (e) { out.quota++; } }
+                    catch (e) { out.net++; }
+                }));
+            }
+            return out;
+        }
+        async function cacheTilesForArea(centerLat, centerLng, radius, includeCuzk = false) {
             if (!('caches' in window)) return { unsupported: true, ok: 0, total: 0, net: 0, http: 0, quota: 0 };
             const latOffset = radius / 111320; const lonOffset = radius / (111320 * Math.cos(centerLat * Math.PI / 180));
             const minLat = centerLat - latOffset, maxLat = centerLat + latOffset, minLon = centerLng - lonOffset, maxLon = centerLng + lonOffset;
@@ -268,8 +340,16 @@ if ('serviceWorker' in navigator) {
                 }));
                 updateOfflineProgress(done, total);
             }
+            let wms = null;
+            if (includeCuzk) {
+                // Katastralni mapa KN je pro geodeta v terenu nejdulezitejsi -> pracovni zoomy 17-18.
+                // Ortofoto jen z17 (jinak stovky dlazdic a zbytecna zatez CUZK). Strop na vrstvu.
+                wms = {};
+                try { wms.katastr = await _cacheWmsForArea(cache, (typeof katastrLayer !== 'undefined' ? katastrLayer : null), minLat, maxLat, minLon, maxLon, [17, 18], 1500); } catch (e) {}
+                try { wms.ortofoto = await _cacheWmsForArea(cache, (typeof ortofotoLayer !== 'undefined' ? ortofotoLayer : null), minLat, maxLat, minLon, maxLon, [17], 900); } catch (e) {}
+            }
             hideOfflineProgress();
-            return { ok, total, net, http, quota };
+            return { ok, total, net, http, quota, wms };
         }
         // Srozumitelna hlaska z vysledku cacheTilesForArea (misto tiche castecne chyby).
         function offlineResultMsg(res) {
@@ -285,6 +365,11 @@ if ('serviceWorker' in navigator) {
                 if (res.quota) why.push(`${res.quota}× plné úložiště`);
                 msg += `\n⚠ ${failed} dílků se NEULOŽILO` + (why.length ? ` (${why.join(', ')})` : '') + `.\nMísto se může offline zobrazit prázdné. Zkuste to znovu s lepším signálem nebo menším poloměrem.`;
             }
+            if (res.wms) {
+                const w = res.wms;
+                const line = (name, r) => { if (!r) return ''; if (r.skipped) return `\n${name}: oblast moc velká pro offline (${r.total} dílků) — zmenšete poloměr.`; if (r.total === 0) return ''; return `\n${name}: uloženo ${r.ok} z ${r.total} dílků` + (r.ok < r.total ? ' ⚠' : ''); };
+                msg += line('Katastr KN', w.katastr) + line('Ortofoto', w.ortofoto);
+            }
             return msg;
         }
         async function saveForOffline() {
@@ -293,7 +378,7 @@ if ('serviceWorker' in navigator) {
             if (!setStoredData('arOfflinePoints12', JSON.stringify(officialPoints))) { return; }
             if (!('caches' in window)) { alert("Tento prohlížeč nepodporuje offline ukládání mapy."); return; }
             try {
-                const res = await cacheTilesForArea(userLat, userLng, mapRadius);
+                const res = await cacheTilesForArea(userLat, userLng, mapRadius, true);
                 alert(`Uloženo ${officialPoints.length} bodů pro tuto zakázku.\n` + offlineResultMsg(res));
             } catch (e) { hideOfflineProgress(); alert("Stahování mapy se nezdařilo: " + ((e && e.message) ? e.message : e)); }
         }
@@ -407,14 +492,23 @@ if ('serviceWorker' in navigator) {
         window._agDecodeBuf = _agDecodeText;
         function importPoints(event) {
             const file = event.target.files[0]; if (!file) return;
+            const fname = (file.name || '').toLowerCase();
             const reader = new FileReader();
             reader.onload = function(e) {
                 // čteme binárně a detekujeme kódování (kvůli diakritice v číslech/názvech bodů)
                 let txt = (typeof e.target.result === 'string') ? e.target.result : _agDecodeText(e.target.result);
+                // VFK (výměnný formát ČÚZK): detekce podle přípony nebo obsahu (&B/&D bloky)
+                const looksVfk = fname.endsWith('.vfk') || (/^&[HBD]/m.test(txt) && txt.indexOf('&D') >= 0);
+                if (looksVfk && typeof window.importVFKText === 'function') {
+                    const addedV = window.importVFKText(txt);
+                    if (addedV > 0) alert("Importováno " + addedV + " bodů z VFK do aktuální zakázky.");
+                    else alert("Ve VFK se nepodařilo najít body se souřadnicemi (S-JTSK).");
+                    event.target.value = ''; return;
+                }
                 let imported = null;
                 try { let j = JSON.parse(txt); if (Array.isArray(j)) imported = j; } catch (err) {}
                 if (!imported) imported = parseCoordsCSV(txt);
-                if (!imported || imported.length === 0) { alert("V souboru se nenašly žádné body.\n\nPodporováno: JSON, nebo CSV/TXT s řádky 'číslo;Y;X' (oddělovač ; , tab nebo mezera)."); event.target.value = ''; return; }
+                if (!imported || imported.length === 0) { alert("V souboru se nenašly žádné body.\n\nPodporováno: JSON, CSV/TXT s řádky 'číslo;Y;X' (oddělovač ; , tab nebo mezera), nebo VFK."); event.target.value = ''; return; }
                 const added = window.addImportedPoints(imported);
                 alert("Importováno " + added + " bodů do aktuální zakázky.");
                 event.target.value = '';
@@ -486,7 +580,7 @@ if ('serviceWorker' in navigator) {
                 }
             } catch (e) {}
             let savedId = editingCustomPointId;
-            if (editingCustomPointId) { const idx = persistentCustomPoints.findIndex(p => p.id === editingCustomPointId); if(idx !== -1) { persistentCustomPoints[idx].name = name; persistentCustomPoints[idx].lat = lat; persistentCustomPoints[idx].lng = lng; persistentCustomPoints[idx].vyska = vyska; } const arIdx = arPoints.findIndex(p => p.id === editingCustomPointId); if (arIdx !== -1) { arPoints[arIdx].name = name; arPoints[arIdx].lat = lat; arPoints[arIdx].lng = lng; arPoints[arIdx].vyska = vyska; if(arPoints[arIdx].element) { arPoints[arIdx].element.remove(); arPoints[arIdx].element = null; } } } else { const newPoint = { id: 'cp_' + Date.now(), name: name, lat: lat, lng: lng, cat: "CUSTOM", type: "custom" }; if (vyska != null) newPoint.vyska = vyska; if (pendingPointAccuracy != null) newPoint.acc = Math.round(pendingPointAccuracy * 100) / 100; newPoint.prov = { origin: (window._agPointOrigin || 'ruc'), ts: Date.now(), acc: (newPoint.acc != null ? newPoint.acc : null), qc: ((window.AGQc && AGQc.lastCode) || null) }; persistentCustomPoints.push(newPoint); const _arNew = {...newPoint, hidden: false}; arPoints.push(_arNew); savedId = newPoint.id; try { ensureFreshPointVisible(_arNew); } catch (e) {} try { if (window.AGJournal) window.AGJournal.commit({ op: 'add', id: newPoint.id, after: newPoint, origin: newPoint.prov.origin }); } catch (e) {} } pendingPointAccuracy = null; window._agPointOrigin = null; setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
+            if (editingCustomPointId) { const idx = persistentCustomPoints.findIndex(p => p.id === editingCustomPointId); if(idx !== -1) { persistentCustomPoints[idx].name = name; persistentCustomPoints[idx].lat = lat; persistentCustomPoints[idx].lng = lng; persistentCustomPoints[idx].vyska = vyska; } const arIdx = arPoints.findIndex(p => p.id === editingCustomPointId); if (arIdx !== -1) { arPoints[arIdx].name = name; arPoints[arIdx].lat = lat; arPoints[arIdx].lng = lng; arPoints[arIdx].vyska = vyska; if(arPoints[arIdx].element) { arPoints[arIdx].element.remove(); arPoints[arIdx].element = null; } } } else { const newPoint = { id: 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6), name: name, lat: lat, lng: lng, cat: "CUSTOM", type: "custom" }; if (vyska != null) newPoint.vyska = vyska; if (pendingPointAccuracy != null) newPoint.acc = Math.round(pendingPointAccuracy * 100) / 100; newPoint.prov = { origin: (window._agPointOrigin || 'ruc'), ts: Date.now(), acc: (newPoint.acc != null ? newPoint.acc : null), qc: ((window.AGQc && AGQc.lastCode) || null) }; persistentCustomPoints.push(newPoint); const _arNew = {...newPoint, hidden: false}; arPoints.push(_arNew); savedId = newPoint.id; try { ensureFreshPointVisible(_arNew); } catch (e) {} try { if (window.AGJournal) window.AGJournal.commit({ op: 'add', id: newPoint.id, after: newPoint, origin: newPoint.prov.origin }); } catch (e) {} } pendingPointAccuracy = null; window._agPointOrigin = null; setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
             saveNewPointDoc(savedId);
             drawAllMarkersOnMap(); closeCustomModal(); initARMarkers(); if (userLat && userLng) { updateInfoPanel(); } fixAppLayout();
             // BEZ GPS FIXU (offline/uvnitř): mapa by mohla mířit úplně jinam a v AR se bez
@@ -749,26 +843,54 @@ if ('serviceWorker' in navigator) {
         // FETCH s timeoutem: aby se stahovani nezaseklo navzdy, kdyz CUZK neodpovida.
         // Pri chybe site/timeoutu nastavi lastFetchNetworkError a chybu znovu vyhodi (puvodni try/catch ji spolkne).
         let lastFetchNetworkError = false;
+        let lastFetchServerError = false;   // HTTP 4xx/5xx/429 nebo ArcGIS {error} — ODLISENO od "prazdna oblast"
         function fetchWithTimeout(url, ms = 12000) {
             const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), ms);
             return fetch(url, { signal: ctrl.signal })
                 .catch(err => { lastFetchNetworkError = true; throw err; })
                 .finally(() => clearTimeout(t));
         }
+        function _sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+        // Robustni nacteni JSON z CUZK: kontroluje response.ok i ArcGIS chybu (HTTP 200 s {error}),
+        // s retry+backoffem na docasne chyby (429/5xx/timeout). Vraci data nebo null (a nastavi flag).
+        // DRIVE: response.json() se volalo na cokoliv -> 429/HTML chyba spadla do prazdneho catch a
+        // vypadala jako "zadne body", takze limit/vypadek byl k nerozeznani od prazdne oblasti.
+        async function _cuzkFetchJson(url, tries = 3) {
+            let delay = 600;
+            for (let attempt = 1; attempt <= tries; attempt++) {
+                try {
+                    const res = await fetchWithTimeout(url);
+                    if (!res.ok) {
+                        if ((res.status === 429 || res.status >= 500) && attempt < tries) { await _sleep(delay); delay *= 2; continue; }
+                        lastFetchServerError = true; return null;
+                    }
+                    let data;
+                    try { data = await res.json(); }
+                    catch (e) { if (attempt < tries) { await _sleep(delay); delay *= 2; continue; } lastFetchServerError = true; return null; }
+                    if (data && data.error) { if (attempt < tries) { await _sleep(delay); delay *= 2; continue; } lastFetchServerError = true; return null; }
+                    return data;
+                } catch (e) {
+                    // sit/timeout: fetchWithTimeout uz nastavil lastFetchNetworkError
+                    if (attempt < tries) { await _sleep(delay); delay *= 2; continue; }
+                    return null;
+                }
+            }
+            return null;
+        }
         // stabilni ID z polohy bodu -> pri opakovanem fetchi si bod udrzi stejne id (zvyrazneni, detail)
         function stableId(lat, lng) { return 'p_' + lat.toFixed(6) + '_' + lng.toFixed(6); }
 
         async function fetchGeodata(lat, lng, radius, clearExisting = false, onProgress = null) {
-            lastFetchNetworkError = false;
+            lastFetchNetworkError = false; lastFetchServerError = false;
             if (clearExisting) { arPoints.forEach(p => { if(p.element) p.element.remove(); }); arPoints = []; persistentCustomPoints.forEach(pt => arPoints.push({...pt})); }
             const fetchRadius = radius || mapRadius; const latOffset = fetchRadius / 111320; const lngOffset = fetchRadius / (111320 * Math.cos(lat * Math.PI / 180)); const bbox = `${lng - lngOffset},${lat - latOffset},${lng + lngOffset},${lat + latOffset}`; let newFoundCount = 0;
             let _gstep = 0; for (let layerId of [1, 2, 4, 5, 6]) { if (onProgress) onProgress(_gstep++, 6); 
                 const url = `https://ags.cuzk.gov.cz/arcgis/rest/services/BodovaPole/MapServer/${layerId}/query?where=1%3D1&geometry=${bbox}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&outSR=4326&f=json`;
-                try { const response = await fetchWithTimeout(url); const data = await response.json(); if (data.features && data.features.length > 0) { data.features.forEach(feat => { const dist = getDistance(lat, lng, feat.geometry.y, feat.geometry.x); if (dist <= fetchRadius + 5) { const props = feat.attributes; const layerNum = parseInt(layerId, 10); const cisloBodu = extractPointNumber(props); const nameUpper = cisloBodu.toUpperCase(); let cat = "PBPP"; if (layerNum === 1) cat = "TB"; else if (layerNum === 2) cat = "ZHB"; else if (layerNum === 4 || layerNum === 5 || nameUpper.includes('-') || nameUpper.includes('NIVEL')) cat = "NIVEL"; const existing = arPoints.find(p => p.name === cisloBodu && Math.abs(p.lat - feat.geometry.y) < 0.00001); if (!existing) { arPoints.push({ id: stableId(feat.geometry.y, feat.geometry.x), name: cisloBodu, lat: feat.geometry.y, lng: feat.geometry.x, cat: cat, type: (cat==="NIVEL"?"vyskovy":"polohovy"), rawData: props, hidden: false, currentDist: dist, bestAccuracy: null }); newFoundCount++; } else if (existing.hidden) { existing.hidden = false; newFoundCount++; } } }); } } catch(e) {}
+                try { const data = await _cuzkFetchJson(url); if (data && data.features && data.features.length > 0) { data.features.forEach(feat => { const dist = getDistance(lat, lng, feat.geometry.y, feat.geometry.x); if (dist <= fetchRadius + 5) { const props = feat.attributes; const layerNum = parseInt(layerId, 10); const cisloBodu = extractPointNumber(props); const nameUpper = cisloBodu.toUpperCase(); let cat = "PBPP"; if (layerNum === 1) cat = "TB"; else if (layerNum === 2) cat = "ZHB"; else if (layerNum === 4 || layerNum === 5 || nameUpper.includes('-') || nameUpper.includes('NIVEL')) cat = "NIVEL"; const existing = arPoints.find(p => p.name === cisloBodu && Math.abs(p.lat - feat.geometry.y) < 0.00001); if (!existing) { arPoints.push({ id: stableId(feat.geometry.y, feat.geometry.x), name: cisloBodu, lat: feat.geometry.y, lng: feat.geometry.x, cat: cat, type: (cat==="NIVEL"?"vyskovy":"polohovy"), rawData: props, hidden: false, currentDist: dist, bestAccuracy: null }); newFoundCount++; } else if (existing.hidden) { existing.hidden = false; newFoundCount++; } } }); } } catch(e) {}
             }
             if (newFoundCount === 0 || !clearExisting) {
                 const mapExtent = `${lng-0.005},${lat-0.005},${lng+0.005},${lat+0.005}`; const idUrl = `https://ags.cuzk.gov.cz/arcgis/rest/services/BodovaPole/MapServer/identify?geometry=${lng},${lat}&geometryType=esriGeometryPoint&sr=4326&layers=all&tolerance=${Math.max(fetchRadius, 40)}&mapExtent=${mapExtent}&imageDisplay=1000,1000,96&returnGeometry=true&f=json`;
-                try { const idRes = await fetchWithTimeout(idUrl); const idData = await idRes.json(); if (idData.results && idData.results.length > 0) { idData.results.forEach(res => { const dist = getDistance(lat, lng, res.geometry.y, res.geometry.x); if (dist <= fetchRadius + 5) { const props = res.attributes; const layerNum = parseInt(res.layerId, 10); const cisloBodu = extractPointNumber(props); const nameUpper = cisloBodu.toUpperCase(); let cat = "PBPP"; if (layerNum === 1) cat = "TB"; else if (layerNum === 2) cat = "ZHB"; else if (layerNum === 4 || layerNum === 5 || nameUpper.includes('-') || nameUpper.includes('NIVEL')) cat = "NIVEL"; const existing = arPoints.find(p => p.name === cisloBodu && Math.abs(p.lat - res.geometry.y) < 0.00001); if (!existing) { arPoints.push({ id: stableId(res.geometry.y, res.geometry.x), name: cisloBodu, lat: res.geometry.y, lng: res.geometry.x, cat: cat, type: (cat==="NIVEL"?"vyskovy":"polohovy"), rawData: props, hidden: false, currentDist: dist, bestAccuracy: null }); newFoundCount++; } else if (existing.hidden) { existing.hidden = false; newFoundCount++; } } }); } } catch(e) {}
+                try { const idData = await _cuzkFetchJson(idUrl); if (idData && idData.results && idData.results.length > 0) { idData.results.forEach(res => { const dist = getDistance(lat, lng, res.geometry.y, res.geometry.x); if (dist <= fetchRadius + 5) { const props = res.attributes; const layerNum = parseInt(res.layerId, 10); const cisloBodu = extractPointNumber(props); const nameUpper = cisloBodu.toUpperCase(); let cat = "PBPP"; if (layerNum === 1) cat = "TB"; else if (layerNum === 2) cat = "ZHB"; else if (layerNum === 4 || layerNum === 5 || nameUpper.includes('-') || nameUpper.includes('NIVEL')) cat = "NIVEL"; const existing = arPoints.find(p => p.name === cisloBodu && Math.abs(p.lat - res.geometry.y) < 0.00001); if (!existing) { arPoints.push({ id: stableId(res.geometry.y, res.geometry.x), name: cisloBodu, lat: res.geometry.y, lng: res.geometry.x, cat: cat, type: (cat==="NIVEL"?"vyskovy":"polohovy"), rawData: props, hidden: false, currentDist: dist, bestAccuracy: null }); newFoundCount++; } else if (existing.hidden) { existing.hidden = false; newFoundCount++; } } }); } } catch(e) {}
             }
             if (onProgress) onProgress(6, 6); initARMarkers(); drawAllMarkersOnMap(); return newFoundCount;
         }
@@ -777,15 +899,45 @@ if ('serviceWorker' in navigator) {
             document.getElementById('info').innerHTML = `Stahuji data…`;
             await fetchGeodata(lat, lng, mapRadius, false);
             const officialCount = arPoints.filter(p => p.cat !== 'CUSTOM').length;
-            if (lastFetchNetworkError && officialCount === 0) {
-                document.getElementById('info').innerHTML = `<div class="rdt"><span class="rdt-l">ČÚZK</span><span class="rdt-v" style="color:var(--danger);">nedostupné / offline</span></div>`;
+            if ((lastFetchNetworkError || lastFetchServerError) && officialCount === 0) {
+                const why = lastFetchNetworkError ? 'nedostupné / offline' : 'neodpovídá (limit?)';
+                document.getElementById('info').innerHTML = `<div class="rdt"><span class="rdt-l">ČÚZK</span><span class="rdt-v" style="color:var(--danger);">${why}</span></div>`;
             } else { updateInfoPanel(); }
         }
 
 
         // TRVALÉ ÚLOŽIŠTĚ: na iOS hrozí smazání dat (localStorage i IndexedDB) po ~7 dnech
         // nečinnosti. Požádáme o trvalé úložiště — pomáhá na Androidu/desktopu, na iOS neuškodí.
-        try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {}); } catch (e) {}
+        // Vysledek si pamatujeme (window._agPersisted) -> ukazatel uloziste v Nastavenich pak muze
+        // uzivatele varovat, kdyz je trvale uloziste ODMITNUTE (typicky iOS) a data hrozi smazanim.
+        window._agPersisted = null;
+        try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().then(function (g) { window._agPersisted = !!g; }).catch(function () {}); } catch (e) {}
+
+        // Ukazatel obsazeni uloziste + stavu trvaleho uloziste + posledni zalohy (Nastaveni -> Udrzba).
+        // Dava uzivateli VIDITELNOST driv, nez narazi do kvoty a body se prestanou ukladat.
+        window.agRenderStorageUsage = async function () {
+            const el = document.getElementById('storage-usage'); if (!el) return;
+            let parts = [];
+            try {
+                if (navigator.storage && navigator.storage.estimate) {
+                    const est = await navigator.storage.estimate();
+                    const used = est.usage || 0, quota = est.quota || 0;
+                    const mb = n => (n / 1048576).toFixed(1);
+                    const pct = quota ? Math.round(used / quota * 100) : 0;
+                    let line = `Využito <b>${mb(used)} MB</b>` + (quota ? ` z ~${mb(quota)} MB (${pct} %)` : '');
+                    if (quota && pct >= 85) line += ' <span style="color:var(--danger);">⚠ skoro plné</span>';
+                    parts.push(line);
+                } else parts.push('Prohlížeč nehlásí obsazení úložiště.');
+            } catch (e) { parts.push('Obsazení úložiště se nepodařilo zjistit.'); }
+            if (window._agPersisted === true) parts.push('trvalé úložiště: <b>ano</b>');
+            else if (window._agPersisted === false) parts.push('trvalé: <b>ne</b> — na iOS hrozí smazání dat po ~7 dnech nečinnosti, dělejte zálohy');
+            try {
+                const last = parseInt(localStorage.getItem('arLastBackupAt') || '0', 10);
+                if (last) { const d = Math.round((Date.now() - last) / 86400000); parts.push('poslední záloha: <b>' + (d <= 0 ? 'dnes' : d + ' dní zpět') + '</b>'); }
+                else parts.push('<span style="color:var(--warning);">záloha zatím nebyla stažena</span>');
+            } catch (e) {}
+            el.innerHTML = parts.join(' · ');
+        };
 
         // Stav pro preskok prepoctu vzdalenosti/azimutu, kdyz uzivatel stoji (setri CPU pri stovkach bodu).
         let _lastCalcLat = null, _lastCalcLng = null, _lastCalcCount = 0;

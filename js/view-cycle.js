@@ -63,10 +63,8 @@
             // uhnout před rozbalenou řadou nástrojů mapy (bez .expanded je display:none)
             b.classList.toggle('ag-vc-lift', !!document.querySelector('#map-controls.expanded'));
         }
+        // (Segment #view-seg byl z UI odstraněn — kolečko ho nahradilo; zbyl jen sync radií v Nastavení.)
         try {
-            document.querySelectorAll('#view-seg .seg-btn').forEach(function (x) {
-                x.classList.toggle('active', x.getAttribute('data-view') === cur());
-            });
             var r = document.querySelector('input[name="s-view"][value="' + cur() + '"]');
             if (r && !r.checked) r.checked = true;
         } catch (e) {}
