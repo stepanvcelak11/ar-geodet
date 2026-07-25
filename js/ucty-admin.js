@@ -123,6 +123,13 @@
             '#agfa-modal .agfa-chip.c-block{background:rgba(229,83,75,0.14);color:var(--danger,#e5534b);}',
             '#agfa-modal .agfa-urow.blocked .agfa-av,#agfa-modal .agfa-urow.blocked .agfa-unm b{opacity:.55;}',
             '#agfa-modal .agfa-urow.blocked{background:rgba(229,83,75,0.05);border-radius:10px;}',
+            // editor vzhledu avataru (barvy + symboly)
+            '#agfa-modal .agfa-ava-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}',
+            '#agfa-modal .agfa-ava-sw{width:38px;height:38px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;}',
+            '#agfa-modal .agfa-ava-sw.on{border-color:var(--accent,#2f9e74);box-shadow:0 0 0 3px var(--accent-soft,rgba(47,158,116,0.25));}',
+            '#agfa-modal .agfa-ava-em{width:42px;height:42px;border-radius:12px;border:1px solid var(--glass-border,rgba(255,255,255,0.16));',
+            '  background:var(--glass-bg,rgba(255,255,255,0.04));color:var(--text,#e6e8eb);font-size:20px;line-height:1;cursor:pointer;padding:0;}',
+            '#agfa-modal .agfa-ava-em.on{border-color:var(--accent,#2f9e74);box-shadow:0 0 0 3px var(--accent-soft,rgba(47,158,116,0.25));}',
             // pojistka rozložení: obsah modálu je sloupec, tělo se roztahuje a scrolluje
             // (bez toho se v některých prohlížečích obsah hroutil a tlačítka „skákala")
             '#agfa-modal .modal-content{display:flex;flex-direction:column;}',
@@ -346,7 +353,8 @@
                     ? 'naposledy ' + new Date(lastTsBy[us.name]).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) + ' — ' + lastBy[us.name]
                     : 'dnes bez aktivity';
                 html += '<div class="agfa-row">' +
-                    '<span class="agfa-av" style="' + (u.avatarStyle ? u.avatarStyle(us.name) : '') + '">' + esc(initials) + '</span>' +
+                    (u.avatarHtml ? u.avatarHtml(us.name, 'agfa-av')
+                        : '<span class="agfa-av" style="' + (u.avatarStyle ? u.avatarStyle(us.name) : '') + '">' + esc(initials) + '</span>') +
                     '<b>' + esc(us.name) + '<span class="agfa-person-sub">' + esc(us.disabled ? 'zablokovaný účet' : sub) + '</span></b>' +
                     (inWork[us.name] && !us.disabled ? '<span class="agfa-chip c-accent">v práci</span>' : '') +
                     (us.disabled ? '<span class="agfa-chip c-block">Zablokován</span>'
@@ -662,6 +670,72 @@
     // ------------------------------------------------------------------
     // Sekce Uživatelé (cloud: CRUD na serveru, propíše se všem zařízením)
     // ------------------------------------------------------------------
+    // ------------------------------------------------------------------
+    // Vzhled avataru: barva + symbol místo písmen. Ukládá se per zařízení
+    // (AGUcty.avatarSet) — cloudová firma o vzhledu nic neví, je to vizuální věc.
+    // ------------------------------------------------------------------
+    var AVA_HUES = [8, 32, 52, 95, 150, 175, 205, 235, 268, 300, 330, null];   // null = automaticky ze jména
+    var AVA_EMOJI = ['', '👷', '🙂', '😎', '🦺', '🧭', '📐', '📏', '🛰️', '⛰️', '🌲', '🏗️', '🚜', '📡', '🎯', '⭐', '🦅', '🐺'];
+    function avatarForm(body, us) {
+        var u = U(); if (!u || !u.avatarSet) return;
+        var box = body.querySelector('#agfa-uform'); if (!box) return;
+        var cur = (u.avatarGet && u.avatarGet(us.name)) || {};
+        var selH = (cur.h != null) ? cur.h : null;
+        var selE = cur.e || '';
+        function swatches() {
+            return AVA_HUES.map(function (h) {
+                var bg = (h == null) ? 'conic-gradient(hsl(0,44%,48%),hsl(120,44%,48%),hsl(240,44%,48%),hsl(0,44%,48%))'
+                    : 'linear-gradient(150deg,hsl(' + h + ',44%,48%),hsl(' + h + ',48%,33%))';
+                var on = (h === selH) || (h == null && selH == null);
+                return '<button type="button" class="agfa-ava-sw' + (on ? ' on' : '') + '" data-h="' + (h == null ? '' : h) + '"'
+                    + ' style="background:' + bg + ';" title="' + (h == null ? 'Automaticky ze jména' : 'Odstín ' + h + '°') + '"></button>';
+            }).join('');
+        }
+        function emojis() {
+            return AVA_EMOJI.map(function (e) {
+                var on = (e === selE);
+                return '<button type="button" class="agfa-ava-em' + (on ? ' on' : '') + '" data-e="' + e + '">' + (e || 'AB') + '</button>';
+            }).join('');
+        }
+        function render() {
+            box.innerHTML =
+                '<div class="agfa-pg" style="margin-top:14px;">Vzhled avataru — ' + esc(us.name) + '</div>' +
+                '<div style="display:flex;align-items:center;gap:12px;margin:8px 0 12px;">' +
+                '  <span id="agfa-ava-prev"></span>' +
+                '  <span style="font-size:12px;opacity:.75;">Takhle bude účet vypadat na přihlašovací obrazovce, v administraci i v chatu. Uloženo na tomto zařízení.</span>' +
+                '</div>' +
+                '<label class="agfa-lb">Barva</label><div class="agfa-ava-row">' + swatches() + '</div>' +
+                '<label class="agfa-lb" style="margin-top:10px;">Symbol (místo písmen)</label><div class="agfa-ava-row">' + emojis() + '</div>' +
+                '<div style="display:flex;gap:8px;margin-top:14px;">' +
+                '  <button class="btn" style="flex:1;" id="agfa-ava-save">Uložit vzhled</button>' +
+                '  <button class="btn btn-secondary" style="flex:1;" id="agfa-ava-cancel">Zrušit</button>' +
+                '</div>';
+            preview();
+            box.querySelectorAll('.agfa-ava-sw').forEach(function (b) {
+                b.onclick = function () { var v = b.getAttribute('data-h'); selH = (v === '') ? null : +v; render(); };
+            });
+            box.querySelectorAll('.agfa-ava-em').forEach(function (b) {
+                b.onclick = function () { selE = b.getAttribute('data-e') || ''; render(); };
+            });
+            box.querySelector('#agfa-ava-cancel').onclick = function () { box.innerHTML = ''; };
+            box.querySelector('#agfa-ava-save').onclick = function () {
+                u.avatarSet(us.name, { h: selH, e: selE });
+                box.innerHTML = '';
+                renderUsers(body, true);
+            };
+            try { box.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {}
+        }
+        function preview() {
+            var pv = box.querySelector('#agfa-ava-prev'); if (!pv) return;
+            var hue = (selH != null) ? selH : null;
+            // náhled počítáme lokálně (avatarGet by vrátil starý uložený stav)
+            var initials = (us.name || '?').trim().split(/\s+/).map(function (w) { return w.charAt(0); }).slice(0, 2).join('').toUpperCase();
+            var h = (hue != null) ? hue : (function (s) { var x = 0; for (var i = 0; i < s.length; i++) x = (x * 31 + s.charCodeAt(i)) % 360; return x; })(String(us.name || ''));
+            pv.innerHTML = '<span class="agfa-av" style="width:52px;height:52px;font-size:' + (selE ? '26px' : '19px') + ';background:linear-gradient(150deg,hsl(' + h + ',44%,48%),hsl(' + h + ',48%,33%));">' + (selE || esc(initials)) + '</span>';
+        }
+        render();
+    }
+
     function renderUsers(body, refreshed) {
         var u = U(), f = u.getFirm(); if (!f) return;
         var me = u.currentUser();
@@ -678,7 +752,8 @@
             var blocked = !!us.disabled;
             return '<div class="agfa-urow' + (blocked ? ' blocked' : '') + '" data-id="' + esc(us.id) + '">' +
                 '<div class="agfa-uid">' +
-                '  <span class="agfa-av" style="' + (u.avatarStyle ? u.avatarStyle(us.name) : '') + '">' + esc(initials) + '</span>' +
+                (u.avatarHtml ? u.avatarHtml(us.name, 'agfa-av')
+                    : '  <span class="agfa-av" style="' + (u.avatarStyle ? u.avatarStyle(us.name) : '') + '">' + esc(initials) + '</span>') +
                 '  <span class="agfa-unm"><b>' + esc(us.name) + '</b>' +
                 '    <span class="agfa-usub">' + roleTxt(us.role) + (!cloud && us.noPin ? ' · bez PINu' : '') +
                 (me && me.id === us.id ? ' · to jsi ty' : '') +
@@ -688,6 +763,7 @@
                 '</div>' +
                 '<div class="agfa-uact">' +
                 (cloud && !blocked ? '<button class="agfa-mini" data-act="qr">QR pro mobil</button>' : '') +
+                '<button class="agfa-mini" data-act="avatar">Vzhled</button>' +
                 '<button class="agfa-mini" data-act="edit">Upravit</button>' +
                 (blocked
                     ? '<button class="agfa-mini" data-act="unblock">Povolit</button>'
@@ -711,6 +787,7 @@
             if (!us) return;
             var act = btn.getAttribute('data-act');
             if (act === 'qr') { showUserQR(body, us, f, u); return; }
+            if (act === 'avatar') { avatarForm(body, us); return; }
             if (act === 'edit') { userForm(body, us); return; }
             if (act === 'block' || act === 'unblock') { blockUser(body, us, act === 'block'); return; }
             // smazání: nesmí zmizet poslední admin (server to hlídá taky)
@@ -1753,12 +1830,20 @@
         }
         syncMenuBtn();
         setInterval(syncMenuBtn, 3000);
-        // dlaždici „Firma a účty" skrýt zaměstnancům (nemají v ní co dělat)
+        // dlaždici „Firma a účty" skrýt zaměstnancům (nemají v ní co dělat).
+        // POZOR: musí umět i UKÁZAT — dřív jen skrývala, takže když se vyhodnotila
+        // před přihlášením (zámek při startu: firma je, uživatel ještě ne), dlaždice
+        // zmizela i adminovi a vrátila se až s překreslením mřížky Nástrojů.
         window.addEventListener('agucty:perms', function () {
             try {
-                var u = U(); if (!u || !u.getFirm()) return;
+                var u = U(); if (!u) return;
                 var tile = document.querySelector('#tools-modal .tool-tile[data-tool="ucty-firma"]');
-                if (tile && !u.isAdmin() && !u.can('x.dashboard')) tile.style.display = 'none';
+                if (!tile) return;
+                if (!u.getFirm()) { tile.style.display = ''; return; }   // bez firmy = vstup pro založení
+                var usr = u.currentUser ? u.currentUser() : null;
+                // bez přihlášeného uživatele nerozhodovat (za zámkem stejně nejde otevřít)
+                var show = !usr || u.isAdmin() || u.can('x.dashboard');
+                tile.style.display = show ? '' : 'none';
             } catch (e) {}
         });
     }

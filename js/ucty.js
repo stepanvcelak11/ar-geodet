@@ -437,6 +437,33 @@
     // Body a zakázky se s firmou nepřepínají — zůstávají v zařízení.
     // ------------------------------------------------------------------
     var PROF_KEYS = [LS_FIRM, LS_TOK, LS_OFF, LS_SYNC];
+
+    // ---- stejný účet napříč firmami (SSO na zařízení) -----------------------------
+    // Kdo se jednou přihlásí v každé firmě stejným jménem a PINem, přepíná pak mezi
+    // firmami BEZ dalšího zadávání PINu. Identita = SHA-256(jméno|PIN) se solí
+    // zařízení — samotný PIN se nikam neukládá; mapa říká jen „tahle identita je
+    // ve firmě X uživatel Y". Auto-přihlášení se použije JEN když je uživatel v
+    // okamžiku přepnutí přihlášený (po zámku/odhlášení se PIN chce znovu).
+    var LS_IDSALT = 'agIdentSalt_v1', LS_IDMAP = 'agIdentMap_v1', LS_IDCUR = 'agIdentCur_v1';
+    function identSalt() {
+        var s = null; try { s = localStorage.getItem(LS_IDSALT); } catch (e) {}
+        if (!s) { s = makeSalt(); try { localStorage.setItem(LS_IDSALT, s); } catch (e) {} }
+        return s;
+    }
+    function identOf(name, pin) {
+        return hashPin(String(name || '').trim().toLowerCase() + '|' + String(pin || ''), 'ident|' + identSalt());
+    }
+    function identMap() { try { var m = JSON.parse(localStorage.getItem(LS_IDMAP) || '{}'); return (m && typeof m === 'object') ? m : {}; } catch (e) { return {}; } }
+    function identRemember(u, pin) {
+        var f = getFirm(); if (!f || !u) return;
+        identOf(u.name, pin).then(function (h) {
+            var m = identMap();
+            m[h] = m[h] || {};
+            m[h][profileKeyOf(f)] = u.id;
+            try { localStorage.setItem(LS_IDMAP, JSON.stringify(m)); } catch (e) {}
+            try { localStorage.setItem(LS_IDCUR, h); } catch (e) {}
+        }).catch(function () {});
+    }
     function profileKeyOf(f) { return f.cloud ? ('c:' + (f.code || '?')) : ('l:' + (f.firmName || 'Moje firma')); }
     function listProfiles() {
         try { var a = JSON.parse(localStorage.getItem(LS_PROF) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; }
@@ -460,15 +487,41 @@
         var a = listProfiles(), p = null;
         for (var i = 0; i < a.length; i++) if (a[i] && a[i].key === key) p = a[i];
         if (!p || !p.snap) return false;
+        var wasLogged = !!currentUser();             // SSO jen z přihlášeného stavu
         rememberCurrentFirm();                       // ať se dá vrátit zpět
         PROF_KEYS.forEach(function (k) {
             try { if (p.snap[k] != null) localStorage.setItem(k, p.snap[k]); else localStorage.removeItem(k); } catch (e) {}
         });
-        setSess(null);                               // vždy nové přihlášení
+        // stejný účet v cílové firmě? (jméno+PIN už tu jednou prošly) -> bez PINu
+        var auto = null;
+        if (wasLogged) {
+            try {
+                var cur = localStorage.getItem(LS_IDCUR);
+                var uid = cur && identMap()[cur] && identMap()[cur][key];
+                var f2 = getFirm();
+                if (uid && f2 && f2.users) {
+                    for (var j = 0; j < f2.users.length; j++) {
+                        if (f2.users[j].id === uid && !f2.users[j].disabled) { auto = f2.users[j]; break; }
+                    }
+                }
+            } catch (e) { auto = null; }
+        }
         clearGuest();
         var g = document.getElementById('ag-gate'); if (g) g.remove();
-        applyPerms();
-        if (getFirm()) showLogin(false);
+        if (auto) {
+            setSess({ userId: auto.id, ts: Date.now() });
+            try { localStorage.setItem('arSurveyor', auto.name); } catch (e) {}
+            try { localStorage.setItem(LS_LAST, auto.id); } catch (e) {}
+            rememberDevUser(auto.id);
+            _touchActivity();
+            applyPerms();
+            usageLog('login', 'sso-switch');
+            try { if (typeof quickToast === 'function') quickToast('Přihlášen jako ' + auto.name + ' (stejný účet).'); } catch (e) {}
+        } else {
+            setSess(null);                           // nové přihlášení (PIN)
+            applyPerms();
+            if (getFirm()) showLogin(false);
+        }
         try { window.dispatchEvent(new CustomEvent('agucty:firmswitch')); } catch (e) {}
         return true;
     }
@@ -747,9 +800,37 @@
         for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360;
         return h;
     }
+    // ---- vzhled avataru: volitelná barva + symbol misto pismen -------------------
+    // Ulozeno per zarizeni pod klicem "<firma>|<jmeno>" — prezije i refreshConfig
+    // u cloudove firmy (ta o vzhledu avataru nic nevi, je to ciste vizualni vec).
+    var LS_AVA = 'agAvatar_v1';
+    function avaMap() { try { var m = JSON.parse(localStorage.getItem(LS_AVA) || '{}'); return (m && typeof m === 'object') ? m : {}; } catch (e) { return {}; } }
+    function avaKey(name) {
+        var f = getFirm();
+        return (f ? profileKeyOf(f) : 'nofirm') + '|' + String(name || '').trim().toLowerCase();
+    }
+    function avaGet(name) { return avaMap()[avaKey(name)] || null; }
+    function avaSet(name, cfg) {
+        var m = avaMap();
+        if (cfg && (cfg.h != null || cfg.e)) m[avaKey(name)] = { h: (cfg.h != null ? (+cfg.h % 360 + 360) % 360 : null), e: cfg.e || '' };
+        else delete m[avaKey(name)];
+        try { localStorage.setItem(LS_AVA, JSON.stringify(m)); } catch (e) {}
+        try { window.dispatchEvent(new CustomEvent('agucty:avatar')); } catch (e) {}
+    }
     function avStyle(name) {
-        var h = hueOf(name);
+        var c = avaGet(name);
+        var h = (c && c.h != null) ? c.h : hueOf(name);
         return 'background:linear-gradient(150deg,hsl(' + h + ',44%,48%),hsl(' + h + ',48%,33%));';
+    }
+    function avInitials(name) {
+        return String(name || '?').trim().split(/\s+/).map(function (w) { return w.charAt(0); }).slice(0, 2).join('').toUpperCase();
+    }
+    // hotový avatar (span) — jedno místo pro přihlášení, administraci i chat
+    function avHtml(name, cls) {
+        var c = avaGet(name);
+        var inner = (c && c.e) ? c.e : esc(avInitials(name));
+        var extra = (c && c.e) ? 'font-size:1.15em;' : '';
+        return '<span class="' + (cls || 'agl-av') + '" style="' + avStyle(name) + extra + '">' + inner + '</span>';
     }
     var FIRM_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-4h6v4"/><path d="M9 10h.01M15 10h.01M9 14h.01M15 14h.01"/></svg>';
     function brandHtml() {
@@ -939,11 +1020,10 @@
         // dlaždice jen pro účty, které se na TOMTO zařízení už přihlásily
         var shownUsers = loginUsers(f);
         var usersHtml = shownUsers.map(function (u) {
-            var initials = (u.name || '?').trim().split(/\s+/).map(function (w) { return w.charAt(0); }).slice(0, 2).join('').toUpperCase();
             var roleTxt = u.role === 'admin' ? 'Admin' : (u.role === 'vedeni' ? 'Vedení' : 'Zaměstnanec');
             var roleCls = u.role === 'admin' ? ' r-admin' : (u.role === 'vedeni' ? ' r-vedeni' : '');
             return '<button type="button" class="agl-user" data-id="' + esc(u.id) + '">' +
-                '<span class="agl-av" style="' + avStyle(u.name) + '">' + esc(initials) + '</span>' +
+                avHtml(u.name, 'agl-av') +
                 '<span class="agl-nm">' + esc(u.name) + '</span>' +
                 '<span class="agl-role' + roleCls + '">' + roleTxt + '</span></button>';
         }).join('');
@@ -989,9 +1069,10 @@
             pinInp.value = '';
             setTimeout(function () { try { pinInp.focus(); } catch (e) {} }, 50);
         }
-        function finish(u) {
+        function finish(u, pin) {
             setSess({ userId: u.id, ts: Date.now() });
             try { localStorage.setItem('arSurveyor', u.name); } catch (e) {}
+            identRemember(u, pin || '');   // stejný účet pak funguje i v dalších firmách
             afterLogin(u);
         }
         // společný závěr (lokální i cloud — cloud má session/token už uložené)
@@ -1026,13 +1107,14 @@
                 cloudLogin(nm, pin, function (errMsg, u2) {
                     _busy = false;
                     if (errMsg) return fail(errMsg);
+                    identRemember(u2, pin);   // stejný účet pak funguje i v dalších firmách
                     afterLogin(u2);
                 });
                 return;
             }
             if (!_selUser) { errEl.textContent = 'Nejdřív vyber uživatele.'; return; }
             hashPin(pin, _selUser.salt).then(function (h) {
-                if (h === _selUser.pinHash) { finish(_selUser); return; }
+                if (h === _selUser.pinHash) { finish(_selUser, pin); return; }
                 fail('Nesprávný PIN.');
             });
         }
@@ -1269,6 +1351,7 @@
     }
     function logout() {
         _lastUserId = null;
+        try { localStorage.removeItem(LS_IDCUR); } catch (e) {}   // odhlášení ruší i SSO
         setSess(null);
         if (getFirm()) showLogin(false);
         else if (isGuest()) applyPerms();
@@ -1355,6 +1438,9 @@
         rememberCurrentFirm: rememberCurrentFirm,
         profileKeyOf: profileKeyOf,
         avatarStyle: avStyle,   // barva avataru ze jména (užívá i administrace/chat)
+        avatarHtml: avHtml,     // hotový <span> avataru (respektuje vlastní vzhled)
+        avatarGet: avaGet,      // {h: odstín 0-359 | null, e: symbol/emoji | ''} nebo null
+        avatarSet: avaSet,      // uloží vzhled avataru pro jméno v aktuální firmě
         getLockOnStart: getLockOnStart,
         setLockOnStart: setLockOnStart,
         hashPin: hashPin,

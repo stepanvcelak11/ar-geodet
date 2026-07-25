@@ -355,6 +355,11 @@
         if (scrollDown !== false) list.scrollTop = list.scrollHeight;
     }
     function hue(name) {
+        // respektuj vlastní barvu avataru (AGUcty.avatarGet), jinak hash jména
+        try {
+            var u = U();
+            if (u && u.avatarGet) { var c = u.avatarGet(name); if (c && c.h != null) return c.h; }
+        } catch (e) {}
         var h = 0, s = String(name || '');
         for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360;
         return h;
