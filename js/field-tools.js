@@ -175,6 +175,8 @@
         'utility-networks': 'site podzemni vedeni inzenyrske gml kabel plyn voda',
         'photo-shot': 'foto totalka fotogrammetrie snimek zamereni z fotky',
         'localization-helmert': 'helmert lokalizace transformace klic mistni system',
+        zavady: 'zavada zavady porucha vada nalez hlaseni defekt kontrola oprava foto protokol reklamace',
+        'usadit-ar': 'usadit srovnat kalibrace sever ar pruvodce orientace nesedi posun helmert resekce stanovisko',
         zpravodaj: 'zpravodaj zpravy novinky clanky geodezie',
         kos: 'kos smazane body obnovit odpadky',
         zaloha: 'zaloha export import obnova dat json'

@@ -107,6 +107,10 @@
     <link rel="stylesheet" href="css/pocasi.css">
     <!-- VIZUÁLNÍ DOLADĚNÍ NÁSTROJŮ — jednotný vzhled oken nástrojů (odpojitelné: smaž tento řádek + css/tools-polish.css) -->
     <link rel="stylesheet" href="css/tools-polish.css">
+    <!-- TOKENOVÁ VRSTVA ČITELNOSTI — venkovní režim + rukavice přes design tokeny;
+         MUSÍ být POSLEDNÍ css (přepisuje tokeny). Náhled: nahledy-kontrast.html.
+         Odpojitelné: smaž tento řádek + css/tokens-outdoor.css -->
+    <link rel="stylesheet" href="css/tokens-outdoor.css">
 </head>
 <body>
 
@@ -817,6 +821,12 @@
     <!-- Docházka (příchod/odchod přes události užívání) + firemní chat (cloud) -->
     <script defer src="js/dochazka.js"></script>
     <script defer src="js/firma-chat.js"></script>
+    <!-- ZÁVADY / HLÁŠENÍ PORUCH (odpojitelné) — nálezy v terénu: foto+kategorie+závažnost, mapa/AR, protokol -->
+    <script defer src="js/zavady.js"></script>
+    <!-- USADIT AR (odpojitelné) — průvodce místo 7 kalibračních dlaždic + „Teď se hodí" -->
+    <script defer src="js/usadit-ar.js"></script>
+    <!-- STAVOVÝ PRUH (odpojitelné) — „můžu teď měřit?": GPS · sever · data · baterie + rady -->
+    <script defer src="js/stavovy-pruh.js"></script>
     <script>
         // Přepínač zobrazení v doku (AR / Split / Mapa) — využívá globální viewMode a applyViewMode() z grafika.js
         function setView(mode, btn) {

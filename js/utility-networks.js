@@ -636,7 +636,7 @@
         if (_nets.length) { drawMap(); startAr(); }
         startLive();
         if (typeof window.agRegisterFieldTool === 'function') {
-            window.agRegisterFieldTool({ id: 'utility-networks', label: 'Podzemní sítě (rentgen do země)', icon: ICON, cat: 'Katastr a sítě', onClick: openTool, order: 13 });
+            window.agRegisterFieldTool({ id: 'utility-networks', label: 'Podzemní sítě (rentgen do země)', icon: ICON, cat: 'Katastr a data', onClick: openTool, order: 13 });
         } else {
             ensureFallbackFab();
         }

@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  — mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v183';   // admin muze zablokovat ucet (Zablokovat/Povolit)
+const SHELL_CACHE = 'argeodet-shell-v185';   // zavady/hlaseni poruch + usadit-ar pruvodce + stavovy pruh + tokens-outdoor (v184 drzi vetev zpetna-vazba-25-7)
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -118,6 +118,10 @@ const ASSETS_TO_CACHE = [
     './js/ucty-admin.js',
     './js/dochazka.js',
     './js/firma-chat.js',
+    './js/zavady.js',
+    './js/usadit-ar.js',
+    './js/stavovy-pruh.js',
+    './css/tokens-outdoor.css',
     './css/qc-engine.css',
     './css/tools-polish.css',
     './js/tutorial-pro.js',

@@ -164,10 +164,51 @@
             _wasOpen = open;
         } catch (e) {}
     }
+    // ---- „Jinde v appce" — stejné hledání i pod mřížkou Nástrojů ----------------------
+    // Jedno hledání pro celou appku: když uživatel píše do pole v Nástrojích,
+    // pod dlaždicemi se ukážou i shody odjinud (Nastavení, menu Více, Kompas…).
+    // Dlaždice nástrojů se tu vynechávají — ty filtruje mřížka sama.
+    function ensureToolsHook() {
+        var inp = document.getElementById('tools-search');
+        if (!inp || inp._agAsHook) return;
+        inp._agAsHook = true;
+        inp.addEventListener('input', function () {
+            var grid = document.querySelector('#tools-modal .tool-grid');
+            if (!grid) return;
+            var box = document.getElementById('ag-as-tools');
+            var q = inp.value.trim();
+            if (!q) { if (box) box.remove(); return; }
+            var list = search(q).filter(function (it) { return it.src !== 'Nástroje'; }).slice(0, 4);
+            if (!list.length) { if (box) box.remove(); return; }
+            if (!box) {
+                box = document.createElement('div');
+                box.id = 'ag-as-tools';
+                box.style.cssText = 'grid-column:1/-1;display:flex;flex-direction:column;gap:4px;margin-top:8px;order:9999;';
+            }
+            grid.appendChild(box);   // vždy na konec mřížky
+            box.innerHTML = '<div style="font:700 11px/1 var(--font-display,system-ui),sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);margin:2px;">Jinde v appce</div>';
+            list.forEach(function (it) {
+                var b = document.createElement('button');
+                b.type = 'button'; b.className = 'ag-as-item';
+                b.appendChild(document.createTextNode(it.label));
+                if (it.src) { var s = document.createElement('small'); s.textContent = it.src; b.appendChild(s); }
+                b.addEventListener('click', function () {
+                    var m = document.getElementById('tools-modal'); if (m) m.style.display = 'none';
+                    inp.value = ''; if (window.agFilterTools) try { window.agFilterTools(''); } catch (e) {}
+                    box.remove();
+                    try { it.run(); } catch (err) { console.warn('[app-search]', err); }
+                });
+                box.appendChild(b);
+            });
+        });
+    }
+
     function init() {
         tick();
         if (!window.__agAsTimer) window.__agAsTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(tick, 1500);
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
+    // hook na pole v Nástrojích (vzniká staticky v index.html, stačí zkoušet v ticku)
+    if (!window.__agAsToolsTimer) window.__agAsToolsTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(function () { try { ensureToolsHook(); injectStyles(); } catch (e) {} }, 1500);
 })();

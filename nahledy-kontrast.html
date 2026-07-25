@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AR Geodet — kontrola kontrastu (noc / den / slunce)</title>
+    <!-- Kontrolní stránka k css/tokens-outdoor.css: stejné vzorové panely ve všech
+         režimech vedle sebe. Otevři v prohlížeči (i na mobilu venku) a jedním
+         pohledem ověř, co je čitelné. NENÍ součást appky ani service workeru. -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/tokens-outdoor.css">
+    <style>
+        /* stránka sama — neutrální obal, každý vzorek si nese režim na svém kořeni */
+        html, body { margin: 0; padding: 0; background: #555; font-family: system-ui, sans-serif; }
+        .bar { position: sticky; top: 0; z-index: 10; background: #222; color: #eee; padding: 10px 14px; font-size: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .bar b { font-size: 15px; }
+        .bar button { padding: 8px 14px; border-radius: 8px; border: 1px solid #666; background: #333; color: #eee; cursor: pointer; }
+        .bar button.on { background: #2f9e74; border-color: #2f9e74; color: #fff; }
+        .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2px; }
+        .pane { padding: 14px; min-height: 100vh; }
+        .pane h4 { margin: 0 0 10px; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; }
+        /* simulace pozadí: noc = tmavá scéna, den = mapa, slunce = přepal */
+        .pane.noc { background: linear-gradient(160deg, #1a2030, #0c0f16); }
+        .pane.noc h4 { color: #9aa1ac; }
+        .pane.den { background: linear-gradient(160deg, #cfd8c8, #e8e4d4); }
+        .pane.den h4 { color: #444; }
+        .pane.slunce { background: linear-gradient(160deg, #f4f1e4, #ffffff); }
+        .pane.slunce h4 { color: #777; }
+        .pane.slunce .wrap { filter: contrast(0.82) brightness(1.18); } /* hrubá simulace přepáleného displeje */
+        .wrap { display: flex; flex-direction: column; gap: 12px; }
+        /* vzorky potřebují lokální kontext body tříd → nesou je na sobě */
+        .sample { position: relative; }
+        .sample .glass-panel, .sample .modal-content { position: static; display: block; transform: none; }
+        .sample .modal-content { max-height: none; width: auto; padding: 14px; }
+        .sample .ar-marker { position: static; display: inline-flex; transform: none; }
+        .note { font-size: 11.5px; color: #ccc; background: rgba(0,0,0,0.45); border-radius: 6px; padding: 6px 9px; }
+        .pane.den .note, .pane.slunce .note { color: #333; background: rgba(255,255,255,0.55); }
+    </style>
+</head>
+<body>
+    <div class="bar">
+        <b>Kontrola kontrastu</b>
+        <span>Režim vzorků:</span>
+        <button data-m="dark" class="on">Tmavý</button>
+        <button data-m="dark-out">Tmavý + venkovní</button>
+        <button data-m="light">Světlý</button>
+        <button data-m="light-out">Světlý + venkovní</button>
+        <button data-m="glove">+ rukavice</button>
+        <span style="opacity:.7;">Sloupce = prostředí (noc / den / přímé slunce)</span>
+    </div>
+
+    <div class="cols" id="cols"></div>
+
+    <template id="tpl">
+        <div class="wrap">
+            <!-- stavové panely -->
+            <div class="sample">
+                <div class="glass-panel" id="info" style="position:static;display:block;">Stahuji body ČÚZK… (34 bodů)</div>
+            </div>
+            <div class="sample">
+                <div class="glass-panel" id="compass-debug" style="position:static;display:block;">Azimut: 214,6°</div>
+            </div>
+            <!-- modál -->
+            <div class="sample">
+                <div class="modal-content">
+                    <h3 style="color: var(--accent); margin-top:0;">Kubatury / vrstevnice</h3>
+                    <p>Digitální model terénu z tvých bodů s výškou Z. <small>Vyžaduje aspoň 3 body.</small></p>
+                    <label>Srovnávací výška (m)</label>
+                    <input type="number" value="312.45" step="any">
+                    <div class="st-row"><span class="st-lab">Venkovní režim<small>vysoký kontrast na slunci</small></span>
+                        <label class="st-sw"><input type="checkbox" checked><span class="st-sw-face"></span></label></div>
+                    <div class="row-buttons">
+                        <button class="btn btn-secondary">Zrušit</button>
+                        <button class="btn btn-primary">Spočítat</button>
+                    </div>
+                </div>
+            </div>
+            <!-- AR značka -->
+            <div class="sample">
+                <div class="ar-marker"><span class="ar-marker-title">TB 0945-23</span><span class="ar-marker-dist">37,2 m</span></div>
+            </div>
+            <div class="note">Zkontroluj: ① šedý vedlejší text čitelný? ② okraje panelů vidět? ③ pole formuláře odlišené od pozadí? ④ vzdálenost u AR značky čitelná?</div>
+        </div>
+    </template>
+
+    <script>
+        var ENV = [{ c: 'noc', t: 'Noc / šero' }, { c: 'den', t: 'Den (stín)' }, { c: 'slunce', t: 'Přímé slunce (simulace)' }];
+        var cols = document.getElementById('cols');
+        var tpl = document.getElementById('tpl');
+        ENV.forEach(function (e) {
+            var p = document.createElement('div');
+            p.className = 'pane ' + e.c;
+            p.innerHTML = '<h4>' + e.t + '</h4>';
+            p.appendChild(tpl.content.cloneNode(true));
+            cols.appendChild(p);
+        });
+        // Režimy se přepínají třídami na <body> — stejnými, jaké používá appka.
+        var glove = false;
+        function apply(m) {
+            document.body.classList.toggle('light-mode', m.indexOf('light') === 0);
+            document.body.classList.toggle('outdoor-mode', m.indexOf('-out') !== -1);
+            document.body.classList.toggle('ag-glove', glove);
+        }
+        var cur = 'dark';
+        document.querySelectorAll('.bar button').forEach(function (b) {
+            b.addEventListener('click', function () {
+                var m = b.getAttribute('data-m');
+                if (m === 'glove') { glove = !glove; b.classList.toggle('on', glove); apply(cur); return; }
+                cur = m;
+                document.querySelectorAll('.bar button:not([data-m="glove"])').forEach(function (x) { x.classList.remove('on'); });
+                b.classList.add('on');
+                apply(m);
+            });
+        });
+        apply('dark');
+    </script>
+</body>
+</html>
