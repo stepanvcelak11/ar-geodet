@@ -26,6 +26,7 @@
     var TOOL_CATS = {
         'brutal-gps': 'Měření', 'vyska-objektu': 'Měření', 'rangefinder': 'Měření',
         'epochy': 'Měření', 'zapisnik': 'Měření', 'track-log': 'Měření',
+        'gps-semafor': 'Měření', 'dgps': 'Měření', 'pdr-offset': 'Měření',
         'stakeout-line': 'Vytyčování a náčrt', 'offset-point': 'Vytyčování a náčrt', 'vrstvy': 'Vytyčování a náčrt',
         'cadastre-vector': 'Katastr a data', 'parcela': 'Katastr a data', 'project-import': 'Katastr a data', 'geo-overlay': 'Katastr a data',
         'ar-resection': 'AR a kalibrace', 'ar-intersection': 'AR a kalibrace', 'orient-point': 'AR a kalibrace',
@@ -143,6 +144,9 @@
         openCalcModal: 'kalkulacka vypocet prevod gon stupne uhly plocha',
         openDictModal: 'slovnik pojmy zkratky vyznam terminologie',
         'brutal-gps': 'presne gps mereni prumer prumerovani brutalni poloha bod',
+        'gps-semafor': 'semafor skore mista multipath signal kvalita gps fasada odrazy podminky',
+        dgps: 'dgps diferencni korekce zakladna rover druhy telefon presnost oprava bodu',
+        'pdr-offset': 'kroky krokovy offset vektor chuze pdr roh budovy dead reckoning',
         'vyska-objektu': 'vyska objektu budova strom stozar uhel meridlo',
         rangefinder: 'dalkomer opticky vzdalenost odhad zamereni',
         epochy: 'epochy monitoring posuny deformace sledovani opakovane',

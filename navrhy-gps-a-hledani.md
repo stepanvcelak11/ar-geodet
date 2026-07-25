@@ -1,86 +1,81 @@
-# Návrhy k výběru (25. 7. 2026) — NIC z toho není implementováno
+# Návrhy GPS + hledání — stav k 25. 7. 2026
 
-Dvě sady návrhů podle zadání. Vyber jmenovitě, co se má udělat — bez výběru se
-nic z tohoto souboru nerealizuje.
-
----
-
-## A) Přesnější měření jen mobilem (GPS) — inovace nad rámec Brutální GPS
-
-Brutální GPS už umí: warm-up, anti-Fused filtr, filtr pohybu/rychlosti/výšky,
-PDOP bránu, MAD ořez, vážený průměr, efektivní N, otočení 180°, re-okupaci,
-plánování návratu dle konstelace. Na co navázat:
-
-### A1. Vícedenní měřicí kampaň s připomínkami („3 návštěvy")
-Průvodce: bod změř dnes, appka podle drah družic naplánuje 2 další návštěvy
-(jiná konstelace = jiná systematika) a připomene je notifikací. Sezení se už
-dnes slučují inverzně-variančním průměrem — přidá se jen plánovač + notifikace.
-Reálný zisk: potlačení denní systematiky, typicky ±0,3–0,5 m → ±0,15–0,25 m.
-Pracnost: malá (staví na combineSessions + whenToReturn).
-
-### A2. Dvoutelefonní diferenční korekce („DGPS z druhého mobilu")
-Telefon A leží na známém bodě a loguje odchylku GPS v čase. Telefon B měří
-nové body. Po měření se log korekcí přenese (QR / .argeo soubor) a appka
-zpětně opraví měření B o časově odpovídající odchylku A (společná atmosférická
-a orbitalní chyba se odečte). Funguje offline, bez serveru.
-Reálný zisk: odstranění korelované systematiky — na krátkou vzdálenost (do km)
-typicky poloviční chyba. Pracnost: střední.
-
-### A3. Skóre místa před měřením („multipath semafor")
-Před spuštěním měření appka zkombinuje: predikci PDOP (už umí), elevační masku
-z Predikce signálu, gyroskopem změřený sklon horizontu a jednoduchou detekci
-fasád z kamery. Výsledek: zelená/oranžová/červená + tip „posuň se 3 m od zdi".
-Reálný zisk: prevence nejhorších měření (multipath u fasád je metry!).
-Pracnost: malá–střední (vše skoro existuje, jen spojit).
-
-### A4. Krokové vektory mezi body (PDR offset)
-Přesně zprůměruji bod A, pak jdu k bodu B s počítáním kroků + směru (IMU dead
-reckoning). Na krátké vzdálenosti (do ~30 m) je relativní vektor z kroků
-přesnější než GPS rozptyl → bod B = A + vektor. Vhodné pro rohy budov, kam
-GPS nevidí (doplněk Offset bodu bez pásma).
-Pracnost: střední (kalibrace délky kroku na GPS úsecích).
-
-### A5. Otočení 4× (0°/90°/180°/270°)
-Rozšíření stávající otočky 180° na 4 orientace — lépe vystředí anténní
-excentricitu i lokální multipath. Triviální změna v brutal-gps.
-Pracnost: velmi malá.
+Sada B (hledání bodu přes AR/mapu: režim DOHLEDÁNÍ, off-screen šipky,
+místopis offline, TTS, chytrá obchůzka) byla 25. 7. 2026 ZRUŠENA na přání —
+nevracet bez pokynu.
 
 ---
 
-## B) „Velké změny" zaměřené na jádro appky: najít bod v terénu přes AR a mapu
+## A) Přesnější měření jen mobilem (GPS) — ✅ IMPLEMENTOVÁNO 25. 7. 2026
 
-### B1. Režim DOHLEDÁNÍ (samostatná obrazovka „lovu bodu") ⭐ doporučuji
-Jedno klepnutí z karty bodu → celoobrazovkový režim vedení na bod, který sám
-přepíná podle toho, jak telefon držím:
-- telefon zvednutý = AR průhled s šipkou a vzdáleností (dnešní navigace),
-- telefon naplocho = RADAR: kruh se severem, já uprostřed, bod jako tečka
-  (posledních 20 m se hledá líp shora než přes kameru),
-- posledních ~5 m: sílící vibrace + tikání jako detektor kovu (funguje
-  s telefonem v kapse, ruce zůstávají volné na výtyčku/rýč).
-Kolem cíle kruh nejistoty (GPS ± bodu i moje) — „hledej v tomhle kruhu",
-ne ve falešně přesném bodě.
+Vše na main, SW v175 (netestováno v prohlížeči):
 
-### B2. Off-screen šipky v AR
-Body mimo záběr kamery ukazují malé šipky na okrajích obrazovky (+ počet bodů
-vlevo/vpravo). Konec otáčení se dokola „kde všechny jsou". Malá pracnost,
-velký efekt na hlavní scénář.
-
-### B3. Místopis bodu offline („najdi kámen")
-U úředních bodů stáhnout a cachovat místopisný PDF/obrázek ČÚZK (odkaz už
-v datech je) + moje fotky z minula. Na místě: fotka stabilizace vedle AR.
-Nejčastější reálný problém není dojít na bod, ale POZNAT ho v trávě.
-
-### B4. Hlasové navádění (TTS)
-„Třicet metrů, mírně vlevo… deset metrů… jsi na místě." Web Speech API,
-česky, offline hlas dle systému. Ruce volné, displej zhasnutý = úspora
-baterie. Přirozeně se kombinuje s B1.
-
-### B5. Chytré pořadí obchůzky (mini-TSP)
-Ve vytyčovacím checklistu tlačítko „seřadit podle trasy": appka spočítá
-rozumné pořadí bodů (nearest-neighbor + 2-opt, pár set ms) a vede mě po nich.
-Ušetří kilometry na velkých zakázkách.
+- **A1 Kampaň „3 návštěvy"** — js/gps-campaign.js. Po prvním sezení v Brutální
+  GPS karta „Naplánovat kampaň"; plánovač najde 2 okna s nejodlišnější sestavou
+  družic (Jaccard) a dobrým PDOP v příštích 2 dnech (bez TLE fallback +6 h/+27 h);
+  připomínka toastem + notifikací při startu appky v okně ±90 min; stav k/3
+  v Brutální GPS; uložením bodu se kampaň uzavře.
+- **A2 Dvoutelefonní DGPS** — js/dgps.js. Režim Základna (leží na známém bodě,
+  minutové bloky dE/dN/dU, autosave do LS, export .json) + režim Korekce
+  (import logu, najde body prov.origin='gps-avg' v čase logu, do 3 km od
+  základny, posun = průměr bloků 6 min před uložením bodu; zápis do žurnálu,
+  ochrana proti dvojí korekci).
+- **A3 Skóre místa (semafor)** — js/gps-semafor.js. Dlaždice v Nástrojích →
+  Měření + řádek v Brutální GPS. PDOP/družice nad uživatelovou maskou
+  (skyObsMask1 z Predikce signálu) + hlášená přesnost + dotaz na okolí
+  (volné/stromy/budovy) + nejlepší čas do 2 h. 🟢/🟠/🔴 s konkrétními tipy.
+- **A4 Krokový offset (PDR)** — js/pdr-offset.js. B = A + Σ(krok × směr);
+  detekce kroků akcelerometrem, směr currentHeading s fallbackem na vlastní
+  deviceorientation, kruhový průměr směru mezi kroky, nejistota 2 % ⊕ sin 4°;
+  kalibrace délky kroku na GPS úseku ≥25 m; ukládá origin 'pdr' + acc.
+- **A5 Otočení 4×** — v brutal-gps.js: výzvy ve ¼, ½ a ¾ zvolené doby
+  „otoč o 90° po směru hodin" (dřív jedno otočení 180° v půlce).
 
 ---
 
-**Doporučená kombinace, kdyby sis měl vybrat 2:** B1 + A3 (největší terénní
-užitek na odpracovanou hodinu). B2 a A5 jsou skoro zadarmo.
+## C) Dohledávání bodů — ČEKÁ NA JMENOVITÝ VÝBĚR (nic z toho nedělat bez výběru)
+
+### C1. Hledání podle místopisu — protínání z délek ⭐
+Zadám 2–3 míry z místopisného náčrtu (od rohu plotu, sloupu, stromu…),
+vztažné objekty určím klepnutím na mapě / v AR nebo krátkým GPS měřením.
+Appka spočítá průsečík kružnic a povede mě do něj stávající navigací.
+Řeší nejčastější reálný případ: „souřadnice nesedí nebo nejsou, ale mám
+náčrt". Staví na geo-core/linalg. Pracnost: střední.
+
+### C2. Stav bodu + hlášení závad ČÚZK
+Po dohledání jedno klepnutí: nalezen / poškozen / zničen / nenalezen + foto
+s časem a polohou. Z toho appka vygeneruje „Oznámení závady na bodovém poli"
+(PDF/e-mail — u úředních bodů je to i zákonná povinnost). Ve firemním režimu
+se stav sdílí přes existující cloud: kolega u bodu uvidí „zničen 3/2026,
+nehledej". Staví na pdf-protocol + ucty/cloud. Pracnost: malá–střední.
+
+### C3. Mapa prohledaného území („nehledej dvakrát")
+Při hledání se na mapě vybarvuje pás, kudy jsem už prošel (track-log
+existuje), volitelně navádění po vyhledávací spirále od nejpravděpodobnějšího
+místa. Pracnost: malá.
+
+### C4. Magnetometr jako hledačka kovů
+Poslední fáze hledání: telefon těsně nad zemí, appka sleduje odchylku
+magnetického pole od lokálního průměru a u anomálie (hřeb, trubka, hraniční
+znak s kovem) zrychluje tikání/vibrace. Dosah ~10–20 cm — přesně na bod
+schovaný pod drnem. Využije stávající práci s magnetometrem (kompas-check).
+Pracnost: malá–střední.
+
+### C5. Offline balíček úředních bodů v okolí
+Při přípravě zakázky stáhnout TB/ZhB/PBPP/nivelační body v okruhu z ČÚZK
+(ArcGIS REST služby bodových polí — nutno ověřit endpoint a CORS) do offline
+vrstvy vč. čísel bodů. Rozšíření cuzk-geodata.js, které dnes jen odkazuje
+na DATAZ ručně. Pracnost: střední.
+
+### C6. OCR geodetických údajů
+Vyfotit list geodetických údajů → appka vytáhne číslo bodu, souřadnice
+i místopisné míry (ty rovnou nakrmí C1). Rozšíření stávajícího OCR.
+Pracnost: střední.
+
+### C7. Hledací karta bodu (příprava v kanceláři)
+Pro každý bod zakázky jednostránkový brief k tisku/do PDF: výřez mapy,
+katastr, míry z místopisu, poslední známý stav a poznámky kolegů. Staví
+na pdf-protocol. Pracnost: malá.
+
+**Doporučení ze sady C:** C1 (řeší jádro problému — bod vůbec najít) a
+C2 (jednou implementované se vyplácí celé firmě). C3 je skoro zadarmo.

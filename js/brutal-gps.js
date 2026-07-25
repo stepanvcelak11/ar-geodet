@@ -16,7 +16,8 @@
 //   • Konvergenční kruh — živě ukazuje klesající chybu, cíl ±0,5 m.
 //   • Re-okupace v čase — bod změříš ve více sezeních; appka přes satelitní engine
 //     poradí, KDY se vrátit (jiná geometrie → vyruší se multipath), a sezení spojí.
-//   • Otočení o 180° v půlce ZVOLENÉ doby měření — průměruje multipath dle orientace antény.
+//   • Otočení o 90° ve čtvrtinách ZVOLENÉ doby (0/90/180/270°) — průměruje multipath
+//     i excentricitu antény podle orientace telefonu (A5).
 //   • Napojení na lokální kalibraci (window.agRefShift) — přičte korekční vektor.
 //
 // Vstup: dlaždice „Brutální GPS" v launcheru (js/field-tools.js).
@@ -53,7 +54,7 @@
     var _pdopNow = null, _pdopAt = 0, _satN = 0;
     var _sessions = [];                       // [{lat,lng,n,sigma,sterr,dur,t}]
     var _prevView = null, _camWasLive = false;
-    var _rotatePrompted = false, _rotateTs = 0, _targetS = 300;   // cílová doba měření (s); otočení o 180° v půlce
+    var _rotStep = 0, _rotateTs = 0, _targetS = 300;   // cílová doba měření (s); otočení o 90° ve čtvrtinách (A5)
 
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
 
@@ -228,7 +229,7 @@
         el.innerHTML =
             '<div class="bgps-top"><h2>' + ICON + ' Brutální GPS</h2><button class="bgps-x" type="button" aria-label="Zavřít" id="bgps-close">×</button></div>'
             + '<p class="bgps-sub">Statické vysoce přesné měření jen z mobilu. Polož telefon <b>na plocho, displejem nahoru</b>, mimo tělo a kov, na měřený bod — a nech ležet. Čím déle, tím líp.</p>'
-            + '<div class="bgps-dur"><span class="bgps-dur-lbl">Plánovaná doba (v půlce vyzve otočit telefon)</span><div class="bgps-dur-chips" id="bgps-dur-chips"></div></div>'
+            + '<div class="bgps-dur"><span class="bgps-dur-lbl">Plánovaná doba (ve čtvrtinách vyzve otočit o 90°)</span><div class="bgps-dur-chips" id="bgps-dur-chips"></div></div>'
             + '<div class="bgps-ring-wrap"><div class="bgps-ring">' + ringSvg()
             + '<div class="bgps-ring-center"><div class="bgps-val" id="bgps-val">–</div><div class="bgps-val-sub" id="bgps-val-sub">čeká na start</div></div></div></div>'
             + '<div class="bgps-status" id="bgps-status">Připraveno. Umísti telefon a stiskni Spustit.</div>'
@@ -304,9 +305,9 @@
             try { if (window.AGQc) window.AGQc.onBrutal(st); } catch (e) {}   // QC: kód kvality (odpojitelné)
         } else if (cur) { cur.setAttribute('r', '110'); }
 
-        // otočení o 180° v půlce zvolené doby (natvrdo) — spustí se jednou
-        if (_phase === 'collect' && !_rotatePrompted && elapsed >= WARMUP_S + 5 && elapsed >= _targetS / 2) {
-            _rotatePrompted = true; _rotateTs = Date.now();
+        // A5: otočení o 90° ve čtvrtinách zvolené doby (0/90/180/270°) — 3 výzvy
+        if (_phase === 'collect' && _rotStep < 3 && elapsed >= WARMUP_S + 5 && elapsed >= _targetS * (_rotStep + 1) / 4) {
+            _rotStep++; _rotateTs = Date.now();
         }
         // průběžný stav během sběru
         if (_phase === 'warmup') {
@@ -315,7 +316,7 @@
             setStatus('Pohyb! Sběr pozastaven — nech telefon v klidu ležet.', 'bad');
         } else if (_phase === 'collect') {
             if (_rotateTs && (Date.now() - _rotateTs) < 14000) {
-                setStatus('Půlka času — OTOČ telefon o 180° a nech dál ležet (vyruší multipath).', 'warn');
+                setStatus((['¼', '½', '¾'][_rotStep - 1] || '') + ' času — OTOČ telefon o 90° po směru hodin a nech dál ležet (vyruší multipath).', 'warn');
             } else if (_result && _samples.length >= 3) {
                 var done = elapsed >= _targetS, goodQ = _result.sterr <= GOOD_M;
                 if (done) setStatus('Naměřeno ' + fmtTime(elapsed) + ' — ' + (goodQ ? 'kvalita OK, můžeš uložit.' : 'slabší kvalita, zvaž delší měření.'), goodQ ? 'good' : 'warn');
@@ -380,7 +381,7 @@
         if (typeof navigator === 'undefined' || !navigator.geolocation) { agAlert('GPS', 'Geolokace není dostupná.'); return; }
         _samples = []; _result = null; _prevAlt = null; _accHist = [];
         _rej = { warmup: 0, fused: 0, motion: 0, speed: 0, alt: 0, pdop: 0 };
-        _rotatePrompted = false; _rotateTs = 0; _t0 = Date.now(); _phase = 'warmup';
+        _rotStep = 0; _rotateTs = 0; _t0 = Date.now(); _phase = 'warmup';
         lockScreen(); startMotion(); refreshPdop();
         try {
             _watchId = navigator.geolocation.watchPosition(onFix, onFixErr, { enableHighAccuracy: true, maximumAge: 0, timeout: 27000 });
@@ -413,6 +414,7 @@
         if (!_result || _samples.length < 3) { agAlert('Re-okupace', 'Nejdřív dokonči alespoň jedno měření.'); return; }
         _sessions.push({ lat: _result.lat, lng: _result.lng, n: _result.n, sigma: _result.sigma, sterr: _result.sterr, dur: (Date.now() - _t0) / 1000, t: Date.now() });
         persistSessions();
+        try { if (window.AGCampaign && AGCampaign.onSession) AGCampaign.onSession(_sessions.slice(), _ui); } catch (e) {}
         var comb = combineSessions();
         if (comb && comb.spread != null && comb.spread > 1.0)
             setStatus('Sezení uloženo, ale rozptyl mezi sezeními je ' + comb.spread.toFixed(2) + ' m — zvaž další.', 'warn');
@@ -469,8 +471,9 @@
             var sj = (typeof proj4 === 'function') ? proj4('EPSG:4326', 'EPSG:5514', [lng, lat]) : null;
             var coords = sj ? ('\nY ' + Math.abs(sj[0]).toFixed(2) + '  X ' + Math.abs(sj[1]).toFixed(2)) : '';
             var srcTxt = (src.n && _sessions.length > 1) ? ('\nSpojeno z ' + src.n + ' sezení') : '';
-            // re-okupace dokončena → vyčisti uložená sezení
+            // re-okupace dokončena → vyčisti uložená sezení (+ ukonči případnou kampaň A1)
             _sessions = []; persistSessions();
+            try { if (window.AGCampaign && AGCampaign.onSaved) AGCampaign.onSaved(name); } catch (e) {}
             agAlert('Bod uložen', '#' + name + ' uložen do zakázky.\nDosažená přesnost ±' + (src.sterr != null ? src.sterr.toFixed(2) : '?') + ' m' + coords + srcTxt + calibTxt);
             close();
         } else {
@@ -493,6 +496,10 @@
         var sub = $('bgps-val-sub'); if (sub) sub.textContent = 'čeká na start';
         setStatus(_sessions.length ? ('Rozpracovaná re-okupace: ' + _sessions.length + ' sezení. Spusť další, nebo ulož.') : 'Připraveno. Umísti telefon a stiskni Spustit.', _sessions.length ? 'warn' : null);
         refreshPdop(); render();
+        // A1/A3 (odpojitelné moduly): kampaň „3 návštěvy" + skóre místa se vloží
+        // do overlaye, jen když jsou načtené — jinak se nic neděje
+        try { if (window.AGCampaign && AGCampaign.onBrutalOpen) AGCampaign.onBrutalOpen(_ui); } catch (e) {}
+        try { if (window.AGSemafor && AGSemafor.onBrutalOpen) AGSemafor.onBrutalOpen(_ui); } catch (e) {}
         if (!_tick) _tick = setInterval(render, 300);
     }
     function close() {
