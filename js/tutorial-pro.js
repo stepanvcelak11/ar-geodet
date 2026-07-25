@@ -42,10 +42,41 @@
 
     var MODAL_IDS = ['tools-modal', 'measure-modal', 'custom-modal-overlay', 'manage-modal', 'settings-modal',
         'dict-modal', 'compass-modal', 'cluster-modal', 'nearby-modal', 'about-modal', 'agpc-modal'];
-    function closeAllModals() {
-        MODAL_IDS.forEach(function (id) { var m = document.getElementById(id); if (m) m.style.display = 'none'; });
+    function closeAllModals(exceptId) {
+        MODAL_IDS.forEach(function (id) { if (id === exceptId) return; var m = document.getElementById(id); if (m) m.style.display = 'none'; });
         var sm = document.getElementById('side-menu'); if (sm) sm.classList.remove('open');
         var bs = document.getElementById('bottom-sheet'); if (bs) bs.classList.remove('open');
+    }
+    // Nástroje nechat otevřené mezi kroky — zavřít+otevřít by pokaždé přehrálo
+    // nájezdovou animaci modálu (poskakování). Vrací true, když se teď otevíraly.
+    function showTools() {
+        closeAllModals('tools-modal');
+        var m = document.getElementById('tools-modal');
+        if (m && m.style.display !== 'flex') { m.style.display = 'flex'; return true; }
+        return false;
+    }
+    // Krok s kategorií Nástrojů: otevřít modal, srolovat na nadpis kategorie a ten zvýraznit.
+    function catStep(name) {
+        return {
+            before: function () {
+                var opened = showTools();
+                // roluje se až po doběhnutí nájezdu modálu, jinak se cíl trefí uprostřed animace
+                setTimeout(function () {
+                    try {
+                        var el = findCat(name);
+                        if (el && el.scrollIntoView) el.scrollIntoView({ block: 'center' });
+                    } catch (e) {}
+                }, opened ? 400 : 30);
+            },
+            target: function () { return findCat(name); }
+        };
+    }
+    function findCat(name) {
+        var cats = document.querySelectorAll('#tools-modal .tool-cat');
+        for (var i = 0; i < cats.length; i++) {
+            if ((cats[i].textContent || '').trim().toLowerCase().indexOf(name.toLowerCase()) === 0) return cats[i];
+        }
+        return null;
     }
 
     // ---- kroky -----------------------------------------------------------------
@@ -70,39 +101,40 @@
             body: 'Nástroje jsou řazené do kategorií: <b>Měření</b>, <b>Vytyčování a náčrt</b>, <b>Katastr a data</b>, <b>AR a kalibrace</b> a <b>Pomůcky</b>.',
             before: function () { closeAllModals(); }
         },
-        {
-            title: 'Měření', body: '<b>Brutální GPS</b> (dlouhé průměrování s otočkou 180° — nejpřesnější bod jen z mobilu), <b>Výška objektu</b>, <b>Epochy/monitoring</b> posunů, digitální <b>Zápisníky</b> (nivelace, směry), <b>oměrné</b>, <b>kubatury a vrstevnice</b>, optický dálkoměr, stopa trasy.',
-            before: function () { closeAllModals(); var m = document.getElementById('tools-modal'); if (m) m.style.display = 'flex'; }
-        },
-        {
-            title: 'AR a kalibrace', body: 'Aby AR sedělo na skutečnost: <b>Srovnat sever</b> (1 bod), <b>Srovnat AR na 2 body</b>, <b>AR resekce</b> a <b>Volné stanovisko</b> (kde stojím?), <b>Protínání vpřed</b>, <b>Rajón</b>, <b>Lokalizace (Helmert)</b> pro usazení měření na dané body.',
-            before: function () { closeAllModals(); var m = document.getElementById('tools-modal'); if (m) m.style.display = 'flex'; }
-        },
-        {
-            title: 'Vytyčování a náčrt', body: '<b>Vytyčovací checklist</b> s navigací na bod, <b>Vytyčení přímky</b> (odchylka + staničení), <b>Offset bod</b>, polní <b>náčrt/tachymetrie</b> a <b>Vrstvy/pokládka</b> pro kontrolu vrstev vozovky („Do tabletu: +X cm").',
-            before: function () { closeAllModals(); var m = document.getElementById('tools-modal'); if (m) m.style.display = 'flex'; }
-        },
-        {
-            title: 'Katastr a data', body: '<b>Vektorový katastr</b> (hranice parcel z ČÚZK v mapě i AR), <b>import projektu/DXF</b>, hromadné <b>stažení bodů z výřezu mapy</b>, <b>podzemní sítě</b> („rentgen do země") a <b>poslat/načíst zakázku</b> souborem .argeo.',
-            before: function () { closeAllModals(); var m = document.getElementById('tools-modal'); if (m) m.style.display = 'flex'; }
-        },
-        {
-            title: 'Pomůcky', body: '<b>Postupy měření</b> (tahák krok za krokem), <b>Předpisy &amp; odchylky</b> (offline limity z vyhlášek), <b>Urovnání stativu</b> (chytrá libela), <b>Predikce signálu</b> (kolik družic zbude u lesa/v zástavbě), kalkulačka, slovník.',
-            before: function () { closeAllModals(); var m = document.getElementById('tools-modal'); if (m) m.style.display = 'flex'; }
-        },
+        Object.assign(catStep('Měření'), {
+            title: 'Měření', body: '<b>Brutální GPS</b> (dlouhé průměrování s otočkou 180° — nejpřesnější bod jen z mobilu), <b>Výška objektu</b>, <b>Epochy/monitoring</b> posunů, digitální <b>Zápisníky</b> (nivelace, směry), <b>oměrné</b>, <b>kubatury a vrstevnice</b>, optický dálkoměr, stopa trasy.'
+        }),
+        Object.assign(catStep('AR a kalibrace'), {
+            title: 'AR a kalibrace', body: 'Aby AR sedělo na skutečnost: <b>Srovnat sever</b> (1 bod), <b>Srovnat AR na 2 body</b>, <b>AR resekce</b> a <b>Volné stanovisko</b> (kde stojím?), <b>Protínání vpřed</b>, <b>Rajón</b>, <b>Lokalizace (Helmert)</b> pro usazení měření na dané body.'
+        }),
+        Object.assign(catStep('Vytyčování'), {
+            title: 'Vytyčování a náčrt', body: '<b>Vytyčovací checklist</b> s navigací na bod, <b>Vytyčení přímky</b> (odchylka + staničení), <b>Offset bod</b>, polní <b>náčrt/tachymetrie</b> a <b>Vrstvy/pokládka</b> pro kontrolu vrstev vozovky („Do tabletu: +X cm").'
+        }),
+        Object.assign(catStep('Katastr a data'), {
+            title: 'Katastr a data', body: '<b>Vektorový katastr</b> (hranice parcel z ČÚZK v mapě i AR), <b>import projektu/DXF</b>, hromadné <b>stažení bodů z výřezu mapy</b>, <b>podzemní sítě</b> („rentgen do země") a <b>poslat/načíst zakázku</b> souborem .argeo.'
+        }),
+        Object.assign(catStep('Pomůcky'), {
+            title: 'Pomůcky', body: '<b>Postupy měření</b> (tahák krok za krokem), <b>Předpisy &amp; odchylky</b> (offline limity z vyhlášek), <b>Urovnání stativu</b> (chytrá libela), <b>Predikce signálu</b> (kolik družic zbude u lesa/v zástavbě), kalkulačka, slovník.'
+        }),
         {
             title: 'AR sedí na terénu (DMR 5G)', body: 'V ovládání mapy zapni vrstvu <b>terén</b> — AR objekty a body si sednou na skutečný výškopis terénu místo ploché roviny. Lepší dojem hloubky ve svahu.',
             before: function () { closeAllModals(); }
         },
         {
-            title: 'Průvodce úkolem', body: 'Nevíš, čím začít? V menu <b>Více → Průvodce úkolem</b> ti appka podle činnosti (vytyčování, sběr bodů, úřední body, měření) sama nachystá zakázku a správné nástroje.',
+            title: 'Průvodce úkolem', target: '#dock-vice-btn',
+            body: 'Nevíš, čím začít? V menu <b>Více → Průvodce úkolem</b> ti appka podle činnosti (vytyčování, sběr bodů, úřední body, měření) sama nachystá zakázku a správné nástroje.',
             before: function () { closeAllModals(); }
         },
         { title: 'Hotovo!', body: 'Skoro vše funguje <b>offline</b> a každý nástroj má návod pod <b>?</b> na dlaždici. Hodně zdaru v terénu. 📐' }
     ];
 
     // ---- engine ----------------------------------------------------------------
-    var steps = [], idx = 0, curTargetSel = null, listening = false;
+    var steps = [], idx = 0, curTarget = null, listening = false, renderToken = 0;
+    function resolveTarget(t) {
+        if (typeof t === 'function') { try { return t(); } catch (e) { return null; } }
+        if (typeof t === 'string') return $(t);
+        return null;
+    }
 
     function injectStyles() {
         if (document.getElementById('agtp-style')) return;
@@ -129,8 +161,9 @@
             '#agtp-card .agtp-back{background:var(--surface-2,rgba(255,255,255,.09));color:var(--text-color,#e8edf2);}',
             '#agtp-card .agtp-next{background:var(--accent,#2f9e74);color:#04110b;}',
             '#agtp-card .agtp-back:disabled{opacity:.4;cursor:default;}',
-            // rozcestník
-            '#agtp-pick .agtp-pick-grid{display:flex;flex-direction:column;gap:10px;margin:8px 0 4px;}',
+            // rozcestník — mřížka vyplní výšku fullscreen modálu (stejný vzor jako .modal-body),
+            // takže „Zavřít" sedí dole jako pevná patička (margin-top:auto na iOS zlobí)
+            '#agtp-pick .agtp-pick-grid{display:flex;flex-direction:column;gap:10px;margin:8px 0 4px;flex:1 1 auto;min-height:0;overflow-y:auto;}',
             '#agtp-pick .agtp-pick-b{display:flex;align-items:flex-start;gap:12px;text-align:left;padding:14px;border-radius:14px;cursor:pointer;',
             '  background:var(--surface-2,rgba(255,255,255,.06));border:1px solid var(--glass-border,rgba(255,255,255,.12));color:var(--text-color,#e8edf2);}',
             '#agtp-pick .agtp-pick-b:active{transform:scale(.99);}',
@@ -177,15 +210,25 @@
         var cw = card.offsetWidth || 320, ch = card.offsetHeight || 160;
         var vw = window.innerWidth, vh = window.innerHeight, m = 12;
         var top, left;
+        function clampv(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
         if (!rect) {
             top = Math.max(m, (vh - ch) / 2); left = Math.max(m, (vw - cw) / 2);
+        } else if (rect.left > vw * 0.6 && rect.left - cw - m >= 0) {
+            // cíl u pravého okraje (svislý dok): karta VLEVO od něj, svisle na střed cíle
+            // — karta pod tlačítkem doku by zakryla zbytek doku
+            left = rect.left - cw - m;
+            top = clampv(rect.top + (rect.bottom - rect.top) / 2 - ch / 2, m, vh - ch - m);
+        } else if (rect.right < vw * 0.4 && rect.right + cw + m <= vw) {
+            // totéž zrcadlově (režim levé ruky — dok u levého okraje)
+            left = rect.right + m;
+            top = clampv(rect.top + (rect.bottom - rect.top) / 2 - ch / 2, m, vh - ch - m);
         } else {
             // pod cílem, jinak nad, jinak vystředit svisle
             if (rect.bottom + ch + m <= vh) top = rect.bottom + m;
             else if (rect.top - ch - m >= 0) top = rect.top - ch - m;
             else top = Math.max(m, (vh - ch) / 2);
             left = rect.left + rect.width / 2 - cw / 2;
-            left = Math.max(m, Math.min(left, vw - cw - m));
+            left = clampv(left, m, vw - cw - m);
         }
         card.style.top = Math.round(top) + 'px';
         card.style.left = Math.round(left) + 'px';
@@ -195,14 +238,15 @@
         var hole = document.getElementById('agtp-hole');
         if (target && visible(target)) {
             var r = target.getBoundingClientRect(), pad = 8;
+            var pr = { top: Math.max(0, r.top - pad), bottom: r.bottom + pad, left: Math.max(0, r.left - pad), right: r.right + pad, width: r.width + pad * 2 };
             if (hole) {
-                hole.style.top = Math.max(0, r.top - pad) + 'px';
-                hole.style.left = Math.max(0, r.left - pad) + 'px';
-                hole.style.width = (r.width + pad * 2) + 'px';
+                hole.style.top = pr.top + 'px';
+                hole.style.left = pr.left + 'px';
+                hole.style.width = pr.width + 'px';
                 hole.style.height = (r.height + pad * 2) + 'px';
                 hole.classList.add('show');
             }
-            placeCard({ top: Math.max(0, r.top - pad), bottom: r.bottom + pad, left: Math.max(0, r.left - pad), width: r.width + pad * 2 });
+            placeCard(pr);
         } else {
             if (hole) hole.classList.remove('show');
             placeCard(null);
@@ -211,13 +255,12 @@
 
     function render() {
         var s = steps[idx]; if (!s) { finish(); return; }
+        var token = ++renderToken;
         call(s.before);
         // počkej chvíli, ať se otevřený modal stihne vykreslit, pak pozicuj
         var doPos = function () {
-            curTargetSel = (typeof s.target === 'string') ? s.target : null;
-            var target = null;
-            if (typeof s.target === 'function') { try { target = s.target(); } catch (e) {} }
-            else if (typeof s.target === 'string') target = $(s.target);
+            if (token !== renderToken) return; // mezitím se šlo na jiný krok
+            curTarget = s.target || null;
             var card = document.getElementById('agtp-card');
             if (card) {
                 card.querySelector('.agtp-t').innerHTML = s.title || '';
@@ -226,9 +269,12 @@
                 var back = card.querySelector('.agtp-back'); back.disabled = (idx === 0);
                 card.querySelector('.agtp-next').textContent = (idx === steps.length - 1) ? 'Dokončit' : 'Další';
             }
-            positionFor(target);
+            positionFor(resolveTarget(curTarget));
         };
         if (s.before) setTimeout(doPos, 90); else doPos();
+        // dopozicování po doběhnutí animací (nájezd modálu 0,34 s + scrollIntoView) —
+        // dřív se cíl trefil uprostřed animace a rámeček/karta zůstaly rozhozené
+        setTimeout(function () { if (token === renderToken && steps.length) positionFor(resolveTarget(curTarget)); }, 560);
     }
 
     function go(dir) {
@@ -240,8 +286,7 @@
 
     function reposition() {
         if (!steps.length) return;
-        var target = curTargetSel ? $(curTargetSel) : null;
-        positionFor(target);
+        positionFor(resolveTarget(curTarget));
     }
 
     function startTour(arr) {
@@ -263,7 +308,7 @@
         show(false);
         closeAllModals();
         var wasAuto = autoFirstRun; autoFirstRun = false;
-        steps = []; curTargetSel = null;
+        steps = []; curTarget = null;
         if (listening) {
             window.removeEventListener('resize', reposition);
             window.removeEventListener('orientationchange', reposition);
@@ -280,8 +325,11 @@
         injectStyles();
         var el = document.createElement('div');
         el.className = 'modal-overlay'; el.id = 'agtp-pick'; el.style.zIndex = '199000';
+        // BEZ inline max-width: modaly jsou v appce fullscreen (.modal-overlay .modal-content
+        // width/height 100 %) — zúžená karta s výškou 100 % vypadala jako rozbitý pás.
+        // „Zavřít" je pevná patička dole (margin-top:auto) jako u ostatních modálů.
         el.innerHTML =
-            '<div class="modal-content" style="max-width:420px;">'
+            '<div class="modal-content">'
             + '<h3 style="color:var(--accent);margin-top:0;"><svg class="icon"><use href="#i-bulb"/></svg> Interaktivní návod</h3>'
             + '<p style="font-size:13px;opacity:.7;margin:2px 0 8px;">Vyber prohlídku. Procházej tlačítkem Další, kdykoli můžeš přeskočit.</p>'
             + '<div class="agtp-pick-grid">'

@@ -264,6 +264,13 @@ body {
 
 .modal-body, .sheet-content { touch-action: pan-y; }
 #map-container { touch-action: none; }
+/* Dorolování na konec seznamu se NESMÍ zřetězit na kořen dokumentu — jinak se
+   (hlavně na iOS, kde zámek scrollTo(0,0) během gesta nestíhá) odscrolluje celá
+   appka a „vyjede" obsah odsunutý mimo obrazovku. */
+.modal-body, .modal-content, .sheet-content, #side-menu, #side-menu .menu-scroll,
+#manage-list, #cluster-list, .ag-scrollable {
+    overscroll-behavior: contain;
+}
 
 /* Číselná/technická data — monospace, na šířku číslic (přístrojový readout) */
 .geo-value, .ar-marker-dist, #ar-hud-dist, #compass-debug, .cp-coords,
@@ -475,7 +482,9 @@ body {
 
 /* ---- Boční menu ------------------------------------------------------- */
 #side-menu {
-    position: absolute;
+    /* FIXED, ne absolute — stejný důvod jako #bottom-sheet: zavřené menu odsunuté
+       mimo obrazovku (right:-320px / -100%) nesmí tvořit scrollovatelný přesah kořene. */
+    position: fixed;
     top: max(calc(var(--hud-top) + 55px), calc(env(safe-area-inset-top) + 55px));
     right: -320px;
     width: 250px;
@@ -789,7 +798,11 @@ body {
 }
 
 #bottom-sheet {
-    position: absolute;
+    /* FIXED, ne absolute: zavřená karta (translateY(120%)) by jako absolute
+       vytvářela scrollovatelný přesah dokumentu → přetáhnutí scrollu v modálech
+       (Více/Nastavení/Nástroje) se zřetězilo na kořen a karta „vyjela".
+       position:fixed do scrollovatelného přesahu nepočítá. */
+    position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
