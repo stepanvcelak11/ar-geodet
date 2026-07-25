@@ -101,6 +101,25 @@
             '#agfa-modal .agfa-meter>i.crit{background:var(--danger,#e5534b);}',
             // rozpis docházky
             '#agfa-modal .agfa-shift-day{font:700 12px/1 var(--font-ui,system-ui);color:var(--text,#e6e8eb);margin:12px 0 2px;}',
+            // hlavička: kterou firmu právě spravuju (+ přepnutí)
+            '#agfa-modal .agfa-firmbar{display:none;}',
+            '#agfa-modal .agfa-firmbar.on{display:flex;align-items:center;gap:10px;margin:0 0 10px;padding:10px 12px;border-radius:13px;',
+            '  background:var(--accent-soft,rgba(47,158,116,0.1));border:1px solid var(--accent-line,rgba(47,158,116,0.3));}',
+            '#agfa-modal .agfa-fb-ico{flex:none;width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;',
+            '  color:var(--accent,#2f9e74);background:var(--glass-bg,rgba(255,255,255,0.06));}',
+            '#agfa-modal .agfa-fb-ico svg{width:16px;height:16px;}',
+            '#agfa-modal .agfa-fb-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}',
+            '#agfa-modal .agfa-fb-txt b{font:700 13.5px/1.25 var(--font-ui,system-ui);color:var(--text,#e6e8eb);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+            '#agfa-modal .agfa-fb-txt span{font:500 11px/1.25 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+            // řádek uživatele: identita nahoře, akce pod tím zprava (urovnané)
+            '#agfa-modal .agfa-urow{padding:11px 6px;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.07));}',
+            '#agfa-modal .agfa-urow:last-child{border-bottom:none;}',
+            '#agfa-modal .agfa-uid{display:flex;align-items:center;gap:10px;}',
+            '#agfa-modal .agfa-unm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}',
+            '#agfa-modal .agfa-unm b{font:700 13.5px/1.25 var(--font-ui,system-ui);color:var(--text,#e6e8eb);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+            '#agfa-modal .agfa-usub{font:500 11px/1.25 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
+            '#agfa-modal .agfa-uact{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;margin-top:9px;}',
+            '#agfa-modal .agfa-uact .agfa-mini{flex:1 1 auto;min-width:92px;text-align:center;}',
             // pojistka rozložení: obsah modálu je sloupec, tělo se roztahuje a scrolluje
             // (bez toho se v některých prohlížečích obsah hroutil a tlačítka „skákala")
             '#agfa-modal .modal-content{display:flex;flex-direction:column;}',
@@ -136,6 +155,7 @@
         m.innerHTML =
             '<div class="modal-content">' +
             '  <h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Firma a účty</h3>' +
+            '  <div class="agfa-firmbar" id="agfa-firmbar"></div>' +
             '  <div class="agfa-nav" id="agfa-nav"></div>' +
             '  <div class="modal-body" id="agfa-body" style="flex:1;overflow-y:auto;"></div>' +
             '  <button class="btn btn-secondary" style="margin-top:12px;" onclick="document.getElementById(\'agfa-modal\').style.display=\'none\'">Zavřít</button>' +
@@ -192,10 +212,38 @@
         chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2.4-2.9A8 8 0 1 1 21 12z"/></svg>'
     };
 
+    // ------------------------------------------------------------------
+    // Hlavička: KTERÁ firma je právě spravovaná + rychlé přepnutí. Všechno
+    // v administraci (uživatelé, oprávnění, užívání, docházka) patří TÉTO firmě.
+    // ------------------------------------------------------------------
+    function renderFirmBar() {
+        var u = U(); if (!u) return;
+        var bar = document.getElementById('agfa-firmbar');
+        if (!bar) return;
+        var f = u.getFirm();
+        if (!f) { bar.innerHTML = ''; bar.className = 'agfa-firmbar'; return; }
+        var me = u.currentUser();
+        var profs = u.listProfiles ? u.listProfiles() : [];
+        var more = profs.length > 1;
+        bar.className = 'agfa-firmbar on';
+        bar.innerHTML =
+            '<span class="agfa-fb-ico">' + (NAV_ICO.firma || '') + '</span>' +
+            '<span class="agfa-fb-txt"><b>' + esc(f.firmName || 'Moje firma') + '</b>' +
+            '<span>' + (f.cloud ? 'cloud · kód ' + esc(f.code || '?') : 'jen toto zařízení') +
+            (me ? ' · ' + esc(me.name) + ' (' + roleTxt(me.role).toLowerCase() + ')' : '') + '</span></span>' +
+            (more ? '<button type="button" class="agfa-mini" id="agfa-fb-switch">Přepnout firmu</button>' : '');
+        var sw = bar.querySelector('#agfa-fb-switch');
+        if (sw) sw.onclick = function () { renderNav('firma'); setTimeout(function () {
+            var el = document.getElementById('agfa-firms');
+            if (el && el.scrollIntoView) try { el.scrollIntoView({ block: 'center' }); } catch (e) {}
+        }, 120); };
+    }
+
     var _section = 'uzivatele';
     function renderNav(sec) {
         _section = sec;
         var u = U(); if (!u) return;
+        renderFirmBar();
         var admin = u.isAdmin();
         var nav = document.getElementById('agfa-nav');
         var items = [];
@@ -371,6 +419,10 @@
     function renderHelp(body) {
         var u = U(), f = u.getFirm() || {};
         body.innerHTML =
+            '<div class="agfa-pg">Administrace patří jedné firmě</div>' +
+            '<div class="agfa-note">Nahoře v zeleném pruhu je vidět, <b>kterou firmu právě spravuješ</b> (a jako kdo). Všechno níž — uživatelé, ' +
+            'oprávnění, užívání i docházka — patří jen téhle firmě. Když má zařízení víc firem, přepneš je tlačítkem <b>Přepnout firmu</b> ' +
+            'v tom pruhu (nebo v sekci Firma). Přepnutí vždy chce heslo/PIN.</div>' +
             '<div class="agfa-pg">Kdo co vidí</div>' +
             '<div class="agfa-note"><b>Zaměstnanec</b> používá appku klasicky — jen nástroje pro práci v terénu. ' +
             '<b>Vedení</b> vidí navíc firemní přehledy (užívání, docházka). <b>Admin</b> má sekci <b>Přehled</b> — ' +
@@ -396,6 +448,10 @@
             '<div class="agfa-pg">Cloud vs. lokální firma</div>' +
             '<div class="agfa-note"><b>Cloud</b> (doporučeno): firma žije na serveru, stejné účty na všech mobilech, změny oprávnění se propíší všem, ' +
             'užívání se sbírá ze všech zařízení. <b>Lokální</b>: účty žijí jen v jednom zařízení, na další se přenáší souborem v sekci Firma.</div>' +
+            '<div class="agfa-pg">Přihlašování podle zařízení</div>' +
+            '<div class="agfa-note">Na přihlašovací obrazovce se nabízejí <b>jen účty, které se na tom telefonu už přihlásily</b> — ' +
+            'zaměstnanec tedy nevidí dlaždici admina ani vedení. Nový člověk na cizím telefonu použije „Přihlásit jiné jméno" ' +
+            '(nebo naskenuje QR od admina).</div>' +
             '<div class="agfa-pg">Zapomenuté heslo</div>' +
             '<div class="agfa-note">Heslo komukoli změní admin v sekci Uživatelé (Upravit → nové heslo) — z libovolného zařízení. ' +
             'Když je nedostupný i admin, na přihlašovací obrazovce je nouzové odpojení zařízení (body a zakázky zůstanou).</div>' +
@@ -413,7 +469,7 @@
             '<div class="agfa-pg">Firemní chat</div>' +
             '<div class="agfa-note">Dlaždice <b>Firemní chat</b> v Nástrojích (Pomůcky). Nahoře se vybírá adresát: <b>Všem</b> (vidí celá firma), ' +
             'nebo konkrétní kolega — pak je zpráva <b>soukromá</b> (se zámkem, vidí ji jen on a ty) a chat na to upozorní žlutým pruhem. ' +
-            'Soukromá vlákna se ve „Všem" nabízejí odkazem pod výběrem, takže se zprávy neztratí. ' +
+            'Všechny zprávy jsou v <b>jednom seznamu</b> (soukromé jen označené zámkem), takže se nic neschová. ' +
             'Tlačítkem se špendlíkem vlevo od psacího pole jde poslat <b>vlastní body</b> — příjemce je jedním klepnutím převezme do svých bodů. ' +
             'Nové zprávy se hlásí tečkou na dlaždici a proužkem po startu. Funguje jen u cloudové firmy a s internetem; server drží posledních ~500 zpráv.</div>' +
             '<div class="agfa-pg">Připojení zařízení QR kódem</div>' +
@@ -605,20 +661,28 @@
         if (cloud && !refreshed) {
             u.refreshConfig().then(function (ok) { if (ok && _section === 'uzivatele') renderUsers(body, true); });
         }
+        // řádek = 2 pásma: identita (avatar + jméno + role) a pod ní akce zprava.
+        // Dřív bylo všechno v jedné řádce a na mobilu se to lámalo přes sebe.
         var rows = f.users.map(function (us) {
             var initials = (us.name || '?').trim().split(/\s+/).map(function (w) { return w.charAt(0); }).slice(0, 2).join('').toUpperCase();
             var chipCls = us.role === 'admin' ? ' c-admin' : (us.role === 'vedeni' ? ' c-vedeni' : '');
-            return '<div class="agfa-row" data-id="' + esc(us.id) + '">' +
-                '<span class="agfa-av" style="' + (u.avatarStyle ? u.avatarStyle(us.name) : '') + '">' + esc(initials) + '</span>' +
-                '<b>' + esc(us.name) + (me && me.id === us.id ? ' <span style="color:var(--text-muted);font-weight:500;">(ty)</span>' : '') + '</b>' +
-                '<span class="agfa-chip' + chipCls + '">' + roleTxt(us.role) + (!cloud && us.noPin ? ' · bez PINu' : '') + '</span>' +
-                (cloud ? '<button class="agfa-mini" data-act="qr" title="QR pro připojení zařízení">QR</button>' : '') +
+            return '<div class="agfa-urow" data-id="' + esc(us.id) + '">' +
+                '<div class="agfa-uid">' +
+                '  <span class="agfa-av" style="' + (u.avatarStyle ? u.avatarStyle(us.name) : '') + '">' + esc(initials) + '</span>' +
+                '  <span class="agfa-unm"><b>' + esc(us.name) + '</b>' +
+                '    <span class="agfa-usub">' + roleTxt(us.role) + (!cloud && us.noPin ? ' · bez PINu' : '') +
+                (me && me.id === us.id ? ' · to jsi ty' : '') + '</span></span>' +
+                '  <span class="agfa-chip' + chipCls + '">' + roleTxt(us.role) + '</span>' +
+                '</div>' +
+                '<div class="agfa-uact">' +
+                (cloud ? '<button class="agfa-mini" data-act="qr">QR pro mobil</button>' : '') +
                 '<button class="agfa-mini" data-act="edit">Upravit</button>' +
                 '<button class="agfa-mini danger" data-act="del">Smazat</button>' +
-                '</div>';
+                '</div></div>';
         }).join('');
         body.innerHTML =
-            (cloud ? '<div class="agfa-note">Účty platí pro celou firmu — nový zaměstnanec se pak na svém mobilu přihlásí kódem firmy <b>' + esc(f.code || '') + '</b>, svým jménem a heslem.</div>' : '') +
+            '<div class="agfa-pg">Účty firmy ' + esc(f.firmName || '') + '</div>' +
+            (cloud ? '<div class="agfa-note">Účty platí pro celou tuto firmu — nový zaměstnanec se na svém mobilu přihlásí kódem <b>' + esc(f.code || '') + '</b>, svým jménem a heslem (nebo naskenuje QR níže).</div>' : '') +
             '<div id="agfa-userlist" class="agfa-list">' + rows + '</div>' +
             '<button class="btn" style="margin-top:12px;width:100%;" id="agfa-add">+ Přidat uživatele</button>' +
             '<div id="agfa-uform"></div>';
@@ -626,7 +690,7 @@
         body.querySelector('#agfa-userlist').onclick = function (e) {
             var btn = e.target.closest ? e.target.closest('button[data-act]') : null;
             if (!btn) return;
-            var id = btn.closest('.agfa-row').getAttribute('data-id');
+            var id = btn.closest('.agfa-urow').getAttribute('data-id');
             var us = null;
             for (var i = 0; i < f.users.length; i++) if (f.users[i].id === id) us = f.users[i];
             if (!us) return;

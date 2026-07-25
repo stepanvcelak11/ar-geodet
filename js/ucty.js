@@ -61,6 +61,7 @@
     var LS_PROF = 'agFirmy_v1';        // uložené firmy tohoto zařízení [{key,label,code,cloud,ts,snap}]
     var LS_LAST = 'agFirmaLastUser_v1';// id naposledy přihlášeného (rychlé odemknutí)
     var LS_LOCKSTART = 'agLockStart_v1'; // '0' = NEvyžadovat přihlášení při startu (výchozí: vyžadovat)
+    var LS_DEVU = 'agFirmaDevUsers_v1';  // id účtů, které se přihlásily na TOMTO zařízení
     var STYLE_ID = 'ag-ucty-style';
     var DB = 'argeodet-usage', STORE = 'ev', VER = 1;
     // adresa API (Cloudflare Worker, cloud/worker.js). Konstanta je jen výchozí —
@@ -169,6 +170,38 @@
     }
     function setSess(s) {
         try { if (s) localStorage.setItem(LS_SESS, JSON.stringify(s)); else localStorage.removeItem(LS_SESS); } catch (e) {}
+    }
+
+    // ------------------------------------------------------------------
+    // Účty na TOMTO zařízení: přihlašovací obrazovka nabízí jen lidi, kdo se
+    // tu už přihlásil — na mobilu zaměstnance se tedy nesvítí dlaždice admina
+    // ani vedení. Cizí účet se dá vždy přidat přes „Přihlásit jiné jméno".
+    // U LOKÁLNÍ firmy (účty žijí jen v tomhle telefonu) se nabízejí všichni,
+    // protože jinde neexistují.
+    // ------------------------------------------------------------------
+    function devUserIds() {
+        var out = {};
+        try {
+            var a = JSON.parse(localStorage.getItem(LS_DEVU) || '[]');
+            if (Array.isArray(a)) a.forEach(function (id) { out[id] = 1; });
+        } catch (e) {}
+        try { var o = getOff(); Object.keys(o || {}).forEach(function (id) { out[id] = 1; }); } catch (e) {}
+        return out;
+    }
+    function rememberDevUser(id) {
+        if (!id) return;
+        try {
+            var a = JSON.parse(localStorage.getItem(LS_DEVU) || '[]');
+            if (!Array.isArray(a)) a = [];
+            if (a.indexOf(id) === -1) a.push(id);
+            localStorage.setItem(LS_DEVU, JSON.stringify(a.slice(-12)));
+        } catch (e) {}
+    }
+    function loginUsers(f) {
+        if (!f.cloud) return f.users;                 // lokální firma = účty jen zde
+        var known = devUserIds();
+        var out = f.users.filter(function (u) { return known[u.id]; });
+        return out;
     }
 
     function currentUser() {
@@ -298,6 +331,7 @@
         setSess({ userId: data.user.id, ts: Date.now() });
         try { localStorage.setItem('arSurveyor', data.user.name); } catch (e) {}
         try { localStorage.setItem(LS_LAST, data.user.id); } catch (e) {}
+        rememberDevUser(data.user.id);
         rememberCurrentFirm();
         var g = document.getElementById('ag-gate'); if (g) g.remove();
     }
@@ -703,12 +737,33 @@
         var h = hueOf(name);
         return 'background:linear-gradient(150deg,hsl(' + h + ',44%,48%),hsl(' + h + ',48%,33%));';
     }
-    // značka: zaměřovací terčík (geodetický bod)
-    var MARK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="7.2"/><circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none"/><path d="M12 1.6v3.2M12 19.2v3.2M1.6 12h3.2M19.2 12h3.2"/></svg>';
     var FIRM_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-4h6v4"/><path d="M9 10h.01M15 10h.01M9 14h.01M15 14h.01"/></svg>';
     function brandHtml() {
-        return '<div class="agl-brand"><span class="agl-mark">' + MARK_SVG + '</span>' +
+        return '<div class="agl-brand"><span class="agl-mark"></span>' +
             '<span class="agl-logo">AR <b>Geodet</b></span></div>';
+    }
+    // Logo: použij SKUTEČNÉ logo appky z úvodní obrazovky (klon uzlu, ať se
+    // nemusí duplikovat kresba a vždy odpovídá tomu, co uživatel zná).
+    // Záloha: icon.svg (stejná grafika jako ikona na ploše).
+    function fillMark(root) {
+        try {
+            var slot = root.querySelector('.agl-mark');
+            if (!slot) return;
+            var src = document.querySelector('#welcome-screen .welcome-logo');
+            if (src) {
+                var clone = src.cloneNode(true);
+                clone.removeAttribute('class');
+                clone.removeAttribute('style');
+                // gradienty mají id — v klonu je přejmenuj, ať nekolidují s originálem
+                clone.innerHTML = clone.innerHTML.replace(/wl-vf/g, 'agl-vf');
+                slot.appendChild(clone);
+                return;
+            }
+            var img = document.createElement('img');
+            img.src = 'icon.svg';
+            img.alt = 'AR Geodet';
+            slot.appendChild(img);
+        } catch (e) {}
     }
     // aktivní zakázka + počet bodů (přihlašovací obrazovka je JEDINÝ úvod,
     // tak nese i kontext, který dřív ukazovala úvodní karta)
@@ -739,13 +794,18 @@
             '  border-radius:50%;background:radial-gradient(closest-side,var(--accent-soft,rgba(47,158,116,0.16)),transparent 72%);pointer-events:none;}',
             '@keyframes aglin{from{opacity:0}to{opacity:1}}',
             '#ag-login>*,#ag-gate>*{position:relative;}',   // obsah nad září
-            // značka: kulatý terčík (geodetický bod) + název
-            '.agl-brand{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:2px;}',
-            '.agl-mark{width:58px;height:58px;border-radius:18px;display:flex;align-items:center;justify-content:center;color:#fff;',
-            '  background:linear-gradient(150deg,var(--accent,#2f9e74),rgba(0,0,0,0.25)) var(--accent,#2f9e74);',
-            '  box-shadow:0 8px 24px var(--accent-soft,rgba(47,158,116,0.35)),inset 0 1px 0 rgba(255,255,255,0.25);}',
-            '.agl-mark svg{width:32px;height:32px;}',
-            '#ag-login .agl-logo,#ag-gate .agl-logo{font:800 23px/1.2 var(--font-display,system-ui);color:var(--text,#e6e8eb);letter-spacing:.02em;}',
+            // karta úvodu: obsah na jednom panelu (dřív to plavalo na prázdné ploše)
+            '#ag-login .agl-card,#ag-gate .agl-card{display:flex;flex-direction:column;align-items:center;gap:13px;width:min(390px,92vw);',
+            '  box-sizing:border-box;padding:26px 20px 20px;border-radius:22px;',
+            '  background:linear-gradient(180deg,rgba(255,255,255,0.055),rgba(255,255,255,0.02));',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.1));box-shadow:0 18px 50px rgba(0,0,0,0.4);}',
+            // značka: SKUTEČNÉ logo appky (klon z úvodní obrazovky) + název
+            '.agl-brand{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:2px;}',
+            '.agl-mark{width:76px;height:76px;display:flex;align-items:center;justify-content:center;',
+            '  filter:drop-shadow(0 8px 22px var(--accent-soft,rgba(47,158,116,0.4)));}',
+            '.agl-mark svg,.agl-mark img{width:100%;height:100%;display:block;}',
+            '#ag-login .agl-hint,#ag-gate .agl-hint{font:500 12.5px/1.45 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);text-align:center;max-width:300px;}',
+            '#ag-login .agl-logo,#ag-gate .agl-logo{font:800 21px/1.2 var(--font-display,system-ui);color:var(--text,#e6e8eb);letter-spacing:.02em;}',
             '#ag-login .agl-logo b,#ag-gate .agl-logo b{color:var(--accent,#2f9e74);}',
             '#ag-login .agl-firm,#ag-gate .agl-firm{font:600 13.5px/1.45 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);max-width:340px;text-align:center;}',
             '#ag-login .agl-firmchip{display:inline-flex;align-items:center;gap:7px;background:var(--glass-bg,rgba(255,255,255,0.06));',
@@ -834,7 +894,13 @@
     // startAppFromWelcome() je globál z logika.js (obaluje ho i tutorial-pro.js,
     // takže výuka na prvním spuštění dál funguje).
     // ------------------------------------------------------------------
+    // sundání pojistky proti probliknutí úvodní obrazovky (třída z <head>)
+    function unprelock() {
+        try { document.documentElement.classList.remove('ag-prelock'); } catch (e) {}
+    }
+
     function enterApp() {
+        unprelock();
         try {
             var ws = document.getElementById('welcome-screen');
             if (!ws) return;
@@ -856,7 +922,9 @@
 
         var ov = document.createElement('div');
         ov.id = 'ag-login';
-        var usersHtml = f.users.map(function (u) {
+        // dlaždice jen pro účty, které se na TOMTO zařízení už přihlásily
+        var shownUsers = loginUsers(f);
+        var usersHtml = shownUsers.map(function (u) {
             var initials = (u.name || '?').trim().split(/\s+/).map(function (w) { return w.charAt(0); }).slice(0, 2).join('').toUpperCase();
             var roleTxt = u.role === 'admin' ? 'Admin' : (u.role === 'vedeni' ? 'Vedení' : 'Zaměstnanec');
             var roleCls = u.role === 'admin' ? ' r-admin' : (u.role === 'vedeni' ? ' r-vedeni' : '');
@@ -867,13 +935,16 @@
         }).join('');
         var cloud = !!f.cloud;
         ov.innerHTML =
+            '<div class="agl-card">' +
             brandHtml() +
             '<div class="agl-firmchip"><span class="dot"></span>' + esc(f.firmName || 'Firemní režim') +
             (cloud && f.code ? ' · ' + esc(f.code) : '') + (lockMode ? ' <span class="lock">· zamčeno</span>' : '') + '</div>' +
             projInfoHtml() +
-            '<div class="agl-users">' + usersHtml + '</div>' +
-            '<div class="agl-pinbox">' +
-            '  <input class="agl-name" type="text" autocomplete="username" maxlength="40" placeholder="Jméno" style="display:none;">' +
+            (usersHtml
+                ? '<div class="agl-users">' + usersHtml + '</div>'
+                : '<div class="agl-hint">Na tomhle telefonu se ještě nikdo nepřihlásil — zadej své jméno a heslo.</div>') +
+            '<div class="agl-pinbox' + (usersHtml ? '' : ' on') + '">' +
+            '  <input class="agl-name" type="text" autocomplete="username" maxlength="40" placeholder="Jméno"' + (usersHtml ? ' style="display:none;"' : '') + '>' +
             (cloud
                 ? '  <input class="agl-pin" type="password" autocomplete="current-password" maxlength="64" placeholder="Heslo" style="letter-spacing:.12em;font-size:17px;">'
                 : '  <input class="agl-pin" type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="PIN">') +
@@ -881,8 +952,10 @@
             '  <button type="button" class="agl-btn">Přihlásit</button>' +
             '</div>' +
             (cloud ? '<button type="button" class="agl-ghost" id="agl-other">Přihlásit jiné jméno</button>' : '') +
-            '<button type="button" class="agl-ghost" id="agl-forgot">' + (cloud ? 'Zapomenuté heslo?' : 'Zapomenutý PIN?') + '</button>';
+            '<button type="button" class="agl-ghost" id="agl-forgot">' + (cloud ? 'Zapomenuté heslo?' : 'Zapomenutý PIN?') + '</button>' +
+            '</div>';
         document.body.appendChild(ov);
+        fillMark(ov);
 
         var pinbox = ov.querySelector('.agl-pinbox');
         var pinInp = ov.querySelector('.agl-pin');
@@ -910,6 +983,7 @@
         // společný závěr (lokální i cloud — cloud má session/token už uložené)
         function afterLogin(u) {
             try { localStorage.setItem(LS_LAST, u.id); } catch (e) {}
+            rememberDevUser(u.id);   // příště se nabídne jen na tomto zařízení
             ov.remove();
             _touchActivity();
             applyPerms();
@@ -1031,6 +1105,7 @@
                 }).join('');
         }
         ov.innerHTML =
+            '<div class="agl-card">' +
             brandHtml() +
             '<div class="agl-firm">Přihlas se ke své firmě, nebo pokračuj bez přihlášení s omezenými funkcemi.</div>' +
             profHtml +
@@ -1045,8 +1120,10 @@
             '<button type="button" class="agl-btn" id="agg-show-join">Přihlásit se (mám kód firmy)</button>' +
             '<button type="button" class="agg-alt" id="agg-new">Založit firmu / další možnosti</button>' +
             '<button type="button" class="agl-ghost" id="agg-guest">Pokračovat bez přihlášení (omezený režim)</button>' +
-            '<div class="agg-note">Bez přihlášení funguje jen základní měření bodů a vzhled. Nástroje, export, zakázky a nastavení dat vyžadují firemní účet.</div>';
+            '<div class="agg-note">Bez přihlášení funguje jen základní měření bodů a vzhled. Nástroje, export, zakázky a nastavení dat vyžadují firemní účet.</div>' +
+            '</div>';
         document.body.appendChild(ov);
+        fillMark(ov);
 
         var errEl = ov.querySelector('#agg-err');
         var gateApi = DEFAULT_API;   // QR od admina může nést i vlastní adresu API
@@ -1225,9 +1302,12 @@
             }
         } else if (isGuest()) {
             applyPerms();                          // omezený režim bez přihlášení
+            unprelock();
         } else {
             showGate();                            // bez firmy se appka neotevře
         }
+        // pojistka: kdyby cokoli selhalo, úvodní obrazovka se nesmí zaseknout skrytá
+        setTimeout(function () { if (!document.getElementById('ag-login') && !document.getElementById('ag-gate')) unprelock(); }, 6000);
         // periodické srovnání UI (mřížku Nástrojů překreslují jiné moduly) + auto-zámek
         // + jednou za ~2 minuty synchronizace fronty užívání (cloud)
         var n = 0;

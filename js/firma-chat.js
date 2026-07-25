@@ -52,11 +52,8 @@
             '#agch-bar span{flex:1;min-width:0;}',
             '#agch-bar button{flex:none;border:1px solid rgba(212,160,44,0.5);background:transparent;color:#d4a02c;border-radius:9px;',
             '  padding:6px 9px;font:700 11px/1 var(--font-ui,system-ui);cursor:pointer;}',
-            '#agch-hint{flex:none;display:none;gap:6px;flex-wrap:wrap;align-items:center;margin:0 0 8px;',
-            '  font:600 11.5px/1.4 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
-            '#agch-hint.on{display:flex;}',
-            '#agch-hint button{border:1px solid var(--glass-border,rgba(255,255,255,0.16));background:var(--glass-bg,rgba(255,255,255,0.04));',
-            '  color:var(--text,#e6e8eb);border-radius:999px;padding:6px 10px;font:700 11px/1 var(--font-ui,system-ui);cursor:pointer;}',
+            // soukromá zpráva ve společném seznamu: viditelně odlišená, ale ve stejném toku
+            '#agch-modal .priv .agch-bubble{border-style:dashed;}',
             '#agch-to button{border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:var(--glass-bg,rgba(255,255,255,0.04));',
             '  color:var(--text-muted,#9aa1ac);border-radius:999px;padding:7px 12px;font:600 12px/1 var(--font-ui,system-ui);cursor:pointer;',
             '  transition:color .15s ease,border-color .15s ease,background .15s ease;}',
@@ -137,7 +134,6 @@
             '  <div class="modal-body" style="flex:1;min-height:0;">' +
             '    <div class="agch-to" id="agch-to"></div>' +
             '    <div id="agch-bar"></div>' +
-            '    <div id="agch-hint"></div>' +
             '    <div id="agch-list"></div>' +
             '    <div class="agch-off" id="agch-off"></div>' +
             '    <div class="agch-inrow">' +
@@ -191,16 +187,7 @@
         if (me && me.id === id) return me.name;
         return '?';
     }
-    // počet zpráv v soukromém vlákně s daným člověkem (oba směry)
-    function privCount(uid) {
-        var me = meUser(); if (!me) return 0;
-        var n = 0;
-        _msgs.forEach(function (msg) {
-            if (!msg.to_uid) return;
-            if ((msg.to_uid === uid && msg.uid === me.id) || (msg.to_uid === me.id && msg.uid === uid)) n++;
-        });
-        return n;
-    }
+    // volba adresáta NOVÉ zprávy (na zobrazení seznamu nemá vliv)
     function renderTo() {
         var box = document.getElementById('agch-to');
         if (!box) return;
@@ -208,10 +195,8 @@
         var html = '<span class="agch-tolabel">Komu:</span>' +
             '<button type="button" data-to="" class="' + (_to === '' ? 'act' : '') + '">Všem ve firmě</button>';
         users.forEach(function (x) {
-            var n = privCount(x.id);
             html += '<button type="button" data-to="' + esc(x.id) + '" class="' + (_to === x.id ? 'act' : '') + '">' +
-                LOCK_SVG + esc(String(x.name).slice(0, 14)) +
-                (n ? '<span class="cnt">' + n + '</span>' : '') + '</button>';
+                LOCK_SVG + esc(String(x.name).slice(0, 14)) + '</button>';
         });
         box.innerHTML = html;
         var inp = document.getElementById('agch-inp');
@@ -223,28 +208,10 @@
             if (_to) {
                 bar.className = 'on';
                 bar.innerHTML = LOCK_SVG + '<span>Píšeš <b>soukromě</b> pro ' + esc(toName(_to)) + ' — nikdo jiný to neuvidí.</span>' +
-                    '<button type="button" data-to="">Zpět na Všem</button>';
+                    '<button type="button" data-to="">Psát všem</button>';
             } else {
                 bar.className = '';
                 bar.innerHTML = '';
-            }
-        }
-        // ve vlákně „Všem" nabídni soukromá vlákna, ať se zprávy neztratí z očí
-        var hint = document.getElementById('agch-hint');
-        if (hint) {
-            var parts = [];
-            if (!_to) {
-                users.forEach(function (x) {
-                    var n = privCount(x.id);
-                    if (n) parts.push('<button type="button" data-to="' + esc(x.id) + '">' + esc(x.name) + ' (' + n + ')</button>');
-                });
-            }
-            if (parts.length) {
-                hint.className = 'on';
-                hint.innerHTML = '<span>Soukromé zprávy:</span>' + parts.join('');
-            } else {
-                hint.className = '';
-                hint.innerHTML = '';
             }
         }
     }
@@ -343,16 +310,12 @@
         var u = U();
         var me = u && u.currentUser();
         var meId = me ? me.id : null;
-        // zobrazené vlákno: „Všem" = veřejné zprávy; konkrétní člověk = jen zprávy
-        // mezi mnou a jím (soukromé oba směry)
-        var shown = _msgs.filter(function (msg) {
-            if (!_to) return !msg.to_uid;
-            return (msg.to_uid === _to && msg.uid === meId) || (msg.to_uid === meId && msg.uid === _to);
-        });
+        // JEDEN seznam: veřejné i soukromé zprávy pohromadě (server posílá jen to,
+        // co smím vidět). Soukromé jsou označené zámkem — nic se nikam „neschová",
+        // volba adresáta níž ovlivňuje jen to, KAM půjde nová zpráva.
+        var shown = _msgs;
         if (!shown.length) {
-            list.innerHTML = '<div class="agch-empty">' + (_to
-                ? 'Zatím žádná soukromá zpráva s ' + esc(toName(_to)) + '.<br>Co napíšeš, uvidí jen on.'
-                : 'Zatím žádné zprávy.<br>Napiš první — uvidí ji všichni ve firmě.') + '</div>';
+            list.innerHTML = '<div class="agch-empty">Zatím žádné zprávy.<br>Napiš první — uvidí ji všichni ve firmě.</div>';
             return;
         }
         var html = '', lastDay = '';
@@ -428,7 +391,7 @@
                 _lastId = _msgs[_msgs.length - 1].id;
                 cacheSave();
                 render(atBottom);
-                renderTo();   // počty u soukromých vláken se mohly změnit
+                renderTo();   // seznam lidí se mohl doplnit (nový kolega ve firmě)
             }
             markRead();   // chat je otevřený → vše je přečtené
         });

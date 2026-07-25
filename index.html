@@ -64,6 +64,21 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <link rel="stylesheet" href="css/style.css?v=175">
+    <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
+         probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
+         tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
+    <style>html.ag-prelock #welcome-screen{display:none !important;}</style>
+    <script>
+        (function () {
+            try {
+                var f = JSON.parse(localStorage.getItem('agFirma_v1') || 'null');
+                if (!f || !f.enabled || !f.users || !f.users.length) return;
+                var lock = localStorage.getItem('agLockStart_v1') !== '0';
+                var sess = localStorage.getItem('agFirmaSess_v1');
+                if (lock || !sess) document.documentElement.classList.add('ag-prelock');
+            } catch (e) {}
+        })();
+    </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
     <link rel="stylesheet" href="css/vylepseni.css">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
