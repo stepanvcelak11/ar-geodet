@@ -138,6 +138,59 @@
         }
     }
 
+    // ---------- Sdileni APLIKACE pres QR (menu Vice) ----------
+    // QR s adresou appky — kolega naskenuje fotakem a otevre se mu appka v prohlizeci.
+    // K tomu tlacitka Kopirovat odkaz / systemove Sdilet (navigator.share, kde je).
+    function appUrl() {
+        try { return location.origin + location.pathname; } catch (e) { return ''; }
+    }
+    function buildShareAppModal() {
+        if (document.getElementById('qr-app-modal')) return;
+        const m = document.createElement('div');
+        m.className = 'modal-overlay'; m.id = 'qr-app-modal';
+        m.innerHTML = `<div class="modal-content" style="max-width:420px; text-align:center;">
+            <h3 style="color:var(--accent); margin-top:0;">Sdílet aplikaci</h3>
+            <div style="font-size:13px; color:var(--text-dim); margin-bottom:12px;">Kolega naskenuje kód fotoaparátem a AR&nbsp;Geodet se mu otevře. Pak si ho může „Přidat na plochu".</div>
+            <div id="qr-app-out" style="min-height:120px;"><span style="color:var(--text-dim);">Vytvářím QR…</span></div>
+            <div id="qr-app-url" style="font-size:12px; color:var(--text-muted); margin-top:8px; word-break:break-all; user-select:all;"></div>
+            <div style="display:flex; gap:8px; margin-top:12px;">
+                <button class="btn btn-secondary" id="qr-app-copy" style="flex:1; margin:0;">Kopírovat odkaz</button>
+                <button class="btn btn-primary" id="qr-app-share" style="flex:1; margin:0;">Sdílet…</button>
+            </div>
+            <button class="btn btn-secondary" style="margin-top:10px;" onclick="document.getElementById('qr-app-modal').style.display='none';">Zavřít</button>
+        </div>`;
+        document.body.appendChild(m);
+        m.querySelector('#qr-app-copy').addEventListener('click', function () {
+            const u = appUrl();
+            const done = function () { if (typeof quickToast === 'function') quickToast('Odkaz zkopírován.'); };
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(u).then(done).catch(function () {});
+            else { try { const i = document.createElement('input'); i.value = u; document.body.appendChild(i); i.select(); document.execCommand('copy'); i.remove(); done(); } catch (e) {} }
+        });
+        const shareBtn = m.querySelector('#qr-app-share');
+        if (navigator.share) shareBtn.addEventListener('click', function () { navigator.share({ title: 'AR Geodet', text: 'Geodetická AR appka — hledání a vytyčování bodů v terénu:', url: appUrl() }).catch(function () {}); });
+        else shareBtn.style.display = 'none';
+    }
+    function renderAppQR() {
+        const out = document.getElementById('qr-app-out'); if (!out) return;
+        if (typeof qrcode === 'undefined') {
+            ensureLib('js/lib/qrcode.min.js').then(renderAppQR)
+                .catch(function () { out.innerHTML = '<span style="color:var(--danger);">Knihovnu QR se nepodařilo načíst (offline?). Odkaz níže jde zkopírovat i tak.</span>'; });
+            return;
+        }
+        try {
+            const qr = qrcode(0, 'M');
+            qr.addData(appUrl());
+            qr.make();
+            out.innerHTML = `<img src="${qr.createDataURL(6, 12)}" alt="QR" style="width:100%; max-width:260px; image-rendering:pixelated; background:#fff; border-radius:10px; padding:4px;">`;
+        } catch (e) { out.innerHTML = '<span style="color:var(--danger);">QR se nepodařilo vytvořit.</span>'; }
+    }
+    window.openShareApp = function () {
+        buildShareAppModal();
+        const u = document.getElementById('qr-app-url'); if (u) u.textContent = appUrl();
+        document.getElementById('qr-app-modal').style.display = 'flex';
+        renderAppQR();
+    };
+
     // ---------- Modal: skenovani QR ----------
     function buildScanModal() {
         if (document.getElementById('qr-scan-modal')) return;

@@ -589,7 +589,32 @@ body {
     letter-spacing: 1.8px;
     text-transform: uppercase;
     color: var(--accent-bright);
+    max-width: 52vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
+/* Navigační štítek: velká vzdálenost + řádek ΔZ / přesnost + křížek Ukončit */
+#ar-hud-info { position: relative; pointer-events: auto; padding-right: 44px; padding-left: 44px; }
+#ar-hud-dist { font-size: 26px; line-height: 1.1; letter-spacing: 0.3px; }
+#ar-hud-sub {
+    display: flex; justify-content: center; gap: 10px; margin-top: 2px;
+    font-family: var(--font-ui); font-size: 11.5px; font-weight: 600; color: var(--text-muted, #9aa1ac);
+}
+#ar-hud-sub:empty { display: none; }
+#ar-hud-sub #ar-hud-dz { color: #93c5fd; }
+#ar-hud-sub #ar-hud-dz:empty, #ar-hud-sub #ar-hud-acc:empty { display: none; }
+#ar-hud-stop {
+    position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
+    width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--glass-border, rgba(255,255,255,0.16)); border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08); color: inherit; cursor: pointer; padding: 0;
+}
+#ar-hud-stop .icon { width: 14px; height: 14px; }
+#ar-hud-stop:active { background: rgba(239, 68, 68, 0.25); border-color: rgba(239, 68, 68, 0.6); }
+/* dohledání < 2 m: štítek zezelená (stejný signál jako edge-glow) */
+#ar-hud-info.near { border-color: #34d399; box-shadow: var(--shadow-2), 0 0 28px rgba(52, 211, 153, 0.45); }
+#ar-hud-info.near #ar-hud-dist { color: #34d399; }
+/* na slunci (cam-light) drží kontrast — štítek má světlé pozadí z pravidla níže */
 
 /* =========================================================================
    AR značky bodů
@@ -982,6 +1007,20 @@ body {
 .btn-danger:hover { background: rgba(239, 68, 68, 0.12); filter: none; }
 .btn-blue      { background: transparent; color: #93c5fd; border-color: rgba(59, 130, 246, 0.45); }
 .btn-blue:hover { background: rgba(59, 130, 246, 0.14); filter: none; }
+
+/* Nastavení: nadpisy sekcí (reorganizace 7/2026 — snazší orientace v záložkách) */
+.set-h {
+    margin: 20px 0 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
+    font-family: var(--font-ui);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent-bright, var(--accent));
+}
+.settings-tab .set-h:first-child { margin-top: 4px; }
 
 /* Měření dvěma prsty v mapě (styl mapy.cz): štítek se vzdáleností na středu čáry */
 .tfm-label-wrap { pointer-events: none; }

@@ -107,14 +107,17 @@
                 { title: 'Vytyčování', sub: 'Najít v terénu navržené body a odškrtávat vytyčené.', badge: false, act: function () { W.activity = 'stake'; go(stepProject); } },
                 { title: 'Sběr / zaměřování bodů', sub: 'Sbírat nové body průměrováním GPS na místě.', badge: false, act: function () { W.activity = 'collect'; go(stepProject); } },
                 { title: 'Vyhledání úředních bodů', sub: 'Dohledat bodové pole (TB, ZHB, nivelační) z katastru.', badge: true, act: function () { W.activity = 'official'; go(stepProject); } },
-                { title: 'Měření', sub: 'Vzdálenost mezi dvěma body nebo plocha z mapy.', badge: false, act: function () { W.activity = 'measure'; go(stepMeasure); } }
+                { title: 'Měření', sub: 'Vzdálenost mezi dvěma body nebo plocha z mapy.', badge: false, act: function () { W.activity = 'measure'; go(stepMeasure); } },
+                { title: 'Výpočty a kontrola', sub: 'Parcela a dělení, kubatury, oměrné, zápisníky.', badge: false, act: function () { W.activity = 'compute'; go(stepCompute); } },
+                { title: 'Kde přesně stojím?', sub: 'Volné stanovisko, srovnání severu AR, lokalizace na body.', badge: false, act: function () { W.activity = 'orient'; go(stepOrient); } },
+                { title: 'Monitoring posunů', sub: 'Opakovaná měření bodu v čase (epochy), stopa trasy.', badge: false, act: function () { W.activity = 'monitor'; go(stepMonitor); } }
             ]),
             footer: [{ label: 'Zavřít', cls: 'btn-secondary', act: closeWizard }]
         });
     }
 
     function activityLabel() {
-        return { stake: 'Vytyčování', collect: 'Sběr bodů', official: 'Úřední body', measure: 'Měření' }[W.activity] || '';
+        return { stake: 'Vytyčování', collect: 'Sběr bodů', official: 'Úřední body', measure: 'Měření', compute: 'Výpočty a kontrola', orient: 'Kde stojím', monitor: 'Monitoring' }[W.activity] || '';
     }
 
     // ============================================================
@@ -402,6 +405,48 @@
     }
 
     // ============================================================
+    // VETVE E/F/G — rozcestniky na nastroje (nove funkce appky)
+    // Jen deleguji na existujici nastroje; kdyz modul neni nacteny, rekneme to.
+    // ============================================================
+    function stepTools(title, items) {
+        render({
+            title: title,
+            crumb: title,
+            body: cards(items.map(function (it) {
+                return { title: it.t, sub: it.s, badge: !!it.online, act: function () {
+                    ensureAppStarted(function () {
+                        var f = window[it.fn];
+                        if (typeof f === 'function') { closeWizard(); f(); }
+                        else alert('Nástroj se nepodařilo otevřít (modul není načtený).');
+                    });
+                } };
+            })),
+            footer: [{ label: 'Zpět', cls: 'btn-secondary', act: back }]
+        });
+    }
+    function stepCompute() {
+        stepTools('Výpočty a kontrola', [
+            { t: 'Parcela / dělení', s: 'Výměra, obvod a dělení parcely v S-JTSK.', fn: 'agOpenParcela' },
+            { t: 'Kubatury / vrstevnice', s: 'Objemy výkopů a násypů z bodů s výškou.', fn: 'openDmtVolume' },
+            { t: 'Oměrné / kontrolní míry', s: 'Porovnání měřených délek s dokumentací.', fn: 'openCheckDist' },
+            { t: 'Zápisníky', s: 'Nivelace a vodorovné směry — digitální zápisník.', fn: 'agOpenZapisnik' }
+        ]);
+    }
+    function stepOrient() {
+        stepTools('Kde přesně stojím?', [
+            { t: 'Volné stanovisko (průvodce)', s: 'Určení polohy ze záměr na známé body.', fn: 'agOpenFreeStation' },
+            { t: 'Srovnat sever AR', s: 'Kalibrace AR podle známého bodu — body sedí na skutečnost.', fn: 'agOpenCalibrate' },
+            { t: 'Lokalizace (Helmert)', s: 'Usazení GPS měření na dané body zakázky.', fn: 'agOpenLocalize' }
+        ]);
+    }
+    function stepMonitor() {
+        stepTools('Monitoring posunů', [
+            { t: 'Epochy / monitoring', s: 'Opakovaná měření bodu, posuny ΔP/ΔZ, graf, export.', fn: 'agOpenEpochy' },
+            { t: 'Stopa trasy', s: 'Záznam obchůzky do mapy (GPX/KML).', fn: 'agOpenTrackLog' }
+        ]);
+    }
+
+    // ============================================================
     // KONECNA SMYCKA — "je jeste neco potreba?"
     // ============================================================
     function stepDone() {
@@ -439,11 +484,15 @@
         setTimeout(cb, 700);
     }
 
+    // Přepnutí AR/Split/Mapa — dřívější #view-seg segment už neexistuje (nahradilo ho
+    // kolečko view-cycle.js), přepínáme stejně jako ono: viewMode + applyViewMode + sync.
     function setWizardView(mode) {
-        if (typeof setView === 'function') {
-            var btn = document.querySelector('#view-seg .seg-btn[data-view="' + mode + '"]');
-            setView(mode, btn);
-        }
+        try {
+            if (typeof viewMode === 'undefined') return;
+            viewMode = mode;
+            if (typeof applyViewMode === 'function') applyViewMode();
+            if (typeof window.agSyncViewControls === 'function') window.agSyncViewControls();
+        } catch (e) {}
     }
 
     // zapne pozadovane kategorie bodu (nic nevypina, aby se neskryly jine body)

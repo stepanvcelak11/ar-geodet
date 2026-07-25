@@ -61,7 +61,7 @@
     <!-- style.css s verzí v adrese: kořenové styly NESMÍ přijít ze staré cache
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
-    <link rel="stylesheet" href="css/style.css?v=164">
+    <link rel="stylesheet" href="css/style.css?v=172">
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
     <link rel="stylesheet" href="css/vylepseni.css">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
@@ -87,6 +87,7 @@
     <link rel="stylesheet" href="css/urovnani.css">
     <!-- QC INSPEKTOR / kód kvality (odpojitelné: smaž tento řádek + css/qc-engine.css + js/qc-engine.js) -->
     <link rel="stylesheet" href="css/qc-engine.css">
+    <link rel="stylesheet" href="css/pocasi.css">
 </head>
 <body>
 
@@ -395,15 +396,18 @@
         <div class="modal-content">
             <h2 style="margin-top:0;"><svg class="icon" style="color:var(--accent);"><use href="#i-settings"/></svg> Nastavení</h2>
             <div class="tab-buttons settings-tiles">
-                <div class="tab-btn active" onclick="switchTab('tab-vzhled', this)"><svg class="icon"><use href="#i-sliders"/></svg><span class="tb-tx"><b>Vzhled</b><small>Motiv, velikost, světlo</small></span></div>
-                <div class="tab-btn" onclick="switchTab('tab-ar', this)"><svg class="icon"><use href="#i-crosshair"/></svg><span class="tb-tx"><b>AR &amp; přesnost</b><small>Radius, výkon</small></span></div>
-                <div class="tab-btn" onclick="switchTab('tab-data', this)"><svg class="icon"><use href="#i-folder"/></svg><span class="tb-tx"><b>Data</b><small>Zakázky, export</small></span></div>
+                <div class="tab-btn active" onclick="switchTab('tab-vzhled', this)"><svg class="icon"><use href="#i-sliders"/></svg><span class="tb-tx"><b>Vzhled</b><small>Motiv, text, prvky HUD</small></span></div>
+                <div class="tab-btn" onclick="switchTab('tab-ar', this)"><svg class="icon"><use href="#i-crosshair"/></svg><span class="tb-tx"><b>AR &amp; přesnost</b><small>Body v AR, kompas, senzory</small></span></div>
+                <div class="tab-btn" onclick="switchTab('tab-data', this)"><svg class="icon"><use href="#i-folder"/></svg><span class="tb-tx"><b>Data</b><small>Zakázka, body ČÚZK, offline</small></span></div>
                 <!-- Kompas z dlaždic ODEBRÁN na přání (duplikoval panel Azimut na hlavní obrazovce;
                      kalibrace zůstává klepnutím na Azimut a tlačítkem v AR & přesnost) -->
                 <div class="tab-btn" id="tabbtn-udrzba" onclick="switchTab('tab-udrzba', this)"><svg class="icon"><use href="#i-wrench"/></svg><span class="tb-tx"><b>Údržba</b><small>Záloha, skryté body</small></span></div>
             </div>
             <div class="modal-body">
                 <div id="tab-vzhled" class="settings-tab active">
+                    <!-- REORGANIZACE 7/2026: položky seskupené do sekcí (.set-h). Ids beze změny;
+                         kotvy injektujících modulů: #s-lefthand (rukavice z vylepseni.js) zůstává. -->
+                    <div class="set-h">Motiv a barvy</div>
                     <div class="st-row"><span class="st-lab">Režim</span>
                         <span class="st-seg" id="seg-mode">
                             <button type="button" class="st-seg-b" data-mode="light" onclick="setModeSeg('light')">Světlý</button>
@@ -420,14 +424,16 @@
                         <option value="forest">Les (zelená)</option>
                         <option value="graphite">Grafit (šedá)</option>
                     </select>
+                    <div class="set-h">Displej a čitelnost</div>
                     <div class="st-slider">
                         <div class="st-slider-head"><span class="st-lab">Velikost textu a menu</span><span class="st-val"><span id="v-menu-scale-val">100</span> %</span></div>
                         <input type="range" id="v-menu-scale" min="50" max="150" step="10" value="100" oninput="document.getElementById('v-menu-scale-val').innerText = this.value">
                     </div>
-                    <div class="st-row"><span class="st-lab">Zamezit zhasínání displeje</span>
-                        <label class="st-sw"><input type="checkbox" id="s-wakelock" checked><span class="st-sw-face"></span></label></div>
                     <div class="st-row"><span class="st-lab">Venkovní režim<small>vysoký kontrast na slunci</small></span>
                         <label class="st-sw"><input type="checkbox" id="s-outdoor"><span class="st-sw-face"></span></label></div>
+                    <div class="st-row"><span class="st-lab">Zamezit zhasínání displeje</span>
+                        <label class="st-sw"><input type="checkbox" id="s-wakelock" checked><span class="st-sw-face"></span></label></div>
+                    <div class="set-h">Ovládání</div>
                     <div class="st-row"><span class="st-lab">Ovládání pro levou ruku<small>zrcadlí ovládání na levou stranu displeje</small></span>
                         <label class="st-sw"><input type="checkbox" id="s-lefthand"><span class="st-sw-face"></span></label></div>
                     <div class="st-slider">
@@ -435,7 +441,7 @@
                         <input type="range" id="v-dock-arc" min="0" max="32" step="2" value="13" oninput="document.getElementById('v-dock-arc-val').innerText = this.value">
                     </div>
                     <!-- Prvky na obrazovce — přesunuto z menu „Více" (ids tgl-* čte toggleHudElements v grafika.js) -->
-                    <label style="margin-top:15px;">Prvky na obrazovce</label>
+                    <div class="set-h">Prvky na obrazovce</div>
                     <div class="st-row"><span class="st-lab">Info panel<small>přesnost, body v AR, družice</small></span>
                         <label class="st-sw"><input type="checkbox" id="tgl-info" checked onchange="toggleHudElements()"><span class="st-sw-face"></span></label></div>
                     <div class="st-row"><span class="st-lab">Kompas (Azimut)</span>
@@ -496,6 +502,9 @@
                 </div>
                 <div id="tab-ar" class="settings-tab">
                     <!-- „Rozvržení" (radia s-view) odstraněno — zobrazení přepíná kolečko vpravo dole (view-cycle.js) -->
+                    <!-- REORGANIZACE 7/2026: sekce .set-h. Kotvy injekcí: ar-fusion.js vkládá PŘED
+                         tlačítko openCompassModal, ar-visual-track.js za fúzi, power-save.js na konec tabu. -->
+                    <div class="set-h">Body v AR kameře</div>
                     <div class="st-slider">
                         <div class="st-slider-head"><span class="st-lab">Viditelnost bodů v AR kameře</span><span class="st-val"><span id="s-ar-radius-val">150</span> m</span></div>
                         <input type="range" id="s-ar-radius-slider" min="50" max="5000" step="50" value="150" oninput="document.getElementById('s-ar-radius-val').innerText = this.value">
@@ -504,7 +513,8 @@
                         <div class="st-slider-head"><span class="st-lab">Max. bodů v AR (výkon)</span><span class="st-val"><span id="s-max-ar-val">20</span></span></div>
                         <input type="range" id="s-max-ar-slider" min="10" max="200" step="10" value="20" oninput="document.getElementById('s-max-ar-val').innerText = this.value">
                     </div>
-                    <button class="btn btn-secondary" style="margin-top:16px;" onclick="openCompassModal();"><svg class="icon"><use href="#i-crosshair"/></svg> Kompas a kalibrace</button>
+                    <div class="set-h">Kompas a stabilita směru</div>
+                    <button class="btn btn-secondary" style="margin-top:6px;" onclick="openCompassModal();"><svg class="icon"><use href="#i-crosshair"/></svg> Kompas a kalibrace</button>
                     <details class="adv"><summary><svg class="icon"><use href="#i-crosshair"/></svg> Pokročilé — jemné doladění AR</summary>
                         <div class="adv-body">
                             <div class="st-row" style="border-bottom:none;"><span class="st-lab">Auto-korekce kompasu<small>podle pohybu (GPS)</small></span>
@@ -534,8 +544,11 @@
                     </details>
                 </div>
                 <div id="tab-data" class="settings-tab">
-                    <label style="margin-top:4px;">Aktivní zakázka</label>
+                    <!-- REORGANIZACE 7/2026: sekce .set-h. Kotva injekce: vylepseni.js (indikátor
+                         úložiště #ag-quota) se přidává na konec tabu. -->
+                    <div class="set-h">Zakázka</div>
                     <div style="display:flex; gap:8px; align-items:center; margin-bottom:15px;"><select id="s-project-select" class="w-proj-select" style="flex:1;" onchange="changeProjectFromSettings()"></select><button class="w-proj-icon" onclick="createNewProject()" aria-label="Nová zakázka"><svg class="icon"><use href="#i-plus"/></svg></button><button class="w-proj-icon danger" onclick="deleteProject()" aria-label="Smazat zakázku"><svg class="icon"><use href="#i-trash"/></svg></button></div>
+                    <div class="set-h">Úřední body (ČÚZK)</div>
                     <label>Druh hledaných bodů</label>
                     <div class="st-chips">
                         <label class="st-chip"><input type="checkbox" id="f-tb" checked onchange="updateFilters()"><span class="st-chip-face">Trigonom.</span></label>
@@ -548,28 +561,27 @@
                         <div class="st-slider-head"><span class="st-lab">Poloměr pro mapu (stahování)</span><span class="st-val"><span id="s-map-radius-val">1000</span> m</span></div>
                         <input type="range" id="s-map-radius-slider" min="50" max="5000" step="50" value="1000" oninput="document.getElementById('s-map-radius-val').innerText = this.value">
                     </div>
-                    <label style="margin-top: 15px;">Zdroj mapy (Katastr)</label>
+                    <label style="margin-top: 15px;">Hledat konkrétní bod (plný název)<small style="display:block; font-weight:400; color:var(--text-muted);">filtr zobrazení — po dohledání ho zase smaž</small></label>
+                    <input type="text" id="s-search-name" placeholder="Např. 567 nebo celá značka">
+                    <div class="set-h">Katastr a offline</div>
+                    <label>Zdroj mapy (Katastr)</label>
                     <select id="s-katastr-source" class="st-sel">
                         <option value="mapycz">Mapy.cz (Katastrální)</option>
                         <option value="ikatastr">iKatastr.cz</option>
                         <option value="cuzk">ČÚZK Geoprohlížeč</option>
                     </select>
-                    <label style="margin-top: 15px;">Hledat konkrétní bod (Plný název)</label>
-                    <input type="text" id="s-search-name" placeholder="Např. 567 nebo celá značka">
                     <button class="btn btn-blue" style="margin-top: 18px;" onclick="saveForOffline()"><svg class="icon"><use href="#i-download"/></svg> Uložit pro Offline</button>
                 </div>
                 <!-- Údržba — bývalá sbalená sekce „Údržba a záloha" z Data, teď vlastní záložka
                      (nahradila dlaždici Kompas) -->
                 <div id="tab-udrzba" class="settings-tab">
-                    <label style="margin-top:4px;">Skryté body</label>
+                    <div class="set-h">Skryté body</div>
                     <button class="btn btn-secondary" style="margin-top: 6px;" onclick="if (window.agOpenHiddenPoints) { document.getElementById('settings-modal').style.display='none'; window.agOpenHiddenPoints(); } else { restoreHiddenPoints(); }"><svg class="icon"><use href="#i-eye-off"/></svg> Zobrazit a obnovit skryté body</button>
-                    <hr style="border-color: var(--glass-border); width: 100%; margin: 16px 0;">
-                    <label>Záloha všech zakázek a nastavení</label>
+                    <div class="set-h">Záloha všech zakázek a nastavení</div>
                     <button class="btn btn-secondary" style="margin-top: 8px;" onclick="exportAllData()"><svg class="icon"><use href="#i-download"/></svg> Stáhnout zálohu (vše)</button>
                     <button class="btn btn-blue" style="margin-top: 10px;" onclick="document.getElementById('restore-file').click()"><svg class="icon"><use href="#i-upload"/></svg> Obnovit ze zálohy</button>
                     <input type="file" id="restore-file" style="display:none" accept=".json,application/json" onchange="importAllData(event)">
-                    <hr style="border-color: var(--glass-border); width: 100%; margin: 16px 0;">
-                    <label>Úklid</label>
+                    <div class="set-h">Úklid</div>
                     <button class="btn btn-danger" style="margin-top: 8px;" onclick="clearAllPoints()"><svg class="icon"><use href="#i-trash"/></svg> Vymazat stáhnuté okolí z této zakázky</button>
                 </div>
             </div>
@@ -657,7 +669,7 @@
             <button class="btn btn-secondary" style="margin-top:14px;" onclick="dismissCompassCalib()">Přeskočit</button>
         </div>
     </div>
-    <div id="camera-container"><video id="camera-feed" autoplay playsinline></video><div id="ar-hud"><div id="ar-hud-arrow-container"><svg id="arrow-target" viewBox="0 0 100 100" style="display:none;"><circle cx="50" cy="50" r="40" fill="none" stroke-width="8" stroke-dasharray="10, 10" id="target-circle-out" /><circle cx="50" cy="50" r="20" id="target-circle-in" /><circle cx="50" cy="50" r="10" fill="#000" /></svg><svg id="arrow-straight" viewBox="0 0 100 100" style="display:none;"><path id="main-arrow-path" d="M50 10 L90 50 L70 50 L70 95 L30 95 L30 50 L10 50 Z" /></svg><svg id="arrow-right" viewBox="0 0 100 100" style="display:none; filter: drop-shadow(0 15px 15px rgba(251,191,36,0.5));"><path d="M95 50 L55 10 L55 30 C20 30 10 60 10 95 C25 75 35 55 55 55 L55 75 Z" fill="#fbbf24"/></svg><svg id="arrow-left" viewBox="0 0 100 100" style="display:none; filter: drop-shadow(0 15px 15px rgba(251,191,36,0.5));"><path d="M5 50 L45 10 L45 30 C80 30 90 60 90 95 C75 75 65 55 45 55 L45 75 Z" fill="#fbbf24"/></svg><svg id="arrow-uturn" viewBox="0 0 100 100" style="display:none; filter: drop-shadow(0 15px 15px rgba(239,68,68,0.5));"><path d="M25 95 L5 55 L20 55 L20 35 C20 15 80 15 80 35 L80 95 L60 95 L60 35 C60 25 40 25 40 35 L40 55 L55 55 Z" fill="#ef4444"/></svg><svg id="arrow-bullseye" viewBox="0 0 100 100" style="display:none; filter: drop-shadow(0 0 15px #fbbf24);"><circle cx="50" cy="50" r="45" fill="none" stroke="#fbbf24" stroke-width="4"/><circle cx="50" cy="50" r="30" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="5,5"/><line x1="50" y1="0" x2="50" y2="100" stroke="#fbbf24" stroke-width="2"/><line x1="0" y1="50" x2="100" y2="50" stroke="#fbbf24" stroke-width="2"/><circle cx="50" cy="50" r="5" fill="#ef4444"/></svg></div><div id="ar-hud-info"><div class="hud-name" id="ar-hud-name">BOD</div><div id="ar-hud-dist">0.0 m</div></div></div><div id="ar-overlay"></div></div>
+    <div id="camera-container"><video id="camera-feed" autoplay playsinline></video><div id="ar-hud"><div id="ar-hud-arrow-container"><svg id="arrow-target" viewBox="0 0 100 100" style="display:none;"><circle cx="50" cy="50" r="40" fill="none" stroke-width="8" stroke-dasharray="10, 10" id="target-circle-out" /><circle cx="50" cy="50" r="20" id="target-circle-in" /><circle cx="50" cy="50" r="10" fill="#000" /></svg><svg id="arrow-straight" viewBox="0 0 100 100" style="display:none;"><path id="main-arrow-path" d="M50 10 L90 50 L70 50 L70 95 L30 95 L30 50 L10 50 Z" /></svg><svg id="arrow-right" viewBox="0 0 100 100" style="display:none; filter: drop-shadow(0 15px 15px rgba(251,191,36,0.5));"><path d="M95 50 L55 10 L55 30 C20 30 10 60 10 95 C25 75 35 55 55 55 L55 75 Z" fill="#fbbf24"/></svg><svg id="arrow-left" viewBox="0 0 100 100" style="display:none; filter: drop-shadow(0 15px 15px rgba(251,191,36,0.5));"><path d="M5 50 L45 10 L45 30 C80 30 90 60 90 95 C75 75 65 55 45 55 L45 75 Z" fill="#fbbf24"/></svg><svg id="arrow-uturn" viewBox="0 0 100 100" style="display:none; filter: drop-shadow(0 15px 15px rgba(239,68,68,0.5));"><path d="M25 95 L5 55 L20 55 L20 35 C20 15 80 15 80 35 L80 95 L60 95 L60 35 C60 25 40 25 40 35 L40 55 L55 55 Z" fill="#ef4444"/></svg><svg id="arrow-bullseye" viewBox="0 0 100 100" style="display:none; filter: drop-shadow(0 0 15px #fbbf24);"><circle cx="50" cy="50" r="45" fill="none" stroke="#fbbf24" stroke-width="4"/><circle cx="50" cy="50" r="30" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="5,5"/><line x1="50" y1="0" x2="50" y2="100" stroke="#fbbf24" stroke-width="2"/><line x1="0" y1="50" x2="100" y2="50" stroke="#fbbf24" stroke-width="2"/><circle cx="50" cy="50" r="5" fill="#ef4444"/></svg></div><div id="ar-hud-info"><button id="ar-hud-stop" type="button" aria-label="Ukončit navigaci" onclick="stopNavigation()"><svg class="icon"><use href="#i-x"/></svg></button><div class="hud-name" id="ar-hud-name">BOD</div><div id="ar-hud-dist">0.0 m</div><div id="ar-hud-sub"><span id="ar-hud-dz"></span><span id="ar-hud-acc"></span></div></div></div><div id="ar-overlay"></div></div>
     <div id="resizer"><div class="grabber"></div></div>
     <div id="map-container"><div id="map-wrapper"><div id="map"></div></div><div id="map-controls"><div id="map-ctrl-stack"><button class="map-ctrl-btn glass-panel" id="btn-baselayer" onclick="cycleBaseLayer()" aria-label="Podklad mapy (OSM / ortofoto)"><svg class="icon"><use href="#i-layers"/></svg></button><button class="map-ctrl-btn glass-panel" id="btn-katastr" onclick="toggleKatastr()" aria-label="Katastrální mapa"><svg class="icon"><use href="#i-grid"/></svg></button><button class="map-ctrl-btn glass-panel" onclick="recenterOnUser()" aria-label="Vycentrovat na mě"><svg class="icon"><use href="#i-crosshair"/></svg></button><button class="map-ctrl-btn glass-panel" onclick="openNearbyModal()" aria-label="Body v okolí"><svg class="icon"><use href="#i-list"/></svg></button><button class="map-ctrl-btn glass-panel" id="btn-connect" onclick="toggleConnectMode()" aria-label="Spojování bodů čarou"><svg class="icon"><use href="#i-line"/></svg></button></div><button class="map-ctrl-btn glass-panel" id="map-ctrl-close" onclick="toggleMapControls()" aria-label="Zavřít nástroje mapy"><svg class="icon"><use href="#i-x"/></svg></button><button class="map-ctrl-btn glass-panel" id="map-ctrl-toggle" onclick="toggleMapControls()" aria-label="Nástroje mapy"><svg class="icon"><use href="#i-sliders"/></svg></button></div></div>
 
@@ -746,6 +758,8 @@
     <script defer src="js/vyska-objektu.js"></script>
     <!-- EPOCHY / MONITORING POSUNŮ (odpojitelné: smaž tento řádek + js/epochy.js) — souřadnice z totálky/roveru v čase -->
     <script defer src="js/epochy.js"></script>
+    <!-- POČASÍ (odpojitelné: smaž tento řádek + js/pocasi.js + css/pocasi.css) — Apple styl, více modelů váženě, cache posledních dat -->
+    <script defer src="js/pocasi.js"></script>
     <script defer src="js/ar-calibrate.js"></script>
     <!-- SROVNAT AR NA 2 BODY (odpojitelné: smaž tento řádek + js/ar-calib2.js) — sever + šířka záběru (FOV) na dvou bodech -->
     <script defer src="js/ar-calib2.js"></script>

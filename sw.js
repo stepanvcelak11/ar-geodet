@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  — mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v170';
+const SHELL_CACHE = 'argeodet-shell-v172';   // v171 má souběžná větev feat/ucty-firma — při integraci vzít vyšší
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -18,7 +18,7 @@ const ASSETS_TO_CACHE = [
     './index.html',
     './manifest.json',
     './icon.svg',
-    './css/style.css?v=164', // verze v adrese shodná s <link> v index.html — nemíchat se starou cache
+    './css/style.css?v=172', // verze v adrese shodná s <link> v index.html — nemíchat se starou cache
     './css/vylepseni.css',
     './css/zpravodaj.css',
     './data/zpravodaj.json',
@@ -83,6 +83,8 @@ const ASSETS_TO_CACHE = [
     './js/rangefinder.js',
     './js/vyska-objektu.js',
     './js/epochy.js',
+    './js/pocasi.js',
+    './css/pocasi.css',
     './js/ar-calibrate.js',
     './js/ar-calib2.js',
     './css/ar-calibrate.css',
@@ -160,6 +162,7 @@ self.addEventListener('fetch', event => {
     const url = event.request.url;
     if (url.includes('cuzk.gov.cz/arcgis/rest')) return; // dotazy na bodova pole vzdy ze site
     if (url.includes('celestrak.org')) return; // drahy druzic (TLE) vzdy ze site — appka si je cachuje sama v localStorage
+    if (url.includes('api.open-meteo.com') || url.includes('geocoding-api.open-meteo.com') || url.includes('api.met.no')) return; // pocasi vzdy ze site — posledni data si pocasi.js cachuje samo v localStorage
 
     // Vlastni kod aplikace (stejny puvod): CACHE-FIRST. Cerstvy kod se k uzivateli
     // dostava JEN pres bump verze SW (install znovu stahne ASSETS_TO_CACHE ->
