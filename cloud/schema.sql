@@ -51,3 +51,20 @@ CREATE TABLE IF NOT EXISTS meta (
     k TEXT PRIMARY KEY,
     v TEXT NOT NULL
 );
+
+-- firemní chat (server drží posledních ~500 zpráv na firmu, starší se mažou)
+CREATE TABLE IF NOT EXISTS chat (
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    firm_id TEXT NOT NULL,
+    uid     TEXT,                        -- id autora (může být smazán — jméno zůstává)
+    uname   TEXT,
+    ts      INTEGER NOT NULL,            -- čas zprávy v ms (čas serveru)
+    txt     TEXT NOT NULL                -- max 500 znaků (ořezává server)
+);
+CREATE INDEX IF NOT EXISTS idx_chat_firm ON chat(firm_id, id);
+
+-- denní počítadlo požadavků (hlídání limitu free plánu Workers: 100 000/den)
+CREATE TABLE IF NOT EXISTS stats (
+    day TEXT PRIMARY KEY,                -- YYYY-MM-DD (UTC)
+    n   INTEGER NOT NULL
+);
