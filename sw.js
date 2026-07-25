@@ -18,8 +18,8 @@ const ASSETS_TO_CACHE = [
     './index.html',
     './manifest.json',
     './icon.svg',
-    './css/style.css?v=175', // verze v adrese shodná s <link> v index.html — nemíchat se starou cache
-    './css/vylepseni.css',
+    './css/style.css?v=184', // verze v adrese shodná s <link> v index.html — nemíchat se starou cache
+    './css/vylepseni.css?v=184',
     './css/zpravodaj.css',
     './data/zpravodaj.json',
     './css/predpisy.css',
