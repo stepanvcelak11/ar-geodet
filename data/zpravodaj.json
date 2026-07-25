@@ -1,81 +1,66 @@
 {
-  "vydani": "2026-07-24",
-  "uvodnik": "Přinášíme přehled nejnovějších zpráv ze světa geodézie a technologií.",
+  "vydani": "2026-07-25",
+  "uvodnik": "Přinášíme aktuální novinky ze světa geodetů a technologií.",
   "polozky": [
     {
-      "rubrika": "Akce",
-      "top": true,
-      "nadpis": "Workshop: Výzvy v mapování: Můžete stále dosáhnout dobrých výsledků?",
-      "perex": "Zajímavý workshop se zaměří na náročné mapovací projekty.",
-      "telo": "V rámci workshopu, který pořádá SimActive, se diskutuje o výzvách spojených s náročnými mapovacími projekty. Tyto projekty často zahrnují vzdálené lokality, krátké letové okna a vysoké požadavky na přesnost. Příkladem je projekt mapování zeleného vodíku v jižním Chile, kde bylo zpracováno více než 100 000 hektarů. Účastníci se dozvědí, jak využít technologie pro dosažení přesných ortomosaiků, DTM a konturových linií.",
-      "body": [
-        "diskuse o technologických výzvách",
-        "případová studie z Chile"
-      ],
-      "proc": "Workshop se zaměřuje na praktické aspekty náročných mapovacích projektů.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/23/workshop-challenging-mapping-projects-can-you-still-get-good-results/?utm_source=rss&utm_medium=rss&utm_campaign=workshop-challenging-mapping-projects-can-you-still-get-good-results",
-      "datum": "2026-07-23"
-    },
-    {
-      "rubrika": "Přístroje",
-      "top": false,
-      "nadpis": "První významná aktualizace ZIPLEVEL za 30 let výroby v USA",
-      "perex": "Technidea Corporation představila novou verzi ZIPLEVEL PRO-2030.",
-      "telo": "Nový ZIPLEVEL PRO-2030 je prezentován jako nejrychlejší a nejjednodušší úroveň s přesností a bez omezení rotujících laserů. Tento přístroj je navržen pro profesionály v oblasti stavebnictví, inženýrství a geodézie, přičemž nabízí rychlejší nastavení a vyšší produktivitu. Jeho inovativní design slibuje úsporu času a peněz díky tenké přesnosti.",
-      "body": [
-        "vylepšené vlastnosti a výkon",
-        "nové možnosti pro profesionály"
-      ],
-      "proc": "Nový přístroj přináší revoluční změny v měření a práci v terénu.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/19/first-major-ziplevel-upgrade-in-30-years-of-usa-production/?utm_source=rss&utm_medium=rss&utm_campaign=first-major-ziplevel-upgrade-in-30-years-of-usa-production",
-      "datum": "2026-07-19"
-    },
-    {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "NASA malý satelit může zlepšit přesnost globálního polohování",
-      "perex": "Nový satelit GRITSS od NASA má potenciál zlepšit mapování Země.",
-      "telo": "Satelit GRITSS, velikosti kufru, byl navržen tak, aby spojil různé pozorovací systémy a vedl k přesnějšímu mapování Země. Tento CubeSat, který byl vypuštěn 7. července, bude demonstrovat novou techniku pro propojení různých datových zdrojů, což by mohlo výrazně zlepšit geodetické měření a polohování.",
-      "body": [
-        "nové technologie pro geodetické měření",
-        "zvýšení přesnosti mapování"
-      ],
-      "proc": "Satelit má potenciál revolučně změnit přístup k geodetickému měření.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/14/nasa-small-satellite-could-make-global-positioning-more-precise/?utm_source=rss&utm_medium=rss&utm_campaign=nasa-small-satellite-could-make-global-positioning-more-precise",
-      "datum": "2026-07-14"
-    },
-    {
       "rubrika": "Z domova",
-      "top": false,
-      "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
-      "perex": "ČÚZK oznámil ukončení starší verze služeb WSGP.",
-      "telo": "ČÚZK upozorňuje na plánované ukončení provozu služeb verze 2.10 webových služeb pro vyhotovitele a ověřovatele geometrických plánů. Po podzimu 2026 bude v provozu pouze verze 3.1, což může mít vliv na uživatele těchto služeb. Uživatelé jsou vyzváni, aby se na tuto změnu připravili.",
-      "body": [
-        "přechod na novou verzi",
-        "důsledky pro uživatele"
-      ],
-      "proc": "Ukončení starší verze služeb vyžaduje přípravu uživatelů na novinky.",
+      "top": true,
+      "nadpis": "Ukončení provozu WSGP verze 2.10",
+      "perex": "Na podzim 2026 dojde k ukončení provozu WSGP verze 2.10.",
+      "telo": "Český úřad zeměměřický a katastrální upozorňuje uživatele webových služeb pro vyhotovitele a ověřovatele geometrických plánů, že v průběhu podzimu 2026 bude ukončen provoz WSGP verze 2.10. Po tomto termínu budou dostupné pouze služby WSGP verze 3.1. Uživatelé by měli být připraveni na tuto změnu a přizpůsobit své pracovní postupy novým podmínkám.",
+      "body": [],
+      "proc": "Zpráva je důležitá pro všechny uživatele WSGP služeb v České republice.",
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-05-29"
     },
     {
+      "rubrika": "Přístroje",
+      "top": false,
+      "nadpis": "První velké vylepšení ZIPLEVEL za 30 let výroby v USA",
+      "perex": "Technidea Corporation představila nový model ZIPLEVEL PRO-2030.",
+      "telo": "ZIPLEVEL PRO-2030 je nová generace měřicího přístroje, která slibuje rychlejší nastavení a vyšší produktivitu. Tento přístroj je navržen tak, aby nahradil tradiční rotační lasery a historické altimetry s průhlednými trubicemi. Jeho přesnost a jednoduchost použití by měly usnadnit práci geodetům a dalším odborníkům v oblasti stavebnictví a inženýrství.",
+      "body": [],
+      "proc": "Zpráva je relevantní pro geodety, kteří hledají efektivní měřicí přístroje.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/07/19/first-major-ziplevel-upgrade-in-30-years-of-usa-production/?utm_source=rss&utm_medium=rss&utm_campaign=first-major-ziplevel-upgrade-in-30-years-of-usa-production",
+      "datum": "2026-07-19"
+    },
+    {
       "rubrika": "Technologie",
       "top": false,
       "nadpis": "Topcon a GreenValley International spolupracují na inovacích v oblasti prostorové inteligence",
-      "perex": "Nová spolupráce se zaměří na technologie pro geodézii a mapování.",
-      "telo": "Topcon Positioning Systems oznámil strategickou dohodu se společností GreenValley International, jejímž cílem je spolupráce na technologiích pro geodézii, mapování a stavebnictví. Plánované inovace zahrnují integrovaná hardwarová a softwarová řešení pro sběr a zpracování dat z mobilního a leteckého LiDARu.",
-      "body": [
-        "nové technologie pro sběr dat",
-        "spolupráce na inovacích"
-      ],
-      "proc": "Tato spolupráce může přinést revoluční změny v oboru.",
+      "perex": "Topcon Positioning Systems oznámil strategickou dohodu se společností GreenValley International.",
+      "telo": "Tato spolupráce se zaměří na vývoj technologií pro geodézii, mapování a stavebnictví. Plánované inovace zahrnují integrovaná hardwarová a softwarová řešení pro sběr a zpracování dat z mobilního, ručního a leteckého LiDARu. Tato iniciativa má potenciál zlepšit efektivitu a přesnost v různých aplikacích prostorové inteligence.",
+      "body": [],
+      "proc": "Zpráva je důležitá pro geodety a odborníky v oblasti prostorových dat.",
       "zdroj": "xyHt",
       "odkaz": "https://www.xyht.com/aerialuas/topcon-and-greenvalley-international-collaborate-on-spatial-intelligence-innovations/",
       "datum": "2026-07-17"
+    },
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "Workshop: Výzvy v mapování: Můžete stále dosáhnout dobrých výsledků?",
+      "perex": "Workshop se zaměří na náročné mapovací projekty.",
+      "telo": "V rámci workshopu, který pořádá SimActive, se bude diskutovat o náročném projektu mapování zeleného vodíku v jižním Chile. Tento projekt zahrnoval letecké snímkování více než 100 000 hektarů a použití pokročilého softwaru pro zpracování dat. Účastníci se dozvědí, jak překonat výzvy spojené s přesností a korelací snímků v obtížných podmínkách.",
+      "body": [],
+      "proc": "Zpráva je užitečná pro geodety, kteří se zabývají složitými mapovacími projekty.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/07/23/workshop-challenging-mapping-projects-can-you-still-get-good-results/?utm_source=rss&utm_medium=rss&utm_campaign=workshop-challenging-mapping-projects-can-you-still-get-good-results",
+      "datum": "2026-07-23"
+    },
+    {
+      "rubrika": "Akce",
+      "top": false,
+      "nadpis": "Commercial UAV Expo oznámila klíčovou přednášku: Dva nebe, jeden rozhovor",
+      "perex": "Na závěr Commercial UAV Expo 2026 se uskuteční porovnání regulace BVLOS mezi FAA a EASA.",
+      "telo": "Na závěr Commercial UAV Expo 2026 se představitelé FAA a EASA setkají, aby diskutovali o přístupu k regulaci BVLOS operací dronů. Tato událost se uskuteční 3. září a nabídne cenné informace pro všechny účastníky, kteří se zajímají o drony a jejich regulaci v různých jurisdikcích.",
+      "body": [],
+      "proc": "Zpráva je důležitá pro odborníky v oblasti dronů a geodetů.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/07/15/commercial-uav-expo-announces-second-keynote-two-skies-one-conversation/?utm_source=rss&utm_medium=rss&utm_campaign=commercial-uav-expo-announces-second-keynote-two-skies-one-conversation",
+      "datum": "2026-07-15"
     }
   ]
 }
