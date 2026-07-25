@@ -59,11 +59,27 @@
     var LS_SYNC = 'agFirmaSync_v1';    // cloud: ukazatel odeslaných událostí užívání {lastSeq}
     var LS_GUEST = 'agGuest_v1';       // režim bez přihlášení {ts} — velmi omezené funkce
     var LS_PROF = 'agFirmy_v1';        // uložené firmy tohoto zařízení [{key,label,code,cloud,ts,snap}]
+    var LS_LAST = 'agFirmaLastUser_v1';// id naposledy přihlášeného (rychlé odemknutí)
     var STYLE_ID = 'ag-ucty-style';
     var DB = 'argeodet-usage', STORE = 'ev', VER = 1;
     // adresa API (Cloudflare Worker, cloud/worker.js). Konstanta je jen výchozí —
     // skutečná adresa se ukládá do konfigurace firmy při založení/připojení.
     var DEFAULT_API = 'https://ar-geodet-api.ar-geodet.workers.dev';
+
+    // líné načtení vendorované knihovny (stejný vzor jako sdileni.js) —
+    // QR knihovny se stahují až při prvním použití, ne při startu appky
+    var _libCache = {};
+    function ensureLib(src) {
+        if (_libCache[src]) return _libCache[src];
+        _libCache[src] = new Promise(function (resolve, reject) {
+            var s = document.createElement('script');
+            s.src = src; s.async = true;
+            s.onload = function () { resolve(); };
+            s.onerror = function () { _libCache[src] = null; reject(new Error('nelze načíst ' + src)); };
+            (document.head || document.documentElement).appendChild(s);
+        });
+        return _libCache[src];
+    }
 
     // ------------------------------------------------------------------
     // Definice oprávnění. Klíč -> co se skrývá. Admin má vždy vše.
@@ -271,6 +287,7 @@
         if (data.offline) saveOff(data.user.id, data.offline);
         setSess({ userId: data.user.id, ts: Date.now() });
         try { localStorage.setItem('arSurveyor', data.user.name); } catch (e) {}
+        try { localStorage.setItem(LS_LAST, data.user.id); } catch (e) {}
         rememberCurrentFirm();
         var g = document.getElementById('ag-gate'); if (g) g.remove();
     }
@@ -435,6 +452,26 @@
             try { db.transaction(STORE, 'readwrite').objectStore(STORE).add(rec); } catch (e) {}
         });
     }
+    // zápis události s VLASTNÍMI poli (čas/uživatel) — např. zpětně doplněný
+    // odchod docházky. Jde stejnou frontou (IndexedDB -> server) jako usageLog.
+    function usageLogRaw(rec) {
+        var f = getFirm(); if (!f || !rec || !rec.t) return;
+        var u = currentUser();
+        var full = {
+            ts: rec.ts || Date.now(),
+            u: rec.u != null ? rec.u : (u ? u.name : '?'),
+            uid: rec.uid != null ? rec.uid : (u ? u.id : null),
+            t: rec.t,
+            k: rec.k || null,
+            proj: rec.proj != null ? rec.proj : pid(),
+            dev: rec.dev || devId()
+        };
+        openDb().then(function (db) {
+            if (!db) return;
+            try { db.transaction(STORE, 'readwrite').objectStore(STORE).add(full); } catch (e) {}
+        });
+    }
+
     function usageQuery(fromTs) {
         return openDb().then(function (db) {
             if (!db) return [];
@@ -824,6 +861,7 @@
         }
         // společný závěr (lokální i cloud — cloud má session/token už uložené)
         function afterLogin(u) {
+            try { localStorage.setItem(LS_LAST, u.id); } catch (e) {}
             ov.remove();
             _touchActivity();
             applyPerms();
@@ -905,12 +943,16 @@
             }
         });
 
-        // předvyber posledního (zamčení) / jediného uživatele
-        if (lockMode) {
-            var last = getSessLastUser();
-            if (last) pick(last);
-        } else if (f.users.length === 1) {
+        // předvyber jediného / naposledy přihlášeného uživatele (rychlé odemknutí
+        // jedním tapem — heslo/PIN samozřejmě zůstává)
+        var lastId = getSessLastUser();
+        if (!lastId) { try { lastId = localStorage.getItem(LS_LAST); } catch (e) {} }
+        if (f.users.length === 1) {
             pick(f.users[0].id);
+        } else if (lastId) {
+            for (var li = 0; li < f.users.length; li++) {
+                if (f.users[li].id === lastId) { pick(lastId); break; }
+            }
         }
     }
     var _lastUserId = null;
@@ -949,6 +991,7 @@
             '  <input type="password" id="agg-pass" maxlength="64" placeholder="Heslo" autocomplete="current-password">' +
             '  <div class="agl-err" id="agg-err"></div>' +
             '  <button type="button" class="agl-btn" id="agg-go">Přihlásit</button>' +
+            '  <button type="button" class="agl-ghost" id="agg-scan">Naskenovat QR od admina</button>' +
             '</div>' +
             '<button type="button" class="agl-btn" id="agg-show-join">Přihlásit se (mám kód firmy)</button>' +
             '<button type="button" class="agg-alt" id="agg-new">Založit firmu / další možnosti</button>' +
@@ -957,14 +1000,29 @@
         document.body.appendChild(ov);
 
         var errEl = ov.querySelector('#agg-err');
+        var gateApi = DEFAULT_API;   // QR od admina může nést i vlastní adresu API
         ov.addEventListener('click', function (e) {
             var pb = e.target.closest ? e.target.closest('.agg-prof') : null;
             if (pb) { switchProfile(pb.getAttribute('data-key')); return; }
         });
-        ov.querySelector('#agg-show-join').onclick = function () {
-            this.style.display = 'none';
+        function showJoin() {
+            var b = ov.querySelector('#agg-show-join');
+            if (b) b.style.display = 'none';
             ov.querySelector('#agg-join').classList.add('on');
+        }
+        ov.querySelector('#agg-show-join').onclick = function () {
+            showJoin();
             setTimeout(function () { try { ov.querySelector('#agg-code').focus(); } catch (e) {} }, 50);
+        };
+        ov.querySelector('#agg-scan').onclick = function () {
+            scanFirmQR(function (d) {
+                showJoin();
+                ov.querySelector('#agg-code').value = d.code;
+                ov.querySelector('#agg-name').value = d.name;
+                if (d.api) gateApi = d.api;
+                errEl.textContent = '';
+                setTimeout(function () { try { ov.querySelector('#agg-pass').focus(); } catch (e) {} }, 50);
+            });
         };
         var _busy = false;
         ov.querySelector('#agg-go').onclick = function () {
@@ -975,10 +1033,10 @@
             if (!code || !name || !pass) { errEl.textContent = 'Vyplň kód firmy, jméno i heslo.'; return; }
             _busy = true;
             errEl.textContent = 'Ověřuji…';
-            cloudFetch('/login', { method: 'POST', api: DEFAULT_API, body: { code: code, name: name, password: pass } }).then(function (r) {
+            cloudFetch('/login', { method: 'POST', api: gateApi, body: { code: code, name: name, password: pass } }).then(function (r) {
                 _busy = false;
                 if (r.ok && r.data && r.data.token) {
-                    adoptLogin(r.data, DEFAULT_API);   // odstraní i bránu
+                    adoptLogin(r.data, gateApi);   // odstraní i bránu
                     usageLog('login', 'join');
                     try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: r.data.user } })); } catch (e) {}
                     return;
@@ -999,6 +1057,60 @@
             }
         };
         ov.querySelector('#agg-guest').onclick = function () { enterGuest(); };
+    }
+
+    // ---- sken přihlašovacího QR od admina (payload 'AGF1\ncode\tname\tapi?';
+    // heslo se NIKDY nepřenáší — to zadá zaměstnanec sám) ----------------------
+    function scanFirmQR(done) {
+        ensureLib('js/lib/jsqr.min.js').then(function () {
+            var ov = document.createElement('div');
+            ov.id = 'agg-scan-ov';
+            ov.style.cssText = 'position:fixed;inset:0;z-index:1000000;background:rgba(0,0,0,0.93);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;';
+            ov.innerHTML =
+                '<video id="agg-scan-video" playsinline muted style="width:min(420px,92vw);border-radius:14px;background:#000;"></video>' +
+                '<div id="agg-scan-st" style="color:#9aa1ac;font:600 13px/1.4 system-ui;text-align:center;">Spouštím kameru…</div>' +
+                '<button type="button" id="agg-scan-x" style="background:transparent;border:1px solid rgba(255,255,255,0.3);color:#e6e8eb;border-radius:12px;padding:11px 26px;font:600 14px/1 system-ui;cursor:pointer;">Zrušit</button>';
+            document.body.appendChild(ov);
+            var video = ov.querySelector('#agg-scan-video');
+            var st = ov.querySelector('#agg-scan-st');
+            var canvas = document.createElement('canvas');
+            var ctx = canvas.getContext('2d', { willReadFrequently: true });
+            var stream = null, raf = null;
+            function stop() {
+                if (raf) cancelAnimationFrame(raf);
+                if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
+                stream = null;
+                ov.remove();
+            }
+            ov.querySelector('#agg-scan-x').onclick = stop;
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(function (s) {
+                stream = s; video.srcObject = s;
+                try { video.play(); } catch (e) {}
+                st.textContent = 'Namiř na QR kód od admina…';
+                function tick() {
+                    if (!stream) return;
+                    if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth) {
+                        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        var img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        var code = window.jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+                        if (code && code.data) {
+                            if (code.data.indexOf('AGF1\n') === 0) {
+                                var c = code.data.split('\n')[1].split('\t');
+                                stop();
+                                done({ code: (c[0] || '').toUpperCase(), name: c[1] || '', api: c[2] || '' });
+                                return;
+                            }
+                            st.textContent = 'Tohle není přihlašovací QR AR Geodet.';
+                        }
+                    }
+                    raf = requestAnimationFrame(tick);
+                }
+                raf = requestAnimationFrame(tick);
+            }).catch(function (err) {
+                st.textContent = 'Kameru nelze spustit: ' + (err && err.message ? err.message : err);
+            });
+        }).catch(function () { alert('Knihovnu pro čtení QR se nepodařilo načíst.'); });
     }
 
     // pojistka: bez firmy, bez hosta a bez otevřené brány/průvodce → ukázat bránu
@@ -1097,6 +1209,8 @@
         avatarStyle: avStyle,   // barva avataru ze jména (užívá i administrace/chat)
         hashPin: hashPin,
         makeSalt: makeSalt,
+        ensureLib: ensureLib,
+        usageLogRaw: usageLogRaw,
         usageLog: usageLog,
         usageQuery: usageQuery,
         usageClear: usageClear,

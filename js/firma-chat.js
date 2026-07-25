@@ -17,7 +17,9 @@
     var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2.4-2.9A8 8 0 1 1 21 12z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01"/></svg>';
     var STYLE_ID = 'ag-chat-style';
     var LS_CACHE = 'agChatCache_v1';   // {code, msgs:[posledních ~80]} — offline náhled
+    var LS_READ = 'agChatRead_v1';     // {code, lastId} — poslední přečtená zpráva
     var POLL_MS = 8000;
+    var PT_PREFIX = 'AG1\n';           // zpráva s body = stejný formát jako QR sdílení (sdileni.js)
 
     function U() { return window.AGUcty || null; }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -53,7 +55,19 @@
             '  box-shadow:0 4px 12px var(--accent-soft,rgba(47,158,116,0.3));transition:transform .12s ease;}',
             '#agch-modal .agch-send:active{transform:scale(.94);}',
             '#agch-modal .agch-send svg{width:20px;height:20px;}',
-            '#agch-modal .agch-off{font:600 11.5px/1.4 var(--font-ui,system-ui);color:#d4a02c;text-align:center;margin-top:6px;min-height:15px;}'
+            '#agch-modal .agch-off{font:600 11.5px/1.4 var(--font-ui,system-ui);color:#d4a02c;text-align:center;margin-top:6px;min-height:15px;}',
+            // zpráva s body: karta s tlačítkem převzetí
+            '#agch-modal .agch-pts{display:flex;flex-direction:column;gap:6px;}',
+            '#agch-modal .agch-pts .nm{font:600 12.5px/1.4 var(--font-ui,system-ui);}',
+            '#agch-modal .agch-take{border:1px solid var(--accent-line,rgba(47,158,116,0.4));background:var(--accent-soft,rgba(47,158,116,0.12));',
+            '  color:var(--accent,#2f9e74);border-radius:10px;padding:8px 12px;font:700 12px/1 var(--font-ui,system-ui);cursor:pointer;}',
+            '#agch-modal .agch-ptbtn{flex:none;width:48px;height:44px;border:1px solid var(--glass-border,rgba(255,255,255,0.16));border-radius:12px;',
+            '  background:var(--glass-bg,rgba(255,255,255,0.04));color:var(--text,#e6e8eb);font-size:19px;cursor:pointer;}',
+            // výběr bodů k odeslání
+            '#agch-picker .agch-pk-row{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.07));',
+            '  font:500 13px/1.3 var(--font-ui,system-ui);color:var(--text,#e6e8eb);}',
+            '#agch-picker .agch-pk-row input{width:18px;height:18px;accent-color:var(--accent,#2f9e74);}',
+            '#agch-picker .agch-pk-row span{color:var(--text-muted,#9aa1ac);font-size:11px;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
@@ -88,6 +102,7 @@
             '    <div id="agch-list"></div>' +
             '    <div class="agch-off" id="agch-off"></div>' +
             '    <div class="agch-inrow">' +
+            '      <button type="button" class="agch-ptbtn" id="agch-pt" title="Poslat body">📍</button>' +
             '      <textarea id="agch-inp" maxlength="500" placeholder="Napiš zprávu firmě…"></textarea>' +
             '      <button type="button" class="agch-send" id="agch-send" aria-label="Odeslat">' +
             '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>' +
@@ -99,10 +114,106 @@
         document.body.appendChild(m);
         m.querySelector('#agch-close').onclick = close;
         m.querySelector('#agch-send').onclick = send;
+        m.querySelector('#agch-pt').onclick = openPicker;
         m.querySelector('#agch-inp').addEventListener('keydown', function (e) {
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
         });
+        // převzetí bodů ze zprávy (delegovaně — seznam se překresluje)
+        m.querySelector('#agch-list').addEventListener('click', function (e) {
+            var b = e.target.closest ? e.target.closest('.agch-take') : null;
+            if (!b) return;
+            var pts = _ptByMsg[b.getAttribute('data-mid')];
+            if (pts) importPts(pts);
+        });
         return m;
+    }
+
+    // ---- body ve zprávě (stejný kompaktní formát jako QR sdílení, sdileni.js) ----
+    var _ptByMsg = {};
+    function decodePts(txt) {
+        if (!txt || txt.indexOf(PT_PREFIX) !== 0) return null;
+        var rows = txt.replace(/\r/g, '').split('\n');
+        var out = [];
+        for (var i = 1; i < rows.length; i++) {
+            if (!rows[i]) continue;
+            var c = rows[i].split('\t');
+            if (c.length < 3) continue;
+            var lat = parseFloat(c[1]), lng = parseFloat(c[2]);
+            if (isNaN(lat) || isNaN(lng)) continue;
+            out.push({ name: c[0] || 'Bod', lat: lat, lng: lng });
+        }
+        return out.length ? out : null;
+    }
+    // import = stejná cesta jako naskenované QR body: přidává, nikdy nepřepisuje
+    function importPts(pts) {
+        if (typeof persistentCustomPoints === 'undefined') { setOff('Aplikace ještě není připravená na import bodů.'); return; }
+        var added = 0, skipped = 0;
+        pts.forEach(function (np) {
+            var dup = persistentCustomPoints.some(function (ep) {
+                return ep.name === np.name && (typeof getDistance === 'function'
+                    ? getDistance(ep.lat, ep.lng, np.lat, np.lng) < 0.5
+                    : Math.abs(ep.lat - np.lat) < 1e-5 && Math.abs(ep.lng - np.lng) < 1e-5);
+            });
+            if (dup) { skipped++; return; }
+            var pt = { id: 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6), name: np.name, lat: np.lat, lng: np.lng, cat: 'CUSTOM', type: 'custom', shared: true };
+            persistentCustomPoints.push(pt);
+            if (typeof arPoints !== 'undefined') arPoints.push(Object.assign({}, pt, { hidden: false }));
+            added++;
+        });
+        if (added) {
+            try { setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); } catch (e) {}
+            try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) {}
+            try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) {}
+            try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) {}
+        }
+        var msg = 'Přidáno ' + added + ' bodů' + (skipped ? ', ' + skipped + ' přeskočeno (už je máš)' : '') + '.';
+        try { if (typeof quickToast === 'function') { quickToast(msg); return; } } catch (e) {}
+        alert(msg);
+    }
+    // výběr vlastních bodů k odeslání
+    function openPicker() {
+        if (typeof persistentCustomPoints === 'undefined' || !persistentCustomPoints.length) {
+            setOff('Nemáš žádné vlastní body k poslání.');
+            return;
+        }
+        var old = document.getElementById('agch-picker'); if (old) old.remove();
+        var m = document.createElement('div');
+        m.className = 'modal-overlay';
+        m.id = 'agch-picker';
+        m.innerHTML =
+            '<div class="modal-content">' +
+            '<h3 style="color:var(--accent);margin-top:0;">📍 Poslat body do chatu</h3>' +
+            '<div class="modal-body" style="flex:1;overflow-y:auto;">' +
+            persistentCustomPoints.map(function (p, i) {
+                return '<label class="agch-pk-row"><input type="checkbox" data-i="' + i + '"> ' + esc(p.name || 'Bod') +
+                    ' <span>(' + (+p.lat).toFixed(5) + ', ' + (+p.lng).toFixed(5) + ')</span></label>';
+            }).join('') +
+            '</div>' +
+            '<div class="agch-off" id="agch-pk-err"></div>' +
+            '<button class="btn" style="margin-top:10px;" id="agch-pk-send">Odeslat vybrané</button>' +
+            '<button class="btn btn-secondary" style="margin-top:8px;" id="agch-pk-x">Zrušit</button></div>';
+        document.body.appendChild(m);
+        m.style.display = 'flex';
+        var errEl = m.querySelector('#agch-pk-err');
+        m.querySelector('#agch-pk-x').onclick = function () { m.remove(); };
+        m.querySelector('#agch-pk-send').onclick = function () {
+            var sel = [];
+            var cbs = m.querySelectorAll('input[data-i]');
+            for (var i = 0; i < cbs.length; i++) if (cbs[i].checked) sel.push(persistentCustomPoints[+cbs[i].getAttribute('data-i')]);
+            if (!sel.length) { errEl.textContent = 'Vyber aspoň jeden bod.'; return; }
+            var payload = PT_PREFIX + sel.map(function (p) {
+                var name = String(p.name || 'Bod').replace(/[\t\n\r]/g, ' ').slice(0, 40);
+                return name + '\t' + (+p.lat).toFixed(6) + '\t' + (+p.lng).toFixed(6);
+            }).join('\n');
+            if (payload.length > 490) { errEl.textContent = 'Do jedné zprávy se vejde méně bodů — odeber pár z výběru.'; return; }
+            var u = U(); if (!u) return;
+            errEl.textContent = 'Odesílám…';
+            u.cloudFetch('/chat', { method: 'POST', body: { txt: payload } }).then(function (r) {
+                if (!r.ok) { errEl.textContent = r.status === 0 ? 'Bez internetu body nejde poslat.' : 'Odeslání selhalo (' + r.status + ').'; return; }
+                m.remove();
+                load();
+            });
+        };
     }
 
     function render(scrollDown) {
@@ -116,6 +227,7 @@
             return;
         }
         var html = '', lastDay = '';
+        _ptByMsg = {};
         _msgs.forEach(function (msg) {
             var day = new Date(msg.ts).toDateString();
             if (day !== lastDay) { html += '<div class="agch-day">' + esc(fmtD(msg.ts)) + '</div>'; lastDay = day; }
@@ -123,8 +235,18 @@
             html += '<div class="agch-msg' + (mine ? ' mine' : '') + '">' +
                 '<div class="agch-meta">' +
                 (mine ? '' : '<span class="who" style="color:hsl(' + hue(msg.u) + ',55%,62%);">' + esc(msg.u || '?') + '</span>') +
-                '<span>' + fmtT(msg.ts) + '</span></div>' +
-                '<div class="agch-bubble">' + esc(msg.txt) + '</div></div>';
+                '<span>' + fmtT(msg.ts) + '</span></div>';
+            var pts = decodePts(msg.txt);
+            if (pts) {
+                _ptByMsg[msg.id] = pts;
+                html += '<div class="agch-bubble agch-pts">' +
+                    '<div class="nm">📍 ' + (pts.length === 1 ? 'Bod' : 'Body (' + pts.length + ')') + ': ' +
+                    esc(pts.map(function (p) { return p.name; }).join(', ').slice(0, 120)) + '</div>' +
+                    (mine ? '' : '<button type="button" class="agch-take" data-mid="' + esc(String(msg.id)) + '">Převzít do mých bodů</button>') +
+                    '</div></div>';
+            } else {
+                html += '<div class="agch-bubble">' + esc(msg.txt) + '</div></div>';
+            }
         });
         list.innerHTML = html;
         if (scrollDown !== false) list.scrollTop = list.scrollHeight;
@@ -158,6 +280,66 @@
                 cacheSave();
                 render(atBottom);
             }
+            markRead();   // chat je otevřený → vše je přečtené
+        });
+    }
+
+    // ---- nepřečtené zprávy (tečka na dlaždici + hláška po startu) ----------
+    var _unread = 0;
+    function readPtr() {
+        try {
+            var c = JSON.parse(localStorage.getItem(LS_READ) || 'null');
+            if (c && c.code === firmCode()) return c.lastId || 0;
+        } catch (e) {}
+        return 0;
+    }
+    function markRead() {
+        try { localStorage.setItem(LS_READ, JSON.stringify({ code: firmCode(), lastId: _lastId })); } catch (e) {}
+        _unread = 0;
+        syncBadge();
+    }
+    // dlaždici překreslují jiné moduly → badge se periodicky obnovuje (viz init)
+    function syncBadge() {
+        var tile = document.querySelector('#tools-modal .tool-tile[data-tool="firma-chat"]');
+        if (!tile) return;
+        var b = tile.querySelector('.agch-badge');
+        if (!_unread) { if (b) b.remove(); return; }
+        if (!b) {
+            b = document.createElement('span');
+            b.className = 'agch-badge';
+            b.style.cssText = 'position:absolute;top:6px;right:6px;min-width:18px;height:18px;border-radius:999px;' +
+                'background:var(--danger,#e5534b);color:#fff;font:700 11px/18px system-ui;text-align:center;padding:0 4px;pointer-events:none;';
+            try { if (getComputedStyle(tile).position === 'static') tile.style.position = 'relative'; } catch (e) { tile.style.position = 'relative'; }
+            tile.appendChild(b);
+        }
+        b.textContent = _unread > 9 ? '9+' : String(_unread);
+    }
+    // po startu / přihlášení: JEDEN dotaz na nové zprávy (žádné trvalé dotazování)
+    function startupCheck() {
+        var u = U();
+        if (!u || !u.isCloud || !u.isCloud() || !u.currentUser()) return;
+        var ptr = readPtr();
+        u.cloudFetch('/chat' + (ptr ? '?after=' + ptr : '')).then(function (r) {
+            if (!r.ok || !r.data || !Array.isArray(r.data.messages)) return;
+            // rovnou doplnit mezipaměť (ušetří stažení při otevření chatu)
+            cacheLoad();
+            var seen = {};
+            _msgs.forEach(function (m3) { seen[m3.id] = 1; });
+            var fresh = r.data.messages.filter(function (m3) { return m3 && m3.id && !seen[m3.id]; });
+            if (fresh.length) {
+                _msgs = _msgs.concat(fresh).slice(-300);
+                _lastId = _msgs[_msgs.length - 1].id;
+                cacheSave();
+            } else if (_msgs.length) {
+                _lastId = _msgs[_msgs.length - 1].id;
+            }
+            if (!ptr) { markRead(); return; }   // první seznámení s chatem: nehlásit historii
+            var me = u.currentUser();
+            _unread = r.data.messages.filter(function (m4) { return m4 && (!me || m4.uid !== me.id); }).length;
+            if (!_unread) return;
+            syncBadge();
+            var t = 'Firemní chat: ' + _unread + ' ' + (_unread === 1 ? 'nová zpráva' : (_unread < 5 ? 'nové zprávy' : 'nových zpráv'));
+            try { if (typeof quickToast === 'function') quickToast(t); } catch (e) {}
         });
     }
 
@@ -215,6 +397,9 @@
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'firma-chat', label: 'Firemní chat', icon: ICON, onClick: open, order: 89, cat: 'Pomůcky' });
         }
+        setTimeout(startupCheck, 9000);
+        window.addEventListener('agucty:login', function () { setTimeout(startupCheck, 2500); });
+        setInterval(syncBadge, 5000);   // mřížku Nástrojů překreslují jiné moduly
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 400); });
     else setTimeout(init, 400);

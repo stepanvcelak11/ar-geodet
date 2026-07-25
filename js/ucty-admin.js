@@ -127,6 +127,37 @@
         var m = ensureModal();
         m.style.display = 'flex';
         renderNav(section || 'uzivatele');
+        limitWarnCheck();
+    }
+
+    // varování na čerpání limitu serveru hned při otevření administrace
+    // (admin nemusí klikat do sekce Firma); max 1 dotaz za 10 minut
+    var _limitTs = 0;
+    function limitWarnCheck() {
+        var u = U(); if (!u) return;
+        var f = u.getFirm();
+        if (!f || !f.cloud || !u.isAdmin()) return;
+        if (Date.now() - _limitTs < 10 * 60e3) return;
+        _limitTs = Date.now();
+        u.cloudFetch('/stats').then(function (r) {
+            if (!r.ok || !r.data) return;
+            var lim = (r.data.limits && r.data.limits.reqPerDay) || 100000;
+            var n = 0;
+            (r.data.days || []).forEach(function (x) { if (x.day === r.data.today) n = x.n; });
+            var pct = n / lim * 100;
+            var old = document.getElementById('agfa-limit-warn');
+            if (old) old.remove();
+            if (pct < 50) return;
+            var el = document.createElement('div');
+            el.id = 'agfa-limit-warn';
+            el.className = 'agfa-note';
+            el.style.cssText = 'border:1px solid ' + (pct >= 80 ? 'rgba(229,83,75,0.5)' : 'rgba(212,160,44,0.5)') +
+                ';border-radius:11px;padding:9px 12px;margin:0 0 10px;color:' + (pct >= 80 ? 'var(--danger,#e5534b)' : '#d4a02c') + ';';
+            el.innerHTML = '⚠ Server dnes čerpá <b>' + Math.round(pct) + ' %</b> denního limitu požadavků (' +
+                n.toLocaleString('cs-CZ') + ' ze ' + lim.toLocaleString('cs-CZ') + '). Detail v sekci Firma.';
+            var nav = document.getElementById('agfa-nav');
+            if (nav && nav.parentNode) nav.parentNode.insertBefore(el, nav);
+        });
     }
 
     // ikonky navigace (čárová grafika ve stylu appky)
@@ -201,11 +232,17 @@
             (f.cloud ? '' : ' (tady běží lokální režim — jen toto zařízení)') + '. Nic z toho neodchází mimo firmu.</div>' +
             '<div class="agfa-pg">Docházka</div>' +
             '<div class="agfa-note">Každý si značí příchod/odchod dlaždicí <b>Docházka</b> v Nástrojích (Pomůcky) — jedno velké tlačítko, ' +
-            'funguje i bez signálu (záznam se odešle, až je internet). Admin a vedení vidí spárovanou docházku všech v záložce Docházka. ' +
-            'Je to orientační podklad pro výkazy, ne certifikovaný docházkový systém.</div>' +
+            'funguje i bez signálu (záznam se odešle, až je internet). Příchod se váže k <b>aktivní zakázce</b> a ukládá i hrubou polohu píchnutí (📍). ' +
+            'Když někdo zapomene odchod, appka mu ho druhý den nabídne doplnit; zpětně ho umí doplnit i admin v Rozpisu. ' +
+            'Admin a vedení vidí spárovanou docházku všech, hodiny po zakázkách a umí <b>výkaz do CSV nebo tisk/PDF</b> (podklad pro mzdy). ' +
+            'Je to orientační podklad, ne certifikovaný docházkový systém.</div>' +
             '<div class="agfa-pg">Firemní chat</div>' +
-            '<div class="agfa-note">Dlaždice <b>Firemní chat</b> v Nástrojích (Pomůcky) — jednoduché zprávy mezi všemi přihlášenými ve firmě ' +
-            '(např. „pošli mi číslo bodu"). Funguje jen u cloudové firmy a s internetem; server drží posledních ~500 zpráv.</div>' +
+            '<div class="agfa-note">Dlaždice <b>Firemní chat</b> v Nástrojích (Pomůcky) — jednoduché zprávy mezi všemi přihlášenými ve firmě. ' +
+            'Tlačítkem 📍 jde poslat <b>vlastní body</b> — příjemce je jedním klepnutím převezme do svých bodů (a může na ně rovnou navigovat). ' +
+            'Nové zprávy se hlásí tečkou na dlaždici a proužkem po startu. Funguje jen u cloudové firmy a s internetem; server drží posledních ~500 zpráv.</div>' +
+            '<div class="agfa-pg">Připojení zařízení QR kódem</div>' +
+            '<div class="agfa-note">Admin v sekci Uživatelé klepne u člověka na <b>QR</b>; zaměstnanec na přihlašovací obrazovce dá „Naskenovat QR od admina" ' +
+            'a dopíše jen heslo — bez překlepávání kódu firmy. Heslo se v QR nikdy nepřenáší.</div>' +
             '<div class="agfa-pg">Vytížení serveru (admin)</div>' +
             '<div class="agfa-note">V sekci Firma admin vidí, kolik z denního limitu 100 000 požadavků free plánu Cloudflare se čerpá ' +
             'a kolik dat je uloženo. Malá firma limit prakticky nevyčerpá; kdyby ano, ukazatel zežloutne/zčervená.</div>';
@@ -384,6 +421,7 @@
                 '<span class="agfa-av" style="' + (u.avatarStyle ? u.avatarStyle(us.name) : '') + '">' + esc(initials) + '</span>' +
                 '<b>' + esc(us.name) + (me && me.id === us.id ? ' <span style="color:var(--text-muted);font-weight:500;">(ty)</span>' : '') + '</b>' +
                 '<span class="agfa-chip' + chipCls + '">' + roleTxt(us.role) + (!cloud && us.noPin ? ' · bez PINu' : '') + '</span>' +
+                (cloud ? '<button class="agfa-mini" data-act="qr" title="QR pro připojení zařízení">QR</button>' : '') +
                 '<button class="agfa-mini" data-act="edit">Upravit</button>' +
                 '<button class="agfa-mini danger" data-act="del">Smazat</button>' +
                 '</div>';
@@ -401,6 +439,7 @@
             var us = null;
             for (var i = 0; i < f.users.length; i++) if (f.users[i].id === id) us = f.users[i];
             if (!us) return;
+            if (btn.getAttribute('data-act') === 'qr') { showUserQR(body, us, f, u); return; }
             if (btn.getAttribute('data-act') === 'edit') { userForm(body, us); return; }
             // smazání: nesmí zmizet poslední admin (server to hlídá taky)
             var admins = f.users.filter(function (x) { return x.role === 'admin'; });
@@ -430,6 +469,37 @@
         if (r.status === 0) return 'Server není dosažitelný — správa firmy potřebuje internet.';
         return esc((r.data && r.data.error) || ('Chyba ' + r.status));
     }
+    // QR pro připojení zaměstnance: kód firmy + jméno (+ adresa API). Heslo se
+    // NEpřenáší — to zaměstnanec na svém mobilu dopíše sám.
+    function showUserQR(body, us, f, u) {
+        var box = body.querySelector('#agfa-uform');
+        box.innerHTML =
+            '<div style="border:1px solid var(--glass-border,rgba(255,255,255,0.15));border-radius:12px;padding:14px;margin-top:12px;text-align:center;">' +
+            '<div class="agfa-note" style="margin-top:0;">Zaměstnanec <b>' + esc(us.name) + '</b> na svém mobilu klepne na přihlašovací obrazovce na ' +
+            '„Naskenovat QR od admina", namíří sem a dopíše už jen své heslo.</div>' +
+            '<div id="agfa-uqr" style="min-height:120px;"><span class="agfa-note">Vytvářím QR…</span></div>' +
+            '<button class="btn btn-secondary" style="width:100%;margin-top:10px;" id="agfa-uqr-x">Zavřít QR</button></div>';
+        box.querySelector('#agfa-uqr-x').onclick = function () { box.innerHTML = ''; };
+        function draw() {
+            var out = box.querySelector('#agfa-uqr'); if (!out) return;
+            if (typeof window.qrcode === 'undefined') {
+                if (!u.ensureLib) { out.innerHTML = '<span class="agfa-note" style="color:var(--danger);">Chybí AGUcty.ensureLib.</span>'; return; }
+                u.ensureLib('js/lib/qrcode.min.js').then(draw)
+                    .catch(function () { out.innerHTML = '<span class="agfa-note" style="color:var(--danger);">Knihovnu QR se nepodařilo načíst (offline?).</span>'; });
+                return;
+            }
+            try {
+                var payload = 'AGF1\n' + (f.code || '') + '\t' + us.name + '\t' + (f.api || u.DEFAULT_API);
+                if (window.qrcode.stringToBytesFuncs && window.qrcode.stringToBytesFuncs['UTF-8']) window.qrcode.stringToBytes = window.qrcode.stringToBytesFuncs['UTF-8'];
+                var qr = window.qrcode(0, 'M');
+                qr.addData(payload, 'Byte');
+                qr.make();
+                out.innerHTML = '<img src="' + qr.createDataURL(6, 12) + '" alt="QR" style="width:100%;max-width:260px;image-rendering:pixelated;background:#fff;border-radius:10px;padding:4px;">';
+            } catch (e) { out.innerHTML = '<span class="agfa-note" style="color:var(--danger);">QR se nepodařilo vytvořit.</span>'; }
+        }
+        draw();
+    }
+
     function userForm(body, us) {
         var u = U(), f = u.getFirm(); if (!f) return;
         var cloud = !!f.cloud;
@@ -869,27 +939,43 @@
             })
             : u.usageQuery(from.getTime()));
         getEvents.then(function (all) {
+            // klíč může nést i polohu píchnutí: 'in|50.12345,14.67890'
+            function kDir(ev) { var s = String(ev.k || '').split('|'); return s[0]; }
+            function kPos(ev) { var s = String(ev.k || '').split('|'); return s[1] || null; }
+            function posLink(pos) {
+                return pos ? ' <a href="https://mapy.cz/zakladni?q=' + esc(pos) + '" target="_blank" rel="noopener" title="' + esc(pos) + '" style="text-decoration:none;">📍</a>' : '';
+            }
+            function projName(id) {
+                if (!id || id === 'default') return '';
+                try {
+                    if (typeof projects !== 'undefined' && Array.isArray(projects)) {
+                        for (var i = 0; i < projects.length; i++) if (projects[i] && projects[i].id === id) return projects[i].name || id;
+                    }
+                } catch (e) {}
+                return id;
+            }
             var shifts = all.filter(function (ev) { return ev.t === 'shift'; })
                 .sort(function (a, b) { return a.ts - b.ts; });
-            // pairs: [{day,name,inTs,outTs|null,ms}] + souhrn na uživatele
-            var pairs = [], sum = {}, open = {};
+            // pairs: [{day,name,uid,inTs,outTs|null,ms,proj,inPos,outPos}] + souhrny
+            var pairs = [], sum = {}, byProj = {}, open = {};
             var todayKey = (function (d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); })(new Date());
             shifts.forEach(function (ev) {
                 var name = ev.u || '?';
-                if (ev.k === 'in') {
+                var dir = kDir(ev);
+                if (dir === 'in') {
                     if (open[name]) pairs.push(open[name]);   // dvojí příchod: starý zůstane bez odchodu
                     var d = new Date(ev.ts);
-                    open[name] = { day: d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()), name: name, inTs: ev.ts, outTs: null, ms: 0 };
-                } else if (ev.k === 'out') {
+                    open[name] = { day: d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()), name: name, uid: ev.uid || null, inTs: ev.ts, outTs: null, ms: 0, proj: ev.proj || null, inPos: kPos(ev), outPos: null };
+                } else if (dir === 'out') {
                     if (open[name]) {
                         open[name].outTs = ev.ts;
+                        open[name].outPos = kPos(ev);
                         open[name].ms = Math.max(0, ev.ts - open[name].inTs);
                         pairs.push(open[name]);
-                        open[name] = null;
                         delete open[name];
                     } else {
                         var d2 = new Date(ev.ts);   // odchod bez příchodu (např. příchod mimo období)
-                        pairs.push({ day: d2.getFullYear() + '-' + pad2(d2.getMonth() + 1) + '-' + pad2(d2.getDate()), name: name, inTs: null, outTs: ev.ts, ms: 0 });
+                        pairs.push({ day: d2.getFullYear() + '-' + pad2(d2.getMonth() + 1) + '-' + pad2(d2.getDate()), name: name, uid: ev.uid || null, inTs: null, outTs: ev.ts, ms: 0, proj: ev.proj || null, inPos: null, outPos: kPos(ev) });
                     }
                 }
             });
@@ -897,18 +983,28 @@
             pairs.forEach(function (p) {
                 var s = sum[p.name] = sum[p.name] || { ms: 0, days: {}, open: false };
                 s.days[p.day] = 1;
-                if (p.outTs) s.ms += p.ms;
-                else if (p.inTs) {
-                    if (p.day === todayKey) { s.ms += Date.now() - p.inTs; s.open = true; }
+                var ms = 0;
+                if (p.outTs && p.inTs) ms = p.ms;
+                else if (p.inTs && p.day === todayKey) { ms = Date.now() - p.inTs; s.open = true; }
+                s.ms += ms;
+                if (ms && p.proj) {
+                    var pr = byProj[p.proj] = byProj[p.proj] || { ms: 0, users: {} };
+                    pr.ms += ms;
+                    pr.users[p.name] = 1;
                 }
             });
 
             var html = cloudNote +
+                '<div class="agfa-filters"><div>' +
                 '<label class="agfa-lb">Období</label><select id="agfa-do-range">' +
                 '  <option value="1"' + (_doRange === 1 ? ' selected' : '') + '>Dnes</option>' +
                 '  <option value="7"' + (_doRange === 7 ? ' selected' : '') + '>Posledních 7 dní</option>' +
                 '  <option value="31"' + (_doRange === 31 ? ' selected' : '') + '>Posledních 31 dní</option>' +
-                '</select>';
+                '</select></div>' +
+                '<div style="display:flex;align-items:flex-end;gap:8px;">' +
+                '  <button class="agfa-mini" id="agfa-do-csv">Export CSV</button>' +
+                '  <button class="agfa-mini" id="agfa-do-print">Tisk / PDF</button>' +
+                '</div></div>';
 
             var names = Object.keys(sum).sort();
             if (!names.length) {
@@ -924,28 +1020,104 @@
                 });
                 html += '</table>';
 
-                // rozpis po dnech (nejnovější nahoře)
+                var projKeys = Object.keys(byProj).sort(function (a, b) { return byProj[b].ms - byProj[a].ms; });
+                if (projKeys.length) {
+                    html += '<div class="agfa-pg">Hodiny podle zakázky</div>' +
+                        '<table class="agfa-tbl"><tr><th>Zakázka</th><th>Hodin</th><th>Lidí</th></tr>';
+                    projKeys.forEach(function (pk) {
+                        html += '<tr><td><b>' + esc(projName(pk)) + '</b></td><td>' + fmtDur(byProj[pk].ms) + '</td><td>' + Object.keys(byProj[pk].users).length + '</td></tr>';
+                    });
+                    html += '</table>';
+                }
+
+                // rozpis po dnech (nejnovější nahoře); 📍 = hrubá poloha píchnutí
                 var byDay = {};
                 pairs.forEach(function (p) { (byDay[p.day] = byDay[p.day] || []).push(p); });
                 html += '<div class="agfa-pg">Rozpis</div>';
+                var rowIdx = 0, rowRef = [];
                 Object.keys(byDay).sort().reverse().forEach(function (dk) {
                     var parts = dk.split('-');
                     html += '<div class="agfa-shift-day">' + parseInt(parts[2], 10) + '. ' + parseInt(parts[1], 10) + '. ' + parts[0] + '</div>' +
-                        '<table class="agfa-tbl"><tr><th>Uživatel</th><th>Příchod</th><th>Odchod</th><th>Hodin</th></tr>';
+                        '<table class="agfa-tbl"><tr><th>Uživatel</th><th>Příchod</th><th>Odchod</th><th>Hodin</th><th>Zakázka</th></tr>';
                     byDay[dk].sort(function (a, b) { return (a.inTs || a.outTs) - (b.inTs || b.outTs); }).forEach(function (p) {
-                        var tIn = p.inTs ? new Date(p.inTs).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) : '<span style="color:var(--text-muted);">?</span>';
-                        var tOut = p.outTs ? new Date(p.outTs).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })
-                            : (p.day === todayKey ? '<span class="agfa-chip c-accent">v práci</span>' : '<span style="color:var(--text-muted);">chybí</span>');
+                        var tIn = p.inTs ? new Date(p.inTs).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) + posLink(p.inPos) : '<span style="color:var(--text-muted);">?</span>';
+                        var missing = !p.outTs && p.inTs && p.day !== todayKey;
+                        var tOut;
+                        if (p.outTs) tOut = new Date(p.outTs).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) + posLink(p.outPos);
+                        else if (p.inTs && p.day === todayKey) tOut = '<span class="agfa-chip c-accent">v práci</span>';
+                        else if (missing && u.isAdmin()) { rowRef[rowIdx] = p; tOut = '<button class="agfa-mini" data-fix="' + rowIdx + '">Doplnit</button>'; rowIdx++; }
+                        else tOut = '<span style="color:var(--text-muted);">chybí</span>';
                         var dur = p.outTs && p.inTs ? fmtDur(p.ms) : (p.inTs && p.day === todayKey ? fmtDur(Date.now() - p.inTs) : '—');
-                        html += '<tr><td><b>' + esc(p.name) + '</b></td><td>' + tIn + '</td><td>' + tOut + '</td><td>' + dur + '</td></tr>';
+                        html += '<tr><td><b>' + esc(p.name) + '</b></td><td>' + tIn + '</td><td>' + tOut + '</td><td>' + dur + '</td><td>' + esc(String(projName(p.proj)).slice(0, 18)) + '</td></tr>';
                     });
                     html += '</table>';
                 });
-                html += '<div class="agfa-note">Docházka je orientační podklad (páruje se příchod→odchod v pořadí záznamů). ' +
-                    'Chybějící odchod z minulých dní se do součtu nepočítá — připomeň kolegovi, ať si docházku značí.</div>';
+                html += '<div class="agfa-note">Docházka je orientační podklad (páruje se příchod→odchod v pořadí záznamů; 📍 = hrubá poloha píchnutí). ' +
+                    'Chybějící odchod z minulých dní se do součtu nepočítá — admin ho může tlačítkem Doplnit zapsat zpětně.</div>';
             }
             body.innerHTML = html;
             body.querySelector('#agfa-do-range').onchange = function () { _doRange = parseInt(this.value, 10) || 7; renderDochazka(body); };
+
+            // admin: zpětné doplnění odchodu (zapíše se jako běžná událost a doputuje na server)
+            body.onclick = function (e) {
+                var btn = e.target.closest ? e.target.closest('button[data-fix]') : null;
+                if (!btn) return;
+                var p = rowRef[parseInt(btn.getAttribute('data-fix'), 10)];
+                if (!p || !u.usageLogRaw) return;
+                var v = prompt('Čas odchodu pro ' + p.name + ' (' + p.day + '), příchod byl ' + new Date(p.inTs).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) + '.\nZadej HH:MM:', '17:00');
+                if (!v) return;
+                var m = /^(\d{1,2})[:.](\d{2})$/.exec(v.trim());
+                if (!m) { agAlert('Neplatný čas', 'Zadej např. 16:30.'); return; }
+                var parts = p.day.split('-');
+                var out = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), parseInt(m[1], 10), parseInt(m[2], 10), 0, 0);
+                if (out.getTime() <= p.inTs) { agAlert('Neplatný čas', 'Odchod musí být po příchodu.'); return; }
+                u.usageLogRaw({ ts: out.getTime(), t: 'shift', k: 'out', uid: p.uid, u: p.name, proj: p.proj, dev: 'admin-fix' });
+                if (f.cloud) setTimeout(function () { u.syncUsage().then(function () { renderDochazka(body); }); }, 700);
+                else setTimeout(function () { renderDochazka(body); }, 400);
+            };
+
+            // exporty výkazu (CSV do mezd; Tisk/PDF přes systémový tisk)
+            function exportRows() {
+                var out = [];
+                pairs.sort(function (a, b) { return (a.inTs || a.outTs) - (b.inTs || b.outTs); }).forEach(function (p) {
+                    out.push([p.day, p.name,
+                        p.inTs ? new Date(p.inTs).toLocaleTimeString('cs-CZ') : '',
+                        p.outTs ? new Date(p.outTs).toLocaleTimeString('cs-CZ') : '',
+                        (p.inTs && p.outTs) ? fmtDur(p.ms) : '',
+                        projName(p.proj) || '',
+                        p.inPos || '', p.outPos || '']);
+                });
+                return out;
+            }
+            body.querySelector('#agfa-do-csv').onclick = function () {
+                var lines = ['datum;uzivatel;prichod;odchod;hodin;zakazka;poloha_prichod;poloha_odchod'];
+                exportRows().forEach(function (r) {
+                    lines.push(r.map(function (v) { return String(v).replace(/;/g, ','); }).join(';'));
+                });
+                dl(new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }), 'ar-geodet-dochazka.csv');
+            };
+            body.querySelector('#agfa-do-print').onclick = function () {
+                var w = window.open('', '_blank');
+                if (!w) { agAlert('Tisk', 'Prohlížeč zablokoval nové okno — povol vyskakovací okna.'); return; }
+                var rows = exportRows().map(function (r) {
+                    return '<tr><td>' + r.slice(0, 6).map(esc).join('</td><td>') + '</td></tr>';
+                }).join('');
+                var sumRows = names.map(function (n) {
+                    return '<tr><td>' + esc(n) + '</td><td>' + Object.keys(sum[n].days).length + '</td><td>' + fmtDur(sum[n].ms) + '</td></tr>';
+                }).join('');
+                w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Výkaz docházky</title>' +
+                    '<style>body{font:13px/1.5 system-ui;margin:24px;color:#111;}h1{font-size:19px;}h2{font-size:14px;margin-top:22px;}' +
+                    'table{border-collapse:collapse;width:100%;}th,td{border:1px solid #bbb;padding:5px 8px;text-align:left;font-size:12px;}' +
+                    'th{background:#eee;}@media print{button{display:none;}}</style></head><body>' +
+                    '<h1>Výkaz docházky — ' + esc(f.firmName || '') + '</h1>' +
+                    '<div>Období: ' + esc(from.toLocaleDateString('cs-CZ')) + ' – ' + esc(new Date().toLocaleDateString('cs-CZ')) + ' · vytvořeno ' + esc(new Date().toLocaleString('cs-CZ')) + '</div>' +
+                    '<h2>Souhrn</h2><table><tr><th>Uživatel</th><th>Dní</th><th>Hodin</th></tr>' + sumRows + '</table>' +
+                    '<h2>Rozpis</h2><table><tr><th>Datum</th><th>Uživatel</th><th>Příchod</th><th>Odchod</th><th>Hodin</th><th>Zakázka</th></tr>' + rows + '</table>' +
+                    '<button onclick="window.print()" style="margin-top:16px;padding:8px 14px;">Vytisknout / uložit PDF</button>' +
+                    '</body></html>');
+                w.document.close();
+                setTimeout(function () { try { w.print(); } catch (e) {} }, 400);
+            };
         });
     }
 
@@ -1107,6 +1279,8 @@
             '<div id="agfa-stats" class="agfa-note">Načítám vytížení…</div>' +
             '<div class="agfa-pg">Server</div>' +
             '<div class="agfa-note">Firma běží na Cloudflare (free plán, 100 000 požadavků/den). Adresa API: <code style="word-break:break-all;">' + esc(f.api || u.DEFAULT_API) + '</code><br>Kód serveru je v repu appky ve složce <b>cloud/</b> — provoz nezávisí na žádné AI.</div>' +
+            '<button class="agfa-mini" id="agfa-f-backup">Stáhnout zálohu firmy (JSON)</button>' +
+            '<div class="agfa-note">Záloha obsahuje účty (hesla jen jako otisky), oprávnění, užívání i chat — pojistka nezávislá na Cloudflare.</div>' +
             firmsHtml(u, f) +
             '<div class="agfa-pg">Nebezpečná zóna</div>' +
             '<button class="agfa-mini danger" id="agfa-f-detach">Odpojit toto zařízení od firmy</button>' +
@@ -1119,6 +1293,21 @@
             });
         }
         wireFirms(body, u);
+
+        // záloha celé firmy ze serveru (GET /backup, jen admin)
+        body.querySelector('#agfa-f-backup').onclick = function () {
+            var btn = this;
+            btn.disabled = true; btn.textContent = 'Stahuji…';
+            u.cloudFetch('/backup').then(function (r) {
+                btn.disabled = false; btn.textContent = 'Stáhnout zálohu firmy (JSON)';
+                if (!r.ok || !r.data) {
+                    agAlert('Záloha selhala', cloudErr(r) + (r.status === 404 ? '<br><br>Server nejspíš ještě nemá nasazený nový kód (endpoint /backup).' : ''));
+                    return;
+                }
+                dl(new Blob([JSON.stringify(r.data, null, 1)], { type: 'application/json' }),
+                    (f.firmName || 'firma').replace(/[^\w\-]+/g, '_') + '-zaloha.json');
+            });
+        };
 
         // vytížení serveru: dnešek proti limitu + poslední dny + velikost dat
         u.cloudFetch('/stats').then(function (r) {

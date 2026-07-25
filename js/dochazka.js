@@ -24,6 +24,33 @@
     function U() { return window.AGUcty || null; }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function pad2(n) { return (n < 10 ? '0' : '') + n; }
+    // klíč události může nést i hrubou polohu píchnutí: 'in|50.12345,14.67890'
+    function kDir(ev) { return String(ev.k || '').split('|')[0]; }
+    // název aktivní zakázky (globál `projects` ze zakazky.js; bez něj aspoň id)
+    function activeProjName() {
+        var id = null;
+        try { id = localStorage.getItem('arActiveProjectId'); } catch (e) {}
+        if (!id || id === 'default') return null;
+        try {
+            if (typeof projects !== 'undefined' && Array.isArray(projects)) {
+                for (var i = 0; i < projects.length; i++) if (projects[i] && projects[i].id === id) return projects[i].name || id;
+            }
+        } catch (e) {}
+        return id;
+    }
+    // hrubá poloha píchnutí (rychle a bez vysoké přesnosti; bez GPS se píchne bez ní)
+    function quickPos(done) {
+        var fired = false;
+        function fin(sfx) { if (!fired) { fired = true; done(sfx); } }
+        try {
+            if (!navigator.geolocation) return fin('');
+            var t = setTimeout(function () { fin(''); }, 2500);
+            navigator.geolocation.getCurrentPosition(function (pos) {
+                clearTimeout(t);
+                fin('|' + pos.coords.latitude.toFixed(5) + ',' + pos.coords.longitude.toFixed(5));
+            }, function () { clearTimeout(t); fin(''); }, { enableHighAccuracy: false, timeout: 2200, maximumAge: 120000 });
+        } catch (e) { fin(''); }
+    }
     function dayKey(ts) { var d = new Date(ts); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
     function fmtT(ts) { return new Date(ts).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }); }
     function fmtDur(ms) { var m = Math.round(ms / 60000); return Math.floor(m / 60) + ':' + pad2(m % 60); }
@@ -87,10 +114,11 @@
                 .sort(function (a, b) { return a.ts - b.ts; });
             var pairs = [], open = null;
             mine.forEach(function (ev) {
-                if (ev.k === 'in') {
+                var dir = kDir(ev);
+                if (dir === 'in') {
                     if (open) pairs.push(open);           // dvojí příchod — starý zůstane bez odchodu
                     open = { inTs: ev.ts, outTs: null };
-                } else if (ev.k === 'out') {
+                } else if (dir === 'out') {
                     if (open) { open.outTs = ev.ts; pairs.push(open); open = null; }
                     else pairs.push({ inTs: null, outTs: ev.ts });
                 }
@@ -120,12 +148,15 @@
         loadMine().then(function (d) {
             if (!d) return;
             var on = !!d.open;
+            var proj = activeProjName();
             var html =
                 '<div class="agdo-status' + (on ? ' on' : '') + '"><span class="agdo-dot"></span><div>' +
                 (on ? '<b>V práci od ' + fmtT(d.open.inTs) + '</b><span>zatím ' + fmtDur(Date.now() - d.open.inTs) + ' h · ' + esc(me.name) + '</span>'
                     : '<b>Mimo práci</b><span>' + esc(me.name) + ' — píchni si příchod, až začneš</span>') +
                 '</div></div>' +
-                '<button type="button" class="agdo-big' + (on ? ' out' : '') + '" id="agdo-toggle">' + (on ? 'Odchod' : 'Příchod') + '</button>' +
+                '<button type="button" class="agdo-big' + (on ? ' out' : '') + '" id="agdo-toggle">' + (on ? 'Odchod' : 'Příchod') +
+                (!on && proj ? ' <span style="font-weight:500;opacity:.85;">· ' + esc(String(proj).slice(0, 24)) + '</span>' : '') + '</button>' +
+                (!on && proj ? '<div class="agdo-note" style="margin-top:6px;">Příchod se zapíše k aktivní zakázce — hodiny pak admin vidí i po zakázkách.</div>' : '') +
                 '<div class="agdo-cards">' +
                 '  <div class="agdo-card"><b>' + fmtDur(d.todayMs) + '</b><span>dnes (h)</span></div>' +
                 '  <div class="agdo-card"><b>' + fmtDur(d.weekMs) + '</b><span>posledních 7 dní (h)</span></div>' +
@@ -152,9 +183,13 @@
             body.innerHTML = html;
             body.querySelector('#agdo-toggle').onclick = function () {
                 this.disabled = true;
-                u.usageLog('shift', on ? 'out' : 'in');
-                if (u.isCloud && u.isCloud()) setTimeout(function () { u.syncUsage(); }, 1200);
-                setTimeout(render, 350);   // zápis do IndexedDB je asynchronní
+                this.textContent = on ? 'Zapisuji odchod…' : 'Zapisuji příchod…';
+                // hrubá poloha píchnutí (štempl „kde"); bez GPS se zapíše bez ní
+                quickPos(function (sfx) {
+                    u.usageLog('shift', (on ? 'out' : 'in') + sfx);
+                    if (u.isCloud && u.isCloud()) setTimeout(function () { u.syncUsage(); }, 1200);
+                    setTimeout(render, 350);   // zápis do IndexedDB je asynchronní
+                });
             };
         });
     }
@@ -178,11 +213,43 @@
         }, 60000);
     }
 
+    // hlídání zapomenutého odchodu: při startu / po přihlášení zkontroluj,
+    // jestli poslední můj záznam není příchod ze STARŠÍHO dne — nabídni doplnění
+    var _checked = false;
+    function checkForgotten() {
+        if (_checked) return;
+        var u = U();
+        var me = u && u.currentUser();
+        if (!me || !u.usageLogRaw) return;
+        _checked = true;
+        u.usageQuery(Date.now() - 7 * 864e5).then(function (evs) {
+            var mine = evs.filter(function (ev) { return ev.t === 'shift' && ev.uid === me.id; })
+                .sort(function (a, b) { return a.ts - b.ts; });
+            if (!mine.length) return;
+            var last = mine[mine.length - 1];
+            if (kDir(last) !== 'in') return;
+            if (dayKey(last.ts) === dayKey(Date.now())) return;   // dnešní směna běží — v pořádku
+            var din = new Date(last.ts);
+            var v = prompt('Z ' + din.toLocaleDateString('cs-CZ') + ' chybí odchod (příchod ' + fmtT(last.ts) + ').\n\n' +
+                'Zadej čas odchodu (HH:MM) a doplní se zpětně; Zrušit = nechat bez odchodu:', '17:00');
+            if (!v) return;
+            var m = /^(\d{1,2})[:.](\d{2})$/.exec(v.trim());
+            if (!m) { alert('Času nerozumím — zadej např. 16:30.'); return; }
+            var out = new Date(din.getFullYear(), din.getMonth(), din.getDate(), parseInt(m[1], 10), parseInt(m[2], 10), 0, 0);
+            if (out.getTime() <= last.ts) { alert('Odchod musí být až po příchodu (' + fmtT(last.ts) + ').'); return; }
+            u.usageLogRaw({ ts: out.getTime(), t: 'shift', k: 'out', uid: me.id, u: me.name, proj: last.proj });
+            if (u.isCloud && u.isCloud()) setTimeout(function () { u.syncUsage(); }, 1500);
+            try { if (typeof quickToast === 'function') quickToast('Odchod ' + v.trim() + ' doplněn.'); } catch (e) {}
+        });
+    }
+
     function init() {
         if (!U()) return;
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'dochazka', label: 'Docházka', icon: ICON, onClick: open, order: 88, cat: 'Pomůcky' });
         }
+        setTimeout(checkForgotten, 3500);
+        window.addEventListener('agucty:login', function () { _checked = false; setTimeout(checkForgotten, 1500); });
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 400); });
     else setTimeout(init, 400);

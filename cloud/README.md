@@ -49,6 +49,10 @@ Alternativně jde `worker.js` vložit přes webový editor v dashboardu
 - `GET /stats` (admin) — vytížení: denní počty požadavků (celé API, posledních
   14 dní, tabulka `stats`) + počty záznamů firmy; klient z toho kreslí ukazatel
   proti limitu free plánu
+- `GET /backup` (admin) — kompletní záloha firmy (účty s otisky hesel,
+  oprávnění, užívání max 20 000 záznamů, chat) jako JSON
+- retence: server si při ~2 % požadavků na pozadí maže užívání starší ~12
+  měsíců a denní čítače starší 60 dní
 
 **Po přidání chatu/statistik (větev feat/auth-first-firmy-grafy) je potřeba
 znovu aplikovat `schema.sql` (nové tabulky `chat` a `stats`) a znovu nasadit

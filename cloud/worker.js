@@ -192,6 +192,13 @@ export default {
             const p = env.DB.prepare('INSERT INTO stats(day,n) VALUES(?,1) ON CONFLICT(day) DO UPDATE SET n=n+1')
                 .bind(day).run().catch(() => {});
             if (ctx && ctx.waitUntil) ctx.waitUntil(p);
+            // občasný úklid na pozadí (retence): užívání ~12 měsíců, čítač 60 dní
+            if (Math.random() < 0.02 && ctx && ctx.waitUntil) {
+                ctx.waitUntil(env.DB.prepare('DELETE FROM usage WHERE ts<?')
+                    .bind(Date.now() - 370 * 864e5).run().catch(() => {}));
+                ctx.waitUntil(env.DB.prepare('DELETE FROM stats WHERE day<?')
+                    .bind(new Date(Date.now() - 60 * 864e5).toISOString().slice(0, 10)).run().catch(() => {}));
+            }
         } catch (e) {}
         if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
         const url = new URL(req.url);
@@ -394,6 +401,24 @@ export default {
                         chat: await cnt('SELECT COUNT(*) AS n FROM chat WHERE firm_id=?', me.firm_id),
                         firms: await cnt('SELECT COUNT(*) AS n FROM firms')
                     }
+                });
+            }
+
+            // ---------------- záloha firmy (admin) -----------------------------
+            if (req.method === 'GET' && path === '/backup') {
+                if (me.role !== 'admin') return err(403, 'Jen admin.');
+                const firm = await env.DB.prepare('SELECT code, name, perms, auto_lock, created FROM firms WHERE id=?').bind(me.firm_id).first();
+                const users = (await env.DB.prepare('SELECT id, name, role, pass_hash, salt, iters, disabled, created FROM users WHERE firm_id=?').bind(me.firm_id).all()).results;
+                const usage = (await env.DB.prepare('SELECT uid, uname, ts, t, k, proj, dev FROM usage WHERE firm_id=? ORDER BY ts DESC LIMIT 20000').bind(me.firm_id).all()).results;
+                const chatRows = (await env.DB.prepare('SELECT id, uid, uname, ts, txt FROM chat WHERE firm_id=? ORDER BY id DESC LIMIT 500').bind(me.firm_id).all()).results;
+                let perms; try { perms = JSON.parse(firm.perms); } catch (e) { perms = {}; }
+                return json({
+                    format: 'argeodet-firm-backup', v: 1, exportedTs: Date.now(),
+                    firm: { code: firm.code, name: firm.name, autoLockMin: firm.auto_lock, perms: perms, created: firm.created },
+                    users: users,
+                    usage: usage.reverse(),
+                    chat: chatRows.reverse(),
+                    note: 'Hesla jsou jen PBKDF2 otisky, nejsou čitelná. Slouží jako pojistka/archiv.'
                 });
             }
 
