@@ -120,6 +120,9 @@
             '#agfa-modal .agfa-usub{font:500 11px/1.25 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
             '#agfa-modal .agfa-uact{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;margin-top:9px;}',
             '#agfa-modal .agfa-uact .agfa-mini{flex:1 1 auto;min-width:92px;text-align:center;}',
+            '#agfa-modal .agfa-chip.c-block{background:rgba(229,83,75,0.14);color:var(--danger,#e5534b);}',
+            '#agfa-modal .agfa-urow.blocked .agfa-av,#agfa-modal .agfa-urow.blocked .agfa-unm b{opacity:.55;}',
+            '#agfa-modal .agfa-urow.blocked{background:rgba(229,83,75,0.05);border-radius:10px;}',
             // pojistka rozložení: obsah modálu je sloupec, tělo se roztahuje a scrolluje
             // (bez toho se v některých prohlížečích obsah hroutil a tlačítka „skákala")
             '#agfa-modal .modal-content{display:flex;flex-direction:column;}',
@@ -344,9 +347,10 @@
                     : 'dnes bez aktivity';
                 html += '<div class="agfa-row">' +
                     '<span class="agfa-av" style="' + (u.avatarStyle ? u.avatarStyle(us.name) : '') + '">' + esc(initials) + '</span>' +
-                    '<b>' + esc(us.name) + '<span class="agfa-person-sub">' + esc(sub) + '</span></b>' +
-                    (inWork[us.name] ? '<span class="agfa-chip c-accent">v práci</span>' : '') +
-                    '<span class="agfa-chip' + chipCls + '">' + roleTxt(us.role) + '</span>' +
+                    '<b>' + esc(us.name) + '<span class="agfa-person-sub">' + esc(us.disabled ? 'zablokovaný účet' : sub) + '</span></b>' +
+                    (inWork[us.name] && !us.disabled ? '<span class="agfa-chip c-accent">v práci</span>' : '') +
+                    (us.disabled ? '<span class="agfa-chip c-block">Zablokován</span>'
+                        : '<span class="agfa-chip' + chipCls + '">' + roleTxt(us.role) + '</span>') +
                     '</div>';
             });
             html += '</div>';
@@ -448,6 +452,11 @@
             '<div class="agfa-pg">Cloud vs. lokální firma</div>' +
             '<div class="agfa-note"><b>Cloud</b> (doporučeno): firma žije na serveru, stejné účty na všech mobilech, změny oprávnění se propíší všem, ' +
             'užívání se sbírá ze všech zařízení. <b>Lokální</b>: účty žijí jen v jednom zařízení, na další se přenáší souborem v sekci Firma.</div>' +
+            '<div class="agfa-pg">Zablokování účtu</div>' +
+            '<div class="agfa-note">Když je s někým problém, admin ho v sekci <b>Uživatelé</b> tlačítkem <b>Zablokovat</b> odstřihne od firmy: ' +
+            'účet se nepřihlásí a i na mobilu, kde je právě přihlášený, ho server do minuty odhlásí (platí i offline na tom telefonu). ' +
+            'Nic se nemaže — docházka, body i záznamy užívání zůstávají a blokaci lze kdykoli zrušit tlačítkem <b>Povolit</b>. ' +
+            'Posledního aktivního admina ani sám sebe zablokovat nelze. Trvalé odebrání je <b>Smazat</b>.</div>' +
             '<div class="agfa-pg">Přihlašování podle zařízení</div>' +
             '<div class="agfa-note">Na přihlašovací obrazovce se nabízejí <b>jen účty, které se na tom telefonu už přihlásily</b> — ' +
             'zaměstnanec tedy nevidí dlaždici admina ani vedení. Nový člověk na cizím telefonu použije „Přihlásit jiné jméno" ' +
@@ -666,17 +675,23 @@
         var rows = f.users.map(function (us) {
             var initials = (us.name || '?').trim().split(/\s+/).map(function (w) { return w.charAt(0); }).slice(0, 2).join('').toUpperCase();
             var chipCls = us.role === 'admin' ? ' c-admin' : (us.role === 'vedeni' ? ' c-vedeni' : '');
-            return '<div class="agfa-urow" data-id="' + esc(us.id) + '">' +
+            var blocked = !!us.disabled;
+            return '<div class="agfa-urow' + (blocked ? ' blocked' : '') + '" data-id="' + esc(us.id) + '">' +
                 '<div class="agfa-uid">' +
                 '  <span class="agfa-av" style="' + (u.avatarStyle ? u.avatarStyle(us.name) : '') + '">' + esc(initials) + '</span>' +
                 '  <span class="agfa-unm"><b>' + esc(us.name) + '</b>' +
                 '    <span class="agfa-usub">' + roleTxt(us.role) + (!cloud && us.noPin ? ' · bez PINu' : '') +
-                (me && me.id === us.id ? ' · to jsi ty' : '') + '</span></span>' +
-                '  <span class="agfa-chip' + chipCls + '">' + roleTxt(us.role) + '</span>' +
+                (me && me.id === us.id ? ' · to jsi ty' : '') +
+                (blocked ? ' · nemůže se přihlásit' : '') + '</span></span>' +
+                (blocked ? '<span class="agfa-chip c-block">Zablokován</span>'
+                    : '<span class="agfa-chip' + chipCls + '">' + roleTxt(us.role) + '</span>') +
                 '</div>' +
                 '<div class="agfa-uact">' +
-                (cloud ? '<button class="agfa-mini" data-act="qr">QR pro mobil</button>' : '') +
+                (cloud && !blocked ? '<button class="agfa-mini" data-act="qr">QR pro mobil</button>' : '') +
                 '<button class="agfa-mini" data-act="edit">Upravit</button>' +
+                (blocked
+                    ? '<button class="agfa-mini" data-act="unblock">Povolit</button>'
+                    : '<button class="agfa-mini danger" data-act="block">Zablokovat</button>') +
                 '<button class="agfa-mini danger" data-act="del">Smazat</button>' +
                 '</div></div>';
         }).join('');
@@ -694,8 +709,10 @@
             var us = null;
             for (var i = 0; i < f.users.length; i++) if (f.users[i].id === id) us = f.users[i];
             if (!us) return;
-            if (btn.getAttribute('data-act') === 'qr') { showUserQR(body, us, f, u); return; }
-            if (btn.getAttribute('data-act') === 'edit') { userForm(body, us); return; }
+            var act = btn.getAttribute('data-act');
+            if (act === 'qr') { showUserQR(body, us, f, u); return; }
+            if (act === 'edit') { userForm(body, us); return; }
+            if (act === 'block' || act === 'unblock') { blockUser(body, us, act === 'block'); return; }
             // smazání: nesmí zmizet poslední admin (server to hlídá taky)
             var admins = f.users.filter(function (x) { return x.role === 'admin'; });
             if (us.role === 'admin' && admins.length <= 1) {
@@ -724,6 +741,45 @@
         if (r.status === 0) return 'Server není dosažitelný — správa firmy potřebuje internet.';
         return esc((r.data && r.data.error) || ('Chyba ' + r.status));
     }
+    // ------------------------------------------------------------------
+    // Zablokování / povolení účtu (admin). Blokace je šetrná alternativa
+    // smazání: účet, jeho docházka i záznamy zůstanou, ale nejde se přihlásit
+    // (server odmítne token okamžitě — i na mobilu, kde je zrovna přihlášený).
+    // ------------------------------------------------------------------
+    function blockUser(body, us, block) {
+        var u = U(), f = u.getFirm(); if (!f) return;
+        var me = u.currentUser();
+        if (block && me && me.id === us.id) {
+            agAlert('Sebe zablokovat nelze', 'Zablokoval bys sám sebe a přišel o přístup do administrace.');
+            return;
+        }
+        if (block && us.role === 'admin') {
+            var admins = f.users.filter(function (x) { return x.role === 'admin' && !x.disabled; });
+            if (admins.length <= 1) {
+                agAlert('Nelze zablokovat', 'Toto je poslední aktivní admin. Nejdřív udělej adminem někoho jiného.');
+                return;
+            }
+        }
+        var msg = block
+            ? 'Účet <b>' + esc(us.name) + '</b> se nebude moct přihlásit — ani na mobilu, kde je právě přihlášený (odhlásí se do minuty). ' +
+              'Body, docházka ani záznamy užívání se nemažou a blokaci lze kdykoli zrušit.'
+            : 'Účet <b>' + esc(us.name) + '</b> se bude moct znovu přihlásit stejným heslem.';
+        agConfirm({ title: block ? 'Zablokovat účet' : 'Povolit účet', message: msg, okText: block ? 'Zablokovat' : 'Povolit', danger: block }).then(function (ok) {
+            if (!ok) return;
+            if (f.cloud) {
+                u.cloudFetch('/users/' + encodeURIComponent(us.id), { method: 'PATCH', body: { disabled: !!block } }).then(function (r) {
+                    if (!r.ok) { agAlert(block ? 'Zablokování selhalo' : 'Povolení selhalo', cloudErr(r)); return; }
+                    u.adoptConfig(r.data);
+                    renderUsers(body, true);
+                });
+                return;
+            }
+            us.disabled = !!block;      // lokální firma: stačí příznak v konfiguraci
+            u.saveFirm(f);
+            renderUsers(body);
+        });
+    }
+
     // QR pro připojení zaměstnance: kód firmy + jméno (+ adresa API). Heslo se
     // NEpřenáší — to zaměstnanec na svém mobilu dopíše sám.
     function showUserQR(body, us, f, u) {

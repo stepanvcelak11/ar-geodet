@@ -198,16 +198,21 @@
         } catch (e) {}
     }
     function loginUsers(f) {
-        if (!f.cloud) return f.users;                 // lokální firma = účty jen zde
+        // lokální firma: účty existují jen zde, ale zablokované se nenabízejí
+        if (!f.cloud) return f.users.filter(function (u) { return !u.disabled; });
         var known = devUserIds();
-        var out = f.users.filter(function (u) { return known[u.id]; });
+        var out = f.users.filter(function (u) { return known[u.id] && !u.disabled; });
         return out;
     }
 
+    // zablokovaný účet se chová jako nepřihlášený (appka se zamkne, server
+    // jeho token odmítá hned) — blokování tedy platí i offline na tomto zařízení
     function currentUser() {
         var f = getFirm(); if (!f) return null;
         var s = getSess(); if (!s || !s.userId) return null;
-        for (var i = 0; i < f.users.length; i++) if (f.users[i].id === s.userId) return f.users[i];
+        for (var i = 0; i < f.users.length; i++) {
+            if (f.users[i].id === s.userId) return f.users[i].disabled ? null : f.users[i];
+        }
         return null;
     }
     function isAdmin() { var u = currentUser(); return !!(u && u.role === 'admin'); }
@@ -315,7 +320,10 @@
             firmName: cfg.firm.name,
             autoLockMin: cfg.firm.autoLockMin || 0,
             perms: cfg.firm.perms || (old && old.perms) || defaultPerms(),
-            users: (cfg.users || []).filter(function (u) { return !u.disabled; }),
+            // POZOR: zablokované účty se ZACHOVÁVAJÍ (admin je musí vidět, aby je
+            // mohl odblokovat). Z přihlašování je vyřazuje loginUsers(),
+            // z práce currentUser() a server odmítne jejich token hned.
+            users: (cfg.users || []),
             fetchedTs: Date.now()
         };
         try { localStorage.setItem(LS_FIRM, JSON.stringify(f)); } catch (e) {}
@@ -340,7 +348,12 @@
     function refreshConfig() {
         if (!isCloud() || !getTok()) return Promise.resolve(false);
         return cloudFetch('/config').then(function (r) {
-            if (r.ok) { adoptConfig(r.data); return true; }
+            if (r.ok) {
+                adoptConfig(r.data);
+                // účet mohl být mezitím zablokován jinde → zamknout appku
+                if (getSess() && !currentUser()) { setSess(null); showLogin(false); }
+                return true;
+            }
             if (r.status === 401 || r.status === 403) {
                 // token prošel nebo účet zablokován → vynutit nové přihlášení
                 setTok(null); setSess(null);
@@ -361,6 +374,7 @@
             for (i = 0; i < (f.users || []).length; i++) {
                 if (String(f.users[i].name).toLowerCase() === String(name).toLowerCase()) { u = f.users[i]; break; }
             }
+            if (u && u.disabled) return done('Účet je zablokovaný. Obrať se na admina.');
             if (!u) return done('Bez signálu nelze ověřit nové jméno — poprvé se přihlas s internetem.');
             var ver = getOff()[u.id];
             if (!ver) return done('Tento uživatel se na tomto zařízení ještě nepřihlásil online. Připoj se k internetu.');
