@@ -155,9 +155,19 @@
         var m = document.getElementById('ag-sp-ov');
         if (!m) {
             m = document.createElement('div'); m.id = 'ag-sp-ov';
-            m.innerHTML = '<div id="ag-sp-card"><h3>Můžu teď měřit?</h3><div id="ag-sp-rows"></div><button type="button" class="ag-sp-close">Zavřít</button></div>';
+            m.innerHTML = '<div id="ag-sp-card"><h3>Můžu teď měřit?</h3><div id="ag-sp-rows"></div>'
+                + '<button type="button" class="ag-sp-close">Zavřít</button>'
+                + '<button type="button" class="ag-sp-close ag-sp-off" style="background:transparent;border:1px solid var(--glass-border,rgba(255,255,255,0.14));color:var(--text-muted,#9aa1ac);margin-top:8px;">Vypnout stavový pruh</button></div>';
             m.addEventListener('click', function (e) { if (e.target === m) m.classList.remove('open'); });
             m.querySelector('.ag-sp-close').addEventListener('click', function () { m.classList.remove('open'); });
+            // vypnutí rovnou odsud — zpátky ho zapneš v Nastavení → Vzhled
+            m.querySelector('.ag-sp-off').addEventListener('click', function () {
+                try { localStorage.setItem(BAR_KEY, '0'); } catch (e) {}
+                var cb = document.querySelector('#ag-sp-row-set input'); if (cb) cb.checked = false;
+                m.classList.remove('open');
+                renderBar();
+                try { if (typeof quickToast === 'function') quickToast('Stavový pruh vypnut. Zapneš ho v Nastavení → Vzhled.'); } catch (e) {}
+            });
             document.body.appendChild(m);
         }
         return m;
