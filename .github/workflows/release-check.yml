@@ -1,5 +1,6 @@
 # Kontrola konzistence vydání: seznam ASSETS_TO_CACHE v sw.js + verze cache
-# (SHELL_CACHE vNNN == css/style.css?v=NNN v sw.js == <link> v index.html).
+# (SHELL_CACHE vNNN == ?v=NNN u css/tokens.css i css/style.css, a to jak v sw.js,
+#  tak v <link> v index.html).
 # Žádný deploy — jen validace přes scripts/gen_sw_assets.py --check.
 name: Kontrola vydání (SW + verze)
 
