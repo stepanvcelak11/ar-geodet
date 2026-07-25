@@ -1,15 +1,15 @@
-// AR Geodet — Service Worker (verze = SHELL_CACHE niz; TENTO komentar needituj)
+// AR Geodet â€” Service Worker (verze = SHELL_CACHE niz; TENTO komentar needituj)
 // Strategie: vlastni kod = CACHE-FIRST (verzovano bumpem SHELL_CACHE + update banner),
 //            index.html (navigace) = stale-while-revalidate (pojistka),
 //            CDN/dlazdice = NEJDRIV CACHE.
 // Instalace je ODOLNA: jeden nedostupny soubor neshodi prevzeti nove verze.
 //
 // DVE oddelene cache:
-//   SHELL_CACHE — kod appky + knihovny z CDN. Verzuje se (bump pri vydani), pri aktivaci
+//   SHELL_CACHE â€” kod appky + knihovny z CDN. Verzuje se (bump pri vydani), pri aktivaci
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
-//   TILE_CACHE  — mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
+//   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v180';   // admin Prehled + zamek pri startu + chat soukrome zpravy + fix nav/tlacitka
+const SHELL_CACHE = 'argeodet-shell-v181';   // 6 zasadnich uprav: tokeny CSS, dialogy, drafty, GPS semafor, datova vrstva, generovany seznam assetu
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -25,7 +25,8 @@ const ASSETS_TO_CACHE = [
     './icon-512.png',
     './icon-maskable-192.png',
     './icon-maskable-512.png',
-    './css/style.css?v=179',
+    './css/tokens.css?v=181',
+    './css/style.css?v=181',
     './css/vylepseni.css',
     './css/zpravodaj.css',
     './css/predpisy.css',
@@ -158,12 +159,12 @@ function isTile(url) {
 self.addEventListener('install', event => {
     event.waitUntil((async () => {
         const cache = await caches.open(SHELL_CACHE);
-        // Kazdy soubor zvlast — selhani jednoho nesmi zablokovat instalaci (a tim i aktualizaci).
+        // Kazdy soubor zvlast â€” selhani jednoho nesmi zablokovat instalaci (a tim i aktualizaci).
         await Promise.allSettled(ASSETS_TO_CACHE.map(async url => {
             try {
                 const res = await fetch(new Request(url, { cache: 'reload' }));
                 if (res && (res.ok || res.type === 'opaque')) await cache.put(url, res);
-            } catch (e) { /* offline / blokovany CDN — preskocit, nevadi */ }
+            } catch (e) { /* offline / blokovany CDN â€” preskocit, nevadi */ }
         }));
         // skipWaiting az na vyzadani z appky (po souhlasu uzivatele s obnovou)
     })());
@@ -182,8 +183,8 @@ self.addEventListener('message', e => { if (e.data === 'SKIP_WAITING') self.skip
 self.addEventListener('fetch', event => {
     const url = event.request.url;
     if (url.includes('cuzk.gov.cz/arcgis/rest')) return; // dotazy na bodova pole vzdy ze site
-    if (url.includes('celestrak.org')) return; // drahy druzic (TLE) vzdy ze site — appka si je cachuje sama v localStorage
-    if (url.includes('api.open-meteo.com') || url.includes('geocoding-api.open-meteo.com') || url.includes('api.met.no')) return; // pocasi vzdy ze site — posledni data si pocasi.js cachuje samo v localStorage
+    if (url.includes('celestrak.org')) return; // drahy druzic (TLE) vzdy ze site â€” appka si je cachuje sama v localStorage
+    if (url.includes('api.open-meteo.com') || url.includes('geocoding-api.open-meteo.com') || url.includes('api.met.no')) return; // pocasi vzdy ze site â€” posledni data si pocasi.js cachuje samo v localStorage
 
     // Vlastni kod aplikace (stejny puvod): CACHE-FIRST. Cerstvy kod se k uzivateli
     // dostava JEN pres bump verze SW (install znovu stahne ASSETS_TO_CACHE ->

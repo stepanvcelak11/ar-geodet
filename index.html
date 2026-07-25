@@ -63,7 +63,9 @@
     <!-- style.css s verzí v adrese: kořenové styly NESMÍ přijít ze staré cache
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
-    <link rel="stylesheet" href="css/style.css?v=179">
+    <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
+    <link rel="stylesheet" href="css/tokens.css?v=181">
+    <link rel="stylesheet" href="css/style.css?v=181">
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
     <link rel="stylesheet" href="css/vylepseni.css">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->

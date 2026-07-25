@@ -50,8 +50,11 @@ EXTRA_ASSETS = [
     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',  # CDN (v index.html, ale externi)
 ]
 
-# Soubor, ktery se verzuje pres ?v=NNN (musi sedet s SHELL_CACHE)
-VERSIONED_CSS = './css/style.css'
+# Soubory verzovane pres ?v=NNN (musi sedet s SHELL_CACHE). Korenove styly NESMI
+# prijit ze stare HTTP/CDN cache (Safari je michal a vracel cerny pruh dole),
+# proto maji verzi i v adrese. tokens.css je stejne kriticky: bez promennych
+# by se appka rozpadla, kdyby prisel stary soubor k novemu style.css.
+VERSIONED_CSS = ['./css/tokens.css', './css/style.css']
 
 
 # ---------------------------------------------------------------------------
@@ -137,7 +140,7 @@ def collect_assets(version):
             assets.append(normalize(url))
     assets.extend(EXTRA_ASSETS)
 
-    # dedup pri zachovani poradi + verzovani style.css
+    # dedup pri zachovani poradi + verzovani korenovych CSS
     seen = set()
     result = []
     for a in assets:
@@ -145,8 +148,8 @@ def collect_assets(version):
         if key in seen:
             continue
         seen.add(key)
-        if key == VERSIONED_CSS:
-            a = '%s?v=%d' % (VERSIONED_CSS, version)
+        if key in VERSIONED_CSS:
+            a = '%s?v=%d' % (key, version)
         result.append(a)
     return result
 
@@ -209,21 +212,33 @@ def set_shell_version(sw_text, version):
 # index.html: <link ... href="css/style.css?v=NNN">
 # ---------------------------------------------------------------------------
 
-INDEX_CSS_RE = re.compile(r'(href=["\'](?:\./)?css/style\.css)(\?v=\d+)?(["\'])')
+def _index_css_re(asset):
+    """Regex na <link href="css/<jmeno>.css[?v=N]"> pro verzovany asset."""
+    name = re.escape(asset[len('./css/'):])
+    return re.compile(r'(href=["\'](?:\./)?css/' + name + r')(\?v=\d+)?(["\'])')
+
+
+INDEX_CSS_RES = [(a, _index_css_re(a)) for a in VERSIONED_CSS]
 
 
 def set_index_css_version(html_text, version):
-    if not INDEX_CSS_RE.search(html_text):
-        sys.exit('CHYBA: v index.html nenalezen <link> na css/style.css.')
-    return INDEX_CSS_RE.sub(lambda m: '%s?v=%d%s' % (m.group(1), version, m.group(3)),
-                            html_text, count=1)
+    for asset, rx in INDEX_CSS_RES:
+        if not rx.search(html_text):
+            sys.exit('CHYBA: v index.html nenalezen <link> na %s.' % asset[2:])
+        html_text = rx.sub(lambda m: '%s?v=%d%s' % (m.group(1), version, m.group(3)),
+                           html_text, count=1)
+    return html_text
 
 
 def read_index_css_version(html_text):
-    m = INDEX_CSS_RE.search(html_text)
-    if not m or not m.group(2):
-        return None
-    return int(m.group(2)[3:])
+    """Vrati verzi jen kdyz ji VSECHNY verzovane CSS maji shodnou (jinak None)."""
+    found = []
+    for asset, rx in INDEX_CSS_RES:
+        m = rx.search(html_text)
+        if not m or not m.group(2):
+            return None
+        found.append(int(m.group(2)[3:]))
+    return found[0] if len(set(found)) == 1 else None
 
 
 # ---------------------------------------------------------------------------
@@ -270,16 +285,19 @@ def run_check():
     for a in check_files_exist(expected):
         errors.append('disk: soubor %s neexistuje (referencovan v index.html/manifest/EXTRA)' % a)
 
-    # 3) verze se shoduji na vsech 3 mistech
-    sw_css = None
-    for a in current:
-        if a.startswith(VERSIONED_CSS + '?v='):
-            sw_css = int(a.split('?v=')[1])
+    # 3) verze se shoduji vsude: SHELL_CACHE == ?v= v sw.js i v index.html
+    #    (u KAZDEHO verzovaneho CSS — tokens.css i style.css)
+    for asset in VERSIONED_CSS:
+        sw_css = None
+        for a in current:
+            if a.startswith(asset + '?v='):
+                sw_css = int(a.split('?v=')[1])
+        if sw_css != version:
+            errors.append('verze: SHELL_CACHE=v%d, ale sw.js ma %s?v=%s' % (version, asset, sw_css))
     idx_css = read_index_css_version(html_text)
-    if sw_css != version:
-        errors.append('verze: SHELL_CACHE=v%d, ale sw.js ma %s?v=%s' % (version, VERSIONED_CSS, sw_css))
     if idx_css != version:
-        errors.append('verze: SHELL_CACHE=v%d, ale index.html ma css/style.css?v=%s' % (version, idx_css))
+        errors.append('verze: SHELL_CACHE=v%d, ale index.html ma u korenovych CSS ?v=%s '
+                      '(nebo se verze mezi tokens.css a style.css lisi)' % (version, idx_css))
 
     if errors:
         print('KONTROLA SELHALA (%d problemu):' % len(errors))
