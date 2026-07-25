@@ -917,6 +917,7 @@
             areaMode = false; areaVertices = []; areaGroup.clearLayers();
             const p = document.getElementById('area-panel'); if (p) p.style.display = 'none';
             fixAppLayout();
+            try { if (window.AGDraft) AGDraft.clear('plocha'); } catch (e) {}   // ukonceno zamerne -> neni co obnovovat (zachranu drzi toast nize)
             if (backup) showAreaUndoToast(backup);
         }
         let _areaToast = null, _areaToastTimer = null;
@@ -943,7 +944,7 @@
                 hideAreaUndoToast();
                 areaMode = true; areaVertices = verts.slice();
                 const p = document.getElementById('area-panel'); if (p) p.style.display = 'flex';
-                redrawAreaPolygon(); updateAreaPanel();
+                afterAreaChange();   // prekresli + vrati i draft (ukonceni ho smazalo)
             };
             _areaToast.style.display = 'flex';
             if (_areaToastTimer) clearTimeout(_areaToastTimer);
@@ -956,7 +957,32 @@
             afterAreaChange();
         }
         function areaUndo() { areaVertices.pop(); afterAreaChange(); }
-        function afterAreaChange() { redrawAreaPolygon(); updateAreaPanel(); if (visSettings.vibrationEnabled && navigator.vibrate) navigator.vibrate(20); }
+        function afterAreaChange() {
+            redrawAreaPolygon(); updateAreaPanel(); if (visSettings.vibrationEnabled && navigator.vibrate) navigator.vibrate(20);
+            // DRAFT: obchazeny polygon zil jen v pameti — zabiti appky (iOS pri prepnuti
+            // na fotak) zahodilo cely obchod. Ukladame jen cista data vrcholu.
+            try {
+                if (window.AGDraft) {
+                    if (areaVertices.length) AGDraft.save('plocha', { verts: areaVertices.map(v => ({ lat: v.lat, lng: v.lng })) }, 'Měření plochy – ' + areaVertices.length + (areaVertices.length === 1 ? ' vrchol' : (areaVertices.length < 5 ? ' vrcholy' : ' vrcholů')));
+                    else AGDraft.clear('plocha');
+                }
+            } catch (e) {}
+        }
+        // Obnova rozdelane plochy po restartu appky (lista "Pokracovat" z draft-store.js).
+        try {
+            if (window.AGDraft) AGDraft.register('plocha', {
+                label: 'Měření plochy',
+                open: function (st) {
+                    if (!st || !Array.isArray(st.verts) || !st.verts.length) return;
+                    if (viewMode === 'ar') { viewMode = 'both'; try { applyViewMode(); } catch (e) {} }
+                    document.getElementById('measure-modal').style.display = 'none';
+                    areaMode = true; areaVertices = st.verts.slice();
+                    const p = document.getElementById('area-panel'); if (p) p.style.display = 'flex';
+                    redrawAreaPolygon(); updateAreaPanel();
+                    try { map.fitBounds(areaVertices.map(v => [v.lat, v.lng]), { padding: [40, 40], maxZoom: 19 }); } catch (e) {}
+                }
+            });
+        } catch (e) {}
         function redrawAreaPolygon() {
             areaGroup.clearLayers();
             if (!areaVertices.length) return;

@@ -20,6 +20,24 @@
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function num(id) { var el = document.getElementById(id); var v = el ? parseFloat(String(el.value).replace(',', '.')) : NaN; return isFinite(v) ? v : NaN; }
 
+    // ---- draft (AGDraft je odpojitelný, vše fail-silent) -----------------------
+    // Stav žije v inputech modálu → ukládají se jen jejich hodnoty (řetězce) + základ.
+    var DRAFT_KEY = 'offset-bod';
+    function _val(id) { var el = document.getElementById(id); return el ? String(el.value) : ''; }
+    function draftSave() {
+        if (!window.AGDraft) return;
+        try {
+            var az = _val('agof-az'), d = _val('agof-dist'), nm = _val('agof-name');
+            // bez jediného uživatelského kroku se nedraftuje — naopak úklid
+            if (!az.trim() && !d.trim() && !nm.trim()) { window.AGDraft.clear(DRAFT_KEY); return; }
+            var filled = (az.trim() ? 1 : 0) + (d.trim() ? 1 : 0);
+            window.AGDraft.save(DRAFT_KEY,
+                { baseMode: _baseMode, basePointId: _basePointId, az: az, dist: d, name: nm },
+                'Offset bod – vyplněno ' + filled + '/2');
+        } catch (e) {}
+    }
+    function draftClear() { if (window.AGDraft) try { window.AGDraft.clear(DRAFT_KEY); } catch (e) {} }
+
     // ---- základ výpočtu --------------------------------------------------------
     function getBase() {
         if (_baseMode === 'point' && _basePointId != null && typeof arPoints !== 'undefined') {
@@ -69,7 +87,7 @@
     function fromCompass() {
         try {
             if (typeof currentHeading === 'number' && isFinite(currentHeading)) {
-                var el = document.getElementById('agof-az'); if (el) { el.value = currentHeading.toFixed(1); recompute(); }
+                var el = document.getElementById('agof-az'); if (el) { el.value = currentHeading.toFixed(1); recompute(); draftSave(); }
             } else agAlert('Kompas', 'Zatím nemám směr z kompasu — chvíli podrž telefon ve svislé poloze.');
         } catch (e) {}
     }
@@ -116,11 +134,13 @@
                 _baseMode = r.value;
                 document.getElementById('agof-point').style.display = (_baseMode === 'point') ? 'block' : 'none';
                 recompute();
+                draftSave();
             });
         });
-        document.getElementById('agof-point').addEventListener('change', function () { _basePointId = this.value; recompute(); });
-        document.getElementById('agof-az').addEventListener('input', recompute);
-        document.getElementById('agof-dist').addEventListener('input', recompute);
+        document.getElementById('agof-point').addEventListener('change', function () { _basePointId = this.value; recompute(); draftSave(); });
+        document.getElementById('agof-az').addEventListener('input', function () { recompute(); draftSave(); });
+        document.getElementById('agof-dist').addEventListener('input', function () { recompute(); draftSave(); });
+        document.getElementById('agof-name').addEventListener('input', draftSave);
         document.getElementById('agof-compass').addEventListener('click', fromCompass);
         document.getElementById('agof-save').addEventListener('click', save);
     }
@@ -132,6 +152,7 @@
         if (typeof window.addImportedPoints !== 'function') { agAlert('Nelze uložit', 'Funkce pro vkládání bodů není dostupná.'); return; }
         var added = window.addImportedPoints([{ name: name, lat: r.lat, lng: r.lng }]);
         if (added > 0) {
+            draftClear();
             agAlert('Bod uložen', '#' + name + ' uložen do aktuální zakázky.\nY ' + r.Y + '  X ' + r.X);
             document.getElementById('agof-modal').style.display = 'none';
         } else {
@@ -148,6 +169,26 @@
     }
 
     function register() {
+        // obnova rozepsaného offset bodu přes lištu „Pokračovat" (AGDraft je odpojitelný)
+        if (window.AGDraft) try {
+            window.AGDraft.register(DRAFT_KEY, {
+                label: 'Offset bod',
+                open: function (st) {
+                    if (st) { _baseMode = st.baseMode || 'gps'; _basePointId = (st.basePointId != null) ? st.basePointId : null; }
+                    openTool();
+                    try {
+                        if (st) {
+                            var r = document.querySelector('#agof-modal input[name="agof-base"][value="' + _baseMode + '"]'); if (r) r.checked = true;
+                            var sel = document.getElementById('agof-point'); if (sel) sel.style.display = (_baseMode === 'point') ? 'block' : 'none';
+                            var az = document.getElementById('agof-az'); if (az) az.value = st.az || '';
+                            var d = document.getElementById('agof-dist'); if (d) d.value = st.dist || '';
+                            var nm = document.getElementById('agof-name'); if (nm) nm.value = st.name || '';
+                            recompute();
+                        }
+                    } catch (e) {}
+                }
+            });
+        } catch (e) {}
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'offset-point', label: 'Offset bod', icon: ICON, onClick: openTool, order: 20 });
         }

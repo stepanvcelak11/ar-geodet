@@ -36,6 +36,22 @@
     var _capIdx = -1, _capSamples = [], _capTimer = null, _capSpread = null;
     var _result = null;
 
+    // ---- draft (AGDraft je odpojitelný, vše fail-silent) -----------------------
+    // Ukládá se jen serializovatelné jádro: id bodů, délka, azimuty, výsledek.
+    var DRAFT_KEY = 'rajon';
+    function draftSave() {
+        if (!window.AGDraft) return;
+        try {
+            // bez jediného uživatelského kroku se nedraftuje — naopak úklid
+            if (!_stId && !_orientId && !(_dist > 0) && !(_targetName && _targetName.trim())) { window.AGDraft.clear(DRAFT_KEY); return; }
+            var shots = (_devOrient != null ? 1 : 0) + (_devTarget != null ? 1 : 0);
+            window.AGDraft.save(DRAFT_KEY,
+                { stId: _stId, orientId: _orientId, dist: _dist, targetName: _targetName, devOrient: _devOrient, devTarget: _devTarget, capSpread: _capSpread, result: _result },
+                'Rajón – zaměřeno ' + shots + '/2');
+        } catch (e) {}
+    }
+    function draftClear() { if (window.AGDraft) try { window.AGDraft.clear(DRAFT_KEY); } catch (e) {} }
+
     // ---- pomocné --------------------------------------------------------------
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
@@ -132,14 +148,14 @@
         document.body.appendChild(el);
         document.getElementById('agrj-st').addEventListener('change', function (e) { _stId = e.target.value || null; onModelChange(); });
         document.getElementById('agrj-or').addEventListener('change', function (e) { _orientId = e.target.value || null; onModelChange(); });
-        document.getElementById('agrj-dist').addEventListener('input', function (e) { var v = parseFloat(e.target.value); _dist = (isFinite(v) && v > 0) ? v : null; _result = null; renderResult(); updateWarn(); });
-        document.getElementById('agrj-name').addEventListener('input', function (e) { _targetName = e.target.value; });
+        document.getElementById('agrj-dist').addEventListener('input', function (e) { var v = parseFloat(e.target.value); _dist = (isFinite(v) && v > 0) ? v : null; _result = null; renderResult(); updateWarn(); draftSave(); });
+        document.getElementById('agrj-name').addEventListener('input', function (e) { _targetName = e.target.value; draftSave(); });
         document.getElementById('agrj-start').addEventListener('click', startCapture);
         document.getElementById('agrj-save').addEventListener('click', saveTarget);
-        document.getElementById('agrj-redo').addEventListener('click', function () { _devOrient = null; _devTarget = null; _capSpread = null; _result = null; renderResult(); updateWarn(); });
+        document.getElementById('agrj-redo').addEventListener('click', function () { _devOrient = null; _devTarget = null; _capSpread = null; _result = null; renderResult(); updateWarn(); draftSave(); });
     }
 
-    function onModelChange() { _result = null; _devOrient = null; _devTarget = null; renderResult(); updateWarn(); }
+    function onModelChange() { _result = null; _devOrient = null; _devTarget = null; renderResult(); updateWarn(); draftSave(); }
 
     function fillSelects() {
         var list = candidatePoints();
@@ -258,6 +274,7 @@
                 var az = (circMeanDeg(_capSamples) + 360) % 360;
                 var sd = circStdDeg(_capSamples);
                 if (_steps[_capIdx] === 'orient') { _devOrient = az; } else { _devTarget = az; _capSpread = sd; }
+                draftSave();   // každá hotová záměra se hned draftuje
                 if (navigator.vibrate) try { navigator.vibrate(25); } catch (e) {}
                 _capIdx++;
                 promptStep();
@@ -276,6 +293,7 @@
         _capIdx = -1; showAim(false); declutter(false);
         var m = document.getElementById('agrj-modal'); if (m) m.style.display = 'flex';
         _result = solve();
+        draftSave();   // draft i s výsledkem (obnova ukáže hotový výpočet)
         fillSelects(); updateWarn(); renderResult();
     }
 
@@ -315,7 +333,7 @@
             if (nm == null) return;
             var name = (String(nm).trim() || _targetName || 'R_rajon');
             var added = window.addImportedPoints([{ name: name, lat: r.lat, lng: r.lng, origin: 'rajon' }]);
-            if (added > 0) agAlert('Bod uložen', '#' + name + ' uložen do zakázky (rajón: směrník ' + r.theta.toFixed(1) + '°, délka ' + r.dist.toFixed(2) + ' m).\nNajdeš ho v seznamu Body.');
+            if (added > 0) { draftClear(); agAlert('Bod uložen', '#' + name + ' uložen do zakázky (rajón: směrník ' + r.theta.toFixed(1) + '°, délka ' + r.dist.toFixed(2) + ' m).\nNajdeš ho v seznamu Body.'); }
             else agAlert('Neuloženo', 'Bod se stejným názvem a polohou už v zakázce je.');
         });
     }
@@ -372,6 +390,26 @@
     // ---- registrace do launcheru + fallback tlačítko --------------------------
     function register() {
         injectStyles();
+        // obnova rozdělaného rajónu přes lištu „Pokračovat" (AGDraft je odpojitelný)
+        if (window.AGDraft) try {
+            window.AGDraft.register(DRAFT_KEY, {
+                label: 'Rajón',
+                open: function (st) {
+                    if (st) {
+                        _stId = st.stId || null; _orientId = st.orientId || null;
+                        _dist = (st.dist > 0) ? st.dist : null;
+                        _targetName = st.targetName || '';
+                        _devOrient = (st.devOrient != null) ? st.devOrient : null;
+                        _devTarget = (st.devTarget != null) ? st.devTarget : null;
+                        _capSpread = (st.capSpread != null) ? st.capSpread : null;
+                        _result = st.result || null;
+                    }
+                    openTool();   // fillSelects/renderResult uvnitř překreslí obnovený stav
+                    var d = document.getElementById('agrj-dist'); if (d) d.value = (_dist != null ? _dist : '');
+                    var nm = document.getElementById('agrj-name'); if (nm) nm.value = _targetName;
+                }
+            });
+        } catch (e) {}
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'rajon', label: 'Rajón (nový bod ze směru + délky)', icon: ICON, cat: 'AR a kalibrace', onClick: openTool, order: 7 });
         } else {
