@@ -72,7 +72,7 @@ async function refreshTLE(silent) {
         try { localStorage.setItem(TLE_CACHE_KEY, JSON.stringify({ t: tleFetchedAt, txt: txt })); } catch (e) {}
         updateSatObs(); renderSatModalStats();
     } catch (e) {
-        if (!silent) alert('Dráhy družic (TLE) se nepodařilo stáhnout — jste offline nebo je CelesTrak nedostupný.\nPredikce funguje z dříve stažených dat, pokud existují.');
+        if (!silent) agInfo('Dráhy družic (TLE) se nepodařilo stáhnout — jste offline nebo je CelesTrak nedostupný.\nPredikce funguje z dříve stažených dat, pokud existují.');
     }
     if (btn) { btn.disabled = false; btn.innerHTML = '<svg class="icon"><use href="#i-download"/></svg> Aktualizovat dráhy (TLE)'; }
     renderSatModalStats();

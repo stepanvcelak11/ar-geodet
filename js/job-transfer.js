@@ -34,7 +34,7 @@
     // ---- pomocné --------------------------------------------------------------
     function agAlert(t, m) {
         try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m, cancelText: false }); } catch (e) {}
-        try { alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) {}
+        try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) {}
     }
     function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
 

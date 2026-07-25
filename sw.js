@@ -50,6 +50,7 @@ const ASSETS_TO_CACHE = [
     './js/lib/proj4-2.9.0.min.js',
     './js/geo-core.js',
     './js/err-log.js',
+    './js/dialog-bridge.js',
     './js/lib/leaflet-1.9.4.js',
     './js/lib/esri-leaflet-3.0.12.js',
     './js/power-save.js',

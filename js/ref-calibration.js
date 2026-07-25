@@ -71,7 +71,7 @@
     // --------------------------------------------------------------------------------
     function alertBox(title, msg) {
         if (typeof window.agAlert === 'function') return window.agAlert({ title: title, message: msg });
-        try { alert((title ? title + '\n\n' : '') + String(msg).replace(/<[^>]+>/g, '')); } catch (e) {}
+        try { agInfo((title ? title + '\n\n' : '') + String(msg).replace(/<[^>]+>/g, '')); } catch (e) {}
         return Promise.resolve(true);
     }
     function confirmBox(title, msg, okText, cancelText, danger) {

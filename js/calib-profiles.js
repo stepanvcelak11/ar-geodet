@@ -94,7 +94,7 @@
     // --------------------------------------------------------------------------------
     function alertMsg(opts) {
         if (typeof window.agAlert === 'function') { window.agAlert(opts); return; }
-        try { alert((opts.title ? opts.title + '\n\n' : '') + String(opts.message || '').replace(/<[^>]+>/g, '')); } catch (e) {}
+        try { agInfo((opts.title ? opts.title + '\n\n' : '') + String(opts.message || '').replace(/<[^>]+>/g, '')); } catch (e) {}
     }
     function confirmMsg(opts) {
         if (typeof window.agConfirm === 'function') return window.agConfirm(opts);

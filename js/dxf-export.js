@@ -26,7 +26,7 @@
 
     function alertFail(title, message) {
         try { if (typeof window.agAlert === 'function') return window.agAlert({ title: title, message: message }); } catch (e) {}
-        alert(title + (message ? '\n\n' + message : ''));
+        agInfo(title + (message ? '\n\n' + message : ''));
     }
 
     function _downloadText(filename, mime, text) {

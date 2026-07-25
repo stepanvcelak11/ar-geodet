@@ -55,7 +55,7 @@
 
     // ---------- Pridani naskenovanych bodu (nikdy neprepisuje, jen pridava) ----------
     function importDecoded(pts) {
-        if (typeof persistentCustomPoints === 'undefined') { alert('Aplikace ještě není připravená.'); return; }
+        if (typeof persistentCustomPoints === 'undefined') { agInfo('Aplikace ještě není připravená.'); return; }
         let added = 0, skipped = 0;
         pts.forEach(np => {
             // duplicita = stejne jmeno a poloha do ~0,5 m -> nepridavat znovu
@@ -75,7 +75,7 @@
             try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) {}
         }
         const msg = `Přidáno ${added} bodů` + (skipped ? `, ${skipped} přeskočeno (už je máte)` : '') + '.';
-        if (typeof quickToast === 'function') quickToast(msg); else alert(msg);
+        if (typeof quickToast === 'function') quickToast(msg); else agInfo(msg);
     }
 
     // ---------- Modal: vytvoreni QR ----------
@@ -102,7 +102,7 @@
     }
 
     window.openShareQR = function () {
-        if (typeof persistentCustomPoints === 'undefined' || !persistentCustomPoints.length) { alert('Nemáte žádné vlastní body ke sdílení.'); return; }
+        if (typeof persistentCustomPoints === 'undefined' || !persistentCustomPoints.length) { agInfo('Nemáte žádné vlastní body ke sdílení.'); return; }
         ensureLib('js/lib/qrcode.min.js').catch(function () {});   // predehrat, nez uzivatel klikne na "Vytvorit"
         buildShareModal();
         const list = document.getElementById('qr-share-list');
@@ -209,7 +209,7 @@
     window.openScanQR = function () {
         if (typeof jsQR === 'undefined') {
             ensureLib('js/lib/jsqr.min.js').then(window.openScanQR)
-                .catch(function () { alert('Knihovnu pro čtení QR se nepodařilo načíst.'); });
+                .catch(function () { agInfo('Knihovnu pro čtení QR se nepodařilo načíst.'); });
             return;
         }
         buildScanModal();

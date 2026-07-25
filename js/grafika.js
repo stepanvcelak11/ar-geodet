@@ -32,7 +32,7 @@
         // Info pro létání s dronem na zakázce — otevírá se v prohlížeči (data ŘLP nejde vkládat do mapy).
         function openDronView() { window.open('https://dronview.rlp.cz/', '_blank'); }
         function openKatastr() {
-            if(!userLat || !userLng) return alert("Čekám na GPS pozici..."); 
+            if(!userLat || !userLng) return agInfo("Čekám na GPS pozici..."); 
             let src = visSettings.katastrSource || 'mapycz';
             let url = `https://mapy.cz/katastralni?x=${userLng}&y=${userLat}&z=19`;
             if (src === 'ikatastr') url = `https://www.ikatastr.cz/ikatastr.htm#zoom=19&lat=${userLat}&lon=${userLng}`;
@@ -54,7 +54,7 @@
         function updateHeadingOffsetVal() { const el = document.getElementById('heading-offset-val'); if (el) { let v = ((userHeadingOffset + 180) % 360 + 360) % 360 - 180; el.innerText = Math.round(v); } }
         function nudgeHeadingOffset(d) { userHeadingOffset = ((userHeadingOffset + d) % 360 + 360) % 360; setStoredData('arHeadingOffset', String(userHeadingOffset)); updateHeadingOffsetVal(); }
         function resetHeadingOffset() { userHeadingOffset = 0; headingCorrection = 0; setStoredData('arHeadingOffset', '0'); updateHeadingOffsetVal(); }
-        function setCompassZero() { compassZeroOffset = currentHeading; alert("Nula nastavena na aktuální směr."); } function resetCompassZero() { compassZeroOffset = 0; alert("Nula zrušena."); } function setCompassUnit(u) { compassUnit = u; updateCompassButtons(); }
+        function setCompassZero() { compassZeroOffset = currentHeading; agInfo("Nula nastavena na aktuální směr."); } function resetCompassZero() { compassZeroOffset = 0; agInfo("Nula zrušena."); } function setCompassUnit(u) { compassUnit = u; updateCompassButtons(); }
         function updateCompassButtons() { document.getElementById('btn-unit-deg').style.background = compassUnit === 'deg' ? 'var(--accent)' : '#555'; document.getElementById('btn-unit-deg').style.color = compassUnit === 'deg' ? '#000' : '#fff'; document.getElementById('btn-unit-gon').style.background = compassUnit === 'gon' ? 'var(--accent)' : '#555'; document.getElementById('btn-unit-gon').style.color = compassUnit === 'gon' ? '#000' : '#fff'; }
 
         const APP_VERSION = '1.9';
@@ -83,7 +83,7 @@
 
         function openMeasureModal() { document.getElementById('measure-modal').style.display = 'flex'; }
 
-        async function loadCameras() { const btn = document.getElementById('camera-load-btn'); btn.innerText = "Načítám..."; try { const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); const devices = await navigator.mediaDevices.enumerateDevices(); const videoDevices = devices.filter(d => d.kind === 'videoinput'); const wSelect = document.getElementById('w-camera-select'); const sSelect = document.getElementById('s-camera-select'); wSelect.innerHTML = '<option value="">Výchozí zadní kamera</option>'; sSelect.innerHTML = '<option value="">Výchozí zadní kamera</option>'; videoDevices.forEach(cam => { if (!cam.label.toLowerCase().includes('front') && !cam.label.toLowerCase().includes('přední')) { const labelText = cam.label || `Kamera ${wSelect.options.length}`; const opt1 = document.createElement('option'); opt1.value = cam.deviceId; opt1.text = labelText; wSelect.appendChild(opt1); const opt2 = document.createElement('option'); opt2.value = cam.deviceId; opt2.text = labelText; sSelect.appendChild(opt2); } }); stream.getTracks().forEach(t => t.stop()); btn.style.display = 'none'; wSelect.style.display = 'block'; } catch(e) { alert("Nepodařilo se načíst seznam kamer."); btn.innerHTML = '<svg class="icon"><use href="#i-camera"/></svg> Zkusit znovu načíst kamery'; } }
+        async function loadCameras() { const btn = document.getElementById('camera-load-btn'); btn.innerText = "Načítám..."; try { const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); const devices = await navigator.mediaDevices.enumerateDevices(); const videoDevices = devices.filter(d => d.kind === 'videoinput'); const wSelect = document.getElementById('w-camera-select'); const sSelect = document.getElementById('s-camera-select'); wSelect.innerHTML = '<option value="">Výchozí zadní kamera</option>'; sSelect.innerHTML = '<option value="">Výchozí zadní kamera</option>'; videoDevices.forEach(cam => { if (!cam.label.toLowerCase().includes('front') && !cam.label.toLowerCase().includes('přední')) { const labelText = cam.label || `Kamera ${wSelect.options.length}`; const opt1 = document.createElement('option'); opt1.value = cam.deviceId; opt1.text = labelText; wSelect.appendChild(opt1); const opt2 = document.createElement('option'); opt2.value = cam.deviceId; opt2.text = labelText; sSelect.appendChild(opt2); } }); stream.getTracks().forEach(t => t.stop()); btn.style.display = 'none'; wSelect.style.display = 'block'; } catch(e) { agInfo("Nepodařilo se načíst seznam kamer."); btn.innerHTML = '<svg class="icon"><use href="#i-camera"/></svg> Zkusit znovu načíst kamery'; } }
 
         function updateInfoPanel() { const infoEl = document.getElementById('info'); if (!infoEl || !appStarted) return; if (!userLat) { infoEl.innerHTML = `<div class="rdt"><span class="rdt-l">GPS</span><span class="rdt-v" style="color:var(--warning);">hledám…</span></div>`; return; } infoEl.innerHTML = ''; }
 
@@ -107,7 +107,7 @@
             else msg = 'Kameru se nepodařilo spustit (' + ((err && (err.message || err.name)) || 'neznámá chyba') + ').<br><br>Zatím je zapnutý režim <b>Mapa</b> — AR zkusíš znovu přepnutím zobrazení.';
             if (typeof viewMode !== 'undefined' && viewMode !== 'map') { viewMode = 'map'; applyViewMode(); try { if (typeof window.agSyncViewControls === 'function') window.agSyncViewControls(); } catch (e) {} }
             if (window.agAlert) window.agAlert({ title: 'Kamera nejde spustit', message: msg });
-            else alert(msg.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ''));
+            else agInfo(msg.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ''));
         }
         // Uspani kamery (uspora baterie / rezim mapy): zastavi stopu a vynuluje stav, aby sla znovu nahodit.
         function stopCameraStream() { try { if (currentVideoStream) { currentVideoStream.getTracks().forEach(t => { try { t.stop(); } catch (e) {} }); } } catch (e) {} currentVideoStream = null; cameraStarted = false; const v = document.getElementById('camera-feed'); if (v) { try { v.srcObject = null; } catch (e) {} } }
@@ -238,7 +238,7 @@
         }
 
         // Seznam bodu v okoli serazeny podle vzdalenosti; klepnuti = navigace (highlightPoint)
-        function openNearbyModal() { if (userLat == null) { alert("Čekám na GPS pozici..."); return; } renderNearbyList(); document.getElementById('nearby-modal').style.display = 'flex'; }
+        function openNearbyModal() { if (userLat == null) { agInfo("Čekám na GPS pozici..."); return; } renderNearbyList(); document.getElementById('nearby-modal').style.display = 'flex'; }
         function renderNearbyList() {
             const listDiv = document.getElementById('nearby-list'); listDiv.innerHTML = '';
             const pts = arPoints.filter(pt => {
@@ -381,7 +381,7 @@
         function editCustomPoint(id) { const pt = persistentCustomPoints.find(p => p.id === id); if(!pt) return; editingCustomPointId = id; pendingPointAccuracy = null; { const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none'; } { const _h = document.getElementById('custom-create-helpers'); if (_h) _h.style.display = 'none'; } document.getElementById('custom-modal-title').innerText = "Upravit bod"; document.getElementById('custom-name').value = pt.name; let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); document.getElementById('custom-y').value = Math.abs(sjtsk[0]).toFixed(2); document.getElementById('custom-x').value = Math.abs(sjtsk[1]).toFixed(2); { const _z = document.getElementById('custom-z'); if (_z) _z.value = (pt.vyska != null ? pt.vyska : ''); } resetNewPointExtras(id); document.getElementById('manage-modal').style.display = 'none'; document.getElementById('custom-modal-overlay').style.display = 'flex'; }
         // BOD Z MAPY: tlacitko v modalu spusti rezim, dalsi TAP do mapy umisti bod (tah dal posouva mapu)
         function startMapPick() {
-            if (viewMode === 'ar') { alert("Přepni na zobrazení s mapou (Split nebo Mapa)."); return; }
+            if (viewMode === 'ar') { agInfo("Přepni na zobrazení s mapou (Split nebo Mapa)."); return; }
             closeCustomModal(); mapAddMode = true;
             const h = document.getElementById('map-pick-hint'); if (h) h.style.display = 'flex';
             document.getElementById('map-controls').classList.remove('expanded');
@@ -903,7 +903,7 @@
         // ===== MERENI PLOCHY (rezim v mape) =====
         const areaGroup = L.layerGroup().addTo(map);
         function startAreaMode() {
-            if (viewMode === 'ar') { alert('Měření plochy funguje v mapě — přepni na Split nebo Mapu.'); return; }
+            if (viewMode === 'ar') { agInfo('Měření plochy funguje v mapě — přepni na Split nebo Mapu.'); return; }
             document.getElementById('measure-modal').style.display = 'none';
             areaMode = true; areaVertices = [];
             const p = document.getElementById('area-panel'); if (p) p.style.display = 'flex';
@@ -952,7 +952,7 @@
         function areaAddGps() {
             if (gpsAvgResult && gpsAvgResult.n >= 2) areaVertices.push({ lat: gpsAvgResult.lat, lng: gpsAvgResult.lng });
             else if (userLat != null) areaVertices.push({ lat: userLat, lng: userLng });
-            else { alert('Čekám na GPS pozici...'); return; }
+            else { agInfo('Čekám na GPS pozici...'); return; }
             afterAreaChange();
         }
         function areaUndo() { areaVertices.pop(); afterAreaChange(); }
@@ -1025,7 +1025,7 @@
         function addDictEntry() {
             const t = document.getElementById('dict-new-term').value.trim();
             const d = document.getElementById('dict-new-def').value.trim();
-            if (!t || !d) { alert('Vyplňte pojem i vysvětlení.'); return; }
+            if (!t || !d) { agInfo('Vyplňte pojem i vysvětlení.'); return; }
             const list = getCustomDict(); list.push({ t: t, d: d }); saveCustomDict(list);
             document.getElementById('dict-new-term').value = ''; document.getElementById('dict-new-def').value = '';
             renderDictList();

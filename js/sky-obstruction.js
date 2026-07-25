@@ -31,7 +31,7 @@
     // --------------------------------------------------------------------------------
     function alertBox(title, msg) {
         try { if (typeof window.agAlert === 'function') { window.agAlert({ title: title, message: msg }); return; } } catch (e) {}
-        try { alert(title + '\n\n' + String(msg).replace(/<[^>]+>/g, '')); } catch (e) {}
+        try { agInfo(title + '\n\n' + String(msg).replace(/<[^>]+>/g, '')); } catch (e) {}
     }
     function getMask() {
         var m = 15;

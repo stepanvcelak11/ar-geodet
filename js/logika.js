@@ -107,7 +107,7 @@ if ('serviceWorker' in navigator) {
             const msg = savedToFallback
                 ? 'POZOR: databáze telefonu odmítla zápis bodů. Data jsou dočasně zachráněna v záložním úložišti a po restartu se vrátí, ale udělejte co nejdřív zálohu (Nastavení → Údržba → Stáhnout zálohu) a uvolněte místo v telefonu.'
                 : 'POZOR: bod se nepodařilo trvale uložit (databáze telefonu odmítla zápis — nejspíš plné úložiště). Data se mohou po zavření aplikace ztratit.\n\nUvolněte místo a udělejte zálohu (Nastavení → Údržba → Stáhnout zálohu).';
-            try { alert(msg); } catch (e) {}
+            try { agInfo(msg); } catch (e) {}
         }
         // dump/restore celeho kv storu — pro zalohu vsech dat (zaloha.js)
         function idbDumpAll() {
@@ -182,7 +182,7 @@ if ('serviceWorker' in navigator) {
             }
             try { localStorage.setItem(fk, val); return true; }
             catch (e) {
-                if (!_quotaWarned) { _quotaWarned = true; alert('Úložiště telefonu je plné — data se neuložila. Uvolněte místo (smažte starou zakázku nebo stáhnuté offline okolí v Nastavení).'); }
+                if (!_quotaWarned) { _quotaWarned = true; agInfo('Úložiště telefonu je plné — data se neuložila. Uvolněte místo (smažte starou zakázku nebo stáhnuté offline okolí v Nastavení).'); }
                 return false;
             }
         }
@@ -225,7 +225,7 @@ if ('serviceWorker' in navigator) {
             else create(prompt("Název nové zakázky:"));
         }
         function deleteProject() {
-            if(projects.length <= 1) return alert("Nelze smazat poslední zakázku.");
+            if(projects.length <= 1) return agInfo("Nelze smazat poslední zakázku.");
             if(!confirm("Opravdu smazat aktuální zakázku a všechny její uložené body?")) return;
             const pid = activeProjectId;
             // UKLID PODLE PREFIXU, ne rucnim vyctem: VSECHNA per-zakazkova data zacinaji
@@ -270,7 +270,7 @@ if ('serviceWorker' in navigator) {
         async function requestWakeLock() { if ('wakeLock' in navigator && visSettings.wakeLockEnabled) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } }
         document.addEventListener('visibilitychange', () => { if (wakeLock !== null && document.visibilityState === 'visible' && visSettings.wakeLockEnabled) { requestWakeLock(); } });
 
-        function setMeasurePoint(type) { if (!userLat || !userLng) return alert("Hledám GPS pozici. Počkejte chvíli..."); const pt = { lat: userLat, lng: userLng, alt: userAlt }; let altStr = "Výška: nedostupná"; if (pt.alt !== null) { let bpv = pt.alt - getGeoidUndulation(pt.lat, pt.lng); altStr = `Výška (Bpv): ${bpv.toFixed(1)} m`; } let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); let coordsStr = `Y: ${Math.abs(sjtsk[0]).toFixed(2)} | X: ${Math.abs(sjtsk[1]).toFixed(2)}<br><span style="opacity:0.7;">${altStr}</span>`; if (type === 'A') { measA = pt; document.getElementById('meas-a-coords').innerHTML = coordsStr; } else { measB = pt; document.getElementById('meas-b-coords').innerHTML = coordsStr; } calcMeasure(); }
+        function setMeasurePoint(type) { if (!userLat || !userLng) return agInfo("Hledám GPS pozici. Počkejte chvíli..."); const pt = { lat: userLat, lng: userLng, alt: userAlt }; let altStr = "Výška: nedostupná"; if (pt.alt !== null) { let bpv = pt.alt - getGeoidUndulation(pt.lat, pt.lng); altStr = `Výška (Bpv): ${bpv.toFixed(1)} m`; } let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); let coordsStr = `Y: ${Math.abs(sjtsk[0]).toFixed(2)} | X: ${Math.abs(sjtsk[1]).toFixed(2)}<br><span style="opacity:0.7;">${altStr}</span>`; if (type === 'A') { measA = pt; document.getElementById('meas-a-coords').innerHTML = coordsStr; } else { measB = pt; document.getElementById('meas-b-coords').innerHTML = coordsStr; } calcMeasure(); }
         function calcMeasure() { if (!measA || !measB) return; const hDist = getDistance(measA.lat, measA.lng, measB.lat, measB.lng); document.getElementById('meas-horiz').innerText = `${hDist.toFixed(2)} m`; if (measA.alt !== null && measB.alt !== null) { const elev = measB.alt - measA.alt; const slant = Math.sqrt(hDist * hDist + elev * elev); document.getElementById('meas-elev').innerText = `${elev > 0 ? '+' : ''}${elev.toFixed(2)} m`; document.getElementById('meas-slant').innerText = `${slant.toFixed(2)} m`; } else { document.getElementById('meas-elev').innerText = "Nedostupné"; document.getElementById('meas-slant').innerText = "Nedostupné"; } }
         function resetMeasure() { measA = null; measB = null; document.getElementById('meas-a-coords').innerHTML = "Nenastaveno"; document.getElementById('meas-b-coords').innerHTML = "Nenastaveno"; document.getElementById('meas-horiz').innerText = "-- m"; document.getElementById('meas-elev').innerText = "-- m"; document.getElementById('meas-slant').innerText = "-- m"; }
         function updateFilters() { filters.tb = document.getElementById('f-tb').checked; filters.zhb = document.getElementById('f-zhb').checked; filters.pbpp = document.getElementById('f-pbpp').checked; filters.nivel = document.getElementById('f-nivel').checked; filters.custom = document.getElementById('f-custom').checked; setStoredData('arFilters12', JSON.stringify(filters)); drawAllMarkersOnMap(); }
@@ -282,13 +282,13 @@ if ('serviceWorker' in navigator) {
             let found = await fetchGeodata(lat, lng, rad, false, function(dn, tt) { updateOfflineProgress(dn, tt); });
             hideOfflineProgress();
             updateInfoPanel();
-            if ((lastFetchNetworkError || lastFetchServerError) && found === 0) { alert((lastFetchNetworkError ? "ČÚZK je nedostupné nebo jste offline." : "ČÚZK právě neodpovídá (možná dočasný limit).") + " Zkuste to prosím znovu.\n\nDříve uložené offline body zůstaly zachované."); return; }
+            if ((lastFetchNetworkError || lastFetchServerError) && found === 0) { agInfo((lastFetchNetworkError ? "ČÚZK je nedostupné nebo jste offline." : "ČÚZK právě neodpovídá (možná dočasný limit).") + " Zkuste to prosím znovu.\n\nDříve uložené offline body zůstaly zachované."); return; }
             // Body i mapu rovnou ulozime pro offline -> kliknuti do mapy = oblast funguje i bez internetu.
             // POJISTKA: neprepisujeme ulozena data prazdnem (kdyz fetch vratil 0 kvuli chybe, ktera nebyla sit).
             if (arPoints.some(p => p.cat !== 'CUSTOM')) setStoredData('arOfflinePoints12', JSON.stringify(arPoints.filter(p => p.cat !== 'CUSTOM')));
             let tileMsg = '';
             if ('caches' in window) { try { const res = await cacheTilesForArea(lat, lng, rad, true); tileMsg = '\n' + offlineResultMsg(res); } catch (e) { tileMsg = '\nMapu se nepodařilo uložit offline: ' + ((e && e.message) ? e.message : e); } }
-            alert(`Staženo ${found} bodů ve vybrané oblasti — uloženo pro offline.` + tileMsg);
+            agInfo(`Staženo ${found} bodů ve vybrané oblasti — uloženo pro offline.` + tileMsg);
         };
 
         
@@ -389,14 +389,14 @@ if ('serviceWorker' in navigator) {
             return msg;
         }
         async function saveForOffline() {
-            if (!userLat || !userLng) { alert("Počkejte prosím na načtení GPS polohy."); return; }
+            if (!userLat || !userLng) { agInfo("Počkejte prosím na načtení GPS polohy."); return; }
             const officialPoints = arPoints.filter(p => p.cat !== 'CUSTOM');
             if (!setStoredData('arOfflinePoints12', JSON.stringify(officialPoints))) { return; }
-            if (!('caches' in window)) { alert("Tento prohlížeč nepodporuje offline ukládání mapy."); return; }
+            if (!('caches' in window)) { agInfo("Tento prohlížeč nepodporuje offline ukládání mapy."); return; }
             try {
                 const res = await cacheTilesForArea(userLat, userLng, mapRadius, true);
-                alert(`Uloženo ${officialPoints.length} bodů pro tuto zakázku.\n` + offlineResultMsg(res));
-            } catch (e) { hideOfflineProgress(); alert("Stahování mapy se nezdařilo: " + ((e && e.message) ? e.message : e)); }
+                agInfo(`Uloženo ${officialPoints.length} bodů pro tuto zakázku.\n` + offlineResultMsg(res));
+            } catch (e) { hideOfflineProgress(); agInfo("Stahování mapy se nezdařilo: " + ((e && e.message) ? e.message : e)); }
         }
 
         function hideCurrentPoint() { if (hideBtnLogic) hideBtnLogic(); closeBottomSheet(); quickToast('Bod skryt. Obnovíš ho v Nástroje → Skryté body.'); } function restoreHiddenPoints() { const n = arPoints.filter(p => p.hidden).length; arPoints.forEach(p => p.hidden = false); initARMarkers(); drawAllMarkersOnMap(); document.getElementById('settings-modal').style.display = 'none'; updateInfoPanel(); if (typeof renderManageList === 'function' && document.getElementById('manage-modal').style.display === 'flex') renderManageList(); quickToast(n ? ('Obnoveno ' + n + ' skrytých bodů.') : 'Žádné body nebyly skryté.'); } function clearAllPoints() {
@@ -407,10 +407,10 @@ if ('serviceWorker' in navigator) {
             if (window.agConfirm) { window.agConfirm({ title: 'Vymazat stáhnuté okolí', message: msg.replace(/\n/g, '<br>'), okText: 'Vymazat', danger: true }).then(ok => { if (ok) doIt(); }); }
             else if (confirm(msg)) doIt();
         } function getVisiblePointsCount() { return arPoints.filter(p => !p.hidden && p.currentDist <= arRadius && (!searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase()))).length; }
-        function exportPoints() { if (persistentCustomPoints.length === 0) return alert("Nemáte žádné body."); const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(persistentCustomPoints)); const downloadAnchorNode = document.createElement('a'); downloadAnchorNode.setAttribute("href", dataStr); downloadAnchorNode.setAttribute("download", `moje_body_${activeProjectId}.json`); document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove(); }
+        function exportPoints() { if (persistentCustomPoints.length === 0) return agInfo("Nemáte žádné body."); const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(persistentCustomPoints)); const downloadAnchorNode = document.createElement('a'); downloadAnchorNode.setAttribute("href", dataStr); downloadAnchorNode.setAttribute("download", `moje_body_${activeProjectId}.json`); document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove(); }
         // Export do CSV (seznam souradnic): radky "nazev;Y;X" v S-JTSK. BOM kvuli diakritice v Excelu.
         function exportPointsCSV() {
-            if (persistentCustomPoints.length === 0) return alert("Nemáte žádné body.");
+            if (persistentCustomPoints.length === 0) return agInfo("Nemáte žádné body.");
             let lines = persistentCustomPoints.map(pt => {
                 let sj = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]);
                 let y = Math.abs(sj[0]).toFixed(2), x = Math.abs(sj[1]).toFixed(2);
@@ -425,7 +425,7 @@ if ('serviceWorker' in navigator) {
         }
         // Export do TXT: stejne radky "nazev;Y;X" jako CSV (jdou rovnou zpet naimportovat), jen bez BOM
         function exportPointsTXT() {
-            if (persistentCustomPoints.length === 0) return alert("Nem\u00e1te \u017e\u00e1dn\u00e9 body.");
+            if (persistentCustomPoints.length === 0) return agInfo("Nem\u00e1te \u017e\u00e1dn\u00e9 body.");
             let lines = persistentCustomPoints.map(pt => {
                 let sj = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]);
                 let nm = String(pt.name == null ? 'Bod' : pt.name).replace(/[;\r\n]/g, ' ');
@@ -517,16 +517,16 @@ if ('serviceWorker' in navigator) {
                 const looksVfk = fname.endsWith('.vfk') || (/^&[HBD]/m.test(txt) && txt.indexOf('&D') >= 0);
                 if (looksVfk && typeof window.importVFKText === 'function') {
                     const addedV = window.importVFKText(txt);
-                    if (addedV > 0) alert("Importováno " + addedV + " bodů z VFK do aktuální zakázky.");
-                    else alert("Ve VFK se nepodařilo najít body se souřadnicemi (S-JTSK).");
+                    if (addedV > 0) agInfo("Importováno " + addedV + " bodů z VFK do aktuální zakázky.");
+                    else agInfo("Ve VFK se nepodařilo najít body se souřadnicemi (S-JTSK).");
                     event.target.value = ''; return;
                 }
                 let imported = null;
                 try { let j = JSON.parse(txt); if (Array.isArray(j)) imported = j; } catch (err) {}
                 if (!imported) imported = parseCoordsCSV(txt);
-                if (!imported || imported.length === 0) { alert("V souboru se nenašly žádné body.\n\nPodporováno: JSON, CSV/TXT s řádky 'číslo;Y;X' (oddělovač ; , tab nebo mezera), nebo VFK."); event.target.value = ''; return; }
+                if (!imported || imported.length === 0) { agInfo("V souboru se nenašly žádné body.\n\nPodporováno: JSON, CSV/TXT s řádky 'číslo;Y;X' (oddělovač ; , tab nebo mezera), nebo VFK."); event.target.value = ''; return; }
                 const added = window.addImportedPoints(imported);
-                alert("Importováno " + added + " bodů do aktuální zakázky.");
+                agInfo("Importováno " + added + " bodů do aktuální zakázky.");
                 event.target.value = '';
             };
             reader.readAsArrayBuffer(file);
@@ -539,9 +539,9 @@ if ('serviceWorker' in navigator) {
             // BRANA CERSTVOSTI: kdyz GPS prestala dodavat fixy (tunel, suspend), prumer je
             // ze STARE polohy — bod by se tise ulozil jinam, nez clovek stoji.
             const _fx = window.AGFix;
-            if (_fx && _fx.ts && (Date.now() - _fx.ts) > 10000) { alert('Poloha je stará ' + Math.round((Date.now() - _fx.ts) / 1000) + ' s — GPS teď nedodává čerstvé fixy.\n\nPočkejte pod volným nebem na obnovení signálu a zkuste to znovu.'); return; }
-            if (gpsAvgResult && gpsAvgResult.coarse) { alert("Slabý GNSS signál — telefon hlásí síťovou polohu ±" + Math.round(gpsAvgResult.acc) + " m, ne satelitní fix.\n\nVyjdi pod volné nebe a počkej, až se přesnost zlepší pod 20 m."); return; }
-            if (!gpsAvgResult || gpsAvgResult.n < 2) { alert("Počkejte na ustálení průměrování GPS (stůjte chvíli na místě)."); return; }
+            if (_fx && _fx.ts && (Date.now() - _fx.ts) > 10000) { agInfo('Poloha je stará ' + Math.round((Date.now() - _fx.ts) / 1000) + ' s — GPS teď nedodává čerstvé fixy.\n\nPočkejte pod volným nebem na obnovení signálu a zkuste to znovu.'); return; }
+            if (gpsAvgResult && gpsAvgResult.coarse) { agInfo("Slabý GNSS signál — telefon hlásí síťovou polohu ±" + Math.round(gpsAvgResult.acc) + " m, ne satelitní fix.\n\nVyjdi pod volné nebe a počkej, až se přesnost zlepší pod 20 m."); return; }
+            if (!gpsAvgResult || gpsAvgResult.n < 2) { agInfo("Počkejte na ustálení průměrování GPS (stůjte chvíli na místě)."); return; }
             const r = gpsAvgResult; let sjtsk = proj4("EPSG:4326", "EPSG:5514", [r.lng, r.lat]);
             document.getElementById('custom-y').value = Math.abs(sjtsk[0]).toFixed(2);
             document.getElementById('custom-x').value = Math.abs(sjtsk[1]).toFixed(2);
@@ -590,7 +590,7 @@ if ('serviceWorker' in navigator) {
             }
         }
         function saveCustomPoint() {
-            const name = document.getElementById('custom-name').value || "Bod"; let inputY = parseFloat(document.getElementById('custom-y').value); let inputX = parseFloat(document.getElementById('custom-x').value); if (isNaN(inputY) || isNaN(inputX)) return alert("Vyplňte souřadnice!"); let krovakY = inputY > 0 ? -inputY : inputY; let krovakX = inputX > 0 ? -inputX : inputX; let wgs84 = proj4("EPSG:5514", "EPSG:4326", [krovakY, krovakX]); let lng = wgs84[0]; let lat = wgs84[1]; var _zin = parseFloat((document.getElementById('custom-z') || {}).value); var vyska = isFinite(_zin) ? Math.round(_zin * 100) / 100 : null;
+            const name = document.getElementById('custom-name').value || "Bod"; let inputY = parseFloat(document.getElementById('custom-y').value); let inputX = parseFloat(document.getElementById('custom-x').value); if (isNaN(inputY) || isNaN(inputX)) return agInfo("Vyplňte souřadnice!"); let krovakY = inputY > 0 ? -inputY : inputY; let krovakX = inputX > 0 ? -inputX : inputX; let wgs84 = proj4("EPSG:5514", "EPSG:4326", [krovakY, krovakX]); let lng = wgs84[0]; let lat = wgs84[1]; var _zin = parseFloat((document.getElementById('custom-z') || {}).value); var vyska = isFinite(_zin) ? Math.round(_zin * 100) / 100 : null;
             // #2/#3: nový bod z GPS průměru srovnej Helmertovou lokalizací staveniště (když je aktivní).
             // Jen pro nově měřený GPS bod — ne při editaci ani u ručně zadaných S-JTSK.
             try {
@@ -637,12 +637,12 @@ if ('serviceWorker' in navigator) {
                 img.onload = () => {
                     let dataUrl = null;
                     try { dataUrl = (typeof _photoToDataUrl === 'function') ? _photoToDataUrl(img) : null; } catch (err) {}
-                    if (!dataUrl) { alert('Fotku se nepodařilo zpracovat.'); return; }
+                    if (!dataUrl) { agInfo('Fotku se nepodařilo zpracovat.'); return; }
                     window._agNewPtPhoto = dataUrl;
                     const pv = document.getElementById('custom-photo-note');
                     if (pv) { pv.style.display = 'block'; pv.innerHTML = 'Fotka přiložena ✓ <button type="button" onclick="window._agNewPtPhoto=null; this.parentNode.style.display=\'none\';" style="border:none; background:rgba(255,255,255,0.12); color:inherit; border-radius:99px; padding:3px 10px; margin-left:6px; cursor:pointer;">Odebrat</button>'; }
                 };
-                img.onerror = () => alert('Soubor není platný obrázek.');
+                img.onerror = () => agInfo('Soubor není platný obrázek.');
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
@@ -1158,7 +1158,7 @@ if ('serviceWorker' in navigator) {
                 applyOcrParsed(best);
             } catch (e) {
                 hideOfflineProgress();
-                alert('Čtení z fotky se nezdařilo: ' + ((e && e.message) ? e.message : e));
+                agInfo('Čtení z fotky se nezdařilo: ' + ((e && e.message) ? e.message : e));
             } finally { if (worker) { try { await worker.terminate(); } catch (e) {} } }
         }
         // Vysledek OCR jen PREDVYPLNI formular - ulozeni az po kontrole uzivatelem

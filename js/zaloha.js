@@ -106,12 +106,15 @@
         r.onload = async function (e) {
             let payload;
             try { payload = JSON.parse(e.target.result); }
-            catch (err) { alert('Soubor zálohy je poškozený nebo to není JSON.'); return; }
+            catch (err) { agInfo('Soubor zálohy je poškozený nebo to není JSON.'); return; }
             if (!payload || typeof payload.data !== 'object' || payload.data === null) {
-                alert('Tohle nevypadá jako záloha AR Geodet.'); return;
+                agInfo('Tohle nevypadá jako záloha AR Geodet.'); return;
             }
             const keys = Object.keys(payload.data);
-            if (!confirm(`Obnovit zálohu (${keys.length} položek)?\n\nPřepíše současná data této aplikace a stránka se znovu načte.`)) return;
+            // destruktivni potvrzeni v app dialogu (fallback na nativni, kdyz bridge chybi)
+            const msg = `Obnovit zálohu (${keys.length} položek)?\n\nPřepíše současná data této aplikace a stránka se znovu načte.`;
+            const ok = (typeof window.agAsk === 'function') ? await agAsk(msg, { danger: true, okText: 'Obnovit' }) : confirm(msg);
+            if (!ok) return;
             // Atomicky: snapshot -> smazat -> zapsat; pri chybe (plna kvota) vratit snapshot,
             // aby nikdy nezustal polovicne obnoveny stav (cast klicu novych, cast starych).
             const snapshot = {};
@@ -121,12 +124,12 @@
                 keys.forEach(k => { if (typeof payload.data[k] === 'string') localStorage.setItem(k, payload.data[k]); });
             } catch (err) {
                 try { localStorage.clear(); Object.keys(snapshot).forEach(k => localStorage.setItem(k, snapshot[k])); } catch (e2) {}
-                alert('Obnova se nezdařila (úložiště plné?), původní data byla vrácena beze změny: ' + ((err && err.message) ? err.message : err));
+                agInfo('Obnova se nezdařila (úložiště plné?), původní data byla vrácena beze změny: ' + ((err && err.message) ? err.message : err));
                 return;
             }
             if (payload.idb && typeof idbRestoreAll === 'function') {
                 try { await idbRestoreAll(payload.idb); }
-                catch (e3) { alert('Nastavení se obnovilo, ale databázi bodů se nepodařilo obnovit celou: ' + ((e3 && e3.message) ? e3.message : e3)); }
+                catch (e3) { agInfo('Nastavení se obnovilo, ale databázi bodů se nepodařilo obnovit celou: ' + ((e3 && e3.message) ? e3.message : e3)); }
             }
             // zalohy v3: obnova dalsich databazi (zurnal, rastr podkladu, fotky vytyceni);
             // starsi zalohy (v2) polozku extra nemaji -> preskoci se
