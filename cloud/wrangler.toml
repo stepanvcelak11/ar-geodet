@@ -1,0 +1,11 @@
+# AR Geodet — firemní cloud API (Cloudflare Worker + D1)
+# Ruční nasazení bez Claude: viz cloud/README.md
+name = "ar-geodet-api"
+main = "worker.js"
+compatibility_date = "2026-07-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ar-geodet-db"
+# database_id doplň po vytvoření DB: wrangler d1 create ar-geodet-db
+database_id = "DOPLN-PO-VYTVORENI"

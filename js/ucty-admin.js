@@ -3,12 +3,15 @@
 // ----------------------------------------------------------------------------
 // Nadstavba nad js/ucty.js (jádro účtů) — bez něj se modul tiše vypne.
 // Vstup: dlaždice „Firma a účty" v Nástrojích (kategorie Pomůcky).
-//   • firemní režim VYPNUT  -> průvodce zřízením (název firmy + admin + PIN)
-//   • admin                 -> plná administrace (4 sekce)
+//   • firemní režim VYPNUT  -> průvodce: založit firmu v CLOUDU (funguje mezi
+//     zařízeními, Cloudflare Worker z cloud/worker.js) / připojit zařízení
+//     kódem firmy / LOKÁLNÍ režim (jen toto zařízení, bez serveru)
+//   • admin                 -> plná administrace (4 sekce); v cloudu se změny
+//     (uživatelé, oprávnění, název, auto-zámek) ukládají na server a propíší
+//     se všem zařízením; dashboard čte užívání ze VŠECH zařízení
 //   • vedení s oprávněním   -> jen Přehled užívání
 // Navíc: tlačítko „Přepnout uživatele / zamknout" v menu Více (jen ve firemním
-// režimu) a export/import celé firmy souborem .argeofirma.json (přenos
-// nastavení na další zařízení — účty vč. PIN hashů a matice oprávnění).
+// režimu); v LOKÁLNÍM režimu export/import firmy souborem .argeofirma.json.
 //
 // Odstranění: smaž js/ucty-admin.js + řádek <script> v index.html (a v sw.js).
 // ============================================================================
@@ -116,7 +119,7 @@
     }
 
     // ------------------------------------------------------------------
-    // Průvodce zřízením firmy (když je režim vypnutý)
+    // Průvodce zřízením firmy (když je režim vypnutý): cloud / připojit / lokální
     // ------------------------------------------------------------------
     function openWizard() {
         var m = ensureModal();
@@ -124,23 +127,129 @@
         document.getElementById('agfa-nav').innerHTML = '';
         var body = document.getElementById('agfa-body');
         body.innerHTML =
-            '<div class="agfa-note">Firemní režim zapne <b>přihlašování uživatelů</b> (PIN), role s různými ' +
-            'oprávněními a <b>přehled užívání</b> pro admina. Vše zůstává offline v tomto zařízení — žádný server. ' +
-            'Není to tvrdá bezpečnost, ale pořádek: kdo co měří, kdo co vidí, a auditovatelný žurnál s autorem.</div>' +
+            '<div class="agfa-note">Firemní režim zapne <b>přihlašování uživatelů</b>, role s různými oprávněními ' +
+            'a <b>přehled užívání</b> pro admina. Doporučená <b>cloud</b> varianta funguje mezi zařízeními ' +
+            '(server Cloudflare, zdarma) — stejné účty na všech mobilech firmy. Lokální varianta žije jen v tomto zařízení.</div>' +
+            '<button class="btn" style="width:100%;margin-top:8px;" id="agfa-w-cloud">Založit firmu v cloudu (více zařízení)</button>' +
+            '<button class="btn" style="width:100%;margin-top:8px;" id="agfa-w-join">Připojit toto zařízení k firmě (mám kód)</button>' +
+            '<button class="btn btn-secondary" style="width:100%;margin-top:8px;" id="agfa-w-local">Jen toto zařízení (bez cloudu)</button>';
+        body.querySelector('#agfa-w-cloud').onclick = function () { wizardCloud(body); };
+        body.querySelector('#agfa-w-join').onclick = function () { wizardJoin(body); };
+        body.querySelector('#agfa-w-local').onclick = function () { wizardLocal(body); };
+    }
+
+    // ---- cloud: založení firmy na serveru -----------------------------
+    function wizardCloud(body) {
+        var u = U();
+        body.innerHTML =
+            '<div class="agfa-note">Založí firmu na serveru (Cloudflare, zdarma, bez karty). Dostaneš <b>kód firmy</b> — ' +
+            'tím se pak přihlásí zaměstnanci na svých mobilech. Potřebuje internet.</div>' +
+            '<label class="agfa-lb">Název firmy</label><input type="text" id="agfa-w-firm" placeholder="Geodetika s.r.o." maxlength="60">' +
+            '<label class="agfa-lb">Tvoje jméno (admin)</label><input type="text" id="agfa-w-name" placeholder="Jan Novák" maxlength="40">' +
+            '<label class="agfa-lb">Heslo admina (min. 4 znaky)</label><input type="password" id="agfa-w-pin" maxlength="64" placeholder="••••">' +
+            '<label class="agfa-lb">Heslo znovu</label><input type="password" id="agfa-w-pin2" maxlength="64" placeholder="••••">' +
+            '<button class="btn" style="margin-top:14px;width:100%;" id="agfa-w-go">Založit firmu</button>' +
+            '<button class="btn btn-secondary" style="margin-top:8px;width:100%;" id="agfa-w-back">Zpět</button>';
+        var prevName = '';
+        try { prevName = localStorage.getItem('arSurveyor') || ''; } catch (e) {}
+        if (prevName) body.querySelector('#agfa-w-name').value = prevName;
+        body.querySelector('#agfa-w-back').onclick = function () { openWizard(); };
+        body.querySelector('#agfa-w-go').onclick = function () {
+            var firm = (body.querySelector('#agfa-w-firm').value || '').trim();
+            var name = (body.querySelector('#agfa-w-name').value || '').trim();
+            var p1 = body.querySelector('#agfa-w-pin').value || '';
+            var p2 = body.querySelector('#agfa-w-pin2').value || '';
+            if (!name) { agAlert('Chybí jméno', 'Zadej jméno administrátora.'); return; }
+            if (p1.length < 4) { agAlert('Slabé heslo', 'Heslo musí mít aspoň 4 znaky.'); return; }
+            if (p1 !== p2) { agAlert('Heslo nesouhlasí', 'Zadaná hesla se liší.'); return; }
+            this.disabled = true; this.textContent = 'Zakládám…';
+            var btn = this;
+            u.cloudFetch('/firms', { method: 'POST', api: u.DEFAULT_API, body: { firmName: firm || 'Moje firma', adminName: name, password: p1 } })
+                .then(function (r) {
+                    btn.disabled = false; btn.textContent = 'Založit firmu';
+                    if (!r.ok) {
+                        agAlert('Založení selhalo', r.status === 0
+                            ? 'Server není dosažitelný — zkontroluj internet.'
+                            : esc((r.data && r.data.error) || ('Chyba ' + r.status)));
+                        return;
+                    }
+                    u.adoptLogin(r.data, u.DEFAULT_API);
+                    u.usageLog('login', 'setup');
+                    wizardShowCode(body);
+                });
+        };
+    }
+
+    // po založení: velký kód firmy + poučení
+    function wizardShowCode(body) {
+        var u = U(), f = u.getFirm();
+        body.innerHTML =
+            '<div class="agfa-note">Firma <b>' + esc(f.firmName) + '</b> je založená a ty jsi přihlášený jako admin. ' +
+            'Tohle je <b>kód firmy</b> — dej ho zaměstnancům:</div>' +
+            '<div style="font:800 38px/1.2 var(--font-display,system-ui);letter-spacing:.18em;text-align:center;color:var(--accent,#2f9e74);margin:14px 0;user-select:all;">' + esc(f.code) + '</div>' +
+            '<div class="agfa-note">Zaměstnanec na svém mobilu otevře Nástroje → <b>Firma a účty</b> → „Připojit toto zařízení k firmě" ' +
+            'a zadá tento kód + své jméno a heslo (účet mu nejdřív založ v sekci Uživatelé).</div>' +
+            '<button class="btn" style="margin-top:12px;width:100%;" id="agfa-w-next">Pokračovat do administrace</button>';
+        body.querySelector('#agfa-w-next').onclick = function () { renderNav('uzivatele'); };
+    }
+
+    // ---- cloud: připojení zařízení kódem firmy -------------------------
+    function wizardJoin(body) {
+        var u = U();
+        body.innerHTML =
+            '<div class="agfa-note">Připojí tento mobil k existující firmě. Kód firmy ti dá admin; jméno a heslo ' +
+            'máš od něj taky (admin ti účet založil v administraci). Potřebuje internet.</div>' +
+            '<label class="agfa-lb">Kód firmy</label><input type="text" id="agfa-j-code" maxlength="6" placeholder="K7M2PX" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:.15em;">' +
+            '<label class="agfa-lb">Tvoje jméno</label><input type="text" id="agfa-j-name" maxlength="40" placeholder="Jan Novák">' +
+            '<label class="agfa-lb">Heslo</label><input type="password" id="agfa-j-pass" maxlength="64" placeholder="••••">' +
+            '<button class="btn" style="margin-top:14px;width:100%;" id="agfa-j-go">Připojit a přihlásit</button>' +
+            '<button class="btn btn-secondary" style="margin-top:8px;width:100%;" id="agfa-j-back">Zpět</button>';
+        body.querySelector('#agfa-j-back').onclick = function () { openWizard(); };
+        body.querySelector('#agfa-j-go').onclick = function () {
+            var code = (body.querySelector('#agfa-j-code').value || '').trim().toUpperCase();
+            var name = (body.querySelector('#agfa-j-name').value || '').trim();
+            var pass = body.querySelector('#agfa-j-pass').value || '';
+            if (!code || !name || !pass) { agAlert('Chybí údaje', 'Vyplň kód firmy, jméno i heslo.'); return; }
+            this.disabled = true; this.textContent = 'Připojuji…';
+            var btn = this;
+            u.cloudFetch('/login', { method: 'POST', api: u.DEFAULT_API, body: { code: code, name: name, password: pass } })
+                .then(function (r) {
+                    btn.disabled = false; btn.textContent = 'Připojit a přihlásit';
+                    if (!r.ok) {
+                        agAlert('Připojení selhalo', r.status === 0
+                            ? 'Server není dosažitelný — zkontroluj internet.'
+                            : esc((r.data && r.data.error) || ('Chyba ' + r.status)));
+                        return;
+                    }
+                    u.adoptLogin(r.data, u.DEFAULT_API);
+                    u.usageLog('login', 'join');
+                    document.getElementById('agfa-modal').style.display = 'none';
+                    agAlert('Zařízení připojeno', 'Jsi přihlášen jako <b>' + esc(r.data.user.name) + '</b> (' + roleTxt(r.data.user.role) + ') ve firmě <b>' + esc(r.data.config.firm.name) + '</b>.');
+                });
+        };
+    }
+
+    // ---- lokální režim (bez serveru) — původní průvodce -----------------
+    function wizardLocal(body) {
+        body.innerHTML =
+            '<div class="agfa-note">Účty budou žít <b>jen v tomto zařízení</b> — žádný server. Na další mobily je přeneseš ' +
+            'souborem v sekci Firma. Není to tvrdá bezpečnost, ale pořádek: kdo co měří, kdo co vidí.</div>' +
             '<label class="agfa-lb">Název firmy</label><input type="text" id="agfa-w-firm" placeholder="Geodetika s.r.o." maxlength="60">' +
             '<label class="agfa-lb">Tvoje jméno (admin)</label><input type="text" id="agfa-w-name" placeholder="Jan Novák" maxlength="40">' +
             '<label class="agfa-lb">PIN admina (4–8 číslic)</label><input type="password" id="agfa-w-pin" inputmode="numeric" maxlength="8" placeholder="••••">' +
             '<label class="agfa-lb">PIN znovu</label><input type="password" id="agfa-w-pin2" inputmode="numeric" maxlength="8" placeholder="••••">' +
-            '<button class="btn" style="margin-top:14px;width:100%;" id="agfa-w-go">Zapnout firemní režim</button>';
+            '<button class="btn" style="margin-top:14px;width:100%;" id="agfa-w-go">Zapnout firemní režim</button>' +
+            '<button class="btn btn-secondary" style="margin-top:8px;width:100%;" id="agfa-w-back">Zpět</button>';
         var prevName = '';
         try { prevName = localStorage.getItem('arSurveyor') || ''; } catch (e) {}
-        if (prevName) document.getElementById('agfa-w-name').value = prevName;
-        document.getElementById('agfa-w-go').onclick = function () {
+        if (prevName) body.querySelector('#agfa-w-name').value = prevName;
+        body.querySelector('#agfa-w-back').onclick = function () { openWizard(); };
+        body.querySelector('#agfa-w-go').onclick = function () {
             var u = U(); if (!u) return;
-            var firm = (document.getElementById('agfa-w-firm').value || '').trim();
-            var name = (document.getElementById('agfa-w-name').value || '').trim();
-            var pin = document.getElementById('agfa-w-pin').value || '';
-            var pin2 = document.getElementById('agfa-w-pin2').value || '';
+            var firm = (body.querySelector('#agfa-w-firm').value || '').trim();
+            var name = (body.querySelector('#agfa-w-name').value || '').trim();
+            var pin = body.querySelector('#agfa-w-pin').value || '';
+            var pin2 = body.querySelector('#agfa-w-pin2').value || '';
             if (!name) { agAlert('Chybí jméno', 'Zadej jméno administrátora.'); return; }
             if (!/^\d{4,8}$/.test(pin)) { agAlert('Neplatný PIN', 'PIN musí mít 4–8 číslic.'); return; }
             if (pin !== pin2) { agAlert('PIN nesouhlasí', 'Zadané PINy se liší.'); return; }
@@ -165,20 +274,26 @@
     }
 
     // ------------------------------------------------------------------
-    // Sekce Uživatelé
+    // Sekce Uživatelé (cloud: CRUD na serveru, propíše se všem zařízením)
     // ------------------------------------------------------------------
-    function renderUsers(body) {
+    function renderUsers(body, refreshed) {
         var u = U(), f = u.getFirm(); if (!f) return;
         var me = u.currentUser();
+        var cloud = !!f.cloud;
+        // v cloudu si jednou stáhni čerstvý seznam (mohl se změnit jinde)
+        if (cloud && !refreshed) {
+            u.refreshConfig().then(function (ok) { if (ok && _section === 'uzivatele') renderUsers(body, true); });
+        }
         var rows = f.users.map(function (us) {
             return '<div class="agfa-row" data-id="' + esc(us.id) + '">' +
                 '<b>' + esc(us.name) + (me && me.id === us.id ? ' <span style="color:var(--text-muted);font-weight:500;">(ty)</span>' : '') + '</b>' +
-                '<span class="agfa-chip">' + roleTxt(us.role) + (us.noPin ? ' · bez PINu' : '') + '</span>' +
+                '<span class="agfa-chip">' + roleTxt(us.role) + (!cloud && us.noPin ? ' · bez PINu' : '') + '</span>' +
                 '<button class="agfa-mini" data-act="edit">Upravit</button>' +
                 '<button class="agfa-mini danger" data-act="del">Smazat</button>' +
                 '</div>';
         }).join('');
         body.innerHTML =
+            (cloud ? '<div class="agfa-note">Účty platí pro celou firmu — nový zaměstnanec se pak na svém mobilu přihlásí kódem firmy <b>' + esc(f.code || '') + '</b>, svým jménem a heslem.</div>' : '') +
             '<div id="agfa-userlist">' + rows + '</div>' +
             '<button class="btn" style="margin-top:12px;width:100%;" id="agfa-add">+ Přidat uživatele</button>' +
             '<div id="agfa-uform"></div>';
@@ -191,7 +306,7 @@
             for (var i = 0; i < f.users.length; i++) if (f.users[i].id === id) us = f.users[i];
             if (!us) return;
             if (btn.getAttribute('data-act') === 'edit') { userForm(body, us); return; }
-            // smazání: nesmí zmizet poslední admin
+            // smazání: nesmí zmizet poslední admin (server to hlídá taky)
             var admins = f.users.filter(function (x) { return x.role === 'admin'; });
             if (us.role === 'admin' && admins.length <= 1) {
                 agAlert('Nelze smazat', 'Toto je poslední admin. Nejdřív udělej adminem někoho jiného, nebo vypni firemní režim v sekci Firma.');
@@ -199,6 +314,15 @@
             }
             agConfirm({ title: 'Smazat uživatele', message: 'Opravdu smazat účet <b>' + esc(us.name) + '</b>? Jeho záznamy v žurnálu a přehledu užívání zůstanou.', okText: 'Smazat', danger: true }).then(function (ok) {
                 if (!ok) return;
+                if (cloud) {
+                    u.cloudFetch('/users/' + encodeURIComponent(us.id), { method: 'DELETE' }).then(function (r) {
+                        if (!r.ok) { agAlert('Smazání selhalo', cloudErr(r)); return; }
+                        u.adoptConfig(r.data);
+                        if (me && me.id === us.id) { u.logout(); document.getElementById('agfa-modal').style.display = 'none'; return; }
+                        renderUsers(body, true);
+                    });
+                    return;
+                }
                 f.users = f.users.filter(function (x) { return x.id !== us.id; });
                 u.saveFirm(f);
                 if (me && me.id === us.id) { u.logout(); document.getElementById('agfa-modal').style.display = 'none'; return; }
@@ -206,9 +330,17 @@
             });
         };
     }
+    function cloudErr(r) {
+        if (r.status === 0) return 'Server není dosažitelný — správa firmy potřebuje internet.';
+        return esc((r.data && r.data.error) || ('Chyba ' + r.status));
+    }
     function userForm(body, us) {
         var u = U(), f = u.getFirm(); if (!f) return;
+        var cloud = !!f.cloud;
         var box = body.querySelector('#agfa-uform');
+        var passLbl = cloud
+            ? (us ? 'Nové heslo (nech prázdné = beze změny)' : 'Heslo (min. 4 znaky)')
+            : (us ? 'Nový PIN (nech prázdné = beze změny)' : 'PIN (4–8 číslic; prázdné = bez PINu)');
         box.innerHTML =
             '<div style="border:1px solid var(--glass-border,rgba(255,255,255,0.15));border-radius:12px;padding:12px;margin-top:12px;">' +
             '<label class="agfa-lb">Jméno</label><input type="text" id="agfa-u-name" maxlength="40" value="' + esc(us ? us.name : '') + '">' +
@@ -217,8 +349,9 @@
             '  <option value="vedeni"' + (us && us.role === 'vedeni' ? ' selected' : '') + '>Vedení</option>' +
             '  <option value="admin"' + (us && us.role === 'admin' ? ' selected' : '') + '>Admin</option>' +
             '</select>' +
-            '<label class="agfa-lb">' + (us ? 'Nový PIN (nech prázdné = beze změny)' : 'PIN (4–8 číslic; prázdné = bez PINu)') + '</label>' +
-            '<input type="password" id="agfa-u-pin" inputmode="numeric" maxlength="8" placeholder="••••">' +
+            '<label class="agfa-lb">' + passLbl + '</label>' +
+            (cloud ? '<input type="password" id="agfa-u-pin" maxlength="64" placeholder="••••">'
+                : '<input type="password" id="agfa-u-pin" inputmode="numeric" maxlength="8" placeholder="••••">') +
             '<div style="display:flex;gap:8px;margin-top:12px;">' +
             '  <button class="btn" style="flex:1;" id="agfa-u-save">' + (us ? 'Uložit změny' : 'Přidat') + '</button>' +
             '  <button class="btn btn-secondary" style="flex:1;" id="agfa-u-cancel">Zrušit</button>' +
@@ -229,12 +362,27 @@
             var role = box.querySelector('#agfa-u-role').value;
             var pin = box.querySelector('#agfa-u-pin').value || '';
             if (!name) { agAlert('Chybí jméno', 'Zadej jméno uživatele.'); return; }
-            if (pin && !/^\d{4,8}$/.test(pin)) { agAlert('Neplatný PIN', 'PIN musí mít 4–8 číslic (nebo nech prázdné).'); return; }
-            // degradace posledního admina
+            // degradace posledního admina (server v cloudu hlídá taky)
             if (us && us.role === 'admin' && role !== 'admin') {
                 var admins = f.users.filter(function (x) { return x.role === 'admin'; });
                 if (admins.length <= 1) { agAlert('Nelze změnit', 'Toto je poslední admin — nejdřív udělej adminem někoho jiného.'); return; }
             }
+            var me = u.currentUser();
+            if (cloud) {
+                if (!us && pin.length < 4) { agAlert('Slabé heslo', 'Heslo musí mít aspoň 4 znaky.'); return; }
+                if (us && pin && pin.length < 4) { agAlert('Slabé heslo', 'Heslo musí mít aspoň 4 znaky (nebo nech prázdné).'); return; }
+                var req = us
+                    ? u.cloudFetch('/users/' + encodeURIComponent(us.id), { method: 'PATCH', body: Object.assign({ name: name, role: role }, pin ? { password: pin } : {}) })
+                    : u.cloudFetch('/users', { method: 'POST', body: { name: name, role: role, password: pin } });
+                req.then(function (r) {
+                    if (!r.ok) { agAlert(us ? 'Uložení selhalo' : 'Přidání selhalo', cloudErr(r)); return; }
+                    u.adoptConfig(r.data);
+                    if (us && me && me.id === us.id) { try { localStorage.setItem('arSurveyor', name); } catch (e) {} }
+                    renderUsers(body, true);
+                });
+                return;
+            }
+            if (pin && !/^\d{4,8}$/.test(pin)) { agAlert('Neplatný PIN', 'PIN musí mít 4–8 číslic (nebo nech prázdné).'); return; }
             function finish(pinHash, salt, noPin) {
                 if (us) {
                     us.name = name; us.role = role;
@@ -243,7 +391,6 @@
                     f.users.push({ id: 'u' + Date.now() + Math.floor(Math.random() * 1000), name: name, role: role, pinHash: pinHash, salt: salt, noPin: noPin });
                 }
                 u.saveFirm(f);
-                var me = u.currentUser();
                 if (us && me && me.id === us.id) { try { localStorage.setItem('arSurveyor', name); } catch (e) {} }
                 renderUsers(body);
             }
@@ -288,6 +435,16 @@
             if (!cb || cb.type !== 'checkbox' || !cb.getAttribute('data-k')) return;
             if (!f.perms[role]) f.perms[role] = {};
             f.perms[role][cb.getAttribute('data-k')] = cb.checked;
+            if (f.cloud) {
+                // uložit na server → propíše se všem zařízením; lokální cache hned
+                u.saveFirm(f);
+                u.cloudFetch('/config', { method: 'PUT', body: { perms: f.perms } }).then(function (r) {
+                    if (!r.ok) {
+                        agAlert('Změna se neuložila na server', cloudErr(r) + '<br><br>Na tomto zařízení platí, ale ostatní ji neuvidí — zopakuj ji s internetem.');
+                    }
+                });
+                return;
+            }
             u.saveFirm(f);
         };
     }
@@ -302,7 +459,22 @@
         var from = new Date();
         from.setHours(0, 0, 0, 0);
         if (_range > 1) from.setDate(from.getDate() - (_range - 1));
-        u.usageQuery(from.getTime()).then(function (evs) {
+        var cloudNote = '';
+        // cloud: nejdřív odešli lokální frontu, pak čti ze serveru (VŠECHNA zařízení);
+        // bez signálu spadni na lokální záznamy tohoto zařízení
+        var getEvents = (f.cloud
+            ? u.syncUsage().then(function () {
+                return u.cloudFetch('/usage?from=' + from.getTime()).then(function (r) {
+                    if (r.ok && r.data && Array.isArray(r.data.events)) {
+                        cloudNote = '<div class="agfa-note">Data ze všech zařízení firmy (server).</div>';
+                        return r.data.events;
+                    }
+                    cloudNote = '<div class="agfa-note" style="color:var(--danger,#e5534b);">⚠ Server nedostupný — zobrazeny jen záznamy z tohoto zařízení.</div>';
+                    return u.usageQuery(from.getTime());
+                });
+            })
+            : u.usageQuery(from.getTime()));
+        getEvents.then(function (evs) {
             var byUser = {}, tools = {}, logins = 0, ptAdd = 0, ptEdit = 0, ptDel = 0;
             evs.forEach(function (ev) {
                 var b = byUser[ev.u] = byUser[ev.u] || { logins: 0, tools: 0, add: 0, edit: 0, del: 0, days: {}, first: ev.ts, last: ev.ts };
@@ -318,7 +490,7 @@
             var topTools = Object.keys(tools).map(function (k) { return [k, tools[k]]; })
                 .sort(function (a, b) { return b[1] - a[1]; }).slice(0, 8);
 
-            var html =
+            var html = cloudNote +
                 '<label class="agfa-lb">Období</label><select id="agfa-d-range">' +
                 '  <option value="1"' + (_range === 1 ? ' selected' : '') + '>Dnes</option>' +
                 '  <option value="7"' + (_range === 7 ? ' selected' : '') + '>Posledních 7 dní</option>' +
@@ -380,8 +552,15 @@
                     try { if (window.agErrLog && typeof agErrLog.show === 'function') agErrLog.show(); else agAlert('Protokol chyb', 'Modul err-log.js není načtený.'); } catch (e) {}
                 };
                 body.querySelector('#agfa-d-clear').onclick = function () {
-                    agConfirm({ title: 'Smazat záznamy užívání', message: 'Smaže VŠECHNY záznamy o užívání (nejen zvolené období). Žurnál bodů zůstane.', okText: 'Smazat', danger: true }).then(function (ok) {
-                        if (ok) u.usageClear().then(function () { renderUsage(body); });
+                    agConfirm({ title: 'Smazat záznamy užívání', message: 'Smaže VŠECHNY záznamy o užívání (nejen zvolené období)' + (f.cloud ? ' — na serveru i v tomto zařízení' : '') + '. Žurnál bodů zůstane.', okText: 'Smazat', danger: true }).then(function (ok) {
+                        if (!ok) return;
+                        var done = function () { try { localStorage.removeItem('agFirmaSync_v1'); } catch (e) {} u.usageClear().then(function () { renderUsage(body); }); };
+                        if (f.cloud) {
+                            u.cloudFetch('/usage', { method: 'DELETE' }).then(function (r) {
+                                if (!r.ok) { agAlert('Smazání na serveru selhalo', cloudErr(r)); return; }
+                                done();
+                            });
+                        } else done();
                     });
                 };
             }
@@ -410,6 +589,7 @@
     // ------------------------------------------------------------------
     function renderFirm(body) {
         var u = U(), f = u.getFirm(); if (!f) return;
+        if (f.cloud) { renderFirmCloud(body, u, f); return; }
         body.innerHTML =
             '<label class="agfa-lb">Název firmy</label><input type="text" id="agfa-f-name" maxlength="60" value="' + esc(f.firmName || '') + '">' +
             '<label class="agfa-lb">Auto-zámek po nečinnosti (minuty; 0 = vypnuto)</label>' +
@@ -465,6 +645,49 @@
                 document.getElementById('agfa-modal').style.display = 'none';
                 if (u.applyPerms) u.applyPerms();
                 agAlert('Hotovo', 'Firemní režim je vypnutý.');
+            });
+        };
+    }
+
+    // ---- sekce Firma v CLOUD režimu -------------------------------------
+    function renderFirmCloud(body, u, f) {
+        body.innerHTML =
+            '<div class="agfa-pg">Kód firmy (pro připojení dalších zařízení)</div>' +
+            '<div style="font:800 34px/1.2 var(--font-display,system-ui);letter-spacing:.18em;text-align:center;color:var(--accent,#2f9e74);margin:10px 0;user-select:all;">' + esc(f.code || '?') + '</div>' +
+            '<div class="agfa-note">Zaměstnanec na svém mobilu otevře Nástroje → <b>Firma a účty</b> → „Připojit toto zařízení k firmě" a zadá kód + jméno + heslo (účet mu založ v sekci Uživatelé).</div>' +
+            '<label class="agfa-lb">Název firmy</label><input type="text" id="agfa-f-name" maxlength="60" value="' + esc(f.firmName || '') + '">' +
+            '<label class="agfa-lb">Auto-zámek po nečinnosti (minuty; 0 = vypnuto) — platí pro všechna zařízení</label>' +
+            '<input type="number" id="agfa-f-lock" min="0" max="480" step="1" value="' + (parseInt(f.autoLockMin, 10) || 0) + '">' +
+            '<div class="agfa-pg">Server</div>' +
+            '<div class="agfa-note">Firma běží na Cloudflare (free plán, 100 000 požadavků/den). Adresa API: <code style="word-break:break-all;">' + esc(f.api || u.DEFAULT_API) + '</code><br>Kód serveru je v repu appky ve složce <b>cloud/</b> — provoz nezávisí na žádné AI.</div>' +
+            '<div class="agfa-pg">Nebezpečná zóna</div>' +
+            '<button class="agfa-mini danger" id="agfa-f-detach">Odpojit toto zařízení od firmy</button>' +
+            '<div class="agfa-note">Odpojení zruší přihlašování jen na TOMTO zařízení. Firma na serveru i ostatní mobily jedou dál. Body a zakázky zůstanou.</div>';
+
+        function putCfg(patch, input, revert) {
+            u.cloudFetch('/config', { method: 'PUT', body: patch }).then(function (r) {
+                if (!r.ok) { agAlert('Uložení selhalo', cloudErr(r)); if (input) input.value = revert; return; }
+                u.adoptConfig(r.data);
+            });
+        }
+        var nameInp = body.querySelector('#agfa-f-name');
+        nameInp.onchange = function () { putCfg({ firmName: (this.value || '').trim() || 'Moje firma' }, this, f.firmName); };
+        var lockInp = body.querySelector('#agfa-f-lock');
+        lockInp.onchange = function () { putCfg({ autoLockMin: Math.max(0, parseInt(this.value, 10) || 0) }, this, f.autoLockMin); };
+
+        body.querySelector('#agfa-f-detach').onclick = function () {
+            agConfirm({ title: 'Odpojit zařízení', message: 'Toto zařízení se odhlásí a zapomene firmu. Firma na serveru se NEmění — kdykoli se jde připojit znovu kódem. Body a zakázky zůstanou.', okText: 'Odpojit', danger: true }).then(function (ok) {
+                if (!ok) return;
+                try {
+                    localStorage.removeItem('agFirma_v1');
+                    localStorage.removeItem('agFirmaSess_v1');
+                    localStorage.removeItem('agFirmaTok_v1');
+                    localStorage.removeItem('agFirmaOff_v1');
+                    localStorage.removeItem('agFirmaSync_v1');
+                } catch (e) {}
+                document.getElementById('agfa-modal').style.display = 'none';
+                if (u.applyPerms) u.applyPerms();
+                agAlert('Zařízení odpojeno', 'Appka je zase otevřená (bez přihlašování). Body a zakázky zůstaly.');
             });
         };
     }

@@ -1,9 +1,17 @@
 // ============================================================================
 // AR Geodet — FIREMNÍ REŽIM: ÚČTY, ROLE A PŘIHLAŠOVÁNÍ (ODPOJITELNÁ vrstva)
 // ----------------------------------------------------------------------------
-// 100% offline (bez backendu): účty žijí LOKÁLNĚ na zařízení. Jde o řízení
-// přístupu, personalizaci a auditovatelnost — NE o tvrdou serverovou bezpečnost
-// (kdo má fyzicky odemčený telefon a vývojářské nástroje, k datům se dostane).
+// DVA režimy firmy:
+//   LOKÁLNÍ — účty žijí jen na tomto zařízení (bez serveru); PINy SHA-256+sůl
+//   CLOUD   — firma žije na Cloudflare Workeru (cloud/worker.js): stejné účty
+//             na všech mobilech, hesla se ověřují na serveru (PBKDF2 40k),
+//             oprávnění spravovaná adminem se propíší všem, data o užívání
+//             se sbírají ze všech zařízení. Offline-first: zařízení drží cache
+//             konfigurace; bez signálu se odemkne proti lokálnímu ověřovadlu
+//             (jen uživatelé, kdo se na zařízení už přihlásili online), fronta
+//             užívání se odešle, až je signál.
+// Ani cloud není „bankovní" bezpečnost — kdo má fyzicky odemčený telefon
+// a vývojářské nástroje, k lokálním datům se dostane.
 //
 // Role:
 //   admin       — vidí a může vše, spravuje firmu (uživatele, oprávnění, dashboard)
@@ -46,8 +54,14 @@
 
     var LS_FIRM = 'agFirma_v1';        // konfigurace firmy (NEprefixuje se zakázkou — platí pro celé zařízení)
     var LS_SESS = 'agFirmaSess_v1';    // aktivní přihlášení {userId, ts}
+    var LS_TOK = 'agFirmaTok_v1';      // cloud: {token, userId} tohoto zařízení
+    var LS_OFF = 'agFirmaOff_v1';      // cloud: offline ověřovadla {userId:{salt,iters,hash}}
+    var LS_SYNC = 'agFirmaSync_v1';    // cloud: ukazatel odeslaných událostí užívání {lastSeq}
     var STYLE_ID = 'ag-ucty-style';
     var DB = 'argeodet-usage', STORE = 'ev', VER = 1;
+    // adresa API (Cloudflare Worker, cloud/worker.js). Konstanta je jen výchozí —
+    // skutečná adresa se ukládá do konfigurace firmy při založení/připojení.
+    var DEFAULT_API = 'https://AR-GEODET-API-URL-PLACEHOLDER.workers.dev';
 
     // ------------------------------------------------------------------
     // Definice oprávnění. Klíč -> co se skrývá. Admin má vždy vše.
@@ -154,6 +168,162 @@
     }
 
     // ------------------------------------------------------------------
+    // CLOUD (Cloudflare Worker, cloud/worker.js): firma žije na serveru,
+    // zařízení drží cache konfigurace v agFirma_v1 (stejný tvar čtou
+    // can()/applyPerms() — zbytek modulu mezi režimy nerozlišuje).
+    // ------------------------------------------------------------------
+    function isCloud() { var f = getFirm(); return !!(f && f.cloud); }
+    function apiUrl() { var f = getFirm(); return (f && f.api) || DEFAULT_API; }
+    function getTok() { try { return JSON.parse(localStorage.getItem(LS_TOK) || 'null'); } catch (e) { return null; } }
+    function setTok(t) { try { if (t) localStorage.setItem(LS_TOK, JSON.stringify(t)); else localStorage.removeItem(LS_TOK); } catch (e) {} }
+    function getOff() { try { return JSON.parse(localStorage.getItem(LS_OFF) || '{}') || {}; } catch (e) { return {}; } }
+    function saveOff(userId, ver) { try { var o = getOff(); o[userId] = ver; localStorage.setItem(LS_OFF, JSON.stringify(o)); } catch (e) {} }
+
+    // PBKDF2 v prohlížeči (stejné parametry jako server) — offline odemknutí
+    function pbkdf2Hex(pass, saltHex, iters) {
+        try {
+            if (!(window.crypto && crypto.subtle && window.TextEncoder)) return Promise.resolve(null);
+            var salt = new Uint8Array(saltHex.length / 2);
+            for (var i = 0; i < salt.length; i++) salt[i] = parseInt(saltHex.substr(i * 2, 2), 16);
+            return crypto.subtle.importKey('raw', new TextEncoder().encode(String(pass)), 'PBKDF2', false, ['deriveBits'])
+                .then(function (key) {
+                    return crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: salt, iterations: iters }, key, 256);
+                })
+                .then(function (bits) {
+                    var a = new Uint8Array(bits), s = '';
+                    for (var j = 0; j < a.length; j++) s += ('0' + a[j].toString(16)).slice(-2);
+                    return s;
+                })
+                .catch(function () { return null; });
+        } catch (e) { return Promise.resolve(null); }
+    }
+
+    // volání API s tokenem; VŽDY resolve {ok, status, data}; status 0 = síť/offline
+    function cloudFetch(path, opts) {
+        opts = opts || {};
+        var headers = { 'Content-Type': 'application/json' };
+        var tok = getTok();
+        if (tok && tok.token) headers['Authorization'] = 'Bearer ' + tok.token;
+        var p;
+        try {
+            p = fetch((opts.api || apiUrl()) + path, {
+                method: opts.method || 'GET',
+                headers: headers,
+                body: opts.body != null ? JSON.stringify(opts.body) : undefined
+            });
+        } catch (e) { return Promise.resolve({ ok: false, status: 0, data: null }); }
+        return p.then(function (r) {
+            return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, status: r.status, data: d }; });
+        }).catch(function () { return { ok: false, status: 0, data: null }; });
+    }
+
+    // převzetí konfigurace ze serveru do lokální cache (tvar agFirma_v1)
+    function adoptConfig(cfg, api) {
+        if (!cfg || !cfg.firm) return;
+        var old = null;
+        try { old = JSON.parse(localStorage.getItem(LS_FIRM) || 'null'); } catch (e) {}
+        var f = {
+            enabled: true, cloud: true,
+            api: api || (old && old.api) || DEFAULT_API,
+            code: cfg.firm.code,
+            firmName: cfg.firm.name,
+            autoLockMin: cfg.firm.autoLockMin || 0,
+            perms: cfg.firm.perms || (old && old.perms) || defaultPerms(),
+            users: (cfg.users || []).filter(function (u) { return !u.disabled; }),
+            fetchedTs: Date.now()
+        };
+        try { localStorage.setItem(LS_FIRM, JSON.stringify(f)); } catch (e) {}
+        applyPerms();
+    }
+
+    // po úspěšném /login nebo /firms: konfigurace + token + ověřovadlo + session
+    function adoptLogin(data, api) {
+        adoptConfig(data.config, api);
+        setTok({ token: data.token, userId: data.user.id });
+        if (data.offline) saveOff(data.user.id, data.offline);
+        setSess({ userId: data.user.id, ts: Date.now() });
+        try { localStorage.setItem('arSurveyor', data.user.name); } catch (e) {}
+    }
+
+    // obnova konfigurace (perms/uživatelé se mohli změnit na jiném zařízení)
+    function refreshConfig() {
+        if (!isCloud() || !getTok()) return Promise.resolve(false);
+        return cloudFetch('/config').then(function (r) {
+            if (r.ok) { adoptConfig(r.data); return true; }
+            if (r.status === 401 || r.status === 403) {
+                // token prošel nebo účet zablokován → vynutit nové přihlášení
+                setTok(null); setSess(null);
+                if (getFirm()) showLogin(false);
+            }
+            return false;   // status 0 (offline) → cache platí dál, nic se neděje
+        });
+    }
+
+    // přihlášení v cloud režimu: nejdřív server, bez signálu lokální ověřovadlo
+    function cloudLogin(name, pass, done) {
+        var f = getFirm(); if (!f) return done('Firemní režim není nastaven.');
+        cloudFetch('/login', { method: 'POST', body: { code: f.code, name: name, password: pass } }).then(function (r) {
+            if (r.ok && r.data && r.data.token) { adoptLogin(r.data, f.api); return done(null, r.data.user); }
+            if (r.status !== 0) return done((r.data && r.data.error) || ('Přihlášení selhalo (' + r.status + ').'));
+            // offline: ověř proti lokálnímu ověřovadlu
+            var u = null, i;
+            for (i = 0; i < (f.users || []).length; i++) {
+                if (String(f.users[i].name).toLowerCase() === String(name).toLowerCase()) { u = f.users[i]; break; }
+            }
+            if (!u) return done('Bez signálu nelze ověřit nové jméno — poprvé se přihlas s internetem.');
+            var ver = getOff()[u.id];
+            if (!ver) return done('Tento uživatel se na tomto zařízení ještě nepřihlásil online. Připoj se k internetu.');
+            pbkdf2Hex(pass, ver.salt, ver.iters).then(function (h) {
+                if (h && h === ver.hash) {
+                    setSess({ userId: u.id, ts: Date.now() });
+                    try { localStorage.setItem('arSurveyor', u.name); } catch (e) {}
+                    done(null, u);
+                } else done(h ? 'Nesprávné heslo.' : 'Toto zařízení neumí offline ověření (chybí WebCrypto).');
+            });
+        });
+    }
+
+    // ---- odesílání fronty užívání na server (dávky po 200) -----------------
+    function usageAfter(seq, limit) {
+        return openDb().then(function (db) {
+            if (!db) return [];
+            return new Promise(function (res) {
+                var out = [];
+                try {
+                    var cur = db.transaction(STORE, 'readonly').objectStore(STORE)
+                        .openCursor(IDBKeyRange.lowerBound(seq || 0, true));
+                    cur.onsuccess = function (e) {
+                        var c = e.target.result;
+                        if (c && out.length < (limit || 200)) { out.push(c.value); c.continue(); } else res(out);
+                    };
+                    cur.onerror = function () { res(out); };
+                } catch (e) { res(out); }
+            });
+        });
+    }
+    var _syncBusy = false;
+    function syncUsage() {
+        if (!isCloud() || !getTok() || _syncBusy || navigator.onLine === false) return Promise.resolve();
+        var ptr = 0;
+        try { ptr = (JSON.parse(localStorage.getItem(LS_SYNC) || '{}') || {}).lastSeq || 0; } catch (e) {}
+        _syncBusy = true;
+        return usageAfter(ptr, 200).then(function (evs) {
+            if (!evs.length) { _syncBusy = false; return; }
+            return cloudFetch('/usage', {
+                method: 'POST',
+                body: { events: evs.map(function (ev) { return { ts: ev.ts, t: ev.t, k: ev.k, proj: ev.proj, dev: ev.dev, u: ev.u, uid: ev.uid }; }) }
+            }).then(function (r) {
+                _syncBusy = false;
+                if (r.ok) {
+                    try { localStorage.setItem(LS_SYNC, JSON.stringify({ lastSeq: evs[evs.length - 1].seq })); } catch (e) {}
+                    if (evs.length === 200) return syncUsage();   // další dávka
+                }
+            });
+        }).catch(function () { _syncBusy = false; });
+    }
+    window.addEventListener('online', function () { setTimeout(function () { syncUsage(); refreshConfig(); }, 1500); });
+
+    // ------------------------------------------------------------------
     // Sledování užívání (IndexedDB, append-only — stejný vzor jako journal.js)
     // ev: { seq(auto), ts, u(jméno), uid, t(typ), k(klíč), proj }
     // typy: 'login' | 'tool' | 'pt-add' | 'pt-edit' | 'pt-del' | 'act'
@@ -176,10 +346,12 @@
         });
     }
     function pid() { try { return localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { return 'default'; } }
+    // id zařízení — stejný klíč jako journal.js (arDeviceId)
+    function devId() { try { var d = localStorage.getItem('arDeviceId'); if (!d) { d = 'd' + Math.abs((navigator.userAgent || '').split('').reduce(function (a, c) { return (a * 31 + c.charCodeAt(0)) | 0; }, 7)).toString(36); localStorage.setItem('arDeviceId', d); } return d; } catch (e) { return '?'; } }
     function usageLog(type, key) {
         var f = getFirm(); if (!f) return;               // bez firemního režimu nic nesledovat
         var u = currentUser();
-        var rec = { ts: Date.now(), u: u ? u.name : '?', uid: u ? u.id : null, t: type, k: key || null, proj: pid() };
+        var rec = { ts: Date.now(), u: u ? u.name : '?', uid: u ? u.id : null, t: type, k: key || null, proj: pid(), dev: devId() };
         openDb().then(function (db) {
             if (!db) return;
             try { db.transaction(STORE, 'readwrite').objectStore(STORE).add(rec); } catch (e) {}
@@ -427,20 +599,26 @@
                 '<span class="agl-nm">' + esc(u.name) + '</span>' +
                 '<span class="agl-role">' + roleTxt + '</span></button>';
         }).join('');
+        var cloud = !!f.cloud;
         ov.innerHTML =
             '<div class="agl-logo">AR Geodet</div>' +
-            '<div class="agl-firm">' + esc(f.firmName || 'Firemní režim') + (lockMode ? ' — zamčeno' : '') + '</div>' +
+            '<div class="agl-firm">' + esc(f.firmName || 'Firemní režim') + (cloud && f.code ? ' · ' + esc(f.code) : '') + (lockMode ? ' — zamčeno' : '') + '</div>' +
             '<div class="agl-users">' + usersHtml + '</div>' +
             '<div class="agl-pinbox">' +
-            '  <input class="agl-pin" type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="PIN">' +
+            '  <input class="agl-name" type="text" autocomplete="username" maxlength="40" placeholder="Jméno" style="display:none;font:600 15px/1.2 var(--font-ui,system-ui);letter-spacing:0;text-align:center;width:190px;background:var(--glass-bg,rgba(255,255,255,0.06));border:1px solid var(--glass-border,rgba(255,255,255,0.2));border-radius:12px;color:var(--text,#e6e8eb);padding:12px 8px;">' +
+            (cloud
+                ? '  <input class="agl-pin" type="password" autocomplete="current-password" maxlength="64" placeholder="Heslo" style="letter-spacing:.12em;font-size:17px;">'
+                : '  <input class="agl-pin" type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="PIN">') +
             '  <div class="agl-err"></div>' +
             '  <button type="button" class="agl-btn">Přihlásit</button>' +
             '</div>' +
-            '<button type="button" class="agl-ghost" id="agl-forgot">Zapomenutý PIN?</button>';
+            (cloud ? '<button type="button" class="agl-ghost" id="agl-other">Přihlásit jiné jméno</button>' : '') +
+            '<button type="button" class="agl-ghost" id="agl-forgot">' + (cloud ? 'Zapomenuté heslo?' : 'Zapomenutý PIN?') + '</button>';
         document.body.appendChild(ov);
 
         var pinbox = ov.querySelector('.agl-pinbox');
         var pinInp = ov.querySelector('.agl-pin');
+        var nameInp = ov.querySelector('.agl-name');
         var errEl = ov.querySelector('.agl-err');
 
         function pick(id) {
@@ -450,7 +628,8 @@
             for (var j = 0; j < us.length; j++) us[j].classList.toggle('sel', us[j].getAttribute('data-id') === id);
             if (!_selUser) return;
             errEl.textContent = '';
-            if (_selUser.noPin || !_selUser.pinHash) { finish(_selUser); return; }
+            nameInp.style.display = 'none';
+            if (!cloud && (_selUser.noPin || !_selUser.pinHash)) { finish(_selUser); return; }
             pinbox.classList.add('on');
             pinInp.value = '';
             setTimeout(function () { try { pinInp.focus(); } catch (e) {} }, 50);
@@ -458,22 +637,45 @@
         function finish(u) {
             setSess({ userId: u.id, ts: Date.now() });
             try { localStorage.setItem('arSurveyor', u.name); } catch (e) {}
+            afterLogin(u);
+        }
+        // společný závěr (lokální i cloud — cloud má session/token už uložené)
+        function afterLogin(u) {
             ov.remove();
             _touchActivity();
             applyPerms();
             usageLog('login', lockMode ? 'unlock' : 'login');
+            if (cloud) setTimeout(syncUsage, 2000);
             try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: u } })); } catch (e) {}
         }
+        function fail(msg) {
+            errEl.textContent = msg || 'Přihlášení selhalo.';
+            pinInp.value = '';
+            ov.classList.remove('agl-shake');
+            void ov.offsetWidth;   // restart animace
+            ov.classList.add('agl-shake');
+        }
+        var _busy = false;
         function submit() {
-            if (!_selUser) { errEl.textContent = 'Nejdřív vyber uživatele.'; return; }
+            if (_busy) return;
             var pin = pinInp.value || '';
+            if (cloud) {
+                // jméno: vybraný uživatel, nebo ručně zadané („Přihlásit jiné jméno")
+                var nm = _selUser ? _selUser.name : (nameInp.value || '').trim();
+                if (!nm) { errEl.textContent = 'Vyber uživatele nebo zadej jméno.'; return; }
+                _busy = true;
+                errEl.textContent = 'Ověřuji…';
+                cloudLogin(nm, pin, function (errMsg, u2) {
+                    _busy = false;
+                    if (errMsg) return fail(errMsg);
+                    afterLogin(u2);
+                });
+                return;
+            }
+            if (!_selUser) { errEl.textContent = 'Nejdřív vyber uživatele.'; return; }
             hashPin(pin, _selUser.salt).then(function (h) {
                 if (h === _selUser.pinHash) { finish(_selUser); return; }
-                errEl.textContent = 'Nesprávný PIN.';
-                pinInp.value = '';
-                ov.classList.remove('agl-shake');
-                void ov.offsetWidth;   // restart animace
-                ov.classList.add('agl-shake');
+                fail('Nesprávný PIN.');
             });
         }
 
@@ -483,21 +685,38 @@
             if (e.target.classList.contains('agl-btn')) submit();
         });
         pinInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
+        // „Přihlásit jiné jméno" (cloud): nový zaměstnanec, kterého tahle cache ještě nezná
+        var otherBtn = ov.querySelector('#agl-other');
+        if (otherBtn) otherBtn.addEventListener('click', function () {
+            _selUser = null;
+            var us = ov.querySelectorAll('.agl-user');
+            for (var j = 0; j < us.length; j++) us[j].classList.remove('sel');
+            errEl.textContent = '';
+            nameInp.style.display = '';
+            pinbox.classList.add('on');
+            setTimeout(function () { try { nameInp.focus(); } catch (e) {} }, 50);
+        });
 
-        // Zapomenutý PIN: admin resetuje v administraci; když je zamčený i admin,
-        // nouzový reset vypne JEN firemní režim (geodetická data zůstanou).
+        // Zapomenutý PIN/heslo: admin resetuje v administraci; nouzový reset
+        // vypne JEN firemní režim na TOMTO zařízení (geodetická data zůstanou;
+        // v cloud režimu se firma na serveru nijak nemění).
         ov.querySelector('#agl-forgot').addEventListener('click', function () {
             var admins = f.users.filter(function (u) { return u.role === 'admin'; }).map(function (u) { return u.name; });
-            var msg = 'PIN ti může změnit administrátor (' + (admins.join(', ') || '—') + ') v Administraci firmy.\n\n' +
-                'Když je nedostupný i admin, lze firemní režim NOUZOVĚ vypnout — appka se odemkne, ' +
-                'účty a oprávnění se smažou. BODY A ZAKÁZKY ZŮSTANOU.\n\nPro nouzové vypnutí napiš RESET:';
+            var msg = cloud
+                ? ('Heslo ti změní administrátor (' + (admins.join(', ') || '—') + ') v Administraci firmy — z libovolného zařízení.\n\n' +
+                    'Nouzově lze toto ZAŘÍZENÍ od firmy odpojit — appka se odemkne bez účtů. ' +
+                    'BODY A ZAKÁZKY ZŮSTANOU, firma na serveru se nemění (jiná zařízení jedou dál).\n\nPro odpojení napiš RESET:')
+                : ('PIN ti může změnit administrátor (' + (admins.join(', ') || '—') + ') v Administraci firmy.\n\n' +
+                    'Když je nedostupný i admin, lze firemní režim NOUZOVĚ vypnout — appka se odemkne, ' +
+                    'účty a oprávnění se smažou. BODY A ZAKÁZKY ZŮSTANOU.\n\nPro nouzové vypnutí napiš RESET:');
             var v = prompt(msg, '');
             if (v === 'RESET') {
-                try { localStorage.removeItem(LS_FIRM); } catch (e) {}
+                try { localStorage.removeItem(LS_FIRM); localStorage.removeItem(LS_TOK); localStorage.removeItem(LS_OFF); localStorage.removeItem(LS_SYNC); } catch (e) {}
                 setSess(null);
                 ov.remove();
                 applyPerms();
-                alert('Firemní režim vypnut. Body a zakázky zůstaly beze změny.');
+                alert(cloud ? 'Zařízení odpojeno od firmy. Body a zakázky zůstaly beze změny.'
+                    : 'Firemní režim vypnut. Body a zakázky zůstaly beze změny.');
             }
         });
 
@@ -552,9 +771,18 @@
                 try { localStorage.setItem('arSurveyor', u.name); } catch (e) {}
                 applyPerms();
             }
+            if (f.cloud) {
+                setTimeout(refreshConfig, 2500);   // oprávnění/uživatelé se mohli změnit jinde
+                setTimeout(syncUsage, 9000);       // odešli, co se nasbíralo offline
+            }
         }
         // periodické srovnání UI (mřížku Nástrojů překreslují jiné moduly) + auto-zámek
-        setInterval(function () { tick(); lockCheck(); }, 2000);
+        // + jednou za ~2 minuty synchronizace fronty užívání (cloud)
+        var n = 0;
+        setInterval(function () {
+            tick(); lockCheck();
+            if (++n % 60 === 0 && isCloud() && currentUser()) syncUsage();
+        }, 2000);
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 200); });
     else setTimeout(init, 200);
@@ -576,6 +804,15 @@
         usageLog: usageLog,
         usageQuery: usageQuery,
         usageClear: usageClear,
-        applyPerms: applyPerms
+        applyPerms: applyPerms,
+        // cloud
+        isCloud: isCloud,
+        apiUrl: apiUrl,
+        DEFAULT_API: DEFAULT_API,
+        cloudFetch: cloudFetch,
+        adoptLogin: adoptLogin,
+        adoptConfig: adoptConfig,
+        refreshConfig: refreshConfig,
+        syncUsage: syncUsage
     };
 })();
