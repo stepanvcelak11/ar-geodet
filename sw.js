@@ -1,33 +1,67 @@
-// AR Geodet — Service Worker (verze = SHELL_CACHE niz; TENTO komentar needituj)
+// AR Geodet â€” Service Worker (verze = SHELL_CACHE niz; TENTO komentar needituj)
 // Strategie: vlastni kod = CACHE-FIRST (verzovano bumpem SHELL_CACHE + update banner),
 //            index.html (navigace) = stale-while-revalidate (pojistka),
 //            CDN/dlazdice = NEJDRIV CACHE.
 // Instalace je ODOLNA: jeden nedostupny soubor neshodi prevzeti nove verze.
 //
 // DVE oddelene cache:
-//   SHELL_CACHE — kod appky + knihovny z CDN. Verzuje se (bump pri vydani), pri aktivaci
+//   SHELL_CACHE â€” kod appky + knihovny z CDN. Verzuje se (bump pri vydani), pri aktivaci
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
-//   TILE_CACHE  — mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
+//   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v184';   // zpetna vazba 25.7. + FOV pruvodce (nad main v183: blokace uctu)
+const SHELL_CACHE = 'argeodet-shell-v185';   // integrace 8: zpetna vazba 25.7. + FOV pruvodce + 6 zasadnich uprav (tokeny, dialogy, drafty, gps-trust, generovany seznam assetu)
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
 const ASSETS_TO_CACHE = [
+    // >>> GENEROVANO scripts/gen_sw_assets.py — needitovat rucne
+    // (spust: python scripts/gen_sw_assets.py ; pri vydani --bump)
     './',
     './index.html',
     './manifest.json',
     './icon.svg',
-    './css/style.css?v=184', // verze v adrese shodná s <link> v index.html — nemíchat se starou cache
-    './css/vylepseni.css?v=184',
+    './apple-touch-icon.png',
+    './icon-192.png',
+    './icon-512.png',
+    './icon-maskable-192.png',
+    './icon-maskable-512.png',
+    './css/tokens.css?v=185',
+    './css/style.css?v=185',
+    './css/vylepseni.css?v=185',
     './css/zpravodaj.css',
-    './data/zpravodaj.json',
     './css/predpisy.css',
-    './data/predpisy.json',
-    './js/err-log.js',
+    './css/gnss-quality.css',
+    './css/gps-warn.css',
+    './css/compass-stability.css',
+    './css/calib-profiles.css',
+    './css/ref-calibration.css',
+    './css/sky-obstruction.css',
+    './css/cadastre-area.css',
+    './css/ar-fusion.css',
+    './css/ar-calibrate.css',
+    './css/dmr-terrain.css',
+    './css/power-save.css',
+    './css/dmt-volume.css',
+    './css/check-distance.css',
+    './css/brutal-gps.css',
+    './css/urovnani.css',
+    './css/qc-engine.css',
+    './css/pocasi.css',
+    './css/tools-polish.css',
+    './js/lib/proj4-2.9.0.min.js',
     './js/geo-core.js',
+    './js/err-log.js',
+    './js/dialog-bridge.js',
+    './js/lib/leaflet-1.9.4.js',
+    './js/lib/esri-leaflet-3.0.12.js',
+    './js/power-save.js',
+    './js/idle-timers.js',
     './js/logika.js',
     './js/grafika.js',
+    './js/journal.js',
+    './js/dmt-volume.js',
+    './js/check-distance.js',
+    './js/lib/satellite-5.0.0.min.js',
     './js/vytycovani.js',
     './js/satelity.js',
     './js/kalkulacka.js',
@@ -44,30 +78,36 @@ const ASSETS_TO_CACHE = [
     './js/zpravodaj.js',
     './js/predpisy.js',
     './js/gnss-quality.js',
-    './css/gnss-quality.css',
     './js/gps-warn.js',
-    './css/gps-warn.css',
+    './js/gps-trust.js',
+    './js/draft-store.js',
     './js/csv-validate.js',
     './js/kml-export.js',
     './js/dxf-export.js',
     './js/vfk.js',
     './js/compass-stability.js',
-    './css/compass-stability.css',
     './js/calib-profiles.js',
-    './css/calib-profiles.css',
     './js/ref-calibration.js',
-    './css/ref-calibration.css',
     './js/sky-obstruction.js',
-    './css/sky-obstruction.css',
     './js/cadastre-area.js',
-    './css/cadastre-area.css',
     './js/ar-fusion.js',
+    './js/ar-visual-track.js',
     './js/theme-dark.js',
+    './js/dmr-terrain.js',
+    './js/parcela.js',
     './js/field-tools.js',
     './js/hidden-points.js',
     './js/vrstvy.js',
     './js/orient-point.js',
     './js/offset-point.js',
+    './js/brutal-gps.js',
+    './js/gps-campaign.js',
+    './js/gps-semafor.js',
+    './js/dgps.js',
+    './js/pdr-offset.js',
+    './js/urovnani.js',
+    './js/postupy.js',
+    './js/zapisnik.js',
     './js/stakeout-line.js',
     './js/track-log.js',
     './js/fov-kalibrace.js',
@@ -78,65 +118,37 @@ const ASSETS_TO_CACHE = [
     './js/ar-intersection.js',
     './js/rajon.js',
     './js/free-station.js',
-    './js/journal.js',
     './js/localization-helmert.js',
-    './js/job-transfer.js',
-    './js/utility-networks.js',
     './js/photo-shot.js',
-    './js/ar-visual-track.js',
+    './js/utility-networks.js',
+    './js/job-transfer.js',
     './js/rangefinder.js',
     './js/vyska-objektu.js',
     './js/epochy.js',
     './js/pocasi.js',
-    './css/pocasi.css',
     './js/ar-calibrate.js',
     './js/ar-calib2.js',
-    './css/ar-calibrate.css',
     './js/project-import.js',
     './js/cadastre-vector.js',
-    './css/ar-fusion.css',
-    './js/dmr-terrain.js',
-    './css/dmr-terrain.css',
-    './js/power-save.js',
-    './css/power-save.css',
-    './js/idle-timers.js',
-    './js/parcela.js',
-    './js/dmt-volume.js',
-    './css/dmt-volume.css',
-    './js/check-distance.js',
-    './css/check-distance.css',
-    './js/brutal-gps.js',
-    './css/brutal-gps.css',
-    './js/gps-campaign.js',
-    './js/gps-semafor.js',
-    './js/dgps.js',
-    './js/pdr-offset.js',
-    './js/urovnani.js',
-    './css/urovnani.css',
-    './js/postupy.js',
-    './js/zapisnik.js',
-    './js/tools-plus.js',
-    './js/qc-engine.js',
-    './js/ucty.js',
-    './js/ucty-admin.js',
-    './js/dochazka.js',
-    './js/firma-chat.js',
-    './css/qc-engine.css',
-    './css/tools-polish.css',
     './js/tutorial-pro.js',
+    './js/tools-plus.js',
     './js/fullscreen.js',
     './js/view-cycle.js',
     './js/app-search.js',
     './js/pdf-protocol.js',
     './js/vylepseni.js',
     './js/welcome-card.js',
-    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-    './js/lib/proj4-2.9.0.min.js',
-    './js/lib/leaflet-1.9.4.js',
-    './js/lib/esri-leaflet-3.0.12.js',
-    './js/lib/satellite-5.0.0.min.js',
+    './js/qc-engine.js',
+    './js/ucty.js',
+    './js/ucty-admin.js',
+    './js/dochazka.js',
+    './js/firma-chat.js',
+    './data/zpravodaj.json',
+    './data/predpisy.json',
     './js/lib/qrcode.min.js',
-    './js/lib/jsqr.min.js'
+    './js/lib/jsqr.min.js',
+    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+    // <<< KONEC GENEROVANEHO SEZNAMU
 ];
 
 // Mapove dlazdice (OSM, CUZK WMS) ukladame do TILE_CACHE, aby prezily update kodu.
@@ -150,12 +162,12 @@ function isTile(url) {
 self.addEventListener('install', event => {
     event.waitUntil((async () => {
         const cache = await caches.open(SHELL_CACHE);
-        // Kazdy soubor zvlast — selhani jednoho nesmi zablokovat instalaci (a tim i aktualizaci).
+        // Kazdy soubor zvlast â€” selhani jednoho nesmi zablokovat instalaci (a tim i aktualizaci).
         await Promise.allSettled(ASSETS_TO_CACHE.map(async url => {
             try {
                 const res = await fetch(new Request(url, { cache: 'reload' }));
                 if (res && (res.ok || res.type === 'opaque')) await cache.put(url, res);
-            } catch (e) { /* offline / blokovany CDN — preskocit, nevadi */ }
+            } catch (e) { /* offline / blokovany CDN â€” preskocit, nevadi */ }
         }));
         // skipWaiting az na vyzadani z appky (po souhlasu uzivatele s obnovou)
     })());
@@ -174,8 +186,8 @@ self.addEventListener('message', e => { if (e.data === 'SKIP_WAITING') self.skip
 self.addEventListener('fetch', event => {
     const url = event.request.url;
     if (url.includes('cuzk.gov.cz/arcgis/rest')) return; // dotazy na bodova pole vzdy ze site
-    if (url.includes('celestrak.org')) return; // drahy druzic (TLE) vzdy ze site — appka si je cachuje sama v localStorage
-    if (url.includes('api.open-meteo.com') || url.includes('geocoding-api.open-meteo.com') || url.includes('api.met.no')) return; // pocasi vzdy ze site — posledni data si pocasi.js cachuje samo v localStorage
+    if (url.includes('celestrak.org')) return; // drahy druzic (TLE) vzdy ze site â€” appka si je cachuje sama v localStorage
+    if (url.includes('api.open-meteo.com') || url.includes('geocoding-api.open-meteo.com') || url.includes('api.met.no')) return; // pocasi vzdy ze site â€” posledni data si pocasi.js cachuje samo v localStorage
 
     // Vlastni kod aplikace (stejny puvod): CACHE-FIRST. Cerstvy kod se k uzivateli
     // dostava JEN pres bump verze SW (install znovu stahne ASSETS_TO_CACHE ->

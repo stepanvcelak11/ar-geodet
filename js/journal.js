@@ -150,7 +150,7 @@
             }
             var html = '<div style="max-height:calc(var(--app-vh, 100dvh) * 0.6);overflow:auto;font-size:13.5px;">' + rows + '</div>';
             if (typeof window.agAlert === 'function') window.agAlert({ title: 'Historie bodu', message: html, cancelText: false });
-            else alert('Historie bodu:\n' + recs.map(function (r) { return _fmt(r.ts) + ' ' + (OP_CZ[r.op] || r.op) + ' ' + (r.origin || ''); }).join('\n'));
+            else agInfo('Historie bodu:\n' + recs.map(function (r) { return _fmt(r.ts) + ' ' + (OP_CZ[r.op] || r.op) + ' ' + (r.origin || ''); }).join('\n'));
         });
     }
 

@@ -71,7 +71,7 @@
     // resi dedup, provenienci, zurnal a hlavne ULOZENI foto-dokumentace (poznamka + fotky).
     function importDecoded(pts, originLabel) {
         if (typeof window.addImportedPoints !== 'function' || typeof persistentCustomPoints === 'undefined') {
-            alert('Aplikace ještě není připravená.'); return 0;
+            agInfo('Aplikace ještě není připravená.'); return 0;
         }
         const now = Date.now();
         const arr = pts.map(np => {
@@ -93,7 +93,7 @@
         const photos = arr.reduce((n, o) => n + (o.doc && o.doc.photos ? o.doc.photos.length : 0), 0);
         let msg = `Přidáno ${added} bodů` + (skipped ? `, ${skipped} přeskočeno (už je máte)` : '');
         if (added && withDoc) msg += ` — včetně poznámek` + (photos ? ` a ${photos} fotek` : '');
-        if (typeof quickToast === 'function') quickToast(msg + '.'); else alert(msg + '.');
+        if (typeof quickToast === 'function') quickToast(msg + '.'); else agInfo(msg + '.');
         return added;
     }
 
@@ -180,7 +180,7 @@
     }
 
     window.openShareQR = function () {
-        if (typeof persistentCustomPoints === 'undefined' || !persistentCustomPoints.length) { alert('Nemáte žádné vlastní body ke sdílení.'); return; }
+        if (typeof persistentCustomPoints === 'undefined' || !persistentCustomPoints.length) { agInfo('Nemáte žádné vlastní body ke sdílení.'); return; }
         ensureLib('js/lib/qrcode.min.js').catch(function () {});   // predehrat, nez uzivatel klikne na "Vytvorit"
         buildShareModal();
         const list = document.getElementById('qr-share-list');
@@ -271,11 +271,11 @@
             const f = inp.files && inp.files[0]; if (!f) return;
             readPkgFile(f).then(pkg => {
                 if (!pkg || pkg.format !== PKG_FORMAT || !Array.isArray(pkg.points) || !pkg.points.length) {
-                    alert('Tento soubor neobsahuje body z AR Geodet.'); return;
+                    agInfo('Tento soubor neobsahuje body z AR Geodet.'); return;
                 }
                 try { if (typeof closeScanQR === 'function') closeScanQR(); } catch (e) {}
                 importDecoded(pkg.points, 'soubor-body');
-            }).catch(function () { alert('Soubor se nepodařilo přečíst.'); });
+            }).catch(function () { agInfo('Soubor se nepodařilo přečíst.'); });
         });
         inp.click();
     };
@@ -354,7 +354,7 @@
         opts = opts || {};
         if (typeof jsQR === 'undefined') {
             ensureLib('js/lib/jsqr.min.js').then(function () { startScan(opts); })
-                .catch(function () { alert('Knihovnu pro čtení QR se nepodařilo načíst.'); });
+                .catch(function () { agInfo('Knihovnu pro čtení QR se nepodařilo načíst.'); });
             return;
         }
         buildScanModal();

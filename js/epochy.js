@@ -29,7 +29,7 @@
     var _prefill = null;            // {y,x,z} pro předvyplnění formuláře epochy po renderu
 
     // ---- util -------------------------------------------------------------------
-    function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} try { alert(m); } catch (e2) {} }
+    function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} try { agInfo(m); } catch (e2) {} }
     function agAlertX(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function agConfirmX(t, m) {
         try { if (typeof window.agConfirm === 'function') return window.agConfirm({ title: t, message: m, danger: true }); } catch (e) {}

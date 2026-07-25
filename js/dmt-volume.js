@@ -104,7 +104,7 @@
         return true;
     }
 
-    function quickToastSafe(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} try { alert(m); } catch (e) {} }
+    function quickToastSafe(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} try { agInfo(m); } catch (e) {} }
 
     // ---- perzistence (per zakázka) -------------------------------------------
     function save() {

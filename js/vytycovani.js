@@ -173,7 +173,7 @@ function openStakeRecord(pt) {
 // export protokolu: nazev;Y;X;vytyceno;presnost_m (BOM kvuli diakritice v Excelu)
 function exportStakeoutCSV() {
     const done = arPoints.filter(p => stakeoutData[p.id]);
-    if (!done.length) return alert('Zatím není vytyčen žádný bod.');
+    if (!done.length) return agInfo('Zatím není vytyčen žádný bod.');
     const lines = ['název;Y;X;vytyčeno;přesnost_m'].concat(done.map(pt => {
         const rec = stakeoutData[pt.id];
         const sj = proj4('EPSG:4326', 'EPSG:5514', [pt.lng, pt.lat]);

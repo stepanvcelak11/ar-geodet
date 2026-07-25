@@ -855,15 +855,15 @@ function onPointPhoto(ev) {
         const img = new Image();
         img.onload = () => {
             const dataUrl = _photoToDataUrl(img);
-            if (!dataUrl) { alert('Fotku se nepodařilo zpracovat.'); return; }
+            if (!dataUrl) { agInfo('Fotku se nepodařilo zpracovat.'); return; }
             loadPointDoc(id).then(doc => {
                 doc = _normalizeDoc(doc || {});
-                if (doc.photos.length >= 3) { alert('Maximálně 3 fotky na bod.'); return; }
+                if (doc.photos.length >= 3) { agInfo('Maximálně 3 fotky na bod.'); return; }
                 doc.photos.push(dataUrl); doc.t = Date.now();
                 savePointDoc(id, doc).then(() => renderPointDoc(id));
             });
         };
-        img.onerror = () => alert('Soubor není platný obrázek.');
+        img.onerror = () => agInfo('Soubor není platný obrázek.');
         img.src = e.target.result;
     };
     reader.readAsDataURL(file);
@@ -977,7 +977,7 @@ function _peClose() { const ov = document.getElementById('photo-editor'); if (ov
 function _peSave() {
     const s = _peState; if (!s) return;
     if (!s.arrow) { _peClose(); return; }
-    let dataUrl; try { dataUrl = s.cv.toDataURL('image/jpeg', 0.72); } catch (e) { alert('Uložení se nezdařilo.'); return; }
+    let dataUrl; try { dataUrl = s.cv.toDataURL('image/jpeg', 0.72); } catch (e) { agInfo('Uložení se nezdařilo.'); return; }
     const id = s.id, idx = s.idx;
     loadPointDoc(id).then(doc => {
         _normalizeDoc(doc);
@@ -1036,7 +1036,7 @@ function decoratePointItem(item, pt) {
 // export bodu (JSON) vc. foto-dokumentace
 (function () {
     window.exportPoints = async function () {
-        if (typeof persistentCustomPoints === 'undefined' || persistentCustomPoints.length === 0) return alert('Nemáte žádné body.');
+        if (typeof persistentCustomPoints === 'undefined' || persistentCustomPoints.length === 0) return agInfo('Nemáte žádné body.');
         const out = [];
         for (const pt of persistentCustomPoints) {
             const o = Object.assign({}, pt);

@@ -5,121 +5,11 @@
    grafika.js). Neměnit jejich názvy bez úpravy JS.
    ========================================================================= */
 
-/* ---- Design tokens ---------------------------------------------------- */
-:root {
-    /* Písma — Sora pro nadpisy, Inter pro UI, JetBrains Mono pro data */
-    --font-display: "Sora", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+/* ---- Design tokeny: PŘESUNUTY do css/tokens.css ------------------------
+   :root proměnné, body.light-mode přepisy tokenů i barevné motivy
+   (body.theme-aurora/sunset/ocean/forest/graphite) žijí v css/tokens.css,
+   který se načítá PŘED tímto souborem. Tady je NEduplikovat. */
 
-    /* Plochy a text — neutrální tmavá (zelená jen jako akcent, ne závoj přes celou obrazovku) */
-    --bg-color: #0f1216;
-    --bg-elev: #171b20;
-    --surface-1: rgba(255, 255, 255, 0.06);
-    --surface-2: rgba(255, 255, 255, 0.09);
-    --surface-3: rgba(255, 255, 255, 0.13);
-    --glass-bg: rgba(24, 28, 33, 0.84);
-    --glass-border: rgba(255, 255, 255, 0.10);
-    --glass-border-strong: rgba(255, 255, 255, 0.20);
-    --text-color: #eceef2;
-    --text-muted: #9aa1ac;
-    --text-faint: #6b727d;
-    --map-bg: #0f1216;
-
-    /* Značková paleta — Smaragd + písková (klidný duotón: jeden akcent + teplá data) */
-    --accent: #2f9e74;          /* smaragdová — primární akcent */
-    --accent-bright: #3eb487;   /* světlejší smaragd */
-    --accent-strong: #248a63;
-    --accent2: #2f9e74;         /* bez druhé „neonové" barvy */
-    --accent3: #e6bd76;
-    --accent-grad: var(--accent);   /* jeden plný akcent místo gradientu */
-    --accent-soft: rgba(47, 158, 116, 0.14);
-    --accent-line: rgba(47, 158, 116, 0.42);
-    --accent-glow: 0 8px 22px rgba(47, 158, 116, 0.30);
-    --accent-blue: #3b82f6;
-    --warning: #fbbf24;
-    --danger: #fb7185;
-    --data: #e6bd76;            /* teplý akcent jen na čísla (azimut, přesnost…) */
-
-    /* Kategorie bodů (přepisuje JS) */
-    --color-tb: #8b5cf6;
-    --color-zhb: #0ea5e9;
-    --color-pbpp: #3b82f6;
-    --color-nivel: #ef4444;
-    --color-custom: #34d399;
-
-    /* AR šipka / značky (přepisuje JS) */
-    --marker-opacity: 1;
-    --arrow-size: 100px;
-    --arrow-opacity: 0.9;
-    --color-arrow: #34d399;
-
-    /* Layout řízený z nastavení (přepisuje JS) */
-    --panel-opacity: 0.85;
-    --menu-scale: 1;
-    --hud-top: 55px;
-    --hud-side: 15px;
-    --hud-scale: 1;
-
-    /* Záře úvodní obrazovky — jen jemný náznak, ne mlha přes celou obrazovku */
-    --glow1: rgba(47, 158, 116, 0.16);
-    --glow2: rgba(230, 189, 118, 0.10);
-    --glow3: rgba(47, 158, 116, 0.05);
-
-    /* Poloměry — přátelské, premium */
-    --r-xs: 6px;
-    --r-sm: 9px;
-    --r-md: 12px;
-    --r-lg: 16px;
-    --r-xl: 22px;
-    --r-pill: 999px;
-
-    /* Stíny — měkké, vrstvené */
-    --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.5);
-    --shadow-2: 0 10px 30px rgba(0, 0, 0, 0.55);
-    --shadow-pop: 0 24px 70px rgba(0, 0, 0, 0.70);
-    --shadow-accent: 0 8px 24px rgba(16, 185, 129, 0.30);
-
-    /* Pohyb */
-    --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
-    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-
-    /* Vrstvení — jednotná z-index škála (nové vrstvy berou odsud, nečíslovat od boku):
-       HUD/panely < jádrové modály < celoobrazovkové nástroje < overlaye vrstev < dialogy/toasty */
-    --z-modal: 19999;      /* .modal-overlay (jádro) */
-    --z-tool: 100000;      /* celoobrazovkové nástroje (urovnání, brutal-gps…) */
-    --z-overlay: 1000000;  /* vrstvy nad úvodní obrazovkou (předpisy, zpravodaj, o aplikaci…) */
-    --z-dialog: 2000000;   /* potvrzovací dialogy a toasty (musí přebít vše) */
-
-    /* Neprůhledné pozadí celoobrazovkových modálů (jádro i moduly — držet stejné) */
-    --modal-bg: rgba(14, 18, 24, 0.97);
-}
-
-body.light-mode {
-    --bg-color: #f4f5f7;
-    --bg-elev: #eceef1;
-    --surface-1: rgba(0, 0, 0, 0.04);
-    --surface-2: rgba(0, 0, 0, 0.06);
-    --surface-3: rgba(0, 0, 0, 0.09);
-    --glass-bg: rgba(255, 255, 255, 0.92);
-    --glass-border: rgba(15, 23, 42, 0.12);
-    --glass-border-strong: rgba(15, 23, 42, 0.18);
-    --text-color: #141821;
-    --text-muted: #5b626c;
-    --text-faint: #99a0aa;
-    --map-bg: #e6e8ec;
-    --accent: #1f8a63;
-    --accent-bright: #15724f;
-    --accent-strong: #136448;
-    --accent2: #1f8a63;
-    --accent-soft: rgba(31, 138, 99, 0.12);
-    --accent-line: rgba(31, 138, 99, 0.38);
-    --accent-glow: 0 6px 16px rgba(20, 90, 65, 0.16);
-    --data: #a9701f;
-    --glow1: rgba(31, 138, 99, 0.12);
-    --glow2: rgba(169, 112, 31, 0.08);
-    --glow3: rgba(31, 138, 99, 0.05);
-}
 /* Světlý režim: pole formulářů (jinak tmavá) přebarvit na světlá */
 body.light-mode .modal-content input[type="text"],
 body.light-mode .modal-content input[type="number"],
@@ -133,96 +23,7 @@ body.light-mode .modal-content input[type="number"]:focus,
 body.light-mode .modal-content textarea:focus,
 body.light-mode .modal-content select:focus { background: rgba(0, 0, 0, 0.06); }
 
-/* Motiv „Aurora" (původní tyrkys–fialová) — nově jen volitelný, ne výchozí */
-body.theme-aurora {
-    --bg-color: #0b1020; --bg-elev: #11162a; --map-bg: #0b1020;
-    --glass-bg: rgba(17, 22, 42, 0.80);
-    --text-color: #eef1f8; --text-muted: #aab2c8;
-    --accent: #2dd4bf; --accent-bright: #5eead4; --accent-strong: #14b8a6;
-    --accent2: #8b5cf6; --accent3: #f472b6;
-    --accent-grad: linear-gradient(95deg, #2dd4bf, #8b5cf6);
-    --accent-soft: rgba(45, 212, 191, 0.14);
-    --accent-line: rgba(139, 92, 246, 0.50);
-    --accent-glow: 0 10px 34px rgba(139, 92, 246, 0.50);
-    --data: #5eead4;
-    --glow1: rgba(45, 212, 191, 0.45); --glow2: rgba(139, 92, 246, 0.50); --glow3: rgba(244, 114, 182, 0.22);
-}
-/* =========================================================================
-   Barevné motivy (Nastavení → Vzhled → Barevný motiv)
-   Mění akcentové barvy, gradienty, záře a podbarvení ploch.
-   ========================================================================= */
-body.theme-sunset {
-    --bg-color: #1c1208;
-    --bg-elev: #271a0d;
-    --map-bg: #1c1208;
-    --glass-bg: rgba(39, 26, 13, 0.80);
-    --accent: #fbbf24;
-    --accent-bright: #fcd34d;
-    --accent-strong: #f59e0b;
-    --accent2: #f97316;
-    --accent3: #fb7185;
-    --accent-grad: linear-gradient(95deg, #fbbf24, #f97316);
-    --accent-soft: rgba(251, 191, 36, 0.14);
-    --accent-line: rgba(249, 115, 22, 0.50);
-    --accent-glow: 0 10px 34px rgba(249, 115, 22, 0.45);
-    --glow1: rgba(251, 191, 36, 0.40);
-    --glow2: rgba(249, 115, 22, 0.42);
-    --glow3: rgba(251, 113, 133, 0.20);
-}
-body.theme-ocean {
-    --bg-color: #071120;
-    --bg-elev: #0c1a30;
-    --map-bg: #071120;
-    --glass-bg: rgba(12, 26, 48, 0.80);
-    --accent: #38bdf8;
-    --accent-bright: #7dd3fc;
-    --accent-strong: #0ea5e9;
-    --accent2: #3b82f6;
-    --accent3: #22d3ee;
-    --accent-grad: linear-gradient(95deg, #38bdf8, #3b82f6);
-    --accent-soft: rgba(56, 189, 248, 0.14);
-    --accent-line: rgba(59, 130, 246, 0.50);
-    --accent-glow: 0 10px 34px rgba(59, 130, 246, 0.50);
-    --glow1: rgba(56, 189, 248, 0.42);
-    --glow2: rgba(59, 130, 246, 0.48);
-    --glow3: rgba(34, 211, 238, 0.20);
-}
-body.theme-forest {
-    --bg-color: #081510;
-    --bg-elev: #0e2018;
-    --map-bg: #081510;
-    --glass-bg: rgba(14, 32, 24, 0.80);
-    --accent: #34d399;
-    --accent-bright: #6ee7b7;
-    --accent-strong: #10b981;
-    --accent2: #84cc16;
-    --accent3: #fbbf24;
-    --accent-grad: linear-gradient(95deg, #34d399, #84cc16);
-    --accent-soft: rgba(52, 211, 153, 0.14);
-    --accent-line: rgba(132, 204, 22, 0.50);
-    --accent-glow: 0 10px 34px rgba(16, 185, 129, 0.45);
-    --glow1: rgba(52, 211, 153, 0.42);
-    --glow2: rgba(132, 204, 22, 0.35);
-    --glow3: rgba(251, 191, 36, 0.15);
-}
-body.theme-graphite {
-    --bg-color: #0d1117;
-    --bg-elev: #151b23;
-    --map-bg: #0d1117;
-    --glass-bg: rgba(21, 27, 35, 0.82);
-    --accent: #cbd5e1;
-    --accent-bright: #f1f5f9;
-    --accent-strong: #94a3b8;
-    --accent2: #94a3b8;
-    --accent3: #64748b;
-    --accent-grad: linear-gradient(95deg, #64748b, #94a3b8);
-    --accent-soft: rgba(203, 213, 225, 0.12);
-    --accent-line: rgba(148, 163, 184, 0.50);
-    --accent-glow: 0 10px 34px rgba(100, 116, 139, 0.45);
-    --glow1: rgba(148, 163, 184, 0.30);
-    --glow2: rgba(100, 116, 139, 0.35);
-    --glow3: rgba(203, 213, 225, 0.12);
-}
+
 
 /* ---- Reset & base ----------------------------------------------------- */
 *, *::before, *::after { box-sizing: border-box; }
@@ -427,7 +228,7 @@ body {
     position: absolute;
     top: max(var(--hud-top), env(safe-area-inset-top));
     right: var(--hud-side);
-    z-index: 10000;
+    z-index: var(--z-menu, 10000);
     display: none;
     padding: 10px 16px;
     font-size: 15px;
@@ -488,7 +289,7 @@ body {
     top: max(calc(var(--hud-top) + 55px), calc(env(safe-area-inset-top) + 55px));
     right: -320px;
     width: 250px;
-    z-index: 10000;
+    z-index: var(--z-menu, 10000);
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -807,7 +608,7 @@ body {
     left: 0;
     width: 100%;
     max-height: 80%;
-    z-index: 20000;
+    z-index: var(--z-sheet, 20000);
     display: flex;
     flex-direction: column;
     background: var(--glass-bg);
@@ -1364,7 +1165,7 @@ html.ag-anim-off *, html.ag-anim-off *::before, html.ag-anim-off *::after {
     left: 12px;
     right: 12px;
     bottom: max(12px, env(safe-area-inset-bottom));
-    z-index: 9000;
+    z-index: var(--z-hud, 9000);
     display: flex;
     justify-content: space-between;
     align-items: flex-end;

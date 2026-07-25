@@ -191,7 +191,7 @@
         let lat = null, lng = null;
         if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.lat) { lat = gpsAvgResult.lat; lng = gpsAvgResult.lng; }
         else if (typeof userLat !== 'undefined' && userLat) { lat = userLat; lng = userLng; }
-        if (lat == null) { alert('Zatím nemám GPS polohu.'); return; }
+        if (lat == null) { agInfo('Zatím nemám GPS polohu.'); return; }
         const nm = prompt('Číslo / označení bodu:', nextName());
         if (nm === null) return;
         sketch.pts.push({ name: nm.trim() || nextName(), lat: lat, lng: lng }); sketch.log.push('pt');
@@ -202,7 +202,7 @@
     };
 
     window.tachyAddFromPoints = function () {
-        if (typeof persistentCustomPoints === 'undefined' || !persistentCustomPoints.length) { alert('Nemáte žádné vlastní body.'); return; }
+        if (typeof persistentCustomPoints === 'undefined' || !persistentCustomPoints.length) { agInfo('Nemáte žádné vlastní body.'); return; }
         let added = 0;
         persistentCustomPoints.forEach(p => {
             const exists = sketch.pts.some(s => Math.abs(s.lat - p.lat) < 1e-6 && Math.abs(s.lng - p.lng) < 1e-6);
@@ -467,7 +467,7 @@
     }
 
     window.tachyExport = function () {
-        if (!sketch.pts.length && !sketch.strokes.length && !sketch.labels.length) { alert('Náčrt je prázdný.'); return; }
+        if (!sketch.pts.length && !sketch.strokes.length && !sketch.labels.length) { agInfo('Náčrt je prázdný.'); return; }
         // vektorovy nacrt na bilem podkladu (mapove dlazdice se kvuli CORS do PNG spolehlive neprenesou)
         const exp = document.createElement('canvas'); exp.width = canvas.width; exp.height = canvas.height;
         const c = exp.getContext('2d');
@@ -485,6 +485,6 @@
             const a = document.createElement('a'); a.href = url;
             a.download = 'nacrt_' + (typeof activeProjectId !== 'undefined' ? activeProjectId : 'tachymetrie') + '.png';
             document.body.appendChild(a); a.click(); a.remove();
-        } catch (e) { alert('Export selhal: ' + (e && e.message ? e.message : e)); }
+        } catch (e) { agInfo('Export selhal: ' + (e && e.message ? e.message : e)); }
     };
 })();

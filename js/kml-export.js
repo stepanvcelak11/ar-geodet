@@ -25,7 +25,7 @@
         try {
             if (typeof window.agAlert === 'function') { window.agAlert({ title: title, message: message }); return; }
         } catch (e) {}
-        try { alert(title + '\n\n' + String(message).replace(/<[^>]*>/g, '')); } catch (e) {}
+        try { agInfo(title + '\n\n' + String(message).replace(/<[^>]*>/g, '')); } catch (e) {}
     }
 
     function downloadText(filename, mime, text) {

@@ -40,6 +40,27 @@
     var _capSamples = [], _capTimer = null;
     var _result = null;
 
+    // ---- draft (AGDraft je odpojitelný, vše fail-silent) -----------------------
+    // Ukládá se jen serializovatelné jádro: id bodů, azimuty, název, výsledek.
+    var DRAFT_KEY = 'protinani';
+    function draftSave() {
+        if (!window.AGDraft) return;
+        try {
+            var touched = !!(_targetName && _targetName.trim()), shots = 0;
+            _stations.forEach(function (s) {
+                if (s.stId || s.orientId) touched = true;
+                if (s.devOrient != null) shots++;
+                if (s.devTarget != null) shots++;
+            });
+            // bez jediného uživatelského kroku se nedraftuje — naopak úklid
+            if (!touched) { window.AGDraft.clear(DRAFT_KEY); return; }
+            window.AGDraft.save(DRAFT_KEY,
+                { stations: _stations, targetName: _targetName, arrived: _arrived, result: _result },
+                'Protínání vpřed – ' + shots + '/' + (_stations.length * 2) + ' zaměření');
+        } catch (e) {}
+    }
+    function draftClear() { if (window.AGDraft) try { window.AGDraft.clear(DRAFT_KEY); } catch (e) {} }
+
     // ---- pomocné --------------------------------------------------------------
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
@@ -179,16 +200,16 @@
             + '<button class="btn btn-secondary" style="margin-top:12px;" onclick="window.agCloseIntersection&&window.agCloseIntersection()">Zavřít</button>'
             + '</div>';
         document.body.appendChild(el);
-        document.getElementById('agix-name').addEventListener('input', function (e) { _targetName = e.target.value; });
+        document.getElementById('agix-name').addEventListener('input', function (e) { _targetName = e.target.value; draftSave(); });
         document.getElementById('agix-add').addEventListener('click', function () { _stations.push({ stId: null, orientId: null, devOrient: null, devTarget: null }); fillStations(); onModelChange(); });
         document.getElementById('agix-start').addEventListener('click', startCapture);
         document.getElementById('agix-save').addEventListener('click', saveTarget);
-        document.getElementById('agix-redo').addEventListener('click', function () { clearShots(); _result = null; renderResult(); updateWarn(); });
+        document.getElementById('agix-redo').addEventListener('click', function () { clearShots(); _result = null; renderResult(); updateWarn(); draftSave(); });
     }
 
     function ensureMinStations() { while (_stations.length < 2) _stations.push({ stId: null, orientId: null, devOrient: null, devTarget: null }); }
     function clearShots() { _stations.forEach(function (s) { s.devOrient = null; s.devTarget = null; }); _arrived = {}; }
-    function onModelChange() { _result = null; clearShots(); renderResult(); updateWarn(); }
+    function onModelChange() { _result = null; clearShots(); renderResult(); updateWarn(); draftSave(); }
 
     function stationOptions(selId) {
         var list = candidatePoints();
@@ -361,6 +382,7 @@
                 var az = (circMeanDeg(_capSamples) + 360) % 360;
                 var step = _steps[_capIdx];
                 if (step.role === 'orient') _stations[step.sIdx].devOrient = az; else _stations[step.sIdx].devTarget = az;
+                draftSave();   // každá hotová záměra se hned draftuje
                 if (navigator.vibrate) try { navigator.vibrate(25); } catch (e) {}
                 _capIdx++;
                 promptStep();
@@ -379,6 +401,7 @@
         _capIdx = -1; showAim(false); declutter(false);
         var m = document.getElementById('agix-modal'); if (m) m.style.display = 'flex';
         compute();
+        draftSave();   // draft i s výsledkem (obnova ukáže hotový výpočet)
         fillStations(); updateWarn(); renderResult();
     }
 
@@ -444,7 +467,7 @@
                 if (nm == null) return;                       // zrušeno
                 var name = (String(nm).trim() || _targetName || 'P_protnuti');
                 var added = window.addImportedPoints([{ name: name, lat: r.lat, lng: r.lng }]);
-                if (added > 0) agAlert('Bod uložen', '#' + name + ' uložen do zakázky (protínání vpřed z ' + r.n + ' stanovisek, úhel ' + r.angleP.toFixed(0) + '°).\nNajdeš ho v seznamu Body.');
+                if (added > 0) { draftClear(); agAlert('Bod uložen', '#' + name + ' uložen do zakázky (protínání vpřed z ' + r.n + ' stanovisek, úhel ' + r.angleP.toFixed(0) + '°).\nNajdeš ho v seznamu Body.'); }
                 else agAlert('Neuloženo', 'Bod se stejným názvem a polohou už v zakázce je.');
             });
         });
@@ -507,6 +530,22 @@
     // ---- registrace do launcheru + fallback tlačítko --------------------------
     function register() {
         injectStyles();
+        // obnova rozdělaného protínání přes lištu „Pokračovat" (AGDraft je odpojitelný)
+        if (window.AGDraft) try {
+            window.AGDraft.register(DRAFT_KEY, {
+                label: 'Protínání vpřed',
+                open: function (st) {
+                    if (st && st.stations && st.stations.length) {
+                        _stations = st.stations;
+                        _targetName = st.targetName || '';
+                        _arrived = st.arrived || {};
+                        _result = st.result || null;
+                    }
+                    openTool();   // fillStations/renderResult uvnitř překreslí obnovený stav
+                    var nm = document.getElementById('agix-name'); if (nm) nm.value = _targetName;
+                }
+            });
+        } catch (e) {}
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'ar-intersection', label: 'Protínání vpřed (neznámý bod)', icon: ICON, onClick: openTool, order: 6 });
         } else {

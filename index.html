@@ -82,7 +82,9 @@
     <!-- style.css s verzí v adrese: kořenové styly NESMÍ přijít ze staré cache
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
-    <link rel="stylesheet" href="css/style.css?v=184">
+    <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
+    <link rel="stylesheet" href="css/tokens.css?v=185">
+    <link rel="stylesheet" href="css/style.css?v=185">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -99,7 +101,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=184">
+    <link rel="stylesheet" href="css/vylepseni.css?v=185">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -726,6 +728,8 @@
 
     <!-- PROTOKOL CHYB (odpojitelné: smaž tento řádek + js/err-log.js) — MUSÍ být první, chytá chyby startu ostatních modulů -->
     <script defer src="js/err-log.js"></script>
+    <!-- MŮSTEK DIALOGŮ — agInfo()/agAsk() = jednotné in-app dialogy místo nativních alert()/confirm() -->
+    <script defer src="js/dialog-bridge.js"></script>
     <script defer src="js/lib/leaflet-1.9.4.js"></script>
     <script defer src="js/lib/esri-leaflet-3.0.12.js"></script>
     <script defer src="js/power-save.js"></script>
@@ -759,6 +763,10 @@
     <!-- MODULY (workflow) — odpojitelné -->
     <script defer src="js/gnss-quality.js"></script>
     <script defer src="js/gps-warn.js"></script>
+    <!-- SEMAFOR DŮVĚRY POLOHY (odpojitelné: smaž tento řádek + js/gps-trust.js) — hlídá zamrzlý GPS fix a offline -->
+    <script defer src="js/gps-trust.js"></script>
+    <!-- DRAFT STORE (odpojitelné: smaž tento řádek + js/draft-store.js) — rozdělaná práce přežije zabití appky -->
+    <script defer src="js/draft-store.js"></script>
     <script defer src="js/csv-validate.js"></script>
     <script defer src="js/kml-export.js"></script>
     <!-- EXPORT DXF (odpojitelné: smaž tento řádek + js/dxf-export.js) — vektor bodů/spojnic do CADu (S-JTSK) -->
