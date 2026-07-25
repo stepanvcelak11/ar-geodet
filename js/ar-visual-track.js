@@ -559,25 +559,20 @@
     }
 
     // ==========================================================================
-    //  REGISTRACE (launcher Nástrojů) + fallback tlačítko
+    //  REGISTRACE (launcher Nástrojů)
+    //  Pozn.: dřívější fallback plovoucí tlačítko (#agvt-fab) na hlavní obrazovce
+    //  bylo ZÁMĚRNĚ odstraněno na přání uživatele — ovládání žije jen
+    //  v Nástrojích (dlaždice) a v Nastavení → AR & přesnost (#agvt-settings-row).
     // ==========================================================================
     function register() {
         injectStyles();
         try { injectSettingsToggle(); } catch (e) {}
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'ar-visual-track', label: 'Vizuální stabilizace AR (beta)', icon: ICON, cat: 'AR a kalibrace', onClick: openTool, order: 9 });
-        } else {
-            ensureFallbackFab();
         }
-    }
-    function ensureFallbackFab() {
-        if (document.getElementById('agvt-fab') || typeof window.agRegisterFieldTool === 'function') return;
-        var b = document.createElement('button'); b.id = 'agvt-fab'; b.type = 'button';
-        b.title = 'Vizuální stabilizace AR'; b.innerHTML = ICON;
-        b.style.cssText = 'position:fixed;left:12px;bottom:214px;z-index:99990;width:48px;height:48px;border:none;border-radius:14px;background:var(--accent,#2f9e74);color:#04110b;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,0.45);';
-        var svg = b.querySelector('svg'); if (svg) svg.style.cssText = 'width:24px;height:24px;';
-        b.addEventListener('click', openTool);
-        if (document.body) document.body.appendChild(b);
+        // launcher ještě nemusí existovat — druhý průchod na window.load to dožene
+        // kdyby přesto někde zůstal starý FAB (stará session), ukliď ho
+        try { var fab = document.getElementById('agvt-fab'); if (fab) fab.remove(); } catch (e) {}
     }
 
     // ---- vypnout, když stránka zmizí na pozadí (šetři baterii) ------------------

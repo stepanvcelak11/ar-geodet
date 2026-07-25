@@ -90,6 +90,18 @@
         if (e == null) return 0;
         return e - _obsElev;
     };
+    // Jednorázový asynchronní odečet výšky terénu (m Bpv) — funguje i při vypnuté
+    // AR vrstvě terénu (_on=false). Používá cache buněk; výsledek do ní ukládá.
+    // Vrací Promise<number|null>. (Použití: předvyplnění výšky u bodu z mapy.)
+    window.terrainElevAsync = function (lat, lng) {
+        if (typeof lat !== 'number' || typeof lng !== 'number' || !isFinite(lat) || !isFinite(lng)) return Promise.resolve(null);
+        var k = cellKey(lat, lng);
+        if (Object.prototype.hasOwnProperty.call(_elev, k)) return Promise.resolve(_elev[k]);
+        return identifyElev(lat, lng).then(function (v) {
+            _elev[k] = v; schedulePersist();
+            return v;
+        }).catch(function () { return null; });
+    };
 
     // --------------------------------------------------------------------------------
     // Fronta odečtů (identify) s limitem souběhu

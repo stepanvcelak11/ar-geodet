@@ -983,6 +983,27 @@ body {
 .btn-blue      { background: transparent; color: #93c5fd; border-color: rgba(59, 130, 246, 0.45); }
 .btn-blue:hover { background: rgba(59, 130, 246, 0.14); filter: none; }
 
+/* Měření dvěma prsty v mapě (styl mapy.cz): štítek se vzdáleností na středu čáry */
+.tfm-label-wrap { pointer-events: none; }
+.tfm-label {
+    position: absolute; left: 0; top: 0; display: inline-block; white-space: nowrap;
+    background: rgba(14, 18, 24, 0.92); color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.55); border-radius: 8px;
+    padding: 3px 9px; font: 700 13px/1.25 var(--font-mono, monospace);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+body.outdoor-mode .tfm-label { background: #0a0e1a; border-color: #fbbf24; }
+
+/* Karta bodu: 3 kompaktní akce vedle sebe (Zvýraznit / Skrýt / Zavřít) — šetří výšku karty */
+.sheet-actions { display: flex; gap: 8px; margin-top: 4px; }
+.sheet-actions .btn {
+    flex: 1 1 0; min-width: 0; margin-top: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    padding: 9px 4px; font-size: 12.5px; line-height: 1.15;
+}
+.sheet-actions .btn .icon { width: 17px; height: 17px; margin: 0; }
+.sheet-actions .btn span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
 /* Odkaz stylizovaný jako tlačítko (např. "Otevřít nákres") */
 .btn-link {
     display: block;

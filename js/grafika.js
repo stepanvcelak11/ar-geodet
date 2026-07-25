@@ -396,7 +396,26 @@
             let sjtsk = proj4("EPSG:4326", "EPSG:5514", [lng, lat]);
             document.getElementById('custom-y').value = Math.abs(sjtsk[0]).toFixed(2);
             document.getElementById('custom-x').value = Math.abs(sjtsk[1]).toFixed(2);
-            { const _z = document.getElementById('custom-z'); if (_z) _z.value = ''; } // bod z mapy nemá výšku
+            // Výška: bod z mapy ji nezná z GPS — zkusíme ji doplnit z terénu ČÚZK DMR 5G
+            // (asynchronně; když uživatel mezitím vyplní vlastní Z nebo zavře modál, nesaháme na to).
+            {
+                const _z = document.getElementById('custom-z');
+                if (_z) {
+                    _z.value = '';
+                    if (typeof window.terrainElevAsync === 'function') {
+                        const _ph = _z.placeholder;
+                        _z.placeholder = 'zjišťuji výšku terénu…';
+                        window.terrainElevAsync(lat, lng).then((elev) => {
+                            _z.placeholder = _ph;
+                            const ov = document.getElementById('custom-modal-overlay');
+                            if (elev == null || !ov || ov.style.display === 'none' || _z.value !== '') return;
+                            _z.value = elev.toFixed(2);
+                            const note = document.getElementById('custom-acc-note');
+                            if (note) { note.style.display = 'block'; note.innerHTML = 'Výška <b>' + elev.toFixed(2) + ' m</b> doplněna z terénu (ČÚZK DMR 5G) — orientační, uprav dle potřeby.'; }
+                        }).catch(() => { try { _z.placeholder = _ph; } catch (e) {} });
+                    }
+                }
+            }
             resetNewPointExtras(null);
             document.getElementById('custom-modal-overlay').style.display = 'flex';
         }
@@ -483,21 +502,66 @@
             const lx = dx * Math.cos(rad) - dy * Math.sin(rad); const ly = dx * Math.sin(rad) + dy * Math.cos(rad);
             return L.point(P.x + lx, P.y + ly);
         }
+        // ===== MĚŘENÍ DVĚMA PRSTY (styl mapy.cz) ==================================
+        // Podrž dva prsty na mapě ~0,5 s BEZ roztahování → mezi prsty se natáhne čára
+        // se vzdáleností a sleduje prsty. Pinch zoom funguje beze změny — měření se
+        // aktivuje jen, když prsty zůstanou v klidu. Po zvednutí prstů výsledek chvíli
+        // svítí (jde přečíst) a sám zmizí.
+        const TFM_HOLD_MS = 500, TFM_PINCH_TOL = 26, TFM_MOVE_TOL = 22, TFM_FADE_MS = 4000;
+        let _tfm = null, _tfmLine = null, _tfmLabel = null, _tfmFade = null;
+        function _tfmFmt(m) { if (m >= 1000) return (m / 1000).toFixed(2).replace('.', ',') + ' km'; if (m >= 100) return Math.round(m) + ' m'; return m.toFixed(1).replace('.', ',') + ' m'; }
+        function _tfmClear() { clearTimeout(_tfmFade); _tfmFade = null; if (_tfmLine) { try { map.removeLayer(_tfmLine); } catch (err) {} _tfmLine = null; } if (_tfmLabel) { try { map.removeLayer(_tfmLabel); } catch (err) {} _tfmLabel = null; } }
+        function _tfmSnap(t) { return [{ clientX: t[0].clientX, clientY: t[0].clientY }, { clientX: t[1].clientX, clientY: t[1].clientY }]; }
+        function _tfmUpdate(t) {
+            if (!t) return;
+            const a = window.agScreenToLatLng(t[0].clientX, t[0].clientY), b = window.agScreenToLatLng(t[1].clientX, t[1].clientY);
+            if (!a || !b) return;
+            const dist = getDistance(a.lat, a.lng, b.lat, b.lng);
+            if (!_tfmLine) _tfmLine = L.polyline([a, b], { color: '#fbbf24', weight: 3, dashArray: '7,7', interactive: false }).addTo(map);
+            else _tfmLine.setLatLngs([a, b]);
+            const mid = L.latLng((a.lat + b.lat) / 2, (a.lng + b.lng) / 2);
+            // štítek se srovnává proti otočení mapy (stejný trik jako popupy), ať je text vodorovně
+            const icon = L.divIcon({ className: 'tfm-label-wrap', html: '<div class="tfm-label" style="transform:translate(-50%,-50%) rotate(' + mapRotation + 'deg);">' + _tfmFmt(dist) + '</div>', iconSize: [0, 0] });
+            if (!_tfmLabel) _tfmLabel = L.marker(mid, { icon: icon, interactive: false, zIndexOffset: 2000 }).addTo(map);
+            else { _tfmLabel.setLatLng(mid); _tfmLabel.setIcon(icon); }
+        }
+        function _tfmStart(touches) {
+            clearTimeout(_tfm && _tfm.timer); _tfmClear();
+            const s = _tfmSnap(touches);
+            _tfm = { d0: _touchDist(touches), start: s, last: s, active: false, zoomed: false, timer: null };
+            _tfm.timer = setTimeout(() => { if (_tfm && !_tfm.zoomed) { _tfm.active = true; _tfmUpdate(_tfm.last); } }, TFM_HOLD_MS);
+        }
+        function _tfmEnd() {
+            if (!_tfm) return;
+            clearTimeout(_tfm.timer);
+            if (_tfm.active) { clearTimeout(_tfmFade); _tfmFade = setTimeout(_tfmClear, TFM_FADE_MS); } // výsledek nech chvíli svítit
+            _tfm = null;
+        }
+        // ==========================================================================
         mapContainerEl.addEventListener('touchstart', (e) => {
             if (e.target.closest('.glass-panel, .leaflet-popup')) return;
             clearTimeout(mapReturnTimer);
             // (Dříve se tu mapová tlačítka hned sbalila při každém doteku mapy — bylo to
             //  matoucí „všechno zmizí". Sbalení teď řídí jen přepínač, ne dotek mapy.)
-            if (e.touches.length >= 2) { isPinchingMap = true; isDraggingMap = false; pinchStartDist = _touchDist(e.touches); pinchStartZoom = map.getZoom(); }
+            if (e.touches.length >= 2) { isPinchingMap = true; isDraggingMap = false; pinchStartDist = _touchDist(e.touches); pinchStartZoom = map.getZoom(); _tfmStart(e.touches); }
             else if (e.touches.length === 1) { isDraggingMap = true; isPinchingMap = false; lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; }
         }, { passive: true });
         mapContainerEl.addEventListener('touchmove', (e) => {
             // dotyk zacinajici na popupu (napr. 'Vzdalena oblast') patri popupu, ne mape -- jinak tah po popupu hybe mapou a preventDefault rusi klik na tlacitka
             if (e.target.closest('.glass-panel, .leaflet-popup')) return;
             if (e.touches.length >= 2) {
-                if (!isPinchingMap) { isPinchingMap = true; isDraggingMap = false; pinchStartDist = _touchDist(e.touches); pinchStartZoom = map.getZoom(); }
+                if (!isPinchingMap) { isPinchingMap = true; isDraggingMap = false; pinchStartDist = _touchDist(e.touches); pinchStartZoom = map.getZoom(); _tfmStart(e.touches); }
                 window._mapHold = true;
                 const d = _touchDist(e.touches);
+                if (_tfm) {
+                    _tfm.last = _tfmSnap(e.touches);
+                    if (_tfm.active) { _tfmUpdate(_tfm.last); if (e.cancelable) e.preventDefault(); return; } // měřím → žádný zoom
+                    if (!_tfm.zoomed) {
+                        const m0 = Math.hypot(_tfm.last[0].clientX - _tfm.start[0].clientX, _tfm.last[0].clientY - _tfm.start[0].clientY);
+                        const m1 = Math.hypot(_tfm.last[1].clientX - _tfm.start[1].clientX, _tfm.last[1].clientY - _tfm.start[1].clientY);
+                        if (Math.abs(d - _tfm.d0) > TFM_PINCH_TOL || m0 > TFM_MOVE_TOL || m1 > TFM_MOVE_TOL) { _tfm.zoomed = true; clearTimeout(_tfm.timer); } // uživatel zoomuje → měření nebude
+                    }
+                }
                 if (pinchStartDist > 0 && d > 0) { let nz = pinchStartZoom + Math.log2(d / pinchStartDist); nz = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), nz)); const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2, my = (e.touches[0].clientY + e.touches[1].clientY) / 2; map.setZoomAround(_screenToContainerPoint(mx, my), nz, { animate: false }); }
                 if (e.cancelable) e.preventDefault(); return;
             }
@@ -514,6 +578,7 @@
         // i pri 'touchcancel' (gesto prevezme system/prohlizec) -- jinak by _mapHold zustal true
         // navzdy a mapa by se uz nikdy neotocila podle kompasu.
         function onMapTouchEnd(e) {
+            if (e.touches.length < 2) _tfmEnd();   // konec gesta dvou prstů (výsledek měření dosvítí sám)
             if (e.touches.length === 0) { if (isDraggingMap || isPinchingMap || window._mapHold) { clearTimeout(mapReturnTimer); mapReturnTimer = setTimeout(recenterOnUser, 5000); } isDraggingMap = false; isPinchingMap = false; }
             else if (e.touches.length === 1) { isPinchingMap = false; isDraggingMap = true; lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; }
         }
@@ -544,7 +609,7 @@
             activePointIdForModal = pt.id; initARMarkers(); arPoints.forEach(p => { if (p.element) p.element.classList.remove('active-reading'); }); if (pt.element) pt.element.classList.add('active-reading');
             let typBodu = "Podrobný polohový bod"; if(pt.cat === 'TB') typBodu = "Trigonometrický bod"; if(pt.cat === 'ZHB') typBodu = "Zhušťovací bod"; if(pt.cat === 'NIVEL') typBodu = "Nivelační / Výškový bod"; if(pt.cat === 'CUSTOM') typBodu = "Vlastní zadaný bod";
             document.getElementById('det-title').innerHTML = `#${_escHtml(pt.name)}`; document.getElementById('det-title').style.color = "var(--accent)"; document.getElementById('det-subtitle').innerHTML = typBodu; 
-            const hlBtn = document.getElementById('highlight-btn'); if (highlightedPointId === pt.id) { hlBtn.innerHTML = '<svg class="icon"><use href="#i-star"/></svg> Zrušit zvýraznění'; hlBtn.style.background = "#fff"; } else { hlBtn.innerHTML = '<svg class="icon"><use href="#i-star"/></svg> Zvýraznit bod a navigovat'; hlBtn.style.background = "#fbbf24"; }
+            const hlBtn = document.getElementById('highlight-btn'); if (highlightedPointId === pt.id) { hlBtn.innerHTML = '<svg class="icon"><use href="#i-star"/></svg><span>Nezvýraznit</span>'; hlBtn.style.background = "#fff"; } else { hlBtn.innerHTML = '<svg class="icon"><use href="#i-star"/></svg><span>Zvýraznit</span>'; hlBtn.style.background = "#fbbf24"; }
             hideBtnLogic = () => { pt.hidden = true; if(pt.element) { pt.element.style.opacity = '0'; setTimeout(() => { if(pt.element && pt.element.parentNode) pt.element.parentNode.removeChild(pt.element); }, 200); } if (highlightedPointId === pt.id) { highlightedPointId = null; document.getElementById('ar-hud').style.display = 'none'; } updateInfoPanel(); drawAllMarkersOnMap(); };
             let sjtskY = "Neznámé", sjtskX = "Neznámé"; if (pt.type === "custom") { let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); sjtskY = Math.abs(sjtsk[0]).toFixed(2); sjtskX = Math.abs(sjtsk[1]).toFixed(2); } else if (pt.rawData) { const getVal = (keys) => { for (let k in pt.rawData) { if (keys.includes(k.toUpperCase()) && pt.rawData[k] !== "Null" && pt.rawData[k] !== null && String(pt.rawData[k]).trim() !== "") return pt.rawData[k]; } return null; }; let sY = parseFloat(getVal(['Y', 'SOURADNICE_Y'])); let sX = parseFloat(getVal(['X', 'SOURADNICE_X'])); if (!isNaN(sY) && !isNaN(sX)) { if (sY < sX) { sjtskY = sY; sjtskX = sX; } else { sjtskY = sX; sjtskX = sY; } } }
             let html = ` <div class="geo-data-row"><span class="geo-label">Vzdálenost</span><span class="geo-value" id="sheet-distance-val">${distance.toFixed(1)} m</span></div> <div class="geo-data-row"><span class="geo-label">S-JTSK Y</span><span class="geo-value">${sjtskY}</span></div> <div class="geo-data-row"><span class="geo-label">S-JTSK X</span><span class="geo-value">${sjtskX}</span></div> <div style="margin-top:15px; padding:12px; background:rgba(251,191,36,0.1); border-left:4px solid #fbbf24; border-radius:8px; font-size:13px; line-height:1.4;"><strong><svg class="icon" style="vertical-align:-0.18em; color:#fbbf24;"><use href="#i-alert"/></svg> Rádius hledání (Vaše GPS: ±<span id="sheet-gps-val">${currentGpsAccuracy.toFixed(1)}</span> m)</strong><br>Bod nehledejte na centimetr přesně na AR značce. Může ležet kdekoliv v tomto kruhovém okruhu od značky.</div> `;

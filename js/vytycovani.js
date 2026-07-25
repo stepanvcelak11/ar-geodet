@@ -35,39 +35,10 @@ function stakeoutCandidates() {
     return arPoints.filter(p => !p.hidden && ((stakeoutOnlyCustom ? p.cat === 'CUSTOM' : true) || stakeoutData[p.id]));
 }
 
-// ---------- tlacitko "Vytyceno" v karte bodu (bottom sheet) ----------
-(function () {
-    if (typeof showDetails !== 'function' || showDetails._stakeWrapped) return;  // idempotence (dvojí načtení)
-    const _orig = showDetails;
-    showDetails = function (pt, distance) {
-        _orig(pt, distance);
-        let btn = document.getElementById('stake-btn');
-        if (!btn) {
-            // kotva může v jiné verzi karty chybět → bez null-checku by null.parentNode shodil
-            // CELOU kartu bodu pro všechny body. Když kotva není, tlačítko prostě nevkládáme.
-            const anchor = document.getElementById('close-card-btn') || document.getElementById('highlight-btn');
-            if (!anchor || !anchor.parentNode) return;
-            btn = document.createElement('button');
-            btn.id = 'stake-btn'; btn.className = 'btn';
-            anchor.parentNode.insertBefore(btn, anchor);
-        }
-        const paint = () => {
-            const done = isStaked(pt.id);
-            if (done) {
-                const rec = stakeoutData[pt.id];
-                const when = rec && rec.t ? new Date(rec.t).toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-                btn.innerHTML = `<svg class="icon"><use href="#i-check"/></svg> Vytyčeno ${when}${rec && rec.acc != null ? ' · ±' + rec.acc + ' m' : ''} — zrušit`;
-                btn.style.background = 'rgba(16,185,129,0.25)'; btn.style.border = '1px solid #10b981'; btn.style.color = '#34d399';
-            } else {
-                btn.innerHTML = '<svg class="icon"><use href="#i-check"/></svg> Vytyčeno — hotovo';
-                btn.style.background = '#10b981'; btn.style.border = 'none'; btn.style.color = '#04110b';
-            }
-        };
-        btn.onclick = () => { toggleStaked(pt); paint(); };
-        paint();
-    };
-    showDetails._stakeWrapped = true;
-})();
+// ---------- tlacitko "Vytyceno" v karte bodu: ZAMERNE ODSTRANENO ----------
+// Na přání uživatele (7/2026): vytyčování má vlastní nástroj (Vytyčovací checklist),
+// tlačítko v kartě bodu bylo zbytečné a zabíralo místo. Odškrtávání zůstává
+// v modálu checklistu (renderStakeoutList / toggleStaked). NEVRACET bez pokynu.
 
 // ---------- nacitani stavu pri startu a pri prepnuti zakazky ----------
 (function () {

@@ -6,9 +6,9 @@
 // Dvě prohlídky:
 //   • ZÁKLADNÍ — ovládání: zobrazení (AR/Split/Mapa), stav & přesnost, kompas,
 //     nový bod, body, nástroje, více, nastavení.
-//   • POKROČILÁ — nové nástroje: terénní nástroje (launcher), Parcela/dělení,
-//     AR resekce & orientace, kubatury/vrstevnice (DMR 5G), oměrné/kontrola,
-//     import projektu/DXF + vektorový katastr, AR na terénu (DMR 5G).
+//   • POKROČILÁ — přehled nástrojů po kategoriích (Měření, Vytyčování,
+//     Katastr a data, AR a kalibrace, Pomůcky), nápověda „?" na dlaždicích,
+//     AR na terénu (DMR 5G), Průvodce úkolem.
 //
 // Vstup: existující tlačítko „Návod a prohlídka" v menu „Více" (modul převezme
 //   window.startTutorial), nebo přímo:
@@ -52,51 +52,53 @@
     // {title, body, target?:selector|fn, before?:fn}  — bez target = vystředí kartu
     var BASIC = [
         { title: 'Vítej v AR&nbsp;Geodet', body: 'Krátká prohlídka základního ovládání. Posouvej tlačítkem <b>Další</b>.' },
-        { title: 'Přepínání zobrazení', target: '#view-seg', body: 'Přepínej mezi <b>AR</b> kamerou, <b>Split</b> (dělené) a 2D <b>Mapou</b> podle situace a baterie.' },
+        { title: 'Přepínání zobrazení', target: '#ag-view-wheel', body: 'Kolečko vpravo dole přepíná jedním klepnutím mezi <b>AR</b> kamerou, <b>Split</b> (dělené) a 2D <b>Mapou</b> — podle situace a baterie.' },
         { title: 'Stav a přesnost', target: '#info', body: 'Vidíš přesnost GPS a počet viditelných bodů. Čím nižší ± metry, tím spolehlivější poloha.' },
         { title: 'Azimut a kompas', target: '#compass-debug', body: 'Aktuální azimut. Klepnutím otevřeš kalibraci kompasu a srovnání severu (důležité pro AR).' },
         { title: 'Nový bod', target: '.dock-primary', body: 'Založ vlastní bod — z <b>průměru GPS</b> (nejpřesnější), klepnutím do <b>mapy</b>, nebo přečtením z <b>fotky (OCR)</b>.' },
         { title: 'Body', target: '#dock button[onclick*="openManageModal"]', body: 'Správa bodů: seznam, <b>import/export</b> (CSV, GPX, GeoJSON…) a <b>sdílení přes QR</b>.' },
         { title: 'Nástroje', target: '#dock button[onclick*="tools-modal"]', body: 'Měření vzdálenosti a plochy, kalkulačka, GNSS satelity, vytyčovací checklist, náčrt — a nové pokročilé nástroje.' },
-        { title: 'Více', target: '#dock-vice-btn', body: 'Průvodce úkolem, uložení okolí offline, návody, zpravodaj a přepínání zobrazení <b>AR / Split / Mapa</b>.' },
+        { title: 'Více', target: '#dock-vice-btn', body: '<b>Průvodce úkolem</b>, uložení okolí offline, návody, zpravodaj a chytré vyhledávání funkcí appky.' },
         { title: 'Nastavení', target: '#dock button[onclick*="openSettings"]', body: 'Vzhled (motiv, barvy, prvky na obrazovce), <b>AR &amp; přesnost</b> (FOV, vyhlazení, fúze gyra) a správa zakázek a dat.' },
         { title: 'Základ máš za sebou', body: 'Pokračuj <b>Pokročilou prohlídkou</b> — ukáže nové geodetické nástroje, které appka umí navíc.' }
     ];
 
     var ADV = [
-        { title: 'Pokročilé nástroje', body: 'Co appka umí navíc — sada geodetických nástrojů. Většinu najdeš v sekci <b>Nástroje</b> ve spodní liště.' },
+        { title: 'Pokročilé nástroje', body: 'Co appka umí navíc — sada geodetických nástrojů v sekci <b>Nástroje</b>. Tip: každá dlaždice má vpravo nahoře <b>?</b> s krátkým návodem, hvězdičkou ⭐ si oblíbené držíš nahoře.' },
         {
             title: 'Sekce Nástroje', target: '#dock button[onclick*="tools-modal"]',
-            body: 'Tady jsou pokročilé nástroje: <b>Parcela</b>, Offset bod, Orientace přes bod, Vytyčení přímky, Stopa trasy, kubatury, oměrné a další.',
+            body: 'Nástroje jsou řazené do kategorií: <b>Měření</b>, <b>Vytyčování a náčrt</b>, <b>Katastr a data</b>, <b>AR a kalibrace</b> a <b>Pomůcky</b>.',
             before: function () { closeAllModals(); }
         },
         {
-            title: 'Parcela — výměra a dělení', body: 'Postav polygon parcely (klepáním do mapy, z bodů, zadáním Y,X nebo z GPS). Spočítá <b>výměru</b> (Gauss v S-JTSK) a <b>obvod</b> a umí parcelu <b>rozdělit</b> na zadanou výměru — rovnoběžně s hranou, z vrcholu nebo na N stejných dílů. Lomové body se uloží do zakázky.',
+            title: 'Měření', body: '<b>Brutální GPS</b> (dlouhé průměrování s otočkou 180° — nejpřesnější bod jen z mobilu), <b>Výška objektu</b>, <b>Epochy/monitoring</b> posunů, digitální <b>Zápisníky</b> (nivelace, směry), <b>oměrné</b>, <b>kubatury a vrstevnice</b>, optický dálkoměr, stopa trasy.',
             before: function () { closeAllModals(); var m = document.getElementById('tools-modal'); if (m) m.style.display = 'flex'; }
         },
         {
-            title: 'AR resekce &amp; orientace', body: 'Srovnej sever podle <b>viditelných známých bodů</b> — AR resekce (více bodů) nebo Orientace přes bod. Přesnější azimut, než dává magnetický kompas telefonu.',
+            title: 'AR a kalibrace', body: 'Aby AR sedělo na skutečnost: <b>Srovnat sever</b> (1 bod), <b>Srovnat AR na 2 body</b>, <b>AR resekce</b> a <b>Volné stanovisko</b> (kde stojím?), <b>Protínání vpřed</b>, <b>Rajón</b>, <b>Lokalizace (Helmert)</b> pro usazení měření na dané body.',
             before: function () { closeAllModals(); var m = document.getElementById('tools-modal'); if (m) m.style.display = 'flex'; }
         },
         {
-            title: 'Kubatury a vrstevnice', target: '#tools-modal button[onclick*="openDmtVolume"]',
-            body: 'Z výškopisu ČÚZK <b>DMR 5G</b> spočítá objemy (výkopy/násypy) a vykreslí vrstevnice nad zájmovou plochou.',
+            title: 'Vytyčování a náčrt', body: '<b>Vytyčovací checklist</b> s navigací na bod, <b>Vytyčení přímky</b> (odchylka + staničení), <b>Offset bod</b>, polní <b>náčrt/tachymetrie</b> a <b>Vrstvy/pokládka</b> pro kontrolu vrstev vozovky („Do tabletu: +X cm").',
             before: function () { closeAllModals(); var m = document.getElementById('tools-modal'); if (m) m.style.display = 'flex'; }
         },
         {
-            title: 'Oměrné / kontrolní míry', target: '#tools-modal button[onclick*="openCheckDist"]',
-            body: 'Kontrolní <b>oměrné</b> mezi body — porovná měřenou a vypočtenou délku a hned ukáže odchylku.',
+            title: 'Katastr a data', body: '<b>Vektorový katastr</b> (hranice parcel z ČÚZK v mapě i AR), <b>import projektu/DXF</b>, hromadné <b>stažení bodů z výřezu mapy</b>, <b>podzemní sítě</b> („rentgen do země") a <b>poslat/načíst zakázku</b> souborem .argeo.',
             before: function () { closeAllModals(); var m = document.getElementById('tools-modal'); if (m) m.style.display = 'flex'; }
         },
         {
-            title: 'Import projektu / DXF + katastr', body: 'Naimportuj <b>výkres (DXF)</b> nebo georeferencovaný podklad a zobraz ho v mapě i v <b>AR</b>. <b>Vektorový katastr</b> stáhne hranice parcel přímo z ČÚZK.',
-            before: function () { closeAllModals(); }
+            title: 'Pomůcky', body: '<b>Postupy měření</b> (tahák krok za krokem), <b>Předpisy &amp; odchylky</b> (offline limity z vyhlášek), <b>Urovnání stativu</b> (chytrá libela), <b>Predikce signálu</b> (kolik družic zbude u lesa/v zástavbě), kalkulačka, slovník.',
+            before: function () { closeAllModals(); var m = document.getElementById('tools-modal'); if (m) m.style.display = 'flex'; }
         },
         {
             title: 'AR sedí na terénu (DMR 5G)', body: 'V ovládání mapy zapni vrstvu <b>terén</b> — AR objekty a body si sednou na skutečný výškopis terénu místo ploché roviny. Lepší dojem hloubky ve svahu.',
             before: function () { closeAllModals(); }
         },
-        { title: 'Hotovo!', body: 'Všechny nástroje fungují <b>offline</b> a jsou odpojitelné. Hodně zdaru v terénu. 📐' }
+        {
+            title: 'Průvodce úkolem', body: 'Nevíš, čím začít? V menu <b>Více → Průvodce úkolem</b> ti appka podle činnosti (vytyčování, sběr bodů, úřední body, měření) sama nachystá zakázku a správné nástroje.',
+            before: function () { closeAllModals(); }
+        },
+        { title: 'Hotovo!', body: 'Skoro vše funguje <b>offline</b> a každý nástroj má návod pod <b>?</b> na dlaždici. Hodně zdaru v terénu. 📐' }
     ];
 
     // ---- engine ----------------------------------------------------------------

@@ -131,6 +131,7 @@
         <symbol id="i-news" viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8Z"/></symbol>
         <symbol id="i-scale" viewBox="0 0 24 24"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></symbol>
         <symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+        <symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></symbol>
         <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
         <symbol id="i-drone" viewBox="0 0 24 24"><circle cx="5" cy="5" r="2.5"/><circle cx="19" cy="5" r="2.5"/><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="19" r="2.5"/><rect x="9.5" y="9.5" width="5" height="5" rx="1.5"/><line x1="7" y1="7" x2="9.5" y2="9.5"/><line x1="17" y1="7" x2="14.5" y2="9.5"/><line x1="7" y1="17" x2="9.5" y2="14.5"/><line x1="17" y1="17" x2="14.5" y2="14.5"/></symbol>
     </svg>
@@ -229,6 +230,7 @@
             <button class="menu-btn" onclick="saveForOffline(); toggleMenu();"><svg class="icon"><use href="#i-download"/></svg> Uložit pro offline</button>
             <button class="menu-btn" onclick="startTutorial(); toggleMenu();"><svg class="icon"><use href="#i-bulb"/></svg> Návod a prohlídka</button>
             <button class="menu-btn" onclick="openAbout(); toggleMenu();"><svg class="icon"><use href="#i-file-text"/></svg> O aplikaci</button>
+            <button class="menu-btn" onclick="if(window.openShareApp)openShareApp(); toggleMenu();"><svg class="icon"><use href="#i-share"/></svg> Sdílet aplikaci (QR)</button>
             <!-- Přepínače HUD prvků (info panel, azimut, průměrování GPS) přesunuty do Nastavení → Vzhled;
                  nástroje (Předpisy, Predikce signálu, Kalibrace na ref. bod, Stáhnout body) do sekce Nástroje. -->
             <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
@@ -380,9 +382,12 @@
             <h2 id="det-title" style="margin:0 0 5px 0;">#Bod</h2>
             <div id="det-subtitle" style="font-weight: 600; margin-bottom: 15px; font-size: 14px;">Typ bodu</div>
             <div id="det-body" style="margin-bottom: 15px; font-size: 15px;"></div>
-            <button class="btn btn-warning" id="highlight-btn" onclick="toggleHighlight()"><svg class="icon"><use href="#i-star"/></svg> Zvýraznit bod a navigovat</button>
-            <button class="btn btn-danger" onclick="hideCurrentPoint()"><svg class="icon"><use href="#i-eye-off"/></svg> Skrýt tento bod z AR</button>
-            <button class="btn btn-secondary" id="close-card-btn" style="margin-top: 10px;" onclick="closeBottomSheet()">Zavřít kartu</button>
+            <!-- akce karty: 3 kompaktní tlačítka vedle sebe (šetří výšku karty); „Vytyčeno" záměrně pryč — na to je nástroj Vytyčovací checklist -->
+            <div class="sheet-actions">
+                <button class="btn btn-warning" id="highlight-btn" onclick="toggleHighlight()"><svg class="icon"><use href="#i-star"/></svg><span>Zvýraznit</span></button>
+                <button class="btn btn-danger" onclick="hideCurrentPoint()"><svg class="icon"><use href="#i-eye-off"/></svg><span>Skrýt</span></button>
+                <button class="btn btn-secondary" id="close-card-btn" onclick="closeBottomSheet()"><svg class="icon"><use href="#i-x"/></svg><span>Zavřít</span></button>
+            </div>
         </div>
     </div>
 

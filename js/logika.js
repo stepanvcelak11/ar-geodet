@@ -447,6 +447,34 @@ if ('serviceWorker' in navigator) {
             }
         }
         
+        // Nový bod musí být v AR i mapě vidět HNED (terénní bug: aktivní „Hledat konkrétní
+        // bod" nebo vypnutý filtr „Vlastní" ho tiše schovaly — vypadalo to, že se bod
+        // nevytvořil, a pomohl až restart appky, který hledání resetoval).
+        function ensureFreshPointVisible(pt) {
+            // vzdálenost/azimut spočti hned — jinak se dopočítají až s dalším GPS fixem
+            try {
+                const _anch = !!(window.AGPose && window.AGPose.valid && window.AGPose.originLat != null);
+                const _oLat = _anch ? window.AGPose.originLat : userLat, _oLng = _anch ? window.AGPose.originLng : userLng;
+                if (_oLat != null && _oLng != null) { pt.currentDist = getDistance(_oLat, _oLng, pt.lat, pt.lng); pt.currentBearing = getBearing(_oLat, _oLng, pt.lat, pt.lng); arPoints.sort((a, b) => (a.currentDist || 0) - (b.currentDist || 0)); }
+            } catch (e) {}
+            // aktivní hledání jména by nový bod schovalo → zrušit a říct to na rovinu
+            if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+                const _q = searchQuery; searchQuery = '';
+                const _inp = document.getElementById('s-search-name'); if (_inp) _inp.value = '';
+                quickToast('Zrušeno hledání „' + _q + '", aby byl nový bod vidět.');
+            }
+            // vypnutý filtr „Vlastní" → bod by nebyl vidět v AR ani v mapě
+            if (!filters.custom) {
+                filters.custom = true; setStoredData('arFilters12', JSON.stringify(filters));
+                const _c1 = document.getElementById('f-custom'); if (_c1) _c1.checked = true;
+                const _c2 = document.getElementById('w-f-custom'); if (_c2) _c2.checked = true;
+                quickToast('Zapnut druh bodů „Vlastní" — nový bod by jinak nebyl vidět.');
+            }
+            // bod dál, než kam AR ukazuje → vysvětlit (v mapě bod je)
+            if (pt.currentDist != null && pt.currentDist > arRadius) {
+                quickToast('Bod uložen — je ' + Math.round(pt.currentDist) + ' m daleko, v AR se ukáže do ' + Math.round(arRadius) + ' m. Přibliž se, zvětši viditelnost v Nastavení → AR, nebo bod zvýrazni pro navigaci.');
+            }
+        }
         function saveCustomPoint() {
             const name = document.getElementById('custom-name').value || "Bod"; let inputY = parseFloat(document.getElementById('custom-y').value); let inputX = parseFloat(document.getElementById('custom-x').value); if (isNaN(inputY) || isNaN(inputX)) return alert("Vyplňte souřadnice!"); let krovakY = inputY > 0 ? -inputY : inputY; let krovakX = inputX > 0 ? -inputX : inputX; let wgs84 = proj4("EPSG:5514", "EPSG:4326", [krovakY, krovakX]); let lng = wgs84[0]; let lat = wgs84[1]; var _zin = parseFloat((document.getElementById('custom-z') || {}).value); var vyska = isFinite(_zin) ? Math.round(_zin * 100) / 100 : null;
             // #2/#3: nový bod z GPS průměru srovnej Helmertovou lokalizací staveniště (když je aktivní).
@@ -458,7 +486,7 @@ if ('serviceWorker' in navigator) {
                 }
             } catch (e) {}
             let savedId = editingCustomPointId;
-            if (editingCustomPointId) { const idx = persistentCustomPoints.findIndex(p => p.id === editingCustomPointId); if(idx !== -1) { persistentCustomPoints[idx].name = name; persistentCustomPoints[idx].lat = lat; persistentCustomPoints[idx].lng = lng; persistentCustomPoints[idx].vyska = vyska; } const arIdx = arPoints.findIndex(p => p.id === editingCustomPointId); if (arIdx !== -1) { arPoints[arIdx].name = name; arPoints[arIdx].lat = lat; arPoints[arIdx].lng = lng; arPoints[arIdx].vyska = vyska; if(arPoints[arIdx].element) { arPoints[arIdx].element.remove(); arPoints[arIdx].element = null; } } } else { const newPoint = { id: 'cp_' + Date.now(), name: name, lat: lat, lng: lng, cat: "CUSTOM", type: "custom" }; if (vyska != null) newPoint.vyska = vyska; if (pendingPointAccuracy != null) newPoint.acc = Math.round(pendingPointAccuracy * 100) / 100; newPoint.prov = { origin: (window._agPointOrigin || 'ruc'), ts: Date.now(), acc: (newPoint.acc != null ? newPoint.acc : null), qc: ((window.AGQc && AGQc.lastCode) || null) }; persistentCustomPoints.push(newPoint); arPoints.push({...newPoint, hidden: false}); savedId = newPoint.id; try { if (window.AGJournal) window.AGJournal.commit({ op: 'add', id: newPoint.id, after: newPoint, origin: newPoint.prov.origin }); } catch (e) {} } pendingPointAccuracy = null; window._agPointOrigin = null; setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
+            if (editingCustomPointId) { const idx = persistentCustomPoints.findIndex(p => p.id === editingCustomPointId); if(idx !== -1) { persistentCustomPoints[idx].name = name; persistentCustomPoints[idx].lat = lat; persistentCustomPoints[idx].lng = lng; persistentCustomPoints[idx].vyska = vyska; } const arIdx = arPoints.findIndex(p => p.id === editingCustomPointId); if (arIdx !== -1) { arPoints[arIdx].name = name; arPoints[arIdx].lat = lat; arPoints[arIdx].lng = lng; arPoints[arIdx].vyska = vyska; if(arPoints[arIdx].element) { arPoints[arIdx].element.remove(); arPoints[arIdx].element = null; } } } else { const newPoint = { id: 'cp_' + Date.now(), name: name, lat: lat, lng: lng, cat: "CUSTOM", type: "custom" }; if (vyska != null) newPoint.vyska = vyska; if (pendingPointAccuracy != null) newPoint.acc = Math.round(pendingPointAccuracy * 100) / 100; newPoint.prov = { origin: (window._agPointOrigin || 'ruc'), ts: Date.now(), acc: (newPoint.acc != null ? newPoint.acc : null), qc: ((window.AGQc && AGQc.lastCode) || null) }; persistentCustomPoints.push(newPoint); const _arNew = {...newPoint, hidden: false}; arPoints.push(_arNew); savedId = newPoint.id; try { ensureFreshPointVisible(_arNew); } catch (e) {} try { if (window.AGJournal) window.AGJournal.commit({ op: 'add', id: newPoint.id, after: newPoint, origin: newPoint.prov.origin }); } catch (e) {} } pendingPointAccuracy = null; window._agPointOrigin = null; setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
             saveNewPointDoc(savedId);
             drawAllMarkersOnMap(); closeCustomModal(); initARMarkers(); if (userLat && userLng) { updateInfoPanel(); } fixAppLayout();
             // BEZ GPS FIXU (offline/uvnitř): mapa by mohla mířit úplně jinam a v AR se bez
