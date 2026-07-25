@@ -109,6 +109,8 @@ const ASSETS_TO_CACHE = [
     './js/zapisnik.js',
     './js/tools-plus.js',
     './js/qc-engine.js',
+    './js/ucty.js',
+    './js/ucty-admin.js',
     './css/qc-engine.css',
     './css/tools-polish.css',
     './js/tutorial-pro.js',
