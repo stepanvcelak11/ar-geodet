@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  — mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v174';   // integrace 6 (pocasi v173 + store-prep v172 + ucty v171 + audit v168)
+const SHELL_CACHE = 'argeodet-shell-v175';   // fix scroll-chain (karta bodu vyjizdela pri scrollu v modalech) + doladeni tutorialu; soubezne bezi i prace na uctech (auth-first)
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -18,7 +18,7 @@ const ASSETS_TO_CACHE = [
     './index.html',
     './manifest.json',
     './icon.svg',
-    './css/style.css?v=173', // verze v adrese shodná s <link> v index.html — nemíchat se starou cache
+    './css/style.css?v=175', // verze v adrese shodná s <link> v index.html — nemíchat se starou cache
     './css/vylepseni.css',
     './css/zpravodaj.css',
     './data/zpravodaj.json',
