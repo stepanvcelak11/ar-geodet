@@ -57,6 +57,8 @@
     var LS_TOK = 'agFirmaTok_v1';      // cloud: {token, userId} tohoto zařízení
     var LS_OFF = 'agFirmaOff_v1';      // cloud: offline ověřovadla {userId:{salt,iters,hash}}
     var LS_SYNC = 'agFirmaSync_v1';    // cloud: ukazatel odeslaných událostí užívání {lastSeq}
+    var LS_GUEST = 'agGuest_v1';       // režim bez přihlášení {ts} — velmi omezené funkce
+    var LS_PROF = 'agFirmy_v1';        // uložené firmy tohoto zařízení [{key,label,code,cloud,ts,snap}]
     var STYLE_ID = 'ag-ucty-style';
     var DB = 'argeodet-usage', STORE = 'ev', VER = 1;
     // adresa API (Cloudflare Worker, cloud/worker.js). Konstanta je jen výchozí —
@@ -98,6 +100,25 @@
     }
 
     // ------------------------------------------------------------------
+    // Režim BEZ PŘIHLÁŠENÍ (host): appka jinak vyžaduje přihlášení (brána
+    // při startu). Host smí jen základní měření a vzhled — vše ostatní
+    // (Nástroje, Více, záložky dat/údržby) je skryté.
+    // ------------------------------------------------------------------
+    var GUEST_ALLOW = { 'dock.novybod': 1, 'dock.body': 1, 'dock.nastaveni': 1 };
+    function isGuest() {
+        if (getFirm()) return false;
+        try { return !!localStorage.getItem(LS_GUEST); } catch (e) { return false; }
+    }
+    function enterGuest() {
+        try { localStorage.setItem(LS_GUEST, JSON.stringify({ ts: Date.now() })); } catch (e) {}
+        var g = document.getElementById('ag-gate'); if (g) g.remove();
+        applyPerms();
+    }
+    function clearGuest() {
+        try { localStorage.removeItem(LS_GUEST); } catch (e) {}
+    }
+
+    // ------------------------------------------------------------------
     // Úložiště konfigurace (localStorage, SUROVÉ klíče — bez prefixu zakázky)
     // ------------------------------------------------------------------
     function getFirm() {
@@ -113,6 +134,8 @@
     }
     function saveFirm(f) {
         try { localStorage.setItem(LS_FIRM, JSON.stringify(f)); } catch (e) {}
+        clearGuest();
+        rememberCurrentFirm();
         applyPerms();
     }
     function getSess() {
@@ -130,7 +153,11 @@
     }
     function isAdmin() { var u = currentUser(); return !!(u && u.role === 'admin'); }
     function can(key) {
-        var f = getFirm(); if (!f) return true;          // režim vypnut -> vše povoleno
+        var f = getFirm();
+        if (!f) {
+            if (isGuest()) return !!GUEST_ALLOW[key];    // host: jen základní měření a vzhled
+            return true;                                  // před branou / po nouzovém resetu
+        }
         var u = currentUser(); if (!u) return false;      // nepřihlášen -> nic (stejně kryje overlay)
         if (u.role === 'admin') return true;
         var p = f.perms && f.perms[u.role];
@@ -233,6 +260,7 @@
             fetchedTs: Date.now()
         };
         try { localStorage.setItem(LS_FIRM, JSON.stringify(f)); } catch (e) {}
+        clearGuest();
         applyPerms();
     }
 
@@ -243,6 +271,8 @@
         if (data.offline) saveOff(data.user.id, data.offline);
         setSess({ userId: data.user.id, ts: Date.now() });
         try { localStorage.setItem('arSurveyor', data.user.name); } catch (e) {}
+        rememberCurrentFirm();
+        var g = document.getElementById('ag-gate'); if (g) g.remove();
     }
 
     // obnova konfigurace (perms/uživatelé se mohli změnit na jiném zařízení)
@@ -322,6 +352,54 @@
         }).catch(function () { _syncBusy = false; });
     }
     window.addEventListener('online', function () { setTimeout(function () { syncUsage(); refreshConfig(); }, 1500); });
+
+    // ------------------------------------------------------------------
+    // PROFILY FIREM — jedno zařízení může znát víc firem (např. admin
+    // vlastní + zákaznická). Profil = záloha klíčů firmy (konfigurace,
+    // token, offline ověřovadla, ukazatel synchronizace) — ZÁMĚRNĚ bez
+    // aktivní session: po přepnutí se vždy znovu přihlašuje (heslo/PIN),
+    // aby si kdokoli u telefonu nepřepnul do cizí firmy bez ověření.
+    // Body a zakázky se s firmou nepřepínají — zůstávají v zařízení.
+    // ------------------------------------------------------------------
+    var PROF_KEYS = [LS_FIRM, LS_TOK, LS_OFF, LS_SYNC];
+    function profileKeyOf(f) { return f.cloud ? ('c:' + (f.code || '?')) : ('l:' + (f.firmName || 'Moje firma')); }
+    function listProfiles() {
+        try { var a = JSON.parse(localStorage.getItem(LS_PROF) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+    }
+    function saveProfiles(a) { try { localStorage.setItem(LS_PROF, JSON.stringify(a)); } catch (e) {} }
+    // ulož/obnov AKTUÁLNÍ firmu v seznamu profilů (volá se při každém uložení firmy)
+    function rememberCurrentFirm() {
+        var f = null;
+        try { f = JSON.parse(localStorage.getItem(LS_FIRM) || 'null'); } catch (e) {}
+        if (!f || !f.enabled) return;
+        var snap = {};
+        PROF_KEYS.forEach(function (k) {
+            try { var v = localStorage.getItem(k); if (v != null) snap[k] = v; } catch (e) {}
+        });
+        var key = profileKeyOf(f);
+        var a = listProfiles().filter(function (p) { return p && p.key !== key; });
+        a.unshift({ key: key, label: f.firmName || 'Moje firma', code: f.code || null, cloud: !!f.cloud, ts: Date.now(), snap: snap });
+        saveProfiles(a.slice(0, 10));
+    }
+    function switchProfile(key) {
+        var a = listProfiles(), p = null;
+        for (var i = 0; i < a.length; i++) if (a[i] && a[i].key === key) p = a[i];
+        if (!p || !p.snap) return false;
+        rememberCurrentFirm();                       // ať se dá vrátit zpět
+        PROF_KEYS.forEach(function (k) {
+            try { if (p.snap[k] != null) localStorage.setItem(k, p.snap[k]); else localStorage.removeItem(k); } catch (e) {}
+        });
+        setSess(null);                               // vždy nové přihlášení
+        clearGuest();
+        var g = document.getElementById('ag-gate'); if (g) g.remove();
+        applyPerms();
+        if (getFirm()) showLogin(false);
+        try { window.dispatchEvent(new CustomEvent('agucty:firmswitch')); } catch (e) {}
+        return true;
+    }
+    function removeProfile(key) {
+        saveProfiles(listProfiles().filter(function (p) { return p && p.key !== key; }));
+    }
 
     // ------------------------------------------------------------------
     // Sledování užívání (IndexedDB, append-only — stejný vzor jako journal.js)
@@ -440,7 +518,8 @@
     function applyPerms() {
         var f = getFirm();
         var u = currentUser();
-        var restrict = !!(f && u && u.role !== 'admin');
+        var guest = !f && isGuest();
+        var restrict = !!(f && u && u.role !== 'admin') || guest;
 
         // 1) dok
         try {
@@ -524,7 +603,23 @@
         } catch (e) {}
 
         try { document.body.classList.toggle('ag-firm-restricted', restrict); } catch (e) {}
+        try { document.body.classList.toggle('ag-guest', guest); } catch (e) {}
+        syncGuestPill(guest);
         try { window.dispatchEvent(new CustomEvent('agucty:perms')); } catch (e) {}
+    }
+
+    // trvalý štítek omezeného režimu (klepnutí = zpět na přihlašovací bránu)
+    function syncGuestPill(on) {
+        var el = document.getElementById('ag-guest-pill');
+        if (!on) { if (el) el.remove(); return; }
+        if (el || !document.body) return;
+        injectStyles();
+        el = document.createElement('button');
+        el.type = 'button';
+        el.id = 'ag-guest-pill';
+        el.innerHTML = 'Omezený režim · <b>přihlásit</b>';
+        el.onclick = function () { showGate(); };
+        document.body.appendChild(el);
     }
 
     // mapa id injektovaného nástroje -> kategorie (pro posouzení oblíbených dlaždic);
@@ -544,7 +639,7 @@
     wrapRegister();
 
     // mřížku Nástrojů překreslují field-tools/tools-plus → periodicky srovnat
-    function tick() { wrapRegister(); if (getFirm()) applyPerms(); }
+    function tick() { wrapRegister(); if (getFirm() || isGuest()) applyPerms(); gateCheck(); }
 
     // ------------------------------------------------------------------
     // Přihlašovací / zamykací obrazovka
@@ -558,8 +653,8 @@
         st.textContent = [
             '#ag-login{position:fixed;inset:0;z-index:999999;background:var(--bg,#0d1117);display:flex;flex-direction:column;',
             '  align-items:center;justify-content:center;gap:14px;padding:24px calc(16px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));}',
-            '#ag-login .agl-logo{font:800 22px/1.2 var(--font-display,system-ui);color:var(--accent,#2f9e74);letter-spacing:.02em;}',
-            '#ag-login .agl-firm{font:600 14px/1.3 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
+            '#ag-login .agl-logo,#ag-gate .agl-logo{font:800 22px/1.2 var(--font-display,system-ui);color:var(--accent,#2f9e74);letter-spacing:.02em;}',
+            '#ag-login .agl-firm,#ag-gate .agl-firm{font:600 14px/1.3 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);max-width:340px;text-align:center;}',
             '#ag-login .agl-users{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:420px;max-height:38vh;overflow-y:auto;}',
             '#ag-login .agl-user{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--glass-bg,rgba(255,255,255,0.06));',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.12));border-radius:14px;padding:12px 14px;min-width:92px;cursor:pointer;color:var(--text,#e6e8eb);}',
@@ -571,12 +666,32 @@
             '#ag-login .agl-pinbox.on{display:flex;}',
             '#ag-login input.agl-pin{font:700 22px/1 var(--font-display,system-ui);letter-spacing:.35em;text-align:center;width:190px;',
             '  background:var(--glass-bg,rgba(255,255,255,0.06));border:1px solid var(--glass-border,rgba(255,255,255,0.2));border-radius:12px;color:var(--text,#e6e8eb);padding:12px 8px;}',
-            '#ag-login .agl-err{color:var(--danger,#e5534b);font:600 13px/1.3 var(--font-ui,system-ui);min-height:17px;}',
-            '#ag-login .agl-btn{border:1px solid var(--accent-line,rgba(47,158,116,0.42));background:var(--accent,#2f9e74);color:#fff;',
+            '#ag-login .agl-err,#ag-gate .agl-err{color:var(--danger,#e5534b);font:600 13px/1.3 var(--font-ui,system-ui);min-height:17px;}',
+            '#ag-login .agl-btn,#ag-gate .agl-btn{border:1px solid var(--accent-line,rgba(47,158,116,0.42));background:var(--accent,#2f9e74);color:#fff;',
             '  border-radius:12px;padding:12px 26px;font:700 15px/1 var(--font-ui,system-ui);cursor:pointer;}',
-            '#ag-login .agl-ghost{background:transparent;color:var(--text-muted,#9aa1ac);border:none;font:500 12.5px/1 var(--font-ui,system-ui);cursor:pointer;padding:8px;}',
+            '#ag-login .agl-ghost,#ag-gate .agl-ghost{background:transparent;color:var(--text-muted,#9aa1ac);border:none;font:500 12.5px/1 var(--font-ui,system-ui);cursor:pointer;padding:8px;}',
             '#ag-login.agl-shake .agl-pinbox{animation:aglshake .35s;}',
-            '@keyframes aglshake{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}'
+            '@keyframes aglshake{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}',
+            // brána při startu (výběr: přihlásit / založit / omezený režim)
+            '#ag-gate{position:fixed;inset:0;z-index:999999;background:var(--bg,#0d1117);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;',
+            '  padding:calc(24px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));overflow-y:auto;}',
+            '#ag-gate .agg-sec{font:700 11px/1 var(--font-ui,system-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);margin-top:4px;}',
+            '#ag-gate .agg-prof{display:flex;flex-direction:column;align-items:center;gap:3px;width:min(320px,86vw);background:var(--glass-bg,rgba(255,255,255,0.06));',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.12));border-radius:14px;padding:10px 14px;cursor:pointer;color:var(--text,#e6e8eb);}',
+            '#ag-gate .agg-prof b{font:700 14px/1.2 var(--font-ui,system-ui);}',
+            '#ag-gate .agg-prof span{font:500 11px/1.2 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
+            '#ag-gate .agg-box{display:none;flex-direction:column;gap:8px;width:min(320px,86vw);}',
+            '#ag-gate .agg-box.on{display:flex;}',
+            '#ag-gate .agg-box input{font:600 15px/1.2 var(--font-ui,system-ui);text-align:center;background:var(--glass-bg,rgba(255,255,255,0.06));',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.2));border-radius:12px;color:var(--text,#e6e8eb);padding:12px 8px;}',
+            '#ag-gate .agg-alt{border:1px solid var(--glass-border,rgba(255,255,255,0.18));background:transparent;color:var(--text,#e6e8eb);',
+            '  border-radius:12px;padding:11px 22px;font:600 13.5px/1 var(--font-ui,system-ui);cursor:pointer;}',
+            '#ag-gate .agg-note{max-width:320px;text-align:center;font:500 11.5px/1.45 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
+            // štítek omezeného režimu
+            '#ag-guest-pill{position:fixed;top:calc(env(safe-area-inset-top) + 8px);left:50%;transform:translateX(-50%);z-index:9500;',
+            '  background:rgba(13,17,23,0.82);border:1px solid var(--glass-border,rgba(255,255,255,0.2));border-radius:999px;',
+            '  color:var(--text-muted,#9aa1ac);font:500 11.5px/1 var(--font-ui,system-ui);padding:7px 13px;cursor:pointer;}',
+            '#ag-guest-pill b{color:var(--accent,#2f9e74);font-weight:700;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
@@ -711,12 +826,14 @@
                     'účty a oprávnění se smažou. BODY A ZAKÁZKY ZŮSTANOU.\n\nPro nouzové vypnutí napiš RESET:');
             var v = prompt(msg, '');
             if (v === 'RESET') {
+                removeProfile(profileKeyOf(f));
                 try { localStorage.removeItem(LS_FIRM); localStorage.removeItem(LS_TOK); localStorage.removeItem(LS_OFF); localStorage.removeItem(LS_SYNC); } catch (e) {}
                 setSess(null);
                 ov.remove();
                 applyPerms();
                 alert(cloud ? 'Zařízení odpojeno od firmy. Body a zakázky zůstaly beze změny.'
                     : 'Firemní režim vypnut. Body a zakázky zůstaly beze změny.');
+                showGate();
             }
         });
 
@@ -731,6 +848,98 @@
     var _lastUserId = null;
     function getSessLastUser() { return _lastUserId; }
 
+    // ------------------------------------------------------------------
+    // BRÁNA při startu: bez firmy se appka neotevře — uživatel se přihlásí
+    // (kód firmy), založí firmu (průvodce v ucty-admin.js), přepne na firmu,
+    // kterou zařízení už zná, nebo pokračuje v omezeném režimu bez přihlášení.
+    // ------------------------------------------------------------------
+    function showGate() {
+        if (getFirm()) { showLogin(false); return; }   // firma už nastavena → rovnou přihlášení
+        injectStyles();
+        var old = document.getElementById('ag-gate'); if (old) old.remove();
+        var ov = document.createElement('div');
+        ov.id = 'ag-gate';
+        var profs = listProfiles();
+        var profHtml = '';
+        if (profs.length) {
+            profHtml = '<div class="agg-sec">Firmy na tomto zařízení</div>' +
+                profs.map(function (p) {
+                    return '<button type="button" class="agg-prof" data-key="' + esc(p.key) + '">' +
+                        '<b>' + esc(p.label) + '</b>' +
+                        '<span>' + (p.cloud ? 'cloud · kód ' + esc(p.code || '?') : 'jen toto zařízení') + '</span></button>';
+                }).join('');
+        }
+        ov.innerHTML =
+            '<div class="agl-logo">AR Geodet</div>' +
+            '<div class="agl-firm">Přihlas se ke své firmě, nebo pokračuj bez přihlášení s omezenými funkcemi.</div>' +
+            profHtml +
+            '<div class="agg-box" id="agg-join">' +
+            '  <input type="text" id="agg-code" maxlength="6" placeholder="Kód firmy" autocapitalize="characters" autocomplete="off" style="text-transform:uppercase;letter-spacing:.15em;">' +
+            '  <input type="text" id="agg-name" maxlength="40" placeholder="Jméno" autocomplete="username">' +
+            '  <input type="password" id="agg-pass" maxlength="64" placeholder="Heslo" autocomplete="current-password">' +
+            '  <div class="agl-err" id="agg-err"></div>' +
+            '  <button type="button" class="agl-btn" id="agg-go">Přihlásit</button>' +
+            '</div>' +
+            '<button type="button" class="agl-btn" id="agg-show-join">Přihlásit se (mám kód firmy)</button>' +
+            '<button type="button" class="agg-alt" id="agg-new">Založit firmu / další možnosti</button>' +
+            '<button type="button" class="agl-ghost" id="agg-guest">Pokračovat bez přihlášení (omezený režim)</button>' +
+            '<div class="agg-note">Bez přihlášení funguje jen základní měření bodů a vzhled. Nástroje, export, zakázky a nastavení dat vyžadují firemní účet.</div>';
+        document.body.appendChild(ov);
+
+        var errEl = ov.querySelector('#agg-err');
+        ov.addEventListener('click', function (e) {
+            var pb = e.target.closest ? e.target.closest('.agg-prof') : null;
+            if (pb) { switchProfile(pb.getAttribute('data-key')); return; }
+        });
+        ov.querySelector('#agg-show-join').onclick = function () {
+            this.style.display = 'none';
+            ov.querySelector('#agg-join').classList.add('on');
+            setTimeout(function () { try { ov.querySelector('#agg-code').focus(); } catch (e) {} }, 50);
+        };
+        var _busy = false;
+        ov.querySelector('#agg-go').onclick = function () {
+            if (_busy) return;
+            var code = (ov.querySelector('#agg-code').value || '').trim().toUpperCase();
+            var name = (ov.querySelector('#agg-name').value || '').trim();
+            var pass = ov.querySelector('#agg-pass').value || '';
+            if (!code || !name || !pass) { errEl.textContent = 'Vyplň kód firmy, jméno i heslo.'; return; }
+            _busy = true;
+            errEl.textContent = 'Ověřuji…';
+            cloudFetch('/login', { method: 'POST', api: DEFAULT_API, body: { code: code, name: name, password: pass } }).then(function (r) {
+                _busy = false;
+                if (r.ok && r.data && r.data.token) {
+                    adoptLogin(r.data, DEFAULT_API);   // odstraní i bránu
+                    usageLog('login', 'join');
+                    try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: r.data.user } })); } catch (e) {}
+                    return;
+                }
+                errEl.textContent = r.status === 0
+                    ? 'Server není dosažitelný — bez internetu se lze přihlásit jen k firmě, kterou toto zařízení už zná.'
+                    : ((r.data && r.data.error) || ('Přihlášení selhalo (' + r.status + ').'));
+            });
+        };
+        var passInp = ov.querySelector('#agg-pass');
+        passInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') ov.querySelector('#agg-go').click(); });
+        ov.querySelector('#agg-new').onclick = function () {
+            if (window.AGUctyAdmin && typeof AGUctyAdmin.wizard === 'function') {
+                ov.remove();
+                AGUctyAdmin.wizard();   // zavření průvodce bez dokončení vrátí bránu (gateCheck)
+            } else {
+                errEl.textContent = 'Modul administrace (ucty-admin.js) není načtený.';
+            }
+        };
+        ov.querySelector('#agg-guest').onclick = function () { enterGuest(); };
+    }
+
+    // pojistka: bez firmy, bez hosta a bez otevřené brány/průvodce → ukázat bránu
+    function gateCheck() {
+        if (getFirm() || isGuest()) return;
+        if (document.getElementById('ag-gate') || document.getElementById('ag-login')) return;
+        var m = document.getElementById('agfa-modal');
+        if (m && m.style.display === 'flex') return;   // běží průvodce založením firmy
+        showGate();
+    }
+
     function lock() {
         var u = currentUser();
         _lastUserId = u ? u.id : null;
@@ -739,7 +948,9 @@
     function logout() {
         _lastUserId = null;
         setSess(null);
-        if (getFirm()) showLogin(false); else applyPerms();
+        if (getFirm()) showLogin(false);
+        else if (isGuest()) applyPerms();
+        else showGate();
     }
 
     // ------------------------------------------------------------------
@@ -765,6 +976,7 @@
     function init() {
         var f = getFirm();
         if (f) {
+            rememberCurrentFirm();                 // ať je aktivní firma vždy v profilech
             var u = currentUser();
             if (!u) showLogin(false);
             else {
@@ -775,6 +987,10 @@
                 setTimeout(refreshConfig, 2500);   // oprávnění/uživatelé se mohli změnit jinde
                 setTimeout(syncUsage, 9000);       // odešli, co se nasbíralo offline
             }
+        } else if (isGuest()) {
+            applyPerms();                          // omezený režim bez přihlášení
+        } else {
+            showGate();                            // bez firmy se appka neotevře
         }
         // periodické srovnání UI (mřížku Nástrojů překreslují jiné moduly) + auto-zámek
         // + jednou za ~2 minuty synchronizace fronty užívání (cloud)
@@ -799,6 +1015,15 @@
         login: function () { showLogin(false); },
         lock: lock,
         logout: logout,
+        // brána + host + profily firem
+        showGate: showGate,
+        isGuest: isGuest,
+        enterGuest: enterGuest,
+        listProfiles: listProfiles,
+        switchProfile: switchProfile,
+        removeProfile: removeProfile,
+        rememberCurrentFirm: rememberCurrentFirm,
+        profileKeyOf: profileKeyOf,
         hashPin: hashPin,
         makeSalt: makeSalt,
         usageLog: usageLog,
