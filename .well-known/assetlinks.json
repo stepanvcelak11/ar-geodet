@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "cz.stepanvcelak.argeodet",
+      "sha256_cert_fingerprints": [
+        "NAHRAD_OTISKEM_SHA256_Z_PLAY_CONSOLE_APP_SIGNING"
+      ]
+    }
+  }
+]
