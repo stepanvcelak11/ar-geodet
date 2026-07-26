@@ -593,16 +593,20 @@
         _arRAF = requestAnimationFrame(arLoop);
         var svg = _arSvg; if (!svg) return;
         var oLL = originLL();
-        var open = _list.filter(function (z) { return !z.resolved; });
-        if (!open.length || !oLL || (typeof viewMode !== 'undefined' && viewMode === 'map') || !window._arProj) {
+        // BATERIE: nejdřív jen POČET nevyřešených (bez alokace pole) — vlastní seznam
+        // se staví teprve když se opravdu kreslí. Dřív tu byl .filter() každý snímek.
+        var openN = 0;
+        for (var _i = 0; _i < _list.length; _i++) if (!_list[_i].resolved) openN++;
+        if (!openN || !oLL || (typeof viewMode !== 'undefined' && viewMode === 'map') || !window._arProj) {
             if (svg.childNodes.length) svg.innerHTML = ''; _lastH = null; return;
         }
         var pj = window._arProj;
         var hd = (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null;
         if (hd == null) { if (svg.childNodes.length) svg.innerHTML = ''; _lastH = null; return; }
         var pitch = pj.pitch || 0;
-        if (_lastH != null && Math.abs(hd - _lastH) < 0.3 && Math.abs(pitch - (_lastP || 0)) < 0.3 && _lastLat === oLL.lat && _lastLng === oLL.lng && _lastN === open.length) return;
-        _lastH = hd; _lastP = pitch; _lastLat = oLL.lat; _lastLng = oLL.lng; _lastN = open.length;
+        if (_lastH != null && Math.abs(hd - _lastH) < 0.3 && Math.abs(pitch - (_lastP || 0)) < 0.3 && _lastLat === oLL.lat && _lastLng === oLL.lng && _lastN === openN) return;
+        _lastH = hd; _lastP = pitch; _lastLat = oLL.lat; _lastLng = oLL.lng; _lastN = openN;
+        var open = _list.filter(function (z) { return !z.resolved; });
         var rad = (typeof arRadius !== 'undefined' && arRadius) ? arRadius : 150;
         var html = '';
         open.forEach(function (z) {
@@ -626,6 +630,24 @@
         svg.innerHTML = html;
     }
     function startAr() { if (ensureArSvg() && !_arRAF) _arRAF = requestAnimationFrame(arLoop); }
+    function stopAr() {
+        if (_arRAF) { try { cancelAnimationFrame(_arRAF); } catch (e) {} _arRAF = null; }
+        try { if (_arSvg && _arSvg.childNodes.length) _arSvg.innerHTML = ''; } catch (e) {}
+        _lastH = null;
+    }
+    // BATERIE: smyčka smí běžet jen když je co kreslit A je vidět AR. Dřív ji tick()
+    // rozjížděl bezpodmínečně a nešla zastavit (chyběl cancelAnimationFrame), takže
+    // 60 snímků/s běželo celý den i uživateli, který závady nikdy nepoužil.
+    function syncAr() {
+        var want = false;
+        try {
+            want = (typeof appStarted === 'undefined' || appStarted)
+                && document.visibilityState === 'visible'
+                && (typeof viewMode === 'undefined' || viewMode !== 'map')
+                && _list.some(function (z) { return !z.resolved; });
+        } catch (e) { want = false; }
+        if (want) startAr(); else stopAr();
+    }
 
     // ==== EXPORTY =====================================================================
     function download(name, mime, text) {
@@ -733,7 +755,7 @@
             hookLongPress();
             // mapová vrstva po startu mapy
             if (!_mapGroup && getMap()) drawMap();
-            startAr();
+            syncAr();
         } catch (e) {}
     }
     function openTool() { openList(); }

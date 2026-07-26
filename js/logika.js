@@ -269,6 +269,15 @@ if ('serviceWorker' in navigator) {
 
         async function requestWakeLock() { if ('wakeLock' in navigator && visSettings.wakeLockEnabled) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } }
         document.addEventListener('visibilitychange', () => { if (wakeLock !== null && document.visibilityState === 'visible' && visSettings.wakeLockEnabled) { requestWakeLock(); } });
+        // BATERIE: displej je největší spotřebič a wake lock se dřív NIKDY neuvolnil —
+        // zapomenutý telefon v kapse svítil, dokud nedošla baterie. Politiku (kdy pustit,
+        // kdy zase vzít) drží js/power-save.js; tady je jen bezpečné uvolnění/obnova.
+        // Měřicí moduly (brutální GPS, DGPS…) si drží VLASTNÍ wake lock, takže uvolnění
+        // tohoto jim měření nepřeruší — displej zůstane rozsvícený po dobu měření.
+        function releaseWakeLock() { try { if (wakeLock) { wakeLock.release(); } } catch (e) {} wakeLock = null; }
+        window.agRequestWakeLock = requestWakeLock;
+        window.agReleaseWakeLock = releaseWakeLock;
+        window.agWakeLockHeld = function () { return wakeLock !== null; };
 
         function setMeasurePoint(type) { if (!userLat || !userLng) return agInfo("Hledám GPS pozici. Počkejte chvíli..."); const pt = { lat: userLat, lng: userLng, alt: userAlt }; let altStr = "Výška: nedostupná"; if (pt.alt !== null) { let bpv = pt.alt - getGeoidUndulation(pt.lat, pt.lng); altStr = `Výška (Bpv): ${bpv.toFixed(1)} m`; } let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); let coordsStr = `Y: ${Math.abs(sjtsk[0]).toFixed(2)} | X: ${Math.abs(sjtsk[1]).toFixed(2)}<br><span style="opacity:0.7;">${altStr}</span>`; if (type === 'A') { measA = pt; document.getElementById('meas-a-coords').innerHTML = coordsStr; } else { measB = pt; document.getElementById('meas-b-coords').innerHTML = coordsStr; } calcMeasure(); }
         function calcMeasure() { if (!measA || !measB) return; const hDist = getDistance(measA.lat, measA.lng, measB.lat, measB.lng); document.getElementById('meas-horiz').innerText = `${hDist.toFixed(2)} m`; if (measA.alt !== null && measB.alt !== null) { const elev = measB.alt - measA.alt; const slant = Math.sqrt(hDist * hDist + elev * elev); document.getElementById('meas-elev').innerText = `${elev > 0 ? '+' : ''}${elev.toFixed(2)} m`; document.getElementById('meas-slant').innerText = `${slant.toFixed(2)} m`; } else { document.getElementById('meas-elev').innerText = "Nedostupné"; document.getElementById('meas-slant').innerText = "Nedostupné"; } }
