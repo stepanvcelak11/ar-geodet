@@ -83,8 +83,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=201">
-    <link rel="stylesheet" href="css/style.css?v=201">
+    <link rel="stylesheet" href="css/tokens.css?v=202">
+    <link rel="stylesheet" href="css/style.css?v=202">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -101,7 +101,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=201">
+    <link rel="stylesheet" href="css/vylepseni.css?v=202">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -942,6 +942,20 @@
     <script defer src="js/brifink.js"></script>
     <!-- HLASOVÉ POZNÁMKY s georazítkem (odpojitelné: smaž tento řádek + js/hlasovky.js) — namluvené poznámky s časem, S-JTSK polohou a nejbližším bodem; sbírá je Deník dne -->
     <script defer src="js/hlasovky.js"></script>
+    <!-- GNSS PŘEDPOVĚĎ (odpojitelné: smaž tento řádek + js/gnss-forecast.js) — „počasí pro GPS": PDOP po hodinách z TLE + Kp index NOAA; potřebuje js/lib/satellite-5.0.0.min.js -->
+    <script defer src="js/gnss-forecast.js"></script>
+    <!-- SLUNCE A SVĚTLO (odpojitelné: smaž tento řádek + js/slunce.js) — východ/západ, zbývá světla, stíny, protisvětlo na záměře; vystavuje window.AGSun -->
+    <script defer src="js/slunce.js"></script>
+    <!-- CO S SEBOU (odpojitelné: smaž tento řádek + js/checklist.js) — ranní checklist podle typu práce a počasí -->
+    <script defer src="js/checklist.js"></script>
+    <!-- KDE MÁM AUTO (odpojitelné: smaž tento řádek + js/kde-je.js) — značky auto/báze/stativ + navigační šipka -->
+    <script defer src="js/kde-je.js"></script>
+    <!-- KNIHA JÍZD (odpojitelné: smaž tento řádek + js/kniha-jizd.js) — cesťák po zakázkách + CSV export -->
+    <script defer src="js/kniha-jizd.js"></script>
+    <!-- KOREKCE MĚŘENÍ (odpojitelné: smaž tento řádek + js/korekce.js) — pásmo, ppm dálkoměru, refrakce; meteo z cache Počasí -->
+    <script defer src="js/korekce.js"></script>
+    <!-- BEZPEČNOST V TERÉNU (odpojitelné: smaž tento řádek + js/bezpecnost.js) — rizika dne, tiché připomínky, poslání polohy; čte window.AGSun ze js/slunce.js -->
+    <script defer src="js/bezpecnost.js"></script>
     <!-- USADIT AR (odpojitelné) — průvodce místo 7 kalibračních dlaždic + „Teď se hodí" -->
     <script defer src="js/usadit-ar.js"></script>
     <!-- ROZCESTNÍKY NÁSTROJŮ — Bod výpočtem / Signál GNSS / Příručka (odpojitelné: smaž tento řádek + js/tools-hub.js) -->

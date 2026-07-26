@@ -205,7 +205,14 @@
         prirucka: 'prirucka predpisy postupy slovnik odchylky kody lhuty navody tahak pojmy zkratky',
         zpravodaj: 'zpravodaj zpravy novinky clanky geodezie',
         kos: 'kos smazane body obnovit odpadky',
-        zaloha: 'zaloha export import obnova dat json'
+        zaloha: 'zaloha export import obnova dat json',
+        'gnss-forecast': 'gnss predpoved kdy merit pdop dop okno planovani ionosfera kp bourka geometrie druzic pocasi pro gps',
+        slunce: 'slunce svetlo zapad vychod soumrak stin protisvetlo oslneni tma azimut zlata hodina',
+        checklist: 'checklist co s sebou baleni vybaveni seznam rano nezapomen vzit',
+        'kde-je': 'auto parkovani kde stoji baze stativ material najit zpatky navigace znacka',
+        'kniha-jizd': 'kniha jizd cestak kilometry km naklady cestovni nahrady tachometr vozidlo ucetni',
+        korekce: 'korekce ppm pasmo teplota tlak vlhkost refrakce zakriveni edm dalkomer atmosfericka oprava pruves',
+        bezpecnost: 'bezpecnost bozp riziko vedro pitny rezim bourka blesk vesta soumrak mraz vitr sos poloha pomoc'
     };
     function loadClosed() { try { var a = JSON.parse(localStorage.getItem(COLL_KEY)); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
     function saveClosed(a) { try { localStorage.setItem(COLL_KEY, JSON.stringify(a)); } catch (e) {} }
