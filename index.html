@@ -83,8 +83,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=187">
-    <link rel="stylesheet" href="css/style.css?v=187">
+    <link rel="stylesheet" href="css/tokens.css?v=188">
+    <link rel="stylesheet" href="css/style.css?v=188">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -101,7 +101,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=187">
+    <link rel="stylesheet" href="css/vylepseni.css?v=188">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -844,6 +844,10 @@
     <script defer src="js/tutorial-pro.js"></script>
     <!-- NÁSTROJE PLUS (odpojitelné: smaž tento řádek + js/tools-plus.js) — nápověda „?" u dlaždic + oblíbené nahoře -->
     <script defer src="js/tools-plus.js"></script>
+    <!-- JEDNODUCHÝ PANEL NÁSTROJŮ + TYP PRÁCE (odpojitelné: smaž tento řádek + js/tools-simple.js) — přepínač v Nastavení → Vzhled -->
+    <script defer src="js/tools-simple.js"></script>
+    <!-- POKRAČOVAT, KDE JSEM SKONČIL (odpojitelné: smaž tento řádek + js/pokracovat.js) — tlačítko na úvodu, pamatuje poslední nástroj -->
+    <script defer src="js/pokracovat.js"></script>
     <!-- CELÁ OBRAZOVKA / immersive (odpojitelné: smaž tento řádek + js/fullscreen.js) — schová systémovou lištu dole -->
     <script defer src="js/fullscreen.js"></script>
     <!-- PŘEPÍNAČ ZOBRAZENÍ NA 1 TAP (odpojitelné: smaž tento řádek + js/view-cycle.js) — kolečko AR/Split/Mapa vpravo dole -->
