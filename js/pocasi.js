@@ -10,11 +10,14 @@
 //     slunce. Směr větru vážený PRŮMĚR PO KRUHU (jinak by 350° a 10° daly 180°),
 //     ikona/druh počasí vážené HLASOVÁNÍ (kategorii nelze sečíst a vydělit).
 //   • U každé veličiny drží i min–max rozptyl mezi zdroji → dlaždice „Shoda zdrojů".
-//   • SPOLEHLIVOST PODLE HISTORIE: trefnost každého modelu za POSLEDNÍ MĚSÍC.
+//   • SPOLEHLIVOST PODLE HISTORIE: trefnost každého modelu za POSLEDNÍ MĚSÍC, a to
+//     ZVLÁŠŤ NA TEPLOTĚ a ZVLÁŠŤ NA SRÁŽKÁCH (vítr se nesleduje — na přání).
 //     Nečeká se měsíc provozu — historie se rovnou DOHLEDÁ Z ARCHIVU (previous-runs
 //     API = co model před dnem předpovídal, archive API/ERA5 = jak doopravdy bylo),
 //     jednou týdně a po přesunu jinam. Navíc se appka doučuje za provozu
-//     (predikce na +3/6/12/24 h vs. skutečnost). Trefnějším modelům roste váha.
+//     (predikce na +3/6/12/24 h vs. skutečnost). Model dobrý na teplotu nemusí být
+//     dobrý na déšť, takže z každé trefnosti plyne vlastní váha: teplotní váží
+//     teplotu/tlak/vlhkost/vítr, srážková milimetry, pravděpodobnost a ikonu počasí.
 //   • SRÁŽKOVÝ RADAR (RainViewer): animovaná OVLADATELNÁ mapa (posun, zoom), kde je
 //     vidět, jak se srážkové mraky pohybují (~70 min zpět + 30 min výhled).
 //   • Tlak se ukazuje přepočtený na nadmořskou výšku místa (a v závorce na moře).
@@ -506,34 +509,44 @@
     // ---- spolehlivost podle historie (trefnost modelů, okno 1 měsíc) ---------------------
     // Při každém stažení si appka uloží, co který zdroj předpovídá na +3/6/12/24 h.
     // Až ten čas nastane (další otevření počasí), předpověď se srovná s tehdejší
-    // „skutečností" (kombinovaná aktuální teplota) a výsledek se zapíše do logu
-    // vyhodnocení [čas, chyba]. Trefnost modelu = průměrná chyba ze VŠECH vyhodnocení
-    // za POSLEDNÍ MĚSÍC. Kdo se trefuje, dostává vyšší váhu v průměru (×0,6–1,5).
-    var LS_SKILL = 'agWeatherSkill_v1';       // {pend:[{t,id,v}], hist:{id:[[ms,err],...]}}
+    // „skutečností" a výsledek se zapíše do logu vyhodnocení [čas, chyba].
+    // Trefnost modelu = průměrná chyba ze VŠECH vyhodnocení za POSLEDNÍ MĚSÍC.
+    //
+    // Sleduje se ZVLÁŠŤ TEPLOTA a ZVLÁŠŤ SRÁŽKY (na přání; vítr se nesleduje) — model
+    // dobrý na teplotu nemusí být dobrý na déšť. Z každé se počítá vlastní váha:
+    //   • `w`  (podle teploty) váží teplotu, vlhkost, tlak, oblačnost, vítr…
+    //   • `wp` (podle srážek)  váží mm srážek, pravděpodobnost srážek a ikonu počasí.
+    // Kdo se trefuje, dostává vyšší váhu (×0,6–1,5).
+    var LS_SKILL = 'agWeatherSkill_v1';       // {pend:[{t,id,v,p}], hist:{id:[[ms,err]]}, histP:{id:[[ms,mm,zásah]]}}
     var SKILL_WIN_MS = 30 * 86400000;         // trefnost se počítá z okna 30 dní zpětně
     var SKILL_MAX_PER_MODEL = 400;            // pojistka proti přetečení localStorage
+    var WET_MM = 0.1;                         // od kolika mm/h se hodina počítá jako „prší"
     function loadSkill() {
         try {
             var o = JSON.parse(localStorage.getItem(LS_SKILL));
             if (o && Object.prototype.toString.call(o.pend) === '[object Array]') {
-                if (!o.hist || typeof o.hist !== 'object') o.hist = {};   // migrace ze starší verze (EMA bez logu)
+                if (!o.hist || typeof o.hist !== 'object') o.hist = {};    // migrace ze starší verze (EMA bez logu)
+                if (!o.histP || typeof o.histP !== 'object') o.histP = {}; // migrace: dřív jen teplota
                 return o;
             }
         } catch (e) {}
-        return { pend: [], hist: {} };
+        return { pend: [], hist: {}, histP: {} };
     }
     function saveSkill(sk) { try { localStorage.setItem(LS_SKILL, JSON.stringify(sk)); } catch (e) {} }
     // ---- ZPĚTNÉ dohledání trefnosti z archivu (aby platila hned, ne až za měsíc) -------
     // Živé učení výše potřebuje měsíc provozu, než něco ukáže. Proto se jednou týdně
     // (a při přesunu jinam) stáhne rovnou MĚSÍC HOTOVÉ HISTORIE:
     //   • previous-runs API Open-Meteo = co každý model před DNEM předpovídal na tuto
-    //     hodinu (`temperature_2m_previous_day1_<model>`), 31 dní zpět,
+    //     hodinu (`temperature_2m_previous_day1_<model>`, `precipitation_previous_day1_…`),
+    //     31 dní zpět,
     //   • archive API (reanalýza ERA5) = jak pak doopravdy bylo → skutečnost.
     // Rozdíl obojího = průměrná chyba modelu na 24 h dopředu za celý měsíc (~740 hodin).
+    // U srážek se kromě chyby v mm počítá i ZÁSAH: v kolika procentech hodin model
+    // správně řekl prší / neprší (to je pro terén čitelnější než desetiny milimetru).
     // Ověřeno dotazem pro ČR: archiv má 13 ze 16 modelů; AI modely (AIFS, GraphCast) a
     // BOM v něm nejsou → ty se dál učí jen živě. ERA5 je na hrubší síti než modely, ale
     // společný posun se ve VZÁJEMNÉM porovnání modelů vykrátí.
-    var LS_SKILL_BF = 'agWeatherSkillBf_v1';   // {t, lat, lon, days, mae:{id:{e,n}}}
+    var LS_SKILL_BF = 'agWeatherSkillBf_v1';   // {t, lat, lon, days, mae:{id:{e,n}}, maeP:{id:{e,n,hit}}}
     var BF_MAX_AGE_MS = 7 * 86400000;          // jednou týdně stačí
     var BF_DAYS = 31;
     var BF_CAP = 240;                          // strop vlivu archivu, ať se živé učení časem prosadí
@@ -548,7 +561,7 @@
     }
     function saveBf(o) { _bf = o; try { localStorage.setItem(LS_SKILL_BF, JSON.stringify(o)); } catch (e) {} }
 
-    // průměrná chyba modelu za poslední měsíc: archiv + živě naměřené (null = zatím nic)
+    // průměrná chyba TEPLOTY za poslední měsíc: archiv + živě naměřené (null = zatím nic)
     function maeOf(sk, id) {
         var live = null;
         var a = sk.hist ? sk.hist[id] : null;
@@ -568,6 +581,32 @@
         }
         return live ? { e: live.e, n: live.n, src: 'měřeno v provozu' } : null;
     }
+    // totéž pro SRÁŽKY: e = průměrná chyba v mm/h (podle ní se váží), hit = podíl hodin
+    // se správným verdiktem prší/neprší (to se ukazuje uživateli)
+    function maePOf(sk, id) {
+        var live = null;
+        var a = sk.histP ? sk.histP[id] : null;
+        if (a && a.length) {
+            var lim = Date.now() - SKILL_WIN_MS, s = 0, n = 0, h = 0;
+            for (var i = 0; i < a.length; i++) {
+                if (a[i] && a[i][0] >= lim && a[i][1] != null && isFinite(a[i][1])) {
+                    s += a[i][1]; n++; if (a[i][2]) h++;
+                }
+            }
+            if (n) live = { e: s / n, n: n, hit: h / n };
+        }
+        var bf = loadBf();
+        var b = (bf && bf.maeP) ? bf.maeP[id] : null;
+        if (b && b.n) {
+            var bn = Math.min(b.n, BF_CAP);
+            if (!live) return { e: b.e, n: b.n, hit: b.hit, src: 'archiv' };
+            var hit = (b.hit != null && live.hit != null)
+                ? (b.hit * bn + live.hit * live.n) / (bn + live.n)
+                : (b.hit != null ? b.hit : live.hit);
+            return { e: (b.e * bn + live.e * live.n) / (bn + live.n), n: b.n + live.n, hit: hit, src: 'archiv + měření' };
+        }
+        return live ? { e: live.e, n: live.n, hit: live.hit, src: 'měřeno v provozu' } : null;
+    }
 
     function bfDate(shiftDays) {
         var d = new Date(Date.now() - shiftDays * 86400000);
@@ -580,11 +619,11 @@
         _bfBusy = true;
         var ll = 'latitude=' + lat.toFixed(4) + '&longitude=' + lon.toFixed(4);
         var uPrev = 'https://previous-runs-api.open-meteo.com/v1/forecast?' + ll +
-            '&hourly=temperature_2m_previous_day1&models=' + OM_MODELS.map(function (m) { return m.id; }).join(',') +
+            '&hourly=temperature_2m_previous_day1,precipitation_previous_day1&models=' + OM_MODELS.map(function (m) { return m.id; }).join(',') +
             '&past_days=' + BF_DAYS + '&forecast_days=1&timeformat=unixtime';
         var uArch = 'https://archive-api.open-meteo.com/v1/archive?' + ll +
             '&start_date=' + bfDate(BF_DAYS + 1) + '&end_date=' + bfDate(1) +
-            '&hourly=temperature_2m&timeformat=unixtime';
+            '&hourly=temperature_2m,precipitation&timeformat=unixtime';
         Promise.all([
             fetchJson(uPrev, 25000).then(null, function () { return null; }),
             fetchJson(uArch, 25000).then(null, function () { return null; })
@@ -592,26 +631,52 @@
             _bfBusy = false;
             var p = rr[0], a = rr[1];
             if (!p || !p.hourly || !a || !a.hourly) return;
-            var truth = {}, aT = a.hourly.time || [], aV = a.hourly.temperature_2m || [], i, v;
-            for (i = 0; i < aT.length; i++) { v = num(aV[i]); if (v != null) truth[aT[i]] = v; }
-            var pT = p.hourly.time || [], mae = {}, maxN = 0, any = false;
+            var truT = {}, truP = {}, aT = a.hourly.time || [];
+            var aTemp = a.hourly.temperature_2m || [], aPrec = a.hourly.precipitation || [], i, v;
+            for (i = 0; i < aT.length; i++) {
+                v = num(aTemp[i]); if (v != null) truT[aT[i]] = v;
+                v = num(aPrec[i]); if (v != null) truP[aT[i]] = v;
+            }
+            var pT = p.hourly.time || [], mae = {}, maeP = {}, maxN = 0, any = false;
             OM_MODELS.forEach(function (m) {
+                var k, f, t;
+                // teplota
                 var arr = p.hourly['temperature_2m_previous_day1_' + m.id];
-                if (!arr || !arr.length) return;
-                var s = 0, n = 0, k, f, t;
-                for (k = 0; k < pT.length && k < arr.length; k++) {
-                    f = num(arr[k]); if (f == null) continue;
-                    t = truth[pT[k]]; if (t == null) continue;
-                    s += Math.abs(f - t); n++;
+                if (arr && arr.length) {
+                    var s = 0, n = 0;
+                    for (k = 0; k < pT.length && k < arr.length; k++) {
+                        f = num(arr[k]); if (f == null) continue;
+                        t = truT[pT[k]]; if (t == null) continue;
+                        s += Math.abs(f - t); n++;
+                    }
+                    if (n >= 48) {   // aspoň dva dny překryvu, jinak je průměr k ničemu
+                        mae[m.id] = { e: Math.round((s / n) * 100) / 100, n: n };
+                        if (n > maxN) maxN = n;
+                        any = true;
+                    }
                 }
-                if (n >= 48) {   // aspoň dva dny překryvu, jinak je průměr k ničemu
-                    mae[m.id] = { e: Math.round((s / n) * 100) / 100, n: n };
-                    if (n > maxN) maxN = n;
-                    any = true;
+                // srážky: chyba v mm/h + zásah (správně prší / neprší)
+                var arrP = p.hourly['precipitation_previous_day1_' + m.id];
+                if (arrP && arrP.length) {
+                    var sp = 0, np = 0, hit = 0;
+                    for (k = 0; k < pT.length && k < arrP.length; k++) {
+                        f = num(arrP[k]); if (f == null) continue;
+                        t = truP[pT[k]]; if (t == null) continue;
+                        sp += Math.abs(f - t); np++;
+                        if ((f >= WET_MM) === (t >= WET_MM)) hit++;
+                    }
+                    if (np >= 48) {
+                        maeP[m.id] = {
+                            e: Math.round((sp / np) * 1000) / 1000,
+                            n: np, hit: Math.round((hit / np) * 1000) / 1000
+                        };
+                        if (np > maxN) maxN = np;
+                        any = true;
+                    }
                 }
             });
             if (!any) return;
-            saveBf({ t: Date.now(), lat: lat, lon: lon, days: Math.round(maxN / 24), mae: mae });
+            saveBf({ t: Date.now(), lat: lat, lon: lon, days: Math.round(maxN / 24), mae: mae, maeP: maeP });
             applySkillToCur();
         }, function () { _bfBusy = false; });
     }
@@ -619,49 +684,66 @@
     // (váhy se dorovnají při nejbližším obnovení dat — ta jsou stejně čerstvá)
     function applySkillToCur() {
         if (!_cur || !_cur.data) return;
-        var sk = loadSkill(), ref = skillRef(sk), bf = loadBf();
+        var sk = loadSkill(), ref = skillRef(sk, 'temp'), refP = skillRef(sk, 'precip'), bf = loadBf();
         (_cur.data.perSource || []).forEach(function (s) {
-            var m = maeOf(sk, s.id);
+            var m = maeOf(sk, s.id), mp = maePOf(sk, s.id);
             s.skill = m ? Math.round(m.e * 10) / 10 : null;
             s.skillSrc = m ? m.src : null;
+            s.skillP = mp ? Math.round(mp.e * 1000) / 1000 : null;
+            s.skillPHit = (mp && mp.hit != null) ? mp.hit : null;
         });
         _cur.data.skillInfo = ref
             ? { ref: Math.round(ref.ref * 10) / 10, models: ref.models, days: (bf ? bf.days : 0) }
             : null;
+        _cur.data.skillInfoP = refP
+            ? { ref: Math.round(refP.ref * 1000) / 1000, models: refP.models, hit: (refP.hit != null ? refP.hit : null) }
+            : null;
         if (!_open || !_ui) return;
         try { renderGrid(_cur.data, _cur.data.off); renderSrcPanel(_cur); } catch (e) {}
     }
-    function updateSkill(sources, observedTemp) {
+    function trimLog(log, id) {
+        var lim = Date.now() - SKILL_WIN_MS;
+        var a = (log[id] || []).filter(function (r) { return r && r[0] >= lim; });
+        if (a.length > SKILL_MAX_PER_MODEL) a = a.slice(a.length - SKILL_MAX_PER_MODEL);
+        log[id] = a;
+    }
+    function updateSkill(sources, observedTemp, observedPrecip) {
         var sk = loadSkill();
         var now = Math.floor(Date.now() / 1000);
-        var nowMs = Date.now(), lim = nowMs - SKILL_WIN_MS;
-        var i;
-        if (observedTemp != null && isFinite(observedTemp)) {
-            var rest = [], touched = {};
+        var nowMs = Date.now();
+        var i, id;
+        var haveT = (observedTemp != null && isFinite(observedTemp));
+        var haveP = (observedPrecip != null && isFinite(observedPrecip));
+        if (haveT || haveP) {
+            var rest = [], touchT = {}, touchP = {};
             for (i = 0; i < sk.pend.length; i++) {
                 var p = sk.pend[i];
-                if (!p || p.t == null || p.v == null) continue;
+                if (!p || p.t == null) continue;
                 if (Math.abs(p.t - now) <= 2700) {          // ±45 min → vyhodnoť proti „teď"
-                    var err = Math.round(Math.abs(p.v - observedTemp) * 100) / 100;
-                    if (!sk.hist[p.id]) sk.hist[p.id] = [];
-                    sk.hist[p.id].push([nowMs, err]);
-                    touched[p.id] = 1;
+                    if (haveT && p.v != null) {
+                        if (!sk.hist[p.id]) sk.hist[p.id] = [];
+                        sk.hist[p.id].push([nowMs, Math.round(Math.abs(p.v - observedTemp) * 100) / 100]);
+                        touchT[p.id] = 1;
+                    }
+                    if (haveP && p.p != null) {
+                        if (!sk.histP[p.id]) sk.histP[p.id] = [];
+                        sk.histP[p.id].push([nowMs, Math.round(Math.abs(p.p - observedPrecip) * 1000) / 1000,
+                            ((p.p >= WET_MM) === (observedPrecip >= WET_MM)) ? 1 : 0]);
+                        touchP[p.id] = 1;
+                    }
                 } else if (p.t > now) rest.push(p);         // budoucí nech, prošlé zahoď
             }
             sk.pend = rest;
-            // prořez logu: jen okno 1 měsíc + strop na počet záznamů
-            for (var id in touched) {
-                var a = sk.hist[id].filter(function (r) { return r && r[0] >= lim; });
-                if (a.length > SKILL_MAX_PER_MODEL) a = a.slice(a.length - SKILL_MAX_PER_MODEL);
-                sk.hist[id] = a;
-            }
+            // prořez logů: jen okno 1 měsíc + strop na počet záznamů
+            for (id in touchT) trimLog(sk.hist, id);
+            for (id in touchP) trimLog(sk.histP, id);
         }
         // nové predikce (jen když pro daný zdroj+čas ještě nejsou)
         var have = {}, horizons = [3, 6, 12, 24];
         for (i = 0; i < sk.pend.length; i++) have[sk.pend[i].id + '@' + sk.pend[i].t] = 1;
         for (i = 0; i < sources.length; i++) {
             var s = sources[i];
-            if (!s.hourly || !s.hourly.time || !s.hourly.temp) continue;
+            if (!s.hourly || !s.hourly.time) continue;
             for (var hzi = 0; hzi < horizons.length; hzi++) {
                 var target = now + horizons[hzi] * 3600, best = -1, bd = 1800;
                 for (var k = 0; k < s.hourly.time.length; k++) {
@@ -671,10 +753,15 @@
                     if (d < bd) { bd = d; best = k; }
                 }
                 if (best < 0) continue;
-                var v = at(s.hourly.temp, best);
                 var te = num(s.hourly.time[best]);
-                if (v == null || te == null || have[s.id + '@' + te]) continue;
-                sk.pend.push({ t: te, id: s.id, v: Math.round(v * 10) / 10 });
+                if (te == null || have[s.id + '@' + te]) continue;
+                var v = at(s.hourly.temp, best), pv = at(s.hourly.precip, best);
+                if (v == null && pv == null) continue;
+                sk.pend.push({
+                    t: te, id: s.id,
+                    v: (v == null ? null : Math.round(v * 10) / 10),
+                    p: (pv == null ? null : Math.round(pv * 100) / 100)
+                });
                 have[s.id + '@' + te] = 1;
             }
         }
@@ -682,24 +769,40 @@
         saveSkill(sk);
         return sk;
     }
-    function skillRef(sk) {   // referenční chyba = průměr modelů s dost dlouhou historií (okno 1 měsíc)
+    // referenční chyba = průměr modelů s dost dlouhou historií (okno 1 měsíc).
+    // `kind`: 'temp' (výchozí) nebo 'precip'
+    function skillRef(sk, kind) {
+        var precip = (kind === 'precip');
         var ids = {}, k, m, bf = loadBf();
-        for (k in (sk.hist || {})) ids[k] = 1;
-        if (bf && bf.mae) { for (k in bf.mae) ids[k] = 1; }
-        var sum = 0, n = 0;
+        for (k in (precip ? (sk.histP || {}) : (sk.hist || {}))) ids[k] = 1;
+        var bfm = bf ? (precip ? bf.maeP : bf.mae) : null;
+        if (bfm) { for (k in bfm) ids[k] = 1; }
+        var sum = 0, n = 0, hitSum = 0, hitN = 0;
         for (k in ids) {
-            m = maeOf(sk, k);
-            if (m && m.n >= 3) { sum += m.e; n++; }
+            m = precip ? maePOf(sk, k) : maeOf(sk, k);
+            if (m && m.n >= 3) {
+                sum += m.e; n++;
+                if (m.hit != null) { hitSum += m.hit; hitN++; }
+            }
         }
-        return n ? { ref: sum / n, models: n } : null;
+        if (!n) return null;
+        return { ref: sum / n, models: n, hit: (hitN ? hitSum / hitN : null) };
     }
-    function skillFactor(sk, ref, id) {
-        var m = maeOf(sk, id);
-        if (!ref || !m || m.n < 3 || ref.ref <= 0.05) return 1;
-        return Math.max(0.6, Math.min(1.5, ref.ref / Math.max(m.e, 0.05)));
+    // `kind`: 'temp' (výchozí) nebo 'precip'. Podíl referenční a vlastní chyby
+    // omezený na 0,6–1,5, ať jeden šťastný/nešťastný měsíc nepřebije váhy úplně.
+    function skillFactor(sk, ref, id, kind) {
+        var precip = (kind === 'precip');
+        var m = precip ? maePOf(sk, id) : maeOf(sk, id);
+        var floor = precip ? 0.02 : 0.05;   // mm/h vs. °C — jinak by dělení šumem utrhlo faktor
+        if (!ref || !m || m.n < 3 || ref.ref <= floor) return 1;
+        return Math.max(0.6, Math.min(1.5, ref.ref / Math.max(m.e, floor)));
     }
 
     // ---- kombinování zdrojů (vážený průměr + rozptyl) -----------------------------------
+    // Váha zdroje pro SRÁŽKOVÉ veličiny (mm, pravděpodobnost, ikona) — plyne z trefnosti
+    // na srážkách. Když ji zdroj nemá (met.no, Bright Sky, nebo zatím žádná historie),
+    // použije se běžná váha.
+    function wpOf(s) { return (s && s.wp != null) ? s.wp : (s ? s.w : 1); }
     function wstat(items) {   // items: [{v, w}]
         var sw = 0, s = 0, mn = Infinity, mx = -Infinity, n = 0;
         for (var i = 0; i < items.length; i++) {
@@ -787,19 +890,20 @@
                 temp: tSt ? tSt.v : null,
                 feels: wv(items(function (c) { return c.feels; })),
                 hum: wv(items(function (c) { return c.hum; })),
-                precip: wv(items(function (c) { return c.precip; })),
+                precip: wv(curS.map(function (x) { return { v: x.cur.precip, w: wpOf(x) }; })),
                 cloud: wv(items(function (c) { return c.cloud; })),
                 pmsl: wv(items(function (c) { return c.pmsl; })),
                 wind: wv(items(function (c) { return c.wind; })),
                 gusts: wv(items(function (c) { return c.gusts; })),
                 dir: circMean(items(function (c) { return c.dir; })),
-                code: combineCode(curS.map(function (x) { return { code: x.cur.code, w: x.w }; }))
+                code: combineCode(curS.map(function (x) { return { code: x.cur.code, w: wpOf(x) }; }))
             };
             data.spreadTemp = tSt ? { min: tSt.min, max: tSt.max, n: tSt.n } : null;
             data.perSource = curS.map(function (x) {
                 return {
-                    id: x.id, label: x.label, w: x.w, temp: x.cur.t,
-                    skill: (x.skill != null ? x.skill : null), skillN: (x.skillN || 0), skillSrc: (x.skillSrc || null)
+                    id: x.id, label: x.label, w: x.w, wp: (x.wp != null ? x.wp : null), temp: x.cur.t,
+                    skill: (x.skill != null ? x.skill : null), skillN: (x.skillN || 0), skillSrc: (x.skillSrc || null),
+                    skillP: (x.skillP != null ? x.skillP : null), skillPHit: (x.skillPHit != null ? x.skillPHit : null)
                 };
             });
         }
@@ -825,10 +929,10 @@
                     }
                     ix.push({ v: at(s.daily.tmax, di), w: s.w });
                     im.push({ v: at(s.daily.tmin, di), w: s.w });
-                    ip.push({ v: at(s.daily.psum, di), w: s.w });
+                    ip.push({ v: at(s.daily.psum, di), w: wpOf(s) });
                     iw.push({ v: at(s.daily.wmax, di), w: s.w });
-                    ic.push({ code: at(s.daily.code, di), w: s.w });
-                    ipp.push({ v: at(s.daily.pprob, di), w: s.w });   // průměr ze všech zdrojů (dřív max)
+                    ic.push({ code: at(s.daily.code, di), w: wpOf(s) });
+                    ipp.push({ v: at(s.daily.pprob, di), w: wpOf(s) });   // průměr ze všech zdrojů (dřív max)
                     isr.push({ v: at(s.daily.sunrise, di), w: s.w });
                     iss.push({ v: at(s.daily.sunset, di), w: s.w });
                 }
@@ -882,9 +986,9 @@
                     it.push({ v: at(s.hourly.temp, idx), w: s.w });
                     iwd.push({ v: at(s.hourly.wind, idx), w: s.w });
                     ig.push({ v: at(s.hourly.gusts, idx), w: s.w });
-                    ipr.push({ v: at(s.hourly.precip, idx), w: s.w });
-                    icx.push({ code: at(s.hourly.code, idx), w: s.w });
-                    ipb.push({ v: at(s.hourly.prob, idx), w: s.w });   // průměr ze všech zdrojů (dřív max)
+                    ipr.push({ v: at(s.hourly.precip, idx), w: wpOf(s) });
+                    icx.push({ code: at(s.hourly.code, idx), w: wpOf(s) });
+                    ipb.push({ v: at(s.hourly.prob, idx), w: wpOf(s) });   // průměr ze všech zdrojů (dřív max)
                 }
                 data.hourly.push({
                     t: t,
@@ -1414,17 +1518,22 @@
         var ps = (pack.data && pack.data.perSource) ? pack.data.perSource : [];
         if (!ps.length) { box.appendChild(el('div', 'wx-none', 'Seznam zdrojů není k dispozici.')); return; }
         var bf = loadBf();
-        var head = 'Vážený průměr ' + ps.length + ' zdrojů. „Trefnost“ = průměrná chyba předpovědi tohoto modelu na den dopředu proti skutečnosti';
+        var head = 'Vážený průměr ' + ps.length + ' zdrojů. „Trefnost“ = jak blízko byla předpověď tohoto modelu na den dopředu skutečnosti — zvlášť pro TEPLOTU (±°C) a zvlášť pro SRÁŽKY (v kolika % hodin správně řekl prší/neprší)';
         head += bf && bf.days
-            ? ', spočítaná z archivu za posledních ' + bf.days + ' dní (skutečnost = reanalýza ERA5). Modelům, které se trefují, appka zvedá váhu; dál se doučuje i za provozu.'
+            ? ', spočítaná z archivu za posledních ' + bf.days + ' dní (skutečnost = reanalýza ERA5). Podle teploty se váží teplota, tlak, vlhkost a vítr; podle srážek milimetry, pravděpodobnost deště a ikona počasí. Appka se dál doučuje i za provozu.'
             : ' — dohledává se z archivu za poslední měsíc, mezitím se učí za provozu.';
         box.appendChild(el('div', 'wx-src-h', head));
         var sorted = ps.slice().sort(function (a, b) { return (b.w || 0) - (a.w || 0); });
         for (var i = 0; i < sorted.length; i++) {
             var s = sorted[i];
             var row = el('div', 'wx-src');
-            row.appendChild(el('span', 'wx-src-n', s.label + ' · váha ' + nf(s.w, 2)
-                + (s.skill != null ? ' · trefnost ±' + nf(s.skill, 1) + ' °C' + (s.skillSrc ? ' (' + s.skillSrc + ')' : '') : ' · trefnost zatím neznámá')));
+            var txt = s.label + ' · váha ' + nf(s.w, 2);
+            if (s.skill != null) txt += ' · teplota ±' + nf(s.skill, 1) + ' °C';
+            if (s.skillPHit != null) txt += ' · déšť ' + nf(s.skillPHit * 100, 0) + ' %';
+            else if (s.skillP != null) txt += ' · déšť ±' + nf(s.skillP, 2) + ' mm/h';
+            if (s.skill == null && s.skillP == null) txt += ' · trefnost zatím neznámá';
+            else if (s.skillSrc) txt += ' (' + s.skillSrc + ')';
+            row.appendChild(el('span', 'wx-src-n', txt));
             row.appendChild(el('span', 'wx-src-v', s.temp != null ? nf(s.temp, 1) + ' °C' : '–'));
             box.appendChild(row);
         }
@@ -1606,10 +1715,15 @@
         // spolehlivost podle historie: jak se modely trefovaly za poslední měsíc
         if (data.skillInfo && data.skillInfo.ref != null) {
             var dTxt = data.skillInfo.days ? ('za posledních ' + data.skillInfo.days + ' dní') : 'podle dosavadní historie';
-            tq.appendChild(el('div', 'wx-tile-sub', 'Trefnost ' + dTxt + ': předpovědi na den dopředu sedí v průměru na ±'
-                + nf(data.skillInfo.ref, 1) + ' °C (' + data.skillInfo.models + ' modelů; trefnějším roste váha). Detail zdrojů je dole.'));
+            var sTxt = 'Trefnost ' + dTxt + ': teplota na den dopředu sedí v průměru na ±'
+                + nf(data.skillInfo.ref, 1) + ' °C (' + data.skillInfo.models + ' modelů)';
+            if (data.skillInfoP && data.skillInfoP.hit != null) {
+                sTxt += ', déšť/bez deště modely trefly v ' + nf(data.skillInfoP.hit * 100, 0) + ' % hodin';
+            }
+            sTxt += '. Trefnějším roste váha zvlášť pro teplotu a zvlášť pro srážky; detail zdrojů je dole.';
+            tq.appendChild(el('div', 'wx-tile-sub', sTxt));
         } else {
-            tq.appendChild(el('div', 'wx-tile-sub', 'Trefnost modelů se právě dohledává z archivu za poslední měsíc — ukáže se do minuty (potřebuje internet).'));
+            tq.appendChild(el('div', 'wx-tile-sub', 'Trefnost modelů (teplota i srážky) se právě dohledává z archivu za poslední měsíc — ukáže se do minuty (potřebuje internet).'));
         }
     }
 
@@ -1671,15 +1785,21 @@
                 else showEmpty('Předpověď se nepodařilo stáhnout (jsi offline?) a v paměti nejsou žádná starší data pro toto místo.');
                 return;
             }
-            // trefnost podle historie (okno 1 měsíc): uprav váhy PŘED kombinací
+            // trefnost podle historie (okno 1 měsíc): uprav váhy PŘED kombinací.
+            // `w` podle teploty, `wp` podle srážek — model dobrý na teplotu nemusí
+            // být dobrý na déšť, takže se každá skupina veličin váží po svém.
             var sk = loadSkill();
-            var ref = skillRef(sk);
+            var ref = skillRef(sk, 'temp'), refP = skillRef(sk, 'precip');
             sources.forEach(function (s) {
-                var m = maeOf(sk, s.id);
+                var m = maeOf(sk, s.id), mp = maePOf(sk, s.id);
                 s.skill = (m && m.n >= 3) ? Math.round(m.e * 10) / 10 : null;
                 s.skillN = (m ? m.n : 0);
                 s.skillSrc = (m ? m.src : null);
-                s.w = s.w * skillFactor(sk, ref, s.id);
+                s.skillP = (mp && mp.n >= 3) ? Math.round(mp.e * 1000) / 1000 : null;
+                s.skillPHit = (mp && mp.n >= 3 && mp.hit != null) ? mp.hit : null;
+                var base = s.w;
+                s.w = base * skillFactor(sk, ref, s.id, 'temp');
+                s.wp = base * skillFactor(sk, refP, s.id, 'precip');
             });
             var prevHist = (cacheFallback && cacheFallback.data && cacheFallback.data.pressHist) ? cacheFallback.data.pressHist : [];
             var data;
@@ -1692,10 +1812,18 @@
             delete data.isDayAt;
             // srovnej dřívější předpovědi s právě pozorovaným stavem a ulož nové predikce
             try {
-                var sk2 = updateSkill(sources, data.current ? data.current.temp : null);
-                var ref2 = skillRef(sk2);
+                var sk2 = updateSkill(sources,
+                    data.current ? data.current.temp : null,
+                    data.current ? data.current.precip : null);
+                var ref2 = skillRef(sk2, 'temp'), refP2 = skillRef(sk2, 'precip');
                 var bf2 = loadBf();
                 if (ref2) data.skillInfo = { ref: Math.round(ref2.ref * 10) / 10, models: ref2.models, days: (bf2 ? bf2.days : 0) };
+                if (refP2) {
+                    data.skillInfoP = {
+                        ref: Math.round(refP2.ref * 1000) / 1000, models: refP2.models,
+                        hit: (refP2.hit != null ? refP2.hit : null)
+                    };
+                }
             } catch (e) {}
             // měsíc historie z archivu (jednou týdně, na pozadí — ať nebrzdí vykreslení)
             setTimeout(function () { try { maybeBackfill(pos.lat, pos.lon); } catch (e) {} }, 1500);
