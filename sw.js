@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v193';   // flicker Nastroju + zavady bodu + DGPS vzhled + pocasi (18 zdroju, radar, trefnost, tlak zde)
+const SHELL_CACHE = 'argeodet-shell-v194';   // flicker Nastroju + zavady bodu + DGPS vzhled + pocasi (18 zdroju, radar, trefnost, tlak zde)
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -25,9 +25,9 @@ const ASSETS_TO_CACHE = [
     './icon-512.png',
     './icon-maskable-192.png',
     './icon-maskable-512.png',
-    './css/tokens.css?v=193',
-    './css/style.css?v=193',
-    './css/vylepseni.css?v=193',
+    './css/tokens.css?v=194',
+    './css/style.css?v=194',
+    './css/vylepseni.css?v=194',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
@@ -148,6 +148,8 @@ const ASSETS_TO_CACHE = [
     './js/cloud-sync.js',
     './js/zavady.js',
     './js/denik-dne.js',
+    './js/brifink.js',
+    './js/hlasovky.js',
     './js/usadit-ar.js',
     './js/tools-hub.js',
     './js/stavovy-pruh.js',
