@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v196';   // radar: chybejici podkladove dlazdice (opaque cache) + uklid vadnych dlazdic; trefnost pocasi dohledana z archivu za mesic
+const SHELL_CACHE = 'argeodet-shell-v197';   // radar: chybejici podkladove dlazdice (opaque cache) + uklid vadnych dlazdic; trefnost pocasi dohledana z archivu za mesic
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -25,9 +25,9 @@ const ASSETS_TO_CACHE = [
     './icon-512.png',
     './icon-maskable-192.png',
     './icon-maskable-512.png',
-    './css/tokens.css?v=196',
-    './css/style.css?v=196',
-    './css/vylepseni.css?v=196',
+    './css/tokens.css?v=197',
+    './css/style.css?v=197',
+    './css/vylepseni.css?v=197',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
@@ -136,6 +136,7 @@ const ASSETS_TO_CACHE = [
     './js/shortcuts.js',
     './js/fullscreen.js',
     './js/view-cycle.js',
+    './js/map-tools.js',
     './js/app-search.js',
     './js/pdf-protocol.js',
     './js/vylepseni.js',
