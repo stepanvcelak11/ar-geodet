@@ -837,6 +837,26 @@
         return '<div class="agl-brand"><span class="agl-mark"></span>' +
             '<span class="agl-logo">AR <b>Geodet</b></span></div>';
     }
+    // Pozadí „Terén" (vybraný návrh 1): vrstevnice, měřická linie a štítek délky.
+    // Čistá dekorace pod kartou (z-index 0, pointer-events none), do krajů ji
+    // rozpouští vinětace #ag-login::after do barvy pozadí.
+    function terrainHtml() {
+        return '<svg class="agl-topo" viewBox="0 0 400 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' +
+            '<path class="major" d="M-20,120 C60,80 140,150 220,110 S380,60 420,100"/>' +
+            '<path d="M-20,150 C60,110 150,180 230,140 S380,95 420,135"/>' +
+            '<path d="M-20,180 C70,145 160,210 240,170 S385,130 420,170"/>' +
+            '<path class="major" d="M-20,300 C40,340 120,260 210,310 S350,380 420,330"/>' +
+            '<path d="M-20,330 C40,370 125,295 215,340 S350,410 420,360"/>' +
+            '<path d="M-20,360 C45,400 130,330 220,370 S355,440 420,395"/>' +
+            '<path d="M-20,390 C50,428 138,365 228,400 S360,468 420,428"/>' +
+            '<path class="major" d="M-20,540 C80,500 170,580 260,540 S390,490 420,530"/>' +
+            '<path d="M-20,575 C80,538 175,615 265,575 S390,528 420,568"/>' +
+            '<path d="M-20,610 C85,575 180,648 270,610 S395,565 420,605"/>' +
+            '</svg>' +
+            '<svg class="agl-mline" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' +
+            '<line x1="15" y1="30" x2="80" y2="13" vector-effect="non-scaling-stroke"/></svg>' +
+            '<div class="agl-mlabel">142.7 m</div>';
+    }
     // Logo: použij SKUTEČNÉ logo appky z úvodní obrazovky (klon uzlu, ať se
     // nemusí duplikovat kresba a vždy odpovídá tomu, co uživatel zná).
     // Záloha: icon.svg (stejná grafika jako ikona na ploše).
@@ -851,6 +871,9 @@
                 clone.removeAttribute('style');
                 // gradienty mají id — v klonu je přejmenuj, ať nekolidují s originálem
                 clone.innerHTML = clone.innerHTML.replace(/wl-vf/g, 'agl-vf');
+                // první <g> = rohové závorky → pomalu rotují kolem záměrného kříže
+                var spin = clone.querySelector('g');
+                if (spin) spin.classList.add('agl-spin');
                 slot.appendChild(clone);
                 return;
             }
@@ -888,17 +911,38 @@
             '#ag-login::before,#ag-gate::before{content:"";position:absolute;top:-160px;left:50%;transform:translateX(-50%);width:460px;height:420px;',
             '  border-radius:50%;background:radial-gradient(closest-side,var(--accent-soft,rgba(47,158,116,0.16)),transparent 72%);pointer-events:none;}',
             '@keyframes aglin{from{opacity:0}to{opacity:1}}',
-            '#ag-login>*,#ag-gate>*{position:relative;}',   // obsah nad září
-            // karta úvodu: obsah na jednom panelu (dřív to plavalo na prázdné ploše)
+            '#ag-login>*,#ag-gate>*{position:relative;z-index:1;}',   // obsah nad září i terénem
+            // ---- pozadí „Terén": pomalu plující vrstevnice + měřická linie (dekorace) ----
+            // #ag-login/#ag-gate v selektoru: musí přebít '#ag-login>*' (position/z-index) výš
+            '#ag-login .agl-topo,#ag-gate .agl-topo{position:absolute;inset:-20%;width:140%;height:140%;z-index:0;pointer-events:none;',
+            '  animation:agldrift 40s ease-in-out infinite alternate;}',
+            '.agl-topo path{fill:none;stroke:rgba(47,158,116,0.13);stroke-width:1.2;}',
+            '.agl-topo path.major{stroke:rgba(47,158,116,0.28);stroke-width:1.6;}',
+            '@keyframes agldrift{from{transform:translate(0,0) scale(1)}to{transform:translate(-3%,-2%) scale(1.06)}}',
+            '#ag-login .agl-mline,#ag-gate .agl-mline{position:absolute;inset:0;z-index:0;pointer-events:none;}',
+            '.agl-mline line{stroke:rgba(230,189,118,0.55);stroke-width:1.5;stroke-dasharray:6 7;animation:agldash 2.2s linear infinite;}',
+            '@keyframes agldash{to{stroke-dashoffset:-26}}',
+            '#ag-login .agl-mlabel,#ag-gate .agl-mlabel{position:absolute;top:16%;right:9%;z-index:0;pointer-events:none;',
+            '  font:600 11px/1 var(--font-mono,ui-monospace,monospace);color:#e6bd76;',
+            '  background:rgba(20,16,8,0.7);border:1px solid rgba(230,189,118,0.35);padding:4px 8px;border-radius:7px;}',
+            // vinětace: vrstevnice se do krajů ztrácí do barvy pozadí (funguje i ve světlém motivu)
+            '#ag-login::after,#ag-gate::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;',
+            '  background:radial-gradient(90% 70% at 50% 42%,transparent 25%,var(--bg,#0d1117) 100%);}',
+            // karta úvodu: obsah na jednom panelu se smaragdovým nádechem (návrh „Terén")
             '#ag-login .agl-card,#ag-gate .agl-card{display:flex;flex-direction:column;align-items:center;gap:13px;width:min(390px,92vw);',
             '  box-sizing:border-box;padding:26px 20px 20px;border-radius:22px;',
-            '  background:linear-gradient(180deg,rgba(255,255,255,0.055),rgba(255,255,255,0.02));',
-            '  border:1px solid var(--glass-border,rgba(255,255,255,0.1));box-shadow:0 18px 50px rgba(0,0,0,0.4);}',
-            // značka: SKUTEČNÉ logo appky (klon z úvodní obrazovky) + název
+            '  background:linear-gradient(175deg,var(--accent-soft,rgba(47,158,116,0.10)),rgba(255,255,255,0.035) 40%);',
+            '  border:1px solid rgba(76,205,153,0.28);',
+            '  box-shadow:0 24px 60px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.08);}',
+            // značka: SKUTEČNÉ logo appky (klon z úvodní obrazovky) + název; jemně se vznáší
             '.agl-brand{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:2px;}',
             '.agl-mark{width:76px;height:76px;display:flex;align-items:center;justify-content:center;',
-            '  filter:drop-shadow(0 8px 22px var(--accent-soft,rgba(47,158,116,0.4)));}',
+            '  filter:drop-shadow(0 8px 22px var(--accent-soft,rgba(47,158,116,0.4)));animation:aglfloat 5s ease-in-out infinite;}',
+            '@keyframes aglfloat{50%{transform:translateY(-6px)}}',
             '.agl-mark svg,.agl-mark img{width:100%;height:100%;display:block;}',
+            // rohové závorky loga se pomalu otáčí kolem záměrného kříže (viewBox 96×96 → střed 48,48)
+            '.agl-mark svg .agl-spin{transform-origin:48px 48px;animation:aglspin 14s linear infinite;}',
+            '@keyframes aglspin{to{transform:rotate(360deg)}}',
             '#ag-login .agl-hint,#ag-gate .agl-hint{font:500 12.5px/1.45 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);text-align:center;max-width:300px;}',
             '#ag-login .agl-logo,#ag-gate .agl-logo{font:800 21px/1.2 var(--font-display,system-ui);color:var(--text,#e6e8eb);letter-spacing:.02em;}',
             '#ag-login .agl-logo b,#ag-gate .agl-logo b{color:var(--accent,#2f9e74);}',
@@ -906,7 +950,9 @@
             '#ag-login .agl-firmchip{display:inline-flex;align-items:center;gap:7px;background:var(--glass-bg,rgba(255,255,255,0.06));',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));border-radius:999px;padding:7px 14px;',
             '  font:600 12.5px/1 var(--font-ui,system-ui);color:var(--text,#e6e8eb);}',
-            '#ag-login .agl-firmchip .dot{width:7px;height:7px;border-radius:50%;background:var(--accent,#2f9e74);}',
+            '#ag-login .agl-firmchip .dot{width:7px;height:7px;border-radius:50%;background:var(--accent,#2f9e74);',
+            '  box-shadow:0 0 9px var(--accent,#2f9e74);animation:aglpulse 2s infinite;}',
+            '@keyframes aglpulse{50%{opacity:.35}}',
             '#ag-login .agl-firmchip .lock{color:var(--warn,#d4a02c);}',
             '#ag-login .agl-proj{font:500 12px/1.3 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);text-align:center;}',
             '#ag-login .agl-proj b{color:var(--text,#e6e8eb);font-weight:700;}',
@@ -917,7 +963,7 @@
             '  color:var(--text,#e6e8eb);transition:transform .15s ease,border-color .15s ease,background .15s ease,box-shadow .15s ease;}',
             '#ag-login .agl-user:active{transform:scale(.96);}',
             '#ag-login .agl-user.sel{border-color:var(--accent,#2f9e74);background:var(--accent-soft,rgba(47,158,116,0.13));',
-            '  box-shadow:0 0 0 1px var(--accent,#2f9e74),0 6px 18px var(--accent-soft,rgba(47,158,116,0.25));}',
+            '  box-shadow:0 0 0 1px var(--accent,#2f9e74),0 8px 22px var(--accent-soft,rgba(47,158,116,0.28));transform:translateY(-2px);}',
             '#ag-login .agl-av{width:46px;height:46px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;',
             '  font:800 17px/1 var(--font-display,system-ui);box-shadow:inset 0 1px 0 rgba(255,255,255,0.28),0 3px 8px rgba(0,0,0,0.28);}',
             '#ag-login .agl-nm{font:600 12.5px/1.2 var(--font-ui,system-ui);max-width:116px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
@@ -931,15 +977,16 @@
             '#ag-login input.agl-pin,#ag-login input.agl-name,#ag-gate .agg-box input{box-sizing:border-box;width:230px;text-align:center;',
             '  background:var(--glass-bg,rgba(255,255,255,0.06));border:1px solid var(--glass-border,rgba(255,255,255,0.18));border-radius:13px;',
             '  color:var(--text,#e6e8eb);padding:13px 10px;outline:none;transition:border-color .15s ease,box-shadow .15s ease;}',
-            '#ag-login input.agl-pin{font:700 22px/1 var(--font-display,system-ui);letter-spacing:.35em;}',
+            '#ag-login input.agl-pin{font:700 22px/1 var(--font-display,system-ui);letter-spacing:.35em;',
+            '  border-color:rgba(76,205,153,0.45);box-shadow:0 0 0 3px var(--accent-soft,rgba(47,158,116,0.14));}',
             '#ag-login input.agl-name,#ag-gate .agg-box input{font:600 15px/1.2 var(--font-ui,system-ui);}',
             '#ag-login input.agl-pin:focus,#ag-login input.agl-name:focus,#ag-gate .agg-box input:focus{border-color:var(--accent,#2f9e74);',
             '  box-shadow:0 0 0 3px var(--accent-soft,rgba(47,158,116,0.2));}',
             '#ag-login .agl-err,#ag-gate .agl-err{color:var(--danger,#e5534b);font:600 13px/1.35 var(--font-ui,system-ui);min-height:18px;max-width:300px;text-align:center;}',
-            // tlačítka
-            '#ag-login .agl-btn,#ag-gate .agl-btn{border:none;color:#fff;border-radius:13px;padding:14px 30px;min-width:230px;box-sizing:border-box;',
-            '  font:700 15px/1 var(--font-ui,system-ui);cursor:pointer;background:linear-gradient(150deg,var(--accent,#2f9e74),rgba(0,0,0,0.22)) var(--accent,#2f9e74);',
-            '  box-shadow:0 6px 18px var(--accent-soft,rgba(47,158,116,0.3)),inset 0 1px 0 rgba(255,255,255,0.22);transition:transform .12s ease,filter .12s ease;}',
+            // tlačítka: smaragdový gradient s tmavým textem (návrh „Terén")
+            '#ag-login .agl-btn,#ag-gate .agl-btn{border:none;color:#06130d;border-radius:13px;padding:14px 30px;min-width:230px;box-sizing:border-box;',
+            '  font:800 15px/1 var(--font-ui,system-ui);cursor:pointer;background:linear-gradient(135deg,#4ccd99,#2f9e74);',
+            '  box-shadow:0 10px 26px rgba(47,158,116,0.38),inset 0 1px 0 rgba(255,255,255,0.35);transition:transform .12s ease,filter .12s ease;}',
             '#ag-login .agl-btn:active,#ag-gate .agl-btn:active{transform:scale(.97);filter:brightness(1.08);}',
             '#ag-login .agl-ghost,#ag-gate .agl-ghost{background:transparent;color:var(--text-muted,#9aa1ac);border:none;',
             '  font:600 12.5px/1 var(--font-ui,system-ui);cursor:pointer;padding:10px;text-decoration:underline;text-decoration-color:transparent;',
@@ -1029,6 +1076,7 @@
         }).join('');
         var cloud = !!f.cloud;
         ov.innerHTML =
+            terrainHtml() +
             '<div class="agl-card">' +
             brandHtml() +
             '<div class="agl-firmchip"><span class="dot"></span>' + esc(f.firmName || 'Firemní režim') +
@@ -1201,6 +1249,7 @@
                 }).join('');
         }
         ov.innerHTML =
+            terrainHtml() +
             '<div class="agl-card">' +
             brandHtml() +
             '<div class="agl-firm">Přihlas se ke své firmě, nebo pokračuj bez přihlášení s omezenými funkcemi.</div>' +
