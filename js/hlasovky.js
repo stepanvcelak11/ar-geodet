@@ -1,25 +1,35 @@
-// ===== AR Geodet — HLASOVÉ POZNÁMKY S GEORAZÍTKEM (ODPOJITELNÁ vrstva) ==========
+// ===== AR Geodet — HLASOVÉ POZNÁMKY S GEORAZÍTKEM A PŘEPISEM (ODPOJITELNÁ) ======
 // V rukavicích a blátě se nepíše: podržíš jedno velké tlačítko, řekneš co vidíš,
 // a poznámka se uloží s časem, polohou (WGS + S-JTSK přes GeoCore), přesností GPS
-// a NEJBLIŽŠÍM vlastním bodem zakázky do 25 m („u bodu 105, 3 m"). Večer si je
-// přehraješ tady nebo je posbírá Deník dne.
+// a NEJBLIŽŠÍM vlastním bodem zakázky do 25 m („u bodu 105, 3 m").
 //
-//   • Nahrávání: MediaRecorder (Android webm/opus, iOS 14.3+ audio/mp4); strop
-//     5 minut na poznámku. POZOR iOS: spuštění mikrofonu může na okamžik
-//     přiškrtit kamerový stream AR — po zastavení nahrávání se mikrofon hned
-//     uvolňuje (stop všech tracků).
-//   • Úložiště: IndexedDB 'agHlasovky1' (audio bloby do localStorage nepatří).
-//     Poznámky jsou per zakázka (pid), mazání po jedné (dvoj-ťuk, žádný
-//     blokující confirm — na iOS mrazí kameru).
-//   • Ke každé poznámce jde dopsat krátký text (inline, žádný prompt()).
-//   • Sdílení: navigator.share se souborem, fallback stažení souboru.
-//   • Veřejné API pro Deník dne: window.AGHlasovky.listRange(pid, from, to)
-//     -> Promise<[{ts, dur, note, ptName, ptDist}]> (bez blobů).
+// PŘEPIS NA TEXT (samotný zvuk je v kanceláři k ničemu — musí se přehrávat):
+//   • Během nahrávání běží rozpoznávání řeči (Web Speech API, cs-CZ) a text
+//     naskakuje živě pod tlačítkem. Po uložení je text u poznámky a jde HO
+//     UPRAVIT — rozpoznávání dělá chyby, hlavně u geodetického žargonu.
+//   • ŽARGON: krátký, ZÁMĚRNĚ konzervativní slovníček (SLANG níže) opraví to,
+//     co diktát komolí pravidelně (es jé té es ká → S-JTSK, bé pé vé → Bpv…).
+//     Nepřidávej sem nic dvojznačného — přepsat uživateli běžné slovo je horší
+//     než ho nechat být.
+//   • POTŘEBUJE SIGNÁL: prohlížeče posílají zvuk na server výrobce. Offline
+//     (nebo když prohlížeč Web Speech neumí) se poznámka uloží jen jako zvuk
+//     a u ní je poznámka „přepis se nepovedl" + tlačítko Diktovat na později.
+//   • Zvuk se ukládá VŽDY (i když přepis vyjde) — je to důkaz a záloha, kdyby
+//     přepis něco zkomolil. Když naopak selže nahrávání a přepis vyjde, uloží
+//     se poznámka jen jako text.
+//   • Vypínatelné: přepínač „Přepisovat na text" v hlavičce nástroje
+//     (klíč agHlasTxt). POZOR iOS: rozpoznávání i nahrávání sahají na audio
+//     session — kdyby to škublo kamerou v AR, tímhle se to vypne.
+//
+// Úložiště: IndexedDB 'agHlasovky1' per zakázka (audio bloby do localStorage
+// nepatří). Mazání dvoj-ťukem (žádný blokující confirm — na iOS mrazí kameru).
+// Veřejné API pro Deník dne: window.AGHlasovky.listRange(pid, from, to)
+//   -> Promise<[{ts, dur, note, ptName, ptDist}]> (bez blobů; note = přepis).
 //
 // NEEDITUJE logika.js ani grafika.js — čte jen globály (userLat/userLng,
 // currentGpsAccuracy, persistentCustomPoints, getDistance, GeoCore) přes typeof.
 // Odstranění: smaž js/hlasovky.js + řádek <script> v index.html (a přegeneruj
-// sw.js: scripts/gen_sw_assets.py --bump). Data v IndexedDB ničemu nevadí.
+// sw.js). Data v IndexedDB ničemu nevadí.
 // ================================================================================
 (function () {
     'use strict';
@@ -32,10 +42,14 @@
     var STORE = 'rec';
     var MAX_SEC = 300;            // strop délky jedné poznámky
     var NEAR_M = 25;              // do kolika metrů se poznámka váže k bodu
+    var TXT_KEY = 'agHlasTxt';    // '0' = nepřepisovat na text
 
     var _db = null;
     var _rec = null, _chunks = [], _recT0 = 0, _recTimer = null, _stream = null, _recGeo = null;
     var _audio = null, _playingId = null, _playUrl = null;
+    var _sr = null, _srOn = false, _srFinal = '', _srInterim = '', _srDead = false;
+    var _dictFor = null;          // id poznámky, ke které se právě dodiktovává
+    var _filter = '';
 
     // ---- pomocné -------------------------------------------------------------
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -71,6 +85,8 @@
         if (rec.acc != null) t += ' (±' + Math.round(rec.acc) + ' m)';
         return t;
     }
+    // text poznámky: nový přepis, jinak starý ruční zápisek (zpětná kompatibilita)
+    function recText(r) { return (r && (r.txt || r.note)) || ''; }
 
     // ---- IndexedDB --------------------------------------------------------------
     function db() {
@@ -110,6 +126,77 @@
                 tx.onerror = function () { rej(tx.error); };
             });
         });
+    }
+
+    // ---- přepis řeči na text -------------------------------------------------------
+    // ZÁMĚRNĚ KONZERVATIVNÍ: jen to, co diktát komolí pravidelně a co nemůže být
+    // běžné české slovo. Radši nechat neopravené než přepsat uživateli, co řekl.
+    var SLANG = [
+        [/\bes\s+jé\s+té\s+es\s+ká\b/gi, 'S-JTSK'],
+        [/\bsjtsk\b/gi, 'S-JTSK'],
+        [/\bbé\s+pé\s+vé\b/gi, 'Bpv'],
+        [/\bbpv\b/gi, 'Bpv'],
+        [/\bzet\s+pé\s+em\s+zet\b/gi, 'ZPMZ'],
+        [/\bzpmz\b/gi, 'ZPMZ'],
+        [/\bčúzk\b/gi, 'ČÚZK'],
+        [/\bgnss\b/gi, 'GNSS'],
+        [/\bgé\s+en\s+es\s+es\b/gi, 'GNSS'],
+        [/\bpé\s+dé\s+o\s+pé\b/gi, 'PDOP'],
+        [/\bdé\s+em\s+er\b/gi, 'DMR'],
+        [/\borto\s+foto\b/gi, 'ortofoto'],
+        [/\bgeometrický\s+plán\b/gi, 'geometrický plán']
+    ];
+    function fixGeo(t) {
+        var s = String(t || '').replace(/\s+/g, ' ').trim();
+        for (var i = 0; i < SLANG.length; i++) s = s.replace(SLANG[i][0], SLANG[i][1]);
+        if (s) s = s.charAt(0).toUpperCase() + s.slice(1);
+        return s;
+    }
+    function srCtor() { return window.SpeechRecognition || window.webkitSpeechRecognition || null; }
+    function txtOn() { try { return localStorage.getItem(TXT_KEY) !== '0'; } catch (e) { return true; } }
+    // spustí rozpoznávání; onDone(text) dostane hotový přepis po zastavení
+    function startSR(onLive) {
+        var C = srCtor();
+        if (!C || _srDead || !txtOn()) return false;
+        try {
+            _sr = new C();
+            _sr.lang = 'cs-CZ';
+            _sr.continuous = true;
+            _sr.interimResults = true;
+            _srFinal = ''; _srInterim = ''; _srOn = true;
+            _sr.onresult = function (ev) {
+                var interim = '';
+                for (var i = ev.resultIndex; i < ev.results.length; i++) {
+                    var r = ev.results[i];
+                    if (r.isFinal) _srFinal += r[0].transcript + ' ';
+                    else interim += r[0].transcript;
+                }
+                _srInterim = interim;
+                if (onLive) onLive((_srFinal + interim).trim());
+            };
+            _sr.onerror = function (ev) {
+                var e = ev && ev.error;
+                // 'no-speech' a 'aborted' jsou běžné; tvrdé chyby vypnou přepis do restartu
+                if (e === 'not-allowed' || e === 'service-not-allowed' || e === 'audio-capture') {
+                    _srDead = true;
+                    toast(e === 'audio-capture' ? 'Přepis: mikrofon nelze sdílet s nahráváním.' : 'Přepis: prohlížeč nepovolil rozpoznávání řeči.');
+                }
+            };
+            _sr.onend = function () {
+                // prohlížeč rozpoznávání sám ukončí po pauze v řeči — dokud nahráváme, jedeme dál
+                if (_srOn && _rec) { try { _sr.start(); } catch (e) {} }
+            };
+            _sr.start();
+            return true;
+        } catch (e) { _sr = null; _srOn = false; return false; }
+    }
+    function stopSR() {
+        _srOn = false;
+        if (!_sr) return '';
+        try { _sr.onend = null; _sr.stop(); } catch (e) {}
+        var out = (_srFinal + ' ' + _srInterim).trim();
+        _sr = null;
+        return fixGeo(out);
     }
 
     // ---- nahrávání ----------------------------------------------------------------
@@ -164,6 +251,7 @@
                 if (s >= MAX_SEC) stopRec();
             }, 250);
             syncRecUi(true);
+            startSR(showLive);           // přepis běží souběžně s nahráváním
         })['catch'](function () {
             toast('Mikrofon se nepodařilo spustit — zkontroluj povolení pro mikrofon.');
         });
@@ -175,34 +263,76 @@
     }
     function onRecStop() {
         var recorder = _rec; _rec = null;
+        var text = stopSR();
         // mikrofon uvolnit OKAMŽITĚ (iOS jinak drží audio session a škrtí kameru)
         try { if (_stream) _stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
         _stream = null;
         syncRecUi(false);
         var dur = (Date.now() - _recT0) / 1000;
-        if (!_chunks.length || dur < 0.8) { toast('Poznámka je moc krátká, neukládám.'); return; }
-        var mime = (recorder && recorder.mimeType) || _chunks[0].type || 'audio/webm';
-        var blob = new Blob(_chunks, { type: mime });
+        var haveAudio = _chunks.length > 0;
+        // uložíme, pokud je co uložit: zvuk NEBO aspoň přepis (kdyby selhalo nahrávání)
+        if ((!haveAudio && !text) || dur < 0.8) { toast('Poznámka je moc krátká, neukládám.'); _chunks = []; return; }
+        var mime = haveAudio ? ((recorder && recorder.mimeType) || _chunks[0].type || 'audio/webm') : null;
+        var blob = haveAudio ? new Blob(_chunks, { type: mime }) : null;
         _chunks = [];
         var near = _recGeo ? nearestPoint(_recGeo.lat, _recGeo.lng) : null;
         var rec = {
             id: 'hl_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-            pid: pid(), ts: _recT0, dur: dur, mime: mime, blob: blob, note: '',
+            pid: pid(), ts: _recT0, dur: dur, mime: mime, blob: blob, txt: text, note: '',
             lat: _recGeo ? _recGeo.lat : null, lng: _recGeo ? _recGeo.lng : null, acc: _recGeo ? _recGeo.acc : null,
             ptName: near ? near.name : null, ptDist: near ? Math.round(near.d) : null
         };
         dbPut(rec).then(function () {
-            toast('Hlasovka uložena' + (rec.ptName ? ' (u bodu ' + rec.ptName + ')' : '') + '.');
+            var why = text ? '' : (srCtor() && txtOn() ? ' Přepis se nepovedl (signál?) — text dopiš nebo nadiktuj.' : '');
+            toast('Hlasovka uložena' + (rec.ptName ? ' (u bodu ' + rec.ptName + ')' : '') + '.' + why);
             renderList();
         }, function () { toast('Uložení se nepovedlo (IndexedDB).'); });
     }
+    function showLive(t) {
+        var el = document.getElementById('ag-hl-live');
+        if (!el) return;
+        el.style.display = 'block';
+        el.textContent = t || 'Poslouchám…';
+    }
     function syncRecUi(on) {
         var b = document.getElementById('ag-hl-recbtn');
-        if (!b) return;
-        b.classList.toggle('rec', !!on);
-        b.innerHTML = on
-            ? '<span class="dot"></span> Nahrávám… <span id="ag-hl-rectime">0:00</span> — klepni pro STOP'
-            : '● Nahrát poznámku';
+        if (b) {
+            b.classList.toggle('rec', !!on);
+            b.innerHTML = on
+                ? '<span class="dot"></span> Nahrávám… <span id="ag-hl-rectime">0:00</span> — klepni pro STOP'
+                : '● Nahrát poznámku';
+        }
+        var live = document.getElementById('ag-hl-live');
+        if (live && !on) { live.style.display = 'none'; live.textContent = ''; }
+        if (live && on && srCtor() && txtOn() && !_srDead) showLive('');
+    }
+
+    // ---- dodiktování textu k existující poznámce -----------------------------------------
+    // Když přepis selhal (offline, hluk), jde text doplnit hlasem později — bez
+    // nahrávání zvuku, jen rozpoznávání.
+    function dictateInto(rec, btn) {
+        if (_rec) { toast('Nejdřív ukonči nahrávání.'); return; }
+        if (!srCtor()) { toast('Tenhle prohlížeč neumí rozpoznávání řeči — text napiš ručně.'); return; }
+        if (_dictFor) { stopDictate(); return; }
+        _srDead = false;
+        _dictFor = rec.id;
+        if (btn) { btn.classList.add('on'); btn.textContent = 'Poslouchám… STOP'; }
+        var ta = document.querySelector('#ag-hl-modal .ag-hl-item[data-id="' + rec.id + '"] .ag-hl-note');
+        var base = ta ? ta.value : recText(rec);
+        var ok = startSR(function (t) { if (ta) ta.value = (base ? base + ' ' : '') + t; });
+        if (!ok) { _dictFor = null; if (btn) { btn.classList.remove('on'); btn.textContent = 'Diktovat'; } toast('Rozpoznávání se nepodařilo spustit.'); return; }
+        // bez nahrávání prohlížeč rozpoznávání po pauze ukončí — dorazíme to sami
+        _sr.onend = function () { if (_dictFor) finishDictate(rec, btn, base, ta); };
+    }
+    function stopDictate() { try { if (_sr) _sr.stop(); } catch (e) {} }
+    function finishDictate(rec, btn, base, ta) {
+        var t = stopSR();
+        _dictFor = null;
+        if (btn) { btn.classList.remove('on'); btn.textContent = 'Diktovat'; }
+        if (!t) { toast('Nic jsem nezachytil.'); return; }
+        rec.txt = ((base ? base + ' ' : '') + t).trim();
+        if (ta) ta.value = rec.txt;
+        dbPut(rec).then(function () { toast('Text doplněn.'); });
     }
 
     // ---- přehrávání / sdílení / mazání ------------------------------------------------
@@ -214,6 +344,7 @@
         for (var i = 0; i < btns.length; i++) btns[i].classList.remove('on');
     }
     function playRec(rec, btn) {
+        if (!rec.blob) { toast('Tahle poznámka je jen textová.'); return; }
         if (_playingId === rec.id) { stopPlay(); return; }
         stopPlay();
         if (!_audio) { _audio = document.createElement('audio'); _audio.addEventListener('ended', stopPlay); }
@@ -224,6 +355,7 @@
         _audio.play()['catch'](function () { stopPlay(); toast('Přehrání se nepovedlo.'); });
     }
     function fileFor(rec) {
+        if (!rec.blob) return null;
         var ext = /mp4/.test(rec.mime) ? 'm4a' : (/webm/.test(rec.mime) ? 'webm' : 'audio');
         var d = new Date(rec.ts);
         var name = 'hlasovka_' + d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate()) + '_' + pad2(d.getHours()) + pad2(d.getMinutes()) + '.' + ext;
@@ -231,15 +363,23 @@
     }
     function shareRec(rec) {
         var f = fileFor(rec);
-        var txt = 'Hlasovka ' + fmtT(rec.ts) + ' — ' + projName() + (rec.ptName ? ' — u bodu ' + rec.ptName : '') + ' — ' + geoStamp(rec) + (rec.note ? ' — ' + rec.note : '');
+        var txt = 'Hlasovka ' + fmtT(rec.ts) + ' — ' + projName()
+            + (rec.ptName ? ' — u bodu ' + rec.ptName : '') + ' — ' + geoStamp(rec)
+            + (recText(rec) ? '\n' + recText(rec) : '');
         if (f && navigator.canShare && navigator.canShare({ files: [f] })) {
             navigator.share({ files: [f], title: 'Hlasová poznámka', text: txt })['catch'](function () {});
+            return;
+        }
+        // bez zvuku (textová poznámka) sdílíme aspoň text
+        if (!f) {
+            if (navigator.share) { navigator.share({ title: 'Poznámka', text: txt })['catch'](function () {}); return; }
+            try { navigator.clipboard.writeText(txt); toast('Zkopírováno do schránky.'); } catch (e) { toast('Sdílení není k dispozici.'); }
             return;
         }
         // fallback: stáhnout soubor
         var url = URL.createObjectURL(rec.blob);
         var a = document.createElement('a');
-        a.href = url; a.download = f ? f.name : 'hlasovka.audio';
+        a.href = url; a.download = f.name;
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e) {} }, 4000);
     }
@@ -254,11 +394,23 @@
             '#ag-hl-list{flex:1;overflow-y:auto;min-height:0;}',
             '#ag-hl-recbtn{width:100%;padding:16px;border-radius:14px;border:1px solid var(--accent-line,rgba(47,158,116,0.4));',
             '  background:var(--accent-soft,rgba(47,158,116,0.18));color:var(--accent,#2f9e74);',
-            '  font:700 16px/1.2 var(--font-ui,system-ui);cursor:pointer;margin:2px 0 12px;}',
+            '  font:700 16px/1.2 var(--font-ui,system-ui);cursor:pointer;margin:2px 0 8px;}',
             '#ag-hl-recbtn.rec{background:rgba(220,68,68,0.16);border-color:rgba(220,68,68,0.5);color:#f87171;}',
             '#ag-hl-recbtn .dot{display:inline-block;width:10px;height:10px;border-radius:99px;background:#f87171;',
             '  margin-right:6px;animation:ag-hl-blink 1s infinite;}',
             '@keyframes ag-hl-blink{0%,100%{opacity:1}50%{opacity:0.25}}',
+            // živý přepis pod tlačítkem
+            '#ag-hl-live{display:none;margin:0 0 10px;padding:9px 11px;border-radius:12px;',
+            '  border:1px dashed var(--accent-line,rgba(47,158,116,0.4));background:rgba(47,158,116,0.07);',
+            '  font:500 13px/1.45 var(--font-ui,system-ui);color:var(--text-color,#e6e8eb);',
+            '  max-height:88px;overflow-y:auto;}',
+            // hlavička: přepínač přepisu + filtr
+            '#ag-hl-modal .ag-hl-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px;}',
+            '#ag-hl-modal .ag-hl-chk{display:flex;align-items:center;gap:7px;font:500 12.5px/1.3 var(--font-ui,system-ui);',
+            '  color:var(--text-muted,#9aa1ac);cursor:pointer;}',
+            '#ag-hl-find{flex:1;min-width:120px;padding:8px 11px;border-radius:10px;box-sizing:border-box;',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:var(--glass-bg,rgba(255,255,255,0.05));',
+            '  color:var(--text-color,#e6e8eb);font:500 13px/1.3 var(--font-ui,system-ui);}',
             '#ag-hl-modal .ag-hl-day{font:700 12.5px/1.4 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);',
             '  text-transform:uppercase;letter-spacing:0.04em;margin:10px 0 6px;}',
             '#ag-hl-modal .ag-hl-item{background:var(--glass-bg,rgba(255,255,255,0.04));border:1px solid var(--glass-border,rgba(255,255,255,0.1));',
@@ -267,14 +419,18 @@
             '#ag-hl-modal .ag-hl-play{width:42px;height:42px;flex:none;border-radius:99px;border:1px solid var(--accent-line,rgba(47,158,116,0.4));',
             '  background:transparent;color:var(--accent,#2f9e74);font-size:16px;cursor:pointer;}',
             '#ag-hl-modal .ag-hl-play.on{background:var(--accent-soft,rgba(47,158,116,0.18));}',
+            '#ag-hl-modal .ag-hl-play[disabled]{opacity:0.35;}',
             '#ag-hl-modal .ag-hl-meta{flex:1;min-width:0;font:500 12.5px/1.5 var(--font-ui,system-ui);color:var(--text-muted,#c3c9d2);word-break:break-word;}',
             '#ag-hl-modal .ag-hl-meta b{color:var(--text-color,#e6e8eb);font-size:13.5px;}',
-            '#ag-hl-modal .ag-hl-note{width:100%;margin-top:8px;padding:7px 10px;border-radius:10px;box-sizing:border-box;',
+            // přepis = hlavní obsah poznámky, proto textarea (ne jednořádkový input)
+            '#ag-hl-modal .ag-hl-note{width:100%;margin-top:8px;padding:8px 10px;border-radius:10px;box-sizing:border-box;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:var(--glass-bg,rgba(255,255,255,0.05));',
-            '  color:var(--text-color,#e6e8eb);font:500 13px/1.4 var(--font-ui,system-ui);}',
+            '  color:var(--text-color,#e6e8eb);font:500 13.5px/1.45 var(--font-ui,system-ui);resize:vertical;min-height:52px;}',
+            '#ag-hl-modal .ag-hl-empty-txt{margin-top:8px;font:500 12.5px/1.4 var(--font-ui,system-ui);color:#fbbf24;font-style:italic;}',
             '#ag-hl-modal .ag-hl-acts{display:flex;gap:8px;margin-top:8px;}',
             '#ag-hl-modal .ag-hl-acts button{flex:1;padding:7px 8px;border-radius:10px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));',
             '  background:transparent;color:var(--text-muted,#c3c9d2);font:600 12.5px/1 var(--font-ui,system-ui);cursor:pointer;}',
+            '#ag-hl-modal .ag-hl-acts button.on{border-color:rgba(220,68,68,0.5);color:#f87171;}',
             '#ag-hl-modal .ag-hl-acts button.warn{color:#f87171;border-color:rgba(220,68,68,0.45);}',
             '#ag-hl-modal .ag-hl-empty{font:500 13px/1.5 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);font-style:italic;padding:8px 2px;}',
             '#ag-hl-modal .ag-hl-foot{display:flex;gap:8px;margin-top:12px;}',
@@ -289,24 +445,41 @@
         if (!box) return;
         dbAll().then(function (all) {
             var mine = all.filter(function (r) { return r && r.pid === pid(); }).sort(function (a, b) { return b.ts - a.ts; });
+            var total = mine.length;
+            if (_filter) {
+                var q = _filter.toLowerCase();
+                mine = mine.filter(function (r) {
+                    return recText(r).toLowerCase().indexOf(q) >= 0
+                        || String(r.ptName || '').toLowerCase().indexOf(q) >= 0;
+                });
+            }
+            // filtr má smysl, až když je co filtrovat
+            var find = document.getElementById('ag-hl-find');
+            if (find) find.style.display = (total >= 4) ? 'block' : 'none';
+
             if (!mine.length) {
-                box.innerHTML = '<div class="ag-hl-empty">Zatím žádné hlasovky v této zakázce. Klepni nahoře na Nahrát, řekni co vidíš, klepnutím zastavíš.</div>';
+                box.innerHTML = '<div class="ag-hl-empty">' + (total
+                    ? 'Nic neodpovídá hledání.'
+                    : 'Zatím žádné hlasovky v této zakázce. Klepni nahoře na Nahrát, řekni co vidíš, klepnutím zastavíš — appka to rovnou přepíše na text.') + '</div>';
                 return;
             }
             var h = '', lastDay = '';
             mine.forEach(function (r) {
                 var day = fmtDay(r.ts);
                 if (day !== lastDay) { h += '<div class="ag-hl-day">' + esc(day) + '</div>'; lastDay = day; }
+                var t = recText(r);
                 h += '<div class="ag-hl-item" data-id="' + esc(r.id) + '">'
                     + '<div class="ag-hl-top">'
-                    + '<button type="button" class="ag-hl-play" aria-label="Přehrát">▶</button>'
+                    + '<button type="button" class="ag-hl-play" aria-label="Přehrát"' + (r.blob ? '' : ' disabled') + '>▶</button>'
                     + '<div class="ag-hl-meta"><b>' + esc(fmtT(r.ts)) + ' · ' + esc(fmtDur(r.dur)) + '</b>'
                     + (r.ptName ? ' · u bodu <b>' + esc(r.ptName) + '</b>' + (r.ptDist != null ? ' (' + r.ptDist + ' m)' : '') : '')
                     + '<br>' + esc(geoStamp(r)) + '</div>'
                     + '</div>'
-                    + '<input type="text" class="ag-hl-note" placeholder="Dopsat poznámku…" value="' + esc(r.note || '') + '" maxlength="200">'
+                    + (t ? '' : '<div class="ag-hl-empty-txt">Bez přepisu — přehraj a dopiš, nebo klepni na Diktovat.</div>')
+                    + '<textarea class="ag-hl-note" rows="2" placeholder="Přepis poznámky…" maxlength="2000">' + esc(t) + '</textarea>'
                     + '<div class="ag-hl-acts">'
-                    + '<button type="button" class="ag-hl-share">Sdílet / uložit</button>'
+                    + '<button type="button" class="ag-hl-dict">Diktovat</button>'
+                    + '<button type="button" class="ag-hl-share">Sdílet</button>'
                     + '<button type="button" class="ag-hl-del warn">Smazat</button>'
                     + '</div>'
                     + '</div>';
@@ -322,10 +495,15 @@
                     if (!rec) return;
                     item.querySelector('.ag-hl-play').addEventListener('click', function () { playRec(rec, this); });
                     item.querySelector('.ag-hl-share').addEventListener('click', function () { shareRec(rec); });
+                    item.querySelector('.ag-hl-dict').addEventListener('click', function () { dictateInto(rec, this); });
                     var noteEl = item.querySelector('.ag-hl-note');
                     noteEl.addEventListener('change', function () {
-                        rec.note = this.value.slice(0, 200);
+                        rec.txt = this.value.slice(0, 2000);
+                        rec.note = '';
                         dbPut(rec);
+                        // varování „bez přepisu" po dopsání textu už nemá co říkat
+                        var warn = item.querySelector('.ag-hl-empty-txt');
+                        if (warn && rec.txt) warn.remove();
                     });
                     // mazání dvoj-ťukem (žádný blokující confirm)
                     var del = item.querySelector('.ag-hl-del');
@@ -359,6 +537,11 @@
                 '<div class="modal-content">' +
                 '  <h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Hlasové poznámky</h3>' +
                 '  <button type="button" id="ag-hl-recbtn">● Nahrát poznámku</button>' +
+                '  <div id="ag-hl-live"></div>' +
+                '  <div class="ag-hl-bar">' +
+                '    <label class="ag-hl-chk"><input type="checkbox" id="ag-hl-txtchk"> Přepisovat na text</label>' +
+                '    <input type="text" id="ag-hl-find" placeholder="Hledat v poznámkách…" style="display:none;">' +
+                '  </div>' +
                 '  <div id="ag-hl-list"></div>' +
                 '  <div class="ag-hl-foot">' +
                 '    <button type="button" class="btn btn-secondary" id="ag-hl-close">Zavřít</button>' +
@@ -368,9 +551,24 @@
             m.querySelector('#ag-hl-recbtn').addEventListener('click', function () { _rec ? stopRec() : startRec(); });
             m.querySelector('#ag-hl-close').addEventListener('click', function () {
                 if (_rec) stopRec();
+                if (_dictFor) stopDictate();
                 stopPlay();
                 m.style.display = 'none';
             });
+            var chk = m.querySelector('#ag-hl-txtchk');
+            chk.addEventListener('change', function () {
+                try { localStorage.setItem(TXT_KEY, this.checked ? '1' : '0'); } catch (e) {}
+                if (this.checked) _srDead = false;
+            });
+            var find = m.querySelector('#ag-hl-find');
+            find.addEventListener('input', function () { _filter = this.value.trim(); renderList(); });
+        }
+        var c = m.querySelector('#ag-hl-txtchk');
+        c.checked = txtOn();
+        c.disabled = !srCtor();
+        if (!srCtor()) {
+            var lab = c.parentNode;
+            if (lab && lab.textContent.indexOf('neumí') < 0) lab.appendChild(document.createTextNode(' — prohlížeč neumí'));
         }
         m.style.display = 'flex';
         syncRecUi(!!_rec);
@@ -384,7 +582,7 @@
                 return all
                     .filter(function (r) { return r && r.pid === p && r.ts >= from && r.ts < to; })
                     .sort(function (a, b) { return a.ts - b.ts; })
-                    .map(function (r) { return { ts: r.ts, dur: r.dur, note: r.note || '', ptName: r.ptName || null, ptDist: r.ptDist != null ? r.ptDist : null }; });
+                    .map(function (r) { return { ts: r.ts, dur: r.dur, note: recText(r), ptName: r.ptName || null, ptDist: r.ptDist != null ? r.ptDist : null }; });
             })['catch'](function () { return []; });
         }
     };
