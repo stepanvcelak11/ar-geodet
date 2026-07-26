@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v190';   // fix obri ikony v nadpisech modalu + dochazka: stavba/parta/cinnost
+const SHELL_CACHE = 'argeodet-shell-v191';   // fix obri ikony v nadpisech modalu + dochazka: stavba/parta/cinnost
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -25,9 +25,9 @@ const ASSETS_TO_CACHE = [
     './icon-512.png',
     './icon-maskable-192.png',
     './icon-maskable-512.png',
-    './css/tokens.css?v=190',
-    './css/style.css?v=190',
-    './css/vylepseni.css?v=190',
+    './css/tokens.css?v=191',
+    './css/style.css?v=191',
+    './css/vylepseni.css?v=191',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
@@ -145,6 +145,7 @@ const ASSETS_TO_CACHE = [
     './js/ucty-admin.js',
     './js/dochazka.js',
     './js/firma-chat.js',
+    './js/cloud-sync.js',
     './js/zavady.js',
     './js/denik-dne.js',
     './js/usadit-ar.js',
