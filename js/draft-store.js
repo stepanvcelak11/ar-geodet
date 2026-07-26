@@ -113,10 +113,16 @@
 
     // ---- rozepsaný modál „Nový bod“ (jádrová pole v index.html) -------------------
     var NP_KEY = 'novy-bod';
-    var NP_FIELDS = ['custom-name', 'custom-y', 'custom-x', 'custom-z', 'custom-note'];
+    var NP_FIELDS = ['custom-name', 'custom-y', 'custom-x', 'custom-z', 'custom-kod', 'custom-note'];
     function npCollect() {
         var st = {}, any = false;
-        NP_FIELDS.forEach(function (id) { var el = document.getElementById(id); var v = el ? el.value : ''; st[id] = v; if (v && String(v).trim()) any = true; });
+        NP_FIELDS.forEach(function (id) {
+            var el = document.getElementById(id); var v = el ? el.value : ''; st[id] = v;
+            // cislo bodu predvyplnene automaticky ze serie NENI rozdelana prace — jinak
+            // by kazde otevreni formulare zalozilo draft „Novy bod 102“, na ktery nikdo nesahl
+            if (el && el.dataset && el.dataset.agAutofill === '1') return;
+            if (v && String(v).trim()) any = true;
+        });
         return any ? st : null;
     }
     function npRestore(st) {

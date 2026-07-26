@@ -327,6 +327,15 @@
         } catch (e) { agAlert({ title: 'Export selhal', message: 'Nepodařilo se stáhnout soubor.' }); }
     }
     function dxfClean(s) { return String(s == null ? '' : s).replace(/[\r\n]+/g, ' ').slice(0, 250); }
+    // Kod bodu -> nazev DXF vrstvy (bez diakritiky/mezer, max 31 znaku; bez kodu = BODY).
+    // Diky tomu se body v CADu rovnou tridi po vrstvach (OBRUBA, SACHTA, ...).
+    function dxfLayer(kod) {
+        let s = String(kod || '');
+        // NFD rozlozi 'c' na 'c'+hacek; zahodime vse mimo tisknutelne ASCII (= prave ty znacky).
+        try { s = s.normalize('NFD').replace(/[^ -~]/g, ''); } catch (e) {}
+        s = s.toUpperCase().replace(/[^A-Z0-9_-]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 31);
+        return s || 'BODY';
+    }
 
     window.exportPointsDXF = function () {
         if (typeof proj4 !== 'function') { agAlert({ title: 'Chybí proj4', message: 'Knihovna pro převod souřadnic se nenačetla.' }); return; }
@@ -343,8 +352,10 @@
             const c = toSJTSK(p.lng, p.lat);
             if (!c) { nSkip++; return; }
             const x = c[0].toFixed(3), y = c[1].toFixed(3);
-            // bod
-            e += '0\nPOINT\n8\nBODY\n10\n' + x + '\n20\n' + y + '\n30\n0.0\n';
+            // bod — VRSTVA PODLE KODU (obruba -> OBRUBA), bez kodu vrstva BODY.
+            // Vyska Z jde do skupiny 30, aby byl bod v CADu prostorovy (drive vzdy 0.0).
+            const z = (p.vyska != null && isFinite(p.vyska)) ? Number(p.vyska).toFixed(3) : '0.0';
+            e += '0\nPOINT\n8\n' + dxfLayer(p.kod) + '\n10\n' + x + '\n20\n' + y + '\n30\n' + z + '\n';
             // číslo bodu jako TEXT vedle bodu
             const tx = (c[0] + TXT_H * 0.6).toFixed(3), ty = (c[1] + TXT_H * 0.6).toFixed(3);
             e += '0\nTEXT\n8\nCISLA\n10\n' + tx + '\n20\n' + ty + '\n30\n0.0\n40\n' + TXT_H.toFixed(3) + '\n1\n' + dxfClean(p.name || 'Bod') + '\n';
