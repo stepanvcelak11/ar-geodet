@@ -24,8 +24,46 @@
     function U() { return window.AGUcty || null; }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function pad2(n) { return (n < 10 ? '0' : '') + n; }
-    // klíč události může nést i hrubou polohu píchnutí: 'in|50.12345,14.67890'
+    // klíč události: 'in|50.12345,14.67890|<meta>' — [0] směr, [1] hrubá poloha,
+    // [2] volitelný detail směny (URI-encoded JSON {s:stavba, w:[s kým], c:činnost})
     function kDir(ev) { return String(ev.k || '').split('|')[0]; }
+    function kMeta(ev) {
+        var seg = String(ev.k || '').split('|')[2];
+        if (!seg) return null;
+        try {
+            var m = JSON.parse(decodeURIComponent(seg));
+            if (!m || typeof m !== 'object') return null;
+            // normalizace (záznam mohl vzniknout jinde / v jiné verzi): s,c řetězce, w pole řetězců
+            var out = {};
+            if (m.s != null && typeof m.s !== 'object') out.s = String(m.s);
+            if (m.c != null && typeof m.c !== 'object') out.c = String(m.c);
+            if (Array.isArray(m.w)) out.w = m.w.map(function (x) { return String(x); });
+            return (out.s || out.c || (out.w && out.w.length)) ? out : null;
+        } catch (e) { return null; }
+    }
+    // detail směny -> segment klíče; drží se pod ~450 znaky (server ukládá max 500),
+    // při přetečení se nejdřív krátí činnost, pak parta, nakonec se detail zahodí
+    function encMeta(meta) {
+        if (!meta) return '';
+        var m = {};
+        if (meta.s) m.s = String(meta.s).slice(0, 60);
+        if (meta.w && meta.w.length) m.w = meta.w.slice(0, 8).map(function (x) { return String(x).slice(0, 30); });
+        if (meta.c) m.c = String(meta.c).slice(0, 160);
+        if (!m.s && !m.w && !m.c) return '';
+        for (var i = 0; i < 6; i++) {
+            var out = encodeURIComponent(JSON.stringify(m));
+            if (out.length <= 450) return out;
+            if (m.c && m.c.length > 20) m.c = m.c.slice(0, Math.floor(m.c.length / 2));
+            else if (m.w && m.w.length) m.w = m.w.slice(0, Math.max(0, m.w.length - 2));
+            else if (m.s) m.s = m.s.slice(0, 25);
+            else break;
+        }
+        return '';
+    }
+    // poslední vyplněné hodnoty (předvyplnění dalšího píchnutí; jen toto zařízení)
+    var LS_FORM = 'agDochazkaForm_v1';
+    function lastForm() { try { return JSON.parse(localStorage.getItem(LS_FORM) || '{}') || {}; } catch (e) { return {}; } }
+    function saveForm(o) { try { localStorage.setItem(LS_FORM, JSON.stringify(o)); } catch (e) {} }
     // název aktivní zakázky (globál `projects` ze zakazky.js; bez něj aspoň id)
     function activeProjName() {
         var id = null;
@@ -84,7 +122,25 @@
             '  font:500 12.5px/1.3 var(--font-ui,system-ui);color:var(--text,#e6e8eb);}',
             '#agdo-modal .agdo-row .t{flex:1;}',
             '#agdo-modal .agdo-row .d{font-weight:700;}',
-            '#agdo-modal .agdo-note{font:500 11.5px/1.5 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);margin:10px 0;}'
+            '#agdo-modal .agdo-note{font:500 11.5px/1.5 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);margin:10px 0;}',
+            // detail směny pod řádkem rozpisu (stavba / parta / činnost)
+            '#agdo-modal .agdo-sub{font:500 11px/1.45 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);padding:0 4px 8px;',
+            '  border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.07));margin-top:-4px;}',
+            '#agdo-modal .agdo-row.hasmeta{border-bottom:none;}',
+            // formulář píchnutí (stavba, parta, činnost)
+            '#agdo-modal label.agdo-lb{display:block;font:600 12px/1.3 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);margin:12px 0 4px;}',
+            '#agdo-modal input[type=text],#agdo-modal textarea{width:100%;box-sizing:border-box;background:var(--glass-bg,rgba(255,255,255,0.06));',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.16));border-radius:11px;color:var(--text,#e6e8eb);padding:11px 12px;',
+            '  font:500 14px/1.3 var(--font-ui,system-ui);outline:none;transition:border-color .15s ease;}',
+            '#agdo-modal input:focus,#agdo-modal textarea:focus{border-color:var(--accent,#2f9e74);}',
+            '#agdo-modal textarea{resize:none;height:74px;}',
+            '#agdo-modal .agdo-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px;}',
+            '#agdo-modal .agdo-chip{border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:var(--glass-bg,rgba(255,255,255,0.04));',
+            '  color:var(--text-muted,#9aa1ac);border-radius:999px;padding:8px 13px;font:600 12.5px/1 var(--font-ui,system-ui);cursor:pointer;',
+            '  transition:color .15s ease,border-color .15s ease,background .15s ease;}',
+            '#agdo-modal .agdo-chip.on{border-color:var(--accent,#2f9e74);background:var(--accent-soft,rgba(47,158,116,0.14));color:var(--accent,#2f9e74);}',
+            '#agdo-modal .agdo-back{width:100%;margin-top:8px;border:1px solid var(--glass-border,rgba(255,255,255,0.16));background:transparent;',
+            '  color:var(--text-muted,#9aa1ac);border-radius:14px;padding:12px;font:600 13px/1 var(--font-ui,system-ui);cursor:pointer;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
@@ -120,10 +176,10 @@
                 var dir = kDir(ev);
                 if (dir === 'in') {
                     if (open) pairs.push(open);           // dvojí příchod — starý zůstane bez odchodu
-                    open = { inTs: ev.ts, outTs: null };
+                    open = { inTs: ev.ts, outTs: null, inMeta: kMeta(ev), outMeta: null };
                 } else if (dir === 'out') {
-                    if (open) { open.outTs = ev.ts; pairs.push(open); open = null; }
-                    else pairs.push({ inTs: null, outTs: ev.ts });
+                    if (open) { open.outTs = ev.ts; open.outMeta = kMeta(ev); pairs.push(open); open = null; }
+                    else pairs.push({ inTs: null, outTs: ev.ts, inMeta: null, outMeta: kMeta(ev) });
                 }
             });
             var now = Date.now();
@@ -152,10 +208,16 @@
             if (!d) return;
             var on = !!d.open;
             var proj = activeProjName();
+            var im = on ? (d.open.inMeta || {}) : {};
+            var statusSub = on
+                ? ('zatím ' + fmtDur(Date.now() - d.open.inTs) + ' h · ' + esc(me.name) +
+                    (im.s ? '<br>🏗 ' + esc(im.s) : '') +
+                    (im.w && im.w.length ? '<br>👷 s: ' + esc(im.w.join(', ')) : ''))
+                : (esc(me.name) + ' — píchni si příchod, až začneš');
             var html =
                 '<div class="agdo-status' + (on ? ' on' : '') + '"><span class="agdo-dot"></span><div>' +
-                (on ? '<b>V práci od ' + fmtT(d.open.inTs) + '</b><span>zatím ' + fmtDur(Date.now() - d.open.inTs) + ' h · ' + esc(me.name) + '</span>'
-                    : '<b>Mimo práci</b><span>' + esc(me.name) + ' — píchni si příchod, až začneš</span>') +
+                (on ? '<b>V práci od ' + fmtT(d.open.inTs) + '</b><span>' + statusSub + '</span>'
+                    : '<b>Mimo práci</b><span>' + statusSub + '</span>') +
                 '</div></div>' +
                 '<button type="button" class="agdo-big' + (on ? ' out' : '') + '" id="agdo-toggle">' + (on ? 'Odchod' : 'Příchod') +
                 (!on && proj ? ' <span style="font-weight:500;opacity:.85;">· ' + esc(String(proj).slice(0, 24)) + '</span>' : '') + '</button>' +
@@ -176,25 +238,98 @@
                 byDay[k].sort(function (a, b) { return (a.inTs || a.outTs) - (b.inTs || b.outTs); }).forEach(function (p) {
                     var dur = (p.inTs && p.outTs) ? fmtDur(p.outTs - p.inTs)
                         : (p.inTs && !p.outTs ? (k === dayKey(Date.now()) ? fmtDur(Date.now() - p.inTs) : '—') : '—');
-                    html += '<div class="agdo-row"><span class="t">' +
+                    // detail směny: stavba + parta z příchodu, činnost z odchodu
+                    var mIn = p.inMeta || {}, mOut = p.outMeta || {};
+                    var det = [];
+                    if (mIn.s) det.push('🏗 ' + esc(mIn.s));
+                    if (mIn.w && mIn.w.length) det.push('👷 s: ' + esc(mIn.w.join(', ')));
+                    if (mOut.c) det.push('✏ ' + esc(mOut.c));
+                    html += '<div class="agdo-row' + (det.length ? ' hasmeta' : '') + '"><span class="t">' +
                         (p.inTs ? fmtT(p.inTs) : '?') + ' → ' + (p.outTs ? fmtT(p.outTs) : (k === dayKey(Date.now()) ? 'teď' : 'chybí odchod')) +
-                        '</span><span class="d">' + dur + '</span></div>';
+                        '</span><span class="d">' + dur + '</span></div>' +
+                        (det.length ? '<div class="agdo-sub">' + det.join(' · ') + '</div>' : '');
                 });
             });
             html += '<div class="agdo-note">Záznam funguje i bez signálu — odešle se, až bude internet. ' +
                 'Tady vidíš záznamy z tohoto zařízení; přehled všech (i z jiných mobilů) má admin v administraci firmy. Orientační podklad, ne docházkový systém.</div>';
             body.innerHTML = html;
-            body.querySelector('#agdo-toggle').onclick = function () {
-                this.disabled = true;
-                this.textContent = on ? 'Zapisuji odchod…' : 'Zapisuji příchod…';
-                // hrubá poloha píchnutí (štempl „kde"); bez GPS se zapíše bez ní
-                quickPos(function (sfx) {
-                    u.usageLog('shift', (on ? 'out' : 'in') + sfx);
-                    if (u.isCloud && u.isCloud()) setTimeout(function () { u.syncUsage(); }, 1200);
-                    setTimeout(render, 350);   // zápis do IndexedDB je asynchronní
-                });
-            };
+            body.querySelector('#agdo-toggle').onclick = function () { renderForm(on); };
         });
+    }
+
+    // ------------------------------------------------------------------
+    // Formulář píchnutí: příchod = stavba + s kým; odchod = co se dělalo.
+    // Všechno je nepovinné — prázdný formulář píchne stejně jako dřív.
+    // ------------------------------------------------------------------
+    function renderForm(on) {
+        var body = document.getElementById('agdo-body');
+        var u = U();
+        var me = u && u.currentUser();
+        if (!body || !me) return;
+        var last = lastForm();
+        var f = u.getFirm() || {};
+        // parta: kolegové z firmy (kromě mě a zablokovaných) jako přepínací štítky
+        var mates = (f.users || []).filter(function (x) { return x && !x.disabled && x.id !== me.id; })
+            .map(function (x) { return x.name; });
+        var selW = {};
+        (last.w || []).forEach(function (n) { selW[n] = true; });
+
+        var html = '<div class="agdo-note" style="margin-top:4px;">' +
+            (on ? 'Odchod — napiš, co se na stavbě dělalo (nepovinné, uvidí ho admin ve výkazu).'
+                : 'Příchod — doplň stavbu a s kým jsi (nepovinné, předvyplní se příště).') + '</div>';
+        if (!on) {
+            var stavba = last.s || activeProjName() || '';
+            html += '<label class="agdo-lb">Stavba / místo</label>' +
+                '<input type="text" id="agdo-f-s" maxlength="60" placeholder="např. D35 Ostrov — hlavní trasa" value="' + esc(stavba) + '">';
+            if (mates.length) {
+                html += '<label class="agdo-lb">S kým jsi na stavbě</label><div class="agdo-chips">' +
+                    mates.map(function (n) {
+                        return '<button type="button" class="agdo-chip' + (selW[n] ? ' on' : '') + '" data-w="' + esc(n) + '">' + esc(n) + '</button>';
+                    }).join('') + '</div>';
+            }
+            html += '<label class="agdo-lb">Další lidé (mimo firmu, odděl čárkou)</label>' +
+                '<input type="text" id="agdo-f-wx" maxlength="120" placeholder="např. bagrista Franta" value="">';
+        } else {
+            html += '<label class="agdo-lb">Co se dělalo</label>' +
+                '<textarea id="agdo-f-c" maxlength="160" placeholder="např. vytyčení obrubníků, kontrola pláně 2. úsek"></textarea>';
+        }
+        html += '<button type="button" class="agdo-big' + (on ? ' out' : '') + '" style="margin-top:14px;" id="agdo-go">' +
+            (on ? 'Píchnout odchod' : 'Píchnout příchod') + '</button>' +
+            '<button type="button" class="agdo-back" id="agdo-back">Zpět bez píchnutí</button>';
+        body.innerHTML = html;
+
+        body.querySelectorAll('.agdo-chip').forEach(function (ch) {
+            ch.onclick = function () { this.classList.toggle('on'); };
+        });
+        body.querySelector('#agdo-back').onclick = render;
+        body.querySelector('#agdo-go').onclick = function () {
+            var meta = {};
+            if (!on) {
+                var s = (body.querySelector('#agdo-f-s') || { value: '' }).value.trim();
+                var w = [];
+                body.querySelectorAll('.agdo-chip.on').forEach(function (ch) { w.push(ch.getAttribute('data-w')); });
+                ((body.querySelector('#agdo-f-wx') || { value: '' }).value || '').split(',').forEach(function (x) {
+                    x = x.trim(); if (x) w.push(x);
+                });
+                if (s) meta.s = s;
+                if (w.length) meta.w = w;
+                saveForm({ s: s, w: w });
+            } else {
+                var c = (body.querySelector('#agdo-f-c') || { value: '' }).value.trim();
+                if (c) meta.c = c;
+            }
+            this.disabled = true;
+            this.textContent = on ? 'Zapisuji odchod…' : 'Zapisuji příchod…';
+            // hrubá poloha píchnutí (štempl „kde"); bez GPS se zapíše bez ní
+            quickPos(function (sfx) {
+                var enc = encMeta(meta);
+                // s detailem má klíč pevný tvar 'směr|poloha|meta' (poloha smí být prázdná)
+                var key = (on ? 'out' : 'in') + (enc ? (sfx || '|') + '|' + enc : sfx);
+                u.usageLog('shift', key);
+                if (u.isCloud && u.isCloud()) setTimeout(function () { u.syncUsage(); }, 1200);
+                setTimeout(render, 350);   // zápis do IndexedDB je asynchronní
+            });
+        };
     }
 
     function open() {
@@ -212,6 +347,7 @@
         _timer = setInterval(function () {
             var mm = document.getElementById('agdo-modal');
             if (!mm || mm.style.display === 'none') { clearInterval(_timer); _timer = null; return; }
+            if (document.getElementById('agdo-go')) return;   // rozepsaný formulář nepřepisovat
             render();
         }, 60000);
     }

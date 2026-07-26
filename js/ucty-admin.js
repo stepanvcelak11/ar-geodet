@@ -39,12 +39,12 @@
             // navigace: pilulky s ikonami, aktivní zvýrazněná
             // POZOR: nav se MUSÍ zabalovat (wrap). Rolovací řádek schoval na mobilu
             // půlku sekcí za okraj a admin je nenašel — proto mřížka pilulek.
-            '#agfa-modal .agfa-nav{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 12px;}',
-            '#agfa-modal .agfa-nav button{display:inline-flex;align-items:center;gap:6px;flex:1 1 auto;justify-content:center;',
+            '#agfa-modal .agfa-nav{display:flex;gap:5px;flex-wrap:wrap;margin:2px 0 10px;}',
+            '#agfa-modal .agfa-nav button{display:inline-flex;align-items:center;gap:5px;flex:1 1 auto;justify-content:center;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.13));',
-            '  background:var(--glass-bg,rgba(255,255,255,0.04));color:var(--text-muted,#9aa1ac);border-radius:999px;padding:10px 13px;',
-            '  font:600 12.5px/1 var(--font-ui,system-ui);cursor:pointer;white-space:nowrap;transition:color .15s ease,border-color .15s ease,background .15s ease;}',
-            '#agfa-modal .agfa-nav button svg{width:14px;height:14px;flex:none;}',
+            '  background:var(--glass-bg,rgba(255,255,255,0.04));color:var(--text-muted,#9aa1ac);border-radius:999px;padding:8px 10px;',
+            '  font:600 12px/1 var(--font-ui,system-ui);cursor:pointer;white-space:nowrap;transition:color .15s ease,border-color .15s ease,background .15s ease;}',
+            '#agfa-modal .agfa-nav button svg{width:13px;height:13px;flex:none;}',
             '#agfa-modal .agfa-nav button.act{border-color:var(--accent,#2f9e74);background:var(--accent-soft,rgba(47,158,116,0.14));color:var(--accent,#2f9e74);}',
             // řádky seznamů + avatary
             '#agfa-modal .agfa-row{display:flex;align-items:center;gap:10px;padding:10px 6px;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.07));}',
@@ -478,7 +478,8 @@
             (f.cloud ? '' : ' (tady běží lokální režim — jen toto zařízení)') + '. Nic z toho neodchází mimo firmu.</div>' +
             '<div class="agfa-pg">Docházka</div>' +
             '<div class="agfa-note">Každý si značí příchod/odchod dlaždicí <b>Docházka</b> v Nástrojích (Pomůcky) — jedno velké tlačítko, ' +
-            'funguje i bez signálu (záznam se odešle, až je internet). Příchod se váže k <b>aktivní zakázce</b> a ukládá i hrubou polohu píchnutí ' +
+            'funguje i bez signálu (záznam se odešle, až je internet). U příchodu jde doplnit <b>stavbu a s kým tam je</b>, u odchodu <b>co se dělalo</b> ' +
+            '(vše nepovinné; admin to vidí v Rozpisu i ve výkazu). Příchod se váže k <b>aktivní zakázce</b> a ukládá i hrubou polohu píchnutí ' +
             '(v Rozpisu je u času ikona špendlíku — klepnutím se otevře v mapě). ' +
             'Když někdo zapomene odchod, appka mu ho druhý den nabídne doplnit; zpětně ho umí doplnit i admin v Rozpisu. ' +
             'Admin a vedení vidí spárovanou docházku všech, hodiny po zakázkách a umí <b>výkaz do CSV nebo tisk/PDF</b> (podklad pro mzdy). ' +
@@ -1327,9 +1328,24 @@
             })
             : u.usageQuery(from.getTime()));
         getEvents.then(function (all) {
-            // klíč může nést i polohu píchnutí: 'in|50.12345,14.67890'
+            // klíč: 'in|poloha|meta' — [1] hrubá poloha píchnutí, [2] detail směny
+            // (URI-encoded JSON {s:stavba, w:[s kým], c:činnost}; píše js/dochazka.js)
             function kDir(ev) { var s = String(ev.k || '').split('|'); return s[0]; }
             function kPos(ev) { var s = String(ev.k || '').split('|'); return s[1] || null; }
+            function kMeta(ev) {
+                var seg = String(ev.k || '').split('|')[2];
+                if (!seg) return null;
+                try {
+                    var m = JSON.parse(decodeURIComponent(seg));
+                    if (!m || typeof m !== 'object') return null;
+                    // normalizace (záznam z jiného zařízení/verze): s,c řetězce, w pole řetězců
+                    var out = {};
+                    if (m.s != null && typeof m.s !== 'object') out.s = String(m.s);
+                    if (m.c != null && typeof m.c !== 'object') out.c = String(m.c);
+                    if (Array.isArray(m.w)) out.w = m.w.map(function (x) { return String(x); });
+                    return (out.s || out.c || (out.w && out.w.length)) ? out : null;
+                } catch (e) { return null; }
+            }
             var PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;vertical-align:-2px;"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>';
             function posLink(pos) {
                 return pos ? ' <a href="https://mapy.cz/zakladni?q=' + esc(pos) + '" target="_blank" rel="noopener" title="Poloha píchnutí: ' + esc(pos) + '" style="text-decoration:none;color:var(--accent,#2f9e74);">' + PIN + '</a>' : '';
@@ -1354,17 +1370,18 @@
                 if (dir === 'in') {
                     if (open[name]) pairs.push(open[name]);   // dvojí příchod: starý zůstane bez odchodu
                     var d = new Date(ev.ts);
-                    open[name] = { day: d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()), name: name, uid: ev.uid || null, inTs: ev.ts, outTs: null, ms: 0, proj: ev.proj || null, inPos: kPos(ev), outPos: null };
+                    open[name] = { day: d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()), name: name, uid: ev.uid || null, inTs: ev.ts, outTs: null, ms: 0, proj: ev.proj || null, inPos: kPos(ev), outPos: null, inMeta: kMeta(ev), outMeta: null };
                 } else if (dir === 'out') {
                     if (open[name]) {
                         open[name].outTs = ev.ts;
                         open[name].outPos = kPos(ev);
+                        open[name].outMeta = kMeta(ev);
                         open[name].ms = Math.max(0, ev.ts - open[name].inTs);
                         pairs.push(open[name]);
                         delete open[name];
                     } else {
                         var d2 = new Date(ev.ts);   // odchod bez příchodu (např. příchod mimo období)
-                        pairs.push({ day: d2.getFullYear() + '-' + pad2(d2.getMonth() + 1) + '-' + pad2(d2.getDate()), name: name, uid: ev.uid || null, inTs: null, outTs: ev.ts, ms: 0, proj: ev.proj || null, inPos: null, outPos: kPos(ev) });
+                        pairs.push({ day: d2.getFullYear() + '-' + pad2(d2.getMonth() + 1) + '-' + pad2(d2.getDate()), name: name, uid: ev.uid || null, inTs: null, outTs: ev.ts, ms: 0, proj: ev.proj || null, inPos: null, outPos: kPos(ev), inMeta: null, outMeta: kMeta(ev) });
                     }
                 }
             });
@@ -1438,6 +1455,13 @@
                         else tOut = '<span style="color:var(--text-muted);">chybí</span>';
                         var dur = p.outTs && p.inTs ? fmtDur(p.ms) : (p.inTs && p.day === todayKey ? fmtDur(Date.now() - p.inTs) : '—');
                         html += '<tr><td><b>' + esc(p.name) + '</b></td><td>' + tIn + '</td><td>' + tOut + '</td><td>' + dur + '</td><td>' + esc(String(projName(p.proj)).slice(0, 18)) + '</td></tr>';
+                        // detail směny (stavba / parta / činnost) pod řádkem
+                        var mi = p.inMeta || {}, mo = p.outMeta || {};
+                        var det = [];
+                        if (mi.s) det.push('🏗 ' + esc(mi.s));
+                        if (mi.w && mi.w.length) det.push('👷 s: ' + esc(mi.w.join(', ')));
+                        if (mo.c) det.push('✏ ' + esc(mo.c));
+                        if (det.length) html += '<tr><td colspan="5" style="font-size:11px;color:var(--text-muted,#9aa1ac);padding-top:2px;">' + det.join(' · ') + '</td></tr>';
                     });
                     html += '</table>';
                 });
@@ -1469,17 +1493,21 @@
             function exportRows() {
                 var out = [];
                 pairs.sort(function (a, b) { return (a.inTs || a.outTs) - (b.inTs || b.outTs); }).forEach(function (p) {
+                    var mi = p.inMeta || {}, mo = p.outMeta || {};
                     out.push([p.day, p.name,
                         p.inTs ? new Date(p.inTs).toLocaleTimeString('cs-CZ') : '',
                         p.outTs ? new Date(p.outTs).toLocaleTimeString('cs-CZ') : '',
                         (p.inTs && p.outTs) ? fmtDur(p.ms) : '',
                         projName(p.proj) || '',
+                        mi.s || '',
+                        (mi.w && mi.w.length) ? mi.w.join(', ') : '',
+                        mo.c || '',
                         p.inPos || '', p.outPos || '']);
                 });
                 return out;
             }
             body.querySelector('#agfa-do-csv').onclick = function () {
-                var lines = ['datum;uzivatel;prichod;odchod;hodin;zakazka;poloha_prichod;poloha_odchod'];
+                var lines = ['datum;uzivatel;prichod;odchod;hodin;zakazka;stavba;s_kym;cinnost;poloha_prichod;poloha_odchod'];
                 exportRows().forEach(function (r) {
                     lines.push(r.map(function (v) { return String(v).replace(/;/g, ','); }).join(';'));
                 });
@@ -1489,7 +1517,9 @@
                 var w = window.open('', '_blank');
                 if (!w) { agAlert('Tisk', 'Prohlížeč zablokoval nové okno — povol vyskakovací okna.'); return; }
                 var rows = exportRows().map(function (r) {
-                    return '<tr><td>' + r.slice(0, 6).map(esc).join('</td><td>') + '</td></tr>';
+                    // sloupce: datum..zakázka + stavba + poznámka (s kým / činnost)
+                    var note = [r[7] ? 's: ' + r[7] : '', r[8]].filter(Boolean).join(' — ');
+                    return '<tr><td>' + r.slice(0, 7).concat([note]).map(esc).join('</td><td>') + '</td></tr>';
                 }).join('');
                 var sumRows = names.map(function (n) {
                     return '<tr><td>' + esc(n) + '</td><td>' + Object.keys(sum[n].days).length + '</td><td>' + fmtDur(sum[n].ms) + '</td></tr>';
@@ -1501,7 +1531,7 @@
                     '<h1>Výkaz docházky — ' + esc(f.firmName || '') + '</h1>' +
                     '<div>Období: ' + esc(from.toLocaleDateString('cs-CZ')) + ' – ' + esc(new Date().toLocaleDateString('cs-CZ')) + ' · vytvořeno ' + esc(new Date().toLocaleString('cs-CZ')) + '</div>' +
                     '<h2>Souhrn</h2><table><tr><th>Uživatel</th><th>Dní</th><th>Hodin</th></tr>' + sumRows + '</table>' +
-                    '<h2>Rozpis</h2><table><tr><th>Datum</th><th>Uživatel</th><th>Příchod</th><th>Odchod</th><th>Hodin</th><th>Zakázka</th></tr>' + rows + '</table>' +
+                    '<h2>Rozpis</h2><table><tr><th>Datum</th><th>Uživatel</th><th>Příchod</th><th>Odchod</th><th>Hodin</th><th>Zakázka</th><th>Stavba</th><th>Poznámka</th></tr>' + rows + '</table>' +
                     '<button onclick="window.print()" style="margin-top:16px;padding:8px 14px;">Vytisknout / uložit PDF</button>' +
                     '</body></html>');
                 w.document.close();

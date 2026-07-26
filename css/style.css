@@ -1058,6 +1058,12 @@ details[open] summary::after { content: " ⌄"; }
 .modal-content h3 .icon,
 .modal-content h2 .icon { vertical-align: -0.16em; margin-right: 8px; }
 
+/* Inline SVG v nadpisu modálu BEZ rozměrů by se roztáhlo přes celou šířku
+   (SVG bez width/height = 100 % kontejneru) — „obrovské logo" nad obsahem.
+   Moduly s vlastním (specifičtějším) pravidlem si velikost přebijí. */
+.modal-content h2 svg,
+.modal-content h3 svg { width: 21px; height: 21px; flex: none; vertical-align: -0.2em; margin-right: 6px; }
+
 #gps-avg { position: absolute; top: max(calc(var(--hud-top) + 100px), calc(env(safe-area-inset-top) + 100px)); left: var(--hud-side); z-index: 9999; padding: 8px 14px; font-size: 12px; font-weight: 600; line-height: 1.5; display: none; transform: scale(var(--menu-scale)); transform-origin: top left; pointer-events: none; font-variant-numeric: tabular-nums; max-width: 78%; }
 #gps-avg .ga-title { color: var(--accent); font-size: 11px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
 #gps-avg .ga-row { display: flex; justify-content: space-between; gap: 12px; }

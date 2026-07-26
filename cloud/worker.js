@@ -453,7 +453,8 @@ export default {
                     ev.u != null ? String(ev.u).slice(0, 40) : me.name,
                     Math.min(Math.max(0, +ev.ts || Date.now()), Date.now() + 864e5),
                     String(ev.t || '?').slice(0, 12),
-                    ev.k != null ? String(ev.k).slice(0, 80) : null,
+                    // 500: klíč směny nese i detail (stavba/parta/činnost, URI-encoded JSON)
+                    ev.k != null ? String(ev.k).slice(0, 500) : null,
                     ev.proj != null ? String(ev.proj).slice(0, 60) : null,
                     ev.dev != null ? String(ev.dev).slice(0, 20) : null
                 )));
