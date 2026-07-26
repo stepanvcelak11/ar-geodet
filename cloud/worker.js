@@ -172,6 +172,25 @@ async function configPayload(env, firmId) {
     };
 }
 
+// ---- živá synchronizace bodů (klient js/cloud-sync.js) ---------------------
+// Tabulka se založí sama při prvním použití (idempotentní CREATE IF NOT EXISTS,
+// jednou za život izolace) — nasazení nového worker.js tedy NEVYŽADUJE ruční
+// SQL migraci. Řádek = poslední známý stav bodu v zakázce (job_key = název
+// zakázky normalizovaný klientem): ts = čas změny na zařízení (last-write-wins),
+// srv = čas zápisu na serveru (kurzor stahování — nezávislý na hodinách mobilů),
+// deleted = náhrobek (bod smazán; drží se, ať se mazání doručí všem zařízením).
+let _syncReady = false;
+async function ensureSyncTable(env) {
+    if (_syncReady) return;
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS sync_points (' +
+        'firm_id TEXT NOT NULL, job_key TEXT NOT NULL, point_id TEXT NOT NULL, ' +
+        'data TEXT, ts INTEGER NOT NULL, srv INTEGER NOT NULL, ' +
+        'deleted INTEGER NOT NULL DEFAULT 0, uname TEXT, ' +
+        'PRIMARY KEY (firm_id, job_key, point_id))').run();
+    await env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_sync_firm_job_srv ON sync_points(firm_id, job_key, srv)').run();
+    _syncReady = true;
+}
+
 async function lastActiveAdminGuard(env, firmId, exceptUserId) {
     // vrací true, když po vyřazení exceptUserId zůstane aspoň jeden aktivní admin
     const row = await env.DB.prepare(
@@ -480,6 +499,54 @@ export default {
                 if (me.role !== 'admin') return err(403, 'Jen admin.');
                 await env.DB.prepare('DELETE FROM usage WHERE firm_id=?').bind(me.firm_id).run();
                 return json({ ok: true });
+            }
+
+            // ---------------- živá synchronizace bodů zakázky ----------------
+            // POST /sync/points {job, changes:[{id, data?, ts, deleted}]} — push
+            //   změn ze zařízení; server bere změnu jen když je novější (ts)
+            // GET  /sync/points?job=...&since=<srv> — pull změn od kurzoru
+            if (path === '/sync/points' && req.method === 'POST') {
+                await ensureSyncTable(env);
+                const b = await req.json().catch(() => null);
+                if (!b || typeof b.job !== 'string' || !b.job.trim() || !Array.isArray(b.changes))
+                    return err(400, 'Chybí job / changes[].');
+                const job = b.job.trim().slice(0, 80);
+                const now = Date.now();
+                const list = b.changes.slice(0, 300).filter(c =>
+                    c && typeof c.id === 'string' && c.id.length > 0 && c.id.length <= 80);
+                if (!list.length) return json({ ok: true, saved: 0, serverTime: now });
+                // upsert s last-write-wins: přepíše se jen starší záznam (excluded.ts > ts)
+                const stmt = env.DB.prepare(
+                    'INSERT INTO sync_points(firm_id,job_key,point_id,data,ts,srv,deleted,uname) VALUES(?,?,?,?,?,?,?,?) ' +
+                    'ON CONFLICT(firm_id,job_key,point_id) DO UPDATE SET ' +
+                    'data=excluded.data, ts=excluded.ts, srv=excluded.srv, deleted=excluded.deleted, uname=excluded.uname ' +
+                    'WHERE excluded.ts>sync_points.ts');
+                await env.DB.batch(list.map(c => stmt.bind(
+                    me.firm_id, job, c.id,
+                    c.deleted ? null : String(c.data == null ? '' : (typeof c.data === 'string' ? c.data : JSON.stringify(c.data))).slice(0, 8000),
+                    Math.min(Math.max(0, +c.ts || now), now + 60e3),   // ochrana proti rozjetým hodinám
+                    now,
+                    c.deleted ? 1 : 0,
+                    me.name
+                )));
+                // občasný úklid: náhrobky starší půl roku už všechna zařízení viděla
+                if (Math.random() < 0.02 && ctx && ctx.waitUntil) {
+                    ctx.waitUntil(env.DB.prepare('DELETE FROM sync_points WHERE firm_id=? AND deleted=1 AND srv<?')
+                        .bind(me.firm_id, now - 180 * 864e5).run().catch(() => {}));
+                }
+                return json({ ok: true, saved: list.length, serverTime: now });
+            }
+
+            if (path === '/sync/points' && req.method === 'GET') {
+                await ensureSyncTable(env);
+                const job = String(url.searchParams.get('job') || '').trim().slice(0, 80);
+                if (!job) return err(400, 'Chybí ?job=.');
+                const since = parseInt(url.searchParams.get('since'), 10) || 0;
+                const rows = (await env.DB.prepare(
+                    'SELECT point_id AS id, data, ts, srv, deleted, uname FROM sync_points ' +
+                    'WHERE firm_id=? AND job_key=? AND srv>? ORDER BY srv LIMIT 500')
+                    .bind(me.firm_id, job, since).all()).results;
+                return json({ points: rows, more: rows.length === 500, serverTime: Date.now() });
             }
 
             return err(404, 'Neznámá cesta.');
