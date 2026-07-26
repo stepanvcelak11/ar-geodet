@@ -190,7 +190,7 @@
         row.className = 'st-row'; row.id = 'ag-ua-simple-row';
         var lab = document.createElement('span');
         lab.className = 'st-lab';
-        lab.innerHTML = 'Zjednodušené Nástroje<small>7 kalibračních dlaždic nahradí průvodce „Usadit AR" (hledáním je najdeš dál)</small>';
+        lab.innerHTML = 'Zjednodušené Nástroje<small>Duplicitní dlaždice nahradí průvodce „Usadit AR" a rozcestníky (Bod výpočtem, Signál GNSS, Příručka); hledáním je najdeš dál</small>';
         var sw = document.createElement('label'); sw.className = 'st-sw';
         var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = simpleOn();
         cb.addEventListener('change', function () {

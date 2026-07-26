@@ -121,8 +121,6 @@
     <link rel="stylesheet" href="css/dmt-volume.css">
     <link rel="stylesheet" href="css/check-distance.css">
     <link rel="stylesheet" href="css/brutal-gps.css">
-    <!-- UROVNÁNÍ STATIVU / PŘÍSTROJE (odpojitelné: smaž tento řádek + css/urovnani.css + js/urovnani.js) -->
-    <link rel="stylesheet" href="css/urovnani.css">
     <!-- QC INSPEKTOR / kód kvality (odpojitelné: smaž tento řádek + css/qc-engine.css + js/qc-engine.js) -->
     <link rel="stylesheet" href="css/qc-engine.css">
     <link rel="stylesheet" href="css/pocasi.css">
@@ -277,6 +275,8 @@
             <button class="menu-btn" onclick="startTutorial(); toggleMenu();"><svg class="icon"><use href="#i-bulb"/></svg> Návod a prohlídka</button>
             <button class="menu-btn" onclick="openAbout(); toggleMenu();"><svg class="icon"><use href="#i-file-text"/></svg> O aplikaci</button>
             <button class="menu-btn" onclick="if(window.openShareApp)openShareApp(); toggleMenu();"><svg class="icon"><use href="#i-share"/></svg> Sdílet aplikaci (QR)</button>
+            <!-- DronView přesunut z dlaždic Nástrojů (jen odkaz na web ŘLP — v Nástrojích zabíral místo měřickým funkcím) -->
+            <button class="menu-btn" onclick="openDronView(); toggleMenu();"><svg class="icon"><use href="#i-drone"/></svg> Dronové zóny (DronView)</button>
             <!-- Přepínače HUD prvků (info panel, azimut, průměrování GPS) přesunuty do Nastavení → Vzhled;
                  nástroje (Předpisy, Predikce signálu, Kalibrace na ref. bod, Stáhnout body) do sekce Nástroje. -->
             <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
@@ -362,7 +362,6 @@
                     <div class="tool-cat">Katastr a data</div>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openKatastr();"><svg class="icon"><use href="#i-map-pin"/></svg><span>Katastr<br>(zde stojím)</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openSatModal();"><svg class="icon"><use href="#i-satellite"/></svg><span>GNSS<br>satelity</span></button>
-                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openDronView();"><svg class="icon"><use href="#i-drone"/></svg><span>Dronové zóny<br>(DronView)</span></button>
 
                     <div class="tool-cat">AR a kalibrace</div>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; if(window.agOpenCalibrate) window.agOpenCalibrate();"><svg class="icon"><use href="#i-navigation"/></svg><span>Srovnat<br>sever</span></button>
@@ -675,7 +674,7 @@
     </div>
 
     <div class="modal-overlay" id="manage-modal"><div class="modal-content"><h2 style="color: var(--accent); margin-top:0;">Mé body (S-JTSK)</h2><details class="exp-menu" style="margin-bottom: 12px;"><summary><svg class="icon"><use href="#i-upload"/></svg> Export / Import bodů</summary><div class="exp-opts"><div class="exp-fmt-wrap"><label style="display:flex;justify-content:space-between;align-items:center;margin:0 2px 6px;font-size:13px;">Formát exportu <b id="exp-fmt-name" style="color:var(--accent);">CSV (číslo;Y;X)</b></label><input type="range" id="exp-fmt" min="0" max="6" step="1" value="0" oninput="window.agExpFmt&&agExpFmt()" onfocus="window.agExpInit&&agExpInit()"><div style="font-size:11px;opacity:.6;text-align:center;margin-top:2px;">posuň a vyber formát</div><button class="btn" style="margin-top:10px;" onclick="window.agExpDo&&agExpDo()"><svg class="icon"><use href="#i-upload"/></svg> Exportovat</button></div><button class="btn btn-blue" onclick="document.getElementById('import-file').click()"><svg class="icon"><use href="#i-folder"/></svg> Import souboru</button><input type="file" id="import-file" style="display:none" accept=".json,.csv,.txt,.vfk" onchange="importPoints(event)"><button class="btn btn-secondary" onclick="openShareQR()"><svg class="icon"><use href="#i-upload"/></svg> Sdílet body (QR)</button><button class="btn btn-blue" onclick="openScanQR()"><svg class="icon"><use href="#i-camera"/></svg> Načíst body z QR</button></div></details><div class="modal-body" id="manage-list"></div><button class="btn btn-secondary" style="margin-top: 15px;" onclick="closeManageModal()">Zpět</button></div></div>
-    <div class="modal-overlay" id="custom-modal-overlay"><div class="modal-content"><h3 id="custom-modal-title" style="color: var(--accent); margin-top:0;">Vložit vlastní bod</h3><div class="modal-body"><!-- pomocníci vyplnění jen pro NOVÝ bod — při úpravě je grafika.js skryje --><div id="custom-create-helpers"><button class="btn btn-blue" onclick="fillAveragedGPS()"><svg class="icon"><use href="#i-locate"/></svg> Vyplnit z průměru GPS</button><button class="btn btn-secondary" onclick="startMapPick()"><svg class="icon"><use href="#i-map-pin"/></svg> Vybrat polohu z mapy</button><button class="btn btn-secondary" onclick="document.getElementById('ocr-file').click()"><svg class="icon"><use href="#i-camera"/></svg> Přečíst z fotky (OCR)</button><input type="file" id="ocr-file" style="display:none" accept="image/*" capture="environment" onchange="ocrFromPhoto(event)"><div id="ocr-note" style="display:none;"></div></div><div id="custom-acc-note" style="display:none;"></div><label>Název / Číslo bodu:</label><input type="text" id="custom-name" placeholder="Např. Mezník 1"><label>S-JTSK Y (v metrech):</label><input type="number" id="custom-y" step="any" placeholder="Např. 596956.46"><label>S-JTSK X (v metrech):</label><input type="number" id="custom-x" step="any" placeholder="Např. 1163343.34"><label>Výška Z / Bpv (v metrech) — volitelné:</label><input type="number" id="custom-z" step="any" placeholder="Např. 312.45"><label>Popis / poznámka — volitelné:</label><textarea id="custom-note" rows="2" placeholder="Stabilizace, popis místa, číslo náčrtu…"></textarea><button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('custom-photo').click()"><svg class="icon"><use href="#i-camera"/></svg> Přiložit fotku bodu</button><input type="file" id="custom-photo" style="display:none" accept="image/*" capture="environment" onchange="agNewPointPhoto(event)"><div id="custom-photo-note" style="display:none; margin-top:6px; font-size:12.5px; color:var(--accent-bright);"></div></div><div class="row-buttons"><button class="btn btn-secondary" onclick="closeCustomModal()">Zrušit</button><button class="btn btn-primary" onclick="saveCustomPoint()">Uložit</button></div></div></div>
+    <div class="modal-overlay" id="custom-modal-overlay"><div class="modal-content"><h3 id="custom-modal-title" style="color: var(--accent); margin-top:0;">Vložit vlastní bod</h3><div class="modal-body"><!-- pomocníci vyplnění jen pro NOVÝ bod — při úpravě je grafika.js skryje --><div id="custom-create-helpers"><button class="btn btn-blue" onclick="fillAveragedGPS()"><svg class="icon"><use href="#i-locate"/></svg> Vyplnit z průměru GPS</button><button class="btn btn-secondary" onclick="startMapPick()"><svg class="icon"><use href="#i-map-pin"/></svg> Vybrat polohu z mapy</button><button class="btn btn-secondary" onclick="document.getElementById('ocr-file').click()"><svg class="icon"><use href="#i-camera"/></svg> Přečíst z fotky (OCR)</button><input type="file" id="ocr-file" style="display:none" accept="image/*" capture="environment" onchange="ocrFromPhoto(event)"><div id="ocr-note" style="display:none;"></div><!-- Brutální GPS už není dlaždice — vstup je tady (dlouhé průměrování s otočením o 180°) --><button class="btn btn-secondary" onclick="closeCustomModal(); if(window.agOpenBrutalGps) agOpenBrutalGps();"><svg class="icon"><use href="#i-crosshair"/></svg> Přesná GPS (dlouhé průměrování)</button></div><div id="custom-acc-note" style="display:none;"></div><label>Název / Číslo bodu:</label><input type="text" id="custom-name" placeholder="Např. Mezník 1"><label>S-JTSK Y (v metrech):</label><input type="number" id="custom-y" step="any" placeholder="Např. 596956.46"><label>S-JTSK X (v metrech):</label><input type="number" id="custom-x" step="any" placeholder="Např. 1163343.34"><label>Výška Z / Bpv (v metrech) — volitelné:</label><input type="number" id="custom-z" step="any" placeholder="Např. 312.45"><label>Popis / poznámka — volitelné:</label><textarea id="custom-note" rows="2" placeholder="Stabilizace, popis místa, číslo náčrtu…"></textarea><button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('custom-photo').click()"><svg class="icon"><use href="#i-camera"/></svg> Přiložit fotku bodu</button><input type="file" id="custom-photo" style="display:none" accept="image/*" capture="environment" onchange="agNewPointPhoto(event)"><div id="custom-photo-note" style="display:none; margin-top:6px; font-size:12.5px; color:var(--accent-bright);"></div></div><div class="row-buttons"><button class="btn btn-secondary" onclick="closeCustomModal()">Zrušit</button><button class="btn btn-primary" onclick="saveCustomPoint()">Uložit</button></div></div></div>
 
     <div class="modal-overlay" id="dict-modal">
         <div class="modal-content">
@@ -803,8 +802,6 @@
     <script defer src="js/gps-semafor.js"></script>
     <script defer src="js/dgps.js"></script>
     <script defer src="js/pdr-offset.js"></script>
-    <!-- UROVNÁNÍ STATIVU / PŘÍSTROJE (odpojitelné: smaž tento řádek + js/urovnani.js + css/urovnani.css) -->
-    <script defer src="js/urovnani.js"></script>
     <!-- POSTUPY MĚŘENÍ (odpojitelné: smaž tento řádek + js/postupy.js) — tahák rajón/nivelace/RTK… -->
     <script defer src="js/postupy.js"></script>
     <!-- ZÁPISNÍKY (odpojitelné: smaž tento řádek + js/zapisnik.js) — nivelace + vodorovné směry -->
@@ -821,14 +818,10 @@
     <script defer src="js/free-station.js"></script>
     <!-- LOKALIZACE (HELMERT) #3 (odpojitelné: smaž tento řádek + js/localization-helmert.js) — srovnání systematiky GPS přes staveniště 2D podobnostní transformací -->
     <script defer src="js/localization-helmert.js"></script>
-    <!-- FOTO-TOTÁLKA #8 (odpojitelné: smaž tento řádek + js/photo-shot.js) — bezkontaktní zaměření bodu klepnutím do obrazu (paprsek × DMR) -->
-    <script defer src="js/photo-shot.js"></script>
     <!-- PODZEMNÍ SÍTĚ #7 (odpojitelné: smaž tento řádek + js/utility-networks.js) — trasy sítí pod terénem v AR z DXF/GeoJSON -->
     <script defer src="js/utility-networks.js"></script>
     <!-- PŘENOS ZAKÁZKY .argeo #6 (odpojitelné: smaž tento řádek + js/job-transfer.js) — export/import celé zakázky bez serveru -->
     <script defer src="js/job-transfer.js"></script>
-    <!-- OPTICKÝ DÁLKOMĚR (odpojitelné: smaž tento řádek + js/rangefinder.js) — odhad vzdálenosti z náklonu -->
-    <script defer src="js/rangefinder.js"></script>
     <!-- VÝŠKA OBJEKTU (odpojitelné: smaž tento řádek + js/vyska-objektu.js) — trigonometricky pata+vrchol -->
     <script defer src="js/vyska-objektu.js"></script>
     <!-- EPOCHY / MONITORING POSUNŮ (odpojitelné: smaž tento řádek + js/epochy.js) — souřadnice z totálky/roveru v čase -->
@@ -871,6 +864,8 @@
     <script defer src="js/zavady.js"></script>
     <!-- USADIT AR (odpojitelné) — průvodce místo 7 kalibračních dlaždic + „Teď se hodí" -->
     <script defer src="js/usadit-ar.js"></script>
+    <!-- ROZCESTNÍKY NÁSTROJŮ — Bod výpočtem / Signál GNSS / Příručka (odpojitelné: smaž tento řádek + js/tools-hub.js) -->
+    <script defer src="js/tools-hub.js"></script>
     <!-- STAVOVÝ PRUH (odpojitelné) — „můžu teď měřit?": GPS · sever · data · baterie + rady -->
     <script defer src="js/stavovy-pruh.js"></script>
     <script>
