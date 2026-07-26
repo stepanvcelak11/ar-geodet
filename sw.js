@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v200';   // UX/UI: serie cislovani + Ulozit a dalsi, AR declutter/citelnost, tmava mapa + legenda, kody bodu + hromadne operace; fix mizejicich AR znacek (_opLast)
+const SHELL_CACHE = 'argeodet-shell-v201';   // denni nutnosti: GNSS predpoved, Slunce a svetlo, Co s sebou, Kde mam auto, Kniha jizd, Korekce mereni, Bezpecnost
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -25,9 +25,9 @@ const ASSETS_TO_CACHE = [
     './icon-512.png',
     './icon-maskable-192.png',
     './icon-maskable-512.png',
-    './css/tokens.css?v=200',
-    './css/style.css?v=200',
-    './css/vylepseni.css?v=200',
+    './css/tokens.css?v=201',
+    './css/style.css?v=201',
+    './css/vylepseni.css?v=201',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
@@ -151,6 +151,13 @@ const ASSETS_TO_CACHE = [
     './js/denik-dne.js',
     './js/brifink.js',
     './js/hlasovky.js',
+    './js/gnss-forecast.js',
+    './js/slunce.js',
+    './js/checklist.js',
+    './js/kde-je.js',
+    './js/kniha-jizd.js',
+    './js/korekce.js',
+    './js/bezpecnost.js',
     './js/usadit-ar.js',
     './js/tools-hub.js',
     './js/stavovy-pruh.js',
