@@ -72,3 +72,18 @@ CREATE TABLE IF NOT EXISTS stats (
     day TEXT PRIMARY KEY,                -- YYYY-MM-DD (UTC)
     n   INTEGER NOT NULL
 );
+
+-- živá synchronizace vlastních bodů zakázky mezi zařízeními firmy
+-- (js/cloud-sync.js; worker si tabulku umí založit i sám při prvním použití)
+CREATE TABLE IF NOT EXISTS sync_points (
+    firm_id  TEXT NOT NULL,
+    job_key  TEXT NOT NULL,              -- normalizovaný NÁZEV zakázky (párování mezi zařízeními)
+    point_id TEXT NOT NULL,              -- id bodu z klienta (cp_...)
+    data     TEXT,                       -- JSON bodu (bez fotek); NULL u smazaného
+    ts       INTEGER NOT NULL,           -- čas změny na zařízení (last-write-wins)
+    srv      INTEGER NOT NULL,           -- čas zápisu na serveru (kurzor stahování)
+    deleted  INTEGER NOT NULL DEFAULT 0, -- 1 = náhrobek (bod smazán)
+    uname    TEXT,                       -- kdo změnu poslal (informativní)
+    PRIMARY KEY (firm_id, job_key, point_id)
+);
+CREATE INDEX IF NOT EXISTS idx_sync_firm_job_srv ON sync_points(firm_id, job_key, srv);

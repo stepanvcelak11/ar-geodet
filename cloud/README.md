@@ -53,6 +53,10 @@ Alternativně jde `worker.js` vložit přes webový editor v dashboardu
   proti limitu free plánu
 - `GET /backup` (admin) — kompletní záloha firmy (účty s otisky hesel,
   oprávnění, užívání max 20 000 záznamů, chat) jako JSON
+- `POST /sync/points` · `GET /sync/points?job=...&since=...` — živá
+  synchronizace vlastních bodů zakázky mezi zařízeními firmy (klient
+  js/cloud-sync.js; tabulku `sync_points` si worker založí sám) —
+  podrobně viz `README-sync.md`
 - retence: server si při ~2 % požadavků na pozadí maže užívání starší ~12
   měsíců a denní čítače starší 60 dní
 
