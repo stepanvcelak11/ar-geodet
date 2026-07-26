@@ -4,7 +4,11 @@
 // Co dělá:
 //   • Stáhne předpověď z VÍCE nezávislých zdrojů najednou (16 modelů přes
 //     Open-Meteo + MET Norway + DWD MOSMIX přes Bright Sky = až 18 zdrojů)
-//     a VŠECHNY veličiny kombinuje VÁŽENÝM PRŮMĚREM (váhy pro střední Evropu).
+//     a VŠECHNY veličiny kombinuje VÁŽENÝM PRŮMĚREM (váhy pro střední Evropu):
+//     teplota, pocitová, vlhkost, oblačnost, tlak, srážky v mm, pravděpodobnost
+//     srážek, vítr, nárazy, denní max/min i denní maximum větru, východ a západ
+//     slunce. Směr větru vážený PRŮMĚR PO KRUHU (jinak by 350° a 10° daly 180°),
+//     ikona/druh počasí vážené HLASOVÁNÍ (kategorii nelze sečíst a vydělit).
 //   • U každé veličiny drží i min–max rozptyl mezi zdroji → dlaždice „Shoda zdrojů".
 //   • SPOLEHLIVOST PODLE HISTORIE: trefnost každého modelu za POSLEDNÍ MĚSÍC.
 //     Nečeká se měsíc provozu — historie se rovnou DOHLEDÁ Z ARCHIVU (previous-runs
@@ -710,15 +714,6 @@
         return { v: s / sw, min: mn, max: mx, n: n };
     }
     function wv(items) { var r = wstat(items); return r ? r.v : null; }
-    function maxOf(items) {
-        var mx = null;
-        for (var i = 0; i < items.length; i++) {
-            var v = items[i].v;
-            if (v == null || !isFinite(v)) continue;
-            if (mx == null || v > mx) mx = v;
-        }
-        return mx;
-    }
     function circMean(items) {  // vážený průměr směrů ve stupních
         var sx = 0, sy = 0, n = 0;
         for (var i = 0; i < items.length; i++) {
@@ -731,19 +726,34 @@
         var a = Math.atan2(sy, sx) * 180 / Math.PI;
         return ((a % 360) + 360) % 360;
     }
-    // Kód počasí: vezmi kód zdroje s nejvyšší vahou; ale pokud VĚTŠINA zdrojů
-    // hlásí srážky a favorit ne, ukaž srážkový kód (od nejváženějšího srážkového).
+    // Kód počasí je kategorie — sečíst a vydělit ho nejde, takže se „průměruje"
+    // VÁŽENÝM HLASOVÁNÍM: každý zdroj hlasuje svou vahou pro DRUH počasí (jasno,
+    // polojasno, zataženo, déšť, sníh, bouřka…), vyhraje druh s největším součtem
+    // vah a v něm kód s největším součtem vah (při rovnosti ten silnější stupeň).
+    // Dřív se prostě vzal kód nejváženějšího modelu s berličkou na srážky — jeden
+    // model tak mohl přebít shodu všech ostatních.
     function combineCode(items) {  // items: [{code, w}]
-        var have = [];
-        for (var i = 0; i < items.length; i++) {
-            if (items[i].code != null && isFinite(items[i].code)) have.push(items[i]);
+        var byKind = {}, votes = {}, i, it, k, w;
+        for (i = 0; i < items.length; i++) {
+            it = items[i];
+            if (!it || it.code == null || !isFinite(it.code)) continue;
+            k = wmoKind(it.code);
+            w = it.w || 1;
+            votes[k] = (votes[k] || 0) + w;
+            if (!byKind[k]) byKind[k] = [];
+            byKind[k].push(it);
         }
-        if (!have.length) return null;
-        have.sort(function (a, b) { return (b.w || 0) - (a.w || 0); });
-        var top = have[0].code;
-        var precip = have.filter(function (x) { return isPrecipCode(x.code); });
-        if (!isPrecipCode(top) && precip.length * 2 > have.length) return precip[0].code;
-        return top;
+        var winner = null, best = -1;
+        for (k in votes) { if (votes[k] > best) { best = votes[k]; winner = k; } }
+        if (winner == null) return null;
+        var sums = {}, arr = byKind[winner];
+        for (i = 0; i < arr.length; i++) sums[arr[i].code] = (sums[arr[i].code] || 0) + (arr[i].w || 1);
+        var code = null, bs = -1;
+        for (k in sums) {
+            var c = +k;
+            if (sums[k] > bs || (sums[k] === bs && code != null && c > code)) { bs = sums[k]; code = c; }
+        }
+        return code;
     }
     function srcIdx(s) {   // mapa epoch → index v hourly poli zdroje (lazy)
         if (!s.hourly || !s.hourly.time) return null;
@@ -803,7 +813,7 @@
             for (i = 0; i < axisD.time.length && i < 7; i++) {
                 var epoch = num(axisD.time[i]);
                 var row = { t: epoch, code: null, tmax: null, tmin: null, psum: null, pprob: null, wmax: null, sunrise: null, sunset: null };
-                var im = [], ix = [], ip = [], iw = [], ic = [], ipp = [];
+                var im = [], ix = [], ip = [], iw = [], ic = [], ipp = [], isr = [], iss = [];
                 for (var k = 0; k < dayS.length; k++) {
                     s = dayS[k];
                     // najdi index dne se stejným epoch časem (osy se běžně shodují)
@@ -819,11 +829,16 @@
                     iw.push({ v: at(s.daily.wmax, di), w: s.w });
                     ic.push({ code: at(s.daily.code, di), w: s.w });
                     ipp.push({ v: at(s.daily.pprob, di), w: s.w });   // průměr ze všech zdrojů (dřív max)
-                    if (row.sunrise == null) row.sunrise = at(s.daily.sunrise, di);
-                    if (row.sunset == null) row.sunset = at(s.daily.sunset, di);
+                    isr.push({ v: at(s.daily.sunrise, di), w: s.w });
+                    iss.push({ v: at(s.daily.sunset, di), w: s.w });
                 }
-                row.tmax = wv(ix); row.tmin = wv(im); row.psum = wv(ip); row.wmax = maxOf(iw);
+                // VŠECHNY veličiny váženým průměrem — vítr už ne maximem z modelů
+                // (jeden ustřelený model dřív posunul celý den do „silného větru")
+                row.tmax = wv(ix); row.tmin = wv(im); row.psum = wv(ip); row.wmax = wv(iw);
                 row.pprob = wv(ipp);
+                var sr = wv(isr), ss = wv(iss);
+                row.sunrise = (sr == null ? null : Math.round(sr));
+                row.sunset = (ss == null ? null : Math.round(ss));
                 row.code = combineCode(ic);
                 data.daily.push(row);
             }
@@ -1034,7 +1049,7 @@
                     zoomControl: false, attributionControl: false,
                     dragging: true, touchZoom: true, doubleClickZoom: true, boxZoom: false,
                     scrollWheelZoom: false, keyboard: false,
-                    minZoom: 4, maxZoom: 11, zoomSnap: 0.5, inertia: true
+                    minZoom: 4, maxZoom: 17, zoomSnap: 0.5, inertia: true
                 });
                 // podkladová mapa je záměrně potlačená (CSS filtr .wx-radar .leaflet-tile-pane),
                 // ať jsou srážky čitelné a přesto bylo poznat města a hranice
@@ -1043,7 +1058,7 @@
                 // by je z cache dostala taky — a prohlížeč opaque odpověď pro CORS požadavek
                 // zahodí → mapa se vykreslila jen tam, kde dlaždice v cache ještě nebyly.
                 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 11, className: 'wx-radar-base'
+                    maxZoom: 19, className: 'wx-radar-base'
                 }).addTo(_radar.map);
                 // tlačítko „na moje místo" zvýrazni, jen když je výřez odjetý jinam
                 _radar.map.on('zoomend moveend', function () {
@@ -1082,8 +1097,12 @@
             _radar.layers = frames.map(function (f) {
                 // /512/{z}/{x}/{y}/<schéma barev 4>/<1_1 = vyhlazení + sníh>.png
                 // 512px dlaždice = ostřejší obraz na retina displejích než 256px
+                // maxNativeZoom: radar má rozlišení ~1 km, takže od z12 výš už nová
+                // dlaždice nic nepřidá — Leaflet poslední ostrou úroveň jen roztáhne.
+                // Bez toho (dřív maxZoom 11) srážky při větším přiblížení ZMIZELY.
                 return L.tileLayer(tHost + f.path + '/512/{z}/{x}/{y}/4/1_1.png', {
-                    opacity: 0, maxZoom: 11, tileSize: 512, zoomOffset: -1, className: 'wx-radar-tiles'
+                    opacity: 0, maxZoom: 17, maxNativeZoom: 12, tileSize: 512, zoomOffset: -1,
+                    className: 'wx-radar-tiles'
                 }).addTo(_radar.map);
             });
             _radar.frames = frames;
