@@ -22,9 +22,20 @@
             document.documentElement.style.setProperty('--hud-scale', visSettings.hudScale || 1);
             previewTheme(visSettings.theme); previewMode(visSettings.mode);
             const arrPath = document.getElementById('main-arrow-path'); if(arrPath) { arrPath.setAttribute('d', arrowPaths[visSettings.arrowShape]); arrPath.setAttribute('fill', visSettings.colArrow); document.getElementById('arrow-straight').style.filter = `drop-shadow(0 15px 15px ${visSettings.colArrow}80)`; document.getElementById('target-circle-out').setAttribute('stroke', visSettings.colArrow); document.getElementById('target-circle-in').setAttribute('fill', visSettings.colArrow); document.getElementById('arrow-target').style.filter = `drop-shadow(0 15px 15px ${visSettings.colArrow}90)`; }
-            if (document.getElementById('s-max-ar-slider')) { document.getElementById('s-wakelock').checked = visSettings.wakeLockEnabled; document.getElementById('s-outdoor').checked = !!visSettings.outdoorMode; { var _lh = document.getElementById('s-lefthand'); if (_lh) _lh.checked = !!visSettings.leftHand; } { var _an2 = document.getElementById('s-anim'); if (_an2) _an2.value = visSettings.anim || 'auto'; } { var _da = document.getElementById('v-dock-arc'); if (_da) { var _av = (visSettings.dockArc == null ? 13 : visSettings.dockArc); _da.value = _av; document.getElementById('v-dock-arc-val').innerText = _av; } } document.getElementById('s-katastr-source').value = visSettings.katastrSource || 'mapycz'; document.getElementById('s-max-ar-slider').value = visSettings.maxARPoints; document.getElementById('s-max-ar-val').innerText = visSettings.maxARPoints; document.getElementById('v-ar-height-slider').value = visSettings.arVerticalOffset; document.getElementById('v-ar-height-val').innerText = visSettings.arVerticalOffset; document.getElementById('v-marker-scale').value = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-scale-val').innerText = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-opacity').value = visSettings.markerOpacity; document.getElementById('v-marker-opacity-val').innerText = visSettings.markerOpacity; document.getElementById('col-tb').value = visSettings.colTb; document.getElementById('col-zhb').value = visSettings.colZhb; document.getElementById('col-pbpp').value = visSettings.colPbpp; document.getElementById('col-nivel').value = visSettings.colNivel; document.getElementById('col-custom').value = visSettings.colCustom; document.getElementById('col-arrow').value = visSettings.colArrow; document.getElementById('v-arrow-shape').value = visSettings.arrowShape; document.getElementById('v-arrow-scale').value = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-scale-val').innerText = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-opacity').value = visSettings.arrowOpacity; document.getElementById('v-arrow-opacity-val').innerText = visSettings.arrowOpacity; document.getElementById('v-panel-opacity').value = visSettings.panelOpacity; document.getElementById('v-panel-opacity-val').innerText = visSettings.panelOpacity; document.getElementById('s-auto-compass').checked = visSettings.autoCompassCorrection; document.getElementById('s-tilt-comp').checked = visSettings.tiltCompensation !== false; document.getElementById('s-heading-smooth').value = visSettings.headingSmoothing; document.getElementById('s-heading-smooth-val').innerText = visSettings.headingSmoothing; document.getElementById('s-fovh').value = visSettings.fovH; document.getElementById('s-fovh-val').innerText = visSettings.fovH; document.getElementById('s-fovv').value = visSettings.fovV; document.getElementById('s-fovv-val').innerText = visSettings.fovV; document.getElementById('s-eyeh').value = visSettings.eyeHeight; document.getElementById('s-eyeh-val').innerText = visSettings.eyeHeight; document.getElementById('v-adaptive-glass').checked = visSettings.adaptiveGlass !== false; document.getElementById('v-theme').value = visSettings.theme || 'smaragd'; document.getElementById('v-mode').value = visSettings.mode || 'dark'; document.getElementById('v-hud-scale').value = Math.round((visSettings.hudScale || 1) * 100); document.getElementById('v-hud-scale-val').innerText = Math.round((visSettings.hudScale || 1) * 100); }
+            if (document.getElementById('s-max-ar-slider')) { document.getElementById('s-wakelock').checked = visSettings.wakeLockEnabled; document.getElementById('s-outdoor').checked = !!visSettings.outdoorMode; { var _lh = document.getElementById('s-lefthand'); if (_lh) _lh.checked = !!visSettings.leftHand; } { var _vb2 = document.getElementById('s-vibration'); if (_vb2) _vb2.checked = visSettings.vibrationEnabled !== false; } { var _an2 = document.getElementById('s-anim'); if (_an2) _an2.value = visSettings.anim || 'auto'; } { var _da = document.getElementById('v-dock-arc'); if (_da) { var _av = (visSettings.dockArc == null ? 13 : visSettings.dockArc); _da.value = _av; document.getElementById('v-dock-arc-val').innerText = _av; } } document.getElementById('s-katastr-source').value = visSettings.katastrSource || 'mapycz'; document.getElementById('s-max-ar-slider').value = visSettings.maxARPoints; document.getElementById('s-max-ar-val').innerText = visSettings.maxARPoints; document.getElementById('v-ar-height-slider').value = visSettings.arVerticalOffset; document.getElementById('v-ar-height-val').innerText = visSettings.arVerticalOffset; document.getElementById('v-marker-scale').value = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-scale-val').innerText = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-opacity').value = visSettings.markerOpacity; document.getElementById('v-marker-opacity-val').innerText = visSettings.markerOpacity; document.getElementById('col-tb').value = visSettings.colTb; document.getElementById('col-zhb').value = visSettings.colZhb; document.getElementById('col-pbpp').value = visSettings.colPbpp; document.getElementById('col-nivel').value = visSettings.colNivel; document.getElementById('col-custom').value = visSettings.colCustom; document.getElementById('col-arrow').value = visSettings.colArrow; document.getElementById('v-arrow-shape').value = visSettings.arrowShape; document.getElementById('v-arrow-scale').value = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-scale-val').innerText = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-opacity').value = visSettings.arrowOpacity; document.getElementById('v-arrow-opacity-val').innerText = visSettings.arrowOpacity; document.getElementById('v-panel-opacity').value = visSettings.panelOpacity; document.getElementById('v-panel-opacity-val').innerText = visSettings.panelOpacity; document.getElementById('s-auto-compass').checked = visSettings.autoCompassCorrection; document.getElementById('s-tilt-comp').checked = visSettings.tiltCompensation !== false; document.getElementById('s-heading-smooth').value = visSettings.headingSmoothing; document.getElementById('s-heading-smooth-val').innerText = visSettings.headingSmoothing; document.getElementById('s-fovh').value = visSettings.fovH; document.getElementById('s-fovh-val').innerText = visSettings.fovH; document.getElementById('s-fovv').value = visSettings.fovV; document.getElementById('s-fovv-val').innerText = visSettings.fovV; document.getElementById('s-eyeh').value = visSettings.eyeHeight; document.getElementById('s-eyeh-val').innerText = visSettings.eyeHeight; document.getElementById('v-adaptive-glass').checked = visSettings.adaptiveGlass !== false; document.getElementById('v-theme').value = visSettings.theme || 'smaragd'; document.getElementById('v-mode').value = visSettings.mode || 'dark'; document.getElementById('v-hud-scale').value = Math.round((visSettings.hudScale || 1) * 100); document.getElementById('v-hud-scale-val').innerText = Math.round((visSettings.hudScale || 1) * 100); }
         }
 
+        // Prepinac vibraci v Nastaveni: ulozi se hned a rovnou to zavibruje (aby bylo
+        // poznat, jestli to telefon vubec umi — iPhone v prohlizeci vibrace nepodporuje).
+        function toggleVibration() {
+            const el = document.getElementById('s-vibration'); if (!el) return;
+            visSettings.vibrationEnabled = el.checked;
+            setStoredData('arVisSettings12', JSON.stringify(visSettings));
+            if (el.checked) {
+                if (navigator.vibrate) { agVibe(40); quickToast('Vibrace zapnuty.'); }
+                else quickToast('Tenhle telefon/prohlížeč vibrace neumožňuje (iPhone).');
+            } else quickToast('Vibrace vypnuty.');
+        }
         function switchTab(tabId, btnEl) { document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(tabId).classList.add('active'); btnEl.classList.add('active'); }
         function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); } function toggleHudElements() { document.getElementById('info').style.display = document.getElementById('tgl-info').checked ? 'block' : 'none'; document.getElementById('compass-debug').style.display = document.getElementById('tgl-compass').checked ? 'block' : 'none'; updateGpsAvgPanel(); }
         function fixAppLayout() { setTimeout(() => { window.scrollTo(0, 0); document.body.scrollTop = 0; }, 100); } document.querySelectorAll('input').forEach(input => { input.addEventListener('blur', fixAppLayout); });
@@ -177,6 +188,7 @@
         function getMapMarkerSVG(category, color) { if(category === 'TB') return `<svg viewBox="0 0 24 24"><polygon points="12,2 22,20 2,20" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'ZHB') return `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'PBPP') return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'NIVEL') return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="${color}" stroke-width="3"/><circle cx="12" cy="12" r="3" fill="${color}"/></svg>`; if(category === 'CUSTOM') return `<svg viewBox="0 0 24 24"><path d="M12,2 C7,2 3,6 3,11 C3,18 12,22 12,22 C12,22 21,18 21,11 C21,6 17,2 12,2 Z" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="${color}"/></svg>`; }
 
         function drawAllMarkersOnMap() {
+            if (_mngSuspendRedraw) return;   // hromadna davka prekresli mapu az na konci
             markersGroup.clearLayers();
             arPoints.forEach(pt => {
                 if (pt.hidden) return; if (pt.cat === 'TB' && !filters.tb) return; if (pt.cat === 'ZHB' && !filters.zhb) return; if (pt.cat === 'PBPP' && !filters.pbpp) return; if (pt.cat === 'NIVEL' && !filters.nivel) return; if (pt.cat === 'CUSTOM' && !filters.custom) return; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return;
@@ -314,6 +326,7 @@
             visSettings.wakeLockEnabled = document.getElementById('s-wakelock').checked;
             visSettings.outdoorMode = document.getElementById('s-outdoor').checked;
             { var _lh = document.getElementById('s-lefthand'); if (_lh) visSettings.leftHand = _lh.checked; }
+            { var _vb = document.getElementById('s-vibration'); if (_vb) visSettings.vibrationEnabled = _vb.checked; }
             { var _an3 = document.getElementById('s-anim'); if (_an3) visSettings.anim = _an3.value; }
             { var _da = document.getElementById('v-dock-arc'); if (_da) visSettings.dockArc = parseInt(_da.value); }
             visSettings.katastrSource = document.getElementById('s-katastr-source').value;
@@ -330,9 +343,233 @@
             if (oldCam !== newCam && viewMode !== 'map') { startCameraAndCompass(true); applyViewMode(); } else { applyViewMode(); }
             if(userLat && userLng) initFetch(userLat, userLng); fixAppLayout(); if(visSettings.wakeLockEnabled) requestWakeLock();
         }
-        function openManageModal() { document.getElementById('settings-modal').style.display = 'none'; renderManageList(); document.getElementById('manage-modal').style.display = 'flex'; }
+        // Kazde otevreni zacina s cistym stitem — jinak by po navratu do panelu tise
+        // platilo stare hledani nebo zustal zapnuty rezim vyberu a chybely by body.
+        function openManageModal() { document.getElementById('settings-modal').style.display = 'none'; _mngQuery = ''; _mngSelMode = false; _mngSel.clear(); renderManageList(); document.getElementById('manage-modal').style.display = 'flex'; }
         function closeManageModal() { document.getElementById('manage-modal').style.display = 'none'; fixAppLayout(); }
-        function renderManageList() { const listDiv = document.getElementById('manage-list'); listDiv.innerHTML = ''; if (persistentCustomPoints.length === 0) { listDiv.innerHTML = '<p style="text-align:center;">Žádné body v této zakázce.</p>'; } else persistentCustomPoints.forEach(pt => { let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); let dispY = Math.abs(sjtsk[0]).toFixed(2); let dispX = Math.abs(sjtsk[1]).toFixed(2); const item = document.createElement('div'); item.className = 'cp-item'; item.innerHTML = ` <div class="cp-title">${_escHtml(pt.name)}</div> <div class="cp-coords">Y: ${dispY}<br>X: ${dispX}${pt.vyska != null ? '<br>Z: '+Number(pt.vyska).toFixed(2)+' m' : ''}${pt.acc != null ? '<br>⌀ ±'+_escHtml(pt.acc)+' m' : ''}</div> <div class="cp-actions"> <button class="cp-btn cp-btn-edit"><svg class="icon"><use href="#i-edit"/></svg></button> <button class="cp-btn cp-btn-delete"><svg class="icon"><use href="#i-trash"/></svg></button></div>`; item.querySelector('.cp-btn-edit').addEventListener('click', () => editCustomPoint(pt.id)); item.querySelector('.cp-btn-delete').addEventListener('click', () => deleteCustomPoint(pt.id)); if (typeof decoratePointItem === 'function') { try { decoratePointItem(item, pt); } catch (e) {} } listDiv.appendChild(item); }); renderHiddenPointsRow(listDiv); renderLinesList(listDiv); }
+        // ===== SPRAVA BODU (panel Body): hledani, razeni a hromadne operace =====
+        let _mngQuery = '', _mngSort = 'default', _mngSelMode = false; const _mngSel = new Set();
+        function _mngMatch(p) {
+            const q = _mngQuery.trim().toLowerCase();
+            if (!q) return true;
+            return String(p.name).toLowerCase().includes(q) || (p.kod && String(p.kod).toLowerCase().includes(q));
+        }
+        // radky se pri hledani jen skryvaji (viz posluchac vyse) — tohle je prepocet viditelnosti
+        function _mngApplyFilter() {
+            const listDiv = document.getElementById('manage-list'); if (!listDiv) return;
+            let shown = 0;
+            listDiv.querySelectorAll('.cp-item[data-mng-text]').forEach(el => {
+                const ok = !_mngQuery.trim() || el.dataset.mngText.includes(_mngQuery.trim().toLowerCase());
+                el.style.display = ok ? '' : 'none'; if (ok) shown++;
+            });
+            const em = document.getElementById('mng-empty'); if (em) em.style.display = shown ? 'none' : 'block';
+        }
+        function _mngAllSorted() {
+            let pts = persistentCustomPoints.slice();
+            if (_mngSort === 'name') pts.sort((a, b) => String(a.name).localeCompare(String(b.name), 'cs', { numeric: true }));
+            else if (_mngSort === 'dist' && userLat != null) pts.sort((a, b) => getDistance(userLat, userLng, a.lat, a.lng) - getDistance(userLat, userLng, b.lat, b.lng));
+            else if (_mngSort === 'new') pts.sort((a, b) => (((b.prov && b.prov.ts) || 0) - ((a.prov && a.prov.ts) || 0)));
+            return pts;
+        }
+        // pro hromadne akce: jen body, ktere jsou pri aktivnim hledani opravdu videt
+        function _mngSortedPoints() { return _mngAllSorted().filter(_mngMatch); }
+        // Behem hromadne davky se NEprekresluje po kazdem bodu: deleteCustomPoint vola
+        // renderManageList i drawAllMarkersOnMap, coz je u stovek bodu kvadraticka prace
+        // (proj4 prevod na kazdy radek) a appka by na nekolik sekund zamrzla.
+        let _mngSuspendRedraw = false;
+        function renderManageList() {
+            if (_mngSuspendRedraw) return;
+            const listDiv = document.getElementById('manage-list'); listDiv.innerHTML = '';
+            if (persistentCustomPoints.length === 0) { listDiv.innerHTML = '<p style="text-align:center;">Žádné body v této zakázce.</p>'; renderHiddenPointsRow(listDiv); renderLinesList(listDiv); return; }
+            // listovaci panel: hledani + razeni + rezim vyberu (hromadne operace)
+            const bar = document.createElement('div'); bar.className = 'mng-bar';
+            bar.innerHTML = '<input type="search" id="mng-search" placeholder="Hledat bod / kód…" autocomplete="off">'
+                + '<select id="mng-sort" aria-label="Řazení bodů">'
+                + '<option value="default">Pořadí vložení</option><option value="name">Podle názvu</option>'
+                + '<option value="dist">Nejbližší první</option><option value="new">Nejnovější první</option></select>'
+                + '<button type="button" class="btn btn-secondary mng-selbtn" id="mng-selbtn"></button>';
+            listDiv.appendChild(bar);
+            const si = bar.querySelector('#mng-search'); si.value = _mngQuery;
+            // hledani jen SKRYVA radky, seznam se neprekresluje — jinak by kazde pismeno
+            // znovu postavilo DOM, prislo o fokus a na mobilu poskakovala klavesnice
+            si.addEventListener('input', () => { _mngQuery = si.value; _mngApplyFilter(); });
+            const so = bar.querySelector('#mng-sort'); so.value = _mngSort;
+            so.addEventListener('change', () => { _mngSort = so.value; renderManageList(); });
+            const sb = bar.querySelector('#mng-selbtn');
+            sb.textContent = _mngSelMode ? 'Hotovo' : 'Vybrat';
+            sb.classList.toggle('mng-selbtn-on', _mngSelMode);
+            sb.addEventListener('click', () => { _mngSelMode = !_mngSelMode; if (!_mngSelMode) _mngSel.clear(); renderManageList(); });
+            if (_mngSelMode) renderMngActions(listDiv);
+            const pts = _mngAllSorted();
+            const empty = document.createElement('p'); empty.id = 'mng-empty';
+            empty.style.cssText = 'text-align:center; opacity:.7; display:none;'; empty.innerText = 'Hledání nic nenašlo.';
+            listDiv.appendChild(empty);
+            pts.forEach(pt => {
+                let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); let dispY = Math.abs(sjtsk[0]).toFixed(2); let dispX = Math.abs(sjtsk[1]).toFixed(2);
+                const item = document.createElement('div'); item.className = 'cp-item';
+                item.dataset.mngText = (String(pt.name) + ' ' + (pt.kod || '')).toLowerCase();
+                const dRow = (userLat != null) ? ('<br>' + getDistance(userLat, userLng, pt.lat, pt.lng).toFixed(1) + ' m od tebe') : '';
+                item.innerHTML = ` <div class="cp-title">${_escHtml(pt.name)}${pt.kod ? ' <span class="cp-kod">' + _escHtml(pt.kod) + '</span>' : ''}</div> <div class="cp-coords">Y: ${dispY}<br>X: ${dispX}${pt.vyska != null ? '<br>Z: '+Number(pt.vyska).toFixed(2)+' m' : ''}${pt.acc != null ? '<br>⌀ ±'+_escHtml(pt.acc)+' m' : ''}${dRow}</div>`;
+                if (_mngSelMode) {
+                    item.classList.add('mng-selectable'); item.classList.toggle('mng-selected', _mngSel.has(pt.id));
+                    const chk = document.createElement('div'); chk.className = 'mng-check'; chk.textContent = _mngSel.has(pt.id) ? '✓' : ''; item.appendChild(chk);
+                    item.addEventListener('click', () => {
+                        if (_mngSel.has(pt.id)) _mngSel.delete(pt.id); else _mngSel.add(pt.id);
+                        item.classList.toggle('mng-selected', _mngSel.has(pt.id)); chk.textContent = _mngSel.has(pt.id) ? '✓' : '';
+                        const c = document.getElementById('mng-count'); if (c) c.innerText = _mngSel.size;
+                    });
+                } else {
+                    const act = document.createElement('div'); act.className = 'cp-actions';
+                    act.innerHTML = `<button class="cp-btn cp-btn-edit"><svg class="icon"><use href="#i-edit"/></svg></button> <button class="cp-btn cp-btn-delete"><svg class="icon"><use href="#i-trash"/></svg></button>`;
+                    item.appendChild(act);
+                    act.querySelector('.cp-btn-edit').addEventListener('click', () => editCustomPoint(pt.id));
+                    act.querySelector('.cp-btn-delete').addEventListener('click', () => deleteCustomPoint(pt.id));
+                    if (typeof decoratePointItem === 'function') { try { decoratePointItem(item, pt); } catch (e) {} }
+                }
+                listDiv.appendChild(item);
+            });
+            renderHiddenPointsRow(listDiv); renderLinesList(listDiv);
+            _mngApplyFilter();   // aktivni hledani plati i po prekresleni (mazani, razeni, vyber)
+        }
+        // panel hromadnych akci nad vyberem
+        function renderMngActions(listDiv) {
+            const box = document.createElement('div'); box.className = 'mng-actions';
+            const canHelmert = !!(window.AGLocalize && AGLocalize.active);
+            box.innerHTML = '<div class="mng-actions-head">Vybráno: <b id="mng-count">' + _mngSel.size + '</b>&nbsp;<button type="button" class="mng-lnk" id="mng-all">Vybrat vše</button></div>'
+                + '<p class="mng-hint">Ťukni na body v seznamu a použij akci. Smazané drží koš 30 dní (Více → Koš).</p>'
+                + '<div class="mng-actions-btns">'
+                + '<button type="button" class="btn btn-danger" id="mng-del"><svg class="icon"><use href="#i-trash"/></svg> Smazat</button>'
+                + '<button type="button" class="btn btn-secondary" id="mng-renum">Přečíslovat</button>'
+                + '<button type="button" class="btn btn-secondary" id="mng-shift">Posun ΔY/ΔX/ΔZ</button>'
+                + '<button type="button" class="btn btn-secondary" id="mng-kod">Přiřadit kód</button>'
+                + (canHelmert ? '<button type="button" class="btn btn-secondary" id="mng-helm">Srovnat lokalizací</button>' : '')
+                + '</div>';
+            listDiv.appendChild(box);
+            box.querySelector('#mng-all').addEventListener('click', () => { const pts = _mngSortedPoints(); if (_mngSel.size >= pts.length) _mngSel.clear(); else pts.forEach(p => _mngSel.add(p.id)); renderManageList(); });
+            box.querySelector('#mng-del').addEventListener('click', mngBulkDelete);
+            box.querySelector('#mng-renum').addEventListener('click', mngBulkRenumber);
+            box.querySelector('#mng-shift').addEventListener('click', mngBulkShift);
+            box.querySelector('#mng-kod').addEventListener('click', mngBulkKod);
+            const hb = box.querySelector('#mng-helm'); if (hb) hb.addEventListener('click', mngBulkHelmert);
+        }
+        function _mngSelectedPts() { return _mngSortedPoints().filter(p => _mngSel.has(p.id)); }
+        function _mngNeedSel() { if (!_mngSel.size) { agInfo('Nejdřív vyber body — ťukni na ně v seznamu.'); return true; } return false; }
+        // spolecny konec hromadne editace: persist + prekresleni AR/mapy/seznamu
+        function _mngAfterEdit(ids) {
+            setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
+            arPoints.forEach(p => { if (ids.has(p.id) && p.element) { p.element.remove(); p.element = null; } });
+            initARMarkers(); drawAllMarkersOnMap(); renderManageList();
+            if (typeof updateInfoPanel === 'function') updateInfoPanel();
+            if (typeof window.agVibe === 'function') agVibe(30);
+        }
+        function mngBulkDelete() {
+            if (_mngNeedSel()) return;
+            // jen body, ktere jsou pri aktivnim hledani opravdu videt (stejne jako ostatni akce)
+            const ids = _mngSelectedPts().map(p => p.id);
+            if (!ids.length) return agInfo('Vybrané body nejsou v aktivním hledání vidět — zruš hledání nebo vyber jiné.');
+            const doIt = () => {
+                _mngSuspendRedraw = true;
+                try { ids.forEach(id => { try { deleteCustomPoint(id, true); } catch (e) {} }); }
+                finally { _mngSuspendRedraw = false; }
+                ids.forEach(id => _mngSel.delete(id));
+                drawAllMarkersOnMap(); initARMarkers();
+                // undo toast umi vratit jen POSLEDNI smazany bod — u hromadneho mazani by mátl; koš má všechny
+                if (ids.length > 1) { const ut = document.getElementById('undo-toast'); if (ut) ut.style.display = 'none'; }
+                renderManageList();
+                quickToast('Smazáno ' + ids.length + ' bodů — obnova: menu Více → Koš (30 dní).');
+                if (typeof window.agVibe === 'function') agVibe(30);
+            };
+            const msg = 'Opravdu smazat ' + ids.length + ' vybraných bodů?<br>Obnovit je půjde 30 dní z koše (Více → Koš).';
+            if (window.agConfirm) agConfirm({ title: 'Smazat vybrané body', message: msg, okText: 'Smazat', danger: true }).then(ok => { if (ok) doIt(); });
+            else if (confirm('Opravdu smazat ' + ids.length + ' vybraných bodů?')) doIt();
+        }
+        function mngBulkRenumber() {
+            if (_mngNeedSel()) return;
+            const ask = (v) => {
+                if (!v) return;
+                const m = /^(.*?)(\d{1,9})$/.exec(String(v).trim());
+                if (!m) return agInfo('Zadej název končící číslem — např. „101" nebo „OB01".');
+                const prefix = m[1], pad = m[2].length; let n = parseInt(m[2], 10);
+                const sel = _mngSelectedPts(); const ids = new Set(sel.map(p => p.id));
+                sel.forEach(p => {
+                    let cand;
+                    do { cand = prefix + String(n).padStart(pad, '0'); n++; } while (persistentCustomPoints.some(q => q.id !== p.id && q.name === cand));
+                    const before = { ...p }; p.name = cand;
+                    const ar = arPoints.find(a => a.id === p.id); if (ar) ar.name = cand;
+                    try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'hromadne-precislovani' }); } catch (e) {}
+                });
+                _mngAfterEdit(ids);
+                quickToast('Přečíslováno ' + sel.length + ' bodů (v pořadí seznamu).');
+            };
+            if (window.agPrompt) agPrompt({ title: 'Přečíslovat vybrané body', message: 'Zadej PRVNÍ název série (musí končit číslem). Vybrané body dostanou čísla po sobě v pořadí seznamu; už obsazená čísla se přeskočí.', placeholder: 'Např. 101 nebo OB01', okText: 'Přečíslovat' }).then(ask);
+            else ask(prompt('První název série (např. 101):'));
+        }
+        function mngBulkShift() {
+            if (_mngNeedSel()) return;
+            const ask = (v) => {
+                if (!v) return;
+                const parts = String(v).trim().split(/[;\s]+/).map(t => parseFloat(t.replace(',', '.')));
+                if (!parts.length || parts.some(x => !isFinite(x))) return agInfo('Zadej posun jako „ΔY ΔX" nebo „ΔY ΔX ΔZ" v metrech, oddělené mezerou — např. „0 0 -0.05".');
+                const dY = parts[0] || 0, dX = parts[1] || 0, dZ = parts[2] || 0;
+                const sel = _mngSelectedPts(); const ids = new Set(sel.map(p => p.id));
+                sel.forEach(p => {
+                    const before = { ...p };
+                    const sj = proj4("EPSG:4326", "EPSG:5514", [p.lng, p.lat]);
+                    const c = sjtskToLatLng(Math.abs(sj[0]) + dY, Math.abs(sj[1]) + dX);
+                    p.lat = c.lat; p.lng = c.lng;
+                    if (dZ && p.vyska != null) p.vyska = Math.round((p.vyska + dZ) * 1000) / 1000;
+                    const ar = arPoints.find(a => a.id === p.id); if (ar) { ar.lat = p.lat; ar.lng = p.lng; ar.vyska = p.vyska; }
+                    try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'hromadny-posun' }); } catch (e) {}
+                });
+                _mngAfterEdit(ids);
+                quickToast('Posunuto ' + sel.length + ' bodů (ΔY ' + dY + ' m, ΔX ' + dX + ' m' + (dZ ? ', ΔZ ' + dZ + ' m' : '') + ').');
+            };
+            if (window.agPrompt) agPrompt({ title: 'Posunout vybrané body', message: 'Posun v metrech S-JTSK: „ΔY ΔX" nebo „ΔY ΔX ΔZ" (mezerou). Např. snížit výšku o 5 cm: „0 0 -0.05".', placeholder: '0 0 -0.05', okText: 'Posunout' }).then(ask);
+            else ask(prompt('Posun ΔY ΔX ΔZ (m):'));
+        }
+        function mngBulkKod() {
+            if (_mngNeedSel()) return;
+            const ask = (v) => {
+                if (v == null || String(v).trim() === '') return;
+                const kod = (String(v).trim() === '-') ? null : String(v).trim().slice(0, 60);
+                const sel = _mngSelectedPts(); const ids = new Set(sel.map(p => p.id));
+                sel.forEach(p => {
+                    const before = { ...p };
+                    if (kod) p.kod = kod; else delete p.kod;
+                    const ar = arPoints.find(a => a.id === p.id); if (ar) { if (kod) ar.kod = kod; else delete ar.kod; }
+                    try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'hromadny-kod' }); } catch (e) {}
+                });
+                if (kod && typeof window.agKodRemember === 'function') agKodRemember(kod);
+                _mngAfterEdit(ids);
+                quickToast(kod ? ('Kód „' + kod + '" přiřazen ' + sel.length + ' bodům.') : ('Kód odebrán u ' + sel.length + ' bodů.'));
+            };
+            if (window.agPrompt) agPrompt({ title: 'Kód pro vybrané body', message: 'Kód se propíše do CSV/TXT/DXF exportu (v DXF jako vrstva výkresu). Pomlčka „-" kód odebere.', placeholder: 'Např. obruba', okText: 'Přiřadit' }).then(ask);
+            else ask(prompt('Kód bodu (- = odebrat):'));
+        }
+        function mngBulkHelmert() {
+            if (_mngNeedSel()) return;
+            if (!window.AGLocalize || !AGLocalize.active) return agInfo('Helmertova lokalizace není aktivní — nejdřív ji zapni v Nástrojích.');
+            const sel = _mngSelectedPts().filter(p => !p._localized);
+            const skipped = _mngSel.size - sel.length;
+            if (!sel.length) return agInfo('Vybrané body už byly lokalizací srovnány (každý bod se přepočítává jen jednou).');
+            const doIt = () => {
+                const ids = new Set(sel.map(p => p.id)); let done = 0;
+                sel.forEach(p => {
+                    const c = AGLocalize.apply(p.lat, p.lng); if (!c || !isFinite(c[0]) || !isFinite(c[1])) return;
+                    const before = { ...p };
+                    p.lat = c[0]; p.lng = c[1];
+                    if (p.vyska != null && AGLocalize.applyZ) p.vyska = AGLocalize.applyZ(c[0], c[1], p.vyska);
+                    p._localized = true; done++;
+                    const ar = arPoints.find(a => a.id === p.id); if (ar) { ar.lat = p.lat; ar.lng = p.lng; ar.vyska = p.vyska; ar._localized = true; }
+                    try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'helmert-hromadne' }); } catch (e) {}
+                });
+                _mngAfterEdit(ids);
+                quickToast('Lokalizací srovnáno ' + done + ' bodů' + (skipped ? ' (' + skipped + ' přeskočeno — už srovnané)' : '') + '.');
+            };
+            const msg = 'Přepočítat ' + sel.length + ' bodů aktivní Helmertovou lokalizací?' + (skipped ? '<br>(' + skipped + ' vybraných se přeskočí — už jsou srovnané.)' : '');
+            if (window.agConfirm) agConfirm({ title: 'Srovnat body lokalizací', message: msg, okText: 'Přepočítat' }).then(ok => { if (ok) doIt(); });
+            else if (confirm('Přepočítat ' + sel.length + ' bodů Helmertem?')) doIt();
+        }
         // Skryte body: dohledatelne primo v sekci Body (drive jen hluboko v Nastaveni -> Udrzba)
         function renderHiddenPointsRow(listDiv) {
             const n = arPoints.filter(p => p.hidden).length;
@@ -394,7 +631,37 @@
                 }
             }
         }
-        function editCustomPoint(id) { const pt = persistentCustomPoints.find(p => p.id === id); if(!pt) return; editingCustomPointId = id; pendingPointAccuracy = null; { const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none'; } { const _h = document.getElementById('custom-create-helpers'); if (_h) _h.style.display = 'none'; } document.getElementById('custom-modal-title').innerText = "Upravit bod"; document.getElementById('custom-name').value = pt.name; let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); document.getElementById('custom-y').value = Math.abs(sjtsk[0]).toFixed(2); document.getElementById('custom-x').value = Math.abs(sjtsk[1]).toFixed(2); { const _z = document.getElementById('custom-z'); if (_z) _z.value = (pt.vyska != null ? pt.vyska : ''); } resetNewPointExtras(id); document.getElementById('manage-modal').style.display = 'none'; document.getElementById('custom-modal-overlay').style.display = 'flex'; }
+        // Rychle chipy naposledy pouzitych kodu bodu + datalist naseptavace (historie v logika.js)
+        function agRenderKodChips() {
+            const dl = document.getElementById('kod-datalist'), box = document.getElementById('kod-chips'), inp = document.getElementById('custom-kod');
+            if (!dl || !box || !inp || typeof window.agKodHistory !== 'function') return;
+            const h = window.agKodHistory();
+            dl.innerHTML = h.map(k => '<option value="' + _escHtml(k) + '">').join('');
+            box.innerHTML = ''; box.style.display = h.length ? 'flex' : 'none';
+            h.slice(0, 6).forEach(k => {
+                const b = document.createElement('button'); b.type = 'button'; b.className = 'kod-chip'; b.textContent = k;
+                b.onclick = () => { inp.value = (inp.value.trim() === k) ? '' : k; };
+                box.appendChild(b);
+            });
+        }
+        // Spolecna priprava formulare bodu: kod, chipy, tlacitko „Uložit a další", predvyplneni serie
+        function agSetupPointForm(editPt, allowNext) {
+            const kodInp = document.getElementById('custom-kod');
+            if (kodInp) kodInp.value = (editPt && editPt.kod) ? editPt.kod : '';
+            agRenderKodChips();
+            const nx = document.getElementById('btn-save-next'); if (nx) nx.style.display = allowNext ? '' : 'none';
+            // novy bod: predvypln dalsi cislo serie (kdo cisluje, nepise nic; kdo pojmenovava, prepise to)
+            const nm = document.getElementById('custom-name');
+            if (nm) {
+                delete nm.dataset.agAutofill;
+                if (!editPt && !nm.value && typeof window.agNextSerieName === 'function') {
+                    const s = agNextSerieName();
+                    // priznak „vyplnila appka“ — draft-store.js to pak nepovazuje za rozdelanou praci
+                    if (s) { nm.value = s; nm.dataset.agAutofill = '1'; nm.addEventListener('input', function () { delete nm.dataset.agAutofill; }, { once: true }); }
+                }
+            }
+        }
+        function editCustomPoint(id) { const pt = persistentCustomPoints.find(p => p.id === id); if(!pt) return; editingCustomPointId = id; pendingPointAccuracy = null; { const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none'; } { const _h = document.getElementById('custom-create-helpers'); if (_h) _h.style.display = 'none'; } agSetupPointForm(pt, false); document.getElementById('custom-modal-title').innerText = "Upravit bod"; document.getElementById('custom-name').value = pt.name; let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); document.getElementById('custom-y').value = Math.abs(sjtsk[0]).toFixed(2); document.getElementById('custom-x').value = Math.abs(sjtsk[1]).toFixed(2); { const _z = document.getElementById('custom-z'); if (_z) _z.value = (pt.vyska != null ? pt.vyska : ''); } resetNewPointExtras(id); document.getElementById('manage-modal').style.display = 'none'; document.getElementById('custom-modal-overlay').style.display = 'flex'; }
         // BOD Z MAPY: tlacitko v modalu spusti rezim, dalsi TAP do mapy umisti bod (tah dal posouva mapu)
         function startMapPick() {
             if (viewMode === 'ar') { agInfo("Přepni na zobrazení s mapou (Split nebo Mapa)."); return; }
@@ -433,9 +700,10 @@
                 }
             }
             resetNewPointExtras(null);
+            agSetupPointForm(null, false);   // z mapy: bez „Uložit a další" (dalsi bod = dalsi tap do mapy)
             document.getElementById('custom-modal-overlay').style.display = 'flex';
         }
-        function openNewPointModal() { editingCustomPointId = null; pendingPointAccuracy = null; { const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none'; } { const _h = document.getElementById('custom-create-helpers'); if (_h) _h.style.display = ''; } document.getElementById('custom-modal-title').innerText = "Vložit bod"; document.getElementById('custom-name').value = ''; document.getElementById('custom-y').value = ''; document.getElementById('custom-x').value = ''; { const _z = document.getElementById('custom-z'); if (_z) _z.value = ''; } resetNewPointExtras(null); document.getElementById('custom-modal-overlay').style.display = 'flex'; }
+        function openNewPointModal() { editingCustomPointId = null; pendingPointAccuracy = null; { const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none'; } { const _h = document.getElementById('custom-create-helpers'); if (_h) _h.style.display = ''; } document.getElementById('custom-modal-title').innerText = "Vložit bod"; document.getElementById('custom-name').value = ''; document.getElementById('custom-y').value = ''; document.getElementById('custom-x').value = ''; { const _z = document.getElementById('custom-z'); if (_z) _z.value = ''; } resetNewPointExtras(null); agSetupPointForm(null, true); document.getElementById('custom-modal-overlay').style.display = 'flex'; }
         function closeCustomModal() { document.getElementById('custom-modal-overlay').style.display = 'none'; fixAppLayout(); }
         function closeBottomSheet() { document.getElementById('bottom-sheet').classList.remove('open'); arPoints.forEach(p => { if (p.element) p.element.classList.remove('active-reading'); }); activePointIdForModal = null; }
 
@@ -479,22 +747,41 @@
             Object.keys(baseLayers).forEach(k => { if (k !== key && map.hasLayer(baseLayers[k])) map.removeLayer(baseLayers[k]); });
             if (!map.hasLayer(baseLayers[key])) baseLayers[key].addTo(map);
             if (visSettings.showKatastr) { if (!map.hasLayer(katastrLayer)) katastrLayer.addTo(map); } else if (map.hasLayer(katastrLayer)) map.removeLayer(katastrLayer);
+            // TMAVA MAPA: trida na #map rika CSS, ze podklad je OSM — v tmavem motivu se
+            // dlazdice invertuji (bily podklad by v noci/Split rezimu oslnoval). Ortofoto se nefiltruje.
+            const _mapEl = document.getElementById('map'); if (_mapEl) _mapEl.classList.toggle('base-osm', key === 'osm');
             const bb = document.getElementById('btn-baselayer'), kb = document.getElementById('btn-katastr');
             if (bb) bb.classList.toggle('ctrl-active', visSettings.baseLayer === 'ortofoto');
             if (kb) kb.classList.toggle('ctrl-active', !!visSettings.showKatastr);
         }
-        function cycleBaseLayer() { visSettings.baseLayer = (visSettings.baseLayer === 'ortofoto') ? 'osm' : 'ortofoto'; setStoredData('arVisSettings12', JSON.stringify(visSettings)); applyMapLayers(); }
+        function cycleBaseLayer() { visSettings.baseLayer = (visSettings.baseLayer === 'ortofoto') ? 'osm' : 'ortofoto'; setStoredData('arVisSettings12', JSON.stringify(visSettings)); applyMapLayers(); if (typeof quickToast === 'function') quickToast(visSettings.baseLayer === 'ortofoto' ? 'Podklad: letecký snímek (© ČÚZK)' : 'Podklad: mapa (OSM)'); }
         function toggleKatastr() { visSettings.showKatastr = !visSettings.showKatastr; setStoredData('arVisSettings12', JSON.stringify(visSettings)); applyMapLayers(); }
         // Vyjizdejici panel ovladani mapy: sbaleno = jen prepinaci tlacitko
         function toggleMapControls() { document.getElementById('map-controls').classList.toggle('expanded'); }
 
         const arOverlay = document.getElementById('ar-overlay');
+        // Badge „+N" u sbalených shluků AR značek. Zapisuje do DOM jen při ZMĚNĚ počtu
+        // a prochází jen značky umístěné v tomto snímku + hostitele z minulého snímku
+        // (arPoints jich může být tisíce — celý průchod každý snímek by byl drahý).
+        let _prevHosts = [];
+        function _setMore(pt, n) {
+            if (!pt || !pt.moreElement || pt._moreN === n) return;
+            pt._moreN = n;
+            pt.moreElement.textContent = n ? ('+' + n) : '';
+            pt.moreElement.style.display = n ? 'block' : 'none';
+        }
+        function _updateMoreBadges(placed) {
+            const hosts = [];
+            placed.forEach(q => { const n = (q.pt._arCluster && q.pt._arCluster.length) || 0; _setMore(q.pt, n); if (n) hosts.push(q.pt); });
+            _prevHosts.forEach(pt => { if (hosts.indexOf(pt) < 0) _setMore(pt, 0); });
+            _prevHosts = hosts;
+        }
         function initARMarkers() {
             arPoints.forEach((pt) => {
                 let matchesSearch = true; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) { matchesSearch = false; }
                 let outOfReach = (pt.currentDist > arRadius); let isSelectedForDetail = (pt.id === activePointIdForModal);
                 if (pt.hidden || !matchesSearch || (outOfReach && pt.id !== highlightedPointId && !isSelectedForDetail)) { if (pt.element && pt.element.parentNode) pt.element.parentNode.removeChild(pt.element); return; }
-                if (!pt.element) { const marker = document.createElement('div'); marker.className = `ar-marker cat-${pt.cat.toLowerCase()}`; if (pt.id === highlightedPointId) marker.classList.add('highlighted'); if (window.isStaked && isStaked(pt.id)) marker.classList.add('staked'); marker.style.opacity = '0'; const title = document.createElement('div'); title.className = 'ar-marker-title'; title.innerText = pt.name; const dist = document.createElement('div'); dist.className = 'ar-marker-dist'; marker.appendChild(title); marker.appendChild(dist); marker.addEventListener('click', () => { const currentDist = getDistance(userLat, userLng, pt.lat, pt.lng); showDetails(pt, currentDist); }); pt.element = marker; pt.distElement = dist; arOverlay.appendChild(marker); } else if (!pt.element.parentNode) { arOverlay.appendChild(pt.element); }
+                if (!pt.element) { const marker = document.createElement('div'); marker.className = `ar-marker cat-${pt.cat.toLowerCase()}`; if (pt.id === highlightedPointId) marker.classList.add('highlighted'); if (window.isStaked && isStaked(pt.id)) marker.classList.add('staked'); marker.style.opacity = '0'; const title = document.createElement('div'); title.className = 'ar-marker-title'; title.innerText = pt.name; const dist = document.createElement('div'); dist.className = 'ar-marker-dist'; const more = document.createElement('div'); more.className = 'ar-marker-more'; marker.appendChild(title); marker.appendChild(dist); marker.appendChild(more); marker.addEventListener('click', () => { if (pt._arCluster && pt._arCluster.length) { showClusterList([pt].concat(pt._arCluster)); return; } const currentDist = getDistance(userLat, userLng, pt.lat, pt.lng); showDetails(pt, currentDist); }); pt.element = marker; pt.distElement = dist; pt.moreElement = more; arOverlay.appendChild(marker); } else if (!pt.element.parentNode) { arOverlay.appendChild(pt.element); }
             });
         }
         let mapReturnTimer;
@@ -638,7 +925,7 @@
             const hlBtn = document.getElementById('highlight-btn'); if (highlightedPointId === pt.id) { hlBtn.innerHTML = '<svg class="icon"><use href="#i-star"/></svg><span>Nezvýraznit</span>'; hlBtn.style.background = "#fff"; } else { hlBtn.innerHTML = '<svg class="icon"><use href="#i-star"/></svg><span>Zvýraznit</span>'; hlBtn.style.background = "#fbbf24"; }
             hideBtnLogic = () => { pt.hidden = true; if(pt.element) { pt.element.style.opacity = '0'; setTimeout(() => { if(pt.element && pt.element.parentNode) pt.element.parentNode.removeChild(pt.element); }, 200); } if (highlightedPointId === pt.id) { highlightedPointId = null; document.getElementById('ar-hud').style.display = 'none'; } updateInfoPanel(); drawAllMarkersOnMap(); };
             let sjtskY = "Neznámé", sjtskX = "Neznámé"; if (pt.type === "custom") { let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); sjtskY = Math.abs(sjtsk[0]).toFixed(2); sjtskX = Math.abs(sjtsk[1]).toFixed(2); } else if (pt.rawData) { const getVal = (keys) => { for (let k in pt.rawData) { if (keys.includes(k.toUpperCase()) && pt.rawData[k] !== "Null" && pt.rawData[k] !== null && String(pt.rawData[k]).trim() !== "") return pt.rawData[k]; } return null; }; let sY = parseFloat(getVal(['Y', 'SOURADNICE_Y'])); let sX = parseFloat(getVal(['X', 'SOURADNICE_X'])); if (!isNaN(sY) && !isNaN(sX)) { if (sY < sX) { sjtskY = sY; sjtskX = sX; } else { sjtskY = sX; sjtskX = sY; } } }
-            let html = ` <div class="geo-data-row"><span class="geo-label">Vzdálenost</span><span class="geo-value" id="sheet-distance-val">${distance.toFixed(1)} m</span></div> <div class="geo-data-row"><span class="geo-label">S-JTSK Y</span><span class="geo-value">${sjtskY}</span></div> <div class="geo-data-row"><span class="geo-label">S-JTSK X</span><span class="geo-value">${sjtskX}</span></div> <div style="margin-top:15px; padding:12px; background:rgba(251,191,36,0.1); border-left:4px solid #fbbf24; border-radius:8px; font-size:13px; line-height:1.4;"><strong><svg class="icon" style="vertical-align:-0.18em; color:#fbbf24;"><use href="#i-alert"/></svg> Rádius hledání (Vaše GPS: ±<span id="sheet-gps-val">${currentGpsAccuracy.toFixed(1)}</span> m)</strong><br>Bod nehledejte na centimetr přesně na AR značce. Může ležet kdekoliv v tomto kruhovém okruhu od značky.</div> `;
+            let html = ` <div class="geo-data-row"><span class="geo-label">Vzdálenost</span><span class="geo-value" id="sheet-distance-val">${distance.toFixed(1)} m</span></div> <div class="geo-data-row"><span class="geo-label">S-JTSK Y</span><span class="geo-value">${sjtskY}</span></div> <div class="geo-data-row"><span class="geo-label">S-JTSK X</span><span class="geo-value">${sjtskX}</span></div> ${pt.vyska != null ? '<div class="geo-data-row"><span class="geo-label">Výška Bpv</span><span class="geo-value">' + Number(pt.vyska).toFixed(2) + ' m</span></div>' : ''} ${pt.kod ? '<div class="geo-data-row"><span class="geo-label">Kód bodu</span><span class="geo-value">' + _escHtml(pt.kod) + '</span></div>' : ''} <div style="margin-top:15px; padding:12px; background:rgba(251,191,36,0.1); border-left:4px solid #fbbf24; border-radius:8px; font-size:13px; line-height:1.4;"><strong><svg class="icon" style="vertical-align:-0.18em; color:#fbbf24;"><use href="#i-alert"/></svg> Rádius hledání (Vaše GPS: ±<span id="sheet-gps-val">${currentGpsAccuracy.toFixed(1)}</span> m)</strong><br>Bod nehledejte na centimetr přesně na AR značce. Může ležet kdekoliv v tomto kruhovém okruhu od značky.</div> `;
             if (pt.type === "custom") { html += `<div style="text-align:center; padding: 25px 0; opacity:0.6; font-style:italic;">Ručně vytvořený bod. Můžete jej spravovat v Nastavení.</div>`; } else if (pt.rawData) { const props = pt.rawData; const getVal = (keys) => { for (let k in props) { if (keys.includes(k.toUpperCase()) && props[k] !== "Null" && props[k] !== null && String(props[k]).trim() !== "") return props[k]; } return null; }; const stabilizace = getVal(['STABILIZACE', 'TYP_ZNAK', 'TYP_ZNAKU', 'ZNAK', 'POPIS_ZNAKU']); const vyska = getVal(['VYSKA_NAD_TERENEM', 'VYSKA_ZNAKU', 'UMISTENI']); let nadmRaw = getVal(['VYSKA_BPV','NADMORSKA_VYSKA','VYSKA_BODU','VYSKA_H','H_BPV','VYSKA','H','Z']); let nadmNum = parseFloat(String(nadmRaw).replace(',', '.')); let nadmVyska = (!isNaN(nadmNum) && nadmNum > 50 && nadmNum < 3000) ? nadmNum : null; let geodataLink = null; for (let k in props) { if (typeof props[k] === 'string' && props[k].startsWith('http')) { geodataLink = props[k]; break; } } if (stabilizace || vyska !== null || nadmVyska !== null) { html += `<div class="geo-highlight" style="border-left-color: var(--accent);">`; if (nadmVyska !== null) html += `<div class="geo-data-row" style="border:none; padding: 4px 0;"><span class="geo-label" style="color:var(--text-color);">Nadmořská výška (Bpv):</span><span class="geo-value">${nadmVyska.toFixed(2)} m</span></div>`; if (stabilizace) html += `<div class="geo-data-row" style="border:none; padding: 4px 0;"><span class="geo-label" style="color:var(--text-color);">Stabilizace:</span><span class="geo-value">${stabilizace}</span></div>`; if (vyska !== null) html += `<div class="geo-data-row" style="border:none; padding: 4px 0;"><span class="geo-label" style="color:var(--text-color);">Výška n. terénem:</span><span class="geo-value">${vyska} m</span></div>`; html += `</div>`; } if (geodataLink) html += `<a href="${geodataLink}" target="_blank" class="btn-link"><svg class="icon"><use href="#i-file-text"/></svg> Otevřít nákres (Polohopis)</a>`; html += `<details><summary>Zobrazit všechny úřední záznamy</summary><div style="margin-top:10px;">`; for (let key in pt.rawData) { if (pt.rawData[key] && pt.rawData[key] !== "Null" && key !== "OBJECTID" && key !== "SHAPE") { let cleanKey = key.replace(/_/g, ' '); cleanKey = cleanKey.charAt(0).toUpperCase() + cleanKey.slice(1); html += `<div class="geo-data-row"><span class="geo-label">${cleanKey}</span><span class="geo-value" style="font-weight:400;">${pt.rawData[key]}</span></div>`; } } html += `</div></details>`; }
             document.getElementById('det-body').innerHTML = html; document.getElementById('bottom-sheet').classList.add('open');
         }
@@ -772,8 +1059,11 @@
 
             let maxPts = visSettings.maxARPoints || 100; let vOffset = visSettings.arVerticalOffset || 0;
             const _sqLC = searchQuery ? searchQuery.toLowerCase() : '';
+            // DECLUTTER AR štítků: co by se překrývalo, sbalí se pod nejbližší bod (+N, tap = seznam bodů).
+            const _placed = []; const _ovW = arOverlay.clientWidth || 1, _ovH = arOverlay.clientHeight || 1;
 
             arPoints.forEach(pt => {
+                pt._arCluster = null;   // shluk plati vzdy jen pro AKTUALNI snimek
                 let isVisible = true; if (pt.hidden) isVisible = false; if (pt.cat === 'TB' && !filters.tb) isVisible = false; if (pt.cat === 'ZHB' && !filters.zhb) isVisible = false; if (pt.cat === 'PBPP' && !filters.pbpp) isVisible = false; if (pt.cat === 'NIVEL' && !filters.nivel) isVisible = false; if (pt.cat === 'CUSTOM' && !filters.custom) isVisible = false; if (_sqLC && !pt.name.toLowerCase().includes(_sqLC)) isVisible = false;
                 const distance = pt.currentDist || getDistance(_oLat, _oLng, pt.lat, pt.lng);
                 let isSelectedForDetail = (pt.id === activePointIdForModal);
@@ -796,16 +1086,31 @@
                     if (groundY < 3) groundY = 3; else if (groundY > 97) groundY = 97;
                     let markerY = groundY;
                     let normDist = distance / Math.max(arRadius, 100); if (normDist > 1) normDist = 1;
-                    let scale = (0.9 - (normDist * 0.4)) * visSettings.markerScale;
-                    
-                    if (pt.id === highlightedPointId) { 
-                        pt.element.style.zIndex = 99999; scale = scale * 1.25; 
-                    } else { 
-                        pt.element.style.zIndex = Math.round(1000 - distance); 
+                    // ČITELNOST: vzdálenost už štítek nezmenšuje pod čitelné minimum (dřív scale až 0.5
+                    // → 7px písmo, na slunci nečitelné); hloubku naznačí jemný rozsah ~1.0–0.78,
+                    // přesnou dálku stejně říká text na štítku.
+                    let scale = (1.0 - (normDist * 0.22)) * visSettings.markerScale;
+
+                    if (pt.id === highlightedPointId) {
+                        pt.element.style.zIndex = 99999; scale = scale * 1.25;
+                    } else {
+                        pt.element.style.zIndex = Math.round(1000 - distance);
+                    }
+                    if (pt.element && pt.id !== highlightedPointId && !isSelectedForDetail) {
+                        // kolize štítků v pixelech obrazovky (štítek ~110×44 px při scale 1);
+                        // arPoints jsou řazené podle vzdálenosti → hostitelem shluku je nejbližší bod
+                        const _px = xPct * _ovW / 100, _py = markerY * _ovH / 100, _hw = 55 * scale, _hh = 22 * scale;
+                        let _host = null;
+                        for (let _i = 0; _i < _placed.length; _i++) { const q = _placed[_i]; if (Math.abs(_px - q.x) < (_hw + q.hw) && Math.abs(_py - q.y) < (_hh + q.hh)) { _host = q; break; } }
+                        if (_host) { _host.pt._arCluster.push(pt); if (pt.element.style.opacity !== '0') pt.element.style.opacity = '0'; pt.element.style.pointerEvents = 'none'; return; }
+                        _placed.push({ x: _px, y: _py, hw: _hw, hh: _hh, pt: pt });
+                        pt._arCluster = [];
                     }
                     if (pt.element) { pt.element.style.left = `${xPct}%`; pt.element.style.top = `${markerY}%`; pt.element.style.transform = `translate(-50%, -50%) scale(${scale}) translateZ(0)`; pt.element.style.opacity = '1'; pt.element.style.pointerEvents = 'auto'; pt.distElement.innerText = `${distance.toFixed(1)} m`; }
                 } else { if (pt.element && pt.element.style.opacity !== '0') pt.element.style.opacity = '0'; }
             });
+            // badge „+N" na hostitelích shluků (jen umístěné značky, ne celé arPoints)
+            _updateMoreBadges(_placed);
             drawARLines(heading, cameraPitchDown, imgRoll, halfH, halfV, vOffset, eyeH);
             
             if (highlightedPointData) {

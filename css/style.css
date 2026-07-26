@@ -2117,3 +2117,135 @@ body.left-hand #map-controls { right: auto; left: 74px; align-items: flex-start;
 /* Zavření nástrojů mapy přímo z hlavní obrazovky (bez cesty přes „Více") */
 #map-ctrl-close { border-color: var(--danger,#fb7185); }
 #map-ctrl-close .icon { color: var(--danger,#fb7185); }
+
+/* =========================================================================
+   AR značky 2.0 — čitelnost, kategorie tvarem, vytyčené body, shluky (+N)
+   ========================================================================= */
+/* Kategoriová značka přímo ve štítku: barevný TVAR před názvem (4px proužek
+   po straně byl při oddálení ~2px a barvu nešlo rozeznat; tvar kopíruje mapu). */
+.ar-marker-title::before {
+    content: '';
+    display: inline-block;
+    width: 9px; height: 9px;
+    margin-right: 6px;
+    background: var(--_catc, #9ca3af);
+    vertical-align: 0;
+}
+.ar-marker.cat-tb     { --_catc: var(--color-tb); }
+.ar-marker.cat-zhb    { --_catc: var(--color-zhb); }
+.ar-marker.cat-pbpp   { --_catc: var(--color-pbpp); }
+.ar-marker.cat-nivel  { --_catc: var(--color-nivel); }
+.ar-marker.cat-custom { --_catc: var(--color-custom); }
+.ar-marker.cat-tb .ar-marker-title::before     { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.ar-marker.cat-pbpp .ar-marker-title::before   { border-radius: 50%; }
+.ar-marker.cat-nivel .ar-marker-title::before  { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.ar-marker.cat-custom .ar-marker-title::before { border-radius: 50% 50% 50% 2px; }
+/* Vytyčený bod: zelený rámeček + fajfka (dřív třída bez CSS — v AR nebyl poznat) */
+.ar-marker.staked { border-color: rgba(16, 185, 129, 0.85); }
+.ar-marker.staked .ar-marker-title::after { content: ' ✓'; color: #10b981; font-weight: 800; }
+/* Shluk: štítky přes sebe se sbalí pod nejbližší bod, badge říká kolik (tap = seznam) */
+.ar-marker-more {
+    display: none;
+    position: absolute;
+    top: -10px; right: -10px;
+    min-width: 22px; height: 22px;
+    padding: 0 5px;
+    border-radius: var(--r-pill, 999px);
+    background: var(--warning, #fbbf24);
+    color: #0b1020;
+    font-size: 12px; font-weight: 800; line-height: 22px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+    pointer-events: none;
+}
+
+/* =========================================================================
+   Tmavá mapa — OSM dlaždice v tmavém motivu (třídu .base-osm dává applyMapLayers)
+   ========================================================================= */
+/* Invert + otočení odstínu: bílý podklad přestane v noci/Split režimu oslňovat.
+   Ortofoto se nefiltruje (fotka má zůstat fotkou); katastr nad OSM se invertuje
+   spolu s ním (černé hranice → světlé, na tmavém podkladu čitelné). */
+body:not(.light-mode) #map.base-osm .leaflet-tile {
+    filter: invert(1) hue-rotate(180deg) brightness(0.91) contrast(0.95) saturate(0.72);
+}
+/* Ve světlém režimu nad světlou OSM je bílý popisek jen obrys — přepnout na tmavý text */
+body.light-mode #map.base-osm .map-label-text {
+    color: #0b1220;
+    text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+}
+/* Swatch kategorie ve filtračních chipech (Nastavení) — chipy = legenda bodů */
+#settings-modal .st-chip .cat-ic { width: 1.05em; height: 1.05em; margin-right: 6px; }
+
+/* =========================================================================
+   Kódy bodů — chipy posledních kódů ve formuláři + badge v seznamu Body
+   ========================================================================= */
+.kod-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.kod-chip {
+    border: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-muted);
+    border-radius: var(--r-pill, 999px);
+    padding: 7px 12px;
+    font-size: 12.5px; font-weight: 600;
+    cursor: pointer;
+}
+.kod-chip:active { transform: scale(0.96); }
+body.light-mode .kod-chip { background: rgba(0, 0, 0, 0.05); }
+.cp-kod {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 8px;
+    border-radius: var(--r-pill, 999px);
+    background: rgba(52, 211, 153, 0.16);
+    color: var(--accent-bright, #34d399);
+    font-size: 11.5px; font-weight: 700;
+    vertical-align: 1px;
+}
+
+/* =========================================================================
+   Panel Body — lišta hledání/řazení + režim výběru s hromadnými akcemi
+   ========================================================================= */
+.mng-bar { display: flex; gap: 7px; margin-bottom: 10px; align-items: stretch; }
+.mng-bar input[type="search"] {
+    flex: 1 1 auto; min-width: 0;
+    margin: 0;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-sm);
+    color: var(--text-color);
+    font-size: 15px;
+    outline: none;
+}
+.mng-bar input[type="search"]:focus { border-color: var(--accent); }
+body.light-mode .mng-bar input[type="search"] { background: rgba(0, 0, 0, 0.05); }
+.mng-bar select { flex: 0 0 auto; width: auto; max-width: 42%; margin: 0; padding: 10px 8px; font-size: 13.5px; }
+.mng-bar .mng-selbtn { flex: 0 0 auto; width: auto; margin: 0; padding: 10px 14px; }
+.mng-bar .mng-selbtn.mng-selbtn-on { border-color: var(--accent); color: var(--accent-bright, #34d399); }
+.mng-actions {
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-md, 12px);
+    padding: 10px;
+    margin-bottom: 10px;
+    background: rgba(255, 255, 255, 0.04);
+}
+body.light-mode .mng-actions { background: rgba(0, 0, 0, 0.04); }
+.mng-actions-head { font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.mng-lnk { background: none; border: none; color: var(--accent-bright, #34d399); font-weight: 700; font-size: 13px; cursor: pointer; padding: 4px 6px; margin-left: auto; }
+.mng-hint { font-size: 11.5px; opacity: 0.7; line-height: 1.4; margin: 0 2px 9px; }
+.mng-actions-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.mng-actions-btns .btn { margin: 0; padding: 10px 8px; font-size: 13px; }
+.cp-item.mng-selectable { cursor: pointer; padding-right: 48px; }
+.cp-item.mng-selected { border-color: var(--accent, #34d399); box-shadow: 0 0 0 1px var(--accent, #34d399) inset; }
+.mng-check {
+    position: absolute;
+    right: 12px; top: 50%;
+    transform: translateY(-50%);
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    border: 2px solid var(--glass-border-strong, rgba(255, 255, 255, 0.3));
+    color: var(--accent-bright, #34d399);
+    font-weight: 800; font-size: 16px; line-height: 22px;
+    text-align: center;
+}
+.cp-item.mng-selected .mng-check { border-color: var(--accent, #34d399); }

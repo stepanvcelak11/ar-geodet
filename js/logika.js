@@ -203,6 +203,59 @@ if ('serviceWorker' in navigator) {
             t.innerText = msg; t.style.opacity = '1'; clearTimeout(t._timer);
             t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2600);
         }
+        // Kratka haptika (ulozeni bodu, potvrzeni akce). Jediny spolecny vstup pro vibrace,
+        // respektuje visSettings.vibrationEnabled (default zapnuto; iOS Safari vibrace neumi — tise nic).
+        function agVibe(pattern) { try { if (visSettings.vibrationEnabled !== false && navigator.vibrate) navigator.vibrate(pattern || 30); } catch (e) {} }
+        window.agVibe = agVibe;
+        // ---- SERIE CISLOVANI BODU (per zakazka): z posledniho ulozeneho nazvu "PREFIX123"
+        // si zapamatujeme prefix+cislo a pri dalsim novem bodu predvyplnime nasledujici.
+        // Zadne UI navic: kdo cisluje, dostane dalsi cislo; kdo pojmenovava slovy, tomu se nic nevnucuje.
+        function _serieLoad() { try { const s = JSON.parse(getStoredData('agPointSerie') || 'null'); return (s && typeof s.prefix === 'string' && isFinite(s.next)) ? s : null; } catch (e) { return null; } }
+        function _serieSaveFromName(name) {
+            const m = /^(.*?)(\d{1,9})$/.exec(String(name || '').trim());
+            if (!m) { removeStoredData('agPointSerie'); return; }
+            // delku cisla drzime kvuli nulam na zacatku ("001" -> "002")
+            try { setStoredData('agPointSerie', JSON.stringify({ prefix: m[1], next: parseInt(m[2], 10) + 1, pad: m[2].length })); } catch (e) {}
+        }
+        // Dalsi volny nazev v serii — preskakuje uz existujici (import mohl cislo obsadit)
+        function agNextSerieName() {
+            const s = _serieLoad(); if (!s) return '';
+            let n = s.next;
+            for (let i = 0; i < 500; i++) {
+                const cand = s.prefix + String(n).padStart(s.pad || 0, '0');
+                if (!persistentCustomPoints.some(p => p.name === cand)) return cand;
+                n++;
+            }
+            return '';
+        }
+        window.agNextSerieName = agNextSerieName;
+        // ---- KODY BODU: historie naposledy pouzitych kodu (spolecna pres zakazky) + vychozi nabidka
+        const AG_KOD_DEFAULTS = ['obruba', 'hrana asfaltu', 'šachta', 'vpusť', 'sloup', 'plot', 'roh budovy', 'strom'];
+        function agKodHistory() {
+            let h = [];
+            try { h = JSON.parse(localStorage.getItem('agKodHistory') || '[]'); } catch (e) {}
+            if (!Array.isArray(h)) h = [];
+            AG_KOD_DEFAULTS.forEach(k => { if (h.indexOf(k) < 0) h.push(k); });
+            return h.slice(0, 12);
+        }
+        function agKodRemember(kod) {
+            try {
+                let h = []; try { h = JSON.parse(localStorage.getItem('agKodHistory') || '[]'); } catch (e) {}
+                if (!Array.isArray(h)) h = [];
+                h = [kod].concat(h.filter(k => k !== kod)).slice(0, 12);
+                localStorage.setItem('agKodHistory', JSON.stringify(h));
+            } catch (e) {}
+        }
+        window.agKodHistory = agKodHistory; window.agKodRemember = agKodRemember;
+        // priprava formulare na DALSI bod serie („Uložit a další"): nove cislo, prazdne souradnice
+        function agPrepNextPoint() {
+            const nm = document.getElementById('custom-name');
+            if (nm) { nm.value = agNextSerieName(); if (nm.value) { nm.dataset.agAutofill = '1'; nm.addEventListener('input', function () { delete nm.dataset.agAutofill; }, { once: true }); } }
+            ['custom-y', 'custom-x', 'custom-z'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none';
+            pendingPointAccuracy = null; window._agPointOrigin = null;
+            try { if (typeof resetNewPointExtras === 'function') resetNewPointExtras(null); } catch (e) {}
+        }
         let gpsSamples = [], gpsAvgResult = null, _gpsJump = 0;
         let arPoints = [], persistentCustomPoints = [], hideBtnLogic = null, editingCustomPointId = null, highlightedPointId = null, activePointIdForModal = null;
         let compassUnit = 'deg'; let compassZeroOffset = 0;
@@ -212,7 +265,7 @@ if ('serviceWorker' in navigator) {
         let connectMode = false, areaMode = false;
         let filters = { tb: true, zhb: true, pbpp: true, nivel: true, custom: true };
 
-        let visSettings = { maxARPoints: 20, arVerticalOffset: 0, markerScale: 1.0, markerOpacity: 100, colTb: '#8b5cf6', colZhb: '#0ea5e9', colPbpp: '#3b82f6', colNivel: '#ef4444', colCustom: '#34d399', arrowScale: 1.0, arrowOpacity: 90, arrowShape: '1', colArrow: '#34d399', panelOpacity: 85, menuScale: 1.0, hudTop: 55, hudSide: 15, wakeLockEnabled: true, outdoorMode: false, leftHand: false, anim: 'auto', dockArc: 13, katastrSource: 'mapycz', baseLayer: 'osm', showKatastr: false, headingSmoothing: 75, autoCompassCorrection: false, tiltCompensation: true, fovH: 90, fovV: 75, eyeHeight: 1.6 };
+        let visSettings = { maxARPoints: 20, arVerticalOffset: 0, markerScale: 1.0, markerOpacity: 100, colTb: '#8b5cf6', colZhb: '#0ea5e9', colPbpp: '#3b82f6', colNivel: '#ef4444', colCustom: '#34d399', arrowScale: 1.0, arrowOpacity: 90, arrowShape: '1', colArrow: '#34d399', panelOpacity: 85, menuScale: 1.0, hudTop: 55, hudSide: 15, wakeLockEnabled: true, vibrationEnabled: true, outdoorMode: false, leftHand: false, anim: 'auto', dockArc: 13, katastrSource: 'mapycz', baseLayer: 'osm', showKatastr: false, headingSmoothing: 75, autoCompassCorrection: false, tiltCompensation: true, fovH: 90, fovV: 75, eyeHeight: 1.6 };
         
         // Stazene uredni body ziji jen v pameti (initFetch je pridava, neubira) -> pred prepnutim
         // zakazky je ulozime, at se neztrati. Jen kdyz nejake jsou (neprepiseme ulozena data prazdnem).
@@ -415,7 +468,9 @@ if ('serviceWorker' in navigator) {
                 let sj = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]);
                 let y = Math.abs(sj[0]).toFixed(2), x = Math.abs(sj[1]).toFixed(2);
                 let nm = String(pt.name == null ? 'Bod' : pt.name).replace(/[;\r\n]/g, ' ');
-                return nm + ';' + y + ';' + x + (pt.vyska != null ? ';' + Number(pt.vyska).toFixed(2) : '');
+                // kod bodu jako 5. sloupec (kdyz je); bez vysky drzime prazdny sloupec Z, at sedi poradi
+                let kd = pt.kod ? String(pt.kod).replace(/[;\r\n]/g, ' ') : '';
+                return nm + ';' + y + ';' + x + (pt.vyska != null ? ';' + Number(pt.vyska).toFixed(2) : (kd ? ';' : '')) + (kd ? ';' + kd : '');
             });
             const csv = "\uFEFF" + lines.join("\r\n") + "\r\n";
             const a = document.createElement('a');
@@ -429,7 +484,8 @@ if ('serviceWorker' in navigator) {
             let lines = persistentCustomPoints.map(pt => {
                 let sj = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]);
                 let nm = String(pt.name == null ? 'Bod' : pt.name).replace(/[;\r\n]/g, ' ');
-                return nm + ';' + Math.abs(sj[0]).toFixed(2) + ';' + Math.abs(sj[1]).toFixed(2) + (pt.vyska != null ? ';' + Number(pt.vyska).toFixed(2) : '');
+                let kd = pt.kod ? String(pt.kod).replace(/[;\r\n]/g, ' ') : '';
+                return nm + ';' + Math.abs(sj[0]).toFixed(2) + ';' + Math.abs(sj[1]).toFixed(2) + (pt.vyska != null ? ';' + Number(pt.vyska).toFixed(2) : (kd ? ';' : '')) + (kd ? ';' + kd : '');
             });
             const a = document.createElement('a');
             a.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(lines.join("\r\n") + "\r\n"));
@@ -454,8 +510,10 @@ if ('serviceWorker' in navigator) {
                 let nums = parts.slice(1).map(t => parseFloat(t.replace(',', '.'))).filter(v => !isNaN(v));
                 if (nums.length < 2) return;
                 let c = sjtskToLatLng(nums[0], nums[1]);
-                // volitelny 4. sloupec = vyska Z (Bpv)
-                out.push({ name: parts[0], lat: c.lat, lng: c.lng, vyska: (nums.length >= 3 && isFinite(nums[2]) ? nums[2] : null) });
+                // volitelny 4. sloupec = vyska Z (Bpv); posledni NEcislený sloupec = kod bodu (obruba, šachta...)
+                const _last = parts[parts.length - 1];
+                const kod = (parts.length >= 4 && isNaN(parseFloat(_last.replace(',', '.')))) ? _last : null;
+                out.push({ name: parts[0], lat: c.lat, lng: c.lng, vyska: (nums.length >= 3 && isFinite(nums[2]) ? nums[2] : null), kod: kod });
             });
             return out;
         }
@@ -478,6 +536,7 @@ if ('serviceWorker' in navigator) {
                 if (persistentCustomPoints.find(ex => ex.name === p.name && Math.abs(ex.lat - p.lat) < 0.0001 && Math.abs(ex.lng - p.lng) < 0.0001)) return;
                 const id = 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6);
                 const np = { id: id, name: p.name || 'Bod', lat: p.lat, lng: p.lng, cat: 'CUSTOM', type: 'custom' };
+                if (p.kod) np.kod = String(p.kod).slice(0, 60);
                 if (p.vyska != null && isFinite(p.vyska)) np.vyska = Math.round(p.vyska * 100) / 100;
                 if (p.acc != null && isFinite(p.acc)) np.acc = Math.round(p.acc * 100) / 100;
                 // #5 provenience: trvale u bodu drž, odkud vznikl (import/přenos/měření) + kdy + přesnost
@@ -533,7 +592,9 @@ if ('serviceWorker' in navigator) {
         }
         // Pozn.: potvrzení musí zůstat synchronní (confirm) — undo.js tuto funkci obaluje
         // snapshotem před/po a async dialog by mu rozbil detekci změny (žádný toast Vrátit zpět).
-        function deleteCustomPoint(id) { const _pt = persistentCustomPoints.find(p => p.id === id); if(!confirm('Smazat bod „' + ((_pt && _pt.name) || 'bez názvu') + '"?')) return; persistentCustomPoints = persistentCustomPoints.filter(p => p.id !== id); setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); pointLines = pointLines.filter(l => l.aId !== id && l.bId !== id); saveLines(); renderManageList(); drawAllMarkersOnMap(); const idx = arPoints.findIndex(p => p.id === id); if(idx !== -1) { if(arPoints[idx].element) arPoints[idx].element.remove(); arPoints.splice(idx, 1); } updateInfoPanel(); }
+        // skipConfirm: hromadne mazani z panelu Body uz ma JEDNO spolecne potvrzeni — bez nej
+        // by 30 vybranych bodu znamenalo 30 confirm dialogu. Kos/undo obaluji tuto funkci dal.
+        function deleteCustomPoint(id, skipConfirm) { const _pt = persistentCustomPoints.find(p => p.id === id); if(!skipConfirm && !confirm('Smazat bod „' + ((_pt && _pt.name) || 'bez názvu') + '"?')) return; persistentCustomPoints = persistentCustomPoints.filter(p => p.id !== id); setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); pointLines = pointLines.filter(l => l.aId !== id && l.bId !== id); saveLines(); renderManageList(); drawAllMarkersOnMap(); const idx = arPoints.findIndex(p => p.id === id); if(idx !== -1) { if(arPoints[idx].element) arPoints[idx].element.remove(); arPoints.splice(idx, 1); } updateInfoPanel(); }
         // Vyplnit Y/X z PRUMEROVANE GPS polohy (presnejsi nez jeden odecet) + ulozit dosazenou presnost
         function fillAveragedGPS() {
             // BRANA CERSTVOSTI: kdyz GPS prestala dodavat fixy (tunel, suspend), prumer je
@@ -564,6 +625,7 @@ if ('serviceWorker' in navigator) {
         // Nový bod musí být v AR i mapě vidět HNED (terénní bug: aktivní „Hledat konkrétní
         // bod" nebo vypnutý filtr „Vlastní" ho tiše schovaly — vypadalo to, že se bod
         // nevytvořil, a pomohl až restart appky, který hledání resetoval).
+        let _saveToastShown = false;   // hlidac, at obecne „Bod ulozen“ neprebije durazneji hlaseni nize
         function ensureFreshPointVisible(pt) {
             // vzdálenost/azimut spočti hned — jinak se dopočítají až s dalším GPS fixem
             try {
@@ -575,22 +637,25 @@ if ('serviceWorker' in navigator) {
             if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) {
                 const _q = searchQuery; searchQuery = '';
                 const _inp = document.getElementById('s-search-name'); if (_inp) _inp.value = '';
-                quickToast('Zrušeno hledání „' + _q + '", aby byl nový bod vidět.');
+                quickToast('Zrušeno hledání „' + _q + '", aby byl nový bod vidět.'); _saveToastShown = true;
             }
             // vypnutý filtr „Vlastní" → bod by nebyl vidět v AR ani v mapě
             if (!filters.custom) {
                 filters.custom = true; setStoredData('arFilters12', JSON.stringify(filters));
                 const _c1 = document.getElementById('f-custom'); if (_c1) _c1.checked = true;
                 const _c2 = document.getElementById('w-f-custom'); if (_c2) _c2.checked = true;
-                quickToast('Zapnut druh bodů „Vlastní" — nový bod by jinak nebyl vidět.');
+                quickToast('Zapnut druh bodů „Vlastní" — nový bod by jinak nebyl vidět.'); _saveToastShown = true;
             }
             // bod dál, než kam AR ukazuje → vysvětlit (v mapě bod je)
             if (pt.currentDist != null && pt.currentDist > arRadius) {
-                quickToast('Bod uložen — je ' + Math.round(pt.currentDist) + ' m daleko, v AR se ukáže do ' + Math.round(arRadius) + ' m. Přibliž se, zvětši viditelnost v Nastavení → AR, nebo bod zvýrazni pro navigaci.');
+                quickToast('Bod uložen — je ' + Math.round(pt.currentDist) + ' m daleko, v AR se ukáže do ' + Math.round(arRadius) + ' m. Přibliž se, zvětši viditelnost v Nastavení → AR, nebo bod zvýrazni pro navigaci.'); _saveToastShown = true;
             }
         }
-        function saveCustomPoint() {
-            const name = document.getElementById('custom-name').value || "Bod"; let inputY = parseFloat(document.getElementById('custom-y').value); let inputX = parseFloat(document.getElementById('custom-x').value); if (isNaN(inputY) || isNaN(inputX)) return agInfo("Vyplňte souřadnice!"); let krovakY = inputY > 0 ? -inputY : inputY; let krovakX = inputX > 0 ? -inputX : inputX; let wgs84 = proj4("EPSG:5514", "EPSG:4326", [krovakY, krovakX]); let lng = wgs84[0]; let lat = wgs84[1]; var _zin = parseFloat((document.getElementById('custom-z') || {}).value); var vyska = isFinite(_zin) ? Math.round(_zin * 100) / 100 : null;
+        function saveCustomPoint(keepOpen) {
+            let name = String(document.getElementById('custom-name').value || '').trim();
+            if (!name) name = agNextSerieName() || "Bod";   // prazdne pole: dalsi cislo serie misto kolidujiciho "Bod"
+            const kod = String((document.getElementById('custom-kod') || { value: '' }).value || '').trim();
+            let inputY = parseFloat(document.getElementById('custom-y').value); let inputX = parseFloat(document.getElementById('custom-x').value); if (isNaN(inputY) || isNaN(inputX)) return agInfo("Vyplňte souřadnice!"); let krovakY = inputY > 0 ? -inputY : inputY; let krovakX = inputX > 0 ? -inputX : inputX; let wgs84 = proj4("EPSG:5514", "EPSG:4326", [krovakY, krovakX]); let lng = wgs84[0]; let lat = wgs84[1]; var _zin = parseFloat((document.getElementById('custom-z') || {}).value); var vyska = isFinite(_zin) ? Math.round(_zin * 100) / 100 : null;
             // #2/#3: nový bod z GPS průměru srovnej Helmertovou lokalizací staveniště (když je aktivní).
             // Jen pro nově měřený GPS bod — ne při editaci ani u ručně zadaných S-JTSK.
             try {
@@ -600,10 +665,20 @@ if ('serviceWorker' in navigator) {
                 }
             } catch (e) {}
             let savedId = editingCustomPointId;
-            if (editingCustomPointId) { const idx = persistentCustomPoints.findIndex(p => p.id === editingCustomPointId); if(idx !== -1) { persistentCustomPoints[idx].name = name; persistentCustomPoints[idx].lat = lat; persistentCustomPoints[idx].lng = lng; persistentCustomPoints[idx].vyska = vyska; } const arIdx = arPoints.findIndex(p => p.id === editingCustomPointId); if (arIdx !== -1) { arPoints[arIdx].name = name; arPoints[arIdx].lat = lat; arPoints[arIdx].lng = lng; arPoints[arIdx].vyska = vyska; if(arPoints[arIdx].element) { arPoints[arIdx].element.remove(); arPoints[arIdx].element = null; } } } else { const newPoint = { id: 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6), name: name, lat: lat, lng: lng, cat: "CUSTOM", type: "custom" }; if (vyska != null) newPoint.vyska = vyska; if (pendingPointAccuracy != null) newPoint.acc = Math.round(pendingPointAccuracy * 100) / 100; newPoint.prov = { origin: (window._agPointOrigin || 'ruc'), ts: Date.now(), acc: (newPoint.acc != null ? newPoint.acc : null), qc: ((window.AGQc && AGQc.lastCode) || null) }; persistentCustomPoints.push(newPoint); const _arNew = {...newPoint, hidden: false}; arPoints.push(_arNew); savedId = newPoint.id; try { ensureFreshPointVisible(_arNew); } catch (e) {} try { if (window.AGJournal) window.AGJournal.commit({ op: 'add', id: newPoint.id, after: newPoint, origin: newPoint.prov.origin }); } catch (e) {} } pendingPointAccuracy = null; window._agPointOrigin = null; setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
+            _saveToastShown = false;
+            if (editingCustomPointId) { const idx = persistentCustomPoints.findIndex(p => p.id === editingCustomPointId); if(idx !== -1) { persistentCustomPoints[idx].name = name; persistentCustomPoints[idx].lat = lat; persistentCustomPoints[idx].lng = lng; persistentCustomPoints[idx].vyska = vyska; persistentCustomPoints[idx].kod = kod || undefined; } const arIdx = arPoints.findIndex(p => p.id === editingCustomPointId); if (arIdx !== -1) { arPoints[arIdx].name = name; arPoints[arIdx].lat = lat; arPoints[arIdx].lng = lng; arPoints[arIdx].vyska = vyska; arPoints[arIdx].kod = kod || undefined; if(arPoints[arIdx].element) { arPoints[arIdx].element.remove(); arPoints[arIdx].element = null; } } } else { const newPoint = { id: 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6), name: name, lat: lat, lng: lng, cat: "CUSTOM", type: "custom" }; if (vyska != null) newPoint.vyska = vyska; if (kod) newPoint.kod = kod; if (pendingPointAccuracy != null) newPoint.acc = Math.round(pendingPointAccuracy * 100) / 100; newPoint.prov = { origin: (window._agPointOrigin || 'ruc'), ts: Date.now(), acc: (newPoint.acc != null ? newPoint.acc : null), qc: ((window.AGQc && AGQc.lastCode) || null) }; persistentCustomPoints.push(newPoint); const _arNew = {...newPoint, hidden: false}; arPoints.push(_arNew); savedId = newPoint.id; try { ensureFreshPointVisible(_arNew); } catch (e) {} try { if (window.AGJournal) window.AGJournal.commit({ op: 'add', id: newPoint.id, after: newPoint, origin: newPoint.prov.origin }); } catch (e) {} } pendingPointAccuracy = null; window._agPointOrigin = null; setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
             saveNewPointDoc(savedId);
             try { if (window.AGDraft) AGDraft.clear('novy-bod'); } catch (e) {}   // rozepsany bod je ulozeny -> draft pryc
-            drawAllMarkersOnMap(); closeCustomModal(); initARMarkers(); if (userLat && userLng) { updateInfoPanel(); } fixAppLayout();
+            const _wasEdit = !!editingCustomPointId;
+            // serii posouva jen NOVY bod — prejmenovani stareho bodu na "500" by jinak
+            // preskocilo cislovani rozdelane rady
+            if (!_wasEdit) _serieSaveFromName(name);
+            if (kod) agKodRemember(kod);
+            agVibe(30);                                     // hmatove potvrzeni ulozeni (v rukavicich/na slunci)
+            const _next = (keepOpen && !_wasEdit);
+            drawAllMarkersOnMap(); if (!_next) closeCustomModal(); initARMarkers(); if (userLat && userLng) { updateInfoPanel(); } fixAppLayout();
+            if (_next) { agPrepNextPoint(); quickToast('Bod „' + name + '" uložen — formulář je připravený na další číslo.'); }
+            else if (!_wasEdit && !_saveToastShown && userLat && userLng) quickToast('Bod „' + name + '" uložen.');
             // BEZ GPS FIXU (offline/uvnitř): mapa by mohla mířit úplně jinam a v AR se bez
             // polohy nic nevykreslí — vycentrujeme mapu na nový bod a řekneme to na rovinu.
             if (!userLat || !userLng) { try { map.setView([lat, lng], Math.max(map.getZoom(), 17), { animate: false }); } catch (e) {} quickToast('Bod uložen a je v mapě. V AR se ukáže, až telefon určí polohu (GPS).'); }

@@ -31,7 +31,7 @@
     }
     var CORE = [
         { label: 'Nástroje — všechny dlaždice', keys: 'nastroje tools mereni pomucky', run: function () { var m = document.getElementById('tools-modal'); if (m) m.style.display = 'flex'; } },
-        { label: 'Body — správa a seznam bodů', keys: 'body sprava seznam points import export', run: function () { if (typeof openManageModal === 'function') openManageModal(); } },
+        { label: 'Body — správa a seznam bodů', keys: 'body sprava seznam points import export hledat radit trideni hromadne vybrat smazat precislovat posun kod kody vrstva', run: function () { if (typeof openManageModal === 'function') openManageModal(); } },
         { label: 'Nový bod', keys: 'novy bod pridat vlozit new point souradnice', run: function () { if (typeof openNewPointModal === 'function') openNewPointModal(); } },
         { label: 'Nastavení', keys: 'nastaveni settings', run: function () { if (typeof openSettings === 'function') openSettings(); } },
         { label: 'Nastavení — Vzhled', keys: 'vzhled barvy motiv tema svetly tmavy rezim rukavice leva ruka', run: tab('tab-vzhled', 0) },
