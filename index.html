@@ -83,8 +83,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=197">
-    <link rel="stylesheet" href="css/style.css?v=197">
+    <link rel="stylesheet" href="css/tokens.css?v=198">
+    <link rel="stylesheet" href="css/style.css?v=198">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -101,7 +101,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=197">
+    <link rel="stylesheet" href="css/vylepseni.css?v=198">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -281,7 +281,7 @@
                  nástroje (Předpisy, Predikce signálu, Kalibrace na ref. bod, Stáhnout body) do sekce Nástroje. -->
             <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
             <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.07em; color: var(--text-muted); margin: 2px 2px 4px;">Zobrazení</div>
-            <button class="menu-btn" onclick="toggleMapControls(); toggleMenu();"><svg class="icon"><use href="#i-sliders"/></svg> Nástroje mapy (vrstvy)</button>
+            <button class="menu-btn" onclick="toggleMapControls(); toggleMenu();"><svg class="icon"><use href="#i-layers"/></svg> Mapa a vrstvy</button>
             <!-- Přepínač AR/Split/Mapa ODSTRANĚN (i „Rozvržení" v Nastavení → AR) — nahradilo
                  ho kolečko vpravo dole (js/view-cycle.js). Na přání, NEvracet. -->
         </div>
@@ -730,7 +730,68 @@
     </div>
     <div id="camera-container"><video id="camera-feed" autoplay playsinline></video><div id="ar-hud"><div id="ar-hud-arrow-container"><svg id="arrow-target" viewBox="0 0 100 100" style="display:none;"><circle cx="50" cy="50" r="40" fill="none" stroke-width="8" stroke-dasharray="10, 10" id="target-circle-out" /><circle cx="50" cy="50" r="20" id="target-circle-in" /><circle cx="50" cy="50" r="10" fill="#000" /></svg><svg id="arrow-straight" viewBox="0 0 100 100" style="display:none;"><path id="main-arrow-path" d="M50 10 L90 50 L70 50 L70 95 L30 95 L30 50 L10 50 Z" /></svg><svg id="arrow-right" viewBox="0 0 100 100" style="display:none; filter: drop-shadow(0 15px 15px rgba(251,191,36,0.5));"><path d="M95 50 L55 10 L55 30 C20 30 10 60 10 95 C25 75 35 55 55 55 L55 75 Z" fill="#fbbf24"/></svg><svg id="arrow-left" viewBox="0 0 100 100" style="display:none; filter: drop-shadow(0 15px 15px rgba(251,191,36,0.5));"><path d="M5 50 L45 10 L45 30 C80 30 90 60 90 95 C75 75 65 55 45 55 L45 75 Z" fill="#fbbf24"/></svg><svg id="arrow-uturn" viewBox="0 0 100 100" style="display:none; filter: drop-shadow(0 15px 15px rgba(239,68,68,0.5));"><path d="M25 95 L5 55 L20 55 L20 35 C20 15 80 15 80 35 L80 95 L60 95 L60 35 C60 25 40 25 40 35 L40 55 L55 55 Z" fill="#ef4444"/></svg><svg id="arrow-bullseye" viewBox="0 0 100 100" style="display:none; filter: drop-shadow(0 0 15px #fbbf24);"><circle cx="50" cy="50" r="45" fill="none" stroke="#fbbf24" stroke-width="4"/><circle cx="50" cy="50" r="30" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="5,5"/><line x1="50" y1="0" x2="50" y2="100" stroke="#fbbf24" stroke-width="2"/><line x1="0" y1="50" x2="100" y2="50" stroke="#fbbf24" stroke-width="2"/><circle cx="50" cy="50" r="5" fill="#ef4444"/></svg></div><div id="ar-hud-info"><div class="hud-name" id="ar-hud-name">BOD</div><div id="ar-hud-dist">0.0 m</div></div></div><div id="ar-overlay"></div></div>
     <div id="resizer"><div class="grabber"></div></div>
-    <div id="map-container"><div id="map-wrapper"><div id="map"></div></div><div id="map-controls"><div id="map-ctrl-stack"><button class="map-ctrl-btn glass-panel" id="btn-baselayer" onclick="cycleBaseLayer()" aria-label="Podklad mapy (OSM / ortofoto)"><svg class="icon"><use href="#i-layers"/></svg></button><button class="map-ctrl-btn glass-panel" id="btn-katastr" onclick="toggleKatastr()" aria-label="Katastrální mapa"><svg class="icon"><use href="#i-grid"/></svg></button><button class="map-ctrl-btn glass-panel" onclick="recenterOnUser()" aria-label="Vycentrovat na mě"><svg class="icon"><use href="#i-crosshair"/></svg></button><button class="map-ctrl-btn glass-panel" onclick="openNearbyModal()" aria-label="Body v okolí"><svg class="icon"><use href="#i-list"/></svg></button><button class="map-ctrl-btn glass-panel" id="btn-connect" onclick="toggleConnectMode()" aria-label="Spojování bodů čarou"><svg class="icon"><use href="#i-line"/></svg></button></div><button class="map-ctrl-btn glass-panel" id="map-ctrl-close" onclick="toggleMapControls()" aria-label="Zavřít nástroje mapy"><svg class="icon"><use href="#i-x"/></svg></button><button class="map-ctrl-btn glass-panel" id="map-ctrl-toggle" onclick="toggleMapControls()" aria-label="Nástroje mapy"><svg class="icon"><use href="#i-sliders"/></svg></button></div></div>
+    <div id="map-container"><div id="map-wrapper"><div id="map"></div></div><!-- MAPA A VRSTVY — jeden vstup PŘÍMO v mapě (#map-ctrl-toggle vlevo dole; dok
+         a kolečko zobrazení jsou vpravo) + panel s POPISKY místo 6 bezejmenných
+         koleček v rohu. Chování (stav, počítadlo vrstev, adopce injektovaných
+         tlačítek modulů): js/map-tools.js. Vzhled: blok „MAPA A VRSTVY" v style.css.
+         POZOR: ids btn-baselayer / btn-katastr / btn-connect MUSÍ zůstat — grafika.js
+         na ně věší třídu .ctrl-active (applyMapLayers, toggleConnectMode).
+         Vstup „Více → Nástroje mapy" (toggleMapControls) funguje dál. -->
+    <div id="map-controls">
+        <button type="button" class="glass-panel" id="map-ctrl-toggle" onclick="toggleMapControls()" aria-label="Mapa a vrstvy">
+            <svg class="icon"><use href="#i-layers"/></svg><span>Vrstvy</span><span id="map-ctrl-badge" hidden></span>
+        </button>
+        <div id="map-sheet" role="dialog" aria-label="Mapa a vrstvy" aria-modal="false">
+            <div class="ms-head">
+                <span class="ms-title"><svg class="icon"><use href="#i-layers"/></svg> Mapa a vrstvy</span>
+                <button class="ms-close" id="map-ctrl-close" onclick="toggleMapControls()" aria-label="Zavřít nástroje mapy"><svg class="icon"><use href="#i-x"/></svg></button>
+            </div>
+            <div class="ms-scroll">
+                <div class="ms-lbl">Podklad</div>
+                <div class="ms-seg" id="ms-base" role="group" aria-label="Podklad mapy">
+                    <button type="button" id="ms-base-osm" onclick="agMapSetBase('osm')">Mapa</button>
+                    <button type="button" id="btn-baselayer" onclick="agMapSetBase('ortofoto')">Ortofoto</button>
+                </div>
+
+                <div class="ms-lbl">Vrstvy přes mapu</div>
+                <div class="ms-rows">
+                    <button type="button" class="ms-row" id="btn-katastr" onclick="toggleKatastr()">
+                        <svg class="icon"><use href="#i-grid"/></svg>
+                        <span class="ms-row-t">Katastrální mapa<em>Hranice a čísla parcel z ČÚZK — potřebuje signál</em></span>
+                        <span class="ms-sw" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" class="ms-row" id="ms-terrain" hidden>
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M3 20l6-11 4 6 2.5-4L21 20z"/></svg>
+                        <span class="ms-row-t">Terén (DMR 5G)<em>AR objekty sedí na skutečném terénu, ne na rovině</em></span>
+                        <span class="ms-sw" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" class="ms-row" id="ms-parcely" hidden>
+                        <svg class="icon"><use href="#i-area"/></svg>
+                        <span class="ms-row-t">Parcely (vektor)<em>Přesné hranice jako čáry — i v AR, funguje offline</em></span>
+                        <span class="ms-go" aria-hidden="true">›</span>
+                    </button>
+                    <button type="button" class="ms-row" id="ms-overlay" hidden>
+                        <svg class="icon"><use href="#i-file-text"/></svg>
+                        <span class="ms-row-t">Vlastní podklad<em>Situace, geometrák nebo starý plán nakalibrovaný do mapy</em></span>
+                        <span class="ms-go" aria-hidden="true">›</span>
+                    </button>
+                </div>
+
+                <div class="ms-lbl">Nástroje mapy</div>
+                <div class="ms-grid" id="ms-actions">
+                    <button type="button" class="ms-tile" onclick="recenterOnUser()"><svg class="icon"><use href="#i-crosshair"/></svg><span>Na mě</span></button>
+                    <button type="button" class="ms-tile" onclick="openNearbyModal()"><svg class="icon"><use href="#i-list"/></svg><span>Body v okolí</span></button>
+                    <button type="button" class="ms-tile" id="btn-connect" onclick="toggleConnectMode()"><svg class="icon"><use href="#i-line"/></svg><span>Spojit body</span></button>
+                    <button type="button" class="ms-tile" onclick="startAreaMode()"><svg class="icon"><use href="#i-area"/></svg><span>Měřit plochu</span></button>
+                    <button type="button" class="ms-tile" onclick="saveForOffline()"><svg class="icon"><use href="#i-download"/></svg><span>Uložit offline</span></button>
+                    <!-- sem injektují tlačítka jiné moduly (js/dmr-terrain.js…); kontejner je
+                         display:contents, takže padnou přímo do mřížky a map-tools.js jim
+                         dodá popisek z aria-label -->
+                    <div id="map-ctrl-stack"></div>
+                </div>
+            </div>
+        </div>
+    </div></div>
 
     <!-- PROTOKOL CHYB (odpojitelné: smaž tento řádek + js/err-log.js) — MUSÍ být první, chytá chyby startu ostatních modulů -->
     <script defer src="js/err-log.js"></script>
@@ -854,6 +915,8 @@
     <script defer src="js/fullscreen.js"></script>
     <!-- PŘEPÍNAČ ZOBRAZENÍ NA 1 TAP (odpojitelné: smaž tento řádek + js/view-cycle.js) — kolečko AR/Split/Mapa vpravo dole -->
     <script defer src="js/view-cycle.js"></script>
+    <!-- MAPA A VRSTVY (odpojitelné: smaž tento řádek + js/map-tools.js) — stav panelu #map-sheet, výběr podkladu, počítadlo vrstev, adopce injektovaných tlačítek -->
+    <script defer src="js/map-tools.js"></script>
     <!-- CHYTRÉ VYHLEDÁVÁNÍ V „VÍCE" (odpojitelné: smaž tento řádek + js/app-search.js) — napiš „předpisy" a rovnou se otevřou -->
     <script defer src="js/app-search.js"></script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + js/vylepseni.js + css/vylepseni.css) — musí být POSLEDNÍ modul kvůli override -->

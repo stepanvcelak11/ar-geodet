@@ -49,7 +49,7 @@
     var _nets = [];            // [{vrstva, typ, barvaCSN, hloubka_m, body:[{lat,lng,z?}]}]
     var _arOn = true;
     var _warnOn = true;
-    var _arSvg = null, _arRAF = null;
+    var _arSvg = null, _arRAF = null, _arIdleT = 0;
     var _lastWarnKey = null, _lastWarnTs = 0;
 
     // ---- pomocné --------------------------------------------------------------
@@ -460,12 +460,19 @@
     }
     var _lastH = null, _lastP = null, _lastLat = null, _lastLng = null, _lastR = null, _lastRad = null;
     function arLoop() {
-        _arRAF = requestAnimationFrame(arLoop);
-        var svg = _arSvg; if (!svg) return;
-        var oLL = originLL();
-        if (!_arOn || !_nets.length || !oLL || (typeof viewMode !== 'undefined' && viewMode === 'map') || !window._arProj) {
-            if (svg.childNodes.length) svg.innerHTML = ''; _lastH = null; return;
+        var svg = _arSvg;
+        var oLL = svg ? originLL() : null;
+        // BATERIE: bez čeho kreslit (režim Mapa, appka na pozadí, žádné sítě) nedrž 60 Hz
+        // řetěz snímků — stačí kontrola 3×/s. V AR se chování nemění, smyčka se rozjede zpět.
+        if (!svg || !_arOn || !_nets.length || !oLL || !window._arProj
+            || (typeof viewMode !== 'undefined' && viewMode === 'map')
+            || document.visibilityState !== 'visible') {
+            if (svg && svg.childNodes.length) svg.innerHTML = '';
+            _lastH = null; _arRAF = null;
+            _arIdleT = setTimeout(function () { _arIdleT = 0; if (!_arRAF) _arRAF = requestAnimationFrame(arLoop); }, 300);
+            return;
         }
+        _arRAF = requestAnimationFrame(arLoop);
         var pj = window._arProj;
         var hd = heading();
         if (hd == null) { if (svg.childNodes.length) svg.innerHTML = ''; _lastH = null; return; }
@@ -495,8 +502,8 @@
         });
         svg.innerHTML = html;
     }
-    function startAr() { if (ensureArSvg() && !_arRAF) _arRAF = requestAnimationFrame(arLoop); }
-    function stopAr() { if (_arRAF) { cancelAnimationFrame(_arRAF); _arRAF = null; } if (_arSvg) _arSvg.innerHTML = ''; _lastH = null; }
+    function startAr() { if (ensureArSvg() && !_arRAF && !_arIdleT) _arRAF = requestAnimationFrame(arLoop); }
+    function stopAr() { if (_arRAF) { cancelAnimationFrame(_arRAF); _arRAF = null; } if (_arIdleT) { clearTimeout(_arIdleT); _arIdleT = 0; } if (_arSvg) _arSvg.innerHTML = ''; _lastH = null; }
 
     // ---- UI: modal ------------------------------------------------------------
     var _srs = 'sjtsk';

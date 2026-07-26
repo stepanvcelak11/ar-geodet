@@ -371,10 +371,18 @@
             _scanStream = stream; video.srcObject = stream; video.setAttribute('playsinline', true);
             video.play();
             status.innerText = 'Hledám QR kód…';
+            let _lastScanT = 0;
             const tick = () => {
                 if (!_scanStream) return;
+                // BATERIE: dekódovat KAŽDÝ snímek v plném rozlišení (getImageData + jsQR) je
+                // nejteplejší smyčka v appce. ~10 snímků/s a zmenšený obraz najdou kód stejně
+                // spolehlivě (QR se drží v záběru déle než 100 ms), ale za zlomek energie.
+                const _now = performance.now();
+                if (_now - _lastScanT < 100) { _scanRAF = requestAnimationFrame(tick); return; }
+                _lastScanT = _now;
                 if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth) {
-                    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+                    const _s = Math.min(1, 640 / video.videoWidth);
+                    canvas.width = Math.round(video.videoWidth * _s); canvas.height = Math.round(video.videoHeight * _s);
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                     const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
                     const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });

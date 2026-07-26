@@ -1358,10 +1358,17 @@
                 stream = s; video.srcObject = s;
                 try { video.play(); } catch (e) {}
                 st.textContent = 'Namiř na QR kód od admina…';
+                var _lastScanT = 0;
                 function tick() {
                     if (!stream) return;
+                    // BATERIE: ~10 snímků/s a zmenšený obraz stačí (QR je v záběru déle než
+                    // 100 ms); plné rozlišení každý snímek je nejteplejší smyčka v appce.
+                    var _now = performance.now();
+                    if (_now - _lastScanT < 100) { raf = requestAnimationFrame(tick); return; }
+                    _lastScanT = _now;
                     if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth) {
-                        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+                        var _s = Math.min(1, 640 / video.videoWidth);
+                        canvas.width = Math.round(video.videoWidth * _s); canvas.height = Math.round(video.videoHeight * _s);
                         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                         var img = ctx.getImageData(0, 0, canvas.width, canvas.height);
                         var code = window.jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });

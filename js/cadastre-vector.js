@@ -25,7 +25,7 @@
 
     var _parcels = [];         // [{id, cislo, vymera, druh, ku, rings:[[{lat,lng}]]}]
     var _mapGroup = null;
-    var _arSvg = null, _arRAF = null, _arOn = true;
+    var _arSvg = null, _arRAF = null, _arOn = true, _arIdleT = 0;
     var _here = null;          // parcela, na které stojím
     var _busy = false;
 
@@ -206,9 +206,19 @@
     }
     var _lastArHeading = null, _lastArPitch = null, _lastArLat = null, _lastArLng = null;
     function arLoop() {
+        var svg = _arSvg;
+        // BATERIE: kdyz neni co kreslit (rezim Mapa, appka na pozadi, zadne parcely), nedrz
+        // 60 Hz retez snimku — staci se prijit podivat 3x za sekundu. Jakmile podminky plati,
+        // smycka se rozjede zpet na kazdy snimek, takze v AR se nic nezmeni.
+        if (!svg || !_arOn || !_parcels.length || !haveUser() || !window._arProj
+            || (typeof viewMode !== 'undefined' && viewMode === 'map')
+            || document.visibilityState !== 'visible') {
+            if (svg && svg.childNodes.length) svg.innerHTML = '';
+            _lastArHeading = null; _arRAF = null;
+            _arIdleT = setTimeout(function () { _arIdleT = 0; if (!_arRAF) _arRAF = requestAnimationFrame(arLoop); }, 300);
+            return;
+        }
         _arRAF = requestAnimationFrame(arLoop);
-        var svg = _arSvg; if (!svg) return;
-        if (!_arOn || !_parcels.length || !haveUser() || (typeof viewMode !== 'undefined' && viewMode === 'map') || !window._arProj) { if (svg.childNodes.length) svg.innerHTML = ''; _lastArHeading = null; return; }
         var pj = window._arProj;
         var heading = (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null;
         if (heading == null) { if (svg.childNodes.length) svg.innerHTML = ''; _lastArHeading = null; return; }
@@ -234,8 +244,8 @@
         });
         svg.innerHTML = html;
     }
-    function startAr() { if (ensureArSvg() && !_arRAF) _arRAF = requestAnimationFrame(arLoop); }
-    function stopAr() { if (_arRAF) { cancelAnimationFrame(_arRAF); _arRAF = null; } if (_arSvg) _arSvg.innerHTML = ''; }
+    function startAr() { if (ensureArSvg() && !_arRAF && !_arIdleT) _arRAF = requestAnimationFrame(arLoop); }
+    function stopAr() { if (_arRAF) { cancelAnimationFrame(_arRAF); _arRAF = null; } if (_arIdleT) { clearTimeout(_arIdleT); _arIdleT = 0; } if (_arSvg) _arSvg.innerHTML = ''; }
 
     // ---- vytyčení nejbližšího lomového bodu -----------------------------------
     function stakeNearestVertex() {

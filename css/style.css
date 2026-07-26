@@ -1121,7 +1121,13 @@ html.ag-anim-off *, html.ag-anim-off *::before, html.ag-anim-off *::after {
 }
 
 
-#map-controls { position: absolute; right: 12px; bottom: 12px; z-index: 500; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+/* #map-controls = vrstva nad mapou (vstupni tlacitko + panel); viz blok
+   "MAPA A VRSTVY" na konci souboru. Klikat lze jen do jeho deti. */
+#map-controls { position: absolute; left: 0; right: 0; bottom: 0; top: auto; z-index: 500; display: none; pointer-events: none; }
+body.app-started #map-controls { display: block; }
+#map-controls > * { pointer-events: auto; }
+/* .map-ctrl-btn zustava kvuli tlacitkum, ktera do panelu injektuji moduly
+   (js/dmr-terrain.js) — map-tools.js jim doda popisek a prevleche je na .ms-tile */
 .map-ctrl-btn { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--glass-border); color: var(--text-color); font-size: 24px; font-weight: 700; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
 .map-ctrl-btn:active { transform: scale(0.94); }
 .map-ctrl-btn .icon { width: 20px; height: 20px; }
@@ -1217,8 +1223,7 @@ html.ag-anim-off *, html.ag-anim-off *::before, html.ag-anim-off *::after {
 }
 .dock-fab .icon { width: 24px; height: 24px; color: #fff; }
 
-/* Ovládání mapy posunout nad dok */
-#map-controls { bottom: calc(max(12px, env(safe-area-inset-bottom)) + 100px); }
+/* (umisteni ovladani mapy resi blok "MAPA A VRSTVY" na konci souboru) */
 
 /* 'O aplikaci a soukromi' musi jit otevrit i z uvodni obrazovky (ta ma z-index 999999) */
 #about-modal { z-index: 1000000; }
@@ -1374,13 +1379,7 @@ body.outdoor-mode .ar-marker {
 }
 body.outdoor-mode .ar-marker-dist { opacity: 1; }
 
-/* Vyjizdejici panel ovladani mapy: sbaleno = jen prepinaci tlacitko, rozbaleno = cely sloupec */
-#map-controls { align-items: flex-end; }
-/* Urovnané ke straně: svislý sloupec nad přepínačem (ne rozsypaná řada tlačítek). */
-#map-ctrl-stack { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; transform-origin: bottom right; transition: opacity 0.25s var(--ease-out), transform 0.25s var(--ease-out); }
-#map-controls:not(.expanded) #map-ctrl-stack { opacity: 0; transform: translateX(12px) scale(0.85); pointer-events: none; }
-#map-controls.expanded #map-ctrl-toggle { background: var(--accent); color: #fff; border-color: var(--accent); }
-#map-controls.expanded #map-ctrl-toggle .icon { stroke: #fff; }
+/* (svisly sloupec tlacitek nahradil panel #map-sheet — viz blok "MAPA A VRSTVY") */
 
 /* PWA: lista upozorneni na novou verzi (klepnutim obnovit) */
 #update-banner {
@@ -1821,8 +1820,7 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
 .dock-btn .icon { width: 21px; height: 21px; }
 /* „Nový bod" zůstává zvýrazněný kruh, ale bez vyvýšení (to bylo pro vodorovný dok) */
 .dock-fab { margin-top: 0; width: 46px; height: 46px; }
-/* Dok už není dole → mapové ovládání vrátit dolů a uhnout vlevo od lišty */
-#map-controls { bottom: max(12px, env(safe-area-inset-bottom)); right: 74px; }
+/* (uhnuti ovladani mapy doku resi blok "MAPA A VRSTVY" na konci souboru) */
 
 /* Na nízkých displejích lištu nezvětšovat přes celou výšku (a posun dolů zmírnit,
    ať se spodek lišty nepotká s kolečkem zobrazení / ovládáním mapy) */
@@ -1946,8 +1944,9 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
 /* ---- GPS indikátor (power-save) → úplně skryt na přání uživatele --- */
 #ag-pwr { display: none !important; }
 
-/* ---- Posuvníky map. ovládání přesunuty do „Více" → skrýt z obrazovky --- */
-#map-ctrl-toggle { display: none !important; }
+/* Vstup do nastroju mapy uz NENI skryty (uzivatel: "zahozene stranou") —
+   je to jedno male tlacitko vlevo dole v mape, viz blok "MAPA A VRSTVY".
+   Kdo chce cistou mapu, vypne si ho v Nastaveni -> Vzhled. */
 
 /* ---- HUD pruh: po startu vždy zobrazit azimut a GPS panel ----------------
    (pojistka nezávislá na pořadí modulů; bez !important, aby šel #tgl-compass
@@ -2072,52 +2071,166 @@ body.left-hand #ag-ft-fab { right: auto !important; left: 12px !important; }
 /* HUD (azimut, přesnost, družice) ZÁMĚRNĚ zůstává, kde je — není to ovládání. */
 
 /* =========================================================================
-   MAPOVÁ TLAČÍTKA — na přání: SKRYTÁ, dokud je nezapneš ve „Více → Nástroje mapy".
-   Po zapnutí (#map-controls.expanded) = vodorovná řada vystředěná na spodní hraně
-   (nepřekáží v rohu). Vlastní přepínač (sliders) je skrytý — řídí to „Více".
+   MAPA A VRSTVY — jedno propracované místo pro podklad, vrstvy a nástroje mapy.
+   PŘED: 6 bezejmenných koleček v rohu, schovaných ve „Více → Nástroje mapy"
+   (uživatel: „zahozené/stranou a nepropracované") — nešlo poznat, co která
+   ikona dělá, ani co je právě zapnuté; řada se navíc přetahovala s kolečkem
+   zobrazení o pravý dolní roh.
+   PO: jedno malé tlačítko „Vrstvy" PŘÍMO v mapě (vlevo dole — dok i kolečko
+   zobrazení jsou vpravo) otevře panel #map-sheet s POPISKY, přepínači a stavem.
+   Panel nechává vpravo volný pruh (dok + kolečko), takže nic nepřekrývá.
+   Chování: js/map-tools.js. Markup: #map-controls v index.html.
    ========================================================================= */
-#map-controls:not(.expanded) { display: none !important; }
-#map-controls.expanded {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: center;
-    /* Řada NECHÁVÁ pravý dolní roh volný pro kolečko přepínání zobrazení
-       (js/view-cycle.js: 54 px + 16 px od kraje) — dřív byla vystředěná přes
-       celou šířku a křížek zavření končil schovaný POD kolečkem. */
-    left: max(10px, env(safe-area-inset-left)) !important;
-    right: calc(max(16px, env(safe-area-inset-right)) + 66px) !important;
-    transform: none;
-    bottom: max(10px, env(safe-area-inset-bottom)) !important;
-    gap: 8px;
-    flex-wrap: wrap; /* kdyby se řada nevešla (rukavice…), zalomí se nad sebe místo schování pod kolečko */
-}
-/* V režimu levé ruky je kolečko vlevo → volný roh nechat na levé straně */
-body.left-hand #map-controls.expanded {
-    left: calc(max(16px, env(safe-area-inset-left)) + 66px) !important;
-    right: max(10px, env(safe-area-inset-right)) !important;
-    flex-direction: row-reverse !important;   /* křížek na stranu palce */
-}
-body.left-hand #map-controls.expanded #map-ctrl-stack { flex-direction: row-reverse !important; }
-/* sbalený stav uhýbá doku — ten je v levoruké variantě vlevo */
-body.left-hand #map-controls { right: auto; left: 74px; align-items: flex-start; }
-/* Drobnější tlačítka, ať se řada (5 nástrojů + křížek) vejde i na užší displej */
-#map-controls.expanded .map-ctrl-btn { width: 40px; height: 40px; }
-#map-controls.expanded #map-ctrl-stack {
-    flex-direction: row !important;
-    opacity: 1 !important;
-    transform: none !important;
-    pointer-events: auto !important;
-    max-width: none;
-    gap: 8px;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-#map-ctrl-toggle { display: none !important; }
-/* Zavření nástrojů mapy přímo z hlavní obrazovky (bez cesty přes „Více") */
-#map-ctrl-close { border-color: var(--danger,#fb7185); }
-#map-ctrl-close .icon { color: var(--danger,#fb7185); }
 
+/* ---- vstupní tlačítko v mapě (vlevo dole; v režimu levé ruky vpravo) --------- */
+#map-ctrl-toggle {
+    position: absolute;
+    left: max(10px, env(safe-area-inset-left));
+    bottom: max(10px, env(safe-area-inset-bottom));
+    width: 54px; height: 54px; padding: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    border-radius: 50%;
+    font: 600 8px/1.1 var(--font-ui, system-ui), sans-serif; letter-spacing: 0.02em;
+    box-shadow: var(--shadow-1); cursor: pointer;
+    transition: opacity 0.2s var(--ease-out);
+}
+#map-ctrl-toggle .icon { width: 20px; height: 20px; color: var(--accent-bright, #3eb487); }
+#map-ctrl-toggle span { text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.7); }
+#map-ctrl-toggle:active { transform: scale(0.93); }
+body.ag-glove #map-ctrl-toggle { width: 64px; height: 64px; font-size: 9.5px; }
+body.ag-glove #map-ctrl-toggle .icon { width: 24px; height: 24px; }
+body.left-hand #map-ctrl-toggle { left: auto; right: max(10px, env(safe-area-inset-right)); }
+/* vybledá s ostatním HUD po nečinnosti (třídu řídí js/map-tools.js) */
+#map-ctrl-toggle.ui-faded { opacity: 0.35; }
+/* počítadlo zapnutých vrstev */
+#map-ctrl-badge {
+    position: absolute; top: -1px; right: -1px;
+    min-width: 17px; height: 17px; padding: 0 4px; box-sizing: border-box;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 99px; background: var(--accent); color: #fff;
+    font: 700 10px/1 var(--font-ui, system-ui), sans-serif;
+    border: 1.5px solid var(--bg-color, #12151a);
+}
+#map-ctrl-badge[hidden] { display: none; }
+/* uživatel si může vstup z mapy schovat (Nastavení → Vzhled) */
+body.ag-mapfab-off #map-ctrl-toggle { display: none !important; }
+
+/* ---- panel ------------------------------------------------------------------- */
+#map-sheet {
+    position: absolute;
+    left: max(8px, env(safe-area-inset-left));
+    /* vpravo zůstává volný pruh pro svislý dok a kolečko zobrazení */
+    right: calc(max(8px, env(safe-area-inset-right)) + 78px);
+    bottom: max(8px, env(safe-area-inset-bottom));
+    max-height: min(58vh, 430px);
+    display: flex; flex-direction: column;
+    border-radius: 18px; overflow: hidden;
+    background: var(--glass-bg, rgba(24, 28, 33, 0.94));
+    backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid var(--glass-border); box-shadow: var(--shadow-2);
+    opacity: 0; transform: translateY(14px) scale(0.98); pointer-events: none;
+    transition: opacity 0.22s var(--ease-out), transform 0.22s var(--ease-out);
+}
+#map-controls.expanded #map-sheet { opacity: 1; transform: none; pointer-events: auto; }
+/* při otevřeném panelu vstupní tlačítko uhne (panel má vlastní křížek) */
+#map-controls.expanded #map-ctrl-toggle { opacity: 0; pointer-events: none; }
+body.left-hand #map-sheet {
+    left: calc(max(8px, env(safe-area-inset-left)) + 78px);
+    right: max(8px, env(safe-area-inset-right));
+}
+/* Kolečko zobrazení už NEMUSÍ uhýbat — panel jeho rohu nechává volno.
+   !important: js/view-cycle.js si vkládá vlastní <style> až za tento soubor. */
+#ag-view-wheel.ag-vc-lift { bottom: max(6px, env(safe-area-inset-bottom, 0px)) !important; }
+
+#map-sheet .ms-head {
+    flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 11px 12px 9px; border-bottom: 1px solid var(--glass-border);
+}
+#map-sheet .ms-title {
+    display: flex; align-items: center; gap: 8px;
+    font: 700 14px/1.2 var(--font-ui, system-ui), sans-serif; color: var(--text-color);
+}
+#map-sheet .ms-title .icon { width: 17px; height: 17px; color: var(--accent); }
+#map-sheet .ms-close {
+    width: 34px; height: 34px; flex: none; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 10px; border: 1px solid var(--glass-border);
+    background: transparent; color: var(--text-muted); cursor: pointer;
+}
+#map-sheet .ms-close .icon { width: 16px; height: 16px; }
+#map-sheet .ms-scroll {
+    flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch; padding: 10px 12px 12px;
+}
+#map-sheet .ms-lbl {
+    font: 700 10.5px/1.3 var(--font-ui, system-ui), sans-serif;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted);
+    margin: 0 0 7px;
+}
+#map-sheet .ms-lbl + * + .ms-lbl, #map-sheet .ms-rows + .ms-lbl, #map-sheet .ms-seg + .ms-lbl { margin-top: 14px; }
+
+/* přepínač podkladu (s popisky — dřív jen jedna ikona, co cyklila naslepo) */
+#map-sheet .ms-seg {
+    display: flex; gap: 6px; padding: 4px;
+    background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 12px;
+}
+#map-sheet .ms-seg button {
+    flex: 1; padding: 9px 6px; border: 0; border-radius: 9px;
+    background: transparent; color: var(--text-muted);
+    font: 600 13px/1 var(--font-ui, system-ui), sans-serif; cursor: pointer;
+}
+#map-sheet .ms-seg button.on { background: var(--accent); color: #fff; }
+
+/* řádky vrstev */
+#map-sheet .ms-rows { display: flex; flex-direction: column; gap: 6px; }
+#map-sheet .ms-row {
+    display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
+    padding: 10px 11px; border-radius: 12px;
+    border: 1px solid var(--glass-border); background: rgba(255, 255, 255, 0.035);
+    color: var(--text-color); cursor: pointer;
+}
+#map-sheet .ms-row > .icon { width: 19px; height: 19px; flex: none; color: var(--text-muted); }
+#map-sheet .ms-row[hidden] { display: none; }
+#map-sheet .ms-row.ctrl-active { border-color: var(--accent-line); background: var(--accent-soft); }
+#map-sheet .ms-row.ctrl-active > .icon { color: var(--accent); }
+#map-sheet .ms-row-t { flex: 1; min-width: 0; font: 600 13.5px/1.25 var(--font-ui, system-ui), sans-serif; }
+#map-sheet .ms-row-t em {
+    display: block; margin-top: 2px; font-style: normal;
+    font: 500 11.5px/1.35 var(--font-ui, system-ui), sans-serif; color: var(--text-muted);
+}
+#map-sheet .ms-sw {
+    position: relative; width: 38px; height: 22px; flex: none;
+    border-radius: 99px; background: rgba(255, 255, 255, 0.14); transition: background 0.2s;
+}
+#map-sheet .ms-sw::after {
+    content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
+    border-radius: 50%; background: #fff; transition: transform 0.2s;
+}
+#map-sheet .ms-row.ctrl-active .ms-sw { background: var(--accent); }
+#map-sheet .ms-row.ctrl-active .ms-sw::after { transform: translateX(16px); }
+/* řádek, který otevírá nástroj (ne přepínač) — jiná afordance, ne falešný switch */
+#map-sheet .ms-go { flex: none; color: var(--text-muted); font: 700 16px/1 var(--font-ui, system-ui), sans-serif; }
+
+/* dlaždice nástrojů — S POPISKY (dřív bezejmenné ikony) */
+#map-sheet .ms-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 7px; }
+#map-sheet .ms-tile {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+    padding: 10px 4px; border-radius: 12px;
+    border: 1px solid var(--glass-border); background: rgba(255, 255, 255, 0.035);
+    color: var(--text-color); font: 600 10.5px/1.2 var(--font-ui, system-ui), sans-serif;
+    text-align: center; cursor: pointer;
+}
+#map-sheet .ms-tile .icon { width: 20px; height: 20px; color: var(--accent-bright, #3eb487); }
+#map-sheet .ms-tile.ctrl-active { border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent); }
+#map-sheet .ms-tile:active, #map-sheet .ms-row:active { transform: scale(0.97); }
+/* kontejner pro injektovaná tlačítka modulů sám nekreslí nic — jeho děti padnou
+   přímo do mřížky (i kdyby map-tools.js chyběl, tlačítka zůstanou funkční) */
+#map-ctrl-stack { display: contents; }
+
+/* venkovní režim: vysoký kontrast jako ostatní panely */
+body.outdoor-mode #map-sheet, body.outdoor-mode #map-ctrl-toggle {
+    background: #0a0e1a; border-color: rgba(255, 255, 255, 0.85);
+}
 /* =========================================================================
    AR značky 2.0 — čitelnost, kategorie tvarem, vytyčené body, shluky (+N)
    ========================================================================= */

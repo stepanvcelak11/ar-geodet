@@ -157,15 +157,22 @@
         // „zamrazí" dekodér kamery a po zavření zůstane AR zaseklé (play() to nespraví).
         // Když je AR aktivní a žádný překryv nepřekrývá, ale obraz se ~3 s nehýbe,
         // restartujeme stream. Bezpečné vůči power-save (pauza/null/ended → přeskočíme).
+        // Překryv přes AR — SDÍLENÝ test (hlídač kamery i watchdog renderu níže). Výsledek
+        // se na 200 ms cachuje a místo getComputedStyle (vynucený style flush) se ptáme
+        // getClientRects(), což je levnější a na display:none vrací prázdno.
+        let _ovLastT = 0, _ovVal = false;
+        function anyOverlayOpen() {
+            const t = performance.now();
+            if (t - _ovLastT < 200) return _ovVal;
+            _ovLastT = t; _ovVal = false;
+            const mods = document.querySelectorAll('.dmt-overlay, .omr-overlay, #ag-bgps-overlay, #ag-lvl-overlay, .qc-gate-ov, #cad-sel-overlay');
+            for (let i = 0; i < mods.length; i++) { if (mods[i].getClientRects().length) { _ovVal = true; return true; } }
+            const mo = document.querySelectorAll('.modal-overlay');
+            for (let j = 0; j < mo.length; j++) { if (mo[j].style.display === 'flex') { _ovVal = true; return true; } }
+            return _ovVal;
+        }
         (function () {
             let lastT = -1, stall = 0;
-            function anyOverlayOpen() {
-                const mods = document.querySelectorAll('.dmt-overlay, .omr-overlay, #ag-bgps-overlay, #ag-lvl-overlay, .qc-gate-ov, #cad-sel-overlay');
-                for (let i = 0; i < mods.length; i++) { if (getComputedStyle(mods[i]).display !== 'none') return true; }
-                const mo = document.querySelectorAll('.modal-overlay');
-                for (let j = 0; j < mo.length; j++) { if (mo[j].style.display === 'flex') return true; }
-                return false;
-            }
             setInterval(function () {
                 try {
                     if (!appStarted || viewMode === 'map' || document.visibilityState !== 'visible') { stall = 0; lastT = -1; return; }
@@ -754,7 +761,7 @@
             if (bb) bb.classList.toggle('ctrl-active', visSettings.baseLayer === 'ortofoto');
             if (kb) kb.classList.toggle('ctrl-active', !!visSettings.showKatastr);
         }
-        function cycleBaseLayer() { visSettings.baseLayer = (visSettings.baseLayer === 'ortofoto') ? 'osm' : 'ortofoto'; setStoredData('arVisSettings12', JSON.stringify(visSettings)); applyMapLayers(); if (typeof quickToast === 'function') quickToast(visSettings.baseLayer === 'ortofoto' ? 'Podklad: letecký snímek (© ČÚZK)' : 'Podklad: mapa (OSM)'); }
+        function cycleBaseLayer() { visSettings.baseLayer = (visSettings.baseLayer === 'ortofoto') ? 'osm' : 'ortofoto'; setStoredData('arVisSettings12', JSON.stringify(visSettings)); applyMapLayers(); }
         function toggleKatastr() { visSettings.showKatastr = !visSettings.showKatastr; setStoredData('arVisSettings12', JSON.stringify(visSettings)); applyMapLayers(); }
         // Vyjizdejici panel ovladani mapy: sbaleno = jen prepinaci tlacitko
         function toggleMapControls() { document.getElementById('map-controls').classList.toggle('expanded'); }
@@ -792,6 +799,8 @@
         // se rotace zmrazi -- otaceni kolem uzivatele mimo stred by mapou smykalo po obrazovce.
         // Klikani i posun prepocitavaji souradnice pres mapRotation, ne pres zivy currentHeading.
         let mapRotation = 0;
+        // poloha, pro kterou je nastaveny transform-origin rotace mapy (viz renderAR)
+        let _mrLat = null, _mrLng = null;
         let isDraggingMap = false, isPinchingMap = false; let lastTouchX = 0, lastTouchY = 0; let pinchStartDist = 0, pinchStartZoom = 0; const mapContainerEl = document.getElementById('map-container');
         function _touchDist(t) { const dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY; return Math.hypot(dx, dy); }
         function _zoomAnchor() { return (userLat != null) ? L.latLng(userLat, userLng) : map.getCenter(); }
@@ -1029,9 +1038,18 @@
             const _cdTitle = !headingReliable ? 'Zařízení neposkytuje absolutní azimut – sever může být nepřesný. Dolaďte v Nastavení kompasu „Srovnání severu".' : (calWarn ? 'Kompas vyzaduje kalibraci – proveďte telefonem osmicku' : '');
             if (_cdTitle !== _lastCdTitle) { compassDebug.title = _cdTitle; _lastCdTitle = _cdTitle; }
             if (!window._mapHold && !window._popupOpen) {
-                mapWrapper.style.transformOrigin = (function(){ const p = map.latLngToContainerPoint([userLat, userLng]); return p.x + 'px ' + p.y + 'px'; })(); mapWrapper.style.transform = `translate(-50%, -50%) rotate(${-heading}deg)`; mapRotation = heading;
-                if (window._labelsDirty) { window._mapLabelEls = document.querySelectorAll('.map-label-text'); window._labelsDirty = false; }
-                if (window._mapLabelEls) window._mapLabelEls.forEach(el => { el.style.transform = `rotate(${heading}deg)`; });
+                // VYKON: #map-wrapper je vrstva 150vmax x 150vmax (nekolikanasobek displeje) —
+                // rotace prekomponuje celou vrstvu vcetne dlazdic a k tomu se prepisuje
+                // transform na KAZDEM popisku bodu. Zmena pod 0.15 deg je na displeji
+                // nerozeznatelna, takze takovy snimek preskocime. Origin prepocitavame i pri
+                // posunu uzivatele, aby se mapa dal otacela kolem spravneho bodu.
+                const _rotD = Math.abs(((heading - mapRotation + 540) % 360) - 180);
+                if (_rotD >= 0.15 || _mrLat !== userLat || _mrLng !== userLng || window._labelsDirty) {
+                    mapWrapper.style.transformOrigin = (function(){ const p = map.latLngToContainerPoint([userLat, userLng]); return p.x + 'px ' + p.y + 'px'; })(); mapWrapper.style.transform = `translate(-50%, -50%) rotate(${-heading}deg)`; mapRotation = heading;
+                    _mrLat = userLat; _mrLng = userLng;
+                    if (window._labelsDirty) { window._mapLabelEls = document.querySelectorAll('.map-label-text'); window._labelsDirty = false; }
+                    if (window._mapLabelEls) window._mapLabelEls.forEach(el => { el.style.transform = `rotate(${heading}deg)`; });
+                }
             }
             { const _udc = getUserDirContainer(); if (_udc) _udc.style.transform = `rotate(${heading}deg)`; }
             updateNavGlow();
@@ -1069,7 +1087,7 @@
                 let isSelectedForDetail = (pt.id === activePointIdForModal);
                 if (distance > arRadius && pt.id !== highlightedPointId && !isSelectedForDetail) isVisible = false;
                 if (isVisible && pt.id !== highlightedPointId && !isSelectedForDetail) { if (renderedCount >= maxPts) { isVisible = false; } else { renderedCount++; } }
-                if (!isVisible) { if (pt.element && pt.element.style.opacity !== '0') pt.element.style.opacity = '0'; return; }
+                if (!isVisible) { if (pt.element && pt._opLast !== '0') { pt.element.style.opacity = '0'; pt.element.style.pointerEvents = 'none'; pt._opLast = '0'; } return; }
 
                 const pointBearing = (pt.currentBearing != null) ? pt.currentBearing : getBearing(_oLat, _oLng, pt.lat, pt.lng); let diff = ((pointBearing - heading + 540) % 360) - 180;
                 if (pt.id === highlightedPointId) { highlightedPointData = { diff: diff, dist: distance, name: pt.name }; }
@@ -1086,28 +1104,39 @@
                     if (groundY < 3) groundY = 3; else if (groundY > 97) groundY = 97;
                     let markerY = groundY;
                     let normDist = distance / Math.max(arRadius, 100); if (normDist > 1) normDist = 1;
-                    // ČITELNOST: vzdálenost už štítek nezmenšuje pod čitelné minimum (dřív scale až 0.5
-                    // → 7px písmo, na slunci nečitelné); hloubku naznačí jemný rozsah ~1.0–0.78,
-                    // přesnou dálku stejně říká text na štítku.
+                    // CITELNOST: vzdalenost uz stitek nezmensuje pod citelne minimum (driv scale az 0.5
+                    // -> 7px pismo, na slunci necitelne); hloubku naznaci jemny rozsah ~1.0-0.78,
+                    // presnou dalku stejne rika text na stitku.
                     let scale = (1.0 - (normDist * 0.22)) * visSettings.markerScale;
 
-                    if (pt.id === highlightedPointId) {
-                        pt.element.style.zIndex = 99999; scale = scale * 1.25;
-                    } else {
-                        pt.element.style.zIndex = Math.round(1000 - distance);
-                    }
-                    if (pt.element && pt.id !== highlightedPointId && !isSelectedForDetail) {
-                        // kolize štítků v pixelech obrazovky (štítek ~110×44 px při scale 1);
-                        // arPoints jsou řazené podle vzdálenosti → hostitelem shluku je nejbližší bod
+                    // VYKON: zIndex i text vzdalenosti se meni jen s GPS fixem (~1x/s), ne s
+                    // kazdym snimkem kompasu. Prepis zIndexu navic preskladava stacking context
+                    // a innerText vynucuje prekresleni -> zapisujeme jen pri skutecne zmene.
+                    const _isHi = (pt.id === highlightedPointId);
+                    if (_isHi) scale = scale * 1.25;
+                    const _z = _isHi ? 99999 : Math.round(1000 - distance);
+                    if (pt._zLast !== _z) { pt.element.style.zIndex = _z; pt._zLast = _z; }
+                    if (pt.element && !_isHi && !isSelectedForDetail) {
+                        // DECLUTTER: kolize stitku v pixelech obrazovky (stitek ~110x44 px pri scale 1);
+                        // arPoints jsou razene podle vzdalenosti -> hostitelem shluku je nejblizsi bod
                         const _px = xPct * _ovW / 100, _py = markerY * _ovH / 100, _hw = 55 * scale, _hh = 22 * scale;
                         let _host = null;
                         for (let _i = 0; _i < _placed.length; _i++) { const q = _placed[_i]; if (Math.abs(_px - q.x) < (_hw + q.hw) && Math.abs(_py - q.y) < (_hh + q.hh)) { _host = q; break; } }
-                        if (_host) { _host.pt._arCluster.push(pt); if (pt.element.style.opacity !== '0') pt.element.style.opacity = '0'; pt.element.style.pointerEvents = 'none'; return; }
+                        // sbaleny stitek schovej — a drz _opLast v souladu, jinak by ho cache uz nikdy nevratila
+                        if (_host) { _host.pt._arCluster.push(pt); if (pt._opLast !== '0') { pt.element.style.opacity = '0'; pt.element.style.pointerEvents = 'none'; pt._opLast = '0'; } return; }
                         _placed.push({ x: _px, y: _py, hw: _hw, hh: _hh, pt: pt });
                         pt._arCluster = [];
                     }
-                    if (pt.element) { pt.element.style.left = `${xPct}%`; pt.element.style.top = `${markerY}%`; pt.element.style.transform = `translate(-50%, -50%) scale(${scale}) translateZ(0)`; pt.element.style.opacity = '1'; pt.element.style.pointerEvents = 'auto'; pt.distElement.innerText = `${distance.toFixed(1)} m`; }
-                } else { if (pt.element && pt.element.style.opacity !== '0') pt.element.style.opacity = '0'; }
+                    if (pt.element) {
+                        pt.element.style.left = `${xPct}%`; pt.element.style.top = `${markerY}%`;
+                        pt.element.style.transform = `translate(-50%, -50%) scale(${scale}) translateZ(0)`;
+                        if (pt._opLast !== '1') { pt.element.style.opacity = '1'; pt.element.style.pointerEvents = 'auto'; pt._opLast = '1'; }
+                        const _dTxt = `${distance.toFixed(1)} m`;
+                        if (pt._dLast !== _dTxt) { pt.distElement.innerText = _dTxt; pt._dLast = _dTxt; }
+                    }
+                } else if (pt.element && pt._opLast !== '0') {
+                    pt.element.style.opacity = '0'; pt.element.style.pointerEvents = 'none'; pt._opLast = '0';
+                }
             });
             // badge „+N" na hostitelích shluků (jen umístěné značky, ne celé arPoints)
             _updateMoreBadges(_placed);
@@ -1139,6 +1168,12 @@
         // nevykreslilo, prekreslime z posledni platne udalosti (drzi posledni znamy smer, AR zustane naziva).
         setInterval(function () {
             if (!appStarted || !_lastGoodEvent) return;
+            // BATERIE: watchdog je pojistka proti ZAMRZLEMU AR, takze ma smysl jen kdyz je
+            // AR opravdu videt. Driv tikal i na pozadi, v rezimu Mapa a pod celoobrazovkovym
+            // panelem, kde 4x/s vynucoval plne prekresleni scény — a tim maril uspani kompasu.
+            if (document.visibilityState !== 'visible') return;
+            if (viewMode === 'map') return;
+            if (anyOverlayOpen()) return;
             if (performance.now() - _lastRenderTs < 400) return;   // udalosti chodi, watchdog netreba
             if (_orientPending) return;
             _orientPending = true;
@@ -1201,6 +1236,8 @@
             return { x: 50 + (uH / halfH) * 50, y: 50 + (vV / halfV) * 50 - vOffset, diff: diff, dist: dist };
         }
         let _arLinesSvg = null;
+        // posledni stav, pro ktery jsou spojnice vykreslene (dirty-check nize)
+        let _alH = null, _alP = 0, _alR = 0, _alLat = null, _alLng = null, _alN = -1;
         function drawARLines(heading, cameraPitchDown, imgRoll, halfH, halfV, vOffset, eyeH) {
             if (!pointLines || !pointLines.length) { if (_arLinesSvg) _arLinesSvg.innerHTML = ''; return; }
             if (!_arLinesSvg) {
@@ -1209,6 +1246,14 @@
                 _arLinesSvg.style.cssText = 'position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:1;';
                 arOverlay.insertBefore(_arLinesSvg, arOverlay.firstChild);
             }
+            // VYKON: spojnice se prekreslovaly kazdy snimek vcetne parsovani celeho SVG
+            // (innerHTML) — i kdyz uzivatel stal a mobil se pohnul o setiny stupne. Stejny
+            // dirty-check uz maji sesterske vrstvy (cadastre-vector, zavady, track-ar).
+            if (_alH != null && Math.abs(heading - _alH) < 0.3 && Math.abs(cameraPitchDown - _alP) < 0.3
+                && Math.abs((imgRoll || 0) - _alR) < 0.01 && _alLat === userLat && _alLng === userLng
+                && _alN === pointLines.length) return;
+            _alH = heading; _alP = cameraPitchDown; _alR = (imgRoll || 0);
+            _alLat = userLat; _alLng = userLng; _alN = pointLines.length;
             let html = '';
             pointLines.forEach(ln => {
                 const A = resolveLineEnd(ln.aId, ln.aLat, ln.aLng), B = resolveLineEnd(ln.bId, ln.bLat, ln.bLng);
