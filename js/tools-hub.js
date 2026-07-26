@@ -155,12 +155,16 @@
     }
     function applySimple() {
         var grid = getGrid(); if (!grid) return;
-        var on = simpleOn() && !searchQuery();
+        // integrace s tools-simple.js: „Zobrazit všechny nástroje" (.ag-sm-all) ruší i naše skrývání
+        var showAll = grid.classList.contains('ag-sm-all');
+        var on = simpleOn() && !searchQuery() && !showAll;
         var tiles = grid.querySelectorAll('.tool-tile');
         for (var i = 0; i < tiles.length; i++) {
             if (tiles[i].classList.contains('ag-th-tile')) continue;   // vlastní rozcestníky neskrývat
             var k = tileKey(tiles[i]);
             if (k && HIDE_KEYS.indexOf(k) !== -1) {
+                // dlaždice v sekci „Pro tuto práci" (tools-simple.js) se neskrývá
+                if (tiles[i].getAttribute('data-ag-ts')) { if (tiles[i].style.display === 'none') tiles[i].style.display = ''; continue; }
                 if (on) tiles[i].style.display = 'none';
                 else if (tiles[i].style.display === 'none' && !searchQuery()) tiles[i].style.display = '';
             }

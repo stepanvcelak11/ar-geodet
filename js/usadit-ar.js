@@ -162,11 +162,16 @@
     }
     function applySimple() {
         var grid = getGrid(); if (!grid) return;
-        var on = simpleOn() && !searchQuery();
+        // integrace s tools-simple.js: „Zobrazit všechny nástroje" (.ag-sm-all) ruší i naše skrývání
+        var showAll = grid.classList.contains('ag-sm-all');
+        var on = simpleOn() && !searchQuery() && !showAll;
         var tiles = grid.querySelectorAll('.tool-tile');
         for (var i = 0; i < tiles.length; i++) {
             var k = tileKey(tiles[i]);
             if (k && HIDE_KEYS.indexOf(k) !== -1) {
+                // dlaždice přesunutá do sekce „Pro tuto práci" (tools-simple.js) se neskrývá —
+                // uživatel si ji vyžádal volbou typu práce
+                if (tiles[i].getAttribute('data-ag-ts')) { if (tiles[i].style.display === 'none') tiles[i].style.display = ''; continue; }
                 if (on) tiles[i].style.display = 'none';
                 // když je zjednodušení vypnuté a dlaždici jsme skryli my, vrátit
                 else if (tiles[i].style.display === 'none' && !searchQuery()) tiles[i].style.display = '';

@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v188';   // fix obri ikony v nadpisech modalu + dochazka: stavba/parta/cinnost
+const SHELL_CACHE = 'argeodet-shell-v189';   // fix obri ikony v nadpisech modalu + dochazka: stavba/parta/cinnost
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -25,9 +25,9 @@ const ASSETS_TO_CACHE = [
     './icon-512.png',
     './icon-maskable-192.png',
     './icon-maskable-512.png',
-    './css/tokens.css?v=188',
-    './css/style.css?v=188',
-    './css/vylepseni.css?v=188',
+    './css/tokens.css?v=189',
+    './css/style.css?v=189',
+    './css/vylepseni.css?v=189',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
@@ -44,7 +44,6 @@ const ASSETS_TO_CACHE = [
     './css/dmt-volume.css',
     './css/check-distance.css',
     './css/brutal-gps.css',
-    './css/urovnani.css',
     './css/qc-engine.css',
     './css/pocasi.css',
     './css/tools-polish.css',
@@ -106,7 +105,6 @@ const ASSETS_TO_CACHE = [
     './js/gps-semafor.js',
     './js/dgps.js',
     './js/pdr-offset.js',
-    './js/urovnani.js',
     './js/postupy.js',
     './js/zapisnik.js',
     './js/stakeout-line.js',
@@ -120,10 +118,8 @@ const ASSETS_TO_CACHE = [
     './js/rajon.js',
     './js/free-station.js',
     './js/localization-helmert.js',
-    './js/photo-shot.js',
     './js/utility-networks.js',
     './js/job-transfer.js',
-    './js/rangefinder.js',
     './js/vyska-objektu.js',
     './js/epochy.js',
     './js/pocasi.js',
@@ -133,6 +129,8 @@ const ASSETS_TO_CACHE = [
     './js/cadastre-vector.js',
     './js/tutorial-pro.js',
     './js/tools-plus.js',
+    './js/tools-simple.js',
+    './js/pokracovat.js',
     './js/fullscreen.js',
     './js/view-cycle.js',
     './js/app-search.js',
@@ -146,6 +144,7 @@ const ASSETS_TO_CACHE = [
     './js/firma-chat.js',
     './js/zavady.js',
     './js/usadit-ar.js',
+    './js/tools-hub.js',
     './js/stavovy-pruh.js',
     './data/zpravodaj.json',
     './data/predpisy.json',
