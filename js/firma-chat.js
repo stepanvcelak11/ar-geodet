@@ -108,6 +108,7 @@
     var _msgs = [];      // [{id, uid, u, ts, txt}]
     var _lastId = 0;
     var _poll = null;
+    var _loadBusy = false, _failN = 0, _backoffUntil = 0;   // ochrana pollingu (baterie/rádio)
     var _busySend = false;
 
     function firmCode() { var u = U(); var f = u && u.getFirm(); return (f && f.code) || null; }
@@ -383,7 +384,19 @@
 
     function load() {
         var u = U(); if (!u) return;
+        // BATERIE/RADIO: bez teto pojistky se pri zaseknute siti dotazy kupily (kazdych 8 s
+        // novy) a pri chybe se tlouklo do radia porad stejne rychle. Nove: jen jeden dotaz
+        // v letu + po chybe se interval docasne prodlouzi (8 -> 16 -> 32 -> max 64 s).
+        if (_loadBusy) return;
+        if (navigator.onLine === false) { setOff('Offline — zobrazeny poslední načtené zprávy.'); return; }
+        if (_backoffUntil && Date.now() < _backoffUntil) return;
+        _loadBusy = true;
         u.cloudFetch('/chat' + (_lastId ? '?after=' + _lastId : '')).then(function (r) {
+            _loadBusy = false;
+            if (r && (r.status === 0 || r.status >= 500)) {
+                _failN = Math.min(_failN + 1, 3);
+                _backoffUntil = Date.now() + POLL_MS * Math.pow(2, _failN);
+            } else { _failN = 0; _backoffUntil = 0; }
             if (!r.ok || !r.data || !Array.isArray(r.data.messages)) {
                 if (r.status === 404) {
                     // server běží na starém kódu (bez /chat) — jasně to říct, ne mlčet
@@ -408,7 +421,7 @@
                 renderTo();   // seznam lidí se mohl doplnit (nový kolega ve firmě)
             }
             markRead();   // chat je otevřený → vše je přečtené
-        });
+        }).catch(function () { _loadBusy = false; });   // pojistka, ať se guard nezasekne
     }
 
     // ---- nepřečtené zprávy (tečka na dlaždici + hláška po startu) ----------
@@ -532,7 +545,8 @@
         }
         setTimeout(startupCheck, 9000);
         window.addEventListener('agucty:login', function () { setTimeout(startupCheck, 2500); });
-        setInterval(syncBadge, 5000);   // mřížku Nástrojů překreslují jiné moduly
+        // odznak nepřečtených je jen DOM; přes AG.uiInterval se uspí, když je appka na pozadí
+        (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(syncBadge, 5000);
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 400); });
     else setTimeout(init, 400);

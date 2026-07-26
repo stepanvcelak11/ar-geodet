@@ -453,7 +453,28 @@
             }
         } catch (e) {}
     }
-    function init() { try { injectCss(); if (!window.__agModalXTimer) window.__agModalXTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(tick, 400); tick(); } catch (e) {} }
+    // BATERIE: tohle býval nejrychlejší trvalý poll v appce — každých 400 ms se prohledávaly
+    // všechny .modal-overlay, ačkoli nový modál vznikne jen občas. Doplnění křížku nezávisí
+    // na tom, jestli je modál právě vidět (isToolModal řeší jen strukturu), takže stačí
+    // zachytit VZNIK prvku: MutationObserver na childList přímo v <body>. Záměrně BEZ
+    // subtree/attributes — to by při renderu AR (styly 100 značek každý snímek) střílelo
+    // pořád. Pomalý časovač zůstává jako pojistka pro modály vkládané jinam (2 s místo 0,4 s).
+    function init() {
+        try {
+            injectCss();
+            if (!window.__agModalXObs && typeof MutationObserver === 'function' && document.body) {
+                var pend = 0;
+                var obs = new MutationObserver(function () {
+                    if (pend) return;
+                    pend = setTimeout(function () { pend = 0; tick(); }, 60);
+                });
+                obs.observe(document.body, { childList: true });
+                window.__agModalXObs = obs;
+            }
+            if (!window.__agModalXTimer) window.__agModalXTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(tick, 2000);
+            tick();
+        } catch (e) {}
+    }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
     window.addEventListener('load', function () { setTimeout(init, 500); });
 })();

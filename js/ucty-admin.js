@@ -1859,7 +1859,8 @@
             window.agRegisterFieldTool({ id: 'ucty-firma', label: 'Firma a účty', icon: ICON, onClick: openEntry, order: 90, cat: 'Pomůcky' });
         }
         syncMenuBtn();
-        setInterval(syncMenuBtn, 3000);
+        // BATERIE: jen DOM v bočním menu — přes AG.uiInterval se na pozadí uspí
+        (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(syncMenuBtn, 3000);
         // dlaždici „Firma a účty" skrýt zaměstnancům (nemají v ní co dělat).
         // POZOR: musí umět i UKÁZAT — dřív jen skrývala, takže když se vyhodnotila
         // před přihlášením (zámek při startu: firma je, uživatel ještě ne), dlaždice

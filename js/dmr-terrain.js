@@ -176,6 +176,7 @@
     // Výška stanoviska — bez ní nemá terrainDZ smysl (vrací 0). Obnova při posunu.
     function updateObserver() {
         if (!_on) return;
+        if (netDown()) return;      // offline / pauza po serii selhani — nebudit radio
         if (typeof userLat === 'undefined' || userLat == null) return;
         if (_obsElev != null && _obsLat != null && distM(_obsLat, _obsLng, userLat, userLng) < OBS_REFRESH_M) return;
         var lat = userLat, lng = userLng;
@@ -280,5 +281,7 @@
     else init();
     window.addEventListener('load', function () { setTimeout(init, 400); });
 
-    setInterval(updateObserver, 4000);   // hlídá posun stanoviska (jen když je vrstva zapnutá)
+    // hlídá posun stanoviska (jen když je vrstva zapnutá); přes AG.uiInterval, ať to
+    // netiká s appkou na pozadí — tam se stanovisko nehýbe a jen by to budilo procesor
+    (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(updateObserver, 4000);
 })();

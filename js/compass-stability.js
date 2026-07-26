@@ -25,6 +25,7 @@
 
     var samples = [];
     var el = null, timer = null, lastScore = null;
+    var _lastShown = null, _lastCol = null;   // co uz je v DOM (aby se nezapisovalo 5x/s)
 
     // stav úprav polohy/velikosti
     var ui = { scale: 1, left: null, top: null };
@@ -241,29 +242,42 @@
                 el.classList.remove('good', 'warn', 'bad');
                 el.classList.add('init');
                 var v0 = el.querySelector('.ag-cstab-val'); if (v0) v0.textContent = '…';
+                _lastShown = null; _lastCol = null;   // at se po navratu skore trida znovu nastavi
                 return;
             }
             var score = scoreFromSpread(st.spread);
             if (lastScore != null) score = Math.round(lastScore * 0.6 + score * 0.4);
             lastScore = score;
 
+            // VYKON: text i title zapisujeme jen pri zmene — jinak 5 prekresleni/s zbytecne
             el.classList.add('show');
-            el.classList.remove('init', 'good', 'warn', 'bad');
-            el.classList.add(colorFor(score));
-            var v = el.querySelector('.ag-cstab-val'); if (v) v.textContent = score + '%';
-            el.title = labelFor(score) + ' · ' + score + '% (rozkmit ±' + st.spread.toFixed(1) + '°) · dlouhý stisk = úpravy';
+            var _col = colorFor(score);
+            if (_lastCol !== _col) {
+                el.classList.remove('init', 'good', 'warn', 'bad');
+                el.classList.add(_col); _lastCol = _col;
+            }
+            if (_lastShown !== score) {
+                var v = el.querySelector('.ag-cstab-val'); if (v) v.textContent = score + '%';
+                el.title = labelFor(score) + ' · ' + score + '% (rozkmit ±' + st.spread.toFixed(1) + '°) · dlouhý stisk = úpravy';
+                _lastShown = score;
+            }
         } catch (e) { /* fail-silent */ }
     }
 
     function sample() {
         try {
             if (!isLive()) { samples.length = 0; lastScore = null; render(); return; }
+            // appka na pozadí nebo skrytý widget → nemá co vzorkovat ani co kreslit
+            if (document.visibilityState !== 'visible') return;
             var h = readHeading();
             if (h != null) samples.push({ t: now(), h: h });
             render();
         } catch (e) {}
     }
-    function start() { try { if (!timer) timer = setInterval(sample, SAMPLE_MS); } catch (e) {} }
+    // BATERIE: dřív to byl obyčejný setInterval(200 ms), který se nikdy nezrušil a tikal
+    // i s appkou na pozadí — 5 probuzení a 5 DOM průchodů za sekundu celý pracovní den.
+    // AG.uiInterval ho na pozadí uspí; sample() navíc nic nedělá, když widget není vidět.
+    function start() { try { if (!timer) timer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(sample, SAMPLE_MS); } catch (e) {} }
 
     // Vystaveni skore pro jine moduly (ar-fusion vazi duveru magnetometru kvalitou kompasu).
     try {

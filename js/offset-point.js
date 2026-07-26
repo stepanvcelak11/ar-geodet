@@ -239,7 +239,11 @@
             for (var i = 0; i < ovs.length; i++) { var ov = ovs[i], c = ov.querySelector('.modal-content'); if (isToolModal(ov, c)) enhance(ov, c); }
         } catch (e) {}
     }
-    function init() { try { injectCss(); if (!window.__agModalXTimer) window.__agModalXTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(tick, 400); tick(); } catch (e) {} }
+    // POZN.: funkčně shodná kopie doplňovače křížku z js/geo-overlay.js — obě sdílí
+    // window.__agModalXTimer, takže reálně tiká jen ta, která se načte první. Perioda
+    // srovnaná s geo-overlay.js (2 s + MutationObserver tam), ať se poll nevrací zadními
+    // dvířky, kdyby se pořadí načítání změnilo.
+    function init() { try { injectCss(); if (!window.__agModalXTimer) window.__agModalXTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(tick, 2000); tick(); } catch (e) {} }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
     window.addEventListener('load', function () { setTimeout(init, 500); });
 })();

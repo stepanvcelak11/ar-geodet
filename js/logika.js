@@ -19,10 +19,24 @@ if ('serviceWorker' in navigator) {
                     // PWA se na mobilu většinou jen PROBUDÍ z pozadí (žádná navigace),
                     // takže prohlížeč sám novou verzi sw.js nezkontroluje třeba celý den.
                     // Kontrolujeme při každém návratu do popředí + každých 15 minut.
-                    const chk = () => { try { reg.update(); } catch (e) {} };
+                    // BATERIE: reg.update() je sitovy dotaz, ktery obchazi HTTP cache. Driv se
+                    // poustel pri KAZDEM navratu do popredi (a to hned 2x — visibilitychange
+                    // i pageshow) a jeste kazdych 15 minut, takze v terenu delal desitky
+                    // radiovych probuzeni denne. Staci nejvys 1x za 10 minut a jen kdyz je sit.
+                    // (10 min je kompromis: uspora + nova verze se pri testovani na mobilu
+                    // pozna dost rychle; studeny start appky kontroluje vzdy, mimo tento limit.)
+                    let _lastChk = 0;
+                    const chk = () => {
+                        if (navigator.onLine === false) return;
+                        const now = Date.now();
+                        if (now - _lastChk < 10 * 60 * 1000) return;
+                        _lastChk = now;
+                        try { reg.update(); } catch (e) {}
+                    };
                     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') chk(); });
                     window.addEventListener('pageshow', chk);
                     setInterval(chk, 15 * 60 * 1000);
+                    chk();
                 }).catch(() => {});
             });
         }
@@ -195,6 +209,7 @@ if ('serviceWorker' in navigator) {
         let appStarted = false, viewMode = 'both', searchQuery = '', cameraStarted = false, currentVideoStream = null;
         let mapRadius = 1000, arRadius = 150;
         let userLat = null, userLng = null, userAlt = null, userMarker = null, lastFetchLat = null, lastFetchLng = null, lastCenterLat = null, lastCenterLng = null;
+        let _lastAutoFetchTs = 0;   // kdy naposled dosahlo automatickeho (pri chuzi) stahovani z CUZK
         let currentHeading = 0, currentGpsAccuracy = 0, accuracyCircle = null, magneticDeclination = 0;
         let smoothedHeading = null, gpsCourse = null, gpsSpeed = 0, headingCorrection = 0, userHeadingOffset = 0;
         function quickToast(msg) {
@@ -999,9 +1014,29 @@ if ('serviceWorker' in navigator) {
                     if (_movedCalc > 0.25 || arPoints.length !== _lastCalcCount || _anch !== window._lastCalcAnchored) { window._lastCalcAnchored = _anch; arPoints.forEach(p => { p.currentDist = getDistance(_oc[0], _oc[1], p.lat, p.lng); p.currentBearing = getBearing(_oc[0], _oc[1], p.lat, p.lng); }); arPoints.sort((a, b) => a.currentDist - b.currentDist); _lastCalcLat = userLat; _lastCalcLng = userLng; _lastCalcCount = arPoints.length; }
                     if (activePointIdForModal) { const activePt = arPoints.find(p => p.id === activePointIdForModal); if (activePt) { const newDist = getDistance(userLat, userLng, activePt.lat, activePt.lng); const distEl = document.getElementById('sheet-distance-val'); if (distEl) distEl.innerText = `${newDist.toFixed(1)} m`; const gpsEl = document.getElementById('sheet-gps-val'); if (gpsEl) gpsEl.innerText = currentGpsAccuracy.toFixed(1); } }
                     if (lastCenterLat === null) { map.setView([userLat, userLng], 19, { animate: false }); lastCenterLat = userLat; lastCenterLng = userLng; } else if (!window._mapHold && getDistance(lastCenterLat, lastCenterLng, userLat, userLng) > 1.5) { map.setView([userLat, userLng], map.getZoom(), { animate: false }); lastCenterLat = userLat; lastCenterLng = userLng; }
-                    if (lastFetchLat === null || lastFetchLng === null) { lastFetchLat = userLat; lastFetchLng = userLng; if (appStarted) setTimeout(() => initFetch(userLat, userLng), 1000); } else { const moved = getDistance(lastFetchLat, lastFetchLng, userLat, userLng); if (moved > 25) { lastFetchLat = userLat; lastFetchLng = userLng; if (appStarted) initFetch(userLat, userLng); } }
-                    const userIcon = L.divIcon({ className: 'custom-user-icon', html: `<div id="user-direction-container" style="transition: transform 0.1s linear; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center;"><div style="position:absolute; width: 28px; height: 28px; background: rgba(47,158,116, 0.3); border-radius: 50%; filter: blur(3px);"></div><svg width="24" height="24" viewBox="0 0 24 24" style="z-index: 2; transform: translateY(-3px); filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.6));"><path d="M12,2 L22,20 L12,16 L2,20 Z" fill="#34d399" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg></div>`, iconSize: [44, 44], iconAnchor: [22, 22] });
-                    if (userMarker) userMarker.setLatLng([userLat, userLng]); else userMarker = L.marker([userLat, userLng], {icon: userIcon, zIndexOffset: 1000}).addTo(map);
+                    // BATERIE/RADIO: dotazovat CUZK po kazdych 25 m chuze bylo silne redundantni —
+                    // stahuje se okruh o polomeru mapRadius, takze dve sousedni davky se
+                    // prekryvaji z >90 %, a jedna davka = 6 URL (pri chybe az 3 pokusy kazda).
+                    // Nove: krok podle polomeru (ctvrtina, 40-150 m), nejvys 1 davka za 45 s
+                    // a nic pri offline. Rucni akce (ulozeni nastaveni, import, zmena zakazky)
+                    // dal fetchuji okamzite — omezeni plati jen na automatiku pri chuzi.
+                    if (lastFetchLat === null || lastFetchLng === null) { lastFetchLat = userLat; lastFetchLng = userLng; if (appStarted) setTimeout(() => initFetch(userLat, userLng), 1000); }
+                    else {
+                        const moved = getDistance(lastFetchLat, lastFetchLng, userLat, userLng);
+                        const step = Math.max(40, Math.min(150, (mapRadius || 500) / 4));
+                        if (moved > step && appStarted && navigator.onLine !== false && (Date.now() - _lastAutoFetchTs) > 45000) {
+                            lastFetchLat = userLat; lastFetchLng = userLng; _lastAutoFetchTs = Date.now();
+                            initFetch(userLat, userLng);
+                        }
+                    }
+                    // VYKON: ikonu stavime JEN pri prvnim fixu. Driv se pri kazdem fixu (~1x/s)
+                    // vytvarel novy L.divIcon vcetne parsovani HTML, i kdyz se pak jen presunul
+                    // uz existujici marker pres setLatLng.
+                    if (userMarker) userMarker.setLatLng([userLat, userLng]);
+                    else {
+                        const userIcon = L.divIcon({ className: 'custom-user-icon', html: `<div id="user-direction-container" style="transition: transform 0.1s linear; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center;"><div style="position:absolute; width: 28px; height: 28px; background: rgba(47,158,116, 0.3); border-radius: 50%; filter: blur(3px);"></div><svg width="24" height="24" viewBox="0 0 24 24" style="z-index: 2; transform: translateY(-3px); filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.6));"><path d="M12,2 L22,20 L12,16 L2,20 Z" fill="#34d399" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg></div>`, iconSize: [44, 44], iconAnchor: [22, 22] });
+                        userMarker = L.marker([userLat, userLng], {icon: userIcon, zIndexOffset: 1000}).addTo(map);
+                    }
                 },
                 (error) => {
                     // cesky a s akci (drive syrova anglicka hlaska prohlizece), + zaznam pro gps-trust

@@ -295,17 +295,25 @@
         var headers = { 'Content-Type': 'application/json' };
         var tok = getTok();
         if (tok && tok.token) headers['Authorization'] = 'Bearer ' + tok.token;
+        // BATERIE: bez timeoutu visel dotaz na „mrtvem, ale otevrenem" spoji (typicky slaby
+         // signal v terenu) desitky sekund a drzel radio ve vysokem prikonu; pri pollingu
+        // se takove dotazy jeste kupily. 12 s je pro toto API dost.
+        var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+        var to = null;
         var p;
         try {
             p = fetch((opts.api || apiUrl()) + path, {
                 method: opts.method || 'GET',
                 headers: headers,
-                body: opts.body != null ? JSON.stringify(opts.body) : undefined
+                body: opts.body != null ? JSON.stringify(opts.body) : undefined,
+                signal: ctrl ? ctrl.signal : undefined
             });
-        } catch (e) { return Promise.resolve({ ok: false, status: 0, data: null }); }
+            if (ctrl) to = setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, opts.timeoutMs || 12000);
+        } catch (e) { if (to) clearTimeout(to); return Promise.resolve({ ok: false, status: 0, data: null }); }
         return p.then(function (r) {
+            if (to) { clearTimeout(to); to = null; }
             return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, status: r.status, data: d }; });
-        }).catch(function () { return { ok: false, status: 0, data: null }; });
+        }).catch(function () { if (to) { clearTimeout(to); to = null; } return { ok: false, status: 0, data: null }; });
     }
 
     // převzetí konfigurace ze serveru do lokální cache (tvar agFirma_v1)
@@ -1463,10 +1471,12 @@
         setTimeout(function () { if (!document.getElementById('ag-login') && !document.getElementById('ag-gate')) unprelock(); }, 6000);
         // periodické srovnání UI (mřížku Nástrojů překreslují jiné moduly) + auto-zámek
         // + jednou za ~2 minuty synchronizace fronty užívání (cloud)
+        // BATERIE: přes AG.uiInterval, ať to netiká s appkou na pozadí (na pozadí není co
+        // srovnávat ani co zamykat — auto-zámek se stejně vyhodnotí hned po návratu).
         var n = 0;
-        setInterval(function () {
+        (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(function () {
             tick(); lockCheck();
-            if (++n % 60 === 0 && isCloud() && currentUser()) syncUsage();
+            if (++n % 60 === 0 && isCloud() && currentUser() && navigator.onLine !== false) syncUsage();
         }, 2000);
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 200); });
