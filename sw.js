@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v194';   // flicker Nastroju + zavady bodu + DGPS vzhled + pocasi (18 zdroju, radar, trefnost, tlak zde)
+const SHELL_CACHE = 'argeodet-shell-v195';   // trefnost pocasi za mesic + ovladatelny radar + vyber mista v mape bez zamceni + poradi sekci Nastroju
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -25,9 +25,9 @@ const ASSETS_TO_CACHE = [
     './icon-512.png',
     './icon-maskable-192.png',
     './icon-maskable-512.png',
-    './css/tokens.css?v=194',
-    './css/style.css?v=194',
-    './css/vylepseni.css?v=194',
+    './css/tokens.css?v=195',
+    './css/style.css?v=195',
+    './css/vylepseni.css?v=195',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
@@ -197,7 +197,9 @@ self.addEventListener('fetch', event => {
     const url = event.request.url;
     if (url.includes('cuzk.gov.cz/arcgis/rest')) return; // dotazy na bodova pole vzdy ze site
     if (url.includes('celestrak.org')) return; // drahy druzic (TLE) vzdy ze site â€” appka si je cachuje sama v localStorage
-    if (url.includes('api.open-meteo.com') || url.includes('geocoding-api.open-meteo.com') || url.includes('api.met.no')) return; // pocasi vzdy ze site â€” posledni data si pocasi.js cachuje samo v localStorage
+    if (url.includes('api.open-meteo.com') || url.includes('geocoding-api.open-meteo.com') || url.includes('api.met.no')
+        || url.includes('api.brightsky.dev') || url.includes('api.rainviewer.com') || url.includes('rainviewer.com/v2')
+        || url.includes('tilecache.rainviewer.com')) return; // pocasi + srazkovy radar vzdy ze site â€” posledni data si pocasi.js cachuje samo v localStorage
 
     // Vlastni kod aplikace (stejny puvod): CACHE-FIRST. Cerstvy kod se k uzivateli
     // dostava JEN pres bump verze SW (install znovu stahne ASSETS_TO_CACHE ->

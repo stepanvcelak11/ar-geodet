@@ -7,10 +7,12 @@
 //     a VŠECHNY veličiny kombinuje VÁŽENÝM PRŮMĚREM (váhy pro střední Evropu).
 //   • U každé veličiny drží i min–max rozptyl mezi zdroji → dlaždice „Shoda zdrojů".
 //   • SPOLEHLIVOST PODLE HISTORIE: appka si pamatuje, co který model předpovídal
-//     na +3/6/12/24 h, a při dalším otevření to srovná se skutečností. Modelům,
-//     které se historicky trefují, roste váha; trefnost je vidět u zdrojů dole.
-//   • SRÁŽKOVÝ RADAR (RainViewer): animovaná mapa, kde je vidět, jak se srážkové
-//     mraky pohybují (~70 min zpět + 30 min výhled).
+//     na +3/6/12/24 h, a při dalším otevření to srovná se skutečností. Trefnost se
+//     počítá z celého POSLEDNÍHO MĚSÍCE (log vyhodnocení, okno 30 dní), takže ji
+//     neurčí pár posledních hodin. Trefnějším modelům roste váha; hodnoty jsou
+//     vidět u zdrojů dole.
+//   • SRÁŽKOVÝ RADAR (RainViewer): animovaná OVLADATELNÁ mapa (posun, zoom), kde je
+//     vidět, jak se srážkové mraky pohybují (~70 min zpět + 30 min výhled).
 //   • Tlak se ukazuje přepočtený na nadmořskou výšku místa (a v závorce na moře).
 //   • Seznam zdrojů/vah je schovaný v rozbalovacím řádku úplně dole.
 //   • Pouze online zdroj dat, ale POSLEDNÍ stažená data si pamatuje v localStorage;
@@ -497,38 +499,60 @@
         } catch (e) { return null; }
     }
 
-    // ---- spolehlivost podle historie (trefnost modelů) -----------------------------------
+    // ---- spolehlivost podle historie (trefnost modelů, okno 1 měsíc) ---------------------
     // Při každém stažení si appka uloží, co který zdroj předpovídá na +3/6/12/24 h.
     // Až ten čas nastane (další otevření počasí), předpověď se srovná s tehdejší
-    // „skutečností" (kombinovaná aktuální teplota) a modelu se aktualizuje klouzavá
-    // střední chyba. Kdo se trefuje, dostává vyšší váhu v průměru (×0,6–1,5).
-    var LS_SKILL = 'agWeatherSkill_v1';   // {pend:[{t,id,v}], mae:{id:{e,n}}}
+    // „skutečností" (kombinovaná aktuální teplota) a výsledek se zapíše do logu
+    // vyhodnocení [čas, chyba]. Trefnost modelu = průměrná chyba ze VŠECH vyhodnocení
+    // za POSLEDNÍ MĚSÍC. Kdo se trefuje, dostává vyšší váhu v průměru (×0,6–1,5).
+    var LS_SKILL = 'agWeatherSkill_v1';       // {pend:[{t,id,v}], hist:{id:[[ms,err],...]}}
+    var SKILL_WIN_MS = 30 * 86400000;         // trefnost se počítá z okna 30 dní zpětně
+    var SKILL_MAX_PER_MODEL = 400;            // pojistka proti přetečení localStorage
     function loadSkill() {
         try {
             var o = JSON.parse(localStorage.getItem(LS_SKILL));
-            if (o && o.mae && Object.prototype.toString.call(o.pend) === '[object Array]') return o;
+            if (o && Object.prototype.toString.call(o.pend) === '[object Array]') {
+                if (!o.hist || typeof o.hist !== 'object') o.hist = {};   // migrace ze starší verze (EMA bez logu)
+                return o;
+            }
         } catch (e) {}
-        return { pend: [], mae: {} };
+        return { pend: [], hist: {} };
     }
     function saveSkill(sk) { try { localStorage.setItem(LS_SKILL, JSON.stringify(sk)); } catch (e) {} }
+    // průměrná chyba modelu za poslední měsíc (null = zatím málo dat)
+    function maeOf(sk, id) {
+        var a = sk.hist ? sk.hist[id] : null;
+        if (!a || !a.length) return null;
+        var lim = Date.now() - SKILL_WIN_MS, s = 0, n = 0;
+        for (var i = 0; i < a.length; i++) {
+            if (a[i] && a[i][0] >= lim && a[i][1] != null && isFinite(a[i][1])) { s += a[i][1]; n++; }
+        }
+        return n ? { e: s / n, n: n } : null;
+    }
     function updateSkill(sources, observedTemp) {
         var sk = loadSkill();
         var now = Math.floor(Date.now() / 1000);
+        var nowMs = Date.now(), lim = nowMs - SKILL_WIN_MS;
         var i;
         if (observedTemp != null && isFinite(observedTemp)) {
-            var rest = [];
+            var rest = [], touched = {};
             for (i = 0; i < sk.pend.length; i++) {
                 var p = sk.pend[i];
                 if (!p || p.t == null || p.v == null) continue;
                 if (Math.abs(p.t - now) <= 2700) {          // ±45 min → vyhodnoť proti „teď"
-                    var err = Math.abs(p.v - observedTemp);
-                    var m = sk.mae[p.id] || { e: null, n: 0 };
-                    m.e = (m.e == null) ? err : Math.round((0.85 * m.e + 0.15 * err) * 100) / 100;
-                    m.n = Math.min((m.n || 0) + 1, 999);
-                    sk.mae[p.id] = m;
+                    var err = Math.round(Math.abs(p.v - observedTemp) * 100) / 100;
+                    if (!sk.hist[p.id]) sk.hist[p.id] = [];
+                    sk.hist[p.id].push([nowMs, err]);
+                    touched[p.id] = 1;
                 } else if (p.t > now) rest.push(p);         // budoucí nech, prošlé zahoď
             }
             sk.pend = rest;
+            // prořez logu: jen okno 1 měsíc + strop na počet záznamů
+            for (var id in touched) {
+                var a = sk.hist[id].filter(function (r) { return r && r[0] >= lim; });
+                if (a.length > SKILL_MAX_PER_MODEL) a = a.slice(a.length - SKILL_MAX_PER_MODEL);
+                sk.hist[id] = a;
+            }
         }
         // nové predikce (jen když pro daný zdroj+čas ještě nejsou)
         var have = {}, horizons = [3, 6, 12, 24];
@@ -556,16 +580,17 @@
         saveSkill(sk);
         return sk;
     }
-    function skillRef(sk) {   // referenční chyba = průměr modelů s dost dlouhou historií
-        var sum = 0, n = 0, k;
-        for (k in sk.mae) {
-            if (sk.mae[k] && sk.mae[k].n >= 3 && sk.mae[k].e != null) { sum += sk.mae[k].e; n++; }
+    function skillRef(sk) {   // referenční chyba = průměr modelů s dost dlouhou historií (okno 1 měsíc)
+        var sum = 0, n = 0, k, m;
+        for (k in sk.hist) {
+            m = maeOf(sk, k);
+            if (m && m.n >= 3) { sum += m.e; n++; }
         }
         return n ? { ref: sum / n, models: n } : null;
     }
     function skillFactor(sk, ref, id) {
-        var m = sk.mae[id];
-        if (!ref || !m || m.n < 3 || m.e == null || ref.ref <= 0.05) return 1;
+        var m = maeOf(sk, id);
+        if (!ref || !m || m.n < 3 || ref.ref <= 0.05) return 1;
         return Math.max(0.6, Math.min(1.5, ref.ref / Math.max(m.e, 0.05)));
     }
 
@@ -661,7 +686,7 @@
             };
             data.spreadTemp = tSt ? { min: tSt.min, max: tSt.max, n: tSt.n } : null;
             data.perSource = curS.map(function (x) {
-                return { id: x.id, label: x.label, w: x.w, temp: x.cur.t, skill: (x.skill != null ? x.skill : null) };
+                return { id: x.id, label: x.label, w: x.w, temp: x.cur.t, skill: (x.skill != null ? x.skill : null), skillN: (x.skillN || 0) };
             });
         }
 
@@ -831,59 +856,67 @@
     }
 
     // ---- Počasí v místě klepnutí do mapy ---------------------------------------------
-    // Vlastní překryv nad mapou (vzor js/cadastre-area.js): počasí se na dobu výběru
-    // schová, klepnutí se převede přes window.agScreenToLatLng, které zpětně vyruší
-    // otočení mapy podle azimutu — bez toho by místo padlo jinam, než se klepne.
+    // ŽÁDNÝ celoplošný překryv — ten dřív mapu zablokoval, takže nešla posunout ani
+    // přiblížit a vzdálenější místo vůbec nešlo vybrat. Teď zůstává mapa plně
+    // ovladatelná (posun, zoom) a výběr je normální klepnutí: Leafletí 'click' po
+    // tahu prstem nevystřelí, takže se posouvání s výběrem neplete. Souřadnice se
+    // převádí přes window.agScreenToLatLng (vyruší otočení mapy podle azimutu),
+    // fallback je e.latlng.
     function pickOnMap() {
         var m = null; try { m = (typeof map !== 'undefined' && map) ? map : null; } catch (e) {}
         var vm = null; try { vm = viewMode; } catch (e) {}
         if (!m) { alert('Mapa zatím neběží — spusť nejdřív vyhledávání.'); return; }
         if (vm === 'ar') { alert('Přepni na mapu nebo dělené zobrazení, pak vyber místo klepnutím.'); return; }
 
-        var ov = document.getElementById('ag-wx-pick');
-        if (!ov) {
-            ov = document.createElement('div');
-            ov.id = 'ag-wx-pick';
-            ov.style.cssText = 'position:fixed;inset:0;z-index:100001;display:none;cursor:crosshair;';
-            ov.innerHTML = '<div id="ag-wx-pick-hint" style="position:absolute;left:50%;transform:translateX(-50%);'
-                + 'bottom:max(18px,env(safe-area-inset-bottom));display:flex;gap:10px;align-items:center;'
-                + 'background:rgba(8,11,15,0.88);border:1px solid rgba(255,255,255,0.16);border-radius:999px;'
-                + 'padding:10px 14px;color:#fff;font-size:13px;white-space:nowrap;">'
-                + '<span>Klepni do mapy — ukážu počasí v tom místě</span>'
-                + '<button type="button" id="ag-wx-pick-x" style="border:none;border-radius:999px;padding:6px 12px;'
-                + 'background:rgba(255,255,255,0.14);color:#fff;font-size:13px;cursor:pointer;">Zrušit</button></div>';
-            document.body.appendChild(ov);
-            ov.addEventListener('click', function (e) {
-                if (e.target.closest && e.target.closest('#ag-wx-pick-hint')) return;
-                var ll = null;
-                try { if (typeof window.agScreenToLatLng === 'function') ll = window.agScreenToLatLng(e.clientX, e.clientY); } catch (err) {}
-                if (!ll) {
-                    try {
-                        var el = document.getElementById('map'), r = el.getBoundingClientRect();
-                        ll = m.containerPointToLatLng([e.clientX - r.left, e.clientY - r.top]);
-                    } catch (err2) {}
-                }
-                endPick();
-                if (!ll || !isFinite(ll.lat) || !isFinite(ll.lng)) return;
-                _place = { name: 'Místo na mapě · ' + ll.lat.toFixed(4) + ', ' + ll.lng.toFixed(4), lat: ll.lat, lon: ll.lng };
-                var inp = byId('ag-wx-search'); if (inp) inp.value = '';
-                hideResults();
-                loadWeather(true);
-            });
-            document.getElementById('ag-wx-pick-x').addEventListener('click', function (e) { e.stopPropagation(); endPick(); });
-        }
+        // lišta se staví vždy čerstvá, ať jsou posluchače navázané na aktuální handler
+        var old = document.getElementById('ag-wx-pick');
+        if (old) old.remove();
+        var bar = document.createElement('div');
+        bar.id = 'ag-wx-pick';
+        bar.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);z-index:100001;'
+            + 'bottom:max(18px,env(safe-area-inset-bottom));display:flex;gap:10px;align-items:center;'
+            + 'background:rgba(8,11,15,0.88);border:1px solid rgba(255,255,255,0.16);border-radius:999px;'
+            + 'padding:10px 14px;color:#fff;font-size:13px;white-space:nowrap;box-shadow:0 6px 24px rgba(0,0,0,0.4);';
+        bar.innerHTML = '<span>Posuň si mapu a <b>klepni na místo</b></span>'
+            + '<button type="button" id="ag-wx-pick-x" style="border:none;border-radius:999px;padding:6px 12px;'
+            + 'background:rgba(255,255,255,0.14);color:#fff;font-size:13px;cursor:pointer;">Zrušit</button>';
+        document.body.appendChild(bar);
+
         function endPick() {
-            ov.style.display = 'none';
+            try { m.off('click', onMapClick); } catch (e) {}
+            bar.remove();
             if (_ui) _ui.classList.add('on');
         }
+        function onMapClick(e) {
+            var ll = null;
+            try {
+                if (e.originalEvent && typeof window.agScreenToLatLng === 'function') {
+                    ll = window.agScreenToLatLng(e.originalEvent.clientX, e.originalEvent.clientY);
+                }
+            } catch (err) {}
+            if (!ll && e.latlng) ll = e.latlng;
+            endPick();
+            if (!ll || !isFinite(ll.lat) || !isFinite(ll.lng)) return;
+            _place = { name: 'Místo na mapě · ' + ll.lat.toFixed(4) + ', ' + ll.lng.toFixed(4), lat: ll.lat, lon: ll.lng };
+            var inp = byId('ag-wx-search'); if (inp) inp.value = '';
+            hideResults();
+            loadWeather(true);
+        }
+        bar.querySelector('#ag-wx-pick-x').addEventListener('click', endPick);
         if (_ui) _ui.classList.remove('on');    // uhni, ať je vidět mapa
-        ov.style.display = 'block';
+        m.on('click', onMapClick);
     }
 
-    // ---- srážkový radar (RainViewer + mini-mapa Leaflet) --------------------------------
+    // ---- srážkový radar (RainViewer + mapa Leaflet) --------------------------------------
     // Animace posledních ~70 minut radaru + 30 min nowcast: je vidět, odkud a jak
     // rychle se srážkové mraky ženou. Bez klíče; když RainViewer/Leaflet není, karta
-    // se prostě schová. Mapa je záměrně bez ovládání — jen se dívá, střed = místo předpovědi.
+    // se prostě schová.
+    // MAPA JE PLNĚ OVLADATELNÁ (posun, přiblížení dvěma prsty, dvojklik, tlačítka +/−) —
+    // dřív byla zamčená a nešlo se podívat, co se blíží od západu za hranicí výřezu.
+    // Kolečko myši je ZÁMĚRNĚ vypnuté: karta je uvnitř rolovacího přehledu počasí a
+    // zoom kolečkem by kradl rolování stránky (na mobilu se stejně používají prsty).
+    // Výřez, který si uživatel nastaví, zůstává i po obnovení dat — setView se dělá
+    // jen při prvním zobrazení a při změně místa předpovědi.
     function radarCard() { return byId('ag-wx-radar-card'); }
     function hideRadar() { var c = radarCard(); if (c) c.style.display = 'none'; }
     function setupRadar(pack) {
@@ -894,16 +927,33 @@
         try {
             if (!_radar.map) {
                 _radar.map = L.map(host, {
-                    zoomControl: false, attributionControl: false, dragging: false,
-                    scrollWheelZoom: false, touchZoom: false, doubleClickZoom: false,
-                    boxZoom: false, keyboard: false, tap: false
+                    zoomControl: false, attributionControl: false,
+                    dragging: true, touchZoom: true, doubleClickZoom: true, boxZoom: false,
+                    scrollWheelZoom: false, keyboard: false,
+                    minZoom: 4, maxZoom: 11, zoomSnap: 0.5, inertia: true
                 });
-                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 12, opacity: 0.8 }).addTo(_radar.map);
+                // podkladová mapa je záměrně potlačená (CSS filtr .wx-radar .leaflet-tile-pane),
+                // ať jsou srážky čitelné a přesto bylo poznat města a hranice
+                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 11, crossOrigin: true, className: 'wx-radar-base'
+                }).addTo(_radar.map);
+                // tlačítko „na moje místo" zvýrazni, jen když je výřez odjetý jinam
+                _radar.map.on('zoomend moveend', function () {
+                    var b = byId('ag-wx-radar-center');
+                    if (b && _radar.center) {
+                        var far = _radar.map.getCenter().distanceTo(L.latLng(_radar.center)) > 3000;
+                        b.classList.toggle('on', far);
+                    }
+                });
             }
-            _radar.map.setView([pack.lat, pack.lon], 7);
+            var moved = !_radar.center || Math.abs(_radar.center[0] - pack.lat) > 0.002 || Math.abs(_radar.center[1] - pack.lon) > 0.002;
+            _radar.center = [pack.lat, pack.lon];
+            if (moved) _radar.map.setView(_radar.center, 7);      // jinak nech výřez, jak si ho uživatel nastavil
             if (!_radar.marker) {
-                _radar.marker = L.circleMarker([pack.lat, pack.lon], { radius: 5, color: '#fff', weight: 2, fillColor: '#2f9e74', fillOpacity: 1 }).addTo(_radar.map);
-            } else _radar.marker.setLatLng([pack.lat, pack.lon]);
+                _radar.marker = L.circleMarker(_radar.center, {
+                    radius: 6, color: '#fff', weight: 2.5, fillColor: '#2f9e74', fillOpacity: 1
+                }).addTo(_radar.map);
+            } else _radar.marker.setLatLng(_radar.center);
             // overlay je právě viditelný → mapa si musí přepočítat rozměr
             setTimeout(function () { try { _radar.map.invalidateSize(); } catch (e) {} }, 250);
         } catch (e) { hideRadar(); return; }
@@ -917,35 +967,54 @@
             var past = (j && j.radar && j.radar.past) ? j.radar.past : [];
             var cast = (j && j.radar && j.radar.nowcast) ? j.radar.nowcast : [];
             var tHost = (j && j.host) ? j.host : 'https://tilecache.rainviewer.com';
-            var frames = past.slice(-7).concat(cast);
+            var keepPast = past.slice(-7);
+            var frames = keepPast.concat(cast);
             if (!frames.length || !_radar.map) { hideRadar(); return; }
             _radar.layers.forEach(function (l) { try { _radar.map.removeLayer(l); } catch (e) {} });
             _radar.layers = frames.map(function (f) {
-                // /256/{z}/{x}/{y}/<schéma barev 4>/<1_1 = vyhlazení+sníh>.png
-                return L.tileLayer(tHost + f.path + '/256/{z}/{x}/{y}/4/1_1.png', { opacity: 0, maxZoom: 12 }).addTo(_radar.map);
+                // /512/{z}/{x}/{y}/<schéma barev 4>/<1_1 = vyhlazení + sníh>.png
+                // 512px dlaždice = ostřejší obraz na retina displejích než 256px
+                return L.tileLayer(tHost + f.path + '/512/{z}/{x}/{y}/4/1_1.png', {
+                    opacity: 0, maxZoom: 11, tileSize: 512, zoomOffset: -1, crossOrigin: true, className: 'wx-radar-tiles'
+                }).addTo(_radar.map);
             });
             _radar.frames = frames;
-            showRadarFrame(Math.max(0, Math.min(frames.length, past.slice(-7).length) - 1));   // start na „teď"
+            _radar.nowIdx = Math.max(0, keepPast.length - 1);
+            var seek = byId('ag-wx-radar-seek');
+            if (seek) { seek.max = String(frames.length - 1); seek.value = String(_radar.nowIdx); }
+            showRadarFrame(_radar.nowIdx);       // start na „teď"
             startRadarAnim();
         }, function () { _radar.lastFetch = 0; if (!_radar.frames.length) hideRadar(); });
     }
     function showRadarFrame(i) {
         if (!_radar.frames.length) return;
-        for (var k = 0; k < _radar.layers.length; k++) _radar.layers[k].setOpacity(k === i ? 0.72 : 0);
+        if (i < 0) i = 0;
+        if (i > _radar.frames.length - 1) i = _radar.frames.length - 1;
+        for (var k = 0; k < _radar.layers.length; k++) _radar.layers[k].setOpacity(k === i ? 0.8 : 0);
         _radar.idx = i;
         var f = _radar.frames[i];
+        var seek = byId('ag-wx-radar-seek');
+        if (seek && seek.value !== String(i)) seek.value = String(i);
         var lab = byId('ag-wx-radar-lab');
         if (lab && f && f.time) {
-            var future = f.time * 1000 > Date.now() + 60000;
-            lab.textContent = fmtHM(f.time, (_cur && _cur.data) ? _cur.data.off : -new Date().getTimezoneOffset() * 60) + (future ? ' · výhled' : '');
+            var off = (_cur && _cur.data) ? _cur.data.off : -new Date().getTimezoneOffset() * 60;
+            var mins = Math.round((f.time * 1000 - Date.now()) / 60000);
+            var rel = (mins >= 2) ? 'za ' + mins + ' min · výhled'
+                : (mins <= -2 ? 'před ' + (-mins) + ' min' : 'teď');
+            lab.innerHTML = '<b>' + fmtHM(f.time, off) + '</b><span>' + rel + '</span>';
+            lab.classList.toggle('future', mins >= 2);
         }
     }
     function startRadarAnim() {
         if (_radar.timer) return;
         _radar.timer = setInterval(function () {
             if (!_open || !_radar.playing || !_radar.frames.length) return;
-            showRadarFrame((_radar.idx + 1) % _radar.frames.length);
-        }, 650);
+            // na konci smyčky krátká pauza, ať je vidět, kde animace končí
+            var next = (_radar.idx + 1) % _radar.frames.length;
+            if (next === 0) { _radar.hold = (_radar.hold || 0) + 1; if (_radar.hold < 3) return; }
+            _radar.hold = 0;
+            showRadarFrame(next);
+        }, 620);
     }
 
     // ---- UI kostra ------------------------------------------------------------------
@@ -974,13 +1043,25 @@
                 '</div>' +
                 '<div class="wx-card"><div class="wx-card-h">Hodinová předpověď</div><div class="wx-hours" id="ag-wx-hours"></div></div>' +
                 '<div class="wx-card" id="ag-wx-radar-card" style="display:none">' +
-                    '<div class="wx-card-h">Srážkový radar<span class="wx-radar-t" id="ag-wx-radar-lab"></span></div>' +
-                    '<div id="ag-wx-radar" class="wx-radar"></div>' +
+                    '<div class="wx-card-h">Srážkový radar</div>' +
+                    '<div id="ag-wx-radar" class="wx-radar">' +
+                        '<div class="wx-radar-chip" id="ag-wx-radar-lab"></div>' +
+                        '<div class="wx-radar-ctrl">' +
+                            '<button type="button" id="ag-wx-radar-zin" aria-label="Přiblížit">+</button>' +
+                            '<button type="button" id="ag-wx-radar-zout" aria-label="Oddálit">−</button>' +
+                            '<button type="button" id="ag-wx-radar-center" title="Zpět na místo předpovědi" aria-label="Vycentrovat na místo předpovědi">⌖</button>' +
+                        '</div>' +
+                        '<div class="wx-radar-scale" aria-hidden="true">' +
+                            '<span class="wx-radar-scale-bar"></span>' +
+                            '<span class="wx-radar-scale-lab"><span>slabé</span><span>silné</span></span>' +
+                        '</div>' +
+                    '</div>' +
                     '<div class="wx-radar-foot">' +
                         '<button type="button" id="ag-wx-radar-play" class="wx-radar-btn" aria-label="Přehrát / pozastavit">⏸</button>' +
-                        '<span class="wx-radar-hint">pohyb srážkových mraků · ~70 min zpět + 30 min výhled</span>' +
-                        '<span class="wx-radar-att">RainViewer · OSM</span>' +
+                        '<input type="range" id="ag-wx-radar-seek" class="wx-radar-seek" min="0" max="0" step="1" value="0" aria-label="Čas snímku radaru">' +
                     '</div>' +
+                    '<div class="wx-radar-sub"><span>−70 min</span><span class="wx-radar-hint">pohyb srážkových mraků — mapou jde hýbat i přibližovat</span><span>+30 min</span></div>' +
+                    '<div class="wx-radar-att">Radar: RainViewer · mapa: OpenStreetMap</div>' +
                 '</div>' +
                 '<div class="wx-card"><div class="wx-card-h">7denní předpověď</div><div id="ag-wx-days"></div></div>' +
                 '<div class="wx-grid" id="ag-wx-grid"></div>' +
@@ -1002,6 +1083,17 @@
         byId('ag-wx-radar-play').addEventListener('click', function () {
             _radar.playing = !_radar.playing;
             this.textContent = _radar.playing ? '⏸' : '▶';
+        });
+        byId('ag-wx-radar-center').addEventListener('click', function () {
+            try { if (_radar.map && _radar.center) _radar.map.setView(_radar.center, 7); } catch (e) {}
+        });
+        byId('ag-wx-radar-zin').addEventListener('click', function () { try { _radar.map.zoomIn(1); } catch (e) {} });
+        byId('ag-wx-radar-zout').addEventListener('click', function () { try { _radar.map.zoomOut(1); } catch (e) {} });
+        // tažení posuvníku = ruční listování snímky (animace se pozastaví)
+        byId('ag-wx-radar-seek').addEventListener('input', function () {
+            _radar.playing = false;
+            var pb = byId('ag-wx-radar-play'); if (pb) pb.textContent = '▶';
+            showRadarFrame(parseInt(this.value, 10) || 0);
         });
         byId('ag-wx-myloc').addEventListener('click', function () {
             _place = null;
@@ -1194,7 +1286,7 @@
         box.innerHTML = '';
         var ps = (pack.data && pack.data.perSource) ? pack.data.perSource : [];
         if (!ps.length) { box.appendChild(el('div', 'wx-none', 'Seznam zdrojů není k dispozici.')); return; }
-        box.appendChild(el('div', 'wx-src-h', 'Vážený průměr ' + ps.length + ' zdrojů. „Trefnost“ = průměrná chyba předpovědí tohoto modelu na 3–24 h dopředu proti pozdější skutečnosti — appka se ji učí používáním a trefnějším modelům zvedá váhu.'));
+        box.appendChild(el('div', 'wx-src-h', 'Vážený průměr ' + ps.length + ' zdrojů. „Trefnost“ = průměrná chyba předpovědí tohoto modelu na 3–24 h dopředu proti pozdější skutečnosti, počítaná za celý poslední měsíc — appka se ji učí používáním a trefnějším modelům zvedá váhu.'));
         var sorted = ps.slice().sort(function (a, b) { return (b.w || 0) - (a.w || 0); });
         for (var i = 0; i < sorted.length; i++) {
             var s = sorted[i];
@@ -1379,12 +1471,12 @@
         } else {
             tq.appendChild(el('div', 'wx-tile-sub', 'K dispozici je jen jeden zdroj — rozptyl nelze určit.'));
         }
-        // spolehlivost podle historie: jak se modely v posledních dnech trefovaly
+        // spolehlivost podle historie: jak se modely trefovaly za poslední měsíc
         if (data.skillInfo && data.skillInfo.ref != null) {
-            tq.appendChild(el('div', 'wx-tile-sub', 'Podle historie se předpovědi na 3–24 h trefují v průměru na ±'
+            tq.appendChild(el('div', 'wx-tile-sub', 'Za poslední měsíc se předpovědi na 3–24 h trefovaly v průměru na ±'
                 + nf(data.skillInfo.ref, 1) + ' °C (' + data.skillInfo.models + ' modelů; trefnějším roste váha). Detail zdrojů je dole.'));
         } else {
-            tq.appendChild(el('div', 'wx-tile-sub', 'Trefnost podle historie se teprve učí — appka srovnává starší předpovědi se skutečností při každém otevření.'));
+            tq.appendChild(el('div', 'wx-tile-sub', 'Trefnost podle historie se teprve učí — appka srovnává starší předpovědi se skutečností při každém otevření a pamatuje si měsíc zpětně.'));
         }
     }
 
@@ -1446,11 +1538,13 @@
                 else showEmpty('Předpověď se nepodařilo stáhnout (jsi offline?) a v paměti nejsou žádná starší data pro toto místo.');
                 return;
             }
-            // trefnost podle historie: uprav váhy PŘED kombinací (a poznač trefnost pro výpis)
+            // trefnost podle historie (okno 1 měsíc): uprav váhy PŘED kombinací
             var sk = loadSkill();
             var ref = skillRef(sk);
             sources.forEach(function (s) {
-                s.skill = (sk.mae[s.id] && sk.mae[s.id].n >= 3) ? sk.mae[s.id].e : null;
+                var m = maeOf(sk, s.id);
+                s.skill = (m && m.n >= 3) ? Math.round(m.e * 10) / 10 : null;
+                s.skillN = (m ? m.n : 0);
                 s.w = s.w * skillFactor(sk, ref, s.id);
             });
             var prevHist = (cacheFallback && cacheFallback.data && cacheFallback.data.pressHist) ? cacheFallback.data.pressHist : [];
