@@ -34,9 +34,22 @@
     var CACHE_KEY = 'agDmrElev_v1';
     var CACHE_MAX = 6000;          // strop položek v cache (localStorage)
 
+    // BATERIE: odečty si vyžaduje AR render smyčka (60×/s). Když dotaz selže, NESMÍ se
+    // buňka zařadit hned v příštím snímku znovu — jinak se při slabém signálu drží
+    // trvale 3 padající requesty a rádio se nikdy nevrátí do klidu (= největší žrout).
+    // Proto per-buňka exponenciální odklad + globální pauza po sérii selhání.
+    var CELL_RETRY_MS = 5000;      // 1. odklad buňky; dál ×3 (5 s, 15 s, 45 s…)
+    var CELL_RETRY_MAX = 300000;   // strop odkladu jedné buňky
+    var CELL_TRIES = 4;            // po tolika selháních buňku vzdáme (do obnovy sítě)
+    var NET_FAIL_LIMIT = 6;        // tolik selhání za sebou = síť je mimo
+    var NET_PAUSE_MS = 60000;      // …pak na minutu vůbec nic nezkoušet
+
     var _on = false;
     var _elev = {};                // cellKey -> výška (m Bpv) | null (NoData)
     var _requested = {};           // cellKey -> true (právě se stahuje / staženo)
+    var _failCount = {};           // cellKey -> počet selhání za sebou
+    var _failUntil = {};           // cellKey -> do kdy ji nezkoušet (ms epoch)
+    var _netFails = 0, _netPauseUntil = 0;
     var _queue = [];
     var _active = 0;
     var _obsElev = null, _obsLat = null, _obsLng = null;
@@ -106,12 +119,25 @@
     // --------------------------------------------------------------------------------
     // Fronta odečtů (identify) s limitem souběhu
     // --------------------------------------------------------------------------------
+    // Síť je mimo? (offline, nebo běží pauza po sérii selhání) — pak nemá smysl budit rádio.
+    function netDown() {
+        if (navigator.onLine === false) return true;
+        if (_netPauseUntil && Date.now() < _netPauseUntil) return true;
+        return false;
+    }
     function enqueue(key) {
         if (_requested[key]) return;
+        if (netDown()) return;
+        if ((_failCount[key] || 0) >= CELL_TRIES) return;               // vzdáno do obnovy sítě
+        if (_failUntil[key] && Date.now() < _failUntil[key]) return;    // ještě běží odklad
         _requested[key] = true;
         _queue.push(key);
         pump();
     }
+    // Vrátil se signál → zapomeň odklady, ať je terén hned k dispozici.
+    window.addEventListener('online', function () {
+        _netFails = 0; _netPauseUntil = 0; _failCount = {}; _failUntil = {};
+    });
     function pump() {
         while (_active < MAX_CONCURRENT && _queue.length) {
             _active++;
@@ -122,9 +148,16 @@
         var c = cellCenter(key);
         identifyElev(c.lat, c.lng).then(function (v) {
             _elev[key] = v;
+            _netFails = 0; delete _failCount[key]; delete _failUntil[key];
             _active--; schedulePersist(); updateStatus(); pump();
         }).catch(function () {
-            _requested[key] = false;     // dovol pozdější opakování
+            // Opakování POVOLIT, ale až po odkladu (jinak by ji render smyčka zařadila
+            // hned v příštím snímku a rádio by jelo nepřerušovaně — viz komentář výše).
+            var n = (_failCount[key] || 0) + 1;
+            _failCount[key] = n;
+            _failUntil[key] = Date.now() + Math.min(CELL_RETRY_MS * Math.pow(3, n - 1), CELL_RETRY_MAX);
+            _requested[key] = false;
+            if (++_netFails >= NET_FAIL_LIMIT) { _netPauseUntil = Date.now() + NET_PAUSE_MS; _netFails = 0; }
             _active--; pump();
         });
     }

@@ -5,7 +5,8 @@
 //   • závady vč. stavu (localStorage '<pid>_zavady' z js/zavady.js),
 //   • počasí (poslední stažená data js/pocasi.js, klíč 'agWeatherCache_v1'),
 //   • ušlá stopa (js/track-log.js, klíč '<pid>_agTrackLog'),
-//   • zápisníky založené v den (js/zapisnik.js, klíč '<pid>_agZapisniky12').
+//   • zápisníky založené v den (js/zapisnik.js, klíč '<pid>_agZapisniky12'),
+//   • hlasové poznámky (js/hlasovky.js přes window.AGHlasovky.listRange — bez blobů).
 // Výstup: fullscreen modal s volbou dne (dnes / včera / datum) + „Sdílet"
 // (navigator.share, fallback kopie do schránky) + „Uložit PDF" (tiskové okno
 // s @media print — vzor printProtocol v js/zavady.js).
@@ -200,6 +201,13 @@
         if (!n || len < 1) return null;
         return { len: len, from: first, to: last };
     }
+    // HLASOVKY: hlasové poznámky s georazítkem (js/hlasovky.js, IndexedDB — async)
+    function collectHlasovky(r) {
+        if (!(window.AGHlasovky && typeof AGHlasovky.listRange === 'function')) return Promise.resolve(null);
+        return AGHlasovky.listRange(pid(), r.from, r.to).then(function (list) {
+            return (Array.isArray(list) && list.length) ? { items: list } : null;
+        })['catch'](function () { return null; });
+    }
     // ZÁPISNÍKY: založené ve zvolený den (čas = razítko v id) + poznámky z řádků
     function collectZapisnik(r) {
         var raw = null;
@@ -227,8 +235,8 @@
     // model = { header:{...}, sections:[{title, sub, rows:[řetězce], empty}] }
     function buildModel(done) {
         var r = dayRange();
-        Promise.all([collectBody(r), collectDochazka(r)]).then(function (res) {
-            var body = res[0], doch = res[1];
+        Promise.all([collectBody(r), collectDochazka(r), collectHlasovky(r)]).then(function (res) {
+            var body = res[0], doch = res[1], hlas = res[2];
             var m = { header: { proj: projName(), day: fmtDay(r.date), gen: new Date() }, sections: [] };
             try {
                 var u = window.AGUcty, f = u && u.getFirm && u.getFirm(), cu = u && u.currentUser && u.currentUser();
@@ -293,6 +301,16 @@
             // STOPA
             var t = collectTrack(r);
             if (t) m.sections.push({ title: 'Ušlá stopa', sub: '', rows: ['Zaznamenáno ' + fmtLen(t.len) + ' (' + fmtT(t.from) + '–' + fmtT(t.to) + ')'], empty: '' });
+
+            // HLASOVKY
+            if (hlas) {
+                var sh = { title: 'Hlasové poznámky', sub: hlas.items.length + ' hlasovek', rows: [], empty: '' };
+                hlas.items.forEach(function (n) {
+                    var mm = Math.floor(n.dur / 60) + ':' + pad2(Math.round(n.dur) % 60);
+                    sh.rows.push(fmtT(n.ts) + ' — ' + mm + ' min' + (n.ptName ? ' — u bodu ' + n.ptName : '') + (n.note ? ' — ' + n.note : ''));
+                });
+                m.sections.push(sh);
+            }
 
             // ZÁPISNÍKY
             var zb = collectZapisnik(r);

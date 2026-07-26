@@ -130,7 +130,12 @@
         return null;
     }
     function restoreTile(tile) {
-        if (tile.classList.contains('ag-ft-tile')) { tile.remove(); return; }   // injektovanou vrátí field-tools
+        if (tile.classList.contains('ag-ft-tile')) {
+            // injektovanou vrátí field-tools — hned, ať mřížka neproblikává čekáním na tick
+            tile.remove();
+            try { if (typeof window.agFtSyncTiles === 'function') window.agFtSyncTiles(); } catch (e) {}
+            return;
+        }
         var ph = tile._agTsPh;
         if (ph && ph.isConnected) { ph.parentNode.insertBefore(tile, ph); ph.remove(); tile._agTsPh = null; }
     }
@@ -149,10 +154,14 @@
             head.id = 'ag-ts-head'; head.className = 'tool-cat';
         }
         head.textContent = '◆ Pro tuto práci · ' + PROFILES[prof].label;
-        // sekce patří ZA blok ★ Oblíbené (tools-plus drží oblíbené na úplném začátku)
-        var favHead = document.getElementById('ag-fav-head');
+        // sekce patří ZA blok „⚡ Teď se hodí" (usadit-ar drží úplný začátek mřížky)
+        // a ZA blok ★ Oblíbené (tools-plus) — kdo by chtěl stejné místo, přetahoval by
+        // se s nimi každý tick a mřížka by přeskakovala
         var after = null;
-        if (favHead) {
+        var uaBox = document.getElementById('ag-ua-now');
+        if (uaBox && uaBox.parentNode === grid) after = uaBox;
+        var favHead = document.getElementById('ag-fav-head');
+        if (favHead && favHead.parentNode === grid) {
             after = favHead;
             while (after.nextSibling && after.nextSibling.nodeType === 1 && after.nextSibling.classList
                 && after.nextSibling.classList.contains('tool-tile') && !after.nextSibling.getAttribute('data-ag-ts')) {

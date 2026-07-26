@@ -52,9 +52,15 @@
     // 1a) OBAL navigator.geolocation — sledování watchů + uspání/probuzení GPS
     // =====================================================================
     var gpsLastFix = 0;
-    var _watches = [];        // {success, error, opts, id, active}
+    var _watches = [];        // {success, error, opts, id, active, key}
     var _gpsPaused = false;
     var _natWatch = null, _natClear = null;   // PŮVODNÍ (nativní) funkce — drží se zvlášť od patche
+    // Volajícímu vracíme VLASTNÍ stabilní handle, ne nativní ID. Nativní ID se totiž
+    // při každém uspání/probuzení mění (_startOne si vyžádá nový watch), takže by
+    // clearWatch(staréID) nic nezrušil a GPS by jela na plný výkon až do zabití appky.
+    // Offset drží handle kladný a mimo dosah nativních ID (ta jsou malá čísla).
+    var HANDLE_BASE = 1000000000;
+    var _wSeq = 0;
 
     function _startOne(w) {
         if (!_natWatch) return;
@@ -75,12 +81,24 @@
             _natClear = geo.clearWatch ? geo.clearWatch.bind(geo) : function () {};
 
             geo.watchPosition = function (success, error, opts) {
-                var w = { success: success, error: error, opts: opts, id: null, active: false };
+                var w = { success: success, error: error, opts: opts, id: null, active: false, key: ++_wSeq };
                 _watches.push(w);
                 if (!_gpsPaused) _startOne(w);
-                return w.id;
+                // POZOR: vracíme stabilní vlastní handle. Dřív se vracelo w.id, které je
+                // za uspání null (volající pak neměl co zrušit) a po probuzení už neplatí.
+                return HANDLE_BASE + w.key;
             };
             geo.clearWatch = function (id) {
+                if (typeof id === 'number' && id >= HANDLE_BASE) {
+                    var key = id - HANDLE_BASE;
+                    _watches = _watches.filter(function (w) {
+                        if (w.key !== key) return true;
+                        if (w.active && w.id != null) { try { _natClear(w.id); } catch (e) {} }
+                        return false;
+                    });
+                    return;
+                }
+                // nativní ID (watch vzniklý ještě před nasazením patche) — nech projít
                 _watches = _watches.filter(function (w) { return w.id !== id; });
                 try { return _natClear(id); } catch (e) {}
             };
@@ -103,7 +121,12 @@
     // =====================================================================
     // 1b) OBAL deviceorientation listenerů — uspání/probuzení kompasu
     // =====================================================================
-    var ORIENT = { deviceorientation: 1, deviceorientationabsolute: 1 };
+    // devicemotion (gyro/akcelerometr) je NEJDRAŽŠÍ senzor z téhle trojice a js/ar-fusion.js
+    // ho drží připojený od startu appky celý den, i když se fúze mimo AR vůbec nepočítá.
+    // Bez něj v seznamu se uspávalo všechno kromě gyra. Moduly, které gyro potřebují
+    // (brutální GPS, kalibrace kroku), mají své panely mimo seznam „heavy", takže jim to
+    // měření nevypne.
+    var ORIENT = { deviceorientation: 1, deviceorientationabsolute: 1, devicemotion: 1 };
     var _orient = [];          // {type, fn, opts}
     var _orientPaused = false;
 
@@ -179,7 +202,17 @@
 
     // Panely přes/přes část obrazovky, u kterých chceme šetřit baterii (uspat senzory).
     // Vč. doku „Nástroje" a „Nový bod" + menu „Více" (na přání — viz sideMenuOpen).
-    var HEAVY_IDS = ['calc-modal', 'settings-modal', 'about-modal', 'dict-modal', 'manage-modal', 'tools-modal', 'custom-modal-overlay', 'hidden-pts-modal', 'vrstvy-modal'];
+    // POZOR: sem patří JEN panely, které kompas ani GPS nepotřebují. Terénní nástroje
+    // (resekce, protínání, rajón, kalibrace, brutální GPS, vytyčování…) je za svým panelem
+    // aktivně čtou — uspat je by rozbilo měření, proto tady NEJSOU a být nesmí.
+    var HEAVY_IDS = ['calc-modal', 'settings-modal', 'about-modal', 'dict-modal', 'manage-modal', 'tools-modal', 'custom-modal-overlay', 'hidden-pts-modal', 'vrstvy-modal',
+        'ag-dd-modal',      // Deník dne
+        'agch-modal',       // Firemní chat
+        'trash-modal',      // Koš
+        'agfa-modal'        // Firma a účty / administrace
+    ];
+    // Panely, které se otevírají třídou (ne inline stylem)
+    var HEAVY_SEL = '.zpr-overlay.open, .prd-overlay.open, #ag-wx-overlay.on, #ag-pm-ov.open, #ag-zb-ov.open';
     function shownById(id) {
         var el = document.getElementById(id);
         return !!(el && el.style && el.style.display && el.style.display !== 'none');
@@ -189,7 +222,7 @@
         return !!(el && el.classList && el.classList.contains('open'));
     }
     function heavyOpen() {
-        try { if (document.querySelector('.zpr-overlay.open, .prd-overlay.open')) return true; } catch (e) {}
+        try { if (document.querySelector(HEAVY_SEL)) return true; } catch (e) {}
         if (sideMenuOpen()) return true;                  // „Více"
         for (var i = 0; i < HEAVY_IDS.length; i++) if (shownById(HEAVY_IDS[i])) return true;
         return false;
@@ -197,17 +230,48 @@
     // Tachymetrie překryje kameru, ale může chtít živou polohu → vypneme jen kameru.
     function cameraOnlyToolOpen() { return shownById('tachy-modal'); }
 
+    // KAMERA POD PANELEM: appka má ~40 modálů a jejich ruční výčet se vždycky rozešel se
+    // skutečností — kamera pak běžela na plný výkon pod neprůhledným panelem (počasí,
+    // kubatury, brutální GPS…). Místo výčtu se ptáme obrazovky: leží ve čtyřech bodech
+    // něco jiného než #camera-container? Pak obraz nikdo nevidí a stream může spát.
+    // Průhledné překryvy (pointer-events:none) ani panely, které si nástroj při míření
+    // sám schová, se jako zakrytí neprojeví → AR nástroje o kameru nepřijdou.
+    function cameraCoveredProbe() {
+        try {
+            var cc = document.getElementById('camera-container');
+            if (!cc) return false;
+            var r = cc.getBoundingClientRect();
+            if (!r || r.width < 2 || r.height < 2) return false;
+            var pts = [[0.25, 0.3], [0.75, 0.3], [0.25, 0.7], [0.75, 0.7]], tested = 0;
+            for (var i = 0; i < pts.length; i++) {
+                var el = document.elementFromPoint(r.left + r.width * pts[i][0], r.top + r.height * pts[i][1]);
+                if (!el) continue;
+                tested++;
+                if (el === cc || cc.contains(el)) return false;   // aspoň někde je kamera vidět
+            }
+            return tested > 0;
+        } catch (e) { return false; }
+    }
+
     // =====================================================================
     // Stavový automat uspávání (s prodlevami)
     // =====================================================================
+    var _camCovered = false, _camProbe = 0;
     var st = {
         cam: { resting: false, since: 0 },
         compass: { resting: false, since: 0 },
         gps: { resting: false, since: 0 }
     };
-    function manage(s, should, delay, now, pauseFn, resumeFn) {
+    function manage(s, should, delay, now, pauseFn, resumeFn, liveFn) {
         if (should) {
-            if (s.resting) return;
+            if (s.resting) {
+                // Když prostředek někdo mezitím zase nahodil (typicky obnova kamery po
+                // návratu do appky přes ensureCameraAlive), uspíme ho znovu. Dřív se stav
+                // „resting" už nepřehodnocoval → kamera svítila dál za panelem a indikátor
+                // přitom tvrdil „uspáno".
+                if (typeof liveFn === 'function' && liveFn()) { try { pauseFn(); } catch (e) {} }
+                return;
+            }
             if (!s.since) s.since = now;
             if (now - s.since >= delay) { try { pauseFn(); } catch (e) {} s.resting = true; }
         } else {
@@ -220,6 +284,48 @@
         if (st.compass.resting) { try { resumeOrientation(); } catch (e) {} st.compass.resting = false; }
         if (st.cam.resting) { try { resumeCamera(); } catch (e) {} st.cam.resting = false; }
         st.gps.since = st.compass.since = st.cam.since = 0;
+        restoreScreen();
+    }
+
+    // =====================================================================
+    // 1d) DISPLEJ — uvolnění wake locku při nečinnosti
+    // =====================================================================
+    // Displej žere víc než všechny senzory dohromady a wake lock z logika.js se dřív
+    // NIKDY neuvolnil: appka nechala obrazovku svítit, i když telefon ležel zapomenutý
+    // v kapse. Uvolníme ho teprve když uživatel DELŠÍ dobu nesahá na displej A ZÁROVEŇ
+    // se nehýbe (nechodí) — tedy telefon zjevně nikdo nesleduje. Jakýkoli dotyk nebo
+    // návrat do appky lock okamžitě vrátí, takže práce se tím nijak nezkracuje.
+    // Měření (brutální GPS, DGPS, kalibrace kroku) si drží vlastní wake lock → jim to
+    // displej nezhasne.
+    var SCREEN_IDLE_MS = 240000;     // 4 min bez dotyku i bez pohybu
+    var SCREEN_MOVE_M = 3;           // posun, který bereme jako „uživatel jde"
+    var _lastAct = Date.now(), _mLat = null, _mLng = null, _wlReleased = false;
+
+    function noteActivity() {
+        _lastAct = Date.now();
+        if (_wlReleased) {
+            _wlReleased = false;
+            try { if (typeof window.agRequestWakeLock === 'function') window.agRequestWakeLock(); } catch (e) {}
+        }
+    }
+    function restoreScreen() { if (_wlReleased) noteActivity(); }
+    function movedSinceLast() {
+        try {
+            if (typeof userLat !== 'number' || typeof userLng !== 'number' || !isFinite(userLat)) return false;
+            if (_mLat == null) { _mLat = userLat; _mLng = userLng; return false; }
+            var d;
+            if (typeof getDistance === 'function') d = getDistance(_mLat, _mLng, userLat, userLng);
+            else return false;
+            if (d >= SCREEN_MOVE_M) { _mLat = userLat; _mLng = userLng; return true; }
+            return false;
+        } catch (e) { return false; }
+    }
+    function manageScreen(now) {
+        if (typeof window.agWakeLockHeld !== 'function') return;   // logika.js bez podpory → nic neděláme
+        if (movedSinceLast()) _lastAct = now;                       // chůze = uživatel pracuje
+        if (_wlReleased) return;
+        if (now - _lastAct < SCREEN_IDLE_MS) return;
+        try { if (window.agWakeLockHeld()) { window.agReleaseWakeLock(); _wlReleased = true; } } catch (e) {}
     }
 
     function tick() {
@@ -233,13 +339,19 @@
             var camOnly = cameraOnlyToolOpen();
             var mapMode = (typeof viewMode !== 'undefined' && viewMode === 'map');
 
-            manage(st.cam, hidden || heavy || camOnly || mapMode,
-                hidden ? CAM_DELAY_HIDDEN : CAM_DELAY_TOOL, now, pauseCamera, resumeCamera);
+            // hit-test kamery jen občas (3× méně často než tick) — zjišťovat to 2×/s je
+            // zbytečné, uspání má i tak 2,5s prodlevu
+            if (hidden || mapMode) { _camCovered = false; }
+            else if ((_camProbe++ % 3) === 0) { _camCovered = cameraCoveredProbe(); }
+
+            manage(st.cam, hidden || heavy || camOnly || mapMode || _camCovered,
+                hidden ? CAM_DELAY_HIDDEN : CAM_DELAY_TOOL, now, pauseCamera, resumeCamera, cameraLive);
             manage(st.compass, hidden || heavy,
                 hidden ? COMPASS_DELAY_HIDDEN : COMPASS_DELAY_TOOL, now, pauseOrientation, resumeOrientation);
             manage(st.gps, hidden || (heavy && cfg.gpsInTools),
                 hidden ? GPS_DELAY_HIDDEN : GPS_DELAY_TOOL, now, pauseGPS, resumeGPS);
 
+            if (!hidden) manageScreen(now);
             updateIndicator();
         } catch (e) { /* fail-silent */ }
     }
@@ -294,7 +406,8 @@
             if (indTxt) indTxt.textContent = label;
             ind.title = tip + (saving ? '  ·  šetřím baterii (uspáno: '
                 + [st.cam.resting ? 'kamera' : '', st.compass.resting ? 'kompas' : '', st.gps.resting ? 'GPS' : '']
-                    .filter(Boolean).join(', ') + ')' : '');
+                    .filter(Boolean).join(', ') + ')' : '')
+                + (_wlReleased ? '  ·  displej smí zhasnout (delší nečinnost) — dotykem se vrátí' : '');
         } catch (e) {}
     }
 
@@ -353,7 +466,17 @@
             buildIndicator();
             if (!_timer) _timer = setInterval(tick, POLL_MS);
             // okamžitá reakce na přepnutí na pozadí / zpět (jen jednou)
-            if (!_visBound) { document.addEventListener('visibilitychange', tick); _visBound = true; }
+            if (!_visBound) {
+                document.addEventListener('visibilitychange', function () {
+                    if (document.visibilityState === 'visible') noteActivity();   // návrat do appky = práce
+                    tick();
+                });
+                // dotyk kdekoli = uživatel pracuje (drží/vrací wake lock displeje)
+                ['touchstart', 'pointerdown', 'keydown'].forEach(function (t) {
+                    document.addEventListener(t, noteActivity, { passive: true, capture: true });
+                });
+                _visBound = true;
+            }
             tick();
         } catch (e) {}
     }
