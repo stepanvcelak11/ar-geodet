@@ -22,7 +22,7 @@
     var MAX_SEG = 220;           // víc segmentů na snímek nemá smysl kreslit
     var CULL_DEG = 110;          // konec dál od osy pohledu než tohle = za zády
 
-    var _on = false, _raf = null, _svg = null;
+    var _on = false, _raf = null, _svg = null, _idleT = 0;
     var _cache = [], _cacheTs = 0;
     var _lastH = null, _lastP = null, _lastLat = null, _lastLng = null;
 
@@ -86,13 +86,18 @@
     }
 
     function loop() {
-        _raf = requestAnimationFrame(loop);
-        var svg = _svg; if (!svg) return;
+        var svg = _svg;
         var vm = null; try { vm = viewMode; } catch (e) {}
-        if (!_on || !haveUser() || vm === 'map' || !window._arProj) {
-            if (svg.innerHTML) svg.innerHTML = '';
-            _lastH = null; return;
+        // BATERIE: mimo AR (režim Mapa, appka na pozadí, vypnutá stopa) nedrž 60 Hz řetěz
+        // snímků — stačí kontrola 3×/s; v AR jede smyčka dál na každý snímek.
+        if (!svg || !_on || !haveUser() || vm === 'map' || !window._arProj
+            || document.visibilityState !== 'visible') {
+            if (svg && svg.innerHTML) svg.innerHTML = '';
+            _lastH = null; _raf = 0;
+            _idleT = setTimeout(function () { _idleT = 0; if (!_raf) _raf = requestAnimationFrame(loop); }, 300);
+            return;
         }
+        _raf = requestAnimationFrame(loop);
         var pj = window._arProj;
         var heading = null;
         try { heading = (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null; } catch (e) {}
@@ -128,9 +133,10 @@
         svg.innerHTML = html;
     }
 
-    function start() { if (ensureSvg() && !_raf) _raf = requestAnimationFrame(loop); }
+    function start() { if (ensureSvg() && !_raf && !_idleT) _raf = requestAnimationFrame(loop); }
     function stop() {
         if (_raf) { cancelAnimationFrame(_raf); _raf = null; }
+        if (_idleT) { clearTimeout(_idleT); _idleT = 0; }
         if (_svg) _svg.innerHTML = '';
         _lastH = null;
     }

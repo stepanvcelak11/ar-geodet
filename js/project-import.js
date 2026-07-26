@@ -27,7 +27,7 @@
     var _design = null;        // {layers:{name:{on}}, points:[], segs:[], texts:[]}  (lat/lng)
     var _raster = null;        // {url, w, h, cp:[{ix,iy,lat,lng}], opacity, on}
     var _mapGroup = null;      // L.layerGroup
-    var _arSvg = null, _arRAF = null, _arOn = true;
+    var _arSvg = null, _arRAF = null, _arOn = true, _arIdleT = 0;
     var _rasterEl = null;
 
     // ---- pomocné ---------------------------------------------------------------
@@ -197,9 +197,18 @@
         return _arSvg;
     }
     function arLoop() {
+        var svg = _arSvg;
+        // BATERIE: bez načteného návrhu / v režimu Mapa / na pozadí nedrž 60 Hz řetěz snímků,
+        // stačí kontrola 3×/s. Jakmile je co kreslit, smyčka se rozjede zpět na každý snímek.
+        if (!svg || !_arOn || !_design || !haveUser() || !window._arProj
+            || (typeof viewMode !== 'undefined' && viewMode === 'map')
+            || document.visibilityState !== 'visible') {
+            if (svg && svg.childNodes.length) svg.innerHTML = '';
+            _arRAF = null;
+            _arIdleT = setTimeout(function () { _arIdleT = 0; if (!_arRAF) _arRAF = requestAnimationFrame(arLoop); }, 300);
+            return;
+        }
         _arRAF = requestAnimationFrame(arLoop);
-        var svg = _arSvg; if (!svg) return;
-        if (!_arOn || !_design || !haveUser() || (typeof viewMode !== 'undefined' && viewMode === 'map') || !window._arProj) { if (svg.childNodes.length) svg.innerHTML = ''; return; }
         var pj = window._arProj;
         var heading = (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null;
         if (heading == null) { svg.innerHTML = ''; return; }
@@ -221,8 +230,8 @@
         });
         svg.innerHTML = html;
     }
-    function startAr() { if (ensureArSvg() && !_arRAF) _arRAF = requestAnimationFrame(arLoop); }
-    function stopAr() { if (_arRAF) { cancelAnimationFrame(_arRAF); _arRAF = null; } if (_arSvg) _arSvg.innerHTML = ''; }
+    function startAr() { if (ensureArSvg() && !_arRAF && !_arIdleT) _arRAF = requestAnimationFrame(arLoop); }
+    function stopAr() { if (_arRAF) { cancelAnimationFrame(_arRAF); _arRAF = null; } if (_arIdleT) { clearTimeout(_arIdleT); _arIdleT = 0; } if (_arSvg) _arSvg.innerHTML = ''; }
 
     // ---- perzistence -----------------------------------------------------------
     function persist() {
