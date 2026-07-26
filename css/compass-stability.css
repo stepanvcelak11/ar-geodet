@@ -67,9 +67,12 @@
 #ag-cstab.init .ag-cstab-dot { background: var(--text-faint, #6b727d); }
 #ag-cstab.init .ag-cstab-val { color: var(--text-muted, #9aa1ac); }
 
+/* VYKON: blikani driv animovalo box-shadow (= prekresleni na hlavnim vlakne 60x/s po
+   celou dobu ruseneho kompasu, k tomu na panelu s backdrop-filter). Nove se meni jen
+   opacity, coz zvladne kompozitor sam. */
 @keyframes ag-cstab-blink {
-    0%, 100% { box-shadow: 0 0 9px rgba(251, 113, 133, 0.6); }
-    50%      { box-shadow: 0 0 14px rgba(251, 113, 133, 0.95); }
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.45; }
 }
 
 /* editor (−/+/✓) — viditelný jen v režimu úprav */

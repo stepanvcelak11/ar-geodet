@@ -41,8 +41,7 @@
     display: flex;
     opacity: 1;
     transform: translateX(-50%) translateY(0);
-    /* nenápadné blikání, ať to upoutá, ale neruší */
-    animation: gps-warn-pulse 1.6s ease-in-out infinite;
+    /* nenápadné blikání drží pseudo-prvek ::after níž (kvůli výkonu) */
 }
 
 .gps-warn-ico {
@@ -64,9 +63,21 @@
     font-weight: 800;
 }
 
+/* VYKON: puls driv animoval box-shadow (prekresleni na hlavnim vlakne 60x/s po celou
+   dobu slabe GPS, a to na prvku s backdrop-filter, ktery se prepocitaval s nim).
+   Nove je prstenec staticky na pseudo-prvku a bliká se jen jeho opacity. */
 @keyframes gps-warn-pulse {
-    0%, 100% { box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45); }
-    50%      { box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), 0 0 0 3px rgba(230, 189, 118, 0.28); }
+    0%, 100% { opacity: 0; }
+    50%      { opacity: 1; }
+}
+#gps-warn.on::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: 0 0 0 3px rgba(230, 189, 118, 0.28);
+    animation: gps-warn-pulse 1.6s ease-in-out infinite;
+    pointer-events: none;
 }
 
 /* malé displeje — zalom text místo přetékání */

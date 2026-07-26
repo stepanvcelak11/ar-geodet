@@ -437,7 +437,10 @@ body {
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
     transform-origin: center center;
     opacity: var(--marker-opacity);
-    will-change: transform, left, top;
+    /* VYKON: will-change jen na transform. `left`/`top` jsou layoutove vlastnosti —
+       will-change na nich kompozitoru nic neusnadni, jen drzi vrstvu promovanou
+       (a znacek je nad kamerou az 100). */
+    will-change: transform;
     transition: background 0.3s ease, border 0.3s ease, border-radius 0.3s ease;
 }
 .ar-marker.cat-tb     { border-left: 4px solid var(--color-tb);     border-radius: 4px; }
@@ -446,10 +449,13 @@ body {
 .ar-marker.cat-nivel  { border-left: 4px solid var(--color-nivel);  border-radius: 14px 0 14px 0; }
 .ar-marker.cat-custom { border-left: 4px solid var(--color-custom); border-radius: 14px 14px 0 0; }
 
+/* VYKON: puls vybrane znacky driv animoval box-shadow — ta se NEDA kompozitovat, takze
+   se znacka prekreslovala na hlavnim vlakne 60x/s, a to prave nad zivou kamerou a na
+   prvku, kteremu JS soucasne prepisuje pozici. Nove je zare staticka na pseudo-prvku
+   a animuje se jen jeho opacity (cistě kompozitor). Vizualne stejny efekt. */
 @keyframes pulse-gold {
-    0%   { box-shadow: 0 6px 18px rgba(0,0,0,0.5), 0 0 16px rgba(251, 191, 36, 0.55); }
-    50%  { box-shadow: 0 6px 18px rgba(0,0,0,0.5), 0 0 34px rgba(251, 191, 36, 0.95); }
-    100% { box-shadow: 0 6px 18px rgba(0,0,0,0.5), 0 0 16px rgba(251, 191, 36, 0.55); }
+    0%, 100% { opacity: 0.45; }
+    50%      { opacity: 1; }
 }
 .ar-marker.active-reading { border: 2px dashed #fff !important; }
 .ar-marker.highlighted {
@@ -458,7 +464,15 @@ body {
     background: rgba(13, 18, 27, 0.9) !important;
     color: #fff !important;
     z-index: 99999 !important;
-    animation: pulse-gold 2s infinite ease-in-out !important;
+}
+.ar-marker.highlighted::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    box-shadow: 0 0 26px 4px rgba(251, 191, 36, 0.9);
+    animation: pulse-gold 2s infinite ease-in-out;
+    pointer-events: none;
 }
 
 .ar-marker-title { font-size: 14px; font-weight: 700; letter-spacing: 0.2px; }
@@ -530,7 +544,9 @@ body {
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
     transform-origin: left center;
     pointer-events: none;
-    will-change: transform;
+    /* VYKON: will-change tu byl na KAZDEM popisku bodu, tedy pri stovkach bodu stovky
+       trvale drzenych GPU vrstev (pametovy zrout). Rotaci popisku zvladne kompozitor
+       i bez toho — transform se stejne prepisuje jen kdyz se mapa opravdu otoci. */
 }
 
 /* =========================================================================
@@ -1883,8 +1899,12 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
 .dock-btn {
     width: 56px;
     background: var(--glass-bg);
-    backdrop-filter: blur(14px) saturate(140%);
-    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    /* VYKON: tohle je PET samostatnych backdrop pruchodu nad ZIVOU kamerou (dok ma 5 chipu)
+       a kazdy se prepocitava s kazdym snimkem videa — po optimalizaci znacek nejvetsi zbyly
+       GPU zrout v AR. Snizeny radius (14 -> 9 px) stoji vyrazne mensi cast vykonu a vzhled
+       je temer stejny. Kdyby to vypadalo malo skleneně, staci vratit 14px zpet (jen tady). */
+    backdrop-filter: blur(9px) saturate(140%);
+    -webkit-backdrop-filter: blur(9px) saturate(140%);
     border: 1px solid var(--glass-border);
     border-radius: 16px;
     box-shadow: var(--shadow-1);
