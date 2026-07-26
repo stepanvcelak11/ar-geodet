@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v195';   // trefnost pocasi za mesic + ovladatelny radar + vyber mista v mape bez zamceni + poradi sekci Nastroju
+const SHELL_CACHE = 'argeodet-shell-v196';   // radar: chybejici podkladove dlazdice (opaque cache) + uklid vadnych dlazdic; trefnost pocasi dohledana z archivu za mesic
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -25,9 +25,9 @@ const ASSETS_TO_CACHE = [
     './icon-512.png',
     './icon-maskable-192.png',
     './icon-maskable-512.png',
-    './css/tokens.css?v=195',
-    './css/style.css?v=195',
-    './css/vylepseni.css?v=195',
+    './css/tokens.css?v=196',
+    './css/style.css?v=196',
+    './css/vylepseni.css?v=196',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
@@ -183,10 +183,26 @@ self.addEventListener('install', event => {
     })());
 });
 
+// Jednorazovy uklid vadnych dlazdic: driv se do TILE_CACHE ulozila i chybova odpoved
+// (404/429 od dlazdicoveho serveru) a cache-first ji pak vracel navzdy => v mape zustala
+// trvala dira. Mazou se JEN odpovedi se stavem >= 400; opaque (status 0) a 200 zustavaji,
+// takze uzivateli nezmizi mapy stazene pro offline.
+async function purgeBadTiles() {
+    try {
+        const cache = await caches.open(TILE_CACHE);
+        const reqs = await cache.keys();
+        for (const req of reqs) {
+            const res = await cache.match(req);
+            if (res && res.status >= 400) await cache.delete(req);
+        }
+    } catch (e) { /* uklid je nepovinny */ }
+}
+
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys()
             .then(keys => Promise.all(keys.filter(key => !KEEP_CACHES.includes(key)).map(key => caches.delete(key))))
+            .then(purgeBadTiles)
             .then(() => self.clients.claim())
     );
 });
@@ -243,7 +259,11 @@ self.addEventListener('fetch', event => {
         caches.match(event.request).then(cachedResponse => {
             if (cachedResponse) return cachedResponse;
             return fetch(event.request).then(response => {
-                if (url.startsWith('http')) {
+                // Ulozit JEN povedenou odpoved. Driv se cachovalo cokoli vcetne 404/429
+                // od dlazdicoveho serveru => takova dira v mape uz zustala navzdy,
+                // protoze cache-first ji dal vracel misto noveho pokusu.
+                const okToCache = response && (response.ok || response.type === 'opaque');
+                if (url.startsWith('http') && okToCache) {
                     const targetCache = isTile(url) ? TILE_CACHE : SHELL_CACHE;
                     const responseClone = response.clone();
                     caches.open(targetCache).then(cache => cache.put(event.request, responseClone));

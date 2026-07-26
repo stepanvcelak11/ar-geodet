@@ -6,11 +6,11 @@
 //     Open-Meteo + MET Norway + DWD MOSMIX přes Bright Sky = až 18 zdrojů)
 //     a VŠECHNY veličiny kombinuje VÁŽENÝM PRŮMĚREM (váhy pro střední Evropu).
 //   • U každé veličiny drží i min–max rozptyl mezi zdroji → dlaždice „Shoda zdrojů".
-//   • SPOLEHLIVOST PODLE HISTORIE: appka si pamatuje, co který model předpovídal
-//     na +3/6/12/24 h, a při dalším otevření to srovná se skutečností. Trefnost se
-//     počítá z celého POSLEDNÍHO MĚSÍCE (log vyhodnocení, okno 30 dní), takže ji
-//     neurčí pár posledních hodin. Trefnějším modelům roste váha; hodnoty jsou
-//     vidět u zdrojů dole.
+//   • SPOLEHLIVOST PODLE HISTORIE: trefnost každého modelu za POSLEDNÍ MĚSÍC.
+//     Nečeká se měsíc provozu — historie se rovnou DOHLEDÁ Z ARCHIVU (previous-runs
+//     API = co model před dnem předpovídal, archive API/ERA5 = jak doopravdy bylo),
+//     jednou týdně a po přesunu jinam. Navíc se appka doučuje za provozu
+//     (predikce na +3/6/12/24 h vs. skutečnost). Trefnějším modelům roste váha.
 //   • SRÁŽKOVÝ RADAR (RainViewer): animovaná OVLADATELNÁ mapa (posun, zoom), kde je
 //     vidět, jak se srážkové mraky pohybují (~70 min zpět + 30 min výhled).
 //   • Tlak se ukazuje přepočtený na nadmořskou výšku místa (a v závorce na moře).
@@ -519,15 +519,113 @@
         return { pend: [], hist: {} };
     }
     function saveSkill(sk) { try { localStorage.setItem(LS_SKILL, JSON.stringify(sk)); } catch (e) {} }
-    // průměrná chyba modelu za poslední měsíc (null = zatím málo dat)
+    // ---- ZPĚTNÉ dohledání trefnosti z archivu (aby platila hned, ne až za měsíc) -------
+    // Živé učení výše potřebuje měsíc provozu, než něco ukáže. Proto se jednou týdně
+    // (a při přesunu jinam) stáhne rovnou MĚSÍC HOTOVÉ HISTORIE:
+    //   • previous-runs API Open-Meteo = co každý model před DNEM předpovídal na tuto
+    //     hodinu (`temperature_2m_previous_day1_<model>`), 31 dní zpět,
+    //   • archive API (reanalýza ERA5) = jak pak doopravdy bylo → skutečnost.
+    // Rozdíl obojího = průměrná chyba modelu na 24 h dopředu za celý měsíc (~740 hodin).
+    // Ověřeno dotazem pro ČR: archiv má 13 ze 16 modelů; AI modely (AIFS, GraphCast) a
+    // BOM v něm nejsou → ty se dál učí jen živě. ERA5 je na hrubší síti než modely, ale
+    // společný posun se ve VZÁJEMNÉM porovnání modelů vykrátí.
+    var LS_SKILL_BF = 'agWeatherSkillBf_v1';   // {t, lat, lon, days, mae:{id:{e,n}}}
+    var BF_MAX_AGE_MS = 7 * 86400000;          // jednou týdně stačí
+    var BF_DAYS = 31;
+    var BF_CAP = 240;                          // strop vlivu archivu, ať se živé učení časem prosadí
+    var BF_MOVE_KM = 60;                       // po přesunu jinam se archiv dohledá znovu
+    var _bf, _bfBusy = false;
+
+    function loadBf() {
+        if (_bf !== undefined) return _bf;
+        try { var o = JSON.parse(localStorage.getItem(LS_SKILL_BF)); _bf = (o && o.mae) ? o : null; }
+        catch (e) { _bf = null; }
+        return _bf;
+    }
+    function saveBf(o) { _bf = o; try { localStorage.setItem(LS_SKILL_BF, JSON.stringify(o)); } catch (e) {} }
+
+    // průměrná chyba modelu za poslední měsíc: archiv + živě naměřené (null = zatím nic)
     function maeOf(sk, id) {
+        var live = null;
         var a = sk.hist ? sk.hist[id] : null;
-        if (!a || !a.length) return null;
-        var lim = Date.now() - SKILL_WIN_MS, s = 0, n = 0;
-        for (var i = 0; i < a.length; i++) {
-            if (a[i] && a[i][0] >= lim && a[i][1] != null && isFinite(a[i][1])) { s += a[i][1]; n++; }
+        if (a && a.length) {
+            var lim = Date.now() - SKILL_WIN_MS, s = 0, n = 0;
+            for (var i = 0; i < a.length; i++) {
+                if (a[i] && a[i][0] >= lim && a[i][1] != null && isFinite(a[i][1])) { s += a[i][1]; n++; }
+            }
+            if (n) live = { e: s / n, n: n };
         }
-        return n ? { e: s / n, n: n } : null;
+        var bf = loadBf();
+        var b = (bf && bf.mae) ? bf.mae[id] : null;
+        if (b && b.n) {
+            var bn = Math.min(b.n, BF_CAP);
+            if (!live) return { e: b.e, n: b.n, src: 'archiv' };
+            return { e: (b.e * bn + live.e * live.n) / (bn + live.n), n: b.n + live.n, src: 'archiv + měření' };
+        }
+        return live ? { e: live.e, n: live.n, src: 'měřeno v provozu' } : null;
+    }
+
+    function bfDate(shiftDays) {
+        var d = new Date(Date.now() - shiftDays * 86400000);
+        return d.getUTCFullYear() + '-' + pad2(d.getUTCMonth() + 1) + '-' + pad2(d.getUTCDate());
+    }
+    function maybeBackfill(lat, lon) {
+        var bf = loadBf();
+        if (_bfBusy) return;
+        if (bf && (Date.now() - bf.t) < BF_MAX_AGE_MS && distKm(bf.lat, bf.lon, lat, lon) < BF_MOVE_KM) return;
+        _bfBusy = true;
+        var ll = 'latitude=' + lat.toFixed(4) + '&longitude=' + lon.toFixed(4);
+        var uPrev = 'https://previous-runs-api.open-meteo.com/v1/forecast?' + ll +
+            '&hourly=temperature_2m_previous_day1&models=' + OM_MODELS.map(function (m) { return m.id; }).join(',') +
+            '&past_days=' + BF_DAYS + '&forecast_days=1&timeformat=unixtime';
+        var uArch = 'https://archive-api.open-meteo.com/v1/archive?' + ll +
+            '&start_date=' + bfDate(BF_DAYS + 1) + '&end_date=' + bfDate(1) +
+            '&hourly=temperature_2m&timeformat=unixtime';
+        Promise.all([
+            fetchJson(uPrev, 25000).then(null, function () { return null; }),
+            fetchJson(uArch, 25000).then(null, function () { return null; })
+        ]).then(function (rr) {
+            _bfBusy = false;
+            var p = rr[0], a = rr[1];
+            if (!p || !p.hourly || !a || !a.hourly) return;
+            var truth = {}, aT = a.hourly.time || [], aV = a.hourly.temperature_2m || [], i, v;
+            for (i = 0; i < aT.length; i++) { v = num(aV[i]); if (v != null) truth[aT[i]] = v; }
+            var pT = p.hourly.time || [], mae = {}, maxN = 0, any = false;
+            OM_MODELS.forEach(function (m) {
+                var arr = p.hourly['temperature_2m_previous_day1_' + m.id];
+                if (!arr || !arr.length) return;
+                var s = 0, n = 0, k, f, t;
+                for (k = 0; k < pT.length && k < arr.length; k++) {
+                    f = num(arr[k]); if (f == null) continue;
+                    t = truth[pT[k]]; if (t == null) continue;
+                    s += Math.abs(f - t); n++;
+                }
+                if (n >= 48) {   // aspoň dva dny překryvu, jinak je průměr k ničemu
+                    mae[m.id] = { e: Math.round((s / n) * 100) / 100, n: n };
+                    if (n > maxN) maxN = n;
+                    any = true;
+                }
+            });
+            if (!any) return;
+            saveBf({ t: Date.now(), lat: lat, lon: lon, days: Math.round(maxN / 24), mae: mae });
+            applySkillToCur();
+        }, function () { _bfBusy = false; });
+    }
+    // přepočítá zobrazenou trefnost bez nového stahování předpovědi
+    // (váhy se dorovnají při nejbližším obnovení dat — ta jsou stejně čerstvá)
+    function applySkillToCur() {
+        if (!_cur || !_cur.data) return;
+        var sk = loadSkill(), ref = skillRef(sk), bf = loadBf();
+        (_cur.data.perSource || []).forEach(function (s) {
+            var m = maeOf(sk, s.id);
+            s.skill = m ? Math.round(m.e * 10) / 10 : null;
+            s.skillSrc = m ? m.src : null;
+        });
+        _cur.data.skillInfo = ref
+            ? { ref: Math.round(ref.ref * 10) / 10, models: ref.models, days: (bf ? bf.days : 0) }
+            : null;
+        if (!_open || !_ui) return;
+        try { renderGrid(_cur.data, _cur.data.off); renderSrcPanel(_cur); } catch (e) {}
     }
     function updateSkill(sources, observedTemp) {
         var sk = loadSkill();
@@ -581,8 +679,11 @@
         return sk;
     }
     function skillRef(sk) {   // referenční chyba = průměr modelů s dost dlouhou historií (okno 1 měsíc)
-        var sum = 0, n = 0, k, m;
-        for (k in sk.hist) {
+        var ids = {}, k, m, bf = loadBf();
+        for (k in (sk.hist || {})) ids[k] = 1;
+        if (bf && bf.mae) { for (k in bf.mae) ids[k] = 1; }
+        var sum = 0, n = 0;
+        for (k in ids) {
             m = maeOf(sk, k);
             if (m && m.n >= 3) { sum += m.e; n++; }
         }
@@ -686,7 +787,10 @@
             };
             data.spreadTemp = tSt ? { min: tSt.min, max: tSt.max, n: tSt.n } : null;
             data.perSource = curS.map(function (x) {
-                return { id: x.id, label: x.label, w: x.w, temp: x.cur.t, skill: (x.skill != null ? x.skill : null), skillN: (x.skillN || 0) };
+                return {
+                    id: x.id, label: x.label, w: x.w, temp: x.cur.t,
+                    skill: (x.skill != null ? x.skill : null), skillN: (x.skillN || 0), skillSrc: (x.skillSrc || null)
+                };
             });
         }
 
@@ -934,8 +1038,12 @@
                 });
                 // podkladová mapa je záměrně potlačená (CSS filtr .wx-radar .leaflet-tile-pane),
                 // ať jsou srážky čitelné a přesto bylo poznat města a hranice
+                // POZOR: BEZ crossOrigin. Hlavní mapa appky načítá tytéž dlaždice bez CORS,
+                // takže je service worker uložil jako „opaque" odpovědi. Vrstva s crossOrigin
+                // by je z cache dostala taky — a prohlížeč opaque odpověď pro CORS požadavek
+                // zahodí → mapa se vykreslila jen tam, kde dlaždice v cache ještě nebyly.
                 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 11, crossOrigin: true, className: 'wx-radar-base'
+                    maxZoom: 11, className: 'wx-radar-base'
                 }).addTo(_radar.map);
                 // tlačítko „na moje místo" zvýrazni, jen když je výřez odjetý jinam
                 _radar.map.on('zoomend moveend', function () {
@@ -975,7 +1083,7 @@
                 // /512/{z}/{x}/{y}/<schéma barev 4>/<1_1 = vyhlazení + sníh>.png
                 // 512px dlaždice = ostřejší obraz na retina displejích než 256px
                 return L.tileLayer(tHost + f.path + '/512/{z}/{x}/{y}/4/1_1.png', {
-                    opacity: 0, maxZoom: 11, tileSize: 512, zoomOffset: -1, crossOrigin: true, className: 'wx-radar-tiles'
+                    opacity: 0, maxZoom: 11, tileSize: 512, zoomOffset: -1, className: 'wx-radar-tiles'
                 }).addTo(_radar.map);
             });
             _radar.frames = frames;
@@ -1286,17 +1394,22 @@
         box.innerHTML = '';
         var ps = (pack.data && pack.data.perSource) ? pack.data.perSource : [];
         if (!ps.length) { box.appendChild(el('div', 'wx-none', 'Seznam zdrojů není k dispozici.')); return; }
-        box.appendChild(el('div', 'wx-src-h', 'Vážený průměr ' + ps.length + ' zdrojů. „Trefnost“ = průměrná chyba předpovědí tohoto modelu na 3–24 h dopředu proti pozdější skutečnosti, počítaná za celý poslední měsíc — appka se ji učí používáním a trefnějším modelům zvedá váhu.'));
+        var bf = loadBf();
+        var head = 'Vážený průměr ' + ps.length + ' zdrojů. „Trefnost“ = průměrná chyba předpovědi tohoto modelu na den dopředu proti skutečnosti';
+        head += bf && bf.days
+            ? ', spočítaná z archivu za posledních ' + bf.days + ' dní (skutečnost = reanalýza ERA5). Modelům, které se trefují, appka zvedá váhu; dál se doučuje i za provozu.'
+            : ' — dohledává se z archivu za poslední měsíc, mezitím se učí za provozu.';
+        box.appendChild(el('div', 'wx-src-h', head));
         var sorted = ps.slice().sort(function (a, b) { return (b.w || 0) - (a.w || 0); });
         for (var i = 0; i < sorted.length; i++) {
             var s = sorted[i];
             var row = el('div', 'wx-src');
             row.appendChild(el('span', 'wx-src-n', s.label + ' · váha ' + nf(s.w, 2)
-                + (s.skill != null ? ' · trefnost ±' + nf(s.skill, 1) + ' °C' : '')));
+                + (s.skill != null ? ' · trefnost ±' + nf(s.skill, 1) + ' °C' + (s.skillSrc ? ' (' + s.skillSrc + ')' : '') : ' · trefnost zatím neznámá')));
             row.appendChild(el('span', 'wx-src-v', s.temp != null ? nf(s.temp, 1) + ' °C' : '–'));
             box.appendChild(row);
         }
-        box.appendChild(el('div', 'wx-src-h', 'Data: Open-Meteo · MET Norway · Bright Sky (DWD) · radar RainViewer · mapa OpenStreetMap'));
+        box.appendChild(el('div', 'wx-src-h', 'Data: Open-Meteo (předpovědi, archiv ERA5) · MET Norway · Bright Sky (DWD) · radar RainViewer · mapa OpenStreetMap'));
     }
 
     function renderHours(data, off) {
@@ -1473,10 +1586,11 @@
         }
         // spolehlivost podle historie: jak se modely trefovaly za poslední měsíc
         if (data.skillInfo && data.skillInfo.ref != null) {
-            tq.appendChild(el('div', 'wx-tile-sub', 'Za poslední měsíc se předpovědi na 3–24 h trefovaly v průměru na ±'
+            var dTxt = data.skillInfo.days ? ('za posledních ' + data.skillInfo.days + ' dní') : 'podle dosavadní historie';
+            tq.appendChild(el('div', 'wx-tile-sub', 'Trefnost ' + dTxt + ': předpovědi na den dopředu sedí v průměru na ±'
                 + nf(data.skillInfo.ref, 1) + ' °C (' + data.skillInfo.models + ' modelů; trefnějším roste váha). Detail zdrojů je dole.'));
         } else {
-            tq.appendChild(el('div', 'wx-tile-sub', 'Trefnost podle historie se teprve učí — appka srovnává starší předpovědi se skutečností při každém otevření a pamatuje si měsíc zpětně.'));
+            tq.appendChild(el('div', 'wx-tile-sub', 'Trefnost modelů se právě dohledává z archivu za poslední měsíc — ukáže se do minuty (potřebuje internet).'));
         }
     }
 
@@ -1545,6 +1659,7 @@
                 var m = maeOf(sk, s.id);
                 s.skill = (m && m.n >= 3) ? Math.round(m.e * 10) / 10 : null;
                 s.skillN = (m ? m.n : 0);
+                s.skillSrc = (m ? m.src : null);
                 s.w = s.w * skillFactor(sk, ref, s.id);
             });
             var prevHist = (cacheFallback && cacheFallback.data && cacheFallback.data.pressHist) ? cacheFallback.data.pressHist : [];
@@ -1560,8 +1675,11 @@
             try {
                 var sk2 = updateSkill(sources, data.current ? data.current.temp : null);
                 var ref2 = skillRef(sk2);
-                if (ref2) data.skillInfo = { ref: Math.round(ref2.ref * 10) / 10, models: ref2.models };
+                var bf2 = loadBf();
+                if (ref2) data.skillInfo = { ref: Math.round(ref2.ref * 10) / 10, models: ref2.models, days: (bf2 ? bf2.days : 0) };
             } catch (e) {}
+            // měsíc historie z archivu (jednou týdně, na pozadí — ať nebrzdí vykreslení)
+            setTimeout(function () { try { maybeBackfill(pos.lat, pos.lon); } catch (e) {} }, 1500);
             var pack = {
                 t: Date.now(), lat: pos.lat, lon: pos.lon, placeName: name,
                 data: data,
