@@ -307,7 +307,50 @@
     var _mode = 'menu';   // 'menu' | 'base' | 'rover'
     var _roverLog = null, _roverRows = null;
 
+    // Ikony volby režimu (SVG místo emoji — jednotné s ostatními nástroji)
+    var ICON_BASE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+        + '<path d="M12 10v11"/><circle cx="12" cy="7.5" r="2.5"/>'
+        + '<path d="M7.4 3.6a7 7 0 0 0 0 7.8M16.6 3.6a7 7 0 0 1 0 7.8"/><path d="M8 21h8"/></svg>';
+    var ICON_QRIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+        + '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>'
+        + '<path d="M14 14h3v3h-3z"/><path d="M21 14v3M14 21h3M21 20v1"/></svg>';
+
+    function injectDgStyles() {
+        if (document.getElementById('ag-dg-style')) return;
+        var st = document.createElement('style');
+        st.id = 'ag-dg-style';
+        st.textContent = [
+            '.agdg-intro{font-size:12.5px;opacity:.85;margin:0 0 12px;line-height:1.5;}',
+            '.agdg-opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px;margin:0 0 10px;border-radius:14px;',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,.12));background:var(--surface-1,rgba(255,255,255,.05));color:inherit;cursor:pointer;font:inherit;}',
+            '.agdg-opt-ic{flex:0 0 auto;width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;',
+            '  background:var(--accent-soft,rgba(47,158,116,.15));color:var(--accent,#2f9e74);}',
+            '.agdg-opt-ic svg{width:24px;height:24px;}',
+            '.agdg-opt-tx{flex:1;min-width:0;font:600 14px/1.25 var(--font-ui,system-ui),sans-serif;}',
+            '.agdg-opt-tx small{display:block;font-weight:500;font-size:12px;color:var(--text-muted,#9aa1ac);margin-top:3px;line-height:1.4;}',
+            '.agdg-opt-arr{flex:0 0 auto;color:var(--text-muted,#9aa1ac);font-size:20px;line-height:1;}',
+            '.agdg-live{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:14px;margin:0 0 10px;',
+            '  border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.10);font-size:13px;line-height:1.45;}',
+            '.agdg-dot{flex:0 0 auto;width:10px;height:10px;border-radius:50%;background:#fbbf24;margin-top:4px;animation:agdgPulse 1.6s ease-in-out infinite;}',
+            '@keyframes agdgPulse{0%,100%{opacity:1}50%{opacity:.3}}',
+            '.agdg-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 10px;}',
+            '.agdg-stat{padding:10px 6px;border-radius:12px;border:1px solid var(--glass-border,rgba(255,255,255,.1));',
+            '  background:var(--surface-1,rgba(255,255,255,.05));text-align:center;}',
+            '.agdg-stat .k{font:600 10.5px/1.2 var(--font-ui,system-ui),sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);margin-bottom:4px;}',
+            '.agdg-stat .v{font:700 17px/1.1 var(--font-mono,monospace);color:var(--data,#e6bd76);}',
+            '.agdg-draft{padding:12px 14px;border-radius:14px;margin:2px 0 10px;border:1px dashed var(--glass-border,rgba(255,255,255,.2));',
+            '  background:var(--surface-1,rgba(255,255,255,.04));font-size:13px;line-height:1.4;}',
+            '.agdg-draft small{display:block;color:var(--text-muted,#9aa1ac);font-size:12px;margin:2px 0 8px;}',
+            '.agdg-draft-b{display:flex;gap:8px;flex-wrap:wrap;}',
+            '.agdg-draft-b .btn{flex:1;margin:0;min-width:90px;}',
+            '.agdg-note{font-size:11.5px;color:var(--text-muted,#9aa1ac);margin:10px 0 0;line-height:1.5;}',
+            'body.ag-glove .agdg-opt{padding:17px 14px;}'
+        ].join('\n');
+        (document.head || document.documentElement).appendChild(st);
+    }
+
     function ensureModal() {
+        injectDgStyles();
         if (document.getElementById(DLG_ID)) return;
         var el = document.createElement('div');
         el.className = 'modal-overlay'; el.id = DLG_ID;
@@ -340,11 +383,25 @@
         // menu
         var draft = loadDraft();
         body.innerHTML =
-            '<p style="font-size:12.5px; opacity:0.85; margin:0 0 10px;">Atmosférická chyba GPS je pro dva telefony do ~2 km stejná. Jeden telefon polož na <b>přesně známý bod</b> jako základnu, druhým měř. Korekce pak přeneseš <b>naskenováním QR</b> z displeje základny (nebo souborem) a body se zpětně opraví.</p>'
-            + '<button class="btn" id="ag-dgps-mode-base" style="margin:4px 0;">📡 Základna — tento telefon leží na známém bodě</button>'
-            + '<button class="btn" id="ag-dgps-mode-rover" style="margin:4px 0;">📥 Korekce — nahrát log základny a opravit body</button>'
-            + (draft && draft.buckets.length ? '<div class="bgps-card amber" style="margin-top:10px;"><b>Rozpracovaný log základny</b> (' + draft.buckets.length + ' bloků, ' + esc(draft.base.name) + ') — <button class="btn btn-secondary" id="ag-dgps-draft-qr" style="margin-top:6px;">Ukázat QR</button> <button class="btn btn-secondary" id="ag-dgps-draft-exp" style="margin-top:6px;">Exportovat</button> <button class="btn btn-secondary" id="ag-dgps-draft-del" style="margin-top:6px; color:var(--danger,#fb7185);">Zahodit</button></div>' : '')
-            + '<p style="font-size:11px; opacity:.55; margin:10px 0 0;">Zisk: na krátkou vzdálenost typicky poloviční až třetinová chyba. Oba telefony musí mít satelitní fix (venku, ne Wi-Fi polohu).</p>';
+            '<p class="agdg-intro">Atmosférická chyba GPS je pro dva telefony do ~2 km stejná. Jeden telefon polož na <b>přesně známý bod</b> jako základnu, druhým měř. Korekce pak přeneseš <b>naskenováním QR</b> z displeje základny (nebo souborem) a body se zpětně opraví.</p>'
+            + '<button type="button" class="agdg-opt" id="ag-dgps-mode-base">'
+            + '  <span class="agdg-opt-ic">' + ICON_BASE + '</span>'
+            + '  <span class="agdg-opt-tx">Základna<small>tento telefon leží na známém bodě a měří, o kolik GPS lže</small></span>'
+            + '  <span class="agdg-opt-arr">›</span></button>'
+            + '<button type="button" class="agdg-opt" id="ag-dgps-mode-rover">'
+            + '  <span class="agdg-opt-ic">' + ICON_QRIN + '</span>'
+            + '  <span class="agdg-opt-tx">Korekce<small>naskenovat QR (nebo nahrát soubor) ze základny a opravit body</small></span>'
+            + '  <span class="agdg-opt-arr">›</span></button>'
+            + (draft && draft.buckets.length
+                ? '<div class="agdg-draft"><b>Rozpracovaný log základny</b>'
+                  + '<small>' + draft.buckets.length + ' bloků · bod ' + esc(draft.base.name) + '</small>'
+                  + '<div class="agdg-draft-b">'
+                  + '<button class="btn btn-secondary" id="ag-dgps-draft-qr">Ukázat QR</button>'
+                  + '<button class="btn btn-secondary" id="ag-dgps-draft-exp">Exportovat</button>'
+                  + '<button class="btn btn-secondary" id="ag-dgps-draft-del" style="color:var(--danger,#fb7185);">Zahodit</button>'
+                  + '</div></div>'
+                : '')
+            + '<p class="agdg-note">Zisk: na krátkou vzdálenost typicky poloviční až třetinová chyba. Oba telefony musí mít satelitní fix (venku, ne Wi-Fi polohu).</p>';
         document.getElementById('ag-dgps-mode-base').addEventListener('click', function () { _mode = 'base'; renderModal(); });
         document.getElementById('ag-dgps-mode-rover').addEventListener('click', function () { _mode = 'rover'; _roverLog = null; _roverRows = null; renderModal(); });
         var dq = document.getElementById('ag-dgps-draft-qr');
@@ -359,14 +416,14 @@
     function renderBase(body) {
         if (_watchId != null) {
             body.innerHTML =
-                '<div class="bgps-card amber"><b>📡 Základna běží</b> na bodě <b>' + esc(_base.name) + '</b> — telefon nech LEŽET, displej nezhasne.</div>'
-                + '<div class="bgps-stats" style="margin-top:10px;">'
-                + '<div class="bgps-stat"><div class="k">Čas</div><div class="v" id="ag-dgps-time">0:00</div></div>'
-                + '<div class="bgps-stat"><div class="k">Bloků (1 min)</div><div class="v" id="ag-dgps-nb">0</div></div>'
-                + '<div class="bgps-stat"><div class="k">GPS teď lže o</div><div class="v" id="ag-dgps-off">–</div></div>'
+                '<div class="agdg-live"><span class="agdg-dot"></span><span><b>Základna běží</b> na bodě <b>' + esc(_base.name) + '</b> — telefon nech ležet, displej nezhasne.</span></div>'
+                + '<div class="agdg-stats">'
+                + '<div class="agdg-stat"><div class="k">Čas</div><div class="v" id="ag-dgps-time">0:00</div></div>'
+                + '<div class="agdg-stat"><div class="k">Bloků (1 min)</div><div class="v" id="ag-dgps-nb">0</div></div>'
+                + '<div class="agdg-stat"><div class="k">GPS lže o</div><div class="v" id="ag-dgps-off">–</div></div>'
                 + '</div>'
-                + '<p style="font-size:12px; opacity:.75; margin:10px 0;">Nech běžet po CELOU dobu, kdy druhý telefon měří. Čím déle, tím víc bodů půjde opravit.</p>'
-                + '<button class="btn" id="ag-dgps-stop-qr">⏹ Zastavit a ukázat korekce jako QR</button>'
+                + '<p class="agdg-note" style="margin:0 0 12px;">Nech běžet po CELOU dobu, kdy druhý telefon měří. Čím déle, tím víc bodů půjde opravit.</p>'
+                + '<button class="btn" id="ag-dgps-stop-qr">Zastavit a ukázat QR s korekcemi</button>'
                 + '<button class="btn btn-secondary" id="ag-dgps-stop-exp" style="margin-top:8px;">Zastavit a uložit do souboru</button>'
                 + '<button class="btn btn-secondary" id="ag-dgps-stop" style="margin-top:8px; color:var(--danger,#fb7185);">Zastavit bez exportu</button>';
             document.getElementById('ag-dgps-stop-qr').addEventListener('click', function () {
@@ -390,7 +447,7 @@
         // výběr známého bodu
         var pts = points().slice();
         if (!pts.length) {
-            body.innerHTML = '<p style="font-size:13px;">V zakázce nejsou žádné body. Základna musí ležet na bodě s <b>přesně známými souřadnicemi</b> (import ze seznamu, S-JTSK) — naimportuj ho nejdřív.</p>'
+            body.innerHTML = '<p class="agdg-intro">V zakázce nejsou žádné body. Základna musí ležet na bodě s <b>přesně známými souřadnicemi</b> (import ze seznamu, S-JTSK) — naimportuj ho nejdřív.</p>'
                 + '<button class="btn btn-secondary" id="ag-dgps-back">← Zpět</button>';
             document.getElementById('ag-dgps-back').addEventListener('click', function () { _mode = 'menu'; renderModal(); });
             return;
@@ -405,9 +462,9 @@
             return '<option value="' + esc(p.id) + '">' + esc(p.name) + (org === 'gps-avg' ? ' (měřen GPS — NEvhodný!)' : '') + '</option>';
         }).join('');
         body.innerHTML =
-            '<p style="font-size:12.5px; margin:0 0 8px;">Na kterém bodě telefon leží? Musí to být bod se <b>spolehlivě známou polohou</b> (import S-JTSK, vytyčovací bod) — NE bod měřený tímhle mobilem.</p>'
-            + '<select id="ag-dgps-pt" class="bgps-name" style="width:100%; margin:4px 0 10px;">' + opts + '</select>'
-            + '<button class="btn" id="ag-dgps-start">▶ Spustit základnu</button>'
+            '<p class="agdg-intro">Na kterém bodě telefon leží? Musí to být bod se <b>spolehlivě známou polohou</b> (import S-JTSK, vytyčovací bod) — NE bod měřený tímhle mobilem.</p>'
+            + '<select id="ag-dgps-pt" class="bgps-name" style="width:100%; margin:4px 0 12px;">' + opts + '</select>'
+            + '<button class="btn" id="ag-dgps-start">Spustit základnu</button>'
             + '<button class="btn btn-secondary" id="ag-dgps-back" style="margin-top:8px;">← Zpět</button>';
         document.getElementById('ag-dgps-start').addEventListener('click', function () {
             var id = document.getElementById('ag-dgps-pt').value;
@@ -435,10 +492,13 @@
     function renderRover(body) {
         if (!_roverLog) {
             body.innerHTML =
-                '<p style="font-size:12.5px; margin:0 0 8px;">Nejrychleji přes <b>QR</b>: základna si nechá korekce zobrazit a ty je tímhle telefonem naskenuješ. Bez sítě, bez posílání souborů.</p>'
-                + '<button class="btn" id="ag-dgps-scan" style="margin:2px 0 10px;">📷 Naskenovat QR ze základny</button>'
-                + '<p style="font-size:12.5px; margin:0 0 8px;">Nebo nahraj soubor <b>dgps-korekce-*.json</b> ze základny (zprávou, přes sdílení souborů).</p>'
-                + '<input type="file" id="ag-dgps-file" accept=".json,application/json" style="width:100%; margin:6px 0 10px;">'
+                '<p class="agdg-intro">Nejrychleji přes <b>QR</b>: základna si nechá korekce zobrazit a ty je tímhle telefonem naskenuješ. Bez sítě, bez posílání souborů.</p>'
+                + '<button type="button" class="agdg-opt" id="ag-dgps-scan">'
+                + '  <span class="agdg-opt-ic">' + ICON_QRIN + '</span>'
+                + '  <span class="agdg-opt-tx">Naskenovat QR ze základny<small>namiř kameru na displej druhého telefonu</small></span>'
+                + '  <span class="agdg-opt-arr">›</span></button>'
+                + '<p class="agdg-intro" style="margin:4px 0 8px;">Nebo nahraj soubor <b>dgps-korekce-*.json</b> ze základny (zprávou, přes sdílení souborů).</p>'
+                + '<input type="file" id="ag-dgps-file" accept=".json,application/json" style="width:100%; margin:0 0 12px;">'
                 + '<button class="btn btn-secondary" id="ag-dgps-back">← Zpět</button>';
             document.getElementById('ag-dgps-scan').addEventListener('click', scanLogQR);
             document.getElementById('ag-dgps-file').addEventListener('change', function (ev) {

@@ -2,11 +2,17 @@
 // Celoobrazovkový nástroj „Počasí" ve stylu Apple Weather pro geodety v terénu.
 //
 // Co dělá:
-//   • Stáhne předpověď z VÍCE nezávislých zdrojů najednou a zkombinuje je
-//     VÁŽENÝM PRŮMĚREM (váhy pro střední Evropu):
-//       – Open-Meteo multi-model: ECMWF IFS (1.3), DWD ICON (1.25), NOAA GFS (0.9)
-//       – MET Norway locationforecast (1.1) — když selže, prostě se vynechá
+//   • Stáhne předpověď z VÍCE nezávislých zdrojů najednou (16 modelů přes
+//     Open-Meteo + MET Norway + DWD MOSMIX přes Bright Sky = až 18 zdrojů)
+//     a VŠECHNY veličiny kombinuje VÁŽENÝM PRŮMĚREM (váhy pro střední Evropu).
 //   • U každé veličiny drží i min–max rozptyl mezi zdroji → dlaždice „Shoda zdrojů".
+//   • SPOLEHLIVOST PODLE HISTORIE: appka si pamatuje, co který model předpovídal
+//     na +3/6/12/24 h, a při dalším otevření to srovná se skutečností. Modelům,
+//     které se historicky trefují, roste váha; trefnost je vidět u zdrojů dole.
+//   • SRÁŽKOVÝ RADAR (RainViewer): animovaná mapa, kde je vidět, jak se srážkové
+//     mraky pohybují (~70 min zpět + 30 min výhled).
+//   • Tlak se ukazuje přepočtený na nadmořskou výšku místa (a v závorce na moře).
+//   • Seznam zdrojů/vah je schovaný v rozbalovacím řádku úplně dole.
 //   • Pouze online zdroj dat, ale POSLEDNÍ stažená data si pamatuje v localStorage;
 //     offline ukáže poslední data se štítkem „Naposledy aktualizováno HH:MM (offline)".
 //   • Poloha: výchozí GPS appky (userLat/userLng, fallback arLastPos); nahoře
@@ -55,9 +61,18 @@
         { id: 'arpege_europe',                 label: 'Météo-France ARPEGE', w: 1.05 },
         { id: 'ukmo_global_deterministic_10km', label: 'UK Met Office',     w: 1.05 },
         { id: 'gfs_seamless',                  label: 'NOAA GFS',           w: 0.90 },
-        { id: 'gem_seamless',                  label: 'CMC GEM',            w: 0.85 }
+        { id: 'gem_seamless',                  label: 'CMC GEM',            w: 0.85 },
+        // rozšíření na ~18 zdrojů: AI modely + globály dalších služeb (ověřeno, že
+        // pro ČR vracejí data; když zrovna nevrátí, průměr je prostě vynechá)
+        { id: 'ecmwf_aifs025',                 label: 'ECMWF AIFS (AI)',    w: 1.00 },
+        { id: 'gfs_graphcast025',              label: 'GraphCast (AI)',     w: 0.85 },
+        { id: 'jma_seamless',                  label: 'JMA (Japonsko)',     w: 0.80 },
+        { id: 'cma_grapes_global',             label: 'CMA (Čína)',         w: 0.70 },
+        { id: 'bom_access_global',             label: 'BOM (Austrálie)',    w: 0.70 },
+        { id: 'arpege_world',                  label: 'ARPEGE svět',        w: 0.75 }
     ];
     var METNO_W = 1.10;
+    var BRIGHTSKY_W = 1.05;   // DWD MOSMIX (statisticky doladěné výstupy stanic)
 
     var DAYS_CS = ['Ne', 'Po', 'Út', 'St', 'Čt', 'Pá', 'So'];
     var DIRS_CS = ['S', 'SV', 'V', 'JV', 'J', 'JZ', 'Z', 'SZ'];
@@ -76,6 +91,7 @@
     var _reqSeq = 0;            // ochrana proti závodům fetchů
     var _timer = null;          // auto-refresh
     var _searchTimer = null;
+    var _radar = { map: null, marker: null, layers: [], frames: [], idx: 0, timer: null, playing: true, lastFetch: 0 };
 
     // ---- drobné utility ---------------------------------------------------------
     function num(v) { return (typeof v === 'number' && isFinite(v)) ? v : null; }
@@ -140,6 +156,12 @@
     }
     function metnoUrl(lat, lon) {
         return 'https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=' + lat.toFixed(4) + '&lon=' + lon.toFixed(4);
+    }
+    function brightskyUrl(lat, lon) {
+        // DWD MOSMIX přes Bright Sky (bez klíče, CORS): hodinovka dnes + 2 dny
+        function d(off) { var x = new Date(Date.now() + off * 86400000); return x.toISOString().slice(0, 10); }
+        return 'https://api.brightsky.dev/weather?lat=' + lat.toFixed(4) + '&lon=' + lon.toFixed(4) +
+            '&date=' + d(0) + '&last_date=' + d(2);
     }
     function geoUrl(q) {
         return 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(q) + '&count=6&language=cs&format=json';
@@ -264,6 +286,15 @@
             return p * Math.pow(1 - (0.0065 * elevM) / (T + 0.0065 * elevM + 273.15), -5.257);
         } catch (e) { return p; }
     }
+    // zpět: tlak na hladině moře → skutečný (staniční) tlak v dané nadmořské výšce
+    function fromMsl(p, elevM, tempC) {
+        if (p == null) return null;
+        if (elevM == null || !isFinite(elevM) || elevM < 1) return p;
+        var T = (tempC == null) ? 15 : tempC;
+        try {
+            return p * Math.pow(1 - (0.0065 * elevM) / (T + 0.0065 * elevM + 273.15), 5.257);
+        } catch (e) { return p; }
+    }
 
     // ---- parsování Open-Meteo (multi-model, suffixované klíče) -----------------------
     // Při více modelech jsou pole suffixovaná názvem modelu (temperature_2m_ecmwf_ifs025);
@@ -295,7 +326,7 @@
         var elev = num(j.elevation);
         for (var i = 0; i < OM_MODELS.length; i++) {
             var m = OM_MODELS[i];
-            var src = { id: m.id, label: m.label, w: m.w, off: off, cur: null, hourly: null, daily: null };
+            var src = { id: m.id, label: m.label, w: m.w, off: off, elev: elev, cur: null, hourly: null, daily: null };
             var h = j.hourly;
             var suffixed = !!(j.current && Object.prototype.hasOwnProperty.call(j.current, 'temperature_2m_' + m.id));
             try {
@@ -417,6 +448,127 @@
         } catch (e) { return null; }
     }
 
+    // ---- parsování Bright Sky (DWD MOSMIX) ----------------------------------------------
+    // Jednotky „dwd": teplota °C, vítr km/h (→ /3.6 na m/s), tlak už na hladině moře.
+    var BS_WMO = {
+        'clear-day': 0, 'clear-night': 0, 'partly-cloudy-day': 2, 'partly-cloudy-night': 2,
+        cloudy: 3, fog: 45, wind: 3, rain: 63, sleet: 68, snow: 73, hail: 96, thunderstorm: 95
+    };
+    function parseBrightsky(j) {
+        try {
+            var rows = j && j.weather;
+            if (!rows || !rows.length) return null;
+            var src = {
+                id: 'brightsky', label: 'DWD MOSMIX', w: BRIGHTSKY_W, off: null, elev: null, cur: null,
+                hourly: { time: [], temp: [], prob: [], precip: [], code: [], wind: [], gusts: [] },
+                daily: null
+            };
+            var nowSec = Math.floor(Date.now() / 1000), bestCur = null, bestD = Infinity;
+            for (var i = 0; i < rows.length; i++) {
+                var r = rows[i];
+                if (!r || !r.timestamp) continue;
+                var t = Math.round(Date.parse(r.timestamp) / 1000);
+                if (!isFinite(t)) continue;
+                var code = (r.icon && BS_WMO.hasOwnProperty(r.icon)) ? BS_WMO[r.icon] : null;
+                var wind = num(r.wind_speed), gust = num(r.wind_gust_speed);
+                src.hourly.time.push(t);
+                src.hourly.temp.push(num(r.temperature));
+                src.hourly.prob.push(num(r.precipitation_probability));
+                src.hourly.precip.push(num(r.precipitation));
+                src.hourly.code.push(code);
+                src.hourly.wind.push(wind != null ? wind / 3.6 : null);
+                src.hourly.gusts.push(gust != null ? gust / 3.6 : null);
+                var d = Math.abs(t - nowSec);
+                if (d < bestD && d <= 5400) {
+                    bestD = d;
+                    bestCur = {
+                        t: num(r.temperature), feels: null,
+                        hum: num(r.relative_humidity), precip: num(r.precipitation), code: code,
+                        cloud: num(r.cloud_cover),
+                        wind: wind != null ? wind / 3.6 : null, dir: num(r.wind_direction),
+                        gusts: gust != null ? gust / 3.6 : null,
+                        pmsl: num(r.pressure_msl)
+                    };
+                }
+            }
+            src.cur = bestCur;
+            if (!src.hourly.time.length) src.hourly = null;
+            return (src.cur || src.hourly) ? src : null;
+        } catch (e) { return null; }
+    }
+
+    // ---- spolehlivost podle historie (trefnost modelů) -----------------------------------
+    // Při každém stažení si appka uloží, co který zdroj předpovídá na +3/6/12/24 h.
+    // Až ten čas nastane (další otevření počasí), předpověď se srovná s tehdejší
+    // „skutečností" (kombinovaná aktuální teplota) a modelu se aktualizuje klouzavá
+    // střední chyba. Kdo se trefuje, dostává vyšší váhu v průměru (×0,6–1,5).
+    var LS_SKILL = 'agWeatherSkill_v1';   // {pend:[{t,id,v}], mae:{id:{e,n}}}
+    function loadSkill() {
+        try {
+            var o = JSON.parse(localStorage.getItem(LS_SKILL));
+            if (o && o.mae && Object.prototype.toString.call(o.pend) === '[object Array]') return o;
+        } catch (e) {}
+        return { pend: [], mae: {} };
+    }
+    function saveSkill(sk) { try { localStorage.setItem(LS_SKILL, JSON.stringify(sk)); } catch (e) {} }
+    function updateSkill(sources, observedTemp) {
+        var sk = loadSkill();
+        var now = Math.floor(Date.now() / 1000);
+        var i;
+        if (observedTemp != null && isFinite(observedTemp)) {
+            var rest = [];
+            for (i = 0; i < sk.pend.length; i++) {
+                var p = sk.pend[i];
+                if (!p || p.t == null || p.v == null) continue;
+                if (Math.abs(p.t - now) <= 2700) {          // ±45 min → vyhodnoť proti „teď"
+                    var err = Math.abs(p.v - observedTemp);
+                    var m = sk.mae[p.id] || { e: null, n: 0 };
+                    m.e = (m.e == null) ? err : Math.round((0.85 * m.e + 0.15 * err) * 100) / 100;
+                    m.n = Math.min((m.n || 0) + 1, 999);
+                    sk.mae[p.id] = m;
+                } else if (p.t > now) rest.push(p);         // budoucí nech, prošlé zahoď
+            }
+            sk.pend = rest;
+        }
+        // nové predikce (jen když pro daný zdroj+čas ještě nejsou)
+        var have = {}, horizons = [3, 6, 12, 24];
+        for (i = 0; i < sk.pend.length; i++) have[sk.pend[i].id + '@' + sk.pend[i].t] = 1;
+        for (i = 0; i < sources.length; i++) {
+            var s = sources[i];
+            if (!s.hourly || !s.hourly.time || !s.hourly.temp) continue;
+            for (var hzi = 0; hzi < horizons.length; hzi++) {
+                var target = now + horizons[hzi] * 3600, best = -1, bd = 1800;
+                for (var k = 0; k < s.hourly.time.length; k++) {
+                    var tt = num(s.hourly.time[k]);
+                    if (tt == null) continue;
+                    var d = Math.abs(tt - target);
+                    if (d < bd) { bd = d; best = k; }
+                }
+                if (best < 0) continue;
+                var v = at(s.hourly.temp, best);
+                var te = num(s.hourly.time[best]);
+                if (v == null || te == null || have[s.id + '@' + te]) continue;
+                sk.pend.push({ t: te, id: s.id, v: Math.round(v * 10) / 10 });
+                have[s.id + '@' + te] = 1;
+            }
+        }
+        if (sk.pend.length > 600) sk.pend = sk.pend.slice(sk.pend.length - 600);
+        saveSkill(sk);
+        return sk;
+    }
+    function skillRef(sk) {   // referenční chyba = průměr modelů s dost dlouhou historií
+        var sum = 0, n = 0, k;
+        for (k in sk.mae) {
+            if (sk.mae[k] && sk.mae[k].n >= 3 && sk.mae[k].e != null) { sum += sk.mae[k].e; n++; }
+        }
+        return n ? { ref: sum / n, models: n } : null;
+    }
+    function skillFactor(sk, ref, id) {
+        var m = sk.mae[id];
+        if (!ref || !m || m.n < 3 || m.e == null || ref.ref <= 0.05) return 1;
+        return Math.max(0.6, Math.min(1.5, ref.ref / Math.max(m.e, 0.05)));
+    }
+
     // ---- kombinování zdrojů (vážený průměr + rozptyl) -----------------------------------
     function wstat(items) {   // items: [{v, w}]
         var sw = 0, s = 0, mn = Infinity, mx = -Infinity, n = 0;
@@ -486,6 +638,10 @@
         if (off == null) off = -new Date().getTimezoneOffset() * 60;
         data.off = off;
 
+        // nadmořská výška místa (z gridu Open-Meteo) — pro přepočet tlaku „tady"
+        data.elev = null;
+        for (i = 0; i < sources.length; i++) { if (sources[i].elev != null) { data.elev = sources[i].elev; break; } }
+
         // --- aktuální stav ---
         var curS = sources.filter(function (x) { return x.cur; });
         if (curS.length) {
@@ -504,7 +660,9 @@
                 code: combineCode(curS.map(function (x) { return { code: x.cur.code, w: x.w }; }))
             };
             data.spreadTemp = tSt ? { min: tSt.min, max: tSt.max, n: tSt.n } : null;
-            data.perSource = curS.map(function (x) { return { id: x.id, label: x.label, w: x.w, temp: x.cur.t }; });
+            data.perSource = curS.map(function (x) {
+                return { id: x.id, label: x.label, w: x.w, temp: x.cur.t, skill: (x.skill != null ? x.skill : null) };
+            });
         }
 
         // --- denní (jen zdroje, které daily mají — tj. Open-Meteo modely) ---
@@ -516,7 +674,7 @@
             for (i = 0; i < axisD.time.length && i < 7; i++) {
                 var epoch = num(axisD.time[i]);
                 var row = { t: epoch, code: null, tmax: null, tmin: null, psum: null, pprob: null, wmax: null, sunrise: null, sunset: null };
-                var im = [], ix = [], ip = [], iw = [], ic = [];
+                var im = [], ix = [], ip = [], iw = [], ic = [], ipp = [];
                 for (var k = 0; k < dayS.length; k++) {
                     s = dayS[k];
                     // najdi index dne se stejným epoch časem (osy se běžně shodují)
@@ -531,14 +689,12 @@
                     ip.push({ v: at(s.daily.psum, di), w: s.w });
                     iw.push({ v: at(s.daily.wmax, di), w: s.w });
                     ic.push({ code: at(s.daily.code, di), w: s.w });
-                    if (row.pprob == null || (at(s.daily.pprob, di) != null && at(s.daily.pprob, di) > row.pprob)) {
-                        var pp = at(s.daily.pprob, di);
-                        if (pp != null) row.pprob = pp;
-                    }
+                    ipp.push({ v: at(s.daily.pprob, di), w: s.w });   // průměr ze všech zdrojů (dřív max)
                     if (row.sunrise == null) row.sunrise = at(s.daily.sunrise, di);
                     if (row.sunset == null) row.sunset = at(s.daily.sunset, di);
                 }
                 row.tmax = wv(ix); row.tmin = wv(im); row.psum = wv(ip); row.wmax = maxOf(iw);
+                row.pprob = wv(ipp);
                 row.code = combineCode(ic);
                 data.daily.push(row);
             }
@@ -573,7 +729,7 @@
             for (i = 0; i < times.length && added < 24; i++) {
                 var t = num(times[i]);
                 if (t == null || t < nowSec - 3600) continue;
-                var it = [], iwd = [], ig = [], ipr = [], icx = [], probMax = null;
+                var it = [], iwd = [], ig = [], ipr = [], icx = [], ipb = [];
                 for (var k2 = 0; k2 < hs.length; k2++) {
                     s = hs[k2];
                     var hm = srcIdx(s);
@@ -584,13 +740,12 @@
                     ig.push({ v: at(s.hourly.gusts, idx), w: s.w });
                     ipr.push({ v: at(s.hourly.precip, idx), w: s.w });
                     icx.push({ code: at(s.hourly.code, idx), w: s.w });
-                    var pb = at(s.hourly.prob, idx);
-                    if (pb != null && (probMax == null || pb > probMax)) probMax = pb;
+                    ipb.push({ v: at(s.hourly.prob, idx), w: s.w });   // průměr ze všech zdrojů (dřív max)
                 }
                 data.hourly.push({
                     t: t,
                     temp: wv(it), wind: wv(iwd), gusts: wv(ig),
-                    precip: wv(ipr), prob: probMax,
+                    precip: wv(ipr), prob: wv(ipb),
                     code: combineCode(icx),
                     day: isDayAt(t)
                 });
@@ -725,6 +880,74 @@
         ov.style.display = 'block';
     }
 
+    // ---- srážkový radar (RainViewer + mini-mapa Leaflet) --------------------------------
+    // Animace posledních ~70 minut radaru + 30 min nowcast: je vidět, odkud a jak
+    // rychle se srážkové mraky ženou. Bez klíče; když RainViewer/Leaflet není, karta
+    // se prostě schová. Mapa je záměrně bez ovládání — jen se dívá, střed = místo předpovědi.
+    function radarCard() { return byId('ag-wx-radar-card'); }
+    function hideRadar() { var c = radarCard(); if (c) c.style.display = 'none'; }
+    function setupRadar(pack) {
+        var c = radarCard(); if (!c) return;
+        if (typeof L === 'undefined' || !L.map || !L.tileLayer) { hideRadar(); return; }
+        var host = byId('ag-wx-radar'); if (!host) return;
+        c.style.display = '';
+        try {
+            if (!_radar.map) {
+                _radar.map = L.map(host, {
+                    zoomControl: false, attributionControl: false, dragging: false,
+                    scrollWheelZoom: false, touchZoom: false, doubleClickZoom: false,
+                    boxZoom: false, keyboard: false, tap: false
+                });
+                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 12, opacity: 0.8 }).addTo(_radar.map);
+            }
+            _radar.map.setView([pack.lat, pack.lon], 7);
+            if (!_radar.marker) {
+                _radar.marker = L.circleMarker([pack.lat, pack.lon], { radius: 5, color: '#fff', weight: 2, fillColor: '#2f9e74', fillOpacity: 1 }).addTo(_radar.map);
+            } else _radar.marker.setLatLng([pack.lat, pack.lon]);
+            // overlay je právě viditelný → mapa si musí přepočítat rozměr
+            setTimeout(function () { try { _radar.map.invalidateSize(); } catch (e) {} }, 250);
+        } catch (e) { hideRadar(); return; }
+        loadRadarFrames();
+    }
+    function loadRadarFrames() {
+        if (!_radar.map) return;
+        if (Date.now() - _radar.lastFetch < 5 * 60 * 1000) { startRadarAnim(); return; }   // snímky se obměňují ~po 10 min
+        _radar.lastFetch = Date.now();
+        fetchJson('https://api.rainviewer.com/public/weather-maps.json', FETCH_MS).then(function (j) {
+            var past = (j && j.radar && j.radar.past) ? j.radar.past : [];
+            var cast = (j && j.radar && j.radar.nowcast) ? j.radar.nowcast : [];
+            var tHost = (j && j.host) ? j.host : 'https://tilecache.rainviewer.com';
+            var frames = past.slice(-7).concat(cast);
+            if (!frames.length || !_radar.map) { hideRadar(); return; }
+            _radar.layers.forEach(function (l) { try { _radar.map.removeLayer(l); } catch (e) {} });
+            _radar.layers = frames.map(function (f) {
+                // /256/{z}/{x}/{y}/<schéma barev 4>/<1_1 = vyhlazení+sníh>.png
+                return L.tileLayer(tHost + f.path + '/256/{z}/{x}/{y}/4/1_1.png', { opacity: 0, maxZoom: 12 }).addTo(_radar.map);
+            });
+            _radar.frames = frames;
+            showRadarFrame(Math.max(0, Math.min(frames.length, past.slice(-7).length) - 1));   // start na „teď"
+            startRadarAnim();
+        }, function () { _radar.lastFetch = 0; if (!_radar.frames.length) hideRadar(); });
+    }
+    function showRadarFrame(i) {
+        if (!_radar.frames.length) return;
+        for (var k = 0; k < _radar.layers.length; k++) _radar.layers[k].setOpacity(k === i ? 0.72 : 0);
+        _radar.idx = i;
+        var f = _radar.frames[i];
+        var lab = byId('ag-wx-radar-lab');
+        if (lab && f && f.time) {
+            var future = f.time * 1000 > Date.now() + 60000;
+            lab.textContent = fmtHM(f.time, (_cur && _cur.data) ? _cur.data.off : -new Date().getTimezoneOffset() * 60) + (future ? ' · výhled' : '');
+        }
+    }
+    function startRadarAnim() {
+        if (_radar.timer) return;
+        _radar.timer = setInterval(function () {
+            if (!_open || !_radar.playing || !_radar.frames.length) return;
+            showRadarFrame((_radar.idx + 1) % _radar.frames.length);
+        }, 650);
+    }
+
     // ---- UI kostra ------------------------------------------------------------------
     function ensureUI() {
         if (_ui) return;
@@ -750,9 +973,19 @@
                     '<div class="wx-minmax" id="ag-wx-minmax"></div>' +
                 '</div>' +
                 '<div class="wx-card"><div class="wx-card-h">Hodinová předpověď</div><div class="wx-hours" id="ag-wx-hours"></div></div>' +
+                '<div class="wx-card" id="ag-wx-radar-card" style="display:none">' +
+                    '<div class="wx-card-h">Srážkový radar<span class="wx-radar-t" id="ag-wx-radar-lab"></span></div>' +
+                    '<div id="ag-wx-radar" class="wx-radar"></div>' +
+                    '<div class="wx-radar-foot">' +
+                        '<button type="button" id="ag-wx-radar-play" class="wx-radar-btn" aria-label="Přehrát / pozastavit">⏸</button>' +
+                        '<span class="wx-radar-hint">pohyb srážkových mraků · ~70 min zpět + 30 min výhled</span>' +
+                        '<span class="wx-radar-att">RainViewer · OSM</span>' +
+                    '</div>' +
+                '</div>' +
                 '<div class="wx-card"><div class="wx-card-h">7denní předpověď</div><div id="ag-wx-days"></div></div>' +
                 '<div class="wx-grid" id="ag-wx-grid"></div>' +
-                '<div class="wx-foot" id="ag-wx-foot"></div>' +
+                '<button type="button" class="wx-foot wx-foot-btn" id="ag-wx-foot-btn"></button>' +
+                '<div class="wx-srcpanel" id="ag-wx-srcpanel" style="display:none"></div>' +
             '</div>' +
             '<div id="ag-wx-empty" class="wx-empty" style="display:none"></div>' +
             '<div id="ag-wx-loading" class="wx-load" style="display:none">Načítám předpověď…</div>';
@@ -760,6 +993,16 @@
 
         byId('ag-wx-close').addEventListener('click', close);
         byId('ag-wx-mappick').addEventListener('click', pickOnMap);
+        byId('ag-wx-foot-btn').addEventListener('click', function () {
+            var p = byId('ag-wx-srcpanel');
+            var on = p.style.display === 'none';
+            p.style.display = on ? 'block' : 'none';
+            renderFootBtn(on);
+        });
+        byId('ag-wx-radar-play').addEventListener('click', function () {
+            _radar.playing = !_radar.playing;
+            this.textContent = _radar.playing ? '⏸' : '▶';
+        });
         byId('ag-wx-myloc').addEventListener('click', function () {
             _place = null;
             byId('ag-wx-search').value = '';
@@ -929,10 +1172,39 @@
         renderDays(data, off);
         renderGrid(data, off);
 
-        // --- patička ---
-        var labels = (pack.sources && pack.sources.length) ? pack.sources.join(', ') : 'ECMWF, DWD ICON, NOAA GFS (Open-Meteo), MET Norway';
-        var upd = new Date(pack.t);
-        byId('ag-wx-foot').textContent = 'Zdroje: ' + labels + ' · vážený průměr · aktualizováno ' + pad2(upd.getHours()) + ':' + pad2(upd.getMinutes());
+        // --- zdroje: rozbalovací řádek dole (na přání schované, ať nezavazí) ---
+        var panel = byId('ag-wx-srcpanel');
+        renderFootBtn(panel && panel.style.display !== 'none');
+        renderSrcPanel(pack);
+
+        // --- srážkový radar ---
+        setupRadar(pack);
+    }
+
+    function renderFootBtn(open) {
+        var b = byId('ag-wx-foot-btn'); if (!b) return;
+        var n = (_cur && _cur.data && _cur.data.perSource) ? _cur.data.perSource.length : 0;
+        var upd = _cur ? new Date(_cur.t) : null;
+        b.textContent = 'Z čeho předpověď vychází' + (n ? ' · ' + n + ' zdrojů' : '')
+            + (upd ? ' · aktualizováno ' + pad2(upd.getHours()) + ':' + pad2(upd.getMinutes()) : '')
+            + (open ? '  ▴' : '  ▾');
+    }
+    function renderSrcPanel(pack) {
+        var box = byId('ag-wx-srcpanel'); if (!box) return;
+        box.innerHTML = '';
+        var ps = (pack.data && pack.data.perSource) ? pack.data.perSource : [];
+        if (!ps.length) { box.appendChild(el('div', 'wx-none', 'Seznam zdrojů není k dispozici.')); return; }
+        box.appendChild(el('div', 'wx-src-h', 'Vážený průměr ' + ps.length + ' zdrojů. „Trefnost“ = průměrná chyba předpovědí tohoto modelu na 3–24 h dopředu proti pozdější skutečnosti — appka se ji učí používáním a trefnějším modelům zvedá váhu.'));
+        var sorted = ps.slice().sort(function (a, b) { return (b.w || 0) - (a.w || 0); });
+        for (var i = 0; i < sorted.length; i++) {
+            var s = sorted[i];
+            var row = el('div', 'wx-src');
+            row.appendChild(el('span', 'wx-src-n', s.label + ' · váha ' + nf(s.w, 2)
+                + (s.skill != null ? ' · trefnost ±' + nf(s.skill, 1) + ' °C' : '')));
+            row.appendChild(el('span', 'wx-src-v', s.temp != null ? nf(s.temp, 1) + ' °C' : '–'));
+            box.appendChild(row);
+        }
+        box.appendChild(el('div', 'wx-src-h', 'Data: Open-Meteo · MET Norway · Bright Sky (DWD) · radar RainViewer · mapa OpenStreetMap'));
     }
 
     function renderHours(data, off) {
@@ -965,10 +1237,11 @@
             ic.innerHTML = iconForCode(h.code, h.day !== false);
             it.appendChild(ic);
             it.appendChild(el('div', 'wx-h-v', h.temp != null ? nf(Math.round(h.temp), 0) + '°' : '–'));
-            var pTxt = '';
-            if (h.prob != null && h.prob >= 10) pTxt = nf(Math.round(h.prob), 0) + ' %';
-            else if (h.precip != null && h.precip >= 0.1) pTxt = nf(h.precip, 1) + ' mm';
-            it.appendChild(el('div', 'wx-h-p', pTxt));
+            // pravděpodobnost I množství — ať je vidět, kolik mm má reálně spadnout
+            var pParts = [];
+            if (h.prob != null && h.prob >= 10) pParts.push(nf(Math.round(h.prob), 0) + ' %');
+            if (h.precip != null && h.precip >= 0.1) pParts.push(nf(h.precip, 1) + ' mm');
+            it.appendChild(el('div', 'wx-h-p', pParts.join(' ')));
             box.appendChild(it);
         }
     }
@@ -1003,10 +1276,10 @@
             var ic = el('div', 'wx-d-i');
             ic.innerHTML = iconForCode(d.code, true);
             row.appendChild(ic);
-            var pTxt = '';
-            if (d.pprob != null && d.pprob >= 10) pTxt = nf(Math.round(d.pprob), 0) + ' %';
-            else if (d.psum != null && d.psum >= 0.5) pTxt = nf(d.psum, 1) + ' mm';
-            row.appendChild(el('div', 'wx-d-p', pTxt));
+            var dParts = [];
+            if (d.pprob != null && d.pprob >= 10) dParts.push(nf(Math.round(d.pprob), 0) + ' %');
+            if (d.psum != null && d.psum >= 0.1) dParts.push(nf(d.psum, 1) + ' mm');
+            row.appendChild(el('div', 'wx-d-p', dParts.join(' ')));
             row.appendChild(el('div', 'wx-d-min', d.tmin != null ? nf(Math.round(d.tmin), 0) + '°' : '–'));
             var barWrap = el('div', 'wx-d-bar');
             var bar = el('div', 'wx-d-bar-in');
@@ -1054,14 +1327,20 @@
         if (c.dir != null) wSub.push('od ' + dirName(c.dir));
         tw.appendChild(el('div', 'wx-tile-sub', wSub.join(' · ')));
 
-        // Tlak
-        var tp = tile(box, 'Tlak');
+        // Tlak — hlavní hodnota přepočtená do nadmořské výšky místa, moře jen doplňkově
+        var hasElev = (data.elev != null && isFinite(data.elev) && data.elev >= 1);
+        var tp = tile(box, hasElev ? 'Tlak zde (' + nf(Math.round(data.elev), 0) + ' m n. m.)' : 'Tlak');
+        var pLoc = hasElev ? fromMsl(c.pmsl, data.elev, c.temp) : c.pmsl;
         var pRow = el('div');
-        pRow.appendChild(el('span', 'wx-tile-big', c.pmsl != null ? nf(Math.round(c.pmsl), 0) : '–'));
+        pRow.appendChild(el('span', 'wx-tile-big', pLoc != null ? nf(Math.round(pLoc), 0) : '–'));
         pRow.appendChild(el('span', 'wx-tile-un', 'hPa'));
         tp.appendChild(pRow);
         var tr = pressTrend(data.pressHist);
-        tp.appendChild(el('div', 'wx-tile-sub', tr ? (tr.arrow + ' ' + tr.txt) : 'hladina moře'));
+        var pSub = [];
+        if (tr) pSub.push(tr.arrow + ' ' + tr.txt);
+        if (hasElev && c.pmsl != null) pSub.push('na moři ' + nf(Math.round(c.pmsl), 0) + ' hPa');
+        else if (!hasElev) pSub.push('hladina moře');
+        tp.appendChild(el('div', 'wx-tile-sub', pSub.join(' · ')));
 
         // Vlhkost
         var th = tile(box, 'Vlhkost');
@@ -1100,15 +1379,13 @@
         } else {
             tq.appendChild(el('div', 'wx-tile-sub', 'K dispozici je jen jeden zdroj — rozptyl nelze určit.'));
         }
-        var list = el('div', 'wx-srcs');
-        var ps = data.perSource || [];
-        for (var i = 0; i < ps.length; i++) {
-            var row = el('div', 'wx-src');
-            row.appendChild(el('span', 'wx-src-n', ps[i].label + ' (váha ' + nf(ps[i].w, 2) + ')'));
-            row.appendChild(el('span', 'wx-src-v', ps[i].temp != null ? nf(ps[i].temp, 1) + ' °C' : '–'));
-            list.appendChild(row);
+        // spolehlivost podle historie: jak se modely v posledních dnech trefovaly
+        if (data.skillInfo && data.skillInfo.ref != null) {
+            tq.appendChild(el('div', 'wx-tile-sub', 'Podle historie se předpovědi na 3–24 h trefují v průměru na ±'
+                + nf(data.skillInfo.ref, 1) + ' °C (' + data.skillInfo.models + ' modelů; trefnějším roste váha). Detail zdrojů je dole.'));
+        } else {
+            tq.appendChild(el('div', 'wx-tile-sub', 'Trefnost podle historie se teprve učí — appka srovnává starší předpovědi se skutečností při každém otevření.'));
         }
-        if (ps.length) tq.appendChild(list);
     }
 
     function showEmpty(msg) {
@@ -1154,9 +1431,13 @@
             function (j) { var s = parseMetno(j); return s ? [s] : []; },
             function () { return []; }    // met.no smí selhat (CORS/síť) — celek jede dál
         );
-        Promise.all([pOm, pMet]).then(function (rr) {
+        var pBs = fetchJson(brightskyUrl(pos.lat, pos.lon), FETCH_MS).then(
+            function (j) { var s = parseBrightsky(j); return s ? [s] : []; },
+            function () { return []; }    // Bright Sky smí selhat — celek jede dál
+        );
+        Promise.all([pOm, pMet, pBs]).then(function (rr) {
             if (seq !== _reqSeq) return;   // mezitím přišel novější požadavek
-            var sources = rr[0].concat(rr[1]);
+            var sources = rr[0].concat(rr[1]).concat(rr[2]);
             if (!sources.length) {
                 // úplné selhání → poslední data + štítek offline
                 _offline = true;
@@ -1165,6 +1446,13 @@
                 else showEmpty('Předpověď se nepodařilo stáhnout (jsi offline?) a v paměti nejsou žádná starší data pro toto místo.');
                 return;
             }
+            // trefnost podle historie: uprav váhy PŘED kombinací (a poznač trefnost pro výpis)
+            var sk = loadSkill();
+            var ref = skillRef(sk);
+            sources.forEach(function (s) {
+                s.skill = (sk.mae[s.id] && sk.mae[s.id].n >= 3) ? sk.mae[s.id].e : null;
+                s.w = s.w * skillFactor(sk, ref, s.id);
+            });
             var prevHist = (cacheFallback && cacheFallback.data && cacheFallback.data.pressHist) ? cacheFallback.data.pressHist : [];
             var data;
             try { data = combineAll(sources, prevHist); }
@@ -1174,6 +1462,12 @@
                 return;
             }
             delete data.isDayAt;
+            // srovnej dřívější předpovědi s právě pozorovaným stavem a ulož nové predikce
+            try {
+                var sk2 = updateSkill(sources, data.current ? data.current.temp : null);
+                var ref2 = skillRef(sk2);
+                if (ref2) data.skillInfo = { ref: Math.round(ref2.ref * 10) / 10, models: ref2.models };
+            } catch (e) {}
             var pack = {
                 t: Date.now(), lat: pos.lat, lon: pos.lon, placeName: name,
                 data: data,
@@ -1203,6 +1497,7 @@
         _open = false;
         if (_ui) _ui.classList.remove('on');
         hideResults();
+        if (_radar.timer) { try { clearInterval(_radar.timer); } catch (e) {} _radar.timer = null; }
         if (_timer) {
             if (window.AG && AG.clearUiInterval) AG.clearUiInterval(_timer);
             else { try { clearInterval(_timer); } catch (e) {} }

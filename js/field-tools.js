@@ -97,24 +97,50 @@
         }
         return false;
     }
+    function itemById(id) {
+        for (var i = 0; i < _items.length; i++) { if (_items[i].id === id) return _items[i]; }
+        return null;
+    }
     function syncTiles() {
         var grid = getGrid();
         if (!grid) return;
         injectStyles();
-        // odstraň dříve injektované prvky (idempotentní)
-        var old = grid.querySelectorAll('.ag-ft-tile, .ag-ft-head');
-        for (var i = 0; i < old.length; i++) old[i].remove();
+        // INKREMENTÁLNĚ: dlaždice, které už v mřížce jsou, se NEsahají — mohou být
+        // přesunuté v sekcích ★ Oblíbené (tools-plus) / ◆ Pro tuto práci (tools-simple).
+        // Dřívější plné zbourání a přestavění s těmi moduly válčilo: každé jejich
+        // odebrání dlaždice spustilo rebuild, ten zas jejich přesun → mřížka
+        // viditelně problikávala. Teď se jen odstraní osiřelé/duplicitní a doplní chybějící.
+        var have = {}, i;
+        var cur = grid.querySelectorAll('.ag-ft-tile');
+        for (i = 0; i < cur.length; i++) {
+            var id = cur[i].getAttribute('data-tool');
+            if (!id || have[id] || !itemById(id)) { cur[i].remove(); continue; }
+            have[id] = true;
+        }
         if (!_items.length) return;
 
         var sorted = _items.slice().sort(function (a, b) { return (a.order || 50) - (b.order || 50); });
         // dlaždice s cat jdou do své statické kategorie, zbytek pod „Terénní nástroje"
-        var rest = sorted.filter(function (it) { return !(it.cat && placeInCategory(grid, it)); });
+        var rest = sorted.filter(function (it) {
+            if (have[it.id]) return false;
+            return !(it.cat && placeInCategory(grid, it));
+        });
         if (rest.length) {
-            var head = document.createElement('div');
-            head.className = 'ag-ft-head';
-            head.textContent = 'Terénní nástroje';
-            grid.appendChild(head);
-            rest.forEach(function (it) { grid.appendChild(makeTile(it)); });
+            var head = grid.querySelector('.ag-ft-head');
+            if (!head) {
+                head = document.createElement('div');
+                head.className = 'ag-ft-head';
+                head.textContent = 'Terénní nástroje';
+                grid.appendChild(head);
+            }
+            // vlož na konec bloku „Terénní nástroje" (za nadpis, před další nadpis)
+            var node = head.nextSibling;
+            while (node) {
+                if (node.nodeType === 1 && node.classList &&
+                    (node.classList.contains('tool-cat') || node.classList.contains('ag-ft-head'))) break;
+                node = node.nextSibling;
+            }
+            rest.forEach(function (it) { grid.insertBefore(makeTile(it), node); });
         }
         try { applyFilter(); } catch (e) {}   // znovu aplikuj aktivní hledání i na čerstvě vložené dlaždice
     }
@@ -322,12 +348,24 @@
     };
     // zpětná kompatibilita (dříve zavíralo plovoucí menu — teď není potřeba)
     window.agCloseFieldTools = function () {};
+    // tools-plus/tools-simple po odebrání injektované dlaždice zavolají okamžité
+    // doplnění zpět do kategorie (bez čekání na periodický tick → žádné probliknutí)
+    window.agFtSyncTiles = function () { try { syncTiles(); } catch (e) {} };
 
     // ---- bezpečnostní udržování dlaždic (kdyby se mřížka objevila/přerenderovala) -
     function needsSync() {
         var grid = getGrid();
         if (!grid) return false;
-        return grid.querySelectorAll('.ag-ft-tile').length !== _items.length;
+        // porovnává se PODLE ID, ne počtem — přesun dlaždice jiným modulem není důvod k zásahu
+        var cur = grid.querySelectorAll('.ag-ft-tile'), seen = {}, distinct = 0, i, id;
+        for (i = 0; i < cur.length; i++) {
+            id = cur[i].getAttribute('data-tool');
+            if (!id || seen[id]) return true;      // duplikát / poškozená dlaždice → ukliď
+            seen[id] = true; distinct++;
+        }
+        if (distinct !== _items.length) return true;
+        for (i = 0; i < _items.length; i++) { if (!seen[_items[i].id]) return true; }
+        return false;
     }
     var _wasOpen = false;
     function tick() {

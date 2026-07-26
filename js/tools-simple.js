@@ -130,7 +130,12 @@
         return null;
     }
     function restoreTile(tile) {
-        if (tile.classList.contains('ag-ft-tile')) { tile.remove(); return; }   // injektovanou vrátí field-tools
+        if (tile.classList.contains('ag-ft-tile')) {
+            // injektovanou vrátí field-tools — hned, ať mřížka neproblikává čekáním na tick
+            tile.remove();
+            try { if (typeof window.agFtSyncTiles === 'function') window.agFtSyncTiles(); } catch (e) {}
+            return;
+        }
         var ph = tile._agTsPh;
         if (ph && ph.isConnected) { ph.parentNode.insertBefore(tile, ph); ph.remove(); tile._agTsPh = null; }
     }
