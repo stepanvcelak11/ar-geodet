@@ -130,8 +130,7 @@
                 }
             }
         } catch (e) {}
-        // start s malým odstupem, ať se přepnutí zakázky stihne rozběhnout
-        setTimeout(function () {
+        function go() {
             try { if (typeof window.startAppFromWelcome === 'function') startAppFromWelcome(); } catch (e) {}
             var waited = 0;
             var t = setInterval(function () {
@@ -146,7 +145,12 @@
                     }, 900);
                 } else if (waited >= 20000) clearInterval(t);
             }, 500);
-        }, rec.pid !== pid() ? 700 : 0);
+        }
+        // Stejná zakázka → start HNED (synchronně): iOS pak bere requestPermission
+        // kompasu/kamery jako součást ťuknutí. setTimeout by gesto zahodil a oprávnění
+        // by spadlo („requires a user gesture"). Jen při přepnutí zakázky dáme odstup.
+        if (rec.pid !== pid()) setTimeout(go, 700);
+        else go();
     }
 
     // ---- údržba ---------------------------------------------------------------------------

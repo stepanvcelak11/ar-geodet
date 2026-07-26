@@ -24,6 +24,7 @@
     var FRESH_MS = 6000, LOST_MS = 30000;
     var STYLE_ID = 'ag-gpst-style', BAR_ID = 'ag-gpst-bar';
     var _lastState = null;
+    var _dismissed = null;   // klic stavu ('off'/'stale'/'lost'), ktery uzivatel zavrel krizkem
 
     function injectStyles() {
         if (document.getElementById(STYLE_ID)) return;
@@ -38,6 +39,10 @@
             '  pointer-events:none;max-width:88vw;text-align:center;}',
             '#' + BAR_ID + '.show{display:flex;}',
             '#' + BAR_ID + ' .dot{width:9px;height:9px;border-radius:50%;flex:0 0 9px;background:#fff;}',
+            // krizek na zavreni: jediny klikaci prvek (rodic ma pointer-events:none, at pruh neblokuje AR)
+            '#' + BAR_ID + ' .x{pointer-events:auto;appearance:none;-webkit-appearance:none;border:0;margin:-2px -6px -2px 0;',
+            '  background:rgba(255,255,255,0.18);color:#fff;width:22px;height:22px;border-radius:50%;flex:0 0 22px;',
+            '  font:700 14px/22px var(--font-ui,system-ui),sans-serif;padding:0;cursor:pointer;text-align:center;}',
             'body.ag-fix-stale #' + BAR_ID + '{background:rgba(146,94,7,0.92);}',
             'body.ag-fix-lost #' + BAR_ID + '{background:rgba(140,28,28,0.94);}',
             'body.ag-fix-lost #' + BAR_ID + ' .dot{animation:ag-gpst-pulse 1s infinite;}',
@@ -57,7 +62,11 @@
         if (!b) {
             b = document.createElement('div');
             b.id = BAR_ID;
-            b.innerHTML = '<span class="dot"></span><span class="txt"></span>';
+            b.innerHTML = '<span class="dot"></span><span class="txt"></span><button type="button" class="x" aria-label="Zavřít upozornění">×</button>';
+            b.querySelector('.x').addEventListener('click', function () {
+                _dismissed = b.getAttribute('data-key') || null;
+                b.classList.remove('show');
+            });
             document.body.appendChild(b);
         }
         return b;
@@ -91,11 +100,15 @@
             document.body.classList.toggle('ag-fix-stale', started && st.state === 'stale');
             document.body.classList.toggle('ag-fix-lost', started && st.state === 'lost');
             var bar = ensureBar();
-            var txt = null;
-            if (started && st.state === 'lost') txt = 'GPS ztracena ' + (st.ageMs != null ? fmtAge(st.ageMs) : '') + ' — poloha i AR ukazují POSLEDNÍ známé místo';
-            else if (started && st.state === 'stale') txt = 'GPS bez čerstvého fixu ' + fmtAge(st.ageMs) + ' — poloha může být posunutá';
-            else if (started && off) txt = 'Offline — mapa a katastr jen z uložených dat, měření GPS funguje';
-            if (txt) { bar.querySelector('.txt').textContent = txt; bar.classList.add('show'); }
+            var txt = null, key = null;
+            if (started && st.state === 'lost') { key = 'lost'; txt = 'GPS ztracena ' + (st.ageMs != null ? fmtAge(st.ageMs) : '') + ' — poloha i AR ukazují POSLEDNÍ známé místo'; }
+            else if (started && st.state === 'stale') { key = 'stale'; txt = 'GPS bez čerstvého fixu ' + fmtAge(st.ageMs) + ' — poloha může být posunutá'; }
+            else if (started && off) { key = 'off'; txt = 'Offline — mapa a katastr jen z uložených dat, měření GPS funguje'; }
+            // krizek zavre pruh pro AKTUALNI stav; kdyz vse pomine, dismiss se resetuje,
+            // aby se pristi problem zase ukazal (jina zavada nez zavrena se ukaze hned)
+            if (!key) _dismissed = null;
+            bar.setAttribute('data-key', key || '');
+            if (txt && key !== _dismissed) { bar.querySelector('.txt').textContent = txt; bar.classList.add('show'); }
             else bar.classList.remove('show');
             // prechodova hlaska jen pri zhorseni (fresh->stale/lost), at to nepipa porad
             if (started && _lastState === 'fresh' && st.state === 'lost' && typeof window.quickToast === 'function') {
