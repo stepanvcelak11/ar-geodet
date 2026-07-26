@@ -24,13 +24,13 @@
     // Kategorie pro injektované nástroje, které si ji samy neurčí (cat v registraci
     // má přednost). Neznámé id spadnou do záchytné sekce „Terénní nástroje".
     var TOOL_CATS = {
-        'brutal-gps': 'Měření', 'vyska-objektu': 'Měření', 'rangefinder': 'Měření',
+        'brutal-gps': 'Měření', 'vyska-objektu': 'Měření',
         'epochy': 'Měření', 'zapisnik': 'Měření', 'track-log': 'Měření',
         'gps-semafor': 'Měření', 'dgps': 'Měření', 'pdr-offset': 'Měření',
         'stakeout-line': 'Vytyčování a náčrt', 'offset-point': 'Vytyčování a náčrt', 'vrstvy': 'Vytyčování a náčrt',
         'cadastre-vector': 'Katastr a data', 'parcela': 'Katastr a data', 'project-import': 'Katastr a data', 'geo-overlay': 'Katastr a data',
         'ar-resection': 'AR a kalibrace', 'ar-intersection': 'AR a kalibrace', 'orient-point': 'AR a kalibrace',
-        'postupy': 'Pomůcky', 'urovnani': 'Pomůcky'
+        'postupy': 'Pomůcky'
     };
 
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]; }); }
@@ -148,7 +148,6 @@
         dgps: 'dgps diferencni korekce zakladna rover druhy telefon presnost oprava bodu',
         'pdr-offset': 'kroky krokovy offset vektor chuze pdr roh budovy dead reckoning',
         'vyska-objektu': 'vyska objektu budova strom stozar uhel meridlo',
-        rangefinder: 'dalkomer opticky vzdalenost odhad zamereni',
         epochy: 'epochy monitoring posuny deformace sledovani opakovane',
         zapisnik: 'zapisnik polni denik poznamky mereni zaznamy',
         'track-log': 'stopa trasa log gpx zaznam cesty prochazka',
@@ -163,7 +162,6 @@
         'ar-intersection': 'protinani vpred uhly neznamy bod urceni',
         'orient-point': 'orientace bod sever srovnani smer',
         postupy: 'postupy navody checklisty pracovni kroky jak na',
-        urovnani: 'urovnani stativ libela vodorovne nohy srouby',
         rajon: 'rajon polarni metoda uhel delka stanovisko novy bod',
         'free-station': 'volne stanovisko pruvodce resekce prechodne',
         'hidden-points': 'skryte body obnovit zobrazit schovane',
@@ -173,10 +171,12 @@
         'sky-obstruction': 'predikce signalu obloha prekazky stromy budovy gnss planovani',
         'job-transfer': 'prenos zakazky export import argeo sdileni telefon',
         'utility-networks': 'site podzemni vedeni inzenyrske gml kabel plyn voda',
-        'photo-shot': 'foto totalka fotogrammetrie snimek zamereni z fotky',
         'localization-helmert': 'helmert lokalizace transformace klic mistni system',
         zavady: 'zavada zavady porucha vada nalez hlaseni defekt kontrola oprava foto protokol reklamace',
         'usadit-ar': 'usadit srovnat kalibrace sever ar pruvodce orientace nesedi posun helmert resekce stanovisko',
+        'bod-vypoctem': 'bod vypoctem novy vypocet rajon offset protinani smernik delka uhel konstrukce rozcestnik',
+        'gnss-signal': 'gnss signal gps kvalita druzice satelity predikce semafor skore multipath obloha podminky',
+        prirucka: 'prirucka predpisy postupy slovnik odchylky kody lhuty navody tahak pojmy zkratky',
         zpravodaj: 'zpravodaj zpravy novinky clanky geodezie',
         kos: 'kos smazane body obnovit odpadky',
         zaloha: 'zaloha export import obnova dat json'
