@@ -83,8 +83,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=189">
-    <link rel="stylesheet" href="css/style.css?v=189">
+    <link rel="stylesheet" href="css/tokens.css?v=190">
+    <link rel="stylesheet" href="css/style.css?v=190">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -101,7 +101,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=189">
+    <link rel="stylesheet" href="css/vylepseni.css?v=190">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -756,6 +756,8 @@
     <!-- KOŠ (odpojitelné: smaž tento řádek + js/kos.js) — 30denní obnova smazaných zakázek/bodů; MUSÍ být za undo.js -->
     <script defer src="js/kos.js"></script>
     <script defer src="js/zakazky.js"></script>
+    <!-- Šablony zakázky (odpojitelné: smaž tento řádek + js/zakazka-sablony.js) — převzetí nastavení do nové zakázky; až ZA logika.js a dialog-bridge.js, obaluje createNewProject -->
+    <script defer src="js/zakazka-sablony.js"></script>
     <script defer src="js/pruvodce.js"></script>
     <script defer src="js/sdileni.js"></script>
     <script defer src="js/tachymetrie.js"></script>
@@ -826,6 +828,8 @@
     <script defer src="js/vyska-objektu.js"></script>
     <!-- EPOCHY / MONITORING POSUNŮ (odpojitelné: smaž tento řádek + js/epochy.js) — souřadnice z totálky/roveru v čase -->
     <script defer src="js/epochy.js"></script>
+    <!-- Připomínky epoch monitoringu (odpojitelné: smaž tento řádek + js/epochy-pripominky.js) — interval přeměření + upozornění po startu -->
+    <script defer src="js/epochy-pripominky.js"></script>
     <!-- POČASÍ (odpojitelné: smaž tento řádek + js/pocasi.js + css/pocasi.css) — Apple styl, více modelů váženě, cache posledních dat -->
     <script defer src="js/pocasi.js"></script>
     <script defer src="js/ar-calibrate.js"></script>
@@ -841,6 +845,8 @@
     <script defer src="js/tools-simple.js"></script>
     <!-- POKRAČOVAT, KDE JSEM SKONČIL (odpojitelné: smaž tento řádek + js/pokracovat.js) — tlačítko na úvodu, pamatuje poslední nástroj -->
     <script defer src="js/pokracovat.js"></script>
+    <!-- ZKRATKY Z PLOCHY (odpojitelné: smaž tento řádek + js/shortcuts.js + blok "shortcuts" v manifest.json) — dlouhé podržení ikony appky -->
+    <script defer src="js/shortcuts.js"></script>
     <!-- CELÁ OBRAZOVKA / immersive (odpojitelné: smaž tento řádek + js/fullscreen.js) — schová systémovou lištu dole -->
     <script defer src="js/fullscreen.js"></script>
     <!-- PŘEPÍNAČ ZOBRAZENÍ NA 1 TAP (odpojitelné: smaž tento řádek + js/view-cycle.js) — kolečko AR/Split/Mapa vpravo dole -->
@@ -862,6 +868,8 @@
     <script defer src="js/firma-chat.js"></script>
     <!-- ZÁVADY / HLÁŠENÍ PORUCH (odpojitelné) — nálezy v terénu: foto+kategorie+závažnost, mapa/AR, protokol -->
     <script defer src="js/zavady.js"></script>
+    <!-- DENÍK DNE (odpojitelné: smaž tento řádek + js/denik-dne.js) — večerní souhrn dne za zakázku: body, docházka, závady, počasí, stopa, zápisníky; Sdílet / Uložit PDF -->
+    <script defer src="js/denik-dne.js"></script>
     <!-- USADIT AR (odpojitelné) — průvodce místo 7 kalibračních dlaždic + „Teď se hodí" -->
     <script defer src="js/usadit-ar.js"></script>
     <!-- ROZCESTNÍKY NÁSTROJŮ — Bod výpočtem / Signál GNSS / Příručka (odpojitelné: smaž tento řádek + js/tools-hub.js) -->

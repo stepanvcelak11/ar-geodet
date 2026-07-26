@@ -43,5 +43,46 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nový bod",
+      "short_name": "Nový bod",
+      "description": "Spustit appku a rovnou otevřít vložení nového bodu",
+      "url": "./index.html?zkratka=novy-bod",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Pokračovat, kde jsem skončil",
+      "short_name": "Pokračovat",
+      "description": "Otevřít poslední použitý nástroj v poslední zakázce",
+      "url": "./index.html?zkratka=pokracovat",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Docházka",
+      "short_name": "Docházka",
+      "description": "Píchnout příchod nebo odchod (firemní režim)",
+      "url": "./index.html?zkratka=dochazka",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
   ]
 }
