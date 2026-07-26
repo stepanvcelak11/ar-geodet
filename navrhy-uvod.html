@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>AR Geodet — 3 návrhy úvodní obrazovky</title>
+<title>AR Geodet — 3 návrhy přihlašovací obrazovky</title>
 <style>
 /* ============================================================
-   NÁHLEDY: 3 návrhy vizuálního redesignu úvodní obrazovky.
-   Samostatný soubor, nic z appky nemění. Přepínání dole.
+   NÁHLEDY: 3 návrhy vizuálního redesignu PŘIHLAŠOVACÍ obrazovky
+   (firemní režim, ag-login). Samostatný soubor, nic v appce
+   nemění. Přepínání dole, dlaždice uživatelů jsou klikací.
    ============================================================ */
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
@@ -46,15 +47,15 @@ body {
 .design { position: fixed; inset: 0; display: none; overflow: hidden; }
 .design.on { display: flex; }
 .d-inner {
-    position: relative; z-index: 2; width: 100%; max-width: 460px; margin: 0 auto;
+    position: relative; z-index: 2; width: 100%; max-width: 440px; margin: 0 auto;
     display: flex; flex-direction: column; justify-content: center;
-    padding: 78px 26px calc(84px + env(safe-area-inset-bottom));
+    padding: 84px 22px calc(84px + env(safe-area-inset-bottom));
     height: 100%; overflow-y: auto;
 }
 
 /* ============================================================
-   NÁVRH 1 — „TERÉN": živá vrstevnicová mapa jako podklad,
-   záměrný kříž, měřická linie s délkou. Evoluce dneška.
+   NÁVRH 1 — „TERÉN": živá vrstevnicová mapa pod přihlášením,
+   záměrný kříž jako logo. Evoluce dnešní karty.
    ============================================================ */
 #d1 { background: #0d1114; }
 #d1 .topo { position: absolute; inset: -20%; width: 140%; height: 140%; z-index: 0; animation: d1drift 40s ease-in-out infinite alternate; }
@@ -62,180 +63,187 @@ body {
 #d1 .topo path { fill: none; stroke: rgba(47,158,116,0.13); stroke-width: 1.2; }
 #d1 .topo path.major { stroke: rgba(47,158,116,0.28); stroke-width: 1.6; }
 #d1::after { content:""; position: absolute; inset: 0; z-index: 1;
-    background: radial-gradient(90% 70% at 50% 42%, transparent 30%, rgba(10,13,16,0.88) 100%); }
-
-/* měřická linie mezi dvěma body + štítek délky */
+    background: radial-gradient(90% 70% at 50% 42%, transparent 25%, rgba(10,13,16,0.9) 100%); }
 #d1 .mline { position: absolute; z-index: 1; inset: 0; pointer-events: none; }
-#d1 .mline line { stroke: rgba(230,189,118,0.6); stroke-width: 1.5; stroke-dasharray: 6 7; animation: d1dash 2.2s linear infinite; }
+#d1 .mline line { stroke: rgba(230,189,118,0.55); stroke-width: 1.5; stroke-dasharray: 6 7; animation: d1dash 2.2s linear infinite; }
 @keyframes d1dash { to { stroke-dashoffset: -26; } }
-#d1 .mline circle { fill: #0d1114; stroke: #e6bd76; stroke-width: 2; }
-#d1 .mlabel { position: absolute; z-index: 1; top: 21%; right: 12%; font-family: "JetBrains Mono", monospace;
+#d1 .mlabel { position: absolute; z-index: 1; top: 18%; right: 10%; font-family: "JetBrains Mono", monospace;
     font-size: 11px; color: #e6bd76; background: rgba(20,16,8,0.7); border: 1px solid rgba(230,189,118,0.35);
     padding: 3px 8px; border-radius: 7px; }
 
-#d1 .reticle { width: 108px; height: 108px; margin: 0 auto 18px; position: relative; animation: d1float 5s ease-in-out infinite; }
-@keyframes d1float { 50% { transform: translateY(-7px); } }
+#d1 .card { position: relative; border-radius: 22px; padding: 24px 18px 18px;
+    background: linear-gradient(175deg, rgba(47,158,116,0.1), rgba(255,255,255,0.035) 40%);
+    border: 1px solid rgba(76,205,153,0.28);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+    display: flex; flex-direction: column; align-items: center; gap: 13px; }
+#d1 .reticle { width: 66px; height: 66px; animation: d1float 5s ease-in-out infinite; }
+@keyframes d1float { 50% { transform: translateY(-6px); } }
 #d1 .reticle svg { width: 100%; height: 100%; overflow: visible; }
 #d1 .ret-spin { transform-origin: 48px 48px; animation: d1spin 14s linear infinite; }
 @keyframes d1spin { to { transform: rotate(360deg); } }
-
-#d1 h1 { font-size: 34px; font-weight: 800; letter-spacing: -0.7px; text-align: center; line-height: 1.05; }
+#d1 h1 { font-size: 23px; font-weight: 800; letter-spacing: -0.4px; margin-top: -4px; }
 #d1 h1 em { font-style: normal; color: #4ccd99; }
-#d1 .tag { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase;
-    color: #9aa1ac; text-align: center; margin: 9px 0 30px; }
-
-#d1 .proj { position: relative; border-radius: 18px; padding: 16px 16px 14px; margin-bottom: 12px;
-    background: linear-gradient(160deg, rgba(47,158,116,0.14), rgba(255,255,255,0.045) 45%);
-    border: 1px solid rgba(76,205,153,0.3);
-    box-shadow: 0 18px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.07); }
-#d1 .proj .lbl { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #4ccd99; display: flex; align-items: center; gap: 7px; }
-#d1 .proj .lbl::before { content:""; width: 7px; height: 7px; border-radius: 50%; background: #4ccd99; box-shadow: 0 0 10px #4ccd99; animation: d1pulse 2s infinite; }
+#d1 .firm { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 999px;
+    background: rgba(13,17,20,0.6); border: 1px solid rgba(255,255,255,0.13); font-size: 12.5px; font-weight: 600; }
+#d1 .firm::before { content:""; width: 7px; height: 7px; border-radius: 50%; background: #4ccd99; box-shadow: 0 0 9px #4ccd99; animation: d1pulse 2s infinite; }
 @keyframes d1pulse { 50% { opacity: 0.35; } }
-#d1 .proj .name { font-size: 21px; font-weight: 800; margin-top: 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-#d1 .proj .name .icon { width: 20px; height: 20px; color: #9aa1ac; flex: 0 0 auto; }
-#d1 .proj .sub { font-size: 12px; color: #9aa1ac; margin-top: 3px; }
-#d1 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 13px; }
-#d1 .chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 999px;
-    background: rgba(13,17,20,0.65); border: 1px solid rgba(255,255,255,0.12); font-size: 12px; font-weight: 700; }
-#d1 .chip .icon { width: 13px; height: 13px; color: #4ccd99; }
-#d1 .newproj { width: 100%; margin-bottom: 26px; padding: 11px; border-radius: 14px; border: 1px dashed rgba(255,255,255,0.22);
-    background: transparent; color: #9aa1ac; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+#d1 .firm .lock { color: #e6bd76; }
+#d1 .proj { font-size: 11.5px; color: #9aa1ac; margin-top: -4px; }
+#d1 .proj b { color: #eceef2; }
 
-#d1 .start { width: 100%; padding: 18px; border: none; border-radius: 16px; cursor: pointer;
-    font-family: inherit; font-size: 18px; font-weight: 800; color: #06130d;
+#d1 .users { display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; }
+.u-tile { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 13px 10px; min-width: 88px;
+    border-radius: 16px; background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.1);
+    color: #eceef2; font-family: inherit; cursor: pointer; transition: all .15s ease; }
+.u-tile .av { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 800; color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 3px 8px rgba(0,0,0,0.3); }
+.u-tile .nm { font-size: 12px; font-weight: 600; }
+.u-tile .rl { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 8px;
+    border-radius: 999px; color: #9aa1ac; background: rgba(255,255,255,0.06); }
+.u-tile .rl.adm { color: #e9b64f; background: rgba(212,160,44,0.14); }
+.u-tile .rl.ved { color: #6cb8ee; background: rgba(74,158,218,0.14); }
+#d1 .u-tile.sel { border-color: #4ccd99; background: rgba(47,158,116,0.14);
+    box-shadow: 0 0 0 1px #4ccd99, 0 8px 22px rgba(47,158,116,0.28); transform: translateY(-2px); }
+.av1 { background: linear-gradient(150deg, #3f8fd4, #29578a); }
+.av2 { background: linear-gradient(150deg, #d46a3f, #8a4229); }
+.av3 { background: linear-gradient(150deg, #8a5fd4, #55388a); }
+
+#d1 .pin { width: 210px; text-align: center; padding: 13px 10px; border-radius: 13px;
+    background: rgba(13,17,20,0.65); border: 1px solid rgba(76,205,153,0.45); color: #eceef2;
+    font-family: "Sora"; font-size: 21px; font-weight: 700; letter-spacing: 0.35em; outline: none;
+    box-shadow: 0 0 0 3px rgba(47,158,116,0.14); }
+#d1 .pin::placeholder { color: #58635e; font-size: 14px; letter-spacing: 0.1em; font-weight: 600; }
+#d1 .go { width: 210px; padding: 14px; border: none; border-radius: 13px; cursor: pointer;
+    font-family: inherit; font-size: 15px; font-weight: 800; color: #06130d;
     background: linear-gradient(135deg, #4ccd99, #2f9e74);
-    box-shadow: 0 14px 34px rgba(47,158,116,0.4), inset 0 1px 0 rgba(255,255,255,0.35);
-    display: flex; align-items: center; justify-content: center; gap: 10px; }
-#d1 .start .icon { width: 20px; height: 20px; stroke: #06130d; }
-#d1 .pruv { width: 100%; margin-top: 11px; padding: 14px; border-radius: 16px; cursor: pointer;
-    font-family: inherit; font-size: 15px; font-weight: 700; color: #4ccd99;
-    background: rgba(47,158,116,0.1); border: 1px solid rgba(76,205,153,0.4); }
-#d1 .foot { text-align: center; font-size: 10.5px; line-height: 1.5; color: #737a85; margin-top: 18px; }
+    box-shadow: 0 10px 26px rgba(47,158,116,0.38), inset 0 1px 0 rgba(255,255,255,0.35); }
+#d1 .ghost { background: none; border: none; color: #9aa1ac; font-family: inherit; font-size: 12px; font-weight: 600;
+    cursor: pointer; padding: 6px; }
 
 /* ============================================================
-   NÁVRH 2 — „PŘÍSTROJ": obrazovka jako kontroler roveru /
-   totální stanice. Mono písmo, stavový řádek, datové řádky,
-   velká fyzická klávesa START. Největší změna charakteru.
+   NÁVRH 2 — „PŘÍSTROJ": přihlášení obsluhy jako na kontroleru,
+   seznam operátorů, LCD PIN a fyzická klávesnice.
    ============================================================ */
 #d2 { background: #04070a; font-family: "JetBrains Mono", ui-monospace, monospace; }
-/* jemné scanlines + vinětace */
 #d2::before { content:""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
     background: repeating-linear-gradient(0deg, rgba(255,255,255,0.022) 0 1px, transparent 1px 3px); }
-#d2::after { content:""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-    background: radial-gradient(120% 100% at 50% 50%, transparent 55%, rgba(0,0,0,0.55) 100%); }
-/* rohové závorky rámu */
 #d2 .frame { position: absolute; inset: 12px; z-index: 2; pointer-events: none; }
 #d2 .frame i { position: absolute; width: 26px; height: 26px; border: 2px solid rgba(76,205,153,0.55); }
 #d2 .frame i:nth-child(1) { top: 0; left: 0; border-right: none; border-bottom: none; }
 #d2 .frame i:nth-child(2) { top: 0; right: 0; border-left: none; border-bottom: none; }
 #d2 .frame i:nth-child(3) { bottom: 0; left: 0; border-right: none; border-top: none; }
 #d2 .frame i:nth-child(4) { bottom: 0; right: 0; border-left: none; border-top: none; }
-/* skenovací linka */
 #d2 .scan { position: absolute; z-index: 1; left: 0; right: 0; height: 90px; pointer-events: none;
-    background: linear-gradient(180deg, transparent, rgba(76,205,153,0.07), transparent);
+    background: linear-gradient(180deg, transparent, rgba(76,205,153,0.06), transparent);
     animation: d2scan 5s linear infinite; }
 @keyframes d2scan { from { top: -90px; } to { top: 100%; } }
 
 #d2 .status { display: flex; justify-content: space-between; gap: 8px; font-size: 10.5px; color: #7ee8b8;
-    border: 1px solid rgba(76,205,153,0.3); border-radius: 8px; padding: 8px 11px; margin-bottom: 34px;
+    border: 1px solid rgba(76,205,153,0.3); border-radius: 8px; padding: 8px 11px; margin-bottom: 22px;
     background: rgba(76,205,153,0.05); white-space: nowrap; overflow: hidden; }
 #d2 .status b { color: #eafff4; font-weight: 700; }
 #d2 .status .dot { color: #4ccd99; animation: d1pulse 1.6s infinite; }
 
-#d2 .boot { font-size: 11px; color: #58a583; letter-spacing: 0.06em; }
-#d2 h1 { font-size: 31px; font-weight: 700; color: #eafff4; letter-spacing: 0.02em; margin: 6px 0 2px; }
-#d2 h1::after { content:"▊"; color: #4ccd99; animation: d2blink 1.1s steps(1) infinite; font-size: 24px; margin-left: 6px; }
+#d2 .boot { font-size: 11px; color: #58a583; }
+#d2 h1 { font-size: 24px; font-weight: 700; color: #eafff4; letter-spacing: 0.03em; margin: 4px 0 2px; }
+#d2 h1::after { content:"▊"; color: #4ccd99; animation: d2blink 1.1s steps(1) infinite; font-size: 19px; margin-left: 6px; }
 @keyframes d2blink { 50% { opacity: 0; } }
-#d2 .ver { font-size: 10.5px; color: #58a583; margin-bottom: 34px; }
+#d2 .ver { font-size: 10px; color: #58a583; margin-bottom: 20px; }
 
-#d2 .datablock { border: 1px solid rgba(76,205,153,0.35); border-radius: 10px; overflow: hidden; margin-bottom: 10px;
-    background: rgba(8,14,11,0.75); box-shadow: 0 0 24px rgba(76,205,153,0.08) inset; }
+#d2 .datablock { border: 1px solid rgba(76,205,153,0.35); border-radius: 10px; overflow: hidden; margin-bottom: 14px;
+    background: rgba(8,14,11,0.75); }
 #d2 .datablock .hd { font-size: 10px; letter-spacing: 0.2em; color: #04070a; background: #4ccd99; font-weight: 700;
     padding: 6px 12px; display: flex; justify-content: space-between; }
-#d2 .row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
-    padding: 10px 12px; border-top: 1px solid rgba(76,205,153,0.14); font-size: 12px; }
-#d2 .row:first-of-type { border-top: none; }
-#d2 .row .k { color: #58a583; font-size: 10.5px; letter-spacing: 0.1em; }
-#d2 .row .v { color: #eafff4; font-weight: 700; text-align: right; }
-#d2 .row .v.acc { color: #ffd88a; }
-#d2 .switchproj { width: 100%; margin-bottom: 30px; padding: 10px; font-family: inherit; font-size: 11px; letter-spacing: 0.12em;
-    color: #7ee8b8; background: transparent; border: 1px dashed rgba(76,205,153,0.4); border-radius: 8px; cursor: pointer; }
+#d2 .urow { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left; padding: 10px 12px;
+    border: none; border-top: 1px solid rgba(76,205,153,0.14); background: transparent; cursor: pointer;
+    font-family: inherit; color: #eafff4; font-size: 12px; }
+#d2 .urow:first-of-type { border-top: none; }
+#d2 .urow .no { color: #58a583; font-size: 10.5px; }
+#d2 .urow .unm { flex: 1; font-weight: 700; letter-spacing: 0.04em; }
+#d2 .urow .url { font-size: 9.5px; letter-spacing: 0.14em; color: #58a583; }
+#d2 .urow .url.adm { color: #ffd88a; }
+#d2 .urow.sel { background: rgba(76,205,153,0.13); box-shadow: inset 3px 0 0 #4ccd99; }
+#d2 .urow.sel .unm { color: #7ee8b8; }
 
-#d2 .key { width: 100%; padding: 19px; cursor: pointer; font-family: inherit; font-size: 17px; font-weight: 700;
-    letter-spacing: 0.16em; color: #04120b; border-radius: 12px;
-    background: linear-gradient(180deg, #5adfa8, #2f9e74);
-    border: 1px solid #7ee8b8; border-bottom: 4px solid #1d6c4e;
-    box-shadow: 0 12px 30px rgba(47,158,116,0.35); }
-#d2 .key:active { transform: translateY(2px); border-bottom-width: 2px; }
-#d2 .key small { display: block; font-size: 9.5px; letter-spacing: 0.24em; font-weight: 400; color: #0a3524; margin-top: 3px; }
-#d2 .key2 { width: 100%; margin-top: 12px; padding: 13px; cursor: pointer; font-family: inherit; font-size: 12px;
-    letter-spacing: 0.16em; font-weight: 700; color: #7ee8b8; background: rgba(76,205,153,0.07);
-    border: 1px solid rgba(76,205,153,0.45); border-bottom: 3px solid rgba(76,205,153,0.3); border-radius: 12px; }
-#d2 .foot { font-size: 9.5px; line-height: 1.6; color: #3f6b57; text-align: center; margin-top: 20px; letter-spacing: 0.04em; }
+#d2 .lcd { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    border: 1px solid rgba(76,205,153,0.4); border-radius: 10px; background: #0a1410;
+    padding: 12px 16px; margin-bottom: 12px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.6); }
+#d2 .lcd .k { font-size: 10px; letter-spacing: 0.18em; color: #58a583; }
+#d2 .lcd .v { font-size: 22px; font-weight: 700; color: #7ee8b8; letter-spacing: 0.3em; }
+#d2 .lcd .v .cur { animation: d2blink 1s steps(1) infinite; color: #4ccd99; }
+
+#d2 .pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 4px; }
+#d2 .pad button { padding: 13px 0; font-family: inherit; font-size: 16px; font-weight: 700; color: #eafff4; cursor: pointer;
+    background: linear-gradient(180deg, rgba(76,205,153,0.13), rgba(76,205,153,0.05));
+    border: 1px solid rgba(76,205,153,0.3); border-bottom: 3px solid rgba(76,205,153,0.2); border-radius: 10px; }
+#d2 .pad button:active { transform: translateY(1px); border-bottom-width: 1px; }
+#d2 .pad button.fn { color: #ffd88a; font-size: 11px; letter-spacing: 0.1em; }
+#d2 .pad button.ok { color: #04120b; background: linear-gradient(180deg, #5adfa8, #2f9e74);
+    border-color: #7ee8b8; border-bottom-color: #1d6c4e; letter-spacing: 0.12em; font-size: 13px; }
+#d2 .foot { font-size: 9.5px; line-height: 1.6; color: #3f6b57; text-align: center; margin-top: 14px; letter-spacing: 0.04em; }
 
 /* ============================================================
-   NÁVRH 3 — „PLAKÁT": odvážná velká typografie, zakázka jako
-   trhací lístek s perforací, akce přišpendlené dole.
-   Úplně jiný, hravější charakter.
+   NÁVRH 3 — „PLAKÁT": „Kdo dnes měří?" — velké profily jako
+   ve streamovací appce, hravé barvy, PIN na světlém lístku.
    ============================================================ */
 #d3 { background: linear-gradient(165deg, #0a0f0c 0%, #0e1a13 45%, #123324 100%); }
 #d3::before { content:""; position: absolute; inset: 0; z-index: 0; opacity: 0.5;
     background:
         radial-gradient(50% 40% at 88% 8%, rgba(76,205,153,0.4), transparent 65%),
         radial-gradient(45% 40% at 5% 100%, rgba(230,189,118,0.22), transparent 65%); }
-/* obří poloprůhledný nápis přes okraj */
-#d3 .mega { position: absolute; z-index: 0; left: -6px; top: 5%; font-weight: 800; font-size: 27vw; line-height: 0.86;
-    letter-spacing: -0.04em; color: transparent; -webkit-text-stroke: 1.5px rgba(76,205,153,0.28); user-select: none; pointer-events: none; }
-#d3 .mega b { display: block; color: rgba(76,205,153,0.1); -webkit-text-stroke: 0; }
+#d3 .mega { position: absolute; z-index: 0; left: -8px; top: 3%; font-weight: 800; font-size: 25vw; line-height: 0.88;
+    letter-spacing: -0.04em; color: transparent; -webkit-text-stroke: 1.5px rgba(76,205,153,0.22); user-select: none; pointer-events: none; }
+#d3 .mega b { display: block; color: rgba(76,205,153,0.08); -webkit-text-stroke: 0; }
 
 #d3 .d-inner { justify-content: flex-end; }
 #d3 .hello { font-size: 13px; font-weight: 600; color: #b7e9d2; }
-#d3 h1 { font-size: 40px; font-weight: 800; letter-spacing: -1.2px; line-height: 1.02; margin: 6px 0 24px; }
+#d3 h1 { font-size: 36px; font-weight: 800; letter-spacing: -1px; line-height: 1.04; margin: 5px 0 6px; }
 #d3 h1 em { font-style: normal; background: linear-gradient(90deg, #4ccd99, #e6bd76); -webkit-background-clip: text; background-clip: text; color: transparent; }
+#d3 .firmline { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #86a396; margin-bottom: 20px; }
+#d3 .firmline b { color: #d9efe4; }
+#d3 .firmline .badge { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #8a6420; background: #f4ead6; border-radius: 6px; padding: 3px 7px; transform: rotate(-2deg); }
 
-/* lístek zakázky s perforací */
+#d3 .profiles { display: flex; gap: 12px; overflow-x: auto; padding: 8px 4px 14px; scrollbar-width: none; }
+#d3 .profiles::-webkit-scrollbar { display: none; }
+#d3 .prof { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 8px; width: 104px;
+    padding: 15px 8px 12px; border-radius: 20px; background: rgba(255,255,255,0.05); border: 2px solid transparent;
+    color: #eceef2; font-family: inherit; cursor: pointer; transition: all .16s ease; }
+#d3 .prof .av { width: 58px; height: 58px; border-radius: 20px; display: flex; align-items: center; justify-content: center;
+    font-size: 21px; font-weight: 800; color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 6px 14px rgba(0,0,0,0.35); }
+#d3 .prof .nm { font-size: 12.5px; font-weight: 700; }
+#d3 .prof .rl { font-size: 9px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #86a396; }
+#d3 .prof.sel { border-color: #4ccd99; background: rgba(76,205,153,0.12); transform: translateY(-4px) rotate(-1deg);
+    box-shadow: 0 14px 30px rgba(76,205,153,0.25); }
+#d3 .prof.sel .rl { color: #4ccd99; }
+
 #d3 .ticket { position: relative; border-radius: 18px; background: #f4f7f5; color: #10241a;
-    box-shadow: 0 24px 50px rgba(0,0,0,0.5); transform: rotate(-1.2deg); margin-bottom: 28px; }
-#d3 .ticket .top { padding: 16px 18px 13px; }
-#d3 .ticket .lbl { font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #2f9e74;
-    display: flex; justify-content: space-between; align-items: center; }
-#d3 .ticket .lbl .swap { font-size: 10px; color: #6b7a72; letter-spacing: 0.05em; display: inline-flex; gap: 5px; align-items: center; }
-#d3 .ticket .name { font-size: 22px; font-weight: 800; letter-spacing: -0.4px; margin-top: 7px; }
-#d3 .ticket .sub { font-size: 12px; color: #5d6d64; margin-top: 2px; }
-/* perforace */
+    box-shadow: 0 24px 50px rgba(0,0,0,0.5); transform: rotate(-1deg); }
+#d3 .ticket .top { padding: 14px 18px 12px; display: flex; align-items: center; gap: 12px; }
+#d3 .ticket .lbl { font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #2f9e74; }
+#d3 .ticket .who { font-size: 16px; font-weight: 800; margin-top: 2px; }
+#d3 .ticket input { flex: 1; min-width: 0; text-align: center; padding: 11px 8px; border-radius: 12px;
+    border: 2px solid #cfdcd5; background: #fff; color: #10241a; outline: none;
+    font-family: "Sora"; font-size: 19px; font-weight: 800; letter-spacing: 0.3em; }
+#d3 .ticket input::placeholder { color: #9fb2a8; font-size: 13px; letter-spacing: 0.08em; }
+#d3 .ticket input:focus { border-color: #2f9e74; }
 #d3 .perf { position: relative; height: 0; border-top: 2px dashed #c6d2cb; margin: 0 12px; }
 #d3 .perf::before, #d3 .perf::after { content:""; position: absolute; top: -11px; width: 22px; height: 22px; border-radius: 50%; background: #0e1a13; }
 #d3 .perf::before { left: -23px; }
 #d3 .perf::after { right: -23px; }
-#d3 .ticket .bot { padding: 12px 18px 15px; display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
-#d3 .stamp { font-size: 11.5px; font-weight: 800; padding: 6px 11px; border-radius: 8px; background: #e2efe8; color: #1d5c42;
-    display: inline-flex; gap: 6px; align-items: center; }
-#d3 .stamp .icon { width: 13px; height: 13px; }
-#d3 .stamp.gold { background: #f4ead6; color: #8a6420; }
-/* čárový kód */
-#d3 .bars { margin-left: auto; display: flex; gap: 2.5px; align-items: flex-end; height: 24px; opacity: 0.75; }
+#d3 .ticket .bot { padding: 11px 18px 13px; display: flex; align-items: center; gap: 9px; }
+#d3 .ticket .go { flex: 1; padding: 13px; border: none; border-radius: 999px; cursor: pointer;
+    font-family: inherit; font-size: 15px; font-weight: 800; color: #06130d; background: #4ccd99;
+    box-shadow: 0 8px 20px rgba(76,205,153,0.4); }
+#d3 .bars { display: flex; gap: 2.5px; align-items: flex-end; height: 26px; opacity: 0.7; }
 #d3 .bars i { width: 2.5px; background: #10241a; height: 100%; }
-#d3 .bars i:nth-child(2n) { height: 70%; } #d3 .bars i:nth-child(3n) { width: 4px; } #d3 .bars i:nth-child(5n) { height: 85%; }
-
-#d3 .start { width: 100%; padding: 18px; border: none; border-radius: 999px; cursor: pointer;
-    font-family: inherit; font-size: 17px; font-weight: 800; color: #06130d; background: #4ccd99;
-    box-shadow: 0 14px 34px rgba(76,205,153,0.35); display: flex; align-items: center; justify-content: center; gap: 10px; }
-#d3 .start .icon { stroke: #06130d; }
-#d3 .row2 { display: flex; gap: 10px; margin-top: 11px; }
-#d3 .ghost { flex: 1; padding: 13px; border-radius: 999px; cursor: pointer; font-family: inherit; font-size: 13.5px; font-weight: 700;
-    color: #d9efe4; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.2); }
-#d3 .foot { text-align: center; font-size: 10.5px; line-height: 1.5; color: #86a396; margin-top: 16px; }
+#d3 .bars i:nth-child(2n) { height: 68%; } #d3 .bars i:nth-child(3n) { width: 4px; } #d3 .bars i:nth-child(5n) { height: 84%; }
+#d3 .links { display: flex; justify-content: center; gap: 18px; margin-top: 16px; }
+#d3 .links button { background: none; border: none; color: #86a396; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+#d3 .foot { text-align: center; font-size: 10.5px; line-height: 1.5; color: #6d8a7c; margin-top: 12px; }
 </style>
 </head>
 <body>
-
-<svg width="0" height="0" style="position:absolute">
-    <symbol id="i-nav" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></symbol>
-    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol>
-    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
-    <symbol id="i-chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
-    <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
-</svg>
 
 <div id="caption"><b id="cap-t"></b><span id="cap-s"></span></div>
 
@@ -252,50 +260,39 @@ body {
         <path class="major" d="M-20,540 C80,500 170,580 260,540 S390,490 420,530"/>
         <path d="M-20,575 C80,538 175,615 265,575 S390,528 420,568"/>
         <path d="M-20,610 C85,575 180,648 270,610 S395,565 420,605"/>
-        <circle cx="310" cy="120" r="26" fill="none" stroke="rgba(230,189,118,0.25)" stroke-width="1.3"/>
-        <circle cx="310" cy="120" r="14" fill="none" stroke="rgba(230,189,118,0.35)" stroke-width="1.3"/>
     </svg>
     <svg class="mline" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <line x1="18" y1="34" x2="76" y2="16" vector-effect="non-scaling-stroke"/>
-    </svg>
-    <svg class="mline" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" style="overflow:visible">
-        <circle cx="18" cy="34" r="0.9"/><circle cx="76" cy="16" r="0.9"/>
+        <line x1="15" y1="30" x2="80" y2="13" vector-effect="non-scaling-stroke"/>
     </svg>
     <div class="mlabel">142.7 m</div>
 
     <div class="d-inner">
-        <div class="reticle">
-            <svg viewBox="0 0 96 96" fill="none">
-                <g class="ret-spin" stroke="#4ccd99" stroke-width="3" stroke-linecap="round">
-                    <path d="M22 33 L22 26 Q22 22 26 22 L33 22"/><path d="M63 22 L70 22 Q74 22 74 26 L74 33"/>
-                    <path d="M74 63 L74 70 Q74 74 70 74 L63 74"/><path d="M33 74 L26 74 Q22 74 22 70 L22 63"/>
-                </g>
-                <circle cx="48" cy="48" r="14" stroke="#3eb487" stroke-opacity="0.3" stroke-width="1.5"/>
-                <circle cx="48" cy="48" r="9.5" stroke="#3eb487" stroke-opacity="0.55" stroke-width="1.5"/>
-                <g stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity="0.9">
-                    <line x1="48" y1="38.5" x2="48" y2="42.5"/><line x1="48" y1="53.5" x2="48" y2="57.5"/>
-                    <line x1="38.5" y1="48" x2="42.5" y2="48"/><line x1="53.5" y1="48" x2="57.5" y2="48"/>
-                </g>
-                <circle cx="48" cy="48" r="4.2" fill="#4ccd99"/><circle cx="48" cy="48" r="1.8" fill="#fff"/>
-            </svg>
-        </div>
-        <h1>AR <em>Geodet</em></h1>
-        <div class="tag">Terén · Body · Vytyčování</div>
-
-        <div class="proj">
-            <div class="lbl">Aktivní zakázka</div>
-            <div class="name"><span>Rodinný dům Křivoklát</span><svg class="icon"><use href="#i-chev"/></svg></div>
-            <div class="sub">S-JTSK · Křovák</div>
-            <div class="chips">
-                <span class="chip"><svg class="icon"><use href="#i-pin"/></svg> 12 bodů</span>
-                <span class="chip"><svg class="icon"><use href="#i-clock"/></svg> včera</span>
+        <div class="card">
+            <div class="reticle">
+                <svg viewBox="0 0 96 96" fill="none">
+                    <g class="ret-spin" stroke="#4ccd99" stroke-width="3" stroke-linecap="round">
+                        <path d="M22 33 L22 26 Q22 22 26 22 L33 22"/><path d="M63 22 L70 22 Q74 22 74 26 L74 33"/>
+                        <path d="M74 63 L74 70 Q74 74 70 74 L63 74"/><path d="M33 74 L26 74 Q22 74 22 70 L22 63"/>
+                    </g>
+                    <circle cx="48" cy="48" r="14" stroke="#3eb487" stroke-opacity="0.3" stroke-width="1.5"/>
+                    <circle cx="48" cy="48" r="9.5" stroke="#3eb487" stroke-opacity="0.55" stroke-width="1.5"/>
+                    <circle cx="48" cy="48" r="4.2" fill="#4ccd99"/><circle cx="48" cy="48" r="1.8" fill="#fff"/>
+                </svg>
             </div>
-        </div>
-        <button class="newproj">+ Nová zakázka</button>
+            <h1>AR <em>Geodet</em></h1>
+            <div class="firm">Geodetika s.r.o. · GEO-42 <span class="lock">· zamčeno</span></div>
+            <div class="proj">Zakázka <b>Rodinný dům Křivoklát</b> · 12 bodů</div>
 
-        <button class="start"><svg class="icon"><use href="#i-nav"/></svg> Spustit vyhledávání</button>
-        <button class="pruv">Průvodce úkolem</button>
-        <p class="foot">Orientační pomůcka, ne měřicí přístroj — poloha závisí na GPS a kompasu telefonu.</p>
+            <div class="users">
+                <button class="u-tile sel"><span class="av av1">JV</span><span class="nm">Jakub</span><span class="rl adm">Admin</span></button>
+                <button class="u-tile"><span class="av av2">PN</span><span class="nm">Petra</span><span class="rl ved">Vedení</span></button>
+                <button class="u-tile"><span class="av av3">🦺</span><span class="nm">Milan</span><span class="rl">Zaměstnanec</span></button>
+            </div>
+
+            <input class="pin" type="password" placeholder="PIN" value="••••">
+            <button class="go">Přihlásit</button>
+            <button class="ghost">Zapomenutý PIN?</button>
+        </div>
     </div>
 </div>
 
@@ -308,53 +305,67 @@ body {
             <span><span class="dot">●</span> GPS <b>FIX</b></span>
             <span>SAT <b>17</b></span>
             <span>±<b>2.1 m</b></span>
-            <span><b>12:47</b></span>
+            <span><b>07:42</b></span>
         </div>
 
-        <div class="boot">&gt; systém připraven_</div>
+        <div class="boot">&gt; čekám na přihlášení obsluhy_</div>
         <h1>AR GEODET</h1>
-        <div class="ver">TERÉNNÍ KONTROLER · BUILD v187</div>
+        <div class="ver">GEODETIKA S.R.O. · KÓD GEO-42 · ZAŘÍZENÍ UZAMČENO</div>
 
         <div class="datablock">
-            <div class="hd"><span>AKTIVNÍ ZAKÁZKA</span><span>01/04</span></div>
-            <div class="row"><span class="k">NÁZEV</span><span class="v">RODINNÝ DŮM KŘIVOKLÁT</span></div>
-            <div class="row"><span class="k">SYSTÉM</span><span class="v">S-JTSK / KŘOVÁK</span></div>
-            <div class="row"><span class="k">BODY</span><span class="v acc">12 ULOŽENÝCH</span></div>
-            <div class="row"><span class="k">ZALOŽENO</span><span class="v">25.07.2026</span></div>
+            <div class="hd"><span>OBSLUHA</span><span>3 ÚČTY</span></div>
+            <button class="urow sel"><span class="no">[1]</span><span class="unm">JAKUB VČELÁK</span><span class="url adm">ADMIN</span></button>
+            <button class="urow"><span class="no">[2]</span><span class="unm">PETRA NOVÁ</span><span class="url">VEDENÍ</span></button>
+            <button class="urow"><span class="no">[3]</span><span class="unm">MILAN DVOŘÁK</span><span class="url">ZAMĚST.</span></button>
         </div>
-        <button class="switchproj">[ PŘEPNOUT / NOVÁ ZAKÁZKA ]</button>
 
-        <button class="key">▶ SPUSTIT VYHLEDÁVÁNÍ<small>MAPA + AR KAMERA</small></button>
-        <button class="key2">PRŮVODCE ÚKOLEM</button>
-        <p class="foot">ORIENTAČNÍ POMŮCKA — PŘESNOST DLE GPS A KOMPASU TELEFONU</p>
+        <div class="lcd">
+            <span class="k">PIN</span>
+            <span class="v">●●●<span class="cur">▊</span></span>
+        </div>
+        <div class="pad">
+            <button>1</button><button>2</button><button>3</button>
+            <button>4</button><button>5</button><button>6</button>
+            <button>7</button><button>8</button><button>9</button>
+            <button class="fn">SMAZAT</button><button>0</button><button class="ok">VSTUP</button>
+        </div>
+        <p class="foot">ZAPOMENUTÝ PIN → ADMINISTRÁTOR FIRMY · NOUZOVÝ RESET ZAŘÍZENÍ</p>
     </div>
 </div>
 
 <!-- ================= NÁVRH 3: PLAKÁT ================= -->
 <div class="design" id="d3">
-    <div class="mega">AR<b>GEO<br>DET</b></div>
+    <div class="mega">KDO<b>MĚŘÍ<br>DNES</b></div>
     <div class="d-inner">
-        <div class="hello">Dobrý den 👋</div>
-        <h1>Jdeme <em>do terénu?</em></h1>
+        <div class="hello">Geodetika s.r.o. · pátek 7:42</div>
+        <h1>Kdo dnes <em>měří?</em></h1>
+        <div class="firmline">Zakázka <b>Rodinný dům Křivoklát</b> <span class="badge">12 bodů</span></div>
+
+        <div class="profiles">
+            <button class="prof sel"><span class="av av1" style="background:linear-gradient(150deg,#3f8fd4,#29578a)">JV</span><span class="nm">Jakub</span><span class="rl">Admin</span></button>
+            <button class="prof"><span class="av" style="background:linear-gradient(150deg,#d46a3f,#8a4229)">PN</span><span class="nm">Petra</span><span class="rl">Vedení</span></button>
+            <button class="prof"><span class="av" style="background:linear-gradient(150deg,#8a5fd4,#55388a)">🦺</span><span class="nm">Milan</span><span class="rl">Zaměstnanec</span></button>
+            <button class="prof"><span class="av" style="background:linear-gradient(150deg,#4b5563,#2b3138)">+</span><span class="nm">Jiné jméno</span><span class="rl">&nbsp;</span></button>
+        </div>
 
         <div class="ticket">
             <div class="top">
-                <div class="lbl"><span>Aktivní zakázka</span><span class="swap">změnit <svg class="icon" style="width:12px;height:12px"><use href="#i-chev"/></svg></span></div>
-                <div class="name">Rodinný dům Křivoklát</div>
-                <div class="sub">S-JTSK · Křovák</div>
+                <div style="flex:1;min-width:0">
+                    <div class="lbl">Přihlášení</div>
+                    <div class="who">Jakub Včelák</div>
+                </div>
+                <input type="password" placeholder="PIN" value="••••">
             </div>
             <div class="perf"></div>
             <div class="bot">
-                <span class="stamp"><svg class="icon"><use href="#i-pin"/></svg> 12 bodů</span>
-                <span class="stamp gold"><svg class="icon"><use href="#i-clock"/></svg> včera</span>
-                <span class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+                <button class="go">Odemknout a do terénu →</button>
+                <span class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
             </div>
         </div>
 
-        <button class="start"><svg class="icon"><use href="#i-nav"/></svg> Spustit vyhledávání</button>
-        <div class="row2">
-            <button class="ghost">Průvodce úkolem</button>
-            <button class="ghost">+ Nová zakázka</button>
+        <div class="links">
+            <button>Zapomenutý PIN?</button>
+            <button>Přihlásit jiné jméno</button>
         </div>
         <p class="foot">Orientační pomůcka, ne měřicí přístroj — poloha závisí na GPS a kompasu telefonu.</p>
     </div>
@@ -368,9 +379,9 @@ body {
 
 <script>
 var CAPS = {
-    d1: ['Návrh 1 — „Terén"', 'Živá vrstevnicová mapa s měřickou linií v pozadí, rotující záměrný kříž. Evoluce dnešního vzhledu — stejné rozložení, víc atmosféry.'],
-    d2: ['Návrh 2 — „Přístroj"', 'Úvod jako obrazovka terénního kontroleru: stavový řádek GPS, datové řádky zakázky, fyzická klávesa START. Největší změna charakteru.'],
-    d3: ['Návrh 3 — „Plakát"', 'Odvážná velká typografie, oslovení a zakázka jako trhací lístek s perforací. Hravější, přátelštější tvář appky.']
+    d1: ['Návrh 1 — „Terén"', 'Přihlášení na živé vrstevnicové mapě s měřickou linií, logo jako rotující záměrný kříž. Evoluce dnešní karty — stejné rozložení, víc atmosféry.'],
+    d2: ['Návrh 2 — „Přístroj"', 'Přihlášení obsluhy jako na terénním kontroleru: stavový řádek GPS, seznam operátorů, LCD displej PINu a fyzická číselná klávesnice. Největší změna.'],
+    d3: ['Návrh 3 — „Plakát"', '„Kdo dnes měří?" — velké profily jako ve streamovací appce, PIN na trhacím lístku. Hravější, přátelštější tvář; ranní nástup do práce.']
 };
 function show(id) {
     document.querySelectorAll('.design').forEach(function (d) { d.classList.toggle('on', d.id === id); });
@@ -382,6 +393,20 @@ document.querySelectorAll('#switcher button').forEach(function (b) {
     b.addEventListener('click', function () { show(b.dataset.d); });
 });
 show('d1');
+
+/* dlaždice/profily/řádky uživatelů jsou klikací (jen vizuálně vybírají) */
+document.querySelectorAll('.u-tile, #d2 .urow, #d3 .prof').forEach(function (el) {
+    el.addEventListener('click', function () {
+        var sibs = el.parentElement.children;
+        for (var i = 0; i < sibs.length; i++) sibs[i].classList.remove('sel');
+        el.classList.add('sel');
+        if (el.closest('#d3')) {
+            var nm = el.querySelector('.nm');
+            var who = document.querySelector('#d3 .who');
+            if (nm && who) who.textContent = nm.textContent === 'Jiné jméno' ? 'Nový uživatel' : nm.textContent;
+        }
+    });
+});
 </script>
 </body>
 </html>
