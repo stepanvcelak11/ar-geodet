@@ -276,6 +276,11 @@
                 + (vv ? fmt(vv) : fmt(fovV())) + '°</b> výška' + (_resV ? '' : ' <span style="opacity:.7">(dopočtená)</span>') + '</div>'
                 + '<button class="btn" id="agfov-save">Uložit do nastavení</button></div>';
         }
+        // Jezdce nechává appka v Nastavení (cte je saveSettings podle id), ale
+        // nastavení k nastroji patri — odsud se na ně dá skočit rovnou.
+        if (window.AGSettings && typeof window.AGSettings.reveal === 'function') {
+            html += '<button class="btn btn-secondary" id="agfov-manual" style="margin-top:10px;">Doladit ručně jezdcem</button>';
+        }
         html += '<details class="adv" style="margin-top:12px;"><summary>Metoda bez kompasu (přes zeď)</summary><div class="adv-body">'
             + '<p style="font-size:12.5px;line-height:1.5;">Když kompas zlobí: postav se kolmo k dlouhé zdi ve <b>známé</b> vzdálenosti D. '
             + 'Označ si na zdi místa, která leží přesně u levé a pravé hrany obrazu, a změř mezi nimi šířku W. Pak platí '
@@ -285,6 +290,10 @@
         b.innerHTML = html;
 
         var e;
+        if ((e = byId('agfov-manual'))) e.addEventListener('click', function () {
+            var m = byId('agfov-modal'); if (m) m.style.display = 'none';
+            try { window.AGSettings.reveal('s-fovh'); } catch (er) {}
+        });
         if ((e = byId('agfov-h-start'))) e.addEventListener('click', function () { startAim('h'); });
         if ((e = byId('agfov-h-again'))) e.addEventListener('click', function () { _resH = null; startAim('h'); });
         if ((e = byId('agfov-v-start'))) e.addEventListener('click', function () { startAim('v'); });

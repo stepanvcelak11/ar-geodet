@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v206';   // rezim prace na uvodu, profily nastaveni, delene nacitani 10 nastroju
+const SHELL_CACHE = 'argeodet-shell-v207';   // centrum upozorneni + Nastroje jako seznam ukonu + hledani v Nastaveni
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -25,9 +25,9 @@ const ASSETS_TO_CACHE = [
     './icon-512.png',
     './icon-maskable-192.png',
     './icon-maskable-512.png',
-    './css/tokens.css?v=206',
-    './css/style.css?v=206',
-    './css/vylepseni.css?v=206',
+    './css/tokens.css?v=207',
+    './css/style.css?v=207',
+    './css/vylepseni.css?v=207',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
@@ -156,6 +156,9 @@ const ASSETS_TO_CACHE = [
     './js/usadit-ar.js',
     './js/tools-hub.js',
     './js/stavovy-pruh.js',
+    './js/upozorneni.js',
+    './js/nastroje-ukony.js',
+    './js/nastaveni-hledani.js',
     './data/zpravodaj.json',
     './data/predpisy.json',
     './js/lib/qrcode.min.js',

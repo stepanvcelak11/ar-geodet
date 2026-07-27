@@ -23,7 +23,8 @@
         if (banner) return banner;
         banner = document.createElement('div');
         banner.id = 'compass-interference';
-        banner.style.cssText = 'position:fixed; left:50%; transform:translateX(-50%); top:96px; z-index:1500; '
+        // safe-area: bez ni sedel banner na telefonu s vyrezem presne na #gps-warn
+        banner.style.cssText = 'position:fixed; left:50%; transform:translateX(-50%); top:calc(env(safe-area-inset-top, 0px) + 96px); z-index:1500; '
             + 'display:none; align-items:center; gap:8px; max-width:90%; padding:9px 10px 9px 14px; border-radius:12px; '
             + 'background:rgba(239,68,68,0.92); color:#fff; font-family:var(--font-display,sans-serif); '
             + 'font-size:13px; font-weight:600; line-height:1.25; text-align:left; '
@@ -42,7 +43,31 @@
         return banner;
     }
 
+    // Centrum upozorneni (js/upozorneni.js): jednotny sloupec nahore, kde se
+    // hlasky neprekryvaji. Vlastni cerveny banner zustava jako fallback, kdyby
+    // centrum nebylo nactene (modul je dal odpojitelny samostatne).
+    function _center() { return (window.AGNotify && typeof window.AGNotify.set === 'function') ? window.AGNotify : null; }
+
     function setBanner(show, now) {
+        const C = _center();
+        if (C) {
+            if (banner) banner.style.display = 'none';
+            if (dismissed) { C.clear('compass'); return; }
+            if (show) {
+                if (!shownSince) shownSince = now;
+                hiddenSince = 0;
+                C.set('compass', {
+                    level: 'danger',
+                    text: 'Kompas rušen (kov poblíž) — AR šipka může mířit mimo',
+                    onDismiss: function () { dismissed = true; }
+                });
+            } else if (C.has('compass')) {
+                // hystereze: skryt az po 2 s klidu, at to neblika
+                if (!hiddenSince) hiddenSince = now;
+                if (now - hiddenSince > 2000) C.clear('compass');
+            }
+            return;
+        }
         if (dismissed) { if (banner) banner.style.display = 'none'; return; }
         const b = ensureBanner();
         if (show) {

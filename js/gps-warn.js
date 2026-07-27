@@ -86,7 +86,25 @@
         return _el;
     }
 
+    // Od zavedení js/upozorneni.js hlásíme stav do společného sloupce nahoře
+    // (jednotný vzhled, nic se nepřekrývá). Vlastní pilulka #gps-warn zůstává
+    // jako fallback, kdyby centrum nebylo načtené — modul je dál odpojitelný.
+    function center() { return (window.AGNotify && typeof AGNotify.set === 'function') ? window.AGNotify : null; }
+
     function showWarn(acc) {
+        var c = center();
+        if (c) {
+            _hiddenSince = 0;
+            c.set('gps-acc', {
+                level: 'warn',
+                text: 'Slabá GPS ±' + Math.round(acc) + ' m — teď neměř',
+                onDismiss: function () {
+                    var a = getAccuracy();
+                    _dismissedAcc = (a != null) ? a : WEAK_GPS_THRESHOLD_M;
+                }
+            });
+            return;
+        }
         var el = ensureEl();
         if (!el) return;
         _hiddenSince = 0;
@@ -95,6 +113,16 @@
     }
 
     function hideWarn() {
+        var c = center();
+        if (c) {
+            if (!c.has('gps-acc')) return;
+            var t = Date.now();
+            if (!_hiddenSince) { _hiddenSince = t; return; }   // hystereze
+            if (t - _hiddenSince < HIDE_HYSTERESIS_MS) return;
+            c.clear('gps-acc');
+            _hiddenSince = 0;
+            return;
+        }
         if (!_el) return;
         if (!_el.classList.contains('on')) return;
         var now = Date.now();

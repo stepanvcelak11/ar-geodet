@@ -100,15 +100,34 @@
             document.body.classList.toggle('ag-fix-stale', started && st.state === 'stale');
             document.body.classList.toggle('ag-fix-lost', started && st.state === 'lost');
             var bar = ensureBar();
-            var txt = null, key = null;
-            if (started && st.state === 'lost') { key = 'lost'; txt = 'GPS ztracena ' + (st.ageMs != null ? fmtAge(st.ageMs) : '') + ' — poloha i AR ukazují POSLEDNÍ známé místo'; }
-            else if (started && st.state === 'stale') { key = 'stale'; txt = 'GPS bez čerstvého fixu ' + fmtAge(st.ageMs) + ' — poloha může být posunutá'; }
-            else if (started && off) { key = 'off'; txt = 'Offline — mapa a katastr jen z uložených dat, měření GPS funguje'; }
+            var txt = null, key = null, shortTxt = null;
+            // txt = dlouhy text do vlastniho pruhu (fallback), shortTxt = do sloupce
+            // upozorneni (tam je misto na jeden radek a detail otevre klepnuti)
+            if (started && st.state === 'lost') { key = 'lost'; txt = 'GPS ztracena ' + (st.ageMs != null ? fmtAge(st.ageMs) : '') + ' — poloha i AR ukazují POSLEDNÍ známé místo'; shortTxt = 'GPS ztracena ' + (st.ageMs != null ? fmtAge(st.ageMs) : '') + ' — poloha je stará'; }
+            else if (started && st.state === 'stale') { key = 'stale'; txt = 'GPS bez čerstvého fixu ' + fmtAge(st.ageMs) + ' — poloha může být posunutá'; shortTxt = 'GPS bez fixu ' + fmtAge(st.ageMs) + ' — poloha může být posunutá'; }
+            else if (started && off) { key = 'off'; txt = 'Offline — mapa a katastr jen z uložených dat, měření GPS funguje'; shortTxt = 'Offline — jen uložená data, měření funguje'; }
             // krizek zavre pruh pro AKTUALNI stav; kdyz vse pomine, dismiss se resetuje,
             // aby se pristi problem zase ukazal (jina zavada nez zavrena se ukaze hned)
             if (!key) _dismissed = null;
             bar.setAttribute('data-key', key || '');
-            if (txt && key !== _dismissed) { bar.querySelector('.txt').textContent = txt; bar.classList.add('show'); }
+            // Centrum upozorneni (js/upozorneni.js) = jednotny sloupec nahore. Kdyz
+            // neni nactene, vykresli se puvodni vlastni pruh (fallback, odpojitelnost).
+            var C = (window.AGNotify && typeof window.AGNotify.set === 'function') ? window.AGNotify : null;
+            if (C) {
+                bar.classList.remove('show');
+                // Offline je JINA vec nez stav fixu, proto vlastni id: kdyby sdilelo
+                // 'gps-fix', potlacilo by v centru hlasku o slabe presnosti (SUPPRESS).
+                var nid = (key === 'off') ? 'net-off' : 'gps-fix';
+                C.clear(nid === 'gps-fix' ? 'net-off' : 'gps-fix');
+                if (txt && key !== _dismissed) {
+                    C.set(nid, {
+                        level: (key === 'lost') ? 'danger' : (key === 'stale' ? 'warn' : 'info'),
+                        text: shortTxt || txt,
+                        onDismiss: (function (k) { return function () { _dismissed = k; }; })(key)
+                    });
+                } else C.clear(nid);
+            }
+            else if (txt && key !== _dismissed) { bar.querySelector('.txt').textContent = txt; bar.classList.add('show'); }
             else bar.classList.remove('show');
             // prechodova hlaska jen pri zhorseni (fresh->stale/lost), at to nepipa porad
             if (started && _lastState === 'fresh' && st.state === 'lost' && typeof window.quickToast === 'function') {
