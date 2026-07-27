@@ -1,66 +1,96 @@
 {
-  "vydani": "2026-07-26",
-  "uvodnik": "Přinášíme aktuální novinky ze světa geodézie a technologií.",
+  "vydani": "2026-07-27",
+  "uvodnik": "Přinášíme aktuální zprávy ze světa geodézie a technologií.",
   "polozky": [
     {
       "rubrika": "Z domova",
       "top": true,
       "nadpis": "Ukončení provozu služeb WSGP verze 2.10",
-      "perex": "ČÚZK oznámil ukončení provozu starší verze služeb WSGP.",
-      "telo": "Český úřad zeměměřický a katastrální (ČÚZK) upozorňuje, že na podzim 2026 dojde k ukončení provozu webových služeb pro vyhotovitele a ověřovatele geometrických plánů verze 2.10. Po tomto termínu budou k dispozici pouze služby verze 3.1. Uživatelé jsou vyzváni, aby se na tuto změnu připravili a omlouvají se za případné komplikace.",
-      "body": [],
-      "proc": "Důležité pro všechny uživatele geodetických služeb v ČR.",
+      "perex": "ČÚZK oznámil ukončení provozu starší verze webových služeb pro geometrické plány.",
+      "telo": "Český úřad zeměměřický a katastrální (ČÚZK) upozorňuje, že na podzim 2026 dojde k ukončení provozu WSGP verze 2.10. Od tohoto termínu budou dostupné pouze služby WSGP verze 3.1. Uživatelé jsou vyzváni, aby se na tuto změnu připravili a přizpůsobili své procesy novým požadavkům.",
+      "body": [
+        "Ukončení platnosti starší verze WSGP",
+        "Přechod na verzi 3.1"
+      ],
+      "proc": "Tato změna ovlivní všechny uživatele služeb pro geometrické plány.",
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-05-29"
     },
     {
-      "rubrika": "Přístroje",
-      "top": false,
-      "nadpis": "Nový ZIPLEVEL PRO-2030: První velká aktualizace za 30 let",
-      "perex": "Technidea Corporation představila nový model ZIPLEVEL.",
-      "telo": "Technidea Corporation uvedla na trh nový ZIPLEVEL® PRO-2030, který je považován za nejrychlejší a nejpřesnější úroveň na trhu. Tento přístroj je navržen pro kontraktory, inženýry a geodety a přináší vylepšenou přesnost a efektivitu. Nový model nahrazuje tradiční rotační lasery a historické altimetry s bublinkami, čímž zjednodušuje měření a zvyšuje produktivitu.",
-      "body": [],
-      "proc": "Inovace v oblasti měřicích přístrojů pro geodety.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/19/first-major-ziplevel-upgrade-in-30-years-of-usa-production/?utm_source=rss&utm_medium=rss&utm_campaign=first-major-ziplevel-upgrade-in-30-years-of-usa-production",
-      "datum": "2026-07-19"
-    },
-    {
       "rubrika": "Technologie",
       "top": false,
-      "nadpis": "Topcon a GreenValley International spolupracují na inovacích v oblasti prostorové inteligence",
-      "perex": "Topcon a GVI oznámili strategickou spolupráci.",
-      "telo": "Topcon Positioning Systems a GreenValley International (GVI) oznámily strategickou dohodu o spolupráci na technologiích pro geodézii, mapování a stavebnictví. Cílem je vyvinout integrovaná hardwarová a softwarová řešení pro sběr a zpracování dat pomocí LiDARu, a to jak pro mobilní, tak pro letecké aplikace. Tato spolupráce by měla přinést inovace v oblasti autonomního monitorování a cloudových řešení.",
-      "body": [],
-      "proc": "Zajímavý krok v oblasti spolupráce firem zaměřených na geodézii.",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/aerialuas/topcon-and-greenvalley-international-collaborate-on-spatial-intelligence-innovations/",
-      "datum": "2026-07-17"
+      "nadpis": "NASA malý satelit by mohl zpřesnit globální polohování",
+      "perex": "Nový satelit NASA má potenciál zlepšit přesnost mapování Země.",
+      "telo": "Satelit NASA, velikosti kufru, byl navržen tak, aby spojil různé pozorovací systémy a vedl k přesnějšímu mapování Země. Satelit GRITSS, který byl vypuštěn 7. července, má za cíl demonstrovat novou techniku pro připojení různých geodetických dat a zlepšení jejich kvality. Tento projekt by mohl mít dalekosáhlé důsledky pro geodetické aplikace a přesnost měření.",
+      "body": [
+        "Zlepšení přesnosti měření",
+        "Nová technika pro geodetická data"
+      ],
+      "proc": "Satelit má potenciál zásadně zlepšit geodetické metody.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/07/14/nasa-small-satellite-could-make-global-positioning-more-precise/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=nasa-small-satellite-could-make-global-positioning-more-precise",
+      "datum": "2026-07-14"
+    },
+    {
+      "rubrika": "Přístroje",
+      "top": false,
+      "nadpis": "První velké vylepšení ZIPLEVEL po 30 letech výroby v USA",
+      "perex": "Technidea Corporation představila nový model ZIPLEVEL PRO-2030.",
+      "telo": "Technidea Corporation uvedla na trh nový model ZIPLEVEL® PRO-2030, který je považován za nejrychlejší a nejsnadněji použitelný nivelátor s přesností bez omezení. Tento přístroj je navržen pro profesionály v oblasti stavebnictví, inženýrství a geodézie, a nabízí rychlejší nastavení a vyšší produktivitu. Nové funkce zahrnují vylepšenou přesnost a snadnější ovládání.",
+      "body": [
+        "Nové funkce pro zvýšení produktivity",
+        "Vylepšená přesnost měření"
+      ],
+      "proc": "Toto vylepšení přináší nové možnosti pro geodety a stavební profesionály.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/07/19/first-major-ziplevel-upgrade-in-30-years-of-usa-production/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=first-major-ziplevel-upgrade-in-30-years-of-usa-production",
+      "datum": "2026-07-19"
     },
     {
       "rubrika": "Z praxe",
       "top": false,
-      "nadpis": "Workshop: Výzvy v mapovacích projektech",
-      "perex": "Workshop se zaměří na složité mapovací projekty.",
-      "telo": "V rámci workshopu, který pořádá SimActive, se bude diskutovat o výzvách spojených s mapovacími projekty, které posouvají hranice pracovního postupu. Představitelé společnosti Geo4D se podělí o zkušenosti z velkého projektu mapování zeleného vodíku v Chile, kde bylo letecky snímáno více než 100 000 hektarů. Účastníci se dozvědí o technologiích a metodách, které přispěly k dosažení přesných ortomosaiků a DTM.",
-      "body": [],
-      "proc": "Užitečné pro geodety, kteří se potýkají s náročnými projekty.",
+      "nadpis": "LETEL rozšiřuje podnikání s ručním LiDARem",
+      "perex": "LETEL přidává ruční skener TrueView GO do svého portfolia.",
+      "telo": "LETEL, lídr v oblasti civilního inženýrství a technologie dronů, rozšiřuje své podnikání o ruční mapování pomocí skeneru TrueView GO. Tento přístroj se zaměří na školy, stavební projekty a analýzu objemu zeminy. Nová série epizod 'Mapping on the GO' ukazuje, jak LETEL využívá tuto technologii v praxi.",
+      "body": [
+        "Nové aplikace pro ruční LiDAR",
+        "Zaměření na školství a stavebnictví"
+      ],
+      "proc": "Rozšíření portfolia přináší nové možnosti pro geodetické aplikace.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/23/workshop-challenging-mapping-projects-can-you-still-get-good-results/?utm_source=rss&utm_medium=rss&utm_campaign=workshop-challenging-mapping-projects-can-you-still-get-good-results",
-      "datum": "2026-07-23"
+      "odkaz": "https://amerisurv.com/2026/07/19/letel-goes-mapping-on-the-go-with-trueview-go-handheld-lidar-from-geocue/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=letel-goes-mapping-on-the-go-with-trueview-go-handheld-lidar-from-geocue",
+      "datum": "2026-07-19"
     },
     {
       "rubrika": "Akce",
       "top": false,
-      "nadpis": "Commercial UAV Expo: Klíčová přednáška o BVLOS regulacích",
-      "perex": "Na Commercial UAV Expo se uskuteční důležitá přednáška o regulacích dronů.",
-      "telo": "Na závěr Commercial UAV Expo 2026 se uskuteční klíčová přednáška, která se zaměří na srovnání přístupů FAA a EASA k regulacím BVLOS (Beyond Visual Line of Sight) pro drony. Tato akce se koná v Las Vegas a slibuje otevřenou diskusi o regulačních otázkách, které ovlivňují provoz dronů v Evropě a USA.",
-      "body": [],
-      "proc": "Důležitá akce pro profesionály v oblasti dronů a geodézie.",
+      "nadpis": "Commercial UAV Expo oznámila klíčovou přednášku o regulaci dronů",
+      "perex": "Na Commercial UAV Expo 2026 proběhne srovnání regulací BVLOS mezi USA a Evropou.",
+      "telo": "Na závěr Commercial UAV Expo 2026 se představí vedoucí představitelé FAA a EASA, kteří se podělí o názory na regulaci BVLOS (Beyond Visual Line of Sight) dronů. Tato přednáška, nazvaná 'Dvě oblohy, jeden rozhovor', se zaměří na rozdíly v přístupech k regulaci dronů v USA a Evropě, což je důležité pro budoucnost dronových operací.",
+      "body": [
+        "Srovnání regulací mezi USA a EU",
+        "Důležitost pro budoucnost dronových operací"
+      ],
+      "proc": "Tato akce nabízí cenné informace pro profesionály v oblasti dronů a geodézie.",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/15/commercial-uav-expo-announces-second-keynote-two-skies-one-conversation/?utm_source=rss&utm_medium=rss&utm_campaign=commercial-uav-expo-announces-second-keynote-two-skies-one-conversation",
+      "odkaz": "https://amerisurv.com/2026/07/15/commercial-uav-expo-announces-second-keynote-two-skies-one-conversation/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=commercial-uav-expo-announces-second-keynote-two-skies-one-conversation",
       "datum": "2026-07-15"
+    },
+    {
+      "rubrika": "Vzdělávání",
+      "top": false,
+      "nadpis": "Nový kurz řízení programu DRONERESPONDERS na Commercial UAV Expo",
+      "perex": "Na Commercial UAV Expo se představí nový dvoudenní kurz pro manažery.",
+      "telo": "Commercial UAV Expo oznámila debut nového dvoudenního kurzu řízení programu DRONERESPONDERS, který se zaměří na využití dronů jako prvního reagenta v různých situacích, včetně požární služby a havarijních scénářů. Tento kurz je součástí širšího programu zaměřeného na bezpečnost a efektivitu operací s drony.",
+      "body": [
+        "Dvoudenní školení pro manažery",
+        "Zaměření na bezpečnostní aplikace dronů"
+      ],
+      "proc": "Tento kurz poskytne cenné znalosti pro profesionály v oblasti dronů a veřejné bezpečnosti.",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/07/09/commercial-uav-expo-debuts-droneresponders-program-management-course-unveils-public-safety-summit-program/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=commercial-uav-expo-debuts-droneresponders-program-management-course-unveils-public-safety-summit-program",
+      "datum": "2026-07-09"
     }
   ]
 }
