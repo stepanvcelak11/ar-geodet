@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AR Geodet — návrhy živého pozadí úvodní obrazovky</title>
+<style>
+/* =============================================================================
+   NÁHLEDY: živé pozadí PŘIHLAŠOVACÍ (úvodní) obrazovky — 4 návrhy.
+   Samostatný soubor, v appce NIC nemění. Karta uprostřed je jen atrapa
+   (nefunkční), aby bylo vidět, jak pozadí vypadá pod skutečným obsahem.
+
+   Co se řeší:
+   1) dnešní měřická čárka jde jen z 15 % do 80 % šířky → vypadá „useknutě"
+   2) štítek „142.7 m" je natvrdo a nic neříká → nahradit živými hodnotami
+      (teplota na místě, čas, datum, nadm. výška, souřadnice, tlak, západ…)
+
+   Data: pokud povolíš polohu, tahá se skutečná teplota/tlak/vítr/západ slunce
+   z Open-Meteo (stejný zdroj, jaký už appka používá) + výška z modelu terénu
+   a Y,X v S-JTSK přes proj4 z js/lib. Bez polohy jedou ukázkové hodnoty.
+   ============================================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body {
+    font-family: "Inter", -apple-system, "Segoe UI", sans-serif;
+    background: #0f1216; color: #eceef2; overflow: hidden;
+}
+
+/* tokeny z appky (css/tokens.css) — ať návrh sedí barevně 1:1 */
+:root {
+    --bg: #0d1117;
+    --accent: #2f9e74;
+    --accent-bright: #3eb487;
+    --accent-soft: rgba(47, 158, 116, 0.14);
+    --data: #e6bd76;            /* teplý akcent na čísla */
+    --text: #eceef2;
+    --text-muted: #9aa1ac;
+    --font-display: "Sora", sans-serif;
+    --font-ui: "Inter", sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* ---------- přepínač návrhů (dole) ---------- */
+#switcher {
+    position: fixed; bottom: max(10px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
+    z-index: 100; display: flex; gap: 5px; padding: 6px;
+    background: rgba(10,13,17,0.88); border: 1px solid rgba(255,255,255,0.14); border-radius: 999px;
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+}
+#switcher button {
+    font-family: inherit; font-size: 13px; font-weight: 700; color: var(--text-muted);
+    background: transparent; border: none; border-radius: 999px; padding: 9px 14px; cursor: pointer;
+}
+#switcher button.on { background: var(--accent); color: #fff; }
+
+/* ---------- popiska návrhu (nahoře) ---------- */
+#caption {
+    position: fixed; top: max(8px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+    z-index: 100; width: min(94vw, 560px); text-align: center;
+    background: rgba(10,13,17,0.82); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px;
+    padding: 8px 13px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+#caption b { font-size: 13px; color: #fff; }
+#caption span { display: block; font-size: 11px; color: var(--text-muted); margin-top: 3px; line-height: 1.45; }
+#datasrc {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 6px;
+    font: 600 10px/1 var(--font-mono); letter-spacing: .04em; text-transform: uppercase;
+    color: var(--text-muted); background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; padding: 5px 10px; cursor: pointer;
+}
+#datasrc em { font-style: normal; }
+#datasrc .d { width: 6px; height: 6px; border-radius: 50%; background: var(--data); }
+#datasrc.live { color: var(--accent-bright); border-color: rgba(47,158,116,0.4); }
+#datasrc.live .d { background: var(--accent-bright); box-shadow: 0 0 8px var(--accent-bright); }
+
+/* ---------- plocha návrhu ---------- */
+.design { position: fixed; inset: 0; display: none; overflow: hidden; background: var(--bg); }
+.design.on { display: block; }
+.bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+/* vinětace — pozadí se do krajů rozpouští do barvy podkladu (jako dnes v appce) */
+.vign { position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: radial-gradient(92% 72% at 50% 44%, transparent 22%, var(--bg) 100%); }
+/* zář nad kartou (jako dnes) */
+.glow { position: absolute; top: -160px; left: 50%; transform: translateX(-50%);
+    width: 460px; height: 420px; border-radius: 50%; z-index: 1; pointer-events: none;
+    background: radial-gradient(closest-side, var(--accent-soft), transparent 72%); }
+
+/* ---------- atrapa přihlašovací karty ---------- */
+.stage {
+    position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 13px;
+    padding: 76px 16px calc(80px + env(safe-area-inset-bottom));
+}
+.card {
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    width: min(390px, 92vw); padding: 24px 20px 18px; border-radius: 22px;
+    background: linear-gradient(175deg, var(--accent-soft), rgba(255,255,255,0.035) 40%);
+    border: 1px solid rgba(76,205,153,0.28);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.mark { width: 68px; height: 68px; filter: drop-shadow(0 8px 22px rgba(47,158,116,0.4)); animation: float 5s ease-in-out infinite; }
+@keyframes float { 50% { transform: translateY(-6px); } }
+.mark .spin { transform-origin: 48px 48px; animation: spin 14s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.logo { font: 800 21px/1.2 var(--font-display); letter-spacing: .02em; }
+.logo b { color: var(--accent); }
+.chip {
+    display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14); border-radius: 999px; padding: 7px 14px;
+    font: 600 12.5px/1 var(--font-ui);
+}
+.chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 9px var(--accent); animation: pulse 2s infinite; }
+@keyframes pulse { 50% { opacity: .35; } }
+.proj { font: 500 12px/1.3 var(--font-ui); color: var(--text-muted); }
+.proj b { color: var(--text); font-weight: 700; }
+.users { display: flex; gap: 10px; }
+.user {
+    display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 15px 10px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; min-width: 96px;
+}
+.user.sel { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent); }
+.av { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font: 800 16px/1 var(--font-display); color: #fff; }
+.nm { font: 600 12.5px/1.2 var(--font-ui); }
+.role { font: 600 10px/1 var(--font-ui); letter-spacing: .05em; text-transform: uppercase;
+    color: var(--text-muted); background: rgba(255,255,255,0.06); border-radius: 999px; padding: 3px 8px; }
+.pin {
+    width: 230px; text-align: center; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(76,205,153,0.45); border-radius: 13px; color: var(--text);
+    padding: 13px 10px; font: 700 22px/1 var(--font-display); letter-spacing: .35em;
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.btn { border: none; color: #06130d; border-radius: 13px; padding: 14px 30px; min-width: 230px;
+    font: 800 15px/1 var(--font-ui); background: linear-gradient(135deg, #4ccd99, #2f9e74);
+    box-shadow: 0 10px 26px rgba(47,158,116,0.38), inset 0 1px 0 rgba(255,255,255,0.35); }
+.ghost { background: none; border: none; color: var(--text-muted); font: 600 12.5px/1 var(--font-ui); padding: 8px; }
+
+/* společné: vrstevnice (stejná kresba jako dnes v appce) */
+.topo { position: absolute; inset: -20%; width: 140%; height: 140%; animation: drift 40s ease-in-out infinite alternate; }
+.topo path { fill: none; stroke: rgba(47,158,116,0.13); stroke-width: 1.2; }
+.topo path.major { stroke: rgba(47,158,116,0.28); stroke-width: 1.6; }
+@keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(-3%,-2%) scale(1.06); } }
+
+/* společné: vzhled „datové" hodnoty */
+.val { font-family: var(--font-mono); font-weight: 600; color: var(--data); }
+.key { font-family: var(--font-mono); font-weight: 500; letter-spacing: .08em; text-transform: uppercase;
+    color: rgba(230,189,118,0.55); font-size: .74em; }
+
+/* =============================================================================
+   ① MĚŘICKÁ LINIE — čárka od kraje ke kraji + kóty na vrstevnicích
+   Nejmenší zásah: dnešní pozadí, ale linie přetíná CELOU obrazovku (přesahuje
+   za okraje), má značky stanoviska a štítek na ní se přepíná mezi hodnotami.
+   ============================================================================= */
+#d1 .mline { position: absolute; inset: 0; }
+#d1 .mline .ln { stroke: rgba(230,189,118,0.5); stroke-width: 1.4; stroke-dasharray: 7 8;
+    animation: dash 2.4s linear infinite; }
+@keyframes dash { to { stroke-dashoffset: -30; } }
+#d1 .mline .tick { stroke: rgba(230,189,118,0.35); stroke-width: 1.2; }
+#d1 .mline .stn { stroke: rgba(230,189,118,0.75); stroke-width: 1.4; fill: none; }
+#d1 .mline .stn circle { animation: stnpulse 3.2s ease-in-out infinite; transform-origin: center; }
+@keyframes stnpulse { 50% { opacity: .3; } }
+
+/* štítek jedoucí po linii — přepíná se mezi živými hodnotami */
+#d1 .rot {
+    position: absolute; z-index: 1; transform: translate(-50%, -50%);
+    display: inline-flex; align-items: baseline; gap: 7px; white-space: nowrap;
+    background: rgba(20,16,8,0.72); border: 1px solid rgba(230,189,118,0.35);
+    border-radius: 8px; padding: 5px 9px; font-size: 12px;
+    backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+}
+#d1 .rot .swap { display: inline-block; animation: swapin .5s ease-out; }
+@keyframes swapin { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+/* kóty přímo na vrstevnicích (jako na mapě) */
+#d1 .koty { position: absolute; inset: 0; }
+#d1 .koty span {
+    position: absolute; transform: translate(-50%,-50%);
+    font: 500 10.5px/1 var(--font-mono); color: rgba(47,158,116,0.5);
+    background: var(--bg); padding: 0 4px; letter-spacing: .02em;
+}
+
+/* =============================================================================
+   ② LÉTAJÍCÍ HODNOTY — čísla plují přes pozadí ve třech hloubkách (parallax)
+   ============================================================================= */
+#d2 .topo path { stroke: rgba(47,158,116,0.08); }
+#d2 .topo path.major { stroke: rgba(47,158,116,0.16); }
+#d2 .chips { position: absolute; inset: 0; }
+#d2 .fchip {
+    position: absolute; top: 0; left: 0; white-space: nowrap;
+    display: inline-flex; align-items: baseline; gap: 6px;
+    animation-name: fly; animation-timing-function: linear; animation-iteration-count: infinite;
+}
+@keyframes fly {
+    0%   { transform: translate(var(--x0), var(--y0)) scale(var(--s)); opacity: 0; }
+    14%  { opacity: var(--op); }
+    82%  { opacity: var(--op); }
+    100% { transform: translate(var(--x1), var(--y1)) scale(var(--s)); opacity: 0; }
+}
+/* hloubka: vzdálené jsou menší, bledší a pomalejší */
+#d2 .fchip.far  { font-size: 11px; filter: blur(.4px); }
+#d2 .fchip.mid  { font-size: 13px; }
+#d2 .fchip.near { font-size: 16px; }
+#d2 .fchip.near .val { color: #f0cd90; }
+
+/* =============================================================================
+   ③ HORIZONT — nivelační lať přes celou šířku + běžící pás hodnot
+   ============================================================================= */
+#d3 .horizon { position: absolute; left: 0; right: 0; top: 71%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(230,189,118,0.55) 12%, rgba(230,189,118,0.55) 88%, transparent); }
+#d3 .ticks { position: absolute; left: 0; right: 0; top: 71%; height: 12px; }
+#d3 .ticks i { position: absolute; top: 0; width: 1px; background: rgba(230,189,118,0.3); }
+#d3 .plumb { position: absolute; left: 50%; top: 71%; width: 1px; height: 8vh;
+    background: linear-gradient(180deg, rgba(230,189,118,0.4), transparent); }
+#d3 .plumb::after { content: ""; position: absolute; left: -3px; top: -3px; width: 7px; height: 7px;
+    border-radius: 50%; background: var(--data); box-shadow: 0 0 10px rgba(230,189,118,0.8); }
+#d3 .tape { position: absolute; left: 0; right: 0; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+#d3 .tape .row { display: flex; width: max-content; animation: slide linear infinite; }
+#d3 .tape .row > div { display: flex; }
+#d3 .tape .it { display: inline-flex; align-items: baseline; gap: 6px; padding: 0 22px; white-space: nowrap; }
+@keyframes slide { to { transform: translateX(-50%); } }
+#d3 .tape.main { top: calc(71% - 26px); font-size: 13px; }
+#d3 .tape.main .row { animation-duration: 55s; }
+#d3 .tape.far { top: 22%; font-size: 11px; opacity: .38; }
+#d3 .tape.far .row { animation-duration: 95s; animation-direction: reverse; }
+
+/* =============================================================================
+   ④ SÍŤ A BLIPY — souřadnicová síť přes celou plochu, hodnoty problikávají
+   ============================================================================= */
+#d4 .grid { position: absolute; inset: 0;
+    background-image:
+        linear-gradient(rgba(47,158,116,0.10) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(47,158,116,0.10) 1px, transparent 1px);
+    background-size: 14vw 14vw;
+    animation: gridpan 60s linear infinite;
+}
+@keyframes gridpan { to { background-position: 14vw 14vw; } }
+#d4 .grid2 { position: absolute; inset: 0;
+    background-image:
+        linear-gradient(rgba(47,158,116,0.20) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(47,158,116,0.20) 1px, transparent 1px);
+    background-size: 42vw 42vw;
+    animation: gridpan2 60s linear infinite;
+}
+@keyframes gridpan2 { to { background-position: 42vw 42vw; } }
+#d4 .axis { position: absolute; font: 500 9.5px/1 var(--font-mono); color: rgba(47,158,116,0.42); letter-spacing: .04em; }
+#d4 .blip { position: absolute; transform: translate(-50%,-50%); animation: blip 5s ease-out forwards; }
+#d4 .blip .cross { position: absolute; left: -9px; top: -9px; width: 18px; height: 18px; }
+#d4 .blip .cross::before, #d4 .blip .cross::after { content: ""; position: absolute; background: rgba(230,189,118,0.8); }
+#d4 .blip .cross::before { left: 8px; top: 0; width: 1px; height: 18px; }
+#d4 .blip .cross::after { top: 8px; left: 0; height: 1px; width: 18px; }
+#d4 .blip .ring { position: absolute; left: -9px; top: -9px; width: 18px; height: 18px; border-radius: 50%;
+    border: 1px solid rgba(230,189,118,0.7); animation: ring 1.6s ease-out forwards; }
+@keyframes ring { to { transform: scale(3.4); opacity: 0; } }
+#d4 .blip .lbl { position: absolute; left: 14px; top: -8px; white-space: nowrap; font-size: 12px;
+    display: inline-flex; align-items: baseline; gap: 6px; }
+#d4 .blip.l .lbl { left: auto; right: 14px; }
+@keyframes blip { 0% { opacity: 0; } 8% { opacity: 1; } 72% { opacity: 1; } 100% { opacity: 0; } }
+</style>
+</head>
+<body>
+
+<div id="caption"><b></b><span></span><button id="datasrc" type="button"><i class="d"></i><em id="datasrc-t">ukázková data</em></button></div>
+
+<!-- ① MĚŘICKÁ LINIE -->
+<div class="design on" id="d1">
+    <div class="bg">
+        <svg class="topo" viewBox="0 0 400 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+        <svg class="mline" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="koty"></div>
+    </div>
+    <div class="vign"></div><div class="glow"></div>
+    <div class="rot"></div>
+    <div class="stage"></div>
+</div>
+
+<!-- ② LÉTAJÍCÍ HODNOTY -->
+<div class="design" id="d2">
+    <div class="bg">
+        <svg class="topo" viewBox="0 0 400 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+        <div class="chips"></div>
+    </div>
+    <div class="vign"></div><div class="glow"></div>
+    <div class="stage"></div>
+</div>
+
+<!-- ③ HORIZONT -->
+<div class="design" id="d3">
+    <div class="bg">
+        <svg class="topo" viewBox="0 0 400 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+        <div class="tape far"><div class="row"></div></div>
+        <div class="tape main"><div class="row"></div></div>
+        <div class="horizon"></div>
+        <div class="ticks"></div>
+        <div class="plumb"></div>
+    </div>
+    <div class="vign"></div><div class="glow"></div>
+    <div class="stage"></div>
+</div>
+
+<!-- ④ SÍŤ A BLIPY -->
+<div class="design" id="d4">
+    <div class="bg">
+        <div class="grid"></div>
+        <div class="grid2"></div>
+        <div class="axis" style="left:6px;top:50%;">X <span class="val" data-live="x" style="font-size:9.5px;"></span></div>
+        <div class="axis" style="bottom:6px;left:50%;transform:translateX(-50%);">Y <span class="val" data-live="y" style="font-size:9.5px;"></span></div>
+        <div class="blips"></div>
+    </div>
+    <div class="vign"></div><div class="glow"></div>
+    <div class="stage"></div>
+</div>
+
+<div id="switcher">
+    <button class="on" data-d="1">①</button>
+    <button data-d="2">②</button>
+    <button data-d="3">③</button>
+    <button data-d="4">④</button>
+</div>
+
+<script src="js/lib/proj4-2.9.0.min.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    // =========================================================================
+    // ŽIVÁ DATA — jeden zdroj pro všechny čtyři návrhy.
+    // Poloha (nepovinná) → Open-Meteo (teplota, tlak, vítr, vlhkost, západ,
+    // výška terénu) + proj4 → Y,X v S-JTSK. Bez povolení jedou ukázkové hodnoty.
+    // V appce by tohle sedlo na už existující cache: 'arLastPos' a
+    // 'agWeatherCache_v1' — takže by ani nemusela běžet žádná nová síťová volba.
+    // =========================================================================
+    var DEMO = {
+        teplota: '21,4 °C', pocitova: '19,8 °C', vitr: '3,2 m/s', tlak: '1013 hPa',
+        vlhkost: '62 %', zapad: '20:47', vychod: '05:22', vyska: '142,7 m n. m.',
+        lat: '49.1954° N', lon: '16.6068° E', y: '598 214,3', x: '1 160 442,7',
+        misto: 'Brno-střed'
+    };
+    var LIVE = {};
+    for (var k in DEMO) LIVE[k] = DEMO[k];
+
+    function num(n, d) {
+        return n.toFixed(d == null ? 1 : d).replace('.', ',');
+    }
+    function mez(n) {   // 598214.3 → "598 214,3"
+        var s = num(n, 1).split(',');
+        return s[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ',' + s[1];
+    }
+    function hhmm(iso) {
+        try { var t = String(iso).split('T')[1] || ''; return t.slice(0, 5); } catch (e) { return '--:--'; }
+    }
+    var DNY = ['ne', 'po', 'út', 'st', 'čt', 'pá', 'so'];
+    function tick() {
+        var d = new Date();
+        LIVE.cas = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+        LIVE.cass = LIVE.cas + ':' + ('0' + d.getSeconds()).slice(-2);
+        LIVE.datum = DNY[d.getDay()] + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '.';
+        paint();
+    }
+
+    // vypsání hodnot do všech prvků s data-live (funguje napříč návrhy i kopiemi)
+    function paint() {
+        var els = document.querySelectorAll('[data-live]');
+        for (var i = 0; i < els.length; i++) {
+            var v = LIVE[els[i].getAttribute('data-live')];
+            if (v != null && els[i].textContent !== v) els[i].textContent = v;
+        }
+    }
+
+    var srcEl = document.getElementById('datasrc'), srcT = document.getElementById('datasrc-t');
+    function setSrc(live, txt) {
+        srcEl.classList.toggle('live', !!live);
+        srcT.textContent = txt;
+    }
+    function loadLive() {
+        if (!navigator.geolocation) { setSrc(false, 'poloha není k dispozici'); return; }
+        setSrc(false, 'zjišťuji polohu…');
+        navigator.geolocation.getCurrentPosition(function (p) {
+            var la = p.coords.latitude, lo = p.coords.longitude;
+            LIVE.lat = Math.abs(la).toFixed(5) + '° ' + (la < 0 ? 'S' : 'N');
+            LIVE.lon = Math.abs(lo).toFixed(5) + '° ' + (lo < 0 ? 'W' : 'E');
+            if (p.coords.altitude != null) LIVE.vyska = num(p.coords.altitude) + ' m n. m.';
+            if (p.coords.accuracy != null) LIVE.presnost = '± ' + num(p.coords.accuracy) + ' m';
+            try {
+                proj4.defs('EPSG:5514', '+proj=krovak +lat_0=49.5 +lon_0=24.83333333333333 +alpha=30.28813972222222 +k=0.9999 +x_0=0 +y_0=0 +ellps=bessel +towgs84=570.8,85.7,462.8,4.998,1.587,5.261,3.56 +units=m +no_defs');
+                var s = proj4('EPSG:4326', 'EPSG:5514', [lo, la]);
+                LIVE.y = mez(Math.abs(s[0])); LIVE.x = mez(Math.abs(s[1]));
+            } catch (e) {}
+            setSrc(true, 'živá data · načítám počasí');
+            paint();
+            var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + la.toFixed(4) + '&longitude=' + lo.toFixed(4) +
+                '&current=temperature_2m,apparent_temperature,relative_humidity_2m,surface_pressure,wind_speed_10m' +
+                '&daily=sunrise,sunset&forecast_days=1&timezone=auto&wind_speed_unit=ms';
+            fetch(url, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
+                var c = j && j.current;
+                if (c) {
+                    if (c.temperature_2m != null) LIVE.teplota = num(c.temperature_2m) + ' °C';
+                    if (c.apparent_temperature != null) LIVE.pocitova = num(c.apparent_temperature) + ' °C';
+                    if (c.relative_humidity_2m != null) LIVE.vlhkost = Math.round(c.relative_humidity_2m) + ' %';
+                    if (c.surface_pressure != null) LIVE.tlak = Math.round(c.surface_pressure) + ' hPa';
+                    if (c.wind_speed_10m != null) LIVE.vitr = num(c.wind_speed_10m) + ' m/s';
+                }
+                if (j && j.daily) {
+                    if (j.daily.sunrise) LIVE.vychod = hhmm(j.daily.sunrise[0]);
+                    if (j.daily.sunset) LIVE.zapad = hhmm(j.daily.sunset[0]);
+                }
+                // výšku terénu z modelu vezmi jen tehdy, když ji GPS nedala
+                if (j && j.elevation != null && p.coords.altitude == null) LIVE.vyska = num(j.elevation) + ' m n. m.';
+                setSrc(true, 'živá data');
+                paint();
+            })['catch'](function () { setSrc(true, 'živá poloha, počasí offline'); });
+        }, function () {
+            setSrc(false, 'ukázková data (poloha zamítnuta) — ťukni pro nový pokus');
+        }, { enableHighAccuracy: false, timeout: 9000, maximumAge: 300000 });
+    }
+    srcEl.onclick = loadLive;
+
+    // seznam hodnot, které se dají „prolétnout" — popisek + klíč
+    var POOL = [
+        ['Teplota', 'teplota'], ['Čas', 'cas'], ['Datum', 'datum'], ['Výška', 'vyska'],
+        ['Západ', 'zapad'], ['Tlak', 'tlak'], ['Vítr', 'vitr'], ['Vlhkost', 'vlhkost'],
+        ['Y', 'y'], ['X', 'x'], ['Šířka', 'lat'], ['Délka', 'lon'], ['Východ', 'vychod'],
+        ['Pocitově', 'pocitova']
+    ];
+    function pair(label, key, cls) {
+        return '<span class="key">' + label + '</span><span class="val ' + (cls || '') + '" data-live="' + key + '">…</span>';
+    }
+
+    // =========================================================================
+    // společné kusy: vrstevnice (stejná kresba jako v appce) + atrapa karty
+    // =========================================================================
+    var TOPO = [
+        ['major', 'M-20,120 C60,80 140,150 220,110 S380,60 420,100'],
+        ['', 'M-20,150 C60,110 150,180 230,140 S380,95 420,135'],
+        ['', 'M-20,180 C70,145 160,210 240,170 S385,130 420,170'],
+        ['major', 'M-20,300 C40,340 120,260 210,310 S350,380 420,330'],
+        ['', 'M-20,330 C40,370 125,295 215,340 S350,410 420,360'],
+        ['', 'M-20,360 C45,400 130,330 220,370 S355,440 420,395'],
+        ['', 'M-20,390 C50,428 138,365 228,400 S360,468 420,428'],
+        ['major', 'M-20,540 C80,500 170,580 260,540 S390,490 420,530'],
+        ['', 'M-20,575 C80,538 175,615 265,575 S390,528 420,568'],
+        ['', 'M-20,610 C85,575 180,648 270,610 S395,565 420,605']
+    ];
+    (function fillTopo() {
+        var html = TOPO.map(function (p) {
+            return '<path class="' + p[0] + '" d="' + p[1] + '"/>';
+        }).join('');
+        var t = document.querySelectorAll('.topo');
+        for (var i = 0; i < t.length; i++) t[i].innerHTML = html;
+    })();
+
+    var LOGO =
+        '<svg class="mark" viewBox="0 0 96 96" fill="none">' +
+        '<g class="spin" stroke="#3eb487" stroke-width="4" stroke-linecap="round">' +
+        '<path d="M14 30V18h12"/><path d="M82 30V18H70"/><path d="M14 66v12h12"/><path d="M82 66v12H70"/></g>' +
+        '<circle cx="48" cy="48" r="17" stroke="#2f9e74" stroke-width="3"/>' +
+        '<path d="M48 25v46M25 48h46" stroke="#e6bd76" stroke-width="2"/>' +
+        '<circle cx="48" cy="48" r="3.5" fill="#e6bd76"/></svg>';
+    var CARD =
+        '<div class="card">' + LOGO +
+        '<div class="logo">AR <b>Geodet</b></div>' +
+        '<div class="chip"><span class="dot"></span>Geodet s.r.o. · ABC123</div>' +
+        '<div class="proj">Zakázka <b>Silnice II/379</b> · 128 bodů</div>' +
+        '<div class="users">' +
+        '<div class="user sel"><span class="av" style="background:linear-gradient(150deg,hsl(150,44%,48%),hsl(150,48%,33%));">JV</span><span class="nm">Jakub V.</span><span class="role">Admin</span></div>' +
+        '<div class="user"><span class="av" style="background:linear-gradient(150deg,hsl(215,44%,48%),hsl(215,48%,33%));">PN</span><span class="nm">Petr N.</span><span class="role">Měřič</span></div>' +
+        '</div>' +
+        '<div class="pin">••••</div>' +
+        '<button class="btn">Přihlásit</button>' +
+        '<button class="ghost">Zapomenutý PIN?</button>' +
+        '</div>';
+    (function fillCards() {
+        var s = document.querySelectorAll('.stage');
+        for (var i = 0; i < s.length; i++) s[i].innerHTML = CARD;
+    })();
+
+    // =========================================================================
+    // ① MĚŘICKÁ LINIE — přes celou obrazovku (přesahuje za oba okraje)
+    // =========================================================================
+    (function d1() {
+        // viewBox 0..100 × 0..100, preserveAspectRatio="none" → % obrazovky.
+        // Linie: z (-6, 26) do (106, 13) — oba konce jsou ZA okrajem, takže
+        // nikde „nezačíná" ani „nekončí"; jde napříč celou šířkou. Výškově
+        // zůstává nad kartou (ta na telefonu zabere skoro celý střed).
+        var x0 = -6, y0 = 26, x1 = 106, y1 = 13;
+        var g = ['<line class="ln" x1="' + x0 + '" y1="' + y0 + '" x2="' + x1 + '" y2="' + y1 + '" vector-effect="non-scaling-stroke"/>'];
+        // příčné rysky po 8 % (jako staničení na měřické přímce)
+        for (var t = 0.04; t < 1; t += 0.08) {
+            var mx = x0 + (x1 - x0) * t, my = y0 + (y1 - y0) * t;
+            g.push('<line class="tick" x1="' + mx + '" y1="' + (my - 1.1) + '" x2="' + mx + '" y2="' + (my + 1.1) + '" vector-effect="non-scaling-stroke"/>');
+        }
+        var sv = document.querySelector('#d1 .mline');
+        sv.innerHTML = g.join('');
+        // dvě stanoviska (kroužek + kříž) — nescalovat, tak zvlášť ve druhém svg
+        var st = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        st.setAttribute('class', 'mline');
+        st.setAttribute('viewBox', '0 0 100 100');
+        st.setAttribute('preserveAspectRatio', 'none');
+        var stn = '';
+        [0.22, 0.78].forEach(function (t2) {
+            var sx = x0 + (x1 - x0) * t2, sy = y0 + (y1 - y0) * t2;
+            stn += '<g class="stn"><circle cx="' + sx + '" cy="' + sy + '" r="0.9" vector-effect="non-scaling-stroke"/></g>';
+        });
+        st.innerHTML = stn;
+        sv.parentNode.insertBefore(st, sv.nextSibling);
+
+        // kóty na vrstevnicích (jako na mapě) — statické, jen dokreslují terén
+        var koty = document.querySelector('#d1 .koty');
+        koty.innerHTML =
+            '<span style="left:19%;top:79%;">145,0</span>' +
+            '<span style="left:70%;top:85%;">142,5</span>' +
+            '<span style="left:41%;top:91%;">140,0</span>';
+
+        // štítek na linii — přepíná se mezi živými hodnotami
+        var rot = document.querySelector('#d1 .rot');
+        var tt = 0.74;   // pozice na linii (vpravo nahoře, jako dnešní štítek)
+        rot.style.left = (x0 + (x1 - x0) * tt) + '%';
+        rot.style.top = (y0 + (y1 - y0) * tt) + '%';
+        var SEQ = [['Teplota', 'teplota'], ['Čas', 'cas'], ['Výška', 'vyska'], ['Datum', 'datum'],
+                   ['Tlak', 'tlak'], ['Západ', 'zapad'], ['Y', 'y'], ['X', 'x'], ['Vítr', 'vitr']];
+        var idx = 0;
+        function swap() {
+            var s = SEQ[idx % SEQ.length]; idx++;
+            rot.innerHTML = '<span class="swap">' + pair(s[0], s[1]) + '</span>';
+            paint();
+        }
+        swap();
+        setInterval(swap, 4200);
+    })();
+
+    // =========================================================================
+    // ② LÉTAJÍCÍ HODNOTY — tři hloubky, plují napříč a mizí
+    // =========================================================================
+    (function d2() {
+        var DEPTH = [
+            { cls: 'far', s: 0.9, op: 0.28, dur: [46, 62] },
+            { cls: 'mid', s: 1, op: 0.55, dur: [32, 44] },
+            { cls: 'near', s: 1, op: 0.85, dur: [24, 32] }
+        ];
+        var host = document.querySelector('#d2 .chips');
+        var html = [];
+        // rozprostři hodnoty pravidelně, ať se nepřekrývají a nechodí ve shluku
+        for (var i = 0; i < POOL.length; i++) {
+            var d = DEPTH[i % 3];
+            var dur = d.dur[0] + ((i * 7) % (d.dur[1] - d.dur[0]));
+            var lane = (i * 100 / POOL.length);                     // startovní výška v %
+            var driftY = ((i % 5) - 2) * 6;                          // mírné stoupání/klesání
+            var rl = (i % 2 === 0);                                  // střídavě zleva a zprava
+            var x0 = rl ? -35 : 135, x1 = rl ? 135 : -35;
+            var delay = -(dur * ((i * 13) % 100) / 100);             // rozjeté hned, ne po řadě
+            html.push('<div class="fchip ' + d.cls + '" style="' +
+                '--x0:' + x0 + 'vw;--y0:' + lane + 'vh;--x1:' + x1 + 'vw;--y1:' + (lane + driftY) + 'vh;' +
+                '--op:' + d.op + ';--s:' + d.s + ';' +
+                'animation-duration:' + dur + 's;animation-delay:' + delay + 's;">' +
+                pair(POOL[i][0], POOL[i][1]) + '</div>');
+        }
+        host.innerHTML = html.join('');
+        paint();
+    })();
+
+    // =========================================================================
+    // ③ HORIZONT — lať přes celou šířku + dvě běžící pásky (blízká a vzdálená)
+    // =========================================================================
+    (function d3() {
+        var tk = document.querySelector('#d3 .ticks'), h = [];
+        for (var x = 0; x <= 100; x += 2.5) {
+            var big = (Math.round(x) % 10 === 0);
+            h.push('<i style="left:' + x + '%;height:' + (big ? 11 : 5) + 'px;opacity:' + (big ? .55 : .28) + ';"></i>');
+        }
+        tk.innerHTML = h.join('');
+
+        function tape(sel, items) {
+            var one = items.map(function (p) {
+                return '<span class="it">' + pair(p[0], p[1]) + '</span>';
+            }).join('');
+            // dvakrát za sebou → posun o -50 % je bezešvá smyčka
+            document.querySelector(sel).innerHTML = '<div>' + one + '</div><div>' + one + '</div>';
+        }
+        tape('#d3 .tape.main .row', POOL);
+        tape('#d3 .tape.far .row', POOL.slice().reverse());
+        paint();
+    })();
+
+    // =========================================================================
+    // ④ SÍŤ A BLIPY — hodnota problikne na průsečíku sítě jako záměra
+    // =========================================================================
+    (function d4() {
+        var host = document.querySelector('#d4 .blips');
+        var seq = 0;
+        function spawn() {
+            if (!document.getElementById('d4').classList.contains('on')) return;
+            var p = POOL[seq % POOL.length]; seq++;
+            // průsečíky velké sítě (42vw) — drž se dál od středu, kde je karta
+            var col = (seq * 3) % 5, row = (seq * 2) % 7;
+            var lf = 8 + col * 21, tp = 8 + row * 12.5;
+            if (lf > 26 && lf < 74 && tp > 24 && tp < 76) { tp = tp < 50 ? tp - 16 : tp + 16; }
+            tp = Math.max(6, Math.min(92, tp));
+            var el = document.createElement('div');
+            el.className = 'blip' + (lf > 62 ? ' l' : '');
+            el.style.left = lf + '%'; el.style.top = tp + '%';
+            el.innerHTML = '<span class="cross"></span><span class="ring"></span>' +
+                '<span class="lbl">' + pair(p[0], p[1]) + '</span>';
+            host.appendChild(el);
+            paint();
+            setTimeout(function () { try { host.removeChild(el); } catch (e) {} }, 5200);
+        }
+        setInterval(spawn, 1700);
+        spawn();
+    })();
+
+    // =========================================================================
+    // přepínač + popisky
+    // =========================================================================
+    var TXT = {
+        1: ['① Měřická linie přes celou obrazovku',
+            'Nejmenší zásah do dnešního vzhledu: čárka je teď skutečná měřická přímka — přesahuje za oba okraje, má staničení a dvě stanoviska. Štítek na ní se každé 4 s přepne na jinou živou hodnotu (teplota, čas, výška, tlak, Y/X). Vrstevnice dostaly kóty jako na mapě.'],
+        2: ['② Létající hodnoty',
+            'Čísla plují přes celé pozadí ve třech hloubkách — vzdálená jsou menší, bledší a pomalejší, blízká větší a výraznější. Vrstevnice jsou ztlumené, aby nerušily. Nejživější varianta; hodí se, když chceš, aby úvod „dýchal".'],
+        3: ['③ Horizont s běžící latí',
+            'Vodorovná nivelační lať přes celou šířku s ryskami a olovnicí uprostřed. Nad ní se plynule sune pás hodnot, druhý slabší pás jde nahoře opačným směrem (hloubka). Klidné, řádkové, čitelné i za slunce.'],
+        4: ['④ Souřadnicová síť a záměry',
+            'Síť jako na výkresu, na okrajích běží aktuální Y a X. Každou chvíli na průsečíku problikne záměrný kříž s jednou hodnotou a rozšíří se z něj kroužek. Nejvíc „přístrojový" pocit — jako by appka měřila okolí ještě před přihlášením.']
+    };
+    var cap = document.getElementById('caption');
+    function show(n) {
+        var ds = document.querySelectorAll('.design');
+        for (var i = 0; i < ds.length; i++) ds[i].classList.toggle('on', ds[i].id === 'd' + n);
+        var bs = document.querySelectorAll('#switcher button');
+        for (var j = 0; j < bs.length; j++) bs[j].classList.toggle('on', bs[j].getAttribute('data-d') === String(n));
+        cap.querySelector('b').textContent = TXT[n][0];
+        cap.querySelector('span').textContent = TXT[n][1];
+        paint();
+    }
+    document.getElementById('switcher').addEventListener('click', function (e) {
+        var b = e.target.closest('button'); if (b) show(b.getAttribute('data-d'));
+    });
+    show(1);
+
+    tick();
+    setInterval(tick, 1000);
+    loadLive();
+})();
+</script>
+</body>
+</html>
