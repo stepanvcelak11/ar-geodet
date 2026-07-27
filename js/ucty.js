@@ -845,7 +845,10 @@
         return '<div class="agl-brand"><span class="agl-mark"></span>' +
             '<span class="agl-logo">AR <b>Geodet</b></span></div>';
     }
-    // Pozadí „Terén" (vybraný návrh 1): vrstevnice, měřická linie a štítek délky.
+    // Pozadí „Terén" (vybraný návrh 1): vrstevnice + živé hodnoty (návrh ② ze
+    // zpětné vazby 27.7. — navrhy-uvod-pozadi.html). Dřív tu byla měřická čárka
+    // se štítkem „142.7 m": čárka končila v 80 % šířky (vypadala useknutě) a
+    // číslo bylo natvrdo → nahrazeno hodnotami, které něco znamenají.
     // Čistá dekorace pod kartou (z-index 0, pointer-events none), do krajů ji
     // rozpouští vinětace #ag-login::after do barvy pozadí.
     function terrainHtml() {
@@ -861,9 +864,120 @@
             '<path d="M-20,575 C80,538 175,615 265,575 S390,528 420,568"/>' +
             '<path d="M-20,610 C85,575 180,648 270,610 S395,565 420,605"/>' +
             '</svg>' +
-            '<svg class="agl-mline" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' +
-            '<line x1="15" y1="30" x2="80" y2="13" vector-effect="non-scaling-stroke"/></svg>' +
-            '<div class="agl-mlabel">142.7 m</div>';
+            '<div class="agl-live" aria-hidden="true"></div>';
+    }
+
+    // ------------------------------------------------------------------
+    // ŽIVÉ HODNOTY V POZADÍ (návrh ②)
+    // Čísla plují přes pozadí ve třech hloubkách (menší/bledší = dál).
+    // ŽÁDNÉ nové stahování ani zapínání GPS: bere se výhradně to, co appka
+    // už má v localStorage — poloha 'arLastPos' (píše logika.js) a počasí
+    // 'agWeatherCache_v1' (píše pocasi.js). Hodiny, Y/X a Slunce se dopočítají
+    // v telefonu. Když nic z toho není (čerstvá instalace), zůstane jen čas
+    // a datum — proto se seznam staví z toho, co je opravdu k dispozici.
+    // ------------------------------------------------------------------
+    var LV_WX = 'agWeatherCache_v1';        // cache počasí (js/pocasi.js)
+    var LV_WX_MAX = 3 * 3600 * 1000;        // starší než 3 h už neukazuj (bylo by to lživé)
+    var LV_DNY = ['ne', 'po', 'út', 'st', 'čt', 'pá', 'so'];
+    var LV_TICK = 20000;                    // obnova textů (animace chipů běží dál v CSS)
+    function lvP2(n) { return (n < 10 ? '0' : '') + n; }
+    function lvNum(n, d) { return n.toFixed(d == null ? 1 : d).replace('.', ','); }
+    function lvMez(n) {                      // 598214.3 → „598 214,3" (pevné mezery)
+        var s = lvNum(n, 1).split(',');
+        return s[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ',' + s[1];
+    }
+    function lvPos() {
+        try { if (typeof userLat === 'number' && userLat && typeof userLng === 'number' && userLng) return { lat: userLat, lng: userLng }; } catch (e) {}
+        try {
+            var p = JSON.parse(localStorage.getItem('arLastPos'));
+            if (p && p.lat != null) return { lat: +p.lat, lng: +(p.lng != null ? p.lng : p.lon) };
+        } catch (e) {}
+        return null;
+    }
+    function lvWx() {
+        try {
+            var o = JSON.parse(localStorage.getItem(LV_WX));
+            if (o && o.data && o.t && (Date.now() - o.t) < LV_WX_MAX) return o;
+        } catch (e) {}
+        return null;
+    }
+    // seznam dvojic [popisek, hodnota]; pořadí je stabilní, ať se chipy nepřehazují
+    function lvVals() {
+        var out = [], d = new Date();
+        out.push(['Čas', lvP2(d.getHours()) + ':' + lvP2(d.getMinutes())]);
+        out.push(['Datum', LV_DNY[d.getDay()] + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '.']);
+        var w = lvWx(), c = w && w.data ? w.data.current : null;
+        if (c) {
+            if (c.temp != null) out.push(['Teplota', lvNum(c.temp) + ' °C']);
+            if (c.feels != null) out.push(['Pocitově', lvNum(c.feels) + ' °C']);
+            if (c.wind != null) out.push(['Vítr', lvNum(c.wind) + ' m/s']);
+            if (c.pmsl != null) out.push(['Tlak', Math.round(c.pmsl) + ' hPa']);
+            if (c.hum != null) out.push(['Vlhkost', Math.round(c.hum) + ' %']);
+        }
+        if (w && w.data && w.data.elev != null) out.push(['Výška', lvNum(w.data.elev, 0) + ' m n. m.']);
+        if (w && w.placeName) out.push(['Místo', w.placeName]);
+        var p = lvPos();
+        if (p) {
+            try {
+                var s = proj4('EPSG:4326', 'EPSG:5514', [p.lng, p.lat]);   // Křovák definuje logika.js
+                out.push(['Y', lvMez(Math.abs(s[0]))]);
+                out.push(['X', lvMez(Math.abs(s[1]))]);
+            } catch (e) {}
+            out.push(['Šířka', Math.abs(p.lat).toFixed(5) + '° ' + (p.lat < 0 ? 'S' : 'N')]);
+            out.push(['Délka', Math.abs(p.lng).toFixed(5) + '° ' + (p.lng < 0 ? 'W' : 'E')]);
+            try {
+                var t = window.AGSun ? window.AGSun.times(d, p.lat, p.lng, 90.833) : null;   // js/slunce.js
+                if (t && t.rise) out.push(['Východ', lvP2(t.rise.getHours()) + ':' + lvP2(t.rise.getMinutes())]);
+                if (t && t.set) out.push(['Západ', lvP2(t.set.getHours()) + ':' + lvP2(t.set.getMinutes())]);
+            } catch (e) {}
+        }
+        try {
+            if (typeof persistentCustomPoints !== 'undefined' && persistentCustomPoints && persistentCustomPoints.length) {
+                out.push(['Body', String(persistentCustomPoints.length)]);
+            }
+        } catch (e) {}
+        return out;
+    }
+    // tři hloubky: vzdálené jsou menší, bledší a pomalejší (parallax)
+    var LV_DEPTH = [
+        { cls: 'far', op: 0.26, d0: 46, d1: 62 },
+        { cls: 'mid', op: 0.5, d0: 32, d1: 44 },
+        { cls: 'near', op: 0.8, d0: 24, d1: 32 }
+    ];
+    function startLive(root) {
+        var host = root.querySelector('.agl-live');
+        if (!host) return;
+        var vals = lvVals();
+        if (!vals.length) return;
+        var html = [];
+        for (var i = 0; i < vals.length; i++) {
+            var dp = LV_DEPTH[i % 3];
+            var dur = dp.d0 + ((i * 7) % (dp.d1 - dp.d0));
+            var lane = Math.round(i * 100 / vals.length);       // startovní výška (vh)
+            var dy = ((i % 5) - 2) * 6;                          // mírné stoupání/klesání
+            var rl = (i % 2 === 0);                              // střídavě zleva a zprava
+            var delay = -Math.round(dur * ((i * 13) % 100) / 100);   // rozjeté hned, ne po řadě
+            var xs = 8 + (i % 3) * 26;                           // klidová poloha (reduced-motion)
+            html.push('<div class="agl-fl ' + dp.cls + '" style="--x0:' + (rl ? -35 : 135) + 'vw;--y0:' + lane + 'vh;' +
+                '--x1:' + (rl ? 135 : -35) + 'vw;--y1:' + (lane + dy) + 'vh;--xs:' + xs + 'vw;--op:' + dp.op + ';' +
+                'animation-duration:' + dur + 's;animation-delay:' + delay + 's;">' +
+                '<span class="k">' + esc(vals[i][0]) + '</span>' +
+                '<span class="v" data-k="' + esc(vals[i][0]) + '">' + esc(vals[i][1]) + '</span></div>');
+        }
+        host.innerHTML = html.join('');
+        // Obnova: mění se JEN text, chipy se nepřekreslují (jinak by animace skočila).
+        // Párování podle popisku, ne podle pořadí — seznam se může za běhu rozšířit
+        // (např. když mezitím doběhne počasí). Časovač umře s obrazovkou.
+        var iv = setInterval(function () {
+            if (!document.body.contains(host)) { clearInterval(iv); return; }
+            var now = lvVals(), map = {}, j;
+            for (j = 0; j < now.length; j++) map[now[j][0]] = now[j][1];
+            var els = host.querySelectorAll('.v');
+            for (j = 0; j < els.length; j++) {
+                var v = map[els[j].getAttribute('data-k')];
+                if (v != null && els[j].textContent !== v) els[j].textContent = v;
+            }
+        }, LV_TICK);
     }
     // Logo: použij SKUTEČNÉ logo appky z úvodní obrazovky (klon uzlu, ať se
     // nemusí duplikovat kresba a vždy odpovídá tomu, co uživatel zná).
@@ -924,15 +1038,29 @@
             // #ag-login/#ag-gate v selektoru: musí přebít '#ag-login>*' (position/z-index) výš
             '#ag-login .agl-topo,#ag-gate .agl-topo{position:absolute;inset:-20%;width:140%;height:140%;z-index:0;pointer-events:none;',
             '  animation:agldrift 40s ease-in-out infinite alternate;}',
-            '.agl-topo path{fill:none;stroke:rgba(47,158,116,0.13);stroke-width:1.2;}',
-            '.agl-topo path.major{stroke:rgba(47,158,116,0.28);stroke-width:1.6;}',
+            // vrstevnice jsou ztlumené — hlavní dění v pozadí jsou teď létající hodnoty
+            '.agl-topo path{fill:none;stroke:rgba(47,158,116,0.08);stroke-width:1.2;}',
+            '.agl-topo path.major{stroke:rgba(47,158,116,0.16);stroke-width:1.6;}',
             '@keyframes agldrift{from{transform:translate(0,0) scale(1)}to{transform:translate(-3%,-2%) scale(1.06)}}',
-            '#ag-login .agl-mline,#ag-gate .agl-mline{position:absolute;inset:0;z-index:0;pointer-events:none;}',
-            '.agl-mline line{stroke:rgba(230,189,118,0.55);stroke-width:1.5;stroke-dasharray:6 7;animation:agldash 2.2s linear infinite;}',
-            '@keyframes agldash{to{stroke-dashoffset:-26}}',
-            '#ag-login .agl-mlabel,#ag-gate .agl-mlabel{position:absolute;top:16%;right:9%;z-index:0;pointer-events:none;',
-            '  font:600 11px/1 var(--font-mono,ui-monospace,monospace);color:#e6bd76;',
-            '  background:rgba(20,16,8,0.7);border:1px solid rgba(230,189,118,0.35);padding:4px 8px;border-radius:7px;}',
+            // ---- létající hodnoty (návrh ②) ----
+            // overflow:hidden je POVINNÝ: chipy startují na -35vw / 135vw, jinak by
+            // #ag-login (overflow-y:auto) dostal vodorovné rolování.
+            '#ag-login .agl-live,#ag-gate .agl-live{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;}',
+            '.agl-fl{position:absolute;top:0;left:0;white-space:nowrap;display:inline-flex;align-items:baseline;gap:6px;',
+            '  font-family:var(--font-mono,ui-monospace,monospace);will-change:transform;',
+            '  animation-name:aglfly;animation-timing-function:linear;animation-iteration-count:infinite;}',
+            '.agl-fl .k{font-weight:500;font-size:.74em;letter-spacing:.08em;text-transform:uppercase;color:rgba(230,189,118,0.55);}',
+            '.agl-fl .v{font-weight:600;color:var(--data,#e6bd76);}',
+            '.agl-fl.far{font-size:11px;}',
+            '.agl-fl.mid{font-size:13px;}',
+            '.agl-fl.near{font-size:16px;}',
+            '.agl-fl.near .v{color:#f0cd90;}',
+            '@keyframes aglfly{0%{transform:translate(var(--x0),var(--y0));opacity:0}',
+            '  14%{opacity:var(--op)}82%{opacity:var(--op)}',
+            '  100%{transform:translate(var(--x1),var(--y1));opacity:0}}',
+            // bez animací (systémové nastavení): hodnoty jen tiše stojí na svém místě
+            '@media (prefers-reduced-motion:reduce){.agl-fl{animation:none;',
+            '  transform:translate(var(--xs),var(--y0));opacity:var(--op);}}',
             // vinětace: vrstevnice se do krajů ztrácí do barvy pozadí (funguje i ve světlém motivu)
             '#ag-login::after,#ag-gate::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;',
             '  background:radial-gradient(90% 70% at 50% 42%,transparent 25%,var(--bg,#0d1117) 100%);}',
@@ -1106,6 +1234,7 @@
             '</div>';
         document.body.appendChild(ov);
         fillMark(ov);
+        startLive(ov);
 
         var pinbox = ov.querySelector('.agl-pinbox');
         var pinInp = ov.querySelector('.agl-pin');
@@ -1277,6 +1406,7 @@
             '</div>';
         document.body.appendChild(ov);
         fillMark(ov);
+        startLive(ov);
 
         var errEl = ov.querySelector('#agg-err');
         var gateApi = DEFAULT_API;   // QR od admina může nést i vlastní adresu API
