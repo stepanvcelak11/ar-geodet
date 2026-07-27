@@ -24,3 +24,8 @@ IMG_*.png
 *foto*.png
 Snímek obrazovky*.png
 Screenshot*.png
+
+# Playwright (testy)
+playwright-report/
+test-results/
+.playwright/

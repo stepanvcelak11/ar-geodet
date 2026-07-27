@@ -1,0 +1,77 @@
+# Testy appky. Dvě úrovně, obě běží na každý push i pull request:
+#
+#   1) STATICKÁ KONTROLA (sekundy) — scripts/check_js.py projde všech ~100 js
+#      souborů: syntaxe, zbytky po mergi, duplicitní klíče v objektech.
+#      Bez tohohle projde do main soubor, který prohlížeč tiše přeskočí.
+#   2) SMOKE TEST (~2 min) — Playwright nastartuje appku v Chromiu s podvrženou
+#      GPS, kamerou i kompasem a ověří, že naběhne bez chyb v konzoli a že jsou
+#      na obrazovce klíčové prvky. Screenshot a report se ukládají jako artefakt.
+name: Testy (statická kontrola + smoke)
+
+on:
+  push:
+    branches: [main, 'feat/**']
+  pull_request:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  staticka-kontrola:
+    name: Syntaxe a duplicity v JS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Instalace esprima
+        run: python -m pip install --quiet esprima
+      - name: Kontrola JS (duplicity, zbytky po mergi)
+        run: python scripts/check_js.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # Autoritativní kontrola syntaxe: node umí i moderní zápisy, které esprima
+      # v check_js.py neparsuje (ty tam skončí jen jako přeskočené).
+      - name: Syntaxe všech js souborů (node --check)
+        run: |
+          fail=0
+          for f in $(find js -name '*.js' -not -path 'js/lib/*' | sort); do
+            node --check "$f" || { echo "SYNTAKTICKA CHYBA: $f"; fail=1; }
+          done
+          exit $fail
+      # Bundle se do produkce nenasazuje z tohoto jobu, ale když projde, je jisté,
+      # že jde všechny soubory spojit do jednoho — viz scripts/README-build.md
+      - name: Kontrola konzistence sw.js
+        run: python scripts/gen_sw_assets.py --check
+      - name: Kontrola bundlu (nezapisuje)
+        run: |
+          npm install --no-audit --no-fund
+          npm run build:check
+
+  smoke:
+    name: Appka nastartuje (Playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Instalace závislostí
+        run: npm install --no-audit --no-fund
+      - name: Instalace Chromia
+        run: npx playwright install --with-deps chromium
+      - name: Smoke testy
+        run: npm run test:smoke
+      - name: Uložit report a screenshoty
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+          if-no-files-found: ignore

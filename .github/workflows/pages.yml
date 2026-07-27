@@ -1,0 +1,108 @@
+# Nasazení appky na GitHub Pages ZE ZABALENÉHO KÓDU.
+#
+# Proč: appka se dnes načítá 112 samostatnými <script> tagy (~3,7 MB JS) a po
+# každém pushi se musí ručně bumpnout SHELL_CACHE v sw.js, jinak mobil drží
+# starou verzi. Tenhle workflow z toho udělá jediný zminifikovaný soubor
+# dist/app.<hash>.min.js — hash v názvu je cache-busting sám o sobě.
+#
+# ZDROJE V REPU SE NEMĚNÍ. Přepis index.html (build.mjs --apply) i přegenerování
+# sw.js se dějí jen v checkoutu tohoto běhu, nic se necommituje.
+#
+# BEZPEČNOSTNÍ POJISTKA: než se cokoli nasadí, pustí se nad ZABALENOU verzí
+# smoke testy (tests/smoke.spec.mjs). Když appka po zabalení nenaběhne, deploy
+# se nespustí a venku zůstane předchozí verze.
+#
+# ┌─ JEDNORÁZOVĚ, než to začne fungovat ────────────────────────────────────────┐
+# │ GitHub → repo → Settings → Pages → Build and deployment → Source:          │
+# │ přepnout z „Deploy from a branch" na „GitHub Actions".                     │
+# │ Do té doby si tenhle workflow můžeš pustit ručně (Run workflow) — build     │
+# │ i testy proběhnou, jen krok „deploy" selže na chybějícím nastavení.         │
+# └─────────────────────────────────────────────────────────────────────────────┘
+name: Nasazení na Pages (zabalený kód)
+
+on:
+  workflow_dispatch: {}
+  # Až bude Pages přepnuté na GitHub Actions, odkomentuj a nasazovat se bude samo:
+  # push:
+  #   branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Zabalit a otestovat
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Závislosti
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install --quiet esprima
+
+      - name: Statická kontrola JS
+        run: python scripts/check_js.py
+
+      - name: Zabalit a přepsat index.html
+        run: npm run build -- --apply
+
+      - name: Přegenerovat seznam assetů v sw.js
+        run: python scripts/gen_sw_assets.py
+
+      - name: Smoke testy nad ZABALENOU verzí
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:smoke
+
+      - name: Report z testů (i při chybě)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-pages
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      # Do nasazované kopie nepatří vývojářské věci. js/*.js necháváme (nic je
+      # už nenačítá, ale některé nástroje si soubory dotahují za běhu samy).
+      - name: Připravit _site
+        run: |
+          mkdir -p _site
+          rsync -a --exclude '.git' --exclude '.github' --exclude 'node_modules' \
+                   --exclude 'tests' --exclude 'playwright-report' --exclude 'test-results' \
+                   --exclude '_site' --exclude 'scripts' --exclude 'cloud' \
+                   --exclude '*.md' --exclude 'package.json' --exclude 'package-lock.json' \
+                   --exclude 'playwright.config.mjs' \
+                   ./ _site/
+          echo "Velikost nasazované kopie:"; du -sh _site
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    name: Publikovat
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

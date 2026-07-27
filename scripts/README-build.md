@@ -1,9 +1,9 @@
 # Build tooling (OPT-IN) — zabalení + minifikace JS
 
-Tohle je **volitelný** nástroj. Appka se pořád normálně načítá přes jednotlivé
-`<script>` tagy v `index.html` a bez tohoto buildu funguje úplně stejně jako dosud.
-Nic v `index.html` ani v `sw.js` se teď **nemění** — cutover přijde až při společné
-integraci (viz níže).
+Ve **zdrojích** se nic nemění: `index.html` v repu dál načítá jednotlivé
+`<script>` tagy, takže vývoj zůstává bez buildu (uprav soubor, obnov stránku).
+Build se pouští **až při nasazení** — workflow `.github/workflows/pages.yml` z něj
+udělá jediný `dist/app.<hash>.min.js`, otestuje ho a teprve pak publikuje na Pages.
 
 ## Co to dělá
 
@@ -35,45 +35,50 @@ Užitečné přepínače `node scripts/build.mjs`:
 - `--lazy` — z bundlu vynechá lazy moduly (menší bundle; pak je musíš lazy-loadovat)
 - `--check` — jako `build:check`
 
-## Proč je to ZATÍM opt-in
+## Nasazení (automaticky, `.github/workflows/pages.yml`)
 
-- Na projektu pracuje víc lidí/AI naráz; cutover by jim rozbil načítání přes
-  `<script>` tagy. Build je proto čistě stranou: vyrobí soubor do `dist/`, ale
-  nikdo ho nepoužívá, dokud ručně nepřepíšeme `index.html`.
-- `node_modules` ani `dist` se zatím nemusí verzovat (viz integrace `.gitignore`).
-- Plná ES-module migrace (`import`/`export`, odstranění globálů) je **mnohem** větší
-  zásah — tohle je jen „zabal a minifikuj", bez změny architektury.
+Workflow `Nasazení na Pages (zabalený kód)` dělá tohle — všechno jen ve svém
+checkoutu, do repa nic nezapisuje:
 
-## CUTOVER při integraci (PŘESNÝ postup)
+1. `python scripts/check_js.py` — syntaxe a duplicitní klíče ve všech `js/*.js`.
+2. `npm run build -- --apply` — vyrobí `dist/app.<hash>.min.js` **a přepíše
+   `index.html`**: všech ~112 vlastních `<script src="js/…">` tagů zmizí a na místo
+   posledního z nich se vloží jeden tag s bundlem. Knihovny `js/lib/*` zůstávají
+   samostatné a před bundlem; kdyby některá byla v dokumentu ZA posledním vlastním
+   skriptem, build to odmítne (jinak by se pořadí tiše rozbilo).
+3. `python scripts/gen_sw_assets.py` — `sw.js` si přegeneruje `ASSETS_TO_CACHE`
+   podle nového `index.html`, takže se cachuje bundle a ne 112 nepoužitých souborů.
+4. `npm run test:smoke` — Playwright nastartuje **zabalenou** verzi appky. Když
+   nenaběhne, deploy se nespustí a venku zůstane předchozí verze.
+5. `upload-pages-artifact` + `deploy-pages`.
 
-Až se všechny větve sloučí a budeme chtít build zapnout v ostré verzi:
+### Jednorázové nastavení
 
-1. Spusť `npm i && npm run build`. Zapamatuj si vypsaný název, např.
-   `app.a1b2c3d4e5.min.js`.
+GitHub → repo → **Settings → Pages → Build and deployment → Source**: přepnout
+z „Deploy from a branch" na **„GitHub Actions"**. Do té doby jde workflow spustit
+ručně (Run workflow) — build i testy proběhnou, jen poslední krok (deploy) selže.
+Po přepnutí odkomentuj v `pages.yml` spouštěč `push: branches: [main]` a nasazuje
+se samo.
 
-2. V `index.html` (konec souboru, blok script tagů ~ř. 536–589) **nahraď** všechny
-   řádky `<script src="js/...">` (NE knihovny `js/lib/*`) jediným řádkem:
+### Co tím odpadá
 
-   ```html
-   <script src="dist/app.a1b2c3d4e5.min.js"></script>
-   ```
+- **Ruční bump `SHELL_CACHE`** po každém pushi: název bundlu obsahuje contenthash,
+  takže každá změna kódu = jiná URL = prohlížeč si vezme čerstvý kód sám. Bump
+  zůstává jako pojistka pro CSS (`?v=NNN`), o který se stará `gen_sw_assets.py`.
+- **112 HTTP requestů a ~3,7 MB JS** při studeném startu na telefonu.
 
-   Knihovny `js/lib/*` (Leaflet, esri, satellite, qrcode, jsqr) **nech být** a nech
-   je **PŘED** bundlem (appka je potřebuje dřív). Tj. výsledek: nejdřív `js/lib/*`
-   řádky, pak jeden `dist/app.<hash>.min.js`.
+Dokud běží Pages ze branche (tj. před přepnutím Source), nasazuje se pořád
+nezabalený `index.html` z repa a `SHELL_CACHE` se bumpuje ručně jako dosud.
 
-3. **`sw.js` — ruční bump `SHELL_CACHE` ODPADÁ.** Protože název bundlu obsahuje
-   contenthash, každá změna kódu = nový název souboru = jiná URL = prohlížeč si
-   stáhne čerstvý kód sám. V `sw.js` v `ASSETS_TO_CACHE` (~ř. 25–78) pak smaž
-   jednotlivé `'./js/*.js'` položky (kromě `js/lib/*`) a přidej místo nich jeden
-   řádek `'./dist/app.<hash>.min.js'`. CSS a `js/lib/*` v seznamu nech.
+## Ruční cutover (když bys build chtěl zapnout přímo v repu)
 
-   > Pozn.: dokud bundle NEpoužíváš (před cutoverem), `SHELL_CACHE` bumpuj dál ručně
-   > jako teď — hashovaný název pomáhá **až** po cutoveru.
+1. `npm i && npm run build -- --apply`
+2. `python scripts/gen_sw_assets.py`
+3. commitni i `dist/` (v `.gitignore` ho pak nesmíš ignorovat) — je to artefakt,
+   který appka načítá.
 
-4. `dist/` se po cutoveru musí **commitnout** (je to deploy artefakt, který appka
-   načítá). Tzn. v `.gitignore` `dist/` NEignoruj, nebo build pouštěj v CI před
-   deployem. Před cutoverem klidně `dist/` ignoruj (viz integrace `.gitignore`).
+Nevýhoda: každý další commit do `js/*.js` vyžaduje build znovu, jinak nasazená
+verze neodpovídá zdrojům. Proto je automatická cesta přes CI lepší.
 
 ## Lazy-load těžkých nástrojů na klik (vzor `ensureTesseract`)
 
