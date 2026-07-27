@@ -108,6 +108,11 @@ class IndexParser(HTMLParser):
         a = dict(attrs)
         if tag == 'script' and a.get('src'):
             self.scripts.append(a['src'])
+        # Moduly odlozene na pozdeji (js/lazy-load.js) maji type="ag/lazy" a adresu
+        # v data-src, aby je prohlizec pri startu nestahoval. Do cache patri STEJNE
+        # jako driv - bez nich by appka offline prisla o nastroje.
+        elif tag == 'script' and a.get('data-src'):
+            self.scripts.append(a['data-src'])
         elif tag == 'link':
             rel = (a.get('rel') or '').lower()
             href = a.get('href')

@@ -93,9 +93,13 @@ const EXPLICIT_ORDER = [
 // --- Přečti pořadí <script src="js/..."> z index.html --------------------------
 // Bere jen LOKÁLNÍ .js (src bez http/https), v pořadí výskytu. Zachová duplicitní
 // kontrolu (kdyby se nějaký omylem objevil 2x, vezme se jednou).
+// POZOR: bere i `data-src` — moduly odložené na pozdější načtení (js/lazy-load.js)
+// mají <script type="ag/lazy" data-src="…">. Do bundlu patří pořád: bundle je jeden
+// soubor, takže odkládání ztrácí smysl, ale VYNECHAT je by znamenalo appku bez
+// 39 nástrojů. Kdyby se lazy mělo řešit i v bundlu, je na to LAZY_MODULES.
 function readOrderFromIndex() {
     const html = readFileSync(INDEX_HTML, 'utf8');
-    const re = /<script\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*><\/script>/gi;
+    const re = /<script\b[^>]*\b(?:data-)?src\s*=\s*["']([^"']+)["'][^>]*><\/script>/gi;
     const out = [];
     const seen = new Set();
     let m;

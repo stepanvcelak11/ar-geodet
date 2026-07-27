@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v205';   // rezim prace na uvodu, profily nastaveni, delene nacitani 10 nastroju
+const SHELL_CACHE = 'argeodet-shell-v206';   // rezim prace na uvodu, profily nastaveni, delene nacitani 10 nastroju
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -25,9 +25,9 @@ const ASSETS_TO_CACHE = [
     './icon-512.png',
     './icon-maskable-192.png',
     './icon-maskable-512.png',
-    './css/tokens.css?v=205',
-    './css/style.css?v=205',
-    './css/vylepseni.css?v=205',
+    './css/tokens.css?v=206',
+    './css/style.css?v=206',
+    './css/vylepseni.css?v=206',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
@@ -109,6 +109,8 @@ const ASSETS_TO_CACHE = [
     './js/track-log.js',
     './js/fov-kalibrace.js',
     './js/tools-back.js',
+    './js/modal-close.js',
+    './js/lazy-load.js',
     './js/track-ar.js',
     './js/linalg.js',
     './js/ar-resection.js',

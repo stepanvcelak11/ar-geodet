@@ -83,8 +83,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=205">
-    <link rel="stylesheet" href="css/style.css?v=205">
+    <link rel="stylesheet" href="css/tokens.css?v=206">
+    <link rel="stylesheet" href="css/style.css?v=206">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -101,7 +101,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=205">
+    <link rel="stylesheet" href="css/vylepseni.css?v=206">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -867,44 +867,50 @@
          service workeru (EXTRA_ASSETS v scripts/gen_sw_assets.py), takze to
          funguje i offline. Seznam nastroju je v MANIFEST uvnitr modulu. -->
     <script defer src="js/lazy-tools.js"></script>
-    <script defer src="js/hidden-points.js"></script>
+    <script type="ag/lazy" data-src="js/hidden-points.js"></script>
     <script defer src="js/orient-point.js"></script>
-    <script defer src="js/offset-point.js"></script>
-    <script defer src="js/brutal-gps.js"></script>
+    <script type="ag/lazy" data-src="js/offset-point.js"></script>
+    <script type="ag/lazy" data-src="js/brutal-gps.js"></script>
     <!-- SADA A (přesnější GPS jen mobilem, každý modul odpojitelný samostatně):
          gps-campaign = kampaň „3 návštěvy" (A1), gps-semafor = skóre místa (A3),
          dgps = dvoutelefonní korekce (A2), pdr-offset = krokový vektor (A4) -->
     <script defer src="js/gps-campaign.js"></script>
     <script defer src="js/gps-semafor.js"></script>
-    <script defer src="js/pdr-offset.js"></script>
-    <script defer src="js/stakeout-line.js"></script>
+    <script type="ag/lazy" data-src="js/pdr-offset.js"></script>
+    <script type="ag/lazy" data-src="js/stakeout-line.js"></script>
     <script defer src="js/track-log.js"></script>
     <script defer src="js/fov-kalibrace.js"></script>
     <script defer src="js/tools-back.js"></script>
     <!-- ZAVÍRÁNÍ MODÁLŮ (odpojitelné: smaž tento řádek + js/modal-close.js) — křížek
          vpravo nahoře a zavření potáhnutím dolů; tlačítka „Zavřít" zůstávají -->
     <script defer src="js/modal-close.js"></script>
+    <!-- POZDĚJŠÍ NAČTENÍ NÁSTROJŮ (odpojitelné: smaž tento řádek + js/lazy-load.js
+         a všem type="ag/lazy" data-src="…" vrať defer src="…") — doplněk k
+         js/lazy-tools.js: ten dotahuje 10 nástrojů AŽ NA KLEPNUTÍ (zástupná
+         dlaždice), tenhle bere zbytek a natáhne ho na pozadí, jakmile je appka
+         na obrazovce. Ťuknutí na dok / Nástroje / přihlášení dotáhne zbytek hned. -->
+    <script defer src="js/lazy-load.js"></script>
     <script defer src="js/track-ar.js"></script>
     <script defer src="js/linalg.js"></script>
-    <script defer src="js/ar-resection.js"></script>
+    <script type="ag/lazy" data-src="js/ar-resection.js"></script>
     <script defer src="js/ar-intersection.js"></script>
     <script defer src="js/rajon.js"></script>
-    <script defer src="js/free-station.js"></script>
+    <script type="ag/lazy" data-src="js/free-station.js"></script>
     <!-- LOKALIZACE (HELMERT) #3 (odpojitelné: smaž tento řádek + js/localization-helmert.js) — srovnání systematiky GPS přes staveniště 2D podobnostní transformací -->
     <script defer src="js/localization-helmert.js"></script>
     <!-- PODZEMNÍ SÍTĚ #7 (odpojitelné: smaž tento řádek + js/utility-networks.js) — trasy sítí pod terénem v AR z DXF/GeoJSON -->
     <script defer src="js/utility-networks.js"></script>
     <!-- PŘENOS ZAKÁZKY .argeo #6 (odpojitelné: smaž tento řádek + js/job-transfer.js) — export/import celé zakázky bez serveru -->
-    <script defer src="js/job-transfer.js"></script>
+    <script type="ag/lazy" data-src="js/job-transfer.js"></script>
     <!-- VÝŠKA OBJEKTU (odpojitelné: smaž tento řádek + js/vyska-objektu.js) — trigonometricky pata+vrchol -->
     <script defer src="js/vyska-objektu.js"></script>
     <!-- EPOCHY / MONITORING POSUNŮ (odpojitelné: smaž tento řádek + js/epochy.js) — souřadnice z totálky/roveru v čase -->
-    <script defer src="js/epochy.js"></script>
+    <script type="ag/lazy" data-src="js/epochy.js"></script>
     <!-- Připomínky epoch monitoringu (odpojitelné: smaž tento řádek + js/epochy-pripominky.js) — interval přeměření + upozornění po startu -->
     <script defer src="js/epochy-pripominky.js"></script>
     <script defer src="js/ar-calibrate.js"></script>
     <!-- SROVNAT AR NA 2 BODY (odpojitelné: smaž tento řádek + js/ar-calib2.js) — sever + šířka záběru (FOV) na dvou bodech -->
-    <script defer src="js/ar-calib2.js"></script>
+    <script type="ag/lazy" data-src="js/ar-calib2.js"></script>
     <script defer src="js/project-import.js"></script>
     <script defer src="js/cadastre-vector.js"></script>
     <!-- NOVÝ TUTORIÁL (odpojitelné: smaž tento řádek + js/tutorial-pro.js) — základní + pokročilá prohlídka -->
@@ -940,24 +946,24 @@
     <script defer src="js/qc-engine.js"></script>
     <!-- Firemní režim: účty, role, přihlašování (ucty.js = jádro, ucty-admin.js = administrace) -->
     <script defer src="js/ucty.js"></script>
-    <script defer src="js/ucty-admin.js"></script>
+    <script type="ag/lazy" data-src="js/ucty-admin.js"></script>
     <!-- Docházka (příchod/odchod přes události užívání) + firemní chat (cloud) -->
-    <script defer src="js/dochazka.js"></script>
-    <script defer src="js/firma-chat.js"></script>
+    <script type="ag/lazy" data-src="js/dochazka.js"></script>
+    <script type="ag/lazy" data-src="js/firma-chat.js"></script>
     <!-- ŽIVÁ SYNCHRONIZACE BODŮ VE FIRMĚ (odpojitelné: smaž tento řádek + js/cloud-sync.js) — opt-in per zakázka v Nastavení → Data; potřebuje js/ucty.js (cloudová firma) -->
     <script defer src="js/cloud-sync.js"></script>
     <!-- ZÁVADY / HLÁŠENÍ PORUCH (odpojitelné) — nálezy v terénu: foto+kategorie+závažnost, mapa/AR, protokol -->
     <script defer src="js/zavady.js"></script>
     <!-- RANNÍ BRÍFINK „Dnešek v terénu" (odpojitelné: smaž tento řádek + js/brifink.js) — 1× denně po startu: počasí, GNSS okna dne + Kp, monitoring po termínu, zpravodaj -->
-    <script defer src="js/brifink.js"></script>
+    <script type="ag/lazy" data-src="js/brifink.js"></script>
     <!-- HLASOVÉ POZNÁMKY s georazítkem (odpojitelné: smaž tento řádek + js/hlasovky.js) — namluvené poznámky s časem, S-JTSK polohou a nejbližším bodem; sbírá je Deník dne -->
-    <script defer src="js/hlasovky.js"></script>
+    <script type="ag/lazy" data-src="js/hlasovky.js"></script>
     <!-- SLUNCE A SVĚTLO (odpojitelné: smaž tento řádek + js/slunce.js) — východ/západ, zbývá světla, stíny, protisvětlo na záměře; vystavuje window.AGSun -->
     <script defer src="js/slunce.js"></script>
     <!-- KDE MÁM AUTO (odpojitelné: smaž tento řádek + js/kde-je.js) — značky auto/báze/stativ + navigační šipka -->
     <script defer src="js/kde-je.js"></script>
     <!-- BEZPEČNOST V TERÉNU (odpojitelné: smaž tento řádek + js/bezpecnost.js) — rizika dne, tiché připomínky, poslání polohy; čte window.AGSun ze js/slunce.js -->
-    <script defer src="js/bezpecnost.js"></script>
+    <script type="ag/lazy" data-src="js/bezpecnost.js"></script>
     <!-- USADIT AR (odpojitelné) — průvodce místo 7 kalibračních dlaždic + „Teď se hodí" -->
     <script defer src="js/usadit-ar.js"></script>
     <!-- ROZCESTNÍKY NÁSTROJŮ — Bod výpočtem / Signál GNSS / Příručka (odpojitelné: smaž tento řádek + js/tools-hub.js) -->

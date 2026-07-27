@@ -321,6 +321,9 @@ class IndexCheck(HTMLParser):
                 self.ids[el_id] = line
         if tag == 'script' and a.get('src'):
             self.files.append(('script src', a['src']))
+        elif tag == 'script' and a.get('data-src'):
+            # odlozene moduly (type="ag/lazy") - existovat musi uplne stejne
+            self.files.append(('script data-src', a['data-src']))
         elif tag == 'link' and a.get('href') and 'stylesheet' in (a.get('rel') or '').lower():
             self.files.append(('link href', a['href']))
 

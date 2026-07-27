@@ -1,0 +1,180 @@
+// ===== AR Geodet — POZDĚJŠÍ NAČTENÍ NÁSTROJŮ (ODPOJITELNÁ vrstva) ==============
+// Appka má přes 110 samostatných <script defer>. Prohlížeč MUSÍ všechny stáhnout,
+// naparsovat a spustit JEŠTĚ PŘED prvním vykreslením — na starším telefonu to jsou
+// vteřiny čekání na obrazovku, kde uživatel akorát chce vidět mapu. Přitom většina
+// těch souborů jsou nástroje, které se otevírají až z dlaždice.
+//
+// Tahle vrstva je z cesty uklidí: v index.html mají takové skripty
+//     <script type="ag/lazy" data-src="js/neco.js"></script>
+// (neznámý `type` = prohlížeč soubor ani nestáhne, ani nespustí) a tenhle modul je
+// doloaduje TEPRVE až je appka na obrazovce.
+//
+// PROČ ZŮSTÁVAJÍ V index.html a nejsou v nějakém seznamu tady: pořadí i komentáře
+// „co modul dělá / jak ho odpojit" zůstávají na jednom místě a nemůže se rozejít
+// seznam s realitou. Pořadí spouštění se bere přímo z dokumentu.
+//
+// KLÍČOVÉ DETAILY
+//   • script.async = false u dynamicky vloženého skriptu zaručuje, že se skripty
+//     spustí V POŘADÍ VLOŽENÍ (ne v pořadí, jak se stáhnou). Bez toho by moduly,
+//     které staví na globálech z dřívějších souborů, tekly náhodně.
+//   • Načítá se po dávkách v nečinnosti (requestIdleCallback), ať 1,3 MB parsování
+//     nesekne první interakci.
+//   • FLUSH: jakmile uživatel ťukne na dok / Nástroje / menu, zbytek se dotáhne
+//     OKAMŽITĚ. Takže i když někdo otevře Nástroje hned po startu, dlaždice tam
+//     jsou — nečeká se na nečinnost.
+//   • Dlaždice registrované pozdě nejsou problém: field-tools.js má syncTiles()
+//     při každé registraci a tools-plus/tools-simple/usadit-ar mají vlastní tik
+//     (1,2–1,6 s) i MutationObserver, takže si mřížku samy přerovnají.
+//   • Offline: soubory zůstávají v ASSETS_TO_CACHE (gen_sw_assets.py čte i
+//     data-src), takže je service worker cachuje jako dřív a doložení funguje
+//     bez signálu.
+//
+// CO SEM NEPATŘÍ (a proč): moduly, na které někdo sahá hned při startu nebo
+// v renderovací smyčce (slunce.js kvůli přihlašovací obrazovce, ar-visual-track.js
+// a localization-helmert.js kvůli grafika.js, gps-semafor.js kvůli stavovému pruhu,
+// dmr-terrain.js kvůli AR), moduly, které vkládají tlačítko do mapy nebo
+// zaškrtávátko do cizího modálu (geo-overlay, cadastre-vector, track-log), a cokoli,
+// co obaluje cizí funkci (zakazka-sablony, tutorial-pro, vylepseni). Ty musí zůstat
+// s obyčejným `defer`.
+//
+// Odstranění vrstvy: smaž js/lazy-load.js + jeho řádek v index.html a všem
+// `type="ag/lazy" data-src="…"` vrať `defer src="…"`. Appka pak jede jako dřív.
+// ==============================================================================
+(function () {
+    'use strict';
+    if (window.AGLazy) return;
+
+    var BATCH = 4;          // kolik skriptů vložit v jedné dávce
+    var IDLE_MS = 90;       // rozestup dávek, když prohlížeč requestIdleCallback nemá
+    var START_MS = 700;     // odklad po načtení stránky, ať se appka stihne vykreslit
+
+    var queue = [];          // [{src, el}] v pořadí z dokumentu
+    var loaded = {};         // src -> true (i při chybě, ať se nezacyklíme)
+    var pending = {};        // src -> [callbacky]
+    var outstanding = 0;     // kolik skriptů je vloženo a ještě neohlásilo konec
+    var started = false, finished = false;
+
+    function collect() {
+        var tags = document.querySelectorAll('script[type="ag/lazy"][data-src]');
+        for (var i = 0; i < tags.length; i++) {
+            var src = tags[i].getAttribute('data-src');
+            if (!src || loaded[src]) continue;
+            queue.push({ src: src, el: tags[i] });
+        }
+    }
+
+    function inject(item) {
+        if (loaded[item.src]) return;
+        loaded[item.src] = true;
+        outstanding++;
+        var s = document.createElement('script');
+        s.src = item.src;
+        // POZOR: u dynamicky vlozeneho skriptu je async ve vychozim stavu true =
+        // spusti se, jak dobehne stahovani (tedy v nahodnem poradi). false vraci
+        // poradi vlozeni, tj. presne to, co delalo defer.
+        s.async = false;
+        s.setAttribute('data-ag-lazy', '1');
+        s.onload = function () { done(item.src); };
+        s.onerror = function () {
+            // Nepadat: appka bez jednoho nástroje pořád měří. Ale nahlásit — tichá
+            // chybějící dlaždice je horší než záznam v protokolu chyb.
+            try {
+                if (window.agErrLog && typeof window.agErrLog.record === 'function') {
+                    window.agErrLog.record('lazy-load: nepodařilo se načíst ' + item.src);
+                } else if (window.console) {
+                    console.warn('[lazy-load] nenačteno: ' + item.src);
+                }
+            } catch (e) {}
+            done(item.src);
+        };
+        (document.body || document.documentElement).appendChild(s);
+    }
+
+    function done(src) {
+        if (src) outstanding--;
+        var cbs = pending[src];
+        delete pending[src];
+        if (cbs) for (var i = 0; i < cbs.length; i++) { try { cbs[i](); } catch (e) {} }
+        // hotovo = nic ve frontě A nic rozjetého (jinak by se mřížka pobízela dřív,
+        // než poslední moduly zaregistrují dlaždice)
+        if (!queue.length && outstanding <= 0 && !finished) {
+            finished = true;
+            // pobídka pro mřížku Nástrojů (pozdě registrované dlaždice)
+            try { if (typeof window.agFtSyncTiles === 'function') window.agFtSyncTiles(); } catch (e) {}
+            try { window.dispatchEvent(new CustomEvent('ag:lazy-done')); } catch (e) {}
+        }
+    }
+
+    function idle(fn) {
+        if (typeof window.requestIdleCallback === 'function') {
+            window.requestIdleCallback(fn, { timeout: 1200 });
+        } else {
+            setTimeout(fn, IDLE_MS);
+        }
+    }
+
+    function step() {
+        if (!queue.length) { done(''); return; }
+        for (var i = 0; i < BATCH && queue.length; i++) inject(queue.shift());
+        if (queue.length) idle(step);
+    }
+
+    // vše zbývající hned (uživatel jde do Nástrojů / doku)
+    function flush() {
+        started = true;
+        while (queue.length) inject(queue.shift());
+    }
+
+    // načti konkrétní modul teď a zavolej callback, až je venku
+    function need(src, cb) {
+        var i;
+        for (i = 0; i < queue.length; i++) {
+            if (queue[i].src === src || queue[i].src.indexOf(src) >= 0) {
+                var item = queue.splice(i, 1)[0];
+                if (cb) (pending[item.src] = pending[item.src] || []).push(cb);
+                inject(item);
+                return true;
+            }
+        }
+        if (cb) cb();       // už načtený (nebo tu vůbec není) → nečekat
+        return false;
+    }
+
+    function start() {
+        if (started) return;
+        started = true;
+        step();
+    }
+
+    function init() {
+        collect();
+        if (!queue.length) return;
+
+        // Flush na první dotek ovládání, které nástroje potřebuje. Capture, ať to
+        // stihneme dřív než inline onclick dlaždice.
+        var flushOn = function (e) {
+            var t = e.target;
+            if (!t || !t.closest) { flush(); return; }
+            // #ag-login/#ag-gate: hned po přihlášení jde appka rovnou do práce
+            // (firemní režim, docházka, chat) — nečekat na nečinnost
+            if (t.closest('#dock,#tools-modal,#side-menu,#menu-toggle-btn,#welcome-screen,#ag-login,#ag-gate')) flush();
+        };
+        document.addEventListener('click', flushOn, true);
+        document.addEventListener('touchstart', flushOn, true);
+
+        // jinak: po načtení stránky v nečinnosti
+        if (document.readyState === 'complete') setTimeout(start, START_MS);
+        else window.addEventListener('load', function () { setTimeout(start, START_MS); });
+        // pojistka, kdyby 'load' nepřišel (přerušené stahování dlaždic mapy apod.)
+        setTimeout(start, 6000);
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+
+    window.AGLazy = {
+        flush: flush,
+        need: need,
+        pending: function () { return queue.map(function (q) { return q.src; }); }
+    };
+})();

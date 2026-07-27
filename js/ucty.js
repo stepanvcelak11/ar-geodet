@@ -1580,12 +1580,21 @@
         var passInp = ov.querySelector('#agg-pass');
         passInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') ov.querySelector('#agg-go').click(); });
         ov.querySelector('#agg-new').onclick = function () {
-            if (window.AGUctyAdmin && typeof AGUctyAdmin.wizard === 'function') {
-                ov.remove();
-                AGUctyAdmin.wizard();   // zavření průvodce bez dokončení vrátí bránu (gateCheck)
-            } else {
-                errEl.textContent = 'Modul administrace (ucty-admin.js) není načtený.';
-            }
+            // ucty-admin.js (nejtěžší modul appky) se načítá až po startu — viz
+            // js/lazy-load.js. Brána je ale vidět HNED, takže když sem někdo ťukne
+            // dřív, než se modul dotáhne, počká se na něj místo hlášky o nenačtení.
+            var run = function () {
+                if (window.AGUctyAdmin && typeof AGUctyAdmin.wizard === 'function') {
+                    ov.remove();
+                    AGUctyAdmin.wizard();   // zavření průvodce bez dokončení vrátí bránu (gateCheck)
+                } else {
+                    errEl.textContent = 'Modul administrace (ucty-admin.js) není načtený.';
+                }
+            };
+            if (!window.AGUctyAdmin && window.AGLazy && typeof AGLazy.need === 'function') {
+                errEl.textContent = 'Načítám…';
+                AGLazy.need('js/ucty-admin.js', function () { errEl.textContent = ''; run(); });
+            } else run();
         };
         ov.querySelector('#agg-guest').onclick = function () { enterGuest(); };
     }
