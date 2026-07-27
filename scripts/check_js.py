@@ -380,6 +380,13 @@ process.exit(bad ? 1 : 0);
 def check_syntax(files):
     node = shutil.which('node')
     if not node:
+        # V CI se spousti s --require-node: tam Node JE a tiche preskoceni by
+        # znamenalo zelene CI, ktere nic nekontroluje - to je horsi nez zadne.
+        if '--require-node' in sys.argv:
+            problem('scripts/check_js.py',
+                    'Node nenalezen, ale bylo vyzadano --require-node '
+                    '(kontrola syntaxe by se tise preskocila)')
+            return
         print('  syntaxe: PRESKOCENO (Node tu neni; na GitHub Actions probehne)')
         return
     r = subprocess.run([node, '-e', NODE_SNIPPET] + [str(f) for f in files],

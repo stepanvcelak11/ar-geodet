@@ -31,5 +31,8 @@ jobs:
       # Node je na ubuntu-latest taky předinstalovaný → check_js.py si ho najde
       # sám a projede `node --check` přes všechny skripty. Na vývojářském stroji
       # Node není, tam se ta část jen přeskočí.
+      # --require-node: kdyby Node v runneru chyběl, kontrola syntaxe by se tiše
+      # přeskočila a CI by svítilo zeleně, aniž by cokoli ověřilo. S tímhle
+      # přepínačem to místo toho spadne.
       - name: Integrita kódu (syntaxe, duplicitní klíče, chybějící soubory)
-        run: python scripts/check_js.py
+        run: python scripts/check_js.py --require-node
