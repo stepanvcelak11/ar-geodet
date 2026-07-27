@@ -102,9 +102,9 @@
         },
         { title: 'Nový bod', target: '.dock-primary', body: 'Založ vlastní bod. Nahoře ve formuláři jsou čtyři dlaždice, odkud vzít souřadnice: <b>Z průměru GPS</b> (běžná volba), <b>Z mapy</b>, <b>Z fotky (OCR)</b> a <b>Přesná GPS</b> (dlouhé průměrování). Podržením tlačítka založíš místo bodu <b>závadu</b>.' },
         { title: 'Body', target: '#dock button[onclick*="openManageModal"]', body: 'Seznam bodů a pod <b>Export / Import</b> mřížka akcí: import souboru, <b>PDF protokol</b>, <b>sdílet QR</b> a <b>načíst QR</b>. Formát exportu (CSV, GPX, GeoJSON, DXF…) vybíráš posuvníkem nad nimi.' },
-        { title: 'Nástroje', target: '#dock button[onclick*="tools-modal"]', body: 'Měření vzdálenosti a plochy, kalkulačka, GNSS satelity, vytyčovací checklist, náčrt — a nové pokročilé nástroje.' },
+        { title: 'Nástroje', target: '#dock button[onclick*="tools-modal"]', body: 'Měření vzdálenosti a plochy, kalkulačka, GNSS satelity, vytyčovací checklist, náčrt — a pokročilé geodetické nástroje. Kolik dlaždic uvidíš, řídí <b>režim práce</b>: vybíráš ho na úvodní obrazovce („Jak dnes budeš appku používat") nebo nahoře v Nástrojích. Schované nástroje najde vyhledávání vždy.' },
         { title: 'Více', target: '#dock-vice-btn', body: '<b>Průvodce úkolem</b>, uložení okolí offline, návody, zpravodaj a chytré vyhledávání funkcí appky.' },
-        { title: 'Nastavení', target: '#dock button[onclick*="openSettings"]', body: 'Vzhled (motiv, barvy, prvky na obrazovce), <b>AR &amp; přesnost</b> (FOV, vyhlazení, fúze gyra) a správa zakázek a dat.' },
+        { title: 'Nastavení', target: '#dock button[onclick*="openSettings"]', body: 'Nahoře <b>profil použití</b> — <b>Terén</b> (celý den na baterku), <b>Přesnost</b> (nejlepší AR) a <b>Ukázka</b> — nastaví několik voleb naráz. Pod ním zůstávají jednotlivá nastavení: vzhled, <b>AR &amp; přesnost</b> (zorný úhel, vyhlazení, senzory) a správa zakázek a dat.' },
         { title: 'Základ máš za sebou', body: 'Pokračuj <b>Pokročilou prohlídkou</b> — ukáže nové geodetické nástroje, které appka umí navíc.' }
     ];
 

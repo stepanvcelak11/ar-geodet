@@ -48,6 +48,18 @@ EXTRA_ASSETS = [
     './js/lib/qrcode.min.js',      # line (lazy) nacitani QR generatoru
     './js/lib/jsqr.min.js',        # line (lazy) nacitani QR ctecky
     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',  # CDN (v index.html, ale externi)
+    # NASTROJE S DELENYM NACITANIM (js/lazy-tools.js) — uz nejsou v index.html,
+    # ale MUSI zustat v predcache, jinak je v terenu bez signalu nejde otevrit.
+    './js/pocasi.js',
+    './js/zapisnik.js',
+    './js/dgps.js',
+    './js/vrstvy.js',
+    './js/denik-dne.js',
+    './js/kniha-jizd.js',
+    './js/postupy.js',
+    './js/gnss-forecast.js',
+    './js/korekce.js',
+    './js/checklist.js',
 ]
 
 # Soubory verzovane pres ?v=NNN (musi sedet s SHELL_CACHE). Korenove styly NESMI

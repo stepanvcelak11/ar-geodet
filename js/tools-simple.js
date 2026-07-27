@@ -277,4 +277,8 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
     window.addEventListener('load', function () { setTimeout(init, 500); });
+
+    // Veřejné API: js/rezim-prace.js (volba režimu na úvodu) zapisuje TÉŽ klíče
+    // a chce, aby se panel dorovnal hned, ne až dalším tickem.
+    window.AGToolsSimple = { sync: sync, profiles: PROFILES, order: PROF_ORDER };
 })();

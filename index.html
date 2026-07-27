@@ -83,8 +83,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=204">
-    <link rel="stylesheet" href="css/style.css?v=204">
+    <link rel="stylesheet" href="css/tokens.css?v=205">
+    <link rel="stylesheet" href="css/style.css?v=205">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -101,7 +101,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=204">
+    <link rel="stylesheet" href="css/vylepseni.css?v=205">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -856,8 +856,13 @@
     <script defer src="js/parcela.js"></script>
     <!-- TERÉNNÍ NÁSTROJE (odpojitelné) — launcher field-tools.js MUSÍ být první, registrují se do něj -->
     <script defer src="js/field-tools.js"></script>
+    <!-- DELENE NACITANI NASTROJU (odpojitelne) — misto 10 samostatnych <script>
+         radku (~362 kB pri kazdem startu) zapise zastupne dlazdice a skutecny
+         soubor stahne az pri prvnim klepnuti. Soubory zustavaji v predcache
+         service workeru (EXTRA_ASSETS v scripts/gen_sw_assets.py), takze to
+         funguje i offline. Seznam nastroju je v MANIFEST uvnitr modulu. -->
+    <script defer src="js/lazy-tools.js"></script>
     <script defer src="js/hidden-points.js"></script>
-    <script defer src="js/vrstvy.js"></script>
     <script defer src="js/orient-point.js"></script>
     <script defer src="js/offset-point.js"></script>
     <script defer src="js/brutal-gps.js"></script>
@@ -866,12 +871,7 @@
          dgps = dvoutelefonní korekce (A2), pdr-offset = krokový vektor (A4) -->
     <script defer src="js/gps-campaign.js"></script>
     <script defer src="js/gps-semafor.js"></script>
-    <script defer src="js/dgps.js"></script>
     <script defer src="js/pdr-offset.js"></script>
-    <!-- POSTUPY MĚŘENÍ (odpojitelné: smaž tento řádek + js/postupy.js) — tahák rajón/nivelace/RTK… -->
-    <script defer src="js/postupy.js"></script>
-    <!-- ZÁPISNÍKY (odpojitelné: smaž tento řádek + js/zapisnik.js) — nivelace + vodorovné směry -->
-    <script defer src="js/zapisnik.js"></script>
     <script defer src="js/stakeout-line.js"></script>
     <script defer src="js/track-log.js"></script>
     <script defer src="js/fov-kalibrace.js"></script>
@@ -894,8 +894,6 @@
     <script defer src="js/epochy.js"></script>
     <!-- Připomínky epoch monitoringu (odpojitelné: smaž tento řádek + js/epochy-pripominky.js) — interval přeměření + upozornění po startu -->
     <script defer src="js/epochy-pripominky.js"></script>
-    <!-- POČASÍ (odpojitelné: smaž tento řádek + js/pocasi.js + css/pocasi.css) — Apple styl, více modelů váženě, cache posledních dat -->
-    <script defer src="js/pocasi.js"></script>
     <script defer src="js/ar-calibrate.js"></script>
     <!-- SROVNAT AR NA 2 BODY (odpojitelné: smaž tento řádek + js/ar-calib2.js) — sever + šířka záběru (FOV) na dvou bodech -->
     <script defer src="js/ar-calib2.js"></script>
@@ -907,6 +905,12 @@
     <script defer src="js/tools-plus.js"></script>
     <!-- JEDNODUCHÝ PANEL NÁSTROJŮ + TYP PRÁCE (odpojitelné: smaž tento řádek + js/tools-simple.js) — přepínač v Nastavení → Vzhled -->
     <script defer src="js/tools-simple.js"></script>
+    <!-- REŽIM PRÁCE (odpojitelné) — volba „co dnes dělám" na úvodní obrazovce;
+         zapisuje stejné klíče jako tools-simple.js, proto AŽ ZA ním -->
+    <script defer src="js/rezim-prace.js"></script>
+    <!-- PROFILY (odpojitelné) — Terén/Přesnost/Ukázka nad záložkami Nastavení
+         + export/import profilu zařízení (kalibrace telefonu) v Údržbě -->
+    <script defer src="js/profily.js"></script>
     <!-- POKRAČOVAT, KDE JSEM SKONČIL (odpojitelné: smaž tento řádek + js/pokracovat.js) — tlačítko na úvodu, pamatuje poslední nástroj -->
     <script defer src="js/pokracovat.js"></script>
     <!-- ZKRATKY Z PLOCHY (odpojitelné: smaž tento řádek + js/shortcuts.js + blok "shortcuts" v manifest.json) — dlouhé podržení ikony appky -->
@@ -936,24 +940,14 @@
     <script defer src="js/cloud-sync.js"></script>
     <!-- ZÁVADY / HLÁŠENÍ PORUCH (odpojitelné) — nálezy v terénu: foto+kategorie+závažnost, mapa/AR, protokol -->
     <script defer src="js/zavady.js"></script>
-    <!-- DENÍK DNE (odpojitelné: smaž tento řádek + js/denik-dne.js) — večerní souhrn dne za zakázku: body, docházka, závady, počasí, stopa, zápisníky, hlasovky; Sdílet / Uložit PDF -->
-    <script defer src="js/denik-dne.js"></script>
     <!-- RANNÍ BRÍFINK „Dnešek v terénu" (odpojitelné: smaž tento řádek + js/brifink.js) — 1× denně po startu: počasí, GNSS okna dne + Kp, monitoring po termínu, zpravodaj -->
     <script defer src="js/brifink.js"></script>
     <!-- HLASOVÉ POZNÁMKY s georazítkem (odpojitelné: smaž tento řádek + js/hlasovky.js) — namluvené poznámky s časem, S-JTSK polohou a nejbližším bodem; sbírá je Deník dne -->
     <script defer src="js/hlasovky.js"></script>
-    <!-- GNSS PŘEDPOVĚĎ (odpojitelné: smaž tento řádek + js/gnss-forecast.js) — „počasí pro GPS": PDOP po hodinách z TLE + Kp index NOAA; potřebuje js/lib/satellite-5.0.0.min.js -->
-    <script defer src="js/gnss-forecast.js"></script>
     <!-- SLUNCE A SVĚTLO (odpojitelné: smaž tento řádek + js/slunce.js) — východ/západ, zbývá světla, stíny, protisvětlo na záměře; vystavuje window.AGSun -->
     <script defer src="js/slunce.js"></script>
-    <!-- CO S SEBOU (odpojitelné: smaž tento řádek + js/checklist.js) — ranní checklist podle typu práce a počasí -->
-    <script defer src="js/checklist.js"></script>
     <!-- KDE MÁM AUTO (odpojitelné: smaž tento řádek + js/kde-je.js) — značky auto/báze/stativ + navigační šipka -->
     <script defer src="js/kde-je.js"></script>
-    <!-- KNIHA JÍZD (odpojitelné: smaž tento řádek + js/kniha-jizd.js) — cesťák po zakázkách + CSV export -->
-    <script defer src="js/kniha-jizd.js"></script>
-    <!-- KOREKCE MĚŘENÍ (odpojitelné: smaž tento řádek + js/korekce.js) — pásmo, ppm dálkoměru, refrakce; meteo z cache Počasí -->
-    <script defer src="js/korekce.js"></script>
     <!-- BEZPEČNOST V TERÉNU (odpojitelné: smaž tento řádek + js/bezpecnost.js) — rizika dne, tiché připomínky, poslání polohy; čte window.AGSun ze js/slunce.js -->
     <script defer src="js/bezpecnost.js"></script>
     <!-- USADIT AR (odpojitelné) — průvodce místo 7 kalibračních dlaždic + „Teď se hodí" -->
