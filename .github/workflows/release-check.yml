@@ -1,8 +1,9 @@
 # Kontrola konzistence vydání: seznam ASSETS_TO_CACHE v sw.js + verze cache
 # (SHELL_CACHE vNNN == ?v=NNN u css/tokens.css i css/style.css, a to jak v sw.js,
-#  tak v <link> v index.html).
-# Žádný deploy — jen validace přes scripts/gen_sw_assets.py --check.
-name: Kontrola vydání (SW + verze)
+#  tak v <link> v index.html), a integrita kódu (syntaxe JS, duplicitní klíče,
+#  duplicitní id, odkazy na neexistující soubory).
+# Žádný deploy — jen validace.
+name: Kontrola vydání (SW + verze + kód)
 
 on:
   push:
@@ -17,6 +18,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # Python 3 je na ubuntu-latest předinstalovaný, skript používá jen stdlib.
-      - name: Kontrola sw.js / index.html
+
+      # Python 3 je na ubuntu-latest předinstalovaný, skripty používají jen stdlib.
+      - name: Verze a seznam assetů (sw.js / index.html)
         run: python scripts/gen_sw_assets.py --check
+
+      # Sebekontrola kontroloru: kdyby detekce duplicit přestala fungovat,
+      # check_js.py by tiše hlásil OK. Tenhle test to odhalí.
+      - name: Sebekontrola scripts/check_js.py
+        run: python scripts/check_js_test.py
+
+      # Node je na ubuntu-latest taky předinstalovaný → check_js.py si ho najde
+      # sám a projede `node --check` přes všechny skripty. Na vývojářském stroji
+      # Node není, tam se ta část jen přeskočí.
+      - name: Integrita kódu (syntaxe, duplicitní klíče, chybějící soubory)
+        run: python scripts/check_js.py
