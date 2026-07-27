@@ -54,7 +54,11 @@
     // WGS -> S-JTSK Y,X (kladné metry) nebo null
     function toSJTSK(lat, lng) {
         try {
-            if (typeof GeoCore !== 'undefined' && GeoCore.toSJTSK) { var s = GeoCore.toSJTSK(lat, lng); if (s && isFinite(s.Y)) return { Y: Math.abs(s.Y), X: Math.abs(s.X) }; }
+            // CHYBA (opraveno): testovalo se `isFinite(s.Y)`, ale GeoCore vraci {y,x}
+            // MALYMI pismeny -> podminka byla vzdy false a tahle delegace se NIKDY
+            // neprovedla; modul tise jel na vlastnim proj4 nize. Uvnitr CR to davalo
+            // stejny vysledek, takze si toho nikdo nevsiml.
+            if (typeof GeoCore !== 'undefined' && GeoCore.toSJTSK) { var s = GeoCore.toSJTSK(lat, lng); if (s && isFinite(s.y)) return { Y: s.y, X: s.x }; }
         } catch (e) {}
         try { if (typeof proj4 === 'function') { var p = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { Y: Math.abs(p[0]), X: Math.abs(p[1]) }; } } catch (e) {}
         return null;

@@ -1,0 +1,57 @@
+# Geodeticke testy: overuji SPRAVNOST VYPOCTU, ne to, ze appka nastartuje.
+#
+# Proc zvlast workflow a ne prilepit k release-check.yml: tenhle beh instaluje
+# pyproj a py-mini-racer (V8), coz je nekolik desitek MB. Kontrola vydani ma zustat
+# rychla a bez zavislosti, tohle si muze dovolit byt pomalejsi.
+#
+# Proc Python a ne node: na vyvojarskem stroji neni node ani npm, takze testy
+# spustitelne jen nodem by se lokalne nikdy neovirily a padaly by az tady. Stejna
+# sada (tests/cases-geo.js) proto bezi pres V8 z Pythonu — lokalne i v CI:
+#     python scripts/run_js_tests.py -v
+name: Geodeticke testy (S-JTSK, GeoCore)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'js/geo-core.js'
+      - 'js/logika.js'
+      - 'js/lib/proj4-*.js'
+      - 'js/check-distance.js'
+      - 'js/dmt-volume.js'
+      - 'js/dxf-export.js'
+      - 'js/localization-helmert.js'
+      - 'js/pdf-protocol.js'
+      - 'js/vylepseni.js'
+      - 'js/zavady.js'
+      - 'tests/**'
+      - 'scripts/gen_geo_fixtures.py'
+      - 'scripts/run_js_tests.py'
+      - '.github/workflows/geo-tests.yml'
+  pull_request:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  geo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalace zavislosti
+        run: python -m pip install --quiet pyproj py-mini-racer
+
+      # Fixtures se generuji z definice projekce v js/logika.js. Kdyz se ta definice
+      # zmeni a fixtures se nepregeneruji, testy by porovnavaly proti stare referenci —
+      # tenhle krok to zastavi driv, nez se to stane.
+      - name: Fixtures odpovidaji definici projekce v logika.js
+        run: python scripts/gen_geo_fixtures.py --check
+
+      - name: Geodeticke testy (V8)
+        run: python scripts/run_js_tests.py -v

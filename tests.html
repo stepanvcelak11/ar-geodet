@@ -5,114 +5,78 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AR Geodet — testy geodetického jádra</title>
 <!-- VÝVOJÁŘSKÁ STRÁNKA (není v sw.js ani v index.html — appka ji nenačítá).
-     Otevři v prohlížeči: zeleně = OK, červeně = regrese. Referenční hodnoty
-     spočítány nezávisle přes pyproj (PROJ) se STEJNOU definicí Křováka. -->
+     Otevři přes http (např. `python -m http.server`), ne přes file:// — fixtures
+     se načítají fetchem a file:// to blokuje.
+
+     Testy samotné jsou v tests/cases-geo.js a jsou SPOLEČNÉ s CI. Dřív měla tahle
+     stránka vlastní kopii ~24 assertů s ručně opsanými referenčními hodnotami a
+     vlastní kopii definice Křováka — tedy tři místa, která se musela držet v souladu
+     ručně. Teď je tady jen zobrazení; čísla i definici řídí fixtures.
+
+     Bez prohlížeče (a bez node) totéž spustí:  python scripts/run_js_tests.py -v
+     Ten navíc kontroluje delegaci modulů na GeoCore a pořadí parametrů. -->
 <style>
-    body { font: 14px/1.5 system-ui, sans-serif; margin: 20px auto; max-width: 780px; padding: 0 12px; background: #10151d; color: #e5e7eb; }
+    body { font: 14px/1.5 system-ui, sans-serif; margin: 20px auto; max-width: 820px; padding: 0 12px; background: #10151d; color: #e5e7eb; }
     h1 { font-size: 18px; }
     .t { padding: 6px 10px; border-left: 4px solid #374151; margin: 4px 0; background: #171e29; border-radius: 0 6px 6px 0; }
     .ok { border-color: #34d399; }
     .fail { border-color: #ef4444; background: #2a1a1a; }
     .detail { opacity: 0.65; font-size: 12px; font-family: ui-monospace, monospace; }
     #sum { font-size: 16px; font-weight: 700; margin: 14px 0; }
+    .note { font-size: 12px; opacity: 0.6; margin-top: 18px; border-top: 1px solid #263041; padding-top: 10px; }
 </style>
 </head>
 <body>
 <h1>AR Geodet — testy geodetického jádra (GeoCore)</h1>
 <div id="sum">Spouštím…</div>
 <div id="out"></div>
+<div class="note">
+    Referenční hodnoty pocházejí z autoritativního PROJ (pyproj) na totožném
+    proj-stringu, jaký si appka nastavuje v <code>js/logika.js</code> — generuje je
+    <code>scripts/gen_geo_fixtures.py</code> do <code>tests/fixtures/geo-sjtsk.json</code>.
+</div>
 
 <script src="js/lib/proj4-2.9.0.min.js"></script>
-<script>
-// STEJNÁ definice jako logika.js:19 — kdyby se tam změnila, změň ji i tady
-proj4.defs("EPSG:5514", "+proj=krovak +lat_0=49.5 +lon_0=24.83333333333333 +alpha=30.28813972222222 +k=0.9999 +x_0=0 +y_0=0 +ellps=bessel +towgs84=570.8,85.7,462.8,4.998,1.587,5.261,3.56 +units=m +no_defs");
-</script>
 <script src="js/geo-core.js"></script>
+<script src="tests/cases-geo.js"></script>
 <script>
 (function () {
     'use strict';
-    var out = document.getElementById('out'), nOk = 0, nFail = 0;
-    function t(name, cond, detail) {
+    var out = document.getElementById('out'), sum = document.getElementById('sum');
+
+    function row(name, ok, detail) {
         var d = document.createElement('div');
-        d.className = 't ' + (cond ? 'ok' : 'fail');
-        d.innerHTML = (cond ? '✓ ' : '✗ ') + name + (detail ? '<div class="detail">' + detail + '</div>' : '');
+        d.className = 't ' + (ok ? 'ok' : 'fail');
+        d.innerHTML = (ok ? '✓ ' : '✗ ') + name + (detail ? '<div class="detail">' + detail + '</div>' : '');
         out.appendChild(d);
-        if (cond) nOk++; else nFail++;
     }
-    function near(a, b, tol) { return Math.abs(a - b) <= tol; }
+    function finish(results) {
+        var nFail = 0;
+        results.forEach(function (r) { if (!r.ok) nFail++; row(r.name, r.ok, r.detail); });
+        sum.textContent = nFail === 0
+            ? ('✓ Všech ' + results.length + ' testů prošlo.')
+            : ('✗ ' + nFail + ' z ' + results.length + ' testů SELHALO.');
+        sum.style.color = nFail === 0 ? '#34d399' : '#ef4444';
+    }
+    function fail(msg) { sum.textContent = '✗ ' + msg; sum.style.color = '#ef4444'; }
 
-    // ---- S-JTSK transformace (reference: pyproj/PROJ, stejný proj-string) ------
-    // Praha 50.0755N 14.4378E -> Y 741817.819  X 1044492.539
-    var p = GeoCore.toSJTSK(50.0755, 14.4378);
-    t('toSJTSK Praha (vs. pyproj)', near(p.y, 741817.819, 0.02) && near(p.x, 1044492.539, 0.02),
-        'Y=' + p.y.toFixed(3) + ' (ref 741817.819) · X=' + p.x.toFixed(3) + ' (ref 1044492.539)');
-    var b = GeoCore.toSJTSK(49.1951, 16.6068);
-    t('toSJTSK Brno (vs. pyproj)', near(b.y, 598248.812, 0.02) && near(b.x, 1160744.686, 0.02),
-        'Y=' + b.y.toFixed(3) + ' · X=' + b.x.toFixed(3));
-
-    var r1 = GeoCore.fromSJTSK(741817.819, 1044492.539);
-    t('fromSJTSK zpětný převod Praha', near(r1.lat, 50.0755, 1e-6) && near(r1.lng, 14.4378, 1e-6),
-        r1.lat.toFixed(7) + ', ' + r1.lng.toFixed(7));
-    var r2 = GeoCore.fromSJTSK(1044492.539, 741817.819); // prohozené pořadí argumentů
-    t('fromSJTSK pozná osy podle rozsahu (prohozené argumenty)', near(r2.lat, 50.0755, 1e-6) && near(r2.lng, 14.4378, 1e-6),
-        r2.lat.toFixed(7) + ', ' + r2.lng.toFixed(7));
-    t('looksLikeSJTSK: platné/neplatné', GeoCore.looksLikeSJTSK(741818, 1044493) && !GeoCore.looksLikeSJTSK(50.07, 14.43));
-
-    // ---- poloměry křivosti (reference: GRS80 vzorec nezávisle v Pythonu) --------
-    var m50 = GeoCore.metersPerDeg(50);
-    t('metersPerDeg(50°): meridián', near(m50.lat, 111229.064, 0.01), m50.lat.toFixed(3) + ' (ref 111229.064; konstanta 111320 je o ' + (111320 - m50.lat).toFixed(0) + ' m/° vedle)');
-    t('metersPerDeg(50°): rovnoběžka', near(m50.lng, 71695.754, 0.01), m50.lng.toFixed(3) + ' (ref 71695.754)');
-    var m49 = GeoCore.metersPerDeg(49);
-    t('metersPerDeg(49°)', near(m49.lat, 111209.738, 0.01) && near(m49.lng, 73171.793, 0.01));
-
-    // ---- ENU roundtrip ----------------------------------------------------------
-    var enu = GeoCore.enuForward(50.0755, 14.4378, 50.0755 + 0.009, 14.4378 + 0.014);
-    var back = GeoCore.enuToLatLng(50.0755, 14.4378, enu.e, enu.n);
-    t('ENU tam a zpět (~1 km)', near(back.lat, 50.0755 + 0.009, 1e-9) && near(back.lng, 14.4378 + 0.014, 1e-9),
-        'e=' + enu.e.toFixed(2) + ' m, n=' + enu.n.toFixed(2) + ' m');
-    var dHav = GeoCore.getDistance(50.0755, 14.4378, 50.0755 + 0.009, 14.4378 + 0.014);
-    var dEnu = Math.hypot(enu.e, enu.n);
-    t('ENU vzdálenost ≈ haversine (do 0,1 % na 1,4 km)', Math.abs(dEnu - dHav) / dHav < 0.001,
-        'ENU ' + dEnu.toFixed(2) + ' m vs haversine ' + dHav.toFixed(2) + ' m');
-
-    // ---- azimuty a úhly ----------------------------------------------------------
-    t('getBearing sever = 0°', near(GeoCore.getBearing(50, 15, 51, 15), 0, 1e-9));
-    t('getBearing východ ≈ 90°', near(GeoCore.getBearing(50, 15, 50, 15.01), 90, 0.01));
-    t('angDiff přes půlnoc (350° vs 10°)', near(GeoCore.angDiff(10, 350), 20, 1e-9) && near(GeoCore.angDiff(350, 10), -20, 1e-9));
-    t('smoothAngle přes 0° (359 -> 1)', near(GeoCore.smoothAngle(359, 1, 0.5), 0, 1e-9));
-
-    // ---- plocha (shoelace v S-JTSK, redukce o první vrchol) ----------------------
-    // čtverec 100 x 100 m definovaný přímo v rovině S-JTSK
-    var sq = [[741800, 1044400], [741700, 1044400], [741700, 1044500], [741800, 1044500]].map(function (yx) {
-        return GeoCore.fromSJTSK(yx[0], yx[1]);
-    });
-    var ap = GeoCore.polygonAreaPerimeter(sq);
-    t('výměra čtverce 100x100 m v S-JTSK = 10 000 m²', near(ap.area, 10000, 0.01), ap.area.toFixed(4) + ' m²');
-    t('obvod čtverce = 400 m', near(ap.perim, 400, 0.001), ap.perim.toFixed(4) + ' m');
-
-    // ---- effectiveN (statistika GPS) ---------------------------------------------
-    // nezávislý šum (alternující rezidua, vzorky po 30 s) -> neff ≈ N
-    var N = 20, xs = [], ys = [], ts = [];
-    for (var i = 0; i < N; i++) { xs.push(i % 2 ? 1 : -1); ys.push(i % 2 ? -1 : 1); ts.push(i * 30000); }
-    var ne1 = GeoCore.effectiveN(xs, ys, ts, 30);
-    t('effectiveN: nekorelovaná rezidua -> ~N', ne1 > N * 0.9, 'neff=' + ne1.toFixed(1) + ' z N=' + N);
-    // silně korelovaná (pomalu plovoucí) rezidua, vzorky po 1 s -> neff musí být malé
-    var xs2 = [], ys2 = [], ts2 = [];
-    for (var j = 0; j < 120; j++) { xs2.push(Math.sin(j / 25)); ys2.push(Math.cos(j / 25)); ts2.push(j * 1000); }
-    var ne2 = GeoCore.effectiveN(xs2, ys2, ts2, 30);
-    t('effectiveN: korelovaná rezidua (1 Hz, 2 min) -> malé neff', ne2 < 10, 'neff=' + ne2.toFixed(1) + ' z N=120 (dřívější N/4 by dalo 30)');
-    t('effectiveN: N=1 -> 1', GeoCore.effectiveN([0.5], null, [0], 30) === 1);
-
-    // ---- deklinace + geoid (clamp na ČR) ------------------------------------------
-    var dec = GeoCore.declination(50.0755, 14.4378);
-    t('deklinace Praha v rozumném pásmu (5–7°)', dec > 5 && dec < 7, dec.toFixed(2) + '°');
-    t('deklinace mimo ČR = clamp k okraji (žádná extrapolace)', near(GeoCore.declination(0, 0), GeoCore.declination(48.4, 11.9), 1e-9));
-    var und = GeoCore.geoidUndulation(50.0755, 14.4378);
-    t('undulace geoidu Praha ~44,8 m', near(und, 44.81, 0.05), und.toFixed(2) + ' m');
-
-    var sum = document.getElementById('sum');
-    sum.textContent = nFail === 0 ? ('✓ Všech ' + nOk + ' testů prošlo.') : ('✗ ' + nFail + ' z ' + (nOk + nFail) + ' testů SELHALO.');
-    sum.style.color = nFail === 0 ? '#34d399' : '#ef4444';
+    fetch('tests/fixtures/geo-sjtsk.json')
+        .then(function (r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
+        })
+        .then(function (fx) {
+            // Definice projekce se bere z fixtures, kam ji generátor vzal PŘÍMO
+            // z js/logika.js. Není tu tedy žádná ručně opsaná kopie, která by mohla
+            // odejít od skutečnosti.
+            proj4.defs('EPSG:5514', fx.proj4);
+            finish(AGGeoTests.run({ GeoCore: window.GeoCore, proj4: window.proj4, fixtures: fx }));
+        })
+        .catch(function (e) {
+            fail('Nepodařilo se načíst tests/fixtures/geo-sjtsk.json (' + e.message + '). '
+                + 'Spusť stránku přes http, ne file:// — např. `python -m http.server` '
+                + 'v adresáři projektu a otevři http://localhost:8000/tests.html');
+        });
 })();
 </script>
 </body>

@@ -19,7 +19,11 @@
     function num(v) { var n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; }
     function quickToastSafe(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} try { agInfo(m); } catch (e) {} }
 
+    // S-JTSK: pocita GeoCore (jediny autoritativni prevod v appce, testovany proti PROJ
+    // v tests/cases-geo.js). Tady se jen premapuje na lokalni tvar {Y,X}. Fallback na
+    // vlastni proj4 zustava, aby modul fungoval i bez geo-core.js (odpojitelnost).
     function toSJTSK(lat, lng) {
+        try { if (window.GeoCore && GeoCore.toSJTSK) { var s = GeoCore.toSJTSK(lat, lng); return { Y: s.y, X: s.x }; } } catch (e) {}
         try { var r = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { Y: Math.abs(r[0]), X: Math.abs(r[1]) }; }
         catch (e) { return null; }
     }

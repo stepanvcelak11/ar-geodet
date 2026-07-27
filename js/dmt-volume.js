@@ -28,7 +28,10 @@
     var _loaded = false;          // stav zakázky už byl načten z úložiště (resetuje se při přepnutí)
 
     // ---- pomocné: převod WGS84 -> S-JTSK (Y,X kladné) -------------------------
+    // S-JTSK pres GeoCore (jediny autoritativni prevod, testovany proti PROJ);
+    // premapovani na lokalni {Y,X} + fallback pro pripad bez geo-core.js.
     function toSJTSK(lat, lng) {
+        try { if (window.GeoCore && GeoCore.toSJTSK) { var s = GeoCore.toSJTSK(lat, lng); return { Y: s.y, X: s.x }; } } catch (e) {}
         try { var r = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { Y: Math.abs(r[0]), X: Math.abs(r[1]) }; }
         catch (e) { return null; }
     }

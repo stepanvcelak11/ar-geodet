@@ -310,8 +310,18 @@
     //    Hodnoty jsou u S-JTSK ve výkresu běžně záporné; georeferencovaný CAD je zvládne.
     //    Minimální DXF R12 (AC1009) bez TABLES — vrstvy se v CADu vytvoří automaticky.
     // --------------------------------------------------------------------------------
-    function toSJTSK(lng, lat) {
-        // vrací [X_kresleni, Y_kresleni] = [sj[0], sj[1]] (sever nahoru)
+    // Vraci [X_kresleni, Y_kresleni] = ZNAMENKOVY (negativni) Krovak — presne to, co jde
+    // do DXF. Appka jinak drzi kladne Y,X, proto se u GeoCore znamenko vraci zpet.
+    // POZOR: poradi parametru je (lat, lng) jako vsude jinde. DRIV to bylo (lng, lat),
+    // coz byl jediny takovy pripad v celem repu a cekalo to na zamenu pri prvni uprave.
+    function toSJTSK(lat, lng) {
+        try {
+            if (window.GeoCore && GeoCore.toSJTSK) {
+                const s = GeoCore.toSJTSK(lat, lng);
+                if (!s || !isFinite(s.y) || !isFinite(s.x)) return null;
+                return [-s.y, -s.x];
+            }
+        } catch (e) {}
         if (typeof proj4 !== 'function') return null;
         try { const sj = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return [sj[0], sj[1]]; }
         catch (e) { return null; }
@@ -349,7 +359,7 @@
 
         pts.forEach(function (p) {
             if (typeof p.lat !== 'number' || typeof p.lng !== 'number') { nSkip++; return; }
-            const c = toSJTSK(p.lng, p.lat);
+            const c = toSJTSK(p.lat, p.lng);
             if (!c) { nSkip++; return; }
             const x = c[0].toFixed(3), y = c[1].toFixed(3);
             // bod — VRSTVA PODLE KODU (obruba -> OBRUBA), bez kodu vrstva BODY.
@@ -363,7 +373,7 @@
         });
 
         lines.forEach(function (l) {
-            const a = toSJTSK(+l.aLng, +l.aLat), b = toSJTSK(+l.bLng, +l.bLat);
+            const a = toSJTSK(+l.aLat, +l.aLng), b = toSJTSK(+l.bLat, +l.bLng);
             if (!a || !b) { nSkip++; return; }
             e += '0\nLINE\n8\nSPOJNICE\n10\n' + a[0].toFixed(3) + '\n20\n' + a[1].toFixed(3) + '\n30\n0.0\n'
                 + '11\n' + b[0].toFixed(3) + '\n21\n' + b[1].toFixed(3) + '\n31\n0.0\n';

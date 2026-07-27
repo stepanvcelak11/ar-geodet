@@ -749,7 +749,26 @@ if ('serviceWorker' in navigator) {
 
 
         function extractPointNumber(props) { if (!props) return "Bod"; const upperProps = {}; for (let key in props) upperProps[key.toUpperCase()] = props[key]; let name = upperProps['CISLO'] || upperProps['CISLO_BODU'] || upperProps['VLASTNI_CISLO'] || upperProps['OZNACENI'] || upperProps['UPLNE_CISLO'] || upperProps['NAZEV']; if (name && String(name).trim() !== "" && String(name).trim() !== "Null") return String(name).trim(); return "Bod"; }
-        function getDistance(lat1, lon1, lat2, lon2) { const R = 6371e3, f1 = lat1 * Math.PI/180, f2 = lat2 * Math.PI/180; const df = (lat2-lat1) * Math.PI/180, dl = (lon2-lon1) * Math.PI/180; const a = Math.sin(df/2) * Math.sin(df/2) + Math.cos(f1) * Math.cos(f2) * Math.sin(dl/2) * Math.sin(dl/2); return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
+        // VZDALENOST — pocita GeoCore (jediny autoritativni prevod, testovany proti
+        // geodetice WGS84 v tests/cases-geo.js). Fallback nize je pro pripad bez geo-core.js.
+        //
+        // CHYBA (opraveno): drive tady bylo pevne R = 6371e3, tedy GLOBALNI stredni polomer
+        // Zeme. V sirkach CR je skutecny (Gaussuv) polomer ~6382 km, takze KAZDA vzdalenost
+        // v appce vychazela systematicky KRATKA o ~1700 ppm — vcetne cisla na stitku AR
+        // znacky, podle ktereho se v terenu dohledava bod:
+        //      100 m -> -17 cm      200 m -> -34 cm      500 m -> -85 cm      1 km -> -1,7 m
+        // Nove Gaussuv polomer ve stredni sirce obou bodu -> chyba < 32 ppm (0,65 cm na 200 m).
+        function getDistance(lat1, lon1, lat2, lon2) {
+            if (typeof GeoCore !== 'undefined' && GeoCore.getDistance) return GeoCore.getDistance(lat1, lon1, lat2, lon2);
+            const _A = 6378137.0, _E2 = 0.00669438002290;          // GRS80
+            const sm = Math.sin(((lat1 + lat2) / 2) * Math.PI / 180);
+            const w2 = 1 - _E2 * sm * sm, w = Math.sqrt(w2);
+            const R = Math.sqrt((_A * (1 - _E2) / (w2 * w)) * (_A / w));   // sqrt(M*N) ve stredni sirce
+            const f1 = lat1 * Math.PI/180, f2 = lat2 * Math.PI/180;
+            const df = (lat2-lat1) * Math.PI/180, dl = (lon2-lon1) * Math.PI/180;
+            const a = Math.sin(df/2) * Math.sin(df/2) + Math.cos(f1) * Math.cos(f2) * Math.sin(dl/2) * Math.sin(dl/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
         function getBearing(lat1, lon1, lat2, lon2) { const toRad = deg => deg * Math.PI / 180; const toDeg = rad => rad * 180 / Math.PI; const dLon = toRad(lon2 - lon1); const y = Math.sin(dLon) * Math.cos(toRad(lat2)); const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) - Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon); return (toDeg(Math.atan2(y, x)) + 360) % 360; }
         // rozdil dvou azimutu normalizovany do <-180, 180>
         function angDiff(a, b) { return ((a - b + 540) % 360) - 180; }

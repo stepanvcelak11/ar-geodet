@@ -43,8 +43,17 @@
     // WGS84 (lat/lng) -> S-JTSK. #15: NEPOUŽÍVAT Math.abs — proj4 5514 vrací pro ČR záporné
     // hodnoty a kreslíme je přímo (DXF_X = Y_JTSK, DXF_Y = X_JTSK) => východ vpravo, sever
     // nahoru. Absolutní hodnota obě osy negovala = výkres otočený o 180° (shodně s vylepseni.js).
+    // POZOR — tady se ZAMERNE vraci ZNAMENKOVY (negativni) Krovak, protoze presne to
+    // se zapisuje do DXF; appka jinak vsude pracuje s kladnymi Y,X. GeoCore vraci kladne,
+    // takze se znamenko vraci zpet: raw = [-Y, -X] (overeno proti PROJ v tests/cases-geo.js).
+    // Nemenit na kladne — zmenila by se poloha vsech dosud exportovanych vykresu.
     function toSJTSK(lat, lng) {
         try {
+            if (window.GeoCore && GeoCore.toSJTSK) {
+                var s = GeoCore.toSJTSK(lat, lng);
+                if (!s || !isFinite(s.y) || !isFinite(s.x)) return null;
+                return { y: -s.y, x: -s.x };
+            }
             var sj = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]);
             var Y = sj[0], X = sj[1];
             if (!isFinite(Y) || !isFinite(X)) return null;

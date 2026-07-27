@@ -26,7 +26,9 @@
 
     var D2R = Math.PI / 180;
     var R2D = 180 / Math.PI;
-    var R_EARTH = 6371e3;                        // poloměr Země pro haversine (shodně s logika.js)
+    // (Pevná konstanta 6371e3 tu bývala pro haversine — odebrána, viz getDistance:
+    //  poloměr se teď počítá pro danou šířku, protože globální průměr dělal v ČR
+    //  systematickou chybu ~1700 ppm.)
 
     // Platný rozsah aproximací kalibrovaných na ČR (deklinace, undulace geoidu).
     var CZ = { latMin: 48.4, latMax: 51.2, lngMin: 11.9, lngMax: 19.0 };
@@ -37,11 +39,29 @@
         };
     }
 
-    // ---- VZDÁLENOST: haversine (R = 6371e3 m) ----------------------------------
-    // Shodné s getDistance() v logika.js. Pro navigaci/řazení; výměry a přesná
-    // geometrie se počítají v rovině S-JTSK, ne haversinem.
+    // ---- VZDÁLENOST: haversine na MÍSTNÍM poloměru ------------------------------
+    // CHYBA (opraveno): dřív se počítalo s R = 6371 km, což je GLOBÁLNÍ střední poloměr
+    // Země. V šířkách ČR je ale skutečný (Gaussův) poloměr ~6382 km, takže vzdálenosti
+    // vycházely systematicky KRÁTKÉ o ~1700 ppm. Ověřeno proti geodetice WGS84 (pyproj
+    // Geod.inv) — a protože stejný vzorec pohání i vzdálenost na štítcích AR značek,
+    // znamenalo to:
+    //      100 m -> -17 cm       200 m -> -34 cm
+    //      500 m -> -85 cm      1000 m -> -1,7 m
+    // Není to zaokrouhlovací šum, je to systematické zkrácení KAŽDÉ vzdálenosti.
+    //
+    // Oprava: Gaussův střední poloměr sqrt(M*N) ve STŘEDNÍ šířce obou bodů. Stejná cena
+    // (dvě odmocniny navíc, počítá se ~1x za GPS fix, ne za snímek), stejná signatura,
+    // ale chyba klesne na < 32 ppm v celé ČR (0,65 cm na 200 m) — tedy hluboko pod šumem
+    // GPS. Testováno v tests/cases-geo.js proti pyproj Geod.
+    //
+    // Pro výměry a přesnou geometrii se dál používá rovina S-JTSK, ne tenhle vzorec.
+    function gaussRadius(latDeg) {
+        var s = Math.sin(latDeg * D2R);
+        var w2 = 1 - _E2 * s * s, w = Math.sqrt(w2);
+        return Math.sqrt((_A * (1 - _E2) / (w2 * w)) * (_A / w));   // sqrt(M*N)
+    }
     function getDistance(lat1, lng1, lat2, lng2) {
-        var R = R_EARTH;
+        var R = gaussRadius((lat1 + lat2) / 2);
         var f1 = lat1 * D2R, f2 = lat2 * D2R;
         var df = (lat2 - lat1) * D2R, dl = (lng2 - lng1) * D2R;
         var a = Math.sin(df / 2) * Math.sin(df / 2) + Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2);
@@ -84,11 +104,52 @@
     }
 
     // ---- S-JTSK (EPSG:5514, Křovák) --------------------------------------------
-    // toSJTSK: lat/lng -> {y,x} KLADNÉ metry; v ČR platí Y < X (Y~430-905k, X~935-1230k).
+    // KONTRAKT (jediný autoritativní v celé appce):
+    //   toSJTSK(lat, lng) -> { y, x }   KLADNÉ metry
+    //     y = Y_JTSK (západní osa, v ČR ~430-905 km)
+    //     x = X_JTSK (jižní osa,   v ČR ~935-1230 km)
+    // Kdo potřebuje jiná jména klíčů, přemapuje si to u sebe — jádro má jeden tvar.
+    //
+    // POŘADÍ OS: definice v logika.js (+proj=krovak, BEZ +axis=) vrací [-Y, -X].
+    // Ověřeno proti PROJ 9.5.1 přes pyproj (scripts/gen_geo_fixtures.py) na stejném
+    // proj-stringu. Pořadí je tedy POZIČNÍ, ne „podle velikosti".
+    //
+    // CHYBA (opraveno): dřív tu bylo {y: min(|a|,|b|), x: max(|a|,|b|)}. Uvnitř ČR to
+    // sedí (Y < X vždycky), ale pro importovanou ZAHRANIČNÍ zakázku to osy TIŠE
+    // PROHODILO — Frankfurt |Y|=1146766 > |X|=968881, Brusel |Y|=1425257 > |X|=814620.
+    // A protože se to nikde nekontrolovalo, projevilo by se to jako bod o stovky km
+    // jinde, ne jako chyba. Pořadí se teď jednou ověří proti zabudovanému referenčnímu
+    // bodu; když se proj4 změní (bump verze, přidané +axis=), řekne to nahlas.
+    var AXIS_REF = { lat: 50.0875, lng: 14.4213, y: 742805.9, x: 1043009.5 };
+    var AXIS_TOL = 50000;      // jen k IDENTIFIKACI osy (Y a X se liší o ~300 km), ne k ověření přesnosti
+    var _axisState = null;     // null = neověřeno | 'ok' | 'swapped' | 'unknown'
+
+    function _resolveAxis() {
+        if (_axisState) return _axisState;
+        try {
+            var r = proj4('EPSG:4326', 'EPSG:5514', [AXIS_REF.lng, AXIS_REF.lat]);
+            var a = Math.abs(r[0]), b = Math.abs(r[1]);
+            if (Math.abs(a - AXIS_REF.y) <= AXIS_TOL && Math.abs(b - AXIS_REF.x) <= AXIS_TOL) _axisState = 'ok';
+            else if (Math.abs(b - AXIS_REF.y) <= AXIS_TOL && Math.abs(a - AXIS_REF.x) <= AXIS_TOL) _axisState = 'swapped';
+            else _axisState = 'unknown';
+        } catch (e) { _axisState = 'unknown'; }
+        if (_axisState !== 'ok') {
+            // Nahlas, ale bez pádu: appka pojede dál v poziční interpretaci.
+            try {
+                var msg = '[GeoCore] Křovák: pořadí os je „' + _axisState + '" (očekáváno „ok"). '
+                    + 'Zkontroluj proj4 a definici EPSG:5514 v logika.js — souřadnice mohou být prohozené.';
+                if (window.AGDiag && typeof AGDiag.error === 'function') AGDiag.error('geo-core', msg);
+                console.error(msg);
+            } catch (e2) {}
+        }
+        return _axisState;
+    }
+
     function toSJTSK(lat, lng) {
         var r = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]);
         var a = Math.abs(r[0]), b = Math.abs(r[1]);
-        return { y: Math.min(a, b), x: Math.max(a, b) };
+        if (_resolveAxis() === 'swapped') return { y: b, x: a };
+        return { y: a, x: b };
     }
     // fromSJTSK: {y,x} -> {lat,lng}. Akceptuje kladné i záporné (Křovák je nativně
     // záporný, app drží kladné). Pořadí os se pozná podle ROZSAHŮ platných pro ČR
@@ -102,7 +163,11 @@
         if (aIsY && bIsX) { Y = a; X = b; }
         else if (bIsY && aIsX) { Y = b; X = a; }
         else { Y = Math.min(a, b); X = Math.max(a, b); }   // mimo ČR / nejednoznačné
-        var w = proj4('EPSG:5514', 'EPSG:4326', [-Y, -X]);
+        // Zpětný převod respektuje zjištěné pořadí os (viz _resolveAxis u toSJTSK).
+        // Rozsahová logika výše je jiná věc: ta hádá, co uživatel ZADAL, ne co vrací proj4.
+        var w = (_resolveAxis() === 'swapped')
+            ? proj4('EPSG:5514', 'EPSG:4326', [-X, -Y])
+            : proj4('EPSG:5514', 'EPSG:4326', [-Y, -X]);
         return { lat: w[1], lng: w[0] };
     }
     // Je dvojice souřadnic v rozsahu S-JTSK pro ČR? (pro validaci vstupů/importů)
@@ -189,8 +254,31 @@
         return Math.max(1, Math.min(n, neffRho, neffTime));
     }
 
+    // ---- SEBEKONTROLA -----------------------------------------------------------
+    // Rychlá kontrola za běhu: pořadí os + zpětná převoditelnost na referenčním bodě.
+    // Používá ji diagnostická obrazovka i testy (tests/cases-geo.js). Nic nevypisuje —
+    // vrací { ok, axis, roundTripM, detail }, ať si volající rozhodne, co s tím.
+    function selfTest() {
+        var out = { ok: false, axis: 'unknown', roundTripM: null, detail: '' };
+        try {
+            out.axis = _resolveAxis();
+            var s = toSJTSK(AXIS_REF.lat, AXIS_REF.lng);
+            var dy = Math.abs(s.y - AXIS_REF.y), dx = Math.abs(s.x - AXIS_REF.x);
+            var back = fromSJTSK(s.y, s.x);
+            out.roundTripM = getDistance(AXIS_REF.lat, AXIS_REF.lng, back.lat, back.lng);
+            // 2 m na referenci = tolerance pro rozdíl proj4js vs PROJ v towgs84 pipeline;
+            // 0,01 m na round-trip = převod tam a zpět musí být prakticky bezeztrátový.
+            out.ok = (out.axis === 'ok') && dy < 2 && dx < 2 && out.roundTripM < 0.01;
+            out.detail = 'dY=' + dy.toFixed(3) + ' m, dX=' + dx.toFixed(3)
+                + ' m, round-trip=' + out.roundTripM.toFixed(4) + ' m';
+        } catch (e) { out.detail = 'výjimka: ' + (e && e.message ? e.message : e); }
+        return out;
+    }
+
     // ---- veřejné API -----------------------------------------------------------
     window.GeoCore = {
+        selfTest: selfTest,
+        axisState: function () { return _resolveAxis(); },
         getDistance: getDistance,
         getBearing: getBearing,
         angDiff: angDiff,

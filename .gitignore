@@ -19,6 +19,10 @@ temp/
 node_modules/
 dist/
 
+# Python — bytecode ze skriptů ve scripts/ (generatory, kontroly, testovaci runner)
+__pycache__/
+*.pyc
+
 # Screenshoty od uživatele k nahlédnutí (NEverzovat — bloat repa)
 IMG_*.png
 *foto*.png

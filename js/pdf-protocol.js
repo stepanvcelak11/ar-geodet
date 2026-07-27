@@ -168,8 +168,11 @@
     // S-JTSK [Y,X] (kladné) z WGS84; vrací null když proj4 chybí / hodnoty nejsou platné.
     function toSJTSK(lat, lng) {
         try {
-            if (typeof proj4 !== 'function') return null;
             if (typeof lat !== 'number' || typeof lng !== 'number' || !isFinite(lat) || !isFinite(lng)) return null;
+            // S-JTSK pres GeoCore (jediny autoritativni prevod, testovany proti PROJ);
+            // fallback na vlastni proj4 kvuli odpojitelnosti geo-core.js.
+            if (window.GeoCore && GeoCore.toSJTSK) return GeoCore.toSJTSK(lat, lng);
+            if (typeof proj4 !== 'function') return null;
             var sj = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]);
             return { y: Math.abs(sj[0]), x: Math.abs(sj[1]) };
         } catch (e) { return null; }
