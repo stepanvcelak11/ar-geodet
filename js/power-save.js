@@ -40,7 +40,12 @@
     function saveCfg() { try { localStorage.setItem(LS, JSON.stringify(cfg)); } catch (e) {} }
 
     // ---- prodlevy (ms) ---------------------------------------------------------
-    var POLL_MS = 500;
+    // BATERIE: 1000 ms místo dřívějších 500. Všechny prodlevy uspávání jsou 2,5 s a víc,
+    // takže sekundové rozlišení stačí — jen se místo 2 průchodů za sekundu (hit-test
+    // kamery, čtení stavu GPS, překreslení indikátoru) udělá jeden. Okamžitou reakci na
+    // přepnutí na pozadí / zpět zajišťuje tick() z posluchače visibilitychange, ne tenhle
+    // interval, takže se tím nic nezpomalí.
+    var POLL_MS = 1000;
     // Prodleva ~2,5 s u všech senzorů = ochrana proti omylenému tapnutí (krátké nahlédnutí
     // nic nevypne); po ~2,5 s v otevřeném panelu se uspí kamera/kompas/GPS kvůli baterii.
     var CAM_DELAY_TOOL = 2500, CAM_DELAY_HIDDEN = 0;
@@ -339,10 +344,11 @@
             var camOnly = cameraOnlyToolOpen();
             var mapMode = (typeof viewMode !== 'undefined' && viewMode === 'map');
 
-            // hit-test kamery jen občas (3× méně často než tick) — zjišťovat to 2×/s je
-            // zbytečné, uspání má i tak 2,5s prodlevu
+            // hit-test kamery jen občas (každý druhý tick = ~2 s). cameraCoveredProbe() dělá
+            // 4× elementFromPoint, což je vynucený synchronní layout — a uspání kamery má i tak
+            // 2,5s prodlevu, takže častěji to nemá co zlepšit.
             if (hidden || mapMode) { _camCovered = false; }
-            else if ((_camProbe++ % 3) === 0) { _camCovered = cameraCoveredProbe(); }
+            else if ((_camProbe++ % 2) === 0) { _camCovered = cameraCoveredProbe(); }
 
             manage(st.cam, hidden || heavy || camOnly || mapMode || _camCovered,
                 hidden ? CAM_DELAY_HIDDEN : CAM_DELAY_TOOL, now, pauseCamera, resumeCamera, cameraLive);

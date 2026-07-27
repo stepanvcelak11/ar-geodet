@@ -1081,11 +1081,14 @@ details[open] summary::after { content: " ⌄"; }
 .modal-content h3 svg { width: 21px; height: 21px; flex: none; vertical-align: -0.2em; margin-right: 6px; }
 
 #gps-avg { position: absolute; top: max(calc(var(--hud-top) + 100px), calc(env(safe-area-inset-top) + 100px)); left: var(--hud-side); z-index: 9999; padding: 8px 14px; font-size: 12px; font-weight: 600; line-height: 1.5; display: none; transform: scale(var(--menu-scale)); transform-origin: top left; pointer-events: none; font-variant-numeric: tabular-nums; max-width: 78%; }
-#gps-avg .ga-title { color: var(--accent); font-size: 11px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
-#gps-avg .ga-row { display: flex; justify-content: space-between; gap: 12px; }
-#gps-avg .ga-row span { opacity: 0.7; font-weight: 500; }
-#gps-avg .ga-row b { font-variant-numeric: tabular-nums; }
-#gps-avg .ga-yx { font-family: var(--font-mono); opacity: 0.95; margin: 1px 0 3px 0; }
+/* CHYBA (opraveno): pri declutteru HUD se panel #gps-avg zuzil na jeden radek a
+   detailni radky .ga-row se presunuly do modalu #gpsavg-modal — selektory ale zustaly
+   vazane na #gps-avg, takze uz na nic nesedely a radky v modalu byly BEZ layoutu
+   (popisek a hodnota pod sebou misto vlevo/vpravo). Vazba je proto na skutecneho
+   rodice. Zaroven odebrany .ga-title a .ga-yx: takove prvky uz v HTML ani JS nejsou. */
+#gpsavg-modal .ga-row { display: flex; justify-content: space-between; gap: 12px; }
+#gpsavg-modal .ga-row span { opacity: 0.7; font-weight: 500; }
+#gpsavg-modal .ga-row b { font-variant-numeric: tabular-nums; }
 
 /* =========================================================================
    Animace a mikrointerakce
@@ -1572,77 +1575,10 @@ body.outdoor-mode .ag-quad > button { background: rgba(255, 255, 255, 0.1); bord
 .lines-menu summary { color: #fbbf24; border-color: rgba(251, 191, 36, 0.35); }
 .lines-menu[open] summary { border-color: #fbbf24; color: #fbbf24; }
 
-/* ===== Uvitaci tutorial / interaktivni prohlidka ===== */
-#tut-root { position: fixed; inset: 0; z-index: 1000000; display: none; }
-#tut-root.on { display: block; }
-.tut-blocker { position: fixed; inset: 0; background: transparent; }
-.tut-hole {
-    position: fixed;
-    border-radius: 14px;
-    box-shadow: 0 0 0 9999px rgba(6, 9, 18, 0.78);
-    border: 2px solid var(--accent);
-    pointer-events: none;
-    transition: left .28s cubic-bezier(.4,.1,.2,1), top .28s cubic-bezier(.4,.1,.2,1),
-                width .28s cubic-bezier(.4,.1,.2,1), height .28s cubic-bezier(.4,.1,.2,1);
-}
-.tut-hole::after {
-    content: ""; position: absolute; inset: -2px; border-radius: 14px;
-    box-shadow: 0 0 0 3px var(--accent-soft), 0 0 22px rgba(47,158,116,0.35);
-    animation: tut-pulse 1.6s ease-in-out infinite;
-}
-@keyframes tut-pulse { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
-.tut-card {
-    position: fixed;
-    width: min(360px, calc(100vw - 28px));
-    background: var(--glass-bg);
-    -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
-    border: 1px solid var(--glass-border-strong);
-    border-radius: 18px;
-    padding: 18px 18px 16px;
-    color: var(--text-color);
-    box-shadow: 0 18px 50px rgba(0,0,0,0.55);
-    transition: left .28s cubic-bezier(.4,.1,.2,1), top .28s cubic-bezier(.4,.1,.2,1);
-}
-.tut-card .tut-skip {
-    position: absolute; top: 12px; right: 12px;
-    background: transparent; border: none; cursor: pointer;
-    color: var(--text-muted); font-size: 12px; font-weight: 600; padding: 4px 6px;
-    font-family: var(--font-mono); letter-spacing: 0.04em;
-}
-.tut-card .tut-skip:hover { color: var(--text-color); }
-.tut-icon { font-size: 34px; line-height: 1; margin-bottom: 6px; }
-.tut-title {
-    margin: 0 0 8px; padding-right: 70px;
-    font-family: var(--font-display); font-weight: 800; font-size: 20px;
-    letter-spacing: -0.3px; color: var(--text-color);
-}
-.tut-centered .tut-title { padding-right: 0; }
-.tut-centered { text-align: center; }
-.tut-centered .tut-icon { text-align: center; }
-.tut-centered .tut-dots { justify-content: center; }
-.tut-body { margin: 0 0 14px; font-size: 14px; line-height: 1.6; color: var(--text-muted); }
-.tut-body b { color: var(--text-color); font-weight: 700; }
-.tut-dots { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
-.tut-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--glass-border-strong); transition: all .2s; }
-.tut-dot.on { background: var(--accent); width: 18px; border-radius: 4px; }
-.tut-nav { display: flex; gap: 10px; }
-.tut-btn {
-    flex: 1; padding: 12px; border-radius: 12px; cursor: pointer;
-    font-family: var(--font-display); font-weight: 700; font-size: 15px;
-    border: 1px solid var(--glass-border-strong); transition: filter .15s, transform .1s;
-}
-.tut-btn:active { transform: scale(0.97); }
-.tut-back { background: transparent; color: var(--text-muted); }
-.tut-next { background: var(--accent-grad); color: #06121a; border-color: transparent; }
-.tut-next:hover { filter: brightness(1.06); }
-.tut-more {
-    width: 100%; margin-bottom: 10px;
-    background: var(--accent-soft); color: var(--accent-bright);
-    border-color: var(--accent-line);
-}
-.tut-more[hidden] { display: none; }
-.tut-more:hover { filter: brightness(1.08); }
-.tut-active { overflow: hidden; }
+/* ===== Uvitaci tutorial / interaktivni prohlidka =====
+   ODEBRANO: cely blok #tut-root / .tut-* patril STAREMU js/tutorial.js, ktery je uz
+   davno nahrazeny js/tutorial-pro.js s vlastnim prefixem .agtp-*. V zadnem JS ani v
+   index.html se na tyhle tridy nikdo neodkazoval — bylo to 71 radku mrtveho CSS. */
 
 
 /* === Nová navigace (varianta C): "Více" jako spodní sheet + mřížka Nástrojů === */
@@ -2085,7 +2021,7 @@ body.left-hand #dock .dock-btn:nth-child(3) { transform: translateX(var(--dock-a
    space-between, takže stačí row-reverse. */
 body.left-hand .ag-modal-x { text-align: left; }
 body.left-hand .ag-modal-x > button { right: auto; left: -6px; }
-body.left-hand .lvl-top,
+/* (.lvl-top odebran — modul „Urovnani stativu" je v _archiv, trida uz nikde nevznika) */
 body.left-hand .bgps-top,
 body.left-hand .prd-head,
 body.left-hand .zpr-head,
@@ -2099,9 +2035,8 @@ body.left-hand .photo-viewer .pv-close { right: auto; left: 16px; }
 body.left-hand .photo-editor .pv-close { right: auto; left: 16px; }
 /* nápověda „?" na dlaždici a odznak nepřečtených ať nekolidují s palcem */
 body.left-hand .ag-tp-help { right: auto; left: 4px; }
-/* tutoriál: „Přeskočit" na stranu palce */
-body.left-hand .tut-card .tut-skip { right: auto; left: 12px; }
-body.left-hand .tut-card .tut-title { padding-right: 0; padding-left: 70px; }
+/* (zrcadleni tutorialu odebrano spolu s mrtvym blokem .tut-* vyse — tutorial-pro.js
+   ma vlastni .agtp-* a svoje „Preskocit" resi sam) */
 /* modály vjíždějí z opačné strany, ať gesto sedí ke straně ovládání */
 body.left-hand #settings-modal .modal-content,
 body.left-hand #manage-modal .modal-content,

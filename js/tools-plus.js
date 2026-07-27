@@ -176,6 +176,11 @@
     function decorateTiles() {
         var grid = getGrid(); if (!grid) return;
         var tiles = grid.querySelectorAll('.tool-tile');
+        // BATERIE: oblíbené načti JEDNOU pro celý průchod. Dřív se loadFavs() (tedy
+        // localStorage.getItem + JSON.parse) volalo pro KAŽDOU dlaždici — při ~58
+        // dlaždicích a ticku po 1,6 s to bylo ~36 synchronních čtení localStorage
+        // za sekundu, natrvalo, i když je modal Nástrojů zavřený.
+        var favs = loadFavs();
         for (var i = 0; i < tiles.length; i++) {
             (function (tile) {
                 if (!tile.querySelector('.ag-tp-help')) {
@@ -194,7 +199,7 @@
                 }
                 var key = tileKey(tile);
                 var star = tile.querySelector('.ag-tp-star');
-                if (star) star.classList.toggle('on', key != null && loadFavs().indexOf(key) !== -1);
+                if (star) star.classList.toggle('on', key != null && favs.indexOf(key) !== -1);
             })(tiles[i]);
         }
     }

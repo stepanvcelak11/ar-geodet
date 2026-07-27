@@ -157,7 +157,11 @@
         var grid = getGrid(); if (!grid) return;
         // integrace s tools-simple.js: „Zobrazit všechny nástroje" (.ag-sm-all) ruší i naše skrývání
         var showAll = grid.classList.contains('ag-sm-all');
-        var on = simpleOn() && !searchQuery() && !showAll;
+        // BATERIE: searchQuery() (getElementById + čtení value) se dřív volalo i UVNITŘ
+        // smyčky přes všechny dlaždice — tick běží po 1,2 s, takže to byl zbytečný
+        // průchod DOMem na každou dlaždici. Hodnota se během jednoho průchodu nemění.
+        var q = searchQuery();
+        var on = simpleOn() && !q && !showAll;
         var tiles = grid.querySelectorAll('.tool-tile');
         for (var i = 0; i < tiles.length; i++) {
             if (tiles[i].classList.contains('ag-th-tile')) continue;   // vlastní rozcestníky neskrývat
@@ -166,7 +170,7 @@
                 // dlaždice v sekci „Pro tuto práci" (tools-simple.js) se neskrývá
                 if (tiles[i].getAttribute('data-ag-ts')) { if (tiles[i].style.display === 'none') tiles[i].style.display = ''; continue; }
                 if (on) tiles[i].style.display = 'none';
-                else if (tiles[i].style.display === 'none' && !searchQuery()) tiles[i].style.display = '';
+                else if (tiles[i].style.display === 'none' && !q) tiles[i].style.display = '';
             }
         }
     }

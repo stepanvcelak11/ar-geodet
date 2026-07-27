@@ -104,6 +104,9 @@
         function applyViewMode() { const camCont = document.getElementById('camera-container'); const mapCont = document.getElementById('map-container'); const resizer = document.getElementById('resizer'); if (viewMode === 'both') { camCont.style.display = 'block'; camCont.style.flex = '0 0 50%'; mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'flex'; startCameraAndCompass(); } else if (viewMode === 'map') { camCont.style.display = 'none'; mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'none'; stopCameraStream(); startCompass(); } else if (viewMode === 'ar') { camCont.style.display = 'block'; camCont.style.flex = '1'; mapCont.style.display = 'none'; resizer.style.display = 'none'; startCameraAndCompass(); } setTimeout(() => { map.invalidateSize(); }, 300); }
 
         let compassStarted = false;
+        // BATERIE: přišla použitelná ABSOLUTNÍ událost kompasu? Nastavuje handleOrientation.
+        // Nezávisle na GPS fixu (renderAR se bez fixu vrací dřív, než by se to dalo poznat).
+        let _absSeen = false;
         // iOS dovolí requestPermission() jen uvnitř gesta uživatele. Mimo gesto (auto-start
         // přes „Pokračovat", obnova kamery po návratu) promise spadne — pak počkáme na
         // příští ťuknutí kamkoliv a zkusíme to znovu, ať kompas nezůstane mrtvý.
@@ -117,7 +120,20 @@
                     const retry = () => { document.removeEventListener('click', retry, true); startCompass(); };
                     document.addEventListener('click', retry, true);
                 });
-            } else { window.addEventListener('deviceorientationabsolute', handleOrientation); window.addEventListener('deviceorientation', handleOrientation); }
+            } else {
+                // BATERIE: Chrome na Androidu doručuje 'deviceorientationabsolute' I
+                // 'deviceorientation', obě ~60x/s — se stejným handlerem tedy handleOrientation
+                // běžel 2x na snímek (renderAR sice druhý zahodí přes _orientPending, ale
+                // doručení události, handler i trackCalibMotion se odbydou dvakrát).
+                // Navěsíme proto JEN absolutní — pro sever je to ta správná — a relativní
+                // doregistrujeme teprve když do 1,2 s nepřijde POUŽITELNÁ absolutní událost
+                // (prohlížeč ji nezná, nebo chodí bez alpha). Chování na takových zařízeních
+                // je pak úplně stejné jako dřív, jen o 1,2 s později.
+                window.addEventListener('deviceorientationabsolute', handleOrientation);
+                setTimeout(function () {
+                    if (!_absSeen) window.addEventListener('deviceorientation', handleOrientation);
+                }, 1200);
+            }
         }
         function startCameraAndCompass(forceRestart = false) { startCompass(); if (cameraStarted && !forceRestart) return; cameraStarted = true; if (currentVideoStream) { currentVideoStream.getTracks().forEach(track => track.stop()); } const camId = document.getElementById('s-camera-select') ? document.getElementById('s-camera-select').value : null; const videoConstraints = camId ? { deviceId: { exact: camId } } : { facingMode: "environment" }; navigator.mediaDevices.getUserMedia({ video: videoConstraints }).then(stream => { currentVideoStream = stream; const videoElement = document.getElementById('camera-feed'); videoElement.srcObject = stream; videoElement.style.display = "block"; }).catch(err => { handleCameraError(err); }); }
         // Kamera selhala (typicky omylem zamítnuté oprávnění): místo surového alertu s technickou
@@ -464,7 +480,7 @@
         // spolecny konec hromadne editace: persist + prekresleni AR/mapy/seznamu
         function _mngAfterEdit(ids) {
             setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
-            arPoints.forEach(p => { if (ids.has(p.id) && p.element) { p.element.remove(); p.element = null; } });
+            arPoints.forEach(p => { if (ids.has(p.id) && p.element) { p.element.remove(); p.element = null; _resetPtRenderCache(p); } });
             initARMarkers(); drawAllMarkersOnMap(); renderManageList();
             if (typeof updateInfoPanel === 'function') updateInfoPanel();
             if (typeof window.agVibe === 'function') agVibe(30);
@@ -783,12 +799,22 @@
             _prevHosts.forEach(pt => { if (hosts.indexOf(pt) < 0) _setMore(pt, 0); });
             _prevHosts = hosts;
         }
+        // CHYBA (opraveno): renderAR si kvuli vykonu pamatuje posledni zapsanou opacity /
+        // zIndex / text vzdalenosti / transform v pt._opLast, _zLast, _dLast, _tfLast a
+        // prepisuje je jen pri zmene. Kdyz se ale element znicil a postavil znovu
+        // (hromadne operace nad body -> _mngAfterEdit), cache si drzela stare hodnoty,
+        // zatimco novy element startuje s opacity:0 -> podminka `_opLast !== '1'`
+        // neprosla a znacka upravenych bodu zustala v AR NEVIDITELNA az do restartu.
+        // Cache proto pri zniceni/vytvoreni elementu vzdy vynulujeme.
+        function _resetPtRenderCache(pt) {
+            pt._opLast = null; pt._zLast = null; pt._dLast = null; pt._tfLast = null;
+        }
         function initARMarkers() {
             arPoints.forEach((pt) => {
                 let matchesSearch = true; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) { matchesSearch = false; }
                 let outOfReach = (pt.currentDist > arRadius); let isSelectedForDetail = (pt.id === activePointIdForModal);
                 if (pt.hidden || !matchesSearch || (outOfReach && pt.id !== highlightedPointId && !isSelectedForDetail)) { if (pt.element && pt.element.parentNode) pt.element.parentNode.removeChild(pt.element); return; }
-                if (!pt.element) { const marker = document.createElement('div'); marker.className = `ar-marker cat-${pt.cat.toLowerCase()}`; if (pt.id === highlightedPointId) marker.classList.add('highlighted'); if (window.isStaked && isStaked(pt.id)) marker.classList.add('staked'); marker.style.opacity = '0'; const title = document.createElement('div'); title.className = 'ar-marker-title'; title.innerText = pt.name; const dist = document.createElement('div'); dist.className = 'ar-marker-dist'; const more = document.createElement('div'); more.className = 'ar-marker-more'; marker.appendChild(title); marker.appendChild(dist); marker.appendChild(more); marker.addEventListener('click', () => { if (pt._arCluster && pt._arCluster.length) { showClusterList([pt].concat(pt._arCluster)); return; } const currentDist = getDistance(userLat, userLng, pt.lat, pt.lng); showDetails(pt, currentDist); }); pt.element = marker; pt.distElement = dist; pt.moreElement = more; arOverlay.appendChild(marker); } else if (!pt.element.parentNode) { arOverlay.appendChild(pt.element); }
+                if (!pt.element) { _resetPtRenderCache(pt); const marker = document.createElement('div'); marker.className = `ar-marker cat-${pt.cat.toLowerCase()}`; if (pt.id === highlightedPointId) marker.classList.add('highlighted'); if (window.isStaked && isStaked(pt.id)) marker.classList.add('staked'); marker.style.opacity = '0'; const title = document.createElement('div'); title.className = 'ar-marker-title'; title.innerText = pt.name; const dist = document.createElement('div'); dist.className = 'ar-marker-dist'; const more = document.createElement('div'); more.className = 'ar-marker-more'; marker.appendChild(title); marker.appendChild(dist); marker.appendChild(more); marker.addEventListener('click', () => { if (pt._arCluster && pt._arCluster.length) { showClusterList([pt].concat(pt._arCluster)); return; } const currentDist = getDistance(userLat, userLng, pt.lat, pt.lng); showDetails(pt, currentDist); }); pt.element = marker; pt.distElement = dist; pt.moreElement = more; arOverlay.appendChild(marker); } else if (!pt.element.parentNode) { arOverlay.appendChild(pt.element); }
             });
         }
         let mapReturnTimer;
@@ -957,6 +983,9 @@
         // VYKON: udalosti senzoru chodi i 60+x/s; prekreslujeme max 1x za snimek (requestAnimationFrame)
         let _orientPending = false, _lastOrientEvent = null;
         function handleOrientation(event) {
+            // absolutní zdroj funguje? (viz _absSeen u startCompass — rozhoduje o tom,
+            // jestli se vůbec musí navěsit i relativní 'deviceorientation')
+            if (!_absSeen && event && event.absolute === true && event.alpha != null) _absSeen = true;
             _lastOrientEvent = event; if (_calibActive) trackCalibMotion(event);
             if (_orientPending) return;
             _orientPending = true;
@@ -1040,7 +1069,14 @@
             if (_cdHtml !== _lastCdHtml) { compassDebug.innerHTML = _cdHtml; _lastCdHtml = _cdHtml; }
             const _cdTitle = !headingReliable ? 'Zařízení neposkytuje absolutní azimut – sever může být nepřesný. Dolaďte v Nastavení kompasu „Srovnání severu".' : (calWarn ? 'Kompas vyzaduje kalibraci – proveďte telefonem osmicku' : '');
             if (_cdTitle !== _lastCdTitle) { compassDebug.title = _cdTitle; _lastCdTitle = _cdTitle; }
-            if (!window._mapHold && !window._popupOpen) {
+            // BATERIE: v rezimu "AR" ma #map-container display:none a #map-wrapper je uvnitr nej,
+            // takze cela rotace mapy (latLngToContainerPoint + transform vrstvy 150vmax + zapis
+            // transformu na KAZDY popisek) se 60x/s pocitala pro neco, co neni videt. Pri navratu
+            // do Split/Mapy se dorovna hned na dalsim snimku kompasu: mapRotation zustava rovna
+            // uhlu, ktery je na wrapperu skutecne aplikovany, a _labelsDirty se nezahazuje —
+            // podminka nize ho vezme v potaz.
+            const _mapVisible = (typeof viewMode === 'undefined' || viewMode !== 'ar');
+            if (_mapVisible && !window._mapHold && !window._popupOpen) {
                 // VYKON: #map-wrapper je vrstva 150vmax x 150vmax (nekolikanasobek displeje) —
                 // rotace prekomponuje celou vrstvu vcetne dlazdic a k tomu se prepisuje
                 // transform na KAZDEM popisku bodu. Zmena pod 0.15 deg je na displeji
@@ -1054,7 +1090,8 @@
                     if (window._mapLabelEls) window._mapLabelEls.forEach(el => { el.style.transform = `rotate(${heading}deg)`; });
                 }
             }
-            { const _udc = getUserDirContainer(); if (_udc) _udc.style.transform = `rotate(${heading}deg)`; }
+            // sipka smeru uzivatele je taky jen v mape (Leaflet divIcon) — v AR ji nikdo nevidi
+            if (_mapVisible) { const _udc = getUserDirContainer(); if (_udc) _udc.style.transform = `rotate(${heading}deg)`; }
             updateNavGlow();
             if (viewMode === 'map') return; // v samostatne mape jen otacime mapu, AR projekci (kamera) preskakujeme
 
@@ -1119,10 +1156,14 @@
                     if (_isHi) scale = scale * 1.25;
                     const _z = _isHi ? 99999 : Math.round(1000 - distance);
                     if (pt._zLast !== _z) { pt.element.style.zIndex = _z; pt._zLast = _z; }
+                    // Pozice v PIXELECH prekryvu — pouziva ji declutter i vlastni umisteni znacky
+                    // (viz komentar o transformu nize). #ar-overlay ma inset:0 bez padding/borderu,
+                    // takze _ovW/_ovH je presne to, proti cemu by se pocitala procenta v left/top.
+                    const _px = xPct * _ovW / 100, _py = markerY * _ovH / 100;
                     if (pt.element && !_isHi && !isSelectedForDetail) {
                         // DECLUTTER: kolize stitku v pixelech obrazovky (stitek ~110x44 px pri scale 1);
                         // arPoints jsou razene podle vzdalenosti -> hostitelem shluku je nejblizsi bod
-                        const _px = xPct * _ovW / 100, _py = markerY * _ovH / 100, _hw = 55 * scale, _hh = 22 * scale;
+                        const _hw = 55 * scale, _hh = 22 * scale;
                         let _host = null;
                         for (let _i = 0; _i < _placed.length; _i++) { const q = _placed[_i]; if (Math.abs(_px - q.x) < (_hw + q.hw) && Math.abs(_py - q.y) < (_hh + q.hh)) { _host = q; break; } }
                         // sbaleny stitek schovej — a drz _opLast v souladu, jinak by ho cache uz nikdy nevratila
@@ -1131,8 +1172,17 @@
                         pt._arCluster = [];
                     }
                     if (pt.element) {
-                        pt.element.style.left = `${xPct}%`; pt.element.style.top = `${markerY}%`;
-                        pt.element.style.transform = `translate(-50%, -50%) scale(${scale}) translateZ(0)`;
+                        // VYKON: pozice JEN pres transform, uz NE left/top. left/top v procentech
+                        // vynuti LAYOUT (reflow) pro kazdou znacku pri kazdem snimku kompasu — pri
+                        // az 100 znackach a 60 Hz to byl nejvetsi zdroj prace na hlavnim vlakne,
+                        // a to nad zivym obrazem z kamery. translate3d drzi znacku na kompozitoru:
+                        // zadny layout, zadny paint, jen prekompozice vrstvy.
+                        // Vysledna pozice je totozna: .ar-marker ma v CSS left:0/top:0 a origin
+                        // zustava ve stredu prvku, takze translate(-50%,-50%) posadi stred znacky
+                        // presne na (_px,_py) — stejne jako driv left/top + translate(-50%,-50%).
+                        // Perspective na #ar-overlay tim netrpi, z je porad 0 (jako driv translateZ(0)).
+                        const _tf = `translate3d(${_px}px, ${_py}px, 0) translate(-50%, -50%) scale(${scale})`;
+                        if (pt._tfLast !== _tf) { pt.element.style.transform = _tf; pt._tfLast = _tf; }
                         if (pt._opLast !== '1') { pt.element.style.opacity = '1'; pt.element.style.pointerEvents = 'auto'; pt._opLast = '1'; }
                         const _dTxt = `${distance.toFixed(1)} m`;
                         if (pt._dLast !== _dTxt) { pt.distElement.innerText = _dTxt; pt._dLast = _dTxt; }
@@ -1524,6 +1574,11 @@
         const _lumaCtx = _lumaCanvas.getContext('2d', { willReadFrequently: true });
         (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(() => {
             if (visSettings.adaptiveGlass === false || visSettings.outdoorMode || !appStarted || viewMode === 'map' || document.visibilityState !== 'visible') { document.body.classList.remove('cam-light'); return; }
+            // BATERIE: getImageData je synchronni readback GPU -> CPU, ktery stopne pipeline.
+            // Pod otevrenym panelem nikdo AR stitky nevidi, takze jas obrazu nema co ovlivnit
+            // (a `cam-light` zustane na posledni znane hodnote — po zavreni panelu se dorovna
+            // na dalsim tiku). anyOverlayOpen() je sdileny test s 200ms cache.
+            if (anyOverlayOpen()) return;
             const v = document.getElementById('camera-feed');
             if (!v || v.readyState < 2 || !v.videoWidth) return;
             try {
@@ -1535,4 +1590,7 @@
                 if (luma > 150) document.body.classList.add('cam-light');
                 else if (luma < 115) document.body.classList.remove('cam-light');
             } catch (e) { /* video jeste neni pripravene */ }
-        }, 700);
+            // BATERIE: 1500 ms misto 700. Jas okoli se v terenu nemeni 1,4x za sekundu
+            // (mrak, vstup do stinu) a hystereze 115/150 stejne tlumi prepinani, takze
+            // uzivatel rozdil nepozna — ale readbacku je polovina.
+        }, 1500);

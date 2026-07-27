@@ -55,7 +55,9 @@
         }
     }
 
+    var _absSeen = false;   // dorazila pouzitelna ABSOLUTNI udalost? (viz registrace posluchacu niz)
     function onOrient(event) {
+        if (!_absSeen && event && event.absolute === true && event.alpha != null) _absSeen = true;
         const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : (event.timeStamp || 0);
         if (!t0) t0 = now;
         const h = (event.webkitCompassHeading != null) ? event.webkitCompassHeading : (event.alpha != null ? 360 - event.alpha : null);
@@ -90,8 +92,14 @@
 
     if (typeof DeviceOrientationEvent !== 'undefined') {
         // vlastni posluchac; na iOS dorazi az po udeleni opravneni (to resi app jinde)
+        // BATERIE: Chrome na Androidu doruci OBE udalosti (~60x/s kazdou), takze onOrient
+        // s obema posluchaci bezel 2x na snimek a vzorky se do `samples` sypaly dvojmo.
+        // Navesime jen absolutni; relativni doregistrujeme az kdyz do 1,5 s neprijde
+        // pouzitelna absolutni udalost (iOS ji nezna a hlasi webkitCompassHeading).
         window.addEventListener('deviceorientationabsolute', onOrient, true);
-        window.addEventListener('deviceorientation', onOrient, true);
+        setTimeout(function () {
+            if (!_absSeen) window.addEventListener('deviceorientation', onOrient, true);
+        }, 1500);
     }
 
     // ---------- 2) KONTROLA PODLE SLUNCE ----------

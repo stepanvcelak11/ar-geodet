@@ -72,8 +72,10 @@
         if (_ownHead != null && now - _ownHeadTs < 3000) return _ownHead;
         return h;   // radši zamrzlý globál než nic
     }
+    var _absSeen = false;   // dorazila pouzitelna ABSOLUTNI udalost? (viz attach() ve startOri)
     function onOri(e) {
         var h = null;
+        if (!_absSeen && e && e.absolute === true && e.alpha != null) _absSeen = true;
         if (typeof e.webkitCompassHeading === 'number' && isFinite(e.webkitCompassHeading)) h = e.webkitCompassHeading + decl();
         else if (e.absolute === true && e.alpha != null && isFinite(e.alpha)) h = 360 - e.alpha + decl();
         if (h == null) return;
@@ -82,9 +84,17 @@
     function startOri() {
         try {
             var attach = function () {
+                // BATERIE: Chrome na Androidu doruci obe udalosti (~60x/s kazdou) — a onOri
+                // pritom relativni 'deviceorientation' STEJNE zahazuje (chce absolute===true
+                // nebo webkitCompassHeading), takze druhy posluchac tam byl cista rezie.
+                // Navesime jen absolutni; relativni doregistrujeme az kdyz do 1,2 s neprijde
+                // pouzitelna absolutni udalost — to je prave iOS, kde jede webkitCompassHeading.
+                // Pojistka `_oriOn`: kdyz uzivatel panel mezitim zavre (stopOri), nenavesujeme.
                 window.addEventListener('deviceorientationabsolute', onOri, true);
-                window.addEventListener('deviceorientation', onOri, true);
                 _oriOn = true;
+                setTimeout(function () {
+                    if (_oriOn && !_absSeen) window.addEventListener('deviceorientation', onOri, true);
+                }, 1200);
             };
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                 DeviceOrientationEvent.requestPermission().then(function (p) { if (p === 'granted') attach(); }).catch(function () {});

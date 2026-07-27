@@ -164,7 +164,9 @@
         var grid = getGrid(); if (!grid) return;
         // integrace s tools-simple.js: „Zobrazit všechny nástroje" (.ag-sm-all) ruší i naše skrývání
         var showAll = grid.classList.contains('ag-sm-all');
-        var on = simpleOn() && !searchQuery() && !showAll;
+        // BATERIE: searchQuery() jednou pro celý průchod, ne pro každou dlaždici (tick po 1,2 s)
+        var q = searchQuery();
+        var on = simpleOn() && !q && !showAll;
         var tiles = grid.querySelectorAll('.tool-tile');
         for (var i = 0; i < tiles.length; i++) {
             var k = tileKey(tiles[i]);
@@ -174,7 +176,7 @@
                 if (tiles[i].getAttribute('data-ag-ts')) { if (tiles[i].style.display === 'none') tiles[i].style.display = ''; continue; }
                 if (on) tiles[i].style.display = 'none';
                 // když je zjednodušení vypnuté a dlaždici jsme skryli my, vrátit
-                else if (tiles[i].style.display === 'none' && !searchQuery()) tiles[i].style.display = '';
+                else if (tiles[i].style.display === 'none' && !q) tiles[i].style.display = '';
             }
         }
         // nadpis „AR a kalibrace" nechat — zůstává v něm průvodce a další dlaždice
