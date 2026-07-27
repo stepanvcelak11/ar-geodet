@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v202';   // integrace: denni nutnosti (GNSS predpoved, Slunce, Co s sebou, Kde mam auto, Kniha jizd, Korekce, Bezpecnost)
+const SHELL_CACHE = 'argeodet-shell-v204';   // ctverecky u noveho bodu a exportu, panel Vrstvy do splitu, zamek prihlaseni, revize navodu
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -25,9 +25,9 @@ const ASSETS_TO_CACHE = [
     './icon-512.png',
     './icon-maskable-192.png',
     './icon-maskable-512.png',
-    './css/tokens.css?v=202',
-    './css/style.css?v=202',
-    './css/vylepseni.css?v=202',
+    './css/tokens.css?v=204',
+    './css/style.css?v=204',
+    './css/vylepseni.css?v=204',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',

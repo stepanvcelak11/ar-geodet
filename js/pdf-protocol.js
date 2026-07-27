@@ -413,11 +413,23 @@
         if (!opts || document.getElementById('ag-export-pdf')) return;
         var btn = document.createElement('button');
         btn.id = 'ag-export-pdf';
-        btn.className = 'btn btn-secondary';
         btn.type = 'button';
+        // Akce exportu jsou dlaždice v mřížce #exp-actions (.ag-quad) — dřív to byla
+        // řada tlačítek přes celou šířku a zabírala moc místa. Když mřížka chybí
+        // (starší index.html), zůstane fallback na řádkové tlačítko.
+        var quad = opts.querySelector('#exp-actions');
+        if (quad) {
+            btn.innerHTML = '<svg class="icon"><use href="#i-file-text"/></svg><span>PDF<br>protokol</span>';
+            btn.title = 'Exportovat PDF protokol k zakázce';
+            btn.addEventListener('click', function () { try { window.openPdfProtocol(); } catch (e) { console.warn(e); } });
+            var shareBtn = quad.querySelector('#exp-share-qr');
+            if (shareBtn) quad.insertBefore(btn, shareBtn);
+            else quad.appendChild(btn);
+            return;
+        }
+        btn.className = 'btn btn-secondary';
         btn.innerHTML = '<svg class="icon"><use href="#i-file-text"/></svg> PDF protokol';
         btn.addEventListener('click', function () { try { window.openPdfProtocol(); } catch (e) { console.warn(e); } });
-        // vlož před tlačítko Importu (btn-blue), ať "Export ..." řada zůstane pohromadě
         var importBtn = opts.querySelector('button.btn-blue');
         if (importBtn) opts.insertBefore(btn, importBtn);
         else opts.appendChild(btn);

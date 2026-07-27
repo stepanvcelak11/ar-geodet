@@ -4,11 +4,15 @@
 // spotlight (coachmark) engine. NAHRAZUJE původní js/tutorial.js (ten je odpojený).
 //
 // Dvě prohlídky:
-//   • ZÁKLADNÍ — ovládání: zobrazení (AR/Split/Mapa), stav & přesnost, kompas,
-//     nový bod, body, nástroje, více, nastavení.
+//   • ZÁKLADNÍ — ovládání: zobrazení (AR/Split/Mapa), vrstvy v mapě, stavová
+//     bublina, nový bod, body, nástroje, více, nastavení.
 //   • POKROČILÁ — přehled nástrojů po kategoriích (Měření, Vytyčování,
 //     Katastr a data, AR a kalibrace, Pomůcky), nápověda „?" na dlaždicích,
 //     AR na terénu (DMR 5G), Průvodce úkolem.
+//
+// POZOR: kroky citují konkrétní tlačítka a názvy nástrojů — po každé změně UI
+// (přesun tlačítka, přejmenování nástroje, nová dlaždice) sem koukni, jinak
+// prohlídka ukazuje na něco, co tam už není.
 //
 // Vstup: existující tlačítko „Návod a prohlídka" v menu „Více" (modul převezme
 //   window.startTutorial), nebo přímo:
@@ -84,6 +88,7 @@
     var BASIC = [
         { title: 'Vítej v AR&nbsp;Geodet', body: 'Krátká prohlídka základního ovládání. Posouvej tlačítkem <b>Další</b>.' },
         { title: 'Přepínání zobrazení', target: '#ag-view-wheel', body: 'Kolečko vpravo dole přepíná jedním klepnutím mezi <b>AR</b> kamerou, <b>Split</b> (dělené) a 2D <b>Mapou</b> — podle situace a baterie.' },
+        { title: 'Vrstvy v mapě', target: '#map-ctrl-toggle', body: 'Tlačítko <b>Vrstvy</b> vlevo dole v mapě: přepnutí <b>mapa / ortofoto</b>, zapnutí <b>katastru</b> a <b>terénu (DMR 5G)</b> a nástroje mapy (na mě, body v okolí, spojit body, měřit plochu, uložit offline). Odznak ukazuje, kolik vrstev je zapnutých.' },
         {
             // stavová bublina sloučila přesnost i azimut do jednoho prvku; kdyby ji měl
             // uživatel vypnutou, ukaž původní panel průměrování GPS
@@ -95,8 +100,8 @@
             },
             body: 'Jedna bublina nahoře: <b>semafor</b> (barva nejhoršího ze stavů GPS · sever · data · baterie), <b>přesnost</b> a <b>azimut</b>. Klepnutím se rozbalí detail s radami a tlačítky <b>Srovnat sever</b>, <b>Detail GPS</b> a <b>Skóre místa</b>.'
         },
-        { title: 'Nový bod', target: '.dock-primary', body: 'Založ vlastní bod — z <b>průměru GPS</b> (nejpřesnější), klepnutím do <b>mapy</b>, nebo přečtením z <b>fotky (OCR)</b>.' },
-        { title: 'Body', target: '#dock button[onclick*="openManageModal"]', body: 'Správa bodů: seznam, <b>import/export</b> (CSV, GPX, GeoJSON…) a <b>sdílení přes QR</b>.' },
+        { title: 'Nový bod', target: '.dock-primary', body: 'Založ vlastní bod. Nahoře ve formuláři jsou čtyři dlaždice, odkud vzít souřadnice: <b>Z průměru GPS</b> (běžná volba), <b>Z mapy</b>, <b>Z fotky (OCR)</b> a <b>Přesná GPS</b> (dlouhé průměrování). Podržením tlačítka založíš místo bodu <b>závadu</b>.' },
+        { title: 'Body', target: '#dock button[onclick*="openManageModal"]', body: 'Seznam bodů a pod <b>Export / Import</b> mřížka akcí: import souboru, <b>PDF protokol</b>, <b>sdílet QR</b> a <b>načíst QR</b>. Formát exportu (CSV, GPX, GeoJSON, DXF…) vybíráš posuvníkem nad nimi.' },
         { title: 'Nástroje', target: '#dock button[onclick*="tools-modal"]', body: 'Měření vzdálenosti a plochy, kalkulačka, GNSS satelity, vytyčovací checklist, náčrt — a nové pokročilé nástroje.' },
         { title: 'Více', target: '#dock-vice-btn', body: '<b>Průvodce úkolem</b>, uložení okolí offline, návody, zpravodaj a chytré vyhledávání funkcí appky.' },
         { title: 'Nastavení', target: '#dock button[onclick*="openSettings"]', body: 'Vzhled (motiv, barvy, prvky na obrazovce), <b>AR &amp; přesnost</b> (FOV, vyhlazení, fúze gyra) a správa zakázek a dat.' },
@@ -111,22 +116,23 @@
             before: function () { closeAllModals(); }
         },
         Object.assign(catStep('Měření'), {
-            title: 'Měření', body: '<b>Brutální GPS</b> (dlouhé průměrování s otočkou 180° — nejpřesnější bod jen z mobilu), <b>Výška objektu</b>, <b>Epochy/monitoring</b> posunů, digitální <b>Zápisníky</b> (nivelace, směry), <b>oměrné</b>, <b>kubatury a vrstevnice</b>, optický dálkoměr, stopa trasy.'
+            title: 'Měření', body: '<b>Brutální GPS</b> (dlouhé průměrování — ve čtvrtinách doby vyzve otočit telefon o 90°, tím vyruší odrazy), <b>Dvoutelefonní DGPS</b> (korekce z druhého mobilu), <b>Skóre místa</b> a <b>GNSS předpověď</b> (kdy a kde měřit), <b>Korekce měření</b> (pásmo, ppm, refrakce), <b>Výška objektu</b>, <b>Epochy/monitoring</b> posunů, <b>Zápisníky</b> (nivelace, směry), oměrné, kubatury a vrstevnice, stopa trasy.'
         }),
         Object.assign(catStep('AR a kalibrace'), {
             title: 'AR a kalibrace', body: 'Aby AR sedělo na skutečnost: <b>Srovnat sever</b> (1 bod), <b>Srovnat AR na 2 body</b>, <b>AR resekce</b> a <b>Volné stanovisko</b> (kde stojím?), <b>Protínání vpřed</b>, <b>Rajón</b>, <b>Lokalizace (Helmert)</b> pro usazení měření na dané body.'
         }),
         Object.assign(catStep('Vytyčování'), {
-            title: 'Vytyčování a náčrt', body: '<b>Vytyčovací checklist</b> s navigací na bod, <b>Vytyčení přímky</b> (odchylka + staničení), <b>Offset bod</b>, polní <b>náčrt/tachymetrie</b> a <b>Vrstvy/pokládka</b> pro kontrolu vrstev vozovky („Do tabletu: +X cm").'
+            title: 'Vytyčování a náčrt', body: '<b>Vytyčovací checklist</b> s navigací na bod a CSV protokolem, <b>Vytyčení přímky</b> (staničení + kolmý odstup), <b>Offset bod</b>, polní <b>náčrt/tachymetrie</b>, <b>Závady/hlášení</b> (foto + kategorie, jde vázat na konkrétní bod) a <b>Vrstvy/pokládka</b> pro kontrolu vrstev vozovky („Do tabletu: +X cm").'
         }),
         Object.assign(catStep('Katastr a data'), {
             title: 'Katastr a data', body: '<b>Vektorový katastr</b> (hranice parcel z ČÚZK v mapě i AR), <b>import projektu/DXF</b>, hromadné <b>stažení bodů z výřezu mapy</b>, <b>podzemní sítě</b> („rentgen do země") a <b>poslat/načíst zakázku</b> souborem .argeo.'
         }),
         Object.assign(catStep('Pomůcky'), {
-            title: 'Pomůcky', body: '<b>Postupy měření</b> (tahák krok za krokem), <b>Předpisy &amp; odchylky</b> (offline limity z vyhlášek), <b>Urovnání stativu</b> (chytrá libela), <b>Predikce signálu</b> (kolik družic zbude u lesa/v zástavbě), kalkulačka, slovník.'
+            title: 'Pomůcky', body: 'Denní nutnosti: <b>Dnešek v terénu</b> (ranní brífink), <b>Počasí</b> a <b>Bezpečnost</b>, <b>Slunce a světlo</b> (kolik zbývá dne), <b>Co s sebou</b>, <b>Kde mám auto</b>, <b>Kniha jízd</b>, <b>Hlasové poznámky</b> s přepisem a večerní <b>Deník dne</b>. Dál <b>Příručka</b> (postupy, předpisy, slovník), <b>Signál GNSS</b> a ve firemním režimu <b>Docházka</b>, <b>Firemní chat</b> a <b>Firma a účty</b>.'
         }),
         {
-            title: 'AR sedí na terénu (DMR 5G)', body: 'V ovládání mapy zapni vrstvu <b>terén</b> — AR objekty a body si sednou na skutečný výškopis terénu místo ploché roviny. Lepší dojem hloubky ve svahu.',
+            title: 'AR sedí na terénu (DMR 5G)', target: '#map-ctrl-toggle',
+            body: 'Tlačítkem <b>Vrstvy</b> v mapě zapni <b>Terén (DMR 5G)</b> — AR objekty a body si sednou na skutečný výškopis místo ploché roviny. Lepší dojem hloubky ve svahu. Ve stejném panelu je i katastr, ortofoto a vlastní podklad.',
             before: function () { closeAllModals(); }
         },
         {
@@ -348,7 +354,7 @@
             + '  </button>'
             + '  <button type="button" class="agtp-pick-b" id="agtp-go-adv">'
             + '    <span class="ic"><svg class="icon"><use href="#i-ruler"/></svg></span>'
-            + '    <span><h4>Pokročilé nástroje</h4><p>Parcela &amp; dělení, terénní nástroje, AR resekce, kubatury/vrstevnice, oměrné, import DXF, AR na terénu.</p></span>'
+            + '    <span><h4>Pokročilé nástroje</h4><p>Co appka umí navíc: Brutální GPS a DGPS, parcela &amp; dělení, AR resekce a kalibrace, kubatury/vrstevnice, import DXF, katastr v AR i denní pomůcky.</p></span>'
             + '  </button>'
             + '</div>'
             + '<button class="btn btn-secondary" style="margin-top:12px;" id="agtp-pick-close">Zavřít</button>'

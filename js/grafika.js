@@ -851,7 +851,8 @@
         }
         // ==========================================================================
         mapContainerEl.addEventListener('touchstart', (e) => {
-            if (e.target.closest('.glass-panel, .leaflet-popup')) return;
+            // #map-controls = panel Mapa a vrstvy; jeho vlastní scroll nesmí hýbat mapou
+            if (e.target.closest('.glass-panel, .leaflet-popup, #map-controls')) return;
             clearTimeout(mapReturnTimer);
             // (Dříve se tu mapová tlačítka hned sbalila při každém doteku mapy — bylo to
             //  matoucí „všechno zmizí". Sbalení teď řídí jen přepínač, ne dotek mapy.)
@@ -859,8 +860,10 @@
             else if (e.touches.length === 1) { isDraggingMap = true; isPinchingMap = false; lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; }
         }, { passive: true });
         mapContainerEl.addEventListener('touchmove', (e) => {
-            // dotyk zacinajici na popupu (napr. 'Vzdalena oblast') patri popupu, ne mape -- jinak tah po popupu hybe mapou a preventDefault rusi klik na tlacitka
-            if (e.target.closest('.glass-panel, .leaflet-popup')) return;
+            // dotyk zacinajici na popupu (napr. 'Vzdalena oblast') nebo v panelu vrstev
+            // patri jim, ne mape -- jinak tah po nich hybe mapou a preventDefault
+            // rusi klik na tlacitka i scrollovani seznamu
+            if (e.target.closest('.glass-panel, .leaflet-popup, #map-controls')) return;
             if (e.touches.length >= 2) {
                 if (!isPinchingMap) { isPinchingMap = true; isDraggingMap = false; pinchStartDist = _touchDist(e.touches); pinchStartZoom = map.getZoom(); _tfmStart(e.touches); }
                 window._mapHold = true;

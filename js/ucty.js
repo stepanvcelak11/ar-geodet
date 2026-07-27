@@ -20,6 +20,8 @@
 //
 // Co modul dělá:
 //   • Přihlašovací/zamykací obrazovka (výběr uživatele + PIN, hash SHA-256+sůl)
+//   • Brzda proti hádání hesla: po 5 chybách zámek na 1 min, dál se čekání
+//     zdvojnásobuje (max 15 min); počítadlo přežije reload (LS_FAIL)
 //   • Vymáhání oprávnění: skrývá tlačítka doku, kategorie Nástrojů a záložky
 //     Nastavení podle role (admin bez omezení)
 //   • Přihlášený uživatel se propíše do localStorage 'arSurveyor' → žurnál bodů
@@ -62,6 +64,7 @@
     var LS_LAST = 'agFirmaLastUser_v1';// id naposledy přihlášeného (rychlé odemknutí)
     var LS_LOCKSTART = 'agLockStart_v1'; // '0' = NEvyžadovat přihlášení při startu (výchozí: vyžadovat)
     var LS_DEVU = 'agFirmaDevUsers_v1';  // id účtů, které se přihlásily na TOMTO zařízení
+    var LS_FAIL = 'agLoginFail_v1';      // brzda hádání hesla {n, until} — viz blok „ZAMYKÁNÍ" níže
     var STYLE_ID = 'ag-ucty-style';
     var DB = 'argeodet-usage', STORE = 'ev', VER = 1;
     // adresa API (Cloudflare Worker, cloud/worker.js). Konstanta je jen výchozí —
@@ -382,16 +385,17 @@
             for (i = 0; i < (f.users || []).length; i++) {
                 if (String(f.users[i].name).toLowerCase() === String(name).toLowerCase()) { u = f.users[i]; break; }
             }
-            if (u && u.disabled) return done('Účet je zablokovaný. Obrať se na admina.');
-            if (!u) return done('Bez signálu nelze ověřit nové jméno — poprvé se přihlas s internetem.');
+            if (u && u.disabled) return done('Účet je zablokovaný. Obrať se na admina.', null, true);
+            if (!u) return done('Bez signálu nelze ověřit nové jméno — poprvé se přihlas s internetem.', null, true);
             var ver = getOff()[u.id];
-            if (!ver) return done('Tento uživatel se na tomto zařízení ještě nepřihlásil online. Připoj se k internetu.');
+            if (!ver) return done('Tento uživatel se na tomto zařízení ještě nepřihlásil online. Připoj se k internetu.', null, true);
             pbkdf2Hex(pass, ver.salt, ver.iters).then(function (h) {
                 if (h && h === ver.hash) {
                     setSess({ userId: u.id, ts: Date.now() });
                     try { localStorage.setItem('arSurveyor', u.name); } catch (e) {}
                     done(null, u);
-                } else done(h ? 'Nesprávné heslo.' : 'Toto zařízení neumí offline ověření (chybí WebCrypto).');
+                } else if (h) done('Nesprávné heslo.');
+                else done('Toto zařízení neumí offline ověření (chybí WebCrypto).', null, true);
             });
         });
     }
@@ -1124,6 +1128,9 @@
             '  font:800 15px/1 var(--font-ui,system-ui);cursor:pointer;background:linear-gradient(135deg,#4ccd99,#2f9e74);',
             '  box-shadow:0 10px 26px rgba(47,158,116,0.38),inset 0 1px 0 rgba(255,255,255,0.35);transition:transform .12s ease,filter .12s ease;}',
             '#ag-login .agl-btn:active,#ag-gate .agl-btn:active{transform:scale(.97);filter:brightness(1.08);}',
+            // zámek po neúspěšných pokusech: tlačítko i pole zjevně nejdou použít
+            '#ag-login .agl-btn:disabled,#ag-gate .agl-btn:disabled{opacity:.45;filter:grayscale(.6);cursor:default;transform:none;}',
+            '#ag-login input:disabled,#ag-gate input:disabled{opacity:.5;}',
             '#ag-login .agl-ghost,#ag-gate .agl-ghost{background:transparent;color:var(--text-muted,#9aa1ac);border:none;',
             '  font:600 12.5px/1 var(--font-ui,system-ui);cursor:pointer;padding:10px;text-decoration:underline;text-decoration-color:transparent;',
             '  text-underline-offset:3px;transition:color .15s ease,text-decoration-color .15s ease;}',
@@ -1190,6 +1197,55 @@
         } catch (e) {}
     }
 
+    // ------------------------------------------------------------------
+    // ZAMYKÁNÍ po neúspěšných pokusech (brzda proti hádání PINu/hesla)
+    // PIN bývá čtyřmístný — bez brzdy ho zvládne kdokoli s telefonem v ruce
+    // vyzkoušet celý. Po 5 chybách se přihlašování na minutu zamkne a s každou
+    // další chybou se čekání zdvojnásobí (max 15 min). Počítadlo je v
+    // localStorage, takže restart appky ani reload stránky zámek neobejde.
+    // Úspěšné přihlášení počítadlo maže.
+    // ------------------------------------------------------------------
+    var FAIL_FREE = 5;              // kolik pokusů projde bez čekání
+    var FAIL_BASE = 60000;          // 1. zámek = 1 minuta
+    var FAIL_MAX = 900000;          // strop 15 minut
+    function failGet() {
+        try {
+            var o = JSON.parse(localStorage.getItem(LS_FAIL) || 'null');
+            if (o && typeof o.n === 'number') return { n: o.n, until: o.until || 0 };
+        } catch (e) {}
+        return { n: 0, until: 0 };
+    }
+    function failSet(o) { try { localStorage.setItem(LS_FAIL, JSON.stringify(o)); } catch (e) {} }
+    function failClear() { try { localStorage.removeItem(LS_FAIL); } catch (e) {} }
+    // zbývající zámek v ms (0 = smí se zkoušet)
+    function lockLeft() {
+        var o = failGet();
+        var left = (o.until || 0) - Date.now();
+        // hodiny posunuté dozadu by zámek natáhly donekonečna — strop je FAIL_MAX
+        if (left > FAIL_MAX) { failSet({ n: o.n, until: Date.now() + FAIL_MAX }); return FAIL_MAX; }
+        return left > 0 ? left : 0;
+    }
+    // zapíše chybu a vrátí délku nově nasazeného zámku v ms (0 = ještě se smí)
+    function failAdd() {
+        var o = failGet();
+        o.n = (o.n || 0) + 1;
+        var wait = 0;
+        if (o.n >= FAIL_FREE) {
+            wait = Math.min(FAIL_BASE * Math.pow(2, o.n - FAIL_FREE), FAIL_MAX);
+            o.until = Date.now() + wait;
+        }
+        failSet(o);
+        return wait;
+    }
+    function lockTxt(ms) {
+        var s2 = Math.ceil(ms / 1000);
+        if (s2 >= 60) {
+            var m = Math.floor(s2 / 60), r = s2 % 60;
+            return m + ' min' + (r ? ' ' + r + ' s' : '');
+        }
+        return s2 + ' s';
+    }
+
     var _selUser = null;
     function showLogin(lockMode) {
         var f = getFirm(); if (!f) return;
@@ -1247,8 +1303,11 @@
             var us = ov.querySelectorAll('.agl-user');
             for (var j = 0; j < us.length; j++) us[j].classList.toggle('sel', us[j].getAttribute('data-id') === id);
             if (!_selUser) return;
-            errEl.textContent = '';
             nameInp.style.display = 'none';
+            // běží-li zámek, nesmí ho obejít ani účet bez PINu, ani nové vybrání
+            // uživatele (to by jen přepsalo hlášku odpočtu)
+            if (lockLeft() > 0) { pinbox.classList.add('on'); startLockTick(); return; }
+            errEl.textContent = '';
             if (!cloud && (_selUser.noPin || !_selUser.pinHash)) { finish(_selUser); return; }
             pinbox.classList.add('on');
             pinInp.value = '';
@@ -1262,6 +1321,7 @@
         }
         // společný závěr (lokální i cloud — cloud má session/token už uložené)
         function afterLogin(u) {
+            failClear();   // úspěch = brzda hádání hesla se resetuje
             try { localStorage.setItem(LS_LAST, u.id); } catch (e) {}
             rememberDevUser(u.id);   // příště se nabídne jen na tomto zařízení
             ov.remove();
@@ -1272,16 +1332,52 @@
             try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: u } })); } catch (e) {}
             enterApp();
         }
-        function fail(msg) {
+        // odpočet zámku: dokud běží, je pole i tlačítko vypnuté a v chybové řádce
+        // tiká, za jak dlouho to půjde zkusit znovu
+        var _lockTimer = null;
+        var loginBtn = ov.querySelector('.agl-btn');
+        function lockTick() {
+            var left = lockLeft();
+            if (left <= 0) {
+                if (_lockTimer) { clearInterval(_lockTimer); _lockTimer = null; }
+                pinInp.disabled = false; nameInp.disabled = false;
+                if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Přihlásit'; }
+                errEl.textContent = 'Zkus to znovu.';
+                return;
+            }
+            pinInp.disabled = true; nameInp.disabled = true;
+            if (loginBtn) { loginBtn.disabled = true; loginBtn.textContent = 'Zamčeno'; }
+            errEl.textContent = 'Příliš mnoho pokusů — zkus to za ' + lockTxt(left) + '.';
+        }
+        function startLockTick() {
+            if (_lockTimer) clearInterval(_lockTimer);
+            lockTick();
+            _lockTimer = setInterval(lockTick, 1000);
+        }
+        function fail(msg, soft) {
+            // soft = chyba, která není špatné heslo (nedostupný server, neznámé jméno
+            // bez signálu) — takový pokus se do brzdy nezapočítává
+            if (soft) {
+                errEl.textContent = msg || 'Přihlášení selhalo.';
+                pinInp.value = '';
+                return;
+            }
+            var wait = failAdd();
             errEl.textContent = msg || 'Přihlášení selhalo.';
             pinInp.value = '';
             ov.classList.remove('agl-shake');
             void ov.offsetWidth;   // restart animace
             ov.classList.add('agl-shake');
+            if (wait > 0) startLockTick();
+            else {
+                var zb = FAIL_FREE - failGet().n;
+                if (zb <= 2) errEl.textContent += ' Zbývá ' + zb + (zb === 1 ? ' pokus' : ' pokusy') + ' do zamčení.';
+            }
         }
         var _busy = false;
         function submit() {
             if (_busy) return;
+            if (lockLeft() > 0) { startLockTick(); return; }
             var pin = pinInp.value || '';
             if (cloud) {
                 // jméno: vybraný uživatel, nebo ručně zadané („Přihlásit jiné jméno")
@@ -1289,9 +1385,9 @@
                 if (!nm) { errEl.textContent = 'Vyber uživatele nebo zadej jméno.'; return; }
                 _busy = true;
                 errEl.textContent = 'Ověřuji…';
-                cloudLogin(nm, pin, function (errMsg, u2) {
+                cloudLogin(nm, pin, function (errMsg, u2, soft) {
                     _busy = false;
-                    if (errMsg) return fail(errMsg);
+                    if (errMsg) return fail(errMsg, soft);
                     identRemember(u2, pin);   // stejný účet pak funguje i v dalších firmách
                     afterLogin(u2);
                 });
@@ -1346,6 +1442,9 @@
                 showGate();
             }
         });
+
+        // zámek z předchozích pokusů běží dál i po restartu appky
+        if (lockLeft() > 0) startLockTick();
 
         // předvyber jediného / naposledy přihlášeného uživatele (rychlé odemknutí
         // jedním tapem — heslo/PIN samozřejmě zůstává)
@@ -1434,8 +1533,25 @@
             });
         };
         var _busy = false;
-        ov.querySelector('#agg-go').onclick = function () {
+        // stejná brzda proti hádání jako na přihlašovací obrazovce (viz blok ZAMYKÁNÍ)
+        var _gateTimer = null;
+        var goBtn = ov.querySelector('#agg-go');
+        function gateLockTick() {
+            var left = lockLeft();
+            if (left <= 0) {
+                if (_gateTimer) { clearInterval(_gateTimer); _gateTimer = null; }
+                goBtn.disabled = false; goBtn.textContent = 'Přihlásit';
+                errEl.textContent = '';
+                return;
+            }
+            goBtn.disabled = true; goBtn.textContent = 'Zamčeno';
+            errEl.textContent = 'Příliš mnoho pokusů — zkus to za ' + lockTxt(left) + '.';
+        }
+        function gateLockStart() { if (_gateTimer) clearInterval(_gateTimer); gateLockTick(); _gateTimer = setInterval(gateLockTick, 1000); }
+        if (lockLeft() > 0) gateLockStart();
+        goBtn.onclick = function () {
             if (_busy) return;
+            if (lockLeft() > 0) { gateLockStart(); return; }
             var code = (ov.querySelector('#agg-code').value || '').trim().toUpperCase();
             var name = (ov.querySelector('#agg-name').value || '').trim();
             var pass = ov.querySelector('#agg-pass').value || '';
@@ -1445,14 +1561,20 @@
             cloudFetch('/login', { method: 'POST', api: gateApi, body: { code: code, name: name, password: pass } }).then(function (r) {
                 _busy = false;
                 if (r.ok && r.data && r.data.token) {
+                    failClear();
                     adoptLogin(r.data, gateApi);   // odstraní i bránu
                     usageLog('login', 'join');
                     try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: r.data.user } })); } catch (e) {}
                     return;
                 }
-                errEl.textContent = r.status === 0
-                    ? 'Server není dosažitelný — bez internetu se lze přihlásit jen k firmě, kterou toto zařízení už zná.'
-                    : ((r.data && r.data.error) || ('Přihlášení selhalo (' + r.status + ').'));
+                if (r.status === 0) {
+                    // server nedosažitelný není špatné heslo — pokus se nezapočítává
+                    errEl.textContent = 'Server není dosažitelný — bez internetu se lze přihlásit jen k firmě, kterou toto zařízení už zná.';
+                    return;
+                }
+                var wait = failAdd();
+                errEl.textContent = (r.data && r.data.error) || ('Přihlášení selhalo (' + r.status + ').');
+                if (wait > 0) gateLockStart();
             });
         };
         var passInp = ov.querySelector('#agg-pass');

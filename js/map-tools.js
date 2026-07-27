@@ -84,6 +84,17 @@
     }
     function syncAll() { syncBase(); syncTerrain(); syncBadge(); }
 
+    // ---- kompaktní režim: nízká mapa (Split) --------------------------------------
+    // Panel se stropem 430 px se do poloviční mapy nevejde; v kompaktu zmizí popisky
+    // pod názvy vrstev a smrsknou se odsazení, takže je vidět i spodní řada dlaždic.
+    function syncCompact() {
+        var box = controls(), sheet = $('map-sheet');
+        if (!box || !sheet) return;
+        var h = box.clientHeight || 0;
+        if (!h) return;                        // mapa schovaná (režim „jen AR")
+        sheet.classList.toggle('ms-compact', h < 430);
+    }
+
     // ---- volitelné řádky podle dostupných modulů ------------------------------------
     function wireOptionalRows() {
         var t = $('ms-terrain');
@@ -198,6 +209,7 @@
         wireOptionalRows();
         wireActions();
         adopt();
+        syncCompact();
         syncAll();
 
         // otevření panelu (odkudkoli — tlačítko v mapě i „Více") hlídáme na třídě
@@ -205,7 +217,7 @@
             var wasOpen = isOpen();
             new MutationObserver(function () {
                 var now = isOpen();
-                if (now && !wasOpen) { ensureMapVisible(); syncAll(); }
+                if (now && !wasOpen) { ensureMapVisible(); syncCompact(); syncAll(); }
                 wasOpen = now;
             }).observe(controls(), { attributes: true, attributeFilter: ['class'] });
         } catch (e) {}
@@ -233,14 +245,22 @@
             if (ev.key === 'Escape' && isOpen()) close();
         });
 
+        // změna velikosti mapy: přepnutí AR/Split/Mapa i tažení dělítka mezi kamerou
+        // a mapou (#resizer) mění výšku, od které se odvíjí kompaktní režim
+        window.addEventListener('resize', syncCompact);
+        window.addEventListener('orientationchange', function () { setTimeout(syncCompact, 250); });
+        try {
+            if (window.ResizeObserver && controls()) new ResizeObserver(syncCompact).observe(controls());
+        } catch (e) {}
+
         // vybledání + dopočet stavu (levné, sdílený UI časovač appky kvůli baterii)
         (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(function () {
-            try { syncFade(); if (isOpen()) syncAll(); } catch (e) {}
+            try { syncFade(); if (isOpen()) { syncCompact(); syncAll(); } } catch (e) {}
         }, 3000);
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
 
     // veřejné API (jiné moduly / hledání)
-    window.AGMapTools = { sync: syncAll, close: close, adopt: adopt };
+    window.AGMapTools = { sync: syncAll, close: close, adopt: adopt, compact: syncCompact };
 })();

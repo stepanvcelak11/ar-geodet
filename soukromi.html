@@ -20,7 +20,7 @@
 </head>
 <body>
     <h1>Zásady ochrany soukromí</h1>
-    <p class="muted">Aplikace AR Geodet · poslední aktualizace 25. 7. 2026</p>
+    <p class="muted">Aplikace AR Geodet · poslední aktualizace 27. 7. 2026</p>
 
     <h2>Provozovatel a vlastník</h2>
     <p>Aplikaci AR Geodet vytvořil, vlastní a provozuje <b>Štěpán Včelák</b> jako fyzická osoba.
@@ -28,9 +28,12 @@
     všechna práva vyhrazena.</p>
 
     <h2>Shrnutí</h2>
-    <p><b>AR Geodet nemá žádný vlastní server, žádné uživatelské účty v cloudu, žádnou analytiku a žádné reklamy.</b>
-    Všechna vaše data (body, zakázky, měření, nastavení, fotky) zůstávají uložená výhradně ve vašem zařízení
-    (localStorage / IndexedDB prohlížeče). Nikam je neodesíláme a nemáme k nim přístup.</p>
+    <p><b>AR Geodet nemá žádnou analytiku ani reklamy a v základním (osobním) použití nepotřebuje žádný účet.</b>
+    Vaše data (body, zakázky, měření, nastavení, fotky) zůstávají uložená ve vašem zařízení
+    (localStorage / IndexedDB prohlížeče) a samy od sebe nikam neodcházejí.</p>
+    <p>Existují tři výjimky, které <b>zapínáte vy</b> a jsou popsané níže: <a href="#firma">firemní režim</a>
+    (účty a sdílení dat v rámci firmy přes server aplikace), <a href="#hlas">přepis hlasových poznámek</a>
+    a dotazy na <a href="#tretistrany">služby třetích stran</a> (mapy, katastr, počasí).</p>
 
     <h2>Poloha (GPS)</h2>
     <p>Poloha se zpracovává přímo v zařízení — slouží k zobrazení vaší pozice na mapě, k navigaci na body
@@ -42,28 +45,55 @@
     <p>Obraz kamery slouží výhradně k zobrazení rozšířené reality (AR) a k funkcím jako čtení souřadnic z
     fotografie (OCR) — vše se zpracovává lokálně v zařízení. Záběry ani fotografie se nikam neodesílají.</p>
 
+    <h2 id="hlas">Mikrofon a hlasové poznámky</h2>
+    <p>Mikrofon se zapne jen po klepnutí na „Nahrát poznámku". Nahrávka se ukládá do vašeho zařízení.
+    Je-li zapnutý <b>přepis řeči na text</b> (lze vypnout přepínačem v nástroji), zvuk zpracovává
+    rozpoznávání řeči vestavěné v prohlížeči — to na většině zařízení <b>odesílá zvuk na server výrobce
+    prohlížeče či systému</b> (Google u Chromu a Androidu, Apple u Safari a iOS) a řídí se jeho zásadami
+    soukromí. S vypnutým přepisem zůstává nahrávka jen ve vašem telefonu.</p>
+
+    <h2 id="firma">Firemní režim (volitelný)</h2>
+    <p>Kdo appku používá ve firmě, může zapnout firemní režim. Pak se používá <b>server aplikace</b>
+    (Cloudflare Workers a databáze D1) a přes něj procházejí a ukládají se:</p>
+    <ul>
+        <li>účty zaměstnanců — jméno, role, ověřovací otisk hesla (hash, nikoli heslo samotné);</li>
+        <li>docházka — čas příchodu a odchodu, stavba, parta a činnost, poloha v okamžiku píchnutí;</li>
+        <li>firemní chat — text zpráv a případně poslané body;</li>
+        <li>volitelná synchronizace bodů zakázky mezi zařízeními firmy;</li>
+        <li>přehled užívání pro administrátora firmy (přihlášení, otevřené nástroje, operace s body).</li>
+    </ul>
+    <p>Tato data vidí administrátor příslušné firmy; provozovatel k nim přistupuje jen kvůli provozu
+    a údržbě služby. Bez přihlášení k firmě se na server neodesílá nic a appka funguje dál. Zařízení jde
+    od firmy kdykoli odpojit (Zapomenuté heslo → nouzové odpojení) — body a zakázky v telefonu zůstanou.</p>
+
     <h2>Senzory (kompas, gyroskop)</h2>
     <p>Údaje o orientaci zařízení se používají jen pro vykreslení AR scény a kompasu. Zařízení neopouštějí.</p>
 
-    <h2>Služby třetích stran</h2>
+    <h2 id="tretistrany">Služby třetích stran</h2>
     <p>Aby aplikace mohla zobrazit mapy a stáhnout geodetická data, komunikuje s těmito službami
     (ty při požadavku standardně vidí vaši IP adresu):</p>
     <ul>
         <li><b>ČÚZK</b> — body bodového pole, katastrální mapa, výškopis (© ČÚZK)</li>
         <li><b>OpenStreetMap / Mapy.cz</b> — mapové podklady</li>
-        <li><b>CelesTrak</b> — dráhy družic GNSS (predikce signálu)</li>
+        <li><b>CelesTrak</b> — dráhy družic GNSS (predikce signálu, GNSS předpověď)</li>
+        <li><b>NOAA SWPC</b> — geomagnetický index Kp</li>
+        <li><b>Open-Meteo, MET Norway, DWD</b> — předpověď počasí pro zadané souřadnice</li>
+        <li><b>RainViewer</b> — snímky srážkového radaru</li>
         <li><b>Google Fonts, unpkg (CDN)</b> — písma a knihovna mapy při prvním načtení</li>
         <li><b>GitHub Pages</b> — hosting aplikace a denního geodetického zpravodaje</li>
+        <li><b>Cloudflare</b> — server firemního režimu (jen když je zapnutý, viz výše)</li>
     </ul>
-    <p>Po uložení pro offline použití aplikace funguje bez připojení a žádné požadavky neodesílá.</p>
+    <p>Po uložení pro offline použití aplikace funguje bez připojení a kromě fronty firemního režimu
+    (odešle se, až bude signál) žádné požadavky neodesílá.</p>
 
     <h2>Zálohy a sdílení</h2>
     <p>Export dat (CSV, DXF, GeoJSON, .argeo…) i sdílení přes QR kód spouštíte vždy ručně vy a data
     putují jen tam, kam je sami pošlete.</p>
 
     <h2>Vaše práva</h2>
-    <p>Protože žádná vaše data neshromažďujeme, není co mazat na serveru — všechna data odstraníte
-    smazáním dat aplikace/prohlížeče ve svém zařízení.</p>
+    <p>Data uložená v zařízení odstraníte smazáním dat aplikace/prohlížeče. Používáte-li firemní režim,
+    o výmaz nebo kopii údajů uložených na serveru (účet, docházka, chat) požádejte administrátora své firmy,
+    případně provozovatele na kontaktu níže; vyřídíme je bez zbytečného odkladu.</p>
 
     <h2>Kontakt</h2>
     <p>Dotazy k soukromí: <a href="https://github.com/stepanvcelak11/ar-geodet/issues">github.com/stepanvcelak11/ar-geodet</a></p>
