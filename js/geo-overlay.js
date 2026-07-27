@@ -437,6 +437,11 @@
     }
     function enhance(ov, c) {
         if (!c.classList.contains('ag-scrollable')) c.classList.add('ag-scrollable');
+        // Křížek si od 27.7. bere js/modal-close.js — a dává ho VŠEM modálům, nejen
+        // nástrojovým. Bez tohohle návratu by na nástrojových oknech byly DVA křížky
+        // vedle sebe. Rolování (.ag-scrollable) výš zůstává na téhle vrstvě.
+        // Když modal-close.js odpojíš, křížek si tady zase začne dělat sám.
+        if (window.AGModalClose) return;
         if (c.querySelector('.ag-modal-x')) return;
         var wrap = document.createElement('div'); wrap.className = 'ag-modal-x';
         var b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', 'Zavřít'); b.textContent = '×';

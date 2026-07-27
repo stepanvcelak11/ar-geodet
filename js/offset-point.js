@@ -226,6 +226,11 @@
     function enhance(ov, c) {
         // scroll override JEN pro „ploché" modály (bez modal-body) — s modal-body by display:block rozbil layout
         if (!c.querySelector('.modal-body') && !c.classList.contains('ag-scrollable')) c.classList.add('ag-scrollable');
+        // Křížek si od 27.7. bere js/modal-close.js (a dává ho VŠEM modálům). Bez
+        // tohohle návratu by byly dva vedle sebe. Stejná zábrana je v geo-overlay.js,
+        // kde tenhle kód žije podruhé — sdílejí pojistku __agModalXTimer, takže
+        // pracuje vždycky jen jeden z nich.
+        if (window.AGModalClose) return;
         if (c.querySelector('.ag-modal-x')) return;   // křížek přidáváme VŽDY (i k modálům s modal-body)
         var wrap = document.createElement('div'); wrap.className = 'ag-modal-x';
         var b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', 'Zavřít'); b.textContent = '×';
