@@ -1,15 +1,26 @@
-// ===== AR Geodet — STAVOVÝ PRUH „MŮŽU TOMU VĚŘIT?" (ODPOJITELNÁ vrstva) =========
+// ===== AR Geodet — STAVOVÁ BUBLINA „MŮŽU TOMU VĚŘIT?" (ODPOJITELNÁ vrstva) =====
 // Neinvazivní vrstva: NEEDITUJE logika.js ani grafika.js, jen čte globály.
 // Odpovídá na jedinou otázku terénu: „můžu teď uložit bod, nebo je to k ničemu?"
 //
-//   • Tenký pruh nahoře uprostřed se 3–4 kontrolkami: GPS · AR/sever · Data ·
-//     Baterie (baterie jen kde ji prohlížeč umí — na iOS se schová).
-//   • Každá kontrolka je zelená/žlutá/červená. Klepnutí na pruh otevře detail,
-//     který NEříká „PDOP 4.2", ale „počkej 30 s / běž 5 m od zdi / srovnej sever".
+// JEDNA bublina nahoře uprostřed místo pěti rozházených panelů (na přání):
+//   • Sbaleno = semafor + dvě čísla:  ● ±0,8 m · 214,6°
+//     (tečka má barvu NEJHORŠÍHO ze stavů GPS / sever / data / baterie).
+//   • Když se stav zhorší, bublina se na 10 s rozšíří o krátký text („Srovnej
+//     sever") a pak se zase stáhne na tečku a čísla — neřve pořád.
+//   • Klepnutí = detail se ROZBALÍ NA MÍSTĚ (pod pilulkou, kamera zůstane vidět):
+//     řádky GPS · Sever · Data · Baterie s radou, co udělat, + akce
+//     Srovnat sever / Detail GPS / Skóre místa. Klepnutí mimo zavře.
 //   • Kalibrace severu má EXPIRACI: po 30 minutách nebo 200 m od místa srovnání
 //     zežloutne („srovnej znovu"). Zdroj: obalený nudgeHeadingOffset + AGPose.
-//   • Nic z obrazovky NEODEBÍRÁ — existující panely zůstávají (mají své přepínače).
-//     Pruh má vlastní přepínač v Nastavení → Vzhled; výchozí ZAPNUTO.
+//   • O polohu se stará sloupec upozornění (#ag-stack z js/upozorneni.js), který
+//     si bublinu adoptuje jako první prvek — pod ní se řadí ostatní hlášky, nikdy
+//     přes sebe. Bez toho modulu ji ukotví vlastní CSS (fixed, nahoře uprostřed).
+//
+// CO SE SLUČUJE (skryje se, dokud je bublina zapnutá — v DOM ale zůstává, takže
+// moduly, které na prvky sahají, jedou dál):
+//   #compass-debug (azimut) · #gps-avg (průměrování) · #ag-cstab (stabilita
+//   kompasu) · #info (stavové hlášky — propíšou se do bubliny na 6 s).
+// Vypnutím bubliny (Nastavení → Vzhled) se původní panely zase objeví.
 //
 // Odstranění: smaž js/stavovy-pruh.js + řádek <script> v index.html (a v sw.js).
 // ================================================================================
@@ -21,15 +32,26 @@
     var TILE_CACHE = 'argeodet-offline-v12';   // shodné se sw.js / logika.js
     var CAL_MAX_AGE = 30 * 60 * 1000;      // 30 min
     var CAL_MAX_DIST = 200;                // m od místa srovnání
+    var ALERT_MS = 10000;                  // jak dlouho svítí text upozornění po změně
+    var MSG_MS = 6000;                     // jak dlouho svítí hláška z #info
+
+    var HIDE_IDS = ['compass-debug', 'gps-avg', 'ag-cstab', 'info'];
 
     var _bat = null;                        // {level,charging} nebo null (nepodporováno)
     var _tilesCached = null;                // null = nezjištěno, jinak boolean
     var _lastFixTs = null, _lastLat = null, _lastLng = null;
+    var _open = false;                      // rozbalený detail
+    var _alertKey = null, _alertTs = 0;     // co a odkdy hlásíme v hlavičce
+    var _msg = null, _msgTs = 0;            // poslední hláška z #info
+    var _lastHead = '', _lastBody = '';     // co už je v DOM (nepřepisovat zbytečně)
+    var _azTs = 0;                          // škrcení přepisů azimutu (viz mirrorAz)
 
     function on() { try { return localStorage.getItem(BAR_KEY) !== '0'; } catch (e) { return true; } }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function calInfo() { try { return JSON.parse(localStorage.getItem(CAL_KEY)); } catch (e) { return null; } }
+    function num(v, d) { var s = (+v).toFixed(d == null ? 1 : d); return s.replace('.', ','); }
+    function metry(v) { return (v >= 10 ? num(v, 0) : num(v, 1)) + ' m'; }
 
     // ---- sběr stavů -----------------------------------------------------------------
     // GPS: přesnost + čerstvost fixu (změna souřadnic = fix; watchPosition v logice
@@ -39,15 +61,25 @@
         if (!haveUser() || acc == null) return { c: 'red', t: 'GPS —', d: 'Bez GPS fixu.', a: 'Jdi pod otevřené nebe a počkej. V budově GPS nechytneš.' };
         var age = _lastFixTs ? (Date.now() - _lastFixTs) : null;
         if (age != null && age > 30000) return { c: 'red', t: 'GPS ztracena', d: 'Poslední fix před ' + Math.round(age / 1000) + ' s.', a: 'Signál se ztratil — vyjdi zpod střechy/stromů a počkej na nový fix.' };
-        if (acc <= 5 && (age == null || age <= 12000)) return { c: 'green', t: 'GPS ±' + acc.toFixed(0) + ' m', d: 'Přesnost ±' + acc.toFixed(1) + ' m, fix čerstvý.', a: 'Dobré podmínky. Pro bod nech doběhnout průměrování.' };
-        if (acc <= 15) return { c: 'yellow', t: 'GPS ±' + acc.toFixed(0) + ' m', d: 'Přesnost ±' + acc.toFixed(1) + ' m.', a: 'Počkej 30–60 s v klidu, nebo poodejdi 5 m od zdí a aut. Pomůže i „Predikce signálu" v Nástrojích.' };
-        return { c: 'red', t: 'GPS ±' + acc.toFixed(0) + ' m', d: 'Přesnost ±' + acc.toFixed(1) + ' m — na ukládání bodů to nestačí.', a: 'Přesuň se na volné prostranství. Pro co nejlepší bod z telefonu použij „Brutální GPS".' };
+        if (acc <= 5 && (age == null || age <= 12000)) return { c: 'green', t: 'GPS ±' + acc.toFixed(0) + ' m', d: 'Přesnost ±' + num(acc) + ' m, fix čerstvý.', a: 'Dobré podmínky. Pro bod nech doběhnout průměrování.' };
+        if (acc <= 15) return { c: 'yellow', t: 'GPS ±' + acc.toFixed(0) + ' m', d: 'Přesnost ±' + num(acc) + ' m.', a: 'Počkej 30–60 s v klidu, nebo poodejdi 5 m od zdí a aut. Pomůže i „Predikce signálu" v Nástrojích.' };
+        return { c: 'red', t: 'GPS ±' + acc.toFixed(0) + ' m', d: 'Přesnost ±' + num(acc) + ' m — na ukládání bodů to nestačí.', a: 'Přesuň se na volné prostranství. Pro co nejlepší bod z telefonu použij „Brutální GPS".' };
+    }
+    // průměrování GPS (dřívější panel #gps-avg): {txt, detail} nebo null
+    function avgInfo() {
+        var r = null;
+        try { r = (typeof gpsAvgResult !== 'undefined') ? gpsAvgResult : null; } catch (e) { r = null; }
+        if (!r) return null;
+        if (r.coarse) return { txt: null, detail: 'Síťová poloha ±' + Math.round(r.acc) + ' m — počkej na satelitní fix.' };
+        if (!(r.n >= 2)) return { txt: null, detail: 'Průměruji…' };
+        var kolik = (r.total && r.total > r.n) ? (r.n + ' z ' + r.total) : ('' + r.n);
+        return { txt: '⌀ ±' + num(r.sterr, 2) + ' m', detail: 'Průměr z <b>' + kolik + ' měření</b>, rozptyl ±' + num(r.sigma, 2) + ' m.' };
     }
     // AR / sever: resekce (AGPose) > ruční srovnání (calInfo) > nic
     function arState() {
         if (window.AGPose && window.AGPose.valid && window.AGPose.source === 'resection') {
             var age = Math.round((Date.now() - (window.AGPose.ts || 0)) / 60000);
-            return { c: 'green', t: 'AR ✓ resekce', d: 'Stanovisko zakotveno resekcí' + (age ? ' před ' + age + ' min' : '') + (window.AGPose.posSigma != null ? ' (±' + window.AGPose.posSigma.toFixed(2) + ' m)' : '') + '.', a: 'Nejlepší možný stav. Když poodejdeš, kotva se sama zruší.' };
+            return { c: 'green', t: 'AR ✓ resekce', d: 'Stanovisko zakotveno resekcí' + (age ? ' před ' + age + ' min' : '') + (window.AGPose.posSigma != null ? ' (±' + num(window.AGPose.posSigma, 2) + ' m)' : '') + '.', a: 'Nejlepší možný stav. Když poodejdeš, kotva se sama zruší.' };
         }
         var ci = calInfo();
         var hoff = (typeof userHeadingOffset !== 'undefined') ? userHeadingOffset : 0;
@@ -57,10 +89,18 @@
             if (haveUser() && ci.lat != null && typeof getDistance === 'function') { try { dist = getDistance(userLat, userLng, ci.lat, ci.lng); } catch (e) {} }
             var stale = ageMs > CAL_MAX_AGE || (dist != null && dist > CAL_MAX_DIST);
             if (!stale) return { c: 'green', t: 'AR ✓', d: 'Sever srovnán před ' + Math.round(ageMs / 60000) + ' min' + (dist != null ? ' (' + Math.round(dist) + ' m odsud)' : '') + '.', a: 'Platí. Po přesunu jinam nebo za ~30 min srovnej znovu.' };
-            return { c: 'yellow', t: 'AR ?', d: 'Sever byl srovnán před ' + Math.round(ageMs / 60000) + ' min' + (dist != null ? ' a ' + Math.round(dist) + ' m odsud' : '') + ' — už nemusí platit.', a: 'Otevři Nástroje → „Usadit AR" a srovnej znovu podle bodu.' };
+            return { c: 'yellow', t: 'AR ?', d: 'Sever byl srovnán před ' + Math.round(ageMs / 60000) + ' min' + (dist != null ? ' a ' + Math.round(dist) + ' m odsud' : '') + ' — už nemusí platit.', a: 'Srovnej znovu podle bodu — tlačítko níž.' };
         }
-        if (hoff) return { c: 'yellow', t: 'AR ~', d: 'Sever má ruční korekci, ale nevím odkdy.', a: 'Když značky nesedí, srovnej znovu: Nástroje → „Usadit AR".' };
-        return { c: 'yellow', t: 'AR kompas', d: 'Sever jede jen z kompasu telefonu (typicky ±5–15°).', a: 'Pro přesné cílení srovnej sever podle známého bodu: Nástroje → „Usadit AR".' };
+        if (hoff) return { c: 'yellow', t: 'AR ~', d: 'Sever má ruční korekci, ale nevím odkdy.', a: 'Když značky nesedí, srovnej znovu — tlačítko níž.' };
+        return { c: 'yellow', t: 'AR kompas', d: 'Sever jede jen z kompasu telefonu (typicky ±5–15°).', a: 'Pro přesné cílení srovnej sever podle známého bodu — tlačítko níž.' };
+    }
+    // stabilita kompasu (dřívější prvek #ag-cstab) — jen doplněk do řádku Sever
+    function cstabText() {
+        try {
+            var s = window.AGCompassStability ? window.AGCompassStability.score : null;
+            if (s == null) return '';
+            return ' Kompas ' + (s >= 70 ? 'klidný' : (s >= 40 ? 'kolísá' : 'neklidný')) + ' (' + s + ' %).';
+        } catch (e) { return ''; }
     }
     function dataState() {
         var onl = (typeof navigator !== 'undefined') ? navigator.onLine : true;
@@ -77,14 +117,39 @@
         return { c: 'red', t: p + '%', d: 'Baterie ' + p + ' % — dojede ti během měření.', a: 'Zapni úsporný režim telefonu, používej jen mapu a zavři AR. Data máš uložená průběžně.' };
     }
 
-    // ---- QC do detailu (existující brána z qc-engine, jen ji ukazujeme) --------------
-    function qcHtml() {
-        try {
-            if (!window.AGQc || !AGQc.target) return '';
-            var t = AGQc.target();
-            if (!t) return '';
-            return '<div class="ag-sp-qc">Cílová třída zakázky: <b>' + esc(String(t)) + '</b> — appka při ukládání hlídá, jestli na ni přesnost stačí.</div>';
-        } catch (e) { return ''; }
+    // ---- hlavička bubliny --------------------------------------------------------
+    // azimut zrcadlíme z #compass-debug (jednotné jednotky °/gon i varování ⚠,
+    // které tam píše grafika.js) — bez vlastního přepočtu a vlastního časovače
+    function azHtml() {
+        var el = document.getElementById('compass-debug');
+        if (!el) return '';
+        var h = el.innerHTML || '';
+        h = h.replace(/<span class="hud-k">[^<]*<\/span>/i, '').trim();
+        if (!h || /^--/.test(h)) return '';
+        return h;
+    }
+    function accHtml() {
+        var a = avgInfo();
+        if (a && a.txt) return a.txt;                                     // průměr, když už dává smysl
+        var acc = (typeof currentGpsAccuracy !== 'undefined' && currentGpsAccuracy) ? currentGpsAccuracy : null;
+        return acc ? ('±' + metry(acc)) : '—';
+    }
+    // co je nejhorší a jak to pojmenovat jednou větou
+    function alertFor(g, ar, d, b) {
+        if (g.c === 'red') return { c: 'red', k: 'gps-r', t: 'GPS nestačí' };
+        if (d.c === 'red') return { c: 'red', k: 'data-r', t: 'Offline bez mapy' };
+        if (b && b.c === 'red') return { c: 'red', k: 'bat-r', t: 'Baterie dochází' };
+        if (g.c === 'yellow') return { c: 'yellow', k: 'gps-y', t: 'Slabá GPS' };
+        if (ar.c === 'yellow') return { c: 'yellow', k: 'ar-y', t: 'Srovnej sever' };
+        if (d.c === 'yellow') return { c: 'yellow', k: 'data-y', t: 'Jedeš offline' };
+        if (b && b.c === 'yellow') return { c: 'yellow', k: 'bat-y', t: 'Slabá baterie' };
+        return null;
+    }
+    function worst(g, ar, d, b) {
+        var cs = [g.c, ar.c, d.c].concat(b ? [b.c] : []);
+        if (cs.indexOf('red') >= 0) return 'red';
+        if (cs.indexOf('yellow') >= 0) return 'yellow';
+        return 'green';
     }
 
     // ---- styly -----------------------------------------------------------------------
@@ -93,38 +158,58 @@
         var st = document.createElement('style');
         st.id = 'ag-sp-style';
         st.textContent = [
+            // bublina
             '#ag-sp{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 4px);z-index:645;',
-            '  display:none;align-items:center;gap:2px;padding:4px 7px;border-radius:999px;',
+            '  display:none;flex-direction:column;border-radius:18px;overflow:hidden;cursor:pointer;',
             '  background:var(--glass-bg,rgba(18,22,28,0.88));border:1px solid var(--glass-border,rgba(255,255,255,0.12));',
-            '  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 2px 10px rgba(0,0,0,0.35);cursor:pointer;',
-            '  font:600 11px/1 var(--font-ui,system-ui);color:var(--text-color,#eceef2);white-space:nowrap;max-width:96vw;}',
+            '  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 2px 10px rgba(0,0,0,0.35);',
+            '  font:600 12.5px/1 var(--font-ui,system-ui);color:var(--text-color,#eceef2);max-width:94vw;}',
             'body.app-started #ag-sp.ag-sp-on{display:flex;}',
-            '.ag-sp-seg{display:inline-flex;align-items:center;gap:4px;padding:3px 6px;border-radius:999px;}',
-            '.ag-sp-dot{width:7px;height:7px;border-radius:50%;flex:0 0 auto;}',
+            '#ag-sp.ag-sp-open{border-radius:16px;}',
+            '#ag-sp.ui-faded{opacity:0.3;}',
+            // hlavička (sbalený stav)
+            '.ag-sp-head{display:flex;align-items:center;gap:7px;padding:7px 13px;white-space:nowrap;',
+            '  font-variant-numeric:tabular-nums;}',
+            '.ag-sp-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}',
             '.ag-sp-dot.green{background:#34d399;box-shadow:0 0 5px rgba(52,211,153,0.8);}',
             '.ag-sp-dot.yellow{background:#fbbf24;box-shadow:0 0 5px rgba(251,191,36,0.8);}',
             '.ag-sp-dot.red{background:#fb7185;box-shadow:0 0 5px rgba(251,113,133,0.9);animation:agSpBlink 1.2s ease-in-out infinite;}',
             '@keyframes agSpBlink{0%,100%{opacity:1}50%{opacity:0.35}}',
-            'body.outdoor-mode #ag-sp{background:#0a0e1a;border-color:rgba(255,255,255,0.85);font-size:12px;}',
-            'body.light-mode.outdoor-mode #ag-sp{background:#fff;border-color:rgba(10,14,26,0.7);}',
-            'body.ag-glove #ag-sp{padding:6px 9px;font-size:12.5px;}',
-            // detail
-            '#ag-sp-ov{position:fixed;inset:0;z-index:1000058;display:none;align-items:center;justify-content:center;background:rgba(4,8,12,0.6);}',
-            '#ag-sp-ov.open{display:flex;}',
-            '#ag-sp-card{width:min(94vw,440px);max-height:84vh;overflow:auto;padding:20px;border-radius:18px;',
-            '  background:var(--glass-bg,rgba(14,18,24,0.97));border:1px solid var(--glass-border-strong,rgba(255,255,255,0.16));color:var(--text-color,#eceef2);}',
-            '#ag-sp-card h3{margin:0 0 12px;color:var(--accent,#2f9e74);font-size:17px;}',
-            '.ag-sp-row{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.07));}',
+            '.ag-sp-num{font-family:var(--font-mono,ui-monospace,Menlo,monospace);font-weight:700;color:var(--data,#e6bd76);}',
+            '.ag-sp-num sup{font-size:9px;margin-left:1px;opacity:0.7;}',
+            '.ag-sp-sep{opacity:0.32;}',
+            '.ag-sp-alert{font-weight:700;}',
+            '.ag-sp-alert.yellow{color:var(--warning,#fbbf24);}',
+            '.ag-sp-alert.red{color:var(--danger,#fb7185);}',
+            '.ag-sp-msg{font-weight:600;opacity:0.85;max-width:46vw;overflow:hidden;text-overflow:ellipsis;}',
+            '.ag-sp-caret{font-size:9px;opacity:0.45;margin-left:1px;}',
+            // rozbalený detail (na místě, pod hlavičkou)
+            '.ag-sp-body{width:min(86vw,336px);padding:2px 13px 11px;border-top:1px solid var(--glass-border,rgba(255,255,255,0.1));',
+            '  cursor:default;animation:agSpIn 0.16s ease both;}',
+            '@keyframes agSpIn{from{opacity:0;transform:translateY(-4px);}}',
+            '.ag-sp-row{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.07));}',
             '.ag-sp-row:last-of-type{border-bottom:none;}',
-            '.ag-sp-row .ag-sp-dot{width:11px;height:11px;margin-top:3px;}',
-            '.ag-sp-row b{display:block;font-size:14px;margin-bottom:2px;}',
-            '.ag-sp-row p{margin:0;font-size:13px;line-height:1.45;color:var(--text-muted,#9aa1ac);}',
-            '.ag-sp-row p.ag-sp-a{color:var(--text-color,#eceef2);margin-top:3px;}',
+            '.ag-sp-row .ag-sp-dot{margin-top:4px;}',
+            '.ag-sp-k{font-size:11.5px;font-weight:700;width:52px;flex:0 0 auto;}',
+            '.ag-sp-v{flex:1;min-width:0;font:400 11.5px/1.4 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);white-space:normal;}',
+            '.ag-sp-v b{color:var(--text-color,#eceef2);font-weight:600;}',
+            '.ag-sp-v .ag-sp-a{display:block;margin-top:2px;color:var(--text-color,#eceef2);}',
             '.ag-sp-a::before{content:"→ ";color:var(--accent,#2f9e74);font-weight:700;}',
-            '.ag-sp-qc{margin-top:10px;padding:9px 12px;border-radius:10px;background:var(--surface-1,rgba(255,255,255,0.05));font-size:12.5px;color:var(--text-muted,#9aa1ac);}',
-            '#ag-sp-card .ag-sp-close{width:100%;margin-top:14px;padding:12px;border:none;border-radius:12px;background:var(--surface-2,rgba(255,255,255,0.1));color:inherit;font-weight:600;cursor:pointer;}',
-            'body.outdoor-mode #ag-sp-card{background:#0a0e1a;}',
-            'body.light-mode.outdoor-mode #ag-sp-card{background:#fff;}'
+            '.ag-sp-acts{display:flex;gap:6px;margin-top:10px;}',
+            '.ag-sp-acts button{flex:1;padding:9px 5px;border-radius:10px;cursor:pointer;',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:var(--surface-2,rgba(255,255,255,0.07));',
+            '  color:inherit;font:600 10.5px/1.15 var(--font-ui,system-ui);}',
+            '.ag-sp-acts button.ag-sp-prim{background:var(--accent,#2f9e74);border-color:transparent;color:#fff;}',
+            '.ag-sp-off{width:100%;margin-top:8px;padding:8px;border-radius:10px;cursor:pointer;background:transparent;',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.12));color:var(--text-muted,#9aa1ac);font:600 10.5px/1 var(--font-ui,system-ui);}',
+            // venku dobře viditelná varianta
+            'body.outdoor-mode #ag-sp{background:#0a0e1a;border-color:rgba(255,255,255,0.85);font-size:13px;}',
+            'body.light-mode.outdoor-mode #ag-sp{background:#fff;border-color:rgba(10,14,26,0.7);}',
+            'body.ag-glove #ag-sp .ag-sp-head{padding:9px 15px;font-size:13.5px;}',
+            'body.ag-glove #ag-sp .ag-sp-acts button{padding:12px 5px;}',
+            // sloučené panely — dokud je bublina zapnutá, jsou schované (v DOM zůstávají)
+            'body.ag-bubble #compass-debug,body.ag-bubble #gps-avg,',
+            'body.ag-bubble #ag-cstab,body.ag-bubble #info{display:none !important;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
@@ -136,51 +221,119 @@
         el = document.createElement('div');
         el.id = 'ag-sp';
         el.setAttribute('role', 'button');
-        el.setAttribute('aria-label', 'Stav měření — klepni pro rady');
-        el.addEventListener('click', openDetail);
+        el.setAttribute('tabindex', '0');
+        el.setAttribute('aria-label', 'Stav měření — klepni pro detail a rady');
+        el.addEventListener('click', function (e) {
+            if (e.target.closest('.ag-sp-body')) return;   // klik uvnitř detailu nezavírá
+            toggle();
+        });
+        el.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+        });
         (document.body || document.documentElement).appendChild(el);
+        // pozici NEŘEŠÍME přes AGHud (drag/pinch) — sloupec #ag-stack prvek adoptuje
+        // a přepne na position:static, takže by tažení stejně nic nedělalo
+        mirrorAz();
+        mirrorInfo();
+        mirrorFade();
         return el;
     }
-    function seg(s, label) {
-        return '<span class="ag-sp-seg"><span class="ag-sp-dot ' + s.c + '"></span>' + esc(label || s.t) + '</span>';
+    function toggle() {
+        _open = !_open;
+        if (_open) _alertTs = 0;      // po otevření už není co blikat v hlavičce
+        _lastHead = _lastBody = '';   // vynutit překreslení
+        renderBar();
+    }
+    function close() { if (!_open) return; _open = false; _lastHead = _lastBody = ''; renderBar(); }
+
+    function headHtml(g, ar, d, b) {
+        var w = worst(g, ar, d, b);
+        var h = '<span class="ag-sp-dot ' + w + '"></span>';
+        // hláška z #info má přednost (je krátkodobá: „Stahuji data…")
+        if (_msg && (Date.now() - _msgTs) < MSG_MS) {
+            h += '<span class="ag-sp-msg">' + esc(_msg) + '</span>';
+        } else {
+            var al = alertFor(g, ar, d, b);
+            if (al && (Date.now() - _alertTs) < ALERT_MS) h += '<span class="ag-sp-alert ' + al.c + '">' + esc(al.t) + '</span><span class="ag-sp-sep">·</span>';
+        }
+        h += '<span class="ag-sp-num ag-sp-acc">' + esc(accHtml()) + '</span>';
+        var az = azHtml();
+        if (az) h += '<span class="ag-sp-sep">·</span><span class="ag-sp-num ag-sp-az">' + az + '</span>';
+        h += '<span class="ag-sp-caret">' + (_open ? '▴' : '▾') + '</span>';
+        return h;
+    }
+    function row(name, s, extra) {
+        if (!s) return '';
+        return '<div class="ag-sp-row"><span class="ag-sp-dot ' + s.c + '"></span><span class="ag-sp-k">' + esc(name) + '</span>'
+            + '<span class="ag-sp-v">' + esc(s.d) + (extra || '') + (s.a ? '<span class="ag-sp-a">' + esc(s.a) + '</span>' : '') + '</span></div>';
+    }
+    function qcHtml() {
+        try {
+            if (!window.AGQc || !AGQc.target) return '';
+            var t = AGQc.target();
+            if (!t) return '';
+            return ' Cílová třída zakázky <b>' + esc(String(t)) + '</b> — appka ji při ukládání hlídá.';
+        } catch (e) { return ''; }
+    }
+    function actsHtml() {
+        var h = '';
+        if (typeof window.agOpenCalibrate === 'function' || typeof window.openCompassModal === 'function') h += '<button type="button" class="ag-sp-prim" data-act="sever">Srovnat sever</button>';
+        if (typeof window.openGpsAvgModal === 'function') h += '<button type="button" data-act="gps">Detail GPS</button>';
+        if (window.AGSemafor && AGSemafor.open) h += '<button type="button" data-act="skore">Skóre místa</button>';
+        return h ? '<div class="ag-sp-acts">' + h + '</div>' : '';
+    }
+    function bodyHtml(g, ar, d, b) {
+        var a = avgInfo();
+        var gExtra = (a && a.detail) ? (' ' + a.detail) : '';
+        var az = azHtml();
+        var arExtra = (az ? (' Azimut <b>' + az + '</b>.') : '') + cstabText();
+        return row('GPS', g, gExtra + qcHtml())
+            + row('Sever', ar, arExtra)
+            + row('Data', d)
+            + row('Baterie', b)
+            + actsHtml()
+            + '<button type="button" class="ag-sp-off" data-act="off">Vypnout bublinu (vrátí původní panely)</button>';
     }
     function renderBar() {
         var el = ensureBar();
-        el.classList.toggle('ag-sp-on', on());
-        if (!on()) return;
-        var g = gpsState(), a = arState(), d = dataState(), b = batState();
-        el.innerHTML = seg(g) + seg(a) + seg(d, d.t) + (b ? seg(b) : '');
+        var live = on();
+        el.classList.toggle('ag-sp-on', live);
+        document.body.classList.toggle('ag-bubble', live);
+        if (!live) { if (_open) _open = false; return; }
+
+        var g = gpsState(), ar = arState(), d = dataState(), b = batState();
+        // změna problému → znovu na 10 s ukázat text
+        var al = alertFor(g, ar, d, b);
+        var key = al ? al.k : null;
+        if (key !== _alertKey) { _alertKey = key; _alertTs = key ? Date.now() : 0; }
+
+        var head = headHtml(g, ar, d, b);
+        var body = _open ? bodyHtml(g, ar, d, b) : '';
+        if (head === _lastHead && body === _lastBody) return;   // nic se nezměnilo — nepsat do DOM
+        _lastHead = head; _lastBody = body;
+        el.classList.toggle('ag-sp-open', _open);
+        el.setAttribute('aria-expanded', _open ? 'true' : 'false');
+        el.innerHTML = '<div class="ag-sp-head">' + head + '</div>' + (_open ? '<div class="ag-sp-body">' + body + '</div>' : '');
+        var bodyEl = el.querySelector('.ag-sp-body');
+        if (bodyEl) bodyEl.addEventListener('click', onAct);
     }
-    function ensureDetail() {
-        var m = document.getElementById('ag-sp-ov');
-        if (!m) {
-            m = document.createElement('div'); m.id = 'ag-sp-ov';
-            m.innerHTML = '<div id="ag-sp-card"><h3>Můžu teď měřit?</h3><div id="ag-sp-rows"></div>'
-                + '<button type="button" class="ag-sp-close">Zavřít</button>'
-                + '<button type="button" class="ag-sp-close ag-sp-off" style="background:transparent;border:1px solid var(--glass-border,rgba(255,255,255,0.14));color:var(--text-muted,#9aa1ac);margin-top:8px;">Vypnout stavový pruh</button></div>';
-            m.addEventListener('click', function (e) { if (e.target === m) m.classList.remove('open'); });
-            m.querySelector('.ag-sp-close').addEventListener('click', function () { m.classList.remove('open'); });
-            // vypnutí rovnou odsud — zpátky ho zapneš v Nastavení → Vzhled
-            m.querySelector('.ag-sp-off').addEventListener('click', function () {
-                try { localStorage.setItem(BAR_KEY, '0'); } catch (e) {}
+    function onAct(e) {
+        var btn = e.target.closest('button[data-act]');
+        if (!btn) return;
+        e.stopPropagation();
+        var act = btn.getAttribute('data-act');
+        close();
+        try {
+            if (act === 'sever') { if (typeof window.agOpenCalibrate === 'function') window.agOpenCalibrate(); else if (typeof window.openCompassModal === 'function') window.openCompassModal(); }
+            else if (act === 'gps') { if (typeof window.openGpsAvgModal === 'function') window.openGpsAvgModal(); }
+            else if (act === 'skore') { if (window.AGSemafor && AGSemafor.open) AGSemafor.open(); }
+            else if (act === 'off') {
+                try { localStorage.setItem(BAR_KEY, '0'); } catch (err) {}
                 var cb = document.querySelector('#ag-sp-row-set input'); if (cb) cb.checked = false;
-                m.classList.remove('open');
                 renderBar();
-                try { if (typeof quickToast === 'function') quickToast('Stavový pruh vypnut. Zapneš ho v Nastavení → Vzhled.'); } catch (e) {}
-            });
-            document.body.appendChild(m);
-        }
-        return m;
-    }
-    function row(name, s) {
-        if (!s) return '';
-        return '<div class="ag-sp-row"><span class="ag-sp-dot ' + s.c + '"></span><span style="flex:1;min-width:0;"><b>' + esc(name) + '</b><p>' + esc(s.d) + '</p>' + (s.a ? '<p class="ag-sp-a">' + esc(s.a) + '</p>' : '') + '</span></div>';
-    }
-    function openDetail() {
-        var m = ensureDetail();
-        var rows = m.querySelector('#ag-sp-rows');
-        rows.innerHTML = row('GPS', gpsState()) + row('AR / sever', arState()) + row('Data a mapa', dataState()) + row('Baterie', batState()) + qcHtml();
-        m.classList.add('open');
+                if (typeof quickToast === 'function') quickToast('Bublina vypnuta — původní panely jsou zpět. Zapneš ji v Nastavení → Vzhled.');
+            }
+        } catch (err) {}
     }
 
     // ---- přepínač v Nastavení → Vzhled --------------------------------------------------
@@ -191,12 +344,15 @@
         row.className = 'st-row'; row.id = 'ag-sp-row-set';
         var lab = document.createElement('span');
         lab.className = 'st-lab';
-        lab.innerHTML = 'Stavový pruh „Můžu měřit?"<small>GPS · sever · data · baterie nahoře, klepnutí poradí co dál</small>';
+        lab.innerHTML = 'Stavová bublina<small>GPS · sever · data · baterie v jedné bublině nahoře; vypnutím se vrátí původní panely</small>';
         var sw = document.createElement('label'); sw.className = 'st-sw';
         var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = on();
         cb.addEventListener('change', function () {
             try { localStorage.setItem(BAR_KEY, cb.checked ? '1' : '0'); } catch (e) {}
+            _open = false; _lastHead = _lastBody = '';
             renderBar();
+            // po zapnutí bubliny musí původní panely zmizet, po vypnutí se řídí svými přepínači
+            try { if (typeof toggleHudElements === 'function') toggleHudElements(); } catch (e) {}
         });
         var face = document.createElement('span'); face.className = 'st-sw-face';
         sw.appendChild(cb); sw.appendChild(face);
@@ -216,6 +372,57 @@
             return r;
         };
         window.__agSpCalWrapped = true;
+    }
+    // azimut: přepisujeme jen když se text v #compass-debug opravdu změní
+    // (grafika.js tam píše taky jen při změně) — žádný vlastní časovač navíc
+    function mirrorAz() {
+        try {
+            var src = document.getElementById('compass-debug');
+            if (!src || window.__agSpAzMo || typeof MutationObserver === 'undefined') return;
+            window.__agSpAzMo = new MutationObserver(function () {
+                if (!on()) return;
+                // grafika.js přepisuje azimut i 60×/s — do bubliny stačí 5×/s
+                // (co se nestihne, dorovná pravidelný tick); jinak zbytečně žere baterii
+                var t = Date.now();
+                if (t - _azTs < 200) return;
+                _azTs = t;
+                var el = document.querySelector('#ag-sp .ag-sp-az');
+                var az = azHtml();
+                if (el && az) { el.innerHTML = az; _lastHead = ''; }
+                else if (!el) { _lastHead = ''; renderBar(); }
+            });
+            window.__agSpAzMo.observe(src, { childList: true, subtree: true, characterData: true });
+        } catch (e) {}
+    }
+    // stavové hlášky z #info („Stahuji data…", chyba GPS) — ukázat v bublině na 6 s
+    function mirrorInfo() {
+        try {
+            var src = document.getElementById('info');
+            if (!src || window.__agSpInfoMo || typeof MutationObserver === 'undefined') return;
+            window.__agSpInfoMo = new MutationObserver(function () {
+                var t = (src.textContent || '').replace(/\s+/g, ' ').trim();
+                if (!t || t === _msg) return;
+                _msg = t; _msgTs = Date.now(); _lastHead = '';
+                renderBar();
+            });
+            window.__agSpInfoMo.observe(src, { childList: true, subtree: true, characterData: true });
+        } catch (e) {}
+    }
+    // vyblednutí HUD po nečinnosti: zrcadlíme .ui-faded z #compass-debug (řeší grafika.js)
+    function syncFade() {
+        var el = document.getElementById('ag-sp'); if (!el) return;
+        if (_open) { el.classList.remove('ui-faded'); return; }   // rozbalený detail nikdy neblednem
+        var src = document.getElementById('compass-debug');
+        el.classList.toggle('ui-faded', !!(src && src.classList.contains('ui-faded')));
+    }
+    function mirrorFade() {
+        try {
+            var src = document.getElementById('compass-debug');
+            if (!src || window.__agSpFadeMo || typeof MutationObserver === 'undefined') return;
+            window.__agSpFadeMo = new MutationObserver(syncFade);
+            window.__agSpFadeMo.observe(src, { attributes: true, attributeFilter: ['class'] });
+            syncFade();
+        } catch (e) {}
     }
     function watchBattery() {
         if (!navigator.getBattery) return;
@@ -248,6 +455,7 @@
             injectSettingsToggle();
             trackFix();
             renderBar();
+            syncFade();
             if ((_n++ % 15) === 0) checkTiles();   // ~1× za 30 s
         } catch (e) {}
     }
@@ -257,6 +465,15 @@
         checkTiles();
         window.addEventListener('online', renderBar);
         window.addEventListener('offline', renderBar);
+        // klepnutí mimo bublinu ji zase sbalí
+        if (!window.__agSpOutside) {
+            window.__agSpOutside = true;
+            document.addEventListener('click', function (e) {
+                if (!_open) return;
+                if (e.target.closest && e.target.closest('#ag-sp')) return;
+                close();
+            }, true);
+        }
         if (!window.__agSpTimer) window.__agSpTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(tick, 2000);
         tick();
     }
@@ -264,5 +481,9 @@
     else init();
     window.addEventListener('load', function () { setTimeout(init, 400); });
 
-    window.AGStatusBar = { open: openDetail, refresh: renderBar };
+    window.AGStatusBar = {
+        open: function () { if (!_open) { _open = true; _alertTs = 0; _lastHead = _lastBody = ''; renderBar(); } },
+        close: close,
+        refresh: function () { _lastHead = _lastBody = ''; renderBar(); }
+    };
 })();

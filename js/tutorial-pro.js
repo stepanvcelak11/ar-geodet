@@ -84,8 +84,17 @@
     var BASIC = [
         { title: 'Vítej v AR&nbsp;Geodet', body: 'Krátká prohlídka základního ovládání. Posouvej tlačítkem <b>Další</b>.' },
         { title: 'Přepínání zobrazení', target: '#ag-view-wheel', body: 'Kolečko vpravo dole přepíná jedním klepnutím mezi <b>AR</b> kamerou, <b>Split</b> (dělené) a 2D <b>Mapou</b> — podle situace a baterie.' },
-        { title: 'Stav a přesnost', target: '#gps-avg', body: 'Průměrovaná přesnost GPS — čím nižší ± metry, tím spolehlivější poloha. Klepnutím otevřeš detail měření.' },
-        { title: 'Azimut a kompas', target: '#compass-debug', body: 'Aktuální azimut. Klepnutím otevřeš kalibraci kompasu a srovnání severu (důležité pro AR).' },
+        {
+            // stavová bublina sloučila přesnost i azimut do jednoho prvku; kdyby ji měl
+            // uživatel vypnutou, ukaž původní panel průměrování GPS
+            title: 'Stav měření',
+            target: function () {
+                var b = document.getElementById('ag-sp');
+                if (b && b.classList.contains('ag-sp-on')) return b;
+                return document.getElementById('gps-avg');
+            },
+            body: 'Jedna bublina nahoře: <b>semafor</b> (barva nejhoršího ze stavů GPS · sever · data · baterie), <b>přesnost</b> a <b>azimut</b>. Klepnutím se rozbalí detail s radami a tlačítky <b>Srovnat sever</b>, <b>Detail GPS</b> a <b>Skóre místa</b>.'
+        },
         { title: 'Nový bod', target: '.dock-primary', body: 'Založ vlastní bod — z <b>průměru GPS</b> (nejpřesnější), klepnutím do <b>mapy</b>, nebo přečtením z <b>fotky (OCR)</b>.' },
         { title: 'Body', target: '#dock button[onclick*="openManageModal"]', body: 'Správa bodů: seznam, <b>import/export</b> (CSV, GPX, GeoJSON…) a <b>sdílení přes QR</b>.' },
         { title: 'Nástroje', target: '#dock button[onclick*="tools-modal"]', body: 'Měření vzdálenosti a plochy, kalkulačka, GNSS satelity, vytyčovací checklist, náčrt — a nové pokročilé nástroje.' },
