@@ -13,6 +13,17 @@
 // Vozidlo (SPZ) a řidič se pamatují, u firemního režimu se řidič předplní z
 // přihlášeného účtu (AGUcty), ale jde přepsat.
 //
+// LAYOUT (proč to tak vypadá): pomocné akce „Zapsat ručně / Export CSV / Vozidlo
+// a sazba / Zavřít" byly čtyři .btn přes celou šířku — samotná tlačítka sežrala
+// půl displeje a na seznam jízd, kvůli kterému se okno otevírá, nezbylo místo.
+// Teď je z nich mřížka .ag-quad (čtverečky z css/style.css, stejné jako u nového
+// bodu a exportu): ikona + krátký popisek, 4 v řadě, na úzkém displeji 2×2.
+// Široké tlačítko zůstalo JEN hlavnímu úkonu (Odjíždím / Přijel jsem) — na to se
+// ťuká v autě a s rukavicí. Přepínač měsíce sedí v pruhu souhrnu a dlouhé
+// vysvětlení kilometrů je sbalené v <details>, ať je vidět víc jízd.
+// POZOR: tlačítko „Zavřít" musí mít přesně tenhle popisek — js/modal-close.js
+// podle něj hledá vlastní zavírání okna, když se táhne dolů nebo ťukne na křížek.
+//
 // Neinvazivní: NEEDITUJE logika.js/grafika.js. Data jsou GLOBÁLNÍ (napříč
 // zakázkami) v localStorage 'agTripLog_v1' — cesťák je věc člověka, ne zakázky.
 // Vstup: dlaždice „Kniha jízd" v Nástrojích (Pomůcky). API: window.agOpenKnihaJizd().
@@ -123,7 +134,7 @@
     }
     function endTrip() {
         var o = openTrip();
-        if (!o) { info('Žádná jízda neběží. Začni tlačítkem <b>Odjíždím</b> — nebo použij <b>Zapsat jízdu ručně</b>.'); return; }
+        if (!o) { info('Žádná jízda neběží. Začni tlačítkem <b>Odjíždím</b> — nebo použij čtvereček <b>Zapsat ručně</b>.'); return; }
         var p = pos();
         askOdo('Stav tachometru při příjezdu (km)', function (odo) {
             var km = null, kmSrc = 'odhad';
@@ -172,6 +183,8 @@
             var d = new Date();
             m.querySelector('#ag-kz-m-date').value = d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
             m.querySelector('#ag-kz-m-purp').value = projName();
+            // formulář je pod seznamem jízd — u delšího měsíce by se otevřel mimo obraz
+            try { m.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {}
         }
     }
     function manualSave() {
@@ -255,22 +268,45 @@
         var s = document.createElement('style');
         s.id = STYLE_ID;
         s.textContent =
-            '#ag-kz-modal .ag-kz-act{display:flex;gap:8px;margin:8px 0 12px;flex-wrap:wrap;}' +
-            '#ag-kz-modal .ag-kz-act button{flex:1 1 130px;}' +
-            '#ag-kz-modal .ag-kz-open{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.4);border-radius:10px;padding:9px 12px;margin:0 0 12px;font-size:.93em;line-height:1.5;}' +
-            '#ag-kz-modal .ag-kz-sum{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 10px;}' +
-            '#ag-kz-modal .ag-kz-cell{flex:1 1 88px;background:var(--bg-input,rgba(255,255,255,.06));border-radius:10px;padding:8px 10px;text-align:center;}' +
-            '#ag-kz-modal .ag-kz-cell b{display:block;font-size:1.2em;} #ag-kz-modal .ag-kz-cell small{color:var(--text-muted,#9aa1ac);}' +
-            '#ag-kz-modal .ag-kz-it{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.03);margin-bottom:6px;font-size:.9em;}' +
-            '#ag-kz-modal .ag-kz-it .d{flex:1;min-width:0;} #ag-kz-modal .ag-kz-it small{display:block;color:var(--text-muted,#9aa1ac);font-size:.86em;}' +
+            // HLAVNÍ ÚKON (Odjíždím / Přijel jsem) zůstává širokým tlačítkem — na to se
+            // ťuká v autě a s rukavicí. Jen se odebral vnější odstup .btn (margin-top),
+            // aby řádek nepadal doprostřed prázdna. „Zahodit" je vedle a užší.
+            '#ag-kz-modal .ag-kz-act{display:flex;gap:8px;margin:2px 0 10px;}' +
+            '#ag-kz-modal .ag-kz-act .btn{flex:1 1 auto;margin-top:0;padding:12px 14px;min-height:48px;}' +
+            '#ag-kz-modal .ag-kz-act .btn.slim{flex:0 0 36%;font-size:14px;}' +
+            // Pomocné akce = mřížka .ag-quad ze style.css (stejné čtverečky jako u
+            // nového bodu a exportu). Tady jen odstup, vzhled je společný.
+            '#ag-kz-modal .ag-quad{margin:10px 0 0;}' +
+            '#ag-kz-modal .ag-kz-open{background:var(--accent-soft,rgba(52,211,153,.12));border:1px solid var(--accent-line,rgba(52,211,153,.4));border-radius:var(--r-md,12px);padding:8px 10px;margin:0 0 8px;font-size:.9em;line-height:1.45;}' +
+            // Pruh souhrnu: první „buňka" je rovnou přepínač měsíce — ušetří celý řádek.
+            '#ag-kz-modal .ag-kz-sum{display:flex;gap:7px;flex-wrap:wrap;align-items:stretch;margin:0 0 8px;}' +
+            '#ag-kz-modal .ag-kz-cell{flex:1 1 80px;background:var(--surface-2,rgba(255,255,255,.06));border-radius:var(--r-md,12px);padding:6px 8px;text-align:center;}' +
+            '#ag-kz-modal .ag-kz-cell b{display:block;font-size:1.15em;line-height:1.25;}' +
+            '#ag-kz-modal .ag-kz-cell small{display:block;color:var(--text-muted,#9aa1ac);font-size:.78em;}' +
+            '#ag-kz-modal .ag-kz-msel{flex:1 1 120px;min-height:44px;}' +
+            '#ag-kz-modal .ag-kz-it{display:flex;gap:8px;align-items:center;padding:6px 4px 6px 10px;border-radius:var(--r-md,12px);background:var(--surface-1,rgba(255,255,255,.03));margin-bottom:5px;font-size:.88em;}' +
+            '#ag-kz-modal .ag-kz-it .d{flex:1;min-width:0;} #ag-kz-modal .ag-kz-it small{display:block;color:var(--text-muted,#9aa1ac);font-size:.85em;}' +
             '#ag-kz-modal .ag-kz-it .km{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600;}' +
-            '#ag-kz-modal .ag-kz-it .est{color:#fbbf24;font-weight:400;font-size:.82em;}' +
-            '#ag-kz-modal .ag-kz-x{background:none;border:none;color:var(--text-muted,#9aa1ac);font-size:1.2em;padding:0 4px;}' +
-            '#ag-kz-modal .ag-kz-man{background:var(--bg-input,rgba(255,255,255,.06));border-radius:10px;padding:10px;margin:0 0 12px;}' +
-            '#ag-kz-modal .ag-kz-man label{display:block;margin-bottom:6px;font-size:.88em;}' +
-            '#ag-kz-modal .ag-kz-man input{width:100%;}' +
-            '#ag-kz-modal select,#ag-kz-modal input{background:var(--bg-input,rgba(255,255,255,.08));color:inherit;border:1px solid var(--border,rgba(255,255,255,.15));border-radius:8px;padding:6px 8px;}' +
-            '#ag-kz-modal .ag-kz-note{color:var(--text-muted,#9aa1ac);font-size:.82em;line-height:1.45;margin-top:10px;}';
+            '#ag-kz-modal .ag-kz-it .est{color:var(--warning,#fbbf24);font-weight:400;font-size:.82em;}' +
+            // Křížek u jízdy je malý na pohled, ale 44px terč (záporný margin ho nechá
+            // řádek nenafouknout) — mazání se nesmí trefovat nehtem.
+            '#ag-kz-modal .ag-kz-x{flex:none;width:44px;height:44px;margin:-5px 0;display:flex;align-items:center;justify-content:center;background:none;border:none;border-radius:var(--r-md,12px);color:var(--text-muted,#9aa1ac);font-size:1.25em;padding:0;}' +
+            '#ag-kz-modal .ag-kz-x:active{background:var(--surface-2,rgba(255,255,255,.08));}' +
+            '#ag-kz-modal .ag-kz-man{background:var(--surface-2,rgba(255,255,255,.06));border-radius:var(--r-md,12px);padding:9px;margin:10px 0 0;}' +
+            '#ag-kz-modal .ag-kz-man .r2{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px;}' +
+            '#ag-kz-modal .ag-kz-man label{display:block;margin:0 0 7px;font-size:.8em;color:var(--text-muted,#9aa1ac);}' +
+            '#ag-kz-modal .ag-kz-man .r2 label{margin:0;}' +
+            '#ag-kz-modal .ag-kz-man input{width:100%;margin-top:3px;}' +
+            '#ag-kz-modal select,#ag-kz-modal input{background:var(--surface-2,rgba(255,255,255,.08));color:inherit;border:1px solid var(--glass-border,rgba(255,255,255,.15));border-radius:var(--r-sm,8px);padding:6px 8px;min-height:40px;box-sizing:border-box;}' +
+            '#ag-kz-modal .ag-kz-note{color:var(--text-muted,#9aa1ac);font-size:.8em;line-height:1.4;margin-top:8px;}' +
+            // Dlouhé vysvětlení „jak se to počítá" se schová — pod ním má být SEZNAM.
+            '#ag-kz-modal .ag-kz-help{margin-top:8px;}' +
+            '#ag-kz-modal .ag-kz-help>summary{list-style:none;cursor:pointer;color:var(--text-muted,#9aa1ac);font-size:.82em;padding:8px 0;}' +
+            '#ag-kz-modal .ag-kz-help>summary::-webkit-details-marker{display:none;}' +
+            // rukavice: terče nahoru, ať se pořád trefíš
+            'body.ag-glove #ag-kz-modal .ag-kz-act .btn{min-height:54px;}' +
+            'body.ag-glove #ag-kz-modal .ag-kz-x{width:48px;height:48px;margin:-3px 0;}' +
+            'body.ag-glove #ag-kz-modal select,body.ag-glove #ag-kz-modal input{min-height:44px;font-size:16px;}';
         document.head.appendChild(s);
     }
     function ensureModal() {
@@ -284,43 +320,57 @@
             '<div class="modal-content">' +
             '  <h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Kniha jízd</h3>' +
             '  <div id="ag-kz-body"></div>' +
+            // ruční zápis: dvojice polí vedle sebe (datum+km, odkud+kam) — pod sebou
+            // to bylo pět řádků a formulář vytlačil seznam jízd mimo obrazovku
             '  <div class="ag-kz-man" id="ag-kz-man" style="display:none;">' +
-            '    <label>Datum <input type="date" id="ag-kz-m-date"></label>' +
-            '    <label>Odkud <input type="text" id="ag-kz-m-from" placeholder="Kancelář"></label>' +
-            '    <label>Kam <input type="text" id="ag-kz-m-to" placeholder="Stavba / obec"></label>' +
-            '    <label>Kilometry <input type="number" step="0.1" min="0" id="ag-kz-m-km" placeholder="např. 42,5"></label>' +
-            '    <label>Účel / zakázka <input type="text" id="ag-kz-m-purp"></label>' +
-            '    <button type="button" class="btn btn-primary" id="ag-kz-m-save">Zapsat</button>' +
+            '    <div class="r2">' +
+            '      <label>Datum<input type="date" id="ag-kz-m-date"></label>' +
+            '      <label>Kilometry<input type="number" step="0.1" min="0" id="ag-kz-m-km" placeholder="42,5"></label>' +
+            '      <label>Odkud<input type="text" id="ag-kz-m-from" placeholder="Kancelář"></label>' +
+            '      <label>Kam<input type="text" id="ag-kz-m-to" placeholder="Stavba / obec"></label>' +
+            '    </div>' +
+            '    <label>Účel / zakázka<input type="text" id="ag-kz-m-purp"></label>' +
+            '    <div class="ag-kz-act" style="margin:8px 0 0;">' +
+            '      <button type="button" class="btn btn-primary" id="ag-kz-m-save">Zapsat jízdu</button>' +
+            '      <button type="button" class="btn btn-secondary slim" id="ag-kz-m-cancel">Zrušit</button>' +
+            '    </div>' +
             '  </div>' +
-            '  <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">' +
-            '    <button type="button" class="btn btn-secondary" id="ag-kz-manual">Zapsat ručně</button>' +
-            '    <button type="button" class="btn btn-secondary" id="ag-kz-csv">Export CSV</button>' +
-            '    <button type="button" class="btn btn-secondary" id="ag-kz-cfg">Vozidlo a sazba</button>' +
-            '    <button type="button" class="btn btn-secondary" id="ag-kz-close" style="margin-left:auto;">Zavřít</button>' +
+            // ČTVEREČKY místo čtyř tlačítek přes celou šířku: stejná mřížka .ag-quad
+            // jako u nového bodu / exportu, takže to nepůsobí jako cizí okno.
+            '  <div class="ag-quad" id="ag-kz-actions">' +
+            '    <button type="button" id="ag-kz-manual"><svg class="icon"><use href="#i-edit"/></svg><span>Zapsat<br>ručně</span></button>' +
+            '    <button type="button" id="ag-kz-csv"><svg class="icon"><use href="#i-download"/></svg><span>Export<br>CSV</span></button>' +
+            '    <button type="button" id="ag-kz-cfg"><svg class="icon"><use href="#i-sliders"/></svg><span>Vozidlo<br>a sazba</span></button>' +
+            '    <button type="button" id="ag-kz-close"><svg class="icon"><use href="#i-x"/></svg><span>Zavřít</span></button>' +
             '  </div>' +
             '</div>';
         document.body.appendChild(m);
         m.querySelector('#ag-kz-close').addEventListener('click', function () { m.style.display = 'none'; });
         m.querySelector('#ag-kz-manual').addEventListener('click', manualAdd);
         m.querySelector('#ag-kz-m-save').addEventListener('click', manualSave);
+        m.querySelector('#ag-kz-m-cancel').addEventListener('click', function () { var f = document.getElementById('ag-kz-man'); if (f) f.style.display = 'none'; });
         m.querySelector('#ag-kz-csv').addEventListener('click', exportCsv);
         m.querySelector('#ag-kz-cfg').addEventListener('click', editCfg);
         var body = m.querySelector('#ag-kz-body');
+        // POZOR: tlačítka mají uvnitř <svg>/<span>, takže e.target nemusí být samo
+        // tlačítko — hledá se přes closest(), jinak by klik na ikonu nic neudělal.
         body.addEventListener('click', function (e) {
             var t = e.target;
-            if (t.id === 'ag-kz-start') startTrip();
-            else if (t.id === 'ag-kz-end') endTrip();
-            else if (t.id === 'ag-kz-cancel') cancelTrip();
-            else {
-                var x = t.closest ? t.closest('.ag-kz-x') : null;
-                if (x) {
-                    var id = x.getAttribute('data-id');
-                    ask('Smazat tuto jízdu z knihy?', function () {
-                        saveTrips(trips().filter(function (r) { return r.id !== id; }));
-                        render();
-                    });
-                }
+            if (!t || !t.closest) return;
+            var x = t.closest('.ag-kz-x');
+            if (x) {
+                var id = x.getAttribute('data-id');
+                ask('Smazat tuto jízdu z knihy?', function () {
+                    saveTrips(trips().filter(function (r) { return r.id !== id; }));
+                    render();
+                });
+                return;
             }
+            var b = t.closest('button');
+            if (!b) return;
+            if (b.id === 'ag-kz-start') startTrip();
+            else if (b.id === 'ag-kz-end') endTrip();
+            else if (b.id === 'ag-kz-cancel') cancelTrip();
         });
         body.addEventListener('change', function (e) {
             if (e.target && e.target.id === 'ag-kz-month') { _month = e.target.value; render(); }
@@ -366,17 +416,18 @@
                 ' z „' + esc(o.fromName || '—') + '"' + (o.odo0 != null ? ', tachometr ' + o.odo0 + ' km' : '') +
                 ' (' + mins + ' min).</div>' +
                 '<div class="ag-kz-act"><button type="button" class="btn btn-primary" id="ag-kz-end">Přijel jsem</button>' +
-                '<button type="button" class="btn btn-secondary" id="ag-kz-cancel">Zahodit</button></div>';
+                '<button type="button" class="btn btn-secondary slim" id="ag-kz-cancel">Zahodit</button></div>';
         } else {
             h += '<div class="ag-kz-act"><button type="button" class="btn btn-primary" id="ag-kz-start">Odjíždím</button></div>';
         }
 
-        // měsíc + souhrn
+        // měsíc + souhrn V JEDNOM PRUHU — přepínač měsíce je první „buňka", takže
+        // nezabírá vlastní řádek a na displej se vejde víc jízd
         var mk = curMonth();
         var ms = monthsAvailable();
-        h += '<div style="margin:0 0 10px;"><select id="ag-kz-month">' +
+        var msel = '<select id="ag-kz-month" class="ag-kz-msel" aria-label="Měsíc">' +
             ms.map(function (k) { return '<option value="' + k + '"' + (k === mk ? ' selected' : '') + '>' + esc(monthLabel(k)) + '</option>'; }).join('') +
-            '</select></div>';
+            '</select>';
 
         var rows = trips().filter(function (r) { return monthKey(r.t0) === mk; }).sort(function (x, y) { return y.t0 - x.t0; });
         var sum = 0, est = 0, byProj = {};
@@ -387,7 +438,7 @@
             byProj[key] = (byProj[key] || 0) + (r.km || 0);
         });
         sum = Math.round(sum * 10) / 10;
-        h += '<div class="ag-kz-sum">' +
+        h += '<div class="ag-kz-sum">' + msel +
             '<div class="ag-kz-cell"><small>Jízd</small><b>' + rows.length + '</b></div>' +
             '<div class="ag-kz-cell"><small>Kilometrů</small><b>' + sum + '</b></div>' +
             (c.rate ? '<div class="ag-kz-cell"><small>Při ' + c.rate + ' Kč/km</small><b>' + Math.round(sum * c.rate) + ' Kč</b></div>' : '') +
@@ -403,7 +454,7 @@
 
         // seznam jízd
         if (!rows.length) {
-            h += '<div style="padding:10px;color:var(--text-muted,#9aa1ac);font-size:.9em;">V tomto měsíci žádné jízdy. Až vyrazíš, klepni na <b>Odjíždím</b>.</div>';
+            h += '<div style="padding:8px 2px;color:var(--text-muted,#9aa1ac);font-size:.88em;">V tomto měsíci žádné jízdy. Až vyrazíš, klepni na <b>Odjíždím</b>.</div>';
         } else {
             rows.forEach(function (r) {
                 var d = new Date(r.t0);
@@ -418,8 +469,9 @@
             });
         }
 
-        h += '<div class="ag-kz-note">Kilometry z tachometru jsou průkazné, odhad ze vzdušné vzdálenosti (×' + ROAD_K + ') je jen pomůcka. ' +
-            'Appka nepočítá zákonné náhrady ani spotřebu — Kč/km si nastavuješ sám v „Vozidlo a sazba". Data jsou jen v tomhle telefonu; do zálohy zakázky nepatří, exportuj si CSV.</div>';
+        h += '<details class="ag-kz-help"><summary>Jak se počítají kilometry a co appka nedělá</summary>' +
+            '<div class="ag-kz-note" style="margin-top:0;">Kilometry z tachometru jsou průkazné, odhad ze vzdušné vzdálenosti (×' + ROAD_K + ') je jen pomůcka. ' +
+            'Appka nepočítá zákonné náhrady ani spotřebu — Kč/km si nastavuješ sám v „Vozidlo a sazba". Data jsou jen v tomhle telefonu; do zálohy zakázky nepatří, exportuj si CSV.</div></details>';
 
         body.innerHTML = h;
     }

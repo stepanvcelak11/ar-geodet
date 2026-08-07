@@ -200,7 +200,18 @@
             '#ag-kj-modal .ag-kj-tx small{color:var(--text-muted,#9aa1ac);display:block;font-size:.82em;}' +
             '#ag-kj-modal .ag-kj-d{font-variant-numeric:tabular-nums;font-size:1.05em;white-space:nowrap;}' +
             '#ag-kj-modal .ag-kj-x{background:none;border:none;color:var(--text-muted,#9aa1ac);font-size:1.3em;padding:2px 6px;}' +
-            '#ag-kj-modal .ag-kj-note{color:var(--text-muted,#9aa1ac);font-size:.82em;line-height:1.45;margin-top:10px;}';
+            '#ag-kj-modal .ag-kj-note{color:var(--text-muted,#9aa1ac);font-size:.82em;line-height:1.45;margin-top:10px;}' +
+            // Seznam značek musí scrollovat SÁM: .modal-content má v css/style.css
+            // overflow:hidden, takže po ~5 uložených značkách zbytek seznamu zmizel
+            // pod okrajem okna a nešlo se k němu dostat (vzor brifink.js / denik-dne.js).
+            '#ag-kj-modal .modal-content{display:flex;flex-direction:column;}' +
+            '#ag-kj-modal h3,#ag-kj-modal .ag-kj-intro,#ag-kj-modal .ag-kj-btns{flex:none;}' +
+            '#ag-kj-modal #ag-kj-list{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding-right:6px;}' +
+            // Patička: .btn má width:100% + margin-top:10px, takže tři „řádkové" akce
+            // se vykreslily jako tři pruhy pod sebou. Srovnáme je do jedné řady.
+            '#ag-kj-modal .ag-kj-foot{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;flex:none;}' +
+            '#ag-kj-modal .ag-kj-foot .btn{flex:1 1 0;min-width:96px;margin:0;min-height:44px;}' +
+            'body.ag-glove #ag-kj-modal .ag-kj-foot .btn{min-height:52px;}';
         document.head.appendChild(s);
     }
     function ensureModal() {
@@ -216,13 +227,13 @@
         m.innerHTML =
             '<div class="modal-content">' +
             '  <h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Kde mám auto</h3>' +
-            '  <p style="margin:0;color:var(--text-muted,#9aa1ac);font-size:.9em;">Jedním tapem si tady označ, kde stojí auto, báze nebo stativ. Značky se neukládají mezi body zakázky.</p>' +
+            '  <p class="ag-kj-intro" style="margin:0;color:var(--text-muted,#9aa1ac);font-size:.9em;">Jedním tapem si tady označ, kde stojí auto, báze nebo stativ. Značky se neukládají mezi body zakázky.</p>' +
             '  <div class="ag-kj-btns" id="ag-kj-add">' + btns + '</div>' +
             '  <div id="ag-kj-list"></div>' +
-            '  <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">' +
+            '  <div class="ag-kj-foot">' +
             '    <button type="button" class="btn btn-secondary" id="ag-kj-map">Zobrazit v mapě</button>' +
             '    <button type="button" class="btn btn-secondary" id="ag-kj-clean">Uklidit staré</button>' +
-            '    <button type="button" class="btn btn-secondary" id="ag-kj-close" style="margin-left:auto;">Zavřít</button>' +
+            '    <button type="button" class="btn btn-secondary" id="ag-kj-close">Zavřít</button>' +
             '  </div>' +
             '</div>';
         document.body.appendChild(m);

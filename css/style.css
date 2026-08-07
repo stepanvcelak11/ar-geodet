@@ -1773,17 +1773,33 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
 /* ---- Spodní dok → svislá lišta u pravého okraje (palec pravé ruky) ----- */
 /* Střed lišty v 60 % výšky (ne 50 %): telefon se drží ve spodní třetině,
    palec tam pohodlně dosáhne. Na přání uživatele. */
+/* OPRAVA 27. 7. — „levá strana je uřízlá okrajem displeje“ (Split, režim levé ruky).
+   PŘÍČINY byly dvě a obě žily přímo tady:
+   1) Odsazení se počítalo přes max(8px, env(safe-area-inset-*)). max() mezeru
+      NEPŘIČÍTÁ, jen vybere větší z hodnot — jakmile displej hlásí boční
+      bezpečnou zónu (iPhone naležato, zaoblené rohy, širší rámeček v PWA),
+      vyjde odsazení PŘESNĚ na hranu zóny a lišta se o ni opře bez mezery;
+      zaoblený roh pak z chipů ukousne kus. Teď je to calc(inset + 8px),
+      takže mezera zůstává v každé orientaci.
+   2) align-items:center vystřeďovalo chipy v boxu doku, jehož šířku určuje
+      NEJŠIRŠÍ potomek. Cokoliv širšího než 56 px (delší popisek, režim rukavic,
+      zvětšené písmo systému) tedy přetékalo na OBĚ strany — a ta ke kraji
+      displeje neměla kam. Lišta je teď KOTVENÁ k hraně (flex-end, u leváka
+      flex-start), takže širší chip roste dovnitř obrazovky, nikdy ven.
+   (Oblouk --dock-arc posouvá prostřední chipy jen dovnitř, ten v tom není.) */
 #dock {
     left: auto;
-    right: max(8px, env(safe-area-inset-right));
+    right: calc(env(safe-area-inset-right, 0px) + 8px);
     top: 60%;
     bottom: auto;
     transform: translateY(-50%);
     flex-direction: column;
     justify-content: center;
-    align-items: center;
+    align-items: flex-end;
     gap: 6px;
     width: auto;
+    /* pojistka: lišta se nikdy neroztáhne přes celou šířku displeje */
+    max-width: calc(100vw - 24px);
     padding: 9px 7px;
     border-radius: 20px;
 }
@@ -1808,39 +1824,66 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
     .dock-btn .icon { width: 19px; height: 19px; }
 }
 
-/* ---- Nastavení → velké dotykové dlaždice (místo úzkých záložek) -------- */
+/* ---- Nastavení → KOMPAKTNÍ pruh záložek --------------------------------
+   PROČ: dřív to byly velké dlaždice (mřížka 2×2, každá 92 px vysoká: ikona
+   + název + popisek). Čtyři záložky = přes 200 px NEROLOVATELNÉ hlavičky,
+   a to ještě před pruhem profilů a hledáním. Na iPhonu pak na vlastní
+   nastavení zbyl proužek pár centimetrů vysoký a rolovalo se jen v něm —
+   uživatel: „nastavení je momentálně nepoužitelný".
+   TEĎ: jeden nízký pruh chipů (ikona + krátký název), popisek zůstává
+   v DOM jen pro čtečky a pro hledání v nastavení (vizuálně skryt, NE
+   display:none — nastaveni-hledani.js z něj čte nápovědu k volbě).
+   Chipy se při nedostatku místa zalomí do druhé řádky, nic se neschová.
+   Dotykový cíl 44 px (v rukavicích 52 px) zůstává.
+   Zpět na dlaždice: vrať grid + min-height 92px + flex-direction column. */
 .settings-tiles {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    padding: 0;
-    margin-bottom: 18px;
-    background: transparent;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 4px;
+    margin-bottom: 10px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: var(--r-md);
 }
 .settings-tiles .tab-btn {
+    flex: 1 1 auto;
+    position: relative;          /* kotva pro vizuálně skrytý popisek */
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-    text-align: left;
-    padding: 14px 13px;
-    min-height: 92px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--r-lg);
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-align: center;
+    padding: 6px 9px;
+    min-height: 44px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--r-sm);
 }
-.settings-tiles .tab-btn .icon { width: 24px; height: 24px; color: var(--accent-bright); margin-bottom: 4px; }
-.settings-tiles .tab-btn .tb-tx { display: flex; flex-direction: column; gap: 2px; }
-.settings-tiles .tab-btn .tb-tx b { font-size: 14px; font-weight: 700; color: var(--text-color); }
-.settings-tiles .tab-btn .tb-tx small { font-size: 10.5px; font-weight: 500; color: var(--text-muted); line-height: 1.3; }
+.settings-tiles .tab-btn .icon { width: 17px; height: 17px; flex: none; margin: 0; color: var(--accent-bright); }
+.settings-tiles .tab-btn .tb-tx { display: block; min-width: 0; }
+/* název bere plnou barvu textu, ne --text-muted: musí být čitelný na slunci */
+.settings-tiles .tab-btn .tb-tx b { font-size: 12.5px; font-weight: 700; color: var(--text-color); white-space: nowrap; }
+/* popisek: vizuálně skrytý, ale čitelný pro čtečky i pro index hledání */
+.settings-tiles .tab-btn .tb-tx small {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
 .settings-tiles .tab-btn.active {
-    background: var(--accent-soft);
-    border-color: var(--accent-line);
-    color: var(--text-color);
-    box-shadow: inset 0 0 0 1px var(--accent-line);
+    background: var(--accent);
+    border-color: transparent;
+    box-shadow: none;
 }
-.settings-tiles .tab-btn.active .icon { color: var(--accent-bright); }
-.settings-tiles .tab-btn.active .tb-tx b { color: var(--text-color); }
+.settings-tiles .tab-btn.active .icon { color: #fff; }
+.settings-tiles .tab-btn.active .tb-tx b { color: #fff; }
+body.ag-glove .settings-tiles .tab-btn { min-height: 52px; }
+body.ag-glove .settings-tiles .tab-btn .tb-tx b { font-size: 14px; }
 
 /* =========================================================================
    REDESIGN „Kombinace" 2/2 — oblouk boční lišty, horní HUD pruh,
@@ -1888,7 +1931,14 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
 #dock .dock-btn:nth-child(4) { transform: translateX(calc(var(--dock-arc, 13px) * -0.55)); }
 #dock .dock-btn:nth-child(3) { transform: translateX(calc(var(--dock-arc, 13px) * -1)); }
 /* Popisek tlačítek (hlavně plovoucí „Nový bod" bez podkladu) čitelný i na bílé mapě */
-.dock-btn span { text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.7); }
+/* OPRAVA 27. 7.: popisek se dřív mohl roztáhnout přes šířku chipu (56 px) a přetéct
+   ke kraji displeje — teď se raději zalomí do dvou řádků, ale z chipu nevyleze. */
+.dock-btn span {
+    max-width: 100%;
+    text-align: center;
+    overflow-wrap: anywhere;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.7);
+}
 
 /* ---- Horní HUD: kompaktní „chip" vzhled (jako návrh); pozice beze změny,
    BEZ !important — aby šly prvky zase posouvat (drag/HUD editor). ---------- */
@@ -1999,7 +2049,10 @@ body.light-mode:not(.cam-light) .ar-marker .ar-marker-dist { color: #fff; }
 /* ---- SVĚTLÝ REŽIM: fullscreen modály mají natvrdo tmavé pozadí (rgba(14,18,24))
    → ve světlém režimu přepsat na světlé, jinak je tmavý text nečitelný. ------ */
 body.light-mode .modal-overlay .modal-content { background: rgba(247, 248, 250, 0.98); }
-body.light-mode .settings-tiles .tab-btn { background: rgba(0, 0, 0, 0.04); }
+/* Pruh záložek je teď jeden kontejner s pozadím, chipy uvnitř jsou průhledné.
+   (Dřív tu byla barva jednotlivých dlaždic — přebíjela i tu aktivní.) */
+body.light-mode .settings-tiles { background: rgba(0, 0, 0, 0.06); }
+body.light-mode .settings-tiles .tab-btn:not(.active) { background: transparent; }
 
 /* =========================================================================
    REŽIM LEVÉ RUKY — zrcadlí OVLÁDÁNÍ na opačnou stranu displeje (HUD zůstává).
@@ -2008,7 +2061,14 @@ body.light-mode .settings-tiles .tab-btn { background: rgba(0, 0, 0, 0.04); }
    necháváme, kde byl. NEsahat na flex-direction (dok MUSÍ zůstat sloupec!).
    ========================================================================= */
 /* Boční lišta z pravého okraje na levý */
-body.left-hand #dock { right: auto; left: max(8px, env(safe-area-inset-left)); }
+/* OPRAVA 27. 7.: stejná dvě opatření jako u #dock výše, jen zrcadlově — mezera
+   se PŘIČÍTÁ k levé bezpečné zóně a lišta se kotví k LEVÉ hraně (flex-start),
+   aby širší chip rostl doprava do obrazovky, ne pod okraj displeje. */
+body.left-hand #dock {
+    right: auto;
+    left: calc(env(safe-area-inset-left, 0px) + 8px);
+    align-items: flex-start;
+}
 /* Oblouk se prohne na opačnou stranu (vystrčený ke středu = doprava) */
 body.left-hand #dock .dock-btn:nth-child(2),
 body.left-hand #dock .dock-btn:nth-child(4) { transform: translateX(calc(var(--dock-arc, 13px) * 0.55)); }
@@ -2066,8 +2126,10 @@ body.left-hand #ag-ft-fab { right: auto !important; left: 12px !important; }
 /* ---- vstupní tlačítko v mapě (vlevo dole; v režimu levé ruky vpravo) --------- */
 #map-ctrl-toggle {
     position: absolute;
-    left: max(10px, env(safe-area-inset-left));
-    bottom: max(10px, env(safe-area-inset-bottom));
+    /* OPRAVA 27. 7.: max() mezeru nepřičítá — viz komentář u #dock. calc() drží
+       odstup od bezpečné zóny i na displeji s bočním výřezem / zaobleným rohem. */
+    left: calc(env(safe-area-inset-left, 0px) + 10px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
     width: 54px; height: 54px; padding: 0;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
     border-radius: 50%;
@@ -2080,7 +2142,7 @@ body.left-hand #ag-ft-fab { right: auto !important; left: 12px !important; }
 #map-ctrl-toggle:active { transform: scale(0.93); }
 body.ag-glove #map-ctrl-toggle { width: 64px; height: 64px; font-size: 9.5px; }
 body.ag-glove #map-ctrl-toggle .icon { width: 24px; height: 24px; }
-body.left-hand #map-ctrl-toggle { left: auto; right: max(10px, env(safe-area-inset-right)); }
+body.left-hand #map-ctrl-toggle { left: auto; right: calc(env(safe-area-inset-right, 0px) + 10px); }
 /* vybledá s ostatním HUD po nečinnosti (třídu řídí js/map-tools.js) */
 #map-ctrl-toggle.ui-faded { opacity: 0.35; }
 /* počítadlo zapnutých vrstev */
@@ -2099,10 +2161,11 @@ body.ag-mapfab-off #map-ctrl-toggle { display: none !important; }
 /* ---- panel ------------------------------------------------------------------- */
 #map-sheet {
     position: absolute;
-    left: max(8px, env(safe-area-inset-left));
+    /* OPRAVA 27. 7.: calc() místo max() — mezera se k bezpečné zóně PŘIČÍTÁ */
+    left: calc(env(safe-area-inset-left, 0px) + 8px);
     /* vpravo zůstává volný pruh pro svislý dok a kolečko zobrazení */
-    right: calc(max(8px, env(safe-area-inset-right)) + 78px);
-    bottom: max(8px, env(safe-area-inset-bottom));
+    right: calc(env(safe-area-inset-right, 0px) + 86px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
     /* Ve Splitu je mapa jen kus obrazovky — vh strop panel přetáhl přes její horní
        hranu, kde ho #map-container oříznul (hlavička i spodní dlaždice pryč).
        Proto se strop počítá z výšky MAPY (100 % = #map-controls), ne z okna. */
@@ -2119,8 +2182,8 @@ body.ag-mapfab-off #map-ctrl-toggle { display: none !important; }
 /* při otevřeném panelu vstupní tlačítko uhne (panel má vlastní křížek) */
 #map-controls.expanded #map-ctrl-toggle { opacity: 0; pointer-events: none; }
 body.left-hand #map-sheet {
-    left: calc(max(8px, env(safe-area-inset-left)) + 78px);
-    right: max(8px, env(safe-area-inset-right));
+    left: calc(env(safe-area-inset-left, 0px) + 86px);
+    right: calc(env(safe-area-inset-right, 0px) + 8px);
 }
 /* Kolečko zobrazení už NEMUSÍ uhýbat — panel jeho rohu nechává volno.
    !important: js/view-cycle.js si vkládá vlastní <style> až za tento soubor. */
@@ -2144,6 +2207,10 @@ body.left-hand #map-sheet {
 #map-sheet .ms-close .icon { width: 16px; height: 16px; }
 #map-sheet .ms-scroll {
     flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    /* html+body mají touch-action:none (zámek scrollu appky) — svislý pan se
+       proto musí uvnitř rolovacího seznamu povolit výslovně, jinak by ho iOS
+       spolkl. Rolování panelu už funguje, tohle ho jen jiští. */
+    touch-action: pan-y;
     -webkit-overflow-scrolling: touch; padding: 10px 12px 12px;
 }
 #map-sheet .ms-lbl {
@@ -2155,6 +2222,24 @@ body.left-hand #map-sheet {
 
 /* KOMPAKTNÍ REŽIM: nízká mapa (Split, na výšku) — vejde se víc řádků naráz,
    ať se nemusí scrollovat kvůli poslední dlaždici. Třídu řídí js/map-tools.js. */
+/* OPRAVA 27. 7. — „ve Splitu je panel větší a vypadá překrytě“.
+   PŘÍČINA: strop max-height se počítá z výšky MAPY (100 % = #map-controls).
+   Ve Splitu je mapa jen ~polovina displeje (≈400 px), takže calc(100% - 14px)
+   nechal nad panelem 7px proužek — panel prakticky ZAKRYL celou mapu, z podkladu,
+   který přepíná, nebylo vidět nic a jeho horní hrana se lepila na dělicí příčku
+   (#resizer). K tomu skleněné pozadí (glass-bg + backdrop-filter) nad světlou mapou
+   prosvítalo, takže to působilo „slepeně“.
+   ŘEŠENÍ: v kompaktu (nízká mapa) necháváme nahoře viditelný pruh mapy a panel
+   raději roluje — ROLOVÁNÍ ŘEŠÍ .ms-scroll a touchmove v js/grafika.js, NESAHAT.
+   Pozadí je v kompaktu plné (var(--bg-elev), motivově i pro světlý režim), čímž
+   zároveň odpadá backdrop-filter počítaný nad živou mapou. */
+#map-sheet.ms-compact {
+    max-height: min(360px, calc(100% - 62px));
+    background: var(--bg-elev, #171b20);
+    border-color: var(--glass-border-strong, rgba(255, 255, 255, 0.20));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
 #map-sheet.ms-compact .ms-head { padding: 8px 12px 7px; }
 #map-sheet.ms-compact .ms-scroll { padding: 8px 12px 10px; }
 #map-sheet.ms-compact .ms-lbl { margin-bottom: 5px; font-size: 10px; }
@@ -2359,3 +2444,110 @@ body.light-mode .mng-actions { background: rgba(0, 0, 0, 0.04); }
     text-align: center;
 }
 .cp-item.mng-selected .mng-check { border-color: var(--accent, #34d399); }
+
+/* =========================================================================
+   NASTAVENÍ — ROLUJE CELÉ OKNO (ne jen výřez dole) + KOMPAKTNÍ ROZVRŽENÍ
+   -------------------------------------------------------------------------
+   PROBLÉM (hlášeno z terénu): „v tom nastavení ta scrollovací část je jenom
+   dole, ten vzhled/data/údržba jsou strašně velký, překáží to — nastavení je
+   momentálně nepoužitelný."
+   PŘED: .modal-content bylo flex-sloupec a rolovala JEN .modal-body, sevřená
+   mezi pevnou hlavičkou (nadpis + pruh profilů + hledání + velké dlaždice
+   záložek, dohromady klidně 300 px) a pevným tlačítkem „Uložit vše a Zavřít".
+   Na iPhonu tak zbyl rolovatelný výřez vysoký pár centimetrů.
+   PO: rolovacím kontejnerem je CELÉ okno (.modal-content, display:block).
+   Nahoře drží jen tenký pruh záložek (position:sticky); nadpis, profily,
+   hledání, obsah záložky i spodní tlačítko rolují plynule až na konec.
+   Spodní safe-area (home indikátor) řeší padding-bottom, horní safe-area
+   (výřez/stavový řádek) překrývá neprůhledný pruh přes ::before.
+
+   POZOR PŘI ÚPRAVÁCH:
+   - .tab-buttons MUSÍ zůstat PŘÍMÝM potomkem .modal-content:
+     profily.js volá content.insertBefore(bar, tabs) a nastaveni-hledani.js
+     tabs.parentNode.insertBefore(...). Obalení do wrapperu by je shodilo.
+   - #settings-modal má data-no-close (žádné zavírací gesto) — nechat.
+   - Pořadí a počet .tab-btn nesahat: app-search.js na ně sahá přes index.
+
+   Odstranění: smaž tenhle blok — Nastavení se vrátí k pevné hlavičce
+   a rolování jen uvnitř .modal-body.
+   ========================================================================= */
+
+/* ---- 1) Rolovací kontejner = celé okno --------------------------------- */
+#settings-modal .modal-content {
+    display: block;                        /* ne flex — obsah teče normálně */
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;     /* setrvačné rolování na iOS */
+    touch-action: pan-y;
+    overscroll-behavior: contain;          /* neřetězit dorolování na kořen */
+    /* spodní tlačítka nesmí skončit pod home indikátorem */
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 26px);
+}
+#settings-modal .modal-content::-webkit-scrollbar { width: 6px; }
+#settings-modal .modal-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.14);
+    border-radius: var(--r-pill);
+}
+/* .modal-body už neroluje sama za sebe — je to jen obal záložek */
+#settings-modal .modal-body {
+    flex: none;
+    min-height: 0;
+    overflow: visible;
+    padding-right: 0;
+}
+
+/* ---- 2) Pruh záložek přilepený nahoře ---------------------------------- */
+#settings-modal .tab-buttons {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 5;
+    scroll-margin-top: env(safe-area-inset-top, 0px);
+    /* od kraje ke kraji: pod pruhem se nesmí nic prorolovávat */
+    margin-left: calc(-1 * max(20px, env(safe-area-inset-left, 0px)));
+    margin-right: calc(-1 * max(20px, env(safe-area-inset-right, 0px)));
+    padding: 5px max(20px, env(safe-area-inset-right, 0px)) 5px max(20px, env(safe-area-inset-left, 0px));
+    border-radius: 0;
+    border-bottom: 1px solid var(--glass-border);
+    background: var(--modal-bg, rgba(14, 18, 24, 0.97));
+    box-shadow: 0 8px 14px -12px rgba(0, 0, 0, 0.85);
+}
+body.light-mode #settings-modal .tab-buttons { background: rgba(247, 248, 250, 0.98); }
+/* Krytka horní safe-area: pruh záložek se lepí AŽ POD výřez (jinak by chipy
+   skončily pod stavovým řádkem), takže pás nad ním je potřeba zaslepit.
+   position:fixed se kotví k .modal-content (má transform) → jede s modálem. */
+#settings-modal .modal-content::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: env(safe-area-inset-top, 0px);
+    z-index: 6;
+    background: var(--modal-bg, rgba(14, 18, 24, 0.97));
+    pointer-events: none;
+}
+body.light-mode #settings-modal .modal-content::before { background: rgba(247, 248, 250, 0.98); }
+
+/* ---- 3) Kompaktnější obsah záložek ------------------------------------- */
+/* Svislé mezery dolů, dotykové cíle NE: řádek s přepínačem má 27px vypínač
+   + 2×9px = 45 px, tlačítka .btn drží 14px padding (≈47 px). */
+#settings-modal .modal-content > h2 { font-size: 19px; margin: 0 0 10px; }
+#settings-modal .st-row { padding: 9px 0; }
+#settings-modal .st-slider { margin-top: 10px; }
+#settings-modal .st-slider input[type="range"] { margin-top: 8px; }
+#settings-modal .set-h { margin: 13px 0 6px; }
+#settings-modal details.adv { margin-top: 10px; }
+#settings-modal details.adv > summary { padding: 11px 13px; }
+#settings-modal details.adv .adv-body { padding: 0 13px 10px; }
+/* jen samostatné popisky (ne .st-sw — ten je taky <label> a má margin 0) */
+#settings-modal .settings-tab > label,
+#settings-modal .adv-body > label { margin-top: 10px; }
+#settings-modal .settings-tab > select,
+#settings-modal .settings-tab > input[type="text"],
+#settings-modal .adv-body > select { margin-top: 5px; }
+#settings-modal .modal-content .btn { margin-top: 8px; }
+#settings-modal .color-row { margin-bottom: 6px; }
+#settings-modal .color-row input[type="color"] { height: 42px; margin-top: 5px; }
+#settings-modal .st-chips { margin-top: 6px; }
+
+/* Rukavice: všechno o kus zpět nahoru (palec v rukavici potřebuje víc místa) */
+body.ag-glove #settings-modal .st-row { padding: 12px 0; }
+body.ag-glove #settings-modal .modal-content .btn { margin-top: 10px; }

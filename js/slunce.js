@@ -160,7 +160,18 @@
             '#ag-su-modal .ag-su-row .w{width:74px;} #ag-su-modal .ag-su-row .g{flex:1;color:#fbbf24;font-size:.92em;}' +
             '#ag-su-modal .ag-su-in{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap;}' +
             '#ag-su-modal .ag-su-in input{width:88px;}' +
-            '#ag-su-modal .ag-su-note{color:var(--text-muted,#9aa1ac);font-size:.82em;line-height:1.45;margin-top:10px;}';
+            '#ag-su-modal .ag-su-note{color:var(--text-muted,#9aa1ac);font-size:.82em;line-height:1.45;margin-top:10px;}' +
+            // Tělo musí scrollovat SAMO: .modal-content má v css/style.css overflow:hidden,
+            // takže bez tohohle se spodní polovina tabulky „Chod slunce dnes" (24 řádků)
+            // oříznula a nedalo se k ní doscrollovat. Stejný vzor má brifink.js a denik-dne.js.
+            '#ag-su-modal .modal-content{display:flex;flex-direction:column;}' +
+            '#ag-su-modal h3{flex:none;}' +
+            '#ag-su-modal #ag-su-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding-right:6px;}' +
+            // Patička: .btn má width:100% + margin-top:10px, takže „řádek" tlačítek se
+            // ve skutečnosti vykreslil jako pruhy pod sebou. Přebijeme to (vzor zavady.js).
+            '#ag-su-modal .ag-su-foot{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;flex:none;}' +
+            '#ag-su-modal .ag-su-foot .btn{flex:1 1 0;min-width:118px;margin:0;min-height:44px;}' +
+            'body.ag-glove #ag-su-modal .ag-su-foot .btn{min-height:52px;}';
         document.head.appendChild(s);
     }
     function ensureModal() {
@@ -174,9 +185,9 @@
             '<div class="modal-content">' +
             '  <h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Slunce a světlo</h3>' +
             '  <div id="ag-su-body"></div>' +
-            '  <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">' +
+            '  <div class="ag-su-foot">' +
             '    <button type="button" class="btn btn-secondary" id="ag-su-comp">Kontrola kompasu podle Slunce</button>' +
-            '    <button type="button" class="btn btn-secondary" id="ag-su-close" style="margin-left:auto;">Zavřít</button>' +
+            '    <button type="button" class="btn btn-secondary" id="ag-su-close">Zavřít</button>' +
             '  </div>' +
             '</div>';
         document.body.appendChild(m);

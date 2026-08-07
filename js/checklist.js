@@ -236,7 +236,17 @@
             '#ag-cl-modal .ag-cl-it b{display:block;font-weight:600;}' +
             '#ag-cl-modal .ag-cl-it small{color:var(--text-muted,#9aa1ac);font-size:.85em;}' +
             '#ag-cl-modal .ag-cl-del{background:none;border:none;color:var(--text-muted,#9aa1ac);font-size:1.15em;padding:0 4px;}' +
-            '#ag-cl-modal .ag-cl-note{color:var(--text-muted,#9aa1ac);font-size:.82em;line-height:1.45;margin-top:10px;}';
+            '#ag-cl-modal .ag-cl-note{color:var(--text-muted,#9aa1ac);font-size:.82em;line-height:1.45;margin-top:10px;}' +
+            // Seznam bývá přes 700 px vysoký (základ + profil + počasí + zakázka + vlastní),
+            // ale .modal-content má overflow:hidden → konec seznamu se nedal odškrtnout.
+            // Tělo proto scrolluje samo (stejně jako v brifink.js / denik-dne.js).
+            '#ag-cl-modal .modal-content{display:flex;flex-direction:column;}' +
+            '#ag-cl-modal h3{flex:none;}' +
+            '#ag-cl-modal #ag-cl-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding-right:6px;}' +
+            // Patička v jedné řadě — .btn je jinak width:100% s margin-top:10px.
+            '#ag-cl-modal .ag-cl-foot{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;flex:none;}' +
+            '#ag-cl-modal .ag-cl-foot .btn{flex:1 1 0;min-width:96px;margin:0;min-height:44px;}' +
+            'body.ag-glove #ag-cl-modal .ag-cl-foot .btn{min-height:52px;}';
         document.head.appendChild(s);
     }
     function ensureModal() {
@@ -250,10 +260,10 @@
             '<div class="modal-content">' +
             '  <h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Co s sebou</h3>' +
             '  <div id="ag-cl-body"></div>' +
-            '  <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">' +
+            '  <div class="ag-cl-foot">' +
             '    <button type="button" class="btn btn-secondary" id="ag-cl-add">Přidat položku</button>' +
             '    <button type="button" class="btn btn-secondary" id="ag-cl-reset">Odškrtnout vše</button>' +
-            '    <button type="button" class="btn btn-secondary" id="ag-cl-close" style="margin-left:auto;">Zavřít</button>' +
+            '    <button type="button" class="btn btn-secondary" id="ag-cl-close">Zavřít</button>' +
             '  </div>' +
             '</div>';
         document.body.appendChild(m);

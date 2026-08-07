@@ -23,6 +23,9 @@
 //     karta se pod něj jen kotví podle jeho živé pozice.
 //   • SUPPRESS: co je duplicita (slabá GPS × ztracená GPS), se neukazuje dvakrát.
 //   • --ag-stack-h drží spodní hranu → #quick-toast a horní hinty jdou pod ni.
+//   • Rozjetá karta se NIKDY nepoloží na ovládání: strop seznamu hlášek počítá
+//     fitOpen() ze živé polohy svislé lišty #dock, zbytek roluje. Klepnutí mimo
+//     kartu i půl minuty klidu ji zase sbalí.
 //
 // Odstranění: smaž js/upozorneni.js + řádek <script> v index.html (a přegeneruj
 // sw.js). Moduly gps-warn / gps-trust / kompas-check si pak vykreslí vlastní
@@ -37,6 +40,8 @@
     var _notes = {};                  // id -> {id,level,text,order,onAction,onDismiss,seq}
     var _seq = 0;
     var _expanded = false;            // je karta rozjetá?
+    var _expandedTs = 0;              // kdy s ní uživatel naposled pracoval
+    var AUTO_CLOSE_MS = 30000;        // po půl minutě klidu se karta sbalí sama
 
     // Duplicity: klíč se NEZOBRAZÍ, když je aktivní některé z uvedených id.
     // (Ztracený fix je nadřazený „slabé přesnosti" — obojí naráz je šum.)
@@ -117,6 +122,16 @@
             // rozjetý obsah
             '.ag-nlist{display:none;}',
             '.ag-nbox.open .ag-nlist{display:block;}',
+            // OPRAVA 27. 7. — rozjetá karta se překrývala s Nástroji a Body.
+            // PŘÍČINA: karta neměla žádný výškový strop — při víc hláškách (GPS, sever,
+            // offline, host, kotva AR…) rostla od výřezu dolů přes celou horní polovinu
+            // displeje a je široká min(92vw,400px), takže dosáhla až do dráhy svislé
+            // lišty #dock (střed v 60 % výšky). ŘEŠENÍ: rolovací seznam řádků se
+            // stropem, který počítá fitOpen() z živé polohy lišty; patička
+            // („Beru na vědomí“) zůstává mimo rolování, ať je pořád po ruce.
+            // touch-action:pan-y je nutný — html+body mají touch-action:none.
+            '.ag-nrows{max-height:var(--ag-nrows-max,40vh);overflow-y:auto;overscroll-behavior:contain;',
+            '  -webkit-overflow-scrolling:touch;touch-action:pan-y;}',
             '.ag-nrow{display:flex;align-items:flex-start;gap:9px;padding:9px 10px 9px 12px;cursor:pointer;',
             '  border-top:1px solid var(--glass-border,rgba(255,255,255,0.09));}',
             '.ag-nrow p{flex:1 1 auto;min-width:0;margin:0;font-size:12.5px;line-height:1.4;font-weight:600;}',
@@ -309,12 +324,15 @@
             + (list.length > 1 && !_expanded ? '<span class="ag-ncount">' + list.length + '</span>' : '')
             + '<span class="ag-ncaret" aria-hidden="true">⌄</span>';
         head.querySelector('.ag-nhead-tx').textContent = headText(list, worst);
-        head.addEventListener('click', function () { _expanded = !_expanded; render(); });
+        head.addEventListener('click', function () { _expanded = !_expanded; _expandedTs = Date.now(); render(); });
         box.appendChild(head);
 
         // ---- rozjeté: všechna upozornění pod sebou ----
         var body = document.createElement('div');
         body.className = 'ag-nlist';
+        // řádky mají vlastní rolovací obal — patička s „Beru na vědomí“ zůstává vidět
+        var rows = document.createElement('div');
+        rows.className = 'ag-nrows';
         list.forEach(function (n) {
             var row = document.createElement('div');
             row.className = 'ag-nrow lvl-' + (LVL[n.level] != null ? n.level : 'info');
@@ -335,8 +353,9 @@
             x.addEventListener('click', function (ev) { ev.stopPropagation(); dismissNote(n); });
             row.appendChild(x);
             row.addEventListener('click', function () { adviseFor(n); });
-            body.appendChild(row);
+            rows.appendChild(row);
         });
+        body.appendChild(rows);
 
         var foot = document.createElement('div');
         foot.className = 'ag-nfoot';
@@ -417,11 +436,35 @@
             if (top != null) stack.style.top = top + 'px';
             else if (stack.style.top) stack.style.top = '';   // zpět na CSS (safe-area + 4px)
 
+            fitOpen(stack);
+
             var rect = stack.getBoundingClientRect();
             // výška od horní hrany displeje po konec sloupce — o tolik se odsune zbytek
             var used = Math.max(0, Math.round(rect.bottom));
             document.documentElement.style.setProperty('--ag-stack-h', used + 'px');
             watchAnchor(sp, stack);
+        } catch (e) {}
+    }
+
+    // Strop rozjeté karty, aby se nepoložila na svislou lištu ovládání (#dock).
+    // Počítá se ze živé polohy lišty — ta se stěhuje podle režimu levé ruky, výšky
+    // displeje i počtu chipů, takže pevná hodnota v CSS by nikdy neseděla všude.
+    // Bez lišty (odpojený dok) drží strop spodní hrana okna.
+    function fitOpen(stack) {
+        if (!_expanded) return;                 // sbalena karta zadny strop nepotrebuje
+        try {
+            var rows = stack.querySelector('.ag-nrows');
+            if (!rows) return;
+            var top = rows.getBoundingClientRect().top;
+            var limit = window.innerHeight;
+            var dock = document.getElementById('dock');
+            if (dock) {
+                var dr = dock.getBoundingClientRect();
+                if (dr.height > 0 && dr.width > 0 && dr.top > top + 60) limit = Math.min(limit, dr.top);
+            }
+            var foot = stack.querySelector('.ag-nfoot');
+            var footH = foot ? foot.getBoundingClientRect().height : 0;
+            rows.style.maxHeight = Math.max(120, Math.round(limit - top - footH - 12)) + 'px';
         } catch (e) {}
     }
 
@@ -482,6 +525,8 @@
             var stack = ensureStack();
             if (!stack) return;
             syncMirrors();
+            // rozjetá karta a půl minuty bez doteku → sbalit, ať nestíní ovládání
+            if (_expanded && _expandedTs && (Date.now() - _expandedTs) > AUTO_CLOSE_MS) _expanded = false;
             render();
             measure(stack);
         } catch (e) {}
@@ -495,6 +540,24 @@
             }
         } catch (e) { console.warn('[upozorneni] init', e); }
     }
+    // Klepnutí mimo kartu ji sbalí (stejně jako u stavové bubliny), práce uvnitř
+    // naopak odkládá auto-sbalení — uživatel si může číst, jak dlouho potřebuje.
+    if (!window.__agStackOutside) {
+        window.__agStackOutside = true;
+        document.addEventListener('pointerdown', function (e) {
+            if (!_expanded) return;
+            try {
+                if (e.target && e.target.closest && e.target.closest('#' + STACK_ID)) { _expandedTs = Date.now(); return; }
+            } catch (err) { return; }
+            _expanded = false;
+            render();
+        }, true);
+        document.addEventListener('scroll', function (e) {
+            if (!_expanded) return;
+            try { if (e.target && e.target.closest && e.target.closest('#' + STACK_ID)) _expandedTs = Date.now(); } catch (err) {}
+        }, true);
+    }
+
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
     window.addEventListener('load', function () { setTimeout(init, 300); });

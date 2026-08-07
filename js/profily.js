@@ -10,8 +10,19 @@
 //    a pošle jim 'input'/'change' — hodnoty tedy ukládá a aplikuje appka svým
 //    vlastním kódem (saveSettings v grafika.js, vlastní handlery modulů). Modul
 //    si nikde nedrží druhou kopii nastavení, takže se nemůže rozejít.
-//    ZÁMĚRNĚ nesahá na věci vázané na TELEFON a ČLOVĚKA (zorný úhel, korekce
+//    ZÁMĚRNĚ nesáhá na věci vázané na TELEFON a ČLOVĚKA (zorný úhel, korekce
 //    severu, barvy, motiv, levá ruka, volba kamery) — ty patří do bodu 2.
+//
+//    BEZ PROFILU je rovnocenný stav: ťuknutí na PRÁVĚ AKTIVNÍ profil ho odznačí.
+//    Odznačení ÚMYSLNĚ nic nevrací zpět — jen se přestane tvářit, že profil platí
+//    (smaže agProfileLast). Nastavení zůstane přesně tak, jak si ho uživatel nechá.
+//    Vracet výchozí hodnoty by bylo horní cesta do pekla: profil by mazal ruční
+//    doladění, které uživatel udělal PO jeho zapnutí.
+//
+//    SROVNÁVACÍ TABULKA (sbalené „Co profily mění“) se GENERUJE z objektu `set`
+//    každého profilu — není nikde psaná ručně, takže nemůže zastarat. Řádek se
+//    vykreslí jen tehdy, když ovládací prvek v téhle verzi opravdu existuje.
+//    Nový klíč v `set` = přidej i řádek do LABELS, jinak se ve srovnání neukáže.
 //
 // 2) PROFIL ZAŘÍZENÍ (Nastavení → Údržba): export a import kalibrace telefonu
 //    do souboru .agdev — zorný úhel kamery (fovH/fovV), výška očí, korekce severu
@@ -27,16 +38,53 @@
     window.__agProfInit = true;
 
     var STYLE_ID = 'ag-prof-style';
-    var LAST_KEY = 'agProfileLast';     // jen kvůli zvýraznění naposledy použitého
+    var LAST_KEY = 'agProfileLast';     // právě aktivní profil; chybí = bez profilu
+
+    // ---- překlad hodnot do lidské řeči ----------------------------------------------
+    function fBool(v) { return v ? 'ano' : 'ne'; }
+    function fM(v) { return String(v) + ' m'; }
+    function fPct(v) { return String(v) + ' %'; }
+    function fNum(v) { return String(v); }
+    function fAnim(v) { return v === 'off' ? 'vypnuté' : (v === 'on' ? 'zapnuté' : 'podle systému'); }
+
+    // ---- čtění: id ovládacího prvku -> název, kterýmu rozumí geodet -------------------
+    // Pořadí = pořadí řádků ve srovnávací tabulce (nahoru to, co je nejvíc poznát).
+    var LABELS = [
+        { id: 's-ar-radius-slider', n: 'Dohled v AR — jak daleko body vidíš', f: fM },
+        { id: 's-max-ar-slider', n: 'Bodů v AR najednou', f: fNum },
+        { id: 's-map-radius-slider', n: 'Dohled v mapě', f: fM },
+        { id: 's-outdoor', n: 'Vysoký kontrast na slunci', f: fBool },
+        { id: 's-wakelock', n: 'Displej nezhasne', f: fBool },
+        { id: 'agp-enabled', n: 'Spánek senzorů mimo AR a mapu', f: fBool },
+        { id: 'agp-gps', n: 'Spánek GPS v nástrojích', f: fBool },
+        { id: 'agvt-settings-cb', n: 'Vizuální stabilizace AR (optický tok)', f: fBool },
+        { id: 'ag-arfusion-cb', n: 'Plynulý směr — fúze gyroskopu', f: fBool },
+        { id: 's-tilt-comp', n: 'Kompenzace náklonu telefonu', f: fBool },
+        { id: 's-auto-compass', n: 'Automatická korekce kompasu', f: fBool },
+        { id: 's-heading-smooth', n: 'Vyhlazení kompasu', f: fPct },
+        { id: 'tgl-gpsavg', n: 'Průměrování GPS na místě', f: fBool },
+        { id: 's-anim', n: 'Animace rozhraní', f: fAnim },
+        { id: 'v-adaptive-glass', n: 'Adaptivní sklo panelů dle jasu', f: fBool },
+        { id: 'v-marker-scale', n: 'Velikost štítků bodů', f: fPct },
+        { id: 'v-marker-opacity', n: 'Krytí štítků', f: fPct },
+        { id: 'v-arrow-scale', n: 'Velikost 3D šipky', f: fPct },
+        { id: 'v-hud-scale', n: 'Velikost navigačního štítku', f: fPct },
+        { id: 'v-panel-opacity', n: 'Krytí panelů na skle', f: fPct },
+        { id: 's-vibration', n: 'Vibrace při uložení bodu', f: fBool }
+    ];
 
     // ---- definice profilů ---------------------------------------------------------
     // set: id ovládacího prvku -> hodnota. Boolean = checkbox, jinak value.
     // Prvky, které v appce nejsou (odpojený modul), se přeskočí — fail-silent.
+    // Hodnoty jsou ZÁMĚRNĚ roztažené od sebe: profily mají být na první pohled
+    // rozeznatelné (100 / 400 / 2000 m dohled), ne tři odstíny téhož.
     var PROFILES = [
         {
-            id: 'teren', t: 'Terén', s: 'Celý den na baterku, čitelné na slunci',
+            id: 'teren', t: 'Terén', s: 'Celý den na baterku',
             ic: '#i-sun',
-            why: 'Vypne, co žere baterii (animace, vizuální stabilizace, buzení displeje), zapne venkovní kontrast a spánek senzorů mimo AR.',
+            use: 'Celý den za finišerem. Telefon vydrží směnu, displej je čitelný na slunci '
+                + 'a v AR se kreslí jen to nejbližší — všechno zbytné (fúze gyra, stabilizace obrazu, '
+                + 'animace, buzení displeje) je vypnuté a senzory spí, když nekoukáš do kamery.',
             set: {
                 's-outdoor': true,          // vysoký kontrast na slunci
                 's-anim': 'off',
@@ -44,88 +92,147 @@
                 's-wakelock': false,        // největší žrout; o probuzení se stará spánek senzorů
                 's-vibration': true,        // zpětná vazba v rukavicích, stojí skoro nic
                 'tgl-gpsavg': true,
+                's-ar-radius-slider': '100',
                 's-max-ar-slider': '20',
-                's-ar-radius-slider': '150',
+                's-map-radius-slider': '300',
+                's-heading-smooth': '70',
+                'v-marker-scale': '110',    // větší štítky = čitelné na slunci a v rukavicích
+                'v-panel-opacity': '100',   // neprůhledné panely, sklo se na slunci nepřečte
                 'agp-enabled': true,        // js/power-save.js — uspat kameru/kompas mimo AR
                 'agp-gps': true,
-                'agvt-settings-cb': false   // js/ar-visual-track.js — optický tok stojí výkon
+                'agvt-settings-cb': false,  // js/ar-visual-track.js — optický tok stojí výkon
+                'ag-arfusion-cb': false     // js/ar-fusion.js — gyro na plných otáčkách, šetříme
             }
         },
         {
-            id: 'presnost', t: 'Přesnost', s: 'Když měřím a chci nejlepší AR',
+            id: 'presnost', t: 'Přesnost', s: 'Když musí značka sedět',
             ic: '#i-crosshair',
-            why: 'Zapne stabilizaci AR, kompenzaci náklonu i automatickou korekci kompasu, nechá GPS běžet a nedovolí zhasnout displej. Baterie tím trpí.',
+            use: 'Když kontroluješ výšku a sklon vrstvy a značka musí sedět na centimetry. '
+                + 'Běží stabilizace obrazu, fúze gyra, kompenzace náklonu i průměrování GPS, '
+                + 'GPS se neuspíná (fix zůstává teplý) a displej nezhasne. Baterie ubývá výrazně rychleji.',
             set: {
                 's-auto-compass': true,
                 's-tilt-comp': true,
-                's-heading-smooth': '85',   // víc vyhlazení = klidnější značky
+                's-heading-smooth': '90',   // víc vyhlazení = klidnější značky
                 'tgl-gpsavg': true,
                 's-wakelock': true,
                 's-anim': 'off',            // výkon patří renderu AR, ne přechodům
+                's-ar-radius-slider': '400',
                 's-max-ar-slider': '60',
-                's-ar-radius-slider': '300',
+                's-map-radius-slider': '1000',
+                'v-marker-scale': '90',     // menší štítky = méně překryvů, líp vidíš na patu značky
+                'v-panel-opacity': '95',
                 'agp-enabled': false,       // GPS se nesmí uspat, fix má zůstat teplý
                 'agp-gps': false,
-                'agvt-settings-cb': true
+                'agvt-settings-cb': true,
+                'ag-arfusion-cb': true
             }
         },
         {
-            id: 'ukazka', t: 'Ukázka', s: 'Předvést appku, uvnitř, na velké body',
+            id: 'ukazka', t: 'Ukázka', s: 'Předvádění appky',
             ic: '#i-star',
-            why: 'Větší značky, šipka i HUD, daleký dohled v AR a plynulé animace. Na celodenní práci se nehodí.',
+            use: 'Předvádění v kanceláři nebo na stavbě. Velké štítky i šipka, daleko vidět, '
+                + 'plynulé animace, displej svítí pořád. Na celodenní práci se nehodí — bere baterku '
+                + 'a daleký dohled zaplní obrazovku body, které zrovna neřešíš.',
             set: {
                 's-outdoor': false,
                 's-anim': 'on',
                 'v-adaptive-glass': true,
                 's-wakelock': true,
-                'v-marker-scale': '130',
-                'v-arrow-scale': '130',
-                'v-hud-scale': '110',
-                's-max-ar-slider': '60',
-                's-ar-radius-slider': '1000',
+                's-ar-radius-slider': '2000',
+                's-max-ar-slider': '120',
+                's-map-radius-slider': '2000',
+                's-heading-smooth': '55',   // svižnější reakce, hezky se to hýbe
+                'v-marker-scale': '150',
+                'v-arrow-scale': '150',
+                'v-hud-scale': '130',
+                'v-panel-opacity': '70',
                 'agp-enabled': false,
-                'agp-gps': false
+                'agp-gps': false,
+                'agvt-settings-cb': false,  // snímky kamery patří snímkové frekvenci, ne optickému toku
+                'ag-arfusion-cb': true
             }
         }
     ];
 
     function ls(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
     function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+    function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
     function $(id) { return document.getElementById(id); }
+    function esc(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
     function toast(msg) {
         try { if (typeof quickToast === 'function') { quickToast(msg); return; } } catch (e) {}
         try { if (typeof window.agInfo === 'function') { window.agInfo(msg); return; } } catch (e) {}
     }
 
     // ---- styly --------------------------------------------------------------------
+    // Pruh je ZÁMĚRNĚ nízký (jeden řádek, ikona + název): Nastavení je přeplněné
+    // a tři dvouřádkové dlaždice před záložkami braly půl obrazovky. Popisky a celé
+    // srovnání jsou schované v sbalitelném detailu. Rukavice (body.ag-glove) dostanou
+    // vyšší variantu, aby zůstal dotykový cíl.
     function injectStyles() {
         if ($(STYLE_ID)) return;
         var st = document.createElement('style');
         st.id = STYLE_ID;
         st.textContent = [
-            '#ag-prof-bar{margin:0 0 14px;}',
-            '#ag-prof-bar .h{display:block;margin:0 0 7px;font:700 11px/1.2 var(--font-ui,system-ui),sans-serif;',
+            '#ag-prof-bar{margin:0 0 12px;}',
+            '#ag-prof-bar .h{display:block;margin:0 0 6px;font:700 11px/1.2 var(--font-ui,system-ui),sans-serif;',
             '  letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
-            '#ag-prof-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}',
-            '#ag-prof-row button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;',
-            '  min-height:74px;padding:10px 5px;box-sizing:border-box;cursor:pointer;',
+            '#ag-prof-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}',
+            '#ag-prof-row button{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:6px;',
+            '  min-height:40px;padding:8px 6px;box-sizing:border-box;cursor:pointer;',
             '  border-radius:var(--r-md,12px);border:1px solid var(--glass-border,rgba(255,255,255,0.14));',
             '  background:rgba(255,255,255,0.05);color:var(--text-color,#eceef2);text-align:center;',
-            '  font:700 12.5px/1.2 var(--font-ui,system-ui),sans-serif;}',
-            '#ag-prof-row button .icon{width:20px;height:20px;color:var(--accent-bright,#3eb487);}',
-            '#ag-prof-row button small{display:block;font:500 10px/1.3 var(--font-ui,system-ui),sans-serif;',
-            '  color:var(--text-muted,#9aa1ac);}',
+            '  font:700 12.5px/1.15 var(--font-ui,system-ui),sans-serif;}',
+            '#ag-prof-row button .icon{width:15px;height:15px;flex:0 0 auto;color:var(--accent-bright,#3eb487);}',
             '#ag-prof-row button.on{border-color:var(--accent-line,rgba(47,158,116,0.42));background:var(--accent-soft,rgba(47,158,116,0.14));}',
             '#ag-prof-row button.on,#ag-prof-row button.on .icon{color:var(--accent,#2f9e74);}',
             '#ag-prof-row button:active{transform:scale(0.97);}',
-            '#ag-prof-note{margin:7px 2px 0;font:500 11.5px/1.45 var(--font-ui,system-ui),sans-serif;color:var(--text-muted,#9aa1ac);}',
+            '#ag-prof-note{margin:6px 2px 0;font:500 11.5px/1.45 var(--font-ui,system-ui),sans-serif;color:var(--text-muted,#9aa1ac);}',
+            '#ag-prof-note b{color:var(--text-color,#eceef2);}',
+            // sbalitelné srovnání
+            '#ag-prof-det{margin:7px 0 0;}',
+            '#ag-prof-det>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;',
+            '  padding:5px 10px;border-radius:var(--r-md,12px);border:1px solid var(--glass-border,rgba(255,255,255,0.14));',
+            '  background:rgba(255,255,255,0.04);color:var(--text-muted,#9aa1ac);',
+            '  font:600 11px/1.2 var(--font-ui,system-ui),sans-serif;}',
+            '#ag-prof-det>summary::-webkit-details-marker{display:none;}',
+            '#ag-prof-det>summary .chev{transition:transform .15s;}',
+            '#ag-prof-det[open]>summary{color:var(--accent-bright,#3eb487);border-color:var(--accent-line,rgba(47,158,116,0.42));}',
+            '#ag-prof-det[open]>summary .chev{transform:rotate(180deg);}',
+            '#ag-prof-body{margin-top:8px;}',
+            // Srovnávací tabulka je širší než okno a posouvá se do stran. Rodič
+            // #settings-modal .modal-content má ale touch-action:pan-y (css/style.css)
+            // a touch-action se s předky PRŮNIKUJE — bez tohohle řádku by tabulka
+            // prstem nešla posunout a pravý sloupec by byl nedosažitelný. Okno samo
+            // vodorovně nepřetéká (overflow-x:hidden), takže povolení nic nerozbije.
+            '#settings-modal .modal-content{touch-action:pan-x pan-y;}',
+            '#ag-prof-tw{overflow-x:auto;-webkit-overflow-scrolling:touch;}',
+            '#ag-prof-tw table{border-collapse:collapse;width:100%;min-width:300px;}',
+            '#ag-prof-tw th,#ag-prof-tw td{padding:5px 6px;text-align:center;white-space:nowrap;',
+            '  border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.12));',
+            '  font:500 11px/1.3 var(--font-ui,system-ui),sans-serif;color:var(--text-color,#eceef2);}',
+            '#ag-prof-tw th:first-child,#ag-prof-tw td:first-child{text-align:left;white-space:normal;',
+            '  color:var(--text-muted,#9aa1ac);font-weight:500;}',
+            '#ag-prof-tw thead th{font-weight:700;color:var(--text-muted,#9aa1ac);}',
+            '#ag-prof-tw thead th.on{color:var(--accent-bright,#3eb487);}',
+            '#ag-prof-tw td.on{color:var(--accent-bright,#3eb487);font-weight:700;}',
+            '#ag-prof-tw td.x{opacity:.32;}',
+            '#ag-prof-use{margin:10px 0 0;}',
+            '#ag-prof-use p{margin:0 0 7px;font:500 11.5px/1.5 var(--font-ui,system-ui),sans-serif;color:var(--text-muted,#9aa1ac);}',
+            '#ag-prof-use b{color:var(--accent-bright,#3eb487);}',
+            '#ag-prof-legend{margin:2px 2px 0;font:500 10.5px/1.4 var(--font-ui,system-ui),sans-serif;color:var(--text-muted,#9aa1ac);opacity:.8;}',
             // profil zařízení v Údržbě
             '#ag-dev-box{margin-top:8px;}',
             '#ag-dev-box .ag-dev-row{display:flex;gap:8px;}',
             '#ag-dev-box .ag-dev-row .btn{flex:1;}',
             '#ag-dev-sum{margin:8px 2px 0;font:500 11.5px/1.5 var(--font-ui,system-ui),sans-serif;color:var(--text-muted,#9aa1ac);}',
             '#ag-dev-sum b{color:var(--accent,#2f9e74);}',
-            'body.ag-glove #ag-prof-row button{min-height:86px;font-size:13.5px;}'
+            'body.ag-glove #ag-prof-row button{min-height:54px;font-size:13.5px;}',
+            'body.ag-glove #ag-prof-row button .icon{width:18px;height:18px;}',
+            'body.ag-glove #ag-prof-det>summary{padding:9px 12px;font-size:12.5px;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
@@ -150,9 +257,13 @@
         return true;
     }
 
+    function byId(profId) {
+        for (var i = 0; i < PROFILES.length; i++) if (PROFILES[i].id === profId) return PROFILES[i];
+        return null;
+    }
+
     function apply(profId) {
-        var p = null, i;
-        for (i = 0; i < PROFILES.length; i++) if (PROFILES[i].id === profId) p = PROFILES[i];
+        var p = byId(profId);
         if (!p) return;
         var done = 0, skipped = 0;
         for (var k in p.set) {
@@ -167,8 +278,15 @@
             if (typeof saveSettings === 'function') { saveSettings(); saved = true; }
         } catch (e) { console.warn('[profily] saveSettings', e); }
         renderBar();
-        toast('Profil „' + p.t + '" použit' + (saved ? '' : ' — potvrď „Uložit vše a Zavřít"')
+        toast('Profil „' + p.t + '“ použit' + (saved ? '' : ' — potvrď „Uložit vše a Zavřít“')
             + (skipped ? ' (' + skipped + ' volb' + (skipped === 1 ? 'a' : 'y') + ' není v této verzi)' : ''));
+    }
+
+    // Odznačení profilu. NIC nepřepisuje zpět — viz hlavička souboru.
+    function clearProfile() {
+        lsDel(LAST_KEY);
+        renderBar();
+        toast('Bez profilu — nastavení zůstává, jak je. Řídíš si ho sám.');
     }
 
     // ---- pruh profilů nad záložkami Nastavení -------------------------------------
@@ -182,12 +300,21 @@
         bar.id = 'ag-prof-bar';
         bar.innerHTML = '<span class="h">Profil použití — nastaví několik voleb naráz</span>'
             + '<div id="ag-prof-row" role="group" aria-label="Profil použití"></div>'
-            + '<p id="ag-prof-note"></p>';
+            + '<p id="ag-prof-note"></p>'
+            + '<details id="ag-prof-det">'
+            + '<summary>Co profily mění a v čem se liší'
+            + '<svg class="icon chev" style="width:13px;height:13px;"><use href="#i-chevron-down"/></svg></summary>'
+            + '<div id="ag-prof-body"></div>'
+            + '</details>';
         content.insertBefore(bar, tabs);
         bar.querySelector('#ag-prof-row').addEventListener('click', function (ev) {
             var b = ev.target.closest ? ev.target.closest('button[data-prof]') : null;
-            if (b) apply(b.getAttribute('data-prof'));
+            if (!b) return;
+            var id = b.getAttribute('data-prof');
+            // Ťuknutí na právě aktivní profil = vypnout profil (stav „bez profilu“)
+            if (id === ls(LAST_KEY)) clearProfile(); else apply(id);
         });
+        bar.querySelector('#ag-prof-det').addEventListener('toggle', function () { renderDetail(true); });
         return bar;
     }
 
@@ -196,21 +323,81 @@
         var bar = ensureBar(); if (!bar) return;
         var last = ls(LAST_KEY);
         var row = bar.querySelector('#ag-prof-row');
-        if (row.getAttribute('data-last') !== String(last)) {
-            row.setAttribute('data-last', String(last));
+        if (!row.firstChild) {
             row.innerHTML = PROFILES.map(function (p) {
-                return '<button type="button" data-prof="' + p.id + '"' + (p.id === last ? ' class="on"' : '') + '>'
-                    + '<svg class="icon"><use href="' + p.ic + '"/></svg>' + p.t
-                    + '<small>' + p.s + '</small></button>';
+                return '<button type="button" data-prof="' + p.id + '" title="' + esc(p.s) + '" aria-pressed="false">'
+                    + '<svg class="icon"><use href="' + p.ic + '"/></svg>' + esc(p.t) + '</button>';
             }).join('');
         }
+        if (row.getAttribute('data-last') !== String(last)) {
+            row.setAttribute('data-last', String(last));
+            var btns = row.querySelectorAll('button[data-prof]');
+            for (var i = 0; i < btns.length; i++) {
+                var on = btns[i].getAttribute('data-prof') === last;
+                btns[i].className = on ? 'on' : '';
+                btns[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+            }
+        }
         var note = bar.querySelector('#ag-prof-note');
-        var cur = null;
-        for (var i = 0; i < PROFILES.length; i++) if (PROFILES[i].id === last) cur = PROFILES[i];
+        var cur = byId(last);
         var html = cur
-            ? ('<b>' + cur.t + ':</b> ' + cur.why + ' Jednotlivé volby zůstávají v záložkách níž — profil je jen nastaví.').replace('<b>', '<b>')
-            : 'Jednotlivé volby najdeš v záložkách níž. Profil je jen rychle nastaví, nic neschovává ani nemaže.';
+            ? ('<b>' + esc(cur.t) + ':</b> ' + esc(cur.use)
+                + ' <i>Dalším ťuknutím na „' + esc(cur.t) + '“ profil vypneš.</i>')
+            : '<b>Bez profilu</b> — nastavení si řídíš sám v záložkách níž. '
+                + 'Ťuknutí na profil nastaví několik voleb naráz, ťuknutí na ten samý ho zase vypne '
+                + '(hodnoty zůstanou, jen se přestane hlídat).';
         if (note.innerHTML !== html) note.innerHTML = html;
+        renderDetail(false);
+    }
+
+    // ---- srovnávací tabulka (generovaná z `set`, nikdy ručně psaná) -----------------
+    // Staví se až při otevření detailu — tedy až tehdy, když už mají všechny moduly
+    // vložené své řádky do Nastavení. Řádek pro prvek, který v appce není, by lhal.
+    function renderDetail(force) {
+        var det = $('ag-prof-det'); if (!det) return;
+        if (!det.open) return;
+        var body = $('ag-prof-body'); if (!body) return;
+        var last = String(ls(LAST_KEY));
+        var i, j, L;
+
+        // podpis: aktivní profil + které prvky zrovna existují → zbytečně nepřekresluj
+        var sig = last + '|';
+        for (i = 0; i < LABELS.length; i++) sig += ($(LABELS[i].id) ? '1' : '0');
+        if (!force && body.getAttribute('data-sig') === sig) return;
+        body.setAttribute('data-sig', sig);
+
+        var head = '<tr><th>Co se nastaví</th>';
+        for (j = 0; j < PROFILES.length; j++) {
+            head += '<th' + (PROFILES[j].id === last ? ' class="on"' : '') + '>' + esc(PROFILES[j].t) + '</th>';
+        }
+        head += '</tr>';
+
+        var rows = '';
+        for (i = 0; i < LABELS.length; i++) {
+            L = LABELS[i];
+            if (!$(L.id)) continue;                 // prvek v téhle verzi není — řádek vynech
+            var any = false, tds = '';
+            for (j = 0; j < PROFILES.length; j++) {
+                var s = PROFILES[j].set;
+                var has = Object.prototype.hasOwnProperty.call(s, L.id);
+                if (has) any = true;
+                var cls = (PROFILES[j].id === last ? 'on' : '') + (has ? '' : ' x');
+                tds += '<td' + (cls.replace(/^\s+|\s+$/g, '') ? ' class="' + cls.replace(/^\s+|\s+$/g, '') + '"' : '') + '>'
+                    + (has ? esc(L.f(s[L.id])) : '–') + '</td>';
+            }
+            if (any) rows += '<tr><td>' + esc(L.n) + '</td>' + tds + '</tr>';
+        }
+
+        var use = '';
+        for (j = 0; j < PROFILES.length; j++) {
+            use += '<p><b>' + esc(PROFILES[j].t) + '</b> — ' + esc(PROFILES[j].use) + '</p>';
+        }
+
+        body.innerHTML = '<div id="ag-prof-tw"><table><thead>' + head + '</thead><tbody>' + rows + '</tbody></table></div>'
+            + '<p id="ag-prof-legend">– = profil na tuhle volbu vůbec nesáhá, zůstane po tvém. '
+            + 'Zorný úhel kamery, korekci severu, barvy, motiv ani levou ruku profil nemění nikdy — '
+            + 'to je nastavení telefonu a člověka, ne způsobu práce.</p>'
+            + '<div id="ag-prof-use">' + use + '</div>';
     }
 
     // ---- profil zařízení: export / import -----------------------------------------
@@ -361,5 +548,5 @@
     else init();
     window.addEventListener('load', function () { setTimeout(init, 400); });
 
-    window.AGProfily = { apply: apply, profiles: PROFILES, device: collectDevice };
+    window.AGProfily = { apply: apply, clear: clearProfile, profiles: PROFILES, labels: LABELS, device: collectDevice };
 })();

@@ -191,6 +191,36 @@ async function ensureSyncTable(env) {
     _syncReady = true;
 }
 
+// ---- registr zakázek firmy (klient js/zakazky-cloud.js) --------------------
+// Aby se zakázka nezakládala ručně na každém telefonu: kdo ji založí, ohlásí ji
+// sem a ostatní zařízení firmy ji uvidí a doplní si ji k sobě. Klíč zakázky je
+// STEJNÝ jako u synchronizace bodů (job_key = normalizovaný název), takže se
+// registr a body drží pohromadě bez další mapovací tabulky.
+//   acl  = JSON pole id uživatelů, kteří na zakázku smí; NULL / [] = všichni
+//   ts   = čas změny na zařízení, srv = čas zápisu na serveru (kurzor)
+// Přejmenování se ZÁMĚRNĚ nesynchronizuje: název je klíč, takže by přejmenování
+// rozpojilo body. Nová jméno = nová zakázka; staré jde archivovat (deleted).
+let _jobsReady = false;
+async function ensureJobsTable(env) {
+    if (_jobsReady) return;
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS jobs (' +
+        'firm_id TEXT NOT NULL, job_key TEXT NOT NULL, name TEXT NOT NULL, ' +
+        'acl TEXT, ts INTEGER NOT NULL, srv INTEGER NOT NULL, ' +
+        'deleted INTEGER NOT NULL DEFAULT 0, uname TEXT, ' +
+        'PRIMARY KEY (firm_id, job_key))').run();
+    await env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_jobs_firm_srv ON jobs(firm_id, srv)').run();
+    _jobsReady = true;
+}
+// vidí uživatel zakázku? (admin i vedení vidí vše — potřebují přehled firmy)
+function jobVisible(row, me) {
+    if (me.role === 'admin' || me.role === 'vedeni') return true;
+    if (!row.acl) return true;
+    try {
+        const a = JSON.parse(row.acl);
+        return !Array.isArray(a) || !a.length || a.indexOf(me.id) !== -1;
+    } catch (e) { return true; }
+}
+
 async function lastActiveAdminGuard(env, firmId, exceptUserId) {
     // vrací true, když po vyřazení exceptUserId zůstane aspoň jeden aktivní admin
     const row = await env.DB.prepare(
@@ -225,7 +255,7 @@ export default {
         try {
             // v = verze API; klient podle ní pozná, že na serveru běží starý kód
             // (chybějící v = původní nasazení bez chatu/statistik/zálohy)
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 2 });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 3 });
 
             // ---------------- registrace firmy ------------------------------
             if (req.method === 'POST' && path === '/firms') {
@@ -499,6 +529,70 @@ export default {
                 if (me.role !== 'admin') return err(403, 'Jen admin.');
                 await env.DB.prepare('DELETE FROM usage WHERE firm_id=?').bind(me.firm_id).run();
                 return json({ ok: true });
+            }
+
+            // ---------------- registr zakázek firmy ---------------------------
+            // GET  /jobs                  — zakázky, na které přihlášený smí
+            // POST /jobs {name}           — ohlášení zakázky (zakládá kdokoli v terénu)
+            // PATCH /jobs/<key> {acl?,deleted?} — přidělení lidem / archivace (jen admin)
+            if (path === '/jobs' && req.method === 'GET') {
+                await ensureJobsTable(env);
+                const rows = (await env.DB.prepare(
+                    'SELECT job_key AS key, name, acl, ts, srv, deleted, uname FROM jobs WHERE firm_id=? ORDER BY name')
+                    .bind(me.firm_id).all()).results;
+                const boss = (me.role === 'admin' || me.role === 'vedeni');
+                const out = rows.filter(r => jobVisible(r, me)).map(r => ({
+                    key: r.key, name: r.name, ts: r.ts, srv: r.srv, deleted: r.deleted ? 1 : 0,
+                    uname: r.uname,
+                    // ACL vidí jen admin/vedení — zaměstnanci není co ukazovat, kdo další na zakázce je
+                    acl: boss ? (r.acl ? JSON.parse(r.acl) : null) : undefined
+                }));
+                return json({ jobs: out, canManage: me.role === 'admin', serverTime: Date.now() });
+            }
+
+            if (path === '/jobs' && req.method === 'POST') {
+                await ensureJobsTable(env);
+                const b = await req.json().catch(() => null);
+                const name = b && typeof b.name === 'string' ? b.name.replace(/\s+/g, ' ').trim().slice(0, 80) : '';
+                if (!name) return err(400, 'Chybí name.');
+                const key = (b && typeof b.key === 'string' && b.key.trim())
+                    ? b.key.trim().slice(0, 80)
+                    : name.toLowerCase().slice(0, 60);
+                const now = Date.now();
+                const ts = Math.min(Math.max(0, +(b && b.ts) || now), now + 60e3);
+                // existující zakázku POST nepřepisuje (jen osvěží název) — ACL a archivaci
+                // řídí admin přes PATCH, ať ji zaměstnanci nechtěně nevrací zpátky
+                await env.DB.prepare(
+                    'INSERT INTO jobs(firm_id,job_key,name,acl,ts,srv,deleted,uname) VALUES(?,?,?,NULL,?,?,0,?) ' +
+                    'ON CONFLICT(firm_id,job_key) DO UPDATE SET name=excluded.name, ts=excluded.ts, srv=excluded.srv, uname=excluded.uname ' +
+                    'WHERE excluded.ts>jobs.ts')
+                    .bind(me.firm_id, key, name, ts, now, me.name).run();
+                return json({ ok: true, key: key, serverTime: now });
+            }
+
+            if (path.startsWith('/jobs/') && req.method === 'PATCH') {
+                if (me.role !== 'admin') return err(403, 'Přidělovat zakázky může jen admin.');
+                await ensureJobsTable(env);
+                const key = decodeURIComponent(path.slice('/jobs/'.length)).trim().slice(0, 80);
+                if (!key) return err(400, 'Chybí klíč zakázky.');
+                const b = await req.json().catch(() => null);
+                if (!b) return err(400, 'Chybí tělo požadavku.');
+                const row = await env.DB.prepare('SELECT job_key FROM jobs WHERE firm_id=? AND job_key=?')
+                    .bind(me.firm_id, key).first();
+                if (!row) return err(404, 'Zakázka na serveru není.');
+                const now = Date.now();
+                if (b.acl !== undefined) {
+                    const acl = Array.isArray(b.acl)
+                        ? JSON.stringify(b.acl.filter(x => typeof x === 'string').slice(0, 200))
+                        : null;
+                    await env.DB.prepare('UPDATE jobs SET acl=?, srv=? WHERE firm_id=? AND job_key=?')
+                        .bind(acl, now, me.firm_id, key).run();
+                }
+                if (b.deleted !== undefined) {
+                    await env.DB.prepare('UPDATE jobs SET deleted=?, srv=? WHERE firm_id=? AND job_key=?')
+                        .bind(b.deleted ? 1 : 0, now, me.firm_id, key).run();
+                }
+                return json({ ok: true, serverTime: now });
             }
 
             // ---------------- živá synchronizace bodů zakázky ----------------

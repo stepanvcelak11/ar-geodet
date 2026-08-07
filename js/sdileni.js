@@ -150,13 +150,13 @@
         m.className = 'modal-overlay'; m.id = 'qr-share-modal';
         m.innerHTML = `<div class="modal-content" style="max-width:420px;">
             <h3 style="color:var(--accent); margin-top:0;">Sdílet body</h3>
-            <div style="font-size:13px; color:var(--text-dim); margin-bottom:10px;">Kolega naskenuje QR kód a vaše vybrané body se mu přidají. <b>Fotky se do QR nevejdou</b> — na ty použijte soubor níže.</div>
+            <div style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">Kolega naskenuje QR kód a vaše vybrané body se mu přidají. <b>Fotky se do QR nevejdou</b> — na ty použijte soubor níže.</div>
             <div id="qr-share-list" class="modal-body" style="max-height:30vh; text-align:left;"></div>
             <label class="filter-row" style="margin-top:8px;"><input type="checkbox" id="qr-share-notes" checked> Přenést i poznámky u bodů</label>
             <button class="btn btn-primary" id="qr-share-gen" style="margin-top:10px;">Vytvořit QR z vybraných</button>
             <div id="qr-share-out" style="text-align:center; margin-top:12px;"></div>
             <div style="border-top:1px solid var(--glass-border); margin-top:14px; padding-top:12px;">
-                <div style="font-size:13px; color:var(--text-dim); margin-bottom:8px;">Kompletní předání <b>včetně fotek a výšek</b> — soubor pošlete kolegovi (Messenger, e-mail, WhatsApp…) a on ho načte tlačítkem „Načíst ze souboru".</div>
+                <div style="font-size:13px; color:var(--text-muted); margin-bottom:8px;">Kompletní předání <b>včetně fotek a výšek</b> — soubor pošlete kolegovi (Messenger, e-mail, WhatsApp…) a on ho načte tlačítkem „Načíst ze souboru".</div>
                 <button class="btn btn-secondary" id="qr-share-file" style="margin:0;">Soubor s fotkami a poznámkami</button>
                 <div id="qr-share-fout" style="font-size:12px; color:var(--text-muted); margin-top:8px;"></div>
             </div>
@@ -196,13 +196,13 @@
         const out = document.getElementById('qr-share-out');
         if (!sel.length) { out.innerHTML = '<span style="color:var(--warning);">Vyberte alespoň jeden bod.</span>'; return; }
         if (typeof qrcode === 'undefined') {
-            out.innerHTML = '<span style="color:var(--text-dim);">Načítám knihovnu QR…</span>';
+            out.innerHTML = '<span style="color:var(--text-muted);">Načítám knihovnu QR…</span>';
             ensureLib('js/lib/qrcode.min.js').then(generateFromSelection)
                 .catch(function () { out.innerHTML = '<span style="color:var(--danger);">Knihovnu QR se nepodařilo načíst.</span>'; });
             return;
         }
         const wantNotes = !!(document.getElementById('qr-share-notes') || {}).checked;
-        out.innerHTML = '<span style="color:var(--text-dim);">Připravuji…</span>';
+        out.innerHTML = '<span style="color:var(--text-muted);">Připravuji…</span>';
         (wantNotes ? loadDocs(sel) : Promise.resolve(sel.map(() => null))).then(docs => {
             let notes = 0, photosLeft = 0;
             sel.forEach((p, i) => {
@@ -224,7 +224,7 @@
                 sub += ' — ukažte kolegovi k naskenování';
                 let warn = '';
                 if (photosLeft) warn = `<div style="font-size:12px; color:var(--warning); margin-top:6px;">${photosLeft} fotek se přes QR nepřenese — pošlete soubor níže.</div>`;
-                out.innerHTML = `<img src="${url}" alt="QR" style="width:100%; max-width:300px; image-rendering:pixelated; background:#fff; border-radius:8px;"><div style="font-size:12px; color:var(--text-dim); margin-top:6px;">${escHtml(sub)}</div>${warn}`;
+                out.innerHTML = `<img src="${url}" alt="QR" style="width:100%; max-width:300px; image-rendering:pixelated; background:#fff; border-radius:8px;"><div style="font-size:12px; color:var(--text-muted); margin-top:6px;">${escHtml(sub)}</div>${warn}`;
             } catch (e) {
                 out.innerHTML = `<span style="color:var(--danger);">Do jednoho QR kódu se to nevejde (${sel.length} bodů${notes ? ' s poznámkami' : ''}). Vyberte méně bodů, vypněte poznámky, nebo pošlete soubor.</span>`;
             }
@@ -292,8 +292,8 @@
         m.className = 'modal-overlay'; m.id = 'qr-app-modal';
         m.innerHTML = `<div class="modal-content" style="max-width:420px; text-align:center;">
             <h3 style="color:var(--accent); margin-top:0;">Sdílet aplikaci</h3>
-            <div style="font-size:13px; color:var(--text-dim); margin-bottom:12px;">Kolega naskenuje kód fotoaparátem a AR&nbsp;Geodet se mu otevře. Pak si ho může „Přidat na plochu".</div>
-            <div id="qr-app-out" style="min-height:120px;"><span style="color:var(--text-dim);">Vytvářím QR…</span></div>
+            <div style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">Kolega naskenuje kód fotoaparátem a AR&nbsp;Geodet se mu otevře. Pak si ho může „Přidat na plochu".</div>
+            <div id="qr-app-out" style="min-height:120px;"><span style="color:var(--text-muted);">Vytvářím QR…</span></div>
             <div id="qr-app-url" style="font-size:12px; color:var(--text-muted); margin-top:8px; word-break:break-all; user-select:all;"></div>
             <div style="display:flex; gap:8px; margin-top:12px;">
                 <button class="btn btn-secondary" id="qr-app-copy" style="flex:1; margin:0;">Kopírovat odkaz</button>
@@ -340,9 +340,9 @@
         m.className = 'modal-overlay'; m.id = 'qr-scan-modal';
         m.innerHTML = `<div class="modal-content" style="max-width:420px;">
             <h3 style="color:var(--accent); margin-top:0;" id="qr-scan-title">Načíst body z QR</h3>
-            <div style="font-size:13px; color:var(--text-dim); margin-bottom:10px;" id="qr-scan-hint">Namiřte kameru na QR kód kolegy.</div>
+            <div style="font-size:13px; color:var(--text-muted); margin-bottom:10px;" id="qr-scan-hint">Namiřte kameru na QR kód kolegy.</div>
             <video id="qr-scan-video" playsinline muted style="width:100%; border-radius:10px; background:#000;"></video>
-            <div id="qr-scan-status" style="text-align:center; font-size:13px; margin-top:8px; color:var(--text-dim);">Spouštím kameru…</div>
+            <div id="qr-scan-status" style="text-align:center; font-size:13px; margin-top:8px; color:var(--text-muted);">Spouštím kameru…</div>
             <button class="btn btn-primary" id="qr-scan-file" style="margin-top:12px;" onclick="openImportPointsFile()">Načíst ze souboru (i s fotkami)</button>
             <button class="btn btn-secondary" style="margin-top:8px;" onclick="closeScanQR()">Zrušit</button>
         </div>`;

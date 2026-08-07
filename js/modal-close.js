@@ -1,10 +1,20 @@
-// ===== AR Geodet — ZAVÍRÁNÍ MODÁLŮ: křížek + potáhnutí dolů (ODPOJITELNÁ vrstva) =====
+// ===== AR Geodet — ZAVÍRÁNÍ MODÁLŮ: křížek + potáhnutí do strany (ODPOJITELNÁ vrstva) =====
 // Modály jedou přes celou obrazovku (na přání) a zavírají se tlačítkem „Zavřít"
 // AŽ NA KONCI obsahu — u dlouhých oken (O aplikaci, Předpisy, Slovník) se k němu
 // musíš prorolovat. Tahle vrstva přidává dvě běžné cesty ven:
 //
 //   • KŘÍŽEK vpravo nahoře — vždy na očích, nikam se neroluje.
-//   • POTÁHNUTÍ DOLŮ — gesto, které lidi znají z mobilních „sheetů".
+//   • POTÁHNUTÍ DO STRANY — gesto „zpět", které lidi znají z mobilů.
+//
+// SMĚR GESTA: normálně ZLEVA DOPRAVA (palec pravé ruky odsune okno pryč).
+// V režimu levé ruky (body.left-hand) se otáčí na ZPRAVA DOLEVA, stejně jako se
+// zrcadlí ostatní ovládání. Směr se čte při každém začátku tahu, takže přepnutí
+// režimu za běhu funguje okamžitě.
+//
+// PROČ do strany a ne dolů: dřív se táhlo dolů, jenže dolů/nahoru je v každém
+// okně ROLOVÁNÍ obsahu. Gesto se proto smělo natáhnout jen s obsahem úplně
+// nahoře a v dlouhých oknech bylo prakticky nedostupné. Vodorovný tah s
+// rolováním nekoliduje a čte se jako tlačítko „zpět".
 //
 // Původní tlačítka „Zavřít" zůstávají a nic se jim nemění.
 //
@@ -14,9 +24,21 @@
 // nenajde, schová overlay sám.
 //
 // Na co si dát pozor (a proč to tak je):
-//   - Gesto se „natáhne" jen tehdy, když je obsah nascrollovaný úplně nahoře.
-//     Jinak by potáhnutí dolů uprostřed textu zavíralo okno místo rolování.
-//   - Vodorovný pohyb gesto zruší (posuvníky, mapa, přejetí v seznamu).
+//   - Převládne-li SVISLÝ pohyb, gesto se zruší — uživatel roluje obsah a jen mu
+//     u toho cukla ruka do strany.
+//   - Tah, který začal v prvku s VODOROVNÝM rolováním, se vůbec nezaloží.
+//     Takové v appce jsou: #ag-rp-list (výběr režimu práce), segmentované
+//     přepínače v Nástrojích, pásy dlaždic, široké tabulky (.ag-zb-tblwrap,
+//     .ag-ep-tblwrap, .prd-tablewrap). Kdyby gesto vzniklo i tam, nešlo by se
+//     v takovém pásu posunout — každé přejetí by zavřelo okno. Hledá se nejbližší
+//     předek s overflow-x auto/scroll, který má opravdu co posouvat
+//     (scrollWidth > clientWidth); pouhé overflow-x v CSS nestačí.
+//   - Prvky, kde vodorovný tah znamená něco jiného, jsou vyjmuté: posuvníky,
+//     select, textarea, canvas, video, contenteditable, mapa Leaflet a cokoli
+//     s [data-no-swipe].
+//   - iOS má u kraje displeje vlastní „swipe back". Gesto se proto natahuje až
+//     poté, co prst ujede ARM_PX — do té doby se nic nepřekresluje a systémové
+//     gesto si může vzít přednost.
 //   - Když tažení začne na tlačítku, po pohybu se následný klik spolkne, ať se
 //     omylem nespustí akce, od které jen odjíždíš.
 //   - .modal-content má v CSS animaci otevření s fill-mode both. Animace přebíjí
@@ -43,11 +65,11 @@
     if (window.AGModalClose) return;
 
     var STYLE_ID = 'ag-modalclose-style';
-    var CLOSE_PX = 110;        // o kolik se musí stáhnout, aby se zavřelo
-    var FLICK_PX = 55;         // rychlé cuknutí stačí kratší
+    var CLOSE_PX = 110;        // o kolik se musí panel odtáhnout do strany, aby se zavřelo
+    var FLICK_PX = 55;         // rychlé šviháknutí do strany stačí kratší
     var FLICK_SPEED = 0.45;    // px/ms
-    var ARM_PX = 10;           // od kdy je to tažení, ne ťuknutí
-    var MAX_PULL = 260;        // dál už se panel nehne (gumový doraz)
+    var ARM_PX = 10;           // od kdy je to tažení, ne ťuknutí (a nechá prostor iOS swipe-back)
+    var MAX_PULL = 260;        // dál už se panel do strany nehne (gumový doraz)
 
     function injectStyles() {
         if (document.getElementById(STYLE_ID)) return;
@@ -73,11 +95,14 @@
             '.modal-overlay .modal-content > h3:first-child{padding-right:46px;}',
             'body.left-hand .modal-overlay .modal-content > h2:first-child,',
             'body.left-hand .modal-overlay .modal-content > h3:first-child{padding-right:0;padding-left:46px;}',
-            // úchyt nahoře uprostřed — tichá nápověda, že se dá táhnout
-            '.agmc-grab{position:absolute;z-index:29;top:calc(env(safe-area-inset-top,0px) + 7px);left:50%;',
-            '  transform:translateX(-50%);width:38px;height:4px;border-radius:99px;pointer-events:none;',
+            // úchyt: SVISLÁ čárka u té hrany, ze které se táhne — tichá nápověda
+            // na směr gesta. Vlevo (pravá ruka), v levorukém režimu vpravo.
+            '.agmc-grab{position:absolute;z-index:29;top:50%;',
+            '  left:calc(env(safe-area-inset-left,0px) + 5px);right:auto;',
+            '  transform:translateY(-50%);width:4px;height:48px;border-radius:99px;pointer-events:none;',
             '  background:var(--surface-3,rgba(255,255,255,0.16));}',
-            // tažení: panel jde dolů, pozadí se prosvětluje
+            'body.left-hand .agmc-grab{left:auto;right:calc(env(safe-area-inset-right,0px) + 5px);}',
+            // tažení: panel jde do strany, pozadí se prosvětluje
             '.agmc-drag{transition:none !important;}',
             '.agmc-back{transition:transform .22s cubic-bezier(.22,.61,.36,1);}',
             '@media (prefers-reduced-motion:reduce){.agmc-back{transition:none;}}'
@@ -90,6 +115,12 @@
     function eligible(ov) {
         return ov && ov.classList && ov.classList.contains('modal-overlay') &&
             ov.getAttribute('data-no-close') === null && !!ov.querySelector('.modal-content');
+    }
+
+    // +1 = zavírá se tahem zleva doprava, -1 = zprava doleva (režim levé ruky)
+    function closeDir() {
+        return (document.body && document.body.classList &&
+                document.body.classList.contains('left-hand')) ? -1 : 1;
     }
 
     // ---- zavření: nejdřív vlastní tlačítko okna, teprve pak natvrdo ------------
@@ -152,14 +183,17 @@
         for (var i = 0; i < list.length; i++) decorate(list[i]);
     }
 
-    // ---- tažení dolů -----------------------------------------------------------
+    // ---- tažení do strany ------------------------------------------------------
     var drag = null;
 
-    // nejbližší předek, který se dá rolovat (od cíle po .modal-content)
-    function scrolledAncestor(el, stop) {
+    // Nejbližší předek (od cíle po .modal-content), který se dá rolovat VODOROVNĚ
+    // a opravdu má co posouvat. Když takový existuje, gesto nevzniká — jinak by
+    // se v pásu dlaždic / segmentovaném přepínači nedalo posunout, protože každé
+    // přejetí prstem by zavřelo okno.
+    function hScrollAncestor(el, stop) {
         while (el && el !== stop && el.nodeType === 1) {
-            var st = window.getComputedStyle(el), oy = st.overflowY;
-            if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 2) return el;
+            var st = window.getComputedStyle(el), ox = st.overflowX;
+            if ((ox === 'auto' || ox === 'scroll') && el.scrollWidth > el.clientWidth + 2) return el;
             el = el.parentNode;
         }
         return null;
@@ -182,16 +216,15 @@
         if (!eligible(ov) || ov.style.display === 'none') return;
         var mc = ov.querySelector('.modal-content');
         if (!mc || !mc.contains(t)) return;
-        // prvky, u kterých svislý tah znamená něco jiného
+        // prvky, u kterých vodorovný tah znamená něco jiného
         if (t.closest('input[type="range"],select,textarea,canvas,video,[contenteditable],' +
                       '.leaflet-container,[data-no-swipe]')) return;
-        // rolovat > zavírat: dokud není obsah úplně nahoře, gesto nepatří nám
-        var sc = scrolledAncestor(t, mc);
-        if (sc && sc.scrollTop > 0) return;
+        // posouvat obsah do stran > zavírat: v takovém prvku gesto vůbec nezakládáme
+        if (hScrollAncestor(t, mc)) return;
         drag = {
-            ov: ov, mc: mc, sc: sc,
+            ov: ov, mc: mc, dir: closeDir(),
             x0: e.touches[0].clientX, y0: e.touches[0].clientY,
-            t0: (e.timeStamp || 0), dy: 0, armed: false, dead: false
+            t0: (e.timeStamp || 0), p: 0, armed: false, dead: false
         };
     }
 
@@ -199,22 +232,21 @@
         if (!drag || drag.dead || !e.touches || e.touches.length !== 1) return;
         var dx = e.touches[0].clientX - drag.x0;
         var dy = e.touches[0].clientY - drag.y0;
+        var p = dx * drag.dir;               // posun ve „zavíracím" směru, vždy kladný
         if (!drag.armed) {
-            if (Math.abs(dx) > Math.abs(dy)) { drag.dead = true; return; }   // vodorovné gesto není naše
-            if (dy < -2) { drag.dead = true; return; }                       // rolování nahoru
-            // mezitím se mohlo začít rolovat (setrvačnost) → nechat být
-            if (drag.sc && drag.sc.scrollTop > 0) { drag.dead = true; return; }
-            if (dy < ARM_PX) return;
+            if (Math.abs(dy) > Math.abs(dx)) { drag.dead = true; return; }  // svisle = rolování obsahu
+            if (p < -2) { drag.dead = true; return; }                       // tah na opačnou stranu
+            if (p < ARM_PX) return;
             drag.armed = true;
             drag.mc.classList.add('agmc-drag');
             drag.mc.style.animation = 'none';   // animace otevření by inline transform přebila
         }
         e.preventDefault();                     // od téhle chvíle táhneme my
-        drag.dy = dy;
+        drag.p = p;
         // gumový doraz: čím dál, tím menší přírůstek
-        var shown = dy > MAX_PULL ? MAX_PULL + (dy - MAX_PULL) * 0.15 : dy;
-        drag.mc.style.transform = 'translateY(' + shown + 'px)';
-        drag.mc.style.opacity = String(Math.max(0.55, 1 - dy / 900));
+        var shown = p > MAX_PULL ? MAX_PULL + (p - MAX_PULL) * 0.15 : p;
+        drag.mc.style.transform = 'translateX(' + (shown * drag.dir) + 'px)';
+        drag.mc.style.opacity = String(Math.max(0.55, 1 - p / 900));
     }
 
     function onEnd(e) {
@@ -222,8 +254,8 @@
         if (!d || !d.armed) return;
         d.mc.classList.remove('agmc-drag');
         var dt = Math.max(1, (e.timeStamp || 0) - d.t0);
-        var fast = (d.dy / dt) > FLICK_SPEED;
-        if (d.dy > CLOSE_PX || (d.dy > FLICK_PX && fast)) {
+        var fast = (d.p / dt) > FLICK_SPEED;
+        if (d.p > CLOSE_PX || (d.p > FLICK_PX && fast)) {
             closeOverlay(d.ov);
             // POŘADÍ: až PO zavření. closeOverlay klikne na vlastní tlačítko okna
             // a polykač klikům (capture + stopPropagation) by ten klik zabil dřív,
@@ -239,7 +271,7 @@
             d.mc.style.animation = '';
         }, 240);
         // po tažení spolknout klik, ať se nespustí tlačítko, ze kterého se odjíždělo
-        if (Math.abs(d.dy) > ARM_PX) swallowNextClick();
+        if (Math.abs(d.p) > ARM_PX) swallowNextClick();
     }
 
     function onCancel() {

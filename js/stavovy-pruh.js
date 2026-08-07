@@ -10,6 +10,9 @@
 //   • Klepnutí = detail se ROZBALÍ NA MÍSTĚ (pod pilulkou, kamera zůstane vidět):
 //     řádky GPS · Sever · Data · Baterie s radou, co udělat, + akce
 //     Srovnat sever / Detail GPS / Skóre místa. Klepnutí mimo zavře.
+//   • Rozbalený detail NIKDY nesahá na ovládání: jeho strop se počítá z živé polohy
+//     svislé lišty #dock (Nástroje / Body / Nový bod…) a přebývající obsah roluje.
+//     Když se ho uživatel půl minuty nedotkne, sbalí se sám.
 //   • Kalibrace severu má EXPIRACI: po 30 minutách nebo 200 m od místa srovnání
 //     zežloutne („srovnej znovu"). Zdroj: obalený nudgeHeadingOffset + AGPose.
 //   • O polohu se stará sloupec upozornění (#ag-stack z js/upozorneni.js), který
@@ -44,6 +47,8 @@
     var _alertKey = null, _alertTs = 0;     // co a odkdy hlásíme v hlavičce
     var _msg = null, _msgTs = 0;            // poslední hláška z #info
     var _lastHead = '', _lastBody = '';     // co už je v DOM (nepřepisovat zbytečně)
+    var _openTs = 0;                        // kdy naposled uživatel s rozbaleným detailem pracoval
+    var AUTO_CLOSE_MS = 30000;              // po půl minutě klidu se detail sbalí sám
     var _azTs = 0;                          // škrcení přepisů azimutu (viz mirrorAz)
 
     function on() { try { return localStorage.getItem(BAR_KEY) !== '0'; } catch (e) { return true; } }
@@ -184,8 +189,17 @@
             '.ag-sp-msg{font-weight:600;opacity:0.85;max-width:46vw;overflow:hidden;text-overflow:ellipsis;}',
             '.ag-sp-caret{font-size:9px;opacity:0.45;margin-left:1px;}',
             // rozbalený detail (na místě, pod hlavičkou)
+            // OPRAVA 27. 7. — „rozbalená lišta se překrývá s Nástroji a Body“.
+            // PŘÍČINA: detail neměl žádný výškový strop. Se čtyřmi řádky (GPS · Sever ·
+            // Data · Baterie) včetně rad, třemi tlačítky a „Vypnout bublinu“ naroste
+            // přes 350 px, začíná hned pod výřezem a je široký min(86vw,336px) — spadne
+            // tedy přesně do dráhy svislé lišty #dock (ta má střed v 60 % výšky displeje).
+            // ŘEŠENÍ: strop --ag-sp-maxh počítá fitBody() z živé polohy #dock; co se
+            // nevejde, roluje (touch-action musí být pan-y — html+body mají none).
             '.ag-sp-body{width:min(86vw,336px);padding:2px 13px 11px;border-top:1px solid var(--glass-border,rgba(255,255,255,0.1));',
-            '  cursor:default;animation:agSpIn 0.16s ease both;}',
+            '  cursor:default;animation:agSpIn 0.16s ease both;',
+            '  max-height:var(--ag-sp-maxh,46vh);overflow-y:auto;overscroll-behavior:contain;',
+            '  -webkit-overflow-scrolling:touch;touch-action:pan-y;}',
             '@keyframes agSpIn{from{opacity:0;transform:translateY(-4px);}}',
             '.ag-sp-row{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.07));}',
             '.ag-sp-row:last-of-type{border-bottom:none;}',
@@ -240,7 +254,7 @@
     }
     function toggle() {
         _open = !_open;
-        if (_open) _alertTs = 0;      // po otevření už není co blikat v hlavičce
+        if (_open) { _alertTs = 0; _openTs = Date.now(); }   // po otevření už není co blikat v hlavičce
         _lastHead = _lastBody = '';   // vynutit překreslení
         renderBar();
     }
@@ -316,6 +330,27 @@
         el.innerHTML = '<div class="ag-sp-head">' + head + '</div>' + (_open ? '<div class="ag-sp-body">' + body + '</div>' : '');
         var bodyEl = el.querySelector('.ag-sp-body');
         if (bodyEl) bodyEl.addEventListener('click', onAct);
+        fitBody();
+    }
+    // Strop rozbaleného detailu, aby NIKDY nesahal na svislou lištu ovládání.
+    // Počítá se z živého getBoundingClientRect(): lišta si mění polohu podle režimu
+    // levé ruky, výšky displeje i počtu chipů, takže pevná hodnota v CSS by dřív
+    // nebo později neseděla. Když lišta není vidět (modul odpojen), strop drží
+    // spodní hrana okna.
+    function fitBody() {
+        try {
+            var el = document.getElementById('ag-sp'); if (!el) return;
+            var bodyEl = el.querySelector('.ag-sp-body'); if (!bodyEl) return;
+            var top = bodyEl.getBoundingClientRect().top;
+            var limit = window.innerHeight;
+            var dock = document.getElementById('dock');
+            if (dock) {
+                var r = dock.getBoundingClientRect();
+                // jen když je lišta vidět a leží POD začátkem detailu (jinak by strop vyšel záporně)
+                if (r.height > 0 && r.width > 0 && r.top > top + 60) limit = Math.min(limit, r.top);
+            }
+            bodyEl.style.maxHeight = Math.max(150, Math.round(limit - top - 12)) + 'px';
+        } catch (e) {}
     }
     function onAct(e) {
         var btn = e.target.closest('button[data-act]');
@@ -454,7 +489,10 @@
             wrapCalib();
             injectSettingsToggle();
             trackFix();
+            // rozbalený detail a půl minuty bez doteku → sbalit, ať nestíní ovládání
+            if (_open && _openTs && (Date.now() - _openTs) > AUTO_CLOSE_MS) close();
             renderBar();
+            if (_open) fitBody();      // lišta i obsah mění výšku i mimo překreslení
             syncFade();
             if ((_n++ % 15) === 0) checkTiles();   // ~1× za 30 s
         } catch (e) {}
@@ -474,6 +512,17 @@
                 close();
             }, true);
         }
+        // práce s rozbaleným detailem (rolování, klepnutí) odkládá auto-sbalení
+        if (!window.__agSpKeep) {
+            window.__agSpKeep = true;
+            ['touchstart', 'pointerdown', 'scroll'].forEach(function (evt) {
+                document.addEventListener(evt, function (e) {
+                    if (!_open) return;
+                    try { if (e.target && e.target.closest && e.target.closest('#ag-sp')) _openTs = Date.now(); } catch (err) {}
+                }, true);
+            });
+            window.addEventListener('resize', function () { if (_open) fitBody(); });
+        }
         if (!window.__agSpTimer) window.__agSpTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(tick, 2000);
         tick();
     }
@@ -482,7 +531,7 @@
     window.addEventListener('load', function () { setTimeout(init, 400); });
 
     window.AGStatusBar = {
-        open: function () { if (!_open) { _open = true; _alertTs = 0; _lastHead = _lastBody = ''; renderBar(); } },
+        open: function () { if (!_open) { _open = true; _alertTs = 0; _openTs = Date.now(); _lastHead = _lastBody = ''; renderBar(); } },
         close: close,
         refresh: function () { _lastHead = _lastBody = ''; renderBar(); }
     };

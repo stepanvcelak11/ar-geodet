@@ -159,7 +159,17 @@
             '#ag-ko-modal .ag-ko-out .r{display:flex;justify-content:space-between;gap:10px;font-size:.87em;padding:3px 0;border-top:1px solid rgba(255,255,255,.07);}' +
             '#ag-ko-modal .ag-ko-out .r span:last-child{font-variant-numeric:tabular-nums;white-space:nowrap;}' +
             '#ag-ko-modal details{margin:6px 0;font-size:.88em;} #ag-ko-modal summary{cursor:pointer;color:var(--text-muted,#9aa1ac);}' +
-            '#ag-ko-modal .ag-ko-note{color:var(--text-muted,#9aa1ac);font-size:.82em;line-height:1.45;margin-top:10px;}';
+            '#ag-ko-modal .ag-ko-note{color:var(--text-muted,#9aa1ac);font-size:.82em;line-height:1.45;margin-top:10px;}' +
+            // Formulář musí scrollovat SÁM: .modal-content má v css/style.css
+            // overflow:hidden, takže na záložce Pásmo (delší formulář + rozpis oprav)
+            // konec výsledku zůstal pod okrajem okna (vzor brifink.js / denik-dne.js).
+            '#ag-ko-modal .modal-content{display:flex;flex-direction:column;}' +
+            '#ag-ko-modal h3,#ag-ko-modal .ag-ko-tabs,#ag-ko-modal #ag-ko-met{flex:none;}' +
+            '#ag-ko-modal #ag-ko-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding-right:6px;}' +
+            // Patička: .btn má width:100% + margin-top:10px — sjednotíme s ostatními okny.
+            '#ag-ko-modal .ag-ko-foot{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;flex:none;}' +
+            '#ag-ko-modal .ag-ko-foot .btn{flex:1 1 0;min-width:96px;margin:0;min-height:44px;}' +
+            'body.ag-glove #ag-ko-modal .ag-ko-foot .btn{min-height:52px;}';
         document.head.appendChild(s);
     }
     function ensureModal() {
@@ -179,8 +189,8 @@
             '  </div>' +
             '  <div id="ag-ko-met"></div>' +
             '  <div id="ag-ko-body"></div>' +
-            '  <div style="display:flex;gap:8px;margin-top:12px;">' +
-            '    <button type="button" class="btn btn-secondary" id="ag-ko-close" style="margin-left:auto;">Zavřít</button>' +
+            '  <div class="ag-ko-foot">' +
+            '    <button type="button" class="btn btn-secondary" id="ag-ko-close">Zavřít</button>' +
             '  </div>' +
             '</div>';
         document.body.appendChild(m);
