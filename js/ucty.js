@@ -65,6 +65,11 @@
     var LS_LOCKSTART = 'agLockStart_v1'; // '0' = NEvyžadovat přihlášení při startu (výchozí: vyžadovat)
     var LS_DEVU = 'agFirmaDevUsers_v1';  // id účtů, které se přihlásily na TOMTO zařízení
     var LS_FAIL = 'agLoginFail_v1';      // brzda hádání hesla {n, until} — viz blok „ZAMYKÁNÍ" níže
+    var LS_TRUST = 'agFirmaTrust_v1';    // pamatované přihlášení na TOMTO zařízení {userId,mode,n,ts}
+    var LS_BIO = 'agFirmaBio_v1';        // Face ID / odemknutí telefonem {userId:{id,ts}}
+    var LS_BIOASK = 'agFirmaBioAsk_v1';  // kdy se naposledy ptalo na zapnutí Face ID (aby to neotravovalo)
+    var LS_PACL = 'agProjAcl_v1';        // zakázky povolené účtu NA TOMTO ZAŘÍZENÍ {userId:[projId]}
+    var TRUST_MAX = 20;                  // po kolikátém automatickém přihlášení chtít znovu heslo/PIN
     var STYLE_ID = 'ag-ucty-style';
     var DB = 'argeodet-usage', STORE = 'ev', VER = 1;
     // adresa API (Cloudflare Worker, cloud/worker.js). Konstanta je jen výchozí —
@@ -799,7 +804,7 @@
     wrapRegister();
 
     // mřížku Nástrojů překreslují field-tools/tools-plus → periodicky srovnat
-    function tick() { wrapRegister(); if (getFirm() || isGuest()) applyPerms(); gateCheck(); }
+    function tick() { wrapRegister(); if (getFirm() || isGuest()) { applyPerms(); applyProjPerms(); } gateCheck(); }
 
     // ------------------------------------------------------------------
     // Přihlašovací / zamykací obrazovka
@@ -845,6 +850,8 @@
         return '<span class="' + (cls || 'agl-av') + '" style="' + avStyle(name) + extra + '">' + inner + '</span>';
     }
     var FIRM_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-4h6v4"/><path d="M9 10h.01M15 10h.01M9 14h.01M15 14h.01"/></svg>';
+    // obličej v rámečku — Face ID / Touch ID / kód zámku obrazovky
+    var BIO_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 10v1M15 10v1M9.5 15c.8.7 1.6 1 2.5 1s1.7-.3 2.5-1"/></svg>';
     function brandHtml() {
         return '<div class="agl-brand"><span class="agl-mark"></span>' +
             '<span class="agl-logo">AR <b>Geodet</b></span></div>';
@@ -1135,6 +1142,21 @@
             '  font:600 12.5px/1 var(--font-ui,system-ui);cursor:pointer;padding:10px;text-decoration:underline;text-decoration-color:transparent;',
             '  text-underline-offset:3px;transition:color .15s ease,text-decoration-color .15s ease;}',
             '#ag-login .agl-ghost:active,#ag-gate .agl-ghost:active{color:var(--text,#e6e8eb);text-decoration-color:currentColor;}',
+            // ---- výběr zakázky rovnou v přihlášení (ušetří „Více → přepnout zakázku") ----
+            '#ag-login .agl-projpick{display:flex;flex-direction:column;gap:5px;width:min(300px,86vw);}',
+            '#ag-login .agl-projpick label{font:700 10.5px/1 var(--font-ui,system-ui);letter-spacing:.08em;text-transform:uppercase;',
+            '  color:var(--text-muted,#9aa1ac);padding-left:2px;}',
+            '#ag-login .agl-projpick select{width:100%;box-sizing:border-box;padding:12px 13px;border-radius:13px;',
+            '  background:var(--glass-bg,rgba(255,255,255,0.06));border:1px solid var(--glass-border,rgba(255,255,255,0.14));',
+            '  color:var(--text,#e6e8eb);font:600 14px/1 var(--font-ui,system-ui);appearance:none;}',
+            // ---- Face ID / odemknutí telefonem ----
+            '#ag-login .agl-bio{display:inline-flex;align-items:center;justify-content:center;gap:9px;}',
+            '#ag-login .agl-bio svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.9;}',
+            // ---- „zůstat přihlášený" ----
+            '#ag-login .agl-keep{display:flex;align-items:flex-start;gap:9px;width:min(300px,86vw);',
+            '  font:600 12.5px/1.35 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);cursor:pointer;}',
+            '#ag-login .agl-keep input{flex:0 0 auto;width:18px;height:18px;margin:0;}',
+            '#ag-login .agl-keep small{display:block;margin-top:3px;font-weight:500;font-size:11.5px;color:var(--text-faint,#7b828c);}',
             '#ag-login.agl-shake .agl-pinbox{animation:aglshake .35s;}',
             '@keyframes aglshake{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}',
             // ---- brána při startu (přihlásit / založit / omezený režim) ----
@@ -1246,8 +1268,208 @@
         return s2 + ' s';
     }
 
+    // ------------------------------------------------------------------
+    // PAMATOVANÉ PŘIHLÁŠENÍ („zůstat přihlášený") + FACE ID + VÝBĚR ZAKÁZKY
+    // ------------------------------------------------------------------
+    // Do teď se při každém spuštění psalo heslo/PIN (nebo se zámek vypnul úplně
+    // přepínačem „Vyžadovat přihlášení při každém spuštění" — tedy všechno, nebo
+    // nic). Tohle je střední cesta, kterou lidi znají z bankovnictví:
+    //
+    //   • ZŮSTAT PŘIHLÁŠENÝ na tomto zařízení. Appka pokračuje pod posledním
+    //     účtem, ale KAŽDÉ TRUST_MAX-té spuštění chce heslo/PIN doopravdy
+    //     („kontrolní přihlášení") — počítadlo je v LS_TRUST a resetuje ho jen
+    //     skutečné zadání hesla.
+    //   • FACE ID / ODEMKNUTÍ TELEFONEM (WebAuthn, platform authenticator).
+    //     BUĎME POCTIVÍ, CO TO JE: ověřuje TELEFON (Face ID / Touch ID / kód
+    //     zámku obrazovky) a appka se dozví jen to, že ověření prošlo. Není to
+    //     kryptografické ověření proti serveru — proti někomu, kdo má root
+    //     v telefonu, to nechrání. Chrání to přesně proti tomu, o co tady jde:
+    //     aby se do rozdělané zakázky nedostal někdo, komu telefon půjčíš.
+    //     Vyžaduje HTTPS (na GitHub Pages ano), v http/file režimu se neukáže.
+    //
+    // Zapamatování je vždycky PER ZAŘÍZENÍ a per účet: na cizím telefonu se nic
+    // nezapíná samo a odhlášení (logout) pamatování ruší.
+    function getTrust() {
+        try { var t = JSON.parse(localStorage.getItem(LS_TRUST) || 'null'); return (t && t.userId) ? t : null; } catch (e) { return null; }
+    }
+    function setTrust(t) {
+        try { if (t) localStorage.setItem(LS_TRUST, JSON.stringify(t)); else localStorage.removeItem(LS_TRUST); } catch (e) {}
+    }
+    function clearTrust() { setTrust(null); }
+    function trustFor(userId) {
+        var t = getTrust();
+        return (t && t.userId === userId && (t.mode === 'auto' || t.mode === 'bio')) ? t : null;
+    }
+    function trustLeft(t) { return Math.max(0, TRUST_MAX - ((t && t.n) || 0)); }
+    function rememberTrust(userId, mode) { setTrust({ userId: userId, mode: mode, n: 0, ts: Date.now() }); }
+    function bumpTrust(t) { t.n = (t.n || 0) + 1; t.ts = Date.now(); setTrust(t); }
+
+    // ---- Face ID / odemknutí telefonem (WebAuthn) -----------------------------
+    function bioSupported() {
+        try {
+            return !!(window.isSecureContext && window.PublicKeyCredential &&
+                navigator.credentials && navigator.credentials.create && navigator.credentials.get);
+        } catch (e) { return false; }
+    }
+    function bioStore() {
+        try { var o = JSON.parse(localStorage.getItem(LS_BIO) || 'null'); return (o && typeof o === 'object') ? o : {}; } catch (e) { return {}; }
+    }
+    function bioSave(o) { try { localStorage.setItem(LS_BIO, JSON.stringify(o)); } catch (e) {} }
+    function bioCred(userId) { var c = bioStore()[userId]; return (c && c.id) ? c : null; }
+    function bioForget(userId) { var o = bioStore(); delete o[userId]; bioSave(o); }
+    function bioAvailable(userId) { return bioSupported() && !!bioCred(userId); }
+    function rndBuf(n) {
+        var a = new Uint8Array(n);
+        try { crypto.getRandomValues(a); } catch (e) { for (var i = 0; i < n; i++) a[i] = Math.floor(Math.random() * 256); }
+        return a;
+    }
+    function b64u(buf) {
+        var b = new Uint8Array(buf), s = '';
+        for (var i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
+        return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+    function fromB64u(s) {
+        s = String(s).replace(/-/g, '+').replace(/_/g, '/');
+        while (s.length % 4) s += '=';
+        var bin = atob(s), a = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
+        return a;
+    }
+    function strBuf(s) {
+        s = String(s);
+        var a = new Uint8Array(s.length);
+        for (var i = 0; i < s.length; i++) a[i] = s.charCodeAt(i) & 0xff;
+        return a;
+    }
+    // zapnutí: vyrobí klíč v Secure Enclave / TEE telefonu. MUSÍ se volat
+    // z uživatelského gesta (Safari jinak vyhodí NotAllowedError).
+    function bioEnroll(u) {
+        if (!bioSupported() || !u) return Promise.resolve(false);
+        return navigator.credentials.create({
+            publicKey: {
+                challenge: rndBuf(32),
+                rp: { name: 'AR Geodet' },
+                user: { id: strBuf('ag:' + u.id), name: u.name || u.id, displayName: u.name || u.id },
+                pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+                authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'preferred' },
+                timeout: 60000,
+                attestation: 'none'
+            }
+        }).then(function (cred) {
+            if (!cred || !cred.rawId) return false;
+            var o = bioStore();
+            o[u.id] = { id: b64u(cred.rawId), ts: Date.now() };
+            bioSave(o);
+            return true;
+        })['catch'](function () { return false; });
+    }
+    // ověření: vrací true jen když telefon opravdu ověřil uživatele
+    function bioVerify(userId) {
+        var c = bioCred(userId);
+        if (!bioSupported() || !c) return Promise.resolve(false);
+        return navigator.credentials.get({
+            publicKey: {
+                challenge: rndBuf(32),
+                allowCredentials: [{ type: 'public-key', id: fromB64u(c.id), transports: ['internal'] }],
+                userVerification: 'required',
+                timeout: 60000
+            }
+        }).then(function (a) { return !!a; })['catch'](function () { return false; });
+    }
+    // ptát se na zapnutí Face ID nejvýš jednou za 30 dní (a ne, když už je zapnuté)
+    function bioAskDue(userId) {
+        if (!bioSupported() || bioCred(userId)) return false;
+        try {
+            var t = parseInt(localStorage.getItem(LS_BIOASK) || '0', 10);
+            return !(t && Date.now() - t < 30 * 86400000);
+        } catch (e) { return true; }
+    }
+    function bioAskDone() { try { localStorage.setItem(LS_BIOASK, String(Date.now())); } catch (e) {} }
+
+    // ---- zakázky, do kterých účet smí (per zařízení) ---------------------------
+    // Zakázky žijí v tomhle telefonu (arProjectsList), ne na serveru — přidělení
+    // je proto taky per zařízení. Není to bezpečnostní hranice (kdo má odemčený
+    // telefon a konzoli, dostane se k datům), ale úklid: zaměstnanec vidí
+    // v přihlášení i v přepínačích jen zakázky, na kterých má dělat.
+    function projList() {
+        try { if (typeof projects !== 'undefined' && Array.isArray(projects) && projects.length) return projects; } catch (e) {}
+        try { var a = JSON.parse(localStorage.getItem('arProjectsList')); if (Array.isArray(a) && a.length) return a; } catch (e) {}
+        return [{ id: 'default', name: 'Výchozí zakázka' }];
+    }
+    function projAclAll() {
+        try { var o = JSON.parse(localStorage.getItem(LS_PACL) || 'null'); return (o && typeof o === 'object') ? o : {}; } catch (e) { return {}; }
+    }
+    function projAclFor(userId) {
+        var a = projAclAll()[userId];
+        return Array.isArray(a) ? a : null;      // null = nic nepřiděleno → všechno (fail-open)
+    }
+    function setProjAcl(userId, arr) {
+        var o = projAclAll();
+        if (Array.isArray(arr) && arr.length) o[userId] = arr; else delete o[userId];
+        try { localStorage.setItem(LS_PACL, JSON.stringify(o)); } catch (e) {}
+    }
+    function allowedProjects(u) {
+        var list = projList();
+        if (!u || u.role === 'admin') return list;
+        var acl = projAclFor(u.id);
+        if (!acl) return list;
+        var out = list.filter(function (p) { return acl.indexOf(p.id) !== -1; });
+        // přidělené zakázky někdo smazal → radši pustit všechny než nechat člověka
+        // stát před appkou, do které se nedostane
+        return out.length ? out : list;
+    }
+    // přepnutí zakázky (i před startem appky — tehdy stačí přepsat klíč a natáhnout data)
+    function applyProject(id) {
+        if (!id) return;
+        var cur = null;
+        try { cur = localStorage.getItem('arActiveProjectId'); } catch (e) {}
+        if (cur === id) return;
+        try { if (typeof _persistOfficialPoints === 'function') _persistOfficialPoints(); } catch (e) {}
+        try { localStorage.setItem('arActiveProjectId', id); } catch (e) {}
+        try { if (typeof activeProjectId !== 'undefined') activeProjectId = id; } catch (e) {}
+        var w = document.getElementById('w-project-select'); if (w) { try { w.value = id; } catch (e) {} }
+        var s = document.getElementById('s-project-select'); if (s) { try { s.value = id; } catch (e) {} }
+        try {
+            if (typeof hydrateActiveProject === 'function') {
+                hydrateActiveProject().then(function () {
+                    try { if (typeof loadProjectSettings === 'function') loadProjectSettings(); } catch (e) {}
+                    try { if (typeof renderProjectSelect === 'function') renderProjectSelect(); } catch (e) {}
+                });
+                return;
+            }
+            if (typeof loadProjectSettings === 'function') loadProjectSettings();
+        } catch (e) {}
+    }
+    // vymáhání: v přepínačích zakázek nechat jen povolené (renderProjectSelect je
+    // plní znovu, takže se to musí opakovat v tiku — stejně jako u dlaždic Nástrojů)
+    function applyProjPerms() {
+        if (!getFirm()) return;
+        var u = currentUser();
+        if (!u || u.role === 'admin') return;
+        if (!projAclFor(u.id)) return;
+        var allow = {};
+        allowedProjects(u).forEach(function (p) { allow[p.id] = 1; });
+        ['w-project-select', 's-project-select'].forEach(function (id) {
+            var sel = document.getElementById(id);
+            if (!sel || !sel.options) return;
+            for (var i = sel.options.length - 1; i >= 0; i--) {
+                if (!allow[sel.options[i].value]) sel.remove(i);
+            }
+        });
+        var cur = null;
+        try { cur = localStorage.getItem('arActiveProjectId'); } catch (e) {}
+        if (cur && !allow[cur]) {
+            var first = allowedProjects(u)[0];
+            if (first && first.id !== cur) applyProject(first.id);
+        }
+    }
+    function toast(msg) {
+        try { if (typeof window.quickToast === 'function') { window.quickToast(msg); return; } } catch (e) {}
+        try { if (window.AGNotify && AGNotify.info) { AGNotify.info(msg); return; } } catch (e) {}
+    }
+
     var _selUser = null;
-    function showLogin(lockMode) {
+    function showLogin(lockMode, checkMode) {
         var f = getFirm(); if (!f) return;
         injectStyles();
         var old = document.getElementById('ag-login'); if (old) old.remove();
@@ -1274,9 +1496,15 @@
             '<div class="agl-firmchip"><span class="dot"></span>' + esc(f.firmName || 'Firemní režim') +
             (cloud && f.code ? ' · ' + esc(f.code) : '') + (lockMode ? ' <span class="lock">· zamčeno</span>' : '') + '</div>' +
             projInfoHtml() +
+            (checkMode ? '<div class="agl-hint">Kontrolní přihlášení — po ' + TRUST_MAX + ' automatických spuštěních se appka pro jistotu jednou zeptá na heslo.</div>' : '') +
             (usersHtml
                 ? '<div class="agl-users">' + usersHtml + '</div>'
                 : '<div class="agl-hint">Na tomhle telefonu se ještě nikdo nepřihlásil — zadej své jméno a heslo.</div>') +
+            '<div class="agl-projpick" id="agl-projpick" style="display:none;">' +
+            '  <label for="agl-projsel">Zakázka</label>' +
+            '  <select id="agl-projsel"></select>' +
+            '</div>' +
+            '<button type="button" class="agl-btn agl-bio" id="agl-bio" style="display:none;">' + BIO_SVG + ' Odemknout telefonem</button>' +
             '<div class="agl-pinbox' + (usersHtml ? '' : ' on') + '">' +
             '  <input class="agl-name" type="text" autocomplete="username" maxlength="40" placeholder="Jméno"' + (usersHtml ? ' style="display:none;"' : '') + '>' +
             (cloud
@@ -1285,6 +1513,8 @@
             '  <div class="agl-err"></div>' +
             '  <button type="button" class="agl-btn">Přihlásit</button>' +
             '</div>' +
+            '<label class="agl-keep" id="agl-keepwrap"><input type="checkbox" id="agl-keep" checked>' +
+            '<span>Zůstat přihlášený na tomhle telefonu<small id="agl-keepnote"></small></span></label>' +
             (cloud ? '<button type="button" class="agl-ghost" id="agl-other">Přihlásit jiné jméno</button>' : '') +
             '<button type="button" class="agl-ghost" id="agl-forgot">' + (cloud ? 'Zapomenuté heslo?' : 'Zapomenutý PIN?') + '</button>' +
             '</div>';
@@ -1297,11 +1527,50 @@
         var nameInp = ov.querySelector('.agl-name');
         var errEl = ov.querySelector('.agl-err');
 
+        // ---- výběr zakázky + Face ID + „zůstat přihlášený" -------------------
+        // Nabídka zakázek se řídí VYBRANÝM účtem: co má přidělené, to vidí.
+        var projBox = ov.querySelector('#agl-projpick');
+        var projSel = ov.querySelector('#agl-projsel');
+        var bioBtn = ov.querySelector('#agl-bio');
+        var keepWrap = ov.querySelector('#agl-keepwrap');
+        var keepCb = ov.querySelector('#agl-keep');
+        var keepNote = ov.querySelector('#agl-keepnote');
+
+        function keepOn() { return !!(keepCb && keepCb.checked); }
+        function chosenProject() { return (projSel && projSel.value) ? projSel.value : null; }
+        function syncExtras() {
+            var u = _selUser;
+            // zakázky: vypisují se jen když je z čeho vybírat
+            var list = u ? allowedProjects(u) : projList();
+            if (projSel) {
+                var cur = null;
+                try { cur = localStorage.getItem('arActiveProjectId'); } catch (e) {}
+                projSel.innerHTML = list.map(function (p) {
+                    return '<option value="' + esc(p.id) + '"' + (p.id === cur ? ' selected' : '') + '>' + esc(p.name || p.id) + '</option>';
+                }).join('');
+                if (cur && list.length && !list.some(function (p) { return p.id === cur; })) projSel.value = list[0].id;
+            }
+            if (projBox) projBox.style.display = (list.length > 1) ? '' : 'none';
+            // Face ID: jen pro účet, který si ho na tomhle telefonu zapnul
+            if (bioBtn) bioBtn.style.display = (u && bioAvailable(u.id)) ? '' : 'none';
+            if (keepWrap) {
+                var t = u ? trustFor(u.id) : null;
+                if (keepCb && !keepCb._touched) keepCb.checked = t ? true : true;   // výchozí: pamatovat
+                if (keepNote) {
+                    keepNote.textContent = (u && bioAvailable(u.id))
+                        ? 'Příští spuštění odemkneš Face ID / kódem telefonu. Každé ' + TRUST_MAX + '. spuštění se appka pro kontrolu zeptá na heslo.'
+                        : 'Příště se appka otevře přihlášená. Každé ' + TRUST_MAX + '. spuštění se pro kontrolu zeptá na heslo.';
+                }
+            }
+        }
+        if (keepCb) keepCb.addEventListener('change', function () { keepCb._touched = true; });
+
         function pick(id) {
             _selUser = null;
             for (var i = 0; i < f.users.length; i++) if (f.users[i].id === id) _selUser = f.users[i];
             var us = ov.querySelectorAll('.agl-user');
             for (var j = 0; j < us.length; j++) us[j].classList.toggle('sel', us[j].getAttribute('data-id') === id);
+            syncExtras();
             if (!_selUser) return;
             nameInp.style.display = 'none';
             // běží-li zámek, nesmí ho obejít ani účet bez PINu, ani nové vybrání
@@ -1319,18 +1588,57 @@
             identRemember(u, pin || '');   // stejný účet pak funguje i v dalších firmách
             afterLogin(u);
         }
+        // odemknutí Face ID / kódem telefonu: heslo se nezadává, ověřuje telefon
+        var _bioBusy = false;
+        function bioUnlock(silent) {
+            var u = _selUser;
+            if (!u || !bioAvailable(u.id) || _bioBusy) return;
+            if (lockLeft() > 0) { startLockTick(); return; }
+            _bioBusy = true;
+            if (bioBtn) { bioBtn.disabled = true; bioBtn.textContent = 'Ověřuji…'; }
+            bioVerify(u.id).then(function (ok) {
+                _bioBusy = false;
+                if (bioBtn) { bioBtn.disabled = false; bioBtn.innerHTML = BIO_SVG + ' Odemknout telefonem'; }
+                if (!ok) {
+                    // Neúspěch NENÍ špatné heslo (uživatel mohl dialog jen zavřít nebo
+                    // ho systém nepustil bez gesta) → do brzdy hádání se nepočítá.
+                    if (!silent) errEl.textContent = 'Ověření telefonem neprošlo — zkus to znovu, nebo zadej ' + (cloud ? 'heslo' : 'PIN') + '.';
+                    return;
+                }
+                var t = trustFor(u.id) || { userId: u.id, mode: 'bio', n: 0, ts: Date.now() };
+                t.mode = 'bio';
+                bumpTrust(t);
+                setSess({ userId: u.id, ts: Date.now() });
+                try { localStorage.setItem('arSurveyor', u.name); } catch (e) {}
+                afterLogin(u, 'bio');
+            });
+        }
+
         // společný závěr (lokální i cloud — cloud má session/token už uložené)
-        function afterLogin(u) {
-            failClear();   // úspěch = brzda hádání hesla se resetuje
+        // kind: undefined = heslo/PIN, 'bio' = odemčeno telefonem
+        function afterLogin(u, kind) {
+            if (kind !== 'bio') failClear();   // úspěch s heslem = brzda hádání se resetuje
             try { localStorage.setItem(LS_LAST, u.id); } catch (e) {}
             rememberDevUser(u.id);   // příště se nabídne jen na tomto zařízení
+            // zapamatování přihlášení na tomhle zařízení (u 'bio' už je nastavené)
+            if (kind !== 'bio') {
+                if (keepOn()) rememberTrust(u.id, bioAvailable(u.id) ? 'bio' : 'auto');
+                else { var t0 = getTrust(); if (t0 && t0.userId === u.id) clearTrust(); }
+            }
+            // zakázka vybraná rovnou v přihlášení (ušetří přepínání po startu)
+            var pSel = chosenProject();
+            if (pSel && (u.role === 'admin' || allowedProjects(u).some(function (p) { return p.id === pSel; }))) applyProject(pSel);
             ov.remove();
             _touchActivity();
             applyPerms();
-            usageLog('login', lockMode ? 'unlock' : 'login');
+            applyProjPerms();
+            usageLog('login', kind === 'bio' ? 'bio' : (lockMode ? 'unlock' : 'login'));
             if (cloud) setTimeout(syncUsage, 2000);
-            try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: u } })); } catch (e) {}
+            try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: u, kind: kind || 'pass' } })); } catch (e) {}
             enterApp();
+            // nabídka Face ID: jen když chce zůstat přihlášený, telefon to umí,
+            // ještě to nemá zapnuté a neodmítl to nedávno
+            if (kind !== 'bio' && keepOn() && bioAskDue(u.id)) setTimeout(function () { offerBio(u); }, 700);
         }
         // odpočet zámku: dokud běží, je pole i tlačítko vypnuté a v chybové řádce
         // tiká, za jak dlouho to půjde zkusit znovu
@@ -1403,6 +1711,10 @@
         ov.addEventListener('click', function (e) {
             var ub = e.target.closest ? e.target.closest('.agl-user') : null;
             if (ub) { pick(ub.getAttribute('data-id')); return; }
+            // POZOR: tlačítko Face ID má taky class agl-btn (stejný vzhled), takže se
+            // musí odchytit DŘÍV, jinak by místo odemčení telefonem poslalo prázdné heslo
+            var bb = e.target.closest ? e.target.closest('#agl-bio') : null;
+            if (bb) { bioUnlock(false); return; }
             if (e.target.classList.contains('agl-btn')) submit();
         });
         pinInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
@@ -1457,6 +1769,56 @@
                 if (f.users[li].id === lastId) { pick(lastId); break; }
             }
         }
+        syncExtras();
+        // Face ID zkusíme rovnou samo (jeden pohled = odemčeno). Safari umí systémový
+        // dialog odmítnout bez uživatelského gesta — proto `silent`: chyba se nehlásí
+        // a zůstane viset tlačítko, kterým to uživatel spustí ťuknutím.
+        if (_selUser && bioAvailable(_selUser.id) && lockLeft() <= 0 && !checkMode) {
+            setTimeout(function () { bioUnlock(true); }, 250);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Nabídka „zapnout Face ID" (musí běžet z gesta → tlačítko v kartě)
+    // ------------------------------------------------------------------
+    function offerBio(u) {
+        if (!u || !bioSupported() || bioCred(u.id)) return;
+        if (document.getElementById('ag-bio-ask')) return;
+        injectStyles();
+        var ov = document.createElement('div');
+        ov.className = 'modal-overlay';
+        ov.id = 'ag-bio-ask';
+        ov.style.display = 'flex';
+        ov.setAttribute('data-no-swipe', '1');
+        ov.innerHTML = '<div class="modal-content" style="max-width:420px;">' +
+            '<h3 style="margin-top:0;color:var(--accent);">Odemykat appku telefonem?</h3>' +
+            '<p style="font-size:13.5px;line-height:1.55;color:var(--text-muted,#9aa1ac);">' +
+            'Příště se přihlásíš <b>Face ID / Touch ID nebo kódem zámku obrazovky</b> místo hesla — jeden pohled a jsi v zakázce. ' +
+            'Ověřuje samotný telefon, appka se dozví jen to, že ověření prošlo; heslo si nikam neukládá. ' +
+            'Každé ' + TRUST_MAX + '. spuštění se stejně jednou zeptá na heslo.</p>' +
+            '<div style="display:flex;gap:8px;margin-top:6px;">' +
+            '  <button type="button" class="btn btn-secondary" id="ag-bio-no" style="flex:1;">Teď ne</button>' +
+            '  <button type="button" class="btn btn-primary" id="ag-bio-yes" style="flex:1;">Zapnout</button>' +
+            '</div></div>';
+        document.body.appendChild(ov);
+        function close() { bioAskDone(); try { ov.remove(); } catch (e) {} }
+        ov.querySelector('#ag-bio-no').onclick = close;
+        ov.querySelector('#ag-bio-yes').onclick = function () {
+            var btn = this;
+            btn.disabled = true;
+            btn.textContent = 'Ověřuji…';
+            bioEnroll(u).then(function (ok) {
+                close();
+                if (ok) {
+                    var t = trustFor(u.id) || { userId: u.id, mode: 'bio', n: 0, ts: Date.now() };
+                    t.mode = 'bio';
+                    setTrust(t);
+                    toast('Odemykání telefonem zapnuto.');
+                } else {
+                    toast('Telefon odemykání nepovolil — zůstává heslo.');
+                }
+            });
+        };
     }
     var _lastUserId = null;
     function getSessLastUser() { return _lastUserId; }
@@ -1674,9 +2036,33 @@
         _lastUserId = u ? u.id : null;
         if (getFirm()) showLogin(true);
     }
+    // start s pamatovaným přihlášením: buď se odemkne telefonem (Face ID), nebo
+    // appka prostě pokračuje pod posledním účtem (jako když je zámek vypnutý —
+    // úvodní obrazovka se ukáže normálně, žádný tap navíc).
+    function autoLogin(u, t) {
+        if (t.mode === 'bio') {
+            // Face ID zmizelo (uživatel ho vypnul v systému, jiný telefon) — zapamatování
+            // se opíralo o ověření telefonem, takže bez něj se musí zadat heslo
+            if (!bioAvailable(u.id)) { clearTrust(); lock(); return; }
+            _lastUserId = u.id;
+            showLogin(true);
+            return;
+        }
+        setSess({ userId: u.id, ts: Date.now() });
+        bumpTrust(t);
+        _touchActivity();
+        applyPerms();
+        applyProjPerms();
+        usageLog('login', 'auto');
+        try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: u, kind: 'auto' } })); } catch (e) {}
+        unprelock();
+        var left = trustLeft(t);
+        if (left <= 3) setTimeout(function () { toast('Přihlášen jako ' + u.name + ' · za ' + left + ' spuštění bude potřeba heslo'); }, 1200);
+    }
     function logout() {
         _lastUserId = null;
         try { localStorage.removeItem(LS_IDCUR); } catch (e) {}   // odhlášení ruší i SSO
+        clearTrust();          // „odhlásit" musí zrušit i pamatované přihlášení
         setSess(null);
         if (getFirm()) showLogin(false);
         else if (isGuest()) applyPerms();
@@ -1710,10 +2096,14 @@
             var u = currentUser();
             if (!u) showLogin(false);
             else if (getLockOnStart()) {
-                // session z minula NEstačí: při startu appky se vždy přihlašuje
-                // (naposledy přihlášený je předvybraný, stačí heslo/PIN)
                 try { localStorage.setItem('arSurveyor', u.name); } catch (e) {}
-                lock();
+                // PAMATOVANÉ PŘIHLÁŠENÍ: když si to uživatel na tomhle zařízení
+                // zapnul, appka se otevře přihlášená (u režimu 'bio' po ověření
+                // telefonem). Každé TRUST_MAX-té spuštění chce heslo doopravdy.
+                var t = trustFor(u.id);
+                if (t && trustLeft(t) > 0) autoLogin(u, t);
+                else if (t) { clearTrust(); showLogin(true, true); }   // kontrolní přihlášení
+                else lock();
             } else {
                 try { localStorage.setItem('arSurveyor', u.name); } catch (e) {}
                 applyPerms();
@@ -1770,6 +2160,24 @@
         avatarSet: avaSet,      // uloží vzhled avataru pro jméno v aktuální firmě
         getLockOnStart: getLockOnStart,
         setLockOnStart: setLockOnStart,
+        // pamatované přihlášení + Face ID (nastavení v js/ucty-admin.js)
+        TRUST_MAX: TRUST_MAX,
+        getTrust: getTrust,
+        clearTrust: clearTrust,
+        trustFor: trustFor,
+        trustLeft: trustLeft,
+        bioSupported: bioSupported,
+        bioAvailable: bioAvailable,
+        bioEnroll: bioEnroll,
+        bioForget: bioForget,
+        offerBio: offerBio,
+        // zakázky přidělené účtu na tomto zařízení
+        projList: projList,
+        projAclFor: projAclFor,
+        setProjAcl: setProjAcl,
+        allowedProjects: allowedProjects,
+        applyProject: applyProject,
+        applyProjPerms: applyProjPerms,
         hashPin: hashPin,
         makeSalt: makeSalt,
         ensureLib: ensureLib,

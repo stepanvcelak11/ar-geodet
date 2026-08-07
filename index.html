@@ -83,8 +83,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=207">
-    <link rel="stylesheet" href="css/style.css?v=207">
+    <link rel="stylesheet" href="css/tokens.css?v=208">
+    <link rel="stylesheet" href="css/style.css?v=208">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -101,7 +101,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=207">
+    <link rel="stylesheet" href="css/vylepseni.css?v=208">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -443,12 +443,12 @@
         <div class="modal-content">
             <h2 style="margin-top:0;"><svg class="icon" style="color:var(--accent);"><use href="#i-settings"/></svg> Nastavení</h2>
             <div class="tab-buttons settings-tiles">
-                <div class="tab-btn active" onclick="switchTab('tab-vzhled', this)"><svg class="icon"><use href="#i-sliders"/></svg><span class="tb-tx"><b>Vzhled</b><small>Motiv, text, prvky HUD</small></span></div>
-                <div class="tab-btn" onclick="switchTab('tab-ar', this)"><svg class="icon"><use href="#i-crosshair"/></svg><span class="tb-tx"><b>AR &amp; přesnost</b><small>Body v AR, kompas, senzory</small></span></div>
-                <div class="tab-btn" onclick="switchTab('tab-data', this)"><svg class="icon"><use href="#i-folder"/></svg><span class="tb-tx"><b>Data</b><small>Zakázka, body ČÚZK, offline</small></span></div>
+                <div class="tab-btn active" onclick="switchTab('tab-vzhled', this); try{this.parentNode.scrollIntoView({block:'start'})}catch(e){}"><svg class="icon"><use href="#i-sliders"/></svg><span class="tb-tx"><b>Vzhled</b><small>Motiv, text, prvky HUD</small></span></div>
+                <div class="tab-btn" onclick="switchTab('tab-ar', this); try{this.parentNode.scrollIntoView({block:'start'})}catch(e){}"><svg class="icon"><use href="#i-crosshair"/></svg><span class="tb-tx"><b>AR &amp; přesnost</b><small>Body v AR, kompas, senzory</small></span></div>
+                <div class="tab-btn" onclick="switchTab('tab-data', this); try{this.parentNode.scrollIntoView({block:'start'})}catch(e){}"><svg class="icon"><use href="#i-folder"/></svg><span class="tb-tx"><b>Data</b><small>Zakázka, body ČÚZK, offline</small></span></div>
                 <!-- Kompas z dlaždic ODEBRÁN na přání (duplikoval panel Azimut na hlavní obrazovce;
                      kalibrace zůstává klepnutím na Azimut a tlačítkem v AR & přesnost) -->
-                <div class="tab-btn" id="tabbtn-udrzba" onclick="switchTab('tab-udrzba', this); window.agRenderStorageUsage && window.agRenderStorageUsage()"><svg class="icon"><use href="#i-wrench"/></svg><span class="tb-tx"><b>Údržba</b><small>Záloha, skryté body</small></span></div>
+                <div class="tab-btn" id="tabbtn-udrzba" onclick="switchTab('tab-udrzba', this); window.agRenderStorageUsage && window.agRenderStorageUsage(); try{this.parentNode.scrollIntoView({block:'start'})}catch(e){}"><svg class="icon"><use href="#i-wrench"/></svg><span class="tb-tx"><b>Údržba</b><small>Záloha, skryté body</small></span></div>
             </div>
             <div class="modal-body">
                 <div id="tab-vzhled" class="settings-tab active">
@@ -510,8 +510,8 @@
                                 <div class="st-slider-head"><span class="st-lab">Výškový posun bodů v AR</span><span class="st-val"><span id="v-ar-height-val">0</span></span></div>
                                 <input type="range" id="v-ar-height-slider" min="-50" max="50" step="5" value="0" oninput="document.getElementById('v-ar-height-val').innerText = this.value">
                             </div>
-                            <label style="margin-top:14px;">Barvy typů bodů</label>
-                            <div class="color-row" style="margin-top: 10px;">
+                            <label>Barvy typů bodů</label>
+                            <div class="color-row" style="margin-top: 6px;">
                                 <div><label>Trigono.</label><input type="color" id="col-tb" value="#8b5cf6"></div>
                                 <div><label>Zhušťov.</label><input type="color" id="col-zhb" value="#0ea5e9"></div>
                                 <div><label>Podrob.</label><input type="color" id="col-pbpp" value="#3b82f6"></div>
@@ -528,7 +528,7 @@
                                 <div class="st-slider-head"><span class="st-lab">Průhlednost štítků (viditelnost)</span><span class="st-val"><span id="v-marker-opacity-val">100</span> %</span></div>
                                 <input type="range" id="v-marker-opacity" min="20" max="100" step="10" value="100" oninput="document.getElementById('v-marker-opacity-val').innerText = this.value">
                             </div>
-                            <label style="margin-top:15px;">3D navigační šipka</label>
+                            <label>3D navigační šipka</label>
                             <div class="color-row"><div style="flex: 0 0 50%;"><label>Barva šipky a cíle</label><input type="color" id="col-arrow" value="#34d399"></div></div>
                             <label>Tvar šipky na zemi</label>
                             <select id="v-arrow-shape" class="st-sel">
@@ -568,7 +568,7 @@
                         <input type="range" id="s-max-ar-slider" min="10" max="200" step="10" value="20" oninput="document.getElementById('s-max-ar-val').innerText = this.value">
                     </div>
                     <div class="set-h">Kompas a stabilita směru</div>
-                    <button class="btn btn-secondary" style="margin-top:6px;" onclick="openCompassModal();"><svg class="icon"><use href="#i-crosshair"/></svg> Kompas a kalibrace</button>
+                    <button class="btn btn-secondary" onclick="openCompassModal();"><svg class="icon"><use href="#i-crosshair"/></svg> Kompas a kalibrace</button>
                     <details class="adv"><summary><svg class="icon"><use href="#i-crosshair"/></svg> Pokročilé — jemné doladění AR</summary>
                         <div class="adv-body">
                             <div class="st-row" style="border-bottom:none;"><span class="st-lab">Auto-korekce kompasu<small>podle pohybu (GPS)</small></span>
@@ -591,8 +591,8 @@
                                 <div class="st-slider-head"><span class="st-lab">Výška očí nad zemí</span><span class="st-val"><span id="s-eyeh-val">1.6</span> m</span></div>
                                 <input type="range" id="s-eyeh" min="1.0" max="2.0" step="0.05" value="1.6" oninput="document.getElementById('s-eyeh-val').innerText = this.value">
                             </div>
-                            <label style="margin-top: 15px;">Výběr objektivu kamery</label>
-                            <button class="btn btn-secondary" style="margin-top: 6px;" onclick="loadCameras()"><svg class="icon"><use href="#i-camera"/></svg> Načíst dostupné kamery</button>
+                            <label>Výběr objektivu kamery</label>
+                            <button class="btn btn-secondary" onclick="loadCameras()"><svg class="icon"><use href="#i-camera"/></svg> Načíst dostupné kamery</button>
                             <select id="s-camera-select" class="st-sel" style="margin-top: 8px;"><option value="">Výchozí zadní kamera</option></select>
                         </div>
                     </details>
@@ -601,7 +601,7 @@
                     <!-- REORGANIZACE 7/2026: sekce .set-h. Kotva injekce: vylepseni.js (indikátor
                          úložiště #ag-quota) se přidává na konec tabu. -->
                     <div class="set-h">Zakázka</div>
-                    <div style="display:flex; gap:8px; align-items:center; margin-bottom:15px;"><select id="s-project-select" class="w-proj-select" style="flex:1;" onchange="changeProjectFromSettings()"></select><button class="w-proj-icon" onclick="createNewProject()" aria-label="Nová zakázka"><svg class="icon"><use href="#i-plus"/></svg></button><button class="w-proj-icon danger" onclick="deleteProject()" aria-label="Smazat zakázku"><svg class="icon"><use href="#i-trash"/></svg></button></div>
+                    <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px;"><select id="s-project-select" class="w-proj-select" style="flex:1;" onchange="changeProjectFromSettings()"></select><button class="w-proj-icon" onclick="createNewProject()" aria-label="Nová zakázka"><svg class="icon"><use href="#i-plus"/></svg></button><button class="w-proj-icon danger" onclick="deleteProject()" aria-label="Smazat zakázku"><svg class="icon"><use href="#i-trash"/></svg></button></div>
                     <div class="set-h">Úřední body (ČÚZK)</div>
                     <label>Druh hledaných bodů</label>
                     <div class="st-chips">
@@ -616,7 +616,7 @@
                         <div class="st-slider-head"><span class="st-lab">Poloměr pro mapu (stahování)</span><span class="st-val"><span id="s-map-radius-val">1000</span> m</span></div>
                         <input type="range" id="s-map-radius-slider" min="50" max="5000" step="50" value="1000" oninput="document.getElementById('s-map-radius-val').innerText = this.value">
                     </div>
-                    <label style="margin-top: 15px;">Hledat konkrétní bod (plný název)<small style="display:block; font-weight:400; color:var(--text-muted);">filtr zobrazení — po dohledání ho zase smaž</small></label>
+                    <label>Hledat konkrétní bod (plný název)<small style="display:block; font-weight:400; color:var(--text-muted);">filtr zobrazení — po dohledání ho zase smaž</small></label>
                     <input type="text" id="s-search-name" placeholder="Např. 567 nebo celá značka">
                     <div class="set-h">Katastr a offline</div>
                     <label>Zdroj mapy (Katastr)</label>
@@ -625,23 +625,23 @@
                         <option value="ikatastr">iKatastr.cz</option>
                         <option value="cuzk">ČÚZK Geoprohlížeč</option>
                     </select>
-                    <button class="btn btn-blue" style="margin-top: 18px;" onclick="saveForOffline()"><svg class="icon"><use href="#i-download"/></svg> Uložit pro Offline</button>
+                    <button class="btn btn-blue" onclick="saveForOffline()"><svg class="icon"><use href="#i-download"/></svg> Uložit pro Offline</button>
                 </div>
                 <!-- Údržba — bývalá sbalená sekce „Údržba a záloha" z Data, teď vlastní záložka
                      (nahradila dlaždici Kompas) -->
                 <div id="tab-udrzba" class="settings-tab">
                     <div class="set-h">Skryté body</div>
-                    <button class="btn btn-secondary" style="margin-top: 6px;" onclick="if (window.agOpenHiddenPoints) { document.getElementById('settings-modal').style.display='none'; window.agOpenHiddenPoints(); } else { restoreHiddenPoints(); }"><svg class="icon"><use href="#i-eye-off"/></svg> Zobrazit a obnovit skryté body</button>
+                    <button class="btn btn-secondary" onclick="if (window.agOpenHiddenPoints) { document.getElementById('settings-modal').style.display='none'; window.agOpenHiddenPoints(); } else { restoreHiddenPoints(); }"><svg class="icon"><use href="#i-eye-off"/></svg> Zobrazit a obnovit skryté body</button>
                     <div class="set-h">Záloha všech zakázek a nastavení</div>
-                    <button class="btn btn-secondary" style="margin-top: 8px;" onclick="exportAllData()"><svg class="icon"><use href="#i-download"/></svg> Stáhnout zálohu (vše)</button>
-                    <button class="btn btn-blue" style="margin-top: 10px;" onclick="document.getElementById('restore-file').click()"><svg class="icon"><use href="#i-upload"/></svg> Obnovit ze zálohy</button>
+                    <button class="btn btn-secondary" onclick="exportAllData()"><svg class="icon"><use href="#i-download"/></svg> Stáhnout zálohu (vše)</button>
+                    <button class="btn btn-blue" onclick="document.getElementById('restore-file').click()"><svg class="icon"><use href="#i-upload"/></svg> Obnovit ze zálohy</button>
                     <input type="file" id="restore-file" style="display:none" accept=".json,application/json" onchange="importAllData(event)">
                     <div id="storage-usage" style="margin-top:10px; font-size:12px; color:var(--text-muted); line-height:1.5;"></div>
                     <div class="set-h">Úklid</div>
-                    <button class="btn btn-danger" style="margin-top: 8px;" onclick="clearAllPoints()"><svg class="icon"><use href="#i-trash"/></svg> Vymazat stáhnuté okolí z této zakázky</button>
+                    <button class="btn btn-danger" onclick="clearAllPoints()"><svg class="icon"><use href="#i-trash"/></svg> Vymazat stáhnuté okolí z této zakázky</button>
                 </div>
             </div>
-            <button class="btn btn-primary" style="margin-top: 20px;" onclick="saveSettings()">Uložit vše a Zavřít</button>
+            <button class="btn btn-primary" style="margin-top: 16px;" onclick="saveSettings()">Uložit vše a Zavřít</button>
         </div>
     </div>
 
@@ -976,6 +976,10 @@
     <!-- NÁSTROJE JAKO SEZNAM ÚKONŮ (odpojitelné) — druhý pohled vedle mřížky;
          seznam sloves místo 61 ikon, mřížka zůstává pod přepínačem „Vše" -->
     <script defer src="js/nastroje-ukony.js"></script>
+    <!-- MOJE AKTIVITA (odpojitelné) — vlastní statistika dne (čas, kroky, výškové metry,
+         body, nástroje) a schování nástrojů, do kterých uživatel nešáhl; musí být
+         načtené od startu, protože průběžně měří (nesmí jít do lazy dávky) -->
+    <script defer src="js/moje-aktivita.js"></script>
     <!-- HLEDÁNÍ V NASTAVENÍ + krátký výchozí pohled (odpojitelné, window.AGSettings) -->
     <script defer src="js/nastaveni-hledani.js"></script>
     <script>

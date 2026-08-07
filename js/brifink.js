@@ -11,8 +11,11 @@
 //   • MONITORING: body po termínu přeměření (čte klíče modulu epochy-pripominky
 //     'agEpochyRemind::<pid>' + data 'agEpochy_v1') s tlačítkem Otevřít.
 //   • ZPRAVODAJ: titulek dnešního vydání (data/zpravodaj.json, drží ho SW cache).
-// Automaticky se otevře jen JEDNOU denně po startu appky (body.app-started,
-// klíč 'agBrifinkLastShown'); vypnutí přepínačem dole v kartě ('agBrifinkAuto').
+// Automaticky se otevře jen JEDNOU denně po startu appky (body.app-started) a AŽ
+// po přihlášení — dokud je na obrazovce #ag-login/#ag-gate, čeká (klíč
+// 'agBrifinkLastShown' se zapíše teprve ve chvíli otevření, takže se den
+// „nespotřebuje" kartou, kterou nikdo neviděl). Vypnutí přepínačem dole v kartě
+// ('agBrifinkAuto') nebo v Moje aktivita → Nastavení.
 // Ručně kdykoli: dlaždice „Dnešek v terénu" (Nástroje → Pomůcky) nebo
 // window.agOpenBrifink().
 //
@@ -331,7 +334,7 @@
             secHtml('ag-bf-gnss', 'GNSS dnes', 'wait') +
             secHtml('ag-bf-mon', 'Monitoring', 'wait') +
             secHtml('ag-bf-news', 'Zpravodaj', 'wait') +
-            '    <label class="ag-bf-auto"><input type="checkbox" id="ag-bf-autochk"' + (auto ? ' checked' : '') + '> Ukazovat automaticky při prvním spuštění dne</label>' +
+            '    <label class="ag-bf-auto"><input type="checkbox" id="ag-bf-autochk"' + (auto ? ' checked' : '') + '> Ukazovat sám 1× denně po přihlášení (jinak jen dlaždicí „Dnešek v terénu")</label>' +
             '  </div>' +
             '  <div class="ag-bf-foot">' +
             '    <button type="button" class="btn btn-secondary" id="ag-bf-wxbtn">Počasí podrobně</button>' +
@@ -359,20 +362,42 @@
     }
 
     // ---- auto-otevření 1× denně po startu appky ------------------------------------
+    // Přihlašovací obrazovka i zámek firemního režimu (js/ucty.js: #ag-login /
+    // #ag-gate) leží PŘES celou appku. Kdyby se karta otevřela pod ním, uživatel by
+    // ji nikdy neuviděl — a protože se den značí jako „ukázáno", nedostal by ji ani
+    // podruhé. Proto se čeká, až je člověk opravdu přihlášený, a teprve pak se
+    // dnešek zapíše. (Strop čekání je 4 min, ať to nevisí do večera.)
+    function lockVisible() {
+        var ids = ['ag-login', 'ag-gate'];
+        for (var i = 0; i < ids.length; i++) {
+            var el = document.getElementById(ids[i]);
+            if (!el) continue;
+            try { if (window.getComputedStyle(el).display !== 'none' && el.offsetParent !== null) return true; } catch (e) { return true; }
+        }
+        return false;
+    }
     function maybeAutoOpen() {
         try {
             if (localStorage.getItem(KEY_AUTO) === '0') return;
             if (localStorage.getItem(KEY_LAST) === todayStr()) return;
-            localStorage.setItem(KEY_LAST, todayStr());
         } catch (e) { return; }
-        setTimeout(open, 2500);   // ať naskočí AR a GPS dřív, než se počítají okna
+        var waited = 0;
+        (function waitForUser() {
+            if (lockVisible() && waited++ < 240) { setTimeout(waitForUser, 1000); return; }
+            try {
+                if (localStorage.getItem(KEY_AUTO) === '0') return;          // mezitím vypnuto
+                if (localStorage.getItem(KEY_LAST) === todayStr()) return;   // mezitím otevřeno ručně
+                localStorage.setItem(KEY_LAST, todayStr());
+            } catch (e) { return; }
+            open();
+        })();
     }
     var _started = false;
     var _startPoll = setInterval(function () {
         if (_started) { clearInterval(_startPoll); return; }
         if (document.body && document.body.classList.contains('app-started')) {
             _started = true; clearInterval(_startPoll);
-            maybeAutoOpen();
+            setTimeout(maybeAutoOpen, 2500);   // ať naskočí AR a GPS dřív, než se počítají okna dne
         }
     }, 500);
 

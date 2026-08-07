@@ -212,7 +212,8 @@
         'kde-je': 'auto parkovani kde stoji baze stativ material najit zpatky navigace znacka',
         'kniha-jizd': 'kniha jizd cestak kilometry km naklady cestovni nahrady tachometr vozidlo ucetni',
         korekce: 'korekce ppm pasmo teplota tlak vlhkost refrakce zakriveni edm dalkomer atmosfericka oprava pruves',
-        bezpecnost: 'bezpecnost bozp riziko vedro pitny rezim bourka blesk vesta soumrak mraz vitr sos poloha pomoc'
+        bezpecnost: 'bezpecnost bozp riziko vedro pitny rezim bourka blesk vesta soumrak mraz vitr sos poloha pomoc',
+        'moje-aktivita': 'aktivita statistika prehled kroky krokomer kilometry vyskove metry nastoupano cas souhrn dne kolik jsem udelal pouzivani nastroju skryt nepouzivane'
     };
     function loadClosed() { try { var a = JSON.parse(localStorage.getItem(COLL_KEY)); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
     function saveClosed(a) { try { localStorage.setItem(COLL_KEY, JSON.stringify(a)); } catch (e) {} }

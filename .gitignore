@@ -28,3 +28,10 @@ IMG_*.png
 *foto*.png
 Snímek obrazovky*.png
 Screenshot*.png
+
+# Claude Code (sezeni, worktrees, nastaveni agentu) - NEverzovat
+.claude/
+
+# Obrazky nahodne pustene do korene repa (uzivatelske screenshoty)
+unnamed*.jpg
+unnamed*.jpeg

@@ -169,6 +169,9 @@
         var on = simpleOn() && !q && !showAll;
         var tiles = grid.querySelectorAll('.tool-tile');
         for (var i = 0; i < tiles.length; i++) {
+            // dlaždici schovanou uživatelem v „Moje aktivita" (data-ag-hidden) nikdy
+            // neodkrývat zpátky — jinak by se oba moduly v ticku přetahovaly
+            if (tiles[i].hasAttribute('data-ag-hidden')) continue;
             var k = tileKey(tiles[i]);
             if (k && HIDE_KEYS.indexOf(k) !== -1) {
                 // dlaždice přesunutá do sekce „Pro tuto práci" (tools-simple.js) se neskrývá —

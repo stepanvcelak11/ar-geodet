@@ -889,6 +889,35 @@
         draw();
     }
 
+    // ---- zakázky přidělené účtu (jen NA TOMTO ZAŘÍZENÍ) -------------------------
+    // Zakázky nežijí na serveru, ale v telefonu (arProjectsList) — přidělení je proto
+    // taky per zařízení. Není to bezpečnostní hranice (kdo má odemčený telefon
+    // a konzoli, na data se dostane), ale úklid: člověk pak v přihlášení i
+    // v přepínačích zakázek vidí jen to, na čem má dělat. Nic nezaškrtnuto = všechno.
+    function projAclHtml(u, us) {
+        if (!us || !u.projList) return '';                       // nový účet: přidělíš po založení
+        if (us.role === 'admin') return '';                      // admin má vždy vše
+        var list = u.projList();
+        if (!list || list.length < 2) return '';                 // jedna zakázka = není co přidělovat
+        var acl = (u.projAclFor && u.projAclFor(us.id)) || null;
+        var rows = list.map(function (p) {
+            var on = acl ? acl.indexOf(p.id) !== -1 : false;
+            return '<label class="agfa-perm"><input type="checkbox" class="agfa-u-proj" data-pid="' + esc(p.id) + '"' + (on ? ' checked' : '') + '> ' + esc(p.name || p.id) + '</label>';
+        }).join('');
+        return '<div class="agfa-pg">Zakázky na tomto zařízení</div>' +
+            '<div class="agfa-note">Když nezaškrtneš nic, účet vidí <b>všechny</b> zakázky (výchozí stav). Zaškrtnutím ho omezíš — ' +
+            'ostatní zakázky mu zmizí z výběru při přihlášení i z přepínačů v appce.</div>' + rows;
+    }
+    function readProjAcl(box, u, us) {
+        if (!us || !u.setProjAcl) return;
+        var cbs = box.querySelectorAll('.agfa-u-proj');
+        if (!cbs.length) return;
+        var out = [];
+        for (var i = 0; i < cbs.length; i++) if (cbs[i].checked) out.push(cbs[i].getAttribute('data-pid'));
+        u.setProjAcl(us.id, out);
+        try { if (u.applyProjPerms) u.applyProjPerms(); } catch (e) {}
+    }
+
     function userForm(body, us) {
         var u = U(), f = u.getFirm(); if (!f) return;
         var cloud = !!f.cloud;
@@ -907,6 +936,7 @@
             '<label class="agfa-lb">' + passLbl + '</label>' +
             (cloud ? '<input type="password" id="agfa-u-pin" maxlength="64" placeholder="••••">'
                 : '<input type="password" id="agfa-u-pin" inputmode="numeric" maxlength="8" placeholder="••••">') +
+            projAclHtml(u, us) +
             '<div style="display:flex;gap:8px;margin-top:12px;">' +
             '  <button class="btn" style="flex:1;" id="agfa-u-save">' + (us ? 'Uložit změny' : 'Přidat') + '</button>' +
             '  <button class="btn btn-secondary" style="flex:1;" id="agfa-u-cancel">Zrušit</button>' +
@@ -923,6 +953,8 @@
                 if (admins.length <= 1) { agAlert('Nelze změnit', 'Toto je poslední admin — nejdřív udělej adminem někoho jiného.'); return; }
             }
             var me = u.currentUser();
+            // přidělení zakázek je LOKÁLNÍ (nejde na server) → uloží se v obou cestách
+            readProjAcl(box, u, us);
             if (cloud) {
                 if (!us && pin.length < 4) { agAlert('Slabé heslo', 'Heslo musí mít aspoň 4 znaky.'); return; }
                 if (us && pin && pin.length < 4) { agAlert('Slabé heslo', 'Heslo musí mít aspoň 4 znaky (nebo nech prázdné).'); return; }
@@ -1543,16 +1575,73 @@
     // ---- přihlášení při každém startu (per zařízení; výchozí ANO) --------
     function lockStartHtml(u) {
         var on = !u.getLockOnStart || u.getLockOnStart();
-        return '<div class="agfa-pg">Zámek appky</div>' +
+        var me = u.currentUser();
+        var t = (me && u.trustFor) ? u.trustFor(me.id) : null;
+        var bioOk = !!(u.bioSupported && u.bioSupported());
+        var bioOn = !!(me && u.bioAvailable && u.bioAvailable(me.id));
+        var html = '<div class="agfa-pg">Zámek appky</div>' +
             '<label class="agfa-perm"><input type="checkbox" id="agfa-lockstart"' + (on ? ' checked' : '') + '> ' +
             'Vyžadovat přihlášení při každém spuštění appky</label>' +
-            '<div class="agfa-note">Zapnuto (doporučeno): po každém spuštění appka rovnou ukáže přihlášení — naposledy přihlášený je předvybraný, ' +
-            'stačí heslo/PIN. Vypnuto: appka pokračuje pod posledním přihlášeným, dokud se někdo neodhlásí. Platí pro <b>toto zařízení</b>.</div>';
+            '<div class="agfa-note">Zapnuto (doporučeno): appka po spuštění ověří, kdo ji drží. Nemusí to být psaní hesla — ' +
+            'na přihlášení stačí zaškrtnout <b>Zůstat přihlášený na tomhle telefonu</b> a appka se pak otevírá přihlášená, ' +
+            'jen každé <b>' + (u.TRUST_MAX || 20) + '.</b> spuštění se pro kontrolu zeptá na heslo. Vypnuto: nekontroluje se nikdy. ' +
+            'Platí pro <b>toto zařízení</b>.</div>';
+        if (me) {
+            html += '<div class="agfa-note" style="margin-top:2px;"><b>Teď na tomhle telefonu:</b> ' +
+                (t ? ('pamatované přihlášení ' + (t.mode === 'bio' ? '(odemyká se telefonem)' : '(bez ptaní)') +
+                    ' · do kontrolního hesla zbývá ' + (u.trustLeft ? u.trustLeft(t) : '?') + ' spuštění')
+                   : 'pamatované přihlášení vypnuté — příště se zadává ' + (u.getFirm() && u.getFirm().cloud ? 'heslo' : 'PIN')) +
+                '</div>' +
+                '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">' +
+                (bioOk
+                    ? '  <button class="agfa-mini" id="agfa-bio">' + (bioOn ? 'Vypnout odemykání telefonem' : 'Zapnout odemykání telefonem (Face ID)') + '</button>'
+                    : '') +
+                (t ? '  <button class="agfa-mini danger" id="agfa-trust-off">Zrušit pamatované přihlášení</button>' : '') +
+                '</div>';
+            if (!bioOk) {
+                html += '<div class="agfa-note">Odemykání telefonem (Face ID / Touch ID / kód obrazovky) tady není k dispozici — ' +
+                    'vyžaduje HTTPS a telefon, který to umí.</div>';
+            } else {
+                html += '<div class="agfa-note">Ověřuje <b>telefon</b>, appka se dozví jen to, že ověření prošlo — heslo si nikam neukládá. ' +
+                    'Není to náhrada firemního hesla, je to zámek proti půjčenému telefonu.</div>';
+            }
+        }
+        return html;
     }
     function wireLockStart(body, u) {
         var cb = body.querySelector('#agfa-lockstart');
-        if (!cb || !u.setLockOnStart) return;
-        cb.onchange = function () { u.setLockOnStart(this.checked); };
+        if (cb && u.setLockOnStart) cb.onchange = function () { u.setLockOnStart(this.checked); };
+        var me = u.currentUser();
+        var bio = body.querySelector('#agfa-bio');
+        if (bio && me) {
+            bio.onclick = function () {
+                if (u.bioAvailable && u.bioAvailable(me.id)) {
+                    u.bioForget(me.id);
+                    agAlert('Hotovo', 'Odemykání telefonem vypnuto. Pamatované přihlášení teď platí bez ověření — nebo ho zruš tlačítkem vedle.');
+                    reopenSection(body);
+                    return;
+                }
+                var btn = this;
+                btn.disabled = true; btn.textContent = 'Ověřuji…';
+                u.bioEnroll(me).then(function (ok) {
+                    agAlert(ok ? 'Zapnuto' : 'Nepovedlo se',
+                        ok ? 'Příště appku odemkneš Face ID / Touch ID nebo kódem obrazovky.'
+                           : 'Telefon ověření nepovolil. Zkontroluj, že máš zapnutý Face ID / kód obrazovky, a zkus to znovu.');
+                    reopenSection(body);
+                });
+            };
+        }
+        var off = body.querySelector('#agfa-trust-off');
+        if (off) off.onclick = function () {
+            u.clearTrust();
+            agAlert('Hotovo', 'Při dalším spuštění se appka zeptá na ' + (u.getFirm() && u.getFirm().cloud ? 'heslo' : 'PIN') + '.');
+            reopenSection(body);
+        };
+    }
+    // Překreslení sekce Firma — tlačítka zámku mění stav, který sekce sama vypisuje.
+    // renderFirm si podle f.cloud vybere lokální/cloudovou podobu, takže stačí ono.
+    function reopenSection(body) {
+        try { renderFirm(body); } catch (e) {}
     }
 
     // ------------------------------------------------------------------

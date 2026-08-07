@@ -19,6 +19,13 @@
 // (nový modul, který přibude potom), spadne do sekce „Další nástroje" — nikdy
 // nezmizí.
 //
+// PŘEHLEDNOST SEZNAMU (nic se z něj neubírá — úkony jsou celé): každá skupina je
+// vlastní <section> se SLEPENOU hlavičkou (position:sticky). Při rolování tak pořád
+// vidíš, ve kterém slovese jsi („Změřit", „Vytyčit", …), a hlavička další skupiny tu
+// předchozí vystřídá až ve chvíli, kdy skupina opravdu končí. Vedle názvu je počet
+// položek, mezi skupinami je mezera a linka — dlouhý seznam se tím dá projet očima
+// po blocích místo jednoho nekonečného sloupce.
+//
 // Hledání se nepřepisuje: jakmile začneš psát, pohled se přepne na mřížku, kde
 // běží chytré vyhledávání z field-tools.js (synonyma, překlepy, řazení). Po
 // smazání dotazu se vrátí seznam úkonů.
@@ -125,7 +132,8 @@
                 { k: 'dochazka', l: 'Docházka' },
                 { k: 'firma-chat', l: 'Firemní chat' },
                 { k: 'ucty-firma', l: 'Firma a účty' },
-                { k: 'kniha-jizd', l: 'Kniha jízd' }
+                { k: 'kniha-jizd', l: 'Kniha jízd' },
+                { k: 'moje-aktivita', l: 'Moje aktivita', h: 'kolik jsem ušel, co používám, co schovat' }
             ]
         },
         {
@@ -138,8 +146,12 @@
         }
     ];
     // Rozcestníky z tools-hub.js: v seznamu sloves jsou jejich položky rovnou,
-    // takže samotné rozcestníky by byly jen mezikrok navíc.
-    var SKIP = { 'bod-vypoctem': 1, 'gnss-signal': 1, 'prirucka': 1 };
+    // takže samotné rozcestníky by byly jen mezikrok navíc. Kdyby tu nebyly, spadly
+    // by do sekce „Další nástroje" a uživatel by měl stejnou věc v seznamu dvakrát.
+    var SKIP = {
+        'bod-vypoctem': 1, 'gnss-signal': 1, 'prirucka': 1,
+        'pocasi-svetlo': 1, 'auto-bezpeci': 1
+    };
 
     var KNOWN = {};
     GROUPS.forEach(function (g) { g.items.forEach(function (it) { KNOWN[it.k] = 1; }); });
@@ -180,6 +192,10 @@
             // Záměrně se testuje JEN data-agucty: dlaždice skryté zjednodušením
             // Nástrojů (usadit-ar, tools-simple) mají v seznamu zůstat.
             if (tiles[i].hasAttribute('data-agucty')) return null;
+            // Nástroje, které si uživatel sám schoval v „Moje aktivita" (js/moje-aktivita.js,
+            // atribut data-ag-hidden), nemá cenu držet ani v seznamu úkonů — jinak by
+            // schování zdánlivě nic nedělalo. Najít je pořád jde hledáním v mřížce.
+            if (tiles[i].hasAttribute('data-ag-hidden')) return null;
             return tiles[i];
         }
         return null;
@@ -213,9 +229,21 @@
             '#' + LIST_ID + '{display:none;}',
             'body.ag-uk-on #' + LIST_ID + '{display:block;}',
             'body.ag-uk-on #tools-modal .tool-grid{display:none !important;}',
-            '.ag-uk-h{margin:16px 2px 6px;font:700 11px/1 var(--font-display,system-ui),sans-serif;',
+            // skupina = vlastní blok; sticky hlavička se drží jen po dobu SVÉ skupiny
+            '.ag-uk-g{margin:0 0 14px;}',
+            '.ag-uk-g:last-child{margin-bottom:6px;}',
+            '.ag-uk-h{position:sticky;top:0;z-index:3;display:flex;align-items:baseline;gap:8px;',
+            '  margin:0 0 7px;padding:9px 2px 7px;',
+            '  background:var(--modal-bg,rgba(14,18,24,0.97));',
+            '  border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.12));',
+            '  font:700 11px/1 var(--font-display,system-ui),sans-serif;',
             '  letter-spacing:.09em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
-            '.ag-uk-h:first-child{margin-top:2px;}',
+            '.ag-uk-h .ag-uk-n{margin-left:auto;font-weight:600;font-size:10.5px;',
+            '  letter-spacing:.02em;color:var(--text-faint,#7b828c);}',
+            // venkovní režim má modály neprůhledné — hlavička musí mít stejné pozadí,
+            // jinak by pod ní při rolování prosvítal text položek
+            'body.outdoor-mode .ag-uk-h{background:#0a0e1a;}',
+            'body.light-mode.outdoor-mode .ag-uk-h{background:#fff;}',
             '.ag-uk-i{display:flex;align-items:center;gap:11px;width:100%;box-sizing:border-box;',
             '  margin:0 0 6px;padding:12px 13px;border-radius:12px;text-align:left;cursor:pointer;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.10));',
@@ -231,7 +259,7 @@
             '.ag-uk-tx small{display:block;margin-top:2px;font-size:12px;line-height:1.35;',
             '  color:var(--text-muted,#9aa1ac);}',
             // blok „Teď" nahoře — jeden vstup místo tří rozesetých
-            '.ag-uk-now{margin:0 0 4px;padding:11px 13px;border-radius:12px;',
+            '.ag-uk-now{margin:0 0 14px;padding:11px 13px;border-radius:12px;',
             '  border:1px solid var(--accent-line,rgba(47,158,116,0.38));',
             '  background:var(--accent-soft,rgba(47,158,116,0.13));}',
             '.ag-uk-now .ag-uk-i{background:transparent;border:0;margin:0;padding:6px 0;}',
@@ -369,18 +397,28 @@
         var nb = nowBlock();
         if (nb) host.appendChild(nb);
 
+        // Každá skupina je samostatná sekce — jen díky tomu se sticky hlavička
+        // odlepí, jakmile skupina skončí (sticky se drží uvnitř svého rodiče).
+        function section(title, count) {
+            var sec = document.createElement('section');
+            sec.className = 'ag-uk-g';
+            var h = document.createElement('div');
+            h.className = 'ag-uk-h';
+            h.innerHTML = '<span>' + esc(title) + '</span><span class="ag-uk-n">' + count + '</span>';
+            sec.appendChild(h);
+            host.appendChild(sec);
+            return sec;
+        }
+
         // Personalizace z mřížky se do seznamu propíše — ★ Oblíbené i ◆ typ práce
         // (jinak by volba „Typ práce" nad seznamem zdánlivě nic nedělala).
         function shortcutGroup(title, keys) {
             var live = keys.filter(function (k) { return !SKIP[k] && findTile(k); });
             if (!live.length) return;
-            var h = document.createElement('div');
-            h.className = 'ag-uk-h';
-            h.textContent = title;
-            host.appendChild(h);
+            var sec = section(title, live.length);
             live.forEach(function (k) {
                 var t = findTile(k);
-                host.appendChild(item({ l: tileLabel(t) }, (function (kk) { return function () { run(kk); }; })(k), iconOf(k)));
+                sec.appendChild(item({ l: tileLabel(t) }, (function (kk) { return function () { run(kk); }; })(k), iconOf(k)));
             });
         }
         shortcutGroup('★ Oblíbené', favKeys());
@@ -391,13 +429,10 @@
         GROUPS.forEach(function (grp) {
             var live = grp.items.filter(function (it) { return !!findTile(it.k); });
             if (!live.length) return;                       // celá skupina chybí (role/odpojený modul)
-            var h = document.createElement('div');
-            h.className = 'ag-uk-h';
-            h.textContent = grp.t;
-            host.appendChild(h);
+            var sec = section(grp.t, live.length);
             live.forEach(function (it) {
                 used[it.k] = 1;
-                host.appendChild(item(it, function () { run(it.k); }, iconOf(it.k)));
+                sec.appendChild(item(it, function () { run(it.k); }, iconOf(it.k)));
             });
         });
 
@@ -412,12 +447,9 @@
             rest.push({ k: k, l: tileLabel(tiles[i]) });
         }
         if (rest.length) {
-            var rh = document.createElement('div');
-            rh.className = 'ag-uk-h';
-            rh.textContent = 'Další nástroje';
-            host.appendChild(rh);
+            var rsec = section('Další nástroje', rest.length);
             rest.forEach(function (r) {
-                host.appendChild(item({ l: r.l }, function () { run(r.k); }, iconOf(r.k)));
+                rsec.appendChild(item({ l: r.l }, function () { run(r.k); }, iconOf(r.k)));
             });
         }
         host.setAttribute('data-sig', gridSig());
