@@ -192,13 +192,17 @@
         if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.lat) { lat = gpsAvgResult.lat; lng = gpsAvgResult.lng; }
         else if (typeof userLat !== 'undefined' && userLat) { lat = userLat; lng = userLng; }
         if (lat == null) { agInfo('Zatím nemám GPS polohu.'); return; }
-        const nm = prompt('Číslo / označení bodu:', nextName());
-        if (nm === null) return;
-        sketch.pts.push({ name: nm.trim() || nextName(), lat: lat, lng: lng }); sketch.log.push('pt');
-        save();
-        if (sketch.pts.length === 1 && tmap) tmap.setView([lat, lng], 20);
-        redraw();
-        hint('Přidán bod „' + sketch.pts[sketch.pts.length - 1].name + '". Stůjte na bodě a měřte přesně.');
+        // Polohu si zmrazíme TEĎ: dialog je asynchronní a než uživatel dopíše název,
+        // stihne se GPS fix posunout — bod by pak seděl jinde, než kde se klepalo.
+        const _lat = lat, _lng = lng;
+        agAskText('Číslo / označení bodu:', { title: 'Nový bod náčrtu', value: nextName(), okText: 'Přidat' }).then(nm => {
+            if (nm === null) return;
+            sketch.pts.push({ name: String(nm).trim() || nextName(), lat: _lat, lng: _lng }); sketch.log.push('pt');
+            save();
+            if (sketch.pts.length === 1 && tmap) tmap.setView([_lat, _lng], 20);
+            redraw();
+            hint('Přidán bod „' + sketch.pts[sketch.pts.length - 1].name + '". Stůjte na bodě a měřte přesně.');
+        });
     };
 
     window.tachyAddFromPoints = function () {

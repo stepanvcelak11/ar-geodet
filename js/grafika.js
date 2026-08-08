@@ -210,10 +210,33 @@
 
         function getMapMarkerSVG(category, color) { if(category === 'TB') return `<svg viewBox="0 0 24 24"><polygon points="12,2 22,20 2,20" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'ZHB') return `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'PBPP') return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'NIVEL') return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="${color}" stroke-width="3"/><circle cx="12" cy="12" r="3" fill="${color}"/></svg>`; if(category === 'CUSTOM') return `<svg viewBox="0 0 24 24"><path d="M12,2 C7,2 3,6 3,11 C3,18 12,22 12,22 C12,22 21,18 21,11 C21,6 17,2 12,2 Z" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="${color}"/></svg>`; }
 
+        // ===== OREZ MARKERU NA VYREZ MAPY =========================================
+        // Po stazeni bodoveho pole z CUZK jsou v mape stovky bodu a KAZDY je jeden
+        // divIcon (DOM uzel). drawAllMarkersOnMap() se pritom vola pri kazdem ulozeni
+        // bodu, zmene filtru, importu… — stavet pokazde i bod kilometr za obzorem je
+        // zbytecne. Kreslime tedy jen to, co muze byt videt.
+        //
+        // PROC JE TO BEZPECNE I PRI OTOCENE MAPE: rotaci resi predimenzovany
+        // #map-wrapper (150vmax x 150vmax, viz css/style.css) — Leaflet pocita s
+        // plochou vyrazne vetsi nez viditelna vysec, takze map.getBounds() uz je
+        // "vsechno, co jde pri libovolnem otoceni videt".
+        //
+        // Kreslime s velkou rezervou (+100 % na kazdou stranu) a prekreslujeme, teprve
+        // az se uzivatel priblizi k jejimu okraji (+25 %) — bezna chuze ani posun po
+        // mape tedy prekresleni nespousti.
+        const _MAP_DRAW_PAD = 1.0;
+        const _MAP_KEEP_PAD = 0.25;
+        let _mapDrawnBounds = null;
+        function _mapPadBounds(pad) {
+            try { const b = map.getBounds(); return (b && b.isValid()) ? b.pad(pad) : null; } catch (e) { return null; }
+        }
+
         function drawAllMarkersOnMap() {
             if (_mngSuspendRedraw) return;   // hromadna davka prekresli mapu az na konci
             markersGroup.clearLayers();
+            _mapDrawnBounds = _mapPadBounds(_MAP_DRAW_PAD);
             arPoints.forEach(pt => {
+                if (_mapDrawnBounds && !_mapDrawnBounds.contains([pt.lat, pt.lng])) return;
                 if (pt.hidden) return; if (pt.cat === 'TB' && !filters.tb) return; if (pt.cat === 'ZHB' && !filters.zhb) return; if (pt.cat === 'PBPP' && !filters.pbpp) return; if (pt.cat === 'NIVEL' && !filters.nivel) return; if (pt.cat === 'CUSTOM' && !filters.custom) return; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return;
                 let col = visSettings.colTb; if(pt.cat === 'ZHB') col = visSettings.colZhb; if(pt.cat === 'PBPP') col = visSettings.colPbpp; if(pt.cat === 'NIVEL') col = visSettings.colNivel; if(pt.cat === 'CUSTOM') col = visSettings.colCustom;
                 const stakedBadge = (window.isStaked && isStaked(pt.id)) ? `<div style="position:absolute; top:-7px; right:-7px; width:13px; height:13px; border-radius:50%; background:#10b981; border:1.5px solid #fff; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>` : '';
@@ -223,6 +246,19 @@
             });
             drawAllLinesOnMap();
         }
+
+        // Odjel uzivatel mimo vykreslenou plochu? Dokreslit zbytek.
+        // (Bez teto pojistky by orez vyse znamenal "body za okrajem uz se neukazou" —
+        // presne ta trida chyby, kterou nikdo v terenu nechce hledat.)
+        let _mapCullTimer = null;
+        function _mapCullCheck() {
+            if (!appStarted) return;
+            const need = _mapPadBounds(_MAP_KEEP_PAD);
+            if (!need) return;
+            if (_mapDrawnBounds && _mapDrawnBounds.contains(need)) return;
+            drawAllMarkersOnMap();
+        }
+        map.on('moveend zoomend', () => { clearTimeout(_mapCullTimer); _mapCullTimer = setTimeout(_mapCullCheck, 200); });
 
         function getMapClickLatLng(e) {
             const oe = e.originalEvent || {};
@@ -400,6 +436,25 @@
         // renderManageList i drawAllMarkersOnMap, coz je u stovek bodu kvadraticka prace
         // (proj4 prevod na kazdy radek) a appka by na nekolik sekund zamrzla.
         let _mngSuspendRedraw = false;
+        // S-JTSK prevod je nejdrazsi vec na radku seznamu a pro nepohnuty bod vraci
+        // porad totez. Cachujeme ho ve WeakMap (NE jako vlastnost bodu — ta by se
+        // pribalila do JSON.stringify(persistentCustomPoints) a tim do uloziste
+        // i do exportu) a zahazujeme, jakmile se bod posune.
+        const _mngYXCache = new WeakMap();
+        function _mngYX(pt) {
+            const k = pt.lat + ',' + pt.lng;
+            let c = _mngYXCache.get(pt);
+            if (!c || c.k !== k) {
+                const s = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]);
+                c = { k: k, y: Math.abs(s[0]).toFixed(2), x: Math.abs(s[1]).toFixed(2) };
+                _mngYXCache.set(pt, c);
+            }
+            return c;
+        }
+        // Rozdelane dokreslovani se pozna podle tokenu — kdyz se seznam mezitim
+        // prekresli znovu (razeni, smazani, rezim vyberu), stara davka se zahodi.
+        let _mngRenderToken = 0;
+        const _MNG_CHUNK = 60;
         function renderManageList() {
             if (_mngSuspendRedraw) return;
             const listDiv = document.getElementById('manage-list'); listDiv.innerHTML = '';
@@ -427,8 +482,10 @@
             const empty = document.createElement('p'); empty.id = 'mng-empty';
             empty.style.cssText = 'text-align:center; opacity:.7; display:none;'; empty.innerText = 'Hledání nic nenašlo.';
             listDiv.appendChild(empty);
-            pts.forEach(pt => {
-                let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); let dispY = Math.abs(sjtsk[0]).toFixed(2); let dispX = Math.abs(sjtsk[1]).toFixed(2);
+            // Radek seznamu. Vyrobit vsech 1000 naraz znamena, ze se modal otevre
+            // az za par sekund — proto se stavi po davkach (viz nize).
+            const buildRow = (pt) => {
+                const _yx = _mngYX(pt); const dispY = _yx.y, dispX = _yx.x;
                 const item = document.createElement('div'); item.className = 'cp-item';
                 item.dataset.mngText = (String(pt.name) + ' ' + (pt.kod || '')).toLowerCase();
                 const dRow = (userLat != null) ? ('<br>' + getDistance(userLat, userLng, pt.lat, pt.lng).toFixed(1) + ' m od tebe') : '';
@@ -449,10 +506,32 @@
                     act.querySelector('.cp-btn-delete').addEventListener('click', () => deleteCustomPoint(pt.id));
                     if (typeof decoratePointItem === 'function') { try { decoratePointItem(item, pt); } catch (e) {} }
                 }
-                listDiv.appendChild(item);
-            });
+                return item;
+            };
+
+            // Konec seznamu (skryté body + spojnice) připojíme HNED a řádky vkládáme
+            // před tuhle kotvu — jinak by při dokreslování poskakoval dolů.
+            // Kotva je komentář, aby se nezměnila struktura pro CSS.
+            const anchor = document.createComment('mng-rows-end');
+            listDiv.appendChild(anchor);
             renderHiddenPointsRow(listDiv); renderLinesList(listDiv);
-            _mngApplyFilter();   // aktivni hledani plati i po prekresleni (mazani, razeni, vyber)
+
+            const myToken = ++_mngRenderToken;
+            let i = 0;
+            const step = () => {
+                if (myToken !== _mngRenderToken) return;          // mezitím se překreslilo znovu
+                if (!anchor.parentNode) return;                    // seznam mezitím zmizel
+                const frag = document.createDocumentFragment();
+                const end = Math.min(i + _MNG_CHUNK, pts.length);
+                for (; i < end; i++) frag.appendChild(buildRow(pts[i]));
+                listDiv.insertBefore(frag, anchor);
+                const more = i < pts.length;
+                // Během dokreslování filtrujeme jen když se opravdu hledá; na konci vždy,
+                // aby aktivní hledání platilo i po překreslení (mazání, řazení, výběr).
+                if (!more || _mngQuery.trim()) _mngApplyFilter();
+                if (more) requestAnimationFrame(step);
+            };
+            step();   // první dávka synchronně — modal se nikdy neukáže prázdný
         }
         // panel hromadnych akci nad vyberem
         function renderMngActions(listDiv) {
@@ -492,8 +571,11 @@
             if (!ids.length) return agInfo('Vybrané body nejsou v aktivním hledání vidět — zruš hledání nebo vyber jiné.');
             const doIt = () => {
                 _mngSuspendRedraw = true;
-                try { ids.forEach(id => { try { deleteCustomPoint(id, true); } catch (e) {} }); }
+                // batch = true: zadny zapis do uloziste ani prekresleni po KAZDEM bode,
+                // vsechno se udela jednou na konci davky (flushPointsAfterBulk).
+                try { ids.forEach(id => { try { deleteCustomPoint(id, true, true); } catch (e) {} }); }
                 finally { _mngSuspendRedraw = false; }
+                flushPointsAfterBulk();
                 ids.forEach(id => _mngSel.delete(id));
                 drawAllMarkersOnMap(); initARMarkers();
                 // undo toast umi vratit jen POSLEDNI smazany bod — u hromadneho mazani by mátl; koš má všechny

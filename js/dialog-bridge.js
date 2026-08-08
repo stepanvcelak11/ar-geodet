@@ -5,6 +5,10 @@
 // nepředvídatelně. Tenhle můstek dává bezpečnou náhradu se STEJNÝM voláním:
 //   agInfo(text[, title])  — náhrada alert(text); escapuje HTML, \n → <br>
 //   agAsk(text[, opts]) → Promise<bool> — náhrada confirm() pro async místa
+//   agAskText(text[, opts]) → Promise<string|null> — náhrada prompt()
+// Nativní prompt() navíc BLOKUJE hlavní vlákno: dokud v něm uživatel píše,
+// stojí GPS callbacky, render AR i časovače a po zavření se všechno vysype
+// naráz. Proto se mu vyhnout i tam, kde by vzhledově prošel.
 // Když vylepšovací vrstva chybí (je odpojitelná!), spadne to zpět na nativní
 // dialogy — proto ta kontrola až V OKAMŽIKU volání, ne při načtení.
 // Odstranění: smaž js/dialog-bridge.js + řádek <script> v index.html
@@ -36,5 +40,21 @@
             }
         } catch (e) {}
         try { return Promise.resolve(confirm(msg)); } catch (e) { return Promise.resolve(false); }
+    };
+
+    // opts: { title, value, placeholder, okText }
+    // Vrací zadaný text (oříznutý), nebo null při zrušení — stejně jako prompt().
+    window.agAskText = window.agAskText || function (msg, opts) {
+        opts = opts || {};
+        try {
+            if (typeof window.agPrompt === 'function') {
+                return window.agPrompt({
+                    title: opts.title || 'AR Geodet', message: esc(msg),
+                    value: opts.value, placeholder: opts.placeholder, okText: opts.okText
+                });
+            }
+        } catch (e) {}
+        try { var v = prompt(msg, opts.value != null ? String(opts.value) : ''); return Promise.resolve(v == null ? null : String(v).trim()); }
+        catch (e) { return Promise.resolve(null); }
     };
 })();

@@ -1059,8 +1059,14 @@ function decoratePointItem(item, pt) {
     const _origDel = window.deleteCustomPoint;
     window.deleteCustomPoint = function (id) {
         const before = (typeof persistentCustomPoints !== 'undefined') ? persistentCustomPoints.length : 0;
-        _origDel(id);
+        // POZOR: předat VŠECHNY argumenty dál. Dřív se volalo _origDel(id), čímž se
+        // zahazoval skipConfirm — a protože tenhle obal leží v řetězu
+        // (kos → undo → kalkulacka → journal → logika), hromadné smazání 30 bodů
+        // vyskočilo 30× nativní confirm(), přestože panel Body má jedno společné
+        // potvrzení. Ostatní tři obaly předávají arguments správně.
+        const ret = _origDel.apply(this, arguments);
         if (typeof persistentCustomPoints !== 'undefined' && persistentCustomPoints.length < before) { try { deletePointDoc(id); } catch (e) {} }
+        return ret;
     };
 })();
 

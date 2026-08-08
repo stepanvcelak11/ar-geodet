@@ -618,7 +618,25 @@ if ('serviceWorker' in navigator) {
         // snapshotem před/po a async dialog by mu rozbil detekci změny (žádný toast Vrátit zpět).
         // skipConfirm: hromadne mazani z panelu Body uz ma JEDNO spolecne potvrzeni — bez nej
         // by 30 vybranych bodu znamenalo 30 confirm dialogu. Kos/undo obaluji tuto funkci dal.
-        function deleteCustomPoint(id, skipConfirm) { const _pt = persistentCustomPoints.find(p => p.id === id); if(!skipConfirm && !confirm('Smazat bod „' + ((_pt && _pt.name) || 'bez názvu') + '"?')) return; persistentCustomPoints = persistentCustomPoints.filter(p => p.id !== id); setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); pointLines = pointLines.filter(l => l.aId !== id && l.bId !== id); saveLines(); renderManageList(); drawAllMarkersOnMap(); const idx = arPoints.findIndex(p => p.id === id); if(idx !== -1) { if(arPoints[idx].element) arPoints[idx].element.remove(); arPoints.splice(idx, 1); } updateInfoPanel(); }
+        // batch (3. argument): pri hromadnem mazani se persist ani prekresleni NEDELA
+        // po kazdem bodu — volajici to udela JEDNOU na konci pres flushPointsAfterBulk().
+        // Driv kazde jedno smazani znovu serializovalo cele pole bodu i spojnic a
+        // zapisovalo je do IndexedDB, takze 500 vybranych bodu = 500 zapisu po ~100 kB.
+        function persistCustomPoints() { setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); }
+        function flushPointsAfterBulk() { persistCustomPoints(); saveLines(); updateInfoPanel(); }
+        function deleteCustomPoint(id, skipConfirm, batch) {
+            const _pt = persistentCustomPoints.find(p => p.id === id);
+            if (!skipConfirm && !confirm('Smazat bod „' + ((_pt && _pt.name) || 'bez názvu') + '"?')) return;
+            persistentCustomPoints = persistentCustomPoints.filter(p => p.id !== id);
+            pointLines = pointLines.filter(l => l.aId !== id && l.bId !== id);
+            // arPoints uklidit JESTE PRED prekreslenim mapy: driv se drawAllMarkersOnMap()
+            // volalo, kdyz byl mazany bod v arPoints porad — jeho znacka se tedy znovu
+            // vykreslila a z mapy zmizela az pri nejakem dalsim prekresleni.
+            const idx = arPoints.findIndex(p => p.id === id);
+            if (idx !== -1) { if (arPoints[idx].element) arPoints[idx].element.remove(); arPoints.splice(idx, 1); }
+            if (batch) return;
+            persistCustomPoints(); saveLines(); renderManageList(); drawAllMarkersOnMap(); updateInfoPanel();
+        }
         // Vyplnit Y/X z PRUMEROVANE GPS polohy (presnejsi nez jeden odecet) + ulozit dosazenou presnost
         function fillAveragedGPS() {
             // BRANA CERSTVOSTI: kdyz GPS prestala dodavat fixy (tunel, suspend), prumer je
