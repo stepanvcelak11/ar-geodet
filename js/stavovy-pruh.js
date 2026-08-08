@@ -203,6 +203,21 @@
             '.ag-sp-alert.yellow{color:var(--warning,#fbbf24);}',
             '.ag-sp-alert.red{color:var(--danger,#fb7185);}',
             '.ag-sp-msg{font-weight:600;opacity:0.85;max-width:46vw;overflow:hidden;text-overflow:ellipsis;}',
+            // SLOUČENÝ PRUH: text upozornění z centra + počítadlo, když jich visí víc.
+            // Text se musí umět zkrátit, jinak by dlouhá hláška vytlačila čísla
+            // (přesnost a azimut) mimo pilulku — a ta jsou tu to hlavní.
+            '.ag-sp-head .ag-sp-alert{max-width:44vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+            '.ag-sp-ncount{font-family:var(--font-mono,ui-monospace,monospace);font-weight:700;',
+            '  font-size:calc(9.5px * var(--ag-font-scale, 1));line-height:1;padding:2px 5px;border-radius:999px;',
+            '  background:rgba(255,255,255,0.14);color:var(--text,#e6e8eb);flex:0 0 auto;}',
+            // řádek v rozbaleném detailu, který vede na kartu se všemi hláškami
+            '.ag-sp-note{display:flex;align-items:center;gap:8px;width:100%;margin:0 0 8px;padding:9px 10px;',
+            '  border-radius:10px;cursor:pointer;text-align:left;',
+            '  background:rgba(255,255,255,0.06);border:1px solid var(--glass-border,rgba(255,255,255,0.12));',
+            '  color:var(--text,#e6e8eb);font:600 calc(12.5px * var(--ag-font-scale, 1))/1.35 var(--font-ui,system-ui),sans-serif;}',
+            '.ag-sp-note-tx{flex:1 1 auto;min-width:0;}',
+            '.ag-sp-note-go{opacity:0.5;flex:0 0 auto;}',
+            '.ag-sp-note:focus-visible{outline:2px solid var(--accent,#2f9e74);outline-offset:2px;}',
             '.ag-sp-caret{font-size:calc(9px * var(--ag-font-scale, 1));opacity:0.45;margin-left:1px;}',
             // rozbalený detail (na místě, pod hlavičkou)
             // OPRAVA 27. 7. — „rozbalená lišta se překrývá s Nástroji a Body“.
@@ -276,11 +291,38 @@
     }
     function close() { if (!_open) return; _open = false; _lastHead = _lastBody = ''; renderBar(); }
 
+    // Nejzávažnější upozornění z centra (js/upozorneni.js). Dokud je jeho karta
+    // sbalená, NEKRESLÍ si vlastní pilulku a text patří do tohohle pruhu — nahoře
+    // je pak jeden pruh místo dvou nad sebou.
+    function noteNow() {
+        try {
+            if (!window.AGNotify || typeof AGNotify.worst !== 'function') return null;
+            return AGNotify.worst();
+        } catch (e) { return null; }
+    }
+    // Úrovně se v obou modulech jmenují JINAK: centrum upozornění má
+    // danger/warn/ok/info (LVL v js/upozorneni.js), tenhle pruh green/yellow/red
+    // (stejná jména mají i .ag-sp-dot a .ag-sp-alert v CSS). Tady je ten převod.
+    function noteCls(level) {
+        if (level === 'danger') return 'red';
+        if (level === 'warn') return 'yellow';
+        return 'green';
+    }
+
     function headHtml(g, ar, d, b) {
         var w = worst(g, ar, d, b);
-        var h = '<span class="ag-sp-dot ' + w + '"></span>';
-        // hláška z #info má přednost (je krátkodobá: „Stahuji data…")
-        if (_msg && (Date.now() - _msgTs) < MSG_MS) {
+        var note = noteNow();
+        // Upozornění PŘEBIJE i tečku závažnosti: centrum agreguje víc modulů než
+        // tenhle pruh, takže když hlásí kritický stav, nesmí tu svítit zelená.
+        var h = '<span class="ag-sp-dot ' + (note ? noteCls(note.level) : w) + '"></span>';
+        if (note) {
+            // Vlastní alertFor() se záměrně přeskakuje — centrum tu hlášku už nese
+            // (jinak by tu „Srovnej sever" stálo dvakrát vedle sebe).
+            h += '<span class="ag-sp-alert ' + noteCls(note.level) + '">' + esc(note.text) + '</span>'
+                + (note.count > 1 ? '<span class="ag-sp-ncount">' + note.count + '</span>' : '')
+                + '<span class="ag-sp-sep">·</span>';
+        } else if (_msg && (Date.now() - _msgTs) < MSG_MS) {
+            // hláška z #info (krátkodobá: „Stahuji data…")
             h += '<span class="ag-sp-msg">' + esc(_msg) + '</span>';
         } else {
             var al = alertFor(g, ar, d, b);
@@ -320,7 +362,19 @@
         var gExtra = (a && a.detail) ? (' ' + a.detail) : '';
         var az = azHtml();
         var arExtra = (az ? (' Azimut <b>' + az + '</b>.') : '') + cstabText();
-        return row('GPS', g, gExtra + qcHtml())
+        // Když v pruhu svítí upozornění, musí z něj vést cesta ke VŠEM hláškám.
+        // Klepnutí na pruh záměrně dál otevírá tenhle detail (nemění se pod rukou,
+        // co tlačítko dělá) a odsud se jde na kartu upozornění.
+        var note = noteNow();
+        var noteRow = note
+            ? '<button type="button" class="ag-sp-note" data-act="notes">'
+              + '<span class="ag-sp-dot ' + noteCls(note.level) + '"></span>'
+              + '<span class="ag-sp-note-tx">' + esc(note.text) + '</span>'
+              + (note.count > 1 ? '<span class="ag-sp-ncount">' + note.count + '</span>' : '')
+              + '<span class="ag-sp-note-go" aria-hidden="true">›</span></button>'
+            : '';
+        return noteRow
+            + row('GPS', g, gExtra + qcHtml())
             + row('Sever', ar, arExtra)
             + row('Data', d)
             + row('Baterie', b)
@@ -378,7 +432,8 @@
         var act = btn.getAttribute('data-act');
         close();
         try {
-            if (act === 'sever') { if (typeof window.agOpenCalibrate === 'function') window.agOpenCalibrate(); else if (typeof window.openCompassModal === 'function') window.openCompassModal(); }
+            if (act === 'notes') { if (window.AGNotify && AGNotify.expand) AGNotify.expand(); }
+            else if (act === 'sever') { if (typeof window.agOpenCalibrate === 'function') window.agOpenCalibrate(); else if (typeof window.openCompassModal === 'function') window.openCompassModal(); }
             else if (act === 'gps') { if (typeof window.openGpsAvgModal === 'function') window.openGpsAvgModal(); }
             else if (act === 'skore') { if (window.AGSemafor && AGSemafor.open) AGSemafor.open(); }
             else if (act === 'off') {

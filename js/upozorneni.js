@@ -374,6 +374,20 @@
         return box;
     }
 
+    // ---- SLOUČENÝ PRUH (návrh 1) --------------------------------------------------
+    // Nahoře byly DVA pruhy nad sebou: stavový pruh #ag-sp (přesnost + azimut) a pod
+    // ním tahle sbalená pilulka s nejzávažnější hláškou. Dohromady 73 px nad AR
+    // obrazem a dva hlasy naráz. Teď platí: dokud je karta SBALENÁ, text hlášky si
+    // ukáže sám stavový pruh (čte ho přes AGNotify.worst) a tahle pilulka se
+    // nekreslí vůbec. Po rozbalení (z pruhu přes AGNotify.expand) se karta se všemi
+    // hláškami vykreslí jako dřív — tam se nic nemění.
+    // Když stavový pruh není (vypnutý v Nastavení → Vzhled, nebo soubor smazaný),
+    // merged() je false a pilulka se kreslí jako dřív. Žádná hláška se neztratí.
+    function merged() {
+        var sp = document.getElementById('ag-sp');
+        return !!(sp && sp.classList.contains('ag-sp-on'));
+    }
+
     function render() {
         injectStyles();
         var stack = ensureStack();
@@ -386,6 +400,13 @@
             if (old) old.remove();
             _expanded = false;
             measure(stack);
+            nudgeBar();
+            return;
+        }
+        if (merged() && !_expanded) {
+            if (old) old.remove();
+            measure(stack);
+            nudgeBar();               // pruh si text vyzvedne sám
             return;
         }
         var sig = sigOf(list);
@@ -514,7 +535,42 @@
     }
     function has(id) { return !!_notes[id]; }
 
-    window.AGNotify = { set: set, clear: clear, has: has, render: render };
+    // Stavový pruh si text hlášky kreslí sám (viz merged()), takže po každé změně
+    // seznamu potřebuje překreslit. Zavolat ho MUSÍME asynchronně: render() běží
+    // i z AGNotify.set(), který volají moduly uprostřed svého ticku, a AGStatusBar
+    // .refresh() by se jim zavolal zpátky do zásobníku.
+    function nudgeBar() {
+        if (!window.AGStatusBar || typeof AGStatusBar.refresh !== 'function') return;
+        if (nudgeBar._t) return;
+        nudgeBar._t = setTimeout(function () {
+            nudgeBar._t = 0;
+            try { AGStatusBar.refresh(); } catch (e) {}
+        }, 0);
+    }
+
+    window.AGNotify = {
+        set: set, clear: clear, has: has, render: render,
+        // Nejzávažnější hláška pro sloučený pruh: stejný text i úroveň, jaké by
+        // měla sbalená pilulka. count = kolik hlášek celkem visí.
+        worst: function () {
+            var list = activeNotes();
+            if (!list.length) return null;
+            var w = list[0];
+            return {
+                text: headText(list, w),
+                level: (LVL[w.level] != null ? w.level : 'info'),
+                count: list.length
+            };
+        },
+        // Rozbalení karty ZVENČÍ (ze stavového pruhu). Bez argumentu jen otevře.
+        expand: function () {
+            if (!activeNotes().length) return false;
+            _expanded = true;
+            _expandedTs = Date.now();
+            render();
+            return true;
+        }
+    };
 
     // ---- život modulu -------------------------------------------------------------------------
     // Tik dorovnává zrcadlené štítky (vznikají později než tenhle modul) a výšku
