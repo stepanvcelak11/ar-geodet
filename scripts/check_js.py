@@ -207,18 +207,30 @@ def check_dup_keys(path, src):
     # Slozime "cistou" verzi pro hledani klicu, ale retezcove klice potrebujeme
     # zachovat - proto jdeme pres puvodni text a pomocnou masku "je to kod?".
     mask = bytearray(len(src))          # 1 = kod, 0 = retezec/komentar/regex
+    # Komentare potrebujeme rozlisit OD RETEZCU: nize se z ne-kodu cte retezcovy
+    # KLIC ('foo': 1), a bez tehle masky se stejne tak precetl i text v komentari.
+    # Realny falesny poplach (8.8.2026, js/pocasi.js): v komentari stalo
+    #   // Rodina se ZAMERNE nejmenuje 'chmi': namerena data ...
+    # a kontrola to ohlasila jako duplicitni klic 'chmi' - pritom v objektu byl
+    # jen jednou. V CI by to shodilo vydani kvuli VETE V KOMENTARI.
+    is_com = bytearray(len(src))        # 1 = komentar
     for kind, text, pos in toks:
         if kind == 'code':
             for k in range(pos, min(pos + len(text), len(src))):
                 mask[k] = 1
+        elif kind == 'com':
+            for k in range(pos, min(pos + len(text), len(src))):
+                is_com[k] = 1
 
     stack = []      # ramce: {'obj': bool, 'keys': {}, 'expect': bool}
     i, n = 0, len(src)
     prev_sig = ''
     while i < n:
         if not mask[i]:
-            # retezec muze byt KLIC - zkusime ho precist, kdyz cekame klic
-            if stack and stack[-1]['obj'] and stack[-1]['expect'] and src[i] in '"\'':
+            # retezec muze byt KLIC - zkusime ho precist, kdyz cekame klic.
+            # Z KOMENTARE nikdy (viz maska is_com vyse).
+            if (stack and stack[-1]['obj'] and stack[-1]['expect']
+                    and src[i] in '"\'' and not is_com[i]):
                 m = KEY_RE.match(src, i)
                 if m and m.group('qkey') is not None:
                     add_key(stack[-1], m.group('qkey'), path, src, i)

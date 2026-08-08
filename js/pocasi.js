@@ -2,8 +2,10 @@
 // Celoobrazovkový nástroj „Počasí" ve stylu Apple Weather pro geodety v terénu.
 //
 // Co dělá:
-//   • Stáhne předpověď z VÍCE nezávislých zdrojů najednou (16 modelů přes
-//     Open-Meteo + MET Norway + DWD MOSMIX přes Bright Sky = až 18 zdrojů)
+//   • Stáhne předpověď z VÍCE nezávislých zdrojů najednou (19 modelů přes
+//     Open-Meteo — mezi nimi ČHMÚ ALADIN v rozlišení 1 km, tedy národní model
+//     s nejjemnější sítí z celé směsi — + MET Norway + DWD MOSMIX přes Bright Sky,
+//     11 ensemblů a v ČR naměřená data ČHMÚ = až 33 zdrojů)
 //     a VŠECHNY veličiny kombinuje VÁŽENÝM PRŮMĚREM (váhy pro střední Evropu):
 //     teplota, pocitová, vlhkost, oblačnost, tlak, srážky v mm, pravděpodobnost
 //     srážek, vítr, nárazy, denní max/min i denní maximum větru, východ a západ
@@ -18,6 +20,10 @@
 //     (predikce na +3/6/12/24 h vs. skutečnost). Model dobrý na teplotu nemusí být
 //     dobrý na déšť, takže z každé trefnosti plyne vlastní váha: teplotní váží
 //     teplotu/tlak/vlhkost/vítr, srážková milimetry, pravděpodobnost a ikonu počasí.
+//     Váhy plynou z 1/σ² změřené chyby (jako při vyrovnání měření) a ODLEHLÉ rodiny
+//     se z výsledku VYLUČUJÍ (medián + MAD). Kde je známá systematická chyba, ODEČTE se.
+//   • NOWCAST „kdy začne pršet": prvních 2 h z DWD radaru do bodu (1 km, krok 5 min),
+//     dál modely po 15 min do 6 h. Na krátko porazí radar každý model.
 //   • SRÁŽKOVÝ RADAR (RainViewer): animovaná OVLADATELNÁ mapa (posun, zoom), kde je
 //     vidět, jak se srážkové mraky pohybují (~70 min zpět + 30 min výhled).
 //   • Tlak se ukazuje přepočtený na nadmořskou výšku místa (a v závorce na moře).
@@ -78,7 +84,23 @@
         { id: 'jma_seamless',                  label: 'JMA (Japonsko)',     w: 0.80 },
         { id: 'cma_grapes_global',             label: 'CMA (Čína)',         w: 0.70 },
         { id: 'bom_access_global',             label: 'BOM (Austrálie)',    w: 0.70 },
-        { id: 'arpege_world',                  label: 'ARPEGE svět',        w: 0.75 }
+        { id: 'arpege_world',                  label: 'ARPEGE svět',        w: 0.75 },
+        // ---- ČHMÚ ALADIN: národní model, nejjemnější rozlišení z celé směsi -----------
+        // Open-Meteo ho začalo nabízet až po tom, co se tady psalo „žádný český model
+        // neexistuje" — takže na PŘEDPOVĚĎ z ČHMÚ vlastní worker potřeba NENÍ (na rozdíl
+        // od naměřených dat ze stanic, ta CORS pořád nemají). 1 km je jemnější než
+        // ICON-D2 (2,2 km) a je to model, kterým ČHMÚ počítá vlastní předpovědi, takže
+        // pro Česko dostává nejvyšší váhu nakrátko. Horizont 79 h, 4 běhy denně
+        // (ověřeno ostrým dotazem na Prahu i na Ostravu).
+        // Mimo domény se model v odpovědi prostě neobjeví a parseOm ho zahodí — celý
+        // dotaz kvůli tomu NESPADNE (ověřeno na Paříži), proto tu smí být i pro zahraničí.
+        // `chmi_aladin_seamless` se ZÁMĚRNĚ nepoužívá: za 3. dnem dolepuje ECMWF IFS,
+        // takže by rodina ECMWF hlasovala dvakrát.
+        { id: 'chmi_aladin_cz_1km',             label: 'ČHMÚ ALADIN 1 km',   w: 1.40 },
+        { id: 'chmi_aladin_central_europe_2km', label: 'ČHMÚ ALADIN 2,3 km', w: 1.30 },
+        // AROME rakouské GeoSphere — vlastní asimilace, a nad Moravou i Čechami vrací
+        // data (ověřeno na Ostravě), takže je to další nezávislý jemný model pro ČR
+        { id: 'geosphere_arome_austria',        label: 'GeoSphere AROME',    w: 1.15 }
     ];
     var METNO_W = 1.10;
     var BRIGHTSKY_W = 1.05;   // DWD MOSMIX (statisticky doladěné výstupy stanic)
@@ -97,7 +119,16 @@
         { id: 'ens_icon',   om: 'icon_global',               sfx: 'icon_global_eps',          label: 'DWD ICON ensemble',         w: 1.05 },
         { id: 'ens_ukmo',   om: 'ukmo_global_ensemble_20km', sfx: 'ukmo_global_ensemble_20km', label: 'UK Met Office ensemble',   w: 1.05 },
         { id: 'ens_gfs',    om: 'gfs025',                    sfx: 'ncep_gefs025',             label: 'NOAA GFS ensemble',         w: 0.95 },
-        { id: 'ens_gem',    om: 'gem_global',                sfx: 'gem_global_ensemble',      label: 'CMC GEM ensemble',          w: 0.85 }
+        { id: 'ens_gem',    om: 'gem_global',                sfx: 'gem_global_ensemble',      label: 'CMC GEM ensemble',          w: 0.85 },
+        // ---- novější ensembly (ověřeno ostrým dotazem na Ostravu, všechny plné) --------
+        // U těchto se model v dotazu jmenuje UŽ VČETNĚ `_ensemble` — pod původním jménem
+        // (`google_weathernext2`) API dotaz odmítne. Přípona v odpovědi je pak stejná.
+        // Klíč člena je `temperature_2m_memberNN_<sfx>`, tedy člen PŘED příponou — to
+        // ensStat() umí, počítá s tím jeho `mid`.
+        { id: 'ens_ifs_eu',  om: 'ecmwf_ifs_europe_ensemble',    sfx: 'ecmwf_ifs_europe_ensemble',    label: 'ECMWF ensemble Evropa (51 běhů)', w: 1.45 },
+        { id: 'ens_aifs',    om: 'ecmwf_aifs025_ensemble',       sfx: 'ecmwf_aifs025_ensemble',       label: 'ECMWF AIFS ensemble (AI, 51)',    w: 1.25 },
+        { id: 'ens_aifs_eu', om: 'ecmwf_aifs_europe_ensemble',   sfx: 'ecmwf_aifs_europe_ensemble',   label: 'ECMWF AIFS ensemble Evropa (AI)', w: 1.25 },
+        { id: 'ens_wnext2',  om: 'google_weathernext2_ensemble', sfx: 'google_weathernext2_ensemble', label: 'Google WeatherNext 2 (64 běhů)',  w: 1.30 }
     ];
     // Ensemble data jsou objemná (~90 kB — všichni členové zvlášť), proto se stahují
     // nejvýš 1× za hodinu a mezitím se berou z paměti. Nic se tím neztrácí: nové běhy
@@ -219,7 +250,7 @@
         // ani denní souhrny ensemble API nenabízí); 30 h pokryje zobrazenou hodinovku
         return 'https://ensemble-api.open-meteo.com/v1/ensemble?latitude=' + lat.toFixed(4) + '&longitude=' + lon.toFixed(4) +
             '&models=' + ENS_MODELS.map(function (m) { return m.om; }).join(',') +
-            '&hourly=temperature_2m,precipitation,wind_speed_10m' +
+            '&hourly=temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m' +
             '&forecast_hours=30&timezone=auto&wind_speed_unit=ms&timeformat=unixtime';
     }
     function inCz(lat, lon) {
@@ -571,8 +602,22 @@
     // Klíče chodí jako temperature_2m_member01_icon_d2_eps; řídicí běh je bez čísla
     // člena (temperature_2m_icon_d2_eps) a počítá se stejnou vahou jako ostatní.
     // `kind`: 'mean' (teplota, vítr), 'median' (srážky — průměr z 51 běhů udělá
-    // z ostré přeháňky mrholení) nebo 'prob' (v kolika % běhů prší → poctivá
-    // pravděpodobnost srážek, kterou deterministické modely nabídnout neumí).
+    // z ostré přeháňky mrholení), 'prob' (v kolika % běhů prší → poctivá
+    // pravděpodobnost srážek, kterou deterministické modely nabídnout neumí)
+    // nebo 'p90' / 'p80' (percentil přes členy — viz níž).
+    //
+    // PROČ PERCENTIL: pro VÝSTRAHU je průměr špatná míra. Když z 51 běhů pět hlásí náraz
+    // 20 m/s a ostatní 8, průměr vyjde kolem 9 a appka nic neřekne — přitom stativ s
+    // přístrojem se kácí v tom jednom scénáři, ne v průměru. P90 znamená „v desetině
+    // nejhorších běhů to vypadá takhle", což je právě ta varianta, na kterou se člověk
+    // v terénu potřebuje připravit.
+    function quantile(sorted, q) {
+        if (!sorted.length) return null;
+        if (sorted.length === 1) return sorted[0];
+        var pos = (sorted.length - 1) * q, lo = Math.floor(pos), hi = Math.ceil(pos);
+        if (lo === hi) return sorted[lo];
+        return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);   // lineární interpolace
+    }
     function ensStat(h, name, sfx, n, kind) {
         var keys = [], k, tail = '_' + sfx;
         for (k in h) {
@@ -601,6 +646,9 @@
                 vals.sort(function (x, y) { return x - y; });
                 var mid2 = vals.length >> 1;
                 out[i] = (vals.length % 2) ? vals[mid2] : (vals[mid2 - 1] + vals[mid2]) / 2;
+            } else if (kind === 'p90' || kind === 'p80') {
+                vals.sort(function (x, y) { return x - y; });
+                out[i] = quantile(vals, kind === 'p90' ? 0.9 : 0.8);
             } else {
                 var sum = 0;
                 for (j = 0; j < vals.length; j++) sum += vals[j];
@@ -623,10 +671,17 @@
                 var prec = ensStat(h, 'precipitation', m.sfx, time.length, 'median');
                 var pprob = ensStat(h, 'precipitation', m.sfx, time.length, 'prob');
                 var wind = ensStat(h, 'wind_speed_10m', m.sfx, time.length, 'mean');
+                var gust = ensStat(h, 'wind_gusts_10m', m.sfx, time.length, 'mean');
+                // NEJHORŠÍ ROZUMNÁ VARIANTA (P90 přes členy) — z toho jde výstraha
+                var gustHi = ensStat(h, 'wind_gusts_10m', m.sfx, time.length, 'p90');
+                var precHi = ensStat(h, 'precipitation', m.sfx, time.length, 'p90');
                 if (!temp && !prec && !wind) continue;   // model nad ČR neběží → vynech
                 var src = {
                     id: m.id, label: m.label, w: m.w, off: off, elev: elev, cur: null,
-                    hourly: { time: time, temp: temp, prob: pprob, precip: prec, code: null, wind: wind, gusts: null },
+                    hourly: {
+                        time: time, temp: temp, prob: pprob, precip: prec, code: null,
+                        wind: wind, gusts: gust, gustHi: gustHi, precipHi: precHi
+                    },
                     daily: null
                 };
                 var hi = nearestHourIdx(time);
@@ -635,7 +690,8 @@
                     if (t != null || wd != null) {
                         src.cur = {
                             t: t, feels: null, hum: null, precip: at(prec, hi), code: null,
-                            cloud: null, wind: wd, dir: null, gusts: null, pmsl: null
+                            cloud: null, wind: wd, dir: null, gusts: at(gust, hi), pmsl: null,
+                            gustHi: at(gustHi, hi)
                         };
                     }
                 }
@@ -659,7 +715,8 @@
                 if (hi < 0) return null;      // data přestárla natolik, že „teď" v nich není
                 s.cur = {
                     t: at(s.hourly.temp, hi), feels: null, hum: null, precip: at(s.hourly.precip, hi),
-                    code: null, cloud: null, wind: at(s.hourly.wind, hi), dir: null, gusts: null, pmsl: null
+                    code: null, cloud: null, wind: at(s.hourly.wind, hi), dir: null,
+                    gusts: at(s.hourly.gusts, hi), pmsl: null, gustHi: at(s.hourly.gustHi, hi)
                 };
             }
             return c.srcs;
@@ -708,6 +765,161 @@
         } catch (e) { return null; }
     }
 
+    // ================================================================================
+    // NOWCAST: „za jak dlouho tu začne pršet"
+    // --------------------------------------------------------------------------------
+    // Na nejbližší dvě hodiny porazí RADAROVÁ EXTRAPOLACE každý předpovědní model — vidí
+    // skutečné srážkové pole a jen ho posouvá, zatímco model ho musí dopočítat. Appka
+    // radar dosud měla jen jako animovanou mapu, takže z čísel předpovědi vůbec nevycházel
+    // a hodinová řada schovala dvacetiminutovou přeháňku do hodinového průměru.
+    // Skládá se to ze dvou pramenů:
+    //   • 0–2 h: DWD radar (produkt RV) přes Bright Sky — 1 km, krok 5 min, včetně
+    //     extrapolace na 2 h dopředu. Hodnoty jsou v 0,01 mm/5 min (ověřeno v OpenAPI
+    //     Bright Sky), takže na mm/h se násobí 0,01 × 12.
+    //   • 2–6 h: modely po 15 minutách (ICON-D2 a AROME to mají nativně, ne dopočtem
+    //     z hodin) — 24 kroků váží při gzipu necelý kilobajt, takže je to skoro zdarma.
+    var NOWCAST_WET = 0.1;      // od kolika mm/h se to počítá jako „prší"
+    var RADARPT_MS = 20000;
+    var M15_STEPS = 24;         // 6 h po 15 minutách
+    var M15_MODELS = ['icon_d2', 'chmi_aladin_cz_1km', 'geosphere_arome_austria'];
+    var OM_W = {};
+    (function () { for (var i = 0; i < OM_MODELS.length; i++) OM_W[OM_MODELS[i].id] = OM_MODELS[i].w; }());
+
+    // Leží bod v mřížce DWD? Mřížka je polární stereografická, takže její VÝCHODNÍ hrana
+    // se s rostoucí šířkou uklání — jde po přímce mezi jihovýchodním rohem
+    // (45,6846 / 16,5809) a severovýchodním (55,8454 / 18,7316). Bez téhle kontroly
+    // posílala appka na východní Moravě dotaz, který vždycky vrátí 404 (ověřeno na
+    // Ostravě), a při každém obnovení tím svítila chyba v konzoli.
+    // Kontrola je ZÁMĚRNĚ jen hrubá, s rezervou 0,05°: uvnitř mřížky nechává rozhodnout
+    // server, protože u okrajů má DWD data nulová i tam, kde mřížka ještě je.
+    function inDwdRadar(lat, lon) {
+        if (!(lat > 46.0 && lat < 55.8)) return false;
+        var lonMax = 16.5809 + (lat - 45.6846) * 0.21167;
+        return lon < lonMax - 0.05;
+    }
+    function radarPtUrl(lat, lon) {
+        // `date` = teď → API samo dopočte konec na +2 h. Bez `date` by vracelo i hodinu
+        // do minulosti, což je pro „za jak dlouho" jen balast.
+        // POZOR: format=plain server pošle jen tomu, kdo přijímá gzip/br/zstd. Prohlížeč
+        // to posílá vždycky, takže z fetch() to projde (curl chce --compressed).
+        return 'https://api.brightsky.dev/radar?lat=' + lat.toFixed(4) + '&lon=' + lon.toFixed(4) +
+            '&distance=1000&format=plain&date=' + encodeURIComponent(new Date().toISOString());
+    }
+    function parseRadarPt(j) {
+        var rows = j && j.radar;
+        if (!rows || !rows.length) return null;
+        var out = [], i, a, b, v;
+        for (i = 0; i < rows.length; i++) {
+            var r = rows[i];
+            if (!r || !r.precipitation_5) continue;
+            var t = Math.round(Date.parse(r.timestamp) / 1000);
+            if (!isFinite(t)) continue;
+            // z mřížky 3×3 (distance=1000) se bere MAXIMUM: poloha je z GPS a přeháňka má
+            // ostrý okraj, takže kilometr rozmazání je tady spíš ku prospěchu
+            var g = r.precipitation_5, mx = 0;
+            for (a = 0; a < g.length; a++) {
+                if (!g[a] || !g[a].length) continue;
+                for (b = 0; b < g[a].length; b++) {
+                    v = num(g[a][b]);
+                    if (v != null && v > mx) mx = v;
+                }
+            }
+            out.push({ t: t, mm: mx * 0.01 * 12 });      // 0,01 mm/5 min → mm/h
+        }
+        out.sort(function (x, y) { return x.t - y.t; });
+        return out.length ? out : null;
+    }
+    function m15Url(lat, lon) {
+        return 'https://api.open-meteo.com/v1/forecast?latitude=' + lat.toFixed(5) + '&longitude=' + lon.toFixed(5) +
+            '&models=' + M15_MODELS.join(',') +
+            '&minutely_15=precipitation,weather_code' +
+            '&forecast_minutely_15=' + M15_STEPS +
+            '&timezone=auto&timeformat=unixtime';
+    }
+    function parseM15(j) {
+        var m = j && j.minutely_15;
+        var time = m && m.time;
+        if (!time || !time.length) return null;
+        var out = [], i, k, id, arr, v;
+        for (i = 0; i < time.length; i++) {
+            var t = num(time[i]);
+            if (t == null) continue;
+            var ip = [], ic = [];
+            for (k = 0; k < M15_MODELS.length; k++) {
+                id = M15_MODELS[k];
+                var w = OM_W[id] || 1, fam = FAMILY[id] || ('x_' + id);
+                arr = m['precipitation_' + id];
+                v = (arr && arr.length > i) ? num(arr[i]) : null;
+                if (v != null) ip.push({ v: v, w: w, fam: fam });
+                arr = m['weather_code_' + id];
+                v = (arr && arr.length > i) ? num(arr[i]) : null;
+                if (v != null) ic.push({ code: v, w: w, fam: fam });
+            }
+            if (!ip.length) continue;
+            // milimetry mediánem (jako všude jinde v appce), kód hlasováním
+            out.push({ t: t, mm: wmedian(ip), code: (ic.length ? combineCode(ic) : null) });
+        }
+        return out.length ? out : null;
+    }
+    // Složí radar a modely do jedné řady a spočítá, za jak dlouho začne pršet.
+    //
+    // ⚠ RADAR SMÍ ŘÍCT „PRŠÍ", ALE NESMÍ SÁM ŘÍCT „NEPRŠÍ": mřížka DWD nepokrývá celý
+    // obdélník a u jejích okrajů (východní Morava) jsou pixely trvale nulové, což je od
+    // opravdového suchna nerozeznatelné. Ve dvouhodinovém překryvu proto platí radar, ale
+    // když model hlásí VYDATNÝ déšť (≥ 1 mm/h) a radar nic, vezme se model. Slabé
+    // mrholení z modelu se naopak radarem přebít nechá — jinak by appka varovala pořád.
+    var M15_OVERRIDE_MM = 1.0;
+    function buildNowcast(radar, m15) {
+        var nowSec = Math.floor(Date.now() / 1000), i;
+        var steps = [], mByT = {};
+        if (m15) { for (i = 0; i < m15.length; i++) mByT[m15[i].t] = m15[i]; }
+        // nejbližší 15minutový krok k danému času (kvůli překryvu s radarem)
+        function m15At(t) {
+            if (!m15) return null;
+            var best = null, bd = 450;      // do 7,5 min = tentýž čtvrthodinový krok
+            for (var q = 0; q < m15.length; q++) {
+                var d = Math.abs(m15[q].t - t);
+                if (d < bd) { bd = d; best = m15[q]; }
+            }
+            return best;
+        }
+        var lastR = 0;
+        if (radar) {
+            for (i = 0; i < radar.length; i++) {
+                if (radar[i].t < nowSec - 300) continue;      // minulé snímky nezajímají
+                var mm = radar[i].mm;
+                var mo = m15At(radar[i].t);
+                if (mo && mo.mm != null && mo.mm >= M15_OVERRIDE_MM && mo.mm > mm) mm = mo.mm;
+                steps.push({ t: radar[i].t, mm: mm, radar: true });
+                if (radar[i].t > lastR) lastR = radar[i].t;
+            }
+        }
+        if (m15) {
+            for (i = 0; i < m15.length; i++) {
+                if (m15[i].t <= lastR || m15[i].t < nowSec) continue;
+                steps.push({ t: m15[i].t, mm: m15[i].mm, code: m15[i].code, radar: false });
+            }
+        }
+        if (!steps.length) return null;
+        steps.sort(function (x, y) { return x.t - y.t; });
+        var startsAt = null, peak = 0, peakAt = null, haveRadar = false;
+        for (i = 0; i < steps.length; i++) {
+            if (steps[i].radar) haveRadar = true;
+            if (steps[i].mm == null || steps[i].mm < NOWCAST_WET) continue;
+            if (startsAt == null) startsAt = steps[i].t;
+            if (steps[i].mm > peak) { peak = steps[i].mm; peakAt = steps[i].t; }
+        }
+        // „prší teď" = nejbližší krok (do 10 min) je mokrý
+        var raining = !!(startsAt != null && startsAt <= nowSec + 600);
+        return {
+            steps: steps, radar: haveRadar, raining: raining,
+            startsAt: startsAt,
+            startsInMin: (startsAt != null && !raining) ? Math.max(0, Math.round((startsAt - nowSec) / 60)) : null,
+            peak: (peak > 0 ? peak : null), peakAt: peakAt,
+            untilMin: Math.round((steps[steps.length - 1].t - nowSec) / 60)
+        };
+    }
+
     // ---- spolehlivost podle historie (trefnost modelů, okno 1 měsíc) ---------------------
     // Při každém stažení si appka uloží, co který zdroj předpovídá na +3/6/12/24 h.
     // Až ten čas nastane (další otevření počasí), předpověď se srovná s tehdejší
@@ -737,10 +949,11 @@
             if (o && Object.prototype.toString.call(o.pend) === '[object Array]') {
                 if (!o.hist || typeof o.hist !== 'object') o.hist = {};    // migrace ze starší verze (EMA bez logu)
                 if (!o.histP || typeof o.histP !== 'object') o.histP = {}; // migrace: dřív jen teplota
+                if (!o.histB || typeof o.histB !== 'object') o.histB = {}; // migrace: chyba SE ZNAMÉNKEM (bias)
                 return o;
             }
         } catch (e) {}
-        return { pend: [], hist: {}, histP: {} };
+        return { pend: [], hist: {}, histP: {}, histB: {} };
     }
     function saveSkill(sk) { try { localStorage.setItem(LS_SKILL, JSON.stringify(sk)); } catch (e) {} }
     // ---- ZPĚTNÉ dohledání trefnosti z archivu (aby platila hned, ne až za měsíc) -------
@@ -826,6 +1039,72 @@
         return live ? { e: live.e, n: live.n, hit: live.hit, src: 'měřeno v provozu' } : null;
     }
 
+    // ---- systematická chyba modelu (bias) a její ODEČTENÍ ---------------------------
+    // Trefnost výše umí špatný model jen ODVÁŽIT DOLŮ. Když ale model v tomhle místě
+    // dává trvale o 1,2 °C víc — typicky proto, že jeho buňka sedí jinde v terénu, než
+    // kde stojíš — je ta chyba PŘEDVÍDATELNÁ a jde prostě ODEČÍST. To je klasické MOS
+    // a bývá to největší jednotlivý skok v přesnosti teploty po volbě modelu.
+    // Počítá se ze DVOU pramenů, oba už appka stahuje, takže to nestojí ani bajt navíc:
+    //
+    // 1) ARCHIV (previous-runs vs. reanalýza ERA5) — k dispozici hned, měsíc dat.
+    //    ⚠ ERA5 má u daného bodu VLASTNÍ posun (jiná výška a hrubší síť). Kdyby se
+    //    odečetl surový bias proti ERA5, nacpal by se ten posun ERA5 do všech modelů
+    //    naráz. Proto se archivní biasy VYCENTRUJÚ NA MEDIÁN: odečte se jen to, čím se
+    //    model liší od svých kolegů, ne to, čím se celé pole liší od ERA5.
+    //
+    // 2) MĚŘENÍ ČHMÚ (chmiVerify) — skutečná pravda, obojí přepočtené na výšku bodu,
+    //    takže tenhle bias je ABSOLUTNÍ a centrovat se nesmí. Jak přibývají vzorky,
+    //    přebírá vedení nad archivem.
+    //
+    // Bias se nedělí po horizontech: jeho ZNAMÉNKO se s dosahem skoro nemění a vzorky
+    // rozdělené na pásma by byly zbytečně roztřepené.
+    // U SRÁŽEK se bias NEODEČÍTÁ: přičtením konstanty by vznikly negativní milimetry a
+    // násobek by musel řešit hodiny beze srážek zvlášť — tam zůstává medián.
+    var LS_BIAS_MIN_N = 20;    // od kolika měření ČHMÚ se věří absolutnímu biasu
+    var LS_BIAS_FULL_N = 80;   // od kolika vzorků se uplatní v plné výši
+    var BIAS_MAX = 2.0;        // strop odečtu (°C) — proti utržení na krátké historii
+    var _biasCache = null, _biasCacheKey = '';
+    // vycentrované archivní biasy (relativní vůči mediánu modelů)
+    function biasArchive() {
+        var bf = loadBf();
+        if (!bf || !bf.bias) return null;
+        var key = String(bf.t);
+        if (_biasCache && _biasCacheKey === key) return _biasCache;
+        var ids = [], vals = [], id;
+        for (id in bf.bias) {
+            if (bf.bias[id] && bf.bias[id].b != null && isFinite(bf.bias[id].b)) { ids.push(id); vals.push(bf.bias[id].b); }
+        }
+        if (ids.length < 3) return null;    // ze dvou modelů se medián centrovat nedá
+        var sorted = vals.slice().sort(asc), med = medOf(sorted), out = {};
+        for (var i = 0; i < ids.length; i++) out[ids[i]] = bf.bias[ids[i]].b - med;
+        _biasCache = out; _biasCacheKey = key;
+        return out;
+    }
+    // živý ABSOLUTNÍ bias proti měření ČHMÚ (sk.histB: {id: [[ms, chyba se znaménkem, h]]})
+    function biasLive(sk, id) {
+        var a = sk && sk.histB ? sk.histB[id] : null;
+        if (!a || !a.length) return null;
+        var lim = Date.now() - SKILL_WIN_MS, s = 0, n = 0;
+        for (var i = 0; i < a.length; i++) {
+            if (a[i] && a[i][0] >= lim && a[i][1] != null && isFinite(a[i][1])) { s += a[i][1]; n++; }
+        }
+        return n ? { b: s / n, n: n } : null;
+    }
+    // výsledný odečet pro daný zdroj; vrací 0, když se ještě nemá co odečítat
+    function biasOf(sk, id) {
+        var lv = biasLive(sk, id), b = null, n = 0;
+        if (lv && lv.n >= LS_BIAS_MIN_N) { b = lv.b; n = lv.n; }
+        else {
+            var ar = biasArchive();
+            if (!ar || ar[id] == null) return 0;
+            b = ar[id];
+            n = LS_BIAS_FULL_N;    // archiv je z ~740 hodin, drž ho v plné výši
+        }
+        if (b == null || !isFinite(b)) return 0;
+        b = b * Math.min(1, n / LS_BIAS_FULL_N);       // málo vzorků → odečti jen část
+        return Math.max(-BIAS_MAX, Math.min(BIAS_MAX, b));
+    }
+
     function bfDate(shiftDays) {
         var d = new Date(Date.now() - shiftDays * 86400000);
         return d.getUTCFullYear() + '-' + pad2(d.getUTCMonth() + 1) + '-' + pad2(d.getUTCDate());
@@ -855,20 +1134,22 @@
                 v = num(aTemp[i]); if (v != null) truT[aT[i]] = v;
                 v = num(aPrec[i]); if (v != null) truP[aT[i]] = v;
             }
-            var pT = p.hourly.time || [], mae = {}, maeP = {}, maxN = 0, any = false;
+            var pT = p.hourly.time || [], mae = {}, maeP = {}, bias = {}, maxN = 0, any = false;
             OM_MODELS.forEach(function (m) {
                 var k, f, t;
                 // teplota
                 var arr = p.hourly['temperature_2m_previous_day1_' + m.id];
                 if (arr && arr.length) {
-                    var s = 0, n = 0;
+                    var s = 0, n = 0, sb = 0;
                     for (k = 0; k < pT.length && k < arr.length; k++) {
                         f = num(arr[k]); if (f == null) continue;
                         t = truT[pT[k]]; if (t == null) continue;
                         s += Math.abs(f - t); n++;
+                        sb += (f - t);      // SE ZNAMÉNKEM → systematická chyba (bias)
                     }
                     if (n >= 48) {   // aspoň dva dny překryvu, jinak je průměr k ničemu
                         mae[m.id] = { e: Math.round((s / n) * 100) / 100, n: n };
+                        bias[m.id] = { b: Math.round((sb / n) * 100) / 100, n: n };
                         if (n > maxN) maxN = n;
                         any = true;
                     }
@@ -894,7 +1175,7 @@
                 }
             });
             if (!any) return;
-            saveBf({ t: Date.now(), lat: lat, lon: lon, days: Math.round(maxN / 24), mae: mae, maeP: maeP });
+            saveBf({ t: Date.now(), lat: lat, lon: lon, days: Math.round(maxN / 24), mae: mae, maeP: maeP, bias: bias });
             applySkillToCur();
         }, function () { _bfBusy = false; });
     }
@@ -937,7 +1218,8 @@
             v = num(r[1]); if (v != null) obsT[t] = v + dt;
             v = num(r[2]); if (v != null) obsP[t] = v;
         }
-        var sk = loadSkill(), nowMs = Date.now(), rest = [], touchT = {}, touchP = {}, id, done = 0;
+        var sk = loadSkill(), nowMs = Date.now(), rest = [], touchT = {}, touchP = {}, touchB = {}, id, done = 0;
+        if (!sk.histB) sk.histB = {};
         for (i = 0; i < sk.pend.length; i++) {
             var p = sk.pend[i];
             if (!p || p.t == null) continue;
@@ -946,6 +1228,12 @@
                 if (!sk.hist[p.id]) sk.hist[p.id] = [];
                 sk.hist[p.id].push([nowMs, Math.round(Math.abs(p.v - oT) * 100) / 100, (p.h != null ? p.h : null)]);
                 touchT[p.id] = 1; used = true;
+                // chyba SE ZNAMÉNKEM proti SKUTEČNÉMU MĚŘENÍ — jediné poctivé místo, kde
+                // se dá bias učit. Oba údaje už jsou na stejné výšce (měření dorovnává
+                // lapseDT výše), takže tenhle bias je absolutní.
+                if (!sk.histB[p.id]) sk.histB[p.id] = [];
+                sk.histB[p.id].push([nowMs, Math.round((p.v - oT) * 100) / 100, (p.h != null ? p.h : null)]);
+                touchB[p.id] = 1;
             }
             if (oP != null && p.p != null) {
                 if (!sk.histP[p.id]) sk.histP[p.id] = [];
@@ -959,6 +1247,7 @@
         sk.pend = rest;
         for (id in touchT) trimLog(sk.hist, id);
         for (id in touchP) trimLog(sk.histP, id);
+        for (id in touchB) trimLog(sk.histB, id);
         sk.chmiVerified = (sk.chmiVerified || 0) + done;
         saveSkill(sk);
         applySkillToCur();
@@ -991,15 +1280,20 @@
         if (a.length > SKILL_MAX_PER_MODEL) a = a.slice(a.length - SKILL_MAX_PER_MODEL);
         log[id] = a;
     }
-    function updateSkill(sources, observedTemp, observedPrecip) {
+    // `truthIsMeas` = „skutečnost" pochází ze SKUTEČNÉHO MĚŘENÍ ČHMÚ, ne z kombinovaného
+    // odhadu modelů. Jen tehdy se smí učit BIAS: proti shodě modelů by se každý zdroj
+    // stahoval k davu, ne k realitě, a byla by to systematická chyba měřená sama sebou.
+    // (Na MAE to nevadí — tam se to už dřív takhle dělalo a je to jen odhad, kdo je blíž.)
+    function updateSkill(sources, observedTemp, observedPrecip, truthIsMeas) {
         var sk = loadSkill();
         var now = Math.floor(Date.now() / 1000);
         var nowMs = Date.now();
         var i, id;
         var haveT = (observedTemp != null && isFinite(observedTemp));
         var haveP = (observedPrecip != null && isFinite(observedPrecip));
+        if (!sk.histB) sk.histB = {};
         if (haveT || haveP) {
-            var rest = [], touchT = {}, touchP = {};
+            var rest = [], touchT = {}, touchP = {}, touchB = {};
             for (i = 0; i < sk.pend.length; i++) {
                 var p = sk.pend[i];
                 if (!p || p.t == null) continue;
@@ -1008,6 +1302,11 @@
                         if (!sk.hist[p.id]) sk.hist[p.id] = [];
                         sk.hist[p.id].push([nowMs, Math.round(Math.abs(p.v - observedTemp) * 100) / 100, (p.h != null ? p.h : null)]);
                         touchT[p.id] = 1;
+                        if (truthIsMeas) {
+                            if (!sk.histB[p.id]) sk.histB[p.id] = [];
+                            sk.histB[p.id].push([nowMs, Math.round((p.v - observedTemp) * 100) / 100, (p.h != null ? p.h : null)]);
+                            touchB[p.id] = 1;
+                        }
                     }
                     if (haveP && p.p != null) {
                         if (!sk.histP[p.id]) sk.histP[p.id] = [];
@@ -1024,6 +1323,7 @@
             // prořez logů: jen okno 1 měsíc + strop na počet záznamů
             for (id in touchT) trimLog(sk.hist, id);
             for (id in touchP) trimLog(sk.histP, id);
+            for (id in touchB) trimLog(sk.histB, id);
         }
         // nové predikce (jen když pro daný zdroj+čas ještě nejsou)
         var have = {}, horizons = [3, 6, 12, 24];
@@ -1075,14 +1375,44 @@
         if (!n) return null;
         return { ref: sum / n, models: n, hit: (hitN ? hitSum / hitN : null) };
     }
-    // `kind`: 'temp' (výchozí) nebo 'precip'. Podíl referenční a vlastní chyby
-    // omezený na 0,6–1,5, ať jeden šťastný/nešťastný měsíc nepřebije váhy úplně.
+    // `kind`: 'temp' (výchozí) nebo 'precip'.
+    //
+    // VÁHA = 1/σ², jako ve vyrovnání měření. Dřív se tady bral jen PODÍL referenční a
+    // vlastní chyby, omezený na 0,6–1,5 — model dvakrát přesnější tak dostal o třetinu
+    // vyšší hlas místo čtyřnásobného. Přesnější zdroj má přitom nést kvadraticky větší
+    // váhu, jinak ho horší zdroje přehlasují objemem.
+    // Měří se MAE, ne σ, ale to nevadí: u normálního rozdělení je σ ≈ 1,253·MAE a v
+    // PODÍLU dvou chyb se ta konstanta vykrátí, takže (σref/σ)² = (MAEref/MAE)².
+    // POJISTKA NA MÁLO VZORKŮ: z osmi vyhodnocení je σ ještě náhoda, ne vlastnost modelu.
+    // Faktor se proto stahuje k apriorní váze podle počtu vzorků (conf) — plně se 1/σ²
+    // uplatní až od W_FULL_N. Strop 0,25–4 drží i tak, aby jeden nešťastný měsíc zdroj
+    // úplně nevypnul (a naopak).
+    // ⚠ DVOJÍ POSTIH JEMNÝCH MODELŮ: dokud se trefnost zná jen z ARCHIVU, je „skutečnost"
+    // reanalýza ERA5 na hrubé síti. Ostrý model s rozlišením 1–2 km proti takové hladké
+    // pravdě VŽDY prohraje, i když je ve skutečnosti realističtější — přeháňku či inverzi
+    // umístí správně, ale ERA5 ji tam nemá, a modelu se to počítá jako chyba. Ověřeno na
+    // ostrých datech: ALADIN 1 km vyšel ±1,3 °C, ECMWF na 25 km ±0,9 °C, což jistě
+    // neznamená, že je ALADIN nad Českem horší.
+    // Plné 1/σ² by tedy podle archivu systematicky utlumilo právě ty modely, o které tu
+    // jde. Proto se u archivní známky drží faktor v UŽŠÍM rozmezí a naplno se 1/σ² pustí
+    // teprve u trefnosti naměřené v provozu proti stanicím ČHMÚ, což je pravda bez
+    // téhle vady.
+    var W_MIN_N  = 8;      // pod tolika vyhodnoceními se změřená chyba nepoužije vůbec
+    var W_FULL_N = 120;    // od tolika vzorků platí 1/σ² v plné síle
+    var W_FMIN = 0.25, W_FMAX = 4.0;      // měřeno v provozu → plný rozsah
+    var W_ARCH_MIN = 0.5, W_ARCH_MAX = 2.0;   // jen z archivu (ERA5) → opatrněji
     function skillFactor(sk, ref, id, kind, band) {
         var precip = (kind === 'precip');
         var m = precip ? maePOf(sk, id, band) : maeOf(sk, id, band);
         var floor = precip ? 0.02 : 0.05;   // mm/h vs. °C — jinak by dělení šumem utrhlo faktor
-        if (!ref || !m || m.n < 3 || ref.ref <= floor) return 1;
-        return Math.max(0.6, Math.min(1.5, ref.ref / Math.max(m.e, floor)));
+        if (!ref || !m || m.n < W_MIN_N || ref.ref <= floor) return 1;
+        var ratio = ref.ref / Math.max(m.e, floor);
+        var f = ratio * ratio;                              // p = 1/σ²
+        f = 1 + (f - 1) * Math.min(1, m.n / W_FULL_N);      // shrinkage k apriorní váze
+        var archOnly = (m.src === 'archiv');
+        return archOnly
+            ? Math.max(W_ARCH_MIN, Math.min(W_ARCH_MAX, f))
+            : Math.max(W_FMIN, Math.min(W_FMAX, f));
     }
 
     // ---- kombinování zdrojů (vážený průměr + rozptyl) -----------------------------------
@@ -1117,8 +1447,20 @@
     // resp. GFS, takže s nimi sdílejí počáteční podmínky a nejsou nezávislé.
     var FAMILY = {
         ecmwf_ifs025: 'ecmwf', ecmwf_aifs025: 'ecmwf', ens_ecmwf: 'ecmwf',
+        // AIFS i WeatherNext 2 startují z analýzy ECMWF, takže s IFS sdílejí počáteční
+        // podmínky a do rodiny ECMWF patří — stejná logika, jako u GraphCastu pod GFS.
+        // Architektura je sice úplně jiná (a chyby tedy míň provázané), ale připustit jim
+        // vlastní hlas by nafouklo „Shodu zdrojů“, a to je horší chyba než opatrnost.
+        ens_ifs_eu: 'ecmwf', ens_aifs: 'ecmwf', ens_aifs_eu: 'ecmwf', ens_wnext2: 'ecmwf',
         icon_d2: 'icon', icon_eu: 'icon', icon_global: 'icon',
         ens_icond2: 'icon', ens_iconeu: 'icon', ens_icon: 'icon',
+        // ALADIN je ALARO/AROME z ČHMÚ s vlastní asimilací → samostatná rodina. Obě
+        // domény (1 km a 2,3 km) je týž model, proto jedna rodina, ne dvě.
+        // Rodina se ZÁMĚRNĚ nejmenuje 'chmi': naměřená data ze stanice mají rodinu
+        // 'chmi' a nesmí spadnout do jednoho hlasu s předpovědí, jinak by měření
+        // přišlo o svou samostatnou (nejvyšší) váhu.
+        chmi_aladin_cz_1km: 'aladin', chmi_aladin_central_europe_2km: 'aladin',
+        geosphere_arome_austria: 'geosphere',
         gfs_seamless: 'gfs', gfs_graphcast025: 'gfs', ens_gfs: 'gfs',
         gem_seamless: 'gem', ens_gem: 'gem',
         ukmo_global_deterministic_10km: 'ukmo', ens_ukmo: 'ukmo',
@@ -1156,8 +1498,63 @@
         }
         return out;
     }
-    function wstat(items) {   // items: [{v, w, fam}] → průměr a rozptyl MEZI RODINAMI
+    // ---- vyloučení odlehlých rodin (robustní obdoba „vylučování hrubých chyb") --------
+    // Když jedna rodina tvrdí 8 °C a jedenáct ostatních 20 °C, do váženého průměru se ta
+    // osmička dosud pořád započetla — jen s menší vahou. Ve vyrovnání měření se takové
+    // pozorování vyloučí, a stejně se to hodí i tady.
+    // PROČ MEDIÁN A MAD, NE PRŮMĚR A SMĚRODATNÁ ODCHYLKA: odlehlá hodnota si průměr i
+    // odchylku sama posune (odchylku nafoukne) a tím se před testem schová — klasické
+    // „maskování". Medián a MAD odlehlá hodnota neovlivní, protože stojí na pořadí, ne na
+    // součtu. MAD × 1,4826 je u normálního rozdělení nezkreslený odhad σ, takže práh
+    // 3×MAD odpovídá běžnému 3σ.
+    // POJISTKY: pod pěti rodinami se nevylučuje nic (v malém vzorku není „většina", proti
+    // které by se odlehlost poznala); když je MAD nulový (všichni na sobě), taky nic —
+    // jinak by test zahodil každého, kdo se od mediánu liší o vlásek; a nikdy se
+    // nezahodí většina.
+    var OUT_MIN_FAM = 5;
+    var OUT_MAD_K = 3.0;
+    var MAD_TO_SIGMA = 1.4826;
+    function medOf(sorted) {
+        if (!sorted.length) return null;
+        var m = sorted.length >> 1;
+        return (sorted.length % 2) ? sorted[m] : (sorted[m - 1] + sorted[m]) / 2;
+    }
+    function asc(a, b) { return a - b; }
+    // vrací {keep, dropped:[fam]} — dropped je kvůli tomu, aby seznam zdrojů mohl
+    // uživateli poctivě říct, který zdroj se do výsledku nepočítal a proč
+    function dropOutliers(fam) {
+        if (!fam || fam.length < OUT_MIN_FAM) return { keep: fam, dropped: [] };
+        var i, vals = [], devs = [];
+        for (i = 0; i < fam.length; i++) vals.push(fam[i].v);
+        vals.sort(asc);
+        var med = medOf(vals);
+        for (i = 0; i < fam.length; i++) devs.push(Math.abs(fam[i].v - med));
+        devs.sort(asc);
+        var sig = medOf(devs) * MAD_TO_SIGMA;
+        if (!(sig > 0)) return { keep: fam, dropped: [] };
+        var lim = OUT_MAD_K * sig, keep = [], dropped = [];
+        for (i = 0; i < fam.length; i++) {
+            if (Math.abs(fam[i].v - med) <= lim) keep.push(fam[i]);
+            else dropped.push(fam[i].fam);
+        }
+        // většinu nikdy nezahazuj — to už by nebyla odlehlá hodnota, ale dva scénáře
+        if (keep.length < OUT_MIN_FAM - 1) return { keep: fam, dropped: [] };
+        return { keep: keep, dropped: dropped };
+    }
+    var _lastDropped = [];   // rodiny vyloučené při posledním výpočtu teploty „teď"
+    // `robust` = vylučovat odlehlé rodiny. ZÁMĚRNĚ se nezapíná všude:
+    //   • u „Shody zdrojů" ne — jinak by appka po zahození nesouhlasících modelů hlásila
+    //     falešnou jistotu právě tam, kde je počasí opravdu nejisté,
+    //   • u srážek ne — jejich rozdělení je zkosené (hodně nul, málo velkých hodnot),
+    //     takže vydatná přeháňka VYPADÁ jako odlehlá hodnota, i když je pravdivá; tam to
+    //     řeší medián a `precipMax`.
+    function wstat(items, robust) {
         var fam = famReduce(items, false);
+        if (robust) {
+            var r = dropOutliers(fam);
+            fam = r.keep;
+            if (r.dropped.length) _lastDropped = r.dropped;
+        }
         var sw = 0, s = 0, mn = Infinity, mx = -Infinity, n = 0, nsrc = 0, i, v, w;
         for (i = 0; i < fam.length; i++) {
             v = fam[i].v; w = fam[i].w || 1;
@@ -1168,7 +1565,10 @@
         if (!n || !sw) return null;
         return { v: s / sw, min: mn, max: mx, n: n, nsrc: nsrc };
     }
-    function wv(items) { var r = wstat(items); return r ? r.v : null; }
+    function wv(items) { var r = wstat(items, true); return r ? r.v : null; }
+    // bez vylučování odlehlých — pro veličiny, kde je odlehlá hodnota právě ta informace
+    // (nejhorší varianta z ensemblů), takže ji zahodit by znamenalo výstrahu zamlčet
+    function wvPlain(items) { var r = wstat(items, false); return r ? r.v : null; }
     // Vážený MEDIÁN mezi rodinami — používá se na SRÁŽKY. Průměr udělá z ostré
     // přeháňky „0,3 mm mrholení všude": stačí, aby jeden model dal 3 mm a devět nic.
     // Medián nechá stát to, na čem se většina rodin shodne, a extrém neutopí ostatní.
@@ -1211,10 +1611,10 @@
         var d = (srcElev - realElev) * LAPSE_C_PER_M;
         return Math.max(-LAPSE_MAX_DT, Math.min(LAPSE_MAX_DT, d));
     }
-    // posune všechny teploty jednoho zdroje o jeho vlastní výškový rozdíl
-    function applyLapse(src, realElev) {
-        var dt = lapseDT(src ? src.elev : null, realElev);
-        if (!dt) return 0;
+    // posune VŠECHNY teploty jednoho zdroje o dt (aktuální stav, hodinovku i denní
+    // maxima/minima) — používá to výšková korekce i odečet systematické chyby
+    function shiftTemps(src, dt) {
+        if (!src || !dt) return;
         var i;
         if (src.cur) {
             if (src.cur.t != null) src.cur.t += dt;
@@ -1232,8 +1632,24 @@
                 for (var q = 0; q < a.length; q++) { if (a[q] != null && isFinite(a[q])) a[q] += dt; }
             });
         }
+    }
+    // posune všechny teploty jednoho zdroje o jeho vlastní výškový rozdíl
+    function applyLapse(src, realElev) {
+        var dt = lapseDT(src ? src.elev : null, realElev);
+        if (!dt) return 0;
+        shiftTemps(src, dt);
         src.lapseDT = Math.round(dt * 100) / 100;
         return dt;
+    }
+    // ODEČTE zdroji jeho systematickou chybu (viz biasOf). Měřená data z ČHMÚ se
+    // nekorigují — ta nic nepředpovídají, takže žádný bias předpovědi mít nemohou.
+    function applyBias(src, sk) {
+        if (!src || src.meas) return 0;
+        var b = biasOf(sk, src.id);
+        if (!b) return 0;
+        shiftTemps(src, -b);
+        src.biasDT = Math.round(-b * 100) / 100;
+        return -b;
     }
     // Kód počasí je kategorie — sečíst a vydělit ho nejde, takže se „průměruje"
     // VÁŽENÝM HLASOVÁNÍM: každý zdroj hlasuje svou vahou pro DRUH počasí (jasno,
@@ -1320,6 +1736,13 @@
         } else {
             data.lapseDT = null;
         }
+        // --- odečet systematické chyby (bias) ---------------------------------------
+        // MUSÍ to být AŽ ZA výškovou korekcí: bias se učí z hodnot přepočtených na výšku
+        // bodu, takže kdyby se odečítal dřív, počítal by se z jiné hladiny, než na jaké
+        // byl změřený.
+        var skB = loadSkill(), nBias = 0;
+        for (i = 0; i < sources.length; i++) { if (applyBias(sources[i], skB)) nBias++; }
+        data.biasN = nBias;
         // pro přepočet tlaku „tady" platí skutečná výška, když ji známe
         data.elev = (data.elevReal != null) ? data.elevReal : data.elevModel;
 
@@ -1329,9 +1752,15 @@
             var items = function (get) {
                 return curS.map(function (x) { return { v: get(x.cur), w: wOf(x, false), fam: famOf(x) }; });
             };
-            var tSt = wstat(items(function (c) { return c.t; }));
+            // teplota „teď" se počítá ROBUSTNĚ (odlehlá rodina se vyloučí) a hned za tím
+            // se seznam vyloučených uloží, dokud ho nepřepíše další robustní výpočet
+            _lastDropped = [];
+            var tSt = wstat(items(function (c) { return c.t; }), true);
+            var droppedFams = _lastDropped.slice();
             // Rozptyl („Shoda zdrojů") se počítá JEN z předpovědí — naměřená hodnota
             // z ČHMÚ není další názor, ale skutečnost, a do rozptylu modelů nepatří.
+            // A ZÁMĚRNĚ NErobustně: kdyby se odlehlé rodiny nejdřív zahodily, ukazatel by
+            // hlásil pěknou shodu i ve chvíli, kdy se modely rozcházejí.
             var fcS = curS.filter(function (x) { return !x.meas; });
             var tSpread = wstat(fcS.map(function (x) { return { v: x.cur.t, w: wOf(x, false), fam: famOf(x) }; }));
             data.current = {
@@ -1343,6 +1772,8 @@
                 pmsl: wv(items(function (c) { return c.pmsl; })),
                 wind: wv(items(function (c) { return c.wind; })),
                 gusts: wv(items(function (c) { return c.gusts; })),
+                // P90 nárazů přes členy ensemblů (mají ho jen ensembly, ostatní null)
+                gustHi: wvPlain(items(function (c) { return c.gustHi; })),
                 dir: circMean(items(function (c) { return c.dir; })),
                 code: combineCode(curS.map(function (x) { return { code: x.cur.code, w: wpOf(x, false), fam: famOf(x) }; }))
             };
@@ -1359,10 +1790,15 @@
                 dist: (msr.distKm != null ? msr.distKm : null), t: (msr.obsT != null ? msr.obsT : null),
                 ageMin: (msr.ageMin != null ? msr.ageMin : null)
             } : null;
+            data.droppedFams = droppedFams;
             data.perSource = curS.map(function (x) {
                 return {
                     id: x.id, label: x.label, w: x.w, wp: (x.wp != null ? x.wp : null), temp: x.cur.t,
+                    // zdroj vyloučený jako odlehlý — v seznamu zdrojů se to uživateli
+                    // ukáže, ať nepřemýšlí, proč se jeho číslo do výsledku nepropsalo
+                    outlier: droppedFams.indexOf(famOf(x)) >= 0,
                     meas: !!x.meas, fam: famOf(x), lapse: (x.lapseDT != null ? x.lapseDT : null),
+                    bias: (x.biasDT != null ? x.biasDT : null),
                     skill: (x.skill != null ? x.skill : null), skillN: (x.skillN || 0), skillSrc: (x.skillSrc || null),
                     skillP: (x.skillP != null ? x.skillP : null), skillPHit: (x.skillPHit != null ? x.skillPHit : null)
                 };
@@ -1448,7 +1884,7 @@
             for (i = 0; i < times.length && added < 24; i++) {
                 var t = num(times[i]);
                 if (t == null || t < nowSec - 3600) continue;
-                var it = [], iwd = [], ig = [], ipr = [], icx = [], ipb = [];
+                var it = [], iwd = [], ig = [], ipr = [], icx = [], ipb = [], igh = [], iph = [];
                 // do 6 h platí váhy pro krátký dosah (tam vede ICON-D2), dál pro dlouhý
                 var far = (t - nowSec) > 6 * 3600;
                 for (var k2 = 0; k2 < hs.length; k2++) {
@@ -1463,12 +1899,16 @@
                     ipr.push({ v: at(s.hourly.precip, idx), w: wph, fam: fh });
                     icx.push({ code: at(s.hourly.code, idx), w: wph, fam: fh });
                     ipb.push({ v: at(s.hourly.prob, idx), w: wph, fam: fh });
+                    igh.push({ v: at(s.hourly.gustHi, idx), w: wh, fam: fh });
+                    iph.push({ v: at(s.hourly.precipHi, idx), w: wph, fam: fh });
                 }
                 var prSt = wstat(ipr);
                 data.hourly.push({
                     t: t,
                     temp: wv(it), wind: wv(iwd), gusts: wv(ig),
                     precip: wmedian(ipr), precipMax: (prSt ? prSt.max : null), prob: wv(ipb),
+                    // nejhorší rozumná varianta z ensemblů (P90 přes členy) — z ní jdou výstrahy
+                    gustHi: wvPlain(igh), precipHi: wvPlain(iph),
                     code: combineCode(icx),
                     day: isDayAt(t)
                 });
@@ -1748,6 +2188,13 @@
                     '<div class="wx-desc" id="ag-wx-desc"></div>' +
                     '<div class="wx-minmax" id="ag-wx-minmax"></div>' +
                 '</div>' +
+                // nejakčnější údaj z celé předpovědi → hned pod hlavičkou, nad hodinovkou
+                '<div class="wx-card" id="ag-wx-now-card" style="display:none">' +
+                    '<div class="wx-card-h">Kdy začne pršet</div>' +
+                    '<div class="wx-now-head" id="ag-wx-now-head"></div>' +
+                    '<div class="wx-now-strip" id="ag-wx-now-strip"></div>' +
+                    '<div class="wx-now-sub" id="ag-wx-now-sub"></div>' +
+                '</div>' +
                 '<div class="wx-card"><div class="wx-card-h">Hodinová předpověď</div><div class="wx-hours" id="ag-wx-hours"></div></div>' +
                 '<div class="wx-card" id="ag-wx-radar-card" style="display:none">' +
                     '<div class="wx-card-h">Srážkový radar</div>' +
@@ -1926,7 +2373,10 @@
                 return (h.code != null && isPrecipCode(h.code))
                     || (h.prob != null && h.prob >= 55)
                     || (h.precip != null && h.precip >= 0.3)
-                    || (h.precipMax != null && h.precipMax >= 1.0);
+                    || (h.precipMax != null && h.precipMax >= 1.0)
+                    // P90 přes členy ensemblů: i když je většina běhů suchá, desetina
+                    // nejmokřejších ukazuje pořádný déšť → to je varování hodné
+                    || (h.precipHi != null && h.precipHi >= 1.0);
             })
         );
         if (thunder) {
@@ -1934,9 +2384,23 @@
         } else if (rain) {
             out.push({ cls: 'warn', title: 'Déšť v příštích 3 hodinách', txt: 'Počítej s mokrou optikou a horší viditelností terčů; chraň přístroj i tablet.' });
         }
+        // NÁRAZY VĚTRU z P90 ensemblů. Průměrný náraz ve výstraze nestačí: stativ s
+        // přístrojem se pokládá v tom jednom nepříznivém scénáři, ne v průměru scénářů.
+        // Proto se bere nejhorší hodina z nejbližších tří a práh 14 m/s (~50 km/h), kdy
+        // už jde o pád přístroje. Výstraha vyskočí i při klidném průměrném větru, pokud
+        // ensembly ukazují nárazy — a to je přesně ten případ, který dřív propadl.
+        var gHi = null;
+        next3.forEach(function (h) {
+            if (h.gustHi != null && (gHi == null || h.gustHi > gHi)) gHi = h.gustHi;
+        });
+        if (c.gustHi != null && (gHi == null || c.gustHi > gHi)) gHi = c.gustHi;
         var windMax = Math.max(c.wind != null ? c.wind : 0, 0);
-        if (c.wind != null && c.wind > 8) {
-            out.push({ cls: 'warn', title: 'Silný vítr ' + nf(windMax, 1) + ' m/s' + (c.gusts != null ? ' (nárazy ' + nf(c.gusts, 1) + ')' : ''), txt: 'Pozor na stativ a výtyčku — zatiž stativ, výtyčku drž obouruč, hrozí pád přístroje.' });
+        var gustAlert = (gHi != null && gHi >= 14);
+        if ((c.wind != null && c.wind > 8) || gustAlert) {
+            var wTtl = 'Silný vítr ' + nf(windMax, 1) + ' m/s';
+            if (c.gusts != null) wTtl += ' (nárazy ' + nf(c.gusts, 1) + ')';
+            if (gustAlert) wTtl += ', v nejhorším až ' + nf(gHi, 0) + ' m/s';
+            out.push({ cls: 'warn', title: wTtl, txt: 'Pozor na stativ a výtyčku — zatiž stativ, výtyčku drž obouruč, hrozí pád přístroje.' });
         }
         if (c.temp != null && c.temp <= 0) {
             out.push({ cls: 'warn', title: 'Mráz ' + nf(Math.round(c.temp), 0) + ' °C', txt: 'Námraza na hranolech a displeji; baterie vydrží kratší dobu — vezmi náhradní.' });
@@ -1995,6 +2459,7 @@
         if (c && c.feels != null) mm += (mm ? '  ·  ' : '') + 'Pocitově ' + nf(Math.round(c.feels), 0) + '°';
         byId('ag-wx-minmax').textContent = mm;
 
+        renderNowcast(data, off);
         renderHours(data, off);
         renderDays(data, off);
         renderGrid(data, off);
@@ -2051,12 +2516,31 @@
                 else if (s.skillP != null) txt += ' · déšť ±' + nf(s.skillP, 2) + ' mm/h';
                 if (s.skill == null && s.skillP == null) txt += ' · trefnost zatím neznámá';
                 else if (s.skillSrc) txt += ' (' + s.skillSrc + ')';
+                // odečtená systematická chyba a případné vyloučení — ať se uživatel
+                // nemusí divit, proč se číslo zdroje do výsledku nepropsalo
+                if (s.bias != null && Math.abs(s.bias) >= 0.05) {
+                    txt += ' · srovnáno o ' + (s.bias > 0 ? '+' : '') + nf(s.bias, 1) + ' °C';
+                }
+                if (s.outlier) txt += ' · VYLOUČEN jako odlehlý';
             }
-            row.appendChild(el('span', 'wx-src-n', txt));
+            row.appendChild(el('span', 'wx-src-n' + (s.outlier ? ' wx-src-out' : ''), txt));
             row.appendChild(el('span', 'wx-src-v', s.temp != null ? nf(s.temp, 1) + ' °C' : '–'));
             box.appendChild(row);
         }
         box.appendChild(el('div', 'wx-src-h', 'U zdrojů se „ensemble" počítá průměr ze všech běhů toho modelu (ECMWF 51, ICON-D2 20 …) — bývá přesnější než jediný běh. U SRÁŽEK se místo průměru bere medián, aby se ostrá přeháňka nerozmazala na mrholení, a z ensemblů navíc vychází poctivá pravděpodobnost deště (v kolika procentech běhů prší). Váhy se počítají zvlášť pro dosah do 6 hodin a zvlášť dál — ICON-D2 je špička nakrátko, ECMWF na delší dobu. Ensembly se stahují nejvýš jednou za hodinu, ať nepálí mobilní data.'));
+        // jak se váží a co se vylučuje — vysvětleno geodetickou mluvou, protože se to
+        // dělá stejně jako vyrovnání měření
+        box.appendChild(el('div', 'wx-src-h',
+            'Váhy se počítají jako 1/σ² ze změřené chyby zdroje, stejně jako u vyrovnání měření: '
+            + 'zdroj dvakrát přesnější má čtyřnásobnou váhu, ne o třetinu vyšší. Dokud je vyhodnocení málo, '
+            + 'drží se váha u apriorní hodnoty, aby ji nerozhodilo pár náhodných zásahů. '
+            + 'Odlehlé zdroje se navíc VYLUČUJÍ — přes medián a MAD (nikoli průměr a směrodatnou odchylku, '
+            + 'ty si odlehlá hodnota sama zkreslí a schová se v nich), práh 3×MAD a nikdy se nezahodí většina. '
+            + 'U srážek se nevylučuje nic: jejich rozdělení je zkosené, takže vydatná přeháňka vypadá jako '
+            + 'odlehlá hodnota, i když je pravdivá. „Shoda zdrojů“ se počítá PŘED vylučováním, jinak by hlásila '
+            + 'falešnou jistotu právě tam, kde je počasí nejisté. '
+            + 'Kde je známá systematická chyba (bias), tam se ODEČTE — model, který tady dává trvale o stupeň víc, '
+            + 'se srovná, ne jen odváží dolů.'));
         var cvN = 0;
         try { cvN = loadSkill().chmiVerified || 0; } catch (e) { cvN = 0; }
         if (cvN) {
@@ -2064,6 +2548,59 @@
                 'Trefnost je z části ověřená proti SKUTEČNÉMU měření ČHMÚ (' + cvN + ' srovnání), ne jen proti průměru modelů — model, který se drží u davu, tím pádem dobrou známku zadarmo nedostane.'));
         }
         box.appendChild(el('div', 'wx-src-h', 'Data: Open-Meteo (předpovědi, ensembly, archiv ERA5) · MET Norway · Bright Sky (DWD) · ČHMÚ (opendata.chmi.cz, © ČHMÚ) · radar RainViewer · mapa OpenStreetMap'));
+    }
+
+    // ---- karta „Kdy začne pršet" (radar 0–2 h + modely po 15 min do 6 h) --------------
+    function renderNowcast(data, off) {
+        var card = byId('ag-wx-now-card');
+        if (!card) return;
+        var nc = data.nowcast;
+        if (!nc || !nc.steps || !nc.steps.length) { card.style.display = 'none'; return; }
+        card.style.display = 'block';
+
+        var head = byId('ag-wx-now-head');
+        head.className = 'wx-now-head';
+        if (nc.raining) {
+            head.textContent = 'Prší' + (nc.peak != null ? ' — až ' + nf(nc.peak, 1) + ' mm/h' : '');
+            head.classList.add('wx-now-wet');
+        } else if (nc.startsInMin != null) {
+            head.textContent = (nc.startsInMin < 1 ? 'Déšť začíná' : 'Déšť za ' + nc.startsInMin + ' min')
+                + ' (' + fmtHM(nc.startsAt, off) + ')'
+                + (nc.peak != null ? ', až ' + nf(nc.peak, 1) + ' mm/h' : '');
+            head.classList.add('wx-now-soon');
+        } else {
+            var hrs = Math.max(1, Math.round(nc.untilMin / 60));
+            head.textContent = 'Nejbližší ' + hrs + ' h bez srážek';
+            head.classList.add('wx-now-dry');
+        }
+
+        // sloupečky: výška podle odmocniny z mm/h, ať je slabý déšť ještě vidět a
+        // průtrž nepřerazí celý graf na jeden sloupec
+        var strip = byId('ag-wx-now-strip');
+        strip.innerHTML = '';
+        var maxMm = 0.5, i;
+        for (i = 0; i < nc.steps.length; i++) {
+            if (nc.steps[i].mm != null && nc.steps[i].mm > maxMm) maxMm = nc.steps[i].mm;
+        }
+        for (i = 0; i < nc.steps.length; i++) {
+            var s = nc.steps[i];
+            var it = el('div', 'wx-nc' + (s.radar ? ' wx-nc-r' : ' wx-nc-m'));
+            var wrap = el('div', 'wx-nc-col');
+            var bar = el('div', 'wx-nc-bar' + ((s.mm != null && s.mm >= NOWCAST_WET) ? ' wx-nc-wet' : ''));
+            var frac = (s.mm != null && s.mm > 0) ? Math.sqrt(s.mm / maxMm) : 0;
+            bar.style.height = (s.mm != null && s.mm >= NOWCAST_WET)
+                ? Math.max(6, Math.round(frac * 100)) + '%' : '2px';
+            wrap.appendChild(bar);
+            it.appendChild(wrap);
+            // popisek času jen po půlhodinách, jinak by se čísla slila
+            it.appendChild(el('span', 'wx-nc-t', (i % 6 === 0) ? fmtHM(s.t, off) : ''));
+            it.title = fmtHM(s.t, off) + ' · ' + nf(s.mm, 1) + ' mm/h · '
+                + (s.radar ? 'radar' : 'model');
+            strip.appendChild(it);
+        }
+        byId('ag-wx-now-sub').textContent = nc.radar
+            ? 'Prvních 2 h z radaru DWD (1 km, krok 5 min) — na takhle krátko je radar přesnější než jakýkoli model. Dál modely po 15 minutách.'
+            : 'Modely po 15 minutách. Radar sem nedosáhne — mřížka DWD končí na východní Moravě.';
     }
 
     function renderHours(data, off) {
@@ -2376,7 +2913,18 @@
                 );
             }
         } catch (e) { pElev = Promise.resolve(null); }
-        Promise.all([pOm, pMet, pBs, pEns, pChmi, pElev]).then(function (rr) {
+        // nowcast: radar do bodu (0–2 h) + modely po 15 minutách (do 6 h).
+        // Obojí smí selhat — karta se pak jen nezobrazí a zbytek předpovědi jede dál.
+        // mimo mřížku DWD (východní Morava) se dotaz vůbec neposílá — vrátil by jen 404
+        var pRad = inDwdRadar(pos.lat, pos.lon)
+            ? fetchJson(radarPtUrl(pos.lat, pos.lon), RADARPT_MS).then(
+                parseRadarPt, function () { return null; }
+            )
+            : Promise.resolve(null);
+        var pM15 = fetchJson(m15Url(pos.lat, pos.lon), FETCH_MS).then(
+            parseM15, function () { return null; }
+        );
+        Promise.all([pOm, pMet, pBs, pEns, pChmi, pElev, pRad, pM15]).then(function (rr) {
             if (seq !== _reqSeq) return;   // mezitím přišel novější požadavek (ten si spinner zhasne sám)
             setBusy(false);
             var sources = rr[0].concat(rr[1]).concat(rr[2]).concat(rr[3]).concat(rr[4]);
@@ -2427,6 +2975,7 @@
                 return;
             }
             delete data.isDayAt;
+            try { data.nowcast = buildNowcast(rr[6], rr[7]); } catch (e) { data.nowcast = null; }
             // srovnej dřívější předpovědi s právě pozorovaným stavem a ulož nové predikce
             try {
                 // „skutečnost" pro vyhodnocení předpovědí: nejdřív měření ČHMÚ,
@@ -2437,7 +2986,8 @@
                     : (data.current ? data.current.temp : null);
                 var obsP = (msFresh && msFresh.precip != null) ? msFresh.precip
                     : (data.current ? data.current.precip : null);
-                var sk2 = updateSkill(sources, obsT, obsP);
+                // bias se učí JEN proti měření ze stanice, ne proti shodě modelů
+                var sk2 = updateSkill(sources, obsT, obsP, !!(msFresh && msFresh.temp != null));
                 var ref2 = skillRef(sk2, 'temp', 'l'), refP2 = skillRef(sk2, 'precip', 'l');
                 var bf2 = loadBf();
                 if (ref2) data.skillInfo = { ref: Math.round(ref2.ref * 10) / 10, models: ref2.models, days: (bf2 ? bf2.days : 0) };

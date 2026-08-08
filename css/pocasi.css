@@ -201,6 +201,50 @@
 .wx-h-sun .wx-h-t { color: var(--accent3, #e6bd76); opacity: 0.9; }
 .wx-h-sunl { font-size: calc(11.5px * var(--ag-font-scale, 1)); font-weight: 600; }
 
+/* Kdy začne pršet — nowcast: radar 0–2 h (krok 5 min) + modely po 15 min do 6 h */
+.wx-now-head {
+    font-size: calc(15.5px * var(--ag-font-scale, 1)); font-weight: 700;
+    margin: 2px 0 8px; font-variant-numeric: tabular-nums;
+}
+.wx-now-wet { color: #6db3f2; }
+.wx-now-soon { color: var(--accent3, #e6bd76); }
+.wx-now-dry { opacity: 0.72; font-weight: 600; }
+.wx-now-strip {
+    display: flex; gap: 2px; align-items: flex-end;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+}
+.wx-now-strip::-webkit-scrollbar { display: none; }
+.wx-nc {
+    flex: 0 0 auto; width: 14px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+}
+.wx-nc-col {
+    height: 46px; width: 100%;
+    display: flex; align-items: flex-end; justify-content: center;
+}
+.wx-nc-bar {
+    width: 8px; min-height: 2px;
+    border-radius: 3px 3px 0 0;
+    background: rgba(255, 255, 255, 0.16);
+}
+.wx-nc-wet { background: #6db3f2; }
+/* sloupce z modelu se od radarových odliší průhledností, ať je poznat, odkud číslo je */
+.wx-nc-m .wx-nc-bar { opacity: 0.62; }
+/* popisek času je širší než sloupec — přeteče schválně na obě strany do prázdných
+   popisků sousedů (čas se vypisuje jen po půlhodinách, takže se nemá o co bít) */
+.wx-nc-t {
+    font-size: calc(9.5px * var(--ag-font-scale, 1)); opacity: 0.6;
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+    min-height: 12px; overflow: visible;
+}
+.wx-now-sub {
+    font-size: calc(11.5px * var(--ag-font-scale, 1)); opacity: 0.6;
+    line-height: 1.4; margin-top: 6px;
+}
+
 /* 7denní předpověď */
 .wx-d {
     display: grid;
@@ -266,6 +310,9 @@
     font-variant-numeric: tabular-nums;
 }
 .wx-src-n { opacity: 0.7; }
+/* zdroj vyloučený jako odlehlý — přeškrtnutý, ať je na první pohled jasné, že do
+   výsledku nešel (číslo se u něj ale nechává, aby bylo vidět, jak moc ustřelil) */
+.wx-src-out { text-decoration: line-through; opacity: 0.45; }
 .wx-src-v { font-weight: 700; }
 
 /* ---- srážkový radar (RainViewer) --------------------------------------------------- */
