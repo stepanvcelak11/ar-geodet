@@ -38,10 +38,10 @@
         el.innerHTML =
             '<div class="modal-content">'
             + '<h3 style="color:var(--accent);margin-top:0;margin-bottom:4px;"><svg class="icon"><use href="#i-crosshair"/></svg> <span id="aggd-title">Bod</span></h3>'
-            + '<div id="aggd-sub" style="font-size:13px;opacity:.75;margin-bottom:8px;"></div>'
+            + '<div id="aggd-sub" style="font-size:calc(13px * var(--ag-font-scale, 1));opacity:.75;margin-bottom:8px;"></div>'
             + '<div class="modal-body" id="aggd-body"></div>'
             + '<div id="aggd-actions" style="margin-top:12px;"></div>'
-            + '<div style="font-size:11px;opacity:.55;margin-top:10px;">Popisné údaje a místopis bodu poskytuje ČÚZK. Data © ČÚZK.</div>'
+            + '<div style="font-size:calc(11px * var(--ag-font-scale, 1));opacity:.55;margin-top:10px;">Popisné údaje a místopis bodu poskytuje ČÚZK. Data © ČÚZK.</div>'
             + '<button class="btn btn-secondary" style="margin-top:10px;" onclick="document.getElementById(\'aggd-modal\').style.display=\'none\'">Zavřít</button>'
             + '</div>';
         document.body.appendChild(el);
@@ -68,7 +68,7 @@
             if (v == null || v === '' || String(v).trim() === '' || String(v).toLowerCase() === 'null') continue;
             html += row(prettyKey(k), v); any = true;
         }
-        if (!any) html += '<div style="font-size:12.5px;opacity:.6;margin-top:8px;">Další atributy nejsou u tohoto bodu k dispozici (bod nemusel přijít z databáze ČÚZK, nebo je offline).</div>';
+        if (!any) html += '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.6;margin-top:8px;">Další atributy nejsou u tohoto bodu k dispozici (bod nemusel přijít z databáze ČÚZK, nebo je offline).</div>';
         document.getElementById('aggd-body').innerHTML = html;
 
         // Akce

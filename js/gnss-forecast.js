@@ -303,13 +303,13 @@
             '#ag-gf-modal .gf-band-mid{fill:var(--gf-mid);opacity:.09;}' +
             '#ag-gf-modal .gf-band-bad{fill:var(--gf-bad);opacity:.15;}' +
             '#ag-gf-modal .gf-grid{stroke:var(--glass-border,rgba(255,255,255,.14));stroke-width:1;}' +
-            '#ag-gf-modal .gf-tick{fill:var(--text-muted,#9aa1ac);font-size:10px;font-variant-numeric:tabular-nums;}' +
+            '#ag-gf-modal .gf-tick{fill:var(--text-muted,#9aa1ac);font-size:calc(10px * var(--ag-font-scale, 1));font-variant-numeric:tabular-nums;}' +
             '#ag-gf-modal .gf-line{fill:none;stroke:var(--text-color,#eceef2);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;}' +
             '#ag-gf-modal .gf-win{fill:var(--accent-bright,#3eb487);opacity:.12;}' +
             '#ag-gf-modal .gf-winrule{stroke:var(--accent-bright,#3eb487);stroke-width:3;stroke-linecap:round;}' +
             '#ag-gf-modal .gf-nowline{stroke:var(--accent-bright,#3eb487);stroke-width:1.5;}' +
-            '#ag-gf-modal .gf-nowlb{fill:var(--accent-bright,#3eb487);font-size:10px;font-weight:600;}' +
-            '#ag-gf-modal .gf-lab{fill:var(--text-color,#eceef2);font-size:10px;font-variant-numeric:tabular-nums;}' +
+            '#ag-gf-modal .gf-nowlb{fill:var(--accent-bright,#3eb487);font-size:calc(10px * var(--ag-font-scale, 1));font-weight:600;}' +
+            '#ag-gf-modal .gf-lab{fill:var(--text-color,#eceef2);font-size:calc(10px * var(--ag-font-scale, 1));font-variant-numeric:tabular-nums;}' +
             '#ag-gf-modal .gf-c-good{fill:var(--gf-good);}' +
             '#ag-gf-modal .gf-c-mid{fill:var(--gf-mid);}' +
             '#ag-gf-modal .gf-c-bad{fill:url(#agGfHatch);}' +

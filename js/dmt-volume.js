@@ -402,7 +402,7 @@
             row('Násyp (nad H₀)', result.fill.toFixed(1) + ' m³', '#34d399') +
             row('Výkop (pod H₀)', result.cut.toFixed(1) + ' m³', '#f87171') +
             row('Netto (násyp − výkop)', (result.net >= 0 ? '+' : '') + result.net.toFixed(1) + ' m³', result.net >= 0 ? '#34d399' : '#f87171') +
-            '<div class="dmt-muted" style="font-size:11px; margin-top:6px; line-height:1.35;">TIN pokrývá KONVEXNÍ obálku bodů — u nekonvexního obvodu (tvar L, koryto) '
+            '<div class="dmt-muted" style="font-size:calc(11px * var(--ag-font-scale, 1)); margin-top:6px; line-height:1.35;">TIN pokrývá KONVEXNÍ obálku bodů — u nekonvexního obvodu (tvar L, koryto) '
             + 'plochu i objem nadhodnotí. Zaměř obvod hustěji, nebo počítej po konvexních částech.</div>';
     }
     function fmtArea(a) {

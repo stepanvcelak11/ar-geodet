@@ -197,7 +197,7 @@
         ov.innerHTML =
             '<div class="modal-content" style="overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">Označ vlícovací bod na obrázku</h3>'
-            + '<p style="font-size:12px;opacity:.7;margin:2px 0 8px;">Táhni = posun, +/− = lupa, ťukni = umísti křížek na známé místo (roh, kříž sítě).</p>'
+            + '<p style="font-size:calc(12px * var(--ag-font-scale, 1));opacity:.7;margin:2px 0 8px;">Táhni = posun, +/− = lupa, ťukni = umísti křížek na známé místo (roh, kříž sítě).</p>'
             + '<div id="agpk-wrap" style="position:relative;width:100%;height:54vh;background:#0a0e14;border-radius:10px;overflow:hidden;touch-action:none;">'
             + '<canvas id="agpk-cv" style="position:absolute;top:0;left:0;"></canvas></div>'
             + '<div style="display:flex;gap:8px;margin-top:8px;">'
@@ -244,7 +244,7 @@
     // =====================================================================
     function renderCpList() {
         var box = document.getElementById('aggo-cps'); if (!box) return;
-        if (!_cps.length) { box.innerHTML = '<div style="opacity:.6;font-size:12.5px;">Zatím žádné vlícovací body. Přidej aspoň 2.</div>'; }
+        if (!_cps.length) { box.innerHTML = '<div style="opacity:.6;font-size:calc(12.5px * var(--ag-font-scale, 1));">Zatím žádné vlícovací body. Přidej aspoň 2.</div>'; }
         else {
             box.innerHTML = _cps.map(function (c, i) {
                 return '<div class="cluster-list-item" style="display:flex;align-items:center;gap:8px;">'
@@ -270,7 +270,7 @@
         try { if (typeof arPoints !== 'undefined') ptOpts = arPoints.filter(function (p) { return !p.hidden; }).map(function (p) { return '<option value="' + p.id + '">#' + p.name + '</option>'; }).join(''); } catch (e) {}
         ed.innerHTML =
             '<div style="margin:6px 0;padding:10px;border-radius:10px;background:rgba(255,255,255,0.06);">'
-            + '<div style="font-size:12.5px;opacity:.8;margin-bottom:6px;">Skutečné souřadnice tohoto bodu:</div>'
+            + '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.8;margin-bottom:6px;">Skutečné souřadnice tohoto bodu:</div>'
             + '<div style="display:flex;gap:8px;"><input type="number" id="aggo-wy" placeholder="Y (S-JTSK)" step="0.01" style="flex:1;"><input type="number" id="aggo-wx" placeholder="X (S-JTSK)" step="0.01" style="flex:1;"></div>'
             + '<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">'
             + '<button class="btn btn-secondary" id="aggo-gps" style="flex:1;margin:0;">Z GPS</button>'
@@ -329,13 +329,13 @@
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Vlastní georeferencovaný podklad</h3>'
             + '<input type="file" id="aggo-file" accept="image/*" style="display:none;">'
             + '<button class="btn btn-secondary" id="aggo-load"><svg class="icon"><use href="#i-upload"/></svg> Načíst obrázek (plán / situace)</button>'
-            + '<div id="aggo-imginfo" style="font-size:12.5px;margin:8px 0;color:var(--accent);"></div>'
+            + '<div id="aggo-imginfo" style="font-size:calc(12.5px * var(--ag-font-scale, 1));margin:8px 0;color:var(--accent);"></div>'
             + '<label style="margin-top:4px;">Vlícovací body</label>'
             + '<div id="aggo-cps" style="margin:4px 0;"></div>'
-            + '<div id="aggo-status" style="font-size:12.5px;opacity:.85;margin:4px 0;"></div>'
+            + '<div id="aggo-status" style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.85;margin:4px 0;"></div>'
             + '<button class="btn btn-secondary" id="aggo-add"><svg class="icon"><use href="#i-plus"/></svg> Přidat vlícovací bod (z obrázku)</button>'
             + '<div id="aggo-worlded" style="display:none;"></div>'
-            + '<div style="display:flex;align-items:center;gap:10px;margin-top:14px;"><span style="font-size:13px;">Průhlednost</span>'
+            + '<div style="display:flex;align-items:center;gap:10px;margin-top:14px;"><span style="font-size:calc(13px * var(--ag-font-scale, 1));">Průhlednost</span>'
             + '<input type="range" id="aggo-op" min="10" max="100" step="5" value="70" style="flex:1;"></div>'
             + '<label class="filter-row" style="margin-top:8px;"><input type="checkbox" id="aggo-vis" checked> Zobrazit podklad na mapě</label>'
             + '<div style="display:flex;gap:8px;margin-top:8px;">'

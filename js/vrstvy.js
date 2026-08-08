@@ -118,34 +118,34 @@
             // výsledek NAHOŘE
             '#' + MODAL_ID + ' .vr-res{margin:2px 0 12px;padding:14px;border-radius:var(--r-md,12px);border:1px solid var(--accent,#2f9e74);',
             '  background:rgba(47,158,116,0.10);}',
-            '#' + MODAL_ID + ' .vr-res .vr-total{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:800;font-size:15px;}',
-            '#' + MODAL_ID + ' .vr-res .vr-total b{font-family:var(--font-mono,monospace);font-size:24px;color:var(--accent,#2f9e74);white-space:nowrap;}',
-            '#' + MODAL_ID + ' .vr-res .vr-line{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;margin-top:7px;color:var(--text-color,#e8edf2);opacity:0.85;}',
+            '#' + MODAL_ID + ' .vr-res .vr-total{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:800;font-size:calc(15px * var(--ag-font-scale, 1));}',
+            '#' + MODAL_ID + ' .vr-res .vr-total b{font-family:var(--font-mono,monospace);font-size:calc(24px * var(--ag-font-scale, 1));color:var(--accent,#2f9e74);white-space:nowrap;}',
+            '#' + MODAL_ID + ' .vr-res .vr-line{display:flex;justify-content:space-between;gap:10px;font-size:calc(12.5px * var(--ag-font-scale, 1));margin-top:7px;color:var(--text-color,#e8edf2);opacity:0.85;}',
             '#' + MODAL_ID + ' .vr-res .vr-line span:last-child{font-family:var(--font-mono,monospace);white-space:nowrap;}',
             // řez
             '#' + MODAL_ID + ' .vr-sec{margin:10px 0 4px;border:1px solid var(--glass-border,rgba(255,255,255,0.12));border-radius:var(--r-md,12px);',
             '  background:rgba(255,255,255,0.03);padding:8px 8px 4px;}',
             '#' + MODAL_ID + ' .vr-sec svg{display:block;width:100%;height:auto;touch-action:none;}',
             '#' + MODAL_ID + ' .vr-sec .vr-drag{cursor:ns-resize;}',
-            '#' + MODAL_ID + ' .vr-secrow{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:6px 2px 8px;font-size:12px;color:var(--text-muted,#9aa1ac);}',
+            '#' + MODAL_ID + ' .vr-secrow{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:6px 2px 8px;font-size:calc(12px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);}',
             '#' + MODAL_ID + ' .vr-secrow input{width:60px;margin:0;padding:7px 8px;}',
             '#' + MODAL_ID + ' .vr-secrow select{width:auto;margin:0;padding:7px 8px;}',
-            '#' + MODAL_ID + ' .vr-sechint{margin:0 2px 8px;font-size:11.5px;color:var(--text-muted,#9aa1ac);}',
+            '#' + MODAL_ID + ' .vr-sechint{margin:0 2px 8px;font-size:calc(11.5px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);}',
             // tabulka vrstev
             '#' + MODAL_ID + ' .vr-head{display:grid;grid-template-columns:1fr 62px 62px 88px;gap:6px;margin:10px 0 4px;',
-            '  font-size:10.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted,#9aa1ac);}',
+            '  font-size:calc(10.5px * var(--ag-font-scale, 1));text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted,#9aa1ac);}',
             '#' + MODAL_ID + ' .vr-row{display:grid;grid-template-columns:1fr 62px 62px 88px;gap:6px;align-items:center;margin-bottom:6px;}',
             '#' + MODAL_ID + ' .vr-row input{margin:0;padding:9px 8px;min-width:0;}',
             '#' + MODAL_ID + ' .vr-btns{display:flex;gap:4px;}',
             '#' + MODAL_ID + ' .vr-btns button{flex:1;height:38px;border:1px solid var(--glass-border,rgba(255,255,255,0.15));',
-            '  border-radius:var(--r-sm,8px);background:rgba(255,255,255,0.05);color:var(--text-color,#e8edf2);cursor:pointer;font-size:14px;line-height:1;}',
+            '  border-radius:var(--r-sm,8px);background:rgba(255,255,255,0.05);color:var(--text-color,#e8edf2);cursor:pointer;font-size:calc(14px * var(--ag-font-scale, 1));line-height:1;}',
             '#' + MODAL_ID + ' .vr-btns button.vr-del{color:var(--danger,#fb7185);}',
             // katalog — řádky se zalamují, popis je vidět celý
             '#' + MODAL_ID + ' .vr-addrow{display:flex;gap:8px;margin-top:6px;}',
             '#' + MODAL_ID + ' .vr-addrow .btn{flex:1;margin:0;padding:10px;}',
             '#' + MODAL_ID + ' .vr-cat{display:none;margin-top:8px;border:1px solid var(--glass-border,rgba(255,255,255,0.12));border-radius:var(--r-md,12px);overflow:hidden;}',
             '#' + MODAL_ID + ' .vr-cat.open{display:block;}',
-            '#' + MODAL_ID + ' .vr-cat .vr-catsec{padding:9px 12px 5px;font-size:10.5px;text-transform:uppercase;letter-spacing:0.06em;',
+            '#' + MODAL_ID + ' .vr-cat .vr-catsec{padding:9px 12px 5px;font-size:calc(10.5px * var(--ag-font-scale, 1));text-transform:uppercase;letter-spacing:0.06em;',
             '  color:var(--text-muted,#9aa1ac);background:rgba(255,255,255,0.03);border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.08));}',
             '#' + MODAL_ID + ' .vr-cat .vr-catrow{display:block;width:100%;padding:10px 12px;border:none;',
             '  border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.08));background:transparent;color:var(--text-color,#e8edf2);',
@@ -154,13 +154,13 @@
             '#' + MODAL_ID + ' .vr-cat .vr-catrow:active{background:rgba(255,255,255,0.06);}',
             '#' + MODAL_ID + ' .vr-cat .vr-r1{display:flex;align-items:baseline;gap:8px;}',
             '#' + MODAL_ID + ' .vr-cat .vr-r1 b{flex:0 0 auto;color:var(--accent,#2f9e74);}',
-            '#' + MODAL_ID + ' .vr-cat .vr-r1 span{flex:1;min-width:0;font-size:12.5px;}',
-            '#' + MODAL_ID + ' .vr-cat .vr-r1 small{flex:0 0 auto;font-family:var(--font-mono,monospace);font-size:11.5px;color:var(--text-muted,#9aa1ac);}',
-            '#' + MODAL_ID + ' .vr-cat .vr-r2{margin-top:3px;font-size:11.5px;line-height:1.4;color:var(--text-muted,#9aa1ac);}',
+            '#' + MODAL_ID + ' .vr-cat .vr-r1 span{flex:1;min-width:0;font-size:calc(12.5px * var(--ag-font-scale, 1));}',
+            '#' + MODAL_ID + ' .vr-cat .vr-r1 small{flex:0 0 auto;font-family:var(--font-mono,monospace);font-size:calc(11.5px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);}',
+            '#' + MODAL_ID + ' .vr-cat .vr-r2{margin-top:3px;font-size:calc(11.5px * var(--ag-font-scale, 1));line-height:1.4;color:var(--text-muted,#9aa1ac);}',
             // slovníček
-            '#' + MODAL_ID + ' .vr-dict p{margin:8px 0;font-size:12.5px;line-height:1.5;color:var(--text-color,#e8edf2);}',
+            '#' + MODAL_ID + ' .vr-dict p{margin:8px 0;font-size:calc(12.5px * var(--ag-font-scale, 1));line-height:1.5;color:var(--text-color,#e8edf2);}',
             '#' + MODAL_ID + ' .vr-dict b{color:var(--accent,#2f9e74);}',
-            '#' + MODAL_ID + ' .vr-hint{margin-top:10px;font-size:12px;line-height:1.45;color:var(--text-muted,#9aa1ac);}'
+            '#' + MODAL_ID + ' .vr-hint{margin-top:10px;font-size:calc(12px * var(--ag-font-scale, 1));line-height:1.45;color:var(--text-muted,#9aa1ac);}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
@@ -209,7 +209,7 @@
             '</div>' +
             '<div class="vr-cat" id="vr-cat"></div>' +
             '<input type="text" id="vr-sk-name" style="margin-top:14px;" placeholder="Název stavby / úseku (např. D35 Ostrov, km 3,2–5,6)">' +
-            '<details class="vr-dict" style="margin-top:12px;"><summary style="cursor:pointer; color:var(--text-muted); font-size:13px; padding:6px 0;">Co znamenají zkratky vrstev? (slovníček)</summary>' + dict + '</details>' +
+            '<details class="vr-dict" style="margin-top:12px;"><summary style="cursor:pointer; color:var(--text-muted); font-size:calc(13px * var(--ag-font-scale, 1)); padding:6px 0;">Co znamenají zkratky vrstev? (slovníček)</summary>' + dict + '</details>' +
             '<div class="vr-hint">Nadvýšení na hutnění je orientační (tloušťka × %). Běžně: asfaltové vrstvy ~15–25 %, MZK/ŠD ~20–30 %, litý asfalt a beton 0 %. Uprav podle zhutňovací zkoušky.</div>' +
             '</div>' +
             '<button class="btn btn-secondary" style="margin-top:12px;" id="vr-close">Zavřít</button>' +
@@ -314,7 +314,7 @@
         if (profSel) profSel.value = (s && s.roof) ? 'strecha' : 'jedno';
         if (!s) return;
         if (!s.layers.length) {
-            box.innerHTML = '<div style="text-align:center; padding:10px; font-size:13px; color:var(--text-muted);">Přidej vrstvy — nejrychleji „Z katalogu".</div>';
+            box.innerHTML = '<div style="text-align:center; padding:10px; font-size:calc(13px * var(--ag-font-scale, 1)); color:var(--text-muted);">Přidej vrstvy — nejrychleji „Z katalogu".</div>';
             return;
         }
         s.layers.forEach(function (L, i) {
@@ -422,7 +422,7 @@
         var host = document.getElementById('vr-svg');
         if (!host) return;
         var s = skladba();
-        if (!s || !s.layers.length) { host.innerHTML = '<div style="text-align:center; padding:14px 6px; font-size:13px; color:var(--text-muted);">Řez se vykreslí, jakmile přidáš vrstvy.</div>'; return; }
+        if (!s || !s.layers.length) { host.innerHTML = '<div style="text-align:center; padding:14px 6px; font-size:calc(13px * var(--ag-font-scale, 1)); color:var(--text-muted);">Řez se vykreslí, jakmile přidáš vrstvy.</div>'; return; }
 
         var PAD = 6;
         var MINH = 20; // minimální výška pruhu, ať je popisek vždy čitelný

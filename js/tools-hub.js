@@ -132,13 +132,13 @@
             '#ag-th-ov.open{display:flex;}',
             '#ag-th-card{width:min(94vw,440px);max-height:86vh;overflow:auto;padding:20px;border-radius:18px;',
             '  background:var(--glass-bg,rgba(14,18,24,0.97));border:1px solid var(--glass-border-strong,rgba(255,255,255,0.16));color:var(--text-color,#eceef2);}',
-            '#ag-th-card h3{margin:0 0 6px;color:var(--accent,#2f9e74);font-size:17px;display:flex;align-items:center;gap:8px;}',
+            '#ag-th-card h3{margin:0 0 6px;color:var(--accent,#2f9e74);font-size:calc(17px * var(--ag-font-scale, 1));display:flex;align-items:center;gap:8px;}',
             '#ag-th-card h3 svg{width:20px;height:20px;}',
-            '#ag-th-sub{margin:0 0 14px;font-size:13px;color:var(--text-muted,#9aa1ac);line-height:1.45;}',
+            '#ag-th-sub{margin:0 0 14px;font-size:calc(13px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);line-height:1.45;}',
             '.ag-th-opt{display:block;width:100%;text-align:left;margin-bottom:8px;padding:13px 14px;border-radius:14px;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:var(--surface-1,rgba(255,255,255,0.05));color:inherit;cursor:pointer;}',
-            '.ag-th-opt b{display:block;font-size:14.5px;margin-bottom:2px;}',
-            '.ag-th-opt small{display:block;font-size:12.5px;color:var(--text-muted,#9aa1ac);line-height:1.4;}',
+            '.ag-th-opt b{display:block;font-size:calc(14.5px * var(--ag-font-scale, 1));margin-bottom:2px;}',
+            '.ag-th-opt small{display:block;font-size:calc(12.5px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);line-height:1.4;}',
             '.ag-th-opt:active{background:var(--accent-soft,rgba(47,158,116,0.15));border-color:var(--accent-line,rgba(47,158,116,0.4));}',
             '#ag-th-close{width:100%;margin-top:4px;padding:11px;border-radius:12px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:transparent;color:var(--text-muted,#9aa1ac);font-weight:600;cursor:pointer;}',
             'body.ag-glove .ag-th-opt{padding:16px;}',
@@ -156,14 +156,14 @@
             // náhodné pořadí načtení skriptů.
             '#tools-modal .tool-grid{gap:8px;}',
             '#tools-modal .tool-grid .tool-tile{min-height:84px;padding:14px 6px;gap:7px;',
-            '  font-size:12px;line-height:1.2;}',
+            '  font-size:calc(12px * var(--ag-font-scale, 1));line-height:1.2;}',
             '#tools-modal .tool-grid .tool-tile svg,#tools-modal .tool-grid .tool-tile .icon{width:23px;height:23px;}',
             '#tools-modal .tool-grid .tool-cat,#tools-modal .tool-grid .ag-ft-head{',
             '  margin:12px 2px 2px;padding-top:9px;}',
             '#tools-modal .tool-grid > .tool-cat:first-child,#tools-modal .tool-grid > .ag-ft-head:first-child{',
             '  margin-top:0;padding-top:0;border-top:none;}',
             // v rukavicích zůstávají dlaždice velké (jinak by je tenhle blok zmenšil)
-            'body.ag-glove #tools-modal .tool-grid .tool-tile{min-height:96px;padding:16px 6px;font-size:13px;}'
+            'body.ag-glove #tools-modal .tool-grid .tool-tile{min-height:96px;padding:16px 6px;font-size:calc(13px * var(--ag-font-scale, 1));}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }

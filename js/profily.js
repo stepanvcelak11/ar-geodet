@@ -54,6 +54,8 @@
         { id: 's-max-ar-slider', n: 'Bodů v AR najednou', f: fNum },
         { id: 's-map-radius-slider', n: 'Dohled v mapě', f: fM },
         { id: 's-outdoor', n: 'Vysoký kontrast na slunci', f: fBool },
+        { id: 's-auto-outdoor', n: 'Venkovní režim se zapíná sám', f: fBool },
+        { id: 'v-font-scale', n: 'Velikost písma', f: fPct },
         { id: 's-wakelock', n: 'Displej nezhasne', f: fBool },
         { id: 'agp-enabled', n: 'Spánek senzorů mimo AR a mapu', f: fBool },
         { id: 'agp-gps', n: 'Spánek GPS v nástrojích', f: fBool },
@@ -230,9 +232,9 @@
             '#ag-dev-box .ag-dev-row .btn{flex:1;}',
             '#ag-dev-sum{margin:8px 2px 0;font:500 11.5px/1.5 var(--font-ui,system-ui),sans-serif;color:var(--text-muted,#9aa1ac);}',
             '#ag-dev-sum b{color:var(--accent,#2f9e74);}',
-            'body.ag-glove #ag-prof-row button{min-height:54px;font-size:13.5px;}',
+            'body.ag-glove #ag-prof-row button{min-height:54px;font-size:calc(13.5px * var(--ag-font-scale, 1));}',
             'body.ag-glove #ag-prof-row button .icon{width:18px;height:18px;}',
-            'body.ag-glove #ag-prof-det>summary{padding:9px 12px;font-size:12.5px;}'
+            'body.ag-glove #ag-prof-det>summary{padding:9px 12px;font-size:calc(12.5px * var(--ag-font-scale, 1));}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
@@ -513,7 +515,7 @@
             + '  <button type="button" class="btn btn-blue" id="ag-dev-imp"><svg class="icon"><use href="#i-folder"/></svg> Nahrát ze souboru</button>'
             + '</div>'
             + '<input type="file" id="ag-dev-file" accept=".agdev,.json,application/json" style="display:none">'
-            + '<p style="font-size:11.5px;line-height:1.5;opacity:.7;margin:8px 2px 0;">Přenese zorný úhel kamery, výšku očí, korekci severu a uložené kalibrace '
+            + '<p style="font-size:calc(11.5px * var(--ag-font-scale, 1));line-height:1.5;opacity:.7;margin:8px 2px 0;">Přenese zorný úhel kamery, výšku očí, korekci severu a uložené kalibrace '
             + 'na další telefon v partě. <b>Zorný úhel patří k modelu telefonu</b> — mezi různými modely ho nepřenášej. '
             + 'Body a zakázky v tom nejsou, na ty je záloha výše.</p>';
         tab.appendChild(box);

@@ -488,10 +488,10 @@
         var m = _model;
         var h = '<!doctype html><html lang="cs"><head><meta charset="utf-8"><title>Deník dne</title><style>'
             + 'body{font:13px/1.55 -apple-system,Segoe UI,Roboto,sans-serif;color:#111;margin:24px;}'
-            + 'h1{font-size:19px;margin:0 0 2px;} .sub{color:#555;margin:0 0 16px;font-size:12px;}'
+            + 'h1{font-size:calc(19px * var(--ag-font-scale, 1));margin:0 0 2px;} .sub{color:#555;margin:0 0 16px;font-size:calc(12px * var(--ag-font-scale, 1));}'
             + '.sec{border:1px solid #ccc;border-radius:8px;padding:10px 14px;margin-bottom:10px;page-break-inside:avoid;}'
-            + '.sec h2{font-size:14px;margin:0 0 2px;} .sec .cnt{color:#2c7a4b;font-size:11.5px;margin:0 0 6px;}'
-            + '.sec .row{font-size:12.5px;color:#333;white-space:pre-wrap;} .sec .empty{color:#888;font-style:italic;font-size:12px;}'
+            + '.sec h2{font-size:calc(14px * var(--ag-font-scale, 1));margin:0 0 2px;} .sec .cnt{color:#2c7a4b;font-size:calc(11.5px * var(--ag-font-scale, 1));margin:0 0 6px;}'
+            + '.sec .row{font-size:calc(12.5px * var(--ag-font-scale, 1));color:#333;white-space:pre-wrap;} .sec .empty{color:#888;font-style:italic;font-size:calc(12px * var(--ag-font-scale, 1));}'
             + '@media print{button{display:none}}'
             + '</style></head><body>'
             + '<button onclick="window.print()" style="padding:8px 16px;margin-bottom:14px;">Tisk / Uložit PDF</button>'

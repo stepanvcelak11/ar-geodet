@@ -184,7 +184,7 @@
         if (_busy) return; _busy = true;
         var withPhotos = !(document.getElementById('agjt-nophoto') && document.getElementById('agjt-nophoto').checked);
         var out = document.getElementById('agjt-export-out');
-        if (out) out.innerHTML = '<div style="opacity:.75;font-size:13px;padding:6px 0;">Sbírám data zakázky…</div>';
+        if (out) out.innerHTML = '<div style="opacity:.75;font-size:calc(13px * var(--ag-font-scale, 1));padding:6px 0;">Sbírám data zakázky…</div>';
         collect(withPhotos).then(function (pkg) {
             var json = JSON.stringify(pkg);
             var sum = pkgSummary(pkg);
@@ -205,18 +205,18 @@
         var out = document.getElementById('agjt-export-out'); if (!out) return;
         var canS = false;
         try { canS = !!(navigator.share && navigator.canShare && navigator.canShare({ files: [file] })); } catch (e) { canS = false; }
-        var comp = hasCompression() ? '' : '<div style="color:#fbbf24;font-size:11.5px;margin-top:4px;">Prohlížeč neumí gzip → soubor je nezabalený (větší). Na druhém telefonu se přesto načte.</div>';
+        var comp = hasCompression() ? '' : '<div style="color:#fbbf24;font-size:calc(11.5px * var(--ag-font-scale, 1));margin-top:4px;">Prohlížeč neumí gzip → soubor je nezabalený (větší). Na druhém telefonu se přesto načte.</div>';
         out.innerHTML =
             '<div class="agjt-box">'
-            + '<div style="font-size:14px;margin-bottom:4px;">Balíček připraven <b>' + fmtSize(blob.size) + '</b></div>'
-            + '<div style="font-size:12.5px;opacity:.85;line-height:1.5;">' + sum.pts + ' bodů · ' + sum.lines + ' spojnic · ' + sum.docs + ' foto/pozn.' + (sum.journal ? ' · ' + sum.journal + ' záznamů žurnálu' : '') + '<br>'
+            + '<div style="font-size:calc(14px * var(--ag-font-scale, 1));margin-bottom:4px;">Balíček připraven <b>' + fmtSize(blob.size) + '</b></div>'
+            + '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.85;line-height:1.5;">' + sum.pts + ' bodů · ' + sum.lines + ' spojnic · ' + sum.docs + ' foto/pozn.' + (sum.journal ? ' · ' + sum.journal + ' záznamů žurnálu' : '') + '<br>'
             + (withPhotos ? '' : '<span style="color:#fbbf24;">bez fotek (jen poznámky)</span> · ') + 'soubor <b>' + file.name + '</b></div>'
             + comp
             + '<div class="agjt-actrow">'
             + (canS ? '<button class="btn" id="agjt-do-share"><svg class="icon"><use href="#i-upload"/></svg> Sdílet (Airdrop/chat…)</button>' : '')
             + '<button class="btn ' + (canS ? 'btn-secondary' : '') + '" id="agjt-do-dl"><svg class="icon"><use href="#i-download"/></svg> Stáhnout soubor</button>'
             + '</div>'
-            + '<div style="font-size:11.5px;opacity:.65;margin-top:6px;line-height:1.45;">Na druhém telefonu otevři AR Geodet → Nástroje → „Poslat/načíst zakázku" → <b>Načíst</b> a vyber tenhle .argeo soubor. Body se <b>přidají</b> do jeho aktivní zakázky (nic se nepřepíše).</div>'
+            + '<div style="font-size:calc(11.5px * var(--ag-font-scale, 1));opacity:.65;margin-top:6px;line-height:1.45;">Na druhém telefonu otevři AR Geodet → Nástroje → „Poslat/načíst zakázku" → <b>Načíst</b> a vyber tenhle .argeo soubor. Body se <b>přidají</b> do jeho aktivní zakázky (nic se nepřepíše).</div>'
             + '</div>';
         var sh = document.getElementById('agjt-do-share');
         if (sh) sh.addEventListener('click', function () {
@@ -262,7 +262,7 @@
         if (!file) return;
         if (_busy) return; _busy = true;
         var out = document.getElementById('agjt-import-out');
-        if (out) out.innerHTML = '<div style="opacity:.75;font-size:13px;padding:6px 0;">Čtu soubor…</div>';
+        if (out) out.innerHTML = '<div style="opacity:.75;font-size:calc(13px * var(--ag-font-scale, 1));padding:6px 0;">Čtu soubor…</div>';
         readFileToJson(file).then(function (pkg) {
             if (!pkg || pkg.format !== FORMAT) {
                 agAlert('Nepodporovaný soubor', 'Tohle nevypadá jako přenos AR Geodet (.argeo). Zkontroluj, že jsi vybral správný soubor.');
@@ -304,7 +304,7 @@
         var html = 'Přenos zakázky <b>„' + escHtml(pkg.project && pkg.project.name || '?') + '"</b>' + (when ? ' (' + when + ')' : '') + ':<br>'
             + '<b>' + sum.pts + '</b> bodů · <b>' + sum.lines + '</b> spojnic · <b>' + sum.docs + '</b> foto/pozn.' + (sum.journal ? ' · ' + sum.journal + ' zázn. žurnálu' : '') + '<br><br>'
             + 'Sloučit do tvojí aktivní zakázky <b>„' + escHtml(target.name) + '"</b>?<br>'
-            + '<span style="opacity:.75;font-size:12.5px;">Body se <b>přidají</b> (shodné se přeskočí, nic se nepřepíše). Nastavení druhé zakázky se nepřebírá. Chceš-li přenos oddělit, nejdřív si v appce založ novou zakázku a přepni se na ni.</span>';
+            + '<span style="opacity:.75;font-size:calc(12.5px * var(--ag-font-scale, 1));">Body se <b>přidají</b> (shodné se přeskočí, nic se nepřepíše). Nastavení druhé zakázky se nepřebírá. Chceš-li přenos oddělit, nejdřív si v appce založ novou zakázku a přepni se na ni.</span>';
         function proceed() { runMerge(pkg); }
         if (typeof window.agAlert === 'function') {
             window.agAlert({ title: 'Načíst zakázku', message: html, okText: 'Sloučit', cancelText: 'Zrušit' }).then(function (ok) { if (ok) proceed(); else clearImportOut(); });
@@ -317,7 +317,7 @@
     function runMerge(pkg) {
         var targetPid = getPid();
         var out = document.getElementById('agjt-import-out');
-        if (out) out.innerHTML = '<div style="opacity:.75;font-size:13px;padding:6px 0;">Slučuji…</div>';
+        if (out) out.innerHTML = '<div style="opacity:.75;font-size:calc(13px * var(--ag-font-scale, 1));padding:6px 0;">Slučuji…</div>';
 
         // 1) BODY přes window.addImportedPoints (dedup + zachová prov/acc/vyska/doc)
         var cpRaw = (pkg.idb && pkg.idb.arCustomPoints12) || (pkg.ls && pkg.ls.arCustomPoints12) || null;
@@ -352,7 +352,7 @@
                 + '• ' + addedPts + ' nových bodů' + (skipped > 0 ? ' (' + skipped + ' shodných přeskočeno)' : '') + '\n'
                 + '• ' + addedLines + ' spojnic'
                 + (jAdded ? '\n• ' + jAdded + ' záznamů žurnálu' : '');
-            if (out) out.innerHTML = '<div class="agjt-box"><div style="font-size:14px;">Hotovo</div><div style="font-size:12.5px;opacity:.85;white-space:pre-line;margin-top:4px;">' + escHtml(msg) + '</div></div>';
+            if (out) out.innerHTML = '<div class="agjt-box"><div style="font-size:calc(14px * var(--ag-font-scale, 1));">Hotovo</div><div style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.85;white-space:pre-line;margin-top:4px;">' + escHtml(msg) + '</div></div>';
             toast('Zakázka sloučena (' + addedPts + ' bodů)');
         });
     }
@@ -413,7 +413,7 @@
         el.innerHTML =
             '<div class="modal-content" style="display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Poslat / načíst zakázku</h3>'
-            + '<p style="font-size:12.5px;opacity:.82;margin:2px 0 12px;line-height:1.45;">Přenes celou zakázku (body, spojnice, fotky, poznámky, žurnál) do jednoho souboru <b>.argeo</b> a načti ji na druhém telefonu — <b>bez serveru a offline</b>. Souřadnice se jen kopírují, nic se nepřepočítává.</p>'
+            + '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.82;margin:2px 0 12px;line-height:1.45;">Přenes celou zakázku (body, spojnice, fotky, poznámky, žurnál) do jednoho souboru <b>.argeo</b> a načti ji na druhém telefonu — <b>bez serveru a offline</b>. Souřadnice se jen kopírují, nic se nepřepočítává.</p>'
 
             + '<div class="agjt-sec">'
             + '  <div class="agjt-sec-h">Poslat tuhle zakázku</div>'
@@ -424,7 +424,7 @@
 
             + '<div class="agjt-sec">'
             + '  <div class="agjt-sec-h">Načíst zakázku ze souboru</div>'
-            + '  <p style="font-size:12px;opacity:.7;margin:0 0 8px;">Body a spojnice se <b>přidají</b> do tvojí aktuální zakázky (shodné se přeskočí). Nic se nepřepíše.</p>'
+            + '  <p style="font-size:calc(12px * var(--ag-font-scale, 1));opacity:.7;margin:0 0 8px;">Body a spojnice se <b>přidají</b> do tvojí aktuální zakázky (shodné se přeskočí). Nic se nepřepíše.</p>'
             + '  <button class="btn btn-blue" id="agjt-import"><svg class="icon"><use href="#i-download"/></svg> Vybrat .argeo soubor</button>'
             + '  <div id="agjt-import-out"></div>'
             + '</div>'
@@ -452,7 +452,7 @@
         st.textContent = [
             '#agjt-modal .agjt-sec{margin:10px 0 6px;padding:12px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid var(--glass-border,rgba(255,255,255,0.10));}',
             '#agjt-modal .agjt-sec-h{font:700 12px/1 var(--font-display,system-ui),sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);margin-bottom:8px;}',
-            '#agjt-modal .agjt-chk{display:flex;align-items:center;gap:9px;margin:2px 0 10px;font-size:13px;cursor:pointer;}',
+            '#agjt-modal .agjt-chk{display:flex;align-items:center;gap:9px;margin:2px 0 10px;font-size:calc(13px * var(--ag-font-scale, 1));cursor:pointer;}',
             '#agjt-modal .agjt-chk input{width:18px;height:18px;flex:0 0 18px;accent-color:var(--accent,#2f9e74);}',
             '#agjt-modal .agjt-box{margin-top:10px;padding:11px 13px;border-radius:10px;background:rgba(47,158,116,0.12);}',
             '#agjt-modal .agjt-actrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}',

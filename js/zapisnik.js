@@ -71,34 +71,34 @@
             '#ag-zb-ov{position:fixed;inset:0;z-index:1000040;display:none;flex-direction:column;background:var(--bg-color,#0f1216);color:var(--text-color,#eceef2);}',
             '#ag-zb-ov.open{display:flex;}',
             '#ag-zb-head{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 12px;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.12));}',
-            '#ag-zb-head h2{margin:0;font-size:17px;flex:1;color:var(--accent,#2f9e74);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+            '#ag-zb-head h2{margin:0;font-size:calc(17px * var(--ag-font-scale, 1));flex:1;color:var(--accent,#2f9e74);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
             '#ag-zb-head button{border:1px solid var(--glass-border,rgba(255,255,255,0.16));background:transparent;color:inherit;border-radius:99px;padding:8px 14px;font-weight:600;cursor:pointer;flex:0 0 auto;}',
             '#ag-zb-body{flex:1 1 auto;overflow:auto;padding:14px 14px calc(env(safe-area-inset-bottom,0px) + 20px);-webkit-overflow-scrolling:touch;}',
             '.ag-zb-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;margin-bottom:10px;padding:13px 14px;border-radius:14px;border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:rgba(255,255,255,0.04);color:inherit;cursor:pointer;}',
-            '.ag-zb-item b{flex:1;font-size:14.5px;}',
+            '.ag-zb-item b{flex:1;font-size:calc(14.5px * var(--ag-font-scale, 1));}',
             '.ag-zb-item small{color:var(--text-muted,#9aa1ac);}',
-            '.ag-zb-del{border:none;background:transparent;color:var(--danger,#fb7185);font-size:16px;cursor:pointer;padding:6px;}',
+            '.ag-zb-del{border:none;background:transparent;color:var(--danger,#fb7185);font-size:calc(16px * var(--ag-font-scale, 1));cursor:pointer;padding:6px;}',
             '.ag-zb-sec{margin:16px 2px 8px;font:700 11px/1 var(--font-display,system-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
             '.ag-zb-newbtn{width:100%;padding:12px;margin-bottom:8px;border-radius:12px;border:1px dashed var(--accent-line,rgba(47,158,116,0.4));background:var(--accent-soft,rgba(47,158,116,0.07));color:var(--accent,#2f9e74);font-weight:600;cursor:pointer;}',
             '.ag-zb-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}',
-            '.ag-zb-meta label{flex:1 1 120px;font-size:11px;color:var(--text-muted,#9aa1ac);display:flex;flex-direction:column;gap:4px;}',
-            '.ag-zb-meta input{width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);color:inherit;font-size:14px;}',
-            '.ag-zb-auto{display:flex;align-items:center;gap:8px;margin:4px 0 12px;font-size:13px;color:var(--text-muted,#9aa1ac);}',
+            '.ag-zb-meta label{flex:1 1 120px;font-size:calc(11px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);display:flex;flex-direction:column;gap:4px;}',
+            '.ag-zb-meta input{width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);color:inherit;font-size:calc(14px * var(--ag-font-scale, 1));}',
+            '.ag-zb-auto{display:flex;align-items:center;gap:8px;margin:4px 0 12px;font-size:calc(13px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);}',
             '.ag-zb-auto input{width:18px;height:18px;accent-color:var(--accent,#2f9e74);}',
             '.ag-zb-seg{display:inline-flex;border:1px solid var(--glass-border,rgba(255,255,255,0.16));border-radius:99px;overflow:hidden;}',
-            '.ag-zb-seg button{border:none;background:transparent;color:var(--text-muted,#9aa1ac);padding:7px 13px;font-size:12.5px;font-weight:600;cursor:pointer;}',
+            '.ag-zb-seg button{border:none;background:transparent;color:var(--text-muted,#9aa1ac);padding:7px 13px;font-size:calc(12.5px * var(--ag-font-scale, 1));font-weight:600;cursor:pointer;}',
             '.ag-zb-seg button.on{background:var(--accent-soft,rgba(47,158,116,0.18));color:var(--accent,#2f9e74);}',
             // --- nivelace: tabulka ---
             '.ag-zb-tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--glass-border,rgba(255,255,255,0.1));border-radius:12px;}',
-            '.ag-zb-tbl{border-collapse:collapse;width:100%;min-width:520px;font-size:13px;}',
-            '.ag-zb-tbl th{position:sticky;top:0;background:rgba(20,25,32,0.97);padding:8px 6px;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted,#9aa1ac);border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.12));text-align:left;}',
+            '.ag-zb-tbl{border-collapse:collapse;width:100%;min-width:520px;font-size:calc(13px * var(--ag-font-scale, 1));}',
+            '.ag-zb-tbl th{position:sticky;top:0;background:rgba(20,25,32,0.97);padding:8px 6px;font-size:calc(10.5px * var(--ag-font-scale, 1));text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted,#9aa1ac);border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.12));text-align:left;}',
             '.ag-zb-tbl td{padding:4px 4px;border-bottom:1px solid rgba(255,255,255,0.06);vertical-align:middle;}',
             '.ag-zb-tbl tbody tr:nth-child(even) td{background:rgba(255,255,255,0.03);}',   // zebra = lepší čitelnost
-            '.ag-zb-tbl .ag-zb-idx{color:var(--text-muted,#9aa1ac);font-size:11px;padding:0 2px;}',
-            '.ag-zb-tbl input{width:86px;box-sizing:border-box;padding:8px 8px;border-radius:8px;border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:rgba(255,255,255,0.05);color:inherit;font-size:14px;font-family:var(--font-mono,monospace);}',
+            '.ag-zb-tbl .ag-zb-idx{color:var(--text-muted,#9aa1ac);font-size:calc(11px * var(--ag-font-scale, 1));padding:0 2px;}',
+            '.ag-zb-tbl input{width:86px;box-sizing:border-box;padding:8px 8px;border-radius:8px;border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:rgba(255,255,255,0.05);color:inherit;font-size:calc(14px * var(--ag-font-scale, 1));font-family:var(--font-mono,monospace);}',
             '.ag-zb-tbl input.ag-zb-name{width:96px;font-family:inherit;}',
             '.ag-zb-comp{font-family:var(--font-mono,monospace);color:var(--accent-bright,#3eb487);white-space:nowrap;}',
-            '.ag-zb-sum{margin-top:12px;padding:12px;border-radius:12px;border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:rgba(255,255,255,0.04);font-size:13.5px;line-height:1.7;}',
+            '.ag-zb-sum{margin-top:12px;padding:12px;border-radius:12px;border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:rgba(255,255,255,0.04);font-size:calc(13.5px * var(--ag-font-scale, 1));line-height:1.7;}',
             '.ag-zb-sum b{font-family:var(--font-mono,monospace);}',
             '.ag-zb-warn{color:var(--danger,#fb7185);font-weight:700;}',
             '.ag-zb-okk{color:var(--accent,#2f9e74);font-weight:700;}',
@@ -108,22 +108,22 @@
             // --- směry: karta cíle ---
             '.ag-zb-card{margin-bottom:12px;padding:12px;border-radius:14px;border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:rgba(255,255,255,0.035);}',
             '.ag-zb-card-head{display:flex;gap:8px;align-items:center;margin-bottom:8px;}',
-            '.ag-zb-card-head .ag-zb-cname{flex:1 1 110px;min-width:90px;padding:9px 10px;border-radius:10px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);color:inherit;font-size:14.5px;font-weight:600;}',
-            '.ag-zb-card-head .ag-zb-cdist{flex:0 1 110px;width:110px;padding:9px 10px;border-radius:10px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);color:inherit;font-size:14px;font-family:var(--font-mono,monospace);}',
-            '.ag-zb-gtbl{border-collapse:collapse;width:100%;font-size:12.5px;}',
-            '.ag-zb-gtbl th{padding:4px 4px;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted,#9aa1ac);text-align:left;}',
+            '.ag-zb-card-head .ag-zb-cname{flex:1 1 110px;min-width:90px;padding:9px 10px;border-radius:10px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);color:inherit;font-size:calc(14.5px * var(--ag-font-scale, 1));font-weight:600;}',
+            '.ag-zb-card-head .ag-zb-cdist{flex:0 1 110px;width:110px;padding:9px 10px;border-radius:10px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);color:inherit;font-size:calc(14px * var(--ag-font-scale, 1));font-family:var(--font-mono,monospace);}',
+            '.ag-zb-gtbl{border-collapse:collapse;width:100%;font-size:calc(12.5px * var(--ag-font-scale, 1));}',
+            '.ag-zb-gtbl th{padding:4px 4px;font-size:calc(10px * var(--ag-font-scale, 1));text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted,#9aa1ac);text-align:left;}',
             '.ag-zb-gtbl td{padding:3px 3px;}',
-            '.ag-zb-gtbl input{width:100%;min-width:62px;box-sizing:border-box;padding:8px 6px;border-radius:8px;border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:rgba(255,255,255,0.05);color:inherit;font-size:13.5px;font-family:var(--font-mono,monospace);}',
+            '.ag-zb-gtbl input{width:100%;min-width:62px;box-sizing:border-box;padding:8px 6px;border-radius:8px;border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:rgba(255,255,255,0.05);color:inherit;font-size:calc(13.5px * var(--ag-font-scale, 1));font-family:var(--font-mono,monospace);}',
             '.ag-zb-gwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}',
-            '.ag-zb-gtbl .ag-zb-gno{color:var(--text-muted,#9aa1ac);font-size:11px;white-space:nowrap;padding-right:4px;}',
-            '.ag-zb-csum{margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--accent-soft,rgba(47,158,116,0.07));border:1px solid var(--accent-line,rgba(47,158,116,0.25));font-size:12.5px;line-height:1.7;}',
+            '.ag-zb-gtbl .ag-zb-gno{color:var(--text-muted,#9aa1ac);font-size:calc(11px * var(--ag-font-scale, 1));white-space:nowrap;padding-right:4px;}',
+            '.ag-zb-csum{margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--accent-soft,rgba(47,158,116,0.07));border:1px solid var(--accent-line,rgba(47,158,116,0.25));font-size:calc(12.5px * var(--ag-font-scale, 1));line-height:1.7;}',
             '.ag-zb-csum b{font-family:var(--font-mono,monospace);color:var(--accent-bright,#3eb487);}',
             // --- dialog pro zadání názvu (náhrada prompt(), který mrazil kameru) ---
             '#ag-zb-ask{position:fixed;inset:0;z-index:1000061;display:none;align-items:center;justify-content:center;background:rgba(4,8,12,0.6);}',
             '#ag-zb-ask.open{display:flex;}',
             '#ag-zb-ask .ag-zb-askcard{width:min(92vw,360px);padding:18px;border-radius:16px;background:var(--glass-bg,rgba(14,18,24,0.97));border:1px solid var(--glass-border-strong,rgba(255,255,255,0.16));color:var(--text-color,#eceef2);}',
-            '#ag-zb-ask h3{margin:0 0 10px;font-size:15.5px;color:var(--accent,#2f9e74);}',
-            '#ag-zb-ask input{width:100%;box-sizing:border-box;padding:11px 12px;border-radius:10px;border:1px solid var(--glass-border,rgba(255,255,255,0.16));background:rgba(255,255,255,0.06);color:inherit;font-size:15px;}',
+            '#ag-zb-ask h3{margin:0 0 10px;font-size:calc(15.5px * var(--ag-font-scale, 1));color:var(--accent,#2f9e74);}',
+            '#ag-zb-ask input{width:100%;box-sizing:border-box;padding:11px 12px;border-radius:10px;border:1px solid var(--glass-border,rgba(255,255,255,0.16));background:rgba(255,255,255,0.06);color:inherit;font-size:calc(15px * var(--ag-font-scale, 1));}',
             '#ag-zb-ask .ag-zb-askbtns{display:flex;gap:8px;margin-top:12px;}',
             '#ag-zb-ask .ag-zb-askbtns button{flex:1;padding:11px;border-radius:10px;border:1px solid var(--glass-border,rgba(255,255,255,0.16));background:rgba(255,255,255,0.06);color:inherit;font-weight:600;cursor:pointer;}',
             '#ag-zb-ask .ag-zb-askbtns .ok{background:var(--accent-soft,rgba(47,158,116,0.16));border-color:var(--accent-line,rgba(47,158,116,0.4));color:var(--accent,#2f9e74);}',
@@ -184,7 +184,7 @@
         setHead('Zápisníky', 'Zavřít', false);
         var d = loadAll();
         var b = ov.querySelector('#ag-zb-body');
-        var h = '<p style="font-size:12.5px;color:var(--text-muted,#9aa1ac);line-height:1.5;margin:2px 2px 10px;">Zápis měření do mobilu místo papíru. Výpočty běží průběžně — v hlavičce zápisníku je lze vypnout. Uloženo v aktuální zakázce.</p>';
+        var h = '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);line-height:1.5;margin:2px 2px 10px;">Zápis měření do mobilu místo papíru. Výpočty běží průběžně — v hlavičce zápisníku je lze vypnout. Uloženo v aktuální zakázce.</p>';
         h += '<div class="ag-zb-sec">Technická nivelace</div>';
         h += '<button type="button" class="ag-zb-newbtn" data-new="niv">＋ Nový nivelační zápisník</button>';
         d.niv.forEach(function (n) {
@@ -288,7 +288,7 @@
         h += '</tbody></table></div>';
         h += '<div class="ag-zb-rowbtns"><button type="button" class="primary" id="ag-zb-addrow">＋ Přidat sestavu</button></div>';
         h += '<div class="ag-zb-sum" id="ag-zb-sum"></div>';
-        h += '<p style="font-size:11.5px;color:var(--text-muted,#9aa1ac);line-height:1.5;">Jedna sestava = čtení zpět na předchozí bod a vpřed na další bod. Mez uzávěru 40·√R mm je běžná hodnota pro technickou nivelaci — pro přesnější řády použij předpis dané třídy.</p>';
+        h += '<p style="font-size:calc(11.5px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);line-height:1.5;">Jedna sestava = čtení zpět na předchozí bod a vpřed na další bod. Mez uzávěru 40·√R mm je běžná hodnota pro technickou nivelaci — pro přesnější řády použij předpis dané třídy.</p>';
         b.innerHTML = h;
         b.querySelectorAll('[data-meta]').forEach(function (inp) {
             var ev = inp.type === 'checkbox' ? 'change' : 'input';
@@ -434,7 +434,7 @@
                 + '</div>';
         });
         h += '<div class="ag-zb-rowbtns"><button type="button" class="primary" id="ag-zb-addt">＋ Přidat cíl</button><button type="button" id="ag-zb-addg">＋ Přidat skupinu</button>' + (nb.groups.length > 1 ? '<button type="button" id="ag-zb-delg">− Odebrat poslední skupinu</button>' : '') + '</div>';
-        h += '<p style="font-size:11.5px;color:var(--text-muted,#9aa1ac);line-height:1.5;">Čtení v gon. II. poloha Hz se převádí o 200<sup>g</sup>, zenit průměrem (z<sub>I</sub> + 400 − z<sub>II</sub>)/2. „red." = směr redukovaný na první cíl skupiny; Ø red. je průměr ze skupin, rozptyl = největší rozdíl mezi skupinami (mgon). Šikmá délka se zenitem přepočte na vodorovnou a převýšení.</p>';
+        h += '<p style="font-size:calc(11.5px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);line-height:1.5;">Čtení v gon. II. poloha Hz se převádí o 200<sup>g</sup>, zenit průměrem (z<sub>I</sub> + 400 − z<sub>II</sub>)/2. „red." = směr redukovaný na první cíl skupiny; Ø red. je průměr ze skupin, rozptyl = největší rozdíl mezi skupinami (mgon). Šikmá délka se zenitem přepočte na vodorovnou a převýšení.</p>';
         b.innerHTML = h;
         b.querySelectorAll('[data-meta]').forEach(function (inp) {
             var ev = inp.type === 'checkbox' ? 'change' : 'input';

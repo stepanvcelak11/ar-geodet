@@ -196,14 +196,14 @@
             '.ag-sp-dot.red{background:#fb7185;box-shadow:0 0 5px rgba(251,113,133,0.9);animation:agSpBlink 1.2s ease-in-out infinite;}',
             '@keyframes agSpBlink{0%,100%{opacity:1}50%{opacity:0.35}}',
             '.ag-sp-num{font-family:var(--font-mono,ui-monospace,Menlo,monospace);font-weight:700;color:var(--data,#e6bd76);}',
-            '.ag-sp-num sup{font-size:9px;margin-left:1px;opacity:0.7;}',
+            '.ag-sp-num sup{font-size:calc(9px * var(--ag-font-scale, 1));margin-left:1px;opacity:0.7;}',
             '.ag-sp-avg{opacity:0.82;}',
             '.ag-sp-sep{opacity:0.32;}',
             '.ag-sp-alert{font-weight:700;}',
             '.ag-sp-alert.yellow{color:var(--warning,#fbbf24);}',
             '.ag-sp-alert.red{color:var(--danger,#fb7185);}',
             '.ag-sp-msg{font-weight:600;opacity:0.85;max-width:46vw;overflow:hidden;text-overflow:ellipsis;}',
-            '.ag-sp-caret{font-size:9px;opacity:0.45;margin-left:1px;}',
+            '.ag-sp-caret{font-size:calc(9px * var(--ag-font-scale, 1));opacity:0.45;margin-left:1px;}',
             // rozbalený detail (na místě, pod hlavičkou)
             // OPRAVA 27. 7. — „rozbalená lišta se překrývá s Nástroji a Body“.
             // PŘÍČINA: detail neměl žádný výškový strop. Se čtyřmi řádky (GPS · Sever ·
@@ -220,7 +220,7 @@
             '.ag-sp-row{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.07));}',
             '.ag-sp-row:last-of-type{border-bottom:none;}',
             '.ag-sp-row .ag-sp-dot{margin-top:4px;}',
-            '.ag-sp-k{font-size:11.5px;font-weight:700;width:52px;flex:0 0 auto;}',
+            '.ag-sp-k{font-size:calc(11.5px * var(--ag-font-scale, 1));font-weight:700;width:52px;flex:0 0 auto;}',
             '.ag-sp-v{flex:1;min-width:0;font:400 11.5px/1.4 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);white-space:normal;}',
             '.ag-sp-v b{color:var(--text-color,#eceef2);font-weight:600;}',
             '.ag-sp-v .ag-sp-a{display:block;margin-top:2px;color:var(--text-color,#eceef2);}',
@@ -233,9 +233,9 @@
             '.ag-sp-off{width:100%;margin-top:8px;padding:8px;border-radius:10px;cursor:pointer;background:transparent;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.12));color:var(--text-muted,#9aa1ac);font:600 10.5px/1 var(--font-ui,system-ui);}',
             // venku dobře viditelná varianta
-            'body.outdoor-mode #ag-sp{background:#0a0e1a;border-color:rgba(255,255,255,0.85);font-size:13px;}',
+            'body.outdoor-mode #ag-sp{background:#0a0e1a;border-color:rgba(255,255,255,0.85);font-size:calc(13px * var(--ag-font-scale, 1));}',
             'body.light-mode.outdoor-mode #ag-sp{background:#fff;border-color:rgba(10,14,26,0.7);}',
-            'body.ag-glove #ag-sp .ag-sp-head{padding:9px 15px;font-size:13.5px;}',
+            'body.ag-glove #ag-sp .ag-sp-head{padding:9px 15px;font-size:calc(13.5px * var(--ag-font-scale, 1));}',
             'body.ag-glove #ag-sp .ag-sp-acts button{padding:12px 5px;}',
             // sloučené panely — dokud je bublina zapnutá, jsou schované (v DOM zůstávají)
             'body.ag-bubble #compass-debug,body.ag-bubble #gps-avg,',

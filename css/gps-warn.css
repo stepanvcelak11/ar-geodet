@@ -27,7 +27,7 @@
 
     color: var(--text-color, #eceef2);
     font-family: var(--font-display, system-ui, sans-serif);
-    font-size: 13px;
+    font-size: calc(13px * var(--ag-font-scale, 1));
     font-weight: 600;
     line-height: 1.25;
     text-align: left;
@@ -82,7 +82,7 @@
 
 /* malé displeje — zalom text místo přetékání */
 @media (max-width: 380px) {
-    #gps-warn { font-size: 12px; padding: 8px 12px; }
+    #gps-warn { font-size: calc(12px * var(--ag-font-scale, 1)); padding: 8px 12px; }
     .gps-warn-txt { white-space: normal; }
 }
 
@@ -93,4 +93,4 @@
 }
 
 /* respektuj „režim rukavic" z vylepseni.js (větší terče/písmo) */
-body.ag-glove #gps-warn { font-size: 14px; padding: 11px 16px; }
+body.ag-glove #gps-warn { font-size: calc(14px * var(--ag-font-scale, 1)); padding: 11px 16px; }

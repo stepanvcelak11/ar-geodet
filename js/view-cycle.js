@@ -37,7 +37,7 @@
             'body.app-started #' + BTN_ID + '{display:flex;}',
             'body.left-hand #' + BTN_ID + '{right:auto;left:max(16px,env(safe-area-inset-left,0px));}',
             '#' + BTN_ID + ':active{transform:scale(0.93);}',
-            'body.ag-glove #' + BTN_ID + '{width:64px;height:64px;font-size:9.5px;}',
+            'body.ag-glove #' + BTN_ID + '{width:64px;height:64px;font-size:calc(9.5px * var(--ag-font-scale, 1));}',
             'body.ag-glove #' + BTN_ID + ' .icon{width:24px;height:24px;}',
             // rozbalené nástroje mapy = vodorovná řada vystředěná na spodní hraně → kolečko uhne nahoru
             '#' + BTN_ID + '.ag-vc-lift{bottom:calc(max(6px,env(safe-area-inset-bottom,0px)) + 62px);}',

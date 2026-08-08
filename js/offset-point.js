@@ -80,7 +80,7 @@
         var t = forward(base.lat, base.lng, az, d);
         var sj = proj4('EPSG:4326', 'EPSG:5514', [t.lng, t.lat]);
         var Y = Math.abs(sj[0]).toFixed(2), X = Math.abs(sj[1]).toFixed(2);
-        if (out) out.innerHTML = '<b>Y</b> ' + Y + ' &nbsp; <b>X</b> ' + X + '<br><span style="opacity:.65;font-size:12px">' + t.lat.toFixed(6) + ', ' + t.lng.toFixed(6) + '</span>';
+        if (out) out.innerHTML = '<b>Y</b> ' + Y + ' &nbsp; <b>X</b> ' + X + '<br><span style="opacity:.65;font-size:calc(12px * var(--ag-font-scale, 1))">' + t.lat.toFixed(6) + ', ' + t.lng.toFixed(6) + '</span>';
         return { lat: t.lat, lng: t.lng, Y: Y, X: X };
     }
 
@@ -111,11 +111,11 @@
         el.innerHTML =
             '<div class="modal-content" style="display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON.replace('width="20"', '') + ' Offset bod (nepřístupný bod)</h3>'
-            + '<p style="font-size:12.5px;opacity:.7;margin:2px 0 10px;">Spočítá bod, kam se nedá stoupnout: ze základu + zeměpisného azimutu (0°=sever) + vodorovné délky.</p>'
-            + '<label class="filter-row" style="font-size:13px;"><input type="radio" name="agof-base" value="gps" checked> Z mé polohy (GPS)</label>'
-            + '<label class="filter-row" style="font-size:13px;"><input type="radio" name="agof-base" value="point"> Od vybraného bodu</label>'
+            + '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.7;margin:2px 0 10px;">Spočítá bod, kam se nedá stoupnout: ze základu + zeměpisného azimutu (0°=sever) + vodorovné délky.</p>'
+            + '<label class="filter-row" style="font-size:calc(13px * var(--ag-font-scale, 1));"><input type="radio" name="agof-base" value="gps" checked> Z mé polohy (GPS)</label>'
+            + '<label class="filter-row" style="font-size:calc(13px * var(--ag-font-scale, 1));"><input type="radio" name="agof-base" value="point"> Od vybraného bodu</label>'
             + '<select id="agof-point" style="display:none;width:100%;margin:4px 0 6px;"></select>'
-            + '<div id="agof-base-info" style="font-size:13px;margin:2px 0 12px;color:var(--accent);"></div>'
+            + '<div id="agof-base-info" style="font-size:calc(13px * var(--ag-font-scale, 1));margin:2px 0 12px;color:var(--accent);"></div>'
             + '<label>Azimut (°, zeměpisný)</label>'
             + '<div style="display:flex;gap:8px;align-items:center;"><input type="number" id="agof-az" step="0.1" inputmode="decimal" style="flex:1;" placeholder="0–360">'
             + '<button type="button" class="btn btn-secondary" style="white-space:nowrap;margin:0;" id="agof-compass">Z kompasu</button></div>'

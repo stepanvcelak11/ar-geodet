@@ -102,7 +102,7 @@
         el.className = 'modal-overlay'; el.id = DLG_ID;
         el.innerHTML = '<div class="modal-content">'
             + '<h3 style="color:var(--accent); margin-top:0; margin-bottom:5px;">' + ICON + ' Skóre místa (GPS)</h3>'
-            + '<p style="margin:0 0 10px; font-size:12.5px; opacity:0.8;">Semafor PŘED měřením: geometrie družic + tvoje elevační maska + okolí. Prevence je účinnější než filtrování špatných dat.</p>'
+            + '<p style="margin:0 0 10px; font-size:calc(12.5px * var(--ag-font-scale, 1)); opacity:0.8;">Semafor PŘED měřením: geometrie družic + tvoje elevační maska + okolí. Prevence je účinnější než filtrování špatných dat.</p>'
             + '<div class="modal-body" id="ag-semafor-body"></div>'
             + '<button class="btn btn-secondary" style="margin-top:15px;" id="ag-semafor-close">Zavřít</button>'
             + '</div>';
@@ -112,7 +112,7 @@
     }
     function envChip(id, label) {
         var on = _env === id;
-        return '<button type="button" class="btn btn-secondary ag-sem-env" data-env="' + id + '" style="flex:1; font-size:12px; padding:8px 4px;'
+        return '<button type="button" class="btn btn-secondary ag-sem-env" data-env="' + id + '" style="flex:1; font-size:calc(12px * var(--ag-font-scale, 1)); padding:8px 4px;'
             + (on ? ' outline:2px solid var(--accent,#2f9e74); font-weight:700;' : ' opacity:.75;') + '">' + label + '</button>';
     }
     function renderModal() {
@@ -122,7 +122,7 @@
         window.AGSemafor.last = r;
         var d = r.detail;
         var html = '<div style="display:flex; align-items:center; gap:12px; margin:4px 0 10px;">' + dot(r.code, 22)
-            + '<b style="font-size:15px;">' + r.title + '</b></div>';
+            + '<b style="font-size:calc(15px * var(--ag-font-scale, 1));">' + r.title + '</b></div>';
         html += '<div style="display:flex; gap:6px; margin:0 0 10px;">'
             + envChip('volne', 'Volné nebe') + envChip('stromy', 'Stromy / 1 zeď') + envChip('budovy', 'Mezi budovami')
             + '</div>';
@@ -130,8 +130,8 @@
         html += '<div class="geo-data-row" style="padding:4px 0;"><span class="geo-label">Geometrie (PDOP)</span><span class="geo-value">' + (d.pdop == null ? '–' : d.pdop.toFixed(1)) + '</span></div>';
         html += '<div class="geo-data-row" style="padding:4px 0;"><span class="geo-label">Telefon hlásí</span><span class="geo-value">' + (d.acc == null ? '–' : '±' + Math.round(d.acc) + ' m') + '</span></div>';
         if (d.best) html += '<div class="geo-data-row" style="padding:4px 0;"><span class="geo-label">Nejlepší geometrie do 2 h</span><span class="geo-value">za ' + d.best.min + ' min (PDOP ' + d.best.pdop.toFixed(1) + ')</span></div>';
-        html += r.tips.map(function (t) { return '<p style="font-size:12.5px; margin:8px 0 0;">• ' + t + '</p>'; }).join('');
-        html += '<p style="font-size:11px; opacity:.55; margin:10px 0 0;">Elevační masku (kolik zaclání horizont) nastavíš v nástroji „Predikce signálu".</p>';
+        html += r.tips.map(function (t) { return '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1)); margin:8px 0 0;">• ' + t + '</p>'; }).join('');
+        html += '<p style="font-size:calc(11px * var(--ag-font-scale, 1)); opacity:.55; margin:10px 0 0;">Elevační masku (kolik zaclání horizont) nastavíš v nástroji „Predikce signálu".</p>';
         body.innerHTML = html;
         var chips = body.querySelectorAll('.ag-sem-env');
         for (var i = 0; i < chips.length; i++) {

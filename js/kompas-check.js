@@ -27,13 +27,13 @@
         banner.style.cssText = 'position:fixed; left:50%; transform:translateX(-50%); top:calc(env(safe-area-inset-top, 0px) + 96px); z-index:1500; '
             + 'display:none; align-items:center; gap:8px; max-width:90%; padding:9px 10px 9px 14px; border-radius:12px; '
             + 'background:rgba(239,68,68,0.92); color:#fff; font-family:var(--font-display,sans-serif); '
-            + 'font-size:13px; font-weight:600; line-height:1.25; text-align:left; '
+            + 'font-size:calc(13px * var(--ag-font-scale, 1)); font-weight:600; line-height:1.25; text-align:left; '
             + 'box-shadow:0 6px 20px rgba(0,0,0,0.45); backdrop-filter:blur(4px); pointer-events:none;';
         // Text varovani nereaguje na dotek (pointer-events:none na kontejneru), klikaci je jen krizek.
         banner.innerHTML = '<span style="flex:1 1 auto;">⚠ Kompas pravděpodobně rušen (kov poblíž) — ověř směr, AR šipka může mířit mimo</span>'
             + '<button type="button" id="compass-interference-x" aria-label="Skrýt upozornění" '
             + 'style="flex:0 0 auto; pointer-events:auto; width:26px; height:26px; padding:0; border:none; border-radius:50%; '
-            + 'background:rgba(255,255,255,0.22); color:#fff; font-size:17px; line-height:1; cursor:pointer; '
+            + 'background:rgba(255,255,255,0.22); color:#fff; font-size:calc(17px * var(--ag-font-scale, 1)); line-height:1; cursor:pointer; '
             + '-webkit-tap-highlight-color:transparent;">×</button>';
         document.body.appendChild(banner);
         banner.querySelector('#compass-interference-x').addEventListener('click', function () {
@@ -166,7 +166,7 @@
             '<div class="modal-content">'
             + '<h3 style="color:var(--accent); margin-top:0;">Kontrola kompasu podle Slunce</h3>'
             + '<div class="modal-body">'
-            + '<p style="font-size:13px; line-height:1.4; margin:0 0 14px;">Namíř <b>zadní kameru</b> telefonu na Slunce (nedívej se do něj přímo) a drž telefon svisle. Když kompas sedí, tvůj směr se shoduje s azimutem Slunce.</p>'
+            + '<p style="font-size:calc(13px * var(--ag-font-scale, 1)); line-height:1.4; margin:0 0 14px;">Namíř <b>zadní kameru</b> telefonu na Slunce (nedívej se do něj přímo) a drž telefon svisle. Když kompas sedí, tvůj směr se shoduje s azimutem Slunce.</p>'
             + '<div id="sun-check-rows"></div>'
             + '</div>'
             + '<button class="btn btn-secondary" style="margin-top:15px;" onclick="closeSunCheck()">Zavřít</button>'
@@ -180,7 +180,7 @@
         const lat = (typeof userLat !== 'undefined') ? userLat : null;
         const lng = (typeof userLng !== 'undefined') ? userLng : null;
         if (lat == null || lng == null) {
-            rows.innerHTML = '<div style="color:var(--warning); font-size:14px;">Čekám na GPS polohu…</div>';
+            rows.innerHTML = '<div style="color:var(--warning); font-size:calc(14px * var(--ag-font-scale, 1));">Čekám na GPS polohu…</div>';
             return;
         }
         const s = sunPos(new Date(), lat, lng);
@@ -188,7 +188,7 @@
         function row(l, v, c) { return '<div class="rdt"><span class="rdt-l">' + l + '</span><span class="rdt-v"' + (c ? ' style="color:' + c + ';"' : '') + '>' + v + '</span></div>'; }
         let html = '';
         if (s.el < -1) {
-            html += '<div style="color:var(--warning); font-size:14px; margin-bottom:10px;">Slunce je pod obzorem — kontrolu nelze provést.</div>';
+            html += '<div style="color:var(--warning); font-size:calc(14px * var(--ag-font-scale, 1)); margin-bottom:10px;">Slunce je pod obzorem — kontrolu nelze provést.</div>';
             html += row('Azimut Slunce', s.az.toFixed(0) + '° (pod obzorem)');
         } else {
             html += row('Azimut Slunce', s.az.toFixed(0) + '°');
@@ -201,9 +201,9 @@
                 if (ad > 20) { col = 'var(--danger)'; verdict = 'Velká odchylka — kompas rušen/nezkalibrovaný'; }
                 else if (ad > 8) { col = 'var(--warning)'; verdict = 'Mírná odchylka — zvaž rekalibraci (osmička)'; }
                 html += row('Odchylka', (dev > 0 ? '+' : '') + dev.toFixed(0) + '°', col);
-                html += '<div style="margin-top:10px; font-size:13px; color:' + col + '; font-weight:600;">' + verdict + '</div>';
+                html += '<div style="margin-top:10px; font-size:calc(13px * var(--ag-font-scale, 1)); color:' + col + '; font-weight:600;">' + verdict + '</div>';
             } else {
-                html += '<div style="color:var(--warning); font-size:13px; margin-top:8px;">Čekám na údaj z kompasu… (povol pohyb/orientaci)</div>';
+                html += '<div style="color:var(--warning); font-size:calc(13px * var(--ag-font-scale, 1)); margin-top:8px;">Čekám na údaj z kompasu… (povol pohyb/orientaci)</div>';
             }
         }
         rows.innerHTML = html;

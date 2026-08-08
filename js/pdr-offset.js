@@ -212,16 +212,16 @@
         } catch (e) {}
         var opts = pts.map(function (p) { return '<option value="' + esc(p.id) + '">' + esc(p.name) + '</option>'; }).join('');
         body.innerHTML =
-            '<p style="font-size:12.5px; opacity:0.85; margin:0 0 10px;">Do ~30 m je vektor z kroků + kompasu přesnější než dvojí GPS. Stoupni si na <b>známý bod A</b>, spusť, dojdi na nový bod B a zastav — B se spočítá jako A + vektor.</p>'
+            '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1)); opacity:0.85; margin:0 0 10px;">Do ~30 m je vektor z kroků + kompasu přesnější než dvojí GPS. Stoupni si na <b>známý bod A</b>, spusť, dojdi na nový bod B a zastav — B se spočítá jako A + vektor.</p>'
             + (pts.length
-                ? '<label style="font-size:12px; opacity:.8;">Startovní bod A (stojím na něm)</label>'
+                ? '<label style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:.8;">Startovní bod A (stojím na něm)</label>'
                   + '<select id="ag-pdr-pt" class="bgps-name" style="width:100%; margin:4px 0 10px;">' + opts + '</select>'
-                : '<p style="font-size:13px; color:var(--warning,#fbbf24);">V zakázce nejsou body — nejdřív změř/naimportuj bod A.</p>')
-            + '<label style="font-size:12px; opacity:.8;">Délka kroku (m)</label>'
+                : '<p style="font-size:calc(13px * var(--ag-font-scale, 1)); color:var(--warning,#fbbf24);">V zakázce nejsou body — nejdřív změř/naimportuj bod A.</p>')
+            + '<label style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:.8;">Délka kroku (m)</label>'
             + '<input id="ag-pdr-len" class="bgps-name" type="number" step="0.01" min="0.4" max="1.2" value="' + stepLen().toFixed(2) + '" style="width:100%; margin:4px 0 10px;">'
             + (pts.length ? '<button class="btn" id="ag-pdr-go">▶ Start chůze od bodu A</button>' : '')
             + '<button class="btn btn-secondary" id="ag-pdr-cal" style="margin-top:8px;">📏 Kalibrace kroku (GPS úsek ≥ ' + CAL_MIN_DIST + ' m)</button>'
-            + '<p style="font-size:11px; opacity:.55; margin:10px 0 0;">Drž telefon volně před sebou displejem nahoru a choď normálně. U budov kompas ruší kov — výsledek ber jako ±' + Math.round(Math.sin(HEAD_ERR_RAD) * 100 * 1.3) + ' cm na každých 10 m.</p>';
+            + '<p style="font-size:calc(11px * var(--ag-font-scale, 1)); opacity:.55; margin:10px 0 0;">Drž telefon volně před sebou displejem nahoru a choď normálně. U budov kompas ruší kov — výsledek ber jako ±' + Math.round(Math.sin(HEAD_ERR_RAD) * 100 * 1.3) + ' cm na každých 10 m.</p>';
         var go = document.getElementById('ag-pdr-go');
         if (go) go.addEventListener('click', function () {
             var v = parseFloat(document.getElementById('ag-pdr-len').value);
@@ -251,8 +251,8 @@
             + '<div class="bgps-stat"><div class="k">Vzdálenost</div><div class="v" id="ag-pdr-dist">0,0 m</div></div>'
             + '<div class="bgps-stat"><div class="k">Směr</div><div class="v" id="ag-pdr-head">–</div></div>'
             + '</div>'
-            + (calib ? '<div id="ag-pdr-gps" style="font-size:12px; opacity:.75; margin-top:8px;">GPS: čekám na přesný fix…</div>'
-                     : '<div id="ag-pdr-vec" style="font-size:12px; opacity:.75; margin-top:8px;">vektor: –</div>')
+            + (calib ? '<div id="ag-pdr-gps" style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:.75; margin-top:8px;">GPS: čekám na přesný fix…</div>'
+                     : '<div id="ag-pdr-vec" style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:.75; margin-top:8px;">vektor: –</div>')
             + '<button class="btn" id="ag-pdr-stop" style="margin-top:12px;">⏹ Zastavit' + (calib ? ' a spočítat krok' : '') + '</button>';
         document.getElementById('ag-pdr-stop').addEventListener('click', function () {
             stopWalk();
@@ -298,7 +298,7 @@
         var sj = null;
         try { if (typeof proj4 === 'function') sj = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); } catch (e) {}
         body.innerHTML =
-            '<p style="font-size:13px;"><b>Došel jsi:</b> ' + _steps + ' kroků, ' + _dist.toFixed(1) + ' m<br>'
+            '<p style="font-size:calc(13px * var(--ag-font-scale, 1));"><b>Došel jsi:</b> ' + _steps + ' kroků, ' + _dist.toFixed(1) + ' m<br>'
             + 'vektor ' + _dE.toFixed(2) + ' m V / ' + _dN.toFixed(2) + ' m S od bodu ' + esc(_startPt.name) + '<br>'
             + (sj ? 'Y ' + Math.abs(sj[0]).toFixed(2) + '  X ' + Math.abs(sj[1]).toFixed(2) + '<br>' : '')
             + 'odhad nejistoty <b>±' + u.toFixed(2) + ' m</b></p>'

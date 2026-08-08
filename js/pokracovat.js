@@ -84,7 +84,7 @@
             '  border:1px solid var(--accent-line,rgba(47,158,116,0.4));background:var(--accent-soft,rgba(47,158,116,0.12));',
             '  color:var(--text-color,#eceef2);text-align:left;font:600 14px/1.3 var(--font-ui,system-ui),sans-serif;}',
             '#ag-pk-btn.on{display:block;}',
-            '#ag-pk-btn small{display:block;margin-top:2px;font-weight:500;font-size:11.5px;color:var(--text-muted,#9aa1ac);}',
+            '#ag-pk-btn small{display:block;margin-top:2px;font-weight:500;font-size:calc(11.5px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);}',
             '#ag-pk-btn b{color:var(--accent,#2f9e74);}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);

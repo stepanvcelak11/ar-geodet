@@ -26,13 +26,13 @@
     flex-wrap: wrap;
 }
 .gq-label {
-    font-size: 12.5px;
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
     font-weight: 500;
     color: var(--text-muted, #9aa1ac);
 }
 .gq-pdop {
     font-family: var(--font-mono, monospace);
-    font-size: 13px;
+    font-size: calc(13px * var(--ag-font-scale, 1));
     font-weight: 700;
     white-space: nowrap;
 }
@@ -53,19 +53,19 @@
     border-top: 1px dashed var(--glass-border, rgba(255, 255, 255, 0.14));
 }
 .gq-best-lbl {
-    font-size: 10.5px;
+    font-size: calc(10.5px * var(--ag-font-scale, 1));
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--text-muted, #9aa1ac);
 }
 .gq-best-val {
-    font-size: 13.5px;
+    font-size: calc(13.5px * var(--ag-font-scale, 1));
     font-weight: 700;
     color: var(--accent, #2f9e74);
 }
 .gq-best-sub {
     font-family: var(--font-mono, monospace);
-    font-size: 11px;
+    font-size: calc(11px * var(--ag-font-scale, 1));
     font-weight: 600;
     color: var(--text-muted, #9aa1ac);
 }

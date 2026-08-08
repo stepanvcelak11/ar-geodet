@@ -58,6 +58,12 @@
     /* Layout řízený z nastavení (přepisuje JS) */
     --panel-opacity: 0.85;
     --menu-scale: 1;
+    /* VELIKOST PÍSMA — násobí KAŽDÝ pevný font-size v appce: v css i ve stylech,
+       které si vkládají moduly, je zapsaný jako calc(Npx * var(--ag-font-scale, 1)).
+       Při hodnotě 1 je to no-op, takže výchozí vzhled zůstává přesně jako dřív.
+       Přepisuje JS podle jezdce Nastavení → Displej a čitelnost.
+       POZOR: nový pevný font-size psát rovnou přes calc(...), jinak se škálovat nebude. */
+    --ag-font-scale: 1;
     --hud-top: 55px;
     --hud-side: 15px;
     --hud-scale: 1;

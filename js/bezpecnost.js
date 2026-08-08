@@ -383,10 +383,10 @@
             '#ag-bz-modal .bz-stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:6px;margin:0 0 12px;}',
             '#ag-bz-modal .bz-c{min-width:0;padding:7px 9px;border-radius:var(--r-sm,9px);border:1px solid var(--glass-border);background:var(--surface-1);}',
             '#ag-bz-modal .bz-c.wide{grid-column:1/-1;}',
-            '#ag-bz-modal .bz-c .k{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);}',
+            '#ag-bz-modal .bz-c .k{display:flex;align-items:center;gap:5px;font-size:calc(10px * var(--ag-font-scale, 1));font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);}',
             '#ag-bz-modal .bz-c .k .icon{width:13px;height:13px;flex:none;}',
-            '#ag-bz-modal .bz-c .v{margin-top:2px;font-size:14px;font-weight:700;line-height:1.3;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}',
-            '#ag-bz-modal .bz-c .s{font-size:10.5px;line-height:1.35;color:var(--text-muted);overflow-wrap:anywhere;}',
+            '#ag-bz-modal .bz-c .v{margin-top:2px;font-size:calc(14px * var(--ag-font-scale, 1));font-weight:700;line-height:1.3;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}',
+            '#ag-bz-modal .bz-c .s{font-size:calc(10.5px * var(--ag-font-scale, 1));line-height:1.35;color:var(--text-muted);overflow-wrap:anywhere;}',
             '#ag-bz-modal .bz-c.good .v{color:var(--accent-bright,#3eb487);}',
             '#ag-bz-modal .bz-c.warn{border-color:rgba(251,191,36,.45);}',
             '#ag-bz-modal .bz-c.warn .v{color:var(--warning,#fbbf24);}',
@@ -410,12 +410,12 @@
             '#ag-bz-modal .bz-hold.holding .bz-s{color:var(--text-color);}',
             '#ag-bz-modal .bz-hold.ready{background:rgba(251,113,133,.40);}',
             '#ag-bz-modal .bz-hold.ready .bz-s{color:var(--text-color);font-weight:800;}',
-            '#ag-bz-modal .bz-hint{margin-top:8px;font-size:11.5px;line-height:1.4;color:var(--text-muted);}',
+            '#ag-bz-modal .bz-hint{margin-top:8px;font-size:calc(11.5px * var(--ag-font-scale, 1));line-height:1.4;color:var(--text-muted);}',
             '#ag-bz-modal .bz-hint b{color:var(--text-color);}',
             // ---- po vytočení
             '#ag-bz-modal .bz-fired{padding:12px;border-radius:var(--r-md,12px);border:2px solid var(--danger,#fb7185);',
             '  background:rgba(251,113,133,.16);text-align:center;}',
-            '#ag-bz-modal .bz-fired h4{margin:0 0 4px;font-size:15px;font-weight:800;color:var(--danger,#fb7185);}',
+            '#ag-bz-modal .bz-fired h4{margin:0 0 4px;font-size:calc(15px * var(--ag-font-scale, 1));font-weight:800;color:var(--danger,#fb7185);}',
             '#ag-bz-modal .bz-big{margin:8px 0;padding:8px;border-radius:var(--r-sm,9px);background:var(--surface-2);',
             '  font:800 20px/1.3 var(--font-mono,monospace);font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}',
             // ---- tísňová čísla
@@ -423,24 +423,24 @@
             '#ag-bz-modal .bz-num{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 3px;margin:0;',
             '  border-radius:var(--r-sm,9px);border:1px solid var(--glass-border);background:var(--surface-1);',
             '  color:var(--text-color);font:800 16px/1 var(--font-ui,inherit);font-variant-numeric:tabular-nums;cursor:pointer;}',
-            '#ag-bz-modal .bz-num small{font-size:9.5px;font-weight:600;letter-spacing:.02em;color:var(--text-muted);}',
+            '#ag-bz-modal .bz-num small{font-size:calc(9.5px * var(--ag-font-scale, 1));font-weight:600;letter-spacing:.02em;color:var(--text-muted);}',
             '#ag-bz-modal .bz-num.armed{border-color:var(--danger,#fb7185);background:rgba(251,113,133,.20);color:var(--danger,#fb7185);}',
             '#ag-bz-modal .bz-num.armed small{color:var(--danger,#fb7185);}',
             // ---- rozbalovací bloky (rizika, kontakty, co appka umí)
             '#ag-bz-modal .bz-det{margin:0 0 8px;border:1px solid var(--glass-border);border-radius:var(--r-md,12px);',
             '  background:var(--surface-1);overflow:hidden;}',
             '#ag-bz-modal .bz-det>summary{list-style:none;display:flex;align-items:center;gap:8px;padding:11px 12px;',
-            '  font-size:13px;font-weight:700;cursor:pointer;}',
+            '  font-size:calc(13px * var(--ag-font-scale, 1));font-weight:700;cursor:pointer;}',
             '#ag-bz-modal .bz-det>summary::-webkit-details-marker{display:none;}',
             '#ag-bz-modal .bz-det>summary .icon{width:17px;height:17px;flex:none;color:var(--accent);}',
-            '#ag-bz-modal .bz-det>summary .cnt{margin-left:auto;font-size:11px;font-weight:600;color:var(--text-muted);}',
+            '#ag-bz-modal .bz-det>summary .cnt{margin-left:auto;font-size:calc(11px * var(--ag-font-scale, 1));font-weight:600;color:var(--text-muted);}',
             // CHYBA (opraveno): globální „details summary" ve style.css dává margin-top:16px,
             // čáru nahoře a opacity .8. Uvnitř naší zaoblené karty z toho byl prázdný pruh
             // a linka přetnutá přes roh, a nadpis vypadal jako zašedlý/vypnutý.
             '#ag-bz-modal .bz-det>summary{margin-top:0;border-top:none;opacity:1;}',
             '#ag-bz-modal .bz-in{padding:0 12px 12px;}',
             // ---- rizika
-            '#ag-bz-modal .bz-r{border-radius:var(--r-sm,9px);padding:9px 11px;margin-bottom:7px;font-size:12.5px;',
+            '#ag-bz-modal .bz-r{border-radius:var(--r-sm,9px);padding:9px 11px;margin-bottom:7px;font-size:calc(12.5px * var(--ag-font-scale, 1));',
             '  line-height:1.5;border:1px solid transparent;}',
             '#ag-bz-modal .bz-r:last-child{margin-bottom:0;}',
             '#ag-bz-modal .bz-r b{display:block;margin-bottom:2px;}',
@@ -450,11 +450,11 @@
             // ---- kontakty
             '#ag-bz-modal .bz-ct{display:flex;align-items:center;gap:7px;padding:8px 0;border-top:1px solid var(--glass-border);}',
             '#ag-bz-modal .bz-ct:first-child{border-top:none;padding-top:2px;}',
-            '#ag-bz-modal .bz-ct .nm{flex:1;min-width:0;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+            '#ag-bz-modal .bz-ct .nm{flex:1;min-width:0;font-size:calc(13px * var(--ag-font-scale, 1));font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
             '#ag-bz-modal .bz-ct .nm small{display:block;font-weight:500;color:var(--text-muted);font-variant-numeric:tabular-nums;}',
             '#ag-bz-modal .bz-mini{display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:none;',
             '  padding:8px 11px;margin:0;border-radius:var(--r-sm,9px);border:1px solid var(--glass-border);',
-            '  background:var(--surface-1);color:var(--text-color);font-size:12px;font-weight:700;cursor:pointer;}',
+            '  background:var(--surface-1);color:var(--text-color);font-size:calc(12px * var(--ag-font-scale, 1));font-weight:700;cursor:pointer;}',
             '#ag-bz-modal .bz-mini .icon{width:15px;height:15px;}',
             '#ag-bz-modal .bz-mini.prim{border-color:var(--accent-line);background:var(--accent-soft);color:var(--accent);}',
             '#ag-bz-modal .bz-mini.prim .icon{color:var(--accent);}',
@@ -462,21 +462,21 @@
             '  margin:0 0 6px;padding:9px 10px;border-radius:var(--r-sm,9px);border:1px solid var(--glass-border);',
             // 16 px schválně: Safari na iOS při zaostření políčka menšího než 16 px
             // zvětší celou stránku a panel „uskočí" — v rukavicích nepříjemné.
-            '  background:var(--surface-2);color:inherit;font-size:16px;}',
+            '  background:var(--surface-2);color:inherit;font-size:calc(16px * var(--ag-font-scale, 1));}',
             // ---- přepínač připomínek
             '#ag-bz-modal .bz-sw{display:flex;align-items:center;gap:10px;margin:0 0 8px;padding:10px 12px;',
-            '  border-radius:var(--r-md,12px);border:1px solid var(--glass-border);background:var(--surface-1);font-size:12.5px;}',
+            '  border-radius:var(--r-md,12px);border:1px solid var(--glass-border);background:var(--surface-1);font-size:calc(12.5px * var(--ag-font-scale, 1));}',
             '#ag-bz-modal .bz-sw input{width:20px;height:20px;flex:none;}',
             // CHYBA (opraveno): globální „.modal-content label" je display:block s
             // margin-top:16px — popisek přepínače kvůli tomu spadl o kus pod zaškrtávátko
             // a byl vybledlý barvou pro popisky formuláře.
-            '#ag-bz-modal .bz-sw label{margin:0;font-size:12.5px;font-weight:600;color:var(--text-color);}',
+            '#ag-bz-modal .bz-sw label{margin:0;font-size:calc(12.5px * var(--ag-font-scale, 1));font-weight:600;color:var(--text-color);}',
             '#ag-bz-modal .bz-num-int{width:66px;padding:5px 7px;border-radius:var(--r-sm,9px);',
-            '  border:1px solid var(--glass-border);background:var(--surface-2);color:inherit;font-size:16px;}',
-            '#ag-bz-modal .bz-note{margin-top:2px;font-size:11px;line-height:1.5;color:var(--text-muted);}',
+            '  border:1px solid var(--glass-border);background:var(--surface-2);color:inherit;font-size:calc(16px * var(--ag-font-scale, 1));}',
+            '#ag-bz-modal .bz-note{margin-top:2px;font-size:calc(11px * var(--ag-font-scale, 1));line-height:1.5;color:var(--text-muted);}',
             // ---- rukavice: větší dotykové cíle, panel zůstává kompaktní
-            'body.ag-glove #ag-bz-modal .bz-hold{min-height:100px;font-size:22px;}',
-            'body.ag-glove #ag-bz-modal .bz-num{padding:11px 3px;font-size:18px;}',
+            'body.ag-glove #ag-bz-modal .bz-hold{min-height:100px;font-size:calc(22px * var(--ag-font-scale, 1));}',
+            'body.ag-glove #ag-bz-modal .bz-num{padding:11px 3px;font-size:calc(18px * var(--ag-font-scale, 1));}',
             'body.ag-glove #ag-bz-modal .bz-mini{padding:11px 13px;}'
         ].join('\n');
         document.head.appendChild(s);
@@ -597,10 +597,10 @@
                 // Ne „Vytáčím" — appka jen předala číslo telefonu a jestli se hovor
                 // opravdu spojil, nezjistí. Nadpis proto říká přesně to, co se stalo.
                 '<h4>' + esc(_firedNum) + ' — předáno telefonu</h4>' +
-                '<div style="font-size:12px;line-height:1.45;color:var(--text-muted);">Jestli se vytáčení neotevřelo, vytoč číslo ručně — appka nepozná, jestli hovor běží.</div>' +
+                '<div style="font-size:calc(12px * var(--ag-font-scale, 1));line-height:1.45;color:var(--text-muted);">Jestli se vytáčení neotevřelo, vytoč číslo ručně — appka nepozná, jestli hovor běží.</div>' +
                 '<div class="bz-big">' + (f ? esc(f.lat.toFixed(6) + ', ' + f.lng.toFixed(6)) : 'polohu nemám') + '</div>' +
-                (s ? '<div style="font-size:12.5px;font-weight:700;">S-JTSK Y ' + esc(s.y.toFixed(2)) + ' &nbsp; X ' + esc(s.x.toFixed(2)) + '</div>' : '') +
-                (f ? '<div style="font-size:11px;color:var(--text-muted);margin-top:3px;">Poloha: ' + esc(ageTxt(f)) + '</div>' : '') +
+                (s ? '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));font-weight:700;">S-JTSK Y ' + esc(s.y.toFixed(2)) + ' &nbsp; X ' + esc(s.x.toFixed(2)) + '</div>' : '') +
+                (f ? '<div style="font-size:calc(11px * var(--ag-font-scale, 1));color:var(--text-muted);margin-top:3px;">Poloha: ' + esc(ageTxt(f)) + '</div>' : '') +
                 '<div style="display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:10px;">' +
                 '<button type="button" class="bz-mini" data-act="dial" data-num="' + esc(_firedNum) + '">' + ICO_PHONE + 'Vytočit znovu</button>' +
                 '<button type="button" class="bz-mini" data-act="copy">' + ic('i-file-text') + 'Zkopírovat polohu</button>' +
@@ -791,7 +791,7 @@
             (c.mutedDay === dayKey() ? '<br><small style="color:var(--warning,#fbbf24);">Dnes ztišeno.</small>' : '') + '</label>' +
             (c.on ? '<button type="button" class="bz-mini" data-act="mute">Ztišit na dnes</button>' : '') + '</div>';
         if (c.on) {
-            h += '<div style="font-size:12.5px;margin:0 0 8px;padding:0 2px;">Připomínka pití každých ' +
+            h += '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));margin:0 0 8px;padding:0 2px;">Připomínka pití každých ' +
                 '<input type="number" id="ag-bz-int" class="bz-num-int" min="15" max="180" step="5" value="' + (c.drinkMin || DRINK_DEFAULT) + '"> min ' +
                 '<span style="color:var(--text-muted);">(jen nad 27 °C)</span></div>';
         }

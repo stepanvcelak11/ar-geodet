@@ -100,7 +100,7 @@
             '#agch-picker .agch-pk-row{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.07));',
             '  font:500 13px/1.3 var(--font-ui,system-ui);color:var(--text,#e6e8eb);}',
             '#agch-picker .agch-pk-row input{width:18px;height:18px;accent-color:var(--accent,#2f9e74);}',
-            '#agch-picker .agch-pk-row span{color:var(--text-muted,#9aa1ac);font-size:11px;}'
+            '#agch-picker .agch-pk-row span{color:var(--text-muted,#9aa1ac);font-size:calc(11px * var(--ag-font-scale, 1));}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }

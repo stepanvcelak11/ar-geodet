@@ -38,7 +38,7 @@
 .sky-svg .sky-card {
     fill: var(--text-muted, #9aa1ac);
     font-family: var(--font-mono, monospace);
-    font-size: 11px;
+    font-size: calc(11px * var(--ag-font-scale, 1));
     font-weight: 700;
     text-anchor: middle;
 }
@@ -55,7 +55,7 @@
 .sky-mask-row { margin: 4px 0 12px; }
 .sky-mask-row > label {
     display: block;
-    font-size: 13px;
+    font-size: calc(13px * var(--ag-font-scale, 1));
     font-weight: 600;
     color: var(--text-color, #eceef2);
     margin-bottom: 6px;
@@ -75,13 +75,13 @@
     min-width: 42px;
     text-align: right;
     font-family: var(--font-mono, monospace);
-    font-size: 16px;
+    font-size: calc(16px * var(--ag-font-scale, 1));
     font-weight: 700;
     color: var(--accent, #2f9e74);
 }
 .sky-hint {
     margin-top: 6px;
-    font-size: 10.5px;
+    font-size: calc(10.5px * var(--ag-font-scale, 1));
     line-height: 1.45;
     color: var(--text-muted, #9aa1ac);
 }
@@ -98,20 +98,20 @@
 }
 .sky-verdict-big {
     font-family: var(--font-mono, monospace);
-    font-size: 30px;
+    font-size: calc(30px * var(--ag-font-scale, 1));
     font-weight: 700;
     line-height: 1.05;
     color: var(--text-color, #eceef2);
 }
 .sky-verdict-big span {
     font-family: var(--font-ui, sans-serif);
-    font-size: 13px;
+    font-size: calc(13px * var(--ag-font-scale, 1));
     font-weight: 600;
     color: var(--text-muted, #9aa1ac);
 }
 .sky-verdict-txt {
     margin-top: 4px;
-    font-size: 13.5px;
+    font-size: calc(13.5px * var(--ag-font-scale, 1));
     font-weight: 600;
 }
 .sky-verdict.good { border-left-color: var(--accent, #2f9e74); }
@@ -129,23 +129,23 @@
     flex-wrap: wrap;
     gap: 10px 14px;
     margin: 0 0 10px;
-    font-size: 12.5px;
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
     font-weight: 600;
 }
 
 /* PDOP řádek */
 .sky-pdop {
-    font-size: 12.5px;
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
     color: var(--text-muted, #9aa1ac);
     margin: 0 0 10px;
 }
 .sky-pdop b { color: var(--text-color, #eceef2); font-family: var(--font-mono, monospace); }
-.sky-pdop-note { opacity: 0.7; font-size: 10.5px; }
+.sky-pdop-note { opacity: 0.7; font-size: calc(10.5px * var(--ag-font-scale, 1)); }
 
 /* Poznámky */
 .sky-note {
     margin: 6px 0 0;
-    font-size: 11px;
+    font-size: calc(11px * var(--ag-font-scale, 1));
     line-height: 1.5;
     color: var(--text-muted, #9aa1ac);
 }

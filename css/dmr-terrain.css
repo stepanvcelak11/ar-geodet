@@ -30,7 +30,7 @@
     -webkit-backdrop-filter: blur(10px);
     color: var(--text-color);
     font-family: var(--font-ui, sans-serif);
-    font-size: 12.5px;
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
     font-weight: 600;
     line-height: 1.2;
     white-space: nowrap;

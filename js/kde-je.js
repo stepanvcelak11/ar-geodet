@@ -165,8 +165,8 @@
                 L.marker([r.lat, r.lng], {
                     icon: L.divIcon({
                         className: 'ag-kj-mk',
-                        html: '<div style="font-size:22px;line-height:1;text-shadow:0 1px 3px #000;">' + emojiOf(r.label) + '</div>' +
-                            '<div style="font-size:10px;background:rgba(0,0,0,.65);color:#fff;padding:1px 4px;border-radius:4px;white-space:nowrap;">' + esc(r.label) + '</div>',
+                        html: '<div style="font-size:calc(22px * var(--ag-font-scale, 1));line-height:1;text-shadow:0 1px 3px #000;">' + emojiOf(r.label) + '</div>' +
+                            '<div style="font-size:calc(10px * var(--ag-font-scale, 1));background:rgba(0,0,0,.65);color:#fff;padding:1px 4px;border-radius:4px;white-space:nowrap;">' + esc(r.label) + '</div>',
                         iconSize: [0, 0], iconAnchor: [10, 22]
                     }),
                     interactive: false, zIndexOffset: 800
@@ -194,7 +194,7 @@
             '#ag-kj-modal .ag-kj-btns button{flex:1 1 84px;padding:12px 6px;border-radius:12px;border:1px solid var(--border,rgba(255,255,255,.15));background:var(--bg-input,rgba(255,255,255,.06));color:inherit;font-size:.9em;}' +
             '#ag-kj-modal .ag-kj-btns button b{display:block;font-size:1.5em;margin-bottom:2px;}' +
             '#ag-kj-modal .ag-kj-it{display:flex;gap:10px;align-items:center;padding:10px;border-radius:12px;background:var(--bg-input,rgba(255,255,255,.06));margin-bottom:8px;}' +
-            '#ag-kj-modal .ag-kj-ar{width:44px;height:44px;flex:0 0 44px;border-radius:50%;background:rgba(96,165,250,.18);display:flex;align-items:center;justify-content:center;font-size:22px;}' +
+            '#ag-kj-modal .ag-kj-ar{width:44px;height:44px;flex:0 0 44px;border-radius:50%;background:rgba(96,165,250,.18);display:flex;align-items:center;justify-content:center;font-size:calc(22px * var(--ag-font-scale, 1));}' +
             '#ag-kj-modal .ag-kj-ar span{display:block;transition:transform .25s;}' +
             '#ag-kj-modal .ag-kj-tx{flex:1;min-width:0;} #ag-kj-modal .ag-kj-tx b{display:block;}' +
             '#ag-kj-modal .ag-kj-tx small{color:var(--text-muted,#9aa1ac);display:block;font-size:.82em;}' +

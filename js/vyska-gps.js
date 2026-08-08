@@ -50,7 +50,7 @@
             '  border:1px solid var(--accent-line,rgba(47,158,116,0.4));background:var(--accent-soft,rgba(47,158,116,0.14));',
             '  color:var(--text-color,#eceef2);font:600 11.5px/1.15 var(--font-ui,system-ui);}',
             '#' + BOX_ID + ' .agvz-btns button.agvz-sec{border-color:var(--glass-border,rgba(255,255,255,0.14));background:transparent;}',
-            '#' + BOX_ID + ' .agvz-n{color:var(--text-muted,#9aa1ac);font-size:11px;margin-top:6px;}',
+            '#' + BOX_ID + ' .agvz-n{color:var(--text-muted,#9aa1ac);font-size:calc(11px * var(--ag-font-scale, 1));margin-top:6px;}',
             '#' + BOX_ID + ' .agvz-warn{color:var(--warning,#fbbf24);}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);

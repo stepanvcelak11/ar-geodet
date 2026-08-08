@@ -325,7 +325,7 @@
             + '<div id="agpi-pane-dxf" class="agpi-pane">'
             + '  <button class="btn btn-blue" id="agpi-dxf-btn"><svg class="icon"><use href="#i-folder"/></svg> Načíst DXF soubor</button>'
             + '  <input type="file" id="agpi-dxf-file" accept=".dxf" style="display:none">'
-            + '  <div id="agpi-summary" style="font-size:13px;margin:10px 0;opacity:.85;"></div>'
+            + '  <div id="agpi-summary" style="font-size:calc(13px * var(--ag-font-scale, 1));margin:10px 0;opacity:.85;"></div>'
             + '  <div id="agpi-layers" class="agpi-layers"></div>'
             + '  <div class="agpi-toggles">'
             + '    <label class="agpi-sw"><input type="checkbox" id="agpi-ar-on" checked> Zobrazit v AR kameře</label>'
@@ -337,12 +337,12 @@
             + '  <button class="btn btn-danger" id="agpi-clear" style="margin-top:10px;display:none;"><svg class="icon"><use href="#i-trash"/></svg> Odebrat návrh</button>'
             + '</div>'
             + '<div id="agpi-pane-ras" class="agpi-pane" style="display:none;">'
-            + '  <p style="font-size:12.5px;opacity:.8;margin:2px 0 8px;line-height:1.45;">Načti foto/sken situace, pak urči <b>2 kontrolní body</b> (na obrázku → reálná poloha). Podklad se umístí nad mapu.</p>'
+            + '  <p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.8;margin:2px 0 8px;line-height:1.45;">Načti foto/sken situace, pak urči <b>2 kontrolní body</b> (na obrázku → reálná poloha). Podklad se umístí nad mapu.</p>'
             + '  <button class="btn btn-blue" id="agpi-ras-btn"><svg class="icon"><use href="#i-camera"/></svg> Načíst obrázek situace</button>'
             + '  <input type="file" id="agpi-ras-file" accept="image/*" style="display:none">'
             + '  <div id="agpi-ras-wrap" style="display:none;margin-top:10px;">'
             + '    <div style="position:relative;"><canvas id="agpi-ras-canvas" style="width:100%;border-radius:10px;touch-action:none;background:#111;"></canvas></div>'
-            + '    <div id="agpi-ras-step" style="font-size:13px;margin:8px 0;"></div>'
+            + '    <div id="agpi-ras-step" style="font-size:calc(13px * var(--ag-font-scale, 1));margin:8px 0;"></div>'
             + '    <div class="st-slider"><div class="st-slider-head"><span>Průhlednost</span><span><span id="agpi-ras-op">60</span>%</span></div>'
             + '      <input type="range" id="agpi-ras-opacity" min="10" max="100" step="5" value="60"></div>'
             + '    <label class="agpi-sw"><input type="checkbox" id="agpi-ras-on" checked> Zobrazit podklad na mapě</label>'
@@ -424,7 +424,7 @@
     function renderStakeList() {
         var box = document.getElementById('agpi-stake'); if (!box) return;
         var vs = stakeVertices();
-        if (!vs.length) { box.innerHTML = '<span style="opacity:.6;font-size:13px;">Žádné lomové body ve viditelných vrstvách.</span>'; return; }
+        if (!vs.length) { box.innerHTML = '<span style="opacity:.6;font-size:calc(13px * var(--ag-font-scale, 1));">Žádné lomové body ve viditelných vrstvách.</span>'; return; }
         if (haveUser()) vs.sort(function (a, b) { return getDistance(userLat, userLng, a.lat, a.lng) - getDistance(userLat, userLng, b.lat, b.lng); });
         box.innerHTML = vs.slice(0, 60).map(function (v) {
             var d = haveUser() ? getDistance(userLat, userLng, v.lat, v.lng) : null;
@@ -534,17 +534,17 @@
             '.agpi-tab{flex:1;padding:9px;border:none;border-radius:10px;background:rgba(255,255,255,0.06);color:var(--text-color,#e8edf2);font:600 13px/1 var(--font-ui,system-ui),sans-serif;cursor:pointer;}',
             '.agpi-tab.on{background:var(--accent,#2f9e74);color:#04110b;}',
             '.agpi-layers{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;}',
-            '.agpi-lay{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,0.05);font-size:13px;cursor:pointer;}',
+            '.agpi-lay{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,0.05);font-size:calc(13px * var(--ag-font-scale, 1));cursor:pointer;}',
             '.agpi-lay input{accent-color:var(--accent,#2f9e74);}',
             '.agpi-toggles{margin:10px 0;}',
-            '.agpi-sw{display:flex;align-items:center;gap:8px;font-size:14px;}',
+            '.agpi-sw{display:flex;align-items:center;gap:8px;font-size:calc(14px * var(--ag-font-scale, 1));}',
             '.agpi-sw input{width:18px;height:18px;accent-color:var(--accent,#2f9e74);}',
             '.agpi-stake{max-height:30vh;overflow:auto;}',
             '.agpi-srow{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;background:rgba(255,255,255,0.05);margin-bottom:5px;}',
             '.agpi-sname{flex:1;font-weight:600;}',
-            '.agpi-sd{font-family:var(--font-mono,monospace);font-size:12px;opacity:.75;}',
-            '.agpi-stk{border:none;border-radius:8px;padding:6px 12px;background:var(--accent,#2f9e74);color:#04110b;font-weight:700;font-size:12.5px;cursor:pointer;}',
-            '.agpi-txt span{background:rgba(0,0,0,0.5);color:#fde68a;font-size:11px;padding:1px 4px;border-radius:4px;white-space:nowrap;transform:translate(-50%,-50%);display:inline-block;}'
+            '.agpi-sd{font-family:var(--font-mono,monospace);font-size:calc(12px * var(--ag-font-scale, 1));opacity:.75;}',
+            '.agpi-stk{border:none;border-radius:8px;padding:6px 12px;background:var(--accent,#2f9e74);color:#04110b;font-weight:700;font-size:calc(12.5px * var(--ag-font-scale, 1));cursor:pointer;}',
+            '.agpi-txt span{background:rgba(0,0,0,0.5);color:#fde68a;font-size:calc(11px * var(--ag-font-scale, 1));padding:1px 4px;border-radius:4px;white-space:nowrap;transform:translate(-50%,-50%);display:inline-block;}'
         ].join('\n');
         document.head.appendChild(st);
     }

@@ -135,7 +135,7 @@
         el.innerHTML =
             '<div class="modal-content" style="display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:#f59e0b;margin-top:0;">' + ICON + ' Stopa trasy</h3>'
-            + '<p style="font-size:12.5px;opacity:.7;margin:2px 0 10px;">Zaznamenává, kudy jdeš (oranžová čára na mapě). Šetří GPS šum — bere bod po posunu ≥ ' + MIN_MOVE_M + ' m.</p>'
+            + '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.7;margin:2px 0 10px;">Zaznamenává, kudy jdeš (oranžová čára na mapě). Šetří GPS šum — bere bod po posunu ≥ ' + MIN_MOVE_M + ' m.</p>'
             + '<div id="agtr-stats" style="font-family:var(--font-mono,monospace);margin:6px 0 12px;color:#fbbf24;"></div>'
             + '<button class="btn" id="agtr-toggle"></button>'
             + '<label class="filter-row" style="margin-top:10px;"><input type="checkbox" id="agtr-ar"> Zobrazit stopu i v AR pohledu</label>'

@@ -73,27 +73,27 @@ body.light-mode.outdoor-mode .ar-marker {
    dostanou plný text místo šedé. */
 body.outdoor-mode #info,
 body.outdoor-mode #gps-avg,
-body.outdoor-mode #compass-debug { font-size: 14px; }
-body.outdoor-mode .ar-marker-dist { font-size: 13px; opacity: 1; }
+body.outdoor-mode #compass-debug { font-size: calc(14px * var(--ag-font-scale, 1)); }
+body.outdoor-mode .ar-marker-dist { font-size: calc(13px * var(--ag-font-scale, 1)); opacity: 1; }
 body.outdoor-mode .tool-cat,
-body.outdoor-mode .ag-ft-head { color: var(--text-muted); font-size: 12px; }
+body.outdoor-mode .ag-ft-head { color: var(--text-muted); font-size: calc(12px * var(--ag-font-scale, 1)); }
 body.outdoor-mode .modal-content small,
-body.outdoor-mode .st-lab small { color: var(--text-faint); font-size: 12.5px; }
+body.outdoor-mode .st-lab small { color: var(--text-faint); font-size: calc(12.5px * var(--ag-font-scale, 1)); }
 body.outdoor-mode .modal-content p,
 body.outdoor-mode .modal-content li,
-body.outdoor-mode .modal-content label { font-size: 14px; }
+body.outdoor-mode .modal-content label { font-size: calc(14px * var(--ag-font-scale, 1)); }
 
 /* ---- 4) REŽIM RUKAVIC — globální dotykové terče ---------------------------
    Dřív řešeno per modul (8 z 22 CSS). Tady jednotné minimum pro celou
    appku: hlavní tlačítka a formulářové prvky ≥44 px na výšku.
    (Pozor: NEsahat na .dock-btn a HUD — mají vlastní layout.) */
-body.ag-glove .btn { min-height: 46px; font-size: 15px; }
-body.ag-glove .menu-btn { min-height: 46px; font-size: 15px; }
+body.ag-glove .btn { min-height: 46px; font-size: calc(15px * var(--ag-font-scale, 1)); }
+body.ag-glove .menu-btn { min-height: 46px; font-size: calc(15px * var(--ag-font-scale, 1)); }
 body.ag-glove .tool-tile { min-height: 96px; }
 body.ag-glove .modal-content input[type="text"],
 body.ag-glove .modal-content input[type="number"],
 body.ag-glove .modal-content select,
-body.ag-glove .modal-content textarea { min-height: 44px; font-size: 16px; }
+body.ag-glove .modal-content textarea { min-height: 44px; font-size: calc(16px * var(--ag-font-scale, 1)); }
 body.ag-glove .modal-content input[type="checkbox"],
 body.ag-glove .modal-content input[type="radio"] { transform: scale(1.3); }
 body.ag-glove .st-row { min-height: 48px; }
@@ -102,4 +102,4 @@ body.ag-glove .tab-btn { min-height: 46px; }
 /* Rukavice + venkovní zároveň: ještě o chlup větší stavový text */
 body.ag-glove.outdoor-mode #info,
 body.ag-glove.outdoor-mode #gps-avg,
-body.ag-glove.outdoor-mode #compass-debug { font-size: 15px; }
+body.ag-glove.outdoor-mode #compass-debug { font-size: calc(15px * var(--ag-font-scale, 1)); }

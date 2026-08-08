@@ -181,7 +181,7 @@
         var html = '<div style="font:600 13px/1.4 system-ui,sans-serif;color:#0e1216;">Parcela <b>' + escapeHtml(p.cislo) + '</b>'
             + (p.vymera != null ? '<br>Výměra: <b>' + Number(p.vymera).toLocaleString('cs') + ' m²</b>' : '')
             + (p.ku ? '<br>KÚ: ' + escapeHtml(p.ku) : '')
-            + '<br><span style="font-size:11px;opacity:.7">© ČÚZK</span></div>';
+            + '<br><span style="font-size:calc(11px * var(--ag-font-scale, 1));opacity:.7">© ČÚZK</span></div>';
         L.popup({ maxWidth: 220 }).setLatLng(latlng || [p.rings[0][0].lat, p.rings[0][0].lng]).setContent(html).openOn(m);
     }
 
@@ -288,17 +288,17 @@
             + '<div class="st-slider"><div class="st-slider-head"><span>Stáhnout v okruhu</span><span><span id="agcv-rad-val">300</span> m</span></div>'
             + '  <input type="range" id="agcv-rad" min="100" max="1000" step="50" value="300"></div>'
             + '<button class="btn btn-blue" id="agcv-dl"><svg class="icon"><use href="#i-download"/></svg> Stáhnout parcely v okolí</button>'
-            + '<div id="agcv-status" style="font-size:12.5px;color:#fbbf24;margin:6px 2px;"></div>'
-            + '<div id="agcv-info" style="font-size:13px;margin:8px 0;opacity:.9;"></div>'
+            + '<div id="agcv-status" style="font-size:calc(12.5px * var(--ag-font-scale, 1));color:#fbbf24;margin:6px 2px;"></div>'
+            + '<div id="agcv-info" style="font-size:calc(13px * var(--ag-font-scale, 1));margin:8px 0;opacity:.9;"></div>'
             + '<label class="agcv-sw" style="margin-top:6px;"><input type="checkbox" id="agcv-ar" checked> Zobrazit hranice v AR kameře</label>'
             + '<button class="btn" id="agcv-stake" style="margin-top:10px;"><svg class="icon"><use href="#i-navigation"/></svg> Navést na nejbližší lomový bod</button>'
             + '<details class="adv" style="margin-top:12px;"><summary><svg class="icon"><use href="#i-folder"/></svg> Nouzově / offline: parcely ze souboru</summary><div class="adv-body">'
-            + '  <p style="font-size:12px;opacity:.75;margin:4px 0;">Načti GeoJSON s parcelami (Polygon/MultiPolygon; číslo v poli cisloparcely/cislo/PARCISLO).</p>'
+            + '  <p style="font-size:calc(12px * var(--ag-font-scale, 1));opacity:.75;margin:4px 0;">Načti GeoJSON s parcelami (Polygon/MultiPolygon; číslo v poli cisloparcely/cislo/PARCISLO).</p>'
             + '  <button class="btn btn-secondary" id="agcv-imp"><svg class="icon"><use href="#i-folder"/></svg> Načíst GeoJSON</button>'
             + '  <input type="file" id="agcv-imp-file" accept=".json,.geojson,application/json" style="display:none">'
             + '  <button class="btn btn-danger" id="agcv-clear" style="margin-top:10px;"><svg class="icon"><use href="#i-trash"/></svg> Vymazat stažené parcely</button>'
             + '</div></details>'
-            + '<p style="font-size:11px;opacity:.6;margin:10px 2px 0;">Zdroj: RÚIAN / katastr nemovitostí — data © ČÚZK. Hranice jsou orientační, ověřuj v terénu.</p>'
+            + '<p style="font-size:calc(11px * var(--ag-font-scale, 1));opacity:.6;margin:10px 2px 0;">Zdroj: RÚIAN / katastr nemovitostí — data © ČÚZK. Hranice jsou orientační, ověřuj v terénu.</p>'
             + '<button class="btn btn-secondary" style="margin-top:12px;" onclick="window.agCloseCadastreVector&&window.agCloseCadastreVector()">Zavřít</button>'
             + '</div>';
         document.body.appendChild(el);
@@ -323,7 +323,7 @@
                 var nd = nearestOnSegments(userLat, userLng, _here);
                 here.innerHTML = '<div class="agcv-here-in">Stojíš na parcele<br><b>' + escapeHtml(_here.cislo) + '</b>'
                     + (_here.vymera != null ? ' · ' + Number(_here.vymera).toLocaleString('cs') + ' m²' : '')
-                    + (nd ? '<br><span style="font-size:12px;opacity:.8">k hranici ' + nd.dist.toFixed(1) + ' m</span>' : '') + '</div>';
+                    + (nd ? '<br><span style="font-size:calc(12px * var(--ag-font-scale, 1));opacity:.8">k hranici ' + nd.dist.toFixed(1) + ' m</span>' : '') + '</div>';
             } else if (_parcels.length) here.innerHTML = '<div class="agcv-here-out">Nejsi uvnitř žádné stažené parcely.</div>';
             else here.innerHTML = '';
         }
@@ -344,9 +344,9 @@
         var st = document.createElement('style'); st.id = 'agcv-style';
         st.textContent = [
             '.agcv-here{margin:4px 0 10px;}',
-            '.agcv-here-in{padding:12px 14px;border-radius:10px;background:rgba(34,211,238,0.16);outline:1px solid rgba(34,211,238,0.5);font-size:15px;}',
-            '.agcv-here-out{padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.06);font-size:13px;opacity:.85;}',
-            '.agcv-sw{display:flex;align-items:center;gap:8px;font-size:14px;}',
+            '.agcv-here-in{padding:12px 14px;border-radius:10px;background:rgba(34,211,238,0.16);outline:1px solid rgba(34,211,238,0.5);font-size:calc(15px * var(--ag-font-scale, 1));}',
+            '.agcv-here-out{padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.06);font-size:calc(13px * var(--ag-font-scale, 1));opacity:.85;}',
+            '.agcv-sw{display:flex;align-items:center;gap:8px;font-size:calc(14px * var(--ag-font-scale, 1));}',
             '.agcv-sw input{width:18px;height:18px;accent-color:var(--accent,#2f9e74);}'
         ].join('\n');
         document.head.appendChild(st);

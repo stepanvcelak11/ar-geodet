@@ -71,7 +71,7 @@
         var ok = document.createElement('button');
         ok.type = 'button'; ok.id = 'gps-warn-ok';
         ok.setAttribute('aria-label', 'Rozumím, skrýt varování');
-        ok.style.cssText = 'margin-left:8px; border:1px solid rgba(0,0,0,0.35); background:rgba(0,0,0,0.18); color:inherit; font-size:11px; font-weight:600; line-height:1; padding:5px 9px; border-radius:99px; cursor:pointer; pointer-events:auto;';
+        ok.style.cssText = 'margin-left:8px; border:1px solid rgba(0,0,0,0.35); background:rgba(0,0,0,0.18); color:inherit; font-size:calc(11px * var(--ag-font-scale, 1)); font-weight:600; line-height:1; padding:5px 9px; border-radius:99px; cursor:pointer; pointer-events:auto;';
         ok.textContent = 'Rozumím ✕';
         ok.addEventListener('click', function (ev) {
             ev.stopPropagation();

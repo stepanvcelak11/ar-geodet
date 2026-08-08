@@ -238,7 +238,7 @@
             '  border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.12));',
             '  font:700 11px/1 var(--font-display,system-ui),sans-serif;',
             '  letter-spacing:.09em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
-            '.ag-uk-h .ag-uk-n{margin-left:auto;font-weight:600;font-size:10.5px;',
+            '.ag-uk-h .ag-uk-n{margin-left:auto;font-weight:600;font-size:calc(10.5px * var(--ag-font-scale, 1));',
             '  letter-spacing:.02em;color:var(--text-faint,#7b828c);}',
             // venkovní režim má modály neprůhledné — hlavička musí mít stejné pozadí,
             // jinak by pod ní při rolování prosvítal text položek
@@ -255,8 +255,8 @@
             '.ag-uk-ico{flex:0 0 auto;width:22px;height:22px;color:var(--accent,#2f9e74);}',
             '.ag-uk-ico svg{width:22px;height:22px;}',
             '.ag-uk-tx{flex:1 1 auto;min-width:0;}',
-            '.ag-uk-tx b{display:block;font-size:14.5px;font-weight:600;line-height:1.3;}',
-            '.ag-uk-tx small{display:block;margin-top:2px;font-size:12px;line-height:1.35;',
+            '.ag-uk-tx b{display:block;font-size:calc(14.5px * var(--ag-font-scale, 1));font-weight:600;line-height:1.3;}',
+            '.ag-uk-tx small{display:block;margin-top:2px;font-size:calc(12px * var(--ag-font-scale, 1));line-height:1.35;',
             '  color:var(--text-muted,#9aa1ac);}',
             // blok „Teď" nahoře — jeden vstup místo tří rozesetých
             '.ag-uk-now{margin:0 0 14px;padding:11px 13px;border-radius:12px;',
@@ -265,7 +265,7 @@
             '.ag-uk-now .ag-uk-i{background:transparent;border:0;margin:0;padding:6px 0;}',
             '.ag-uk-now .ag-uk-i + .ag-uk-i{border-top:1px solid var(--glass-border,rgba(255,255,255,0.10));}',
             'body.ag-glove .ag-uk-i{padding:15px 14px;}',
-            'body.ag-glove .ag-uk-tx b{font-size:15.5px;}'
+            'body.ag-glove .ag-uk-tx b{font-size:calc(15.5px * var(--ag-font-scale, 1));}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }

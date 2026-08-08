@@ -21,7 +21,7 @@
 .agref-lbl {
     display: block;
     margin-top: 14px;
-    font-size: 12.5px;
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
     font-weight: 600;
     letter-spacing: 0.2px;
     color: var(--text-muted, #9aa1ac);
@@ -32,7 +32,7 @@
     margin: 2px 0 12px;
     padding: 10px 12px;
     border-radius: var(--r-md, 12px);
-    font-size: 13px;
+    font-size: calc(13px * var(--ag-font-scale, 1));
     line-height: 1.45;
     border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
     background: rgba(255, 255, 255, 0.04);
@@ -44,13 +44,13 @@
 }
 .agref-state.off { border-color: var(--glass-border, rgba(255, 255, 255, 0.12)); }
 .agref-state.none { color: var(--text-muted, #9aa1ac); }
-.agref-dim { font-size: 11px; color: var(--text-muted, #9aa1ac); }
+.agref-dim { font-size: calc(11px * var(--ag-font-scale, 1)); color: var(--text-muted, #9aa1ac); }
 
 .agref-note {
     margin: 0 0 6px;
     padding-bottom: 10px;
     border-bottom: 1px dashed var(--glass-border, rgba(255, 255, 255, 0.14));
-    font-size: 12px;
+    font-size: calc(12px * var(--ag-font-scale, 1));
     line-height: 1.5;
     color: var(--text-muted, #9aa1ac);
 }
@@ -64,7 +64,7 @@
     background: rgba(0, 0, 0, 0.22);
     border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
     font-family: var(--font-mono, monospace);
-    font-size: 12px;
+    font-size: calc(12px * var(--ag-font-scale, 1));
     line-height: 1.5;
     color: var(--text-color, #eceef2);
 }
@@ -74,9 +74,9 @@
 .agref-row2 .btn { margin-top: 0; }
 
 /* Režim rukavic — větší dialog (sladěno s body.ag-glove ve vylepseni.css) */
-body.ag-glove #agref-modal .btn { min-height: 56px; font-size: 17px; }
+body.ag-glove #agref-modal .btn { min-height: 56px; font-size: calc(17px * var(--ag-font-scale, 1)); }
 body.ag-glove #agref-modal input,
-body.ag-glove #agref-modal select { padding: 15px 14px; font-size: 16px; }
+body.ag-glove #agref-modal select { padding: 15px 14px; font-size: calc(16px * var(--ag-font-scale, 1)); }
 
 /* Venkovní režim — i tento modál musí být v ostrém slunci čitelný */
 body.outdoor-mode #agref-modal .agref-content {

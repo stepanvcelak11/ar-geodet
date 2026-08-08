@@ -38,13 +38,13 @@
 .ag-dlg-title {
     margin: 0 0 8px;
     font-family: var(--font-display, sans-serif);
-    font-size: 19px;
+    font-size: calc(19px * var(--ag-font-scale, 1));
     font-weight: 700;
     letter-spacing: -0.3px;
 }
 .ag-dlg-msg {
     margin: 0 0 6px;
-    font-size: 14px;
+    font-size: calc(14px * var(--ag-font-scale, 1));
     line-height: 1.5;
     color: var(--text-muted, #aab2c8);
 }
@@ -54,7 +54,7 @@
     box-sizing: border-box;
     margin-top: 12px;
     padding: 13px 14px;
-    font-size: 16px; /* 16px = iOS nezoomuje při focusu */
+    font-size: calc(16px * var(--ag-font-scale, 1)); /* 16px = iOS nezoomuje při focusu */
     color: var(--text-color, #fff);
     background: rgba(0, 0, 0, 0.28);
     border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
@@ -78,7 +78,7 @@
     border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
     border-radius: 12px;
     font-family: var(--font-display, sans-serif);
-    font-size: 15px;
+    font-size: calc(15px * var(--ag-font-scale, 1));
     font-weight: 700;
     cursor: pointer;
     background: rgba(255, 255, 255, 0.06);
@@ -106,7 +106,7 @@
     margin-top: 12px;
     padding-top: 10px;
     border-top: 1px dashed var(--glass-border, rgba(255, 255, 255, 0.14));
-    font-size: 12px;
+    font-size: calc(12px * var(--ag-font-scale, 1));
     line-height: 1.5;
     color: var(--text-muted, #aab2c8);
 }
@@ -126,7 +126,7 @@
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    font-size: 12.5px;
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
     font-weight: 600;
     color: var(--text-muted, #aab2c8);
 }
@@ -147,7 +147,7 @@
 }
 .ag-quota.warn .ag-quota-fill { background: #fbbf24; }
 .ag-quota.crit .ag-quota-fill { background: var(--danger,#fb7185); }
-.ag-quota-note { margin-top: 8px; font-size: 10.5px; line-height: 1.45; color: var(--text-muted, #aab2c8); }
+.ag-quota-note { margin-top: 8px; font-size: calc(10.5px * var(--ag-font-scale, 1)); line-height: 1.45; color: var(--text-muted, #aab2c8); }
 .ag-quota.warn .ag-quota-note, .ag-quota.crit .ag-quota-note { color: #fbbf24; }
 
 /* --------------------------------------------------------------------------------
@@ -161,16 +161,16 @@
 /* --------------------------------------------------------------------------------
    5) Režim rukavic — větší dotykové terče (přepínač v bočním menu)
    -------------------------------------------------------------------------------- */
-body.ag-glove .btn { min-height: 56px; font-size: 17px; }
-body.ag-glove .menu-btn { padding: 16px 16px; font-size: 16px; }
+body.ag-glove .btn { min-height: 56px; font-size: calc(17px * var(--ag-font-scale, 1)); }
+body.ag-glove .menu-btn { padding: 16px 16px; font-size: calc(16px * var(--ag-font-scale, 1)); }
 body.ag-glove .dock-btn { padding-top: 10px; padding-bottom: 10px; }
-body.ag-glove .dock-btn span:not(.dock-fab) { font-size: 12px; }
+body.ag-glove .dock-btn span:not(.dock-fab) { font-size: calc(12px * var(--ag-font-scale, 1)); }
 body.ag-glove .map-ctrl-btn { width: 52px; height: 52px; }
-body.ag-glove .seg-btn { padding: 12px 16px; font-size: 15px; }
-body.ag-glove .ag-dlg-btn { min-height: 56px; font-size: 17px; }
+body.ag-glove .seg-btn { padding: 12px 16px; font-size: calc(15px * var(--ag-font-scale, 1)); }
+body.ag-glove .ag-dlg-btn { min-height: 56px; font-size: calc(17px * var(--ag-font-scale, 1)); }
 body.ag-glove .modal-content input[type="text"],
 body.ag-glove .modal-content input[type="number"],
-body.ag-glove .modal-content select { padding: 15px 14px; font-size: 16px; }
+body.ag-glove .modal-content select { padding: 15px 14px; font-size: calc(16px * var(--ag-font-scale, 1)); }
 
 /* --------------------------------------------------------------------------------
    6) RESPONZIVITA — dříve byl v projektu jen jediný @media (reduced-motion).
@@ -186,12 +186,12 @@ body.ag-glove .modal-content select { padding: 15px 14px; font-size: 16px; }
 @media (max-width: 380px) {
     .modal-content { padding: 18px 16px; width: 94%; }
     .ag-dlg { padding: 16px; }
-    .modal-content .btn, .ag-dlg-btn { font-size: 14px; }
+    .modal-content .btn, .ag-dlg-btn { font-size: calc(14px * var(--ag-font-scale, 1)); }
     /* POZOR: tady bývalo #side-menu { width: min(250px, …) }. Běžné Androidy hlásí
        360 CSS px, takže se pravidlo zaplo a menu „Více" se vysunulo jen do necelé
        poloviny displeje, zatímco na širších iPhonech (390+) bylo přes celou obrazovku.
        Menu je záměrně fullscreen (style.css) — NEVRACET sem šířkový override. */
-    .modal-content label { font-size: 12px; }
+    .modal-content label { font-size: calc(12px * var(--ag-font-scale, 1)); }
 }
 
 /* Velmi nízká výška / landscape: modály ať jsou skoro celé a uvnitř rolují */
@@ -205,7 +205,7 @@ body.ag-glove .modal-content select { padding: 15px 14px; font-size: 16px; }
 @media (min-width: 768px) {
     .modal-content { max-width: 520px; }
     .ag-dlg { max-width: 440px; }
-    .ag-dlg-title { font-size: 21px; }
+    .ag-dlg-title { font-size: calc(21px * var(--ag-font-scale, 1)); }
 }
 
 /* Bezpečnostní pojistka: tělo modálu vždy roluje, ať se nic neořízne */
@@ -235,31 +235,31 @@ body.ag-glove .modal-content select { padding: 15px 14px; font-size: 16px; }
 }
 #ag-calib.open { display: block; }
 .ag-calib-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.ag-calib-step { font-family: var(--font-mono, monospace); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted, #aab2c8); }
+.ag-calib-step { font-family: var(--font-mono, monospace); font-size: calc(10px * var(--ag-font-scale, 1)); letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted, #aab2c8); }
 /* jednotné zavírací „×" (kruh jako .lvl-x/.prd-x/.zpr-x, jen menší kvůli kompaktnímu panelu) */
-.ag-calib-x { flex: none; width: 34px; height: 34px; border: none; border-radius: 50%; background: rgba(255, 255, 255, 0.08); color: var(--text-color, #fff); font-size: 18px; line-height: 1; cursor: pointer; }
-.ag-calib-title { margin: 0 0 4px; font-family: var(--font-display, sans-serif); font-size: 17px; font-weight: 700; }
-.ag-calib-desc { margin: 0 0 10px; font-size: 12.5px; line-height: 1.45; color: var(--text-muted, #aab2c8); }
+.ag-calib-x { flex: none; width: 34px; height: 34px; border: none; border-radius: 50%; background: rgba(255, 255, 255, 0.08); color: var(--text-color, #fff); font-size: calc(18px * var(--ag-font-scale, 1)); line-height: 1; cursor: pointer; }
+.ag-calib-title { margin: 0 0 4px; font-family: var(--font-display, sans-serif); font-size: calc(17px * var(--ag-font-scale, 1)); font-weight: 700; }
+.ag-calib-desc { margin: 0 0 10px; font-size: calc(12.5px * var(--ag-font-scale, 1)); line-height: 1.45; color: var(--text-muted, #aab2c8); }
 .ag-calib-read { display: flex; align-items: baseline; justify-content: center; gap: 8px; margin: 6px 0 10px; }
-.ag-calib-read .lbl { font-size: 11px; color: var(--text-muted, #aab2c8); }
-.ag-calib-read .val { font-family: var(--font-mono, monospace); font-size: 24px; font-weight: 700; color: var(--accent,#2f9e74); }
+.ag-calib-read .lbl { font-size: calc(11px * var(--ag-font-scale, 1)); color: var(--text-muted, #aab2c8); }
+.ag-calib-read .val { font-family: var(--font-mono, monospace); font-size: calc(24px * var(--ag-font-scale, 1)); font-weight: 700; color: var(--accent,#2f9e74); }
 .ag-calib-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
 .ag-calib-grid.cols2 { grid-template-columns: 1fr 1fr; }
-.ag-calib-btn { min-height: 46px; padding: 10px 6px; border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12)); border-radius: 11px; background: rgba(255, 255, 255, 0.06); color: var(--text-color, #fff); font-family: var(--font-display, sans-serif); font-weight: 700; font-size: 15px; cursor: pointer; }
+.ag-calib-btn { min-height: 46px; padding: 10px 6px; border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12)); border-radius: 11px; background: rgba(255, 255, 255, 0.06); color: var(--text-color, #fff); font-family: var(--font-display, sans-serif); font-weight: 700; font-size: calc(15px * var(--ag-font-scale, 1)); cursor: pointer; }
 .ag-calib-btn:active { transform: scale(0.97); }
 .ag-calib-foot { display: flex; gap: 8px; margin-top: 12px; }
 .ag-calib-foot .ag-calib-btn { flex: 1; }
 .ag-calib-foot .prim { background: var(--accent,#2f9e74); border-color: transparent; color: #0b1020; }
-.ag-calib-mini { background: transparent; border: none; color: var(--text-muted, #aab2c8); font-size: 12px; text-decoration: underline; cursor: pointer; padding: 4px; }
-body.ag-glove .ag-calib-btn { min-height: 54px; font-size: 16px; }
+.ag-calib-mini { background: transparent; border: none; color: var(--text-muted, #aab2c8); font-size: calc(12px * var(--ag-font-scale, 1)); text-decoration: underline; cursor: pointer; padding: 4px; }
+body.ag-glove .ag-calib-btn { min-height: 54px; font-size: calc(16px * var(--ag-font-scale, 1)); }
 
 /* --------------------------------------------------------------------------------
    9) Fotodokumentace vytyčení — náhled v detailu bodu
    -------------------------------------------------------------------------------- */
 #ag-stk-photo { margin-top: 12px; }
 .ag-stk-thumb img { display: block; width: 100%; max-height: 220px; object-fit: cover; border-radius: 12px; border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.14)); }
-.ag-stk-del { margin-top: 6px; background: transparent; border: none; color: var(--danger,#fb7185); font-size: 12px; text-decoration: underline; cursor: pointer; padding: 4px; }
-.ag-stk-empty { padding: 14px; text-align: center; font-size: 12px; color: var(--text-muted, #aab2c8); border: 1px dashed var(--glass-border, rgba(255, 255, 255, 0.18)); border-radius: 12px; }
+.ag-stk-del { margin-top: 6px; background: transparent; border: none; color: var(--danger,#fb7185); font-size: calc(12px * var(--ag-font-scale, 1)); text-decoration: underline; cursor: pointer; padding: 4px; }
+.ag-stk-empty { padding: 14px; text-align: center; font-size: calc(12px * var(--ag-font-scale, 1)); color: var(--text-muted, #aab2c8); border: 1px dashed var(--glass-border, rgba(255, 255, 255, 0.18)); border-radius: 12px; }
 
 /* --------------------------------------------------------------------------------
    10) Venkovní režim — i nové prvky vrstvy musí být v ostrém slunci čitelné
