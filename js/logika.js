@@ -930,8 +930,22 @@ if ('serviceWorker' in navigator) {
                 used = inl;
                 cx = _median(used.map(p => p.x)); cy = _median(used.map(p => p.y));
             }
+            // VAHA VZORKU = 1/acc² (hlasena presnost)  ×  vaha USTALENI (delka mereni).
+            // Prvni sekundy po zacatku serie jsou nejhorsi: telefonem se jeste hybe,
+            // prijimac dopocitava ionosfericky model a multipath filtr, drzi se v ruce.
+            // Cim dele lezi na miste, tim vic vzorku dava a tim je kazdy z nich vic
+            // "usazeny" -> vaha roste linearne z SETTLE_MIN na 1 za SETTLE_FULL sekund.
+            // Vazi se CAS OD ZACATKU SERIE (ne poradi vzorku): pri prerusovanem signalu
+            // se pocet fixu a doba mereni rozchazeji, a rozhoduje doba.
+            const SETTLE_MIN = 0.25, SETTLE_FULL = 60;
+            const _t0s = used.reduce((mn, p) => Math.min(mn, p.s.t || 0), Infinity);
+            const _settle = (s) => {
+                const age = ((s.t || 0) - _t0s) / 1000;
+                if (!isFinite(age) || age <= 0) return SETTLE_MIN;
+                return SETTLE_MIN + (1 - SETTLE_MIN) * Math.min(1, age / SETTLE_FULL);
+            };
             let sw = 0, swx = 0, swy = 0;
-            used.forEach(p => { const w = 1 / Math.pow(Math.max(p.s.acc || 5, 1), 2); sw += w; swx += w * p.x; swy += w * p.y; });
+            used.forEach(p => { const w = _settle(p.s) / Math.pow(Math.max(p.s.acc || 5, 1), 2); sw += w; swx += w * p.x; swy += w * p.y; });
             const wx = swx / sw, wy = swy / sw;
             // sigma kolem TEHOZ stredu, ktery hlasime (vazeny prumer), s N-2 stupni
             // volnosti (2D stred). Drive se pocitalo kolem prumeru, ale delilo plnym N.
@@ -964,7 +978,8 @@ if ('serviceWorker' in navigator) {
                         if (inl.length >= 3) aS = inl;
                     }
                     let asw = 0, asum = 0;
-                    aS.forEach(s => { const w = 1 / Math.pow(Math.max(s.altAcc || 10, 1), 2); asw += w; asum += w * s.alt; });
+                    // stejne vazeni ustalenim jako u polohy (svisla slozka se usazuje jeste dele)
+                    aS.forEach(s => { const w = _settle(s) / Math.pow(Math.max(s.altAcc || 10, 1), 2); asw += w; asum += w * s.alt; });
                     altMean = asum / asw;
                     const _resZ = aS.map(s => s.alt - altMean);
                     const asig = Math.sqrt(_resZ.reduce((a, v) => a + v * v, 0) / Math.max(1, aS.length - 1));

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AR Geodet — návrhy karty „Informace o bodu"</title>
+<style>
+/* =============================================================================
+   NÁVRHY VZHLEDU KARTY BODU (#bottom-sheet) — 4 varianty, statické atrapy.
+   Soubor v appce NIC nemění; jen se v něm vybírá směr. Hodnoty jsou vzorové.
+
+   PROČ SE TO ŘEŠÍ (uživatel: „vizuál se dlouho neupravoval a je stále stejný"):
+   dnešní karta má všechno stejně důležité — nadpis, typ bodu, čtyři řádky
+   „popisek : hodnota" a pod tím trvale velký jantarový odstavec o rádiusu
+   hledání, který zabírá třetinu karty a říká pořád totéž. Chybí tam naopak to,
+   co appka DÁVNO VÍ: čím byl bod určen, kdy, s jakou přesností, jaký kód
+   kvality, jestli je zvýrazněný a kterým směrem se k němu jde.
+
+   Tokeny barev jsou opsané z css/tokens.css, ať návrh sedí 1:1 s appkou.
+   ============================================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+:root {
+    --bg: #0d1117;
+    --glass-bg: rgba(18, 22, 28, 0.92);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --surface-1: rgba(255, 255, 255, 0.05);
+    --surface-2: rgba(255, 255, 255, 0.09);
+    --accent: #2f9e74;
+    --accent-bright: #3eb487;
+    --accent-soft: rgba(47, 158, 116, 0.14);
+    --accent-line: rgba(47, 158, 116, 0.42);
+    --warning: #fbbf24;
+    --danger: #fb7185;
+    --data: #e6bd76;
+    --text: #eceef2;
+    --text-muted: #9aa1ac;
+    --font-display: "Sora", sans-serif;
+    --font-ui: "Inter", -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+body {
+    font-family: var(--font-ui);
+    background: radial-gradient(120% 90% at 50% 0%, #16202a 0%, var(--bg) 60%);
+    color: var(--text);
+    padding: 18px 14px 60px;
+    line-height: 1.5;
+}
+h1 { font: 800 21px/1.25 var(--font-display); margin-bottom: 6px; }
+.lead { color: var(--text-muted); font-size: 13.5px; max-width: 62ch; }
+.lead b { color: var(--text); }
+.wrap { max-width: 1180px; margin: 0 auto; }
+.grid { display: grid; gap: 22px; margin-top: 26px; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); }
+.col { min-width: 0; }
+.col > h2 { font: 700 15px/1.3 var(--font-display); margin-bottom: 4px; }
+.col > h2 span { color: var(--accent-bright); }
+.col > .why { font-size: 12.5px; color: var(--text-muted); margin-bottom: 12px; }
+.col > .why b { color: var(--text); }
+
+/* rám telefonu, ať se karta hodnotí ve skutečné šířce */
+.phone {
+    width: 100%; max-width: 360px; margin: 0 auto;
+    border: 1px solid var(--glass-border); border-radius: 22px;
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0) 40%),
+        repeating-linear-gradient(115deg, #1b2430 0 14px, #18212c 14px 28px);
+    padding: 34px 0 0; overflow: hidden;
+}
+.phone .fake-ar { height: 74px; display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.22); font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; }
+
+/* společný základ karty (odpovídá #bottom-sheet) */
+.card { background: var(--glass-bg); border-top: 1px solid var(--glass-border);
+    border-radius: 20px 20px 0 0; padding: 8px 16px 16px; backdrop-filter: blur(10px); }
+.handle { width: 42px; height: 4px; border-radius: 99px; background: rgba(255,255,255,0.22); margin: 0 auto 12px; }
+.row { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07); font-size: 13.5px; }
+.row:last-child { border-bottom: none; }
+.row .k { color: var(--text-muted); }
+.row .v { font-family: var(--font-mono); font-weight: 700; color: var(--data); white-space: nowrap; }
+.acts { display: flex; gap: 7px; margin-top: 13px; }
+.acts button { flex: 1; border: 0; border-radius: 11px; padding: 11px 4px; font: 600 11.5px/1.1 var(--font-ui);
+    color: #0b0f14; background: var(--warning); cursor: pointer; }
+.acts button.g { background: var(--surface-2); color: var(--text); border: 1px solid var(--glass-border); }
+.acts button.r { background: var(--danger); }
+.chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 99px;
+    font: 600 10.5px/1.35 var(--font-ui); border: 1px solid var(--glass-border); background: var(--surface-1); color: var(--text-muted); }
+.chip.ok { border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent-bright); }
+.chip.warn { border-color: rgba(251,191,36,.45); background: rgba(251,191,36,.12); color: var(--warning); }
+.chip.bad { border-color: rgba(251,113,133,.45); background: rgba(251,113,133,.12); color: var(--danger); }
+.mono { font-family: var(--font-mono); }
+
+/* ---- DNEŠNÍ STAV (pro srovnání) ---- */
+.today h2 { font: 700 17px/1.2 var(--font-display); }
+.old-title { font: 800 20px/1.2 var(--font-display); color: var(--accent); }
+.old-sub { font-weight: 600; font-size: 14px; margin: 2px 0 14px; }
+.old-warn { margin-top: 14px; padding: 12px; background: rgba(251,191,36,0.1);
+    border-left: 4px solid var(--warning); border-radius: 8px; font-size: 12.5px; }
+.old-note { text-align: center; padding: 22px 0; opacity: .6; font-style: italic; font-size: 13px; }
+
+/* ---- ① PRÁCE NAHOŘE ---- */
+.n1-hero { display: flex; align-items: flex-end; gap: 12px; margin-bottom: 4px; }
+.n1-dist { font: 800 40px/0.95 var(--font-display); color: var(--data); font-variant-numeric: tabular-nums; }
+.n1-dist small { font: 700 15px/1 var(--font-display); color: var(--text-muted); margin-left: 3px; }
+.n1-dir { flex: 1; text-align: right; font-size: 12px; color: var(--text-muted); }
+.n1-arrow { display: block; font-size: 26px; color: var(--accent-bright); line-height: 1; }
+.n1-name { display: flex; align-items: center; gap: 8px; margin: 10px 0 2px; }
+.n1-name b { font: 700 17px/1.2 var(--font-display); }
+.n1-type { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+.n1-quality { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 10px; }
+
+/* ---- ② DVĚ PÁSMA ---- */
+.n2-top { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
+    padding: 10px 12px; border-radius: 14px; background: var(--accent-soft); border: 1px solid var(--accent-line); }
+.n2-top b { font: 700 16px/1.2 var(--font-display); display: block; }
+.n2-top span { font-size: 11.5px; color: var(--text-muted); }
+.n2-big { font: 800 26px/1 var(--font-display); color: var(--data); font-variant-numeric: tabular-nums; text-align: right; }
+.n2-big i { display: block; font: 600 10px/1.3 var(--font-ui); color: var(--text-muted); font-style: normal; }
+.n2-tabs { display: flex; gap: 4px; margin: 12px 0 6px; padding: 3px; border-radius: 11px; background: var(--surface-1); }
+.n2-tabs button { flex: 1; border: 0; background: transparent; color: var(--text-muted);
+    font: 600 11.5px/1 var(--font-ui); padding: 8px 2px; border-radius: 9px; cursor: pointer; }
+.n2-tabs button.on { background: var(--surface-2); color: var(--text); }
+
+/* ---- ③ KARTIČKY ---- */
+.n3-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0 4px; }
+.n3-t { padding: 9px 10px; border-radius: 12px; background: var(--surface-1); border: 1px solid var(--glass-border); }
+.n3-t .k { font: 600 9.5px/1.2 var(--font-ui); letter-spacing: .07em; text-transform: uppercase; color: var(--text-muted); }
+.n3-t .v { font: 700 16px/1.25 var(--font-mono); color: var(--data); margin-top: 3px; }
+.n3-t.wide { grid-column: 1/-1; }
+.n3-t.hi { background: var(--accent-soft); border-color: var(--accent-line); }
+.n3-copy { float: right; font-size: 10px; color: var(--accent-bright); }
+
+/* ---- ④ POKLÁDKA ---- */
+.n4-delta { text-align: center; padding: 12px; border-radius: 14px; margin: 6px 0 10px;
+    background: rgba(251,113,133,0.10); border: 1px solid rgba(251,113,133,0.35); }
+.n4-delta b { display: block; font: 800 34px/1 var(--font-display); color: #ff9aa9; font-variant-numeric: tabular-nums; }
+.n4-delta span { font-size: 11.5px; color: var(--text-muted); }
+.n4-bar { position: relative; height: 8px; border-radius: 99px; background: var(--surface-2); margin: 12px 0 4px; }
+.n4-bar i { position: absolute; top: -3px; width: 3px; height: 14px; border-radius: 2px; background: var(--text); }
+.n4-bar .tol { position: absolute; top: 0; bottom: 0; background: var(--accent-soft); border-left: 1px solid var(--accent-line); border-right: 1px solid var(--accent-line); }
+.n4-scale { display: flex; justify-content: space-between; font: 600 9.5px/1 var(--font-mono); color: var(--text-muted); }
+
+.note { margin-top: 14px; padding: 11px 13px; border-radius: 12px; background: var(--surface-1);
+    border: 1px solid var(--glass-border); font-size: 12.5px; color: var(--text-muted); }
+.note b { color: var(--text); }
+.pros { list-style: none; margin-top: 10px; font-size: 12.5px; }
+.pros li { padding-left: 17px; position: relative; margin-bottom: 4px; color: var(--text-muted); }
+.pros li::before { content: "+"; position: absolute; left: 3px; color: var(--accent-bright); font-weight: 700; }
+.pros li.minus::before { content: "−"; color: var(--warning); }
+footer { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--glass-border); font-size: 12.5px; color: var(--text-muted); }
+footer b { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Karta bodu — 4 návrhy vzhledu</h1>
+<p class="lead">Vlevo je <b>dnešní stav</b>, vedle čtyři směry. Karta se v terénu čte <b>jednou rukou, přes rukavici a na slunci</b> — proto všechny návrhy míří na jedno: nahoru to, kvůli čemu kartu člověk otevřel, a dolů to, co je jen jednou za čas potřeba. Vyber číslo (klidně i kombinaci, např. <b>① + ④</b>) a já to postavím.</p>
+
+<div class="grid">
+
+    <!-- ============ DNEŠNÍ STAV ============ -->
+    <div class="col today">
+        <h2>Dnešní stav</h2>
+        <p class="why">Všechno má stejnou váhu, jantarová poučka zabírá třetinu karty a opakuje se pořád stejně. Provenience, přesnost ani kód kvality tu vůbec nejsou.</p>
+        <div class="phone">
+            <div class="fake-ar">AR / mapa</div>
+            <div class="card">
+                <div class="handle"></div>
+                <div class="old-title">#4021-108</div>
+                <div class="old-sub">Podrobný polohový bod</div>
+                <div class="row"><span class="k">Vzdálenost</span><span class="v">18,4 m</span></div>
+                <div class="row"><span class="k">S-JTSK Y</span><span class="v">598 214,32</span></div>
+                <div class="row"><span class="k">S-JTSK X</span><span class="v">1 121 043,87</span></div>
+                <div class="row"><span class="k">Výška Bpv</span><span class="v">243,86 m</span></div>
+                <div class="old-warn"><b>⚠ Rádius hledání (Vaše GPS: ±3,4 m)</b><br>Bod nehledejte na centimetr přesně na AR značce. Může ležet kdekoliv v tomto kruhovém okruhu od značky.</div>
+                <div class="old-note">Ručně vytvořený bod. Můžete jej spravovat v Nastavení.</div>
+                <div class="acts">
+                    <button>★ Zvýraznit</button>
+                    <button class="r">Skrýt</button>
+                    <button class="g">Zavřít</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ ① PRÁCE NAHOŘE ============ -->
+    <div class="col">
+        <h2><span>①</span> Práce nahoře</h2>
+        <p class="why">Nejmenší zásah, největší efekt. Vzdálenost a směr jsou <b>hlavní číslo karty</b>, jméno bodu je až pod nimi, poučka o rádiusu se zkrátí do jednoho řádku vedle přesnosti.</p>
+        <div class="phone">
+            <div class="fake-ar">AR / mapa</div>
+            <div class="card">
+                <div class="handle"></div>
+                <div class="n1-hero">
+                    <div class="n1-dist">18,4<small>m</small></div>
+                    <div class="n1-dir"><span class="n1-arrow">↗</span>azimut 214,6° <br>vpravo 25°</div>
+                </div>
+                <div class="n1-name"><b>#4021-108</b><span class="chip">PPB</span></div>
+                <div class="n1-type">Podrobný polohový bod · zaměřen 27. 7. 2026</div>
+                <div class="n1-quality">
+                    <span class="chip ok">GPS průměr ±0,28 m</span>
+                    <span class="chip ok">kód kvality 4</span>
+                    <span class="chip warn">GPS teď ±3,4 m</span>
+                </div>
+                <div class="row"><span class="k">S-JTSK Y / X</span><span class="v">598 214,32 / 1 121 043,87</span></div>
+                <div class="row"><span class="k">Výška Bpv</span><span class="v">243,86 m</span></div>
+                <div class="acts">
+                    <button>★ Zvýraznit</button>
+                    <button class="g">Upravit</button>
+                    <button class="g">Zavřít</button>
+                </div>
+                <div class="note">Hledej v okruhu <b>±3,4 m</b> od značky — ne na centimetr na ní.</div>
+            </div>
+        </div>
+        <ul class="pros">
+            <li>čte se to na jeden pohled, i když karta jen vykoukne zespodu</li>
+            <li>vejde se přesnost, kód kvality i datum zaměření (appka je zná, jen je neukazuje)</li>
+            <li>malá změna kódu, žádná nová mechanika</li>
+            <li class="minus">u úředních bodů ČÚZK zůstane spodní část dlouhá</li>
+        </ul>
+    </div>
+
+    <!-- ============ ② DVĚ PÁSMA + ZÁLOŽKY ============ -->
+    <div class="col">
+        <h2><span>②</span> Dvě pásma a záložky</h2>
+        <p class="why">Karta se rozdělí na <b>stálou hlavu</b> (jméno + vzdálenost, vidíš ji i sbalenou) a <b>tři záložky</b>: Poloha / Kvalita / Záznamy. Dlouhé úřední výpisy přestanou tlačit zbytek dolů.</p>
+        <div class="phone">
+            <div class="fake-ar">AR / mapa</div>
+            <div class="card">
+                <div class="handle"></div>
+                <div class="n2-top">
+                    <div><b>#4021-108</b><span>Podrobný polohový bod · vlastní</span></div>
+                    <div class="n2-big">18,4 m<i>azimut 214,6°</i></div>
+                </div>
+                <div class="n2-tabs">
+                    <button class="on">Poloha</button>
+                    <button>Kvalita</button>
+                    <button>Záznamy</button>
+                </div>
+                <div class="row"><span class="k">S-JTSK Y</span><span class="v">598 214,32</span></div>
+                <div class="row"><span class="k">S-JTSK X</span><span class="v">1 121 043,87</span></div>
+                <div class="row"><span class="k">Výška Bpv</span><span class="v">243,86 m</span></div>
+                <div class="row"><span class="k">Kód bodu</span><span class="v">4 · roh obrubníku</span></div>
+                <div class="acts">
+                    <button>★ Zvýraznit</button>
+                    <button class="g">Upravit</button>
+                    <button class="r">Skrýt</button>
+                    <button class="g">Zavřít</button>
+                </div>
+            </div>
+        </div>
+        <ul class="pros">
+            <li>karta má vždy stejnou výšku — nepodskakuje podle typu bodu</li>
+            <li>„Kvalita" unese provenienci, ±, kód kvality, DGPS korekci i žurnál</li>
+            <li>úřední záznamy ČÚZK mají konečně vlastní místo</li>
+            <li class="minus">o jedno klepnutí dál k souřadnicím; víc kódu</li>
+        </ul>
+    </div>
+
+    <!-- ============ ③ KARTIČKY ============ -->
+    <div class="col">
+        <h2><span>③</span> Kartičky (dlaždice)</h2>
+        <p class="why">Místo řádků „popisek : hodnota" <b>velké dlaždice</b> — čísla jsou 16 px monospace, dají se na ně mířit prstem v rukavici (klepnutí = zkopírovat). Nejdůležitější dlaždice je zvýrazněná.</p>
+        <div class="phone">
+            <div class="fake-ar">AR / mapa</div>
+            <div class="card">
+                <div class="handle"></div>
+                <div class="n1-name"><b>#4021-108</b><span class="chip ok">±0,28 m · k4</span></div>
+                <div class="n1-type">Podrobný polohový bod · GPS průměr, 27. 7. 2026</div>
+                <div class="n3-tiles">
+                    <div class="n3-t hi"><div class="k">Vzdálenost</div><div class="v">18,4 m</div></div>
+                    <div class="n3-t hi"><div class="k">Azimut</div><div class="v">214,6 °</div></div>
+                    <div class="n3-t"><div class="k">S-JTSK Y <span class="n3-copy">kopírovat</span></div><div class="v">598 214,32</div></div>
+                    <div class="n3-t"><div class="k">S-JTSK X <span class="n3-copy">kopírovat</span></div><div class="v">1 121 043,87</div></div>
+                    <div class="n3-t"><div class="k">Výška Bpv</div><div class="v">243,86 m</div></div>
+                    <div class="n3-t"><div class="k">Kód bodu</div><div class="v">4</div></div>
+                    <div class="n3-t wide"><div class="k">Hledej v okruhu</div><div class="v">±3,4 m od značky</div></div>
+                </div>
+                <div class="acts">
+                    <button>★ Zvýraznit</button>
+                    <button class="g">Upravit</button>
+                    <button class="g">Zavřít</button>
+                </div>
+            </div>
+        </div>
+        <ul class="pros">
+            <li>na slunci a v rukavici nejlépe čitelné ze všech variant</li>
+            <li>klepnutí na dlaždici = kopírování souřadnice (dnes nejde)</li>
+            <li>vizuálně nejdál od dnešního stavu — „vypadá to jako nová appka"</li>
+            <li class="minus">zabere víc výšky; u ČÚZK bodů se dlaždic nasype hodně</li>
+        </ul>
+    </div>
+
+    <!-- ============ ④ POKLÁDKA ============ -->
+    <div class="col">
+        <h2><span>④</span> Pro pokládku (odchylka nahoře)</h2>
+        <p class="why">Varianta pro tvoji práci: nahoře není vzdálenost, ale <b>rozdíl výšky proti projektu</b> — to, co za finišerem hlídáš. Zapíná se sama, když je bod v zakázce s vrstvami / projektovanou výškou.</p>
+        <div class="phone">
+            <div class="fake-ar">AR / mapa</div>
+            <div class="card">
+                <div class="handle"></div>
+                <div class="n1-name"><b>#4021-108</b><span class="chip bad">mimo toleranci</span></div>
+                <div class="n1-type">Vrstva ACO 11+ · projekt 243,80 m</div>
+                <div class="n4-delta">
+                    <b>+ 6,2 cm</b>
+                    <span>skutečnost 243,86 m nad projektem · tolerance ±3 cm</span>
+                    <div class="n4-bar">
+                        <div class="tol" style="left:38%; right:38%;"></div>
+                        <i style="left:76%;"></i>
+                    </div>
+                    <div class="n4-scale"><span>−10</span><span>0</span><span>+10 cm</span></div>
+                </div>
+                <div class="row"><span class="k">Vzdálenost / azimut</span><span class="v">18,4 m · 214,6°</span></div>
+                <div class="row"><span class="k">Sklon k dalšímu bodu</span><span class="v">2,1 %</span></div>
+                <div class="row"><span class="k">Výška Bpv (měřeno)</span><span class="v">243,86 m</span></div>
+                <div class="acts">
+                    <button class="g">Přeměřit</button>
+                    <button>Zapsat závadu</button>
+                    <button class="g">Zavřít</button>
+                </div>
+            </div>
+        </div>
+        <ul class="pros">
+            <li>odpovídá na otázku, kterou u vrstvy řešíš jako první</li>
+            <li>navazuje na už hotové Vrstvy / pokládku a na Závady</li>
+            <li class="minus">má smysl jen tam, kde je projektovaná výška — mimo pokládku je to ①</li>
+        </ul>
+    </div>
+
+</div>
+
+<footer>
+    <b>Co mají všechny návrhy společné:</b> jantarová poučka o rádiusu se zkracuje na jeden řádek u přesnosti (dnes je to odstavec) · přidává se <b>provenience</b> (čím a kdy byl bod určen) a <b>dosažený kód kvality</b> · přidává se tlačítko <b>Upravit</b> (dnes se musí do Nastavení → Body) · „Skrýt" se u návrhů ①/③ schovává pod dlouhé stisknutí, ať se neťukne omylem.<br><br>
+    <b>Netýká se to</b> spodní lišty ani gest karty (ta zůstávají) — jde jen o obsah a hierarchii uvnitř.
+</footer>
+</div>
+</body>
+</html>

@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v208';   // Moje aktivita + brifink po prihlaseni + pamatovane prihlaseni/Face ID a vyber zakazky na uvodu
+const SHELL_CACHE = 'argeodet-shell-v210';   // Pocasi (ensembly + CHMU) | zrusena cilena presnost, jedna presnost GPS, magneticky sever, vyska z DMR, offline zalozka, soukromi admina
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -25,9 +25,9 @@ const ASSETS_TO_CACHE = [
     './icon-512.png',
     './icon-maskable-192.png',
     './icon-maskable-512.png',
-    './css/tokens.css?v=208',
-    './css/style.css?v=208',
-    './css/vylepseni.css?v=208',
+    './css/tokens.css?v=210',
+    './css/style.css?v=210',
+    './css/vylepseni.css?v=210',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
@@ -160,6 +160,10 @@ const ASSETS_TO_CACHE = [
     './js/nastroje-ukony.js',
     './js/moje-aktivita.js',
     './js/nastaveni-hledani.js',
+    './js/kompas-magneticky.js',
+    './js/vyska-gps.js',
+    './js/offline-sbal.js',
+    './js/ucty-privacy.js',
     './data/zpravodaj.json',
     './data/predpisy.json',
     './js/lib/qrcode.min.js',

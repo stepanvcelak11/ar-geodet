@@ -376,14 +376,31 @@
         }
         return false;
     }
+    // Stejný důvod jako u brány, jen jiná vrstva: při PRVNÍM spuštění appky se prohlídka
+    // (js/tutorial-pro.js) rozjíždí ~0,7 s po vstupu z úvodní obrazovky, kdežto brífink
+    // 2,5 s po startu — karta „Dnešek v terénu" tedy padla PŘES spotlight tutoriálu a
+    // překryla ho i s vysvětlivkou. Prohlídka běží, dokud má #agtp-card třídu .show;
+    // #agtp-pick je nabídka „základní / pokročilá". Čeká se s VELKOU rezervou (30 min),
+    // protože prohlídku čte člověk vlastním tempem — a dokud brífink čeká, den se
+    // neoznačí jako ukázaný, takže o něj uživatel nepřijde.
+    function tutorialVisible() {
+        try {
+            var card = document.getElementById('agtp-card');
+            if (card && card.classList.contains('show')) return true;
+            var pick = document.getElementById('agtp-pick');
+            if (pick && pick.style.display === 'flex') return true;
+        } catch (e) {}
+        return false;
+    }
     function maybeAutoOpen() {
         try {
             if (localStorage.getItem(KEY_AUTO) === '0') return;
             if (localStorage.getItem(KEY_LAST) === todayStr()) return;
         } catch (e) { return; }
-        var waited = 0;
+        var waited = 0, tutWaited = 0;
         (function waitForUser() {
             if (lockVisible() && waited++ < 240) { setTimeout(waitForUser, 1000); return; }
+            if (tutorialVisible() && tutWaited++ < 1800) { setTimeout(waitForUser, 1000); return; }
             try {
                 if (localStorage.getItem(KEY_AUTO) === '0') return;          // mezitím vypnuto
                 if (localStorage.getItem(KEY_LAST) === todayStr()) return;   // mezitím otevřeno ručně

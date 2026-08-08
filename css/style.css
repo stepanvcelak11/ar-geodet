@@ -1484,7 +1484,17 @@ body.outdoor-mode .ar-marker-dist { opacity: 1; }
     --nav-edge: var(--color-arrow, #34d399);
     position: fixed;
     inset: 0;
-    z-index: 99990;
+    /* OPRAVA 8. 8. — „po kliknutí na DGPS zezelená celá aplikace".
+       PŘÍČINA: navigační zelený rám měl z-index 99990, tedy VÝŠ než modály
+       (--z-modal 19999). Když je zvýrazněný bod pro navigaci, kreslil se přes
+       otevřené okno — a protože je to inset box-shadow se spádem 90 px ze všech
+       čtyř hran plus zelené rohové značky, na telefonu to zezelená skoro celou
+       plochu tmavého fullscreen modálu. Nejvíc bije do očí u oken, kde se čtou
+       čísla (DGPS, Detail GPS), proto to vypadalo na chybu DGPS.
+       ŘEŠENÍ: rám patří k ŽIVÉMU pohledu (AR/mapa), takže leží POD modály —
+       o 1 níž než --z-modal. Nad HUD (9999) zůstává, tam ho chceme.
+       Pozor: NEzvyšovat zpět „ať je vidět všude" — ten stav uživatel reklamoval. */
+    z-index: 19998;
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.45s ease;

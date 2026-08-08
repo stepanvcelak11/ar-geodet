@@ -751,6 +751,11 @@
             const setTxt = (id, v) => { const n = document.getElementById(id); if (n) n.innerText = v; };
             const line = document.getElementById('ga-line');   // kompaktn\u00ed \u0159\u00e1dek panelu
             const warn = document.getElementById('ga-warn');   // detail je v mod\u00e1lu #gpsavg-modal
+            // Ziva presnost fixu \u2014 TOTEZ cislo, co ukazuje sbalena stavova bublina.
+            // Bez nej modal hlasil jen stredni chybu prumeru (mensi cislo) a vypadalo to,
+            // ze appka na dvou mistech tvrdi dve jine presnosti.
+            const _accNow = (typeof currentGpsAccuracy === 'number' && currentGpsAccuracy) ? currentGpsAccuracy : null;
+            setTxt('ga-now', _accNow ? ('\u00b1' + (_accNow >= 10 ? _accNow.toFixed(0) : _accNow.toFixed(1)).replace('.', ',') + ' m') : '\u2014');
             if (r && r.coarse) {
                 if (line) line.innerText = 's\u00ed\u0165 \u00b1' + Math.round(r.acc) + ' m';
                 if (warn) { warn.style.display = 'block'; warn.innerText = 'Slab\u00fd GNSS (s\u00ed\u0165ov\u00e1 poloha \u00b1' + Math.round(r.acc) + ' m) \u2014 po\u010dkej na satelitn\u00ed fix'; }
@@ -758,7 +763,9 @@
                 return;
             }
             if (warn) warn.style.display = 'none';
-            if (line) line.innerText = (r && r.n >= 2) ? ('\u00b1' + r.sterr.toFixed(2) + ' m') : 'pr\u016fm\u011bruji\u2026';
+            // znacka \u2300 = stredni chyba PRUMERU (ne okamzita presnost fixu); stejne se to
+            // pise v bubline i v radku \u201eStr. chyba \u2300" niz, at je to jedna vec
+            if (line) line.innerText = (r && r.n >= 2) ? ('\u2300 \u00b1' + r.sterr.toFixed(2).replace('.', ',') + ' m') : 'pr\u016fm\u011bruji\u2026';
             setTxt('ga-n', (r && r.total) ? ((r.total > r.n) ? (r.n + ' (z ' + r.total + ')') : ('' + r.n)) : '0');
             setTxt('ga-pos', (r && r.n >= 2) ? ('\u00b1' + r.sterr.toFixed(2) + ' m') : '\u2026');
             setTxt('ga-se', (r && r.n >= 2) ? ('\u00b1' + r.sigma.toFixed(2) + ' m') : '\u2026');

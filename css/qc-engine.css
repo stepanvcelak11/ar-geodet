@@ -53,27 +53,10 @@
 /* slot verdiktu kódu kvality v modálu Průměrování GPS */
 #gaq-qc { margin-top: 6px; }
 #gaq-qc:empty { display: none; }
-.qc-target {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 6px;
-    font-size: 12px;
-    opacity: 0.92;
-}
-.qc-target > span { flex: 0 0 auto; }
-.qc-target-sel {
-    flex: 1 1 auto;
-    min-width: 0;
-    background: rgba(20, 24, 30, 0.6);
-    color: #fff;
-    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.16));
-    border-radius: 7px;
-    padding: 4px 6px;
-    font-size: 12px;
-}
+/* (Volba cílové třídy .qc-target/.qc-target-sel odstraněna 8. 8. spolu s cílenou
+   přesností — mobilem se nedosáhne, viz hlavička js/qc-engine.js.) */
 
-/* --- brána ukládání / info dialog ----------------------------------------- */
+/* --- info dialog („Proč?" bez otevřených Předpisů) ------------------------- */
 .qc-gate-ov {
     position: fixed;
     top: 0; left: 0; right: 0;

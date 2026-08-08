@@ -1,22 +1,26 @@
 // ===== AR Geodet — QC INSPEKTOR / KÓD KVALITY (odpojitelná vrstva) =============
 // Po každém určení bodu (resekce, průměrování GPS, Brutální GPS) porovná dosaženou
 // vnitřní přesnost se základní střední souřadnicovou chybou mxy podle katastrální
-// vyhlášky a řekne, jaký KÓD KVALITY bod splňuje (3 / 4 / 5). U ukládaného bodu
-// hlídá cílovou třídu zakázky a u podlimitního bodu nabídne „počkat / měřit dál"
-// nebo „uložit přesto jako orientační".
+// vyhlášky a řekne, jaký KÓD KVALITY bod splňuje (3 / 4 / 5). Nic neblokuje — je to
+// ČTENÍ, ne brána.
+//
+// ZRUŠENÁ „CÍLENÁ PŘESNOST" (na přání, 8. 8.): dřív se tu volila cílová třída zakázky
+// (výchozí kód 3 = kataster, mxy ≤ 0,14 m) a při ukládání podlimitního bodu vyskočila
+// brána „počkat / uložit jako orientační". Holým mobilem se ale kód 3 dosáhnout NEDÁ
+// (i po dlouhém průměrování je realita decimetry až metr), takže brána vyskakovala
+// prakticky u KAŽDÉHO bodu a jediná odpověď byla „uložit přesto" — z varování se stalo
+// klikání. Zůstává informativní čip „±0,32 m → kód kvality 5" u výsledku měření; co
+// s tím geodet udělá, je jeho rozhodnutí. Volba cíle ani dialog brány už tu nejsou.
 //
 // 100% OFFLINE a DETERMINISTICKÉ — prahy jsou kurátorované konstanty (NE AI), shodné
 // s data/predpisy.json (kat. vyhláška 357/2013 Sb., příl. bod 13). Žádné síťové volání,
 // jen lokální porovnání čísel počítaných v telefonu. Jde o VNITŘNÍ přesnost měření
 // (z rozptylu fixů), ne o absolutní polohu — vždy ověř na kontrolním bodě.
 //
-// Neinvazivní vrstva: čte sdílené globály (gpsAvgResult, pendingPointAccuracy,
-// editingCustomPointId, getStoredData/setStoredData, quickToast) a OBALUJE window
-// funkce (updateGpsAvgPanel, fillAveragedGPS, saveCustomPoint). Do měřicích modulů
-// přidává jen guardované jednořádkové háky `window.AGQc && AGQc.*` (ar-resection,
-// brutal-gps, pdf-protocol) — bez nich appka funguje dál.
-//
-// Cílová třída se ukládá PER ZAKÁZKU (getStoredData prefixuje klíč id zakázky).
+// Neinvazivní vrstva: čte sdílený globál gpsAvgResult a OBALUJE window
+// funkce (updateGpsAvgPanel, fillAveragedGPS). Do měřicích modulů přidává jen
+// guardované jednořádkové háky `window.AGQc && AGQc.*` (ar-resection, brutal-gps,
+// pdf-protocol) — bez nich appka funguje dál.
 //
 // Odstranění: smaž js/qc-engine.js + css/qc-engine.css a jejich řádky v index.html
 // a sw.js; (volitelně) guardované řádky `window.AGQc && ...` v měřicích modulech.
@@ -35,10 +39,8 @@
         { kod: 5, mxy: 0.50, popis: '' }
     ];
     var CITACE = 'kat. vyhláška 357/2013 Sb., příl. bod 13';
-    var K_TARGET = 'agQcCilKod';   // per-zakázku přes getStoredData
 
     function f2(n) { return (Math.round(n * 100) / 100).toFixed(2).replace('.', ','); }
-    function mxyFor(kod) { for (var i = 0; i < CODES.length; i++) if (CODES[i].kod === kod) return CODES[i].mxy; return null; }
 
     // dosažený kód kvality z vnitřní stř. chyby polohy (m) — nejlepší (nejnižší číslo),
     // jehož práh měření splňuje; null = horší než kód 5 (pro zaměření v terénu nevyhovuje)
@@ -54,53 +56,33 @@
         return null;
     }
 
-    function target() {
-        try {
-            var v = (typeof getStoredData === 'function') ? getStoredData(K_TARGET) : localStorage.getItem(K_TARGET);
-            var k = parseInt(v, 10);
-            if (k >= 3 && k <= 5) return k;
-        } catch (e) {}
-        return 3; // výchozí = kataster (nejpřísnější)
-    }
-    function setTarget(k) {
-        k = parseInt(k, 10); if (!(k >= 3 && k <= 5)) return;
-        try { if (typeof setStoredData === 'function') setStoredData(K_TARGET, String(k)); else localStorage.setItem(K_TARGET, String(k)); } catch (e) {}
-    }
-
+    // Verdikt je čistě informativní: co bod splňuje, ne co splnit MÁ.
+    // (`ok` a `target` z API zmizely spolu s cílenou přesností — hlídalo se podle nich
+    // ukládání bodu, a to už se nehlídá.)
     function evaluate(sigma) {
         var got = codeForSigma(sigma);
-        var tgt = target();
-        return { sigma: sigma, got: got, target: tgt, ok: !!got && got.kod <= tgt };
+        _lastCode = got ? got.kod : null;
+        return { sigma: sigma, got: got, kod: _lastCode };
     }
+    var _lastCode = null;   // čte logika.js do prov.qc ukládaného bodu
 
     // --- HTML čip verdiktu (vkládá se do panelů) -------------------------------
+    // Barva = jak dobré to je samo o sobě: kód 3 zelená, 4–5 žlutá, horší červená.
     function chipHtml(sigma) {
         if (sigma == null || !isFinite(sigma)) return '';
         var v = evaluate(sigma);
-        var cls = v.ok ? 'qc-ok' : (v.got ? 'qc-warn' : 'qc-bad');
+        var cls = !v.got ? 'qc-bad' : (v.got.kod <= 3 ? 'qc-ok' : 'qc-warn');
         var head = '±' + f2(sigma) + ' m → ' + (v.got ? ('<b>kód kvality ' + v.got.kod + '</b>') : '<b>horší než kód 5</b>');
-        var tail;
-        if (v.ok) tail = '<span class="qc-tail">✓ splňuje cíl (kód ' + v.target + ')</span>';
-        else if (v.got) tail = '<span class="qc-tail">cíl zakázky kód ' + v.target + ' nesplněn</span>';
-        else tail = '<span class="qc-tail">pro zaměření v terénu nevyhovuje</span>';
+        var tail = v.got
+            ? '<span class="qc-tail">mxy ≤ ' + f2(v.got.mxy) + ' m' + (v.got.popis ? ' · ' + v.got.popis : '') + '</span>'
+            : '<span class="qc-tail">pro zaměření v terénu nevyhovuje</span>';
         return '<div class="qc-chip ' + cls + '" data-sigma="' + sigma + '">' +
             '<span class="qc-chip-main">' + head + '</span>' + tail +
             '<button type="button" class="qc-why" aria-label="Proč?">Proč?</button>' +
             '</div>';
     }
 
-    function targetSelectHtml() {
-        var t = target();
-        function opt(k, label) { return '<option value="' + k + '"' + (t === k ? ' selected' : '') + '>' + label + '</option>'; }
-        return '<label class="qc-target"><span>Cíl zakázky:</span>' +
-            '<select class="qc-target-sel">' +
-            opt(3, 'kód 3 · kataster (±0,14 m)') +
-            opt(4, 'kód 4 (±0,26 m)') +
-            opt(5, 'kód 5 (±0,50 m)') +
-            '</select></label>';
-    }
-
-    // překreslí všechny živé čipy + sjednotí selecty (po změně cílové třídy)
+    // překreslí všechny živé čipy (mění se s dalšími vzorky měření)
     function refreshAll() {
         var chips = document.querySelectorAll('.qc-chip[data-sigma]');
         Array.prototype.forEach.call(chips, function (ch) {
@@ -108,8 +90,6 @@
             var tmp = document.createElement('div'); tmp.innerHTML = chipHtml(s);
             if (tmp.firstChild) ch.parentNode.replaceChild(tmp.firstChild, ch);
         });
-        var sels = document.querySelectorAll('.qc-target-sel');
-        Array.prototype.forEach.call(sels, function (sel) { sel.value = String(target()); });
     }
 
     function openWhy() {
@@ -172,7 +152,7 @@
         var slot = document.getElementById('gaq-qc'); if (!slot) return;
         var r = null; try { r = (typeof gpsAvgResult !== 'undefined') ? gpsAvgResult : null; } catch (e) {}
         if (!r || r.coarse || typeof r.sterr !== 'number' || !isFinite(r.sterr) || (r.n || 0) < 2) { slot.innerHTML = ''; return; }
-        slot.innerHTML = chipHtml(r.sterr) + targetSelectHtml();
+        slot.innerHTML = chipHtml(r.sterr);
     }
     // dokud je modál otevřený, drž verdikt živý (volá se z obalu updateGpsAvgPanel)
     function afterGpsPanel() {
@@ -187,36 +167,7 @@
         if (!r || typeof r.sterr !== 'number' || !isFinite(r.sterr)) return;
         var add = document.getElementById('qc-note-add');
         if (!add) { add = document.createElement('div'); add.id = 'qc-note-add'; note.appendChild(add); }
-        add.innerHTML = chipHtml(r.sterr) + targetSelectHtml();
-    }
-
-    // BRÁNA: obalí saveCustomPoint tak, aby u podlimitního NOVÉHO bodu z GPS
-    // nejdřív nabídla volbu (počkat / uložit jako orientační). Spustí původní save
-    // až po souhlasu — orig se v jiných případech volá rovnou (nic neomezuje).
-    function wrapSaveGate() {
-        if (typeof window.saveCustomPoint !== 'function' || window.saveCustomPoint._qcGate) return false;
-        var orig = window.saveCustomPoint;
-        var wrapped = function () {
-            var self = this, args = arguments;
-            var proceed = function () { return orig.apply(self, args); };
-            var editing = false, acc = null;
-            try { editing = (typeof editingCustomPointId !== 'undefined') && !!editingCustomPointId; } catch (e) {}
-            try { acc = (typeof pendingPointAccuracy !== 'undefined') ? pendingPointAccuracy : null; } catch (e) {}
-            // brána jen pro NOVÝ bod určený průměrovanou GPS (má pendingPointAccuracy)
-            if (editing || acc == null || !isFinite(acc)) return proceed();
-            var v = evaluate(acc);
-            if (v.ok) {
-                proceed();
-                try { if (typeof quickToast === 'function') quickToast('Uloženo · kód kvality ' + v.got.kod + ' ✓'); } catch (e) {}
-                return;
-            }
-            gateDialog(acc, v, proceed);   // orig až po volbě uživatele
-            return;
-        };
-        wrapped._qcGate = true; wrapped._qcOrig = orig;
-        try { Object.defineProperty(wrapped, 'name', { value: 'saveCustomPoint' }); } catch (e) {}
-        window.saveCustomPoint = wrapped;
-        return true;
+        add.innerHTML = chipHtml(r.sterr);
     }
 
     // --- vlastní dialogy (bez závislosti na agConfirm) -------------------------
@@ -224,30 +175,6 @@
         var ov = document.getElementById('qc-gate');
         if (!ov) { ov = document.createElement('div'); ov.id = 'qc-gate'; ov.className = 'qc-gate-ov'; document.body.appendChild(ov); }
         return ov;
-    }
-
-    function gateDialog(sigma, v, onProceed) {
-        var ov = ensureGateOverlay();
-        var cil = v.target, mez = mxyFor(cil);
-        ov.innerHTML =
-            '<div class="qc-gate-card" role="dialog" aria-modal="true" aria-label="Kontrola přesnosti">' +
-            '  <div class="qc-gate-h"><svg class="icon"><use href="#i-alert"/></svg> Přesnost pod cílem zakázky</div>' +
-            '  <div class="qc-gate-b">' +
-            '    <p>Bod má vnitřní přesnost <b>±' + f2(sigma) + ' m</b> → ' + (v.got ? ('<b>kód kvality ' + v.got.kod + '</b>') : '<b>horší než kód 5</b>') + '.</p>' +
-            '    <p>Cíl zakázky je <b>kód ' + cil + '</b> (mxy ≤ ' + f2(mez) + ' m' + (cil === 3 ? ', kataster' : '') + ') — tenhle bod ho <b>nesplní</b>.</p>' +
-            '    <p class="qc-gate-tip">Tip: nech telefon déle ležet, vyjdi pod volnější oblohu, případně otoč o 180° — ať se průměr ustálí.</p>' +
-            '    <p class="qc-gate-note">Jde o vnitřní přesnost měření (z rozptylu fixů), ne o absolutní polohu — ověř na kontrolním bodě. ' + CITACE + '.</p>' +
-            '  </div>' +
-            '  <div class="qc-gate-f">' +
-            '    <button type="button" class="qc-gate-btn qc-gate-wait">Počkat / měřit dál</button>' +
-            '    <button type="button" class="qc-gate-btn qc-gate-save">Uložit přesto jako orientační</button>' +
-            '  </div>' +
-            '</div>';
-        ov.classList.add('open');
-        function close() { ov.classList.remove('open'); }
-        ov.querySelector('.qc-gate-wait').onclick = function () { close(); };
-        ov.querySelector('.qc-gate-save').onclick = function () { close(); try { onProceed(); } catch (e) {} };
-        ov.onmousedown = function (e) { if (e.target === ov) close(); };
     }
 
     function gateInfo(title, html) {
@@ -264,28 +191,25 @@
         ov.onmousedown = function (e) { if (e.target === ov) close(); };
     }
 
-    // --- delegace událostí (čipy + select cílové třídy) ------------------------
+    // --- delegace událostí (tlačítko „Proč?" v čipu) --------------------------
     document.addEventListener('click', function (e) {
         var why = e.target.closest ? e.target.closest('.qc-why') : null;
         if (why) { e.preventDefault(); openWhy(); }
     });
-    document.addEventListener('change', function (e) {
-        var sel = e.target.closest ? e.target.closest('.qc-target-sel') : null;
-        if (sel) { setTarget(sel.value); refreshAll(); }
-    });
 
     // --- veřejné API ----------------------------------------------------------
     window.AGQc = {
-        codeForSigma: codeForSigma, evaluate: evaluate, target: target, setTarget: setTarget,
+        codeForSigma: codeForSigma, evaluate: evaluate,
         chipHtml: chipHtml, codeSuffix: codeSuffix, why: openWhy,
-        onResection: onResection, onBrutal: onBrutal, refreshAll: refreshAll, fillGpsModal: fillGpsModal
+        onResection: onResection, onBrutal: onBrutal, refreshAll: refreshAll, fillGpsModal: fillGpsModal,
+        // dosažený kód posledního vyhodnoceného měření (logika.js ho ukládá do prov.qc)
+        get lastCode() { return _lastCode; }
     };
 
     // --- instalace obalů (opakovaně, ať chytí i pozdě definované funkce) -------
     function install() {
         wrapAfter('updateGpsAvgPanel', afterGpsPanel);
         wrapAfter('fillAveragedGPS', afterFillGps);
-        wrapSaveGate();
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install);
     else install();

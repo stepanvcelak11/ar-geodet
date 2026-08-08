@@ -108,11 +108,24 @@
             cx = median(pts.map(function (p) { return p.x; }));
             cy = median(pts.map(function (p) { return p.y; }));
         }
+        // VÁHA = 1/acc² (přesnost z OS) × 1/pdop² (geometrie družic) × USTÁLENÍ (doba měření).
+        // Telefon položený na bod se pořád ještě „usazuje": prvních ~dvě minuty jsou
+        // nejhorší vzorky (doznívá pohyb ruky, přijímač dolaďuje iono/multipath model,
+        // konstelace se ještě nezměnila). Váha proto roste z SETTLE_MIN na 1 za
+        // SETTLE_FULL sekund od začátku sběru — čím delší měření, tím větší podíl mají
+        // ustálená data. Ořez outlierů výše jde napřed, takže tohle nezvýhodňuje šum.
+        var SETTLE_MIN = 0.2, SETTLE_FULL = 120;
+        var t0s = pts.reduce(function (mn, p) { return Math.min(mn, p.s.t || 0); }, Infinity);
+        function settle(s) {
+            var age = ((s.t || 0) - t0s) / 1000;
+            if (!isFinite(age) || age <= 0) return SETTLE_MIN;
+            return SETTLE_MIN + (1 - SETTLE_MIN) * Math.min(1, age / SETTLE_FULL);
+        }
         var sw = 0, swx = 0, swy = 0;
         pts.forEach(function (p) {
             var wa = 1 / Math.pow(Math.max(p.s.acc || 5, 1), 2);
             var wp = p.s.pdop ? 1 / Math.pow(Math.max(p.s.pdop, 1), 2) : 1;
-            var w = wa * wp; sw += w; swx += w * p.x; swy += w * p.y;
+            var w = wa * wp * settle(p.s); sw += w; swx += w * p.x; swy += w * p.y;
         });
         var wx = swx / sw, wy = swy / sw;
         // sigma kolem hlaseneho stredu (vazeny prumer) s N-2 stupni volnosti
@@ -125,12 +138,28 @@
             ? GeoCore.effectiveN(resX, resY, pts.map(function (p) { return p.s.t || 0; }), 30)
             : Math.max(1, Math.min(pts.length, 1 + ((pts[pts.length - 1].s.t || 0) - (pts[0].s.t || 0)) / 30000));
         // FALEŠNÁ PŘESNOST: sterr je jen vnitřní rozptyl. Systematickou chybu mobilní GNSS
-        // (multipath/troposféra) průměrování neodstraní → sterr zdola omezíme realnou mezí
-        // (~0.3× nejlepší hlášená accuracy, min 0.2 m), ať nehlásíme nereálné centimetry.
+        // (multipath/troposféra) průměrování neodstraní → sterr zdola omezíme realnou mezí,
+        // ať nehlásíme nereálné centimetry.
+        //
+        // PROČ SE PŘESNOST ZASEKNE (uživatel: „nedostane se pod 0,60 m"): mez se počítala
+        // jako 0,30 × nejlepší hlášená accuracy. Android hlásí u dobrého fixu skoro vždy
+        // rovných 2,0 m (níž prostě nejde), takže mez = 0,60 m — a tam se to zastavilo,
+        // ať měření běželo 2 nebo 30 minut. Vnitřní rozptyl už byl dávno menší, ale mez ho
+        // přebila, takže delší měření nebylo na čem poznat.
+        //
+        // TEĎ: mez se s délkou měření a s otočeními POVOLUJE, protože se systematika
+        // opravdu částečně vyruší — mění se konstelace družic (multipath se dekoreluje) a
+        // otočení o 90° v každé čtvrtině průměruje vyzařovací charakteristiku antény.
+        // Koeficient jde z 0,30 (do 2 min) na 0,15 (od 15 min) a po všech třech otočeních
+        // se ještě sníží o 15 %. Absolutní dno je 0,12 m — pod to nemá holý mobil nárok
+        // a hlásit to by byla lež (na to je rover, DGPS základna nebo kalibrace na bod).
         var bestAcc = pts.reduce(function (mn, p) { return Math.min(mn, (p.s.acc || 99)); }, 99);
-        var sterrFloor = Math.max(0.3 * bestAcc, 0.2);
+        var durS = Math.max(0, ((pts[pts.length - 1].s.t || 0) - (pts[0].s.t || 0)) / 1000);
+        var kDur = 0.30 - 0.15 * Math.min(1, Math.max(0, (durS - 120) / (900 - 120)));
+        var kRot = (_rotStep >= 3) ? 0.85 : 1;
+        var sterrFloor = Math.max(kDur * kRot * bestAcc, 0.12);
         var sterr = Math.max(sigma / Math.sqrt(neff), sterrFloor);
-        _result = { lat: lat0 + wy / m.lat, lng: lng0 + wx / m.lng, n: pts.length, sigma: sigma, sterr: sterr };
+        _result = { lat: lat0 + wy / m.lat, lng: lng0 + wx / m.lng, n: pts.length, sigma: sigma, sterr: sterr, floor: sterrFloor, atFloor: (sigma / Math.sqrt(neff)) < sterrFloor };
     }
 
     // ---- příjem jednoho fixu --------------------------------------------------
@@ -301,7 +330,11 @@
             var col = st <= TARGET_M ? 'var(--accent,#2f9e74)' : (st <= GOOD_M ? 'var(--warning,#fbbf24)' : 'var(--danger,#fb7185)');
             if (cur) { cur.setAttribute('r', ringRadius(st).toFixed(1)); cur.setAttribute('stroke', col); cur.setAttribute('fill', 'transparent'); }
             if (val) val.innerHTML = '±' + st.toFixed(2) + '<small> m</small>';
-            if (sub) sub.textContent = 'rozptyl σ ±' + _result.sigma.toFixed(2) + ' m';
+            // Když číslo drží dolní mez (ne vlastní rozptyl), řekni to — jinak to vypadá,
+            // že se měření „zaseklo" a delší ležení už nemá cenu.
+            if (sub) sub.textContent = _result.atFloor
+                ? ('dolní mez ±' + _result.floor.toFixed(2) + ' m · rozptyl je už menší, delší měření a otočení mez povolí')
+                : ('rozptyl σ ±' + _result.sigma.toFixed(2) + ' m');
             try { if (window.AGQc) window.AGQc.onBrutal(st); } catch (e) {}   // QC: kód kvality (odpojitelné)
         } else if (cur) { cur.setAttribute('r', '110'); }
 
@@ -466,7 +499,22 @@
         if (typeof window.addImportedPoints !== 'function') { agAlert('Nelze uložit', 'Funkce pro vkládání bodů není dostupná.'); return; }
         // #2/#5: provenience 'gps-avg' (= měřeno GPS průměrem). Pozn.: pokud je aktivní Helmert
         // lokalizace (#3), tenhle bod se jí srovná — nekombinuj ji s ref-kalibrací (dvojí korekce).
-        var added = window.addImportedPoints([{ name: name, lat: lat, lng: lng, origin: 'gps-avg' }]);
+        // Provenience si nese i OKNO MĚŘENÍ (t0 = začátek okupace). Dvoutelefonní DGPS
+        // podle něj bere korekci ze základny za celou dobu, kdy telefon na bodě ležel —
+        // bez t0 uměla vzít jen posledních 6 minut před uložením, takže z 20minutového
+        // brutálního měření se korigovala poslední třetina. Kombinace „Brutální GPS +
+        // DGPS" je tím teprve doopravdy jedna metoda, ne dvě vedle sebe.
+        // (pozor: _t0 je modulový začátek běžícího měření — tady se z něj jen ČTE)
+        var provT0 = _sessions.length
+            ? _sessions.reduce(function (mn, s) { return Math.min(mn, s.t - (s.dur || 0) * 1000); }, Infinity)
+            : _t0;
+        var accR = (src.sterr != null && isFinite(src.sterr)) ? Math.round(src.sterr * 100) / 100 : null;
+        var prov = {
+            origin: 'gps-avg', ts: Date.now(), acc: accR,
+            t0: (isFinite(provT0) && provT0 > 0 ? Math.round(provT0) : null),
+            sess: (_sessions.length || 1)
+        };
+        var added = window.addImportedPoints([{ name: name, lat: lat, lng: lng, origin: 'gps-avg', acc: accR, prov: prov }]);
         if (added > 0) {
             var sj = (typeof proj4 === 'function') ? proj4('EPSG:4326', 'EPSG:5514', [lng, lat]) : null;
             var coords = sj ? ('\nY ' + Math.abs(sj[0]).toFixed(2) + '  X ' + Math.abs(sj[1]).toFixed(2)) : '';

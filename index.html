@@ -83,8 +83,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=208">
-    <link rel="stylesheet" href="css/style.css?v=208">
+    <link rel="stylesheet" href="css/tokens.css?v=210">
+    <link rel="stylesheet" href="css/style.css?v=210">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -101,7 +101,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=208">
+    <link rel="stylesheet" href="css/vylepseni.css?v=210">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -325,6 +325,11 @@
         <div class="modal-content" style="max-height: auto;">
             <h3 style="color: var(--accent); margin-top:0;"><svg class="icon"><use href="#i-locate"/></svg> Průměrování GPS</h3>
             <div class="modal-body">
+                <!-- Dvě RŮZNÉ věci, které se pletly: „Přesnost teď" je okamžitý kruh
+                     z telefonu (to samé číslo, co svítí ve stavové bublině), „Stř. chyba ⌀"
+                     je přesnost průměru z N měření. Dokud tu první řádek nebyl, vypadalo to,
+                     že bublina a tenhle modál hlásí každý jinou přesnost GPS. -->
+                <div class="ga-row"><span>Přesnost teď:</span> <b id="ga-now">—</b></div>
                 <div class="ga-row"><span>Měření:</span> <b id="ga-n">—</b></div>
                 <div class="ga-row"><span>Stř. chyba ⌀:</span> <b id="ga-pos">—</b></div>
                 <div class="ga-row"><span>Rozptyl σ:</span> <b id="ga-se">—</b></div>
@@ -987,6 +992,18 @@
     <script defer src="js/moje-aktivita.js"></script>
     <!-- HLEDÁNÍ V NASTAVENÍ + krátký výchozí pohled (odpojitelné, window.AGSettings) -->
     <script defer src="js/nastaveni-hledani.js"></script>
+    <!-- KOMPAS S MAGNETICKÝM SEVEREM (odpojitelné) — růžice + magnetický i zeměpisný
+         azimut a deklinace do modálu Kompas; jen čte currentHeading/magneticDeclination -->
+    <script defer src="js/kompas-magneticky.js"></script>
+    <!-- VÝŠKA BODU: GPS × DMR 5G (odpojitelné) — druhý zdroj výšky u bodu z průměrované
+         GPS; obaluje fillAveragedGPS, proto MUSÍ být za logika.js -->
+    <script defer src="js/vyska-gps.js"></script>
+    <!-- OFFLINE: dlaždice vyžadující internet do jedné sbalené záložky (odpojitelné);
+         používá mechaniku sbalených kategorií z js/field-tools.js -->
+    <script defer src="js/offline-sbal.js"></script>
+    <!-- SOUKROMÍ ADMINA (odpojitelné) — vedení nevidí aktivitu ani docházku adminů;
+         filtruje zdroj dat, proto MUSÍ být za js/ucty.js -->
+    <script defer src="js/ucty-privacy.js"></script>
     <script>
         // Přepínač zobrazení v doku (AR / Split / Mapa) — využívá globální viewMode a applyViewMode() z grafika.js
         function setView(mode, btn) {

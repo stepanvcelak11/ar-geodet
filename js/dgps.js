@@ -238,13 +238,19 @@
     }
 
     // ---- ROVER: aplikace korekcí --------------------------------------------------
-    function offsetAt(log, ts) {
-        // vážený průměr bloků v okně [ts-6 min, ts]; fallback nejbližší blok do 15 min
-        var inWin = log.buckets.filter(function (b) { return b.t >= ts - APPLY_WIN_MS && b.t <= ts + 60000; });
+    // ts = kdy byl bod uložen, t0 = kdy měření na bodě ZAČALO (prov.t0 z Brutální GPS).
+    // Korekce se musí průměrovat přes STEJNÉ okno, jaké průměroval rover — u 20minutové
+    // okupace vzít jen posledních 6 minut znamená opravovat průměr z celé doby korekcí
+    // z její poslední třetiny (atmosféra se za tu dobu posune). Bez t0 (ruční GPS průměr)
+    // zůstává původní 6minutové okno.
+    function offsetAt(log, ts, t0) {
+        var from = (t0 != null && isFinite(t0) && t0 < ts) ? Math.min(t0, ts - APPLY_WIN_MS) : (ts - APPLY_WIN_MS);
+        var inWin = log.buckets.filter(function (b) { return b.t >= from && b.t <= ts + 60000; });
         if (inWin.length) {
             var sw = 0, sE = 0, sN = 0, sU = 0, nU = 0;
             inWin.forEach(function (b) { var w = b.n || 1; sw += w; sE += w * b.dE; sN += w * b.dN; if (b.dU != null) { sU += w * b.dU; nU += w; } });
-            return { dE: sE / sw, dN: sN / sw, dU: nU ? sU / nU : null, kind: 'okno ' + inWin.length + ' bl.' };
+            var mins = Math.round((ts - from) / 60000);
+            return { dE: sE / sw, dN: sN / sw, dU: nU ? sU / nU : null, kind: 'okno ' + inWin.length + ' bl. / ' + mins + ' min' };
         }
         var best = null;
         log.buckets.forEach(function (b) { var d = Math.abs(b.t - ts); if (d <= NEAR_MS && (!best || d < best.d)) best = { d: d, b: b }; });
@@ -258,7 +264,7 @@
             if (p.prov.dgps) { out.push({ p: p, state: 'done' }); return; }
             var ts = p.prov.ts;
             if (!ts || ts < log.t0 - NEAR_MS || ts > log.t1 + NEAR_MS) return;
-            var off = offsetAt(log, ts);
+            var off = offsetAt(log, ts, p.prov.t0);
             if (!off) return;
             var dist = planarDist(p.lat, p.lng, log.base.lat, log.base.lng);
             out.push({ p: p, off: off, dist: dist, state: dist > MAX_DIST_M ? 'far' : 'ok' });

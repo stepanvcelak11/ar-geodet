@@ -57,6 +57,15 @@
     function calInfo() { try { return JSON.parse(localStorage.getItem(CAL_KEY)); } catch (e) { return null; } }
     function num(v, d) { var s = (+v).toFixed(d == null ? 1 : d); return s.replace('.', ','); }
     function metry(v) { return (v >= 10 ? num(v, 0) : num(v, 1)) + ' m'; }
+    // JEDINÝ formát přesnosti v celé bublině. Dřív se totéž číslo psalo třemi způsoby
+    // (pilulka metry() na 1 desetinu, řádek detailu num() a nadpis acc.toFixed(0)),
+    // takže sbalená pilulka hlásila „±4,4 m" a po rozkliknutí stálo „GPS ±4 m" —
+    // uživatel to (právem) čte jako dvě různé přesnosti. Číslo se smí formátovat
+    // JEN tady; kdo potřebuje jiné zaokrouhlení, ať ho změní pro všechna místa.
+    function accTxt(v) { return '±' + metry(v); }
+    // Průměrovaná střední chyba se od živé přesnosti musí odlišit ZNAČKOU, ne
+    // formátem — „⌀" je stejné jako v modálu Detail GPS („Stř. chyba ⌀").
+    function avgTxt(v) { return '⌀ ±' + num(v, 2) + ' m'; }
 
     // ---- sběr stavů -----------------------------------------------------------------
     // GPS: přesnost + čerstvost fixu (změna souřadnic = fix; watchPosition v logice
@@ -66,19 +75,19 @@
         if (!haveUser() || acc == null) return { c: 'red', t: 'GPS —', d: 'Bez GPS fixu.', a: 'Jdi pod otevřené nebe a počkej. V budově GPS nechytneš.' };
         var age = _lastFixTs ? (Date.now() - _lastFixTs) : null;
         if (age != null && age > 30000) return { c: 'red', t: 'GPS ztracena', d: 'Poslední fix před ' + Math.round(age / 1000) + ' s.', a: 'Signál se ztratil — vyjdi zpod střechy/stromů a počkej na nový fix.' };
-        if (acc <= 5 && (age == null || age <= 12000)) return { c: 'green', t: 'GPS ±' + acc.toFixed(0) + ' m', d: 'Přesnost ±' + num(acc) + ' m, fix čerstvý.', a: 'Dobré podmínky. Pro bod nech doběhnout průměrování.' };
-        if (acc <= 15) return { c: 'yellow', t: 'GPS ±' + acc.toFixed(0) + ' m', d: 'Přesnost ±' + num(acc) + ' m.', a: 'Počkej 30–60 s v klidu, nebo poodejdi 5 m od zdí a aut. Pomůže i „Predikce signálu" v Nástrojích.' };
-        return { c: 'red', t: 'GPS ±' + acc.toFixed(0) + ' m', d: 'Přesnost ±' + num(acc) + ' m — na ukládání bodů to nestačí.', a: 'Přesuň se na volné prostranství. Pro co nejlepší bod z telefonu použij „Brutální GPS".' };
+        if (acc <= 5 && (age == null || age <= 12000)) return { c: 'green', t: 'GPS ' + accTxt(acc), d: 'Přesnost ' + accTxt(acc) + ', fix čerstvý.', a: 'Dobré podmínky. Pro bod nech doběhnout průměrování.' };
+        if (acc <= 15) return { c: 'yellow', t: 'GPS ' + accTxt(acc), d: 'Přesnost ' + accTxt(acc) + '.', a: 'Počkej 30–60 s v klidu, nebo poodejdi 5 m od zdí a aut. Pomůže i „Predikce signálu" v Nástrojích.' };
+        return { c: 'red', t: 'GPS ' + accTxt(acc), d: 'Přesnost ' + accTxt(acc) + ' — na ukládání bodů to nestačí.', a: 'Přesuň se na volné prostranství. Pro co nejlepší bod z telefonu použij „Brutální GPS".' };
     }
     // průměrování GPS (dřívější panel #gps-avg): {txt, detail} nebo null
     function avgInfo() {
         var r = null;
         try { r = (typeof gpsAvgResult !== 'undefined') ? gpsAvgResult : null; } catch (e) { r = null; }
         if (!r) return null;
-        if (r.coarse) return { txt: null, detail: 'Síťová poloha ±' + Math.round(r.acc) + ' m — počkej na satelitní fix.' };
+        if (r.coarse) return { txt: null, detail: 'Síťová poloha ' + accTxt(r.acc) + ' — počkej na satelitní fix.' };
         if (!(r.n >= 2)) return { txt: null, detail: 'Průměruji…' };
         var kolik = (r.total && r.total > r.n) ? (r.n + ' z ' + r.total) : ('' + r.n);
-        return { txt: '⌀ ±' + num(r.sterr, 2) + ' m', detail: 'Průměr z <b>' + kolik + ' měření</b>, rozptyl ±' + num(r.sigma, 2) + ' m.' };
+        return { txt: avgTxt(r.sterr), detail: '<b>' + avgTxt(r.sterr) + '</b> = stř. chyba průměru z <b>' + kolik + ' měření</b> (rozptyl σ ±' + num(r.sigma, 2) + ' m). Stejné číslo je v „Detail GPS".' };
     }
     // AR / sever: resekce (AGPose) > ruční srovnání (calInfo) > nic
     function arState() {
@@ -133,11 +142,17 @@
         if (!h || /^--/.test(h)) return '';
         return h;
     }
+    // Pilulka ukazuje ŽIVOU přesnost telefonu — tedy PŘESNĚ to číslo, co po rozkliknutí
+    // stojí na řádku GPS — a teprve za ní, když už průměrování dává smysl, střední chybu
+    // průměru se značkou ⌀. Dřív živé číslo průměr PŘEPSAL: ve sbalené pilulce svítilo
+    // „±0,35 m", v rozbaleném detailu „±4,2 m", a nikde nebylo vidět, že jsou to dvě
+    // různé věci (okamžitá přesnost fixu × přesnost průměru z N měření).
     function accHtml() {
-        var a = avgInfo();
-        if (a && a.txt) return a.txt;                                     // průměr, když už dává smysl
         var acc = (typeof currentGpsAccuracy !== 'undefined' && currentGpsAccuracy) ? currentGpsAccuracy : null;
-        return acc ? ('±' + metry(acc)) : '—';
+        var live = acc ? accTxt(acc) : '—';
+        var a = avgInfo();
+        if (a && a.txt) return live + '<span class="ag-sp-sep"> · </span><span class="ag-sp-avg">' + a.txt + '</span>';
+        return live;
     }
     // co je nejhorší a jak to pojmenovat jednou větou
     function alertFor(g, ar, d, b) {
@@ -182,6 +197,7 @@
             '@keyframes agSpBlink{0%,100%{opacity:1}50%{opacity:0.35}}',
             '.ag-sp-num{font-family:var(--font-mono,ui-monospace,Menlo,monospace);font-weight:700;color:var(--data,#e6bd76);}',
             '.ag-sp-num sup{font-size:9px;margin-left:1px;opacity:0.7;}',
+            '.ag-sp-avg{opacity:0.82;}',
             '.ag-sp-sep{opacity:0.32;}',
             '.ag-sp-alert{font-weight:700;}',
             '.ag-sp-alert.yellow{color:var(--warning,#fbbf24);}',
@@ -270,7 +286,7 @@
             var al = alertFor(g, ar, d, b);
             if (al && (Date.now() - _alertTs) < ALERT_MS) h += '<span class="ag-sp-alert ' + al.c + '">' + esc(al.t) + '</span><span class="ag-sp-sep">·</span>';
         }
-        h += '<span class="ag-sp-num ag-sp-acc">' + esc(accHtml()) + '</span>';
+        h += '<span class="ag-sp-num ag-sp-acc">' + accHtml() + '</span>';   // sestaveno z čísel, ne z textu uživatele
         var az = azHtml();
         if (az) h += '<span class="ag-sp-sep">·</span><span class="ag-sp-num ag-sp-az">' + az + '</span>';
         h += '<span class="ag-sp-caret">' + (_open ? '▴' : '▾') + '</span>';
@@ -281,12 +297,15 @@
         return '<div class="ag-sp-row"><span class="ag-sp-dot ' + s.c + '"></span><span class="ag-sp-k">' + esc(name) + '</span>'
             + '<span class="ag-sp-v">' + esc(s.d) + (extra || '') + (s.a ? '<span class="ag-sp-a">' + esc(s.a) + '</span>' : '') + '</span></div>';
     }
+    // Dosažený kód kvality podle katastrální vyhlášky — jen informace k číslu, které
+    // už na řádku svítí. (Věta o „cílové třídě zakázky" tu byla, dokud existovala
+    // cílená přesnost; ta je na přání zrušená, mobilem ji stejně nešlo dosáhnout.)
     function qcHtml() {
         try {
-            if (!window.AGQc || !AGQc.target) return '';
-            var t = AGQc.target();
-            if (!t) return '';
-            return ' Cílová třída zakázky <b>' + esc(String(t)) + '</b> — appka ji při ukládání hlídá.';
+            var r = (typeof gpsAvgResult !== 'undefined') ? gpsAvgResult : null;
+            if (!r || r.coarse || !(r.n >= 2) || !window.AGQc || !AGQc.codeForSigma) return '';
+            var g = AGQc.codeForSigma(r.sterr);
+            return g ? (' Kód kvality <b>' + g.kod + '</b>.') : ' Na kód kvality 5 to zatím nestačí.';
         } catch (e) { return ''; }
     }
     function actsHtml() {
