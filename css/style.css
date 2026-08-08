@@ -395,12 +395,22 @@ body {
     transition: width 0.3s ease, height 0.3s ease;
 }
 
+/* BATERIE: drive se v 50 % klicovem snimku zapinal filter: drop-shadow(), takze
+   prohlizec musel donekonecna prepocitavat blur filtr sipky nad zivym obrazem
+   z kamery — a to po celou dobu, co je vybrany cil. Zare je ted STATICKA na
+   #arrow-target (spocita se jednou) a animuje se uz jen transform + opacity,
+   coz zvladne kompozitor bez prekreslovani.
+   BONUS: var() uvnitr @keyframes starsi WebKity cely blok ZAHODI — tim, ze
+   --color-arrow zmizel z klicoveho snimku, animace zacne fungovat i tam. */
 @keyframes pulse-target {
     0%   { transform: scale(0.9); opacity: 0.8; }
-    50%  { transform: scale(1.1); opacity: 1; filter: drop-shadow(0 20px 20px var(--color-arrow)); }
+    50%  { transform: scale(1.1); opacity: 1; }
     100% { transform: scale(0.9); opacity: 0.8; }
 }
-#arrow-target { animation: pulse-target 1.5s infinite ease-in-out; }
+#arrow-target {
+    animation: pulse-target 1.5s infinite ease-in-out;
+    filter: drop-shadow(0 10px 14px var(--color-arrow));
+}
 
 #ar-hud-info {
     transform: scale(var(--hud-scale, 1));
@@ -2151,6 +2161,34 @@ body.light-mode:not(.cam-light) .ar-marker .ar-marker-dist { color: #fff; }
     opacity: 1;
     pointer-events: auto;
 }
+/* ===== BATERIE: sklo nad ŽIVOU kamerou =========================================
+   backdrop-filter donuti prohlizec pri kazdem prekresleni precist plochu POD prvkem,
+   rozostrit ji a slozit zpatky. Nad statickou mapou se to stane jen kdyz se mapou
+   pohne — ale nad obrazem z kamery pri KAZDEM snimku videa, tedy ~30x za sekundu.
+   A takovych prvku je nad kamerou trvale deset: #info, #compass-debug,
+   #menu-toggle-btn, #gps-avg, pet chipu v doku a #ar-hud-info. To je desitka
+   rozostrovacich pruchodu na snimek jen za to, aby byl pod panelem rozmazany obraz,
+   ktery stejne neni videt.
+   Nahrada je NEPRUHLEDNE pozadi — vizualne skoro totez (--glass-bg ma uz ted alfu
+   0.84) a nad kamerou dokonce citelnejsi. Plati JEN v rezimu s kamerou (.cam-live);
+   v rezimu „Pouze mapa", v modalech a v menu zustava sklo netknute.
+   Vypinac: „Sklo nad kamerou" v Nastaveni -> AR & presnost (js/power-save.js pridava
+   na <body> tridu .ag-cam-glass, ktera tohle pravidlo cele vyradi). */
+body.cam-live:not(.ag-cam-glass) #info,
+body.cam-live:not(.ag-cam-glass) #compass-debug,
+body.cam-live:not(.ag-cam-glass) #menu-toggle-btn,
+body.cam-live:not(.ag-cam-glass) #gps-avg,
+body.cam-live:not(.ag-cam-glass) .dock-btn:not(.dock-primary) {
+    background: var(--bg-elev, #171b20);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+body.cam-live:not(.ag-cam-glass) #ar-hud-info {
+    background: #080b0f;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
 /* Zavřené modály nesmí žrát výkon (4 fullscreen vrstvy stále v DOM) — vypnout blur. */
 #settings-modal:not(.ag-open), #manage-modal:not(.ag-open), #tools-modal:not(.ag-open), #custom-modal-overlay:not(.ag-open),
 #settings-modal:not(.ag-open) .modal-content, #manage-modal:not(.ag-open) .modal-content,

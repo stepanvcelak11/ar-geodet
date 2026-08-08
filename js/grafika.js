@@ -126,9 +126,22 @@
 
         function updateInfoPanel() { const infoEl = document.getElementById('info'); if (!infoEl || !appStarted) return; if (!userLat) { infoEl.innerHTML = `<div class="rdt"><span class="rdt-l">GPS</span><span class="rdt-v" style="color:var(--warning);">hledám…</span></div>`; return; } infoEl.innerHTML = ''; }
 
-        function startAppFromWelcome() { mapRadius = parseInt(document.getElementById('w-map-radius-slider').value); arRadius = parseInt(document.getElementById('w-ar-radius-slider').value); filters.tb = document.getElementById('w-f-tb').checked; filters.zhb = document.getElementById('w-f-zhb').checked; filters.pbpp = document.getElementById('w-f-pbpp').checked; filters.nivel = document.getElementById('w-f-nivel').checked; filters.custom = document.getElementById('w-f-custom').checked; searchQuery = document.getElementById('w-search-name').value.trim(); const viewRadios = document.getElementsByName('w-view'); for(let r of viewRadios) { if(r.checked) viewMode = r.value; } document.getElementById('s-map-radius-slider').value = mapRadius; document.getElementById('s-map-radius-val').innerText = mapRadius; document.getElementById('s-ar-radius-slider').value = arRadius; document.getElementById('s-ar-radius-val').innerText = arRadius; document.getElementById('f-tb').checked = filters.tb; document.getElementById('f-zhb').checked = filters.zhb; document.getElementById('f-pbpp').checked = filters.pbpp; document.getElementById('f-nivel').checked = filters.nivel; document.getElementById('f-custom').checked = filters.custom; document.getElementById('s-search-name').value = searchQuery; document.getElementById('s-camera-select').value = document.getElementById('w-camera-select').value; const sViewRadios = document.getElementsByName('s-view'); for(let r of sViewRadios) { if(r.value === viewMode) r.checked = true; } document.getElementById('menu-toggle-btn').style.display = "block"; appStarted = true; document.body.classList.add('app-started'); toggleHudElements(); document.getElementById('welcome-screen').style.opacity = '0'; setTimeout(() => { document.getElementById('welcome-screen').style.display = 'none'; }, 400); applyViewMode(); drawAllMarkersOnMap(); if (userLat && userLng) { initFetch(userLat, userLng); } else { document.getElementById('info').innerHTML = "Hledám GPS signál..."; } requestWakeLock(); }
+        // BATERIE: zapamatovat posledni rezim zobrazeni. Vychozi „Dělené" znamena zivou kameru
+        // A mapu naraz — nejdrazsi kombinaci, jakou appka umi. Kdo pracuje celý den v mapě, ten
+        // si ji drive musel prepinat po KAZDEM startu, protoze se stav resetoval zpatky na
+        // „Dělené". Uklada se mimo zakazky (jako agPowerCfg) — je to volba zarizeni, ne projektu.
+        const VIEW_LS = 'agViewMode';
+        function rememberViewMode(v) { try { if (v === 'both' || v === 'map' || v === 'ar') localStorage.setItem(VIEW_LS, v); } catch (e) {} }
+        window.agRememberViewMode = rememberViewMode;
+        function startAppFromWelcome() { mapRadius = parseInt(document.getElementById('w-map-radius-slider').value); arRadius = parseInt(document.getElementById('w-ar-radius-slider').value); filters.tb = document.getElementById('w-f-tb').checked; filters.zhb = document.getElementById('w-f-zhb').checked; filters.pbpp = document.getElementById('w-f-pbpp').checked; filters.nivel = document.getElementById('w-f-nivel').checked; filters.custom = document.getElementById('w-f-custom').checked; searchQuery = document.getElementById('w-search-name').value.trim(); const viewRadios = document.getElementsByName('w-view'); for(let r of viewRadios) { if(r.checked) viewMode = r.value; } rememberViewMode(viewMode); document.getElementById('s-map-radius-slider').value = mapRadius; document.getElementById('s-map-radius-val').innerText = mapRadius; document.getElementById('s-ar-radius-slider').value = arRadius; document.getElementById('s-ar-radius-val').innerText = arRadius; document.getElementById('f-tb').checked = filters.tb; document.getElementById('f-zhb').checked = filters.zhb; document.getElementById('f-pbpp').checked = filters.pbpp; document.getElementById('f-nivel').checked = filters.nivel; document.getElementById('f-custom').checked = filters.custom; document.getElementById('s-search-name').value = searchQuery; document.getElementById('s-camera-select').value = document.getElementById('w-camera-select').value; const sViewRadios = document.getElementsByName('s-view'); for(let r of sViewRadios) { if(r.value === viewMode) r.checked = true; } document.getElementById('menu-toggle-btn').style.display = "block"; appStarted = true; document.body.classList.add('app-started'); toggleHudElements(); document.getElementById('welcome-screen').style.opacity = '0'; setTimeout(() => { document.getElementById('welcome-screen').style.display = 'none'; }, 400); applyViewMode(); drawAllMarkersOnMap(); if (userLat && userLng) { initFetch(userLat, userLng); } else { document.getElementById('info').innerHTML = "Hledám GPS signál..."; } requestWakeLock(); }
 
-        function applyViewMode() { const camCont = document.getElementById('camera-container'); const mapCont = document.getElementById('map-container'); const resizer = document.getElementById('resizer'); if (viewMode === 'both') { camCont.style.display = 'block'; camCont.style.flex = '0 0 50%'; mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'flex'; startCameraAndCompass(); } else if (viewMode === 'map') { camCont.style.display = 'none'; mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'none'; stopCameraStream(); startCompass(); } else if (viewMode === 'ar') { camCont.style.display = 'block'; camCont.style.flex = '1'; mapCont.style.display = 'none'; resizer.style.display = 'none'; startCameraAndCompass(); } setTimeout(() => { map.invalidateSize(); }, 300); }
+        function applyViewMode() { // BATERIE: trida rika CSS, ze pod prekryvy tece ZIVY obraz z kamery
+            // (30 snimku/s). Skleneny efekt (backdrop-filter) nad statickou mapou se prepocita
+            // jen pri posunu mapy, ale nad videem pri KAZDEM snimku — a takovych prvku je nad
+            // kamerou ~10 (#info, #compass-debug, #menu-toggle-btn, #gps-avg, 5x .dock-btn,
+            // #ar-hud-info). Viz pravidlo `body.cam-live:not(.ag-cam-glass)` v css/style.css.
+            try { document.body.classList.toggle('cam-live', viewMode !== 'map'); } catch (e) {}
+            const camCont = document.getElementById('camera-container'); const mapCont = document.getElementById('map-container'); const resizer = document.getElementById('resizer'); if (viewMode === 'both') { camCont.style.display = 'block'; camCont.style.flex = '0 0 50%'; mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'flex'; startCameraAndCompass(); } else if (viewMode === 'map') { camCont.style.display = 'none'; mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'none'; stopCameraStream(); startCompass(); } else if (viewMode === 'ar') { camCont.style.display = 'block'; camCont.style.flex = '1'; mapCont.style.display = 'none'; resizer.style.display = 'none'; startCameraAndCompass(); } setTimeout(() => { map.invalidateSize(); }, 300); }
 
         let compassStarted = false;
         // BATERIE: přišla použitelná ABSOLUTNÍ událost kompasu? Nastavuje handleOrientation.
@@ -162,7 +175,15 @@
                 }, 1200);
             }
         }
-        function startCameraAndCompass(forceRestart = false) { startCompass(); if (cameraStarted && !forceRestart) return; cameraStarted = true; if (currentVideoStream) { currentVideoStream.getTracks().forEach(track => track.stop()); } const camId = document.getElementById('s-camera-select') ? document.getElementById('s-camera-select').value : null; const videoConstraints = camId ? { deviceId: { exact: camId } } : { facingMode: "environment" }; navigator.mediaDevices.getUserMedia({ video: videoConstraints }).then(stream => { currentVideoStream = stream; const videoElement = document.getElementById('camera-feed'); videoElement.srcObject = stream; videoElement.style.display = "block"; }).catch(err => { handleCameraError(err); }); }
+        // BATERIE: bez techhle mezi si prohlizec vezme NATIVNI rozliseni kamery — na dnesnich
+        // telefonech bezne 1920x1080, na nekterych i 4K, a to 30x za sekundu. Obraz z kamery je
+        // v AR jen podklad pod znackami a zobrazuje se do poloviny displeje (~390 CSS px na
+        // sirku), takze se stejne zmensuje. Senzor, ISP i GPU kompozice tak celou dobu delaji
+        // nekolikanasobek prace, kterou je videt. 720p @ 24-30 fps je na telefonu k nerozeznani.
+        // `ideal` (ne `exact`) = kdyz kamera takovy rezim nema, vybere nejblizsi a NEselze.
+        // Kdyby nekdo chtel puvodni chovani, staci CAM_VIDEO vyprazdnit na {}.
+        const CAM_VIDEO = { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 24, max: 30 } };
+        function startCameraAndCompass(forceRestart = false) { startCompass(); if (cameraStarted && !forceRestart) return; cameraStarted = true; if (currentVideoStream) { currentVideoStream.getTracks().forEach(track => track.stop()); } const camId = document.getElementById('s-camera-select') ? document.getElementById('s-camera-select').value : null; const videoConstraints = Object.assign({}, CAM_VIDEO, camId ? { deviceId: { exact: camId } } : { facingMode: "environment" }); navigator.mediaDevices.getUserMedia({ video: videoConstraints }).then(stream => { currentVideoStream = stream; const videoElement = document.getElementById('camera-feed'); videoElement.srcObject = stream; videoElement.style.display = "block"; }).catch(err => { handleCameraError(err); }); }
         // Kamera selhala (typicky omylem zamítnuté oprávnění): místo surového alertu s technickou
         // hláškou řekni co dělat a přepni do Mapy, ať se dá pracovat dál (AR bez kamery = černá obrazovka).
         function handleCameraError(err) {
@@ -412,7 +433,7 @@
             mapRadius = parseInt(document.getElementById('s-map-radius-slider').value); setStoredData('arRadiusMap', mapRadius); 
             arRadius = parseInt(document.getElementById('s-ar-radius-slider').value); setStoredData('arRadiusAR', arRadius); 
             searchQuery = document.getElementById('s-search-name').value.trim();
-            const sViewRadios = document.getElementsByName('s-view'); for(let r of sViewRadios) { if(r.checked) viewMode = r.value; }
+            const sViewRadios = document.getElementsByName('s-view'); for(let r of sViewRadios) { if(r.checked) viewMode = r.value; } rememberViewMode(viewMode);
             const oldCam = document.getElementById('w-camera-select').value; const newCam = document.getElementById('s-camera-select').value; document.getElementById('w-camera-select').value = newCam; 
             visSettings.wakeLockEnabled = document.getElementById('s-wakelock').checked;
             { const _wasOut = visSettings.outdoorMode; visSettings.outdoorMode = document.getElementById('s-outdoor').checked;
@@ -1261,13 +1282,27 @@
         const arrTarget = document.getElementById('arrow-target'), arrStraight = document.getElementById('arrow-straight'), arrLeft = document.getElementById('arrow-left'), arrRight = document.getElementById('arrow-right'), arrUturn = document.getElementById('arrow-uturn'), arrBull = document.getElementById('arrow-bullseye');
         let _lastCdHtml = '', _lastCdTitle = '';   // posledni text azimutu — prekreslit jen pri zmene
         // VYKON: udalosti senzoru chodi i 60+x/s; prekreslujeme max 1x za snimek (requestAnimationFrame)
-        let _orientPending = false, _lastOrientEvent = null;
+        // BATERIE: k tomu STROP ~30 snimku/s. Kazdy pruchod renderAR projde vsechny arPoints,
+        // spocita declutter stitku a prepise transformy — pri 60 Hz kompasu to bylo 2x tolik
+        // prace, nez ma smysl: obraz z kamery pod znackami bezi na 30 fps (viz CAM_VIDEO), takze
+        // rychlejsi prekreslovani stitku uz neni na cem videt. Filtr smeru je dt-normalizovany
+        // (smoothAlpha nize), takze se zmenou frekvence se chovani kompasu NEmeni.
+        // Razitkuje se cas PRIJETI udalosti, ne cas vykresleni — kdyby se merilo az po rAF,
+        // odectel by se i cas cekani na vsync a stropem by proslo jen ~20 snimku/s.
+        const AR_MIN_FRAME_MS = 30;
+        let _orientPending = false, _lastOrientEvent = null, _lastArFrameTs = 0;
         function handleOrientation(event) {
             // absolutní zdroj funguje? (viz _absSeen u startCompass — rozhoduje o tom,
             // jestli se vůbec musí navěsit i relativní 'deviceorientation')
             if (!_absSeen && event && event.absolute === true && event.alpha != null) _absSeen = true;
             _lastOrientEvent = event; if (_calibActive) trackCalibMotion(event);
             if (_orientPending) return;
+            // Zahozeny snimek nic neztrati: _lastOrientEvent je uz prepsany, takze dalsi
+            // propusteny snimek kresli z NEJCERSTVEJSI udalosti. Kdyby udalosti prestaly
+            // chodit uplne, dorovna to watchdog nize (250 ms).
+            const _nowFr = performance.now();
+            if (_nowFr - _lastArFrameTs < AR_MIN_FRAME_MS) return;
+            _lastArFrameTs = _nowFr;
             _orientPending = true;
             requestAnimationFrame(() => { _orientPending = false; renderAR(_lastOrientEvent); });
         }
@@ -1408,19 +1443,35 @@
             // DECLUTTER AR štítků: co by se překrývalo, sbalí se pod nejbližší bod (+N, tap = seznam bodů).
             const _placed = []; const _ovW = arOverlay.clientWidth || 1, _ovH = arOverlay.clientHeight || 1;
 
-            arPoints.forEach(pt => {
+            // BATERIE: arPoints jsou serazene VZESTUPNE podle currentDist (logika.js je prepocitava
+            // a razuje pri kazdem posunu > 0.25 m i pri zmene poctu bodu). Za prvnim bodem mimo AR
+            // dosah uz tedy zadny dalsi videt nebude — po stazeni bodoveho pole z CUZK jich pritom
+            // v poli byvaji stovky a cely ten ocas se prochazel s kazdym snimkem kompasu.
+            // Za rezem uz se nic nepocita, jen se dorovna znacka, kdyby jeste svitila z drivejska
+            // (proto NEni `break`: jinak by pri zmenseni dosahu / zapnuti filtru zustaly stare
+            // znacky viset na obrazovce). Zvyrazneny a prave otevreny bod se kresli i mimo dosah,
+            // takze se rezu netykaji.
+            let _beyond = false;
+            for (let _pi = 0; _pi < arPoints.length; _pi++) {
+                const pt = arPoints[_pi];
+                const _keepFar = (pt.id === highlightedPointId || pt.id === activePointIdForModal);
+                if (_beyond && !_keepFar) {
+                    pt._arCluster = null;
+                    if (pt.element && pt._opLast !== '0') { pt.element.style.opacity = '0'; pt.element.style.pointerEvents = 'none'; pt._opLast = '0'; }
+                    continue;
+                }
                 pt._arCluster = null;   // shluk plati vzdy jen pro AKTUALNI snimek
                 let isVisible = true; if (pt.hidden) isVisible = false; if (pt.cat === 'TB' && !filters.tb) isVisible = false; if (pt.cat === 'ZHB' && !filters.zhb) isVisible = false; if (pt.cat === 'PBPP' && !filters.pbpp) isVisible = false; if (pt.cat === 'NIVEL' && !filters.nivel) isVisible = false; if (pt.cat === 'CUSTOM' && !filters.custom) isVisible = false; if (_sqLC && !pt.name.toLowerCase().includes(_sqLC)) isVisible = false;
                 const distance = pt.currentDist || getDistance(_oLat, _oLng, pt.lat, pt.lng);
                 let isSelectedForDetail = (pt.id === activePointIdForModal);
-                if (distance > arRadius && pt.id !== highlightedPointId && !isSelectedForDetail) isVisible = false;
+                if (distance > arRadius && pt.id !== highlightedPointId && !isSelectedForDetail) { isVisible = false; _beyond = true; }
                 if (isVisible && pt.id !== highlightedPointId && !isSelectedForDetail) { if (renderedCount >= maxPts) { isVisible = false; _cappedCount++; } else { renderedCount++; } }
-                if (!isVisible) { if (pt.element && pt._opLast !== '0') { pt.element.style.opacity = '0'; pt.element.style.pointerEvents = 'none'; pt._opLast = '0'; } return; }
+                if (!isVisible) { if (pt.element && pt._opLast !== '0') { pt.element.style.opacity = '0'; pt.element.style.pointerEvents = 'none'; pt._opLast = '0'; } continue; }
                 // Bod bez DOM elementu (pridany do arPoints az po poslednim initARMarkers —
                 // import, cloud sync, rajon...): preskocit a na konci snimku si element nechat
                 // dodelat. Driv se tady spadlo na pt.element.style, vyjimka vyletela z forEach
                 // a shodila vykresleni VSECH dalsich bodu — dokola kazdy snimek.
-                if (!pt.element) { _arMissingEl = true; return; }
+                if (!pt.element) { _arMissingEl = true; continue; }
 
                 const pointBearing = (pt.currentBearing != null) ? pt.currentBearing : getBearing(_oLat, _oLng, pt.lat, pt.lng); let diff = ((pointBearing - heading + 540) % 360) - 180;
                 if (pt.id === highlightedPointId) { highlightedPointData = { diff: diff, dist: distance, name: pt.name }; }
@@ -1460,7 +1511,7 @@
                         let _host = null;
                         for (let _i = 0; _i < _placed.length; _i++) { const q = _placed[_i]; if (Math.abs(_px - q.x) < (_hw + q.hw) && Math.abs(_py - q.y) < (_hh + q.hh)) { _host = q; break; } }
                         // sbaleny stitek schovej — a drz _opLast v souladu, jinak by ho cache uz nikdy nevratila
-                        if (_host) { _host.pt._arCluster.push(pt); if (pt._opLast !== '0') { pt.element.style.opacity = '0'; pt.element.style.pointerEvents = 'none'; pt._opLast = '0'; } return; }
+                        if (_host) { _host.pt._arCluster.push(pt); if (pt._opLast !== '0') { pt.element.style.opacity = '0'; pt.element.style.pointerEvents = 'none'; pt._opLast = '0'; } continue; }
                         _placed.push({ x: _px, y: _py, hw: _hw, hh: _hh, pt: pt });
                         pt._arCluster = [];
                     }
@@ -1483,7 +1534,7 @@
                 } else if (pt.element && pt._opLast !== '0') {
                     pt.element.style.opacity = '0'; pt.element.style.pointerEvents = 'none'; pt._opLast = '0';
                 }
-            });
+            }
             // badge „+N" na hostitelích shluků (jen umístěné značky, ne celé arPoints)
             // chybejici elementy dozenat hned (nejvys 1x za snimek), at se bod objevi
             // v nasledujicim snimku a nezustane neviditelny do dalsiho initARMarkers

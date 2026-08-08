@@ -251,7 +251,9 @@ if ('serviceWorker' in navigator) {
             localStorage.removeItem(fk);
         }
 
-        let appStarted = false, viewMode = 'both', searchQuery = '', cameraStarted = false, currentVideoStream = null;
+        // BATERIE: vychozi zobrazeni je Mapa (kamera uspana), ne „Dělené" — to drzelo zivou
+        // kameru i mapu naraz. Posledni pouzity rezim prepise loadProjectSettings z localStorage.
+        let appStarted = false, viewMode = 'map', searchQuery = '', cameraStarted = false, currentVideoStream = null;
         let mapRadius = 1000, arRadius = 150;
         let userLat = null, userLng = null, userAlt = null, userMarker = null, lastFetchLat = null, lastFetchLng = null, lastCenterLat = null, lastCenterLng = null;
         let _lastAutoFetchTs = 0;   // kdy naposled dosahlo automatickeho (pri chuzi) stahovani z CUZK
@@ -425,7 +427,19 @@ if ('serviceWorker' in navigator) {
             document.getElementById('w-map-radius-slider').value = mapRadius; document.getElementById('w-map-radius-val').innerText = mapRadius;
             document.getElementById('w-ar-radius-slider').value = arRadius; document.getElementById('w-ar-radius-val').innerText = arRadius;
             document.getElementById('w-f-tb').checked = filters.tb; document.getElementById('w-f-zhb').checked = filters.zhb; document.getElementById('w-f-pbpp').checked = filters.pbpp; document.getElementById('w-f-nivel').checked = filters.nivel; document.getElementById('w-f-custom').checked = filters.custom;
-            
+            // BATERIE: predvybrat POSLEDNI pouzity rezim zobrazeni misto natvrdo „Dělené".
+            // Dělené = ziva kamera A mapa naraz, tedy nejdrazsi kombinace; kdo jede v Mapě,
+            // musel si ji driv prepinat po kazdem startu znovu. Ulozeno mimo zakazky
+            // (localStorage 'agViewMode'), protoze je to volba zarizeni, ne projektu.
+            try {
+                var _vm = localStorage.getItem('agViewMode');
+                if (_vm === 'both' || _vm === 'map' || _vm === 'ar') {
+                    viewMode = _vm;
+                    var _vr = document.getElementsByName('w-view');
+                    for (var _i = 0; _i < _vr.length; _i++) _vr[_i].checked = (_vr[_i].value === _vm);
+                }
+            } catch (e) {}
+
             applyVisualSettings();
             if(appStarted) { drawAllMarkersOnMap(); initARMarkers(); if(userLat && userLng) initFetch(userLat, userLng); }
         }

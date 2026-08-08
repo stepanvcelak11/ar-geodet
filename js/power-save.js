@@ -27,7 +27,11 @@
 
     // ---- konfigurace (uživatelská, ukládá se zvlášť od zakázek) ----------------
     var LS = 'agPowerCfg';
-    var DEFAULTS = { enabled: true, gpsInTools: true, indicator: true, compassWarn: true };
+    // camGlass = nechat skleneny efekt (backdrop-filter) i nad zivym obrazem z kamery.
+    // Vychozi FALSE = sklo je nad kamerou vypnute, protoze se jinak deset prekryvu
+    // rozostruje s kazdym snimkem videa (~30x/s). Podrobne viz `body.cam-live` v
+    // css/style.css. Nad mapou, v modalech a v menu zustava sklo vzdy.
+    var DEFAULTS = { enabled: true, gpsInTools: true, indicator: true, compassWarn: true, camGlass: false };
     var cfg = loadCfg();
 
     function loadCfg() {
@@ -438,6 +442,13 @@
         try { document.body.classList.toggle('ag-no-compass-warn', !cfg.compassWarn); } catch (e) {}
     }
 
+    // Sklo (rozostreni) nad zivou kamerou — trida jen ZAPINA drazsi variantu zpet.
+    // Pri odpojeni teto vrstvy se trida nikdy nepridá, takze zustane uspornejsi
+    // (neprusvitna) varianta — coz je zamer, ne regrese.
+    function applyCamGlass() {
+        try { document.body.classList.toggle('ag-cam-glass', !!cfg.camGlass); } catch (e) {}
+    }
+
     // =====================================================================
     // NASTAVENÍ — vložíme vlastní kartu do záložky „AR & přesnost"
     // =====================================================================
@@ -461,6 +472,7 @@
                 + row('agp-gps', 'Uspat i GPS v nástrojích', 'kalkulačka, zprávy, předpisy, nastavení')
                 + row('agp-ind', 'Indikátor stavu GPS')
                 + row('agp-warn', 'Upozornění na rušení kompasu')
+                + row('agp-glass', 'Sklo nad kamerou', 'rozostřený podklad pod HUD panely — hezčí, ale ubírá baterii')
                 + '<div class="agp-note">Kamera, kompas i GPS se vypnou, když zrovna používáš jiné nástroje nebo je appka na pozadí, a samy naběhnou po návratu. GPS se uspí až po chvíli, aby krátké nahlédnutí neshodilo zaměření.</div>';
             host.appendChild(card);
 
@@ -468,7 +480,9 @@
             var cGps = card.querySelector('#agp-gps');
             var cInd = card.querySelector('#agp-ind');
             var cWarn = card.querySelector('#agp-warn');
+            var cGlass = card.querySelector('#agp-glass');
             cEn.checked = cfg.enabled; cGps.checked = cfg.gpsInTools; cInd.checked = cfg.indicator; cWarn.checked = cfg.compassWarn;
+            if (cGlass) cGlass.checked = cfg.camGlass;
 
             function syncDisabled() { cGps.disabled = !cEn.checked; }
             syncDisabled();
@@ -477,6 +491,7 @@
             cGps.addEventListener('change', function () { cfg.gpsInTools = cGps.checked; saveCfg(); tick(); });
             cInd.addEventListener('change', function () { cfg.indicator = cInd.checked; saveCfg(); updateIndicator(); });
             cWarn.addEventListener('change', function () { cfg.compassWarn = cWarn.checked; saveCfg(); applyCompassWarn(); });
+            if (cGlass) cGlass.addEventListener('change', function () { cfg.camGlass = cGlass.checked; saveCfg(); applyCamGlass(); });
         } catch (e) {}
     }
 
@@ -487,6 +502,7 @@
     function init() {
         try {
             applyCompassWarn();
+            applyCamGlass();
             injectSettings();
             buildIndicator();
             if (!_timer) _timer = setInterval(tick, POLL_MS);

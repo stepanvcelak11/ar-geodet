@@ -2101,9 +2101,48 @@
         } catch (e) { hideRadar(); return; }
         loadRadarFrames();
     }
+    // ---- vrstvy radaru ---------------------------------------------------------------
+    // BATERIE / DATA: dřív se pro VŠECH ~12 snímků naráz vyrobila dlaždicová vrstva a
+    // hned se přidala do mapy. Leaflet si u každé okamžitě stáhl dlaždice, takže jedno
+    // otevření radaru znamenalo ~70 PNG (512 px) během pár sekund — rádio na plný plyn,
+    // desítky textur v paměti — a to i když se člověk jen podíval, jestli teď prší, a
+    // panel zase zavřel.
+    // Teď se vrstvy vyrábějí AŽ JAK SE K NIM ANIMACE BLÍŽÍ: aktuální snímek + PREFETCH
+    // dopředu. Při 620 ms na snímek má vrstva ~1,8 s na stažení, takže NIC neproblikne
+    // (to byl důvod, proč se to dvakrát odložilo). Kdo si radar jen mrkne, stáhne čtvrtinu.
+    var RADAR_PREFETCH = 3;
+    function makeRadarLayer(i) {
+        var f = _radar.frames[i];
+        if (!f || !_radar.map || _radar.layers[i]) return;
+        // /512/{z}/{x}/{y}/<schéma barev 4>/<1_1 = vyhlazení + sníh>.png
+        // 512px dlaždice = ostřejší obraz na retina displejích než 256px
+        // maxNativeZoom: radar má rozlišení ~1 km, takže od z12 výš už nová
+        // dlaždice nic nepřidá — Leaflet poslední ostrou úroveň jen roztáhne.
+        // Bez toho (dřív maxZoom 11) srážky při větším přiblížení ZMIZELY.
+        try {
+            _radar.layers[i] = L.tileLayer(_radar.tHost + f.path + '/512/{z}/{x}/{y}/4/1_1.png', {
+                opacity: 0, maxZoom: 17, maxNativeZoom: 12, tileSize: 512, zoomOffset: -1,
+                className: 'wx-radar-tiles'
+            }).addTo(_radar.map);
+        } catch (e) {}
+    }
+    function ensureRadarLayers(i) {
+        for (var k = i; k <= i + RADAR_PREFETCH && k < _radar.frames.length; k++) makeRadarLayer(k);
+        // smyčka se na konci vrací na začátek — připravit i pár prvních snímků
+        var over = (i + RADAR_PREFETCH) - (_radar.frames.length - 1);
+        for (var m = 0; m < over && m < _radar.frames.length; m++) makeRadarLayer(m);
+    }
+    function clearRadarLayers() {
+        for (var k = 0; k < _radar.layers.length; k++) {
+            if (_radar.layers[k]) { try { _radar.map.removeLayer(_radar.layers[k]); } catch (e) {} }
+        }
+        _radar.layers = [];
+    }
     function loadRadarFrames() {
         if (!_radar.map) return;
-        if (Date.now() - _radar.lastFetch < 5 * 60 * 1000) { startRadarAnim(); return; }   // snímky se obměňují ~po 10 min
+        // snímky se obměňují ~po 10 min; při znovuotevření se jen dorovná okno vrstev
+        // (zavření je z paměti uklidilo), proto tu je showRadarFrame a ne jen animace
+        if (Date.now() - _radar.lastFetch < 5 * 60 * 1000) { showRadarFrame(_radar.idx || _radar.nowIdx || 0); startRadarAnim(); return; }
         _radar.lastFetch = Date.now();
         fetchJson('https://api.rainviewer.com/public/weather-maps.json', FETCH_MS).then(function (j) {
             var past = (j && j.radar && j.radar.past) ? j.radar.past : [];
@@ -2112,19 +2151,10 @@
             var keepPast = past.slice(-7);
             var frames = keepPast.concat(cast);
             if (!frames.length || !_radar.map) { hideRadar(); return; }
-            _radar.layers.forEach(function (l) { try { _radar.map.removeLayer(l); } catch (e) {} });
-            _radar.layers = frames.map(function (f) {
-                // /512/{z}/{x}/{y}/<schéma barev 4>/<1_1 = vyhlazení + sníh>.png
-                // 512px dlaždice = ostřejší obraz na retina displejích než 256px
-                // maxNativeZoom: radar má rozlišení ~1 km, takže od z12 výš už nová
-                // dlaždice nic nepřidá — Leaflet poslední ostrou úroveň jen roztáhne.
-                // Bez toho (dřív maxZoom 11) srážky při větším přiblížení ZMIZELY.
-                return L.tileLayer(tHost + f.path + '/512/{z}/{x}/{y}/4/1_1.png', {
-                    opacity: 0, maxZoom: 17, maxNativeZoom: 12, tileSize: 512, zoomOffset: -1,
-                    className: 'wx-radar-tiles'
-                }).addTo(_radar.map);
-            });
+            clearRadarLayers();
+            _radar.tHost = tHost;
             _radar.frames = frames;
+            _radar.layers = new Array(frames.length);
             _radar.nowIdx = Math.max(0, keepPast.length - 1);
             var seek = byId('ag-wx-radar-seek');
             if (seek) { seek.max = String(frames.length - 1); seek.value = String(_radar.nowIdx); }
@@ -2136,7 +2166,10 @@
         if (!_radar.frames.length) return;
         if (i < 0) i = 0;
         if (i > _radar.frames.length - 1) i = _radar.frames.length - 1;
-        for (var k = 0; k < _radar.layers.length; k++) _radar.layers[k].setOpacity(k === i ? 0.8 : 0);
+        ensureRadarLayers(i);
+        // ručním taháním posuvníku se dá skočit i na snímek, který ještě vrstvu nemá —
+        // makeRadarLayer ji vyrobí hned a dlaždice doběhnou, tak jako dřív po otevření
+        for (var k = 0; k < _radar.layers.length; k++) { if (_radar.layers[k]) _radar.layers[k].setOpacity(k === i ? 0.8 : 0); }
         _radar.idx = i;
         var f = _radar.frames[i];
         var seek = byId('ag-wx-radar-seek');
@@ -3043,6 +3076,10 @@
         if (_ui) _ui.classList.remove('on');
         hideResults();
         if (_radar.timer) { try { clearInterval(_radar.timer); } catch (e) {} _radar.timer = null; }
+        // BATERIE/PAMĚŤ: dlaždicové vrstvy radaru pryč z mapy. Dřív jich po zavření panelu
+        // zůstávalo viset ~12 i s texturami. _radar.frames zůstávají, takže se při dalším
+        // otevření do 5 minut nemusí znovu ptát serveru — jen se vyrobí okno vrstev.
+        try { clearRadarLayers(); } catch (e) {}
         if (_timer) {
             if (window.AG && AG.clearUiInterval) AG.clearUiInterval(_timer);
             else { try { clearInterval(_timer); } catch (e) {} }

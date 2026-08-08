@@ -11,7 +11,9 @@
 
     var STYLE_ID = 'ag-vc-style';
     var BTN_ID = 'ag-view-wheel';
-    var ORDER = ['ar', 'both', 'map'];
+    // BATERIE: poradi zacina Mapou — ta je nejlevnejsi (kamera uspana). Klepnutim se jde
+    // Mapa -> Split -> AR -> Mapa, takze cesta k plne kamere je vedoma, ne vychozi stav.
+    var ORDER = ['map', 'both', 'ar'];
     var LABEL = { ar: 'AR', both: 'Split', map: 'Mapa' };
     var ICON = { ar: '#i-camera', both: '#i-grid', map: '#i-map-pin' };
 
@@ -31,7 +33,13 @@
             '  background:var(--glass-bg,rgba(24,28,33,0.84));backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);',
             '  opacity:var(--panel-opacity,0.85);',
             '  color:var(--text-color,#eceef2);font:600 8px/1.1 var(--font-ui,system-ui),sans-serif;letter-spacing:.02em;',
-            '  cursor:pointer;box-shadow:var(--shadow-1,0 1px 3px rgba(0,0,0,0.5));}',
+            // touch-action:none = tah po kolečku patří NÁM, prohlížeč z něj neudělá rolování
+            // ani gesto zpět (bez toho iOS tah do strany sebere a přepnutí se nekoná)
+            '  cursor:pointer;box-shadow:var(--shadow-1,0 1px 3px rgba(0,0,0,0.5));touch-action:none;}',
+            // tah přešel práh → kolečko potvrdí, že po puštění přepne (barva + zvětšení)
+            '#' + BTN_ID + '.ag-vc-armed{border-color:var(--accent-bright,#3eb487);',
+            '  box-shadow:0 0 0 2px var(--accent-soft,rgba(47,158,116,0.4)),var(--shadow-2,0 4px 12px rgba(0,0,0,0.5));',
+            '  transform:scale(1.08);opacity:1;}',
             '#' + BTN_ID + ' .icon{width:20px;height:20px;color:var(--accent-bright,#3eb487);}',
             '#' + BTN_ID + ' span{text-shadow:0 1px 3px rgba(0,0,0,0.9),0 0 2px rgba(0,0,0,0.7);}',
             'body.app-started #' + BTN_ID + '{display:flex;}',
@@ -46,7 +54,7 @@
         (document.head || document.documentElement).appendChild(st);
     }
 
-    function cur() { return (typeof viewMode !== 'undefined' && LABEL[viewMode]) ? viewMode : 'both'; }
+    function cur() { return (typeof viewMode !== 'undefined' && LABEL[viewMode]) ? viewMode : 'map'; }
 
     // Srovná VŠECHNY ovladače zobrazení podle aktuálního viewMode: kolečko,
     // segment v „Více" i radia v Nastavení. Volá se i z grafika.js (fallback kamery).
@@ -71,22 +79,111 @@
     }
     window.agSyncViewControls = sync;
 
-    function next() {
-        if (typeof viewMode === 'undefined') return;
-        var m = ORDER[(ORDER.indexOf(cur()) + 1) % ORDER.length];
+    function setMode(m) {
+        if (typeof viewMode === 'undefined' || !LABEL[m]) return;
+        if (m === cur()) { sync(); return; }
         viewMode = m;
+        // BATERIE: zapamatovat volbu na priste (grafika.js). Rezim „Dělené" drzi zivou kameru
+        // i mapu naraz, takze kdo si prepne do Mapy, nechce ji priste hledat znovu.
+        try { if (typeof window.agRememberViewMode === 'function') window.agRememberViewMode(m); } catch (e) {}
         try { if (typeof applyViewMode === 'function') applyViewMode(); } catch (e) { console.warn('[view-cycle]', e); }
         sync();
         try { if (typeof visSettings !== 'undefined' && visSettings.vibrationEnabled && navigator.vibrate) navigator.vibrate(15); } catch (e) {}
+    }
+
+    function next() {
+        if (typeof viewMode === 'undefined') return;
+        setMode(ORDER[(ORDER.indexOf(cur()) + 1) % ORDER.length]);
+    }
+
+    // ---- TAŽENÍ PO KOLEČKU = přímá volba režimu ------------------------------------
+    // Klepání dokola je fajn na jedno přepnutí, ale ze Split do Mapy to jsou dvě klepnutí
+    // a mezitím naskočí režim, který uživatel nechtěl (a s ním na okamžik zapnutá kamera).
+    // Tažením se jde rovnou: NAHORU = AR, DO STRANY = Split, DOLŮ = Mapa. Směr odpovídá
+    // ceně režimu — dolů (k zemi, k mapě) je nejúspornější, nahoru (zvednout telefon
+    // k očím) je plná kamera. Krátké ťuknutí bez tažení dál cykluje jako dřív.
+    var SWIPE_MIN = 22;                       // px, pod tím je to ťuknutí, ne tah
+    var DIR = { up: 'ar', side: 'both', down: 'map' };
+    var _sx = 0, _sy = 0, _dragging = false, _swiped = false, _preview = null;
+
+    function dirFor(dx, dy) {
+        if (Math.abs(dx) < SWIPE_MIN && Math.abs(dy) < SWIPE_MIN) return null;
+        if (Math.abs(dy) >= Math.abs(dx)) return dy < 0 ? DIR.up : DIR.down;
+        return DIR.side;
+    }
+    // Náhled cíle přímo na kolečku, dokud je prst dole — uživatel vidí, kam pustit,
+    // a může tah ještě stáhnout zpátky pod práh a nic se nestane.
+    function showPreview(m) {
+        if (_preview === m) return;
+        _preview = m;
+        var b = document.getElementById(BTN_ID);
+        if (!b) return;
+        var u = b.querySelector('use'), s = b.querySelector('span');
+        var t = m || cur();
+        if (u) u.setAttribute('href', ICON[t]);
+        if (s) s.textContent = LABEL[t];
+        b.classList.toggle('ag-vc-armed', !!m);
+    }
+    function hint() {
+        try {
+            if (localStorage.getItem('agViewSwipeHint') === '1') return;
+            localStorage.setItem('agViewSwipeHint', '1');
+            if (typeof window.quickToast === 'function') {
+                window.quickToast('Tip: tažením po kolečku přepneš rovnou — nahoru AR, do strany Split, dolů Mapa.');
+            }
+        } catch (e) {}
+    }
+
+    function bindSwipe(b) {
+        b.addEventListener('touchstart', function (e) {
+            if (!e.touches || e.touches.length !== 1) return;
+            _sx = e.touches[0].clientX; _sy = e.touches[0].clientY;
+            _dragging = true; _swiped = false; _preview = null;
+        }, { passive: true });
+
+        b.addEventListener('touchmove', function (e) {
+            if (!_dragging || !e.touches || !e.touches.length) return;
+            // tah patří kolečku, ne stránce (jinak by pod prstem ujížděla mapa / celá appka)
+            if (e.cancelable) e.preventDefault();
+            showPreview(dirFor(e.touches[0].clientX - _sx, e.touches[0].clientY - _sy));
+        }, { passive: false });
+
+        b.addEventListener('touchend', function (e) {
+            if (!_dragging) return;
+            _dragging = false;
+            var t = (e.changedTouches && e.changedTouches[0]) || null;
+            var m = t ? dirFor(t.clientX - _sx, t.clientY - _sy) : null;
+            _preview = null;
+            b.classList.remove('ag-vc-armed');
+            if (!m) { sync(); return; }           // ťuknutí → obslouží 'click' (cyklus)
+            // Tah = hotovo. preventDefault potlačí syntetický 'click', ale ne na všech
+            // WebKitech spolehlivě, proto k tomu ještě příznak _swiped.
+            _swiped = true;
+            if (e.cancelable) e.preventDefault();
+            setMode(m);
+            hint();
+        }, { passive: false });
+
+        b.addEventListener('touchcancel', function () {
+            _dragging = false; _preview = null; _swiped = false;
+            b.classList.remove('ag-vc-armed'); sync();
+        }, { passive: true });
+
+        b.addEventListener('click', function () {
+            if (_swiped) { _swiped = false; return; }   // tah už režim nastavil
+            next();
+            hint();
+        });
     }
 
     function ensureBtn() {
         if (document.getElementById(BTN_ID)) return;
         var b = document.createElement('button');
         b.id = BTN_ID; b.type = 'button';
-        b.setAttribute('aria-label', 'Přepnout zobrazení (AR / Split / Mapa)');
-        b.innerHTML = '<svg class="icon"><use href="' + ICON.both + '"/></svg><span></span>';
-        b.addEventListener('click', next);
+        b.setAttribute('aria-label', 'Zobrazení: klepnutím dokola, tažením nahoru AR / do strany Split / dolů Mapa');
+        b.title = 'Klepnutí = další zobrazení. Tažení: ↑ AR · ↔ Split · ↓ Mapa';
+        b.innerHTML = '<svg class="icon"><use href="' + ICON.map + '"/></svg><span></span>';
+        bindSwipe(b);
         document.body.appendChild(b);
         sync();
     }
