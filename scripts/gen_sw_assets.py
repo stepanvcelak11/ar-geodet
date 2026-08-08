@@ -65,6 +65,7 @@ EXTRA_ASSETS = [
     './js/zapisnik.js',
     './js/dgps.js',
     './js/vrstvy.js',
+    './js/kontrola-vrstvy.js',
     './js/denik-dne.js',
     './js/kniha-jizd.js',
     './js/postupy.js',

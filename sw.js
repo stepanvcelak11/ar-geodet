@@ -197,6 +197,7 @@ const ASSETS_TO_CACHE = [
     './js/zapisnik.js',
     './js/dgps.js',
     './js/vrstvy.js',
+    './js/kontrola-vrstvy.js',
     './js/denik-dne.js',
     './js/kniha-jizd.js',
     './js/postupy.js',
@@ -237,6 +238,15 @@ function isTile(url) {
         || url.includes('cuzk.gov.cz/arcgis1')   // ortofoto WMS
         || url.includes('services.cuzk.cz/wms')   // katastr WMS
         || url.includes('services.cuzk.gov.cz/wms');
+}
+
+// Predchozi verze shellu (argeodet-shell-v211 pri instalaci v212). Slouzi jako
+// ZALOHA pri instalaci: kdyz nejde sit, vezmeme starou kopii souboru misto zadne.
+async function previousShellCaches() {
+    try {
+        const keys = await caches.keys();
+        return keys.filter(k => k.indexOf('argeodet-shell-') === 0 && k !== SHELL_CACHE);
+    } catch (e) { return []; }
 }
 
 self.addEventListener('install', event => {

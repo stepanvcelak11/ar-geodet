@@ -123,6 +123,20 @@
     }
     function gpsActiveCount() { var n = 0; _watches.forEach(function (w) { if (w.active) n++; }); return n; }
 
+    // VEREJNE API PRO ZOTAVENI Z CHYBY GPS (pouziva js/gps-trust.js).
+    // Tenhle modul je jediny, kdo drzi seznam vsech zivych watchu i jejich puvodni
+    // callbacky, takze restart GPS jde udelat jen odsud — logika.js si navratovou
+    // hodnotu watchPosition() nikam neschovava a sama by watch obnovit neumela.
+    // Kdy se hodi: uzivatel povolil polohu az dodatecne v nastaveni telefonu, nebo
+    // watch po dlouhem vypadku signalu prestal dorucovat a potrebuje kopnout.
+    window.AGPowerGps = {
+        restart: function () {
+            if (!_natWatch || !_watches.length) return false;
+            try { pauseGPS(); resumeGPS(); return true; } catch (e) { return false; }
+        },
+        activeCount: gpsActiveCount
+    };
+
     // =====================================================================
     // 1b) OBAL deviceorientation listenerů — uspání/probuzení kompasu
     // =====================================================================

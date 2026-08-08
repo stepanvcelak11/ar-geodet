@@ -62,6 +62,12 @@
             open: 'agOpenVrstvy', icon: '<svg class="icon"><use href="#i-layers"/></svg>'
         },
         {
+            id: 'kontrola-vrstvy', src: 'js/kontrola-vrstvy.js', label: 'Kontrola vrstvy',
+            cat: 'Vytyčování a náčrt', order: 15,
+            open: 'agOpenKontrolaVrstvy',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h18"/><path d="M3 12h18"/><path d="m7 8 2-3 3 4 2-2 3 5"/><path d="M5 20h1M11 20h2M18 20h1"/></svg>'
+        },
+        {
             id: 'denik-dne', src: 'js/denik-dne.js', label: 'Deník dne', cat: 'Pomůcky', order: 62,
             open: 'agOpenDenikDne',
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 9.5h18"/><path d="m8.7 15.2 2.2 2.2 4.4-4.4"/></svg>'

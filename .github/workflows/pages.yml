@@ -22,9 +22,12 @@ name: Nasazení na Pages (zabalený kód)
 
 on:
   workflow_dispatch: {}
-  # Až bude Pages přepnuté na GitHub Actions, odkomentuj a nasazovat se bude samo:
-  # push:
-  #   branches: [main]
+  # Nasazuje se samo z main. Krok „deploy" ale projde teprve tehdy, až bude
+  # v Settings → Pages přepnutý Source na „GitHub Actions" (viz rámeček výše).
+  # Do té doby se build i testy spustí, jen publikace selže — a venku zůstane
+  # předchozí verze, takže se tím nic nerozbije.
+  push:
+    branches: [main]
 
 permissions:
   contents: read

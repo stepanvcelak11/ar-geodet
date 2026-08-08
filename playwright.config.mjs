@@ -1,6 +1,14 @@
 // Konfigurace smoke testů (tests/*.spec.mjs). Appka je statická, takže si test
-// pustí obyčejný HTTP server nad korenem repa (file:// by neprošlo kvůli
-// service workeru a modulům).
+// pustí HTTP server nad kořenem repa (file:// by neprošlo kvůli service workeru
+// a modulům).
+//
+// POZOR na server: dřív tu bylo `python3 -m http.server`, které jede v HTTP/1.0
+// BEZ keep-alive. Appka si při startu tahne ~145 assetů, takže to znamenalo 145
+// samostatných TCP spojení — na CI runneru se část resetla, prohlížeč nenačetl
+// náhodný skript a test padal na „filters is not defined" / „map.on is not a
+// function". Vypadalo to jako chyba appky, ale byla to chyba serveru; proto
+// smoke test neprošel ani jednou od zavedení. scripts/test_server.py drží
+// HTTP/1.1 s keep-alive — s ním appka startuje s 0 chybami v konzoli.
 import { defineConfig, devices } from '@playwright/test';
 
 const PORT = 8099;
@@ -40,7 +48,9 @@ export default defineConfig({
     },
     projects: [{ name: 'chromium-mobil', use: { ...devices['Pixel 7'] } }],
     webServer: {
-        command: `python3 -m http.server ${PORT} --bind 127.0.0.1`,
+        // NE `python3 -m http.server` — viz komentář nahoře (HTTP/1.0 bez keep-alive
+        // = náhodně nenačtené skripty = falešně červený test).
+        command: `python3 scripts/test_server.py ${PORT}`,
         port: PORT,
         reuseExistingServer: !process.env.CI,
         timeout: 30000,
