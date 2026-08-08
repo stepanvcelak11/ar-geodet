@@ -273,6 +273,24 @@ const CHMI_MAX_AGE_MS = 3.5 * 3600e3;
 const CHMI_CAND = 6;             // kolik nejbližších stanic zkusit (viz níž)
 const CHMI_ELEMS = { T: 1, H: 1, P: 1, F: 1, Fmax: 1, D: 1, SRA10M: 1 };
 
+// ⚠⚠ 8.8.2026: TENHLE PŘEVOD MĚL TICHOU CHYBU, KTERÁ VYRÁBĚLA 0 °C.
+// ČHMÚ u dosud nenaměřených desetiminutovek posílá `VAL` jako PRÁZDNÝ ŘETĚZEC
+// (s QUALITY 4), ne jako null. Kontrola `val == null` na prázdný řetězec NESEDNE
+// (`'' == null` je false), takže hodnota prošla dál — a `Number('')` je **0**.
+// Z „ještě neměřím" se tak stala nula: stanice Kostelní Myslová hlásila
+// v srpnu odpoledne T=0, H=0, P=0, F=0 (ověřeno na ostrých datech).
+// Bylo to nebezpečné, protože měření má v appce NEJVYŠŠÍ VÁHU z celé směsi:
+// stáhlo by celý vážený průměr, ukázalo „Naměřeno ČHMÚ 0 °C" a hlavně by tou
+// nulou na měsíc znečistilo učení systematické chyby i trefnosti modelů, které
+// se proti naměřené hodnotě poměřují.
+// Proto se hodnota bere jen tehdy, když je to OPRAVDU ČÍSLO.
+function chmiNum(val) {
+    if (val == null) return null;
+    if (typeof val === 'string' && val.trim() === '') return null;
+    const n = Number(val);
+    return isFinite(n) ? n : null;
+}
+
 function chmiDayStr(offsetDays) {
     return new Date(Date.now() + offsetDays * 864e5).toISOString().slice(0, 10).replace(/-/g, '');
 }
@@ -326,12 +344,14 @@ async function chmiLatest(wsi) {
     const last = {}, rain = [];
     for (const r of rows) {
         const el = r[1], dt = r[2], val = r[3], q = Number(r[5]);
-        if (!CHMI_ELEMS[el] || val == null || dt == null) continue;
+        if (!CHMI_ELEMS[el] || dt == null) continue;
         if (q === 2) continue;                       // „zatím nepoužívat" podle ČHMÚ
+        const v = chmiNum(val);
+        if (v == null) continue;                     // viz chmiNum — POZOR na prázdný řetězec
         const ts = Date.parse(dt);
         if (!isFinite(ts)) continue;
-        if (el === 'SRA10M') rain.push([ts, Number(val)]);
-        if (!last[el] || ts > last[el][0]) last[el] = [ts, Number(val)];
+        if (el === 'SRA10M') rain.push([ts, v]);
+        if (!last[el] || ts > last[el][0]) last[el] = [ts, v];
     }
     if (!last.T && !last.F && !last.H) return null;
     // čas měření = nejnovější z odečtených veličin
@@ -359,19 +379,21 @@ async function chmiHours(wsi, days) {
         catch (e) { continue; }
         for (const r of rows) {
             const el = r[1], dt = r[2], val = r[3], q = Number(r[5]);
-            if (val == null || dt == null || q === 2) continue;
+            if (dt == null || q === 2) continue;
             if (el !== 'T' && el !== 'SRA10M') continue;
+            const v = chmiNum(val);
+            if (v == null) continue;                 // viz chmiNum
             const ts = Date.parse(dt);
             if (!isFinite(ts)) continue;
             if (el === 'T') {
                 // ke které celé hodině odečet patří (±30 min) a jak je od ní daleko
                 const hr = Math.round(ts / 3600e3) * 3600e3;
                 const d = Math.abs(ts - hr);
-                if (!T[hr] || d < T[hr][1]) T[hr] = [Number(val), d];
+                if (!T[hr] || d < T[hr][1]) T[hr] = [v, d];
             } else {
                 // srážka spadlá v (h−1, h] se počítá k hodině h
                 const hr = Math.ceil(ts / 3600e3) * 3600e3;
-                R[hr] = (R[hr] || 0) + Number(val);
+                R[hr] = (R[hr] || 0) + v;
             }
         }
     }
