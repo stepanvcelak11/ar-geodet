@@ -1,23 +1,23 @@
-// AR Geodet â€” Service Worker (verze = SHELL_CACHE niz; TENTO komentar needituj)
-// Strategie: vlastni kod = CACHE-FIRST (verzovano bumpem SHELL_CACHE + update banner),
-//            index.html (navigace) = stale-while-revalidate (pojistka),
-//            CDN/dlazdice = NEJDRIV CACHE.
-// Instalace je ODOLNA: jeden nedostupny soubor neshodi prevzeti nove verze.
-//
-// DVE oddelene cache:
-//   SHELL_CACHE â€” kod appky + knihovny z CDN. Verzuje se (bump pri vydani), pri aktivaci
-//                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
-//   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
-//                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
+// AR Geodet â€” Service Worker (verze = SHELL_CACHE niz; TENTO komentar needituj)
+// Strategie: vlastni kod = CACHE-FIRST (verzovano bumpem SHELL_CACHE + update banner),
+//            index.html (navigace) = stale-while-revalidate (pojistka),
+//            CDN/dlazdice = NEJDRIV CACHE.
+// Instalace je ODOLNA: jeden nedostupny soubor neshodi prevzeti nove verze.
+//
+// DVE oddelene cache:
+//   SHELL_CACHE â€” kod appky + knihovny z CDN. Verzuje se (bump pri vydani), pri aktivaci
+//                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
+//   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
+//                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
 const SHELL_CACHE = 'argeodet-shell-v216';   // Poradek v Nastaveni: pevne sekce misto poradi nacteni skriptu, jednotne prepinace, zalozky 2x2
-const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
-// FONT_CACHE — vlastni pisma (css/fonts/*.woff2, ~900 kB). Pisma se NIKDY nemeni,
-// takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
-// nemaze se pri updatu (stejny princip jako TILE_CACHE u mapovych dlazdic).
-const FONT_CACHE = 'argeodet-fonts-v1';
-const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE, FONT_CACHE];
-
-const ASSETS_TO_CACHE = [
+const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
+// FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
+// takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
+// nemaze se pri updatu (stejny princip jako TILE_CACHE u mapovych dlazdic).
+const FONT_CACHE = 'argeodet-fonts-v1';
+const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE, FONT_CACHE];
+
+const ASSETS_TO_CACHE = [
     // >>> GENEROVANO scripts/gen_sw_assets.py — needitovat rucne
     // (spust: python scripts/gen_sw_assets.py ; pri vydani --bump)
     './',
@@ -205,159 +205,141 @@ const ASSETS_TO_CACHE = [
     './js/gnss-forecast.js',
     './js/korekce.js',
     './js/checklist.js',
-    './css/fonts/inter-400-latin-ext.woff2',
-    './css/fonts/inter-400-latin.woff2',
-    './css/fonts/inter-500-latin-ext.woff2',
-    './css/fonts/inter-500-latin.woff2',
-    './css/fonts/inter-600-latin-ext.woff2',
-    './css/fonts/inter-600-latin.woff2',
-    './css/fonts/inter-700-latin-ext.woff2',
-    './css/fonts/inter-700-latin.woff2',
-    './css/fonts/inter-800-latin-ext.woff2',
-    './css/fonts/inter-800-latin.woff2',
-    './css/fonts/jetbrainsmono-400-latin-ext.woff2',
-    './css/fonts/jetbrainsmono-400-latin.woff2',
-    './css/fonts/jetbrainsmono-500-latin-ext.woff2',
-    './css/fonts/jetbrainsmono-500-latin.woff2',
-    './css/fonts/jetbrainsmono-700-latin-ext.woff2',
-    './css/fonts/jetbrainsmono-700-latin.woff2',
-    './css/fonts/sora-600-latin-ext.woff2',
-    './css/fonts/sora-600-latin.woff2',
-    './css/fonts/sora-700-latin-ext.woff2',
-    './css/fonts/sora-700-latin.woff2',
-    './css/fonts/sora-800-latin-ext.woff2',
-    './css/fonts/sora-800-latin.woff2',
-    // <<< KONEC GENEROVANEHO SEZNAMU
-];
-
-// Vlastni pisma ukladame do FONT_CACHE, aby prezila update kodu (viz vyse).
-function isFont(url) { return url.includes('/css/fonts/'); }
-
-// Mapove dlazdice (OSM, CUZK WMS) ukladame do TILE_CACHE, aby prezily update kodu.
-function isTile(url) {
-    return url.includes('tile.openstreetmap.org')
-        || url.includes('cuzk.gov.cz/arcgis1')   // ortofoto WMS
-        || url.includes('services.cuzk.cz/wms')   // katastr WMS
-        || url.includes('services.cuzk.gov.cz/wms');
-}
-
-// Predchozi verze shellu (argeodet-shell-v211 pri instalaci v212). Slouzi jako
-// ZALOHA pri instalaci: kdyz nejde sit, vezmeme starou kopii souboru misto zadne.
-async function previousShellCaches() {
-    try {
-        const keys = await caches.keys();
-        return keys.filter(k => k.indexOf('argeodet-shell-') === 0 && k !== SHELL_CACHE);
-    } catch (e) { return []; }
-}
-
-self.addEventListener('install', event => {
-    event.waitUntil((async () => {
-        const cache = await caches.open(SHELL_CACHE);
-        const fontCache = await caches.open(FONT_CACHE);
-        // Kazdy soubor zvlast â€” selhani jednoho nesmi zablokovat instalaci (a tim i aktualizaci).
-        await Promise.allSettled(ASSETS_TO_CACHE.map(async url => {
-            // PISMA: uz je mame z minule verze? Necha se to tak — jsou to ~900 kB, ktere
-            // se nemeni, a stahovat je znovu pri kazdem bumpu verze by byla skoda dat.
-            const font = isFont(url);
-            const target = font ? fontCache : cache;
-            if (font && await target.match(url)) return;
-            try {
-                const res = await fetch(new Request(url, { cache: 'reload' }));
-                if (res && (res.ok || res.type === 'opaque')) await target.put(url, res);
-            } catch (e) { /* offline / blokovany CDN â€” preskocit, nevadi */ }
-        }));
-        // skipWaiting az na vyzadani z appky (po souhlasu uzivatele s obnovou)
-    })());
-});
-
-// Jednorazovy uklid vadnych dlazdic: driv se do TILE_CACHE ulozila i chybova odpoved
-// (404/429 od dlazdicoveho serveru) a cache-first ji pak vracel navzdy => v mape zustala
-// trvala dira. Mazou se JEN odpovedi se stavem >= 400; opaque (status 0) a 200 zustavaji,
-// takze uzivateli nezmizi mapy stazene pro offline.
-async function purgeBadTiles() {
-    try {
-        const cache = await caches.open(TILE_CACHE);
-        const reqs = await cache.keys();
-        for (const req of reqs) {
-            const res = await cache.match(req);
-            if (res && res.status >= 400) await cache.delete(req);
-        }
-    } catch (e) { /* uklid je nepovinny */ }
-}
-
-self.addEventListener('activate', event => {
-    event.waitUntil(
-        caches.keys()
-            .then(keys => Promise.all(keys.filter(key => !KEEP_CACHES.includes(key)).map(key => caches.delete(key))))
-            .then(purgeBadTiles)
-            .then(() => self.clients.claim())
-    );
-});
-
-self.addEventListener('message', e => { if (e.data === 'SKIP_WAITING') self.skipWaiting(); });
-
-self.addEventListener('fetch', event => {
-    const url = event.request.url;
-    if (url.includes('cuzk.gov.cz/arcgis/rest')) return; // dotazy na bodova pole vzdy ze site
-    if (url.includes('celestrak.org')) return; // drahy druzic (TLE) vzdy ze site â€” appka si je cachuje sama v localStorage
-    if (url.includes('api.open-meteo.com') || url.includes('geocoding-api.open-meteo.com') || url.includes('api.met.no')
-        || url.includes('api.brightsky.dev') || url.includes('api.rainviewer.com') || url.includes('rainviewer.com/v2')
-        || url.includes('tilecache.rainviewer.com')) return; // pocasi + srazkovy radar vzdy ze site â€” posledni data si pocasi.js cachuje samo v localStorage
-
-    // Vlastni kod aplikace (stejny puvod): CACHE-FIRST. Cerstvy kod se k uzivateli
-    // dostava JEN pres bump verze SW (install znovu stahne ASSETS_TO_CACHE ->
-    // update banner -> SKIP_WAITING -> reload). Driv tu byl stale-while-revalidate
-    // na KAZDY soubor: v terenu zbytecne stahoval JS znovu a znovu a per-file
-    // revalidace umela namichat nekompatibilni verze (index v141 + logika v140).
-    // Vyjimka: NAVIGACE (index.html) zustava SWR jako pojistka, kdyby se pri
-    // vydani zapomnel bumpnout SHELL_CACHE.
-    if (url.startsWith(self.location.origin)) {
-        const isNav = event.request.mode === 'navigate' || url === self.location.origin + '/' || url.endsWith('/index.html');
-        if (isNav) {
-            event.respondWith(
-                caches.match(event.request).then(cached => {
-                    const network = fetch(event.request).then(response => {
-                        if (response && response.ok) {
-                            const clone = response.clone();
-                            caches.open(SHELL_CACHE).then(cache => cache.put(event.request, clone));
-                        }
-                        return response;
-                    }).catch(() => cached);
-                    return cached || network;
-                })
-            );
-            return;
-        }
-        event.respondWith(
-            caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
-                if (response && response.ok) {
-                    const clone = response.clone();
-                    // pisma do vlastni (neverzovane) cache, at prezijou update kodu
-                    caches.open(isFont(url) ? FONT_CACHE : SHELL_CACHE).then(cache => cache.put(event.request, clone));
-                }
-                return response;
-            }))
-        );
-        return;
-    }
-
-    // Knihovny z CDN, fonty a dlazdice map: NEJDRIV CACHE (rychle, setri data, funguje offline).
-    // caches.match() prohledava obe cache, takze najde i offline ulozene dlazdice.
-    event.respondWith(
-        caches.match(event.request).then(cachedResponse => {
-            if (cachedResponse) return cachedResponse;
-            return fetch(event.request).then(response => {
-                // Ulozit JEN povedenou odpoved. Driv se cachovalo cokoli vcetne 404/429
-                // od dlazdicoveho serveru => takova dira v mape uz zustala navzdy,
-                // protoze cache-first ji dal vracel misto noveho pokusu.
-                const okToCache = response && (response.ok || response.type === 'opaque');
-                if (url.startsWith('http') && okToCache) {
-                    const targetCache = isTile(url) ? TILE_CACHE : (isFont(url) ? FONT_CACHE : SHELL_CACHE);
-                    const responseClone = response.clone();
-                    caches.open(targetCache).then(cache => cache.put(event.request, responseClone));
-                }
-                return response;
-            }).catch(() => {});
-        })
-    );
-});
+    // <<< KONEC GENEROVANEHO SEZNAMU
+];
+
+// Vlastni pisma ukladame do FONT_CACHE, aby prezila update kodu (viz vyse).
+// POZOR: pisma appky lezi v /fonts/ (variabilni rezy), ne v /css/fonts/. Kdyz se
+// tady testovala jen stara cesta, do stabilni FONT_CACHE nespadlo NIC a vsech
+// 209 kB pisem se stahovalo znovu pri KAZDEM bumpu SHELL_CACHE — presne to, cemu
+// mela FONT_CACHE zabranit. Obe cesty tu nechavame kvuli starym instalacim.
+function isFont(url) { return url.includes('/fonts/') || url.endsWith('.woff2'); }
+
+// Mapove dlazdice (OSM, CUZK WMS) ukladame do TILE_CACHE, aby prezily update kodu.
+function isTile(url) {
+    return url.includes('tile.openstreetmap.org')
+        || url.includes('cuzk.gov.cz/arcgis1')   // ortofoto WMS
+        || url.includes('services.cuzk.cz/wms')   // katastr WMS
+        || url.includes('services.cuzk.gov.cz/wms');
+}
+
+// Predchozi verze shellu (argeodet-shell-v211 pri instalaci v212). Slouzi jako
+// ZALOHA pri instalaci: kdyz nejde sit, vezmeme starou kopii souboru misto zadne.
+async function previousShellCaches() {
+    try {
+        const keys = await caches.keys();
+        return keys.filter(k => k.indexOf('argeodet-shell-') === 0 && k !== SHELL_CACHE);
+    } catch (e) { return []; }
+}
+
+self.addEventListener('install', event => {
+    event.waitUntil((async () => {
+        const cache = await caches.open(SHELL_CACHE);
+        const fontCache = await caches.open(FONT_CACHE);
+        // Kazdy soubor zvlast â€” selhani jednoho nesmi zablokovat instalaci (a tim i aktualizaci).
+        await Promise.allSettled(ASSETS_TO_CACHE.map(async url => {
+            // PISMA: uz je mame z minule verze? Necha se to tak — jsou to ~900 kB, ktere
+            // se nemeni, a stahovat je znovu pri kazdem bumpu verze by byla skoda dat.
+            const font = isFont(url);
+            const target = font ? fontCache : cache;
+            if (font && await target.match(url)) return;
+            try {
+                const res = await fetch(new Request(url, { cache: 'reload' }));
+                if (res && (res.ok || res.type === 'opaque')) await target.put(url, res);
+            } catch (e) { /* offline / blokovany CDN â€” preskocit, nevadi */ }
+        }));
+        // skipWaiting az na vyzadani z appky (po souhlasu uzivatele s obnovou)
+    })());
+});
+
+// Jednorazovy uklid vadnych dlazdic: driv se do TILE_CACHE ulozila i chybova odpoved
+// (404/429 od dlazdicoveho serveru) a cache-first ji pak vracel navzdy => v mape zustala
+// trvala dira. Mazou se JEN odpovedi se stavem >= 400; opaque (status 0) a 200 zustavaji,
+// takze uzivateli nezmizi mapy stazene pro offline.
+async function purgeBadTiles() {
+    try {
+        const cache = await caches.open(TILE_CACHE);
+        const reqs = await cache.keys();
+        for (const req of reqs) {
+            const res = await cache.match(req);
+            if (res && res.status >= 400) await cache.delete(req);
+        }
+    } catch (e) { /* uklid je nepovinny */ }
+}
+
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys()
+            .then(keys => Promise.all(keys.filter(key => !KEEP_CACHES.includes(key)).map(key => caches.delete(key))))
+            .then(purgeBadTiles)
+            .then(() => self.clients.claim())
+    );
+});
+
+self.addEventListener('message', e => { if (e.data === 'SKIP_WAITING') self.skipWaiting(); });
+
+self.addEventListener('fetch', event => {
+    const url = event.request.url;
+    if (url.includes('cuzk.gov.cz/arcgis/rest')) return; // dotazy na bodova pole vzdy ze site
+    if (url.includes('celestrak.org')) return; // drahy druzic (TLE) vzdy ze site â€” appka si je cachuje sama v localStorage
+    if (url.includes('api.open-meteo.com') || url.includes('geocoding-api.open-meteo.com') || url.includes('api.met.no')
+        || url.includes('api.brightsky.dev') || url.includes('api.rainviewer.com') || url.includes('rainviewer.com/v2')
+        || url.includes('tilecache.rainviewer.com')) return; // pocasi + srazkovy radar vzdy ze site â€” posledni data si pocasi.js cachuje samo v localStorage
+
+    // Vlastni kod aplikace (stejny puvod): CACHE-FIRST. Cerstvy kod se k uzivateli
+    // dostava JEN pres bump verze SW (install znovu stahne ASSETS_TO_CACHE ->
+    // update banner -> SKIP_WAITING -> reload). Driv tu byl stale-while-revalidate
+    // na KAZDY soubor: v terenu zbytecne stahoval JS znovu a znovu a per-file
+    // revalidace umela namichat nekompatibilni verze (index v141 + logika v140).
+    // Vyjimka: NAVIGACE (index.html) zustava SWR jako pojistka, kdyby se pri
+    // vydani zapomnel bumpnout SHELL_CACHE.
+    if (url.startsWith(self.location.origin)) {
+        const isNav = event.request.mode === 'navigate' || url === self.location.origin + '/' || url.endsWith('/index.html');
+        if (isNav) {
+            event.respondWith(
+                caches.match(event.request).then(cached => {
+                    const network = fetch(event.request).then(response => {
+                        if (response && response.ok) {
+                            const clone = response.clone();
+                            caches.open(SHELL_CACHE).then(cache => cache.put(event.request, clone));
+                        }
+                        return response;
+                    }).catch(() => cached);
+                    return cached || network;
+                })
+            );
+            return;
+        }
+        event.respondWith(
+            caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
+                if (response && response.ok) {
+                    const clone = response.clone();
+                    // pisma do vlastni (neverzovane) cache, at prezijou update kodu
+                    caches.open(isFont(url) ? FONT_CACHE : SHELL_CACHE).then(cache => cache.put(event.request, clone));
+                }
+                return response;
+            }))
+        );
+        return;
+    }
+
+    // Knihovny z CDN, fonty a dlazdice map: NEJDRIV CACHE (rychle, setri data, funguje offline).
+    // caches.match() prohledava obe cache, takze najde i offline ulozene dlazdice.
+    event.respondWith(
+        caches.match(event.request).then(cachedResponse => {
+            if (cachedResponse) return cachedResponse;
+            return fetch(event.request).then(response => {
+                // Ulozit JEN povedenou odpoved. Driv se cachovalo cokoli vcetne 404/429
+                // od dlazdicoveho serveru => takova dira v mape uz zustala navzdy,
+                // protoze cache-first ji dal vracel misto noveho pokusu.
+                const okToCache = response && (response.ok || response.type === 'opaque');
+                if (url.startsWith('http') && okToCache) {
+                    const targetCache = isTile(url) ? TILE_CACHE : (isFont(url) ? FONT_CACHE : SHELL_CACHE);
+                    const responseClone = response.clone();
+                    caches.open(targetCache).then(cache => cache.put(event.request, responseClone));
+                }
+                return response;
+            }).catch(() => {});
+        })
+    );
+});

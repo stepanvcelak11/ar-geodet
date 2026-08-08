@@ -611,18 +611,28 @@ if ('serviceWorker' in navigator) {
         }
         // Parser seznamu souradnic: radky "cislo Y X [Z]" oddelene ; , tab nebo mezerou.
         function parseCoordsCSV(text) {
+            // Sloupec je CISLO jen tehdy, kdyz je cislem CELY. Driv se pouzival
+            // parseFloat, ktery bere jen zacatek retezce: parseFloat('3B') === 3.
+            // Geodeticky kod bodu zacinajici cislici (3B, 2A, 1K — bezne v seznamech
+            // z Kokese/Gromy) se proto tise ulozil jako VYSKA 3 m a kod se zahodil.
+            // Vyska 3 m v Bpv v CR neexistuje (nejniz ~115 m), takze to nikdy nebylo
+            // spravne — jen to nebylo videt.
+            const _num = (t) => {
+                const s = String(t).replace(',', '.').trim();
+                return /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(s) ? parseFloat(s) : NaN;
+            };
             let out = [];
             text.split(/\r?\n/).forEach(line => {
                 line = line.trim(); if (!line || line.startsWith('#') || line.startsWith('//')) return;
                 let delim = line.indexOf(';') >= 0 ? ';' : (line.indexOf('\t') >= 0 ? '\t' : (/\s/.test(line) ? /\s+/ : ','));
                 let parts = line.split(delim).map(t => t.trim()).filter(t => t !== '');
                 if (parts.length < 3) return;
-                let nums = parts.slice(1).map(t => parseFloat(t.replace(',', '.'))).filter(v => !isNaN(v));
+                let nums = parts.slice(1).map(_num).filter(v => !isNaN(v));
                 if (nums.length < 2) return;
                 let c = sjtskToLatLng(nums[0], nums[1]);
                 // volitelny 4. sloupec = vyska Z (Bpv); posledni NEcislený sloupec = kod bodu (obruba, šachta...)
                 const _last = parts[parts.length - 1];
-                const kod = (parts.length >= 4 && isNaN(parseFloat(_last.replace(',', '.')))) ? _last : null;
+                const kod = (parts.length >= 4 && isNaN(_num(_last))) ? _last : null;
                 out.push({ name: parts[0], lat: c.lat, lng: c.lng, vyska: (nums.length >= 3 && isFinite(nums[2]) ? nums[2] : null), kod: kod });
             });
             return out;

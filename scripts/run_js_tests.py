@@ -413,6 +413,102 @@ def suite_vstupy(read_fn):
     return results
 
 
+def suite_parse_csv(read, proj_def):
+    """parseCoordsCSV z js/logika.js — ctení seznamu souradnic z terenu.
+
+    Testuje se PRAVA funkce vytazena ze zdroje (ne opsana kopie), stejne jako
+    u getDistance. Krome tvaru souboru hlida hlavne past s kodem bodu:
+    parseFloat('3B') vraci 3, takze kod zacinajici cislici se driv ulozil
+    jako VYSKA 3 m a kod se ztratil.
+    """
+    from py_mini_racer import MiniRacer
+    results = []
+
+    def t(name, fn):
+        try:
+            results.append({'name': name, 'ok': True, 'detail': fn() or ''})
+        except Exception as e:
+            results.append({'name': name, 'ok': False, 'detail': str(e)})
+
+    src = read('js/logika.js')
+    ctx = MiniRacer()
+    ctx.eval('var window = this; var console = { log: function(){}, warn: function(){}, error: function(){} };')
+    ctx.eval(read('js/lib/proj4-2.9.0.min.js'))
+    ctx.eval('proj4.defs("EPSG:5514", %s);' % json.dumps(proj_def))
+    ctx.eval(read('js/geo-core.js'))
+    for fname in ('sjtskToLatLng', 'parseCoordsCSV'):
+        ctx.eval(extract_fn(src, fname))
+
+    def parse(text):
+        return json.loads(ctx.eval('JSON.stringify(parseCoordsCSV(%s))' % json.dumps(text)))
+
+    REF = '1;743210,45;1043210,12'
+    base = parse(REF)
+    if len(base) != 1:
+        raise RuntimeError('parseCoordsCSV nevratil referencni bod')
+    LAT, LNG = base[0]['lat'], base[0]['lng']
+
+    def check_xy(text, note):
+        out = parse(text)
+        if len(out) != 1:
+            raise AssertionError('%s: ceka 1 bod, dostal %d' % (note, len(out)))
+        p = out[0]
+        if abs(p['lat'] - LAT) > 1e-9 or abs(p['lng'] - LNG) > 1e-9:
+            raise AssertionError('%s: souradnice se lisi (%r,%r vs %r,%r)'
+                                 % (note, p['lat'], p['lng'], LAT, LNG))
+        return p
+
+    t('parseCoordsCSV: oddelovac ; , tab i mezera', lambda: [
+        check_xy('1;743210,45;1043210,12', 'strednik'),
+        check_xy('1\t743210,45\t1043210,12', 'tabulator'),
+        check_xy('1 743210,45 1043210,12', 'mezera'),
+        check_xy('1,743210.45,1043210.12', 'carka'),
+        'vsechny ctyri davaji tentyz bod'][-1])
+
+    t('parseCoordsCSV: desetinna carka i tecka', lambda: [
+        check_xy('1;743210,45;1043210,12', 'carka'),
+        check_xy('1;743210.45;1043210.12', 'tecka'),
+        'obe formy stejne'][-1])
+
+    t('parseCoordsCSV: kladny i zaporny Krovak', lambda: [
+        check_xy('1;743210,45;1043210,12', 'kladny'),
+        check_xy('1;-743210,45;-1043210,12', 'zaporny'),
+        'znamenko nerozhoduje'][-1])
+
+    t('parseCoordsCSV: hlavicka, komentar a prazdne radky se preskoci', lambda: [
+        check_xy('# export z Gromy\ncislo;Y;X\n\n1;743210,45;1043210,12\n', 'smeti kolem'),
+        'zbyde jen datovy radek'][-1])
+
+    def check_zk(text, vyska, kod, note):
+        p = check_xy(text, note)
+        if p.get('vyska') != vyska or p.get('kod') != kod:
+            raise AssertionError('%s: vyska=%r kod=%r, cekano vyska=%r kod=%r'
+                                 % (note, p.get('vyska'), p.get('kod'), vyska, kod))
+
+    t('parseCoordsCSV: ctvrty sloupec je vyska Bpv', lambda: [
+        check_zk('1;743210,45;1043210,12;250,15', 250.15, None, 'jen vyska'), 'Z se precte'][-1])
+    t('parseCoordsCSV: textovy sloupec je kod bodu', lambda: [
+        check_zk('1;743210,45;1043210,12;obruba', None, 'obruba', 'jen kod'), 'kod se precte'][-1])
+    t('parseCoordsCSV: vyska i kod zaroven', lambda: [
+        check_zk('1;743210,45;1043210,12;250,15;obruba', 250.15, 'obruba', 'oboji'), 'oboji'][-1])
+
+    # REGRESE: tohle je ta chyba, kvuli ktere suite vznikla
+    t('REGRESE: kod zacinajici cislici ("3B") NENI vyska', lambda: [
+        check_zk('1;743210,45;1043210,12;3B', None, '3B', 'kod 3B'),
+        check_zk('1;743210,45;1043210,12;2A', None, '2A', 'kod 2A'),
+        check_zk('1;743210,45;1043210,12;250,15;3B', 250.15, '3B', 'vyska + kod 3B'),
+        'parseFloat("3B")===3 uz neprojde jako vyska 3 m'][-1])
+
+    t('parseCoordsCSV: neuplny radek se zahodi', lambda: [
+        (_ for _ in ()).throw(AssertionError('radek se dvema sloupci prosel'))
+        if len(parse('1;743210,45')) != 0 else None,
+        (_ for _ in ()).throw(AssertionError('radek bez cisel prosel'))
+        if len(parse('bod;abc;def')) != 0 else None,
+        'nic se nevlozi'][-1])
+
+    return results
+
+
 def main():
     verbose = '-v' in sys.argv[1:] or '--verbose' in sys.argv[1:]
     try:
@@ -440,6 +536,7 @@ def main():
         results += suite_obchuzka(read)
         results += suite_lint_argorder(read)
         results += suite_vstupy(read)
+        results += suite_parse_csv(read, proj_def)
     except Exception as e:
         print('CHYBA pri spousteni testu: %s: %s' % (type(e).__name__, e), file=sys.stderr)
         return 2

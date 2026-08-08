@@ -683,7 +683,7 @@
                     <button class="btn btn-warning" style="margin-top:10px;" onclick="resetCompassZero()"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Zrušit uživatelskou nulu</button>
                     <hr style="border-color: var(--glass-border); width: 100%; margin: 20px 0;">
                     <label>Srovnání severu (AR i mapa):</label>
-                    <div style="text-align:center; font-size:13px; color:var(--text-dim); margin:4px 0 8px;">Když AR/mapa ukazují směr jinam než realita, dolaď otočení. Korekce: <b><span id="heading-offset-val">0</span>°</b></div>
+                    <div style="text-align:center; font-size:calc(13px * var(--ag-font-scale, 1)); color:var(--text-muted); margin:4px 0 8px;">Když AR/mapa ukazují směr jinam než realita, dolaď otočení. Korekce: <b><span id="heading-offset-val">0</span>°</b></div>
                     <div class="row-buttons">
                         <button class="btn btn-secondary" onclick="nudgeHeadingOffset(-10)">−10°</button>
                         <button class="btn btn-secondary" onclick="nudgeHeadingOffset(-1)">−1°</button>

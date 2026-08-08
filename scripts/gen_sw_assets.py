@@ -77,30 +77,15 @@ EXTRA_ASSETS = [
 # VLASTNI PISMA (bod 8): nahradila render-blokujici <link> na fonts.googleapis.com.
 # Nejsou v index.html primo (odkazuje na ne css/fonts.css), takze je sem musime dat rucne.
 # V sw.js maji vlastni FONT_CACHE se stabilnim nazvem — pri bumpu verze se nestahuji znovu.
+#
+# POZOR na dva zpusoby self-hostingu: dve soubezne vetve nasadily pisma kazda
+# jinak a merge z toho udelal zmet (css/fonts.css skoncil jako uriznuty komentar
+# a appka jela v systemovem pisme). Plati VARIABILNI varianta z ./fonts/ —
+# 6 souboru / 209 kB misto 22 statickych rezu / 887 kB. Ty jsou v EXTRA_ASSETS
+# vyse; sem uz nepatri, jinak by service worker stahoval 887 kB, na ktere
+# css/fonts.css vubec neodkazuje.
 FONT_ASSETS = [
     './css/fonts.css',
-    './css/fonts/inter-400-latin-ext.woff2',
-    './css/fonts/inter-400-latin.woff2',
-    './css/fonts/inter-500-latin-ext.woff2',
-    './css/fonts/inter-500-latin.woff2',
-    './css/fonts/inter-600-latin-ext.woff2',
-    './css/fonts/inter-600-latin.woff2',
-    './css/fonts/inter-700-latin-ext.woff2',
-    './css/fonts/inter-700-latin.woff2',
-    './css/fonts/inter-800-latin-ext.woff2',
-    './css/fonts/inter-800-latin.woff2',
-    './css/fonts/jetbrainsmono-400-latin-ext.woff2',
-    './css/fonts/jetbrainsmono-400-latin.woff2',
-    './css/fonts/jetbrainsmono-500-latin-ext.woff2',
-    './css/fonts/jetbrainsmono-500-latin.woff2',
-    './css/fonts/jetbrainsmono-700-latin-ext.woff2',
-    './css/fonts/jetbrainsmono-700-latin.woff2',
-    './css/fonts/sora-600-latin-ext.woff2',
-    './css/fonts/sora-600-latin.woff2',
-    './css/fonts/sora-700-latin-ext.woff2',
-    './css/fonts/sora-700-latin.woff2',
-    './css/fonts/sora-800-latin-ext.woff2',
-    './css/fonts/sora-800-latin.woff2',
 ]
 EXTRA_ASSETS += FONT_ASSETS
 
