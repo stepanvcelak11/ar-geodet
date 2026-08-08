@@ -389,9 +389,14 @@
         var m = $('settings-modal'); if (!m) return null;
         var content = m.querySelector('.modal-content'); if (!content) return null;
         var tabs = content.querySelector('.tab-buttons'); if (!tabs) return null;
+        // NOVĚ (návrh C): pruh patří do záložky „Profily", ne NAD záložky. Dřív ho
+        // musel přejít každý, kdo šel do Nastavení cokoli přepnout — první skutečná
+        // volba tak začínala až v třetině displeje. Do staršího index.html bez téhle
+        // záložky spadneme na původní místo, ať modul zůstane samostatný.
+        var host = $('tab-profily');
         bar = document.createElement('div');
         bar.id = 'ag-prof-bar';
-        bar.innerHTML = '<span class="h">Profil použití — nastaví několik voleb naráz</span>'
+        bar.innerHTML = '<span class="h">Přepne několik voleb naráz</span>'
             + '<div id="ag-prof-row" role="group" aria-label="Profil použití"></div>'
             + '<p id="ag-prof-note"></p>'
             + '<details id="ag-prof-det">'
@@ -399,7 +404,7 @@
             + '<svg class="icon chev" style="width:13px;height:13px;"><use href="#i-chevron-down"/></svg></summary>'
             + '<div id="ag-prof-body"></div>'
             + '</details>';
-        content.insertBefore(bar, tabs);
+        if (host) host.appendChild(bar); else content.insertBefore(bar, tabs);
         bar.querySelector('#ag-prof-row').addEventListener('click', function (ev) {
             if (!ev.target.closest) return;
             // „Bez profilu" je od 8.8.2026 VIDITELNÁ dlaždice. Dřív se profil vypínal

@@ -38,6 +38,7 @@
         { label: 'Nastavení — AR a přesnost', keys: 'ar presnost kamera dosah fov filtry rozvrzeni', run: tab('tab-ar', 1) },
         { label: 'Nastavení — Data', keys: 'data zakazka zaloha katastr zdroj offline', run: tab('tab-data', 2) },
         { label: 'Nastavení — Údržba', keys: 'udrzba oprava reset chyby log vymazat', run: tab('tab-udrzba', 3) },
+        { label: 'Nastavení — Profily', keys: 'profil profily teren presnost ukazka vlastni rezim prace prednastaveni bez profilu vypnout', run: tab('tab-profily', 4) },
         { label: 'Kompas / Azimut', keys: 'kompas azimut sever gon jednotky nula korekce', run: function () { if (typeof openCompassModal === 'function') openCompassModal(); } },
         // Poloha z mapy: hledá se hlavně tehdy, když je GPS špatná — proto i klíče
         // „les", „mesto", „nepresna gps". Cíl je odpojitelný, tak jen když existuje.

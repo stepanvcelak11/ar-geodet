@@ -1926,18 +1926,31 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
    Chipy se při nedostatku místa zalomí do druhé řádky, nic se neschová.
    Dotykový cíl 44 px (v rukavicích 52 px) zůstává.
    Zpět na dlaždice: vrať grid + min-height 92px + flex-direction column. */
-/* 2×2 mřížka: čtyři záložky se ve flexu lámaly 3+1 (poslední osamocená uprostřed)
-   a při jiné velikosti písma pokaždé jinak — mřížka drží stejný tvar vždy. */
+/* JEDNOŘÁDKOVÉ ZÁLOŽKY (návrh C, 8.8.2026 — navrhy-nastaveni.html).
+   Dřív to byla 2×2 mřížka dlaždic vysokých 44 px: navigace zabírala víc místa
+   než první sekce voleb pod ní, a když firemní oprávnění část záložek skryla
+   (js/ucty.js, hostovský a nižší role), zbyla z mřížky jediná zelená placka přes
+   celou šířku, která už nevypadala jako záložky, ale jako tlačítko.
+   Teď je to vodorovný pruh textových záložek s podtržením aktivní — drží tvar
+   při libovolném počtu viditelných záložek i při jiné velikosti písma a při
+   nedostatku místa se roluje do strany (proto scroll-snap a schovaná lišta).
+   Zpět na dlaždice: vrať grid + min-height 44px + rámeček .active na pozadí. */
 .settings-tiles {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 5px;
-    padding: 4px;
-    margin-bottom: 10px;
-    background: rgba(0, 0, 0, 0.25);
-    border-radius: var(--r-md);
+    display: flex;
+    gap: 2px;
+    padding: 0;
+    margin-bottom: 12px;
+    background: transparent;
+    border-radius: 0;
+    border-bottom: 1px solid var(--glass-border);
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
 }
+.settings-tiles::-webkit-scrollbar { display: none; }
 .settings-tiles .tab-btn {
+    flex: 0 0 auto;
     min-width: 0;
     position: relative;          /* kotva pro vizuálně skrytý popisek */
     display: flex;
@@ -1945,12 +1958,14 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
     align-items: center;
     justify-content: center;
     gap: 6px;
+    scroll-snap-align: start;
     text-align: center;
-    padding: 6px 9px;
-    min-height: 44px;
+    padding: 10px 12px 9px;
+    min-height: 42px;
     background: transparent;
-    border: 1px solid transparent;
-    border-radius: var(--r-sm);
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
 }
 .settings-tiles .tab-btn .icon { width: 17px; height: 17px; flex: none; margin: 0; color: var(--accent-bright); }
 .settings-tiles .tab-btn .tb-tx { display: block; min-width: 0; }
@@ -1968,13 +1983,16 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
     border: 0;
 }
 .settings-tiles .tab-btn.active {
-    background: var(--accent);
-    border-color: transparent;
+    background: transparent;
+    border-bottom-color: var(--accent);
     box-shadow: none;
 }
-.settings-tiles .tab-btn.active .icon { color: #fff; }
-.settings-tiles .tab-btn.active .tb-tx b { color: #fff; }
-body.ag-glove .settings-tiles .tab-btn { min-height: 52px; }
+.settings-tiles .tab-btn.active .icon { color: var(--accent); }
+.settings-tiles .tab-btn.active .tb-tx b { color: var(--accent-bright); }
+/* neaktivní ztlumit, ať je vybraná záložka poznat i bez barvy (slunce, rukavice) */
+.settings-tiles .tab-btn:not(.active) .icon { opacity: 0.65; }
+.settings-tiles .tab-btn:not(.active) .tb-tx b { color: var(--text-muted); }
+body.ag-glove .settings-tiles .tab-btn { min-height: 52px; padding: 13px 14px 12px; }
 body.ag-glove .settings-tiles .tab-btn .tb-tx b { font-size: calc(14px * var(--ag-font-scale, 1)); }
 
 /* =========================================================================
@@ -2143,8 +2161,20 @@ body.light-mode:not(.cam-light) .ar-marker .ar-marker-dist { color: #fff; }
 body.light-mode .modal-overlay .modal-content { background: rgba(247, 248, 250, 0.98); }
 /* Pruh záložek je teď jeden kontejner s pozadím, chipy uvnitř jsou průhledné.
    (Dřív tu byla barva jednotlivých dlaždic — přebíjela i tu aktivní.) */
-body.light-mode .settings-tiles { background: rgba(0, 0, 0, 0.06); }
+/* Pruh záložek už není vanička s podkladem (viz „JEDNOŘÁDKOVÉ ZÁLOŽKY" výš),
+   takže ve světlém motivu nesmí dostat tmavé pozadí — jen dělicí linku. */
+body.light-mode .settings-tiles { background: transparent; }
 body.light-mode .settings-tiles .tab-btn:not(.active) { background: transparent; }
+/* Úvodní odstavec záložky (zatím jen Profily) — vysvětluje, čím se dvě podobně
+   pojmenované věci liší. Musí zůstat čitelný i na slunci, proto ne --text-muted. */
+.settings-tab .st-intro {
+    margin: 2px 0 14px;
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
+    line-height: 1.55;
+    color: var(--text-color);
+    opacity: 0.82;
+}
+.settings-tab .st-intro b { color: var(--accent-bright); font-weight: 700; }
 
 /* =========================================================================
    REŽIM LEVÉ RUKY — zrcadlí OVLÁDÁNÍ na opačnou stranu displeje (HUD zůstává).

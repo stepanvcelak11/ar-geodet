@@ -89,8 +89,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=220">
-    <link rel="stylesheet" href="css/style.css?v=220">
+    <link rel="stylesheet" href="css/tokens.css?v=221">
+    <link rel="stylesheet" href="css/style.css?v=221">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -107,7 +107,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=220">
+    <link rel="stylesheet" href="css/vylepseni.css?v=221">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -474,6 +474,12 @@
                 <!-- Kompas z dlaždic ODEBRÁN na přání (duplikoval panel Azimut na hlavní obrazovce;
                      kalibrace zůstává klepnutím na Azimut a tlačítkem v AR & přesnost) -->
                 <div class="tab-btn" id="tabbtn-udrzba" onclick="switchTab('tab-udrzba', this); window.agRenderStorageUsage && window.agRenderStorageUsage(); try{this.closest('.modal-content').scrollTop=0}catch(e){}"><svg class="icon"><use href="#i-wrench"/></svg><span class="tb-tx"><b>Údržba</b><small>Záloha, skryté body</small></span></div>
+                <!-- PROFILY (návrh C): obě „profilové" věci na jednom místě a konečně
+                     rozlišené. Dřív ležel pruh profilů NAD záložkami, takže si ho musel
+                     projít každý, kdo šel do Nastavení cokoli přepnout. Záložka je
+                     ZÁMĚRNĚ poslední — indexy tlačítek 0–3 tak zůstaly platné pro
+                     js/app-search.js (skoky na záložky) i pro js/ucty.js (oprávnění). -->
+                <div class="tab-btn" id="tabbtn-profily" onclick="switchTab('tab-profily', this); try{this.closest('.modal-content').scrollTop=0}catch(e){}"><svg class="icon"><use href="#i-star"/></svg><span class="tb-tx"><b>Profily</b><small>Profil nastavení a profil práce, přednastavení voleb</small></span></div>
             </div>
             <div class="modal-body">
                 <div id="tab-vzhled" class="settings-tab active">
@@ -674,6 +680,19 @@
                     <div id="storage-usage" style="margin-top:10px; font-size:12px; color:var(--text-muted); line-height:1.5;"></div>
                     <div class="set-h">Úklid</div>
                     <button class="btn btn-danger" onclick="clearAllPoints()"><svg class="icon"><use href="#i-trash"/></svg> Vymazat stáhnuté okolí z této zakázky</button>
+                </div>
+                <!-- PROFILY (návrh C) — panel je ZÁMĚRNĚ skoro prázdný: obsah si sem
+                     vloží js/profily.js (pruh „Profil nastavení") a js/rezim-prace.js
+                     (řádek „Profil práce"), umístění řídí LAYOUT v js/nastaveni-poradek.js.
+                     Když se některý modul odpojí, jeho sekce prostě nevznikne a zbyde
+                     jen tenhle úvod — proto tu není nic natvrdo napsaného.
+                     Úvod stojí PŘED prvním nadpisem (.set-h), takže ho nastaveni-poradek
+                     bere jako „lead" a nechává nahoře. -->
+                <div id="tab-profily" class="settings-tab">
+                    <p class="st-intro">Appka zná <b>dva</b> profily a každý dělá něco jiného.
+                        <b>Profil nastavení</b> přepne několik voleb naráz (dohled v AR, spánek senzorů, kontrast…).
+                        <b>Profil práce</b> nesahá na nastavení — jen zúží <b>Nástroje</b> na to, co dnes děláš.
+                        Obojí jde kdykoli vypnout a nic se tím neztratí.</p>
                 </div>
             </div>
             <button class="btn btn-primary" style="margin-top: 16px;" onclick="saveSettings()">Uložit vše a Zavřít</button>

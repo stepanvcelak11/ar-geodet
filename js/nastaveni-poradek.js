@@ -42,8 +42,18 @@
                 'ag-sp-row-set': { s: 'Prvky na obrazovce', i: 2 },        // stavová bublina
                 'ag-ns-setrow': { s: 'Zjednodušení', i: 1 },              // krátké nastavení
                 'ag-ts-setrow': { s: 'Zjednodušení', i: 2 },              // jednoduchý panel Nástrojů
-                'ag-ua-simple-row': { s: 'Zjednodušení', i: 3 },              // zjednodušené Nástroje
-                'ag-rp-setrow': { s: 'Zjednodušení', i: 4 }               // ptát se na úvodu, co dnes dělám
+                'ag-ua-simple-row': { s: 'Zjednodušení', i: 3 }               // zjednodušené Nástroje
+                // 'ag-rp-setrow' se PŘESUNUL do záložky Profily (návrh C) — viz níž
+            }
+        },
+        // ZÁLOŽKA PROFILY (návrh C): obě podobně pojmenované věci vedle sebe.
+        // Sekce v panelu nejsou napsané v index.html — vyrobí je makeSec() podle
+        // těchhle pravidel, takže když se modul odpojí, jeho nadpis vůbec nevznikne.
+        'tab-profily': {
+            order: ['Profil nastavení', 'Profil práce'],
+            put: {
+                'ag-prof-bar': { s: 'Profil nastavení', i: 1 },   // js/profily.js
+                'ag-rp-setrow': { s: 'Profil práce', i: 1 }    // js/rezim-prace.js
             }
         },
         'tab-ar': {
@@ -196,9 +206,11 @@
         want.forEach(function (e) { tab.appendChild(e); });
     }
 
-    // ---- hlavička okna: nadpis → hledání → profily → dlaždice záložek -----------------------
-    // Hledání i pruh profilů se oba vkládají „před .tab-buttons", takže si bez tohohle
-    // pokaždé prohodí pořadí podle toho, kdo se načetl dřív.
+    // ---- hlavička okna: nadpis → hledání → pruh záložek -------------------------------------
+    // Pruh profilů se od návrhu C vkládá do ZÁLOŽKY „Profily", ne nad záložky, takže
+    // tady většinou zbyde jen hledání. Větev s #ag-prof-bar zůstává kvůli starším
+    // instalacím (a kdyby ta záložka někdy nebyla): oba prvky se totiž vkládaly
+    // „před .tab-buttons" a bez tohohle si prohodily pořadí podle toho, kdo byl dřív.
     function arrangeHead() {
         var m = document.getElementById('settings-modal'); if (!m) return;
         var c = m.querySelector('.modal-content'); if (!c) return;
@@ -216,7 +228,11 @@
         _busy = true;
         try {
             arrangeHead();
-            for (var i = 0; i < 4; i++) arrangeTab(['tab-vzhled', 'tab-ar', 'tab-data', 'tab-udrzba'][i]);
+            // Seznam záložek se bere z LAYOUT, ne natvrdo. Dřív tu byly vypsané čtyři
+            // ids — nová záložka „Profily" se pak sice do LAYOUT zapsala, ale nikdy
+            // se nesrovnala, takže její sekce vůbec nevznikly (8.8.2026).
+            var ids = Object.keys(LAYOUT);
+            for (var i = 0; i < ids.length; i++) arrangeTab(ids[i]);
         } catch (e) { console.warn('[nastaveni-poradek]', e); }
         _busy = false;
     }

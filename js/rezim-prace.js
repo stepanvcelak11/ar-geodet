@@ -737,17 +737,23 @@
     // ---- přepínač v Nastavení → Vzhled (cesta zpět, když si kartu uklidí) ----------
     function injectSettingRow() {
         if (document.getElementById('ag-rp-setrow')) return;
-        // kotvíme na řádek jednoduchého panelu z tools-simple.js, ať jsou volby spolu;
-        // kdyby ten modul chyběl, spadneme na režim levé ruky jako ostatní moduly
-        var anchor = document.getElementById('ag-ts-setrow') || document.getElementById('s-lefthand');
-        var row = (anchor && anchor.classList && anchor.classList.contains('st-row'))
-            ? anchor : (anchor && anchor.closest ? anchor.closest('.st-row') : null);
-        if (!row || !row.parentNode) return;
         var d = document.createElement('div');
         d.className = 'st-row'; d.id = 'ag-rp-setrow';
+        // NOVĚ (návrh C): patří do záložky „Profily" vedle profilu nastavení, ať jsou
+        // obě podobně pojmenované věci na jednom místě a je vidět, čím se liší.
+        // Starší index.html bez té záložky: spadneme na původní kotvu ve Vzhledu
+        // (řádek jednoduchého panelu z tools-simple.js, jinak režim levé ruky).
+        var host = document.getElementById('tab-profily'), after = null;
+        if (!host) {
+            var anchor = document.getElementById('ag-ts-setrow') || document.getElementById('s-lefthand');
+            var row = (anchor && anchor.classList && anchor.classList.contains('st-row'))
+                ? anchor : (anchor && anchor.closest ? anchor.closest('.st-row') : null);
+            if (!row || !row.parentNode) return;
+            host = row.parentNode; after = row.nextSibling;
+        }
         d.innerHTML = '<span class="st-lab">Volba profilu práce na úvodu<small id="ag-rp-setnote">na úvodní obrazovce vybereš, co dnes děláš, a Nástroje se podle toho zúží</small></span>'
             + '<label class="st-sw"><input type="checkbox" id="ag-rp-sw"><span class="st-sw-face"></span></label>';
-        row.parentNode.insertBefore(d, row.nextSibling);
+        if (after) host.insertBefore(d, after); else host.appendChild(d);
         var cb = d.querySelector('#ag-rp-sw');
         cb.checked = !hidden();
         cb.addEventListener('change', function () { lsSet(HIDE_KEY, cb.checked ? '0' : '1'); render(); syncSettingRow(); });
