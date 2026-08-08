@@ -73,10 +73,14 @@
     <!-- iOS ikonu na plochu bere JEN z PNG (SVG ignoruje → obecný screenshot).
          Projeví se až při novém „Přidat na plochu". -->
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Sora:wght@600;700;800&display=swap">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- PÍSMA A LEAFLET CSS: dřív z fonts.googleapis.com a unpkg.com. Oboje je
+         render-blocking požadavek na CIZÍ doménu — v terénu se slabým signálem
+         se čekalo na timeout, než se appka vůbec ukázala, a fonty se ani nedaly
+         přibalit do precache (jejich URL se liší podle prohlížeče).
+         Teď leží v repu a jedou přes service worker jako zbytek appky.
+         NEVRACET na CDN — offline start je u téhle appky to hlavní. -->
+    <link rel="stylesheet" href="css/fonts.css">
+    <link rel="stylesheet" href="css/leaflet-1.9.4.css" />
     <script defer src="js/lib/proj4-2.9.0.min.js"></script>
     <script defer src="js/geo-core.js"></script>
     <!-- style.css s verzí v adrese: kořenové styly NESMÍ přijít ze staré cache
