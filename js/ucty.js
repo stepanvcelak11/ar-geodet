@@ -934,8 +934,9 @@
                 out.push(['Y', lvMez(Math.abs(s[0]))]);
                 out.push(['X', lvMez(Math.abs(s[1]))]);
             } catch (e) {}
-            out.push(['Šířka', Math.abs(p.lat).toFixed(5) + '° ' + (p.lat < 0 ? 'S' : 'N')]);
-            out.push(['Délka', Math.abs(p.lng).toFixed(5) + '° ' + (p.lng < 0 ? 'W' : 'E')]);
+            // desetinna CARKA jako u ostatnich hodnot (drive tu byla tecka z toFixed)
+            out.push(['Šířka', Math.abs(p.lat).toFixed(5).replace('.', ',') + '° ' + (p.lat < 0 ? 'S' : 'N')]);
+            out.push(['Délka', Math.abs(p.lng).toFixed(5).replace('.', ',') + '° ' + (p.lng < 0 ? 'W' : 'E')]);
             try {
                 var t = window.AGSun ? window.AGSun.times(d, p.lat, p.lng, 90.833) : null;   // js/slunce.js
                 if (t && t.rise) out.push(['Východ', lvP2(t.rise.getHours()) + ':' + lvP2(t.rise.getMinutes())]);
@@ -1038,8 +1039,11 @@
         st.id = STYLE_ID;
         st.textContent = [
             // ---- společná kostra brány a přihlášení (jemný nástup + zář nahoře) ----
+            // overflow-x:hidden je POVINNY: .agl-topo je siroka 140 % (inset:-20%), takze
+            // v kontejneru s overflow-y:auto delala 82 px vodorovneho rolovani — uvodni
+            // obrazovka se dala odsunout do strany (nalezeno 8.8. v prohlizeci).
             '#ag-login,#ag-gate{position:fixed;inset:0;z-index:999999;background:var(--bg,#0d1117);display:flex;flex-direction:column;',
-            '  align-items:center;justify-content:center;gap:13px;overflow-y:auto;animation:aglin .28s ease-out;',
+            '  align-items:center;justify-content:center;gap:13px;overflow-y:auto;overflow-x:hidden;animation:aglin .28s ease-out;',
             '  padding:calc(24px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));}',
             '#ag-login::before,#ag-gate::before{content:"";position:absolute;top:-160px;left:50%;transform:translateX(-50%);width:460px;height:420px;',
             '  border-radius:50%;background:radial-gradient(closest-side,var(--accent-soft,rgba(47,158,116,0.16)),transparent 72%);pointer-events:none;}',
@@ -1056,7 +1060,11 @@
             // ---- létající hodnoty (návrh ②) ----
             // overflow:hidden je POVINNÝ: chipy startují na -35vw / 135vw, jinak by
             // #ag-login (overflow-y:auto) dostal vodorovné rolování.
-            '#ag-login .agl-live,#ag-gate .agl-live{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;}',
+            // maska: u kraju hodnoty VYBLEDNOU misto ostreho odriznuti v pulce slova
+            // („Pr" misto „Praha" na levem okraji vypadalo jako chyba vykresleni)
+            '#ag-login .agl-live,#ag-gate .agl-live{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;',
+            '  -webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);',
+            '  mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);}',
             '.agl-fl{position:absolute;top:0;left:0;white-space:nowrap;display:inline-flex;align-items:baseline;gap:6px;',
             '  font-family:var(--font-mono,ui-monospace,monospace);will-change:transform;',
             '  animation-name:aglfly;animation-timing-function:linear;animation-iteration-count:infinite;}',
@@ -1078,7 +1086,12 @@
             // karta úvodu: obsah na jednom panelu se smaragdovým nádechem (návrh „Terén")
             '#ag-login .agl-card,#ag-gate .agl-card{display:flex;flex-direction:column;align-items:center;gap:13px;width:min(390px,92vw);',
             '  box-sizing:border-box;padding:26px 20px 20px;border-radius:22px;',
-            '  background:linear-gradient(175deg,var(--accent-soft,rgba(47,158,116,0.10)),rgba(255,255,255,0.035) 40%);',
+            // KARTA MUSI BYT NEPRUHLEDNA. Driv byl podklad jen smaragdovy zavoj
+            // (alfa ~0,04), takze letici hodnoty z pozadi PROSVITALY skrz kartu a
+            // krizily se s jejim vlastnim textem („VITR 3,2 m/s" pres logo, „X 1 043
+            // 009,5" pres tlacitko) — vypadalo to jako rozbita animace. Zavoj proto
+            // lezi na plne barve pozadi; hodnoty dal plují v pozadi OKOLO karty.
+            '  background:linear-gradient(175deg,var(--accent-soft,rgba(47,158,116,0.10)),rgba(255,255,255,0.035) 40%),var(--bg,#0d1117);',
             '  border:1px solid rgba(76,205,153,0.28);',
             '  box-shadow:0 24px 60px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.08);}',
             // značka: SKUTEČNÉ logo appky (klon z úvodní obrazovky) + název; jemně se vznáší
@@ -1506,7 +1519,9 @@
             '<div class="agl-firmchip"><span class="dot"></span>' + esc(f.firmName || 'Firemní režim') +
             (cloud && f.code ? ' · ' + esc(f.code) : '') + (lockMode ? ' <span class="lock">· zamčeno</span>' : '') + '</div>' +
             projInfoHtml() +
-            (checkMode ? '<div class="agl-hint">Kontrolní přihlášení — po ' + TRUST_MAX + ' automatických spuštěních se appka pro jistotu jednou zeptá na heslo.</div>' : '') +
+            // Duvod ANO (jinak by ťuknuti na heslo z niceho nic vypadalo jako chyba),
+            // ale bez cisla „po 20 spustenich" — to uzivatel na uvodni obrazovce nechce.
+            (checkMode ? '<div class="agl-hint">Kontrolní přihlášení — appka se jednou za čas pro jistotu zeptá na heslo.</div>' : '') +
             (usersHtml
                 ? '<div class="agl-users">' + usersHtml + '</div>'
                 : '<div class="agl-hint">Na tomhle telefonu se ještě nikdo nepřihlásil — zadej své jméno a heslo.</div>') +
@@ -1566,9 +1581,13 @@
             if (keepWrap) {
                 if (keepCb && !keepCb._touched) keepCb.checked = true;   // výchozí: pamatovat
                 if (keepNote) {
+                    // Vetu „Kazde 20. spusteni se zepta na heslo" tu uzivatel NECHCE
+                    // (8.8.2026) — na prihlasovaci obrazovce jen zdrzuje a stejne se
+                    // pripomene sama, az kontrolni prihlaseni doopravdy prijde.
+                    // Vysvetleni zustava v Nastaveni → Firma (js/ucty-admin.js).
                     keepNote.textContent = (u && bioAvailable(u.id))
-                        ? 'Příští spuštění odemkneš Face ID / kódem telefonu. Každé ' + TRUST_MAX + '. spuštění se appka pro kontrolu zeptá na heslo.'
-                        : 'Příště se appka otevře přihlášená. Každé ' + TRUST_MAX + '. spuštění se pro kontrolu zeptá na heslo.';
+                        ? 'Příští spuštění odemkneš Face ID / kódem telefonu.'
+                        : 'Příště se appka otevře přihlášená.';
                 }
             }
         }

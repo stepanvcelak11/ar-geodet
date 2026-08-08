@@ -25,6 +25,7 @@
     // dlaždice, po kterých se do Nástrojů NEVRACÍME (režim mapy / externí okno)
     var NO_BACK = {
         'startAreaMode': 1, 'openKatastr': 1, 'openDronView': 1, 'startMapPick': 1,
+        'agPosFromMap': 1,
         'openNewPointModal': 1, 'agOpenTutorialPro': 1, 'startTutorial': 1
     };
     // prvky, které se tváří jako otevřené okno, ale nejsou nástroj

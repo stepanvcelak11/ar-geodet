@@ -1459,14 +1459,34 @@ body.outdoor-mode .ar-marker-dist { opacity: 1; }
 
 /* (svisly sloupec tlacitek nahradil panel #map-sheet — viz blok "MAPA A VRSTVY") */
 
-/* PWA: lista upozorneni na novou verzi (klepnutim obnovit) */
+/* PWA: lista upozorneni na novou verzi (klepnutim obnovit)
+   ⚠ DVE CHYBY, KTERE TU BYLY (nalezeno 8.8.2026 skutecnym testem aktualizace
+   v prohlizeci) — obe znamenaly, ze uzivateli aktualizace NIKDY nedosla:
+   1) z-index 999998 byl POD #welcome-screen a #ag-login/#ag-gate (999999). Lista
+      se pritom nabizi hned po startu, tedy presne kdyz uvodni obrazovka jeste
+      stoji => byla nakreslena pod ni a nebyla videt ani klikatelna. Proto je
+      z-index nad nimi: kdo klepne, dostane novou verzi jeste pred prihlasenim.
+   2) `animation: menu-pop ... both` PREBILA `transform: translateX(-50%)` (fill
+      mode drzi transform z posledniho klicoveho snimku), takze lista visela
+      pulkou sirky vpravo od stredu a lamala se na dva radky. Vlastni klicove
+      snimky proto translateX(-50%) NESMI zapomenout. */
 #update-banner {
     position: fixed; top: max(10px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
-    z-index: 999998; display: none; align-items: center; gap: 8px;
+    z-index: 1000002; display: none; align-items: center; gap: 8px;
+    /* width:max-content je POTREBA. Prvek je position:fixed s left:50%, takze
+       shrink-to-fit sirka je omezena na (100vw - 50%) = pulka displeje — text
+       „Nova verze — klepni pro obnoveni" se do ni lamal na dva radky. max-content
+       ten strop obchazi, max-width ho pak drzi v displeji. */
+    width: max-content; max-width: calc(100vw - 20px);
     padding: 10px 18px; border-radius: var(--r-pill);
     background: var(--accent-grad); color: #fff; font-size: calc(13.5px * var(--ag-font-scale, 1)); font-weight: 700;
     box-shadow: var(--accent-glow), var(--shadow-2); cursor: pointer; border: 1px solid rgba(255,255,255,0.3);
-    animation: menu-pop 0.3s var(--ease-out) both;
+    animation: banner-pop 0.3s var(--ease-out) both;
+}
+/* stred drzi translateX(-50%) v KAZDEM snimku (viz chyba 2 vyse) */
+@keyframes banner-pop {
+    from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 #update-banner .icon { width: 18px; height: 18px; }
 
@@ -1477,11 +1497,14 @@ body.outdoor-mode .ar-marker-dist { opacity: 1; }
 #map-pick-hint, #connect-hint {
     position: fixed; top: max(10px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
     z-index: 999998; display: none; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 12px;
-    max-width: calc(100vw - 20px); text-align: center;
+    /* width:max-content — jinak by se napoveda vesla jen do pulky displeje (viz #update-banner) */
+    width: max-content; max-width: calc(100vw - 20px); text-align: center;
     padding: 9px 12px; border-radius: var(--r-lg);
     background: rgba(8, 11, 15, 0.92); color: #fff; font-size: calc(13px * var(--ag-font-scale, 1)); font-weight: 600;
     box-shadow: var(--shadow-2); border: 1px solid var(--warning);
-    animation: menu-pop 0.3s var(--ease-out) both;
+    /* NE menu-pop: ta konci na transform:translateX(0) a s fill-mode `both` by
+       vymazala vycentrovani translateX(-50%) (stejna chyba jako u #update-banner) */
+    animation: banner-pop 0.3s var(--ease-out) both;
 }
 #map-pick-hint .icon, #connect-hint .icon { width: 16px; height: 16px; color: var(--warning); vertical-align: -0.2em; margin-right: 4px; }
 #map-pick-hint button, #connect-hint button { border: none; background: rgba(255,255,255,0.12); color: #fff; font-size: calc(12px * var(--ag-font-scale, 1)); font-weight: 600; padding: 6px 12px; border-radius: var(--r-pill); cursor: pointer; }

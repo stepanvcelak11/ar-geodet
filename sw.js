@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v217';   // Audit v prohlizeci: konec self-reloadu po startu, DGPS uz nezamrzne appku, vzdalenost+azimut v karte bodu, chybejici vstupy (zpravodaj, predpisy, teren DMR)
+const SHELL_CACHE = 'argeodet-shell-v218';   // Uvodni obrazovka: hodnoty uz neprosvitaji skrz kartu; lista nove verze je konecne videt; poloha z mapy (rucni zpresneni v lese/meste)
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -31,9 +31,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=217',
-    './css/style.css?v=217',
-    './css/vylepseni.css?v=217',
+    './css/tokens.css?v=218',
+    './css/style.css?v=218',
+    './css/vylepseni.css?v=218',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
@@ -144,6 +144,7 @@ const ASSETS_TO_CACHE = [
     './js/fullscreen.js',
     './js/view-cycle.js',
     './js/map-tools.js',
+    './js/poloha-z-mapy.js',
     './js/app-search.js',
     './js/pdf-protocol.js',
     './js/vylepseni.js',

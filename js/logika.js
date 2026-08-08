@@ -1313,21 +1313,39 @@ if ('serviceWorker' in navigator) {
             if (_gpsWatchId != null) { try { navigator.geolocation.clearWatch(_gpsWatchId); } catch (e) {} _gpsWatchId = null; }
             _gpsWatchId = navigator.geolocation.watchPosition(
                 (position) => {
-                    userLat = position.coords.latitude; userLng = position.coords.longitude; magneticDeclination = getDeclination(userLat, userLng);
+                    userLat = position.coords.latitude; userLng = position.coords.longitude;
+                    // POLOHA Z MAPY (js/poloha-z-mapy.js): uzivatel si polohu odecetl z ortofota,
+                    // protoze pod stromy / mezi domy je GPS horsi nez to, co sam v podkladu vidi.
+                    // Surovy fix predame modulu (poznava po nem ODCHOD ze stanoviska — rozdil dvou
+                    // fixu je pouzitelny, i kdyz je absolutni poloha vedle), do appky jde rucni.
+                    // Modul se pri odchodu sam vypne, proto se na .active pta znovu.
+                    var _mp = window.AGManualPos;
+                    if (_mp && _mp.active) _mp.onFix(position.coords.latitude, position.coords.longitude, position.coords.accuracy);
+                    if (_mp && _mp.active) { userLat = _mp.lat; userLng = _mp.lng; }
+                    magneticDeclination = getDeclination(userLat, userLng);
                     try { if (window.AGPose) window.AGPose.checkDrift(userLat, userLng); } catch (e) {}   // #1: kotvení se zneplatní, když reálně odejdu ze stanoviska
                     userAlt = (position.coords.altitude != null && isFinite(position.coords.altitude)) ? position.coords.altitude : null;
-                    currentGpsAccuracy = position.coords.accuracy; updateInfoPanel();
+                    currentGpsAccuracy = position.coords.accuracy;
+                    // pri rucni poloze plati presnost odectu z mapy, ne presnost GPS
+                    if (_mp && _mp.active) currentGpsAccuracy = _mp.acc;
+                    updateInfoPanel();
                     // SEMAFOR DUVERY POLOHY: timestamp posledniho fixu pro js/gps-trust.js.
                     // Bez nej se zamrzla GPS (tunel, iOS suspend) nepozna — userLat/acc drzi
                     // posledni hodnotu a AR/mereni tise jede ze stare polohy.
-                    window.AGFix = { ts: Date.now(), lat: userLat, lng: userLng, acc: currentGpsAccuracy, alt: userAlt, err: null };
+                    // manual: poloha je odectena z mapy (js/poloha-z-mapy.js) — kdo AGFix cte,
+                    // ma vedet, ze to neni satelitni fix
+                    window.AGFix = { ts: Date.now(), lat: userLat, lng: userLng, acc: currentGpsAccuracy, alt: userAlt, err: null, manual: !!(_mp && _mp.active) };
                     // posledni znama poloha pro vychozi pohled mapy pri pristim startu (i offline); max 1x/30 s
                     if (!window._agLastPosTs || Date.now() - window._agLastPosTs > 30000) { window._agLastPosTs = Date.now(); try { localStorage.setItem('arLastPos', JSON.stringify({ lat: userLat, lng: userLng })); } catch (e) {} }
                     gpsSpeed = (position.coords.speed != null && !isNaN(position.coords.speed)) ? position.coords.speed : 0;
                     if (position.coords.heading != null && !isNaN(position.coords.heading) && gpsSpeed > 0.5) gpsCourse = position.coords.heading;
                     updateGpsAveraging(userLat, userLng, currentGpsAccuracy, gpsSpeed, position.coords.altitude, position.coords.altitudeAccuracy);
                     if (accuracyCircle) { accuracyCircle.setLatLng([userLat, userLng]); accuracyCircle.setRadius(currentGpsAccuracy); accuracyCircle.setStyle({ color: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillColor: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399' }); } else { accuracyCircle = L.circle([userLat, userLng], { radius: currentGpsAccuracy, color: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillColor: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillOpacity: 0.15, weight: 2 }).addTo(map); }
-                    
+                    // RUCNI POLOHA: kruh jantarovy a cerchovany, at se neplete se zelenym
+                    // (= dobrym) GPS fixem. Prebarvit se musi pri KAZDEM fixu, protoze radek
+                    // vyse barvu porad prepisuje podle currentGpsAccuracy.
+                    if (_mp && _mp.active && accuracyCircle) accuracyCircle.setStyle({ color: '#f59e0b', fillColor: '#f59e0b', dashArray: '5 5' });
+
                     if (highlightedPointId) { let hlPt = arPoints.find(p => p.id === highlightedPointId); if (hlPt) { if (hlPt.bestAccuracy === null || currentGpsAccuracy < hlPt.bestAccuracy) { hlPt.bestAccuracy = currentGpsAccuracy; } } }
 
                     var _movedCalc = (_lastCalcLat === null) ? 999 : getDistance(_lastCalcLat, _lastCalcLng, userLat, userLng);

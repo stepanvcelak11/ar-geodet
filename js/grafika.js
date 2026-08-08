@@ -306,6 +306,11 @@
         map.on('click', (e) => {
             if (!appStarted) return; const clickLatLng = getMapClickLatLng(e);
             if (mapAddMode) { mapAddMode = false; const _h = document.getElementById('map-pick-hint'); if (_h) _h.style.display = 'none'; openNewPointFromMap(clickLatLng.lat, clickLatLng.lng); return; }
+            // POLOHA Z MAPY (js/poloha-z-mapy.js): sber MOJE polohy. Zoom se predava,
+            // protoze z nej modul pocita poctivy odhad presnosti odectu — a `map` je
+            // lexikalni globala logika.js, ke ktere se modul sam nedostane.
+            // Bez modulu je podminka nepravdiva a vetev je nema.
+            if (window.AGManualPos && window.AGManualPos.armed) { window.AGManualPos.take(clickLatLng.lat, clickLatLng.lng, map.getZoom()); return; }
             if (areaMode) { areaVertices.push({ lat: clickLatLng.lat, lng: clickLatLng.lng }); afterAreaChange(); return; }
             if (connectMode) { handleConnectTap(clickLatLng); return; }
             const clickPoint = map.latLngToContainerPoint(clickLatLng); const nearbyPoints = [];
