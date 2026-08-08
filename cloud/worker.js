@@ -260,7 +260,17 @@ async function lastActiveAdminGuard(env, firmId, exceptUserId) {
 // v rozbalovacím seznamu zdrojů pod předpovědí.
 const CHMI_BASE = 'https://opendata.chmi.cz/meteorology/climate/now/';
 const CHMI_MAX_KM = 60;          // dál od stanice už měření tohle místo nepopisuje
-const CHMI_MAX_AGE_MS = 2 * 3600e3;   // starší než 2 h už není „teď"
+// ⚠ 8.8.2026: TENHLE LIMIT BYL 2 h A TICHO SHAZOVAL CELÉ REGIONY.
+// Stanice ČHMÚ nepublikují stejně rychle: v 15:09Z měla Praha-Karlov nejnovější
+// záznam z 13:50Z (80 min), ale Ostrava, Brno i Olomouc jen z 13:00Z (130 min).
+// Přes dvouhodinový strop tedy Praha prošla a zbytek republiky hlásil „žádná
+// stanice v okolí nehlásí" — přitom stanice hlásily, jen o půl hodiny pozadu.
+// Volnější strop nic nezkazí: appka si stáří měření sama odváží (nad 80 min mu
+// nechá třetinu váhy), takže starší odečet do průměru skoro nemluví — ale
+// nesmí zmizet, protože je to jediná SKUTEČNĚ NAMĚŘENÁ hodnota v celé směsi
+// a jen proti ní se dá poctivě měřit trefnost modelů.
+const CHMI_MAX_AGE_MS = 3.5 * 3600e3;
+const CHMI_CAND = 6;             // kolik nejbližších stanic zkusit (viz níž)
 const CHMI_ELEMS = { T: 1, H: 1, P: 1, F: 1, Fmax: 1, D: 1, SRA10M: 1 };
 
 function chmiDayStr(offsetDays) {
@@ -414,18 +424,39 @@ export default {
                 if (lat < 48.4 || lat > 51.2 || lon < 12 || lon > 19) return json({ ok: false, reason: 'mimo ČR' });
                 const st = await chmiStations(lat, lon);
                 if (!st.length) return json({ ok: false, reason: 'seznam stanic ČHMÚ není dostupný' });
-                // nejbližší stanice nemusí zrovna hlásit → zkus pár dalších v okolí
-                for (const cand of st.slice(0, 4)) {
+                // Nejbližší stanice nemusí zrovna hlásit → zkus pár dalších v okolí.
+                // Kandidátů je 6, ne 4: seznam `meta1` má 758 stanic, ale desetiminutová
+                // data z nich publikuje jen 475 — u Brna je první použitelná až TŘETÍ
+                // v pořadí (Židenice a Jundrov soubor vůbec nemají), u Olomouce druhá.
+                //
+                // A hlavně: NEBER PRVNÍ STANICI, KTERÁ VRÁTÍ COKOLI. Stanice měří různé
+                // veličiny — Ostrava-Zábřeh (3,9 km) má teplotu a vlhkost, ale žádný tlak
+                // ani vítr, zatímco Ostrava-Poruba (7,4 km) má vítr i tlak, ale ŽÁDNOU
+                // TEPLOTU. Dřív rozhodla vzdálenost, takže se klidně vrátil odečet bez
+                // teploty — a teplota je přitom ta hodnota, která drží celý vážený průměr
+                // a na které se učí systematická chyba modelů.
+                // Proto: první stanice s teplotou vyhrává hned, stanice bez teploty se
+                // odloží jako záloha a hledá se dál. Rychlé to zůstává, protože nejbližší
+                // stanice teplotu obvykle má (Praha i Ostrava hned na první pokus).
+                //
+                // Hodnoty ze DVOU stanic se ZÁMĚRNĚ neslučují (teplota odsud, tlak odtamtud):
+                // appka to ukazuje jako měření jedné konkrétní stanice a míchanina by
+                // vydávala dopočet za měření.
+                let fallback = null;
+                for (const cand of st.slice(0, CHMI_CAND)) {
                     if (cand.km > CHMI_MAX_KM) break;
                     const v = await chmiLatest(cand.wsi);
                     if (!v) continue;
-                    return json(Object.assign({
+                    const hit = {
                         ok: true,
                         station: { wsi: cand.wsi, name: cand.name, lat: cand.lat, lon: cand.lon, elev: cand.elev },
                         distKm: Math.round(cand.km * 10) / 10,
                         source: '© ČHMÚ'
-                    }, v));
+                    };
+                    if (v.T != null) return json(Object.assign(hit, v));
+                    if (!fallback) fallback = Object.assign(hit, v);
                 }
+                if (fallback) return json(fallback);
                 return json({ ok: false, reason: 'žádná stanice ČHMÚ v okolí právě nehlásí' });
             }
 
@@ -438,18 +469,29 @@ export default {
                 const days = Math.max(1, Math.min(3, parseInt(url.searchParams.get('days'), 10) || 2));
                 const st = await chmiStations(lat, lon);
                 if (!st.length) return json({ ok: false, reason: 'seznam stanic ČHMÚ není dostupný' });
-                for (const cand of st.slice(0, 3)) {
+                // Stejný důvod jako u /wx/chmi: víc kandidátů a přednost stanici, která
+                // opravdu měří TEPLOTU. Řada se používá k ověřování trefnosti modelů, a
+                // srážkoměrná stanice sice projde kontrolou na počet řádků (má srážky),
+                // ale teplotu v nich má všude null — takže by se teplotní trefnost
+                // nevyhodnotila vůbec a nebylo by poznat, proč.
+                let fbDay = null;
+                for (const cand of st.slice(0, CHMI_CAND)) {
                     if (cand.km > CHMI_MAX_KM) break;
                     const hours = await chmiHours(cand.wsi, days);
                     if (hours.length < 6) continue;      // stanice prakticky nehlásí
-                    return json({
+                    const res = {
                         ok: true,
                         station: { wsi: cand.wsi, name: cand.name, lat: cand.lat, lon: cand.lon, elev: cand.elev },
                         distKm: Math.round(cand.km * 10) / 10,
                         source: '© ČHMÚ',
                         hours: hours
-                    });
+                    };
+                    let nT = 0;
+                    for (const h of hours) { if (h[1] != null) nT++; }
+                    if (nT >= 6) return json(res);
+                    if (!fbDay) fbDay = res;
                 }
+                if (fbDay) return json(fbDay);
                 return json({ ok: false, reason: 'žádná stanice ČHMÚ v okolí nemá dost dat' });
             }
 
