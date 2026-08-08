@@ -196,6 +196,57 @@
             '#ag-prof-note b{color:var(--text-color,#eceef2);}',
             '#ag-prof-note button[data-del]{display:inline-block;margin-left:2px;background:none;border:none;padding:0;',
             '  cursor:pointer;color:var(--danger,#ef4444);font:600 11.5px/1.45 var(--font-ui,system-ui),sans-serif;text-decoration:underline;}',
+            '#ag-prof-note button[data-snap]{display:inline-block;background:none;border:none;padding:0;cursor:pointer;',
+            '  color:var(--accent,#2f9e74);font:600 11.5px/1.45 var(--font-ui,system-ui),sans-serif;text-decoration:underline;}',
+
+            // ---- PRŮVODCE vlastním profilem ----
+            // z-index nad Nastavením, ale POD dialogy (--z-dialog 2000000)
+            '#ag-wiz{position:fixed;inset:0;z-index:1000004;display:none;align-items:center;justify-content:center;',
+            '  padding:14px;background:rgba(4,8,12,0.7);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}',
+            '#ag-wiz.on{display:flex;}',
+            '#ag-wiz .ag-wiz-box{width:min(440px,100%);max-height:90vh;display:flex;flex-direction:column;',
+            '  box-sizing:border-box;padding:16px 18px 18px;border-radius:18px;background:var(--bg-elev,#151a21);',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.12));box-shadow:0 24px 60px rgba(0,0,0,0.55);',
+            '  color:var(--text-color,#eceef2);}',
+            '.ag-wiz-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}',
+            '.ag-wiz-top span{font:700 11px/1.2 var(--font-ui,system-ui),sans-serif;letter-spacing:.12em;',
+            '  text-transform:uppercase;color:var(--accent,#2f9e74);}',
+            '.ag-wiz-top button{margin-left:auto;background:none;border:none;cursor:pointer;padding:2px 4px;',
+            '  color:var(--text-muted,#9aa1ac);font-size:calc(17px * var(--ag-font-scale, 1));line-height:1;}',
+            '#ag-wiz-body{overflow-y:auto;-webkit-overflow-scrolling:touch;}',
+            '#ag-wiz-body h3{margin:0 0 4px;font:700 17px/1.25 var(--font-ui,system-ui),sans-serif;}',
+            '.ag-wiz-h{margin:0 0 12px;font:500 12px/1.5 var(--font-ui,system-ui),sans-serif;color:var(--text-muted,#9aa1ac);}',
+            // odpovědi: velký dotykový cíl, vysvětlení pod jménem
+            '#ag-wiz-body button[data-opt]{display:block;width:100%;text-align:left;margin-bottom:8px;padding:13px 14px;',
+            '  border-radius:13px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));',
+            '  background:rgba(255,255,255,0.05);color:var(--text-color,#eceef2);cursor:pointer;}',
+            '#ag-wiz-body button[data-opt] b{display:block;font:700 14.5px/1.3 var(--font-ui,system-ui),sans-serif;}',
+            '#ag-wiz-body button[data-opt] span{display:block;margin-top:3px;font:500 12px/1.45 var(--font-ui,system-ui),sans-serif;',
+            '  color:var(--text-muted,#9aa1ac);}',
+            '#ag-wiz-body button[data-opt].on{border-color:var(--accent,#2f9e74);background:var(--accent-soft,rgba(47,158,116,0.16));}',
+            '#ag-wiz-body button[data-opt].on b{color:var(--accent-bright,#4ccd99);}',
+            // shrnutí: dvojice popisek → hodnota, hodnoty monospace kvůli zarovnání
+            '.ag-wiz-sum{list-style:none;margin:0 0 14px;padding:0;}',
+            '.ag-wiz-sum li{display:flex;align-items:baseline;gap:10px;padding:6px 0;',
+            '  border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.08));}',
+            '.ag-wiz-sum li span{flex:1;font:500 12.5px/1.4 var(--font-ui,system-ui),sans-serif;color:var(--text-muted,#9aa1ac);}',
+            '.ag-wiz-sum li b{font-family:var(--font-mono,ui-monospace,monospace);font-size:calc(12px * var(--ag-font-scale, 1));',
+            '  color:var(--data,#e6bd76);white-space:nowrap;}',
+            '#ag-wiz-body label{display:block;margin:0 0 4px;font:600 12px/1.2 var(--font-ui,system-ui),sans-serif;',
+            '  color:var(--text-muted,#9aa1ac);}',
+            '#ag-wiz-name{width:100%;box-sizing:border-box;padding:11px 12px;border-radius:10px;',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.06);',
+            '  color:var(--text-color,#eceef2);font:inherit;font-size:calc(15px * var(--ag-font-scale, 1));}',
+            '.ag-wiz-err{min-height:15px;margin-top:6px;color:var(--danger,#ef4444);',
+            '  font:600 12px/1.3 var(--font-ui,system-ui),sans-serif;}',
+            '.ag-wiz-btns{display:flex;gap:8px;margin-top:14px;}',
+            '.ag-wiz-btns button{flex:1;padding:12px;border-radius:12px;cursor:pointer;',
+            '  font:700 13.5px/1 var(--font-ui,system-ui),sans-serif;',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.06);',
+            '  color:var(--text-color,#eceef2);}',
+            '.ag-wiz-btns button.prim{border-color:transparent;background:var(--accent-grad,#2f9e74);color:#fff;}',
+            '.ag-wiz-btns button:disabled{opacity:.45;cursor:default;}',
+            'body.ag-glove #ag-wiz-body button[data-opt]{padding:16px;}',
             // „Bez profilu" je rovnocenná volba, ne popřená akce — svítí stejně jako profil
             '#ag-prof-row button[data-off].on{border-color:var(--glass-border,rgba(255,255,255,0.28));',
             '  background:rgba(255,255,255,0.10);color:var(--text-color,#eceef2);}',
@@ -349,6 +400,196 @@
         if (window.confirm(q)) go();
     }
 
+    // ================================================================================
+    // PRŮVODCE VLASTNÍM PROFILEM
+    // PROČ: „ulož, jak to mám teď" předpokládá, že si člověk nejdřív projde ~80 voleb
+    // ve čtyřech záložkách a najde v nich to, co profil vůbec umí přepnout. To po
+    // nikom nechceme. Průvodce se místo toho zeptá na ČTYŘI VĚCI BĚŽNOU ŘEČÍ a každá
+    // odpověď přepne rovnou celou skupinu voleb; na konci ukáže, co z toho vzešlo.
+    //
+    // ZÁSADY:
+    //  • Ptáme se na ZÁMĚR („vydržet směnu"), ne na hodnoty („uspat GPS: ano/ne").
+    //    Konkrétní čísla jsou pod odpovědí drobným písmem — kdo chce, přečte si je.
+    //  • Předvybírá se to, co uživatel má NASTAVENÉ TEĎ (funkce `now`), takže projít
+    //    průvodce a nic neměnit = uložit si dnešek pod jménem.
+    //  • Nic se neaplikuje během klikání. Teprve „Uložit" nastaví ovládací prvky
+    //    a zavolá saveSettings — stejnou cestou jako vestavěné profily.
+    //  • Volby, které v téhle verzi appky nejsou (odpojený modul), se tiše vynechají.
+    // ================================================================================
+    var WIZ = [
+        {
+            q: 'Co je pro tebe důležitější?',
+            h: 'Podle toho se nastaví spánek senzorů, buzení displeje a plynulost AR.',
+            now: function () { return $('agp-enabled') && !$('agp-enabled').checked ? 'plynule' : ($('s-wakelock') && $('s-wakelock').checked ? 'vyvazene' : 'setrit'); },
+            opts: [
+                { id: 'setrit', t: 'Vydržet celou směnu', s: 'Kamera, kompas i GPS spí, když nekoukáš do AR. Displej se nechá zhasnout.',
+                  set: { 'agp-enabled': true, 'agp-gps': true, 's-wakelock': false, 's-anim': 'off', 'ag-arfusion-cb': false, 'agvt-settings-cb': false } },
+                { id: 'vyvazene', t: 'Vyvážené', s: 'Senzory spí mimo AR, ale displej nezhasne a směr je plynulý.',
+                  set: { 'agp-enabled': true, 'agp-gps': false, 's-wakelock': true, 's-anim': 'off', 'ag-arfusion-cb': true, 'agvt-settings-cb': false } },
+                { id: 'plynule', t: 'Ať to jede jak po másle', s: 'Nic se neuspává, běží stabilizace obrazu i fúze gyra. Baterie ubývá výrazně rychleji.',
+                  set: { 'agp-enabled': false, 'agp-gps': false, 's-wakelock': true, 's-anim': 'on', 'ag-arfusion-cb': true, 'agvt-settings-cb': true } }
+            ]
+        },
+        {
+            q: 'Kde budeš na displej koukat?',
+            h: 'Řídí kontrast, průhlednost panelů a velikost štítků u bodů.',
+            now: function () { return ($('s-outdoor') && $('s-outdoor').checked) ? 'slunce' : 'stin'; },
+            opts: [
+                { id: 'slunce', t: 'Venku na ostrém slunci', s: 'Vysoký kontrast, neprůhledné panely, větší štítky bodů.',
+                  set: { 's-outdoor': true, 'v-adaptive-glass': false, 'v-panel-opacity': '100', 'v-marker-scale': '110' } },
+                { id: 'stin', t: 'Ve stínu nebo v autě', s: 'Běžný vzhled, panely prosvítají, štítky menší — vidíš víc mapy.',
+                  set: { 's-outdoor': false, 'v-adaptive-glass': true, 'v-panel-opacity': '85', 'v-marker-scale': '100' } }
+            ]
+        },
+        {
+            q: 'Jak daleko chceš vidět body?',
+            h: 'Daleký dohled zaplní obrazovku body, které zrovna neřešíš, a stojí výkon.',
+            now: function () { var v = $('s-ar-radius-slider') ? +$('s-ar-radius-slider').value : 150; return v <= 200 ? 'blizko' : (v <= 700 ? 'stredne' : 'daleko'); },
+            opts: [
+                { id: 'blizko', t: 'Jen kolem sebe', s: 'V AR 100 m a nejvýš 20 bodů — čistý obraz, když stojíš v hustém bodovém poli.',
+                  set: { 's-ar-radius-slider': '100', 's-max-ar-slider': '20', 's-map-radius-slider': '300' } },
+                { id: 'stredne', t: 'Po celé stavbě', s: 'V AR 400 m a 60 bodů. Rozumný kompromis pro běžnou zakázku.',
+                  set: { 's-ar-radius-slider': '400', 's-max-ar-slider': '60', 's-map-radius-slider': '1000' } },
+                { id: 'daleko', t: 'Co nejdál', s: 'V AR 2000 m a 120 bodů. Na předvádění nebo rozhled po okolí, ne na práci.',
+                  set: { 's-ar-radius-slider': '2000', 's-max-ar-slider': '120', 's-map-radius-slider': '2000' } }
+            ]
+        },
+        {
+            q: 'Jak se má chovat směr v AR?',
+            h: 'Vyhlazení a korekce kompasu: buď rychlá reakce, nebo klidné značky.',
+            now: function () { var v = $('s-heading-smooth') ? +$('s-heading-smooth').value : 70; return v >= 85 ? 'klidne' : 'svizne'; },
+            opts: [
+                { id: 'svizne', t: 'Svižně reagovat', s: 'Otočíš se a značky jdou hned s tebou. Trochu se chvějí.',
+                  set: { 's-heading-smooth': '55', 's-auto-compass': false, 's-tilt-comp': false, 'tgl-gpsavg': true } },
+                { id: 'klidne', t: 'Klidně stát na místě', s: 'Značky se netřesou a drží, kde mají. Reakce na otočení je pomalejší.',
+                  set: { 's-heading-smooth': '90', 's-auto-compass': true, 's-tilt-comp': true, 'tgl-gpsavg': true } }
+            ]
+        }
+    ];
+
+    var _wizStep = 0, _wizPick = [];
+
+    // Sloučí odpovědi do jedné mapy id → hodnota. Pozdější krok přebíjí dřívější
+    // (žádný se dnes nepřekrývá, ale ať to platí i po přidání otázky).
+    function wizSet() {
+        var out = {};
+        for (var i = 0; i < WIZ.length; i++) {
+            var o = null, j;
+            for (j = 0; j < WIZ[i].opts.length; j++) if (WIZ[i].opts[j].id === _wizPick[i]) o = WIZ[i].opts[j];
+            if (!o) continue;
+            for (var k in o.set) if (Object.prototype.hasOwnProperty.call(o.set, k)) out[k] = o.set[k];
+        }
+        return out;
+    }
+    // Shrnutí lidsky: jména a formát bere z LABELS (stejný zdroj jako srovnávací
+    // tabulka), takže se nemůže rozejít. Co v appce není, se vynechá.
+    function wizSummary(set) {
+        var rows = [];
+        for (var i = 0; i < LABELS.length; i++) {
+            var L = LABELS[i];
+            if (!(L.id in set)) continue;
+            if (!$(L.id)) continue;
+            rows.push({ n: L.n, v: L.f(set[L.id]) });
+        }
+        return rows;
+    }
+
+    function wizEl() {
+        var el = $('ag-wiz');
+        if (el) return el;
+        el = document.createElement('div');
+        el.id = 'ag-wiz';
+        el.innerHTML = '<div class="ag-wiz-box" role="dialog" aria-modal="true" aria-label="Průvodce profilem">'
+            + '<div class="ag-wiz-top"><span id="ag-wiz-step"></span>'
+            + '<button type="button" id="ag-wiz-x" aria-label="Zavřít">✕</button></div>'
+            + '<div id="ag-wiz-body"></div>'
+            + '<div class="ag-wiz-btns">'
+            + '  <button type="button" id="ag-wiz-back">Zpět</button>'
+            + '  <button type="button" class="prim" id="ag-wiz-next">Další</button>'
+            + '</div></div>';
+        document.body.appendChild(el);
+        el.addEventListener('click', function (ev) { if (ev.target === el) wizClose(); });
+        el.querySelector('#ag-wiz-x').addEventListener('click', wizClose);
+        el.querySelector('#ag-wiz-back').addEventListener('click', function () {
+            if (_wizStep === 0) { wizClose(); return; }
+            _wizStep--; wizRender();
+        });
+        el.querySelector('#ag-wiz-next').addEventListener('click', function () {
+            if (_wizStep < WIZ.length) { _wizStep++; wizRender(); return; }
+            wizSave();
+        });
+        el.querySelector('#ag-wiz-body').addEventListener('click', function (ev) {
+            var b = ev.target.closest ? ev.target.closest('button[data-opt]') : null;
+            if (!b) return;
+            _wizPick[_wizStep] = b.getAttribute('data-opt');
+            wizRender();
+        });
+        return el;
+    }
+    function wizClose() { var el = $('ag-wiz'); if (el) el.classList.remove('on'); }
+
+    function wizRender() {
+        var el = wizEl();
+        var body = el.querySelector('#ag-wiz-body');
+        var last = _wizStep >= WIZ.length;
+        el.querySelector('#ag-wiz-step').textContent = last
+            ? 'Hotovo — zkontroluj a pojmenuj'
+            : 'Krok ' + (_wizStep + 1) + ' z ' + WIZ.length;
+        el.querySelector('#ag-wiz-back').textContent = _wizStep === 0 ? 'Zrušit' : 'Zpět';
+        el.querySelector('#ag-wiz-next').textContent = last ? 'Uložit profil' : 'Další';
+        el.querySelector('#ag-wiz-next').disabled = !last && !_wizPick[_wizStep];
+
+        if (!last) {
+            var s = WIZ[_wizStep];
+            body.innerHTML = '<h3>' + esc(s.q) + '</h3><p class="ag-wiz-h">' + esc(s.h) + '</p>'
+                + s.opts.map(function (o) {
+                    return '<button type="button" data-opt="' + esc(o.id) + '"'
+                        + (o.id === _wizPick[_wizStep] ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>'
+                        + '<b>' + esc(o.t) + '</b><span>' + esc(o.s) + '</span></button>';
+                }).join('');
+            return;
+        }
+        var set = wizSet(), rows = wizSummary(set);
+        body.innerHTML = '<h3>Co se profilem nastaví</h3>'
+            + '<ul class="ag-wiz-sum">' + rows.map(function (r) {
+                return '<li><span>' + esc(r.n) + '</span><b>' + esc(r.v) + '</b></li>';
+            }).join('') + '</ul>'
+            + '<label for="ag-wiz-name">Jméno profilu</label>'
+            + '<input type="text" id="ag-wiz-name" maxlength="24" autocomplete="off" placeholder="Např. Pokládka na slunci" value="' + esc(_wizName()) + '">'
+            + '<div class="ag-wiz-err" id="ag-wiz-err"></div>';
+    }
+    // Návrh jména z odpovědí — ať uživatel nemusí vymýšlet nic, když nechce.
+    function _wizName() {
+        var a = _wizPick[0], b = _wizPick[1];
+        var t = a === 'setrit' ? 'Na celý den' : (a === 'plynule' ? 'Plynulé AR' : 'Vyvážený');
+        if (b === 'slunce') t += ' na slunci';
+        return t;
+    }
+    function wizSave() {
+        var el = $('ag-wiz');
+        var name = (el.querySelector('#ag-wiz-name').value || '').trim();
+        var err = el.querySelector('#ag-wiz-err');
+        if (!name) { err.textContent = 'Napiš jméno profilu.'; return; }
+        var set = wizSet();
+        // ulož jen to, co v téhle verzi appky opravdu existuje
+        var clean = {}, n = 0;
+        for (var k in set) if (Object.prototype.hasOwnProperty.call(set, k) && $(k)) { clean[k] = set[k]; n++; }
+        if (!n) { err.textContent = 'Nastavení se nepodařilo přečíst — zavři a zkus to znovu.'; return; }
+        var list = rawCustoms();
+        var id = CUST_PREFIX + Date.now();
+        list.push({ id: id, t: name.slice(0, 24), set: clean });
+        try { lsSet(CUST_KEY, JSON.stringify(list)); } catch (e) {}
+        wizClose();
+        apply(id);            // rovnou zapnout — projít průvodce a nic nevidět by bylo divné
+    }
+    function wizOpen() {
+        injectStyles();
+        _wizStep = 0;
+        _wizPick = WIZ.map(function (s) { try { return s.now(); } catch (e) { return null; } });
+        wizEl().classList.add('on');
+        wizRender();
+    }
+
     function byId(profId) {
         var a = allProfiles();
         for (var i = 0; i < a.length; i++) if (a[i].id === profId) return a[i];
@@ -396,12 +637,16 @@
         var host = $('tab-profily');
         bar = document.createElement('div');
         bar.id = 'ag-prof-bar';
-        bar.innerHTML = '<span class="h">Přepne několik voleb naráz</span>'
-            + '<div id="ag-prof-row" role="group" aria-label="Profil použití"></div>'
+        // Vlastní hlavička („Profil použití — nastaví několik voleb naráz") tu BYLA
+        // a je pryč: od návrhu C nad pruhem stojí nadpis sekce „PROFIL NASTAVENÍ",
+        // takže to byly dvě verzálkové hlavičky nad sebou. Co profily dělají, říká
+        // úvod záložky a řádek #ag-prof-note pod dlaždicemi.
+        // Taky pryč: vlastní SVG chevron v <summary>. Rozbalovátka v Nastavení mají
+        // svou šipku z css/style.css (details summary::after), takže tu byly DVĚ.
+        bar.innerHTML = '<div id="ag-prof-row" role="group" aria-label="Profil nastavení"></div>'
             + '<p id="ag-prof-note"></p>'
             + '<details id="ag-prof-det">'
-            + '<summary>Co profily mění a v čem se liší'
-            + '<svg class="icon chev" style="width:13px;height:13px;"><use href="#i-chevron-down"/></svg></summary>'
+            + '<summary>Co profily mění a v čem se liší</summary>'
             + '<div id="ag-prof-body"></div>'
             + '</details>';
         if (host) host.appendChild(bar); else content.insertBefore(bar, tabs);
@@ -413,15 +658,20 @@
             // „nastavení si řídím sám". Skryté ťuknutí zůstává, ať se nikomu nezmění
             // zvyk.
             if (ev.target.closest('button[data-off]')) { clearProfile(); return; }
-            if (ev.target.closest('button[data-new]')) { saveCustom(); return; }
+            // „Vlastní" = PRŮVODCE (ptá se běžnou řečí a nastaví to za tebe).
+            // Otisk současného nastavení zůstává jako druhá cesta — nabízí se
+            // v #ag-prof-note, když už nějaký profil běží nebo si člověk doladil své.
+            if (ev.target.closest('button[data-new]')) { wizOpen(); return; }
             var b = ev.target.closest('button[data-prof]');
             if (!b) return;
             var id = b.getAttribute('data-prof');
             if (id === ls(LAST_KEY)) clearProfile(); else apply(id);
         });
         bar.querySelector('#ag-prof-note').addEventListener('click', function (ev) {
-            var d = ev.target.closest ? ev.target.closest('button[data-del]') : null;
-            if (d) deleteCustom(d.getAttribute('data-del'));
+            if (!ev.target.closest) return;
+            var d = ev.target.closest('button[data-del]');
+            if (d) { deleteCustom(d.getAttribute('data-del')); return; }
+            if (ev.target.closest('button[data-snap]')) saveCustom();
         });
         bar.querySelector('#ag-prof-det').addEventListener('toggle', function () { renderDetail(true); });
         return bar;
@@ -435,7 +685,7 @@
         // pruh se přestavuje i po přibytí/smazání vlastního profilu, ne jen jednou
         if (row.getAttribute('data-sig') !== custSig()) {
             row.setAttribute('data-sig', custSig());
-            row.setAttribute('data-last', ' ');   // vynuť dorovnání zvýraznění níž
+            row.removeAttribute('data-last');   // vynuť dorovnání zvýraznění níž
             row.innerHTML =
                 '<button type="button" data-off="1" title="Nepoužívat žádný profil" aria-pressed="false">'
                 + '<svg class="icon"><use href="#i-x"/></svg>Bez profilu</button>'
@@ -472,7 +722,8 @@
             // Dřív tu byly tři řádky vysvětlování a hlavička Nastavení kvůli nim začínala
             // až třetinu obrazovky pod okrajem. Podrobnosti jsou v detailu pod tím.
             : '<b>Bez profilu</b> — nastavení si řídíš sám v záložkách níž. '
-                + 'Až si ho doladíš, můžeš si ho uložit dlaždicí <b>Vlastní</b>.';
+                + 'Dlaždice <b>Vlastní</b> tě provede pár otázkami a nastaví to za tebe. '
+                + '<button type="button" data-snap>Nebo ulož, jak to mám teď</button>';
         if (note.innerHTML !== html) note.innerHTML = html;
         renderDetail(false);
     }

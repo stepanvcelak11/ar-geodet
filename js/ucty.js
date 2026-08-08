@@ -1854,8 +1854,11 @@
             '<h3 style="margin-top:0;color:var(--accent);">Odemykat appku telefonem?</h3>' +
             '<p style="font-size:calc(13.5px * var(--ag-font-scale, 1));line-height:1.55;color:var(--text-muted,#9aa1ac);">' +
             'Příště se přihlásíš <b>Face ID / Touch ID nebo kódem zámku obrazovky</b> místo hesla — jeden pohled a jsi v zakázce. ' +
-            'Ověřuje samotný telefon, appka se dozví jen to, že ověření prošlo; heslo si nikam neukládá. ' +
-            'Každé ' + TRUST_MAX + '. spuštění se stejně jednou zeptá na heslo.</p>' +
+            // Věta „Každé 20. spuštění se stejně jednou zeptá na heslo" tu BYLA a je
+            // pryč (8.8.2026, přání uživatele) — stejně jako z keepNote a z hlášky
+            // kontrolního přihlášení. Číslo patří do Nastavení → Firma, ne do dialogu,
+            // kde jen kazí jednoduchou nabídku „zapnout / teď ne".
+            'Ověřuje samotný telefon, appka se dozví jen to, že ověření prošlo; heslo si nikam neukládá.</p>' +
             '<div style="display:flex;gap:8px;margin-top:6px;">' +
             '  <button type="button" class="btn btn-secondary" id="ag-bio-no" style="flex:1;">Teď ne</button>' +
             '  <button type="button" class="btn btn-primary" id="ag-bio-yes" style="flex:1;">Zapnout</button>' +

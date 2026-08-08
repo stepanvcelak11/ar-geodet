@@ -194,7 +194,7 @@
                 // (mazat uživateli nastavení omylem prstem by bylo horší než ten problém)
                 onAction: openFilters,
                 // vyškrtnutí je jen na tenhle stav — jakmile se počty změní, ozve se znovu
-                onDismiss: function () { _lastKey = ' dismissed'; }
+                onDismiss: function () { _lastKey = '\u0000dismissed'; }
             });
         } catch (e) {}
     }

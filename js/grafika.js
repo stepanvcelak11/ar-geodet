@@ -45,7 +45,25 @@
                 else quickToast('Tenhle telefon/prohlížeč vibrace neumožňuje (iPhone).');
             } else quickToast('Vibrace vypnuty.');
         }
-        function switchTab(tabId, btnEl) { document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(tabId).classList.add('active'); btnEl.classList.add('active'); }
+        function switchTab(tabId, btnEl) {
+            document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btnEl.classList.add('active');
+            // Pruh zalozek se od navrhu C roluje do stran (5 zalozek se na telefon
+            // nevejde). Bez tohohle zustala vybrana zalozka za okrajem a nebylo poznat,
+            // ktera plati - zvlast u posledni "Profily", na kterou se prepina z hledani
+            // nebo z odkazu. scrollIntoView jen VODOROVNE, at neposkoci cely modal.
+            try {
+                const strip = btnEl.parentNode;
+                if (strip && strip.scrollWidth > strip.clientWidth) {
+                    const s = strip.getBoundingClientRect(), b = btnEl.getBoundingClientRect();
+                    if (b.left < s.left || b.right > s.right) {
+                        strip.scrollTo({ left: strip.scrollLeft + (b.left - s.left) - 12, behavior: 'smooth' });
+                    }
+                }
+            } catch (e) {}
+        }
         function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); } function toggleHudElements() { document.getElementById('info').style.display = document.getElementById('tgl-info').checked ? 'block' : 'none'; document.getElementById('compass-debug').style.display = document.getElementById('tgl-compass').checked ? 'block' : 'none'; updateGpsAvgPanel(); }
         function fixAppLayout() { setTimeout(() => { window.scrollTo(0, 0); document.body.scrollTop = 0; }, 100); } document.querySelectorAll('input').forEach(input => { input.addEventListener('blur', fixAppLayout); });
         

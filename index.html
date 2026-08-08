@@ -89,8 +89,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=222">
-    <link rel="stylesheet" href="css/style.css?v=222">
+    <link rel="stylesheet" href="css/tokens.css?v=223">
+    <link rel="stylesheet" href="css/style.css?v=223">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -107,7 +107,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=222">
+    <link rel="stylesheet" href="css/vylepseni.css?v=223">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -526,7 +526,10 @@
                     <div class="st-row"><span class="st-lab">Vibrace<small>potvrzení uložení bodu a ťuknutí v AR (iPhone vibrace neumí)</small></span>
                         <label class="st-sw"><input type="checkbox" id="s-vibration" checked onchange="toggleVibration()"><span class="st-sw-face"></span></label></div>
                     <div class="st-row"><span class="st-lab">Animace<small>Android je často vypíná systémově, iPhone ne — tady je srovnáte</small></span>
-                        <select id="s-anim" style="width:auto; min-width:130px;">
+                        <!-- min-width 130px NESTAČILO: „Podle systému" potřebuje 140 px i se šipkou,
+                             takže se text v selectu ořezával na „Podle systé…". Šířku proto řídí
+                             obsah (fit-content) a strop je 58 % řádku, ať popisek vlevo nezmizí. -->
+                        <select id="s-anim" style="width:fit-content; min-width:142px; max-width:58%;">
                             <option value="auto">Podle systému</option>
                             <option value="on">Vždy zapnuté</option>
                             <option value="off">Vypnuté</option>

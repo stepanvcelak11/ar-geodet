@@ -160,7 +160,10 @@
         var btn = document.createElement('button');
         btn.id = 'ag-dup-project-btn';
         btn.className = 'btn btn-secondary';
-        btn.style.cssText = 'margin:-4px 0 15px;';
+        // flex + text-align:left: popisek je dlouhý a láme se na dva řádky. Jako blokové
+        // tlačítko zůstala ikona „+" sama vlevo a text plaval na střed — vypadalo to
+        // rozhozeně. Takhle jde ikona a text jako jeden celek doprostřed.
+        btn.style.cssText = 'margin:-4px 0 15px;display:flex;align-items:center;justify-content:center;gap:9px;text-align:left;';
         btn.innerHTML = '<svg class="icon"><use href="#i-plus"/></svg> Nová zakázka podle této (převezme nastavení)';
         btn.onclick = function () {
             if (typeof window.createNewProject !== 'function') {
