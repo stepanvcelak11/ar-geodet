@@ -1005,8 +1005,12 @@
         // Obnova: mění se JEN text, chipy se nepřekreslují (jinak by animace skočila).
         // Párování podle popisku, ne podle pořadí — seznam se může za běhu rozšířit
         // (např. když mezitím doběhne počasí). Časovač umře s obrazovkou.
+        // BATERIE: časovač umře nejen s odstraněnou obrazovkou, ale i s tou jen
+        // SCHOVANOU. Úvodní karta (#welcome-screen) se po startu appky nemaže, jen
+        // dostane display:none — bez téhle podmínky by chipy přepočítávala každých
+        // 20 s po celý den v terénu.
         var iv = setInterval(function () {
-            if (!document.body.contains(host)) { clearInterval(iv); return; }
+            if (!document.body.contains(host) || !host.getClientRects().length) { clearInterval(iv); return; }
             var now = lvVals(), map = {}, j;
             for (j = 0; j < now.length; j++) map[now[j][0]] = now[j][1];
             var els = host.querySelectorAll('.v');
@@ -1087,9 +1091,23 @@
             // #ag-login (overflow-y:auto) dostal vodorovné rolování.
             // maska: u kraju hodnoty VYBLEDNOU misto ostreho odriznuti v pulce slova
             // („Pr" misto „Praha" na levem okraji vypadalo jako chyba vykresleni)
-            '#ag-login .agl-live,#ag-gate .agl-live{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;',
+            // #welcome-screen je tu ZÁMĚRNĚ: úvodní karta se zakázkou letící hodnoty
+            // taky chce (nahlášeno 8. 8. 2026 — „na úvodní straně mělo na pozadí
+            // poletovat čas/poloha/teplota a není to tam"). Byly naprogramované jen pro
+            // přihlašovací obrazovku, takže je uživatel, který se přihlašuje trvale
+            // (nebo jede jako host), nikdy neviděl. Mountuje je js/welcome-card.js
+            // přes AGUcty.mountLive().
+            '#ag-login .agl-live,#ag-gate .agl-live,#welcome-screen .agl-live{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;',
             '  -webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);',
             '  mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);}',
+            // ⚠ Pravidlo výš je rozsekané do TŘÍ položek pole — nové pravidlo se musí
+            // vkládat AŽ ZA jeho uzavírací `}`, jinak spadne doprostřed bloku a rozbije ho.
+            // Na ÚVODNÍ KARTĚ chipy ztlumit: přihlašovací obrazovka má uprostřed jeden
+            // neprůhledný panel a chipy jsou vidět jen kolem něj, kdežto úvodní karta má
+            // obsah přes celou šířku a průsvitné panely (rgba 0,05) — v plné síle se
+            // propíjejí do textu. Průhlednost patří na CELOU vrstvu, ne na chipy: ty si
+            // opacitu animují v @keyframes a `!important` by animaci rozbil.
+            '#welcome-screen .agl-live{opacity:0.45;}',
             // animation-name se dává INLINE (aglfly<i>) — každý chip má vlastní
             // keyframes s dosazenými čísly, viz startLive()
             '.agl-fl{position:absolute;top:0;left:0;white-space:nowrap;display:inline-flex;align-items:baseline;gap:6px;',
@@ -2210,6 +2228,23 @@
         logout: logout,
         // brána + host + profily firem
         showGate: showGate,
+        // Letící hodnoty na pozadí (návrh ②) k použití i mimo přihlašovací obrazovku.
+        // Vloží do `root` vrstvu .agl-live a nastartuje ji. ŽÁDNÉ stahování ani GPS —
+        // čte jen to, co appka už má v localStorage (viz lvVals výš). Volá to
+        // js/welcome-card.js pro #welcome-screen.
+        mountLive: function (root) {
+            if (!root) return null;
+            injectStyles();
+            var host = root.querySelector('.agl-live');
+            if (!host) {
+                host = document.createElement('div');
+                host.className = 'agl-live';
+                host.setAttribute('aria-hidden', 'true');
+                root.insertBefore(host, root.firstChild);
+            }
+            startLive(root);
+            return host;
+        },
         isGuest: isGuest,
         enterGuest: enterGuest,
         listProfiles: listProfiles,

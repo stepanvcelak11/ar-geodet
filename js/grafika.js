@@ -141,7 +141,7 @@
             // kamerou ~10 (#info, #compass-debug, #menu-toggle-btn, #gps-avg, 5x .dock-btn,
             // #ar-hud-info). Viz pravidlo `body.cam-live:not(.ag-cam-glass)` v css/style.css.
             try { document.body.classList.toggle('cam-live', viewMode !== 'map'); } catch (e) {}
-            const camCont = document.getElementById('camera-container'); const mapCont = document.getElementById('map-container'); const resizer = document.getElementById('resizer'); if (viewMode === 'both') { camCont.style.display = 'block'; camCont.style.flex = '0 0 50%'; mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'flex'; startCameraAndCompass(); } else if (viewMode === 'map') { camCont.style.display = 'none'; mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'none'; stopCameraStream(); startCompass(); } else if (viewMode === 'ar') { camCont.style.display = 'block'; camCont.style.flex = '1'; mapCont.style.display = 'none'; resizer.style.display = 'none'; startCameraAndCompass(); } setTimeout(() => { map.invalidateSize(); }, 300); }
+            const camCont = document.getElementById('camera-container'); const mapCont = document.getElementById('map-container'); const resizer = document.getElementById('resizer'); if (viewMode === 'both') { camCont.style.display = 'block'; applySplit(splitStored(), false); mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'flex'; startCameraAndCompass(); } else if (viewMode === 'map') { camCont.style.display = 'none'; mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'none'; stopCameraStream(); startCompass(); } else if (viewMode === 'ar') { camCont.style.display = 'block'; camCont.style.flex = '1'; mapCont.style.display = 'none'; resizer.style.display = 'none'; startCameraAndCompass(); } setTimeout(() => { map.invalidateSize(); }, 300); }
 
         let compassStarted = false;
         // BATERIE: přišla použitelná ABSOLUTNÍ událost kompasu? Nastavuje handleOrientation.
@@ -252,9 +252,142 @@
             }, 1000);
         })();
 
-        const resizer = document.getElementById('resizer'); const camCont = document.getElementById('camera-container'); let lastTapTime = 0; let isCamMaximized = false;
-        resizer.addEventListener('touchmove', (e) => { const h = (e.touches[0].clientY / window.innerHeight) * 100; camCont.style.flex = `0 0 ${h}%`; });
-        resizer.addEventListener('touchend', (e) => { const currentTime = new Date().getTime(); const tapLength = currentTime - lastTapTime; if (tapLength < 300 && tapLength > 0) { if (isCamMaximized) { camCont.style.transition = 'flex 0.3s ease'; camCont.style.flex = `0 0 50%`; isCamMaximized = false; } else { camCont.style.transition = 'flex 0.3s ease'; camCont.style.flex = `0 0 85%`; isCamMaximized = true; } setTimeout(() => { camCont.style.transition = 'none'; map.invalidateSize(); }, 300); } lastTapTime = currentTime; });
+        // =====================================================================
+        // DELIC KAMERA / MAPA — "chytry delic" (navrh S1, vybran 8. 8. 2026)
+        //
+        // Co bylo spatne na puvodni verzi (ctyri veci, vsechny overene ctenim kodu):
+        //   1) POMER SE NEPAMATOVAL — kazde spusteni zase 50/50. Ted se uklada
+        //      per ZAKAZKU (pokladka chce jiny pomer nez katastr).
+        //   2) NEBYL STROP ANI DNO — slo pretahnout tak, ze mapa nebo kamera
+        //      uplne zmizela a nebylo poznat, jak zpatky. Ted 15–85 %.
+        //   3) SKOK PRI CHYCENI — puvodni touchmove bral clientY jako novou
+        //      hranici, takze delic pri dotyku poskocil pod prst. Ted se pocita
+        //      ODCHYLKA od mista chyceni (pct0 + dy), takze zustane pod prstem.
+        //   4) MAPA SE BEHEM TAZENI NEPREPOCITAVALA — invalidateSize() se volal
+        //      jen po dvojklepu, takze dlazdice byly cely tah roztazene. Ted se
+        //      prepocitava v RAF behem tazeni.
+        // Navic: zarazky na 25/50/75 % s kratkym cuknutim, zive procento jen po
+        // dobu tazeni a obsluha MYSI (CSS uz row-resize kurzor slibovalo, ale
+        // zadny mouse/pointer handler neexistoval — na pocitaci to neslo vubec).
+        //
+        // Dvojklep zustava jako zkratka: prehodi mezi ulozenym pomerem a 85 %.
+        // =====================================================================
+        const resizer = document.getElementById('resizer');
+        const camCont = document.getElementById('camera-container');
+        const SPLIT_KEY = 'arSplitRatio';      // % vysky KAMERY; per zakazka (getStoreKey)
+        const SPLIT_MIN = 15, SPLIT_MAX = 85;  // ani jeden pruh nesmi zmizet uplne
+        const SPLIT_SNAPS = [25, 50, 75];      // zarazky
+        const SPLIT_TOL = 2.2;                 // jak blizko k zarazce uz chytne (v %)
+        let splitPct = 50;
+        let _splitDrag = null, _splitRaf = 0, _splitPre = null;
+
+        function splitClamp(p) { return Math.max(SPLIT_MIN, Math.min(SPLIT_MAX, p)); }
+        // Ulozeny pomer zakazky. Nesmyslne/chybejici hodnoty spadnou na 50 %.
+        function splitStored() {
+            try {
+                const v = parseFloat(getStoredData(SPLIT_KEY));
+                if (isFinite(v)) return splitClamp(v);
+            } catch (e) {}
+            return 50;
+        }
+        function applySplit(p, save) {
+            splitPct = splitClamp(p);
+            camCont.style.flex = `0 0 ${splitPct}%`;
+            if (save) { try { setStoredData(SPLIT_KEY, String(Math.round(splitPct))); } catch (e) {} }
+        }
+        // Leaflet musi o zmene vysky vedet, jinak zustanou dlazdice roztazene.
+        // Skrceno na jedno volani za snimek — pri tazeni by to jinak bezelo
+        // desitkykrat za sekundu a topilo baterii.
+        function splitLiveSize() {
+            if (_splitRaf) return;
+            _splitRaf = requestAnimationFrame(() => {
+                _splitRaf = 0;
+                try { if (typeof map !== 'undefined' && map && map.invalidateSize) map.invalidateSize({ pan: false }); } catch (e) {}
+            });
+        }
+        // Zive procento + zarazky se ukazuji JEN pri tazeni (jinak by to byl
+        // dalsi trvale svitici udaj na obrazovce, kterych uz je dost).
+        let splitPctEl = null, splitSnapEl = null;
+        function splitChrome() {
+            if (splitPctEl) return;
+            splitSnapEl = document.createElement('span');
+            splitSnapEl.className = 'rz-snap';
+            splitSnapEl.setAttribute('aria-hidden', 'true');
+            splitSnapEl.innerHTML = SPLIT_SNAPS.map(() => '<s></s>').join('');
+            splitPctEl = document.createElement('span');
+            splitPctEl.className = 'rz-pct';
+            splitPctEl.setAttribute('aria-hidden', 'true');
+            resizer.appendChild(splitSnapEl);
+            resizer.appendChild(splitPctEl);
+        }
+        function splitShowPct(snapped) {
+            splitChrome();
+            splitPctEl.textContent = `AR ${Math.round(splitPct)} % · MAPA ${100 - Math.round(splitPct)} %`;
+            const ss = splitSnapEl.children;
+            for (let i = 0; i < ss.length; i++) ss[i].classList.toggle('on', SPLIT_SNAPS[i] === snapped);
+        }
+
+        resizer.addEventListener('pointerdown', (e) => {
+            _splitDrag = { id: e.pointerId, y0: e.clientY, pct0: splitPct, moved: false, snap: null };
+            try { resizer.setPointerCapture(e.pointerId); } catch (err) {}
+            camCont.style.transition = 'none';
+            resizer.classList.add('rz-drag');
+            splitShowPct(null);
+            e.preventDefault();
+        });
+        resizer.addEventListener('pointermove', (e) => {
+            if (!_splitDrag || e.pointerId !== _splitDrag.id) return;
+            const dy = e.clientY - _splitDrag.y0;
+            if (Math.abs(dy) > 3) _splitDrag.moved = true;
+            let p = splitClamp(_splitDrag.pct0 + (dy / window.innerHeight) * 100);
+            let snap = null;
+            for (let i = 0; i < SPLIT_SNAPS.length; i++) {
+                if (Math.abs(p - SPLIT_SNAPS[i]) <= SPLIT_TOL) { p = SPLIT_SNAPS[i]; snap = SPLIT_SNAPS[i]; break; }
+            }
+            // cuknuti jen pri VSTUPU do zarazky, ne po celou dobu, co v ni stojim
+            if (snap !== _splitDrag.snap) { _splitDrag.snap = snap; if (snap !== null) { try { agVibe(10); } catch (err) {} } }
+            applySplit(p, false);
+            splitShowPct(snap);
+            splitLiveSize();
+        });
+        function splitEnd(e) {
+            if (!_splitDrag || (e && e.pointerId !== _splitDrag.id)) return;
+            const moved = _splitDrag.moved;
+            _splitDrag = null;
+            resizer.classList.remove('rz-drag');
+            if (moved) {
+                applySplit(splitPct, true);
+                _splitPre = null;               // rucni tah rusi rozdelanou "zvetsenou kameru"
+            } else {
+                // DVOJKLEP: prepnuti mezi ulozenym pomerem a 85 % kamery
+                const now = Date.now();
+                if (now - splitEnd._t < 300) {
+                    camCont.style.transition = 'flex 0.28s ease';
+                    if (_splitPre != null) { applySplit(_splitPre, true); _splitPre = null; }
+                    else { _splitPre = splitPct; applySplit(85, false); }
+                    setTimeout(() => { camCont.style.transition = 'none'; splitLiveSize(); }, 300);
+                }
+                splitEnd._t = now;
+            }
+            splitLiveSize();
+        }
+        splitEnd._t = 0;
+        resizer.addEventListener('pointerup', splitEnd);
+        resizer.addEventListener('pointercancel', splitEnd);
+        // Klavesnice (a cteni obrazovky): sipky posouvaji po 2 %, Home/End na kraje.
+        resizer.setAttribute('tabindex', '0');
+        resizer.setAttribute('role', 'separator');
+        resizer.setAttribute('aria-label', 'Poměr kamery a mapy');
+        resizer.addEventListener('keydown', (e) => {
+            let p = null;
+            if (e.key === 'ArrowUp') p = splitPct - 2;
+            else if (e.key === 'ArrowDown') p = splitPct + 2;
+            else if (e.key === 'Home') p = SPLIT_MIN;
+            else if (e.key === 'End') p = SPLIT_MAX;
+            if (p == null) return;
+            e.preventDefault();
+            applySplit(p, true); splitShowPct(null); splitLiveSize();
+        });
 
         function getMapMarkerSVG(category, color) { if(category === 'TB') return `<svg viewBox="0 0 24 24"><polygon points="12,2 22,20 2,20" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'ZHB') return `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'PBPP') return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'NIVEL') return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="${color}" stroke-width="3"/><circle cx="12" cy="12" r="3" fill="${color}"/></svg>`; if(category === 'CUSTOM') return `<svg viewBox="0 0 24 24"><path d="M12,2 C7,2 3,6 3,11 C3,18 12,22 12,22 C12,22 21,18 21,11 C21,6 17,2 12,2 Z" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="${color}"/></svg>`; }
 

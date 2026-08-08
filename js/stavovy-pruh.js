@@ -397,12 +397,42 @@
         var head = headHtml(g, ar, d, b);
         var body = _open ? bodyHtml(g, ar, d, b) : '';
         if (head === _lastHead && body === _lastBody) return;   // nic se nezměnilo — nepsat do DOM
+        var headChanged = (head !== _lastHead), bodyChanged = (body !== _lastBody);
         _lastHead = head; _lastBody = body;
         el.classList.toggle('ag-sp-open', _open);
         el.setAttribute('aria-expanded', _open ? 'true' : 'false');
-        el.innerHTML = '<div class="ag-sp-head">' + head + '</div>' + (_open ? '<div class="ag-sp-body">' + body + '</div>' : '');
+        // PROBLIKÁVÁNÍ (nahlášeno 8. 8. 2026 z telefonu: „pilulka při svipu problikává
+        // tím, jak se aktualizuje").
+        // PŘÍČINA: tady se přepisoval CELÝ innerHTML pilulky při každé změně. Detail
+        // .ag-sp-body má náběhovou animaci `agSpIn` a ta se znovuvytvořením uzlu
+        // PŘEHRÁLA ZNOVU — každé dvě vteřiny tedy celý rozbalený panel blikl. A protože
+        // rozbalený detail obsahuje živé hodnoty (přesnost, azimut, baterie), měnil se
+        // skoro pořád. Navíc mirrorAz() nuluje _lastHead, takže se překreslovalo i tehdy,
+        // když se ve skutečnosti nic nezměnilo.
+        // ŘEŠENÍ: hlavička a detail se přepisují ZVLÁŠŤ a jen ta část, která se opravdu
+        // změnila. Uzel .ag-sp-body tak zůstane týž → animace se nepřehrává a posluchač
+        // na něm drží (nemusí se navěšovat znovu).
+        var headEl = el.querySelector('.ag-sp-head');
         var bodyEl = el.querySelector('.ag-sp-body');
-        if (bodyEl) bodyEl.addEventListener('click', onAct);
+        if (!headEl) {                       // první vykreslení — postavit kostru
+            el.innerHTML = '<div class="ag-sp-head"></div>';
+            headEl = el.querySelector('.ag-sp-head');
+            bodyEl = null;
+        }
+        if (headChanged) headEl.innerHTML = head;
+        if (!_open) {
+            if (bodyEl) bodyEl.remove();     // sbaleno → detail pryč (animace při dalším otevření je ŽÁDOUCÍ)
+        } else {
+            if (!bodyEl) {
+                bodyEl = document.createElement('div');
+                bodyEl.className = 'ag-sp-body';
+                bodyEl.addEventListener('click', onAct);
+                el.appendChild(bodyEl);
+                bodyEl.innerHTML = body;
+            } else if (bodyChanged) {
+                bodyEl.innerHTML = body;     // TÝŽ uzel → agSpIn se nepřehraje
+            }
+        }
         fitBody();
     }
     // Strop rozbaleného detailu, aby NIKDY nesahal na svislou lištu ovládání.

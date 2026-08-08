@@ -99,8 +99,26 @@
     // renderProjectSelect aktualizuje název hned (než doběhne async načtení bodů).
     wrapAfter('renderProjectSelect');
 
+    // LETÍCÍ HODNOTY NA POZADÍ (čas, poloha, teplota…) — návrh ②.
+    // Byly naprogramované jen pro přihlašovací obrazovku v js/ucty.js, takže je
+    // uživatel s trvalým přihlášením ani host na úvodní kartě nikdy neviděl
+    // (nahlášeno 8. 8. 2026). Vrstvu sem vloží AGUcty.mountLive() — nic nestahuje
+    // ani nezapíná GPS, čte jen localStorage.
+    // ⚠ js/ucty.js se v index.html načítá AŽ ZA tímhle souborem, takže window.AGUcty
+    // při jeho spuštění ještě neexistuje; proto se to zkouší až po doběhnutí všech
+    // defer skriptů a párkrát se to zopakuje.
+    function mountLiveBg(tries) {
+        var ws = document.getElementById('welcome-screen');
+        if (!ws || ws.querySelector('.agl-live')) return;
+        if (window.AGUcty && typeof AGUcty.mountLive === 'function') {
+            try { AGUcty.mountLive(ws); } catch (e) { console.warn('[welcome-card] mountLive', e); }
+            return;
+        }
+        if ((tries || 0) < 10) setTimeout(function () { mountLiveBg((tries || 0) + 1); }, 150);
+    }
+
     // Úvodní vykreslení (kdyby start proběhl dřív, než se tenhle soubor zapojil)
-    function kick() { setTimeout(updateWelcomeProjectCard, 60); }
+    function kick() { setTimeout(updateWelcomeProjectCard, 60); setTimeout(mountLiveBg, 80); }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', kick);
     else kick();
 })();

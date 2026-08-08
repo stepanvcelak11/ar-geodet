@@ -13,6 +13,7 @@
 /* Světlý režim: pole formulářů (jinak tmavá) přebarvit na světlá */
 body.light-mode .modal-content input[type="text"],
 body.light-mode .modal-content input[type="number"],
+body.light-mode .modal-content input[type="search"],
 body.light-mode .modal-content textarea,
 body.light-mode .modal-content select,
 body.light-mode .modal-content input[type="color"],
@@ -20,6 +21,7 @@ body.light-mode .ag-dlg-input,
 body.light-mode .tab-buttons { background: rgba(0, 0, 0, 0.04); }
 body.light-mode .modal-content input[type="text"]:focus,
 body.light-mode .modal-content input[type="number"]:focus,
+body.light-mode .modal-content input[type="search"]:focus,
 body.light-mode .modal-content textarea:focus,
 body.light-mode .modal-content select:focus { background: rgba(0, 0, 0, 0.06); }
 
@@ -555,7 +557,33 @@ body {
     border-radius: var(--r-pill);
     transition: background 0.2s ease, width 0.2s ease;
 }
-#resizer:active .grabber { background: var(--accent); width: 64px; }
+#resizer:active .grabber, #resizer.rz-drag .grabber { background: var(--accent); width: 64px; }
+#resizer:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* Chytry delic (navrh S1): zive procento vpravo a zarazky vlevo. Obojí svítí
+   JEN pri tazeni — mimo nej by to byl dalsi trvale blikajici udaj navic.
+   Nesmi brat klepnuti (pointer-events:none), jinak by se do nich trefil prst
+   misto do delice. */
+.rz-pct, .rz-snap {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.14s ease;
+}
+#resizer.rz-drag .rz-pct, #resizer.rz-drag .rz-snap { opacity: 1; }
+.rz-pct {
+    right: 9px;
+    font-family: var(--font-mono);
+    font-size: calc(9.5px * var(--ag-font-scale, 1));
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    font-variant-numeric: tabular-nums;
+    color: var(--data, #e6bd76);
+    white-space: nowrap;
+}
+.rz-snap { left: 9px; display: flex; gap: 3px; }
+.rz-snap s { width: 9px; height: 2px; background: rgba(255, 255, 255, 0.22); text-decoration: none; display: block; }
+.rz-snap s.on { background: var(--accent); }
 
 /* =========================================================================
    Mapa
@@ -744,13 +772,23 @@ body {
     color: var(--text-muted);
 }
 
+/* POZOR NA type="search" (nalezeno 8. 8. 2026 změřením v prohlížeči):
+   pole hledání v Nastavení (js/nastaveni-hledani.js) je `<input type="search">`,
+   a dokud tenhle selektor chyběl, propadlo na VÝCHOZÍ VZHLED PROHLÍŽEČE —
+   naměřeno background rgb(255,255,255) a color rgb(0,0,0), tedy bílý řádek
+   uprostřed tmavého motivu. `-webkit-appearance:none` musí zůstat, jinak si
+   Safari kreslí vlastní rámeček a křížek navzdory pozadí.
+   Kdyby přibyl další typ vstupu (email, tel, date…), přidat ho SEM. */
 .modal-content input[type="text"],
 .modal-content input[type="number"],
+.modal-content input[type="search"],
 .modal-content textarea,
 .modal-content select {
     width: 100%;
     margin-top: 7px;
     padding: 12px 14px;
+    -webkit-appearance: none;
+    appearance: none;
     background: rgba(0, 0, 0, 0.25);
     border: 1px solid var(--glass-border);
     border-radius: var(--r-sm);
@@ -762,6 +800,7 @@ body {
 .modal-content textarea { resize: vertical; font-family: inherit; line-height: 1.45; box-sizing: border-box; }
 .modal-content input[type="text"]:focus,
 .modal-content input[type="number"]:focus,
+.modal-content input[type="search"]:focus,
 .modal-content textarea:focus,
 .modal-content select:focus {
     border-color: var(--accent);
