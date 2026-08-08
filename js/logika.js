@@ -376,7 +376,7 @@ if ('serviceWorker' in navigator) {
         let connectMode = false, areaMode = false;
         let filters = { tb: true, zhb: true, pbpp: true, nivel: true, custom: true };
 
-        let visSettings = { maxARPoints: 20, arVerticalOffset: 0, markerScale: 1.0, markerOpacity: 100, colTb: '#8b5cf6', colZhb: '#0ea5e9', colPbpp: '#3b82f6', colNivel: '#ef4444', colCustom: '#34d399', arrowScale: 1.0, arrowOpacity: 90, arrowShape: '1', colArrow: '#34d399', panelOpacity: 85, menuScale: 1.0, fontScale: 1.0, hudTop: 55, hudSide: 15, wakeLockEnabled: true, vibrationEnabled: true, outdoorMode: false, autoOutdoor: true, leftHand: false, anim: 'auto', dockArc: 13, katastrSource: 'mapycz', baseLayer: 'osm', showKatastr: false, headingSmoothing: 75, autoCompassCorrection: false, tiltCompensation: true, fovH: 90, fovV: 75, eyeHeight: 1.6 };
+        let visSettings = { maxARPoints: 60, arVerticalOffset: 0, markerScale: 1.0, markerOpacity: 100, colTb: '#8b5cf6', colZhb: '#0ea5e9', colPbpp: '#3b82f6', colNivel: '#ef4444', colCustom: '#34d399', arrowScale: 1.0, arrowOpacity: 90, arrowShape: '1', colArrow: '#34d399', panelOpacity: 85, menuScale: 1.0, hudTop: 55, hudSide: 15, wakeLockEnabled: true, vibrationEnabled: true, outdoorMode: false, leftHand: false, anim: 'auto', dockArc: 13, katastrSource: 'mapycz', baseLayer: 'osm', showKatastr: false, headingSmoothing: 75, autoCompassCorrection: false, tiltCompensation: true, fovH: 90, fovV: 75, eyeHeight: 1.6 };
         
         // Stazene uredni body ziji jen v pameti (initFetch je pridava, neubira) -> pred prepnutim
         // zakazky je ulozime, at se neztrati. Jen kdyz nejake jsou (neprepiseme ulozena data prazdnem).

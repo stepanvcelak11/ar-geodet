@@ -11,12 +11,34 @@
     // Snapshot bere localStorage I IndexedDB-cache (_idbMem z logika.js). Body se ukladaji do
     // IndexedDB, ne do localStorage — bez snimku _idbMem by se zmena (smazani bodu) nepoznala.
     // _idbMem drzi data AKTIVNI zakazky, takze pokryje i smazani bodu i smazani aktivni zakazky.
+    //
+    // VYKON: _idbMem se driv kopiroval pres JSON.parse(JSON.stringify(...)). Jenze jeho
+    // hodnoty UZ JSOU hotove JSON retezce (setStoredData do nej uklada presne to, co jde
+    // do IndexedDB) - u zakazky s tisici body je to nekolikamegovy retezec a stringify ho
+    // cely znovu ESKAPUJE a parse zase odeskapuje. A delo se to DVAKRAT na kazde smazani
+    // (snimek pred akci i po ni), takze smazani JEDNOHO bodu na chvili zaseklo UI.
+    //
+    // Retezce jsou v JS nemenne, takze na snimek uplne staci MELKA kopie: kdyz se hodnota
+    // zmeni, setStoredData na to misto priradi NOVY retezec a stary nam v snimku zustane.
+    // Navic se tim zrychli porovnani nize: nezmenene hodnoty jsou TYZ retezec, takze to
+    // vyridi porovnani referenci misto znakoveho porovnani megabajtoveho retezce.
+    // Neretezcovou hodnotu (kdyby ji sem nekdo casem dal) pro jistotu kopirujeme do hloubky.
+    function snapMem() {
+        let src = null;
+        try { if (typeof _idbMem !== 'undefined' && _idbMem) src = _idbMem; } catch (e) {}
+        if (!src) return null;
+        const out = {};
+        Object.keys(src).forEach(k => {
+            const v = src[k];
+            if (typeof v === 'string' || v == null) out[k] = v;
+            else { try { out[k] = JSON.parse(JSON.stringify(v)); } catch (e) { out[k] = v; } }
+        });
+        return out;
+    }
     function snap() {
         const ls = {};
         for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); ls[k] = localStorage.getItem(k); }
-        let mem = null;
-        try { if (typeof _idbMem !== 'undefined' && _idbMem) mem = JSON.parse(JSON.stringify(_idbMem)); } catch (e) {}
-        return { ls: ls, mem: mem };
+        return { ls: ls, mem: snapMem() };
     }
     function objChanged(a, b) {
         if (!a && !b) return false;
@@ -27,16 +49,24 @@
         return false;
     }
     function changed(a, b) { return objChanged(a.ls, b.ls) || objChanged(a.mem, b.mem); }
+    // ZAPISUJEME JEN TO, CO SE LISI. Drive se pri kazdem "Vratit zpet" prepsal CELY
+    // localStorage a poslala se transakce do IndexedDB za KAZDY klic - u velke zakazky
+    // to znamenalo megabajty zbytecnych zapisu (a na skoro plnem telefonu i riziko, ze
+    // nektery z nich narazi na kvotu). Vraceni jednoho bodu ma sahnout na jeden klic.
     function restore(s) {
         const cur = [];
         for (let i = 0; i < localStorage.length; i++) cur.push(localStorage.key(i));
         cur.forEach(k => { if (!(k in s.ls)) localStorage.removeItem(k); });
-        Object.keys(s.ls).forEach(k => localStorage.setItem(k, s.ls[k]));
+        Object.keys(s.ls).forEach(k => { if (localStorage.getItem(k) !== s.ls[k]) localStorage.setItem(k, s.ls[k]); });
         // IndexedDB (velka data: body) — vrat synchronni cache i samotne IDB
         if (s.mem && typeof _idbMem !== 'undefined' && _idbMem) {
             try {
                 Object.keys(_idbMem).forEach(k => { if (!(k in s.mem)) { delete _idbMem[k]; if (typeof _idbDel === 'function') _idbDel(k); } });
-                Object.keys(s.mem).forEach(k => { _idbMem[k] = s.mem[k]; if (typeof _idbSet === 'function') _idbSet(k, s.mem[k]); });
+                Object.keys(s.mem).forEach(k => {
+                    if (_idbMem[k] === s.mem[k]) return;          // beze zmeny -> zadny zapis
+                    _idbMem[k] = s.mem[k];
+                    if (typeof _idbSet === 'function') _idbSet(k, s.mem[k]);
+                });
             } catch (e) {}
         }
     }

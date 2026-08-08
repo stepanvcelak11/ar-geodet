@@ -470,7 +470,11 @@
                 + 'uložené kalibrace: ' + ((d.calibProfiles && d.calibProfiles.length) || 0) + '\n\n'
                 + 'Body, zakázky ani účty se nemění. Zorný úhel platí pro MODEL telefonu — '
                 + 'z jiného modelu ho nepřenášej.';
-            if (!window.confirm(ask)) return;
+            agGuard(ask, function () { nahrajProfil(d); }, { danger: true });
+        };
+        // Vlastni nahrani profilu. Vytazeno z obsluhy FileReaderu, protoze potvrzeni je
+        // ted in-app dialog (asynchronni) - jinak by se telo muselo cele odsadit dovnitr.
+        function nahrajProfil(d) {
             var v = vis();
             if (v) {
                 if (d.fovH) v.fovH = +d.fovH;
@@ -496,7 +500,7 @@
             if (v) { setControl('s-fovh', v.fovH || 90); setControl('s-fovv', v.fovV || 75); if (v.eyeHeight) setControl('s-eyeh', v.eyeHeight); }
             renderDevice();
             toast('Profil zařízení nahrán');
-        };
+        }
         fr.onerror = function () { toast('Soubor nejde přečíst'); };
         fr.readAsText(file);
     }

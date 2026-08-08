@@ -1370,6 +1370,10 @@
             if (window.AGVisualTrack && window.AGVisualTrack.enabled) { var _vc2 = window.AGVisualTrack.getCorrection(); if (_vc2 && _vc2.dpitch != null) cameraPitchDown += _vc2.dpitch; }
             window._arProj = { pitch: cameraPitchDown, roll: imgRoll, halfH: halfH, halfV: halfV };
             let highlightedPointData = null; let renderedCount = 0;
+            // Kolik bodů spolklo POUZE omezení „max značek v AR" (ne filtry, ne dosah).
+            // Bez tohohle čísla uživatel nemá jak poznat, že na hustém staveništi kouká
+            // na neúplný obraz — a strop je přitom skrytý na posuvníku v Nastavení.
+            let _cappedCount = 0;
             let _arMissingEl = false;   // narazili jsme na bod bez DOM elementu?
 
             let maxPts = visSettings.maxARPoints || 100; let vOffset = visSettings.arVerticalOffset || 0;
@@ -1383,7 +1387,7 @@
                 const distance = pt.currentDist || getDistance(_oLat, _oLng, pt.lat, pt.lng);
                 let isSelectedForDetail = (pt.id === activePointIdForModal);
                 if (distance > arRadius && pt.id !== highlightedPointId && !isSelectedForDetail) isVisible = false;
-                if (isVisible && pt.id !== highlightedPointId && !isSelectedForDetail) { if (renderedCount >= maxPts) { isVisible = false; } else { renderedCount++; } }
+                if (isVisible && pt.id !== highlightedPointId && !isSelectedForDetail) { if (renderedCount >= maxPts) { isVisible = false; _cappedCount++; } else { renderedCount++; } }
                 if (!isVisible) { if (pt.element && pt._opLast !== '0') { pt.element.style.opacity = '0'; pt.element.style.pointerEvents = 'none'; pt._opLast = '0'; } return; }
                 // Bod bez DOM elementu (pridany do arPoints az po poslednim initARMarkers —
                 // import, cloud sync, rajon...): preskocit a na konci snimku si element nechat
@@ -1460,6 +1464,8 @@
             // nedostal (podminky viditelnosti v renderAR a initARMarkers nejsou uplne
             // totozne), bez skrceni by se initARMarkers volalo 60x za sekundu.
             if (_arMissingEl && (Date.now() - _arInitRetryAt) > 1000) { _arInitRetryAt = Date.now(); try { initARMarkers(); } catch (e) {} }
+            // stav stropu ven pro js/filtr-info.js (upozorní, až když strop opravdu ubírá)
+            window._arCapped = { capped: _cappedCount, shown: renderedCount, max: maxPts };
             _updateMoreBadges(_placed);
             drawARLines(heading, cameraPitchDown, imgRoll, halfH, halfV, vOffset, eyeH);
             
