@@ -516,11 +516,12 @@
             });
             m.querySelector('#ag-zv-det-del').addEventListener('click', function () {
                 var z = byId(_editId); if (!z) return;
-                if (!confirm('Smazat závadu „' + catLabel(z.cat) + '"? Tohle nejde vrátit.')) return;
-                photoDel(photoKey(z));
-                _list = _list.filter(function (x) { return x.id !== z.id; });
-                persist(); drawMap(); closeOv('ag-zv-det-ov'); renderList();
-                toast('Závada smazána.');
+                agGuard('Smazat závadu „' + catLabel(z.cat) + '"? Tohle nejde vrátit.', function () {
+                    photoDel(photoKey(z));
+                    _list = _list.filter(function (x) { return x.id !== z.id; });
+                    persist(); drawMap(); closeOv('ag-zv-det-ov'); renderList();
+                    toast('Závada smazána.');
+                }, { danger: true });
             });
         }
         return m;

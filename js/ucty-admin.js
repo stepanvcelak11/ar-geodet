@@ -1514,16 +1514,18 @@
                 if (!btn) return;
                 var p = rowRef[parseInt(btn.getAttribute('data-fix'), 10)];
                 if (!p || !u.usageLogRaw) return;
-                var v = prompt('Čas odchodu pro ' + p.name + ' (' + p.day + '), příchod byl ' + new Date(p.inTs).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) + '.\nZadej HH:MM:', '17:00');
-                if (!v) return;
-                var m = /^(\d{1,2})[:.](\d{2})$/.exec(v.trim());
-                if (!m) { agAlert('Neplatný čas', 'Zadej např. 16:30.'); return; }
-                var parts = p.day.split('-');
-                var out = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), parseInt(m[1], 10), parseInt(m[2], 10), 0, 0);
-                if (out.getTime() <= p.inTs) { agAlert('Neplatný čas', 'Odchod musí být po příchodu.'); return; }
-                u.usageLogRaw({ ts: out.getTime(), t: 'shift', k: 'out', uid: p.uid, u: p.name, proj: p.proj, dev: 'admin-fix' });
-                if (f.cloud) setTimeout(function () { u.syncUsage().then(function () { renderDochazka(body); }); }, 700);
-                else setTimeout(function () { renderDochazka(body); }, 400);
+                agAskText('Příchod byl ' + new Date(p.inTs).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) + '. Zadej čas odchodu (HH:MM).',
+                    { title: 'Odchod pro ' + p.name + ' (' + p.day + ')', value: '17:00', okText: 'Doplnit' }).then(function (v) {
+                    if (!v) return;
+                    var m = /^(\d{1,2})[:.](\d{2})$/.exec(String(v).trim());
+                    if (!m) { agAlert('Neplatný čas', 'Zadej např. 16:30.'); return; }
+                    var parts = p.day.split('-');
+                    var out = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), parseInt(m[1], 10), parseInt(m[2], 10), 0, 0);
+                    if (out.getTime() <= p.inTs) { agAlert('Neplatný čas', 'Odchod musí být po příchodu.'); return; }
+                    u.usageLogRaw({ ts: out.getTime(), t: 'shift', k: 'out', uid: p.uid, u: p.name, proj: p.proj, dev: 'admin-fix' });
+                    if (f.cloud) setTimeout(function () { u.syncUsage().then(function () { renderDochazka(body); }); }, 700);
+                    else setTimeout(function () { renderDochazka(body); }, 400);
+                });
             };
 
             // exporty výkazu (CSV do mezd; Tisk/PDF přes systémový tisk)

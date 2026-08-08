@@ -90,8 +90,9 @@
     }
 
     function clearTrack() {
-        if (!confirm('Smazat zaznamenanou stopu v této zakázce?')) return;
-        _track = []; if (_persistTimer) { clearTimeout(_persistTimer); _persistTimer = null; } _dirty = false; persist(); clearLine(); refreshPanel();
+        agGuard('Smazat zaznamenanou stopu v této zakázce?', function () {
+            _track = []; if (_persistTimer) { clearTimeout(_persistTimer); _persistTimer = null; } _dirty = false; persist(); clearLine(); refreshPanel();
+        }, { danger: true });
     }
 
     // ---- GPX export ------------------------------------------------------------

@@ -80,10 +80,11 @@ function openStakeoutModal() {
 }
 
 function resetStakeout() {
-    if (!confirm('Zrušit odškrtnutí všech bodů v této zakázce?')) return;
-    stakeoutData = {}; saveStakeout();
-    arPoints.forEach(p => { if (p.element) p.element.classList.remove('staked'); });
-    drawAllMarkersOnMap(); renderStakeoutList();
+    agGuard('Zrušit odškrtnutí všech bodů v této zakázce?', function () {
+        stakeoutData = {}; saveStakeout();
+        arPoints.forEach(p => { if (p.element) p.element.classList.remove('staked'); });
+        drawAllMarkersOnMap(); renderStakeoutList();
+    }, { danger: true });
 }
 
 function renderStakeoutList() {

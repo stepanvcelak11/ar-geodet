@@ -355,10 +355,11 @@
         el.querySelector('#aggo-vis').onchange = function () { _visible = this.checked; refreshLayer(); saveParams(); };
         el.querySelector('#aggo-fit').onclick = function () { fitToOverlay(); };
         el.querySelector('#aggo-del').onclick = function () {
-            if (!confirm('Odebrat vlastní podklad z této zakázky?')) return;
-            idbDel('img_' + projId()); try { if (typeof removeStoredData === 'function') removeStoredData(PKEY); else if (typeof setStoredData === 'function') setStoredData(PKEY, ''); } catch (e) {}
-            resetState(); renderInfo(); renderCpList();
-            var st = document.getElementById('aggo-status'); if (st) st.innerHTML = '';
+            agGuard('Odebrat vlastní podklad z této zakázky?', function () {
+                idbDel('img_' + projId()); try { if (typeof removeStoredData === 'function') removeStoredData(PKEY); else if (typeof setStoredData === 'function') setStoredData(PKEY, ''); } catch (e) {}
+                resetState(); renderInfo(); renderCpList();
+                var st = document.getElementById('aggo-status'); if (st) st.innerHTML = '';
+            }, { danger: true });
         };
     }
 

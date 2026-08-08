@@ -188,8 +188,9 @@
                 if (rec.type === 'project') restoreProject(rec, fin); else restorePoint(rec, fin);
             });
             row.querySelector('.cp-btn-delete').addEventListener('click', function () {
-                if (!confirm('Smazat trvale? Tohle už vrátit nepůjde.')) return;
-                removeRec(rec); render();
+                agGuard('Smazat trvale? Tohle už vrátit nepůjde.', function () {
+                    removeRec(rec); render();
+                }, { danger: true });
             });
             box.appendChild(row);
         });

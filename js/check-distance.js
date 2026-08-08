@@ -153,7 +153,7 @@
         overlay.querySelector('#omr-base').addEventListener('change', function () { var v = num(this.value); if (v != null) cfg.baseMm = v; save(); renderTable(); });
         overlay.querySelector('#omr-ppm').addEventListener('change', function () { var v = num(this.value); if (v != null) cfg.ppm = v; save(); renderTable(); });
         overlay.querySelector('#omr-csv').addEventListener('click', exportCSV);
-        overlay.querySelector('#omr-clear').addEventListener('click', function () { if (!confirm('Vymazat všechny kontrolní míry?')) return; checks = []; save(); renderTable(); });
+        overlay.querySelector('#omr-clear').addEventListener('click', function () { agGuard('Vymazat všechny kontrolní míry?', function () { checks = []; save(); renderTable(); }, { danger: true }); });
         overlay.querySelector('#omr-tbody').addEventListener('click', function (e) {
             var btn = e.target.closest('[data-del]'); if (!btn) return;
             var i = parseInt(btn.getAttribute('data-del'), 10);

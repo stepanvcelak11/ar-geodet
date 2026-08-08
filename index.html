@@ -83,8 +83,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=212">
-    <link rel="stylesheet" href="css/style.css?v=212">
+    <link rel="stylesheet" href="css/tokens.css?v=214">
+    <link rel="stylesheet" href="css/style.css?v=214">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -101,7 +101,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=212">
+    <link rel="stylesheet" href="css/vylepseni.css?v=214">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -574,8 +574,8 @@
                         <input type="range" id="s-ar-radius-slider" min="50" max="5000" step="50" value="150" oninput="document.getElementById('s-ar-radius-val').innerText = this.value">
                     </div>
                     <div class="st-slider">
-                        <div class="st-slider-head"><span class="st-lab">Max. bodů v AR (výkon)</span><span class="st-val"><span id="s-max-ar-val">20</span></span></div>
-                        <input type="range" id="s-max-ar-slider" min="10" max="200" step="10" value="20" oninput="document.getElementById('s-max-ar-val').innerText = this.value">
+                        <div class="st-slider-head"><span class="st-lab">Max. bodů v AR (výkon)</span><span class="st-val"><span id="s-max-ar-val">60</span></span></div>
+                        <input type="range" id="s-max-ar-slider" min="10" max="200" step="10" value="60" oninput="document.getElementById('s-max-ar-val').innerText = this.value">
                     </div>
                     <div class="set-h">Kompas a stabilita směru</div>
                     <button class="btn btn-secondary" onclick="openCompassModal();"><svg class="icon"><use href="#i-crosshair"/></svg> Kompas a kalibrace</button>
@@ -813,7 +813,8 @@
     <!-- MŮSTEK DIALOGŮ — agInfo()/agAsk() = jednotné in-app dialogy místo nativních alert()/confirm() -->
     <script defer src="js/dialog-bridge.js"></script>
     <script defer src="js/lib/leaflet-1.9.4.js"></script>
-    <script defer src="js/lib/esri-leaflet-3.0.12.js"></script>
+    <!-- js/lib/esri-leaflet-3.0.12.js se ZAMERNE nenacita: 67 kB na kazdy start
+         a v kodu neni ani jedno `L.esri` - ArcGIS ČÚZK se vola prostym fetch. -->
     <script defer src="js/power-save.js"></script>
     <script defer src="js/idle-timers.js"></script>
     <script defer src="js/logika.js"></script>
@@ -987,6 +988,9 @@
     <!-- CENTRUM UPOZORNĚNÍ (odpojitelné) — jeden sloupec nahoře místo 7 prvků,
          které si o stejné místo říkaly a překrývaly se (window.AGNotify) -->
     <script defer src="js/upozorneni.js"></script>
+    <!-- KOLIK BODŮ JE SCHOVANÝCH (odpojitelné) — filtry kategorií se ukládají per zakázka
+         a přežijí restart; bez tohohle není na obrazovce ŽÁDNÁ stopa, proč je mapa prázdná -->
+    <script defer src="js/filtr-info.js"></script>
     <!-- NÁSTROJE JAKO SEZNAM ÚKONŮ (odpojitelné) — druhý pohled vedle mřížky;
          seznam sloves místo 61 ikon, mřížka zůstává pod přepínačem „Vše" -->
     <script defer src="js/nastroje-ukony.js"></script>

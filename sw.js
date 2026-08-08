@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v212';   // OPRAVA: jeden bod bez DOM elementu shazoval vykresleni vsech bodu v AR i v mape
+const SHELL_CACHE = 'argeodet-shell-v214';   // Indikator schovanych bodu, strop AR, in-app dialogy, rychlejsi undo, esri-leaflet ze startu pryc
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -25,9 +25,9 @@ const ASSETS_TO_CACHE = [
     './icon-512.png',
     './icon-maskable-192.png',
     './icon-maskable-512.png',
-    './css/tokens.css?v=212',
-    './css/style.css?v=212',
-    './css/vylepseni.css?v=212',
+    './css/tokens.css?v=214',
+    './css/style.css?v=214',
+    './css/vylepseni.css?v=214',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
@@ -53,7 +53,6 @@ const ASSETS_TO_CACHE = [
     './js/err-log.js',
     './js/dialog-bridge.js',
     './js/lib/leaflet-1.9.4.js',
-    './js/lib/esri-leaflet-3.0.12.js',
     './js/power-save.js',
     './js/idle-timers.js',
     './js/logika.js',
@@ -158,6 +157,7 @@ const ASSETS_TO_CACHE = [
     './js/tools-hub.js',
     './js/stavovy-pruh.js',
     './js/upozorneni.js',
+    './js/filtr-info.js',
     './js/nastroje-ukony.js',
     './js/moje-aktivita.js',
     './js/nastaveni-hledani.js',

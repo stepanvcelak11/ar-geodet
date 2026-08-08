@@ -192,13 +192,16 @@
         if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.lat) { lat = gpsAvgResult.lat; lng = gpsAvgResult.lng; }
         else if (typeof userLat !== 'undefined' && userLat) { lat = userLat; lng = userLng; }
         if (lat == null) { agInfo('Zatím nemám GPS polohu.'); return; }
-        const nm = prompt('Číslo / označení bodu:', nextName());
-        if (nm === null) return;
-        sketch.pts.push({ name: nm.trim() || nextName(), lat: lat, lng: lng }); sketch.log.push('pt');
-        save();
-        if (sketch.pts.length === 1 && tmap) tmap.setView([lat, lng], 20);
-        redraw();
-        hint('Přidán bod „' + sketch.pts[sketch.pts.length - 1].name + '". Stůjte na bodě a měřte přesně.');
+        agAskText('', { title: 'Číslo / označení bodu', value: nextName(), okText: 'Přidat' }).then(function (nm) {
+            if (nm === null) return;
+            sketch.pts.push({ name: String(nm).trim() || nextName(), lat: lat, lng: lng }); sketch.log.push('pt');
+            save();
+            if (sketch.pts.length === 1 && tmap) tmap.setView([lat, lng], 20);
+            redraw();
+            // MUSI byt tady, ne za agAskText: bod se prida teprve v tomhle callbacku.
+            // Venku by hint precetl jmeno PREDCHOZIHO bodu (a u prazdneho nacrtu spadl).
+            hint('Přidán bod „' + sketch.pts[sketch.pts.length - 1].name + '". Stůjte na bodě a měřte přesně.');
+        });
     };
 
     window.tachyAddFromPoints = function () {
@@ -249,7 +252,12 @@
         else if (last === 'pt') { const ri = sketch.pts.length - 1; sketch.pts.pop(); sketch.lines = sketch.lines.filter(l => l[0] !== ri && l[1] !== ri); }
         save(); redraw();
     };
-    window.tachyClear = function () { if ((!sketch.pts.length && !sketch.labels.length && !sketch.strokes.length) || confirm('Vymazat celý náčrt?')) { sketch = { pts: [], lines: [], labels: [], strokes: [], log: [] }; selIdx = -1; save(); redraw(); } };
+    window.tachyClear = function () {
+        var vymaz = function () { sketch = { pts: [], lines: [], labels: [], strokes: [], log: [] }; selIdx = -1; save(); redraw(); };
+        // prazdny nacrt se maze bez ptani - neni co ztratit
+        if (!sketch.pts.length && !sketch.labels.length && !sketch.strokes.length) { vymaz(); return; }
+        agGuard('Vymazat celý náčrt?', vymaz, { danger: true });
+    };
 
     // ---------- Interakce (přes klik do mapy) ----------
     function onMapClick(e) {
@@ -257,9 +265,19 @@
         if (mode === 'label') {
             let lbi = -1, lbD = 26 * 26;
             sketch.labels.forEach((lb, i) => { const s = scr(lb); const d = (s.x - px) * (s.x - px) + (s.y - py) * (s.y - py); if (d < lbD) { lbD = d; lbi = i; } });
-            if (lbi >= 0) { const nt = prompt('Upravit popisek (prázdné = smazat):', sketch.labels[lbi].text); if (nt === null) return; if (!nt.trim()) sketch.labels.splice(lbi, 1); else sketch.labels[lbi].text = nt.trim(); save(); redraw(); return; }
-            const t = prompt('Text popisku (např. kámen, šachta, strom):', ''); if (t === null || !t.trim()) return;
-            sketch.labels.push({ lat: e.latlng.lat, lng: e.latlng.lng, text: t.trim() }); sketch.log.push('label'); save(); redraw(); return;
+            if (lbi >= 0) {
+                agAskText('Prázdné pole popisek smaže.', { title: 'Upravit popisek', value: sketch.labels[lbi].text, okText: 'Uložit' }).then(function (nt) {
+                    if (nt === null) return;
+                    if (!String(nt).trim()) sketch.labels.splice(lbi, 1); else sketch.labels[lbi].text = String(nt).trim();
+                    save(); redraw();
+                });
+                return;
+            }
+            agAskText('Např. kámen, šachta, strom.', { title: 'Text popisku', value: '', okText: 'Přidat' }).then(function (t) {
+                if (t === null || !String(t).trim()) return;
+                sketch.labels.push({ lat: e.latlng.lat, lng: e.latlng.lng, text: String(t).trim() }); sketch.log.push('label'); save(); redraw();
+            });
+            return;
         }
         let best = -1, bestD = 24 * 24;
         sketch.pts.forEach((p, i) => { const s = scr(p); const d = (s.x - px) * (s.x - px) + (s.y - py) * (s.y - py); if (d < bestD) { bestD = d; best = i; } });

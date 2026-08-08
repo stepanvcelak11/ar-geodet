@@ -495,8 +495,9 @@
         overlay.querySelector('#dmt-fit').addEventListener('click', fitView);
         overlay.querySelector('#dmt-png').addEventListener('click', exportPNG);
         overlay.querySelector('#dmt-clear').addEventListener('click', function () {
-            if (!confirm('Vymazat všechny body z DMT?')) return;
-            pts = []; tris = []; result = null; save(); renderResults(); draw();
+            agGuard('Vymazat všechny body z DMT?', function () {
+                pts = []; tris = []; result = null; save(); renderResults(); draw();
+            }, { danger: true });
         });
 
         // pan & zoom

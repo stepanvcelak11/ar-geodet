@@ -47,7 +47,13 @@ async function bootApp(page, context) {
         try {
             localStorage.setItem('agGuest_v1', JSON.stringify({ ts: Date.now() }));
             localStorage.setItem('agTutProSeen', '1');       // ať nevyskočí prohlídka
-            localStorage.setItem('agBrifinkSeen_v1', new Date().toISOString().slice(0, 10));
+            // Ranní brífink (js/brifink.js) se sám otevře 1× denně a je to celoobrazovkový
+            // modál — přes něj se nedá klikat a testy pak umíraly na timeout. Vypínáme ho
+            // NATVRDO ('agBrifinkAuto' = '0') a k tomu značíme, že dnes už byl
+            // ('agBrifinkLastShown'). Dřív tu byl klíč 'agBrifinkSeen_v1', který ale
+            // brifink.js vůbec nečte — potlačení tedy nefungovalo.
+            localStorage.setItem('agBrifinkAuto', '0');
+            localStorage.setItem('agBrifinkLastShown', new Date().toISOString().slice(0, 10));
         } catch (e) { }
     });
 
@@ -65,6 +71,22 @@ async function bootApp(page, context) {
     // nech pár sekund běžet smyčky modulů (bublina, mapa, HUD) — chyby se často
     // objeví až v prvním intervalu, ne při načtení
     await page.waitForTimeout(4000);
+
+    // DIAGNOSTIKA: když něco leží přes celou appku (modál, brána, brífink), klikání
+    // v dalších testech umře na timeout a z hlášky se nedá poznat proč. Radši to
+    // řekneme jménem prvku hned tady.
+    const blokuje = await page.evaluate(() => {
+        const jde = [];
+        document.querySelectorAll('.modal-overlay, #ag-gate, #ag-login').forEach((el) => {
+            const s = getComputedStyle(el);
+            if (s.display === 'none' || s.visibility === 'hidden' || s.opacity === '0') return;
+            const r = el.getBoundingClientRect();
+            if (r.width > innerWidth * 0.6 && r.height > innerHeight * 0.6) jde.push(el.id || el.className);
+        });
+        return jde;
+    });
+    expect(blokuje, 'přes appku leží celoobrazovkový prvek — další testy by umřely na timeout').toEqual([]);
+
     return errors;
 }
 
@@ -158,13 +180,16 @@ test('karta bodu: navigační pruh a akce', async ({ page, context }) => {
 
     // vlastní bod 30 m severně od podvržené polohy → karta se otevře přes showDetails
     const ok = await page.evaluate(() => {
-        if (typeof window.showDetails !== 'function' || typeof window.arPoints === 'undefined') return false;
+        // POZOR: arPoints je v logika.js `let` na nejvyšší úrovni — tedy globální
+        // lexikální binding, NE vlastnost window. Sahat na `window.arPoints` proto
+        // vždy vrátilo undefined a celý test se tiše přeskakoval.
+        if (typeof showDetails !== 'function' || typeof arPoints === 'undefined') return false;
         const pt = {
             id: 'test-bod-1', name: 'TEST-1', type: 'custom', cat: 'CUSTOM',
             lat: 50.0875 + 0.00027, lng: 14.4213, vyska: 200.5
         };
-        window.arPoints.push(pt);
-        window.showDetails(pt, 30);
+        arPoints.push(pt);
+        showDetails(pt, 30);
         return true;
     });
     test.skip(!ok, 'showDetails/arPoints nejsou globální — přeskočeno');

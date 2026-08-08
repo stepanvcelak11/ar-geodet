@@ -437,13 +437,15 @@
     function saveStandpoint() {
         if (!_result || _result.mode !== 'full') return;
         if (typeof window.addImportedPoints !== 'function') { agAlert('Nelze uložit', 'Vkládání bodů není dostupné.'); return; }
-        var name = 'Stanovisko' ;
-        try { name = prompt('Název stanoviska:', 'ST_' + (_result.residuals.length) + 'b') || name; } catch (e) {}
-        var added = window.addImportedPoints([{ name: name, lat: _result.lat, lng: _result.lng }]);
-        if (added > 0) agAlert('Stanovisko uloženo', '#' + name + ' uloženo do zakázky'
-            + (_result.posSigma != null ? ' (odhad ±' + _result.posSigma.toFixed(2) + ' m).' : '.')
-            + '\nNajdeš ho v seznamu Body.');
-        else agAlert('Neuloženo', 'Bod se stejným názvem a polohou už v zakázce je.');
+        agAskText('', { title: 'Název stanoviska', value: 'ST_' + (_result.residuals.length) + 'b', okText: 'Uložit' }).then(function (zadano) {
+            if (zadano === null) return;                    // Zrusit = neukladat
+            var name = String(zadano).trim() || 'Stanovisko';
+            var added = window.addImportedPoints([{ name: name, lat: _result.lat, lng: _result.lng }]);
+            if (added > 0) agAlert('Stanovisko uloženo', '#' + name + ' uloženo do zakázky'
+                + (_result.posSigma != null ? ' (odhad ±' + _result.posSigma.toFixed(2) + ' m).' : '.')
+                + '\nNajdeš ho v seznamu Body.');
+            else agAlert('Neuloženo', 'Bod se stejným názvem a polohou už v zakázce je.');
+        });
     }
 
     // ---- otevření/zavření + živá obnova seznamu -------------------------------

@@ -312,8 +312,9 @@
             var rd = new FileReader(); rd.onload = function () { try { importGeoJSON(String(rd.result)); } catch (e) { agAlert('Chyba souboru', String(e && e.message || e)); } }; rd.readAsText(f); ev.target.value = '';
         });
         document.getElementById('agcv-clear').addEventListener('click', function () {
-            if (!confirm('Vymazat stažené parcely z této zakázky?')) return;
-            _parcels = []; _here = null; persist(); drawMap(); stopAr(); renderInfo();
+            agGuard('Vymazat stažené parcely z této zakázky?', function () {
+                _parcels = []; _here = null; persist(); drawMap(); stopAr(); renderInfo();
+            }, { danger: true });
         });
     }
     function renderInfo() {

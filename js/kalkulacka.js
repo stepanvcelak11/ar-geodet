@@ -1059,8 +1059,12 @@ function decoratePointItem(item, pt) {
     const _origDel = window.deleteCustomPoint;
     window.deleteCustomPoint = function (id) {
         const before = (typeof persistentCustomPoints !== 'undefined') ? persistentCustomPoints.length : 0;
-        _origDel(id);
+        // POZOR: predat VSECHNY argumenty. Druhy argument (skipConfirm) pouziva hromadne
+        // mazani ve Sprave bodu — kdyz se cestou zahodi, puvodni funkce se zepta u kazdeho
+        // z desitek bodu zvlast (a s in-app dialogem by se davka navic vubec neprovedla).
+        const ret = _origDel.apply(this, arguments);
         if (typeof persistentCustomPoints !== 'undefined' && persistentCustomPoints.length < before) { try { deletePointDoc(id); } catch (e) {} }
+        return ret;
     };
 })();
 

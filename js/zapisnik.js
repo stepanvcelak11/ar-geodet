@@ -209,11 +209,12 @@
         });
         b.querySelectorAll('.ag-zb-del').forEach(function (el) {
             el.addEventListener('click', function () {
-                if (!confirm('Smazat tento zápisník včetně všech zápisů?')) return;
-                var p = el.getAttribute('data-del').split(':');
-                var dd = loadAll();
-                dd[p[0]] = dd[p[0]].filter(function (n) { return n.id !== p[1]; });
-                saveAll(dd); renderHome();
+                agGuard('Smazat tento zápisník včetně všech zápisů?', function () {
+                    var p = el.getAttribute('data-del').split(':');
+                    var dd = loadAll();
+                    dd[p[0]] = dd[p[0]].filter(function (n) { return n.id !== p[1]; });
+                    saveAll(dd); renderHome();
+                }, { danger: true });
             });
         });
     }
@@ -501,8 +502,9 @@
         var delG = b.querySelector('#ag-zb-delg');
         if (delG) delG.addEventListener('click', function () {
             var gg = getNb('sm', id); if (!gg || gg.nb.groups.length <= 1) return;
-            if (!confirm('Odebrat poslední skupinu včetně čtení?')) return;
-            gg.nb.groups.pop(); saveAll(gg.d); renderSm(id);
+            agGuard('Odebrat poslední skupinu včetně čtení?', function () {
+                gg.nb.groups.pop(); saveAll(gg.d); renderSm(id);
+            }, { danger: true });
         });
         smRefresh(id);
     }

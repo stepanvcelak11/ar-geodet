@@ -436,8 +436,9 @@
         });
     }
     function clearDesign() {
-        if (!confirm('Odebrat naimportovaný návrh z této zakázky?')) return;
-        _design = null; persist(); drawMap(); stopAr(); renderDxf();
+        agGuard('Odebrat naimportovaný návrh z této zakázky?', function () {
+            _design = null; persist(); drawMap(); stopAr(); renderDxf();
+        }, { danger: true });
     }
 
     // ---- raster: výběr obrázku + 2 kontrolní body ------------------------------
