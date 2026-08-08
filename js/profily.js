@@ -194,6 +194,13 @@
             '#ag-prof-row button:active{transform:scale(0.97);}',
             '#ag-prof-note{margin:6px 2px 0;font:500 11.5px/1.45 var(--font-ui,system-ui),sans-serif;color:var(--text-muted,#9aa1ac);}',
             '#ag-prof-note b{color:var(--text-color,#eceef2);}',
+            '#ag-prof-note button[data-del]{display:inline-block;margin-left:2px;background:none;border:none;padding:0;',
+            '  cursor:pointer;color:var(--danger,#ef4444);font:600 11.5px/1.45 var(--font-ui,system-ui),sans-serif;text-decoration:underline;}',
+            // „Bez profilu" je rovnocenná volba, ne popřená akce — svítí stejně jako profil
+            '#ag-prof-row button[data-off].on{border-color:var(--glass-border,rgba(255,255,255,0.28));',
+            '  background:rgba(255,255,255,0.10);color:var(--text-color,#eceef2);}',
+            '#ag-prof-row button[data-off].on .icon{color:var(--text-color,#eceef2);}',
+            '#ag-prof-row button[data-new]{border-style:dashed;}',
             // sbalitelné srovnání
             '#ag-prof-det{margin:7px 0 0;}',
             '#ag-prof-det>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;',
@@ -259,8 +266,92 @@
         return true;
     }
 
+    // ---- VLASTNÍ PROFILY ----------------------------------------------------------
+    // „Ulož, jak to mám teď" — vlastní profil je otisk PRÁVĚ NASTAVENÝCH hodnot
+    // těch voleb, kterými hýbou vestavěné profily. Záměrně se nevymýšlí nový
+    // seznam voleb: co umí vestavěný profil přepnout, to umí i vlastní, takže se
+    // obě větve nemůžou rozejít. Aplikuje se úplně stejnou cestou (setControl →
+    // saveSettings), takže se nikde nedrží druhá kopie nastavení.
+    var CUST_KEY = 'agProfileCustom_v1';
+    var CUST_PREFIX = 'vlastni_';
+    function isCustom(id) { return String(id || '').indexOf(CUST_PREFIX) === 0; }
+    function rawCustoms() {
+        var a = null;
+        try { a = JSON.parse(ls(CUST_KEY) || '[]'); } catch (e) {}
+        if (Object.prototype.toString.call(a) !== '[object Array]') return [];
+        return a.filter(function (c) { return c && c.id && c.t && c.set; });
+    }
+    function customProfiles() {
+        return rawCustoms().map(function (c) {
+            return {
+                id: c.id, t: c.t, s: 'Tvůj vlastní profil', ic: '#i-star', custom: true,
+                use: 'Vlastní profil — uložil sis do něj nastavení, které jsi měl v tu chvíli zapnuté.',
+                set: c.set
+            };
+        });
+    }
+    function allProfiles() { return PROFILES.concat(customProfiles()); }
+    function custSig() { return rawCustoms().map(function (c) { return c.id + ':' + c.t; }).join(','); }
+    // klíče, které umí profil přepnout = sjednocení `set` vestavěných profilů
+    function profileKeys() {
+        var out = [], i, k;
+        for (i = 0; i < PROFILES.length; i++) {
+            for (k in PROFILES[i].set) {
+                if (Object.prototype.hasOwnProperty.call(PROFILES[i].set, k) && out.indexOf(k) === -1) out.push(k);
+            }
+        }
+        return out;
+    }
+    // otisk současného stavu; prvky, které v téhle verzi nejsou, se vynechají
+    function snapshot() {
+        var set = {}, keys = profileKeys(), n = 0;
+        keys.forEach(function (k) {
+            var el = $(k); if (!el) return;
+            set[k] = (el.type === 'checkbox') ? !!el.checked : String(el.value);
+            n++;
+        });
+        return n ? set : null;
+    }
+    function saveCustom() {
+        var set = snapshot();
+        if (!set) { toast('Nastavení se nepodařilo přečíst — otevři Nastavení a zkus to znovu.'); return; }
+        var done = function (name) {
+            name = (name || '').trim();
+            if (!name) return;
+            var list = rawCustoms();
+            var id = CUST_PREFIX + Date.now();
+            list.push({ id: id, t: name.slice(0, 24), set: set });
+            try { lsSet(CUST_KEY, JSON.stringify(list)); } catch (e) {}
+            lsSet(LAST_KEY, id);
+            renderBar();
+            toast('Profil „' + name + '" uložen z toho, jak to máš teď nastavené.');
+        };
+        var msg = 'Uloží se ' + Object.keys(set).length + ' voleb tak, jak je máš právě teď. Jak se má profil jmenovat?';
+        try {
+            if (typeof window.agGet === 'function') { window.agGet(msg, { title: 'Vlastní profil', placeholder: 'Např. Moje pokládka' }).then(done); return; }
+        } catch (e) {}
+        done(window.prompt(msg, ''));
+    }
+    function deleteCustom(id) {
+        var p = byId(id); if (!p || !p.custom) return;
+        var go = function () {
+            try { lsSet(CUST_KEY, JSON.stringify(rawCustoms().filter(function (c) { return c.id !== id; }))); } catch (e) {}
+            // smazaný profil nesmí zůstat „aktivní"; nastavení se ZÁMĚRNĚ nevrací
+            // (stejný důvod jako u odznačení — viz hlavička souboru)
+            if (ls(LAST_KEY) === id) lsDel(LAST_KEY);
+            renderBar();
+            toast('Profil smazán. Nastavení zůstává, jak je.');
+        };
+        var q = 'Smazat profil „' + p.t + '"? Nastavení se nemění, zmizí jen tenhle uložený otisk.';
+        try {
+            if (typeof window.agGuard === 'function') { window.agGuard(q, go, { title: 'Smazat profil', danger: true }); return; }
+        } catch (e) {}
+        if (window.confirm(q)) go();
+    }
+
     function byId(profId) {
-        for (var i = 0; i < PROFILES.length; i++) if (PROFILES[i].id === profId) return PROFILES[i];
+        var a = allProfiles();
+        for (var i = 0; i < a.length; i++) if (a[i].id === profId) return a[i];
         return null;
     }
 
@@ -310,11 +401,22 @@
             + '</details>';
         content.insertBefore(bar, tabs);
         bar.querySelector('#ag-prof-row').addEventListener('click', function (ev) {
-            var b = ev.target.closest ? ev.target.closest('button[data-prof]') : null;
+            if (!ev.target.closest) return;
+            // „Bez profilu" je od 8.8.2026 VIDITELNÁ dlaždice. Dřív se profil vypínal
+            // jen ťuknutím na právě aktivní dlaždici — což se nedalo uhodnout, takže
+            // kdo si profil jednou zapnul, neměl jak se dostat zpátky do stavu
+            // „nastavení si řídím sám". Skryté ťuknutí zůstává, ať se nikomu nezmění
+            // zvyk.
+            if (ev.target.closest('button[data-off]')) { clearProfile(); return; }
+            if (ev.target.closest('button[data-new]')) { saveCustom(); return; }
+            var b = ev.target.closest('button[data-prof]');
             if (!b) return;
             var id = b.getAttribute('data-prof');
-            // Ťuknutí na právě aktivní profil = vypnout profil (stav „bez profilu“)
             if (id === ls(LAST_KEY)) clearProfile(); else apply(id);
+        });
+        bar.querySelector('#ag-prof-note').addEventListener('click', function (ev) {
+            var d = ev.target.closest ? ev.target.closest('button[data-del]') : null;
+            if (d) deleteCustom(d.getAttribute('data-del'));
         });
         bar.querySelector('#ag-prof-det').addEventListener('toggle', function () { renderDetail(true); });
         return bar;
@@ -325,11 +427,19 @@
         var bar = ensureBar(); if (!bar) return;
         var last = ls(LAST_KEY);
         var row = bar.querySelector('#ag-prof-row');
-        if (!row.firstChild) {
-            row.innerHTML = PROFILES.map(function (p) {
-                return '<button type="button" data-prof="' + p.id + '" title="' + esc(p.s) + '" aria-pressed="false">'
-                    + '<svg class="icon"><use href="' + p.ic + '"/></svg>' + esc(p.t) + '</button>';
-            }).join('');
+        // pruh se přestavuje i po přibytí/smazání vlastního profilu, ne jen jednou
+        if (row.getAttribute('data-sig') !== custSig()) {
+            row.setAttribute('data-sig', custSig());
+            row.setAttribute('data-last', ' ');   // vynuť dorovnání zvýraznění níž
+            row.innerHTML =
+                '<button type="button" data-off="1" title="Nepoužívat žádný profil" aria-pressed="false">'
+                + '<svg class="icon"><use href="#i-x"/></svg>Bez profilu</button>'
+                + allProfiles().map(function (p) {
+                    return '<button type="button" data-prof="' + p.id + '" title="' + esc(p.s) + '" aria-pressed="false">'
+                        + '<svg class="icon"><use href="' + p.ic + '"/></svg>' + esc(p.t) + '</button>';
+                }).join('')
+                + '<button type="button" data-new="1" title="Uložit současné nastavení jako vlastní profil" aria-pressed="false">'
+                + '<svg class="icon"><use href="#i-plus"/></svg>Vlastní</button>';
         }
         if (row.getAttribute('data-last') !== String(last)) {
             row.setAttribute('data-last', String(last));
@@ -339,15 +449,25 @@
                 btns[i].className = on ? 'on' : '';
                 btns[i].setAttribute('aria-pressed', on ? 'true' : 'false');
             }
+            // „Bez profilu" svítí, když žádný profil neběží — stav je tak vidět,
+            // ne jen odvoditelný z toho, že nesvítí nic
+            var off = row.querySelector('button[data-off]');
+            if (off) {
+                var none = !byId(last);
+                off.className = none ? 'on' : '';
+                off.setAttribute('aria-pressed', none ? 'true' : 'false');
+            }
         }
         var note = bar.querySelector('#ag-prof-note');
         var cur = byId(last);
         var html = cur
             ? ('<b>' + esc(cur.t) + ':</b> ' + esc(cur.use)
-                + ' <i>Dalším ťuknutím na „' + esc(cur.t) + '“ profil vypneš.</i>')
+                + ' <i>Vypneš ho dlaždicí „Bez profilu“.</i>'
+                + (cur.custom ? ' <button type="button" data-del="' + esc(cur.id) + '">Smazat tenhle profil</button>' : ''))
             // Dřív tu byly tři řádky vysvětlování a hlavička Nastavení kvůli nim začínala
             // až třetinu obrazovky pod okrajem. Podrobnosti jsou v detailu pod tím.
-            : '<b>Bez profilu</b> — nastavení si řídíš sám v záložkách níž.';
+            : '<b>Bez profilu</b> — nastavení si řídíš sám v záložkách níž. '
+                + 'Až si ho doladíš, můžeš si ho uložit dlaždicí <b>Vlastní</b>.';
         if (note.innerHTML !== html) note.innerHTML = html;
         renderDetail(false);
     }

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AR Geodet — návrhy přehlednějšího Nastavení</title>
+<!--
+  NÁHLEDY (mockupy) — TOHLE NENÍ ZAPOJENÉ DO APPKY.
+  Stejný účel jako nahledy-uvodni.html a navrhy-uvod-pozadi.html: ukázat varianty,
+  vybrat jednu a teprve pak ji zapojit. Skutečné Nastavení se tímhle souborem NEMĚNÍ.
+  Čísla v záložce „Dnes" jsou naměřená v prohlížeči (412×915, hostovský režim).
+-->
+<style>
+  :root{
+    --bg:#0d1117; --bg-elev:#151a21; --panel:rgba(255,255,255,0.05);
+    --line:rgba(255,255,255,0.12); --text:#eceef2; --muted:#9aa1ac;
+    --accent:#2f9e74; --accent-bright:#4ccd99; --accent-soft:rgba(47,158,116,0.16);
+    --warn:#f59e0b; --danger:#ef4444;
+    --font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.5}
+  header{padding:26px 20px 8px;max-width:1180px;margin:0 auto}
+  h1{margin:0 0 6px;font-size:23px}
+  header p{margin:0;color:var(--muted);font-size:14px;max-width:70ch}
+  .tabs{display:flex;flex-wrap:wrap;gap:8px;padding:16px 20px;max-width:1180px;margin:0 auto;position:sticky;top:0;background:var(--bg);z-index:5;border-bottom:1px solid var(--line)}
+  .tabs button{padding:9px 15px;border-radius:999px;border:1px solid var(--line);background:var(--panel);
+    color:var(--text);font:600 13px/1 var(--font);cursor:pointer}
+  .tabs button.on{border-color:transparent;background:var(--accent);color:#fff}
+  main{max-width:1180px;margin:0 auto;padding:22px 20px 70px}
+  .pane{display:none}
+  .pane.on{display:block}
+  .lead{margin:0 0 20px;padding:14px 16px;border-left:3px solid var(--accent);background:var(--accent-soft);
+    border-radius:0 10px 10px 0;font-size:14px}
+  .lead b{color:var(--accent-bright)}
+  .cols{display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start}
+  .col{flex:1 1 330px;min-width:300px}
+  h2{font-size:17px;margin:0 0 4px}
+  h3{font-size:14px;margin:20px 0 6px;color:var(--accent-bright)}
+  .sub{margin:0 0 12px;color:var(--muted);font-size:13px}
+  ul{margin:6px 0 0;padding-left:19px;font-size:13.5px;color:var(--muted)}
+  li{margin:4px 0}
+  li b{color:var(--text)}
+  .pro{color:var(--accent-bright)} .con{color:var(--warn)}
+
+  /* ---- rám telefonu ---- */
+  .phone{width:340px;max-width:100%;height:640px;border:1px solid var(--line);border-radius:26px;
+    background:var(--bg);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+  .ph-head{flex:0 0 auto;padding:14px 15px 10px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px}
+  .ph-head .t{font-weight:700;font-size:16px}
+  .ph-head .x{margin-left:auto;color:var(--muted);font-size:18px}
+  .ph-body{flex:1 1 auto;overflow-y:auto;padding:12px 15px 24px;scrollbar-width:thin}
+  .ph-foot{flex:0 0 auto;padding:10px 15px;border-top:1px solid var(--line);background:var(--bg-elev)}
+
+  /* ---- prvky nastavení (společné pro všechny varianty) ---- */
+  .search{width:100%;padding:10px 12px;border-radius:999px;border:1px solid var(--line);
+    background:rgba(255,255,255,.06);color:var(--muted);font-size:13px;margin-bottom:12px}
+  .sec-h{margin:18px 0 8px;font:700 10.5px/1.2 var(--font);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .sec-h:first-child{margin-top:4px}
+  .row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+  .row .lab{flex:1;font-size:13.5px;font-weight:600}
+  .row .lab small{display:block;font-weight:500;font-size:11.5px;color:var(--muted);margin-top:2px}
+  .sw{flex:0 0 auto;width:42px;height:24px;border-radius:999px;background:rgba(255,255,255,.15);position:relative}
+  .sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff}
+  .sw.on{background:var(--accent)} .sw.on::after{left:21px}
+  .seg{display:flex;gap:4px;background:rgba(255,255,255,.07);border-radius:999px;padding:3px}
+  .seg span{padding:5px 11px;border-radius:999px;font-size:12px;color:var(--muted)}
+  .seg span.on{background:var(--accent);color:#fff;font-weight:700}
+  .pill{display:inline-block;padding:5px 10px;border-radius:999px;border:1px solid var(--line);
+    background:var(--panel);font-size:11.5px;color:var(--muted);margin:0 5px 5px 0}
+  .pill.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-bright);font-weight:700}
+  .btn{display:block;width:100%;padding:12px;border-radius:12px;border:none;background:var(--accent);
+    color:#fff;font:700 14px/1 var(--font);text-align:center}
+
+  /* ---- A: jeden seznam + lepivé nadpisy ---- */
+  .jump{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:2px}
+  .jump span{flex:0 0 auto;padding:6px 11px;border-radius:999px;border:1px solid var(--line);
+    background:var(--panel);font-size:11.5px;color:var(--muted);white-space:nowrap}
+  .jump span.on{border-color:var(--accent);color:var(--accent-bright);background:var(--accent-soft);font-weight:700}
+  .sticky{position:sticky;top:-12px;background:var(--bg);padding-top:8px;z-index:2}
+
+  /* ---- B: rozcestník ---- */
+  .hub{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+  .hub a{display:block;padding:14px 12px;border-radius:14px;border:1px solid var(--line);background:var(--panel);
+    text-decoration:none;color:var(--text)}
+  .hub .ic{font-size:19px;line-height:1}
+  .hub b{display:block;margin:8px 0 3px;font-size:13.5px}
+  .hub small{color:var(--muted);font-size:11px}
+  .crumb{display:flex;align-items:center;gap:7px;margin-bottom:10px;color:var(--muted);font-size:12.5px}
+  .crumb .back{color:var(--accent-bright);font-weight:700}
+
+  /* ---- C: kompaktní záložky ---- */
+  .ctabs{display:flex;gap:5px;overflow-x:auto;border-bottom:1px solid var(--line);margin-bottom:6px}
+  .ctabs span{flex:0 0 auto;padding:9px 12px;font-size:12.5px;font-weight:600;color:var(--muted);
+    border-bottom:2px solid transparent;white-space:nowrap}
+  .ctabs span.on{color:var(--accent-bright);border-bottom-color:var(--accent)}
+
+  /* ---- dnešní stav ---- */
+  .bad{border-left:3px solid var(--warn);background:rgba(245,158,11,.08);padding:12px 14px;border-radius:0 10px 10px 0;margin:0 0 12px}
+  .bad b{color:var(--warn)}
+  table{border-collapse:collapse;width:100%;margin-top:10px;font-size:13px}
+  th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
+  td b{color:var(--accent-bright)}
+  .note{margin-top:26px;padding:14px 16px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Nastavení — tři návrhy, jak ho zpřehlednit</h1>
+  <p>Mockupy, nic z toho není zapojené v appce. Vyber jednu variantu (klidně i jen její část)
+     a teprve pak se to nasadí. Záložka <b>Dnes</b> ukazuje, co konkrétně dnešní Nastavení
+     zahlcuje — čísla jsou naměřená v prohlížeči na displeji 412×915.</p>
+</header>
+
+<div class="tabs">
+  <button class="on" data-p="dnes">Dnes (co vadí)</button>
+  <button data-p="a">A — Jeden seznam</button>
+  <button data-p="b">B — Rozcestník</button>
+  <button data-p="c">C — Vyčištěné záložky</button>
+</div>
+
+<main>
+
+<!-- ============================ DNES ============================ -->
+<section class="pane on" id="p-dnes">
+  <p class="lead">Nastavení není chaotické proto, že by mělo moc voleb — ale proto, že <b>než uvidíš
+    první volbu, projdeš čtyřmi různými způsoby, jak si volby schovat</b>. Každý z nich vznikl
+    zvlášť a dohromady si překážejí.</p>
+
+  <div class="cols">
+    <div class="col">
+      <h2>Pět konkrétních věcí</h2>
+
+      <div class="bad"><b>1. Čtyři soupeřící „zjednodušovače" nad sebou.</b><br>
+        Hledání + pruh <i>Profil použití</i> + jeho rozbalovací srovnání + přepínač
+        <i>Krátké nastavení</i> + skládačka <i>Pokročilé</i> dole. První skutečná volba
+        (Režim světlý/tmavý) začíná až <b>280 px</b> od horního okraje, tedy skoro
+        v třetině displeje.</div>
+
+      <div class="bad"><b>2. Se zapnutým „Krátkým nastavením" zmizí tři ze čtyř záložek.</b><br>
+        Naměřeno: <code>AR &amp; přesnost</code>, <code>Data</code> i <code>Údržba</code> mají
+        <code>display:none</code>. Zbude jediná zelená placka přes celou šířku, která už
+        nevypadá jako záložky — vypadá jako tlačítko. Cesta k ostatním volbám vede jen
+        přes „Zobrazit vše" úplně dole.</div>
+
+      <div class="bad"><b>3. Dvě různé věci se jmenují „profil".</b><br>
+        <i>Profil použití</i> v Nastavení (Terén / Přesnost / Ukázka = přepne volby)
+        a <i>profil práce</i> na úvodní obrazovce (Pokládka / Vytyčování… = zúží Nástroje).
+        Dělají něco úplně jiného a nikde není řečeno co.</div>
+
+      <div class="bad"><b>4. Záložky mají dvouřádkové popisky.</b><br>
+        „Data — Zakázka, body ČÚZK, offline" je jako dlaždice vysoká 44 px a je jich
+        v mřížce nad sebou; navigace tak zabírá víc místa než první sekce voleb.</div>
+
+      <div class="bad"><b>5. Sekce jsou nestejně velké.</b><br>
+        <code>Vzhled</code> má 18 řádků a 38 ovládacích prvků, <code>Údržba</code> jen 8.
+        Přesto mají v navigaci stejnou váhu.</div>
+    </div>
+
+    <div class="col">
+      <h2>Naměřený stav</h2>
+      <table>
+        <tr><th>Co</th><th>Kolik</th></tr>
+        <tr><td>Záložky</td><td><b>4</b></td></tr>
+        <tr><td>Sekce celkem</td><td><b>13</b></td></tr>
+        <tr><td>Ovládacích prvků</td><td><b>79</b> (hostovský režim, přihlášený jich má víc)</td></tr>
+        <tr><td>Záložka Vzhled</td><td><b>18</b> řádků · <b>38</b> prvků · <b>698 px</b></td></tr>
+        <tr><td>Nad první volbou</td><td><b>3</b> meta-bloky · <b>280 px</b></td></tr>
+        <tr><td>Způsoby, jak volby schovat</td><td><b>4</b> (hledání, profil, krátké, pokročilé)</td></tr>
+      </table>
+
+      <h3>Co ve všech třech návrzích zůstává</h3>
+      <ul>
+        <li><b>Hledání</b> — funguje nejlíp ze všeho, jen se přesouvá.</li>
+        <li><b>Profily</b> — dobrý nápad, jen nepatří nad všechno ostatní.</li>
+        <li><b>Všechny volby</b> — nic se neruší ani neschovává natrvalo.</li>
+        <li><b>Pevné pořadí sekcí</b> z <code>js/nastaveni-poradek.js</code>.</li>
+      </ul>
+      <div class="note">Návrhy se nevylučují. Dá se vzít jen bod 2 a 4 z varianty C
+        (levná oprava), nebo jít do B (největší změna, nejvíc klidu).</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ A ============================ -->
+<section class="pane" id="p-a">
+  <p class="lead"><b>A — Jeden seznam, žádné záložky.</b> Na telefonu se stejně roluje, tak ať se
+    roluje jedním souvislým seznamem. Nahoře hledání a <b>pruh pro skok na sekci</b>, nadpis
+    sekce je lepivý, takže je pořád vidět, kde jsi. Profily se stěhují dolů do vlastní sekce.</p>
+  <div class="cols">
+    <div class="col" style="flex:0 0 auto">
+      <div class="phone">
+        <div class="ph-head"><span class="t">⚙ Nastavení</span><span class="x">✕</span></div>
+        <div class="ph-body">
+          <input class="search" value="Hledat v nastavení…" readonly>
+          <div class="jump">
+            <span class="on">Motiv</span><span>Displej</span><span>Ovládání</span><span>Prvky</span>
+            <span>AR</span><span>Kompas</span><span>Zakázka</span><span>ČÚZK</span><span>Záloha</span><span>Profily</span>
+          </div>
+          <div class="sec-h sticky">Motiv a barvy</div>
+          <div class="row"><span class="lab">Režim</span><span class="seg"><span>Světlý</span><span class="on">Tmavý</span></span></div>
+          <div class="row"><span class="lab">Barevný odstín</span><span style="font-size:12.5px;color:var(--muted)">Smaragd ›</span></div>
+          <div class="sec-h sticky">Displej a čitelnost</div>
+          <div class="row"><span class="lab">Venkovní režim<small>vysoký kontrast na slunci</small></span><span class="sw"></span></div>
+          <div class="row"><span class="lab">Velikost písma</span><span style="font-size:12.5px;color:var(--muted)">100 % ›</span></div>
+          <div class="row"><span class="lab">Displej nezhasne</span><span class="sw on"></span></div>
+          <div class="sec-h sticky">Ovládání</div>
+          <div class="row"><span class="lab">Pro levou ruku</span><span class="sw"></span></div>
+          <div class="row"><span class="lab">Rukavice<small>větší dotykové cíle</small></span><span class="sw"></span></div>
+          <div class="row"><span class="lab">Vibrace</span><span class="sw on"></span></div>
+          <div class="sec-h sticky">Prvky na obrazovce</div>
+          <div class="row"><span class="lab">Info panel</span><span class="sw on"></span></div>
+          <div class="row"><span class="lab">Kompas (Azimut)</span><span class="sw on"></span></div>
+        </div>
+        <div class="ph-foot"><span class="btn">Uložit vše a zavřít</span></div>
+      </div>
+    </div>
+    <div class="col">
+      <h3 class="pro">Co to řeší</h3>
+      <ul>
+        <li><b>Konec hádání, kde co je.</b> 13 sekcí v jednom seznamu se dá projet palcem; dnes si člověk musí pamatovat, jestli je „velikost písma" ve Vzhledu nebo v AR.</li>
+        <li><b>Lepivý nadpis</b> říká, kde jsi, i uprostřed rolování — dnes to po pár otočkách nepoznáš.</li>
+        <li><b>Skokový pruh</b> nahrazuje záložky a zabere jeden řádek místo čtyř dlaždic.</li>
+        <li><b>Krátké nastavení může zůstat</b> — jen zkracuje seznam, už nemá co schovávat v navigaci.</li>
+      </ul>
+      <h3 class="con">Co to stojí</h3>
+      <ul>
+        <li>Seznam je dlouhý (~2 500 px). Bez hledání a skoků by to bylo horší než dnes.</li>
+        <li>Ztrácí se zvyk „Data jsou třetí záložka".</li>
+        <li>Sekce <code>Údržba</code> (mazání, zálohy) je najednou ve stejném seznamu jako barvy — chce vizuálně oddělit dolů.</li>
+      </ul>
+      <h3>Náročnost</h3>
+      <ul><li>Střední. Sekce už existují (<code>nastaveni-poradek.js</code>), mizí jen přepínání záložek.</li></ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ B ============================ -->
+<section class="pane" id="p-b">
+  <p class="lead"><b>B — Rozcestník.</b> Nastavení se otevře jako <b>rozcestník</b>: velké dlaždice
+    oblastí a nic jiného. Teprve po ťuknutí se otevře jedna obrazovka s volbami a tlačítkem zpět.
+    Na jedné obrazovce je tak vždycky jen jedna věc.</p>
+  <div class="cols">
+    <div class="col" style="flex:0 0 auto">
+      <div class="phone">
+        <div class="ph-head"><span class="t">⚙ Nastavení</span><span class="x">✕</span></div>
+        <div class="ph-body">
+          <input class="search" value="Hledat v nastavení…" readonly>
+          <div class="hub">
+            <a><span class="ic">🎨</span><b>Vzhled</b><small>motiv, písmo, prvky na obrazovce</small></a>
+            <a><span class="ic">🎯</span><b>AR a přesnost</b><small>body v kameře, kompas</small></a>
+            <a><span class="ic">🗂</span><b>Data</b><small>zakázka, ČÚZK, offline</small></a>
+            <a><span class="ic">🧰</span><b>Údržba</b><small>záloha, skryté body, úklid</small></a>
+            <a><span class="ic">⭐</span><b>Profily</b><small>Terén · Přesnost · vlastní</small></a>
+            <a><span class="ic">🏢</span><b>Firma</b><small>účty, role, docházka</small></a>
+          </div>
+          <div class="sec-h">Rychle</div>
+          <div class="row"><span class="lab">Venkovní režim<small>vysoký kontrast na slunci</small></span><span class="sw"></span></div>
+          <div class="row"><span class="lab">Displej nezhasne</span><span class="sw on"></span></div>
+          <div class="row"><span class="lab">Pro levou ruku</span><span class="sw"></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="col" style="flex:0 0 auto">
+      <div class="phone">
+        <div class="ph-head"><span class="t">Vzhled</span><span class="x">✕</span></div>
+        <div class="ph-body">
+          <div class="crumb"><span class="back">‹ Nastavení</span><span>/ Vzhled</span></div>
+          <div class="sec-h">Motiv a barvy</div>
+          <div class="row"><span class="lab">Režim</span><span class="seg"><span>Světlý</span><span class="on">Tmavý</span></span></div>
+          <div class="row"><span class="lab">Barevný odstín</span><span style="font-size:12.5px;color:var(--muted)">Smaragd ›</span></div>
+          <div class="sec-h">Displej a čitelnost</div>
+          <div class="row"><span class="lab">Venkovní režim</span><span class="sw"></span></div>
+          <div class="row"><span class="lab">Zapínat ho sám<small>podle jasu okolí</small></span><span class="sw on"></span></div>
+          <div class="row"><span class="lab">Velikost písma</span><span style="font-size:12.5px;color:var(--muted)">100 % ›</span></div>
+          <div class="sec-h">Prvky na obrazovce</div>
+          <div class="row"><span class="lab">Info panel</span><span class="sw on"></span></div>
+          <div class="row"><span class="lab">Kompas (Azimut)</span><span class="sw on"></span></div>
+          <div class="row"><span class="lab">Tlačítko vrstev v mapě</span><span class="sw on"></span></div>
+        </div>
+        <div class="ph-foot"><span class="btn">Uložit a zpět</span></div>
+      </div>
+    </div>
+    <div class="col">
+      <h3 class="pro">Co to řeší</h3>
+      <ul>
+        <li><b>Na obrazovce je vždycky jedna věc.</b> Žádné míchání navigace, profilů a voleb.</li>
+        <li><b>„Krátké nastavení" i „Pokročilé" jdou zrušit</b> — rozcestník dělá totéž, ale poctivě a bez schovávání.</li>
+        <li><b>Firma i Profily dostanou svoje místo</b> místo přilepení nad záložky.</li>
+        <li>Sekce <b>Rychle</b> na rozcestníku drží 3–4 nejčastější přepínače na dosah.</li>
+      </ul>
+      <h3 class="con">Co to stojí</h3>
+      <ul>
+        <li>Největší přestavba ze tří. Přibude jedna úroveň zanoření (víc ťuknutí u vzácných voleb).</li>
+        <li>„Uložit vše a zavřít" musí fungovat i z podobrazovky, jinak vznikne past.</li>
+        <li>Hledání musí umět skočit rovnou do podobrazovky a tam volbu zvýraznit.</li>
+      </ul>
+      <h3>Náročnost</h3>
+      <ul><li>Vyšší. Zato zbaví appku dvou zjednodušovačů, které dnes dělají zmatek.</li></ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ C ============================ -->
+<section class="pane" id="p-c">
+  <p class="lead"><b>C — Vyčištěné záložky (nejmenší zásah).</b> Záložky zůstávají, ale jsou to
+    <b>jednořádkové textové záložky</b> místo dvouřádkových dlaždic, <b>nikdy nemizí</b>, a všechno
+    meta-ovládání (profily, srovnání) se stěhuje do <b>páté záložky „Profily"</b>. Nad volbami
+    zůstane jen hledání.</p>
+  <div class="cols">
+    <div class="col" style="flex:0 0 auto">
+      <div class="phone">
+        <div class="ph-head"><span class="t">⚙ Nastavení</span><span class="x">✕</span></div>
+        <div class="ph-body">
+          <input class="search" value="Hledat v nastavení…" readonly>
+          <div class="ctabs">
+            <span class="on">Vzhled</span><span>AR</span><span>Data</span><span>Údržba</span><span>Profily</span>
+          </div>
+          <div class="sec-h">Motiv a barvy</div>
+          <div class="row"><span class="lab">Režim</span><span class="seg"><span>Světlý</span><span class="on">Tmavý</span></span></div>
+          <div class="row"><span class="lab">Barevný odstín</span><span style="font-size:12.5px;color:var(--muted)">Smaragd ›</span></div>
+          <div class="sec-h">Displej a čitelnost</div>
+          <div class="row"><span class="lab">Venkovní režim<small>vysoký kontrast na slunci</small></span><span class="sw"></span></div>
+          <div class="row"><span class="lab">Velikost písma</span><span style="font-size:12.5px;color:var(--muted)">100 % ›</span></div>
+          <div class="row"><span class="lab">Displej nezhasne</span><span class="sw on"></span></div>
+          <div class="sec-h">Ovládání</div>
+          <div class="row"><span class="lab">Pro levou ruku</span><span class="sw"></span></div>
+          <div class="row"><span class="lab">Rukavice</span><span class="sw"></span></div>
+          <div class="row"><span class="lab">Vibrace</span><span class="sw on"></span></div>
+        </div>
+        <div class="ph-foot"><span class="btn">Uložit vše a zavřít</span></div>
+      </div>
+    </div>
+    <div class="col" style="flex:0 0 auto">
+      <div class="phone">
+        <div class="ph-head"><span class="t">⚙ Nastavení</span><span class="x">✕</span></div>
+        <div class="ph-body">
+          <input class="search" value="Hledat v nastavení…" readonly>
+          <div class="ctabs">
+            <span>Vzhled</span><span>AR</span><span>Data</span><span>Údržba</span><span class="on">Profily</span>
+          </div>
+          <div class="sec-h">Profil nastavení</div>
+          <div style="margin-bottom:4px">
+            <span class="pill on">✕ Bez profilu</span><span class="pill">☀ Terén</span>
+            <span class="pill">◎ Přesnost</span><span class="pill">★ Ukázka</span><span class="pill">＋ Vlastní</span>
+          </div>
+          <p style="margin:2px 0 0;font-size:11.5px;color:var(--muted)">
+            Přepne několik voleb naráz. <b style="color:var(--text)">Bez profilu</b> — nastavení si řídíš sám.</p>
+          <div class="sec-h">Profil práce</div>
+          <p style="margin:0 0 6px;font-size:11.5px;color:var(--muted)">
+            Zužuje <b style="color:var(--text)">Nástroje</b> podle toho, co dnes děláš. Vybírá se na úvodní obrazovce.</p>
+          <div class="row"><span class="lab">Právě běží<small>Pokládka za finišerem</small></span>
+            <span style="font-size:12px;color:var(--accent-bright);font-weight:700">Vypnout</span></div>
+          <div class="row"><span class="lab">Ptát se na úvodu<small>co dnes budu dělat</small></span><span class="sw on"></span></div>
+          <div class="sec-h">Co profily mění</div>
+          <div class="row"><span class="lab">Srovnání všech voleb</span><span style="font-size:12.5px;color:var(--muted)">rozbalit ›</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <h3 class="pro">Co to řeší</h3>
+      <ul>
+        <li><b>Záložky přestanou mizet</b> — konec stavu, kdy je vidět jedna zelená placka a zbytek je nedostupný.</li>
+        <li><b>Nad volbami zbyde jediný řádek</b> místo tří bloků; první volba je hned pod záložkami.</li>
+        <li><b>Obě „profilové" věci na jednom místě</b> a konečně pojmenované: <i>profil nastavení</i> × <i>profil práce</i>.</li>
+        <li>Zachovává zvyky — kdo ví, že Data jsou třetí, dál je tam najde.</li>
+      </ul>
+      <h3 class="con">Co to stojí</h3>
+      <ul>
+        <li>Neřeší, že <code>Vzhled</code> má pořád 38 prvků na jedné hromadě.</li>
+        <li>Pátá záložka = víc vodorovného rolování v pruhu záložek.</li>
+      </ul>
+      <h3>Náročnost</h3>
+      <ul><li>Nejnižší. Jde hlavně o CSS pruhu záložek, přesun bloku profilů a jednu opravu (nemizející záložky).</li></ul>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+  var tabs = document.querySelectorAll('.tabs button');
+  var panes = document.querySelectorAll('.pane');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].addEventListener('click', function () {
+      for (var j = 0; j < tabs.length; j++) tabs[j].classList.toggle('on', tabs[j] === this);
+      var want = 'p-' + this.getAttribute('data-p');
+      for (var k = 0; k < panes.length; k++) panes[k].classList.toggle('on', panes[k].id === want);
+      window.scrollTo(0, 0);
+    });
+  }
+</script>
+</body>
+</html>

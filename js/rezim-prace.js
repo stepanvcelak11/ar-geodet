@@ -64,10 +64,15 @@
     //           název otevírací funkce statické dlaždice — stejné klíčování jako
     //           tools-simple.js / tools-plus.js / nastroje-ukony.js)
     var MODES = [
+        // „Bez profilu" = VYPNUTO, ne další režim. Dřív se tahle dlaždice jmenovala
+        // „Univerzální" a filtr sice vypnula, ale jednoduchý panel Nástrojů vrátila
+        // do stavu PŘED první volbou (agRpPrevSimple) — takže mohl zůstat zapnutý
+        // a uživatel neměl jak se dostat ke stavu „nechci žádný profil". Teď je to
+        // jednoznačné: vybráním se uložená volba SMAŽE a nic se neschovává.
         {
-            id: 'univerzal', ic: 'grid', t: 'Univerzální',
-            s: 'Bez filtru — všechny dlaždice',
-            d: 'Žádný filtr. V Nástrojích zůstanou všechny dlaždice tak, jak je znáš.',
+            id: 'univerzal', ic: 'grid', t: 'Bez profilu',
+            s: 'Nefiltrovat — všechny nástroje',
+            d: 'Žádný profil. V Nástrojích zůstanou všechny dlaždice tak, jak je znáš, a nic se neschovává.',
             tools: []
         },
         {
@@ -153,7 +158,7 @@
     var ICONS = {
         grid: '#i-grid', layers: '#i-layers', target: '#i-crosshair', sketch: '#i-edit',
         level: '#i-sliders', area: '#i-area', pin: '#i-map-pin', line: '#i-line',
-        ruler: '#i-ruler', alert: '#i-alert', folder: '#i-folder'
+        ruler: '#i-ruler', alert: '#i-alert', folder: '#i-folder', star: '#i-star'
     };
     // Záložní jména nástrojů pro případ, že mřížka Nástrojů ještě není v DOM
     // (výčet se jinak čte přímo z dlaždic — viz tileLabels).
@@ -179,13 +184,45 @@
 
     function ls(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
     function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+    // vypnutý profil = klíč NEEXISTUJE (ne uložená hodnota „univerzal"), ať se
+    // stav „nechci profil" nedá splést s „vybral jsem si univerzální"
+    function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
     function pid() { return ls('arActiveProjectId') || 'default'; }
     function esc(s) {
         return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
             return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
         });
     }
-    function modeById(id) { for (var i = 0; i < MODES.length; i++) if (MODES[i].id === id) return MODES[i]; return null; }
+    // ---- VLASTNÍ PROFILY -----------------------------------------------------------
+    // Uživatelovy vlastní profily žijí v localStorage vedle vestavěných a chovají se
+    // úplně stejně (pás na úvodu, <select> v Nástrojích, filtr dlaždic). Ukládá se
+    // jen {id,t,s,tools} — popis `d` a ikona se doplní, ať v úložišti neleží text,
+    // který by se dal měnit jen ručně.
+    var CUST_KEY = 'agRpCustom_v1';
+    var CUST_PREFIX = 'vlastni_';
+    function customs() {
+        var a = null;
+        try { a = JSON.parse(ls(CUST_KEY) || '[]'); } catch (e) {}
+        if (Object.prototype.toString.call(a) !== '[object Array]') return [];
+        return a.filter(function (c) { return c && c.id && c.t; }).map(function (c) {
+            return {
+                id: c.id, ic: 'star', t: c.t, s: c.s || 'Vlastní profil',
+                d: 'Vlastní profil — vytáhne dopředu nástroje, které sis do něj vybral.',
+                tools: Object.prototype.toString.call(c.tools) === '[object Array]' ? c.tools.slice() : [],
+                custom: true
+            };
+        });
+    }
+    function saveCustoms(list) {
+        lsSet(CUST_KEY, JSON.stringify(list.map(function (c) {
+            return { id: c.id, t: c.t, s: c.s, tools: c.tools };
+        })));
+    }
+    function isCustom(id) { return String(id || '').indexOf(CUST_PREFIX) === 0; }
+    function allModes() { return MODES.concat(customs()); }
+    function customSig() { return customs().map(function (c) { return c.id + ':' + c.t + ':' + c.tools.length; }).join(','); }
+
+    function modeById(id) { var a = allModes(); for (var i = 0; i < a.length; i++) if (a[i].id === id) return a[i]; return null; }
     function known(id) { return !!modeById(id) || !!(src() && src()[id]); }
     function curMode() { var v = ls(PROF_PREFIX + pid()); return known(v) ? v : 'univerzal'; }
     function hidden() { return ls(HIDE_KEY) === '1'; }
@@ -205,16 +242,31 @@
     // Zaregistruj nové režimy do tools-simple.js (a doplň chybějící nástroje
     // u těch, které tam už jsou). NIKDY nic neubírá — kdyby někdo seznam
     // v tools-simple.js upravil, jeho pořadí i položky zůstanou platné.
-    var merged = false;
+    // mergedSig místo pouhého příznaku: po uložení/smazání vlastního profilu se
+    // podpis změní a registrace proběhne znovu (bez toho by nový profil v <select>u
+    // v Nástrojích chyběl až do restartu appky).
+    var mergedSig = null;
     function mergeProfiles() {
-        if (merged) return true;
+        var sig = customSig();
+        if (mergedSig === sig) return true;
         var S = null;
         try { S = window.AGToolsSimple; } catch (e) {}
         if (!S || !S.profiles || !S.order || !S.order.push) return false;
-        MODES.forEach(function (m) {
+        // smazané vlastní profily z tools-simple odstranit, jinak by v <select>u
+        // strašily napořád (vestavěných se to netýká — ty se nikdy nemažou)
+        var live = {};
+        customs().forEach(function (c) { live[c.id] = 1; });
+        Object.keys(S.profiles).forEach(function (id) {
+            if (isCustom(id) && !live[id]) delete S.profiles[id];
+        });
+        allModes().forEach(function (m) {
             var rec = S.profiles[m.id];
             if (!rec) {
                 S.profiles[m.id] = { label: m.t, tools: m.tools.slice() };
+            } else if (m.custom) {
+                // U VLASTNÍHO profilu je autoritou uživatelův seznam — jinak by se
+                // odebraný nástroj nikdy neodebral (dole se jen doplňuje).
+                rec.label = m.t; rec.tools = m.tools.slice();
             } else {
                 rec.label = m.t;                        // jednotné jméno na kartě i v <select>u
                 if (!rec.tools) rec.tools = [];
@@ -223,11 +275,11 @@
         });
         // pořadí v <select>u srovnej podle pásu; co by v MODES nebylo (cizí modul),
         // se přilepí na konec, ať nikdo o svůj profil nepřijde
-        var order = MODES.map(function (m) { return m.id; });
-        S.order.forEach(function (id) { if (order.indexOf(id) === -1) order.push(id); });
+        var order = allModes().map(function (m) { return m.id; });
+        S.order.forEach(function (id) { if (order.indexOf(id) === -1 && S.profiles[id]) order.push(id); });
         S.order.length = 0;
         order.forEach(function (id) { S.order.push(id); });
-        merged = true;
+        mergedSig = sig;
         return true;
     }
 
@@ -357,9 +409,178 @@
             'body.left-hand #ag-rp-head .x{order:-1;margin-left:0;margin-right:auto;}',
             'body.ag-glove #ag-rp-list button{min-width:146px;padding:13px 14px;}',
             'body.ag-glove #ag-rp-list button b{font-size:calc(14px * var(--ag-font-scale, 1));}',
-            'body.ag-glove #ag-rp-chips li{padding:6px 11px;font-size:calc(12px * var(--ag-font-scale, 1));}'
+            'body.ag-glove #ag-rp-chips li{padding:6px 11px;font-size:calc(12px * var(--ag-font-scale, 1));}',
+
+            // ---- dlaždice „Vlastní profil" (založení) ----
+            '#ag-rp-list button.add{border-style:dashed;}',
+            '#ag-rp-list button.add b,#ag-rp-list button.add .icon{color:var(--accent,#2f9e74);}',
+            // odkaz „Upravit tenhle profil" pod výčtem
+            '.ag-rp-edit{margin-top:8px;background:none;border:none;padding:2px 0;cursor:pointer;',
+            '  color:var(--accent,#2f9e74);font:600 12px/1.2 var(--font-ui,system-ui),sans-serif;text-decoration:underline;}',
+
+            // ---- editor vlastního profilu ----
+            // z-index nad úvodní obrazovkou (999999), ale POD dialogy (--z-dialog
+            // 2000000), ať potvrzení smazání zůstane navrchu
+            '#ag-rpx{position:fixed;inset:0;z-index:1000003;display:none;align-items:center;justify-content:center;',
+            '  padding:16px;background:rgba(4,8,12,0.66);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}',
+            '#ag-rpx.on{display:flex;}',
+            '#ag-rpx .ag-rpx-box{width:min(420px,100%);max-height:88vh;overflow-y:auto;box-sizing:border-box;padding:18px;',
+            '  border-radius:18px;background:var(--bg-elev,#151a21);border:1px solid var(--glass-border,rgba(255,255,255,0.12));',
+            '  box-shadow:0 24px 60px rgba(0,0,0,0.55);color:var(--text-color,#eceef2);}',
+            '#ag-rpx h3{margin:0 0 12px;font:700 17px/1.2 var(--font-ui,system-ui),sans-serif;color:var(--accent,#2f9e74);}',
+            '#ag-rpx label{display:block;margin:10px 0 4px;font:600 12px/1.2 var(--font-ui,system-ui),sans-serif;color:var(--text-muted,#9aa1ac);}',
+            '#ag-rpx input[type=text]{width:100%;box-sizing:border-box;padding:11px 12px;border-radius:10px;',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.06);',
+            '  color:var(--text-color,#eceef2);font:inherit;font-size:calc(15px * var(--ag-font-scale, 1));}',
+            '.ag-rpx-lab{margin:14px 0 6px;font:600 12px/1.2 var(--font-ui,system-ui),sans-serif;color:var(--text-muted,#9aa1ac);}',
+            '.ag-rpx-lab span{color:var(--accent,#2f9e74);}',
+            '#ag-rpx-tools{display:flex;flex-wrap:wrap;gap:6px;max-height:38vh;overflow-y:auto;padding:2px;',
+            '  -webkit-overflow-scrolling:touch;}',
+            '#ag-rpx-tools button{padding:8px 11px;border-radius:999px;cursor:pointer;',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);',
+            '  color:var(--text-muted,#9aa1ac);font:600 12.5px/1.15 var(--font-ui,system-ui),sans-serif;}',
+            '#ag-rpx-tools button.on{border-color:var(--accent,#2f9e74);background:var(--accent-soft,rgba(47,158,116,0.16));',
+            '  color:var(--accent-bright,#4ccd99);}',
+            '.ag-rpx-empty{color:var(--text-muted,#9aa1ac);font-size:calc(12.5px * var(--ag-font-scale, 1));}',
+            '.ag-rpx-err{min-height:16px;margin-top:8px;color:var(--danger,#ef4444);',
+            '  font:600 12px/1.3 var(--font-ui,system-ui),sans-serif;}',
+            '.ag-rpx-btns{display:flex;gap:8px;margin-top:12px;}',
+            '.ag-rpx-btns button{flex:1;padding:12px;border-radius:12px;cursor:pointer;font:700 13.5px/1 var(--font-ui,system-ui),sans-serif;',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.06);color:var(--text-color,#eceef2);}',
+            '.ag-rpx-btns button.prim{border-color:transparent;background:var(--accent-grad,#2f9e74);color:#fff;}',
+            '.ag-rpx-btns button.del{flex:0 0 auto;padding:12px 14px;color:var(--danger,#ef4444);}',
+            'body.ag-glove #ag-rpx-tools button{padding:11px 14px;font-size:calc(13.5px * var(--ag-font-scale, 1));}',
+            // tlačítko „Nepoužívat žádný profil" v popisku řádku v Nastavení
+            '#ag-rp-setoff{display:inline-block;margin-top:5px;background:none;border:none;padding:0;cursor:pointer;',
+            '  color:var(--accent,#2f9e74);font:600 11.5px/1.2 var(--font-ui,system-ui),sans-serif;text-decoration:underline;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
+    }
+
+    // ---- EDITOR VLASTNÍHO PROFILU --------------------------------------------------
+    // Seznam nástrojů se NEPÍŠE ručně: bere se z dlaždic v mřížce Nástrojů (stejně
+    // jako výčet pod pásem), takže obsahuje i nástroje z modulů a nikdy nezastará.
+    // Co uživatel nesmí (role, data-agucty) ani co je odpojené, se nenabízí.
+    function pickableTools() {
+        var map = tileLabels(), out = [], k;
+        if (map) {
+            for (k in map) if (map[k]) out.push({ k: k, t: map[k] });
+        } else {
+            for (k in NAMES) out.push({ k: k, t: NAMES[k] });
+        }
+        out.sort(function (a, b) { return a.t.localeCompare(b.t, 'cs'); });
+        return out;
+    }
+    function editorEl() {
+        var el = document.getElementById('ag-rpx');
+        if (el) return el;
+        el = document.createElement('div');
+        el.id = 'ag-rpx';
+        el.innerHTML =
+            '<div class="ag-rpx-box" role="dialog" aria-modal="true" aria-label="Vlastní profil">'
+            + '<h3 id="ag-rpx-h">Vlastní profil</h3>'
+            + '<label for="ag-rpx-name">Název</label>'
+            + '<input type="text" id="ag-rpx-name" maxlength="28" placeholder="Např. Moje pokládka" autocomplete="off">'
+            + '<label for="ag-rpx-sub">Krátký popisek — volitelné</label>'
+            + '<input type="text" id="ag-rpx-sub" maxlength="40" placeholder="Např. co v něm mám" autocomplete="off">'
+            + '<div class="ag-rpx-lab">Nástroje, které se vytáhnou dopředu <span id="ag-rpx-cnt"></span></div>'
+            + '<div id="ag-rpx-tools"></div>'
+            + '<div class="ag-rpx-err" id="ag-rpx-err"></div>'
+            + '<div class="ag-rpx-btns">'
+            + '  <button type="button" class="del" id="ag-rpx-del">Smazat</button>'
+            + '  <button type="button" id="ag-rpx-cancel">Zrušit</button>'
+            + '  <button type="button" class="prim" id="ag-rpx-save">Uložit</button>'
+            + '</div></div>';
+        document.body.appendChild(el);
+        el.addEventListener('click', function (ev) { if (ev.target === el) closeEditor(); });
+        el.querySelector('#ag-rpx-cancel').addEventListener('click', closeEditor);
+        el.querySelector('#ag-rpx-tools').addEventListener('click', function (ev) {
+            var b = ev.target.closest ? ev.target.closest('button[data-k]') : null;
+            if (!b) return;
+            b.classList.toggle('on');
+            b.setAttribute('aria-pressed', b.classList.contains('on') ? 'true' : 'false');
+            countSel();
+        });
+        el.querySelector('#ag-rpx-save').addEventListener('click', saveEditor);
+        el.querySelector('#ag-rpx-del').addEventListener('click', deleteEditor);
+        return el;
+    }
+    function countSel() {
+        var el = document.getElementById('ag-rpx'); if (!el) return 0;
+        var n = el.querySelectorAll('#ag-rpx-tools button.on').length;
+        var c = el.querySelector('#ag-rpx-cnt');
+        if (c) c.textContent = n ? '· vybráno ' + n : '';
+        return n;
+    }
+    var _editId = null;
+    function openEditor(id) {
+        injectStyles();
+        var el = editorEl();
+        var rec = id ? modeById(id) : null;
+        _editId = (rec && rec.custom) ? id : null;
+        el.querySelector('#ag-rpx-h').textContent = _editId ? 'Upravit profil' : 'Nový vlastní profil';
+        el.querySelector('#ag-rpx-name').value = _editId ? rec.t : '';
+        el.querySelector('#ag-rpx-sub').value = (_editId && rec.s !== 'Vlastní profil') ? rec.s : '';
+        el.querySelector('#ag-rpx-err').textContent = '';
+        el.querySelector('#ag-rpx-del').style.display = _editId ? '' : 'none';
+        var sel = {};
+        if (_editId) rec.tools.forEach(function (k) { sel[k] = 1; });
+        el.querySelector('#ag-rpx-tools').innerHTML = pickableTools().map(function (t) {
+            return '<button type="button" data-k="' + esc(t.k) + '"' + (sel[t.k] ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"')
+                + '>' + esc(t.t) + '</button>';
+        }).join('') || '<p class="ag-rpx-empty">Mřížka Nástrojů se ještě nenačetla. Otevři jednou Nástroje a zkus to znovu.</p>';
+        countSel();
+        el.classList.add('on');
+        setTimeout(function () { try { el.querySelector('#ag-rpx-name').focus(); } catch (e) {} }, 60);
+    }
+    function closeEditor() {
+        var el = document.getElementById('ag-rpx');
+        if (el) el.classList.remove('on');
+        _editId = null;
+    }
+    function saveEditor() {
+        var el = document.getElementById('ag-rpx'); if (!el) return;
+        var name = (el.querySelector('#ag-rpx-name').value || '').trim();
+        var sub = (el.querySelector('#ag-rpx-sub').value || '').trim();
+        var err = el.querySelector('#ag-rpx-err');
+        if (!name) { err.textContent = 'Napiš název profilu.'; return; }
+        var tools = [], on = el.querySelectorAll('#ag-rpx-tools button.on');
+        for (var j = 0; j < on.length; j++) tools.push(on[j].getAttribute('data-k'));
+        if (!tools.length) { err.textContent = 'Vyber aspoň jeden nástroj — jinak by profil nic nedělal.'; return; }
+        var list = customs();
+        var id = _editId;
+        if (id) {
+            for (var i = 0; i < list.length; i++) if (list[i].id === id) { list[i].t = name; list[i].s = sub || 'Vlastní profil'; list[i].tools = tools; }
+        } else {
+            id = CUST_PREFIX + Date.now();
+            list.push({ id: id, t: name, s: sub || 'Vlastní profil', tools: tools });
+        }
+        saveCustoms(list);
+        closeEditor();
+        mergeProfiles();
+        pick(id);                                  // nově uložený profil rovnou zapni
+        try { if (typeof window.quickToast === 'function') window.quickToast('Profil „' + name + '" uložen a zapnut.'); } catch (e) {}
+    }
+    function deleteEditor() {
+        var id = _editId; if (!id) return;
+        var rec = modeById(id);
+        var go = function () {
+            saveCustoms(customs().filter(function (c) { return c.id !== id; }));
+            // smazaný profil nesmí zůstat zapnutý -> spadni na „bez profilu"
+            if (curMode() === id) { lsDel(PROF_PREFIX + pid()); lsSet(SIMPLE_KEY, '0'); }
+            closeEditor();
+            mergeProfiles();
+            render();
+            syncSettingRow();
+            try { if (window.AGToolsSimple && typeof window.AGToolsSimple.sync === 'function') window.AGToolsSimple.sync(); } catch (e) {}
+        };
+        var q = 'Smazat profil „' + (rec ? rec.t : '') + '"? Nástroje ani body se nemažou, jen tenhle výběr.';
+        // agGuard = „zeptej se a teprve pak to udělej" (in-app dialog je asynchronní,
+        // takže `if (!confirm())` by tu nefungovalo); bez můstku spadne na confirm()
+        try {
+            if (typeof window.agGuard === 'function') { window.agGuard(q, go, { title: 'Smazat profil', danger: true }); return; }
+        } catch (e) {}
+        if (window.confirm(q)) go();
     }
 
     // ---- volba režimu ------------------------------------------------------------
@@ -367,17 +588,25 @@
         if (!known(id)) return;
         // Stav jednoduchého panelu před prvním zásahem si pamatuj, ať se dá vrátit.
         if (ls(PREV_KEY) == null) lsSet(PREV_KEY, simpleOn() ? '1' : '0');
-        lsSet(PROF_PREFIX + pid(), id);
-        if (id === 'univerzal') lsSet(SIMPLE_KEY, ls(PREV_KEY) === '1' ? '1' : '0');
-        else lsSet(SIMPLE_KEY, '1');
+        if (id === 'univerzal') {
+            // VYPNUTÍ PROFILU: uloženou volbu SMAZAT (ne uložit „univerzal") a
+            // jednoduchý panel vypnout natvrdo. Dřív se panel vracel do stavu před
+            // první volbou, takže „vypnout" nemuselo doopravdy vypnout nic.
+            lsDel(PROF_PREFIX + pid());
+            lsSet(SIMPLE_KEY, '0');
+        } else {
+            lsSet(PROF_PREFIX + pid(), id);
+            lsSet(SIMPLE_KEY, '1');
+        }
         render();
+        syncSettingRow();
         // tools-simple.js se sám dorovná svým tickem; když je po ruce, ať to je hned
         try { if (window.AGToolsSimple && typeof window.AGToolsSimple.sync === 'function') window.AGToolsSimple.sync(); } catch (e) {}
     }
 
     function noteFor(id) {
         if (id === 'univerzal') {
-            return 'V Nástrojích uvidíš <b>všechny dlaždice</b>. Režim si můžeš vybrat i později v Nástrojích.';
+            return 'Žádný profil se nepoužívá — v Nástrojích uvidíš <b>všechny dlaždice</b>. Profil si můžeš zapnout kdykoli později.';
         }
         return 'V Nástrojích se tyhle dlaždice vytáhnou <b>dopředu</b>; ostatní zůstávají pod '
             + '„Zobrazit všechny nástroje“ a hledání najde vždy vše. Platí pro aktivní zakázku.';
@@ -411,10 +640,17 @@
         });
         var list = w.querySelector('#ag-rp-list');
         list.addEventListener('click', function (ev) {
-            var b = ev.target.closest ? ev.target.closest('button[data-mode]') : null;
+            if (!ev.target.closest) return;
+            if (ev.target.closest('button[data-add]')) { openEditor(null); return; }
+            var b = ev.target.closest('button[data-mode]');
             if (b) pick(b.getAttribute('data-mode'));
         });
         list.addEventListener('scroll', edgeHints, { passive: true });
+        // detail se překresluje přes innerHTML → posluchač delegovaně na obalu
+        w.querySelector('#ag-rp-detail').addEventListener('click', function (ev) {
+            var e2 = ev.target.closest ? ev.target.closest('button[data-edit]') : null;
+            if (e2) openEditor(e2.getAttribute('data-edit'));
+        });
         return w;
     }
 
@@ -458,18 +694,24 @@
         var names = toolNames(cur);
         // Překresluj jen při skutečné změně — úvodní obrazovka se refreshuje i po
         // přepnutí zakázky a překreslování každou vteřinu by stálo baterii.
-        var sig = cur + '|' + names.join('~');
-        if (list.getAttribute('data-cur') !== cur) {
-            list.setAttribute('data-cur', cur);
-            list.innerHTML = MODES.map(function (m) {
+        var csig = customSig();
+        var sig = cur + '|' + csig + '|' + names.join('~');
+        // překreslit pás i po změně vlastních profilů, ne jen po změně volby
+        if (list.getAttribute('data-cur') !== cur + '|' + csig) {
+            list.setAttribute('data-cur', cur + '|' + csig);
+            list.innerHTML = allModes().map(function (m) {
                 var n = toolsOf(m.id).length;
                 return '<button type="button" data-mode="' + m.id + '"'
                     + (m.id === cur ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>'
                     + '<svg class="icon"><use href="' + (ICONS[m.ic] || '#i-grid') + '"/></svg>'
                     + '<b>' + esc(m.t) + '</b><span>' + esc(m.s) + '</span>'
-                    + '<i>' + (m.id === 'univerzal' ? 'vše' : n + ' ' + (n < 5 ? 'nástroje' : 'nástrojů')) + '</i>'
+                    + '<i>' + (m.id === 'univerzal' ? 'vypnuto' : n + ' ' + (n < 5 ? 'nástroje' : 'nástrojů')) + '</i>'
                     + '</button>';
-            }).join('');
+            }).join('')
+                // poslední dlaždice: založení vlastního profilu
+                + '<button type="button" class="add" data-add="1" aria-label="Vytvořit vlastní profil">'
+                + '<svg class="icon"><use href="#i-plus"/></svg>'
+                + '<b>Vlastní profil</b><span>Vyber si nástroje sám</span><i>vytvořit</i></button>';
             needScroll = true;
         }
         if (w.getAttribute('data-sig') !== sig) {
@@ -481,6 +723,8 @@
                 html += '<span class="lab">Vytáhne dopředu</span><ul id="ag-rp-chips">'
                     + names.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>';
             }
+            // vlastní profil jde rovnou doladit (vestavěné se needitují)
+            if (m && m.custom) html += '<button type="button" class="ag-rp-edit" data-edit="' + esc(cur) + '">Upravit tenhle profil</button>';
             w.querySelector('#ag-rp-detail').innerHTML = html;
             var note = w.querySelector('#ag-rp-note');
             var nh = noteFor(cur);
@@ -501,12 +745,38 @@
         if (!row || !row.parentNode) return;
         var d = document.createElement('div');
         d.className = 'st-row'; d.id = 'ag-rp-setrow';
-        d.innerHTML = '<span class="st-lab">Volba režimu práce na úvodu<small>na úvodní obrazovce vybereš, co dnes děláš, a Nástroje se podle toho zúží</small></span>'
+        d.innerHTML = '<span class="st-lab">Volba profilu práce na úvodu<small id="ag-rp-setnote">na úvodní obrazovce vybereš, co dnes děláš, a Nástroje se podle toho zúží</small></span>'
             + '<label class="st-sw"><input type="checkbox" id="ag-rp-sw"><span class="st-sw-face"></span></label>';
         row.parentNode.insertBefore(d, row.nextSibling);
         var cb = d.querySelector('#ag-rp-sw');
         cb.checked = !hidden();
-        cb.addEventListener('change', function () { lsSet(HIDE_KEY, cb.checked ? '0' : '1'); render(); });
+        cb.addEventListener('change', function () { lsSet(HIDE_KEY, cb.checked ? '0' : '1'); render(); syncSettingRow(); });
+        // PAST, KTEROU TO ZAVÍRÁ: kdo si kartu na úvodu odklidil („Nezobrazovat")
+        // se zapnutým profilem, neměl kde ho vypnout — Nástroje mu zůstaly zúžené
+        // a nebylo poznat proč. Proto se tady píše, který profil právě platí, a je
+        // u toho tlačítko, kterým se vypne.
+        d.addEventListener('click', function (ev) {
+            if (!ev.target.closest || !ev.target.closest('#ag-rp-setoff')) return;
+            pick('univerzal');
+            try { if (typeof window.quickToast === 'function') window.quickToast('Profil vypnut — v Nástrojích jsou zase všechny dlaždice.'); } catch (e) {}
+        });
+        syncSettingRow();
+    }
+    // popisek u přepínače v Nastavení: co teď platí + cesta, jak to vypnout
+    function syncSettingRow() {
+        var note = document.getElementById('ag-rp-setnote');
+        if (!note) return;
+        var cur = curMode();
+        var m = modeById(cur);
+        var html;
+        if (cur === 'univerzal' || !m) {
+            html = 'na úvodní obrazovce vybereš, co dnes děláš, a Nástroje se podle toho zúží. '
+                + 'Teď <b>žádný profil neběží</b> — v Nástrojích jsou všechny dlaždice.';
+        } else {
+            html = 'Právě běží profil <b>' + esc(m.t) + '</b>, takže Nástroje ukazují hlavně jeho dlaždice. '
+                + '<button type="button" id="ag-rp-setoff">Nepoužívat žádný profil</button>';
+        }
+        if (note.innerHTML !== html) note.innerHTML = html;
     }
 
     // ---- init ---------------------------------------------------------------------
@@ -517,6 +787,7 @@
             fixSelect();
             var cb = document.getElementById('ag-rp-sw');
             if (cb && cb.checked === hidden()) cb.checked = !hidden();
+            syncSettingRow();
             // Když je úvodní obrazovka schovaná, nemá smysl číst mřížku Nástrojů
             // a přepočítávat výčet — šetříme baterii (viz js/power-save.js).
             var w = document.getElementById('ag-rp-wrap');

@@ -961,7 +961,7 @@
         if (!host) return;
         var vals = lvVals();
         if (!vals.length) return;
-        var html = [];
+        var html = [], kf = [];
         for (var i = 0; i < vals.length; i++) {
             var dp = LV_DEPTH[i % 3];
             var dur = dp.d0 + ((i * 7) % (dp.d1 - dp.d0));
@@ -969,13 +969,38 @@
             var dy = ((i % 5) - 2) * 6;                          // mírné stoupání/klesání
             var rl = (i % 2 === 0);                              // střídavě zleva a zprava
             var delay = -Math.round(dur * ((i * 13) % 100) / 100);   // rozjeté hned, ne po řadě
-            var xs = 8 + (i % 3) * 26;                           // klidová poloha (reduced-motion)
-            html.push('<div class="agl-fl ' + dp.cls + '" style="--x0:' + (rl ? -35 : 135) + 'vw;--y0:' + lane + 'vh;' +
-                '--x1:' + (rl ? 135 : -35) + 'vw;--y1:' + (lane + dy) + 'vh;--xs:' + xs + 'vw;--op:' + dp.op + ';' +
-                'animation-duration:' + dur + 's;animation-delay:' + delay + 's;">' +
-                '<span class="k">' + esc(vals[i][0]) + '</span>' +
-                '<span class="v" data-k="' + esc(vals[i][0]) + '">' + esc(vals[i][1]) + '</span></div>');
+            var xs = 8 + (i % 3) * 26;                           // klidová poloha (bez animací)
+            // ⚠ KEYFRAMES S DOSAZENÝMI ČÍSLY, NIKDY `var()`.
+            // Dřív tu byla JEDNA animace `aglfly`, která brala polohu z custom
+            // properties (`translate(var(--x0),var(--y0))`). Staré WebKity (iOS
+            // Safari) `var()` UVNITŘ @keyframes neumí — celou deklaraci zahodí,
+            // takže chipy zůstaly bez transformu i bez opacity: nahromadily se
+            // vlevo nahoře a nedělaly nic (nahlášeno 8.8.2026 z telefonu, na
+            // Chromiu se to NEPROJEVÍ). Proto se pro každý chip vygeneruje
+            // vlastní @keyframes s čísly.
+            kf.push('@keyframes aglfly' + i + '{'
+                + '0%{transform:translate(' + (rl ? -35 : 135) + 'vw,' + lane + 'vh);opacity:0}'
+                + '14%{opacity:' + dp.op + '}82%{opacity:' + dp.op + '}'
+                + '100%{transform:translate(' + (rl ? 135 : -35) + 'vw,' + (lane + dy) + 'vh);opacity:0}}');
+            // STATICKÁ ZÁLOHA v inline stylu: když animace nepoběží (vypnuté
+            // animace v systému, spořicí režim, starý prohlížeč), hodnoty aspoň
+            // KLIDNĚ STOJÍ rozmístěné po obrazovce — nikdy ne v hromadě v koutě.
+            // Běžící animace tenhle transform přebije, takže si nepřekáží.
+            html.push('<div class="agl-fl ' + dp.cls + '" style="transform:translate(' + xs + 'vw,' + lane + 'vh);'
+                + 'opacity:' + dp.op + ';animation-name:aglfly' + i + ';'
+                + 'animation-duration:' + dur + 's;animation-delay:' + delay + 's;">'
+                + '<span class="k">' + esc(vals[i][0]) + '</span>'
+                + '<span class="v" data-k="' + esc(vals[i][0]) + '">' + esc(vals[i][1]) + '</span></div>');
         }
+        // keyframes se generují dohromady do jednoho <style>, přepisuje se celý
+        // (obrazovka se staví znovu → počet chipů se může změnit)
+        var kfEl = document.getElementById('agl-live-kf');
+        if (!kfEl) {
+            kfEl = document.createElement('style');
+            kfEl.id = 'agl-live-kf';
+            (document.head || document.documentElement).appendChild(kfEl);
+        }
+        kfEl.textContent = kf.join('\n');
         host.innerHTML = html.join('');
         // Obnova: mění se JEN text, chipy se nepřekreslují (jinak by animace skočila).
         // Párování podle popisku, ne podle pořadí — seznam se může za běhu rozšířit
@@ -1065,21 +1090,20 @@
             '#ag-login .agl-live,#ag-gate .agl-live{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;',
             '  -webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);',
             '  mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);}',
+            // animation-name se dává INLINE (aglfly<i>) — každý chip má vlastní
+            // keyframes s dosazenými čísly, viz startLive()
             '.agl-fl{position:absolute;top:0;left:0;white-space:nowrap;display:inline-flex;align-items:baseline;gap:6px;',
             '  font-family:var(--font-mono,ui-monospace,monospace);will-change:transform;',
-            '  animation-name:aglfly;animation-timing-function:linear;animation-iteration-count:infinite;}',
+            '  animation-timing-function:linear;animation-iteration-count:infinite;}',
             '.agl-fl .k{font-weight:500;font-size:.74em;letter-spacing:.08em;text-transform:uppercase;color:rgba(230,189,118,0.55);}',
             '.agl-fl .v{font-weight:600;color:var(--data,#e6bd76);}',
             '.agl-fl.far{font-size:calc(11px * var(--ag-font-scale, 1));}',
             '.agl-fl.mid{font-size:calc(13px * var(--ag-font-scale, 1));}',
             '.agl-fl.near{font-size:calc(16px * var(--ag-font-scale, 1));}',
             '.agl-fl.near .v{color:#f0cd90;}',
-            '@keyframes aglfly{0%{transform:translate(var(--x0),var(--y0));opacity:0}',
-            '  14%{opacity:var(--op)}82%{opacity:var(--op)}',
-            '  100%{transform:translate(var(--x1),var(--y1));opacity:0}}',
-            // bez animací (systémové nastavení): hodnoty jen tiše stojí na svém místě
-            '@media (prefers-reduced-motion:reduce){.agl-fl{animation:none;',
-            '  transform:translate(var(--xs),var(--y0));opacity:var(--op);}}',
+            // bez animací (systémové nastavení): animaci vypnout stačí — klidovou
+            // polohu i průhlednost drží inline styl chipu (statická záloha)
+            '@media (prefers-reduced-motion:reduce){.agl-fl{animation:none;}}',
             // vinětace: vrstevnice se do krajů ztrácí do barvy pozadí (funguje i ve světlém motivu)
             '#ag-login::after,#ag-gate::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;',
             '  background:radial-gradient(90% 70% at 50% 42%,transparent 25%,var(--bg,#0d1117) 100%);}',
