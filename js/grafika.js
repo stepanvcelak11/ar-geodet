@@ -387,10 +387,35 @@
             });
             const em = document.getElementById('mng-empty'); if (em) em.style.display = shown ? 'none' : 'block';
         }
+        // VYKON SPRAVY BODU. Seznam se prekresluje cely pri kazde zmene razeni, pri
+        // zapnuti rezimu vyberu i po kazdem smazani bodu. U velke zakazky (stovky bodu)
+        // to na mobilu delalo viditelne zaseknuti. Dve nejdrazsi veci mely spolecne to,
+        // ze se pocitaly porad dokola ze stejnych vstupu:
+        //
+        //   1) proj4 WGS84 -> S-JTSK (Krovak) pro KAZDY radek. Goniometricky prevod,
+        //      pritom souradnice bodu se nemeni. Cache je ve WeakMap ZAMERNE: kdyby
+        //      sedela primo na bodu, propsala by se pres JSON.stringify(persistentCustomPoints)
+        //      do ulozeni i do exportovaneho JSON souboru.
+        //   2) getDistance volany PRIMO v komparatoru razeni „nejblizsi prvni" — to je
+        //      O(n log n) volani (u 800 bodu kolem 15 000) misto n. Ted se vzdalenost
+        //      spocita jednou pro kazdy bod a radi se uz jen podle hotoveho cisla;
+        //      stejnou mapu pak pouzije i vypis radku, takze se nepocita podruhe.
+        const _sjtskCache = new WeakMap();
+        function _mngSjtsk(pt) {
+            let c = _sjtskCache.get(pt);
+            if (c && c.lat === pt.lat && c.lng === pt.lng) return c;
+            const s = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]);
+            c = { lat: pt.lat, lng: pt.lng, y: Math.abs(s[0]).toFixed(2), x: Math.abs(s[1]).toFixed(2) };
+            _sjtskCache.set(pt, c);
+            return c;
+        }
+        let _mngDistOf = new Map();   // bod -> vzdalenost; plati pro prave probihajici prekresleni
         function _mngAllSorted() {
             let pts = persistentCustomPoints.slice();
+            _mngDistOf = new Map();
+            if (userLat != null) pts.forEach(p => _mngDistOf.set(p, getDistance(userLat, userLng, p.lat, p.lng)));
             if (_mngSort === 'name') pts.sort((a, b) => String(a.name).localeCompare(String(b.name), 'cs', { numeric: true }));
-            else if (_mngSort === 'dist' && userLat != null) pts.sort((a, b) => getDistance(userLat, userLng, a.lat, a.lng) - getDistance(userLat, userLng, b.lat, b.lng));
+            else if (_mngSort === 'dist' && userLat != null) pts.sort((a, b) => _mngDistOf.get(a) - _mngDistOf.get(b));
             else if (_mngSort === 'new') pts.sort((a, b) => (((b.prov && b.prov.ts) || 0) - ((a.prov && a.prov.ts) || 0)));
             return pts;
         }
@@ -400,6 +425,7 @@
         // renderManageList i drawAllMarkersOnMap, coz je u stovek bodu kvadraticka prace
         // (proj4 prevod na kazdy radek) a appka by na nekolik sekund zamrzla.
         let _mngSuspendRedraw = false;
+        let _mngRenderToken = 0;   // rozdelane davkove vykreslovani seznamu se pri novem prekresleni zahodi
         function renderManageList() {
             if (_mngSuspendRedraw) return;
             const listDiv = document.getElementById('manage-list'); listDiv.innerHTML = '';
@@ -427,32 +453,78 @@
             const empty = document.createElement('p'); empty.id = 'mng-empty';
             empty.style.cssText = 'text-align:center; opacity:.7; display:none;'; empty.innerText = 'Hledání nic nenašlo.';
             listDiv.appendChild(empty);
-            pts.forEach(pt => {
-                let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); let dispY = Math.abs(sjtsk[0]).toFixed(2); let dispX = Math.abs(sjtsk[1]).toFixed(2);
+            // Radky maji vlastni obal a "ocas" (skryte body + spojnice) jde pod nej hned.
+            // Diky tomu muzeme radky doplnovat po davkach, aniz by se poradi rozhodilo.
+            const rowsBox = document.createElement('div'); rowsBox.className = 'mng-rows';
+            const tailBox = document.createElement('div');
+            listDiv.appendChild(rowsBox); listDiv.appendChild(tailBox);
+            renderHiddenPointsRow(tailBox); renderLinesList(tailBox);
+
+            // DELEGACE UDALOSTI: driv dostal kazdy radek 1-3 vlastni posluchace
+            // (klik na radek, tlacitko upravit, tlacitko smazat). U 800 bodu to bylo
+            // pres 2000 registraci pri KAZDEM prekresleni a byla to nejdrazsi polozka
+            // celeho vykreslovani. Ted staci jeden posluchac na celem obalu.
+            rowsBox.addEventListener('click', (ev) => {
+                const item = ev.target.closest ? ev.target.closest('.cp-item') : null;
+                if (!item || !rowsBox.contains(item)) return;
+                const id = item.dataset.ptId;
+                if (!id) return;
+                if (_mngSelMode) {
+                    if (_mngSel.has(id)) _mngSel.delete(id); else _mngSel.add(id);
+                    item.classList.toggle('mng-selected', _mngSel.has(id));
+                    const chk = item.querySelector('.mng-check'); if (chk) chk.textContent = _mngSel.has(id) ? '✓' : '';
+                    const c = document.getElementById('mng-count'); if (c) c.innerText = _mngSel.size;
+                    return;
+                }
+                if (ev.target.closest('.cp-btn-edit')) { editCustomPoint(id); return; }
+                if (ev.target.closest('.cp-btn-delete')) { deleteCustomPoint(id); return; }
+            });
+
+            function _mngMakeRow(pt) {
+                const sj = _mngSjtsk(pt); const dispY = sj.y, dispX = sj.x;
                 const item = document.createElement('div'); item.className = 'cp-item';
+                item.dataset.ptId = pt.id;
                 item.dataset.mngText = (String(pt.name) + ' ' + (pt.kod || '')).toLowerCase();
-                const dRow = (userLat != null) ? ('<br>' + getDistance(userLat, userLng, pt.lat, pt.lng).toFixed(1) + ' m od tebe') : '';
-                item.innerHTML = ` <div class="cp-title">${_escHtml(pt.name)}${pt.kod ? ' <span class="cp-kod">' + _escHtml(pt.kod) + '</span>' : ''}</div> <div class="cp-coords">Y: ${dispY}<br>X: ${dispX}${pt.vyska != null ? '<br>Z: '+Number(pt.vyska).toFixed(2)+' m' : ''}${pt.acc != null ? '<br>⌀ ±'+_escHtml(pt.acc)+' m' : ''}${dRow}</div>`;
+                const _d = _mngDistOf.get(pt);
+                const dRow = (_d != null) ? ('<br>' + _d.toFixed(1) + ' m od tebe') : '';
+                let inner = ` <div class="cp-title">${_escHtml(pt.name)}${pt.kod ? ' <span class="cp-kod">' + _escHtml(pt.kod) + '</span>' : ''}</div> <div class="cp-coords">Y: ${dispY}<br>X: ${dispX}${pt.vyska != null ? '<br>Z: '+Number(pt.vyska).toFixed(2)+' m' : ''}${pt.acc != null ? '<br>⌀ ±'+_escHtml(pt.acc)+' m' : ''}${dRow}</div>`;
                 if (_mngSelMode) {
                     item.classList.add('mng-selectable'); item.classList.toggle('mng-selected', _mngSel.has(pt.id));
-                    const chk = document.createElement('div'); chk.className = 'mng-check'; chk.textContent = _mngSel.has(pt.id) ? '✓' : ''; item.appendChild(chk);
-                    item.addEventListener('click', () => {
-                        if (_mngSel.has(pt.id)) _mngSel.delete(pt.id); else _mngSel.add(pt.id);
-                        item.classList.toggle('mng-selected', _mngSel.has(pt.id)); chk.textContent = _mngSel.has(pt.id) ? '✓' : '';
-                        const c = document.getElementById('mng-count'); if (c) c.innerText = _mngSel.size;
-                    });
+                    inner += `<div class="mng-check">${_mngSel.has(pt.id) ? '✓' : ''}</div>`;
+                    item.innerHTML = inner;
                 } else {
-                    const act = document.createElement('div'); act.className = 'cp-actions';
-                    act.innerHTML = `<button class="cp-btn cp-btn-edit"><svg class="icon"><use href="#i-edit"/></svg></button> <button class="cp-btn cp-btn-delete"><svg class="icon"><use href="#i-trash"/></svg></button>`;
-                    item.appendChild(act);
-                    act.querySelector('.cp-btn-edit').addEventListener('click', () => editCustomPoint(pt.id));
-                    act.querySelector('.cp-btn-delete').addEventListener('click', () => deleteCustomPoint(pt.id));
+                    inner += `<div class="cp-actions"><button class="cp-btn cp-btn-edit"><svg class="icon"><use href="#i-edit"/></svg></button> <button class="cp-btn cp-btn-delete"><svg class="icon"><use href="#i-trash"/></svg></button></div>`;
+                    item.innerHTML = inner;
                     if (typeof decoratePointItem === 'function') { try { decoratePointItem(item, pt); } catch (e) {} }
                 }
-                listDiv.appendChild(item);
-            });
-            renderHiddenPointsRow(listDiv); renderLinesList(listDiv);
+                return item;
+            }
+
+            // PO DAVKACH: prvni davka staci na vic nez jednu obrazovku a vlozi se hned,
+            // takze se modal otevre okamzite i u velke zakazky. Zbytek se doplni v dalsich
+            // snimcich, takze hlavni vlakno mezitim stiha reagovat na dotyk a rolovani.
+            // _mngRenderToken zarusi rozdelanou davku, kdyz mezitim prijde nove prekresleni
+            // (zmena razeni, smazani bodu) — jinak by se radky ze dvou vykresleni promichaly.
+            const token = ++_mngRenderToken;
+            const FIRST = 60, MORE = 150;
+            let i = 0;
+            const appendChunk = (n) => {
+                const frag = document.createDocumentFragment();
+                const end = Math.min(i + n, pts.length);
+                for (; i < end; i++) frag.appendChild(_mngMakeRow(pts[i]));
+                rowsBox.appendChild(frag);
+            };
+            appendChunk(FIRST);
             _mngApplyFilter();   // aktivni hledani plati i po prekresleni (mazani, razeni, vyber)
+            if (i < pts.length) {
+                const step = () => {
+                    if (token !== _mngRenderToken) return;   // mezitim prislo jine vykresleni
+                    appendChunk(MORE);
+                    _mngApplyFilter();
+                    if (i < pts.length) requestAnimationFrame(step);
+                };
+                requestAnimationFrame(step);
+            }
         }
         // panel hromadnych akci nad vyberem
         function renderMngActions(listDiv) {

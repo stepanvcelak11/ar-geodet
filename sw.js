@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v212';   // OPRAVA: jeden bod bez DOM elementu shazoval vykresleni vsech bodu v AR i v mape
+const SHELL_CACHE = 'argeodet-shell-v213';   // OPRAVA: jeden bod bez DOM elementu shazoval vykresleni vsech bodu v AR i v mape
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -25,9 +25,9 @@ const ASSETS_TO_CACHE = [
     './icon-512.png',
     './icon-maskable-192.png',
     './icon-maskable-512.png',
-    './css/tokens.css?v=212',
-    './css/style.css?v=212',
-    './css/vylepseni.css?v=212',
+    './css/tokens.css?v=213',
+    './css/style.css?v=213',
+    './css/vylepseni.css?v=213',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
@@ -177,6 +177,7 @@ const ASSETS_TO_CACHE = [
     './js/zapisnik.js',
     './js/dgps.js',
     './js/vrstvy.js',
+    './js/kontrola-vrstvy.js',
     './js/denik-dne.js',
     './js/kniha-jizd.js',
     './js/postupy.js',
@@ -194,15 +195,45 @@ function isTile(url) {
         || url.includes('services.cuzk.gov.cz/wms');
 }
 
+// Predchozi verze shellu (argeodet-shell-v211 pri instalaci v212). Slouzi jako
+// ZALOHA pri instalaci: kdyz nejde sit, vezmeme starou kopii souboru misto zadne.
+async function previousShellCaches() {
+    try {
+        const keys = await caches.keys();
+        return keys.filter(k => k.indexOf('argeodet-shell-') === 0 && k !== SHELL_CACHE);
+    } catch (e) { return []; }
+}
+
 self.addEventListener('install', event => {
     event.waitUntil((async () => {
         const cache = await caches.open(SHELL_CACHE);
-        // Kazdy soubor zvlast â€” selhani jednoho nesmi zablokovat instalaci (a tim i aktualizaci).
+        const olds = await Promise.all((await previousShellCaches()).map(n => caches.open(n)));
+
+        // DATA V TERENU: drive tu bylo { cache: 'reload' }, coz ZAMERNE obchazi HTTP
+        // cache prohlizece — kazdy bump verze tedy stahoval vsech ~145 souboru (~3,4 MB)
+        // ZNOVU, i kdyz se zmenil jediny radek. Na stavbe s jednou carkou signalu to byla
+        // nekolikaminutova aktualizace a zbytecne vybita baterie.
+        //
+        // 'no-cache' NENI "necachovat": znamena "vzdy se serveru zeptej, jestli se to
+        // zmenilo". Server odpovi 304 Not Modified a prohlizec pouzije bajty ze sve HTTP
+        // cache. Nezmenene soubory tak stoji jen kratky dotaz misto celeho tela.
+        // Cerstvost kodu zustava zarucena — pri zmene souboru prijde plna odpoved 200.
+        //
+        // Kazdy soubor zvlast — selhani jednoho nesmi zablokovat instalaci (a tim i aktualizaci).
         await Promise.allSettled(ASSETS_TO_CACHE.map(async url => {
             try {
-                const res = await fetch(new Request(url, { cache: 'reload' }));
-                if (res && (res.ok || res.type === 'opaque')) await cache.put(url, res);
-            } catch (e) { /* offline / blokovany CDN â€” preskocit, nevadi */ }
+                const res = await fetch(new Request(url, { cache: 'no-cache' }));
+                if (res && (res.ok || res.type === 'opaque')) { await cache.put(url, res); return; }
+            } catch (e) { /* offline / blokovany CDN — zkusime starou kopii nize */ }
+            // Sit selhala nebo vratila chybu. Kdyz mame soubor z minule verze, prenesme ho:
+            // aktivace stare cache stejne smaze, a mit stary soubor je porad lepsi nez zadny
+            // (jinak by update spusteny na hrane signalu nechal appku bez casti kodu).
+            for (const old of olds) {
+                try {
+                    const hit = await old.match(url);
+                    if (hit) { await cache.put(url, hit); return; }
+                } catch (e) { /* poskozena stara cache — nevadi */ }
+            }
         }));
         // skipWaiting az na vyzadani z appky (po souhlasu uzivatele s obnovou)
     })());

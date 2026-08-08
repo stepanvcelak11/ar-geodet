@@ -40,6 +40,10 @@
             '#' + BAR_ID + '.show{display:flex;}',
             '#' + BAR_ID + ' .dot{width:9px;height:9px;border-radius:50%;flex:0 0 9px;background:#fff;}',
             // krizek na zavreni: jediny klikaci prvek (rodic ma pointer-events:none, at pruh neblokuje AR)
+            // akcni tlacitko (Zkusit znovu / Jak povolit) — take musi byt klikaci
+            '#' + BAR_ID + ' .act{pointer-events:auto;appearance:none;-webkit-appearance:none;border:1px solid rgba(255,255,255,0.45);',
+            '  background:rgba(255,255,255,0.16);color:#fff;border-radius:999px;padding:4px 11px;min-height:30px;',
+            '  font:700 12px/1 var(--font-ui,system-ui),sans-serif;cursor:pointer;white-space:nowrap;}',
             '#' + BAR_ID + ' .x{pointer-events:auto;appearance:none;-webkit-appearance:none;border:0;margin:-2px -6px -2px 0;',
             '  background:rgba(255,255,255,0.18);color:#fff;width:22px;height:22px;border-radius:50%;flex:0 0 22px;',
             '  font:700 14px/22px var(--font-ui,system-ui),sans-serif;padding:0;cursor:pointer;text-align:center;}',
@@ -62,10 +66,18 @@
         if (!b) {
             b = document.createElement('div');
             b.id = BAR_ID;
-            b.innerHTML = '<span class="dot"></span><span class="txt"></span><button type="button" class="x" aria-label="Zavřít upozornění">×</button>';
+            b.innerHTML = '<span class="dot"></span><span class="txt"></span>'
+                + '<button type="button" class="act" style="display:none;"></button>'
+                + '<button type="button" class="x" aria-label="Zavřít upozornění">×</button>';
             b.querySelector('.x').addEventListener('click', function () {
                 _dismissed = b.getAttribute('data-key') || null;
                 b.classList.remove('show');
+            });
+            // Akce i ve fallbacku (bez js/upozorneni.js) — jinak by odpojeni centra
+            // upozorneni tise sebralo jedinou cestu, jak se z chyby GPS dostat.
+            b.querySelector('.act').addEventListener('click', function () {
+                var fn = b._agAction;
+                if (typeof fn === 'function') fn();
             });
             document.body.appendChild(b);
         }
@@ -90,6 +102,57 @@
         return s < 120 ? (s + ' s') : (Math.round(s / 60) + ' min');
     }
 
+    // ---- ZOTAVENI Z CHYBY GPS ------------------------------------------------------
+    // Driv se chyba GPS jen vypsala do #info a tim to skoncilo: kdo omylem odmitl
+    // pristup k poloze, videl vetu bez jedineho tlacitka a appka uz se o fix
+    // nepokusila. Navic #info cisti az PRVNI uspesny fix (updateInfoPanel), takze
+    // pri zakazane poloze tam ta hlaska zustala viset navzdy.
+    var DENIED = 1;   // GeolocationPositionError.PERMISSION_DENIED
+
+    function errCode() {
+        var fx = window.AGFix;
+        if (!fx || !fx.err) return 0;
+        // chyba je aktualni jen kdyz je novejsi nez posledni platny fix
+        if (fx.ts && fx.errTs && fx.errTs <= fx.ts) return 0;
+        return fx.err;
+    }
+
+    function toast(m) { try { if (typeof window.quickToast === 'function') quickToast(m); } catch (e) {} }
+
+    // Tvrdy restart GPS watchu. Umi ho jen js/power-save.js — jedine misto, ktere
+    // drzi seznam zivych watchu i jejich callbacky (logika.js si handle neschovava).
+    function retryGps() {
+        var ok = false;
+        try { ok = !!(window.AGPowerGps && window.AGPowerGps.restart()); } catch (e) {}
+        // at uzivatel hned vidi, ze se neco deje: vynutime i nove jednorazove mereni
+        try {
+            if (navigator.geolocation && navigator.geolocation.getCurrentPosition) {
+                navigator.geolocation.getCurrentPosition(function () {}, function () {}, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
+            }
+        } catch (e) {}
+        _dismissed = null;   // po rucnim pokusu chceme stav zase videt
+        toast(ok ? 'Zkouším znovu chytit GPS — vyjdi pod otevřené nebe a chvíli počkej.'
+                 : 'GPS se nepodařilo restartovat. Zkus appku zavřít a otevřít znovu.');
+    }
+
+    // Napoveda k povoleni polohy. Kroky se lisi podle systemu, tak at uzivatel
+    // nemusi hledat — a rovnou pripomeneme, ze po povoleni staci klepnout na Zkusit znovu.
+    function explainDenied() {
+        var ua = navigator.userAgent || '';
+        var ios = /iPhone|iPad|iPod/i.test(ua);
+        var steps = ios
+            ? 'Nastavení → Soukromí a zabezpečení → Polohové služby → zapnout, '
+              + 'pak najít Safari (nebo AR Geodet, když ho máš na ploše) → Při používání aplikace.'
+            : 'Nastavení telefonu → Aplikace → prohlížeč / AR Geodet → Oprávnění → Poloha → Povolit. '
+              + 'V Chromu jde poloha povolit i klepnutím na ikonu zámku vlevo od adresy.';
+        var msg = 'Aplikace nemá přístup k poloze, takže nemůže měřit ani navigovat na body.\n\n'
+                + steps + '\n\nPotom se sem vrať a klepni na „Zkusit znovu".';
+        try {
+            if (typeof window.agInfo === 'function') { window.agInfo(msg, 'Poloha je zakázaná'); return; }
+        } catch (e) {}
+        try { alert(msg); } catch (e) {}
+    }
+
     function tick() {
         try {
             injectStyles();
@@ -100,10 +163,21 @@
             document.body.classList.toggle('ag-fix-stale', started && st.state === 'stale');
             document.body.classList.toggle('ag-fix-lost', started && st.state === 'lost');
             var bar = ensureBar();
-            var txt = null, key = null, shortTxt = null;
+            var txt = null, key = null, shortTxt = null, action = null;
+            var ec = errCode();
             // txt = dlouhy text do vlastniho pruhu (fallback), shortTxt = do sloupce
-            // upozorneni (tam je misto na jeden radek a detail otevre klepnuti)
-            if (started && st.state === 'lost') { key = 'lost'; txt = 'GPS ztracena ' + (st.ageMs != null ? fmtAge(st.ageMs) : '') + ' — poloha i AR ukazují POSLEDNÍ známé místo'; shortTxt = 'GPS ztracena ' + (st.ageMs != null ? fmtAge(st.ageMs) : '') + ' — poloha je stará'; }
+            // upozorneni (tam je misto na jeden radek a detail otevre klepnuti),
+            // action = co se stane po klepnuti na hlasku (zotaveni, ne jen konstatovani)
+            if (started && ec === DENIED) {
+                // ZAKAZANA POLOHA je jina liga nez slaby signal: cekanim se nespravi,
+                // uzivatel musi zasahnout v nastaveni telefonu. Proto vlastni vetev
+                // a napoveda misto obecneho „GPS ztracena".
+                key = 'denied';
+                txt = 'Poloha je zakázaná — appka nemůže měřit ani navigovat. Klepni pro návod, jak ji povolit.';
+                shortTxt = 'Poloha je zakázaná — klepni pro návod';
+                action = explainDenied;
+            }
+            else if (started && st.state === 'lost') { key = 'lost'; txt = 'GPS ztracena ' + (st.ageMs != null ? fmtAge(st.ageMs) : '') + ' — poloha i AR ukazují POSLEDNÍ známé místo'; shortTxt = 'GPS ztracena ' + (st.ageMs != null ? fmtAge(st.ageMs) : '') + ' — klepni pro nový pokus'; action = retryGps; }
             else if (started && st.state === 'stale') { key = 'stale'; txt = 'GPS bez čerstvého fixu ' + fmtAge(st.ageMs) + ' — poloha může být posunutá'; shortTxt = 'GPS bez fixu ' + fmtAge(st.ageMs) + ' — poloha může být posunutá'; }
             else if (started && off) { key = 'off'; txt = 'Offline — mapa a katastr jen z uložených dat, měření GPS funguje'; shortTxt = 'Offline — jen uložená data, měření funguje'; }
             // krizek zavre pruh pro AKTUALNI stav; kdyz vse pomine, dismiss se resetuje,
@@ -121,13 +195,24 @@
                 C.clear(nid === 'gps-fix' ? 'net-off' : 'gps-fix');
                 if (txt && key !== _dismissed) {
                     C.set(nid, {
-                        level: (key === 'lost') ? 'danger' : (key === 'stale' ? 'warn' : 'info'),
+                        level: (key === 'lost' || key === 'denied') ? 'danger' : (key === 'stale' ? 'warn' : 'info'),
                         text: shortTxt || txt,
+                        // action = pojmenovane tlacitko primo v radku (jasnejsi nez
+                        // klepnuti na text), onAction = tentyz krok pri klepnuti na radek
+                        action: action ? { label: (key === 'denied') ? 'Jak povolit' : 'Zkusit znovu', fn: action } : null,
+                        onAction: action || undefined,
                         onDismiss: (function (k) { return function () { _dismissed = k; }; })(key)
                     });
                 } else C.clear(nid);
             }
-            else if (txt && key !== _dismissed) { bar.querySelector('.txt').textContent = txt; bar.classList.add('show'); }
+            else if (txt && key !== _dismissed) {
+                bar.querySelector('.txt').textContent = txt;
+                var ab = bar.querySelector('.act');
+                bar._agAction = action;
+                if (action) { ab.textContent = (key === 'denied') ? 'Jak povolit' : 'Zkusit znovu'; ab.style.display = ''; }
+                else ab.style.display = 'none';
+                bar.classList.add('show');
+            }
             else bar.classList.remove('show');
             // prechodova hlaska jen pri zhorseni (fresh->stale/lost), at to nepipa porad
             if (started && _lastState === 'fresh' && st.state === 'lost' && typeof window.quickToast === 'function') {

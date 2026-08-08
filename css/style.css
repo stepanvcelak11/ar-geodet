@@ -443,6 +443,23 @@ body {
     will-change: transform;
     transition: background 0.3s ease, border 0.3s ease, border-radius 0.3s ease;
 }
+/* DOTYK V RUKAVICICH: znacka je vysoka ~44 px, ale renderAR ji podle vzdalenosti
+   skaluje az na 0,78x (~34 px) a soucasne s ni plynule posouva podle kompasu.
+   Trefit takovy cil prstem v pracovni rukavici, vestoje a za chuze je loterie.
+   Neviditelny pseudo-prvek rozsiruje jen DOTYKOVOU plochu o 14 px na kazdou
+   stranu — vzhled znacky se nemeni vubec. Pseudo-prvek se pri hit-testu pocita
+   k rodicovskemu prvku, takze klepnuti spusti stejny click listener jako na
+   znacce samotne. Kdyz je znacka schovana (grafika.js na ni da
+   pointer-events:none), nededi se ani sem, takze neviditelne znacky
+   dotyky nekradou. Pri prekryvu vyhraje bod s vyssim z-indexem = ten blizsi. */
+.ar-marker::before {
+    content: '';
+    position: absolute;
+    inset: -14px;
+    border-radius: inherit;
+    /* zadna vypln ani ramecek — cistě plocha navic pro prst */
+}
+
 .ar-marker.cat-tb     { border-left: 4px solid var(--color-tb);     border-radius: 4px; }
 .ar-marker.cat-zhb    { border-left: 4px solid var(--color-zhb);    border-radius: 10px; }
 .ar-marker.cat-pbpp   { border-left: 4px solid var(--color-pbpp);   border-radius: 20px; }
