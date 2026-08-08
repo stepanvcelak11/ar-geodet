@@ -5,6 +5,10 @@
 // nepředvídatelně. Tenhle můstek dává bezpečnou náhradu se STEJNÝM voláním:
 //   agInfo(text[, title])  — náhrada alert(text); escapuje HTML, \n → <br>
 //   agAsk(text[, opts]) → Promise<bool> — náhrada confirm() pro async místa
+//   agAskText(text[, opts]) → Promise<string|null> — náhrada prompt()
+// Nativní prompt() navíc BLOKUJE hlavní vlákno: dokud v něm uživatel píše,
+// stojí GPS callbacky, render AR i časovače a po zavření se všechno vysype
+// naráz. Proto se mu vyhnout i tam, kde by vzhledově prošel.
 // Když vylepšovací vrstva chybí (je odpojitelná!), spadne to zpět na nativní
 // dialogy — proto ta kontrola až V OKAMŽIKU volání, ne při načtení.
 // Odstranění: smaž js/dialog-bridge.js + řádek <script> v index.html
@@ -54,5 +58,26 @@
             }
         } catch (e) {}
         try { return Promise.resolve(prompt(msg, opts.value != null ? opts.value : '')); } catch (e) { return Promise.resolve(null); }
+    };
+
+    // agAskText() = DRUHE JMENO pro agGet(). Vzniklo tim, ze na te same veci
+    // pracovalo naraz vic vetvi a kazda si nahradu prompt() pojmenovala po svem.
+    // Obe jmena tu zustavaji, at nemusime prepisovat desitky volani (a at se
+    // priste nerozbije nic, co pocita s jednim z nich).
+    window.agAskText = window.agAskText || function (msg, opts) { return window.agGet(msg, opts); };
+
+    // agGuard(text, fn[, opts]) - "zeptej se a teprve pak to udelej".
+    // Pouziva se misto `if (!confirm(m)) return; ...`: zbytek tela se zabali do fn.
+    // Duvod, proc to vubec je: confirm() je SYNCHRONNI, ale in-app dialog ne, takze
+    // ho nejde jen tak zamenit uvnitr te podminky. Nevraci nic uzitecneho (dialog je
+    // asynchronni) - volajici se na vysledek nesmi spolehat, coz u obsluhy klepnuti
+    // nikdy nevadi.
+    window.agGuard = window.agGuard || function (msg, fn, opts) {
+        if (typeof fn !== 'function') return;
+        try {
+            window.agAsk(msg, opts).then(function (ok) { if (ok) fn(); });
+        } catch (e) {
+            try { if (confirm(msg)) fn(); } catch (e2) {}
+        }
     };
 })();

@@ -452,7 +452,7 @@
 
     function renderVerts() {
         var box = document.getElementById('agpc-verts'); if (!box) return;
-        if (!state.verts.length) { box.innerHTML = '<div style="opacity:.6;font-size:13px;padding:6px 2px;">Zatím žádné vrcholy. Přidej je tlačítky níže.</div>'; return; }
+        if (!state.verts.length) { box.innerHTML = '<div style="opacity:.6;font-size:calc(13px * var(--ag-font-scale, 1));padding:6px 2px;">Zatím žádné vrcholy. Přidej je tlačítky níže.</div>'; return; }
         var html = '';
         state.verts.forEach(function (v, i) {
             html += '<div class="agpc-vrow">'
@@ -490,7 +490,7 @@
     function renderBoundary() {
         var el = document.getElementById('agpc-bound'); if (!el) return;
         var n = state.verts.length;
-        if (n < 2) { el.innerHTML = '<div style="opacity:.6;font-size:13px;">Přidej alespoň 2 vrcholy.</div>'; return; }
+        if (n < 2) { el.innerHTML = '<div style="opacity:.6;font-size:calc(13px * var(--ag-font-scale, 1));">Přidej alespoň 2 vrcholy.</div>'; return; }
         var html = '<table class="agpc-tbl"><thead><tr><th>Strana</th><th>Délka</th><th>Směrník</th></tr></thead><tbody>';
         for (var i = 0; i < n; i++) {
             var a = state.verts[i], b = state.verts[(i + 1) % n];
@@ -506,7 +506,7 @@
     function renderDivisionControls() {
         var el = document.getElementById('agpc-div-controls'); if (!el) return;
         var n = state.verts.length;
-        if (n < 3) { el.innerHTML = '<div style="opacity:.6;font-size:13px;">Dělení je dostupné od 3 vrcholů.</div>'; return; }
+        if (n < 3) { el.innerHTML = '<div style="opacity:.6;font-size:calc(13px * var(--ag-font-scale, 1));">Dělení je dostupné od 3 vrcholů.</div>'; return; }
         var edgeOpts = '', vertOpts = '';
         for (var i = 0; i < n; i++) {
             edgeOpts += '<option value="' + i + '">strana ' + (i + 1) + '→' + ((i + 1) % n + 1) + '</option>';
@@ -514,9 +514,9 @@
         }
         var total = shoelace(state.verts);
         el.innerHTML =
-            '<label class="filter-row" style="font-size:13px;"><input type="radio" name="agpc-method" value="parallel" checked> Rovnoběžně s hranou (odměřit díl u hrany)</label>'
-            + '<label class="filter-row" style="font-size:13px;"><input type="radio" name="agpc-method" value="vertex"> Přímkou z vrcholu</label>'
-            + '<label class="filter-row" style="font-size:13px;"><input type="radio" name="agpc-method" value="equal"> Na N stejných dílů (rovnoběžně s hranou)</label>'
+            '<label class="filter-row" style="font-size:calc(13px * var(--ag-font-scale, 1));"><input type="radio" name="agpc-method" value="parallel" checked> Rovnoběžně s hranou (odměřit díl u hrany)</label>'
+            + '<label class="filter-row" style="font-size:calc(13px * var(--ag-font-scale, 1));"><input type="radio" name="agpc-method" value="vertex"> Přímkou z vrcholu</label>'
+            + '<label class="filter-row" style="font-size:calc(13px * var(--ag-font-scale, 1));"><input type="radio" name="agpc-method" value="equal"> Na N stejných dílů (rovnoběžně s hranou)</label>'
             + '<div id="agpc-div-row1" style="margin-top:8px;">'
             + '  <label>Hrana / vrchol</label>'
             + '  <select id="agpc-div-edge" class="agpc-sel">' + edgeOpts + '</select>'
@@ -617,7 +617,7 @@
     // (areaClip) jsou správné, ale nakreslená čára / uložené body popíší jen první dva
     // průsečíky — varuj, ať uživatel nedůvěřuje neúplné čáře.
     function ncWarnHTML() {
-        return '<div style="margin-top:8px;color:#fbbf24;font-size:12px;line-height:1.4;">⚠ Parcela je nekonvexní – dělicí čára protíná hranici na více místech. Výměry dílů jsou správné, ale nakreslená čára a uložené body nemusí dělení popsat úplně. Ověř geometrii ručně.</div>';
+        return '<div style="margin-top:8px;color:#fbbf24;font-size:calc(12px * var(--ag-font-scale, 1));line-height:1.4;">⚠ Parcela je nekonvexní – dělicí čára protíná hranici na více místech. Výměry dílů jsou správné, ale nakreslená čára a uložené body nemusí dělení popsat úplně. Ověř geometrii ručně.</div>';
     }
     function enrich(pts) {
         return pts.map(function (p) { var ll = yxToLL(p.Y, p.X); return { Y: p.Y, X: p.X, lat: ll.lat, lng: ll.lng }; });
@@ -822,42 +822,42 @@
         st.textContent = [
             '#agpc-modal .agpc-head{display:flex;align-items:center;gap:6px;margin-bottom:8px;}',
             '#agpc-modal .agpc-hbtn{width:34px;height:34px;flex:0 0 34px;border:1px solid var(--glass-border,rgba(255,255,255,.1));border-radius:10px;',
-            '  background:var(--surface-2,rgba(255,255,255,.09));color:var(--text-color,#e8edf2);font-size:16px;line-height:1;cursor:pointer;}',
+            '  background:var(--surface-2,rgba(255,255,255,.09));color:var(--text-color,#e8edf2);font-size:calc(16px * var(--ag-font-scale, 1));line-height:1;cursor:pointer;}',
             '#agpc-modal .agpc-sec-h{font:700 12px/1 var(--font-ui,system-ui),sans-serif;letter-spacing:.06em;text-transform:uppercase;',
             '  color:var(--text-muted,#9aa1ac);margin:6px 0 8px;display:flex;align-items:center;gap:6px;}',
             '#agpc-modal .agpc-sec-h svg{width:15px;height:15px;}',
             '#agpc-verts{display:flex;flex-direction:column;gap:4px;max-height:34vh;overflow:auto;}',
-            '.agpc-vrow{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:9px;background:var(--surface-2,rgba(255,255,255,.06));font-size:13px;}',
+            '.agpc-vrow{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:9px;background:var(--surface-2,rgba(255,255,255,.06));font-size:calc(13px * var(--ag-font-scale, 1));}',
             '.agpc-vrow .agpc-vn{flex:0 0 22px;height:22px;line-height:22px;text-align:center;border-radius:6px;background:var(--accent,#2f9e74);color:#04110b;font-weight:700;}',
             '.agpc-vrow .agpc-vname{flex:0 0 auto;max-width:30%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;}',
-            '.agpc-vrow .agpc-vyx{flex:1;font-family:var(--font-mono,monospace);font-size:11.5px;opacity:.85;text-align:right;}',
+            '.agpc-vrow .agpc-vyx{flex:1;font-family:var(--font-mono,monospace);font-size:calc(11.5px * var(--ag-font-scale, 1));opacity:.85;text-align:right;}',
             '.agpc-vrow .agpc-vbtns{flex:0 0 auto;display:flex;gap:3px;}',
-            '.agpc-vrow .agpc-vbtns button{width:26px;height:26px;border:none;border-radius:6px;background:var(--surface-3,rgba(255,255,255,.13));color:var(--text-color,#e8edf2);cursor:pointer;font-size:12px;}',
+            '.agpc-vrow .agpc-vbtns button{width:26px;height:26px;border:none;border-radius:6px;background:var(--surface-3,rgba(255,255,255,.13));color:var(--text-color,#e8edf2);cursor:pointer;font-size:calc(12px * var(--ag-font-scale, 1));}',
             '.agpc-addrow{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}',
-            '.agpc-addrow .agpc-addbtn{flex:1 1 0;min-width:70px;margin:0;padding:9px 6px;font-size:12.5px;}',
+            '.agpc-addrow .agpc-addbtn{flex:1 1 0;min-width:70px;margin:0;padding:9px 6px;font-size:calc(12.5px * var(--ag-font-scale, 1));}',
             '.agpc-addpanel{margin-top:8px;padding:10px;border-radius:10px;background:var(--surface-2,rgba(255,255,255,.06));}',
             '.agpc-sel{width:100%;}',
             '.agpc-stats{display:flex;gap:8px;margin-top:14px;}',
             '.agpc-stats>div{flex:1;background:var(--accent-soft,rgba(47,158,116,.14));border:1px solid var(--accent-line,rgba(47,158,116,.42));border-radius:11px;padding:8px 6px;text-align:center;}',
-            '.agpc-stats>div span{display:block;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;opacity:.7;}',
-            '.agpc-stats>div b{display:block;font-family:var(--font-mono,monospace);font-size:13px;margin-top:3px;color:var(--accent,#2f9e74);}',
+            '.agpc-stats>div span{display:block;font-size:calc(10.5px * var(--ag-font-scale, 1));letter-spacing:.05em;text-transform:uppercase;opacity:.7;}',
+            '.agpc-stats>div b{display:block;font-family:var(--font-mono,monospace);font-size:calc(13px * var(--ag-font-scale, 1));margin-top:3px;color:var(--accent,#2f9e74);}',
             '.agpc-det{margin-top:10px;}',
-            '.agpc-det>summary{cursor:pointer;font-size:13px;padding:8px 0;color:var(--text-muted,#9aa1ac);}',
-            '.agpc-tbl{width:100%;border-collapse:collapse;font-size:12px;}',
+            '.agpc-det>summary{cursor:pointer;font-size:calc(13px * var(--ag-font-scale, 1));padding:8px 0;color:var(--text-muted,#9aa1ac);}',
+            '.agpc-tbl{width:100%;border-collapse:collapse;font-size:calc(12px * var(--ag-font-scale, 1));}',
             '.agpc-tbl th,.agpc-tbl td{padding:5px 6px;border-bottom:1px solid var(--glass-border,rgba(255,255,255,.1));text-align:left;}',
-            '.agpc-tbl th{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;opacity:.6;}',
+            '.agpc-tbl th{font-size:calc(10.5px * var(--ag-font-scale, 1));text-transform:uppercase;letter-spacing:.05em;opacity:.6;}',
             '.agpc-tbl td:nth-child(2),.agpc-tbl td:nth-child(3){font-family:var(--font-mono,monospace);}',
-            '.agpc-divbox{padding:10px 12px;border-radius:10px;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.4);font-size:13px;font-family:var(--font-mono,monospace);}',
+            '.agpc-divbox{padding:10px 12px;border-radius:10px;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.4);font-size:calc(13px * var(--ag-font-scale, 1));font-family:var(--font-mono,monospace);}',
             '#agpc-pick{position:fixed;inset:0;z-index:100000;display:none;}',
             '#agpc-pick.show{display:block;}',
             '#agpc-pick-hint{position:fixed;left:12px;right:12px;bottom:20px;z-index:100002;display:flex;align-items:center;gap:10px;',
             '  padding:12px 14px;border-radius:14px;background:var(--bg-elev,#171b20);border:1px solid var(--accent,#2f9e74);',
-            '  box-shadow:0 10px 30px rgba(0,0,0,.5);font-size:13px;color:var(--text-color,#e8edf2);}',
+            '  box-shadow:0 10px 30px rgba(0,0,0,.5);font-size:calc(13px * var(--ag-font-scale, 1));color:var(--text-color,#e8edf2);}',
             '#agpc-pick-hint span{flex:1;}#agpc-pick-hint svg{width:16px;height:16px;vertical-align:-2px;}',
             '#agpc-pick-hint button{flex:0 0 auto;border:none;border-radius:9px;padding:9px 16px;background:var(--accent,#2f9e74);color:#04110b;font-weight:700;cursor:pointer;}',
             '#agpc-mini{position:fixed;left:12px;right:12px;bottom:20px;z-index:99998;display:none;align-items:center;gap:10px;',
             '  padding:11px 14px;border-radius:14px;background:var(--bg-elev,#171b20);border:1px solid var(--glass-border,rgba(255,255,255,.12));',
-            '  box-shadow:0 10px 30px rgba(0,0,0,.5);font-size:13px;color:var(--text-color,#e8edf2);}',
+            '  box-shadow:0 10px 30px rgba(0,0,0,.5);font-size:calc(13px * var(--ag-font-scale, 1));color:var(--text-color,#e8edf2);}',
             '#agpc-mini.show{display:flex;}',
             '#agpc-mini .agpc-mini-info{flex:1;}#agpc-mini b{color:var(--accent,#2f9e74);}',
             '#agpc-mini button{flex:0 0 auto;border:none;border-radius:9px;padding:9px 16px;background:var(--accent,#2f9e74);color:#04110b;font-weight:700;cursor:pointer;}',
@@ -866,7 +866,7 @@
             '.leaflet-tooltip.agpc-vtip:before{display:none;}',
             '#agpc-toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%) translateY(10px);z-index:100003;',
             '  padding:10px 16px;border-radius:12px;background:var(--bg-elev,#171b20);border:1px solid var(--accent,#2f9e74);',
-            '  color:var(--text-color,#e8edf2);font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;}',
+            '  color:var(--text-color,#e8edf2);font-size:calc(13px * var(--ag-font-scale, 1));opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;}',
             '#agpc-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}'
         ].join('\n');
         document.head.appendChild(st);

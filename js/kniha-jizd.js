@@ -273,7 +273,7 @@
             // aby řádek nepadal doprostřed prázdna. „Zahodit" je vedle a užší.
             '#ag-kz-modal .ag-kz-act{display:flex;gap:8px;margin:2px 0 10px;}' +
             '#ag-kz-modal .ag-kz-act .btn{flex:1 1 auto;margin-top:0;padding:12px 14px;min-height:48px;}' +
-            '#ag-kz-modal .ag-kz-act .btn.slim{flex:0 0 36%;font-size:14px;}' +
+            '#ag-kz-modal .ag-kz-act .btn.slim{flex:0 0 36%;font-size:calc(14px * var(--ag-font-scale, 1));}' +
             // Pomocné akce = mřížka .ag-quad ze style.css (stejné čtverečky jako u
             // nového bodu a exportu). Tady jen odstup, vzhled je společný.
             '#ag-kz-modal .ag-quad{margin:10px 0 0;}' +
@@ -306,7 +306,7 @@
             // rukavice: terče nahoru, ať se pořád trefíš
             'body.ag-glove #ag-kz-modal .ag-kz-act .btn{min-height:54px;}' +
             'body.ag-glove #ag-kz-modal .ag-kz-x{width:48px;height:48px;margin:-3px 0;}' +
-            'body.ag-glove #ag-kz-modal select,body.ag-glove #ag-kz-modal input{min-height:44px;font-size:16px;}';
+            'body.ag-glove #ag-kz-modal select,body.ag-glove #ag-kz-modal input{min-height:44px;font-size:calc(16px * var(--ag-font-scale, 1));}';
         document.head.appendChild(s);
     }
     function ensureModal() {

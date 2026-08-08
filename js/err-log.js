@@ -58,7 +58,7 @@
             el = document.createElement('div');
             el.className = 'modal-overlay'; el.id = 'errlog-modal'; el.style.zIndex = '100005';
             el.innerHTML = '<div class="modal-content"><h3 style="color:var(--accent); margin-top:0;"><svg class="icon"><use href="#i-alert"/></svg> Protokol chyb</h3>'
-                + '<div class="modal-body" id="errlog-list" style="font-size:12px;"></div>'
+                + '<div class="modal-body" id="errlog-list" style="font-size:calc(12px * var(--ag-font-scale, 1));"></div>'
                 + '<div style="display:flex; gap:8px; margin-top:12px;">'
                 + '<button class="btn btn-secondary" style="flex:1;" id="errlog-copy">Kopírovat</button>'
                 + '<button class="btn btn-secondary" style="flex:1;" id="errlog-clear">Vymazat</button>'

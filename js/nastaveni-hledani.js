@@ -79,12 +79,12 @@
             '.ag-ns-hit{display:block;width:100%;box-sizing:border-box;text-align:left;cursor:pointer;',
             '  padding:11px 13px;border:0;background:transparent;color:inherit;font:inherit;}',
             '.ag-ns-hit + .ag-ns-hit{border-top:1px solid var(--glass-border,rgba(255,255,255,0.08));}',
-            '.ag-ns-hit b{display:block;font-size:14px;font-weight:600;line-height:1.3;}',
-            '.ag-ns-hit small{display:block;margin-top:2px;font-size:11.5px;color:var(--text-muted,#9aa1ac);}',
+            '.ag-ns-hit b{display:block;font-size:calc(14px * var(--ag-font-scale, 1));font-weight:600;line-height:1.3;}',
+            '.ag-ns-hit small{display:block;margin-top:2px;font-size:calc(11.5px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);}',
             '.ag-ns-hit .ag-ns-path{color:var(--accent,#2f9e74);font-weight:700;}',
             '.ag-ns-hit:active{background:var(--accent-soft,rgba(47,158,116,0.15));}',
             '.ag-ns-hit:focus-visible{outline:2px solid var(--accent,#2f9e74);outline-offset:-2px;}',
-            '.ag-ns-none{padding:12px 13px;font-size:13px;color:var(--text-muted,#9aa1ac);}',
+            '.ag-ns-none{padding:12px 13px;font-size:calc(13px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);}',
 
             // krátký pohled
             'body.ag-ns-short .settings-tab:not(.ag-ns-all) .ag-ns-adv{display:none !important;}',

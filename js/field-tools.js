@@ -49,7 +49,7 @@
             '#tools-modal .ag-ft-tile span{display:block;}',
             // sbalitelné kategorie: nadpis je klikací, šipka ukazuje stav
             '#tools-modal .tool-cat,#tools-modal .ag-ft-head{cursor:pointer;-webkit-user-select:none;user-select:none;}',
-            '#tools-modal .tool-cat:not(#ag-fav-head)::after,#tools-modal .ag-ft-head::after{content:"▾";float:right;font-size:11px;color:var(--text-muted,#9aa1ac);}',
+            '#tools-modal .tool-cat:not(#ag-fav-head)::after,#tools-modal .ag-ft-head::after{content:"▾";float:right;font-size:calc(11px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);}',
             '#tools-modal .ag-cat-closed::after{content:"▸" !important;}',
             // hlaska „nic nenalezeno" pri hledani bez zasahu
             '#ag-ft-empty{grid-column:1/-1;display:none;padding:14px 8px;text-align:center;color:var(--text-muted,#9aa1ac);font:500 13px/1.4 var(--font-ui,system-ui),sans-serif;}',

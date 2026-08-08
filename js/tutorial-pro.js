@@ -171,7 +171,7 @@
             '#agtp-card .agtp-b b{color:var(--text-color,#fff);}',
             '#agtp-card .agtp-f{display:flex;align-items:center;gap:8px;}',
             '#agtp-card .agtp-count{font:600 12px/1 var(--font-mono,monospace);opacity:.6;margin-right:auto;}',
-            '#agtp-card .agtp-skip{background:none;border:none;color:var(--text-muted,#9aa1ac);font-size:13px;cursor:pointer;padding:8px 6px;text-decoration:underline;}',
+            '#agtp-card .agtp-skip{background:none;border:none;color:var(--text-muted,#9aa1ac);font-size:calc(13px * var(--ag-font-scale, 1));cursor:pointer;padding:8px 6px;text-decoration:underline;}',
             '#agtp-card .agtp-btn{border:none;border-radius:10px;padding:9px 16px;font:700 14px/1 var(--font-ui,system-ui),sans-serif;cursor:pointer;}',
             '#agtp-card .agtp-back{background:var(--surface-2,rgba(255,255,255,.09));color:var(--text-color,#e8edf2);}',
             '#agtp-card .agtp-next{background:var(--accent,#2f9e74);color:#04110b;}',
@@ -186,7 +186,7 @@
             '  background:var(--accent-soft,rgba(47,158,116,.16));color:var(--accent,#2f9e74);}',
             '#agtp-pick .agtp-pick-b .ic svg{width:22px;height:22px;}',
             '#agtp-pick .agtp-pick-b h4{margin:0 0 2px;font:700 15px/1.2 var(--font-ui,system-ui),sans-serif;}',
-            '#agtp-pick .agtp-pick-b p{margin:0;font-size:12.5px;opacity:.72;line-height:1.4;}'
+            '#agtp-pick .agtp-pick-b p{margin:0;font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.72;line-height:1.4;}'
         ].join('\n');
         document.head.appendChild(st);
     }
@@ -346,7 +346,7 @@
         el.innerHTML =
             '<div class="modal-content">'
             + '<h3 style="color:var(--accent);margin-top:0;"><svg class="icon"><use href="#i-bulb"/></svg> Interaktivní návod</h3>'
-            + '<p style="font-size:13px;opacity:.7;margin:2px 0 8px;">Vyber prohlídku. Procházej tlačítkem Další, kdykoli můžeš přeskočit.</p>'
+            + '<p style="font-size:calc(13px * var(--ag-font-scale, 1));opacity:.7;margin:2px 0 8px;">Vyber prohlídku. Procházej tlačítkem Další, kdykoli můžeš přeskočit.</p>'
             + '<div class="agtp-pick-grid">'
             + '  <button type="button" class="agtp-pick-b" id="agtp-go-basic">'
             + '    <span class="ic"><svg class="icon"><use href="#i-navigation"/></svg></span>'

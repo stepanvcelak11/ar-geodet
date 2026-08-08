@@ -150,7 +150,7 @@
         el.className = 'modal-overlay'; el.id = DLG_ID;
         el.innerHTML = '<div class="modal-content">'
             + '<h3 style="color:var(--accent); margin-top:0; margin-bottom:5px;">📅 Kampaň: 3 návštěvy</h3>'
-            + '<p style="margin:0 0 10px; font-size:12.5px; opacity:0.8;">Chyba GPS se během dne systematicky posouvá. Tři sezení v různých konstelacích družic se zprůměrují a systematika se z velké části vyruší — typicky ±0,3–0,5 m → ±0,15–0,25 m.</p>'
+            + '<p style="margin:0 0 10px; font-size:calc(12.5px * var(--ag-font-scale, 1)); opacity:0.8;">Chyba GPS se během dne systematicky posouvá. Tři sezení v různých konstelacích družic se zprůměrují a systematika se z velké části vyruší — typicky ±0,3–0,5 m → ±0,15–0,25 m.</p>'
             + '<div class="modal-body" id="ag-campaign-body"></div>'
             + '<button class="btn btn-secondary" style="margin-top:15px;" id="ag-campaign-close">Zavřít</button>'
             + '</div>';
@@ -179,12 +179,12 @@
                     + (past ? ' (proběhlo?)' : '') + '</span></div>';
             }).join('');
             var notifState = ('Notification' in window) ? Notification.permission : 'unsupported';
-            body.innerHTML = '<p style="font-size:13px;"><b>' + esc(camp.name || 'Bod') + '</b> — hotová sezení: <b>' + k + '/3</b>'
-                + (camp.fallback ? '<br><span style="opacity:.7; font-size:12px;">Plán bez drah družic (obecné pravidlo „jiná denní doba"). Pro chytřejší plán otevři jednou „GNSS satelity" a naplánuj znovu.</span>' : '') + '</p>'
+            body.innerHTML = '<p style="font-size:calc(13px * var(--ag-font-scale, 1));"><b>' + esc(camp.name || 'Bod') + '</b> — hotová sezení: <b>' + k + '/3</b>'
+                + (camp.fallback ? '<br><span style="opacity:.7; font-size:calc(12px * var(--ag-font-scale, 1));">Plán bez drah družic (obecné pravidlo „jiná denní doba"). Pro chytřejší plán otevři jednou „GNSS satelity" a naplánuj znovu.</span>' : '') + '</p>'
                 + rows
-                + '<p style="font-size:12px; opacity:.75; margin:10px 0 6px;">Připomínka naskočí po otevření appky v okně ±' + (WINDOW_MIN / 60).toFixed(1).replace('.0', '') + ' h kolem termínu. Appka si sama „nezavolá" — notifikace na pozadí bez serveru neumí.</p>'
+                + '<p style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:.75; margin:10px 0 6px;">Připomínka naskočí po otevření appky v okně ±' + (WINDOW_MIN / 60).toFixed(1).replace('.0', '') + ' h kolem termínu. Appka si sama „nezavolá" — notifikace na pozadí bez serveru neumí.</p>'
                 + (notifState === 'granted'
-                    ? '<p style="font-size:12px; color:var(--accent);">Notifikace povoleny ✓</p>'
+                    ? '<p style="font-size:calc(12px * var(--ag-font-scale, 1)); color:var(--accent);">Notifikace povoleny ✓</p>'
                     : (notifState === 'unsupported' ? '' : '<button class="btn btn-secondary" id="ag-campaign-notif" style="margin-top:4px;">Povolit notifikace</button>'))
                 + '<button class="btn btn-secondary" id="ag-campaign-replan" style="margin-top:8px;">Naplánovat znovu</button>'
                 + '<button class="btn btn-secondary" id="ag-campaign-cancel" style="margin-top:8px; color:var(--danger,#fb7185);">Zrušit kampaň</button>';
@@ -200,10 +200,10 @@
         var sess = null;
         try { var a = JSON.parse(localStorage.getItem(LS_SESS)); if (Array.isArray(a) && a.length) sess = a[a.length - 1]; } catch (e) {}
         if (!sess) {
-            body.innerHTML = '<p style="font-size:13px;">Nejdřív změř v Brutální GPS <b>první sezení</b> a ulož ho tlačítkem „Přidat jako další sezení". Pak sem naplánuju zbylé 2 návštěvy.</p>';
+            body.innerHTML = '<p style="font-size:calc(13px * var(--ag-font-scale, 1));">Nejdřív změř v Brutální GPS <b>první sezení</b> a ulož ho tlačítkem „Přidat jako další sezení". Pak sem naplánuju zbylé 2 návštěvy.</p>';
             return;
         }
-        body.innerHTML = '<p style="font-size:13px;">První sezení je hotové. Naplánuju 2 další návštěvy s co nejodlišnější sestavou družic (a dobrým PDOP) v příštích 2 dnech.</p>'
+        body.innerHTML = '<p style="font-size:calc(13px * var(--ag-font-scale, 1));">První sezení je hotové. Naplánuju 2 další návštěvy s co nejodlišnější sestavou družic (a dobrým PDOP) v příštích 2 dnech.</p>'
             + '<input class="bgps-name" id="ag-campaign-name" type="text" placeholder="Název bodu (např. BG1)" style="width:100%; margin:6px 0;">'
             + '<button class="btn" id="ag-campaign-go">Naplánovat 2 návštěvy</button>';
         document.getElementById('ag-campaign-go').addEventListener('click', function () {
@@ -213,7 +213,7 @@
     }
     function startPlanning(lat, lng, name) {
         var body = document.getElementById('ag-campaign-body');
-        if (body) body.innerHTML = '<p style="font-size:13px;">Počítám dráhy družic… <span id="ag-campaign-prog">0 %</span></p>';
+        if (body) body.innerHTML = '<p style="font-size:calc(13px * var(--ag-font-scale, 1));">Počítám dráhy družic… <span id="ag-campaign-prog">0 %</span></p>';
         planWindows(function (plan, fallback) {
             save({ created: Date.now(), name: name || 'Bod', lat: lat, lng: lng, plan: plan, fallback: !!fallback, notified: {} });
             renderModal(); refreshCard();

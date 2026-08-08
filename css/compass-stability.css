@@ -85,7 +85,7 @@
     border: 1px solid var(--glass-border);
     background: var(--accent-soft, rgba(47,158,116, 0.18));
     color: var(--text-color);
-    font-size: 15px; line-height: 1;
+    font-size: calc(15px * var(--ag-font-scale, 1)); line-height: 1;
     display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer;
 }
@@ -101,8 +101,8 @@ body.outdoor-mode #ag-cstab {
 }
 
 /* režim rukavic — větší terče */
-body.ag-glove #ag-cstab { font-size: 12.5px; padding: 7px 13px; }
+body.ag-glove #ag-cstab { font-size: calc(12.5px * var(--ag-font-scale, 1)); padding: 7px 13px; }
 body.ag-glove #ag-cstab .ag-cstab-dot { width: 11px; height: 11px; }
-body.ag-glove .ag-cstab-edit button { width: 32px; height: 32px; font-size: 18px; }
+body.ag-glove .ag-cstab-edit button { width: 32px; height: 32px; font-size: calc(18px * var(--ag-font-scale, 1)); }
 
 @media (prefers-reduced-motion: reduce) { #ag-cstab.bad .ag-cstab-dot { animation: none; } }

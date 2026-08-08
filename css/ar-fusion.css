@@ -7,7 +7,7 @@
 /* Napoveda pod prepinacem v bocnim menu (drobny ztlumeny text). */
 #side-menu .ag-arfusion-hint {
     margin: -2px 2px 4px 28px;          /* odsazeni zarovna text pod popisek checkboxu */
-    font-size: 11px;
+    font-size: calc(11px * var(--ag-font-scale, 1));
     line-height: 1.35;
     color: var(--text-muted);
     letter-spacing: 0.1px;

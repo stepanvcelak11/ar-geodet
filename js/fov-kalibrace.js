@@ -232,7 +232,7 @@
         ensureModal();
         var b = byId('agfov-body'); if (!b) return;
         var html =
-            '<p style="font-size:12.5px;opacity:.8;margin:0 0 10px;">AR umisťuje značky na obrazovku podle zorného úhlu kamery. '
+            '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.8;margin:0 0 10px;">AR umisťuje značky na obrazovku podle zorného úhlu kamery. '
             + 'Když nesedí, body ve <b>středu</b> obrazu sedí, ale ke <b>krajům</b> se rozjíždějí. Průvodce ho změří pomocí azimutu — '
             + 'stačí ti jeden vzdálený orientační bod.</p>'
             + '<div class="agfov-now">Teď je nastaveno: <b>' + fmt(fovH()) + '°</b> šířka · <b>' + fmt(fovV()) + '°</b> výška</div>'
@@ -262,7 +262,7 @@
                 + '<button class="btn btn-secondary" id="agfov-v-again">Změřit znovu</button>';
         } else {
             var derived = _resH ? fovVFromAspect(_resH.val) : null;
-            html += '<p style="font-size:12.5px;opacity:.8;margin:0 0 8px;">Nepovinné. Buď ho změříš stejně (vysoký objekt u horní a dolní hrany, sleduje se sklon telefonu), '
+            html += '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.8;margin:0 0 8px;">Nepovinné. Buď ho změříš stejně (vysoký objekt u horní a dolní hrany, sleduje se sklon telefonu), '
                 + 'nebo ho appka dopočítá z poměru stran obrazu.</p>'
                 + '<button class="btn" id="agfov-v-start">Změřit svislý úhel (2 kola)</button>'
                 + (derived ? '<button class="btn btn-secondary" id="agfov-v-calc" style="margin-top:8px;">Dopočítat z poměru stran (' + fmt(derived) + '°)</button>' : '');
@@ -272,7 +272,7 @@
         // --- uložení ---
         if (_resH) {
             var vv = _resV ? _resV.val : fovVFromAspect(_resH.val);
-            html += '<div class="agfov-save"><div style="font-size:13px;margin-bottom:8px;">Uloží se: <b>' + fmt(_resH.val) + '°</b> šířka · <b>'
+            html += '<div class="agfov-save"><div style="font-size:calc(13px * var(--ag-font-scale, 1));margin-bottom:8px;">Uloží se: <b>' + fmt(_resH.val) + '°</b> šířka · <b>'
                 + (vv ? fmt(vv) : fmt(fovV())) + '°</b> výška' + (_resV ? '' : ' <span style="opacity:.7">(dopočtená)</span>') + '</div>'
                 + '<button class="btn" id="agfov-save">Uložit do nastavení</button></div>';
         }
@@ -282,7 +282,7 @@
             html += '<button class="btn btn-secondary" id="agfov-manual" style="margin-top:10px;">Doladit ručně jezdcem</button>';
         }
         html += '<details class="adv" style="margin-top:12px;"><summary>Metoda bez kompasu (přes zeď)</summary><div class="adv-body">'
-            + '<p style="font-size:12.5px;line-height:1.5;">Když kompas zlobí: postav se kolmo k dlouhé zdi ve <b>známé</b> vzdálenosti D. '
+            + '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));line-height:1.5;">Když kompas zlobí: postav se kolmo k dlouhé zdi ve <b>známé</b> vzdálenosti D. '
             + 'Označ si na zdi místa, která leží přesně u levé a pravé hrany obrazu, a změř mezi nimi šířku W. Pak platí '
             + '<b>FOV = 2 · arctg(W / 2D)</b>. Například W = 4,00 m při D = 3,00 m dává 67,4°. Hodnotu pak zadej posuvníkem '
             + 'v Nastavení → AR a přesnost.</p></div></details>';
@@ -326,13 +326,13 @@
             '#agfov-modal h3 svg{width:20px;height:20px;vertical-align:-4px;margin-right:6px;}',
             '#agfov-modal .agfov-now{font:600 13px/1.4 var(--font-mono,monospace);color:var(--accent,#2f9e74);',
             '  background:rgba(47,158,116,0.12);border-radius:10px;padding:9px 12px;margin:0 0 10px;}',
-            '#agfov-modal .agfov-tip{font-size:12.5px;line-height:1.5;background:rgba(251,191,36,0.10);',
+            '#agfov-modal .agfov-tip{font-size:calc(12.5px * var(--ag-font-scale, 1));line-height:1.5;background:rgba(251,191,36,0.10);',
             '  border-left:3px solid var(--warning,#fbbf24);border-radius:8px;padding:9px 12px;margin:0 0 12px;}',
             '#agfov-modal .agfov-step{border:1px solid var(--glass-border,rgba(255,255,255,0.12));border-radius:12px;',
             '  padding:10px 12px 12px;margin:10px 0;background:rgba(255,255,255,0.025);}',
             '#agfov-modal .agfov-step-h{font:700 12.5px/1.2 var(--font-ui,system-ui);color:var(--accent,#2f9e74);margin-bottom:8px;}',
-            '#agfov-modal .agfov-res{background:rgba(47,158,116,0.12);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:14px;}',
-            '#agfov-modal .agfov-sub{font-size:11.5px;opacity:.75;margin-top:4px;line-height:1.45;}',
+            '#agfov-modal .agfov-res{background:rgba(47,158,116,0.12);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:calc(14px * var(--ag-font-scale, 1));}',
+            '#agfov-modal .agfov-sub{font-size:calc(11.5px * var(--ag-font-scale, 1));opacity:.75;margin-top:4px;line-height:1.45;}',
             '#agfov-modal .agfov-save{border-top:1px solid var(--glass-border,rgba(255,255,255,0.12));margin-top:12px;padding-top:12px;}',
             // vyčištěná obrazovka během zaměřování (stejně jako AR resekce/protínání)
             'body.agfov-clean #ar-overlay{opacity:0!important;pointer-events:none!important;}',

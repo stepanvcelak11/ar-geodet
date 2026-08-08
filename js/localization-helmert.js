@@ -332,7 +332,7 @@
         el.innerHTML =
             '<div class="modal-content" style="display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Lokalizace staveniště (Helmert)</h3>'
-            + '<p style="font-size:12.5px;opacity:.82;margin:2px 0 10px;line-height:1.45;">Srovná systematiku telefonní GPS přes celé staveniště. '
+            + '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.82;margin:2px 0 10px;line-height:1.45;">Srovná systematiku telefonní GPS přes celé staveniště. '
             + 'Na každém <b>známém bodě</b> udělej robustní GPS průměr a spáruj ho s jeho přesnou polohou. '
             + 'Z <b>2+</b> dvojic vznikne posun+rotace+měřítko (Helmert), od <b>3</b> i kontrola přesnosti. '
             + '<b>Orientační, ne přejímací měření.</b></p>'
@@ -347,7 +347,7 @@
             + '  <div id="aghl-capbar" class="aghl-capbar" style="display:none;"><div id="aghl-capfill"></div><span id="aghl-captxt"></span></div>'
             + '</div>'
             + '<div id="aghl-list" class="aghl-list"></div>'
-            + '<div id="aghl-warn" style="font-size:12px;color:#fbbf24;margin:6px 2px;"></div>'
+            + '<div id="aghl-warn" style="font-size:calc(12px * var(--ag-font-scale, 1));color:#fbbf24;margin:6px 2px;"></div>'
             + '<div id="aghl-result" class="aghl-result" style="display:none;"></div>'
             + '<div id="aghl-actions" style="display:none;">'
             + '  <button class="btn btn-blue" id="aghl-apply-pose" style="display:none;"><svg class="icon"><use href="#i-check"/></svg> Aplikovat na AR počátek</button>'
@@ -465,7 +465,7 @@
 
     function renderList() {
         var box = document.getElementById('aghl-list'); if (!box) return;
-        if (!_pairs.length) { box.innerHTML = '<div class="aghl-dim" style="padding:6px 2px;font-size:12.5px;">Zatím žádné dvojice. Vyber známý bod nahoře a změř na něm GPS.</div>'; return; }
+        if (!_pairs.length) { box.innerHTML = '<div class="aghl-dim" style="padding:6px 2px;font-size:calc(12.5px * var(--ag-font-scale, 1));">Zatím žádné dvojice. Vyber známý bod nahoře a změř na něm GPS.</div>'; return; }
         var resById = {};
         if (_model && _model.residuals) _model.residuals.forEach(function (r, i) { var pr = _pairs.filter(function (p) { return isFinite(p.measLat); })[i]; if (pr) resById[pr.id] = r; });
         var html = '';
@@ -499,23 +499,23 @@
         if (!m) { box.style.display = 'none'; if (acts) acts.style.display = 'none'; return; }
         var scalePpm = (m.scale - 1) * 1e6;
         var html = '<div class="aghl-big">Transformace spočítána (' + m.n + ' bodů)</div>'
-            + '<div style="font-family:var(--font-mono,monospace);font-size:12.5px;margin:6px 0;line-height:1.6;">'
+            + '<div style="font-family:var(--font-mono,monospace);font-size:calc(12.5px * var(--ag-font-scale, 1));margin:6px 0;line-height:1.6;">'
             + 'posun: <b>' + m.tx.toFixed(2) + ' m E · ' + m.ty.toFixed(2) + ' m N</b><br>'
             + 'rotace: <b>' + m.rot.toFixed(4) + '°</b> · měřítko: <b>' + m.scale.toFixed(6) + '</b> (' + (scalePpm >= 0 ? '+' : '') + scalePpm.toFixed(0) + ' ppm)</div>';
         if (m.sigma0 != null) {
             var col = m.sigma0 > 0.5 ? '#f87171' : (m.sigma0 > 0.15 ? '#fbbf24' : '#34d399');
-            html += '<div style="font-size:12.5px;">Polohová přesnost: <b style="color:' + col + '">±' + (m.sigma0 * 100).toFixed(0) + ' cm</b> na bod'
+            html += '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));">Polohová přesnost: <b style="color:' + col + '">±' + (m.sigma0 * 100).toFixed(0) + ' cm</b> na bod'
                 + (m.maxName ? ' · největší oprava <b>#' + escapeHtml(m.maxName) + '</b> (' + (m.maxRes * 100).toFixed(0) + ' cm)' : '') + '</div>';
         } else {
-            html += '<div style="font-size:12.5px;opacity:.85;">2 body — bez kontroly přesnosti (nulová nadbytečnost).</div>';
+            html += '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.85;">2 body — bez kontroly přesnosti (nulová nadbytečnost).</div>';
         }
         if (m.heightPlane) {
-            html += '<div style="font-size:12.5px;margin-top:4px;">Výškový trend: rovina z ' + m.heightPlane.n + ' výšek'
+            html += '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));margin-top:4px;">Výškový trend: rovina z ' + m.heightPlane.n + ' výšek'
                 + (m.heightPlane.rms != null ? ' · ±' + (m.heightPlane.rms * 100).toFixed(0) + ' cm' : '') + ' <span class="aghl-dim">(applyZ)</span></div>';
         } else if (_pairs.filter(function (p) { return isFinite(p.knownH) && isFinite(p.measAlt); }).length > 0) {
-            html += '<div style="font-size:12px;opacity:.7;margin-top:4px;">Výškový trend potřebuje 3+ bodů s výškou (známou i GPS).</div>';
+            html += '<div style="font-size:calc(12px * var(--ag-font-scale, 1));opacity:.7;margin-top:4px;">Výškový trend potřebuje 3+ bodů s výškou (známou i GPS).</div>';
         }
-        html += '<div style="font-size:11.5px;opacity:.65;margin-top:6px;line-height:1.4;">Orientační zpřesnění, ne přejímací měření. Body <b>uvnitř</b> obalového polygonu referencí jsou spolehlivější; mimo něj jde o extrapolaci.</div>';
+        html += '<div style="font-size:calc(11.5px * var(--ag-font-scale, 1));opacity:.65;margin-top:6px;line-height:1.4;">Orientační zpřesnění, ne přejímací měření. Body <b>uvnitř</b> obalového polygonu referencí jsou spolehlivější; mimo něj jde o extrapolaci.</div>';
         box.innerHTML = html; box.style.display = 'block';
         if (acts) acts.style.display = 'block';
         // AGPose origin: nabídni srovnání jen když je platný a GPS-odvozený
@@ -575,27 +575,27 @@
         var st = document.createElement('style'); st.id = 'aghl-style';
         st.textContent = [
             '#aghl-modal .aghl-fld{display:block;margin:6px 0;}',
-            '#aghl-modal .aghl-fld>span{display:block;font-size:12px;opacity:.75;margin-bottom:3px;}',
+            '#aghl-modal .aghl-fld>span{display:block;font-size:calc(12px * var(--ag-font-scale, 1));opacity:.75;margin-bottom:3px;}',
             '#aghl-modal .aghl-fld select{width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);color:var(--text-color,#e8edf2);font:600 14px/1.1 var(--font-ui,system-ui),sans-serif;}',
-            '#aghl-modal .aghl-state{margin:6px 0;padding:8px 12px;border-radius:10px;font-size:12.5px;background:rgba(255,255,255,0.05);}',
+            '#aghl-modal .aghl-state{margin:6px 0;padding:8px 12px;border-radius:10px;font-size:calc(12.5px * var(--ag-font-scale, 1));background:rgba(255,255,255,0.05);}',
             '#aghl-modal .aghl-state.on{background:rgba(47,158,116,0.16);outline:1px solid rgba(47,158,116,0.4);}',
             '#aghl-modal .aghl-state.off{background:rgba(251,191,36,0.12);}',
             '#aghl-modal .aghl-add{margin:8px 0;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,0.04);}',
-            '#aghl-modal .aghl-gps{font-size:12.5px;margin:4px 2px 8px;line-height:1.5;}',
+            '#aghl-modal .aghl-gps{font-size:calc(12.5px * var(--ag-font-scale, 1));margin:4px 2px 8px;line-height:1.5;}',
             '#aghl-modal .aghl-dim{opacity:.6;}',
             '#aghl-modal .aghl-addbtns{display:flex;gap:8px;flex-wrap:wrap;}',
             '#aghl-modal .aghl-addbtns .btn{width:auto;flex:1 1 auto;min-width:130px;margin:0;}',
             '#aghl-modal .aghl-capbar{position:relative;height:22px;margin-top:8px;border-radius:8px;background:rgba(255,255,255,0.08);overflow:hidden;}',
             '#aghl-modal #aghl-capfill{position:absolute;inset:0 auto 0 0;width:0;background:var(--accent,#2f9e74);opacity:.5;transition:width .3s linear;}',
-            '#aghl-modal #aghl-captxt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11.5px;color:#fff;}',
+            '#aghl-modal #aghl-captxt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:calc(11.5px * var(--ag-font-scale, 1));color:#fff;}',
             '#aghl-modal .aghl-list{margin:8px 0;max-height:30vh;overflow:auto;}',
             '#aghl-modal .aghl-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;background:rgba(255,255,255,0.05);margin-bottom:6px;}',
             '#aghl-modal .aghl-nm{font-weight:600;flex:1;}',
-            '#aghl-modal .aghl-meta{font-family:var(--font-mono,monospace);font-size:11.5px;opacity:.7;white-space:nowrap;}',
-            '#aghl-modal .aghl-res{font-family:var(--font-mono,monospace);font-size:12px;white-space:nowrap;}',
-            '#aghl-modal .aghl-del{border:none;background:rgba(248,113,113,0.15);color:#f87171;width:26px;height:26px;border-radius:7px;cursor:pointer;flex:0 0 26px;font-size:13px;}',
+            '#aghl-modal .aghl-meta{font-family:var(--font-mono,monospace);font-size:calc(11.5px * var(--ag-font-scale, 1));opacity:.7;white-space:nowrap;}',
+            '#aghl-modal .aghl-res{font-family:var(--font-mono,monospace);font-size:calc(12px * var(--ag-font-scale, 1));white-space:nowrap;}',
+            '#aghl-modal .aghl-del{border:none;background:rgba(248,113,113,0.15);color:#f87171;width:26px;height:26px;border-radius:7px;cursor:pointer;flex:0 0 26px;font-size:calc(13px * var(--ag-font-scale, 1));}',
             '#aghl-modal .aghl-result{margin:12px 0;padding:12px 14px;border-radius:10px;background:rgba(47,158,116,0.12);}',
-            '#aghl-modal .aghl-big{font-size:15px;margin-bottom:2px;}'
+            '#aghl-modal .aghl-big{font-size:calc(15px * var(--ag-font-scale, 1));margin-bottom:2px;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }

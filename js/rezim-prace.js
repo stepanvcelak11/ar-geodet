@@ -356,8 +356,8 @@
             // režim levé ruky: odkládací odkaz pod palec vlevo (ovládání se zrcadlí)
             'body.left-hand #ag-rp-head .x{order:-1;margin-left:0;margin-right:auto;}',
             'body.ag-glove #ag-rp-list button{min-width:146px;padding:13px 14px;}',
-            'body.ag-glove #ag-rp-list button b{font-size:14px;}',
-            'body.ag-glove #ag-rp-chips li{padding:6px 11px;font-size:12px;}'
+            'body.ag-glove #ag-rp-list button b{font-size:calc(14px * var(--ag-font-scale, 1));}',
+            'body.ag-glove #ag-rp-chips li{padding:6px 11px;font-size:calc(12px * var(--ag-font-scale, 1));}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }

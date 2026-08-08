@@ -183,7 +183,7 @@
     function renderDetail(it) {
         var st = statusOf(it), d = deltas(it);
         var h = '<div class="ag-ep-head"><button class="btn btn-secondary ag-ep-sm" data-act="back">‹ Zpět</button>'
-            + '<h3 style="color:var(--accent);margin:0;flex:1;text-align:center;font-size:16px;">' + esc(it.name) + '</h3>'
+            + '<h3 style="color:var(--accent);margin:0;flex:1;text-align:center;font-size:calc(16px * var(--ag-font-scale, 1));">' + esc(it.name) + '</h3>'
             + '<button class="btn btn-danger ag-ep-sm" data-act="del-item">Smazat</button></div>';
 
         // propojení s vlastním bodem
@@ -229,7 +229,7 @@
         }
 
         // nová epocha
-        h += '<div class="ag-ep-form"><b style="font-size:13px;">Přidat epochu</b>'
+        h += '<div class="ag-ep-form"><b style="font-size:calc(13px * var(--ag-font-scale, 1));">Přidat epochu</b>'
             + '<div class="ag-ep-row"><label class="ag-ep-fld"><span>Y (m, S-JTSK)</span><input type="text" id="ag-ep-y" inputmode="decimal" placeholder="např. 596956.46"></label>'
             + '<label class="ag-ep-fld"><span>X (m, S-JTSK)</span><input type="text" id="ag-ep-x" inputmode="decimal" placeholder="např. 1159621.33"></label></div>'
             + '<div class="ag-ep-row"><label class="ag-ep-fld"><span>Z (m, Bpv) — volitelné</span><input type="text" id="ag-ep-z" inputmode="decimal" placeholder="—"></label>'
@@ -542,33 +542,33 @@
         var st = document.createElement('style'); st.id = 'ag-ep-style';
         st.textContent = [
             '#' + MODAL_ID + ' .ag-ep-head{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-bottom:8px;}',
-            '#' + MODAL_ID + ' .ag-ep-sm{width:auto;flex:0 0 auto;padding:7px 12px;font-size:12.5px;margin:0;}',
-            '#' + MODAL_ID + ' .ag-ep-note{font-size:12.5px;opacity:.82;line-height:1.45;margin:4px 0 10px;}',
+            '#' + MODAL_ID + ' .ag-ep-sm{width:auto;flex:0 0 auto;padding:7px 12px;font-size:calc(12.5px * var(--ag-font-scale, 1));margin:0;}',
+            '#' + MODAL_ID + ' .ag-ep-note{font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.82;line-height:1.45;margin:4px 0 10px;}',
             '#' + MODAL_ID + ' .ag-ep-item{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;border-radius:12px;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.04);color:var(--text-color,#e8edf2);}',
             '#' + MODAL_ID + ' .ag-ep-item-name{font:700 14px/1.2 var(--font-ui,system-ui),sans-serif;margin-right:6px;}',
-            '#' + MODAL_ID + ' .ag-ep-item-sub{display:block;font-size:11.5px;opacity:.75;margin-top:3px;line-height:1.4;}',
+            '#' + MODAL_ID + ' .ag-ep-item-sub{display:block;font-size:calc(11.5px * var(--ag-font-scale, 1));opacity:.75;margin-top:3px;line-height:1.4;}',
             '#' + MODAL_ID + ' .ag-ep-badge{font:700 10px/1 var(--font-ui,system-ui),sans-serif;padding:3px 7px;border-radius:8px;vertical-align:middle;}',
             '#' + MODAL_ID + ' .ag-ep-ok{background:rgba(47,158,116,0.18);color:#34d399;}',
             '#' + MODAL_ID + ' .ag-ep-bad{background:rgba(248,113,113,0.2);color:#f87171;}',
-            '#' + MODAL_ID + ' .ag-ep-status{font-size:13px;line-height:1.5;padding:9px 12px;border-radius:12px;margin:6px 0 10px;',
+            '#' + MODAL_ID + ' .ag-ep-status{font-size:calc(13px * var(--ag-font-scale, 1));line-height:1.5;padding:9px 12px;border-radius:12px;margin:6px 0 10px;',
             '  background:rgba(47,158,116,0.1);border:1px solid rgba(47,158,116,0.3);}',
             '#' + MODAL_ID + ' .ag-ep-status-bad{background:rgba(248,113,113,0.12);border-color:rgba(248,113,113,0.4);}',
             '#' + MODAL_ID + ' .ag-ep-row{display:flex;gap:8px;flex-wrap:wrap;}',
             // flex-basis + min-width:0 — jinak datetime-local svou vnitřní šířkou přeteče z formuláře
             '#' + MODAL_ID + ' .ag-ep-fld{display:block;flex:1 1 140px;min-width:0;margin:7px 0 3px;}',
-            '#' + MODAL_ID + ' .ag-ep-fld>span{display:block;font-size:11.5px;opacity:.75;margin-bottom:3px;}',
+            '#' + MODAL_ID + ' .ag-ep-fld>span{display:block;font-size:calc(11.5px * var(--ag-font-scale, 1));opacity:.75;margin-bottom:3px;}',
             '#' + MODAL_ID + ' .ag-ep-fld input,#' + MODAL_ID + ' .ag-ep-fld select{width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);color:var(--text-color,#e8edf2);font:600 15px/1.1 var(--font-ui,system-ui),sans-serif;}',
             '#' + MODAL_ID + ' .ag-ep-chart{margin:8px 0;padding:8px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid var(--glass-border,rgba(255,255,255,0.1));}',
-            '#' + MODAL_ID + ' .ag-ep-legend{font-size:11px;opacity:.8;margin-top:4px;text-align:center;}',
+            '#' + MODAL_ID + ' .ag-ep-legend{font-size:calc(11px * var(--ag-font-scale, 1));opacity:.8;margin-top:4px;text-align:center;}',
             '#' + MODAL_ID + ' .ag-ep-tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:8px 0;}',
-            '#' + MODAL_ID + ' .ag-ep-tbl{border-collapse:collapse;font-size:12px;min-width:100%;white-space:nowrap;}',
+            '#' + MODAL_ID + ' .ag-ep-tbl{border-collapse:collapse;font-size:calc(12px * var(--ag-font-scale, 1));min-width:100%;white-space:nowrap;}',
             '#' + MODAL_ID + ' .ag-ep-tbl th,#' + MODAL_ID + ' .ag-ep-tbl td{padding:5px 7px;text-align:right;border-bottom:1px solid rgba(148,163,184,0.15);}',
             '#' + MODAL_ID + ' .ag-ep-tbl th:first-child,#' + MODAL_ID + ' .ag-ep-tbl td:first-child{text-align:left;}',
             '#' + MODAL_ID + ' .ag-ep-ref td{background:rgba(77,163,255,0.07);}',
-            '#' + MODAL_ID + ' .ag-ep-mini{font-size:10.5px;opacity:.65;}',
-            '#' + MODAL_ID + ' .ag-ep-x{border:none;background:none;color:#f87171;font-size:14px;padding:2px 6px;}',
+            '#' + MODAL_ID + ' .ag-ep-mini{font-size:calc(10.5px * var(--ag-font-scale, 1));opacity:.65;}',
+            '#' + MODAL_ID + ' .ag-ep-x{border:none;background:none;color:#f87171;font-size:calc(14px * var(--ag-font-scale, 1));padding:2px 6px;}',
             '#' + MODAL_ID + ' .ag-ep-form{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid var(--glass-border,rgba(255,255,255,0.1));}',
             '#' + MODAL_ID + ' .ag-ep-helpers{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}',
             '#' + MODAL_ID + ' .ag-ep-helpers .btn{display:inline-flex;align-items:center;justify-content:center;cursor:pointer;}'

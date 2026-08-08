@@ -160,7 +160,7 @@
             el = document.createElement('div');
             el.className = 'modal-overlay'; el.id = 'trash-modal'; el.style.zIndex = '100005';
             el.innerHTML = '<div class="modal-content"><h3 style="color:var(--accent); margin-top:0;"><svg class="icon"><use href="#i-trash"/></svg> Koš</h3>'
-                + '<p style="font-size:12px; opacity:0.7; margin:4px 0 10px;">Smazané zakázky a body tu zůstávají 30 dní. Stažené úřední body se do koše neukládají (dají se stáhnout znovu).</p>'
+                + '<p style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:0.7; margin:4px 0 10px;">Smazané zakázky a body tu zůstávají 30 dní. Stažené úřední body se do koše neukládají (dají se stáhnout znovu).</p>'
                 + '<div class="modal-body" id="trash-list"></div>'
                 + '<button class="btn btn-secondary" style="margin-top:12px; width:100%;" onclick="document.getElementById(\'trash-modal\').style.display=\'none\'">Zavřít</button></div>';
             document.body.appendChild(el);

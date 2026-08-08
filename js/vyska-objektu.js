@@ -222,7 +222,7 @@
         el.innerHTML =
             '<div class="modal-content">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Výška objektu</h3>'
-            + '<p style="font-size:12.5px;opacity:.82;margin:2px 0 12px;line-height:1.45;">Trigonometrické určení výšky stožáru, komína, stromu… '
+            + '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.82;margin:2px 0 12px;line-height:1.45;">Trigonometrické určení výšky stožáru, komína, stromu… '
             + 'Zaměříš křížem <b>patu</b> a pak <b>vrchol</b>; vzdálenost se spočte ze záměru na patu (rovná zem), nebo ji zadej ručně (krokování, pásmo, dálkoměr). <b>Orientační</b> — typicky ± decimetry až metr.</p>'
             + '<label class="agvo-fld"><span>Výška telefonu nad zemí (m)</span>'
             + '<input type="number" id="agvo-h" step="0.05" min="0.3" max="3" inputmode="decimal"></label>'
@@ -260,7 +260,7 @@
         var st = document.createElement('style'); st.id = 'agvo-style';
         st.textContent = [
             '#agvo-modal .agvo-fld{display:block;margin:8px 0 4px;}',
-            '#agvo-modal .agvo-fld>span{display:block;font-size:12px;opacity:.75;margin-bottom:3px;line-height:1.35;}',
+            '#agvo-modal .agvo-fld>span{display:block;font-size:calc(12px * var(--ag-font-scale, 1));opacity:.75;margin-bottom:3px;line-height:1.35;}',
             '#agvo-modal .agvo-fld input{width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);color:var(--text-color,#e8edf2);font:600 16px/1.1 var(--font-ui,system-ui),sans-serif;}',
             '#agvo-modal .agvo-hrow{display:flex;gap:8px;margin:6px 0 8px;}',

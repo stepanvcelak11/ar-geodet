@@ -204,18 +204,18 @@
         function draw() {
             var url = (window.AGQR && window.AGQR.dataURL) ? window.AGQR.dataURL(enc.txt, 5) : null;
             body.innerHTML = url
-                ? '<p style="font-size:12.5px; margin:0 0 8px;">Ukaž tenhle kód druhému telefonu: <b>DGPS → Korekce → Naskenovat QR</b>. Displej dej na maximální jas.</p>'
+                ? '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1)); margin:0 0 8px;">Ukaž tenhle kód druhému telefonu: <b>DGPS → Korekce → Naskenovat QR</b>. Displej dej na maximální jas.</p>'
                     + '<img src="' + url + '" alt="QR s korekcemi" style="width:100%; max-width:340px; display:block; margin:0 auto; image-rendering:pixelated; background:#fff; border-radius:8px;">'
-                    + '<p style="font-size:12px; opacity:.75; text-align:center; margin:8px 0 0;">Základna ' + esc(base.name) + ' · ' + enc.count + ' bloků'
+                    + '<p style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:.75; text-align:center; margin:8px 0 0;">Základna ' + esc(base.name) + ' · ' + enc.count + ' bloků'
                     + (enc.merged ? ' · sloučeno po ' + (BUCKET_S * Math.pow(2, enc.merged) / 60) + ' min, ať se vejde do kódu' : '') + '</p>'
                     + '<button class="btn btn-secondary" id="ag-dgps-qr-back" style="margin-top:12px;">← Zpět</button>'
-                : '<p style="font-size:13px; color:var(--danger,#fb7185);">QR se nepodařilo vytvořit. Použij export do souboru.</p>'
+                : '<p style="font-size:calc(13px * var(--ag-font-scale, 1)); color:var(--danger,#fb7185);">QR se nepodařilo vytvořit. Použij export do souboru.</p>'
                     + '<button class="btn btn-secondary" id="ag-dgps-qr-back" style="margin-top:12px;">← Zpět</button>';
             var b = document.getElementById('ag-dgps-qr-back');
             if (b) b.addEventListener('click', function () { _mode = 'menu'; renderModal(); });
         }
         if (typeof qrcode === 'undefined' && window.AGQR && window.AGQR.ensureGen) {
-            body.innerHTML = '<p style="font-size:13px; opacity:.75;">Připravuji QR…</p>';
+            body.innerHTML = '<p style="font-size:calc(13px * var(--ag-font-scale, 1)); opacity:.75;">Připravuji QR…</p>';
             window.AGQR.ensureGen().then(draw).catch(function () { agAlert('DGPS', 'Knihovnu QR se nepodařilo načíst.'); });
         } else draw();
     }
@@ -326,17 +326,17 @@
         var st = document.createElement('style');
         st.id = 'ag-dg-style';
         st.textContent = [
-            '.agdg-intro{font-size:12.5px;opacity:.85;margin:0 0 12px;line-height:1.5;}',
+            '.agdg-intro{font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.85;margin:0 0 12px;line-height:1.5;}',
             '.agdg-opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px;margin:0 0 10px;border-radius:14px;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,.12));background:var(--surface-1,rgba(255,255,255,.05));color:inherit;cursor:pointer;font:inherit;}',
             '.agdg-opt-ic{flex:0 0 auto;width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;',
             '  background:var(--accent-soft,rgba(47,158,116,.15));color:var(--accent,#2f9e74);}',
             '.agdg-opt-ic svg{width:24px;height:24px;}',
             '.agdg-opt-tx{flex:1;min-width:0;font:600 14px/1.25 var(--font-ui,system-ui),sans-serif;}',
-            '.agdg-opt-tx small{display:block;font-weight:500;font-size:12px;color:var(--text-muted,#9aa1ac);margin-top:3px;line-height:1.4;}',
-            '.agdg-opt-arr{flex:0 0 auto;color:var(--text-muted,#9aa1ac);font-size:20px;line-height:1;}',
+            '.agdg-opt-tx small{display:block;font-weight:500;font-size:calc(12px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);margin-top:3px;line-height:1.4;}',
+            '.agdg-opt-arr{flex:0 0 auto;color:var(--text-muted,#9aa1ac);font-size:calc(20px * var(--ag-font-scale, 1));line-height:1;}',
             '.agdg-live{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:14px;margin:0 0 10px;',
-            '  border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.10);font-size:13px;line-height:1.45;}',
+            '  border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.10);font-size:calc(13px * var(--ag-font-scale, 1));line-height:1.45;}',
             '.agdg-dot{flex:0 0 auto;width:10px;height:10px;border-radius:50%;background:#fbbf24;margin-top:4px;animation:agdgPulse 1.6s ease-in-out infinite;}',
             '@keyframes agdgPulse{0%,100%{opacity:1}50%{opacity:.3}}',
             '.agdg-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 10px;}',
@@ -345,11 +345,11 @@
             '.agdg-stat .k{font:600 10.5px/1.2 var(--font-ui,system-ui),sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);margin-bottom:4px;}',
             '.agdg-stat .v{font:700 17px/1.1 var(--font-mono,monospace);color:var(--data,#e6bd76);}',
             '.agdg-draft{padding:12px 14px;border-radius:14px;margin:2px 0 10px;border:1px dashed var(--glass-border,rgba(255,255,255,.2));',
-            '  background:var(--surface-1,rgba(255,255,255,.04));font-size:13px;line-height:1.4;}',
-            '.agdg-draft small{display:block;color:var(--text-muted,#9aa1ac);font-size:12px;margin:2px 0 8px;}',
+            '  background:var(--surface-1,rgba(255,255,255,.04));font-size:calc(13px * var(--ag-font-scale, 1));line-height:1.4;}',
+            '.agdg-draft small{display:block;color:var(--text-muted,#9aa1ac);font-size:calc(12px * var(--ag-font-scale, 1));margin:2px 0 8px;}',
             '.agdg-draft-b{display:flex;gap:8px;flex-wrap:wrap;}',
             '.agdg-draft-b .btn{flex:1;margin:0;min-width:90px;}',
-            '.agdg-note{font-size:11.5px;color:var(--text-muted,#9aa1ac);margin:10px 0 0;line-height:1.5;}',
+            '.agdg-note{font-size:calc(11.5px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);margin:10px 0 0;line-height:1.5;}',
             'body.ag-glove .agdg-opt{padding:17px 14px;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
@@ -526,10 +526,10 @@
             return;
         }
         var log = _roverLog;
-        var head = '<p style="font-size:12.5px; margin:0 0 8px;">Základna <b>' + esc(log.base.name) + '</b> · ' + log.buckets.length + ' bloků · ' + fmtHm(log.t0) + '–' + fmtHm(log.t1) + '</p>';
+        var head = '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1)); margin:0 0 8px;">Základna <b>' + esc(log.base.name) + '</b> · ' + log.buckets.length + ' bloků · ' + fmtHm(log.t0) + '–' + fmtHm(log.t1) + '</p>';
         var okRows = _roverRows.filter(function (r) { return r.state === 'ok'; });
         if (!okRows.length) {
-            body.innerHTML = head + '<p style="font-size:13px;">Nenašel jsem žádné body měřené GPS průměrem (origin „gps-avg") v době běhu základny, které by šly opravit.'
+            body.innerHTML = head + '<p style="font-size:calc(13px * var(--ag-font-scale, 1));">Nenašel jsem žádné body měřené GPS průměrem (origin „gps-avg") v době běhu základny, které by šly opravit.'
                 + (_roverRows.some(function (r) { return r.state === 'done'; }) ? '<br><br>Některé body už korigované jsou (dvojí korekce se neaplikuje).' : '')
                 + (_roverRows.some(function (r) { return r.state === 'far'; }) ? '<br><br>Některé body jsou od základny dál než ' + (MAX_DIST_M / 1000) + ' km — tam korekce neplatí.' : '') + '</p>'
                 + '<button class="btn btn-secondary" id="ag-dgps-back">← Zpět</button>';
@@ -545,7 +545,7 @@
         }).join('');
         body.innerHTML = head + rowsHtml
             + '<button class="btn" id="ag-dgps-apply" style="margin-top:12px;">✓ Aplikovat korekce na vybrané body</button>'
-            + '<p style="font-size:11px; opacity:.55; margin:8px 0 0;">Posun bodu se zapíše do žurnálu (jde dohledat i vrátit ruční editací). Každý bod lze korigovat jen jednou.</p>'
+            + '<p style="font-size:calc(11px * var(--ag-font-scale, 1)); opacity:.55; margin:8px 0 0;">Posun bodu se zapíše do žurnálu (jde dohledat i vrátit ruční editací). Každý bod lze korigovat jen jednou.</p>'
             + '<button class="btn btn-secondary" id="ag-dgps-back" style="margin-top:8px;">← Zpět</button>';
         var chks = body.querySelectorAll('.ag-dgps-chk');
         for (var i = 0; i < chks.length; i++) {

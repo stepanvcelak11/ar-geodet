@@ -128,7 +128,7 @@
             '#agfa-modal .agfa-ava-sw{width:38px;height:38px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;}',
             '#agfa-modal .agfa-ava-sw.on{border-color:var(--accent,#2f9e74);box-shadow:0 0 0 3px var(--accent-soft,rgba(47,158,116,0.25));}',
             '#agfa-modal .agfa-ava-em{width:42px;height:42px;border-radius:12px;border:1px solid var(--glass-border,rgba(255,255,255,0.16));',
-            '  background:var(--glass-bg,rgba(255,255,255,0.04));color:var(--text,#e6e8eb);font-size:20px;line-height:1;cursor:pointer;padding:0;}',
+            '  background:var(--glass-bg,rgba(255,255,255,0.04));color:var(--text,#e6e8eb);font-size:calc(20px * var(--ag-font-scale, 1));line-height:1;cursor:pointer;padding:0;}',
             '#agfa-modal .agfa-ava-em.on{border-color:var(--accent,#2f9e74);box-shadow:0 0 0 3px var(--accent-soft,rgba(47,158,116,0.25));}',
             // pojistka rozložení: obsah modálu je sloupec, tělo se roztahuje a scrolluje
             // (bez toho se v některých prohlížečích obsah hroutil a tlačítka „skákala")
@@ -376,7 +376,7 @@
                             var txt = String(msg.txt || '');
                             if (txt.indexOf('AG1\n') === 0) txt = 'poslal body';
                             return '<div class="r"><span class="w">' + esc(msg.u || '?') + '</span><span class="m">' + esc(txt) + '</span>' +
-                                '<span style="color:var(--text-muted);font-size:11px;flex:none;">' + new Date(msg.ts).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) + '</span></div>';
+                                '<span style="color:var(--text-muted);font-size:calc(11px * var(--ag-font-scale, 1));flex:none;">' + new Date(msg.ts).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) + '</span></div>';
                         }).join('') + '</div>';
                 }
             }
@@ -703,7 +703,7 @@
                 '<div class="agfa-pg" style="margin-top:14px;">Vzhled avataru — ' + esc(us.name) + '</div>' +
                 '<div style="display:flex;align-items:center;gap:12px;margin:8px 0 12px;">' +
                 '  <span id="agfa-ava-prev"></span>' +
-                '  <span style="font-size:12px;opacity:.75;">Takhle bude účet vypadat na přihlašovací obrazovce, v administraci i v chatu. Uloženo na tomto zařízení.</span>' +
+                '  <span style="font-size:calc(12px * var(--ag-font-scale, 1));opacity:.75;">Takhle bude účet vypadat na přihlašovací obrazovce, v administraci i v chatu. Uloženo na tomto zařízení.</span>' +
                 '</div>' +
                 '<label class="agfa-lb">Barva</label><div class="agfa-ava-row">' + swatches() + '</div>' +
                 '<label class="agfa-lb" style="margin-top:10px;">Symbol (místo písmen)</label><div class="agfa-ava-row">' + emojis() + '</div>' +
@@ -1498,7 +1498,7 @@
                         if (mi.s) det.push('🏗 ' + esc(mi.s));
                         if (mi.w && mi.w.length) det.push('👷 s: ' + esc(mi.w.join(', ')));
                         if (mo.c) det.push('✏ ' + esc(mo.c));
-                        if (det.length) html += '<tr><td colspan="5" style="font-size:11px;color:var(--text-muted,#9aa1ac);padding-top:2px;">' + det.join(' · ') + '</td></tr>';
+                        if (det.length) html += '<tr><td colspan="5" style="font-size:calc(11px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);padding-top:2px;">' + det.join(' · ') + '</td></tr>';
                     });
                     html += '</table>';
                 });
@@ -1564,8 +1564,8 @@
                     return '<tr><td>' + esc(n) + '</td><td>' + Object.keys(sum[n].days).length + '</td><td>' + fmtDur(sum[n].ms) + '</td></tr>';
                 }).join('');
                 w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Výkaz docházky</title>' +
-                    '<style>body{font:13px/1.5 system-ui;margin:24px;color:#111;}h1{font-size:19px;}h2{font-size:14px;margin-top:22px;}' +
-                    'table{border-collapse:collapse;width:100%;}th,td{border:1px solid #bbb;padding:5px 8px;text-align:left;font-size:12px;}' +
+                    '<style>body{font:13px/1.5 system-ui;margin:24px;color:#111;}h1{font-size:calc(19px * var(--ag-font-scale, 1));}h2{font-size:calc(14px * var(--ag-font-scale, 1));margin-top:22px;}' +
+                    'table{border-collapse:collapse;width:100%;}th,td{border:1px solid #bbb;padding:5px 8px;text-align:left;font-size:calc(12px * var(--ag-font-scale, 1));}' +
                     'th{background:#eee;}@media print{button{display:none;}}</style></head><body>' +
                     '<h1>Výkaz docházky — ' + esc(f.firmName || '') + '</h1>' +
                     '<div>Období: ' + esc(from.toLocaleDateString('cs-CZ')) + ' – ' + esc(new Date().toLocaleDateString('cs-CZ')) + ' · vytvořeno ' + esc(new Date().toLocaleString('cs-CZ')) + '</div>' +

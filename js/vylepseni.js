@@ -642,15 +642,15 @@
                 '</div>';
         }).join('');
         const css = 'body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:0;padding:16px;}' +
-            'h1{font-size:20px;margin:0 0 4px;}.meta{font-size:12px;color:#444;margin-bottom:8px;}' +
-            '.prn{padding:10px 16px;border:0;border-radius:8px;background:#10b981;color:#04110b;font-weight:700;font-size:14px;cursor:pointer;}' +
-            '.note{font-size:11px;color:#92400e;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:8px 10px;margin:10px 0 14px;line-height:1.4;}' +
+            'h1{font-size:calc(20px * var(--ag-font-scale, 1));margin:0 0 4px;}.meta{font-size:calc(12px * var(--ag-font-scale, 1));color:#444;margin-bottom:8px;}' +
+            '.prn{padding:10px 16px;border:0;border-radius:8px;background:#10b981;color:#04110b;font-weight:700;font-size:calc(14px * var(--ag-font-scale, 1));cursor:pointer;}' +
+            '.note{font-size:calc(11px * var(--ag-font-scale, 1));color:#92400e;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:8px 10px;margin:10px 0 14px;line-height:1.4;}' +
             '.card{border:1px solid #ddd;border-radius:10px;padding:10px 12px;margin-bottom:12px;page-break-inside:avoid;}' +
             '.hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}' +
-            '.num{font-size:16px;font-weight:700;}.t{font-size:12px;color:#555;}' +
-            'table{width:100%;border-collapse:collapse;font-size:12.5px;}th,td{text-align:left;padding:3px 6px;border-bottom:1px solid #eee;}th{color:#555;font-weight:600;width:90px;}' +
+            '.num{font-size:calc(16px * var(--ag-font-scale, 1));font-weight:700;}.t{font-size:calc(12px * var(--ag-font-scale, 1));color:#555;}' +
+            'table{width:100%;border-collapse:collapse;font-size:calc(12.5px * var(--ag-font-scale, 1));}th,td{text-align:left;padding:3px 6px;border-bottom:1px solid #eee;}th{color:#555;font-weight:600;width:90px;}' +
             '.ph{max-width:100%;max-height:340px;margin-top:8px;border-radius:8px;display:block;}' +
-            '.nophoto{margin-top:8px;font-size:11px;color:#999;font-style:italic;}' +
+            '.nophoto{margin-top:8px;font-size:calc(11px * var(--ag-font-scale, 1));color:#999;font-style:italic;}' +
             '@media print{.prn{display:none;}body{padding:0;}}';
         return '<!DOCTYPE html><html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
             '<title>Protokol vytyčení — ' + esc(proj) + '</title><style>' + css + '</style></head><body>' +

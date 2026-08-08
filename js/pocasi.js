@@ -1574,10 +1574,10 @@
         bar.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);z-index:100001;'
             + 'bottom:max(18px,env(safe-area-inset-bottom));display:flex;gap:10px;align-items:center;'
             + 'background:rgba(8,11,15,0.88);border:1px solid rgba(255,255,255,0.16);border-radius:999px;'
-            + 'padding:10px 14px;color:#fff;font-size:13px;white-space:nowrap;box-shadow:0 6px 24px rgba(0,0,0,0.4);';
+            + 'padding:10px 14px;color:#fff;font-size:calc(13px * var(--ag-font-scale, 1));white-space:nowrap;box-shadow:0 6px 24px rgba(0,0,0,0.4);';
         bar.innerHTML = '<span>Posuň si mapu a <b>klepni na místo</b></span>'
             + '<button type="button" id="ag-wx-pick-x" style="border:none;border-radius:999px;padding:6px 12px;'
-            + 'background:rgba(255,255,255,0.14);color:#fff;font-size:13px;cursor:pointer;">Zrušit</button>';
+            + 'background:rgba(255,255,255,0.14);color:#fff;font-size:calc(13px * var(--ag-font-scale, 1));cursor:pointer;">Zrušit</button>';
         document.body.appendChild(bar);
 
         function endPick() {

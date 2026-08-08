@@ -219,7 +219,7 @@
         el.innerHTML =
             '<div class="modal-content">' +
             '  <h3 style="color:var(--accent); margin-top:0; margin-bottom:5px;"><svg class="icon"><use href="#i-satellite"/></svg> Predikce signálu (skyplot)</h3>' +
-            '  <p style="margin:0 0 10px; font-size:12.5px; opacity:0.8;">Kde jsou družice nad vámi a kolik jich zbude, když si nastavíte, jak vysoko kolem vás zaclání okolí.</p>' +
+            '  <p style="margin:0 0 10px; font-size:calc(12.5px * var(--ag-font-scale, 1)); opacity:0.8;">Kde jsou družice nad vámi a kolik jich zbude, když si nastavíte, jak vysoko kolem vás zaclání okolí.</p>' +
             '  <div class="modal-body" id="sky-obs-body"></div>' +
             '  <button class="btn btn-secondary" style="margin-top:15px;" id="sky-obs-close">Zavřít</button>' +
             '</div>';

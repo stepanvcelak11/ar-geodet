@@ -586,11 +586,11 @@
             '  border-radius:14px;padding:10px 12px;margin-bottom:8px;}',
             '#ag-hl-modal .ag-hl-top{display:flex;align-items:center;gap:10px;}',
             '#ag-hl-modal .ag-hl-play{width:42px;height:42px;flex:none;border-radius:99px;border:1px solid var(--accent-line,rgba(47,158,116,0.4));',
-            '  background:transparent;color:var(--accent,#2f9e74);font-size:16px;cursor:pointer;}',
+            '  background:transparent;color:var(--accent,#2f9e74);font-size:calc(16px * var(--ag-font-scale, 1));cursor:pointer;}',
             '#ag-hl-modal .ag-hl-play.on{background:var(--accent-soft,rgba(47,158,116,0.18));}',
             '#ag-hl-modal .ag-hl-play[disabled]{opacity:0.35;}',
             '#ag-hl-modal .ag-hl-meta{flex:1;min-width:0;font:500 12.5px/1.5 var(--font-ui,system-ui);color:var(--text-muted,#c3c9d2);word-break:break-word;}',
-            '#ag-hl-modal .ag-hl-meta b{color:var(--text-color,#e6e8eb);font-size:13.5px;}',
+            '#ag-hl-modal .ag-hl-meta b{color:var(--text-color,#e6e8eb);font-size:calc(13.5px * var(--ag-font-scale, 1));}',
             // přepis = hlavní obsah poznámky, proto textarea (ne jednořádkový input)
             '#ag-hl-modal .ag-hl-note{width:100%;margin-top:8px;padding:8px 10px;border-radius:10px;box-sizing:border-box;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:var(--glass-bg,rgba(255,255,255,0.05));',

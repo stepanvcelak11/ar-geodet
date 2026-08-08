@@ -184,13 +184,13 @@
         el.innerHTML =
             '<div class="modal-content" style="display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Protínání vpřed — neznámý bod</h3>'
-            + '<p style="font-size:12.5px;opacity:.82;margin:2px 0 10px;line-height:1.45;">Urči bod, na který se nedá dojít, ze <b>známých bodů</b>. '
+            + '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.82;margin:2px 0 10px;line-height:1.45;">Urči bod, na který se nedá dojít, ze <b>známých bodů</b>. '
             + 'Na každém stanovisku zaměříš orientační bod a cíl. Stačí <b>2 stanoviska</b>; přidej další pro <b>kontrolu a zpřesnění</b> (vyrovná se MNČ). '
             + 'Rozdíl úhlů ruší chybu kompasu — funguje i bez přesné GPS.</p>'
             + '<div id="agix-stations"></div>'
             + '<button class="btn btn-secondary" id="agix-add" style="margin:2px 0 8px;"><svg class="icon"><use href="#i-plus"/></svg> Přidat stanovisko</button>'
             + '<label class="agix-fld"><span>Název neznámého cíle</span><input type="text" id="agix-name" placeholder="např. P1" maxlength="24"></label>'
-            + '<div id="agix-warn" style="font-size:12px;color:#fbbf24;margin:4px 2px;"></div>'
+            + '<div id="agix-warn" style="font-size:calc(12px * var(--ag-font-scale, 1));color:#fbbf24;margin:4px 2px;"></div>'
             + '<button class="btn" id="agix-start"><svg class="icon"><use href="#i-crosshair"/></svg> Spustit zaměřování</button>'
             + '<div id="agix-result" class="agix-result" style="display:none;"></div>'
             + '<div id="agix-actions" style="display:none;">'
@@ -346,11 +346,11 @@
 
         if (isTarget) {
             if (bar) bar.innerHTML = 'Stoj na <b>#' + (stPt ? stPt.name : '?') + '</b> · zaměř <b style="color:#fbbf24">NEZNÁMÝ CÍL</b>'
-                + (_targetName ? ' (' + _targetName + ')' : '') + (step.sIdx > 0 ? '<br><span style="opacity:.75;font-size:12px">stejný bod jako z ostatních stanovisek!</span>' : '');
+                + (_targetName ? ' (' + _targetName + ')' : '') + (step.sIdx > 0 ? '<br><span style="opacity:.75;font-size:calc(12px * var(--ag-font-scale, 1))">stejný bod jako z ostatních stanovisek!</span>' : '');
         } else {
             var dTxt = (orPt && stPt) ? ' · ' + dist2(stPt, orPt).toFixed(0) + ' m' : '';
             if (bar) bar.innerHTML = 'Stoj na <b>#' + (stPt ? stPt.name : '?') + '</b> · zaměř známý <b>#' + (orPt ? orPt.name : '?') + '</b>' + dTxt
-                + '<br><span style="opacity:.75;font-size:12px">orientace — srovná stanovisko</span>';
+                + '<br><span style="opacity:.75;font-size:calc(12px * var(--ag-font-scale, 1))">orientace — srovná stanovisko</span>';
         }
         if (stepEl) stepEl.innerHTML = 'krok ' + (_capIdx + 1) + ' z ' + _steps.length + ' · stanovisko ' + (step.sIdx + 1);
         if (shot) { shot.disabled = false; shot.innerText = isTarget ? 'Zaměřit cíl' : 'Zaměřit #' + (orPt ? orPt.name : ''); }
@@ -418,10 +418,10 @@
         if (!_result) { box.style.display = 'none'; if (acts) acts.style.display = 'none'; return; }
         var r = _result;
         var qCol = r.angleP < 20 ? '#f87171' : (r.angleP < 35 ? '#fbbf24' : '#34d399');
-        var html = '<div class="agix-big">Neznámý cíl ' + (_targetName ? '<b>' + _targetName + '</b> ' : '') + 'určen <span style="opacity:.7;font-size:12px">(' + r.n + ' stanoviska)</span></div>'
-            + '<div style="margin:6px 0;font-family:var(--font-mono,monospace);font-size:13px;">'
+        var html = '<div class="agix-big">Neznámý cíl ' + (_targetName ? '<b>' + _targetName + '</b> ' : '') + 'určen <span style="opacity:.7;font-size:calc(12px * var(--ag-font-scale, 1))">(' + r.n + ' stanoviska)</span></div>'
+            + '<div style="margin:6px 0;font-family:var(--font-mono,monospace);font-size:calc(13px * var(--ag-font-scale, 1));">'
             + 'S-JTSK:&nbsp; <b>Y</b> ' + (r.Y != null ? r.Y.toFixed(2) : '—') + ' &nbsp; <b>X</b> ' + (r.X != null ? r.X.toFixed(2) : '—') + '</div>'
-            + '<div style="font-size:12.5px;opacity:.9;line-height:1.5;">'
+            + '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.9;line-height:1.5;">'
             + 'Stanoviska: <b>#' + r.names.join('</b>, #') + '</b><br>'
             + 'Úhel protnutí: <b style="color:' + qCol + '">' + r.angleP.toFixed(0) + '°</b> <span style="opacity:.7">(ideál ~90°)</span>'
             + (r.posSigma != null ? '<br>Odhad stř. chyby polohy: <b>±' + fmtMiss(r.posSigma) + '</b> <span style="opacity:.7">(z geometrie a ~0,8° chyby směru)</span>' : '')
@@ -429,10 +429,10 @@
                        : '<br><span style="color:#fbbf24;">2 stanoviska = bez nadbytečného měření — výsledek NENÍ ničím kontrolován. Přidej třetí stanovisko.</span>')
             + '</div>';
         var warn = '';
-        if (r.behind) warn += '<div style="color:#f87171;font-size:12px;margin-top:6px;">⚠ Cíl vyšel „za zády" některého stanoviska — nejspíš zaměněné body nebo špatné zaměření. Zkontroluj a zaměř znovu.</div>';
-        if (r.angleP < 20) warn += '<div style="color:#f87171;font-size:12px;margin-top:4px;">⚠ Velmi ostrý úhel protnutí — poloha je nejistá. Zvol stanoviska tak, ať svírají s cílem úhel blíž 90°.</div>';
-        else if (r.angleP < 35) warn += '<div style="color:#fbbf24;font-size:12px;margin-top:4px;">Úhel protnutí je malý — výsledek je citlivý na přesnost zaměření.</div>';
-        if (r.n > 2 && r.maxMiss > 1.0) warn += '<div style="color:#fbbf24;font-size:12px;margin-top:4px;">Paprsky se rozcházejí až o ' + fmtMiss(r.maxMiss) + ' — některé stanovisko může být zaměřené nepřesně.</div>';
+        if (r.behind) warn += '<div style="color:#f87171;font-size:calc(12px * var(--ag-font-scale, 1));margin-top:6px;">⚠ Cíl vyšel „za zády" některého stanoviska — nejspíš zaměněné body nebo špatné zaměření. Zkontroluj a zaměř znovu.</div>';
+        if (r.angleP < 20) warn += '<div style="color:#f87171;font-size:calc(12px * var(--ag-font-scale, 1));margin-top:4px;">⚠ Velmi ostrý úhel protnutí — poloha je nejistá. Zvol stanoviska tak, ať svírají s cílem úhel blíž 90°.</div>';
+        else if (r.angleP < 35) warn += '<div style="color:#fbbf24;font-size:calc(12px * var(--ag-font-scale, 1));margin-top:4px;">Úhel protnutí je malý — výsledek je citlivý na přesnost zaměření.</div>';
+        if (r.n > 2 && r.maxMiss > 1.0) warn += '<div style="color:#fbbf24;font-size:calc(12px * var(--ag-font-scale, 1));margin-top:4px;">Paprsky se rozcházejí až o ' + fmtMiss(r.maxMiss) + ' — některé stanovisko může být zaměřené nepřesně.</div>';
         box.innerHTML = html + warn;
         box.style.display = 'block';
         if (acts) acts.style.display = 'block';
@@ -496,14 +496,14 @@
         var st = document.createElement('style'); st.id = 'agix-style';
         st.textContent = [
             '#agix-modal .agix-fld{display:block;margin:8px 0;}',
-            '#agix-modal .agix-fld>span{display:block;font-size:12px;opacity:.75;margin-bottom:3px;}',
+            '#agix-modal .agix-fld>span{display:block;font-size:calc(12px * var(--ag-font-scale, 1));opacity:.75;margin-bottom:3px;}',
             '#agix-modal .agix-fld select,#agix-modal .agix-fld input{width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);color:var(--text-color,#e8edf2);font:600 14px/1.1 var(--font-ui,system-ui),sans-serif;}',
             '#agix-modal .agix-st{border:1px solid var(--glass-border,rgba(255,255,255,0.12));border-radius:12px;padding:6px 12px 10px;margin:8px 0;background:rgba(255,255,255,0.025);}',
-            '#agix-modal .agix-st-h{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;font-weight:700;color:var(--accent);margin-top:6px;}',
-            '#agix-modal .agix-st-rm{background:rgba(239,68,68,0.18);color:#f87171;border:none;border-radius:8px;width:26px;height:26px;font-size:13px;line-height:1;cursor:pointer;}',
+            '#agix-modal .agix-st-h{display:flex;align-items:center;justify-content:space-between;font-size:calc(12.5px * var(--ag-font-scale, 1));font-weight:700;color:var(--accent);margin-top:6px;}',
+            '#agix-modal .agix-st-rm{background:rgba(239,68,68,0.18);color:#f87171;border:none;border-radius:8px;width:26px;height:26px;font-size:calc(13px * var(--ag-font-scale, 1));line-height:1;cursor:pointer;}',
             '#agix-modal .agix-result{margin:12px 0;padding:12px 14px;border-radius:10px;background:rgba(47,158,116,0.12);}',
-            '#agix-modal .agix-big{font-size:15px;margin-bottom:2px;}',
+            '#agix-modal .agix-big{font-size:calc(15px * var(--ag-font-scale, 1));margin-bottom:2px;}',
             // VYČIŠTĚNÁ obrazovka během zaměřování: jen kamera + zaměřovač + štítek
             'body.agix-clean #ar-overlay{opacity:0!important;pointer-events:none!important;}',
             'body.agix-clean #ar-hud{display:none!important;}',

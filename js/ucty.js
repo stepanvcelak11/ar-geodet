@@ -1062,9 +1062,9 @@
             '  animation-name:aglfly;animation-timing-function:linear;animation-iteration-count:infinite;}',
             '.agl-fl .k{font-weight:500;font-size:.74em;letter-spacing:.08em;text-transform:uppercase;color:rgba(230,189,118,0.55);}',
             '.agl-fl .v{font-weight:600;color:var(--data,#e6bd76);}',
-            '.agl-fl.far{font-size:11px;}',
-            '.agl-fl.mid{font-size:13px;}',
-            '.agl-fl.near{font-size:16px;}',
+            '.agl-fl.far{font-size:calc(11px * var(--ag-font-scale, 1));}',
+            '.agl-fl.mid{font-size:calc(13px * var(--ag-font-scale, 1));}',
+            '.agl-fl.near{font-size:calc(16px * var(--ag-font-scale, 1));}',
             '.agl-fl.near .v{color:#f0cd90;}',
             '@keyframes aglfly{0%{transform:translate(var(--x0),var(--y0));opacity:0}',
             '  14%{opacity:var(--op)}82%{opacity:var(--op)}',
@@ -1156,7 +1156,7 @@
             '#ag-login .agl-keep{display:flex;align-items:flex-start;gap:9px;width:min(300px,86vw);',
             '  font:600 12.5px/1.35 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);cursor:pointer;}',
             '#ag-login .agl-keep input{flex:0 0 auto;width:18px;height:18px;margin:0;}',
-            '#ag-login .agl-keep small{display:block;margin-top:3px;font-weight:500;font-size:11.5px;color:var(--text-faint,#7b828c);}',
+            '#ag-login .agl-keep small{display:block;margin-top:3px;font-weight:500;font-size:calc(11.5px * var(--ag-font-scale, 1));color:var(--text-faint,#7b828c);}',
             '#ag-login.agl-shake .agl-pinbox{animation:aglshake .35s;}',
             '@keyframes aglshake{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}',
             // ---- brána při startu (přihlásit / založit / omezený režim) ----
@@ -1518,7 +1518,7 @@
             '<div class="agl-pinbox' + (usersHtml ? '' : ' on') + '">' +
             '  <input class="agl-name" type="text" autocomplete="username" maxlength="40" placeholder="Jméno"' + (usersHtml ? ' style="display:none;"' : '') + '>' +
             (cloud
-                ? '  <input class="agl-pin" type="password" autocomplete="current-password" maxlength="64" placeholder="Heslo" style="letter-spacing:.12em;font-size:17px;">'
+                ? '  <input class="agl-pin" type="password" autocomplete="current-password" maxlength="64" placeholder="Heslo" style="letter-spacing:.12em;font-size:calc(17px * var(--ag-font-scale, 1));">'
                 : '  <input class="agl-pin" type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="PIN">') +
             '  <div class="agl-err"></div>' +
             '  <button type="button" class="agl-btn">Přihlásit</button>' +
@@ -1809,7 +1809,7 @@
         ov.setAttribute('data-no-swipe', '1');
         ov.innerHTML = '<div class="modal-content" style="max-width:420px;">' +
             '<h3 style="margin-top:0;color:var(--accent);">Odemykat appku telefonem?</h3>' +
-            '<p style="font-size:13.5px;line-height:1.55;color:var(--text-muted,#9aa1ac);">' +
+            '<p style="font-size:calc(13.5px * var(--ag-font-scale, 1));line-height:1.55;color:var(--text-muted,#9aa1ac);">' +
             'Příště se přihlásíš <b>Face ID / Touch ID nebo kódem zámku obrazovky</b> místo hesla — jeden pohled a jsi v zakázce. ' +
             'Ověřuje samotný telefon, appka se dozví jen to, že ověření prošlo; heslo si nikam neukládá. ' +
             'Každé ' + TRUST_MAX + '. spuštění se stejně jednou zeptá na heslo.</p>' +

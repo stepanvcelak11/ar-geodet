@@ -488,11 +488,21 @@
                         <option value="graphite">Grafit (šedá)</option>
                     </select>
                     <div class="set-h">Displej a čitelnost</div>
-                    <!-- Jezdec „Velikost textu a menu" ODSTRANĚN na přání: měnil jen --menu-scale
-                         (transform pár HUD prvků mimo běžný pohled), text nikde — působil nefunkčně.
-                         Velikost AR štítků a nav. štítku mají vlastní jezdce v Pokročilé. -->
+                    <!-- Jezdec „Velikost textu a menu" tu jednou BYL a byl odstraněn: měnil jen
+                         --menu-scale (transform pár HUD prvků), textu se nedotkl — působil nefunkčně.
+                         Tenhle jezdec je jiný: --ag-font-scale násobí KAŽDÝ pevný font-size v appce
+                         (css i styly vkládané z modulů jsou psané přes calc(Npx * var(--ag-font-scale, 1))),
+                         takže se opravdu zvětší všechen text. Telefon má vlastní systémové zvětšení
+                         písma, ale to na PWA s pevnými px nedosáhne — proto vlastní jezdec.
+                         Velikost AR štítků a nav. štítku mají svoje jezdce v Pokročilé. -->
+                    <div class="st-slider">
+                        <div class="st-slider-head"><span class="st-lab">Velikost písma<small>zvětší text v celé aplikaci</small></span><span class="st-val"><span id="v-font-scale-val">100</span> %</span></div>
+                        <input type="range" id="v-font-scale" min="85" max="140" step="5" value="100" oninput="document.getElementById('v-font-scale-val').innerText = this.value; document.documentElement.style.setProperty('--ag-font-scale', this.value / 100);">
+                    </div>
                     <div class="st-row"><span class="st-lab">Venkovní režim<small>vysoký kontrast na slunci</small></span>
                         <label class="st-sw"><input type="checkbox" id="s-outdoor"><span class="st-sw-face"></span></label></div>
+                    <div class="st-row"><span class="st-lab">Zapínat ho sám<small>podle jasu z kamery; když zase zešeří, vypne se</small></span>
+                        <label class="st-sw"><input type="checkbox" id="s-auto-outdoor" checked><span class="st-sw-face"></span></label></div>
                     <div class="st-row"><span class="st-lab">Zamezit zhasínání displeje</span>
                         <label class="st-sw"><input type="checkbox" id="s-wakelock" checked><span class="st-sw-face"></span></label></div>
                     <div class="set-h">Ovládání</div>

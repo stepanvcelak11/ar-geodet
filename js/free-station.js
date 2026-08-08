@@ -39,7 +39,7 @@
         el.innerHTML =
             '<div class="modal-content" style="display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Volné stanovisko — průvodce</h3>'
-            + '<p style="font-size:12.5px;opacity:.85;margin:2px 0 12px;line-height:1.5;">Urči svou polohu (stanovisko) na místě, kde nejsou žádné úřední body — '
+            + '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.85;margin:2px 0 12px;line-height:1.5;">Urči svou polohu (stanovisko) na místě, kde nejsou žádné úřední body — '
             + 'z vlastních bodů, které si sám založíš GPS a pak na ně zaměříš. Rozdíly azimutů ruší chybu kompasu, '
             + 'takže výsledek je přesnější než samotná GPS.</p>'
 
@@ -121,11 +121,11 @@
         var st = document.createElement('style'); st.id = 'agfs-style';
         st.textContent = [
             '#agfs-modal .agfs-step{border:1px solid var(--glass-border,rgba(255,255,255,0.12));border-radius:12px;padding:12px 14px;background:rgba(255,255,255,0.025);}',
-            '#agfs-modal .agfs-step-h{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--text-color,#e8edf2);margin-bottom:6px;}',
-            '#agfs-modal .agfs-num{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--accent,#2f9e74);color:#04110b;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:800;}',
-            '#agfs-modal .agfs-note{font-size:12px;opacity:.8;line-height:1.5;margin-bottom:10px;}',
-            '#agfs-modal .agfs-count{font-size:13px;margin:6px 0 10px;padding:8px 10px;border-radius:8px;background:rgba(0,0,0,0.18);}',
-            '#agfs-modal .agfs-warn{font-size:12px;color:#fbbf24;margin:2px 0 8px;min-height:1px;}'
+            '#agfs-modal .agfs-step-h{display:flex;align-items:center;gap:8px;font-size:calc(14px * var(--ag-font-scale, 1));font-weight:700;color:var(--text-color,#e8edf2);margin-bottom:6px;}',
+            '#agfs-modal .agfs-num{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--accent,#2f9e74);color:#04110b;display:flex;align-items:center;justify-content:center;font-size:calc(12.5px * var(--ag-font-scale, 1));font-weight:800;}',
+            '#agfs-modal .agfs-note{font-size:calc(12px * var(--ag-font-scale, 1));opacity:.8;line-height:1.5;margin-bottom:10px;}',
+            '#agfs-modal .agfs-count{font-size:calc(13px * var(--ag-font-scale, 1));margin:6px 0 10px;padding:8px 10px;border-radius:8px;background:rgba(0,0,0,0.18);}',
+            '#agfs-modal .agfs-warn{font-size:calc(12px * var(--ag-font-scale, 1));color:#fbbf24;margin:2px 0 8px;min-height:1px;}'
         ].join('\n');
         document.head.appendChild(st);
     }

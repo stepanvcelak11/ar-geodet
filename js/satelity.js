@@ -208,17 +208,17 @@ function ensureSatModal() {
     el.innerHTML = `
         <div class="modal-content">
             <h3 style="color:var(--accent); margin-top:0; margin-bottom:5px;"><svg class="icon"><use href="#i-satellite"/></svg> GNSS satelity — predikce</h3>
-            <p style="margin:0 0 10px; font-size:12.5px; opacity:0.8;">Namiřte telefon na volný kus oblohy (mezi domy, korunami stromů) a uvidíte, které družice tam jsou — a které tam za chvíli doletí (↗ stoupá, ↘ zapadá).</p>
+            <p style="margin:0 0 10px; font-size:calc(12.5px * var(--ag-font-scale, 1)); opacity:0.8;">Namiřte telefon na volný kus oblohy (mezi domy, korunami stromů) a uvidíte, které družice tam jsou — a které tam za chvíli doletí (↗ stoupá, ↘ zapadá).</p>
             <div class="modal-body">
-                <label class="filter-row" style="font-size:14px;"><input type="checkbox" id="sat-ar-toggle" onchange="satARenabled = this.checked; if(satARenabled) _ensureSatTimer(); else hideSatAR();"> Zobrazit satelity v AR kameře</label>
+                <label class="filter-row" style="font-size:calc(14px * var(--ag-font-scale, 1));"><input type="checkbox" id="sat-ar-toggle" onchange="satARenabled = this.checked; if(satARenabled) _ensureSatTimer(); else hideSatAR();"> Zobrazit satelity v AR kameře</label>
                 <label style="margin-top:12px;">Předpověď: <span id="sat-time-val" style="color:var(--accent);">nyní</span></label>
                 <input type="range" id="sat-time" min="0" max="180" step="5" value="0" oninput="satTimeOffsetMin = parseInt(this.value); document.getElementById('sat-time-val').innerText = satTimeOffsetMin ? ('za ' + satTimeOffsetMin + ' min') : 'nyní'; updateSatObs(); renderSatModalStats();">
                 <div id="sat-stats" style="margin-top:10px;"></div>
                 <button class="btn btn-blue" style="margin-top:12px;" onclick="findBestSatTime()"><svg class="icon"><use href="#i-crosshair"/></svg> Najít nejlepší konstelaci (3 h)</button>
-                <div id="sat-best" style="font-size:13px; margin-top:8px;"></div>
-                <div id="sat-tle-info" style="font-size:12px; opacity:0.7; margin-top:12px;"></div>
+                <div id="sat-best" style="font-size:calc(13px * var(--ag-font-scale, 1)); margin-top:8px;"></div>
+                <div id="sat-tle-info" style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:0.7; margin-top:12px;"></div>
                 <button class="btn btn-secondary" id="sat-refresh-btn" style="margin-top:8px;" onclick="refreshTLE(false)"><svg class="icon"><use href="#i-download"/></svg> Aktualizovat dráhy (TLE)</button>
-                <p style="font-size:11px; opacity:0.55; margin:10px 0 0;">Výpočet probíhá v telefonu (SGP4). Dráhy družic: CelesTrak. Maska elevace ${SAT_EL_MASK}°.</p>
+                <p style="font-size:calc(11px * var(--ag-font-scale, 1)); opacity:0.55; margin:10px 0 0;">Výpočet probíhá v telefonu (SGP4). Dráhy družic: CelesTrak. Maska elevace ${SAT_EL_MASK}°.</p>
             </div>
             <button class="btn btn-secondary" style="margin-top:15px;" onclick="document.getElementById('sat-modal').style.display='none'">Zavřít</button>
         </div>`;
@@ -230,7 +230,7 @@ function openSatModal() {
     document.getElementById('sat-ar-toggle').checked = satARenabled;
     document.getElementById('sat-modal').style.display = 'flex';
     if (typeof satellite === 'undefined') {
-        document.getElementById('sat-stats').innerHTML = '<p style="color:var(--danger); font-size:13px;">Knihovna pro výpočet drah (satellite.js) se nenačetla — připojte se k internetu a obnovte aplikaci.</p>';
+        document.getElementById('sat-stats').innerHTML = '<p style="color:var(--danger); font-size:calc(13px * var(--ag-font-scale, 1));">Knihovna pro výpočet drah (satellite.js) se nenačetla — připojte se k internetu a obnovte aplikaci.</p>';
         return;
     }
     if (!tleSats.length) loadTleFromCache();
@@ -243,15 +243,15 @@ function openSatModal() {
 function renderSatModalStats() {
     const div = document.getElementById('sat-stats'); if (!div) return;
     const m = document.getElementById('sat-modal'); if (!m || m.style.display !== 'flex') return;
-    if (userLat == null) { div.innerHTML = '<p style="font-size:13px; opacity:0.7;">Čekám na GPS pozici…</p>'; return; }
-    if (!tleSats.length) { div.innerHTML = '<p style="font-size:13px; opacity:0.7;">Zatím nejsou stažené dráhy družic (TLE) — klepněte na Aktualizovat.</p>'; return; }
+    if (userLat == null) { div.innerHTML = '<p style="font-size:calc(13px * var(--ag-font-scale, 1)); opacity:0.7;">Čekám na GPS pozici…</p>'; return; }
+    if (!tleSats.length) { div.innerHTML = '<p style="font-size:calc(13px * var(--ag-font-scale, 1)); opacity:0.7;">Zatím nejsou stažené dráhy družic (TLE) — klepněte na Aktualizovat.</p>'; return; }
     const vis = satObs.filter(o => o.el >= SAT_EL_MASK);
     const counts = {}; SAT_SYS.forEach(s => counts[s.key] = 0);
     vis.forEach(o => { if (counts[o.sys] != null) counts[o.sys]++; });
     div.innerHTML = `
         <div class="geo-highlight" style="border-left-color:var(--accent); margin:0;">
             <div class="geo-data-row" style="border:none; padding:3px 0;"><span class="geo-label">Viditelné družice (nad ${SAT_EL_MASK}°)</span><span class="geo-value">${vis.length}</span></div>
-            <div style="display:flex; gap:10px; flex-wrap:wrap; padding:4px 0; font-size:12.5px;">
+            <div style="display:flex; gap:10px; flex-wrap:wrap; padding:4px 0; font-size:calc(12.5px * var(--ag-font-scale, 1));">
                 ${SAT_SYS.map(s => `<span style="color:${s.col}; font-weight:600;">● ${s.label}: ${counts[s.key]}</span>`).join('')}
             </div>
         </div>`;
@@ -281,7 +281,7 @@ function findBestSatTime() {
     st.textContent = `
         .sat-marker { position: absolute; transform: translate(-50%, -50%); z-index: 1; pointer-events: none; display: none; text-align: center; }
         .sat-marker .sat-dot { display: block; width: 10px; height: 10px; border-radius: 50%; margin: 0 auto 2px; border: 1.5px solid rgba(255,255,255,0.85); }
-        .sat-marker .sat-lbl { font-family: var(--font-mono, monospace); font-size: 10.5px; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.9); white-space: nowrap; }
+        .sat-marker .sat-lbl { font-family: var(--font-mono, monospace); font-size: calc(10.5px * var(--ag-font-scale, 1)); font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.9); white-space: nowrap; }
     `;
     document.head.appendChild(st);
     loadTleFromCache();

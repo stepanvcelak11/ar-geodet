@@ -63,12 +63,12 @@
             '#' + MODAL_ID + ' .hp-row{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:8px;',
             '  background:rgba(255,255,255,0.04);border:1px solid var(--glass-border,rgba(255,255,255,0.12));border-radius:var(--r-md,12px);}',
             '#' + MODAL_ID + ' .hp-name{flex:1;min-width:0;font-weight:700;color:var(--text-color,#e8edf2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
-            '#' + MODAL_ID + ' .hp-name small{display:block;font-weight:400;font-size:11.5px;color:var(--text-muted,#9aa1ac);}',
+            '#' + MODAL_ID + ' .hp-name small{display:block;font-weight:400;font-size:calc(11.5px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);}',
             '#' + MODAL_ID + ' .hp-show{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:var(--r-sm,8px);',
             '  border:1px solid var(--accent,#2f9e74);background:rgba(47,158,116,0.12);color:var(--accent,#2f9e74);',
             '  font:600 13px/1 var(--font-ui,system-ui),sans-serif;cursor:pointer;}',
             '#' + MODAL_ID + ' .hp-show svg{width:15px;height:15px;}',
-            '#' + MODAL_ID + ' .hp-empty{text-align:center;padding:18px 6px;color:var(--text-muted,#9aa1ac);font-size:14px;}'
+            '#' + MODAL_ID + ' .hp-empty{text-align:center;padding:18px 6px;color:var(--text-muted,#9aa1ac);font-size:calc(14px * var(--ag-font-scale, 1));}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
@@ -85,7 +85,7 @@
         ov.innerHTML =
             '<div class="modal-content">' +
             '<h3 style="color: var(--accent); margin-top:0;">' + ICON + ' Skryté body</h3>' +
-            '<p style="font-size:13px; margin-top:0; opacity:0.8;">Body skryté z AR a mapy tlačítkem „Skrýt tento bod". Klepnutím na Zobrazit bod vrátíš.</p>' +
+            '<p style="font-size:calc(13px * var(--ag-font-scale, 1)); margin-top:0; opacity:0.8;">Body skryté z AR a mapy tlačítkem „Skrýt tento bod". Klepnutím na Zobrazit bod vrátíš.</p>' +
             '<div class="modal-body" id="hp-list"></div>' +
             '<button class="btn btn-secondary" id="hp-restore-all" style="margin-top:12px;"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Zobrazit všechny skryté body</button>' +
             '<button class="btn btn-secondary" style="margin-top:10px;" id="hp-close">Zavřít</button>' +

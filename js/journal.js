@@ -148,11 +148,11 @@
                     var org = (r.origin && ORIG_CZ[r.origin]) || r.origin || '';
                     return '<div class="geo-data-row" style="align-items:flex-start;">'
                         + '<span class="geo-label" style="color:var(--text-color);"><b>' + (OP_CZ[r.op] || r.op) + '</b>' + (org ? ' · ' + org : '') + acc
-                        + (r.author ? '<br><span style="color:var(--text-muted);font-size:12px;font-weight:400;">' + r.author + '</span>' : '') + '</span>'
-                        + '<span class="geo-value" style="font-weight:400;font-size:12px;color:var(--text-muted);white-space:nowrap;">' + _fmt(r.ts) + '</span></div>';
+                        + (r.author ? '<br><span style="color:var(--text-muted);font-size:calc(12px * var(--ag-font-scale, 1));font-weight:400;">' + r.author + '</span>' : '') + '</span>'
+                        + '<span class="geo-value" style="font-weight:400;font-size:calc(12px * var(--ag-font-scale, 1));color:var(--text-muted);white-space:nowrap;">' + _fmt(r.ts) + '</span></div>';
                 }).join('');
             }
-            var html = '<div style="max-height:calc(var(--app-vh, 100dvh) * 0.6);overflow:auto;font-size:13.5px;">' + rows + '</div>';
+            var html = '<div style="max-height:calc(var(--app-vh, 100dvh) * 0.6);overflow:auto;font-size:calc(13.5px * var(--ag-font-scale, 1));">' + rows + '</div>';
             if (typeof window.agAlert === 'function') window.agAlert({ title: 'Historie bodu', message: html, cancelText: false });
             else agInfo('Historie bodu:\n' + recs.map(function (r) { return _fmt(r.ts) + ' ' + (OP_CZ[r.op] || r.op) + ' ' + (r.origin || ''); }).join('\n'));
         });

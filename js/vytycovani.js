@@ -59,9 +59,9 @@ function ensureStakeoutModal() {
             <h3 style="color:var(--accent); margin-top:0; margin-bottom:5px;"><svg class="icon"><use href="#i-check"/></svg> Vytyčovací checklist</h3>
             <div id="stk-progress-row" style="display:flex; align-items:center; gap:10px; margin:8px 0 4px;">
                 <div style="flex:1; height:9px; background:rgba(255,255,255,0.12); border-radius:99px; overflow:hidden;"><div id="stk-progress-bar" style="height:100%; width:0%; background:#10b981; border-radius:99px; transition:width 0.2s;"></div></div>
-                <b id="stk-progress-txt" style="font-family:var(--font-mono,monospace); font-size:13px; color:var(--accent); white-space:nowrap;">0 / 0</b>
+                <b id="stk-progress-txt" style="font-family:var(--font-mono,monospace); font-size:calc(13px * var(--ag-font-scale, 1)); color:var(--accent); white-space:nowrap;">0 / 0</b>
             </div>
-            <label class="filter-row" style="margin:6px 0 2px; font-size:13px;"><input type="checkbox" id="stk-only-custom" checked onchange="stakeoutOnlyCustom = this.checked; renderStakeoutList();"> Jen vlastní body (vytyčované)</label>
+            <label class="filter-row" style="margin:6px 0 2px; font-size:calc(13px * var(--ag-font-scale, 1));"><input type="checkbox" id="stk-only-custom" checked onchange="stakeoutOnlyCustom = this.checked; renderStakeoutList();"> Jen vlastní body (vytyčované)</label>
             <div class="modal-body" id="stakeout-list" style="margin-top:8px;"></div>
             <button class="btn btn-secondary" style="margin-top:10px;" onclick="exportStakeoutCSV()"><svg class="icon"><use href="#i-upload"/></svg> Export protokolu vytyčení (CSV)</button>
             <div class="row-buttons">
@@ -102,7 +102,7 @@ function renderStakeoutList() {
     const bar = document.getElementById('stk-progress-bar'); if (bar) bar.style.width = (cands.length ? Math.round(doneCount / cands.length * 100) : 0) + '%';
     const txt = document.getElementById('stk-progress-txt'); if (txt) txt.innerText = doneCount + ' / ' + cands.length;
     if (!cands.length) {
-        listDiv.innerHTML = '<p style="text-align:center; opacity:0.7; font-size:13px;">Žádné body k vytyčení.<br>Naimportujte nebo vložte vlastní body, případně vypněte filtr „Jen vlastní body".</p>';
+        listDiv.innerHTML = '<p style="text-align:center; opacity:0.7; font-size:calc(13px * var(--ag-font-scale, 1));">Žádné body k vytyčení.<br>Naimportujte nebo vložte vlastní body, případně vypněte filtr „Jen vlastní body".</p>';
         return;
     }
     cands.forEach(({ pt, d }) => {
@@ -122,7 +122,7 @@ function renderStakeoutList() {
         item.innerHTML = `
             <div class="stk-check ${done ? 'done' : ''}" role="button" aria-label="Odškrtnout">${done ? '✓' : ''}</div>
             <div style="flex:1; min-width:0; padding:0 10px;"><div class="cluster-item-title" style="${done ? 'text-decoration:line-through;' : ''}">#${_escHtml(pt.name)}</div>${detail}</div>
-            <div style="font-weight:600; font-size:13px; white-space:nowrap;">${sub}</div>`;
+            <div style="font-weight:600; font-size:calc(13px * var(--ag-font-scale, 1)); white-space:nowrap;">${sub}</div>`;
         item.style.display = 'flex'; item.style.alignItems = 'center';
         item.querySelector('.stk-check').addEventListener('click', (e) => { e.stopPropagation(); toggleStaked(pt); });
         if (done) item.addEventListener('click', () => openStakeRecord(pt));
@@ -149,7 +149,7 @@ function openStakeRecord(pt) {
         el.className = 'modal-overlay'; el.id = 'stake-detail-modal'; el.style.zIndex = '100002';
         el.innerHTML = `<div class="modal-content">
             <h3 style="color:#34d399; margin-top:0; margin-bottom:5px;"><svg class="icon"><use href="#i-check"/></svg> <span id="stkd-title">Bod</span></h3>
-            <div id="stkd-sub" style="font-size:13px; opacity:0.75; margin-bottom:8px;"></div>
+            <div id="stkd-sub" style="font-size:calc(13px * var(--ag-font-scale, 1)); opacity:0.75; margin-bottom:8px;"></div>
             <div class="modal-body" id="stkd-body"></div>
             <button class="btn btn-warning" style="margin-top:12px;" onclick="document.getElementById('stake-detail-modal').style.display='none'; document.getElementById('stakeout-modal').style.display='none'; highlightPoint(_stakeDetailPt);"><svg class="icon"><use href="#i-star"/></svg> Navigovat k bodu (kontrola)</button>
             <button class="btn btn-danger" onclick="toggleStaked(_stakeDetailPt); document.getElementById('stake-detail-modal').style.display='none';">Zrušit odškrtnutí</button>
@@ -196,7 +196,7 @@ function exportStakeoutCSV() {
     st.textContent = `
         .ar-marker.staked { opacity: 0.55 !important; filter: grayscale(0.5); }
         .ar-marker.staked .ar-marker-title::before { content: '✓ '; color: #34d399; }
-        .stk-check { flex: 0 0 30px; width: 30px; height: 30px; border-radius: 9px; border: 2px solid rgba(255,255,255,0.35); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; color: #04110b; cursor: pointer; }
+        .stk-check { flex: 0 0 30px; width: 30px; height: 30px; border-radius: 9px; border: 2px solid rgba(255,255,255,0.35); display: flex; align-items: center; justify-content: center; font-size: calc(18px * var(--ag-font-scale, 1)); font-weight: 800; color: #04110b; cursor: pointer; }
         .stk-check.done { background: #10b981; border-color: #10b981; }
     `;
     document.head.appendChild(st);

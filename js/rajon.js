@@ -129,14 +129,14 @@
         el.innerHTML =
             '<div class="modal-content" style="display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Rajón — nový bod ze směru a délky</h3>'
-            + '<p style="font-size:12.5px;opacity:.82;margin:2px 0 10px;line-height:1.45;">Stoj na <b>známém bodě</b>, měj druhý známý bod na <b>orientaci</b>. '
+            + '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.82;margin:2px 0 10px;line-height:1.45;">Stoj na <b>známém bodě</b>, měj druhý známý bod na <b>orientaci</b>. '
             + 'Zaměříš křížem kamery orientaci, pak cíl, a zadáš <b>vodorovnou délku</b> na cíl → appka spočítá jeho souřadnice. '
             + 'Rozdíl směrů ruší chybu kompasu, GPS do výpočtu nevstupuje.</p>'
             + '<label class="agrj-fld"><span>stojím na (stanovisko)</span><select id="agrj-st"></select></label>'
             + '<label class="agrj-fld"><span>orientace — zaměřím známý bod</span><select id="agrj-or"></select></label>'
             + '<label class="agrj-fld"><span>vodorovná délka na cíl (m) — pásmo / dálkoměr</span><input type="number" id="agrj-dist" inputmode="decimal" step="0.01" min="0" placeholder="např. 24.35"></label>'
             + '<label class="agrj-fld"><span>název nového bodu</span><input type="text" id="agrj-name" placeholder="např. R1" maxlength="24"></label>'
-            + '<div id="agrj-warn" style="font-size:12px;color:#fbbf24;margin:4px 2px;"></div>'
+            + '<div id="agrj-warn" style="font-size:calc(12px * var(--ag-font-scale, 1));color:#fbbf24;margin:4px 2px;"></div>'
             + '<button class="btn" id="agrj-start"><svg class="icon"><use href="#i-crosshair"/></svg> Spustit zaměřování</button>'
             + '<div id="agrj-result" class="agrj-result" style="display:none;"></div>'
             + '<div id="agrj-actions" style="display:none;">'
@@ -241,11 +241,11 @@
         crossSvg.forEach(function (n) { if (n.getAttribute('fill') === '#34d399' || n.getAttribute('fill') === '#fbbf24') n.setAttribute('fill', isTarget ? '#fbbf24' : '#34d399'); if (n.getAttribute('stroke')) n.setAttribute('stroke', isTarget ? '#fbbf24' : '#34d399'); });
         if (isTarget) {
             if (bar) bar.innerHTML = 'Stoj na <b>#' + (S ? S.name : '?') + '</b> · zaměř <b style="color:#fbbf24">CÍL</b>'
-                + (_targetName ? ' (' + _targetName + ')' : '') + '<br><span style="opacity:.75;font-size:12px">délka na cíl: ' + (_dist > 0 ? _dist.toFixed(2) + ' m' : '—') + '</span>';
+                + (_targetName ? ' (' + _targetName + ')' : '') + '<br><span style="opacity:.75;font-size:calc(12px * var(--ag-font-scale, 1))">délka na cíl: ' + (_dist > 0 ? _dist.toFixed(2) + ' m' : '—') + '</span>';
         } else {
             var dTxt = (O && S) ? ' · ' + dist2(S, O).toFixed(0) + ' m' : '';
             if (bar) bar.innerHTML = 'Stoj na <b>#' + (S ? S.name : '?') + '</b> · zaměř známý <b>#' + (O ? O.name : '?') + '</b>' + dTxt
-                + '<br><span style="opacity:.75;font-size:12px">orientace — srovná směr</span>';
+                + '<br><span style="opacity:.75;font-size:calc(12px * var(--ag-font-scale, 1))">orientace — srovná směr</span>';
         }
         if (stepEl) stepEl.innerHTML = 'krok ' + (_capIdx + 1) + ' z 2';
         if (shot) { shot.disabled = false; shot.innerText = isTarget ? 'Zaměřit cíl' : 'Zaměřit #' + (O ? O.name : ''); }
@@ -305,17 +305,17 @@
         // orientace blízko stanoviska = citlivé na zaměření (krátká orientační základna)
         var oCol = r.distSO < 5 ? '#f87171' : (r.distSO < 15 ? '#fbbf24' : '#34d399');
         var html = '<div class="agrj-big">Nový bod ' + (_targetName ? '<b>' + _targetName + '</b> ' : '') + 'spočítán</div>'
-            + '<div style="margin:6px 0;font-family:var(--font-mono,monospace);font-size:13px;">'
+            + '<div style="margin:6px 0;font-family:var(--font-mono,monospace);font-size:calc(13px * var(--ag-font-scale, 1));">'
             + 'S-JTSK:&nbsp; <b>Y</b> ' + (r.Y != null ? r.Y.toFixed(2) : '—') + ' &nbsp; <b>X</b> ' + (r.X != null ? r.X.toFixed(2) : '—') + '</div>'
-            + '<div style="font-size:12.5px;opacity:.9;line-height:1.5;">'
+            + '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.9;line-height:1.5;">'
             + 'Stanovisko: <b>#' + r.sName + '</b>' + (r.gpsStation ? ' <span style="color:#fbbf24">(GPS — poloha bodu jen tak přesná jako GPS)</span>' : '') + '<br>'
             + 'Orientace: <b>#' + r.oName + '</b> <span style="opacity:.7">(vzdálenost ' + '<b style="color:' + oCol + '">' + r.distSO.toFixed(1) + ' m</b>)</span><br>'
             + 'Směrník na cíl: <b>' + r.theta.toFixed(2) + '°</b> · délka <b>' + r.dist.toFixed(2) + ' m</b>'
             + (_capSpread != null ? '<br>Rozptyl zaměření cíle: <b>±' + _capSpread.toFixed(1) + '°</b>' : '')
             + '</div>';
         var warn = '';
-        if (r.distSO < 5) warn += '<div style="color:#f87171;font-size:12px;margin-top:6px;">⚠ Orientace je velmi blízko stanoviska (' + r.distSO.toFixed(1) + ' m) — malá nepřesnost zaměření orientace se výrazně promítne do směru. Zvol vzdálenější orientační bod.</div>';
-        else if (r.distSO < 15) warn += '<div style="color:#fbbf24;font-size:12px;margin-top:6px;">Orientace je blízko — pro přesnější směr použij vzdálenější orientační bod.</div>';
+        if (r.distSO < 5) warn += '<div style="color:#f87171;font-size:calc(12px * var(--ag-font-scale, 1));margin-top:6px;">⚠ Orientace je velmi blízko stanoviska (' + r.distSO.toFixed(1) + ' m) — malá nepřesnost zaměření orientace se výrazně promítne do směru. Zvol vzdálenější orientační bod.</div>';
+        else if (r.distSO < 15) warn += '<div style="color:#fbbf24;font-size:calc(12px * var(--ag-font-scale, 1));margin-top:6px;">Orientace je blízko — pro přesnější směr použij vzdálenější orientační bod.</div>';
         box.innerHTML = html + warn;
         box.style.display = 'block';
         if (acts) acts.style.display = 'block';
@@ -361,11 +361,11 @@
         var st = document.createElement('style'); st.id = 'agrj-style';
         st.textContent = [
             '#agrj-modal .agrj-fld{display:block;margin:8px 0;}',
-            '#agrj-modal .agrj-fld>span{display:block;font-size:12px;opacity:.75;margin-bottom:3px;}',
+            '#agrj-modal .agrj-fld>span{display:block;font-size:calc(12px * var(--ag-font-scale, 1));opacity:.75;margin-bottom:3px;}',
             '#agrj-modal .agrj-fld select,#agrj-modal .agrj-fld input{width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);color:var(--text-color,#e8edf2);font:600 14px/1.1 var(--font-ui,system-ui),sans-serif;}',
             '#agrj-modal .agrj-result{margin:12px 0;padding:12px 14px;border-radius:10px;background:rgba(47,158,116,0.12);}',
-            '#agrj-modal .agrj-big{font-size:15px;margin-bottom:2px;}',
+            '#agrj-modal .agrj-big{font-size:calc(15px * var(--ag-font-scale, 1));margin-bottom:2px;}',
             'body.agrj-clean #ar-overlay{opacity:0!important;pointer-events:none!important;}',
             'body.agrj-clean #ar-hud{display:none!important;}',
             'body.agrj-clean #camera-container{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;',

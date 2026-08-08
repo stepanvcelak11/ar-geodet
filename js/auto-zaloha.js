@@ -73,7 +73,7 @@
             'background:rgba(20,22,28,0.96)', 'color:#fff',
             'border:1px solid rgba(255,255,255,0.14)',
             'box-shadow:0 8px 26px rgba(0,0,0,0.45)',
-            'font-size:13px', 'line-height:1.25', 'pointer-events:auto'
+            'font-size:calc(13px * var(--ag-font-scale, 1))', 'line-height:1.25', 'pointer-events:auto'
         ].join(';');
         _bar.innerHTML =
             '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" style="flex:0 0 auto;color:#fbbf24">'
@@ -81,8 +81,8 @@
             + '<rect x="11" y="9" width="2" height="6" rx="1" fill="#1a1205"></rect>'
             + '<rect x="11" y="17" width="2" height="2" rx="1" fill="#1a1205"></rect></svg>'
             + '<span id="ag-backup-txt" style="flex:1 1 auto"></span>'
-            + '<button id="ag-backup-now" type="button" style="flex:0 0 auto;border:0;background:#22c55e;color:#04120a;font-weight:700;font-size:12px;padding:8px 11px;border-radius:10px;cursor:pointer">Zálohovat</button>'
-            + '<button id="ag-backup-later" type="button" aria-label="Později" style="flex:0 0 auto;border:1px solid rgba(255,255,255,0.25);background:transparent;color:#cbd5e1;font-size:12px;padding:8px 10px;border-radius:10px;cursor:pointer">Později</button>';
+            + '<button id="ag-backup-now" type="button" style="flex:0 0 auto;border:0;background:#22c55e;color:#04120a;font-weight:700;font-size:calc(12px * var(--ag-font-scale, 1));padding:8px 11px;border-radius:10px;cursor:pointer">Zálohovat</button>'
+            + '<button id="ag-backup-later" type="button" aria-label="Později" style="flex:0 0 auto;border:1px solid rgba(255,255,255,0.25);background:transparent;color:#cbd5e1;font-size:calc(12px * var(--ag-font-scale, 1));padding:8px 10px;border-radius:10px;cursor:pointer">Později</button>';
         document.body.appendChild(_bar);
         _bar.querySelector('#ag-backup-now').addEventListener('click', function () { window.agBackupNow(); });
         _bar.querySelector('#ag-backup-later').addEventListener('click', function () { setTs(SNOOZE_KEY, now() + SNOOZE_MS); hideBar(); });

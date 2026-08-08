@@ -187,19 +187,19 @@
             '#ag-pm-ov{position:fixed;inset:0;z-index:1000040;display:none;flex-direction:column;background:var(--bg-color,#0f1216);color:var(--text-color,#eceef2);}',
             '#ag-pm-ov.open{display:flex;}',
             '#ag-pm-head{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 12px;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.12));}',
-            '#ag-pm-head h2{margin:0;font-size:17px;flex:1;color:var(--accent,#2f9e74);}',
+            '#ag-pm-head h2{margin:0;font-size:calc(17px * var(--ag-font-scale, 1));flex:1;color:var(--accent,#2f9e74);}',
             '#ag-pm-head button{border:1px solid var(--glass-border,rgba(255,255,255,0.16));background:transparent;color:inherit;border-radius:99px;padding:8px 14px;font-weight:600;cursor:pointer;}',
             '#ag-pm-body{flex:1 1 auto;overflow:auto;padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 20px);-webkit-overflow-scrolling:touch;}',
             '.ag-pm-item{display:block;width:100%;text-align:left;margin-bottom:10px;padding:14px;border-radius:14px;border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:rgba(255,255,255,0.04);color:inherit;cursor:pointer;}',
-            '.ag-pm-item b{display:block;font-size:15px;color:var(--accent,#2f9e74);margin-bottom:4px;}',
-            '.ag-pm-item span{font-size:12.5px;line-height:1.45;color:var(--text-muted,#9aa1ac);}',
+            '.ag-pm-item b{display:block;font-size:calc(15px * var(--ag-font-scale, 1));color:var(--accent,#2f9e74);margin-bottom:4px;}',
+            '.ag-pm-item span{font-size:calc(12.5px * var(--ag-font-scale, 1));line-height:1.45;color:var(--text-muted,#9aa1ac);}',
             '.ag-pm-sec{margin:16px 2px 6px;font:700 11px/1 var(--font-display,system-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
-            '.ag-pm-step{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;margin-bottom:8px;border-radius:12px;border:1px solid var(--glass-border,rgba(255,255,255,0.1));background:rgba(255,255,255,0.03);font-size:13.5px;line-height:1.5;cursor:pointer;}',
+            '.ag-pm-step{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;margin-bottom:8px;border-radius:12px;border:1px solid var(--glass-border,rgba(255,255,255,0.1));background:rgba(255,255,255,0.03);font-size:calc(13.5px * var(--ag-font-scale, 1));line-height:1.5;cursor:pointer;}',
             '.ag-pm-step input{margin-top:2px;flex:0 0 auto;width:18px;height:18px;accent-color:var(--accent,#2f9e74);}',
             '.ag-pm-step.done{opacity:0.55;text-decoration:line-through;}',
-            '.ag-pm-lim{padding:10px 12px;margin-bottom:8px;border-left:3px solid var(--warning,#fbbf24);border-radius:8px;background:rgba(251,191,36,0.08);font-size:13px;line-height:1.5;}',
-            '.ag-pm-note{padding:10px 12px;border-left:3px solid var(--accent,#2f9e74);border-radius:8px;background:var(--accent-soft,rgba(47,158,116,0.08));font-size:13px;line-height:1.5;}',
-            '.ag-pm-foot{margin-top:16px;font-size:11.5px;line-height:1.5;color:var(--text-muted,#9aa1ac);}',
+            '.ag-pm-lim{padding:10px 12px;margin-bottom:8px;border-left:3px solid var(--warning,#fbbf24);border-radius:8px;background:rgba(251,191,36,0.08);font-size:calc(13px * var(--ag-font-scale, 1));line-height:1.5;}',
+            '.ag-pm-note{padding:10px 12px;border-left:3px solid var(--accent,#2f9e74);border-radius:8px;background:var(--accent-soft,rgba(47,158,116,0.08));font-size:calc(13px * var(--ag-font-scale, 1));line-height:1.5;}',
+            '.ag-pm-foot{margin-top:16px;font-size:calc(11.5px * var(--ag-font-scale, 1));line-height:1.5;color:var(--text-muted,#9aa1ac);}',
             'body.outdoor-mode #ag-pm-ov{background:#000;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
@@ -228,7 +228,7 @@
         ov.querySelector('#ag-pm-title').textContent = 'Postupy měření';
         ov.querySelector('#ag-pm-back').textContent = 'Zavřít';
         var b = ov.querySelector('#ag-pm-body');
-        var h = '<p style="font-size:12.5px;color:var(--text-muted,#9aa1ac);line-height:1.5;margin:2px 2px 12px;">Krok za krokem podle oficiálních postupů (Návod pro obnovu KO, katastrální vyhláška, vyhláška o zeměměřictví). Klepni na metodu.</p>';
+        var h = '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);line-height:1.5;margin:2px 2px 12px;">Krok za krokem podle oficiálních postupů (Návod pro obnovu KO, katastrální vyhláška, vyhláška o zeměměřictví). Klepni na metodu.</p>';
         POSTUPY.forEach(function (p) {
             h += '<button type="button" class="ag-pm-item" data-id="' + p.id + '"><b>' + esc(p.t) + '</b><span>' + esc(p.kdy) + '</span></button>';
         });
@@ -248,7 +248,7 @@
         ov.querySelector('#ag-pm-title').textContent = p.t;
         ov.querySelector('#ag-pm-back').textContent = '‹ Zpět';
         var b = ov.querySelector('#ag-pm-body');
-        var h = '<p style="font-size:13px;line-height:1.55;color:var(--text-muted,#9aa1ac);margin:2px 2px 8px;">' + esc(p.kdy) + '</p>';
+        var h = '<p style="font-size:calc(13px * var(--ag-font-scale, 1));line-height:1.55;color:var(--text-muted,#9aa1ac);margin:2px 2px 8px;">' + esc(p.kdy) + '</p>';
         h += '<div class="ag-pm-sec">Postup (odškrtávej)</div>';
         p.kroky.forEach(function (k, i) {
             h += '<label class="ag-pm-step"><input type="checkbox" data-step="' + i + '"><span>' + esc(k) + '</span></label>';

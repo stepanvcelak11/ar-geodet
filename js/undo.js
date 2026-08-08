@@ -66,11 +66,11 @@
                 + 'font-family:var(--font-display,sans-serif); '
                 + 'box-shadow:0 8px 26px rgba(0,0,0,0.55); border:1px solid var(--glass-border,rgba(255,255,255,0.12));';
             const label = document.createElement('span'); label.id = 'undo-toast-label';
-            label.style.cssText = 'font-size:14px; line-height:1.25;';   // driv nowrap — hlasky hromadnych operaci se nevesly
+            label.style.cssText = 'font-size:calc(14px * var(--ag-font-scale, 1)); line-height:1.25;';   // nowrap zrusen: hlasky hromadnych operaci se nevesly
             const btn = document.createElement('button'); btn.id = 'undo-toast-btn';
             btn.textContent = 'Vrátit zpět';
             btn.style.cssText = 'flex:none; padding:8px 16px; border:none; border-radius:9px; cursor:pointer; '
-                + 'background:var(--accent,#2f9e74); color:#0b1020; font-weight:700; font-size:13px; line-height:1; white-space:nowrap;';
+                + 'background:var(--accent,#2f9e74); color:#0b1020; font-weight:700; font-size:calc(13px * var(--ag-font-scale, 1)); line-height:1; white-space:nowrap;';
             toast.appendChild(label); toast.appendChild(btn);
             document.body.appendChild(toast);
         }

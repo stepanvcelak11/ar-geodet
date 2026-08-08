@@ -224,7 +224,7 @@ if ('serviceWorker' in navigator) {
         let smoothedHeading = null, gpsCourse = null, gpsSpeed = 0, headingCorrection = 0, userHeadingOffset = 0;
         function quickToast(msg) {
             let t = document.getElementById('quick-toast');
-            if (!t) { t = document.createElement('div'); t.id = 'quick-toast'; t.style.cssText = 'position:fixed; left:50%; top:calc(env(safe-area-inset-top,0px) + 70px); transform:translateX(-50%); z-index:1000002; background:rgba(20,24,30,0.92); color:#fff; padding:10px 16px; border-radius:10px; font-size:14px; border:1px solid rgba(255,255,255,0.15); pointer-events:none; transition:opacity 0.3s; max-width:80vw; text-align:center;'; document.body.appendChild(t); }
+            if (!t) { t = document.createElement('div'); t.id = 'quick-toast'; t.style.cssText = 'position:fixed; left:50%; top:calc(env(safe-area-inset-top,0px) + 70px); transform:translateX(-50%); z-index:1000002; background:rgba(20,24,30,0.92); color:#fff; padding:10px 16px; border-radius:10px; font-size:calc(14px * var(--ag-font-scale, 1)); border:1px solid rgba(255,255,255,0.15); pointer-events:none; transition:opacity 0.3s; max-width:80vw; text-align:center;'; document.body.appendChild(t); }
             t.innerText = msg; t.style.opacity = '1'; clearTimeout(t._timer);
             t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2600);
         }
@@ -290,7 +290,7 @@ if ('serviceWorker' in navigator) {
         let connectMode = false, areaMode = false;
         let filters = { tb: true, zhb: true, pbpp: true, nivel: true, custom: true };
 
-        let visSettings = { maxARPoints: 20, arVerticalOffset: 0, markerScale: 1.0, markerOpacity: 100, colTb: '#8b5cf6', colZhb: '#0ea5e9', colPbpp: '#3b82f6', colNivel: '#ef4444', colCustom: '#34d399', arrowScale: 1.0, arrowOpacity: 90, arrowShape: '1', colArrow: '#34d399', panelOpacity: 85, menuScale: 1.0, hudTop: 55, hudSide: 15, wakeLockEnabled: true, vibrationEnabled: true, outdoorMode: false, leftHand: false, anim: 'auto', dockArc: 13, katastrSource: 'mapycz', baseLayer: 'osm', showKatastr: false, headingSmoothing: 75, autoCompassCorrection: false, tiltCompensation: true, fovH: 90, fovV: 75, eyeHeight: 1.6 };
+        let visSettings = { maxARPoints: 20, arVerticalOffset: 0, markerScale: 1.0, markerOpacity: 100, colTb: '#8b5cf6', colZhb: '#0ea5e9', colPbpp: '#3b82f6', colNivel: '#ef4444', colCustom: '#34d399', arrowScale: 1.0, arrowOpacity: 90, arrowShape: '1', colArrow: '#34d399', panelOpacity: 85, menuScale: 1.0, fontScale: 1.0, hudTop: 55, hudSide: 15, wakeLockEnabled: true, vibrationEnabled: true, outdoorMode: false, autoOutdoor: true, leftHand: false, anim: 'auto', dockArc: 13, katastrSource: 'mapycz', baseLayer: 'osm', showKatastr: false, headingSmoothing: 75, autoCompassCorrection: false, tiltCompensation: true, fovH: 90, fovV: 75, eyeHeight: 1.6 };
         
         // Stazene uredni body ziji jen v pameti (initFetch je pridava, neubira) -> pred prepnutim
         // zakazky je ulozime, at se neztrati. Jen kdyz nejake jsou (neprepiseme ulozena data prazdnem).
@@ -628,18 +628,38 @@ if ('serviceWorker' in navigator) {
         // snapshotem před/po a async dialog by mu rozbil detekci změny (žádný toast Vrátit zpět).
         // skipConfirm: hromadne mazani z panelu Body uz ma JEDNO spolecne potvrzeni — bez nej
         // by 30 vybranych bodu znamenalo 30 confirm dialogu. Kos/undo obaluji tuto funkci dal.
-        function deleteCustomPoint(id, skipConfirm) {
+        // batch (3. argument): pri hromadnem mazani se persist ani prekresleni NEDELA
+        // po kazdem bodu — volajici to udela JEDNOU na konci pres flushPointsAfterBulk().
+        // Driv kazde jedno smazani znovu serializovalo cele pole bodu i spojnic a
+        // zapisovalo je do IndexedDB, takze 500 vybranych bodu = 500 zapisu po ~100 kB.
+        function persistCustomPoints() { setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); }
+        function flushPointsAfterBulk() { persistCustomPoints(); saveLines(); updateInfoPanel(); }
+        function deleteCustomPoint(id, skipConfirm, batch) {
             const _pt = persistentCustomPoints.find(p => p.id === id);
-            // POTVRZENÍ: in-app dialog místo nativního confirm() (ten na iOS mrazí kamerový
-            // stream v AR). Dialog je ASYNCHRONNÍ, takže po potvrzení voláme funkci ZNOVU
-            // přes window.deleteCustomPoint — a ne přímo. Je totiž obalená v js/undo.js,
-            // které kolem volání dělá snapshot úložiště kvůli „Vrátit zpět". Přímé volání
-            // by mazalo mimo ten snapshot a undo toast by se nikdy neukázal.
+            // POTVRZENI: in-app dialog misto nativniho confirm() (ten na iOS mrazi kamerovy
+            // stream v AR a na Androidu vyhodi stranku z fullscreenu). Dialog je
+            // ASYNCHRONNI, takze po potvrzeni volame funkci ZNOVU pres
+            // window.deleteCustomPoint — a ne primo. Je totiz obalena v js/undo.js,
+            // js/kos.js i js/journal.js, ktere kolem volani porovnavaji stav (undo toast,
+            // kos, zurnal). Prime volani by mazalo mimo ne a "Vratit zpet" by se
+            // nikdy neukazalo.
+            // Hromadne mazani chodi vzdy se skipConfirm=true (panel Body ma jedno
+            // spolecne potvrzeni), takze se tady u davky nikdy neptame.
             if (!skipConfirm) {
                 agAsk('Smazat bod „' + ((_pt && _pt.name) || 'bez názvu') + '"?', { title: 'Smazat bod', okText: 'Smazat', danger: true })
-                    .then(ok => { if (ok) window.deleteCustomPoint(id, true); });
+                    .then(ok => { if (ok) window.deleteCustomPoint(id, true, batch); });
                 return;
-            } persistentCustomPoints = persistentCustomPoints.filter(p => p.id !== id); setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); pointLines = pointLines.filter(l => l.aId !== id && l.bId !== id); saveLines(); renderManageList(); drawAllMarkersOnMap(); const idx = arPoints.findIndex(p => p.id === id); if(idx !== -1) { if(arPoints[idx].element) arPoints[idx].element.remove(); arPoints.splice(idx, 1); } updateInfoPanel(); }
+            }
+            persistentCustomPoints = persistentCustomPoints.filter(p => p.id !== id);
+            pointLines = pointLines.filter(l => l.aId !== id && l.bId !== id);
+            // arPoints uklidit JESTE PRED prekreslenim mapy: driv se drawAllMarkersOnMap()
+            // volalo, kdyz byl mazany bod v arPoints porad — jeho znacka se tedy znovu
+            // vykreslila a z mapy zmizela az pri nejakem dalsim prekresleni.
+            const idx = arPoints.findIndex(p => p.id === id);
+            if (idx !== -1) { if (arPoints[idx].element) arPoints[idx].element.remove(); arPoints.splice(idx, 1); }
+            if (batch) return;
+            persistCustomPoints(); saveLines(); renderManageList(); drawAllMarkersOnMap(); updateInfoPanel();
+        }
         // Vyplnit Y/X z PRUMEROVANE GPS polohy (presnejsi nez jeden odecet) + ulozit dosazenou presnost
         function fillAveragedGPS() {
             // BRANA CERSTVOSTI: kdyz GPS prestala dodavat fixy (tunel, suspend), prumer je
@@ -696,6 +716,40 @@ if ('serviceWorker' in navigator) {
                 quickToast('Bod uložen — je ' + Math.round(pt.currentDist) + ' m daleko, v AR se ukáže do ' + Math.round(arRadius) + ' m. Přibliž se, zvětši viditelnost v Nastavení → AR, nebo bod zvýrazni pro navigaci.'); _saveToastShown = true;
             }
         }
+        // ===== HLIDANI DUPLICIT PRI UKLADANI NOVEHO BODU ==========================
+        // QC inspektor resi PRESNOST, ne preklepy. Bod ulozeny 3 cm od uz existujiciho
+        // (dvojity tap na Ulozit, druhe zamereni tehoz rohu) i druhy bod se stejnym
+        // cislem dosud prosly uplne tise a nasly se az v kancelari nad exportem.
+        const _DUP_DIST = 0.15;   // m — pod tim uz clovek stoji na tomtez miste
+        function _dupWarning(name, lat, lng) {
+            let near = null, nd = Infinity;
+            const nameKey = String(name).trim().toLowerCase();
+            let sameName = null;
+            for (let i = 0; i < persistentCustomPoints.length; i++) {
+                const p = persistentCustomPoints[i];
+                if (p.lat != null && p.lng != null) {
+                    const d = getDistance(lat, lng, p.lat, p.lng);
+                    if (d < nd) { nd = d; near = p; }
+                }
+                if (!sameName && String(p.name).trim().toLowerCase() === nameKey) sameName = p;
+            }
+            const tooClose = (near && nd < _DUP_DIST) ? near : null;
+            if (!tooClose && !sameName) return null;
+            const dTxt = nd < 1 ? (Math.round(nd * 100) + ' cm') : (nd.toFixed(2) + ' m');
+            let msg = '';
+            if (tooClose) {
+                msg += 'Jen <b>' + dTxt + '</b> odsud už leží bod <b>„' + _escHtml(tooClose.name) + '"</b>.';
+                if (sameName && sameName.id === tooClose.id) msg += ' Vypadá to, že se ukládá dvakrát totéž.';
+                else msg += ' Nechceš spíš upravit ten stávající?';
+            }
+            if (sameName && (!tooClose || sameName.id !== tooClose.id)) {
+                if (msg) msg += '<br><br>';
+                msg += 'Bod s názvem <b>„' + _escHtml(name) + '"</b> v zakázce už je. Dva body se stejným číslem se v exportu ani v CAD nerozliší.';
+            }
+            return { title: tooClose ? 'Bod skoro na stejném místě' : 'Název už je použitý', message: msg };
+        }
+        let _dupAckOnce = false;   // po potvrzeni "Uložit i tak" se saveCustomPoint zavola znovu
+
         function saveCustomPoint(keepOpen) {
             let name = String(document.getElementById('custom-name').value || '').trim();
             if (!name) name = agNextSerieName() || "Bod";   // prazdne pole: dalsi cislo serie misto kolidujiciho "Bod"
@@ -720,6 +774,25 @@ if ('serviceWorker' in navigator) {
                     if (_lc && isFinite(_lc[0]) && isFinite(_lc[1])) { lat = _lc[0]; lng = _lc[1]; if (vyska != null && window.AGLocalize.applyZ) vyska = window.AGLocalize.applyZ(lat, lng, vyska); }
                 }
             } catch (e) {}
+            // Kontrola az TEDY: souradnice uz jsou po pripadne Helmertove lokalizaci,
+            // takze merime vzdalenost k tomu, co se opravdu ulozi. Formular zustava
+            // otevreny, takze po potvrzeni staci zavolat funkci znovu — vsechny vstupy
+            // se precmou stejne (prevod je deterministicky).
+            if (!editingCustomPointId && !_dupAckOnce) {
+                const _w = _dupWarning(name, lat, lng);
+                if (_w) {
+                    // agConfirm bere HTML; agAsk by <b> vyeskapoval na doslovny text
+                    const _q = window.agConfirm
+                        ? agConfirm({ title: _w.title, message: _w.message, okText: 'Uložit i tak' })
+                        : agAsk(_w.message.replace(/<[^>]*>/g, ''), { title: _w.title, okText: 'Uložit i tak' });
+                    _q.then(ok => {
+                        if (!ok) return;
+                        _dupAckOnce = true;
+                        try { saveCustomPoint(keepOpen); } finally { _dupAckOnce = false; }
+                    });
+                    return;
+                }
+            }
             let savedId = editingCustomPointId;
             _saveToastShown = false;
             if (editingCustomPointId) { const idx = persistentCustomPoints.findIndex(p => p.id === editingCustomPointId); if(idx !== -1) { persistentCustomPoints[idx].name = name; persistentCustomPoints[idx].lat = lat; persistentCustomPoints[idx].lng = lng; persistentCustomPoints[idx].vyska = vyska; persistentCustomPoints[idx].kod = kod || undefined; } const arIdx = arPoints.findIndex(p => p.id === editingCustomPointId); if (arIdx !== -1) { arPoints[arIdx].name = name; arPoints[arIdx].lat = lat; arPoints[arIdx].lng = lng; arPoints[arIdx].vyska = vyska; arPoints[arIdx].kod = kod || undefined; if(arPoints[arIdx].element) { arPoints[arIdx].element.remove(); arPoints[arIdx].element = null; } } } else { const newPoint = { id: 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6), name: name, lat: lat, lng: lng, cat: "CUSTOM", type: "custom" }; if (vyska != null) newPoint.vyska = vyska; if (kod) newPoint.kod = kod; if (pendingPointAccuracy != null) newPoint.acc = Math.round(pendingPointAccuracy * 100) / 100; newPoint.prov = { origin: (window._agPointOrigin || 'ruc'), ts: Date.now(), acc: (newPoint.acc != null ? newPoint.acc : null), qc: ((window.AGQc && AGQc.lastCode) || null) }; persistentCustomPoints.push(newPoint); const _arNew = {...newPoint, hidden: false}; arPoints.push(_arNew); savedId = newPoint.id; try { ensureFreshPointVisible(_arNew); } catch (e) {} try { if (window.AGJournal) window.AGJournal.commit({ op: 'add', id: newPoint.id, after: newPoint, origin: newPoint.prov.origin }); } catch (e) {} } pendingPointAccuracy = null; window._agPointOrigin = null; setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
@@ -837,10 +910,10 @@ if ('serviceWorker' in navigator) {
                 if (!document.getElementById('agpose-badge-css')) {
                     var st = document.createElement('style'); st.id = 'agpose-badge-css';
                     st.textContent = '#agpose-badge{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 54px);z-index:640;display:none;align-items:center;gap:7px;'
-                        + 'background:rgba(16,32,22,.82);color:#d7ffe6;border:1px solid rgba(52,211,153,.5);border-radius:99px;padding:5px 6px 5px 12px;font-size:12.5px;font-weight:600;'
+                        + 'background:rgba(16,32,22,.82);color:#d7ffe6;border:1px solid rgba(52,211,153,.5);border-radius:99px;padding:5px 6px 5px 12px;font-size:calc(12.5px * var(--ag-font-scale, 1));font-weight:600;'
                         + 'backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 4px 16px rgba(0,0,0,.35);pointer-events:auto;}'
                         + '#agpose-badge .dot{width:8px;height:8px;border-radius:50%;background:#34d399;box-shadow:0 0 8px #34d399;animation:agposePulse 1.8s ease-in-out infinite;}'
-                        + '#agpose-badge button{border:none;background:rgba(255,255,255,.14);color:#fff;border-radius:99px;padding:3px 9px;font-size:11.5px;cursor:pointer;font-weight:600;}'
+                        + '#agpose-badge button{border:none;background:rgba(255,255,255,.14);color:#fff;border-radius:99px;padding:3px 9px;font-size:calc(11.5px * var(--ag-font-scale, 1));cursor:pointer;font-weight:600;}'
                         + '@keyframes agposePulse{0%,100%{opacity:1}50%{opacity:.35}}'
                         + 'body.left-hand #agpose-badge{}';
                     (document.head || document.documentElement).appendChild(st);

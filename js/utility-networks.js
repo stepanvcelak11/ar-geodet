@@ -514,17 +514,17 @@
         el.innerHTML =
             '<div class="modal-content" style="display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Podzemní sítě — rentgen do země</h3>'
-            + '<p style="font-size:12.5px;opacity:.82;margin:2px 0 10px;line-height:1.45;">Naimportuj trasy sítí (DXF / GeoJSON / GML) a appka je promítne '
+            + '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.82;margin:2px 0 10px;line-height:1.45;">Naimportuj trasy sítí (DXF / GeoJSON / GML) a appka je promítne '
             + '<b>pod terén</b> v AR kameře, barevně dle ČSN. Když stojíš blízko, upozorní na <b>ochranné pásmo</b>. '
             + '<b style="color:#fbbf24">Orientační pomůcka</b> (poloha telefonu ±3–7 m) — nenahrazuje geodetické vytyčení, nekopat naslepo.</p>'
 
-            + '<div class="agun-srs"><span style="font-size:12px;opacity:.75;">Souřadnice v souboru:</span>'
+            + '<div class="agun-srs"><span style="font-size:calc(12px * var(--ag-font-scale, 1));opacity:.75;">Souřadnice v souboru:</span>'
             + '  <label class="agun-radio"><input type="radio" name="agun-srs" value="sjtsk" checked> S-JTSK (5514)</label>'
             + '  <label class="agun-radio"><input type="radio" name="agun-srs" value="wgs"> WGS84</label></div>'
 
             + '<button class="btn btn-blue" id="agun-imp"><svg class="icon"><use href="#i-folder"/></svg> Načíst trasy (DXF / GeoJSON / GML)</button>'
             + '<input type="file" id="agun-imp-file" accept=".dxf,.json,.geojson,.gml,.xml" style="display:none">'
-            + '<div id="agun-status" style="font-size:12.5px;color:#fbbf24;margin:6px 2px;"></div>'
+            + '<div id="agun-status" style="font-size:calc(12.5px * var(--ag-font-scale, 1));color:#fbbf24;margin:6px 2px;"></div>'
 
             + '<div id="agun-list" class="agun-list"></div>'
 
@@ -532,7 +532,7 @@
             + '<label class="agun-sw"><input type="checkbox" id="agun-warn" checked> Varovat na ochranné pásmo</label>'
 
             + '<button class="btn btn-danger" id="agun-clear" style="margin-top:12px;"><svg class="icon"><use href="#i-trash"/></svg> Vymazat všechny sítě zakázky</button>'
-            + '<p style="font-size:11px;opacity:.6;margin:10px 2px 0;">Hloubka se čte ze Z vrcholu nebo z názvu vrstvy (např. „PLYN_STL_-1.2"). Svislé umístění závisí na výškopisu (DMR 5G) a přesnosti GPS/kompasu — jde o orientaci, ne vytyčení. Vše offline.</p>'
+            + '<p style="font-size:calc(11px * var(--ag-font-scale, 1));opacity:.6;margin:10px 2px 0;">Hloubka se čte ze Z vrcholu nebo z názvu vrstvy (např. „PLYN_STL_-1.2"). Svislé umístění závisí na výškopisu (DMR 5G) a přesnosti GPS/kompasu — jde o orientaci, ne vytyčení. Vše offline.</p>'
             + '<button class="btn btn-secondary" style="margin-top:12px;" onclick="window.agCloseUtilityNetworks&&window.agCloseUtilityNetworks()">Zavřít</button>'
             + '</div>';
         document.body.appendChild(el);
@@ -570,7 +570,7 @@
     function setStatus(t) { var e = document.getElementById('agun-status'); if (e) e.innerText = t || ''; }
     function renderList() {
         var box = document.getElementById('agun-list'); if (!box) return;
-        if (!_nets.length) { box.innerHTML = '<div style="opacity:.6;font-size:13px;padding:8px 2px;">Zatím žádné sítě. Načti trasy tlačítkem výše.</div>'; return; }
+        if (!_nets.length) { box.innerHTML = '<div style="opacity:.6;font-size:calc(13px * var(--ag-font-scale, 1));padding:8px 2px;">Zatím žádné sítě. Načti trasy tlačítkem výše.</div>'; return; }
         // souhrn dle typu
         var byType = {};
         _nets.forEach(function (nt) { (byType[nt.typ] = byType[nt.typ] || []).push(nt); });
@@ -621,14 +621,14 @@
         var st = document.createElement('style'); st.id = 'agun-style';
         st.textContent = [
             '#agun-modal .agun-srs{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 2px 10px;}',
-            '#agun-modal .agun-radio{display:inline-flex;align-items:center;gap:6px;font-size:13px;}',
+            '#agun-modal .agun-radio{display:inline-flex;align-items:center;gap:6px;font-size:calc(13px * var(--ag-font-scale, 1));}',
             '#agun-modal .agun-radio input{width:16px;height:16px;accent-color:var(--accent,#2f9e74);}',
             '#agun-modal .agun-list{max-height:34vh;overflow:auto;margin:10px 0 4px;}',
             '#agun-modal .agun-row{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;background:rgba(255,255,255,0.05);margin-bottom:6px;}',
             '#agun-modal .agun-swatch{width:16px;height:16px;flex:0 0 16px;border-radius:4px;box-shadow:0 0 0 1px rgba(255,255,255,.3) inset;}',
-            '#agun-modal .agun-tname{flex:1;font-weight:600;font-size:13.5px;}',
-            '#agun-modal .agun-eye{border:1px solid var(--glass-border,rgba(255,255,255,.18));background:rgba(255,255,255,.06);color:var(--text-color,#e8edf2);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;}',
-            '#agun-modal .agun-sw{display:flex;align-items:center;gap:8px;font-size:14px;margin-top:6px;}',
+            '#agun-modal .agun-tname{flex:1;font-weight:600;font-size:calc(13.5px * var(--ag-font-scale, 1));}',
+            '#agun-modal .agun-eye{border:1px solid var(--glass-border,rgba(255,255,255,.18));background:rgba(255,255,255,.06);color:var(--text-color,#e8edf2);border-radius:8px;padding:4px 10px;font-size:calc(12px * var(--ag-font-scale, 1));cursor:pointer;}',
+            '#agun-modal .agun-sw{display:flex;align-items:center;gap:8px;font-size:calc(14px * var(--ag-font-scale, 1));margin-top:6px;}',
             '#agun-modal .agun-sw input{width:18px;height:18px;accent-color:var(--accent,#2f9e74);}',
             '#agun-banner{position:fixed;left:50%;transform:translateX(-50%);bottom:max(96px,calc(env(safe-area-inset-bottom) + 96px));z-index:100045;display:none;align-items:center;gap:9px;max-width:92vw;',
             '  background:rgba(20,10,8,0.9);color:#fff;border:1px solid var(--zc,#e0281f);border-left:5px solid var(--zc,#e0281f);border-radius:12px;padding:9px 14px;',

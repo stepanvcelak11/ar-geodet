@@ -82,7 +82,7 @@
             // řádek volby typu práce nad mřížkou
             '#ag-ts-prof{display:flex;align-items:center;gap:10px;margin:2px 0 10px;}',
             '#ag-ts-prof label{flex:1;font:600 12.5px/1.3 var(--font-ui,system-ui),sans-serif;color:var(--text-muted,#9aa1ac);margin:0;}',
-            '#ag-ts-prof label small{display:block;font-weight:500;font-size:11px;opacity:0.75;}',
+            '#ag-ts-prof label small{display:block;font-weight:500;font-size:calc(11px * var(--ag-font-scale, 1));opacity:0.75;}',
             '#ag-ts-prof select{width:auto;min-width:150px;max-width:55%;}',
             // nadpis sekce doporučených
             '#ag-ts-head{color:var(--accent,#2f9e74) !important;}'

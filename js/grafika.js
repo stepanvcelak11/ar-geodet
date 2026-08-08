@@ -20,9 +20,14 @@
             document.documentElement.style.setProperty('--dock-arc', (visSettings.dockArc == null ? 13 : visSettings.dockArc) + 'px');
             document.documentElement.style.setProperty('--hud-top', visSettings.hudTop + 'px'); document.documentElement.style.setProperty('--hud-side', visSettings.hudSide + 'px'); document.documentElement.style.setProperty('--marker-opacity', visSettings.markerOpacity / 100); document.documentElement.style.setProperty('--color-tb', visSettings.colTb); document.documentElement.style.setProperty('--color-zhb', visSettings.colZhb); document.documentElement.style.setProperty('--color-pbpp', visSettings.colPbpp); document.documentElement.style.setProperty('--color-nivel', visSettings.colNivel); document.documentElement.style.setProperty('--color-custom', visSettings.colCustom); document.documentElement.style.setProperty('--arrow-size', (100 * visSettings.arrowScale) + 'px'); document.documentElement.style.setProperty('--arrow-opacity', visSettings.arrowOpacity / 100); document.documentElement.style.setProperty('--color-arrow', visSettings.colArrow); document.documentElement.style.setProperty('--panel-opacity', visSettings.panelOpacity / 100); /* --menu-scale: jezdec odstraněn (mrtvá volba), zůstává default 1 z :root */
             document.documentElement.style.setProperty('--hud-scale', visSettings.hudScale || 1);
+            // VELIKOST PISMA: nasobi kazdy pevny font-size (viz --ag-font-scale v tokens.css).
+            // Jezdec "Velikost textu a menu" tu uz jednou byl a byl ODSTRANEN, protoze menil
+            // jen --menu-scale (transform par HUD prvku) a textu se nedotkl -> pusobil rozbite.
+            // Tenhle uz text opravdu meni; pri pripadnem odebirani nechat token na 1.
+            document.documentElement.style.setProperty('--ag-font-scale', visSettings.fontScale || 1);
             previewTheme(visSettings.theme); previewMode(visSettings.mode);
             const arrPath = document.getElementById('main-arrow-path'); if(arrPath) { arrPath.setAttribute('d', arrowPaths[visSettings.arrowShape]); arrPath.setAttribute('fill', visSettings.colArrow); document.getElementById('arrow-straight').style.filter = `drop-shadow(0 15px 15px ${visSettings.colArrow}80)`; document.getElementById('target-circle-out').setAttribute('stroke', visSettings.colArrow); document.getElementById('target-circle-in').setAttribute('fill', visSettings.colArrow); document.getElementById('arrow-target').style.filter = `drop-shadow(0 15px 15px ${visSettings.colArrow}90)`; }
-            if (document.getElementById('s-max-ar-slider')) { document.getElementById('s-wakelock').checked = visSettings.wakeLockEnabled; document.getElementById('s-outdoor').checked = !!visSettings.outdoorMode; { var _lh = document.getElementById('s-lefthand'); if (_lh) _lh.checked = !!visSettings.leftHand; } { var _vb2 = document.getElementById('s-vibration'); if (_vb2) _vb2.checked = visSettings.vibrationEnabled !== false; } { var _an2 = document.getElementById('s-anim'); if (_an2) _an2.value = visSettings.anim || 'auto'; } { var _da = document.getElementById('v-dock-arc'); if (_da) { var _av = (visSettings.dockArc == null ? 13 : visSettings.dockArc); _da.value = _av; document.getElementById('v-dock-arc-val').innerText = _av; } } document.getElementById('s-katastr-source').value = visSettings.katastrSource || 'mapycz'; document.getElementById('s-max-ar-slider').value = visSettings.maxARPoints; document.getElementById('s-max-ar-val').innerText = visSettings.maxARPoints; document.getElementById('v-ar-height-slider').value = visSettings.arVerticalOffset; document.getElementById('v-ar-height-val').innerText = visSettings.arVerticalOffset; document.getElementById('v-marker-scale').value = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-scale-val').innerText = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-opacity').value = visSettings.markerOpacity; document.getElementById('v-marker-opacity-val').innerText = visSettings.markerOpacity; document.getElementById('col-tb').value = visSettings.colTb; document.getElementById('col-zhb').value = visSettings.colZhb; document.getElementById('col-pbpp').value = visSettings.colPbpp; document.getElementById('col-nivel').value = visSettings.colNivel; document.getElementById('col-custom').value = visSettings.colCustom; document.getElementById('col-arrow').value = visSettings.colArrow; document.getElementById('v-arrow-shape').value = visSettings.arrowShape; document.getElementById('v-arrow-scale').value = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-scale-val').innerText = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-opacity').value = visSettings.arrowOpacity; document.getElementById('v-arrow-opacity-val').innerText = visSettings.arrowOpacity; document.getElementById('v-panel-opacity').value = visSettings.panelOpacity; document.getElementById('v-panel-opacity-val').innerText = visSettings.panelOpacity; document.getElementById('s-auto-compass').checked = visSettings.autoCompassCorrection; document.getElementById('s-tilt-comp').checked = visSettings.tiltCompensation !== false; document.getElementById('s-heading-smooth').value = visSettings.headingSmoothing; document.getElementById('s-heading-smooth-val').innerText = visSettings.headingSmoothing; document.getElementById('s-fovh').value = visSettings.fovH; document.getElementById('s-fovh-val').innerText = visSettings.fovH; document.getElementById('s-fovv').value = visSettings.fovV; document.getElementById('s-fovv-val').innerText = visSettings.fovV; document.getElementById('s-eyeh').value = visSettings.eyeHeight; document.getElementById('s-eyeh-val').innerText = visSettings.eyeHeight; document.getElementById('v-adaptive-glass').checked = visSettings.adaptiveGlass !== false; document.getElementById('v-theme').value = visSettings.theme || 'smaragd'; document.getElementById('v-mode').value = visSettings.mode || 'dark'; document.getElementById('v-hud-scale').value = Math.round((visSettings.hudScale || 1) * 100); document.getElementById('v-hud-scale-val').innerText = Math.round((visSettings.hudScale || 1) * 100); }
+            if (document.getElementById('s-max-ar-slider')) { document.getElementById('s-wakelock').checked = visSettings.wakeLockEnabled; document.getElementById('s-outdoor').checked = !!visSettings.outdoorMode; { var _ao2 = document.getElementById('s-auto-outdoor'); if (_ao2) _ao2.checked = visSettings.autoOutdoor !== false; } { var _lh = document.getElementById('s-lefthand'); if (_lh) _lh.checked = !!visSettings.leftHand; } { var _vb2 = document.getElementById('s-vibration'); if (_vb2) _vb2.checked = visSettings.vibrationEnabled !== false; } { var _an2 = document.getElementById('s-anim'); if (_an2) _an2.value = visSettings.anim || 'auto'; } { var _da = document.getElementById('v-dock-arc'); if (_da) { var _av = (visSettings.dockArc == null ? 13 : visSettings.dockArc); _da.value = _av; document.getElementById('v-dock-arc-val').innerText = _av; } } document.getElementById('s-katastr-source').value = visSettings.katastrSource || 'mapycz'; document.getElementById('s-max-ar-slider').value = visSettings.maxARPoints; document.getElementById('s-max-ar-val').innerText = visSettings.maxARPoints; document.getElementById('v-ar-height-slider').value = visSettings.arVerticalOffset; document.getElementById('v-ar-height-val').innerText = visSettings.arVerticalOffset; document.getElementById('v-marker-scale').value = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-scale-val').innerText = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-opacity').value = visSettings.markerOpacity; document.getElementById('v-marker-opacity-val').innerText = visSettings.markerOpacity; document.getElementById('col-tb').value = visSettings.colTb; document.getElementById('col-zhb').value = visSettings.colZhb; document.getElementById('col-pbpp').value = visSettings.colPbpp; document.getElementById('col-nivel').value = visSettings.colNivel; document.getElementById('col-custom').value = visSettings.colCustom; document.getElementById('col-arrow').value = visSettings.colArrow; document.getElementById('v-arrow-shape').value = visSettings.arrowShape; document.getElementById('v-arrow-scale').value = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-scale-val').innerText = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-opacity').value = visSettings.arrowOpacity; document.getElementById('v-arrow-opacity-val').innerText = visSettings.arrowOpacity; document.getElementById('v-panel-opacity').value = visSettings.panelOpacity; document.getElementById('v-panel-opacity-val').innerText = visSettings.panelOpacity; document.getElementById('s-auto-compass').checked = visSettings.autoCompassCorrection; document.getElementById('s-tilt-comp').checked = visSettings.tiltCompensation !== false; document.getElementById('s-heading-smooth').value = visSettings.headingSmoothing; document.getElementById('s-heading-smooth-val').innerText = visSettings.headingSmoothing; document.getElementById('s-fovh').value = visSettings.fovH; document.getElementById('s-fovh-val').innerText = visSettings.fovH; document.getElementById('s-fovv').value = visSettings.fovV; document.getElementById('s-fovv-val').innerText = visSettings.fovV; document.getElementById('s-eyeh').value = visSettings.eyeHeight; document.getElementById('s-eyeh-val').innerText = visSettings.eyeHeight; document.getElementById('v-adaptive-glass').checked = visSettings.adaptiveGlass !== false; document.getElementById('v-theme').value = visSettings.theme || 'smaragd'; document.getElementById('v-mode').value = visSettings.mode || 'dark'; { var _fs = document.getElementById('v-font-scale'); if (_fs) { var _fv = Math.round((visSettings.fontScale || 1) * 100); _fs.value = _fv; document.getElementById('v-font-scale-val').innerText = _fv; } } document.getElementById('v-hud-scale').value = Math.round((visSettings.hudScale || 1) * 100); document.getElementById('v-hud-scale-val').innerText = Math.round((visSettings.hudScale || 1) * 100); }
         }
 
         // Prepinac vibraci v Nastaveni: ulozi se hned a rovnou to zavibruje (aby bylo
@@ -210,10 +215,33 @@
 
         function getMapMarkerSVG(category, color) { if(category === 'TB') return `<svg viewBox="0 0 24 24"><polygon points="12,2 22,20 2,20" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'ZHB') return `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'PBPP') return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'NIVEL') return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="${color}" stroke-width="3"/><circle cx="12" cy="12" r="3" fill="${color}"/></svg>`; if(category === 'CUSTOM') return `<svg viewBox="0 0 24 24"><path d="M12,2 C7,2 3,6 3,11 C3,18 12,22 12,22 C12,22 21,18 21,11 C21,6 17,2 12,2 Z" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="${color}"/></svg>`; }
 
+        // ===== OREZ MARKERU NA VYREZ MAPY =========================================
+        // Po stazeni bodoveho pole z CUZK jsou v mape stovky bodu a KAZDY je jeden
+        // divIcon (DOM uzel). drawAllMarkersOnMap() se pritom vola pri kazdem ulozeni
+        // bodu, zmene filtru, importu… — stavet pokazde i bod kilometr za obzorem je
+        // zbytecne. Kreslime tedy jen to, co muze byt videt.
+        //
+        // PROC JE TO BEZPECNE I PRI OTOCENE MAPE: rotaci resi predimenzovany
+        // #map-wrapper (150vmax x 150vmax, viz css/style.css) — Leaflet pocita s
+        // plochou vyrazne vetsi nez viditelna vysec, takze map.getBounds() uz je
+        // "vsechno, co jde pri libovolnem otoceni videt".
+        //
+        // Kreslime s velkou rezervou (+100 % na kazdou stranu) a prekreslujeme, teprve
+        // az se uzivatel priblizi k jejimu okraji (+25 %) — bezna chuze ani posun po
+        // mape tedy prekresleni nespousti.
+        const _MAP_DRAW_PAD = 1.0;
+        const _MAP_KEEP_PAD = 0.25;
+        let _mapDrawnBounds = null;
+        function _mapPadBounds(pad) {
+            try { const b = map.getBounds(); return (b && b.isValid()) ? b.pad(pad) : null; } catch (e) { return null; }
+        }
+
         function drawAllMarkersOnMap() {
             if (_mngSuspendRedraw) return;   // hromadna davka prekresli mapu az na konci
             markersGroup.clearLayers();
+            _mapDrawnBounds = _mapPadBounds(_MAP_DRAW_PAD);
             arPoints.forEach(pt => {
+                if (_mapDrawnBounds && !_mapDrawnBounds.contains([pt.lat, pt.lng])) return;
                 if (pt.hidden) return; if (pt.cat === 'TB' && !filters.tb) return; if (pt.cat === 'ZHB' && !filters.zhb) return; if (pt.cat === 'PBPP' && !filters.pbpp) return; if (pt.cat === 'NIVEL' && !filters.nivel) return; if (pt.cat === 'CUSTOM' && !filters.custom) return; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return;
                 let col = visSettings.colTb; if(pt.cat === 'ZHB') col = visSettings.colZhb; if(pt.cat === 'PBPP') col = visSettings.colPbpp; if(pt.cat === 'NIVEL') col = visSettings.colNivel; if(pt.cat === 'CUSTOM') col = visSettings.colCustom;
                 const stakedBadge = (window.isStaked && isStaked(pt.id)) ? `<div style="position:absolute; top:-7px; right:-7px; width:13px; height:13px; border-radius:50%; background:#10b981; border:1.5px solid #fff; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>` : '';
@@ -223,6 +251,19 @@
             });
             drawAllLinesOnMap();
         }
+
+        // Odjel uzivatel mimo vykreslenou plochu? Dokreslit zbytek.
+        // (Bez teto pojistky by orez vyse znamenal "body za okrajem uz se neukazou" —
+        // presne ta trida chyby, kterou nikdo v terenu nechce hledat.)
+        let _mapCullTimer = null;
+        function _mapCullCheck() {
+            if (!appStarted) return;
+            const need = _mapPadBounds(_MAP_KEEP_PAD);
+            if (!need) return;
+            if (_mapDrawnBounds && _mapDrawnBounds.contains(need)) return;
+            drawAllMarkersOnMap();
+        }
+        map.on('moveend zoomend', () => { clearTimeout(_mapCullTimer); _mapCullTimer = setTimeout(_mapCullCheck, 200); });
 
         function getMapClickLatLng(e) {
             const oe = e.originalEvent || {};
@@ -281,7 +322,7 @@
                 let typBodu = "Podrobný polohový bod"; if(pt.cat === 'TB') typBodu = "Trigonometrický bod"; if(pt.cat === 'ZHB') typBodu = "Zhušťovací bod"; if(pt.cat === 'NIVEL') typBodu = "Nivelační / Výškový bod"; if(pt.cat === 'CUSTOM') typBodu = "Vlastní bod";
                 const dist = getDistance(userLat, userLng, pt.lat, pt.lng); const item = document.createElement('div'); item.className = 'cluster-list-item';
                 let col = visSettings.colTb; if(pt.cat === 'ZHB') col = visSettings.colZhb; if(pt.cat === 'PBPP') col = visSettings.colPbpp; if(pt.cat === 'NIVEL') col = visSettings.colNivel; if(pt.cat === 'CUSTOM') col = visSettings.colCustom;
-                item.innerHTML = `<div><div class="cluster-item-title" style="color: ${col};">#${_escHtml(pt.name)}</div><div class="cluster-item-subtitle">${typBodu}</div></div><div style="font-weight: 600; font-size: 14px;">${dist.toFixed(1)} m</div>`;
+                item.innerHTML = `<div><div class="cluster-item-title" style="color: ${col};">#${_escHtml(pt.name)}</div><div class="cluster-item-subtitle">${typBodu}</div></div><div style="font-weight: 600; font-size: calc(14px * var(--ag-font-scale, 1));">${dist.toFixed(1)} m</div>`;
                 item.addEventListener('click', () => { document.getElementById('cluster-modal').style.display = 'none'; highlightPoint(pt); }); listDiv.appendChild(item);
             });
             document.getElementById('cluster-modal').style.display = 'flex';
@@ -304,7 +345,7 @@
                 let typBodu = "Podrobný polohový bod"; if (pt.cat === 'TB') typBodu = "Trigonometrický bod"; if (pt.cat === 'ZHB') typBodu = "Zhušťovací bod"; if (pt.cat === 'NIVEL') typBodu = "Nivelační / Výškový bod"; if (pt.cat === 'CUSTOM') typBodu = "Vlastní bod";
                 let col = visSettings.colTb; if (pt.cat === 'ZHB') col = visSettings.colZhb; if (pt.cat === 'PBPP') col = visSettings.colPbpp; if (pt.cat === 'NIVEL') col = visSettings.colNivel; if (pt.cat === 'CUSTOM') col = visSettings.colCustom;
                 const item = document.createElement('div'); item.className = 'cluster-list-item';
-                item.innerHTML = `<div><div class="cluster-item-title" style="color:${col};">#${_escHtml(pt.name)}</div><div class="cluster-item-subtitle">${typBodu}</div></div><div style="font-weight:600; font-size:14px;">${d.toFixed(1)} m</div>`;
+                item.innerHTML = `<div><div class="cluster-item-title" style="color:${col};">#${_escHtml(pt.name)}</div><div class="cluster-item-subtitle">${typBodu}</div></div><div style="font-weight:600; font-size:calc(14px * var(--ag-font-scale, 1));">${d.toFixed(1)} m</div>`;
                 item.addEventListener('click', () => { document.getElementById('nearby-modal').style.display = 'none'; highlightPoint(pt); });
                 listDiv.appendChild(item);
             });
@@ -347,7 +388,11 @@
             const sViewRadios = document.getElementsByName('s-view'); for(let r of sViewRadios) { if(r.checked) viewMode = r.value; }
             const oldCam = document.getElementById('w-camera-select').value; const newCam = document.getElementById('s-camera-select').value; document.getElementById('w-camera-select').value = newCam; 
             visSettings.wakeLockEnabled = document.getElementById('s-wakelock').checked;
-            visSettings.outdoorMode = document.getElementById('s-outdoor').checked;
+            { const _wasOut = visSettings.outdoorMode; visSettings.outdoorMode = document.getElementById('s-outdoor').checked;
+              // rucni vypnuti = automatika ted mlci (znovu se nabije az po seru)
+              if (_wasOut && !visSettings.outdoorMode) { _aoAuto = false; _aoArmed = false; } }
+            { var _ao = document.getElementById('s-auto-outdoor'); if (_ao) visSettings.autoOutdoor = _ao.checked; }
+            { var _fs2 = document.getElementById('v-font-scale'); if (_fs2) visSettings.fontScale = parseInt(_fs2.value) / 100; }
             { var _lh = document.getElementById('s-lefthand'); if (_lh) visSettings.leftHand = _lh.checked; }
             { var _vb = document.getElementById('s-vibration'); if (_vb) visSettings.vibrationEnabled = _vb.checked; }
             { var _an3 = document.getElementById('s-anim'); if (_an3) visSettings.anim = _an3.value; }
@@ -409,33 +454,39 @@
         let _mngSuspendRedraw = false;
 
         // S-JTSK PRO SEZNAM: proj4 prevod je nejdrazsi vec na radku a delal se ZNOVU
-        // pri kazdem prekresleni pro kazdy bod. Cache se sama zneplatni, jakmile se
-        // bodu zmeni lat/lng (posun, Helmert, editace) — neni tedy co hlidat rucne.
-        // Zamerne mimo objekt bodu: do JSON.stringify(persistentCustomPoints) by se
-        // jinak ukladaly ctyri cisla navic na kazdy bod.
-        const _sjCache = new Map();
-        function _ptSjtsk(pt) {
-            const c = _sjCache.get(pt.id);
-            if (c && c.lat === pt.lat && c.lng === pt.lng) return c;
-            const sj = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]);
-            const n = { lat: pt.lat, lng: pt.lng, y: Math.abs(sj[0]).toFixed(2), x: Math.abs(sj[1]).toFixed(2) };
-            // po mnoha prepnutich zakazek by jinak drzela zaznamy k bodum, ktere uz nikdo nevidi
-            if (_sjCache.size > 20000) _sjCache.clear();
-            _sjCache.set(pt.id, n);
-            return n;
+        // pri kazdem prekresleni pro kazdy bod. Cachujeme ho ve WeakMap podle OBJEKTU
+        // bodu (ne jako jeho vlastnost — ta by se pribalila do
+        // JSON.stringify(persistentCustomPoints), tedy do uloziste i do exportu)
+        // a zahazujeme, jakmile se bod posune. WeakMap nepotrebuje zadny strop:
+        // zaznam zmizi spolu s bodem.
+        const _mngYXCache = new WeakMap();
+        function _mngYX(pt) {
+            const k = pt.lat + ',' + pt.lng;
+            let c = _mngYXCache.get(pt);
+            if (!c || c.k !== k) {
+                const s = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]);
+                c = { k: k, y: Math.abs(s[0]).toFixed(2), x: Math.abs(s[1]).toFixed(2) };
+                _mngYXCache.set(pt, c);
+            }
+            return c;
         }
         function _mngVisible() {
             const m = document.getElementById('manage-modal');
             return !!m && m.style.display === 'flex';
         }
-        // PREKRESLENI SEZNAMU BODU
-        // Driv: kazde ulozeni/smazani bodu postavilo cely seznam znovu — vcetne
-        // situace, kdy panel Body vubec nebyl otevreny. U zakazky o tisicich bodu
-        // to bylo nekolik set milisekund prace do neviditelna, po kazdem bodu.
-        // Ted: kdyz panel neni videt, jen se poznamena, ze je seznam zastaraly, a
-        // postavi se az pri otevreni. Kdyz videt je, volani v jedne davce se slucuji
-        // do jednoho prekresleni v nejblizsim snimku.
+        // PREKRESLENI SEZNAMU BODU — dve nezavisla zrychleni naraz:
+        //  1) Driv kazde ulozeni/smazani bodu postavilo cely seznam znovu, i kdyz panel
+        //     Body vubec nebyl otevreny. U zakazky o tisicich bodu to bylo nekolik set
+        //     milisekund prace do neviditelna, po kazdem bodu. Ted se jen poznamena, ze
+        //     je seznam zastaraly, a postavi se az pri otevreni; volani v jedne davce
+        //     se slucuji do jednoho prekresleni v nejblizsim snimku.
+        //  2) Radky se stavi po DAVKACH (_MNG_CHUNK), at se modal neotevira az za par
+        //     sekund. Rozdelane dokreslovani se pozna podle tokenu — kdyz se seznam
+        //     mezitim prekresli znovu (razeni, smazani, rezim vyberu), stara davka se
+        //     zahodi.
         let _mngRafId = 0;
+        let _mngRenderToken = 0;
+        const _MNG_CHUNK = 60;
         function renderManageList() {
             if (_mngSuspendRedraw) return;
             if (!_mngVisible()) return;   // panel neni videt — stavet ho je prace do neviditelna
@@ -470,8 +521,10 @@
             const empty = document.createElement('p'); empty.id = 'mng-empty';
             empty.style.cssText = 'text-align:center; opacity:.7; display:none;'; empty.innerText = 'Hledání nic nenašlo.';
             listDiv.appendChild(empty);
-            pts.forEach(pt => {
-                const _sj = _ptSjtsk(pt); const dispY = _sj.y, dispX = _sj.x;
+            // Radek seznamu. Vyrobit vsech 1000 naraz znamena, ze se modal otevre
+            // az za par sekund — proto se stavi po davkach (viz nize).
+            const buildRow = (pt) => {
+                const _yx = _mngYX(pt); const dispY = _yx.y, dispX = _yx.x;
                 const item = document.createElement('div'); item.className = 'cp-item';
                 item.dataset.mngText = (String(pt.name) + ' ' + (pt.kod || '')).toLowerCase();
                 const dRow = (userLat != null) ? ('<br>' + getDistance(userLat, userLng, pt.lat, pt.lng).toFixed(1) + ' m od tebe') : '';
@@ -492,10 +545,32 @@
                     act.querySelector('.cp-btn-delete').addEventListener('click', () => deleteCustomPoint(pt.id));
                     if (typeof decoratePointItem === 'function') { try { decoratePointItem(item, pt); } catch (e) {} }
                 }
-                listDiv.appendChild(item);
-            });
+                return item;
+            };
+
+            // Konec seznamu (skryté body + spojnice) připojíme HNED a řádky vkládáme
+            // před tuhle kotvu — jinak by při dokreslování poskakoval dolů.
+            // Kotva je komentář, aby se nezměnila struktura pro CSS.
+            const anchor = document.createComment('mng-rows-end');
+            listDiv.appendChild(anchor);
             renderHiddenPointsRow(listDiv); renderLinesList(listDiv);
-            _mngApplyFilter();   // aktivni hledani plati i po prekresleni (mazani, razeni, vyber)
+
+            const myToken = ++_mngRenderToken;
+            let i = 0;
+            const step = () => {
+                if (myToken !== _mngRenderToken) return;          // mezitím se překreslilo znovu
+                if (!anchor.parentNode) return;                    // seznam mezitím zmizel
+                const frag = document.createDocumentFragment();
+                const end = Math.min(i + _MNG_CHUNK, pts.length);
+                for (; i < end; i++) frag.appendChild(buildRow(pts[i]));
+                listDiv.insertBefore(frag, anchor);
+                const more = i < pts.length;
+                // Během dokreslování filtrujeme jen když se opravdu hledá; na konci vždy,
+                // aby aktivní hledání platilo i po překreslení (mazání, řazení, výběr).
+                if (!more || _mngQuery.trim()) _mngApplyFilter();
+                if (more) requestAnimationFrame(step);
+            };
+            step();   // první dávka synchronně — modal se nikdy neukáže prázdný
         }
         // panel hromadnych akci nad vyberem
         function renderMngActions(listDiv) {
@@ -578,8 +653,11 @@
             if (!ids.length) return agInfo('Vybrané body nejsou v aktivním hledání vidět — zruš hledání nebo vyber jiné.');
             const doIt = () => {
                 _mngSuspendRedraw = true;
-                try { ids.forEach(id => { try { deleteCustomPoint(id, true); } catch (e) {} }); }
+                // batch = true: zadny zapis do uloziste ani prekresleni po KAZDEM bode,
+                // vsechno se udela jednou na konci davky (flushPointsAfterBulk).
+                try { ids.forEach(id => { try { deleteCustomPoint(id, true, true); } catch (e) {} }); }
                 finally { _mngSuspendRedraw = false; }
+                flushPointsAfterBulk();
                 ids.forEach(id => _mngSel.delete(id));
                 drawAllMarkersOnMap(); initARMarkers();
                 // undo toast umi vratit jen POSLEDNI smazany bod — u hromadneho mazani by mátl; koš má všechny
@@ -717,7 +795,7 @@
             det.appendChild(sum);
             const box = document.createElement('div');
             const hint = document.createElement('p');
-            hint.style.cssText = 'font-size:11.5px; opacity:0.7; margin:8px 2px 4px; line-height:1.4;';
+            hint.style.cssText = 'font-size:calc(11.5px * var(--ag-font-scale, 1)); opacity:0.7; margin:8px 2px 4px; line-height:1.4;';
             hint.innerText = 'Čáry mezi body v mapě a AR — nejsou to uložené body. Smazáním spojnice se body nemažou.';
             box.appendChild(hint);
             pointLines.forEach(ln => {
@@ -1063,7 +1141,7 @@
             if (!el) {
                 el = document.createElement('div'); el.id = 'offline-progress';
                 el.style.cssText = 'position:fixed; top:0; right:0; bottom:0; left:0; z-index:999999; display:none; align-items:center; justify-content:center; background:rgba(4,8,12,0.55); backdrop-filter:blur(2px);';
-                el.innerHTML = '<div style="width:min(82vw,320px); padding:22px; border-radius:18px; background:rgba(14,18,24,0.96); border:1px solid rgba(255,255,255,0.12); box-shadow:0 20px 50px rgba(0,0,0,0.5); text-align:center; color:#fff;"><div id="offline-progress-title" style="font-size:14.5px; font-weight:700; margin-bottom:14px;">Stahuji\u2026</div><div style="width:100%; height:10px; background:rgba(255,255,255,0.12); border-radius:99px; overflow:hidden;"><div id="offline-progress-bar" style="height:100%; width:0%; background:var(--accent-grad,#34d399); border-radius:99px; transition:width 0.15s linear;"></div></div><div id="offline-progress-txt" style="margin-top:10px; font-size:12px; color:var(--accent-bright,#3eb487); font-family:var(--font-mono,monospace);">0 %</div></div>';
+                el.innerHTML = '<div style="width:min(82vw,320px); padding:22px; border-radius:18px; background:rgba(14,18,24,0.96); border:1px solid rgba(255,255,255,0.12); box-shadow:0 20px 50px rgba(0,0,0,0.5); text-align:center; color:#fff;"><div id="offline-progress-title" style="font-size:calc(14.5px * var(--ag-font-scale, 1)); font-weight:700; margin-bottom:14px;">Stahuji\u2026</div><div style="width:100%; height:10px; background:rgba(255,255,255,0.12); border-radius:99px; overflow:hidden;"><div id="offline-progress-bar" style="height:100%; width:0%; background:var(--accent-grad,#34d399); border-radius:99px; transition:width 0.15s linear;"></div></div><div id="offline-progress-txt" style="margin-top:10px; font-size:calc(12px * var(--ag-font-scale, 1)); color:var(--accent-bright,#3eb487); font-family:var(--font-mono,monospace);">0 %</div></div>';
                 document.body.appendChild(el);
             }
             return el;
@@ -1090,7 +1168,7 @@
             const hlBtn = document.getElementById('highlight-btn'); if (highlightedPointId === pt.id) { hlBtn.innerHTML = '<svg class="icon"><use href="#i-star"/></svg><span>Nezvýraznit</span>'; hlBtn.style.background = "#fff"; } else { hlBtn.innerHTML = '<svg class="icon"><use href="#i-star"/></svg><span>Zvýraznit</span>'; hlBtn.style.background = "#fbbf24"; }
             hideBtnLogic = () => { pt.hidden = true; if(pt.element) { pt.element.style.opacity = '0'; setTimeout(() => { if(pt.element && pt.element.parentNode) pt.element.parentNode.removeChild(pt.element); }, 200); } if (highlightedPointId === pt.id) { highlightedPointId = null; document.getElementById('ar-hud').style.display = 'none'; } updateInfoPanel(); drawAllMarkersOnMap(); };
             let sjtskY = "Neznámé", sjtskX = "Neznámé"; if (pt.type === "custom") { let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); sjtskY = Math.abs(sjtsk[0]).toFixed(2); sjtskX = Math.abs(sjtsk[1]).toFixed(2); } else if (pt.rawData) { const getVal = (keys) => { for (let k in pt.rawData) { if (keys.includes(k.toUpperCase()) && pt.rawData[k] !== "Null" && pt.rawData[k] !== null && String(pt.rawData[k]).trim() !== "") return pt.rawData[k]; } return null; }; let sY = parseFloat(getVal(['Y', 'SOURADNICE_Y'])); let sX = parseFloat(getVal(['X', 'SOURADNICE_X'])); if (!isNaN(sY) && !isNaN(sX)) { if (sY < sX) { sjtskY = sY; sjtskX = sX; } else { sjtskY = sX; sjtskX = sY; } } }
-            let html = ` <div class="geo-data-row"><span class="geo-label">Vzdálenost</span><span class="geo-value" id="sheet-distance-val">${distance.toFixed(1)} m</span></div> <div class="geo-data-row"><span class="geo-label">S-JTSK Y</span><span class="geo-value">${sjtskY}</span></div> <div class="geo-data-row"><span class="geo-label">S-JTSK X</span><span class="geo-value">${sjtskX}</span></div> ${pt.vyska != null ? '<div class="geo-data-row"><span class="geo-label">Výška Bpv</span><span class="geo-value">' + Number(pt.vyska).toFixed(2) + ' m</span></div>' : ''} ${pt.kod ? '<div class="geo-data-row"><span class="geo-label">Kód bodu</span><span class="geo-value">' + _escHtml(pt.kod) + '</span></div>' : ''} <div style="margin-top:15px; padding:12px; background:rgba(251,191,36,0.1); border-left:4px solid #fbbf24; border-radius:8px; font-size:13px; line-height:1.4;"><strong><svg class="icon" style="vertical-align:-0.18em; color:#fbbf24;"><use href="#i-alert"/></svg> Rádius hledání (Vaše GPS: ±<span id="sheet-gps-val">${currentGpsAccuracy.toFixed(1)}</span> m)</strong><br>Bod nehledejte na centimetr přesně na AR značce. Může ležet kdekoliv v tomto kruhovém okruhu od značky.</div> `;
+            let html = ` <div class="geo-data-row"><span class="geo-label">Vzdálenost</span><span class="geo-value" id="sheet-distance-val">${distance.toFixed(1)} m</span></div> <div class="geo-data-row"><span class="geo-label">S-JTSK Y</span><span class="geo-value">${sjtskY}</span></div> <div class="geo-data-row"><span class="geo-label">S-JTSK X</span><span class="geo-value">${sjtskX}</span></div> ${pt.vyska != null ? '<div class="geo-data-row"><span class="geo-label">Výška Bpv</span><span class="geo-value">' + Number(pt.vyska).toFixed(2) + ' m</span></div>' : ''} ${pt.kod ? '<div class="geo-data-row"><span class="geo-label">Kód bodu</span><span class="geo-value">' + _escHtml(pt.kod) + '</span></div>' : ''} <div style="margin-top:15px; padding:12px; background:rgba(251,191,36,0.1); border-left:4px solid #fbbf24; border-radius:8px; font-size:calc(13px * var(--ag-font-scale, 1)); line-height:1.4;"><strong><svg class="icon" style="vertical-align:-0.18em; color:#fbbf24;"><use href="#i-alert"/></svg> Rádius hledání (Vaše GPS: ±<span id="sheet-gps-val">${currentGpsAccuracy.toFixed(1)}</span> m)</strong><br>Bod nehledejte na centimetr přesně na AR značce. Může ležet kdekoliv v tomto kruhovém okruhu od značky.</div> `;
             if (pt.type === "custom") { html += `<div style="text-align:center; padding: 25px 0; opacity:0.6; font-style:italic;">Ručně vytvořený bod. Můžete jej spravovat v Nastavení.</div>`; } else if (pt.rawData) { const props = pt.rawData; const getVal = (keys) => { for (let k in props) { if (keys.includes(k.toUpperCase()) && props[k] !== "Null" && props[k] !== null && String(props[k]).trim() !== "") return props[k]; } return null; }; const stabilizace = getVal(['STABILIZACE', 'TYP_ZNAK', 'TYP_ZNAKU', 'ZNAK', 'POPIS_ZNAKU']); const vyska = getVal(['VYSKA_NAD_TERENEM', 'VYSKA_ZNAKU', 'UMISTENI']); let nadmRaw = getVal(['VYSKA_BPV','NADMORSKA_VYSKA','VYSKA_BODU','VYSKA_H','H_BPV','VYSKA','H','Z']); let nadmNum = parseFloat(String(nadmRaw).replace(',', '.')); let nadmVyska = (!isNaN(nadmNum) && nadmNum > 50 && nadmNum < 3000) ? nadmNum : null; let geodataLink = null; for (let k in props) { if (typeof props[k] === 'string' && props[k].startsWith('http')) { geodataLink = props[k]; break; } } if (stabilizace || vyska !== null || nadmVyska !== null) { html += `<div class="geo-highlight" style="border-left-color: var(--accent);">`; if (nadmVyska !== null) html += `<div class="geo-data-row" style="border:none; padding: 4px 0;"><span class="geo-label" style="color:var(--text-color);">Nadmořská výška (Bpv):</span><span class="geo-value">${nadmVyska.toFixed(2)} m</span></div>`; if (stabilizace) html += `<div class="geo-data-row" style="border:none; padding: 4px 0;"><span class="geo-label" style="color:var(--text-color);">Stabilizace:</span><span class="geo-value">${stabilizace}</span></div>`; if (vyska !== null) html += `<div class="geo-data-row" style="border:none; padding: 4px 0;"><span class="geo-label" style="color:var(--text-color);">Výška n. terénem:</span><span class="geo-value">${vyska} m</span></div>`; html += `</div>`; } if (geodataLink) html += `<a href="${geodataLink}" target="_blank" class="btn-link"><svg class="icon"><use href="#i-file-text"/></svg> Otevřít nákres (Polohopis)</a>`; html += `<details><summary>Zobrazit všechny úřední záznamy</summary><div style="margin-top:10px;">`; for (let key in pt.rawData) { if (pt.rawData[key] && pt.rawData[key] !== "Null" && key !== "OBJECTID" && key !== "SHAPE") { let cleanKey = key.replace(/_/g, ' '); cleanKey = cleanKey.charAt(0).toUpperCase() + cleanKey.slice(1); html += `<div class="geo-data-row"><span class="geo-label">${cleanKey}</span><span class="geo-value" style="font-weight:400;">${pt.rawData[key]}</span></div>`; } } html += `</div></details>`; }
             document.getElementById('det-body').innerHTML = html; document.getElementById('bottom-sheet').classList.add('open');
         }
@@ -1527,11 +1605,11 @@
                     + 'border-radius:12px; background:rgba(17,22,33,0.96); color:#fff; font-family:var(--font-display,sans-serif); '
                     + 'box-shadow:0 8px 26px rgba(0,0,0,0.55); border:1px solid var(--glass-border,rgba(255,255,255,0.12));';
                 const label = document.createElement('span'); label.id = 'ag-area-toast-label';
-                label.style.cssText = 'font-size:14px; line-height:1.2; white-space:nowrap;';
+                label.style.cssText = 'font-size:calc(14px * var(--ag-font-scale, 1)); line-height:1.2; white-space:nowrap;';
                 const btn = document.createElement('button'); btn.id = 'ag-area-toast-btn';
                 btn.textContent = 'Vrátit zpět';
                 btn.style.cssText = 'flex:none; padding:8px 16px; border:none; border-radius:9px; cursor:pointer; '
-                    + 'background:var(--accent,#2f9e74); color:#0b1020; font-weight:700; font-size:13px; line-height:1; white-space:nowrap;';
+                    + 'background:var(--accent,#2f9e74); color:#0b1020; font-weight:700; font-size:calc(13px * var(--ag-font-scale, 1)); line-height:1; white-space:nowrap;';
                 _areaToast.appendChild(label); _areaToast.appendChild(btn);
                 document.body.appendChild(_areaToast);
             }
@@ -1749,8 +1827,43 @@
         // ===== ADAPTIVNI SKLO: vzorkuje jas obrazu kamery (~1x za 0.7 s) a prepina svetly rezim AR panelu =====
         const _lumaCanvas = document.createElement('canvas'); _lumaCanvas.width = 24; _lumaCanvas.height = 16;
         const _lumaCtx = _lumaCanvas.getContext('2d', { willReadFrequently: true });
+        // ===== VENKOVNI REZIM SAM =================================================
+        // Jas uz meritko zna (viz nize), jen se dosud pouzival vyhradne na `cam-light`.
+        // Kdyz clovek vyjde na prime slunce, na displej nevidi — a prepnout se rucne
+        // do Nastaveni v tu chvili nikdo nejde. Po SOUVISLE vysokem jasu se venkovni
+        // rezim zapne sam a rekne to toastem; kdyz zase dlouho zesera, vypne se.
+        // Vypina se JEN to, co zapnul sam (rucne zapnuty venkovni rezim nechavame byt).
+        const _AO_ON = 190, _AO_OFF = 120;     // prah jasu pro zapnuti / vypnuti
+        const _AO_TICKS = 12;                  // ~18 s souvisle (tik je 1,5 s)
+        // _aoArmed: aby automatika po RUCNIM vypnuti hned nezapinala znovu dokola —
+        // znovu se nabije az po delsim seru (uzivatel prosel do stinu / je vecer).
+        let _aoHi = 0, _aoLo = 0, _aoAuto = false, _aoArmed = true;
+        function _autoOutdoor(luma) {
+            if (visSettings.autoOutdoor === false) return;
+            if (luma > _AO_ON) _aoHi++; else _aoHi = 0;
+            if (luma < _AO_OFF) _aoLo++; else _aoLo = 0;
+            if (_aoLo >= _AO_TICKS) _aoArmed = true;
+            if (!visSettings.outdoorMode && _aoArmed && _aoHi >= _AO_TICKS) {
+                _aoHi = 0; _aoAuto = true; _aoArmed = false;
+                visSettings.outdoorMode = true;
+                setStoredData('arVisSettings12', JSON.stringify(visSettings));
+                applyVisualSettings();
+                quickToast('Silné světlo — zapnul jsem venkovní režim (vyšší kontrast). Vypnout: Nastavení → Displej a čitelnost.');
+            } else if (visSettings.outdoorMode && _aoAuto && _aoLo >= _AO_TICKS) {
+                _aoLo = 0; _aoAuto = false;
+                visSettings.outdoorMode = false;
+                setStoredData('arVisSettings12', JSON.stringify(visSettings));
+                applyVisualSettings();
+                quickToast('Zase šero — venkovní režim vypnut.');
+            }
+        }
+
         (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(() => {
-            if (visSettings.adaptiveGlass === false || visSettings.outdoorMode || !appStarted || viewMode === 'map' || document.visibilityState !== 'visible') { document.body.classList.remove('cam-light'); return; }
+            // Kdyz venkovni rezim zapnula automatika, vzorkujeme DAL — jinak by se
+            // uz nedalo poznat, ze slunce zaslo, a rezim by zustal viset do rana.
+            // Rucne zapnuty venkovni rezim vzorkovani preskakuje jako driv (baterie).
+            const _keepSampling = visSettings.outdoorMode && _aoAuto && visSettings.autoOutdoor !== false;
+            if (visSettings.adaptiveGlass === false || (visSettings.outdoorMode && !_keepSampling) || !appStarted || viewMode === 'map' || document.visibilityState !== 'visible') { document.body.classList.remove('cam-light'); return; }
             // BATERIE: getImageData je synchronni readback GPU -> CPU, ktery stopne pipeline.
             // Pod otevrenym panelem nikdo AR stitky nevidi, takze jas obrazu nema co ovlivnit
             // (a `cam-light` zustane na posledni znane hodnote — po zavreni panelu se dorovna
@@ -1764,8 +1877,11 @@
                 let sum = 0; for (let i = 0; i < d.length; i += 4) sum += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
                 const luma = sum / (d.length / 4);
                 // hystereze, aby panely na hranici svetla/tmy neblikaly
-                if (luma > 150) document.body.classList.add('cam-light');
-                else if (luma < 115) document.body.classList.remove('cam-light');
+                if (!visSettings.outdoorMode) {
+                    if (luma > 150) document.body.classList.add('cam-light');
+                    else if (luma < 115) document.body.classList.remove('cam-light');
+                }
+                _autoOutdoor(luma);
             } catch (e) { /* video jeste neni pripravene */ }
             // BATERIE: 1500 ms misto 700. Jas okoli se v terenu nemeni 1,4x za sekundu
             // (mrak, vstup do stinu) a hystereze 115/150 stejne tlumi prepinani, takze

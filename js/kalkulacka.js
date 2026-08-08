@@ -31,7 +31,7 @@ function _cv(id) { const el = document.getElementById(id); if (!el) return null;
 function _cs(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
 function _fld(id, label, ph) { return `<label style="margin-top:8px;">${label}</label><input type="text" inputmode="decimal" autocomplete="off" id="${id}" placeholder="${ph || ''}">`; }
 function _ptFld(idp, label) {
-    return `<label style="margin-top:8px;">${label} <a href="#" onclick="openCalcPicker('${idp}'); return false;" style="color:var(--accent); font-size:12px; font-weight:600; float:right;">vybrat z bodů ▾</a></label>
+    return `<label style="margin-top:8px;">${label} <a href="#" onclick="openCalcPicker('${idp}'); return false;" style="color:var(--accent); font-size:calc(12px * var(--ag-font-scale, 1)); font-weight:600; float:right;">vybrat z bodů ▾</a></label>
     <div style="display:flex; gap:8px;"><input type="text" inputmode="decimal" autocomplete="off" id="${idp}-y" placeholder="Y" style="flex:1;"><input type="text" inputmode="decimal" autocomplete="off" id="${idp}-x" placeholder="X" style="flex:1;"></div>`;
 }
 function _getPt(idp, label) {
@@ -66,7 +66,7 @@ function openCalcPicker(idp) {
         const sj = proj4('EPSG:4326', 'EPSG:5514', [p.lng, p.lat]);
         const Y = Math.abs(sj[0]), X = Math.abs(sj[1]);
         const item = document.createElement('div'); item.className = 'cluster-list-item';
-        item.innerHTML = `<div><div class="cluster-item-title">#${_escHtml(p.name)}</div><div class="cluster-item-subtitle">Y ${Y.toFixed(2)} · X ${X.toFixed(2)}</div></div><div style="font-size:12px; opacity:0.7;">${p.cat}</div>`;
+        item.innerHTML = `<div><div class="cluster-item-title">#${_escHtml(p.name)}</div><div class="cluster-item-subtitle">Y ${Y.toFixed(2)} · X ${X.toFixed(2)}</div></div><div style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:0.7;">${p.cat}</div>`;
         item.addEventListener('click', () => {
             const fy = document.getElementById(_pickerTarget + '-y'), fx = document.getElementById(_pickerTarget + '-x');
             if (fy) fy.value = Y.toFixed(2); if (fx) fx.value = X.toFixed(2);
@@ -119,11 +119,11 @@ function showCalcHome() {
     document.getElementById('calc-title').innerHTML = '<svg class="icon"><use href="#i-calc"/></svg> Geodetická kalkulačka';
     const body = document.getElementById('calc-body');
     const tile = t => `<div class="cluster-list-item" onclick="showCalcTool('${t.id}')"><div><div class="cluster-item-title">${t.name}</div><div class="cluster-item-subtitle">${t.desc}</div></div><div style="opacity:0.5;">›</div></div>`;
-    let html = '<p style="margin:0 0 10px; font-size:12.5px; opacity:0.75;">Výpočty v rovině S-JTSK, úhly v gonech, plně offline. Výsledky lze uložit jako vlastní body.</p>';
+    let html = '<p style="margin:0 0 10px; font-size:calc(12.5px * var(--ag-font-scale, 1)); opacity:0.75;">Výpočty v rovině S-JTSK, úhly v gonech, plně offline. Výsledky lze uložit jako vlastní body.</p>';
     CALC_GROUPS.forEach(gr => {
         const tools = CALC_TOOLS.filter(t => t.g === gr.g);
         if (!tools.length) return;
-        html += `<div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; opacity:0.5; margin:14px 0 6px;">${gr.name}</div>` + tools.map(tile).join('');
+        html += `<div style="font-size:calc(11.5px * var(--ag-font-scale, 1)); font-weight:700; text-transform:uppercase; letter-spacing:0.04em; opacity:0.5; margin:14px 0 6px;">${gr.name}</div>` + tools.map(tile).join('');
     });
     body.innerHTML = html;
 }
@@ -214,7 +214,7 @@ function calcOrto() {
 // ============================================================
 // 4) PROTINANI VPRED Z UHLU
 function renderCalc_protuhel(body) {
-    body.innerHTML = `<p style="font-size:12px; opacity:0.75; margin:0 0 4px;">Úhly se zadávají tak, jak vyjdou z přístroje: úhel = čtení na určovaný bod − čtení na druhé stanovisko (po směru hodinových ručiček, 0–400 gon).</p>`
+    body.innerHTML = `<p style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:0.75; margin:0 0 4px;">Úhly se zadávají tak, jak vyjdou z přístroje: úhel = čtení na určovaný bod − čtení na druhé stanovisko (po směru hodinových ručiček, 0–400 gon).</p>`
         + _ptFld('pu-a', 'Stanovisko A') + _ptFld('pu-b', 'Stanovisko B')
         + _fld('pu-ua', 'Úhel na A: od směru A→B k cíli [gon]', '')
         + _fld('pu-ub', 'Úhel na B: od směru B→A k cíli [gon]', '')
@@ -235,7 +235,7 @@ function calcProtUhel() {
         if (t < 0) throw 'Záměry se protínají za zády stanoviska A — zkontrolujte úhly.';
         _puRes = { name: _cs('pu-name') || 'Protínání', y: P.y, x: P.x };
         const gamma = Math.abs(gonDiff(sm1, sm2));
-        const warn = (gamma < 33 || gamma > 367 || (gamma > 167 && gamma < 233)) ? `<div style="color:#fbbf24; font-size:12px; padding-top:4px;">⚠ Úhel protnutí ${fmtGon(gamma)} gon je nepříznivý (ideál kolem 100 gon) — výsledek bude málo přesný.</div>` : '';
+        const warn = (gamma < 33 || gamma > 367 || (gamma > 167 && gamma < 233)) ? `<div style="color:#fbbf24; font-size:calc(12px * var(--ag-font-scale, 1)); padding-top:4px;">⚠ Úhel protnutí ${fmtGon(gamma)} gon je nepříznivý (ideál kolem 100 gon) — výsledek bude málo přesný.</div>` : '';
         document.getElementById('calc-result').innerHTML = _resBox(
             _row('Směrník A→P', fmtGon(sm1) + ' gon') + _row('Směrník B→P', fmtGon(sm2) + ' gon')
             + _row('<b>Y</b>', '<b>' + P.y.toFixed(2) + '</b>') + _row('<b>X</b>', '<b>' + P.x.toFixed(2) + '</b>') + warn)
@@ -284,7 +284,7 @@ function calcProtDelka() {
 let _vsRows = 0;
 function renderCalc_volne(body) {
     _vsRows = 0;
-    body.innerHTML = `<p style="font-size:12px; opacity:0.75; margin:0 0 4px;">Na neznámém stanovisku změřte směry a vodorovné délky na 2+ známé body. Vyrovná se poloha stanoviska i orientace (měřítko pevně 1).</p>
+    body.innerHTML = `<p style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:0.75; margin:0 0 4px;">Na neznámém stanovisku změřte směry a vodorovné délky na 2+ známé body. Vyrovná se poloha stanoviska i orientace (měřítko pevně 1).</p>
         <div id="vs-rows"></div>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="addVsRow()"><svg class="icon"><use href="#i-plus"/></svg> Přidat záměru</button>
         ${_fld('vs-name', 'Název stanoviska', 'např. 5001')}
@@ -295,7 +295,7 @@ function addVsRow() {
     const i = _vsRows++;
     const div = document.createElement('div');
     div.className = 'geo-highlight'; div.style.cssText = 'margin:8px 0; padding:10px;'; div.id = 'vs-row-' + i;
-    div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><b style="font-size:13px;">Záměra ${i + 1}</b><button class="cp-btn cp-btn-delete" onclick="document.getElementById('vs-row-${i}').remove()"><svg class="icon"><use href="#i-trash"/></svg></button></div>`
+    div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><b style="font-size:calc(13px * var(--ag-font-scale, 1));">Záměra ${i + 1}</b><button class="cp-btn cp-btn-delete" onclick="document.getElementById('vs-row-${i}').remove()"><svg class="icon"><use href="#i-trash"/></svg></button></div>`
         + _ptFld('vs-p' + i, 'Známý bod')
         + `<div style="display:flex; gap:8px;"><div style="flex:1;">${_fld('vs-psi' + i, 'Směr [gon]', '')}</div><div style="flex:1;">${_fld('vs-d' + i, 'Vod. délka [m]', '')}</div></div>`;
     document.getElementById('vs-rows').appendChild(div);
@@ -344,7 +344,7 @@ function calcVolne() {
 let _pgRows = 0;
 function renderCalc_polygon(body) {
     _pgRows = 0;
-    body.innerHTML = `<p style="font-size:12px; opacity:0.75; margin:0 0 4px;">Vrcholové úhly levostranné (po směru hodinových ručiček od záměry zpět k záměře vpřed). Úhlový i polohový uzávěr se rozdělí automaticky.</p>`
+    body.innerHTML = `<p style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:0.75; margin:0 0 4px;">Vrcholové úhly levostranné (po směru hodinových ručiček od záměry zpět k záměře vpřed). Úhlový i polohový uzávěr se rozdělí automaticky.</p>`
         + _ptFld('pg-o1', 'Orientace na počátku (bod „zpět")') + _ptFld('pg-p1', 'Počáteční bod pořadu')
         + _fld('pg-w1', 'Vrcholový úhel na počátečním bodě [gon]', '')
         + `<div id="pg-rows"></div>
@@ -359,7 +359,7 @@ function addPgRow() {
     const i = _pgRows++;
     const div = document.createElement('div');
     div.className = 'geo-highlight'; div.style.cssText = 'margin:8px 0; padding:10px;'; div.id = 'pg-row-' + i;
-    div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><b style="font-size:13px;">Mezilehlý bod ${i + 1}</b><button class="cp-btn cp-btn-delete" onclick="document.getElementById('pg-row-${i}').remove()"><svg class="icon"><use href="#i-trash"/></svg></button></div>
+    div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><b style="font-size:calc(13px * var(--ag-font-scale, 1));">Mezilehlý bod ${i + 1}</b><button class="cp-btn cp-btn-delete" onclick="document.getElementById('pg-row-${i}').remove()"><svg class="icon"><use href="#i-trash"/></svg></button></div>
         <div style="display:flex; gap:8px;"><div style="flex:1;">${_fld('pg-d' + i, 'Délka předchozí strany [m]', '')}</div><div style="flex:1;">${_fld('pg-w' + i, 'Vrcholový úhel [gon]', '')}</div></div>`
         + _fld('pg-n' + i, 'Název bodu', 'PB' + (i + 1));
     document.getElementById('pg-rows').appendChild(div);
@@ -437,7 +437,7 @@ function addTcRow() {
     const i = _tcRows++;
     const div = document.createElement('div');
     div.className = 'geo-highlight'; div.style.cssText = 'margin:8px 0; padding:10px;'; div.id = 'tc-row-' + i;
-    div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><b style="font-size:13px;">Bod ${i + 1}</b><button class="cp-btn cp-btn-delete" onclick="document.getElementById('tc-row-${i}').remove()"><svg class="icon"><use href="#i-trash"/></svg></button></div>`
+    div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><b style="font-size:calc(13px * var(--ag-font-scale, 1));">Bod ${i + 1}</b><button class="cp-btn cp-btn-delete" onclick="document.getElementById('tc-row-${i}').remove()"><svg class="icon"><use href="#i-trash"/></svg></button></div>`
         + _fld('tc-n' + i, 'Název', 'b' + (i + 1))
         + `<div style="display:flex; gap:8px;"><div style="flex:1;">${_fld('tc-psi' + i, 'Směr [gon]', '')}</div><div style="flex:1;">${_fld('tc-dd' + i, 'Délka [m]', '')}</div></div>
         <div style="display:flex; gap:8px;"><div style="flex:1;">${_fld('tc-zen' + i, 'Zenitový úhel [gon]', '100')}</div><div style="flex:1;">${_fld('tc-vc' + i, 'Výška cíle [m]', '')}</div></div>`;
@@ -501,7 +501,7 @@ function addNvRow() {
     const i = _nvRows++;
     const div = document.createElement('div');
     div.className = 'geo-highlight'; div.style.cssText = 'margin:8px 0; padding:10px;'; div.id = 'nv-row-' + i;
-    div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><b style="font-size:13px;">Sestava ${i + 1}</b><button class="cp-btn cp-btn-delete" onclick="document.getElementById('nv-row-${i}').remove()"><svg class="icon"><use href="#i-trash"/></svg></button></div>
+    div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><b style="font-size:calc(13px * var(--ag-font-scale, 1));">Sestava ${i + 1}</b><button class="cp-btn cp-btn-delete" onclick="document.getElementById('nv-row-${i}').remove()"><svg class="icon"><use href="#i-trash"/></svg></button></div>
         <div style="display:flex; gap:8px;"><div style="flex:1;">${_fld('nv-b' + i, 'Čtení zpět [m]', '')}</div><div style="flex:1;">${_fld('nv-f' + i, 'Čtení vpřed [m]', '')}</div></div>`;
     document.getElementById('nv-rows').appendChild(div);
 }
@@ -674,20 +674,20 @@ function sciEquals() {
     const st = document.createElement('style');
     st.textContent = `
         .sci-angle { display:flex; gap:5px; margin-bottom:6px; }
-        .sci-angle button { flex:1; padding:5px 4px; border-radius:8px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.05); color:var(--text-color); font-size:11.5px; font-weight:600; cursor:pointer; }
+        .sci-angle button { flex:1; padding:5px 4px; border-radius:8px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.05); color:var(--text-color); font-size:calc(11.5px * var(--ag-font-scale, 1)); font-weight:600; cursor:pointer; }
         .sci-angle button.active { background:var(--accent); color:#04211c; border-color:var(--accent); }
         .sci-display { background:rgba(0,0,0,0.28); border:1px solid var(--glass-border); border-radius:10px; padding:6px 10px; margin-bottom:6px; }
-        .sci-expr { font-family:var(--font-mono,monospace); font-size:17px; font-weight:600; text-align:right; overflow-x:auto; white-space:nowrap; }
-        .sci-res { font-family:var(--font-mono,monospace); font-size:12.5px; text-align:right; color:var(--accent); margin-top:2px; overflow-x:auto; white-space:nowrap; min-height:14px; }
+        .sci-expr { font-family:var(--font-mono,monospace); font-size:calc(17px * var(--ag-font-scale, 1)); font-weight:600; text-align:right; overflow-x:auto; white-space:nowrap; }
+        .sci-res { font-family:var(--font-mono,monospace); font-size:calc(12.5px * var(--ag-font-scale, 1)); text-align:right; color:var(--accent); margin-top:2px; overflow-x:auto; white-space:nowrap; min-height:14px; }
         .sci-pad { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; margin-bottom:5px; }
-        .sci-key { padding:7px 4px; border-radius:9px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.06); color:var(--text-color); font-size:14px; font-weight:600; cursor:pointer; transition:filter 0.12s ease, transform 0.06s ease; }
+        .sci-key { padding:7px 4px; border-radius:9px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.06); color:var(--text-color); font-size:calc(14px * var(--ag-font-scale, 1)); font-weight:600; cursor:pointer; transition:filter 0.12s ease, transform 0.06s ease; }
         .sci-key:active { transform:scale(0.95); }
-        .sci-fn .sci-key { font-size:11.5px; padding:6px 3px; background:rgba(255,255,255,0.03); }
+        .sci-fn .sci-key { font-size:calc(11.5px * var(--ag-font-scale, 1)); padding:6px 3px; background:rgba(255,255,255,0.03); }
         .sci-key.sci-op { background:rgba(59,130,246,0.18); color:#bcd7ff; }
         .sci-key.sci-warn { background:rgba(239,68,68,0.16); color:#ff9d9d; }
-        .sci-eq { margin-top:0; padding:8px; font-size:15px; }
+        .sci-eq { margin-top:0; padding:8px; font-size:calc(15px * var(--ag-font-scale, 1)); }
         .sci-hist { display:none; gap:5px; overflow-x:auto; white-space:nowrap; margin-bottom:6px; }
-        .sci-hchip { flex:0 0 auto; padding:4px 9px; border-radius:8px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.05); color:var(--text-color); font-family:var(--font-mono,monospace); font-size:12.5px; cursor:pointer; }
+        .sci-hchip { flex:0 0 auto; padding:4px 9px; border-radius:8px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.05); color:var(--text-color); font-family:var(--font-mono,monospace); font-size:calc(12.5px * var(--ag-font-scale, 1)); cursor:pointer; }
     `;
     document.head.appendChild(st);
 })();
@@ -770,7 +770,7 @@ function _sjtskScale(Y, X) {
     return 1000 / dTrue;
 }
 function renderCalc_redukce(body) {
-    body.innerHTML = `<p style="font-size:12px; opacity:0.75; margin:0 0 4px;">Změřenou vodorovnou délku zredukuje do roviny S-JTSK podle měřítkového zkreslení Křováka v dané poloze (−10 až +14 cm/km napříč ČR). Pro krátké úlohy zanedbatelné, pro dlouhé pořady zásadní.</p>`
+    body.innerHTML = `<p style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:0.75; margin:0 0 4px;">Změřenou vodorovnou délku zredukuje do roviny S-JTSK podle měřítkového zkreslení Křováka v dané poloze (−10 až +14 cm/km napříč ČR). Pro krátké úlohy zanedbatelné, pro dlouhé pořady zásadní.</p>`
         + _ptFld('rd-p', 'Poloha (kdekoli v oblasti měření)')
         + _fld('rd-d', 'Změřená vodorovná délka [m]', 'nepovinné — pro přepočet')
         + `<button class="btn btn-blue" style="margin-top:14px;" onclick="calcRedukce()">Spočítat</button><div id="calc-result"></div>`;
@@ -1059,13 +1059,16 @@ function decoratePointItem(item, pt) {
     const _origDel = window.deleteCustomPoint;
     window.deleteCustomPoint = function (id) {
         const before = (typeof persistentCustomPoints !== 'undefined') ? persistentCustomPoints.length : 0;
-        // MUSI predat cele arguments, ne jen id. deleteCustomPoint bere druhy argument
-        // skipConfirm a tenhle obal ho driv zahazoval: hromadne smazani 30 bodu se pak
-        // ptalo 30x. Od zavedeni in-app dialogu je to jeste horsi — funkce se po
-        // potvrzeni vola znovu pres window.deleteCustomPoint(id, true), takze zahozeny
-        // priznak = nekonecna smycka dialogu a bod se nesmaze vubec.
-        _origDel.apply(this, arguments);
+        // MUSI predat CELE arguments, ne jen id. deleteCustomPoint bere druhy argument
+        // skipConfirm a tenhle obal ho driv zahazoval. Obal lezi v retezu
+        // (kos -> undo -> kalkulacka -> journal -> logika), takze hromadne smazani
+        // 30 bodu se ptalo 30x, i kdyz panel Body ma jedno spolecne potvrzeni.
+        // Od zavedeni in-app dialogu je to jeste horsi: funkce se po potvrzeni vola
+        // znovu pres window.deleteCustomPoint(id, true), takze zahozeny priznak
+        // = nekonecna smycka dialogu a bod se nesmaze vubec.
+        const ret = _origDel.apply(this, arguments);
         if (typeof persistentCustomPoints !== 'undefined' && persistentCustomPoints.length < before) { try { deletePointDoc(id); } catch (e) {} }
+        return ret;
     };
 })();
 
@@ -1074,27 +1077,27 @@ function decoratePointItem(item, pt) {
     const st = document.createElement('style');
     st.textContent = `
         .point-doc { margin-top: 14px; border-top: 1px solid var(--glass-border); padding-top: 12px; }
-        .pd-head { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.55; margin-bottom: 8px; }
-        .pd-empty { font-size: 13px; opacity: 0.5; font-style: italic; padding: 2px 0 10px; }
+        .pd-head { font-size: calc(12px * var(--ag-font-scale, 1)); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.55; margin-bottom: 8px; }
+        .pd-empty { font-size: calc(13px * var(--ag-font-scale, 1)); opacity: 0.5; font-style: italic; padding: 2px 0 10px; }
         .pd-thumbs { display: flex; gap: 8px; margin-bottom: 8px; }
         .pd-thumb { position: relative; flex: 1 1 0; min-width: 0; }
         .pd-thumb img { width: 100%; height: 88px; object-fit: cover; border-radius: 10px; display: block; }
-        .pd-th-edit, .pd-th-del { position: absolute; top: 5px; width: 26px; height: 26px; border-radius: 50%; border: none; color: #fff; font-size: 13px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .pd-th-edit, .pd-th-del { position: absolute; top: 5px; width: 26px; height: 26px; border-radius: 50%; border: none; color: #fff; font-size: calc(13px * var(--ag-font-scale, 1)); line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .pd-th-edit { left: 5px; background: rgba(0,0,0,0.55); }
         .pd-th-del { right: 5px; background: rgba(239,68,68,0.82); }
-        .pd-note { font-size: 14px; line-height: 1.4; background: rgba(255,255,255,0.05); border-radius: 10px; padding: 9px 12px; margin-bottom: 8px; white-space: pre-wrap; word-break: break-word; }
+        .pd-note { font-size: calc(14px * var(--ag-font-scale, 1)); line-height: 1.4; background: rgba(255,255,255,0.05); border-radius: 10px; padding: 9px 12px; margin-bottom: 8px; white-space: pre-wrap; word-break: break-word; }
         .pd-actions { display: flex; gap: 8px; }
-        .pd-btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 11px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.06); color: var(--text-color); font-size: 14px; font-weight: 600; cursor: pointer; }
+        .pd-btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 11px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.06); color: var(--text-color); font-size: calc(14px * var(--ag-font-scale, 1)); font-weight: 600; cursor: pointer; }
         .pd-btn:active { transform: scale(0.97); }
-        #note-modal textarea { width: 100%; resize: vertical; background: rgba(0,0,0,0.25); border: 1px solid var(--glass-border); border-radius: 10px; color: var(--text-color); padding: 10px; font-size: 15px; font-family: inherit; box-sizing: border-box; }
+        #note-modal textarea { width: 100%; resize: vertical; background: rgba(0,0,0,0.25); border: 1px solid var(--glass-border); border-radius: 10px; color: var(--text-color); padding: 10px; font-size: calc(15px * var(--ag-font-scale, 1)); font-family: inherit; box-sizing: border-box; }
         .photo-viewer { position: fixed; top: 0; left: 0; right: 0; height: var(--app-vh, 100dvh); z-index: 100050; background: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center; padding: 16px; }
         .photo-viewer img { max-width: 100%; max-height: 92%; border-radius: 8px; }
-        .photo-viewer .pv-close { position: absolute; top: 16px; right: 16px; width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.16); color: #fff; border: none; font-size: 20px; cursor: pointer; }
+        .photo-viewer .pv-close { position: absolute; top: 16px; right: 16px; width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.16); color: #fff; border: none; font-size: calc(20px * var(--ag-font-scale, 1)); cursor: pointer; }
         .photo-editor { position: fixed; top: 0; left: 0; right: 0; height: var(--app-vh, 100dvh); z-index: 100060; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .photo-editor .pe-hint { color: #fff; font-size: 13px; padding: 10px 16px; opacity: 0.85; text-align: center; }
+        .photo-editor .pe-hint { color: #fff; font-size: calc(13px * var(--ag-font-scale, 1)); padding: 10px 16px; opacity: 0.85; text-align: center; }
         .photo-editor canvas { max-width: 100%; max-height: calc(100% - 130px); touch-action: none; border-radius: 6px; }
         .photo-editor .pe-bar { display: flex; gap: 8px; padding: 14px; width: 100%; max-width: 480px; box-sizing: border-box; }
-        .photo-editor .pe-btn { flex: 1; padding: 12px 6px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.1); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .photo-editor .pe-btn { flex: 1; padding: 12px 6px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.1); color: #fff; font-size: calc(14px * var(--ag-font-scale, 1)); font-weight: 600; cursor: pointer; }
         .photo-editor .pe-save { background: var(--accent); color: #04211c; border: none; }
     `;
     document.head.appendChild(st);

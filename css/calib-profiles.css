@@ -20,12 +20,12 @@
 .ag-cp-label {
     display: block;
     font-weight: 700;
-    font-size: 14px;
+    font-size: calc(14px * var(--ag-font-scale, 1));
     color: var(--text-color, #eceef2);
     margin-bottom: 4px;
 }
 .ag-cp-desc {
-    font-size: 12.5px;
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
     line-height: 1.45;
     color: var(--text-muted, #9aa1ac);
     margin: 0 0 12px;
@@ -41,7 +41,7 @@
     margin-top: 12px;
 }
 .ag-cp-empty {
-    font-size: 12.5px;
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
     line-height: 1.45;
     color: var(--text-muted, #9aa1ac);
     padding: 12px 14px;
@@ -69,14 +69,14 @@
 }
 .ag-cp-name {
     font-weight: 600;
-    font-size: 14px;
+    font-size: calc(14px * var(--ag-font-scale, 1));
     color: var(--text-color, #eceef2);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 .ag-cp-meta {
-    font-size: 11.5px;
+    font-size: calc(11.5px * var(--ag-font-scale, 1));
     color: var(--text-muted, #9aa1ac);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -93,7 +93,7 @@
     border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.10));
     background: rgba(255, 255, 255, 0.06);
     color: var(--text-color, #eceef2);
-    font-size: 13px;
+    font-size: calc(13px * var(--ag-font-scale, 1));
     font-weight: 600;
     padding: 8px 12px;
     border-radius: var(--r-pill, 999px);
@@ -117,5 +117,5 @@
 }
 
 /* Režim rukavic (z vylepseni.js) — větší dotykové terče */
-body.ag-glove .ag-cp-btn { padding: 12px 16px; font-size: 15px; }
+body.ag-glove .ag-cp-btn { padding: 12px 16px; font-size: calc(15px * var(--ag-font-scale, 1)); }
 body.ag-glove .ag-cp-item { padding: 13px 14px; }

@@ -41,7 +41,7 @@
             + '<div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">'
             + '<svg class="icon" style="color:var(--accent);"><use href="#i-navigation"/></svg>'
             + '<h3 id="pruv-title" style="color:var(--accent); margin:0;">Průvodce úkolem</h3></div>'
-            + '<div id="pruv-crumb" style="font-size:12px; opacity:0.65; margin:2px 0 10px; min-height:14px;"></div>'
+            + '<div id="pruv-crumb" style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:0.65; margin:2px 0 10px; min-height:14px;"></div>'
             + '<div class="modal-body" id="pruv-body"></div>'
             + '<div id="pruv-footer" style="margin-top:16px;"></div>'
             + '</div>';
@@ -199,8 +199,8 @@
         render({
             title: 'Import souboru',
             crumb: 'Vytyčování › Import',
-            body: '<p style="font-size:14px; line-height:1.5;">Vyber soubor s body. Až ho appka naimportuje (zobrazí hlášku „Importováno…"), klepni na <b>Pokračovat na vytyčování</b>.</p>'
-                + '<p style="font-size:13px; opacity:0.75;">Podporováno: CSV/TXT s řádky <code>číslo;Y;X</code> nebo JSON.</p>',
+            body: '<p style="font-size:calc(14px * var(--ag-font-scale, 1)); line-height:1.5;">Vyber soubor s body. Až ho appka naimportuje (zobrazí hlášku „Importováno…"), klepni na <b>Pokračovat na vytyčování</b>.</p>'
+                + '<p style="font-size:calc(13px * var(--ag-font-scale, 1)); opacity:0.75;">Podporováno: CSV/TXT s řádky <code>číslo;Y;X</code> nebo JSON.</p>',
             footer: [
                 { label: 'Zpět', cls: 'btn-secondary', act: back },
                 { label: 'Vybrat soubor znovu', cls: 'btn-secondary', icon: 'folder', act: function () { inp.click(); } },
@@ -214,8 +214,8 @@
             title: 'Vložit souřadnice',
             crumb: 'Vytyčování › Souřadnice',
             body: '<label>Body v S-JTSK (každý na řádek, „číslo;Y;X"):</label>'
-                + '<textarea id="pruv-paste" rows="7" style="width:100%; font-family:var(--font-mono,monospace); font-size:13px;" placeholder="101;743210.50;1043330.25&#10;102;743225.10;1043351.80"></textarea>'
-                + '<div id="pruv-paste-prev" style="font-size:13px; margin-top:8px;"></div>',
+                + '<textarea id="pruv-paste" rows="7" style="width:100%; font-family:var(--font-mono,monospace); font-size:calc(13px * var(--ag-font-scale, 1));" placeholder="101;743210.50;1043330.25&#10;102;743225.10;1043351.80"></textarea>'
+                + '<div id="pruv-paste-prev" style="font-size:calc(13px * var(--ag-font-scale, 1)); margin-top:8px;"></div>',
             footer: [
                 { label: 'Zpět', cls: 'btn-secondary', act: back },
                 { label: 'Zkontrolovat', cls: 'btn-secondary', icon: 'check', act: previewPaste },
@@ -263,7 +263,7 @@
             crumb: 'Vytyčování › Kontrola',
             body: '<div class="pruv-check">' + (hasGps ? '✓ GPS poloha k dispozici' : '⏳ Čekám na GPS signál — venku se ustálí během chvíle') + '</div>'
                 + '<div class="pruv-check">' + (off ? '○ Jsi offline — vytyčování i checklist fungují, ale mapový podklad se nenačte, pokud není stažený' : '✓ Online — mapový podklad se načte') + '</div>'
-                + '<p style="font-size:13px; opacity:0.8; margin-top:10px;">Spustím vytyčovací checklist seřazený podle vzdálenosti. U každého bodu klepni „Vytyčeno" až ho zatlučeš.</p>',
+                + '<p style="font-size:calc(13px * var(--ag-font-scale, 1)); opacity:0.8; margin-top:10px;">Spustím vytyčovací checklist seřazený podle vzdálenosti. U každého bodu klepni „Vytyčeno" až ho zatlučeš.</p>',
             footer: [
                 { label: 'Zpět', cls: 'btn-secondary', act: back },
                 { label: 'Uložit mapu pro offline', cls: 'btn-secondary', icon: 'download', act: function () { if (typeof saveForOffline === 'function') saveForOffline(); } },
@@ -290,7 +290,7 @@
         render({
             title: 'Nastavení sběru bodů',
             crumb: 'Sběr bodů › Nastavení',
-            body: '<p style="font-size:13px; opacity:0.8; margin-top:0;">Nastav si, jak se mají body číslovat a jakou přesnost chceš. Vše můžeš změnit.</p>'
+            body: '<p style="font-size:calc(13px * var(--ag-font-scale, 1)); opacity:0.8; margin-top:0;">Nastav si, jak se mají body číslovat a jakou přesnost chceš. Vše můžeš změnit.</p>'
                 + '<label>Předpona čísla (volitelné):</label><input type="text" id="pruv-c-prefix" value="' + esc(c.prefix) + '" placeholder="např. B nebo prázdné">'
                 + '<label>Počáteční číslo:</label><input type="number" inputmode="numeric" id="pruv-c-start" value="' + (c.n || 1) + '" step="1">'
                 + '<label>Krok číslování:</label><input type="number" inputmode="numeric" id="pruv-c-step" value="' + (c.step || 1) + '" step="1">'
@@ -331,11 +331,11 @@
         render({
             title: 'Sběr bodů',
             crumb: 'Sběr bodů › Probíhá',
-            body: '<div style="text-align:center; margin:6px 0 12px;"><div style="font-size:34px; font-weight:800; color:var(--accent); font-family:var(--font-mono,monospace);">' + W.savedCount + '</div><div style="font-size:13px; opacity:0.7;">uložených bodů</div></div>'
+            body: '<div style="text-align:center; margin:6px 0 12px;"><div style="font-size:calc(34px * var(--ag-font-scale, 1)); font-weight:800; color:var(--accent); font-family:var(--font-mono,monospace);">' + W.savedCount + '</div><div style="font-size:calc(13px * var(--ag-font-scale, 1)); opacity:0.7;">uložených bodů</div></div>'
                 + '<div class="pruv-check">Další bod dostane číslo <b>#' + esc(makeCollectName()) + '</b></div>'
                 + accTxt
                 + (c.foto ? '<div class="pruv-check"><svg class="icon" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"><use href="#i-camera"/></svg>Nezapomeň přidat fotku v kartě bodu</div>' : '')
-                + '<p style="font-size:13px; opacity:0.8; margin-top:10px;">Postav se na bod, nech ustálit GPS, klepni „Zaměřit bod" a v okně použij „Vyplnit z průměru GPS" + Uložit.</p>',
+                + '<p style="font-size:calc(13px * var(--ag-font-scale, 1)); opacity:0.8; margin-top:10px;">Postav se na bod, nech ustálit GPS, klepni „Zaměřit bod" a v okně použij „Vyplnit z průměru GPS" + Uložit.</p>',
             footer: [
                 { label: 'Hotovo', cls: 'btn-secondary', act: function () { W.collecting = false; stepDone(); } },
                 { label: 'Zaměřit bod', cls: 'btn-primary', icon: 'locate', act: function () {
@@ -460,9 +460,9 @@
         render({
             title: 'Hotovo 🎉',
             crumb: activityLabel() + ' › Dokončeno',
-            body: '<p style="font-size:14px; line-height:1.55;">' + activityLabel() + ' je hotové'
+            body: '<p style="font-size:calc(14px * var(--ag-font-scale, 1)); line-height:1.55;">' + activityLabel() + ' je hotové'
                 + (W.activity === 'collect' ? ' — uloženo ' + W.savedCount + ' bodů.' : '.')
-                + '</p><p style="font-size:14px;">Je ještě něco potřeba, nebo chceš výsledek uložit / exportovat?</p>',
+                + '</p><p style="font-size:calc(14px * var(--ag-font-scale, 1));">Je ještě něco potřeba, nebo chceš výsledek uložit / exportovat?</p>',
             footer: f
         });
     }
@@ -587,13 +587,13 @@
         st.textContent =
             '.pruv-card{display:block;width:100%;text-align:left;background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:12px;padding:14px;margin-bottom:10px;color:var(--text-color);cursor:pointer;transition:background .15s,border-color .15s;}'
             + '.pruv-card:hover,.pruv-card:active{background:rgba(47,158,116,0.12);border-color:var(--accent);}'
-            + '.pruv-card-t{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}'
-            + '.pruv-card-s{font-size:13px;opacity:0.72;margin-top:4px;line-height:1.4;}'
-            + '.pruv-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap;}'
+            + '.pruv-card-t{font-weight:700;font-size:calc(15px * var(--ag-font-scale, 1));display:flex;align-items:center;gap:8px;flex-wrap:wrap;}'
+            + '.pruv-card-s{font-size:calc(13px * var(--ag-font-scale, 1));opacity:0.72;margin-top:4px;line-height:1.4;}'
+            + '.pruv-badge{font-size:calc(11px * var(--ag-font-scale, 1));font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap;}'
             + '.pruv-badge.on{background:rgba(16,185,129,0.2);color:#34d399;}'
             + '.pruv-badge.off{background:rgba(251,191,36,0.18);color:#fbbf24;}'
-            + '.pruv-check{font-size:13px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);}'
-            + '.pruv-warn{font-size:13px;line-height:1.5;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.35);color:#fbbf24;border-radius:10px;padding:10px;}'
+            + '.pruv-check{font-size:calc(13px * var(--ag-font-scale, 1));padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);}'
+            + '.pruv-warn{font-size:calc(13px * var(--ag-font-scale, 1));line-height:1.5;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.35);color:#fbbf24;border-radius:10px;padding:10px;}'
             + '#pruv-footer .btn{margin-top:10px;}';
         document.head.appendChild(st);
     })();

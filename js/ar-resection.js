@@ -207,11 +207,11 @@
         el.innerHTML =
             '<div class="modal-content">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' AR resekce — poloha a sever z bodů</h3>'
-            + '<p style="font-size:12.5px;opacity:.82;margin:2px 0 8px;line-height:1.45;">Z telefonu „totálka": zaměř křížem kamery <b>2–4 viditelné známé body</b>. '
+            + '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.82;margin:2px 0 8px;line-height:1.45;">Z telefonu „totálka": zaměř křížem kamery <b>2–4 viditelné známé body</b>. '
             + 'Z rozdílů azimutů appka srovná sever (a při <b>3+</b> bodech i dopočítá tvoji přesnou polohu). '
             + 'Rozdíly azimutů ruší chybu kompasu, takže to funguje i tam, kde magnetometr blbne.</p>'
             + '<div id="agrx-list" class="agrx-list"></div>'
-            + '<div id="agrx-warn" style="font-size:12px;color:#fbbf24;margin:6px 2px;"></div>'
+            + '<div id="agrx-warn" style="font-size:calc(12px * var(--ag-font-scale, 1));color:#fbbf24;margin:6px 2px;"></div>'
             + '<button class="btn" id="agrx-start"><svg class="icon"><use href="#i-crosshair"/></svg> Spustit zaměřování</button>'
             + '<div id="agrx-result" class="agrx-result" style="display:none;"></div>'
             + '<div id="agrx-actions" style="display:none;">'
@@ -231,7 +231,7 @@
     function renderList() {
         var box = document.getElementById('agrx-list'); if (!box) return;
         var list = candidatePoints();
-        if (!list.length) { box.innerHTML = '<div style="opacity:.6;font-size:13px;padding:8px 2px;">Žádné body — stáhni okolí (ČÚZK) nebo přidej vlastní body se souřadnicemi.</div>'; return; }
+        if (!list.length) { box.innerHTML = '<div style="opacity:.6;font-size:calc(13px * var(--ag-font-scale, 1));padding:8px 2px;">Žádné body — stáhni okolí (ČÚZK) nebo přidej vlastní body se souřadnicemi.</div>'; return; }
         // ukázat prvních 40 nejbližších + navíc VŽDY vlastní body a už vybrané body
         // (i kdyby byly za hranicí 40) — jinak by vlastní GPS body při hustém okolí zmizely
         var shown = list.slice(0, 40);
@@ -306,7 +306,7 @@
         var txt = document.getElementById('agrx-aim-txt');
         var d = (pt && haveUser()) ? getDistance(userLat, userLng, pt.lat, pt.lng) : null;
         if (txt) txt.innerHTML = 'Namiř střed na <b>#' + (pt ? pt.name : '?') + '</b>' + (d != null ? ' · ' + d.toFixed(0) + ' m' : '')
-            + '<br><span style="opacity:.7;font-size:12px">cíl ' + (_capIdx + 1) + ' z ' + _selIds.length + ' — drž svisle a klepni Zaměřit</span>';
+            + '<br><span style="opacity:.7;font-size:calc(12px * var(--ag-font-scale, 1))">cíl ' + (_capIdx + 1) + ' z ' + _selIds.length + ' — drž svisle a klepni Zaměřit</span>';
         var shot = document.getElementById('agrx-shot'); if (shot) { shot.disabled = false; shot.innerText = 'Zaměřit #' + (pt ? pt.name : ''); }
     }
     function takeShot() {
@@ -379,20 +379,20 @@
         var head = '';
         if (r.mode === 'full') {
             head = '<div class="agrx-big">Sever: <b>' + (r.delta >= 0 ? '+' : '') + r.delta.toFixed(1) + '°</b></div>'
-                + '<div style="margin:6px 0;font-family:var(--font-mono,monospace);font-size:13px;">'
+                + '<div style="margin:6px 0;font-family:var(--font-mono,monospace);font-size:calc(13px * var(--ag-font-scale, 1));">'
                 + 'Stanovisko (S-JTSK):<br><b>Y</b> ' + (r.Y != null ? r.Y.toFixed(2) : '—') + ' &nbsp; <b>X</b> ' + (r.X != null ? r.X.toFixed(2) : '—') + '</div>'
-                + '<div style="font-size:12.5px;opacity:.85;">Posun od GPS: <b>' + r.shiftFromGps.toFixed(1) + ' m</b>'
+                + '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.85;">Posun od GPS: <b>' + r.shiftFromGps.toFixed(1) + ' m</b>'
                 + (r.posSigma != null ? ' · odhad přesnosti ±' + r.posSigma.toFixed(2) + ' m' : ' · 3 body = bez kontroly')
                 + '</div>';
         } else {
             head = '<div class="agrx-big">Sever: <b>' + (r.delta >= 0 ? '+' : '') + r.delta.toFixed(1) + '°</b></div>'
-                + '<div style="font-size:12.5px;opacity:.85;">2 body — spočítán jen sever (poloha = GPS). Rozdíl mezi body: ' + Math.abs(r.spread).toFixed(2) + '°. Pro výpočet polohy vyber 3 body.</div>';
+                + '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.85;">2 body — spočítán jen sever (poloha = GPS). Rozdíl mezi body: ' + Math.abs(r.spread).toFixed(2) + '°. Pro výpočet polohy vyber 3 body.</div>';
         }
         var warn = '';
-        if (maxRes > 2) warn = '<div style="color:#f87171;font-size:12px;margin-top:6px;">⚠ Velké reziduum (' + maxRes.toFixed(1) + '°) — možná špatně zaměřený nebo zaměněný bod. Zkontroluj, případně zaměř znovu.</div>';
-        if (r.mode === 'full' && r.shiftFromGps > 60) warn += '<div style="color:#f87171;font-size:12px;margin-top:4px;">⚠ Velký posun od GPS — ověř, že jsi mířil na správné body.</div>';
+        if (maxRes > 2) warn = '<div style="color:#f87171;font-size:calc(12px * var(--ag-font-scale, 1));margin-top:6px;">⚠ Velké reziduum (' + maxRes.toFixed(1) + '°) — možná špatně zaměřený nebo zaměněný bod. Zkontroluj, případně zaměř znovu.</div>';
+        if (r.mode === 'full' && r.shiftFromGps > 60) warn += '<div style="color:#f87171;font-size:calc(12px * var(--ag-font-scale, 1));margin-top:4px;">⚠ Velký posun od GPS — ověř, že jsi mířil na správné body.</div>';
 
-        box.innerHTML = head + '<div style="margin-top:8px;font-size:12px;opacity:.7;">Reziduály směrů:</div><div style="font-family:var(--font-mono,monospace);font-size:12.5px;margin-top:2px;">' + resHtml + '</div>' + warn;
+        box.innerHTML = head + '<div style="margin-top:8px;font-size:calc(12px * var(--ag-font-scale, 1));opacity:.7;">Reziduály směrů:</div><div style="font-family:var(--font-mono,monospace);font-size:calc(12.5px * var(--ag-font-scale, 1));margin-top:2px;">' + resHtml + '</div>' + warn;
         box.style.display = 'block';
         if (acts) acts.style.display = 'block';
         var apply = document.getElementById('agrx-apply'); if (apply) apply.innerHTML = '<svg class="icon"><use href="#i-check"/></svg> Srovnat sever (' + (r.delta >= 0 ? '+' : '') + r.delta.toFixed(1) + '°)';
@@ -437,13 +437,18 @@
     function saveStandpoint() {
         if (!_result || _result.mode !== 'full') return;
         if (typeof window.addImportedPoints !== 'function') { agAlert('Nelze uložit', 'Vkládání bodů není dostupné.'); return; }
-        var name = 'Stanovisko' ;
-        try { name = prompt('Název stanoviska:', 'ST_' + (_result.residuals.length) + 'b') || name; } catch (e) {}
-        var added = window.addImportedPoints([{ name: name, lat: _result.lat, lng: _result.lng }]);
-        if (added > 0) agAlert('Stanovisko uloženo', '#' + name + ' uloženo do zakázky'
-            + (_result.posSigma != null ? ' (odhad ±' + _result.posSigma.toFixed(2) + ' m).' : '.')
-            + '\nNajdeš ho v seznamu Body.');
-        else agAlert('Neuloženo', 'Bod se stejným názvem a polohou už v zakázce je.');
+        // Výsledek zmrazit: dialog je asynchronní a živá obnova (_liveTimer)
+        // by mezitím mohla _result přepsat novým řešením.
+        var res = _result;
+        agAskText('Název stanoviska:', { title: 'Uložit stanovisko', value: 'ST_' + res.residuals.length + 'b', okText: 'Uložit' }).then(function (v) {
+            if (v === null) return;   // Zrušit = neukládat (dřív se i po zrušení uložilo "Stanovisko")
+            var name = String(v).trim() || 'Stanovisko';
+            var added = window.addImportedPoints([{ name: name, lat: res.lat, lng: res.lng }]);
+            if (added > 0) agAlert('Stanovisko uloženo', '#' + name + ' uloženo do zakázky'
+                + (res.posSigma != null ? ' (odhad ±' + res.posSigma.toFixed(2) + ' m).' : '.')
+                + '\nNajdeš ho v seznamu Body.');
+            else agAlert('Neuloženo', 'Bod se stejným názvem a polohou už v zakázce je.');
+        });
     }
 
     // ---- otevření/zavření + živá obnova seznamu -------------------------------
@@ -475,10 +480,10 @@
             '.agrx-row.on{background:rgba(47,158,116,0.16);outline:1px solid rgba(47,158,116,0.5);}',
             '.agrx-row input{width:18px;height:18px;flex:0 0 18px;accent-color:var(--accent,#2f9e74);}',
             '.agrx-name{font-weight:600;flex:1;}',
-            '.agrx-cat{font-size:10px;opacity:.7;border:1px solid currentColor;border-radius:5px;padding:0 4px;margin-left:4px;}',
-            '.agrx-meta{font-family:var(--font-mono,monospace);font-size:12px;opacity:.75;white-space:nowrap;}',
+            '.agrx-cat{font-size:calc(10px * var(--ag-font-scale, 1));opacity:.7;border:1px solid currentColor;border-radius:5px;padding:0 4px;margin-left:4px;}',
+            '.agrx-meta{font-family:var(--font-mono,monospace);font-size:calc(12px * var(--ag-font-scale, 1));opacity:.75;white-space:nowrap;}',
             '.agrx-result{margin:12px 0;padding:12px 14px;border-radius:10px;background:rgba(47,158,116,0.12);}',
-            '.agrx-big{font-size:15px;margin-bottom:2px;}',
+            '.agrx-big{font-size:calc(15px * var(--ag-font-scale, 1));margin-bottom:2px;}',
             '#agrx-aim{position:fixed;inset:0;z-index:100050;display:none;pointer-events:none;}',
             '#agrx-aim.on{display:block;}',
             '#agrx-aim-bar{position:absolute;top:max(16px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);max-width:90vw;',

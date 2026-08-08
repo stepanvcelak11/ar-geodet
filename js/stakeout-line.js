@@ -110,7 +110,7 @@
     function previewStake() {
         var r = computeStakePoint(true); var out = document.getElementById('agsl-stake-out'); if (!out) return;
         if (!r) { out.innerHTML = ''; return; }
-        out.innerHTML = '<b>Y</b> ' + r.Y + ' &nbsp; <b>X</b> ' + r.X + '<br><span style="opacity:.65;font-size:12px">staničení ' + r.s.toFixed(2) + ' m' + (r.o ? ', odstup ' + Math.abs(r.o).toFixed(2) + ' m ' + (r.o > 0 ? 'vlevo' : 'vpravo') : ' na ose') + '</span>';
+        out.innerHTML = '<b>Y</b> ' + r.Y + ' &nbsp; <b>X</b> ' + r.X + '<br><span style="opacity:.65;font-size:calc(12px * var(--ag-font-scale, 1))">staničení ' + r.s.toFixed(2) + ' m' + (r.o ? ', odstup ' + Math.abs(r.o).toFixed(2) + ' m ' + (r.o > 0 ? 'vlevo' : 'vpravo') : ' na ose') + '</span>';
     }
     function saveStake() {
         var r = computeStakePoint(); if (!r) return;
@@ -132,8 +132,8 @@
             + '  <div style="flex:1;"><label>Bod A (počátek)</label><select id="agsl-a"></select></div>'
             + '  <div style="flex:1;"><label>Bod B (konec)</label><select id="agsl-b"></select></div>'
             + '</div>'
-            + '<div id="agsl-lineinfo" style="font-size:13px;margin:8px 0;color:var(--accent);"></div>'
-            + '<div id="agsl-live" style="margin:6px 0 12px;padding:12px 14px;border-radius:10px;background:rgba(47,158,116,0.12);font-family:var(--font-mono,monospace);font-size:14px;"></div>'
+            + '<div id="agsl-lineinfo" style="font-size:calc(13px * var(--ag-font-scale, 1));margin:8px 0;color:var(--accent);"></div>'
+            + '<div id="agsl-live" style="margin:6px 0 12px;padding:12px 14px;border-radius:10px;background:rgba(47,158,116,0.12);font-family:var(--font-mono,monospace);font-size:calc(14px * var(--ag-font-scale, 1));"></div>'
             + '<details class="adv"><summary><svg class="icon"><use href="#i-crosshair"/></svg> Vytyčit bod na staničení</summary><div class="adv-body">'
             + '  <label>Staničení od A (m)</label><input type="number" id="agsl-stat" step="0.01" inputmode="decimal" placeholder="např. 25.00">'
             + '  <label style="margin-top:6px;">Kolmý odstup (m, + vlevo / − vpravo)</label><input type="number" id="agsl-off" step="0.01" inputmode="decimal" placeholder="0">'

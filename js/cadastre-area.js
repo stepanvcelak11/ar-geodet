@@ -367,8 +367,8 @@
                 message: 'V oblasti jsem našel <b>' + pts.length + '</b> ' + plural(pts.length, 'bod', 'body', 'bodů') +
                     (fresh.length !== pts.length ? (' (z toho <b>' + fresh.length + '</b> ' + plural(fresh.length, 'nový', 'nové', 'nových') + ')') : '') +
                     '.<br>Přidat je do aktuální zakázky jako vlastní body?' +
-                    (errCount ? '<br><span style="font-size:12px;color:var(--warning,#fbbf24);">Pozor: ' + errCount + ' z ' + total + ' vrstev se nestáhlo — výsledek může být neúplný.</span>' : '') +
-                    '<br><span style="font-size:12px;opacity:.7;">Data © ČÚZK</span>',
+                    (errCount ? '<br><span style="font-size:calc(12px * var(--ag-font-scale, 1));color:var(--warning,#fbbf24);">Pozor: ' + errCount + ' z ' + total + ' vrstev se nestáhlo — výsledek může být neúplný.</span>' : '') +
+                    '<br><span style="font-size:calc(12px * var(--ag-font-scale, 1));opacity:.7;">Data © ČÚZK</span>',
                 okText: 'Přidat (' + fresh.length + ')', cancelText: 'Zrušit'
             }).then(function (ok) {
                 if (!ok) return;
