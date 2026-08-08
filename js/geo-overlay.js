@@ -34,7 +34,7 @@
     var _layer = null;             // Leaflet vrstva
     var _pendingPixel = null;      // při přidávání bodu
 
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function getMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
     function projId() { try { return (typeof activeProjectId !== 'undefined') ? activeProjectId : 'default'; } catch (e) { return 'default'; } }
 

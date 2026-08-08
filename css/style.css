@@ -943,6 +943,21 @@ details[open] summary::after { content: " ⌄"; }
     border: 1px solid var(--glass-border);
     border-radius: var(--r-md);
 }
+/* Radek bodu je cely klikatelny = „zamer mi tenhle bod“. Driv se dalo tuknout jen
+   na dve male ikonky vpravo a klepnuti na kartu nedelalo vubec nic. */
+.cp-focusable { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 0.12s, border-color 0.12s; }
+.cp-focusable:hover { background: rgba(255, 255, 255, 0.07); }
+.cp-focusable:active { background: rgba(47, 158, 116, 0.16); border-color: var(--accent); }
+.cp-focusable:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* sipka v rohu karty — tichy signal, ze se da tuknout */
+.cp-focusable .cp-title::after {
+    content: 'A';
+    float: right;
+    margin-left: 8px;
+    font-size: calc(20px * var(--ag-font-scale, 1));
+    line-height: 1;
+    opacity: 0.45;
+}
 .cp-title { margin-bottom: 4px; font-size: calc(16px * var(--ag-font-scale, 1)); font-weight: 700; color: var(--accent); }
 .cp-coords {
     margin-bottom: 12px;

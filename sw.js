@@ -11,7 +11,11 @@
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
 const SHELL_CACHE = 'argeodet-shell-v214';   // OPRAVA: jeden bod bez DOM elementu shazoval vykresleni vsech bodu v AR i v mape
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
-const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
+// FONT_CACHE — vlastni pisma (css/fonts/*.woff2, ~900 kB). Pisma se NIKDY nemeni,
+// takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
+// nemaze se pri updatu (stejny princip jako TILE_CACHE u mapovych dlazdic).
+const FONT_CACHE = 'argeodet-fonts-v1';
+const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE, FONT_CACHE];
 
 const ASSETS_TO_CACHE = [
     // >>> GENEROVANO scripts/gen_sw_assets.py — needitovat rucne
@@ -199,8 +203,33 @@ const ASSETS_TO_CACHE = [
     './js/gnss-forecast.js',
     './js/korekce.js',
     './js/checklist.js',
+    './css/fonts/inter-400-latin-ext.woff2',
+    './css/fonts/inter-400-latin.woff2',
+    './css/fonts/inter-500-latin-ext.woff2',
+    './css/fonts/inter-500-latin.woff2',
+    './css/fonts/inter-600-latin-ext.woff2',
+    './css/fonts/inter-600-latin.woff2',
+    './css/fonts/inter-700-latin-ext.woff2',
+    './css/fonts/inter-700-latin.woff2',
+    './css/fonts/inter-800-latin-ext.woff2',
+    './css/fonts/inter-800-latin.woff2',
+    './css/fonts/jetbrainsmono-400-latin-ext.woff2',
+    './css/fonts/jetbrainsmono-400-latin.woff2',
+    './css/fonts/jetbrainsmono-500-latin-ext.woff2',
+    './css/fonts/jetbrainsmono-500-latin.woff2',
+    './css/fonts/jetbrainsmono-700-latin-ext.woff2',
+    './css/fonts/jetbrainsmono-700-latin.woff2',
+    './css/fonts/sora-600-latin-ext.woff2',
+    './css/fonts/sora-600-latin.woff2',
+    './css/fonts/sora-700-latin-ext.woff2',
+    './css/fonts/sora-700-latin.woff2',
+    './css/fonts/sora-800-latin-ext.woff2',
+    './css/fonts/sora-800-latin.woff2',
     // <<< KONEC GENEROVANEHO SEZNAMU
 ];
+
+// Vlastni pisma ukladame do FONT_CACHE, aby prezila update kodu (viz vyse).
+function isFont(url) { return url.includes('/css/fonts/'); }
 
 // Mapove dlazdice (OSM, CUZK WMS) ukladame do TILE_CACHE, aby prezily update kodu.
 function isTile(url) {
@@ -213,11 +242,17 @@ function isTile(url) {
 self.addEventListener('install', event => {
     event.waitUntil((async () => {
         const cache = await caches.open(SHELL_CACHE);
+        const fontCache = await caches.open(FONT_CACHE);
         // Kazdy soubor zvlast â€” selhani jednoho nesmi zablokovat instalaci (a tim i aktualizaci).
         await Promise.allSettled(ASSETS_TO_CACHE.map(async url => {
+            // PISMA: uz je mame z minule verze? Necha se to tak — jsou to ~900 kB, ktere
+            // se nemeni, a stahovat je znovu pri kazdem bumpu verze by byla skoda dat.
+            const font = isFont(url);
+            const target = font ? fontCache : cache;
+            if (font && await target.match(url)) return;
             try {
                 const res = await fetch(new Request(url, { cache: 'reload' }));
-                if (res && (res.ok || res.type === 'opaque')) await cache.put(url, res);
+                if (res && (res.ok || res.type === 'opaque')) await target.put(url, res);
             } catch (e) { /* offline / blokovany CDN â€” preskocit, nevadi */ }
         }));
         // skipWaiting az na vyzadani z appky (po souhlasu uzivatele s obnovou)
@@ -286,7 +321,8 @@ self.addEventListener('fetch', event => {
             caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
                 if (response && response.ok) {
                     const clone = response.clone();
-                    caches.open(SHELL_CACHE).then(cache => cache.put(event.request, clone));
+                    // pisma do vlastni (neverzovane) cache, at prezijou update kodu
+                    caches.open(isFont(url) ? FONT_CACHE : SHELL_CACHE).then(cache => cache.put(event.request, clone));
                 }
                 return response;
             }))
@@ -305,7 +341,7 @@ self.addEventListener('fetch', event => {
                 // protoze cache-first ji dal vracel misto noveho pokusu.
                 const okToCache = response && (response.ok || response.type === 'opaque');
                 if (url.startsWith('http') && okToCache) {
-                    const targetCache = isTile(url) ? TILE_CACHE : SHELL_CACHE;
+                    const targetCache = isTile(url) ? TILE_CACHE : (isFont(url) ? FONT_CACHE : SHELL_CACHE);
                     const responseClone = response.clone();
                     caches.open(targetCache).then(cache => cache.put(event.request, responseClone));
                 }

@@ -305,7 +305,7 @@
         });
         var azi = body.querySelector('#ag-su-az');
         if (azi) azi.addEventListener('change', function () {
-            var v = parseFloat(this.value);
+            var v = agNum(this.value);
             try { if (isFinite(v)) localStorage.setItem(LS_AZ, String(((v % 360) + 360) % 360)); else localStorage.removeItem(LS_AZ); } catch (e) {}
             render();
         });

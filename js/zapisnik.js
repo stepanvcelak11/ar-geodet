@@ -54,7 +54,7 @@
         try { if (typeof setStoredData === 'function') { setStoredData(KEY, s); return; } } catch (e) {}
         try { localStorage.setItem(KEY, s); } catch (e) {}
     }
-    function num(v) { if (v == null || v === '') return null; var n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; }
+    function num(v) { if (v == null || v === '') return null; return agNum(v); }
     function f3(v) { return v == null ? '—' : v.toFixed(3); }
     function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
     function uid() { return 'zb_' + Date.now() + '_' + Math.round(Math.random() * 1e5); }
@@ -501,7 +501,7 @@
             saveAll(gg.d); renderSm(id);
         });
         var delG = b.querySelector('#ag-zb-delg');
-        if (delG) delG.addEventListener('click', function () {
+        if (delG) delG.addEventListener('click', async function () {
             var gg = getNb('sm', id); if (!gg || gg.nb.groups.length <= 1) return;
             agAsk('Odebrat poslední skupinu včetně čtení?', { title: 'Odebrat skupinu', okText: 'Odebrat', danger: true }).then(function (ok) {
                 if (!ok) return;

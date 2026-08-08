@@ -413,6 +413,7 @@
         }
         // Kazde otevreni zacina s cistym stitem — jinak by po navratu do panelu tise
         // platilo stare hledani nebo zustal zapnuty rezim vyberu a chybely by body.
+        let _mngDocs = null;   // poznamky/fotky vsech bodu, nactene jednim pruchodem IndexedDB
         function openManageModal() {
             document.getElementById('settings-modal').style.display = 'none';
             _mngQuery = ''; _mngSelMode = false; _mngSel.clear();
@@ -420,6 +421,15 @@
             // zavreny modal a prekresleni by jen odlozil (viz _mngVisible)
             document.getElementById('manage-modal').style.display = 'flex';
             _renderManageListNow();
+            // Dokumentace bodu (poznamka/fotka) lezi v IndexedDB. Driv se na kazdy radek
+            // posilal vlastni dotaz, tedy u zakazky s tisici body tisic dotazu. Ted se
+            // nacte JEDNIM pruchodem a seznam se dokresli, jak dorazi.
+            if (typeof loadAllPointDocs === 'function') {
+                loadAllPointDocs().then(docs => {
+                    _mngDocs = docs || {};
+                    if (_mngVisible()) renderManageList();
+                }).catch(() => {});
+            }
         }
         function closeManageModal() { document.getElementById('manage-modal').style.display = 'none'; fixAppLayout(); }
         // ===== SPRAVA BODU (panel Body): hledani, razeni a hromadne operace =====
@@ -539,11 +549,26 @@
                     });
                 } else {
                     const act = document.createElement('div'); act.className = 'cp-actions';
-                    act.innerHTML = `<button class="cp-btn cp-btn-edit"><svg class="icon"><use href="#i-edit"/></svg></button> <button class="cp-btn cp-btn-delete"><svg class="icon"><use href="#i-trash"/></svg></button>`;
+                    act.innerHTML = `<button class="cp-btn cp-btn-edit" aria-label="Upravit bod"><svg class="icon"><use href="#i-edit"/></svg></button> <button class="cp-btn cp-btn-delete" aria-label="Smazat bod"><svg class="icon"><use href="#i-trash"/></svg></button>`;
                     item.appendChild(act);
-                    act.querySelector('.cp-btn-edit').addEventListener('click', () => editCustomPoint(pt.id));
-                    act.querySelector('.cp-btn-delete').addEventListener('click', () => deleteCustomPoint(pt.id));
-                    if (typeof decoratePointItem === 'function') { try { decoratePointItem(item, pt); } catch (e) {} }
+                    // stopPropagation: radek je od teto verze cely klikatelny (viz nize),
+                    // takze bez toho by klepnuti na tuzku/kos zaroven zameril bod
+                    act.querySelector('.cp-btn-edit').addEventListener('click', (ev) => { ev.stopPropagation(); editCustomPoint(pt.id); });
+                    act.querySelector('.cp-btn-delete').addEventListener('click', (ev) => { ev.stopPropagation(); deleteCustomPoint(pt.id); });
+                    // TUKNUTI NA RADEK = zamerit bod. Driv se na kartu bodu dalo klepnout a
+                    // NESTALO SE NIC — jedine, co slo, byly dve male ikonky vpravo. Pritom
+                    // "ukaz mi ten bod" je to, kvuli cemu seznam clovek v terenu otevira.
+                    item.classList.add('cp-focusable');
+                    item.setAttribute('role', 'button');
+                    item.setAttribute('tabindex', '0');
+                    item.addEventListener('click', () => focusPointFromList(pt.id));
+                    item.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); focusPointFromList(pt.id); } });
+                    if (typeof decoratePointItem === 'function') {
+                        try {
+                            if (_mngDocs) decoratePointItem(item, pt, _mngDocs[pt.id] || null);
+                            else decoratePointItem(item, pt);
+                        } catch (e) {}
+                    }
                 }
                 return item;
             };
@@ -572,6 +597,29 @@
             };
             step();   // první dávka synchronně — modal se nikdy neukáže prázdný
         }
+        // Zamereni bodu ze seznamu: zavrit seznam, uklidit vse, co by bod schovalo,
+        // a nastavit ho jako zvyrazneny cil (mapa + ukazatel na hrane displeje).
+        function focusPointFromList(id) {
+            const pt = arPoints.find(p => p.id === id) || persistentCustomPoints.find(p => p.id === id);
+            if (!pt) return;
+            if (pt.hidden) pt.hidden = false;
+            if (!filters.custom && pt.cat === 'CUSTOM') {
+                filters.custom = true; setStoredData('arFilters12', JSON.stringify(filters));
+                const c = document.getElementById('f-custom'); if (c) c.checked = true;
+            }
+            if (!agMatchQuery(pt, searchQuery)) {
+                searchQuery = '';
+                const inp = document.getElementById('s-search-name'); if (inp) inp.value = '';
+            }
+            closeManageModal();
+            if (highlightedPointId !== pt.id) highlightPoint(pt);
+            else { initARMarkers(); drawAllMarkersOnMap(); updateNavGlow(); }
+            try { if (window.AGCilNav && AGCilNav.fit) AGCilNav.fit(); } catch (e) {}
+            const d = (userLat != null) ? getDistance(userLat, userLng, pt.lat, pt.lng) : null;
+            quickToast('Cíl: ' + pt.name + (d != null ? ' — ' + d.toFixed(1) + ' m' : ''));
+            agVibe(20);
+        }
+        window.focusPointFromList = focusPointFromList;
         // panel hromadnych akci nad vyberem
         function renderMngActions(listDiv) {
             const box = document.createElement('div'); box.className = 'mng-actions';

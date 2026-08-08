@@ -518,7 +518,7 @@
         var f = u && u.getFirm();
         function say(t, msg) {
             try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: msg }); } catch (e) {}
-            alert(t + '\n\n' + msg);
+            agInfo(t + '\n\n' + msg);
         }
         if (!f) return say('Firemní chat', 'Chat funguje ve firemním režimu (Nástroje → Firma a účty).');
         if (!f.cloud) return say('Firemní chat', 'Chat potřebuje CLOUDOVOU firmu (účty na serveru) — lokální firma nemá kam zprávy posílat.');

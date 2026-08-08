@@ -181,8 +181,8 @@
             row.className = 'cp-item';
             row.innerHTML = '<div style="flex:1; min-width:0;"><div class="cp-title">' + title + '</div>'
                 + '<div class="cp-coords">smazáno ' + when + (rec.type === 'point' && rec.lines && rec.lines.length ? ' · +' + rec.lines.length + ' spojnic' : '') + '</div></div>'
-                + '<div class="cp-actions"><button class="cp-btn cp-btn-edit" title="Obnovit"><svg class="icon"><use href="#i-download"/></svg></button>'
-                + '<button class="cp-btn cp-btn-delete" title="Smazat trvale"><svg class="icon"><use href="#i-trash"/></svg></button></div>';
+                + '<div class="cp-actions"><button class="cp-btn cp-btn-edit" title="Obnovit" aria-label="Obnovit bod z koše"><svg class="icon"><use href="#i-download"/></svg></button>'
+                + '<button class="cp-btn cp-btn-delete" title="Smazat trvale" aria-label="Smazat bod natrvalo"><svg class="icon"><use href="#i-trash"/></svg></button></div>';
             row.querySelector('.cp-btn-edit').addEventListener('click', function () {
                 var fin = function () { removeRec(rec); render(); };
                 if (rec.type === 'project') restoreProject(rec, fin); else restorePoint(rec, fin);

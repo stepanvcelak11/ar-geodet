@@ -50,7 +50,7 @@
     var LS_KEY = 'agVisualTrack';   // '1' = zapnuto, '0'/null = vypnuto (DEFAULT VYPNUTO)
 
     // ---- pomocné (nezávislé na globálech; vlastní fallbacky) -------------------
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} try { alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) {} }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) {} }
     function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
     function curViewMode() { try { return (typeof viewMode !== 'undefined') ? viewMode : 'both'; } catch (e) { return 'both'; } }
     function pageVisible() { try { return !document.hidden && document.visibilityState !== 'hidden'; } catch (e) { return true; } }

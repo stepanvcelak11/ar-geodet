@@ -24,7 +24,7 @@
     var PERSIST_MS = 10000;    // localStorage zápis je SYNCHRONNÍ a blokuje hlavní vlákno (a tím
                                // i obraz kamery) — proto stopu neukládáme každý vzorek, ale dávkově.
 
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function getMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
 
     function load() {

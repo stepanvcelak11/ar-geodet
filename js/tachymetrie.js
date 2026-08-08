@@ -122,12 +122,12 @@
                 <button class="tb-btn prim" onclick="tachyAddCurrent()"><svg class="icon"><use href="#i-plus"/></svg> Bod (GPS)</button>
                 <button class="tb-btn" onclick="tachyAddFromPoints()"><svg class="icon"><use href="#i-map-pin"/></svg> Z bodů</button>
                 <span class="tb-sep"></span>
-                <button class="tb-btn tb-icon" onclick="tachyUndo()" title="Zpět"><svg class="icon"><use href="#i-rotate-ccw"/></svg></button>
+                <button class="tb-btn tb-icon" onclick="tachyUndo()" title="Zpět" aria-label="Zpět"><svg class="icon"><use href="#i-rotate-ccw"/></svg></button>
                 <select id="tachy-bg" class="tb-sel" title="Podklad" onchange="tachySetBg(this.value)">
                     <option value="osm">Mapa</option><option value="ortofoto">Ortofoto</option><option value="none">Bez podkladu</option>
                 </select>
-                <button class="tb-btn tb-icon" onclick="tachyExport()" title="Export do PNG"><svg class="icon"><use href="#i-download"/></svg></button>
-                <button class="tb-btn tb-icon warn" onclick="tachyClear()" title="Vymazat náčrt"><svg class="icon"><use href="#i-trash"/></svg></button>
+                <button class="tb-btn tb-icon" onclick="tachyExport()" title="Export do PNG" aria-label="Export náčrtu do PNG"><svg class="icon"><use href="#i-download"/></svg></button>
+                <button class="tb-btn tb-icon warn" onclick="tachyClear()" title="Vymazat náčrt" aria-label="Vymazat celý náčrt"><svg class="icon"><use href="#i-trash"/></svg></button>
             </div>
             <div id="tachy-hint"></div>
             <div id="tachy-wrap">
@@ -187,7 +187,7 @@
     // ---------- Přidávání ----------
     function nextName() { let n = 1; const used = new Set(sketch.pts.map(p => p.name)); while (used.has(String(n))) n++; return String(n); }
 
-    window.tachyAddCurrent = function () {
+    window.tachyAddCurrent = async function () {
         let lat = null, lng = null;
         if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.lat) { lat = gpsAvgResult.lat; lng = gpsAvgResult.lng; }
         else if (typeof userLat !== 'undefined' && userLat) { lat = userLat; lng = userLng; }
@@ -261,13 +261,13 @@
     };
 
     // ---------- Interakce (přes klik do mapy) ----------
-    function onMapClick(e) {
+    async function onMapClick(e) {
         const px = e.containerPoint.x, py = e.containerPoint.y;
         if (mode === 'label') {
             let lbi = -1, lbD = 26 * 26;
             sketch.labels.forEach((lb, i) => { const s = scr(lb); const d = (s.x - px) * (s.x - px) + (s.y - py) * (s.y - py); if (d < lbD) { lbD = d; lbi = i; } });
-            if (lbi >= 0) { const nt = prompt('Upravit popisek (prázdné = smazat):', sketch.labels[lbi].text); if (nt === null) return; if (!nt.trim()) sketch.labels.splice(lbi, 1); else sketch.labels[lbi].text = nt.trim(); save(); redraw(); return; }
-            const t = prompt('Text popisku (např. kámen, šachta, strom):', ''); if (t === null || !t.trim()) return;
+            if (lbi >= 0) { const nt = (await agAskText('Upravit popisek (prázdné = smazat):', { value: sketch.labels[lbi].text })); if (nt === null) return; if (!nt.trim()) sketch.labels.splice(lbi, 1); else sketch.labels[lbi].text = nt.trim(); save(); redraw(); return; }
+            const t = (await agAskText('Text popisku (např. kámen, šachta, strom):', { value: '' })); if (t === null || !t.trim()) return;
             sketch.labels.push({ lat: e.latlng.lat, lng: e.latlng.lng, text: t.trim() }); sketch.log.push('label'); save(); redraw(); return;
         }
         let best = -1, bestD = 24 * 24;

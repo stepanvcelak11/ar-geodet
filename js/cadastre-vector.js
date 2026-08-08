@@ -29,7 +29,7 @@
     var _here = null;          // parcela, na které stojím
     var _busy = false;
 
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
     function getMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
@@ -311,8 +311,8 @@
             var f = ev.target.files && ev.target.files[0]; if (!f) return;
             var rd = new FileReader(); rd.onload = function () { try { importGeoJSON(String(rd.result)); } catch (e) { agAlert('Chyba souboru', String(e && e.message || e)); } }; rd.readAsText(f); ev.target.value = '';
         });
-        document.getElementById('agcv-clear').addEventListener('click', function () {
-            if (!confirm('Vymazat stažené parcely z této zakázky?')) return;
+        document.getElementById('agcv-clear').addEventListener('click', async function () {
+            if (!(await agAsk('Vymazat stažené parcely z této zakázky?', { okText: 'Vymazat', danger: true }))) return;
             _parcels = []; _here = null; persist(); drawMap(); stopAr(); renderInfo();
         });
     }

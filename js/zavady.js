@@ -60,7 +60,7 @@
     var _editId = null;        // detail otevřené závady
 
     // ---- pomocné ----------------------------------------------------------------
-    function agAlertW(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} try { alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) {} }
+    function agAlertW(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) {} }
     function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
@@ -514,7 +514,7 @@
                 persist(); drawMap(); renderList(); openDetail(z.id);
                 toast(z.resolved ? 'Označeno jako vyřešené.' : 'Závada znovu otevřena.');
             });
-            m.querySelector('#ag-zv-det-del').addEventListener('click', function () {
+            m.querySelector('#ag-zv-det-del').addEventListener('click', async function () {
                 var z = byId(_editId); if (!z) return;
                 agAsk('Smazat závadu „' + catLabel(z.cat) + '"? Tohle nejde vrátit.', { title: 'Smazat závadu', okText: 'Smazat', danger: true }).then(function (ok) {
                 if (!ok) return;

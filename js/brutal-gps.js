@@ -56,7 +56,7 @@
     var _prevView = null, _camWasLive = false;
     var _rotStep = 0, _rotateTs = 0, _targetS = 300;   // cílová doba měření (s); otočení o 90° ve čtvrtinách (A5)
 
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
 
     // ---- geometrie ------------------------------------------------------------
     // poloměry křivosti elipsoidu (GeoCore); fallback na starou konstantu jen kdyby

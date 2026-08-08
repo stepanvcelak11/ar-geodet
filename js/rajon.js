@@ -53,7 +53,7 @@
     function draftClear() { if (window.AGDraft) try { window.AGDraft.clear(DRAFT_KEY); } catch (e) {} }
 
     // ---- pomocné --------------------------------------------------------------
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function heading() { return (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null; }
@@ -134,7 +134,7 @@
             + 'Rozdíl směrů ruší chybu kompasu, GPS do výpočtu nevstupuje.</p>'
             + '<label class="agrj-fld"><span>stojím na (stanovisko)</span><select id="agrj-st"></select></label>'
             + '<label class="agrj-fld"><span>orientace — zaměřím známý bod</span><select id="agrj-or"></select></label>'
-            + '<label class="agrj-fld"><span>vodorovná délka na cíl (m) — pásmo / dálkoměr</span><input type="number" id="agrj-dist" inputmode="decimal" step="0.01" min="0" placeholder="např. 24.35"></label>'
+            + '<label class="agrj-fld"><span>vodorovná délka na cíl (m) — pásmo / dálkoměr</span><input type="text" id="agrj-dist" inputmode="decimal" step="0.01" min="0" placeholder="např. 24.35"></label>'
             + '<label class="agrj-fld"><span>název nového bodu</span><input type="text" id="agrj-name" placeholder="např. R1" maxlength="24"></label>'
             + '<div id="agrj-warn" style="font-size:calc(12px * var(--ag-font-scale, 1));color:#fbbf24;margin:4px 2px;"></div>'
             + '<button class="btn" id="agrj-start"><svg class="icon"><use href="#i-crosshair"/></svg> Spustit zaměřování</button>'
@@ -148,7 +148,7 @@
         document.body.appendChild(el);
         document.getElementById('agrj-st').addEventListener('change', function (e) { _stId = e.target.value || null; onModelChange(); });
         document.getElementById('agrj-or').addEventListener('change', function (e) { _orientId = e.target.value || null; onModelChange(); });
-        document.getElementById('agrj-dist').addEventListener('input', function (e) { var v = parseFloat(e.target.value); _dist = (isFinite(v) && v > 0) ? v : null; _result = null; renderResult(); updateWarn(); draftSave(); });
+        document.getElementById('agrj-dist').addEventListener('input', function (e) { var v = agNum(e.target.value); _dist = (v != null && v > 0) ? v : null; _result = null; renderResult(); updateWarn(); draftSave(); });
         document.getElementById('agrj-name').addEventListener('input', function (e) { _targetName = e.target.value; draftSave(); });
         document.getElementById('agrj-start').addEventListener('click', startCapture);
         document.getElementById('agrj-save').addEventListener('click', saveTarget);

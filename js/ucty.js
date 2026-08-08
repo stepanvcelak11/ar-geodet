@@ -1749,7 +1749,7 @@
         // Zapomenutý PIN/heslo: admin resetuje v administraci; nouzový reset
         // vypne JEN firemní režim na TOMTO zařízení (geodetická data zůstanou;
         // v cloud režimu se firma na serveru nijak nemění).
-        ov.querySelector('#agl-forgot').addEventListener('click', function () {
+        ov.querySelector('#agl-forgot').addEventListener('click', async function () {
             var admins = f.users.filter(function (u) { return u.role === 'admin'; }).map(function (u) { return u.name; });
             var msg = cloud
                 ? ('Heslo ti změní administrátor (' + (admins.join(', ') || '—') + ') v Administraci firmy — z libovolného zařízení.\n\n' +

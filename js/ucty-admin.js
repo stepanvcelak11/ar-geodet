@@ -24,7 +24,7 @@
 
     function U() { return window.AGUcty || null; }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function agConfirm(opts) {
         try { if (typeof window.agConfirm === 'function') return window.agConfirm(opts); } catch (e) {}
         return Promise.resolve(confirm((opts.title || '') + '\n\n' + String(opts.message || '').replace(/<[^>]*>/g, '')));
@@ -1509,7 +1509,7 @@
             body.querySelector('#agfa-do-range').onchange = function () { _doRange = parseInt(this.value, 10) || 7; renderDochazka(body); };
 
             // admin: zpětné doplnění odchodu (zapíše se jako běžná událost a doputuje na server)
-            body.onclick = function (e) {
+            body.onclick = async function (e) {
                 var btn = e.target.closest ? e.target.closest('button[data-fix]') : null;
                 if (!btn) return;
                 var p = rowRef[parseInt(btn.getAttribute('data-fix'), 10)];

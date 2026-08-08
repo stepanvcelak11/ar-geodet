@@ -30,7 +30,7 @@
 
     // ---- util -------------------------------------------------------------------
     function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} try { agInfo(m); } catch (e2) {} }
-    function agAlertX(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlertX(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function agConfirmX(t, m) {
         try { if (typeof window.agConfirm === 'function') return window.agConfirm({ title: t, message: m, danger: true }); } catch (e) {}
         return Promise.resolve(confirm(t + (m ? '\n' + m : '')));
@@ -208,8 +208,8 @@
         }
 
         // meze
-        h += '<div class="ag-ep-row"><label class="ag-ep-fld"><span>Mez ΔP (mm)</span><input type="number" id="ag-ep-limp" inputmode="decimal" min="0" step="1" value="' + (it.limP > 0 ? esc(it.limP) : '') + '" placeholder="—"></label>'
-            + '<label class="ag-ep-fld"><span>Mez ΔZ (mm)</span><input type="number" id="ag-ep-limz" inputmode="decimal" min="0" step="1" value="' + (it.limZ > 0 ? esc(it.limZ) : '') + '" placeholder="—"></label></div>';
+        h += '<div class="ag-ep-row"><label class="ag-ep-fld"><span>Mez ΔP (mm)</span><input type="text" id="ag-ep-limp" inputmode="decimal" min="0" step="1" value="' + (it.limP > 0 ? esc(it.limP) : '') + '" placeholder="—"></label>'
+            + '<label class="ag-ep-fld"><span>Mez ΔZ (mm)</span><input type="text" id="ag-ep-limz" inputmode="decimal" min="0" step="1" value="' + (it.limZ > 0 ? esc(it.limZ) : '') + '" placeholder="—"></label></div>';
 
         // graf
         h += '<div class="ag-ep-chart">' + chartSVG(it) + '</div>';

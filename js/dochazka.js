@@ -336,7 +336,7 @@
         var u = U();
         if (!u || !u.getFirm()) {
             try { if (typeof window.agAlert === 'function') return window.agAlert({ title: 'Docházka', message: 'Docházka funguje ve firemním režimu (Nástroje → Firma a účty).' }); } catch (e) {}
-            alert('Docházka funguje ve firemním režimu (Nástroje → Firma a účty).');
+            agInfo('Docházka funguje ve firemním režimu (Nástroje → Firma a účty).');
             return;
         }
         var m = ensureModal();
@@ -361,7 +361,7 @@
         var me = u && u.currentUser();
         if (!me || !u.usageLogRaw) return;
         _checked = true;
-        u.usageQuery(Date.now() - 7 * 864e5).then(function (evs) {
+        u.usageQuery(Date.now() - 7 * 864e5).then(async function (evs) {
             var mine = evs.filter(function (ev) { return ev.t === 'shift' && ev.uid === me.id; })
                 .sort(function (a, b) { return a.ts - b.ts; });
             if (!mine.length) return;

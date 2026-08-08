@@ -27,7 +27,7 @@ function calcSavePoint(name, Y, X) {
 }
 
 // ---------- pomocnici pro formulare ----------
-function _cv(id) { const el = document.getElementById(id); if (!el) return null; const f = parseFloat(String(el.value).trim().replace(',', '.')); return isNaN(f) ? null : f; }
+function _cv(id) { const el = document.getElementById(id); if (!el) return null; return agNum(el.value); }
 function _cs(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
 function _fld(id, label, ph) { return `<label style="margin-top:8px;">${label}</label><input type="text" inputmode="decimal" autocomplete="off" id="${id}" placeholder="${ph || ''}">`; }
 function _ptFld(idp, label) {
@@ -800,8 +800,23 @@ function calcRedukce() {
 function loadPointDoc(id) {
     return _idbGet(getStoreKey('doc_' + id)).then(s => { try { return s ? JSON.parse(s) : null; } catch (e) { return null; } });
 }
-function savePointDoc(id, doc) { return _idbSet(getStoreKey('doc_' + id), JSON.stringify(doc)); }
-function deletePointDoc(id) { return _idbDel(getStoreKey('doc_' + id)); }
+function savePointDoc(id, doc) { _pointDocsCache = null; return _idbSet(getStoreKey('doc_' + id), JSON.stringify(doc)); }
+function deletePointDoc(id) { _pointDocsCache = null; return _idbDel(getStoreKey('doc_' + id)); }
+// HROMADNE nacteni poznamek/fotek vsech bodu zakazky — jeden pruchod IndexedDB
+// misto jednoho dotazu na radek. Cache se zahazuje pri kazdem zapisu/smazani.
+let _pointDocsCache = null, _pointDocsProj = null;
+function loadAllPointDocs() {
+    const proj = getStoreKey('doc_');
+    if (_pointDocsCache && _pointDocsProj === proj) return Promise.resolve(_pointDocsCache);
+    if (typeof idbGetByPrefix !== 'function') return Promise.resolve({});
+    return idbGetByPrefix(proj).then(raw => {
+        const out = {};
+        Object.keys(raw || {}).forEach(id => { try { out[id] = _normalizeDoc(JSON.parse(raw[id])); } catch (e) {} });
+        _pointDocsCache = out; _pointDocsProj = proj;
+        return out;
+    }).catch(() => ({}));
+}
+window.loadAllPointDocs = loadAllPointDocs;
 function _pdEsc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 // sjednoti stary format {photo} na novy {photos:[...]}
 function _normalizeDoc(doc) {
@@ -990,12 +1005,16 @@ function _peSave() {
 
 // obohaceni polozky v prehledu „Mé body": poznamka + miniatura fotky z foto-dokumentace.
 // Vola ji renderManageList (grafika.js) pres hook decoratePointItem — kdyz modul chybi, nic se nedeje.
-function decoratePointItem(item, pt) {
+function decoratePointItem(item, pt, preloadedDoc) {
     if (!item || !pt || !pt.id) return;
-    loadPointDoc(pt.id).then(doc => {
+    // preloadedDoc = uz nactene z loadAllPointDocs(); jinak (jednotlivy radek) dotaz zvlast
+    const p = (preloadedDoc !== undefined) ? Promise.resolve(preloadedDoc) : loadPointDoc(pt.id);
+    p.then(doc => {
         _normalizeDoc(doc);
         if (!doc || !item.isConnected) return;
         if (doc.note) {
+            // poznamka do hledaciho indexu radku — v seznamu ji jde najit
+            try { if (item.dataset.mngText != null && typeof agFold === 'function') item.dataset.mngText += ' ' + agFold(doc.note); } catch (e) {}
             const n = document.createElement('div');
             n.className = 'cp-note';
             n.textContent = doc.note;
