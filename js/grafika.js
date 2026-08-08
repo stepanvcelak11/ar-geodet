@@ -1082,12 +1082,15 @@
                 // transform na KAZDEM popisku bodu. Zmena pod 0.15 deg je na displeji
                 // nerozeznatelna, takze takovy snimek preskocime. Origin prepocitavame i pri
                 // posunu uzivatele, aby se mapa dal otacela kolem spravneho bodu.
-                const _rotD = Math.abs(((heading - mapRotation + 540) % 360) - 180);
+                // OTACENI MAPY: js/map-rotate.js muze rotaci zamknout (sever nahore / zmrazeny
+                // smer). Bez toho modulu se pouzije zivy heading = puvodni chovani.
+                const _mapHdg = (window.AGMapRot && window.AGMapRot.mapHeading) ? window.AGMapRot.mapHeading(heading) : heading;
+                const _rotD = Math.abs(((_mapHdg - mapRotation + 540) % 360) - 180);
                 if (_rotD >= 0.15 || _mrLat !== userLat || _mrLng !== userLng || window._labelsDirty) {
-                    mapWrapper.style.transformOrigin = (function(){ const p = map.latLngToContainerPoint([userLat, userLng]); return p.x + 'px ' + p.y + 'px'; })(); mapWrapper.style.transform = `translate(-50%, -50%) rotate(${-heading}deg)`; mapRotation = heading;
+                    mapWrapper.style.transformOrigin = (function(){ const p = map.latLngToContainerPoint([userLat, userLng]); return p.x + 'px ' + p.y + 'px'; })(); mapWrapper.style.transform = `translate(-50%, -50%) rotate(${-_mapHdg}deg)`; mapRotation = _mapHdg;
                     _mrLat = userLat; _mrLng = userLng;
                     if (window._labelsDirty) { window._mapLabelEls = document.querySelectorAll('.map-label-text'); window._labelsDirty = false; }
-                    if (window._mapLabelEls) window._mapLabelEls.forEach(el => { el.style.transform = `rotate(${heading}deg)`; });
+                    if (window._mapLabelEls) window._mapLabelEls.forEach(el => { el.style.transform = `rotate(${_mapHdg}deg)`; });
                 }
             }
             // sipka smeru uzivatele je taky jen v mape (Leaflet divIcon) — v AR ji nikdo nevidi
@@ -1254,7 +1257,7 @@
                 });
                 hit.addTo(linesGroup);
                 const d = getDistance(A.lat, A.lng, B.lat, B.lng);
-                const mid = L.divIcon({ className: 'custom-map-marker', html: `<div style="position:relative; width:0; height:0;"><div class="map-label-text line-len-label" style="left:-16px; top:-18px; transform: rotate(${currentHeading}deg);">${d.toFixed(1)} m</div></div>`, iconSize: [0, 0] });
+                const mid = L.divIcon({ className: 'custom-map-marker', html: `<div style="position:relative; width:0; height:0;"><div class="map-label-text line-len-label" style="left:-16px; top:-18px; transform: rotate(${mapRotation}deg);">${d.toFixed(1)} m</div></div>`, iconSize: [0, 0] });
                 L.marker([(A.lat + B.lat) / 2, (A.lng + B.lng) / 2], { icon: mid, interactive: false }).addTo(linesGroup);
             });
         }

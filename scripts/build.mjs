@@ -25,9 +25,10 @@
 //   5) Vypíše jméno vytvořeného souboru (poslední řádek stdout = čistě název) —
 //      použiješ ho pro <script src> a do scripts/README-build.md je cutover postup.
 //
-//   Tento skript NEMĚNÍ index.html ani sw.js. Je čistě opt-in nástroj. Dokud
-//   nepřepíšeš blok <script> tagů v index.html ručně (viz README), appka jede
-//   pořád po staru přes jednotlivé skripty a tento bundle se nikde nepoužije.
+//   Bez přepínače --apply skript NEMĚNÍ index.html ani sw.js — jen vyrobí dist/.
+//   S --apply přepíše index.html na jediný <script> s bundlem; to se dělá JEN
+//   v CI při nasazení (.github/workflows/pages.yml), ve zdrojích v repu zůstává
+//   index.html rozdělený na jednotlivé soubory (pohodlný vývoj bez buildu).
 //
 // IDEMPOTENCE: stejný vstup (stejné soubory + stejné pořadí) => stejný hash =>
 //   stejný název souboru. Opakované spuštění nic nerozbije; staré dist/app.*.min.js
@@ -40,6 +41,8 @@
 //
 // PŘEPÍNAČE:
 //   --check        ověř + minifikuj, ale nezapisuj výstup (CI/sanity)
+//   --apply        po zabalení přepiš index.html na jediný <script> s bundlem
+//                  (pro nasazení; pak spusť scripts/gen_sw_assets.py)
 //   --lazy         z bundlu VYNECHEJ moduly z LAZY_MODULES (menší bundle; pak je
 //                  musíš lazy-loadovat na klik — viz README)
 //   --list         jen vypiš zjištěné pořadí souborů a skonči
@@ -60,6 +63,12 @@ const ARGS = process.argv.slice(2);
 const CHECK_ONLY = ARGS.includes('--check');
 const SKIP_LAZY = ARGS.includes('--lazy');
 const LIST_ONLY = ARGS.includes('--list');
+// --apply: po zabalení PŘEPÍŠE index.html — všechny vlastní <script src> tagy
+// nahradí jediným <script defer src="dist/app.<hash>.min.js">. Používá se v CI
+// při nasazení (.github/workflows/pages.yml), NE při vývoji: v repu zůstává
+// index.html rozdělený na jednotlivé soubory. Po --apply se pouští
+// scripts/gen_sw_assets.py, aby si sw.js přegeneroval seznam assetů.
+const APPLY = ARGS.includes('--apply');
 
 // --- Co se z bundlu VŽDY vynechá (zůstávají samostatné <script> tagy) ----------
 // Knihovny třetích stran v js/lib/*. Poznáme je podle prefixu "js/lib/".
@@ -124,6 +133,53 @@ function buildFileList() {
         if (SKIP_LAZY && isLazy(src)) return false;
         return true;
     });
+}
+
+// --- Přepis index.html na bundle (jen s --apply) --------------------------------
+// Vlastní <script src="js/…"> tagy se ODEBEROU a na místo POSLEDNÍHO z nich se
+// vloží jediný tag s bundlem. Proč na místo posledního: knihovny (js/lib/*)
+// zůstávají samostatné a musí se vykonat PŘED naším kódem — když bundle položíme
+// tam, kde stál poslední vlastní modul, je to zaručené. Kdyby některá knihovna
+// byla v dokumentu ZA posledním vlastním skriptem, build to odmítne (jinak by se
+// pořadí tiše rozbilo).
+function applyToIndex(outName) {
+    const html = readFileSync(INDEX_HTML, 'utf8');
+    const re = /[ \t]*<script\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>\s*<\/script>[ \t]*\r?\n?/gi;
+
+    const own = [], libs = [];
+    let m;
+    while ((m = re.exec(html)) !== null) {
+        const src = m[1].trim();
+        if (/^(https?:)?\/\//i.test(src)) continue;         // CDN — neřešíme
+        if (!/\.js(\?|$)/i.test(src)) continue;
+        const rec = { start: m.index, end: m.index + m[0].length, text: m[0], src: src };
+        if (isLib(src)) libs.push(rec); else own.push(rec);
+    }
+    if (!own.length) throw new Error('--apply: v index.html nejsou žádné vlastní <script src="js/…"> tagy (už je zabalený?).');
+
+    const lastOwn = own[own.length - 1];
+    const lateLib = libs.find(l => l.start > lastOwn.start);
+    if (lateLib) {
+        throw new Error('--apply: knihovna ' + lateLib.src + ' je v index.html ZA posledním vlastním skriptem — '
+            + 'přesuň ji výš, jinak by se bundle vykonal před ní.');
+    }
+
+    const eol = html.includes('\r\n') ? '\r\n' : '\n';
+    const indent = (lastOwn.text.match(/^[ \t]*/) || [''])[0];
+    const tag = indent + '<!-- ZABALENÝ KÓD APPKY (vyrobil scripts/build.mjs --apply při nasazení; ve zdrojích'
+        + eol + indent + '     zůstávají jednotlivé js/*.js a tenhle řádek se generuje znovu) -->'
+        + eol + indent + '<script defer src="dist/' + outName + '"></script>' + eol;
+
+    // odzadu, ať se nerozsypou indexy
+    let out = html;
+    for (let i = own.length - 1; i >= 0; i--) {
+        const rec = own[i];
+        const replacement = (rec === lastOwn) ? tag : '';
+        out = out.slice(0, rec.start) + replacement + out.slice(rec.end);
+    }
+    writeFileSync(INDEX_HTML, out, 'utf8');
+    console.error('--apply: v index.html nahrazeno ' + own.length + ' vlastních <script> tagů jedním bundlem.');
+    console.error('--apply: teď spusť  python scripts/gen_sw_assets.py  (sladí seznam v sw.js).');
 }
 
 // --- Hlavní -------------------------------------------------------------------
@@ -199,6 +255,10 @@ async function main() {
     writeFileSync(join(DIST_DIR, outName), minified, 'utf8');
 
     console.error('Hotovo: dist/' + outName + '  (' + files.length + ' modulů, ' + minified.length + ' B)');
+    if (APPLY) {
+        if (SKIP_LAZY) throw new Error('--apply nelze kombinovat s --lazy: vynechané moduly by se z index.html odebraly, ale nikdo by je nenačetl.');
+        applyToIndex(outName);
+    }
     console.error('Knihovny js/lib/* zůstávají samostatné. ' + (SKIP_LAZY ? 'Lazy moduly VYNECHÁNY z bundlu.' : 'Lazy moduly jsou UVNITŘ (spusť s --lazy pro jejich vynechání).'));
     console.error('Cutover (ručně, viz scripts/README-build.md): nahraď blok <script> tagů jediným <script src="dist/' + outName + '">.');
     // Poslední řádek stdout = čistě název (snadné odchytit ve skriptu)

@@ -22,7 +22,10 @@ Co skript kontroluje (vse bez zavislosti mimo stdlib, jako gen_sw_assets.py):
      Tohle je nejzradnejsi: cache.addAll() u chybejiciho souboru SELZE CELY,
      service worker se nenainstaluje a uzivateli se prestane aktualizovat
      CELA appka - bez jedine chybove hlasky.
-  5) Volitelne SYNTAXE pres `node --check`, kdyz je Node k dispozici
+  5) ZBYTKY PO MERGI ('<<<<<<<' / '>>>>>>>' na zacatku radku) v js/*.js.
+     Nezacommitovany konflikt je syntakticka chyba, ktera cely soubor odrovna;
+     tohle ji chyti i tam, kde neni Node a kontrola syntaxe se preskoci.
+  6) Volitelne SYNTAXE pres `node --check`, kdyz je Node k dispozici
      (na vyvojarskem stroji neni, na GitHub Actions ano).
 
 Pouziti:
@@ -377,6 +380,26 @@ process.exit(bad ? 1 : 0);
 '''
 
 
+# ---------------------------------------------------------------------------
+# Zbytky po mergi. '=======' se ZAMERNE nehlasi samo o sobe - v tomhle repu je
+# plno oddelovacu v komentarich; hlasi se jen '<<<<<<<' a '>>>>>>>', ktere se
+# v beznem kodu nevyskytnou.
+# ---------------------------------------------------------------------------
+
+
+def check_conflicts(files):
+    for p in files:
+        try:
+            src = p.read_text(encoding='utf-8-sig')
+        except Exception:                                        # noqa: BLE001
+            continue
+        rel = p.relative_to(ROOT).as_posix()
+        for i, line in enumerate(src.splitlines(), 1):
+            t = line.strip()
+            if t.startswith('<<<<<<<') or t.startswith('>>>>>>>'):
+                problem(rel, 'radek %d: zbytek po mergi: %s' % (i, t[:40]))
+
+
 def check_syntax(files):
     node = shutil.which('node')
     if not node:
@@ -442,7 +465,10 @@ def main():
     # 4) sw.js
     check_sw()
 
-    # 5) syntaxe
+    # 5) zbytky po mergi
+    check_conflicts(own_js)
+
+    # 6) syntaxe
     check_syntax(js_files)
 
     if problems:

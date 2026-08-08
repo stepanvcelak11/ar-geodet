@@ -1,0 +1,59 @@
+# Testy appky. Co kde bezi, at se to neduplikuje:
+#
+#   * SYNTAXE, duplicity, konzistence sw.js  -> .github/workflows/release-check.yml
+#     (bezi na kazdy push do main i na kazdy PR, s --require-node)
+#   * GEODETICKE VYPOCTY                     -> .github/workflows/geo-tests.yml
+#   * TADY: smoke test (~2 min) — Playwright nastartuje appku v Chromiu s podvrzenou
+#     GPS, kamerou i kompasem a overi, ze nabehne bez chyb v konzoli a ze jsou na
+#     obrazovce klicove prvky. Plus kontrola, ze jde vsechny skripty zabalit do
+#     jednoho bundlu (to je predpoklad nasazeni pres pages.yml).
+name: Testy (smoke + bundle)
+
+on:
+  push:
+    branches: [main, 'feat/**']
+  pull_request:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    name: Kod jde zabalit do jednoho souboru
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # Nezapisuje, jen overi, ze build projde — viz scripts/README-build.md
+      - name: Kontrola bundlu (nezapisuje)
+        run: |
+          npm install --no-audit --no-fund
+          npm run build:check
+
+  smoke:
+    name: Appka nastartuje (Playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Instalace zavislosti
+        run: npm install --no-audit --no-fund
+      - name: Instalace Chromia
+        run: npx playwright install --with-deps chromium
+      - name: Smoke testy
+        run: npm run test:smoke
+      - name: Ulozit report a screenshoty
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+          if-no-files-found: ignore
