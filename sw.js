@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v211';   // otaceni mapy, karta bodu, sbalitelny nastroj | zrusena cilena presnost, jedna presnost GPS, magneticky sever, vyska z DMR, offline zalozka, soukromi admina | pocasi: rodiny modelu, vyskova korekce, median srazek, vaha dle horizontu, trefnost proti CHMU
+const SHELL_CACHE = 'argeodet-shell-v212';   // OPRAVA: jeden bod bez DOM elementu shazoval vykresleni vsech bodu v AR i v mape
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -25,9 +25,9 @@ const ASSETS_TO_CACHE = [
     './icon-512.png',
     './icon-maskable-192.png',
     './icon-maskable-512.png',
-    './css/tokens.css?v=211',
-    './css/style.css?v=211',
-    './css/vylepseni.css?v=211',
+    './css/tokens.css?v=212',
+    './css/style.css?v=212',
+    './css/vylepseni.css?v=212',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',

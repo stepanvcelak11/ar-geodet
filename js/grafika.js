@@ -816,12 +816,17 @@
         function _resetPtRenderCache(pt) {
             pt._opLast = null; pt._zLast = null; pt._dLast = null; pt._tfLast = null;
         }
+        let _arInitRetryAt = 0;   // skrceni dohanenu chybejicich AR elementu (viz renderAR)
         function initARMarkers() {
             arPoints.forEach((pt) => {
+              try {
+                if (!pt || pt.lat == null || pt.lng == null) return;   // rozbity zaznam preskocit
+                if (typeof pt.cat !== 'string' || !pt.cat) pt.cat = 'CUSTOM';
                 let matchesSearch = true; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) { matchesSearch = false; }
                 let outOfReach = (pt.currentDist > arRadius); let isSelectedForDetail = (pt.id === activePointIdForModal);
                 if (pt.hidden || !matchesSearch || (outOfReach && pt.id !== highlightedPointId && !isSelectedForDetail)) { if (pt.element && pt.element.parentNode) pt.element.parentNode.removeChild(pt.element); return; }
-                if (!pt.element) { _resetPtRenderCache(pt); const marker = document.createElement('div'); marker.className = `ar-marker cat-${pt.cat.toLowerCase()}`; if (pt.id === highlightedPointId) marker.classList.add('highlighted'); if (window.isStaked && isStaked(pt.id)) marker.classList.add('staked'); marker.style.opacity = '0'; const title = document.createElement('div'); title.className = 'ar-marker-title'; title.innerText = pt.name; const dist = document.createElement('div'); dist.className = 'ar-marker-dist'; const more = document.createElement('div'); more.className = 'ar-marker-more'; marker.appendChild(title); marker.appendChild(dist); marker.appendChild(more); marker.addEventListener('click', () => { if (pt._arCluster && pt._arCluster.length) { showClusterList([pt].concat(pt._arCluster)); return; } const currentDist = getDistance(userLat, userLng, pt.lat, pt.lng); showDetails(pt, currentDist); }); pt.element = marker; pt.distElement = dist; pt.moreElement = more; arOverlay.appendChild(marker); } else if (!pt.element.parentNode) { arOverlay.appendChild(pt.element); }
+                if (!pt.element) { _resetPtRenderCache(pt); const marker = document.createElement('div'); marker.className = `ar-marker cat-${String(pt.cat).toLowerCase()}`; if (pt.id === highlightedPointId) marker.classList.add('highlighted'); if (window.isStaked && isStaked(pt.id)) marker.classList.add('staked'); marker.style.opacity = '0'; const title = document.createElement('div'); title.className = 'ar-marker-title'; title.innerText = pt.name; const dist = document.createElement('div'); dist.className = 'ar-marker-dist'; const more = document.createElement('div'); more.className = 'ar-marker-more'; marker.appendChild(title); marker.appendChild(dist); marker.appendChild(more); marker.addEventListener('click', () => { if (pt._arCluster && pt._arCluster.length) { showClusterList([pt].concat(pt._arCluster)); return; } const currentDist = getDistance(userLat, userLng, pt.lat, pt.lng); showDetails(pt, currentDist); }); pt.element = marker; pt.distElement = dist; pt.moreElement = more; arOverlay.appendChild(marker); } else if (!pt.element.parentNode) { arOverlay.appendChild(pt.element); }
+              } catch (e) { /* jeden rozbity bod nesmi zabit smycku ani drawAllMarkersOnMap() volane za ni */ }
             });
         }
         let mapReturnTimer;
@@ -1124,6 +1129,7 @@
             if (window.AGVisualTrack && window.AGVisualTrack.enabled) { var _vc2 = window.AGVisualTrack.getCorrection(); if (_vc2 && _vc2.dpitch != null) cameraPitchDown += _vc2.dpitch; }
             window._arProj = { pitch: cameraPitchDown, roll: imgRoll, halfH: halfH, halfV: halfV };
             let highlightedPointData = null; let renderedCount = 0;
+            let _arMissingEl = false;   // narazili jsme na bod bez DOM elementu?
 
             let maxPts = visSettings.maxARPoints || 100; let vOffset = visSettings.arVerticalOffset || 0;
             const _sqLC = searchQuery ? searchQuery.toLowerCase() : '';
@@ -1138,6 +1144,11 @@
                 if (distance > arRadius && pt.id !== highlightedPointId && !isSelectedForDetail) isVisible = false;
                 if (isVisible && pt.id !== highlightedPointId && !isSelectedForDetail) { if (renderedCount >= maxPts) { isVisible = false; } else { renderedCount++; } }
                 if (!isVisible) { if (pt.element && pt._opLast !== '0') { pt.element.style.opacity = '0'; pt.element.style.pointerEvents = 'none'; pt._opLast = '0'; } return; }
+                // Bod bez DOM elementu (pridany do arPoints az po poslednim initARMarkers —
+                // import, cloud sync, rajon...): preskocit a na konci snimku si element nechat
+                // dodelat. Driv se tady spadlo na pt.element.style, vyjimka vyletela z forEach
+                // a shodila vykresleni VSECH dalsich bodu — dokola kazdy snimek.
+                if (!pt.element) { _arMissingEl = true; return; }
 
                 const pointBearing = (pt.currentBearing != null) ? pt.currentBearing : getBearing(_oLat, _oLng, pt.lat, pt.lng); let diff = ((pointBearing - heading + 540) % 360) - 180;
                 if (pt.id === highlightedPointId) { highlightedPointData = { diff: diff, dist: distance, name: pt.name }; }
@@ -1202,6 +1213,12 @@
                 }
             });
             // badge „+N" na hostitelích shluků (jen umístěné značky, ne celé arPoints)
+            // chybejici elementy dozenat hned (nejvys 1x za snimek), at se bod objevi
+            // v nasledujicim snimku a nezustane neviditelny do dalsiho initARMarkers
+            // BATERIE: nejvys 1x za sekundu. Kdyby bod z nejakeho duvodu element nikdy
+            // nedostal (podminky viditelnosti v renderAR a initARMarkers nejsou uplne
+            // totozne), bez skrceni by se initARMarkers volalo 60x za sekundu.
+            if (_arMissingEl && (Date.now() - _arInitRetryAt) > 1000) { _arInitRetryAt = Date.now(); try { initARMarkers(); } catch (e) {} }
             _updateMoreBadges(_placed);
             drawARLines(heading, cameraPitchDown, imgRoll, halfH, halfV, vOffset, eyeH);
             
