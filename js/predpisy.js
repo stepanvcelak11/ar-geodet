@@ -210,8 +210,12 @@
         btn.innerHTML = '<svg class="icon"><use href="#i-scale"/></svg> Předpisy & odchylky';
         btn.addEventListener('click', openReader);
         // za tlačítko zpravodaje, pokud existuje, jinak za průvodce
+        // POZOR (nalezeno 8.8. v prohlížeči): kotva leží v .w-c-actions, ne přímo
+        // v .modal-content — wrap.insertBefore proto hodilo NotFoundError a tlačítko
+        // „Předpisy & odchylky" na úvodní obrazovce chybělo. Viz i js/zpravodaj.js.
         var anchor = document.getElementById('zpr-welcome-btn') || document.getElementById('pruv-welcome-btn');
-        if (anchor) wrap.insertBefore(btn, anchor.nextSibling); else wrap.appendChild(btn);
+        if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(btn, anchor.nextSibling);
+        else wrap.appendChild(btn);
     }
 
     function init() {

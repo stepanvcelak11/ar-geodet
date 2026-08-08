@@ -129,6 +129,34 @@
         return _loaded[src];
     }
 
+    // ---- zástupci (stuby) a jejich úklid --------------------------------------------
+    // POZOR (nalezeno 8.8. v prohlížeči — appka TVRDĚ zamrzla po klepnutí na
+    // „Dvoutelefonní DGPS"): některé moduly se brání dvojímu načtení testem na SVŮJ
+    // globální objekt, např. js/dgps.js má `if (window.AGDgps) return;`. Když tam ale
+    // leží náš ZÁSTUPCE (stubApi ho tvoří dopředu, aby šel nástroj otevřít i z kódu),
+    // modul se rovnou ukončí a NIC nedefinuje. openTool pak vyresolvuje znovu TENTÝŽ
+    // stub a zavolá ho:  stub -> load() (slib už splněný) -> stub -> ...  Je to
+    // nekonečná smyčka v mikrotaskách, takže se ani nevyčerpá zásobník — jen se úplně
+    // zastaví event loop: nereaguje nic, ani vykreslování. Proto stub PŘED načtením
+    // modulu odklidíme a navíc ho nikdy nevoláme jako „výsledek" načtení.
+    function markStub(fn) { try { fn._agLazyStub = true; } catch (e) {} return fn; }
+    function isStub(o) { return !!(o && o._agLazyStub); }
+    function dropStub(t) {
+        if (!t.open) return;
+        var parts = t.open.split('.');
+        if (parts.length === 1) {
+            if (isStub(window[parts[0]])) clearGlobal(parts[0]);
+        } else {
+            var h = window[parts[0]];
+            // maž jen držák, který jsme sami vyrobili — cizí objekt necháme být
+            if (h && h._agLazyHolder && isStub(h[parts[1]])) clearGlobal(parts[0]);
+        }
+        t._stub = false;   // kdyby se modul nenačetl, smí stubApi() zástupce vrátit
+    }
+    function clearGlobal(name) {
+        try { delete window[name]; } catch (e) { try { window[name] = undefined; } catch (e2) {} }
+    }
+
     // 'AGDgps.open' -> window.AGDgps.open
     function resolve(path) {
         var parts = String(path || '').split('.'), o = window, i;
@@ -144,9 +172,13 @@
     // přímo na něj a tímhle kódem vůbec neprojde.
     function openTool(t, args) {
         var slow = setTimeout(function () { toast('Načítám ' + t.label + '…'); }, 250);
+        dropStub(t);                       // ať modul nevidí našeho zástupce (viz dropStub)
         return load(t.src).then(function () {
             clearTimeout(slow);
             var fn = resolve(t.open);
+            // POJISTKA: zástupce se NIKDY nesmí zavolat jako výsledek načtení —
+            // to je přesně ta nekonečná smyčka popsaná u dropStub().
+            if (isStub(fn)) fn = null;
             if (fn) { fn.apply(window, args || []); return; }
             // Modul se načetl, ale nevystavil opener pod jménem z manifestu — to je
             // chyba v manifestu (přejmenované API), ne v datech uživatele.
@@ -181,13 +213,14 @@
             var parts = t.open.split('.');
             if (parts.length === 1) {
                 if (typeof window[parts[0]] === 'function') return;   // modul už je načtený
-                window[parts[0]] = function () { return openTool(t, [].slice.call(arguments)); };
+                window[parts[0]] = markStub(function () { return openTool(t, [].slice.call(arguments)); });
             } else {
                 // 'AGDgps.open' — objekt s jednou metodou; skutečný modul ho celý přepíše
                 var holder = window[parts[0]];
                 if (holder && typeof holder[parts[1]] === 'function') return;
                 var obj = {};
-                obj[parts[1]] = function () { return openTool(t, [].slice.call(arguments)); };
+                obj[parts[1]] = markStub(function () { return openTool(t, [].slice.call(arguments)); });
+                obj._agLazyHolder = true;      // značka pro dropStub(): držák je náš
                 window[parts[0]] = obj;
             }
             t._stub = true;

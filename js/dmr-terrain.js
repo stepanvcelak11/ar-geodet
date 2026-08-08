@@ -265,8 +265,13 @@
         btn.setAttribute('aria-label', 'Terénní AR (výškopis DMR 5G)');
         btn.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><path d="M3 20l6-11 4 6 2.5-4L21 20z"/></svg>';
         btn.addEventListener('click', function () { try { toggle(); } catch (e) { console.warn('[dmr-terrain]', e); } });
+        // POZOR (nalezeno 8.8. v prohlížeči): #btn-katastr se při redesignu panelu
+        // Vrstvy přesunul do .ms-rows, takže UŽ NENÍ dítkem #map-ctrl-stack.
+        // stack.insertBefore(btn, ref.nextSibling) proto padalo na NotFoundError a
+        // tlačítko terénního AR se nepřidalo VŮBEC. Podle kotvy se řadíme jen když je
+        // opravdu ve stejném rodiči, jinak patří na konec stacku (kde má i styl).
         var ref = document.getElementById('btn-katastr');
-        if (ref && ref.nextSibling) stack.insertBefore(btn, ref.nextSibling);
+        if (ref && ref.parentNode === stack && ref.nextSibling) stack.insertBefore(btn, ref.nextSibling);
         else stack.appendChild(btn);
     }
 

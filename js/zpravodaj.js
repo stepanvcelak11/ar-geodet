@@ -273,8 +273,13 @@
         btn.innerHTML = '<svg class="icon"><use href="#i-news"/></svg> Geo zpravodaj<span class="zpr-dot" hidden></span>';
         btn.addEventListener('click', openReader);
         // vlož za „Průvodce úkolem" (před primární „Spustit vyhledávání")
+        // POZOR (nalezeno 8.8. v prohlížeči): tlačítka úvodní obrazovky leží v
+        // .w-c-actions, tedy NE přímo v .modal-content. wrap.insertBefore(btn, pruv…)
+        // proto padalo na NotFoundError („node is not a child of this node") a tlačítko
+        // zpravodaje se na úvodní obrazovku nepřidalo VŮBEC. Řadíme se podle skutečného
+        // rodiče kotvy (stejně to dělá js/pruvodce.js).
         var pruv = document.getElementById('pruv-welcome-btn');
-        if (pruv) wrap.insertBefore(btn, pruv.nextSibling);
+        if (pruv && pruv.parentNode) pruv.parentNode.insertBefore(btn, pruv.nextSibling);
         else wrap.appendChild(btn);
         updateDot();
     }

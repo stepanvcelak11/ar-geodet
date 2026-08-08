@@ -30,7 +30,21 @@
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
     function n2(v) { return (Math.round(v * 100) / 100).toFixed(2).replace('.', ','); }
     function n1(v) { return (Math.round(v * 10) / 10).toFixed(1).replace('.', ','); }
-    function g(name) { try { return window[name]; } catch (e) { return undefined; } }
+    // POZOR (nalezeno 8.8. v prohlizeci): userLat/userLng/userAlt/gpsAvgResult…
+    // deklaruje logika.js pres `let` na nejvyssi urovni skriptu. To je GLOBALNI
+    // LEXIKALNI vazba — NENI to vlastnost window, takze window['userLat'] vracelo
+    // VZDY undefined. Dusledek: myPos()/distTo()/bearingTo() vracely null a
+    // navigacni pruh karty bodu nikdy neukazal vzdalenost ani azimut — porad jen
+    // „— m". Ctreme proto pres Function konstruktor: jeho telo bezi v globalnim
+    // scope, ktery lexikalni vazby vidi. Jmena jsou v tomhle modulu vzdy literaly.
+    var _gFn = {};
+    function g(name) {
+        try { if (name in window) return window[name]; } catch (e) {}
+        try {
+            var f = _gFn[name] || (_gFn[name] = new Function('return typeof ' + name + '!=="undefined"?' + name + ':undefined'));
+            return f();
+        } catch (e) { return undefined; }
+    }
 
     // ---- výpočty ----------------------------------------------------------------
     function myPos() {

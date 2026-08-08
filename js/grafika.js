@@ -4,7 +4,11 @@
 
 // PWA: nova verze ceka -> nabidnout obnovu (resi matouci starou cache)
         function showUpdateBanner() { const b = document.getElementById('update-banner'); if (b) b.style.display = 'flex'; }
-        function applyUpdate() { navigator.serviceWorker.getRegistration().then(reg => { if (reg && reg.waiting) reg.waiting.postMessage('SKIP_WAITING'); }); const b = document.getElementById('update-banner'); if (b) b.style.display = 'none'; }
+        // Priznak "uzivatel si obnovu vyzadal" cte handler controllerchange v logika.js:
+        // ten se po opravce reloadu drzi jen skutecnych aktualizaci, a tohle pokryva i
+        // pripad, kdy se stranka nactla BEZ controlleru (tvrdy reload) a uzivatel pak
+        // na listu klepnul — jinak by se nova verze nasadila az pri dalsim spusteni.
+        function applyUpdate() { window.__agUpdateRequested = true; navigator.serviceWorker.getRegistration().then(reg => { if (reg && reg.waiting) reg.waiting.postMessage('SKIP_WAITING'); }); const b = document.getElementById('update-banner'); if (b) b.style.display = 'none'; }
 
         function renderProjectSelect() {
             const sel = document.getElementById('w-project-select'); sel.innerHTML = '';

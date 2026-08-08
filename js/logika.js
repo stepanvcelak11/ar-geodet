@@ -6,7 +6,18 @@ if ('serviceWorker' in navigator) {
             // UPDATE: novou verzi NEaktivujeme automaticky (rusivy reload uprostred prace);
             // nabidneme listu 'nova verze - klepni pro obnoveni' (showUpdateBanner -> applyUpdate -> SKIP_WAITING).
             let _swReloaded = false;
-            navigator.serviceWorker.addEventListener('controllerchange', () => { if (_swReloaded) return; _swReloaded = true; window.location.reload(); });
+            // POZOR (nalezeno 8.8. v prohlizeci): sw.js pri 'activate' vola clients.claim().
+            // Na PRVNIM nacteni (jeste bez controlleru) tim controllerchange vystreli hned po
+            // instalaci — a tenhle handler appku ~2 s po klepnuti na „Spustit vyhledavani"
+            // natvrdo reloadnul zpatky na uvodni obrazovku. Reload smi nastat JEN kdyz novy
+            // SW prebira uz drive ovladanou stranku (= skutecna aktualizace po applyUpdate).
+            const _hadController = !!navigator.serviceWorker.controller;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                // prvni zabrani (bez controlleru na startu) NENI aktualizace — nereloaduj.
+                // Vyjimka: uzivatel klepnul na listu "nova verze" (applyUpdate v grafika.js).
+                if (!_hadController && !window.__agUpdateRequested) return;
+                if (_swReloaded) return; _swReloaded = true; window.location.reload();
+            });
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js').then(reg => {
                     // Nová verze už čeká z minulého běhu (banner tehdy nikdo neklepl)

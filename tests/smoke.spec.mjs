@@ -175,6 +175,80 @@ test('sbalitelný nástroj: vytyčení přímky běží dál v proužku', async 
     await expect(page.locator('#ag-mini')).toBeHidden();
 });
 
+// ===== REGRESE z prohlížečového auditu 8.8. =====================================
+// Čtyři chyby, které se v konzoli NEPROJEVILY jako error (takže je test „žádné chyby
+// v konzoli" propustil) a přesto byly vidět na obrazovce. Každá má vlastní tvrzení.
+
+test('REGRESE: appka se po startu sama NEREloaduje', async ({ page, context }) => {
+    // sw.js volá při 'activate' clients.claim(). Na PRVNÍM načtení (ještě bez
+    // controlleru) tím vystřelí 'controllerchange' hned po instalaci — a handler
+    // v js/logika.js appku ~2 s po klepnutí na „Spustit vyhledávání" natvrdo
+    // reloadoval zpátky na úvodní obrazovku. Navíc se tím přerušilo dotahování
+    // modulů, takže se zaregistrovala jen ČÁST nástrojů (43 místo 70).
+    await bootApp(page, context);
+    const boot1 = await page.evaluate(() => performance.timeOrigin);
+    await page.waitForTimeout(6000);           // reload chodil cca 2 s po startu
+    const boot2 = await page.evaluate(() => performance.timeOrigin);
+    expect(boot2, 'stránka se znovu načetla (performance.timeOrigin se změnil)').toBe(boot1);
+    expect(await page.evaluate(() => document.body.classList.contains('app-started'))).toBe(true);
+});
+
+test('REGRESE: vstupy na úvodní obrazovce a řádek terénu se vloží', async ({ page, context }) => {
+    // js/zpravodaj.js i js/predpisy.js volaly wrap.insertBefore(btn, kotva…), ale
+    // kotva leží v .w-c-actions, ne přímo v .modal-content → NotFoundError (jen
+    // console.warn) a tlačítka na úvodní obrazovce CHYBĚLA. Stejná chyba v
+    // js/dmr-terrain.js znamenala, že se nevyrobil #btn-terrain, a protože
+    // js/map-tools.js bez něj řádek „Terén (DMR 5G)" SKRÝVÁ, byl celý terénní AR
+    // z UI nedostupný.
+    const warns = [];
+    page.on('console', (m) => { if (m.type() === 'warning' && /insertBefore/.test(m.text())) warns.push(m.text()); });
+
+    await page.addInitScript(() => {
+        try {
+            localStorage.setItem('agGuest_v1', JSON.stringify({ ts: Date.now() }));
+            localStorage.setItem('agTutProSeen', '1');
+            localStorage.setItem('agBrifinkAuto', '0');
+            localStorage.setItem('agBrifinkLastShown', new Date().toISOString().slice(0, 10));
+        } catch (e) { }
+    });
+    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#welcome-start-btn')).toBeVisible({ timeout: 20000 });
+    await page.waitForTimeout(2500);
+
+    await expect(page.locator('#zpr-welcome-btn'), 'tlačítko Geo zpravodaj na úvodní obrazovce').toHaveCount(1);
+    await expect(page.locator('#prd-welcome-btn'), 'tlačítko Předpisy & odchylky na úvodní obrazovce').toHaveCount(1);
+
+    await page.locator('#welcome-start-btn').click();
+    await expect.poll(() => page.evaluate(() => document.body.classList.contains('app-started')), { timeout: 20000 }).toBe(true);
+    await page.waitForTimeout(2500);
+    await expect(page.locator('#btn-terrain'), '#btn-terrain vyrobený dmr-terrain.js').toHaveCount(1);
+    await page.locator('#map-ctrl-toggle').click();
+    await expect(page.locator('#ms-terrain'), 'řádek „Terén (DMR 5G)" v panelu Mapa a vrstvy').toBeVisible();
+
+    expect(warns, 'insertBefore selhalo:\n' + warns.join('\n')).toEqual([]);
+});
+
+test('REGRESE: lazy nástroj s objektovým API (DGPS) appku nezamrzne', async ({ page, context }) => {
+    // js/dgps.js se brání dvojímu načtení přes `if (window.AGDgps) return;`. Tam ale
+    // ležel ZÁSTUPCE z js/lazy-tools.js, takže se modul rovnou ukončil a nic
+    // nedefinoval; openTool pak vyresolvoval znovu tentýž stub a zavolal ho:
+    //   stub -> load() (slib už splněný) -> stub -> …
+    // Nekonečná smyčka v mikrotaskách = úplné zamrznutí appky (nereagovalo nic,
+    // ani vykreslování). Test proto hlídá, že appka po otevření DGPS ODPOVÍDÁ.
+    await bootApp(page, context);
+    await page.evaluate(() => { const m = document.getElementById('tools-modal'); if (m) m.style.display = 'flex'; });
+    await page.locator('#tools-modal .tool-tile[data-tool="dgps"]').click();
+
+    // modál se dotáhne asynchronně (lazy load) — a hlavně: appka musí žít
+    await expect(page.locator('#ag-dgps-modal')).toBeVisible({ timeout: 15000 });
+    await expect.poll(() => page.evaluate(() => 1 + 1), { timeout: 5000 }).toBe(2);
+    await expect(page.locator('#ag-dgps-modal')).toContainText('Základna');
+
+    // pojistka proti návratu smyčky: opener už NESMÍ být zástupce
+    expect(await page.evaluate(() => !!(window.AGDgps && window.AGDgps.open && window.AGDgps.open._agLazyStub)),
+        'AGDgps.open zůstal zástupcem z lazy-tools.js').toBe(false);
+});
+
 test('karta bodu: navigační pruh a akce', async ({ page, context }) => {
     await bootApp(page, context);
 
