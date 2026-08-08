@@ -1059,7 +1059,12 @@ function decoratePointItem(item, pt) {
     const _origDel = window.deleteCustomPoint;
     window.deleteCustomPoint = function (id) {
         const before = (typeof persistentCustomPoints !== 'undefined') ? persistentCustomPoints.length : 0;
-        _origDel(id);
+        // MUSI predat cele arguments, ne jen id. deleteCustomPoint bere druhy argument
+        // skipConfirm a tenhle obal ho driv zahazoval: hromadne smazani 30 bodu se pak
+        // ptalo 30x. Od zavedeni in-app dialogu je to jeste horsi — funkce se po
+        // potvrzeni vola znovu pres window.deleteCustomPoint(id, true), takze zahozeny
+        // priznak = nekonecna smycka dialogu a bod se nesmaze vubec.
+        _origDel.apply(this, arguments);
         if (typeof persistentCustomPoints !== 'undefined' && persistentCustomPoints.length < before) { try { deletePointDoc(id); } catch (e) {} }
     };
 })();
