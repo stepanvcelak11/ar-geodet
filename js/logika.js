@@ -261,24 +261,14 @@ if ('serviceWorker' in navigator) {
         // "596956,46" a appka mu napsala "Vyplnte souradnice!". Proto jsou pole, do kterych
         // se pisou merene hodnoty, prepnute na type="text" inputmode="decimal" (ciselna
         // klavesnice vyjede stejne, obsah nikdo nezahazuje) a VSECHNA cisla chodi tudy.
-        function agNum(v) {
-            if (v == null) return null;
-            if (typeof v === 'number') return isFinite(v) ? v : null;
-            if (typeof v === 'object' && 'value' in v) v = v.value;         // predany <input>
-            var t = String(v).replace(/[\s\u00a0]/g, '')                    // i pevna mezera z toLocaleString
-                             .replace(/[\u2212\u2013\u2014]/g, '-')          // unicode minus / pomlcka
-                             .replace(',', '.');
-            if (!t) return null;
-            var n = parseFloat(t);
-            return isFinite(n) ? n : null;
-        }
-        window.agNum = agNum;
-        // agNumEl('id') / agNumEl(el) — precte pole a rozparsuje; null kdyz to cislo neni
-        function agNumEl(idOrEl) {
-            var el = (typeof idOrEl === 'string') ? document.getElementById(idOrEl) : idOrEl;
-            return el ? agNum(el.value) : null;
-        }
-        window.agNumEl = agNumEl;
+        //
+        // SAMO agNum() ZDE UZ NENI: bydli v js/vstupy.js a je JEDNO pro celou appku.
+        // Krátce tu byly definice dve (kazda z jedne souzezne vetve) a protoze logika.js
+        // se nacita POZDEJI, prepsala tu spravnou svou vlastni — ta ale neumela cist pole
+        // podle ID a pri chybe vracela null misto NaN. `isNaN(null)` je FALSE, takze
+        // necitelna souradnice prosla kontrolou v saveCustomPoint az do proj4.
+        // Cte se tedy VZDY pres agNumIn() vyse; kdyz je vstupy.js odpojeny, ma vlastni
+        // fallback (taky s NaN).
 
         // ---- HLEDANI BODU: jeden filtr pro mapu, AR i seznamy --------------------
         // Driv byl `pt.name.toLowerCase().includes(q)` zkopirovany na 8 mistech:

@@ -336,16 +336,35 @@ def suite_vstupy(read_fn):
     if not m:
         raise RuntimeError('v js/logika.js chybi tabulka _AG_DIA')
     ctx.eval(m.group(0))
-    for fname in ('agNum', 'agFold', 'agMatchQuery'):
+    # agFold/agMatchQuery jsou v logika.js, ale agNum bydli v js/vstupy.js
+    # (odpojitelna vrstva "cisla z formularu"). Bezne v prohlizeci se nacita PRED
+    # logika.js a je to JEDINE misto, kde se cislo z formulare parsuje.
+    for fname in ('agFold', 'agMatchQuery'):
         ctx.eval(extract_fn(src, fname))
+    vstupy = read_fn('js/vstupy.js')
+    # parse() pouziva dve regexove konstanty z okoli modulu — bez nich by spadl
+    # parse() pouziva dve regexove konstanty z okoli modulu - bez nich by spadl
+    for rx in ('SPACES', 'MINUS'):
+        mrx = re.search(r'var ' + rx + r' = /[^\n]*;', vstupy)
+        if not mrx:
+            raise RuntimeError('v js/vstupy.js chybi konstanta %s' % rx)
+        ctx.eval(mrx.group(0))
+    for fname in ('parse', 'agNum'):          # agNum stoji na pomocniku parse()
+        ctx.eval(extract_fn(vstupy, fname))
+    # agNum umi cist i pole podle ID; v testu zadne DOM nemame, takze ho podstrcime
+    ctx.eval('var document = { getElementById: function(){ return null; } };')
     # agMatchQuery si drzi stav v promennych z okoli — doplnime je
     ctx.eval('var _agFoldCache = new WeakMap(); var _agQRaw = null; var _agQFold = "";')
 
     def num(expr):
-        return ctx.eval('JSON.stringify(agNum(%s))' % json.dumps(expr))
+        # POZOR: JSON.stringify(NaN) je "null", takze pres JSON by se NaN od null
+        # nepoznalo. Ptame se proto na NaN zvlast.
+        if ctx.eval('Number.isNaN(agNum(%s))' % json.dumps(expr)):
+            return 'NaN'
+        return json.loads(ctx.eval('JSON.stringify(agNum(%s))' % json.dumps(expr)))
 
     def check_num(inp, want):
-        got = json.loads(num(inp))
+        got = num(inp)
         if got != want:
             raise AssertionError('agNum(%r) = %r, cekano %r' % (inp, got, want))
 
@@ -356,8 +375,10 @@ def suite_vstupy(read_fn):
         check_num(u'1\u00a0163\u00a0343,34', 1163343.34), 'mezery zahozeny'][-1])
     t('agNum: unicode minus a pomlcka', lambda: [
         check_num(u'\u22120,05', -0.05), check_num('-0,05', -0.05), 'zaporne vysky projdou'][-1])
-    t('agNum: prazdny a nesmyslny vstup je null (ne NaN)', lambda: [
-        check_num('', None), check_num('   ', None), check_num('abc', None), 'null, ne NaN'][-1])
+    t('agNum: prazdny a nesmyslny vstup je NaN', lambda: [
+        check_num('', 'NaN'), check_num('   ', 'NaN'), check_num('abc', 'NaN'),
+        # tohle je ten dulezity: parseFloat("12abc") vrati 12, u souradnice past
+        check_num('12abc', 'NaN'), 'NaN (isNaN ho pozna, null by prosel)'][-1])
     t('agNum: nula neni null', lambda: [check_num('0', 0), check_num('0,00', 0), 'nula projde'][-1])
 
     def fold(s):
