@@ -34,7 +34,7 @@
     var _result = null;        // poslední výsledek resekce
 
     // ---- pomocné --------------------------------------------------------------
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function heading() { return (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null; }
@@ -434,11 +434,11 @@
             + (_result.mode === 'full' ? '\n\nStanovisko můžeš uložit jako bod (tlačítko níže).' : ''));
     }
 
-    function saveStandpoint() {
+    async function saveStandpoint() {
         if (!_result || _result.mode !== 'full') return;
         if (typeof window.addImportedPoints !== 'function') { agAlert('Nelze uložit', 'Vkládání bodů není dostupné.'); return; }
         var name = 'Stanovisko' ;
-        try { name = prompt('Název stanoviska:', 'ST_' + (_result.residuals.length) + 'b') || name; } catch (e) {}
+        try { name = (await agAskText('Název stanoviska:', { value: 'ST_' + (_result.residuals.length) + 'b' })) || name; } catch (e) {}
         var added = window.addImportedPoints([{ name: name, lat: _result.lat, lng: _result.lng }]);
         if (added > 0) agAlert('Stanovisko uloženo', '#' + name + ' uloženo do zakázky'
             + (_result.posSigma != null ? ' (odhad ±' + _result.posSigma.toFixed(2) + ' m).' : '.')

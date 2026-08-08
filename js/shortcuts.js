@@ -41,7 +41,7 @@
     // ---- pomocníci --------------------------------------------------------------------
     function toast(msg) {
         try { if (typeof window.quickToast === 'function') return window.quickToast(msg); } catch (e) {}
-        try { alert(msg); } catch (e) {}
+        try { agInfo(msg); } catch (e) {}
     }
     // firemní zámek: stejná podmínka, jakou používá samo ucty.js — třída ag-prelock
     // pryč a žádný přihlašovací overlay v DOM (po úspěšném přihlášení se odstraní)

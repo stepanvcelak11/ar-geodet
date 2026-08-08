@@ -79,8 +79,8 @@ function openStakeoutModal() {
     document.getElementById('stakeout-modal').style.display = 'flex';
 }
 
-function resetStakeout() {
-    if (!confirm('Zrušit odškrtnutí všech bodů v této zakázce?')) return;
+async function resetStakeout() {
+    if (!(await agAsk('Zrušit odškrtnutí všech bodů v této zakázce?', { danger: true }))) return;
     stakeoutData = {}; saveStakeout();
     arPoints.forEach(p => { if (p.element) p.element.classList.remove('staked'); });
     drawAllMarkersOnMap(); renderStakeoutList();

@@ -106,10 +106,10 @@
             '    <select id="omr-a" class="omr-sel"></select>' +
             '    <span class="omr-dash">—</span>' +
             '    <select id="omr-b" class="omr-sel"></select>' +
-            '    <input type="number" step="0.001" id="omr-meas" class="omr-meas" placeholder="měřeno [m]">' +
+            '    <input type="text" inputmode="decimal" step="0.001" id="omr-meas" class="omr-meas" placeholder="měřeno [m]">' +
             '    <button class="omr-btn omr-btn-acc" id="omr-addbtn">Přidat</button>' +
             '  </div>' +
-            '  <div class="omr-tol">Tolerance: <input type="number" id="omr-base" class="omr-num"> mm + <input type="number" id="omr-ppm" class="omr-num"> ppm·D</div>' +
+            '  <div class="omr-tol">Tolerance: <input type="text" inputmode="decimal" id="omr-base" class="omr-num"> mm + <input type="text" inputmode="decimal" id="omr-ppm" class="omr-num"> ppm·D</div>' +
             '  <div class="omr-table-wrap"><table class="omr-table"><thead><tr><th>Body</th><th>Ze souř.</th><th>Měřeno</th><th>Δ [mm]</th><th>ppm</th><th></th></tr></thead><tbody id="omr-tbody"></tbody></table></div>' +
             '  <div class="omr-summary" id="omr-summary"></div>' +
             '  <div class="omr-foot">' +
@@ -153,7 +153,7 @@
         overlay.querySelector('#omr-base').addEventListener('change', function () { var v = num(this.value); if (v != null) cfg.baseMm = v; save(); renderTable(); });
         overlay.querySelector('#omr-ppm').addEventListener('change', function () { var v = num(this.value); if (v != null) cfg.ppm = v; save(); renderTable(); });
         overlay.querySelector('#omr-csv').addEventListener('click', exportCSV);
-        overlay.querySelector('#omr-clear').addEventListener('click', function () { if (!confirm('Vymazat všechny kontrolní míry?')) return; checks = []; save(); renderTable(); });
+        overlay.querySelector('#omr-clear').addEventListener('click', async function () { if (!(await agAsk('Vymazat všechny kontrolní míry?', { okText: 'Vymazat', danger: true }))) return; checks = []; save(); renderTable(); });
         overlay.querySelector('#omr-tbody').addEventListener('click', function (e) {
             var btn = e.target.closest('[data-del]'); if (!btn) return;
             var i = parseInt(btn.getAttribute('data-del'), 10);

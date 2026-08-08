@@ -45,7 +45,7 @@
 
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
     function toast(m) { try { if (typeof window.quickToast === 'function') return window.quickToast(m); } catch (e) {} }
-    function info(m, t) { try { if (typeof window.agInfo === 'function') return window.agInfo(m, t); } catch (e) {} alert(String(m).replace(/<[^>]*>/g, '')); }
+    function info(m, t) { try { if (typeof window.agInfo === 'function') return window.agInfo(m, t); } catch (e) {} agInfo(String(m).replace(/<[^>]*>/g, '')); }
     function ask(m, cb) {
         try { if (typeof window.agAsk === 'function') { window.agAsk(m).then(function (ok) { if (ok) cb(); }); return; } } catch (e) {}
         if (confirm(String(m).replace(/<[^>]*>/g, ''))) cb();
@@ -158,7 +158,7 @@
     function cancelTrip() {
         ask('Zahodit rozjetou jízdu?', function () { setOpenTrip(null); render(); toast('Rozjetá jízda zahozena.'); });
     }
-    function askOdo(title, cb) {
+    async function askOdo(title, cb) {
         try {
             if (typeof window.agPrompt === 'function') {
                 window.agPrompt({ title: title, message: 'Necháš-li prázdné, kilometry se odhadnou ze vzdušné vzdálenosti (×' + ROAD_K + ').', value: '', okText: 'Potvrdit' })
@@ -169,7 +169,7 @@
                 return;
             }
         } catch (e) {}
-        var s = prompt(title + ' (prázdné = odhad):');
+        var s = (await agAskText(title + ' (prázdné = odhad):'));
         var n2 = parseFloat(String(s == null ? '' : s).replace(',', '.'));
         cb(isFinite(n2) && n2 >= 0 ? n2 : null);
     }
@@ -325,7 +325,7 @@
             '  <div class="ag-kz-man" id="ag-kz-man" style="display:none;">' +
             '    <div class="r2">' +
             '      <label>Datum<input type="date" id="ag-kz-m-date"></label>' +
-            '      <label>Kilometry<input type="number" step="0.1" min="0" id="ag-kz-m-km" placeholder="42,5"></label>' +
+            '      <label>Kilometry<input type="text" inputmode="decimal" step="0.1" min="0" id="ag-kz-m-km" placeholder="42,5"></label>' +
             '      <label>Odkud<input type="text" id="ag-kz-m-from" placeholder="Kancelář"></label>' +
             '      <label>Kam<input type="text" id="ag-kz-m-to" placeholder="Stavba / obec"></label>' +
             '    </div>' +
@@ -377,7 +377,7 @@
         });
         return m;
     }
-    function editCfg() {
+    async function editCfg() {
         var c = cfg();
         try {
             if (typeof window.agPrompt === 'function') {
@@ -395,9 +395,9 @@
                 return;
             }
         } catch (e) {}
-        var car = prompt('SPZ / vozidlo:', c.car || '');
+        var car = (await agAskText('SPZ / vozidlo:', { value: c.car || '' }));
         if (car != null) c.car = car.trim();
-        var rr = prompt('Kč/km (prázdné = nepočítat):', c.rate != null ? String(c.rate) : '');
+        var rr = (await agAskText('Kč/km (prázdné = nepočítat):', { value: c.rate != null ? String(c.rate) : '' }));
         var nn = parseFloat(String(rr == null ? '' : rr).replace(',', '.'));
         c.rate = isFinite(nn) && nn > 0 ? nn : null;
         saveCfg(c); render();

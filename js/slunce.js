@@ -245,7 +245,7 @@
             '<div class="ag-su-cell"><small>Výška</small><b>' + s.el.toFixed(0) + '°</b></div>' +
             '<div class="ag-su-cell"><small>Stín ' + h.toFixed(1) + ' m</small><b>' + (shadow != null ? (shadow < 100 ? shadow.toFixed(1) : Math.round(shadow)) + ' m' : '–') + '</b></div>' +
             '</div>' +
-            '<div class="ag-su-in"><label>Výška svislice <input type="number" step="0.1" min="0.1" id="ag-su-pole" value="' + h.toFixed(1) + '"> m</label>' +
+            '<div class="ag-su-in"><label>Výška svislice <input type="text" inputmode="decimal" step="0.1" min="0.1" id="ag-su-pole" value="' + h.toFixed(1) + '"> m</label>' +
             '<span style="color:var(--text-muted,#9aa1ac);font-size:.85em;">stín míří k azimutu ' + (((s.az + 180) % 360)).toFixed(0) + '°</span></div>';
 
         // protisvětlo na záměře
@@ -299,12 +299,12 @@
         // vstupy
         var pl = body.querySelector('#ag-su-pole');
         if (pl) pl.addEventListener('change', function () {
-            var v = parseFloat(this.value);
+            var v = agNum(this.value);
             if (isFinite(v) && v > 0) { try { localStorage.setItem(LS_POLE, String(v)); } catch (e) {} render(); }
         });
         var azi = body.querySelector('#ag-su-az');
         if (azi) azi.addEventListener('change', function () {
-            var v = parseFloat(this.value);
+            var v = agNum(this.value);
             try { if (isFinite(v)) localStorage.setItem(LS_AZ, String(((v % 360) + 360) % 360)); else localStorage.removeItem(LS_AZ); } catch (e) {}
             render();
         });

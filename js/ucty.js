@@ -1749,7 +1749,7 @@
         // Zapomenutý PIN/heslo: admin resetuje v administraci; nouzový reset
         // vypne JEN firemní režim na TOMTO zařízení (geodetická data zůstanou;
         // v cloud režimu se firma na serveru nijak nemění).
-        ov.querySelector('#agl-forgot').addEventListener('click', function () {
+        ov.querySelector('#agl-forgot').addEventListener('click', async function () {
             var admins = f.users.filter(function (u) { return u.role === 'admin'; }).map(function (u) { return u.name; });
             var msg = cloud
                 ? ('Heslo ti změní administrátor (' + (admins.join(', ') || '—') + ') v Administraci firmy — z libovolného zařízení.\n\n' +
@@ -1758,14 +1758,14 @@
                 : ('PIN ti může změnit administrátor (' + (admins.join(', ') || '—') + ') v Administraci firmy.\n\n' +
                     'Když je nedostupný i admin, lze firemní režim NOUZOVĚ vypnout — appka se odemkne, ' +
                     'účty a oprávnění se smažou. BODY A ZAKÁZKY ZŮSTANOU.\n\nPro nouzové vypnutí napiš RESET:');
-            var v = prompt(msg, '');
+            var v = (await agAskText(msg, { value: '' }));
             if (v === 'RESET') {
                 removeProfile(profileKeyOf(f));
                 try { localStorage.removeItem(LS_FIRM); localStorage.removeItem(LS_TOK); localStorage.removeItem(LS_OFF); localStorage.removeItem(LS_SYNC); } catch (e) {}
                 setSess(null);
                 ov.remove();
                 applyPerms();
-                alert(cloud ? 'Zařízení odpojeno od firmy. Body a zakázky zůstaly beze změny.'
+                agInfo(cloud ? 'Zařízení odpojeno od firmy. Body a zakázky zůstaly beze změny.'
                     : 'Firemní režim vypnut. Body a zakázky zůstaly beze změny.');
                 showGate();
             }
@@ -2035,7 +2035,7 @@
             }).catch(function (err) {
                 st.textContent = 'Kameru nelze spustit: ' + (err && err.message ? err.message : err);
             });
-        }).catch(function () { alert('Knihovnu pro čtení QR se nepodařilo načíst.'); });
+        }).catch(function () { agInfo('Knihovnu pro čtení QR se nepodařilo načíst.'); });
     }
 
     // pojistka: bez firmy, bez hosta a bez otevřené brány/průvodce → ukázat bránu

@@ -241,7 +241,7 @@
         };
     }
     function fld(id, label, val, step, extra) {
-        return '<label>' + esc(label) + '<input type="number" id="ag-ko-i-' + id + '" step="' + (step || 'any') + '" value="' + (val != null ? val : '') + '"' + (extra || '') + '></label>';
+        return '<label>' + esc(label) + '<input type="text" inputmode="decimal" id="ag-ko-i-' + id + '" step="' + (step || 'any') + '" value="' + (val != null ? val : '') + '"' + (extra || '') + '></label>';
     }
     function sel(id, label, list, val) {
         return '<label>' + esc(label) + '<select id="ag-ko-i-' + id + '">' +

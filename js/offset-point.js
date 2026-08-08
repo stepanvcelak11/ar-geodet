@@ -17,7 +17,7 @@
     var _baseMode = 'gps';     // 'gps' | 'point'
     var _basePointId = null;
 
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function num(id) { var el = document.getElementById(id); var v = el ? parseFloat(String(el.value).replace(',', '.')) : NaN; return isFinite(v) ? v : NaN; }
 
     // ---- draft (AGDraft je odpojitelný, vše fail-silent) -----------------------
@@ -117,10 +117,10 @@
             + '<select id="agof-point" style="display:none;width:100%;margin:4px 0 6px;"></select>'
             + '<div id="agof-base-info" style="font-size:13px;margin:2px 0 12px;color:var(--accent);"></div>'
             + '<label>Azimut (°, zeměpisný)</label>'
-            + '<div style="display:flex;gap:8px;align-items:center;"><input type="number" id="agof-az" step="0.1" inputmode="decimal" style="flex:1;" placeholder="0–360">'
+            + '<div style="display:flex;gap:8px;align-items:center;"><input type="text" id="agof-az" step="0.1" inputmode="decimal" style="flex:1;" placeholder="0–360">'
             + '<button type="button" class="btn btn-secondary" style="white-space:nowrap;margin:0;" id="agof-compass">Z kompasu</button></div>'
             + '<label style="margin-top:8px;">Vodorovná délka (m)</label>'
-            + '<input type="number" id="agof-dist" step="0.01" inputmode="decimal" placeholder="např. 4.20">'
+            + '<input type="text" id="agof-dist" step="0.01" inputmode="decimal" placeholder="např. 4.20">'
             + '<label style="margin-top:8px;">Název bodu</label>'
             + '<input type="text" id="agof-name" placeholder="OFF1">'
             + '<div style="margin:12px 0;padding:10px 12px;border-radius:10px;background:rgba(47,158,116,0.12);font-family:var(--font-mono,monospace);" id="agof-result"></div>'

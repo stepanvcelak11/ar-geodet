@@ -196,7 +196,7 @@
             // ŘEZ
             '<div class="vr-sec"><div id="vr-svg"></div></div>' +
             '<div class="vr-secrow">' +
-            '<span>Sklon</span><input type="number" id="vr-slope" step="0.5" inputmode="decimal"><span>%</span>' +
+            '<span>Sklon</span><input type="text" id="vr-slope" step="0.5" inputmode="decimal"><span>%</span>' +
             '<select id="vr-prof" class="st-sel"><option value="jedno">jednostranný</option><option value="strecha">střechovitý</option></select>' +
             '</div>' +
             '<div class="vr-sechint">Tažením čáry mezi vrstvami změníš tloušťku. Sklon je jen náhled (převýšený); tenké vrstvy jsou v řezu zvětšené, ať jdou přečíst.</div>' +
@@ -225,10 +225,10 @@
             save(); renderAll();
             var cat = document.getElementById('vr-cat'); if (cat) cat.classList.add('open');
         });
-        document.getElementById('vr-sk-del').addEventListener('click', function () {
+        document.getElementById('vr-sk-del').addEventListener('click', async function () {
             var s = skladba(); if (!s) return;
             var ok = true;
-            try { ok = confirm('Smazat skladbu „' + s.name + '" včetně vrstev?'); } catch (e) {}
+            try { ok = (await agAsk('Smazat skladbu „' + s.name + '" včetně vrstev?', { okText: 'Smazat', danger: true })); } catch (e) {}
             if (!ok) return;
             D.skladby.splice(D.sel.sk, 1);
             D.sel = { sk: 0, ref: 0, lay: 0 };

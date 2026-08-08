@@ -294,7 +294,7 @@
                 + '<label>Předpona čísla (volitelné):</label><input type="text" id="pruv-c-prefix" value="' + esc(c.prefix) + '" placeholder="např. B nebo prázdné">'
                 + '<label>Počáteční číslo:</label><input type="number" id="pruv-c-start" value="' + (c.n || 1) + '" step="1">'
                 + '<label>Krok číslování:</label><input type="number" id="pruv-c-step" value="' + (c.step || 1) + '" step="1">'
-                + '<label>Práh přesnosti (m, volitelné — varuje při horší):</label><input type="number" id="pruv-c-thr" value="' + (c.threshold != null ? c.threshold : '') + '" step="0.01" placeholder="např. 0.30">'
+                + '<label>Práh přesnosti (m, volitelné — varuje při horší):</label><input type="text" inputmode="decimal" id="pruv-c-thr" value="' + (c.threshold != null ? c.threshold : '') + '" step="0.01" placeholder="např. 0.30">'
                 + '<label class="filter-row" style="margin-top:10px;"><input type="checkbox" id="pruv-c-foto"' + (c.foto ? ' checked' : '') + '> Připomínat fotku u každého bodu</label>',
             footer: [
                 { label: 'Zpět', cls: 'btn-secondary', act: back },
@@ -302,7 +302,7 @@
                     c.prefix = (document.getElementById('pruv-c-prefix').value || '').trim();
                     c.n = parseInt(document.getElementById('pruv-c-start').value, 10); if (isNaN(c.n)) c.n = 1;
                     c.step = parseInt(document.getElementById('pruv-c-step').value, 10); if (isNaN(c.step) || c.step === 0) c.step = 1;
-                    var thr = parseFloat(document.getElementById('pruv-c-thr').value); c.threshold = isNaN(thr) ? null : thr;
+                    var thr = agNum(document.getElementById('pruv-c-thr').value); c.threshold = (thr == null) ? null : thr;
                     c.foto = document.getElementById('pruv-c-foto').checked;
                     launchCollect();
                 } }

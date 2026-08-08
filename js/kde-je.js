@@ -38,7 +38,7 @@
 
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
     function toast(m) { try { if (typeof window.quickToast === 'function') return window.quickToast(m); } catch (e) {} }
-    function info(m) { try { if (typeof window.agInfo === 'function') return window.agInfo(m); } catch (e) {} alert(String(m).replace(/<[^>]*>/g, '')); }
+    function info(m) { try { if (typeof window.agInfo === 'function') return window.agInfo(m); } catch (e) {} agInfo(String(m).replace(/<[^>]*>/g, '')); }
     function ask(msg, cb) {
         try { if (typeof window.agAsk === 'function') { window.agAsk(msg).then(function (ok) { if (ok) cb(); }); return; } } catch (e) {}
         if (confirm(String(msg).replace(/<[^>]*>/g, ''))) cb();

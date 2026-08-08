@@ -336,7 +336,7 @@
         var u = U();
         if (!u || !u.getFirm()) {
             try { if (typeof window.agAlert === 'function') return window.agAlert({ title: 'Docházka', message: 'Docházka funguje ve firemním režimu (Nástroje → Firma a účty).' }); } catch (e) {}
-            alert('Docházka funguje ve firemním režimu (Nástroje → Firma a účty).');
+            agInfo('Docházka funguje ve firemním režimu (Nástroje → Firma a účty).');
             return;
         }
         var m = ensureModal();
@@ -361,7 +361,7 @@
         var me = u && u.currentUser();
         if (!me || !u.usageLogRaw) return;
         _checked = true;
-        u.usageQuery(Date.now() - 7 * 864e5).then(function (evs) {
+        u.usageQuery(Date.now() - 7 * 864e5).then(async function (evs) {
             var mine = evs.filter(function (ev) { return ev.t === 'shift' && ev.uid === me.id; })
                 .sort(function (a, b) { return a.ts - b.ts; });
             if (!mine.length) return;
@@ -369,13 +369,13 @@
             if (kDir(last) !== 'in') return;
             if (dayKey(last.ts) === dayKey(Date.now())) return;   // dnešní směna běží — v pořádku
             var din = new Date(last.ts);
-            var v = prompt('Z ' + din.toLocaleDateString('cs-CZ') + ' chybí odchod (příchod ' + fmtT(last.ts) + ').\n\n' +
-                'Zadej čas odchodu (HH:MM) a doplní se zpětně; Zrušit = nechat bez odchodu:', '17:00');
+            var v = (await agAskText('Z ' + din.toLocaleDateString('cs-CZ') + ' chybí odchod (příchod ' + fmtT(last.ts) + ').\n\n' +
+                'Zadej čas odchodu (HH:MM) a doplní se zpětně; Zrušit = nechat bez odchodu:', { value: '17:00' }));
             if (!v) return;
             var m = /^(\d{1,2})[:.](\d{2})$/.exec(v.trim());
-            if (!m) { alert('Času nerozumím — zadej např. 16:30.'); return; }
+            if (!m) { agInfo('Času nerozumím — zadej např. 16:30.'); return; }
             var out = new Date(din.getFullYear(), din.getMonth(), din.getDate(), parseInt(m[1], 10), parseInt(m[2], 10), 0, 0);
-            if (out.getTime() <= last.ts) { alert('Odchod musí být až po příchodu (' + fmtT(last.ts) + ').'); return; }
+            if (out.getTime() <= last.ts) { agInfo('Odchod musí být až po příchodu (' + fmtT(last.ts) + ').'); return; }
             u.usageLogRaw({ ts: out.getTime(), t: 'shift', k: 'out', uid: me.id, u: me.name, proj: last.proj });
             if (u.isCloud && u.isCloud()) setTimeout(function () { u.syncUsage(); }, 1500);
             try { if (typeof quickToast === 'function') quickToast('Odchod ' + v.trim() + ' doplněn.'); } catch (e) {}

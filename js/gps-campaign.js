@@ -31,7 +31,7 @@
     var WINDOW_MIN = 90;                      // připomínka: okno ±90 min
 
     // ---- pomůcky ----------------------------------------------------------------
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function toast(msg) { try { if (typeof quickToast === 'function') { quickToast(msg); return; } } catch (e) {} try { console.log('[kampaň]', msg); } catch (e) {} }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]; }); }
     function load() { try { var o = JSON.parse(localStorage.getItem(LS_KEY)); return (o && typeof o === 'object' && Array.isArray(o.plan)) ? o : null; } catch (e) { return null; } }

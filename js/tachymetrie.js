@@ -187,12 +187,12 @@
     // ---------- Přidávání ----------
     function nextName() { let n = 1; const used = new Set(sketch.pts.map(p => p.name)); while (used.has(String(n))) n++; return String(n); }
 
-    window.tachyAddCurrent = function () {
+    window.tachyAddCurrent = async function () {
         let lat = null, lng = null;
         if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.lat) { lat = gpsAvgResult.lat; lng = gpsAvgResult.lng; }
         else if (typeof userLat !== 'undefined' && userLat) { lat = userLat; lng = userLng; }
         if (lat == null) { agInfo('Zatím nemám GPS polohu.'); return; }
-        const nm = prompt('Číslo / označení bodu:', nextName());
+        const nm = (await agAskText('Číslo / označení bodu:', { value: nextName() }));
         if (nm === null) return;
         sketch.pts.push({ name: nm.trim() || nextName(), lat: lat, lng: lng }); sketch.log.push('pt');
         save();
@@ -249,16 +249,16 @@
         else if (last === 'pt') { const ri = sketch.pts.length - 1; sketch.pts.pop(); sketch.lines = sketch.lines.filter(l => l[0] !== ri && l[1] !== ri); }
         save(); redraw();
     };
-    window.tachyClear = function () { if ((!sketch.pts.length && !sketch.labels.length && !sketch.strokes.length) || confirm('Vymazat celý náčrt?')) { sketch = { pts: [], lines: [], labels: [], strokes: [], log: [] }; selIdx = -1; save(); redraw(); } };
+    window.tachyClear = async function () { if ((!sketch.pts.length && !sketch.labels.length && !sketch.strokes.length) || (await agAsk('Vymazat celý náčrt?', { okText: 'Vymazat', danger: true }))) { sketch = { pts: [], lines: [], labels: [], strokes: [], log: [] }; selIdx = -1; save(); redraw(); } };
 
     // ---------- Interakce (přes klik do mapy) ----------
-    function onMapClick(e) {
+    async function onMapClick(e) {
         const px = e.containerPoint.x, py = e.containerPoint.y;
         if (mode === 'label') {
             let lbi = -1, lbD = 26 * 26;
             sketch.labels.forEach((lb, i) => { const s = scr(lb); const d = (s.x - px) * (s.x - px) + (s.y - py) * (s.y - py); if (d < lbD) { lbD = d; lbi = i; } });
-            if (lbi >= 0) { const nt = prompt('Upravit popisek (prázdné = smazat):', sketch.labels[lbi].text); if (nt === null) return; if (!nt.trim()) sketch.labels.splice(lbi, 1); else sketch.labels[lbi].text = nt.trim(); save(); redraw(); return; }
-            const t = prompt('Text popisku (např. kámen, šachta, strom):', ''); if (t === null || !t.trim()) return;
+            if (lbi >= 0) { const nt = (await agAskText('Upravit popisek (prázdné = smazat):', { value: sketch.labels[lbi].text })); if (nt === null) return; if (!nt.trim()) sketch.labels.splice(lbi, 1); else sketch.labels[lbi].text = nt.trim(); save(); redraw(); return; }
+            const t = (await agAskText('Text popisku (např. kámen, šachta, strom):', { value: '' })); if (t === null || !t.trim()) return;
             sketch.labels.push({ lat: e.latlng.lat, lng: e.latlng.lng, text: t.trim() }); sketch.log.push('label'); save(); redraw(); return;
         }
         let best = -1, bestD = 24 * 24;

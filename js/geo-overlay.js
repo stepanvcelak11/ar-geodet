@@ -34,7 +34,7 @@
     var _layer = null;             // Leaflet vrstva
     var _pendingPixel = null;      // při přidávání bodu
 
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function getMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
     function projId() { try { return (typeof activeProjectId !== 'undefined') ? activeProjectId : 'default'; } catch (e) { return 'default'; } }
 
@@ -271,7 +271,7 @@
         ed.innerHTML =
             '<div style="margin:6px 0;padding:10px;border-radius:10px;background:rgba(255,255,255,0.06);">'
             + '<div style="font-size:12.5px;opacity:.8;margin-bottom:6px;">Skutečné souřadnice tohoto bodu:</div>'
-            + '<div style="display:flex;gap:8px;"><input type="number" id="aggo-wy" placeholder="Y (S-JTSK)" step="0.01" style="flex:1;"><input type="number" id="aggo-wx" placeholder="X (S-JTSK)" step="0.01" style="flex:1;"></div>'
+            + '<div style="display:flex;gap:8px;"><input type="text" inputmode="decimal" id="aggo-wy" placeholder="Y (S-JTSK)" step="0.01" style="flex:1;"><input type="text" inputmode="decimal" id="aggo-wx" placeholder="X (S-JTSK)" step="0.01" style="flex:1;"></div>'
             + '<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">'
             + '<button class="btn btn-secondary" id="aggo-gps" style="flex:1;margin:0;">Z GPS</button>'
             + (ptOpts ? '<select id="aggo-pt" style="flex:1;"><option value="">— existující bod —</option>' + ptOpts + '</select>' : '')
@@ -354,8 +354,8 @@
         el.querySelector('#aggo-op').oninput = function () { _opacity = parseInt(this.value, 10) / 100; if (_layer && _layer.setOpacity) _layer.setOpacity(_opacity); saveParams(); };
         el.querySelector('#aggo-vis').onchange = function () { _visible = this.checked; refreshLayer(); saveParams(); };
         el.querySelector('#aggo-fit').onclick = function () { fitToOverlay(); };
-        el.querySelector('#aggo-del').onclick = function () {
-            if (!confirm('Odebrat vlastní podklad z této zakázky?')) return;
+        el.querySelector('#aggo-del').onclick = async function () {
+            if (!(await agAsk('Odebrat vlastní podklad z této zakázky?', { okText: 'Odebrat', danger: true }))) return;
             idbDel('img_' + projId()); try { if (typeof removeStoredData === 'function') removeStoredData(PKEY); else if (typeof setStoredData === 'function') setStoredData(PKEY, ''); } catch (e) {}
             resetState(); renderInfo(); renderCpList();
             var st = document.getElementById('aggo-status'); if (st) st.innerHTML = '';

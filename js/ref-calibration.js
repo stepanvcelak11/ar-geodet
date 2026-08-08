@@ -196,9 +196,9 @@
             '    <label class="agref-lbl">Název / číslo bodu (jen popis)</label>' +
             '    <input type="text" id="agref-name" placeholder="Např. PBPP 241">' +
             '    <label class="agref-lbl">S-JTSK Y (m)</label>' +
-            '    <input type="number" id="agref-y" step="any" inputmode="decimal" placeholder="Např. 596956.46">' +
+            '    <input type="text" id="agref-y" step="any" inputmode="decimal" placeholder="Např. 596956.46">' +
             '    <label class="agref-lbl">S-JTSK X (m)</label>' +
-            '    <input type="number" id="agref-x" step="any" inputmode="decimal" placeholder="Např. 1163343.34">' +
+            '    <input type="text" id="agref-x" step="any" inputmode="decimal" placeholder="Např. 1163343.34">' +
             '    <div id="agref-gps" class="agref-gps"></div>' +
             '  </div>' +
             '  <button type="button" class="btn btn-primary" id="agref-apply"><svg class="icon"><use href="#i-crosshair"/></svg> Spočítat a zapnout kalibraci</button>' +

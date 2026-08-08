@@ -37,4 +37,27 @@
         } catch (e) {}
         try { return Promise.resolve(confirm(msg)); } catch (e) { return Promise.resolve(false); }
     };
+
+    // agAskText(text[, opts]) → Promise<string|null> — náhrada prompt().
+    // Stejná smlouva jako nativní prompt: vrátí zadaný text, nebo null při zrušení.
+    // opts: { title, value (předvyplnit), placeholder, okText }
+    // Nativní prompt() je na mobilu nejhorší z celé trojice — na iOS v PWA vypadá
+    // jako hláška prohlížeče, v rukavicích se do něj špatně trefuje a Android ho
+    // v některých režimech (fullscreen, po opakovaném volání) umí úplně potlačit.
+    window.agAskText = window.agAskText || function (msg, opts) {
+        opts = opts || {};
+        try {
+            if (typeof window.agPrompt === 'function') {
+                return window.agPrompt({
+                    title: opts.title || 'Zadání',
+                    message: esc(msg),
+                    value: opts.value,
+                    placeholder: opts.placeholder,
+                    okText: opts.okText
+                });
+            }
+        } catch (e) {}
+        try { return Promise.resolve(prompt(msg, opts.value != null ? String(opts.value) : '')); }
+        catch (e) { return Promise.resolve(null); }
+    };
 })();

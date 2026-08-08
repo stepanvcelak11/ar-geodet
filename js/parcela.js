@@ -68,7 +68,7 @@
     // =====================================================================
     function agAlert(t, m) {
         try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {}
-        alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : ''));
+        agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : ''));
         return Promise.resolve(true);
     }
     function agConfirm(t, m) {
@@ -524,7 +524,7 @@
             + '</div>'
             + '<div id="agpc-div-area-wrap" style="margin-top:8px;">'
             + '  <label>Cílová výměra dílu (m²) — z celku ' + total.toFixed(2) + ' m²</label>'
-            + '  <input type="number" id="agpc-div-area" step="0.01" inputmode="decimal" placeholder="např. ' + (total / 2).toFixed(2) + '">'
+            + '  <input type="text" id="agpc-div-area" step="0.01" inputmode="decimal" placeholder="např. ' + (total / 2).toFixed(2) + '">'
             + '</div>'
             + '<div id="agpc-div-n-wrap" style="margin-top:8px;display:none;">'
             + '  <label>Počet dílů N</label>'
@@ -762,7 +762,7 @@
             + '  <button type="button" class="btn" id="agpc-ptadd" style="margin-top:8px;"><svg class="icon"><use href="#i-plus"/></svg> Přidat vrchol</button>'
             + '</div>'
             + '<div id="agpc-add-yx" class="agpc-addpanel" style="display:none;">'
-            + '  <div style="display:flex;gap:8px;"><input type="number" id="agpc-in-y" step="any" inputmode="decimal" placeholder="Y (m)" style="flex:1;"><input type="number" id="agpc-in-x" step="any" inputmode="decimal" placeholder="X (m)" style="flex:1;"></div>'
+            + '  <div style="display:flex;gap:8px;"><input type="text" id="agpc-in-y" step="any" inputmode="decimal" placeholder="Y (m)" style="flex:1;"><input type="text" id="agpc-in-x" step="any" inputmode="decimal" placeholder="X (m)" style="flex:1;"></div>'
             + '  <input type="text" id="agpc-in-name" placeholder="Název (volitelně)" style="margin-top:6px;">'
             + '  <button type="button" class="btn" id="agpc-yxadd" style="margin-top:8px;"><svg class="icon"><use href="#i-plus"/></svg> Přidat vrchol</button>'
             + '</div>'

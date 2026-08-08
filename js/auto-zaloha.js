@@ -43,7 +43,7 @@
     // --- spuštění zálohy (obalí zaloha.js) --------------------------------------
     window.agBackupNow = function () {
         if (typeof window.exportAllData !== 'function') {
-            try { if (typeof window.agAlert === 'function') window.agAlert({ title: 'Záloha nedostupná', message: 'Modul zálohy (zaloha.js) není načtený.' }); else alert('Záloha není dostupná.'); } catch (e) {}
+            try { if (typeof window.agAlert === 'function') window.agAlert({ title: 'Záloha nedostupná', message: 'Modul zálohy (zaloha.js) není načtený.' }); else agInfo('Záloha není dostupná.'); } catch (e) {}
             return Promise.resolve(false);
         }
         var r;

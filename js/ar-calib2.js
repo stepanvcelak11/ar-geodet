@@ -35,7 +35,7 @@
 
     // ---- helpery (čtou globály obezřetně) --------------------------------------
     function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function heading() { return (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null; }
     function brg(lat, lng) { try { return getBearing(userLat, userLng, lat, lng); } catch (e) { return null; } }

@@ -187,8 +187,8 @@
                 var fin = function () { removeRec(rec); render(); };
                 if (rec.type === 'project') restoreProject(rec, fin); else restorePoint(rec, fin);
             });
-            row.querySelector('.cp-btn-delete').addEventListener('click', function () {
-                if (!confirm('Smazat trvale? Tohle už vrátit nepůjde.')) return;
+            row.querySelector('.cp-btn-delete').addEventListener('click', async function () {
+                if (!(await agAsk('Smazat trvale? Tohle už vrátit nepůjde.', { okText: 'Smazat natrvalo', danger: true }))) return;
                 removeRec(rec); render();
             });
             box.appendChild(row);

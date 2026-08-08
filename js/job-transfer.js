@@ -296,7 +296,7 @@
         });
     }
 
-    function confirmAndMerge(pkg) {
+    async function confirmAndMerge(pkg) {
         var sum = pkgSummary(pkg);
         var target = getProjMeta(getPid());
         var when = '';
@@ -309,7 +309,7 @@
         if (typeof window.agAlert === 'function') {
             window.agAlert({ title: 'Načíst zakázku', message: html, okText: 'Sloučit', cancelText: 'Zrušit' }).then(function (ok) { if (ok) proceed(); else clearImportOut(); });
         } else {
-            if (confirm('Sloučit ' + sum.pts + ' bodů do aktivní zakázky?')) proceed(); else clearImportOut();
+            if ((await agAsk('Sloučit ' + sum.pts + ' bodů do aktivní zakázky?', { okText: 'Sloučit' }))) proceed(); else clearImportOut();
         }
     }
     function clearImportOut() { var out = document.getElementById('agjt-import-out'); if (out) out.innerHTML = ''; }

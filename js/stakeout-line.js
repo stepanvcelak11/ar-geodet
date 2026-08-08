@@ -16,7 +16,7 @@
     var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 20 4"/><circle cx="4" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="4" r="2.2" fill="currentColor"/><path d="M12 12l3 3" opacity=".6"/></svg>';
     var _aId = null, _bId = null, _timer = null;
 
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function num(id) { var el = document.getElementById(id); var v = el ? parseFloat(String(el.value).replace(',', '.')) : NaN; return isFinite(v) ? v : NaN; }
 
     // ---- draft (AGDraft je odpojitelný, vše fail-silent) -----------------------
@@ -134,8 +134,8 @@
             + '<div id="agsl-lineinfo" style="font-size:13px;margin:8px 0;color:var(--accent);"></div>'
             + '<div id="agsl-live" style="margin:6px 0 12px;padding:12px 14px;border-radius:10px;background:rgba(47,158,116,0.12);font-family:var(--font-mono,monospace);font-size:14px;"></div>'
             + '<details class="adv"><summary><svg class="icon"><use href="#i-crosshair"/></svg> Vytyčit bod na staničení</summary><div class="adv-body">'
-            + '  <label>Staničení od A (m)</label><input type="number" id="agsl-stat" step="0.01" inputmode="decimal" placeholder="např. 25.00">'
-            + '  <label style="margin-top:6px;">Kolmý odstup (m, + vlevo / − vpravo)</label><input type="number" id="agsl-off" step="0.01" inputmode="decimal" placeholder="0">'
+            + '  <label>Staničení od A (m)</label><input type="text" id="agsl-stat" step="0.01" inputmode="decimal" placeholder="např. 25.00">'
+            + '  <label style="margin-top:6px;">Kolmý odstup (m, + vlevo / − vpravo)</label><input type="text" id="agsl-off" step="0.01" inputmode="decimal" placeholder="0">'
             + '  <label style="margin-top:6px;">Název bodu</label><input type="text" id="agsl-name" placeholder="ST25">'
             + '  <div id="agsl-stake-out" style="margin:10px 0;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.06);font-family:var(--font-mono,monospace);"></div>'
             + '  <button class="btn" id="agsl-save"><svg class="icon"><use href="#i-plus"/></svg> Uložit vytyčovaný bod</button>'

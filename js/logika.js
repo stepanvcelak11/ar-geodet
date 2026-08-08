@@ -220,6 +220,61 @@ if ('serviceWorker' in navigator) {
         }
         // Kratka haptika (ulozeni bodu, potvrzeni akce). Jediny spolecny vstup pro vibrace,
         // respektuje visSettings.vibrationEnabled (default zapnuto; iOS Safari vibrace neumi — tise nic).
+        // ---- CISLA Z FORMULARU: desetinna CARKA -----------------------------------
+        // Ceska klavesnice pise "596956,46". <input type="number"> ale podle specifikace
+        // drzi jen tecku: Chrome/Firefox carku samy prepisou, Safari (a tedy iPhone v PWA)
+        // NE — pole je "badInput" a .value vrati PRAZDNY retezec. Uzivatel videl v poli
+        // "596956,46" a appka mu napsala "Vyplnte souradnice!". Proto jsou pole, do kterych
+        // se pisou merene hodnoty, prepnute na type="text" inputmode="decimal" (ciselna
+        // klavesnice vyjede stejne, obsah nikdo nezahazuje) a VSECHNA cisla chodi tudy.
+        function agNum(v) {
+            if (v == null) return null;
+            if (typeof v === 'number') return isFinite(v) ? v : null;
+            if (typeof v === 'object' && 'value' in v) v = v.value;         // predany <input>
+            var t = String(v).replace(/[\s\u00a0]/g, '')                    // i pevna mezera z toLocaleString
+                             .replace(/[\u2212\u2013\u2014]/g, '-')          // unicode minus / pomlcka
+                             .replace(',', '.');
+            if (!t) return null;
+            var n = parseFloat(t);
+            return isFinite(n) ? n : null;
+        }
+        window.agNum = agNum;
+        // agNumEl('id') / agNumEl(el) — precte pole a rozparsuje; null kdyz to cislo neni
+        function agNumEl(idOrEl) {
+            var el = (typeof idOrEl === 'string') ? document.getElementById(idOrEl) : idOrEl;
+            return el ? agNum(el.value) : null;
+        }
+        window.agNumEl = agNumEl;
+
+        // ---- HLEDANI BODU: jeden filtr pro mapu, AR i seznamy --------------------
+        // Driv byl `pt.name.toLowerCase().includes(q)` zkopirovany na 8 mistech:
+        // nehledal v KODU bodu (pozdejsi funkce) a "sachta" nenaslo "sachta" s hackem.
+        // agFold = male pismeno bez diakritiky. Vysledek se cachuje ve WeakMap, aby se
+        // normalize() nevolal 60x za sekundu na kazdy bod v renderAR — a hlavne aby se
+        // do bodu nezapisovaly pomocne vlastnosti (body se ukladaji pres JSON.stringify).
+        function agFold(s) {
+            s = String(s == null ? '' : s).toLowerCase();
+            try { s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (e) {}
+            return s;
+        }
+        window.agFold = agFold;
+        var _agFoldCache = (typeof WeakMap === 'function') ? new WeakMap() : null;
+        var _agQRaw = null, _agQFold = '';
+        function agMatchQuery(pt, q) {
+            if (!q) return true;
+            if (q !== _agQRaw) { _agQRaw = q; _agQFold = agFold(q); }
+            if (!_agQFold) return true;
+            if (!pt) return false;
+            var src = (pt.name || '') + '\u0000' + (pt.kod || '');
+            var c = _agFoldCache && _agFoldCache.get(pt);
+            if (!c || c.src !== src) {
+                c = { src: src, idx: agFold(pt.name || '') + ' ' + agFold(pt.kod || '') };
+                if (_agFoldCache) _agFoldCache.set(pt, c);
+            }
+            return c.idx.indexOf(_agQFold) >= 0;
+        }
+        window.agMatchQuery = agMatchQuery;
+
         function agVibe(pattern) { try { if (visSettings.vibrationEnabled !== false && navigator.vibrate) navigator.vibrate(pattern || 30); } catch (e) {} }
         window.agVibe = agVibe;
         // ---- SERIE CISLOVANI BODU (per zakazka): z posledniho ulozeneho nazvu "PREFIX123"
@@ -483,7 +538,7 @@ if ('serviceWorker' in navigator) {
             const doIt = () => { arPoints.forEach(p => { if(p.element) p.element.remove(); }); arPoints = []; removeStoredData('arOfflinePoints12'); document.getElementById('settings-modal').style.display = 'none'; if (userLat && userLng) initFetch(userLat, userLng); };
             if (window.agConfirm) { window.agConfirm({ title: 'Vymazat stáhnuté okolí', message: msg.replace(/\n/g, '<br>'), okText: 'Vymazat', danger: true }).then(ok => { if (ok) doIt(); }); }
             else if (confirm(msg)) doIt();
-        } function getVisiblePointsCount() { return arPoints.filter(p => !p.hidden && p.currentDist <= arRadius && (!searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase()))).length; }
+        } function getVisiblePointsCount() { return arPoints.filter(p => !p.hidden && p.currentDist <= arRadius && agMatchQuery(p, searchQuery)).length; }
         function exportPoints() { if (persistentCustomPoints.length === 0) return agInfo("Nemáte žádné body."); const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(persistentCustomPoints)); const downloadAnchorNode = document.createElement('a'); downloadAnchorNode.setAttribute("href", dataStr); downloadAnchorNode.setAttribute("download", `moje_body_${activeProjectId}.json`); document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove(); }
         // Export do CSV (seznam souradnic): radky "nazev;Y;X" v S-JTSK. BOM kvuli diakritice v Excelu.
         function exportPointsCSV() {
@@ -618,7 +673,17 @@ if ('serviceWorker' in navigator) {
         // snapshotem před/po a async dialog by mu rozbil detekci změny (žádný toast Vrátit zpět).
         // skipConfirm: hromadne mazani z panelu Body uz ma JEDNO spolecne potvrzeni — bez nej
         // by 30 vybranych bodu znamenalo 30 confirm dialogu. Kos/undo obaluji tuto funkci dal.
-        function deleteCustomPoint(id, skipConfirm) { const _pt = persistentCustomPoints.find(p => p.id === id); if(!skipConfirm && !confirm('Smazat bod „' + ((_pt && _pt.name) || 'bez názvu') + '"?')) return; persistentCustomPoints = persistentCustomPoints.filter(p => p.id !== id); setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); pointLines = pointLines.filter(l => l.aId !== id && l.bId !== id); saveLines(); renderManageList(); drawAllMarkersOnMap(); const idx = arPoints.findIndex(p => p.id === id); if(idx !== -1) { if(arPoints[idx].element) arPoints[idx].element.remove(); arPoints.splice(idx, 1); } updateInfoPanel(); }
+        // SYNCHRONNI jadro mazani. Hromadne mazani (mngBulkDelete) ho vola v cyklu a hned
+        // potom prekresluje — proto tady NESMI byt zadny await; potvrzovaci dialog je o patro vys.
+        function _deleteCustomPointNow(id) { persistentCustomPoints = persistentCustomPoints.filter(p => p.id !== id); setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); pointLines = pointLines.filter(l => l.aId !== id && l.bId !== id); saveLines(); renderManageList(); drawAllMarkersOnMap(); const idx = arPoints.findIndex(p => p.id === id); if(idx !== -1) { if(arPoints[idx].element) arPoints[idx].element.remove(); arPoints.splice(idx, 1); } updateInfoPanel(); }
+        async function deleteCustomPoint(id, skipConfirm) {
+            if (skipConfirm) return _deleteCustomPointNow(id);
+            const _pt = persistentCustomPoints.find(p => p.id === id);
+            const _nm = (_pt && _pt.name) || 'bez názvu';
+            if (!await agAsk('Smazat bod „' + _nm + '"?\nVrátit ho půjde 30 dní z koše (Více → Koš).',
+                             { title: 'Smazat bod', okText: 'Smazat', danger: true })) return;
+            _deleteCustomPointNow(id);
+        }
         // Vyplnit Y/X z PRUMEROVANE GPS polohy (presnejsi nez jeden odecet) + ulozit dosazenou presnost
         function fillAveragedGPS() {
             // BRANA CERSTVOSTI: kdyz GPS prestala dodavat fixy (tunel, suspend), prumer je
@@ -658,7 +723,7 @@ if ('serviceWorker' in navigator) {
                 if (_oLat != null && _oLng != null) { pt.currentDist = getDistance(_oLat, _oLng, pt.lat, pt.lng); pt.currentBearing = getBearing(_oLat, _oLng, pt.lat, pt.lng); arPoints.sort((a, b) => (a.currentDist || 0) - (b.currentDist || 0)); }
             } catch (e) {}
             // aktivní hledání jména by nový bod schovalo → zrušit a říct to na rovinu
-            if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+            if (!agMatchQuery(pt, searchQuery)) {
                 const _q = searchQuery; searchQuery = '';
                 const _inp = document.getElementById('s-search-name'); if (_inp) _inp.value = '';
                 quickToast('Zrušeno hledání „' + _q + '", aby byl nový bod vidět.'); _saveToastShown = true;
@@ -679,7 +744,17 @@ if ('serviceWorker' in navigator) {
             let name = String(document.getElementById('custom-name').value || '').trim();
             if (!name) name = agNextSerieName() || "Bod";   // prazdne pole: dalsi cislo serie misto kolidujiciho "Bod"
             const kod = String((document.getElementById('custom-kod') || { value: '' }).value || '').trim();
-            let inputY = parseFloat(document.getElementById('custom-y').value); let inputX = parseFloat(document.getElementById('custom-x').value); if (isNaN(inputY) || isNaN(inputX)) return agInfo("Vyplňte souřadnice!"); let krovakY = inputY > 0 ? -inputY : inputY; let krovakX = inputX > 0 ? -inputX : inputX; let wgs84 = proj4("EPSG:5514", "EPSG:4326", [krovakY, krovakX]); let lng = wgs84[0]; let lat = wgs84[1]; var _zin = parseFloat((document.getElementById('custom-z') || {}).value); var vyska = isFinite(_zin) ? Math.round(_zin * 100) / 100 : null;
+            let inputY = agNumEl('custom-y'); let inputX = agNumEl('custom-x');
+            if (inputY == null || inputX == null) {
+                // rict KTERE pole je spatne — hlaska "Vyplnte souradnice!" u viditelne
+                // vyplneneho pole byla nejcastejsi zahada v terenu (desetinna carka)
+                const _yRaw = String((document.getElementById('custom-y') || {}).value || '').trim();
+                const _xRaw = String((document.getElementById('custom-x') || {}).value || '').trim();
+                if (!_yRaw && !_xRaw) return agInfo('Vyplňte souřadnice Y a X.');
+                const _bad = [(inputY == null ? 'Y' : null), (inputX == null ? 'X' : null)].filter(Boolean).join(' a ');
+                return agInfo('Souřadnici ' + _bad + ' se nepodařilo přečíst jako číslo. Zkontroluj, jestli tam nezůstal překlep — desetinná čárka i tečka jsou v pořádku.');
+            }
+            let krovakY = inputY > 0 ? -inputY : inputY; let krovakX = inputX > 0 ? -inputX : inputX; let wgs84 = proj4("EPSG:5514", "EPSG:4326", [krovakY, krovakX]); let lng = wgs84[0]; let lat = wgs84[1]; var _zin = agNumEl('custom-z'); var vyska = (_zin != null) ? Math.round(_zin * 100) / 100 : null;
             // #2/#3: nový bod z GPS průměru srovnej Helmertovou lokalizací staveniště (když je aktivní).
             // Jen pro nově měřený GPS bod — ne při editaci ani u ručně zadaných S-JTSK.
             try {
@@ -1125,7 +1200,13 @@ if ('serviceWorker' in navigator) {
                     // z originu, ne ze syrového GPS fixu — konec ±m tančení. Bez kotvení = GPS jako dřív.
                     var _anch = !!(window.AGPose && window.AGPose.valid && window.AGPose.originLat != null);
                     var _oc = _anch ? [window.AGPose.originLat, window.AGPose.originLng] : [userLat, userLng];
-                    if (_movedCalc > 0.25 || arPoints.length !== _lastCalcCount || _anch !== window._lastCalcAnchored) { window._lastCalcAnchored = _anch; arPoints.forEach(p => { p.currentDist = getDistance(_oc[0], _oc[1], p.lat, p.lng); p.currentBearing = getBearing(_oc[0], _oc[1], p.lat, p.lng); }); arPoints.sort((a, b) => a.currentDist - b.currentDist); _lastCalcLat = userLat; _lastCalcLng = userLng; _lastCalcCount = arPoints.length; }
+                    if (_movedCalc > 0.25 || arPoints.length !== _lastCalcCount || _anch !== window._lastCalcAnchored) { window._lastCalcAnchored = _anch; var _brgLim = (arRadius || 150) * 1.25;
+                        // VYKON: currentBearing potrebuje jen AR projekce, a ta stejne vsechno
+                        // za arRadius zahodi. Prepocet bezi po kazdych 0,25 m chuze, takze u
+                        // zakazky s tisicem bodu to usetri polovinu goniometrie za sekundu.
+                        // Kdo azimut potrebuje i dal (cil navigace), ma u sebe fallback
+                        // `pt.currentBearing != null ? ... : getBearing(...)`.
+                        arPoints.forEach(p => { p.currentDist = getDistance(_oc[0], _oc[1], p.lat, p.lng); p.currentBearing = (p.currentDist <= _brgLim) ? getBearing(_oc[0], _oc[1], p.lat, p.lng) : null; }); arPoints.sort((a, b) => a.currentDist - b.currentDist); _lastCalcLat = userLat; _lastCalcLng = userLng; _lastCalcCount = arPoints.length; }
                     if (activePointIdForModal) { const activePt = arPoints.find(p => p.id === activePointIdForModal); if (activePt) { const newDist = getDistance(userLat, userLng, activePt.lat, activePt.lng); const distEl = document.getElementById('sheet-distance-val'); if (distEl) distEl.innerText = `${newDist.toFixed(1)} m`; const gpsEl = document.getElementById('sheet-gps-val'); if (gpsEl) gpsEl.innerText = currentGpsAccuracy.toFixed(1); } }
                     if (lastCenterLat === null) { map.setView([userLat, userLng], 19, { animate: false }); lastCenterLat = userLat; lastCenterLng = userLng; } else if (!window._mapHold && getDistance(lastCenterLat, lastCenterLng, userLat, userLng) > 1.5) { map.setView([userLat, userLng], map.getZoom(), { animate: false }); lastCenterLat = userLat; lastCenterLng = userLng; }
                     // BATERIE/RADIO: dotazovat CUZK po kazdych 25 m chuze bylo silne redundantni —
@@ -1184,7 +1265,7 @@ if ('serviceWorker' in navigator) {
             if (pt.cat === 'TB' && !filters.tb) return false; if (pt.cat === 'ZHB' && !filters.zhb) return false;
             if (pt.cat === 'PBPP' && !filters.pbpp) return false; if (pt.cat === 'NIVEL' && !filters.nivel) return false;
             if (pt.cat === 'CUSTOM' && !filters.custom) return false;
-            if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+            if (!agMatchQuery(pt, searchQuery)) return false;
             return true;
         }
 

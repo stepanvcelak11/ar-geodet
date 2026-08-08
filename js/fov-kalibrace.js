@@ -42,7 +42,7 @@
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]; }); }
     function agAlert(t, m) {
         try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {}
-        alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : ''));
+        agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : ''));
     }
     function toast(m) { try { if (typeof quickToast === 'function') { quickToast(m); return; } } catch (e) {} }
     function heading() {

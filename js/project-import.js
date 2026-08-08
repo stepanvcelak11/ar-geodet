@@ -31,7 +31,7 @@
     var _rasterEl = null;
 
     // ---- pomocné ---------------------------------------------------------------
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
     function getMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
@@ -435,8 +435,8 @@
             b.addEventListener('click', function () { stakeOut({ lat: parseFloat(b.getAttribute('data-lat')), lng: parseFloat(b.getAttribute('data-lng')), name: b.getAttribute('data-name') }); });
         });
     }
-    function clearDesign() {
-        if (!confirm('Odebrat naimportovaný návrh z této zakázky?')) return;
+    async function clearDesign() {
+        if (!(await agAsk('Odebrat naimportovaný návrh z této zakázky?', { okText: 'Odebrat', danger: true }))) return;
         _design = null; persist(); drawMap(); stopAr(); renderDxf();
     }
 

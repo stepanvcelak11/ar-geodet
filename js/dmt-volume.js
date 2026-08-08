@@ -427,8 +427,8 @@
             '  <div class="dmt-toolbar">' +
             '    <button class="dmt-btn" id="dmt-load">Načíst body ze zakázky</button>' +
             '    <button class="dmt-btn" id="dmt-paste">Vložit Y X Z…</button>' +
-            '    <label class="dmt-fld">Ref. H₀ <input type="number" step="0.1" id="dmt-ref" placeholder="min"></label>' +
-            '    <label class="dmt-fld">Interval <input type="number" step="0.1" min="0.01" id="dmt-step"> m</label>' +
+            '    <label class="dmt-fld">Ref. H₀ <input type="text" inputmode="decimal" step="0.1" id="dmt-ref" placeholder="min"></label>' +
+            '    <label class="dmt-fld">Interval <input type="text" inputmode="decimal" step="0.1" min="0.01" id="dmt-step"> m</label>' +
             '    <button class="dmt-btn dmt-btn-acc" id="dmt-recalc">Přepočítat</button>' +
             '    <button class="dmt-btn" id="dmt-fit">Vystředit</button>' +
             '  </div>' +
@@ -494,8 +494,8 @@
         });
         overlay.querySelector('#dmt-fit').addEventListener('click', fitView);
         overlay.querySelector('#dmt-png').addEventListener('click', exportPNG);
-        overlay.querySelector('#dmt-clear').addEventListener('click', function () {
-            if (!confirm('Vymazat všechny body z DMT?')) return;
+        overlay.querySelector('#dmt-clear').addEventListener('click', async function () {
+            if (!(await agAsk('Vymazat všechny body z DMT?', { okText: 'Vymazat', danger: true }))) return;
             pts = []; tris = []; result = null; save(); renderResults(); draw();
         });
 

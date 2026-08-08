@@ -214,7 +214,7 @@
             if (_mngSuspendRedraw) return;   // hromadna davka prekresli mapu az na konci
             markersGroup.clearLayers();
             arPoints.forEach(pt => {
-                if (pt.hidden) return; if (pt.cat === 'TB' && !filters.tb) return; if (pt.cat === 'ZHB' && !filters.zhb) return; if (pt.cat === 'PBPP' && !filters.pbpp) return; if (pt.cat === 'NIVEL' && !filters.nivel) return; if (pt.cat === 'CUSTOM' && !filters.custom) return; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return;
+                if (pt.hidden) return; if (pt.cat === 'TB' && !filters.tb) return; if (pt.cat === 'ZHB' && !filters.zhb) return; if (pt.cat === 'PBPP' && !filters.pbpp) return; if (pt.cat === 'NIVEL' && !filters.nivel) return; if (pt.cat === 'CUSTOM' && !filters.custom) return; if (!agMatchQuery(pt, searchQuery)) return;
                 let col = visSettings.colTb; if(pt.cat === 'ZHB') col = visSettings.colZhb; if(pt.cat === 'PBPP') col = visSettings.colPbpp; if(pt.cat === 'NIVEL') col = visSettings.colNivel; if(pt.cat === 'CUSTOM') col = visSettings.colCustom;
                 const stakedBadge = (window.isStaked && isStaked(pt.id)) ? `<div style="position:absolute; top:-7px; right:-7px; width:13px; height:13px; border-radius:50%; background:#10b981; border:1.5px solid #fff; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>` : '';
                 const svgIcon = getMapMarkerSVG(pt.cat, col); const htmlContent = `<div style="position: relative; width: 24px; height: 24px; pointer-events:none;${stakedBadge ? ' opacity:0.65;' : ''}">${svgIcon}${stakedBadge}<div class="map-label-text" style="transform: rotate(${mapRotation}deg);">${_escHtml(pt.name)}</div></div>`;
@@ -265,7 +265,7 @@
             if (connectMode) { handleConnectTap(clickLatLng); return; }
             const clickPoint = map.latLngToContainerPoint(clickLatLng); const nearbyPoints = [];
             arPoints.forEach(pt => {
-                if (pt.hidden) return; if (pt.cat === 'TB' && !filters.tb) return; if (pt.cat === 'ZHB' && !filters.zhb) return; if (pt.cat === 'PBPP' && !filters.pbpp) return; if (pt.cat === 'NIVEL' && !filters.nivel) return; if (pt.cat === 'CUSTOM' && !filters.custom) return; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return;
+                if (pt.hidden) return; if (pt.cat === 'TB' && !filters.tb) return; if (pt.cat === 'ZHB' && !filters.zhb) return; if (pt.cat === 'PBPP' && !filters.pbpp) return; if (pt.cat === 'NIVEL' && !filters.nivel) return; if (pt.cat === 'CUSTOM' && !filters.custom) return; if (!agMatchQuery(pt, searchQuery)) return;
                 const ptLatLng = L.latLng(pt.lat, pt.lng); const ptPoint = map.latLngToContainerPoint(ptLatLng); const pixelDist = clickPoint.distanceTo(ptPoint);
                 if (pixelDist <= 25) { nearbyPoints.push(pt); }
             });
@@ -296,7 +296,7 @@
                 if (pt.cat === 'TB' && !filters.tb) return false; if (pt.cat === 'ZHB' && !filters.zhb) return false;
                 if (pt.cat === 'PBPP' && !filters.pbpp) return false; if (pt.cat === 'NIVEL' && !filters.nivel) return false;
                 if (pt.cat === 'CUSTOM' && !filters.custom) return false;
-                if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+                if (!agMatchQuery(pt, searchQuery)) return false;
                 return true;
             }).map(pt => ({ pt, d: getDistance(userLat, userLng, pt.lat, pt.lng) })).sort((a, b) => a.d - b.d).slice(0, 50);
             if (!pts.length) { listDiv.innerHTML = '<p style="text-align:center; opacity:0.7;">Žádné body v dosahu.</p>'; return; }
@@ -317,7 +317,7 @@
         function fillRange(el) {
             if (!el || el.type !== 'range') return;
             var min = parseFloat(el.min) || 0, max = parseFloat(el.max); if (!isFinite(max)) max = 100;
-            var v = parseFloat(el.value); if (!isFinite(v)) v = min;
+            var v = agNum(el.value); if (v == null) v = min;
             var pct = max > min ? Math.max(0, Math.min(100, ((v - min) / (max - min)) * 100)) : 0;
             el.style.background = 'linear-gradient(90deg, var(--accent) ' + pct + '%, var(--surface-3) ' + pct + '%)';
         }
@@ -359,7 +359,7 @@
             visSettings.colTb = document.getElementById('col-tb').value; visSettings.colZhb = document.getElementById('col-zhb').value; visSettings.colPbpp = document.getElementById('col-pbpp').value; visSettings.colNivel = document.getElementById('col-nivel').value; visSettings.colCustom = document.getElementById('col-custom').value;
             visSettings.arrowScale = parseInt(document.getElementById('v-arrow-scale').value) / 100; visSettings.arrowOpacity = parseInt(document.getElementById('v-arrow-opacity').value); visSettings.arrowShape = document.getElementById('v-arrow-shape').value; visSettings.colArrow = document.getElementById('col-arrow').value;
             visSettings.panelOpacity = parseInt(document.getElementById('v-panel-opacity').value); /* menuScale: jezdec odstraněn (mrtvá volba) */
-            visSettings.autoCompassCorrection = document.getElementById('s-auto-compass').checked; visSettings.tiltCompensation = document.getElementById('s-tilt-comp').checked; visSettings.headingSmoothing = parseInt(document.getElementById('s-heading-smooth').value); visSettings.fovH = parseInt(document.getElementById('s-fovh').value); visSettings.fovV = parseInt(document.getElementById('s-fovv').value); visSettings.eyeHeight = parseFloat(document.getElementById('s-eyeh').value);
+            visSettings.autoCompassCorrection = document.getElementById('s-auto-compass').checked; visSettings.tiltCompensation = document.getElementById('s-tilt-comp').checked; visSettings.headingSmoothing = parseInt(document.getElementById('s-heading-smooth').value); visSettings.fovH = parseInt(document.getElementById('s-fovh').value); visSettings.fovV = parseInt(document.getElementById('s-fovv').value); visSettings.eyeHeight = agNumEl('s-eyeh');
             visSettings.theme = document.getElementById('v-theme').value; visSettings.mode = document.getElementById('v-mode').value; visSettings.adaptiveGlass = document.getElementById('v-adaptive-glass').checked; visSettings.hudScale = parseInt(document.getElementById('v-hud-scale').value) / 100;
             setStoredData('arVisSettings12', JSON.stringify(visSettings)); applyVisualSettings(); drawAllMarkersOnMap();
             document.getElementById('settings-modal').style.display = 'none';
@@ -382,7 +382,8 @@
             const listDiv = document.getElementById('manage-list'); if (!listDiv) return;
             let shown = 0;
             listDiv.querySelectorAll('.cp-item[data-mng-text]').forEach(el => {
-                const ok = !_mngQuery.trim() || el.dataset.mngText.includes(_mngQuery.trim().toLowerCase());
+                const _q = agFold(_mngQuery.trim());
+                const ok = !_q || (el.dataset.mngText || '').includes(_q);
                 el.style.display = ok ? '' : 'none'; if (ok) shown++;
             });
             const em = document.getElementById('mng-empty'); if (em) em.style.display = shown ? 'none' : 'block';
@@ -430,7 +431,8 @@
             pts.forEach(pt => {
                 let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); let dispY = Math.abs(sjtsk[0]).toFixed(2); let dispX = Math.abs(sjtsk[1]).toFixed(2);
                 const item = document.createElement('div'); item.className = 'cp-item';
-                item.dataset.mngText = (String(pt.name) + ' ' + (pt.kod || '')).toLowerCase();
+                // hledaci index radku; poznamka bodu se sem dopise az v decoratePointItem (lezi v IndexedDB)
+                item.dataset.mngText = agFold(String(pt.name) + ' ' + (pt.kod || ''));
                 const dRow = (userLat != null) ? ('<br>' + getDistance(userLat, userLng, pt.lat, pt.lng).toFixed(1) + ' m od tebe') : '';
                 item.innerHTML = ` <div class="cp-title">${_escHtml(pt.name)}${pt.kod ? ' <span class="cp-kod">' + _escHtml(pt.kod) + '</span>' : ''}</div> <div class="cp-coords">Y: ${dispY}<br>X: ${dispX}${pt.vyska != null ? '<br>Z: '+Number(pt.vyska).toFixed(2)+' m' : ''}${pt.acc != null ? '<br>⌀ ±'+_escHtml(pt.acc)+' m' : ''}${dRow}</div>`;
                 if (_mngSelMode) {
@@ -492,7 +494,7 @@
             if (!ids.length) return agInfo('Vybrané body nejsou v aktivním hledání vidět — zruš hledání nebo vyber jiné.');
             const doIt = () => {
                 _mngSuspendRedraw = true;
-                try { ids.forEach(id => { try { deleteCustomPoint(id, true); } catch (e) {} }); }
+                try { ids.forEach(id => { try { _deleteCustomPointNow(id); } catch (e) {} }); }
                 finally { _mngSuspendRedraw = false; }
                 ids.forEach(id => _mngSel.delete(id));
                 drawAllMarkersOnMap(); initARMarkers();
@@ -641,7 +643,7 @@
             det.appendChild(box);
             listDiv.appendChild(det);
         }
-        function deleteLineFromList(id) { if (!confirm('Smazat tuto spojnici?')) return; _linesBoxOpen = true; deleteLine(id); renderManageList(); }
+        async function deleteLineFromList(id) { if (!(await agAsk('Smazat tuto spojnici?', { okText: 'Smazat', danger: true }))) return; _linesBoxOpen = true; deleteLine(id); renderManageList(); }
         // reset polí „popis + fotka" ve formuláři bodu; u editace předvyplní uloženou poznámku
         function resetNewPointExtras(loadNoteForId) {
             window._agNewPtPhoto = null;
@@ -822,7 +824,7 @@
               try {
                 if (!pt || pt.lat == null || pt.lng == null) return;   // rozbity zaznam preskocit
                 if (typeof pt.cat !== 'string' || !pt.cat) pt.cat = 'CUSTOM';
-                let matchesSearch = true; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) { matchesSearch = false; }
+                let matchesSearch = agMatchQuery(pt, searchQuery);
                 let outOfReach = (pt.currentDist > arRadius); let isSelectedForDetail = (pt.id === activePointIdForModal);
                 if (pt.hidden || !matchesSearch || (outOfReach && pt.id !== highlightedPointId && !isSelectedForDetail)) { if (pt.element && pt.element.parentNode) pt.element.parentNode.removeChild(pt.element); return; }
                 if (!pt.element) { _resetPtRenderCache(pt); const marker = document.createElement('div'); marker.className = `ar-marker cat-${String(pt.cat).toLowerCase()}`; if (pt.id === highlightedPointId) marker.classList.add('highlighted'); if (window.isStaked && isStaked(pt.id)) marker.classList.add('staked'); marker.style.opacity = '0'; const title = document.createElement('div'); title.className = 'ar-marker-title'; title.innerText = pt.name; const dist = document.createElement('div'); dist.className = 'ar-marker-dist'; const more = document.createElement('div'); more.className = 'ar-marker-more'; marker.appendChild(title); marker.appendChild(dist); marker.appendChild(more); marker.addEventListener('click', () => { if (pt._arCluster && pt._arCluster.length) { showClusterList([pt].concat(pt._arCluster)); return; } const currentDist = getDistance(userLat, userLng, pt.lat, pt.lng); showDetails(pt, currentDist); }); pt.element = marker; pt.distElement = dist; pt.moreElement = more; arOverlay.appendChild(marker); } else if (!pt.element.parentNode) { arOverlay.appendChild(pt.element); }
@@ -1132,13 +1134,12 @@
             let _arMissingEl = false;   // narazili jsme na bod bez DOM elementu?
 
             let maxPts = visSettings.maxARPoints || 100; let vOffset = visSettings.arVerticalOffset || 0;
-            const _sqLC = searchQuery ? searchQuery.toLowerCase() : '';
             // DECLUTTER AR štítků: co by se překrývalo, sbalí se pod nejbližší bod (+N, tap = seznam bodů).
             const _placed = []; const _ovW = arOverlay.clientWidth || 1, _ovH = arOverlay.clientHeight || 1;
 
             arPoints.forEach(pt => {
                 pt._arCluster = null;   // shluk plati vzdy jen pro AKTUALNI snimek
-                let isVisible = true; if (pt.hidden) isVisible = false; if (pt.cat === 'TB' && !filters.tb) isVisible = false; if (pt.cat === 'ZHB' && !filters.zhb) isVisible = false; if (pt.cat === 'PBPP' && !filters.pbpp) isVisible = false; if (pt.cat === 'NIVEL' && !filters.nivel) isVisible = false; if (pt.cat === 'CUSTOM' && !filters.custom) isVisible = false; if (_sqLC && !pt.name.toLowerCase().includes(_sqLC)) isVisible = false;
+                let isVisible = true; if (pt.hidden) isVisible = false; if (pt.cat === 'TB' && !filters.tb) isVisible = false; if (pt.cat === 'ZHB' && !filters.zhb) isVisible = false; if (pt.cat === 'PBPP' && !filters.pbpp) isVisible = false; if (pt.cat === 'NIVEL' && !filters.nivel) isVisible = false; if (pt.cat === 'CUSTOM' && !filters.custom) isVisible = false; if (!agMatchQuery(pt, searchQuery)) isVisible = false;
                 const distance = pt.currentDist || getDistance(_oLat, _oLng, pt.lat, pt.lng);
                 let isSelectedForDetail = (pt.id === activePointIdForModal);
                 if (distance > arRadius && pt.id !== highlightedPointId && !isSelectedForDetail) isVisible = false;
@@ -1270,14 +1271,14 @@
                 L.polyline([[A.lat, A.lng], [B.lat, B.lng]], { color: '#fbbf24', weight: 3, opacity: 0.85, interactive: false }).addTo(linesGroup);
                 // neviditelna siroka cara = dotykova plocha (tenkou caru je tezke trefit prstem)
                 const hit = L.polyline([[A.lat, A.lng], [B.lat, B.lng]], { color: '#000', weight: 24, opacity: 0 });
-                hit.on('click', (ev) => {
+                hit.on('click', async (ev) => {
                     if (connectMode || areaMode || mapAddMode) return; // v rezimech kresleni tap patri mapovemu handleru
                     const cp = map.latLngToContainerPoint(getMapClickLatLng(ev));
                     let nearPoint = false;
                     arPoints.forEach(pt => { if (nearPoint || !passesFilters(pt)) return; if (cp.distanceTo(map.latLngToContainerPoint(L.latLng(pt.lat, pt.lng))) <= 25) nearPoint = true; });
                     if (nearPoint) return; // tap u bodu patri bodu (detail/zvyrazneni), ne mazani cary
                     L.DomEvent.stopPropagation(ev);
-                    if (confirm('Smazat tuto spojnici (' + lineEndName(ln.aId, ln.aName) + ' \u2194 ' + lineEndName(ln.bId, ln.bName) + ')?')) { deleteLine(ln.id); }
+                    if ((await agAsk('Smazat tuto spojnici (' + lineEndName(ln.aId, ln.aName) + ' \u2194 ' + lineEndName(ln.bId, ln.bName) + ')?', { okText: 'Smazat', danger: true }))) { deleteLine(ln.id); }
                 });
                 hit.addTo(linesGroup);
                 const d = getDistance(A.lat, A.lng, B.lat, B.lng);
@@ -1502,7 +1503,7 @@
             document.getElementById('dict-new-term').value = ''; document.getElementById('dict-new-def').value = '';
             renderDictList();
         }
-        function deleteDictEntry(idx) { if (!confirm('Smazat tento vlastní pojem?')) return; const list = getCustomDict(); list.splice(idx, 1); saveCustomDict(list); renderDictList(); }
+        async function deleteDictEntry(idx) { if (!(await agAsk('Smazat tento vlastní pojem?', { okText: 'Smazat', danger: true }))) return; const list = getCustomDict(); list.splice(idx, 1); saveCustomDict(list); renderDictList(); }
         function _escHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
         function renderDictList() {
             const listDiv = document.getElementById('dict-list'); if (!listDiv) return;

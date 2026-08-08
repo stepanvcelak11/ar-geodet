@@ -27,7 +27,7 @@ function calcSavePoint(name, Y, X) {
 }
 
 // ---------- pomocnici pro formulare ----------
-function _cv(id) { const el = document.getElementById(id); if (!el) return null; const f = parseFloat(String(el.value).trim().replace(',', '.')); return isNaN(f) ? null : f; }
+function _cv(id) { const el = document.getElementById(id); if (!el) return null; return agNum(el.value); }
 function _cs(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
 function _fld(id, label, ph) { return `<label style="margin-top:8px;">${label}</label><input type="text" inputmode="decimal" autocomplete="off" id="${id}" placeholder="${ph || ''}">`; }
 function _ptFld(idp, label) {

@@ -53,7 +53,7 @@
     var _lastWarnKey = null, _lastWarnTs = 0;
 
     // ---- pomocné --------------------------------------------------------------
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function heading() { return (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null; }
@@ -544,8 +544,8 @@
         document.getElementById('agun-imp-file').addEventListener('change', onFile);
         document.getElementById('agun-ar').addEventListener('change', function () { _arOn = this.checked; if (_arOn) startAr(); else stopAr(); });
         document.getElementById('agun-warn').addEventListener('change', function () { _warnOn = this.checked; if (!_warnOn) setBanner(''); });
-        document.getElementById('agun-clear').addEventListener('click', function () {
-            if (!confirm('Vymazat všechny podzemní sítě z této zakázky?')) return;
+        document.getElementById('agun-clear').addEventListener('click', async function () {
+            if (!(await agAsk('Vymazat všechny podzemní sítě z této zakázky?', { okText: 'Vymazat', danger: true }))) return;
             _nets = []; persist(); drawMap(); stopAr(); setBanner(''); renderList(); setStatus('');
         });
     }

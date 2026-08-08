@@ -699,8 +699,8 @@
         var csv = m.querySelector('#ag-akt-csv');
         if (csv) csv.onclick = exportCsv;
         var wipe = m.querySelector('#ag-akt-wipe');
-        if (wipe) wipe.onclick = function () {
-            if (!confirm('Smazat celou historii mé aktivity? Skryté nástroje zůstanou skryté.')) return;
+        if (wipe) wipe.onclick = async function () {
+            if (!(await agAsk('Smazat celou historii mé aktivity? Skryté nástroje zůstanou skryté.', { okText: 'Smazat', danger: true }))) return;
             _db = { v: 1, days: {} };
             _dirty = true;
             save(true);

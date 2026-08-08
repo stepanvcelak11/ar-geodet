@@ -43,7 +43,7 @@
     }
     function saveHeight() { try { localStorage.setItem(LS_H, String(_height)); } catch (e) {} }
 
-    function agAlertX(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlertX(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
     function curViewMode() { try { return (typeof viewMode !== 'undefined') ? viewMode : 'both'; } catch (e) { return 'both'; } }
     function rad(d) { return d * Math.PI / 180; }
@@ -225,14 +225,14 @@
             + '<p style="font-size:12.5px;opacity:.82;margin:2px 0 12px;line-height:1.45;">Trigonometrické určení výšky stožáru, komína, stromu… '
             + 'Zaměříš křížem <b>patu</b> a pak <b>vrchol</b>; vzdálenost se spočte ze záměru na patu (rovná zem), nebo ji zadej ručně (krokování, pásmo, dálkoměr). <b>Orientační</b> — typicky ± decimetry až metr.</p>'
             + '<label class="agvo-fld"><span>Výška telefonu nad zemí (m)</span>'
-            + '<input type="number" id="agvo-h" step="0.05" min="0.3" max="3" inputmode="decimal"></label>'
+            + '<input type="text" id="agvo-h" step="0.05" min="0.3" max="3" inputmode="decimal"></label>'
             + '<div class="agvo-hrow">'
             + '  <button type="button" class="agvo-chip" data-h="1.5">1,5 (ruka)</button>'
             + '  <button type="button" class="agvo-chip" data-h="1.6">1,6 (oči)</button>'
             + '  <button type="button" class="agvo-chip" data-h="1.7">1,7</button>'
             + '</div>'
             + '<label class="agvo-fld"><span>Vodorovná vzdálenost k objektu (m) — nech prázdné pro výpočet ze záměru na patu</span>'
-            + '<input type="number" id="agvo-dist" step="0.1" min="1" inputmode="decimal" placeholder="auto z paty"></label>'
+            + '<input type="text" id="agvo-dist" step="0.1" min="1" inputmode="decimal" placeholder="auto z paty"></label>'
             + '<button class="btn" id="agvo-go"><svg class="icon"><use href="#i-crosshair"/></svg> Spustit zaměřování</button>'
             + '<button class="btn btn-secondary" style="margin-top:12px;" onclick="window.agCloseVyskaObjektu&&window.agCloseVyskaObjektu()">Zavřít</button>'
             + '</div>';
@@ -240,7 +240,7 @@
         var hInp = document.getElementById('agvo-h');
         hInp.value = _height.toFixed(2);
         hInp.addEventListener('change', function () {
-            var v = parseFloat(hInp.value);
+            var v = agNum(hInp.value);
             if (isFinite(v) && v >= 0.3 && v <= 3) { _height = Math.round(v * 100) / 100; saveHeight(); }
             else { hInp.value = _height.toFixed(2); }
         });
