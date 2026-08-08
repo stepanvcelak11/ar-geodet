@@ -1962,7 +1962,7 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
 /* (uhnuti ovladani mapy doku resi blok "MAPA A VRSTVY" na konci souboru) */
 
 /* Na nízkých displejích lištu nezvětšovat přes celou výšku (a posun dolů zmírnit,
-   ať se spodek lišty nepotká s kolečkem zobrazení / ovládáním mapy) */
+   ať se spodek lišty nepotká s kroužkem zobrazení / ovládáním mapy) */
 @media (max-height: 560px) {
     #dock { top: 55%; }
     .dock-btn { width: 50px; padding: 5px 2px; }
@@ -2325,11 +2325,11 @@ body.left-hand #ag-ft-fab { right: auto !important; left: 12px !important; }
    MAPA A VRSTVY — jedno propracované místo pro podklad, vrstvy a nástroje mapy.
    PŘED: 6 bezejmenných koleček v rohu, schovaných ve „Více → Nástroje mapy"
    (uživatel: „zahozené/stranou a nepropracované") — nešlo poznat, co která
-   ikona dělá, ani co je právě zapnuté; řada se navíc přetahovala s kolečkem
+   ikona dělá, ani co je právě zapnuté; řada se navíc přetahovala s kroužkem
    zobrazení o pravý dolní roh.
-   PO: jedno malé tlačítko „Vrstvy" PŘÍMO v mapě (vlevo dole — dok i kolečko
+   PO: jedno malé tlačítko „Vrstvy" PŘÍMO v mapě (vlevo dole — dok i kroužek
    zobrazení jsou vpravo) otevře panel #map-sheet s POPISKY, přepínači a stavem.
-   Panel nechává vpravo volný pruh (dok + kolečko), takže nic nepřekrývá.
+   Panel nechává vpravo volný pruh (dok + kroužek), takže nic nepřekrývá.
    Chování: js/map-tools.js. Markup: #map-controls v index.html.
    ========================================================================= */
 
@@ -2399,7 +2399,7 @@ body.ag-mapfab-off #map-ctrl-toggle { display: none !important; }
     position: absolute;
     /* OPRAVA 27. 7.: calc() místo max() — mezera se k bezpečné zóně PŘIČÍTÁ */
     left: calc(env(safe-area-inset-left, 0px) + 8px);
-    /* vpravo zůstává volný pruh pro svislý dok a kolečko zobrazení */
+    /* vpravo zůstává volný pruh pro svislý dok a kroužek zobrazení */
     right: calc(env(safe-area-inset-right, 0px) + 86px);
     bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
     /* Ve Splitu je mapa jen kus obrazovky — vh strop panel přetáhl přes její horní
@@ -2424,7 +2424,7 @@ body.left-hand #map-sheet {
 /* Kolečko zobrazení už NEMUSÍ uhýbat — panel jeho rohu nechává volno.
    !important: js/view-cycle.js si vkládá vlastní <style> až za tento soubor.
    --ag-vc-bottom je klidové odsazení od spodní hrany; definuje ho view-cycle.js, aby
-   tažení po kolečku mělo dolů kam jít (a nepralo se s gestem domů na iOS). Fallback
+   tažení po kroužku mělo dolů kam jít (a nepralo se s gestem domů na iOS). Fallback
    drží stejnou hodnotu pro případ, že je ta vrstva odpojená. */
 #ag-view-wheel.ag-vc-lift {
     bottom: var(--ag-vc-bottom, calc(max(6px, env(safe-area-inset-bottom, 0px)) + 28px)) !important;

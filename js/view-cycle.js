@@ -1,9 +1,14 @@
 // ===== AR Geodet — PŘEPÍNAČ ZOBRAZENÍ NA JEDEN TAP (ODPOJITELNÁ) ================
-// Malé plovoucí „kolečko" vpravo dole: každé klepnutí přepne zobrazení dokola
-// AR → Split → Mapa → AR… Na rozdíl od segmentu v menu „Více" (2 tapy) je po ruce
-// pořád — i v celoobrazovkovém AR nebo Mapě, kde dělicí příčka není.
+// Malý plovoucí „KROUŽEK ZOBRAZENÍ" vpravo dole: každé klepnutí přepne zobrazení
+// dokola AR → Split → Mapa → AR… Na rozdíl od segmentu v menu „Více" (2 tapy) je
+// po ruce pořád — i v celoobrazovkovém AR nebo Mapě, kde dělicí příčka není.
 // V režimu levé ruky (body.left-hand) se zrcadlí doleva jako ostatní ovládání.
-// Kolečko ukazuje AKTUÁLNÍ režim; klepnutím se točí na další.
+// Kroužek ukazuje AKTUÁLNÍ režim; klepnutím se točí na další.
+//
+// ⚠ NÁZVOSLOVÍ (sjednoceno 8. 8. 2026 na přání): tenhle prvek je KROUŽEK.
+// Slovo „kolečko" patří VÝHRADNĚ kolečku nástrojů (výběr nástroje tažením
+// od tlačítka Nástroje). Dřív se obojí jmenovalo stejně a nedalo se v hovoru
+// ani v commitech rozeznat, o čem je řeč.
 // Odstranění: smaž js/view-cycle.js + řádek <script> v index.html (a v sw.js).
 // ================================================================================
 (function () {
@@ -26,12 +31,12 @@
             // bez ní působil tmavší než okolní tlačítka), jen KULATÝ; kousek od kraje, ne nalepený
             // z-index 9000 = stejná vrstva jako dok — menu „Více" (10000), bottom-sheet
             // i modály ho tak správně PŘEKRYJÍ (dřív 10500 plavalo nad menu Více)
-            // ODSAZENÍ OD SPODNÍ HRANY: dřív 6 px, tedy kolečko nalepené na kraj. Tah DOLŮ
+            // ODSAZENÍ OD SPODNÍ HRANY: dřív 6 px, tedy kroužek nalepený na kraj. Tah DOLŮ
             // (= Mapa) tam neměl kam jít a na iOS spodní pruh patří systémovému gestu domů,
             // takže ho telefon sebral dřív, než se stihl vyhodnotit. Odsazení dává tahu
             // rozjezd na obě strany. Hodnota je v proměnné, protože ji musí znát i pravidlo
-            // `#ag-view-wheel.ag-vc-lift` v css/style.css (má !important) — jinak by kolečko
-            // při rozbalených vrstvách mapy skočilo zpátky dolů.
+            // `#ag-view-wheel.ag-vc-lift` v css/style.css (má !important) — jinak by kroužek
+            // při rozbalených vrstvách mapy skočil zpátky dolů.
             '#' + BTN_ID + '{position:fixed;right:max(16px,env(safe-area-inset-right,0px));',
             '  --ag-vc-bottom:calc(max(6px,env(safe-area-inset-bottom,0px)) + 28px);',
             '  bottom:var(--ag-vc-bottom);z-index:9000;',
@@ -40,10 +45,10 @@
             '  background:var(--glass-bg,rgba(24,28,33,0.84));backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);',
             '  opacity:var(--panel-opacity,0.85);',
             '  color:var(--text-color,#eceef2);font:600 8px/1.1 var(--font-ui,system-ui),sans-serif;letter-spacing:.02em;',
-            // touch-action:none = tah po kolečku patří NÁM, prohlížeč z něj neudělá rolování
+            // touch-action:none = tah po kroužku patří NÁM, prohlížeč z něj neudělá rolování
             // ani gesto zpět (bez toho iOS tah do strany sebere a přepnutí se nekoná)
             '  cursor:pointer;box-shadow:var(--shadow-1,0 1px 3px rgba(0,0,0,0.5));touch-action:none;}',
-            // tah přešel práh → kolečko potvrdí, že po puštění přepne (barva + zvětšení)
+            // tah přešel práh → kroužek potvrdí, že po puštění přepne (barva + zvětšení)
             '#' + BTN_ID + '.ag-vc-armed{border-color:var(--accent-bright,#3eb487);',
             '  box-shadow:0 0 0 2px var(--accent-soft,rgba(47,158,116,0.4)),var(--shadow-2,0 4px 12px rgba(0,0,0,0.5));',
             '  transform:scale(1.08);opacity:1;}',
@@ -54,11 +59,11 @@
             '#' + BTN_ID + ':active{transform:scale(0.93);}',
             'body.ag-glove #' + BTN_ID + '{width:64px;height:64px;font-size:calc(9.5px * var(--ag-font-scale, 1));}',
             'body.ag-glove #' + BTN_ID + ' .icon{width:24px;height:24px;}',
-            // rozbalené nástroje mapy = vodorovná řada vystředěná na spodní hraně → kolečko uhne nahoru
+            // rozbalené nástroje mapy = vodorovná řada vystředěná na spodní hraně → kroužek uhne nahoru
             '#' + BTN_ID + '.ag-vc-lift{bottom:calc(var(--ag-vc-bottom) + 62px);}',
-            // NÍZKÉ DISPLEJE (telefon na šířku): tady se kolečko NEZVEDÁ vůbec — zůstává
-            // přesně tam, kde bylo. Svislý dok sahá na 360px vysokém displeji až ~40 px nade
-            // dno a v režimu rukavic (kolečko 64 px) se s ním potkává. To je stav, který tu
+            // NÍZKÉ DISPLEJE (telefon na šířku): tady se kroužek NEZVEDÁ vůbec — zůstává
+            // přesně tam, kde byl. Svislý dok sahá na 360px vysokém displeji až ~40 px nade
+            // dno a v režimu rukavic (kroužek 64 px) se s ním potkává. To je stav, který tu
             // byl i předtím (ověřeno proti HEAD), ale zvednutí by ho jen prohloubilo — a na
             // takhle nízkém displeji stejně není kam táhnout. Plný rozjezd pro tah tedy
             // dostávají jen displeje na výšku, kde se appka reálně používá.
@@ -70,7 +75,7 @@
 
     function cur() { return (typeof viewMode !== 'undefined' && LABEL[viewMode]) ? viewMode : 'map'; }
 
-    // Srovná VŠECHNY ovladače zobrazení podle aktuálního viewMode: kolečko,
+    // Srovná VŠECHNY ovladače zobrazení podle aktuálního viewMode: kroužek,
     // segment v „Více" i radia v Nastavení. Volá se i z grafika.js (fallback kamery).
     function sync() {
         var b = document.getElementById(BTN_ID);
@@ -85,7 +90,7 @@
             // uhnout před rozbalenou řadou nástrojů mapy (bez .expanded je display:none)
             b.classList.toggle('ag-vc-lift', !!document.querySelector('#map-controls.expanded'));
         }
-        // (Segment #view-seg byl z UI odstraněn — kolečko ho nahradilo; zbyl jen sync radií v Nastavení.)
+        // (Segment #view-seg byl z UI odstraněn — kroužek ho nahradil; zbyl jen sync radií v Nastavení.)
         try {
             var r = document.querySelector('input[name="s-view"][value="' + cur() + '"]');
             if (r && !r.checked) r.checked = true;
@@ -125,7 +130,7 @@
         if (Math.abs(dy) >= Math.abs(dx)) return dy < 0 ? DIR.up : DIR.down;
         return DIR.side;
     }
-    // Náhled cíle přímo na kolečku, dokud je prst dole — uživatel vidí, kam pustit,
+    // Náhled cíle přímo na kroužku, dokud je prst dole — uživatel vidí, kam pustit,
     // a může tah ještě stáhnout zpátky pod práh a nic se nestane.
     function showPreview(m) {
         if (_preview === m) return;
@@ -143,7 +148,7 @@
             if (localStorage.getItem('agViewSwipeHint') === '1') return;
             localStorage.setItem('agViewSwipeHint', '1');
             if (typeof window.quickToast === 'function') {
-                window.quickToast('Tip: tažením po kolečku přepneš rovnou — nahoru AR, do strany Split, dolů Mapa.');
+                window.quickToast('Tip: tažením po kroužku přepneš rovnou — nahoru AR, do strany Split, dolů Mapa.');
             }
         } catch (e) {}
     }
@@ -157,7 +162,7 @@
 
         b.addEventListener('touchmove', function (e) {
             if (!_dragging || !e.touches || !e.touches.length) return;
-            // tah patří kolečku, ne stránce (jinak by pod prstem ujížděla mapa / celá appka)
+            // tah patří kroužku, ne stránce (jinak by pod prstem ujížděla mapa / celá appka)
             if (e.cancelable) e.preventDefault();
             showPreview(dirFor(e.touches[0].clientX - _sx, e.touches[0].clientY - _sy));
         }, { passive: false });
