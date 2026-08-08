@@ -2383,8 +2383,13 @@ body.left-hand #map-sheet {
     right: calc(env(safe-area-inset-right, 0px) + 8px);
 }
 /* Kolečko zobrazení už NEMUSÍ uhýbat — panel jeho rohu nechává volno.
-   !important: js/view-cycle.js si vkládá vlastní <style> až za tento soubor. */
-#ag-view-wheel.ag-vc-lift { bottom: max(6px, env(safe-area-inset-bottom, 0px)) !important; }
+   !important: js/view-cycle.js si vkládá vlastní <style> až za tento soubor.
+   --ag-vc-bottom je klidové odsazení od spodní hrany; definuje ho view-cycle.js, aby
+   tažení po kolečku mělo dolů kam jít (a nepralo se s gestem domů na iOS). Fallback
+   drží stejnou hodnotu pro případ, že je ta vrstva odpojená. */
+#ag-view-wheel.ag-vc-lift {
+    bottom: var(--ag-vc-bottom, calc(max(6px, env(safe-area-inset-bottom, 0px)) + 28px)) !important;
+}
 
 #map-sheet .ms-head {
     flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px;

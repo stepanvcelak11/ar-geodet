@@ -26,8 +26,15 @@
             // bez ní působil tmavší než okolní tlačítka), jen KULATÝ; kousek od kraje, ne nalepený
             // z-index 9000 = stejná vrstva jako dok — menu „Více" (10000), bottom-sheet
             // i modály ho tak správně PŘEKRYJÍ (dřív 10500 plavalo nad menu Více)
+            // ODSAZENÍ OD SPODNÍ HRANY: dřív 6 px, tedy kolečko nalepené na kraj. Tah DOLŮ
+            // (= Mapa) tam neměl kam jít a na iOS spodní pruh patří systémovému gestu domů,
+            // takže ho telefon sebral dřív, než se stihl vyhodnotit. Odsazení dává tahu
+            // rozjezd na obě strany. Hodnota je v proměnné, protože ji musí znát i pravidlo
+            // `#ag-view-wheel.ag-vc-lift` v css/style.css (má !important) — jinak by kolečko
+            // při rozbalených vrstvách mapy skočilo zpátky dolů.
             '#' + BTN_ID + '{position:fixed;right:max(16px,env(safe-area-inset-right,0px));',
-            '  bottom:max(6px,env(safe-area-inset-bottom,0px));z-index:9000;',
+            '  --ag-vc-bottom:calc(max(6px,env(safe-area-inset-bottom,0px)) + 28px);',
+            '  bottom:var(--ag-vc-bottom);z-index:9000;',
             '  width:54px;height:54px;padding:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:2px;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.10));border-radius:50%;',
             '  background:var(--glass-bg,rgba(24,28,33,0.84));backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);',
@@ -48,7 +55,14 @@
             'body.ag-glove #' + BTN_ID + '{width:64px;height:64px;font-size:calc(9.5px * var(--ag-font-scale, 1));}',
             'body.ag-glove #' + BTN_ID + ' .icon{width:24px;height:24px;}',
             // rozbalené nástroje mapy = vodorovná řada vystředěná na spodní hraně → kolečko uhne nahoru
-            '#' + BTN_ID + '.ag-vc-lift{bottom:calc(max(6px,env(safe-area-inset-bottom,0px)) + 62px);}',
+            '#' + BTN_ID + '.ag-vc-lift{bottom:calc(var(--ag-vc-bottom) + 62px);}',
+            // NÍZKÉ DISPLEJE (telefon na šířku): tady se kolečko NEZVEDÁ vůbec — zůstává
+            // přesně tam, kde bylo. Svislý dok sahá na 360px vysokém displeji až ~40 px nade
+            // dno a v režimu rukavic (kolečko 64 px) se s ním potkává. To je stav, který tu
+            // byl i předtím (ověřeno proti HEAD), ale zvednutí by ho jen prohloubilo — a na
+            // takhle nízkém displeji stejně není kam táhnout. Plný rozjezd pro tah tedy
+            // dostávají jen displeje na výšku, kde se appka reálně používá.
+            '@media (max-height:560px){#' + BTN_ID + '{--ag-vc-bottom:max(6px,env(safe-area-inset-bottom,0px));}}',
             'body.outdoor-mode #' + BTN_ID + '{background:#0a0e1a;border-color:rgba(255,255,255,0.85);}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
