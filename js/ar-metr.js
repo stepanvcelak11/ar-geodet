@@ -117,8 +117,8 @@
     function slopePct() { return Math.max(0, num(lsGet(LS_SLOPE, '0'), 0)); }
 
     // ---- měřítko ---------------------------------------------------------------------
-    // mm na 1 CSS pixel overlaye. Video je vykreslené přes `object-fit: cover`, takže
-    // se nejdřív musí odstranit jeho zvětšení do plochy obrazovky.
+    // mm na 1 CSS pixel overlaye. Video je vykreslené přes `object-fit: contain`,
+    // takže se nejdřív musí odstranit jeho zmenšení do plochy obrazovky.
     function mmPerPx() {
         if (!_view.vw || !_view.scale) return null;
         var span = 2 * heightM() * Math.tan(fovNow() * Math.PI / 360);   // šířka záběru [m]
@@ -489,7 +489,7 @@
         if (big.className !== cls) big.className = cls;
 
         if (_mode === 'scale') {
-            big.textContent = fmt(100 / k, 0) + ' px = 10 cm';
+            big.textContent = 'jeden čtverec = 10 cm';
             big.style.fontSize = 'calc(17px * var(--ag-font-scale,1))';
             sub.innerHTML = 'Mřížka je po 10 cm, dílky na kříži po 1 cm.'
                 + (bad ? ' <span class="warn">Náklon ' + _tilt.toFixed(1) + '° — srovnej.</span>' : '');
