@@ -123,8 +123,9 @@
         var now = Date.now();
         if (!force && now - _lastSave < SAVE_MS) return;
         _lastSave = now;
-        _dirty = false;
-        try { prune(); localStorage.setItem(LS, JSON.stringify(db())); } catch (e) {}
+        // _dirty se shazuje AŽ po úspěšném setItem — když je úložiště plné, zápis
+        // spadne, catch výjimku spolkne a nasbíraný den by se tvářil jako uložený
+        try { prune(); localStorage.setItem(LS, JSON.stringify(db())); _dirty = false; } catch (e) {}
     }
     function sortedKeys() { return Object.keys(db().days).sort(); }
     function lastKeys(n) { var k = sortedKeys(); return k.slice(Math.max(0, k.length - n)); }
@@ -250,7 +251,7 @@
     }
 
     // ---- sběr: čas, vzdálenost, výškové metry -----------------------------------
-    var _prevFix = null, _altEma = null, _altRef = null, _lastTick = Date.now();
+    var _prevFix = null, _lastFixTs = null, _altEma = null, _altRef = null, _lastTick = Date.now();
     function mPerDeg(lat) {
         try { if (typeof GeoCore !== 'undefined' && GeoCore.metersPerDeg) return GeoCore.metersPerDeg(lat); } catch (e) {}
         return { lat: 111320, lng: 111320 * Math.cos(lat * Math.PI / 180) };
@@ -263,20 +264,37 @@
     function sampleGps() {
         var f = window.AGFix;
         if (!f || f.lat == null || f.lng == null || f.err) return;
-        if (_prevFix && _prevFix.ts === f.ts) return;             // stejný fix — nic nového
-        var cur = { ts: f.ts || Date.now(), lat: f.lat, lng: f.lng, acc: f.acc, alt: f.alt };
+        var ts = f.ts || Date.now();
+        if (_lastFixTs === ts) return;                            // stejný fix — nic nového
+        _lastFixTs = ts;                                          // kotva se drží déle, proto vlastní razítko
+        var cur = { ts: ts, lat: f.lat, lng: f.lng, acc: f.acc, alt: f.alt };
         var p = _prevFix;
-        _prevFix = cur;
-        if (!p) return;
         var d = day();
-        // vzdálenost: jen z rozumného fixu, jen když se opravdu šlo
-        if (cur.acc != null && cur.acc <= ACC_MAX && p.acc != null && p.acc <= ACC_MAX) {
+        // vzdálenost: jen z rozumného fixu, jen když se opravdu šlo.
+        // Kotva _prevFix se posouvá JEN když se úsek započítal — fixy chodí po ~1 s,
+        // takže při chůzi je posun mezi dvěma vzorky ~2 m, pod prahem D_MIN, a kdyby
+        // se kotva posouvala pokaždé, celá ušlá vzdálenost by se rozdrobila a ztratila.
+        // Posunout se ale MUSÍ i tehdy, když je vzorek nepoužitelný (špatný fix, dlouhá
+        // mezera po ztrátě signálu / návratu z pozadí, rychlost mimo chůzi) — jinak by
+        // z držené kotvy vznikl jeden falešný dlouhý úsek. Stejně to dělá _altRef níž.
+        if (!p) {
+            _prevFix = cur;
+        } else if (cur.acc == null || cur.acc > ACC_MAX || p.acc == null || p.acc > ACC_MAX) {
+            _prevFix = cur;
+        } else {
             var dt = (cur.ts - p.ts) / 1000;
             var dist = planar(p, cur);
-            if (dt > 0.5 && dt < 120 && dist >= D_MIN && dist / dt <= V_MAX) {
+            if (dt <= 0 || dt >= 120) {
+                _prevFix = cur;
+            } else if (dist / dt > V_MAX) {
+                _prevFix = cur;
+            } else if (dt > 0.5 && dist >= D_MIN) {
                 d.dist += dist;      // kroky se z dist odhadnou až při zobrazení
                 _dirty = true;
+                _prevFix = cur;
             }
+            // jinak (dist < D_MIN) kotvu držíme dál a čekáme, až se z drobných
+            // posunů nasčítá úsek, který má smysl započítat
         }
         // výškové metry: vyhlazená výška + schod UP_MIN (GPS výška skáče o metry)
         if (cur.alt != null && isFinite(cur.alt) && cur.acc != null && cur.acc <= ALT_ACC_MAX) {
@@ -348,7 +366,8 @@
         // seznam úkonů se staví i bez otevřeného okna a čte právě data-ag-hidden.
         // Při HLEDÁNÍ se naopak nevymáhá — schovaný nástroj se nesmí „ztratit",
         // kdo ho napíše do hledání, musí ho najít.
-        var h = searchActive() ? [] : hidden();
+        var q = searchActive();
+        var h = q ? [] : hidden();
         var tiles = g.querySelectorAll('.tool-tile');
         var changed = false;
         for (var i = 0; i < tiles.length; i++) {
@@ -359,7 +378,9 @@
                 if (t.style.display !== 'none') t.style.display = 'none';
             } else if (t.hasAttribute('data-ag-hidden')) {
                 t.removeAttribute('data-ag-hidden');
-                if (t.style.display === 'none') t.style.display = '';
+                // při hledání display NEsaháme — nastavil ho agFilterTools (skryl i dlaždice,
+                // které dotazu neodpovídají), takže bychom odkryli půlku mřížky
+                if (!q && t.style.display === 'none') t.style.display = '';
                 changed = true;
             }
         }

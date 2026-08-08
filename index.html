@@ -442,13 +442,18 @@
     <div class="modal-overlay" id="settings-modal" data-no-close>
         <div class="modal-content">
             <h2 style="margin-top:0;"><svg class="icon" style="color:var(--accent);"><use href="#i-settings"/></svg> Nastavení</h2>
+            <!-- Po přepnutí záložky se roluje NAHORU sám kontejner: u #settings-modal je
+                 rolovací vrstvou .modal-content (css/style.css), ne .modal-body. Dřív tu bylo
+                 this.parentNode.scrollIntoView() — a to je no-op: parentNode je .tab-buttons,
+                 které je position:sticky, takže už na cílové pozici JE a nic se nepohne.
+                 Bez toho zůstane Nastavení po přepnutí nascrollované doprostřed obsahu. -->
             <div class="tab-buttons settings-tiles">
-                <div class="tab-btn active" onclick="switchTab('tab-vzhled', this); try{this.parentNode.scrollIntoView({block:'start'})}catch(e){}"><svg class="icon"><use href="#i-sliders"/></svg><span class="tb-tx"><b>Vzhled</b><small>Motiv, text, prvky HUD</small></span></div>
-                <div class="tab-btn" onclick="switchTab('tab-ar', this); try{this.parentNode.scrollIntoView({block:'start'})}catch(e){}"><svg class="icon"><use href="#i-crosshair"/></svg><span class="tb-tx"><b>AR &amp; přesnost</b><small>Body v AR, kompas, senzory</small></span></div>
-                <div class="tab-btn" onclick="switchTab('tab-data', this); try{this.parentNode.scrollIntoView({block:'start'})}catch(e){}"><svg class="icon"><use href="#i-folder"/></svg><span class="tb-tx"><b>Data</b><small>Zakázka, body ČÚZK, offline</small></span></div>
+                <div class="tab-btn active" onclick="switchTab('tab-vzhled', this); try{this.closest('.modal-content').scrollTop=0}catch(e){}"><svg class="icon"><use href="#i-sliders"/></svg><span class="tb-tx"><b>Vzhled</b><small>Motiv, text, prvky HUD</small></span></div>
+                <div class="tab-btn" onclick="switchTab('tab-ar', this); try{this.closest('.modal-content').scrollTop=0}catch(e){}"><svg class="icon"><use href="#i-crosshair"/></svg><span class="tb-tx"><b>AR &amp; přesnost</b><small>Body v AR, kompas, senzory</small></span></div>
+                <div class="tab-btn" onclick="switchTab('tab-data', this); try{this.closest('.modal-content').scrollTop=0}catch(e){}"><svg class="icon"><use href="#i-folder"/></svg><span class="tb-tx"><b>Data</b><small>Zakázka, body ČÚZK, offline</small></span></div>
                 <!-- Kompas z dlaždic ODEBRÁN na přání (duplikoval panel Azimut na hlavní obrazovce;
                      kalibrace zůstává klepnutím na Azimut a tlačítkem v AR & přesnost) -->
-                <div class="tab-btn" id="tabbtn-udrzba" onclick="switchTab('tab-udrzba', this); window.agRenderStorageUsage && window.agRenderStorageUsage(); try{this.parentNode.scrollIntoView({block:'start'})}catch(e){}"><svg class="icon"><use href="#i-wrench"/></svg><span class="tb-tx"><b>Údržba</b><small>Záloha, skryté body</small></span></div>
+                <div class="tab-btn" id="tabbtn-udrzba" onclick="switchTab('tab-udrzba', this); window.agRenderStorageUsage && window.agRenderStorageUsage(); try{this.closest('.modal-content').scrollTop=0}catch(e){}"><svg class="icon"><use href="#i-wrench"/></svg><span class="tb-tx"><b>Údržba</b><small>Záloha, skryté body</small></span></div>
             </div>
             <div class="modal-body">
                 <div id="tab-vzhled" class="settings-tab active">

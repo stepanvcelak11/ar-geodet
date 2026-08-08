@@ -443,6 +443,12 @@
         for (var i = 0; i < tiles.length; i++) {
             var k = tileKey(tiles[i]);
             if (!k || used[k] || KNOWN[k] || SKIP[k]) continue;
+            // Stejná dvě skrytí jako ve findTile(): tahle smyčka sahá na dlaždice
+            // přímo, takže si je musí ohlídat sama. Bez toho by pojistka ukázala
+            // (a přes run() i spustila) nástroj zakázaný rolí nebo ten, který si
+            // uživatel schoval v „Moje aktivita".
+            if (tiles[i].hasAttribute('data-agucty')) continue;
+            if (tiles[i].hasAttribute('data-ag-hidden')) continue;
             if (tiles[i].id === 'ag-sm-allbtn') continue;
             rest.push({ k: k, l: tileLabel(tiles[i]) });
         }

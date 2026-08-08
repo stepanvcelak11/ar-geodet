@@ -1463,9 +1463,19 @@
             if (first && first.id !== cur) applyProject(first.id);
         }
     }
+    var _toastN = 0;
     function toast(msg) {
         try { if (typeof window.quickToast === 'function') { window.quickToast(msg); return; } } catch (e) {}
-        try { if (window.AGNotify && AGNotify.info) { AGNotify.info(msg); return; } } catch (e) {}
+        // Náhradník: AGNotify umí jen TRVALÉ stavy (set/clear), žádné .info — proto se
+        // hláška musí po chvíli uklidit sama, jinak by v kartě upozornění visela napořád.
+        // Vlastní id na každou hlášku, ať si dvě rychle po sobě nesmažou odpočet.
+        try {
+            if (window.AGNotify && typeof AGNotify.set === 'function') {
+                var id = 'ucty-toast-' + (++_toastN);
+                AGNotify.set(id, { level: 'info', text: msg });
+                setTimeout(function () { try { AGNotify.clear(id); } catch (e) {} }, 6000);
+            }
+        } catch (e) {}
     }
 
     var _selUser = null;
@@ -1554,8 +1564,7 @@
             // Face ID: jen pro účet, který si ho na tomhle telefonu zapnul
             if (bioBtn) bioBtn.style.display = (u && bioAvailable(u.id)) ? '' : 'none';
             if (keepWrap) {
-                var t = u ? trustFor(u.id) : null;
-                if (keepCb && !keepCb._touched) keepCb.checked = t ? true : true;   // výchozí: pamatovat
+                if (keepCb && !keepCb._touched) keepCb.checked = true;   // výchozí: pamatovat
                 if (keepNote) {
                     keepNote.textContent = (u && bioAvailable(u.id))
                         ? 'Příští spuštění odemkneš Face ID / kódem telefonu. Každé ' + TRUST_MAX + '. spuštění se appka pro kontrolu zeptá na heslo.'
@@ -1605,9 +1614,13 @@
                     if (!silent) errEl.textContent = 'Ověření telefonem neprošlo — zkus to znovu, nebo zadej ' + (cloud ? 'heslo' : 'PIN') + '.';
                     return;
                 }
-                var t = trustFor(u.id) || { userId: u.id, mode: 'bio', n: 0, ts: Date.now() };
-                t.mode = 'bio';
-                bumpTrust(t);
+                // Zapamatovat přihlášení jen když si to uživatel přeje — odemčení
+                // telefonem nesmí vrátit pamatování tomu, kdo si ho vypnul.
+                if (keepOn()) {
+                    var t = trustFor(u.id) || { userId: u.id, mode: 'bio', n: 0, ts: Date.now() };
+                    t.mode = 'bio';
+                    bumpTrust(t);
+                } else { var t0 = getTrust(); if (t0 && t0.userId === u.id) clearTrust(); }
                 setSess({ userId: u.id, ts: Date.now() });
                 try { localStorage.setItem('arSurveyor', u.name); } catch (e) {}
                 afterLogin(u, 'bio');
@@ -1643,7 +1656,10 @@
         // odpočet zámku: dokud běží, je pole i tlačítko vypnuté a v chybové řádce
         // tiká, za jak dlouho to půjde zkusit znovu
         var _lockTimer = null;
-        var loginBtn = ov.querySelector('.agl-btn');
+        // POZOR: musí to být '.agl-pinbox .agl-btn', ne holé '.agl-btn' — tlačítko Face ID
+        // (#agl-bio) má stejnou class a je v DOM DŘÍV, takže by zámek mrzačil jeho ikonu
+        // a popisek, zatímco skutečné „Přihlásit" by zůstalo aktivní.
+        var loginBtn = ov.querySelector('.agl-pinbox .agl-btn');
         function lockTick() {
             var left = lockLeft();
             if (left <= 0) {

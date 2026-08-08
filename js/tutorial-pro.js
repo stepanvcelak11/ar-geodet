@@ -128,7 +128,7 @@
             title: 'Katastr a data', body: '<b>Vektorový katastr</b> (hranice parcel z ČÚZK v mapě i AR), <b>import projektu/DXF</b>, hromadné <b>stažení bodů z výřezu mapy</b>, <b>podzemní sítě</b> („rentgen do země") a <b>poslat/načíst zakázku</b> souborem .argeo.'
         }),
         Object.assign(catStep('Pomůcky'), {
-            title: 'Pomůcky', body: 'Denní nutnosti: <b>Dnešek v terénu</b> (ranní brífink), <b>Počasí</b> a <b>Bezpečnost</b>, <b>Slunce a světlo</b> (kolik zbývá dne), <b>Co s sebou</b>, <b>Kde mám auto</b>, <b>Kniha jízd</b>, <b>Hlasové poznámky</b> s přepisem a večerní <b>Deník dne</b>. Dál <b>Příručka</b> (postupy, předpisy, slovník), <b>Signál GNSS</b> a ve firemním režimu <b>Docházka</b>, <b>Firemní chat</b> a <b>Firma a účty</b>.'
+            title: 'Pomůcky', body: 'Denní nutnosti: <b>Dnešek v terénu</b> (ranní brífink), <b>Počasí</b> a <b>Bezpečnost</b>, <b>Slunce a světlo</b> (kolik zbývá dne), <b>Co s sebou</b>, <b>Kde mám auto</b>, <b>Kniha jízd</b>, <b>Hlasové poznámky</b> s přepisem a večerní <b>Deník dne</b>. <b>Moje aktivita</b> ukáže, co jsi dnes nachodil a naměřil — a rovnou tam schováš nástroje, které nepoužíváš, ať máš Nástroje kratší. Dál <b>Příručka</b> (postupy, předpisy, slovník), <b>Signál GNSS</b> a ve firemním režimu <b>Docházka</b>, <b>Firemní chat</b> a <b>Firma a účty</b>.'
         }),
         {
             title: 'AR sedí na terénu (DMR 5G)', target: '#map-ctrl-toggle',

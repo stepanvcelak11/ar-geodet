@@ -953,8 +953,6 @@
                 if (admins.length <= 1) { agAlert('Nelze změnit', 'Toto je poslední admin — nejdřív udělej adminem někoho jiného.'); return; }
             }
             var me = u.currentUser();
-            // přidělení zakázek je LOKÁLNÍ (nejde na server) → uloží se v obou cestách
-            readProjAcl(box, u, us);
             if (cloud) {
                 if (!us && pin.length < 4) { agAlert('Slabé heslo', 'Heslo musí mít aspoň 4 znaky.'); return; }
                 if (us && pin && pin.length < 4) { agAlert('Slabé heslo', 'Heslo musí mít aspoň 4 znaky (nebo nech prázdné).'); return; }
@@ -963,6 +961,10 @@
                     : u.cloudFetch('/users', { method: 'POST', body: { name: name, role: role, password: pin } });
                 req.then(function (r) {
                     if (!r.ok) { agAlert(us ? 'Uložení selhalo' : 'Přidání selhalo', cloudErr(r)); return; }
+                    // Přidělení zakázek je LOKÁLNÍ (na server nejde), ale uložit se smí
+                    // teprve tady: applyProjPerms() ho hned vymáhá skrýváním zakázek,
+                    // takže při chybě uložení účtu se nesmí propsat vůbec nic.
+                    readProjAcl(box, u, us);
                     u.adoptConfig(r.data);
                     if (us && me && me.id === us.id) { try { localStorage.setItem('arSurveyor', name); } catch (e) {} }
                     renderUsers(body, true);
@@ -979,6 +981,9 @@
                 }
                 u.saveFirm(f);
                 if (us && me && me.id === us.id) { try { localStorage.setItem('arSurveyor', name); } catch (e) {} }
+                // Až tady — před renderUsers(), který formulář zahodí, a zároveň až za
+                // validací PINu, aby se přidělení zakázek neuložilo po chybové hlášce.
+                readProjAcl(box, u, us);
                 renderUsers(body);
             }
             if (pin) {

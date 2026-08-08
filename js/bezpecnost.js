@@ -616,7 +616,13 @@
                 esc(NUMS[i].n) + '<small>' + esc(NUMS[i].l) + '</small></button>';
         }
         el.innerHTML =
-            '<div class="bz-sos">' +
+            // data-no-swipe: v tísňové kartě se DRŽÍ (2 s na 112) a dvoukrokově odjišťuje
+            // (.bz-num). Vodorovné zavírací gesto z js/modal-close.js si posun počítá samo
+            // z clientX na documentu, takže ho preventDefault() v onDown() nezastaví — bez
+            // tohohle atributu stačí při držení drift ~10 px do strany a panel začne odjíždět,
+            // nad 110 px se okno uprostřed odpočtu zavře. Tlačítko je vysoké 86 px (100 px
+            // v rukavicích) a prst po něm v terénu běžně sjede.
+            '<div class="bz-sos" data-no-swipe>' +
             '<button type="button" class="bz-hold" id="ag-bz-hold">' +
             '  <span class="bz-fill"></span>' +
             '  <span class="bz-t">' + ICO_PHONE + 'TÍSŇOVÁ LINKA 112</span>' +
