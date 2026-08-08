@@ -3,12 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Volitelný (opt-in) build tooling pro AR Geodet — zabalí a zminifikuje vlastní JS appky do jediného hashovaného souboru dist/app.<hash>.min.js. NEMĚNÍ chování appky; běžně se appka načítá pořád přes jednotlivé <script> tagy v index.html. Cutover až při společné integraci (viz scripts/README-build.md).",
+  "description": "Vývojářské nástroje pro AR Geodet: (1) build — zabalí a zminifikuje vlastní JS do jediného hashovaného souboru dist/app.<hash>.min.js, (2) smoke testy v Playwrightu, které v CI ověří, že appka nastartuje. Samotná appka build nepotřebuje, běží pořád přes jednotlivé <script> tagy v index.html.",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "build:check": "node scripts/build.mjs --check"
+    "build:check": "node scripts/build.mjs --check",
+    "test:smoke": "playwright test",
+    "test:smoke:ui": "playwright test --ui",
+    "check:js": "python scripts/check_js.py"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49.0",
     "esbuild": "^0.24.0"
   }
 }

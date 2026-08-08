@@ -35,3 +35,7 @@ Screenshot*.png
 # Obrazky nahodne pustene do korene repa (uzivatelske screenshoty)
 unnamed*.jpg
 unnamed*.jpeg
+# Playwright (testy)
+playwright-report/
+test-results/
+.playwright/

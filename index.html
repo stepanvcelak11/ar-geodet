@@ -1004,6 +1004,12 @@
     <!-- SOUKROMÍ ADMINA (odpojitelné) — vedení nevidí aktivitu ani docházku adminů;
          filtruje zdroj dat, proto MUSÍ být za js/ucty.js -->
     <script defer src="js/ucty-privacy.js"></script>
+    <!-- OTÁČENÍ MAPY (odpojitelné) — sever nahoře / po směru chůze / zamknout směr -->
+    <script defer src="js/map-rotate.js"></script>
+    <!-- PRACOVNÍ KARTA BODU (odpojitelné) — navigace, odchylka od bodu, kontrolní bod -->
+    <script defer src="js/karta-bodu.js"></script>
+    <!-- SBALITELNÝ NÁSTROJ (odpojitelné) — živá čísla v proužku nahoře místo modálu -->
+    <script defer src="js/mini-panel.js"></script>
     <script>
         // Přepínač zobrazení v doku (AR / Split / Mapa) — využívá globální viewMode a applyViewMode() z grafika.js
         function setView(mode, btn) {
