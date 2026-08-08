@@ -460,8 +460,7 @@
         var st = document.createElement('style');
         st.id = STYLE_ID;
         st.textContent = [
-            '#ag-csync-sec .ag-csync-row{display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:500;}',
-            '#ag-csync-sec .ag-csync-row input{width:18px;height:18px;accent-color:var(--accent,#2f9e74);flex:none;margin:0;}',
+            '#ag-csync-sec .ag-csync-row .st-lab{flex:1;}',
             '.ag-csync-pill{display:inline-block;flex:none;padding:4px 10px;border-radius:999px;font:700 11px/1 var(--font-ui,system-ui);',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.16));color:var(--text-muted,#9aa1ac);',
             '  background:var(--glass-bg,rgba(255,255,255,0.05));white-space:nowrap;}',
@@ -512,10 +511,11 @@
             injectStyles();
             sec = document.createElement('div');
             sec.id = 'ag-csync-sec';
+            // stejný přepínač jako všude jinde v Nastavení (.st-row + .st-sw), ne holý čtvereček
             sec.innerHTML = '<div class="set-h">Firemní cloud</div>'
-                + '<label class="ag-csync-row"><input type="checkbox" id="ag-csync-toggle">'
-                + '<span style="flex:1;">Sdílet body této zakázky ve firmě</span>'
-                + '<span id="ag-csync-pill" class="ag-csync-pill"></span></label>'
+                + '<div class="st-row ag-csync-row"><span class="st-lab">Sdílet body této zakázky ve firmě</span>'
+                + '<span id="ag-csync-pill" class="ag-csync-pill"></span>'
+                + '<label class="st-sw"><input type="checkbox" id="ag-csync-toggle"><span class="st-sw-face"></span></label></div>'
                 + '<div id="ag-csync-note">Telefony přihlášené do stejné firmy sdílejí vlastní body zakázky '
                 + '<b id="ag-csync-job"></b> (zakázky se párují názvem — na druhém zařízení založ zakázku stejného jména). '
                 + 'Funguje i offline, změny se pošlou po připojení; při souběžné úpravě vyhrává poslední. Fotky bodů se nesdílejí.</div>';

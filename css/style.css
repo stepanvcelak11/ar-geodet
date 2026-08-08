@@ -1903,9 +1903,11 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
    Chipy se při nedostatku místa zalomí do druhé řádky, nic se neschová.
    Dotykový cíl 44 px (v rukavicích 52 px) zůstává.
    Zpět na dlaždice: vrať grid + min-height 92px + flex-direction column. */
+/* 2×2 mřížka: čtyři záložky se ve flexu lámaly 3+1 (poslední osamocená uprostřed)
+   a při jiné velikosti písma pokaždé jinak — mřížka drží stejný tvar vždy. */
 .settings-tiles {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 5px;
     padding: 4px;
     margin-bottom: 10px;
@@ -1913,7 +1915,7 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
     border-radius: var(--r-md);
 }
 .settings-tiles .tab-btn {
-    flex: 1 1 auto;
+    min-width: 0;
     position: relative;          /* kotva pro vizuálně skrytý popisek */
     display: flex;
     flex-direction: row;
@@ -2575,6 +2577,10 @@ body.light-mode .mng-actions { background: rgba(0, 0, 0, 0.04); }
     overscroll-behavior: contain;          /* neřetězit dorolování na kořen */
     /* spodní tlačítka nesmí skončit pod home indikátorem */
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 26px);
+    /* Horní odsazení PATŘÍ NADPISU, ne kontejneru: sticky prvek se nesmí dostat nad
+       obsahovou plochu svého rodiče, takže těch 20 px padding vyrobilo nad pruhem
+       záložek štěrbinu, kterou se prorolovávaly nadpisy sekcí a řádky nastavení. */
+    padding-top: env(safe-area-inset-top, 0px);
 }
 #settings-modal .modal-content::-webkit-scrollbar { width: 6px; }
 #settings-modal .modal-content::-webkit-scrollbar-thumb {
@@ -2601,10 +2607,12 @@ body.light-mode .mng-actions { background: rgba(0, 0, 0, 0.04); }
     padding: 5px max(20px, env(safe-area-inset-right, 0px)) 5px max(20px, env(safe-area-inset-left, 0px));
     border-radius: 0;
     border-bottom: 1px solid var(--glass-border);
-    background: var(--modal-bg, rgba(14, 18, 24, 0.97));
+    /* ÚPLNĚ neprůhledné (ne --modal-bg s alfou 0.97): přes ta 3 % se pod pruhem
+       prorolovávaly nadpisy sekcí a řádky — vypadalo to jako překreslená obrazovka */
+    background: rgb(14, 18, 24);
     box-shadow: 0 8px 14px -12px rgba(0, 0, 0, 0.85);
 }
-body.light-mode #settings-modal .tab-buttons { background: rgba(247, 248, 250, 0.98); }
+body.light-mode #settings-modal .tab-buttons { background: rgb(247, 248, 250); }
 /* Krytka horní safe-area: pruh záložek se lepí AŽ POD výřez (jinak by chipy
    skončily pod stavovým řádkem), takže pás nad ním je potřeba zaslepit.
    position:fixed se kotví k .modal-content (má transform) → jede s modálem. */
@@ -2622,7 +2630,9 @@ body.light-mode #settings-modal .modal-content::before { background: rgba(247, 2
 /* ---- 3) Kompaktnější obsah záložek ------------------------------------- */
 /* Svislé mezery dolů, dotykové cíle NE: řádek s přepínačem má 27px vypínač
    + 2×9px = 45 px, tlačítka .btn drží 14px padding (≈47 px). */
-#settings-modal .modal-content > h2 { font-size: calc(19px * var(--ag-font-scale, 1)); margin: 0 0 10px; }
+/* margin-top nahrazuje horní padding kontejneru (viz bod 1) — bez něj by nadpis
+   lezl do výřezu telefonu */
+#settings-modal .modal-content > h2 { font-size: calc(19px * var(--ag-font-scale, 1)); margin: 20px 0 10px; }
 #settings-modal .st-row { padding: 9px 0; }
 #settings-modal .st-slider { margin-top: 10px; }
 #settings-modal .st-slider input[type="range"] { margin-top: 8px; }

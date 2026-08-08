@@ -448,14 +448,19 @@
             var card = document.createElement('div');
             card.id = 'agp-card';
             card.className = 'agp-card';
+            // Vzhled jako zbytek Nastavení: nadpis sekce (.set-h) + přepínače .st-row/.st-sw.
+            // Dřív to byly holé čtverečky .filter-row uprostřed okna plných táhel — vypadalo
+            // to jako cizí kus appky. Ids zůstávají, jen obal je jiný.
+            function row(id, t, h) {
+                return '<div class="st-row"><span class="st-lab">' + t + (h ? '<small>' + h + '</small>' : '') + '</span>'
+                    + '<label class="st-sw"><input type="checkbox" id="' + id + '"><span class="st-sw-face"></span></label></div>';
+            }
             card.innerHTML =
-                '<label style="margin-top:14px; color:var(--accent);">Úspora baterie a senzory</label>'
-                + '<div class="filter-group">'
-                + '  <label class="filter-row"><input type="checkbox" id="agp-enabled"> Šetřit baterii — uspat kameru/kompas/GPS mimo AR a mapu</label>'
-                + '  <label class="filter-row"><input type="checkbox" id="agp-gps"> Uspat i GPS v nástrojích (kalkulačka, zprávy, předpisy, nastavení)</label>'
-                + '  <label class="filter-row"><input type="checkbox" id="agp-ind"> Zobrazovat indikátor stavu GPS</label>'
-                + '  <label class="filter-row" style="margin-bottom:0;"><input type="checkbox" id="agp-warn"> Upozornění na rušení kompasu</label>'
-                + '</div>'
+                '<div class="set-h">Úspora baterie a senzory</div>'
+                + row('agp-enabled', 'Šetřit baterii', 'uspí kameru, kompas i GPS, když nejsi v AR ani v mapě')
+                + row('agp-gps', 'Uspat i GPS v nástrojích', 'kalkulačka, zprávy, předpisy, nastavení')
+                + row('agp-ind', 'Indikátor stavu GPS')
+                + row('agp-warn', 'Upozornění na rušení kompasu')
                 + '<div class="agp-note">Kamera, kompas i GPS se vypnou, když zrovna používáš jiné nástroje nebo je appka na pozadí, a samy naběhnou po návratu. GPS se uspí až po chvíli, aby krátké nahlédnutí neshodilo zaměření.</div>';
             host.appendChild(card);
 

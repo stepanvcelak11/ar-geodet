@@ -345,9 +345,9 @@
         var html = cur
             ? ('<b>' + esc(cur.t) + ':</b> ' + esc(cur.use)
                 + ' <i>Dalším ťuknutím na „' + esc(cur.t) + '“ profil vypneš.</i>')
-            : '<b>Bez profilu</b> — nastavení si řídíš sám v záložkách níž. '
-                + 'Ťuknutí na profil nastaví několik voleb naráz, ťuknutí na ten samý ho zase vypne '
-                + '(hodnoty zůstanou, jen se přestane hlídat).';
+            // Dřív tu byly tři řádky vysvětlování a hlavička Nastavení kvůli nim začínala
+            // až třetinu obrazovky pod okrajem. Podrobnosti jsou v detailu pod tím.
+            : '<b>Bez profilu</b> — nastavení si řídíš sám v záložkách níž.';
         if (note.innerHTML !== html) note.innerHTML = html;
         renderDetail(false);
     }
@@ -398,7 +398,9 @@
         body.innerHTML = '<div id="ag-prof-tw"><table><thead>' + head + '</thead><tbody>' + rows + '</tbody></table></div>'
             + '<p id="ag-prof-legend">– = profil na tuhle volbu vůbec nesáhá, zůstane po tvém. '
             + 'Zorný úhel kamery, korekci severu, barvy, motiv ani levou ruku profil nemění nikdy — '
-            + 'to je nastavení telefonu a člověka, ne způsobu práce.</p>'
+            + 'to je nastavení telefonu a člověka, ne způsobu práce. '
+            + 'Ťuknutí na profil nastaví několik voleb naráz, ťuknutí na ten samý ho zase vypne '
+            + '(hodnoty zůstanou, jen se přestane hlídat).</p>'
             + '<div id="ag-prof-use">' + use + '</div>';
     }
 
