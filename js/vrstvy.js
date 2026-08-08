@@ -227,12 +227,12 @@
         });
         document.getElementById('vr-sk-del').addEventListener('click', function () {
             var s = skladba(); if (!s) return;
-            var ok = true;
-            try { ok = confirm('Smazat skladbu „' + s.name + '" včetně vrstev?'); } catch (e) {}
-            if (!ok) return;
-            D.skladby.splice(D.sel.sk, 1);
-            D.sel = { sk: 0, ref: 0, lay: 0 };
-            save(); renderAll();
+            agAsk('Smazat skladbu „' + s.name + '" včetně vrstev?', { title: 'Smazat skladbu', okText: 'Smazat', danger: true }).then(function (ok) {
+                if (!ok) return;
+                D.skladby.splice(D.sel.sk, 1);
+                D.sel = { sk: 0, ref: 0, lay: 0 };
+                save(); renderAll();
+            });
         });
         document.getElementById('vr-add').addEventListener('click', function () {
             var s = skladba(); if (!s) return;

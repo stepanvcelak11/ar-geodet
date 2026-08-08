@@ -46,7 +46,8 @@
     var _tab = 'pasmo';
 
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
-    function num(v) { var n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : null; }
+    // cteni cisel pres sdilene agNum() (js/vstupy.js) — desetinna carka, mezery v tisicich
+    function num(v) { var n = (typeof window.agNum === 'function') ? window.agNum(v) : parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : null; }
     function st() { try { var o = JSON.parse(localStorage.getItem(LS)); return (o && typeof o === 'object') ? o : {}; } catch (e) { return {}; } }
     function setSt(o) { try { localStorage.setItem(LS, JSON.stringify(o)); } catch (e) {} }
     function put(k, v) { var o = st(); o[k] = v; setSt(o); }
@@ -210,7 +211,10 @@
         var el = e.target;
         if (!el || !el.id || el.id.indexOf('ag-ko-i-') !== 0) return;
         var key = el.id.slice(8);
-        put(key, el.type === 'number' ? num(el.value) : el.value);
+        // pole jsou type="text" inputmode="decimal" (Safari zahazuje carku v type=number),
+        // proto se ciselnost pozna podle data-num, ne podle el.type
+        var jeCislo = !!(el.dataset && el.dataset.num) || el.type === 'number';
+        put(key, jeCislo ? num(el.value) : el.value);
         renderOut();
     }
 
@@ -241,7 +245,7 @@
         };
     }
     function fld(id, label, val, step, extra) {
-        return '<label>' + esc(label) + '<input type="number" id="ag-ko-i-' + id + '" step="' + (step || 'any') + '" value="' + (val != null ? val : '') + '"' + (extra || '') + '></label>';
+        return '<label>' + esc(label) + '<input type="text" inputmode="decimal" autocomplete="off" data-num="1" id="ag-ko-i-' + id + '" data-step="' + (step || 'any') + '" value="' + (val != null ? val : '') + '"' + (extra || '') + '></label>';
     }
     function sel(id, label, list, val) {
         return '<label>' + esc(label) + '<select id="ag-ko-i-' + id + '">' +

@@ -1563,8 +1563,8 @@
     function pickOnMap() {
         var m = null; try { m = (typeof map !== 'undefined' && map) ? map : null; } catch (e) {}
         var vm = null; try { vm = viewMode; } catch (e) {}
-        if (!m) { alert('Mapa zatím neběží — spusť nejdřív vyhledávání.'); return; }
-        if (vm === 'ar') { alert('Přepni na mapu nebo dělené zobrazení, pak vyber místo klepnutím.'); return; }
+        if (!m) { agInfo('Mapa zatím neběží — spusť nejdřív vyhledávání.'); return; }
+        if (vm === 'ar') { agInfo('Přepni na mapu nebo dělené zobrazení, pak vyber místo klepnutím.'); return; }
 
         // lišta se staví vždy čerstvá, ať jsou posluchače navázané na aktuální handler
         var old = document.getElementById('ag-wx-pick');

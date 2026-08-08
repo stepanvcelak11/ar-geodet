@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v212';   // OPRAVA: jeden bod bez DOM elementu shazoval vykresleni vsech bodu v AR i v mape
+const SHELL_CACHE = 'argeodet-shell-v213';   // OPRAVA: jeden bod bez DOM elementu shazoval vykresleni vsech bodu v AR i v mape
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -25,9 +25,11 @@ const ASSETS_TO_CACHE = [
     './icon-512.png',
     './icon-maskable-192.png',
     './icon-maskable-512.png',
-    './css/tokens.css?v=212',
-    './css/style.css?v=212',
-    './css/vylepseni.css?v=212',
+    './css/fonts.css',
+    './js/lib/leaflet-1.9.4.css',
+    './css/tokens.css?v=213',
+    './css/style.css?v=213',
+    './css/vylepseni.css?v=213',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
@@ -52,6 +54,7 @@ const ASSETS_TO_CACHE = [
     './js/geo-core.js',
     './js/err-log.js',
     './js/dialog-bridge.js',
+    './js/vstupy.js',
     './js/lib/leaflet-1.9.4.js',
     './js/lib/esri-leaflet-3.0.12.js',
     './js/power-save.js',
@@ -172,7 +175,15 @@ const ASSETS_TO_CACHE = [
     './data/predpisy.json',
     './js/lib/qrcode.min.js',
     './js/lib/jsqr.min.js',
-    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+    './fonts/inter-var-latin.woff2',
+    './fonts/inter-var-latin-ext.woff2',
+    './fonts/jetbrains-mono-var-latin.woff2',
+    './fonts/jetbrains-mono-var-latin-ext.woff2',
+    './fonts/sora-var-latin.woff2',
+    './fonts/sora-var-latin-ext.woff2',
+    './js/lib/images/layers.png',
+    './js/lib/images/layers-2x.png',
+    './js/lib/images/marker-icon.png',
     './js/pocasi.js',
     './js/zapisnik.js',
     './js/dgps.js',

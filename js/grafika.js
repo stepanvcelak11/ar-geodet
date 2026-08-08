@@ -368,7 +368,14 @@
         }
         // Kazde otevreni zacina s cistym stitem — jinak by po navratu do panelu tise
         // platilo stare hledani nebo zustal zapnuty rezim vyberu a chybely by body.
-        function openManageModal() { document.getElementById('settings-modal').style.display = 'none'; _mngQuery = ''; _mngSelMode = false; _mngSel.clear(); renderManageList(); document.getElementById('manage-modal').style.display = 'flex'; }
+        function openManageModal() {
+            document.getElementById('settings-modal').style.display = 'none';
+            _mngQuery = ''; _mngSelMode = false; _mngSel.clear();
+            // panel se zobrazi DRIV nez se stavi obsah — renderManageList() jinak vidi
+            // zavreny modal a prekresleni by jen odlozil (viz _mngVisible)
+            document.getElementById('manage-modal').style.display = 'flex';
+            _renderManageListNow();
+        }
         function closeManageModal() { document.getElementById('manage-modal').style.display = 'none'; fixAppLayout(); }
         // ===== SPRAVA BODU (panel Body): hledani, razeni a hromadne operace =====
         let _mngQuery = '', _mngSort = 'default', _mngSelMode = false; const _mngSel = new Set();
@@ -400,9 +407,45 @@
         // renderManageList i drawAllMarkersOnMap, coz je u stovek bodu kvadraticka prace
         // (proj4 prevod na kazdy radek) a appka by na nekolik sekund zamrzla.
         let _mngSuspendRedraw = false;
+
+        // S-JTSK PRO SEZNAM: proj4 prevod je nejdrazsi vec na radku a delal se ZNOVU
+        // pri kazdem prekresleni pro kazdy bod. Cache se sama zneplatni, jakmile se
+        // bodu zmeni lat/lng (posun, Helmert, editace) — neni tedy co hlidat rucne.
+        // Zamerne mimo objekt bodu: do JSON.stringify(persistentCustomPoints) by se
+        // jinak ukladaly ctyri cisla navic na kazdy bod.
+        const _sjCache = new Map();
+        function _ptSjtsk(pt) {
+            const c = _sjCache.get(pt.id);
+            if (c && c.lat === pt.lat && c.lng === pt.lng) return c;
+            const sj = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]);
+            const n = { lat: pt.lat, lng: pt.lng, y: Math.abs(sj[0]).toFixed(2), x: Math.abs(sj[1]).toFixed(2) };
+            // po mnoha prepnutich zakazek by jinak drzela zaznamy k bodum, ktere uz nikdo nevidi
+            if (_sjCache.size > 20000) _sjCache.clear();
+            _sjCache.set(pt.id, n);
+            return n;
+        }
+        function _mngVisible() {
+            const m = document.getElementById('manage-modal');
+            return !!m && m.style.display === 'flex';
+        }
+        // PREKRESLENI SEZNAMU BODU
+        // Driv: kazde ulozeni/smazani bodu postavilo cely seznam znovu — vcetne
+        // situace, kdy panel Body vubec nebyl otevreny. U zakazky o tisicich bodu
+        // to bylo nekolik set milisekund prace do neviditelna, po kazdem bodu.
+        // Ted: kdyz panel neni videt, jen se poznamena, ze je seznam zastaraly, a
+        // postavi se az pri otevreni. Kdyz videt je, volani v jedne davce se slucuji
+        // do jednoho prekresleni v nejblizsim snimku.
+        let _mngRafId = 0;
         function renderManageList() {
             if (_mngSuspendRedraw) return;
-            const listDiv = document.getElementById('manage-list'); listDiv.innerHTML = '';
+            if (!_mngVisible()) return;   // panel neni videt — stavet ho je prace do neviditelna
+            if (_mngRafId) return;                       // uz je naplanovano na tento snimek
+            _mngRafId = requestAnimationFrame(() => { _mngRafId = 0; _renderManageListNow(); });
+        }
+        function _renderManageListNow() {
+            const listDiv = document.getElementById('manage-list');
+            if (!listDiv) return;
+            listDiv.innerHTML = '';
             if (persistentCustomPoints.length === 0) { listDiv.innerHTML = '<p style="text-align:center;">Žádné body v této zakázce.</p>'; renderHiddenPointsRow(listDiv); renderLinesList(listDiv); return; }
             // listovaci panel: hledani + razeni + rezim vyberu (hromadne operace)
             const bar = document.createElement('div'); bar.className = 'mng-bar';
@@ -428,7 +471,7 @@
             empty.style.cssText = 'text-align:center; opacity:.7; display:none;'; empty.innerText = 'Hledání nic nenašlo.';
             listDiv.appendChild(empty);
             pts.forEach(pt => {
-                let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); let dispY = Math.abs(sjtsk[0]).toFixed(2); let dispX = Math.abs(sjtsk[1]).toFixed(2);
+                const _sj = _ptSjtsk(pt); const dispY = _sj.y, dispX = _sj.x;
                 const item = document.createElement('div'); item.className = 'cp-item';
                 item.dataset.mngText = (String(pt.name) + ' ' + (pt.kod || '')).toLowerCase();
                 const dRow = (userLat != null) ? ('<br>' + getDistance(userLat, userLng, pt.lat, pt.lng).toFixed(1) + ' m od tebe') : '';
@@ -485,6 +528,49 @@
             if (typeof updateInfoPanel === 'function') updateInfoPanel();
             if (typeof window.agVibe === 'function') agVibe(30);
         }
+
+        // ===== VRACENI HROMADNYCH OPERACI ==========================================
+        // Hromadny posun / precislovani / kod / Helmert menily klidne 200 bodu naraz
+        // a nesly vratit NIJAK. Zurnal (js/journal.js) si sice pro kazdy bod ukladal
+        // before i after, ale nikdo z nej neumel nic obnovit — pri preklepu v posunu
+        // ("0 0 -5" misto "0 0 -0.05") tak byla zakazka rozbita natrvalo.
+        // Ted si operace drzi before-snimky a nabidne "Vrátit zpět" (stejny toast jako
+        // mazani, js/undo.js). Do zurnalu se navic zapisuje batch = id davky, takze
+        // v historii bodu je videt, ze slo o jednu spolecnou operaci.
+        // Pole, ktera patri vykreslovani, ne datum bodu — ty se z before NEobnovuji.
+        const _PT_RENDER_KEYS = { element: 1, distElement: 1, moreElement: 1, _arCluster: 1, currentDist: 1, currentBearing: 1, _tfLast: 1, _opLast: 1, _dLast: 1, _zLast: 1 };
+        function _ptRestore(p, before) {
+            if (!p || !before) return;
+            // klice, ktere operace PRIDALA (napr. kod), musi zmizet
+            Object.keys(p).forEach(k => { if (!_PT_RENDER_KEYS[k] && !(k in before)) delete p[k]; });
+            Object.keys(before).forEach(k => { if (!_PT_RENDER_KEYS[k]) p[k] = before[k]; });
+        }
+        let _agLastBulk = null;
+        function _mngBulkDone(msg, items, batchId) {
+            if (!items || !items.length) { quickToast(msg); return; }
+            _agLastBulk = { items: items, batch: batchId, ts: Date.now() };
+            if (window.AGUndo && typeof AGUndo.toast === 'function') AGUndo.toast(msg, agUndoLastBulk);
+            else quickToast(msg);
+        }
+        function agUndoLastBulk() {
+            const b = _agLastBulk;
+            if (!b || !b.items || !b.items.length) return;
+            const ids = new Set();
+            b.items.forEach(it => {
+                const p = persistentCustomPoints.find(q => q.id === it.id);
+                if (p) { _ptRestore(p, it.before); ids.add(p.id); }
+                const ar = arPoints.find(q => q.id === it.id);
+                if (ar) _ptRestore(ar, it.before);
+                // do zurnalu i samotne vraceni — historie bodu musi sedet na data
+                try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: it.id, before: null, after: { ...it.before }, origin: 'vraceni-hromadne', batch: b.batch }); } catch (e) {}
+            });
+            _agLastBulk = null;
+            _mngAfterEdit(ids);
+            quickToast('Vráceno zpět: ' + ids.size + ' bodů.');
+        }
+        function _bulkId() { return 'b' + Date.now().toString(36) + Math.round(Math.random() * 1e4).toString(36); }
+        // ===========================================================================
+
         function mngBulkDelete() {
             if (_mngNeedSel()) return;
             // jen body, ktere jsou pri aktivnim hledani opravdu videt (stejne jako ostatni akce)
@@ -514,15 +600,16 @@
                 if (!m) return agInfo('Zadej název končící číslem — např. „101" nebo „OB01".');
                 const prefix = m[1], pad = m[2].length; let n = parseInt(m[2], 10);
                 const sel = _mngSelectedPts(); const ids = new Set(sel.map(p => p.id));
+                const undoItems = [], batch = _bulkId();
                 sel.forEach(p => {
                     let cand;
                     do { cand = prefix + String(n).padStart(pad, '0'); n++; } while (persistentCustomPoints.some(q => q.id !== p.id && q.name === cand));
-                    const before = { ...p }; p.name = cand;
+                    const before = { ...p }; undoItems.push({ id: p.id, before: before }); p.name = cand;
                     const ar = arPoints.find(a => a.id === p.id); if (ar) ar.name = cand;
-                    try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'hromadne-precislovani' }); } catch (e) {}
+                    try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'hromadne-precislovani', batch: batch }); } catch (e) {}
                 });
                 _mngAfterEdit(ids);
-                quickToast('Přečíslováno ' + sel.length + ' bodů (v pořadí seznamu).');
+                _mngBulkDone('Přečíslováno ' + sel.length + ' bodů.', undoItems, batch);
             };
             if (window.agPrompt) agPrompt({ title: 'Přečíslovat vybrané body', message: 'Zadej PRVNÍ název série (musí končit číslem). Vybrané body dostanou čísla po sobě v pořadí seznamu; už obsazená čísla se přeskočí.', placeholder: 'Např. 101 nebo OB01', okText: 'Přečíslovat' }).then(ask);
             else ask(prompt('První název série (např. 101):'));
@@ -535,17 +622,18 @@
                 if (!parts.length || parts.some(x => !isFinite(x))) return agInfo('Zadej posun jako „ΔY ΔX" nebo „ΔY ΔX ΔZ" v metrech, oddělené mezerou — např. „0 0 -0.05".');
                 const dY = parts[0] || 0, dX = parts[1] || 0, dZ = parts[2] || 0;
                 const sel = _mngSelectedPts(); const ids = new Set(sel.map(p => p.id));
+                const undoItems = [], batch = _bulkId();
                 sel.forEach(p => {
-                    const before = { ...p };
+                    const before = { ...p }; undoItems.push({ id: p.id, before: before });
                     const sj = proj4("EPSG:4326", "EPSG:5514", [p.lng, p.lat]);
                     const c = sjtskToLatLng(Math.abs(sj[0]) + dY, Math.abs(sj[1]) + dX);
                     p.lat = c.lat; p.lng = c.lng;
                     if (dZ && p.vyska != null) p.vyska = Math.round((p.vyska + dZ) * 1000) / 1000;
                     const ar = arPoints.find(a => a.id === p.id); if (ar) { ar.lat = p.lat; ar.lng = p.lng; ar.vyska = p.vyska; }
-                    try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'hromadny-posun' }); } catch (e) {}
+                    try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'hromadny-posun', batch: batch }); } catch (e) {}
                 });
                 _mngAfterEdit(ids);
-                quickToast('Posunuto ' + sel.length + ' bodů (ΔY ' + dY + ' m, ΔX ' + dX + ' m' + (dZ ? ', ΔZ ' + dZ + ' m' : '') + ').');
+                _mngBulkDone('Posunuto ' + sel.length + ' bodů (ΔY ' + dY + ' m, ΔX ' + dX + ' m' + (dZ ? ', ΔZ ' + dZ + ' m' : '') + ').', undoItems, batch);
             };
             if (window.agPrompt) agPrompt({ title: 'Posunout vybrané body', message: 'Posun v metrech S-JTSK: „ΔY ΔX" nebo „ΔY ΔX ΔZ" (mezerou). Např. snížit výšku o 5 cm: „0 0 -0.05".', placeholder: '0 0 -0.05', okText: 'Posunout' }).then(ask);
             else ask(prompt('Posun ΔY ΔX ΔZ (m):'));
@@ -556,15 +644,16 @@
                 if (v == null || String(v).trim() === '') return;
                 const kod = (String(v).trim() === '-') ? null : String(v).trim().slice(0, 60);
                 const sel = _mngSelectedPts(); const ids = new Set(sel.map(p => p.id));
+                const undoItems = [], batch = _bulkId();
                 sel.forEach(p => {
-                    const before = { ...p };
+                    const before = { ...p }; undoItems.push({ id: p.id, before: before });
                     if (kod) p.kod = kod; else delete p.kod;
                     const ar = arPoints.find(a => a.id === p.id); if (ar) { if (kod) ar.kod = kod; else delete ar.kod; }
-                    try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'hromadny-kod' }); } catch (e) {}
+                    try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'hromadny-kod', batch: batch }); } catch (e) {}
                 });
                 if (kod && typeof window.agKodRemember === 'function') agKodRemember(kod);
                 _mngAfterEdit(ids);
-                quickToast(kod ? ('Kód „' + kod + '" přiřazen ' + sel.length + ' bodům.') : ('Kód odebrán u ' + sel.length + ' bodů.'));
+                _mngBulkDone(kod ? ('Kód „' + kod + '" přiřazen ' + sel.length + ' bodům.') : ('Kód odebrán u ' + sel.length + ' bodů.'), undoItems, batch);
             };
             if (window.agPrompt) agPrompt({ title: 'Kód pro vybrané body', message: 'Kód se propíše do CSV/TXT/DXF exportu (v DXF jako vrstva výkresu). Pomlčka „-" kód odebere.', placeholder: 'Např. obruba', okText: 'Přiřadit' }).then(ask);
             else ask(prompt('Kód bodu (- = odebrat):'));
@@ -577,17 +666,18 @@
             if (!sel.length) return agInfo('Vybrané body už byly lokalizací srovnány (každý bod se přepočítává jen jednou).');
             const doIt = () => {
                 const ids = new Set(sel.map(p => p.id)); let done = 0;
+                const undoItems = [], batch = _bulkId();
                 sel.forEach(p => {
                     const c = AGLocalize.apply(p.lat, p.lng); if (!c || !isFinite(c[0]) || !isFinite(c[1])) return;
-                    const before = { ...p };
+                    const before = { ...p }; undoItems.push({ id: p.id, before: before });
                     p.lat = c[0]; p.lng = c[1];
                     if (p.vyska != null && AGLocalize.applyZ) p.vyska = AGLocalize.applyZ(c[0], c[1], p.vyska);
                     p._localized = true; done++;
                     const ar = arPoints.find(a => a.id === p.id); if (ar) { ar.lat = p.lat; ar.lng = p.lng; ar.vyska = p.vyska; ar._localized = true; }
-                    try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'helmert-hromadne' }); } catch (e) {}
+                    try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'helmert-hromadne', batch: batch }); } catch (e) {}
                 });
                 _mngAfterEdit(ids);
-                quickToast('Lokalizací srovnáno ' + done + ' bodů' + (skipped ? ' (' + skipped + ' přeskočeno — už srovnané)' : '') + '.');
+                _mngBulkDone('Lokalizací srovnáno ' + done + ' bodů' + (skipped ? ' (' + skipped + ' přeskočeno — už srovnané)' : '') + '.', undoItems, batch);
             };
             const msg = 'Přepočítat ' + sel.length + ' bodů aktivní Helmertovou lokalizací?' + (skipped ? '<br>(' + skipped + ' vybraných se přeskočí — už jsou srovnané.)' : '');
             if (window.agConfirm) agConfirm({ title: 'Srovnat body lokalizací', message: msg, okText: 'Přepočítat' }).then(ok => { if (ok) doIt(); });
@@ -641,7 +731,7 @@
             det.appendChild(box);
             listDiv.appendChild(det);
         }
-        function deleteLineFromList(id) { if (!confirm('Smazat tuto spojnici?')) return; _linesBoxOpen = true; deleteLine(id); renderManageList(); }
+        function deleteLineFromList(id) { agAsk('Smazat tuto spojnici?', { title: 'Smazat spojnici', okText: 'Smazat', danger: true }).then(function (ok) { if (!ok) return; _linesBoxOpen = true; deleteLine(id); renderManageList(); }); }
         // reset polí „popis + fotka" ve formuláři bodu; u editace předvyplní uloženou poznámku
         function resetNewPointExtras(loadNoteForId) {
             window._agNewPtPhoto = null;
@@ -830,7 +920,30 @@
             });
         }
         let mapReturnTimer;
-        function recenterOnUser() { clearTimeout(mapReturnTimer); window._mapHold = false; if (userLat == null) return; map.setView([userLat, userLng], map.getZoom(), { animate: true }); lastCenterLat = userLat; lastCenterLng = userLng; }
+        // SLEDOVANI POLOHY V MAPE
+        // Driv: jakykoli posun mapy se po 5 s sam vratil na uzivatele. Kdyz si clovek
+        // prohlizel vzdalenejsi cast zakazky a na chvili sundal prst, mapa mu uskocila
+        // zpatky — bez varovani a bez moznosti to vypnout. Ted posun sledovani VYPNE
+        // a mapa zustane, kde je; zpatky ji vrati tlacitko "Na me" (#map-recenter),
+        // ktere se prave kvuli tomu objevi. Stav drzi window._mapHold (true = mapa
+        // nesleduje). Je to accessor, takze tlacitko reaguje i na moduly, ktere si
+        // _mapHold nastavuji samy (napr. "Ukazat cil" v js/cil-navigace.js).
+        let _mapHoldVal = false;
+        try {
+            Object.defineProperty(window, '_mapHold', {
+                configurable: true,
+                get: function () { return _mapHoldVal; },
+                set: function (v) { v = !!v; if (v === _mapHoldVal) return; _mapHoldVal = v; agUpdateRecenterBtn(); }
+            });
+        } catch (e) { /* kdyby uz vlastnost nesla predefinovat, jede se jako driv */ }
+        function agUpdateRecenterBtn() {
+            const b = document.getElementById('map-recenter');
+            // ZAMERNE bez podminky na GPS fix: kdyz uzivatel posune mapu jeste pred
+            // prvnim fixem, tlacitko musi byt vidma — jinak by uz sledovani nezapnul.
+            // recenterOnUser() bez fixu jen obnovi sledovani a mapa doskoci na prvni poloze.
+            if (b) b.classList.toggle('on', !!_mapHoldVal);
+        }
+        function recenterOnUser() { clearTimeout(mapReturnTimer); window._mapHold = false; agUpdateRecenterBtn(); if (userLat == null) return; map.setView([userLat, userLng], map.getZoom(), { animate: true }); lastCenterLat = userLat; lastCenterLng = userLng; }
         // OVLADANI MAPY: jeden prst = posun (obsah sleduje prst i pri otocene mape), dva prsty = plynuly zoom (pinch).
         map.options.zoomSnap = 0;  // plynuly pinch zoom (zlomkove stupne); kdyby logika.js byla stara, vynutime to i tady
         // mapRotation = uhel SKUTECNE aplikovany na mapu. Behem rucniho posunu (window._mapHold)
@@ -932,7 +1045,9 @@
         // navzdy a mapa by se uz nikdy neotocila podle kompasu.
         function onMapTouchEnd(e) {
             if (e.touches.length < 2) _tfmEnd();   // konec gesta dvou prstů (výsledek měření dosvítí sám)
-            if (e.touches.length === 0) { if (isDraggingMap || isPinchingMap || window._mapHold) { clearTimeout(mapReturnTimer); mapReturnTimer = setTimeout(recenterOnUser, 5000); } isDraggingMap = false; isPinchingMap = false; }
+            // ZADNY automaticky navrat po 5 s — mapa zustane tam, kam ji uzivatel dal.
+            // Misto toho se ukaze tlacitko "Na me" (viz recenterOnUser vyse).
+            if (e.touches.length === 0) { if (isDraggingMap || isPinchingMap || window._mapHold) { clearTimeout(mapReturnTimer); agUpdateRecenterBtn(); } isDraggingMap = false; isPinchingMap = false; }
             else if (e.touches.length === 1) { isPinchingMap = false; isDraggingMap = true; lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; }
         }
         mapContainerEl.addEventListener('touchend', onMapTouchEnd);
@@ -1236,10 +1351,45 @@
             } else { arHud.style.display = 'none'; }
         }
         
+        // BLEDNUTI HUD PO NECINNOSTI
+        // Driv: 4 s bez doteku -> vsechny prvky na opacity 0.3 a pointer-events:none.
+        // Jenze prave kdyz jdu k bodu a na displej NESAHAM, potrebuju azimut a presnost
+        // GPS cist nejvic — a 30 % kryti je na slunci prakticky neviditelne. Ted se HUD
+        // nevybledne, dokud se deje neco, u ceho ho clovek sleduje, a prodleva je delsi.
+        // Kdyz duvod pomine, timer se prodluzuje dal (nekontroluje se jen jednou).
         let inactivityTimer; const fadeElements = ['menu-toggle-btn', 'compass-debug', 'info', 'resizer', 'gps-avg'];
+        const FADE_DELAY = 12000;   // driv 4000 — za 4 s se v terenu nestihne ani dojit k bodu
+        // Duvody, proc HUD NEsmi vyblednout, i kdyz se displeje nikdo nedotyka:
+        function hudMustStayVisible() {
+            try {
+                // 1) navigace na zvyrazneny bod — sipka, azimut a vzdalenost jsou to jedine, co ridi chuzi
+                if (highlightedPointId) return true;
+                // 2) uzivatel jde (GPS rychlost nad ~2 km/h) — HUD cte za chuze, ne prsty
+                if (typeof gpsSpeed === 'number' && gpsSpeed > 0.6) return true;
+                // 3) v #info je chyba GPS s tlacitkem "Zkusit znovu" — vyblednout jedinou cestu ven nejde
+                const inf = document.getElementById('info');
+                if (inf && inf.querySelector('.info-retry')) return true;
+                // 4) bezi prumerovani GPS a uzivatel ceka, az se ustali
+                if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && !gpsAvgResult.coarse && gpsAvgResult.n > 0 && gpsAvgResult.n < 30) return true;
+            } catch (e) {}
+            return false;
+        }
         function resetInactivityTimer() {
-            fadeElements.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('ui-faded'); }); clearTimeout(inactivityTimer);
-            inactivityTimer = setTimeout(() => { fadeElements.forEach(id => { const el = document.getElementById(id); const bottomSheetOpen = document.getElementById('bottom-sheet').classList.contains('open'); const settingsOpen = document.getElementById('settings-modal').style.display === 'flex'; const customOpen = document.getElementById('custom-modal-overlay').style.display === 'flex'; const clusterOpen = document.getElementById('cluster-modal').style.display === 'flex'; const measureOpen = document.getElementById('measure-modal').style.display === 'flex'; const welcomeOpen = document.getElementById('welcome-screen').style.display !== 'none'; const menuOpen = document.getElementById('side-menu').classList.contains('open'); if (el && !bottomSheetOpen && !settingsOpen && !customOpen && !welcomeOpen && !menuOpen && !clusterOpen && !measureOpen) { el.classList.add('ui-faded'); } }); }, 4000);
+            fadeElements.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('ui-faded'); });
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(function tick() {
+                // duvod k zobrazeni muze vzniknout az BEHEM cekani (rozejdu se, vyberu si cil)
+                if (hudMustStayVisible()) { inactivityTimer = setTimeout(tick, 5000); return; }
+                const bottomSheetOpen = document.getElementById('bottom-sheet').classList.contains('open');
+                const settingsOpen = document.getElementById('settings-modal').style.display === 'flex';
+                const customOpen = document.getElementById('custom-modal-overlay').style.display === 'flex';
+                const clusterOpen = document.getElementById('cluster-modal').style.display === 'flex';
+                const measureOpen = document.getElementById('measure-modal').style.display === 'flex';
+                const welcomeOpen = document.getElementById('welcome-screen').style.display !== 'none';
+                const menuOpen = document.getElementById('side-menu').classList.contains('open');
+                if (bottomSheetOpen || settingsOpen || customOpen || welcomeOpen || menuOpen || clusterOpen || measureOpen) return;
+                fadeElements.forEach(id => { const el = document.getElementById(id); if (el) el.classList.add('ui-faded'); });
+            }, FADE_DELAY);
         }
         ['touchstart', 'click', 'mousemove'].forEach(evt => { document.addEventListener(evt, resetInactivityTimer, { passive: true }); }); resetInactivityTimer();
 
@@ -1277,7 +1427,7 @@
                     arPoints.forEach(pt => { if (nearPoint || !passesFilters(pt)) return; if (cp.distanceTo(map.latLngToContainerPoint(L.latLng(pt.lat, pt.lng))) <= 25) nearPoint = true; });
                     if (nearPoint) return; // tap u bodu patri bodu (detail/zvyrazneni), ne mazani cary
                     L.DomEvent.stopPropagation(ev);
-                    if (confirm('Smazat tuto spojnici (' + lineEndName(ln.aId, ln.aName) + ' \u2194 ' + lineEndName(ln.bId, ln.bName) + ')?')) { deleteLine(ln.id); }
+                    agAsk('Smazat tuto spojnici (' + lineEndName(ln.aId, ln.aName) + ' \u2194 ' + lineEndName(ln.bId, ln.bName) + ')?', { title: 'Smazat spojnici', okText: 'Smazat', danger: true }).then(function (ok) { if (ok) deleteLine(ln.id); });
                 });
                 hit.addTo(linesGroup);
                 const d = getDistance(A.lat, A.lng, B.lat, B.lng);
@@ -1502,7 +1652,7 @@
             document.getElementById('dict-new-term').value = ''; document.getElementById('dict-new-def').value = '';
             renderDictList();
         }
-        function deleteDictEntry(idx) { if (!confirm('Smazat tento vlastní pojem?')) return; const list = getCustomDict(); list.splice(idx, 1); saveCustomDict(list); renderDictList(); }
+        function deleteDictEntry(idx) { agAsk('Smazat tento vlastní pojem?', { title: 'Smazat pojem', okText: 'Smazat', danger: true }).then(function (ok) { if (!ok) return; const list = getCustomDict(); list.splice(idx, 1); saveCustomDict(list); renderDictList(); }); }
         function _escHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
         function renderDictList() {
             const listDiv = document.getElementById('dict-list'); if (!listDiv) return;

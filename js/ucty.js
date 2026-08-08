@@ -1758,17 +1758,18 @@
                 : ('PIN ti může změnit administrátor (' + (admins.join(', ') || '—') + ') v Administraci firmy.\n\n' +
                     'Když je nedostupný i admin, lze firemní režim NOUZOVĚ vypnout — appka se odemkne, ' +
                     'účty a oprávnění se smažou. BODY A ZAKÁZKY ZŮSTANOU.\n\nPro nouzové vypnutí napiš RESET:');
-            var v = prompt(msg, '');
+            agGet(msg, { title: 'Zapomenuté přihlášení', placeholder: 'RESET', okText: 'Potvrdit' }).then(function (v) {
             if (v === 'RESET') {
                 removeProfile(profileKeyOf(f));
                 try { localStorage.removeItem(LS_FIRM); localStorage.removeItem(LS_TOK); localStorage.removeItem(LS_OFF); localStorage.removeItem(LS_SYNC); } catch (e) {}
                 setSess(null);
                 ov.remove();
                 applyPerms();
-                alert(cloud ? 'Zařízení odpojeno od firmy. Body a zakázky zůstaly beze změny.'
+                agInfo(cloud ? 'Zařízení odpojeno od firmy. Body a zakázky zůstaly beze změny.'
                     : 'Firemní režim vypnut. Body a zakázky zůstaly beze změny.');
                 showGate();
             }
+            });
         });
 
         // zámek z předchozích pokusů běží dál i po restartu appky
@@ -2035,7 +2036,7 @@
             }).catch(function (err) {
                 st.textContent = 'Kameru nelze spustit: ' + (err && err.message ? err.message : err);
             });
-        }).catch(function () { alert('Knihovnu pro čtení QR se nepodařilo načíst.'); });
+        }).catch(function () { agInfo('Knihovnu pro čtení QR se nepodařilo načíst.'); });
     }
 
     // pojistka: bez firmy, bez hosta a bez otevřené brány/průvodce → ukázat bránu

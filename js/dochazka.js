@@ -369,16 +369,19 @@
             if (kDir(last) !== 'in') return;
             if (dayKey(last.ts) === dayKey(Date.now())) return;   // dnešní směna běží — v pořádku
             var din = new Date(last.ts);
-            var v = prompt('Z ' + din.toLocaleDateString('cs-CZ') + ' chybí odchod (příchod ' + fmtT(last.ts) + ').\n\n' +
-                'Zadej čas odchodu (HH:MM) a doplní se zpětně; Zrušit = nechat bez odchodu:', '17:00');
+            // in-app dialog misto nativniho prompt()/alert() (na iOS mrazi kameru a vypada cize)
+            agGet('Z ' + din.toLocaleDateString('cs-CZ') + ' chybí odchod (příchod ' + fmtT(last.ts) + ').\n\n' +
+                'Zadej čas odchodu (HH:MM) a doplní se zpětně; Zrušit = nechat bez odchodu:',
+                { title: 'Chybí odchod', value: '17:00', placeholder: '17:00', okText: 'Doplnit' }).then(function (v) {
             if (!v) return;
             var m = /^(\d{1,2})[:.](\d{2})$/.exec(v.trim());
-            if (!m) { alert('Času nerozumím — zadej např. 16:30.'); return; }
+            if (!m) { agInfo('Času nerozumím — zadej např. 16:30.'); return; }
             var out = new Date(din.getFullYear(), din.getMonth(), din.getDate(), parseInt(m[1], 10), parseInt(m[2], 10), 0, 0);
-            if (out.getTime() <= last.ts) { alert('Odchod musí být až po příchodu (' + fmtT(last.ts) + ').'); return; }
+            if (out.getTime() <= last.ts) { agInfo('Odchod musí být až po příchodu (' + fmtT(last.ts) + ').'); return; }
             u.usageLogRaw({ ts: out.getTime(), t: 'shift', k: 'out', uid: me.id, u: me.name, proj: last.proj });
             if (u.isCloud && u.isCloud()) setTimeout(function () { u.syncUsage(); }, 1500);
             try { if (typeof quickToast === 'function') quickToast('Odchod ' + v.trim() + ' doplněn.'); } catch (e) {}
+            });
         });
     }
 

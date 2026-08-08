@@ -264,7 +264,7 @@
         }
         var msg = 'Přidáno ' + added + ' bodů' + (skipped ? ', ' + skipped + ' přeskočeno (už je máš)' : '') + '.';
         try { if (typeof quickToast === 'function') { quickToast(msg); return; } } catch (e) {}
-        alert(msg);
+        agInfo(msg);
     }
     // výběr vlastních bodů k odeslání
     function openPicker() {

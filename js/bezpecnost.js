@@ -792,7 +792,7 @@
             (c.on ? '<button type="button" class="bz-mini" data-act="mute">Ztišit na dnes</button>' : '') + '</div>';
         if (c.on) {
             h += '<div style="font-size:12.5px;margin:0 0 8px;padding:0 2px;">Připomínka pití každých ' +
-                '<input type="number" id="ag-bz-int" class="bz-num-int" min="15" max="180" step="5" value="' + (c.drinkMin || DRINK_DEFAULT) + '"> min ' +
+                '<input type="number" inputmode="numeric" id="ag-bz-int" class="bz-num-int" min="15" max="180" step="5" value="' + (c.drinkMin || DRINK_DEFAULT) + '"> min ' +
                 '<span style="color:var(--text-muted);">(jen nad 27 °C)</span></div>';
         }
 

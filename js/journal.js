@@ -56,6 +56,7 @@
             vyska: a.vyska != null ? a.vyska : null,
             acc: a.acc != null ? a.acc : null,
             cat: a.cat || null,
+            kod: a.kod != null ? a.kod : null,   // bez nej by hromadna zmena kodu vypadala v historii jako "nic se nezmenilo"
             prov: a.prov || null
         };
     }
@@ -66,6 +67,9 @@
             proj: pid(), ts: Date.now(), op: op.op, id: op.id || null,
             before: slim(op.before), after: slim(op.after),
             origin: op.origin || (op.after && op.after.prov && op.after.prov.origin) || null,
+            // batch = id davky u hromadnych operaci (posun, precislovani, kod, Helmert).
+            // Diky nemu je v historii bodu poznat, ze slo o jednu spolecnou akci nad N body.
+            batch: op.batch || null,
             author: author(), dev: dev()
         };
         open().then(function (db) {

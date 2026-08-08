@@ -32,9 +32,27 @@
         opts = opts || {};
         try {
             if (typeof window.agConfirm === 'function') {
-                return window.agConfirm({ title: opts.title || 'Potvrzení', message: esc(msg), okText: opts.okText, danger: !!opts.danger });
+                return window.agConfirm({ title: opts.title || 'Potvrzení', message: esc(msg), okText: opts.okText, cancelText: opts.cancelText, danger: !!opts.danger });
             }
         } catch (e) {}
         try { return Promise.resolve(confirm(msg)); } catch (e) { return Promise.resolve(false); }
+    };
+
+    //   agGet(text[, opts]) → Promise<string|null> — náhrada prompt()
+    // Stejná sémantika jako nativní prompt(): potvrzení vrátí (oříznutý) text,
+    // zrušení vrátí null. Nativní prompt() je na iOS obzvlášť škodlivý — MRAZÍ
+    // kamerový stream, takže po jeho zavření zůstane v AR nehybný obraz
+    // (viz komentář v js/zapisnik.js). opts: {title, value, placeholder, okText}
+    window.agGet = window.agGet || function (msg, opts) {
+        opts = opts || {};
+        try {
+            if (typeof window.agPrompt === 'function') {
+                return window.agPrompt({
+                    title: opts.title || 'Zadání', message: esc(msg),
+                    value: opts.value, placeholder: opts.placeholder, okText: opts.okText
+                });
+            }
+        } catch (e) {}
+        try { return Promise.resolve(prompt(msg, opts.value != null ? opts.value : '')); } catch (e) { return Promise.resolve(null); }
     };
 })();

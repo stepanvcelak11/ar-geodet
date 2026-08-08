@@ -17,7 +17,8 @@
     var _aId = null, _bId = null, _timer = null;
 
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
-    function num(id) { var el = document.getElementById(id); var v = el ? parseFloat(String(el.value).replace(',', '.')) : NaN; return isFinite(v) ? v : NaN; }
+    // cteni cisel pres sdilene agNum() (js/vstupy.js) — desetinna carka, mezery v tisicich
+    function num(id) { var el = document.getElementById(id); if (!el) return NaN; var v = (typeof window.agNum === 'function') ? window.agNum(el) : parseFloat(String(el.value).replace(',', '.')); return isFinite(v) ? v : NaN; }
 
     // ---- draft (AGDraft je odpojitelný, vše fail-silent) -----------------------
     // Volá se JEN z uživatelských handlerů (change/input) → každý zápis = reálný

@@ -325,7 +325,7 @@
             '  <div class="ag-kz-man" id="ag-kz-man" style="display:none;">' +
             '    <div class="r2">' +
             '      <label>Datum<input type="date" id="ag-kz-m-date"></label>' +
-            '      <label>Kilometry<input type="number" step="0.1" min="0" id="ag-kz-m-km" placeholder="42,5"></label>' +
+            '      <label>Kilometry<input type="text" inputmode="decimal" autocomplete="off" id="ag-kz-m-km" placeholder="42,5"></label>' +
             '      <label>Odkud<input type="text" id="ag-kz-m-from" placeholder="Kancelář"></label>' +
             '      <label>Kam<input type="text" id="ag-kz-m-to" placeholder="Stavba / obec"></label>' +
             '    </div>' +

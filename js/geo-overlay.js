@@ -271,7 +271,7 @@
         ed.innerHTML =
             '<div style="margin:6px 0;padding:10px;border-radius:10px;background:rgba(255,255,255,0.06);">'
             + '<div style="font-size:12.5px;opacity:.8;margin-bottom:6px;">Skutečné souřadnice tohoto bodu:</div>'
-            + '<div style="display:flex;gap:8px;"><input type="number" id="aggo-wy" placeholder="Y (S-JTSK)" step="0.01" style="flex:1;"><input type="number" id="aggo-wx" placeholder="X (S-JTSK)" step="0.01" style="flex:1;"></div>'
+            + '<div style="display:flex;gap:8px;"><input type="text" inputmode="decimal" autocomplete="off" id="aggo-wy" placeholder="Y (S-JTSK)" style="flex:1;"><input type="text" inputmode="decimal" autocomplete="off" id="aggo-wx" placeholder="X (S-JTSK)" step="0.01" style="flex:1;"></div>'
             + '<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">'
             + '<button class="btn btn-secondary" id="aggo-gps" style="flex:1;margin:0;">Z GPS</button>'
             + (ptOpts ? '<select id="aggo-pt" style="flex:1;"><option value="">— existující bod —</option>' + ptOpts + '</select>' : '')
@@ -355,10 +355,12 @@
         el.querySelector('#aggo-vis').onchange = function () { _visible = this.checked; refreshLayer(); saveParams(); };
         el.querySelector('#aggo-fit').onclick = function () { fitToOverlay(); };
         el.querySelector('#aggo-del').onclick = function () {
-            if (!confirm('Odebrat vlastní podklad z této zakázky?')) return;
+            agAsk('Odebrat vlastní podklad z této zakázky?', { title: 'Odebrat podklad', okText: 'Odebrat', danger: true }).then(function (ok) {
+            if (!ok) return;
             idbDel('img_' + projId()); try { if (typeof removeStoredData === 'function') removeStoredData(PKEY); else if (typeof setStoredData === 'function') setStoredData(PKEY, ''); } catch (e) {}
             resetState(); renderInfo(); renderCpList();
             var st = document.getElementById('aggo-status'); if (st) st.innerHTML = '';
+            });
         };
     }
 

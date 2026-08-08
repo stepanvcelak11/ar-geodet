@@ -545,8 +545,10 @@
         document.getElementById('agun-ar').addEventListener('change', function () { _arOn = this.checked; if (_arOn) startAr(); else stopAr(); });
         document.getElementById('agun-warn').addEventListener('change', function () { _warnOn = this.checked; if (!_warnOn) setBanner(''); });
         document.getElementById('agun-clear').addEventListener('click', function () {
-            if (!confirm('Vymazat všechny podzemní sítě z této zakázky?')) return;
-            _nets = []; persist(); drawMap(); stopAr(); setBanner(''); renderList(); setStatus('');
+            agAsk('Vymazat všechny podzemní sítě z této zakázky?', { title: 'Vymazat sítě', okText: 'Vymazat', danger: true }).then(function (ok) {
+                if (!ok) return;
+                _nets = []; persist(); drawMap(); stopAr(); setBanner(''); renderList(); setStatus('');
+            });
         });
     }
     function onFile(ev) {

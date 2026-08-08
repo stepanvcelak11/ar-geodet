@@ -73,18 +73,24 @@
     <!-- iOS ikonu na plochu bere JEN z PNG (SVG ignoruje → obecný screenshot).
          Projeví se až při novém „Přidat na plochu". -->
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Sora:wght@600;700;800&display=swap">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- PÍSMA A STYL MAPY JEDOU Z REPA, NE Z CDN.
+         Dřív: <link> na fonts.googleapis.com + unpkg.com. Oboje je RENDER-BLOKUJÍCÍ
+         (prohlížeč nevykreslí nic, dokud stylesheet nedorazí) a v terénu na slabém
+         signálu to znamenalo sekundu i víc do prvního obrazu. Písma navíc nebyla
+         v předcache service workeru, takže offline nedorazila vůbec.
+         Písma jsou variabilní, proto stačí 6 souborů (fonts/) místo 22 — detail
+         v hlavičce css/fonts.css. Přegenerování: scripts/stahni-pisma.ps1 -->
+    <link rel="preload" href="fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="css/fonts.css">
+    <link rel="stylesheet" href="js/lib/leaflet-1.9.4.css">
     <script defer src="js/lib/proj4-2.9.0.min.js"></script>
     <script defer src="js/geo-core.js"></script>
     <!-- style.css s verzí v adrese: kořenové styly NESMÍ přijít ze staré cache
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=212">
-    <link rel="stylesheet" href="css/style.css?v=212">
+    <link rel="stylesheet" href="css/tokens.css?v=213">
+    <link rel="stylesheet" href="css/style.css?v=213">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -101,7 +107,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=212">
+    <link rel="stylesheet" href="css/vylepseni.css?v=213">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -692,7 +698,7 @@
     <div class="modal-overlay" id="manage-modal"><div class="modal-content"><h2 style="color: var(--accent); margin-top:0;">Mé body (S-JTSK)</h2><details class="exp-menu" style="margin-bottom: 12px;"><summary><svg class="icon"><use href="#i-upload"/></svg> Export / Import bodů</summary><div class="exp-opts"><div class="exp-fmt-wrap"><label style="display:flex;justify-content:space-between;align-items:center;margin:0 2px 6px;font-size:13px;">Formát exportu <b id="exp-fmt-name" style="color:var(--accent);">CSV (číslo;Y;X)</b></label><input type="range" id="exp-fmt" min="0" max="6" step="1" value="0" oninput="window.agExpFmt&&agExpFmt()" onfocus="window.agExpInit&&agExpInit()"><div style="font-size:11px;opacity:.6;text-align:center;margin-top:2px;">posuň a vyber formát</div><button class="btn" style="margin-top:10px;" onclick="window.agExpDo&&agExpDo()"><svg class="icon"><use href="#i-upload"/></svg> Exportovat</button></div><div class="ag-quad" id="exp-actions" role="group" aria-label="Další akce s body"><button type="button" onclick="document.getElementById('import-file').click()" title="Import souboru (CSV, JSON, VFK…)"><svg class="icon"><use href="#i-folder"/></svg><span>Import<br>souboru</span></button><button type="button" id="exp-share-qr" onclick="openShareQR()" title="Sdílet body QR kódem"><svg class="icon"><use href="#i-upload"/></svg><span>Sdílet<br>QR</span></button><button type="button" id="exp-scan-qr" onclick="openScanQR()" title="Načíst body z QR kódu"><svg class="icon"><use href="#i-camera"/></svg><span>Načíst<br>QR</span></button></div><input type="file" id="import-file" style="display:none" accept=".json,.csv,.txt,.vfk" onchange="importPoints(event)"></div></details><div class="modal-body" id="manage-list"></div><button class="btn btn-secondary" style="margin-top: 15px;" onclick="closeManageModal()">Zpět</button></div></div>
     <!-- data-no-swipe: krizek ano, gesto ne (js/modal-close.js). Tuknout na X je
          rozhodnuti, ale nechtene cuknuti prstem by zahodilo rozepsany bod. -->
-    <div class="modal-overlay" id="custom-modal-overlay" data-no-swipe><div class="modal-content"><h3 id="custom-modal-title" style="color: var(--accent); margin-top:0;">Vložit vlastní bod</h3><div class="modal-body"><!-- pomocníci vyplnění jen pro NOVÝ bod — při úpravě je grafika.js skryje --><div id="custom-create-helpers"><div class="ag-quad" role="group" aria-label="Odkud vzít souřadnice"><button type="button" class="qt-prim" onclick="fillAveragedGPS()" title="Vyplnit z průměru GPS"><svg class="icon"><use href="#i-locate"/></svg><span>Z průměru<br>GPS</span></button><button type="button" onclick="startMapPick()" title="Vybrat polohu z mapy"><svg class="icon"><use href="#i-map-pin"/></svg><span>Z mapy</span></button><button type="button" onclick="document.getElementById('ocr-file').click()" title="Přečíst souřadnice z fotky (OCR)"><svg class="icon"><use href="#i-camera"/></svg><span>Z fotky<br>(OCR)</span></button><button type="button" onclick="closeCustomModal(); if(window.agOpenBrutalGps) agOpenBrutalGps();" title="Přesná GPS — dlouhé průměrování"><svg class="icon"><use href="#i-crosshair"/></svg><span>Přesná<br>GPS</span></button></div><input type="file" id="ocr-file" style="display:none" accept="image/*" capture="environment" onchange="ocrFromPhoto(event)"><div id="ocr-note" style="display:none;"></div></div><div id="custom-acc-note" style="display:none;"></div><label>Název / Číslo bodu:</label><input type="text" id="custom-name" placeholder="Např. Mezník 1"><label>Kód bodu — volitelné (do CSV/DXF):</label><input type="text" id="custom-kod" list="kod-datalist" autocomplete="off" placeholder="Např. obruba, šachta…"><datalist id="kod-datalist"></datalist><div id="kod-chips" class="kod-chips" style="display:none;"></div><label>S-JTSK Y (v metrech):</label><input type="number" id="custom-y" step="any" inputmode="decimal" placeholder="Např. 596956.46"><label>S-JTSK X (v metrech):</label><input type="number" id="custom-x" step="any" inputmode="decimal" placeholder="Např. 1163343.34"><label>Výška Z / Bpv (v metrech) — volitelné:</label><input type="number" id="custom-z" step="any" inputmode="decimal" placeholder="Např. 312.45"><label>Popis / poznámka — volitelné:</label><textarea id="custom-note" rows="2" placeholder="Stabilizace, popis místa, číslo náčrtu…"></textarea><button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('custom-photo').click()"><svg class="icon"><use href="#i-camera"/></svg> Přiložit fotku bodu</button><input type="file" id="custom-photo" style="display:none" accept="image/*" capture="environment" onchange="agNewPointPhoto(event)"><div id="custom-photo-note" style="display:none; margin-top:6px; font-size:12.5px; color:var(--accent-bright);"></div></div><div class="row-buttons"><button class="btn btn-secondary" onclick="closeCustomModal()">Zrušit</button><button class="btn btn-blue" id="btn-save-next" onclick="saveCustomPoint(true)" title="Uloží bod a rovnou připraví formulář s dalším číslem">Uložit a další</button><button class="btn btn-primary" onclick="saveCustomPoint()">Uložit</button></div></div></div>
+    <div class="modal-overlay" id="custom-modal-overlay" data-no-swipe><div class="modal-content"><h3 id="custom-modal-title" style="color: var(--accent); margin-top:0;">Vložit vlastní bod</h3><div class="modal-body"><!-- pomocníci vyplnění jen pro NOVÝ bod — při úpravě je grafika.js skryje --><div id="custom-create-helpers"><div class="ag-quad" role="group" aria-label="Odkud vzít souřadnice"><button type="button" class="qt-prim" onclick="fillAveragedGPS()" title="Vyplnit z průměru GPS"><svg class="icon"><use href="#i-locate"/></svg><span>Z průměru<br>GPS</span></button><button type="button" onclick="startMapPick()" title="Vybrat polohu z mapy"><svg class="icon"><use href="#i-map-pin"/></svg><span>Z mapy</span></button><button type="button" onclick="document.getElementById('ocr-file').click()" title="Přečíst souřadnice z fotky (OCR)"><svg class="icon"><use href="#i-camera"/></svg><span>Z fotky<br>(OCR)</span></button><button type="button" onclick="closeCustomModal(); if(window.agOpenBrutalGps) agOpenBrutalGps();" title="Přesná GPS — dlouhé průměrování"><svg class="icon"><use href="#i-crosshair"/></svg><span>Přesná<br>GPS</span></button></div><input type="file" id="ocr-file" style="display:none" accept="image/*" capture="environment" onchange="ocrFromPhoto(event)"><div id="ocr-note" style="display:none;"></div></div><div id="custom-acc-note" style="display:none;"></div><label>Název / Číslo bodu:</label><input type="text" id="custom-name" placeholder="Např. Mezník 1"><label>Kód bodu — volitelné (do CSV/DXF):</label><input type="text" id="custom-kod" list="kod-datalist" autocomplete="off" placeholder="Např. obruba, šachta…"><datalist id="kod-datalist"></datalist><div id="kod-chips" class="kod-chips" style="display:none;"></div><label>S-JTSK Y (v metrech):</label><input type="text" id="custom-y" inputmode="decimal" autocomplete="off" placeholder="Např. 596956,46"><label>S-JTSK X (v metrech):</label><input type="text" id="custom-x" inputmode="decimal" autocomplete="off" placeholder="Např. 1163343,34"><label>Výška Z / Bpv (v metrech) — volitelné:</label><input type="text" id="custom-z" inputmode="decimal" autocomplete="off" placeholder="Např. 312,45"><label>Popis / poznámka — volitelné:</label><textarea id="custom-note" rows="2" placeholder="Stabilizace, popis místa, číslo náčrtu…"></textarea><button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('custom-photo').click()"><svg class="icon"><use href="#i-camera"/></svg> Přiložit fotku bodu</button><input type="file" id="custom-photo" style="display:none" accept="image/*" capture="environment" onchange="agNewPointPhoto(event)"><div id="custom-photo-note" style="display:none; margin-top:6px; font-size:12.5px; color:var(--accent-bright);"></div></div><div class="row-buttons"><button class="btn btn-secondary" onclick="closeCustomModal()">Zrušit</button><button class="btn btn-blue" id="btn-save-next" onclick="saveCustomPoint(true)" title="Uloží bod a rovnou připraví formulář s dalším číslem">Uložit a další</button><button class="btn btn-primary" onclick="saveCustomPoint()">Uložit</button></div></div></div>
 
     <div class="modal-overlay" id="dict-modal">
         <div class="modal-content">
@@ -753,6 +759,12 @@
          na ně věší třídu .ctrl-active (applyMapLayers, toggleConnectMode).
          Vstup „Více → Nástroje mapy" (toggleMapControls) funguje dál. -->
     <div id="map-controls">
+        <!-- NAVRAT NA MOU POLOHU. Objevi se, teprve kdyz uzivatel mapou posune —
+             dokud mapa polohu sleduje, je schovane. Drive se mapa vracela sama
+             po 5 s, coz clovek prohlizejici vzdalenejsi cast zakazky nestihl. -->
+        <button type="button" class="glass-panel" id="map-recenter" onclick="recenterOnUser()" aria-label="Zpět na mou polohu">
+            <svg class="icon"><use href="#i-crosshair"/></svg><span>Na mě</span>
+        </button>
         <button type="button" class="glass-panel" id="map-ctrl-toggle" onclick="toggleMapControls()" aria-label="Mapa a vrstvy">
             <svg class="icon"><use href="#i-layers"/></svg><span>Vrstvy</span><span id="map-ctrl-badge" hidden></span>
         </button>
@@ -812,6 +824,8 @@
     <script defer src="js/err-log.js"></script>
     <!-- MŮSTEK DIALOGŮ — agInfo()/agAsk() = jednotné in-app dialogy místo nativních alert()/confirm() -->
     <script defer src="js/dialog-bridge.js"></script>
+    <!-- ČTENÍ ČÍSEL — agNum() snese desetinnou ČÁRKU (Safari/iOS jinak pole zahodí); musí být před logika.js -->
+    <script defer src="js/vstupy.js"></script>
     <script defer src="js/lib/leaflet-1.9.4.js"></script>
     <script defer src="js/lib/esri-leaflet-3.0.12.js"></script>
     <script defer src="js/power-save.js"></script>

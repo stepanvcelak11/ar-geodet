@@ -66,7 +66,7 @@
                 + 'font-family:var(--font-display,sans-serif); '
                 + 'box-shadow:0 8px 26px rgba(0,0,0,0.55); border:1px solid var(--glass-border,rgba(255,255,255,0.12));';
             const label = document.createElement('span'); label.id = 'undo-toast-label';
-            label.style.cssText = 'font-size:14px; line-height:1.2; white-space:nowrap;';
+            label.style.cssText = 'font-size:14px; line-height:1.25;';   // driv nowrap — hlasky hromadnych operaci se nevesly
             const btn = document.createElement('button'); btn.id = 'undo-toast-btn';
             btn.textContent = 'Vrátit zpět';
             btn.style.cssText = 'flex:none; padding:8px 16px; border:none; border-radius:9px; cursor:pointer; '
@@ -77,7 +77,10 @@
         const label = document.getElementById('undo-toast-label');
         const btn = document.getElementById('undo-toast-btn');
         label.textContent = msg;
-        btn.onclick = function () { hide(); applyRestore(snapshot); };
+        // snapshot muze byt bud snimek uloziste (mazani), nebo {_fn} — vlastni
+        // vraceci funkce. Tu pouzivaji hromadne operace nad body (js/grafika.js),
+        // ktere si stav vraci samy z before-zaznamu, ne pres snimek celeho uloziste.
+        btn.onclick = function () { hide(); if (snapshot && typeof snapshot._fn === 'function') snapshot._fn(); else applyRestore(snapshot); };
         toast.style.display = 'flex';
         if (hideTimer) clearTimeout(hideTimer);
         hideTimer = setTimeout(hide, 8000);
@@ -98,4 +101,16 @@
 
     wrap('deleteProject', 'Zakázka smazána');
     wrap('deleteCustomPoint', 'Bod smazán');
+
+    // Verejne API: stejny toast "Vrátit zpět" pro akce, ktere si vraceni resi samy.
+    // Pouziva ho js/grafika.js u hromadnych operaci (posun, precislovani, kod, Helmert),
+    // ktere driv nesly vratit vubec — zurnal si sice pamatoval before/after, ale
+    // nikdo z nej neumel nic obnovit.
+    window.AGUndo = {
+        toast: function (msg, onUndo) {
+            if (typeof onUndo !== 'function') return;
+            showUndo(msg, { _fn: onUndo });
+        },
+        hide: hide
+    };
 })();

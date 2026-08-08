@@ -218,13 +218,13 @@
                   + '<select id="ag-pdr-pt" class="bgps-name" style="width:100%; margin:4px 0 10px;">' + opts + '</select>'
                 : '<p style="font-size:13px; color:var(--warning,#fbbf24);">V zakázce nejsou body — nejdřív změř/naimportuj bod A.</p>')
             + '<label style="font-size:12px; opacity:.8;">Délka kroku (m)</label>'
-            + '<input id="ag-pdr-len" class="bgps-name" type="number" step="0.01" min="0.4" max="1.2" value="' + stepLen().toFixed(2) + '" style="width:100%; margin:4px 0 10px;">'
+            + '<input id="ag-pdr-len" class="bgps-name" type="text" inputmode="decimal" autocomplete="off" value="' + stepLen().toFixed(2) + '" style="width:100%; margin:4px 0 10px;">'
             + (pts.length ? '<button class="btn" id="ag-pdr-go">▶ Start chůze od bodu A</button>' : '')
             + '<button class="btn btn-secondary" id="ag-pdr-cal" style="margin-top:8px;">📏 Kalibrace kroku (GPS úsek ≥ ' + CAL_MIN_DIST + ' m)</button>'
             + '<p style="font-size:11px; opacity:.55; margin:10px 0 0;">Drž telefon volně před sebou displejem nahoru a choď normálně. U budov kompas ruší kov — výsledek ber jako ±' + Math.round(Math.sin(HEAD_ERR_RAD) * 100 * 1.3) + ' cm na každých 10 m.</p>';
         var go = document.getElementById('ag-pdr-go');
         if (go) go.addEventListener('click', function () {
-            var v = parseFloat(document.getElementById('ag-pdr-len').value);
+            var v = (typeof window.agNum === 'function') ? window.agNum('ag-pdr-len') : parseFloat(String((document.getElementById('ag-pdr-len') || {}).value).replace(',', '.'));
             if (isFinite(v) && v >= 0.4 && v <= 1.2) setStepLen(v);
             var id = document.getElementById('ag-pdr-pt').value, pt = null, i;
             var ps = points();
@@ -234,7 +234,7 @@
             startWalk(false);
         });
         document.getElementById('ag-pdr-cal').addEventListener('click', function () {
-            var v = parseFloat(document.getElementById('ag-pdr-len').value);
+            var v = (typeof window.agNum === 'function') ? window.agNum('ag-pdr-len') : parseFloat(String((document.getElementById('ag-pdr-len') || {}).value).replace(',', '.'));
             if (isFinite(v) && v >= 0.4 && v <= 1.2) setStepLen(v);
             startWalk(true);
         });

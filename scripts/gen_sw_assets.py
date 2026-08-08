@@ -47,7 +47,18 @@ EXTRA_ASSETS = [
     './data/predpisy.json',        # cte js/predpisy.js pres fetch
     './js/lib/qrcode.min.js',      # line (lazy) nacitani QR generatoru
     './js/lib/jsqr.min.js',        # line (lazy) nacitani QR ctecky
-    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',  # CDN (v index.html, ale externi)
+    # PISMA + OBRAZKY LEAFLETU: v index.html nejsou, odkazuji na ne az CSS soubory
+    # (css/fonts.css, js/lib/leaflet-1.9.4.css). Bez nich by appka offline nabehla
+    # v systemovem pisme. Driv se oboje tahalo z CDN a v predcache to vubec nebylo.
+    './fonts/inter-var-latin.woff2',
+    './fonts/inter-var-latin-ext.woff2',
+    './fonts/jetbrains-mono-var-latin.woff2',
+    './fonts/jetbrains-mono-var-latin-ext.woff2',
+    './fonts/sora-var-latin.woff2',
+    './fonts/sora-var-latin-ext.woff2',
+    './js/lib/images/layers.png',
+    './js/lib/images/layers-2x.png',
+    './js/lib/images/marker-icon.png',
     # NASTROJE S DELENYM NACITANIM (js/lazy-tools.js) — uz nejsou v index.html,
     # ale MUSI zustat v predcache, jinak je v terenu bez signalu nejde otevrit.
     './js/pocasi.js',

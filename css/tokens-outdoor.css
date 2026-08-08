@@ -103,3 +103,13 @@ body.ag-glove .tab-btn { min-height: 46px; }
 body.ag-glove.outdoor-mode #info,
 body.ag-glove.outdoor-mode #gps-avg,
 body.ag-glove.outdoor-mode #compass-debug { font-size: 15px; }
+
+/* ---- 3b) VYBLEDLY HUD NA SLUNCI ------------------------------------------
+   Vychozi vyblednuti po necinnosti je opacity 0.3. Na primem slunci uz to
+   neni "decentni", ale nevidite — a jde o azimut a presnost GPS, tedy o to,
+   podle ceho se v terenu chodi. Ve venkovnim rezimu proto blednem jen jemne.
+   (Kdy se vubec bledne, resi hudMustStayVisible() v js/grafika.js.) */
+body.outdoor-mode .ui-faded { opacity: 0.75 !important; }
+body.outdoor-mode #gps-avg.ui-faded { opacity: 0.75 !important; }
+body.outdoor-mode #ag-cstab.ui-faded { opacity: 0.75; }
+body.outdoor-mode #map-ctrl-toggle.ui-faded { opacity: 0.8; }

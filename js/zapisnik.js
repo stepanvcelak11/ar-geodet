@@ -209,11 +209,13 @@
         });
         b.querySelectorAll('.ag-zb-del').forEach(function (el) {
             el.addEventListener('click', function () {
-                if (!confirm('Smazat tento zápisník včetně všech zápisů?')) return;
-                var p = el.getAttribute('data-del').split(':');
-                var dd = loadAll();
-                dd[p[0]] = dd[p[0]].filter(function (n) { return n.id !== p[1]; });
-                saveAll(dd); renderHome();
+                agAsk('Smazat tento zápisník včetně všech zápisů?', { title: 'Smazat zápisník', okText: 'Smazat', danger: true }).then(function (ok) {
+                    if (!ok) return;
+                    var p = el.getAttribute('data-del').split(':');
+                    var dd = loadAll();
+                    dd[p[0]] = dd[p[0]].filter(function (n) { return n.id !== p[1]; });
+                    saveAll(dd); renderHome();
+                });
             });
         });
     }
@@ -501,8 +503,10 @@
         var delG = b.querySelector('#ag-zb-delg');
         if (delG) delG.addEventListener('click', function () {
             var gg = getNb('sm', id); if (!gg || gg.nb.groups.length <= 1) return;
-            if (!confirm('Odebrat poslední skupinu včetně čtení?')) return;
-            gg.nb.groups.pop(); saveAll(gg.d); renderSm(id);
+            agAsk('Odebrat poslední skupinu včetně čtení?', { title: 'Odebrat skupinu', okText: 'Odebrat', danger: true }).then(function (ok) {
+                if (!ok) return;
+                gg.nb.groups.pop(); saveAll(gg.d); renderSm(id);
+            });
         });
         smRefresh(id);
     }

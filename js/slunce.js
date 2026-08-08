@@ -245,12 +245,12 @@
             '<div class="ag-su-cell"><small>Výška</small><b>' + s.el.toFixed(0) + '°</b></div>' +
             '<div class="ag-su-cell"><small>Stín ' + h.toFixed(1) + ' m</small><b>' + (shadow != null ? (shadow < 100 ? shadow.toFixed(1) : Math.round(shadow)) + ' m' : '–') + '</b></div>' +
             '</div>' +
-            '<div class="ag-su-in"><label>Výška svislice <input type="number" step="0.1" min="0.1" id="ag-su-pole" value="' + h.toFixed(1) + '"> m</label>' +
+            '<div class="ag-su-in"><label>Výška svislice <input type="text" inputmode="decimal" autocomplete="off" id="ag-su-pole" value="' + h.toFixed(1) + '"> m</label>' +
             '<span style="color:var(--text-muted,#9aa1ac);font-size:.85em;">stín míří k azimutu ' + (((s.az + 180) % 360)).toFixed(0) + '°</span></div>';
 
         // protisvětlo na záměře
         html += '<h4>Protisvětlo na záměře</h4>' +
-            '<div class="ag-su-in"><label>Azimut záměry <input type="number" step="1" min="0" max="359" id="ag-su-az" value="' + (az != null ? az.toFixed(0) : '') + '">°</label>' +
+            '<div class="ag-su-in"><label>Azimut záměry <input type="number" inputmode="numeric" step="1" min="0" max="359" id="ag-su-az" value="' + (az != null ? az.toFixed(0) : '') + '">°</label>' +
             '<button type="button" class="btn btn-secondary" id="ag-su-fromcomp" style="padding:5px 10px;font-size:.85em;">Vzít z kompasu</button></div>';
         if (az != null) {
             var bad = [], i;
@@ -299,7 +299,8 @@
         // vstupy
         var pl = body.querySelector('#ag-su-pole');
         if (pl) pl.addEventListener('change', function () {
-            var v = parseFloat(this.value);
+            // pole je type="text" inputmode="decimal" (Safari zahodi carku v type=number)
+            var v = (typeof window.agNum === 'function') ? window.agNum(this) : parseFloat(String(this.value).replace(',', '.'));
             if (isFinite(v) && v > 0) { try { localStorage.setItem(LS_POLE, String(v)); } catch (e) {} render(); }
         });
         var azi = body.querySelector('#ag-su-az');

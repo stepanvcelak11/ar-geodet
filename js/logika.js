@@ -40,6 +40,16 @@ if ('serviceWorker' in navigator) {
                 }).catch(() => {});
             });
         }
+        // ČÍSLA Z FORMULÁŘŮ: jedno místo pro celou appku. js/vstupy.js je odpojitelná
+        // vrstva, takže když chybí, spadne se na parseFloat s ručním převodem čárky.
+        function agNumIn(idOrEl) {
+            if (typeof window.agNum === 'function') return window.agNum(idOrEl);
+            const el = (typeof idOrEl === 'string') ? document.getElementById(idOrEl) : idOrEl;
+            const raw = el && 'value' in el ? el.value : idOrEl;
+            const v = parseFloat(String(raw == null ? '' : raw).replace(/\s/g, '').replace(',', '.'));
+            return isFinite(v) ? v : NaN;
+        }
+        window.agNumIn = agNumIn;
         proj4.defs("EPSG:5514","+proj=krovak +lat_0=49.5 +lon_0=24.83333333333333 +alpha=30.28813972222222 +k=0.9999 +x_0=0 +y_0=0 +ellps=bessel +towgs84=570.8,85.7,462.8,4.998,1.587,5.261,3.56 +units=m +no_defs");
         const map = L.map('map', { maxZoom: 22, minZoom: 10, zoomSnap: 0, zoomDelta: 1, zoomControl: false, dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false });
         const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 18, zIndex: 1 });
@@ -618,7 +628,18 @@ if ('serviceWorker' in navigator) {
         // snapshotem před/po a async dialog by mu rozbil detekci změny (žádný toast Vrátit zpět).
         // skipConfirm: hromadne mazani z panelu Body uz ma JEDNO spolecne potvrzeni — bez nej
         // by 30 vybranych bodu znamenalo 30 confirm dialogu. Kos/undo obaluji tuto funkci dal.
-        function deleteCustomPoint(id, skipConfirm) { const _pt = persistentCustomPoints.find(p => p.id === id); if(!skipConfirm && !confirm('Smazat bod „' + ((_pt && _pt.name) || 'bez názvu') + '"?')) return; persistentCustomPoints = persistentCustomPoints.filter(p => p.id !== id); setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); pointLines = pointLines.filter(l => l.aId !== id && l.bId !== id); saveLines(); renderManageList(); drawAllMarkersOnMap(); const idx = arPoints.findIndex(p => p.id === id); if(idx !== -1) { if(arPoints[idx].element) arPoints[idx].element.remove(); arPoints.splice(idx, 1); } updateInfoPanel(); }
+        function deleteCustomPoint(id, skipConfirm) {
+            const _pt = persistentCustomPoints.find(p => p.id === id);
+            // POTVRZENÍ: in-app dialog místo nativního confirm() (ten na iOS mrazí kamerový
+            // stream v AR). Dialog je ASYNCHRONNÍ, takže po potvrzení voláme funkci ZNOVU
+            // přes window.deleteCustomPoint — a ne přímo. Je totiž obalená v js/undo.js,
+            // které kolem volání dělá snapshot úložiště kvůli „Vrátit zpět". Přímé volání
+            // by mazalo mimo ten snapshot a undo toast by se nikdy neukázal.
+            if (!skipConfirm) {
+                agAsk('Smazat bod „' + ((_pt && _pt.name) || 'bez názvu') + '"?', { title: 'Smazat bod', okText: 'Smazat', danger: true })
+                    .then(ok => { if (ok) window.deleteCustomPoint(id, true); });
+                return;
+            } persistentCustomPoints = persistentCustomPoints.filter(p => p.id !== id); setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); pointLines = pointLines.filter(l => l.aId !== id && l.bId !== id); saveLines(); renderManageList(); drawAllMarkersOnMap(); const idx = arPoints.findIndex(p => p.id === id); if(idx !== -1) { if(arPoints[idx].element) arPoints[idx].element.remove(); arPoints.splice(idx, 1); } updateInfoPanel(); }
         // Vyplnit Y/X z PRUMEROVANE GPS polohy (presnejsi nez jeden odecet) + ulozit dosazenou presnost
         function fillAveragedGPS() {
             // BRANA CERSTVOSTI: kdyz GPS prestala dodavat fixy (tunel, suspend), prumer je
@@ -679,7 +700,18 @@ if ('serviceWorker' in navigator) {
             let name = String(document.getElementById('custom-name').value || '').trim();
             if (!name) name = agNextSerieName() || "Bod";   // prazdne pole: dalsi cislo serie misto kolidujiciho "Bod"
             const kod = String((document.getElementById('custom-kod') || { value: '' }).value || '').trim();
-            let inputY = parseFloat(document.getElementById('custom-y').value); let inputX = parseFloat(document.getElementById('custom-x').value); if (isNaN(inputY) || isNaN(inputX)) return agInfo("Vyplňte souřadnice!"); let krovakY = inputY > 0 ? -inputY : inputY; let krovakX = inputX > 0 ? -inputX : inputX; let wgs84 = proj4("EPSG:5514", "EPSG:4326", [krovakY, krovakX]); let lng = wgs84[0]; let lat = wgs84[1]; var _zin = parseFloat((document.getElementById('custom-z') || {}).value); var vyska = isFinite(_zin) ? Math.round(_zin * 100) / 100 : null;
+            // ČÍSLA Z FORMULÁŘE: přes agNum() (js/vstupy.js) — česká klávesnice píše
+            // desetinnou ČÁRKU a Safari/iOS takové <input type="number"> vrátí jako
+            // prázdné. Pole jsou proto type="text" inputmode="decimal" a parsuje se tady.
+            let inputY = agNumIn('custom-y'); let inputX = agNumIn('custom-x');
+            if (isNaN(inputY) || isNaN(inputX)) {
+                // říct KTERÉ pole je špatně — „Vyplňte souřadnice!" u viditelně
+                // vyplněného pole byla nejčastější záhada v terénu
+                const _bad = [isNaN(inputY) ? 'Y' : null, isNaN(inputX) ? 'X' : null].filter(Boolean).join(' a ');
+                const _prazdne = !String((document.getElementById('custom-y') || {}).value || '').trim() && !String((document.getElementById('custom-x') || {}).value || '').trim();
+                return agInfo(_prazdne ? 'Vyplňte souřadnice Y a X.' : ('Souřadnici ' + _bad + ' se nepodařilo přečíst — zkontroluj, jestli tam není písmeno navíc. Čárka i tečka jsou v pořádku.'));
+            }
+            let krovakY = inputY > 0 ? -inputY : inputY; let krovakX = inputX > 0 ? -inputX : inputX; let wgs84 = proj4("EPSG:5514", "EPSG:4326", [krovakY, krovakX]); let lng = wgs84[0]; let lat = wgs84[1]; var _zin = agNumIn('custom-z'); var vyska = isFinite(_zin) ? Math.round(_zin * 100) / 100 : null;
             // #2/#3: nový bod z GPS průměru srovnej Helmertovou lokalizací staveniště (když je aktivní).
             // Jen pro nově měřený GPS bod — ne při editaci ani u ručně zadaných S-JTSK.
             try {
@@ -1100,8 +1132,16 @@ if ('serviceWorker' in navigator) {
 
         // Stav pro preskok prepoctu vzdalenosti/azimutu, kdyz uzivatel stoji (setri CPU pri stovkach bodu).
         let _lastCalcLat = null, _lastCalcLng = null, _lastCalcCount = 0;
-        if ("geolocation" in navigator) {
-            navigator.geolocation.watchPosition(
+        // SLEDOVANI POLOHY: driv se watchPosition registroval JEDNOU pri startu. Kdyz
+        // uzivatel omylem ukl "Nepovolit" (nebo byl v tunelu pri startu), nesla poloha
+        // uz nijak nahodit — museloval zabit appku a spustit ji znovu. Ted je to funkce,
+        // kterou umi znovu zavolat tlacitko "Zkusit znovu" v chybove hlasce.
+        let _gpsWatchId = null;
+        function agStartGpsWatch() {
+            if (!("geolocation" in navigator)) return false;
+            // stary watch zrusit, jinak by po opakovanem spusteni bezely dva naráz (a zral baterii)
+            if (_gpsWatchId != null) { try { navigator.geolocation.clearWatch(_gpsWatchId); } catch (e) {} _gpsWatchId = null; }
+            _gpsWatchId = navigator.geolocation.watchPosition(
                 (position) => {
                     userLat = position.coords.latitude; userLng = position.coords.longitude; magneticDeclination = getDeclination(userLat, userLng);
                     try { if (window.AGPose) window.AGPose.checkDrift(userLat, userLng); } catch (e) {}   // #1: kotvení se zneplatní, když reálně odejdu ze stanoviska
@@ -1154,15 +1194,32 @@ if ('serviceWorker' in navigator) {
                 },
                 (error) => {
                     // cesky a s akci (drive syrova anglicka hlaska prohlizece), + zaznam pro gps-trust
-                    window.AGFix = Object.assign(window.AGFix || {}, { err: (error && error.code) || 0, errTs: Date.now() });
+                    const code = (error && error.code) || 0;
+                    window.AGFix = Object.assign(window.AGFix || {}, { err: code, errTs: Date.now() });
                     if (appStarted) {
                         const czech = { 1: 'přístup k poloze je zakázán — povolte ho telefonu v nastavení', 2: 'poloha není dostupná (žádný signál GNSS)', 3: 'čekání na polohu vypršelo (slabý signál)' };
-                        document.getElementById('info').innerHTML = 'Chyba GPS: ' + (czech[error && error.code] || error.message);
+                        // U ZAMITNUTE POLOHY (kód 1) je samotna hlaska slepa ulicka: povolit
+                        // se to da jen v nastaveni telefonu a appka pak potrebuje NOVY watch.
+                        // Proto tlacitko primo v hlasce misto restartu cele appky.
+                        const rada = (code === 1)
+                            ? ' Povol polohu v nastavení telefonu a pak klepni na Zkusit znovu.'
+                            : ' Vyjdi pod otevřené nebe a klepni na Zkusit znovu.';
+                        document.getElementById('info').innerHTML =
+                            'Chyba GPS: ' + (czech[code] || (error && error.message) || 'neznámá chyba') + rada
+                            + ' <button type="button" class="info-retry" onclick="agRetryGps()">Zkusit znovu</button>';
                     }
                 },
                 { enableHighAccuracy: true, maximumAge: 0, timeout: 27000 }
             );
+            return true;
         }
+        // Nove zaregistrovani sledovani polohy z chybove hlasky (tlacitko "Zkusit znovu").
+        window.agRetryGps = function () {
+            const el = document.getElementById('info');
+            if (el) el.innerHTML = 'Zkouším znovu najít polohu…';
+            if (!agStartGpsWatch() && el) el.innerHTML = 'Tento prohlížeč neumí určovat polohu.';
+        };
+        agStartGpsWatch();
 
         // ===== SPOJNICE BODU (datova cast) =====
         // Ulozene cary mezi body: {id, aId, bId, aLat, aLng, bLat, bLng}. Per zakazka (klic arLines12).

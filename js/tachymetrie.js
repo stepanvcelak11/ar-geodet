@@ -249,7 +249,12 @@
         else if (last === 'pt') { const ri = sketch.pts.length - 1; sketch.pts.pop(); sketch.lines = sketch.lines.filter(l => l[0] !== ri && l[1] !== ri); }
         save(); redraw();
     };
-    window.tachyClear = function () { if ((!sketch.pts.length && !sketch.labels.length && !sketch.strokes.length) || confirm('Vymazat celý náčrt?')) { sketch = { pts: [], lines: [], labels: [], strokes: [], log: [] }; selIdx = -1; save(); redraw(); } };
+    window.tachyClear = function () {
+        const doIt = function () { sketch = { pts: [], lines: [], labels: [], strokes: [], log: [] }; selIdx = -1; save(); redraw(); };
+        // prazdny nacrt smaz bez ptani; jinak in-app dialog (nativni confirm() mrazi na iOS kameru)
+        if (!sketch.pts.length && !sketch.labels.length && !sketch.strokes.length) return doIt();
+        agAsk('Vymazat celý náčrt?', { title: 'Vymazat náčrt', okText: 'Vymazat', danger: true }).then(function (ok) { if (ok) doIt(); });
+    };
 
     // ---------- Interakce (přes klik do mapy) ----------
     function onMapClick(e) {

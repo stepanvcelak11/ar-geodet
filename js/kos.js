@@ -188,8 +188,10 @@
                 if (rec.type === 'project') restoreProject(rec, fin); else restorePoint(rec, fin);
             });
             row.querySelector('.cp-btn-delete').addEventListener('click', function () {
-                if (!confirm('Smazat trvale? Tohle už vrátit nepůjde.')) return;
-                removeRec(rec); render();
+                agAsk('Smazat trvale? Tohle už vrátit nepůjde.', { title: 'Smazat z koše', okText: 'Smazat trvale', danger: true }).then(function (ok) {
+                    if (!ok) return;
+                    removeRec(rec); render();
+                });
             });
             box.appendChild(row);
         });

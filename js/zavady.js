@@ -516,11 +516,13 @@
             });
             m.querySelector('#ag-zv-det-del').addEventListener('click', function () {
                 var z = byId(_editId); if (!z) return;
-                if (!confirm('Smazat závadu „' + catLabel(z.cat) + '"? Tohle nejde vrátit.')) return;
+                agAsk('Smazat závadu „' + catLabel(z.cat) + '"? Tohle nejde vrátit.', { title: 'Smazat závadu', okText: 'Smazat', danger: true }).then(function (ok) {
+                if (!ok) return;
                 photoDel(photoKey(z));
                 _list = _list.filter(function (x) { return x.id !== z.id; });
                 persist(); drawMap(); closeOv('ag-zv-det-ov'); renderList();
                 toast('Závada smazána.');
+                });
             });
         }
         return m;

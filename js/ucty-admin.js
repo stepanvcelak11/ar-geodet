@@ -1514,7 +1514,8 @@
                 if (!btn) return;
                 var p = rowRef[parseInt(btn.getAttribute('data-fix'), 10)];
                 if (!p || !u.usageLogRaw) return;
-                var v = prompt('Čas odchodu pro ' + p.name + ' (' + p.day + '), příchod byl ' + new Date(p.inTs).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) + '.\nZadej HH:MM:', '17:00');
+                // in-app dialog misto nativniho prompt() (na iOS mrazi kameru a vypada cize)
+                agGet('Čas odchodu pro ' + p.name + ' (' + p.day + '), příchod byl ' + new Date(p.inTs).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) + '.\nZadej HH:MM:', { title: 'Doplnit odchod', value: '17:00', placeholder: '17:00', okText: 'Zapsat' }).then(function (v) {
                 if (!v) return;
                 var m = /^(\d{1,2})[:.](\d{2})$/.exec(v.trim());
                 if (!m) { agAlert('Neplatný čas', 'Zadej např. 16:30.'); return; }
@@ -1524,6 +1525,7 @@
                 u.usageLogRaw({ ts: out.getTime(), t: 'shift', k: 'out', uid: p.uid, u: p.name, proj: p.proj, dev: 'admin-fix' });
                 if (f.cloud) setTimeout(function () { u.syncUsage().then(function () { renderDochazka(body); }); }, 700);
                 else setTimeout(function () { renderDochazka(body); }, 400);
+                });
             };
 
             // exporty výkazu (CSV do mezd; Tisk/PDF přes systémový tisk)
@@ -1735,7 +1737,7 @@
         body.innerHTML =
             '<label class="agfa-lb">Název firmy</label><input type="text" id="agfa-f-name" maxlength="60" value="' + esc(f.firmName || '') + '">' +
             '<label class="agfa-lb">Auto-zámek po nečinnosti (minuty; 0 = vypnuto)</label>' +
-            '<input type="number" id="agfa-f-lock" min="0" max="480" step="1" value="' + (parseInt(f.autoLockMin, 10) || 0) + '">' +
+            '<input type="number" inputmode="numeric" id="agfa-f-lock" min="0" max="480" step="1" value="' + (parseInt(f.autoLockMin, 10) || 0) + '">' +
             lockStartHtml(u) +
             '<div class="agfa-pg">Přenos na další zařízení</div>' +
             '<div class="agfa-note">Export uloží účty (s PINy v podobě otisků, ne v čitelné podobě) a matici oprávnění do souboru ' +
@@ -1804,7 +1806,7 @@
             '<div class="agfa-note">Zaměstnanec na svém mobilu otevře Nástroje → <b>Firma a účty</b> → „Připojit toto zařízení k firmě" a zadá kód + jméno + heslo (účet mu založ v sekci Uživatelé).</div>' +
             '<label class="agfa-lb">Název firmy</label><input type="text" id="agfa-f-name" maxlength="60" value="' + esc(f.firmName || '') + '">' +
             '<label class="agfa-lb">Auto-zámek po nečinnosti (minuty; 0 = vypnuto) — platí pro všechna zařízení</label>' +
-            '<input type="number" id="agfa-f-lock" min="0" max="480" step="1" value="' + (parseInt(f.autoLockMin, 10) || 0) + '">' +
+            '<input type="number" inputmode="numeric" id="agfa-f-lock" min="0" max="480" step="1" value="' + (parseInt(f.autoLockMin, 10) || 0) + '">' +
             lockStartHtml(u) +
             '<div class="agfa-pg">Vytížení serveru</div>' +
             '<div id="agfa-stats" class="agfa-note">Načítám vytížení…</div>' +

@@ -35,7 +35,8 @@
         try { var r = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { Y: Math.abs(r[0]), X: Math.abs(r[1]) }; }
         catch (e) { return null; }
     }
-    function num(v) { var n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; }
+    // cteni cisel pres sdilene agNum() (js/vstupy.js) — desetinna carka, mezery v tisicich
+    function num(v) { var n = (typeof window.agNum === 'function') ? window.agNum(v) : parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; }
 
     // Pokus vytáhnout výšku z bodu (vlastního i úředního).
     function pointHeight(p) {
@@ -427,8 +428,8 @@
             '  <div class="dmt-toolbar">' +
             '    <button class="dmt-btn" id="dmt-load">Načíst body ze zakázky</button>' +
             '    <button class="dmt-btn" id="dmt-paste">Vložit Y X Z…</button>' +
-            '    <label class="dmt-fld">Ref. H₀ <input type="number" step="0.1" id="dmt-ref" placeholder="min"></label>' +
-            '    <label class="dmt-fld">Interval <input type="number" step="0.1" min="0.01" id="dmt-step"> m</label>' +
+            '    <label class="dmt-fld">Ref. H₀ <input type="text" inputmode="decimal" autocomplete="off" id="dmt-ref" placeholder="min"></label>' +
+            '    <label class="dmt-fld">Interval <input type="text" inputmode="decimal" autocomplete="off" id="dmt-step"> m</label>' +
             '    <button class="dmt-btn dmt-btn-acc" id="dmt-recalc">Přepočítat</button>' +
             '    <button class="dmt-btn" id="dmt-fit">Vystředit</button>' +
             '  </div>' +
@@ -495,8 +496,10 @@
         overlay.querySelector('#dmt-fit').addEventListener('click', fitView);
         overlay.querySelector('#dmt-png').addEventListener('click', exportPNG);
         overlay.querySelector('#dmt-clear').addEventListener('click', function () {
-            if (!confirm('Vymazat všechny body z DMT?')) return;
-            pts = []; tris = []; result = null; save(); renderResults(); draw();
+            agAsk('Vymazat všechny body z DMT?', { title: 'Vymazat body', okText: 'Vymazat', danger: true }).then(function (ok) {
+                if (!ok) return;
+                pts = []; tris = []; result = null; save(); renderResults(); draw();
+            });
         });
 
         // pan & zoom
