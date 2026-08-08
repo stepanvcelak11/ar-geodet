@@ -55,6 +55,16 @@
         return null;
     }
     function fovH() { try { return +visSettings.fovH || 90; } catch (e) { return 90; } }
+    // Zorny uhel plati vzdy pro KONKRETNI rezim kamery. Kdyz telefon spusti jiny rezim
+    // (jine rozliseni = jiny vyrez), kalibrace prestane sedet a nebylo jak to poznat.
+    function camInfo() {
+        try {
+            var s = window._agCamSettings;
+            if (!s || !s.width) return '';
+            return '<br><span style="opacity:.7; font-size:12px;">Kamera běží v ' + s.width + '\u00d7' + s.height
+                 + (s.frameRate ? ' · ' + Math.round(s.frameRate) + ' fps' : '') + '</span>';
+        } catch (e) { return ''; }
+    }
     function fovV() { try { return +visSettings.fovV || 75; } catch (e) { return 75; } }
     function median(a) {
         var s = a.slice().sort(function (x, y) { return x - y; });
@@ -235,7 +245,7 @@
             '<p style="font-size:12.5px;opacity:.8;margin:0 0 10px;">AR umisťuje značky na obrazovku podle zorného úhlu kamery. '
             + 'Když nesedí, body ve <b>středu</b> obrazu sedí, ale ke <b>krajům</b> se rozjíždějí. Průvodce ho změří pomocí azimutu — '
             + 'stačí ti jeden vzdálený orientační bod.</p>'
-            + '<div class="agfov-now">Teď je nastaveno: <b>' + fmt(fovH()) + '°</b> šířka · <b>' + fmt(fovV()) + '°</b> výška</div>'
+            + '<div class="agfov-now">Teď je nastaveno: <b>' + fmt(fovH()) + '°</b> šířka · <b>' + fmt(fovV()) + '°</b> výška' + camInfo() + '</div>'
             + '<div class="agfov-tip"><b>Než začneš:</b> běž ven, zkalibruj kompas (osmička telefonem) a vyber si '
             + '<b>vzdálený</b> osamocený objekt — stožár, komín, roh domu. Musí být dál než ~50 m, jinak se do měření promítne '
             + 'i to, jak se přitom pohneš. Telefon drž na místě a jen jím otáčej.</div>';

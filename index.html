@@ -75,7 +75,10 @@
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Sora:wght@600;700;800&display=swap">
+    <!-- PÍSMA: dřív render-blokující <link> na fonts.googleapis.com — na slabém signálu
+         v terénu držel při prvním startu bílou obrazovku a offline se nenačetl vůbec.
+         Teď jsou písma součástí appky (css/fonts/, jen latin + latin-ext). -->
+    <link rel="stylesheet" href="css/fonts.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script defer src="js/lib/proj4-2.9.0.min.js"></script>
     <script defer src="js/geo-core.js"></script>
@@ -83,8 +86,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=212">
-    <link rel="stylesheet" href="css/style.css?v=212">
+    <link rel="stylesheet" href="css/tokens.css?v=213">
+    <link rel="stylesheet" href="css/style.css?v=213">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -101,7 +104,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=212">
+    <link rel="stylesheet" href="css/vylepseni.css?v=213">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->

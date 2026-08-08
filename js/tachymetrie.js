@@ -122,12 +122,12 @@
                 <button class="tb-btn prim" onclick="tachyAddCurrent()"><svg class="icon"><use href="#i-plus"/></svg> Bod (GPS)</button>
                 <button class="tb-btn" onclick="tachyAddFromPoints()"><svg class="icon"><use href="#i-map-pin"/></svg> Z bodů</button>
                 <span class="tb-sep"></span>
-                <button class="tb-btn tb-icon" onclick="tachyUndo()" title="Zpět"><svg class="icon"><use href="#i-rotate-ccw"/></svg></button>
+                <button class="tb-btn tb-icon" onclick="tachyUndo()" title="Zpět" aria-label="Zpět"><svg class="icon"><use href="#i-rotate-ccw"/></svg></button>
                 <select id="tachy-bg" class="tb-sel" title="Podklad" onchange="tachySetBg(this.value)">
                     <option value="osm">Mapa</option><option value="ortofoto">Ortofoto</option><option value="none">Bez podkladu</option>
                 </select>
-                <button class="tb-btn tb-icon" onclick="tachyExport()" title="Export do PNG"><svg class="icon"><use href="#i-download"/></svg></button>
-                <button class="tb-btn tb-icon warn" onclick="tachyClear()" title="Vymazat náčrt"><svg class="icon"><use href="#i-trash"/></svg></button>
+                <button class="tb-btn tb-icon" onclick="tachyExport()" title="Export do PNG" aria-label="Export náčrtu do PNG"><svg class="icon"><use href="#i-download"/></svg></button>
+                <button class="tb-btn tb-icon warn" onclick="tachyClear()" title="Vymazat náčrt" aria-label="Vymazat celý náčrt"><svg class="icon"><use href="#i-trash"/></svg></button>
             </div>
             <div id="tachy-hint"></div>
             <div id="tachy-wrap">

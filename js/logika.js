@@ -113,6 +113,30 @@ if ('serviceWorker' in navigator) {
                 return null;
             });
         }
+        // Nacteni VSECH klicu s danym prefixem jednim pruchodem kurzorem.
+        // Seznam bodu drive pro kazdy radek pustil vlastni _idbGet('doc_<id>') —
+        // u 500 bodu to bylo 500 transakci pri kazdem prekresleni seznamu.
+        function idbGetByPrefix(prefix) {
+            return new Promise((resolve) => {
+                _openIdb().then((db) => {
+                    if (!db) return resolve({});
+                    try {
+                        const out = {};
+                        const tx = db.transaction('kv', 'readonly');
+                        const req = tx.objectStore('kv').openCursor();
+                        req.onsuccess = (e) => {
+                            const c = e.target.result; if (!c) return;
+                            if (typeof c.key === 'string' && c.key.indexOf(prefix) === 0) out[c.key.slice(prefix.length)] = c.value;
+                            c.continue();
+                        };
+                        tx.oncomplete = () => resolve(out);
+                        tx.onerror = () => resolve(out);
+                    } catch (e) { resolve({}); }
+                });
+            });
+        }
+        window.idbGetByPrefix = idbGetByPrefix;
+
         // Jednorazove varovani, kdyz zapis bodu do IndexedDB tise selze (kvota / iOS eviction / poskozena tx).
         // Bez tohohle vypadaly body ulozene (drzi je _idbMem cache), ale po reloadu byly PRYC.
         let _idbWriteWarned = false;
@@ -252,10 +276,17 @@ if ('serviceWorker' in navigator) {
         // agFold = male pismeno bez diakritiky. Vysledek se cachuje ve WeakMap, aby se
         // normalize() nevolal 60x za sekundu na kazdy bod v renderAR — a hlavne aby se
         // do bodu nezapisovaly pomocne vlastnosti (body se ukladaji pres JSON.stringify).
+        // Pojistka pro pripad, ze normalize('NFD') neni k dispozici (starsi WebView,
+        // engine bez ICU) — tam by se diakritika tise NEsundala a hledani by prestalo
+        // byt slepe k hackum, aniz by to cokoli ohlasilo. Tabulka je levna a jista.
+        var _AG_DIA = { '\u00e1': 'a', '\u010d': 'c', '\u010f': 'd', '\u00e9': 'e', '\u011b': 'e',
+                        '\u00ed': 'i', '\u0148': 'n', '\u00f3': 'o', '\u0159': 'r', '\u0161': 's',
+                        '\u0165': 't', '\u00fa': 'u', '\u016f': 'u', '\u00fd': 'y', '\u017e': 'z' };
         function agFold(s) {
             s = String(s == null ? '' : s).toLowerCase();
             try { s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (e) {}
-            return s;
+            return s.replace(/[\u00e1\u010d\u010f\u00e9\u011b\u00ed\u0148\u00f3\u0159\u0161\u0165\u00fa\u016f\u00fd\u017e]/g,
+                             function (c) { return _AG_DIA[c] || c; });
         }
         window.agFold = agFold;
         var _agFoldCache = (typeof WeakMap === 'function') ? new WeakMap() : null;

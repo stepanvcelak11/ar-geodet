@@ -135,7 +135,16 @@
                 }, 1200);
             }
         }
-        function startCameraAndCompass(forceRestart = false) { startCompass(); if (cameraStarted && !forceRestart) return; cameraStarted = true; if (currentVideoStream) { currentVideoStream.getTracks().forEach(track => track.stop()); } const camId = document.getElementById('s-camera-select') ? document.getElementById('s-camera-select').value : null; const videoConstraints = camId ? { deviceId: { exact: camId } } : { facingMode: "environment" }; navigator.mediaDevices.getUserMedia({ video: videoConstraints }).then(stream => { currentVideoStream = stream; const videoElement = document.getElementById('camera-feed'); videoElement.srcObject = stream; videoElement.style.display = "block"; }).catch(err => { handleCameraError(err); }); }
+        function startCameraAndCompass(forceRestart = false) { startCompass(); if (cameraStarted && !forceRestart) return; cameraStarted = true; if (currentVideoStream) { currentVideoStream.getTracks().forEach(track => track.stop()); } const camId = document.getElementById('s-camera-select') ? document.getElementById('s-camera-select').value : null; const videoConstraints = camId ? { deviceId: { exact: camId } } : { facingMode: "environment" }; // BATERIE: nahled kamery umi na dost telefonech bezet 60 fps, coz je pro podklad
+            // pod AR znackami zbytecne — znacky se prekresluji vlastnim rAF nezavisle na tom.
+            // Strop 30 fps (idealne 24) je v terenu znat na teple telefonu.
+            // ROZLISENI SE ZAMERNE NEOMEZUJE: zmena rozliseni muze na nekterych telefonech
+            // prehodit rezim snimace, jiny rezim = jiny VYREZ = jiny ZORNY UHEL, a tim by se
+            // tise rozesla kalibrace FOV (js/fov-kalibrace.js) a s ni i poloha znacek v AR.
+            videoConstraints.frameRate = { ideal: 24, max: 30 };
+            navigator.mediaDevices.getUserMedia({ video: videoConstraints }).then(stream => { currentVideoStream = stream; const videoElement = document.getElementById('camera-feed'); videoElement.srcObject = stream; videoElement.style.display = "block"; // s cim se kamera opravdu spustila — pro diagnostiku zorneho uhlu v kalibraci FOV
+            try { const tr = stream.getVideoTracks()[0]; window._agCamSettings = tr && tr.getSettings ? tr.getSettings() : null; } catch (e) { window._agCamSettings = null; }
+            }).catch(err => { handleCameraError(err); }); }
         // Kamera selhala (typicky omylem zamítnuté oprávnění): místo surového alertu s technickou
         // hláškou řekni co dělat a přepni do Mapy, ať se dá pracovat dál (AR bez kamery = černá obrazovka).
         function handleCameraError(err) {
@@ -210,19 +219,56 @@
 
         function getMapMarkerSVG(category, color) { if(category === 'TB') return `<svg viewBox="0 0 24 24"><polygon points="12,2 22,20 2,20" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'ZHB') return `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'PBPP') return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'NIVEL') return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="${color}" stroke-width="3"/><circle cx="12" cy="12" r="3" fill="${color}"/></svg>`; if(category === 'CUSTOM') return `<svg viewBox="0 0 24 24"><path d="M12,2 C7,2 3,6 3,11 C3,18 12,22 12,22 C12,22 21,18 21,11 C21,6 17,2 12,2 Z" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="${color}"/></svg>`; }
 
+        // VYKON: drive se pri KAZDEM prekresleni zahodily vsechny znacky (clearLayers)
+        // a postavily se znovu — vcetne parsovani HTML v L.divIcon — a to i pro body
+        // stovky metru mimo obrazovku. Ted se kresli jen to, co je ve vyrezu (s rezervou),
+        // a znacka, ktera se nezmenila, se recykluje. Vedlejsi zisk: prekresleni uz
+        // nezavira otevreny popup.
+        const _mapMarkers = new Map();     // id bodu -> { marker, key }
+        let _lastDrawBounds = null;
+        function _markerKey(pt, col, staked) {
+            return pt.lat + '|' + pt.lng + '|' + pt.name + '|' + pt.cat + '|' + col + '|' + (staked ? 1 : 0);
+        }
         function drawAllMarkersOnMap() {
             if (_mngSuspendRedraw) return;   // hromadna davka prekresli mapu az na konci
-            markersGroup.clearLayers();
+            // #map-wrapper je 150vmax, takze getBounds() uz je vic nez videt; pad navic
+            // drzi rezervu pro posun/otoceni, aby se pri chuzi nemuselo kreslit porad
+            let bounds = null;
+            try { bounds = map.getBounds().pad(0.5); } catch (e) { bounds = null; }
+            _lastDrawBounds = bounds;
+            const seen = new Set();
             arPoints.forEach(pt => {
                 if (pt.hidden) return; if (pt.cat === 'TB' && !filters.tb) return; if (pt.cat === 'ZHB' && !filters.zhb) return; if (pt.cat === 'PBPP' && !filters.pbpp) return; if (pt.cat === 'NIVEL' && !filters.nivel) return; if (pt.cat === 'CUSTOM' && !filters.custom) return; if (!agMatchQuery(pt, searchQuery)) return;
+                if (bounds && !bounds.contains([pt.lat, pt.lng])) return;
                 let col = visSettings.colTb; if(pt.cat === 'ZHB') col = visSettings.colZhb; if(pt.cat === 'PBPP') col = visSettings.colPbpp; if(pt.cat === 'NIVEL') col = visSettings.colNivel; if(pt.cat === 'CUSTOM') col = visSettings.colCustom;
-                const stakedBadge = (window.isStaked && isStaked(pt.id)) ? `<div style="position:absolute; top:-7px; right:-7px; width:13px; height:13px; border-radius:50%; background:#10b981; border:1.5px solid #fff; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>` : '';
+                const staked = !!(window.isStaked && isStaked(pt.id));
+                const key = _markerKey(pt, col, staked);
+                seen.add(pt.id);
+                const prev = _mapMarkers.get(pt.id);
+                if (prev && prev.key === key) { if (!markersGroup.hasLayer(prev.marker)) markersGroup.addLayer(prev.marker); return; }
+                const stakedBadge = staked ? `<div style="position:absolute; top:-7px; right:-7px; width:13px; height:13px; border-radius:50%; background:#10b981; border:1.5px solid #fff; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>` : '';
                 const svgIcon = getMapMarkerSVG(pt.cat, col); const htmlContent = `<div style="position: relative; width: 24px; height: 24px; pointer-events:none;${stakedBadge ? ' opacity:0.65;' : ''}">${svgIcon}${stakedBadge}<div class="map-label-text" style="transform: rotate(${mapRotation}deg);">${_escHtml(pt.name)}</div></div>`;
                 const icon = L.divIcon({ className: 'custom-map-marker', html: htmlContent, iconSize: [24, 24], iconAnchor: [12, 12] });
-                L.marker([pt.lat, pt.lng], { icon: icon }).addTo(markersGroup);
+                if (prev) { prev.marker.setLatLng([pt.lat, pt.lng]); prev.marker.setIcon(icon); prev.key = key; if (!markersGroup.hasLayer(prev.marker)) markersGroup.addLayer(prev.marker); return; }
+                const m = L.marker([pt.lat, pt.lng], { icon: icon }).addTo(markersGroup);
+                _mapMarkers.set(pt.id, { marker: m, key: key });
+            });
+            // co uz do vyrezu nepatri (nebo je odfiltrovane / smazane) — pryc z mapy
+            _mapMarkers.forEach((rec, id) => {
+                if (seen.has(id)) return;
+                markersGroup.removeLayer(rec.marker);
+                _mapMarkers.delete(id);
             });
             drawAllLinesOnMap();
         }
+        // Orez podle vyrezu znamena, ze pri posunu/zoomu musi prijit dokresleni. Kresli se
+        // jen kdyz se vyrez opravdu dostal ven z toho, co uz je nakreslene (drzime rezervu
+        // pad(0.5)) — pri chuzi tak vetsina posunu mapy zadnou praci nevyvola.
+        map.on('moveend zoomend', () => {
+            if (!appStarted) return;
+            try { if (_lastDrawBounds && _lastDrawBounds.contains(map.getBounds())) return; } catch (e) {}
+            drawAllMarkersOnMap();
+        });
 
         function getMapClickLatLng(e) {
             const oe = e.originalEvent || {};
@@ -368,7 +414,20 @@
         }
         // Kazde otevreni zacina s cistym stitem — jinak by po navratu do panelu tise
         // platilo stare hledani nebo zustal zapnuty rezim vyberu a chybely by body.
-        function openManageModal() { document.getElementById('settings-modal').style.display = 'none'; _mngQuery = ''; _mngSelMode = false; _mngSel.clear(); renderManageList(); document.getElementById('manage-modal').style.display = 'flex'; }
+        let _mngDocs = null;   // poznamky/fotky vsech bodu, nactene jednim pruchodem IndexedDB
+        function openManageModal() {
+            document.getElementById('settings-modal').style.display = 'none';
+            _mngQuery = ''; _mngSelMode = false; _mngSel.clear();
+            renderManageList();
+            document.getElementById('manage-modal').style.display = 'flex';
+            // dokumentace bodu dorazi za okamzik a seznam se dokresli s poznamkami/fotkami
+            if (typeof loadAllPointDocs === 'function') {
+                loadAllPointDocs().then(docs => {
+                    _mngDocs = docs || {};
+                    if (document.getElementById('manage-modal').style.display === 'flex') renderManageList();
+                }).catch(() => {});
+            }
+        }
         function closeManageModal() { document.getElementById('manage-modal').style.display = 'none'; fixAppLayout(); }
         // ===== SPRAVA BODU (panel Body): hledani, razeni a hromadne operace =====
         let _mngQuery = '', _mngSort = 'default', _mngSelMode = false; const _mngSel = new Set();
@@ -428,34 +487,103 @@
             const empty = document.createElement('p'); empty.id = 'mng-empty';
             empty.style.cssText = 'text-align:center; opacity:.7; display:none;'; empty.innerText = 'Hledání nic nenašlo.';
             listDiv.appendChild(empty);
-            pts.forEach(pt => {
-                let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); let dispY = Math.abs(sjtsk[0]).toFixed(2); let dispX = Math.abs(sjtsk[1]).toFixed(2);
-                const item = document.createElement('div'); item.className = 'cp-item';
-                // hledaci index radku; poznamka bodu se sem dopise az v decoratePointItem (lezi v IndexedDB)
-                item.dataset.mngText = agFold(String(pt.name) + ' ' + (pt.kod || ''));
-                const dRow = (userLat != null) ? ('<br>' + getDistance(userLat, userLng, pt.lat, pt.lng).toFixed(1) + ' m od tebe') : '';
-                item.innerHTML = ` <div class="cp-title">${_escHtml(pt.name)}${pt.kod ? ' <span class="cp-kod">' + _escHtml(pt.kod) + '</span>' : ''}</div> <div class="cp-coords">Y: ${dispY}<br>X: ${dispX}${pt.vyska != null ? '<br>Z: '+Number(pt.vyska).toFixed(2)+' m' : ''}${pt.acc != null ? '<br>⌀ ±'+_escHtml(pt.acc)+' m' : ''}${dRow}</div>`;
-                if (_mngSelMode) {
-                    item.classList.add('mng-selectable'); item.classList.toggle('mng-selected', _mngSel.has(pt.id));
-                    const chk = document.createElement('div'); chk.className = 'mng-check'; chk.textContent = _mngSel.has(pt.id) ? '✓' : ''; item.appendChild(chk);
-                    item.addEventListener('click', () => {
-                        if (_mngSel.has(pt.id)) _mngSel.delete(pt.id); else _mngSel.add(pt.id);
-                        item.classList.toggle('mng-selected', _mngSel.has(pt.id)); chk.textContent = _mngSel.has(pt.id) ? '✓' : '';
-                        const c = document.getElementById('mng-count'); if (c) c.innerText = _mngSel.size;
-                    });
-                } else {
-                    const act = document.createElement('div'); act.className = 'cp-actions';
-                    act.innerHTML = `<button class="cp-btn cp-btn-edit"><svg class="icon"><use href="#i-edit"/></svg></button> <button class="cp-btn cp-btn-delete"><svg class="icon"><use href="#i-trash"/></svg></button>`;
-                    item.appendChild(act);
-                    act.querySelector('.cp-btn-edit').addEventListener('click', () => editCustomPoint(pt.id));
-                    act.querySelector('.cp-btn-delete').addEventListener('click', () => deleteCustomPoint(pt.id));
-                    if (typeof decoratePointItem === 'function') { try { decoratePointItem(item, pt); } catch (e) {} }
-                }
-                listDiv.appendChild(item);
-            });
-            renderHiddenPointsRow(listDiv); renderLinesList(listDiv);
-            _mngApplyFilter();   // aktivni hledani plati i po prekresleni (mazani, razeni, vyber)
+            // patka (skryté body + spojnice) uz TED, aby zustala pod prubezne dosypavanymi radky
+            const tail = document.createElement('div'); listDiv.appendChild(tail);
+            renderHiddenPointsRow(tail); renderLinesList(tail);
+
+            // VYKON: u zakazky s vice sty body se driv cely seznam stavel v jedne smycce
+            // (proj4 prevod + getDistance na kazdy radek) a UI na tu dobu zamrzlo. Ted se
+            // sype po davkach mezi snimky — prvni obrazovka je videt hned.
+            const token = ++_mngRenderToken;
+            let i = 0;
+            const CHUNK = 40;
+            const step = () => {
+                if (token !== _mngRenderToken) return;   // mezitim prislo nove prekresleni
+                const frag = document.createDocumentFragment();
+                const end = Math.min(i + CHUNK, pts.length);
+                for (; i < end; i++) frag.appendChild(_mngBuildRow(pts[i]));
+                listDiv.insertBefore(frag, tail);
+                if (i < pts.length) requestAnimationFrame(step);
+                else _mngApplyFilter();   // aktivni hledani plati i po prekresleni
+            };
+            step();
         }
+        let _mngRenderToken = 0;
+        // Souradnice v S-JTSK pro seznam: proj4 prevod je nejdrazsi vec na radku a
+        // pri prekresleni (mazani, razeni, vyber) se pocital pokazde znovu.
+        const _sjtskCache = new Map();
+        function _mngSjtsk(pt) {
+            const k = pt.id + '|' + pt.lat + '|' + pt.lng;
+            let v = _sjtskCache.get(k);
+            if (!v) {
+                const s = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]);
+                v = { y: Math.abs(s[0]).toFixed(2), x: Math.abs(s[1]).toFixed(2) };
+                if (_sjtskCache.size > 4000) _sjtskCache.clear();
+                _sjtskCache.set(k, v);
+            }
+            return v;
+        }
+        function _mngBuildRow(pt) {
+            const sj = _mngSjtsk(pt);
+            const item = document.createElement('div'); item.className = 'cp-item';
+            // hledaci index radku; poznamka bodu se sem dopise az v decoratePointItem (lezi v IndexedDB)
+            item.dataset.mngText = agFold(String(pt.name) + ' ' + (pt.kod || ''));
+            const dRow = (userLat != null) ? ('<br>' + getDistance(userLat, userLng, pt.lat, pt.lng).toFixed(1) + ' m od tebe') : '';
+            item.innerHTML = ` <div class="cp-title">${_escHtml(pt.name)}${pt.kod ? ' <span class="cp-kod">' + _escHtml(pt.kod) + '</span>' : ''}</div> <div class="cp-coords">Y: ${sj.y}<br>X: ${sj.x}${pt.vyska != null ? '<br>Z: '+Number(pt.vyska).toFixed(2)+' m' : ''}${pt.acc != null ? '<br>⌀ ±'+_escHtml(pt.acc)+' m' : ''}${dRow}</div>`;
+            if (_mngSelMode) {
+                item.classList.add('mng-selectable'); item.classList.toggle('mng-selected', _mngSel.has(pt.id));
+                const chk = document.createElement('div'); chk.className = 'mng-check'; chk.textContent = _mngSel.has(pt.id) ? '✓' : ''; item.appendChild(chk);
+                item.addEventListener('click', () => {
+                    if (_mngSel.has(pt.id)) _mngSel.delete(pt.id); else _mngSel.add(pt.id);
+                    item.classList.toggle('mng-selected', _mngSel.has(pt.id)); chk.textContent = _mngSel.has(pt.id) ? '✓' : '';
+                    const c = document.getElementById('mng-count'); if (c) c.innerText = _mngSel.size;
+                });
+            } else {
+                const act = document.createElement('div'); act.className = 'cp-actions';
+                act.innerHTML = `<button class="cp-btn cp-btn-edit" aria-label="Upravit bod"><svg class="icon"><use href="#i-edit"/></svg></button> <button class="cp-btn cp-btn-delete" aria-label="Smazat bod"><svg class="icon"><use href="#i-trash"/></svg></button>`;
+                item.appendChild(act);
+                act.querySelector('.cp-btn-edit').addEventListener('click', (ev) => { ev.stopPropagation(); editCustomPoint(pt.id); });
+                act.querySelector('.cp-btn-delete').addEventListener('click', (ev) => { ev.stopPropagation(); deleteCustomPoint(pt.id); });
+                // TUKNUTI NA RADEK = zamerit bod. Driv se na kartu bodu dalo klepnout a
+                // NESTALO SE NIC — jedine, co slo, byly dve male ikonky vpravo. Pritom
+                // "ukaz mi ten bod" je to, kvuli cemu seznam clovek v terenu otevira.
+                item.classList.add('cp-focusable');
+                item.setAttribute('role', 'button');
+                item.setAttribute('tabindex', '0');
+                item.addEventListener('click', () => focusPointFromList(pt.id));
+                item.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); focusPointFromList(pt.id); } });
+                if (typeof decoratePointItem === 'function') {
+                    try {
+                        if (_mngDocs) decoratePointItem(item, pt, _mngDocs[pt.id] || null);
+                        else decoratePointItem(item, pt);
+                    } catch (e) {}
+                }
+            }
+            return item;
+        }
+        // Zamereni bodu ze seznamu: zavrit seznam, uklidit vse, co by bod schovalo,
+        // a nastavit ho jako zvyrazneny cil (mapa + ukazatel na hrane displeje).
+        function focusPointFromList(id) {
+            const pt = arPoints.find(p => p.id === id) || persistentCustomPoints.find(p => p.id === id);
+            if (!pt) return;
+            if (pt.hidden) pt.hidden = false;
+            if (!filters.custom && pt.cat === 'CUSTOM') {
+                filters.custom = true; setStoredData('arFilters12', JSON.stringify(filters));
+                const c = document.getElementById('f-custom'); if (c) c.checked = true;
+            }
+            if (!agMatchQuery(pt, searchQuery)) {
+                searchQuery = '';
+                const inp = document.getElementById('s-search-name'); if (inp) inp.value = '';
+            }
+            closeManageModal();
+            if (highlightedPointId !== pt.id) highlightPoint(pt);
+            else { initARMarkers(); drawAllMarkersOnMap(); updateNavGlow(); }
+            try { if (window.AGCilNav && AGCilNav.fit) AGCilNav.fit(); } catch (e) {}
+            const d = (userLat != null) ? getDistance(userLat, userLng, pt.lat, pt.lng) : null;
+            quickToast('Cíl: ' + pt.name + (d != null ? ' — ' + d.toFixed(1) + ' m' : ''));
+            agVibe(20);
+        }
+        window.focusPointFromList = focusPointFromList;
         // panel hromadnych akci nad vyberem
         function renderMngActions(listDiv) {
             const box = document.createElement('div'); box.className = 'mng-actions';
@@ -637,7 +765,7 @@
                 const d = getDistance(A.lat, A.lng, B.lat, B.lng);
                 const an = _escHtml(lineEndName(ln.aId, ln.aName)), bn = _escHtml(lineEndName(ln.bId, ln.bName));
                 const item = document.createElement('div'); item.className = 'cp-item';
-                item.innerHTML = `<div class="cp-title" style="color:#fbbf24;">#${an} \u2194 #${bn}</div><div class="cp-coords">Délka: ${d.toFixed(1)} m</div><div class="cp-actions"><button class="cp-btn cp-btn-delete" onclick="deleteLineFromList('${ln.id}')"><svg class="icon"><use href="#i-trash"/></svg></button></div>`;
+                item.innerHTML = `<div class="cp-title" style="color:#fbbf24;">#${an} \u2194 #${bn}</div><div class="cp-coords">Délka: ${d.toFixed(1)} m</div><div class="cp-actions"><button class="cp-btn cp-btn-delete" aria-label="Smazat spojnici" title="Smazat spojnici" onclick="deleteLineFromList('${ln.id}')"><svg class="icon"><use href="#i-trash"/></svg></button></div>`;
                 box.appendChild(item);
             });
             det.appendChild(box);

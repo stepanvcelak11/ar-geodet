@@ -295,7 +295,7 @@ function addVsRow() {
     const i = _vsRows++;
     const div = document.createElement('div');
     div.className = 'geo-highlight'; div.style.cssText = 'margin:8px 0; padding:10px;'; div.id = 'vs-row-' + i;
-    div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><b style="font-size:13px;">Záměra ${i + 1}</b><button class="cp-btn cp-btn-delete" onclick="document.getElementById('vs-row-${i}').remove()"><svg class="icon"><use href="#i-trash"/></svg></button></div>`
+    div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><b style="font-size:13px;">Záměra ${i + 1}</b><button class="cp-btn cp-btn-delete" aria-label="Odebrat řádek" title="Odebrat řádek" onclick="document.getElementById('vs-row-${i}').remove()"><svg class="icon"><use href="#i-trash"/></svg></button></div>`
         + _ptFld('vs-p' + i, 'Známý bod')
         + `<div style="display:flex; gap:8px;"><div style="flex:1;">${_fld('vs-psi' + i, 'Směr [gon]', '')}</div><div style="flex:1;">${_fld('vs-d' + i, 'Vod. délka [m]', '')}</div></div>`;
     document.getElementById('vs-rows').appendChild(div);
@@ -359,7 +359,7 @@ function addPgRow() {
     const i = _pgRows++;
     const div = document.createElement('div');
     div.className = 'geo-highlight'; div.style.cssText = 'margin:8px 0; padding:10px;'; div.id = 'pg-row-' + i;
-    div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><b style="font-size:13px;">Mezilehlý bod ${i + 1}</b><button class="cp-btn cp-btn-delete" onclick="document.getElementById('pg-row-${i}').remove()"><svg class="icon"><use href="#i-trash"/></svg></button></div>
+    div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><b style="font-size:13px;">Mezilehlý bod ${i + 1}</b><button class="cp-btn cp-btn-delete" aria-label="Odebrat řádek" title="Odebrat řádek" onclick="document.getElementById('pg-row-${i}').remove()"><svg class="icon"><use href="#i-trash"/></svg></button></div>
         <div style="display:flex; gap:8px;"><div style="flex:1;">${_fld('pg-d' + i, 'Délka předchozí strany [m]', '')}</div><div style="flex:1;">${_fld('pg-w' + i, 'Vrcholový úhel [gon]', '')}</div></div>`
         + _fld('pg-n' + i, 'Název bodu', 'PB' + (i + 1));
     document.getElementById('pg-rows').appendChild(div);
@@ -437,7 +437,7 @@ function addTcRow() {
     const i = _tcRows++;
     const div = document.createElement('div');
     div.className = 'geo-highlight'; div.style.cssText = 'margin:8px 0; padding:10px;'; div.id = 'tc-row-' + i;
-    div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><b style="font-size:13px;">Bod ${i + 1}</b><button class="cp-btn cp-btn-delete" onclick="document.getElementById('tc-row-${i}').remove()"><svg class="icon"><use href="#i-trash"/></svg></button></div>`
+    div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><b style="font-size:13px;">Bod ${i + 1}</b><button class="cp-btn cp-btn-delete" aria-label="Odebrat řádek" title="Odebrat řádek" onclick="document.getElementById('tc-row-${i}').remove()"><svg class="icon"><use href="#i-trash"/></svg></button></div>`
         + _fld('tc-n' + i, 'Název', 'b' + (i + 1))
         + `<div style="display:flex; gap:8px;"><div style="flex:1;">${_fld('tc-psi' + i, 'Směr [gon]', '')}</div><div style="flex:1;">${_fld('tc-dd' + i, 'Délka [m]', '')}</div></div>
         <div style="display:flex; gap:8px;"><div style="flex:1;">${_fld('tc-zen' + i, 'Zenitový úhel [gon]', '100')}</div><div style="flex:1;">${_fld('tc-vc' + i, 'Výška cíle [m]', '')}</div></div>`;
@@ -501,7 +501,7 @@ function addNvRow() {
     const i = _nvRows++;
     const div = document.createElement('div');
     div.className = 'geo-highlight'; div.style.cssText = 'margin:8px 0; padding:10px;'; div.id = 'nv-row-' + i;
-    div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><b style="font-size:13px;">Sestava ${i + 1}</b><button class="cp-btn cp-btn-delete" onclick="document.getElementById('nv-row-${i}').remove()"><svg class="icon"><use href="#i-trash"/></svg></button></div>
+    div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><b style="font-size:13px;">Sestava ${i + 1}</b><button class="cp-btn cp-btn-delete" aria-label="Odebrat řádek" title="Odebrat řádek" onclick="document.getElementById('nv-row-${i}').remove()"><svg class="icon"><use href="#i-trash"/></svg></button></div>
         <div style="display:flex; gap:8px;"><div style="flex:1;">${_fld('nv-b' + i, 'Čtení zpět [m]', '')}</div><div style="flex:1;">${_fld('nv-f' + i, 'Čtení vpřed [m]', '')}</div></div>`;
     document.getElementById('nv-rows').appendChild(div);
 }
@@ -800,8 +800,23 @@ function calcRedukce() {
 function loadPointDoc(id) {
     return _idbGet(getStoreKey('doc_' + id)).then(s => { try { return s ? JSON.parse(s) : null; } catch (e) { return null; } });
 }
-function savePointDoc(id, doc) { return _idbSet(getStoreKey('doc_' + id), JSON.stringify(doc)); }
-function deletePointDoc(id) { return _idbDel(getStoreKey('doc_' + id)); }
+function savePointDoc(id, doc) { _pointDocsCache = null; return _idbSet(getStoreKey('doc_' + id), JSON.stringify(doc)); }
+function deletePointDoc(id) { _pointDocsCache = null; return _idbDel(getStoreKey('doc_' + id)); }
+// HROMADNE nacteni poznamek/fotek vsech bodu zakazky — jeden pruchod IndexedDB
+// misto jednoho dotazu na radek. Cache se zahazuje pri kazdem zapisu/smazani.
+let _pointDocsCache = null, _pointDocsProj = null;
+function loadAllPointDocs() {
+    const proj = getStoreKey('doc_');
+    if (_pointDocsCache && _pointDocsProj === proj) return Promise.resolve(_pointDocsCache);
+    if (typeof idbGetByPrefix !== 'function') return Promise.resolve({});
+    return idbGetByPrefix(proj).then(raw => {
+        const out = {};
+        Object.keys(raw || {}).forEach(id => { try { out[id] = _normalizeDoc(JSON.parse(raw[id])); } catch (e) {} });
+        _pointDocsCache = out; _pointDocsProj = proj;
+        return out;
+    }).catch(() => ({}));
+}
+window.loadAllPointDocs = loadAllPointDocs;
 function _pdEsc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 // sjednoti stary format {photo} na novy {photos:[...]}
 function _normalizeDoc(doc) {
@@ -990,12 +1005,16 @@ function _peSave() {
 
 // obohaceni polozky v prehledu „Mé body": poznamka + miniatura fotky z foto-dokumentace.
 // Vola ji renderManageList (grafika.js) pres hook decoratePointItem — kdyz modul chybi, nic se nedeje.
-function decoratePointItem(item, pt) {
+function decoratePointItem(item, pt, preloadedDoc) {
     if (!item || !pt || !pt.id) return;
-    loadPointDoc(pt.id).then(doc => {
+    // preloadedDoc = uz nactene z loadAllPointDocs(); jinak (jednotlivy radek) dotaz zvlast
+    const p = (preloadedDoc !== undefined) ? Promise.resolve(preloadedDoc) : loadPointDoc(pt.id);
+    p.then(doc => {
         _normalizeDoc(doc);
         if (!doc || !item.isConnected) return;
         if (doc.note) {
+            // poznamka do hledaciho indexu radku — v seznamu ji jde najit
+            try { if (item.dataset.mngText != null && typeof agFold === 'function') item.dataset.mngText += ' ' + agFold(doc.note); } catch (e) {}
             const n = document.createElement('div');
             n.className = 'cp-note';
             n.textContent = doc.note;

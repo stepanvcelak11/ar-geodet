@@ -221,6 +221,86 @@ def suite_lint_argorder(read_fn):
     return results
 
 
+def suite_vstupy(read_fn):
+    """Cisla z formularu (agNum) a hledani bodu (agFold/agMatchQuery).
+
+    Ceska klavesnice pise desetinnou CARKU a <input type="number"> ji na Safari
+    zahodi — agNum() je jedine misto, kde se cislo z formulare parsuje, takze
+    kdyz se rozbije ono, rozbije se zadavani souradnic v cele appce.
+    """
+    from py_mini_racer import MiniRacer
+    results = []
+
+    def t(name, fn):
+        try:
+            d = fn()
+            results.append({'name': name, 'ok': True, 'detail': d or ''})
+        except Exception as e:
+            results.append({'name': name, 'ok': False, 'detail': str(e)})
+
+    src = read_fn('js/logika.js')
+    ctx = MiniRacer()
+    ctx.eval('var window = this; var console = { log: function(){}, warn: function(){}, error: function(){} };')
+    m = re.search(r'var _AG_DIA = \{.*?\};', src, re.S)
+    if not m:
+        raise RuntimeError('v js/logika.js chybi tabulka _AG_DIA')
+    ctx.eval(m.group(0))
+    for fname in ('agNum', 'agFold', 'agMatchQuery'):
+        ctx.eval(extract_fn(src, fname))
+    # agMatchQuery si drzi stav v promennych z okoli — doplnime je
+    ctx.eval('var _agFoldCache = new WeakMap(); var _agQRaw = null; var _agQFold = "";')
+
+    def num(expr):
+        return ctx.eval('JSON.stringify(agNum(%s))' % json.dumps(expr))
+
+    def check_num(inp, want):
+        got = json.loads(num(inp))
+        if got != want:
+            raise AssertionError('agNum(%r) = %r, cekano %r' % (inp, got, want))
+
+    t('agNum: desetinna carka i tecka', lambda: [
+        check_num('596956,46', 596956.46), check_num('596956.46', 596956.46), 'obe formy stejne'][-1])
+    t('agNum: mezery v tisicich vcetne pevne (U+00A0)', lambda: [
+        check_num('1 163 343,34', 1163343.34),
+        check_num(u'1\u00a0163\u00a0343,34', 1163343.34), 'mezery zahozeny'][-1])
+    t('agNum: unicode minus a pomlcka', lambda: [
+        check_num(u'\u22120,05', -0.05), check_num('-0,05', -0.05), 'zaporne vysky projdou'][-1])
+    t('agNum: prazdny a nesmyslny vstup je null (ne NaN)', lambda: [
+        check_num('', None), check_num('   ', None), check_num('abc', None), 'null, ne NaN'][-1])
+    t('agNum: nula neni null', lambda: [check_num('0', 0), check_num('0,00', 0), 'nula projde'][-1])
+
+    def fold(s):
+        return json.loads(ctx.eval('JSON.stringify(agFold(%s))' % json.dumps(s)))
+
+    t('agFold: sundava diakritiku a zmensuje', lambda: [
+        (_ for _ in ()).throw(AssertionError('sachta: ' + fold(u'\u0160achta')))
+        if fold(u'\u0160achta') != 'sachta' else None,
+        'Sachta -> sachta'][-1])
+
+    def match(name, kod, q):
+        return json.loads(ctx.eval(
+            'JSON.stringify(agMatchQuery(%s, %s))'
+            % (json.dumps({'name': name, 'kod': kod}), json.dumps(q))))
+
+    def check_match(name, kod, q, want):
+        got = match(name, kod, q)
+        if got != want:
+            raise AssertionError('agMatchQuery(%r/%r, %r) = %r, cekano %r' % (name, kod, q, got, want))
+
+    t('agMatchQuery: prazdny dotaz projde vsechno', lambda: [
+        check_match('B1', '', '', True), check_match('B1', '', None, True), 'bez filtru'][-1])
+    t('agMatchQuery: hleda i v KODU bodu', lambda: [
+        check_match('101', 'obruba', 'obruba', True),
+        check_match('101', 'obruba', 'sachta', False), 'kod se prohledava'][-1])
+    t('agMatchQuery: nezavisle na diakritice a velikosti pismen', lambda: [
+        check_match(u'\u0160achta 12', '', 'sachta', True),
+        check_match('sachta 12', '', u'\u0160ACHTA', True), 'sachta == Sachta'][-1])
+    t('agMatchQuery: bod bez kodu nespadne', lambda: [
+        check_match('B1', None, 'b1', True), 'undefined kod je v poradku'][-1])
+
+    return results
+
+
 def main():
     verbose = '-v' in sys.argv[1:] or '--verbose' in sys.argv[1:]
     try:
@@ -246,6 +326,7 @@ def main():
         results += suite_delegace(read, proj_def)
         results += suite_logika_getdistance(read, proj_def)
         results += suite_lint_argorder(read)
+        results += suite_vstupy(read)
     except Exception as e:
         print('CHYBA pri spousteni testu: %s: %s' % (type(e).__name__, e), file=sys.stderr)
         return 2
