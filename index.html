@@ -89,8 +89,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=229">
-    <link rel="stylesheet" href="css/style.css?v=229">
+    <link rel="stylesheet" href="css/tokens.css?v=230">
+    <link rel="stylesheet" href="css/style.css?v=230">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -107,7 +107,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=229">
+    <link rel="stylesheet" href="css/vylepseni.css?v=230">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -315,7 +315,13 @@
         <button class="dock-btn" onclick="document.getElementById('tools-modal').style.display='flex'"><svg class="icon"><use href="#i-ruler"/></svg><span>Nástroje</span></button>
         <button class="dock-btn" onclick="openManageModal()"><svg class="icon"><use href="#i-map-pin"/></svg><span>Body</span></button>
         <button class="dock-btn dock-primary" onclick="openNewPointModal()"><span class="dock-fab"><svg class="icon"><use href="#i-plus"/></svg></span><span>Nový bod</span></button>
-        <button class="dock-btn" id="dock-vice-btn" onclick="toggleMenu()"><svg class="icon"><use href="#i-menu"/></svg><span>Více</span></button>
+        <!-- Na přání 8. 8. 2026: v liště je místo „Více" rovnou OVLÁDÁNÍ MAPY (vrstvy,
+             podklad, katastr) — to se v terénu používá pořád, kdežto „Více" je návod,
+             sdílení a offline, tedy věci, které se řeší jednou. „Více" se proto
+             přestěhovalo do Nastavení → Údržba → Aplikace.
+             Id #dock-vice-btn ZŮSTÁVÁ: odkazuje se na něj tutoriál (js/tutorial-pro.js)
+             a výjimka pro klepnutí mimo menu v grafika.js. -->
+        <button class="dock-btn" id="dock-vice-btn" onclick="toggleMapControls()"><svg class="icon"><use href="#i-layers"/></svg><span>Vrstvy</span></button>
         <button class="dock-btn" onclick="openSettings()"><svg class="icon"><use href="#i-settings"/></svg><span>Nastavení</span></button>
     </nav>
     <div id="map-pick-hint"><span><svg class="icon"><use href="#i-map-pin"/></svg> Klepni do mapy pro umístění bodu</span><button onclick="cancelMapPick()">Zrušit</button></div>
@@ -687,6 +693,15 @@
                     <div id="storage-usage" style="margin-top:10px; font-size:12px; color:var(--text-muted); line-height:1.5;"></div>
                     <div class="set-h">Úklid</div>
                     <button class="btn btn-danger" onclick="clearAllPoints()"><svg class="icon"><use href="#i-trash"/></svg> Vymazat stáhnuté okolí z této zakázky</button>
+                    <!-- „VÍCE" SE PŘESTĚHOVALO SEM z lišty (na přání 8. 8. 2026, v liště je
+                         teď místo něj Vrstvy). Panel #side-menu se ZÁMĚRNĚ neruší a jeho
+                         obsah se nerozpouští do Nastavení: přisypává si do něj tlačítka
+                         šest modulů (cadastre-area, predpisy, ref-calibration,
+                         sky-obstruction, ar-fusion, pruvodce) jako záložní cestu, a kdyby
+                         panel zmizel, jejich nástroje by se staly nedosažitelnými.
+                         Nastavení se před otevřením zavře, jinak by leželo přes sheet. -->
+                    <div class="set-h">Aplikace</div>
+                    <button class="btn btn-secondary" onclick="document.getElementById('settings-modal').style.display='none'; toggleMenu();"><svg class="icon"><use href="#i-menu"/></svg> Více — návod, o aplikaci, sdílení, offline</button>
                 </div>
                 <!-- PROFILY (návrh C) — panel je ZÁMĚRNĚ skoro prázdný: obsah si sem
                      vloží js/profily.js (pruh „Profil nastavení") a js/rezim-prace.js
@@ -1039,6 +1054,8 @@
     <script type="ag/lazy" data-src="js/hlas-kod.js"></script>
     <!-- GEO-FOTKA (odpojitelné: smaž tento řádek + js/geo-foto.js) — fotka s vypáleným razítkem (S-JTSK, Bpv, čas, azimut), řetěz otisků SHA-256, tiskový protokol -->
     <script type="ag/lazy" data-src="js/geo-foto.js"></script>
+    <!-- METR V KAMEŘE (odpojitelné: smaž tento řádek + js/ar-metr.js) — pravítko promítnuté na zem: telefon plocho, ruční výška držení, libela z devicemotion, klepnutí dvou bodů -->
+    <script type="ag/lazy" data-src="js/ar-metr.js"></script>
     <!-- VYSÍLAČKA (odpojitelné: smaž tento řádek + js/vysilacka.js) — kde je kdo, rychlé zprávy, Man Down; staví na js/ucty.js (/pos + /chat) -->
     <script type="ag/lazy" data-src="js/vysilacka.js"></script>
     <!-- UVNITŘ BUDOVY (odpojitelné: smaž tento řádek + js/indoor.js) — poloha bez GPS: WebXR nebo kroky, přesedlání na známé body; sdílí kalibraci s js/pdr-offset.js -->
@@ -1077,6 +1094,11 @@
          načtení skriptů; tohle je srovná do pevných sekcí. MUSÍ být až za moduly,
          které do Nastavení vkládají (stačí defer — pořadí zajišťuje MutationObserver). -->
     <script defer src="js/nastaveni-poradek.js"></script>
+    <!-- BOČNÍ REJSTŘÍK NASTAVENÍ (návrh L1, odpojitelné: smaž tento řádek + js/nastaveni-lista.js)
+         — tažením od pravého okraje vyjede seznam záložek I SEKCÍ, ťuknutí skočí na blok;
+         horní pruh záložek se skrývá (zůstává v DOM kvůli switchTab/app-search/oprávněním).
+         MUSÍ být až za js/nastaveni-poradek.js, který sekce vyrábí. -->
+    <script defer src="js/nastaveni-lista.js"></script>
     <!-- KOMPAS S MAGNETICKÝM SEVEREM (odpojitelné) — růžice + magnetický i zeměpisný
          azimut a deklinace do modálu Kompas; jen čte currentHeading/magneticDeclination -->
     <script defer src="js/kompas-magneticky.js"></script>

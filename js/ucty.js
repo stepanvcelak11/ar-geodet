@@ -101,7 +101,9 @@
         { k: 'dock.novybod',   g: 'Hlavní obrazovka', t: 'Nový bod (měření)' },
         { k: 'dock.body',      g: 'Hlavní obrazovka', t: 'Správa bodů' },
         { k: 'dock.nastroje',  g: 'Hlavní obrazovka', t: 'Nástroje' },
-        { k: 'dock.vice',      g: 'Hlavní obrazovka', t: 'Menu „Více"' },
+        // Klíč zůstává 'dock.vice', i když tlačítko je teď „Vrstvy" — jinak by se
+        // všem firmám při aktualizaci zahodilo uložené oprávnění pro tenhle slot.
+        { k: 'dock.vice',      g: 'Hlavní obrazovka', t: 'Vrstvy (ovládání mapy)' },
         { k: 'dock.nastaveni', g: 'Hlavní obrazovka', t: 'Nastavení' },
         { k: 'tools.Měření',               g: 'Kategorie nástrojů', t: 'Měření' },
         { k: 'tools.Vytyčování a náčrt',   g: 'Kategorie nástrojů', t: 'Vytyčování a náčrt' },
@@ -675,7 +677,7 @@
         'dock.novybod':   'openNewPointModal',
         'dock.body':      'openManageModal',
         'dock.nastroje':  'tools-modal',
-        'dock.vice':      'toggleMenu',
+        'dock.vice':      'toggleMapControls',   // slot v liště drží od 8. 8. 2026 „Vrstvy"
         'dock.nastaveni': 'openSettings'
     };
     var SET_MAP = { 'set.tab-ar': 'tab-ar', 'set.tab-data': 'tab-data', 'set.tab-udrzba': 'tab-udrzba' };
