@@ -57,6 +57,22 @@
     display: flex; align-items: center; justify-content: center;
 }
 .wx-loc svg { width: 21px; height: 21px; }
+.wx-loc[disabled] { opacity: .65; }
+/* tlačítko „aktualizovat" se po dobu stahování točí — jinak není poznat, že něco běží */
+.wx-loc.wx-spin svg { animation: wx-spin .9s linear infinite; transform-origin: 50% 50%; }
+@keyframes wx-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+    .wx-loc.wx-spin svg { animation: none; }
+}
+/* čtyři kolečka + hledání se na úzký telefon musí vejít */
+@media (max-width: 400px) {
+    .wx-top { gap: 6px; }
+    .wx-x, .wx-loc { width: 34px; height: 34px; }
+    .wx-loc svg { width: 19px; height: 19px; }
+}
+/* naměřená data ČHMÚ v seznamu zdrojů: odlišit od předpovědí */
+.wx-src-meas .wx-src-n { color: var(--accent, #2f9e74); }
+.wx-src-meas .wx-src-v { font-weight: 600; }
 
 /* našeptávač / poslední místa */
 .wx-results {

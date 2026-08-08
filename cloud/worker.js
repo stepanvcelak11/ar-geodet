@@ -230,6 +230,136 @@ async function lastActiveAdminGuard(env, firmId, exceptUserId) {
 }
 
 // ---------------------------------------------------------------------------
+// ČHMÚ — naměřené hodnoty z nejbližší české stanice
+// ---------------------------------------------------------------------------
+// Proč přes worker: opendata.chmi.cz NEPOSÍLÁ hlavičku Access-Control-Allow-Origin,
+// takže prohlížeč z něj nepřečte nic. Navíc jsou soubory velké (seznam stanic 75 kB,
+// desetiminutovky jedné stanice až 190 kB/den) — do mobilu by to byla zbytečná
+// stahovka. Worker tedy data stáhne, najde nejbližší stanici, vybere poslední platné
+// hodnoty a pošle ~1 kB. Route je veřejná (bez tokenu): počasí není firemní data.
+// Podmínky ČHMÚ: data zdarma s uvedením zdroje — atribuce „© ČHMÚ" je v appce
+// v rozbalovacím seznamu zdrojů pod předpovědí.
+const CHMI_BASE = 'https://opendata.chmi.cz/meteorology/climate/now/';
+const CHMI_MAX_KM = 60;          // dál od stanice už měření tohle místo nepopisuje
+const CHMI_MAX_AGE_MS = 2 * 3600e3;   // starší než 2 h už není „teď"
+const CHMI_ELEMS = { T: 1, H: 1, P: 1, F: 1, Fmax: 1, D: 1, SRA10M: 1 };
+
+function chmiDayStr(offsetDays) {
+    return new Date(Date.now() + offsetDays * 864e5).toISOString().slice(0, 10).replace(/-/g, '');
+}
+async function chmiFetch(url, ttl) {
+    // cf.cacheTtl = kolik sekund drží odpověď edge cache Cloudflare; seznam stanic
+    // se mění jednou denně, desetiminutovky po deseti minutách
+    const r = await fetch(url, { cf: { cacheTtl: ttl, cacheEverything: true } });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+}
+function chmiRows(j) {
+    const d = j && j.data && j.data.data;
+    return (d && Array.isArray(d.values)) ? d.values : [];
+}
+function kmBetween(aLat, aLon, bLat, bLon) {
+    const R = 6371, dLa = (bLat - aLat) * Math.PI / 180, dLo = (bLon - aLon) * Math.PI / 180;
+    const x = Math.sin(dLa / 2) ** 2 +
+        Math.cos(aLat * Math.PI / 180) * Math.cos(bLat * Math.PI / 180) * Math.sin(dLo / 2) ** 2;
+    return 2 * R * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+}
+// nejbližší české stanice (seřazené) — seznam obsahuje i zahraniční, ty vynech
+async function chmiStations(lat, lon) {
+    let meta = null;
+    for (const off of [0, -1]) {          // po půlnoci UTC nemusí být dnešek ještě nahraný
+        try { meta = await chmiFetch(CHMI_BASE + 'metadata/meta1-' + chmiDayStr(off) + '.json', 21600); break; }
+        catch (e) { meta = null; }
+    }
+    if (!meta) return [];
+    const out = [];
+    for (const r of chmiRows(meta)) {
+        // WSI, GH_ID, FULL_NAME, GEOGR1 (zem. délka), GEOGR2 (šířka), ELEVATION, BEGIN_DATE
+        const wsi = r[0], name = r[2], slon = Number(r[3]), slat = Number(r[4]), elev = Number(r[5]);
+        if (!wsi || !isFinite(slat) || !isFinite(slon)) continue;
+        if (slat < 48.4 || slat > 51.2 || slon < 12 || slon > 19) continue;   // jen ČR
+        out.push({ wsi, name, lat: slat, lon: slon, elev: isFinite(elev) ? elev : null, km: kmBetween(lat, lon, slat, slon) });
+    }
+    out.sort((a, b) => a.km - b.km);
+    return out;
+}
+// poslední platné hodnoty jedné stanice; vrací null, když stanice dnes nic neposlala
+async function chmiLatest(wsi) {
+    let rows = [];
+    for (const off of [0, -1]) {
+        try {
+            const j = await chmiFetch(CHMI_BASE + 'data/10m-' + wsi + '-' + chmiDayStr(off) + '.json', 300);
+            rows = chmiRows(j);
+            if (rows.length) break;
+        } catch (e) { rows = []; }
+    }
+    if (!rows.length) return null;
+    const last = {}, rain = [];
+    for (const r of rows) {
+        const el = r[1], dt = r[2], val = r[3], q = Number(r[5]);
+        if (!CHMI_ELEMS[el] || val == null || dt == null) continue;
+        if (q === 2) continue;                       // „zatím nepoužívat" podle ČHMÚ
+        const ts = Date.parse(dt);
+        if (!isFinite(ts)) continue;
+        if (el === 'SRA10M') rain.push([ts, Number(val)]);
+        if (!last[el] || ts > last[el][0]) last[el] = [ts, Number(val)];
+    }
+    if (!last.T && !last.F && !last.H) return null;
+    // čas měření = nejnovější z odečtených veličin
+    let newest = 0;
+    for (const k in last) { if (last[k][0] > newest) newest = last[k][0]; }
+    if (!newest || Date.now() - newest > CHMI_MAX_AGE_MS) return null;
+    // srážky za poslední hodinu = součet desetiminutovek v okně 60 min
+    let p1h = null;
+    const win = rain.filter(x => x[0] > newest - 3600e3 && x[0] <= newest && isFinite(x[1]));
+    if (win.length) p1h = Math.round(win.reduce((a, x) => a + x[1], 0) * 100) / 100;
+    const g = k => (last[k] && isFinite(last[k][1])) ? last[k][1] : null;
+    return { t: Math.round(newest / 1000), T: g('T'), H: g('H'), P: g('P'), F: g('F'), Fmax: g('Fmax'), D: g('D'), precip1h: p1h };
+}
+
+// hodinová řada naměřených hodnot za posledních `days` dní — proti ní si appka
+// ověřuje, jak se který model doopravdy trefil (viz chmiVerify v js/pocasi.js).
+// Teplota = odečet nejbližší celé hodině, srážky = součet desetiminutovek za
+// PŘEDCHOZÍ hodinu (tak je definovaná i hodinová srážka u modelů, ať se to srovnává
+// se stejně definovaným číslem).
+async function chmiHours(wsi, days) {
+    const T = {}, R = {};
+    for (let off = 0; off > -days; off--) {
+        let rows = [];
+        try { rows = chmiRows(await chmiFetch(CHMI_BASE + 'data/10m-' + wsi + '-' + chmiDayStr(off) + '.json', 600)); }
+        catch (e) { continue; }
+        for (const r of rows) {
+            const el = r[1], dt = r[2], val = r[3], q = Number(r[5]);
+            if (val == null || dt == null || q === 2) continue;
+            if (el !== 'T' && el !== 'SRA10M') continue;
+            const ts = Date.parse(dt);
+            if (!isFinite(ts)) continue;
+            if (el === 'T') {
+                // ke které celé hodině odečet patří (±30 min) a jak je od ní daleko
+                const hr = Math.round(ts / 3600e3) * 3600e3;
+                const d = Math.abs(ts - hr);
+                if (!T[hr] || d < T[hr][1]) T[hr] = [Number(val), d];
+            } else {
+                // srážka spadlá v (h−1, h] se počítá k hodině h
+                const hr = Math.ceil(ts / 3600e3) * 3600e3;
+                R[hr] = (R[hr] || 0) + Number(val);
+            }
+        }
+    }
+    const keys = {};
+    for (const k in T) keys[k] = 1;
+    for (const k in R) keys[k] = 1;
+    const out = [];
+    for (const k of Object.keys(keys).sort()) {
+        const t = Number(k);
+        out.push([Math.round(t / 1000),
+            T[k] ? Math.round(T[k][0] * 10) / 10 : null,
+            R[k] != null ? Math.round(R[k] * 100) / 100 : null]);
+    }
+    return out;
+}
+
+// ---------------------------------------------------------------------------
 // hlavní router
 // ---------------------------------------------------------------------------
 export default {
@@ -255,7 +385,54 @@ export default {
         try {
             // v = verze API; klient podle ní pozná, že na serveru běží starý kód
             // (chybějící v = původní nasazení bez chatu/statistik/zálohy)
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 3 });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 4, wx: true });
+
+            // ---------------- ČHMÚ: měření z nejbližší stanice ---------------
+            // veřejné (bez tokenu) — počasí není firemní údaj
+            if (req.method === 'GET' && path === '/wx/chmi') {
+                const lat = Number(url.searchParams.get('lat')), lon = Number(url.searchParams.get('lon'));
+                if (!isFinite(lat) || !isFinite(lon)) return err(400, 'Chybí lat / lon.');
+                if (lat < 48.4 || lat > 51.2 || lon < 12 || lon > 19) return json({ ok: false, reason: 'mimo ČR' });
+                const st = await chmiStations(lat, lon);
+                if (!st.length) return json({ ok: false, reason: 'seznam stanic ČHMÚ není dostupný' });
+                // nejbližší stanice nemusí zrovna hlásit → zkus pár dalších v okolí
+                for (const cand of st.slice(0, 4)) {
+                    if (cand.km > CHMI_MAX_KM) break;
+                    const v = await chmiLatest(cand.wsi);
+                    if (!v) continue;
+                    return json(Object.assign({
+                        ok: true,
+                        station: { wsi: cand.wsi, name: cand.name, lat: cand.lat, lon: cand.lon, elev: cand.elev },
+                        distKm: Math.round(cand.km * 10) / 10,
+                        source: '© ČHMÚ'
+                    }, v));
+                }
+                return json({ ok: false, reason: 'žádná stanice ČHMÚ v okolí právě nehlásí' });
+            }
+
+            // ---------------- ČHMÚ: hodinová řada za posledních pár dní -------
+            // slouží k ověřování trefnosti modelů proti skutečnosti (taky veřejné)
+            if (req.method === 'GET' && path === '/wx/chmi/day') {
+                const lat = Number(url.searchParams.get('lat')), lon = Number(url.searchParams.get('lon'));
+                if (!isFinite(lat) || !isFinite(lon)) return err(400, 'Chybí lat / lon.');
+                if (lat < 48.4 || lat > 51.2 || lon < 12 || lon > 19) return json({ ok: false, reason: 'mimo ČR' });
+                const days = Math.max(1, Math.min(3, parseInt(url.searchParams.get('days'), 10) || 2));
+                const st = await chmiStations(lat, lon);
+                if (!st.length) return json({ ok: false, reason: 'seznam stanic ČHMÚ není dostupný' });
+                for (const cand of st.slice(0, 3)) {
+                    if (cand.km > CHMI_MAX_KM) break;
+                    const hours = await chmiHours(cand.wsi, days);
+                    if (hours.length < 6) continue;      // stanice prakticky nehlásí
+                    return json({
+                        ok: true,
+                        station: { wsi: cand.wsi, name: cand.name, lat: cand.lat, lon: cand.lon, elev: cand.elev },
+                        distKm: Math.round(cand.km * 10) / 10,
+                        source: '© ČHMÚ',
+                        hours: hours
+                    });
+                }
+                return json({ ok: false, reason: 'žádná stanice ČHMÚ v okolí nemá dost dat' });
+            }
 
             // ---------------- registrace firmy ------------------------------
             if (req.method === 'POST' && path === '/firms') {
