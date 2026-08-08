@@ -51,7 +51,8 @@
                 { k: 'openCheckDist', l: 'Oměrné — kontrolní míry' },
                 { k: 'openDmtVolume', l: 'Kubaturu a vrstevnice' },
                 { k: 'vyska-objektu', l: 'Výšku objektu', h: 'budova, stožár, strom' },
-                { k: 'korekce', l: 'S korekcí na teplotu a tlak', h: 'pásmo, dálkoměr' }
+                { k: 'korekce', l: 'S korekcí na teplotu a tlak', h: 'pásmo, dálkoměr' },
+                { k: 'obchuzka', l: 'Kubaturu obejitím výkopu', h: 'obvod z GNSS + dno, objem hned na místě' }
             ]
         },
         {
@@ -63,14 +64,16 @@
                 { k: 'pdr-offset', l: 'Krokovým offsetem', h: 'došlápnutý vektor' },
                 { k: 'ar-resection', l: 'Resekcí ze známých bodů', h: 'určí i sever' },
                 { k: 'free-station', l: 'Volným stanoviskem', h: 'průvodce krok za krokem' },
-                { k: 'dgps', l: 'Dvoutelefonní DGPS', h: 'základna a rover' }
+                { k: 'dgps', l: 'Dvoutelefonní DGPS', h: 'základna a rover' },
+                { k: 'hlas-kod', l: 'Hlasem — nadiktovat číslo a kód', h: 'bez ťukání v rukavicích' }
             ]
         },
         {
             t: 'Vytyčit', items: [
                 { k: 'openStakeoutModal', l: 'Body podle seznamu', h: 'vytyčovací checklist' },
                 { k: 'stakeout-line', l: 'Přímku' },
-                { k: 'vrstvy', l: 'Vrstvu pokládky', h: 'výška a sklon za finišerem' }
+                { k: 'vrstvy', l: 'Vrstvu pokládky', h: 'výška a sklon za finišerem' },
+                { k: 'indoor', l: 'Dojít k bodu uvnitř budovy', h: 'bez GPS; navádí, nevytyčuje' }
             ]
         },
         {
@@ -81,6 +84,7 @@
                 { k: 'hlasovky', l: 'Hlasovou poznámku', h: 's georazítkem' },
                 { k: 'denik-dne', l: 'Deník dne' },
                 { k: 'track-log', l: 'Stopu trasy' },
+                { k: 'geo-foto', l: 'Fotku s razítkem', h: 'S-JTSK, výška, čas a azimut ve fotce' },
                 { k: 'epochy', l: 'Epochy — posuny v čase', h: 'opakované měření bodu' }
             ]
         },
@@ -131,6 +135,7 @@
             t: 'Firma a papíry', items: [
                 { k: 'dochazka', l: 'Docházka' },
                 { k: 'firma-chat', l: 'Firemní chat' },
+                { k: 'vysilacka', l: 'Vysílačka', h: 'kde je kolega, rychlé zprávy, hlídání pádu' },
                 { k: 'ucty-firma', l: 'Firma a účty' },
                 { k: 'kniha-jizd', l: 'Kniha jízd' },
                 { k: 'moje-aktivita', l: 'Moje aktivita', h: 'kolik jsem ušel, co používám, co schovat' }

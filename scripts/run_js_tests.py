@@ -62,6 +62,10 @@ DELEGATING = [
     ('js/zavady.js',               'obj', 'y', 'x',  1),
     ('js/dxf-export.js',           'obj', 'y', 'x', -1),
     ('js/vylepseni.js',            'arr',   0,   1, -1),
+    ('js/geo-foto.js',             'obj', 'y', 'x',  1),
+    ('js/vysilacka.js',            'obj', 'y', 'x',  1),
+    ('js/indoor.js',               'obj', 'y', 'x',  1),
+    ('js/obchuzka.js',             'obj', 'y', 'x',  1),
 ]
 
 
@@ -166,6 +170,93 @@ def suite_logika_getdistance(read_fn, proj_def):
         return [{'name': name, 'ok': False, 'detail': '%s: %s' % (type(e).__name__, e)}]
 
 
+def suite_obchuzka(read_fn):
+    """Overi vypocet kubatury v js/obchuzka.js na ulohach se ZNAMYM vysledkem.
+
+    Proc zrovna tohle: z objemu se fakturuje. Vzorec pro komoly jehlan
+    (V = h/3 * (A1 + A2 + sqrt(A1*A2))) i prolozeni roviny MNC pres vysky hrany se
+    daji rozbit uklidovou upravou tak, ze vysledek porad vypada rozumne — jen je
+    o desitky procent vedle. Testuje se proti rucne dopocitanym hodnotam.
+
+    Souradnicovy prevod se pro test nahrazuje trivialnim (1 stupen = 100 000 m),
+    aby sla geometrie spocitat presne na papire; sam prevod hlida suite_delegace.
+    """
+    from py_mini_racer import MiniRacer
+    results = []
+    STUB = ("var window = this;"
+            "var document = { readyState:'complete', getElementById:function(){return null;},"
+            " createElement:function(){return { style:{}, getContext:function(){return null;},"
+            " appendChild:function(){}, addEventListener:function(){},"
+            " querySelector:function(){return { addEventListener:function(){}, style:{} };} };},"
+            " addEventListener:function(){}, querySelectorAll:function(){return [];},"
+            " head:{appendChild:function(){}}, documentElement:{appendChild:function(){}},"
+            " body:{appendChild:function(){}} };"
+            "var localStorage = { _d:{}, getItem:function(k){return this._d[k]||null;},"
+            " setItem:function(k,v){this._d[k]=v;}, removeItem:function(k){} };"
+            "var navigator = {};"
+            "function setTimeout(){return 0;} function setInterval(){return 0;}"
+            "function clearInterval(){} function clearTimeout(){}"
+            "window.GeoCore = { toSJTSK: function(lat,lng){ return { y: lng*100000, x: lat*100000 }; } };"
+            "window.getDistance = function(a,b,c,d){ var dy=(d-b)*100000, dx=(c-a)*100000;"
+            " return Math.sqrt(dy*dy+dx*dx); };")
+
+    def square(size, z, off=0.0):
+        d = size / 100000.0
+        o = off / 100000.0
+        return [
+            {'lat': o, 'lng': o, 'z': z, 'acc': 1.0, 'ts': 0},
+            {'lat': o, 'lng': o + d, 'z': z, 'acc': 1.0, 'ts': 0},
+            {'lat': o + d, 'lng': o + d, 'z': z, 'acc': 1.0, 'ts': 0},
+            {'lat': o + d, 'lng': o, 'z': z, 'acc': 1.0, 'ts': 0},
+        ]
+
+    # nakloneny teren: spad 5 % ve smeru Y; teziste ctverce 10x10 lezi na Y = 5 m
+    slope = square(10, 100.0)
+    for q in slope:
+        q['z'] = 100.0 + q['lng'] * 100000 * 0.05
+
+    CASES = [
+        ('obchuzka: komoly jehlan (svahovane steny)',
+         {'top': square(10, 100.0), 'bot': square(6, 97.0, 2.0), 'depth': None},
+         {'A1': 100.0, 'A2': 36.0, 'h': 3.0, 'V': 196.0, 'mode': 'frustum'}),
+        ('obchuzka: svisle steny z rucne zadane hloubky',
+         {'top': square(10, 100.0), 'bot': [], 'depth': 2.5},
+         {'A1': 100.0, 'h': 2.5, 'V': 250.0, 'mode': 'depth'}),
+        ('obchuzka: rovina MNC respektuje spad terenu',
+         {'top': slope, 'bot': [{'lat': 0.5 / 100000, 'lng': 5 / 100000, 'z': 97.25, 'acc': 1.0, 'ts': 0}],
+          'depth': None},
+         {'zTop': 100.25, 'h': 3.0, 'V': 300.0, 'mode': 'vertical'}),
+    ]
+    try:
+        ctx = MiniRacer()
+        ctx.eval(STUB)
+        ctx.eval(read_fn('js/obchuzka.js'))
+    except Exception as e:
+        return [{'name': 'obchuzka: vypocet kubatury', 'ok': False,
+                 'detail': 'modul se nepodarilo nacist: %s: %s' % (type(e).__name__, e)}]
+
+    for name, job, want in CASES:
+        try:
+            got = ctx.call('window.AGObchuzka.compute', job)
+            if got is None:
+                raise RuntimeError('compute() vratil null')
+            bad = []
+            for k, v in want.items():
+                g = got.get(k)
+                if isinstance(v, str):
+                    if g != v:
+                        bad.append('%s: %r != %r' % (k, g, v))
+                elif g is None or abs(float(g) - v) > 1e-6:
+                    bad.append('%s: %s misto %s' % (k, g, v))
+            if bad:
+                raise RuntimeError('; '.join(bad))
+            results.append({'name': name, 'ok': True,
+                            'detail': 'V = %.1f m3, h = %.2f m' % (got['V'], got['h'])})
+        except Exception as e:
+            results.append({'name': name, 'ok': False, 'detail': '%s: %s' % (type(e).__name__, e)})
+    return results
+
+
 def suite_lint_argorder(read_fn):
     """Hlida poradi parametru u toSJTSK/fromSJTSK v CELEM repu.
 
@@ -245,6 +336,7 @@ def main():
         results = json.loads(raw)
         results += suite_delegace(read, proj_def)
         results += suite_logika_getdistance(read, proj_def)
+        results += suite_obchuzka(read)
         results += suite_lint_argorder(read)
     except Exception as e:
         print('CHYBA pri spousteni testu: %s: %s' % (type(e).__name__, e), file=sys.stderr)

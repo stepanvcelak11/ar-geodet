@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v208';   // Moje aktivita + brifink po prihlaseni + pamatovane prihlaseni/Face ID a vyber zakazky na uvodu
+const SHELL_CACHE = 'argeodet-shell-v209';   // Geo-fotka s razitkem, vysilacka + Man Down, hlasove kodovani bodu, navigace uvnitr budovy, obchuzka vykopu
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE];
 
@@ -25,9 +25,9 @@ const ASSETS_TO_CACHE = [
     './icon-512.png',
     './icon-maskable-192.png',
     './icon-maskable-512.png',
-    './css/tokens.css?v=208',
-    './css/style.css?v=208',
-    './css/vylepseni.css?v=208',
+    './css/tokens.css?v=209',
+    './css/style.css?v=209',
+    './css/vylepseni.css?v=209',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
@@ -150,6 +150,11 @@ const ASSETS_TO_CACHE = [
     './js/zavady.js',
     './js/brifink.js',
     './js/hlasovky.js',
+    './js/hlas-kod.js',
+    './js/geo-foto.js',
+    './js/vysilacka.js',
+    './js/indoor.js',
+    './js/obchuzka.js',
     './js/slunce.js',
     './js/kde-je.js',
     './js/bezpecnost.js',
