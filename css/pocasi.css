@@ -214,7 +214,10 @@
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    padding-bottom: 2px;
+    /* boční odsazení MUSÍ zůstat: popisek času je širší než 14px sloupec a je na něm
+       vycentrovaný, takže bez něj se první a poslední čas u hrany odřízne (z „16:45“
+       zbylo „6:45“) */
+    padding: 0 16px 2px;
 }
 .wx-now-strip::-webkit-scrollbar { display: none; }
 .wx-nc {

@@ -2368,7 +2368,13 @@
         // varování schválně vychází i z NEJHORŠÍ varianty (h.precipMax): milimetry se
         // kombinují mediánem, takže menšinová, ale vydatná přeháňka by se v mediánu
         // ztratila — u výstrahy je lepší zbytečně varovat než zmoknout s přístrojem
+        // NOWCAST má na krátko největší slovo (radar 0–2 h), takže výstraha na déšť
+        // vychází i z něj — jinak by appka v kartě hlásila „déšť za 20 minut" a v
+        // upozorněních mlčela, protože hodinové modely ještě nic nevidí.
+        var nc = data.nowcast;
+        var ncSoon = !!(nc && nc.startsAt != null && nc.startsAt <= nowSec + 3 * 3600);
         var rain = !thunder && (
+            ncSoon ||
             next3.some(function (h) {
                 return (h.code != null && isPrecipCode(h.code))
                     || (h.prob != null && h.prob >= 55)
@@ -2382,7 +2388,12 @@
         if (thunder) {
             out.push({ cls: 'bad', title: 'Bouřka v okolí / do 3 hodin', txt: 'Sbal to — blesk + výtyčka/stativ = nebezpečí. Kovové vybavení polož a najdi úkryt.' });
         } else if (rain) {
-            out.push({ cls: 'warn', title: 'Déšť v příštích 3 hodinách', txt: 'Počítej s mokrou optikou a horší viditelností terčů; chraň přístroj i tablet.' });
+            // když nowcast zná i čas, řekni ho — „za 20 minut" se v terénu řídí jinak
+            // než „někdy do tří hodin"
+            var rTtl = 'Déšť v příštích 3 hodinách';
+            if (nc && nc.raining) rTtl = 'Prší' + (nc.peak != null ? ' — až ' + nf(nc.peak, 1) + ' mm/h' : '');
+            else if (ncSoon && nc.startsInMin != null) rTtl = 'Déšť za ' + nc.startsInMin + ' min';
+            out.push({ cls: 'warn', title: rTtl, txt: 'Počítej s mokrou optikou a horší viditelností terčů; chraň přístroj i tablet.' });
         }
         // NÁRAZY VĚTRU z P90 ensemblů. Průměrný náraz ve výstraze nestačí: stativ s
         // přístrojem se pokládá v tom jednom nepříznivém scénáři, ne v průměru scénářů.
