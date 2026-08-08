@@ -29,7 +29,7 @@
         'gps-semafor': 'Měření', 'dgps': 'Měření', 'pdr-offset': 'Měření',
         'stakeout-line': 'Vytyčování a náčrt', 'offset-point': 'Vytyčování a náčrt', 'vrstvy': 'Vytyčování a náčrt',
         'cadastre-vector': 'Katastr a data', 'parcela': 'Katastr a data', 'project-import': 'Katastr a data', 'geo-overlay': 'Katastr a data',
-        'ar-resection': 'AR a kalibrace', 'ar-intersection': 'AR a kalibrace', 'orient-point': 'AR a kalibrace',
+        'ar-resection': 'AR a kalibrace', 'ar-intersection': 'Měření', 'orient-point': 'AR a kalibrace',
         'postupy': 'Pomůcky'
     };
 
@@ -165,7 +165,8 @@
         openTachymetrie: 'nacrt kresba skica tachymetrie zpmz polni nakres',
         openKatastr: 'katastr parcela kn nahlizeni kde stojim mapa cuzk',
         openSatModal: 'gnss satelity druzice obloha prekazky signal gps kvalita',
-        openDronView: 'dron drony zony letani omezeni vzdusny prostor uas',
+        dronview: 'dron drony zony letani omezeni vzdusny prostor uas dronview rlp',
+        'err-log': 'protokol chyb log chyba diagnostika hlaseni',
         agOpenCalibrate: 'sever kalibrace kompas azimut srovnat smer odchylka',
         openCalcModal: 'kalkulacka vypocet prevod gon stupne uhly plocha',
         openDictModal: 'slovnik pojmy zkratky vyznam terminologie',
@@ -204,7 +205,7 @@
         'gnss-signal': 'gnss signal gps kvalita druzice satelity predikce semafor skore multipath obloha podminky',
         prirucka: 'prirucka predpisy postupy slovnik odchylky kody lhuty navody tahak pojmy zkratky',
         zpravodaj: 'zpravodaj zpravy novinky clanky geodezie',
-        kos: 'kos smazane body obnovit odpadky',
+        kos: 'kos smazane body obnovit odpadky obnova vratit zpet zakazky',
         zaloha: 'zaloha export import obnova dat json',
         'gnss-forecast': 'gnss predpoved kdy merit pdop dop okno planovani ionosfera kp bourka geometrie druzic pocasi pro gps',
         slunce: 'slunce svetlo zapad vychod soumrak stin protisvetlo oslneni tma azimut zlata hodina',
@@ -390,9 +391,24 @@
         } catch (e) {}
     }
 
+    // Dronové zóny (DronView) BÝVALY položkou menu „Více". Je to ale informace k práci
+    // v terénu (omezení vzdušného prostoru), ne nastavení aplikace — patří k nástrojům.
+    // Vlastní modál nemá, jen otevře mapu ŘLP v prohlížeči; funkce openDronView žije
+    // v grafika.js, tak se registruje odsud (vlastník mřížky) a jen na ni odkáže.
+    function registerDronView() {
+        if (typeof window.openDronView !== 'function') return;
+        window.agRegisterFieldTool({
+            id: 'dronview', label: 'Dronové zóny (DronView)',
+            icon: '<svg class="icon"><use href="#i-drone"/></svg>',
+            cat: 'Pomůcky', order: 66,
+            onClick: function () { try { window.openDronView(); } catch (e) {} }
+        });
+    }
+
     function init() {
         try {
             syncTiles();
+            registerDronView();
             if (!window.__agFtTimer) window.__agFtTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(tick, 1500);
         } catch (e) { console.warn('[field-tools] init', e); }
     }

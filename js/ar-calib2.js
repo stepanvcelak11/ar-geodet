@@ -24,7 +24,9 @@
     var D2R = Math.PI / 180, R2D = 180 / Math.PI;
     var STYLE_ID = 'ag-c2-style';
     var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
-        + '<circle cx="12" cy="12" r="9"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/></svg>';
+        // DVA body a spojnice — usadit-ar.js (průvodce) měl skoro totožný terč,
+        // takže se v seznamu úkonů nedaly odlišit očima.
+        + '<circle cx="5" cy="18" r="2.3"/><circle cx="19" cy="6" r="2.3"/><path d="M6.7 16.3 17.3 7.7"/></svg>';
 
     // ---- stav ------------------------------------------------------------------
     var _aId = null, _bId = null;

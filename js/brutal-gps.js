@@ -256,7 +256,7 @@
         var el = document.createElement('div');
         el.id = 'ag-bgps-overlay';
         el.innerHTML =
-            '<div class="bgps-top"><h2>' + ICON + ' Brutální GPS</h2><button class="bgps-x" type="button" aria-label="Zavřít" id="bgps-close">×</button></div>'
+            '<div class="bgps-top"><h2>' + ICON + ' Přesná GPS</h2><button class="bgps-x" type="button" aria-label="Zavřít" id="bgps-close">×</button></div>'
             + '<p class="bgps-sub">Statické vysoce přesné měření jen z mobilu. Polož telefon <b>na plocho, displejem nahoru</b>, mimo tělo a kov, na měřený bod — a nech ležet. Čím déle, tím líp.</p>'
             + '<div class="bgps-dur"><span class="bgps-dur-lbl">Plánovaná doba (ve čtvrtinách vyzve otočit o 90°)</span><div class="bgps-dur-chips" id="bgps-dur-chips"></div></div>'
             + '<div class="bgps-ring-wrap"><div class="bgps-ring">' + ringSvg()
@@ -562,7 +562,7 @@
     // ====== registrace =========================================================
     function register() {
         if (typeof window.agRegisterFieldTool === 'function') {
-            window.agRegisterFieldTool({ id: 'brutal-gps', label: 'Brutální GPS', icon: ICON, onClick: open, order: 5 });
+            window.agRegisterFieldTool({ id: 'brutal-gps', label: 'Přesná GPS (dlouhé průměrování)', icon: ICON, onClick: open, order: 5 });
         }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', register);

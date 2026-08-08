@@ -199,15 +199,18 @@
 
     function removeRec(rec) { save(load().filter(function (r) { return !(r.t === rec.t && r.type === rec.type); })); }
 
+    // Koš BÝVAL položkou menu „Více". Přesunut do Nástrojů: „Více" má být o aplikaci
+    // (návod, o aplikaci, sdílení, offline), zatímco obnova smazaného bodu je práce
+    // s daty zakázky — tedy nástroj. Navíc se tím zapojí do hledání v Nástrojích.
     function injectMenuBtn() {
-        var scroll = document.querySelector('#side-menu .menu-scroll');
-        if (!scroll || document.getElementById('trash-menu-btn')) return;
-        var btn = document.createElement('button');
-        btn.className = 'menu-btn'; btn.id = 'trash-menu-btn';
-        btn.innerHTML = '<svg class="icon"><use href="#i-trash"/></svg> Koš (smazané)';
-        btn.addEventListener('click', function () { show(); if (typeof toggleMenu === 'function') toggleMenu(); });
-        var anchor = scroll.querySelector('hr');
-        if (anchor) scroll.insertBefore(btn, anchor); else scroll.appendChild(btn);
+        var old = document.getElementById('trash-menu-btn');   // úklid po starší verzi
+        if (old && old.parentNode) old.parentNode.removeChild(old);
+        if (typeof window.agRegisterFieldTool !== 'function') return;
+        window.agRegisterFieldTool({
+            id: 'kos', label: 'Koš (smazané)',
+            icon: '<svg class="icon"><use href="#i-trash"/></svg>',
+            cat: 'Pomůcky', order: 64, onClick: show
+        });
     }
 
     function init() {
@@ -215,4 +218,6 @@
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
+    // field-tools.js (vlastník mřížky) se může načíst po nás → registraci zkusit znovu
+    window.addEventListener('load', function () { setTimeout(injectMenuBtn, 600); });
 })();

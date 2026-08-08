@@ -90,17 +90,22 @@
 
     window.agErrLog = { show: show, list: load, record: function (m) { record(m, 'manual', 0, 0, ''); } };
 
-    // Tlačítko do menu „Více" (vloží se za „O aplikaci", ať nerozbíjí layout indexu)
+    // Protokol chyb BÝVAL položkou menu „Více". Přesunut do Nástrojů — v „Více" má
+    // zůstat jen to, co je o aplikaci samotné. Skončí v sekci „Další nástroje", která
+    // je ve seznamu úkonů výchozně sbalená, což diagnostice přesně odpovídá:
+    // dostupná na dvě klepnutí, ale nestojí v cestě měřickým nástrojům.
     function injectMenuBtn() {
-        var scroll = document.querySelector('#side-menu .menu-scroll');
-        if (!scroll || document.getElementById('errlog-menu-btn')) return;
-        var btn = document.createElement('button');
-        btn.className = 'menu-btn'; btn.id = 'errlog-menu-btn';
-        btn.innerHTML = '<svg class="icon"><use href="#i-alert"/></svg> Protokol chyb';
-        btn.addEventListener('click', function () { show(); if (typeof toggleMenu === 'function') toggleMenu(); });
-        var anchor = scroll.querySelector('hr');
-        if (anchor) scroll.insertBefore(btn, anchor); else scroll.appendChild(btn);
+        var old = document.getElementById('errlog-menu-btn');   // úklid po starší verzi
+        if (old && old.parentNode) old.parentNode.removeChild(old);
+        if (typeof window.agRegisterFieldTool !== 'function') return;
+        window.agRegisterFieldTool({
+            id: 'err-log', label: 'Protokol chyb',
+            icon: '<svg class="icon"><use href="#i-alert"/></svg>',
+            cat: 'Pomůcky', order: 90, onClick: show
+        });
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', injectMenuBtn);
     else injectMenuBtn();
+    // field-tools.js se může načíst po nás → zkusit registraci ještě po load
+    window.addEventListener('load', function () { setTimeout(injectMenuBtn, 600); });
 })();

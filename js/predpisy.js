@@ -186,7 +186,7 @@
     // je jen nouzový fallback, když field-tools.js chybí (odpojitelnost).
     function injectMenuButton() {
         if (typeof window.agRegisterFieldTool === 'function') {
-            window.agRegisterFieldTool({ id: 'predpisy', label: 'Předpisy & odchylky', icon: '<svg class="icon"><use href="#i-scale"/></svg>', cat: 'Pomůcky', onClick: openReader, order: 60 });
+            window.agRegisterFieldTool({ id: 'predpisy', label: 'Předpisy a odchylky', icon: '<svg class="icon"><use href="#i-scale"/></svg>', cat: 'Pomůcky', onClick: openReader, order: 60 });
             var stale = document.getElementById('prd-menu-btn'); if (stale) stale.remove();
             return;
         }

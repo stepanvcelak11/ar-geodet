@@ -344,7 +344,7 @@
     // --------------------------------------------------------------------------------
     function injectMenuButton() {
         if (typeof window.agRegisterFieldTool === 'function') {
-            window.agRegisterFieldTool({ id: 'ref-calibration', label: 'Kalibrace na ref. bod', icon: '<svg class="icon"><use href="#i-crosshair"/></svg>', cat: 'Pomůcky', onClick: open, order: 70 });
+            window.agRegisterFieldTool({ id: 'ref-calibration', label: 'Kalibrace na ref. bod', icon: '<svg class="icon"><use href="#i-crosshair"/></svg>', cat: 'AR a kalibrace', onClick: open, order: 70 });
             var stale = document.getElementById('agref-launch'); if (stale) stale.remove();
             return;
         }

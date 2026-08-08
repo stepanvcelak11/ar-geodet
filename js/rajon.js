@@ -411,7 +411,7 @@
             });
         } catch (e) {}
         if (typeof window.agRegisterFieldTool === 'function') {
-            window.agRegisterFieldTool({ id: 'rajon', label: 'Rajón (nový bod ze směru + délky)', icon: ICON, cat: 'AR a kalibrace', onClick: openTool, order: 7 });
+            window.agRegisterFieldTool({ id: 'rajon', label: 'Rajón (nový bod ze směru + délky)', icon: ICON, cat: 'Měření', onClick: openTool, order: 7 });
         } else {
             ensureFallbackFab();
         }

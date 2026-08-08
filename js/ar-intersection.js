@@ -547,7 +547,7 @@
             });
         } catch (e) {}
         if (typeof window.agRegisterFieldTool === 'function') {
-            window.agRegisterFieldTool({ id: 'ar-intersection', label: 'Protínání vpřed (neznámý bod)', icon: ICON, onClick: openTool, order: 6 });
+            window.agRegisterFieldTool({ id: 'ar-intersection', label: 'Protínání vpřed (neznámý bod)', icon: ICON, cat: 'Měření', onClick: openTool, order: 6 });
         } else {
             ensureFallbackFab();
         }

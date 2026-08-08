@@ -106,22 +106,18 @@
         cb.addEventListener('change', function () { setSimple(cb.checked); sync(); });
     }
 
-    // ---- volba typu práce nad mřížkou Nástrojů -----------------------------------------
-    function injectProfileRow() {
-        if (document.getElementById('ag-ts-prof')) return;
-        var m = document.getElementById('tools-modal'); if (!m) return;
-        var body = m.querySelector('.modal-body'); if (!body) return;
-        var grid = getGrid(); if (!grid) return;
-        var div = document.createElement('div');
-        div.id = 'ag-ts-prof';
-        var opts = PROF_ORDER.map(function (id) { return '<option value="' + id + '">' + PROFILES[id].label + '</option>'; }).join('');
-        div.innerHTML = '<label>Typ práce<small>volitelné, platí pro aktivní zakázku</small></label>'
-            + '<select id="ag-ts-profsel" class="st-sel">' + opts + '</select>';
-        body.insertBefore(div, grid);
-        div.querySelector('#ag-ts-profsel').addEventListener('change', function () {
-            setProfileId(this.value); sync();
-        });
-    }
+    // ---- volba typu práce: UŽ NE nad mřížkou Nástrojů ----------------------------------
+    // Select „Typ práce" tady BÝVAL, ale byl to druhý ovladač téže volby — první je
+    // karta režimu práce na úvodní obrazovce (js/rezim-prace.js), a ta je vidět dřív.
+    // Nad seznamem nástrojů zabíral místo a nutil se rozhodovat, než se člověk vůbec
+    // dostal k první položce. Volba samotná ZŮSTÁVÁ v plné funkci — mění se jen to,
+    // odkud se nastavuje; profil se dál čte z agWorkProfile::<pid> a dlaždice se dál
+    // značí (tagTiles) i zvýrazňují v sekci „Pro tuto práci".
+    //
+    // Kód, který si select hledal, je všude ošetřený na jeho neexistenci:
+    // tools-simple sync() (`if (sel && …)`), rezim-prace fixSelect() (`if (!sel) return`)
+    // a nastroje-ukony profileLabel() (select byl jen záloha za AGToolsSimple.profiles).
+    // Vrácení: obnov tuhle funkci z historie a zavolej ji zpátky v sync().
 
     // ---- sekce „Pro tuto práci" (přesun originálních dlaždic, kotvy pro návrat) --------
     function findTile(grid, key) {
@@ -256,7 +252,7 @@
     // ---- hlavní sync (idempotentní, volaný periodicky jako ostatní moduly) ---------------
     function sync() {
         var grid = getGrid(); if (!grid) return;
-        injectStyles(); injectSettingRow(); injectProfileRow(); wireSearchAndClose();
+        injectStyles(); injectSettingRow(); wireSearchAndClose();
         var prof = profileId();
         var sel = document.getElementById('ag-ts-profsel');
         if (sel && sel.value !== prof && document.activeElement !== sel) sel.value = prof;   // po přepnutí zakázky

@@ -437,7 +437,7 @@
     function injectMenuButton() {
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({
-                id: 'cadastre-area', label: 'Stáhnout body z výřezu mapy', icon: '<svg class="icon"><use href="#i-grid"/></svg>', cat: 'Katastr a data', order: 40,
+                id: 'cadastre-area', label: 'Stáhnout body z výřezu mapy', icon: '<svg class="icon"><use href="#i-map-download"/></svg>', cat: 'Katastr a data', order: 40,
                 onClick: function () { try { runImport(); } catch (err) { console.warn('[cadastre-area]', err); } }
             });
             var stale = document.getElementById('cad-area-btn'); if (stale) stale.remove();

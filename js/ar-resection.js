@@ -13,7 +13,7 @@
 //   Sever se aplikuje přes existující nudgeHeadingOffset() (stejná páka jako
 //   „Srovnání severu"), takže přežije i uložení. Stanovisko lze uložit jako bod.
 //
-// Vstup: tlačítko „AR resekce (poloha + sever)" v launcheru (js/field-tools.js);
+// Vstup: tlačítko „Resekce ze známých bodů (poloha + sever)" v launcheru (js/field-tools.js);
 //        když launcher chybí, modul si vyrobí vlastní plovoucí tlačítko.
 // Odstranění: smaž js/ar-resection.js + řádek <script> v index.html (a v sw.js).
 // ================================================================================
@@ -206,7 +206,7 @@
         el.className = 'modal-overlay'; el.id = 'agrx-modal'; el.style.zIndex = '100001';
         el.innerHTML =
             '<div class="modal-content">'
-            + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' AR resekce — poloha a sever z bodů</h3>'
+            + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Resekce — poloha a sever ze známých bodů</h3>'
             + '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.82;margin:2px 0 8px;line-height:1.45;">Z telefonu „totálka": zaměř křížem kamery <b>2–4 viditelné známé body</b>. '
             + 'Z rozdílů azimutů appka srovná sever (a při <b>3+</b> bodech i dopočítá tvoji přesnou polohu). '
             + 'Rozdíly azimutů ruší chybu kompasu, takže to funguje i tam, kde magnetometr blbne.</p>'
@@ -502,7 +502,7 @@
     function register() {
         injectStyles();
         if (typeof window.agRegisterFieldTool === 'function') {
-            window.agRegisterFieldTool({ id: 'ar-resection', label: 'AR resekce (poloha + sever)', icon: ICON, onClick: openTool, order: 5 });
+            window.agRegisterFieldTool({ id: 'ar-resection', label: 'Resekce ze známých bodů (poloha + sever)', icon: ICON, onClick: openTool, order: 5 });
         } else {
             ensureFallbackFab();
         }
@@ -510,7 +510,7 @@
     function ensureFallbackFab() {
         if (document.getElementById('agrx-fab') || typeof window.agRegisterFieldTool === 'function') return;
         var b = document.createElement('button'); b.id = 'agrx-fab'; b.type = 'button';
-        b.title = 'AR resekce'; b.innerHTML = ICON;
+        b.title = 'Resekce ze známých bodů'; b.innerHTML = ICON;
         b.style.cssText = 'position:fixed;left:12px;bottom:160px;z-index:99990;width:48px;height:48px;border:none;border-radius:14px;background:var(--accent,#2f9e74);color:#04110b;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,0.45);';
         b.querySelector('svg').style.cssText = 'width:24px;height:24px;';
         b.addEventListener('click', openTool);

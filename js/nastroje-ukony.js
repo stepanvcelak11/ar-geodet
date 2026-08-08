@@ -1,16 +1,20 @@
 // ===== AR Geodet — NÁSTROJE JAKO SEZNAM ÚKONŮ (ODPOJITELNÁ vrstva) =============
-// PROBLÉM: Nástroje mají 61 dlaždic v 6 kategoriích. Kategorie „Pomůcky" jich
-// nese 17 a je to skládka (Kalkulačka, Docházka, Počasí, Předpisy, Kniha jízd…).
-// Pět dlaždic je zatoulaných (Kalibrace na ref. bod patří k AR, GNSS satelity
-// a Predikce signálu jsou dávno v rozcestníku „Signál GNSS"), kategorie
-// „Data a přenos" má jedinou dlaždici. Hledat mezi ikonami v rukavicích na slunci
-// je pomalé — geodet neví „která ikona", ví „co chci udělat".
+// PROBLÉM: Nástroje měly 70 dlaždic v 6 kategoriích. Kategorie „Pomůcky" jich
+// nesla 23 a byla to skládka (Kalkulačka, Docházka, Počasí, Předpisy, Kniha jízd…),
+// dlaždice byly zatoulané (Kalibrace na ref. bod patří k AR, Rajón není kalibrace)
+// a kategorie „Terénní nástroje" měla jedinou dlaždici. Hledat mezi ikonami
+// v rukavicích na slunci je pomalé — geodet neví „která ikona", ví „co chci udělat".
 //
-// ŘEŠENÍ: druhý POHLED ve stejném okně, přepínač nahoře:
-//   • ÚKONY (výchozí) — svislý seznam sloves: Změřit · Určit nový bod · Vytyčit ·
-//     Zaznamenat · Srovnat AR · Zjistit podmínky · Katastr a podklady ·
-//     Před výjezdem · Firma a papíry · Příručka a výpočty.
-//   • VŠE — původní mřížka beze změny (záložní cesta pro toho, kdo je na ni zvyklý).
+// ŘEŠENÍ: JEDINÝ pohled — svislý seznam sloves: Změřit · Určit nový bod · Vytyčit ·
+// Zaznamenat · Srovnat AR · Zjistit podmínky · Katastr a podklady · Před výjezdem ·
+// Firma a papíry · Příručka a výpočty (+ záchytné „Další nástroje").
+//
+// PROČ UŽ NE DVA POHLEDY: dřív tu byl přepínač „Úkony / Vše" a mřížka byla druhý
+// plnohodnotný pohled. Měřením v prohlížeči se ukázalo, že týž nástroj je v jednom
+// pohledu na jedno klepnutí a ve druhém dvě (schovaný v rozcestníku) — a pod jiným
+// názvem („Brutální GPS" × „Přesnou GPS", „AR resekce" × „Resekcí ze známých bodů").
+// Naučená cesta v jednom pohledu tedy v druhém neplatila. Přepínač je odstraněn,
+// mřížka zůstává v DOM jako klikací cíl a ukazuje se při HLEDÁNÍ.
 //
 // KLÍČOVÉ: seznam si NEVEDE vlastní nástroje. Každá položka jen KLIKNE na svou
 // (schovanou) dlaždici v mřížce — takže dál platí všechno, co na mřížce staví
@@ -25,6 +29,11 @@
 // předchozí vystřídá až ve chvíli, kdy skupina opravdu končí. Vedle názvu je počet
 // položek, mezi skupinami je mezera a linka — dlouhý seznam se tím dá projet očima
 // po blocích místo jednoho nekonečného sloupce.
+//
+// SKUPINY JSOU SBALITELNÉ (nadpis = tlačítko, stav v agUkonyClosed_v1). Plochý seznam
+// všech nástrojů je vysoký 4585 px v okně 640 px, tedy 7,2 obrazovky; se sbalenými
+// papíry a příručkou 3725 px a se všemi sbalenými se vejde na jednu obrazovku.
+// Nic se sbalením neschovává — je to jedno klepnutí a stav se pamatuje.
 //
 // Hledání se nepřepisuje: jakmile začneš psát, pohled se přepne na mřížku, kde
 // běží chytré vyhledávání z field-tools.js (synonyma, překlepy, řazení). Po
@@ -85,7 +94,8 @@
                 { k: 'denik-dne', l: 'Deník dne' },
                 { k: 'track-log', l: 'Stopu trasy' },
                 { k: 'geo-foto', l: 'Fotku s razítkem', h: 'S-JTSK, výška, čas a azimut ve fotce' },
-                { k: 'epochy', l: 'Epochy — posuny v čase', h: 'opakované měření bodu' }
+                { k: 'epochy', l: 'Epochy — posuny v čase', h: 'opakované měření bodu' },
+                { k: 'kos', l: 'Obnovit smazaný bod', h: 'koš — body i zakázky, 30 dní' }
             ]
         },
         {
@@ -107,7 +117,8 @@
                 { k: 'sky-obstruction', l: 'Predikci signálu', h: 'maska překážek' },
                 { k: 'gnss-forecast', l: 'Kdy bude nejlíp měřit', h: 'GNSS předpověď' },
                 { k: 'pocasi', l: 'Počasí' },
-                { k: 'slunce', l: 'Slunce a světlo', h: 'protisvětlo, soumrak' }
+                { k: 'slunce', l: 'Slunce a světlo', h: 'protisvětlo, soumrak' },
+                { k: 'dronview', l: 'Dronové zóny', h: 'omezení vzdušného prostoru (ŘLP)' }
             ]
         },
         {
@@ -167,10 +178,13 @@
     function body() { var m = modal(); return m ? m.querySelector('.modal-body') : null; }
     function searchVal() { var i = document.getElementById('tools-search'); return i ? (i.value || '').trim() : ''; }
 
-    function view() {
-        try { return localStorage.getItem(VIEW_KEY) === 'vse' ? 'vse' : 'ukony'; } catch (e) { return 'ukony'; }
-    }
-    function setView(v) { try { localStorage.setItem(VIEW_KEY, v); } catch (e) {} }
+    // Pohled je JEDEN — seznam úkonů. Mřížka zůstává v DOM (klikací cíl pro run(),
+    // a hlavně ji ukazuje HLEDÁNÍ, kde běží chytré vyhledávání z field-tools.js),
+    // ale jako druhý plnohodnotný pohled se už nenabízí: týž nástroj v ní byl jinak
+    // hluboko a pod jiným názvem než v seznamu, takže naučená cesta v jednom pohledu
+    // v druhém neplatila. Klíč agToolsView_v1 se dál čte kvůli starým instalacím,
+    // ale 'vse' už z něj nemůže vyjít.
+    function view() { return 'ukony'; }
 
     // klíč dlaždice — stejná logika jako v ostatních modulech mřížky
     function tileKey(tile) {
@@ -219,17 +233,6 @@
         var st = document.createElement('style');
         st.id = STYLE_ID;
         st.textContent = [
-            // přepínač pohledu
-            '#' + SEG_ID + '{display:flex;gap:4px;padding:4px;margin:0 0 10px;border-radius:12px;',
-            '  background:var(--surface-1,rgba(255,255,255,0.05));',
-            '  border:1px solid var(--glass-border,rgba(255,255,255,0.10));}',
-            '#' + SEG_ID + ' button{flex:1;appearance:none;border:0;background:transparent;cursor:pointer;',
-            '  padding:9px 10px;border-radius:9px;color:var(--text-muted,#9aa1ac);',
-            '  font:600 13px/1 var(--font-ui,system-ui),sans-serif;}',
-            '#' + SEG_ID + ' button[aria-pressed="true"]{background:var(--accent-soft,rgba(47,158,116,0.18));',
-            '  color:var(--accent-bright,#34d399);}',
-            '#' + SEG_ID + ' button:focus-visible{outline:2px solid var(--accent,#2f9e74);outline-offset:2px;}',
-
             // seznam úkonů
             '#' + LIST_ID + '{display:none;}',
             'body.ag-uk-on #' + LIST_ID + '{display:block;}',
@@ -269,6 +272,25 @@
             '  background:var(--accent-soft,rgba(47,158,116,0.13));}',
             '.ag-uk-now .ag-uk-i{background:transparent;border:0;margin:0;padding:6px 0;}',
             '.ag-uk-now .ag-uk-i + .ag-uk-i{border-top:1px solid var(--glass-border,rgba(255,255,255,0.10));}',
+            // sbalitelná skupina: šipka ukazuje stav, zavřená skryje své položky
+            // nadpis je <button> — prohlížeč by mu jinak nakreslil vlastní rám a šířku.
+            // border se musí přepsat CELÝ a spodní linka vrátit, jinak ji zruší reset.
+            '.ag-uk-h{width:100%;-webkit-appearance:none;appearance:none;text-align:left;cursor:pointer;',
+            '  border:0;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.12));',
+            '  -webkit-user-select:none;user-select:none;}',
+            '.ag-uk-h::after{content:"▾";margin-left:8px;font-size:calc(11px * var(--ag-font-scale, 1));',
+            '  color:var(--text-muted,#9aa1ac);}',
+            '.ag-uk-closed > .ag-uk-h::after{content:"▸";}',
+            '.ag-uk-closed > .ag-uk-i{display:none;}',
+            '.ag-uk-h:focus-visible{outline:2px solid var(--accent,#2f9e74);outline-offset:2px;}',
+            // patička seznamu — co se dělá zřídka (průvodce, úprava oblíbených).
+            // Odsazená linkou, ať je vidět, že tady seznam nástrojů končí.
+            '.ag-uk-foot{margin:18px 0 0;padding-top:12px;',
+            '  border-top:1px solid var(--glass-border,rgba(255,255,255,0.10));}',
+            '.ag-uk-foot .ag-uk-i{background:transparent;}',
+            // tlačítko oblíbených si vyrábí tools-plus.js; v patičce ho zesvětlíme,
+            // ať nepřebíjí vlastní nástroje nad sebou
+            '.ag-uk-foot #ag-tp-editbtn{width:100%;margin:8px 0 0;}',
             'body.ag-glove .ag-uk-i{padding:15px 14px;}',
             'body.ag-glove .ag-uk-tx b{font-size:calc(15.5px * var(--ag-font-scale, 1));}'
         ].join('\n');
@@ -276,35 +298,13 @@
     }
 
     // ---- přepínač pohledu ------------------------------------------------------------
-    function ensureSeg() {
-        if (document.getElementById(SEG_ID)) return;
-        var b = body(); var g = grid();
-        if (!b || !g) return;
-        var seg = document.createElement('div');
-        seg.id = SEG_ID;
-        seg.setAttribute('role', 'group');
-        seg.setAttribute('aria-label', 'Pohled na nástroje');
-        seg.innerHTML = '<button type="button" data-v="ukony">Úkony</button>'
-            + '<button type="button" data-v="vse">Vše</button>';
-        b.insertBefore(seg, b.firstChild);
-        seg.addEventListener('click', function (ev) {
-            var t = ev.target.closest ? ev.target.closest('button[data-v]') : null;
-            if (!t) return;
-            setView(t.getAttribute('data-v'));
-            var inp = document.getElementById('tools-search');
-            if (inp && inp.value) { inp.value = ''; try { window.agFilterTools && window.agFilterTools(''); } catch (e) {} }
-            sync();
-        });
-    }
-    function syncSeg(active) {
-        var seg = document.getElementById(SEG_ID); if (!seg) return;
-        var bs = seg.querySelectorAll('button[data-v]');
-        var n = grid() ? grid().querySelectorAll('.tool-tile').length : 0;
-        for (var i = 0; i < bs.length; i++) {
-            var v = bs[i].getAttribute('data-v');
-            bs[i].setAttribute('aria-pressed', String(v === active));
-            if (v === 'vse') bs[i].textContent = 'Vše' + (n ? ' (' + n + ')' : '');
-        }
+    // Přepínač „Úkony / Vše" byl TADY. Odstraněn: dva pohledy na týž obsah znamenaly
+    // dvě různé cesty i dvě různá jména pro jeden nástroj. Kdyby se měl někdy vrátit,
+    // je celý v historii tohohle souboru (funkce ensureSeg + syncSeg).
+    // Zbytek po něm uklidíme, kdyby v DOM zůstal ze starší verze appky:
+    function dropSeg() {
+        var seg = document.getElementById(SEG_ID);
+        if (seg && seg.parentNode) seg.parentNode.removeChild(seg);
     }
 
     // ---- „Teď" — Pokračovat + Průvodce na jednom místě --------------------------------
@@ -314,22 +314,43 @@
         if (Date.now() - r.ts > 48 * 3600 * 1000) return null;
         return findTile(r.key) ? r : null;
     }
+    // NAHOŘE zůstává jen „Pokračovat" — to není organizátor, ale zkratka na jeden
+    // konkrétní nástroj, který jsi měl v ruce naposledy. V terénu je to nejčastější
+    // další klik, takže si první řádek zaslouží.
     function nowBlock() {
         var rec = lastTool();
-        var hasGuide = (typeof window.openPruvodce === 'function');
-        if (!rec && !hasGuide) return null;
+        if (!rec) return null;
         var box = document.createElement('div');
         box.className = 'ag-uk-now';
-        if (rec) {
-            box.appendChild(item({ l: 'Pokračovat: ' + rec.label, h: 'naposledy použitý nástroj' }, function () { run(rec.key); }));
-        }
-        if (hasGuide) {
+        box.appendChild(item({ l: 'Pokračovat: ' + rec.label, h: 'naposledy použitý nástroj' }, function () { run(rec.key); }));
+        return box;
+    }
+
+    // DOLE naopak to, co se dělá zřídka a nemá stát v cestě k nástrojům: průvodce
+    // („Poradit, co použít" — je i v menu Více jako „Průvodce úkolem") a přepnutí do
+    // režimu úprav oblíbených. Tlačítko oblíbených si staví tools-plus.js a vkládá ho
+    // na začátek .modal-body; tady ho jen PŘESTĚHUJEME (nevyrábíme druhé), takže jeho
+    // vlastní logika i text „✓ Hotovo" fungují dál.
+    function footBlock() {
+        var box = document.createElement('div');
+        box.className = 'ag-uk-foot';
+        if (typeof window.openPruvodce === 'function') {
             box.appendChild(item({ l: 'Poradit, co použít', h: 'průvodce úkolem' }, function () {
                 var m = modal(); if (m) m.style.display = 'none';
                 try { window.openPruvodce(); } catch (e) {}
             }));
         }
         return box;
+    }
+    // Přesun tlačítka oblíbených do patičky seznamu. Idempotentní — když už tam je,
+    // nic nedělá, takže to smí volat periodický sync().
+    function adoptFavBtn() {
+        var btn = document.getElementById('ag-tp-editbtn');
+        var host = document.getElementById(LIST_ID);
+        if (!btn || !host) return;
+        var foot = host.querySelector('.ag-uk-foot');
+        if (!foot || btn.parentNode === foot) return;
+        foot.appendChild(btn);
     }
 
     // ---- položka seznamu -----------------------------------------------------------------
@@ -347,6 +368,31 @@
     // ---- sestavení seznamu ------------------------------------------------------------------
     // Přestavuje se jen když se změní složení mřížky (dlaždice přibývají postupně,
     // jak se moduly registrují) — jinak by seznam problikával při každém tiku.
+    // ---- sbalené skupiny --------------------------------------------------------------
+    // Vlastní klíč, NE agToolCatsClosed_v1 z field-tools.js: ten drží názvy kategorií
+    // MŘÍŽKY („Měření“, „Pomůcky“), tady jsou názvy sloves („Změřit“, „Vytyčit“).
+    // Jeden klíč pro dvě různá názvosloví by se pletl, jakmile by se některý název
+    // shodl. VÝCHOZÍ STAV: zavřené jsou skupiny, které se v terénu neotvírají každý
+    // den — papíry a příručka. Nic se tím neschovává, jen to nestojí v cestě
+    // k měřickým nástrojům; jedno klepnutí a je to zpátky (a stav se pamatuje).
+    var CLOSED_KEY = 'agUkonyClosed_v1';
+    var CLOSED_DEFAULT = ['Před výjezdem', 'Firma a papíry', 'Příručka a výpočty', 'Další nástroje'];
+    function loadClosed() {
+        try {
+            var raw = localStorage.getItem(CLOSED_KEY);
+            if (raw == null) return CLOSED_DEFAULT.slice();
+            var a = JSON.parse(raw);
+            return Array.isArray(a) ? a : [];
+        } catch (e) { return []; }
+    }
+    function isClosed(title) { return loadClosed().indexOf(title) !== -1; }
+    function setClosed(title, closed) {
+        var a = loadClosed(), ix = a.indexOf(title);
+        if (closed && ix === -1) a.push(title);
+        else if (!closed && ix !== -1) a.splice(ix, 1);
+        try { localStorage.setItem(CLOSED_KEY, JSON.stringify(a)); } catch (e) {}
+    }
+
     function favKeys() {
         try { var a = JSON.parse(localStorage.getItem('agToolFavs_v1')); return Array.isArray(a) ? a : []; } catch (e) { return []; }
     }
@@ -407,9 +453,20 @@
         function section(title, count) {
             var sec = document.createElement('section');
             sec.className = 'ag-uk-g';
-            var h = document.createElement('div');
+            if (isClosed(title)) sec.classList.add('ag-uk-closed');
+            // Nadpis je TLAČÍTKO — sbalitelné skupiny jsou v Nástrojích už zavedené
+            // (mřížka je tak má z field-tools.js), takže seznam se chová stejně.
+            var h = document.createElement('button');
+            h.type = 'button';
             h.className = 'ag-uk-h';
+            h.setAttribute('aria-expanded', String(!isClosed(title)));
             h.innerHTML = '<span>' + esc(title) + '</span><span class="ag-uk-n">' + count + '</span>';
+            h.addEventListener('click', function () {
+                var nowClosed = !sec.classList.contains('ag-uk-closed');
+                sec.classList.toggle('ag-uk-closed', nowClosed);
+                h.setAttribute('aria-expanded', String(!nowClosed));
+                setClosed(title, nowClosed);
+            });
             sec.appendChild(h);
             host.appendChild(sec);
             return sec;
@@ -463,6 +520,8 @@
                 rsec.appendChild(item({ l: r.l }, function () { run(r.k); }, iconOf(r.k)));
             });
         }
+        host.appendChild(footBlock());
+        adoptFavBtn();
         host.setAttribute('data-sig', gridSig());
     }
 
@@ -470,7 +529,7 @@
     function sync() {
         injectStyles();
         if (!grid()) return;
-        ensureSeg();
+        dropSeg();
 
         // Při psaní jde slovo mřížce — tam běží chytré hledání se synonymy,
         // překlepy a řazením z field-tools.js. Psát ho znovu by bylo horší.
@@ -481,7 +540,9 @@
         if (active === 'ukony' && (!host || host.getAttribute('data-sig') !== gridSig())) build();
 
         document.body.classList.toggle('ag-uk-on', active === 'ukony');
-        syncSeg(q ? 'vse' : view());
+        // tools-plus.js si tlačítko oblíbených vkládá zpátky na začátek .modal-body,
+        // kdykoli ho tam nenajde — tak ho po každém ticku vrátíme do patičky seznamu.
+        if (active === 'ukony') adoptFavBtn();
     }
 
     function init() {
@@ -499,5 +560,7 @@
     else init();
     window.addEventListener('load', function () { setTimeout(init, 500); });
 
-    window.AGUkony = { rebuild: build, setView: function (v) { setView(v); sync(); } };
+    // setView() zrušen spolu s přepínačem pohledů — pohled je jeden. Necháváme ho
+    // v API jako no-op, aby starší volání odjinud nespadlo na „not a function".
+    window.AGUkony = { rebuild: build, setView: function () { sync(); } };
 })();
