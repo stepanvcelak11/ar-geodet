@@ -986,6 +986,16 @@
     <script type="ag/lazy" data-src="js/brifink.js"></script>
     <!-- HLASOVÉ POZNÁMKY s georazítkem (odpojitelné: smaž tento řádek + js/hlasovky.js) — namluvené poznámky s časem, S-JTSK polohou a nejbližším bodem; sbírá je Deník dne -->
     <script type="ag/lazy" data-src="js/hlasovky.js"></script>
+    <!-- HLASOVÉ KÓDOVÁNÍ BODU (odpojitelné: smaž tento řádek + js/hlas-kod.js) — „Bod 105, roh plotu, poznámka…" → číslo/kód/poznámka + uložení z průměrované GPS -->
+    <script type="ag/lazy" data-src="js/hlas-kod.js"></script>
+    <!-- GEO-FOTKA (odpojitelné: smaž tento řádek + js/geo-foto.js) — fotka s vypáleným razítkem (S-JTSK, Bpv, čas, azimut), řetěz otisků SHA-256, tiskový protokol -->
+    <script type="ag/lazy" data-src="js/geo-foto.js"></script>
+    <!-- VYSÍLAČKA (odpojitelné: smaž tento řádek + js/vysilacka.js) — kde je kdo, rychlé zprávy, Man Down; staví na js/ucty.js (/pos + /chat) -->
+    <script type="ag/lazy" data-src="js/vysilacka.js"></script>
+    <!-- UVNITŘ BUDOVY (odpojitelné: smaž tento řádek + js/indoor.js) — poloha bez GPS: WebXR nebo kroky, přesedlání na známé body; sdílí kalibraci s js/pdr-offset.js -->
+    <script type="ag/lazy" data-src="js/indoor.js"></script>
+    <!-- OBCHŮZKA VÝKOPU (odpojitelné: smaž tento řádek + js/obchuzka.js) — kubatura z obejité hrany + dna (komolý jehlan), předání do js/dmt-volume.js -->
+    <script type="ag/lazy" data-src="js/obchuzka.js"></script>
     <!-- SLUNCE A SVĚTLO (odpojitelné: smaž tento řádek + js/slunce.js) — východ/západ, zbývá světla, stíny, protisvětlo na záměře; vystavuje window.AGSun -->
     <script defer src="js/slunce.js"></script>
     <!-- KDE MÁM AUTO (odpojitelné: smaž tento řádek + js/kde-je.js) — značky auto/báze/stativ + navigační šipka -->

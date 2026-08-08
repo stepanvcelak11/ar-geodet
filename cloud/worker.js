@@ -221,6 +221,25 @@ function jobVisible(row, me) {
     } catch (e) { return true; }
 }
 
+// ---- živá poloha lidí ve firmě (klient js/vysilacka.js) --------------------
+// ZÁMĚRNĚ NENÍ ŽURNÁL: jeden řádek na uživatele, který se přepisuje (UPSERT).
+// Kdyby se poloha psala jako zprávy do /chat, vytlačila by z historie skutečné
+// zprávy (server drží posledních ~500) a tabulka by rostla donekonečna. Takhle
+// má tabulka nejvýš tolik řádků, kolik má firma lidí, a stará poloha se sama
+// přepíše novou. Historie stopy tu ZÁMĚRNĚ není — vysílačka odpovídá na otázku
+// „kde je kolega teď", ne „kudy dneska chodil" (to je sledování zaměstnanců).
+//   st  = krátký stav („měřím", „hledám bod", …), sos = 1 při nouzi (Man Down)
+let _posReady = false;
+async function ensurePosTable(env) {
+    if (_posReady) return;
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS pos (' +
+        'firm_id TEXT NOT NULL, uid TEXT NOT NULL, uname TEXT, ' +
+        'lat REAL, lng REAL, acc REAL, st TEXT, job TEXT, ' +
+        'sos INTEGER NOT NULL DEFAULT 0, sos_ts INTEGER, ' +
+        'ts INTEGER NOT NULL, PRIMARY KEY (firm_id, uid))').run();
+    _posReady = true;
+}
+
 async function lastActiveAdminGuard(env, firmId, exceptUserId) {
     // vrací true, když po vyřazení exceptUserId zůstane aspoň jeden aktivní admin
     const row = await env.DB.prepare(
@@ -623,6 +642,47 @@ export default {
                     .results.forEach(r2 => { names[r2.id] = r2.name; });
                 rows.forEach(r3 => { if (r3.to_uid) r3.toName = names[r3.to_uid] || '?'; });
                 return json({ messages: rows, serverTime: Date.now(), me: { id: me.id, name: me.name } });
+            }
+
+            // ---------------- živá poloha (vysílačka) --------------------------
+            // Ohlášení vlastní polohy. Klient posílá řídce (viz js/vysilacka.js) —
+            // server nic nevynucuje, jen přepíše poslední známý stav.
+            if (req.method === 'POST' && path === '/pos') {
+                await ensurePosTable(env);
+                const b = await req.json().catch(() => null);
+                if (!b) return err(400, 'Chybí tělo.');
+                const num = (v, min, max) => {
+                    const n = Number(v);
+                    return (isFinite(n) && n >= min && n <= max) ? n : null;
+                };
+                const lat = num(b.lat, -90, 90), lng = num(b.lng, -180, 180);
+                const acc = num(b.acc, 0, 100000);
+                const st = b.st ? String(b.st).slice(0, 40) : null;
+                const job = b.job ? String(b.job).slice(0, 80) : null;
+                const sos = b.sos ? 1 : 0;
+                const now = Date.now();
+                // sos_ts se drží od PRVNÍHO nouzového hlášení — ať je v seznamu vidět,
+                // jak dlouho už poplach trvá, i když poloha mezitím doběhla novější
+                const old = await env.DB.prepare('SELECT sos, sos_ts FROM pos WHERE firm_id=? AND uid=?')
+                    .bind(me.firm_id, me.id).first();
+                const sosTs = sos ? ((old && old.sos && old.sos_ts) ? old.sos_ts : now) : null;
+                await env.DB.prepare(
+                    'INSERT OR REPLACE INTO pos(firm_id,uid,uname,lat,lng,acc,st,job,sos,sos_ts,ts) VALUES(?,?,?,?,?,?,?,?,?,?,?)')
+                    .bind(me.firm_id, me.id, me.name, lat, lng, acc, st, job, sos, sosTs, now).run();
+                return json({ ok: true, ts: now });
+            }
+
+            // Kdo je kde. Vrací jen čerstvé záznamy — stará poloha je horší než žádná,
+            // protože podle ní by se kolega hledal na místě, kde dávno není. Nouze
+            // (sos) drží delší okno, aby poplach nezmizel dřív, než se k němu někdo dostane.
+            if (req.method === 'GET' && path === '/pos') {
+                await ensurePosTable(env);
+                const now = Date.now();
+                const rows = (await env.DB.prepare(
+                    'SELECT uid, uname AS u, lat, lng, acc, st, job, sos, sos_ts AS sosTs, ts FROM pos ' +
+                    'WHERE firm_id=? AND (ts>? OR (sos=1 AND ts>?)) ORDER BY sos DESC, ts DESC LIMIT 60')
+                    .bind(me.firm_id, now - 30 * 60000, now - 6 * 3600000).all()).results;
+                return json({ people: rows, serverTime: now, me: { id: me.id, name: me.name } });
             }
 
             // ---------------- vytížení serveru (admin) -------------------------
