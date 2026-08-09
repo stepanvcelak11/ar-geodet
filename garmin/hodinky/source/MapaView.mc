@@ -113,8 +113,37 @@ class MapaView extends WatchUi.View {
             Podklad.kresli(dc, s.lat, s.lon, cx, cy, polomer, mkl, otoc);
         }
         _sever(dc, cx, cy, polomer, otoc);
+        _kCili(dc, cx, cy, polomer, mkl, otoc, s);
         _body(dc, cx, cy, polomer, mkl, otoc, s);
         _ja(dc, cx, cy, otoc, s);
+    }
+
+    //! Čárkovaná spojnice ke zvolenému bodu — „tudy se jde“.
+    //! Schválně bez jakéhokoli hlášení o překážkách: co je červené, vidí
+    //! člověk sám a rozhodne se líp než aplikace.
+    hidden function _kCili(dc, cx, cy, polomer, mkl, otoc, s) {
+        if (cil == null) { return; }
+
+        var d = Geo.vzdalenost(s.lat, s.lon, cil["la"], cil["lo"]);
+        var a = Geo.azimut(s.lat, s.lon, cil["la"], cil["lo"]) - otoc;
+        var r = d * mkl;
+        if (r > polomer) { r = polomer; }
+
+        var x = cx + r * Math.sin(a);
+        var y = cy - r * Math.cos(a);
+
+        var kroku = (r / 9).toNumber();
+        if (kroku < 2) { return; }
+
+        dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+        dc.setPenWidth(2);
+        for (var i = 0; i < kroku; i += 2) {
+            var t1 = i.toFloat() / kroku;
+            var t2 = (i + 1).toFloat() / kroku;
+            dc.drawLine(cx + (x - cx) * t1, cy + (y - cy) * t1,
+                        cx + (x - cx) * t2, cy + (y - cy) * t2);
+        }
+        dc.setPenWidth(1);
     }
 
     // ---- jednotlivé vrstvy -------------------------------------------

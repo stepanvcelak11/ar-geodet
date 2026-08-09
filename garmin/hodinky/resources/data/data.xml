@@ -7,4 +7,5 @@
         Zdroj dat: OpenStreetMap, licence ODbL.
     -->
     <jsonData id="Podklad" filename="podklad.json"/>
+    <jsonData id="Podklad2" filename="podklad2.json"/>
 </resources>

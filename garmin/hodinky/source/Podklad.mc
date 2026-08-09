@@ -3,60 +3,98 @@ using Toybox.Graphics;
 using Toybox.Math;
 using Toybox.WatchUi;
 
-//! Vektorový podklad pod body — čáry cest, vody a překážek.
+//! Vektorový podklad pod body — plochy, čáry cest a překážky.
 //!
 //! Do vestavěné mapy hodinek se aplikace Connect IQ nedostane, takže se
-//! kreslí vlastní čáry. Dlaždice je schválně hloupá a plochá:
+//! kreslí vlastní obraz. Dlaždice je schválně hloupá a plochá:
 //!
 //!   {"a":[lat,lon], "r":dosah_m,
-//!    "l":[[třída, minx,miny,maxx,maxy, x,y, x,y, …], …]}
+//!    "p":[[třída, minx,miny,maxx,maxy, x,y, …], …]   plochy
+//!    "l":[[třída, minx,miny,maxx,maxy, x,y, …], …]}  čáry
 //!
-//! Obálka každé čáry i pořadí čar podle důležitosti se počítají PŘEDEM,
-//! ve skriptu, který dlaždici vyrábí. Hodinky na to nemají: pouhé
+//! Souřadnice jsou CELÁ ČÍSLA v DECIMETRECH od kotvy (x k východu, y k
+//! severu). Na displeji, kde 450 m odpovídá zhruba stovce pixelů, je
+//! decimetr hluboko pod rozlišením, a celá čísla se v paměti hodinek drží
+//! mnohem líp než desetinná.
+//!
+//! Obálka každého prvku i pořadí podle důležitosti se počítají PŘEDEM, ve
+//! skriptu garmin/nastroje/dlazdice.py. Hodinky na to nemají: pouhé
 //! seskupení pěti set čar podle třídy tady shodilo aplikaci hláškou
 //! „Watchdog Tripped — Code Executed Too Long“.
 //!
-//! Souřadnice jsou CELÁ ČÍSLA v DECIMETRECH od kotvy (x k východu,
-//! y k severu). Na displeji, kde 450 m odpovídá zhruba stovce pixelů, je
-//! decimetr hluboko pod rozlišením, a celá čísla se v paměti hodinek drží
-//! mnohem líp než desetinná. Žádné vnořené objekty, žádné klíče u vrcholů.
-//!
-//! Zatím je dlaždice přibalená jako zdroj (okolí Prahy, na zkoušení
-//! v simulátoru). Ostrý provoz ji dostane z Cloudflare Workeru po
-//! dlaždicích 500 × 500 m a uloží do Application.Storage, aby podklad
-//! fungoval i bez signálu.
+//! Význam nese BARVA, ne tloušťka. Tloušťku si nikdo nezapamatuje;
+//! „zelená je les, žlutá pole, červená se neprojde“ ano.
 //!
 //! Zdroj dat: OpenStreetMap, licence ODbL.
 module Podklad {
 
-    // třídy čar — musí sedět se skriptem, který dlaždici vyrábí
-    const SILNICE  = 1;
-    const CESTA    = 2;
-    const PESINA   = 3;
-    const VODA     = 4;
-    const BUDOVA   = 5;
-    const PREKAZKA = 6;
+    // čáry
+    const SILNICE   = 1;
+    const CESTA     = 2;
+    const PESINA    = 3;
+    const VODNI_TOK = 4;
+    const PREKAZKA  = 6;
+    // plochy
+    const ZELEN  = 10;
+    const POLE   = 11;
+    const VODA   = 12;
+    const BUDOVA = 13;
 
-    //! Kolik úseků se smí vykreslit na jeden snímek.
+    //! Barvy se zadávají přímo v RGB, ne přes Graphics.COLOR_* — hotové
+    //! konstanty nemají tmavé odstíny a jasná zeleň přes celou plochu by
+    //! na černém podkladu přebila body, kvůli kterým to celé je.
+    const B_ZELEN    = 0x005500;
+    const B_POLE     = 0x555500;
+    const B_VODA     = 0x003366;
+    const B_BUDOVA   = 0x666666;
+    const B_SRAFA    = 0x444444;
+    const B_PREKAZKA = 0xFF0000;
+    const B_SILNICE  = 0xAAAAAA;
+    const B_CESTA    = 0x888888;
+    const B_PESINA   = 0x666666;
+    const B_TOK      = 0x3399CC;
+
+    //! Rozpočty na jeden snímek.
     //!
-    //! ⚠ Tohle není šetrnost, ale nutnost: celá dlaždice má přes tisíc
-    //! vrcholů a hodinky za to shodí aplikaci hláškou „Watchdog Tripped —
-    //! Code Executed Too Long“. Kresba proto jde po důležitosti (překážky
-    //! a silnice napřed, pěšiny a budovy naposled) a když dojde rozpočet,
-    //! zbytek se prostě nenakreslí. Při přiblížení se stejně skoro všechno
-    //! ořeže výřezem, takže strop dolehne jen na největší oddálení.
-    const ROZPOCET = 260;
+    //! ⚠ Tohle není šetrnost, ale nutnost: celá dlaždice má stovky prvků
+    //! a hodinky za to shodí aplikaci na watchdog. Kreslí se po
+    //! důležitosti a když dojde rozpočet, zbytek se nenakreslí. Při
+    //! přiblížení skoro všechno odpadne už výřezem, takže strop dolehne
+    //! jen na největší oddálení.
+    const ROZPOCET_PLOCH  = 14;
+    const ROZPOCET_BUDOV  = 22;
+    const ROZPOCET_USEKU  = 200;
+
+    //! Kotvy přibalených ukázkových dlaždic. V ostrém provozu tuhle roli
+    //! převezme rejstřík dlaždic stažených z Workeru; princip zůstane —
+    //! v paměti je vždycky jen ta jedna, ve které zrovna stojím.
+    const A1_LAT = 50.08;    const A1_LON = 14.42;      // Praha, město
+    const A2_LAT = 50.0365;  const A2_LON = 14.3760;    // Prokopské údolí
+    const DOSAH  = 450.0;
 
     var _dlazdice = null;
-    var _zkusenoNacist = false;
+    var _ktera = 0;             // 0 = žádná, jinak číslo dlaždice
 
-    //! Načte se až při prvním použití — kdo podklad nechce, nezaplatí za
-    //! něj ani bajt paměti.
-    function dlazdice() {
-        if (!_zkusenoNacist) {
-            _zkusenoNacist = true;
+    //! Vrátí dlaždici pro danou polohu, případně přehodí na jinou.
+    //! Načítá se až při prvním použití — kdo podklad nechce, nezaplatí
+    //! za něj ani bajt paměti.
+    function dlazdice(lat, lon) {
+        var chci = 0;
+        if (Geo.vzdalenost(lat, lon, A1_LAT, A1_LON) < DOSAH) {
+            chci = 1;
+        } else if (Geo.vzdalenost(lat, lon, A2_LAT, A2_LON) < DOSAH) {
+            chci = 2;
+        }
+
+        if (chci != _ktera) {
+            _ktera = chci;
+            _dlazdice = null;
             try {
-                _dlazdice = Application.loadResource(Rez.JsonData.Podklad);
+                if (chci == 1) {
+                    _dlazdice = Application.loadResource(Rez.JsonData.Podklad);
+                } else if (chci == 2) {
+                    _dlazdice = Application.loadResource(Rez.JsonData.Podklad2);
+                }
             } catch (e) {
                 _dlazdice = null;
             }
@@ -67,7 +105,7 @@ module Podklad {
     //! Uvolní podklad z paměti (přepnutí vypnuto v nabídce).
     function zapomen() {
         _dlazdice = null;
-        _zkusenoNacist = false;
+        _ktera = 0;
     }
 
     //! Vykreslí podklad kolem zadané polohy.
@@ -76,103 +114,192 @@ module Podklad {
     //!   mkl      pixelů na metr
     //!   otoc     o kolik je mapa pootočená proti severu [rad]
     function kresli(dc, lat, lon, cx, cy, polomer, mkl, otoc) {
-        var d = dlazdice();
+        var d = dlazdice(lat, lon);
         if (d == null) { return; }
 
         var kotva = d["a"];
-        var cary = d["l"];
-        if (kotva == null || cary == null) { return; }
+        if (kotva == null) { return; }
 
         // Posun mezi kotvou dlaždice a mou polohou. Počítá se jednou pro
         // celou dlaždici, ne pro každý vrchol — proto je to levné.
         var p = Geo.naMetry(kotva[0], kotva[1], lat, lon);
-        var mojeXdm = p[0] * 10.0;
-        var mojeYdm = p[1] * 10.0;
 
-        // Výřez v decimetrech: co se sem nevejde, ani se nepočítá.
+        var v = {
+            "mx"  => p[0] * 10.0,             // moje poloha v dm od kotvy
+            "my"  => p[1] * 10.0,
+            "cx"  => cx,
+            "cy"  => cy,
+            "sin" => Math.sin(otoc),
+            "cos" => Math.cos(otoc),
+            "mkl" => mkl / 10.0,              // z decimetrů rovnou na pixely
+            "r2"  => polomer * polomer
+        };
+
         var dosahDm = (polomer / mkl) * 10.0 + 50.0;
-        var minX = mojeXdm - dosahDm;
-        var maxX = mojeXdm + dosahDm;
-        var minY = mojeYdm - dosahDm;
-        var maxY = mojeYdm + dosahDm;
+        v.put("minX", v["mx"] - dosahDm);
+        v.put("maxX", v["mx"] + dosahDm);
+        v.put("minY", v["my"] - dosahDm);
+        v.put("maxY", v["my"] + dosahDm);
 
-        var sinO = Math.sin(otoc);
-        var cosO = Math.cos(otoc);
-        var mklDm = mkl / 10.0;              // z decimetrů rovnou na pixely
-        var polomer2 = polomer * polomer;
-        var zbyva = ROZPOCET;
+        _plochy(dc, d["p"], v);
+        _cary(dc, d["l"], v);
+        dc.setPenWidth(1);
+    }
+
+    //! Převod jednoho vrcholu z decimetrů dlaždice na pixely displeje.
+    function _bod(c, j, v) {
+        var px = (c[j] - v["mx"]) * v["mkl"];
+        var py = (c[j + 1] - v["my"]) * v["mkl"];
+        return [v["cx"] + (px * v["cos"] - py * v["sin"]),
+                v["cy"] - (px * v["sin"] + py * v["cos"])];
+    }
+
+    function _mimo(z, v) {
+        return z[3] < v["minX"] || z[1] > v["maxX"] || z[4] < v["minY"] || z[2] > v["maxY"];
+    }
+
+    // ---- plochy ------------------------------------------------------
+
+    function _plochy(dc, plochy, v) {
+        if (plochy == null) { return; }
+
+        var zbyvaPloch = ROZPOCET_PLOCH;
+        var zbyvaBudov = ROZPOCET_BUDOV;
+
+        for (var k = 0; k < plochy.size(); k++) {
+            if (zbyvaPloch <= 0 && zbyvaBudov <= 0) { break; }
+
+            var z = plochy[k];
+            if (_mimo(z, v)) { continue; }
+
+            if (z[0] == BUDOVA) {
+                if (zbyvaBudov <= 0) { continue; }
+                zbyvaBudov -= 1;
+                _budova(dc, z, v);
+                continue;
+            }
+
+            if (zbyvaPloch <= 0) { continue; }
+            zbyvaPloch -= 1;
+
+            var barva = B_ZELEN;
+            if (z[0] == POLE) { barva = B_POLE; }
+            else if (z[0] == VODA) { barva = B_VODA; }
+
+            var rohy = [];
+            for (var j = 5; j < z.size() - 1; j += 2) {
+                rohy.add(_bod(z, j, v));
+            }
+            if (rohy.size() < 3) { continue; }
+
+            dc.setColor(barva, Graphics.COLOR_TRANSPARENT);
+            dc.fillPolygon(rohy);
+        }
+    }
+
+    //! Budova jako šrafovaný obdélník.
+    //!
+    //! Skutečný půdorys se schválně nekreslí — na 260px displeji ho nikdo
+    //! nepozná a stál by desetkrát víc. V dlaždici proto budova nese jen
+    //! svou obálku, pět čísel.
+    function _budova(dc, z, v) {
+        var a = _bod(z, 1, v);                       // minx, miny
+        var b = [z[3], z[2]];                        // maxx, miny
+        var c = [z[3], z[4]];                        // maxx, maxy
+        var e = [z[1], z[4]];                        // minx, maxy
+        var pb = _bodXY(b[0], b[1], v);
+        var pc = _bodXY(c[0], c[1], v);
+        var pe = _bodXY(e[0], e[1], v);
+
+        dc.setPenWidth(1);
+        dc.setColor(B_BUDOVA, Graphics.COLOR_TRANSPARENT);
+        dc.drawLine(a[0], a[1], pb[0], pb[1]);
+        dc.drawLine(pb[0], pb[1], pc[0], pc[1]);
+        dc.drawLine(pc[0], pc[1], pe[0], pe[1]);
+        dc.drawLine(pe[0], pe[1], a[0], a[1]);
+
+        // dvě úhlopříčné šrafy — dost na to, aby se to četlo jako „dům“,
+        // a levné i při dvaceti budovách na obrazovce
+        dc.setColor(B_SRAFA, Graphics.COLOR_TRANSPARENT);
+        dc.drawLine(a[0], a[1], pc[0], pc[1]);
+        dc.drawLine((a[0] + pb[0]) / 2, (a[1] + pb[1]) / 2,
+                    (pc[0] + pe[0]) / 2, (pc[1] + pe[1]) / 2);
+    }
+
+    function _bodXY(xdm, ydm, v) {
+        var px = (xdm - v["mx"]) * v["mkl"];
+        var py = (ydm - v["my"]) * v["mkl"];
+        return [v["cx"] + (px * v["cos"] - py * v["sin"]),
+                v["cy"] - (px * v["sin"] + py * v["cos"])];
+    }
+
+    // ---- čáry --------------------------------------------------------
+
+    function _cary(dc, cary, v) {
+        if (cary == null) { return; }
+
+        var zbyva = ROZPOCET_USEKU;
         var poslTrida = -1;
 
-        // Čáry jsou v dlaždici už seřazené podle důležitosti a nesou svou
-        // obálku — obojí spočítal skript, který dlaždici vyrábí. Kdyby se
-        // to mělo dělat tady, hodinky to neustojí (zkoušeno: watchdog).
         for (var k = 0; k < cary.size() && zbyva > 0; k++) {
             var c = cary[k];
-            if (c.size() < 9) { continue; }      // třída + obálka + dva vrcholy
-
-            if (c[3] < minX || c[1] > maxX || c[4] < minY || c[2] > maxY) { continue; }
+            if (c.size() < 9) { continue; }          // třída + obálka + dva vrcholy
+            if (_mimo(c, v)) { continue; }
 
             if (c[0] != poslTrida) {
                 _styl(dc, c[0]);
                 poslTrida = c[0];
             }
 
-            var predX = null;
-            var predY = null;
+            // Předchozí vrchol se drží ve dvou číslech, ne v poli: přes
+            // pole to překladač neprojde („container access on null“),
+            // protože si neumí odvodit, že za podmínkou už null není.
+            var predX = 0.0;
+            var predY = 0.0;
+            var maPred = false;
             var predUvnitr = false;
 
             for (var j = 5; j < c.size() - 1 && zbyva > 0; j += 2) {
-                // decimetry od kotvy → pixely ode mě → otočení mapy
-                var px = (c[j] - mojeXdm) * mklDm;
-                var py = (c[j + 1] - mojeYdm) * mklDm;
-                var x = cx + (px * cosO - py * sinO);
-                var y = cy - (px * sinO + py * cosO);
-
-                var dx = x - cx;
-                var dy = y - cy;
-                var uvnitr = (dx * dx + dy * dy) <= polomer2;
+                var b = _bod(c, j, v);
+                var dx = b[0] - v["cx"];
+                var dy = b[1] - v["cy"];
+                var uvnitr = (dx * dx + dy * dy) <= v["r2"];
 
                 // Kreslí se i úsek, kterému leží uvnitř jen jeden konec —
                 // jinak by čáry mizely kus před okrajem. Co přeteče, ořeže
                 // si displej sám.
-                if (predX != null && (uvnitr || predUvnitr)) {
-                    dc.drawLine(predX, predY, x, y);
+                if (maPred && (uvnitr || predUvnitr)) {
+                    dc.drawLine(predX, predY, b[0], b[1]);
                     zbyva -= 1;
                 }
-                predX = x;
-                predY = y;
+                predX = b[0];
+                predY = b[1];
+                maPred = true;
                 predUvnitr = uvnitr;
             }
         }
-        dc.setPenWidth(1);
     }
 
-    //! Rozlišuje se tloušťkou a barvou. Na MIP displeji je na slunci barva
-    //! skoro k ničemu, takže hlavní nositel významu je tloušťka; barva jen
-    //! pomáhá v místnosti a na obrázcích.
     function _styl(dc, trida) {
-        if (trida == SILNICE) {
-            dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        if (trida == PREKAZKA) {
+            // Sráz, násep, zeď, plot — to, kudy se neprojde. Kvůli tomu
+            // podklad hlavně je, tak ať je vidět na první pohled.
+            dc.setColor(B_PREKAZKA, Graphics.COLOR_TRANSPARENT);
+            dc.setPenWidth(3);
+        } else if (trida == SILNICE) {
+            dc.setColor(B_SILNICE, Graphics.COLOR_TRANSPARENT);
             dc.setPenWidth(3);
         } else if (trida == CESTA) {
-            dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(B_CESTA, Graphics.COLOR_TRANSPARENT);
             dc.setPenWidth(2);
         } else if (trida == PESINA) {
-            dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(B_PESINA, Graphics.COLOR_TRANSPARENT);
             dc.setPenWidth(1);
-        } else if (trida == VODA) {
-            dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
-            dc.setPenWidth(2);
-        } else if (trida == BUDOVA) {
-            dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-            dc.setPenWidth(1);
-        } else if (trida == PREKAZKA) {
-            // Sráz, zeď, plot — to je to, kvůli čemu podklad hlavně je:
-            // aby bylo vidět, že napřímo to nepůjde. Proto červeně.
-            dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
+        } else if (trida == VODNI_TOK) {
+            dc.setColor(B_TOK, Graphics.COLOR_TRANSPARENT);
             dc.setPenWidth(2);
         } else {
-            dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(B_PESINA, Graphics.COLOR_TRANSPARENT);
             dc.setPenWidth(1);
         }
     }

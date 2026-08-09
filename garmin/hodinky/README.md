@@ -95,18 +95,41 @@ Připojit přes USB, zkopírovat `bin/hodinky.prg` do `GARMIN/APPS/` na disku
 hodinek, odpojit. Aplikace se objeví mezi aktivitami. Do obchodu Connect IQ
 se nic dávat nemusí.
 
-## Podklad — čáry cest, vody a překážek
+## Podklad — barvy, ne tloušťky
 
-Pod body se kreslí vektorový podklad z OpenStreetMap: silnice, cesty, pěšiny,
-voda a hlavně **překážky** (sráz, násep, zeď, plot) červeně — kvůli tomu ten
-podklad hlavně je, aby bylo vidět, že napřímo to nepůjde.
+Pod body se kreslí vektorový podklad z OpenStreetMap. **Význam nese barva.**
+Tloušťku čáry si nikdo nezapamatuje, barvu ano:
+
+| barva | co to je |
+|---|---|
+| šedá | silnice a cesty (širší = větší) |
+| tmavě šedá, tenká | pěšina |
+| modrá | voda |
+| zelená plocha | les, park |
+| žlutá plocha | pole, louky |
+| **červená** | **neprojdeš** — sráz, násep, zeď, plot |
+| šrafovaný obdélník | budova |
+
+Budovy se schválně kreslí jen jako **šrafovaná obálka**, ne skutečný půdorys —
+na 260px displeji by ho nikdo nepoznal a stál by desetkrát víc. V dlaždici
+proto budova nese jen pět čísel.
+
+Kdyby si člověk barvu nepamatoval, je v nabídce **Legenda**.
 
 Zapíná se v nabídce položkou **Podklad**.
 
-Zatím je přibalená jedna **ukázková dlaždice** pro okolí 50,08 / 14,42 (Praha),
-aby šel podklad vyzkoušet v simulátoru. Vyrábí ji `garmin/nastroje/dlazdice.py`
-z dat Overpass API; v ostrém provozu tutéž práci udělá Cloudflare Worker
-a hodinky si dlaždice stáhnou přes `makeWebRequest`.
+Přibalené jsou dvě **ukázkové dlaždice** a aplikace si vybere tu, ve které
+právě stojíte:
+
+| dlaždice | kotva | co je na ní vidět |
+|---|---|---|
+| město | 50,08 / 14,42 | hustá zástavba, ulice, pár parků |
+| údolí | 50,0365 / 14,3760 | Prokopské údolí — les, pěšiny, 47 srázů |
+
+Vyrábí je `garmin/nastroje/dlazdice.py` z dat Overpass API; v ostrém provozu
+tutéž práci udělá Cloudflare Worker a hodinky si dlaždice stáhnou přes
+`makeWebRequest`. Výběr dlaždice podle polohy už je hotový a v paměti je vždy
+jen jedna — přesně jak to bude potřeba i s dlaždicemi ze sítě.
 
 **⚠ Kreslení musí být škrceno, jinak hodinky aplikaci shodí** hláškou
 *Watchdog Tripped — Code Executed Too Long*. Proto:
@@ -122,9 +145,6 @@ Zdroj dat: OpenStreetMap, licence ODbL.
 
 ## Co v tom zatím není
 
-- **Varování „napřímo to nepůjde"** — test, jestli úsečka já → cíl protíná
-  čáru třídy překážka. Podklad už je, takže tohle je pár desítek průsečíků
-  úseček a levné.
 - **Dlaždice z Workeru** — stahování po dlaždicích 500 × 500 m a ukládání do
   `Application.Storage`, aby podklad fungoval i bez signálu. Zatím jen jedna
   ukázková, přibalená ve zdrojích.
@@ -146,6 +166,7 @@ Zdroj dat: OpenStreetMap, licence ODbL.
 | `source/NavigaceView.mc` | šipka a vzdálenost k bodu |
 | `source/NovyBodView.mc` | měření nového bodu |
 | `source/Nabidka.mc` | nabídka pod dlouhým stiskem nahoru |
-| `source/Podklad.mc` | vektorové čáry cest, vody a překážek |
+| `source/Podklad.mc` | plochy, čáry cest a překážky |
+| `source/Legenda.mc` | co která barva znamená |
 | `source/Displej.mc` | umísťování textu, aby ho kulatý okraj neořízl |
 | `../nastroje/dlazdice.py` | výroba dlaždice podkladu z dat OpenStreetMap |

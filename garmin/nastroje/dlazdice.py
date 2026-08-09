@@ -1,34 +1,50 @@
 # Z OSM (Overpass "out geom") udela kompaktni dlazdici podkladu pro hodinky.
 #
 # Pouziti:
-#   curl -s -X POST --data-binary @overpass-dotaz.txt \
-#        https://overpass-api.de/api/interpreter -o osm.json
-#   python dlazdice.py
+#   python dlazdice.py <lat> <lon> <vystup.json>
+# Ocekava vedle sebe osm.json stazeny pro tutez polohu:
+#   sed "s/LAT/50.08/;s/LON/14.42/" overpass-dotaz.txt > q.txt
+#   curl -s -X POST --data-binary @q.txt https://overpass-api.de/api/interpreter -o osm.json
 #
-# Vystup: {"a":[lat,lon], "r":dosah_m,
-#          "l":[[trida, minx,miny,maxx,maxy, x,y, x,y, ...], ...]}
+# Vystup:
+#   {"a":[lat,lon], "r":dosah_m,
+#    "p":[[trida, minx,miny,maxx,maxy, x,y, ...], ...],   plochy (vyplnene)
+#    "l":[[trida, minx,miny,maxx,maxy, x,y, ...], ...]}   cary
 #
 # Souradnice jsou CELA CISLA v DECIMETRECH od kotvy (x k vychodu, y k severu) -
 # na displeji, kde 450 m odpovida ~100 px, je decimetr hluboko pod rozlisenim
 # a cela cisla se v pameti hodinek drzi mnohem lip nez desetinna.
 #
-# Obalka kazde cary a poradi car podle dulezitosti se pocitaji TADY. Monkey C
-# je na to moc pomaly - viz komentar u PORADI nize.
+# Obalka kazde cary a poradi podle dulezitosti se pocitaji TADY. Monkey C je
+# na to moc pomaly: pouhe seskupeni 550 car podle tridy shodilo aplikaci na
+# "Watchdog Tripped - Code Executed Too Long".
 #
-# Tohle je zatim rucni krok pro ukazkovou dlazdici do simulatoru. V ostrem
+# Budovy se ukladaji JEN jako obalka (peti cisly), protoze se stejne kresli
+# jako srafovany obdelnik - presny pudorys by na 260px displeji nikdo nepoznal
+# a stal by desetkrat vic.
+#
+# Tohle je zatim rucni krok pro ukazkove dlazdice do simulatoru. V ostrem
 # provozu tutez praci udela Cloudflare Worker a hodinky si dlazdice stahnou
 # pres makeWebRequest.
 #
 # Zdroj dat: OpenStreetMap, licence ODbL.
 import json, math, sys, os
 
-VSTUP = "osm.json"
-VYSTUP = r"C:\Users\stepa\Desktop\ar_geodet\garmin\hodinky\resources\data\podklad.json"
-LAT0, LON0, DOSAH = 50.08, 14.42, 450.0
-STROP_VRCHOLU = 900
+DOSAH = 450.0
 
-# tridy car (musi sedet s Podklad.mc)
-SILNICE, CESTA, PESINA, VODA, BUDOVA, PREKAZKA = 1, 2, 3, 4, 5, 6
+# tridy (musi sedet s Podklad.mc)
+SILNICE, CESTA, PESINA, VODNI_TOK, PREKAZKA = 1, 2, 3, 4, 6
+ZELEN, POLE, VODA, BUDOVA = 10, 11, 12, 13
+
+PLOCHY = (ZELEN, POLE, VODA, BUDOVA)
+
+# Co prezije rozpocet driv. Prekazky uplne napred - kvuli nim podklad hlavne je.
+PORADI_CAR = [PREKAZKA, SILNICE, VODNI_TOK, CESTA, PESINA]
+PORADI_PLOCH = [VODA, ZELEN, POLE, BUDOVA]
+
+STROP_CAR = 700          # vrcholu v carach
+STROP_PLOCH = 420        # vrcholu v plochach
+STROP_BUDOV = 120        # kusu
 
 A = 6378137.0
 E2 = 0.00669437999014
@@ -40,14 +56,6 @@ def polomery(lat_rad):
     return A * (1.0 - E2) / (w * math.sqrt(w)), A / math.sqrt(w)
 
 
-M, N = polomery(math.radians(LAT0))
-KOS = math.cos(math.radians(LAT0))
-
-
-def na_metry(lat, lon):
-    return (N * math.radians(lon - LON0) * KOS, M * math.radians(lat - LAT0))
-
-
 def trida(tags):
     # Chodniky a prechody jsou v mestech mapovane jako samostatne cary a je
     # jich nasobne vic nez vseho ostatniho. Pro otazku "kudy se tam dostanu"
@@ -56,12 +64,33 @@ def trida(tags):
         return None
     if tags.get("highway") == "service" and tags.get("service") in ("parking_aisle", "driveway"):
         return None
+
     if "building" in tags:
         return BUDOVA
-    if tags.get("natural") == "cliff" or "barrier" in tags or tags.get("man_made") == "embankment":
+
+    # prekazky: sraz, nasep, zed, plot - to, kudy se neprojde
+    if (tags.get("natural") in ("cliff", "earth_bank")
+            or tags.get("man_made") == "embankment"
+            or tags.get("barrier") in ("wall", "fence", "hedge", "retaining_wall", "guard_rail", "city_wall")):
         return PREKAZKA
-    if "waterway" in tags or tags.get("natural") in ("water", "coastline"):
+
+    lu = tags.get("landuse")
+    nat = tags.get("natural")
+    lei = tags.get("leisure")
+
+    if nat == "water" or lu in ("reservoir", "basin"):
         return VODA
+    if "waterway" in tags:
+        return VODNI_TOK
+
+    if lu in ("forest", "grass", "village_green", "flowerbed", "cemetery", "recreation_ground") \
+            or nat in ("wood", "scrub", "heath") \
+            or lei in ("park", "garden", "pitch", "golf_course"):
+        return ZELEN
+    if lu in ("meadow", "farmland", "orchard", "vineyard", "allotments", "greenfield") \
+            or nat == "grassland":
+        return POLE
+
     h = tags.get("highway")
     if h:
         if h in ("footway", "path", "cycleway", "steps", "pedestrian"):
@@ -94,86 +123,100 @@ def dp(body, tol):
     return dp(body[: idx + 1], tol)[:-1] + dp(body[idx:], tol)
 
 
-def zpracuj(data, tol, tridy_ven):
-    cary = []
+def obalka(zj):
+    xs = [p[0] for p in zj]
+    ys = [p[1] for p in zj]
+    return [int(round(min(xs) * 10)), int(round(min(ys) * 10)),
+            int(round(max(xs) * 10)), int(round(max(ys) * 10))]
+
+
+def zpracuj(data, na_metry, tol):
+    cary, plochy = [], []
     for prvek in data.get("elements", []):
         if prvek.get("type") != "way" or "geometry" not in prvek:
             continue
         t = trida(prvek.get("tags", {}))
-        if t is None or t in tridy_ven:
+        if t is None:
             continue
+
         body = [na_metry(g["lat"], g["lon"]) for g in prvek["geometry"]]
-        # nechame jen cary, ktere aspon castecne zasahuji do dosahu
         if not any(math.hypot(x, y) <= DOSAH for x, y in body):
             continue
+
         zj = dp(body, tol)
         if len(zj) < 2:
             continue
-        cara = [t]
-        for x, y in zj:
-            cara.append(int(round(x * 10)))
-            cara.append(int(round(y * 10)))
-        cary.append(cara)
-    return cary
+        zaznam = [t] + obalka(zj)
 
-
-sys.setrecursionlimit(10000)
-data = json.load(open(VSTUP, encoding="utf-8"))
-
-# Postupne pritvrzujeme, dokud se to nevejde pod strop: nejdriv hrubsi
-# zjednoduseni, pak lete pryc budovy (v mestě jich jsou stovky a na
-# orientaci "kudy vede cesta" nejsou potreba).
-for tol, ven in ((3.0, set()), (5.0, set()), (8.0, set()), (5.0, {BUDOVA}), (8.0, {BUDOVA})):
-    cary = zpracuj(data, tol, ven)
-    vrcholu = sum((len(c) - 1) // 2 for c in cary)
-    print(f"tolerance {tol} m, bez {ven or 'niceho'}: {len(cary)} car, {vrcholu} vrcholu")
-    if vrcholu <= STROP_VRCHOLU:
-        break
-
-# Kdyz ani to nestacilo, jdou pryc nejkratsi cary - ty na orientaci prispivaji
-# nejmin a je jich nejvic. Kolik jich padlo, se vypise, aby to nebylo potichu.
-def delka(c):
-    d = 0.0
-    for i in range(1, (len(c) - 1) // 2):
-        d += math.hypot(c[2 * i + 1] - c[2 * i - 1], c[2 * i + 2] - c[2 * i])
-    return d
-
-
-if sum((len(c) - 1) // 2 for c in cary) > STROP_VRCHOLU:
-    cary.sort(key=delka, reverse=True)
-    puvodne = len(cary)
-    ven, vrcholu = [], 0
-    for c in cary:
-        v = (len(c) - 1) // 2
-        if vrcholu + v > STROP_VRCHOLU:
+        if t == BUDOVA:
+            # jen obalka, zadne vrcholy - kresli se jako srafovany obdelnik
+            plochy.append(zaznam)
             continue
-        ven.append(c)
-        vrcholu += v
-    print(f"strop {STROP_VRCHOLU} vrcholu: zahozeno {puvodne - len(ven)} nejkratsich car")
-    cary = ven
 
-# Obalka a poradi podle dulezitosti se pocitaji TADY, ne na hodinkach.
-# Monkey C je pomaly: pouhe seskupeni 550 car podle tridy tam shodilo
-# aplikaci na "Watchdog Tripped - Code Executed Too Long".
-# Vysledny tvar cary: [trida, minx, miny, maxx, maxy, x,y, x,y, ...]
-PORADI = [PREKAZKA, SILNICE, VODA, CESTA, PESINA, BUDOVA]
+        for x, y in zj:
+            zaznam.append(int(round(x * 10)))
+            zaznam.append(int(round(y * 10)))
+        (plochy if t in PLOCHY else cary).append(zaznam)
+    return cary, plochy
 
-s_obalkou = []
-for c in cary:
-    xs = c[1::2]
-    ys = c[2::2]
-    s_obalkou.append([c[0], min(xs), min(ys), max(xs), max(ys)] + c[1:])
-s_obalkou.sort(key=lambda c: PORADI.index(c[0]) if c[0] in PORADI else 99)
-cary = s_obalkou
 
-os.makedirs(os.path.dirname(VYSTUP), exist_ok=True)
-out = {"a": [LAT0, LON0], "r": int(DOSAH), "l": cary}
-with open(VYSTUP, "w", encoding="utf-8") as f:
-    json.dump(out, f, separators=(",", ":"))
+def vrcholu(z):
+    return max(0, (len(z) - 5) // 2)
 
-print("VYSLEDEK:", len(cary), "car,", sum((len(c) - 1) // 2 for c in cary), "vrcholu")
-print("velikost:", os.path.getsize(VYSTUP), "B ->", VYSTUP)
-poc = {}
-for c in cary:
-    poc[c[0]] = poc.get(c[0], 0) + 1
-print("po tridach:", poc)
+
+def orez(seznam, strop, poradi):
+    """Serad podle dulezitosti a usekni na strop vrcholu. Co padlo, vypis."""
+    seznam.sort(key=lambda z: (poradi.index(z[0]) if z[0] in poradi else 99, -vrcholu(z)))
+    ven, v, budov = [], 0, 0
+    for z in seznam:
+        if z[0] == BUDOVA:
+            if budov >= STROP_BUDOV:
+                continue
+            budov += 1
+            ven.append(z)
+            continue
+        if v + vrcholu(z) > strop:
+            continue
+        ven.append(z)
+        v += vrcholu(z)
+    if len(ven) < len(seznam):
+        print(f"  strop: zahozeno {len(seznam) - len(ven)} z {len(seznam)}")
+    return ven
+
+
+def main():
+    if len(sys.argv) < 4:
+        print(__doc__ or "pouziti: python dlazdice.py <lat> <lon> <vystup.json>")
+        return 1
+    lat0, lon0, vystup = float(sys.argv[1]), float(sys.argv[2]), sys.argv[3]
+
+    M, N = polomery(math.radians(lat0))
+    kos = math.cos(math.radians(lat0))
+
+    def na_metry(lat, lon):
+        return (N * math.radians(lon - lon0) * kos, M * math.radians(lat - lat0))
+
+    sys.setrecursionlimit(10000)
+    data = json.load(open("osm.json", encoding="utf-8"))
+
+    cary, plochy = zpracuj(data, na_metry, 5.0)
+    print(f"{lat0}, {lon0}: {len(cary)} car / {sum(vrcholu(c) for c in cary)} vrcholu, "
+          f"{len(plochy)} ploch / {sum(vrcholu(p) for p in plochy)} vrcholu")
+
+    cary = orez(cary, STROP_CAR, PORADI_CAR)
+    plochy = orez(plochy, STROP_PLOCH, PORADI_PLOCH)
+
+    os.makedirs(os.path.dirname(vystup) or ".", exist_ok=True)
+    with open(vystup, "w", encoding="utf-8") as f:
+        json.dump({"a": [lat0, lon0], "r": int(DOSAH), "p": plochy, "l": cary},
+                  f, separators=(",", ":"))
+
+    poc = {}
+    for z in cary + plochy:
+        poc[z[0]] = poc.get(z[0], 0) + 1
+    print(f"  hotovo: {os.path.getsize(vystup)} B, po tridach {poc}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

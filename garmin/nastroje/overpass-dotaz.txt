@@ -1,10 +1,12 @@
-[out:json][timeout:40];
+[out:json][timeout:60];
 (
-  way(around:450,50.08,14.42)["highway"];
-  way(around:450,50.08,14.42)["waterway"];
-  way(around:450,50.08,14.42)["natural"~"^(water|cliff|coastline)$"];
-  way(around:450,50.08,14.42)["barrier"];
-  way(around:450,50.08,14.42)["man_made"="embankment"];
-  way(around:450,50.08,14.42)["building"];
+  way(around:450,LAT,LON)["highway"];
+  way(around:450,LAT,LON)["waterway"];
+  way(around:450,LAT,LON)["barrier"];
+  way(around:450,LAT,LON)["man_made"="embankment"];
+  way(around:450,LAT,LON)["natural"];
+  way(around:450,LAT,LON)["landuse"];
+  way(around:450,LAT,LON)["leisure"];
+  way(around:450,LAT,LON)["building"];
 );
 out geom;
