@@ -83,6 +83,13 @@ class MapaView extends WatchUi.View {
         WatchUi.requestUpdate();
     }
 
+    //! Bod, o kterém má smysl ukázat údaje: cíl navigace, jinak nejbližší.
+    function bodProInfo() {
+        if (cil != null) { return cil; }
+        if (_okoli.size() > 0) { return _okoli[0]; }
+        return null;
+    }
+
     function otoceni() {
         podleSmeru = !podleSmeru;
         WatchUi.requestUpdate();
@@ -145,7 +152,9 @@ class MapaView extends WatchUi.View {
                 // Prázdná mapa bez vysvětlení je k vzteku — tohle rovnou
                 // říká, že se pro tohle místo nic nepřipravilo.
                 dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(cx, cy + polomer / 2, Graphics.FONT_XTINY, "mapa není",
+                var proc = ($.cloud == null) ? null : $.cloud.chybaMapy();
+                dc.drawText(cx, cy + polomer / 2, Graphics.FONT_XTINY,
+                            (proc == null) ? "mapa není" : ("mapa: " + proc),
                             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
             }
         }
@@ -348,6 +357,8 @@ class MapaView extends WatchUi.View {
 //!   BACK       → konec aplikace (nebo zrušení navigace, když někam vede)
 class MapaDelegate extends WatchUi.BehaviorDelegate {
 
+    hidden var _stisk = 0;
+
     function initialize() {
         BehaviorDelegate.initialize();
     }
@@ -372,6 +383,30 @@ class MapaDelegate extends WatchUi.BehaviorDelegate {
 
     function onNextPage() {
         _mapa().zoomDal();
+        return true;
+    }
+
+    //! Dlouhý stisk DOLŮ = úplné údaje o bodu. Bere cíl, ke kterému se
+    //! naviguje, jinak ten nejbližší — když člověk stojí nad bodem, je to
+    //! skoro vždycky on.
+    //!
+    //! ⚠ Dělá se to přes onKey, ne přes chování: Connect IQ pro dlouhý
+    //! stisk DOLŮ žádné hotové chování nemá, jen pro UP (nabídka).
+    function onKeyPressed(kev) {
+        if (kev != null && kev.getKey() == WatchUi.KEY_DOWN) {
+            _stisk = System.getTimer();
+        }
+        return false;
+    }
+
+    function onKeyReleased(kev) {
+        if (kev == null || kev.getKey() != WatchUi.KEY_DOWN) { return false; }
+        var drzeno = System.getTimer() - _stisk;
+        _stisk = 0;
+        if (drzeno < 600) { return false; }        // krátký stisk = zoom, ne info
+        var b = _mapa().bodProInfo();
+        if (b == null) { return true; }
+        WatchUi.pushView(new InfoView(b), new InfoDelegate(), WatchUi.SLIDE_LEFT);
         return true;
     }
 

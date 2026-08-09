@@ -263,6 +263,8 @@ module Body {
                 "s"   => p["s"],
                 "n"   => 0,
                 "k"   => (p["k"] == null) ? "" : p["k"],
+                "y"   => p["y"],
+                "x"   => p["x"],
                 "t"   => Time.now().value(),
                 "src" => 1
             });

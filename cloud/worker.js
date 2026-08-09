@@ -1202,6 +1202,9 @@ export default {
                             la: +(+p.la).toFixed(7), lo: +(+p.lo).toFixed(7),
                             h: (p.h != null && isFinite(+p.h)) ? +(+p.h).toFixed(1) : null,
                             s: (p.s != null && isFinite(+p.s)) ? +(+p.s).toFixed(1) : null,
+                            // Y a X v S-JTSK spočítal mobil - hodinky je jen ukazují
+                            y: (p.y != null && isFinite(+p.y)) ? +(+p.y).toFixed(2) : null,
+                            x: (p.x != null && isFinite(+p.x)) ? +(+p.x).toFixed(2) : null,
                             k: p.k ? String(p.k).slice(0, 16) : ''
                         }))
                     : [];

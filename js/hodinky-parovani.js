@@ -342,7 +342,19 @@
                         if (!boxy[i].checked) { continue; }
                         var b = _kandidati[+boxy[i].value];
                         if (!b) { continue; }
-                        vybrane.push({ c: b.name, la: b.lat, lo: b.lng, h: b.vyska });
+                        // Y a X v S-JTSK počítá MOBIL, ne hodinky: appka na to má
+                        // proj4 (GeoCore, jediný autoritativní převod v projektu)
+                        // a přepisovat Křováka do Monkey C by znamenalo dvě
+                        // implementace, které se dřív nebo později rozejdou.
+                        var jt = null;
+                        try {
+                            if (window.GeoCore && GeoCore.toSJTSK) { jt = GeoCore.toSJTSK(b.lat, b.lng); }
+                        } catch (e) {}
+                        vybrane.push({
+                            c: b.name, la: b.lat, lo: b.lng, h: b.vyska,
+                            y: jt ? Math.abs(jt.y) : null,
+                            x: jt ? Math.abs(jt.x) : null
+                        });
                     }
                     kroky = kroky.then(function () {
                         stav.textContent = 'ukládám výběr ' + vybrane.length + ' bodů…';

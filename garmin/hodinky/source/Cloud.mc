@@ -35,6 +35,7 @@ class Cloud {
     const K_JOB   = "cl_job";
     const K_KOD   = "cl_kod";          // kód, na který už se párovalo
     const K_STAV  = "cl_stav";
+    const K_MAPA  = "cl_mapa";         // proč naposledy nedorazila mapa
 
     var stav = "";                     // co ukázat uživateli
     var bezi = false;
@@ -189,6 +190,10 @@ class Cloud {
         if (d["from"] < s["n"]) { return; }
         Body.nastavSerii({ "p" => s["p"], "n" => d["from"], "z" => s["z"], "do" => d["to"] });
     }
+
+    //! Proč naposledy nedorazila mapa. Null, když je všechno v pořádku —
+    //! mapa to pak napíše rovnou na displej, místo aby mlčela.
+    function chybaMapy() { return Storage.getValue(K_MAPA); }
 
     function token() { return Storage.getValue(K_TOKEN); }
     function zakazka() { return Storage.getValue(K_JOB); }
@@ -431,19 +436,23 @@ class Cloud {
             // Pro tohle místo nikdo mapu nepřipravil — není to chyba,
             // jen se to musí říct, ať se nehledá závada jinde.
             faze = 4;
+            Storage.setValue(K_MAPA, "pro tohle místo není připravená");
             _hlas("mapa pro tohle místo není");
             _zavibruj();
             return;
         }
         if (kod != 200 || d == null || d["t"] == null) {
             faze = 4;
+            Storage.setValue(K_MAPA, "nestáhla se, chyba " + kod);
             _hlas("mapa se nestáhla (" + kod + ")");
             _zavibruj();
             return;
         }
         mapaOk = Podklad.ulozStazenou(d["t"]);
+        if (mapaOk) { Storage.deleteValue(K_MAPA); }
         if (!mapaOk) {
             faze = 4;
+            Storage.setValue(K_MAPA, "nevešla se do paměti");
             _hlas("mapa se nevešla do paměti");
             _zavibruj();
             return;

@@ -43,8 +43,10 @@
     var PORADI_CAR = [PREKAZKA, SILNICE, VODNI_TOK, CESTA, PESINA];
     var PORADI_PLOCH = [VODA, ZELEN, POLE, BUDOVA];
 
-    // stropy na dlaždici — hodinky mají paměť v řádu stovek kB
-    var STROP_CAR = 700, STROP_PLOCH = 420, STROP_BUDOV = 120;
+    // Stropy na dlaždici. Sníženy na polovinu: hodinky stejně nakreslí
+    // nejvýš 90 úseků na snímek, takže zbytek se nikdy neukáže — jen se
+    // přenáší po bluetooth a zabírá paměť, kterou watch app nemá nazbyt.
+    var STROP_CAR = 350, STROP_PLOCH = 200, STROP_BUDOV = 40;
 
     var A = 6378137.0, E2 = 0.00669437999014;
 
