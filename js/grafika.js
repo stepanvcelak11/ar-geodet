@@ -483,6 +483,30 @@
             applySplit(p, true); splitShowPct(null); splitLiveSize();
         });
 
+        // ===== BODY Z HODINEK GARMIN ==============================================
+        // Hodinky posilaji naměřené body přes Worker do TÉŽE tabulky sync_points jako
+        // mobil, takže do aplikace dorazí jako obyčejné vlastní body. Razítko dává
+        // cloud/worker.js (`prov.src = 'garmin'`) a je jediné, podle čeho se poznají.
+        //
+        // PROC JE ODLISUJEME: hodinky nedávají střední chybu, jen rozptyl vlastních
+        // vzorků — reálně jednotky metrů (viz garmin/hodinky/README.md). Na nalezení
+        // bodu to stačí, na vytyčení ne, a smíchat je s pořádně změřenými by znamenalo
+        // ztratit tu informaci. Kreslí se proto RUZOVE (vlastní jsou zelené) a v seznamu
+        // bodů je na ně vlastní přepínač.
+        const AG_WATCH_COL = '#f472b6';
+        function agZHodinek(pt) { return !!(pt && pt.prov && pt.prov.src === 'garmin'); }
+        window.agZHodinek = agZHodinek;
+        // Barva znacky bodu. Kategorie si barvu bere z Nastavení (visSettings), body
+        // z hodinek maji pevnou — je to původ, ne kategorie, a nemá se s čím prát.
+        function agBarvaBodu(pt) {
+            if (agZHodinek(pt)) return AG_WATCH_COL;
+            if (pt.cat === 'ZHB') return visSettings.colZhb;
+            if (pt.cat === 'PBPP') return visSettings.colPbpp;
+            if (pt.cat === 'NIVEL') return visSettings.colNivel;
+            if (pt.cat === 'CUSTOM') return visSettings.colCustom;
+            return visSettings.colTb;
+        }
+
         function getMapMarkerSVG(category, color) { if(category === 'TB') return `<svg viewBox="0 0 24 24"><polygon points="12,2 22,20 2,20" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'ZHB') return `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'PBPP') return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'NIVEL') return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="${color}" stroke-width="3"/><circle cx="12" cy="12" r="3" fill="${color}"/></svg>`; if(category === 'CUSTOM') return `<svg viewBox="0 0 24 24"><path d="M12,2 C7,2 3,6 3,11 C3,18 12,22 12,22 C12,22 21,18 21,11 C21,6 17,2 12,2 Z" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="${color}"/></svg>`; }
 
         // ===== OREZ MARKERU NA VYREZ MAPY =========================================
@@ -513,7 +537,7 @@
             arPoints.forEach(pt => {
                 if (_mapDrawnBounds && !_mapDrawnBounds.contains([pt.lat, pt.lng])) return;
                 if (pt.hidden) return; if (pt.cat === 'TB' && !filters.tb) return; if (pt.cat === 'ZHB' && !filters.zhb) return; if (pt.cat === 'PBPP' && !filters.pbpp) return; if (pt.cat === 'NIVEL' && !filters.nivel) return; if (pt.cat === 'CUSTOM' && !filters.custom) return; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return;
-                let col = visSettings.colTb; if(pt.cat === 'ZHB') col = visSettings.colZhb; if(pt.cat === 'PBPP') col = visSettings.colPbpp; if(pt.cat === 'NIVEL') col = visSettings.colNivel; if(pt.cat === 'CUSTOM') col = visSettings.colCustom;
+                let col = agBarvaBodu(pt);
                 const stakedBadge = (window.isStaked && isStaked(pt.id)) ? `<div style="position:absolute; top:-7px; right:-7px; width:13px; height:13px; border-radius:50%; background:#10b981; border:1.5px solid #fff; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>` : '';
                 const svgIcon = getMapMarkerSVG(pt.cat, col); const htmlContent = `<div style="position: relative; width: 24px; height: 24px; pointer-events:none;${stakedBadge ? ' opacity:0.65;' : ''}">${svgIcon}${stakedBadge}<div class="map-label-text" style="transform: rotate(${mapRotation}deg);">${_escHtml(pt.name)}</div></div>`;
                 const icon = L.divIcon({ className: 'custom-map-marker', html: htmlContent, iconSize: [24, 24], iconAnchor: [12, 12] });
@@ -595,8 +619,9 @@
             const listDiv = document.getElementById('cluster-list'); listDiv.innerHTML = '';
             points.forEach(pt => {
                 let typBodu = "Podrobný polohový bod"; if(pt.cat === 'TB') typBodu = "Trigonometrický bod"; if(pt.cat === 'ZHB') typBodu = "Zhušťovací bod"; if(pt.cat === 'NIVEL') typBodu = "Nivelační / Výškový bod"; if(pt.cat === 'CUSTOM') typBodu = "Vlastní bod";
+                if (agZHodinek(pt)) typBodu = "Bod z hodinek";
                 const dist = getDistance(userLat, userLng, pt.lat, pt.lng); const item = document.createElement('div'); item.className = 'cluster-list-item';
-                let col = visSettings.colTb; if(pt.cat === 'ZHB') col = visSettings.colZhb; if(pt.cat === 'PBPP') col = visSettings.colPbpp; if(pt.cat === 'NIVEL') col = visSettings.colNivel; if(pt.cat === 'CUSTOM') col = visSettings.colCustom;
+                let col = agBarvaBodu(pt);
                 item.innerHTML = `<div><div class="cluster-item-title" style="color: ${col};">#${_escHtml(pt.name)}</div><div class="cluster-item-subtitle">${typBodu}</div></div><div style="font-weight: 600; font-size: calc(14px * var(--ag-font-scale, 1));">${dist.toFixed(1)} m</div>`;
                 item.addEventListener('click', () => { document.getElementById('cluster-modal').style.display = 'none'; highlightPoint(pt); }); listDiv.appendChild(item);
             });
@@ -618,7 +643,8 @@
             if (!pts.length) { listDiv.innerHTML = '<p style="text-align:center; opacity:0.7;">Žádné body v dosahu.</p>'; return; }
             pts.forEach(({ pt, d }) => {
                 let typBodu = "Podrobný polohový bod"; if (pt.cat === 'TB') typBodu = "Trigonometrický bod"; if (pt.cat === 'ZHB') typBodu = "Zhušťovací bod"; if (pt.cat === 'NIVEL') typBodu = "Nivelační / Výškový bod"; if (pt.cat === 'CUSTOM') typBodu = "Vlastní bod";
-                let col = visSettings.colTb; if (pt.cat === 'ZHB') col = visSettings.colZhb; if (pt.cat === 'PBPP') col = visSettings.colPbpp; if (pt.cat === 'NIVEL') col = visSettings.colNivel; if (pt.cat === 'CUSTOM') col = visSettings.colCustom;
+                if (agZHodinek(pt)) typBodu = "Bod z hodinek";
+                let col = agBarvaBodu(pt);
                 const item = document.createElement('div'); item.className = 'cluster-list-item';
                 item.innerHTML = `<div><div class="cluster-item-title" style="color:${col};">#${_escHtml(pt.name)}</div><div class="cluster-item-subtitle">${typBodu}</div></div><div style="font-weight:600; font-size:calc(14px * var(--ag-font-scale, 1));">${d.toFixed(1)} m</div>`;
                 item.addEventListener('click', () => { document.getElementById('nearby-modal').style.display = 'none'; highlightPoint(pt); });
@@ -707,7 +733,7 @@
         let _mngDocs = null;   // poznamky/fotky vsech bodu, nactene jednim pruchodem IndexedDB
         function openManageModal() {
             document.getElementById('settings-modal').style.display = 'none';
-            _mngQuery = ''; _mngSelMode = false; _mngSel.clear();
+            _mngQuery = ''; _mngSelMode = false; _mngWatchOnly = false; _mngSel.clear();
             // panel se zobrazi DRIV nez se stavi obsah — renderManageList() jinak vidi
             // zavreny modal a prekresleni by jen odlozil (viz _mngVisible)
             document.getElementById('manage-modal').style.display = 'flex';
@@ -725,6 +751,11 @@
         function closeManageModal() { document.getElementById('manage-modal').style.display = 'none'; fixAppLayout(); }
         // ===== SPRAVA BODU (panel Body): hledani, razeni a hromadne operace =====
         let _mngQuery = '', _mngSort = 'default', _mngSelMode = false; const _mngSel = new Set();
+        // Ctvrty prvek listovaciho panelu: ukazat JEN body, ktere prisly z hodinek.
+        // Filtruje se uz v _mngAllSorted (ne skryvanim radku jako hledani), aby
+        // hromadne akce nad vyberem pracovaly s tim, co je opravdu videt.
+        let _mngWatchOnly = false;
+        function _mngWatchCount() { let n = 0; for (const p of persistentCustomPoints) { if (agZHodinek(p)) n++; } return n; }
         function _mngMatch(p) {
             const q = _mngQuery.trim().toLowerCase();
             if (!q) return true;
@@ -742,6 +773,7 @@
         }
         function _mngAllSorted() {
             let pts = persistentCustomPoints.slice();
+            if (_mngWatchOnly) pts = pts.filter(agZHodinek);
             if (_mngSort === 'name') pts.sort((a, b) => String(a.name).localeCompare(String(b.name), 'cs', { numeric: true }));
             else if (_mngSort === 'dist' && userLat != null) pts.sort((a, b) => getDistance(userLat, userLng, a.lat, a.lng) - getDistance(userLat, userLng, b.lat, b.lng));
             else if (_mngSort === 'new') pts.sort((a, b) => (((b.prov && b.prov.ts) || 0) - ((a.prov && a.prov.ts) || 0)));
@@ -805,7 +837,10 @@
                 + '<select id="mng-sort" aria-label="Řazení bodů">'
                 + '<option value="default">Pořadí vložení</option><option value="name">Podle názvu</option>'
                 + '<option value="dist">Nejbližší první</option><option value="new">Nejnovější první</option></select>'
-                + '<button type="button" class="btn btn-secondary mng-selbtn" id="mng-selbtn"></button>';
+                + '<button type="button" class="btn btn-secondary mng-selbtn" id="mng-selbtn"></button>'
+                // Ctvrty prvek se ukaze, teprve kdyz je co ukazovat — v zakazce bez hodinek
+                // by to bylo tlacitko, ktere umi jedine vyprazdnit seznam.
+                + (_mngWatchCount() ? '<button type="button" class="btn btn-secondary mng-watchbtn" id="mng-watchbtn" aria-label="Jen body z hodinek">⌚ ' + _mngWatchCount() + '</button>' : '');
             listDiv.appendChild(bar);
             const si = bar.querySelector('#mng-search'); si.value = _mngQuery;
             // hledani jen SKRYVA radky, seznam se neprekresluje — jinak by kazde pismeno
@@ -817,19 +852,30 @@
             sb.textContent = _mngSelMode ? 'Hotovo' : 'Vybrat';
             sb.classList.toggle('mng-selbtn-on', _mngSelMode);
             sb.addEventListener('click', () => { _mngSelMode = !_mngSelMode; if (!_mngSelMode) _mngSel.clear(); renderManageList(); });
+            const wb = bar.querySelector('#mng-watchbtn');
+            if (wb) {
+                wb.classList.toggle('mng-watchbtn-on', _mngWatchOnly);
+                wb.setAttribute('aria-pressed', _mngWatchOnly ? 'true' : 'false');
+                // Vyber se pri prepnuti zahazuje: jinak by v nem zustaly body, ktere uz
+                // nejsou v seznamu videt, a hromadna akce by sahla i na ne.
+                wb.addEventListener('click', () => { _mngWatchOnly = !_mngWatchOnly; _mngSel.clear(); renderManageList(); });
+            }
             if (_mngSelMode) renderMngActions(listDiv);
             const pts = _mngAllSorted();
             const empty = document.createElement('p'); empty.id = 'mng-empty';
-            empty.style.cssText = 'text-align:center; opacity:.7; display:none;'; empty.innerText = 'Hledání nic nenašlo.';
+            empty.style.cssText = 'text-align:center; opacity:.7; display:none;';
+            empty.innerText = (_mngWatchOnly && !pts.length) ? 'Žádné body z hodinek.' : 'Hledání nic nenašlo.';
             listDiv.appendChild(empty);
             // Radek seznamu. Vyrobit vsech 1000 naraz znamena, ze se modal otevre
             // az za par sekund — proto se stavi po davkach (viz nize).
             const buildRow = (pt) => {
                 const _yx = _mngYX(pt); const dispY = _yx.y, dispX = _yx.x;
-                const item = document.createElement('div'); item.className = 'cp-item';
-                item.dataset.mngText = (String(pt.name) + ' ' + (pt.kod || '')).toLowerCase();
+                const zHodinek = agZHodinek(pt);
+                const item = document.createElement('div'); item.className = 'cp-item' + (zHodinek ? ' cp-watch' : '');
+                // "hodinky" v hledanem textu: da se je vypsat i psanim, nejen prepinacem
+                item.dataset.mngText = (String(pt.name) + ' ' + (pt.kod || '') + (zHodinek ? ' hodinky garmin' : '')).toLowerCase();
                 const dRow = (userLat != null) ? ('<br>' + getDistance(userLat, userLng, pt.lat, pt.lng).toFixed(1) + ' m od tebe') : '';
-                item.innerHTML = ` <div class="cp-title">${_escHtml(pt.name)}${pt.kod ? ' <span class="cp-kod">' + _escHtml(pt.kod) + '</span>' : ''}</div> <div class="cp-coords">Y: ${dispY}<br>X: ${dispX}${pt.vyska != null ? '<br>Z: '+Number(pt.vyska).toFixed(2)+' m' : ''}${pt.acc != null ? '<br>⌀ ±'+_escHtml(pt.acc)+' m' : ''}${dRow}</div>`;
+                item.innerHTML = ` <div class="cp-title">${_escHtml(pt.name)}${pt.kod ? ' <span class="cp-kod">' + _escHtml(pt.kod) + '</span>' : ''}${zHodinek ? ' <span class="cp-watch-tag" title="Změřeno hodinkami — přesnost jednotky metrů">⌚</span>' : ''}</div> <div class="cp-coords">Y: ${dispY}<br>X: ${dispX}${pt.vyska != null ? '<br>Z: '+Number(pt.vyska).toFixed(2)+' m' : ''}${pt.acc != null ? '<br>⌀ ±'+_escHtml(pt.acc)+' m' : ''}${dRow}</div>`;
                 if (_mngSelMode) {
                     item.classList.add('mng-selectable'); item.classList.toggle('mng-selected', _mngSel.has(pt.id));
                     const chk = document.createElement('div'); chk.className = 'mng-check'; chk.textContent = _mngSel.has(pt.id) ? '✓' : ''; item.appendChild(chk);
@@ -1332,7 +1378,7 @@
                 let matchesSearch = true; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) { matchesSearch = false; }
                 let outOfReach = (pt.currentDist > arRadius); let isSelectedForDetail = (pt.id === activePointIdForModal);
                 if (pt.hidden || !matchesSearch || (outOfReach && pt.id !== highlightedPointId && !isSelectedForDetail)) { if (pt.element && pt.element.parentNode) pt.element.parentNode.removeChild(pt.element); return; }
-                if (!pt.element) { _resetPtRenderCache(pt); const marker = document.createElement('div'); marker.className = `ar-marker cat-${String(pt.cat).toLowerCase()}`; if (pt.id === highlightedPointId) marker.classList.add('highlighted'); if (window.isStaked && isStaked(pt.id)) marker.classList.add('staked'); marker.style.opacity = '0'; const title = document.createElement('div'); title.className = 'ar-marker-title'; title.innerText = pt.name; const dist = document.createElement('div'); dist.className = 'ar-marker-dist'; const more = document.createElement('div'); more.className = 'ar-marker-more'; marker.appendChild(title); marker.appendChild(dist); marker.appendChild(more); marker.addEventListener('click', () => { if (pt._arCluster && pt._arCluster.length) { showClusterList([pt].concat(pt._arCluster)); return; } const currentDist = getDistance(userLat, userLng, pt.lat, pt.lng); showDetails(pt, currentDist); }); pt.element = marker; pt.distElement = dist; pt.moreElement = more; arOverlay.appendChild(marker); } else if (!pt.element.parentNode) { arOverlay.appendChild(pt.element); }
+                if (!pt.element) { _resetPtRenderCache(pt); const marker = document.createElement('div'); marker.className = `ar-marker cat-${String(pt.cat).toLowerCase()}${agZHodinek(pt) ? ' src-watch' : ''}`; if (pt.id === highlightedPointId) marker.classList.add('highlighted'); if (window.isStaked && isStaked(pt.id)) marker.classList.add('staked'); marker.style.opacity = '0'; const title = document.createElement('div'); title.className = 'ar-marker-title'; title.innerText = pt.name; const dist = document.createElement('div'); dist.className = 'ar-marker-dist'; const more = document.createElement('div'); more.className = 'ar-marker-more'; marker.appendChild(title); marker.appendChild(dist); marker.appendChild(more); marker.addEventListener('click', () => { if (pt._arCluster && pt._arCluster.length) { showClusterList([pt].concat(pt._arCluster)); return; } const currentDist = getDistance(userLat, userLng, pt.lat, pt.lng); showDetails(pt, currentDist); }); pt.element = marker; pt.distElement = dist; pt.moreElement = more; arOverlay.appendChild(marker); } else if (!pt.element.parentNode) { arOverlay.appendChild(pt.element); }
               } catch (e) { /* jeden rozbity bod nesmi zabit smycku ani drawAllMarkersOnMap() volane za ni */ }
             });
         }

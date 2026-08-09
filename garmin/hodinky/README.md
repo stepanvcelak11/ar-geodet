@@ -64,8 +64,51 @@ u GPS jsou vzorky po sekundě silně závislé a takový výsledek by lhal směr
 k optimismu.
 
 Reálně čekejte **jednotky metrů**. Na *nalezení* bodu v terénu to stačí,
-na *vytyčení* ne. Až se body budou přenášet do mobilu, měly by tam být vedené
-jako zvláštní třída, ať se nesmíchají s tím, co je změřené pořádně.
+na *vytyčení* ne. V mobilní aplikaci jsou tyhle body proto vedené zvlášť:
+kreslí se **růžově** (vlastní jsou zelené), v seznamu bodů mají značku ⌚
+a vlastní přepínač „jen body z hodinek". Pozná se to podle `prov.src`,
+které razítkuje Worker při nahrání.
+
+## Korekce na známém bodu
+
+Rozptyl výše neumí odhalit **systematickou** chybu — ionosféru, dráhy družic,
+odrazy od domů. Ta posouvá všechny vzorky stejným směrem, takže se v rozptylu
+neprojeví. Zjistit se ale dá porovnáním se skutečností:
+
+1. Stoupnout si na bod, jehož souřadnice jsou známé (přišel z mobilu).
+2. Dlouze ↑ → **Korekce na bodě** → vybrat ten bod ze seznamu.
+3. Hodinky spočítají rozdíl mezi ním a tím, co hlásí GNSS, a **odečítají ho
+   od všech dalších poloh** — od měření bodů i od navigace.
+
+Aktivní korekce je vidět na mapě za časem (`12:34 · kor 1,2`) i na obrazovce
+zakládání bodu. Vypne se sama po **15 minutách** nebo když se odejde dál než
+**kilometr** — stará korekce je horší než žádná, protože se tváří, že se něco
+zlepšilo.
+
+**⚠ Není to RTK ani DGPS.** Vyruší se jen ta část chyby, která je v okolí
+společná. Za známý bod se schválně dají vzít **jedině body z mobilu**: bod
+naměřený hodinkami je sám nejistý na metry a korigovat podle něj znamená jen
+přesypat šum z jedné hromádky na druhou.
+
+## Označ tady
+
+Dlouze ↑ → **Označ tady** uloží značku okamžitě, bez obrazovky a bez
+potvrzování — auto, stanovisko, kde jsem nechal lať, odkud jsem odbočil.
+
+Značky mají **vlastní číslování Z1, Z2, …** a nesahají na sérii měřených bodů:
+kdyby ukusovaly z rezervovaného bloku čísel, vznikaly by v číslování díry,
+které by nikdo neuměl vysvětlit.
+
+## Čísla bodů se nemůžou potkat s mobilem
+
+Při párování dostanou hodinky **rezervovaný blok** čísel (server pošle `from`
+a `to`), takže offline nemůžou vyrobit bod se stejným číslem jako mobil.
+Blok je ale konečný — kolik z něj zbývá, je vidět v nabídce u *Číslování bodů*.
+
+**Až dojde, dostanou čísla předponu `W`** (`W51`, `W52`, …). Mobil čísluje
+samými číslicemi, takže se s ním takové číslo potkat nemůže. Radši ošklivé
+číslo než dva různé body, které si v kanceláři přepíšou jeden druhého.
+Nový blok si hodinky vezmou při synchronizaci, jakmile ho server nabídne.
 
 **Nastavte si v hodinkách** Nastavení → Systém → GPS na *Vše + vícepásmové*
 (SatIQ). Aplikace se do toho schválně nemíchá a bere, co je nastavené
@@ -123,14 +166,19 @@ hodinky ──makeWebRequest──▶ Cloudflare Worker ◀──HTTPS── mob
 Hodinky si tunel k síti berou přes Garmin Connect na telefonu (nebo přes
 Wi-Fi doma), takže v terénu to funguje, dokud je telefon poblíž.
 
-Přihlásit se hodinky nemůžou (nemají klávesnici), proto **párovací kód**:
+Přihlásit se hodinky nemůžou (nemají klávesnici), proto **párovací kód**.
+Ten se ⚠ **opisuje z hodinek do mobilu**, ne naopak: sideloadovaná aplikace
+se v seznamu Connect IQ v Garmin Connect vůbec neobjeví, takže do jejího
+nastavení se nedá napsat nic.
 
-1. V mobilu **Nástroje → Hodinky Garmin → Vygenerovat kód** (šest znaků,
-   platí 10 minut, jednorázový).
-2. Kód opsat v **Garmin Connect**: Zařízení → Connect IQ → AR Geodet →
-   Nastavení → *Párovací kód z mobilu*.
-3. Na hodinkách dlouze podržet ↑ → **Synchronizovat s mobilem**. Spáruje se,
-   nahraje naměřené a stáhne 20 nejbližších bodů.
+1. Na hodinkách dlouze podržet ↑ → **Synchronizovat s mobilem**. Ukáže se
+   šestiznakový kód.
+2. Kód opsat v mobilu: **Nástroje → Hodinky Garmin**.
+3. Hodinky se samy doptají a spárují — nahrají naměřené a stáhnou
+   20 nejbližších bodů.
+
+Kód na displeji je veřejný, proto sám o sobě nestačí: token se vydává proti
+tajemství, které hodinky dostaly zároveň s kódem a nikde neukazují.
 
 Body se ukládají do **téže tabulky `sync_points`** jako z mobilu a ve stejném
 tvaru, takže se v aplikaci objeví samy. Filtrování podle vzdálenosti dělá
@@ -215,5 +263,7 @@ Zdroj dat: OpenStreetMap, licence ODbL.
 | `source/Nabidka.mc` | nabídka pod dlouhým stiskem nahoru |
 | `source/Podklad.mc` | plochy, čáry cest a překážky |
 | `source/Legenda.mc` | co která barva znamená |
+| `source/Korekce.mc` | posun podle známého bodu + jeho výběr |
+| `source/Znacka.mc` | „Označ tady" — rychlá značka mimo číselnou sérii |
 | `source/Displej.mc` | umísťování textu, aby ho kulatý okraj neořízl |
 | `../nastroje/dlazdice.py` | výroba dlaždice podkladu z dat OpenStreetMap |

@@ -54,7 +54,11 @@ class NovyBodView extends WatchUi.View {
         var v = s.klid.vysledek();
         if (v == null) { return null; }
 
-        _ulozeno = Body.pridej(v["la"], v["lo"], v["h"], v["s"], v["n"], 0, Kody.proUlozeni());
+        // Průměr se sbírá ze syrových poloh (viz Sledovac), korekce se proto
+        // přičte až tady — do bodu, který se ukládá.
+        var k = Korekce.pouzij(v["la"], v["lo"]);
+
+        _ulozeno = Body.pridej(k[0], k[1], v["h"], v["s"], v["n"], 0, Kody.proUlozeni());
         _zavibruj();
         return _ulozeno;
     }
@@ -99,10 +103,20 @@ class NovyBodView extends WatchUi.View {
         dc.drawText(cx, cy + 26, Graphics.FONT_XTINY, podrobne,
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
+        // Řádek pod stavem měření nese to, co se sem zrovna nejvíc hodí:
+        // dokud je vzorků málo, radu počkat; jinak stav korekce, aby bylo
+        // vidět, že se bod ukládá posunutý.
         if (n < DOST) {
             dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
             dc.drawText(cx, cy + 48, Graphics.FONT_XTINY, "chvíli stůj, klesá to",
                         Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        } else {
+            var kor = Korekce.popis();
+            if (kor != null) {
+                dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
+                dc.drawText(cx, cy + 48, Graphics.FONT_XTINY, kor,
+                            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            }
         }
 
         // Kód bodu se přepíná šipkami rovnou tady — žádná další obrazovka,

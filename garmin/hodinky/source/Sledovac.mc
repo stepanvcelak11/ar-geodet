@@ -15,8 +15,15 @@ using Toybox.Math;
 //! verzemi Connect IQ liší.
 class Sledovac {
 
-    var lat      = null;      // WGS84 [°]
+    //! ⚠ `lat`/`lon` jsou poloha PO korekci (viz Korekce) — tak je čte celá
+    //! aplikace, mapa i navigace. Syrová data z přijímače drží `latRaw`/`lonRaw`
+    //! a sbírá je průměrování; korekce se totiž počítá právě z rozdílu mezi
+    //! syrovou polohou a známým bodem, takže by se z opravené polohy počítala
+    //! podruhé a sečetla se sama se sebou.
+    var lat      = null;      // WGS84 [°], po korekci
     var lon      = null;
+    var latRaw   = null;      // WGS84 [°], jak to přišlo z GNSS
+    var lonRaw   = null;
     var vyska    = null;      // [m n.m.]
     var kvalita  = null;      // Position.QUALITY_*
     var kurz     = null;      // směr pohybu [rad], jen když se jde
@@ -72,8 +79,11 @@ class Sledovac {
         var d = info.position.toDegrees();
         if (d == null || d.size() < 2) { return; }
 
-        lat = d[0];
-        lon = d[1];
+        latRaw = d[0];
+        lonRaw = d[1];
+        var k = Korekce.pouzij(latRaw, lonRaw);
+        lat = k[0];
+        lon = k[1];
         kvalita = info.accuracy;
 
         if (info.altitude != null) { vyska = info.altitude; }
@@ -98,15 +108,19 @@ class Sledovac {
             return;
         }
 
+        // SYROVÁ poloha, ne opravená: kdyby se korekce zapnula nebo vypršela
+        // uprostřed sběru, opravená poloha by uskočila o její velikost a sběr
+        // by se zahodil, jako by se člověk hnul. Na samotný průměr to vliv
+        // nemá — korekce je konstantní posun a přičte se až při ukládání bodu.
         var s = klid.stred();
-        var skok = (s == null) ? 0.0 : Geo.vzdalenost(s[0], s[1], lat, lon);
+        var skok = (s == null) ? 0.0 : Geo.vzdalenost(s[0], s[1], latRaw, lonRaw);
 
         if (rychlost > 1.0 || skok > PRAH_POHYBU) {
             klid.reset();
             klidOd = null;
         }
 
-        klid.pridej(lat, lon, vyska);
+        klid.pridej(latRaw, lonRaw, vyska);
         if (klidOd == null) { klidOd = Time.now().value(); }
     }
 

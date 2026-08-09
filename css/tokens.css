@@ -48,6 +48,10 @@
     --color-pbpp: #3b82f6;
     --color-nivel: #ef4444;
     --color-custom: #34d399;
+    /* Body z hodinek Garmin. NENÍ to kategorie, ale PŮVOD — proto se nepřepisuje
+       z Nastavení jako ostatní: kdyby si ji člověk přebarvil na zelenou, ztratil by
+       jedinou informaci o tom, že bod je měřený hodinkami (přesnost jednotky metrů). */
+    --color-watch: #f472b6;
 
     /* AR šipka / značky (přepisuje JS) */
     --marker-opacity: 1;

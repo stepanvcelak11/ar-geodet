@@ -249,8 +249,12 @@ class MapaView extends WatchUi.View {
         // Nahoře čas — hodinky se nosí kvůli němu a aplikace ho jinak
         // zakrývá celou dobu, co je otevřená. Když je s GPS něco v
         // nepořádku, připojí se to za něj.
+        // Aktivní korekce MUSÍ být vidět: dokud běží, ukazuje mapa i navigace
+        // posunutou polohu, a to se nesmí dít potichu. Vejde se za čas, jen
+        // její velikost — podrobnosti jsou v nabídce.
         var nahore = Displej.cas();
         if (!s.maFix()) { nahore += " · " + s.popisKvality(); }
+        else if (Korekce.aktivni()) { nahore += " · kor " + Korekce.velikost().format("%.1f"); }
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         var spodekHorniho = Displej.nahore(dc, nahore, Graphics.FONT_XTINY);
 

@@ -11,6 +11,10 @@ module Nabidka {
 
         var menu = new WatchUi.Menu2({ :title => "Nabídka" });
         menu.addItem(new WatchUi.MenuItem("Nový bod", "změřit průměrováním", :novy, {}));
+        // Značka je schválně hned druhá: sahá se po ní ve spěchu (auto,
+        // stanovisko, odbočka) a nemá cenu kvůli ní listovat nabídkou.
+        menu.addItem(new WatchUi.MenuItem("Označ tady",
+                        "rychlá značka " + Znacka.dalsiCislo(), :znacka, {}));
         // Navigace je i pod tlačítkem START, ale kdo to neví, nenajde ji —
         // v nabídce po ní člověk sáhne sám.
         menu.addItem(new WatchUi.MenuItem("Navigovat k bodu",
@@ -23,14 +27,24 @@ module Nabidka {
                         :podklad, {}));
         menu.addItem(new WatchUi.MenuItem("Bzučák u bodu",
                         Blizkost.zapnuto() ? "vibruje do 5 m" : "vypnutý", :bzucak, {}));
+        menu.addItem(new WatchUi.MenuItem("Korekce na bodě",
+                        Korekce.aktivni() ? Korekce.popis()
+                                          : "stoupni si na známý bod", :korekce, {}));
         menu.addItem(new WatchUi.MenuItem("Synchronizovat s mobilem",
                         $.cloud.sparovano()
                             ? ($.cloud.stav.equals("") ? ("zakázka " + $.cloud.zakazka()) : $.cloud.stav)
                             : "nespárováno — ukáže kód do mobilu",
                         :sync, {}));
         menu.addItem(new WatchUi.MenuItem("Legenda", "co která barva znamená", :legenda, {}));
-        menu.addItem(new WatchUi.MenuItem("Číslování bodů",
-                        Body.pocet().toString() + " bodů · příští " + Body.dalsiCislo(), :cislo, {}));
+        // U čísel je vidět i to, kolik jich zbývá z bloku rezervovaného při
+        // párování — až dojde, začnou se čísla psát s „W", aby se nepotkala
+        // s mobilem (viz Body.dalsiCislo), a to je lepší vědět dopředu.
+        var zbyva = Body.zbyvaCisel();
+        var podCislo = Body.pocet().toString() + " bodů · příští " + Body.dalsiCislo();
+        if (zbyva != null) {
+            podCislo += (zbyva > 0) ? (" · zbývá " + zbyva.toString()) : " · blok došel";
+        }
+        menu.addItem(new WatchUi.MenuItem("Číslování bodů", podCislo, :cislo, {}));
         menu.addItem(new WatchUi.MenuItem("Smazat všechny body", "nelze vzít zpět", :smazat, {}));
 
         WatchUi.pushView(menu, new NabidkaDelegate(), WatchUi.SLIDE_UP);
@@ -57,6 +71,21 @@ class NabidkaDelegate extends WatchUi.Menu2InputDelegate {
             // některých firmwarech nesnáší; návrat se pak řeší dvojím pop.
             var v = new NovyBodView();
             WatchUi.pushView(v, new NovyBodDelegate(v), WatchUi.SLIDE_UP);
+
+        } else if (id == :znacka) {
+            // Bez obrazovky a bez potvrzení — o to tu jde. Odpověď dá
+            // podtitulek a vibrace; nabídka zůstane otevřená, takže se dá
+            // položit druhá značka hned vedle.
+            var jm = Znacka.polozZde();
+            if (jm == null) {
+                item.setSubLabel("není poloha");
+            } else {
+                item.setSubLabel("uloženo " + jm + " · další " + Znacka.dalsiCislo());
+            }
+
+        } else if (id == :korekce) {
+            WatchUi.popView(WatchUi.SLIDE_DOWN);
+            KorekceMenu.otevri();
 
         } else if (id == :otoceni) {
             var m = Nabidka.mapa();

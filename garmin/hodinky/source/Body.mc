@@ -51,13 +51,24 @@ module Body {
     // ---- číslování ---------------------------------------------------
 
     //! Série čísel: {"p" předpona, "n" další číslo, "z" počet číslic zleva
-    //! nulami}. Ve výchozím stavu prosté 1, 2, 3, … jak si to přál uživatel.
+    //! nulami, "do" konec rezervovaného bloku}. Ve výchozím stavu prosté
+    //! 1, 2, 3, … jak si to přál uživatel.
     function serie() {
         var s = Storage.getValue(KLIC_SERIE);
         if (s == null || !(s instanceof Lang.Dictionary) || s["n"] == null) {
-            return { "p" => "", "n" => 1, "z" => 0 };
+            return { "p" => "", "n" => 1, "z" => 0, "do" => 0 };
         }
+        if (s["do"] == null) { s["do"] = 0; }
         return s;
+    }
+
+    //! Kolik čísel zbývá z rezervovaného bloku. Null, když žádný blok není
+    //! (hodinky ještě nebyly spárované — pak se čísluje volně).
+    function zbyvaCisel() {
+        var s = serie();
+        if (s["do"] == null || s["do"] <= 0) { return null; }
+        var z = s["do"] - s["n"] + 1;
+        return (z < 0) ? 0 : z;
     }
 
     function nastavSerii(s) {
@@ -66,6 +77,14 @@ module Body {
 
     //! Vrátí příští číslo bodu, ALE neposune sérii — ta se posune až
     //! uložením bodu. Kdyby se měření zrušilo, číslo se nesmí ztratit.
+    //!
+    //! ⚠ DOJDE-LI REZERVOVANÝ BLOK, čísla dostanou předponu „W“.
+    //! Blok se přiděluje při párování (server pošle „from“ a „to“), aby
+    //! hodinky bez signálu nevyrobily bod se stejným číslem jako mobil.
+    //! Jenže blok je konečný — a když dojde, pokračovat prostými čísly by
+    //! přesně tu kolizi způsobilo. „W51“ se s ničím z mobilu potkat nemůže,
+    //! protože mobil čísluje samými číslicemi. Radši ošklivé číslo než dva
+    //! různé body, které si v kanceláři přepíšou jeden druhého.
     function dalsiCislo() {
         var s = serie();
         var c = s["n"].toString();
@@ -73,12 +92,28 @@ module Body {
         if (z != null && z > 0) {
             while (c.length() < z) { c = "0" + c; }
         }
+        if (s["do"] != null && s["do"] > 0 && s["n"] > s["do"]) {
+            return "W" + c;
+        }
         return s["p"] + c;
     }
 
     //! Uloží bod a posune sérii. Vrací přidělené číslo.
     function pridej(la, lo, h, sigma, n, src, kod) {
         var cislo = dalsiCislo();
+        pridejSCislem(cislo, la, lo, h, sigma, n, src, kod);
+
+        var s = serie();
+        s["n"] = s["n"] + 1;
+        nastavSerii(s);
+
+        return cislo;
+    }
+
+    //! Uloží bod s předem daným číslem a sérii NEHÝBE. Kvůli značkám
+    //! („Označ tady“), které mají vlastní číslování a nesmí ukusovat
+    //! z rezervovaného bloku měřených bodů.
+    function pridejSCislem(cislo, la, lo, h, sigma, n, src, kod) {
         var pole = nacti();
         pole.add({
             "c"   => cislo,
@@ -92,11 +127,6 @@ module Body {
             "src" => src
         });
         uloz(pole);
-
-        var s = serie();
-        s["n"] = s["n"] + 1;
-        nastavSerii(s);
-
         return cislo;
     }
 
@@ -128,6 +158,11 @@ module Body {
                 "h"  => b["h"],
                 "s"  => b["s"],
                 "k"  => b["k"],
+                // src putuje ven kvůli korekci: za známý bod se smí vzít
+                // jedině to, co přišlo z mobilu (src 1) — bod naměřený
+                // hodinkami je sám nejistý na metry a korigovat podle něj
+                // znamená jen přesypat šum z jedné hromádky na druhou.
+                "src" => b["src"],
                 "d"  => d,
                 "az" => Geo.azimut(lat, lon, b["la"], b["lo"])
             };

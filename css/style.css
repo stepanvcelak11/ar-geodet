@@ -502,6 +502,8 @@ body {
 .ar-marker.cat-pbpp   { border-left: 4px solid var(--color-pbpp);   border-radius: 20px; }
 .ar-marker.cat-nivel  { border-left: 4px solid var(--color-nivel);  border-radius: 14px 0 14px 0; }
 .ar-marker.cat-custom { border-left: 4px solid var(--color-custom); border-radius: 14px 14px 0 0; }
+/* Bod z hodinek — tvar zustava, meni se jen barva pruhu (viz --color-watch) */
+.ar-marker.src-watch  { border-left-color: var(--color-watch); }
 
 /* VYKON: puls vybrane znacky driv animoval box-shadow — ta se NEDA kompozitovat, takze
    se znacka prekreslovala na hlavnim vlakne 60x/s, a to prave nad zivou kamerou a na
@@ -2633,6 +2635,9 @@ body.outdoor-mode #map-sheet, body.outdoor-mode #map-ctrl-toggle {
 .ar-marker.cat-pbpp   { --_catc: var(--color-pbpp); }
 .ar-marker.cat-nivel  { --_catc: var(--color-nivel); }
 .ar-marker.cat-custom { --_catc: var(--color-custom); }
+/* Body z hodinek: stejná značka jako vlastní bod, jen růžová — viz js/grafika.js
+   (agZHodinek). Musí být ZA .cat-custom, jinak by ji obecnější pravidlo přebilo. */
+.ar-marker.src-watch { --_catc: var(--color-watch); }
 .ar-marker.cat-tb .ar-marker-title::before     { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
 .ar-marker.cat-pbpp .ar-marker-title::before   { border-radius: 50%; }
 .ar-marker.cat-nivel .ar-marker-title::before  { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
@@ -2740,6 +2745,15 @@ body.light-mode .mng-bar input[type="search"] { background: rgba(0, 0, 0, 0.05);
 .mng-bar select { flex: 0 0 auto; width: auto; max-width: 42%; margin: 0; padding: 10px 8px; font-size: calc(13.5px * var(--ag-font-scale, 1)); }
 .mng-bar .mng-selbtn { flex: 0 0 auto; width: auto; margin: 0; padding: 10px 14px; }
 .mng-bar .mng-selbtn.mng-selbtn-on { border-color: var(--accent); color: var(--accent-bright, #34d399); }
+/* Ctvrty prvek panelu: "jen body z hodinek". Panel je flex a na uzkem telefonu uz
+   ctyri prvky vedle sebe nevyjdou — proto se smi zalomit a hledani si drzi celou
+   sirku prvniho radku (flex-basis 100 % pri zalomeni resi min-width vyse). */
+.mng-bar { flex-wrap: wrap; }
+.mng-bar .mng-watchbtn { flex: 0 0 auto; width: auto; margin: 0; padding: 10px 12px; }
+.mng-bar .mng-watchbtn.mng-watchbtn-on { border-color: var(--color-watch); color: var(--color-watch); }
+/* Radek bodu z hodinek — stejny jako ostatni, jen ruzovy pruh vlevo */
+.cp-item.cp-watch { border-left-color: var(--color-watch); }
+.cp-watch-tag { opacity: 0.85; margin-left: 4px; }
 .mng-actions {
     border: 1px solid var(--glass-border);
     border-radius: var(--r-md, 12px);

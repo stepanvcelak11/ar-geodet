@@ -116,7 +116,7 @@ class Cloud {
         // Rezervovaný blok čísel: hodinky číslují z něj, takže i bez signálu
         // nemůžou vyrobit bod se stejným číslem jako mobil.
         if (d["from"] != null) {
-            Body.nastavSerii({ "p" => "", "n" => d["from"], "z" => 0 });
+            Body.nastavSerii({ "p" => "", "n" => d["from"], "z" => 0, "do" => _konecBloku(d) });
         }
         _hlas("spárováno: " + d["job"]);
         _zavibruj();
@@ -127,6 +127,29 @@ class Cloud {
         var ds = System.getDeviceSettings();
         if (ds == null || !ds.vibrateOn) { return; }
         Attention.vibrate([new Attention.VibeProfile(75, 250)]);
+    }
+
+    //! Konec rezervovaného bloku čísel z odpovědi serveru.
+    //!
+    //! Server posílá „from" a „to". Kdyby „to" chybělo (starší Worker),
+    //! vrátí se 0 = „blok neznám" a čísluje se jako dřív, bez stropu.
+    //! Vědomě se NEHÁDÁ velikost bloku: kdyby se tipla větší, než jaký
+    //! server opravdu rezervoval, vznikly by přesně ty kolize, kterým
+    //! má blok bránit.
+    function _konecBloku(d) {
+        if (d["to"] == null) { return 0; }
+        return d["to"];
+    }
+
+    //! Přijme čerstvý blok čísel, ale JEN když ten dosavadní došel.
+    //! Jinak by každá synchronizace posunula číslování dopředu a v číslech
+    //! by zůstávaly díry po nevyužitých blocích.
+    function _prevezmiBlok(d) {
+        if (d["from"] == null || d["to"] == null) { return; }
+        var s = Body.serie();
+        if (s["do"] != null && s["do"] > 0 && s["n"] <= s["do"]) { return; }
+        if (d["from"] <= s["n"]) { return; }      // server nabízí, co už je za námi
+        Body.nastavSerii({ "p" => s["p"], "n" => d["from"], "z" => s["z"], "do" => d["to"] });
     }
 
     function token() { return Storage.getValue(K_TOKEN); }
@@ -222,7 +245,7 @@ class Cloud {
         // Rezervovaný blok čísel: hodinky číslují z něj, takže i bez signálu
         // nemůžou vyrobit bod se stejným číslem jako mobil.
         if (d["from"] != null) {
-            Body.nastavSerii({ "p" => "", "n" => d["from"], "z" => 0 });
+            Body.nastavSerii({ "p" => "", "n" => d["from"], "z" => 0, "do" => _konecBloku(d) });
         }
         _hlas("spárováno: " + d["job"]);
         _odesli();
@@ -307,6 +330,11 @@ class Cloud {
             _hlas(_chyba("stažení", kod));
             return;
         }
+        // Když server posílá i čísla, je tohle jediná chvíle, kdy si hodinky
+        // můžou vyzvednout další blok — jinak by po vyčerpání toho z párování
+        // číslovaly s „W“ až do dalšího spárování.
+        _prevezmiBlok(d);
+
         var nove = Body.nahradZMobilu(d["points"]);
         _hlas(nove + " bodů; beru mapu…");
         _stahniDlazdici();
