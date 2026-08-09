@@ -60,6 +60,20 @@
         return { A: A, B: B, bE: b.e, bN: b.n, len: len, uE: b.e / len, uN: b.n / len };
     }
 
+    // Bod na přímce: A + station·u, kolmo odsazený o `offset` (+ vlevo, − vpravo).
+    // Stejná konvence jako computeStakePoint i jako živý odečet v refresh().
+    function pointAt(g, station, offset) {
+        var o = offset || 0;
+        var e = station * g.uE + o * (-g.uN);
+        var n = station * g.uN + o * (g.uE);
+        return fromEnu(g.A.lat, g.A.lng, e, n);
+    }
+    // Kde na přímce leží zadaná poloha: staničení od A a kolmý odstup (+ vlevo).
+    function stationOf(g, lat, lng) {
+        var u = enu(g.A.lat, g.A.lng, lat, lng);
+        return { station: u.e * g.uE + u.n * g.uN, offset: g.uE * u.n - g.uN * u.e };
+    }
+
     function fillSelects() {
         if (typeof arPoints === 'undefined') return;
         var list = arPoints.filter(function (p) { return !p.hidden; })
@@ -82,9 +96,9 @@
         if (!g) { if (live) live.innerHTML = '<span style="opacity:.6">Vyber dva různé body (A → B).</span>'; if (head) head.innerHTML = ''; return; }
         if (head) head.innerHTML = 'Přímka #' + g.A.name + ' → #' + g.B.name + ' · délka <b>' + g.len.toFixed(2) + ' m</b>';
         if (typeof userLat === 'undefined' || userLat == null) { if (live) live.innerHTML = '<span style="opacity:.6">Čekám na GPS polohu…</span>'; return; }
-        var u = enu(g.A.lat, g.A.lng, userLat, userLng);
-        var station = u.e * g.uE + u.n * g.uN;             // podél přímky od A
-        var offset = g.uE * u.n - g.uN * u.e;              // + = vlevo od směru A→B
+        var me = stationOf(g, userLat, userLng);
+        var station = me.station;                          // podél přímky od A
+        var offset = me.offset;                            // + = vlevo od směru A→B
         var remain = g.len - station;
         var side = offset >= 0 ? 'vlevo' : 'vpravo';
         var offCol = Math.abs(offset) <= 0.30 ? '#34d399' : (Math.abs(offset) <= 1 ? '#fbbf24' : '#f87171');
@@ -134,6 +148,10 @@
             + '</div>'
             + '<div id="agsl-lineinfo" style="font-size:calc(13px * var(--ag-font-scale, 1));margin:8px 0;color:var(--accent);"></div>'
             + '<div id="agsl-live" style="margin:6px 0 12px;padding:12px 14px;border-radius:10px;background:rgba(47,158,116,0.12);font-family:var(--font-mono,monospace);font-size:calc(14px * var(--ag-font-scale, 1));"></div>'
+            + '<label id="agsl-arwrap" style="display:flex;align-items:center;gap:10px;margin:0 0 12px;font-size:calc(13px * var(--ag-font-scale, 1));">'
+            + '  <input type="checkbox" id="agsl-ar" style="width:20px;height:20px;flex:none;">'
+            + '  <span>Ukázat přímku v kameře<small style="display:block;opacity:.65;font-size:calc(11.5px * var(--ag-font-scale, 1));">osa po zemi, kolmice od tebe k ose a staničení patky</small></span>'
+            + '</label>'
             + '<details class="adv"><summary><svg class="icon"><use href="#i-crosshair"/></svg> Vytyčit bod na staničení</summary><div class="adv-body">'
             + '  <label>Staničení od A (m)</label><input type="text" id="agsl-stat" step="0.01" inputmode="decimal" placeholder="např. 25.00">'
             + '  <label style="margin-top:6px;">Kolmý odstup (m, + vlevo / − vpravo)</label><input type="text" id="agsl-off" step="0.01" inputmode="decimal" placeholder="0">'
@@ -150,6 +168,14 @@
         document.getElementById('agsl-off').addEventListener('input', function () { previewStake(); draftSave(); });
         document.getElementById('agsl-name').addEventListener('input', draftSave);
         document.getElementById('agsl-save').addEventListener('click', saveStake);
+        // Vykreslení v AR je vlastní odpojitelný modul (js/stakeout-line-ar.js).
+        // Když chybí, zaškrtávátko se ani neukáže — ať nenabízí něco, co nepůjde.
+        var arw = document.getElementById('agsl-arwrap'), arc = document.getElementById('agsl-ar');
+        if (!window.AGLineAR) { if (arw) arw.style.display = 'none'; }
+        else if (arc) {
+            arc.checked = window.AGLineAR.isOn();
+            arc.addEventListener('change', function () { window.AGLineAR.set(this.checked); });
+        }
     }
 
     function openTool() {
@@ -189,4 +215,7 @@
     else register();
     window.addEventListener('load', function () { setTimeout(register, 350); });
     window.agOpenStakeLine = openTool;
+    // Geometrii sdílíme s vykreslením v AR, ať se výpočet nedělá dvakrát a nemůže
+    // se rozejít (staničení v okně × patka kolmice v obraze).
+    window.AGStakeLine = { geometry: geometry, pointAt: pointAt, stationOf: stationOf };
 })();
