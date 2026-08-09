@@ -39,6 +39,8 @@ module Seznam {
                 if (b["k"] != null && !b["k"].equals("")) {
                     podtitulek += " · " + b["k"];
                 }
+                // hvězdička = naměřeno tady a ještě to neodešlo do mobilu
+                if (b["src"] == 0 && b["up"] != 1) { podtitulek += " ✱"; }
                 // Identifikátor je pořadí v _okoli, ne číslo bodu — z čísla
                 // by se zpátky hledalo a Menu2 stejně vrací jen ten symbol.
                 menu.addItem(new WatchUi.MenuItem(b["c"], podtitulek, i, {}));

@@ -30,6 +30,10 @@ class MapaView extends WatchUi.View {
 
     hidden var _casovac = null;
     hidden var _okoli = [];
+    hidden var _okoliLat = 0.0;
+    hidden var _okoliLon = 0.0;
+    hidden var _okoliPocet = -1;
+    hidden var _nevyneseno = 0;
 
     function initialize() {
         View.initialize();
@@ -62,6 +66,8 @@ class MapaView extends WatchUi.View {
         // navždy „stará poloha“ a nešlo by měřit vůbec.
         var s = $.sledovac;
         if (s != null && !s.maFix()) { s.osvez(); }
+        // jakmile je poloha, jednou za spuštění se samo sesynchronizuje
+        if ($.cloud != null) { $.cloud.zkusSamo(); }
         WatchUi.requestUpdate();
     }
 
@@ -102,7 +108,7 @@ class MapaView extends WatchUi.View {
             return;
         }
 
-        _okoli = Body.nejblizsi(s.lat, s.lon, MAX_BODU);
+        _obnovOkoli(s);
         Blizkost.zkontroluj(_okoli);
 
         var dosah = ZOOMY[zoom];
@@ -175,6 +181,26 @@ class MapaView extends WatchUi.View {
                         cx + (x - cx) * t2, cy + (y - cy) * t2);
         }
         dc.setPenWidth(1);
+    }
+
+    //! Přepočítá okolí, jen když se poloha znatelně posunula nebo bodů
+    //! přibylo/ubylo.
+    //!
+    //! ⚠ Dřív se to počítalo při KAŽDÉM překreslení, tedy jednou za vteřinu
+    //! celý den — a to znamená projít až dvě stě bodů a spočítat u každého
+    //! vzdálenost i azimut. Když člověk stojí, není co počítat; tři metry
+    //! jsou hluboko pod přesností GPS, takže se tím nic neztratí.
+    hidden function _obnovOkoli(s) {
+        var pocet = Body.pocet();
+        var skok = Geo.vzdalenost(_okoliLat, _okoliLon, s.lat, s.lon);
+        if (_okoliPocet == pocet && skok < 3.0) { return; }
+        _okoliLat = s.lat;
+        _okoliLon = s.lon;
+        _okoliPocet = pocet;
+        _okoli = Body.nejblizsi(s.lat, s.lon, MAX_BODU);
+        // počítá se tady, ne při kreslení — jinak by se úložiště
+        // pročítalo znovu každou vteřinu a úspora výš by byla k ničemu
+        _nevyneseno = Body.nevyneseno();
     }
 
     // ---- jednotlivé vrstvy -------------------------------------------
@@ -284,6 +310,9 @@ class MapaView extends WatchUi.View {
         var dole = dosah.toString() + " m";
         var klid = s.popisKlidu();
         if (klid != null) { dole = klid; }
+        // Kolik měření ještě nedorazilo do mobilu — to je jediné číslo,
+        // které chce člověk vidět, než hodinky odloží.
+        if (_nevyneseno > 0) { dole = _nevyneseno.toString() + " nevyneseno · " + dole; }
         if (cil != null) {
             // Vzdálenost se počítá znovu z právě platné polohy — ta uložená
             // u cíle je z okamžiku výběru a za chvíli chůze už neplatí.

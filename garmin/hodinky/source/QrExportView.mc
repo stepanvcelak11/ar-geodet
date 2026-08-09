@@ -31,6 +31,7 @@ class QrExportView extends WatchUi.View {
     const MAX_BAJTU = 200;
 
     hidden var _davky = [];
+    hidden var _cislaDavek = [];
     hidden var _kde = 0;
     hidden var _casovac = null;
     hidden var _pocita = false;
@@ -64,7 +65,9 @@ class QrExportView extends WatchUi.View {
         var vse = Body.nacti();
         var ven = [];
         var text = "AG1";
+        var cisla = [];
         var kusu = 0;
+        _cislaDavek = [];
 
         for (var i = 0; i < vse.size(); i++) {
             var b = vse[i];
@@ -76,14 +79,16 @@ class QrExportView extends WatchUi.View {
             if (b["h"] != null) { radek += "\t" + b["h"].format("%.2f"); }
 
             if (kusu >= MAX_BODU || (text.length() + radek.length()) > MAX_BAJTU) {
-                if (kusu > 0) { ven.add(text); }
+                if (kusu > 0) { ven.add(text); _cislaDavek.add(cisla); }
                 text = "AG1";
+                cisla = [];
                 kusu = 0;
             }
             text += radek;
+            cisla.add(b["c"]);
             kusu += 1;
         }
-        if (kusu > 0) { ven.add(text); }
+        if (kusu > 0) { ven.add(text); _cislaDavek.add(cisla); }
         return ven;
     }
 
@@ -102,6 +107,12 @@ class QrExportView extends WatchUi.View {
             _zastav();
             WatchUi.requestUpdate();      // hotovo → jedno jediné překreslení
         }
+    }
+
+    //! Označí právě zobrazenou dávku za vynesenou a posune se na další.
+    function oznacVynesenou() {
+        if (_kde < _cislaDavek.size()) { Body.oznacVyneseno(_cislaDavek[_kde]); }
+        if (_davky.size() > 1) { dalsi(1); } else { WatchUi.requestUpdate(); }
     }
 
     function dalsi(o) {
@@ -136,7 +147,8 @@ class QrExportView extends WatchUi.View {
         _kresliKod(dc, sirka, vyska);
 
         dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-        var popis = (_kde + 1).toString() + "/" + _davky.size().toString();
+        var popis = (_kde + 1).toString() + "/" + _davky.size().toString()
+                  + " · START = mám";
         if (_davky.size() > 1) { popis += " · ↑↓"; }
         dc.drawText(cx, vyska - 9, Graphics.FONT_XTINY, popis,
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
@@ -189,5 +201,12 @@ class QrExportDelegate extends WatchUi.BehaviorDelegate {
         return true;
     }
 
-    function onSelect() { return onBack(); }
+    //! START = „tuhle dávku mám v mobilu". Body se označí za vynesené,
+    //! takže na mapě zmizí z počítadla „nevyneseno" a v seznamu jim zmizí
+    //! hvězdička. Bez toho by se po dni v terénu nedalo poznat, co už je
+    //! v bezpečí — a to je u QR, kde nic nepotvrzuje server, dvojnásob.
+    function onSelect() {
+        _view.oznacVynesenou();
+        return true;
+    }
 }

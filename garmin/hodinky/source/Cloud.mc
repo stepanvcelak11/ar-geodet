@@ -48,6 +48,22 @@ class Cloud {
     var pocetBodu = 0;                 // co přišlo, do souhrnu
     var mapaOk = false;
 
+    //! Automatická synchronizace proběhne jednou za spuštění aplikace.
+    //!
+    //! ⚠ Schválně JEN JEDNOU a jen na pozadí: kdyby se opakovala sama,
+    //! přepsala by výběr bodů, který si člověk mezitím v mobilu připravil,
+    //! a rádiem by ujídala baterku. Ruční „Synchronizovat s mobilem" jde
+    //! kdykoli — právě na to, když chce jiné body než posledně.
+    var uzSamo = false;
+
+    function zkusSamo() {
+        if (uzSamo || bezi || !sparovano()) { return; }
+        var s = $.sledovac;
+        if (s == null || !s.maFix()) { return; }      // bez polohy nemá co stahovat
+        uzSamo = true;
+        synchronizuj();
+    }
+
     //! Kolik vteřin synchronizace běží. Není to ukazatel postupu — ten
     //! Connect IQ u makeWebRequest nedává, odpověď přijde celá naráz —
     //! ale je z něj vidět, že se něco děje a jak dlouho.

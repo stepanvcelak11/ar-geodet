@@ -47,6 +47,12 @@ module Nabidka {
             podCislo += (zbyva > 0) ? (" · zbývá " + zbyva.toString()) : " · blok došel";
         }
         menu.addItem(new WatchUi.MenuItem("Číslování bodů", podCislo, :cislo, {}));
+        // Smazat jeden jde jen u bodu, ke kterému se zrovna naviguje — je
+        // to jediné místo, kde je jasné, o který bod jde, a nedá se splést.
+        var c = (mapa != null) ? mapa.cil : null;
+        if (c != null) {
+            menu.addItem(new WatchUi.MenuItem("Smazat bod " + c["c"], "jen tenhle", :smazJeden, {}));
+        }
         menu.addItem(new WatchUi.MenuItem("Smazat všechny body", "nelze vzít zpět", :smazat, {}));
 
         WatchUi.pushView(menu, new NabidkaDelegate(), WatchUi.SLIDE_UP);
@@ -133,6 +139,19 @@ class NabidkaDelegate extends WatchUi.Menu2InputDelegate {
 
         } else if (id == :legenda) {
             WatchUi.pushView(new LegendaView(), new LegendaDelegate(), WatchUi.SLIDE_UP);
+
+        } else if (id == :smazJeden) {
+            var m2 = Nabidka.mapa();
+            if (m2 == null || m2.cil == null) { return; }
+            // dvojí stisk potvrzuje, stejně jako u mazání všeho
+            if (item.getSubLabel().equals("jen tenhle")) {
+                item.setSubLabel("ještě jednou START");
+            } else {
+                Body.smaz(m2.cil["c"]);
+                m2.cil = null;
+                item.setLabel("Smazáno");
+                item.setSubLabel("");
+            }
 
         } else if (id == :smazat) {
             // Druhý stisk potvrzuje — plnohodnotný dialog by tu byl přes

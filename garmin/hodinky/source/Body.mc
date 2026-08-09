@@ -32,12 +32,67 @@ module Body {
     }
 
     function uloz(pole) {
-        // Kdyby se strop přesáhl, jdou pryč nejstarší body. Pole je řazené
-        // podle vzniku, takže stačí uříznout začátek.
-        if (pole.size() > MAX) {
-            pole = pole.slice(pole.size() - MAX, pole.size());
-        }
+        if (pole.size() > MAX) { pole = _prorez(pole); }
         Storage.setValue(KLIC, pole);
+    }
+
+    //! Uvolní místo ve stropu — ale NIKDY nezahodí vlastní neodeslaný bod.
+    //!
+    //! ⚠ Dřív se prostě uříznuly nejstarší. Kdo naměřil za den víc než dvě
+    //! stě bodů bez signálu, přišel o ty první BEZ VAROVÁNÍ. Přitom je jasné
+    //! pořadí, co je postradatelné: body z mobilu (tam zůstávají), pak
+    //! vlastní už odeslané, a teprve nakonec — nikdy — vlastní neodeslané.
+    //! Radši se překročí strop, než aby zmizelo měření.
+    function _prorez(pole) {
+        var kola = [1, 2];              // 1 = z mobilu, 2 = vlastní odeslané
+        for (var k = 0; k < kola.size() && pole.size() > MAX; k++) {
+            var ven = [];
+            var vyhodit = pole.size() - MAX;
+            for (var i = 0; i < pole.size(); i++) {
+                var b = pole[i];
+                var lzeVyhodit = (kola[k] == 1) ? (b["src"] == 1)
+                                                : (b["src"] == 0 && b["up"] == 1);
+                if (lzeVyhodit && vyhodit > 0) { vyhodit -= 1; continue; }
+                ven.add(b);
+            }
+            pole = ven;
+        }
+        return pole;
+    }
+
+    //! Kolik vlastních bodů ještě neodešlo do mobilu. Po dni v terénu je to
+    //! jediné číslo, které člověk potřebuje vidět, než hodinky odloží.
+    function nevyneseno() {
+        var vse = nacti();
+        var n = 0;
+        for (var i = 0; i < vse.size(); i++) {
+            if (vse[i]["src"] == 0 && vse[i]["up"] != 1) { n += 1; }
+        }
+        return n;
+    }
+
+    //! Označí body daných čísel za vynesené (po QR exportu).
+    function oznacVyneseno(cisla) {
+        var vse = nacti();
+        for (var i = 0; i < vse.size(); i++) {
+            for (var j = 0; j < cisla.size(); j++) {
+                if (vse[i]["c"].equals(cisla[j])) { vse[i]["up"] = 1; break; }
+            }
+        }
+        uloz(vse);
+    }
+
+    //! Smaže jeden bod podle čísla. Vrací true, když se něco smazalo.
+    function smaz(cislo) {
+        var vse = nacti();
+        var ven = [];
+        var naslo = false;
+        for (var i = 0; i < vse.size(); i++) {
+            if (!naslo && vse[i]["c"].equals(cislo)) { naslo = true; continue; }
+            ven.add(vse[i]);
+        }
+        if (naslo) { uloz(ven); }
+        return naslo;
     }
 
     function pocet() {
