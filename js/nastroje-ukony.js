@@ -562,5 +562,14 @@
 
     // setView() zrušen spolu s přepínačem pohledů — pohled je jeden. Necháváme ho
     // v API jako no-op, aby starší volání odjinud nespadlo na „not a function".
-    window.AGUkony = { rebuild: build, setView: function () { sync(); } };
+    // groups/run/has vystrkuje ven kvůli js/kolecko-nastroju.js: kolečko musí
+    // vybírat ze STEJNÉ mapy sloves a spouštět nástroje STEJNOU cestou (klik na
+    // původní dlaždici), jinak by se rozešly a obcházela by se oprávnění.
+    window.AGUkony = {
+        rebuild: build,
+        setView: function () { sync(); },
+        groups: GROUPS,
+        run: run,
+        has: function (k) { return !!findTile(k); }
+    };
 })();

@@ -2307,15 +2307,17 @@ body.left-hand .photo-editor .pv-close { right: auto; left: 16px; }
 body.left-hand .ag-tp-help { right: auto; left: 4px; }
 /* (zrcadleni tutorialu odebrano spolu s mrtvym blokem .tut-* vyse — tutorial-pro.js
    ma vlastni .agtp-* a svoje „Preskocit" resi sam) */
-/* modály vjíždějí z opačné strany, ať gesto sedí ke straně ovládání */
-body.left-hand #settings-modal .modal-content,
-body.left-hand #manage-modal .modal-content,
-body.left-hand #tools-modal .modal-content,
-body.left-hand #custom-modal-overlay .modal-content { transform: translateX(-100%); }
-body.left-hand #settings-modal .modal-content.ag-open,
-body.left-hand #manage-modal .modal-content.ag-open,
-body.left-hand #tools-modal .modal-content.ag-open,
-body.left-hand #custom-modal-overlay .modal-content.ag-open { transform: translateX(0); }
+/* ⚠ ODSTRANĚNO 9. 8. 2026 — TOHLE ROZBÍJELO CELÝ REŽIM LEVÉ RUKY.
+   Bývalo tu „modály vjíždějí z opačné strany, ať gesto sedí ke straně ovládání":
+   obsah modálu se odsunul přes translateX(-100%) a zpátky ho měla vrátit třída
+   `.ag-open`. Jenže tu třídu NIKDO NIKDY NENASTAVUJE — v celém repu na ni není
+   jediný `classList.add('ag-open')`, jen zmínka v komentáři js/hidden-points.js.
+   V režimu levé ruky tedy Nástroje, Nastavení, Body i vlastní dialogy skončily
+   celé MIMO OBRAZOVKU (naměřeno: x = −412 px při šířce 412, tj. neviditelné a
+   neovladatelné). Leváci se k nim nedostali vůbec.
+   Bez pravidla se modály chovají přesně jako u praváka, což je správně — žádná
+   jiná strana v appce animaci modálů nezavádí. Kdyby se sem někdy vracela, MUSÍ
+   s ní přijít i kód, který `.ag-open` opravdu přidává. */
 /* Plovoucí tlačítka nástrojů mají polohu inline v JS → přebít lze jen !important */
 body.left-hand #agpc-fab,
 body.left-hand #ag-ft-fab { right: auto !important; left: 12px !important; }

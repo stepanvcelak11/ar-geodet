@@ -187,6 +187,27 @@
     // žije v panelu Mapa a vrstvy (js/poloha-z-mapy.js) a její „?" míří sem. Bez
     // tohohle by záznam v TOOL_HELP existoval, ale uživatel by se k němu nedostal.
     window.agToolHelp = function (key, label) { try { openHelp(key, label); } catch (e) {} };
+    // Krátká nápověda jako HOLÝ TEXT (první věty návodu). Používá ji kolečko
+    // nástrojů (js/kolecko-nastroju.js): v kolečku není kam dát otazník, tak se
+    // u zamířeného nástroje rovnou vypíše, co dělá. Zdroj je TÝŽ TOOL_HELP,
+    // takže se texty nemůžou rozejít — jen se zkrátí.
+    window.agToolHelpText = function (key, max) {
+        try {
+            var rec = TOOL_HELP[key];
+            if (!rec || !rec.h) return '';
+            var d = document.createElement('div');
+            d.innerHTML = String(rec.h).replace(/<\/(p|li|ol|ul)>/gi, ' ');
+            var t = (d.textContent || '').replace(/\s+/g, ' ').trim();
+            var lim = max || 190;
+            if (t.length <= lim) return t;
+            // Řezat na konci VĚTY, ne uprostřed slova.
+            var cut = t.slice(0, lim);
+            var dot = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? '));
+            if (dot > 60) return cut.slice(0, dot + 1);
+            var sp = cut.lastIndexOf(' ');
+            return (sp > 60 ? cut.slice(0, sp) : cut) + '…';
+        } catch (e) { return ''; }
+    };
 
     // ---- badge „?" a hvězdička na dlaždicích -----------------------------------------
     function decorateTiles() {
