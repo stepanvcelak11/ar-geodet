@@ -148,7 +148,11 @@ class Cloud {
         if (d["from"] == null || d["to"] == null) { return; }
         var s = Body.serie();
         if (s["do"] != null && s["do"] > 0 && s["n"] <= s["do"]) { return; }
-        if (d["from"] <= s["n"]) { return; }      // server nabízí, co už je za námi
+        // Rovnost je v pořádku a je to ten OBVYKLÝ případ: došel blok 1–50,
+        // hodinky stojí na 51 a server nabídne 51–100, takže se naváže beze
+        // spáry. Odmítá se jedině nabídka SMĚREM ZPÁTKY, která by čísla
+        // použila podruhé.
+        if (d["from"] < s["n"]) { return; }
         Body.nastavSerii({ "p" => s["p"], "n" => d["from"], "z" => s["z"], "do" => d["to"] });
     }
 
@@ -312,9 +316,17 @@ class Cloud {
             return;
         }
         _hlas("stahuji okolí…");
+
+        // O nový blok čísel se říká, jedině když ten dosavadní došel — server
+        // ho totiž opravdu ukusuje a při každé synchronizaci by se spolklo
+        // padesát čísel do prázdna. Viz /watch/points v cloud/worker.js.
+        var params = { "lat" => s.lat, "lon" => s.lon, "n" => 20 };
+        var zbyva = Body.zbyvaCisel();
+        if (zbyva == null || zbyva <= 0) { params["blok"] = 1; }
+
         Communications.makeWebRequest(
             server() + "/watch/points",
-            { "lat" => s.lat, "lon" => s.lon, "n" => 20 },
+            params,
             {
                 :method => Communications.HTTP_REQUEST_METHOD_GET,
                 :headers => _hlavicky(),

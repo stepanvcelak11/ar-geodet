@@ -1268,7 +1268,24 @@ export default {
                     }
                     ven.sort((a, b) => a._d - b._d);
                     const vybrane = ven.slice(0, n).map(p => { delete p._d; return p; });
-                    return json({ points: vybrane, job: job });
+
+                    // DALŠÍ BLOK ČÍSEL, ale JEN NA VYŽÁDÁNÍ (?blok=1).
+                    //
+                    // Hodinky si o něj řeknou, teprve když jim ten z párování došel
+                    // (viz Cloud._stahni v garmin/hodinky). Přidělovat ho při každé
+                    // synchronizaci NELZE: watchBlok() čísla opravdu ukusuje, takže
+                    // by každé ťuknutí na „Synchronizovat" spolklo padesát čísel
+                    // a v číslování by po nich zůstaly díry.
+                    //
+                    // Bez bloku začnou hodinky čísla psát s předponou „W" — nikdy
+                    // nevyrobí bod se stejným číslem jako mobil, jen to vypadá hůř.
+                    const out = { points: vybrane, job: job };
+                    if (url.searchParams.get('blok')) {
+                        const blok = await watchBlok(env, me.firm_id, job);
+                        out.from = blok[0];
+                        out.to = blok[1];
+                    }
+                    return json(out);
                 }
 
                 const b = await req.json().catch(() => null);
