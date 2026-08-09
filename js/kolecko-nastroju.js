@@ -19,6 +19,10 @@
 //  • KVĚT (9. 8. 2026): kruh je kytka. Každá položka je lístek, nápis leží natočený
 //    v něm, uprostřed je malý květ s názvem toho, na co se míří. Po otevření se
 //    poupě rozvine lístek po lístku (~0,8 s) a vybraný lístek se rozevře.
+//  • VELIKOST PODLE OBRAZOVKY (9. 8. 2026): průměr už není zastropovaný na 300 px,
+//    ale bere, kolik je na displeji místa (strop DMAX). Jedním měřítkem se přepočítá
+//    CELÁ kresba včetně písma — viz build(). Mechanika (mrtvá zóna, ENGAGE, PARK,
+//    hystereze, odpočet) se přitom NEMĚNÍ, ta je daná dosahem palce, ne kresbou.
 //  • RUŠENÍ POSUNEM PRSTU NEEXISTUJE (uživatel: „překáží"). Ruší jen zvednutí
 //    prstu mimo položku.
 //  • ČTECÍ ZÓNA za PARK px: přestane se vybírat, kříž zešedne a odjede dál,
@@ -162,7 +166,7 @@
             // ať je jakkoli úzký — proto se otáčí do osy lístku (rotaci dopočítá build()).
             // Šířka drží pod šířkou lístku v jeho nejširším místě, viz PETAL_W níž.
             '#' + WRAP_ID + ' .kn-seg{position:absolute;left:50%;top:50%;width:var(--knw,48px);',
-            '  margin-left:calc(var(--knw,48px) / -2);margin-top:-14px;text-align:center;',
+            '  margin-left:calc(var(--knw,48px) / -2);margin-top:calc(-14px * var(--knfs,1));text-align:center;',
             '  font:600 calc(8.5px * var(--knfs,1))/1.12 var(--font-ui,system-ui),sans-serif;',
             '  letter-spacing:-0.01em;color:#cdd5e0;pointer-events:none;overflow-wrap:anywhere;',
             '  text-shadow:0 1px 3px rgba(6,9,12,0.95);transition:color .12s ease;}',
@@ -172,7 +176,10 @@
             // ⚠ KŘÍŽ JE VIDĚT POŘÁD (na přání). Ve středu ale leží přes nápis, tak je
             // tam ztlumený na polovinu — pořád je vidět a text pod ním se dá přečíst.
             // Jakmile se začne mířit, dostane plnou sílu.
-            '#' + WRAP_ID + ' .kn-ret{position:absolute;left:50%;top:50%;margin:-28px 0 0 -28px;width:56px;height:56px;',
+            // ⚠ Kříž se zvětšuje CSS rozměrem, ne novým viewBoxem — vnitřní souřadnice
+            // zůstávají 0..56, takže obvod prstence (arcLen) ani transform-origin nelžou.
+            '#' + WRAP_ID + ' .kn-ret{position:absolute;left:50%;top:50%;width:var(--knc,56px);height:var(--knc,56px);',
+            '  margin:calc(var(--knc,56px) / -2) 0 0 calc(var(--knc,56px) / -2);',
             '  pointer-events:none;z-index:4;opacity:0;transition:opacity .12s;}',
             '#' + WRAP_ID + ' .kn-ret.on{opacity:0.5;}',
             '#' + WRAP_ID + '.aiming .kn-ret.on{opacity:1;}',
@@ -192,16 +199,16 @@
             // písmeno a centrovaný nápis se opticky sesune doleva.
             '#' + WRAP_ID + ' .kn-hub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);',
             '  width:var(--knh,104px);text-align:center;pointer-events:none;z-index:2;}',
-            '#' + WRAP_ID + ' .kn-bud{position:absolute;left:50%;top:50%;width:104px;height:104px;',
-            '  margin:-52px 0 0 -52px;z-index:-1;overflow:visible;}',
-            '#' + WRAP_ID + ' .kn-hub .c{font:700 8px/1 var(--font-mono,ui-monospace,monospace);',
+            '#' + WRAP_ID + ' .kn-bud{position:absolute;left:50%;top:50%;width:var(--knb,104px);height:var(--knb,104px);',
+            '  margin:calc(var(--knb,104px) / -2) 0 0 calc(var(--knb,104px) / -2);z-index:-1;overflow:visible;}',
+            '#' + WRAP_ID + ' .kn-hub .c{font:700 calc(8px * var(--knfs,1))/1 var(--font-mono,ui-monospace,monospace);',
             '  letter-spacing:.1em;text-indent:.1em;text-transform:uppercase;color:#8a94a1;}',
             '#' + WRAP_ID + ' .kn-hub .n{font:650 calc(12px * var(--knfs,1))/1.2 var(--font-display,system-ui),sans-serif;',
             '  margin-top:4px;color:var(--text-color,#e6e8eb);}',
             '#' + WRAP_ID + ' .kn-hub.idle .n{color:var(--text-muted,#9aa1ac);font-weight:500;',
             '  font-size:calc(10.5px * var(--knfs,1));}',
             '#' + WRAP_ID + ' .kn-crumb{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 26px);',
-            '  text-align:center;font:600 11px/1 var(--font-mono,ui-monospace,monospace);letter-spacing:.1em;',
+            '  text-align:center;font:600 calc(11px * var(--knsc,1))/1 var(--font-mono,ui-monospace,monospace);letter-spacing:.1em;',
             '  text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
             '#' + WRAP_ID + ' .kn-crumb b{color:var(--accent-bright,#3fbc8c);}',
             // nápověda dole — drží poslední, na co se najelo
@@ -209,15 +216,15 @@
             '  bottom:calc(env(safe-area-inset-bottom,0px) + 24px);text-align:center;opacity:0;',
             '  transition:opacity .16s ease;border-top:1px solid var(--glass-border,rgba(255,255,255,0.12));padding-top:12px;}',
             '#' + WRAP_ID + ' .kn-info.on{opacity:1;}',
-            '#' + WRAP_ID + ' .kn-info .k{font:700 9px/1 var(--font-mono,ui-monospace,monospace);letter-spacing:.15em;',
+            '#' + WRAP_ID + ' .kn-info .k{font:700 calc(9px * var(--knsc,1))/1 var(--font-mono,ui-monospace,monospace);letter-spacing:.15em;',
             '  text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
-            '#' + WRAP_ID + ' .kn-info .n{font:650 calc(16px * var(--ag-font-scale,1))/1.25 var(--font-display,system-ui),sans-serif;',
+            '#' + WRAP_ID + ' .kn-info .n{font:650 calc(16px * var(--ag-font-scale,1) * var(--knsc,1))/1.25 var(--font-display,system-ui),sans-serif;',
             '  margin-top:7px;color:var(--data,#e6bd76);}',
-            '#' + WRAP_ID + ' .kn-info .h{font:400 calc(12.5px * var(--ag-font-scale,1))/1.4 var(--font-ui,system-ui),sans-serif;',
+            '#' + WRAP_ID + ' .kn-info .h{font:400 calc(12.5px * var(--ag-font-scale,1) * var(--knsc,1))/1.4 var(--font-ui,system-ui),sans-serif;',
             '  color:var(--text-muted,#9aa1ac);margin-top:4px;max-height:5.6em;overflow:hidden;}',
             '#' + WRAP_ID + ' .kn-tip{position:absolute;left:16px;right:16px;',
             '  bottom:calc(env(safe-area-inset-bottom,0px) + 24px);text-align:center;',
-            '  font:500 11.5px/1.45 var(--font-ui,system-ui),sans-serif;color:var(--text-muted,#9aa1ac);}',
+            '  font:500 calc(11.5px * var(--knsc,1))/1.45 var(--font-ui,system-ui),sans-serif;color:var(--text-muted,#9aa1ac);}',
             '@media (prefers-reduced-motion:reduce){#' + WRAP_ID + ' *{transition:none !important;}}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st2);
@@ -276,7 +283,9 @@
     // ⚠ BÉZIER NIKDY NEDOSÁHNE SVÝCH ŘÍDICÍCH BODŮ: lístek je v nejširším místě jen
     // ~1,3 × `w`, ne 2 ×. Když se to plete, nápis z lístku čouhá — přesně tak to
     // vypadalo v prvním nasazení návrhu. Šířku popisku proto počítáme z 1,3 × w.
-    var PETAL_W = 46;          // parametr šířky (skutečná šířka ≈ 1,3 × tolik)
+    var PETAL_W = 46;          // parametr šířky (skutečná šířka ≈ 1,3 × tolik) při BASE_D
+    var BASE_D = 300;          // průměr, na kterém byl květ vyladěn v telefonu
+    var DMAX = 560;            // strop na velkém displeji (jinak by kytka zabrala celý monitor)
     var BLOOM = 480, STAGGER = 34;   // rozvíjení poupěte: každý lístek 480 ms, po sobě
     function petal(rin, rout, w) {
         var L = rout - rin;
@@ -295,18 +304,26 @@
     }
 
     var petals = [], grow = [], IN = 0, OUT = 0, bloomFrom = 0;
+    var PW = PETAL_W, SC = 1;   // šířka lístku a měřítko kresby pro právě otevřený květ
+    var RPARK = 0;              // kam odjede kříž ve čtecí zóně (dopočítá build)
 
     function build(items, lvl) {
         ring.querySelectorAll('.kn-seg').forEach(function (e) { e.remove(); });
         segs = []; petals = []; grow = [];
         slots = layout(items, lvl === 2);
         var n = slots.length;
-        var d = Math.max(220, Math.min(300, window.innerWidth - 62));
-        var R = d / 2 - 66;
-        var tight = (window.innerWidth < 400);
-        ring.style.setProperty('--knd', d + 'px');
-        // Popisky rostou s velikostí písma a s rukavicemi, ale kruh se zvětšit NEMŮŽE
-        // (průměr je daný šířkou displeje). Kolečko má proto vlastní měřítko se stropem.
+        // KYTKA SE ROZTÁHNE PODLE OBRAZOVKY (9. 8. 2026). Dřív byl průměr natvrdo
+        // zastropovaný na 300 px, takže na větším displeji zůstal květ malý uprostřed
+        // a nápisy v lístcích drobné. Teď se vezme, kolik je místa — na šířku s okraji,
+        // na výšku s drobečkem nahoře a nápovědou dole — a VŠECHNO se přepočítá jedním
+        // měřítkem S: délka i šířka lístku, střed, kříž i písmo.
+        // ⚠ MECHANIKA SE NEMĚNÍ. DEAD, ENGAGE, PARK, HYST i DWELL zůstávají v pixelech
+        // POSUNU PRSTU — ty jsou dané dosahem palce, ne velikostí kresby. Kříž jede od
+        // středu k Rret úměrně posunu, takže po zvětšení jen urazí delší dráhu za stejné
+        // gesto; vybírá se pořád stejným tahem jako v telefonu.
+        var vw = window.innerWidth, vh = window.innerHeight;
+        // Popisky navíc rostou s velikostí písma appky a s rukavicemi — to má vlastní
+        // strop (1,15), aby se do lístku vešly i při „velkém písmu".
         var fs = 1;
         try {
             fs = parseFloat(getComputedStyle(document.documentElement)
@@ -315,17 +332,45 @@
         if (document.body.classList.contains('ag-glove')) fs = Math.max(fs, 1.15);
         fs = Math.max(1, Math.min(1.6, fs));
         var kfs = Math.min(fs, 1.15);
-        wrap.style.setProperty('--knfs', kfs);
-        hub.style.setProperty('--knh', Math.round(104 * kfs) + 'px');
+        // ⚠ TŘETÍ MEZ JE ODJETÝ KŘÍŽ, ne kytka. Ve čtecí zóně zaparkuje ZA květem a
+        // při průměru 300 px vycházel jeho hrot na 412px telefonu přesně na okraj skla.
+        // Kdyby průměr určila jen šířka displeje, po zvětšení by kříž vyjel ven. Tohle
+        // je stejná nerovnost (hrot ≤ půl kratší strany) vyřešená na průměr; podíl je
+        // 0,5 − 38/BASE_D + 66·kfs/BASE_D, viz Rret/OUT/--knc níž.
+        var dPark = (Math.min(vw, vh) / 2 - 4) / (0.5 - 38 / BASE_D + 66 * kfs / BASE_D);
+        // ⚠ PODLAHA = PŮVODNÍ PRŮMĚR. Na šířku (landscape) je `vh - 200` malé číslo a
+        // květ by po zvětšovací úpravě vyšel MENŠÍ než dřív. Nikde se tedy nesmí jít pod
+        // to, co appka kreslila do 9. 8. 2026 — zvětšit ano, zmenšit nikdy.
+        var d0 = Math.max(220, Math.min(BASE_D, vw - 62));
+        var d = Math.round(Math.max(d0, 220, Math.min(DMAX, vw - 56, vh - 200, dPark)));
+        var S = d / BASE_D;
+        SC = S;
+        var R = d / 2 - 66 * S;
+        var tight = (vw < 400);
+        ring.style.setProperty('--knd', d + 'px');
+        var K = kfs * S;                 // výsledné měřítko kresby uvnitř květu
+        wrap.style.setProperty('--knfs', K.toFixed(3));
+        // Drobeček a nápověda u okrajů se zvětšují MÍRNĚJI (jsou přes celou šířku a už
+        // ctí --ag-font-scale; plné měřítko by dlouhou nápovědu uřízlo o max-height).
+        wrap.style.setProperty('--knsc', (1 + Math.min(0.5, Math.max(0, S - 1)) * 0.6).toFixed(3));
+        wrap.style.setProperty('--knc', Math.round(56 * K) + 'px');
+        wrap.style.setProperty('--knb', Math.round(104 * K) + 'px');
+        hub.style.setProperty('--knh', Math.round(104 * K) + 'px');
 
-        var stag = Math.round((tight ? 42 : 38) * kfs);
+        var stag = Math.round((tight ? 42 : 38) * K);
         step = Math.PI * 2 / n;
-        Rret = R + stag + 24;
-        IN = Math.round(52 * kfs);
-        OUT = R + stag + 26;
+        Rret = R + stag + 24 * S;
+        IN = Math.round(52 * K);
+        OUT = R + stag + 26 * S;
+        PW = PETAL_W * S;
+        // Kam kříž zaparkuje ve čtecí zóně: za okraj květu, ale celý na skle (30·K je
+        // jeho polovina i s vlasem). Pojistka k dPark výš — když displej vyjde jinak,
+        // radši se kříž přisune blíž ke květu, než aby se zařízl.
+        RPARK = Math.max(OUT + 2 * S,
+                Math.min(Rret + 30 * S, Math.min(vw, vh) / 2 - 30 * K));
         // Popisek musí zůstat pod skutečnou šířkou lístku (1,3 × w) i po odečtu vzduchu.
-        var pw = PETAL_W * Math.min(1, (2 * Math.PI * (IN + (OUT - IN) * 0.47) / n) / 68);
-        ring.style.setProperty('--knw', Math.round(Math.min(48 * kfs, pw * 1.3 - 12)) + 'px');
+        var pw = PW * Math.min(1, (2 * Math.PI * (IN + (OUT - IN) * 0.47) / n) / (68 * S));
+        ring.style.setProperty('--knw', Math.round(Math.min(48 * K, pw * 1.3 - 12 * S)) + 'px');
 
         var gfx = ring.querySelector('.kn-gfx');
         while (gfx.firstChild) gfx.removeChild(gfx.firstChild);
@@ -393,9 +438,9 @@
             grow[j] += (want - grow[j]) * 0.28;
             if (Math.abs(grow[j] - want) < 0.004) grow[j] = want;
             var g = grow[j], act = (j === lastHot);
-            var rin = IN - g * 8;
-            var ro = IN + (OUT - IN) * (0.34 + 0.66 * bl) + g * 12;
-            var w = (PETAL_W + g * 12) * (0.42 + 0.58 * bl);
+            var rin = IN - g * 8 * SC;
+            var ro = IN + (OUT - IN) * (0.34 + 0.66 * bl) + g * 12 * SC;
+            var w = (PW + g * 12 * SC) * (0.42 + 0.58 * bl);
             petals[j].setAttribute('d', petal(rin, ro, w));
             petals[j].setAttribute('fill', act ? soft : 'rgba(255,255,255,0.085)');
             petals[j].setAttribute('stroke', act ? A : 'rgba(255,255,255,0.22)');
@@ -479,7 +524,7 @@
         ret.classList.toggle('read', !!read);
         // Poloměr kříže je ÚMĚRNÝ posunu prstu (0 → Rret na vzdálenosti ENGAGE),
         // takže je vidět i pomalý pohyb, ne až doraz.
-        var r = read ? Rret + 30 : Rret * Math.min(1, (dist || 0) / ENGAGE);
+        var r = read ? (RPARK || Rret + 30) : Rret * Math.min(1, (dist || 0) / ENGAGE);
         ret.style.transform = 'translate(' + (Math.sin(ang) * r).toFixed(1) + 'px,'
             + (-Math.cos(ang) * r).toFixed(1) + 'px)';
         wrap.classList.toggle('aiming', !read && (dist || 0) > 10);
