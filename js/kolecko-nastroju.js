@@ -57,7 +57,11 @@
     var PARK = 132;         // za tímhle je čtecí zóna
     var DWELL = 800;        // načítání výběru
     var GMAX = 5;           // strop zesílení u okraje (viz measureGain)
-    var RESERVE = 0.6;      // plná výchylka má padnout na 60 % dostupného místa, ne na 100 %
+    // RESERVE: na kolika procentech dostupného místa už je plná výchylka. Menší číslo
+    // = citlivější. 1,0 (žádná rezerva) bylo doprava málo, 0,6 zase moc („ta citlivost
+    // je fakt jako obrovská" — 9. 8. 2026 večer). 0,78 je mezi tím: doprava vychází
+    // zesílení 2,7× a mrtvou zónu prst opustí po 12 px místo 9.
+    var RESERVE = 0.78;
     var GRACE = 260;        // po přepnutí kruhu se chvíli nenačítá (viz openLevel2)
 
     var BACK = { back: true, l: 'Zpět' };
