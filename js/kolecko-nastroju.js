@@ -49,12 +49,16 @@
     var WRAP_ID = 'ag-kn';
 
     var DEAD = 34;          // mrtvá zóna kolem prstu
-    var HYST = 0.30;        // kolik výseče navíc je potřeba přejet na souseda
+    // HYSTEREZE: 9. 8. 2026 snížena z 0,30 na 0,16. Při devíti nástrojích je výseč 40°,
+    // takže s 0,30 bylo potřeba přejet 32° — uživatel hlásil „odjel jsem z položky a
+    // ona se stejně načetla". Nižší hodnota pořád brání poskakování na rozhraní.
+    var HYST = 0.16;
     var ENGAGE = 92;        // na téhle vzdálenosti je kříž na dráze položek
     var PARK = 132;         // za tímhle je čtecí zóna
     var DWELL = 800;        // načítání výběru
-    var GMAX = 4;           // strop zesílení u okraje (viz measureGain)
-    var MIN_ROOM = 30;      // pod tolik px k hraně se kotva NEPŘESOUVÁ (viz reanchor)
+    var GMAX = 5;           // strop zesílení u okraje (viz measureGain)
+    var RESERVE = 0.6;      // plná výchylka má padnout na 60 % dostupného místa, ne na 100 %
+    var GRACE = 260;        // po přepnutí kruhu se chvíli nenačítá (viz openLevel2)
 
     var BACK = { back: true, l: 'Zpět' };
 
@@ -327,8 +331,12 @@
     // směrech se posun PRSTU násobí. Kde je místa dost, se nemění nic (zesílení 1).
     // Strop GMAX drží citlivost v rozumných mezích — bez něj by u kraje stačily dva
     // pixely a kolečko by poletovalo.
+    // RESERVE: kdyby plná výchylka padla přesně na hranu displeje, musel by člověk
+    // dojet palcem úplně na kraj skla — a tam už prst často nic nehlásí. Cílíme proto
+    // na 60 % dostupného místa, takže doprava (43 px) je plná výchylka po 26 px tahu
+    // a zbytek je rezerva. Na přání 9. 8. 2026: „ještě bych tam zvýšil citlivost."
     function gainFor(roomPx) {
-        return Math.max(1, Math.min(GMAX, ENGAGE / Math.max(1, roomPx)));
+        return Math.max(1, Math.min(GMAX, ENGAGE / Math.max(1, roomPx * RESERVE)));
     }
     function measureGain() {
         var w = window.innerWidth, h = window.innerHeight;
@@ -337,21 +345,24 @@
         st.gd = gainFor(h - st.oy);
         st.gu = gainFor(st.oy);
     }
-    // Přesun kotvy mezi kruhy. PŮVODNĚ se kotva vždy přesunula na prst (`st.ox = st.px`),
-    // aby druhý kruh začínal v neutrálu. Jenže po výběru KRAJNÍ položky prst na okraji
-    // leží a nová kotva už nemá kam růst — odtud „i když ten první nástroj vpravo
-    // vyberu, tak podruhý už doprava se nedostanu".
-    // TEĎ: kotva se přesune, JEN když má prst kolem sebe aspoň MIN_ROOM na všechny
-    // strany (běžný případ — chování zůstává staré, žádný krok navíc). Když ne, kotva
-    // ZŮSTANE a kolečko počká, až se prst vrátí do mrtvé zóny (st.arm), aby druhý kruh
-    // nezačal rovnou zamířený na položku ve stejném směru.
+    // ⚠⚠ KOTVA SE PO CELÉ GESTO NEHÝBE. Za jediný den se to tady vystřídalo třikrát
+    // a tohle je jediná varianta, která nepřinesla novou stížnost:
+    //   1) PŮVODNĚ se kotva při přepnutí kruhu přesunula na prst (`st.ox = st.px`),
+    //      aby druhý kruh začínal v neutrálu. Jenže po výběru KRAJNÍ položky prst na
+    //      okraji leží a nová kotva nemá kam růst → „i když ten první nástroj vpravo
+    //      vyberu, tak podruhý už doprava se nedostanu".
+    //   2) Pak se kotva u okraje nechávala stát a čekalo se, až se prst vrátí do mrtvé
+    //      zóny → „nefunguje vybírání nástrojů, musím se vrátit na střed".
+    //   3) Pak se kotva přesouvala jen tam, kde bylo místo → jenže PŘESUN KOTVY JE
+    //      SKOK KŘÍŽE. Kříž byl vychýlený na kraji kruhu a rázem stál uprostřed:
+    //      „ten kříž tam furt poskakuje mezi první a druhou vrstvou."
+    // Kotva = místo, kde se prst dotkl, a tam zůstane. Vztah „kam táhnu = kam míří
+    // kříž" pak platí celou dobu a nic nikam neposkočí. Cenou je, že druhý kruh
+    // začíná ZAMÍŘENÝ tam, odkud člověk přišel — to jistí GRACE (odpočet se
+    // rozjede až za chvilku, takže je čas odjet jinam).
+    // NEVRACET přesouvání kotvy v žádné podobě.
     function reanchor() {
-        var w = window.innerWidth, h = window.innerHeight;
-        var ok = st.px > MIN_ROOM && st.px < w - MIN_ROOM
-              && st.py > MIN_ROOM && st.py < h - MIN_ROOM;
-        if (ok) { st.ox = st.px; st.oy = st.py; st.arm = true; }
-        else { st.arm = false; }
-        measureGain();
+        st.graceTo = Date.now() + GRACE;
     }
 
     function aimAt(dx, dy) {
@@ -414,14 +425,15 @@
     function resetDwell(i) {
         if (dwellIdx >= 0 && segs[dwellIdx]) segs[dwellIdx].style.removeProperty('--p');
         dwellIdx = i;
-        dwellFrom = (i >= 0) ? Date.now() : 0;
+        // Po přepnutí kruhu (reanchor) se odpočet rozjede až po GRACE ms — viz reanchor().
+        dwellFrom = (i >= 0) ? Math.max(Date.now(), (st && st.graceTo) || 0) : 0;
         setProgress(0);
     }
     function tick() {
         raf = 0;
         if (!st) return;
         if (dwellIdx >= 0) {
-            var p = Math.min(1, (Date.now() - dwellFrom) / DWELL);
+            var p = Math.max(0, Math.min(1, (Date.now() - dwellFrom) / DWELL));
             setProgress(p);
             if (p >= 1) { commit(); return; }
         }
@@ -442,31 +454,36 @@
         reanchor();
         build(st.groups[gi].items, 2);
         crumb.innerHTML = 'Nástroje <b>› ' + esc(st.groups[gi].full || st.groups[gi].t) + '</b>';
-        // Kotva zůstala u okraje → řekni rovnou, co se čeká; jinak by tu stálo
-        // „zamiř prstem" a nic by nereagovalo, dokud se prst nevrátí.
-        setHub('Vyber nástroj', st.arm ? 'zamiř prstem' : 'vrať prst ke středu', true);
+        setHub('Vyber nástroj', 'zamiř prstem', true);
         lastHot = -1; resetDwell(-1);
         wrap.classList.remove('aiming');
-        paintRet(0, 0, false);
         buzz(14);
-        kick();
+        resume();
     }
     function backToLevel1() {
         st.level = 1; st.group = -1;
         reanchor();
         build(st.groups, 1);
         crumb.textContent = 'Nástroje';
-        setHub('Vyber skupinu', st.arm ? 'zamiř prstem' : 'vrať prst ke středu', true);
+        setHub('Vyber skupinu', 'zamiř prstem', true);
         lastHot = -1; resetDwell(-1);
         wrap.classList.remove('aiming');
-        paintRet(0, 0, false);
         buzz(10);
+        resume();
+    }
+    // Překreslení podle SKUTEČNÉ polohy prstu po přepnutí kruhu.
+    // ⚠ Dřív tu bylo `paintRet(0, 0, false)` — kříž skočil na střed a zůstal tam, dokud
+    // nepřišla další událost pohybu. Kdo držel prst u okraje (a nehýbal jím, protože
+    // právě dokončil výběr), viděl přesně tohle: „kříž se hodí do prostředka a po
+    // chvilce problikne a zase se vrátí trochu doprava, není to vůbec plynulý."
+    function resume() {
         kick();
+        if (st) move(st.px, st.py);
     }
     function commit() {
         if (!st) return;
         var it = slots[dwellIdx];
-        if (!it) { resetDwell(-1); return; }
+        if (!it) { lastHot = -1; resetDwell(-1); kick(); return; }
         if (it.back) { backToLevel1(); return; }
         if (st.level === 1) openLevel2(dwellIdx);
         else finish(it);
@@ -477,7 +494,7 @@
         if (!g.length) return false;      // host / bez oprávnění — ať se otevře modál
         ensure();
         st = { ox: x, oy: y, px: x, py: y, level: 1, group: -1, moved: false, groups: g,
-               arm: true, gr: 1, gl: 1, gu: 1, gd: 1 };
+               graceTo: 0, gr: 1, gl: 1, gu: 1, gd: 1 };
         measureGain();
         build(g, 1);
         crumb.textContent = 'Nástroje';
@@ -500,17 +517,13 @@
         if (Math.hypot(dx, dy) > 6) st.moved = true;
         var a = aimAt(dx, dy);
         paintRet(a.ang, a.dist, a.read);
-        // Kotva se nepřesunula (prst leží u okraje) → druhý kruh čeká na návrat do
-        // mrtvé zóny, aby nezačal rovnou zamířený tam, odkud člověk přišel.
-        if (!st.arm) {
-            if (a.dist < DEAD) st.arm = true;
-            else {
-                hi(-1);
-                setHub(st.level === 1 ? 'Vyber skupinu' : 'Vyber nástroj', 'vrať prst ke středu', true);
-                return;
-            }
-        }
         hi(a.i);
+        // POJISTKA PROTI ZASEKNUTÉMU NAČÍTÁNÍ. Smyčka odpočtu se restartuje jen v hi(),
+        // a to jen když se vybraná položka ZMĚNÍ. Kdyby ji cokoli jednou shodilo
+        // (výjimka uvnitř snímku, commit na prázdný slot), zůstal by prstenec stát
+        // v půlce a jediná cesta ven by bylo přejet na jinou položku — přesně jak to
+        // uživatel popisoval. kick() je no-op, když smyčka běží, takže to nic nestojí.
+        kick();
         if (a.read) { setHub('Čtení', 'nápověda drží', true); return; }
         if (a.i < 0) {
             setHub(st.level === 1 ? 'Vyber skupinu' : 'Vyber nástroj', 'zamiř prstem', true);

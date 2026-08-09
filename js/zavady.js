@@ -131,8 +131,16 @@
         st.textContent = [
             '.ag-zv-ov{position:fixed;inset:0;z-index:1000050;display:none;align-items:center;justify-content:center;background:rgba(4,8,12,0.62);}',
             '.ag-zv-ov.open{display:flex;}',
+            // ⚠ POZADÍ MUSÍ BÝT --modal-bg, NE --glass-bg. Fallback tu odjakživa říkal
+            // rgba(14,18,24,0.97), jenže sáhlo se po špatném tokenu: --glass-bg je
+            // 0,84 (a v barevných motivech 0,80), takže přes celoobrazovkový formulář
+            // Závad prosvítala mapa i obraz z kamery — nahlášeno 9. 8. 2026 („na pozadí
+            // furt mapu, není to černý"). --modal-bg (0,97) je v css/tokens.css výslovně
+            // popsaný jako „neprůhledné pozadí celoobrazovkových modálů — držet stejné"
+            // a používá ho i .modal-content v jádru, včetně rozostření pod ním.
             '.ag-zv-card{width:100%;height:100%;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 12px);',
-            '  background:var(--glass-bg,rgba(14,18,24,0.97));color:var(--text-color,#eceef2);}',
+            '  background:var(--modal-bg,rgba(14,18,24,0.97));color:var(--text-color,#eceef2);',
+            '  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}',
             '.ag-zv-card h3{margin:0 0 10px;color:var(--accent,#2f9e74);font-size:calc(18px * var(--ag-font-scale, 1));display:flex;align-items:center;gap:8px;}',
             '.ag-zv-card h3 svg{width:20px;height:20px;}',
             '.ag-zv-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;min-height:0;}',
