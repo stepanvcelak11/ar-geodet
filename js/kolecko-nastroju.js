@@ -165,8 +165,15 @@
             // ⚠ POPISEK JE ÚZKÝ A NATOČENÝ. Vodorovný text v šikmém lístku vyčnívá rohy,
             // ať je jakkoli úzký — proto se otáčí do osy lístku (rotaci dopočítá build()).
             // Šířka drží pod šířkou lístku v jeho nejširším místě, viz PETAL_W níž.
+            // ⚠⚠ ŽÁDNÉ ZÁPORNÉ MARGINY NA VYSTŘEDĚNÍ. Dřív tu bylo margin-top:-14px jako
+            // „půlka nápisu" — jenže nápis je jednou jednořádkový a jindy třířádkový, a
+            // hlavně ten posun SE NETOČÍ s lístkem. Ve svislých lístcích („Změřit",
+            // „Podmínky") padl náhodou do osy a vypadal správně, ve všech šikmých
+            // odsadil nápis DO STRANY od osy lístku — přesně to uživatel viděl jako
+            // „náhodně rozházené". Střed se dělá translate(-50%,-50%) PŘED rotací,
+            // to sedí na jakoukoli výšku textu.
             '#' + WRAP_ID + ' .kn-seg{position:absolute;left:50%;top:50%;width:var(--knw,48px);',
-            '  margin-left:calc(var(--knw,48px) / -2);margin-top:calc(-14px * var(--knfs,1));text-align:center;',
+            '  text-align:center;',
             '  font:600 calc(8.5px * var(--knfs,1))/1.12 var(--font-ui,system-ui),sans-serif;',
             '  letter-spacing:-0.01em;color:#cdd5e0;pointer-events:none;overflow-wrap:anywhere;',
             '  text-shadow:0 1px 3px rgba(6,9,12,0.95);transition:color .12s ease;}',
@@ -201,12 +208,12 @@
             '  width:var(--knh,104px);text-align:center;pointer-events:none;z-index:2;}',
             '#' + WRAP_ID + ' .kn-bud{position:absolute;left:50%;top:50%;width:var(--knb,104px);height:var(--knb,104px);',
             '  margin:calc(var(--knb,104px) / -2) 0 0 calc(var(--knb,104px) / -2);z-index:-1;overflow:visible;}',
-            '#' + WRAP_ID + ' .kn-hub .c{font:700 calc(8px * var(--knfs,1))/1 var(--font-mono,ui-monospace,monospace);',
+            '#' + WRAP_ID + ' .kn-hub .c{font:700 calc(9.5px * var(--knfs,1))/1 var(--font-mono,ui-monospace,monospace);',
             '  letter-spacing:.1em;text-indent:.1em;text-transform:uppercase;color:#8a94a1;}',
-            '#' + WRAP_ID + ' .kn-hub .n{font:650 calc(12px * var(--knfs,1))/1.2 var(--font-display,system-ui),sans-serif;',
+            '#' + WRAP_ID + ' .kn-hub .n{font:650 calc(15px * var(--knfs,1))/1.2 var(--font-display,system-ui),sans-serif;',
             '  margin-top:4px;color:var(--text-color,#e6e8eb);}',
             '#' + WRAP_ID + ' .kn-hub.idle .n{color:var(--text-muted,#9aa1ac);font-weight:500;',
-            '  font-size:calc(10.5px * var(--knfs,1));}',
+            '  font-size:calc(12.5px * var(--knfs,1));}',
             '#' + WRAP_ID + ' .kn-crumb{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 26px);',
             '  text-align:center;font:600 calc(11px * var(--knsc,1))/1 var(--font-mono,ui-monospace,monospace);letter-spacing:.1em;',
             '  text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
@@ -285,7 +292,7 @@
     // vypadalo v prvním nasazení návrhu. Šířku popisku proto počítáme z 1,3 × w.
     var PETAL_W = 46;          // parametr šířky (skutečná šířka ≈ 1,3 × tolik) při BASE_D
     var BASE_D = 300;          // průměr, na kterém byl květ vyladěn v telefonu
-    var DMAX = 560;            // strop na velkém displeji (jinak by kytka zabrala celý monitor)
+    var DMAX = 720;            // strop na velkém displeji (jinak by kytka zabrala celý monitor)
     var BLOOM = 480, STAGGER = 34;   // rozvíjení poupěte: každý lístek 480 ms, po sobě
     function petal(rin, rout, w) {
         var L = rout - rin;
@@ -305,7 +312,42 @@
 
     var petals = [], grow = [], IN = 0, OUT = 0, bloomFrom = 0;
     var PW = PETAL_W, SC = 1;   // šířka lístku a měřítko kresby pro právě otevřený květ
-    var RPARK = 0;              // kam odjede kříž ve čtecí zóně (dopočítá build)
+    var RPARK = 0, ROMAX = 0;   // kam odjede kříž ve čtecí zóně / kam smí vyrůst lístek
+
+    // ---- VELIKOST PÍSMA V LÍSTKU ----------------------------------------------
+    // Nápis leží PODÉL osy lístku, takže ho svírá jeho TANGENCIÁLNÍ šířka — ne délka
+    // (té je mnohonásobek, víc řádků nevadí). Dřív to řešily dva pevné stupně podle
+    // počtu znaků (>8 a >9), což bylo hrubé: krátká slova zůstávala malá zbytečně a
+    // dlouhá se stejně někdy nevešla. Teď se změří SKUTEČNÁ šířka nejdelšího slova
+    // v tom písmu a dopočítá největší velikost, při které se ještě vejde.
+    // ⚠ Měří se v ŘEZU 700, protože vybraný lístek popisek ztuční — kdyby se měřilo
+    // v 600, zrovna ten, na který se míří, by se zlomil.
+    var _mctx = null, _mfam = '';
+    function segFamily() {
+        if (_mfam) return _mfam;
+        try {
+            var t = document.createElement('div');
+            t.className = 'kn-seg';
+            t.style.cssText = 'position:absolute;visibility:hidden;left:-9999px;';
+            wrap.appendChild(t);
+            _mfam = getComputedStyle(t).fontFamily || 'system-ui';
+            t.parentNode.removeChild(t);
+        } catch (e) { _mfam = 'system-ui'; }
+        return _mfam;
+    }
+    function fitFont(txt, boxW, K) {
+        var nej = '';
+        String(txt).split(/\s+/).forEach(function (wd) { if (wd.length > nej.length) nej = wd; });
+        var w100 = 0;
+        try {
+            _mctx = _mctx || document.createElement('canvas').getContext('2d');
+            _mctx.font = '700 100px ' + segFamily();
+            w100 = _mctx.measureText(nej).width;
+        } catch (e) {}
+        if (!w100) w100 = nej.length * 55;         // bez canvasu: ~0,55 em na znak
+        var fit = 100 * Math.max(8, boxW - 2) / w100;
+        return Math.round(Math.max(6.4 * K, Math.min(10.6 * K, fit)) * 10) / 10;
+    }
 
     function build(items, lvl) {
         ring.querySelectorAll('.kn-seg').forEach(function (e) { e.remove(); });
@@ -332,17 +374,14 @@
         if (document.body.classList.contains('ag-glove')) fs = Math.max(fs, 1.15);
         fs = Math.max(1, Math.min(1.6, fs));
         var kfs = Math.min(fs, 1.15);
-        // ⚠ TŘETÍ MEZ JE ODJETÝ KŘÍŽ, ne kytka. Ve čtecí zóně zaparkuje ZA květem a
-        // při průměru 300 px vycházel jeho hrot na 412px telefonu přesně na okraj skla.
-        // Kdyby průměr určila jen šířka displeje, po zvětšení by kříž vyjel ven. Tohle
-        // je stejná nerovnost (hrot ≤ půl kratší strany) vyřešená na průměr; podíl je
-        // 0,5 − 38/BASE_D + 66·kfs/BASE_D, viz Rret/OUT/--knc níž.
-        var dPark = (Math.min(vw, vh) / 2 - 4) / (0.5 - 38 / BASE_D + 66 * kfs / BASE_D);
-        // ⚠ PODLAHA = PŮVODNÍ PRŮMĚR. Na šířku (landscape) je `vh - 200` malé číslo a
+        // ⚠ PODLAHA = PŮVODNÍ PRŮMĚR. Na šířku (landscape) je `vh - 190` malé číslo a
         // květ by po zvětšovací úpravě vyšel MENŠÍ než dřív. Nikde se tedy nesmí jít pod
         // to, co appka kreslila do 9. 8. 2026 — zvětšit ano, zmenšit nikdy.
         var d0 = Math.max(220, Math.min(BASE_D, vw - 62));
-        var d = Math.round(Math.max(d0, 220, Math.min(DMAX, vw - 56, vh - 200, dPark)));
+        // Na šířku 20 px vzduchu (na přání „ať je to od kraje ke kraji"), na výšku se
+        // musí vejít drobeček nahoře a nápověda dole (≈ 0,92·vh − 112, což `vh − 190`
+        // v rozsahu telefonů a tabletů dobře vystihuje).
+        var d = Math.round(Math.max(d0, 220, Math.min(DMAX, vw - 20, vh - 190)));
         var S = d / BASE_D;
         SC = S;
         var R = d / 2 - 66 * S;
@@ -352,25 +391,37 @@
         wrap.style.setProperty('--knfs', K.toFixed(3));
         // Drobeček a nápověda u okrajů se zvětšují MÍRNĚJI (jsou přes celou šířku a už
         // ctí --ag-font-scale; plné měřítko by dlouhou nápovědu uřízlo o max-height).
-        wrap.style.setProperty('--knsc', (1 + Math.min(0.5, Math.max(0, S - 1)) * 0.6).toFixed(3));
+        wrap.style.setProperty('--knsc', (1 + Math.min(0.6, Math.max(0, S - 1)) * 0.75).toFixed(3));
         wrap.style.setProperty('--knc', Math.round(56 * K) + 'px');
         wrap.style.setProperty('--knb', Math.round(104 * K) + 'px');
         hub.style.setProperty('--knh', Math.round(104 * K) + 'px');
 
         var stag = Math.round((tight ? 42 : 38) * K);
         step = Math.PI * 2 / n;
-        Rret = R + stag + 24 * S;
         IN = Math.round(52 * K);
         OUT = R + stag + 26 * S;
         PW = PETAL_W * S;
-        // Kam kříž zaparkuje ve čtecí zóně: za okraj květu, ale celý na skle (30·K je
-        // jeho polovina i s vlasem). Pojistka k dPark výš — když displej vyjde jinak,
-        // radši se kříž přisune blíž ke květu, než aby se zařízl.
-        RPARK = Math.max(OUT + 2 * S,
-                Math.min(Rret + 30 * S, Math.min(vw, vh) / 2 - 30 * K));
+        // ⚠⚠ KŘÍŽ MUSÍ BÝT CELÝ VIDĚT, A TO URČUJE JEHO DRÁHU — ne velikost květu.
+        // Když kytka jde od kraje ke kraji, není kam ji „obkroužit": při plné výchylce
+        // by kříž z displeje vyjel a ve čtecí zóně teprve. Proto se dráha (Rret) i
+        // parkoviště (RPARK) stropují tím, kam se vejde STŘED kříže (30·K je jeho
+        // polovina i s vlasem) — kříž pak jezdí po lístcích místo po jejich špičkách.
+        // Vybírání se tím nemění, úhel se počítá z prstu; tohle je jen kresba.
+        var capR = Math.min(vw, vh) / 2 - 30 * K;
+        Rret = Math.min(R + stag + 24 * S, capR - 24 * S);
+        RPARK = Math.min(Rret + 30 * S, capR);
+        // ⚠ VYBRANÝ LÍSTEK SE ROZEVÍRÁ VEN (+12·S). Když kytka sahá ke kraji, uřízl by
+        // se o okraj skla přesně ten, na který se míří. Strop ho nechá růst jen tam,
+        // kam je místo — sklaplý zpět vypadá stejně jako dřív.
+        // ⚠ Boky lístku sahají dál než jeho špička: u šikmého lístku se k poloměru
+        // přičte ještě boční výduť (naměřeno ~0,1 × šířka), takže rezerva u kraje
+        // musí růst se šířkou lístku, ne být pevná.
+        ROMAX = Math.min(OUT + 12 * S,
+                Math.min(vw, vh) / 2 - 3 - 0.1 * (PW + 12 * S));
         // Popisek musí zůstat pod skutečnou šířkou lístku (1,3 × w) i po odečtu vzduchu.
         var pw = PW * Math.min(1, (2 * Math.PI * (IN + (OUT - IN) * 0.47) / n) / (68 * S));
-        ring.style.setProperty('--knw', Math.round(Math.min(48 * K, pw * 1.3 - 12 * S)) + 'px');
+        var knw = Math.round(Math.min(52 * K, pw * 1.3 - 10 * S));
+        ring.style.setProperty('--knw', knw + 'px');
 
         var gfx = ring.querySelector('.kn-gfx');
         while (gfx.firstChild) gfx.removeChild(gfx.firstChild);
@@ -389,18 +440,17 @@
             el.className = 'kn-seg' + (slots[i].back ? ' back' : '');
             var txt = slots[i].back ? slots[i].l : (slots[i].t || SHORT[slots[i].k] || slots[i].l);
             el.textContent = txt;
-            // ⚠ Dlouhé JEDNO slovo („Zaznamenat") se jinak zlomí uprostřed — radši mu
-            // ubereme na velikosti, než aby se rozseklo.
-            var nej = 0;
-            txt.split(/\s+/).forEach(function (wd) { if (wd.length > nej) nej = wd.length; });
-            if (nej > 9) el.style.fontSize = 'calc(6.8px * var(--knfs,1))';
-            else if (nej > 8) el.style.fontSize = 'calc(8px * var(--knfs,1))';
+            el.style.fontSize = fitFont(txt, knw, K) + 'px';
             // natočení do osy lístku; v dolní polovině překlopit, ať se to nečte vzhůru nohama
             var deg = i * step * 180 / Math.PI;
             if (deg > 90 && deg < 270) deg -= 180;
             var rr = IN + (OUT - IN) * 0.47;
-            el.style.transform = 'translate(' + (Math.sin(i * step) * rr).toFixed(1) + 'px,'
-                + (-Math.cos(i * step) * rr).toFixed(1) + 'px) rotate(' + deg.toFixed(1) + 'deg)';
+            // ⚠ POŘADÍ FUNKCÍ ROZHODUJE: translate(-50%,-50%) je PŘED rotací, takže
+            // vystředí krabici nápisu na bod na ose lístku bez ohledu na to, kolik má
+            // řádků; teprve pak se točí kolem svého středu, tedy kolem toho bodu.
+            el.style.transform = 'translate(calc(-50% + ' + (Math.sin(i * step) * rr).toFixed(1)
+                + 'px), calc(-50% + ' + (-Math.cos(i * step) * rr).toFixed(1) + 'px))'
+                + ' rotate(' + deg.toFixed(1) + 'deg)';
             ring.appendChild(el);
             segs.push(el);
         }
@@ -439,7 +489,8 @@
             if (Math.abs(grow[j] - want) < 0.004) grow[j] = want;
             var g = grow[j], act = (j === lastHot);
             var rin = IN - g * 8 * SC;
-            var ro = IN + (OUT - IN) * (0.34 + 0.66 * bl) + g * 12 * SC;
+            var ro = Math.min(ROMAX || Infinity,
+                     IN + (OUT - IN) * (0.34 + 0.66 * bl) + g * 12 * SC);
             var w = (PW + g * 12 * SC) * (0.42 + 0.58 * bl);
             petals[j].setAttribute('d', petal(rin, ro, w));
             petals[j].setAttribute('fill', act ? soft : 'rgba(255,255,255,0.085)');
