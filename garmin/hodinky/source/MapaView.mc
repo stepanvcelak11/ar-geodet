@@ -91,6 +91,7 @@ class MapaView extends WatchUi.View {
         }
 
         _okoli = Body.nejblizsi(s.lat, s.lon, MAX_BODU);
+        Blizkost.zkontroluj(_okoli);
 
         var dosah = ZOOMY[zoom];
 
@@ -193,6 +194,14 @@ class MapaView extends WatchUi.View {
                 dc.drawCircle(x, y, 4);
             } else {
                 dc.fillCircle(x, y, jeCil ? 6 : 4);
+            }
+
+            // Bod na dosah ruky dostane kroužek — vibrace řekne „jsi u něj“,
+            // kroužek řekne „u kterého“.
+            if (i == 0 && !venku && b["d"] <= Blizkost.PRAH) {
+                dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+                dc.setPenWidth(2);
+                dc.drawCircle(x, y, 11);
             }
 
             // Čísla jen u nejbližších pěti a jen u bodů uvnitř dosahu —

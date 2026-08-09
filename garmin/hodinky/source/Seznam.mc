@@ -36,6 +36,9 @@ module Seznam {
             for (var i = 0; i < _okoli.size(); i++) {
                 var b = _okoli[i];
                 var podtitulek = Geo.popisVzdalenosti(b["d"]) + " · " + Geo.svetovaStrana(b["az"]);
+                if (b["k"] != null && !b["k"].equals("")) {
+                    podtitulek += " · " + b["k"];
+                }
                 // Identifikátor je pořadí v _okoli, ne číslo bodu — z čísla
                 // by se zpátky hledalo a Menu2 stejně vrací jen ten symbol.
                 menu.addItem(new WatchUi.MenuItem(b["c"], podtitulek, i, {}));

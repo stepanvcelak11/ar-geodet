@@ -17,6 +17,8 @@ module Nabidka {
         menu.addItem(new WatchUi.MenuItem("Podklad",
                         (mapa != null && mapa.podklad) ? "čáry cest zapnuté" : "vypnutý",
                         :podklad, {}));
+        menu.addItem(new WatchUi.MenuItem("Bzučák u bodu",
+                        Blizkost.zapnuto() ? "vibruje do 5 m" : "vypnutý", :bzucak, {}));
         menu.addItem(new WatchUi.MenuItem("Legenda", "co která barva znamená", :legenda, {}));
         menu.addItem(new WatchUi.MenuItem("Body v paměti",
                         Body.pocet().toString() + " · další číslo " + Body.dalsiCislo(), :info, {}));
@@ -62,6 +64,9 @@ class NabidkaDelegate extends WatchUi.Menu2InputDelegate {
                 if (!mp.podklad) { Podklad.zapomen(); }
                 item.setSubLabel(mp.podklad ? "čáry cest zapnuté" : "vypnutý");
             }
+
+        } else if (id == :bzucak) {
+            item.setSubLabel(Blizkost.prepni() ? "vibruje do 5 m" : "vypnutý");
 
         } else if (id == :legenda) {
             WatchUi.pushView(new LegendaView(), new LegendaDelegate(), WatchUi.SLIDE_UP);

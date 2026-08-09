@@ -77,7 +77,7 @@ module Body {
     }
 
     //! Uloží bod a posune sérii. Vrací přidělené číslo.
-    function pridej(la, lo, h, sigma, n, src) {
+    function pridej(la, lo, h, sigma, n, src, kod) {
         var cislo = dalsiCislo();
         var pole = nacti();
         pole.add({
@@ -87,6 +87,7 @@ module Body {
             "h"   => h,
             "s"   => sigma,
             "n"   => n,
+            "k"   => (kod == null) ? "" : kod,
             "t"   => Time.now().value(),
             "src" => src
         });
@@ -126,6 +127,7 @@ module Body {
                 "lo" => b["lo"],
                 "h"  => b["h"],
                 "s"  => b["s"],
+                "k"  => b["k"],
                 "d"  => d,
                 "az" => Geo.azimut(lat, lon, b["la"], b["lo"])
             };
@@ -159,9 +161,10 @@ module Body {
             [ -70.0, 190.0], [ 330.0, -80.0], [-260.0, 150.0],
             [ 150.0, 320.0]
         ];
+        var kody = ["roh", "sloup", "šachta", "hranice", "strom"];
         for (var i = 0; i < rozmisteni.size(); i++) {
             var g = Geo.zMetru(lat, lon, rozmisteni[i][0], rozmisteni[i][1]);
-            pridej(g[0], g[1], 300.0, 1.5, 30, 1);
+            pridej(g[0], g[1], 300.0, 1.5, 30, 1, kody[i % kody.size()]);
         }
     }
 }

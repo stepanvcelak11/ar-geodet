@@ -50,7 +50,7 @@ class NovyBodView extends WatchUi.View {
         var v = s.klid.vysledek();
         if (v == null) { return null; }
 
-        _ulozeno = Body.pridej(v["la"], v["lo"], v["h"], v["s"], v["n"], 0);
+        _ulozeno = Body.pridej(v["la"], v["lo"], v["h"], v["s"], v["n"], 0, Kody.proUlozeni());
         _zavibruj();
         return _ulozeno;
     }
@@ -99,8 +99,15 @@ class NovyBodView extends WatchUi.View {
                         Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         }
 
+        // Kód bodu se přepíná šipkami rovnou tady — žádná další obrazovka,
+        // žádný stisk navíc. Šipky na téhle obrazovce stejně nic nedělaly.
         dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-        Displej.dole(dc, "START = ulož   BACK = zpět", Graphics.FONT_XTINY);
+        var spodek = Displej.dole(dc, "↑↓ kód   START = ulož", Graphics.FONT_XTINY);
+
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, spodek - dc.getFontHeight(Graphics.FONT_SMALL) / 2 - 1,
+                    Graphics.FONT_SMALL, Kody.nazev(),
+                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
     //! Barva podle toho, jak moc se dá výsledku věřit. Zelená až když je
@@ -139,6 +146,18 @@ class NovyBodDelegate extends WatchUi.BehaviorDelegate {
 
     function onBack() {
         _zpetNaMapu();
+        return true;
+    }
+
+    function onNextPage() {
+        Kody.dalsi();
+        WatchUi.requestUpdate();
+        return true;
+    }
+
+    function onPreviousPage() {
+        Kody.predchozi();
+        WatchUi.requestUpdate();
         return true;
     }
 
