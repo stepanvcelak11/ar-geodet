@@ -167,27 +167,95 @@
         });
     }
 
-    //! Body zakázky seřazené od nejbližších. Bere se, co má appka v paměti —
-    //! server se ptát nemusí, jsou to tytéž body.
-    function bodyOkolo(lat, lon) {
-        var P = null;
+    var CUZK = 'https://ags.cuzk.gov.cz/arcgis/rest/services/BodovaPole/MapServer';
+    var CUZK_VRSTVY = [1, 2, 4, 5, 6];        // TB, ZhB, nivelační, PPBP
+
+    function cisloBodu(a) {
+        if (!a) { return 'Bod'; }
+        var h = {};
+        for (var k in a) { if (Object.prototype.hasOwnProperty.call(a, k)) { h[k.toUpperCase()] = a[k]; } }
+        var n = h['CISLO'] || h['CISLO_BODU'] || h['VLASTNI_CISLO'] || h['OZNACENI']
+             || h['UPLNE_CISLO'] || h['NAZEV'];
+        n = (n == null) ? '' : String(n).trim();
+        return (n && n !== 'Null') ? n : 'Bod';
+    }
+
+    //! Stáhne body bodového pole ČÚZK pro okolí — ONLINE, bez ohledu na to,
+    //! jestli je appka někdy měla načtené.
+    //!
+    //! ⚠ Nestačí dotaz na obálku: vrstvy BodovaPole přes /query často vrátí
+    //! prázdno a body reálně vydá teprve /identify. Přesně na tohle už jednou
+    //! doplatil import (viz komentář v js/cadastre-area.js), tak se dělá obojí.
+    function stahniCuzk(lat, lon, r) {
+        var dLat = r / 111320, dLon = r / (111320 * Math.cos(lat * Math.PI / 180));
+        var w = lon - dLon, e = lon + dLon, s = lat - dLat, n = lat + dLat;
+        var bbox = w + ',' + s + ',' + e + ',' + n;
+        var out = [];
+
+        function pridej(g, a) {
+            if (!g || typeof g.x !== 'number' || typeof g.y !== 'number') { return; }
+            out.push({ name: cisloBodu(a), lat: g.y, lng: g.x });
+        }
+        function json(u) {
+            return fetch(u).then(function (r2) { return r2.ok ? r2.json() : null; }).catch(function () { return null; });
+        }
+
+        var kroky = CUZK_VRSTVY.map(function (id) {
+            return json(CUZK + '/' + id + '/query?where=1%3D1&geometry=' + encodeURIComponent(bbox)
+                + '&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects'
+                + '&outFields=*&returnGeometry=true&outSR=4326&f=json')
+                .then(function (d) {
+                    if (d && d.features) { d.features.forEach(function (f) { pridej(f.geometry, f.attributes); }); }
+                });
+        });
+        kroky.push(json(CUZK + '/identify?geometry=' + lon + ',' + lat
+            + '&geometryType=esriGeometryPoint&sr=4326&layers=all&tolerance=1000'
+            + '&mapExtent=' + encodeURIComponent(bbox)
+            + '&imageDisplay=1000,1000,96&returnGeometry=true&f=json')
+            .then(function (d) {
+                if (d && d.results) { d.results.forEach(function (x) { pridej(x.geometry, x.attributes); }); }
+            }));
+
+        return Promise.all(kroky).then(function () { return out; });
+    }
+
+    //! Body v okolí seřazené od nejbližších: co má appka v paměti (vlastní
+    //! i bodová pole načtená na mapě) PLUS čerstvě stažené z ČÚZK.
+    function bodyOkolo(lat, lon, cuzk) {
+        var zdroje = [];
+        // arPoints drží body ČÚZK i kopie vlastních; persistentCustomPoints
+        // jsou vlastní. Bereme obojí — co je navíc, vyřadí dedup níž.
+        try { if (typeof arPoints !== 'undefined' && Array.isArray(arPoints)) { zdroje.push(arPoints); } } catch (e) {}
         try {
             if (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) {
-                P = persistentCustomPoints;
+                zdroje.push(persistentCustomPoints);
             }
-        } catch (e) {}
-        if (!P) { return []; }
+        } catch (e2) {}
+        if (cuzk && cuzk.length) { zdroje.push(cuzk); }
 
         var kos = Math.cos(lat * Math.PI / 180);
+        var videl = {};
         var out = [];
-        for (var i = 0; i < P.length; i++) {
-            var b = P[i];
-            if (!b || !isFinite(+b.lat) || !isFinite(+b.lng)) { continue; }
-            var dy = (+b.lat - lat) * 111320;
-            var dx = (+b.lng - lon) * 111320 * kos;
-            out.push({ id: String(b.id), name: b.name || 'Bod', d: Math.sqrt(dx * dx + dy * dy) });
+        for (var z = 0; z < zdroje.length; z++) {
+            var P = zdroje[z];
+            for (var i = 0; i < P.length; i++) {
+                var b = P[i];
+                if (!b || b.hidden) { continue; }
+                if (!isFinite(+b.lat) || !isFinite(+b.lng)) { continue; }
+                var jm = b.name || 'Bod';
+                var klic = jm + '@' + (+b.lat).toFixed(6) + ',' + (+b.lng).toFixed(6);
+                if (videl[klic]) { continue; }
+                videl[klic] = 1;
+                var dy = (+b.lat - lat) * 111320;
+                var dx = (+b.lng - lon) * 111320 * kos;
+                out.push({
+                    name: jm, lat: +b.lat, lng: +b.lng,
+                    vyska: (b.vyska != null && isFinite(+b.vyska)) ? +b.vyska : null,
+                    d: Math.sqrt(dx * dx + dy * dy)
+                });
+            }
         }
-        out.sort(function (a, b) { return a.d - b.d; });
+        out.sort(function (a, b2) { return a.d - b2.d; });
         return out.slice(0, 60);
     }
 
@@ -198,9 +266,12 @@
     //! Vypíše body k odškrtnutí. Prvních dvacet je předzaškrtnutých — to je
     //! rozumný výchozí stav, ale rozhoduje člověk: „nejbližší" nemusí být
     //! „ty, kvůli kterým tam jedu".
-    function vypisBody(back, lat, lon) {
+    var _kandidati = [];
+
+    function vypisBody(back, lat, lon, cuzk) {
         var host = back.querySelector('#agwatch-body');
-        var sez = bodyOkolo(lat, lon);
+        var sez = bodyOkolo(lat, lon, cuzk);
+        _kandidati = sez;
         if (!sez.length) {
             host.innerHTML = '<p style="opacity:.6;margin:6px 0;">V téhle zakázce zatím nejsou žádné body.</p>';
             return [];
@@ -209,7 +280,7 @@
             + '20 nejbližších je předvybraných — kterýkoli můžeš odškrtnout a vzít místo něj vzdálenější.</p>';
         for (var i = 0; i < sez.length; i++) {
             h += '<label class="filter-row" style="font-size:calc(12.5px * var(--ag-font-scale,1));">'
-                + '<input type="checkbox" class="agwatch-bod" value="' + sez[i].id + '"'
+                + '<input type="checkbox" class="agwatch-bod" value="' + i + '"'
                 + (i < 20 ? ' checked' : '') + '> '
                 + (sez[i].name + '').replace(/[<>&]/g, '') + ' · ' + popisD(sez[i].d) + '</label>';
         }
@@ -238,8 +309,17 @@
         var job = jobKey(pid());
         if (!btn) { return; }
 
-        // seznam bodů se naplní hned, ať je co odškrtávat
-        poloha().then(function (p) { vypisBody(back, p[0], p[1]); }, function () {});
+        // Seznam se plní hned při otevření a body ČÚZK se k tomu STAHUJÍ
+        // ONLINE — bez toho by tam byly jen vlastní body a nejbližší „bod"
+        // klidně 11 km daleko, protože nic jiného appka lokálně nemá.
+        var host = back.querySelector('#agwatch-body');
+        host.innerHTML = '<p style="opacity:.6;margin:6px 0;">hledám body v okolí…</p>';
+        poloha().then(function (p) {
+            return stahniCuzk(p[0], p[1], 1500).catch(function () { return []; })
+                .then(function (c) { vypisBody(back, p[0], p[1], c); });
+        }, function () {
+            host.innerHTML = '<p style="opacity:.6;margin:6px 0;">bez polohy nejde body vybrat</p>';
+        });
 
         btn.onclick = function () {
             if (!chceMapu.checked && !chceBody.checked) {
@@ -254,17 +334,22 @@
 
                 // ---- body: uloží se výběr, hodinky si ho stáhnou ----
                 if (chceBody.checked) {
-                    var ids = [];
+                    // Posílají se CELÉ body, ne odkazy: většina jsou bodová pole
+                    // ČÚZK, která na serveru nikdy nebyla a odkaz by nenašel nic.
+                    var vybrane = [];
                     var boxy = back.querySelectorAll('.agwatch-bod');
                     for (var i = 0; i < boxy.length; i++) {
-                        if (boxy[i].checked) { ids.push(boxy[i].value); }
+                        if (!boxy[i].checked) { continue; }
+                        var b = _kandidati[+boxy[i].value];
+                        if (!b) { continue; }
+                        vybrane.push({ c: b.name, la: b.lat, lo: b.lng, h: b.vyska });
                     }
                     kroky = kroky.then(function () {
-                        stav.textContent = 'ukládám výběr ' + ids.length + ' bodů…';
-                        return u.cloudFetch('/watch/select', { method: 'POST', body: { job: job, ids: ids } })
+                        stav.textContent = 'ukládám výběr ' + vybrane.length + ' bodů…';
+                        return u.cloudFetch('/watch/select', { method: 'POST', body: { job: job, points: vybrane } })
                             .then(function (r) {
                                 if (!r || !r.ok) { throw new Error('výběr bodů (' + (r ? r.status : '?') + ')'); }
-                                hlaseni.push(ids.length + ' bodů');
+                                hlaseni.push(vybrane.length + ' bodů');
                             });
                     });
                 }

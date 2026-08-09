@@ -1190,18 +1190,31 @@ export default {
                 const b = await req.json().catch(() => null);
                 const job = String((b && b.job) || '').trim().slice(0, 80);
                 if (!job) return err(400, 'Chybí zakázka.');
-                const ids = Array.isArray(b.ids)
-                    ? b.ids.filter(x => typeof x === 'string' && x.length <= 80).slice(0, 200) : [];
+                // ⚠ Posílají se CELÉ BODY, ne jen jejich id. Většina bodů, které
+                // geodet potřebuje, jsou bodová pole ČÚZK — ta žijí jen v mobilu
+                // (stahují se za běhu z ArcGIS) a v sync_points nikdy nebyly.
+                // Odkaz na id by tedy nenašel nic.
+                const body = Array.isArray(b.points)
+                    ? b.points.filter(p => p && isFinite(+p.la) && isFinite(+p.lo) && p.c != null)
+                        .slice(0, 200)
+                        .map(p => ({
+                            c: String(p.c).slice(0, 16),
+                            la: +(+p.la).toFixed(7), lo: +(+p.lo).toFixed(7),
+                            h: (p.h != null && isFinite(+p.h)) ? +(+p.h).toFixed(1) : null,
+                            s: (p.s != null && isFinite(+p.s)) ? +(+p.s).toFixed(1) : null,
+                            k: p.k ? String(p.k).slice(0, 16) : ''
+                        }))
+                    : [];
 
-                if (!ids.length) {
+                if (!body.length) {
                     await env.DB.prepare('DELETE FROM watch_sel WHERE firm_id=? AND job_key=?')
                         .bind(me.firm_id, job).run();
                     return json({ ok: true, vybrano: 0 });
                 }
                 await env.DB.prepare('INSERT INTO watch_sel(firm_id,job_key,ids,ts) VALUES(?,?,?,?) ' +
                     'ON CONFLICT(firm_id,job_key) DO UPDATE SET ids=excluded.ids, ts=excluded.ts')
-                    .bind(me.firm_id, job, JSON.stringify(ids), Date.now()).run();
-                return json({ ok: true, vybrano: ids.length });
+                    .bind(me.firm_id, job, JSON.stringify(body), Date.now()).run();
+                return json({ ok: true, vybrano: body.length });
             }
 
             if (req.method === 'GET' && path === '/watch/tile') {
@@ -1239,20 +1252,34 @@ export default {
                         'WHERE firm_id=? AND job_key=? AND deleted=0 LIMIT 3000')
                         .bind(me.firm_id, job).all()).results;
 
-                    // Když si člověk v mobilu body vybral, platí jeho výběr —
-                    // „nejbližší" totiž nemusí být „ty, kvůli kterým tam jedu".
+                    // Když si člověk v mobilu body vybral, platí jeho výběr a nic
+                    // jiného se neposílá — „nejbližší" totiž nemusí být „ty,
+                    // kvůli kterým tam jedu", a hlavně to bývají body ČÚZK,
+                    // které v sync_points vůbec nejsou.
                     await ensureTileTable(env);
                     const sel = await env.DB.prepare('SELECT ids FROM watch_sel WHERE firm_id=? AND job_key=?')
                         .bind(me.firm_id, job).first();
-                    let jen = null;
                     if (sel && sel.ids) {
-                        try { jen = new Set(JSON.parse(sel.ids)); } catch (e) { jen = null; }
+                        let vybrane = null;
+                        try { vybrane = JSON.parse(sel.ids); } catch (e) { vybrane = null; }
+                        if (Array.isArray(vybrane) && vybrane.length && vybrane[0] && vybrane[0].la != null) {
+                            const kos2 = Math.cos(lat * Math.PI / 180);
+                            vybrane.forEach(p => {
+                                const dy = (+p.la - lat) * 111320;
+                                const dx = (+p.lo - lon) * 111320 * kos2;
+                                p._d = dx * dx + dy * dy;
+                            });
+                            vybrane.sort((a, b2) => a._d - b2._d);
+                            return json({
+                                points: vybrane.slice(0, n).map(p => { delete p._d; return p; }),
+                                job: job
+                            });
+                        }
                     }
 
                     const kos = Math.cos(lat * Math.PI / 180);
                     const ven = [];
                     for (const r of rows) {
-                        if (jen && !jen.has(r.id)) continue;
                         let d; try { d = JSON.parse(r.data); } catch (e) { continue; }
                         if (!d || !isFinite(+d.lat) || !isFinite(+d.lng)) continue;
                         const dy = (+d.lat - lat) * 111320;
