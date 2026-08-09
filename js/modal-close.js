@@ -51,10 +51,13 @@
 // panel a co scrollovací oblast, by rozbíjelo víc, než by to spravilo.
 //
 // Vypnutí pro konkrétní okno:
-//   data-no-close  — žádný křížek ani gesto (okno se zavírá jen po svém). Má ho
-//                    #settings-modal: Nastavení se ukládá TEPRVE v saveSettings(),
-//                    takže zavření mimo jeho vlastní tlačítko by tiše zahodilo
-//                    všechno, co uživatel zrovna přenastavil.
+//   data-no-close  — žádný křížek (okno se zavírá jen po svém). Má ho #settings-modal:
+//                    Nastavení se ukládá TEPRVE v saveSettings(), takže zavření mimo
+//                    jeho vlastní tlačítko by tiše zahodilo přenastavené hodnoty.
+//                    POZOR: od 9. 8. 2026 to už NEVYPÍNÁ GESTO — okna vypsaná v
+//                    SAVE_CLOSE se tahem zavřou skrz své ukládací tlačítko. Kdo chce
+//                    vypnout obojí, přidá i data-no-swipe. Esc zůstává jen u oken,
+//                    která se smí zavřít bez uložení (Esc = „zruš to").
 //   data-no-swipe  — křížek ano, gesto ne. Má ho formulář nového bodu: ťuknout na
 //                    ✕ je rozhodnutí, ale nechtěné cuknutí prstem by zahodilo
 //                    rozepsaný bod.
@@ -117,6 +120,37 @@
             ov.getAttribute('data-no-close') === null && !!ov.querySelector('.modal-content');
     }
 
+    // ---- okna, která se zavírají ULOŽENÍM --------------------------------------
+    // #settings-modal má data-no-close, protože Nastavení se ukládá TEPRVE tlačítkem
+    // „Uložit vše a Zavřít" (saveSettings()) — zavřít ho gestem by tiše zahodilo vše
+    // přenastavené. Na přání z 9. 8. 2026 („musím vždycky scrollovat dolů na uložit
+    // vše a zavřít, tak bych dal i swajpování, že by fungovalo stejně") gesto FUNGUJE,
+    // ale ne jako „zavřít": tah spustí přesně to tlačítko, takže se uloží.
+    //
+    // KŘÍŽEK tu ZŮSTÁVÁ VYPNUTÝ ZÁMĚRNĚ. ✕ se všude čte jako „zruš to" a mlčky uložit
+    // něco, co člověk chtěl zahodit, by bylo horší než dojet dolů na tlačítko. Tah do
+    // strany je naopak gesto „hotovo, jdu pryč" — a to se ukládáním nebije.
+    // Úchyt u hrany (.agmc-grab) se ukáže, aby bylo gesto vůbec k nalezení.
+    var SAVE_CLOSE = { 'settings-modal': 'saveSettings' };
+    function saveCloses(ov) { return !!(ov && ov.id && SAVE_CLOSE[ov.id]); }
+
+    // Gestem se zavírají běžná okna I ta, která se zavírají uložením.
+    function swipeable(ov) {
+        if (!ov || !ov.classList || !ov.classList.contains('modal-overlay')) return false;
+        if (!ov.querySelector('.modal-content')) return false;
+        return eligible(ov) || saveCloses(ov);
+    }
+    // Tlačítko, jehož obsluha volá danou funkci — klikáme na NĚJ, ne na funkci samu,
+    // aby proběhlo i to, co si k němu případně přivěsil jiný modul.
+    function fnButton(mc, fn) {
+        var btns = mc.querySelectorAll('button');
+        var re = new RegExp('(^|[^\\w.$])' + fn + '\\s*\\(');
+        for (var i = 0; i < btns.length; i++) {
+            if (re.test(btns[i].getAttribute('onclick') || '')) return btns[i];
+        }
+        return null;
+    }
+
     // +1 = zavírá se tahem zleva doprava, -1 = zprava doleva (režim levé ruky)
     function closeDir() {
         return (document.body && document.body.classList &&
@@ -152,6 +186,15 @@
     function closeOverlay(ov) {
         var mc = ov.querySelector('.modal-content');
         resetPull(mc);
+        // okno, které se zavírá uložením (Nastavení) → jeho vlastní cestou
+        var sfn = ov.id ? SAVE_CLOSE[ov.id] : null;
+        if (sfn) {
+            var sb = mc ? fnButton(mc, sfn) : null;
+            if (sb) { try { sb.click(); return; } catch (e) {} }
+            // tlačítko se nenašlo (přeskládané okno) — volej funkci přímo, ta si
+            // okno zavírá sama; kdyby nebyla, propadne se to na obecnou cestu níž
+            try { if (typeof window[sfn] === 'function') { window[sfn](); return; } } catch (e2) {}
+        }
         var btn = mc ? ownCloseButton(mc) : null;
         if (btn) { try { btn.click(); return; } catch (e) {} }
         ov.style.display = 'none';
@@ -161,21 +204,27 @@
 
     // ---- křížek + úchyt --------------------------------------------------------
     function decorate(ov) {
-        if (!eligible(ov) || ov.querySelector(':scope > .agmc-x')) return;
+        if (!swipeable(ov)) return;
         injectStyles();
-        var x = document.createElement('button');
-        x.type = 'button';
-        x.className = 'agmc-x';
-        x.setAttribute('aria-label', 'Zavřít');
-        x.innerHTML = X_SVG;
-        x.addEventListener('click', function (e) {
-            e.stopPropagation();
-            closeOverlay(ov);
-        });
-        ov.appendChild(x);
-        var g = document.createElement('div');
-        g.className = 'agmc-grab';
-        ov.appendChild(g);
+        // KŘÍŽEK jen tam, kde se smí zavřít bez uložení (viz SAVE_CLOSE výš)
+        if (eligible(ov) && !ov.querySelector(':scope > .agmc-x')) {
+            var x = document.createElement('button');
+            x.type = 'button';
+            x.className = 'agmc-x';
+            x.setAttribute('aria-label', 'Zavřít');
+            x.innerHTML = X_SVG;
+            x.addEventListener('click', function (e) {
+                e.stopPropagation();
+                closeOverlay(ov);
+            });
+            ov.appendChild(x);
+        }
+        // ÚCHYT má i okno bez křížku — jinak by o gestu nikdo nevěděl
+        if (!ov.querySelector(':scope > .agmc-grab')) {
+            var g = document.createElement('div');
+            g.className = 'agmc-grab';
+            ov.appendChild(g);
+        }
     }
 
     function scanAll(root) {
@@ -213,7 +262,7 @@
         var t = e.target;
         if (!t || !t.closest) return;
         var ov = t.closest('.modal-overlay');
-        if (!eligible(ov) || ov.style.display === 'none') return;
+        if (!swipeable(ov) || ov.style.display === 'none') return;
         var mc = ov.querySelector('.modal-content');
         if (!mc || !mc.contains(t)) return;
         // prvky, u kterých vodorovný tah znamená něco jiného

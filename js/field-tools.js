@@ -169,6 +169,7 @@
         'err-log': 'protokol chyb log chyba diagnostika hlaseni',
         agOpenCalibrate: 'sever kalibrace kompas azimut srovnat smer odchylka',
         openCalcModal: 'kalkulacka vypocet prevod gon stupne uhly plocha',
+        kompas: 'kompas busola ruzice sever magneticky zemepisny pravy azimut deklinace smer strelka gon nula',
         openDictModal: 'slovnik pojmy zkratky vyznam terminologie',
         'brutal-gps': 'presne gps mereni prumer prumerovani brutalni poloha bod',
         'gps-semafor': 'semafor skore mista multipath signal kvalita gps fasada odrazy podminky',

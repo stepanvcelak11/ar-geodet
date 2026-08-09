@@ -31,14 +31,17 @@
     var FAV_KEY = 'agToolFavs_v1';              // čteno kvůli výjimce ze schovávání
 
     // Základní sada jednoduchého režimu (typ práce „Univerzální")
+    // ('kompas' přidán 9. 8. 2026: uživatel ho nemohl najít. Nová dlaždice spadne
+    //  jinak automaticky mezi „pokročilé" a jednoduchý režim ji schová — takže by
+    //  zůstala neviditelná přesně pro toho, kdo si ji vyžádal.)
     var BASE_SET = ['openMeasureModal', 'startAreaMode', 'openStakeoutModal', 'openKatastr',
-        'agOpenCalibrate', 'brutal-gps', 'project-import', 'zapisnik'];
+        'agOpenCalibrate', 'brutal-gps', 'project-import', 'zapisnik', 'kompas'];
 
     // Typy práce: id -> {label, tools[]} (pořadí = pořadí v sekci „Pro tuto práci")
     var PROFILES = {
         univerzal: { label: 'Univerzální', tools: [] },
-        vytycovani: { label: 'Vytyčování', tools: ['openStakeoutModal', 'stakeout-line', 'offset-point', 'usadit-ar', 'agOpenCalibrate', 'rajon', 'project-import', 'openMeasureModal'] },
-        pokladka: { label: 'Pokládka / vrstvy', tools: ['vrstvy', 'brutal-gps', 'gps-semafor', 'openCheckDist', 'track-log', 'zavady', 'epochy', 'openMeasureModal'] },
+        vytycovani: { label: 'Vytyčování', tools: ['openStakeoutModal', 'stakeout-line', 'offset-point', 'usadit-ar', 'agOpenCalibrate', 'kompas', 'rajon', 'project-import', 'openMeasureModal'] },
+        pokladka: { label: 'Pokládka / vrstvy', tools: ['vrstvy', 'brutal-gps', 'gps-semafor', 'openCheckDist', 'track-log', 'kompas', 'zavady', 'epochy', 'openMeasureModal'] },
         katastr: { label: 'Katastr a mapování', tools: ['openKatastr', 'cadastre-vector', 'parcela', 'startAreaMode', 'openTachymetrie', 'project-import', 'openMeasureModal'] },
         kontrola: { label: 'Kontrola a monitoring', tools: ['openCheckDist', 'epochy', 'zavady', 'openDmtVolume', 'vyska-objektu', 'track-log', 'zapisnik', 'openMeasureModal'] }
     };

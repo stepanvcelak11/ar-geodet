@@ -211,13 +211,24 @@
     // tady většinou zbyde jen hledání. Větev s #ag-prof-bar zůstává kvůli starším
     // instalacím (a kdyby ta záložka někdy nebyla): oba prvky se totiž vkládaly
     // „před .tab-buttons" a bez tohohle si prohodily pořadí podle toho, kdo byl dřív.
+    // ⚠⚠ NEKONEČNÁ SMYČKA (nahlášeno 9. 8. 2026: „kliknu na hledání, vyjede klávesnice
+    // a hned mi spadne zase dolů"). Podmínka se dřív ptala na `(prof || tabs)`, ale
+    // vkládalo se před `prof` jen tehdy, když prof leží v .modal-content. Od návrhu C
+    // ale #ag-prof-bar žije v ZÁLOŽCE Profily — takže `prof` bylo pravdivé, srovnávalo
+    // se s prvkem, který v hlavičce vůbec není, a pole hledání se přesouvalo znovu a
+    // znovu. Každý přesun probudil MutationObserver → schedule → další přesun:
+    // naměřeno 14 přesunů za 3 s. A přesun prvku SEBERE FOKUS, takže klávesnice
+    // spadla dřív, než uživatel stiskl druhou klávesu.
+    // Referenční prvek se proto počítá JEDNOU a použije se jak na porovnání, tak na
+    // vložení — pak je funkce opravdu idempotentní.
     function arrangeHead() {
         var m = document.getElementById('settings-modal'); if (!m) return;
         var c = m.querySelector('.modal-content'); if (!c) return;
         var tabs = c.querySelector('.tab-buttons'); if (!tabs) return;
         var search = document.getElementById('ag-ns-search');
         var prof = document.getElementById('ag-prof-bar');
-        if (search && search.parentNode === c && search.nextElementSibling !== (prof || tabs)) c.insertBefore(search, prof && prof.parentNode === c ? prof : tabs);
+        var ref = (prof && prof.parentNode === c) ? prof : tabs;
+        if (search && search.parentNode === c && search.nextElementSibling !== ref) c.insertBefore(search, ref);
         if (prof && prof.parentNode === c && prof.nextElementSibling !== tabs) c.insertBefore(prof, tabs);
     }
 
@@ -233,9 +244,26 @@
         var m = document.getElementById('settings-modal');
         return !!(m && m.style && m.style.display && m.style.display !== 'none');
     }
+    // POJISTKA k opravě arrangeHead() výše: přesun prvku v DOM sebere fokus všemu, co
+    // je v něm — na mobilu se to projeví spadlou klávesnicí uprostřed psaní. Dokud
+    // uživatel do Nastavení píše, srovnání se odloží; pořadí sekcí za rozepsaný text
+    // nestojí. Retry si drží vlastní časovač, aby se srovnání po dopsání dohnalo i
+    // bez další změny v DOM.
+    function typingInSettings() {
+        var a = document.activeElement;
+        if (!a || a === document.body || !a.tagName) return false;
+        if (a.tagName !== 'INPUT' && a.tagName !== 'TEXTAREA' && a.tagName !== 'SELECT') return false;
+        var m = document.getElementById('settings-modal');
+        return !!(m && m.contains(a));
+    }
     function arrange() {
         if (_busy) return;
         if (!settingsVisible()) { _dirty = true; return; }   // zavřené okno nemá co srovnávat
+        if (typingInSettings()) {
+            _dirty = true;
+            if (!_timer) _timer = setTimeout(function () { _timer = null; arrange(); }, 900);
+            return;
+        }
         _dirty = false;
         _busy = true;
         try {

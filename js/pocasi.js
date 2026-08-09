@@ -2642,9 +2642,16 @@
                 + (s.radar ? 'radar' : 'model');
             strip.appendChild(it);
         }
-        byId('ag-wx-now-sub').textContent = nc.radar
-            ? 'Prvních 2 h z radaru DWD (1 km, krok 5 min) — na takhle krátko je radar přesnější než jakýkoli model. Dál modely po 15 minutách.'
-            : 'Modely po 15 minutách. Radar sem nedosáhne — mřížka DWD končí na východní Moravě.';
+        // Vysvětlivka pod graf JEN NA POŽÁDÁNÍ. Nahlášeno 9. 8. 2026: „pod tím grafem
+        // s časama je 'první dvě hodiny z radaru bla bla' — ten text tam nepotřebuji."
+        // Vyhozený není: odkud číslo je, je u předpovědi podstatné, když se pak neshodne
+        // se skutečností. Jen se o něj musí říct.
+        var sub = byId('ag-wx-now-sub');
+        sub.innerHTML = '';
+        detail(sub, 'nowcast', 'Odkud jsou data')
+            .appendChild(el('div', null, nc.radar
+                ? 'Prvních 2 h z radaru DWD (1 km, krok 5 min) — na takhle krátko je radar přesnější než jakýkoli model. Dál modely po 15 minutách.'
+                : 'Modely po 15 minutách. Radar sem nedosáhne — mřížka DWD končí na východní Moravě.'));
     }
 
     function renderHours(data, off) {
@@ -2742,6 +2749,35 @@
         box.appendChild(t);
         return t;
     }
+
+    // ---- rozklikávací detail --------------------------------------------------------
+    // Přání z 9. 8. 2026: „shoda srážek — tam mi stačí to plus minus, a když si to
+    // rozkliknu, tak aby mě to hodilo víc informací k tomu." Totéž u naměřených hodnot
+    // ČHMÚ a u vysvětlivky pod grafem srážek. Vysvětlující odstavce tedy zůstávají
+    // v appce (jsou to poctivé informace o tom, odkud číslo je), ale nezabírají místo,
+    // dokud si o ně člověk neřekne.
+    //
+    // Stav (otevřeno/zavřeno) se drží v _fold podle klíče, protože Počasí si obsah
+    // dlaždic při každém načtení dat překresluje od nuly — bez toho by se detail
+    // pod rukama zavřel v okamžik, kdy dojde nová předpověď.
+    var _fold = {};
+    function detail(host, key, label) {
+        var box = el('div', 'wx-more');
+        var b = el('button', 'wx-more-b', label || 'Víc o tom');
+        b.type = 'button';
+        b.setAttribute('aria-expanded', _fold[key] ? 'true' : 'false');
+        if (_fold[key]) box.classList.add('on');
+        b.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var on = !box.classList.contains('on');
+            box.classList.toggle('on', on);
+            _fold[key] = on;
+            b.setAttribute('aria-expanded', on ? 'true' : 'false');
+        });
+        host.appendChild(b);
+        host.appendChild(box);
+        return box;
+    }
     function renderGrid(data, off) {
         var box = byId('ag-wx-grid');
         box.innerHTML = '';
@@ -2758,23 +2794,31 @@
             mRow.appendChild(el('span', 'wx-tile-big', nf(mShow, 1)));
             mRow.appendChild(el('span', 'wx-tile-un', '°C'));
             tm.appendChild(mRow);
+            // VIDĚT jen to, co dává číslu smysl: odkud a jak staré. Nadmořská výška
+            // stanice, vlhkost a vítr jdou do detailu — vlhkost i vítr mají navíc
+            // vlastní dlaždici, takže tady jen nadouvaly řádek na tři.
             var mSub = [];
             if (ms.label) mSub.push('stanice ' + ms.label);
-            if (ms.stElev != null) mSub.push(nf(Math.round(ms.stElev), 0) + ' m n. m.');
             if (ms.dist != null) mSub.push(nf(ms.dist, 1) + ' km');
             if (ms.t != null) {
                 mSub.push(fmtHM(ms.t, off) + (ms.ageMin != null && ms.ageMin >= 5 ? ' (před ' + nf(ms.ageMin, 0) + ' min)' : ''));
             }
-            if (ms.hum != null) mSub.push('vlhkost ' + nf(Math.round(ms.hum), 0) + ' %');
-            if (ms.wind != null) mSub.push('vítr ' + nf(ms.wind, 1) + ' m/s');
             tm.appendChild(el('div', 'wx-tile-sub', mSub.join(' · ')));
+            // Vysvětlivky pod rozklikávátko: samotné číslo a stanice stačí, zbytek je
+            // „proč tomu věřit" — zajímavé jednou, ne při každém pohledu na počasí.
+            var dm = detail(tm, 'chmi', 'Co to znamená');
+            var mMore = [];
+            if (ms.stElev != null) mMore.push('stanice ' + nf(Math.round(ms.stElev), 0) + ' m n. m.');
+            if (ms.hum != null) mMore.push('vlhkost ' + nf(Math.round(ms.hum), 0) + ' %');
+            if (ms.wind != null) mMore.push('vítr ' + nf(ms.wind, 1) + ' m/s');
+            if (mMore.length) dm.appendChild(el('div', 'wx-tile-sub', mMore.join(' · ')));
             // když je stanice v jiné výšce než bod, ať je vidět i přepočet
             if (ms.raw != null && ms.temp != null && Math.abs(ms.temp - ms.raw) >= 0.15 && data.elevReal != null) {
-                tm.appendChild(el('div', 'wx-tile-sub',
+                dm.appendChild(el('div', 'wx-tile-sub',
                     'Přepočteno na tvou výšku ' + nf(Math.round(data.elevReal), 0) + ' m n. m.: '
                     + nf(ms.temp, 1) + ' °C — a tahle hodnota jde do celkového průměru.'));
             }
-            tm.appendChild(el('div', 'wx-tile-sub',
+            dm.appendChild(el('div', 'wx-tile-sub',
                 'Skutečně naměřeno, ne předpověď. ČHMÚ data zveřejňuje se zhruba hodinovým zpožděním, '
                 + 'takže čím starší měření, tím menší váhu v celkovém odhadu dostane.'));
         }
@@ -2856,9 +2900,12 @@
         } else {
             tq.appendChild(el('div', 'wx-tile-sub', 'K dispozici je jen jeden zdroj — rozptyl nelze určit.'));
         }
+        // Nahoře zůstává jen „±X °C" a jednoslovný verdikt; výšková korekce a trefnost
+        // modelů jsou informace na jedno přečtení, ne na každý den → do rozkliknutí.
+        var dq = detail(tq, 'shoda', 'Jak se to počítá');
         // výšková korekce — ať je vidět, že se s čísly něco stalo, a proč
         if (data.elevReal != null && data.lapseDT != null && Math.abs(data.lapseDT) >= 0.1) {
-            tq.appendChild(el('div', 'wx-tile-sub',
+            dq.appendChild(el('div', 'wx-tile-sub',
                 'Teploty jsou opravené o výšku: model počítá s ' + nf(Math.round(data.elevModel), 0)
                 + ' m n. m., tady je podle DMR 5G ' + nf(Math.round(data.elevReal), 0) + ' m — posun '
                 + (data.lapseDT > 0 ? '+' : '') + nf(data.lapseDT, 1) + ' °C.'));
@@ -2872,9 +2919,9 @@
                 sTxt += ', déšť/bez deště modely trefly v ' + nf(data.skillInfoP.hit * 100, 0) + ' % hodin';
             }
             sTxt += '. Trefnějším roste váha zvlášť pro teplotu a zvlášť pro srážky; detail zdrojů je dole.';
-            tq.appendChild(el('div', 'wx-tile-sub', sTxt));
+            dq.appendChild(el('div', 'wx-tile-sub', sTxt));
         } else {
-            tq.appendChild(el('div', 'wx-tile-sub', 'Trefnost modelů (teplota i srážky) se právě dohledává z archivu za poslední měsíc — ukáže se do minuty (potřebuje internet).'));
+            dq.appendChild(el('div', 'wx-tile-sub', 'Trefnost modelů (teplota i srážky) se právě dohledává z archivu za poslední měsíc — ukáže se do minuty (potřebuje internet).'));
         }
     }
 

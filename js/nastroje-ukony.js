@@ -101,6 +101,12 @@
         {
             t: 'Srovnat AR', items: [
                 { k: 'usadit-ar', l: 'Nevím čím začít — průvodce', h: 'značky nesedí na realitu' },
+                // Kompas patří ke SLOVESU „srovnat sever": v jeho okně se kromě růžice
+                // nastavuje uživatelská nula, korekce severu pro AR i mapu a jednotky
+                // (° / gon). Bez téhle položky by spadl do záchytného „Další nástroje" —
+                // a přesně to uživatel 9. 8. 2026 hlásil („někde je magnetický sever
+                // a já nevím kde").
+                { k: 'kompas', l: 'Podívat se na kompas', h: 'růžice se zeměpisným i magnetickým severem' },
                 { k: 'agOpenCalibrate', l: 'Srovnat sever' },
                 { k: 'ar-calib2', l: 'Srovnat na dva body' },
                 { k: 'orient-point', l: 'Srovnat podle známého bodu' },

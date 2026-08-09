@@ -295,6 +295,26 @@
 .wx-tile-un { font-size: calc(13px * var(--ag-font-scale, 1)); font-weight: 600; opacity: 0.6; margin-left: 4px; }
 .wx-tile-sub { font-size: calc(12px * var(--ag-font-scale, 1)); opacity: 0.6; margin-top: 4px; line-height: 1.4; }
 
+/* ---- rozklikávací detail (dlaždice i graf srážek) --------------------------------
+   Na přání z 9. 8. 2026: v dlaždici zůstane jen hodnota, vysvětlení je za klepnutím.
+   Tlačítko je ZÁMĚRNĚ nevýrazné — je to poznámka pod čarou, ne akce. Výška 30 px
+   ho ale drží nad hranicí, na kterou se dá spolehlivě ťuknout v rukavicích. */
+.wx-more-b {
+    display: inline-flex; align-items: center; gap: 5px;
+    margin-top: 7px; padding: 6px 0; min-height: 30px;
+    background: none; border: 0; cursor: pointer;
+    color: inherit; opacity: 0.55; text-align: left;
+    font: 600 calc(11.5px * var(--ag-font-scale, 1)) / 1.3 var(--font-ui, system-ui), sans-serif;
+}
+.wx-more-b::after { content: '▾'; font-size: 0.9em; }
+.wx-more-b[aria-expanded="true"] { opacity: 0.8; }
+.wx-more-b[aria-expanded="true"]::after { content: '▴'; }
+.wx-more-b:active { opacity: 0.9; }
+.wx-more { display: none; }
+.wx-more.on { display: block; }
+/* pod grafem srážek nemá detail dědit tlumené .wx-now-sub, ať se dá po rozkliknutí číst */
+.wx-now-sub .wx-more { font-size: calc(11.5px * var(--ag-font-scale, 1)); line-height: 1.45; margin-top: 2px; }
+
 .wx-wind { display: flex; align-items: center; gap: 8px; }
 .wx-wind-arr {
     display: flex; flex: 0 0 auto;

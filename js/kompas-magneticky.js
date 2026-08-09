@@ -109,7 +109,10 @@
             '#' + BOX_ID + ' .agm-h{display:flex;align-items:center;gap:8px;font:700 13px/1.2 var(--font-ui,system-ui);margin:0 0 10px;}',
             '#' + BOX_ID + ' .agm-h svg{width:18px;height:18px;color:var(--accent,#2f9e74);flex:0 0 auto;}',
             '.agm-wrap{display:flex;align-items:center;gap:14px;}',
-            '.agm-rose{width:122px;height:122px;flex:0 0 auto;color:var(--text-color,#eceef2);}',
+            // Od 9. 8. 2026 je růžice OBSAHEM NÁSTROJE, ne přílepkem v nastavení —
+            // proto je větší. Na úzkém displeji se rozvržení stejně sloupí (viz níž)
+            // a tam dostane skoro celou šířku, ať se dá číst na dálku i v rukavicích.
+            '.agm-rose{width:150px;height:150px;flex:0 0 auto;color:var(--text-color,#eceef2);}',
             '.agm-ring{fill:rgba(0,0,0,0.18);stroke:var(--glass-border,rgba(255,255,255,0.14));stroke-width:1;}',
             '.agm-lbl{font:700 11px var(--font-ui,system-ui);fill:currentColor;opacity:0.75;}',
             '.agm-lbl.agm-n{opacity:1;}',
@@ -129,10 +132,20 @@
             '.agm-v sup{font-size:calc(9px * var(--ag-font-scale, 1));}',
             '.agm-note{font:400 11.5px/1.5 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);margin:10px 0 0;}',
             '.agm-note b{color:var(--text-color,#eceef2);font-weight:600;}',
+            // LEGENDA: bez ní se u růžice nedá poznat, co je která špice — a přesně na
+            // to se uživatel ptal („nevím, kde je magnetický sever"). Barevný čtvereček
+            // má stejnou barvu jako značka v SVG.
+            '.agm-leg{display:flex;flex-wrap:wrap;gap:4px 14px;margin:10px 0 0;',
+            '  font:500 11.5px/1.4 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
+            '.agm-leg span{display:flex;align-items:center;gap:6px;}',
+            '.agm-leg i{width:9px;height:9px;border-radius:2px;flex:0 0 auto;display:block;}',
+            '.agm-leg .agm-i-true{background:var(--text-color,#eceef2);}',
+            '.agm-leg .agm-i-mag{background:#ef4444;}',
+            '.agm-leg .agm-i-fwd{background:var(--accent,#2f9e74);}',
             'body.outdoor-mode #' + BOX_ID + '{background:#0a0e1a;border-color:rgba(255,255,255,0.6);}',
             'body.light-mode.outdoor-mode #' + BOX_ID + '{background:#fff;border-color:rgba(10,14,26,0.5);}',
-            '@media (max-width:360px){.agm-wrap{flex-direction:column;align-items:stretch;}',
-            '  .agm-rose{align-self:center;}}'
+            '@media (max-width:430px){.agm-wrap{flex-direction:column;align-items:stretch;}',
+            '  .agm-rose{align-self:center;width:min(78vw,230px);height:min(78vw,230px);}}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
@@ -152,13 +165,20 @@
         var box = document.createElement('div');
         box.id = BOX_ID;
         box.innerHTML =
-            '<div class="agm-h">' + ICON + ' Magnetický sever</div>'
+            // Nadpis mluví o OBOU severech: panel je od 9. 8. 2026 hlavním obsahem
+            // nástroje Kompas, ne přílepkem „a mimochodem tady je i magnetický sever".
+            '<div class="agm-h">' + ICON + ' Kompas — zeměpisný i magnetický sever</div>'
             + '<div class="agm-wrap">' + roseSvg()
             + '<div class="agm-vals">'
             + '  <div class="agm-row"><span class="agm-k">Azimut zeměpisný<br><small>s tímhle appka počítá</small></span><span class="agm-v" id="agm-true">—</span></div>'
             + '  <div class="agm-row"><span class="agm-k">Azimut magnetický<br><small>tohle ukáže busola</small></span><span class="agm-v agm-v-mag" id="agm-mag">—</span></div>'
             + '  <div class="agm-row"><span class="agm-k">Deklinace v místě</span><span class="agm-v" id="agm-decl">—</span></div>'
             + '</div></div>'
+            + '<div class="agm-leg">'
+            + '<span><i class="agm-i-true"></i>zeměpisný sever</span>'
+            + '<span><i class="agm-i-mag"></i>magnetický sever (busola)</span>'
+            + '<span><i class="agm-i-fwd"></i>kam míří telefon</span>'
+            + '</div>'
             + '<p class="agm-note" id="agm-note">Drž telefon <b>naplocho</b> a dál od kovu, auta a betonářské výztuže.</p>';
         // nahoru: kompas se má číst první, ne až pod tlačítky kalibrace
         host.insertBefore(box, host.firstChild);
@@ -226,6 +246,7 @@
     // ---- start -----------------------------------------------------------------------
     var _tries = 0;
     function init() {
+        registerTile();
         if (!build() && _tries++ < 25) { setTimeout(init, 400); return; }
         if (!window.__agmTimer) window.__agmTimer = (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(tick, TICK_MS);
         tick();
@@ -233,6 +254,35 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
     window.addEventListener('load', function () { setTimeout(init, 500); });
+
+    // ---- dlaždice KOMPAS v Nástrojích ------------------------------------------------
+    // Nahlášeno 9. 8. 2026: „někde v aplikaci je magnetický sever a já nevím kde."
+    // Byla to pravda — růžice se ukazovala jen v okně „Kompas a sever", a tam se dalo
+    // dostat výhradně z Nastavení → AR a přesnost. Kompas ale není nastavení, je to
+    // nástroj, který člověk v terénu otevírá pořád. Dlaždice ho dává tam, kde ho
+    // uživatel hledá; okno zůstává jedno a totéž (žádná druhá kopie růžice).
+    //
+    // Registruje se přes window.agRegisterFieldTool z js/field-tools.js — ten je
+    // vlastníkem mřížky Nástrojů. Když ještě není načtený, chvíli se počká.
+    var _reg = 0;
+    function registerTile() {
+        if (window.__agKompasTile) return;
+        if (typeof window.agRegisterFieldTool !== 'function' || typeof window.openCompassModal !== 'function') {
+            if (_reg++ < 40) setTimeout(registerTile, 400);
+            return;
+        }
+        window.__agKompasTile = true;
+        window.agRegisterFieldTool({
+            id: 'kompas',
+            label: 'Kompas a sever',
+            icon: '<svg class="icon"><use href="#i-navigation"/></svg>',
+            cat: 'Pomůcky', order: 12,
+            onClick: function () {
+                try { window.openCompassModal(); } catch (e) { console.warn('[kompas] otevreni', e); }
+                tick();                       // ať je růžice živá hned, ne až za 125 ms
+            }
+        });
+    }
 
     window.AGMagCompass = {
         refresh: tick,
