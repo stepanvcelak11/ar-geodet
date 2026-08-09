@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!--
+    AR Geodet — hodinky (Garmin Forerunner 255)
+    Zjednodušený pomocník k mobilní aplikaci: mapka okolních bodů,
+    seznam od nejbližšího, navigace k bodu a zakládání nových bodů.
+
+    Zatím pracuje čistě offline — body vznikají a žijí v hodinkách.
+    Synchronizace s mobilem (přes Cloudflare Worker) přijde jako další krok;
+    až bude, přibude sem oprávnění "Communications".
+-->
+<iq:manifest xmlns:iq="http://www.garmin.com/xml/connectiq" version="3">
+    <iq:application
+        entry="ArGeodetApp"
+        id="6121707be82d4d7d8b2a413e0937e747"
+        launcherIcon="@Drawables.LauncherIcon"
+        name="@Strings.AppName"
+        type="watch-app"
+        minApiLevel="3.2.0">
+
+        <iq:products>
+            <iq:product id="forerunner255"/>
+            <iq:product id="forerunner255s"/>
+            <iq:product id="forerunner255m"/>
+            <iq:product id="forerunner255sm"/>
+        </iq:products>
+
+        <iq:permissions>
+            <iq:uses-permission id="Positions"/>
+            <iq:uses-permission id="Sensor"/>
+        </iq:permissions>
+
+        <iq:languages>
+            <iq:language>eng</iq:language>
+        </iq:languages>
+
+        <iq:barrels/>
+    </iq:application>
+</iq:manifest>

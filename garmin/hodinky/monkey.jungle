@@ -1,0 +1,4 @@
+# Sestavovací předpis Connect IQ.
+# Zdroje ze source/ a prostředky z resources/ si SDK najde samo,
+# stačí ukázat na manifest.
+project.manifest = manifest.xml

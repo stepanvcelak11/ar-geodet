@@ -1,0 +1,6 @@
+# výstupy překladu Connect IQ
+bin/
+*.prg
+*.prg.debug.xml
+*.iq
+gen/
