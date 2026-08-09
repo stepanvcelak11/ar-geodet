@@ -338,6 +338,32 @@
     window.addEventListener('pagehide', function () { toolEnd(); save(true); });
 
     // ---- skrývání nepoužívaných nástrojů -----------------------------------------
+    // VÝCHOZÍ ÚKLID (9. 8. 2026): uživatel prošel celý seznam úkonů a tyhle označil
+    // jako nepoužívané. NIC SE NEMAŽE — soubory i dlaždice zůstávají, jen se schovají,
+    // takže je hledání v Nástrojích dál najde a v „Moje aktivita → Skryté nástroje"
+    // se jedním ťuknutím vrátí. Proto tu není mazání, ale seed skrytého seznamu.
+    //   openCheckDist   Oměrné — na GPS v mobilu není dost přesné (ani mezi dvěma body)
+    //   kontrola-vrstvy Sedí hotová vrstva na projekt — nepoužívá, netýká se jeho práce
+    //   track-log       Stopa trasy — překrývá se s Krokovým offsetem
+    //   brifink         Dnešek v terénu — souhrn na ráno, nepoužívá
+    //   bezpecnost      Bezpečnost a rizika — nepoužívá
+    //   kniha-jizd      Kniha jízd — nepoužívá
+    // Seed proběhne JEN JEDNOU (agAktHiddenSeed_v1). Kdyby běžel při každém startu,
+    // vracení nástroje by nemělo smysl — po restartu by se zase schoval.
+    var LS_SEED = 'agAktHiddenSeed_v1';
+    var DEFAULT_HIDDEN = ['openCheckDist', 'kontrola-vrstvy', 'track-log', 'brifink', 'bezpecnost', 'kniha-jizd'];
+    function seedHidden() {
+        try { if (localStorage.getItem(LS_SEED)) return; } catch (e) { return; }
+        var a = hidden(), changed = false, i;
+        for (i = 0; i < DEFAULT_HIDDEN.length; i++) {
+            if (a.indexOf(DEFAULT_HIDDEN[i]) === -1) { a.push(DEFAULT_HIDDEN[i]); changed = true; }
+        }
+        try { localStorage.setItem(LS_SEED, '1'); } catch (e) {}
+        // Schovat dlaždici brífinku nestačí — sám se ukazuje po spuštění. Kdo ho
+        // nepoužívá, nechce ho ani jako uvítací kartu. Vypínač zůstává v Nastavení.
+        try { if (localStorage.getItem(LS_BF_AUTO) === null) localStorage.setItem(LS_BF_AUTO, '0'); } catch (e) {}
+        if (changed) saveHidden(a);
+    }
     function hidden() {
         try { var a = JSON.parse(localStorage.getItem(LS_HIDDEN)); return Array.isArray(a) ? a : []; } catch (e) { return []; }
     }
@@ -808,6 +834,7 @@
 
     function init() {
         register();
+        seedHidden();
         wrapFilter();
         if (!window.__agAktTimer) {
             window.__agAktTimer = (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(function () {

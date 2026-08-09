@@ -81,7 +81,7 @@
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3v-5l2.4-4.9A2 2 0 0 1 7.2 6h9.6a2 2 0 0 1 1.8 1.1L21 12v5h-2"/><path d="M9 17h6"/><path d="M3 12h18"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>',
             sub: 'Kolem měření, ne měření samo — auto, kilometry a vlastní kůže:',
             items: [
-                { key: 'kde-je', fn: 'agOpenKdeJe', t: 'Kde mám auto', s: 'Označ, kde stojí auto, báze, stativ nebo materiál — pak tě tam navede šipka.' },
+                { key: 'kde-je', fn: 'agOpenKdeJe', t: 'Kde co mám', s: 'Označ, kde máš bázi, stativ, materiál nebo auto — pak tě tam navede šipka.' },
                 { key: 'kniha-jizd', fn: 'agOpenKnihaJizd', t: 'Kniha jízd', s: 'Cesťák navázaný na zakázky, měsíční součty a export CSV pro účetní.' },
                 { key: 'bezpecnost', fn: 'agOpenBezpecnost', t: 'Bezpečnost a rizika', s: 'Bouřka, vedro, mráz, vítr, blížící se tma — a poslání vlastní polohy.' },
                 { key: 'checklist', fn: 'agOpenChecklist', t: 'Co s sebou', s: 'Balicí seznam podle typu práce a dnešního počasí; odškrtáváš ráno u auta.' }

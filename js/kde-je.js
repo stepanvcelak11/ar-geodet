@@ -226,7 +226,7 @@
         }).join('') + '<button type="button" data-lbl="__custom"><b>➕</b>Vlastní</button>';
         m.innerHTML =
             '<div class="modal-content">' +
-            '  <h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Kde mám auto</h3>' +
+            '  <h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Kde co mám</h3>' +
             '  <p class="ag-kj-intro" style="margin:0;color:var(--text-muted,#9aa1ac);font-size:.9em;">Jedním tapem si tady označ, kde stojí auto, báze nebo stativ. Značky se neukládají mezi body zakázky.</p>' +
             '  <div class="ag-kj-btns" id="ag-kj-add">' + btns + '</div>' +
             '  <div id="ag-kj-list"></div>' +
@@ -305,7 +305,7 @@
     var _regTries = 0;
     function register() {
         if (typeof window.agRegisterFieldTool === 'function') {
-            window.agRegisterFieldTool({ id: 'kde-je', label: 'Kde mám auto', icon: ICON, cat: 'Pomůcky', onClick: open, order: 9 });
+            window.agRegisterFieldTool({ id: 'kde-je', label: 'Kde co mám', icon: ICON, cat: 'Pomůcky', onClick: open, order: 9 });
             return;
         }
         if (_regTries++ < 20) setTimeout(register, 500);

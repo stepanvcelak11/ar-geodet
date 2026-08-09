@@ -150,7 +150,7 @@
                 { k: 'brifink', l: 'Dnešek v terénu', h: 'souhrn na ráno' },
                 { k: 'checklist', l: 'Co s sebou' },
                 { k: 'bezpecnost', l: 'Bezpečnost a rizika' },
-                { k: 'kde-je', l: 'Kde mám auto nebo bázi' }
+                { k: 'kde-je', l: 'Kde co mám', h: 'báze, stativ, materiál — i auto' }
             ]
         },
         {
