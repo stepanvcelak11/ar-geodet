@@ -30,8 +30,17 @@ class Sledovac {
 
     function spustit() {
         Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPozice));
-        // Poslední známá poloha, ať mapa hned po startu není prázdná.
-        // Bude zastaralá, ale kvalita to přizná (QUALITY_LAST_KNOWN).
+        osvez();
+    }
+
+    //! Aktivní dotaz na polohu místo čekání na oznámení.
+    //!
+    //! ⚠ V simulátoru se po „Settings → Set Position" callback NEOZVE —
+    //! nová poloha se objeví teprve při dalším startu aplikace, takže to
+    //! vypadá, že appka zamrzla na „hledám GPS". Na hodinkách to zas
+    //! pomůže hned po spuštění, než přijde první fix. Stojí to nic:
+    //! getInfo jen přečte poslední známý stav, nic nezapíná.
+    function osvez() {
         var i = Position.getInfo();
         if (i != null) { onPozice(i); }
     }

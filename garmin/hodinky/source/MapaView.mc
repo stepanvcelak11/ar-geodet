@@ -48,6 +48,9 @@ class MapaView extends WatchUi.View {
     //! `as Void` tu být musí — Timer.start chce metodu, o které je jisté,
     //! že nic nevrací, a bez anotace ji překladač bere jako Any.
     function tik() as Void {
+        // Dokud poloha nedorazila, ptáme se na ni sami — viz Sledovac.osvez.
+        var s = $.sledovac;
+        if (s != null && s.lat == null) { s.osvez(); }
         WatchUi.requestUpdate();
     }
 
