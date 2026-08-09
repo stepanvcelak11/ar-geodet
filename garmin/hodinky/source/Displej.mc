@@ -56,6 +56,28 @@ module Displej {
         return Lang.format("$1$:$2$", [d.hour.format("%d"), d.min.format("%02d")]);
     }
 
+    //! Velké číslo s malou jednotkou vedle.
+    //!
+    //! ⚠ Existuje kvůli tomu, že `Graphics.FONT_NUMBER_*` obsahují POUZE
+    //! ČÍSLICE. Vykreslit jimi „34 m" znamená, že se ukáže jen „34" —
+    //! a takové ticho se hledá zatraceně blbě. Číslo se proto kreslí
+    //! číselným fontem a jednotka vedle běžným.
+    function cisloSJednotkou(dc, cx, cy, cislo, jednotka, fontCisla) {
+        var fj = Graphics.FONT_XTINY;
+        var w1 = dc.getTextWidthInPixels(cislo, fontCisla);
+        var w2 = jednotka.equals("") ? 0 : dc.getTextWidthInPixels(" " + jednotka, fj);
+        var x = cx - (w1 + w2) / 2;
+
+        dc.drawText(x, cy, fontCisla, cislo,
+                    Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+        if (w2 > 0) {
+            // jednotka sedí na účaří čísla, ne na jeho středu
+            dc.drawText(x + w1, cy + dc.getFontHeight(fontCisla) / 2 - dc.getFontHeight(fj) / 2 - 2,
+                        fj, " " + jednotka,
+                        Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+        }
+    }
+
     //! Totéž u dolního kraje. Vrací horní hranu textu.
     function dole(dc, text, font) {
         var sirka = dc.getWidth();

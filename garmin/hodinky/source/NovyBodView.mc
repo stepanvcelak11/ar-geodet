@@ -86,9 +86,11 @@ class NovyBodView extends WatchUi.View {
 
         // Rozptyl velkým písmem — to je jediné číslo, podle kterého se
         // člověk rozhoduje, jestli už uložit, nebo ještě počkat.
+        // FONT_LARGE, ne FONT_NUMBER_*: v číselném fontu chybí „±" i „m“
+        // a zbylo by holé číslo bez toho, co znamená.
         var hlavni = (sig == null) ? "—" : ("±" + sig.format("%.1f") + " m");
         dc.setColor(_barva(n, sig), Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, cy - 16, Graphics.FONT_NUMBER_MEDIUM, hlavni,
+        dc.drawText(cx, cy - 16, Graphics.FONT_LARGE, hlavni,
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
         var podrobne = n.toString() + " vzorků";

@@ -71,9 +71,19 @@ module Geo {
     //! Vzdálenost pro displej — pod 10 m na decimetry, pak na metry, od
     //! kilometru na kilometry. Na malém displeji nemá smysl víc číslic.
     function popisVzdalenosti(m) {
-        if (m == null)  { return "—"; }
-        if (m < 10)     { return m.format("%.1f") + " m"; }
-        if (m < 1000)   { return m.format("%.0f") + " m"; }
-        return (m / 1000.0).format("%.2f") + " km";
+        var d = vzdalenostDil(m);
+        return (d[1].equals("")) ? d[0] : (d[0] + " " + d[1]);
+    }
+
+    //! Totéž rozdělené na [číslo, jednotku].
+    //!
+    //! ⚠ Kvůli číselným fontům: Graphics.FONT_NUMBER_* obsahují POUZE
+    //! číslice, takže se do nich jednotka nedá vykreslit — musí se napsat
+    //! zvlášť běžným fontem. Viz Displej.cisloSJednotkou.
+    function vzdalenostDil(m) {
+        if (m == null)  { return ["—", ""]; }
+        if (m < 10)     { return [m.format("%.1f"), "m"]; }
+        if (m < 1000)   { return [m.format("%.0f"), "m"]; }
+        return [(m / 1000.0).format("%.2f"), "km"];
     }
 }

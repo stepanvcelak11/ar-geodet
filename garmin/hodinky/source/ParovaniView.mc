@@ -71,11 +71,17 @@ class ParovaniView extends WatchUi.View {
             dc.drawText(cx, cy, Graphics.FONT_MEDIUM, "…",
                         Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         } else {
-            // Kód velkým písmem a s mezerou uprostřed — šest znaků v jednom
-            // shluku se z malého displeje opisuje mizerně.
+            // ⚠ NIKDY NE Graphics.FONT_NUMBER_* — ty obsahují POUZE ČÍSLICE.
+            // Kód má i písmena a ta se v číselném fontu prostě nevykreslila;
+            // na displeji zbyly jen dvě číslice a vypadalo to jako chyba
+            // párování. Bere se největší běžný font, který se ještě vejde.
+            var text = kod.substring(0, 3) + " " + kod.substring(3, 6);
+            var font = Graphics.FONT_LARGE;
+            if (dc.getTextWidthInPixels(text, font) > sirka - 24) {
+                font = Graphics.FONT_MEDIUM;
+            }
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(cx, cy - 6, Graphics.FONT_NUMBER_MEDIUM,
-                        kod.substring(0, 3) + " " + kod.substring(3, 6),
+            dc.drawText(cx, cy - 6, font, text,
                         Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         }
 

@@ -84,11 +84,13 @@ class NavigaceView extends WatchUi.View {
         dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
         var vrsek = Displej.dole(dc, pod, Graphics.FONT_XTINY);
 
-        // vzdálenost velkým písmem nad tím
+        // vzdálenost velkým písmem nad tím; jednotka musí zvlášť, číselný
+        // font ji neumí (viz Displej.cisloSJednotkou)
+        var dil = Geo.vzdalenostDil(d);
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, vrsek - dc.getFontHeight(Graphics.FONT_NUMBER_MEDIUM) / 2 - 2,
-                    Graphics.FONT_NUMBER_MEDIUM, Geo.popisVzdalenosti(d),
-                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        Displej.cisloSJednotkou(dc, cx,
+                                vrsek - dc.getFontHeight(Graphics.FONT_NUMBER_MEDIUM) / 2 - 2,
+                                dil[0], dil[1], Graphics.FONT_NUMBER_MEDIUM);
     }
 
     //! Šipka ukazuje azimut mínus směr, kterým jsem natočený — tedy „doprava
