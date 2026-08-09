@@ -211,7 +211,10 @@
         var tabs = m.querySelector('.tab-buttons'); if (!tabs) return;
         var wrap = document.createElement('div');
         wrap.id = BOX_ID;
-        wrap.innerHTML = '<input type="search" id="ag-ns-q" placeholder="Hledat v nastavení…" autocomplete="off">'
+        // Od 9. 8. 2026 se odsud hledá i MIMO nastavení (nástroje, Body, Kompas, menu
+        // Více) — pole „Hledat v aplikaci" se z panelu „Více" přestěhovalo sem, aby
+        // bylo hledání v appce jedno jediné a na místě, kde ho člověk čeká.
+        wrap.innerHTML = '<input type="search" id="ag-ns-q" placeholder="Hledat v nastavení i v aplikaci…" autocomplete="off">'
             + '<div id="' + RES_ID + '" role="listbox"></div>';
         tabs.parentNode.insertBefore(wrap, tabs);
         var inp = wrap.querySelector('#ag-ns-q');
@@ -233,11 +236,12 @@
         var hits = _index.filter(function (r) {
             for (var i = 0; i < toks.length; i++) { if (r.q.indexOf(toks[i]) === -1) return false; }
             return true;
-        }).slice(0, 12);
+        }).slice(0, 10);
+        var app = appHits(q);
 
         res.innerHTML = '';
-        if (!hits.length) {
-            res.innerHTML = '<div class="ag-ns-none">Nic takového v nastavení není. Zkus jiné slovo — třeba „rukavice", „sever", „offline", „baterie".</div>';
+        if (!hits.length && !app.length) {
+            res.innerHTML = '<div class="ag-ns-none">Nic takového v appce není. Zkus jiné slovo — třeba „rukavice", „sever", „offline", „baterie".</div>';
             res.classList.add('on');
             return;
         }
@@ -249,7 +253,37 @@
             b.addEventListener('click', function () { reveal(r.el); });
             res.appendChild(b);
         });
+        app.forEach(function (it) {
+            var b = document.createElement('button');
+            b.type = 'button'; b.className = 'ag-ns-hit';
+            b.innerHTML = '<b>' + esc(it.label) + '</b><small><span class="ag-ns-path">'
+                + esc(it.src || 'Aplikace') + '</span></small>';
+            b.addEventListener('click', function () { runOutside(it); });
+            res.appendChild(b);
+        });
         res.classList.add('on');
+    }
+
+    // ---- cíle MIMO nastavení (js/app-search.js) -----------------------------------------
+    function appHits(q) {
+        try {
+            if (!window.AGAppSearch || typeof window.AGAppSearch.find !== 'function') return [];
+            return window.AGAppSearch.find(q).slice(0, 6);
+        } catch (e) { return []; }
+    }
+    // ⚠ Nastavení se ukládá TEPRVE tlačítkem „Uložit vše a Zavřít" — kdyby se odsud
+    // skočilo do nástroje a okno se jen zavřelo, tiše by se zahodilo, co uživatel
+    // přenastavil. Odchod proto jde přes uložení (stejná dohoda jako u zavření tahem
+    // v js/modal-close.js), teprve pak se otevře cíl.
+    function runOutside(it) {
+        closeResults();
+        try {
+            if (typeof window.saveSettings === 'function') window.saveSettings();
+            else { var m = modal(); if (m) m.style.display = 'none'; }
+        } catch (e) {}
+        setTimeout(function () {
+            try { it.run(); } catch (err) { console.warn('[nastaveni-hledani]', err); }
+        }, 60);
     }
 
     // ---- krátký pohled -------------------------------------------------------------------

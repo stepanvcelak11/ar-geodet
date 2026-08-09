@@ -288,7 +288,10 @@
     <div id="side-menu">
         <!-- Scrollovací obsah; tlačítko Zavřít je PEVNÁ patička dole (jako u Nástrojů) -->
         <div class="menu-scroll">
-            <div class="menu-head"><svg class="icon"><use href="#i-menu"/></svg> Více</div>
+            <!-- ☰ z nadpisu i z tlačítka v Nastavení PRYČ (na přání 9. 8. 2026): tři čárky
+                 znamenaly „hlavní menu" z doby, kdy tenhle panel visel v liště. Dnes se
+                 sem chodí z Nastavení → Údržba → Aplikace a ikona jen mátla. -->
+            <div class="menu-head">Více</div>
             <button id="pruv-menu-btn" class="menu-btn" style="background: rgba(47,158,116,0.15); border-color: var(--accent); color: var(--accent);" onclick="openPruvodce(); toggleMenu();"><svg class="icon"><use href="#i-navigation"/></svg> Průvodce úkolem</button>
             <button class="menu-btn" onclick="saveForOffline(); toggleMenu();"><svg class="icon"><use href="#i-download"/></svg> Uložit pro offline</button>
             <button class="menu-btn" onclick="startTutorial(); toggleMenu();"><svg class="icon"><use href="#i-bulb"/></svg> Návod a prohlídka</button>
@@ -299,11 +302,12 @@
                  o aplikaci samotné — návod, o aplikaci, sdílení, offline. -->
             <!-- Přepínače HUD prvků (info panel, azimut, průměrování GPS) přesunuty do Nastavení → Vzhled;
                  nástroje (Předpisy, Predikce signálu, Kalibrace na ref. bod, Stáhnout body) do sekce Nástroje. -->
-            <hr style="border-color: var(--glass-border); width: 100%; margin: 5px 0;">
-            <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.07em; color: var(--text-muted); margin: 2px 2px 4px;">Zobrazení</div>
-            <button class="menu-btn" onclick="toggleMapControls(); toggleMenu();"><svg class="icon"><use href="#i-layers"/></svg> Mapa a vrstvy</button>
-            <!-- Přepínač AR/Split/Mapa ODSTRANĚN (i „Rozvržení" v Nastavení → AR) — nahradilo
-                 ho kroužek zobrazení vpravo dole (js/view-cycle.js). Na přání, NEvracet. -->
+            <!-- Sekce „Zobrazení → Mapa a vrstvy" ODSTRANĚNA (na přání 9. 8. 2026): totéž
+                 tlačítko je od 8. 8. přímo v liště na hlavní obrazovce (#dock-vice-btn →
+                 toggleMapControls), takže tady byl už jen druhý vchod do téhož. Hledání
+                 ho zná dál — je mezi jádrovými cíli v js/app-search.js.
+                 Přepínač AR/Split/Mapa byl odstraněn dřív (nahradil ho kroužek zobrazení,
+                 js/view-cycle.js). Na přání, NEvracet ani jedno. -->
         </div>
         <button class="menu-btn menu-close" onclick="toggleMenu()">Zavřít</button>
     </div>
@@ -711,7 +715,7 @@
                          panel zmizel, jejich nástroje by se staly nedosažitelnými.
                          Nastavení se před otevřením zavře, jinak by leželo přes sheet. -->
                     <div class="set-h">Aplikace</div>
-                    <button class="btn btn-secondary" onclick="document.getElementById('settings-modal').style.display='none'; toggleMenu();"><svg class="icon"><use href="#i-menu"/></svg> Více — návod, o aplikaci, sdílení, offline</button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('settings-modal').style.display='none'; toggleMenu();"><svg class="icon"><use href="#i-file-text"/></svg> Více — návod, o aplikaci, sdílení, offline</button>
                 </div>
                 <!-- PROFILY (návrh C) — panel je ZÁMĚRNĚ skoro prázdný: obsah si sem
                      vloží js/profily.js (pruh „Profil nastavení") a js/rezim-prace.js

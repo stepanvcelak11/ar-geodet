@@ -256,9 +256,17 @@
         var m = document.getElementById('settings-modal');
         return !!(m && m.contains(a));
     }
+    // ⚠ PO STARTU SE SROVNÁVÁ I ZAVŘENÉ OKNO. Moduly se dosypávají do Nastavení ještě
+    // dlouho po načtení (lazy-load) a dřív se na ně čekalo až do otevření — jenže to
+    // znamená přeskládat obsah ve chvíli, kdy okno UŽ NAJÍŽDÍ (fade 0,28 s). Na rychlém
+    // prohlížeči to nikdo nevidí, na telefonu se to projeví jako probliknutí starého
+    // rozvržení. Po WARMUP ms od načtení se proto srovnává i naprázdno; pak už se šetří
+    // baterie jako dřív (zavřené okno se nesrovnává, viz audit výkonu 9427482).
+    var WARMUP = 25000, _load = Date.now();
+    function warmingUp() { return (Date.now() - _load) < WARMUP; }
     function arrange() {
         if (_busy) return;
-        if (!settingsVisible()) { _dirty = true; return; }   // zavřené okno nemá co srovnávat
+        if (!settingsVisible() && !warmingUp()) { _dirty = true; return; }
         if (typingInSettings()) {
             _dirty = true;
             if (!_timer) _timer = setTimeout(function () { _timer = null; arrange(); }, 900);
@@ -278,7 +286,8 @@
     }
     function schedule() {
         if (_busy || _timer) return;
-        _timer = setTimeout(function () { _timer = null; arrange(); }, 220);
+        // zavřené okno nespěchá — delší prodleva svede víc dosypaných řádků do jednoho srovnání
+        _timer = setTimeout(function () { _timer = null; arrange(); }, settingsVisible() ? 220 : 700);
     }
     function watch() {
         var m = document.getElementById('settings-modal'); if (!m) return false;
@@ -303,7 +312,11 @@
                 var wrapped = function () {
                     var r = open.apply(this, arguments);
                     try { arrange(); } catch (e4) {}
-                    schedule();          // ještě jednou, až moduly dosypou obsah
+                    // ještě jednou HNED v příštím snímku: otevření samo probouzí moduly,
+                    // které si do Nastavení dosypou řádek — takhle se srovná dřív, než
+                    // okno dojede do plné viditelnosti, ne až za 220 ms uprostřed fade.
+                    try { requestAnimationFrame(function () { try { arrange(); } catch (e6) {} }); } catch (e5) {}
+                    schedule();          // a naposled, až doběhne zbytek
                     return r;
                 };
                 wrapped.__agOrder = 1;

@@ -39,6 +39,9 @@
         { label: 'Nastavení — Data', keys: 'data zakazka zaloha katastr zdroj offline', run: tab('tab-data', 2) },
         { label: 'Nastavení — Údržba', keys: 'udrzba oprava reset chyby log vymazat', run: tab('tab-udrzba', 3) },
         { label: 'Nastavení — Profily', keys: 'profil profily teren presnost ukazka vlastni rezim prace prednastaveni bez profilu vypnout', run: tab('tab-profily', 4) },
+        // Řádek „Mapa a vrstvy" byl z menu „Více" odstraněn (je v liště) — tady zůstává
+        // jako jádrový cíl, jinak by přestal být k nalezení hledáním.
+        { label: 'Mapa a vrstvy', keys: 'mapa vrstvy podklad ortofoto katastr zobrazeni prepnout', run: function () { if (typeof toggleMapControls === 'function') toggleMapControls(); } },
         { label: 'Kompas / Azimut', keys: 'kompas azimut sever gon jednotky nula korekce', run: function () { if (typeof openCompassModal === 'function') openCompassModal(); } },
         // Poloha z mapy: hledá se hlavně tehdy, když je GPS špatná — proto i klíče
         // „les", „mesto", „nepresna gps". Cíl je odpojitelný, tak jen když existuje.
@@ -138,7 +141,12 @@
         render(null);
     }
 
-    function ensureBox() {
+    // ⚠ POLE UŽ SE DO „VÍCE" NEVKLÁDÁ (na přání 9. 8. 2026 — hledání patří do
+    // Nastavení, panel „Více" má zůstat krátký seznam). Funkce zůstává jen jako
+    // ruční cesta zpět; volá ji dnes JEN ensureToolsHook pro modál Nástroje.
+    // Sběr cílů (collect/search) se nemění a je vystavený jako window.AGAppSearch,
+    // odkud si výsledky bere hledání v Nastavení (js/nastaveni-hledani.js).
+    function ensureBoxInMenu() {
         var scroll = document.querySelector('#side-menu .menu-scroll');
         if (!scroll || document.getElementById(BOX_ID)) return;
         var box = document.createElement('div');
@@ -157,17 +165,7 @@
         });
     }
 
-    // při zavření menu vyhledávání vyresetovat, ať se příště otevře čisté
-    var _wasOpen = false;
-    function tick() {
-        try {
-            injectStyles(); ensureBox();
-            var m = document.getElementById('side-menu');
-            var open = !!(m && m.classList.contains('open'));
-            if (_wasOpen && !open) reset();
-            _wasOpen = open;
-        } catch (e) {}
-    }
+    function tick() { try { injectStyles(); } catch (e) {} }
     // ---- „Jinde v appce" — stejné hledání i pod mřížkou Nástrojů ----------------------
     // Jedno hledání pro celou appku: když uživatel píše do pole v Nástrojích,
     // pod dlaždicemi se ukážou i shody odjinud (Nastavení, menu Více, Kompas…).
@@ -206,6 +204,10 @@
             });
         });
     }
+
+    // Hledání je vystavené ven: pole je od 9. 8. 2026 v NASTAVENÍ (js/nastaveni-hledani.js
+    // si sem sáhne pro cíle mimo nastavení — nástroje, Body, Kompas, menu Více…).
+    window.AGAppSearch = { find: search, targets: collect };
 
     function init() {
         tick();

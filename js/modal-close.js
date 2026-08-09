@@ -115,6 +115,57 @@
 
     var X_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 
+    // ---- OKNA MODULŮ (vlastní obal, ne .modal-overlay) --------------------------
+    // Na přání 9. 8. 2026: „ať jdou všechny nástroje vypnout posunutím zleva doprava,
+    // ať to nemusím zavírat křížkem." Domácí modály to uměly už dřív, ale zhruba
+    // dvacet nástrojů si kreslí okno po svém (#ag-zb-ov, #ag-pm-ov, .ag-zv-ov…) a ta
+    // se tu ZÁMĚRNĚ nechávala být, protože hádat v cizím okně, co je panel, rozbíjelo
+    // víc, než spravilo. Teď se tedy nehádá NIC, co by mohlo ublížit:
+    //   • okno musí být přes celý displej, viditelné a klikatelné (pointer-events),
+    //     takže zaměřovací vrstvy AR (pointer-events:none) vypadnou samy,
+    //   • ZAVÍRÁ SE VÝHRADNĚ JEHO VLASTNÍM TLAČÍTKEM. Nikdy se nesahá na display —
+    //     nástroj s kamerou nebo wake lockem by po takovém „zavření" běžel dál.
+    //     Když se tlačítko nenajde, gesto se prostě nechytne.
+    //   • ⚠ Okna s vlastním gestem nebo kreslicí plochou jsou vyjmutá jmenovitě
+    //     (kolečko nástrojů, brána, úvodní obrazovka, blokátor tutoriálu); plátna,
+    //     jezdce, mapu a [data-no-swipe] vyřazuje už onStart níž.
+    var MOD_SKIP = { 'ag-kn': 1, 'ag-gate': 1, 'ag-login': 1, 'welcome-screen': 1, 'agtp-block': 1 };
+    function modOverlay(el) {
+        if (!el || el.nodeType !== 1 || !el.id && !el.className) return false;
+        if (el.id && MOD_SKIP[el.id]) return false;
+        if (el.hasAttribute && el.hasAttribute('data-no-swipe')) return false;
+        if (el.classList && el.classList.contains('modal-overlay')) return false;
+        var st;
+        try { st = window.getComputedStyle(el); } catch (e) { return false; }
+        if (!st || st.position !== 'fixed' || st.display === 'none') return false;
+        if (st.visibility === 'hidden' || parseFloat(st.opacity || '1') < 0.05) return false;
+        if (st.pointerEvents === 'none') return false;
+        // ⚠⚠ BEZ TOHOHLE by prošlo i POZADÍ APPKY. Mapa i AR jsou taky celoobrazovkové
+        // fixed vrstvy s tlačítky uvnitř — tah po mapě by pak hledal „Zavřít" a mohl
+        // spustit něco úplně jiného. Okna nástrojů mají všechna z-index 9200 a výš
+        // (dok má 9000, mapa a AR o mnoho níž), takže tohle je čára mezi „okno" a
+        // „obsah appky". Mapu sice vyřazuje i .leaflet-container v onStart, ale na
+        // takovou jednu pojistku spoléhat nechci.
+        var z = parseInt(st.zIndex, 10);
+        if (!(z >= 1000)) return false;
+        var r = el.getBoundingClientRect();
+        return r.width >= window.innerWidth * 0.9 && r.height >= window.innerHeight * 0.6;
+    }
+    // Panel k odtažení: když má okno JEDINÉ dítě užší než displej, je to karta a táhne
+    // se ona; jinak je celé okno plachta přes displej a táhne se celé.
+    function modPanel(ov) {
+        var kids = ov.children, card = null, n = 0;
+        for (var i = 0; i < kids.length; i++) {
+            var k = kids[i];
+            if (k.nodeType !== 1) continue;
+            var st = window.getComputedStyle(k);
+            if (st.display === 'none' || st.position === 'absolute' || st.position === 'fixed') continue;
+            n++;
+            if (k.getBoundingClientRect().width < window.innerWidth * 0.92) card = k;
+        }
+        return (n === 1 && card) ? card : ov;
+    }
+
     function eligible(ov) {
         return ov && ov.classList && ov.classList.contains('modal-overlay') &&
             ov.getAttribute('data-no-close') === null && !!ov.querySelector('.modal-content');
@@ -175,7 +226,11 @@
             var t = (b.textContent || '').trim().toLowerCase();
             var oc = (b.getAttribute('onclick') || '').trim();
             var score = 0;
+            var al = (b.getAttribute('aria-label') || '').trim().toLowerCase();
             if (t === 'zavřít' || t === 'zavrit') score = 100;
+            else if (al === 'zavřít' || al === 'zavrit') score = 90;
+            // samotný křížek jako popisek tlačítka (moduly ho mají místo slova)
+            else if (t === '✕' || t === '×' || t === '✖' || t === 'x') score = 85;
             else if (ONLY_HIDE.test(oc) || ONLY_CLOSE_CALL.test(oc)) score = 80;
             // >= : při stejném skóre vyhrává POZDĚJŠÍ tlačítko — zavírací bývá dole
             if (score && score >= bestScore) { best = b; bestScore = score; }
@@ -183,9 +238,15 @@
         return best;
     }
 
-    function closeOverlay(ov) {
+    function closeOverlay(ov, panel) {
         var mc = ov.querySelector('.modal-content');
-        resetPull(mc);
+        resetPull(panel || mc);
+        // okno modulu: jen a pouze jeho vlastním tlačítkem (viz modOverlay výš)
+        if (!mc) {
+            var ob = ownCloseButton(ov);
+            if (ob) { try { ob.click(); } catch (e0) {} }
+            return;
+        }
         // okno, které se zavírá uložením (Nastavení) → jeho vlastní cestou
         var sfn = ov.id ? SAVE_CLOSE[ov.id] : null;
         if (sfn) {
@@ -261,10 +322,22 @@
         if (!e.touches || e.touches.length !== 1) return;
         var t = e.target;
         if (!t || !t.closest) return;
-        var ov = t.closest('.modal-overlay');
-        if (!swipeable(ov) || ov.style.display === 'none') return;
-        var mc = ov.querySelector('.modal-content');
-        if (!mc || !mc.contains(t)) return;
+        var ov = t.closest('.modal-overlay'), mc = null;
+        if (ov) {
+            if (!swipeable(ov) || ov.style.display === 'none') return;
+            mc = ov.querySelector('.modal-content');
+            if (!mc || !mc.contains(t)) return;
+        } else {
+            // okno, které si kreslí modul sám — najít nejbližší celoobrazovkový obal
+            var el = t;
+            while (el && el !== document.body && el.nodeType === 1) {
+                if (modOverlay(el)) break;
+                el = el.parentNode;
+            }
+            if (!el || el === document.body || el.nodeType !== 1) return;
+            if (!ownCloseButton(el)) return;      // není čím zavřít → gesto nevzniká
+            ov = el; mc = modPanel(el);
+        }
         // prvky, u kterých vodorovný tah znamená něco jiného
         if (t.closest('input[type="range"],select,textarea,canvas,video,[contenteditable],' +
                       '.leaflet-container,[data-no-swipe]')) return;
@@ -305,7 +378,7 @@
         var dt = Math.max(1, (e.timeStamp || 0) - d.t0);
         var fast = (d.p / dt) > FLICK_SPEED;
         if (d.p > CLOSE_PX || (d.p > FLICK_PX && fast)) {
-            closeOverlay(d.ov);
+            closeOverlay(d.ov, d.mc);
             // POŘADÍ: až PO zavření. closeOverlay klikne na vlastní tlačítko okna
             // a polykač klikům (capture + stopPropagation) by ten klik zabil dřív,
             // než by se k tlačítku dostal — okno by se nezavřelo.

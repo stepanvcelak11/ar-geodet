@@ -22,6 +22,9 @@
 // LIBELA je z `devicemotion` (accelerationIncludingGravity), NE z beta/gamma
 // deviceorientation: u vodorovně ležícího telefonu jsou Eulerovy úhly blízko
 // singularity a poskakují, kdežto vektor tíže je stabilní na desetiny stupně.
+// ⚠⚠ ZNAMÉNKO toho vektoru se ale napříč telefony LIŠÍ (iOS ho vrací obrácené než
+// spec a Android), takže se z něj NESMÍ usuzovat, kterou stranou telefon leží —
+// viz drawLevel(). Náklon se počítá z |gz| a směr bubliny ze znaménka gz.
 //
 // NEEDITUJE logika.js ani grafika.js. Čte jen přes typeof: userLat/userLng,
 // persistentCustomPoints, projects, quickToast, agAlert, loadPointDoc/savePointDoc,
@@ -58,7 +61,6 @@
     var _motionOn = false;
     var _gx = null, _gy = null, _gz = null;   // vyhlazený vektor tíže (osy telefonu)
     var _tilt = null;                 // [°] odklon osy kamery od svislice, null = bez čidla
-    var _faceUp = true;
     var _mode = 'scale';              // 'scale' | 'dist' | 'rect'
     var _pts = [];                    // body měření v CSS px overlaye
     var _drag = -1;
@@ -220,8 +222,8 @@
         _gy = (_gy == null) ? a.y : _gy + K * (a.y - _gy);
         _gz = (_gz == null) ? a.z : _gz + K * (a.z - _gz);
         var horiz = Math.sqrt(_gx * _gx + _gy * _gy);
+        // Náklon se počítá z |gz|, takže je na znaménku NEZÁVISLÝ — viz drawLevel().
         _tilt = Math.atan2(horiz, Math.abs(_gz)) * 180 / Math.PI;
-        _faceUp = _gz > 0;
     }
     function startMotion() {
         if (_motionOn || !window.DeviceMotionEvent) return;
@@ -256,18 +258,27 @@
             txt.textContent = 'bez čidla';
             return;
         }
-        if (!_faceUp) {
-            bub.className = 'bub bad';
-            bub.style.transform = 'translate(0,0)';
-            txt.textContent = 'otoč displejem nahoru';
-            return;
-        }
+        // ⚠⚠ ZNAMÉNKO `accelerationIncludingGravity` NENÍ NAPŘÍČ TELEFONY STEJNÉ.
+        // Spec (a Android) hlásí u telefonu ležícího DISPLEJEM VZHŮRU z ≈ +9,81;
+        // iOS vrací celý vektor s opačným znaménkem, tedy z ≈ −9,81. Dřív se z toho
+        // usuzovalo na polohu (`_faceUp = _gz > 0`) a při záporném z se místo libely
+        // psalo „otoč displejem nahoru" — jenže přesně tak telefon při měření DRŽÍ
+        // (kamera dolů na zem). Na takovém telefonu libela nefungovala vůbec a
+        // „fungovala" jen obráceně, tedy kamerou vzhůru, kdy je nástroj k ničemu.
+        // ŘEŠENÍ: nehádat polohu z absolutního znaménka. Náklon je z |gz| (neutrální)
+        // a směr bubliny se ODVODÍ ze znaménka gz — tím se převrácená soustava sama
+        // narovná a bublina jde na správnou stranu na obou platformách.
+        // Která strana telefonu je nahoře, se řešit nemusí: kdo se dívá na displej,
+        // má kameru dole. Zbývá jen hlídat, že telefon LEŽÍ NAPLOCHO (níž).
         var R = 22, FULL = Math.sin(5 * Math.PI / 180) * G;    // plná výchylka = 5°
-        var dx = Math.max(-1, Math.min(1, (_gx || 0) / FULL)) * R;
-        var dy = Math.max(-1, Math.min(1, -(_gy || 0) / FULL)) * R;
+        var s = (_gz != null && _gz < 0) ? -1 : 1;
+        var dx = Math.max(-1, Math.min(1, s * (_gx || 0) / FULL)) * R;
+        var dy = Math.max(-1, Math.min(1, -s * (_gy || 0) / FULL)) * R;
         bub.style.transform = 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px)';
         bub.className = 'bub ' + tiltClass();
-        txt.textContent = _tilt.toFixed(1) + '°';
+        // Nad 25° už to není „skoro vodorovně", ale telefon nastojato — tam je rada
+        // užitečnější než číslo. (Dřív tuhle roli plnilo „otoč displejem nahoru".)
+        txt.textContent = (_tilt > 25) ? 'polož naplocho' : (_tilt.toFixed(1) + '°');
     }
 
     // ---- kamera -----------------------------------------------------------------------
