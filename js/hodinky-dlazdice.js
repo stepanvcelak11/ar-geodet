@@ -14,10 +14,10 @@
 // Hodinky dostávají data hotová — včetně obálek a pořadí podle důležitosti.
 //
 // FORMÁT DLAŽDICE (musí sedět s garmin/hodinky/source/Podklad.mc):
-//   {a:[lat,lon], r:450,
+//   {a:[lat,lon], r:700,
 //    p:[[třída, minx,miny,maxx,maxy, x,y, …], …]   plochy
 //    l:[[třída, minx,miny,maxx,maxy, x,y, …], …]}  čáry
-// Souřadnice jsou CELÁ ČÍSLA v DECIMETRECH od kotvy. Na displeji, kde 450 m
+// Souřadnice jsou CELÁ ČÍSLA v DECIMETRECH od kotvy. Na displeji, kde 700 m
 // odpovídá stovce pixelů, je decimetr hluboko pod rozlišením a celá čísla se
 // v paměti hodinek drží mnohem líp než desetinná.
 //
@@ -29,7 +29,11 @@
 
     var OVERPASS = 'https://overpass-api.de/api/interpreter';
     var KROK = 0.005;          // mřížka dlaždic ve stupních (v ČR ~560 × 360 m)
-    var DOSAH = 450;           // metrů, co dlaždice pokrývá kolem kotvy
+    // Poloměr, co dlaždice pokrývá kolem SVÉ KOTVY — ne kolem člověka.
+    // Kotva je nejbližší bod mřížky, od které člověk může stát až ~330 m,
+    // takže při dřívějších 450 m zbývalo v nejhorším směru jen ~120 m mapy.
+    // Se 700 m je zaručeno přes 350 m na všechny strany a obvykle mnohem víc.
+    var DOSAH = 700;
     var TOL = 5.0;             // Douglas–Peucker [m]
 
     // třídy — musí sedět s Podklad.mc
@@ -197,7 +201,7 @@
         return fetch(OVERPASS, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain' },
-            body: dotaz(lat, lon, 1200)
+            body: dotaz(lat, lon, 1500)
         }).then(function (r) {
             if (!r.ok) throw new Error('overpass ' + r.status);
             return r.json();

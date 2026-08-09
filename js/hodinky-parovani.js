@@ -88,7 +88,7 @@
             + 'srázy) a body, které si vybereš. Udělej to <b>před výjezdem</b>, dokud je signál — '
             + 'hodinky si to pak stáhnou jedním stiskem.</p>'
             + '<label class="filter-row" style="' + mala + '"><input type="checkbox" id="agwatch-chce-mapu" checked> Mapa okolí</label>'
-            + '<label class="filter-row" style="' + mala + '"><input type="checkbox" id="agwatch-chce-body" checked> Body (vyber níž)</label>'
+            + '<label class="filter-row" style="' + mala + '"><input type="checkbox" id="agwatch-chce-body" checked> Body <span id="agwatch-pocet" style="opacity:.7"></span></label>'
             + '<div id="agwatch-body" style="max-height:32vh;overflow-y:auto;margin:6px 0;'
             + 'border-radius:10px;background:rgba(127,127,127,0.08);padding:4px 8px;"></div>'
             + '<div id="agwatch-mapa-stav" style="' + mala + 'text-align:center;opacity:.75;min-height:1.2em"></div>'
@@ -205,7 +205,8 @@
             host.innerHTML = '<p style="opacity:.6;margin:6px 0;">V téhle zakázce zatím nejsou žádné body.</p>';
             return [];
         }
-        var h = '';
+        var h = '<p style="opacity:.6;margin:4px 0 6px;font-size:calc(11.5px * var(--ag-font-scale,1));">'
+            + '20 nejbližších je předvybraných — kterýkoli můžeš odškrtnout a vzít místo něj vzdálenější.</p>';
         for (var i = 0; i < sez.length; i++) {
             h += '<label class="filter-row" style="font-size:calc(12.5px * var(--ag-font-scale,1));">'
                 + '<input type="checkbox" class="agwatch-bod" value="' + sez[i].id + '"'
@@ -213,6 +214,19 @@
                 + (sez[i].name + '').replace(/[<>&]/g, '') + ' · ' + popisD(sez[i].d) + '</label>';
         }
         host.innerHTML = h;
+
+        // Počet vybraných je vidět hned u zaškrtávátka — bez toho se musí
+        // ručně přepočítávat, kolik toho vlastně do hodinek půjde.
+        function spocitej() {
+            var boxy = back.querySelectorAll('.agwatch-bod');
+            var n = 0;
+            for (var i = 0; i < boxy.length; i++) { if (boxy[i].checked) { n++; } }
+            var el = back.querySelector('#agwatch-pocet');
+            if (el) { el.textContent = '(' + n + ' z ' + boxy.length + ')'; }
+        }
+        var boxy = host.querySelectorAll('.agwatch-bod');
+        for (var j = 0; j < boxy.length; j++) { boxy[j].onchange = spocitej; }
+        spocitej();
         return sez;
     }
 
