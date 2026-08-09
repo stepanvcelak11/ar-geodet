@@ -355,6 +355,19 @@
         else return;
         saveHidden(a);
     }
+    // Hromadný úklid — schovat/vrátit celý seznam NAJEDNOU. Přes setHidden ve smyčce
+    // by se pro každý nástroj zvlášť přepsal localStorage, prošly všechny dlaždice
+    // a přestavěl seznam úkonů; při osmdesáti položkách je to osmdesát průchodů.
+    function setHiddenMany(keys, hide) {
+        var a = hidden(), changed = false;
+        for (var i = 0; i < keys.length; i++) {
+            var j = a.indexOf(keys[i]);
+            if (hide && j === -1) { a.push(keys[i]); changed = true; }
+            else if (!hide && j !== -1) { a.splice(j, 1); changed = true; }
+        }
+        if (changed) saveHidden(a);
+        return changed;
+    }
     function searchActive() {
         var inp = document.getElementById('tools-search');
         return !!(inp && (inp.value || '').trim());
@@ -568,6 +581,7 @@
                 + (isFav ? '★ oblíbený' : '☆ oblíbit') + '</button></div>';
         }).join('');
     }
+    var _unused = [];                    // co právě visí v „Do čeho jsem nešáhl" — pro hromadné schování
     function unusedRows(agg, all) {
         var leg = legacyUsage(), h = hidden();
         var days = sortedKeys().length;
@@ -577,12 +591,19 @@
             if (leg[k]) return false;
             return true;
         }).sort(function (a, b) { return labelOf(a, all).localeCompare(labelOf(b, all), 'cs'); });
+        _unused = keys;
         var note = '';
         if (days < 3) {
             note = '<div class="ag-akt-empty">Sbírám data ' + days + ' ' + (days === 1 ? 'den' : (days < 5 ? 'dny' : 'dnů')) + ' — '
                 + 'doporučení bude mít smysl po týdnu práce. Schovat nástroj jde i tak.</div>';
         }
         if (!keys.length) return note + '<div class="ag-akt-empty">Nic takového — do všech nástrojů v mřížce jsi už šáhl.</div>';
+        // Po jednom se osmdesát nástrojů uklízet nedá, proto jedno tlačítko na všechny.
+        if (keys.length >= 3) {
+            note += '<div class="ag-akt-r"><span class="g"><b>Uklidit najednou</b>'
+                + '<small>schová všech ' + keys.length + ' — vrátit je můžeš níž</small></span>'
+                + '<button type="button" class="b" id="ag-akt-hideall">skrýt vše</button></div>';
+        }
         return note + keys.map(function (k) {
             return '<div class="ag-akt-r"><span class="g"><b>' + esc(labelOf(k, all)) + '</b>'
                 + '<small>ani jednou</small></span>'
@@ -594,6 +615,11 @@
         if (!h.length) return '';
         return '<h4>Skryté nástroje (' + h.length + ')</h4>'
             + '<p class="ag-akt-sub">Nezmizely — v Nástrojích je pořád najde hledání. Tady je vrátíš do mřížky i do seznamu úkonů.</p>'
+            + (h.length >= 3
+                ? '<div class="ag-akt-r"><span class="g"><b>Vrátit všechny</b>'
+                  + '<small>zruší celý úklid — všech ' + h.length + ' zpátky do mřížky</small></span>'
+                  + '<button type="button" class="b on" id="ag-akt-showall">vrátit vše</button></div>'
+                : '')
             + h.map(function (k) {
                 return '<div class="ag-akt-r"><span class="g"><b>' + esc(labelOf(k, all)) + '</b></span>'
                     + '<button type="button" class="b on" data-show="' + esc(k) + '">vrátit</button></div>';
@@ -668,6 +694,22 @@
         for (i = 0; i < showBtns.length; i++) {
             showBtns[i].onclick = function () { setHidden(this.getAttribute('data-show'), false); render(); };
         }
+        var hideAll = m.querySelector('#ag-akt-hideall');
+        if (hideAll) hideAll.onclick = function () {
+            var keys = _unused.slice();
+            if (!keys.length) return;
+            agAsk('Schovat všech ' + keys.length + ' nástrojů, do kterých jsi zatím nešáhl? Mřížka i seznam úkonů se o ně zkrátí. Nic se nemaže — hledání je najde dál a tady je vrátíš zpátky.',
+                { title: 'Uklidit nástroje', okText: 'Schovat vše' }).then(function (ok) {
+                if (!ok) return;
+                setHiddenMany(keys, true);
+                render();
+            });
+        };
+        var showAll = m.querySelector('#ag-akt-showall');
+        if (showAll) showAll.onclick = function () {
+            setHiddenMany(hidden().slice(), false);
+            render();
+        };
         var cbOn = m.querySelector('#ag-akt-on');
         if (cbOn) cbOn.onchange = function () {
             try { localStorage.setItem(LS_ON, this.checked ? '1' : '0'); } catch (e) {}
