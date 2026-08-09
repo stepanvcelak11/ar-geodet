@@ -35,6 +35,8 @@ module Nabidka {
                             ? ($.cloud.stav.equals("") ? ("zakázka " + $.cloud.zakazka()) : $.cloud.stav)
                             : "nespárováno — ukáže kód do mobilu",
                         :sync, {}));
+        menu.addItem(new WatchUi.MenuItem("Vynést body QR kódem",
+                        "když není signál", :qrexport, {}));
         menu.addItem(new WatchUi.MenuItem("Legenda", "co která barva znamená", :legenda, {}));
         // U čísel je vidět i to, kolik jich zbývá z bloku rezervovaného při
         // párování — až dojde, začnou se čísla psát s „W", aby se nepotkala
@@ -122,6 +124,10 @@ class NabidkaDelegate extends WatchUi.Menu2InputDelegate {
         } else if (id == :cislo) {
             var cv = new CisloView();
             WatchUi.pushView(cv, new CisloDelegate(cv), WatchUi.SLIDE_UP);
+
+        } else if (id == :qrexport) {
+            var qv = new QrExportView();
+            WatchUi.pushView(qv, new QrExportDelegate(qv), WatchUi.SLIDE_UP);
 
         } else if (id == :legenda) {
             WatchUi.pushView(new LegendaView(), new LegendaDelegate(), WatchUi.SLIDE_UP);
