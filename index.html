@@ -89,8 +89,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=232">
-    <link rel="stylesheet" href="css/style.css?v=232">
+    <link rel="stylesheet" href="css/tokens.css?v=233">
+    <link rel="stylesheet" href="css/style.css?v=233">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -107,7 +107,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=232">
+    <link rel="stylesheet" href="css/vylepseni.css?v=233">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -311,9 +311,18 @@
     <div id="compass-debug" class="glass-panel" onclick="openCompassModal()">Azimut: --</div>
 
     <!-- Spodní dok s nástroji -->
+    <!-- POŘADÍ PRVNÍCH DVOU JE ZÁMĚRNÉ (9. 8. 2026): „Body" nahoře, „Nástroje" druhé.
+         Lišta stojí v jemném oblouku (--dock-arc, css/style.css u #dock): krajní chipy
+         jsou u okraje displeje (translateX 0), druhý a čtvrtý o 0,55 × oblouku dál
+         doprostřed. Tlačítko Nástroje se drží PRSTEM a tahem se z něj vybírá
+         (js/kolecko-nastroju.js), takže každý pixel od pravého okraje je pro palec
+         k dobru — ve druhém slotu jich při výchozím oblouku má o 7 víc (36 → 43 px).
+         Body se navíc otevírají méně často. Na pořadí nic nezávisí: oprávnění
+         (js/ucty.js) i tutoriál (js/tutorial-pro.js) míří přes onclick/id, ne přes
+         nth-child; ten řídí jen tvar oblouku. -->
     <nav id="dock">
-        <button class="dock-btn" id="dock-nastroje-btn" onclick="document.getElementById('tools-modal').style.display='flex'"><svg class="icon"><use href="#i-ruler"/></svg><span>Nástroje</span></button>
         <button class="dock-btn" onclick="openManageModal()"><svg class="icon"><use href="#i-map-pin"/></svg><span>Body</span></button>
+        <button class="dock-btn" id="dock-nastroje-btn" onclick="document.getElementById('tools-modal').style.display='flex'"><svg class="icon"><use href="#i-ruler"/></svg><span>Nástroje</span></button>
         <button class="dock-btn dock-primary" onclick="openNewPointModal()"><span class="dock-fab"><svg class="icon"><use href="#i-plus"/></svg></span><span>Nový bod</span></button>
         <!-- Na přání 8. 8. 2026: v liště je místo „Více" rovnou OVLÁDÁNÍ MAPY (vrstvy,
              podklad, katastr) — to se v terénu používá pořád, kdežto „Více" je návod,

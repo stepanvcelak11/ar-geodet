@@ -411,7 +411,12 @@
         }
         function splitShowPct(snapped) {
             splitChrome();
-            splitPctEl.textContent = `AR ${Math.round(splitPct)} % · MAPA ${100 - Math.round(splitPct)} %`;
+            // Na zarazce se to rekne SLOVEM, ne jen rozsvicenou ryskou vlevo: na uzke
+            // svetelne hrane (navrh D4) je prouzek s ryskami u jednoho kraje a cislo u druheho,
+            // takze spojit si je pohledem behem tazeni nejde.
+            splitPctEl.textContent = `AR ${Math.round(splitPct)} % · MAPA ${100 - Math.round(splitPct)} %`
+                + (snapped !== null ? ' · ZARÁŽKA' : '');
+            splitPctEl.classList.toggle('snapped', snapped !== null);
             const ss = splitSnapEl.children;
             for (let i = 0; i < ss.length; i++) ss[i].classList.toggle('on', SPLIT_SNAPS[i] === snapped);
         }

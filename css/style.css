@@ -536,29 +536,62 @@ body {
 /* =========================================================================
    Rozdělovač kamera / mapa
    ========================================================================= */
+/* SVĚTELNÁ HRANA (návrh D4, vybráno 9. 8. 2026). Dřív to byl 24px pruh se dvěma
+   rámečky a tlustou šedou pilulkou — „vizuálně nudnej a docela tlustej". Teď je
+   z toho 16 px: vlásková čára, která se ke krajům vytrácí, a krátký úchyt.
+   Kamera i mapa tím dostaly zpátky 8 px obrazu.
+   ⚠ VÝŠKA ≠ CHYTACÍ PLOCHA. Prst by se do 16px proužku netrefil, proto ::after
+   rozšiřuje dotykový cíl o 8 px nahoru a dolů (pseudoprvek se do hit-testu prvku
+   počítá, i když přesahuje). NEDÁVAT na #resizer overflow:hidden — oříznulo by ho.
+   ⚠ Živé procento (.rz-pct) a zarážky (.rz-snap) ZŮSTÁVAJÍ tak, jak byly (js/grafika.js) —
+   na výslovné přání: „když s tím posouvám, ať vidím, na jaké zarážce jsem, plus poměr". */
 #resizer {
     position: relative;
     z-index: 50;
-    height: 24px;
+    height: 16px;
     display: none;
     justify-content: center;
     align-items: center;
     background: var(--bg-color);
-    border-top: 1px solid var(--glass-border);
-    border-bottom: 1px solid var(--glass-border);
     cursor: row-resize;
     touch-action: none;
     transition: opacity 0.4s ease;
 }
+#resizer::before {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; top: 50%;
+    height: 1px;
+    transform: translateY(-50%);
+    background: linear-gradient(90deg,
+        transparent 0%, var(--accent-line) 26%, var(--accent-line) 74%, transparent 100%);
+    transition: height 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+/* neviditelné rozšíření dotykového cíle */
+#resizer::after { content: ""; position: absolute; left: 0; right: 0; top: -8px; bottom: -8px; }
 .grabber {
-    width: 48px;
-    height: 5px;
-    background: #5b6675;
+    position: relative;
+    z-index: 2;
+    width: 36px;
+    height: 3px;
+    background: #7c8792;
     border-radius: var(--r-pill);
+    /* prstenec v barvě podkladu udělá pod úchytem mezeru ve světelné čáře */
+    box-shadow: 0 0 0 5px var(--bg-color);
     transition: background 0.2s ease, width 0.2s ease;
 }
-#resizer:active .grabber, #resizer.rz-drag .grabber { background: var(--accent); width: 64px; }
+#resizer:active .grabber, #resizer.rz-drag .grabber { background: var(--accent-bright, #3eb487); width: 52px; }
+#resizer.rz-drag::before {
+    height: 2px;
+    background: linear-gradient(90deg,
+        transparent 0%, var(--accent) 28%, var(--accent) 72%, transparent 100%);
+    box-shadow: 0 0 14px var(--accent-line);
+}
 #resizer:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* v rukavicích radši o kus vyšší a s ještě větším přesahem cíle */
+body.ag-glove #resizer { height: 22px; }
+body.ag-glove #resizer::after { top: -10px; bottom: -10px; }
+body.ag-glove .grabber { width: 44px; height: 4px; }
 
 /* Chytry delic (navrh S1): zive procento vpravo a zarazky vlevo. Obojí svítí
    JEN pri tazeni — mimo nej by to byl dalsi trvale blikajici udaj navic.
@@ -571,8 +604,16 @@ body {
     transition: opacity 0.14s ease;
 }
 #resizer.rz-drag .rz-pct, #resizer.rz-drag .rz-snap { opacity: 1; }
+/* ⚠ POMĚR NESMÍ LEŽET NA SAMOTNÉ HRANĚ. Na 412px displeji si 16px pruh dělí
+   rysky zarážek (vlevo), úchyt (uprostřed) a text — a vpravo do něj navíc zasahuje
+   svislá lišta, která stojí přesně v půlce výšky, tedy tam, kde dělič nejčastěji je.
+   Naměřeno: konec textu („· ZARÁŽKA") mizel pod chipem lišty.
+   Proto je z poměru PLOVOUCÍ ŠTÍTEK NAD hranou, vlevo. Svítí jen po dobu tažení,
+   takže nad kamerou nic trvale nepřekáží. */
 .rz-pct {
-    right: 9px;
+    left: 9px;
+    right: auto;
+    bottom: calc(100% + 3px);
     font-family: var(--font-mono);
     font-size: calc(9.5px * var(--ag-font-scale, 1));
     font-weight: 700;
@@ -580,10 +621,18 @@ body {
     font-variant-numeric: tabular-nums;
     color: var(--data, #e6bd76);
     white-space: nowrap;
+    padding: 3px 8px;
+    border-radius: var(--r-pill);
+    background: var(--bg-elev, #171b20);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-1);
 }
-.rz-snap { left: 9px; display: flex; gap: 3px; }
-.rz-snap s { width: 9px; height: 2px; background: rgba(255, 255, 255, 0.22); text-decoration: none; display: block; }
-.rz-snap s.on { background: var(--accent); }
+/* zarážka, na které právě stojím, se pozná i beze slov: pilulka zezelená */
+#resizer.rz-drag .rz-pct.snapped { color: var(--accent-bright, #3eb487); }
+.rz-snap { left: 9px; display: flex; gap: 3px; padding: 3px 5px; border-radius: var(--r-pill); background: var(--bg-color); }
+/* barva z tokenu, ne bílá — proužek je ve světlém motivu světlý a bílé rysky by v něm zmizely */
+.rz-snap s { width: 9px; height: 2px; background: var(--text-muted, #9aa1ac); opacity: 0.45; text-decoration: none; display: block; }
+.rz-snap s.on { background: var(--accent-bright, #3eb487); opacity: 1; box-shadow: 0 0 6px var(--accent-line); }
 
 /* =========================================================================
    Mapa

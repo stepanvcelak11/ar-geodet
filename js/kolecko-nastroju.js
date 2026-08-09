@@ -21,6 +21,9 @@
 //    nápověda zůstane v klidu — místo, kam se dá odjet a přečíst si ji.
 //  • NÍZKÁ CITLIVOST: mrtvá zóna DEAD + úhlová hystereze HYST, jinak výběr na
 //    rozhraní dvou směrů poskakuje.
+//  • ZESÍLENÍ U OKRAJE (9. 8. 2026): tlačítko stojí u pravého okraje, takže palci
+//    zbývá doprava jen pár desítek pixelů. V těsných směrech se posun násobí podle
+//    toho, kolik místa kotva reálně má — viz measureGain() / reanchor() níž.
 //
 // ⚠⚠ POHYB SE POSLOUCHÁ NA `window`, NE NA TLAČÍTKU. Na myši drží
 // setPointerCapture, na DOTYKU ne — jakmile prst z tlačítka sjede, žádná další
@@ -50,6 +53,8 @@
     var ENGAGE = 92;        // na téhle vzdálenosti je kříž na dráze položek
     var PARK = 132;         // za tímhle je čtecí zóna
     var DWELL = 800;        // načítání výběru
+    var GMAX = 4;           // strop zesílení u okraje (viz measureGain)
+    var MIN_ROOM = 30;      // pod tolik px k hraně se kotva NEPŘESOUVÁ (viz reanchor)
 
     var BACK = { back: true, l: 'Zpět' };
 
@@ -313,13 +318,56 @@
         wrap.classList.toggle('lvl2', lvl === 2);
     }
 
+    // ---- ZESÍLENÍ U OKRAJE (návrh N2, vybráno 9. 8. 2026) ---------------------
+    // PROBLÉM: tlačítko Nástroje stojí ve svislé liště u pravého okraje, takže palci
+    // zbývá doprava jen ~43 px (změřeno na displeji 412 px; před prohozením s „Body"
+    // dokonce 36). Mrtvá zóna je 34 px a na plnou výchylku je potřeba 92 — doprava
+    // tedy nešlo vybrat prakticky nic.
+    // ŘEŠENÍ: při otevření se změří, kolik má kotva místa ke každé hraně, a v těsných
+    // směrech se posun PRSTU násobí. Kde je místa dost, se nemění nic (zesílení 1).
+    // Strop GMAX drží citlivost v rozumných mezích — bez něj by u kraje stačily dva
+    // pixely a kolečko by poletovalo.
+    function gainFor(roomPx) {
+        return Math.max(1, Math.min(GMAX, ENGAGE / Math.max(1, roomPx)));
+    }
+    function measureGain() {
+        var w = window.innerWidth, h = window.innerHeight;
+        st.gr = gainFor(w - st.ox);
+        st.gl = gainFor(st.ox);
+        st.gd = gainFor(h - st.oy);
+        st.gu = gainFor(st.oy);
+    }
+    // Přesun kotvy mezi kruhy. PŮVODNĚ se kotva vždy přesunula na prst (`st.ox = st.px`),
+    // aby druhý kruh začínal v neutrálu. Jenže po výběru KRAJNÍ položky prst na okraji
+    // leží a nová kotva už nemá kam růst — odtud „i když ten první nástroj vpravo
+    // vyberu, tak podruhý už doprava se nedostanu".
+    // TEĎ: kotva se přesune, JEN když má prst kolem sebe aspoň MIN_ROOM na všechny
+    // strany (běžný případ — chování zůstává staré, žádný krok navíc). Když ne, kotva
+    // ZŮSTANE a kolečko počká, až se prst vrátí do mrtvé zóny (st.arm), aby druhý kruh
+    // nezačal rovnou zamířený na položku ve stejném směru.
+    function reanchor() {
+        var w = window.innerWidth, h = window.innerHeight;
+        var ok = st.px > MIN_ROOM && st.px < w - MIN_ROOM
+              && st.py > MIN_ROOM && st.py < h - MIN_ROOM;
+        if (ok) { st.ox = st.px; st.oy = st.py; st.arm = true; }
+        else { st.arm = false; }
+        measureGain();
+    }
+
     function aimAt(dx, dy) {
-        var dist = Math.hypot(dx, dy);
+        // Zesílený vektor řídí ÚHEL i výchylku, ale ČTECÍ ZÓNA se měří SKUTEČNOU
+        // vzdáleností prstu: se zesílením 2,6× by ležela už 50 px od tlačítka a
+        // člověk by z výběru vypadl dřív, než by stihl vybrat. „Odjet si přečíst
+        // nápovědu" má stát pořád stejný kus tahu.
+        var raw = Math.hypot(dx, dy);
+        var wx = dx * (dx >= 0 ? st.gr : st.gl);
+        var wy = dy * (dy >= 0 ? st.gd : st.gu);
+        var dist = Math.hypot(wx, wy);
         if (!slots.length) return { i: -1, dist: dist, ang: null, read: false };
-        var a = (dist < 1.5) ? 0 : Math.atan2(dx, -dy);
+        var a = (dist < 1.5) ? 0 : Math.atan2(wx, -wy);
         if (a < 0) a += Math.PI * 2;
         if (dist < DEAD) return { i: -1, dist: dist, ang: a, read: false };
-        if (dist > PARK) return { i: -1, dist: dist, ang: a, read: true };
+        if (raw > PARK) return { i: -1, dist: dist, ang: a, read: true };
         var i = Math.round(a / step) % slots.length;
         // Hystereze: dokud prst nepřejede o HYST výseče ZA hranici, drží se to,
         // co svítí teď. Bez toho výběr na rozhraní dvou směrů poskakoval.
@@ -391,10 +439,12 @@
 
     function openLevel2(gi) {
         st.level = 2; st.group = gi;
-        st.ox = st.px; st.oy = st.py;
+        reanchor();
         build(st.groups[gi].items, 2);
         crumb.innerHTML = 'Nástroje <b>› ' + esc(st.groups[gi].full || st.groups[gi].t) + '</b>';
-        setHub('Vyber nástroj', 'zamiř prstem', true);
+        // Kotva zůstala u okraje → řekni rovnou, co se čeká; jinak by tu stálo
+        // „zamiř prstem" a nic by nereagovalo, dokud se prst nevrátí.
+        setHub('Vyber nástroj', st.arm ? 'zamiř prstem' : 'vrať prst ke středu', true);
         lastHot = -1; resetDwell(-1);
         wrap.classList.remove('aiming');
         paintRet(0, 0, false);
@@ -403,10 +453,10 @@
     }
     function backToLevel1() {
         st.level = 1; st.group = -1;
-        st.ox = st.px; st.oy = st.py;
+        reanchor();
         build(st.groups, 1);
         crumb.textContent = 'Nástroje';
-        setHub('Vyber skupinu', 'zamiř prstem', true);
+        setHub('Vyber skupinu', st.arm ? 'zamiř prstem' : 'vrať prst ke středu', true);
         lastHot = -1; resetDwell(-1);
         wrap.classList.remove('aiming');
         paintRet(0, 0, false);
@@ -426,7 +476,9 @@
         var g = liveGroups();
         if (!g.length) return false;      // host / bez oprávnění — ať se otevře modál
         ensure();
-        st = { ox: x, oy: y, px: x, py: y, level: 1, group: -1, moved: false, groups: g };
+        st = { ox: x, oy: y, px: x, py: y, level: 1, group: -1, moved: false, groups: g,
+               arm: true, gr: 1, gl: 1, gu: 1, gd: 1 };
+        measureGain();
         build(g, 1);
         crumb.textContent = 'Nástroje';
         tip.style.display = '';
@@ -448,6 +500,16 @@
         if (Math.hypot(dx, dy) > 6) st.moved = true;
         var a = aimAt(dx, dy);
         paintRet(a.ang, a.dist, a.read);
+        // Kotva se nepřesunula (prst leží u okraje) → druhý kruh čeká na návrat do
+        // mrtvé zóny, aby nezačal rovnou zamířený tam, odkud člověk přišel.
+        if (!st.arm) {
+            if (a.dist < DEAD) st.arm = true;
+            else {
+                hi(-1);
+                setHub(st.level === 1 ? 'Vyber skupinu' : 'Vyber nástroj', 'vrať prst ke středu', true);
+                return;
+            }
+        }
         hi(a.i);
         if (a.read) { setHub('Čtení', 'nápověda drží', true); return; }
         if (a.i < 0) {
