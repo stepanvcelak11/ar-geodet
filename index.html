@@ -89,8 +89,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=236">
-    <link rel="stylesheet" href="css/style.css?v=236">
+    <link rel="stylesheet" href="css/tokens.css?v=237">
+    <link rel="stylesheet" href="css/style.css?v=237">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -107,7 +107,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=236">
+    <link rel="stylesheet" href="css/vylepseni.css?v=237">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -904,16 +904,16 @@
     <script defer src="js/grafika.js"></script>
     <!-- ŽURNÁL + PROVENIENCE BODU #5 (odpojitelné: smaž tento řádek + js/journal.js) — append-only historie změn bodů -->
     <script defer src="js/journal.js"></script>
-    <script defer src="js/dmt-volume.js"></script>
-    <script defer src="js/check-distance.js"></script>
+    <script type="ag/lazy" data-src="js/dmt-volume.js"></script>
+    <script type="ag/lazy" data-src="js/check-distance.js"></script>
     <script defer src="js/lib/satellite-5.0.0.min.js"></script>
-    <script defer src="js/vytycovani.js"></script>
+    <script type="ag/lazy" data-src="js/vytycovani.js"></script>
     <!-- CÍL NAVIGACE: zvýrazněný bod v mapě (aureola + spojnice + „Ukázat cíl") a
          ukazatel na hraně displeje, když je cíl mimo záběr kamery.
          Odpojitelné: smaž tento řádek + js/cil-navigace.js. MUSÍ být po grafika.js. -->
     <script defer src="js/cil-navigace.js"></script>
-    <script defer src="js/satelity.js"></script>
-    <script defer src="js/kalkulacka.js"></script>
+    <script type="ag/lazy" data-src="js/satelity.js"></script>
+    <script type="ag/lazy" data-src="js/kalkulacka.js"></script>
     <script defer src="js/export.js"></script>
     <script defer src="js/kompas-check.js"></script>
     <script defer src="js/zaloha.js"></script>
@@ -926,8 +926,8 @@
     <!-- Šablony zakázky (odpojitelné: smaž tento řádek + js/zakazka-sablony.js) — převzetí nastavení do nové zakázky; až ZA logika.js a dialog-bridge.js, obaluje createNewProject -->
     <script defer src="js/zakazka-sablony.js"></script>
     <script defer src="js/pruvodce.js"></script>
-    <script defer src="js/sdileni.js"></script>
-    <script defer src="js/tachymetrie.js"></script>
+    <script type="ag/lazy" data-src="js/sdileni.js"></script>
+    <script type="ag/lazy" data-src="js/tachymetrie.js"></script>
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + js/zpravodaj.js + css/zpravodaj.css + data/zpravodaj.json) -->
     <script defer src="js/zpravodaj.js"></script>
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + js/predpisy.js + css/predpisy.css + data/predpisy.json) -->
@@ -956,7 +956,7 @@
     <script defer src="js/theme-dark.js"></script>
     <script defer src="js/dmr-terrain.js"></script>
     <!-- PARCELA (odpojitelné: smaž tento řádek + js/parcela.js) — geometrie & dělení parcel; styly injektované z JS -->
-    <script defer src="js/parcela.js"></script>
+    <script type="ag/lazy" data-src="js/parcela.js"></script>
     <!-- TERÉNNÍ NÁSTROJE (odpojitelné) — launcher field-tools.js MUSÍ být první, registrují se do něj -->
     <script defer src="js/field-tools.js"></script>
     <!-- DELENE NACITANI NASTROJU (odpojitelne) — misto 10 samostatnych <script>
@@ -966,13 +966,13 @@
          funguje i offline. Seznam nastroju je v MANIFEST uvnitr modulu. -->
     <script defer src="js/lazy-tools.js"></script>
     <script type="ag/lazy" data-src="js/hidden-points.js"></script>
-    <script defer src="js/orient-point.js"></script>
+    <script type="ag/lazy" data-src="js/orient-point.js"></script>
     <script type="ag/lazy" data-src="js/offset-point.js"></script>
     <script type="ag/lazy" data-src="js/brutal-gps.js"></script>
     <!-- SADA A (přesnější GPS jen mobilem, každý modul odpojitelný samostatně):
          gps-campaign = kampaň „3 návštěvy" (A1), gps-semafor = skóre místa (A3),
          dgps = dvoutelefonní korekce (A2), pdr-offset = krokový vektor (A4) -->
-    <script defer src="js/gps-campaign.js"></script>
+    <script type="ag/lazy" data-src="js/gps-campaign.js"></script>
     <script defer src="js/gps-semafor.js"></script>
     <script type="ag/lazy" data-src="js/pdr-offset.js"></script>
     <script type="ag/lazy" data-src="js/stakeout-line.js"></script>
@@ -991,25 +991,25 @@
     <script defer src="js/track-ar.js"></script>
     <script defer src="js/linalg.js"></script>
     <script type="ag/lazy" data-src="js/ar-resection.js"></script>
-    <script defer src="js/ar-intersection.js"></script>
-    <script defer src="js/rajon.js"></script>
+    <script type="ag/lazy" data-src="js/ar-intersection.js"></script>
+    <script type="ag/lazy" data-src="js/rajon.js"></script>
     <script type="ag/lazy" data-src="js/free-station.js"></script>
     <!-- LOKALIZACE (HELMERT) #3 (odpojitelné: smaž tento řádek + js/localization-helmert.js) — srovnání systematiky GPS přes staveniště 2D podobnostní transformací -->
     <script defer src="js/localization-helmert.js"></script>
     <!-- PODZEMNÍ SÍTĚ #7 (odpojitelné: smaž tento řádek + js/utility-networks.js) — trasy sítí pod terénem v AR z DXF/GeoJSON -->
-    <script defer src="js/utility-networks.js"></script>
+    <script type="ag/lazy" data-src="js/utility-networks.js"></script>
     <!-- PŘENOS ZAKÁZKY .argeo #6 (odpojitelné: smaž tento řádek + js/job-transfer.js) — export/import celé zakázky bez serveru -->
     <script type="ag/lazy" data-src="js/job-transfer.js"></script>
     <!-- VÝŠKA OBJEKTU (odpojitelné: smaž tento řádek + js/vyska-objektu.js) — trigonometricky pata+vrchol -->
-    <script defer src="js/vyska-objektu.js"></script>
+    <script type="ag/lazy" data-src="js/vyska-objektu.js"></script>
     <!-- EPOCHY / MONITORING POSUNŮ (odpojitelné: smaž tento řádek + js/epochy.js) — souřadnice z totálky/roveru v čase -->
     <script type="ag/lazy" data-src="js/epochy.js"></script>
     <!-- Připomínky epoch monitoringu (odpojitelné: smaž tento řádek + js/epochy-pripominky.js) — interval přeměření + upozornění po startu -->
-    <script defer src="js/epochy-pripominky.js"></script>
-    <script defer src="js/ar-calibrate.js"></script>
+    <script type="ag/lazy" data-src="js/epochy-pripominky.js"></script>
+    <script type="ag/lazy" data-src="js/ar-calibrate.js"></script>
     <!-- SROVNAT AR NA 2 BODY (odpojitelné: smaž tento řádek + js/ar-calib2.js) — sever + šířka záběru (FOV) na dvou bodech -->
     <script type="ag/lazy" data-src="js/ar-calib2.js"></script>
-    <script defer src="js/project-import.js"></script>
+    <script type="ag/lazy" data-src="js/project-import.js"></script>
     <script defer src="js/cadastre-vector.js"></script>
     <!-- NOVÝ TUTORIÁL (odpojitelné: smaž tento řádek + js/tutorial-pro.js) — základní + pokročilá prohlídka -->
     <script defer src="js/tutorial-pro.js"></script>
@@ -1039,7 +1039,7 @@
     <!-- CHYTRÉ VYHLEDÁVÁNÍ V „VÍCE" (odpojitelné: smaž tento řádek + js/app-search.js) — napiš „předpisy" a rovnou se otevřou -->
     <script defer src="js/app-search.js"></script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + js/vylepseni.js + css/vylepseni.css) — musí být POSLEDNÍ modul kvůli override -->
-    <script defer src="js/pdf-protocol.js"></script>
+    <script type="ag/lazy" data-src="js/pdf-protocol.js"></script>
     <script defer src="js/vylepseni.js"></script>
     <!-- Karta zakázky na úvodu (Návrh C) — až za vším, ať obalí finální loadProjectSettings/renderProjectSelect -->
     <script defer src="js/welcome-card.js"></script>
@@ -1074,7 +1074,7 @@
     <!-- SLUNCE A SVĚTLO (odpojitelné: smaž tento řádek + js/slunce.js) — východ/západ, zbývá světla, stíny, protisvětlo na záměře; vystavuje window.AGSun -->
     <script defer src="js/slunce.js"></script>
     <!-- KDE MÁM AUTO (odpojitelné: smaž tento řádek + js/kde-je.js) — značky auto/báze/stativ + navigační šipka -->
-    <script defer src="js/kde-je.js"></script>
+    <script type="ag/lazy" data-src="js/kde-je.js"></script>
     <!-- BEZPEČNOST V TERÉNU (odpojitelné: smaž tento řádek + js/bezpecnost.js) — rizika dne, tiché připomínky, poslání polohy; čte window.AGSun ze js/slunce.js -->
     <script type="ag/lazy" data-src="js/bezpecnost.js"></script>
     <!-- USADIT AR (odpojitelné) — průvodce místo 7 kalibračních dlaždic + „Teď se hodí" -->

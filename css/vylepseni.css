@@ -172,6 +172,38 @@ body.ag-glove .modal-content input[type="text"],
 body.ag-glove .modal-content input[type="number"],
 body.ag-glove .modal-content select { padding: 15px 14px; font-size: calc(16px * var(--ag-font-scale, 1)); }
 
+/* JEZDCE — do 9. 8. 2026 tu pro `input[type=range]` NEBYLO ANI JEDNO PRAVIDLO.
+   Naměřeno se zapnutými rukavicemi: box jezdce 6 px, skutečné dotykové pásmo 18 px
+   (prohlížeč přidá terč), tedy 41 % doporučeného minima 44 px — a přitom je to
+   TAHOVÉ gesto, v rukavicích to nejhorší. V appce je takových jezdců 20, z toho
+   16 v Nastavení (velikost písma, výška AR, průhlednost značek, dosah…).
+
+   Zvětšuje se BOX, ne jen terč: hit-test jde přes rámec prvku, takže samotný větší
+   `::-webkit-slider-thumb` dotykovou plochu nerozšíří tam, kde prst míjí dráhu.
+   Dráha se přes `background-clip: content-box` s průhledným rámečkem drží opticky
+   tenká — vzhled zůstává, hmatatelná je celá výška 44 px.
+
+   ⚠ PROČ TU JE `!important` (a jinak to nejde): výplň jezdce maluje grafika.js
+   inline jako `el.style.background = 'linear-gradient(...)'`. `background` je
+   SHORTHAND, takže tenhle zápis při každém pohybu jezdce RESETUJE background-clip
+   zpátky na border-box — dráha by se rozlila přes celých 44 px a vypadala jako
+   ukazatel průběhu. Autorské `!important` je jediná deklarace, která nad inline
+   stylem vyhraje. Nesahá se kvůli tomu do grafika.js, ať je celá věc v jednom
+   odpojitelném souboru a mimo režim rukavic se nezmění vůbec nic. */
+body.ag-glove input[type="range"] {
+    height: 44px;
+    border: 16px solid transparent;   /* neviditelné „polstrování" pro prst */
+    box-sizing: border-box;
+    background-clip: content-box !important;
+    padding: 0;
+}
+/* #settings-modal .st-slider input má v style.css vyšší specificitu (id + 2 třídy),
+   takže se výška musí přepsat stejně adresně — jinak by tam zůstalo 6 px. */
+body.ag-glove .modal-content input[type="range"],
+body.ag-glove #settings-modal .st-slider input[type="range"] { height: 44px; }
+body.ag-glove input[type="range"]::-webkit-slider-thumb { width: 28px; height: 28px; }
+body.ag-glove input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; }
+
 /* --------------------------------------------------------------------------------
    6) RESPONZIVITA — dříve byl v projektu jen jediný @media (reduced-motion).
       Doplňujeme breakpointy pro malé telefony, na šířku (landscape) a tablety.

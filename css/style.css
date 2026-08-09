@@ -1553,6 +1553,16 @@ body.outdoor-mode #side-menu, body.outdoor-mode #ar-hud-info {
     opacity: 1 !important;
 }
 body.outdoor-mode #dock { background: transparent !important; border: none !important; box-shadow: none !important; }
+/* Popisky doku jsou základně 8,5 px (naměřeno 9 px) — na slunci, v rukavicích a na
+   délku paže se to nepřečte. Venkovní režim dosud zvyšoval jen kontrast, ne velikost.
+   Zvětšuje se ZDRŽENLIVĚ: dok je svislý pruh pěti chipů širokých 54 px a delší slovo
+   („Nastavení") by se při větším písmu zalomilo na dva řádky a pruh by narostl.
+   NAMĚŘENO: 10 px je největší velikost, která „Nastavení" udrží na jednom řádku
+   (dok 313 px); od 10,5 px se láme na „Nastaven|í" a dok naroste na 327 px. Kdo si
+   v Nastavení zvedne velikost písma, dostane zalomení na dva řádky — to je ošklivé,
+   ale ne rozbité, protože popisek z chipu pořád nevyleze (overflow-wrap: anywhere). */
+body.outdoor-mode .dock-btn { font-size: calc(10px * var(--ag-font-scale, 1)); }
+body.outdoor-mode .dock-btn span:not(.dock-fab) { font-weight: 700; }
 /* Znacky: jen plne pozadi + silny okraj; opacitu NEsahat (ridi zobrazeni/skryti v renderAR) */
 body.outdoor-mode .ar-marker {
     background: #0a0e1a !important;
@@ -2657,6 +2667,27 @@ body:not(.light-mode) #map.base-osm .leaflet-tile {
 }
 /* Ve světlém režimu nad světlou OSM je bílý popisek jen obrys — přepnout na tmavý text */
 body.light-mode #map.base-osm .map-label-text {
+    color: #0b1220;
+    text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+}
+/* VENKOVNÍ REŽIM: MAPA MUSÍ BÝT SVĚTLÁ ------------------------------------------
+   Nahlášeno měřením 9. 8. 2026: venkovní režim slibuje „vysoký kontrast na slunci"
+   a panely opravdu prosvětlí (popisky doku 6,6 → 15 : 1), ale mapa — která zabírá
+   CELOU obrazovku — zůstávala tmavá. Invert výše je totiž navázaný na
+   `body:not(.light-mode)` a venkovní režim ho nepřebíjel.
+   Tmavý podklad je v přímém slunci to nejhorší, co může displej dělat: svítivosti
+   je málo a černá plocha nemá čím prosvítit. Ve venkovním režimu se proto filtr
+   ruší a jede se na původních (světlých) dlaždicích OSM.
+   POZOR na specificitu: pravidlo výš má stejnou váhu (1 id + 3 třídy + 1 prvek),
+   takže tenhle blok MUSÍ zůstat ZA ním — jinak by nic nepřebil.
+   Katastrální hranice se tím vrátí na černé nad světlým podkladem (to je čitelné),
+   ortofoto se nefiltrovalo nikdy. */
+body.outdoor-mode #map.base-osm .leaflet-tile {
+    filter: none;
+}
+/* … a popisky bodů pak potřebují tmavý text s bílým obtahem, stejně jako ve světlém
+   motivu — bílé písmo na světlé mapě by zbyl jen obrys. */
+body.outdoor-mode #map.base-osm .map-label-text {
     color: #0b1220;
     text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
 }

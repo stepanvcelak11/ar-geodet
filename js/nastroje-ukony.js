@@ -56,8 +56,13 @@
         {
             t: 'Změřit', items: [
                 { k: 'openMeasureModal', l: 'Vzdálenost a převýšení mezi body' },
+                // Doplněno 9. 8. 2026: oba nástroje v mapě sloves CHYBĚLY, takže padaly
+                // do záchytného „Další nástroje" — u Kontroly vrstvy je to zvlášť špatně,
+                // protože je to nástroj na každodenní práci za finišerem.
+                { k: 'ar-metr', l: 'Krátkou délku kamerou', h: 'telefon plocho nad zemí, bez pásma' },
                 { k: 'startAreaMode', l: 'Plochu a obvod pozemku' },
                 { k: 'openCheckDist', l: 'Oměrné — kontrolní míry' },
+                { k: 'kontrola-vrstvy', l: 'Sedí hotová vrstva na projekt?', h: 'výška za finišerem, odchylka a protokol' },
                 { k: 'openDmtVolume', l: 'Kubaturu a vrstevnice' },
                 { k: 'vyska-objektu', l: 'Výšku objektu', h: 'budova, stožár, strom' },
                 { k: 'korekce', l: 'S korekcí na teplotu a tlak', h: 'pásmo, dálkoměr' },
@@ -177,6 +182,7 @@
 
     var KNOWN = {};
     GROUPS.forEach(function (g) { g.items.forEach(function (it) { KNOWN[it.k] = 1; }); });
+    var _restWarned = false;   // hlášení o nezařazených nástrojích jen jednou za běh
 
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
     function modal() { return document.getElementById('tools-modal'); }
@@ -525,6 +531,19 @@
             rest.forEach(function (r) {
                 rsec.appendChild(item({ l: r.l }, function () { run(r.k); }, iconOf(r.k)));
             });
+            // Pojistka funguje, ale tiše: 9. 8. 2026 se ukázalo, že tu půl roku ležel
+            // „Metr v kameře" a hlavně „Kontrola vrstvy" — nástroj na každodenní práci
+            // za finišerem — protože je nikdo do mapy sloves nedopsal a uživatel je
+            // v obecné škatuli nenašel. Teď se to aspoň ozve v konzoli, ať to při
+            // přidávání dalšího modulu nezůstane bez povšimnutí.
+            try {
+                if (!_restWarned) {
+                    _restWarned = true;
+                    console.warn('[nastroje-ukony] mimo mapu sloves (spadlo do „Další nástroje"): '
+                        + rest.map(function (r) { return r.k; }).join(', ')
+                        + ' — dopsat do GROUPS, ať to jde najít podle toho, co chce uživatel udělat.');
+                }
+            } catch (e) {}
         }
         host.appendChild(footBlock());
         adoptFavBtn();
