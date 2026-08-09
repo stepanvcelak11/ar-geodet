@@ -64,7 +64,7 @@ class QrExportView extends WatchUi.View {
     hidden function _pripravDavky() {
         var vse = Body.nacti();
         var ven = [];
-        var text = "AG1";
+        var text = "AG1W";
         var cisla = [];
         var kusu = 0;
         _cislaDavek = [];
@@ -80,7 +80,7 @@ class QrExportView extends WatchUi.View {
 
             if (kusu >= MAX_BODU || (text.length() + radek.length()) > MAX_BAJTU) {
                 if (kusu > 0) { ven.add(text); _cislaDavek.add(cisla); }
-                text = "AG1";
+                text = "AG1W";
                 cisla = [];
                 kusu = 0;
             }
@@ -146,12 +146,12 @@ class QrExportView extends WatchUi.View {
 
         _kresliKod(dc, sirka, vyska);
 
-        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-        var popis = (_kde + 1).toString() + "/" + _davky.size().toString()
-                  + " · START = mám";
-        if (_davky.size() > 1) { popis += " · ↑↓"; }
-        dc.drawText(cx, vyska - 9, Graphics.FONT_XTINY, popis,
-                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        // ⚠ Dřív to bylo šedě na `vyska - 9`, tedy u samotného kraje kulatého
+        // skla, kde je tětiva nejužší — text se ořízl a nedal se přečíst.
+        // Teď černě a přes Displej, který ho posune tam, kde se vejde.
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
+        var popis = (_kde + 1).toString() + "/" + _davky.size().toString() + "  START = mám";
+        Displej.dole(dc, popis, Graphics.FONT_XTINY);
     }
 
     //! Kreslí se po VODOROVNÝCH BĚZÍCH, ne po jednotlivých modulech: u verze 9

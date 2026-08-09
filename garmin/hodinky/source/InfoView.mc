@@ -14,10 +14,31 @@ using Toybox.Graphics;
 class InfoView extends WatchUi.View {
 
     hidden var _b;
+    hidden var _ptalSe = false;      // první START se ptá, druhý maže
 
     function initialize(b) {
         View.initialize();
         _b = b;
+    }
+
+    //! Smazání bodu je TADY, ne schované v nabídce.
+    //!
+    //! ⚠ V nabídce se položka objevovala jen když se zrovna k bodu
+    //! navigovalo — uživatel ji nenašel a hlásil, že smazat jeden bod nejde.
+    //! Tohle je jediná obrazovka, kde je vidět, o KTERÝ bod jde, takže se
+    //! nedá splést, a nápověda je rovnou na displeji.
+    function smazat() {
+        if (!_ptalSe) {
+            _ptalSe = true;
+            WatchUi.requestUpdate();
+            return false;
+        }
+        Body.smaz(_b["c"]);
+        if ($.mapaView != null && $.mapaView.cil != null
+            && $.mapaView.cil["c"].equals(_b["c"])) {
+            $.mapaView.cil = null;
+        }
+        return true;
     }
 
     function onUpdate(dc) {
@@ -70,8 +91,13 @@ class InfoView extends WatchUi.View {
             y = _radek(dc, cx, y, krok, font, "±" + _b["s"].format("%.1f") + " m");
         }
 
-        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-        Displej.dole(dc, "BACK = zpět", font);
+        if (_ptalSe) {
+            dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+            Displej.dole(dc, "smazat? ještě jednou START", font);
+        } else {
+            dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+            Displej.dole(dc, "START = smazat   BACK = zpět", font);
+        }
     }
 
     hidden function _radek(dc, cx, y, krok, font, text) {
@@ -84,8 +110,11 @@ class InfoView extends WatchUi.View {
 
 class InfoDelegate extends WatchUi.BehaviorDelegate {
 
-    function initialize() {
+    hidden var _view;
+
+    function initialize(view) {
         BehaviorDelegate.initialize();
+        _view = view;
     }
 
     function onBack() {
@@ -93,5 +122,8 @@ class InfoDelegate extends WatchUi.BehaviorDelegate {
         return true;
     }
 
-    function onSelect() { return onBack(); }
+    function onSelect() {
+        if (_view.smazat()) { WatchUi.popView(WatchUi.SLIDE_DOWN); }
+        return true;
+    }
 }

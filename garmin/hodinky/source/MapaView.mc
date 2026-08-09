@@ -181,7 +181,10 @@ class MapaView extends WatchUi.View {
         var kroku = (r / 9).toNumber();
         if (kroku < 2) { return; }
 
-        dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+        // ⚠ Fialová, ne oranžová. Oranžová se mezi domy bila s červenou,
+        // kterou jsou kreslené překážky — a splést si „tudy jdi" s „tudy
+        // neprojdeš" je to nejhorší, co může mapa udělat.
+        dc.setColor(0xFF00FF, Graphics.COLOR_TRANSPARENT);
         dc.setPenWidth(2);
         for (var i = 0; i < kroku; i += 2) {
             var t1 = i.toFloat() / kroku;
@@ -406,7 +409,8 @@ class MapaDelegate extends WatchUi.BehaviorDelegate {
         if (drzeno < 600) { return false; }        // krátký stisk = zoom, ne info
         var b = _mapa().bodProInfo();
         if (b == null) { return true; }
-        WatchUi.pushView(new InfoView(b), new InfoDelegate(), WatchUi.SLIDE_LEFT);
+        var iv = new InfoView(b);
+        WatchUi.pushView(iv, new InfoDelegate(iv), WatchUi.SLIDE_LEFT);
         return true;
     }
 

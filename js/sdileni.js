@@ -61,6 +61,7 @@
             const pt = { name: c[0] || 'Bod', lat: lat, lng: lng };
             const v = parseFloat(c[3]); if (!isNaN(v)) pt.vyska = v;
             const note = (c[4] || '').trim(); if (note) pt.note = note;
+            pt._garmin = zHodinek;
             out.push(pt);
         }
         return out;
@@ -77,7 +78,9 @@
         const arr = pts.map(np => {
             const o = {
                 name: np.name, lat: np.lat, lng: np.lng,
-                prov: { origin: originLabel || 'qr-sdileni', ts: now, acc: (np.acc != null ? np.acc : null) }
+                prov: np._garmin
+                    ? { origin: 'garmin-qr', src: 'garmin', ts: now, acc: (np.acc != null ? np.acc : null) }
+                    : { origin: originLabel || 'qr-sdileni', ts: now, acc: (np.acc != null ? np.acc : null) }
             };
             if (np.vyska != null && isFinite(np.vyska)) o.vyska = np.vyska;
             if (np.acc != null && isFinite(np.acc)) o.acc = np.acc;
