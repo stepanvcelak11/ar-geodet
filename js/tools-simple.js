@@ -30,22 +30,25 @@
     var PROF_PREFIX = 'agWorkProfile::';        // + <pid> -> id profilu
     var FAV_KEY = 'agToolFavs_v1';              // čteno kvůli výjimce ze schovávání
 
-    // Základní sada jednoduchého režimu (typ práce „Univerzální")
-    // ('kompas' přidán 9. 8. 2026: uživatel ho nemohl najít. Nová dlaždice spadne
-    //  jinak automaticky mezi „pokročilé" a jednoduchý režim ji schová — takže by
-    //  zůstala neviditelná přesně pro toho, kdo si ji vyžádal.)
-    var BASE_SET = ['openMeasureModal', 'startAreaMode', 'openStakeoutModal', 'openKatastr',
-        'agOpenCalibrate', 'brutal-gps', 'project-import', 'zapisnik', 'kompas'];
+    // Základní sada jednoduchého režimu (typ práce „Univerzální") a typy práce jsou
+    // v js/tools-registry.js — u nástroje jako příznak `base: 1`, resp. jako seznam
+    // PROFILES. Dřív ta dvě pole byla tady a nový nástroj se do nich musel dopsat
+    // ručně; když se to neudělalo, jednoduchý režim ho automaticky označil za
+    // „pokročilý" a SCHOVAL ho (přesně to potkalo Kompas 9. 8. 2026).
+    var BASE_SET = (window.AGReg && window.AGReg.baseSet()) || [];
 
-    // Typy práce: id -> {label, tools[]} (pořadí = pořadí v sekci „Pro tuto práci")
-    var PROFILES = {
-        univerzal: { label: 'Univerzální', tools: [] },
-        vytycovani: { label: 'Vytyčování', tools: ['openStakeoutModal', 'stakeout-line', 'offset-point', 'usadit-ar', 'agOpenCalibrate', 'kompas', 'rajon', 'project-import', 'openMeasureModal'] },
-        pokladka: { label: 'Pokládka / vrstvy', tools: ['vrstvy', 'brutal-gps', 'gps-semafor', 'openCheckDist', 'track-log', 'kompas', 'zavady', 'epochy', 'openMeasureModal'] },
-        katastr: { label: 'Katastr a mapování', tools: ['openKatastr', 'cadastre-vector', 'parcela', 'startAreaMode', 'openTachymetrie', 'project-import', 'openMeasureModal'] },
-        kontrola: { label: 'Kontrola a monitoring', tools: ['openCheckDist', 'epochy', 'zavady', 'openDmtVolume', 'vyska-objektu', 'track-log', 'zapisnik', 'openMeasureModal'] }
-    };
-    var PROF_ORDER = ['univerzal', 'vytycovani', 'pokladka', 'katastr', 'kontrola'];
+    // Tvar { id: {label, tools[]} } + pořadí zvlášť si modul drží dál — zbytek
+    // souboru s ním počítá. Bez registru zůstane jediný typ „Univerzální", takže
+    // se přepínač jen zjednoduší a nic nespadne.
+    var PROFILES = {}, PROF_ORDER = [];
+    (function () {
+        var ps = (window.AGReg && window.AGReg.profiles()) || [];
+        if (!ps.length) ps = [{ id: 'univerzal', label: 'Univerzální', tools: [] }];
+        for (var i = 0; i < ps.length; i++) {
+            PROFILES[ps[i].id] = { label: ps[i].label, tools: ps[i].tools || [] };
+            PROF_ORDER.push(ps[i].id);
+        }
+    })();
 
     // ---- drobné utility (kopie vzoru z tools-plus.js, ať je modul samostatný) ----
     function pid() { try { return localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { return 'default'; } }

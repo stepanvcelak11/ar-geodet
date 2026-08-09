@@ -105,6 +105,7 @@ const ASSETS_TO_CACHE = [
     './js/theme-dark.js',
     './js/dmr-terrain.js',
     './js/parcela.js',
+    './js/tools-registry.js',
     './js/field-tools.js',
     './js/lazy-tools.js',
     './js/hidden-points.js',

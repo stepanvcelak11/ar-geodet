@@ -962,6 +962,12 @@
     <script defer src="js/dmr-terrain.js"></script>
     <!-- PARCELA (odpojitelné: smaž tento řádek + js/parcela.js) — geometrie & dělení parcel; styly injektované z JS -->
     <script type="ag/lazy" data-src="js/parcela.js"></script>
+    <!-- REGISTR NÁSTROJŮ (odpojitelné: smaž tento řádek + js/tools-registry.js) — jeden
+         záznam na nástroj: kategorie, sloveso, popisek, synonyma pro hledání, návod
+         pod „?", příznaky „potřebuje síť" a „základní sada". Čtou z něj field-tools.js,
+         nastroje-ukony.js, tools-plus.js, tools-simple.js a offline-sbal.js, takže MUSÍ
+         být před nimi. Jen data, žádný DOM — proto ne lazy. -->
+    <script defer src="js/tools-registry.js"></script>
     <!-- TERÉNNÍ NÁSTROJE (odpojitelné) — launcher field-tools.js MUSÍ být první, registrují se do něj -->
     <script defer src="js/field-tools.js"></script>
     <!-- DELENE NACITANI NASTROJU (odpojitelne) — misto 10 samostatnych <script>

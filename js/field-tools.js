@@ -23,15 +23,13 @@
 
     // Kategorie pro injektované nástroje, které si ji samy neurčí (cat v registraci
     // má přednost). Neznámé id spadnou do záchytné sekce „Terénní nástroje".
-    var TOOL_CATS = {
-        'brutal-gps': 'Měření', 'vyska-objektu': 'Měření',
-        'epochy': 'Měření', 'zapisnik': 'Měření', 'track-log': 'Měření',
-        'gps-semafor': 'Měření', 'dgps': 'Měření', 'pdr-offset': 'Měření',
-        'stakeout-line': 'Vytyčování a náčrt', 'offset-point': 'Vytyčování a náčrt', 'vrstvy': 'Vytyčování a náčrt',
-        'cadastre-vector': 'Katastr a data', 'parcela': 'Katastr a data', 'project-import': 'Katastr a data', 'geo-overlay': 'Katastr a data',
-        'ar-resection': 'AR a kalibrace', 'ar-intersection': 'Měření', 'orient-point': 'AR a kalibrace',
-        'postupy': 'Pomůcky'
-    };
+    // Tabulka id -> kategorie bývala tady; teď je v js/tools-registry.js, ať je
+    // všechno o nástroji na jednom místě. Bez registru se dlaždice jen sesypou
+    // do „Terénních nástrojů" — mřížka funguje dál.
+    function toolCat(id) { return (window.AGReg && window.AGReg.cat(id)) || ''; }
+
+    // Synonyma pro hledání (geodetický slang -> dlaždice) jsou taktéž v registru.
+    function toolAliases(key) { return (window.AGReg && window.AGReg.aliases(key)) || ''; }
 
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]; }); }
 
@@ -154,69 +152,6 @@
         try { s = s.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) {}
         return s.replace(/\s+/g, ' ').trim();
     }
-    // Synonyma/klíčová slova: klíč = data-tool id NEBO název volané funkce (tileToolKey).
-    // Hodnota = slova bez diakritiky, kterými geodet nástroj reálně hledá.
-    var SEARCH_ALIASES = {
-        openMeasureModal: 'vzdalenost delka metry mezi body prevyseni sikma pasmo distance',
-        startAreaMode: 'plocha vymera obvod pozemek polygon hektar m2 area',
-        openCheckDist: 'omerne kontrolni miry kontrola delek pasmo overeni',
-        openDmtVolume: 'kubatura objem vrstevnice dmt teren vykop nasyp hromada',
-        openStakeoutModal: 'vytyceni vytycovaci checklist seznam protokol',
-        openTachymetrie: 'nacrt kresba skica tachymetrie zpmz polni nakres',
-        openKatastr: 'katastr parcela kn nahlizeni kde stojim mapa cuzk',
-        openSatModal: 'gnss satelity druzice obloha prekazky signal gps kvalita',
-        dronview: 'dron drony zony letani omezeni vzdusny prostor uas dronview rlp',
-        'err-log': 'protokol chyb log chyba diagnostika hlaseni',
-        agOpenCalibrate: 'sever kalibrace kompas azimut srovnat smer odchylka',
-        openCalcModal: 'kalkulacka vypocet prevod gon stupne uhly plocha',
-        kompas: 'kompas busola ruzice sever magneticky zemepisny pravy azimut deklinace smer strelka gon nula',
-        openDictModal: 'slovnik pojmy zkratky vyznam terminologie',
-        'brutal-gps': 'presne gps mereni prumer prumerovani brutalni poloha bod',
-        'gps-semafor': 'semafor skore mista multipath signal kvalita gps fasada odrazy podminky',
-        dgps: 'dgps diferencni korekce zakladna rover druhy telefon presnost oprava bodu',
-        'pdr-offset': 'kroky krokovy offset vektor chuze pdr roh budovy dead reckoning',
-        'vyska-objektu': 'vyska objektu budova strom stozar uhel meridlo',
-        epochy: 'epochy monitoring posuny deformace sledovani opakovane',
-        zapisnik: 'zapisnik polni denik poznamky mereni zaznamy',
-        'track-log': 'stopa trasa log gpx zaznam cesty prochazka',
-        'stakeout-line': 'vytyceni primky linie rovina stanoveni smeru',
-        'offset-point': 'odsazeny bod offset kolmice stanoveni vypocet',
-        vrstvy: 'vrstvy pokladka skladba silnice asfalt sklon rez finisher tablet',
-        'cadastre-vector': 'katastr vektor hranice parcely dxf import mapa kn',
-        parcela: 'parcela geometrie deleni vymera obvod smerniky dily',
-        'project-import': 'import projekt oblast stazeni csv dxf soubor nahrat',
-        'geo-overlay': 'podklad georeference obrazek plan situace vykres overlay',
-        'ar-resection': 'resekce protinani zpet stanovisko volne zname body',
-        'ar-intersection': 'protinani vpred uhly neznamy bod urceni',
-        'orient-point': 'orientace bod sever srovnani smer',
-        postupy: 'postupy navody checklisty pracovni kroky jak na',
-        rajon: 'rajon polarni metoda uhel delka stanovisko novy bod',
-        'free-station': 'volne stanovisko pruvodce resekce prechodne',
-        'hidden-points': 'skryte body obnovit zobrazit schovane',
-        'kml-export': 'kml export google earth mapy soubor',
-        'dxf-export': 'dxf export cad vykres autocad soubor',
-        predpisy: 'predpisy vyhlaska odchylky kody lhuty tahak normy trida presnosti',
-        'sky-obstruction': 'predikce signalu obloha prekazky stromy budovy gnss planovani',
-        'job-transfer': 'prenos zakazky export import argeo sdileni telefon',
-        'utility-networks': 'site podzemni vedeni inzenyrske gml kabel plyn voda',
-        'localization-helmert': 'helmert lokalizace transformace klic mistni system',
-        zavady: 'zavada zavady porucha vada nalez hlaseni defekt kontrola oprava foto protokol reklamace',
-        'usadit-ar': 'usadit srovnat kalibrace sever ar pruvodce orientace nesedi posun helmert resekce stanovisko',
-        'bod-vypoctem': 'bod vypoctem novy vypocet rajon offset protinani smernik delka uhel konstrukce rozcestnik',
-        'gnss-signal': 'gnss signal gps kvalita druzice satelity predikce semafor skore multipath obloha podminky',
-        prirucka: 'prirucka predpisy postupy slovnik odchylky kody lhuty navody tahak pojmy zkratky',
-        zpravodaj: 'zpravodaj zpravy novinky clanky geodezie',
-        kos: 'kos smazane body obnovit odpadky obnova vratit zpet zakazky',
-        zaloha: 'zaloha export import obnova dat json',
-        'gnss-forecast': 'gnss predpoved kdy merit pdop dop okno planovani ionosfera kp bourka geometrie druzic pocasi pro gps',
-        slunce: 'slunce svetlo zapad vychod soumrak stin protisvetlo oslneni tma azimut zlata hodina',
-        checklist: 'checklist co s sebou baleni vybaveni seznam rano nezapomen vzit',
-        'kde-je': 'auto parkovani kde stoji baze stativ material najit zpatky navigace znacka',
-        'kniha-jizd': 'kniha jizd cestak kilometry km naklady cestovni nahrady tachometr vozidlo ucetni',
-        korekce: 'korekce ppm pasmo teplota tlak vlhkost refrakce zakriveni edm dalkomer atmosfericka oprava pruves',
-        bezpecnost: 'bezpecnost bozp riziko vedro pitny rezim bourka blesk vesta soumrak mraz vitr sos poloha pomoc',
-        'moje-aktivita': 'aktivita statistika prehled kroky krokomer kilometry vyskove metry nastoupano cas souhrn dne kolik jsem udelal pouzivani nastroju skryt nepouzivane'
-    };
     function loadClosed() { try { var a = JSON.parse(localStorage.getItem(COLL_KEY)); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
     function saveClosed(a) { try { localStorage.setItem(COLL_KEY, JSON.stringify(a)); } catch (e) {} }
     // vzdalenost uprav max 1 (preklep/vynechany znak) — staci pro slova dlazdic
@@ -250,7 +185,7 @@
         var label = norm(tileToolLabel(tile));
         var lWords = label.split(' ');
         var key = tileToolKey(tile);
-        var alias = SEARCH_ALIASES[key] || '';
+        var alias = toolAliases(key);
         var aWords = alias ? alias.split(' ') : [];
         var total = 0;
         for (var t = 0; t < tokens.length; t++) {
@@ -353,7 +288,7 @@
         if (!item || !item.id || typeof item.onClick !== 'function') return;
         // přepsat existující se stejným id (idempotentní při dvojím initu modulu)
         _items = _items.filter(function (x) { return x.id !== item.id; });
-        _items.push({ id: item.id, label: item.label || item.id, icon: item.icon || '', onClick: item.onClick, order: item.order, cat: item.cat || TOOL_CATS[item.id] || '' });
+        _items.push({ id: item.id, label: item.label || item.id, icon: item.icon || '', onClick: item.onClick, order: item.order, cat: item.cat || toolCat(item.id) });
         syncTiles();
     };
     // zpětná kompatibilita (dříve zavíralo plovoucí menu — teď není potřeba)

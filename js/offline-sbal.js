@@ -33,18 +33,9 @@
     // Dlaždice (data-tool id nebo název otevírací funkce z onclick), které bez sítě
     // buď neudělají nic, nebo jen ukážou poslední stažená data. Klíč se shoduje
     // s tileKey() ve field-tools.js / nastroje-ukony.js.
-    var NET = {
-        // ČÚZK a mapová data
-        'openKatastr': 1, 'cadastre-vector': 1, 'cadastre-area': 1, 'cuzk-geodata': 1,
-        'openDronView': 1,
-        // předpovědi a zprávy (offline jen z cache)
-        'pocasi': 1, 'agOpenPocasi': 1, 'zpravodaj': 1, 'openZpravodaj': 1,
-        'gnss-forecast': 1, 'brifink': 1,
-        // firemní cloud
-        'firma-chat': 1, 'ucty-admin': 1, 'zakazky-cloud': 1, 'cloud-sync': 1,
-        // ostatní síťové
-        'job-transfer': 1, 'sdileni-cloud': 1
-    };
+    // Seznam je v js/tools-registry.js jako příznak `net: 1` u nástroje. Bez registru
+    // se bez sítě nic nepřerovnává — dlaždice zůstanou, kde byly.
+    function needsNetKey(k) { return !!(k && window.AGReg && window.AGReg.isNet(k)); }
 
     function grid() {
         var m = document.getElementById('tools-modal');
@@ -89,7 +80,7 @@
             t = tiles[i];
             if (t.hasAttribute(MARK)) continue;                  // už přesunuto
             k = tileKey(t);
-            if (!k || !NET[k]) continue;
+            if (!needsNetKey(k)) continue;
             // ★ Oblíbené: dlaždice v sekci oblíbených necháváme na místě
             if (isInFavSection(g, t)) continue;
             move.push(t);
@@ -189,7 +180,11 @@
 
     window.AGOffline = {
         apply: apply,
-        needsNet: function (key) { return !!NET[key]; },
-        list: NET
+        needsNet: needsNetKey,
+        list: function () {
+            var out = [], all = (window.AGReg && window.AGReg.all()) || [];
+            for (var i = 0; i < all.length; i++) { if (all[i].net) out.push(all[i].k); }
+            return out;
+        }
     };
 })();

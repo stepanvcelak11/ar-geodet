@@ -50,128 +50,14 @@
     var VIEW_KEY = 'agToolsView_v1';        // 'ukony' (výchozí) | 'vse'
 
     // ---- mapa sloves --------------------------------------------------------------
-    // key = data-tool id injektované dlaždice NEBO název funkce ze statického onclicku
-    // (shodné klíčování jako field-tools.js / tools-plus.js / tools-hub.js)
-    var GROUPS = [
-        {
-            t: 'Změřit', items: [
-                { k: 'openMeasureModal', l: 'Vzdálenost a převýšení mezi body' },
-                // Doplněno 9. 8. 2026: oba nástroje v mapě sloves CHYBĚLY, takže padaly
-                // do záchytného „Další nástroje" — u Kontroly vrstvy je to zvlášť špatně,
-                // protože je to nástroj na každodenní práci za finišerem.
-                { k: 'ar-metr', l: 'Krátkou délku kamerou', h: 'telefon plocho nad zemí, bez pásma' },
-                { k: 'startAreaMode', l: 'Plochu a obvod pozemku' },
-                { k: 'openCheckDist', l: 'Oměrné — kontrolní míry' },
-                { k: 'kontrola-vrstvy', l: 'Sedí hotová vrstva na projekt?', h: 'výška za finišerem, odchylka a protokol' },
-                { k: 'openDmtVolume', l: 'Kubaturu a vrstevnice' },
-                { k: 'vyska-objektu', l: 'Výšku objektu', h: 'budova, stožár, strom' },
-                { k: 'korekce', l: 'S korekcí na teplotu a tlak', h: 'pásmo, dálkoměr' },
-                { k: 'obchuzka', l: 'Kubaturu obejitím výkopu', h: 'obvod z GNSS + dno, objem hned na místě' }
-            ]
-        },
-        {
-            t: 'Určit nový bod', items: [
-                { k: 'brutal-gps', l: 'Přesnou GPS', h: 'dlouhé průměrování s otočením' },
-                { k: 'rajon', l: 'Rajónem', h: 'směr a délka ze stanoviska' },
-                { k: 'offset-point', l: 'Offsetem', h: 'odsazení od jiného bodu' },
-                { k: 'ar-intersection', l: 'Protínáním vpřed', h: 'jen úhly, délku měřit nemůžu' },
-                { k: 'pdr-offset', l: 'Krokovým offsetem', h: 'došlápnutý vektor' },
-                { k: 'ar-resection', l: 'Resekcí ze známých bodů', h: 'určí i sever' },
-                { k: 'free-station', l: 'Volným stanoviskem', h: 'průvodce krok za krokem' },
-                { k: 'dgps', l: 'Dvoutelefonní DGPS', h: 'základna a rover' },
-                { k: 'hlas-kod', l: 'Hlasem — nadiktovat číslo a kód', h: 'bez ťukání v rukavicích' }
-            ]
-        },
-        {
-            t: 'Vytyčit', items: [
-                { k: 'openStakeoutModal', l: 'Body podle seznamu', h: 'vytyčovací checklist' },
-                { k: 'stakeout-line', l: 'Přímku' },
-                { k: 'vrstvy', l: 'Vrstvu pokládky', h: 'výška a sklon za finišerem' },
-                { k: 'indoor', l: 'Dojít k bodu uvnitř budovy', h: 'bez GPS; navádí, nevytyčuje' }
-            ]
-        },
-        {
-            t: 'Zaznamenat', items: [
-                { k: 'openTachymetrie', l: 'Náčrt / tachymetrii' },
-                { k: 'zapisnik', l: 'Zápisník', h: 'nivelace, směry' },
-                { k: 'zavady', l: 'Závadu s fotkou' },
-                { k: 'hlasovky', l: 'Hlasovou poznámku', h: 's georazítkem' },
-                { k: 'denik-dne', l: 'Deník dne' },
-                { k: 'track-log', l: 'Stopu trasy' },
-                { k: 'geo-foto', l: 'Fotku s razítkem', h: 'S-JTSK, výška, čas a azimut ve fotce' },
-                { k: 'epochy', l: 'Epochy — posuny v čase', h: 'opakované měření bodu' },
-                { k: 'kos', l: 'Obnovit smazaný bod', h: 'koš — body i zakázky, 30 dní' }
-            ]
-        },
-        {
-            t: 'Srovnat AR', items: [
-                { k: 'usadit-ar', l: 'Nevím čím začít — průvodce', h: 'značky nesedí na realitu' },
-                // Kompas patří ke SLOVESU „srovnat sever": v jeho okně se kromě růžice
-                // nastavuje uživatelská nula, korekce severu pro AR i mapu a jednotky
-                // (° / gon). Bez téhle položky by spadl do záchytného „Další nástroje" —
-                // a přesně to uživatel 9. 8. 2026 hlásil („někde je magnetický sever
-                // a já nevím kde").
-                { k: 'kompas', l: 'Podívat se na kompas', h: 'růžice se zeměpisným i magnetickým severem' },
-                { k: 'agOpenCalibrate', l: 'Srovnat sever' },
-                { k: 'ar-calib2', l: 'Srovnat na dva body' },
-                { k: 'orient-point', l: 'Srovnat podle známého bodu' },
-                { k: 'localization-helmert', l: 'Lokalizace (Helmert)', h: 'místní systém' },
-                { k: 'ref-calibration', l: 'Kalibrace na referenční bod' },
-                { k: 'fov-kalib', l: 'Změřit zorný úhel kamery' },
-                { k: 'ar-visual-track', l: 'Vizuální stabilizace', h: 'beta' }
-            ]
-        },
-        {
-            t: 'Zjistit podmínky', items: [
-                { k: 'gps-semafor', l: 'Dá se tady měřit?', h: 'skóre místa, odrazy od fasád' },
-                { k: 'openSatModal', l: 'Družice teď', h: 'kolik jich vidím a jaká geometrie' },
-                { k: 'sky-obstruction', l: 'Predikci signálu', h: 'maska překážek' },
-                { k: 'gnss-forecast', l: 'Kdy bude nejlíp měřit', h: 'GNSS předpověď' },
-                { k: 'pocasi', l: 'Počasí' },
-                { k: 'slunce', l: 'Slunce a světlo', h: 'protisvětlo, soumrak' },
-                { k: 'dronview', l: 'Dronové zóny', h: 'omezení vzdušného prostoru (ŘLP)' }
-            ]
-        },
-        {
-            t: 'Katastr a podklady', items: [
-                { k: 'openKatastr', l: 'Katastr — kde právě stojím' },
-                { k: 'cadastre-vector', l: 'Parcely do mapy a do AR' },
-                { k: 'cadastre-area', l: 'Stáhnout body z výřezu mapy' },
-                { k: 'parcela', l: 'Parcela — geometrie a dělení' },
-                { k: 'project-import', l: 'Import projektu', h: 'DXF, situace' },
-                { k: 'geo-overlay', l: 'Podložit plán do mapy', h: 'georeference obrázku' },
-                { k: 'utility-networks', l: 'Podzemní sítě' },
-                { k: 'job-transfer', l: 'Poslat nebo načíst zakázku' },
-                { k: 'hidden-points', l: 'Skryté body' }
-            ]
-        },
-        {
-            t: 'Před výjezdem', items: [
-                { k: 'brifink', l: 'Dnešek v terénu', h: 'souhrn na ráno' },
-                { k: 'checklist', l: 'Co s sebou' },
-                { k: 'bezpecnost', l: 'Bezpečnost a rizika' },
-                { k: 'kde-je', l: 'Kde co mám', h: 'báze, stativ, materiál — i auto' }
-            ]
-        },
-        {
-            t: 'Firma a papíry', items: [
-                { k: 'dochazka', l: 'Docházka' },
-                { k: 'firma-chat', l: 'Firemní chat' },
-                { k: 'vysilacka', l: 'Vysílačka', h: 'kde je kolega, rychlé zprávy, hlídání pádu' },
-                { k: 'ucty-firma', l: 'Firma a účty' },
-                { k: 'kniha-jizd', l: 'Kniha jízd' },
-                { k: 'moje-aktivita', l: 'Moje aktivita', h: 'kolik jsem ušel, co používám, co schovat' }
-            ]
-        },
-        {
-            t: 'Příručka a výpočty', items: [
-                { k: 'predpisy', l: 'Předpisy a odchylky' },
-                { k: 'postupy', l: 'Postupy měření' },
-                { k: 'openDictModal', l: 'Slovník pojmů' },
-                { k: 'openCalcModal', l: 'Kalkulačka' }
-            ]
-        }
-    ];
+    // Slovesa i popisky jsou v js/tools-registry.js (jeden záznam na nástroj) a sem
+    // přijdou hotové ve tvaru [{ t: 'Změřit', items: [{ k, l, h }] }]. Dřív byla
+    // tabulka tady a nový nástroj se musel dopisovat zvlášť sem, zvlášť do nápověd
+    // a zvlášť do synonym — a opakovaně se na některé z těch míst zapomnělo.
+    // Bez registru zůstane seznam prázdný a všechny nástroje spadnou do záchytného
+    // „Další nástroje": nic nezmizí, jen se to neroztřídí podle sloves.
+    var GROUPS = (window.AGReg && window.AGReg.groups()) || [];
+
     // Rozcestníky z tools-hub.js: v seznamu sloves jsou jejich položky rovnou,
     // takže samotné rozcestníky by byly jen mezikrok navíc. Kdyby tu nebyly, spadly
     // by do sekce „Další nástroje" a uživatel by měl stejnou věc v seznamu dvakrát.
@@ -541,7 +427,7 @@
                     _restWarned = true;
                     console.warn('[nastroje-ukony] mimo mapu sloves (spadlo do „Další nástroje"): '
                         + rest.map(function (r) { return r.k; }).join(', ')
-                        + ' — dopsat do GROUPS, ať to jde najít podle toho, co chce uživatel udělat.');
+                        + ' — dopsat do js/tools-registry.js (verb + vl), ať to jde najít podle toho, co chce uživatel udělat.');
                 }
             } catch (e) {}
         }

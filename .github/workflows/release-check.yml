@@ -36,3 +36,11 @@ jobs:
       # přepínačem to místo toho spadne.
       - name: Integrita kódu (syntaxe, duplicitní klíče, chybějící soubory)
         run: python scripts/check_js.py --require-node
+
+      # Každý nástroj musí mít v js/tools-registry.js záznam s kategorií, slovesem,
+      # synonymy a návodem. Dřív to bylo rozepsané v šesti ručních tabulkách a nic
+      # to nekontrolovalo — takže se opakovaně zapomnělo (Kompas nešel najít,
+      # DronView neměl „?", 19 nástrojů se nedalo vyhledat).
+      # --require-js: bez Node/V8 by kontrola tiše přeskočila a CI by lhalo.
+      - name: Registr nástrojů je úplný
+        run: python scripts/check_tools_registry.py --require-js
