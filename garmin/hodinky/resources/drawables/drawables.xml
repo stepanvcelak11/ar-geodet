@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <drawables>
     <bitmap id="LauncherIcon" filename="launcher_icon.png"/>
+    <!--
+        ZKOUŠKA ČITELNOSTI QR (dočasné). Jde o to zjistit, jestli se QR
+        z transflektivního MIP displeje vůbec dá vyfotit a přečíst — teprve
+        podle toho má smysl psát generátor QR v Monkey C.
+        Vyrábí je garmin/nastroje/qr-zkouska.py toutéž knihovnou, kterou má
+        appka, a ve formátu AG1, který umí načíst js/sdileni.js.
+    -->
+    <bitmap id="QrHusty" filename="qr_husty.png"/>
+    <bitmap id="QrRidky" filename="qr_ridky.png"/>
 </drawables>
