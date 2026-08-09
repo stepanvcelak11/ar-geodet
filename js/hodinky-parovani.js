@@ -58,16 +58,14 @@
 
     function open() {
         var u = ucty();
-        if (!u) {
-            toast('Párování potřebuje firemní účet — nejdřív se přihlas.');
-            return;
-        }
-
         var job = jobKey(pid());
         var back = document.createElement('div');
         back.className = 'modal-overlay';
         back.id = 'agwatch-modal';
         back.style.zIndex = '100001';
+        // .modal-overlay je v CSS skrytá — bez tohohle se okno vytvoří, ale
+        // zůstane neviditelné a vypadá to, že tlačítko nic nedělá.
+        back.style.display = 'flex';
         var mala = 'font-size:calc(12.5px * var(--ag-font-scale, 1));';
         back.innerHTML =
             '<div class="modal-content" style="display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
@@ -92,6 +90,17 @@
         back.onclick = function (e) { if (e.target === back) { back.remove(); } };
 
         var btn = back.querySelector('#agwatch-gen');
+
+        // Bez firemního účtu se kód vydat nedá — server bez přihlášení
+        // nikoho nespáruje. Řekne se to rovnou v okně, ne bublinou, která
+        // stihne zmizet dřív, než ji člověk přečte.
+        if (!u) {
+            btn.disabled = true;
+            back.querySelector('#agwatch-stav').textContent =
+                'Nejdřív se přihlas do firemního účtu — bez něj server hodinky nespáruje.';
+            return;
+        }
+
         btn.onclick = function () {
             btn.disabled = true;
             back.querySelector('#agwatch-stav').textContent = 'generuji…';
