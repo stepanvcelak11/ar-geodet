@@ -245,6 +245,12 @@ async function ensureTileTable(env) {
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS watch_tiles (' +
         'firm_id TEXT NOT NULL, k TEXT NOT NULL, data TEXT NOT NULL, ts INTEGER NOT NULL, ' +
         'PRIMARY KEY (firm_id, k))').run();
+    // Výběr bodů pro hodinky: co si člověk v mobilu odklikl, že chce s sebou.
+    // Bez výběru se posílá prostě nejbližší okolí — ale vybrat je lepší,
+    // protože „nejbližší" nemusí být „ty, kvůli kterým tam jedu".
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS watch_sel (' +
+        'firm_id TEXT NOT NULL, job_key TEXT NOT NULL, ids TEXT NOT NULL, ts INTEGER NOT NULL, ' +
+        'PRIMARY KEY (firm_id, job_key))').run();
     _tilesReady = true;
 }
 
@@ -1177,6 +1183,27 @@ export default {
                 return json({ ok: true, saved: list.length });
             }
 
+            // POST /watch/select {job, ids:[…]} — které body chci mít v hodinkách.
+            // Prázdné ids výběr zruší a hodinky zas berou prostě nejbližší okolí.
+            if (req.method === 'POST' && path === '/watch/select') {
+                await ensureTileTable(env);
+                const b = await req.json().catch(() => null);
+                const job = String((b && b.job) || '').trim().slice(0, 80);
+                if (!job) return err(400, 'Chybí zakázka.');
+                const ids = Array.isArray(b.ids)
+                    ? b.ids.filter(x => typeof x === 'string' && x.length <= 80).slice(0, 200) : [];
+
+                if (!ids.length) {
+                    await env.DB.prepare('DELETE FROM watch_sel WHERE firm_id=? AND job_key=?')
+                        .bind(me.firm_id, job).run();
+                    return json({ ok: true, vybrano: 0 });
+                }
+                await env.DB.prepare('INSERT INTO watch_sel(firm_id,job_key,ids,ts) VALUES(?,?,?,?) ' +
+                    'ON CONFLICT(firm_id,job_key) DO UPDATE SET ids=excluded.ids, ts=excluded.ts')
+                    .bind(me.firm_id, job, JSON.stringify(ids), Date.now()).run();
+                return json({ ok: true, vybrano: ids.length });
+            }
+
             if (req.method === 'GET' && path === '/watch/tile') {
                 await ensureTileTable(env);
                 const lat = parseFloat(url.searchParams.get('lat'));
@@ -1212,9 +1239,20 @@ export default {
                         'WHERE firm_id=? AND job_key=? AND deleted=0 LIMIT 3000')
                         .bind(me.firm_id, job).all()).results;
 
+                    // Když si člověk v mobilu body vybral, platí jeho výběr —
+                    // „nejbližší" totiž nemusí být „ty, kvůli kterým tam jedu".
+                    await ensureTileTable(env);
+                    const sel = await env.DB.prepare('SELECT ids FROM watch_sel WHERE firm_id=? AND job_key=?')
+                        .bind(me.firm_id, job).first();
+                    let jen = null;
+                    if (sel && sel.ids) {
+                        try { jen = new Set(JSON.parse(sel.ids)); } catch (e) { jen = null; }
+                    }
+
                     const kos = Math.cos(lat * Math.PI / 180);
                     const ven = [];
                     for (const r of rows) {
+                        if (jen && !jen.has(r.id)) continue;
                         let d; try { d = JSON.parse(r.data); } catch (e) { continue; }
                         if (!d || !isFinite(+d.lat) || !isFinite(+d.lng)) continue;
                         const dy = (+d.lat - lat) * 111320;

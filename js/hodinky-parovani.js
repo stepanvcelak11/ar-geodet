@@ -83,12 +83,16 @@
             + 'font-family:var(--font-mono,monospace);margin:6px 0;">'
             + '<div id="agwatch-stav" style="' + mala + 'text-align:center;opacity:.75;min-height:1.2em"></div>'
             + '<button class="btn" id="agwatch-gen" style="margin-top:10px;">Spárovat</button>'
-            + '<div class="set-h" style="margin-top:16px;">Mapa do hodinek</div>'
-            + '<p style="' + mala + 'opacity:.75;margin:2px 0 8px;">Připraví podklad — cesty, vodu, '
-            + 'zeleň a srázy — pro okolí zhruba kilometr a půl kolem tebe. Udělej to <b>před '
-            + 'výjezdem</b>, dokud je signál; hodinky si dlaždice stáhnou při synchronizaci.</p>'
+            + '<div class="set-h" style="margin-top:16px;">Připravit pro hodinky</div>'
+            + '<p style="' + mala + 'opacity:.75;margin:2px 0 8px;">Mapa okolí (cesty, voda, zeleň, '
+            + 'srázy) a body, které si vybereš. Udělej to <b>před výjezdem</b>, dokud je signál — '
+            + 'hodinky si to pak stáhnou jedním stiskem.</p>'
+            + '<label class="filter-row" style="' + mala + '"><input type="checkbox" id="agwatch-chce-mapu" checked> Mapa okolí</label>'
+            + '<label class="filter-row" style="' + mala + '"><input type="checkbox" id="agwatch-chce-body" checked> Body (vyber níž)</label>'
+            + '<div id="agwatch-body" style="max-height:32vh;overflow-y:auto;margin:6px 0;'
+            + 'border-radius:10px;background:rgba(127,127,127,0.08);padding:4px 8px;"></div>'
             + '<div id="agwatch-mapa-stav" style="' + mala + 'text-align:center;opacity:.75;min-height:1.2em"></div>'
-            + '<button class="btn btn-secondary" id="agwatch-mapa" style="margin-top:6px;">Připravit mapu okolí</button>'
+            + '<button class="btn btn-secondary" id="agwatch-mapa" style="margin-top:6px;">Připravit pro hodinky</button>'
             + '<button class="btn btn-secondary" style="margin-top:10px;" id="agwatch-x">Zavřít</button>'
             + '</div>';
         document.body.appendChild(back);
@@ -163,43 +167,123 @@
         });
     }
 
+    //! Body zakázky seřazené od nejbližších. Bere se, co má appka v paměti —
+    //! server se ptát nemusí, jsou to tytéž body.
+    function bodyOkolo(lat, lon) {
+        var P = null;
+        try {
+            if (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) {
+                P = persistentCustomPoints;
+            }
+        } catch (e) {}
+        if (!P) { return []; }
+
+        var kos = Math.cos(lat * Math.PI / 180);
+        var out = [];
+        for (var i = 0; i < P.length; i++) {
+            var b = P[i];
+            if (!b || !isFinite(+b.lat) || !isFinite(+b.lng)) { continue; }
+            var dy = (+b.lat - lat) * 111320;
+            var dx = (+b.lng - lon) * 111320 * kos;
+            out.push({ id: String(b.id), name: b.name || 'Bod', d: Math.sqrt(dx * dx + dy * dy) });
+        }
+        out.sort(function (a, b) { return a.d - b.d; });
+        return out.slice(0, 60);
+    }
+
+    function popisD(m) {
+        return (m < 1000) ? (Math.round(m) + ' m') : ((m / 1000).toFixed(1) + ' km');
+    }
+
+    //! Vypíše body k odškrtnutí. Prvních dvacet je předzaškrtnutých — to je
+    //! rozumný výchozí stav, ale rozhoduje člověk: „nejbližší" nemusí být
+    //! „ty, kvůli kterým tam jedu".
+    function vypisBody(back, lat, lon) {
+        var host = back.querySelector('#agwatch-body');
+        var sez = bodyOkolo(lat, lon);
+        if (!sez.length) {
+            host.innerHTML = '<p style="opacity:.6;margin:6px 0;">V téhle zakázce zatím nejsou žádné body.</p>';
+            return [];
+        }
+        var h = '';
+        for (var i = 0; i < sez.length; i++) {
+            h += '<label class="filter-row" style="font-size:calc(12.5px * var(--ag-font-scale,1));">'
+                + '<input type="checkbox" class="agwatch-bod" value="' + sez[i].id + '"'
+                + (i < 20 ? ' checked' : '') + '> '
+                + (sez[i].name + '').replace(/[<>&]/g, '') + ' · ' + popisD(sez[i].d) + '</label>';
+        }
+        host.innerHTML = h;
+        return sez;
+    }
+
     function mapaTlacitko(back, u) {
         var btn = back.querySelector('#agwatch-mapa');
         var stav = back.querySelector('#agwatch-mapa-stav');
+        var chceMapu = back.querySelector('#agwatch-chce-mapu');
+        var chceBody = back.querySelector('#agwatch-chce-body');
+        var job = jobKey(pid());
         if (!btn) { return; }
 
+        // seznam bodů se naplní hned, ať je co odškrtávat
+        poloha().then(function (p) { vypisBody(back, p[0], p[1]); }, function () {});
+
         btn.onclick = function () {
-            if (!window.AGHodinkyDlazdice) {
-                stav.textContent = 'modul dlaždic se ještě nenačetl, zkus to za chvíli';
+            if (!chceMapu.checked && !chceBody.checked) {
+                stav.textContent = 'vyber aspoň mapu nebo body';
                 return;
             }
             btn.disabled = true;
+
             poloha().then(function (p) {
-                return window.AGHodinkyDlazdice.pripravOkoli(p[0], p[1], function (t) {
-                    stav.textContent = t;
-                });
-            }).then(function (dl) {
-                if (!dl.length) {
-                    btn.disabled = false;
-                    stav.textContent = 'v okolí není co kreslit';
-                    return;
-                }
-                stav.textContent = 'odesílám ' + dl.length + ' dlaždic…';
-                return u.cloudFetch('/watch/tiles', { method: 'POST', body: { tiles: dl } })
-                    .then(function (r) {
-                        btn.disabled = false;
-                        if (r && r.ok) {
-                            stav.textContent = 'Hotovo — ' + dl.length
-                                + ' dlaždic. Na hodinkách dej Synchronizovat s mobilem.';
-                        } else {
-                            stav.textContent = (r && r.status === 404)
-                                ? 'server tuhle funkci ještě neumí — nasaď nový worker'
-                                : 'odeslání selhalo (' + (r ? r.status : '?') + ')';
-                        }
+                var kroky = Promise.resolve();
+                var hlaseni = [];
+
+                // ---- body: uloží se výběr, hodinky si ho stáhnou ----
+                if (chceBody.checked) {
+                    var ids = [];
+                    var boxy = back.querySelectorAll('.agwatch-bod');
+                    for (var i = 0; i < boxy.length; i++) {
+                        if (boxy[i].checked) { ids.push(boxy[i].value); }
+                    }
+                    kroky = kroky.then(function () {
+                        stav.textContent = 'ukládám výběr ' + ids.length + ' bodů…';
+                        return u.cloudFetch('/watch/select', { method: 'POST', body: { job: job, ids: ids } })
+                            .then(function (r) {
+                                if (!r || !r.ok) { throw new Error('výběr bodů (' + (r ? r.status : '?') + ')'); }
+                                hlaseni.push(ids.length + ' bodů');
+                            });
                     });
+                }
+
+                // ---- mapa ----
+                if (chceMapu.checked) {
+                    kroky = kroky.then(function () {
+                        if (!window.AGHodinkyDlazdice) { throw new Error('modul dlaždic se ještě nenačetl'); }
+                        return window.AGHodinkyDlazdice.pripravOkoli(p[0], p[1], function (t) {
+                            stav.textContent = t;
+                        }).then(function (dl) {
+                            if (!dl.length) { hlaseni.push('mapa: v okolí není co kreslit'); return; }
+                            stav.textContent = 'odesílám ' + dl.length + ' dlaždic…';
+                            return u.cloudFetch('/watch/tiles', { method: 'POST', body: { tiles: dl } })
+                                .then(function (r) {
+                                    if (!r || !r.ok) { throw new Error('mapa (' + (r ? r.status : '?') + ')'); }
+                                    hlaseni.push(dl.length + ' dlaždic mapy');
+                                });
+                        });
+                    });
+                }
+
+                return kroky.then(function () {
+                    btn.disabled = false;
+                    stav.textContent = 'Hotovo — ' + hlaseni.join(' a ')
+                        + '. Na hodinkách dej Synchronizovat s mobilem.';
+                });
             }).catch(function (e) {
                 btn.disabled = false;
-                stav.textContent = 'nepovedlo se: ' + (e && e.message ? e.message : 'chyba');
+                var m = (e && e.message) ? e.message : 'chyba';
+                stav.textContent = (m.indexOf('404') >= 0)
+                    ? 'server tuhle funkci ještě neumí — nasaď nový worker'
+                    : 'nepovedlo se: ' + m;
             });
         };
     }
