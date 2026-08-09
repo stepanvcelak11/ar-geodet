@@ -89,8 +89,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=241">
-    <link rel="stylesheet" href="css/style.css?v=241">
+    <link rel="stylesheet" href="css/tokens.css?v=243">
+    <link rel="stylesheet" href="css/style.css?v=243">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -107,7 +107,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=241">
+    <link rel="stylesheet" href="css/vylepseni.css?v=243">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -126,6 +126,7 @@
     <link rel="stylesheet" href="css/power-save.css">
     <link rel="stylesheet" href="css/dmt-volume.css">
     <link rel="stylesheet" href="css/check-distance.css">
+    <link rel="stylesheet" href="css/seznam-souradnic.css">
     <link rel="stylesheet" href="css/brutal-gps.css">
     <!-- QC INSPEKTOR / kód kvality (odpojitelné: smaž tento řádek + css/qc-engine.css + js/qc-engine.js) -->
     <link rel="stylesheet" href="css/qc-engine.css">
@@ -943,6 +944,10 @@
     <script defer src="js/kml-export.js"></script>
     <!-- EXPORT DXF (odpojitelné: smaž tento řádek + js/dxf-export.js) — vektor bodů/spojnic do CADu (S-JTSK) -->
     <script defer src="js/dxf-export.js"></script>
+    <!-- SEZNAM SOUŘADNIC PRO KANCELÁŘ (odpojitelné: smaž tento řádek + js/seznam-souradnic.js
+         + css/seznam-souradnic.css + položku 'exportPointsSeznam' ve výběru formátů níž)
+         — nastavitelný textový seznam pro Gromu / Kokeš / Excel vč. Windows-1250 -->
+    <script defer src="js/seznam-souradnic.js"></script>
     <!-- IMPORT VFK (odpojitelné: smaž tento řádek + js/vfk.js) — načtení bodů z výměnného formátu katastru -->
     <script defer src="js/vfk.js"></script>
     <script defer src="js/compass-stability.js"></script>
@@ -1322,7 +1327,8 @@
                 return [
                     ['CSV (číslo;Y;X)', 'exportPointsCSV'], ['TXT', 'exportPointsTXT'], ['JSON', 'exportPoints'],
                     ['GPX', 'exportPointsGPX'], ['GeoJSON', 'exportPointsGeoJSON'],
-                    ['KML (Google Earth)', 'exportPointsKML'], ['DXF (CAD)', 'exportPointsDXF']
+                    ['KML (Google Earth)', 'exportPointsKML'], ['DXF (CAD)', 'exportPointsDXF'],
+                    ['Seznam souřadnic (kancelář)', 'exportPointsSeznam']
                 ].filter(function (x) { return typeof window[x[1]] === 'function'; });
             }
             window.agExpInit = function () {

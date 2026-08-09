@@ -1,0 +1,94 @@
+/* ===== AR Geodet — Seznam souřadnic pro kancelář (odpojitelná vrstva) =========
+   Vzhled dialogu. Logiku řídí js/seznam-souradnic.js.
+   Vzor: css/check-distance.css (celoobrazovkový list, ne vycentrovaná karta).
+   Odstranění: smaž tento soubor + js/seznam-souradnic.js a jejich řádky
+   v index.html/sw.js.
+   ============================================================================= */
+
+.szs-overlay {
+    position: fixed; top: 0; left: 0; right: 0; height: var(--app-vh, 100dvh);
+    z-index: 100040; display: none;
+    background: rgba(4, 8, 12, 0.72);
+    -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+}
+.szs-overlay.open { display: flex; }
+
+.szs-sheet {
+    width: 100%; height: 100%; max-height: 100%;
+    display: flex; flex-direction: column;
+    background: var(--modal-bg, var(--bg-color, #11151a));
+    color: var(--text-color, #eceef2);
+    border: none; border-radius: 0;
+    padding: calc(env(safe-area-inset-top, 0px) + 14px) max(14px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 14px) max(14px, env(safe-area-inset-left, 0px));
+    box-sizing: border-box;
+}
+
+.szs-head { display: flex; align-items: center; justify-content: space-between; }
+.szs-title {
+    font-family: var(--font-display, sans-serif); font-weight: 800;
+    font-size: calc(16px * var(--ag-font-scale, 1)); color: var(--accent, #2f9e74);
+}
+.szs-x {
+    background: transparent; border: none; color: var(--text-color, #eceef2);
+    font-size: calc(20px * var(--ag-font-scale, 1)); line-height: 1; padding: 4px 8px; cursor: pointer;
+}
+.szs-sub {
+    font-size: calc(12.5px * var(--ag-font-scale, 1)); color: var(--text-muted, #9aa4af);
+    margin: 4px 0 12px; line-height: 1.4;
+}
+
+/* prostředek se roluje, patička s tlačítky zůstává vidět */
+.szs-body { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+.szs-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 9px 2px; border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, .08));
+    font-size: calc(13.5px * var(--ag-font-scale, 1));
+}
+.szs-row > span { flex: 1 1 auto; }
+.szs-row select, .szs-row input[type="number"] {
+    flex: 0 0 auto; max-width: 58%;
+    background: var(--input-bg, rgba(255, 255, 255, .06));
+    color: var(--text-color, #eceef2);
+    border: 1px solid var(--border-color, rgba(255, 255, 255, .15));
+    border-radius: 8px; padding: 7px 8px;
+    font-size: calc(13.5px * var(--ag-font-scale, 1));
+}
+/* Zaškrtávátka v rukavicích: nechat je velká (režim rukavic řeší globální pravidla,
+   ale tady je výchozí velikost jinak drobná). */
+.szs-row input[type="checkbox"] { flex: 0 0 auto; width: 22px; height: 22px; }
+.szs-sub-row > span { opacity: .75; padding-left: 8px; }
+
+.szs-hint {
+    font-size: calc(12px * var(--ag-font-scale, 1)); color: var(--text-muted, #9aa4af);
+    line-height: 1.4; padding: 6px 2px 2px;
+}
+.szs-note {
+    font-size: calc(11.5px * var(--ag-font-scale, 1)); color: var(--text-muted, #9aa4af);
+    line-height: 1.45; padding: 6px 2px 10px;
+}
+
+.szs-prev-lab {
+    font-size: calc(12px * var(--ag-font-scale, 1)); color: var(--text-muted, #9aa4af);
+    margin: 12px 2px 5px; text-transform: uppercase; letter-spacing: .04em;
+}
+/* Náhled MUSÍ být neproporcionální a rolovat do šířky — jinak se dlouhý řádek
+   zalomí a uživatel uvidí jiný tvar, než jaký ve skutečnosti vyleze do souboru. */
+.szs-prev {
+    margin: 0; padding: 10px;
+    background: var(--input-bg, rgba(255, 255, 255, .06));
+    border: 1px solid var(--border-color, rgba(255, 255, 255, .12));
+    border-radius: 8px;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    font-size: calc(12px * var(--ag-font-scale, 1)); line-height: 1.5;
+    white-space: pre; overflow-x: auto;
+}
+
+.szs-warn {
+    display: none; margin: 8px 2px 0;
+    font-size: calc(12px * var(--ag-font-scale, 1)); line-height: 1.4;
+    color: var(--warn-color, #e0b341);
+}
+
+.szs-foot { flex: 0 0 auto; display: flex; gap: 8px; padding-top: 12px; }
+.szs-foot .btn { flex: 1 1 0; }
