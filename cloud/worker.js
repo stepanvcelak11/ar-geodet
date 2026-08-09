@@ -633,7 +633,9 @@ export default {
             if (req.method === 'POST' && path === '/watch/pair') {
                 await ensureWatchTables(env);
                 const ip = req.headers.get('CF-Connecting-IP') || '0';
-                if (await guardHit(env, 'wpair:' + ip, 8, 15 * 60e3))
+                // POZOR na význam: guardHit vrací true, když se SMÍ dál —
+                // odmítá se tedy při false, stejně jako u přihlašování výš.
+                if (!await guardHit(env, 'wpair:' + ip, 8, 15 * 60e3))
                     return err(429, 'Moc pokusů, zkuste to za čtvrt hodiny.');
 
                 const b = await req.json().catch(() => null);
