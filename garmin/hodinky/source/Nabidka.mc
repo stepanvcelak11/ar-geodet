@@ -11,6 +11,10 @@ module Nabidka {
 
         var menu = new WatchUi.Menu2({ :title => "Nabídka" });
         menu.addItem(new WatchUi.MenuItem("Nový bod", "změřit průměrováním", :novy, {}));
+        // Navigace je i pod tlačítkem START, ale kdo to neví, nenajde ji —
+        // v nabídce po ní člověk sáhne sám.
+        menu.addItem(new WatchUi.MenuItem("Navigovat k bodu",
+                        Body.pocet().toString() + " bodů v okolí", :navigace, {}));
         menu.addItem(new WatchUi.MenuItem("Otočení mapy",
                         (mapa != null && mapa.podleSmeru) ? "podle směru" : "sever nahoře",
                         :otoceni, {}));
@@ -19,6 +23,11 @@ module Nabidka {
                         :podklad, {}));
         menu.addItem(new WatchUi.MenuItem("Bzučák u bodu",
                         Blizkost.zapnuto() ? "vibruje do 5 m" : "vypnutý", :bzucak, {}));
+        menu.addItem(new WatchUi.MenuItem("Synchronizovat s mobilem",
+                        $.cloud.sparovano()
+                            ? ($.cloud.stav.equals("") ? ("zakázka " + $.cloud.zakazka()) : $.cloud.stav)
+                            : "nespárováno — kód v Garmin Connect",
+                        :sync, {}));
         menu.addItem(new WatchUi.MenuItem("Legenda", "co která barva znamená", :legenda, {}));
         menu.addItem(new WatchUi.MenuItem("Body v paměti",
                         Body.pocet().toString() + " · další číslo " + Body.dalsiCislo(), :info, {}));
@@ -65,8 +74,16 @@ class NabidkaDelegate extends WatchUi.Menu2InputDelegate {
                 item.setSubLabel(mp.podklad ? "čáry cest zapnuté" : "vypnutý");
             }
 
+        } else if (id == :navigace) {
+            WatchUi.popView(WatchUi.SLIDE_DOWN);
+            Seznam.otevri();
+
         } else if (id == :bzucak) {
             item.setSubLabel(Blizkost.prepni() ? "vibruje do 5 m" : "vypnutý");
+
+        } else if (id == :sync) {
+            $.cloud.synchronizuj();
+            item.setSubLabel($.cloud.stav);
 
         } else if (id == :legenda) {
             WatchUi.pushView(new LegendaView(), new LegendaDelegate(), WatchUi.SLIDE_UP);

@@ -60,9 +60,13 @@ class NavigaceView extends WatchUi.View {
         var d  = Geo.vzdalenost(s.lat, s.lon, _bod["la"], _bod["lo"]);
         var az = Geo.azimut(s.lat, s.lon, _bod["la"], _bod["lo"]);
 
-        // číslo bodu nahoře — přes Displej, aby ho kulatý okraj neořízl
+        // nahoře čas a k němu číslo a kód cílového bodu
+        var nadpis = Displej.cas() + " · " + _bod["c"];
+        if (_bod["k"] != null && !_bod["k"].equals("")) {
+            nadpis += " " + _bod["k"];
+        }
         dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-        Displej.nahore(dc, _bod["c"], Graphics.FONT_SMALL);
+        Displej.nahore(dc, nadpis, Graphics.FONT_XTINY);
 
         if (d <= DOSAH) {
             _dorazil(dc, cx, cy, d);

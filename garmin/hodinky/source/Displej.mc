@@ -1,6 +1,9 @@
 using Toybox.Graphics;
 using Toybox.System;
 using Toybox.Math;
+using Toybox.Time;
+using Toybox.Time.Gregorian;
+using Toybox.Lang;
 
 //! Umísťování textu na kulatý displej.
 //!
@@ -41,6 +44,16 @@ module Displej {
         dc.drawText(sirka / 2, y, font, text,
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         return y + v / 2;
+    }
+
+    //! Hodiny jako HH:MM.
+    //!
+    //! Hodinky se nosí kvůli času a aplikace ho zakrývá po celou dobu, co
+    //! je otevřená. Proto je čas na každé obrazovce, kde se člověk zdrží —
+    //! malý a tlumený, aby nepřebíjel to hlavní.
+    function cas() {
+        var d = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
+        return Lang.format("$1$:$2$", [d.hour.format("%d"), d.min.format("%02d")]);
     }
 
     //! Totéž u dolního kraje. Vrací horní hranu textu.

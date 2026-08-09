@@ -21,6 +21,10 @@ var sledovac = null;
 //! (nastavit cíl navigace, přepnout otočení), tak je po ruce i tady.
 var mapaView = null;
 
+//! Přenos bodů z/do mobilu. Je to instance, protože odpovědi na požadavky
+//! chodí přes method(:jmeno) a to v modulu nejde.
+var cloud = null;
+
 class ArGeodetApp extends Application.AppBase {
 
     function initialize() {
@@ -30,6 +34,7 @@ class ArGeodetApp extends Application.AppBase {
     function onStart(state) {
         $.sledovac = new Sledovac();
         $.sledovac.spustit();
+        $.cloud = new Cloud();
     }
 
     function onStop(state) {

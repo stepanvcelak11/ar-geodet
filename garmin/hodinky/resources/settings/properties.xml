@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<properties>
+    <property id="server" type="string">https://ar-geodet-api.ar-geodet.workers.dev</property>
+    <property id="kod" type="string"></property>
+</properties>

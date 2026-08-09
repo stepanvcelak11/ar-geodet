@@ -39,6 +39,10 @@ class NovyBodView extends WatchUi.View {
     }
 
     function tik() as Void {
+        // Totéž co na mapě: bez tohohle dotazu zůstane zastaralá poloha
+        // zastaralá a měření se nikdy nerozjede.
+        var s = $.sledovac;
+        if (s != null && !s.maFix()) { s.osvez(); }
         WatchUi.requestUpdate();
     }
 

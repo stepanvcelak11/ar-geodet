@@ -3,6 +3,7 @@ using Toybox.Graphics;
 using Toybox.System;
 using Toybox.Timer;
 using Toybox.Math;
+using Toybox.Application.Storage;
 
 //! Mapka okolí — vlastní plátno, žádný podklad.
 //!
@@ -32,6 +33,10 @@ class MapaView extends WatchUi.View {
     function initialize() {
         View.initialize();
         ZOOMY = [25, 50, 100, 200, 400, 800];
+        // Zvolené přiblížení přežije vypnutí — v terénu člověk pracuje
+        // pořád na stejném a nechce ho po každém spuštění nastavovat.
+        var z = Storage.getValue("zoom");
+        if (z != null && z >= 0 && z < ZOOMY.size()) { zoom = z; }
     }
 
     function onShow() {
@@ -49,19 +54,23 @@ class MapaView extends WatchUi.View {
     //! `as Void` tu být musí — Timer.start chce metodu, o které je jisté,
     //! že nic nevrací, a bez anotace ji překladač bere jako Any.
     function tik() as Void {
-        // Dokud poloha nedorazila, ptáme se na ni sami — viz Sledovac.osvez.
+        // Dokud není použitelný fix, ptáme se na polohu sami — viz
+        // Sledovac.osvez. Test je schválně na maFix(), ne na lat==null:
+        // se zastaralou polohou (QUALITY_LAST_KNOWN) se sice mapa nakreslí,
+        // ale bod založit nejde, a bez tohohle dotazu by kvalita zůstala
+        // navždy „stará poloha“ a nešlo by měřit vůbec.
         var s = $.sledovac;
-        if (s != null && s.lat == null) { s.osvez(); }
+        if (s != null && !s.maFix()) { s.osvez(); }
         WatchUi.requestUpdate();
     }
 
     function zoomBliz() {
-        if (zoom > 0) { zoom -= 1; }
+        if (zoom > 0) { zoom -= 1; Storage.setValue("zoom", zoom); }
         WatchUi.requestUpdate();
     }
 
     function zoomDal() {
-        if (zoom < ZOOMY.size() - 1) { zoom += 1; }
+        if (zoom < ZOOMY.size() - 1) { zoom += 1; Storage.setValue("zoom", zoom); }
         WatchUi.requestUpdate();
     }
 
@@ -84,8 +93,8 @@ class MapaView extends WatchUi.View {
             // Bez polohy nejde nakreslit vůbec nic, tak ať je aspoň vidět,
             // že aplikace žije a kudy vede cesta dál — jinak to působí,
             // jako by tlačítka nefungovala.
-            _hlaska(dc, cx, cy, vyska, "hledám GPS",
-                    (s == null) ? "" : s.popisKvality(),
+            _hlaska(dc, cx, cy, vyska, Displej.cas(),
+                    (s == null) ? "hledám GPS" : s.popisKvality(),
                     "dlouze ↑ = nabídka");
             return;
         }
@@ -237,14 +246,19 @@ class MapaView extends WatchUi.View {
     hidden function _popisky(dc, sirka, vyska, dosah, s) {
         var cy = vyska / 2;
 
-        // Nahoře stojí to, co je zrovna k rozhodování nejdůležitější:
-        // dokud se stojí, průběžná přesnost, jinak stav GPS.
-        var nahore = s.popisKlidu();
-        if (nahore == null) { nahore = s.popisKvality(); }
+        // Nahoře čas — hodinky se nosí kvůli němu a aplikace ho jinak
+        // zakrývá celou dobu, co je otevřená. Když je s GPS něco v
+        // nepořádku, připojí se to za něj.
+        var nahore = Displej.cas();
+        if (!s.maFix()) { nahore += " · " + s.popisKvality(); }
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         var spodekHorniho = Displej.nahore(dc, nahore, Graphics.FONT_XTINY);
 
+        // Dole to, co je zrovna k rozhodování nejdůležitější: cíl, jinak
+        // průběžná přesnost, jinak aspoň dosah mapy.
         var dole = dosah.toString() + " m";
+        var klid = s.popisKlidu();
+        if (klid != null) { dole = klid; }
         if (cil != null) {
             // Vzdálenost se počítá znovu z právě platné polohy — ta uložená
             // u cíle je z okamžiku výběru a za chvíli chůze už neplatí.

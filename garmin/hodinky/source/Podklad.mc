@@ -61,9 +61,16 @@ module Podklad {
     //! důležitosti a když dojde rozpočet, zbytek se nenakreslí. Při
     //! přiblížení skoro všechno odpadne už výřezem, takže strop dolehne
     //! jen na největší oddálení.
-    const ROZPOCET_PLOCH  = 14;
-    const ROZPOCET_BUDOV  = 22;
-    const ROZPOCET_USEKU  = 200;
+    //! Čísla jsou nízká schválně. Napoprvé jsem je měl třikrát vyšší
+    //! a při oddálení, kdy je v záběru celá dlaždice, to aplikaci shodilo.
+    const ROZPOCET_PLOCH  = 8;
+    const ROZPOCET_BUDOV  = 10;
+    const ROZPOCET_USEKU  = 90;
+
+    //! Od jakého dosahu se přestávají kreslit drobnosti. Při pohledu na
+    //! 400 m stejně splynou v šum a stojí většinu rozpočtu.
+    const BEZ_DROBNOSTI = 250.0;      // pěšiny a budovy
+    const JEN_HLAVNI    = 500.0;      // navíc i polní cesty
 
     //! Kotvy přibalených ukázkových dlaždic. V ostrém provozu tuhle roli
     //! převezme rejstřík dlaždic stažených z Workeru; princip zůstane —
@@ -135,15 +142,24 @@ module Podklad {
             "r2"  => polomer * polomer
         };
 
-        var dosahDm = (polomer / mkl) * 10.0 + 50.0;
+        var dosahM = polomer / mkl;
+        var dosahDm = dosahM * 10.0 + 50.0;
         v.put("minX", v["mx"] - dosahDm);
         v.put("maxX", v["mx"] + dosahDm);
         v.put("minY", v["my"] - dosahDm);
         v.put("maxY", v["my"] + dosahDm);
+        v.put("dosah", dosahM);
 
         _plochy(dc, d["p"], v);
         _cary(dc, d["l"], v);
         dc.setPenWidth(1);
+    }
+
+    //! Má se tahle třída při daném oddálení vůbec kreslit?
+    function _stoji(trida, dosah) {
+        if (dosah > BEZ_DROBNOSTI && (trida == PESINA || trida == BUDOVA)) { return false; }
+        if (dosah > JEN_HLAVNI && trida == CESTA) { return false; }
+        return true;
     }
 
     //! Převod jednoho vrcholu z decimetrů dlaždice na pixely displeje.
@@ -171,6 +187,8 @@ module Podklad {
 
             var z = plochy[k];
             if (_mimo(z, v)) { continue; }
+
+            if (!_stoji(z[0], v["dosah"])) { continue; }
 
             if (z[0] == BUDOVA) {
                 if (zbyvaBudov <= 0) { continue; }
@@ -240,11 +258,22 @@ module Podklad {
 
         var zbyva = ROZPOCET_USEKU;
         var poslTrida = -1;
+        var dosah = v["dosah"];
+
+        // Hodnoty ze slovníku se vytáhnou jednou dopředu. Čtení z Dictionary
+        // uvnitř smyčky přes stovky vrcholů je znát — a watchdog nepromíjí.
+        var mx = v["mx"];       var my = v["my"];
+        var scx = v["cx"];      var scy = v["cy"];
+        var sin = v["sin"];     var cos = v["cos"];
+        var mkl = v["mkl"];     var r2 = v["r2"];
+        var minX = v["minX"];   var maxX = v["maxX"];
+        var minY = v["minY"];   var maxY = v["maxY"];
 
         for (var k = 0; k < cary.size() && zbyva > 0; k++) {
             var c = cary[k];
             if (c.size() < 9) { continue; }          // třída + obálka + dva vrcholy
-            if (_mimo(c, v)) { continue; }
+            if (c[3] < minX || c[1] > maxX || c[4] < minY || c[2] > maxY) { continue; }
+            if (!_stoji(c[0], dosah)) { continue; }
 
             if (c[0] != poslTrida) {
                 _styl(dc, c[0]);
@@ -259,21 +288,28 @@ module Podklad {
             var maPred = false;
             var predUvnitr = false;
 
+            // Převod vrcholu je tu rozepsaný a ne přes _bod() schválně:
+            // volání by na každý vrchol vyrobilo nové pole a úklid po nich
+            // stál víc než samotné kreslení.
             for (var j = 5; j < c.size() - 1 && zbyva > 0; j += 2) {
-                var b = _bod(c, j, v);
-                var dx = b[0] - v["cx"];
-                var dy = b[1] - v["cy"];
-                var uvnitr = (dx * dx + dy * dy) <= v["r2"];
+                var px = (c[j] - mx) * mkl;
+                var py = (c[j + 1] - my) * mkl;
+                var x = scx + (px * cos - py * sin);
+                var y = scy - (px * sin + py * cos);
+
+                var dx = x - scx;
+                var dy = y - scy;
+                var uvnitr = (dx * dx + dy * dy) <= r2;
 
                 // Kreslí se i úsek, kterému leží uvnitř jen jeden konec —
                 // jinak by čáry mizely kus před okrajem. Co přeteče, ořeže
                 // si displej sám.
                 if (maPred && (uvnitr || predUvnitr)) {
-                    dc.drawLine(predX, predY, b[0], b[1]);
+                    dc.drawLine(predX, predY, x, y);
                     zbyva -= 1;
                 }
-                predX = b[0];
-                predY = b[1];
+                predX = x;
+                predY = y;
                 maPred = true;
                 predUvnitr = uvnitr;
             }

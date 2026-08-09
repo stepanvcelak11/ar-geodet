@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Nastavení aplikace se edituje v Garmin Connect na mobilu (Zařízení →
+    Connect IQ → AR Geodet → Nastavení).
+
+    Je to jediná cesta, jak do watch app dostat text — hodinky nemají
+    klávesnici. Párovací kód se proto opíše sem, ne na displeji.
+-->
+<settings>
+    <setting propertyKey="@Properties.server" title="Adresa serveru">
+        <settingConfig type="alphaNumeric" maxLength="80"/>
+    </setting>
+    <setting propertyKey="@Properties.kod" title="Párovací kód z mobilu">
+        <settingConfig type="alphaNumeric" maxLength="6"/>
+    </setting>
+</settings>

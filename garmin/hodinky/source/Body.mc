@@ -150,6 +150,37 @@ module Body {
         return ven;
     }
 
+    //! Nahradí body stažené z mobilu (src 1) čerstvou dávkou.
+    //!
+    //! Vlastní naměřené body (src 0) zůstávají netknuté — ty jsou originál
+    //! a mobil o nich nemusí ještě vědět. Body z mobilu se naopak celé
+    //! zahodí a nasypou znovu: server posílá jen okolí, takže „co zmizelo“
+    //! by se jinak nedalo poznat od „co je zrovna daleko“.
+    function nahradZMobilu(prichozi) {
+        var vse = nacti();
+        var moje = [];
+        for (var i = 0; i < vse.size(); i++) {
+            if (vse[i]["src"] != 1) { moje.add(vse[i]); }
+        }
+        for (var i = 0; i < prichozi.size(); i++) {
+            var p = prichozi[i];
+            if (p["la"] == null || p["lo"] == null) { continue; }
+            moje.add({
+                "c"   => (p["c"] == null) ? "?" : p["c"].toString(),
+                "la"  => p["la"],
+                "lo"  => p["lo"],
+                "h"   => p["h"],
+                "s"   => p["s"],
+                "n"   => 0,
+                "k"   => (p["k"] == null) ? "" : p["k"],
+                "t"   => Time.now().value(),
+                "src" => 1
+            });
+        }
+        uloz(moje);
+        return prichozi.size();
+    }
+
     // ---- ukázková data pro simulátor ---------------------------------
 
     //! Rozsype pár bodů kolem zadané polohy, aby bylo co zkoušet

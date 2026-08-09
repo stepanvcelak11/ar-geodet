@@ -191,6 +191,57 @@ async function ensureSyncTable(env) {
     _syncReady = true;
 }
 
+// ---- hodinky Garmin (garmin/hodinky) --------------------------------------
+// Hodinky se NEMOHOU přihlásit — nemají klávesnici. Proto párovací kód:
+// v mobilu se vygeneruje šestimístný kód, ten se do hodinek napíše v Garmin
+// Connect (nastavení aplikace) a hodinky si za něj vymění dlouhodobý token.
+// Token je úplně stejný jako uživatelský, jen navíc nese zakázku (j), aby
+// hodinky nemohly sáhnout jinam než tam, kam byly spárované.
+//
+// Body se ukládají do TÉŽE tabulky sync_points jako z mobilu, ve stejném
+// tvaru — takže se v aplikaci objeví samy, bez dalšího zařizování.
+let _watchReady = false;
+async function ensureWatchTables(env) {
+    if (_watchReady) return;
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS watch_codes (' +
+        'code TEXT PRIMARY KEY, firm_id TEXT NOT NULL, user_id TEXT NOT NULL, ' +
+        'job_key TEXT NOT NULL, exp INTEGER NOT NULL)').run();
+    // čísla bodů: hodinky si rezervují blok dopředu, aby se offline
+    // nevyrobily dva body se stejným číslem
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS watch_seq (' +
+        'firm_id TEXT NOT NULL, job_key TEXT NOT NULL, next INTEGER NOT NULL, ' +
+        'PRIMARY KEY (firm_id, job_key))').run();
+    _watchReady = true;
+}
+
+const WATCH_DAYS = 180;
+const WATCH_BLOK = 50;          // kolik čísel dostanou hodinky na jedno spárování
+
+async function makeWatchToken(env, user, job) {
+    const payload = b64u(JSON.stringify({
+        u: user.user_id || user.id, f: user.firm_id, j: job,
+        exp: Date.now() + WATCH_DAYS * 864e5
+    }));
+    return payload + '.' + await hmac(env, payload);
+}
+
+// zakázka, na kterou je token spárovaný (null u běžného uživatelského tokenu)
+async function watchJob(env, req) {
+    const p = await readToken(env, req);
+    return (p && typeof p.j === 'string' && p.j) ? p.j : null;
+}
+
+// rezervace bloku čísel; vrací [od, do]
+async function watchBlok(env, firmId, job) {
+    const row = await env.DB.prepare('SELECT next FROM watch_seq WHERE firm_id=? AND job_key=?')
+        .bind(firmId, job).first();
+    const od = (row && row.next) ? row.next : 1;
+    await env.DB.prepare('INSERT INTO watch_seq(firm_id,job_key,next) VALUES(?,?,?) ' +
+        'ON CONFLICT(firm_id,job_key) DO UPDATE SET next=excluded.next')
+        .bind(firmId, job, od + WATCH_BLOK).run();
+    return [od, od + WATCH_BLOK - 1];
+}
+
 // ---- registr zakázek firmy (klient js/zakazky-cloud.js) --------------------
 // Aby se zakázka nezakládala ručně na každém telefonu: kdo ji založí, ohlásí ji
 // sem a ostatní zařízení firmy ji uvidí a doplní si ji k sobě. Klíč zakázky je
@@ -576,6 +627,35 @@ export default {
             }
 
             // ---------------- vše dál vyžaduje token -------------------------
+            // ---- spárování hodinek (bez přihlášení, jen na kód) ----
+            // Kód platí 10 minut a je jednorázový; víc než 8 pokusů z jedné
+            // IP za čtvrt hodiny se nepustí, ať se šest znaků nedá uhádnout.
+            if (req.method === 'POST' && path === '/watch/pair') {
+                await ensureWatchTables(env);
+                const ip = req.headers.get('CF-Connecting-IP') || '0';
+                if (await guardHit(env, 'wpair:' + ip, 8, 15 * 60e3))
+                    return err(429, 'Moc pokusů, zkuste to za čtvrt hodiny.');
+
+                const b = await req.json().catch(() => null);
+                const kod = String((b && b.code) || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+                if (kod.length !== 6) return err(400, 'Chybí párovací kód.');
+
+                const row = await env.DB.prepare(
+                    'SELECT firm_id, user_id, job_key, exp FROM watch_codes WHERE code=?').bind(kod).first();
+                if (!row || row.exp < Date.now()) return err(404, 'Kód neplatí.');
+                await env.DB.prepare('DELETE FROM watch_codes WHERE code=?').bind(kod).run();
+
+                const u = await env.DB.prepare('SELECT id, firm_id, name FROM users WHERE id=? AND firm_id=? AND disabled=0')
+                    .bind(row.user_id, row.firm_id).first();
+                if (!u) return err(403, 'Účet už neexistuje.');
+
+                const blok = await watchBlok(env, row.firm_id, row.job_key);
+                return json({
+                    token: await makeWatchToken(env, u, row.job_key),
+                    job: row.job_key, uname: u.name, from: blok[0], to: blok[1]
+                });
+            }
+
             const me = await auth(env, req);
             if (!me) return err(401, 'Neplatné nebo prošlé přihlášení.');
 
@@ -942,6 +1022,102 @@ export default {
                     'WHERE firm_id=? AND job_key=? AND srv>? ORDER BY srv LIMIT 500')
                     .bind(me.firm_id, job, since).all()).results;
                 return json({ points: rows, more: rows.length === 500, serverTime: Date.now() });
+            }
+
+            // ---------------- hodinky Garmin ----------------
+            // POST /watch/code {job}            — mobil si vyžádá párovací kód
+            // GET  /watch/points?lat&lon&n      — hodinky stáhnou okolní body
+            // POST /watch/points {points:[…]}   — hodinky nahrají, co naměřily
+            if (req.method === 'POST' && path === '/watch/code') {
+                await ensureWatchTables(env);
+                const b = await req.json().catch(() => null);
+                const job = String((b && b.job) || '').trim().slice(0, 80);
+                if (!job) return err(400, 'Chybí zakázka.');
+
+                // bez O/0 a I/1/L — kód se opisuje z displeje na displej
+                const ABC = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+                const a = new Uint8Array(6);
+                crypto.getRandomValues(a);
+                let kod = '';
+                for (let i = 0; i < 6; i++) kod += ABC[a[i] % ABC.length];
+
+                const exp = Date.now() + 10 * 60e3;
+                await env.DB.prepare('INSERT OR REPLACE INTO watch_codes(code,firm_id,user_id,job_key,exp) VALUES(?,?,?,?,?)')
+                    .bind(kod, me.firm_id, me.id, job, exp).run();
+                // úklid prošlých, ať tabulka neroste donekonečna
+                await env.DB.prepare('DELETE FROM watch_codes WHERE exp<?').bind(Date.now()).run();
+                return json({ code: kod, job: job, exp: exp });
+            }
+
+            if (path === '/watch/points' && (req.method === 'GET' || req.method === 'POST')) {
+                await ensureSyncTable(env);
+                await ensureWatchTables(env);
+                // zakázku bere z tokenu (hodinky), jinak z parametru (zkoušení z mobilu)
+                const job = (await watchJob(env, req)) ||
+                    String(url.searchParams.get('job') || '').trim().slice(0, 80);
+                if (!job) return err(400, 'Token není spárovaný na zakázku.');
+
+                if (req.method === 'GET') {
+                    const lat = parseFloat(url.searchParams.get('lat'));
+                    const lon = parseFloat(url.searchParams.get('lon'));
+                    const n = Math.min(Math.max(parseInt(url.searchParams.get('n'), 10) || 20, 1), 50);
+                    if (!isFinite(lat) || !isFinite(lon)) return err(400, 'Chybí lat/lon.');
+
+                    // Filtrování podle vzdálenosti dělá schválně SERVER: hodinky
+                    // mají paměť v řádu stovek kB a celá zakázka se do nich nevejde.
+                    const rows = (await env.DB.prepare(
+                        'SELECT point_id AS id, data FROM sync_points ' +
+                        'WHERE firm_id=? AND job_key=? AND deleted=0 LIMIT 3000')
+                        .bind(me.firm_id, job).all()).results;
+
+                    const kos = Math.cos(lat * Math.PI / 180);
+                    const ven = [];
+                    for (const r of rows) {
+                        let d; try { d = JSON.parse(r.data); } catch (e) { continue; }
+                        if (!d || !isFinite(+d.lat) || !isFinite(+d.lng)) continue;
+                        const dy = (+d.lat - lat) * 111320;
+                        const dx = (+d.lng - lon) * 111320 * kos;
+                        ven.push({
+                            c: String(d.name == null ? r.id : d.name).slice(0, 16),
+                            la: +(+d.lat).toFixed(7), lo: +(+d.lng).toFixed(7),
+                            h: d.vyska != null ? +(+d.vyska).toFixed(1) : null,
+                            s: d.acc != null ? +(+d.acc).toFixed(1) : null,
+                            k: (d.prov && d.prov.kod) ? String(d.prov.kod).slice(0, 16) : '',
+                            _d: dx * dx + dy * dy
+                        });
+                    }
+                    ven.sort((a, b) => a._d - b._d);
+                    const vybrane = ven.slice(0, n).map(p => { delete p._d; return p; });
+                    return json({ points: vybrane, job: job });
+                }
+
+                const b = await req.json().catch(() => null);
+                if (!b || !Array.isArray(b.points)) return err(400, 'Chybí points[].');
+                const now = Date.now();
+                const list = b.points.slice(0, 200).filter(p =>
+                    p && isFinite(+p.la) && isFinite(+p.lo) && p.c != null);
+                if (!list.length) return json({ ok: true, saved: 0 });
+
+                // Ukládá se PŘESNĚ v tom tvaru, co čte js/cloud-sync.js (funkce
+                // slim/fromData) — jinak by se body v aplikaci neobjevily.
+                const stmt = env.DB.prepare(
+                    'INSERT INTO sync_points(firm_id,job_key,point_id,data,ts,srv,deleted,uname) VALUES(?,?,?,?,?,?,0,?) ' +
+                    'ON CONFLICT(firm_id,job_key,point_id) DO UPDATE SET ' +
+                    'data=excluded.data, ts=excluded.ts, srv=excluded.srv, deleted=0, uname=excluded.uname ' +
+                    'WHERE excluded.ts>sync_points.ts');
+                await env.DB.batch(list.map(p => {
+                    const id = 'cpw_' + String(p.c).replace(/[^A-Za-z0-9_-]/g, '') + '_' + (p.t || 0);
+                    const d = {
+                        id: id, name: String(p.c).slice(0, 40),
+                        lat: +p.la, lng: +p.lo, cat: 'CUSTOM', type: 'custom'
+                    };
+                    if (p.h != null && isFinite(+p.h)) d.vyska = +p.h;
+                    if (p.s != null && isFinite(+p.s)) d.acc = +p.s;
+                    d.prov = { src: 'garmin', kod: p.k ? String(p.k).slice(0, 16) : '', n: +p.n || 0 };
+                    return stmt.bind(me.firm_id, job, id, JSON.stringify(d),
+                        Math.min(Math.max(0, (+p.t || 0) * 1000 || now), now + 60e3), now, me.name);
+                }));
+                return json({ ok: true, saved: list.length, serverTime: now });
             }
 
             return err(404, 'Neznámá cesta.');
