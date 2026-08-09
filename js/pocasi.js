@@ -21,7 +21,18 @@
 //     dobrý na déšť, takže z každé trefnosti plyne vlastní váha: teplotní váží
 //     teplotu/tlak/vlhkost/vítr, srážková milimetry, pravděpodobnost a ikonu počasí.
 //     Váhy plynou z 1/σ² změřené chyby (jako při vyrovnání měření) a ODLEHLÉ rodiny
-//     se z výsledku VYLUČUJÍ (medián + MAD). Kde je známá systematická chyba, ODEČTE se.
+//     se z výsledku VYLUČUJÍ (medián + MAD). Kde je známá systematická chyba, ODEČTE se —
+//     a to ZVLÁŠŤ PRO ČTYŘI ČÁSTI DNE, protože chyba modelu má denní chod (v noci moc
+//     teplo, v odpolední špičce moc zima) a jedno číslo za celý den to zprůměruje na nulu.
+//   • MĚŘENÍ ČHMÚ ze VÍC STANIC: kromě nejbližší se ptáme i na čtyři body posunuté
+//     o ~30 km, takže se sejde až pět stanic. Do odhadu jde jejich vážená směs
+//     (blízkost, výškový rozdíl, stáří odečtu) přepočtená na výšku bodu — jedna
+//     stanice může být v tepelném ostrově nebo v údolní inverzi. Dlaždice „Naměřeno
+//     ČHMÚ" ale dál ukazuje SUROVOU hodnotu nejbližší stanice, ne směs.
+//   • UKOTVENÍ NA MĚŘENÍ: o kolik se modely mýlí PRÁVĚ TEĎ proti stanicím, o tolik se
+//     posune i hodinová předpověď — s exponenciálním dozníváním do 6 h. Chyba
+//     předpovědi se v čase mění pomalu, takže „teď je to o stupeň jinak" platí i za
+//     hodinu; trvale se ale posun nedrží, aby jeden odečet nezkazil zítřek.
 //   • NOWCAST „kdy začne pršet": prvních 2 h z DWD radaru do bodu (1 km, krok 5 min),
 //     dál modely po 15 min do 6 h. Na krátko porazí radar každý model.
 //   • SRÁŽKOVÝ RADAR (RainViewer): animovaná OVLADATELNÁ mapa (posun, zoom), kde je
@@ -266,6 +277,110 @@
     }
     function geoUrl(q) {
         return 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(q) + '&count=6&language=cs&format=json';
+    }
+
+    // ---- ČHMÚ: VÍC STANIC NAJEDNOU (návrh ②, 9. 8. 2026) -----------------------------
+    // Dosud se bralo měření z JEDINÉ nejbližší stanice, která hlásí teplotu. Jedna
+    // stanice ale nemusí být reprezentativní: městská leží v tepelném ostrově, údolní
+    // v ranní inverzi drží o několik stupňů méně než okolí, letištní stojí na volné
+    // ploše. Jediná stanice tedy může být blízko a přesto vedle.
+    //
+    // Route /wx/chmi na workeru umí vrátit VŽDY JEN JEDNU stanici (tu nejbližší
+    // hlásící teplotu) a přenastavit worker nemůžu z appky. Víc stanic se proto získává
+    // tak, že se stejná route zavolá i pro ČTYŘI BODY POSUNUTÉ o ~30 km do úhlopříček —
+    // ke každému z nich je nejblíž jiná stanice. Vrátí se tedy 1 + až 4 různé stanice
+    // a z nich se skládá odhad pro tvoje místo.
+    //
+    // Cena: 5 požadavků místo jednoho, každý ~1 kB. Worker si stažená data z ČHMÚ
+    // kešuje (metadata 6 h, desetiminutovky 5 min), takže se na opendata.chmi.cz
+    // nepálí, a výsledek si tady navíc držíme 8 minut v paměti.
+    //
+    // POCTIVOST: dlaždice „Naměřeno ČHMÚ" dál ukazuje SUROVOU hodnotu z NEJBLIŽŠÍ
+    // stanice, ne směs — jinak by appka vydávala dopočet za měření (stejný důvod, proč
+    // worker záměrně nemíchá teplotu z jedné stanice s tlakem z druhé). Vážená směs
+    // vstupuje jen do celkového odhadu a do ukotvení hodinovky.
+    var CHMI_NEAR_MAX_KM = 55;      // dál už stanice o tvém místě nevypovídá
+    var CHMI_NEAR_MAX_AGE = 100;    // min — starší odečet neukotvuje nic
+    var CHMI_NEAR_MS = 8 * 60000;   // jak dlouho držet seznam v paměti
+    // ~31 km na severojižní ose, ~30 km na východozápadní (v šířce 50°)
+    var CHMI_OFFSETS = [[0.28, 0.42], [0.28, -0.42], [-0.28, 0.42], [-0.28, -0.42]];
+    var _nearCache = { key: '', t: 0, list: null };
+
+    function chmiStationOf(j, lat, lon) {
+        if (!j || !j.ok || !j.station) return null;
+        var t = num(j.T); if (t == null) return null;             // bez teploty nemá cenu
+        var sla = num(j.station.lat), slo = num(j.station.lon);
+        if (sla == null || slo == null) return null;
+        var km = distKm(lat, lon, sla, slo);
+        if (!(km <= CHMI_NEAR_MAX_KM)) return null;
+        var obs = num(j.t);
+        var age = (obs != null) ? Math.round((Date.now() / 1000 - obs) / 60) : 999;
+        if (age > CHMI_NEAR_MAX_AGE) return null;
+        return {
+            name: j.station.name || null, km: Math.round(km * 10) / 10,
+            elev: num(j.station.elev), t: t, ageMin: age
+        };
+    }
+    function chmiNeighbours(lat, lon) {
+        var key = lat.toFixed(2) + ',' + lon.toFixed(2);
+        if (_nearCache.list && _nearCache.key === key && (Date.now() - _nearCache.t) < CHMI_NEAR_MS) {
+            return Promise.resolve(_nearCache.list);
+        }
+        var ps = CHMI_OFFSETS.map(function (o) {
+            var la = lat + o[0], lo = lon + o[1];
+            // posunutý bod mimo ČR by vrátil jen „mimo ČR" — dotaz vůbec neposílat
+            if (!inCz(la, lo)) return Promise.resolve(null);
+            var u = chmiUrl(la, lo);
+            if (!u) return Promise.resolve(null);
+            return fetchJson(u, FETCH_MS).then(function (j) { return j; }, function () { return null; });
+        });
+        return Promise.all(ps).then(function (arr) {
+            var out = [];
+            for (var i = 0; i < arr.length; i++) {
+                var st = chmiStationOf(arr[i], lat, lon);
+                if (st) out.push(st);
+            }
+            _nearCache = { key: key, t: Date.now(), list: out };
+            return out;
+        }, function () { return []; });
+    }
+    // přidá sousední stanice k měřicímu zdroji; duplicity se poznají podle jména
+    function mergeStations(src, list) {
+        if (!src || !src.stations || !list || !list.length) return;
+        var have = {}, i;
+        for (i = 0; i < src.stations.length; i++) {
+            if (src.stations[i] && src.stations[i].name) have[src.stations[i].name] = 1;
+        }
+        for (i = 0; i < list.length; i++) {
+            if (!list[i] || (list[i].name && have[list[i].name])) continue;
+            if (list[i].name) have[list[i].name] = 1;
+            src.stations.push(list[i]);
+        }
+    }
+    // Váženo hlavně BLÍZKOSTÍ (1/(d²+d0²), takže nejbližší stanice pořád vede), ale
+    // s postihem za výškový rozdíl: přepočet gradientem 0,65 °C/100 m je průměr, ne
+    // pravda pro každou inverzi, takže stanici o 400 m výš věříme míň i po přepočtu.
+    // Volá se AŽ ZA applyLapse a cur.t se přepisuje ABSOLUTNĚ — jinak by se výškový
+    // posun započítal dvakrát.
+    var ST_D0_KM = 6;
+    function combineStations(src, realElev) {
+        if (!src || !src.meas || !src.stations || src.stations.length < 2 || !src.cur) return;
+        var sw = 0, sv = 0, n = 0, names = [];
+        for (var i = 0; i < src.stations.length; i++) {
+            var st = src.stations[i];
+            if (!st || st.t == null) continue;
+            var tt = st.t + lapseDT(st.elev, realElev);        // na výšku tvého bodu
+            var d = (st.km != null) ? st.km : 30;
+            var w = 1 / (d * d + ST_D0_KM * ST_D0_KM);
+            if (st.elev != null && realElev != null) w /= (1 + Math.abs(st.elev - realElev) / 400);
+            if (st.ageMin != null && st.ageMin > 45) w *= 0.6;
+            if (!isFinite(w) || w <= 0) continue;
+            sw += w; sv += w * tt; n++;
+            if (st.name) names.push(st.name + (st.km != null ? ' (' + nf(st.km, 0) + ' km)' : ''));
+        }
+        if (n < 2 || !sw) return;
+        src.cur.t = sv / sw;
+        src.multi = { n: n, names: names };
     }
 
     // ---- WMO weather_code → čeština + klíč ikony ---------------------------------
@@ -760,6 +875,12 @@
                 rawT: t, stElev: num(st.elev),
                 station: st.name || null, distKm: d, obsT: obs,
                 ageMin: Math.round(ageMin),
+                // seznam stanic pro vážený dopočet (návrh ②) — začíná touhle jedinou,
+                // sousedy k němu přidá mergeStations()
+                stations: (t != null) ? [{
+                    name: st.name || null, km: (d != null ? d : 0),
+                    elev: num(st.elev), t: t, ageMin: Math.round(ageMin)
+                }] : [],
                 cur: cur, hourly: null, daily: null
             };
         } catch (e) { return null; }
@@ -1063,6 +1184,40 @@
     var LS_BIAS_MIN_N = 20;    // od kolika měření ČHMÚ se věří absolutnímu biasu
     var LS_BIAS_FULL_N = 80;   // od kolika vzorků se uplatní v plné výši
     var BIAS_MAX = 2.0;        // strop odečtu (°C) — proti utržení na krátké historii
+
+    // ---- DENNÍ CHOD SYSTEMATICKÉ CHYBY (návrh ③, 9. 8. 2026) -------------------------
+    // Bias byl JEDNO ČÍSLO na zdroj za celý den. To je ale přesně ten případ, kdy průměr
+    // zahodí signál: modely mají typicky denní chod chyby — v noci a k ránu drží teplotu
+    // moc vysoko (nedokážou vyzářit teplo při vyjasnění a bezvětří), v odpolední špičce
+    // naopak zůstávají nízko. Když se noční „+1 °C" zprůměruje s odpoledním „−1 °C",
+    // vyjde nula a NEODEČTE SE NIC, i když je chyba v obou částech dne systematická.
+    //
+    // Den se proto dělí na ČTYŘI části, ne na 24 hodin: vzorků z jedné stanice ČHMÚ
+    // přibývá po hodinách, takže na 24 přihrádek by v okně 30 dní zbyly jednotky měření
+    // a korekce by skákala podle šumu. Čtyři části dne zachytí hlavní chod a přitom mají
+    // dost dat. Přihrádka se navíc PŘIMÍCHÁVÁ ke celkovému biasu podle svého počtu vzorků
+    // (viz BIAS_DP_K), takže dokud jich je málo, chová se to jako dřív.
+    //
+    // Hodina se bere v ČASE MÍSTA předpovědi (utc_offset z Open-Meteo), ne v čase
+    // zařízení — jinak by se u telefonu přehozeného na cizí časovou zónu rozsypalo
+    // rozdělení do částí dne.
+    var DAYPART_N = 4;
+    var DAYPART_CS = ['noc', 'ráno', 'den', 'večer'];
+    var BIAS_DP_K = 12;        // váha celkového biasu proti přihrádce (počet „virtuálních" vzorků)
+    var _lastOff = null;       // poslední známý časový posun místa (pro dayPart mimo combineAll)
+    function dayPart(unixSec, off) {
+        var t = num(unixSec);
+        if (t == null) return null;
+        var h;
+        if (off == null) off = _lastOff;
+        if (off != null && isFinite(off)) h = hourOf(t, off);
+        else { try { h = new Date(t * 1000).getHours(); } catch (e) { return null; } }
+        if (h < 5) return 0;        // noc
+        if (h < 10) return 1;       // ráno
+        if (h < 16) return 2;       // den
+        if (h < 21) return 3;       // večer
+        return 0;
+    }
     var _biasCache = null, _biasCacheKey = '';
     // vycentrované archivní biasy (relativní vůči mediánu modelů)
     function biasArchive() {
@@ -1080,19 +1235,31 @@
         _biasCache = out; _biasCacheKey = key;
         return out;
     }
-    // živý ABSOLUTNÍ bias proti měření ČHMÚ (sk.histB: {id: [[ms, chyba se znaménkem, h]]})
-    function biasLive(sk, id) {
+    // živý ABSOLUTNÍ bias proti měření ČHMÚ
+    // (sk.histB: {id: [[ms, chyba se znaménkem, dosah v h, ČÁST DNE 0–3]]})
+    // Čtvrtý prvek přidala verze v235; starší záznamy ho nemají, takže spadnou jen do
+    // celkového průměru — stará historie se tím nezneplatní, jen se z ní denní chod
+    // nedozvíme, dokud nepřibudou nová měření.
+    function biasLive(sk, id, dp) {
         var a = sk && sk.histB ? sk.histB[id] : null;
         if (!a || !a.length) return null;
-        var lim = Date.now() - SKILL_WIN_MS, s = 0, n = 0;
+        var lim = Date.now() - SKILL_WIN_MS, s = 0, n = 0, sd = 0, nd = 0;
         for (var i = 0; i < a.length; i++) {
-            if (a[i] && a[i][0] >= lim && a[i][1] != null && isFinite(a[i][1])) { s += a[i][1]; n++; }
+            var r = a[i];
+            if (!r || r[0] < lim || r[1] == null || !isFinite(r[1])) continue;
+            s += r[1]; n++;
+            if (dp != null && r[3] === dp) { sd += r[1]; nd++; }
         }
-        return n ? { b: s / n, n: n } : null;
+        if (!n) return null;
+        var all = s / n;
+        // shrinkage: (nd·průměr přihrádky + K·celkový průměr) / (nd + K).
+        // sd je SOUČET nd hodnot, takže tenhle zápis je přesně ono.
+        var b = nd ? (sd + BIAS_DP_K * all) / (nd + BIAS_DP_K) : all;
+        return { b: b, n: n, nd: nd };
     }
     // výsledný odečet pro daný zdroj; vrací 0, když se ještě nemá co odečítat
-    function biasOf(sk, id) {
-        var lv = biasLive(sk, id), b = null, n = 0;
+    function biasOf(sk, id, dp) {
+        var lv = biasLive(sk, id, dp), b = null, n = 0;
         if (lv && lv.n >= LS_BIAS_MIN_N) { b = lv.b; n = lv.n; }
         else {
             var ar = biasArchive();
@@ -1232,7 +1399,12 @@
                 // se dá bias učit. Oba údaje už jsou na stejné výšce (měření dorovnává
                 // lapseDT výše), takže tenhle bias je absolutní.
                 if (!sk.histB[p.id]) sk.histB[p.id] = [];
-                sk.histB[p.id].push([nowMs, Math.round((p.v - oT) * 100) / 100, (p.h != null ? p.h : null)]);
+                // ⚠ ČÁST DNE se počítá z p.t (kdy předpověď PLATILA), NE z nowMs.
+                // Ověřování běží dávkově jednou za pár hodin, takže nowMs je čas dávky —
+                // podle něj by celý den měření spadl do jedné přihrádky a denní chod
+                // by z toho nevyšel vůbec.
+                sk.histB[p.id].push([nowMs, Math.round((p.v - oT) * 100) / 100,
+                    (p.h != null ? p.h : null), dayPart(p.t)]);
                 touchB[p.id] = 1;
             }
             if (oP != null && p.p != null) {
@@ -1304,7 +1476,9 @@
                         touchT[p.id] = 1;
                         if (truthIsMeas) {
                             if (!sk.histB[p.id]) sk.histB[p.id] = [];
-                            sk.histB[p.id].push([nowMs, Math.round((p.v - observedTemp) * 100) / 100, (p.h != null ? p.h : null)]);
+                            // část dne z p.t = z doby platnosti předpovědi (viz chmiVerify)
+                            sk.histB[p.id].push([nowMs, Math.round((p.v - observedTemp) * 100) / 100,
+                                (p.h != null ? p.h : null), dayPart(p.t)]);
                             touchB[p.id] = 1;
                         }
                     }
@@ -1643,13 +1817,54 @@
     }
     // ODEČTE zdroji jeho systematickou chybu (viz biasOf). Měřená data z ČHMÚ se
     // nekorigují — ta nic nepředpovídají, takže žádný bias předpovědi mít nemohou.
-    function applyBias(src, sk) {
+    //
+    // Od verze v235 NENÍ posun jeden pro celý zdroj: každá hodina dostane bias své ČÁSTI
+    // DNE (viz dayPart), takže se nedá použít shiftTemps(). Čtyři hodnoty se spočítají
+    // dopředu — biasOf() prochází celou historii zdroje, a volat ho pro každou z 24 hodin
+    // by znamenalo 24× víc práce úplně zbytečně.
+    // U denních extrémů se přiřazuje bias podle toho, KDY extrém nastává: maximum
+    // odpoledne (část dne 2), minimum k ránu (část dne 0). Do teď dostávaly obě stejný
+    // posun, přitom chyba modelu je u nočního minima typicky jiná než u denního maxima.
+    function applyBias(src, sk, off) {
         if (!src || src.meas) return 0;
-        var b = biasOf(sk, src.id);
-        if (!b) return 0;
-        shiftTemps(src, -b);
-        src.biasDT = Math.round(-b * 100) / 100;
-        return -b;
+        var i, dp, bs = [];
+        for (dp = 0; dp < DAYPART_N; dp++) bs.push(biasOf(sk, src.id, dp));
+        var any = false;
+        for (dp = 0; dp < DAYPART_N; dp++) { if (bs[dp]) { any = true; break; } }
+        if (!any) return 0;
+
+        var nowSec = Math.floor(Date.now() / 1000);
+        var bNow = bs[dayPart(nowSec, off) || 0];
+        if (src.cur) {
+            if (src.cur.t != null) src.cur.t -= bNow;
+            if (src.cur.feels != null) src.cur.feels -= bNow;
+        }
+        if (src.hourly && src.hourly.temp && src.hourly.time) {
+            for (i = 0; i < src.hourly.temp.length; i++) {
+                var v = src.hourly.temp[i];
+                if (v == null || !isFinite(v)) continue;
+                dp = dayPart(src.hourly.time[i], off);
+                src.hourly.temp[i] = v - bs[dp == null ? 2 : dp];
+            }
+        }
+        if (src.daily) {
+            if (src.daily.tmax) {
+                for (i = 0; i < src.daily.tmax.length; i++) {
+                    if (src.daily.tmax[i] != null && isFinite(src.daily.tmax[i])) src.daily.tmax[i] -= bs[2];
+                }
+            }
+            if (src.daily.tmin) {
+                for (i = 0; i < src.daily.tmin.length; i++) {
+                    if (src.daily.tmin[i] != null && isFinite(src.daily.tmin[i])) src.daily.tmin[i] -= bs[0];
+                }
+            }
+        }
+        src.biasDT = Math.round(-bNow * 100) / 100;
+        // rozsah biasu přes části dne — do seznamu zdrojů, ať je denní chod vidět
+        var lo = bs[0], hi = bs[0];
+        for (dp = 1; dp < DAYPART_N; dp++) { if (bs[dp] < lo) lo = bs[dp]; if (bs[dp] > hi) hi = bs[dp]; }
+        src.biasSpan = (hi - lo >= 0.3) ? Math.round((hi - lo) * 100) / 100 : null;
+        return -bNow;
     }
     // Kód počasí je kategorie — sečíst a vydělit ho nejde, takže se „průměruje"
     // VÁŽENÝM HLASOVÁNÍM: každý zdroj hlasuje svou vahou pro DRUH počasí (jasno,
@@ -1701,6 +1916,100 @@
         }
         return code;
     }
+    // ---- UKOTVENÍ NEJBLIŽŠÍCH HODIN NA MĚŘENÍ (návrh ①, 9. 8. 2026) ------------------
+    // Měření ČHMÚ dosud ovlivňovalo jen údaj „teď" — do hodinové řady nesahalo vůbec
+    // (měřicí zdroj nemá hourly). Přitom když modely PRÁVĚ TEĎ ukazují o 1,5 °C jinak
+    // než skutečnost, mýlí se skoro určitě i za hodinu: chyba předpovědi je v čase
+    // silně korelovaná. Odchylka „skutečnost − modely" se proto přičte k hodinové řadě
+    // a nechá se EXPONENCIÁLNĚ DOZNÍVAT — hned teď celá, po ANCHOR_TAU_H na 37 %,
+    // po 6 hodinách se už nesahá vůbec.
+    //
+    // Proč doznívat a ne držet: rozdíl je zčásti chyba počáteční podmínky (ta se
+    // s časem vyrovná) a zčásti šum jedné stanice. Trvalý posun celé předpovědi by
+    // zkazil zítřek podle jednoho odečtu.
+    //
+    // ⚠ ODCHYLKA SE MĚŘÍ V DOBĚ ODEČTU, NE „TEĎ". První verze srovnávala měření
+    // s modelovým odhadem pro aktuální okamžik a vyžadovala čerstvý odečet — jenže ČHMÚ
+    // publikuje desetiminutovky se zpožděním kolem hodiny, takže měření je skoro vždy
+    // 50–70 minut staré a ukotvení se nespustilo prakticky nikdy (ověřeno v prohlížeči:
+    // odečet z 9:50 v 10:49). Správně se tedy měření porovná s hodnotou, kterou modely
+    // dávaly PRO TU HODINU, kdy se měřilo — to je poctivá chyba předpovědi ke známému
+    // času — a doznívání se počítá od okamžiku odečtu. Hodinu stará odchylka je tak
+    // rovnou z části utlumená, což je přesně, jak to má být.
+    //
+    // Základ se bere z HOTOVÉ kombinované hodinovky: ta žádné měření neobsahuje (měřicí
+    // zdroj nemá hourly), takže se odchylka nepočítá částečně sama proti sobě, a je už
+    // po výškové korekci i po odečtu biasu — tedy proti témuž, co uživatel vidí.
+    //
+    // Další pojistky:
+    //   • Strop ANCHOR_MAX_DT: víc než 4 °C není korekce, ale porucha stanice.
+    //   • Odečet musí jít spárovat s hodinou do ±45 min, jinak se neukotvuje.
+    //   • Teplota jen. Srážky se ukotvit nedají (radar to řeší lépe a nula×koeficient
+    //     je pořád nula), tlak a vítr měření z jedné stanice nezpřesní.
+    var ANCHOR_TAU_H = 2.5;         // za kolik hodin odchylka spadne na 37 %
+    var ANCHOR_MAX_H = 6;           // jak daleko od ODEČTU se ještě sahá
+    var ANCHOR_MAX_DT = 4.0;        // strop odchylky (°C)
+    var ANCHOR_MIN_DT = 0.15;       // pod tímhle se nehýbe ničím
+    var ANCHOR_MAX_AGE_MIN = 150;   // starší odečet už o nejbližších hodinách nevypovídá
+    var ANCHOR_PAIR_S = 2700;       // ±45 min: do jaké blízkosti se odečet páruje s hodinou
+
+    function anchorHourly(data, sources) {
+        data.anchor = null;
+        if (!data.hourly || !data.hourly.length) return;
+        var i, msr = null;
+        for (i = 0; i < sources.length; i++) {
+            var s = sources[i];
+            if (s.meas && s.cur && s.cur.t != null && s.obsT != null &&
+                (s.ageMin == null || s.ageMin <= ANCHOR_MAX_AGE_MIN)) { msr = s; break; }
+        }
+        if (!msr) return;
+        // hodina nejblíž době odečtu
+        var obs = msr.obsT, base = null, bestD = ANCHOR_PAIR_S + 1;
+        for (i = 0; i < data.hourly.length; i++) {
+            if (data.hourly[i].temp == null) continue;
+            var d = Math.abs(data.hourly[i].t - obs);
+            if (d < bestD) { bestD = d; base = data.hourly[i]; }
+        }
+        if (!base) return;
+        var d0 = msr.cur.t - base.temp;
+        if (!isFinite(d0)) return;
+        d0 = Math.max(-ANCHOR_MAX_DT, Math.min(ANCHOR_MAX_DT, d0));
+        if (Math.abs(d0) < ANCHOR_MIN_DT) return;
+        // ⚠ DOZNÍVÁNÍ SE VYHODNOCUJE NEJDŘÍV V „TEĎ". Hodinovka začíná posledním
+        // CELÝM krokem, který appka v pruhu popisuje „Teď" — a ten je klidně 50 minut
+        // v minulosti. Kdyby se koeficient bral podle jeho vlastního času, dostal by
+        // skoro celou odchylku, zatímco hlavní číslo (počítané na aktuální okamžik) už
+        // jen utlumenou: v prohlížeči z toho bylo velké „22°" vedle „Teď 19°".
+        // Čas se proto zaokrouhluje nahoru na „teď" — minulost se stejně nikde neukazuje.
+        var nowSec = Math.floor(Date.now() / 1000);
+        var n = 0;
+        for (i = 0; i < data.hourly.length; i++) {
+            var h = data.hourly[i];
+            if (h.temp == null) continue;
+            var lead = (Math.max(h.t, nowSec) - obs) / 3600;
+            if (lead > ANCHOR_MAX_H) break;
+            h.temp += d0 * Math.exp(-Math.max(0, lead) / ANCHOR_TAU_H);
+            n++;
+        }
+        if (!n) return;
+        // kolik z odchylky zbývá právě teď (stejným vzorcem → hlavní číslo sedí s „Teď")
+        var dNow = d0 * Math.exp(-Math.max(0, (nowSec - obs) / 3600) / ANCHOR_TAU_H);
+        // HLAVNÍ ČÍSLO se ukotvuje týmž způsobem jako hodinovka: odhad bez měření
+        // + doznívající odchylka. Kdyby se jen přičetla k dosavadnímu průměru, měření
+        // by se počítalo dvakrát (v průměru už jednu váhu má).
+        if (data.current && data.tFc != null) {
+            data.current.temp = data.tFc + dNow;
+        }
+        data.anchor = {
+            dt: Math.round(d0 * 10) / 10,
+            now: Math.round(dNow * 10) / 10,
+            hours: ANCHOR_MAX_H, n: n,
+            ageMin: (msr.ageMin != null ? msr.ageMin : null),
+            station: msr.station || 'ČHMÚ',
+            multiN: (msr.multi ? msr.multi.n : 1)
+        };
+    }
+
     function srcIdx(s) {   // mapa epoch → index v hourly poli zdroje (lazy)
         if (!s.hourly || !s.hourly.time) return null;
         if (!s._hm) {
@@ -1719,6 +2028,7 @@
         for (i = 0; i < sources.length; i++) { if (sources[i].off != null) { off = sources[i].off; break; } }
         if (off == null) off = -new Date().getTimezoneOffset() * 60;
         data.off = off;
+        _lastOff = off;      // aby dayPart() umělo místní hodinu i mimo tuhle funkci
 
         // --- výšková korekce -------------------------------------------------------
         // Výška gridu modelu (Open-Meteo `elevation`) vs. skutečná výška bodu z DMR 5G.
@@ -1740,8 +2050,12 @@
         // MUSÍ to být AŽ ZA výškovou korekcí: bias se učí z hodnot přepočtených na výšku
         // bodu, takže kdyby se odečítal dřív, počítal by se z jiné hladiny, než na jaké
         // byl změřený.
+        // MĚŘENÍ Z VÍC STANIC (návrh ②) — taky až za výškovou korekcí, protože každou
+        // stanici přepočítává na výšku bodu vlastním rozdílem a cur.t přepisuje absolutně.
+        for (i = 0; i < sources.length; i++) combineStations(sources[i], data.elevReal);
+
         var skB = loadSkill(), nBias = 0;
-        for (i = 0; i < sources.length; i++) { if (applyBias(sources[i], skB)) nBias++; }
+        for (i = 0; i < sources.length; i++) { if (applyBias(sources[i], skB, off)) nBias++; }
         data.biasN = nBias;
         // pro přepočet tlaku „tady" platí skutečná výška, když ji známe
         data.elev = (data.elevReal != null) ? data.elevReal : data.elevModel;
@@ -1763,6 +2077,14 @@
             // hlásil pěknou shodu i ve chvíli, kdy se modely rozcházejí.
             var fcS = curS.filter(function (x) { return !x.meas; });
             var tSpread = wstat(fcS.map(function (x) { return { v: x.cur.t, w: wOf(x, false), fam: famOf(x) }; }));
+            // Základ pro UKOTVENÍ (návrh ①): robustní odhad JEN Z PŘEDPOVĚDÍ. Ukotvená
+            // hodinovka se skládá taky bez měření, takže se hlavní číslo dá dopočítat
+            // úplně stejně — a nerozejde se pak s pruhem hodin (velké „25°" vedle
+            // „Teď 19°" bylo přesně tohle: hodinovka ukotvená, hlavní číslo ne).
+            var keepDrop = _lastDropped;
+            var tFcSt = wstat(fcS.map(function (x) { return { v: x.cur.t, w: wOf(x, false), fam: famOf(x) }; }), true);
+            _lastDropped = keepDrop;
+            data.tFc = (tFcSt && tFcSt.v != null) ? tFcSt.v : null;
             data.current = {
                 temp: tSt ? tSt.v : null,
                 feels: wv(items(function (c) { return c.feels; })),
@@ -1788,7 +2110,10 @@
                 hum: msr.cur.hum,
                 wind: msr.cur.wind, gusts: msr.cur.gusts, precip: msr.cur.precip,
                 dist: (msr.distKm != null ? msr.distKm : null), t: (msr.obsT != null ? msr.obsT : null),
-                ageMin: (msr.ageMin != null ? msr.ageMin : null)
+                ageMin: (msr.ageMin != null ? msr.ageMin : null),
+                // z kolika stanic je dopočet na tvou výšku (návrh ②); 1 = jako dřív
+                multiN: (msr.multi ? msr.multi.n : 1),
+                multiNames: (msr.multi ? msr.multi.names : null)
             } : null;
             data.droppedFams = droppedFams;
             data.perSource = curS.map(function (x) {
@@ -1799,6 +2124,7 @@
                     outlier: droppedFams.indexOf(famOf(x)) >= 0,
                     meas: !!x.meas, fam: famOf(x), lapse: (x.lapseDT != null ? x.lapseDT : null),
                     bias: (x.biasDT != null ? x.biasDT : null),
+                    biasSpan: (x.biasSpan != null ? x.biasSpan : null),
                     skill: (x.skill != null ? x.skill : null), skillN: (x.skillN || 0), skillSrc: (x.skillSrc || null),
                     skillP: (x.skillP != null ? x.skillP : null), skillPHit: (x.skillPHit != null ? x.skillPHit : null)
                 };
@@ -1915,6 +2241,9 @@
                 added++;
             }
         }
+
+        // ukotvení nejbližších hodin na měření — AŽ ZA hotovou hodinovkou (návrh ①)
+        anchorHourly(data, sources);
 
         data.isDayNow = isDayAt(nowSec);
 
@@ -2564,6 +2893,8 @@
                 // nemusí divit, proč se číslo zdroje do výsledku nepropsalo
                 if (s.bias != null && Math.abs(s.bias) >= 0.05) {
                     txt += ' · srovnáno o ' + (s.bias > 0 ? '+' : '') + nf(s.bias, 1) + ' °C';
+                    // denní chod chyby: rozdíl mezi nejmírnější a nejsilnější částí dne
+                    if (s.biasSpan != null) txt += ' (podle části dne se rozchází o ' + nf(s.biasSpan, 1) + ' °C)';
                 }
                 if (s.outlier) txt += ' · VYLOUČEN jako odlehlý';
             }
@@ -2584,7 +2915,11 @@
             + 'odlehlá hodnota, i když je pravdivá. „Shoda zdrojů“ se počítá PŘED vylučováním, jinak by hlásila '
             + 'falešnou jistotu právě tam, kde je počasí nejisté. '
             + 'Kde je známá systematická chyba (bias), tam se ODEČTE — model, který tady dává trvale o stupeň víc, '
-            + 'se srovná, ne jen odváží dolů.'));
+            + 'se srovná, ne jen odváží dolů. '
+            + 'Bias se přitom drží ZVLÁŠŤ PRO ČTYŘI ČÁSTI DNE (noc, ráno, den, večer): modely mívají v noci '
+            + 'teplotu vysoko a v odpolední špičce nízko, a jedno číslo za celý den by ty dvě chyby zprůměrovalo '
+            + 'na nulu. Dokud je v části dne měření málo, přimíchává se k ní celkový bias, aby korekcí '
+            + 'neskákal šum. Denní maximum se srovnává biasem odpoledne, minimum biasem noci.'));
         var cvN = 0;
         try { cvN = loadSkill().chmiVerified || 0; } catch (e) { cvN = 0; }
         if (cvN) {
@@ -2812,6 +3147,13 @@
             if (ms.hum != null) mMore.push('vlhkost ' + nf(Math.round(ms.hum), 0) + ' %');
             if (ms.wind != null) mMore.push('vítr ' + nf(ms.wind, 1) + ' m/s');
             if (mMore.length) dm.appendChild(el('div', 'wx-tile-sub', mMore.join(' · ')));
+            // víc stanic (návrh ②) — ať je vidět, že do odhadu nejde jen ta nejbližší
+            if (ms.multiN > 1 && ms.multiNames && ms.multiNames.length) {
+                dm.appendChild(el('div', 'wx-tile-sub',
+                    'Do celkového odhadu jde vážená směs ' + ms.multiN + ' stanic přepočtená na tvou výšku: '
+                    + ms.multiNames.join(', ') + '. Blíž = větší váha; velký výškový rozdíl váhu snižuje. '
+                    + 'Číslo nahoře je ale pořád surové měření té nejbližší, ne směs.'));
+            }
             // když je stanice v jiné výšce než bod, ať je vidět i přepočet
             if (ms.raw != null && ms.temp != null && Math.abs(ms.temp - ms.raw) >= 0.15 && data.elevReal != null) {
                 dm.appendChild(el('div', 'wx-tile-sub',
@@ -2903,6 +3245,20 @@
         // Nahoře zůstává jen „±X °C" a jednoslovný verdikt; výšková korekce a trefnost
         // modelů jsou informace na jedno přečtení, ne na každý den → do rozkliknutí.
         var dq = detail(tq, 'shoda', 'Jak se to počítá');
+        // ukotvení na měření (návrh ①) — je to zásah do čísel, musí být dohledatelný
+        if (data.anchor && data.anchor.dt != null) {
+            var a = data.anchor;
+            dq.appendChild(el('div', 'wx-tile-sub',
+                'Nejbližší hodiny jsou ukotvené na měření: v době posledního odečtu'
+                + (a.ageMin != null ? ' (před ' + nf(a.ageMin, 0) + ' min)' : '')
+                + ' se modely proti '
+                + (a.multiN > 1 ? (a.multiN + ' stanicím ČHMÚ') : ('stanici ' + a.station))
+                + ' mýlily o ' + (a.dt > 0 ? '+' : '−') + nf(Math.abs(a.dt), 1)
+                + ' °C. O tolik se hodinová předpověď posouvá a rozdíl doznívá do '
+                + a.hours + ' h — na teď z něj zbývá ' + (a.now > 0 ? '+' : '−') + nf(Math.abs(a.now), 1)
+                + ' °C. Chyba předpovědi se v čase mění pomalu, takže „teď je to jinak" platí i za '
+                + 'hodinu — ale ne zítra, proto se posun nedrží.'));
+        }
         // výšková korekce — ať je vidět, že se s čísly něco stalo, a proč
         if (data.elevReal != null && data.lapseDT != null && Math.abs(data.lapseDT) >= 0.1) {
             dq.appendChild(el('div', 'wx-tile-sub',
@@ -2987,11 +3343,21 @@
             );
         // ČHMÚ jen v Česku a jen když je známá adresa workeru
         var cu = inCz(pos.lat, pos.lon) ? chmiUrl(pos.lat, pos.lon) : null;
+        // Vedle nejbližší stanice se ptáme i na čtyři posunuté body (návrh ②) — sousedi
+        // smí selhat samostatně, pak se prostě počítá jako dřív z jediné stanice.
         var pChmi = cu
-            ? fetchJson(cu, FETCH_MS).then(
-                function (j) { var s = parseChmi(j); return s ? [s] : []; },
-                function () { return []; }   // route na workeru chybí / offline → tiše dál
-            )
+            ? Promise.all([
+                fetchJson(cu, FETCH_MS).then(
+                    function (j) { return parseChmi(j); },
+                    function () { return null; }   // route na workeru chybí / offline → tiše dál
+                ),
+                chmiNeighbours(pos.lat, pos.lon).then(null, function () { return []; })
+            ]).then(function (rr) {
+                var s = rr[0];
+                if (!s) return [];
+                try { mergeStations(s, rr[1]); } catch (e) {}
+                return [s];
+            })
             : Promise.resolve([]);
         // skutečná výška bodu z DMR 5G (ČÚZK) — kvůli výškové korekci teplot.
         // Modul dmr-terrain.js nemusí být načtený (odpojitelná vrstva) → pak prostě null.
