@@ -37,7 +37,7 @@ class NavigaceView extends WatchUi.View {
         }
     }
 
-    function tik() {
+    function tik() as Void {
         WatchUi.requestUpdate();
     }
 

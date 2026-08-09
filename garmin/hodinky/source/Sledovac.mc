@@ -40,7 +40,9 @@ class Sledovac {
         Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPozice));
     }
 
-    function onPozice(info) {
+    //! Typ parametru i `as Void` jsou povinné — enableLocationEvents přijímá
+    //! jedině metodu s přesně tímhle podpisem.
+    function onPozice(info as Position.Info) as Void {
         if (info == null || info.position == null) { return; }
 
         var d = info.position.toDegrees();

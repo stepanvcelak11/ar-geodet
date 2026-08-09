@@ -47,7 +47,7 @@ class NovyBodView extends WatchUi.View {
         }
     }
 
-    function tik() {
+    function tik() as Void {
         if (_faze != 0) { return; }
 
         var s = $.sledovac;

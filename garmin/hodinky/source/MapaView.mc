@@ -45,7 +45,9 @@ class MapaView extends WatchUi.View {
         }
     }
 
-    function tik() {
+    //! `as Void` tu být musí — Timer.start chce metodu, o které je jisté,
+    //! že nic nevrací, a bez anotace ji překladač bere jako Any.
+    function tik() as Void {
         WatchUi.requestUpdate();
     }
 
