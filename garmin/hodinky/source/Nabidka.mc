@@ -29,10 +29,8 @@ module Nabidka {
                             : "nespárováno — ukáže kód do mobilu",
                         :sync, {}));
         menu.addItem(new WatchUi.MenuItem("Legenda", "co která barva znamená", :legenda, {}));
-        menu.addItem(new WatchUi.MenuItem("Body v paměti",
-                        Body.pocet().toString() + " · další číslo " + Body.dalsiCislo(), :info, {}));
-        menu.addItem(new WatchUi.MenuItem("Zkouška QR", "přečte to mobil z displeje?", :qr, {}));
-        menu.addItem(new WatchUi.MenuItem("Ukázkové body", "pro zkoušení v simulátoru", :ukazka, {}));
+        menu.addItem(new WatchUi.MenuItem("Číslování bodů",
+                        Body.pocet().toString() + " bodů · příští " + Body.dalsiCislo(), :cislo, {}));
         menu.addItem(new WatchUi.MenuItem("Smazat všechny body", "nelze vzít zpět", :smazat, {}));
 
         WatchUi.pushView(menu, new NabidkaDelegate(), WatchUi.SLIDE_UP);
@@ -92,21 +90,12 @@ class NabidkaDelegate extends WatchUi.Menu2InputDelegate {
                 item.setSubLabel($.cloud.stav);
             }
 
+        } else if (id == :cislo) {
+            var cv = new CisloView();
+            WatchUi.pushView(cv, new CisloDelegate(cv), WatchUi.SLIDE_UP);
+
         } else if (id == :legenda) {
             WatchUi.pushView(new LegendaView(), new LegendaDelegate(), WatchUi.SLIDE_UP);
-
-        } else if (id == :qr) {
-            var qv = new QrZkouskaView();
-            WatchUi.pushView(qv, new QrZkouskaDelegate(qv), WatchUi.SLIDE_UP);
-
-        } else if (id == :ukazka) {
-            var s = $.sledovac;
-            if (s != null && s.lat != null) {
-                Body.ukazkove(s.lat, s.lon);
-                item.setSubLabel("založeno · " + Body.pocet().toString() + " bodů");
-            } else {
-                item.setSubLabel("nejde bez polohy");
-            }
 
         } else if (id == :smazat) {
             // Druhý stisk potvrzuje — plnohodnotný dialog by tu byl přes

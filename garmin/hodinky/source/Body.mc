@@ -181,21 +181,4 @@ module Body {
         return prichozi.size();
     }
 
-    // ---- ukázková data pro simulátor ---------------------------------
-
-    //! Rozsype pár bodů kolem zadané polohy, aby bylo co zkoušet
-    //! v simulátoru, kde se žádné body nezaloží. Ostrý provoz to nepotřebuje.
-    function ukazkove(lat, lon) {
-        var rozmisteni = [
-            [  12.0,   8.0], [ -35.0,  20.0], [  60.0, -45.0],
-            [-110.0, -30.0], [  90.0, 130.0], [ 210.0,  40.0],
-            [ -70.0, 190.0], [ 330.0, -80.0], [-260.0, 150.0],
-            [ 150.0, 320.0]
-        ];
-        var kody = ["roh", "sloup", "šachta", "hranice", "strom"];
-        for (var i = 0; i < rozmisteni.size(); i++) {
-            var g = Geo.zMetru(lat, lon, rozmisteni[i][0], rozmisteni[i][1]);
-            pridej(g[0], g[1], 300.0, 1.5, 30, 1, kody[i % kody.size()]);
-        }
-    }
 }

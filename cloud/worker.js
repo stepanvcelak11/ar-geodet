@@ -224,6 +224,30 @@ async function ensureWatchTables(env) {
     _watchReady = true;
 }
 
+// Dlaždice podkladu pro hodinky.
+//
+// ⚠ SERVER JE POUZE SKLAD, NIC NEPOČÍTÁ. Free plán dává 10 ms procesoru na
+// požadavek a rozebrat skoro dvoumegovou odpověď z OpenStreetMap a zjednodušit
+// ji by ten strop rozmetalo. Dlaždice proto vyrábí MOBIL (js/hodinky-dlazdice.js)
+// a sem je jen ukládá; hodinky si je pak stahují.
+//
+// Klíč dlaždice = kotva zaokrouhlená na 0,005° (v ČR asi 560 × 360 m). Dlaždice
+// pokrývá poloměr 450 m kolem kotvy, takže sousedi se překrývají a na hranici
+// mezi nimi nevznikne díra.
+const TILE_KROK = 0.005;
+function tileKlic(lat, lon) {
+    return Math.round(lat / TILE_KROK) + '_' + Math.round(lon / TILE_KROK);
+}
+
+let _tilesReady = false;
+async function ensureTileTable(env) {
+    if (_tilesReady) return;
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS watch_tiles (' +
+        'firm_id TEXT NOT NULL, k TEXT NOT NULL, data TEXT NOT NULL, ts INTEGER NOT NULL, ' +
+        'PRIMARY KEY (firm_id, k))').run();
+    _tilesReady = true;
+}
+
 function watchKod() {
     // bez O/0 a I/1/L — kód se opisuje z malého displeje
     const ABC = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -1128,6 +1152,43 @@ export default {
                 await env.DB.prepare('UPDATE watch_pending SET firm_id=?, user_id=?, job_key=? WHERE code=?')
                     .bind(me.firm_id, me.id, job, kod).run();
                 return json({ ok: true, job: job });
+            }
+
+            // POST /watch/tiles {tiles:[{k, a:[lat,lon], r, p:[…], l:[…]}]} — mobil
+            //   nahraje hotové dlaždice; GET /watch/tile?lat&lon — hodinky si
+            //   vyzvednou tu, ve které stojí
+            if (req.method === 'POST' && path === '/watch/tiles') {
+                await ensureTileTable(env);
+                const b = await req.json().catch(() => null);
+                if (!b || !Array.isArray(b.tiles)) return err(400, 'Chybí tiles[].');
+                const now = Date.now();
+                const list = b.tiles.slice(0, 25).filter(t => t && typeof t.k === 'string' && t.k.length <= 32);
+                if (!list.length) return json({ ok: true, saved: 0 });
+
+                const stmt = env.DB.prepare(
+                    'INSERT INTO watch_tiles(firm_id,k,data,ts) VALUES(?,?,?,?) ' +
+                    'ON CONFLICT(firm_id,k) DO UPDATE SET data=excluded.data, ts=excluded.ts');
+                await env.DB.batch(list.map(t => {
+                    // ořez je pojistka proti nafouklé dlaždici — hodinky mají
+                    // paměť v řádu stovek kB a víc by stejně neustály
+                    const d = JSON.stringify({ a: t.a, r: t.r || 450, p: t.p || [], l: t.l || [] }).slice(0, 60000);
+                    return stmt.bind(me.firm_id, t.k, d, now);
+                }));
+                return json({ ok: true, saved: list.length });
+            }
+
+            if (req.method === 'GET' && path === '/watch/tile') {
+                await ensureTileTable(env);
+                const lat = parseFloat(url.searchParams.get('lat'));
+                const lon = parseFloat(url.searchParams.get('lon'));
+                if (!isFinite(lat) || !isFinite(lon)) return err(400, 'Chybí lat/lon.');
+                const k = tileKlic(lat, lon);
+                const row = await env.DB.prepare('SELECT data FROM watch_tiles WHERE firm_id=? AND k=?')
+                    .bind(me.firm_id, k).first();
+                if (!row) return err(404, 'Pro tohle místo není připravená mapa.');
+                return new Response('{"k":"' + k + '","t":' + row.data + '}', {
+                    headers: Object.assign({ 'Content-Type': 'application/json;charset=utf-8' }, CORS)
+                });
             }
 
             if (path === '/watch/points' && (req.method === 'GET' || req.method === 'POST')) {
