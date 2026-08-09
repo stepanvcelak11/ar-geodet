@@ -13,8 +13,12 @@
 //    od středu ven úměrně posunu prstu, takže je vidět i pomalý pohyb. Je to
 //    opravdu jen kříž — čtyři rysky a bod, žádný kroužek.
 //  • ZVEDNUTÍ PRSTU na nástroji ho otevře HNED, čekat na načtení není povinné.
-//  • „ZPĚT" je položka v kruhu KOLMO DOLŮ. Aby vyšla přesně na 180°, musí být
-//    počet směrů sudý → u sudého počtu nástrojů zbude jeden směr prázdný.
+//  • „ZPĚT" je položka v kruhu DOLE. Vyjde přesně na 180° při sudém počtu položek;
+//    u lichého je o půl výseče vedle. PRÁZDNÉ SMĚRY SE UŽ NENECHÁVAJÍ — dělaly
+//    v květu díru („ať je to furt kytka, kolem dokola").
+//  • KVĚT (9. 8. 2026): kruh je kytka. Každá položka je lístek, nápis leží natočený
+//    v něm, uprostřed je malý květ s názvem toho, na co se míří. Po otevření se
+//    poupě rozvine lístek po lístku (~0,8 s) a vybraný lístek se rozevře.
 //  • RUŠENÍ POSUNEM PRSTU NEEXISTUJE (uživatel: „překáží"). Ruší jen zvednutí
 //    prstu mimo položku.
 //  • ČTECÍ ZÓNA za PARK px: přestane se vybírat, kříž zešedne a odjede dál,
@@ -149,28 +153,29 @@
             'body.ag-kn-open #info,body.ag-kn-open #compass-debug,body.ag-kn-open #map-controls,',
             'body.ag-kn-open #ag-stack{opacity:0 !important;transition:opacity .16s ease;}',
             '#' + WRAP_ID + ' .kn-ring{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);',
-            '  width:var(--knd,300px);height:var(--knd,300px);border-radius:50%;}',
-            '#' + WRAP_ID + ' .kn-plate{position:absolute;inset:0;border-radius:50%;',
-            '  background:radial-gradient(circle at 50% 50%,rgba(23,27,32,0.92) 44%,rgba(16,20,25,0.86) 74%,rgba(16,20,25,0) 76%);',
-            '  border:1px solid var(--glass-border,rgba(255,255,255,0.12));}',
-            '#' + WRAP_ID + ' .kn-track{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);',
-            '  border-radius:50%;border:1px dashed rgba(255,255,255,0.10);}',
-            '#' + WRAP_ID + ' .kn-seg{position:absolute;left:50%;top:50%;width:var(--knw,72px);',
-            '  margin-left:calc(var(--knw,72px) / -2);margin-top:-17px;text-align:center;',
-            '  font:600 calc(10.5px * var(--knfs,1))/1.16 var(--font-ui,system-ui),sans-serif;',
-            '  color:var(--text-muted,#9aa1ac);padding:4px 3px;border-radius:9px;pointer-events:none;',
-            '  text-shadow:0 1px 3px rgba(6,9,12,0.95);}',
-            '#' + WRAP_ID + ' .kn-seg.hot{color:#06120d;z-index:3;text-shadow:none;box-shadow:0 3px 12px rgba(0,0,0,0.5);',
-            '  background:linear-gradient(90deg,var(--accent-bright,#3fbc8c) calc(var(--p,0) * 100%),rgba(63,188,140,0.30) 0);}',
-            '#' + WRAP_ID + '.lvl2 .kn-seg.hot{color:#231603;',
-            '  background:linear-gradient(90deg,var(--data,#e6bd76) calc(var(--p,0) * 100%),rgba(230,189,118,0.30) 0);}',
+            '  width:var(--knd,300px);height:var(--knd,300px);}',
+            // KVĚT: lístky se kreslí v SVG, popisky jsou HTML nad ním (kvůli písmu appky)
+            '#' + WRAP_ID + ' .kn-gfx{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);',
+            '  overflow:visible;pointer-events:none;}',
+            '#' + WRAP_ID + ' .kn-gfx path{transition:none;}',
+            // ⚠ POPISEK JE ÚZKÝ A NATOČENÝ. Vodorovný text v šikmém lístku vyčnívá rohy,
+            // ať je jakkoli úzký — proto se otáčí do osy lístku (rotaci dopočítá build()).
+            // Šířka drží pod šířkou lístku v jeho nejširším místě, viz PETAL_W níž.
+            '#' + WRAP_ID + ' .kn-seg{position:absolute;left:50%;top:50%;width:var(--knw,48px);',
+            '  margin-left:calc(var(--knw,48px) / -2);margin-top:-14px;text-align:center;',
+            '  font:600 calc(8.5px * var(--knfs,1))/1.12 var(--font-ui,system-ui),sans-serif;',
+            '  letter-spacing:-0.01em;color:#cdd5e0;pointer-events:none;overflow-wrap:anywhere;',
+            '  text-shadow:0 1px 3px rgba(6,9,12,0.95);transition:color .12s ease;}',
+            '#' + WRAP_ID + ' .kn-seg.hot{color:#fff;font-weight:700;text-shadow:none;z-index:3;}',
             '#' + WRAP_ID + ' .kn-seg.back{font-style:italic;}',
-            '#' + WRAP_ID + ' .kn-seg.back.hot{color:#0d1117;font-style:normal;',
-            '  background:linear-gradient(90deg,#8b98a3 calc(var(--p,0) * 100%),rgba(139,152,163,0.28) 0);}',
             // záměrný kříž + prstenec odpočtu kolem něj
+            // ⚠ KŘÍŽ JE VIDĚT POŘÁD (na přání). Ve středu ale leží přes nápis, tak je
+            // tam ztlumený na polovinu — pořád je vidět a text pod ním se dá přečíst.
+            // Jakmile se začne mířit, dostane plnou sílu.
             '#' + WRAP_ID + ' .kn-ret{position:absolute;left:50%;top:50%;margin:-28px 0 0 -28px;width:56px;height:56px;',
             '  pointer-events:none;z-index:4;opacity:0;transition:opacity .12s;}',
-            '#' + WRAP_ID + ' .kn-ret.on{opacity:1;}',
+            '#' + WRAP_ID + ' .kn-ret.on{opacity:0.5;}',
+            '#' + WRAP_ID + '.aiming .kn-ret.on{opacity:1;}',
             '#' + WRAP_ID + ' .kn-ret svg{width:100%;height:100%;overflow:visible;}',
             '#' + WRAP_ID + ' .kn-ret .l{fill:none;stroke:var(--accent-bright,#3fbc8c);stroke-width:1.8;stroke-linecap:round;',
             '  filter:drop-shadow(0 0 5px rgba(63,188,140,0.9));}',
@@ -182,17 +187,19 @@
             '#' + WRAP_ID + '.lvl2 .kn-ret .p{stroke:var(--data,#e6bd76);}',
             '#' + WRAP_ID + ' .kn-ret.read .l{stroke:var(--text-muted,#9aa1ac);filter:none;}',
             '#' + WRAP_ID + ' .kn-ret.read .m{fill:var(--text-muted,#9aa1ac);}',
-            // střed
-            // Střed je posunutý DOLŮ o 30 px: kříž v klidu stojí přesně na středu kruhu
-            // a text „zamiř prstem" by ležel pod ním. Jakmile se míří, hub stejně mizí.
-            '#' + WRAP_ID + ' .kn-hub{position:absolute;left:50%;top:50%;transform:translate(-50%,calc(-50% + 30px));',
-            '  width:var(--knh,92px);text-align:center;pointer-events:none;z-index:2;transition:opacity .13s ease;}',
-            '#' + WRAP_ID + '.aiming .kn-hub{opacity:0;}',
-            '#' + WRAP_ID + ' .kn-hub .c{font:700 9.5px/1 var(--font-mono,ui-monospace,monospace);',
-            '  letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
-            '#' + WRAP_ID + ' .kn-hub .n{font:650 calc(12.5px * var(--knfs,1))/1.25 var(--font-display,system-ui),sans-serif;',
-            '  margin-top:6px;color:var(--text-color,#e6e8eb);}',
-            '#' + WRAP_ID + ' .kn-hub.idle .n{color:var(--text-muted,#9aa1ac);font-weight:500;font-size:11px;}',
+            // STŘED: malý květ a nápis UVNITŘ něj, přesně na středu kytky.
+            // ⚠ text-indent dorovnává letter-spacing — to přidá mezeru i ZA poslední
+            // písmeno a centrovaný nápis se opticky sesune doleva.
+            '#' + WRAP_ID + ' .kn-hub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);',
+            '  width:var(--knh,104px);text-align:center;pointer-events:none;z-index:2;}',
+            '#' + WRAP_ID + ' .kn-bud{position:absolute;left:50%;top:50%;width:104px;height:104px;',
+            '  margin:-52px 0 0 -52px;z-index:-1;overflow:visible;}',
+            '#' + WRAP_ID + ' .kn-hub .c{font:700 8px/1 var(--font-mono,ui-monospace,monospace);',
+            '  letter-spacing:.1em;text-indent:.1em;text-transform:uppercase;color:#8a94a1;}',
+            '#' + WRAP_ID + ' .kn-hub .n{font:650 calc(12px * var(--knfs,1))/1.2 var(--font-display,system-ui),sans-serif;',
+            '  margin-top:4px;color:var(--text-color,#e6e8eb);}',
+            '#' + WRAP_ID + ' .kn-hub.idle .n{color:var(--text-muted,#9aa1ac);font-weight:500;',
+            '  font-size:calc(10.5px * var(--knfs,1));}',
             '#' + WRAP_ID + ' .kn-crumb{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 26px);',
             '  text-align:center;font:600 11px/1 var(--font-mono,ui-monospace,monospace);letter-spacing:.1em;',
             '  text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
@@ -226,9 +233,10 @@
             '<div class="kn-veil"></div>' +
             '<p class="kn-crumb"></p>' +
             '<div class="kn-ring">' +
-            '  <div class="kn-plate"></div>' +
-            '  <div class="kn-track"></div>' +
-            '  <div class="kn-hub idle"><div class="c">Vyber</div><div class="n">zamiř prstem</div></div>' +
+            '  <svg class="kn-gfx" aria-hidden="true"></svg>' +
+            '  <div class="kn-hub idle">' +
+            '    <svg class="kn-bud" viewBox="-54 -54 108 108" aria-hidden="true"></svg>' +
+            '    <div class="c">Vyber</div><div class="n">zamiř prstem</div></div>' +
             '  <div class="kn-ret"><svg viewBox="0 0 56 56">' +
             '    <circle class="p" cx="28" cy="28" r="20"/>' +
             '    <path class="l" d="M28 21V10M28 35V46M21 28H10M35 28H46"/>' +
@@ -250,39 +258,55 @@
         return wrap;
     }
 
-    // Rozvržení směrů. „Zpět" musí vyjít KOLMO DOLŮ, což jde jen při sudém počtu
-    // směrů — u sudého počtu nástrojů proto zůstane jeden směr prázdný a udělá
-    // kolem „Zpět" mezeru (a hůř se do něj trefí omylem).
+    // Rozvržení směrů. „Zpět" má vyjít KOLMO DOLŮ, což platí, když je celkový počet
+    // sudý (pak leží přesně na indexu total/2).
+    // ⚠ ŽÁDNÉ PRÁZDNÉ SMĚRY. Dřív se u sudého počtu nástrojů nechával jeden směr
+    // prázdný, aby „Zpět" vyšlo přesně dolů. S květem to ale znamenalo díru v kytce
+    // („ať je to furt kytka, kolem dokola") — teď se položky rozprostřou rovnoměrně
+    // a při lichém celkovém počtu je „Zpět" o půl výseče vedle svislice. To je menší
+    // zlo než chybějící lístek.
     function layout(items, withBack) {
         if (!withBack) return items.slice();
-        var n = items.length;
-        var total = (n % 2 === 1) ? n + 1 : n + 2;
-        var back = total / 2;
-        var arr = new Array(total);
-        for (var i = 0; i < total; i++) arr[i] = null;
-        arr[back] = BACK;
-        var k = 0;
-        for (var s = 0; s < total; s++) {
-            if (s === back) continue;
-            if (k < n) arr[s] = items[k++];
-        }
+        var arr = items.slice();
+        arr.splice(Math.round(arr.length / 2), 0, BACK);
         return arr;
     }
 
+    // ---- TVAR LÍSTKU ----------------------------------------------------------
+    // ⚠ BÉZIER NIKDY NEDOSÁHNE SVÝCH ŘÍDICÍCH BODŮ: lístek je v nejširším místě jen
+    // ~1,3 × `w`, ne 2 ×. Když se to plete, nápis z lístku čouhá — přesně tak to
+    // vypadalo v prvním nasazení návrhu. Šířku popisku proto počítáme z 1,3 × w.
+    var PETAL_W = 46;          // parametr šířky (skutečná šířka ≈ 1,3 × tolik)
+    var BLOOM = 480, STAGGER = 34;   // rozvíjení poupěte: každý lístek 480 ms, po sobě
+    function petal(rin, rout, w) {
+        var L = rout - rin;
+        return 'M0 ' + (-rin).toFixed(1)
+            + ' C' + (-w).toFixed(1) + ' ' + (-rin - L * 0.34).toFixed(1)
+            + ' ' + (-w * 0.72).toFixed(1) + ' ' + (-rin - L * 0.84).toFixed(1)
+            + ' 0 ' + (-rout).toFixed(1)
+            + ' C' + (w * 0.72).toFixed(1) + ' ' + (-rin - L * 0.84).toFixed(1)
+            + ' ' + w.toFixed(1) + ' ' + (-rin - L * 0.34).toFixed(1)
+            + ' 0 ' + (-rin).toFixed(1) + ' Z';
+    }
+    function svgEl(name, attrs) {
+        var e = document.createElementNS('http://www.w3.org/2000/svg', name);
+        for (var k in attrs) if (Object.prototype.hasOwnProperty.call(attrs, k)) e.setAttribute(k, attrs[k]);
+        return e;
+    }
+
+    var petals = [], grow = [], IN = 0, OUT = 0, bloomFrom = 0;
+
     function build(items, lvl) {
         ring.querySelectorAll('.kn-seg').forEach(function (e) { e.remove(); });
-        segs = [];
+        segs = []; petals = []; grow = [];
         slots = layout(items, lvl === 2);
         var n = slots.length;
-        var w = Math.min(window.innerWidth, window.innerHeight * 0.72);
         var d = Math.max(220, Math.min(300, window.innerWidth - 62));
         var R = d / 2 - 66;
         var tight = (window.innerWidth < 400);
         ring.style.setProperty('--knd', d + 'px');
-        // Šířka štítků MUSÍ růst s velikostí písma a s režimem rukavic — písmo je
-        // `calc(10.5px * var(--ag-font-scale))`, takže při zvětšeném textu by se do
-        // pevných 64 px nevešlo a sousedi by se překryli. Odsazení druhého kruhu
-        // roste se štítky, jinak by se potkaly řady mezi sebou.
+        // Popisky rostou s velikostí písma a s rukavicemi, ale kruh se zvětšit NEMŮŽE
+        // (průměr je daný šířkou displeje). Kolečko má proto vlastní měřítko se stropem.
         var fs = 1;
         try {
             fs = parseFloat(getComputedStyle(document.documentElement)
@@ -290,40 +314,94 @@
         } catch (e) {}
         if (document.body.classList.contains('ag-glove')) fs = Math.max(fs, 1.15);
         fs = Math.max(1, Math.min(1.6, fs));
-        // ⚠ Kruh se ale ZVĚTŠIT NEMŮŽE — jeho průměr je daný šířkou displeje. Kdyby
-        // štítky rostly 1:1 s globálním písmem, na 140 % by se do stejného kruhu
-        // nevešly a překryly by se (naměřeno). Kolečko má proto VLASTNÍ měřítko
-        // se stropem: text povyroste, ale rozvržení drží. Kdo chce velké písmo,
-        // má ho v celé appce; tady jde o hustou překryvnou vrstvu na chvíli.
         var kfs = Math.min(fs, 1.15);
         wrap.style.setProperty('--knfs', kfs);
-        var base = tight ? (lvl === 1 ? 52 : 54) : (lvl === 1 ? 64 : 68);
-        // Čím víc směrů, tím kratší oblouk mezi nimi. Při devíti nástrojích a
-        // zvětšeném písmu se sousedi dotýkali o 3–6 px (naměřeno), tak se štítky
-        // v téhle kombinaci ještě zúží.
-        if (n >= 9 && kfs > 1) base -= 10;
-        ring.style.setProperty('--knw', Math.round(base * kfs) + 'px');
-        hub.style.setProperty('--knh', Math.round((tight ? 76 : 92) * kfs) + 'px');
+        hub.style.setProperty('--knh', Math.round(104 * kfs) + 'px');
+
         var stag = Math.round((tight ? 42 : 38) * kfs);
         step = Math.PI * 2 / n;
         Rret = R + stag + 24;
-        ring.querySelector('.kn-track').style.width = ring.querySelector('.kn-track').style.height = (Rret * 2) + 'px';
+        IN = Math.round(52 * kfs);
+        OUT = R + stag + 26;
+        // Popisek musí zůstat pod skutečnou šířkou lístku (1,3 × w) i po odečtu vzduchu.
+        var pw = PETAL_W * Math.min(1, (2 * Math.PI * (IN + (OUT - IN) * 0.47) / n) / 68);
+        ring.style.setProperty('--knw', Math.round(Math.min(48 * kfs, pw * 1.3 - 12)) + 'px');
+
+        var gfx = ring.querySelector('.kn-gfx');
+        while (gfx.firstChild) gfx.removeChild(gfx.firstChild);
+        gfx.setAttribute('width', d); gfx.setAttribute('height', d);
+        gfx.setAttribute('viewBox', (-d / 2) + ' ' + (-d / 2) + ' ' + d + ' ' + d);
+
         for (var i = 0; i < n; i++) {
-            if (!slots[i]) { segs.push(null); continue; }
-            var a = i * step;
-            // U LICHÉHO počtu se na švu potkají poslední a první položka a obě by
-            // podle i%2 seděly na vnitřním kruhu — poslední se proto vysune ven vždy.
-            var outer = (n > 5) && (i % 2 === 1 || (n % 2 === 1 && i === n - 1));
-            var rr = R + (outer ? stag : 0);
+            grow.push(0);
+            var p = svgEl('path', { d: '', fill: 'rgba(255,255,255,0.085)',
+                stroke: 'rgba(255,255,255,0.22)', 'stroke-width': 1,
+                transform: 'rotate(' + (i * step * 180 / Math.PI).toFixed(2) + ')' });
+            gfx.appendChild(p);
+            petals.push(p);
+
             var el = document.createElement('div');
             el.className = 'kn-seg' + (slots[i].back ? ' back' : '');
-            el.style.transform = 'translate(' + (Math.sin(a) * rr).toFixed(1) + 'px,'
-                + (-Math.cos(a) * rr).toFixed(1) + 'px)';
-            el.textContent = slots[i].back ? slots[i].l : (slots[i].t || SHORT[slots[i].k] || slots[i].l);
+            var txt = slots[i].back ? slots[i].l : (slots[i].t || SHORT[slots[i].k] || slots[i].l);
+            el.textContent = txt;
+            // ⚠ Dlouhé JEDNO slovo („Zaznamenat") se jinak zlomí uprostřed — radši mu
+            // ubereme na velikosti, než aby se rozseklo.
+            var nej = 0;
+            txt.split(/\s+/).forEach(function (wd) { if (wd.length > nej) nej = wd.length; });
+            if (nej > 9) el.style.fontSize = 'calc(6.8px * var(--knfs,1))';
+            else if (nej > 8) el.style.fontSize = 'calc(8px * var(--knfs,1))';
+            // natočení do osy lístku; v dolní polovině překlopit, ať se to nečte vzhůru nohama
+            var deg = i * step * 180 / Math.PI;
+            if (deg > 90 && deg < 270) deg -= 180;
+            var rr = IN + (OUT - IN) * 0.47;
+            el.style.transform = 'translate(' + (Math.sin(i * step) * rr).toFixed(1) + 'px,'
+                + (-Math.cos(i * step) * rr).toFixed(1) + 'px) rotate(' + deg.toFixed(1) + 'deg)';
             ring.appendChild(el);
             segs.push(el);
         }
+        buildBud();
         wrap.classList.toggle('lvl2', lvl === 2);
+        paintPetals();
+    }
+
+    // Malý květ ve středu — kreslí se jednou, je to jen podklad nápisu.
+    function buildBud() {
+        var bud = wrap.querySelector('.kn-bud');
+        if (!bud || bud.firstChild) return;
+        for (var i = 0; i < 6; i++) {
+            bud.appendChild(svgEl('path', { d: petal(9, 47, 17), fill: 'rgba(255,255,255,0.055)',
+                stroke: 'rgba(255,255,255,0.17)', 'stroke-width': 1,
+                transform: 'rotate(' + (i * 60 + 30) + ')' }));
+        }
+        bud.appendChild(svgEl('circle', { cx: 0, cy: 0, r: 8, fill: 'rgba(255,255,255,0.055)',
+            stroke: 'rgba(255,255,255,0.20)', 'stroke-width': 1 }));
+    }
+
+    // Překreslení lístků: rozvíjení poupěte (po lístcích) + roztažení vybraného.
+    // ⚠ Roztažení se LERPUJE k cíli, ne přepíná skokem — jinak by lístek cukal.
+    function paintPetals() {
+        if (!petals.length) return;
+        var t = Date.now();
+        var lvl2 = wrap.classList.contains('lvl2');
+        var A = lvl2 ? '#e6bd76' : '#3fbc8c';
+        var soft = lvl2 ? 'rgba(230,189,118,0.22)' : 'rgba(63,188,140,0.20)';
+        for (var j = 0; j < petals.length; j++) {
+            var bl = 1;
+            if (bloomFrom) bl = Math.max(0, Math.min(1, (t - bloomFrom - j * STAGGER) / BLOOM));
+            bl = bl * bl * (3 - 2 * bl);
+            var want = (j === lastHot) ? 1 : 0;
+            grow[j] += (want - grow[j]) * 0.28;
+            if (Math.abs(grow[j] - want) < 0.004) grow[j] = want;
+            var g = grow[j], act = (j === lastHot);
+            var rin = IN - g * 8;
+            var ro = IN + (OUT - IN) * (0.34 + 0.66 * bl) + g * 12;
+            var w = (PETAL_W + g * 12) * (0.42 + 0.58 * bl);
+            petals[j].setAttribute('d', petal(rin, ro, w));
+            petals[j].setAttribute('fill', act ? soft : 'rgba(255,255,255,0.085)');
+            petals[j].setAttribute('stroke', act ? A : 'rgba(255,255,255,0.22)');
+            petals[j].setAttribute('stroke-width', act ? 1.5 : 1);
+            if (segs[j]) segs[j].style.opacity = bl.toFixed(2);
+        }
     }
 
     // ---- ZESÍLENÍ U OKRAJE (návrh N2, vybráno 9. 8. 2026) ---------------------
@@ -420,14 +498,14 @@
         tip.style.display = 'none';
     }
 
+    // Odpočet kreslí PRSTENEC KOLEM KŘÍŽE. Do lístku se už nekreslí nic (dřív jím
+    // zleva doprava natékal gradient) — lístek na výběr reaguje roztažením.
     function setProgress(p) {
         arc.style.strokeDasharray = arcLen;
         arc.style.strokeDashoffset = arcLen * (1 - p);
         arc.style.opacity = p > 0 ? '' : '0';
-        if (dwellIdx >= 0 && segs[dwellIdx]) segs[dwellIdx].style.setProperty('--p', p.toFixed(3));
     }
     function resetDwell(i) {
-        if (dwellIdx >= 0 && segs[dwellIdx]) segs[dwellIdx].style.removeProperty('--p');
         dwellIdx = i;
         // Po přepnutí kruhu (reanchor) se odpočet rozjede až po GRACE ms — viz reanchor().
         dwellFrom = (i >= 0) ? Math.max(Date.now(), (st && st.graceTo) || 0) : 0;
@@ -436,6 +514,10 @@
     function tick() {
         raf = 0;
         if (!st) return;
+        // ⚠ Lístky se překreslují KAŽDÝ SNÍMEK, i když není nic vybráno — jinak by
+        //   roztažený lístek zůstal viset ve chvíli, kdy z něj prst sjede pryč,
+        //   a poupě by se nedorozvinulo, když člověk drží prst na místě.
+        paintPetals();
         if (dwellIdx >= 0) {
             var p = Math.max(0, Math.min(1, (Date.now() - dwellFrom) / DWELL));
             setProgress(p);
@@ -456,6 +538,7 @@
     function openLevel2(gi) {
         st.level = 2; st.group = gi;
         reanchor();
+        bloomFrom = Date.now();      // druhý kruh se rozvine stejně jako první
         build(st.groups[gi].items, 2);
         crumb.innerHTML = 'Nástroje <b>› ' + esc(st.groups[gi].full || st.groups[gi].t) + '</b>';
         setHub('Vyber nástroj', 'zamiř prstem', true);
@@ -467,6 +550,7 @@
     function backToLevel1() {
         st.level = 1; st.group = -1;
         reanchor();
+        bloomFrom = Date.now();
         build(st.groups, 1);
         crumb.textContent = 'Nástroje';
         setHub('Vyber skupinu', 'zamiř prstem', true);
@@ -500,6 +584,7 @@
         st = { ox: x, oy: y, px: x, py: y, level: 1, group: -1, moved: false, groups: g,
                graceTo: 0, gr: 1, gl: 1, gu: 1, gd: 1 };
         measureGain();
+        bloomFrom = Date.now();
         build(g, 1);
         crumb.textContent = 'Nástroje';
         tip.style.display = '';
@@ -511,6 +596,11 @@
         wrap.classList.add('on');
         document.body.classList.add('ag-kn-open');
         paintRet(0, 0, false);
+        // ⚠ SMYČKA MUSÍ BĚŽET HNED PO OTEVŘENÍ. Dřív se rozjela až při prvním výběru
+        // (hi() s i >= 0), což stačilo, dokud se v ní jen počítal odpočet. Květ se v ní
+        // ale i ROZVÍJÍ — bez tohohle zůstalo poupě zavřené a popisky neviditelné,
+        // dokud člověk něco nevybral.
+        kick();
         return true;
     }
 
@@ -561,7 +651,7 @@
     }
 
     function close() {
-        st = null; lastHot = -1;
+        st = null; lastHot = -1; bloomFrom = 0;
         if (raf) { cancelAnimationFrame(raf); raf = 0; }
         if (wrap) {
             resetDwell(-1);
