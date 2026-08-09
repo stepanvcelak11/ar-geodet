@@ -252,17 +252,23 @@
             '  background:rgba(255,255,255,0.10);color:var(--text-color,#eceef2);}',
             '#ag-prof-row button[data-off].on .icon{color:var(--text-color,#eceef2);}',
             '#ag-prof-row button[data-new]{border-style:dashed;}',
-            // sbalitelné srovnání
-            '#ag-prof-det{margin:7px 0 0;}',
-            '#ag-prof-det>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;',
-            '  padding:5px 10px;border-radius:var(--r-md,12px);border:1px solid var(--glass-border,rgba(255,255,255,0.14));',
-            '  background:rgba(255,255,255,0.04);color:var(--text-muted,#9aa1ac);',
-            '  font:600 11px/1.2 var(--font-ui,system-ui),sans-serif;}',
+            // ---- sbalitelné srovnání ----
+            // ⚠ PILULKA V KRABICI (nahlášeno 9. 8. 2026: „obrovskej šedej obdélník
+            // a v tom malinkatej obdélníček s tím nápisem"). Tady se potkaly DVA
+            // vzhledy rozbalovátka: css/tools-polish.css dělá z každého <details>
+            // v .modal-content KARTU (rámeček + šedé pozadí přes celou šířku), kdežto
+            // tenhle soubor si z <summary> dělal malou pilulku s vlastním rámečkem —
+            // výsledkem byl 352 px široký šedý blok, ve kterém se krčilo 198 px tlačítko.
+            // Souboj vyhrávala pilulka (specifičnost id), ale kartu pod sebou nezrušila.
+            // ŘEŠENÍ: summary je celý řádek karty (vlastní rámeček ani pozadí nemá).
+            // Šipku kreslí ::after z tools-polish.css — vlastní sem NEPŘIDÁVAT, byly by dvě.
+            '#ag-prof-det{margin:10px 0 0;}',
+            '#ag-prof-det>summary{list-style:none;cursor:pointer;display:block;',
+            '  padding:11px 13px;border:0;background:none;color:var(--text-muted,#9aa1ac);',
+            '  font:600 calc(12.5px * var(--ag-font-scale, 1))/1.25 var(--font-ui,system-ui),sans-serif;}',
             '#ag-prof-det>summary::-webkit-details-marker{display:none;}',
-            '#ag-prof-det>summary .chev{transition:transform .15s;}',
-            '#ag-prof-det[open]>summary{color:var(--accent-bright,#3eb487);border-color:var(--accent-line,rgba(47,158,116,0.42));}',
-            '#ag-prof-det[open]>summary .chev{transform:rotate(180deg);}',
-            '#ag-prof-body{margin-top:8px;}',
+            '#ag-prof-det[open]>summary{color:var(--accent-bright,#3eb487);}',
+            '#ag-prof-body{margin-top:2px;}',
             // Srovnávací tabulka je širší než okno a posouvá se do stran. Rodič
             // #settings-modal .modal-content má ale touch-action:pan-y (css/style.css)
             // a touch-action se s předky PRŮNIKUJE — bez tohohle řádku by tabulka
@@ -292,7 +298,7 @@
             '#ag-dev-sum b{color:var(--accent,#2f9e74);}',
             'body.ag-glove #ag-prof-row button{min-height:54px;font-size:calc(13.5px * var(--ag-font-scale, 1));}',
             'body.ag-glove #ag-prof-row button .icon{width:18px;height:18px;}',
-            'body.ag-glove #ag-prof-det>summary{padding:9px 12px;font-size:calc(12.5px * var(--ag-font-scale, 1));}'
+            'body.ag-glove #ag-prof-det>summary{padding:14px 13px;font-size:calc(13.5px * var(--ag-font-scale, 1));}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }

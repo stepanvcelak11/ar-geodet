@@ -9,6 +9,13 @@
 // zůstává úzký proužek s názvem právě otevřené sekce, takže i uprostřed rolování
 // je vidět, kde člověk je.
 //
+// ROZBALOVÁNÍ (9. 8. 2026, na přání): ťuknutí na ZÁLOŽKU nikam neskáče — rozbalí
+// pod ní její sekce a teprve z nich se vybírá. Dřív se sekce ukazovaly jen u té
+// záložky, která už byla otevřená, takže do cizí se muselo skočit naslepo a
+// případně se vracet. Rozbalená je vždycky nejvýš jedna; první položka „Otevřít
+// záložku" nechává původní cestu (přepnout a nic víc). Záložka BEZ sekcí se
+// nerozbaluje, ta skočí rovnou.
+//
 // HORNÍ PRUH ZÁLOŽEK SE SKRÝVÁ — na výslovné přání („odstranil bych tam ten vrchní
 // řádek s výběrem, protože to bude v postranní liště"). V DOM ale ZŮSTÁVÁ:
 //   • switchTab() v grafika.js přepíná třídu .active na .tab-btn,
@@ -75,11 +82,21 @@
             '  -webkit-overflow-scrolling:touch;}',
             '#' + WRAP_ID + ' button{display:block;width:100%;text-align:left;border:0;background:transparent;',
             '  color:var(--text-color,#e6e8eb);cursor:pointer;border-radius:10px;}',
-            '#' + WRAP_ID + ' .nl-tab{padding:9px 10px;margin-top:3px;',
+            '#' + WRAP_ID + ' .nl-tab{display:flex;align-items:center;gap:8px;padding:9px 10px;margin-top:3px;',
             '  font:650 13px/1.25 var(--font-ui,system-ui),sans-serif;}',
-            '#' + WRAP_ID + ' .nl-sec{padding:7px 10px 7px 22px;',
+            '#' + WRAP_ID + ' .nl-tab .nl-t{flex:1;min-width:0;}',
+            '#' + WRAP_ID + ' .nl-tab .nl-ch{flex:0 0 auto;font-size:11px;opacity:.55;',
+            '  transition:transform .15s ease;}',
+            '#' + WRAP_ID + ' .nl-tab.open .nl-ch{transform:rotate(180deg);opacity:.9;}',
+            // Rozbalená záložka drží podnázvy pohromadě svislou linkou — ať je vidět,
+            // ke které z nich patří (v seznamu jsou hned pod sebou i cizí záložky).
+            '#' + WRAP_ID + ' .nl-sec{padding:7px 10px 7px 20px;margin-left:10px;',
+            '  border-left:1px solid var(--glass-border,rgba(255,255,255,0.14));border-radius:0 10px 10px 0;',
             '  font:500 12px/1.3 var(--font-ui,system-ui),sans-serif;color:var(--text-muted,#9aa1ac);}',
+            '#' + WRAP_ID + ' .nl-sec.nl-top{font-style:italic;opacity:.8;}',
             '#' + WRAP_ID + ' .nl-tab.on{background:var(--accent-soft,rgba(47,158,116,0.15));color:var(--accent,#2f9e74);}',
+            '#' + WRAP_ID + ' .nl-tab.open{background:rgba(255,255,255,0.05);}',
+            '#' + WRAP_ID + ' .nl-tab.on.open{background:var(--accent-soft,rgba(47,158,116,0.15));}',
             '#' + WRAP_ID + ' .nl-sec.on{color:var(--accent,#2f9e74);}',
             '#' + WRAP_ID + ' button:active{background:rgba(255,255,255,0.07);}',
             '#' + WRAP_ID + ' button:focus-visible{outline:2px solid var(--accent,#2f9e74);outline-offset:-2px;}',
@@ -119,16 +136,24 @@
     }
     // Sekce = nadpisy .set-h uvnitř panelu. Část z nich vyrábí až
     // js/nastaveni-poradek.js, proto se čtou VŽDY ZNOVU při otevření lišty.
+    //
+    // ⚠ VIDITELNOST SE MĚŘÍ COMPUTED `display`, NE getClientRects(). Od zavedení
+    // rozbalování (9. 8. 2026) se sekce čtou i u ZAVŘENÝCH záložek — ty mají
+    // display:none, takže by getClientRects() vrátilo prázdno úplně u všech a
+    // rozbalila by se prázdná záložka. getComputedStyle naproti tomu hlásí VLASTNÍ
+    // display prvku i uvnitř skrytého předka, takže pořád spolehlivě pozná řádky
+    // schované „krátkým pohledem" (body.ag-ns-short z js/nastaveni-hledani.js),
+    // na které by skok nikam nevedl.
     function sections(tabId) {
         var t = document.getElementById(tabId);
         if (!t) return [];
         var out = [];
         t.querySelectorAll('.set-h').forEach(function (h) {
             var tx = (h.textContent || '').replace(/\s+/g, ' ').trim();
-            // Nenabízet sekce, které zrovna nejsou vidět: v „krátkém pohledu“
-            // (body.ag-ns-short z js/nastaveni-hledani.js) je část řádků schovaná
-            // a skok na ně by nikam nevedl.
-            if (tx && h.getClientRects().length) out.push({ el: h, name: tx });
+            if (!tx) return;
+            var vis = true;
+            try { vis = getComputedStyle(h).display !== 'none'; } catch (e) {}
+            if (vis) out.push({ el: h, name: tx });
         });
         return out;
     }
@@ -138,21 +163,59 @@
         return t ? t.id : null;
     }
 
+    // Která záložka má v rejstříku rozbalené podnázvy. Přání z 9. 8. 2026:
+    // „když kliknu na nějaký z těch hlavních nadpisů, tak aby se mi otevřely ty
+    // podnázvy a z nich jsem si pak vybíral." Dřív ťuknutí na záložku rovnou
+    // přeplo a lištu zavřelo, takže se sekce cizí záložky nedaly ani prohlédnout —
+    // člověk musel skočit naslepo a případně se vracet.
+    var _openId = null;
+
     function build() {
         var wrap = document.getElementById(WRAP_ID);
         if (!wrap) return;
         var scroll = wrap.querySelector('.nl-scroll');
         scroll.innerHTML = '';
         var act = activeTabId();
-        tabs().forEach(function (t) {
+        var list = tabs();
+        // Zavřená lišta si nic nepamatuje: po otevření je rozbalená ta záložka,
+        // ve které člověk právě je.
+        if (_openId === null) _openId = act;
+        var known = false;
+        for (var i = 0; i < list.length; i++) if (list[i].id === _openId) known = true;
+        if (!known) _openId = act;
+
+        list.forEach(function (t) {
+            var secs = sections(t.id);
+            var open = (t.id === _openId) && secs.length > 0;
             var b = document.createElement('button');
             b.type = 'button';
-            b.className = 'nl-tab' + (t.id === act ? ' on' : '');
-            b.textContent = t.name;
-            b.addEventListener('click', function () { goTab(t, null); });
+            b.className = 'nl-tab' + (t.id === act ? ' on' : '') + (open ? ' open' : '');
+            b.innerHTML = '<span class="nl-t"></span>'
+                + (secs.length ? '<span class="nl-ch" aria-hidden="true">▾</span>' : '');
+            b.querySelector('.nl-t').textContent = t.name;
+            if (secs.length) {
+                b.setAttribute('aria-expanded', open ? 'true' : 'false');
+                // Záložka BEZ sekcí se rozbalovat nemá co — ta skočí rovnou.
+                b.addEventListener('click', function () {
+                    _openId = open ? null : t.id;
+                    build();
+                });
+            } else {
+                b.addEventListener('click', function () { goTab(t, null); });
+            }
             scroll.appendChild(b);
-            if (t.id !== act) return;                 // sekce jen u otevřené záložky
-            sections(t.id).forEach(function (s) {
+            if (!open) return;
+
+            // První položka vede na začátek záložky — jinak by u záložky se sekcemi
+            // nebyla žádná cesta „prostě mě tam přepni".
+            var top = document.createElement('button');
+            top.type = 'button';
+            top.className = 'nl-sec nl-top';
+            top.textContent = 'Otevřít záložku';
+            top.addEventListener('click', function () { goTab(t, null); });
+            scroll.appendChild(top);
+
+            secs.forEach(function (s) {
                 var sb = document.createElement('button');
                 sb.type = 'button';
                 sb.className = 'nl-sec';
@@ -235,7 +298,7 @@
             wrap.id = WRAP_ID;
             wrap.innerHTML = '<div class="nl-head">Nastavení</div>'
                 + '<div class="nl-scroll"></div>'
-                + '<div class="nl-hint">Ťukni na sekci — Nastavení na ni skočí.</div>';
+                + '<div class="nl-hint">Ťukni na záložku — rozbalí se její sekce. Ťuknutí na sekci na ni skočí.</div>';
             m.appendChild(veil);
             m.appendChild(edge);
             m.appendChild(wrap);
@@ -247,6 +310,7 @@
 
     function open() {
         var w = ensure(); if (!w) return;
+        _openId = null;              // po otevření je rozbalená ta záložka, kde právě jsem
         build();
         w.classList.add('on');
         document.getElementById(WRAP_ID + '-veil').classList.add('on');

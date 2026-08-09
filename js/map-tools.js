@@ -18,7 +18,8 @@
 //   • Akční dlaždice po klepnutí panel zavřou (ať je vidět mapa); přepínače
 //     vrstev ne — jich se obvykle mačká víc za sebou.
 //   • Vstupní tlačítko lze schovat: Nastavení → Vzhled → „Tlačítko vrstev v mapě"
-//     (klíč agMapFab, třída body.ag-mapfab-off).
+//     (klíč agMapFab, třída body.ag-mapfab-off). VÝCHOZE je od 9. 8. 2026 SCHOVANÉ,
+//     když stejný panel otevírá i „Vrstvy" v liště — viz fabOn() níž.
 //
 // NEEDITUJE logika.js ani grafika.js. Odstranění: smaž js/map-tools.js + řádek
 // <script> v index.html (a přegeneruj sw.js). Panel pak zůstane staticky
@@ -161,7 +162,30 @@
     }
 
     // ---- přepínač „Tlačítko vrstev v mapě" v Nastavení → Vzhled -------------------------
-    function fabOn() { try { return localStorage.getItem(FAB_KEY) !== '0'; } catch (e) { return true; } }
+    // VÝCHOZÍ STAV SE OD 9. 8. 2026 ODVOZUJE OD LIŠTY. Od chvíle, kdy slot „Více"
+    // v doku drží „Vrstvy" (commit b9c29fe), vedly do stejného panelu DVA vstupy —
+    // kolečko vlevo dole v mapě a tlačítko v liště vpravo. Uživatel: „jak se vrstvy
+    // přesunuly doprava do ovládacího panelu, tak už je nepotřebuju mít vlevo dole".
+    // Netvrdíme to ale natvrdo: kdo tlačítko Vrstvy v liště NEMÁ (firemní role bez
+    // oprávnění 'dock.vice' — ucty.js mu dá style.display:none), by se jinak
+    // k podkladům a katastru nedostal vůbec. Tomu kolečko v mapě zůstane.
+    // Ruční volba (klíč agMapFab '1'/'0') má vždycky přednost.
+    function dockHasLayers() {
+        try {
+            var b = document.getElementById('dock-vice-btn');
+            if (!b) return false;
+            if (b.style.display === 'none') return false;              // schované oprávněním
+            // slot je přenastavitelný — ověř, že opravdu otevírá panel vrstev
+            return (b.getAttribute('onclick') || '').indexOf('toggleMapControls') !== -1;
+        } catch (e) { return false; }
+    }
+    function fabOn() {
+        var v = null;
+        try { v = localStorage.getItem(FAB_KEY); } catch (e) {}
+        if (v === '1') return true;
+        if (v === '0') return false;
+        return !dockHasLayers();
+    }
     function applyFab() {
         try { document.body.classList.toggle('ag-mapfab-off', !fabOn()); } catch (e) {}
     }
@@ -172,7 +196,7 @@
         if (!row || !row.parentNode) return;
         var d = document.createElement('div');
         d.className = 'st-row';
-        d.innerHTML = '<span class="st-lab">Tlačítko vrstev v mapě<small>rychlý vstup do podkladů a vrstev; vypnuto se nástroje mapy otevřou jen z „Více"</small></span>'
+        d.innerHTML = '<span class="st-lab">Tlačítko vrstev v mapě<small>kolečko vlevo dole v mapě; vypnuté se vrstvy otevírají tlačítkem <b>Vrstvy</b> v liště</small></span>'
             + '<label class="st-sw"><input type="checkbox" id="s-mapfab"><span class="st-sw-face"></span></label>';
         row.parentNode.insertBefore(d, row.nextSibling);
         var chk = $('s-mapfab');
@@ -256,6 +280,14 @@
         // vybledání + dopočet stavu (levné, sdílený UI časovač appky kvůli baterii)
         (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(function () {
             try { syncFade(); if (isOpen()) { syncCompact(); syncAll(); } } catch (e) {}
+            // Výchozí stav kolečka v mapě závisí na tom, jestli je „Vrstvy" v liště —
+            // a to se dozvíme až po přihlášení (applyPerms v js/ucty.js běží po initu).
+            // Přepínač v Nastavení proto dorovnáváme taky, jinak by ukazoval starý stav.
+            try {
+                applyFab();
+                var c = $('s-mapfab');
+                if (c && c.checked !== fabOn()) c.checked = fabOn();
+            } catch (e) {}
         }, 3000);
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
