@@ -211,7 +211,27 @@ async function ensureWatchTables(env) {
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS watch_seq (' +
         'firm_id TEXT NOT NULL, job_key TEXT NOT NULL, next INTEGER NOT NULL, ' +
         'PRIMARY KEY (firm_id, job_key))').run();
+    // OPAČNÝ SMĚR PÁROVÁNÍ: kód si vyžádají hodinky a ukážou ho na displeji,
+    // člověk ho opíše v mobilu. Vzniklo to z nutnosti — nahraná aplikace se
+    // v Garmin Connect neobjeví, takže do jejího nastavení se nedá nic napsat
+    // a kód se do hodinek jinak nedostane. Vedlejší efekt je lepší ovládání:
+    // píše se na zařízení, které má klávesnici.
+    //   secret drží jen hodinky; kód na displeji je veřejný, takže samotný
+    //   kód nesmí stačit k vyzvednutí tokenu.
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS watch_pending (' +
+        'code TEXT PRIMARY KEY, secret TEXT NOT NULL, exp INTEGER NOT NULL, ' +
+        'firm_id TEXT, user_id TEXT, job_key TEXT)').run();
     _watchReady = true;
+}
+
+function watchKod() {
+    // bez O/0 a I/1/L — kód se opisuje z malého displeje
+    const ABC = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    const a = new Uint8Array(6);
+    crypto.getRandomValues(a);
+    let k = '';
+    for (let i = 0; i < 6; i++) k += ABC[a[i] % ABC.length];
+    return k;
 }
 
 const WATCH_DAYS = 180;
@@ -658,6 +678,46 @@ export default {
                 });
             }
 
+            // ---- párování z hodinek (bez přihlášení) ----
+            // Bez těla: hodinky si vyžádají nový kód a dostanou k němu secret.
+            // S {secret}: ptají se, jestli už kód někdo v mobilu potvrdil.
+            if (req.method === 'POST' && path === '/watch/hello') {
+                await ensureWatchTables(env);
+                const ip = req.headers.get('CF-Connecting-IP') || '0';
+                if (!await guardHit(env, 'whello:' + ip, 120, 15 * 60e3))
+                    return err(429, 'Moc pokusů, zkuste to za čtvrt hodiny.');
+
+                const b = await req.json().catch(() => null);
+                const secret = String((b && b.secret) || '');
+
+                if (!secret) {
+                    const code = watchKod();
+                    const s = randHex(16);
+                    const exp = Date.now() + 15 * 60e3;
+                    await env.DB.prepare('INSERT OR REPLACE INTO watch_pending(code,secret,exp) VALUES(?,?,?)')
+                        .bind(code, s, exp).run();
+                    await env.DB.prepare('DELETE FROM watch_pending WHERE exp<?').bind(Date.now()).run();
+                    return json({ code: code, secret: s, exp: exp });
+                }
+
+                const row = await env.DB.prepare(
+                    'SELECT code, firm_id, user_id, job_key, exp FROM watch_pending WHERE secret=?')
+                    .bind(secret).first();
+                if (!row || row.exp < Date.now()) return err(404, 'Párování vypršelo.');
+                if (!row.firm_id) return json({ waiting: true });
+
+                const u = await env.DB.prepare('SELECT id, firm_id, name FROM users WHERE id=? AND firm_id=? AND disabled=0')
+                    .bind(row.user_id, row.firm_id).first();
+                if (!u) return err(403, 'Účet už neexistuje.');
+
+                await env.DB.prepare('DELETE FROM watch_pending WHERE code=?').bind(row.code).run();
+                const blok = await watchBlok(env, row.firm_id, row.job_key);
+                return json({
+                    token: await makeWatchToken(env, u, row.job_key),
+                    job: row.job_key, uname: u.name, from: blok[0], to: blok[1]
+                });
+            }
+
             const me = await auth(env, req);
             if (!me) return err(401, 'Neplatné nebo prošlé přihlášení.');
 
@@ -1049,6 +1109,25 @@ export default {
                 // úklid prošlých, ať tabulka neroste donekonečna
                 await env.DB.prepare('DELETE FROM watch_codes WHERE exp<?').bind(Date.now()).run();
                 return json({ code: kod, job: job, exp: exp });
+            }
+
+            // mobil potvrdí kód, který ukazují hodinky, a přiřadí mu zakázku
+            if (req.method === 'POST' && path === '/watch/claim') {
+                await ensureWatchTables(env);
+                const b = await req.json().catch(() => null);
+                const kod = String((b && b.code) || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+                const job = String((b && b.job) || '').trim().slice(0, 80);
+                if (kod.length !== 6) return err(400, 'Chybí kód z hodinek.');
+                if (!job) return err(400, 'Chybí zakázka.');
+
+                const row = await env.DB.prepare('SELECT exp, firm_id FROM watch_pending WHERE code=?')
+                    .bind(kod).first();
+                if (!row || row.exp < Date.now()) return err(404, 'Kód neplatí — na hodinkách si nech ukázat nový.');
+                if (row.firm_id) return err(409, 'Tenhle kód už byl použitý.');
+
+                await env.DB.prepare('UPDATE watch_pending SET firm_id=?, user_id=?, job_key=? WHERE code=?')
+                    .bind(me.firm_id, me.id, job, kod).run();
+                return json({ ok: true, job: job });
             }
 
             if (path === '/watch/points' && (req.method === 'GET' || req.method === 'POST')) {

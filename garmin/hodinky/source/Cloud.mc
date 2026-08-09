@@ -1,5 +1,7 @@
 using Toybox.Communications;
 using Toybox.PersistedContent;
+using Toybox.Attention;
+using Toybox.System;
 using Toybox.Application;
 using Toybox.Application.Storage;
 using Toybox.Lang;
@@ -36,7 +38,95 @@ class Cloud {
     var stav = "";                     // co ukázat uživateli
     var bezi = false;
 
+    //! Kód, který se právě ukazuje na displeji, a tajemství k němu.
+    var parovaciKod = "";
+    var _tajemstvi = null;
+    var _parujeme = false;
+
     function initialize() {
+    }
+
+    // ---- párování z hodinek (kód se opisuje v mobilu) -----------------
+
+    function zacniParovani() {
+        _parujeme = true;
+        parovaciKod = "";
+        _tajemstvi = null;
+        if (server().length() < 8) { _hlas("chybí adresa serveru"); return; }
+        _hlas("beru kód…");
+        Communications.makeWebRequest(
+            server() + "/watch/hello",
+            {},
+            {
+                :method => Communications.HTTP_REQUEST_METHOD_POST,
+                :headers => { "Content-Type" => Communications.REQUEST_CONTENT_TYPE_JSON },
+                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+            },
+            method(:_naKodu));
+    }
+
+    function prestanParovat() {
+        _parujeme = false;
+    }
+
+    function _naKodu(kod as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {
+        var d = (data instanceof Lang.Dictionary) ? data as Lang.Dictionary : null;
+        if (kod != 200 || d == null || d["code"] == null) {
+            _hlas(_chyba("kód", kod));
+            return;
+        }
+        parovaciKod = d["code"];
+        _tajemstvi = d["secret"];
+        _hlas("čekám na mobil");
+    }
+
+    //! Ptá se, jestli už někdo kód v mobilu potvrdil.
+    function zeptejSeNaParovani() {
+        if (!_parujeme || _tajemstvi == null) { return; }
+        Communications.makeWebRequest(
+            server() + "/watch/hello",
+            { "secret" => _tajemstvi },
+            {
+                :method => Communications.HTTP_REQUEST_METHOD_POST,
+                :headers => { "Content-Type" => Communications.REQUEST_CONTENT_TYPE_JSON },
+                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+            },
+            method(:_naCekani));
+    }
+
+    function _naCekani(kod as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {
+        if (!_parujeme) { return; }
+        var d = (data instanceof Lang.Dictionary) ? data as Lang.Dictionary : null;
+
+        if (kod == 404) {
+            // kód vypršel — rovnou si říct o nový, ať se nemusí nic mačkat
+            zacniParovani();
+            return;
+        }
+        if (kod != 200 || d == null) { return; }        // ticho, zkusí se za chvíli znovu
+        if (d["waiting"] != null) { return; }
+        if (d["token"] == null) { return; }
+
+        _parujeme = false;
+        Storage.setValue(K_TOKEN, d["token"]);
+        Storage.setValue(K_JOB, d["job"]);
+        parovaciKod = "";
+        _tajemstvi = null;
+
+        // Rezervovaný blok čísel: hodinky číslují z něj, takže i bez signálu
+        // nemůžou vyrobit bod se stejným číslem jako mobil.
+        if (d["from"] != null) {
+            Body.nastavSerii({ "p" => "", "n" => d["from"], "z" => 0 });
+        }
+        _hlas("spárováno: " + d["job"]);
+        _zavibruj();
+    }
+
+    function _zavibruj() {
+        if (!(Attention has :vibrate)) { return; }
+        var ds = System.getDeviceSettings();
+        if (ds == null || !ds.vibrateOn) { return; }
+        Attention.vibrate([new Attention.VibeProfile(75, 250)]);
     }
 
     function token() { return Storage.getValue(K_TOKEN); }

@@ -26,7 +26,7 @@ module Nabidka {
         menu.addItem(new WatchUi.MenuItem("Synchronizovat s mobilem",
                         $.cloud.sparovano()
                             ? ($.cloud.stav.equals("") ? ("zakázka " + $.cloud.zakazka()) : $.cloud.stav)
-                            : "nespárováno — kód v Garmin Connect",
+                            : "nespárováno — ukáže kód do mobilu",
                         :sync, {}));
         menu.addItem(new WatchUi.MenuItem("Legenda", "co která barva znamená", :legenda, {}));
         menu.addItem(new WatchUi.MenuItem("Body v paměti",
@@ -83,8 +83,14 @@ class NabidkaDelegate extends WatchUi.Menu2InputDelegate {
             item.setSubLabel(Blizkost.prepni() ? "vibruje do 5 m" : "vypnutý");
 
         } else if (id == :sync) {
-            $.cloud.synchronizuj();
-            item.setSubLabel($.cloud.stav);
+            // Dokud nejsou hodinky spárované, nemá se co synchronizovat —
+            // rovnou se ukáže kód, který se opíše v mobilu.
+            if (!$.cloud.sparovano()) {
+                WatchUi.pushView(new ParovaniView(), new ParovaniDelegate(), WatchUi.SLIDE_UP);
+            } else {
+                $.cloud.synchronizuj();
+                item.setSubLabel($.cloud.stav);
+            }
 
         } else if (id == :legenda) {
             WatchUi.pushView(new LegendaView(), new LegendaDelegate(), WatchUi.SLIDE_UP);
