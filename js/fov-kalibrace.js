@@ -85,6 +85,50 @@
         } catch (e) { return false; }
     }
 
+    // =====================================================================
+    //  Z OHNISKOVÉ VZDÁLENOSTI (bez měření)
+    // ---------------------------------------------------------------------
+    //  Měřicí průvodce níž potřebuje spolehlivý kompas a vzdálený orientační
+    //  bod; komu to nevyjde, dostane úhel rovnou z čísla, které výrobce udává
+    //  u fotoaparátu („hlavní 26 mm"). Je to VŽDY přepočet na kinofilm
+    //  (ekvivalent 35 mm), takže platí referenční políčko 36 × 24 mm:
+    //        FOV = 2 · arctg( rozměr / (2 · ohnisko) )
+    //
+    //  ⚠⚠ POZOR NA OŘEZ: #camera-feed má v css/style.css `object-fit: cover`,
+    //  takže se obraz do okna NAROLUJE a přebytek se UŘÍZNE. Na výšku držený
+    //  telefon má okno mnohem užší, než je poměr stran videa, takže se ořezává
+    //  ŠÍŘKA a celá zůstává VÝŠKA. Proto se z ohniska počítá SVISLÝ úhel (dlouhá
+    //  strana políčka, 36 mm) a vodorovný se z něj teprve dopočítá poměrem stran
+    //  okna. Naopak (vodorovný z 24 mm) to vycházelo nesmyslně: pro 26mm objektiv
+    //  z toho lezlo 91° svisle, ačkoli víc než ~69° taková optika nikdy nedá.
+    var FILM_LONG = 36, FILM_SHORT = 24;
+    var FOCAL_PRESETS = [
+        { f: 13, t: 'ultraširoký' }, { f: 16, t: 'ultraširoký' },
+        { f: 24, t: 'hlavní' }, { f: 26, t: 'hlavní' }, { f: 28, t: 'hlavní' },
+        { f: 35, t: 'hlavní' }, { f: 48, t: 'tele' }, { f: 52, t: 'tele' }, { f: 77, t: 'tele' }
+    ];
+    var _focal = null;                    // naposledy zadané ohnisko (mm)
+    function fovFromFocal(f, mm) {
+        if (!isFinite(f) || f <= 0) return null;
+        return 2 * Math.atan(mm / (2 * f)) * 180 / Math.PI;
+    }
+    function viewSize() {
+        var el = document.getElementById('camera-container') || document.documentElement;
+        var r = el.getBoundingClientRect();
+        return { w: r.width || window.innerWidth, h: r.height || window.innerHeight };
+    }
+    function portrait() { var s = viewSize(); return s.h >= s.w; }
+    // Dvojice úhlů pro zadané ohnisko: nejdřív ten, který ořez NEbere (dlouhá
+    // strana políčka podél delší strany okna), pak druhý z poměru stran okna.
+    function fovPairFromFocal(f) {
+        var s = viewSize();
+        if (!isFinite(f) || f <= 0 || !s.w || !s.h) return null;
+        var D2R = Math.PI / 180, full = fovFromFocal(f, FILM_LONG);
+        if (full == null) return null;
+        var other = 2 * Math.atan(Math.tan((full / 2) * D2R) * (portrait() ? (s.w / s.h) : (s.h / s.w))) / D2R;
+        return portrait() ? { h: other, v: full } : { h: full, v: other };
+    }
+
     // svislý FOV dopočtený z poměru stran obrazu (když ho uživatel neměří)
     function fovVFromAspect(h) {
         var el = document.getElementById('camera-container') || document.documentElement;
@@ -250,8 +294,39 @@
             + '<b>vzdálený</b> osamocený objekt — stožár, komín, roh domu. Musí být dál než ~50 m, jinak se do měření promítne '
             + 'i to, jak se přitom pohneš. Telefon drž na místě a jen jím otáčej.</div>';
 
+        // --- z ohniskové vzdálenosti (nejrychlejší cesta, bez kompasu) ---
+        html += '<div class="agfov-step"><div class="agfov-step-h">1 · Z ohniskové vzdálenosti (bez měření)</div>'
+            + '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.85;margin:0 0 8px;line-height:1.5;">'
+            + 'Nejrychlejší cesta. Výrobce u fotoaparátu udává ohnisko v <b>ekvivalentu kinofilmu</b> — třeba „hlavní 26 mm". '
+            + 'Zadej ho a úhel vypadne sám. Nepotřebuje kompas ani orientační bod.</p>'
+            + '<div class="agfov-focal-row">';
+        FOCAL_PRESETS.forEach(function (p) {
+            html += '<button type="button" class="agfov-chip' + (_focal === p.f ? ' on' : '') + '" data-focal="' + p.f + '">'
+                + p.f + ' mm<small>' + p.t + '</small></button>';
+        });
+        html += '</div>'
+            + '<label class="agfov-focal-in">jiné ohnisko:'
+            + ' <input type="number" id="agfov-focal" inputmode="decimal" step="0.1" min="5" max="300"'
+            + ' value="' + (_focal != null ? _focal : '') + '" placeholder="mm"> mm</label>';
+        var pair = _focal != null ? fovPairFromFocal(_focal) : null;
+        if (pair) {
+            html += '<div class="agfov-res">Vychází <b>' + fmt(pair.h) + '°</b> šířka · <b>' + fmt(pair.v) + '°</b> výška'
+                + '<div class="agfov-sub">telefon držíš ' + (portrait() ? 'na výšku' : 'na šířku')
+                + ', obraz kamery se do okna vejde ' + (portrait() ? 'na výšku a po strancích se ořezává' : 'na šířku a nahoře a dole se ořezává')
+                + '<br>' + (portrait() ? 'svislý' : 'vodorovný') + ' úhel je z ohniska, druhý dopočtený z poměru stran okna'
+                // applyFov drží jezdce v mezích 40–120 / 40–130°. U hodně úzkého
+                // okna vyjde vodorovný úhel pod 40° a uložilo by se něco jiného,
+                // než co je tu napsané — to musí uživatel vidět dopředu.
+                + (pair.h < 40 ? '<br><span style="color:var(--warning,#fbbf24)">Uloží se ale 40° — appka níž nejde. Zkontroluj to v AR a případně doměř.</span>' : '')
+                + '</div></div>'
+                + '<button class="btn" id="agfov-focal-use">Použít tenhle úhel</button>';
+        } else if (_focal != null) {
+            html += '<div class="agfov-sub" style="color:var(--warning,#fbbf24)">Ohnisko musí být kladné číslo v mm.</div>';
+        }
+        html += '</div>';
+
         // --- vodorovný ---
-        html += '<div class="agfov-step"><div class="agfov-step-h">1 · Vodorovný úhel (šířka)</div>';
+        html += '<div class="agfov-step"><div class="agfov-step-h">2 · Vodorovný úhel měřením (záložní)</div>';
         if (_resH) {
             html += '<div class="agfov-res">Naměřeno <b>' + fmt(_resH.val) + '°</b>'
                 + '<div class="agfov-sub">' + _resH.n + ' kola, rozptyl ' + fmt(_resH.spread) + '°'
@@ -264,7 +339,7 @@
         html += '</div>';
 
         // --- svislý ---
-        html += '<div class="agfov-step"><div class="agfov-step-h">2 · Svislý úhel (výška)</div>';
+        html += '<div class="agfov-step"><div class="agfov-step-h">3 · Svislý úhel (výška)</div>';
         if (_resV) {
             html += '<div class="agfov-res">Naměřeno <b>' + fmt(_resV.val) + '°</b>'
                 + '<div class="agfov-sub">' + _resV.n + ' kola, rozptyl ' + fmt(_resV.spread) + '°'
@@ -299,7 +374,28 @@
 
         b.innerHTML = html;
 
-        var e;
+        var e, i;
+        var chips = b.querySelectorAll('[data-focal]');
+        for (i = 0; i < chips.length; i++) {
+            chips[i].addEventListener('click', function () {
+                _focal = parseFloat(this.getAttribute('data-focal'));
+                renderModal();
+            });
+        }
+        if ((e = byId('agfov-focal'))) e.addEventListener('change', function () {
+            var v = parseFloat((this.value || '').replace(',', '.'));
+            _focal = isFinite(v) ? v : null;
+            renderModal();
+        });
+        if ((e = byId('agfov-focal-use'))) e.addEventListener('click', function () {
+            var pr = fovPairFromFocal(_focal), h = pr ? pr.h : null, v = pr ? pr.v : null;
+            if (h && applyFov(h, v)) {
+                agAlert('Uloženo', 'Zorný úhel <b>' + fmt(fovH()) + '° × ' + fmt(fovV()) + '°</b> je nastavený z ohniska '
+                    + fmt(_focal) + ' mm. Zkontroluj to v AR na bodě, který v terénu vidíš: měl by sedět i u kraje obrazu, ne jen uprostřed. '
+                    + 'Když je vedle, výrobcem udané ohnisko nesedí na režim, ve kterém kamera běží — pak pomůže měření níž.');
+                var m = byId('agfov-modal'); if (m) m.style.display = 'none';
+            } else agAlert('Nelze uložit', 'Nastavení se nepodařilo zapsat.');
+        });
         if ((e = byId('agfov-manual'))) e.addEventListener('click', function () {
             var m = byId('agfov-modal'); if (m) m.style.display = 'none';
             try { window.AGSettings.reveal('s-fovh'); } catch (er) {}
@@ -336,6 +432,19 @@
             '#agfov-modal h3 svg{width:20px;height:20px;vertical-align:-4px;margin-right:6px;}',
             '#agfov-modal .agfov-now{font:600 13px/1.4 var(--font-mono,monospace);color:var(--accent,#2f9e74);',
             '  background:rgba(47,158,116,0.12);border-radius:10px;padding:9px 12px;margin:0 0 10px;}',
+            // Pilulky s ohnisky: musí se vejít na úzký displej v rukavicích, proto
+            // wrap + velký dotykový cíl (44 px je minimum, na které se dá trefit).
+            '#agfov-modal .agfov-focal-row{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;}',
+            '#agfov-modal .agfov-chip{flex:1 1 78px;min-height:44px;border-radius:10px;cursor:pointer;',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:var(--surface-2,rgba(255,255,255,0.06));',
+            '  color:var(--text,#e6eaf0);font:600 13px/1.15 var(--font-ui,system-ui),sans-serif;padding:5px 4px;}',
+            '#agfov-modal .agfov-chip small{display:block;font-weight:400;font-size:10.5px;opacity:.65;margin-top:2px;}',
+            '#agfov-modal .agfov-chip.on{background:var(--accent,#2f9e74);border-color:var(--accent,#2f9e74);color:#06120d;}',
+            '#agfov-modal .agfov-chip.on small{opacity:.8;}',
+            '#agfov-modal .agfov-focal-in{display:block;font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.85;margin:0 0 10px;}',
+            '#agfov-modal .agfov-focal-in input{width:88px;margin:0 4px;padding:8px;border-radius:8px;',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:var(--surface-2,rgba(255,255,255,0.06));',
+            '  color:var(--text,#e6eaf0);font:600 14px/1 var(--font-mono,monospace);}',
             '#agfov-modal .agfov-tip{font-size:calc(12.5px * var(--ag-font-scale, 1));line-height:1.5;background:rgba(251,191,36,0.10);',
             '  border-left:3px solid var(--warning,#fbbf24);border-radius:8px;padding:9px 12px;margin:0 0 12px;}',
             '#agfov-modal .agfov-step{border:1px solid var(--glass-border,rgba(255,255,255,0.12));border-radius:12px;',

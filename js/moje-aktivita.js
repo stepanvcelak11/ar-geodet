@@ -348,17 +348,27 @@
     //   brifink         Dnešek v terénu — souhrn na ráno, nepoužívá
     //   bezpecnost      Bezpečnost a rizika — nepoužívá
     //   kniha-jizd      Kniha jízd — nepoužívá
-    // Seed proběhne JEN JEDNOU (agAktHiddenSeed_v1). Kdyby běžel při každém startu,
-    // vracení nástroje by nemělo smysl — po restartu by se zase schoval.
-    var LS_SEED = 'agAktHiddenSeed_v1';
-    var DEFAULT_HIDDEN = ['openCheckDist', 'kontrola-vrstvy', 'track-log', 'brifink', 'bezpecnost', 'kniha-jizd'];
+    //   ar-visual-track Vizuální stabilizace (beta) — trvale vypnutá, nepoužívá
+    //
+    // Každá VLNA proběhne JEN JEDNOU (vlastní klíč v localStorage). Kdyby seed běžel
+    // při každém startu, vracení nástroje by nemělo smysl — po restartu by se zase
+    // schoval. A proto se nová položka přidává jako DALŠÍ VLNA, ne do té staré:
+    // rozšířit v1 by u toho, komu už proběhla, znovu schovalo i nástroje, které si
+    // mezitím ručně vrátil.
+    var SEED_WAVES = [
+        { id: 'agAktHiddenSeed_v1', keys: ['openCheckDist', 'kontrola-vrstvy', 'track-log', 'brifink', 'bezpecnost', 'kniha-jizd'] },
+        { id: 'agAktHiddenSeed_v2', keys: ['ar-visual-track'] }
+    ];
     function seedHidden() {
-        try { if (localStorage.getItem(LS_SEED)) return; } catch (e) { return; }
-        var a = hidden(), changed = false, i;
-        for (i = 0; i < DEFAULT_HIDDEN.length; i++) {
-            if (a.indexOf(DEFAULT_HIDDEN[i]) === -1) { a.push(DEFAULT_HIDDEN[i]); changed = true; }
+        var a = hidden(), changed = false, w, i, done;
+        for (w = 0; w < SEED_WAVES.length; w++) {
+            try { done = !!localStorage.getItem(SEED_WAVES[w].id); } catch (e) { return; }
+            if (done) continue;
+            for (i = 0; i < SEED_WAVES[w].keys.length; i++) {
+                if (a.indexOf(SEED_WAVES[w].keys[i]) === -1) { a.push(SEED_WAVES[w].keys[i]); changed = true; }
+            }
+            try { localStorage.setItem(SEED_WAVES[w].id, '1'); } catch (e) {}
         }
-        try { localStorage.setItem(LS_SEED, '1'); } catch (e) {}
         // Schovat dlaždici brífinku nestačí — sám se ukazuje po spuštění. Kdo ho
         // nepoužívá, nechce ho ani jako uvítací kartu. Vypínač zůstává v Nastavení.
         try { if (localStorage.getItem(LS_BF_AUTO) === null) localStorage.setItem(LS_BF_AUTO, '0'); } catch (e) {}
