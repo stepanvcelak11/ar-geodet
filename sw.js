@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v244';   // Sjednocene dvojice nastroju + AR primka, kvet ke krajum, libela v metru, swipe u nastroju
+const SHELL_CACHE = 'argeodet-shell-v245';   // Parovani hodinek Garmin (js/hodinky-parovani.js)
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -31,9 +31,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=244',
-    './css/style.css?v=244',
-    './css/vylepseni.css?v=244',
+    './css/tokens.css?v=245',
+    './css/style.css?v=245',
+    './css/vylepseni.css?v=245',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
@@ -166,6 +166,7 @@ const ASSETS_TO_CACHE = [
     './js/hlas-kod.js',
     './js/geo-foto.js',
     './js/ar-metr.js',
+    './js/hodinky-parovani.js',
     './js/vysilacka.js',
     './js/indoor.js',
     './js/obchuzka.js',

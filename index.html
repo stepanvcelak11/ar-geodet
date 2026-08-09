@@ -89,8 +89,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=244">
-    <link rel="stylesheet" href="css/style.css?v=244">
+    <link rel="stylesheet" href="css/tokens.css?v=245">
+    <link rel="stylesheet" href="css/style.css?v=245">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -107,7 +107,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=244">
+    <link rel="stylesheet" href="css/vylepseni.css?v=245">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -1089,6 +1089,10 @@
     <script type="ag/lazy" data-src="js/geo-foto.js"></script>
     <!-- METR V KAMEŘE (odpojitelné: smaž tento řádek + js/ar-metr.js) — pravítko promítnuté na zem: telefon plocho, ruční výška držení, libela z devicemotion, klepnutí dvou bodů -->
     <script type="ag/lazy" data-src="js/ar-metr.js"></script>
+    <!-- HODINKY GARMIN (odpojitelné: smaž tento řádek + js/hodinky-parovani.js) — párovací kód,
+         kterým se k zakázce připojí aplikace v hodinkách (garmin/hodinky); body pak putují přes
+         Cloudflare Worker do téže tabulky sync_points jako z mobilu -->
+    <script type="ag/lazy" data-src="js/hodinky-parovani.js"></script>
     <!-- VYSÍLAČKA (odpojitelné: smaž tento řádek + js/vysilacka.js) — kde je kdo, rychlé zprávy, Man Down; staví na js/ucty.js (/pos + /chat) -->
     <script type="ag/lazy" data-src="js/vysilacka.js"></script>
     <!-- UVNITŘ BUDOVY (odpojitelné: smaž tento řádek + js/indoor.js) — poloha bez GPS: WebXR nebo kroky, přesedlání na známé body; sdílí kalibraci s js/pdr-offset.js -->

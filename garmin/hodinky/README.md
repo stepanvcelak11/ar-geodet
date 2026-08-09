@@ -91,9 +91,56 @@ bodů v okolí do 350 m.
 
 ### Nahrání do hodinek
 
-Připojit přes USB, zkopírovat `bin/hodinky.prg` do `GARMIN/APPS/` na disku
-hodinek, odpojit. Aplikace se objeví mezi aktivitami. Do obchodu Connect IQ
-se nic dávat nemusí.
+1. Přeložit pro zařízení: `Ctrl+Shift+P` → **Monkey C: Build for Device** →
+   *Forerunner 255*. Z příkazové řádky:
+
+   ```
+   <sdk>\bin\monkeyc.bat -o bin\hodinky.prg -f monkey.jungle ^
+       -y %APPDATA%\Garmin\ConnectIQ\developer_key.der -d fr255 -w
+   ```
+2. Připojit hodinky USB kabelem. Objeví se jako disk **GARMIN**.
+3. Zkopírovat `bin/hodinky.prg` do složky **`GARMIN/APPS/`** na tom disku.
+4. Bezpečně odpojit. Aplikace je pak na hodinkách mezi **aktivitami**
+   (tlačítko START ze základní obrazovky).
+
+Do obchodu Connect IQ se nic dávat nemusí.
+
+⚠ Po prvním spuštění zapnout v hodinkách **Nastavení → Systém → GPS → Vše +
+vícepásmové**. Aplikace se do toho schválně nemíchá a bere systémové
+nastavení; na FR255 je L1+L5 znát.
+
+## Přenos bodů z/do mobilu
+
+**⚠ Hodinky s telefonem přímo nemluví.** Cesta „telefon ↔ hodinky" přes
+Bluetooth vyžaduje nativní doprovodnou aplikaci (Connect IQ Mobile SDK)
+a AR Geodet je web — do té BLE linky se nedostane, drží ji Garmin Connect
+a protokol je uzavřený. Jde to tedy oklikou přes internet:
+
+```
+hodinky ──makeWebRequest──▶ Cloudflare Worker ◀──HTTPS── mobilní appka
+```
+
+Hodinky si tunel k síti berou přes Garmin Connect na telefonu (nebo přes
+Wi-Fi doma), takže v terénu to funguje, dokud je telefon poblíž.
+
+Přihlásit se hodinky nemůžou (nemají klávesnici), proto **párovací kód**:
+
+1. V mobilu **Nástroje → Hodinky Garmin → Vygenerovat kód** (šest znaků,
+   platí 10 minut, jednorázový).
+2. Kód opsat v **Garmin Connect**: Zařízení → Connect IQ → AR Geodet →
+   Nastavení → *Párovací kód z mobilu*.
+3. Na hodinkách dlouze podržet ↑ → **Synchronizovat s mobilem**. Spáruje se,
+   nahraje naměřené a stáhne 20 nejbližších bodů.
+
+Body se ukládají do **téže tabulky `sync_points`** jako z mobilu a ve stejném
+tvaru, takže se v aplikaci objeví samy. Filtrování podle vzdálenosti dělá
+server — celá zakázka by se do paměti hodinek nevešla. Čísla bodů si hodinky
+rezervují po blocích padesáti, aby offline nevznikly dva body se stejným
+číslem.
+
+**⚠ Vyžaduje nasazený Worker** s endpointy `/watch/code`, `/watch/pair`
+a `/watch/points` (`cloud/worker.js`). Bez toho mobil u generování kódu
+napíše, že to server ještě neumí.
 
 ## Podklad — barvy, ne tloušťky
 
