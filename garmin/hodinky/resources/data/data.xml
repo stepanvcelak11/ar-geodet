@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Ukázková dlaždice podkladu pro okolí 50.08 / 14.42 (Praha).
+        Je tu proto, aby šlo podklad vyzkoušet v simulátoru; v ostrém
+        provozu ji nahradí dlaždice stažené z Cloudflare Workeru.
+        Zdroj dat: OpenStreetMap, licence ODbL.
+    -->
+    <jsonData id="Podklad" filename="podklad.json"/>
+</resources>

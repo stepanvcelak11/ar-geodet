@@ -23,6 +23,7 @@ class MapaView extends WatchUi.View {
 
     var zoom = 2;
     var podleSmeru = true;      // false = sever nahoře
+    var podklad = true;         // vektorové čáry cest pod body
     var cil = null;             // bod, ke kterému se právě naviguje
 
     hidden var _casovac = null;
@@ -92,8 +93,11 @@ class MapaView extends WatchUi.View {
         _okoli = Body.nejblizsi(s.lat, s.lon, MAX_BODU);
 
         var dosah = ZOOMY[zoom];
-        // Vnější okraj nechává místo na text nahoře a dole.
-        var polomer = (sirka < vyska ? sirka : vyska) / 2 - 26;
+
+        // Popisky se kreslí první — teprve ony řeknou, kolik místa zbylo
+        // na mapu. Dřív tu byl pevný odstup 26 px, jenže ten na kulatém
+        // skle nesedí: u kraje je řádek užší a text se ořezával.
+        var polomer = _popisky(dc, sirka, vyska, dosah, s);
         var mkl = polomer.toFloat() / dosah;      // pixelů na metr
 
         // O kolik je plátno pootočené proti severu. Při „podle směru“ se
@@ -105,10 +109,12 @@ class MapaView extends WatchUi.View {
         }
 
         _kruznice(dc, cx, cy, polomer);
+        if (podklad) {
+            Podklad.kresli(dc, s.lat, s.lon, cx, cy, polomer, mkl, otoc);
+        }
         _sever(dc, cx, cy, polomer, otoc);
         _body(dc, cx, cy, polomer, mkl, otoc, s);
         _ja(dc, cx, cy, otoc, s);
-        _popisky(dc, sirka, vyska, dosah, s);
     }
 
     // ---- jednotlivé vrstvy -------------------------------------------
@@ -187,15 +193,18 @@ class MapaView extends WatchUi.View {
         dc.fillCircle(cx, cy, 4);
     }
 
+    //! Horní a dolní řádek. Umístění řeší Displej — u kulatého skla je
+    //! nutné text posunout dovnitř, jinak ho okraj ořízne. Vrací, kolik
+    //! místa zbylo na mapu (poloměr v pixelech).
     hidden function _popisky(dc, sirka, vyska, dosah, s) {
-        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        var cy = vyska / 2;
 
-        var nahore = s.popisKvality();
-        if (_okoli.size() > 0) {
-            nahore = _okoli.size().toString() + " bodů · " + s.popisKvality();
-        }
-        dc.drawText(sirka / 2, 12, Graphics.FONT_XTINY, nahore,
-                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        // Nahoře stojí to, co je zrovna k rozhodování nejdůležitější:
+        // dokud se stojí, průběžná přesnost, jinak stav GPS.
+        var nahore = s.popisKlidu();
+        if (nahore == null) { nahore = s.popisKvality(); }
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        var spodekHorniho = Displej.nahore(dc, nahore, Graphics.FONT_XTINY);
 
         var dole = dosah.toString() + " m";
         if (cil != null) {
@@ -204,9 +213,14 @@ class MapaView extends WatchUi.View {
             var d = Geo.vzdalenost(s.lat, s.lon, cil["la"], cil["lo"]);
             dole = cil["c"] + " · " + Geo.popisVzdalenosti(d);
             dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+        } else {
+            dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         }
-        dc.drawText(sirka / 2, vyska - 14, Graphics.FONT_XTINY, dole,
-                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        var vrsekDolniho = Displej.dole(dc, dole, Graphics.FONT_XTINY);
+
+        var shora = cy - spodekHorniho - 3;
+        var zdola = vrsekDolniho - cy - 3;
+        return (shora < zdola) ? shora : zdola;
     }
 
     hidden function _hlaska(dc, cx, cy, vyska, hlavni, vedlejsi, napoveda) {
@@ -216,8 +230,7 @@ class MapaView extends WatchUi.View {
         dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
         dc.drawText(cx, cy + 18, Graphics.FONT_XTINY, vedlejsi,
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-        dc.drawText(cx, vyska - 14, Graphics.FONT_XTINY, napoveda,
-                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        Displej.dole(dc, napoveda, Graphics.FONT_XTINY);
     }
 }
 

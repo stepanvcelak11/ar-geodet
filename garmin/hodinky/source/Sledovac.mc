@@ -1,6 +1,7 @@
 using Toybox.Position;
 using Toybox.Graphics;
 using Toybox.Sensor;
+using Toybox.Time;
 using Toybox.System;
 using Toybox.Math;
 
@@ -25,7 +26,21 @@ class Sledovac {
     //! pozná, že přišel čerstvý údaj, a nezapočítá tentýž fix dvakrát.
     var pocitadlo = 0;
 
+    //! Průběžné průměrování „zadarmo“.
+    //!
+    //! Appka průměruje pořád, kdykoli se stojí na místě — takže když se
+    //! bod zakládá, je zpřesněná poloha už hotová a nemusí se na nic čekat.
+    //! Jakmile se člověk pohne, sběr se zahodí a začne se znovu.
+    var klid;
+    var klidOd = null;            // čas prvního vzorku [s od epochy]
+
+    //! O kolik metrů se smí fix odchýlit od dosavadního průměru, než to
+    //! vezmeme jako pohyb. Schválně velkoryse: samotný šum GPS umí uskočit
+    //! o pár metrů a bylo by k ničemu, kdyby to sběr shazovalo pořád dokola.
+    const PRAH_POHYBU = 8.0;
+
     function initialize() {
+        klid = new Prumer();
     }
 
     function spustit() {
@@ -69,6 +84,46 @@ class Sledovac {
         if (info.heading != null && rychlost > 0.8) { kurz = info.heading; }
 
         pocitadlo += 1;
+        _zpracujKlid();
+    }
+
+    //! Rozhodne, jestli tenhle fix ještě patří k tomu, kde stojím, nebo
+    //! jestli jsem se přesunul jinam a sběr se musí zahodit.
+    hidden function _zpracujKlid() {
+        // Bez použitelného fixu se nesbírá — jinak by se do průměru
+        // připletly polohy, o kterých přijímač sám říká, že za nic nestojí.
+        if (!maFix()) {
+            klid.reset();
+            klidOd = null;
+            return;
+        }
+
+        var s = klid.stred();
+        var skok = (s == null) ? 0.0 : Geo.vzdalenost(s[0], s[1], lat, lon);
+
+        if (rychlost > 1.0 || skok > PRAH_POHYBU) {
+            klid.reset();
+            klidOd = null;
+        }
+
+        klid.pridej(lat, lon, vyska);
+        if (klidOd == null) { klidOd = Time.now().value(); }
+    }
+
+    //! Jak dlouho stojím na místě [s]. Null, když se zrovna sbírat nedá.
+    function klidSekund() {
+        if (klidOd == null) { return null; }
+        return Time.now().value() - klidOd;
+    }
+
+    //! Krátký popis stavu průběžného průměrování pro displej,
+    //! třeba „±0,8 m · 24 s“. Null, dokud není co ukázat.
+    function popisKlidu() {
+        if (klid.pocet() < 3) { return null; }
+        var sig = klid.prubeznaSigma();
+        var sek = klidSekund();
+        if (sig == null || sek == null) { return null; }
+        return "±" + sig.format("%.1f") + " m · " + sek.toString() + " s";
     }
 
     //! Máme použitelný fix? LAST_KNOWN je zastaralá poloha, ta se za fix

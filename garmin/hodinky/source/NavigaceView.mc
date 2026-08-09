@@ -60,10 +60,9 @@ class NavigaceView extends WatchUi.View {
         var d  = Geo.vzdalenost(s.lat, s.lon, _bod["la"], _bod["lo"]);
         var az = Geo.azimut(s.lat, s.lon, _bod["la"], _bod["lo"]);
 
-        // číslo bodu nahoře
+        // číslo bodu nahoře — přes Displej, aby ho kulatý okraj neořízl
         dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, 16, Graphics.FONT_SMALL, _bod["c"],
-                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        Displej.nahore(dc, _bod["c"], Graphics.FONT_SMALL);
 
         if (d <= DOSAH) {
             _dorazil(dc, cx, cy, d);
@@ -72,11 +71,6 @@ class NavigaceView extends WatchUi.View {
             _sipka(dc, cx, cy - 14, az, s);
         }
 
-        // vzdálenost velkým písmem dole
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, vyska - 44, Graphics.FONT_NUMBER_MEDIUM, Geo.popisVzdalenosti(d),
-                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-
         // rozptyl, se kterým byl bod měřen — ať je pořád na očích, že tohle
         // není vytyčovací přesnost
         var pod = Geo.svetovaStrana(az);
@@ -84,7 +78,12 @@ class NavigaceView extends WatchUi.View {
             pod += "   ±" + _bod["s"].format("%.1f") + " m";
         }
         dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, vyska - 14, Graphics.FONT_XTINY, pod,
+        var vrsek = Displej.dole(dc, pod, Graphics.FONT_XTINY);
+
+        // vzdálenost velkým písmem nad tím
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, vrsek - dc.getFontHeight(Graphics.FONT_NUMBER_MEDIUM) / 2 - 2,
+                    Graphics.FONT_NUMBER_MEDIUM, Geo.popisVzdalenosti(d),
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 

@@ -17,12 +17,23 @@ using Toybox.Math;
 //! který je poctivě konzervativní.
 class Prumer {
 
+    //! Strop vzorků. Drží se klouzavé okno posledních dvou minut — starší
+    //! vzorky už o tom, kde stojím teď, nic neříkají, a paměť hodinek není
+    //! nafukovací.
+    const OKNO = 120;
+
     hidden var _vzorky = [];      // [dx, dy, h] v metrech od prvního vzorku
     hidden var _lat0 = null;
     hidden var _lon0 = null;
 
     function initialize() {
         _vzorky = [];
+    }
+
+    function reset() {
+        _vzorky = [];
+        _lat0 = null;
+        _lon0 = null;
     }
 
     function pridej(lat, lon, h) {
@@ -32,10 +43,21 @@ class Prumer {
         }
         var d = Geo.naMetry(_lat0, _lon0, lat, lon);
         _vzorky.add([d[0], d[1], (h == null) ? 0.0 : h]);
+        if (_vzorky.size() > OKNO) {
+            _vzorky = _vzorky.slice(_vzorky.size() - OKNO, _vzorky.size());
+        }
     }
 
     function pocet() {
         return _vzorky.size();
+    }
+
+    //! Prostý průměr bez ořezu odlehlých — pro rychlé porovnání, jestli
+    //! jsem se hnul. Na plnohodnotný výsledek je vysledek().
+    function stred() {
+        if (_vzorky.size() == 0) { return null; }
+        var p = _prumer(_vzorky);
+        return Geo.zMetru(_lat0, _lon0, p[0], p[1]);
     }
 
     //! Průběžný rozptyl pro zobrazení během sběru (null, dokud nejsou 3 vzorky).

@@ -34,14 +34,27 @@ V nabídce (dlouze nahoru) je *Nový bod*, přepínač *Otočení mapy*
 (podle směru / sever nahoře), počet bodů v paměti, *Ukázkové body* pro
 zkoušení v simulátoru a mazání.
 
+## Zakládání bodu — nečeká se
+
+Aplikace průměruje **pořád**, kdykoli se stojí na místě. Jakmile se člověk
+pohne (rychlost přes 1 m/s nebo skok o víc než 8 m od dosavadního průměru),
+sběr se zahodí a začne znovu.
+
+Takže když se bod zakládá, je zpřesněná poloha **už hotová** a START ji rovnou
+uloží — žádný odpočet, žádné čekání. Kdo chce přesněji, prostě chvíli počká
+a dívá se, jak rozptyl klesá; čekání je dobrovolné, ne povinné. Na mapě je
+průběžný stav nahoře jako `±0,8 m · 24 s`.
+
+Drží se klouzavé okno posledních dvou minut — starší vzorky už o tom, kde
+stojím teď, nic neříkají.
+
 ## Přesnost — co to číslo u bodu znamená
 
 U každého bodu je údaj `±X m`. **Není to střední chyba určení polohy.**
 
 Connect IQ číselnou přesnost ani DOP nedává — `Position.Info.accuracy` je jen
 hrubý stupeň (POOR / USABLE / GOOD). Jediné, co se dá spočítat, je **rozptyl
-vlastních vzorků**: nabere se 30 poloh po sekundě, vyhodí se odlehlé (nad 2,5
-rozptylu) a vezme se průměr.
+vlastních vzorků**: vyhodí se odlehlé (nad 2,5 rozptylu) a vezme se průměr.
 
 To číslo tedy říká „jak klidně to leželo", ne „jak daleko jsem od pravdy".
 **Systematickou chybu z odrazů signálu (multipath) neodhalí** — ta posouvá
@@ -82,16 +95,39 @@ Připojit přes USB, zkopírovat `bin/hodinky.prg` do `GARMIN/APPS/` na disku
 hodinek, odpojit. Aplikace se objeví mezi aktivitami. Do obchodu Connect IQ
 se nic dávat nemusí.
 
+## Podklad — čáry cest, vody a překážek
+
+Pod body se kreslí vektorový podklad z OpenStreetMap: silnice, cesty, pěšiny,
+voda a hlavně **překážky** (sráz, násep, zeď, plot) červeně — kvůli tomu ten
+podklad hlavně je, aby bylo vidět, že napřímo to nepůjde.
+
+Zapíná se v nabídce položkou **Podklad**.
+
+Zatím je přibalená jedna **ukázková dlaždice** pro okolí 50,08 / 14,42 (Praha),
+aby šel podklad vyzkoušet v simulátoru. Vyrábí ji `garmin/nastroje/dlazdice.py`
+z dat Overpass API; v ostrém provozu tutéž práci udělá Cloudflare Worker
+a hodinky si dlaždice stáhnou přes `makeWebRequest`.
+
+**⚠ Kreslení musí být škrceno, jinak hodinky aplikaci shodí** hláškou
+*Watchdog Tripped — Code Executed Too Long*. Proto:
+
+- obálka každé čáry a pořadí podle důležitosti se počítají **předem ve
+  skriptu**; když se to zkusilo na hodinkách, watchdog to zabil
+- čáry mimo výřez se přeskakují podle obálky
+- na snímek se vykreslí nejvýš **260 úseků**, v pořadí překážky → silnice →
+  voda → cesty → pěšiny → budovy; co se nevejde, se nenakreslí. Při přiblížení
+  se stejně skoro všechno ořeže výřezem, strop dolehne jen na největší oddálení
+
+Zdroj dat: OpenStreetMap, licence ODbL.
+
 ## Co v tom zatím není
 
-- **Podklad pod body** — čáry cest, vody a srázů z OpenStreetMap. Je to
-  domluvený další krok: dlaždice 500 × 500 m se zjednodušenými polyliniemi
-  (Douglas–Peucker ~3 m), souřadnice jako celá čísla v decimetrech od kotvy,
-  ukládané do `Application.Storage`, aby to fungovalo i bez signálu. Kreslit
-  se budou jako vrstva pod body — v `MapaView.onUpdate` mezi `_kruznice`
-  a `_body`, nic ostatního se kvůli tomu nepředělá.
 - **Varování „napřímo to nepůjde"** — test, jestli úsečka já → cíl protíná
-  čáru třídy překážka (sráz, voda, plot). Dává smysl až s podkladem.
+  čáru třídy překážka. Podklad už je, takže tohle je pár desítek průsečíků
+  úseček a levné.
+- **Dlaždice z Workeru** — stahování po dlaždicích 500 × 500 m a ukládání do
+  `Application.Storage`, aby podklad fungoval i bez signálu. Zatím jen jedna
+  ukázková, přibalená ve zdrojích.
 - **Synchronizace s mobilem** — endpointy `GET/POST /watch/points` ve Workeru,
   párování šestimístným kódem, rezervace bloku čísel pro offline provoz
   (jinak vzniknou dva body se stejným číslem).
@@ -110,3 +146,6 @@ se nic dávat nemusí.
 | `source/NavigaceView.mc` | šipka a vzdálenost k bodu |
 | `source/NovyBodView.mc` | měření nového bodu |
 | `source/Nabidka.mc` | nabídka pod dlouhým stiskem nahoru |
+| `source/Podklad.mc` | vektorové čáry cest, vody a překážek |
+| `source/Displej.mc` | umísťování textu, aby ho kulatý okraj neořízl |
+| `../nastroje/dlazdice.py` | výroba dlaždice podkladu z dat OpenStreetMap |

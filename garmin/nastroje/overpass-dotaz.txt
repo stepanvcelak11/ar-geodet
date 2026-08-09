@@ -1,0 +1,10 @@
+[out:json][timeout:40];
+(
+  way(around:450,50.08,14.42)["highway"];
+  way(around:450,50.08,14.42)["waterway"];
+  way(around:450,50.08,14.42)["natural"~"^(water|cliff|coastline)$"];
+  way(around:450,50.08,14.42)["barrier"];
+  way(around:450,50.08,14.42)["man_made"="embankment"];
+  way(around:450,50.08,14.42)["building"];
+);
+out geom;

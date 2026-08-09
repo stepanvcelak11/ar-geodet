@@ -14,6 +14,9 @@ module Nabidka {
         menu.addItem(new WatchUi.MenuItem("Otočení mapy",
                         (mapa != null && mapa.podleSmeru) ? "podle směru" : "sever nahoře",
                         :otoceni, {}));
+        menu.addItem(new WatchUi.MenuItem("Podklad",
+                        (mapa != null && mapa.podklad) ? "čáry cest zapnuté" : "vypnutý",
+                        :podklad, {}));
         menu.addItem(new WatchUi.MenuItem("Body v paměti",
                         Body.pocet().toString() + " · další číslo " + Body.dalsiCislo(), :info, {}));
         menu.addItem(new WatchUi.MenuItem("Ukázkové body", "pro zkoušení v simulátoru", :ukazka, {}));
@@ -49,6 +52,14 @@ class NabidkaDelegate extends WatchUi.Menu2InputDelegate {
             if (m != null) {
                 m.otoceni();
                 item.setSubLabel(m.podleSmeru ? "podle směru" : "sever nahoře");
+            }
+
+        } else if (id == :podklad) {
+            var mp = Nabidka.mapa();
+            if (mp != null) {
+                mp.podklad = !mp.podklad;
+                if (!mp.podklad) { Podklad.zapomen(); }
+                item.setSubLabel(mp.podklad ? "čáry cest zapnuté" : "vypnutý");
             }
 
         } else if (id == :ukazka) {

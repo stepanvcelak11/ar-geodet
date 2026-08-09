@@ -4,35 +4,26 @@ using Toybox.Attention;
 using Toybox.System;
 using Toybox.Timer;
 
-//! Založení nového bodu průměrováním polohy.
+//! Založení nového bodu.
 //!
-//! Průběh: sbírá se poloha po sekundě, na displeji běží počet vzorků
-//! a průběžný rozptyl. Po uplynutí doby (nebo dřív, když se zmáčkne START)
-//! se ukáže výsledek s přiděleným číslem a čeká se na potvrzení.
+//! Žádný odpočet. Aplikace průměruje pořád, kdykoli se stojí na místě (viz
+//! Sledovac.klid), takže když se sem přijde, je zpřesněná poloha už hotová
+//! a START ji rovnou uloží. Kdo chce přesněji, prostě chvíli počká a dívá
+//! se, jak rozptyl klesá — čekání je dobrovolné, ne povinné.
 //!
-//! Vzorky se berou podle počítadla ve sledovači, ne prostým odečtem každou
-//! sekundu — kdyby přijímač na chvíli vypadl, jinak by se tentýž fix
-//! započítal několikrát a rozptyl by vyšel lživě malý.
+//! Když se člověk pohne, sběr se sám zahodí a začne znovu; obrazovka to
+//! přizná, aby nikdo neuložil bod naměřený za chůze.
 class NovyBodView extends WatchUi.View {
 
-    //! Výchozí doba měření. Delší už moc nepřidá — chyba z odrazů se
-    //! průměrováním nevytratí, ta zůstane, ať se stojí jakkoli dlouho.
-    const SEKUND = 30;
+    //! Kolik vzorků se považuje za slušný základ. Pod tím obrazovka radí
+    //! ještě chvíli počkat — neblokuje to, jen upozorní.
+    const DOST = 20;
 
-    hidden var _prumer;
-    hidden var _zbyva;
-    hidden var _faze = 0;          // 0 = sbírá se, 1 = hotovo
-    hidden var _vysledek = null;
-    hidden var _cislo = null;
     hidden var _casovac = null;
-    hidden var _poslPocitadlo = -1;
+    hidden var _ulozeno = null;      // číslo uloženého bodu
 
     function initialize() {
         View.initialize();
-        _prumer = new Prumer();
-        _zbyva = SEKUND;
-        var s = $.sledovac;
-        if (s != null) { _poslPocitadlo = s.pocitadlo; }
     }
 
     function onShow() {
@@ -48,50 +39,20 @@ class NovyBodView extends WatchUi.View {
     }
 
     function tik() as Void {
-        if (_faze != 0) { return; }
-
-        var s = $.sledovac;
-        if (s != null && s.maFix() && s.pocitadlo != _poslPocitadlo) {
-            _poslPocitadlo = s.pocitadlo;
-            _prumer.pridej(s.lat, s.lon, s.vyska);
-        }
-
-        _zbyva -= 1;
-        if (_zbyva <= 0) {
-            ukoncit();
-        }
         WatchUi.requestUpdate();
     }
 
-    //! Ukončí sběr a spočítá výsledek. Číslo se přidělí až při uložení,
-    //! aby se zrušeným měřením neprokousávala číselná řada.
-    function ukoncit() {
-        if (_faze != 0) { return; }
-        _vysledek = _prumer.vysledek();
-        _cislo = Body.dalsiCislo();
-        _faze = 1;
-        if (_casovac != null) {
-            _casovac.stop();
-            _casovac = null;
-        }
-        _zavibruj();
-        WatchUi.requestUpdate();
-    }
-
-    function jeHotovo() {
-        return _faze == 1;
-    }
-
-    function maVysledek() {
-        return _vysledek != null;
-    }
-
-    //! Uloží bod. Vrací přidělené číslo, nebo null, když není co ukládat.
+    //! Uloží bod z právě nasbíraného průměru. Vrací číslo, nebo null.
     function uloz() {
-        if (_vysledek == null) { return null; }
-        return Body.pridej(
-            _vysledek["la"], _vysledek["lo"], _vysledek["h"],
-            _vysledek["s"], _vysledek["n"], 0);
+        var s = $.sledovac;
+        if (s == null) { return null; }
+
+        var v = s.klid.vysledek();
+        if (v == null) { return null; }
+
+        _ulozeno = Body.pridej(v["la"], v["lo"], v["h"], v["s"], v["n"], 0);
+        _zavibruj();
+        return _ulozeno;
     }
 
     function onUpdate(dc) {
@@ -101,78 +62,55 @@ class NovyBodView extends WatchUi.View {
         var sirka = dc.getWidth();
         var vyska = dc.getHeight();
         var cx = sirka / 2;
+        var cy = vyska / 2;
 
-        if (_faze == 0) {
-            _sber(dc, cx, vyska);
-        } else {
-            _hotovo(dc, cx, vyska);
-        }
-    }
-
-    hidden function _sber(dc, cx, vyska) {
         var s = $.sledovac;
-
-        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, 22, Graphics.FONT_XTINY, "měřím bod " + Body.dalsiCislo(),
-                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, vyska / 2 - 18, Graphics.FONT_NUMBER_HOT, _zbyva.toString(),
-                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-
-        var radek = _prumer.pocet().toString() + " vzorků";
-        var sig = _prumer.prubeznaSigma();
-        if (sig != null) {
-            radek += " · ±" + sig.format("%.1f") + " m";
-        }
-        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, vyska / 2 + 34, Graphics.FONT_XTINY, radek,
-                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-
-        // Když je fix mizerný, není to vidět na počtu vzorků — musí se to říct.
-        if (s != null && !s.maFix()) {
-            dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(cx, vyska - 34, Graphics.FONT_XTINY, s.popisKvality(),
-                        Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-        }
-        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, vyska - 14, Graphics.FONT_XTINY, "START = hotovo   BACK = zrušit",
-                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-    }
-
-    hidden function _hotovo(dc, cx, vyska) {
-        if (_vysledek == null) {
-            dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(cx, vyska / 2, Graphics.FONT_MEDIUM, "žádný fix",
+        if (s == null || !s.maFix()) {
+            dc.drawText(cx, cy, Graphics.FONT_MEDIUM, "hledám GPS",
                         Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
             dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(cx, vyska - 14, Graphics.FONT_XTINY, "BACK = zpět",
-                        Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            Displej.dole(dc, "BACK = zpět", Graphics.FONT_XTINY);
             return;
         }
 
+        var n = s.klid.pocet();
+        var sig = s.klid.prubeznaSigma();
+        var sek = s.klidSekund();
+
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, 22, Graphics.FONT_XTINY, "nový bod",
+        Displej.nahore(dc, "nový bod " + Body.dalsiCislo(), Graphics.FONT_XTINY);
+
+        // Rozptyl velkým písmem — to je jediné číslo, podle kterého se
+        // člověk rozhoduje, jestli už uložit, nebo ještě počkat.
+        var hlavni = (sig == null) ? "—" : ("±" + sig.format("%.1f") + " m");
+        dc.setColor(_barva(n, sig), Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, cy - 16, Graphics.FONT_NUMBER_MEDIUM, hlavni,
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, vyska / 2 - 26, Graphics.FONT_NUMBER_MEDIUM, _cislo,
+        var podrobne = n.toString() + " vzorků";
+        if (sek != null) { podrobne += " · " + sek.toString() + " s"; }
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, cy + 26, Graphics.FONT_XTINY, podrobne,
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, vyska / 2 + 14, Graphics.FONT_SMALL,
-                    "±" + _vysledek["s"].format("%.1f") + " m",
-                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-
-        var podrobnosti = _vysledek["n"].toString() + " vzorků";
-        if (_vysledek["out"] > 0) {
-            podrobnosti += " · " + _vysledek["out"].toString() + " vyhozeno";
+        if (n < DOST) {
+            dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(cx, cy + 48, Graphics.FONT_XTINY, "chvíli stůj, klesá to",
+                        Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         }
+
         dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, vyska / 2 + 44, Graphics.FONT_XTINY, podrobnosti,
-                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-        dc.drawText(cx, vyska - 14, Graphics.FONT_XTINY, "START = uložit   BACK = zahodit",
-                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        Displej.dole(dc, "START = ulož   BACK = zpět", Graphics.FONT_XTINY);
+    }
+
+    //! Barva podle toho, jak moc se dá výsledku věřit. Zelená až když je
+    //! rozptyl malý A vzorků dost — samotný malý rozptyl z pěti vzorků
+    //! nic neznamená.
+    hidden function _barva(n, sig) {
+        if (sig == null || n < 5)          { return Graphics.COLOR_DK_GRAY; }
+        if (n >= DOST && sig <= 1.5)       { return Graphics.COLOR_GREEN; }
+        if (sig <= 3.0)                    { return Graphics.COLOR_YELLOW; }
+        return Graphics.COLOR_ORANGE;
     }
 
     hidden function _zavibruj() {
@@ -194,20 +132,12 @@ class NovyBodDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function onSelect() {
-        if (!_view.jeHotovo()) {
-            _view.ukoncit();          // dost bylo měření, spočítej to
-            return true;
-        }
-        if (_view.maVysledek()) {
-            _view.uloz();
-        }
+        _view.uloz();
         _zpetNaMapu();
         return true;
     }
 
     function onBack() {
-        // Ve fázi sběru i nad hotovým výsledkem znamená BACK „zahodit“ —
-        // uloží se jedině přes START, ať se bod nezaloží omylem.
         _zpetNaMapu();
         return true;
     }
