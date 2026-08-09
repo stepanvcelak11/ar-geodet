@@ -65,9 +65,12 @@ class SeznamDelegate extends WatchUi.Menu2InputDelegate {
         var b = Seznam.bod(item.getId());
         if (b == null) { return; }
 
-        // Cíl si drží i mapa, aby ho zvýraznila, až se člověk vrátí.
+        // Zpátky na MAPU, ne na obrazovku se šipkou. Šipka řekne směr, ale
+        // ne co je mezi tebou a bodem; mapa se sama oddálí, aby byl cíl
+        // v záběru, a vede k němu čárkovaná čára.
         $.mapaView.cil = b;
-        WatchUi.pushView(new NavigaceView(b), new NavigaceDelegate(), WatchUi.SLIDE_LEFT);
+        $.mapaView.autoZoom = true;
+        WatchUi.popView(WatchUi.SLIDE_DOWN);
     }
 
     function onBack() {

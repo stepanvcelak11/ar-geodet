@@ -26,6 +26,7 @@ class MapaView extends WatchUi.View {
     var podleSmeru = true;      // false = sever nahoře
     var podklad = true;         // vektorové čáry cest pod body
     var cil = null;             // bod, ke kterému se právě naviguje
+    var autoZoom = true;        // při navigaci si mapa dosah řídí sama
 
     hidden var _casovac = null;
     hidden var _okoli = [];
@@ -65,11 +66,13 @@ class MapaView extends WatchUi.View {
     }
 
     function zoomBliz() {
+        autoZoom = false;
         if (zoom > 0) { zoom -= 1; Storage.setValue("zoom", zoom); }
         WatchUi.requestUpdate();
     }
 
     function zoomDal() {
+        autoZoom = false;
         if (zoom < ZOOMY.size() - 1) { zoom += 1; Storage.setValue("zoom", zoom); }
         WatchUi.requestUpdate();
     }
@@ -103,6 +106,16 @@ class MapaView extends WatchUi.View {
         Blizkost.zkontroluj(_okoli);
 
         var dosah = ZOOMY[zoom];
+        // Když se někam naviguje, mapa se sama oddálí tak, aby byl cíl vidět.
+        // Holá šipka řekne směr, ale ne co je mezi tebou a bodem — a právě
+        // kvůli tomu ta mapa je.
+        if (cil != null && autoZoom) {
+            var dc2 = Geo.vzdalenost(s.lat, s.lon, cil["la"], cil["lo"]);
+            for (var z = 0; z < ZOOMY.size(); z++) {
+                if (ZOOMY[z] >= dc2 * 1.25) { dosah = ZOOMY[z]; break; }
+                if (z == ZOOMY.size() - 1) { dosah = ZOOMY[z]; }
+            }
+        }
 
         // Popisky se kreslí první — teprve ony řeknou, kolik místa zbylo
         // na mapu. Dřív tu byl pevný odstup 26 px, jenže ten na kulatém
@@ -120,7 +133,15 @@ class MapaView extends WatchUi.View {
 
         _kruznice(dc, cx, cy, polomer);
         if (podklad) {
-            Podklad.kresli(dc, s.lat, s.lon, cx, cy, polomer, mkl, otoc);
+            if (Podklad.mamPro(s.lat, s.lon)) {
+                Podklad.kresli(dc, s.lat, s.lon, cx, cy, polomer, mkl, otoc);
+            } else {
+                // Prázdná mapa bez vysvětlení je k vzteku — tohle rovnou
+                // říká, že se pro tohle místo nic nepřipravilo.
+                dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+                dc.drawText(cx, cy + polomer / 2, Graphics.FONT_XTINY, "mapa není",
+                            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            }
         }
         _sever(dc, cx, cy, polomer, otoc);
         _kCili(dc, cx, cy, polomer, mkl, otoc, s);

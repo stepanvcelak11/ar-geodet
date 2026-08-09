@@ -6,6 +6,7 @@ using Toybox.Application;
 using Toybox.Application.Storage;
 using Toybox.Lang;
 using Toybox.WatchUi;
+using Toybox.Time;
 
 //! Přenos bodů mezi hodinkami a mobilem.
 //!
@@ -37,6 +38,23 @@ class Cloud {
 
     var stav = "";                     // co ukázat uživateli
     var bezi = false;
+
+    //! Ve které fázi synchronizace jsme. Obrazovka podle toho kreslí
+    //! postup — bez toho se nedá poznat, jestli se ještě stahuje, nebo
+    //! je dávno hotovo a jen tam visí stará hláška.
+    //!   0 nic  1 odesílám  2 body  3 mapa  4 hotovo  5 chyba
+    var faze = 0;
+    var zacatek = 0;                   // čas startu [s], na odpočítávání
+    var pocetBodu = 0;                 // co přišlo, do souhrnu
+    var mapaOk = false;
+
+    //! Kolik vteřin synchronizace běží. Není to ukazatel postupu — ten
+    //! Connect IQ u makeWebRequest nedává, odpověď přijde celá naráz —
+    //! ale je z něj vidět, že se něco děje a jak dlouho.
+    function sekund() {
+        if (zacatek == 0) { return 0; }
+        return Time.now().value() - zacatek;
+    }
 
     //! Kód, který se právě ukazuje na displeji, a tajemství k němu.
     var parovaciKod = "";
@@ -199,6 +217,10 @@ class Cloud {
         if (server().length() < 8) { _hlas("chybí adresa serveru"); return; }
 
         bezi = true;
+        faze = 1;
+        zacatek = Time.now().value();
+        pocetBodu = 0;
+        mapaOk = false;
         var kod = _vlastnost("kod").toUpper();
         if (!sparovano() || !kod.equals("") && !kod.equals(_kodPosledni())) {
             _sparuj(kod);
@@ -278,7 +300,8 @@ class Cloud {
             return;
         }
 
-        _hlas("odesílám " + poslat.size() + "…");
+        faze = 1;
+        _hlas("odesílám " + poslat.size() + " bodů");
         Communications.makeWebRequest(
             server() + "/watch/points",
             { "points" => poslat },
@@ -293,6 +316,7 @@ class Cloud {
     function _naOdeslani(kod as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {
         if (kod != 200) {
             bezi = false;
+            faze = 5;
             _hlas(_chyba("odeslání", kod));
             return;
         }
@@ -315,7 +339,8 @@ class Cloud {
             _hlas("odesláno; na stažení chybí poloha");
             return;
         }
-        _hlas("stahuji okolí…");
+        faze = 2;
+        _hlas("stahuji body");
 
         // O nový blok čísel se říká, jedině když ten dosavadní došel — server
         // ho totiž opravdu ukusuje a při každé synchronizaci by se spolklo
@@ -339,6 +364,7 @@ class Cloud {
         var d = (data instanceof Lang.Dictionary) ? data as Lang.Dictionary : null;
         if (kod != 200 || d == null || d["points"] == null) {
             bezi = false;
+            faze = 5;
             _hlas(_chyba("stažení", kod));
             return;
         }
@@ -348,7 +374,9 @@ class Cloud {
         _prevezmiBlok(d);
 
         var nove = Body.nahradZMobilu(d["points"]);
-        _hlas(nove + " bodů; beru mapu…");
+        pocetBodu = nove;
+        faze = 3;
+        _hlas("stahuji mapu");
         _stahniDlazdici();
     }
 
@@ -363,7 +391,9 @@ class Cloud {
         var s = $.sledovac;
         if (s == null || s.lat == null) {
             bezi = false;
-            _hlas("hotovo (na mapu chybí poloha)");
+            faze = 4;
+            _hlas("hotovo, na mapu chybí poloha");
+            _zavibruj();
             return;
         }
         Communications.makeWebRequest(
@@ -384,15 +414,27 @@ class Cloud {
         if (kod == 404) {
             // Pro tohle místo nikdo mapu nepřipravil — není to chyba,
             // jen se to musí říct, ať se nehledá závada jinde.
-            _hlas("body hotové; mapa pro tohle místo není");
+            faze = 4;
+            _hlas("mapa pro tohle místo není");
+            _zavibruj();
             return;
         }
         if (kod != 200 || d == null || d["t"] == null) {
-            _hlas("body hotové; mapa se nestáhla (" + kod + ")");
+            faze = 4;
+            _hlas("mapa se nestáhla (" + kod + ")");
+            _zavibruj();
             return;
         }
-        Podklad.ulozStazenou(d["t"]);
-        _hlas("hotovo i s mapou");
+        mapaOk = Podklad.ulozStazenou(d["t"]);
+        if (!mapaOk) {
+            faze = 4;
+            _hlas("mapa se nevešla do paměti");
+            _zavibruj();
+            return;
+        }
+        faze = 4;
+        _hlas("hotovo");
+        _zavibruj();
     }
 
     function _chyba(co, kod) {

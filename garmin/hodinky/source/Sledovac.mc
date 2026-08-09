@@ -28,6 +28,7 @@ class Sledovac {
     var kvalita  = null;      // Position.QUALITY_*
     var kurz     = null;      // směr pohybu [rad], jen když se jde
     var rychlost = 0.0;       // [m/s]
+    var kurzOd = 0;           // kdy naposled přišel použitelný kurz [s]
 
     //! Roste s každým novým fixem. Obrazovka pro zakládání bodu podle něj
     //! pozná, že přišel čerstvý údaj, a nezapočítá tentýž fix dvakrát.
@@ -91,7 +92,10 @@ class Sledovac {
 
         // Kurz z GNSS má smysl teprve když se člověk hýbe — vestoje je to
         // jen šum. Práh je schválně nízko (0,8 m/s ≈ pomalá chůze).
-        if (info.heading != null && rychlost > 0.8) { kurz = info.heading; }
+        if (info.heading != null && rychlost > 0.8) {
+            kurz = info.heading;
+            kurzOd = Time.now().value();
+        }
 
         pocitadlo += 1;
         _zpracujKlid();
@@ -178,6 +182,11 @@ class Sledovac {
         if (si != null && si has :heading && si.heading != null) {
             return si.heading;
         }
-        return kurz;
+        // ⚠ Radši nic než starý kurz. Když kompas mlčí a člověk stojí,
+        // vracel se sem POSLEDNÍ směr chůze — mapa pak zůstala otočená,
+        // jak to bylo naposledy, a vypadalo to jako zaseknutý kompas.
+        // Null znamená „nevím", a mapa se srovná severem nahoru.
+        if (kurz != null && (Time.now().value() - kurzOd) < 20) { return kurz; }
+        return null;
     }
 }

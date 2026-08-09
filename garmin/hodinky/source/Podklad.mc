@@ -89,17 +89,26 @@ module Podklad {
     //! Uloží dlaždici staženou ze serveru. Drží se jen jedna — celá zakázka
     //! by se do paměti hodinek nevešla a stejně se chodí kolem jednoho místa.
     function ulozStazenou(t) {
-        if (t == null) { return; }
+        if (t == null) { return false; }
         try {
             Storage.setValue(KLIC_STAZENA, t);
             _dlazdice = t;
             _ktera = 3;
+            return true;
         } catch (e) {
             // Když se dlaždice do úložiště nevejde, není to důvod shodit
-            // aplikaci — mapa prostě nebude a body fungují dál.
+            // aplikaci — ale MLČET se taky nesmí, jinak se marně hledá,
+            // proč mapa není. Volající to hlásí dál.
             _dlazdice = null;
             _ktera = 0;
+            return false;
         }
+    }
+
+    //! Je pro tuhle polohu vůbec nějaký podklad? Mapa to podle toho
+    //! napíše — prázdná obrazovka bez vysvětlení je k vzteku.
+    function mamPro(lat, lon) {
+        return dlazdice(lat, lon) != null;
     }
 
     //! Sedí stažená dlaždice na tuhle polohu?

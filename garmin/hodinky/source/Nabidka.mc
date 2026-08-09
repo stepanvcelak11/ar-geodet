@@ -117,8 +117,10 @@ class NabidkaDelegate extends WatchUi.Menu2InputDelegate {
             if (!$.cloud.sparovano()) {
                 WatchUi.pushView(new ParovaniView(), new ParovaniDelegate(), WatchUi.SLIDE_UP);
             } else {
-                $.cloud.synchronizuj();
-                item.setSubLabel($.cloud.stav);
+                // Vlastní obrazovka, ne podtitulek: ten se nastaví jednou při
+                // stisku a už se neobnoví, takže by tam „stahuji" viselo
+                // i dávno po dokončení.
+                WatchUi.pushView(new SyncView(), new SyncDelegate(), WatchUi.SLIDE_UP);
             }
 
         } else if (id == :cislo) {
