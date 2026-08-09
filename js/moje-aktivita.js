@@ -357,7 +357,11 @@
     // mezitím ručně vrátil.
     var SEED_WAVES = [
         { id: 'agAktHiddenSeed_v1', keys: ['openCheckDist', 'kontrola-vrstvy', 'track-log', 'brifink', 'bezpecnost', 'kniha-jizd'] },
-        { id: 'agAktHiddenSeed_v2', keys: ['ar-visual-track'] }
+        { id: 'agAktHiddenSeed_v2', keys: ['ar-visual-track'] },
+        // Sjednocené dvojice: v seznamu úkonů zůstává jeden vstup a druhá cesta je
+        // odkazem uvnitř okna (js/nastroje-parky.js). Dlaždice se proto schová —
+        // nemaže se, hledání ji najde dál a v „Skryté nástroje" se vrátí.
+        { id: 'agAktHiddenSeed_v3', keys: ['obchuzka', 'ar-resection'] }
     ];
     function seedHidden() {
         var a = hidden(), changed = false, w, i, done;
