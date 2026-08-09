@@ -135,16 +135,18 @@
     var GUEST_ALLOW = { 'dock.novybod': 1, 'dock.body': 1, 'dock.nastaveni': 1 };
     function isGuest() {
         if (getFirm()) return false;
-        try { return !!localStorage.getItem(LS_GUEST); } catch (e) { return false; }
+        return guestFlag();          // čte přes cache, viz komentář u getFirm()
     }
     function enterGuest() {
         try { localStorage.setItem(LS_GUEST, JSON.stringify({ ts: Date.now() })); } catch (e) {}
+        bustFirm();
         var g = document.getElementById('ag-gate'); if (g) g.remove();
         applyPerms();
         enterApp();   // brána byla vstupní obrazovkou → úvodní kartu přeskočit
     }
     function clearGuest() {
         try { localStorage.removeItem(LS_GUEST); } catch (e) {}
+        bustFirm();
     }
 
     // vyžadovat přihlášení při každém startu appky (výchozí ANO; per zařízení)
@@ -158,19 +160,58 @@
     // ------------------------------------------------------------------
     // Úložiště konfigurace (localStorage, SUROVÉ klíče — bez prefixu zakázky)
     // ------------------------------------------------------------------
+    // BATERIE: getFirm() je nejčastěji volaná funkce v celé appce — can() ji volá dvakrát
+    // (jednou přímo, jednou přes isGuest()) a applyPerms() volá can() pro každý hlídaný
+    // prvek při každém ticku. Naměřeno v klidovém AR: 190 čtení localStorage za sekundu,
+    // z toho 137 odsud, každé s vlastním JSON.parse. localStorage je SYNCHRONNÍ — každé
+    // čtení blokuje hlavní vlákno, takže se to na mobilu projeví i na plynulosti AR.
+    //
+    // Proto krátká vyrovnávací paměť: v rámci TTL se vrací už rozparsovaný objekt.
+    // Bezpečnost tím netrpí — oprávnění se nevymáhají tímhle čtením, ale skrýváním
+    // prvků při applyPerms(), a to se stejně přepočítá při dalším ticku. Zápisy uvnitř
+    // appky rušíme platnost okamžitě (bustFirm), takže změna role/odhlášení se projeví
+    // hned; TTL je jen záchranná síť pro zápisy, o kterých nevíme (jiná záložka, ruční
+    // zásah do úložiště). Cache se drží ZVLÁŠŤ pro syrový řetězec i pro výsledek, aby
+    // volající nikdy nedostal objekt sdílený s dřívějším stavem.
+    var FIRM_TTL = 500;                       // ms
+    var _firmVal = null, _firmTs = 0, _firmHas = false;
+    var _guestVal = false, _guestTs = 0, _guestHas = false;
+    function bustFirm() { _firmHas = false; _guestHas = false; }
     function getFirm() {
+        var now = Date.now();
+        if (_firmHas && (now - _firmTs) < FIRM_TTL) return _firmVal;
+        var out = null;
         try {
             var raw = localStorage.getItem(LS_FIRM);
-            if (!raw) return null;
-            var f = JSON.parse(raw);
-            if (!f || !f.enabled) return null;
-            if (!Array.isArray(f.users) || !f.users.length) return null;   // fail-open: bez uživatelů nezamykat
-            if (!f.perms) f.perms = defaultPerms();
-            return f;
-        } catch (e) { return null; }
+            if (raw) {
+                var f = JSON.parse(raw);
+                if (f && f.enabled && Array.isArray(f.users) && f.users.length) {
+                    if (!f.perms) f.perms = defaultPerms();       // fail-open: bez uživatelů nezamykat
+                    out = f;
+                }
+            }
+        } catch (e) { out = null; }
+        _firmVal = out; _firmTs = now; _firmHas = true;
+        return out;
     }
+    // stejná úvaha jako u getFirm() — isGuest() je druhá polovina těch 137 čtení/s
+    function guestFlag() {
+        var now = Date.now();
+        if (_guestHas && (now - _guestTs) < FIRM_TTL) return _guestVal;
+        var v = false;
+        try { v = !!localStorage.getItem(LS_GUEST); } catch (e) { v = false; }
+        _guestVal = v; _guestTs = now; _guestHas = true;
+        return v;
+    }
+    // zápis do úložiště z JINÉ záložky/okna — zahodit cache hned, ne až po TTL
+    try {
+        window.addEventListener('storage', function (e) {
+            if (!e || !e.key || e.key === LS_FIRM || e.key === LS_GUEST) bustFirm();
+        });
+    } catch (e) {}
     function saveFirm(f) {
         try { localStorage.setItem(LS_FIRM, JSON.stringify(f)); } catch (e) {}
+        bustFirm();
         clearGuest();
         rememberCurrentFirm();
         applyPerms();
@@ -1825,6 +1866,7 @@
             if (v === 'RESET') {
                 removeProfile(profileKeyOf(f));
                 try { localStorage.removeItem(LS_FIRM); localStorage.removeItem(LS_TOK); localStorage.removeItem(LS_OFF); localStorage.removeItem(LS_SYNC); } catch (e) {}
+                bustFirm();
                 setSess(null);
                 ov.remove();
                 applyPerms();
@@ -2222,6 +2264,9 @@
         defaultPerms: defaultPerms,
         getFirm: getFirm,
         saveFirm: saveFirm,
+        // zahodit vyrovnávací paměť getFirm()/isGuest() — volá ucty-admin.js po zápisu
+        // do agFirma_v1 mimo tenhle modul (jinak by se změna projevila až po TTL)
+        bustFirm: bustFirm,
         currentUser: currentUser,
         isAdmin: isAdmin,
         can: can,

@@ -222,9 +222,21 @@
     }
 
     // ---- život modulu ------------------------------------------------------------------------
-    var _busy = false, _timer = null;
+    // BATERIE: MutationObserver níž hlídá CELÝ obsah Nastavení včetně podstromu, a do
+    // Nastavení píší živé náhledy (stav GPS, kompas, profily…) i když je okno ZAVŘENÉ.
+    // Přerovnání se tak spouštělo ~5×/s pořád dokola — naměřeno přes 2000 dotazů do DOM
+    // za 20 s pro panel, na který se nikdo nedívá. Zavřené okno teď jen zvedne příznak
+    // `_dirty` a skutečné srovnání proběhne až při otevření (viz níž wrapper openSettings
+    // a hlídač zobrazení), takže uživatel dostane stejné pořadí, jen se pro to nedře celý den.
+    var _busy = false, _timer = null, _dirty = false;
+    function settingsVisible() {
+        var m = document.getElementById('settings-modal');
+        return !!(m && m.style && m.style.display && m.style.display !== 'none');
+    }
     function arrange() {
         if (_busy) return;
+        if (!settingsVisible()) { _dirty = true; return; }   // zavřené okno nemá co srovnávat
+        _dirty = false;
         _busy = true;
         try {
             arrangeHead();
@@ -246,11 +258,26 @@
         try {
             new MutationObserver(schedule).observe(c, { childList: true, subtree: true });
         } catch (e) { return false; }
-        // srovnat i při každém otevření (moduly dosypávají obsah až tam)
+        // ZÁCHYTNÁ SÍŤ k odloženému srovnání výše: okno se otevírá i jinudy než přes
+        // openSettings() (dlaždice, zkratky, obnova stavu). Tenhle pozorovatel sleduje
+        // jen atribut style samotného okna, takže tiká jen při skutečném otevření/zavření.
+        try {
+            new MutationObserver(function () {
+                if (_dirty && settingsVisible()) arrange();
+            }).observe(m, { attributes: true, attributeFilter: ['style', 'class'] });
+        } catch (e3) {}
+        // srovnat i při každém otevření (moduly dosypávají obsah až tam). Srovnáváme
+        // SYNCHRONNĚ hned po otevření — okno už v tu chvíli je vidět a odložené srovnání
+        // by se uživateli projevilo jako přeskládání obsahu pod rukama.
         try {
             var open = window.openSettings;
             if (typeof open === 'function' && !open.__agOrder) {
-                var wrapped = function () { var r = open.apply(this, arguments); schedule(); return r; };
+                var wrapped = function () {
+                    var r = open.apply(this, arguments);
+                    try { arrange(); } catch (e4) {}
+                    schedule();          // ještě jednou, až moduly dosypou obsah
+                    return r;
+                };
                 wrapped.__agOrder = 1;
                 window.openSettings = wrapped;
             }

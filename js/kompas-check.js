@@ -12,7 +12,15 @@
 
     function _adiff(a, b) { return ((a - b + 540) % 360) - 180; }
     function _live() { return (typeof appStarted !== 'undefined') && appStarted; }
-    function _calibOpen() { const m = document.getElementById('compass-calib-modal'); return m && m.style.display !== 'none' && m.style.display !== ''; }
+    // BATERIE: onOrient bezi na KAZDOU udalost kompasu (~50x/s), takze i tenhle jeden
+    // dotaz do DOM se delal 50x za sekundu. Uzel je staly — staci si ho zapamatovat
+    // (a znovu najit, kdyby ho nekdo z DOM vyhodil).
+    let _calibEl = null;
+    function _calibOpen() {
+        if (!_calibEl || !_calibEl.isConnected) _calibEl = document.getElementById('compass-calib-modal');
+        const m = _calibEl;
+        return m && m.style.display !== 'none' && m.style.display !== '';
+    }
 
     // ---------- 1) VAROVANI NA RUSENI ----------
     // dismissed = uzivatel zavrel varovani krizkem (napr. kompas nejde zkalibrovat).

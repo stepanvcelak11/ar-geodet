@@ -519,11 +519,15 @@
             var src = document.getElementById('compass-debug');
             if (!src || window.__agSpAzMo || typeof MutationObserver === 'undefined') return;
             window.__agSpAzMo = new MutationObserver(function () {
-                if (!on()) return;
                 // grafika.js přepisuje azimut i 60×/s — do bubliny stačí 5×/s
-                // (co se nestihne, dorovná pravidelný tick); jinak zbytečně žere baterii
+                // (co se nestihne, dorovná pravidelný tick); jinak zbytečně žere baterii.
+                // POZOR na pořadí: škrcení MUSÍ být první. Dokud tu stálo `on()` nad ním,
+                // sáhlo se do localStorage při KAŽDÉ změně azimutu (naměřeno 25 čtení/s
+                // v klidovém AR) jen proto, aby se o řádek níž zjistilo, že se překreslovat
+                // nebude. localStorage je synchronní, takže to ubíralo i plynulost.
                 var t = Date.now();
                 if (t - _azTs < 200) return;
+                if (!on()) return;
                 _azTs = t;
                 var el = document.querySelector('#ag-sp .ag-sp-az');
                 var az = azHtml();

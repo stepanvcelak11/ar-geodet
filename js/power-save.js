@@ -193,7 +193,7 @@
     // =====================================================================
     function cameraLive() {
         try {
-            var v = document.getElementById('camera-feed');
+            var v = elById('camera-feed');
             var s = v && v.srcObject;
             var t = s && s.getVideoTracks && s.getVideoTracks()[0];
             return !!(t && t.readyState === 'live');
@@ -236,12 +236,22 @@
     ];
     // Panely, které se otevírají třídou (ne inline stylem)
     var HEAVY_SEL = '.zpr-overlay.open, .prd-overlay.open, #ag-wx-overlay.on, #ag-pm-ov.open, #ag-zb-ov.open';
+    // Uzly panelů se v DOM nemění (leží v index.html), ale hledaly se znovu při každém
+    // ticku — 13 dotazů do DOM za sekundu celý den jen kvůli otázce „je něco otevřené?".
+    // Držíme si je tedy v mapě a znovu hledáme, jen když uzel v DOM není (modul ho
+    // dosypal později nebo ho někdo vyměnil).
+    var _elCache = {};
+    function elById(id) {
+        var el = _elCache[id];
+        if (!el || !el.isConnected) { el = _elCache[id] = document.getElementById(id); }
+        return el;
+    }
     function shownById(id) {
-        var el = document.getElementById(id);
+        var el = elById(id);
         return !!(el && el.style && el.style.display && el.style.display !== 'none');
     }
     function sideMenuOpen() {
-        var el = document.getElementById('side-menu');
+        var el = elById('side-menu');
         return !!(el && el.classList && el.classList.contains('open'));
     }
     function heavyOpen() {

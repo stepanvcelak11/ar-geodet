@@ -140,9 +140,14 @@
     var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
         + '<circle cx="12" cy="12" r="9"/><polygon points="15.5 8.5 10.5 10.5 8.5 15.5 13.5 13.5"/></svg>';
 
+    var _box = null;
     function build() {
+        // hotový panel si pamatujeme — jinak tu byly dva až tři dotazy do DOM 8×/s
+        if (_box && _box.isConnected) return true;
+        _box = document.getElementById(BOX_ID);
+        if (_box && _box.isConnected) return true;
         var host = document.getElementById('tab-kompas');
-        if (!host || document.getElementById(BOX_ID)) return !!document.getElementById(BOX_ID);
+        if (!host) return false;
         styles();
         var box = document.createElement('div');
         box.id = BOX_ID;
@@ -157,17 +162,32 @@
             + '<p class="agm-note" id="agm-note">Drž telefon <b>naplocho</b> a dál od kovu, auta a betonářské výztuže.</p>';
         // nahoru: kompas se má číst první, ne až pod tlačítky kalibrace
         host.insertBefore(box, host.firstChild);
+        _box = box;
         return true;
     }
 
     // ---- živý přepočet ---------------------------------------------------------------
     var _last = { t: '', m: '', d: '', rot: null, note: '' };
+    // BATERIE: tick() jede 8×/s celý den. Dokud tu byl dotaz na getClientRects() natvrdo,
+    // vynucoval si prohlížeč osmkrát za sekundu přepočet rozvržení stránky kvůli panelu,
+    // na který se nikdo nedívá — a to je dražší než celé překreslení hodnot. Záložní větev
+    // (kdyby #tab-kompas někdo přesunul jinam) proto platíme jen tehdy, když je opravdu
+    // otevřené okno, do kterého se dá přesunout.
+    var _elc = {};
+    function el(id) {
+        var e = _elc[id];
+        if (!e || !e.isConnected) e = _elc[id] = document.getElementById(id);
+        return e;
+    }
+    function shown(id) {
+        var e = el(id);
+        return !!(e && e.style && e.style.display && e.style.display !== 'none');
+    }
     function visible() {
-        var m = document.getElementById('compass-modal');
+        var m = el('compass-modal');
         if (m && m.style.display === 'flex') return true;
-        // kdyby #tab-kompas někdo vložil jinam (Nastavení, hledání), ptej se DOM
-        var box = document.getElementById(BOX_ID);
-        return !!(box && box.getClientRects().length);
+        if (!shown('settings-modal')) return false;      // není kde být vidět → žádný dotaz na rozvržení
+        return !!(_box && _box.isConnected && _box.getClientRects().length);
     }
     function set(id, html, key) {
         if (_last[key] === html) return;

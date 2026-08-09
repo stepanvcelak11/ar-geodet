@@ -1791,6 +1791,7 @@
                 if (!ok) return;
                 if (u.removeProfile && u.profileKeyOf) u.removeProfile(u.profileKeyOf(f));
                 try { localStorage.removeItem('agFirma_v1'); localStorage.removeItem('agFirmaSess_v1'); } catch (e) {}
+                if (u.bustFirm) u.bustFirm();   // ucty.js si getFirm() krátce cachuje
                 document.getElementById('agfa-modal').style.display = 'none';
                 if (u.applyPerms) u.applyPerms();
                 agAlert('Hotovo', 'Firemní režim je vypnutý — appka se vrátí na přihlašovací bránu.');
@@ -1893,6 +1894,7 @@
                     localStorage.removeItem('agFirmaOff_v1');
                     localStorage.removeItem('agFirmaSync_v1');
                 } catch (e) {}
+                if (u.bustFirm) u.bustFirm();   // ucty.js si getFirm() krátce cachuje
                 document.getElementById('agfa-modal').style.display = 'none';
                 if (u.applyPerms) u.applyPerms();
                 agAlert('Zařízení odpojeno', 'Appka se vrátí na přihlašovací bránu. Body a zakázky zůstaly.');

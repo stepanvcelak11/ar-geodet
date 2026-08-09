@@ -16,6 +16,24 @@
         }
         const arrowPaths = { '1': "M50 10 L90 50 L70 50 L70 95 L30 95 L30 50 L10 50 Z", '2': "M50 10 L70 30 L55 30 L55 95 L45 95 L45 30 L30 30 Z", '3': "M50 10 L90 50 L70 60 L50 40 L30 60 L10 50 Z", '4': "M50 10 L90 90 L50 70 L10 90 Z", '5': "M50 10 L90 50 L50 90 L10 50 Z" };
 
+        // ===== BEZPECNE CTENI A PLNENI FORMULARU ===================================
+        // Nastaveni pracuje s ~90 policky a delalo to retezem `getElementById('x').value`
+        // bez jedine kontroly na null. Jedno chybejici id (odpojeny modul, zalozka, ktera
+        // se jeste nestihla dosypat, budouci uprava HTML) proto neshodilo jen ten jeden
+        // radek, ale CELOU funkci: v saveSettings() se pak nic neulozilo, okno Nastaveni
+        // se nezavrelo a appka pusobila zaseknute; v applyVisualSettings() se neaplikoval
+        // zbytek vzhledu. Dnes vsechna ta id v index.html jsou — tohle je pojistka proti
+        // regresi, ne oprava zive chyby.
+        //
+        // Pravidlo: PSANI do chybejiciho prvku se tise preskoci, CTENI z nej vrati zalozni
+        // hodnotu (typicky dosavadni nastaveni), takze se do visSettings nikdy nedostane
+        // NaN nebo undefined.
+        function _agSet(id, prop, val) { const e = document.getElementById(id); if (e) e[prop] = val; return !!e; }
+        function _agChk(id, fallback) { const e = document.getElementById(id); return e ? !!e.checked : !!fallback; }
+        function _agStr(id, fallback) { const e = document.getElementById(id); const v = e ? e.value : null; return (v == null || v === '') ? fallback : v; }
+        function _agInt(id, fallback) { const e = document.getElementById(id); const v = e ? parseInt(e.value, 10) : NaN; return isFinite(v) ? v : fallback; }
+        function _agFloat(id, fallback) { const e = document.getElementById(id); const v = e ? parseFloat(e.value) : NaN; return isFinite(v) ? v : fallback; }
+
         function applyVisualSettings() {
             applyMapLayers();
             document.body.classList.toggle('outdoor-mode', !!visSettings.outdoorMode);
@@ -31,7 +49,42 @@
             document.documentElement.style.setProperty('--ag-font-scale', visSettings.fontScale || 1);
             previewTheme(visSettings.theme); previewMode(visSettings.mode);
             const arrPath = document.getElementById('main-arrow-path'); if(arrPath) { arrPath.setAttribute('d', arrowPaths[visSettings.arrowShape]); arrPath.setAttribute('fill', visSettings.colArrow); document.getElementById('arrow-straight').style.filter = `drop-shadow(0 15px 15px ${visSettings.colArrow}80)`; document.getElementById('target-circle-out').setAttribute('stroke', visSettings.colArrow); document.getElementById('target-circle-in').setAttribute('fill', visSettings.colArrow); document.getElementById('arrow-target').style.filter = `drop-shadow(0 15px 15px ${visSettings.colArrow}90)`; }
-            if (document.getElementById('s-max-ar-slider')) { document.getElementById('s-wakelock').checked = visSettings.wakeLockEnabled; document.getElementById('s-outdoor').checked = !!visSettings.outdoorMode; { var _ao2 = document.getElementById('s-auto-outdoor'); if (_ao2) _ao2.checked = visSettings.autoOutdoor !== false; } { var _lh = document.getElementById('s-lefthand'); if (_lh) _lh.checked = !!visSettings.leftHand; } { var _vb2 = document.getElementById('s-vibration'); if (_vb2) _vb2.checked = visSettings.vibrationEnabled !== false; } { var _an2 = document.getElementById('s-anim'); if (_an2) _an2.value = visSettings.anim || 'auto'; } { var _da = document.getElementById('v-dock-arc'); if (_da) { var _av = (visSettings.dockArc == null ? 13 : visSettings.dockArc); _da.value = _av; document.getElementById('v-dock-arc-val').innerText = _av; } } document.getElementById('s-katastr-source').value = visSettings.katastrSource || 'mapycz'; document.getElementById('s-max-ar-slider').value = visSettings.maxARPoints; document.getElementById('s-max-ar-val').innerText = visSettings.maxARPoints; document.getElementById('v-ar-height-slider').value = visSettings.arVerticalOffset; document.getElementById('v-ar-height-val').innerText = visSettings.arVerticalOffset; document.getElementById('v-marker-scale').value = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-scale-val').innerText = Math.round(visSettings.markerScale * 100); document.getElementById('v-marker-opacity').value = visSettings.markerOpacity; document.getElementById('v-marker-opacity-val').innerText = visSettings.markerOpacity; document.getElementById('col-tb').value = visSettings.colTb; document.getElementById('col-zhb').value = visSettings.colZhb; document.getElementById('col-pbpp').value = visSettings.colPbpp; document.getElementById('col-nivel').value = visSettings.colNivel; document.getElementById('col-custom').value = visSettings.colCustom; document.getElementById('col-arrow').value = visSettings.colArrow; document.getElementById('v-arrow-shape').value = visSettings.arrowShape; document.getElementById('v-arrow-scale').value = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-scale-val').innerText = Math.round(visSettings.arrowScale * 100); document.getElementById('v-arrow-opacity').value = visSettings.arrowOpacity; document.getElementById('v-arrow-opacity-val').innerText = visSettings.arrowOpacity; document.getElementById('v-panel-opacity').value = visSettings.panelOpacity; document.getElementById('v-panel-opacity-val').innerText = visSettings.panelOpacity; document.getElementById('s-auto-compass').checked = visSettings.autoCompassCorrection; document.getElementById('s-tilt-comp').checked = visSettings.tiltCompensation !== false; document.getElementById('s-heading-smooth').value = visSettings.headingSmoothing; document.getElementById('s-heading-smooth-val').innerText = visSettings.headingSmoothing; document.getElementById('s-fovh').value = visSettings.fovH; document.getElementById('s-fovh-val').innerText = visSettings.fovH; document.getElementById('s-fovv').value = visSettings.fovV; document.getElementById('s-fovv-val').innerText = visSettings.fovV; document.getElementById('s-eyeh').value = visSettings.eyeHeight; document.getElementById('s-eyeh-val').innerText = visSettings.eyeHeight; document.getElementById('v-adaptive-glass').checked = visSettings.adaptiveGlass !== false; document.getElementById('v-theme').value = visSettings.theme || 'smaragd'; document.getElementById('v-mode').value = visSettings.mode || 'dark'; { var _fs = document.getElementById('v-font-scale'); if (_fs) { var _fv = Math.round((visSettings.fontScale || 1) * 100); _fs.value = _fv; document.getElementById('v-font-scale-val').innerText = _fv; } } document.getElementById('v-hud-scale').value = Math.round((visSettings.hudScale || 1) * 100); document.getElementById('v-hud-scale-val').innerText = Math.round((visSettings.hudScale || 1) * 100); }
+            // PLNENI POLICEK V NASTAVENI — pres _agSet (chybejici prvek se preskoci).
+            // Drive to byl retez nechranenych pristupu: jedno chybejici id vyhodilo
+            // vyjimku, ta propadla do volajiciho (saveSettings, start appky, prepnuti
+            // motivu) a zbytek te funkce se uz neprovedl. Vzhled sam (radky vyse) se
+            // aplikuje JESTE PRED timhle blokem, takze i pripadny prusvih tady uz
+            // nemuze rozbit to, jak appka vypada.
+            if (document.getElementById('s-max-ar-slider')) {
+                _agSet('s-wakelock', 'checked', visSettings.wakeLockEnabled);
+                _agSet('s-outdoor', 'checked', !!visSettings.outdoorMode);
+                _agSet('s-auto-outdoor', 'checked', visSettings.autoOutdoor !== false);
+                _agSet('s-lefthand', 'checked', !!visSettings.leftHand);
+                _agSet('s-vibration', 'checked', visSettings.vibrationEnabled !== false);
+                _agSet('s-anim', 'value', visSettings.anim || 'auto');
+                { var _av = (visSettings.dockArc == null ? 13 : visSettings.dockArc); _agSet('v-dock-arc', 'value', _av); _agSet('v-dock-arc-val', 'innerText', _av); }
+                _agSet('s-katastr-source', 'value', visSettings.katastrSource || 'mapycz');
+                _agSet('s-max-ar-slider', 'value', visSettings.maxARPoints); _agSet('s-max-ar-val', 'innerText', visSettings.maxARPoints);
+                _agSet('v-ar-height-slider', 'value', visSettings.arVerticalOffset); _agSet('v-ar-height-val', 'innerText', visSettings.arVerticalOffset);
+                { var _ms = Math.round(visSettings.markerScale * 100); _agSet('v-marker-scale', 'value', _ms); _agSet('v-marker-scale-val', 'innerText', _ms); }
+                _agSet('v-marker-opacity', 'value', visSettings.markerOpacity); _agSet('v-marker-opacity-val', 'innerText', visSettings.markerOpacity);
+                _agSet('col-tb', 'value', visSettings.colTb); _agSet('col-zhb', 'value', visSettings.colZhb); _agSet('col-pbpp', 'value', visSettings.colPbpp); _agSet('col-nivel', 'value', visSettings.colNivel); _agSet('col-custom', 'value', visSettings.colCustom); _agSet('col-arrow', 'value', visSettings.colArrow);
+                _agSet('v-arrow-shape', 'value', visSettings.arrowShape);
+                { var _as = Math.round(visSettings.arrowScale * 100); _agSet('v-arrow-scale', 'value', _as); _agSet('v-arrow-scale-val', 'innerText', _as); }
+                _agSet('v-arrow-opacity', 'value', visSettings.arrowOpacity); _agSet('v-arrow-opacity-val', 'innerText', visSettings.arrowOpacity);
+                _agSet('v-panel-opacity', 'value', visSettings.panelOpacity); _agSet('v-panel-opacity-val', 'innerText', visSettings.panelOpacity);
+                _agSet('s-auto-compass', 'checked', visSettings.autoCompassCorrection);
+                _agSet('s-tilt-comp', 'checked', visSettings.tiltCompensation !== false);
+                _agSet('s-heading-smooth', 'value', visSettings.headingSmoothing); _agSet('s-heading-smooth-val', 'innerText', visSettings.headingSmoothing);
+                _agSet('s-fovh', 'value', visSettings.fovH); _agSet('s-fovh-val', 'innerText', visSettings.fovH);
+                _agSet('s-fovv', 'value', visSettings.fovV); _agSet('s-fovv-val', 'innerText', visSettings.fovV);
+                _agSet('s-eyeh', 'value', visSettings.eyeHeight); _agSet('s-eyeh-val', 'innerText', visSettings.eyeHeight);
+                _agSet('v-adaptive-glass', 'checked', visSettings.adaptiveGlass !== false);
+                _agSet('v-theme', 'value', visSettings.theme || 'smaragd');
+                _agSet('v-mode', 'value', visSettings.mode || 'dark');
+                { var _fv = Math.round((visSettings.fontScale || 1) * 100); _agSet('v-font-scale', 'value', _fv); _agSet('v-font-scale-val', 'innerText', _fv); }
+                { var _hs = Math.round((visSettings.hudScale || 1) * 100); _agSet('v-hud-scale', 'value', _hs); _agSet('v-hud-scale-val', 'innerText', _hs); }
+            }
         }
 
         // Prepinac vibraci v Nastaveni: ulozi se hned a rovnou to zavibruje (aby bylo
@@ -133,7 +186,43 @@
         const VIEW_LS = 'agViewMode';
         function rememberViewMode(v) { try { if (v === 'both' || v === 'map' || v === 'ar') localStorage.setItem(VIEW_LS, v); } catch (e) {} }
         window.agRememberViewMode = rememberViewMode;
-        function startAppFromWelcome() { mapRadius = parseInt(document.getElementById('w-map-radius-slider').value); arRadius = parseInt(document.getElementById('w-ar-radius-slider').value); filters.tb = document.getElementById('w-f-tb').checked; filters.zhb = document.getElementById('w-f-zhb').checked; filters.pbpp = document.getElementById('w-f-pbpp').checked; filters.nivel = document.getElementById('w-f-nivel').checked; filters.custom = document.getElementById('w-f-custom').checked; searchQuery = document.getElementById('w-search-name').value.trim(); const viewRadios = document.getElementsByName('w-view'); for(let r of viewRadios) { if(r.checked) viewMode = r.value; } rememberViewMode(viewMode); document.getElementById('s-map-radius-slider').value = mapRadius; document.getElementById('s-map-radius-val').innerText = mapRadius; document.getElementById('s-ar-radius-slider').value = arRadius; document.getElementById('s-ar-radius-val').innerText = arRadius; document.getElementById('f-tb').checked = filters.tb; document.getElementById('f-zhb').checked = filters.zhb; document.getElementById('f-pbpp').checked = filters.pbpp; document.getElementById('f-nivel').checked = filters.nivel; document.getElementById('f-custom').checked = filters.custom; document.getElementById('s-search-name').value = searchQuery; document.getElementById('s-camera-select').value = document.getElementById('w-camera-select').value; const sViewRadios = document.getElementsByName('s-view'); for(let r of sViewRadios) { if(r.value === viewMode) r.checked = true; } document.getElementById('menu-toggle-btn').style.display = "block"; appStarted = true; document.body.classList.add('app-started'); toggleHudElements(); document.getElementById('welcome-screen').style.opacity = '0'; setTimeout(() => { document.getElementById('welcome-screen').style.display = 'none'; }, 400); applyViewMode(); drawAllMarkersOnMap(); if (userLat && userLng) { initFetch(userLat, userLng); } else { document.getElementById('info').innerHTML = "Hledám GPS signál..."; } requestWakeLock(); }
+        // VSTUP DO APPKY. Nejcitlivejsi funkce v celem projektu: kdyz spadne, uzivatel
+        // zustane koukat na uvodni obrazovku a nema jak dal — v terenu je to konec prace.
+        // Drive to byl retez 24 nechranenych pristupu do DOM. Ted je cteni formulare
+        // (ktere si vzdy vystaci se zaloznimi hodnotami) oddelene od vlastniho SPUSTENI:
+        // spusteni je ve `finally`, takze appka nabehne, i kdyby cteni formulare selhalo.
+        function startAppFromWelcome() {
+            try {
+                mapRadius = _agInt('w-map-radius-slider', mapRadius);
+                arRadius = _agInt('w-ar-radius-slider', arRadius);
+                filters.tb = _agChk('w-f-tb', filters.tb); filters.zhb = _agChk('w-f-zhb', filters.zhb); filters.pbpp = _agChk('w-f-pbpp', filters.pbpp); filters.nivel = _agChk('w-f-nivel', filters.nivel); filters.custom = _agChk('w-f-custom', filters.custom);
+                searchQuery = String(_agStr('w-search-name', searchQuery) || '').trim();
+                const viewRadios = document.getElementsByName('w-view'); for (let r of viewRadios) { if (r.checked) viewMode = r.value; } rememberViewMode(viewMode);
+                _agSet('s-map-radius-slider', 'value', mapRadius); _agSet('s-map-radius-val', 'innerText', mapRadius);
+                _agSet('s-ar-radius-slider', 'value', arRadius); _agSet('s-ar-radius-val', 'innerText', arRadius);
+                _agSet('f-tb', 'checked', filters.tb); _agSet('f-zhb', 'checked', filters.zhb); _agSet('f-pbpp', 'checked', filters.pbpp); _agSet('f-nivel', 'checked', filters.nivel); _agSet('f-custom', 'checked', filters.custom);
+                _agSet('s-search-name', 'value', searchQuery);
+                _agSet('s-camera-select', 'value', _agStr('w-camera-select', ''));
+                const sViewRadios = document.getElementsByName('s-view'); for (let r of sViewRadios) { if (r.value === viewMode) r.checked = true; }
+            } catch (e) {
+                console.warn('[start] formular uvodni obrazovky:', e);
+                try { if (window.agErrLog) agErrLog.record('startAppFromWelcome: ' + (e && e.message || e)); } catch (e2) {}
+            } finally {
+                // OD TETO CHVILE MUSI APPKA NABEHNOUT — at se nahore stalo cokoli
+                { const _mb = document.getElementById('menu-toggle-btn'); if (_mb) _mb.style.display = 'block'; }
+                appStarted = true;
+                document.body.classList.add('app-started');
+                try { toggleHudElements(); } catch (e) { console.warn('[start] HUD:', e); }
+                { const _ws = document.getElementById('welcome-screen'); if (_ws) { _ws.style.opacity = '0'; setTimeout(() => { _ws.style.display = 'none'; }, 400); } }
+                try { applyViewMode(); } catch (e) { console.warn('[start] rezim zobrazeni:', e); }
+                try { drawAllMarkersOnMap(); } catch (e) { console.warn('[start] markery:', e); }
+                try {
+                    if (userLat && userLng) initFetch(userLat, userLng);
+                    else { const _i = document.getElementById('info'); if (_i) _i.innerHTML = "Hledám GPS signál..."; }
+                } catch (e) { console.warn('[start] data:', e); }
+                try { requestWakeLock(); } catch (e) {}
+            }
+        }
 
         function applyViewMode() { // BATERIE: trida rika CSS, ze pod prekryvy tece ZIVY obraz z kamery
             // (30 snimku/s). Skleneny efekt (backdrop-filter) nad statickou mapou se prepocita
@@ -562,35 +651,51 @@
             if (e.target && e.target.matches && e.target.matches('#settings-modal input[type="range"]')) fillRange(e.target);
         });
         
-        function saveSettings() { 
-            mapRadius = parseInt(document.getElementById('s-map-radius-slider').value); setStoredData('arRadiusMap', mapRadius); 
-            arRadius = parseInt(document.getElementById('s-ar-radius-slider').value); setStoredData('arRadiusAR', arRadius); 
-            searchQuery = document.getElementById('s-search-name').value.trim();
-            const sViewRadios = document.getElementsByName('s-view'); for(let r of sViewRadios) { if(r.checked) viewMode = r.value; } rememberViewMode(viewMode);
-            const oldCam = document.getElementById('w-camera-select').value; const newCam = document.getElementById('s-camera-select').value; document.getElementById('w-camera-select').value = newCam; 
-            visSettings.wakeLockEnabled = document.getElementById('s-wakelock').checked;
-            { const _wasOut = visSettings.outdoorMode; visSettings.outdoorMode = document.getElementById('s-outdoor').checked;
-              // rucni vypnuti = automatika ted mlci (znovu se nabije az po seru)
-              if (_wasOut && !visSettings.outdoorMode) { _aoAuto = false; _aoArmed = false; } }
-            { var _ao = document.getElementById('s-auto-outdoor'); if (_ao) visSettings.autoOutdoor = _ao.checked; }
-            { var _fs2 = document.getElementById('v-font-scale'); if (_fs2) visSettings.fontScale = parseInt(_fs2.value) / 100; }
-            { var _lh = document.getElementById('s-lefthand'); if (_lh) visSettings.leftHand = _lh.checked; }
-            { var _vb = document.getElementById('s-vibration'); if (_vb) visSettings.vibrationEnabled = _vb.checked; }
-            { var _an3 = document.getElementById('s-anim'); if (_an3) visSettings.anim = _an3.value; }
-            { var _da = document.getElementById('v-dock-arc'); if (_da) visSettings.dockArc = parseInt(_da.value); }
-            visSettings.katastrSource = document.getElementById('s-katastr-source').value;
-            visSettings.maxARPoints = parseInt(document.getElementById('s-max-ar-slider').value);
-            visSettings.arVerticalOffset = parseInt(document.getElementById('v-ar-height-slider').value);
-            visSettings.markerScale = parseInt(document.getElementById('v-marker-scale').value) / 100; visSettings.markerOpacity = parseInt(document.getElementById('v-marker-opacity').value);
-            visSettings.colTb = document.getElementById('col-tb').value; visSettings.colZhb = document.getElementById('col-zhb').value; visSettings.colPbpp = document.getElementById('col-pbpp').value; visSettings.colNivel = document.getElementById('col-nivel').value; visSettings.colCustom = document.getElementById('col-custom').value;
-            visSettings.arrowScale = parseInt(document.getElementById('v-arrow-scale').value) / 100; visSettings.arrowOpacity = parseInt(document.getElementById('v-arrow-opacity').value); visSettings.arrowShape = document.getElementById('v-arrow-shape').value; visSettings.colArrow = document.getElementById('col-arrow').value;
-            visSettings.panelOpacity = parseInt(document.getElementById('v-panel-opacity').value); /* menuScale: jezdec odstraněn (mrtvá volba) */
-            visSettings.autoCompassCorrection = document.getElementById('s-auto-compass').checked; visSettings.tiltCompensation = document.getElementById('s-tilt-comp').checked; visSettings.headingSmoothing = parseInt(document.getElementById('s-heading-smooth').value); visSettings.fovH = parseInt(document.getElementById('s-fovh').value); visSettings.fovV = parseInt(document.getElementById('s-fovv').value); visSettings.eyeHeight = parseFloat(document.getElementById('s-eyeh').value);
-            visSettings.theme = document.getElementById('v-theme').value; visSettings.mode = document.getElementById('v-mode').value; visSettings.adaptiveGlass = document.getElementById('v-adaptive-glass').checked; visSettings.hudScale = parseInt(document.getElementById('v-hud-scale').value) / 100;
-            setStoredData('arVisSettings12', JSON.stringify(visSettings)); applyVisualSettings(); drawAllMarkersOnMap();
-            document.getElementById('settings-modal').style.display = 'none';
-            if (oldCam !== newCam && viewMode !== 'map') { startCameraAndCompass(true); applyViewMode(); } else { applyViewMode(); }
-            if(userLat && userLng) initFetch(userLat, userLng); fixAppLayout(); if(visSettings.wakeLockEnabled) requestWakeLock();
+        // Cte se pres _ag* pomocnky (viz nahore): chybejici policko si podrzi dosavadni
+        // hodnotu misto toho, aby shodilo ulozeni vsech ostatnich. Zaverecna cast
+        // (ulozeni + zavreni okna) je ve `finally`, takze se okno zavre i kdyby neco
+        // v mezicase presto prasklo — uzivatel nikdy nezustane v panelu, ktery nereaguje.
+        function saveSettings() {
+            const oldCam = _agStr('w-camera-select', ''), newCam = _agStr('s-camera-select', '');
+            try {
+                mapRadius = _agInt('s-map-radius-slider', mapRadius); setStoredData('arRadiusMap', mapRadius);
+                arRadius = _agInt('s-ar-radius-slider', arRadius); setStoredData('arRadiusAR', arRadius);
+                searchQuery = String(_agStr('s-search-name', searchQuery) || '').trim();
+                const sViewRadios = document.getElementsByName('s-view'); for (let r of sViewRadios) { if (r.checked) viewMode = r.value; } rememberViewMode(viewMode);
+                _agSet('w-camera-select', 'value', newCam);
+                visSettings.wakeLockEnabled = _agChk('s-wakelock', visSettings.wakeLockEnabled);
+                { const _wasOut = visSettings.outdoorMode; visSettings.outdoorMode = _agChk('s-outdoor', visSettings.outdoorMode);
+                  // rucni vypnuti = automatika ted mlci (znovu se nabije az po seru)
+                  if (_wasOut && !visSettings.outdoorMode) { _aoAuto = false; _aoArmed = false; } }
+                { var _ao = document.getElementById('s-auto-outdoor'); if (_ao) visSettings.autoOutdoor = _ao.checked; }
+                { var _fs2 = document.getElementById('v-font-scale'); if (_fs2) visSettings.fontScale = _agInt('v-font-scale', 100) / 100; }
+                { var _lh = document.getElementById('s-lefthand'); if (_lh) visSettings.leftHand = _lh.checked; }
+                { var _vb = document.getElementById('s-vibration'); if (_vb) visSettings.vibrationEnabled = _vb.checked; }
+                { var _an3 = document.getElementById('s-anim'); if (_an3) visSettings.anim = _an3.value; }
+                { var _da = document.getElementById('v-dock-arc'); if (_da) visSettings.dockArc = _agInt('v-dock-arc', visSettings.dockArc); }
+                visSettings.katastrSource = _agStr('s-katastr-source', visSettings.katastrSource);
+                visSettings.maxARPoints = _agInt('s-max-ar-slider', visSettings.maxARPoints);
+                visSettings.arVerticalOffset = _agInt('v-ar-height-slider', visSettings.arVerticalOffset);
+                visSettings.markerScale = _agInt('v-marker-scale', Math.round(visSettings.markerScale * 100)) / 100; visSettings.markerOpacity = _agInt('v-marker-opacity', visSettings.markerOpacity);
+                visSettings.colTb = _agStr('col-tb', visSettings.colTb); visSettings.colZhb = _agStr('col-zhb', visSettings.colZhb); visSettings.colPbpp = _agStr('col-pbpp', visSettings.colPbpp); visSettings.colNivel = _agStr('col-nivel', visSettings.colNivel); visSettings.colCustom = _agStr('col-custom', visSettings.colCustom);
+                visSettings.arrowScale = _agInt('v-arrow-scale', Math.round(visSettings.arrowScale * 100)) / 100; visSettings.arrowOpacity = _agInt('v-arrow-opacity', visSettings.arrowOpacity); visSettings.arrowShape = _agStr('v-arrow-shape', visSettings.arrowShape); visSettings.colArrow = _agStr('col-arrow', visSettings.colArrow);
+                visSettings.panelOpacity = _agInt('v-panel-opacity', visSettings.panelOpacity); /* menuScale: jezdec odstraněn (mrtvá volba) */
+                visSettings.autoCompassCorrection = _agChk('s-auto-compass', visSettings.autoCompassCorrection); visSettings.tiltCompensation = _agChk('s-tilt-comp', visSettings.tiltCompensation !== false); visSettings.headingSmoothing = _agInt('s-heading-smooth', visSettings.headingSmoothing); visSettings.fovH = _agInt('s-fovh', visSettings.fovH); visSettings.fovV = _agInt('s-fovv', visSettings.fovV); visSettings.eyeHeight = _agFloat('s-eyeh', visSettings.eyeHeight);
+                visSettings.theme = _agStr('v-theme', visSettings.theme); visSettings.mode = _agStr('v-mode', visSettings.mode); visSettings.adaptiveGlass = _agChk('v-adaptive-glass', visSettings.adaptiveGlass !== false); visSettings.hudScale = _agInt('v-hud-scale', Math.round((visSettings.hudScale || 1) * 100)) / 100;
+            } catch (e) {
+                // co se stihlo precist, to se o radek niz stejne ulozi
+                console.warn('[nastaveni] cast hodnot se nepodarilo precist:', e);
+                try { if (window.agErrLog) agErrLog.record('saveSettings: ' + (e && e.message || e)); } catch (e2) {}
+            } finally {
+                try { setStoredData('arVisSettings12', JSON.stringify(visSettings)); applyVisualSettings(); drawAllMarkersOnMap(); } catch (e) { console.warn('[nastaveni] ulozeni:', e); }
+                { const _sm = document.getElementById('settings-modal'); if (_sm) _sm.style.display = 'none'; }
+                try {
+                    if (oldCam !== newCam && viewMode !== 'map') { startCameraAndCompass(true); applyViewMode(); } else { applyViewMode(); }
+                    if (userLat && userLng) initFetch(userLat, userLng);
+                    fixAppLayout();
+                    if (visSettings.wakeLockEnabled) requestWakeLock();
+                } catch (e) { console.warn('[nastaveni] pouziti:', e); }
+            }
         }
         // Kazde otevreni zacina s cistym stitem — jinak by po navratu do panelu tise
         // platilo stare hledani nebo zustal zapnuty rezim vyberu a chybely by body.
@@ -2079,8 +2184,11 @@
         function previewMode(m) { var light = m === 'light'; document.body.classList.toggle('light-mode', light); var mc = document.querySelector('meta[name="theme-color"]'); if (mc) mc.setAttribute('content', light ? '#f4f5f7' : '#0f1216'); }
 
         // ===== DUHOVY OKRAJ: zari po celou navigaci na bod, zesili a zrychli pri dohledavani (< 2 m) =====
+        let _egEl = null;
         function updateNavGlow() {
-            const eg = document.getElementById('edge-glow'); if (!eg) return;
+            // VYKON: bezi kazdy snimek AR -> uzel si drz, neshanej ho 25x za sekundu znovu
+            if (!_egEl || !_egEl.isConnected) _egEl = document.getElementById('edge-glow');
+            const eg = _egEl; if (!eg) return;
             const pt = highlightedPointId ? arPoints.find(p => p.id === highlightedPointId) : null;
             const active = !!(pt && appStarted && userLat != null);
             eg.classList.toggle('on', active);
