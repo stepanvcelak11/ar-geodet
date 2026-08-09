@@ -89,8 +89,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=241">
-    <link rel="stylesheet" href="css/style.css?v=241">
+    <link rel="stylesheet" href="css/tokens.css?v=242">
+    <link rel="stylesheet" href="css/style.css?v=242">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -107,7 +107,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=241">
+    <link rel="stylesheet" href="css/vylepseni.css?v=242">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -976,6 +976,15 @@
     <script defer src="js/gps-semafor.js"></script>
     <script type="ag/lazy" data-src="js/pdr-offset.js"></script>
     <script type="ag/lazy" data-src="js/stakeout-line.js"></script>
+    <!-- Vytyčovaná přímka v kameře: osa po zemi + kolmice od tebe k ose
+         (odpojitelné: smaž tento řádek + js/stakeout-line-ar.js a zaškrtávátko
+         v js/stakeout-line.js). MUSÍ být AŽ ZA stakeout-line.js — bere si z něj
+         sdílenou geometrii přes window.AGStakeLine. -->
+    <script type="ag/lazy" data-src="js/stakeout-line-ar.js"></script>
+    <!-- SJEDNOCENÉ DVOJICE (odpojitelné: smaž tento řádek + js/nastroje-parky.js)
+         — do okna Kubatury a Volného stanoviska vloží odkaz na tu druhou cestu
+         (obejití výkopu / rovnou resekce), aby v seznamu úkonů stačil jeden vstup. -->
+    <script type="ag/lazy" data-src="js/nastroje-parky.js"></script>
     <script defer src="js/track-log.js"></script>
     <script defer src="js/fov-kalibrace.js"></script>
     <script defer src="js/tools-back.js"></script>

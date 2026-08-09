@@ -63,10 +63,13 @@
                 { k: 'startAreaMode', l: 'Plochu a obvod pozemku' },
                 { k: 'openCheckDist', l: 'Oměrné — kontrolní míry' },
                 { k: 'kontrola-vrstvy', l: 'Sedí hotová vrstva na projekt?', h: 'výška za finišerem, odchylka a protokol' },
-                { k: 'openDmtVolume', l: 'Kubaturu a vrstevnice' },
+                // Kubatury byly v seznamu dvě (z bodů zakázky × obejitím výkopu) a
+                // uživatel je chtěl sjednotit. Zůstává JEDEN vstup; obejití výkopu
+                // je odkazem uvnitř okna (js/nastroje-parky.js) a dlaždice se skrývá,
+                // takže se pořád najde hledáním a dá se vrátit.
+                { k: 'openDmtVolume', l: 'Kubaturu', h: 'z bodů zakázky, nebo obejitím hrany výkopu' },
                 { k: 'vyska-objektu', l: 'Výšku objektu', h: 'budova, stožár, strom' },
-                { k: 'korekce', l: 'S korekcí na teplotu a tlak', h: 'pásmo, dálkoměr' },
-                { k: 'obchuzka', l: 'Kubaturu obejitím výkopu', h: 'obvod z GNSS + dno, objem hned na místě' }
+                { k: 'korekce', l: 'S korekcí na teplotu a tlak', h: 'pásmo, dálkoměr' }
             ]
         },
         {
@@ -76,8 +79,11 @@
                 { k: 'offset-point', l: 'Offsetem', h: 'odsazení od jiného bodu' },
                 { k: 'ar-intersection', l: 'Protínáním vpřed', h: 'jen úhly, délku měřit nemůžu' },
                 { k: 'pdr-offset', l: 'Krokovým offsetem', h: 'došlápnutý vektor' },
-                { k: 'ar-resection', l: 'Resekcí ze známých bodů', h: 'určí i sever' },
-                { k: 'free-station', l: 'Volným stanoviskem', h: 'průvodce krok za krokem' },
+                // Resekce a Volné stanovisko byly v seznamu dvakrát, ačkoli zaměření
+                // i výpočet dělá týž engine (js/ar-resection.js) a volné stanovisko
+                // je jen průvodce nad ním. Zůstává JEDEN vstup; kdo známé body kolem
+                // sebe má, přeskočí na resekci odkazem uvnitř okna.
+                { k: 'free-station', l: 'Volným stanoviskem (resekcí)', h: 'určí polohu i sever; průvodce, nebo rovnou zaměřování' },
                 { k: 'dgps', l: 'Dvoutelefonní DGPS', h: 'základna a rover' },
                 { k: 'hlas-kod', l: 'Hlasem — nadiktovat číslo a kód', h: 'bez ťukání v rukavicích' }
             ]
@@ -114,9 +120,9 @@
                 { k: 'kompas', l: 'Podívat se na kompas', h: 'růžice se zeměpisným i magnetickým severem' },
                 { k: 'agOpenCalibrate', l: 'Srovnat sever' },
                 { k: 'ar-calib2', l: 'Srovnat na dva body' },
-                { k: 'orient-point', l: 'Srovnat podle známého bodu' },
+                { k: 'orient-point', l: 'Srovnat sever podle bodu', h: 'opravuje AZIMUT, ne polohu' },
                 { k: 'localization-helmert', l: 'Lokalizace (Helmert)', h: 'místní systém' },
-                { k: 'ref-calibration', l: 'Kalibrace na referenční bod' },
+                { k: 'ref-calibration', l: 'Opravit posun GPS podle bodu', h: 'opravuje POLOHU, ne sever' },
                 { k: 'fov-kalib', l: 'Změřit zorný úhel kamery' },
                 { k: 'ar-visual-track', l: 'Vizuální stabilizace', h: 'beta' }
             ]

@@ -5,7 +5,7 @@
 // azimutu k němu. Korekci aplikuje přes existující nudgeHeadingOffset() (stejná
 // páka jako „Srovnání severu" v nastavení kompasu), takže přežije i uložení.
 //
-// Vstup: tlačítko „Srovnat podle bodu" v launcheru (js/field-tools.js).
+// Vstup: tlačítko „Srovnat sever podle bodu" v launcheru (js/field-tools.js).
 // Odstranění: smaž js/orient-point.js + řádek <script> v index.html (a v sw.js).
 // ================================================================================
 (function () {
@@ -136,7 +136,7 @@
 
     function register() {
         if (typeof window.agRegisterFieldTool === 'function') {
-            window.agRegisterFieldTool({ id: 'orient-point', label: 'Srovnat podle bodu', icon: ICON, onClick: openTool, order: 10 });
+            window.agRegisterFieldTool({ id: 'orient-point', label: 'Srovnat sever podle bodu', icon: ICON, onClick: openTool, order: 10 });
         }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', register);

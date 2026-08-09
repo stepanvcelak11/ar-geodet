@@ -187,7 +187,7 @@
         _ov.id = 'agref-modal';
         _ov.innerHTML =
             '<div class="modal-content agref-content" role="dialog" aria-modal="true">' +
-            '  <h3 class="agref-title"><svg class="icon"><use href="#i-crosshair"/></svg> Kalibrace na ref. bod</h3>' +
+            '  <h3 class="agref-title"><svg class="icon"><use href="#i-crosshair"/></svg> Posun GPS na známý bod</h3>' +
             '  <div class="modal-body agref-body">' +
             '    <div id="agref-state" class="agref-state"></div>' +
             '    <div class="agref-note">Stůj na <b>známém bodě</b> a chvíli počkej na ustálení průměru GPS. Zadej jeho souřadnice (nebo vyber z uložených). Posun se pak přičítá k <b>nově</b> ukládaným bodům — místní korekce systematické chyby GPS, ne RTK. Stávající body zůstanou beze změny.</div>' +
@@ -344,7 +344,7 @@
     // --------------------------------------------------------------------------------
     function injectMenuButton() {
         if (typeof window.agRegisterFieldTool === 'function') {
-            window.agRegisterFieldTool({ id: 'ref-calibration', label: 'Kalibrace na ref. bod', icon: '<svg class="icon"><use href="#i-crosshair"/></svg>', cat: 'AR a kalibrace', onClick: open, order: 70 });
+            window.agRegisterFieldTool({ id: 'ref-calibration', label: 'Posun GPS na známý bod', icon: '<svg class="icon"><use href="#i-crosshair"/></svg>', cat: 'AR a kalibrace', onClick: open, order: 70 });
             var stale = document.getElementById('agref-launch'); if (stale) stale.remove();
             return;
         }

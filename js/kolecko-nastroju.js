@@ -99,7 +99,7 @@
         'epochy': 'Epochy',
         'usadit-ar': 'Nevím čím začít',
         'orient-point': 'Podle známého bodu',
-        'ref-calibration': 'Kalibrace na ref. bod',
+        'ref-calibration': 'Posun GPS na známý bod',
         'fov-kalib': 'Změřit zorný úhel',
         'sky-obstruction': 'Predikce signálu',
         'gnss-forecast': 'Kdy bude nejlíp',
