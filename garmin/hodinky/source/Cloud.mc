@@ -302,13 +302,57 @@ class Cloud {
 
     function _naStazeni(kod as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {
         var d = (data instanceof Lang.Dictionary) ? data as Lang.Dictionary : null;
-        bezi = false;
         if (kod != 200 || d == null || d["points"] == null) {
+            bezi = false;
             _hlas(_chyba("stažení", kod));
             return;
         }
         var nove = Body.nahradZMobilu(d["points"]);
-        _hlas("hotovo: " + nove + " bodů z mobilu");
+        _hlas(nove + " bodů; beru mapu…");
+        _stahniDlazdici();
+    }
+
+    // ---- podklad -----------------------------------------------------
+
+    //! Stáhne dlaždici podkladu pro místo, kde stojím.
+    //!
+    //! Drží se jen jedna — celá zakázka by se do paměti hodinek nevešla
+    //! a stejně se chodí pořád kolem jednoho místa. Když se přejde jinam,
+    //! další synchronizace přinese sousední.
+    function _stahniDlazdici() {
+        var s = $.sledovac;
+        if (s == null || s.lat == null) {
+            bezi = false;
+            _hlas("hotovo (na mapu chybí poloha)");
+            return;
+        }
+        Communications.makeWebRequest(
+            server() + "/watch/tile",
+            { "lat" => s.lat, "lon" => s.lon },
+            {
+                :method => Communications.HTTP_REQUEST_METHOD_GET,
+                :headers => _hlavicky(),
+                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+            },
+            method(:_naDlazdici));
+    }
+
+    function _naDlazdici(kod as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {
+        bezi = false;
+        var d = (data instanceof Lang.Dictionary) ? data as Lang.Dictionary : null;
+
+        if (kod == 404) {
+            // Pro tohle místo nikdo mapu nepřipravil — není to chyba,
+            // jen se to musí říct, ať se nehledá závada jinde.
+            _hlas("body hotové; mapa pro tohle místo není");
+            return;
+        }
+        if (kod != 200 || d == null || d["t"] == null) {
+            _hlas("body hotové; mapa se nestáhla (" + kod + ")");
+            return;
+        }
+        Podklad.ulozStazenou(d["t"]);
+        _hlas("hotovo i s mapou");
     }
 
     function _chyba(co, kod) {

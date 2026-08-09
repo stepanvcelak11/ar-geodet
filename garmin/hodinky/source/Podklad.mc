@@ -1,4 +1,6 @@
 using Toybox.Application;
+using Toybox.Application.Storage;
+using Toybox.Lang;
 using Toybox.Graphics;
 using Toybox.Math;
 using Toybox.WatchUi;
@@ -79,13 +81,53 @@ module Podklad {
     const A2_LAT = 50.0365;  const A2_LON = 14.3760;    // Prokopské údolí
     const DOSAH  = 450.0;
 
+    const KLIC_STAZENA = "podklad";
+
     var _dlazdice = null;
-    var _ktera = 0;             // 0 = žádná, jinak číslo dlaždice
+    var _ktera = 0;             // 0 = žádná, 1/2 přibalená, 3 stažená
+
+    //! Uloží dlaždici staženou ze serveru. Drží se jen jedna — celá zakázka
+    //! by se do paměti hodinek nevešla a stejně se chodí kolem jednoho místa.
+    function ulozStazenou(t) {
+        if (t == null) { return; }
+        try {
+            Storage.setValue(KLIC_STAZENA, t);
+            _dlazdice = t;
+            _ktera = 3;
+        } catch (e) {
+            // Když se dlaždice do úložiště nevejde, není to důvod shodit
+            // aplikaci — mapa prostě nebude a body fungují dál.
+            _dlazdice = null;
+            _ktera = 0;
+        }
+    }
+
+    //! Sedí stažená dlaždice na tuhle polohu?
+    function _stazenaPlati(lat, lon) {
+        // Přetypovat se musí: Storage vrací obecnou hodnotu a překladač by
+        // jinak neprošel („container index of type Number“).
+        var v = Storage.getValue(KLIC_STAZENA);
+        if (!(v instanceof Lang.Dictionary)) { return null; }
+        var t = v as Lang.Dictionary;
+        if (t["a"] == null) { return null; }
+        var r = (t["r"] == null) ? DOSAH : t["r"];
+        if (Geo.vzdalenost(lat, lon, t["a"][0], t["a"][1]) >= r) { return null; }
+        return t;
+    }
 
     //! Vrátí dlaždici pro danou polohu, případně přehodí na jinou.
     //! Načítá se až při prvním použití — kdo podklad nechce, nezaplatí
     //! za něj ani bajt paměti.
     function dlazdice(lat, lon) {
+        // Stažená má přednost — je to skutečné okolí, kdežto přibalené jsou
+        // jen ukázky ze dvou míst.
+        var s = _stazenaPlati(lat, lon);
+        if (s != null) {
+            _dlazdice = s;
+            _ktera = 3;
+            return _dlazdice;
+        }
+
         var chci = 0;
         if (Geo.vzdalenost(lat, lon, A1_LAT, A1_LON) < DOSAH) {
             chci = 1;

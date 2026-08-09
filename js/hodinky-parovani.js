@@ -83,6 +83,12 @@
             + 'font-family:var(--font-mono,monospace);margin:6px 0;">'
             + '<div id="agwatch-stav" style="' + mala + 'text-align:center;opacity:.75;min-height:1.2em"></div>'
             + '<button class="btn" id="agwatch-gen" style="margin-top:10px;">Spárovat</button>'
+            + '<div class="set-h" style="margin-top:16px;">Mapa do hodinek</div>'
+            + '<p style="' + mala + 'opacity:.75;margin:2px 0 8px;">Připraví podklad — cesty, vodu, '
+            + 'zeleň a srázy — pro okolí zhruba kilometr a půl kolem tebe. Udělej to <b>před '
+            + 'výjezdem</b>, dokud je signál; hodinky si dlaždice stáhnou při synchronizaci.</p>'
+            + '<div id="agwatch-mapa-stav" style="' + mala + 'text-align:center;opacity:.75;min-height:1.2em"></div>'
+            + '<button class="btn btn-secondary" id="agwatch-mapa" style="margin-top:6px;">Připravit mapu okolí</button>'
             + '<button class="btn btn-secondary" style="margin-top:10px;" id="agwatch-x">Zavřít</button>'
             + '</div>';
         document.body.appendChild(back);
@@ -106,6 +112,8 @@
         var pole = back.querySelector('#agwatch-kod');
         var stav = back.querySelector('#agwatch-stav');
         pole.focus();
+
+        mapaTlacitko(back, u);
 
         btn.onclick = function () {
             var kod = (pole.value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -133,6 +141,66 @@
                     btn.disabled = false;
                     stav.textContent = 'server neodpovídá';
                 });
+        };
+    }
+
+    // ---- příprava mapy --------------------------------------------------
+
+    function poloha() {
+        return new Promise(function (ok, ne) {
+            // nejdřív to, co appka už dávno zná — ať se nečeká na fix zbytečně
+            try {
+                if (typeof userLocation !== 'undefined' && userLocation
+                    && isFinite(userLocation.lat) && isFinite(userLocation.lng)) {
+                    return ok([+userLocation.lat, +userLocation.lng]);
+                }
+            } catch (e) {}
+            if (!navigator.geolocation) { return ne(new Error('bez GPS')); }
+            navigator.geolocation.getCurrentPosition(
+                function (p) { ok([p.coords.latitude, p.coords.longitude]); },
+                function () { ne(new Error('bez GPS')); },
+                { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 });
+        });
+    }
+
+    function mapaTlacitko(back, u) {
+        var btn = back.querySelector('#agwatch-mapa');
+        var stav = back.querySelector('#agwatch-mapa-stav');
+        if (!btn) { return; }
+
+        btn.onclick = function () {
+            if (!window.AGHodinkyDlazdice) {
+                stav.textContent = 'modul dlaždic se ještě nenačetl, zkus to za chvíli';
+                return;
+            }
+            btn.disabled = true;
+            poloha().then(function (p) {
+                return window.AGHodinkyDlazdice.pripravOkoli(p[0], p[1], function (t) {
+                    stav.textContent = t;
+                });
+            }).then(function (dl) {
+                if (!dl.length) {
+                    btn.disabled = false;
+                    stav.textContent = 'v okolí není co kreslit';
+                    return;
+                }
+                stav.textContent = 'odesílám ' + dl.length + ' dlaždic…';
+                return u.cloudFetch('/watch/tiles', { method: 'POST', body: { tiles: dl } })
+                    .then(function (r) {
+                        btn.disabled = false;
+                        if (r && r.ok) {
+                            stav.textContent = 'Hotovo — ' + dl.length
+                                + ' dlaždic. Na hodinkách dej Synchronizovat s mobilem.';
+                        } else {
+                            stav.textContent = (r && r.status === 404)
+                                ? 'server tuhle funkci ještě neumí — nasaď nový worker'
+                                : 'odeslání selhalo (' + (r ? r.status : '?') + ')';
+                        }
+                    });
+            }).catch(function (e) {
+                btn.disabled = false;
+                stav.textContent = 'nepovedlo se: ' + (e && e.message ? e.message : 'chyba');
+            });
         };
     }
 
