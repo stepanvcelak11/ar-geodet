@@ -50,7 +50,12 @@
     function decodePoints(txt) {
         if (!txt) return null;
         const rows = txt.replace(/\r/g, '').split('\n');
-        if (rows[0] !== PREFIX) return null;
+        // AG1W = tentyz format, ale kod vyrobily HODINKY (garmin/hodinky).
+        // Rozlisuje se kvuli provenienci: body z hodinek maji presnost
+        // v jednotkach metru a v aplikaci se kresli ruzove, aby se nesmichaly
+        // s poradne zamerenymi.
+        const zHodinek = (rows[0] === PREFIX + 'W');
+        if (rows[0] !== PREFIX && !zHodinek) return null;
         const out = [];
         for (let i = 1; i < rows.length; i++) {
             if (!rows[i]) continue;
