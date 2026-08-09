@@ -17,11 +17,16 @@ module Seznam {
 
     function otevri() {
         var s = $.sledovac;
-        if (s == null || s.lat == null) { return; }
+        var menu = new WatchUi.Menu2({ :title => "Okolí" });
+
+        if (s == null || s.lat == null) {
+            _okoli = [];
+            menu.addItem(new WatchUi.MenuItem("Není poloha", "čekám na GPS", -1, {}));
+            WatchUi.pushView(menu, new SeznamDelegate(), WatchUi.SLIDE_UP);
+            return;
+        }
 
         _okoli = Body.nejblizsi(s.lat, s.lon, KOLIK);
-
-        var menu = new WatchUi.Menu2({ :title => "Okolí" });
 
         if (_okoli.size() == 0) {
             // I prázdná položka dostane číselný identifikátor — kdyby tu byl

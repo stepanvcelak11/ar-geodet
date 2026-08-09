@@ -201,14 +201,21 @@ class NovyBodDelegate extends WatchUi.BehaviorDelegate {
         if (_view.maVysledek()) {
             _view.uloz();
         }
-        WatchUi.popView(WatchUi.SLIDE_DOWN);
+        _zpetNaMapu();
         return true;
     }
 
     function onBack() {
         // Ve fázi sběru i nad hotovým výsledkem znamená BACK „zahodit“ —
         // uloží se jedině přes START, ať se bod nezaloží omylem.
-        WatchUi.popView(WatchUi.SLIDE_DOWN);
+        _zpetNaMapu();
         return true;
+    }
+
+    //! Pod měřením zůstala otevřená nabídka, ze které se sem vstoupilo —
+    //! zavřít se musí obě, jinak se člověk vrátí do nabídky místo na mapu.
+    hidden function _zpetNaMapu() {
+        WatchUi.popView(WatchUi.SLIDE_DOWN);
+        WatchUi.popView(WatchUi.SLIDE_DOWN);
     }
 }

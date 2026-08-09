@@ -12,7 +12,8 @@ module Nabidka {
         var menu = new WatchUi.Menu2({ :title => "Nabídka" });
         menu.addItem(new WatchUi.MenuItem("Nový bod", "změřit průměrováním", :novy, {}));
         menu.addItem(new WatchUi.MenuItem("Otočení mapy",
-                        mapa.podleSmeru ? "podle směru" : "sever nahoře", :otoceni, {}));
+                        (mapa != null && mapa.podleSmeru) ? "podle směru" : "sever nahoře",
+                        :otoceni, {}));
         menu.addItem(new WatchUi.MenuItem("Body v paměti",
                         Body.pocet().toString() + " · další číslo " + Body.dalsiCislo(), :info, {}));
         menu.addItem(new WatchUi.MenuItem("Ukázkové body", "pro zkoušení v simulátoru", :ukazka, {}));
@@ -37,13 +38,18 @@ class NabidkaDelegate extends WatchUi.Menu2InputDelegate {
         var id = item.getId();
 
         if (id == :novy) {
-            WatchUi.popView(WatchUi.SLIDE_DOWN);
+            // Měření se položí NA nabídku, nabídka se nezavírá. Zavřít ji
+            // zevnitř vlastního onSelect a hned nato něco otevřít se na
+            // některých firmwarech nesnáší; návrat se pak řeší dvojím pop.
             var v = new NovyBodView();
             WatchUi.pushView(v, new NovyBodDelegate(v), WatchUi.SLIDE_UP);
 
         } else if (id == :otoceni) {
-            Nabidka.mapa().otoceni();
-            item.setSubLabel(Nabidka.mapa().podleSmeru ? "podle směru" : "sever nahoře");
+            var m = Nabidka.mapa();
+            if (m != null) {
+                m.otoceni();
+                item.setSubLabel(m.podleSmeru ? "podle směru" : "sever nahoře");
+            }
 
         } else if (id == :ukazka) {
             var s = $.sledovac;

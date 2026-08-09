@@ -77,7 +77,12 @@ class MapaView extends WatchUi.View {
         var cy = vyska / 2;
 
         if (s == null || s.lat == null) {
-            _hlaska(dc, cx, cy, "hledám GPS", s == null ? "" : s.popisKvality());
+            // Bez polohy nejde nakreslit vůbec nic, tak ať je aspoň vidět,
+            // že aplikace žije a kudy vede cesta dál — jinak to působí,
+            // jako by tlačítka nefungovala.
+            _hlaska(dc, cx, cy, vyska, "hledám GPS",
+                    (s == null) ? "" : s.popisKvality(),
+                    "dlouze ↑ = nabídka");
             return;
         }
 
@@ -201,12 +206,14 @@ class MapaView extends WatchUi.View {
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
-    hidden function _hlaska(dc, cx, cy, hlavni, vedlejsi) {
+    hidden function _hlaska(dc, cx, cy, vyska, hlavni, vedlejsi, napoveda) {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         dc.drawText(cx, cy - 12, Graphics.FONT_MEDIUM, hlavni,
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
         dc.drawText(cx, cy + 18, Graphics.FONT_XTINY, vedlejsi,
+                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(cx, vyska - 14, Graphics.FONT_XTINY, napoveda,
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 }
@@ -229,9 +236,9 @@ class MapaDelegate extends WatchUi.BehaviorDelegate {
         return $.mapaView;
     }
 
+    //! Seznam se otevře i bez polohy — tam se aspoň dozvíte proč. Dřív se
+    //! tady tiše nic nedělo a vypadalo to, že tlačítko nefunguje.
     function onSelect() {
-        var s = $.sledovac;
-        if (s == null || s.lat == null) { return true; }
         Seznam.otevri();
         return true;
     }
