@@ -236,8 +236,23 @@ test('REGRESE: lazy nástroj s objektovým API (DGPS) appku nezamrzne', async ({
     // Nekonečná smyčka v mikrotaskách = úplné zamrznutí appky (nereagovalo nic,
     // ani vykreslování). Test proto hlídá, že appka po otevření DGPS ODPOVÍDÁ.
     await bootApp(page, context);
-    await page.evaluate(() => { const m = document.getElementById('tools-modal'); if (m) m.style.display = 'flex'; });
-    await page.locator('#tools-modal .tool-tile[data-tool="dgps"]').click();
+
+    // POZOR — proč NE klepnutí na dlaždici (kvůli tomu byl tenhle test od zavedení
+    // červený a s ním celý workflow, včetně nasazení na Pages):
+    // bootApp přeskakuje přihlašovací bránu režimem HOST (agGuest_v1). Host má ale
+    // omezená oprávnění a js/ucty.js je vymáhá SKRÝVÁNÍM dlaždic — dlaždici označí
+    // `data-agucty="1"` a nastaví jí display:none (ucty.js, applyPerms). Dělá to
+    // v ticku, takže i kdyby ji hledání odkrylo, hned se zase schová. V režimu
+    // host je tak skrytá zhruba třetina mřížky včetně DGPS, takže `.click()` na ni
+    // neměl šanci a skončil vypršením. Není to vada appky: host na DGPS prostě nemá.
+    //
+    // Otevíráme proto stejným globálem, na který ukazuje i dlaždice
+    // (js/lazy-tools.js, `open: 'AGDgps.open'`). Regrese se tím testuje beze změny:
+    // window.AGDgps.open je před načtením ZÁSTUPCE (_agLazyStub) a právě jeho
+    // zavolání dřív roztočilo nekonečnou smyčku.
+    expect(await page.evaluate(() => !!(window.AGDgps && window.AGDgps.open && window.AGDgps.open._agLazyStub)),
+        'AGDgps.open měl být před otevřením zástupce z lazy-tools.js — jinak tenhle test netestuje nic').toBe(true);
+    await page.evaluate(() => window.AGDgps.open());
 
     // modál se dotáhne asynchronně (lazy load) — a hlavně: appka musí žít
     await expect(page.locator('#ag-dgps-modal')).toBeVisible({ timeout: 15000 });
