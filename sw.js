@@ -205,6 +205,7 @@ const ASSETS_TO_CACHE = [
     './data/zpravodaj.json',
     './data/predpisy.json',
     './data/co-je-noveho.json',
+    './data/navody.json',
     './js/lib/qrcode.min.js',
     './js/lib/jsqr.min.js',
     './fonts/inter-var-latin.woff2',

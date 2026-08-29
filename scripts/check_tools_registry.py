@@ -150,6 +150,19 @@ def orphan_modules():
     return out
 
 
+def load_navody():
+    """data/navody.json = { klic: '<html navodu>' }. None = soubor chybi/je rozbity."""
+    p = os.path.join(ROOT, 'data', 'navody.json')
+    if not os.path.isfile(p):
+        return None
+    try:
+        with io.open(p, encoding='utf-8') as f:
+            d = json.load(f)
+        return d if isinstance(d, dict) else None
+    except Exception:
+        return None
+
+
 def main():
     recs = load_registry()
     by = {r['k']: r for r in recs}
@@ -175,6 +188,33 @@ def main():
             errs.append(u'%s: nema sloveso (verb) — spadne do zachytneho "Dalsi nastroje"' % k)
         if r.get('verb') and not r.get('vl'):
             errs.append(u'%s: ma sloveso, ale chybi popisek (vl)' % k)
+
+    # ---- tela navodu jsou v data/navody.json, ne v registru ----------------------
+    # Registr rika, ze nastroj navod MA (help: {t}); text je v JSONu pod tymz klicem.
+    # Rozdeleni ma smysl jen dokud obe strany sedi — jinak se u dlazdice ukaze "?",
+    # ktere otevre prazdne okno. Proto se hlida obema smery.
+    navody = load_navody()
+    if navody is None:
+        errs.append(u'data/navody.json chybi nebo neni platny JSON — u vsech dlazdic '
+                    u'by "?" otevrelo prazdne okno')
+    else:
+        for r in recs:
+            k = r['k']
+            if not r.get('help'):
+                continue
+            if not (navody.get(k) or '').strip():
+                errs.append(u'%s: ma help v registru, ale v data/navody.json chybi text' % k)
+            elif not r['help'].get('t'):
+                errs.append(u'%s: navod nema titulek (help.t)' % k)
+        for k in sorted(navody):
+            if k.startswith('_'):
+                continue                     # '_' = poznamka v hlavicce souboru
+            if k not in by:
+                warns.append(u'%s: text v data/navody.json, ale zadny zaznam v registru '
+                             u'(prejmenovany klic? smazany nastroj?)' % k)
+            elif not by[k].get('help'):
+                errs.append(u'%s: text v data/navody.json, ale registr u nej nema help '
+                            u'— "?" se u dlazdice neukaze' % k)
 
     # zaznam bez nastroje = zbytek po smazanem modulu; hub/notile jsou vyjimky
     for r in recs:

@@ -100,12 +100,28 @@
         }
         return m;
     }
+    var BEZ_NAVODU = '<p>Návod pro tento nástroj zatím není. Nástroj otevři a zkus ho — nic se neuloží bez potvrzení.</p>';
+
+    // Těla návodů žijí v data/navody.json a dotahují se až po startu (viz hlavička
+    // js/tools-registry.js). Okno se proto otevře HNED (ať klepnutí něco udělá)
+    // a text se doplní, jakmile je — obvykle už je v paměti a stihne se to v témže
+    // ticku. `data-key` na prvku hlídá, aby rychlé přeťukání na jiný nástroj
+    // nepřepsala opožděná odpověď pro ten předchozí.
     function openHelp(key, label) {
         var m = ensureHelpModal();
+        var tEl = document.getElementById('ag-tp-hm-t');
+        var bEl = document.getElementById('ag-tp-hm-b');
         var rec = helpRec(key);
-        document.getElementById('ag-tp-hm-t').textContent = rec ? rec.t : (label || 'Nástroj');
-        document.getElementById('ag-tp-hm-b').innerHTML = rec ? rec.h : '<p>Návod pro tento nástroj zatím není. Nástroj otevři a zkus ho — nic se neuloží bez potvrzení.</p>';
+        tEl.textContent = rec ? rec.t : (label || 'Nástroj');
+        bEl.setAttribute('data-key', key || '');
+        bEl.innerHTML = rec ? (rec.h || '') : BEZ_NAVODU;
         m.classList.add('open');
+        if (rec && !rec.h && window.AGReg && typeof window.AGReg.helpAsync === 'function') {
+            window.AGReg.helpAsync(key).then(function (r) {
+                if (bEl.getAttribute('data-key') !== (key || '')) return;   // uživatel je jinde
+                bEl.innerHTML = (r && r.h) || BEZ_NAVODU;
+            }).catch(function () { bEl.innerHTML = BEZ_NAVODU; });
+        }
     }
     // Návod umí otevřít i něco, co NENÍ dlaždice v Nástrojích — např. „Poloha z mapy"
     // žije v panelu Mapa a vrstvy (js/poloha-z-mapy.js) a její „?" míří sem. Bez
@@ -115,6 +131,10 @@
     // nástrojů (js/kolecko-nastroju.js): v kolečku není kam dát otazník, tak se
     // u zamířeného nástroje rovnou vypíše, co dělá. Zdroj je TÝŽ registr,
     // takže se texty nemůžou rozejít — jen se zkrátí.
+    // MUSÍ ZŮSTAT SYNCHRONNÍ (volá se při tažení prstu, na Promise není kdy).
+    // Než se dotáhne data/navody.json, vrátí prázdno a kolečko popisek prostě
+    // nezobrazí — AGReg.help() přitom stahování rozjede, takže je to na pár set
+    // ms po startu. Návodů je 80 a stahují se jedním souborem.
     window.agToolHelpText = function (key, max) {
         try {
             var rec = helpRec(key);
