@@ -17,14 +17,22 @@
     'use strict';
 
     var LS_KEY = 'agRefShift';
-    var EARTH_M_LAT = 111320; // m na stupeň zeměpisné šířky (konstanta)
+    var EARTH_M_LAT = 111320; // zaloha, kdyz chybi geo-core.js (~0,15 % chyba)
+    // Metru na stupen bere z GeoCore (skutecne polomery krivosti elipsoidu).
+    // Stejny vzor uz pouziva js/localization-helmert.js.
+    function mPerDeg(lat) {
+        if (typeof GeoCore !== 'undefined' && GeoCore.metersPerDeg) {
+            try { var m = GeoCore.metersPerDeg(lat); if (m && m.lat) return m; } catch (e) {}
+        }
+        return { lat: EARTH_M_LAT, lng: EARTH_M_LAT * Math.cos(lat * Math.PI / 180) };
+    }
     // Platnost lokální kalibrace: konstantní posun GPS platí jen krátce a blízko ref. bodu
     // (systematika GPS se mění s časem i polohou). Mimo tyto meze posun varovně označíme.
     var MAX_AGE_MS = 20 * 60 * 1000;   // 20 min
     var MAX_DIST_M = 300;              // 300 m
     function planarDist(lat1, lng1, lat2, lng2) {
-        var mLng = EARTH_M_LAT * Math.cos(((lat1 + lat2) / 2) * Math.PI / 180);
-        return Math.hypot((lng2 - lng1) * mLng, (lat2 - lat1) * EARTH_M_LAT);
+        var m = mPerDeg((lat1 + lat2) / 2);
+        return Math.hypot((lng2 - lng1) * m.lng, (lat2 - lat1) * m.lat);
     }
     function toastSafe(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
 
@@ -55,8 +63,8 @@
     function shiftCm(s, atLat) {
         try {
             var lat = (typeof atLat === 'number' && isFinite(atLat)) ? atLat : 49.8;
-            var mLng = EARTH_M_LAT * Math.cos(lat * Math.PI / 180);
-            var dx = s.dlng * mLng, dy = s.dlat * EARTH_M_LAT;
+            var m = mPerDeg(lat);
+            var dx = s.dlng * m.lng, dy = s.dlat * m.lat;
             return Math.round(Math.hypot(dx, dy) * 100);
         } catch (e) { return null; }
     }

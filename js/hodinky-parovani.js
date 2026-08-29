@@ -246,8 +246,10 @@
                 var klic = jm + '@' + (+b.lat).toFixed(6) + ',' + (+b.lng).toFixed(6);
                 if (videl[klic]) { continue; }
                 videl[klic] = 1;
-                var dy = (+b.lat - lat) * 111320;
-                var dx = (+b.lng - lon) * 111320 * kos;
+                var _m = (typeof GeoCore !== 'undefined' && GeoCore.metersPerDeg)
+                    ? GeoCore.metersPerDeg(lat) : { lat: 111320, lng: 111320 * kos };
+                var dy = (+b.lat - lat) * _m.lat;
+                var dx = (+b.lng - lon) * _m.lng;
                 out.push({
                     name: jm, lat: +b.lat, lng: +b.lng,
                     vyska: (b.vyska != null && isFinite(+b.vyska)) ? +b.vyska : null,

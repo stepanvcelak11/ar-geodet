@@ -64,6 +64,12 @@
     }
 
     function metersBetween(lat1, lng1, lat2, lng2) {
+        // GeoCore je jediny autoritativni prevod (testovany proti geodetice WGS84
+        // v tests/cases-geo.js). Fallback nize je pro pripad bez geo-core.js —
+        // ma pevny polomer 6371 km, tedy ~1700 ppm kratke vzdalenosti.
+        if (typeof GeoCore !== 'undefined' && GeoCore.getDistance) {
+            try { return GeoCore.getDistance(lat1, lng1, lat2, lng2); } catch (e) {}
+        }
         var R = 6371000, toR = Math.PI / 180;
         var dLat = (lat2 - lat1) * toR, dLng = (lng2 - lng1) * toR;
         var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +

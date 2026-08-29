@@ -77,6 +77,14 @@
     --glow2: rgba(230, 189, 118, 0.10);
     --glow3: rgba(47, 158, 116, 0.05);
 
+    /* Dotykový terč. Appka se ovládá v terénu, casto v rukavicích a za chůze,
+       takže 44 px je spodní mez (doporučení WCAG i Apple HID) a v režimu
+       rukavic se zvedá. Do teď si velikost určoval každý modul sám ve 113
+       pravidlech `body.ag-glove` napříč 34 soubory — tohle je společné slovo
+       pro nový kód a pro pomocnou třídu .ag-tap-hit (viz css/style.css),
+       která rozšíří DOTYKOVOU plochu, aniž by hnula vzhledem. */
+    --tap-min: 44px;
+
     /* Poloměry — přátelské, premium */
     --r-xs: 6px;
     --r-sm: 9px;
@@ -280,4 +288,10 @@ body.theme-graphite {
     --glow1: rgba(148, 163, 184, 0.30);
     --glow2: rgba(100, 116, 139, 0.35);
     --glow3: rgba(203, 213, 225, 0.12);
+}
+
+/* Rukavice: terč se zvětší, ale jen jako proměnná — pravidla, která ji používají,
+   se tím posunou všechna naráz (stejný trik, který vyšel u css/tokens-outdoor.css). */
+body.ag-glove {
+    --tap-min: 56px;
 }
