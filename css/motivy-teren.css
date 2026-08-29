@@ -75,6 +75,19 @@ body.theme-blueprint #map.base-osm .leaflet-tile {
     filter: invert(1) grayscale(1) sepia(1) hue-rotate(178deg) saturate(3.4) brightness(0.82) contrast(1.05);
 }
 
+
+/* ÚVODNÍ OBRAZOVKA: css/style.css jí maluje diagonální nádech NATVRDO zapsanou
+   zelení (rgba(47,158,116,…)), ne tokenem — takže ji přepis proměnných nechytí
+   a přes celý modrotisk zůstal viset zelený závoj. Přebíjí se to specificitou:
+   `#welcome-screen` je (1,0,0), `body.theme-blueprint #welcome-screen` (1,1,0).
+   Záře ::before/::after už na tokenech --glow* stojí, ty se přepsaly samy. */
+body.theme-blueprint #welcome-screen {
+    background-image:
+        radial-gradient(60% 55% at 84% 12%, rgba(90, 168, 240, 0.30), transparent 60%),
+        radial-gradient(62% 58% at 14% 90%, rgba(255, 217, 163, 0.14), transparent 62%),
+        radial-gradient(120% 100% at 50% 50%, rgba(142, 199, 255, 0.05), transparent 70%);
+}
+
 /* Milimetrový papír pod obsahem modálů — jemný raster, ať to má rukopis
    výkresu. Kreslí se PŘES vlastní pozadí prvku (mění se jen background-image,
    background-color zůstává z motivu), takže žádný modul netřeba upravovat. */
@@ -168,6 +181,73 @@ body.theme-night #map .map-label-text {
 body.theme-night #camera-feed,
 body.theme-night video#camera-feed {
     filter: brightness(0.62) saturate(0.55);
+}
+
+
+/* ZNAČKY BODŮ A ŠIPKA V NOČNÍM REŽIMU
+   Barvy kategorií nastavuje js/grafika.js INLINE na <html> (setProperty na
+   document.documentElement), takže je nepřepíše žádné pravidlo pro :root.
+   Deklarace na <body> ale v DĚDIČNOSTI vyhrává — je k markerům blíž — a proto
+   se to dá srovnat odsud, bez zásahu do grafika.js i bez sáhnutí na uživatelovu
+   volbu barev (ta zůstane uložená a po vypnutí nočního režimu se vrátí).
+   Bez tohohle zbyly na jinak červené mapě svítit modré značky a zelená šipka —
+   tedy přesně to, co má režim odstranit.
+   Kategorie se tu NErozlišují odstínem, ale JASEM: pět odstínů oranžové vedle
+   sebe by se rozeznávalo hůř než dnešní paleta, kdežto světlá / střední / sytá
+   je čitelná i koutkem oka a hlavně i po tmě. */
+body.theme-night {
+    --color-tb: #ffe3a8;
+    --color-zhb: #ffb066;
+    --color-pbpp: #ff8a4c;
+    --color-nivel: #ff5a3c;
+    --color-custom: #ffcf6e;
+    --color-watch: #ff9a80;
+    --color-arrow: #ff8a4c;
+}
+
+/* ZNAČKY A ŠIPKA NA MAPĚ. Značky bodů kreslí js/grafika.js jako inline SVG,
+   kam barvu vypisuje PŘÍMO z visSettings (getMapMarkerSVG), a šipku „tady jsem"
+   staví js/logika.js s natvrdo zapsaným fill="#34d399". Na nic z toho nevede
+   token, takže po přebarvení kategorií výše zůstaly na jinak červené mapě
+   svítit modré body a zelená šipka.
+   Řeší se to filtrem na CELOU vrstvu značek — stejným, jakým se převádí mapa:
+   odbarvit a převést do jantarové. Pouhý hue-rotate by nestačil, ten pro každý
+   vstupní odstín skončí jinde (zelená by zjantarověla, ale modrá by přešla do
+   žlutozelené).
+   O rozlišení kategorií se tím nepřichází: ty se v mapě poznají hlavně TVAREM
+   (trojúhelník TB, čtverec ZHB, kolečko PBPP, kroužek nivelace, kapka vlastní)
+   a filtr zachovává jas, takže zůstane i rozdíl světlá/sytá. */
+body.theme-night .leaflet-marker-pane {
+    filter: grayscale(1) sepia(1) hue-rotate(-24deg) saturate(2.4) brightness(1.12);
+}
+
+/* Plocha mapy pod nenačtenými dlaždicemi. Leaflet ji nechává na výchozí světle
+   šedé — což je v noci a hlavně OFFLINE, kde se dlaždice nedotáhnou vůbec,
+   svítící plocha přes celý displej. */
+body.theme-night #map,
+body.theme-night .leaflet-container {
+    background: #0b0503;
+}
+
+body.theme-blueprint #map,
+body.theme-blueprint .leaflet-container {
+    background: #08182e;
+}
+
+/* Úvodní obrazovka — viz komentář u modrotisku. V noci navíc slabší: svítící
+   plocha přes celý displej je přesně to, co má tenhle režim odstranit. */
+body.theme-night #welcome-screen {
+    background-image:
+        radial-gradient(60% 55% at 84% 12%, rgba(229, 98, 42, 0.22), transparent 60%),
+        radial-gradient(62% 58% at 14% 90%, rgba(255, 195, 138, 0.10), transparent 62%),
+        radial-gradient(120% 100% at 50% 50%, rgba(255, 138, 76, 0.04), transparent 70%);
+}
+
+/* Znak appky svítí zeleně z vlastního SVG (currentColor tam nesahá). V nočním
+   režimu je to jediná studená barva na obrazovce — otočit ji do jantarové. */
+body.theme-night #welcome-screen .wc-logo svg,
+body.theme-night #welcome-screen svg {
+    filter: hue-rotate(-125deg) saturate(1.15);
 }
 
 /* =========================================================================

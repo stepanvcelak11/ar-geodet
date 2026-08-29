@@ -58,6 +58,7 @@ EXTRA_ASSETS = [
     './css/duvera.css',                   # js/duvera.js — jednotny vzhled "jak moc verit cislu"
     './css/rocenka.css',                  # js/rocenka.js + js/odznaky.js
     './css/kolize-bodu.css',              # js/kolize-bodu.js          # tela navodu pod "?" — cte js/tools-registry.js pres fetch
+    './css/motivy-teren.css',             # palety Modrotisk + nocni rezim; pripojuje si je js/motivy-teren.js
     './js/lib/qrcode.min.js',      # line (lazy) nacitani QR generatoru
     './js/lib/jsqr.min.js',        # line (lazy) nacitani QR ctecky
     # PISMA + OBRAZKY LEAFLETU: v index.html nejsou, odkazuji na ne az CSS soubory

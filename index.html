@@ -89,8 +89,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=264">
-    <link rel="stylesheet" href="css/style.css?v=264">
+    <link rel="stylesheet" href="css/tokens.css?v=265">
+    <link rel="stylesheet" href="css/style.css?v=265">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere.
@@ -168,7 +168,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=264">
+    <link rel="stylesheet" href="css/vylepseni.css?v=265">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -1327,6 +1327,24 @@
     <script type="ag/lazy" data-src="js/kolize-bodu.js"></script>
     <!-- SBALITELNÝ NÁSTROJ (odpojitelné) — živá čísla v proužku nahoře místo modálu -->
     <script defer src="js/mini-panel.js"></script>
+    <!-- DVA TERÉNNÍ MOTIVY (odpojitelné) — „Modrotisk" (appka jako výkres) a noční
+         červený režim, který se umí sám zapnout po občanském soumraku.
+         ZŮSTÁVÁ `defer`, NE ag/lazy: kdo má některý z nich uložený, musí ho mít
+         hned při prvním vykreslení, jinak problikne původní paleta.
+         Vlastní stylopis (css/motivy-teren.css) si modul připojuje SÁM přes
+         AG.cssFile — jako <link> by přetekl strop eager CSS
+         (scripts/check_start_budget.py). Proto je v EXTRA_ASSETS v gen_sw_assets.py. -->
+    <script defer src="js/motivy-teren.js"></script>
+    <!-- SEVER PODLE SLUNCE (odpojitelné) — jediné srovnání severu, které nepotřebuje
+         známý bod v okolí; dodělává druhou půlku toho, co js/kompas-check.js
+         umí jen zkontrolovat. -->
+    <script type="ag/lazy" data-src="js/sever-slunce.js"></script>
+    <!-- BOD ZE DVOU FOTEK (odpojitelné) — protínání vpřed, kde se na cíl klepe
+         do zmrzlého obrazu místo živého míření křížem. -->
+    <script type="ag/lazy" data-src="js/foto-protinani.js"></script>
+    <!-- ODHADNI TO (odpojitelné) — cvičiště odhadu vzdálenosti a azimutu proti
+         skutečným senzorům. -->
+    <script type="ag/lazy" data-src="js/odhadovacka.js"></script>
     <script>
         // Přepínač zobrazení v doku (AR / Split / Mapa) — využívá globální viewMode a applyViewMode() z grafika.js
         function setView(mode, btn) {

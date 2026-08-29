@@ -2,6 +2,18 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 265,
+   "datum": "2026-08-29",
+   "nadpis": "Modrotisk a noční režim, sever podle Slunce, bod ze dvou fotek a cvičiště odhadu",
+   "body": [
+    "Dva nové vzhledy v <b>Nastavení → Vzhled → Barevný odstín</b>. <b>Modrotisk</b> překreslí celou appku i mapu do podoby geodetického výkresu — světlá kresba na tmavé modři, modály na milimetrovém papíře. <b>Noční</b> je červená paleta úplně bez modré: po tmě nezničí adaptaci oka (to je ta půlhodina, než se člověk rozkouká) a displej tolik nesvítí. Ztlumí se i mapa, značky a obraz z kamery.",
+    "Noční režim se umí <b>zapnout sám po setmění</b> a ráno zase couvnout — přepíná se to hned pod výběrem odstínu. Časy počítá appka z tvé polohy offline (občanský soumrak), tvoji vlastní volbu odstínu nepřepíše: když si v noci vybereš jiný, automatika se do poledne odmlčí.",
+    "Nový nástroj <b>Sever podle Slunce</b> (Nástroje → AR a kalibrace). Kompas v telefonu je magnetometr a u armatury, kolejnic nebo aut ukáže klidně o dvacet stupňů vedle. Všechny dosavadní způsoby srovnání severu potřebují známý bod v dohledu — uprostřed pole žádný není. Tenhle potřebuje jen viditelné Slunce: namíříš na něj (nebo podél vlastního stínu, do Slunce se dívat nemusíš), tři vteřiny držíš a appka sever srovná. Poctivě: od ruky to vyjde na ±3–5°, takže je to záchrana tam, kde se orientovat není na co, ne náhrada za orientaci na bod.",
+    "Nový nástroj <b>Bod ze dvou fotek</b> (Nástroje → Měření). Určí bod, na který se nedá dojít — roh za plotem, střecha, komín, druhá strana řeky. Na rozdíl od protínání vpřed nemusíš klidně mířit křížem: na každém stanovisku jen cvakneš fotku a na cíl klepneš do zmrzlého obrazu, prstem a v klidu, klidně až v autě. Když na fotce označíš i jeden známý bod, vyruší se z výsledku chyba kompasu; bez něj to appka označí jako orientační a řekne proč.",
+    "Nový <b>Odhadni to</b> (Nástroje → Pomůcky) — tři krátké disciplíny, kde nejdřív odhadneš a teprve pak se dozvíš pravdu ze senzorů: ujdi zadanou vzdálenost, otoč se na zadaný azimut, odhadni vzdálenost k bodu. Během pokusu appka schválně neukazuje to, co máš odhadnout. Vedle skóre a série je to pracovní dovednost: kdo ví, jak vypadá třicet metrů a kde je jihozápad, pozná hloupou chybu dřív, než ji uloží. Dá se to hrát i na procházce bez zakázky."
+   ]
+  },
+  {
    "v": 264,
    "datum": "2026-08-29",
    "nadpis": "Jiné jazyky, schránka na vzkazy, rychlejší start a ověřování bodů",

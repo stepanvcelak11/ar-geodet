@@ -487,6 +487,17 @@
 
     window.agOpenFotoProtinani = open;
     window.agCloseFotoProtinani = close;
+    // `test` je vystavene schvalne: protnuti a inverze projekce jsou jedine misto
+    // v teto vrstve, kde se da spocitat spatne, aniz by to bylo videt na obrazovce.
+    // Diky tomu jde vypocet overit v prohlizeci proti rucne spocitanemu trojuhelniku
+    // (viz scripts/test_navrhy_d2.py), ne jen prokoukat.
+    window.AGFotoProtinani = {
+        open: open, close: close,
+        test: {
+            angles: angles, compute: compute, destPoint: destPoint,
+            setShots: function (a) { shots = a || []; result = null; }
+        }
+    };
 
     try {
         if (typeof window.agRegisterFieldTool === 'function') {
