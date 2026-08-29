@@ -54,7 +54,7 @@
     // Tlačítka, která v krátkém pohledu zůstávají (poznají se podle textu onclicku)
     var KEEP_BTN = { 'tab-ar': ['openCompassModal'], 'tab-data': ['saveForOffline'] };
 
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function norm(s) {
         s = String(s == null ? '' : s).toLowerCase();
         try { s = s.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) {}

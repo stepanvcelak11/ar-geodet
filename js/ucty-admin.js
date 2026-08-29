@@ -23,7 +23,7 @@
     var STYLE_ID = 'ag-uctyadm-style';
 
     function U() { return window.AGUcty || null; }
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function agConfirm(opts) {
         try { if (typeof window.agConfirm === 'function') return window.agConfirm(opts); } catch (e) {}

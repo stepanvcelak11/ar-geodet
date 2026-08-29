@@ -32,7 +32,7 @@
 
     // ---- pomocné ---------------------------------------------------------------
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
-    function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
     function getMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function sj2ll(a, b) {
@@ -167,7 +167,7 @@
             L.marker([t.lat, t.lng], { interactive: false, icon: L.divIcon({ className: 'agpi-txt', html: '<span>' + escapeHtml(t.text) + '</span>', iconSize: [0, 0] }) }).addTo(g);
         });
     }
-    function escapeHtml(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function escapeHtml(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function fitMap() {
         var m = getMap(); if (!m || !_design) return;
         var lls = [];

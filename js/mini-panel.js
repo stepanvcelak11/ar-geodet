@@ -87,7 +87,7 @@
     var _timer = null;
     var _lastHtml = '';
 
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function txt(el) { return el ? (el.textContent || '').replace(/\s+/g, ' ').trim() : ''; }
     function cs(el) { try { return window.getComputedStyle(el); } catch (e) { return null; } }
 

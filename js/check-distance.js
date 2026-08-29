@@ -135,7 +135,7 @@
         a.innerHTML = optHtml; b.innerHTML = optHtml;
         if (av) a.value = av; if (bv) b.value = bv;
     }
-    function escHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    function escHtml(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function escAttr(s) { return escHtml(s).replace(/"/g, '&quot;'); }
 
     function wire() {

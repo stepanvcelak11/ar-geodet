@@ -23,7 +23,7 @@
 
     // ---------- pomocne ----------
     function isOnline() { return (typeof navigator !== 'undefined' && navigator.onLine !== false); }
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
     // znacka offline / online
     function badge(needsNet) {

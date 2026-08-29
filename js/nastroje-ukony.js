@@ -70,7 +70,7 @@
     GROUPS.forEach(function (g) { g.items.forEach(function (it) { KNOWN[it.k] = 1; }); });
     var _restWarned = false;   // hlášení o nezařazených nástrojích jen jednou za běh
 
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function modal() { return document.getElementById('tools-modal'); }
     function grid() { var m = modal(); return m ? m.querySelector('.tool-grid') : null; }
     function body() { var m = modal(); return m ? m.querySelector('.modal-body') : null; }

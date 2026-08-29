@@ -58,7 +58,7 @@
     var STYLE_ID = 'ag-akt-style';
 
     // ---- pomocné ---------------------------------------------------------------
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function pad2(n) { return (n < 10 ? '0' : '') + n; }
     function dayKey(ts) { var d = new Date(ts == null ? Date.now() : ts); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
     var DAYS_CS = ['ne', 'po', 'út', 'st', 'čt', 'pá', 'so'];

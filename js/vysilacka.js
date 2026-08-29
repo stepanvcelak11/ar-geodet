@@ -70,8 +70,8 @@
     var COUNT_S = 30;                 // odpočet, ve kterém jde poplach zrušit
 
     function U() { return window.AGUcty || null; }
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
-    function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} try { agInfo(m); } catch (e2) {} }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
     function info(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert(t, m); } catch (e) {} toast(m); }
     function pad2(n) { return (n < 10 ? '0' : '') + n; }
     function fmtT(ts) { var d = new Date(ts); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }

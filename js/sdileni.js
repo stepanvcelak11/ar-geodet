@@ -183,9 +183,7 @@
 
     // názvy bodů mohou pocházet z NASKENOVANÉHO cizího QR / importu = nedůvěryhodný vstup →
     // escapovat před vložením do innerHTML (jinak uložené XSS z názvu typu <img onerror=…>).
-    function escHtml(s) {
-        return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
-    }
+    function escHtml(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
     window.openShareQR = function () {
         if (typeof persistentCustomPoints === 'undefined' || !persistentCustomPoints.length) { agInfo('Nemáte žádné vlastní body ke sdílení.'); return; }

@@ -29,13 +29,13 @@
     var _prefill = null;            // {y,x,z} pro předvyplnění formuláře epochy po renderu
 
     // ---- util -------------------------------------------------------------------
-    function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} try { agInfo(m); } catch (e2) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
     function agAlertX(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function agConfirmX(t, m) {
         try { if (typeof window.agConfirm === 'function') return window.agConfirm({ title: t, message: m, danger: true }); } catch (e) {}
         return Promise.resolve(confirm(t + (m ? '\n' + m : '')));
     }
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function num(v) { var n = parseFloat(String(v == null ? '' : v).replace(',', '.').trim()); return isFinite(n) ? n : null; }
     function fmtDate(t) { try { var d = new Date(t); return d.toLocaleDateString('cs-CZ') + ' ' + d.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
     // datum a čas pod sebou (úzký sloupec — ať tabulka nepřetéká)

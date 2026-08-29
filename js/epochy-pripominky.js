@@ -26,7 +26,7 @@
     var BOX_ID = 'ag-epr-box';
 
     // ---- util ---------------------------------------------------------------
-    function toast(m) { try { if (typeof window.quickToast === 'function') return window.quickToast(m); } catch (e) {} try { if (typeof window.agInfo === 'function') window.agInfo(m); } catch (e2) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
     function pid() { try { return localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { return 'default'; } }
     function rkey() { return 'agEpochyRemind::' + pid(); }
     function sameDay(a, b) { try { return new Date(a).toDateString() === new Date(b).toDateString(); } catch (e) { return false; } }

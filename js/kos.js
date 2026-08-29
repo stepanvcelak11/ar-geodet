@@ -23,8 +23,8 @@
         while (!save(list) && list.length > 1) list.shift();
     }
 
-    function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-    function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
 
     // primy pristup k ulozisti CIZI (neaktivni) zakazky — getStoredData umi jen aktivni
     function rawGetCustom(projId) {

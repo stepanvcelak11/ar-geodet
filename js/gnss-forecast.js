@@ -58,8 +58,8 @@
     var _geo = null;       // geometrie posledního grafu (sdílí ji odečítací dotyk)
     var _model = null;     // poslední spočítaný model (pro odečítání v grafu)
 
-    function toast(m) { try { if (typeof window.quickToast === 'function') return window.quickToast(m); } catch (e) {} }
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function pad2(n) { return ('0' + n).slice(-2); }
     function num1(v) { return (v == null || !isFinite(v)) ? '–' : v.toFixed(1).replace('.', ','); }
     function r1(v) { return Math.round(v * 10) / 10; }

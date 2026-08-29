@@ -75,7 +75,7 @@
         record('Promise: ' + (r && (r.message || r) || 'neznámá chyba'), '', 0, 0, r && r.stack);
     });
 
-    function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
     function show() {
         var el = document.getElementById('errlog-modal');

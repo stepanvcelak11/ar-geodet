@@ -91,11 +91,7 @@
         try { if (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) return persistentCustomPoints; } catch (e) {}
         return [];
     }
-    function escapeHtml(s) {
-        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-        });
-    }
+    function escapeHtml(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
     // S-JTSK Y,X (kladné, v metrech) -> WGS84. Stejné chování jako sjtskToLatLng v logika.js;
     // pokud je v aplikaci, použij přímo ji (jeden zdroj pravdy), jinak fallback přes proj4.

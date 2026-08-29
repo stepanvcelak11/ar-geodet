@@ -56,7 +56,7 @@
     }
     function num(v) { if (v == null || v === '') return null; return agNum(v); }
     function f3(v) { return v == null ? '—' : v.toFixed(3); }
-    function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function uid() { return 'zb_' + Date.now() + '_' + Math.round(Math.random() * 1e5); }
     // rozdíl úhlů v gon do <-200,200>
     function gDiff(a, b) { return ((a - b + 600) % 400) - 200; }

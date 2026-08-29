@@ -45,7 +45,7 @@
 
     var _tab = 'pasmo';
 
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     // cteni cisel pres sdilene agNum() (js/vstupy.js) — desetinna carka, mezery v tisicich
     function num(v) { var n = (typeof window.agNum === 'function') ? window.agNum(v) : parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : null; }
     function st() { try { var o = JSON.parse(localStorage.getItem(LS)); return (o && typeof o === 'object') ? o : {}; } catch (e) { return {}; } }

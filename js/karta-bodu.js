@@ -27,7 +27,7 @@
 
     var TIMER = null, _pt = null;
 
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function n2(v) { return (Math.round(v * 100) / 100).toFixed(2).replace('.', ','); }
     function n1(v) { return (Math.round(v * 10) / 10).toFixed(1).replace('.', ','); }
     // POZOR (nalezeno 8.8. v prohlizeci): userLat/userLng/userAlt/gpsAvgResult…

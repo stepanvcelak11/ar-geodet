@@ -43,8 +43,8 @@
 
     var _month = null;                 // 'YYYY-MM' zobrazený měsíc (null = aktuální)
 
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
-    function toast(m) { try { if (typeof window.quickToast === 'function') return window.quickToast(m); } catch (e) {} }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
     function info(m, t) { try { if (typeof window.agInfo === 'function') return window.agInfo(m, t); } catch (e) {} agInfo(String(m).replace(/<[^>]*>/g, '')); }
     function ask(m, cb) {
         try { if (typeof window.agAsk === 'function') { window.agAsk(m).then(function (ok) { if (ok) cb(); }); return; } } catch (e) {}

@@ -22,7 +22,7 @@
     var STYLE_ID = 'ag-dochazka-style';
 
     function U() { return window.AGUcty || null; }
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function pad2(n) { return (n < 10 ? '0' : '') + n; }
     // klíč události: 'in|50.12345,14.67890|<meta>' — [0] směr, [1] hrubá poloha,
     // [2] volitelný detail směny (URI-encoded JSON {s:stavba, w:[s kým], c:činnost})

@@ -24,11 +24,7 @@
 
     var _data = null, _loading = false;
 
-    function esc(s) {
-        return String(s == null ? '' : s).replace(/[&<>]/g, function (c) {
-            return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c];
-        });
-    }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
     // Verze, která TEĎ běží. Bere se z `css/style.css?v=NNN` v index.html — to číslo
     // propisuje scripts/gen_sw_assets.py ze SHELL_CACHE, takže sedí se sw.js.

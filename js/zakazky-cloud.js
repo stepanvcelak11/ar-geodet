@@ -44,7 +44,7 @@
     function U() { return window.AGUcty || null; }
     function on() { try { return localStorage.getItem(LS_ON) !== '0'; } catch (e) { return true; } }
     function setOn(v) { try { if (v) localStorage.removeItem(LS_ON); else localStorage.setItem(LS_ON, '0'); } catch (e) {} }
-    function toast(t) { try { if (typeof window.quickToast === 'function') window.quickToast(t); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
     function ls(k, d) { try { var v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } }
     function jget(k) { try { var o = JSON.parse(localStorage.getItem(k) || 'null'); return (o && typeof o === 'object') ? o : {}; } catch (e) { return {}; } }
     function jset(k, o) { try { localStorage.setItem(k, JSON.stringify(o)); } catch (e) {} }

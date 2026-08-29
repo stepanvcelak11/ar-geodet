@@ -33,7 +33,7 @@
     // ---- pomůcky ----------------------------------------------------------------
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function toast(msg) { try { if (typeof quickToast === 'function') { quickToast(msg); return; } } catch (e) {} try { console.log('[kampaň]', msg); } catch (e) {} }
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]; }); }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function load() { try { var o = JSON.parse(localStorage.getItem(LS_KEY)); return (o && typeof o === 'object' && Array.isArray(o.plan)) ? o : null; } catch (e) { return null; } }
     function save(c) { try { localStorage.setItem(LS_KEY, JSON.stringify(c)); } catch (e) {} }
     function clear() { try { localStorage.removeItem(LS_KEY); } catch (e) {} }

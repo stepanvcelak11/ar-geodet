@@ -25,6 +25,17 @@
             .replace(/\n/g, '<br>');
     }
 
+    // JEDNOTNY TOAST. Kazdy modul mel drive vlastni jednoradkovou obalku kolem
+    // quickToast() z logika.js - a ve dvou variantach: vetsina z nich hlasku
+    // pri chybejicim quickToast() TISE ZAHODILA (typicky pred startem appky
+    // nebo kdyz modul bezi na strance, kde logika.js jeste nedobehla).
+    // Tahle vzdycky spadne aspon na agInfo(), takze se hlaska neztrati.
+    window.AG = window.AG || {};
+    window.AG.toast = window.AG.toast || function (msg) {
+        try { if (typeof window.quickToast === 'function') return window.quickToast(msg); } catch (e) {}
+        try { return window.agInfo(msg); } catch (e) {}
+    };
+
     window.agInfo = window.agInfo || function (msg, title) {
         try {
             if (typeof window.agAlert === 'function') { window.agAlert({ title: title || 'AR Geodet', message: esc(msg) }); return; }

@@ -111,11 +111,7 @@
     };
 
     function on() { try { return localStorage.getItem(KEY_OFF) !== '1'; } catch (e) { return true; } }
-    function esc(s) {
-        return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
-            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
-        });
-    }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function buzz(ms) {
         try {
             if (typeof visSettings !== 'undefined' && visSettings.vibrationEnabled === false) return;

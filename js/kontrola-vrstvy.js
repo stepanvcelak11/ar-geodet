@@ -45,11 +45,7 @@
     var VRSTVY_KEY = 'agVrstvy_v1';    // skladba z js/vrstvy.js — jen ČTEME
 
     // ---- pomocné -------------------------------------------------------------
-    function esc(s) {
-        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-            return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
-        });
-    }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     // čísla z formulářů čte agNum (snese desetinnou čárku); fallback pro případ,
     // že by odpojitelná vrstva js/vstupy.js chyběla.
     function num(src) {
@@ -64,7 +60,7 @@
         try { if (typeof window.agInfo === 'function') return window.agInfo(m, t); } catch (e) {}
         try { alert(String(m).replace(/<[^>]*>/g, '')); } catch (e) {}
     }
-    function toast(m) { try { if (typeof window.quickToast === 'function') quickToast(m); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
 
     function loadCfg() {
         var d = { mode: 'kota', kota: null, tol: 2, anten: 0, planeIds: [], useVrstvy: true, manualOffset: null };

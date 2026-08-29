@@ -94,7 +94,7 @@
     var HIDE_KEYS = EXTRA_HIDE.slice();
     HUBS.forEach(function (h) { h.items.forEach(function (it) { HIDE_KEYS.push(it.key); }); });
 
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function simpleOn() { try { return localStorage.getItem(SIMPLE_KEY) !== '0'; } catch (e) { return true; } }
     function getGrid() { var m = document.getElementById('tools-modal'); return m ? m.querySelector('.tool-grid') : null; }
     function closeTools() { var m = document.getElementById('tools-modal'); if (m) m.style.display = 'none'; }

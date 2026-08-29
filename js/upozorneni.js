@@ -67,11 +67,7 @@
 
     var LVL = { danger: 0, warn: 10, ok: 20, info: 30 };
 
-    function esc(s) {
-        return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
-            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
-        });
-    }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
     // ---- styly -------------------------------------------------------------------
     function injectStyles() {

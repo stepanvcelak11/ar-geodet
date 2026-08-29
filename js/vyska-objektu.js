@@ -44,7 +44,7 @@
     function saveHeight() { try { localStorage.setItem(LS_H, String(_height)); } catch (e) {} }
 
     function agAlertX(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
-    function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
     function curViewMode() { try { return (typeof viewMode !== 'undefined') ? viewMode : 'both'; } catch (e) { return 'both'; } }
     function rad(d) { return d * Math.PI / 180; }
     function pitchNow() {

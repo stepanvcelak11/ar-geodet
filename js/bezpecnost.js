@@ -101,7 +101,7 @@
     var _firedNum = '';
     var _editCt = false;     // otevřený editor kontaktů
 
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function toast(m) {
         try { if (typeof window.quickToast === 'function') { window.quickToast(m); return; } } catch (e) {}
         // Bez toastu by hlášky o (ne)úspěchu zmizely úplně — a právě tady se člověk

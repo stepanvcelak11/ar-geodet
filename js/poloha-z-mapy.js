@@ -58,7 +58,7 @@
     };
 
     function $(id) { return document.getElementById(id); }
-    function toast(msg) { try { if (typeof window.quickToast === 'function') window.quickToast(msg); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
     function num(v, d) { return (Math.round(v * Math.pow(10, d)) / Math.pow(10, d)).toFixed(d).replace('.', ','); }
 
     // ---- vzhled ----------------------------------------------------------------

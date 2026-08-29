@@ -188,11 +188,7 @@
     // stav „nechci profil" nedá splést s „vybral jsem si univerzální"
     function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
     function pid() { return ls('arActiveProjectId') || 'default'; }
-    function esc(s) {
-        return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
-            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
-        });
-    }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     // ---- VLASTNÍ PROFILY -----------------------------------------------------------
     // Uživatelovy vlastní profily žijí v localStorage vedle vestavěných a chovají se
     // úplně stejně (pás na úvodu, <select> v Nástrojích, filtr dlaždic). Ukládá se

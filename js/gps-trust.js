@@ -117,7 +117,7 @@
         return fx.err;
     }
 
-    function toast(m) { try { if (typeof window.quickToast === 'function') quickToast(m); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
 
     // Tvrdy restart GPS watchu. Umi ho jen js/power-save.js — jedine misto, ktere
     // drzi seznam zivych watchu i jejich callbacky (logika.js si handle neschovava).

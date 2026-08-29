@@ -36,7 +36,7 @@
     var _capTimer = null, _capSamples = [];
 
     // ---- helpery (čtou globály obezřetně) --------------------------------------
-    function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function heading() { return (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null; }
@@ -44,7 +44,7 @@
     function dist(lat, lng) { try { return getDistance(userLat, userLng, lat, lng); } catch (e) { return null; } }
     function adiff(a, b) { try { if (typeof angDiff === 'function') return angDiff(a, b); } catch (e) {} return ((a - b + 540) % 360) - 180; }
     function circMean(arr) { var s = 0, c = 0; arr.forEach(function (a) { s += Math.sin(a * D2R); c += Math.cos(a * D2R); }); return (Math.atan2(s, c) * R2D + 360) % 360; }
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
     function allPoints() {
         var out = [];

@@ -161,9 +161,7 @@
     function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
     function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
     function $(id) { return document.getElementById(id); }
-    function esc(s) {
-        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function toast(msg) {
         try { if (typeof quickToast === 'function') { quickToast(msg); return; } } catch (e) {}
         try { if (typeof window.agInfo === 'function') { window.agInfo(msg); return; } } catch (e) {}

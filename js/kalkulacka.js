@@ -817,7 +817,7 @@ function loadAllPointDocs() {
     }).catch(() => ({}));
 }
 window.loadAllPointDocs = loadAllPointDocs;
-function _pdEsc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function _pdEsc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 // sjednoti stary format {photo} na novy {photos:[...]}
 function _normalizeDoc(doc) {
     if (!doc) return doc;

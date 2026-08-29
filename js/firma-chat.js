@@ -25,7 +25,7 @@
     var PT_PREFIX = 'AG1\n';           // zpráva s body = stejný formát jako QR sdílení (sdileni.js)
 
     function U() { return window.AGUcty || null; }
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function fmtT(ts) { return new Date(ts).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }); }
     function fmtD(ts) { return new Date(ts).toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'numeric' }); }
 

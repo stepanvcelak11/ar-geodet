@@ -48,7 +48,7 @@
     // ------------------------------------------------------------------
     function U() { return window.AGUcty || null; }
     function pid() { try { return localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { return 'default'; } }
-    function toast(t) { try { if (typeof window.quickToast === 'function') window.quickToast(t); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
 
     // klíč zakázky na serveru = normalizovaný NÁZEV zakázky (viz hlavička)
     function jobKey(p) {

@@ -27,7 +27,7 @@
     var STYLE_ID = 'ag-vr-style';
     var ICON = '<svg class="icon"><use href="#i-layers"/></svg>';
 
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function num(v, def) { var n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : def; }
     function fmt(n) { return (Math.round(n * 10) / 10).toFixed(1).replace('.', ','); }
 

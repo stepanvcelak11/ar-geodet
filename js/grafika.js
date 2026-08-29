@@ -2167,7 +2167,7 @@
             renderDictList();
         }
         function deleteDictEntry(idx) { agAsk('Smazat tento vlastní pojem?', { title: 'Smazat pojem', okText: 'Smazat', danger: true }).then(function (ok) { if (!ok) return; const list = getCustomDict(); list.splice(idx, 1); saveCustomDict(list); renderDictList(); }); }
-        function _escHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+        function _escHtml(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
         function renderDictList() {
             const listDiv = document.getElementById('dict-list'); if (!listDiv) return;
             const q = (document.getElementById('dict-search').value || '').trim().toLowerCase();

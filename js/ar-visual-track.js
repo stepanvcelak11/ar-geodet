@@ -51,7 +51,7 @@
 
     // ---- pomocné (nezávislé na globálech; vlastní fallbacky) -------------------
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) {} }
-    function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
     function curViewMode() { try { return (typeof viewMode !== 'undefined') ? viewMode : 'both'; } catch (e) { return 'both'; } }
     function pageVisible() { try { return !document.hidden && document.visibilityState !== 'hidden'; } catch (e) { return true; } }
     function nowMs() { try { return (performance && performance.now) ? performance.now() : Date.now(); } catch (e) { return Date.now(); } }

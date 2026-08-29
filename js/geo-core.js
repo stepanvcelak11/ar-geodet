@@ -275,6 +275,21 @@
         return out;
     }
 
+    // ---- HTML escapovani (sdilene pro celou appku) ------------------------------
+    // Tuhle funkci mela drive KAZDA vrstva svoji vlastni - a ve CTYRECH ruznych
+    // variantach. Nektere escapovaly jen & < >, takze hodnota vlozena do ATRIBUTU
+    // (title="...", href="...") z nej umela uvozovkou utect. Tady je jedina,
+    // nejsilnejsi: pokryva i " a ', takze je bezpecna v textu i v atributu.
+    // Moduly ji volaji pres AG.esc / AG.escAttr a maji u sebe stejny fallback,
+    // aby zustaly odpojitelne i bez geo-core.js.
+    var _ESC_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    function _escHtml(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return _ESC_MAP[c]; });
+    }
+    window.AG = window.AG || {};
+    window.AG.esc = _escHtml;
+    window.AG.escAttr = _escHtml;   // tataz funkce — proto je bezpecna i v atributu
+
     // ---- veřejné API -----------------------------------------------------------
     window.GeoCore = {
         selfTest: selfTest,

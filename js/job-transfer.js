@@ -36,7 +36,7 @@
         try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m, cancelText: false }); } catch (e) {}
         try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) {}
     }
-    function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
 
     // aktivní zakázka — čteme přímo z localStorage (nezávisle na tom, zda jsou
     // globály logika.js v dosahu); pid = klíčový prefix všech dat zakázky
@@ -402,7 +402,7 @@
         } catch (e) { console.warn('[job-transfer] mergeLines', e); return 0; }
     }
 
-    function escHtml(s) { return String(s == null ? '' : s).replace(/[&<>]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]; }); }
+    function escHtml(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
     // ---- UI: hlavní modal -----------------------------------------------------
     function ensureModal() {

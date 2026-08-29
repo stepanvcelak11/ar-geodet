@@ -52,7 +52,7 @@
     var _azTs = 0;                          // škrcení přepisů azimutu (viz mirrorAz)
 
     function on() { try { return localStorage.getItem(BAR_KEY) !== '0'; } catch (e) { return true; } }
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function calInfo() { try { return JSON.parse(localStorage.getItem(CAL_KEY)); } catch (e) { return null; } }
     function num(v, d) { var s = (+v).toFixed(d == null ? 1 : d); return s.replace('.', ','); }

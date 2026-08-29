@@ -863,7 +863,7 @@
     // ------------------------------------------------------------------
     // Přihlašovací / zamykací obrazovka
     // ------------------------------------------------------------------
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
     // deterministická barva avataru ze jména — lidé se na obrazovce rychle najdou
     function hueOf(name) {
