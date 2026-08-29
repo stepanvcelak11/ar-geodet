@@ -1281,6 +1281,10 @@
     <script type="ag/lazy" data-src="js/odznaky.js"></script>
     <!-- ROČENKA (odpojitelné) — rok a měsíc v číslech, mapa "kde jsem byl" -->
     <script type="ag/lazy" data-src="js/rocenka.js"></script>
+    <!-- BODY NA SOBĚ (odpojitelné) — dva lidi na jedné zakázce změřili týž bod;
+         věší se na událost ag:sync-points z js/cloud-sync.js. MUSÍ být ZA
+         js/duvera.js: ptá se ho, jestli rozdíl sedí do hlášených přesností -->
+    <script type="ag/lazy" data-src="js/kolize-bodu.js"></script>
     <!-- SBALITELNÝ NÁSTROJ (odpojitelné) — živá čísla v proužku nahoře místo modálu -->
     <script defer src="js/mini-panel.js"></script>
     <script>

@@ -344,6 +344,15 @@
         if (res.edit) parts.push('upravené: ' + res.edit);
         if (res.del) parts.push('smazané: ' + res.del);
         if (parts.length) toast('Sdílení bodů ve firmě — ' + parts.join(', ') + '.');
+        // Ohlášení pro vrstvy, které chtějí vědět, že od kolegy něco přišlo
+        // (js/kolize-bodu.js hledá body, které padly skoro na sebe). Záměrně
+        // jen událost — tenhle modul o žádné takové vrstvě nemusí vědět a bez
+        // nich se nic nemění.
+        try {
+            document.dispatchEvent(new CustomEvent('ag:sync-points', {
+                detail: { add: res.add || 0, edit: res.edit || 0, del: res.del || 0, job: p }
+            }));
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:persistAndRedraw'); }
     }
 
     // ------------------------------------------------------------------

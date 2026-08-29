@@ -261,6 +261,8 @@
           help: { t: 'Moje aktivita' } },
         { k: 'rocenka', verb: 'Firma a papíry', vl: 'Ročenka', vh: 'rok a měsíc v číslech, mapa kde jsi byl', keys: 'rocenka rok v cislech mesic statistika souhrn roku kde jsem byl mapa roku odznaky serie kolik jsem nachodil vyrocni prehled bilance',
           help: { t: 'Ročenka' } },
+        { k: 'kolize-bodu', cat: 'Měření', verb: 'Změřit', vl: 'Body na sobě', vh: 'nezměřili jste s kolegou týž bod dvakrát?', keys: 'kolize duplicita dvojity bod dva body na sobe stejny bod tyz bod kolega spoluprace sdilena zakazka slouceni bodu prekryv',
+          help: { t: 'Body na sobě' }, w: 1 },
 
         // ── Příručka a výpočty ──────────────────────────────────────────
         { k: 'predpisy', verb: 'Příručka a výpočty', vl: 'Předpisy a odchylky', keys: 'predpisy vyhlaska odchylky kody lhuty tahak normy trida presnosti',

@@ -1,0 +1,103 @@
+/* ===== AR Geodet — BODY NA SOBĚ (k js/kolize-bodu.js) ========================
+   ⚠ NENÍ v <link> v index.html — připojuje si ho modul přes AG.cssFile(), aby
+   se nepočítal do rozpočtu startu. Proto MUSÍ být v EXTRA_ASSETS
+   v scripts/gen_sw_assets.py, jinak offline zmizí styly.
+   Barvy jen z css/tokens.css. Token --text NEEXISTUJE → --text-color.
+   ============================================================================ */
+
+.agkol-box { max-width: 700px; }
+
+.agkol-note {
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
+    border-radius: 12px;
+    padding: 11px 13px;
+    background: var(--glass-bg, rgba(255, 255, 255, 0.04));
+    color: var(--text-muted, #9aa1ac);
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
+    line-height: 1.55;
+    margin-bottom: 12px;
+}
+.agkol-note b { color: var(--text-color, #eceef2); }
+
+.agkol-i {
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
+    border-left: 3px solid var(--warning, #fbbf24);
+    border-radius: 13px;
+    padding: 12px 13px;
+    margin-bottom: 10px;
+    background: var(--glass-bg, rgba(255, 255, 255, 0.04));
+}
+.agkol-hl {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;          /* na úzkém telefonu se vzdálenost zalomí pod jména */
+    gap: 6px;
+    color: var(--text-color, #eceef2);
+    font-size: calc(14px * var(--ag-font-scale, 1));
+}
+.agkol-d {
+    margin-left: auto;
+    color: var(--warning, #fbbf24);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.agkol-dvoj {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 9px 0;
+}
+.agkol-p {
+    min-width: 0;             /* bez toho dlouhé jméno roztáhne sloupec a rozbije mřížku */
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+    border-radius: 10px;
+    padding: 8px 10px;
+}
+.agkol-jm {
+    font-weight: 700;
+    color: var(--text-color, #eceef2);
+    font-size: calc(13px * var(--ag-font-scale, 1));
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.agkol-m {
+    color: var(--text-faint, #6b727d);
+    font-size: calc(11.5px * var(--ag-font-scale, 1));
+    margin-bottom: 4px;
+}
+
+.agkol-verdikt {
+    color: var(--text-muted, #9aa1ac);
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+
+.agkol-akce { display: flex; flex-wrap: wrap; gap: 7px; }
+/* ⚠ ZÁMĚRNĚ NE .btn — ten má v appce width:100%, takže by každé tlačítko
+   zabralo celý řádek a text by se lámal po jednom slově. */
+.agkol-b {
+    flex: 1 1 auto;
+    min-width: 130px;
+    padding: 9px 12px;
+    border-radius: 11px;
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.14));
+    background: var(--glass-bg, rgba(255, 255, 255, 0.05));
+    color: var(--text-color, #eceef2);
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
+    font-weight: 600;
+    cursor: pointer;
+}
+.agkol-b.prim {
+    background: var(--accent-fill, #21815b);
+    border-color: var(--accent-line, rgba(47, 158, 116, 0.42));
+    color: #fff;
+}
+.agkol-b:active { filter: brightness(1.15); }
+
+@media (max-width: 420px) {
+    .agkol-dvoj { grid-template-columns: 1fr; }
+}
