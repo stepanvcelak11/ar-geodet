@@ -4,7 +4,7 @@
   {
    "v": 264,
    "datum": "2026-08-29",
-   "nadpis": "Jiné jazyky, schránka na vzkazy, bodové pole a kontrolní měření",
+   "nadpis": "Jiné jazyky, schránka na vzkazy, rychlejší start a ověřování bodů",
    "body": [
     "Appka umí <b>anglicky, německy a polsky</b>. Jazyk se sám vybere podle telefonu a přepíná se v <b>Nastavení → Vzhled</b> úplně nahoře; na přihlašovací obrazovce je na to kroužek vpravo nahoře. Přepnutí je okamžité, appka se nerestartuje. Odborné názvosloví je přeložené geodeticky, ne slovníkově.",
     "Nové <b>Napište mi</b> („Více\" nebo Nastavení → Údržba): pošlete autorovi, co nefunguje, co chybí nebo co byste změnili. <b>Nemusíte být přihlášení</b> a <b>funguje i bez signálu</b> — zpráva počká v telefonu a odejde sama, až bude připojení.",
@@ -12,7 +12,12 @@
     "<b>Kontrolní měření</b>: bod si označíte k ověření, za 25 minut se appka ozve a necháte ho určit podruhé. Z rozdílu obou určení spočítá <b>skutečnou přesnost</b> — na rozdíl od σ z jednoho stání už zahrnuje i systematickou chybu. Pak si vyberete, jestli nechat původní, zprůměrovat, nebo přepsat.",
     "<b>Sbalit zakázku</b>: jedním tlačítkem stáhne body, mapu, katastr, ortofoto i výškopis <b>kolem středu zakázky</b> — ne kolem místa, kde právě stojíte. Konečně se dá připravit výjezd z kanceláře.",
     "<b>Protokol kvality</b> má nový sloupec <b>Kontrola</b> s ověřenou přesností bodu a vysvětlením, jak se čte.",
-    "Drobnosti: přesnější stavová bublina a silueta přesnosti, vylepšená gesta jako zkratky na nástroje, firemní chat, historie aktualizací a počasí; hodinky Garmin lépe čtou QR."
+    "Drobnosti: přesnější stavová bublina a silueta přesnosti, vylepšená gesta jako zkratky na nástroje, firemní chat, historie aktualizací a počasí; hodinky Garmin lépe čtou QR.",
+    "Appka se <b>otevírá rychleji</b>. Devět nástrojů, které se za celý den většinou ani neotevřou, se teď dotahuje až po vykreslení — první obrázek naskočí zhruba o třetinu dřív a než je appka připravená, uteče o půl vteřiny méně. Nic z toho nechybí: nástroje jsou na místě, jen se načtou na pozadí.",
+    "<b>Ověření bodů</b> (nový nástroj v Zaznamenat). Rozptyl měření říká, jak klidné měření bylo — ne jestli je bod správně. Chyba GPS v telefonu je během jednoho stání posunutá pořád stejným směrem, takže dvě stě klidných odečtů umí být dvě stě odečtů vedle. Jediná skutečná kontrola je <b>druhé určení s odstupem</b>. Karta bodu teď rovnou hlásí „Ověřeno druhým určením · Δ 12 cm (mez 39 cm)“ nebo „Jediné určení — neověřeno“ a nový nástroj ukáže celou zakázku najednou.",
+    "<b>Protokol vytyčení</b> (nový nástroj ve Vytyčit). Když bod odškrtneš, appka si nově zapíše i to, <b>kde jsi doopravdy stál</b> — a udělá z toho tabulku projekt → skutečnost s ΔY, ΔX, polohovou odchylkou a mezní odchylkou podle kódu kvality. Vytiskne se, uloží jako PDF nebo vyexportuje do CSV. Řádky, kde měl telefon horší přesnost než polovinu meze, se označí jako <b>neprůkazné</b> — verdikt, na který se nedá spolehnout, je horší než žádný.",
+    "V <b>Nástrojích</b> je teď poznat, který nástroj sáhne na body zakázky: takové dlaždice mají u spodní hrany proužek. Ostatní jen ukazují.",
+    "<b>Protokol chyb</b> jde poslat jedním tapnutím i s okolnostmi (verze appky, typ telefonu, stav sítě a GPS, nenačtené moduly). Souřadnice, jména zakázek ani bodů se neposílají."
    ]
   },
   {

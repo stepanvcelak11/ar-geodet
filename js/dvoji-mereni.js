@@ -32,6 +32,11 @@
 // ================================================================================
 (function () {
     'use strict';
+    // Stylopis uz nevisi v index.html: modul je odlozeny (type="ag/lazy"),
+    // takze by jeho <link> jen zbytecne blokoval prvni vykresleni. Pripoji se
+    // tady, tedy davno pred tim, nez uzivatel okno otevre.
+    try { window.AG && AG.cssFile && AG.cssFile('agdm-css', 'css/dvoji-mereni.css'); } catch (e) { }
+
     if (window.AGRecheck) return;
 
     var Q_KEY = 'agRecheckQueue1';       // fronta „čeká na ověření" (per zakázka přes setStoredData)

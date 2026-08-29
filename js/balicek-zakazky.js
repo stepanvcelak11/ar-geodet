@@ -30,6 +30,11 @@
 // ================================================================================
 (function () {
     'use strict';
+    // Stylopis uz nevisi v index.html: modul je odlozeny (type="ag/lazy"),
+    // takze by jeho <link> jen zbytecne blokoval prvni vykresleni. Pripoji se
+    // tady, tedy davno pred tim, nez uzivatel okno otevre.
+    try { window.AG && AG.cssFile && AG.cssFile('agbz-css', 'css/balicek-zakazky.css'); } catch (e) { }
+
     if (window.AGBalicek) return;
 
     var LAST_KEY = 'agBalicekLast1';     // kdy se naposledy balilo (per zakázka)

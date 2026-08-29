@@ -19,6 +19,30 @@ nasazení; všechno níže jde udělat ručně.
 | `schema.sql` | schéma D1 databáze (idempotentní) |
 | `wrangler.toml` | konfigurace pro ruční nasazení |
 
+## Běží na serveru to, co mám v repu?
+
+```
+python scripts/check_worker_deployed.py
+```
+
+Přečte `v` z `worker.js`, zavolá `GET /health` živé služby a porovná.
+
+**Proč zvlášť skript a ne prostě `curl`:** worker vrací `401` **dřív, než se
+podívá na cestu**, takže i vymyšlený endpoint odpoví „Neplatné přihlášení“.
+Podle odpovědí tedy *nejde* poznat, které endpointy nasazená verze zná —
+jediný spolehlivý ukazatel je pole `v` v `/health`.
+
+**Z toho plyne pravidlo:** změní-li se `worker.js` tak, že na tom klientovi
+záleží, **bumpni `v`** u odpovědi `/health`. Jinak se po čase nedá zjistit,
+jestli je změna venku, a poznámka „zbývá nasadit worker“ visí v úkolech měsíce.
+
+**Stav 29. 8. 2026** (proměřeno, ne odhadnuto): služba běží,
+`GET /health` → `{"ok":true,"v":5,"wx":true,"watch":true}`, `/wx/chmi`
+i `/wx/chmi/day` odpovídají, všechny chráněné endpointy vracejí `401` (tedy
+běží a chtějí token). Bezpečnostní úprava přihlašování z commitu `9bc1401`
+ale `v` nebumpla, takže **zvenčí se nedá poznat, jestli je nasazená** — proto
+je v repu nově `v: 6`. Po prvním `wrangler deploy` bude odpověď jednoznačná.
+
 ## Ruční nasazení / aktualizace (bez Claude)
 
 1. Nainstaluj [wrangler](https://developers.cloudflare.com/workers/wrangler/):

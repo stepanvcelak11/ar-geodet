@@ -676,6 +676,17 @@ export default {
             // watch:true = tenhle worker uz umi /watch/* (parovani hodinek, body, dlazdice).
             // Starsi nasazeny worker tuhle polozku nema, takze podle ni pozna appka,
             // ze na serveru bezi stara verze — viz js/hodinky-parovani.js.
+            //
+            // v:7 = /feedback (schranka na vzkazy, bez tokenu) + /owner/* (konzole vlastnika).
+            // v:6 = bezpecnostni zmena z 9bc1401 (brzda prihlaseni
+            //       na TRI klice vcetne IP, aby kolegovi nesel zamknout ucet, a
+            //       odpoved /login uz neposila offline overovadlo z databaze).
+            //
+            // ⚠ `v` JE JEDINY ZPUSOB, JAK ZVENCI POZNAT, CO JE OPRAVDU NASAZENE:
+            // vsechny ostatni cesty vraci 401 DRIV, nez se worker podiva na cestu,
+            // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
+            // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
+            // nasazeni to overi:  python scripts/check_worker_deployed.py
             if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 7, wx: true, watch: true, fb: true, owner: true });
 
             // ---------------- ČHMÚ: měření z nejbližší stanice ---------------

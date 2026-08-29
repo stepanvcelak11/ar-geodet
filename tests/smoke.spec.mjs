@@ -55,6 +55,13 @@ async function bootApp(page, context) {
             localStorage.setItem('agBrifinkAuto', '0');
             localStorage.setItem('agBrifinkLastShown', new Date().toISOString().slice(0, 10));
         } catch (e) { }
+        // Značka „odložené moduly jsou dotažené". Většina nástrojů se načítá až po
+        // vykreslení (js/lazy-load.js) a test, který na to nepočká, hlásí náhodně
+        // „chybí dlaždice" nebo „funkce není". Posluchač MUSÍ být z init skriptu —
+        // událost přijde dřív, než se test stihne zeptat. Init skript běží při
+        // KAŽDÉ navigaci, takže značka platí i po reloadu appky.
+        window.__agLazyDone = false;
+        window.addEventListener('ag:lazy-done', () => { window.__agLazyDone = true; });
     });
 
     await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
@@ -68,9 +75,22 @@ async function bootApp(page, context) {
     await start.click();
     await expect.poll(() => page.evaluate(() => document.body.classList.contains('app-started')), { timeout: 20000 }).toBe(true);
 
-    // nech pár sekund běžet smyčky modulů (bublina, mapa, HUD) — chyby se často
-    // objeví až v prvním intervalu, ne při načtení
-    await page.waitForTimeout(4000);
+    // Dotáhni odložené moduly HNED a počkej, až budou venku. Dřív tu byla jen
+    // pevná pauza 4 s a test si zahrával s náhodou: kolik nástrojů se do té doby
+    // stihlo zaregistrovat, takový byl výsledek. Na zatíženém runneru to je jinak
+    // než na vývojářském stroji a přibývající moduly to posouvají.
+    await page.evaluate(() => { try { window.AGLazy && window.AGLazy.flush && window.AGLazy.flush(); } catch (e) { } });
+    await page.waitForFunction(() => {
+        if (window.__agLazyDone === true) return true;
+        // pojistka: kdyby vrstva js/lazy-load.js zmizela ze sestavy, událost by
+        // nikdy nepřišla a test by umřel na timeout místo toho, aby prošel
+        return document.querySelectorAll('script[type="ag/lazy"][data-src]').length === 0;
+    }, null, { timeout: 40000 });
+
+    // …a teprve pak nech chvíli běžet smyčky modulů (bublina, mapa, HUD) — chyby
+    // se často objeví až v prvním intervalu, ne při načtení. Dlaždice se navíc
+    // doregistrovávají vlastními tiky modulů (1,2–1,7 s).
+    await page.waitForTimeout(3000);
 
     // DIAGNOSTIKA: když něco leží přes celou appku (modál, brána, brífink), klikání
     // v dalších testech umře na timeout a z hlášky se nedá poznat proč. Radši to
@@ -108,8 +128,11 @@ test('appka nastartuje bez chyb a má klíčové prvky', async ({ page, context 
     await expect(page.locator('#map')).toBeVisible();
 
     // 4) zaregistrovaly se nástroje (dlaždice v modálu Nástroje)
+    // Mez je 60, ne 25: appka jich má přes 80 a chyba, kvůli které se jich
+    // registrovala jen ČÁST (43 ze 70 při self-reloadu), by pod hranicí 25 prošla.
+    // Na to, že se počkalo na dotažení odložených modulů, je teď spoleh.
     const tiles = await page.locator('#tools-modal .tool-tile').count();
-    expect(tiles, 'počet dlaždic v Nástrojích').toBeGreaterThan(25);
+    expect(tiles, 'počet dlaždic v Nástrojích').toBeGreaterThan(60);
 
     // 5) klíčová API modulů existují (když modul spadne, globál chybí)
     const apis = await page.evaluate(() => ({
@@ -480,4 +503,109 @@ test('REGRESE: 401 (opravdu špatné heslo) se počítat MUSÍ', async ({ page, 
     const s = await stavPrihlaseni(page);
     expect(s.pocitadlo, 'špatné heslo se přestalo počítat — PIN by šlo uhádnout hrubou silou').not.toBe(null);
     expect(JSON.parse(s.pocitadlo).n).toBeGreaterThan(0);
+});
+
+// ===== DEN V TERÉNU (dlouhý průchod appkou) =====================================
+// Ostatní testy zkoušejí appku po kouskách: nastartuje, otevře se okno, spočítá se
+// číslo. Chyby, které lidi z terénu hlásí nejčastěji, ale nejsou v jednom kroku —
+// jsou ve ŠVU mezi kroky: bod se uloží, ale nepřežije zabití appky; odškrtnutí
+// zůstane, ale ztratí se, kde jsi doopravdy stál; po restartu se dotáhne jen část
+// nástrojů. Tenhle test projde celý den najednou a přes restart.
+//
+// Krok „RESTART" je tu jádro věci: iOS Safari běžně zabije PWA při přepnutí na
+// foťák nebo při telefonátu. Co restart nepřežije, je v terénu ztracená práce.
+test('den v terénu: bod → vytyčení → restart appky → nic se neztratilo', async ({ page, context }) => {
+    const errors = await bootApp(page, context);
+
+    // ---- 1) nový bod přes SKUTEČNÝ formulář (ne přes API) --------------------
+    await page.evaluate(() => openNewPointModal());
+    await expect(page.locator('#custom-modal-overlay')).toBeVisible({ timeout: 8000 });
+
+    // 5 m severně od podvržené polohy; do polí jdou S-JTSK metry s desetinnou ČÁRKOU
+    const yx = await page.evaluate(() => {
+        const s = proj4('EPSG:4326', 'EPSG:5514', [14.4213, 50.0875 + 5 / 111320]);
+        return { y: Math.abs(s[0]).toFixed(2).replace('.', ','), x: Math.abs(s[1]).toFixed(2).replace('.', ',') };
+    });
+    await page.fill('#custom-name', 'DEN1');
+    await page.fill('#custom-y', yx.y);
+    await page.fill('#custom-x', yx.x);
+    await page.fill('#custom-z', '312,45');
+    await page.click('#custom-modal-overlay .btn-primary');
+
+    await expect.poll(() => page.evaluate(
+        () => persistentCustomPoints.some((p) => p.name === 'DEN1')), { timeout: 8000 }).toBe(true);
+
+    const bod = await page.evaluate(() => {
+        const p = persistentCustomPoints.find((q) => q.name === 'DEN1');
+        return { vyska: p.vyska, vAr: arPoints.some((q) => q.name === 'DEN1') };
+    });
+    expect(bod.vyska, 'výška Z se neuložila').toBe(312.45);
+    expect(bod.vAr, 'bod se neobjevil v zobrazení (arPoints)').toBe(true);
+
+    // ---- 2) vytyčení: odškrtnutí musí zapsat i SKUTEČNOU polohu --------------
+    // Bez ní je „protokol vytyčení" jen soupis toho, co se mělo vytyčit
+    // (js/protokol-vytyceni.js).
+    const vytyceni = await page.evaluate(() => {
+        const p = arPoints.find((q) => q.name === 'DEN1');
+        toggleStaked(p);
+        const rec = stakeoutData[p.id];
+        const r = (window.AGProtVyt ? AGProtVyt.radky() : []).find((x) => x.name === 'DEN1');
+        return { odskrtnuto: !!rec, poloha: !!(rec && rec.sy), vProtokolu: !!r, dp: r && r.dp != null ? r.dp : null };
+    });
+    expect(vytyceni.odskrtnuto, 'bod se neodškrtl').toBe(true);
+    expect(vytyceni.poloha, 'k odškrtnutí se nezapsala skutečná poloha').toBe(true);
+    expect(vytyceni.vProtokolu, 'bod není v protokolu vytyčení').toBe(true);
+    // bod je 5 m od podvržené polohy telefonu → odchylka musí vyjít kolem 5 m
+    expect(vytyceni.dp).toBeGreaterThan(3);
+    expect(vytyceni.dp).toBeLessThan(8);
+
+    // ---- 3) rozdělaná práce (js/draft-store.js) ------------------------------
+    await page.evaluate(() => {
+        AGDraft.register('test-den', { label: 'Zkouška', open: () => { } });
+        AGDraft.save('test-den', { krok: 2 }, 'Zkouška');
+    });
+    await page.waitForTimeout(900);      // AGDraft má debounce 400 ms
+
+    // ---- 4) RESTART APPKY ----------------------------------------------------
+    // POZOR: podvržený kompas (CDP) přežije reload sám; druhý override skončí
+    // chybou „sensor type is already overridden", proto se neposílá znovu.
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    const start2 = page.locator('#welcome-start-btn');
+    await expect(start2).toBeVisible({ timeout: 20000 });
+    await start2.click();
+    await expect.poll(() => page.evaluate(
+        () => document.body.classList.contains('app-started')), { timeout: 20000 }).toBe(true);
+    await page.evaluate(() => { try { window.AGLazy && window.AGLazy.flush && window.AGLazy.flush(); } catch (e) { } });
+    await page.waitForFunction(() => {
+        if (window.__agLazyDone === true) return true;
+        // pojistka: kdyby vrstva js/lazy-load.js zmizela ze sestavy, událost by
+        // nikdy nepřišla a test by umřel na timeout místo toho, aby prošel
+        return document.querySelectorAll('script[type="ag/lazy"][data-src]').length === 0;
+    }, null, { timeout: 40000 });
+    await page.waitForTimeout(2000);
+
+    // ---- 5) co všechno restart přežilo --------------------------------------
+    const po = await page.evaluate(() => {
+        const p = persistentCustomPoints.find((q) => q.name === 'DEN1');
+        const ar = arPoints.find((q) => q.name === 'DEN1');
+        const rec = ar ? stakeoutData[ar.id] : null;
+        const d = window.AGDraft ? AGDraft.load('test-den') : null;
+        const r = (window.AGProtVyt ? AGProtVyt.radky() : []).find((x) => x.name === 'DEN1');
+        return {
+            bod: !!p, vyska: p ? p.vyska : null,
+            odskrtnuto: !!rec, poloha: !!(rec && rec.sy),
+            draft: d ? d.state.krok : null,
+            protokol: !!r,
+            dlazdic: document.querySelectorAll('#tools-modal .tool-tile').length,
+        };
+    });
+    expect(po.bod, 'bod nepřežil restart appky').toBe(true);
+    expect(po.vyska, 'výška se restartem ztratila').toBe(312.45);
+    expect(po.odskrtnuto, 'odškrtnutí vytyčení nepřežilo restart').toBe(true);
+    expect(po.poloha, 'skutečná poloha u odškrtnutí nepřežila restart').toBe(true);
+    expect(po.draft, 'rozdělaná práce se po restartu nenabídla').toBe(2);
+    expect(po.protokol, 'protokol vytyčení po restartu bod nevidí').toBe(true);
+    expect(po.dlazdic, 'po restartu se zaregistrovala jen část nástrojů').toBeGreaterThan(60);
+
+    expect(errors, 'chyby v konzoli:\n' + errors.join('\n')).toEqual([]);
 });

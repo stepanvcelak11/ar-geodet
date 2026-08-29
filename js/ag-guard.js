@@ -138,6 +138,22 @@
     // ================================================================
     //  3) injekce stylu jen jednou
     // ================================================================
+    // 3b) AG.cssFile(id, href) — PRIPOJI EXTERNI STYLOPIS JEN JEDNOU.
+    //     Pro nastroje nacitane az po vykresleni (type="ag/lazy"): jejich
+    //     <link> nema co blokovat prvni vykresleni, tak si ho modul pripoji
+    //     sam pri svem spusteni. Soubor pak MUSI byt v EXTRA_ASSETS
+    //     (scripts/gen_sw_assets.py), protoze uz na nej index.html neodkazuje
+    //     a bez toho by nastroj offline zustal bez stylu.
+    AG.cssFile = function (id, href) {
+        try {
+            if (!id || document.getElementById(id)) return false;
+            var l = document.createElement('link');
+            l.id = id; l.rel = 'stylesheet'; l.href = href;
+            document.head.appendChild(l);
+            return true;
+        } catch (e) { return false; }
+    };
+
     AG.style = function (id, css) {
         try {
             if (!id || document.getElementById(id)) return false;

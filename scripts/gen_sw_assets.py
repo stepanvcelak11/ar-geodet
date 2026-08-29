@@ -49,6 +49,12 @@ EXTRA_ASSETS = [
     './data/jazyky.json',          # cte js/jazyky.js pres fetch (jen kdyz nekdo prepne jazyk;
                                    #   v predcache byt MUSI, jinak cizojazycna appka
                                    #   po prvnim spusteni offline spadne zpatky do cestiny)
+    './data/navody.json',
+    # STYLOPISY ODLOZENYCH NASTROJU: v index.html uz nejsou (blokovaly by
+    #   prvni vykresleni), pripojuje si je modul sam pres AG.cssFile().
+    './css/bodove-pole.css',
+    './css/dvoji-mereni.css',
+    './css/balicek-zakazky.css',          # tela navodu pod "?" — cte js/tools-registry.js pres fetch
     './js/lib/qrcode.min.js',      # line (lazy) nacitani QR generatoru
     './js/lib/jsqr.min.js',        # line (lazy) nacitani QR ctecky
     # PISMA + OBRAZKY LEAFLETU: v index.html nejsou, odkazuji na ne az CSS soubory

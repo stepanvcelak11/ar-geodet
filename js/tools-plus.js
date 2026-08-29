@@ -50,6 +50,11 @@
             '  background:transparent;color:var(--text-muted,#9aa1ac);font-size:calc(12.5px * var(--ag-font-scale, 1));font-weight:600;cursor:pointer;}',
             'body.ag-tp-edit #ag-tp-editbtn{background:var(--accent-soft,rgba(47,158,116,0.15));color:var(--accent,#2f9e74);border-color:var(--accent-line,rgba(47,158,116,0.4));}',
             '#ag-fav-head{color:#fbbf24 !important;}',
+            // Proužek u dlaždic, které sahají na body zakázky. Tenká linka u SPODNÍ
+            // hrany — horní rohy jsou obsazené („?" vpravo, hvězdička vlevo).
+            '#tools-modal .tool-tile.ag-tp-w::after{content:"";position:absolute;left:22%;right:22%;bottom:0;height:3px;',
+            '  border-radius:3px 3px 0 0;background:var(--accent,#2f9e74);opacity:0.85;pointer-events:none;}',
+            'body.outdoor-mode #tools-modal .tool-tile.ag-tp-w::after{opacity:1;height:4px;}',
             // modál nápovědy
             '#ag-tp-hm{position:fixed;inset:0;z-index:1000060;display:none;align-items:center;justify-content:center;background:rgba(4,8,12,0.6);}',
             '#ag-tp-hm.open{display:flex;}',
@@ -100,12 +105,28 @@
         }
         return m;
     }
+    var BEZ_NAVODU = '<p>Návod pro tento nástroj zatím není. Nástroj otevři a zkus ho — nic se neuloží bez potvrzení.</p>';
+
+    // Těla návodů žijí v data/navody.json a dotahují se až po startu (viz hlavička
+    // js/tools-registry.js). Okno se proto otevře HNED (ať klepnutí něco udělá)
+    // a text se doplní, jakmile je — obvykle už je v paměti a stihne se to v témže
+    // ticku. `data-key` na prvku hlídá, aby rychlé přeťukání na jiný nástroj
+    // nepřepsala opožděná odpověď pro ten předchozí.
     function openHelp(key, label) {
         var m = ensureHelpModal();
+        var tEl = document.getElementById('ag-tp-hm-t');
+        var bEl = document.getElementById('ag-tp-hm-b');
         var rec = helpRec(key);
-        document.getElementById('ag-tp-hm-t').textContent = rec ? rec.t : (label || 'Nástroj');
-        document.getElementById('ag-tp-hm-b').innerHTML = rec ? rec.h : '<p>Návod pro tento nástroj zatím není. Nástroj otevři a zkus ho — nic se neuloží bez potvrzení.</p>';
+        tEl.textContent = rec ? rec.t : (label || 'Nástroj');
+        bEl.setAttribute('data-key', key || '');
+        bEl.innerHTML = rec ? (rec.h || '') : BEZ_NAVODU;
         m.classList.add('open');
+        if (rec && !rec.h && window.AGReg && typeof window.AGReg.helpAsync === 'function') {
+            window.AGReg.helpAsync(key).then(function (r) {
+                if (bEl.getAttribute('data-key') !== (key || '')) return;   // uživatel je jinde
+                bEl.innerHTML = (r && r.h) || BEZ_NAVODU;
+            }).catch(function () { bEl.innerHTML = BEZ_NAVODU; });
+        }
     }
     // Návod umí otevřít i něco, co NENÍ dlaždice v Nástrojích — např. „Poloha z mapy"
     // žije v panelu Mapa a vrstvy (js/poloha-z-mapy.js) a její „?" míří sem. Bez
@@ -115,6 +136,10 @@
     // nástrojů (js/kolecko-nastroju.js): v kolečku není kam dát otazník, tak se
     // u zamířeného nástroje rovnou vypíše, co dělá. Zdroj je TÝŽ registr,
     // takže se texty nemůžou rozejít — jen se zkrátí.
+    // MUSÍ ZŮSTAT SYNCHRONNÍ (volá se při tažení prstu, na Promise není kdy).
+    // Než se dotáhne data/navody.json, vrátí prázdno a kolečko popisek prostě
+    // nezobrazí — AGReg.help() přitom stahování rozjede, takže je to na pár set
+    // ms po startu. Návodů je 80 a stahují se jedním souborem.
     window.agToolHelpText = function (key, max) {
         try {
             var rec = helpRec(key);
@@ -161,6 +186,20 @@
                 var key = tileKey(tile);
                 var star = tile.querySelector('.ag-tp-star');
                 if (star) star.classList.toggle('on', key != null && favs.indexOf(key) !== -1);
+
+                // PROUŽEK U DLAŽDIC, KTERÉ SAHAJÍ NA BODY. V mřížce se všech 80
+                // nástrojů tváří stejně, přitom část z nich jen ukazuje (počasí,
+                // předpisy, kompas) a část přidá, posune nebo smaže bod. V terénu
+                // se dlaždice otevírají i omylem a z názvu to není poznat.
+                // Značí se ZÁMĚRNĚ jen ten úzký okruh (příznak `w` v registru) —
+                // kdyby proužek měla většina dlaždic, nic by neříkal.
+                if (key != null && window.AGReg && typeof AGReg.isWrite === 'function') {
+                    var w = AGReg.isWrite(key);
+                    tile.classList.toggle('ag-tp-w', w);
+                    // Popisek jen doplňuje; barvu samotnou nesmí nést informace
+                    // (venkovní režim, barvoslepost) — proto i title.
+                    if (w && !tile.getAttribute('title')) tile.setAttribute('title', 'Ukládá nebo mění body zakázky');
+                }
             })(tiles[i]);
         }
     }
