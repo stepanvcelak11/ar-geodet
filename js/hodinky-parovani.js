@@ -136,8 +136,13 @@
                         return;
                     }
                     var s = r ? r.status : 0;
+                    // POZOR na dvojí význam 404: stejný kód vrací i worker, který
+                    // /watch/* VŮBEC NEZNÁ (běží na něm starší nasazení) — jeho
+                    // catch-all hlásí „Neznámá cesta.". Bez rozlišení dostal uživatel
+                    // „kód neplatí" a nechal si na hodinkách ukazovat nový donekonečna.
                     stav.textContent =
-                        s === 404 ? 'kód neplatí — nech si na hodinkách ukázat nový'
+                        (s === 404 && staryServer(r)) ? 'server běží na starší verzi — párování hodinek začne fungovat po nasazení workeru'
+                        : s === 404 ? 'kód neplatí — nech si na hodinkách ukázat nový'
                         : s === 409 ? 'tenhle kód už byl použitý'
                         : s === 401 ? 'nejsi přihlášený do firemního účtu'
                         : 'nepovedlo se (' + s + ')';
@@ -146,6 +151,15 @@
                     stav.textContent = 'server neodpovídá';
                 });
         };
+    }
+
+    // Pozna, ze odpoved 404 prisla z catch-all starsiho workeru (ten /watch/* nezna),
+    // ne od samotneho endpointu. Nasazeny worker s /watch/* vraci vlastni hlasku.
+    function staryServer(r) {
+        try {
+            var e = r && r.data && r.data.error;
+            return typeof e === 'string' && e.indexOf('Neznámá cesta') >= 0;
+        } catch (x) { return false; }
     }
 
     // ---- příprava mapy --------------------------------------------------
@@ -362,7 +376,7 @@
                         stav.textContent = 'ukládám výběr ' + vybrane.length + ' bodů…';
                         return u.cloudFetch('/watch/select', { method: 'POST', body: { job: job, points: vybrane } })
                             .then(function (r) {
-                                if (!r || !r.ok) { throw new Error('výběr bodů (' + (r ? r.status : '?') + ')'); }
+                                if (!r || !r.ok) { throw new Error(staryServer(r) ? 'server běží na starší verzi — nasaď worker (cloud/)' : 'výběr bodů (' + (r ? r.status : '?') + ')'); }
                                 hlaseni.push(vybrane.length + ' bodů');
                             });
                     });
@@ -379,7 +393,7 @@
                             stav.textContent = 'odesílám ' + dl.length + ' dlaždic…';
                             return u.cloudFetch('/watch/tiles', { method: 'POST', body: { tiles: dl } })
                                 .then(function (r) {
-                                    if (!r || !r.ok) { throw new Error('mapa (' + (r ? r.status : '?') + ')'); }
+                                    if (!r || !r.ok) { throw new Error(staryServer(r) ? 'server běží na starší verzi — nasaď worker (cloud/)' : 'mapa (' + (r ? r.status : '?') + ')'); }
                                     hlaseni.push(dl.length + ' dlaždic mapy');
                                 });
                         });

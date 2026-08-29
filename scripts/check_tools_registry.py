@@ -118,6 +118,38 @@ def load_registry():
     return recs
 
 
+# ---- 1b. moduly, ktere appka vubec NENACITA ---------------------------------
+def orphan_modules():
+    """js/*.js, ktere registruji nastroj, ale nikdo je nenacita.
+
+    PROC: registered_ids() cte soubory NA DISKU, ne to, co appka opravdu spusti.
+    Osirely modul tedy prosel jako platny nastroj — a registr k nemu klidne mel
+    dlazdici, navod i sloveso, jen se v appce nikdy neobjevil. Presne to se stalo
+    js/geo-overlay.js: 487 radku a zaznam v registru, ale zadny <script> v
+    index.html, takze nastroj "Podlozit plan do mapy" fakticky neexistoval.
+
+    Nacteni muze byt trojí: bezny <script src>, lazy <script type="ag/lazy"
+    data-src> nebo MANIFEST v js/lazy-tools.js (ten stahuje az na klepnuti).
+    """
+    html = read('index.html')
+    lazy = read('js/lazy-tools.js')
+    out = {}
+    jsdir = os.path.join(ROOT, 'js')
+    for fn in sorted(os.listdir(jsdir)):
+        if not fn.endswith('.js'):
+            continue
+        src = read('js/' + fn)
+        if 'agRegisterFieldTool' not in src:
+            continue
+        base = fn[:-3]
+        if ('js/' + fn) in html:
+            continue
+        if ("'" + base + "'") in lazy or ('"' + base + '"') in lazy:
+            continue
+        out[fn] = True
+    return out
+
+
 def main():
     recs = load_registry()
     by = {r['k']: r for r in recs}
@@ -151,6 +183,13 @@ def main():
             continue
         warns.append(u'%s: zaznam v registru, ale zadny nastroj se tak neregistruje '
                      u'(smazany modul? preklep v klici?)' % k)
+
+    # modul lezi v js/, registruje nastroj — ale appka ho nenacita, takze nic
+    # z toho nikdy nebezi. Do teto kontroly osirely modul prosel jako platny.
+    for fn in sorted(orphan_modules()):
+        errs.append(u'js/%s registruje nastroj, ale NENI v index.html ani v '
+                    u'MANIFESTu js/lazy-tools.js — v appce se nikdy nespusti '
+                    u'(zapojit, nebo smazat i se zaznamem v registru)' % fn)
 
     # profily smi ukazovat jen na existujici nastroje
     profs = _eval_js('window.AGReg.profiles()') or []

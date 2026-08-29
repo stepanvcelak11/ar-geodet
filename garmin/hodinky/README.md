@@ -7,8 +7,17 @@ Zjednodušený pomocník k mobilní aplikaci. Umí čtyři věci a schválně ni
 - **navigaci k bodu** — velká šipka, zbývající vzdálenost, vibrace při dojití
 - **založení bodu** průměrováním polohy, s automatickým číslováním 1, 2, 3, …
 
-Zatím pracuje **čistě offline** — body vznikají a žijí v hodinkách. Přenos
-z mobilu a do mobilu je další krok (přes Cloudflare Worker, který už projekt má).
+Bez signálu funguje celá — body vznikají a žijí v hodinkách. Když signál je,
+umí navíc **párování s mobilem šestimístným kódem**, **synchronizaci bodů**
+oběma směry a **stahování dlaždic podkladu**, všechno přes Cloudflare Worker
+(`cloud/worker.js`, zdroje `source/Cloud.mc`, `ParovaniView.mc`, `SyncView.mc`).
+Druhá cesta do mobilu je **QR kód** (`source/QrExportView.mc`) — ta signál
+nepotřebuje vůbec.
+
+> ⚠ Online část potřebuje **nasazený Worker** (`wrangler deploy` ve složce
+> `cloud/`). Dokud na serveru běží starší verze bez `/watch/*`, párování ani
+> synchronizace nefungují — mobil na to od SW v260 upozorní hláškou
+> „server běží na starší verzi", dřív to vypadalo jako neplatný kód.
 
 > S webovou aplikací v `../..` nesdílí ani řádek kódu. Connect IQ má vlastní
 > jazyk (Monkey C), vlastní SDK a vlastní build — geodetické vzorce jsou tady
@@ -221,10 +230,10 @@ právě stojíte:
 | město | 50,08 / 14,42 | hustá zástavba, ulice, pár parků |
 | údolí | 50,0365 / 14,3760 | Prokopské údolí — les, pěšiny, 47 srázů |
 
-Vyrábí je `garmin/nastroje/dlazdice.py` z dat Overpass API; v ostrém provozu
-tutéž práci udělá Cloudflare Worker a hodinky si dlaždice stáhnou přes
-`makeWebRequest`. Výběr dlaždice podle polohy už je hotový a v paměti je vždy
-jen jedna — přesně jak to bude potřeba i s dlaždicemi ze sítě.
+Vyrábí je `garmin/nastroje/dlazdice.py` z dat Overpass API. V ostrém provozu
+dlaždice počítá **mobil** (`js/hodinky-dlazdice.js`, Overpass + Douglas–Peucker)
+a Worker je jen sklad — na free plánu má 10 ms CPU, takže by je nestihl spočítat
+sám. Hodinky si je stáhnou přes `makeWebRequest`; v paměti je vždy jen jedna.
 
 **⚠ Kreslení musí být škrceno, jinak hodinky aplikaci shodí** hláškou
 *Watchdog Tripped — Code Executed Too Long*. Proto:
@@ -240,12 +249,14 @@ Zdroj dat: OpenStreetMap, licence ODbL.
 
 ## Co v tom zatím není
 
-- **Dlaždice z Workeru** — stahování po dlaždicích 500 × 500 m a ukládání do
-  `Application.Storage`, aby podklad fungoval i bez signálu. Zatím jen jedna
-  ukázková, přibalená ve zdrojích.
-- **Synchronizace s mobilem** — endpointy `GET/POST /watch/points` ve Workeru,
-  párování šestimístným kódem, rezervace bloku čísel pro offline provoz
-  (jinak vzniknou dva body se stejným číslem).
+Dlaždice z Workeru i synchronizace s mobilem tady byly donedávna vedené jako
+nehotové — **obojí je hotové** (viz úvod). Zbývá:
+
+- **Nasadit Worker** — `wrangler deploy` ve složce `cloud/`. Do té doby je celá
+  online část mrtvá, i když je v hodinkách i v mobilu napsaná.
+- **Výška bodu z barometru** — teď se bere jen z GPS.
+- **Editace bodu na hodinkách** — jde založit, smazat a opravit na známý bod,
+  ale ne přepsat souřadnice ručně.
 
 ## Soubory
 

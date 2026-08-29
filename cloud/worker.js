@@ -543,7 +543,10 @@ export default {
         try {
             // v = verze API; klient podle ní pozná, že na serveru běží starý kód
             // (chybějící v = původní nasazení bez chatu/statistik/zálohy)
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 4, wx: true });
+            // watch:true = tenhle worker uz umi /watch/* (parovani hodinek, body, dlazdice).
+            // Starsi nasazeny worker tuhle polozku nema, takze podle ni pozna appka,
+            // ze na serveru bezi stara verze — viz js/hodinky-parovani.js.
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 5, wx: true, watch: true });
 
             // ---------------- ČHMÚ: měření z nejbližší stanice ---------------
             // veřejné (bez tokenu) — počasí není firemní údaj

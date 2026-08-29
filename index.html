@@ -1071,6 +1071,12 @@
     <!-- SROVNAT AR NA 2 BODY (odpojitelné: smaž tento řádek + js/ar-calib2.js) — sever + šířka záběru (FOV) na dvou bodech -->
     <script type="ag/lazy" data-src="js/ar-calib2.js"></script>
     <script type="ag/lazy" data-src="js/project-import.js"></script>
+    <!-- VLASTNÍ GEOREFERENCOVANÝ PODKLAD (odpojitelné: smaž tento řádek + js/geo-overlay.js)
+         — sken výkresu/situace se georeferencuje na 2+ vlícovacích bodů (Helmert / afinní
+         MNČ s reziduy) a položí přes mapu. Registr ho nabízel v „Katastr a data" a byl
+         i v předvolbě typu práce, ale <script> tu CHYBĚL, takže se dlaždice nikdy
+         neobjevila. Nově to hlídá scripts/check_tools_registry.py. -->
+    <script type="ag/lazy" data-src="js/geo-overlay.js"></script>
     <script defer src="js/cadastre-vector.js"></script>
     <!-- NOVÝ TUTORIÁL (odpojitelné: smaž tento řádek + js/tutorial-pro.js) — základní + pokročilá prohlídka -->
     <script defer src="js/tutorial-pro.js"></script>
