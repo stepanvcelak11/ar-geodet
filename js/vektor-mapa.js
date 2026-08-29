@@ -54,6 +54,8 @@
     var DB_NAME = 'agVektorMapa', DB_STORE = 'oblasti', DB_VER = 1;
     var LS_ON = 'agVektorMapaOn_v1';       // '1' = vrstva zapnutá
     var LS_AKT = 'agVektorMapaAkt_v1';     // id naposled použité oblasti
+    var LS_SOLO = 'agVektorMapaSolo_v1';   // '1' = přebít rastrový podklad
+    var LS_TLUM = 'agVektorMapaTlum_v1';   // '1' = ztlumené barvy
     var OVERPASS = [
         'https://overpass-api.de/api/interpreter',
         'https://overpass.kumi.systems/api/interpreter'   // záloha, když je hlavní přetížený
@@ -83,6 +85,7 @@
     var _aktId = null;
     var _busy = false;
     var _tlum = false;         // ztlumené barvy (venkovní / noční čtení)
+    var _solo = false;         // přebít rastrový podklad (čistá kresba)
 
     // ---- pomocné -------------------------------------------------------------
     function swallow(e, kde) { try { if (window.AG && AG.swallow) AG.swallow(e, kde || 'vektor-mapa'); } catch (err) { /* nic */ } }
@@ -170,7 +173,10 @@
             if (h === 'motorway' || h === 'trunk' || h === 'primary' || h === 'secondary' || h === 'tertiary'
                 || h === 'residential' || h === 'unclassified' || h === 'living_street'
                 || /_link$/.test(h)) return 'silnice';
-            if (h === 'track' || h === 'service') return 'cesta';
+            // Pěší zóna je v centru plnohodnotná ulice a orientuje se podle ní
+            // stejně jako podle silnice — jako čárkovaná „pěšina" by z historického
+            // jádra udělala mřížku teček. Patří mezi cesty.
+            if (h === 'track' || h === 'service' || h === 'pedestrian') return 'cesta';
             return 'pesina';
         }
         return null;
@@ -313,6 +319,14 @@
                 var b = m.getBounds().pad(0.15);
                 var o = m.latLngToContainerPoint(this._origin);
                 var alfa = _tlum ? 0.5 : 1;
+                // ČISTÁ KRESBA: bez tohohle prosvítají zespodu rastrové dlaždice
+                // a obraz je dvojitý — vektorová silnice leží na nakreslené
+                // silnici z obrázku. Vyplní se tedy neprůhledné pozadí. Offline,
+                // kdy dlaždice stejně nejsou, se výsledek nezmění.
+                if (_solo) {
+                    g.fillStyle = _tlum ? '#101418' : '#0f141c';
+                    g.fillRect(0, 0, c.width, c.height);
+                }
                 for (var pi = 0; pi < PORADI.length; pi++) {
                     var kind = PORADI[pi], st = KIND[kind];
                     if (!st || z < st.z) continue;
@@ -467,6 +481,8 @@
 
         h += '<div class="ag-vm-sw"><input type="checkbox" id="ag-vm-on"' + (jeZapnuta() ? ' checked' : '') + '>'
             + '<label for="ag-vm-on">Kreslit vektorovou mapu do podkladu</label></div>';
+        h += '<div class="ag-vm-sw"><input type="checkbox" id="ag-vm-solo"' + (_solo ? ' checked' : '') + '>'
+            + '<label for="ag-vm-solo">Skrýt rastrový podklad (čistá kresba)</label></div>';
         h += '<div class="ag-vm-sw"><input type="checkbox" id="ag-vm-tlum"' + (_tlum ? ' checked' : '') + '>'
             + '<label for="ag-vm-tlum">Ztlumit barvy (na slunci a v noci)</label></div>';
 
@@ -485,6 +501,12 @@
         });
         body.querySelector('#ag-vm-tlum').addEventListener('change', function () {
             _tlum = this.checked;
+            try { localStorage.setItem(LS_TLUM, _tlum ? '1' : '0'); } catch (e) { swallow(e, 'vm:tlum'); }
+            if (_layer && _layer.redraw) _layer.redraw();
+        });
+        body.querySelector('#ag-vm-solo').addEventListener('change', function () {
+            _solo = this.checked;
+            try { localStorage.setItem(LS_SOLO, _solo ? '1' : '0'); } catch (e) { swallow(e, 'vm:solo'); }
             if (_layer && _layer.redraw) _layer.redraw();
         });
 
@@ -545,6 +567,8 @@
     // Po startu se vrstva sama obnoví, pokud si ji uživatel nechal zapnutou —
     // bez toho by po každém spuštění appky zmizel podklad, na který si zvykl.
     function obnov() {
+        try { _solo = localStorage.getItem(LS_SOLO) === '1'; _tlum = localStorage.getItem(LS_TLUM) === '1'; }
+        catch (e) { swallow(e, 'vm:obnov'); }
         var zap = false;
         try { zap = localStorage.getItem(LS_ON) === '1'; } catch (e) { swallow(e, 'vm:obnov'); }
         if (!zap) return;
