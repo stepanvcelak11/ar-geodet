@@ -1,0 +1,201 @@
+/* =========================================================================
+   AR Geodet — DVA TERÉNNÍ MOTIVY (ODPOJITELNÁ vrstva)
+   „Modrotisk" (výkresová estetika) a „Noční" (červená, šetří adaptaci oka).
+
+   PROČ NEJSOU V css/tokens.css, kde všechny ostatní motivy bydlí:
+   oba motivy musí přebít PRAVIDLO PRO DLAŽDICE MAPY z css/style.css
+     body:not(.light-mode) #map.base-osm .leaflet-tile { filter: invert(1) … }
+   a to má stejnou specificitu (1 id + 3 třídy + 1 prvek). Vyhrát se tedy dá
+   jedině POZDĚJŠÍM POŘADÍM — a tokens.css se načítá PŘED style.css. Tenhle
+   soubor se proto načítá jako POSLEDNÍ ze stylů (za css/tokens-outdoor.css).
+   Kdyby se obsah přestěhoval do tokens.css, mapa by v obou motivech zůstala
+   v původním invertu a celý dojem by padl.
+
+   Odstranění: smaž tento soubor + js/motivy-teren.js a jejich řádky
+   v index.html; pak spusť python scripts/gen_sw_assets.py --bump.
+   Appka pak jede přesně jako dřív (motivy z tokens.css zůstávají).
+   ========================================================================= */
+
+/* =========================================================================
+   1) MODROTISK — appka jako geodetický výkres
+   Světlá kresba na tmavé modři, jediný teplý akcent na čísla. Záměrně TMAVÝ
+   motiv i při zapnutém světlém režimu (proto je blok za body.light-mode
+   v pořadí načítání) — modrotisk se světlým podkladem nedává smysl.
+   Kontrasty měřené proti --bg-color: text 15,1:1, --text-muted 10,0:1,
+   --accent 9,9:1; bílý text na --accent-fill 6,9:1 (WCAG AA i pro tlačítka).
+   ========================================================================= */
+body.theme-blueprint {
+    --bg-color: #08182e;
+    --bg-elev: #0c2340;
+    --map-bg: #08182e;
+    --bg: #08182e;
+    --glass-bg: rgba(9, 30, 56, 0.86);
+    --glass-border: rgba(142, 199, 255, 0.28);
+    --glass-border-strong: rgba(180, 218, 255, 0.52);
+    --surface-1: rgba(142, 199, 255, 0.07);
+    --surface-2: rgba(142, 199, 255, 0.11);
+    --surface-3: rgba(142, 199, 255, 0.16);
+    --text-color: #e8f2ff;
+    --text-muted: #a8c6e8;
+    --text-faint: #7ea3c9;
+
+    --accent: #8ec7ff;
+    --accent-bright: #b9dcff;
+    --accent-strong: #5aa8f0;
+    --accent2: #8ec7ff;
+    --accent3: #ffd9a3;
+    --accent-grad: #1c5a9e;
+    --accent-fill: #1c5a9e;
+    --accent-soft: rgba(142, 199, 255, 0.14);
+    --accent-line: rgba(142, 199, 255, 0.45);
+    --accent-glow: 0 8px 22px rgba(60, 140, 230, 0.34);
+    --accent-blue: #8ec7ff;
+    --data: #ffd9a3;
+    --warning: #ffca7a;
+    --warn: #ffca7a;
+    --warn-color: #ffca7a;
+    --danger: #ff8f8f;
+
+    --border: rgba(142, 199, 255, 0.24);
+    --border-color: rgba(142, 199, 255, 0.24);
+    --bg-input: rgba(142, 199, 255, 0.08);
+    --input-bg: rgba(142, 199, 255, 0.08);
+    --modal-bg: rgba(8, 24, 46, 0.97);
+
+    --glow1: rgba(90, 168, 240, 0.20);
+    --glow2: rgba(255, 217, 163, 0.10);
+    --glow3: rgba(142, 199, 255, 0.06);
+}
+
+/* Mapa jako výkres: invert udělá z bílé OSM tmavý podklad se světlou kresbou,
+   sepia + hue-rotate ji obarví do modři. Ortofoto se NEFILTRUJE (fotka má
+   zůstat fotkou) — proto je pravidlo vázané na .base-osm, stejně jako
+   původní tmavá mapa v style.css. */
+body.theme-blueprint #map.base-osm .leaflet-tile {
+    filter: invert(1) grayscale(1) sepia(1) hue-rotate(178deg) saturate(3.4) brightness(0.82) contrast(1.05);
+}
+
+/* Milimetrový papír pod obsahem modálů — jemný raster, ať to má rukopis
+   výkresu. Kreslí se PŘES vlastní pozadí prvku (mění se jen background-image,
+   background-color zůstává z motivu), takže žádný modul netřeba upravovat. */
+body.theme-blueprint .modal-content,
+body.theme-blueprint #settings-modal .modal-content {
+    background-image:
+        repeating-linear-gradient(0deg, rgba(142, 199, 255, 0.055) 0 1px, transparent 1px 26px),
+        repeating-linear-gradient(90deg, rgba(142, 199, 255, 0.055) 0 1px, transparent 1px 26px);
+}
+
+/* Popisky bodů nad tmavou mapou zůstávají světlé — jen jim srovnáme obtah do
+   modři, aby na výkrese nesvítily černě. */
+body.theme-blueprint #map .map-label-text {
+    color: #e8f2ff;
+    text-shadow: -1px -1px 0 #08182e, 1px -1px 0 #08182e, -1px 1px 0 #08182e, 1px 1px 0 #08182e;
+}
+
+/* =========================================================================
+   2) NOČNÍ REŽIM — červená paleta
+   V noci je oko adaptované na tmu ~30 minut; jediný pohled do modrobílého
+   displeje tu adaptaci srazí a člověk pak chvíli nevidí ani na výtyčku, ani
+   pod nohy. Červené světlo tyčinky sítnice prakticky nedráždí — proto mají
+   červený režim mapy v letectví, na lodích i v hvězdárnách.
+   Paleta je proto ZÁMĚRNĚ bez jediné modré (i --accent-blue je oranžový)
+   a celkově tmavší než ostatní motivy.
+   Kontrasty proti --bg-color: text 9,3:1, --text-muted 5,9:1, --accent 7,0:1;
+   bílý text na --accent-fill 6,6:1.
+   ========================================================================= */
+body.theme-night {
+    --bg-color: #0b0503;
+    --bg-elev: #150a05;
+    --map-bg: #0b0503;
+    --bg: #0b0503;
+    --glass-bg: rgba(22, 10, 5, 0.90);
+    --glass-border: rgba(255, 140, 80, 0.26);
+    --glass-border-strong: rgba(255, 165, 105, 0.52);
+    --surface-1: rgba(255, 130, 70, 0.07);
+    --surface-2: rgba(255, 130, 70, 0.12);
+    --surface-3: rgba(255, 130, 70, 0.17);
+    --text-color: #ffb488;
+    --text-muted: #d99366;
+    --text-faint: #a8704d;
+
+    --accent: #ff8a4c;
+    --accent-bright: #ffab77;
+    --accent-strong: #e5622a;
+    --accent2: #ff8a4c;
+    --accent3: #ffc38a;
+    --accent-grad: #a33a10;
+    --accent-fill: #a33a10;
+    --accent-soft: rgba(255, 138, 76, 0.14);
+    --accent-line: rgba(255, 138, 76, 0.45);
+    --accent-glow: 0 8px 22px rgba(190, 70, 20, 0.34);
+    /* v noci ŽÁDNÁ modrá — i „modré" tlačítko je jantarové */
+    --accent-blue: #ff9d5c;
+    --data: #ffc38a;
+    --warning: #ffb347;
+    --warn: #ffb347;
+    --warn-color: #ffb347;
+    --danger: #ff6b4a;
+
+    --border: rgba(255, 140, 80, 0.24);
+    --border-color: rgba(255, 140, 80, 0.24);
+    --bg-input: rgba(255, 130, 70, 0.08);
+    --input-bg: rgba(255, 130, 70, 0.08);
+    --modal-bg: rgba(11, 5, 3, 0.975);
+
+    --glow1: rgba(229, 98, 42, 0.18);
+    --glow2: rgba(255, 195, 138, 0.08);
+    --glow3: rgba(255, 138, 76, 0.05);
+}
+
+/* Mapa v noci: ztmavit a odbarvit do červena. Na rozdíl od modrotisku se
+   filtruje KAŽDÁ dlaždice včetně ortofota — v noci stejně není co na fotce
+   poznat a bílá plocha oslní úplně stejně jako bílá OSM. */
+body.theme-night #map .leaflet-tile {
+    filter: grayscale(1) sepia(1) hue-rotate(-24deg) saturate(2.6) brightness(0.42) contrast(1.15);
+}
+
+body.theme-night #map.base-osm .leaflet-tile {
+    filter: invert(1) grayscale(1) sepia(1) hue-rotate(-24deg) saturate(2.4) brightness(0.6) contrast(1.1);
+}
+
+body.theme-night #map .map-label-text {
+    color: #ffb488;
+    text-shadow: -1px -1px 0 #0b0503, 1px -1px 0 #0b0503, -1px 1px 0 #0b0503, 1px 1px 0 #0b0503;
+}
+
+/* AR obraz z kamery v noci stejně nic neukáže a svítí — ztlumit.
+   (Jen jas; obraz se nepřebarvuje, ať je pořád poznat, kam telefon míří.) */
+body.theme-night #camera-feed,
+body.theme-night video#camera-feed {
+    filter: brightness(0.62) saturate(0.55);
+}
+
+/* =========================================================================
+   3) Řádek „Noční režim" v Nastavení → Vzhled (prvky vkládá JS)
+   ========================================================================= */
+.ag-night-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.ag-night-row .ag-night-lab {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--text-muted, #9aa1ac);
+    font-size: calc(13px * var(--ag-font-scale, 1));
+    line-height: 1.35;
+}
+
+.ag-night-row select {
+    flex: 0 0 auto;
+    max-width: 55%;
+}
+
+.ag-night-hint {
+    margin-top: 4px;
+    color: var(--text-faint, #6b727d);
+    font-size: calc(11.5px * var(--ag-font-scale, 1));
+    line-height: 1.4;
+}
