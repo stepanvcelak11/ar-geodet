@@ -949,7 +949,7 @@
          vybarvující se pruh na dělicí hraně kamera/mapa (v AR u spodní hrany).
          Odpojitelné: smaž tento řádek + js/pas-blizkosti.js. MUSÍ být po grafika.js.
          Nevisí na snímcích AR (na Androidu se nemusí konat) — viz hlavička souboru. -->
-    <script defer src="js/pas-blizkosti.js"></script>
+    <script type="ag/lazy" data-src="js/pas-blizkosti.js"></script>
     <!-- HISTORIE AKTUALIZACI (odpojitelne: smaz tento radek + js/historie-aktualizaci.js)
          — prohlizitelny soupis zmen z nabidky Vice a z Nastaveni → Udrzba. Bere data
          ze STEJNEHO data/co-je-noveho.json jako roletka u listy Nova verze, at
@@ -961,7 +961,7 @@
     <script defer src="js/kompas-check.js"></script>
     <script type="ag/lazy" data-src="js/zaloha.js"></script>
     <!-- POJISTKA DAT (odpojitelné: smaž tento řádek + js/auto-zaloha.js) — připomínka zálohy proti iOS mazání; MUSÍ být za zaloha.js -->
-    <script defer src="js/auto-zaloha.js"></script>
+    <script type="ag/lazy" data-src="js/auto-zaloha.js"></script>
     <script defer src="js/undo.js"></script>
     <!-- KOŠ (odpojitelné: smaž tento řádek + js/kos.js) — 30denní obnova smazaných zakázek/bodů; MUSÍ být za undo.js -->
     <script defer src="js/kos.js"></script>
@@ -977,7 +977,7 @@
     <script defer src="js/zmenit-zakazku.js"></script>
     <!-- Roletka „Co je nového" u lišty Nová verze (odpojitelné: smaž tento řádek,
          js/co-je-noveho.js, data/co-je-noveho.json a oba řádky v sw.js) -->
-    <script defer src="js/co-je-noveho.js"></script>
+    <script type="ag/lazy" data-src="js/co-je-noveho.js"></script>
     <script defer src="js/pruvodce.js"></script>
     <script type="ag/lazy" data-src="js/sdileni.js"></script>
     <script type="ag/lazy" data-src="js/tachymetrie.js"></script>
@@ -989,7 +989,7 @@
     <script type="ag/lazy" data-src="js/gnss-quality.js"></script>
     <script defer src="js/gps-warn.js"></script>
     <!-- SEMAFOR DŮVĚRY POLOHY (odpojitelné: smaž tento řádek + js/gps-trust.js) — hlídá zamrzlý GPS fix a offline -->
-    <script defer src="js/gps-trust.js"></script>
+    <script type="ag/lazy" data-src="js/gps-trust.js"></script>
     <!-- DRAFT STORE (odpojitelné: smaž tento řádek + js/draft-store.js) — rozdělaná práce přežije zabití appky -->
     <script defer src="js/draft-store.js"></script>
     <script type="ag/lazy" data-src="js/csv-validate.js"></script>
@@ -1100,7 +1100,7 @@
     <script defer src="js/rezim-prace.js"></script>
     <!-- PROFILY (odpojitelné) — Terén/Přesnost/Ukázka nad záložkami Nastavení
          + export/import profilu zařízení (kalibrace telefonu) v Údržbě -->
-    <script defer src="js/profily.js"></script>
+    <script type="ag/lazy" data-src="js/profily.js"></script>
     <!-- POKRAČOVAT, KDE JSEM SKONČIL (odpojitelné: smaž tento řádek + js/pokracovat.js) — tlačítko na úvodu, pamatuje poslední nástroj -->
     <script defer src="js/pokracovat.js"></script>
     <!-- ZKRATKY Z PLOCHY (odpojitelné: smaž tento řádek + js/shortcuts.js + blok "shortcuts" v manifest.json) — dlouhé podržení ikony appky -->
@@ -1132,7 +1132,7 @@
     <!-- ŽIVÁ SYNCHRONIZACE BODŮ VE FIRMĚ (odpojitelné: smaž tento řádek + js/cloud-sync.js) — opt-in per zakázka v Nastavení → Data; potřebuje js/ucty.js (cloudová firma) -->
     <script defer src="js/cloud-sync.js"></script>
     <!-- ZÁVADY / HLÁŠENÍ PORUCH (odpojitelné) — nálezy v terénu: foto+kategorie+závažnost, mapa/AR, protokol -->
-    <script defer src="js/zavady.js"></script>
+    <script type="ag/lazy" data-src="js/zavady.js"></script>
     <!-- RANNÍ BRÍFINK „Dnešek v terénu" (odpojitelné: smaž tento řádek + js/brifink.js) — 1× denně po startu: počasí, GNSS okna dne + Kp, monitoring po termínu, zpravodaj -->
     <script type="ag/lazy" data-src="js/brifink.js"></script>
     <!-- HLASOVÉ POZNÁMKY s georazítkem (odpojitelné: smaž tento řádek + js/hlasovky.js) — namluvené poznámky s časem, S-JTSK polohou a nejbližším bodem; sbírá je Deník dne -->
@@ -1184,7 +1184,7 @@
     <!-- MOJE AKTIVITA (odpojitelné) — vlastní statistika dne (čas, kroky, výškové metry,
          body, nástroje) a schování nástrojů, do kterých uživatel nešáhl; musí být
          načtené od startu, protože průběžně měří (nesmí jít do lazy dávky) -->
-    <script defer src="js/moje-aktivita.js"></script>
+    <script type="ag/lazy" data-src="js/moje-aktivita.js"></script>
     <!-- HLEDÁNÍ V NASTAVENÍ + krátký výchozí pohled (odpojitelné, window.AGSettings) -->
     <script defer src="js/nastaveni-hledani.js"></script>
     <!-- POŘÁDEK V NASTAVENÍ (odpojitelné, window.AGSettingsOrder) — moduly si do záložek
@@ -1201,12 +1201,12 @@
          — podržením tlačítka Nástroje se vybírá nástroj tažením, bez zvedání prstu.
          MUSÍ být až za js/nastroje-ukony.js (bere z něj slovesa i spouštění)
          a za js/tools-plus.js (nápovědy z TOOL_HELP). -->
-    <script defer src="js/kolecko-nastroju.js"></script>
+    <script type="ag/lazy" data-src="js/kolecko-nastroju.js"></script>
     <!-- GESTA JAKO ZKRATKY (odpojitelné: smaž tento řádek + js/gesta-zkratky.js)
          — nakresli po displeji aktivační gesto (↓→) a došvihni zkratku nástroje.
          MUSÍ být až za js/nastroje-ukony.js (spouští nástroje přes AGUkony.run)
          a za js/tools-registry.js (odtud bere názvy nástrojů do seznamu). -->
-    <script defer src="js/gesta-zkratky.js"></script>
+    <script type="ag/lazy" data-src="js/gesta-zkratky.js"></script>
     <!-- KOMPAS S MAGNETICKÝM SEVEREM (odpojitelné) — růžice + magnetický i zeměpisný
          azimut a deklinace do modálu Kompas; jen čte currentHeading/magneticDeclination -->
     <script type="ag/lazy" data-src="js/kompas-magneticky.js"></script>

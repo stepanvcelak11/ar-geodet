@@ -43,8 +43,17 @@ jobs:
       # DronView neměl „?", 19 nástrojů se nedalo vyhledat).
       # --require-js: bez Node/V8 by kontrola tiše přeskočila a CI by lhalo.
       - name: Registr nástrojů je úplný
-        run: python scripts/check_tools_registry.py --require-js
-
+        run: python scripts/check_tools_registry.py --require-js
+
+      # Rozpočet startu: kolik JS a CSS musí prohlížeč stáhnout a spustit JEŠTĚ
+      # PŘED prvním vykreslením. Rostlo to tiše (každý nový modul o kus) až na
+      # 2273 kB v 79 souborech; přesun devíti nástrojů do lazy vrstvy to srazil
+      # na 1945 kB a první vykreslení z 892 na 588 ms. Bez téhle brány by to
+      # narostlo zpátky a nikdo by si toho nevšiml — pomalý start se neprojeví
+      # jako chyba, jen jako „appka se nějak dlouho otevírá".
+      - name: Rozpočet startu (eager JS/CSS)
+        run: python scripts/check_start_budget.py --check
+
       # Design tokeny a kontrast. Dvakrát už appku položila chyba, kterou nic
       # nechytlo: var(--text, #eee) na token, který NIKDY neexistoval (36x v 7
       # modulech → ve světlém režimu neviditelný text), a --accent-grad:var(--accent)
