@@ -117,8 +117,94 @@
         if ((tries || 0) < 10) setTimeout(function () { mountLiveBg((tries || 0) + 1); }, 150);
     }
 
+    // ================================================================================
+    // KLID PO STARTU (29. 8. 2026 — zpětná vazba z testu balíčku pro Google Play)
+    // ================================================================================
+    // 1) Lišta „Nová verze — klepni pro obnovení" naskakovala hned v první vteřině
+    //    po otevření appky. Člověk ještě nepřečetl úvodní obrazovku a už na něj
+    //    bliká výzva k restartu. Aktualizace nikam neutíká (čeká ve service workeru,
+    //    dokud se appka nezavře), tak se prvních QUIET_MS jen podrží.
+    //    POZOR: lištu zobrazuje showUpdateBanner() z js/grafika.js přes inline
+    //    style.display='flex' (výchozí je none z css/style.css) — proto se hlídá
+    //    inline styl, ne třída.
+    var QUIET_MS = 120000;              // 2 minuty ticha po startu
+    var _t0 = Date.now();
+    var _quietTimer = null;
+
+    function bannerQuiet() {
+        var b = document.getElementById('update-banner');
+        if (!b) return;
+        if (Date.now() - _t0 < QUIET_MS) {
+            if (b.style.display && b.style.display !== 'none') {
+                b.setAttribute('data-ag-held', '1');
+                b.style.display = 'none';
+            }
+            return;
+        }
+        // ticho skončilo — co se podrželo, se teď ukáže
+        if (b.getAttribute('data-ag-held') === '1') {
+            b.removeAttribute('data-ag-held');
+            b.style.display = 'flex';
+        }
+        if (_quietTimer) { clearInterval(_quietTimer); _quietTimer = null; }
+    }
+
+    // 2) Když se js/ucty.js vůbec nerozběhne (offline start s nedotaženou cache),
+    //    sundá pojistka v index.html třídu ag-prelock a ZPOD zámku vyjede úvodní
+    //    obrazovka — vypadá to jako appka bez přihlašování (nahlášeno 29. 8. 2026
+    //    z letového režimu) a je to i díra v zámku při startu. Tady se ten stav
+    //    pozná a místo úvodní karty se ukáže poctivé „nenačetlo se to celé".
+    function lockedButOpen() {
+        try {
+            if (document.getElementById('ag-login') || document.getElementById('ag-gate')) return false;
+            if (localStorage.getItem('agGuest_v1')) return false;              // host je v pořádku
+            if (localStorage.getItem('agLockStart_v1') === '0') return false;  // zámek při startu vypnutý
+            if (localStorage.getItem('agFirmaSess_v1')) return false;          // přihlášení proběhlo
+            var f = JSON.parse(localStorage.getItem('agFirma_v1') || 'null');
+            return !!(f && f.enabled && f.users && f.users.length);
+        } catch (e) { return false; }
+    }
+
+    function bootFail() {
+        if (document.getElementById('ag-bootfail')) return;
+        var ws = document.getElementById('welcome-screen');
+        if (ws) ws.style.display = 'none';
+        var d = document.createElement('div');
+        d.id = 'ag-bootfail';
+        d.style.cssText = [
+            'position:fixed', 'inset:0', 'z-index:999998', 'display:flex',
+            'flex-direction:column', 'align-items:center', 'justify-content:center',
+            'gap:14px', 'padding:24px', 'box-sizing:border-box', 'text-align:center',
+            'background:#0c1014', 'color:#e8edf2',
+            'font:400 14px/1.5 var(--font-ui,system-ui),sans-serif'
+        ].join(';');
+        d.innerHTML =
+            '<div style="font:800 20px/1.2 var(--font-display,system-ui),sans-serif">AR Geodet</div>' +
+            '<div style="max-width:300px;color:#9aa1ac">Appka se nestihla načíst celá — nejspíš se to zapínalo bez signálu.' +
+            ' Zkus to znovu, ať se přihlášení ukáže správně.</div>' +
+            '<button type="button" style="margin-top:4px;border:0;border-radius:13px;padding:13px 26px;cursor:pointer;' +
+            'background:#2f9e74;color:#04120a;font:700 14px/1 var(--font-ui,system-ui),sans-serif">Spustit znovu</button>';
+        document.body.appendChild(d);
+        var btn = d.querySelector('button');
+        if (btn) btn.onclick = function () { try { location.reload(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'welcome-card:reload'); } };
+    }
+
+    // Kontroluje se až PO pojistkách v ucty.js (6 s) a index.html (8 s), jinak by
+    // to křičelo na normální, jen pomalý start.
+    function watchBoot() {
+        setTimeout(function () { if (lockedButOpen()) bootFail(); }, 10000);
+        setTimeout(function () { if (lockedButOpen()) bootFail(); }, 16000);
+    }
+
     // Úvodní vykreslení (kdyby start proběhl dřív, než se tenhle soubor zapojil)
-    function kick() { setTimeout(updateWelcomeProjectCard, 60); setTimeout(mountLiveBg, 80); }
+    function kick() {
+        setTimeout(updateWelcomeProjectCard, 60);
+        setTimeout(mountLiveBg, 80);
+        bannerQuiet();
+        _quietTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(bannerQuiet, 1000);
+        setTimeout(bannerQuiet, QUIET_MS + 200);
+        watchBoot();
+    }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', kick);
     else kick();
 })();

@@ -317,3 +317,90 @@ body.outdoor-mode .ag-dlg-btn, body.outdoor-mode .ag-calib-btn { border-color: r
     outline: 2px solid var(--accent,#2f9e74);
     outline-offset: 2px;
 }
+
+/* --------------------------------------------------------------------------------
+   12) ZAČÁTEK APPKY — načítací obrazovka + Face ID (29. 8. 2026, zpětná vazba z testu
+       balíčku pro Google Play)
+   --------------------------------------------------------------------------------
+   a) NAČÍTÁNÍ. Než se stáhne a rozběhne JS, koukal uživatel na prázdno (v Playi
+      navíc hned po systémovém splashi s holou ikonou → „je to nudné"). Kreslí se
+      TADY, v CSS načteném v <head>, protože cokoli z JS je na první vykreslení
+      pozdě. Věší se to na html.ag-prelock — třídu nastavuje synchronně skript
+      v <head> a ucty.js ji sundá, jakmile je jasné, co ukázat (brána/přihlášení/
+      úvodní karta). Žádný nový prvek v DOM, jen pseudoprvky.
+   b) FACE ID. Odemknutí telefonem vypadalo úplně stejně jako „Přihlásit" — dvě
+      zelené pilulky pod sebou, z toho ta horní během ověřování zešedla do
+      neaktivního bloku. Tady se z něj dělá hlavní akce (záře, větší ikona) a
+      PIN se odděluje popiskem „nebo zadej PIN".                                    */
+
+@keyframes agBootPulse { 0%, 100% { opacity: .78; } 50% { opacity: 1; } }
+@keyframes agBootSweep {
+    0%   { background-position: center calc(50% - 44px), left calc(50% - 46px) top calc(50% + 60px); }
+    100% { background-position: center calc(50% - 44px), left calc(50% + 14px) top calc(50% + 60px); }
+}
+
+html.ag-prelock body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 900000;
+    background-color: #0c1014;
+    background-image:
+        radial-gradient(120% 75% at 50% 20%, rgba(76, 205, 153, 0.10), rgba(12, 16, 20, 0) 62%),
+        linear-gradient(160deg, #1c222a 0%, #0c1014 72%);
+}
+
+/* znak appky + název; obojí v jednom pseudoprvku (víc jich na <body> není) */
+html.ag-prelock body::after {
+    content: "AR Geodet";
+    position: fixed;
+    inset: 0;
+    z-index: 900001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 90px;                     /* text posazený pod znak */
+    box-sizing: border-box;
+    font: 800 21px/1.2 var(--font-display, system-ui), sans-serif;
+    letter-spacing: .02em;
+    color: #e8edf2;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cg fill='none' stroke='%234ccd99' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M118 178V140q0-22 22-22h38'/%3E%3Cpath d='M334 118h38q22 0 22 22v38'/%3E%3Cpath d='M394 334v38q0 22-22 22h-38'/%3E%3Cpath d='M178 394h-38q-22 0-22-22v-38'/%3E%3C/g%3E%3Ccircle cx='256' cy='256' r='74' fill='none' stroke='%233eb487' stroke-opacity='.22' stroke-width='6'/%3E%3Ccircle cx='256' cy='256' r='50' fill='none' stroke='%233eb487' stroke-opacity='.45' stroke-width='6'/%3E%3Ccircle cx='256' cy='256' r='22' fill='%233eb487'/%3E%3Ccircle cx='256' cy='256' r='9' fill='%23ffffff'/%3E%3C/svg%3E"),
+        linear-gradient(90deg, rgba(76, 205, 153, 0), #4ccd99, rgba(76, 205, 153, 0));
+    background-repeat: no-repeat, no-repeat;
+    background-position: center calc(50% - 44px), left calc(50% - 46px) top calc(50% + 60px);
+    background-size: 92px 92px, 32px 3px;
+    animation: agBootPulse 2s ease-in-out infinite, agBootSweep 1.3s ease-in-out infinite alternate;
+}
+
+/* --- b) odemknutí telefonem (Face ID / Touch ID / kód) ------------------------- */
+@keyframes agBioWait { 0%, 100% { opacity: .62; } 50% { opacity: .95; } }
+
+html #ag-login .agl-btn.agl-bio {
+    gap: 11px;
+    padding: 15px 26px;
+    border-radius: 15px;
+    box-shadow: 0 0 0 1px rgba(76, 205, 153, 0.45), 0 8px 26px rgba(76, 205, 153, 0.22);
+}
+html #ag-login .agl-btn.agl-bio svg {
+    width: 25px;
+    height: 25px;
+    stroke-width: 1.7;
+}
+/* během ověřování NEšednout do neaktivního bloku — jen zklidnit a dýchat */
+html #ag-login .agl-btn.agl-bio:disabled {
+    opacity: 1;
+    filter: none;
+    box-shadow: 0 0 0 1px rgba(76, 205, 153, 0.35);
+    animation: agBioWait 1.4s ease-in-out infinite;
+}
+/* předěl mezi „odemkni telefonem" a zadáváním PINu, ať je jasné, co je hlavní cesta */
+html #ag-login .agl-bio + .agl-pinbox.on::before {
+    content: "nebo zadej PIN";
+    display: block;
+    margin: 4px 0 2px;
+    text-align: center;
+    font: 600 calc(11px * var(--ag-font-scale, 1))/1 var(--font-ui, system-ui), sans-serif;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--text-muted, #9aa1ac);
+}

@@ -31,6 +31,12 @@
     var SNOOZE_KEY = 'agBackupSnoozeTs';  // ms epoch, do kdy nepřipomínat
     var REMIND_DAYS = 7;                  // starší záloha než X dní = připomenout
     var SNOOZE_MS = 24 * 3600 * 1000;     // „Později" = klid na 1 den
+    // ⚠ 29. 8. 2026 (test balíčku pro Google Play): pruh naskakoval 2,5 s po startu,
+    // takže první, co člověk po zapnutí appky viděl, bylo napomenutí. Připomínka
+    // není nikdy naléhavá (jde o data starší 7 dní), tak počká, až bude appka
+    // opravdu používaná — a nikdy neleze přes přihlášení ani bránu.
+    var BOOT_QUIET_MS = 4 * 60 * 1000;    // prvních X minut po startu ticho
+    var _bootTs = Date.now();
     var _bar = null, _wrapped = false;
 
     function now() { return Date.now(); }
@@ -113,6 +119,9 @@
 
     function maybeRemind() {
         try {
+            if (Date.now() - _bootTs < BOOT_QUIET_MS) { hideBar(); return; }   // čerstvý start
+            // přes přihlašovací obrazovku ani bránu se nic nepřekresluje
+            if (document.getElementById('ag-login') || document.getElementById('ag-gate')) { hideBar(); return; }
             if (!hasData()) { hideBar(); return; }
             if (now() < getTs(SNOOZE_KEY)) { hideBar(); return; }   // odloženo
             var ts = lastBackup();
@@ -146,7 +155,7 @@
         wrapExport();
         // zaloha.js se načítá dřív (defer, výše v index.html), ale pro jistotu i s odkladem
         setTimeout(wrapExport, 500);
-        setTimeout(maybeRemind, 2500);   // po ustálení startu, ať nepřekáží onboardingu
+        setTimeout(maybeRemind, BOOT_QUIET_MS + 1000);   // až se appka rozjede, ne hned po startu
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
