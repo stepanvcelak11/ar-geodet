@@ -89,8 +89,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=255">
-    <link rel="stylesheet" href="css/style.css?v=255">
+    <link rel="stylesheet" href="css/tokens.css?v=258">
+    <link rel="stylesheet" href="css/style.css?v=258">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -107,7 +107,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=255">
+    <link rel="stylesheet" href="css/vylepseni.css?v=258">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -1145,6 +1145,11 @@
          MUSÍ být až za js/nastroje-ukony.js (bere z něj slovesa i spouštění)
          a za js/tools-plus.js (nápovědy z TOOL_HELP). -->
     <script defer src="js/kolecko-nastroju.js"></script>
+    <!-- GESTA JAKO ZKRATKY (odpojitelné: smaž tento řádek + js/gesta-zkratky.js)
+         — nakresli po displeji aktivační gesto (↓→) a došvihni zkratku nástroje.
+         MUSÍ být až za js/nastroje-ukony.js (spouští nástroje přes AGUkony.run)
+         a za js/tools-registry.js (odtud bere názvy nástrojů do seznamu). -->
+    <script defer src="js/gesta-zkratky.js"></script>
     <!-- KOMPAS S MAGNETICKÝM SEVEREM (odpojitelné) — růžice + magnetický i zeměpisný
          azimut a deklinace do modálu Kompas; jen čte currentHeading/magneticDeclination -->
     <script defer src="js/kompas-magneticky.js"></script>

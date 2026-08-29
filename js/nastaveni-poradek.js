@@ -38,6 +38,7 @@
             order: ['Motiv a barvy', 'Displej a čitelnost', 'Ovládání', 'Prvky na obrazovce', 'Zjednodušení'],
             put: {
                 'ag-glove-row': { s: 'Ovládání', after: 's-lefthand' },   // rukavice hned k levé ruce
+                'ag-gz-setrow': { s: 'Ovládání', i: 4 },                  // gesta = zkratky na nástroje
                 's-mapfab': { s: 'Prvky na obrazovce', i: 1 },        // tlačítko vrstev v mapě
                 'ag-sp-row-set': { s: 'Prvky na obrazovce', i: 2 },        // stavová bublina
                 'ag-ns-setrow': { s: 'Zjednodušení', i: 1 },              // krátké nastavení
