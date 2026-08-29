@@ -941,6 +941,10 @@
     <script type="ag/lazy" data-src="js/check-distance.js"></script>
     <script defer src="js/lib/satellite-5.0.0.min.js"></script>
     <script type="ag/lazy" data-src="js/vytycovani.js"></script>
+    <!-- PROTOKOL O VYTYČENÍ (odpojitelné) — k odškrtnutému bodu zapíše i SKUTEČNOU
+         polohu a udělá z toho protokol s odchylkami projekt → skutečnost.
+         MUSÍ zůstat ZA js/vytycovani.js: obaluje jeho toggleStaked(). -->
+    <script type="ag/lazy" data-src="js/protokol-vytyceni.js"></script>
     <!-- CÍL NAVIGACE: zvýrazněný bod v mapě (aureola + spojnice + „Ukázat cíl") a
          ukazatel na hraně displeje, když je cíl mimo záběr kamery.
          Odpojitelné: smaž tento řádek + js/cil-navigace.js. MUSÍ být po grafika.js. -->
@@ -1223,6 +1227,10 @@
     <script defer src="js/map-rotate.js"></script>
     <!-- PRACOVNÍ KARTA BODU (odpojitelné) — navigace, odchylka od bodu, kontrolní bod -->
     <script defer src="js/karta-bodu.js"></script>
+    <!-- OVĚŘENÍ BODU DRUHÝM URČENÍM (odpojitelné) — pečeť v kartě bodu + soupis.
+         MUSÍ zůstat ZA js/karta-bodu.js: obaluje showDetails() až po ní, aby se
+         pečeť vkládala do karty, kterou karta-bodu.js právě vykreslila. -->
+    <script type="ag/lazy" data-src="js/overeni-bodu.js"></script>
     <!-- SBALITELNÝ NÁSTROJ (odpojitelné) — živá čísla v proužku nahoře místo modálu -->
     <script defer src="js/mini-panel.js"></script>
     <script>

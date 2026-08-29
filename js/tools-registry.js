@@ -128,6 +128,8 @@
         // ── Vytyčit ─────────────────────────────────────────────────────
         { k: 'openStakeoutModal', verb: 'Vytyčit', vl: 'Body podle seznamu', vh: 'vytyčovací checklist', keys: 'vytyceni vytycovaci checklist seznam protokol', base: 1,
           help: { t: 'Vytyčovací checklist' } },
+        { k: 'protokol-vytyceni', verb: 'Vytyčit', vl: 'Protokol vytyčení', vh: 'odchylky projekt → skutečnost, tisk a CSV', keys: 'protokol vytyceni odchylka odchylky mezni skutecnost projekt doklad papir tisk pdf kolik jsem se netrefil',
+          help: { t: 'Protokol vytyčení' } },
         { k: 'stakeout-line', cat: 'Vytyčování a náčrt', verb: 'Vytyčit', vl: 'Přímku', keys: 'vytyceni primky linie rovina stanoveni smeru',
           help: { t: 'Vytyčení přímky' } },
         { k: 'vrstvy', cat: 'Vytyčování a náčrt', verb: 'Vytyčit', vl: 'Vrstvu pokládky', vh: 'výška a sklon za finišerem', keys: 'vrstvy pokladka skladba silnice asfalt sklon rez finisher tablet',
@@ -154,6 +156,8 @@
           help: { t: 'Epochy / monitoring' } },
         { k: 'kvalita-bodu', verb: 'Zaznamenat', vl: 'Protokol kvality', vh: 'čím byl bod změřen a jak dobře', keys: 'kvalita protokol presnost sigma smerodatna odchylka epochy doklad rozptyl mereni doložit',
           help: { t: 'Protokol kvality' } },
+        { k: 'overeni-bodu', verb: 'Zaznamenat', vl: 'Ověření bodů', vh: 'které body mají druhé nezávislé určení', keys: 'overeni overeny bod kontrola druhe urceni kontrolni mereni odchylka mez mezni kod kvality dvakrat prekontrolovat',
+          help: { t: 'Ověření bodů' } },
         { k: 'kos', verb: 'Zaznamenat', vl: 'Obnovit smazaný bod', vh: 'koš — body i zakázky, 30 dní', keys: 'kos smazane body obnovit odpadky obnova vratit zpet zakazky',
           help: { t: 'Koš — obnovení smazaného' } },
 
