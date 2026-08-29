@@ -335,8 +335,8 @@ body.outdoor-mode .ag-dlg-btn, body.outdoor-mode .ag-calib-btn { border-color: r
 
 @keyframes agBootPulse { 0%, 100% { opacity: .78; } 50% { opacity: 1; } }
 @keyframes agBootSweep {
-    0%   { background-position: center calc(50% - 44px), left calc(50% - 46px) top calc(50% + 60px); }
-    100% { background-position: center calc(50% - 44px), left calc(50% + 14px) top calc(50% + 60px); }
+    0%   { background-position: center calc(50% - 44px), left calc(50% - 46px) top calc(50% + 74px); }
+    100% { background-position: center calc(50% - 44px), left calc(50% + 14px) top calc(50% + 74px); }
 }
 
 html.ag-prelock body::before {
@@ -367,7 +367,7 @@ html.ag-prelock body::after {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cg fill='none' stroke='%234ccd99' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M118 178V140q0-22 22-22h38'/%3E%3Cpath d='M334 118h38q22 0 22 22v38'/%3E%3Cpath d='M394 334v38q0 22-22 22h-38'/%3E%3Cpath d='M178 394h-38q-22 0-22-22v-38'/%3E%3C/g%3E%3Ccircle cx='256' cy='256' r='74' fill='none' stroke='%233eb487' stroke-opacity='.22' stroke-width='6'/%3E%3Ccircle cx='256' cy='256' r='50' fill='none' stroke='%233eb487' stroke-opacity='.45' stroke-width='6'/%3E%3Ccircle cx='256' cy='256' r='22' fill='%233eb487'/%3E%3Ccircle cx='256' cy='256' r='9' fill='%23ffffff'/%3E%3C/svg%3E"),
         linear-gradient(90deg, rgba(76, 205, 153, 0), #4ccd99, rgba(76, 205, 153, 0));
     background-repeat: no-repeat, no-repeat;
-    background-position: center calc(50% - 44px), left calc(50% - 46px) top calc(50% + 60px);
+    background-position: center calc(50% - 44px), left calc(50% - 46px) top calc(50% + 74px);
     background-size: 92px 92px, 32px 3px;
     animation: agBootPulse 2s ease-in-out infinite, agBootSweep 1.3s ease-in-out infinite alternate;
 }
