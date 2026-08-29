@@ -42,6 +42,27 @@
 // dlaždici v Nástrojích. Nic se tu nevede vlastní — takže platí oprávnění rolí
 // (skrytá dlaždice = nespustitelná zkratka), počítadlo použití i návody.
 //
+// CO JE JEŠTĚ V TÉHLE VRSTVĚ (a proč to tak je):
+//
+//  ① TAHÁK JEN NA VYŽÁDÁNÍ. Rychlé gesto je tiché. Když se ale prst uprostřed
+//     gesta ZASTAVÍ (HOLD_MS), rozbalí se pod ukazatelem soupis zkratek, které na
+//     rozkreslený tah sedí. Je to týž pohyb jako naslepo, takže se čtení samo mění
+//     ve svalovou paměť („marking menu"). Vypínatelné.
+//  ② PODRŽENÍ V NÁSTROJÍCH dá nástroji gesto rovnou tam, kde ho používáš. Poslouchá
+//     se na dlaždici i na řádku seznamu úkonů (ten kvůli tomu nese `data-k`).
+//  ③ NABÍDKA PODLE POUŽITÍ: u nástroje, který jsi otevřel aspoň OFFER_MIN×, se
+//     appka JEDNOU zeptá, jestli na něj chceš gesto. Bere se počítadlo
+//     `agToolUsage_v1`, které vede js/field-tools.js — nic se nového neměří.
+//  ④ CÍLEM ZKRATKY NENÍ JEN NÁSTROJ, ale i AKCE appky (uložit bod, přepnout
+//     zobrazení, mapa na mou polohu, katastr…). Akce se spouští KLIKNUTÍM na
+//     příslušné tlačítko, takže platí oprávnění rolí stejně jako u nástrojů.
+//  ⑤ TRENAŽÉR v Nastavení: appka řekne název nástroje, ty nakreslíš gesto a ona
+//     řekne, jestli sedí. Nic se přitom nespouští.
+//  ⑥ DÉLKA TAHU se dá nastavit (krátké/střední/dlouhé) a v rukavicích
+//     (body.ag-glove) se práh sám zvětší o GLOVE_MUL.
+//  ⑦ SAMOTNÉ AKTIVAČNÍ GESTO (zvednu prst hned za ním) zopakuje POSLEDNÍ
+//     spuštěnou zkratku. Dokud žádná neproběhla, nedělá nic. Vypínatelné.
+//
 // Odstranění: smaž js/gesta-zkratky.js + řádek <script> v index.html (a řádek
 // v sw.js + zápis 'ag-gz-setrow' v js/nastaveni-poradek.js). Nic jiného na tom
 // nestojí.
@@ -51,9 +72,14 @@
     if (window.AGGesta) return;
 
     var KEY = 'agGesta_v1';
-    var STYLE_ID = 'ag-gz-style', WRAP_ID = 'ag-gz', SET_ID = 'ag-gz-set', PAD_ID = 'ag-gz-pad';
+    var STYLE_ID = 'ag-gz-style', WRAP_ID = 'ag-gz', SET_ID = 'ag-gz-set', PAD_ID = 'ag-gz-pad', TR_ID = 'ag-gz-tr';
 
-    var SEG = 54;          // kolik pixelů musí prst ujet, aby z toho byla šipka
+    var SEG_STEP = { kratke: 40, stredni: 54, dlouhe: 72 };   // ⑥ délka tahu z Nastavení
+    var GLOVE_MUL = 1.25;  // v rukavicích jsou tahy hrubší (body.ag-glove)
+    var HOLD_MS = 900;     // ① po téhle době BEZ POHYBU se teprve ukáže tahák
+    var LP_MS = 620;       // ② podržení dlaždice v Nástrojích = přiřadit gesto
+    var LP_TOL = 12;       // o kolik smí u podržení ujet prst
+    var OFFER_MIN = 8;     // ③ od kolika použití má cenu nabízet gesto
     var RATIO = 1.5;       // o kolik musí převládnout jedna osa (jinak je to šikmo → čeká se dál)
     var PREFIX_MS = 1600;  // do kdy musí být aktivační gesto hotové (pomalý tah = posun mapy)
     var RUN_MS = 200;      // ať je na okamžik vidět, co se spouští (pod hranicí, kdy to působí jako prodleva)
@@ -80,6 +106,13 @@
             off: 0,
             fingers: 1,
             prefix: 'DR',
+            seg: 'stredni',   // ⑥ délka tahu
+            hold: 1,          // ① tahák po podržení prstu
+            solo: 1,          // ⑦ samotné aktivační gesto = poslední zkratka
+            offer: 1,         // ③ nabízet gesta podle použití
+            last: '',         // ⑦ naposledy spuštěná zkratka
+            offered: [],      // ③ co už appka jednou nabídla (víckrát neotravuje)
+            tip: 0,           // ② jestli už padl tip o podržení dlaždice
             map: { UD: 'pocasi', UR: 'kompas', UL: 'openMeasureModal', DU: 'brutal-gps' }
         };
     }
@@ -94,6 +127,13 @@
                 cfg.off = raw.off ? 1 : 0;
                 cfg.fingers = (raw.fingers === 2) ? 2 : 1;
                 if (isCode(raw.prefix) && raw.prefix.length >= 2) cfg.prefix = raw.prefix;
+                if (SEG_STEP[raw.seg]) cfg.seg = raw.seg;
+                cfg.hold = raw.hold ? 1 : 0;
+                cfg.solo = raw.solo ? 1 : 0;
+                cfg.offer = raw.offer ? 1 : 0;
+                cfg.tip = raw.tip ? 1 : 0;
+                if (isCode(raw.last)) cfg.last = raw.last;
+                if (Array.isArray(raw.offered)) cfg.offered = raw.offered.slice(0, 200);
                 if (raw.map && typeof raw.map === 'object') {
                     cfg.map = {};
                     for (var c in raw.map) {
@@ -122,7 +162,28 @@
             if (navigator.vibrate) navigator.vibrate(ms);
         } catch (e) {}
     }
-    function toast(msg) { try { if (typeof window.quickToast === 'function') window.quickToast(msg); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+
+    // ---- ④ AKCE APPKY jako cíl zkratky ----------------------------------------------
+    // V terénu je „ulož bod tady" nebo „přepni na mapu" častější než otevření okna.
+    // Akce se NEVOLAJÍ přímo funkcí, ale KLIKNUTÍM na příslušné tlačítko — stejná
+    // úvaha jako u nástrojů: co appka schová oprávněním role, to zkratka nespustí,
+    // a nemusíme tu držet druhou kopii logiky, která se rozejde.
+    var ACTIONS = [
+        { k: 'act:bod', l: 'Uložit nový bod', sel: '[onclick*="openNewPointModal"]' },
+        { k: 'act:body', l: 'Mé body', sel: '[onclick*="openManageModal"]' },
+        { k: 'act:nastroje', l: 'Otevřít Nástroje', sel: '#dock-nastroje-btn' },
+        { k: 'act:zobrazeni', l: 'Přepnout AR / Split / Mapa', sel: '#ag-view-wheel' },
+        { k: 'act:namne', l: 'Mapu zpátky na mou polohu', sel: '#map-recenter' },
+        { k: 'act:katastr', l: 'Katastr zapnout / vypnout', sel: '#btn-katastr' },
+        { k: 'act:nastaveni', l: 'Nastavení', sel: '[onclick*="openSettings"]' }
+    ];
+    function isAct(k) { return String(k || '').indexOf('act:') === 0; }
+    function actionOf(k) {
+        for (var i = 0; i < ACTIONS.length; i++) if (ACTIONS[i].k === k) return ACTIONS[i];
+        return null;
+    }
+    function actionEl(a) { try { return a ? document.querySelector(a.sel) : null; } catch (e) { return null; } }
 
     // ---- nástroje (bereme z registru, vlastní seznam se nevede) ----------------------
     function groups() {
@@ -134,6 +195,7 @@
     }
     var LBL = null;
     function toolLabel(k) {
+        if (isAct(k)) { var a = actionOf(k); return a ? a.l : k; }
         if (!LBL) {
             LBL = {};
             var g = groups();
@@ -145,8 +207,25 @@
     }
     // Dlaždice nemusí existovat: nástroj může být schovaný oprávněním role nebo
     // v „Moje aktivita". Zkratku na něj pak ukazujeme zašedle a nespustíme.
-    function toolReady(k) { try { return !!(window.AGUkony && AGUkony.has(k)); } catch (e) { return false; } }
-    function runTool(k) { try { return !!(window.AGUkony && AGUkony.run(k)); } catch (e) { return false; } }
+    function toolReady(k) {
+        if (isAct(k)) {
+            var el = actionEl(actionOf(k));
+            // `style.display === 'none'` je přesně to, co dělá ucty.js applyPerms
+            // u tlačítek, na která uživatel nemá právo. Zabalení do sbaleného panelu
+            // se ZÁMĚRNĚ neřeší — klik na skryté tlačítko funguje a je to v pořádku.
+            return !!(el && el.style.display !== 'none');
+        }
+        try { return !!(window.AGUkony && AGUkony.has(k)); } catch (e) { return false; }
+    }
+    function runTool(k) {
+        if (isAct(k)) {
+            var el = actionEl(actionOf(k));
+            if (!el) return false;
+            el.click();
+            return true;
+        }
+        try { return !!(window.AGUkony && AGUkony.run(k)); } catch (e) { return false; }
+    }
 
     // ---- mapa (stejný přístup jako js/cadastre-area.js: globální `map` z logika.js) ---
     function getMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
@@ -166,9 +245,16 @@
 
     // ---- rozklad tahu na šipky --------------------------------------------------------
     // Vrací novou šipku, nebo '' (pokračování téhož směru / ještě málo pohybu / šikmo).
-    function Stroke(x, y) { this.ax = x; this.ay = y; this.dir = ''; }
+    // Práh se bere JEDNOU při založení tahu, ne při každém pohybu: uprostřed gesta
+    // se stejně nemění a čtení `classList` v každém touchmove je zbytečné.
+    function segPx() {
+        var v = SEG_STEP[load().seg] || SEG_STEP.stredni;
+        try { if (document.body.classList.contains('ag-glove')) v = Math.round(v * GLOVE_MUL); } catch (e) {}
+        return v;
+    }
+    function Stroke(x, y) { this.ax = x; this.ay = y; this.dir = ''; this.seg = segPx(); }
     Stroke.prototype.step = function (x, y) {
-        var dx = x - this.ax, dy = y - this.ay, adx = Math.abs(dx), ady = Math.abs(dy), d = '';
+        var dx = x - this.ax, dy = y - this.ay, adx = Math.abs(dx), ady = Math.abs(dy), d = '', SEG = this.seg;
         if (adx >= SEG && adx >= ady * RATIO) d = dx > 0 ? 'R' : 'L';
         else if (ady >= SEG && ady >= adx * RATIO) d = dy > 0 ? 'D' : 'U';
         if (!d) return '';
@@ -197,6 +283,27 @@
     // co sedí, spustí se, co nesedí, tiše zmizí.
     var strk = null;     // právě kreslený tah: { s, t0, snap, armed, pre, code, fired, drew, over }
 
+    // ① TAHÁK JEN NA VYŽÁDÁNÍ. Rychlé gesto je úplně tiché. Když se ale prst po
+    // aktivačním gestu ZASTAVÍ na HOLD_MS, teprve pak se pod ukazatelem rozbalí
+    // soupis zkratek, které na rozkreslený tah sedí. Při normálním rychlém tahu
+    // nevyskočí nikdy — a protože je to tentýž pohyb, čtení se samo přelije do
+    // svalové paměti (stejný princip jako „marking menu" v profi softwaru).
+    // Jakmile je jednou vidět, ZŮSTANE po zbytek tahu a jen se filtruje: uživatel
+    // si ho vyžádal, blikat mu pod rukou by bylo horší než ho nechat.
+    var holdT = null, sheetOn = false, holdAt = null;
+    function holdRestart(x, y) {
+        clearTimeout(holdT);
+        holdAt = { x: x, y: y };
+        if (!load().hold || sheetOn) return;
+        holdT = setTimeout(function () {
+            if (!strk || !strk.armed || strk.fired) return;
+            sheetOn = true;
+            buzz(8);
+            paintChip(strk.code, '', '');
+        }, HOLD_MS);
+    }
+    function holdStop() { clearTimeout(holdT); holdT = null; sheetOn = false; holdAt = null; }
+
     function overlay() { return document.getElementById(WRAP_ID); }
 
     // OTEVŘENÉ OKNO se nehledá procházením overlayů — čtyři domácí modály
@@ -217,6 +324,7 @@
     function onStart(e) {
         var t = e.touches;
         if (!t) return;
+        lpStart(e);
         if (t.length !== load().fingers) { strk = null; return; }
         if (!canStart(e.target)) { strk = null; return; }
         var p = touchMid(t);
@@ -224,6 +332,7 @@
     }
 
     function onMove(e) {
+        lpMove(e);
         if (!strk) return;
         var t = e.touches;
         if (!t || !t.length) return;
@@ -235,6 +344,8 @@
             // Od téhle chvíle patří pohyb NÁM: mapa se nesmí posouvat ani škubnout.
             if (e.cancelable) e.preventDefault();
             e.stopPropagation();
+            // Prst se hnul → odpočet taháku začíná znovu (drobné chvění se nepočítá).
+            if (holdAt && !sheetOn && (Math.abs(p.x - holdAt.x) > 10 || Math.abs(p.y - holdAt.y) > 10)) holdRestart(p.x, p.y);
             if (d) { strk.drew = true; addArrow(d); }
             return;
         }
@@ -243,7 +354,7 @@
         strk.pre += d;
         var pre = load().prefix;
         if (strk.pre === pre) {
-            arm();
+            arm(p);
             // ⚠ I TENHLE pohyb už patří nám. Bez toho by obsluha mapy (bublání,
             // běží až po nás) zpracovala poslední kousek tahu: mapa by o kus
             // poskočila hned po tom, co jsme ji vrátili, a hlavně by si znovu
@@ -262,6 +373,8 @@
         if (e.touches && e.touches.length) return;      // druhý prst ještě drží
         var st = strk;
         strk = null;
+        lpCancel();
+        holdStop();
         if (!st.armed) return;
         e.stopPropagation();
         if (st.drew) swallowClick();
@@ -270,8 +383,72 @@
     }
     function onCancel() {
         if (!strk) return;
-        if (strk.armed) hideChip(160);
+        if (strk.armed) { holdStop(); hideChip(160); }
         strk = null;
+        lpCancel();
+    }
+
+    // ---- ② PODRŽENÍ V NÁSTROJÍCH = DÁT NÁSTROJI GESTO ------------------------------
+    // Zkratka vzniká tam, kde nástroj používáš, ne až v Nastavení. Krátké klepnutí
+    // funguje dál; po podržení se následný klik spolkne, aby se nástroj neotevřel.
+    //
+    // ⚠ NEJDE JEN O DLAŽDICE. Nástroje ukazují SEZNAM ÚKONŮ (js/nastroje-ukony.js) a
+    // mřížka `.tool-tile` je při něm SCHOVANÁ — vyjede až při hledání. Kdyby se
+    // poslouchalo jen na dlaždicích, podržení by v běžném pohledu nedělalo nic
+    // (ověřeno v prohlížeči: skrytá dlaždice má nulový rozměr, dotek na ni vůbec
+    // nedopadne). Proto se bere i řádek seznamu `.ag-uk-i`, který kvůli tomu nese
+    // `data-k` s klíčem nástroje.
+    var lp = null;
+    function tileKeyOf(t) {
+        var dt = t.getAttribute('data-tool');
+        if (dt) return dt;
+        var ms = (t.getAttribute('onclick') || '').match(/([A-Za-z_$][\w$]*)\s*\(/g);
+        return ms ? ms[ms.length - 1].replace(/\s*\($/, '') : null;
+    }
+    function lpStart(e) {
+        lpCancel();
+        if (load().off) return;
+        var t = e.touches;
+        if (!t || t.length !== 1) return;
+        var tile = null;
+        try { tile = e.target && e.target.closest ? e.target.closest('.tool-tile, .ag-uk-i[data-k]') : null; } catch (er) {}
+        if (!tile || tile.id === 'ag-sm-allbtn') return;
+        var k = tile.getAttribute('data-k') || tileKeyOf(tile);
+        if (!k) return;
+        lp = { k: k, x: t[0].clientX, y: t[0].clientY, t: null };
+        lp.t = setTimeout(function () { lpFire(); }, LP_MS);
+    }
+    function lpMove(e) {
+        if (!lp) return;
+        var t = e.touches;
+        if (!t || !t.length) { lpCancel(); return; }
+        if (Math.abs(t[0].clientX - lp.x) > LP_TOL || Math.abs(t[0].clientY - lp.y) > LP_TOL) lpCancel();
+    }
+    function lpCancel() { if (lp) { clearTimeout(lp.t); lp = null; } }
+    function lpFire() {
+        var k = lp ? lp.k : null;
+        lpCancel();
+        if (!k) return;
+        buzz(30);
+        swallowClick();          // ať se nástroj neotevře
+        assignFor(k);
+    }
+    // Otevře kreslicí plochu pro jeden nástroj. Když už gesto má, nabídne ho
+    // PŘEPSAT (dvě gesta na týž nástroj by si nikdo nepamatoval).
+    function assignFor(k) {
+        var m = load().map, old = null, c;
+        for (c in m) if (m[c] === k) { old = c; break; }
+        var title = old
+            ? ('Nové gesto pro „' + toolLabel(k) + '"'
+                + ' — teď má ' + arrows(load().prefix) + ' ' + arrows(old))
+            : ('Nakresli gesto pro „' + toolLabel(k) + '"');
+        openPad(title, 1, function (nc) {
+            if (old && nc === old) return true;
+            if (old) delete load().map[old];
+            if (assign(nc, k)) return true;
+            if (old) { load().map[old] = k; renderSettings(); }
+            return false;
+        }, lastPrefixDir());
     }
 
     // Po tažení, které začalo nad tlačítkem, umí prohlížeč doručit ještě klik —
@@ -283,12 +460,13 @@
     }
 
     // ---- rozpoznané aktivační gesto ------------------------------------------------------
-    function arm() {
+    function arm(p) {
         strk.armed = true;
         mapBack(strk.snap);              // vrať mapu tam, kde byla před gestem
         buzz(25);
         showChip();
         paintChip('', '', '');
+        holdRestart(p.x, p.y);
     }
     function addArrow(d) {
         if (strk.fired) return;
@@ -308,6 +486,16 @@
     function decide(st, drawing) {
         if (st.fired) return;
         var code = st.code, k = load().map[code];
+        // ⑦ Samotné aktivační gesto (zvednu prst hned za ním) zopakuje POSLEDNÍ
+        // spuštěnou zkratku. Nejlevnější „ještě jednou to samé" v terénu — a dokud
+        // se nespustí první zkratka, nedělá to nic, takže to nikoho nepřekvapí.
+        if (!code) {
+            if (drawing) return;
+            var c = load();
+            if (c.solo && c.last && c.map[c.last]) { st.code = c.last; fire(st, c.last, c.map[c.last]); return; }
+            miss('');
+            return;
+        }
         // Spustit HNED, jakmile je jasno: kód sedí a žádná delší zkratka jím
         // nezačíná. Nečeká se na zvednutí prstu a nástroj naskočí pod rukou.
         if (k && !extended(code)) { fire(st, code, k); return; }
@@ -323,6 +511,8 @@
 
     function fire(st, code, k) {
         st.fired = true;
+        holdStop();
+        if (load().last !== code) { load().last = code; save(); }
         buzz(30);
         paintChip(code, 'hit', toolLabel(k));   // jediná zpráva: co se spouští
         var ready = toolReady(k);
@@ -336,6 +526,7 @@
     // Kdo si nevzpomene, najde soupis v Nastavení; smysl téhle vrstvy je dělat
     // zkratky zpaměti, ne se u nich zdržovat.
     function miss(code) {
+        holdStop();
         paintChip(code, 'bad', code ? 'nepřiřazeno' : '');
         hideChip(code ? 620 : 220);
     }
@@ -354,7 +545,7 @@
             w = document.createElement('div');
             w.id = WRAP_ID;
             w.innerHTML = '<div class="gz-chip"><div class="gz-code"><span class="gz-pre"></span><b class="gz-now"></b></div>' +
-                '<div class="gz-lb"></div></div>';
+                '<div class="gz-lb"></div><div class="gz-sheet"></div></div>';
             document.body.appendChild(w);
         }
         clearTimeout(chipTimer);
@@ -371,6 +562,25 @@
         var lb = w.querySelector('.gz-lb');
         lb.textContent = label || '';
         lb.className = 'gz-lb' + (cls ? ' ' + cls : '');
+
+        // ① tahák — jen když si ho uživatel vyžádal zastavením prstu
+        var sh = w.querySelector('.gz-sheet');
+        if (!sh) return;
+        if (!sheetOn || cls === 'hit') { sh.style.display = 'none'; sh.innerHTML = ''; return; }
+        var m = load().map, keys = [], c;
+        for (c in m) if (!code || c.indexOf(code) === 0) keys.push(c);
+        keys.sort();
+        var h = '';
+        for (var i = 0; i < keys.length; i++) {
+            var k = m[keys[i]];
+            h += '<div class="gz-line' + (toolReady(k) ? '' : ' off') + '">' +
+                '<span class="gz-a">' + arrows(keys[i]) + '</span>' +
+                '<span class="gz-t">' + esc(toolLabel(k)) + '</span></div>';
+        }
+        sh.innerHTML = h || '<div class="gz-line off"><span class="gz-t">Tudy nevede žádná zkratka.</span></div>';
+        // ⚠ ne `= ''`: v injectStyles má `.gz-sheet` display:none, takže vyprázdnění
+        // inline stylu by ho zase schovalo. Musí se nastavit natvrdo.
+        sh.style.display = 'block';
     }
     function hideChip(delay) {
         var w = overlay();
@@ -387,11 +597,7 @@
         }, delay || 0);
     }
 
-    function esc(s) {
-        return String(s == null ? '' : s).replace(/[&<>"']/g, function (ch) {
-            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
-        });
-    }
+    function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
     // ================================================================================
     // NASTAVENÍ: řádek ve Vzhledu → Ovládání + vlastní okno se zkratkami
@@ -412,6 +618,67 @@
         cb.checked = !load().off;
         cb.addEventListener('change', function () { load().off = cb.checked ? 0 : 1; save(); });
         div.querySelector('.ag-gz-open').addEventListener('click', function () { openSettings(); });
+    }
+
+    // ================================================================================
+    // ③ NABÍDKA GESTA PODLE SKUTEČNÉHO POUŽITÍ
+    // ================================================================================
+    // Počítadlo `agToolUsage_v1` (klíč -> počet) vede js/field-tools.js odjakživa,
+    // takže se nic nového neměří. Když nějaký nástroj otevřeš aspoň OFFER_MIN×
+    // a gesto nemá, appka se JEDNOU zeptá, jestli mu ho dát.
+    //
+    // KDY se ptá: ve chvíli, kdy OTEVŘEŠ Nástroje — tam ten nástroj stejně jdeš
+    // hledat, takže je to přesně ta chvíle, kdy dává smysl říct „tohle už hledat
+    // nemusíš". Ptát se po spuštění nástroje by skočilo doprostřed práce.
+    // Nabídka padne nejvýš JEDNOU za běh appky a na každý nástroj nejvýš jednou
+    // za život (seznam `offered`), takže z toho nemůže být otravné klikátko.
+    var offerDone = false, toolsWasOpen = false;
+    function toolsOpen() {
+        var m = document.getElementById('tools-modal');
+        return !!(m && m.style.display === 'flex');
+    }
+    function usage() {
+        try { var o = JSON.parse(localStorage.getItem('agToolUsage_v1')); return (o && typeof o === 'object') ? o : {}; } catch (e) { return {}; }
+    }
+    function hasGesture(k) {
+        var m = load().map, c;
+        for (c in m) if (m[c] === k) return true;
+        return false;
+    }
+    function pickOffer() {
+        var u = usage(), c = load(), best = null, bestN = OFFER_MIN - 1, k;
+        for (k in u) {
+            var n = +u[k] || 0;
+            if (n <= bestN) continue;
+            if (hasGesture(k)) continue;
+            if (c.offered.indexOf(k) !== -1) continue;
+            if (!toolReady(k)) continue;
+            best = k; bestN = n;
+        }
+        return best ? { k: best, n: bestN } : null;
+    }
+    function offerTick() {
+        var open = toolsOpen();
+        if (!open) { toolsWasOpen = false; return; }
+        if (toolsWasOpen) return;          // hlídá se JEN okamžik otevření
+        toolsWasOpen = true;
+        var c = load();
+        if (c.off) return;
+        // ② jednorázový tip, ať se o podržení dlaždice vůbec ví
+        if (!c.tip) { c.tip = 1; save(); toast('Tip: podržením dlaždice jí dáš gesto.'); return; }
+        if (offerDone || !c.offer) return;
+        var hit = pickOffer();
+        if (!hit) return;
+        offerDone = true;
+        c.offered.push(hit.k); save();
+        var lbl = toolLabel(hit.k);
+        setTimeout(function () {
+            try {
+                window.agAsk('„' + lbl + '" jsi otevřel už ' + hit.n + '×. Chceš na něj gesto? Pak ho spustíš jedním tahem, bez hledání tady.',
+                    { title: 'Zkratka gestem', okText: 'Dát mu gesto', cancelText: 'Teď ne' })
+                    .then(function (yes) { if (yes) assignFor(hit.k); });
+            } catch (e) {}
+        }, 450);
     }
 
     // ---- okno se zkratkami -------------------------------------------------------------
@@ -436,9 +703,18 @@
             '<button type="button" class="btn btn-secondary" id="ag-gz-prefix-btn"></button></div>' +
             '<div class="st-row"><span class="st-lab">Kreslit<small>dvěma prsty se gesto nikdy nesplete s posunem mapy, ale hůř se dělá v rukavicích</small></span>' +
             '<select id="ag-gz-fingers"><option value="1">jedním prstem</option><option value="2">dvěma prsty</option></select></div>' +
+            '<div class="st-row"><span class="st-lab">Délka tahu<small>kolik musí prst ujet, aby se tah počítal; v rukavicích se práh sám zvětší</small></span>' +
+            '<select id="ag-gz-seg"><option value="kratke">krátké</option><option value="stredni">střední</option><option value="dlouhe">dlouhé</option></select></div>' +
+            '<div class="st-row"><span class="st-lab">Tahák po podržení prstu<small>zastav prst uprostřed gesta a ukáže se soupis; při rychlém tahu nevyskočí</small></span>' +
+            '<label class="st-sw"><input type="checkbox" id="ag-gz-hold"><span class="st-sw-face"></span></label></div>' +
+            '<div class="st-row"><span class="st-lab">Samotné aktivační gesto<small>co udělá, když prst zvedneš hned za ním</small></span>' +
+            '<select id="ag-gz-solo"><option value="1">poslední zkratka</option><option value="0">nic</option></select></div>' +
+            '<div class="st-row"><span class="st-lab">Nabízet gesta podle použití<small>u nástroje, který otvíráš často, se appka jednou zeptá</small></span>' +
+            '<label class="st-sw"><input type="checkbox" id="ag-gz-offer"><span class="st-sw-face"></span></label></div>' +
             '<h3 class="set-h" style="margin-top:18px;">Zkratky</h3>' +
             '<div id="ag-gz-rows"></div>' +
             '<button class="btn" id="ag-gz-add" style="margin-top:10px;">+ Přidat zkratku</button>' +
+            '<button class="btn btn-secondary" id="ag-gz-train" style="margin-top:8px;">Zkus si to — trenažér</button>' +
             '<button class="btn btn-secondary" id="ag-gz-def" style="margin-top:8px;">Obnovit výchozí zkratky</button>' +
             '<button class="btn btn-secondary" id="ag-gz-close" style="margin-top:8px;">Zavřít</button>' +
             '</div>';
@@ -451,6 +727,13 @@
         el.querySelector('#ag-gz-fingers').addEventListener('change', function () {
             load().fingers = (this.value === '2') ? 2 : 1; save();
         });
+        el.querySelector('#ag-gz-seg').addEventListener('change', function () {
+            load().seg = SEG_STEP[this.value] ? this.value : 'stredni'; save();
+        });
+        el.querySelector('#ag-gz-hold').addEventListener('change', function () { load().hold = this.checked ? 1 : 0; save(); });
+        el.querySelector('#ag-gz-offer').addEventListener('change', function () { load().offer = this.checked ? 1 : 0; save(); });
+        el.querySelector('#ag-gz-solo').addEventListener('change', function () { load().solo = (this.value === '1') ? 1 : 0; save(); });
+        el.querySelector('#ag-gz-train').addEventListener('click', function () { openTrainer(); });
         el.querySelector('#ag-gz-prefix-btn').addEventListener('click', function () {
             openPad('Nakresli aktivační gesto', 2, function (code) {
                 if (code.length < 2) { toast('Aktivační gesto musí mít aspoň dva tahy — jeden by se pletl s posunem mapy.'); return false; }
@@ -470,7 +753,8 @@
         el.querySelector('#ag-gz-add').addEventListener('click', function () { openPicker(); });
         el.querySelector('#ag-gz-def').addEventListener('click', function () {
             var d = defaults();
-            load().map = d.map; load().prefix = d.prefix; save(); renderSettings(); refreshRowHint();
+            var c = load();
+            c.map = d.map; c.prefix = d.prefix; c.last = ''; save(); renderSettings(); refreshRowHint();
             toast('Zkratky vrácené na výchozí.');
         });
         el.querySelector('#ag-gz-close').addEventListener('click', function () { el.style.display = 'none'; });
@@ -502,6 +786,10 @@
         var c = load();
         el.querySelector('#ag-gz-on2').checked = !c.off;
         el.querySelector('#ag-gz-fingers').value = String(c.fingers);
+        el.querySelector('#ag-gz-seg').value = c.seg;
+        el.querySelector('#ag-gz-hold').checked = !!c.hold;
+        el.querySelector('#ag-gz-offer').checked = !!c.offer;
+        el.querySelector('#ag-gz-solo').value = c.solo ? '1' : '0';
         el.querySelector('.ag-gz-prefix').textContent = arrows(c.prefix);
         el.querySelector('#ag-gz-prefix-btn').textContent = arrows(c.prefix) + '  Změnit';
         el.querySelector('.ag-gz-prewords').textContent = words(c.prefix);
@@ -573,7 +861,17 @@
         if (!host) return;
         q = String(q || '').toLowerCase();
         try { q = q.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) {}
-        var g = groups(), h = '';
+        var g = groups(), h = '', a, hay2;
+        // ④ akce appky jdou první: v terénu se sahá spíš po nich než po oknech
+        var arows = '';
+        for (var ai = 0; ai < ACTIONS.length; ai++) {
+            a = ACTIONS[ai];
+            hay2 = ('akce ' + a.l).toLowerCase();
+            try { hay2 = hay2.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (e) {}
+            if (q && hay2.indexOf(q) < 0) continue;
+            arows += '<button type="button" data-tool="' + esc(a.k) + '">' + esc(a.l) + '</button>';
+        }
+        if (arows) h += '<div class="ag-gz-grp">Akce appky</div>' + arows;
         for (var i = 0; i < g.length; i++) {
             var rows = '';
             for (var j = 0; j < g[i].items.length; j++) {
@@ -684,6 +982,105 @@
     }
 
     // ================================================================================
+    // ⑤ TRENAŽÉR („zkus si to")
+    // ================================================================================
+    // Appka řekne NÁZEV nástroje a ty máš nakreslit celé gesto — aktivační i zkratku,
+    // tedy přesně ten pohyb, který pak uděláš v terénu. Šipky se přitom NEUKAZUJÍ
+    // (to by bylo obkreslování, ne učení); ukážou se až po vyhodnocení. Nic se
+    // nespouští, takže se nedá nic rozbít.
+    var trState = null;
+    function openTrainer() {
+        injectStyles();
+        var m = load().map, codes = [], c;
+        for (c in m) codes.push(c);
+        if (!codes.length) { toast('Nejdřív si přiřaď aspoň jednu zkratku.'); return; }
+
+        var el = document.getElementById(TR_ID);
+        if (!el) {
+            el = document.createElement('div');
+            el.className = 'modal-overlay'; el.id = TR_ID;
+            el.setAttribute('data-no-swipe', '');   // ⚠ viz komentář u kreslicí plochy
+            el.innerHTML = '<div class="modal-content">' +
+                '<h2 style="color:var(--accent);margin-top:0;">Nakresli zkratku pro:</h2>' +
+                '<div class="tr-want"></div>' +
+                '<div class="gzp-area" id="ag-gz-trarea"><span class="gzp-hint">Celé gesto, jedním tahem</span><span class="gzp-code"></span></div>' +
+                '<div class="gzp-note tr-note"></div>' +
+                '<div class="tr-score"></div>' +
+                '<button class="btn" id="ag-gz-trnext">Další</button>' +
+                '<button class="btn btn-secondary" id="ag-gz-trclose" style="margin-top:8px;">Konec</button>' +
+                '</div>';
+            document.body.appendChild(el);
+            var area = el.querySelector('#ag-gz-trarea');
+            var start = function (x, y) {
+                if (!trState || trState.done) return;
+                trState.s = new Stroke(x, y); trState.drawn = ''; paintTr();
+            };
+            var move = function (x, y) {
+                if (!trState || trState.done || !trState.s) return;
+                var d = trState.s.step(x, y);
+                if (!d || trState.drawn.length >= 8) return;
+                trState.drawn += d; buzz(10); paintTr();
+            };
+            var end = function () { if (trState && !trState.done && trState.drawn) trCheck(); };
+            area.addEventListener('touchstart', function (e) { if (e.touches.length === 1) start(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+            area.addEventListener('touchmove', function (e) {
+                if (e.touches.length !== 1) return;
+                if (e.cancelable) e.preventDefault();
+                move(e.touches[0].clientX, e.touches[0].clientY);
+            }, { passive: false });
+            area.addEventListener('touchend', end);
+            area.addEventListener('pointerdown', function (e) { if (trState && e.pointerType !== 'touch') { trState.md = true; start(e.clientX, e.clientY); } });
+            area.addEventListener('pointermove', function (e) { if (trState && trState.md && e.pointerType !== 'touch') move(e.clientX, e.clientY); });
+            window.addEventListener('pointerup', function () { if (trState && trState.md) { trState.md = false; end(); } });
+            el.querySelector('#ag-gz-trnext').addEventListener('click', function () { trNext(); });
+            el.querySelector('#ag-gz-trclose').addEventListener('click', function () { el.style.display = 'none'; trState = null; });
+        }
+        trState = { ok: 0, n: 0, want: null, drawn: '', s: null, md: false, done: false };
+        trNext();
+        el.style.display = 'flex';
+    }
+    function trNext() {
+        if (!trState) return;
+        var m = load().map, codes = [], c;
+        for (c in m) codes.push(c);
+        if (!codes.length) return;
+        var pick = codes[Math.floor(Math.random() * codes.length)];
+        // dvakrát po sobě totéž je k ničemu, pokud je z čeho vybírat
+        if (codes.length > 1 && trState.want && pick === trState.want.code) {
+            pick = codes[(codes.indexOf(pick) + 1) % codes.length];
+        }
+        trState.want = { code: pick, k: m[pick] };
+        trState.drawn = ''; trState.s = null; trState.done = false;
+        paintTr();
+    }
+    function trCheck() {
+        var want = load().prefix + trState.want.code;
+        trState.done = true;
+        trState.n++;
+        if (trState.drawn === want) { trState.ok++; buzz(30); } else buzz(60);
+        paintTr();
+    }
+    function paintTr() {
+        var el = document.getElementById(TR_ID);
+        if (!el || !trState) return;
+        el.querySelector('.tr-want').textContent = toolLabel(trState.want.k);
+        el.querySelector('.gzp-code').textContent = arrows(trState.drawn);
+        el.querySelector('.gzp-hint').style.display = trState.drawn ? 'none' : '';
+        var note = el.querySelector('.tr-note'), want = load().prefix + trState.want.code;
+        if (!trState.done) {
+            note.className = 'gzp-note tr-note';
+            note.textContent = 'Celé gesto: aktivační i zkratka, bez zvednutí prstu.';
+        } else if (trState.drawn === want) {
+            note.className = 'gzp-note tr-note good';
+            note.textContent = 'Přesně tak: ' + arrows(want);
+        } else {
+            note.className = 'gzp-note tr-note bad';
+            note.textContent = 'Správně je ' + arrows(want) + ', nakreslil jsi ' + arrows(trState.drawn) + '.';
+        }
+        el.querySelector('.tr-score').textContent = trState.n ? (trState.ok + ' z ' + trState.n + ' správně') : '';
+    }
+
+    // ================================================================================
     // STYLY
     // ================================================================================
     function injectStyles() {
@@ -712,6 +1109,13 @@
             '  color:var(--accent-bright,#3eb487);}',
             '#' + WRAP_ID + ' .gz-lb:empty{display:none;}',
             '#' + WRAP_ID + ' .gz-lb.bad{color:#ef4444;font-weight:400;opacity:.85;}',
+            // ① tahák: rozbalí se POD ukazatelem, až když prst chvíli stojí
+            '#' + WRAP_ID + ' .gz-sheet{display:none;margin:10px -6px -4px;padding-top:9px;max-height:46vh;overflow:hidden;',
+            '  border-top:1px solid var(--glass-border,rgba(255,255,255,0.10));text-align:left;}',
+            '#' + WRAP_ID + ' .gz-line{display:flex;align-items:center;gap:10px;padding:4px 6px;',
+            '  font-size:calc(12.5px * var(--ag-font-scale,1));white-space:nowrap;}',
+            '#' + WRAP_ID + ' .gz-line.off{opacity:.45;}',
+            '#' + WRAP_ID + ' .gz-line .gz-a{color:var(--accent-bright,#3eb487);letter-spacing:.05em;min-width:2.6em;}',
             // ---- řádek v Nastavení ----
             '.ag-gz-cell{display:flex;align-items:center;gap:10px;}',
             '.ag-gz-cell .btn{width:auto;margin:0;padding:7px 12px;font-size:calc(12.5px * var(--ag-font-scale,1));}',
@@ -762,6 +1166,18 @@
             '  color:var(--accent-bright,#3eb487);}',
             '#' + PAD_ID + ' .gzp-note{font-size:calc(12px * var(--ag-font-scale,1));opacity:.7;margin-bottom:10px;min-height:1.4em;}',
             '#' + PAD_ID + ' .gzp-note.bad{color:#ef4444;opacity:1;}',
+            // ⑤ trenažér sdílí vzhled kreslicí plochy
+            '#' + TR_ID + ' .gzp-area{position:relative;height:min(40vh,260px);margin:6px 0 10px;border-radius:16px;',
+            '  border:2px dashed var(--glass-border,rgba(255,255,255,0.18));background:rgba(255,255,255,0.03);',
+            '  display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none;-webkit-user-select:none;}',
+            '#' + TR_ID + ' .gzp-hint{opacity:.5;font-size:calc(13px * var(--ag-font-scale,1));}',
+            '#' + TR_ID + ' .gzp-code{position:absolute;font-size:calc(40px * var(--ag-font-scale,1));letter-spacing:.08em;',
+            '  color:var(--accent-bright,#3eb487);}',
+            '#' + TR_ID + ' .gzp-note{font-size:calc(12.5px * var(--ag-font-scale,1));opacity:.75;margin-bottom:8px;min-height:1.4em;}',
+            '#' + TR_ID + ' .gzp-note.good{color:var(--accent-bright,#3eb487);opacity:1;}',
+            '#' + TR_ID + ' .gzp-note.bad{color:#ef4444;opacity:1;}',
+            '#' + TR_ID + ' .tr-want{font-size:calc(20px * var(--ag-font-scale,1));font-weight:700;margin:2px 0 10px;}',
+            '#' + TR_ID + ' .tr-score{font-size:calc(12px * var(--ag-font-scale,1));opacity:.6;margin-bottom:10px;}',
             // rukavice: větší cíle
             'body.ag-glove #' + WRAP_ID + ' .gz-row{padding:12px;}',
             'body.ag-glove .ag-gz-row button{width:44px;height:44px;}'
@@ -787,6 +1203,13 @@
             try { injectSettingRow(); } catch (e) {}
             if (document.getElementById('ag-gz-setrow') || ++tries > 40) clearInterval(t);
         }, 400);
+        // ③ sledování, kdy se otevřou Nástroje — přes SDÍLENÝ časovač appky, aby
+        // kvůli tomu nevznikala další smyčka (viz úspora baterie v js/power-save.js)
+        if (!window.__agGzTimer) {
+            window.__agGzTimer = (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(function () {
+                try { offerTick(); } catch (e) {}
+            }, 1200);
+        }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();

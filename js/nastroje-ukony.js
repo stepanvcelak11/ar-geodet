@@ -252,10 +252,15 @@
     }
 
     // ---- položka seznamu -----------------------------------------------------------------
-    function item(def, onClick, iconHtml) {
+    // `key` se zapisuje do data-k. Seznam ho sám nepotřebuje (nástroj spouští
+    // closure v onClick), ale odpojitelné vrstvy nad ním ano — js/gesta-zkratky.js
+    // podle něj pozná, kterému nástroji přiřadit gesto při podržení řádku. Bez
+    // atributu by musely hádat podle textu popisku.
+    function item(def, onClick, iconHtml, key) {
         var b = document.createElement('button');
         b.type = 'button';
         b.className = 'ag-uk-i';
+        if (key) b.setAttribute('data-k', key);
         b.innerHTML = (iconHtml ? '<span class="ag-uk-ico">' + iconHtml + '</span>' : '')
             + '<span class="ag-uk-tx"><b>' + esc(def.l) + '</b>'
             + (def.h ? '<small>' + esc(def.h) + '</small>' : '') + '</span>';
@@ -378,7 +383,7 @@
             var sec = section(title, live.length);
             live.forEach(function (k) {
                 var t = findTile(k);
-                sec.appendChild(item({ l: tileLabel(t) }, (function (kk) { return function () { run(kk); }; })(k), iconOf(k)));
+                sec.appendChild(item({ l: tileLabel(t) }, (function (kk) { return function () { run(kk); }; })(k), iconOf(k), k));
             });
         }
         shortcutGroup('★ Oblíbené', favKeys());
@@ -392,7 +397,7 @@
             var sec = section(grp.t, live.length);
             live.forEach(function (it) {
                 used[it.k] = 1;
-                sec.appendChild(item(it, function () { run(it.k); }, iconOf(it.k)));
+                sec.appendChild(item(it, function () { run(it.k); }, iconOf(it.k), it.k));
             });
         });
 
@@ -415,7 +420,7 @@
         if (rest.length) {
             var rsec = section('Další nástroje', rest.length);
             rest.forEach(function (r) {
-                rsec.appendChild(item({ l: r.l }, function () { run(r.k); }, iconOf(r.k)));
+                rsec.appendChild(item({ l: r.l }, function () { run(r.k); }, iconOf(r.k), r.k));
             });
             // Pojistka funguje, ale tiše: 9. 8. 2026 se ukázalo, že tu půl roku ležel
             // „Metr v kameře" a hlavně „Kontrola vrstvy" — nástroj na každodenní práci
