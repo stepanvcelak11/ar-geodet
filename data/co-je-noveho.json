@@ -2,6 +2,18 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 264,
+   "datum": "2026-08-29",
+   "nadpis": "Rychlejší start, ověřování bodů a protokol o vytyčení",
+   "body": [
+    "Appka se <b>otevírá rychleji</b>. Devět nástrojů, které se za celý den většinou ani neotevřou, se teď dotahuje až po vykreslení — první obrázek naskočí zhruba o třetinu dřív a než je appka připravená, uteče o půl vteřiny méně. Nic z toho nechybí: nástroje jsou na místě, jen se načtou na pozadí.",
+    "<b>Ověření bodů</b> (nový nástroj v Zaznamenat). Rozptyl měření říká, jak klidné měření bylo — ne jestli je bod správně. Chyba GPS v telefonu je během jednoho stání posunutá pořád stejným směrem, takže dvě stě klidných odečtů umí být dvě stě odečtů vedle. Jediná skutečná kontrola je <b>druhé určení s odstupem</b>. Karta bodu teď rovnou hlásí „Ověřeno druhým určením · Δ 12 cm (mez 39 cm)“ nebo „Jediné určení — neověřeno“ a nový nástroj ukáže celou zakázku najednou.",
+    "<b>Protokol vytyčení</b> (nový nástroj ve Vytyčit). Když bod odškrtneš, appka si nově zapíše i to, <b>kde jsi doopravdy stál</b> — a udělá z toho tabulku projekt → skutečnost s ΔY, ΔX, polohovou odchylkou a mezní odchylkou podle kódu kvality. Vytiskne se, uloží jako PDF nebo vyexportuje do CSV. Řádky, kde měl telefon horší přesnost než polovinu meze, se označí jako <b>neprůkazné</b> — verdikt, na který se nedá spolehnout, je horší než žádný.",
+    "V <b>Nástrojích</b> je teď poznat, který nástroj sáhne na body zakázky: takové dlaždice mají u spodní hrany proužek. Ostatní jen ukazují.",
+    "<b>Protokol chyb</b> jde poslat jedním tapnutím i s okolnostmi (verze appky, typ telefonu, stav sítě a GPS, nenačtené moduly). Souřadnice, jména zakázek ani bodů se neposílají."
+   ]
+  },
+  {
    "v": 263,
    "datum": "2026-08-29",
    "nadpis": "Oprava: přihlášení se zasekávalo na „příliš mnoho pokusů“",
