@@ -48,7 +48,25 @@
         for (const k of ka) { if (a[k] !== b[k]) return true; }
         return false;
     }
-    function changed(a, b) { return objChanged(a.ls, b.ls) || objChanged(a.mem, b.mem); }
+    // POROVNANI BEZ DRUHEHO SNIMKU. Snimek PRED akci potrebujeme cely (undo z nej
+    // obnovuje), ale ten PO akci slouzil UZ JEN k otazce "zmenilo se neco?" - a presto
+    // se kvuli nemu cetl cely localStorage do dalsiho objektu. Kdyz IndexedDB nejede
+    // (nebo se do ni zapis nepovede), lezi body v localStorage jako nekolikamegovy
+    // retezec, takze to bylo druhe drahe cteni na KAZDEM smazani.
+    // Ted se prochazi jednou a KONCI SE PRI PRVNIM ROZDILU.
+    function changedSince(before) {
+        const b = before.ls;
+        const n = localStorage.length;
+        let seen = 0;
+        for (let i = 0; i < n; i++) {
+            const k = localStorage.key(i);
+            if (!(k in b)) return true;                       // klic pribyl
+            seen++;
+            if (localStorage.getItem(k) !== b[k]) return true; // hodnota se zmenila
+        }
+        if (seen !== Object.keys(b).length) return true;       // klic ubyl
+        return objChanged(before.mem, snapMem());
+    }
     // ZAPISUJEME JEN TO, CO SE LISI. Drive se pri kazdem "Vratit zpet" prepsal CELY
     // localStorage a poslala se transakce do IndexedDB za KAZDY klic - u velke zakazky
     // to znamenalo megabajty zbytecnych zapisu (a na skoro plnem telefonu i riziko, ze
@@ -123,7 +141,7 @@
         window[name] = function () {
             const before = snap();
             const ret = orig.apply(this, arguments);
-            try { if (changed(before, snap())) showUndo(msg, before); } catch (e) { }
+            try { if (changedSince(before)) showUndo(msg, before); } catch (e) { }
             return ret;
         };
         window[name]._undoWrapped = true;

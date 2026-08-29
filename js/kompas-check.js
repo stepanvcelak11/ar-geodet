@@ -45,7 +45,7 @@
             + '-webkit-tap-highlight-color:transparent;">×</button>';
         document.body.appendChild(banner);
         banner.querySelector('#compass-interference-x').addEventListener('click', function () {
-            dismissed = true;
+            dismissed = true; _detach();
             banner.style.display = 'none';
         });
         return banner;
@@ -67,7 +67,7 @@
                 C.set('compass', {
                     level: 'danger',
                     text: 'Kompas rušen (kov poblíž) — AR šipka může mířit mimo',
-                    onDismiss: function () { dismissed = true; }
+                    onDismiss: function () { dismissed = true; _detach(); }
                 });
             } else if (C.has('compass')) {
                 // hystereze: skryt az po 2 s klidu, at to neblika
@@ -91,6 +91,8 @@
     var _absSeen = false;   // dorazila pouzitelna ABSOLUTNI udalost? (viz registrace posluchacu niz)
     function onOrient(event) {
         if (!_absSeen && event && event.absolute === true && event.alpha != null) _absSeen = true;
+        // pred spustenim appky (a po dismissu) neni co hlidat - nesbirat vzorky
+        if (!_live() || dismissed) { if (samples.length) samples.length = 0; t0 = 0; return; }
         const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : (event.timeStamp || 0);
         if (!t0) t0 = now;
         const h = (event.webkitCompassHeading != null) ? event.webkitCompassHeading : (event.alpha != null ? 360 - event.alpha : null);
@@ -123,17 +125,40 @@
         setBanner(show, now);
     }
 
-    if (typeof DeviceOrientationEvent !== 'undefined') {
-        // vlastni posluchac; na iOS dorazi az po udeleni opravneni (to resi app jinde)
-        // BATERIE: Chrome na Androidu doruci OBE udalosti (~60x/s kazdou), takze onOrient
-        // s obema posluchaci bezel 2x na snimek a vzorky se do `samples` sypaly dvojmo.
-        // Navesime jen absolutni; relativni doregistrujeme az kdyz do 1,5 s neprijde
-        // pouzitelna absolutni udalost (iOS ji nezna a hlasi webkitCompassHeading).
+    // vlastni posluchac; na iOS dorazi az po udeleni opravneni (to resi app jinde)
+    // BATERIE: Chrome na Androidu doruci OBE udalosti (~60x/s kazdou), takze onOrient
+    // s obema posluchaci bezel 2x na snimek a vzorky se do `samples` sypaly dvojmo.
+    // Navesime jen absolutni; relativni doregistrujeme az kdyz do 1,5 s neprijde
+    // pouzitelna absolutni udalost (iOS ji nezna a hlasi webkitCompassHeading).
+    //
+    // BATERIE (2): tenhle modul jako JEDINY nic neodregistrovaval, takze onOrient
+    // bezel ~60x/s po celou dobu behu appky, i kdyz se banner nikdy neukazal.
+    // Ostatni senzorove moduly (ar-fusion, indoor, pdr-offset, brutal-gps,
+    // moje-aktivita, ar-metr) uz odpojovani maji - prebirame jejich vzor:
+    // odpojit pri skryte zalozce a NATRVALO, jakmile uzivatel varovani zavre
+    // krizkem (dismissed plati do restartu appky, dal poslouchat je ztrata).
+    var _attached = false, _relTimer = null;
+    function _attach() {
+        if (_attached || dismissed || typeof DeviceOrientationEvent === 'undefined') return;
+        _attached = true;
         window.addEventListener('deviceorientationabsolute', onOrient, true);
-        setTimeout(function () {
-            if (!_absSeen) window.addEventListener('deviceorientation', onOrient, true);
+        _relTimer = setTimeout(function () {
+            _relTimer = null;
+            if (_attached && !_absSeen) window.addEventListener('deviceorientation', onOrient, true);
         }, 1500);
     }
+    function _detach() {
+        if (!_attached) return;
+        _attached = false;
+        if (_relTimer) { clearTimeout(_relTimer); _relTimer = null; }
+        window.removeEventListener('deviceorientationabsolute', onOrient, true);
+        window.removeEventListener('deviceorientation', onOrient, true);
+        samples.length = 0; t0 = 0;      // po navratu se ustaleni pocita znovu
+    }
+    _attach();
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) _detach(); else _attach();
+    });
 
     // ---------- 2) KONTROLA PODLE SLUNCE ----------
     // Poloha Slunce (NOAA, presnost na des. stupne staci pro kontrolu kompasu).

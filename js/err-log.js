@@ -14,8 +14,33 @@
     var _lastToast = 0;
     var _lastSig = '';
 
-    function load() { try { var v = JSON.parse(localStorage.getItem(KEY)); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
-    function save(list) { try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) { /* plná kvota - log není důvod shodit appku */ } }
+    // VYKON: log se drzi v PAMETI a na disk se zapisuje nejvys jednou za 5 s.
+    // Drive delal record() JSON.parse + JSON.stringify celeho klice pri KAZDE
+    // chybe. Kdyz vyjimka vypadla z AR smycky (~60x/s), appka se zadrhla presne
+    // ve chvili, kdy mela problem nahlasit - a zadrhnuti vyrabelo dalsi chyby.
+    var FLUSH_MS = 5000;
+    var _list = null, _dirty = false, _flushT = null;
+    function load() {
+        if (_list) return _list;
+        try { var v = JSON.parse(localStorage.getItem(KEY)); _list = Array.isArray(v) ? v : []; }
+        catch (e) { _list = []; }
+        return _list;
+    }
+    function _writeNow() {
+        if (_flushT) { clearTimeout(_flushT); _flushT = null; }
+        if (!_dirty) return;
+        _dirty = false;
+        try { localStorage.setItem(KEY, JSON.stringify(_list || [])); } catch (e) { /* plná kvota - log není důvod shodit appku */ }
+    }
+    function save(list) {
+        if (list && list !== _list) _list = list;
+        _dirty = true;
+        if (!_flushT) _flushT = setTimeout(_writeNow, FLUSH_MS);
+    }
+    // Co spadlo tesne pred odchodem se nesmi ztratit. 'pagehide' + skryta zalozka
+    // jsou na mobilu spolehlivejsi nez 'beforeunload' (ten iOS casto vubec nepusti).
+    window.addEventListener('pagehide', _writeNow);
+    document.addEventListener('visibilitychange', function () { if (document.hidden) _writeNow(); });
 
     function record(msg, src, line, col, stack) {
         var sig = msg + '|' + src + '|' + line;

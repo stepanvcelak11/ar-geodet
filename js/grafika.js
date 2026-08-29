@@ -212,6 +212,10 @@
                 { const _mb = document.getElementById('menu-toggle-btn'); if (_mb) _mb.style.display = 'block'; }
                 appStarted = true;
                 document.body.classList.add('app-started');
+                // Moduly, ktere na start appky cekaly pollem 2x/s (brifink, draft-store,
+                // epochy-pripominky), si ted rikaji o tuhle udalost. Kdo se nacte az po
+                // startu, pozna to z tridy vyse - proto obojí.
+                try { window.dispatchEvent(new CustomEvent('ag:app-started')); } catch (e) {}
                 try { toggleHudElements(); } catch (e) { console.warn('[start] HUD:', e); }
                 { const _ws = document.getElementById('welcome-screen'); if (_ws) { _ws.style.opacity = '0'; setTimeout(() => { _ws.style.display = 'none'; }, 400); } }
                 try { applyViewMode(); } catch (e) { console.warn('[start] rezim zobrazeni:', e); }

@@ -93,17 +93,38 @@
     <link rel="stylesheet" href="css/style.css?v=259">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
-         tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
+         tedy ještě před prvním vykreslením; ucty.js třídu zase odebere.
+         POZOR: plati i pro PRVNI spusteni appky. Driv se tady pri chybejici
+         firme rovnou vyskocilo, takze prvouzivateli probliklo stare
+         "Spustit vyhledavani" a teprve pres nej se otevrela brana. -->
     <style>html.ag-prelock #welcome-screen{display:none !important;}</style>
     <script>
         (function () {
+            var need = false;
             try {
                 var f = JSON.parse(localStorage.getItem('agFirma_v1') || 'null');
-                if (!f || !f.enabled || !f.users || !f.users.length) return;
-                var lock = localStorage.getItem('agLockStart_v1') !== '0';
-                var sess = localStorage.getItem('agFirmaSess_v1');
-                if (lock || !sess) document.documentElement.classList.add('ag-prelock');
-            } catch (e) {}
+                if (!f || !f.enabled || !f.users || !f.users.length) {
+                    // Zadna firma => ucty.js ukaze BRANU (showGate), takze uvodni
+                    // kartu je taky potreba schovat. Host si ji ale nechava - viz
+                    // komentar u enterApp() v js/ucty.js.
+                    need = !localStorage.getItem('agGuest_v1');
+                } else {
+                    var lock = localStorage.getItem('agLockStart_v1') !== '0';
+                    var sess = localStorage.getItem('agFirmaSess_v1');
+                    need = lock || !sess;
+                }
+            } catch (e) { need = false; }
+            if (!need) return;
+            document.documentElement.classList.add('ag-prelock');
+            // POJISTKA MUSI BYT TADY, ne v ucty.js: kdyby se ucty.js nenacetl,
+            // jeho vlastni failsafe by nedobehl a uzivatel by koukal na prazdnou
+            // obrazovku. Kdyz do 8 s neni videt brana ani prihlaseni, odemkni.
+            setTimeout(function () {
+                try {
+                    if (document.getElementById('ag-gate') || document.getElementById('ag-login')) return;
+                    document.documentElement.classList.remove('ag-prelock');
+                } catch (e) {}
+            }, 8000);
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->

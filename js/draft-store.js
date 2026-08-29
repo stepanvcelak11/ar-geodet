@@ -103,13 +103,19 @@
     }
     // po startu appky (tlačítko Start na welcome) — čekej na body.app-started
     var _resumeShown = false;
-    var _startPoll = setInterval(function () {
-        if (_resumeShown) { clearInterval(_startPoll); return; }
-        if (document.body && document.body.classList.contains('app-started')) {
-            _resumeShown = true; clearInterval(_startPoll);
-            setTimeout(showResumeBar, 1200);
-        }
-    }, 500);
+    // Misto pollu 2x/s cekame na udalost z grafika.js. Fallback na tridu je tu
+    // proto, ze tenhle modul se muze nacist AZ PO startu appky (lazy-load) a
+    // udalost by mu utekla. Zamerne bez zavislosti na jinem modulu - vrstva
+    // zustava odpojitelna.
+    function _onAppStarted(fn) {
+        if (document.body && document.body.classList.contains('app-started')) { fn(); return; }
+        window.addEventListener('ag:app-started', function () { fn(); }, { once: true });
+    }
+    _onAppStarted(function () {
+        if (_resumeShown) return;
+        _resumeShown = true;
+        setTimeout(showResumeBar, 1200);
+    });
 
     // ---- rozepsaný modál „Nový bod“ (jádrová pole v index.html) -------------------
     var NP_KEY = 'novy-bod';

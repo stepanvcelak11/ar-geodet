@@ -482,6 +482,18 @@ if ('serviceWorker' in navigator) {
         
         // Stazeni mapovych dlazdic (OSM, zoom 15-17) pro oblast do TILE_CACHE, aby mapa fungovala offline.
         // Vraci podrobny vysledek vc. duvodu selhani — at nezustava nejasne "ulozeno X z Y".
+        // STAHOVANI DLAZDIC S TIMEOUTEM. Bez nej se na mizerne siti jedno viseci
+        // spojeni nikdy nevrati, cely blok Promise.all na nem uvizne a ukazatel
+        // prubehu zamrzne uprostred (u 3000 dlazdic nadobro).
+        // ZAMERNE to NENI fetchWithTimeout() nize: ta pri chybe nastavuje
+        // lastFetchNetworkError, coz je priznak stahovani BODU z CUZK - dlazdice
+        // by tim lhaly do hlaseni chyb u bodu.
+        function _fetchTile(url, opts, ms = 8000) {
+            const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), ms);
+            const o = Object.assign({}, opts, { signal: ctrl.signal });
+            return fetch(url, o).finally(() => clearTimeout(t));
+        }
+
         // Offline ulozeni WMS dlazdic (katastr KN / ortofoto) pro oblast. URL generujeme PRES Leaflet
         // getTileUrl teze vrstvy, kterou appka pouziva -> adresy se PRESNE shoduji s tim, co appka
         // pozdeji zada, takze je SW offline najde (jinak by cache-miss = prazdna mapa). Setrime CUZK:
@@ -508,7 +520,7 @@ if ('serviceWorker' in navigator) {
                 const chunk = urls.slice(i, i + 8);
                 await Promise.all(chunk.map(async u => {
                     // WMS dlazdice jsou cross-origin bez CORS -> no-cors (opaque), cachovat lze.
-                    try { const r = await fetch(u, { mode: 'no-cors' }); try { await cache.put(u, r); out.ok++; } catch (e) { out.quota++; } }
+                    try { const r = await _fetchTile(u, { mode: 'no-cors' }); try { await cache.put(u, r); out.ok++; } catch (e) { out.quota++; } }
                     catch (e) { out.net++; }
                 }));
             }
@@ -536,7 +548,7 @@ if ('serviceWorker' in navigator) {
                 const chunk = urls.slice(i, i + 10);
                 await Promise.all(chunk.map(async url => {
                     try {
-                        const response = await fetch(url, { mode: 'cors' });
+                        const response = await _fetchTile(url, { mode: 'cors' });
                         if (response.ok) { try { await cache.put(url, response); ok++; } catch (e) { quota++; } }
                         else http++;
                     } catch (e) { net++; }

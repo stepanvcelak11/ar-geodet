@@ -317,13 +317,19 @@
 
     // po startu appky (tlačítko Start na welcome) — čekej na body.app-started
     var _started = false;
-    var _startPoll = setInterval(function () {
-        if (_started) { clearInterval(_startPoll); return; }
-        if (document.body && document.body.classList.contains('app-started')) {
-            _started = true; clearInterval(_startPoll);
-            setTimeout(startupCheck, 1500);
-        }
-    }, 500);
+    // Misto pollu 2x/s cekame na udalost z grafika.js. Fallback na tridu je tu
+    // proto, ze tenhle modul se muze nacist AZ PO startu appky (lazy-load) a
+    // udalost by mu utekla. Zamerne bez zavislosti na jinem modulu - vrstva
+    // zustava odpojitelna.
+    function _onAppStarted(fn) {
+        if (document.body && document.body.classList.contains('app-started')) { fn(); return; }
+        window.addEventListener('ag:app-started', function () { fn(); }, { once: true });
+    }
+    _onAppStarted(function () {
+        if (_started) return;
+        _started = true;
+        setTimeout(startupCheck, 1500);
+    });
 
     // periodicky: badge na dlaždici + hlídání modalu (obojí levné, data s cache 30 s)
     (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(function () {

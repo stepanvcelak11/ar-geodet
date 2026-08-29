@@ -24,6 +24,26 @@
         'agGeoOverlay': { store: 'kv', schema: function (db) { db.createObjectStore('kv'); } },
         'arGeodetFotky': { store: 'fotky', schema: function (db) { db.createObjectStore('fotky'); } }
     };
+    // KLICE, KTERE DO ZALOHY NESMI. Zaloha je jeden JSON, ktery uzivatel posila
+    // mailem nebo AirDropem - drive s ni odchazel i PRISTUP K FIREMNIMU UCTU:
+    //   agFirmaTok_v1   ... Bearer token tohoto zarizeni (plati 60 dni)
+    //   agFirmaOff_v1   ... sul + PBKDF2 hash hesla (offline overovadlo)
+    //   agFirmaBio_v1   ... navazani na Face ID / odemknuti telefonem
+    //   agFirmaTrust_v1 ... pamatovane prihlaseni
+    //   agFirmaSess_v1  ... aktivni prihlaseni
+    //   agFirmaLastUser_v1 / agFirmaDevUsers_v1 ... kdo se na TOMHLE telefonu prihlasil
+    //   agLoginFail_v1  ... brzda proti hadani hesla (obnovou by sla obejit)
+    // Vsechny jsou navic vazane na konkretni telefon, takze v jinem zarizeni
+    // stejne nedavaji smysl. agFirma_v1 (konfigurace firmy) v zaloze ZUSTAVA -
+    // bez ni by obnova firemnimu uzivateli appku nerozchodila.
+    // POZOR: seznam je vyctem, ne prefixem 'agFirma' - ten by sebral i agFirma_v1.
+    const SECRET_KEYS = [
+        'agFirmaTok_v1', 'agFirmaOff_v1', 'agFirmaBio_v1', 'agFirmaTrust_v1',
+        'agFirmaSess_v1', 'agFirmaLastUser_v1', 'agFirmaDevUsers_v1',
+        'agLoginFail_v1'
+    ];
+    function isSecretKey(k) { return SECRET_KEYS.indexOf(k) >= 0; }
+
     function _openDb(name, cfg) {
         return new Promise(function (res) {
             var r; try { r = indexedDB.open(name, 1); } catch (e) { return res(null); }
@@ -68,7 +88,11 @@
 
     window.exportAllData = async function () {
         const data = {};
-        for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); data[k] = localStorage.getItem(k); }
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (isSecretKey(k)) continue;          // prihlasovaci udaje do souboru nepatri
+            data[k] = localStorage.getItem(k);
+        }
         const idb = (typeof idbDumpAll === 'function') ? await idbDumpAll() : {};
         const extra = {};
         for (const name of Object.keys(EXTRA_DBS)) {
@@ -122,7 +146,10 @@
             for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); snapshot[k] = localStorage.getItem(k); }
             try {
                 localStorage.clear();
-                keys.forEach(k => { if (typeof payload.data[k] === 'string') localStorage.setItem(k, payload.data[k]); });
+                keys.forEach(k => { if (!isSecretKey(k) && typeof payload.data[k] === 'string') localStorage.setItem(k, payload.data[k]); });
+                // Prihlaseni patri TOMUHLE telefonu, ne zaloze: stara (nebo cizi)
+                // zaloha nesmi podstrcit svuj token ani odhlasit toho, kdo obnovuje.
+                SECRET_KEYS.forEach(k => { if (typeof snapshot[k] === 'string') localStorage.setItem(k, snapshot[k]); });
             } catch (err) {
                 try { localStorage.clear(); Object.keys(snapshot).forEach(k => localStorage.setItem(k, snapshot[k])); } catch (e2) {}
                 agInfo('Obnova se nezdařila (úložiště plné?), původní data byla vrácena beze změny: ' + ((err && err.message) ? err.message : err));
