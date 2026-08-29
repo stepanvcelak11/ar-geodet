@@ -183,7 +183,12 @@ test('sbalitelný nástroj: vytyčení přímky běží dál v proužku', async 
     const modal = page.locator('#agsl-modal');
     await expect(modal).toBeVisible();
 
-    const collapse = modal.locator('.ag-mini-btn');
+    // Tlačítko „Sbalit" se 29. 8. 2026 z pilulky v hlavičce (.ag-mini-btn) změnilo
+    // na kulaté vedle křížku (.ag-mini-fab) — viz js/mini-panel.js. Test na starou
+    // třídu padal a s ním celý workflow včetně nasazení na Pages, přestože appka
+    // byla v pořádku. Bereme obě jména, ať přejmenování shodí test až tehdy, když
+    // tlačítko opravdu zmizí.
+    const collapse = modal.locator('.ag-mini-fab, .ag-mini-btn');
     await expect(collapse).toBeVisible();
     await collapse.click();
 
