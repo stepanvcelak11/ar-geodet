@@ -23,6 +23,8 @@ body.outdoor-mode {
     --surface-3: rgba(255, 255, 255, 0.20);
     --text-muted: #dfe3ee;
     --text-faint: #c3c9d6;
+    --border: rgba(255, 255, 255, 0.55);
+    --border-color: rgba(255, 255, 255, 0.55);
     --panel-opacity: 1;
     --accent: #3eb487;          /* světlejší akcent — na slunci lépe vidět */
     --data: #f3cf8e;
@@ -42,11 +44,22 @@ body.light-mode.outdoor-mode {
     --text-color: #0b0e14;
     --text-muted: #2e3542;
     --text-faint: #4b5361;
+    --border: rgba(10, 14, 26, 0.45);
+    --border-color: rgba(10, 14, 26, 0.45);
+    --bg: #ffffff;
+    --bg-input: rgba(10, 14, 26, 0.06);
+    --input-bg: rgba(10, 14, 26, 0.06);
     --map-bg: #ffffff;
     --accent: #136448;
     --data: #7a4e0e;
     --panel-opacity: 1;
 }
+/* POZOR: tenhle seznam MUSÍ pokrývat všechno, co si style.css ve venkovním režimu
+   natvrdo tmaví na #0a0e1a. Co tu chybí, zůstane ČERNÉ, ale text se řídí světlým
+   --text-color (#0b0e14) → tmavý text na tmavém podkladu, kontrast 1,0:1.
+   Takhle byl nečitelný celý panel „Mapa a vrstvy" (#map-sheet) i jeho přepínač
+   (#map-ctrl-toggle) a štítky transformace (.tfm-label) — viz style.css, pravidla
+   „venkovní režim: vysoký kontrast jako ostatní panely". */
 body.light-mode.outdoor-mode .glass-panel,
 body.light-mode.outdoor-mode #view-seg,
 body.light-mode.outdoor-mode .dock-btn:not(.dock-primary),
@@ -54,6 +67,9 @@ body.light-mode.outdoor-mode .modal-content,
 body.light-mode.outdoor-mode #bottom-sheet,
 body.light-mode.outdoor-mode #hud-editor,
 body.light-mode.outdoor-mode #side-menu,
+body.light-mode.outdoor-mode #map-sheet,
+body.light-mode.outdoor-mode #map-ctrl-toggle,
+body.light-mode.outdoor-mode .tfm-label,
 body.light-mode.outdoor-mode #ar-hud-info {
     background: #ffffff !important;
     color: var(--text-color) !important;

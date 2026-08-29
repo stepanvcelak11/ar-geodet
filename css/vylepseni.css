@@ -110,7 +110,7 @@
     line-height: 1.5;
     color: var(--text-muted, #aab2c8);
 }
-#ag-gps-note b { color: #fbbf24; }
+#ag-gps-note b { color: var(--warning, #fbbf24); }
 
 /* --------------------------------------------------------------------------------
    3) Indikátor zaplnění úložiště (Nastavení → Funkce a Data)

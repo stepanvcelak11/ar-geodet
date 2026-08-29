@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v258';   // gesta jako zkratky na nastroje
+const SHELL_CACHE = 'argeodet-shell-v259';   // prepinani firem, AR sipka pri navigaci, svetly rezim
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -31,9 +31,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=258',
-    './css/style.css?v=258',
-    './css/vylepseni.css?v=258',
+    './css/tokens.css?v=259',
+    './css/style.css?v=259',
+    './css/vylepseni.css?v=259',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
@@ -82,6 +82,8 @@ const ASSETS_TO_CACHE = [
     './js/kos.js',
     './js/zakazky.js',
     './js/zakazka-sablony.js',
+    './js/zmenit-zakazku.js',
+    './js/co-je-noveho.js',
     './js/pruvodce.js',
     './js/sdileni.js',
     './js/tachymetrie.js',
@@ -196,6 +198,7 @@ const ASSETS_TO_CACHE = [
     './js/mini-panel.js',
     './data/zpravodaj.json',
     './data/predpisy.json',
+    './data/co-je-noveho.json',
     './js/lib/qrcode.min.js',
     './js/lib/jsqr.min.js',
     './fonts/inter-var-latin.woff2',

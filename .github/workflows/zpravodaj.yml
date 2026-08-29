@@ -9,7 +9,8 @@ on:
 
 permissions:
   contents: write   # aby bot mohl commitnout nové vydání
-  models: read      # přístup k GitHub Models pro GITHUB_TOKEN
+  # `models: read` už netřeba — GitHub Models je retired (HTTP 410), vydání se
+  # skládá pravidlově z RSS. Podrobně v hlavičce scripts/build-zpravodaj.mjs.
 
 concurrency:
   group: zpravodaj
@@ -31,10 +32,11 @@ jobs:
 
       - name: Sestavit vydání
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Volitelné: když GITHUB_TOKEN nemá k Models přístup, vlož PAT s oprávněním Models
-          # jako repo secret MODELS_TOKEN — skript ho upřednostní.
-          MODELS_TOKEN: ${{ secrets.MODELS_TOKEN }}
+          # VOLITELNÉ a ve výchozím stavu PRÁZDNÉ: bez klíče se vydání složí
+          # pravidlově z RSS — zdarma, bez jakéhokoli API. Kdo bude chtít zpět
+          # české shrnutí cizojazyčných zpráv, přidá repo secret ANTHROPIC_API_KEY;
+          # skript si ho vezme sám a při selhání API se tiše vrátí k pravidlům.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: node scripts/build-zpravodaj.mjs
 
       - name: Commitnout, pokud se vydání změnilo

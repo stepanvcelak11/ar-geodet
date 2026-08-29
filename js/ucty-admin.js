@@ -58,14 +58,14 @@
             '#agfa-modal .agfa-chip.c-accent{background:var(--accent-soft,rgba(47,158,116,0.14));color:var(--accent,#2f9e74);}',
             '#agfa-modal .agfa-chip.c-admin{background:rgba(212,160,44,0.13);color:#d4a02c;}',
             '#agfa-modal .agfa-chip.c-vedeni{background:rgba(74,158,218,0.13);color:#4a9eda;}',
-            '#agfa-modal .agfa-mini{border:1px solid var(--glass-border,rgba(255,255,255,0.16));background:var(--glass-bg,rgba(255,255,255,0.03));color:var(--text,#e6e8eb);',
+            '#agfa-modal .agfa-mini{border:1px solid var(--glass-border,rgba(255,255,255,0.16));background:var(--glass-bg,rgba(255,255,255,0.03));color:var(--text-color,#e6e8eb);',
             '  border-radius:10px;padding:8px 11px;font:600 12px/1 var(--font-ui,system-ui);cursor:pointer;transition:border-color .15s ease,transform .12s ease;}',
             '#agfa-modal .agfa-mini:active{transform:scale(.96);border-color:var(--accent,#2f9e74);}',
             '#agfa-modal .agfa-mini.danger{color:var(--danger,#e5534b);border-color:rgba(229,83,75,0.4);}',
             '#agfa-modal label.agfa-lb{display:block;font:600 12px/1.3 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);margin:10px 0 4px;}',
             '#agfa-modal input[type=text],#agfa-modal input[type=password],#agfa-modal input[type=number],#agfa-modal select{width:100%;box-sizing:border-box;',
             '  background:var(--glass-bg,rgba(255,255,255,0.06));border:1px solid var(--glass-border,rgba(255,255,255,0.16));border-radius:11px;',
-            '  color:var(--text,#e6e8eb);padding:11px 12px;font:500 14px/1.2 var(--font-ui,system-ui);outline:none;transition:border-color .15s ease,box-shadow .15s ease;}',
+            '  color:var(--text-color,#e6e8eb);padding:11px 12px;font:500 14px/1.2 var(--font-ui,system-ui);outline:none;transition:border-color .15s ease,box-shadow .15s ease;}',
             '#agfa-modal input:focus,#agfa-modal select:focus{border-color:var(--accent,#2f9e74);box-shadow:0 0 0 3px var(--accent-soft,rgba(47,158,116,0.18));}',
             '#agfa-modal .agfa-perm{display:flex;align-items:center;gap:10px;padding:8px 2px;}',
             '#agfa-modal .agfa-perm input{width:19px;height:19px;accent-color:var(--accent,#2f9e74);}',
@@ -76,7 +76,7 @@
             '#agfa-modal .agfa-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;margin:10px 0;}',
             '#agfa-modal .agfa-card{background:var(--glass-bg,rgba(255,255,255,0.04));border:1px solid var(--glass-border,rgba(255,255,255,0.09));border-radius:13px;padding:11px 12px;',
             '  border-top:2px solid var(--accent-soft,rgba(47,158,116,0.35));}',
-            '#agfa-modal .agfa-card b{display:block;font:800 20px/1.2 var(--font-display,system-ui);color:var(--text,#e6e8eb);}',
+            '#agfa-modal .agfa-card b{display:block;font:800 20px/1.2 var(--font-display,system-ui);color:var(--text-color,#e6e8eb);}',
             '#agfa-modal .agfa-card span{font:600 10.5px/1.3 var(--font-ui,system-ui);letter-spacing:.02em;color:var(--text-muted,#9aa1ac);}',
             // tabulky: zebra + zaoblený rám
             '#agfa-modal table.agfa-tbl{width:100%;border-collapse:collapse;font:500 12.5px/1.35 var(--font-ui,system-ui);margin:6px 0;}',
@@ -92,15 +92,15 @@
             '#agfa-modal .agc-bar.warn{fill:#d4a02c;}',
             '#agfa-modal .agc-axis{stroke:var(--glass-border,rgba(255,255,255,0.18));stroke-width:1;}',
             '#agfa-modal .agc-x{fill:var(--text-muted,#9aa1ac);font:500 10px var(--font-ui,system-ui);}',
-            '#agfa-modal .agc-v{fill:var(--text,#e6e8eb);font:700 10.5px var(--font-ui,system-ui);}',
-            '#agfa-modal .agc-nm{fill:var(--text,#e6e8eb);font:600 11px var(--font-ui,system-ui);}',
+            '#agfa-modal .agc-v{fill:var(--text-color,#e6e8eb);font:700 10.5px var(--font-ui,system-ui);}',
+            '#agfa-modal .agc-nm{fill:var(--text-color,#e6e8eb);font:600 11px var(--font-ui,system-ui);}',
             // vytížení serveru: vodorovný ukazatel limitu
             '#agfa-modal .agfa-meter{height:10px;border-radius:999px;background:var(--glass-bg,rgba(255,255,255,0.07));overflow:hidden;margin:6px 0 4px;}',
             '#agfa-modal .agfa-meter>i{display:block;height:100%;border-radius:999px;background:var(--accent,#2f9e74);min-width:2px;}',
             '#agfa-modal .agfa-meter>i.warn{background:#d4a02c;}',
             '#agfa-modal .agfa-meter>i.crit{background:var(--danger,#e5534b);}',
             // rozpis docházky
-            '#agfa-modal .agfa-shift-day{font:700 12px/1 var(--font-ui,system-ui);color:var(--text,#e6e8eb);margin:12px 0 2px;}',
+            '#agfa-modal .agfa-shift-day{font:700 12px/1 var(--font-ui,system-ui);color:var(--text-color,#e6e8eb);margin:12px 0 2px;}',
             // hlavička: kterou firmu právě spravuju (+ přepnutí)
             '#agfa-modal .agfa-firmbar{display:none;}',
             '#agfa-modal .agfa-firmbar.on{display:flex;align-items:center;gap:10px;margin:0 0 10px;padding:10px 12px;border-radius:13px;',
@@ -109,14 +109,14 @@
             '  color:var(--accent,#2f9e74);background:var(--glass-bg,rgba(255,255,255,0.06));}',
             '#agfa-modal .agfa-fb-ico svg{width:16px;height:16px;}',
             '#agfa-modal .agfa-fb-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}',
-            '#agfa-modal .agfa-fb-txt b{font:700 13.5px/1.25 var(--font-ui,system-ui);color:var(--text,#e6e8eb);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+            '#agfa-modal .agfa-fb-txt b{font:700 13.5px/1.25 var(--font-ui,system-ui);color:var(--text-color,#e6e8eb);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
             '#agfa-modal .agfa-fb-txt span{font:500 11px/1.25 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
             // řádek uživatele: identita nahoře, akce pod tím zprava (urovnané)
             '#agfa-modal .agfa-urow{padding:11px 6px;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.07));}',
             '#agfa-modal .agfa-urow:last-child{border-bottom:none;}',
             '#agfa-modal .agfa-uid{display:flex;align-items:center;gap:10px;}',
             '#agfa-modal .agfa-unm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}',
-            '#agfa-modal .agfa-unm b{font:700 13.5px/1.25 var(--font-ui,system-ui);color:var(--text,#e6e8eb);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+            '#agfa-modal .agfa-unm b{font:700 13.5px/1.25 var(--font-ui,system-ui);color:var(--text-color,#e6e8eb);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
             '#agfa-modal .agfa-usub{font:500 11px/1.25 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
             '#agfa-modal .agfa-uact{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;margin-top:9px;}',
             '#agfa-modal .agfa-uact .agfa-mini{flex:1 1 auto;min-width:92px;text-align:center;}',
@@ -128,7 +128,7 @@
             '#agfa-modal .agfa-ava-sw{width:38px;height:38px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;}',
             '#agfa-modal .agfa-ava-sw.on{border-color:var(--accent,#2f9e74);box-shadow:0 0 0 3px var(--accent-soft,rgba(47,158,116,0.25));}',
             '#agfa-modal .agfa-ava-em{width:42px;height:42px;border-radius:12px;border:1px solid var(--glass-border,rgba(255,255,255,0.16));',
-            '  background:var(--glass-bg,rgba(255,255,255,0.04));color:var(--text,#e6e8eb);font-size:calc(20px * var(--ag-font-scale, 1));line-height:1;cursor:pointer;padding:0;}',
+            '  background:var(--glass-bg,rgba(255,255,255,0.04));color:var(--text-color,#e6e8eb);font-size:calc(20px * var(--ag-font-scale, 1));line-height:1;cursor:pointer;padding:0;}',
             '#agfa-modal .agfa-ava-em.on{border-color:var(--accent,#2f9e74);box-shadow:0 0 0 3px var(--accent-soft,rgba(47,158,116,0.25));}',
             // pojistka rozložení: obsah modálu je sloupec, tělo se roztahuje a scrolluje
             // (bez toho se v některých prohlížečích obsah hroutil a tlačítka „skákala")
@@ -137,14 +137,14 @@
             // Přehled (admin centrum): rychlé akce + lidé + chat + server na jedné stránce
             '#agfa-modal .agfa-qa{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px;margin:8px 0;}',
             '#agfa-modal .agfa-qa button{display:flex;align-items:center;gap:8px;justify-content:flex-start;border:1px solid var(--glass-border,rgba(255,255,255,0.12));',
-            '  background:var(--glass-bg,rgba(255,255,255,0.04));color:var(--text,#e6e8eb);border-radius:12px;padding:11px 12px;',
+            '  background:var(--glass-bg,rgba(255,255,255,0.04));color:var(--text-color,#e6e8eb);border-radius:12px;padding:11px 12px;',
             '  font:600 12.5px/1.2 var(--font-ui,system-ui);cursor:pointer;transition:border-color .15s ease,transform .12s ease;}',
             '#agfa-modal .agfa-qa button:active{transform:scale(.96);border-color:var(--accent,#2f9e74);}',
             '#agfa-modal .agfa-qa button svg{width:16px;height:16px;flex:none;color:var(--accent,#2f9e74);}',
             '#agfa-modal .agfa-person-sub{font:500 11px/1.3 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);display:block;}',
             '#agfa-modal .agfa-chatprev{background:var(--glass-bg,rgba(255,255,255,0.03));border:1px solid var(--glass-border,rgba(255,255,255,0.08));',
             '  border-radius:13px;padding:8px 12px;margin:8px 0;}',
-            '#agfa-modal .agfa-chatprev .r{display:flex;gap:8px;padding:5px 0;font:500 12.5px/1.4 var(--font-ui,system-ui);color:var(--text,#e6e8eb);border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.06));}',
+            '#agfa-modal .agfa-chatprev .r{display:flex;gap:8px;padding:5px 0;font:500 12.5px/1.4 var(--font-ui,system-ui);color:var(--text-color,#e6e8eb);border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.06));}',
             '#agfa-modal .agfa-chatprev .r:last-child{border-bottom:none;}',
             '#agfa-modal .agfa-chatprev .w{font-weight:700;flex:none;}',
             '#agfa-modal .agfa-chatprev .m{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-muted,#9aa1ac);}'
@@ -416,7 +416,7 @@
                     (r.data.days || []).forEach(function (x) { if (x.day === r.data.today) n = x.n; });
                     var pct = Math.min(100, n / lim * 100);
                     var cls = pct >= 80 ? 'crit' : (pct >= 50 ? 'warn' : '');
-                    el.innerHTML = '<b style="color:var(--text,#e6e8eb);">Dnes ' + n.toLocaleString('cs-CZ') + '</b> ze ' + lim.toLocaleString('cs-CZ') +
+                    el.innerHTML = '<b style="color:var(--text-color,#e6e8eb);">Dnes ' + n.toLocaleString('cs-CZ') + '</b> ze ' + lim.toLocaleString('cs-CZ') +
                         ' požadavků = <b>' + (Math.round(pct * 10) / 10).toLocaleString('cs-CZ') + ' %</b> denního limitu (free plán)' +
                         '<div class="agfa-meter"><i class="' + cls + '" style="width:' + Math.max(1, pct).toFixed(1) + '%"></i></div>' +
                         'Zelená = pohoda, žlutá od 50 %, červená od 80 %. Graf po dnech a počty záznamů jsou v sekci Firma.';
@@ -1867,7 +1867,7 @@
             });
             var rows = d.rows || {};
             el.innerHTML =
-                '<b style="color:var(--text,#e6e8eb);">Dnes ' + todayN.toLocaleString('cs-CZ') + '</b> z ' + lim.toLocaleString('cs-CZ') +
+                '<b style="color:var(--text-color,#e6e8eb);">Dnes ' + todayN.toLocaleString('cs-CZ') + '</b> z ' + lim.toLocaleString('cs-CZ') +
                 ' požadavků za den (' + (Math.round(pct * 10) / 10).toLocaleString('cs-CZ') + ' %, ' + esc((d.limits && d.limits.plan) || 'free') + ')' +
                 '<div class="agfa-meter"><i class="' + cls + '" style="width:' + Math.max(1, pct).toFixed(1) + '%"></i></div>' +
                 (cols.length > 1 ? '<div class="agc-wrap">' + svgCols(cols, { h: 90 }) + '</div>' : '') +
@@ -1963,6 +1963,28 @@
         // POZOR: musí umět i UKÁZAT — dřív jen skrývala, takže když se vyhodnotila
         // před přihlášením (zámek při startu: firma je, uživatel ještě ne), dlaždice
         // zmizela i adminovi a vrátila se až s překreslením mřížky Nástrojů.
+        // PŘEPNUTÍ FIRMY: administrace patří JEDNÉ firmě — po přepnutí v ní visela
+        // celá předchozí (zelený pruh, seznam uživatelů, oprávnění, docházka), jen
+        // překrytá přihlašovací obrazovkou. Kdo se pak přihlásil do nové firmy,
+        // koukal na účty té staré a vypadalo to, že přepnutí nefunguje a že se
+        // nedá dostat zpět. Panel proto zavřeme a příště se postaví od nuly —
+        // renderNav() si sekci i oprávnění spočítá znovu podle nové firmy.
+        window.addEventListener('agucty:firmswitch', function () {
+            try {
+                var m = document.getElementById('agfa-modal');
+                if (m) m.style.display = 'none';
+                var b = document.getElementById('agfa-body'); if (b) { b.innerHTML = ''; b.onclick = null; b.onchange = null; }
+                var bar = document.getElementById('agfa-firmbar'); if (bar) { bar.innerHTML = ''; bar.className = 'agfa-firmbar'; }
+                var nav = document.getElementById('agfa-nav'); if (nav) nav.innerHTML = '';
+                _section = 'uzivatele';
+                _limitTs = 0;      // limit serveru se ptá znovu, jde o jinou firmu
+            } catch (e) {}
+        });
+        // Odhlášení / zamknutí appky má stejný důvod: co zůstane pod přihlašovací
+        // obrazovkou, přečte si kdokoli, kdo telefon vezme do ruky.
+        window.addEventListener('agucty:logout', function () {
+            try { var m = document.getElementById('agfa-modal'); if (m) m.style.display = 'none'; } catch (e) {}
+        });
         window.addEventListener('agucty:perms', function () {
             try {
                 var u = U(); if (!u) return;

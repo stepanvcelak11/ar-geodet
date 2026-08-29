@@ -42,7 +42,7 @@
             '#agch-to{display:flex;gap:6px;flex-wrap:wrap;flex:none;padding:0 0 8px;align-items:center;}',
             '#agch-to .agch-tolabel{font:700 10.5px/1 var(--font-ui,system-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);margin-right:2px;}',
             '#agch-to button .cnt{display:inline-block;margin-left:5px;min-width:15px;height:15px;border-radius:999px;background:var(--glass-bg,rgba(255,255,255,0.12));',
-            '  color:var(--text,#e6e8eb);font:700 10px/15px var(--font-ui,system-ui);text-align:center;padding:0 3px;}',
+            '  color:var(--text-color,#e6e8eb);font:700 10px/15px var(--font-ui,system-ui);text-align:center;padding:0 3px;}',
             '#agch-to button svg{width:11px;height:11px;margin-right:3px;vertical-align:-1px;}',
             // pruh „píšeš soukromě" + odkazy na soukromá vlákna
             '#agch-bar{flex:none;display:none;align-items:center;gap:8px;margin:0 0 8px;padding:8px 11px;border-radius:11px;',
@@ -66,7 +66,7 @@
             '#agch-modal .agch-msg.mine{align-self:flex-end;align-items:flex-end;}',
             '#agch-modal .agch-meta{display:flex;align-items:center;gap:6px;font:600 10.5px/1 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);padding:0 4px;}',
             '#agch-modal .agch-meta .who{font-weight:700;}',
-            '#agch-modal .agch-bubble{border-radius:14px;padding:9px 12px;font:500 13.5px/1.45 var(--font-ui,system-ui);color:var(--text,#e6e8eb);',
+            '#agch-modal .agch-bubble{border-radius:14px;padding:9px 12px;font:500 13.5px/1.45 var(--font-ui,system-ui);color:var(--text-color,#e6e8eb);',
             '  background:var(--glass-bg,rgba(255,255,255,0.06));border:1px solid var(--glass-border,rgba(255,255,255,0.09));',
             '  border-bottom-left-radius:5px;word-break:break-word;white-space:pre-wrap;}',
             '#agch-modal .mine .agch-bubble{background:var(--accent-soft,rgba(47,158,116,0.16));border-color:var(--accent-line,rgba(47,158,116,0.35));',
@@ -74,7 +74,7 @@
             '#agch-modal .agch-empty{align-self:center;text-align:center;font:500 12px/1.5 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);margin:22px 10px;}',
             '#agch-modal .agch-inrow{display:flex;gap:8px;margin-top:10px;flex:none;}',
             '#agch-modal .agch-inrow textarea{flex:1;resize:none;height:44px;box-sizing:border-box;background:var(--glass-bg,rgba(255,255,255,0.06));',
-            '  border:1px solid var(--glass-border,rgba(255,255,255,0.16));border-radius:12px;color:var(--text,#e6e8eb);padding:11px 12px;',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.16));border-radius:12px;color:var(--text-color,#e6e8eb);padding:11px 12px;',
             '  font:500 14px/1.3 var(--font-ui,system-ui);outline:none;transition:border-color .15s ease;}',
             '#agch-modal .agch-inrow textarea:focus{border-color:var(--accent,#2f9e74);}',
             '#agch-modal .agch-send{flex:none;width:48px;height:44px;border:none;border-radius:12px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;',
@@ -98,7 +98,7 @@
             '#agch-picker .modal-content{display:flex;flex-direction:column;}',
             '#agch-picker .modal-body{min-height:0;}',
             '#agch-picker .agch-pk-row{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.07));',
-            '  font:500 13px/1.3 var(--font-ui,system-ui);color:var(--text,#e6e8eb);}',
+            '  font:500 13px/1.3 var(--font-ui,system-ui);color:var(--text-color,#e6e8eb);}',
             '#agch-picker .agch-pk-row input{width:18px;height:18px;accent-color:var(--accent,#2f9e74);}',
             '#agch-picker .agch-pk-row span{color:var(--text-muted,#9aa1ac);font-size:calc(11px * var(--ag-font-scale, 1));}'
         ].join('\n');

@@ -57,7 +57,7 @@
         st.textContent = [
             '.ag-parky{display:block;width:100%;text-align:left;margin:0 0 12px;padding:10px 12px;cursor:pointer;',
             '  border:1px dashed var(--accent-line,rgba(47,158,116,0.45));border-radius:10px;',
-            '  background:var(--accent-soft,rgba(47,158,116,0.12));color:var(--text,#e6eaf0);',
+            '  background:var(--accent-soft,rgba(47,158,116,0.12));color:var(--text-color,#e6eaf0);',
             '  font:400 calc(12.5px * var(--ag-font-scale, 1))/1.45 var(--font-ui,system-ui),sans-serif;}',
             '.ag-parky b{color:var(--accent,#2f9e74);}',
             '.ag-parky:active{filter:brightness(1.15);}'

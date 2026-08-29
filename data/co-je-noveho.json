@@ -1,0 +1,62 @@
+{
+  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
+  "verze": [
+    {
+      "v": 259,
+      "datum": "2026-08-29",
+      "nadpis": "Přepínání firem, AR navigace a světlý režim",
+      "body": [
+        "Přepnutí firmy už nenechá v administraci viset předchozí firmu — po přepnutí se panel zavře a otevře se znovu už s tou novou (dřív to vypadalo, že přepnutí nefunguje).",
+        "Nová dlaždice <b>Změnit zakázku</b> v Nástrojích (Pomůcky) — přepnutí zakázky jedním klepnutím bez odcházení od rozdělané práce.",
+        "AR navigace: šipka a vzdálenost se ukážou i tehdy, když je navigovaný bod schovaný filtrem, hledáním nebo příznakem „skrýt“. Dřív v takovém případě navigace běžela jen v mapě.",
+        "Světlý režim: opraveno 38 míst, kde byl text nečitelný — tlačítka, varování, panel „Mapa a vrstvy“ na slunci, okna Předpisů, Seznamu souřadnic a Zpravodaje.",
+        "U lišty „Nová verze“ přibyla roletka <b>Co je nového</b> (tohle okno)."
+      ]
+    },
+    {
+      "v": 258,
+      "datum": "2026-08-29",
+      "nadpis": "Gesta jako zkratky na nástroje",
+      "body": [
+        "Nakreslením gesta po displeji otevřeš zvolený nástroj — nastavíš si v Nastavení."
+      ]
+    },
+    {
+      "v": 257,
+      "datum": "2026-08-29",
+      "nadpis": "Sbalování, náčrty, jedna záloha, přesnější počasí",
+      "body": [
+        "Sbalit jde teď u všech nástrojů, ne jen u některých.",
+        "Víc možností v náčrtu.",
+        "Zálohy sloučené do jedné.",
+        "Počasí se srovnává podle skutečného pozorování ze stanic."
+      ]
+    },
+    {
+      "v": 255,
+      "datum": "2026-08-09",
+      "nadpis": "Oprava čtení QR kódů",
+      "body": [
+        "Verze 254 rozbila čtení všech QR kódů — opraveno."
+      ]
+    },
+    {
+      "v": 254,
+      "datum": "2026-08-09",
+      "nadpis": "Čtyři opravy ze zpětné vazby z terénu",
+      "body": [
+        "Drobnosti nahlášené při práci venku."
+      ]
+    },
+    {
+      "v": 252,
+      "datum": "2026-08-09",
+      "nadpis": "Hodinky Garmin",
+      "body": [
+        "Do hodinek jdou i body ČÚZK stažené online, nejen vlastní.",
+        "Mapa v hodinkách dosáhne dál a je vidět, kolik bodů je vybraných.",
+        "Body měřené hodinkami se v mapě kreslí růžově a mají vlastní přepínač v seznamu."
+      ]
+    }
+  ]
+}

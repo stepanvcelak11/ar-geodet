@@ -111,6 +111,24 @@
 
     /* Neprůhledné pozadí celoobrazovkových modálů (jádro i moduly — držet stejné) */
     --modal-bg: rgba(14, 18, 24, 0.97);
+
+    /* ---- ALIASY pro jména, která moduly používaly, aniž by existovala ----------
+       Několik modulů psalo var(--bg-input, …), var(--border, …), var(--warn, …)…
+       Takový token NIKDY neexistoval, takže se vždy vzala náhradní hodnota za
+       čárkou — a ta je psaná pro TMAVOU plochu (bílé závoje, žlutá). Ve světlém
+       režimu z toho byly bílé rámečky na bílé a nečitelná varování; v tmavém to
+       vypadalo správně, proto si toho nikdo nevšiml.
+       Aliasy se proto definují tady a ZNOVU v body.light-mode — hodnota var()
+       uvnitř vlastní vlastnosti se dosazuje na prvku, kde je zapsaná, takže
+       `--border: var(--glass-border)` na :root by se ve světlém režimu NEZMĚNILO
+       (přesně na tohle doplatil i --accent-grad). Proto natvrdo psané hodnoty. */
+    --bg: #0f1216;
+    --bg-input: rgba(255, 255, 255, 0.06);
+    --input-bg: rgba(255, 255, 255, 0.06);
+    --border: rgba(255, 255, 255, 0.10);
+    --border-color: rgba(255, 255, 255, 0.10);
+    --warn: #fbbf24;
+    --warn-color: #fbbf24;
 }
 
 body.light-mode {
@@ -124,19 +142,53 @@ body.light-mode {
     --glass-border-strong: rgba(15, 23, 42, 0.18);
     --text-color: #141821;
     --text-muted: #5b626c;
-    --text-faint: #99a0aa;
+    --text-faint: #6b7280;   /* dřív #99a0aa = 2,48:1, nečitelné (počty v seznamu úkonů) */
     --map-bg: #e6e8ec;
-    --accent: #1f8a63;
+    /* BARVY MĚŘENÉ, NE ODHADNUTÉ. Tmavé odstíny nahoře jsou stavěné na tmavé ploše;
+       na světlé se z nich stane světlý text na světlém podkladu. Hodnoty níž mají
+       na --bg-color (#f4f5f7) i na --surface-2 kontrast ≥ 4,5:1 (WCAG AA) a zároveň
+       ≥ 4,5:1 pro BÍLÝ text na nich (plná tlačítka .btn-primary, aktivní segmenty). */
+    --accent: #177355;          /* dřív #1f8a63 = jen 3,95:1 na světlém pozadí */
     --accent-bright: #15724f;
     --accent-strong: #136448;
-    --accent2: #1f8a63;
-    --accent-soft: rgba(31, 138, 99, 0.12);
-    --accent-line: rgba(31, 138, 99, 0.38);
+    --accent2: #177355;
+    --accent-soft: rgba(23, 115, 85, 0.12);
+    --accent-line: rgba(23, 115, 85, 0.38);
     --accent-glow: 0 6px 16px rgba(20, 90, 65, 0.16);
-    --data: #a9701f;
-    --glow1: rgba(31, 138, 99, 0.12);
-    --glow2: rgba(169, 112, 31, 0.08);
-    --glow3: rgba(31, 138, 99, 0.05);
+    --data: #8a5a12;            /* dřív #a9701f = 3,83:1 */
+    --glow1: rgba(23, 115, 85, 0.12);
+    --glow2: rgba(138, 90, 18, 0.08);
+    --glow3: rgba(23, 115, 85, 0.05);
+
+    /* ---- tokeny, které světlý režim DŘÍV NEPŘEPISOVAL --------------------
+       Zůstávaly z :root, tedy v hodnotách pro tmavou plochu. Projevovalo se to
+       přesně tam, kde si uživatel stěžoval na „spoustu vizuálních chyb":
+         --accent-grad  plná tlačítka držela tmavý smaragd #2f9e74 (bílý text 3,35:1)
+         --danger       #fb7185 → světle růžová na bílé (2,16:1) — „Vymazat" se ztrácelo
+         --warning      #fbbf24 → žlutá na bílé (1,53:1) — varování prakticky neviditelná
+         --accent-blue  #93c5fd v .btn-blue (1,52:1) — „Uložit a další" nešlo přečíst
+         --modal-bg     TMAVÉ pozadí celoobrazovkových modálů modulů (Předpisy,
+                        Seznam souřadnic, Zpravodaj, Úkony, Závady) proti tmavému
+                        --text-color = tmavý text na tmavém podkladu
+         --shadow-*     stíny počítané na černou, na světlé ploše špinavý šedý flek */
+    --accent-grad: #177355;
+    --accent3: #8a5a12;
+    --accent-blue: #1d4ed8;
+    --warning: #8a5a00;
+    --danger: #c0322a;
+    --modal-bg: rgba(247, 248, 250, 0.98);
+    --shadow-1: 0 1px 3px rgba(15, 23, 42, 0.12);
+    --shadow-2: 0 10px 30px rgba(15, 23, 42, 0.16);
+    --shadow-pop: 0 14px 40px rgba(15, 23, 42, 0.20);
+
+    /* aliasy — viz komentář u :root (musí se přepsat i tady, var() by se nepropsalo) */
+    --bg: #f4f5f7;
+    --bg-input: rgba(15, 23, 42, 0.05);
+    --input-bg: rgba(15, 23, 42, 0.05);
+    --border: rgba(15, 23, 42, 0.12);
+    --border-color: rgba(15, 23, 42, 0.12);
+    --warn: #8a5a00;
+    --warn-color: #8a5a00;
 }
 
 /* Motiv „Aurora" (původní tyrkys–fialová) — nově jen volitelný, ne výchozí */

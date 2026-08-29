@@ -386,6 +386,11 @@
             fetchedTs: Date.now()
         };
         try { localStorage.setItem(LS_FIRM, JSON.stringify(f)); } catch (e) {}
+        // ZÁPIS MIMO saveFirm() → cache getFirm() se MUSÍ zneplatnit ručně. Bez toho
+        // vracel getFirm() až 500 ms PŘEDCHOZÍ firmu (viz FIRM_TTL): applyPerms() níž
+        // pak počítalo oprávnění ze staré firmy a refreshConfig() hned poté nenašel
+        // přihlášeného uživatele v nové konfiguraci → appka se sama odhlásila.
+        bustFirm();
         clearGuest();
         applyPerms();
     }
@@ -552,6 +557,12 @@
         PROF_KEYS.forEach(function (k) {
             try { if (p.snap[k] != null) localStorage.setItem(k, p.snap[k]); else localStorage.removeItem(k); } catch (e) {}
         });
+        // ZÁSADNÍ: konfiguraci jsme přepsali PŘÍMO v localStorage, mimo saveFirm().
+        // Bez zneplatnění cache vracel getFirm() ještě až 500 ms PŮVODNÍ firmu (FIRM_TTL),
+        // takže se pod hlavičkou nové firmy hledal SSO účet ve staré, applyPerms() počítalo
+        // stará oprávnění a showLogin() postavil přihlášení se jménem, kódem a dlaždicemi
+        // uživatelů PŘEDCHOZÍ firmy. Přesně proto „přepnu firmu a nedostanu se zpátky".
+        bustFirm();
         // stejný účet v cílové firmě? (jméno+PIN už tu jednou prošly) -> bez PINu
         var auto = null;
         if (wasLogged) {
@@ -1189,23 +1200,23 @@
             '.agl-mark svg .agl-spin{transform-origin:48px 48px;animation:aglspin 14s linear infinite;}',
             '@keyframes aglspin{to{transform:rotate(360deg)}}',
             '#ag-login .agl-hint,#ag-gate .agl-hint{font:500 12.5px/1.45 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);text-align:center;max-width:300px;}',
-            '#ag-login .agl-logo,#ag-gate .agl-logo{font:800 21px/1.2 var(--font-display,system-ui);color:var(--text,#e6e8eb);letter-spacing:.02em;}',
+            '#ag-login .agl-logo,#ag-gate .agl-logo{font:800 21px/1.2 var(--font-display,system-ui);color:var(--text-color,#e6e8eb);letter-spacing:.02em;}',
             '#ag-login .agl-logo b,#ag-gate .agl-logo b{color:var(--accent,#2f9e74);}',
             '#ag-login .agl-firm,#ag-gate .agl-firm{font:600 13.5px/1.45 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);max-width:340px;text-align:center;}',
             '#ag-login .agl-firmchip{display:inline-flex;align-items:center;gap:7px;background:var(--glass-bg,rgba(255,255,255,0.06));',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));border-radius:999px;padding:7px 14px;',
-            '  font:600 12.5px/1 var(--font-ui,system-ui);color:var(--text,#e6e8eb);}',
+            '  font:600 12.5px/1 var(--font-ui,system-ui);color:var(--text-color,#e6e8eb);}',
             '#ag-login .agl-firmchip .dot{width:7px;height:7px;border-radius:50%;background:var(--accent,#2f9e74);',
             '  box-shadow:0 0 9px var(--accent,#2f9e74);animation:aglpulse 2s infinite;}',
             '@keyframes aglpulse{50%{opacity:.35}}',
             '#ag-login .agl-firmchip .lock{color:var(--warn,#d4a02c);}',
             '#ag-login .agl-proj{font:500 12px/1.3 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);text-align:center;}',
-            '#ag-login .agl-proj b{color:var(--text,#e6e8eb);font-weight:700;}',
+            '#ag-login .agl-proj b{color:var(--text-color,#e6e8eb);font-weight:700;}',
             // dlaždice uživatelů
             '#ag-login .agl-users{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:440px;max-height:38vh;overflow-y:auto;padding:4px;}',
             '#ag-login .agl-user{display:flex;flex-direction:column;align-items:center;gap:7px;background:var(--glass-bg,rgba(255,255,255,0.05));',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.1));border-radius:16px;padding:13px 15px 11px;min-width:96px;cursor:pointer;',
-            '  color:var(--text,#e6e8eb);transition:transform .15s ease,border-color .15s ease,background .15s ease,box-shadow .15s ease;}',
+            '  color:var(--text-color,#e6e8eb);transition:transform .15s ease,border-color .15s ease,background .15s ease,box-shadow .15s ease;}',
             '#ag-login .agl-user:active{transform:scale(.96);}',
             '#ag-login .agl-user.sel{border-color:var(--accent,#2f9e74);background:var(--accent-soft,rgba(47,158,116,0.13));',
             '  box-shadow:0 0 0 1px var(--accent,#2f9e74),0 8px 22px var(--accent-soft,rgba(47,158,116,0.28));transform:translateY(-2px);}',
@@ -1221,7 +1232,7 @@
             '#ag-login .agl-pinbox.on{display:flex;animation:aglin .2s ease-out;}',
             '#ag-login input.agl-pin,#ag-login input.agl-name,#ag-gate .agg-box input{box-sizing:border-box;width:230px;text-align:center;',
             '  background:var(--glass-bg,rgba(255,255,255,0.06));border:1px solid var(--glass-border,rgba(255,255,255,0.18));border-radius:13px;',
-            '  color:var(--text,#e6e8eb);padding:13px 10px;outline:none;transition:border-color .15s ease,box-shadow .15s ease;}',
+            '  color:var(--text-color,#e6e8eb);padding:13px 10px;outline:none;transition:border-color .15s ease,box-shadow .15s ease;}',
             '#ag-login input.agl-pin{font:700 22px/1 var(--font-display,system-ui);letter-spacing:.35em;',
             '  border-color:rgba(76,205,153,0.45);box-shadow:0 0 0 3px var(--accent-soft,rgba(47,158,116,0.14));}',
             '#ag-login input.agl-name,#ag-gate .agg-box input{font:600 15px/1.2 var(--font-ui,system-ui);}',
@@ -1239,14 +1250,14 @@
             '#ag-login .agl-ghost,#ag-gate .agl-ghost{background:transparent;color:var(--text-muted,#9aa1ac);border:none;',
             '  font:600 12.5px/1 var(--font-ui,system-ui);cursor:pointer;padding:10px;text-decoration:underline;text-decoration-color:transparent;',
             '  text-underline-offset:3px;transition:color .15s ease,text-decoration-color .15s ease;}',
-            '#ag-login .agl-ghost:active,#ag-gate .agl-ghost:active{color:var(--text,#e6e8eb);text-decoration-color:currentColor;}',
+            '#ag-login .agl-ghost:active,#ag-gate .agl-ghost:active{color:var(--text-color,#e6e8eb);text-decoration-color:currentColor;}',
             // ---- výběr zakázky rovnou v přihlášení (ušetří „Více → přepnout zakázku") ----
             '#ag-login .agl-projpick{display:flex;flex-direction:column;gap:5px;width:min(300px,86vw);}',
             '#ag-login .agl-projpick label{font:700 10.5px/1 var(--font-ui,system-ui);letter-spacing:.08em;text-transform:uppercase;',
             '  color:var(--text-muted,#9aa1ac);padding-left:2px;}',
             '#ag-login .agl-projpick select{width:100%;box-sizing:border-box;padding:12px 13px;border-radius:13px;',
             '  background:var(--glass-bg,rgba(255,255,255,0.06));border:1px solid var(--glass-border,rgba(255,255,255,0.14));',
-            '  color:var(--text,#e6e8eb);font:600 14px/1 var(--font-ui,system-ui);appearance:none;}',
+            '  color:var(--text-color,#e6e8eb);font:600 14px/1 var(--font-ui,system-ui);appearance:none;}',
             // ---- Face ID / odemknutí telefonem ----
             '#ag-login .agl-bio{display:inline-flex;align-items:center;justify-content:center;gap:9px;}',
             '#ag-login .agl-bio svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.9;}',
@@ -1261,7 +1272,7 @@
             '#ag-gate .agg-sec{font:700 10.5px/1 var(--font-ui,system-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);margin-top:6px;}',
             '#ag-gate .agg-prof{display:flex;align-items:center;gap:12px;width:min(330px,88vw);box-sizing:border-box;text-align:left;',
             '  background:var(--glass-bg,rgba(255,255,255,0.05));border:1px solid var(--glass-border,rgba(255,255,255,0.1));border-radius:15px;',
-            '  padding:11px 15px;cursor:pointer;color:var(--text,#e6e8eb);transition:transform .15s ease,border-color .15s ease;}',
+            '  padding:11px 15px;cursor:pointer;color:var(--text-color,#e6e8eb);transition:transform .15s ease,border-color .15s ease;}',
             '#ag-gate .agg-prof:active{transform:scale(.97);border-color:var(--accent,#2f9e74);}',
             '#ag-gate .agg-prof .agg-pav{width:38px;height:38px;border-radius:12px;flex:none;display:flex;align-items:center;justify-content:center;',
             '  color:var(--accent,#2f9e74);background:var(--accent-soft,rgba(47,158,116,0.13));}',
@@ -1275,7 +1286,7 @@
             '#ag-gate .agg-box input{width:100%;}',
             '#ag-gate .agg-box .agl-btn{width:100%;}',
             '#ag-gate .agg-alt{border:1px solid var(--glass-border,rgba(255,255,255,0.16));background:var(--glass-bg,rgba(255,255,255,0.04));',
-            '  color:var(--text,#e6e8eb);border-radius:13px;padding:13px 22px;min-width:230px;box-sizing:border-box;',
+            '  color:var(--text-color,#e6e8eb);border-radius:13px;padding:13px 22px;min-width:230px;box-sizing:border-box;',
             '  font:600 13.5px/1 var(--font-ui,system-ui);cursor:pointer;transition:transform .12s ease,border-color .15s ease;}',
             '#ag-gate .agg-alt:active{transform:scale(.97);border-color:var(--accent,#2f9e74);}',
             '#ag-gate #agg-show-join{width:min(330px,88vw);}',
@@ -1286,7 +1297,13 @@
             '  border-radius:999px;color:var(--text-muted,#9aa1ac);font:500 11.5px/1 var(--font-ui,system-ui);padding:8px 14px;cursor:pointer;',
             '  box-shadow:0 4px 14px rgba(0,0,0,0.35);}',
             '#ag-guest-pill::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--warn,#d4a02c);}',
-            '#ag-guest-pill b{color:var(--accent,#2f9e74);font-weight:700;}'
+            '#ag-guest-pill b{color:var(--accent,#2f9e74);font-weight:700;}',
+            // Pilulka ma natvrdo TMAVE pozadi (aby byla videt nad kamerou i mapou),
+            // ale barvy textu bere z tokenu — ve svetlem rezimu jsou tmave, takze na
+            // ni vysel tmavy text na tmavem (1,8:1). Ve svetlem rezimu proto svetle pismo.
+            'body.light-mode #ag-guest-pill{color:#d7dbe2;border-color:rgba(255,255,255,0.28);}',
+            'body.light-mode #ag-guest-pill b{color:#7ee0b4;}',
+            'body.light-mode #ag-guest-pill::before{background:#f0b429;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
@@ -1583,6 +1600,11 @@
         var old = document.getElementById('ag-login'); if (old) old.remove();
         setSess(null);
         applyPerms();
+        // Od téhle chvíle není nikdo přihlášený. Co zůstalo otevřené POD přihlašovací
+        // obrazovkou (typicky administrace firmy), patří předchozímu přihlášení —
+        // moduly si to tímhle uklidí samy. Viz js/ucty-admin.js, kde se panel zavírá:
+        // po přepnutí firmy v něm jinak visela celá firma předchozí.
+        try { window.dispatchEvent(new CustomEvent('agucty:logout', { detail: { lockMode: !!lockMode } })); } catch (e) {}
 
         var ov = document.createElement('div');
         ov.id = 'ag-login';

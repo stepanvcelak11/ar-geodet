@@ -1744,6 +1744,17 @@
             for (let _pi = 0; _pi < arPoints.length; _pi++) {
                 const pt = arPoints[_pi];
                 const _keepFar = (pt.id === highlightedPointId || pt.id === activePointIdForModal);
+                // NAVIGOVANY BOD: sipku a vzdalenost pocitej VZDY, jeste PRED vsemi
+                // podminkami viditelnosti nize. Driv se highlightedPointData plnilo az
+                // uprostred smycky, takze staci vypnuty filtr kategorie, aktivni hledani,
+                // "skryty bod" nebo bod, ktery jeste nedostal DOM element (import, sync,
+                // rajon), a `continue` to preskocil -> #ar-hud se schoval CELY: v mape
+                // navigace bezela dal, v AR nebyla ani sipka, ani vzdalenost.
+                if (pt.id === highlightedPointId) {
+                    const _hDist = pt.currentDist || getDistance(_oLat, _oLng, pt.lat, pt.lng);
+                    const _hBear = (pt.currentBearing != null) ? pt.currentBearing : getBearing(_oLat, _oLng, pt.lat, pt.lng);
+                    highlightedPointData = { diff: ((_hBear - heading + 540) % 360) - 180, dist: _hDist, name: pt.name };
+                }
                 if (_beyond && !_keepFar) {
                     pt._arCluster = null;
                     if (pt.element && pt._opLast !== '0') { pt.element.style.opacity = '0'; pt.element.style.pointerEvents = 'none'; pt._opLast = '0'; }
@@ -1763,7 +1774,7 @@
                 if (!pt.element) { _arMissingEl = true; continue; }
 
                 const pointBearing = (pt.currentBearing != null) ? pt.currentBearing : getBearing(_oLat, _oLng, pt.lat, pt.lng); let diff = ((pointBearing - heading + 540) % 360) - 180;
-                if (pt.id === highlightedPointId) { highlightedPointData = { diff: diff, dist: distance, name: pt.name }; }
+                // (highlightedPointData se plni uz na zacatku smycky — viz komentar vyse)
                 if (Math.abs(diff) < cullH) {
                     // svisle: depresni uhel k bodu na zemi vs. kam miri kamera, promitnuty pres svisly FOV
                     let _tdz = (typeof terrainDZ === 'function') ? terrainDZ(pt.lat, pt.lng) : 0;
@@ -2232,7 +2243,12 @@
             ['theme-aurora', 'theme-sunset', 'theme-ocean', 'theme-forest', 'theme-graphite'].forEach(c => document.body.classList.remove(c));
             if (t && t !== 'smaragd') document.body.classList.add('theme-' + t);
         }
-        function previewMode(m) { var light = m === 'light'; document.body.classList.toggle('light-mode', light); var mc = document.querySelector('meta[name="theme-color"]'); if (mc) mc.setAttribute('content', light ? '#f4f5f7' : '#0f1216'); }
+        // POZOR na <html>: css/style.css mu dava natvrdo tmave #0e1216 a zadny prepis
+        // pro svetly rezim neexistuje (`body.light-mode html` ani napsat nejde — html je
+        // RODIC body). Ve svetlem rezimu se to ukazovalo vsude, kde neni videt body:
+        // pri odtazeni obsahu (overscroll) a v bezpecnych zonach gest = tmavy pruh nahore
+        // i dole. Prepiname ho proto tady, stejne jako theme-color.
+        function previewMode(m) { var light = m === 'light'; document.body.classList.toggle('light-mode', light); try { document.documentElement.style.backgroundColor = light ? '#f4f5f7' : '#0e1216'; } catch (e) {} var mc = document.querySelector('meta[name="theme-color"]'); if (mc) mc.setAttribute('content', light ? '#f4f5f7' : '#0f1216'); }
 
         // ===== DUHOVY OKRAJ: zari po celou navigaci na bod, zesili a zrychli pri dohledavani (< 2 m) =====
         let _egEl = null;

@@ -968,6 +968,20 @@ body.ag-glove .grabber { width: 44px; height: 4px; }
 .btn-danger:hover { background: rgba(239, 68, 68, 0.12); filter: none; }
 .btn-blue      { background: transparent; color: #93c5fd; border-color: rgba(59, 130, 246, 0.45); }
 .btn-blue:hover { background: rgba(59, 130, 246, 0.14); filter: none; }
+/* Obrysová tlačítka mají barvu textu navrženou na TMAVOU plochu — ve světlém režimu
+   z nich byla světle růžová / světle modrá na bílé (2,2:1 a 1,5:1). Podklad je jen
+   průhledný, takže se musí přebarvit samotný text i okraj. Naměřeno: 5,2:1 a 6,1:1.
+   .btn-secondary má navíc bílý závoj (rgba(255,255,255,0.06)) = na světlém nic. */
+body.light-mode .btn-danger { color: var(--danger); border-color: rgba(192, 50, 42, 0.45); }
+body.light-mode .btn-danger:hover { background: rgba(192, 50, 42, 0.10); }
+body.light-mode .btn-blue { color: var(--accent-blue); border-color: rgba(29, 78, 216, 0.45); }
+body.light-mode .btn-blue:hover { background: rgba(29, 78, 216, 0.10); }
+body.light-mode .btn-secondary { background: rgba(15, 23, 42, 0.05); }
+body.light-mode .btn-secondary:hover { background: rgba(15, 23, 42, 0.09); }
+body.light-mode .exp-menu summary { background: rgba(15, 23, 42, 0.05); }
+/* .btn-warning ma tmavy text na zlutem podkladu; ve svetlem rezimu je --warning
+   tmave okrova (kvuli kontrastu textu jinde), takze na ni musi jit BILE pismo. */
+body.light-mode .btn-warning { color: #fff; }
 
 /* Nastavení: nadpisy sekcí (reorganizace 7/2026 — snazší orientace v záložkách) */
 .set-h {

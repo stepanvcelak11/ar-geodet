@@ -89,8 +89,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=258">
-    <link rel="stylesheet" href="css/style.css?v=258">
+    <link rel="stylesheet" href="css/tokens.css?v=259">
+    <link rel="stylesheet" href="css/style.css?v=259">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere. -->
@@ -107,7 +107,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=258">
+    <link rel="stylesheet" href="css/vylepseni.css?v=259">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -424,12 +424,12 @@
             <p style="font-size: 13px; margin-top:0; opacity: 0.8;">Vypočítá vzdálenost a převýšení mezi dvěma místy podle GPS.</p>
             <div class="modal-body">
                 <div class="cp-item">
-                    <div class="cp-title" style="color: #fff;">Bod A (Výchozí bod)</div>
+                    <div class="cp-title">Bod A (Výchozí bod)</div>
                     <div class="cp-coords" id="meas-a-coords">Nenastaveno</div>
                     <button class="btn btn-blue" style="margin-top:5px; padding: 10px; width: 100%;" onclick="setMeasurePoint('A')"><svg class="icon"><use href="#i-map-pin"/></svg> Uložit moji aktuální pozici</button>
                 </div>
                 <div class="cp-item">
-                    <div class="cp-title" style="color: #fff;">Bod B (Cílový bod)</div>
+                    <div class="cp-title">Bod B (Cílový bod)</div>
                     <div class="cp-coords" id="meas-b-coords">Nenastaveno</div>
                     <button class="btn btn-blue" style="margin-top:5px; padding: 10px; width: 100%;" onclick="setMeasurePoint('B')"><svg class="icon"><use href="#i-map-pin"/></svg> Uložit moji aktuální pozici</button>
                 </div>
@@ -780,7 +780,7 @@
             <input type="text" id="dict-search" placeholder="Hledat pojem, zkratku nebo znak…" oninput="renderDictList()">
             <div class="modal-body" id="dict-list" style="margin-top:10px;"></div>
             <details style="margin-top:10px;">
-                <summary style="color:#bbb; font-size:13px; padding:6px 0; cursor:pointer;">＋ Přidat vlastní pojem</summary>
+                <summary style="color:var(--text-muted); font-size:13px; padding:6px 0; cursor:pointer;">＋ Přidat vlastní pojem</summary>
                 <input type="text" id="dict-new-term" placeholder="Pojem / zkratka / znak">
                 <input type="text" id="dict-new-def" placeholder="Vysvětlení">
                 <button class="btn btn-blue" style="margin-top:10px; padding:10px;" onclick="addDictEntry()"><svg class="icon"><use href="#i-plus"/></svg> Přidat do slovníku</button>
@@ -935,6 +935,12 @@
     <script defer src="js/zakazky.js"></script>
     <!-- Šablony zakázky (odpojitelné: smaž tento řádek + js/zakazka-sablony.js) — převzetí nastavení do nové zakázky; až ZA logika.js a dialog-bridge.js, obaluje createNewProject -->
     <script defer src="js/zakazka-sablony.js"></script>
+    <!-- Změnit zakázku z Nástrojů (odpojitelné: smaž tento řádek + js/zmenit-zakazku.js
+         + záznam v js/tools-registry.js) — až ZA zakazky.js a ucty.js, čte jejich API -->
+    <script defer src="js/zmenit-zakazku.js"></script>
+    <!-- Roletka „Co je nového" u lišty Nová verze (odpojitelné: smaž tento řádek,
+         js/co-je-noveho.js, data/co-je-noveho.json a oba řádky v sw.js) -->
+    <script defer src="js/co-je-noveho.js"></script>
     <script defer src="js/pruvodce.js"></script>
     <script type="ag/lazy" data-src="js/sdileni.js"></script>
     <script type="ag/lazy" data-src="js/tachymetrie.js"></script>

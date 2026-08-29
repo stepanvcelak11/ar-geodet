@@ -1,13 +1,21 @@
 // ===== AR Geodet — GESTA JAKO ZKRATKY NA NÁSTROJE (ODPOJITELNÁ vrstva) ===========
-// Nakresli prstem kdekoli po displeji AKTIVAČNÍ GESTO (výchozí ↓→) a appka pozná,
-// že chceš nástroj: obrazovka ztmavne, ukáže se seznam zkratek a dalšími tahy
-// vybereš nástroj — třeba ↑↓ = Počasí. Zkratky si přiřadíš sám v Nastavení.
+// Nástroj, který používáš pořád, si přiřadíš ke gestu a pak ho spouštíš ZPAMĚTI —
+// jedním tahem prstu kdekoli po displeji, bez hledání v Nástrojích. Tah má dvě
+// části a kreslí se BEZ ZVEDNUTÍ PRSTU:
+//
+//      AKTIVAČNÍ GESTO (výchozí ↓→)  +  ZKRATKA NÁSTROJE (např. ↑↓ = Počasí)
+//
+// Appka do toho NEMLUVÍ: neukazuje nabídku, co jde nakreslit dál, ani seznam
+// zkratek. To je záměr — smyslem je svalová paměť, ne čtení z obrazovky. Jediná
+// zpětná vazba je krátké cuknutí vibrací u každého tahu a drobný ukazatel
+// uprostřed s tím, co už máš nakreslené; nic neztmavuje a nebere dotyky.
+// Soupis přiřazení je v Nastavení, kde se také mění.
 //
 // PROČ AKTIVAČNÍ GESTO A NE ROVNOU ZKRATKA: celá plocha appky je živá — mapa se
-// posouvá prstem (vlastní obsluha v grafika.js), v AR se chodí po značkách. Kdyby
-// zkratkou byl JEDEN tah, spustí se nástroj při každém posunutí mapy. Dvoutahový
-// úvod s lomem („L") při běžném posouvání nevznikne, a i kdyby, musí být hotový do
-// PREFIX_MS a přesně od začátku tahu — jinak se rozpoznávání hned vzdá.
+// posouvá prstem, v AR se chodí po značkách. Kdyby zkratkou byl JEDEN tah, spustí
+// se nástroj při každém posunutí mapy. Dvoutahový úvod s lomem („L") při běžném
+// posouvání nevznikne, a i kdyby, musí být hotový do PREFIX_MS a přesně od začátku
+// tahu — jinak se rozpoznávání hned vzdá.
 //
 // MAPA SE VRÁTÍ, KAM PATŘILA. Než je aktivační gesto rozpoznané, mapa se pod prstem
 // posouvá (nedá se dopředu vědět, že jde o gesto). Ve chvíli rozpoznání se proto
@@ -15,19 +23,20 @@
 // vůbec nedostane (stopPropagation v CAPTURE fázi — obsluha mapy visí na
 // #map-container v bublání, takže ji tím spolehlivě přeskočíme).
 //
-// DVA ZPŮSOBY KRESLENÍ, oba fungují:
-//   • JEDNÍM TAHEM — ↓→↑↓ bez zvednutí prstu (nejrychlejší).
-//   • PO TAZÍCH — nakresli ↓→, zvedni prst (ukáže se seznam zkratek) a došvihni
-//     ↑↓ dalším tahem. Seznam mezitím ukazuje, co je kam přiřazené.
-// ⚠ Při kreslení JEDNÍM TAHEM nemůže zkratka začínat toutéž šipkou, jakou končí
-// aktivační gesto — dvě stejné šipky za sebou se nedají nakreslit (je to jeden
-// rovný tah). Nastavení na to při ukládání upozorní; po zvednutí prstu to problém
-// není. Ze stejného důvodu není mezi směry diagonála: na displeji v rukavicích se
-// „šikmo" od „doprava" nerozezná spolehlivě (proto RATIO).
+// ⚠⚠ ZKRATKA NESMÍ ZAČÍNAT TÍMŽ SMĚREM, JAKÝM KONČÍ AKTIVAČNÍ GESTO. Dvě stejné
+// šipky za sebou se jedním tahem nedají nakreslit — je to jeden rovný tah. Nastavení
+// takové přiřazení ODMÍTNE (dřív jen varovalo, což při kreslení bez zvedání prstu
+// nestačí). Ze stejného důvodu nejsou mezi směry diagonály: na displeji v rukavicích
+// se „šikmo" od „doprava" nerozezná spolehlivě (proto RATIO).
+//
+// ZVEDNUTÍ PRSTU gesto uzavírá: co sedí, spustí se; co nesedí, jen krátce zčervená
+// a zmizí. Jakmile je jasno (nakreslený kód sedí a žádná delší zkratka jím
+// nezačíná), nástroj naskočí ještě pod rukou, bez čekání na zvednutí.
 //
 // KDE SE GESTO NEZAKLÁDÁ: nad tlačítky, poli, dlaždicemi, otevřeným modálem,
-// v panelu vrstev, na popupu mapy a v kolečku nástrojů (body.ag-kn-open). Tam
-// tah znamená něco jiného a sebrat mu ho by bylo horší než chybějící zkratka.
+// v panelu vrstev, na popupu mapy, nad přihlašovací obrazovkou a v kolečku nástrojů
+// (body.ag-kn-open). Tam tah znamená něco jiného a sebrat mu ho by bylo horší než
+// chybějící zkratka.
 //
 // SPOUŠTÍ SE STEJNOU CESTOU JAKO KOLEČKO: AGUkony.run(klíč) klikne na původní
 // dlaždici v Nástrojích. Nic se tu nevede vlastní — takže platí oprávnění rolí
@@ -47,8 +56,7 @@
     var SEG = 54;          // kolik pixelů musí prst ujet, aby z toho byla šipka
     var RATIO = 1.5;       // o kolik musí převládnout jedna osa (jinak je to šikmo → čeká se dál)
     var PREFIX_MS = 1600;  // do kdy musí být aktivační gesto hotové (pomalý tah = posun mapy)
-    var IDLE_MS = 2600;    // po téhle době bez tahu se rozkreslená zkratka vzdá
-    var RUN_MS = 140;      // ať je na okamžik vidět, co se vybralo
+    var RUN_MS = 200;      // ať je na okamžik vidět, co se spouští (pod hranicí, kdy to působí jako prodleva)
     var MAXSEG = 3;        // nejvýš tři šipky na zkratku (delší si nikdo nezapamatuje)
 
     var ARROW = { U: '↑', D: '↓', L: '←', R: '→' };
@@ -179,22 +187,17 @@
     }
 
     // ================================================================================
-    // ŽIVÉ GESTO
+    // ŽIVÉ GESTO — CELÉ JEDNÍM TAHEM, BEZ NABÍDKY
     // ================================================================================
-    var sess = null;     // otevřená relace: { code, fired, timer }
-    var strk = null;     // právě kreslený tah: { s:Stroke, t0, snap, armed, pre }
+    // Zkratka se dělá ZPAMĚTI: aktivační gesto a hned za ním, BEZ ZVEDNUTÍ PRSTU,
+    // tahy vybraného nástroje. Appka do toho nemluví — žádný seznam možností,
+    // žádné „co můžeš nakreslit dál". Jediná zpětná vazba je drobný ukazatel
+    // uprostřed (co máš zatím nakresleno) a krátké cuknutí vibrací u každého tahu,
+    // ať poznáš, že se tah opravdu započítal. Zvednutí prstu gesto UZAVÍRÁ:
+    // co sedí, spustí se, co nesedí, tiše zmizí.
+    var strk = null;     // právě kreslený tah: { s, t0, snap, armed, pre, code, fired, drew, over }
 
     function overlay() { return document.getElementById(WRAP_ID); }
-    // Relace platí jen tak dlouho, dokud je její překryv OPRAVDU vidět. Kdyby ho
-    // někdo schoval zvenčí (jiná vrstva, úklid DOM), nesmí nám dál padat do klína
-    // každý dotek po displeji — proto se to tady kontroluje, ne jen `sess != null`.
-    function sessOpen() {
-        if (!sess) return false;
-        var w = overlay();
-        if (w && w.style.display === 'flex') return true;
-        closeSess();
-        return false;
-    }
 
     // OTEVŘENÉ OKNO se nehledá procházením overlayů — čtyři domácí modály
     // (Nastavení, Body, Nástroje, Nový bod) jsou v CSS TRVALE `display:flex`
@@ -214,29 +217,17 @@
     function onStart(e) {
         var t = e.touches;
         if (!t) return;
-        if (sessOpen()) {
-            // Relace běží (obrazovka je ztmavená) — tah po ní zkratku DOKRESLUJE.
-            // ⚠ Tah se zakládá i NAD ŘÁDKY seznamu: karta stojí uprostřed displeje,
-            // takže palec došvihnutí skoro vždycky začne někde na ní. Kdyby se tady
-            // řádky vynechávaly (jako se jinde vynechávají tlačítka), druhý tah by
-            // se prostě nezapočítal. Klepnutí na řádek zůstává funkční — polyká se
-            // až klik po tahu, který OPRAVDU nakreslil šipku (viz strk.drew).
-            if (t.length !== 1) return;
-            var p0 = touchMid(t);
-            strk = { s: new Stroke(p0.x, p0.y), t0: Date.now(), snap: null, armed: true, pre: '', drew: false };
-            return;
-        }
         if (t.length !== load().fingers) { strk = null; return; }
         if (!canStart(e.target)) { strk = null; return; }
         var p = touchMid(t);
-        strk = { s: new Stroke(p.x, p.y), t0: Date.now(), snap: mapSnap(), armed: false, pre: '', drew: false };
+        strk = { s: new Stroke(p.x, p.y), t0: Date.now(), snap: mapSnap(), armed: false, pre: '', code: '', fired: false, drew: false, over: false };
     }
 
     function onMove(e) {
         if (!strk) return;
         var t = e.touches;
         if (!t || !t.length) return;
-        if (!strk.armed && t.length !== load().fingers) { strk = null; return; }
+        if (t.length !== load().fingers) { if (!strk.armed) strk = null; return; }
         var p = touchMid(t);
         var d = strk.s.step(p.x, p.y);
 
@@ -269,14 +260,19 @@
     function onEnd(e) {
         if (!strk) return;
         if (e.touches && e.touches.length) return;      // druhý prst ještě drží
-        var wasArmed = strk.armed, drew = strk.drew;
+        var st = strk;
         strk = null;
-        if (!wasArmed) return;
+        if (!st.armed) return;
         e.stopPropagation();
-        if (drew) swallowClick();   // po tahu ano, po pouhém klepnutí ne (řádky seznamu)
-        decide(false);
+        if (st.drew) swallowClick();
+        if (st.fired) return;                           // spuštěno už za pohybu prstu
+        decide(st, false);
     }
-    function onCancel() { if (strk && !strk.armed) strk = null; }
+    function onCancel() {
+        if (!strk) return;
+        if (strk.armed) hideChip(160);
+        strk = null;
+    }
 
     // Po tažení, které začalo nad tlačítkem, umí prohlížeč doručit ještě klik —
     // spolkneme ho, ať se nespustí něco, od čeho jsi jen odjížděl (vzor modal-close.js).
@@ -286,41 +282,37 @@
         setTimeout(function () { document.removeEventListener('click', f, true); }, 400);
     }
 
-    // ---- otevření relace ---------------------------------------------------------------
+    // ---- rozpoznané aktivační gesto ------------------------------------------------------
     function arm() {
         strk.armed = true;
         mapBack(strk.snap);              // vrať mapu tam, kde byla před gestem
-        sess = { code: '', fired: false, timer: null };
         buzz(25);
-        openOverlay();
-        paint();
-        poke();
-    }
-    function poke() {
-        if (!sess) return;
-        clearTimeout(sess.timer);
-        sess.timer = setTimeout(function () { closeSess(); }, IDLE_MS);
+        showChip();
+        paintChip('', '', '');
     }
     function addArrow(d) {
-        if (!sess || sess.fired) return;
-        if (sess.code.length >= MAXSEG) { sess.over = true; paint(); return; }
-        sess.code += d;
+        if (strk.fired) return;
+        if (strk.code.length >= MAXSEG) {
+            // Delší zkratka existovat nemůže, další tahy tedy nemá cenu sbírat.
+            // Ukazatel jen zčervená — křičet na uživatele uprostřed tahu nemá smysl.
+            if (!strk.over) { strk.over = true; paintChip(strk.code, 'bad', ''); }
+            return;
+        }
+        strk.code += d;
         buzz(10);
-        poke();
-        decide(true);
+        paintChip(strk.code, '', '');
+        decide(strk, true);
     }
 
     // drawing = true → rozhoduje se ještě za pohybu prstu
-    function decide(drawing) {
-        if (!sess || sess.fired) return;
-        var code = sess.code, m = load().map;
-        paint();
-        if (!code) return;                       // jen aktivační gesto → zůstane seznam
-        var k = m[code];
-        if (k && !extended(code)) { fire(code, k); return; }
-        if (drawing) return;                     // delší zkratka může teprve vzniknout
-        if (k) { fire(code, k); return; }        // prst zvednutý → ber, co sedí
-        if (startsSome(code)) return;            // pokračování je možné, čekáme na další tah
+    function decide(st, drawing) {
+        if (st.fired) return;
+        var code = st.code, k = load().map[code];
+        // Spustit HNED, jakmile je jasno: kód sedí a žádná delší zkratka jím
+        // nezačíná. Nečeká se na zvednutí prstu a nástroj naskočí pod rukou.
+        if (k && !extended(code)) { fire(st, code, k); return; }
+        if (drawing) return;
+        if (k) { fire(st, code, k); return; }
         miss(code);
     }
     function extended(code) {
@@ -328,115 +320,71 @@
         for (var c in m) if (c !== code && c.indexOf(code) === 0) return true;
         return false;
     }
-    function startsSome(code) {
-        var m = load().map;
-        for (var c in m) if (c.indexOf(code) === 0) return true;
-        return false;
-    }
 
-    function fire(code, k) {
-        sess.fired = true;
-        clearTimeout(sess.timer);
-        paint(k);
+    function fire(st, code, k) {
+        st.fired = true;
         buzz(30);
+        paintChip(code, 'hit', toolLabel(k));   // jediná zpráva: co se spouští
+        var ready = toolReady(k);
         setTimeout(function () {
-            closeSess();
-            if (!toolReady(k)) { toast('Nástroj „' + toolLabel(k) + '" teď není dostupný.'); return; }
+            hideChip(0);
+            if (!ready) { toast('Nástroj „' + toolLabel(k) + '" teď není dostupný.'); return; }
             if (!runTool(k)) toast('Nástroj „' + toolLabel(k) + '" se nepodařilo otevřít.');
         }, RUN_MS);
     }
+    // Nesedící gesto se NEKOMENTUJE oknem ani nabídkou — jen krátce zčervená a zmizí.
+    // Kdo si nevzpomene, najde soupis v Nastavení; smysl téhle vrstvy je dělat
+    // zkratky zpaměti, ne se u nich zdržovat.
     function miss(code) {
-        var w = overlay();
-        if (w) {
-            w.classList.add('gz-miss');
-            setTimeout(function () { if (overlay()) overlay().classList.remove('gz-miss'); }, 420);
-        }
-        paint(null, code);
-        poke();
-    }
-
-    function closeSess() {
-        if (sess) clearTimeout(sess.timer);
-        sess = null;
-        var w = overlay();
-        if (w) w.style.display = 'none';
+        paintChip(code, 'bad', code ? 'nepřiřazeno' : '');
+        hideChip(code ? 620 : 220);
     }
 
     // ================================================================================
-    // PŘEKRYV S NABÍDKOU ZKRATEK
+    // UKAZATEL NAKRESLENÉHO (drobný, nic neblokuje)
     // ================================================================================
-    function openOverlay() {
+    // Není to nabídka ani okno: leží uprostřed, NEBERE dotyky (pointer-events:none)
+    // a nic pod sebou neztmavuje. Ukazuje jen aktivační gesto (zesláble) a k němu
+    // tahy, které už máš nakreslené — aby bylo poznat, že se tah započítal.
+    var chipTimer = null;
+    function showChip() {
         injectStyles();
         var w = overlay();
         if (!w) {
             w = document.createElement('div');
             w.id = WRAP_ID;
-            w.innerHTML =
-                '<div class="gz-card">' +
-                '<div class="gz-code"><span class="gz-pre"></span><b class="gz-now"></b></div>' +
-                '<div class="gz-name"></div>' +
-                '<div class="gz-list"></div>' +
-                '<div class="gz-foot"></div>' +
-                '</div>';
+            w.innerHTML = '<div class="gz-chip"><div class="gz-code"><span class="gz-pre"></span><b class="gz-now"></b></div>' +
+                '<div class="gz-lb"></div></div>';
             document.body.appendChild(w);
-            // klepnutí mimo kartu zavře; klepnutí na řádek spustí jeho nástroj
-            w.addEventListener('click', function (ev) {
-                var b = ev.target && ev.target.closest ? ev.target.closest('.gz-row') : null;
-                if (b) {
-                    var k = b.getAttribute('data-tool');
-                    ev.stopPropagation();
-                    if (!sess) return;
-                    sess.code = b.getAttribute('data-code') || sess.code;
-                    fire(sess.code, k);
-                    return;
-                }
-                if (ev.target === w || (ev.target.closest && ev.target.closest('.gz-card') === null)) closeSess();
-            });
-            w.addEventListener('click', function (ev) {
-                if (ev.target && ev.target.classList && ev.target.classList.contains('gz-assign')) {
-                    var c = ev.target.getAttribute('data-code');
-                    closeSess();
-                    openSettings(c);
-                }
-            }, true);
         }
+        clearTimeout(chipTimer);
         w.style.display = 'flex';
+        w.classList.remove('gz-out');
     }
-
-    function paint(hotKey, missCode) {
+    function paintChip(code, cls, label) {
         var w = overlay();
-        if (!w || !sess) return;
-        var code = sess.code;
+        if (!w) return;
         w.querySelector('.gz-pre').textContent = arrows(load().prefix);
         var now = w.querySelector('.gz-now');
-        now.textContent = code ? arrows(code) : '…';
-        now.className = 'gz-now' + (missCode ? ' bad' : '');
-
-        var name = w.querySelector('.gz-name');
-        if (hotKey) name.innerHTML = '<b>' + esc(toolLabel(hotKey)) + '</b>';
-        else if (missCode) {
-            name.innerHTML = 'Zkratka <b>' + arrows(missCode) + '</b> není přiřazená ' +
-                '<button type="button" class="gz-assign" data-code="' + missCode + '">Přiřadit…</button>';
-        } else if (sess.over) name.textContent = 'Zkratka může mít nejvýš ' + MAXSEG + ' tahy';
-        else name.textContent = code ? 'Táhni dál…' : 'Vyber nástroj tahem';
-
-        // seznam: co ještě sedí na rozkreslený kód (bez kódu = všechno)
-        var m = load().map, keys = [], c;
-        for (c in m) if (!code || c.indexOf(code) === 0) keys.push(c);
-        keys.sort();
-        var h = '';
-        for (var i = 0; i < keys.length; i++) {
-            var k = m[keys[i]], ready = toolReady(k);
-            h += '<button type="button" class="gz-row' + (ready ? '' : ' off') + (keys[i] === code ? ' hot' : '') + '"' +
-                ' data-code="' + keys[i] + '" data-tool="' + esc(k) + '"' + (ready ? '' : ' disabled') + '>' +
-                '<span class="gz-ar">' + arrows(keys[i]) + '</span>' +
-                '<span class="gz-lb">' + esc(toolLabel(k)) + '</span></button>';
-        }
-        if (!keys.length) h = '<div class="gz-empty">Žádná zkratka sem nevede.</div>';
-        w.querySelector('.gz-list').innerHTML = h;
-        w.querySelector('.gz-foot').textContent = code
-            ? 'Zvedni prst a došvihni další tah · klepni vedle = konec'
-            : 'Táhni dál jedním tahem, nebo zvedni prst a švihni znovu';
+        now.textContent = arrows(code);
+        now.className = 'gz-now' + (cls ? ' ' + cls : '');
+        var lb = w.querySelector('.gz-lb');
+        lb.textContent = label || '';
+        lb.className = 'gz-lb' + (cls ? ' ' + cls : '');
+    }
+    function hideChip(delay) {
+        var w = overlay();
+        if (!w) return;
+        clearTimeout(chipTimer);
+        chipTimer = setTimeout(function () {
+            var el = overlay();
+            if (!el) return;
+            el.classList.add('gz-out');
+            chipTimer = setTimeout(function () {
+                var e2 = overlay();
+                if (e2) { e2.style.display = 'none'; e2.classList.remove('gz-out'); }
+            }, 200);
+        }, delay || 0);
     }
 
     function esc(s) {
@@ -456,7 +404,7 @@
         var div = document.createElement('div');
         div.className = 'st-row'; div.id = 'ag-gz-setrow';
         div.innerHTML = '<span class="st-lab">Gesta – zkratky nástrojů' +
-            '<small>nakresli <b>' + arrows(load().prefix) + '</b> kdekoli po displeji a došvihni zkratku</small></span>' +
+            '<small>jedním tahem: <b>' + arrows(load().prefix) + '</b> a rovnou zkratka nástroje</small></span>' +
             '<span class="ag-gz-cell"><button type="button" class="btn btn-secondary ag-gz-open">Nastavit…</button>' +
             '<label class="st-sw"><input type="checkbox" id="ag-gz-on"><span class="st-sw-face"></span></label></span>';
         row.parentNode.insertBefore(div, row.nextSibling);
@@ -478,9 +426,10 @@
         el.id = SET_ID;
         el.innerHTML = '<div class="modal-content">' +
             '<h2 style="color:var(--accent);margin-top:0;">Gesta – zkratky nástrojů</h2>' +
-            '<p class="ag-gz-p">Nakresli prstem <b class="ag-gz-prefix"></b> kdekoli po displeji (mimo tlačítka a otevřená okna). ' +
-            'Obrazovka ztmavne a ukáže seznam zkratek — dalšími tahy vybereš nástroj. Kreslit můžeš <b>jedním tahem</b> ' +
-            'i po jednotlivých švihnutích.</p>' +
+            '<p class="ag-gz-p">Nástroj spustíš <b>jedním tahem</b> kdekoli po displeji (mimo tlačítka a otevřená okna), ' +
+            'a to <b>bez zvednutí prstu</b>: nejdřív aktivační gesto <b class="ag-gz-prefix"></b>, rovnou za ním zkratka nástroje. ' +
+            'Appka při tom nic nenabízí — jen krátce cukne a ukáže, co máš nakreslené. Zkratky se dělají zpaměti, ' +
+            'tenhle seznam je na jejich nastavení, ne na hledání v terénu.</p>' +
             '<div class="st-row"><span class="st-lab">Zapnuto</span>' +
             '<label class="st-sw"><input type="checkbox" id="ag-gz-on2"><span class="st-sw-face"></span></label></div>' +
             '<div class="st-row"><span class="st-lab">Aktivační gesto<small class="ag-gz-prewords"></small></span>' +
@@ -505,6 +454,15 @@
         el.querySelector('#ag-gz-prefix-btn').addEventListener('click', function () {
             openPad('Nakresli aktivační gesto', 2, function (code) {
                 if (code.length < 2) { toast('Aktivační gesto musí mít aspoň dva tahy — jeden by se pletl s posunem mapy.'); return false; }
+                // Nové gesto může znepřístupnit už přiřazené zkratky (viz pravidlo
+                // o dvou stejných šipkách za sebou) — radši to řekneme rovnou, než
+                // aby uživatel v terénu marně kreslil zkratku, která nejde nakreslit.
+                var last = code.charAt(code.length - 1), m = load().map, kolize = [];
+                for (var c in m) if (c.charAt(0) === last) kolize.push(arrows(c));
+                if (kolize.length) {
+                    toast('Nešlo by nakreslit: ' + kolize.join(' ') + ' — začínají stejným směrem, jakým nové gesto končí. Změň napřed je.');
+                    return false;
+                }
                 load().prefix = code; save(); renderSettings(); refreshRowHint();
                 return true;
             });
@@ -525,10 +483,14 @@
             } else if (act === 'edit') {
                 var k = load().map[code];
                 openPad('Nové gesto pro „' + toolLabel(k) + '"', 1, function (nc) {
-                    if (load().map[nc] && nc !== code) { toast('Gesto ' + arrows(nc) + ' už má „' + toolLabel(load().map[nc]) + '".'); return false; }
-                    delete load().map[code]; load().map[nc] = k; save(); renderSettings();
-                    return true;
-                });
+                    if (nc === code) return true;
+                    var back = load().map[code];
+                    delete load().map[code];
+                    if (assign(nc, k)) return true;
+                    load().map[code] = back;   // neprošlo → vrátit původní přiřazení
+                    renderSettings();
+                    return false;
+                }, lastPrefixDir());
             }
         });
         return el;
@@ -562,7 +524,7 @@
     function refreshRowHint() {
         var r = document.getElementById('ag-gz-setrow');
         var s = r && r.querySelector('small');
-        if (s) s.innerHTML = 'nakresli <b>' + arrows(load().prefix) + '</b> kdekoli po displeji a došvihni zkratku';
+        if (s) s.innerHTML = 'jedním tahem: <b>' + arrows(load().prefix) + '</b> a rovnou zkratka nástroje';
     }
 
     function openSettings(code) {
@@ -596,7 +558,7 @@
                     var c = pendingCode; pendingCode = null;
                     assign(c, k);
                 } else {
-                    openPad('Nakresli gesto pro „' + toolLabel(k) + '"', 1, function (nc) { return assign(nc, k); });
+                    openPad('Nakresli gesto pro „' + toolLabel(k) + '"', 1, function (nc) { return assign(nc, k); }, lastPrefixDir());
                 }
             });
         }
@@ -626,22 +588,30 @@
         }
         host.innerHTML = h || '<div class="ag-gz-empty">Nic takového tu není.</div>';
     }
+    // Vrací false = neuloženo (volající pak nechá kreslicí plochu otevřenou).
     function assign(code, k) {
+        // ⚠⚠ Celá zkratka se kreslí JEDNÍM TAHEM, takže dvě stejné šipky za sebou
+        // nakreslit nejde — je to jeden rovný tah. Zkratka začínající směrem, kterým
+        // končí aktivační gesto, by tedy byla NEDOSAŽITELNÁ. Dřív to bylo jen
+        // varování (tehdy se dalo došvihnout po zvednutí prstu); teď se odmítá.
+        if (code.charAt(0) === lastPrefixDir()) {
+            toast('Zkratka nemůže začínat ' + DIRNAME[lastPrefixDir()] + ' — tím končí aktivační gesto a dva stejné tahy za sebou jedním tahem nenakreslíš.');
+            return false;
+        }
         if (load().map[code] && load().map[code] !== k) {
             toast('Gesto ' + arrows(code) + ' už má „' + toolLabel(load().map[code]) + '".');
             return false;
         }
         load().map[code] = k; save(); renderSettings();
-        var last = load().prefix.charAt(load().prefix.length - 1);
-        if (code.charAt(0) === last) {
-            toast('Uloženo. Pozor: ' + arrows(code) + ' začíná stejným směrem, jakým končí aktivační gesto — nakreslíš ho až po zvednutí prstu.');
-        } else toast('Zkratka ' + arrows(code) + ' → ' + toolLabel(k));
+        toast('Zkratka ' + arrows(load().prefix) + ' ' + arrows(code) + ' → ' + toolLabel(k));
         return true;
     }
+    function lastPrefixDir() { var p = load().prefix; return p.charAt(p.length - 1); }
 
     // ---- kreslicí plocha („nauč se gesto") -------------------------------------------------
     var padState = null;
-    function openPad(title, minLen, onSave) {
+    // forbid = směr, kterým NESMÍ zkratka začínat (viz assign) — '' u aktivačního gesta
+    function openPad(title, minLen, onSave, forbid) {
         injectStyles();
         var el = document.getElementById(PAD_ID);
         if (!el) {
@@ -690,7 +660,7 @@
                 if (padState.onSave(padState.code) !== false) el.style.display = 'none';
             });
         }
-        padState = { code: '', s: null, min: minLen || 1, onSave: onSave, md: false };
+        padState = { code: '', s: null, min: minLen || 1, onSave: onSave, md: false, forbid: forbid || '' };
         el.querySelector('.gzp-title').textContent = title;
         el.style.display = 'flex';
         paintPad();
@@ -701,9 +671,16 @@
         el.querySelector('.gzp-code').textContent = arrows(padState.code);
         el.querySelector('.gzp-hint').style.display = padState.code ? 'none' : '';
         var note = el.querySelector('.gzp-note');
-        note.textContent = padState.code
-            ? (words(padState.code) + (padState.code.length >= MAXSEG ? ' — víc tahů zkratka mít nemůže' : ''))
-            : 'Nejvýš ' + MAXSEG + ' tahy. Směry: nahoru, dolů, doleva, doprava.';
+        var bad = padState.forbid && padState.code.charAt(0) === padState.forbid;
+        note.className = 'gzp-note' + (bad ? ' bad' : '');
+        if (bad) {
+            note.textContent = 'Takhle to nepůjde: aktivační gesto končí ' + DIRNAME[padState.forbid] +
+                ' a dva stejné tahy za sebou jedním tahem nenakreslíš. Začni jiným směrem.';
+        } else {
+            note.textContent = padState.code
+                ? (words(padState.code) + (padState.code.length >= MAXSEG ? ' — víc tahů zkratka mít nemůže' : ''))
+                : 'Nejvýš ' + MAXSEG + ' tahy. Směry: nahoru, dolů, doleva, doprava.';
+        }
     }
 
     // ================================================================================
@@ -714,32 +691,27 @@
         var st = document.createElement('style');
         st.id = STYLE_ID;
         st.textContent = [
-            // ---- překryv při kreslení ----
+            // ---- UKAZATEL NAKRESLENÉHO ----
             // z-index 10050 = stejná vrstva jako kolečko nástrojů: nad HUD i dokem,
-            // POD modály (ty jedou výš), takže se gesto nikdy nepřekreslí přes okno.
+            // POD modály (ty jedou výš). `pointer-events:none` je tu podstatné —
+            // ukazatel se objevuje UPROSTŘED TAHU, takže nesmí sebrat ani jeden dotek.
             '#' + WRAP_ID + '{position:fixed;inset:0;z-index:10050;display:none;align-items:center;justify-content:center;',
-            '  background:rgba(4,8,12,0.72);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);touch-action:none;}',
-            '#' + WRAP_ID + ' .gz-card{width:min(86vw,340px);max-height:78vh;overflow:auto;padding:16px 16px 12px;border-radius:18px;',
-            '  background:var(--glass-bg,rgba(18,22,28,0.94));border:1px solid var(--glass-border,rgba(255,255,255,0.10));',
-            '  box-shadow:0 20px 50px rgba(0,0,0,0.55);color:var(--text-color,#eceef2);text-align:center;}',
-            '#' + WRAP_ID + ' .gz-code{font-size:calc(30px * var(--ag-font-scale,1));line-height:1.1;letter-spacing:.06em;}',
-            '#' + WRAP_ID + ' .gz-pre{opacity:.45;}',
+            '  pointer-events:none;opacity:1;transition:opacity .18s;}',
+            '#' + WRAP_ID + '.gz-out{opacity:0;}',
+            '#' + WRAP_ID + ' .gz-chip{padding:14px 20px;border-radius:18px;text-align:center;',
+            '  background:var(--glass-bg,rgba(18,22,28,0.86));border:1px solid var(--glass-border,rgba(255,255,255,0.10));',
+            '  backdrop-filter:blur(10px) saturate(140%);-webkit-backdrop-filter:blur(10px) saturate(140%);',
+            '  box-shadow:0 12px 34px rgba(0,0,0,0.45);color:var(--text-color,#eceef2);}',
+            '#' + WRAP_ID + ' .gz-code{font-size:calc(34px * var(--ag-font-scale,1));line-height:1.05;letter-spacing:.08em;',
+            '  text-shadow:0 2px 8px rgba(0,0,0,0.6);}',
+            '#' + WRAP_ID + ' .gz-pre{opacity:.32;}',
             '#' + WRAP_ID + ' .gz-now{color:var(--accent-bright,#3eb487);}',
             '#' + WRAP_ID + ' .gz-now.bad{color:#ef4444;}',
-            '#' + WRAP_ID + ' .gz-name{margin:6px 0 10px;font-size:calc(14px * var(--ag-font-scale,1));min-height:1.3em;}',
-            '#' + WRAP_ID + ' .gz-name button{margin-left:6px;padding:3px 9px;border-radius:9px;border:1px solid var(--accent-bright,#3eb487);',
-            '  background:transparent;color:var(--accent-bright,#3eb487);font:inherit;}',
-            '#' + WRAP_ID + ' .gz-row{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 6px;padding:9px 10px;border-radius:12px;',
-            '  border:1px solid var(--glass-border,rgba(255,255,255,0.10));background:rgba(255,255,255,0.04);',
-            '  color:inherit;font:inherit;text-align:left;}',
-            '#' + WRAP_ID + ' .gz-row.hot{border-color:var(--accent-bright,#3eb487);background:var(--accent-soft,rgba(47,158,116,0.22));}',
-            '#' + WRAP_ID + ' .gz-row.off{opacity:.4;}',
-            '#' + WRAP_ID + ' .gz-ar{font-size:calc(17px * var(--ag-font-scale,1));letter-spacing:.05em;min-width:2.4em;}',
-            '#' + WRAP_ID + ' .gz-lb{flex:1;font-size:calc(13px * var(--ag-font-scale,1));}',
-            '#' + WRAP_ID + ' .gz-foot{margin-top:8px;font-size:calc(11px * var(--ag-font-scale,1));opacity:.6;}',
-            '#' + WRAP_ID + ' .gz-empty{opacity:.6;font-size:calc(12.5px * var(--ag-font-scale,1));padding:8px 0;}',
-            '#' + WRAP_ID + '.gz-miss .gz-card{animation:ag-gz-shake .38s;}',
-            '@keyframes ag-gz-shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-9px);}40%{transform:translateX(9px);}60%{transform:translateX(-5px);}80%{transform:translateX(5px);}}',
+            '#' + WRAP_ID + ' .gz-now.hit{color:var(--accent-bright,#3eb487);}',
+            '#' + WRAP_ID + ' .gz-lb{margin-top:4px;font-size:calc(13px * var(--ag-font-scale,1));font-weight:600;',
+            '  color:var(--accent-bright,#3eb487);}',
+            '#' + WRAP_ID + ' .gz-lb:empty{display:none;}',
+            '#' + WRAP_ID + ' .gz-lb.bad{color:#ef4444;font-weight:400;opacity:.85;}',
             // ---- řádek v Nastavení ----
             '.ag-gz-cell{display:flex;align-items:center;gap:10px;}',
             '.ag-gz-cell .btn{width:auto;margin:0;padding:7px 12px;font-size:calc(12.5px * var(--ag-font-scale,1));}',
@@ -789,6 +761,7 @@
             '#' + PAD_ID + ' .gzp-code{position:absolute;font-size:calc(46px * var(--ag-font-scale,1));letter-spacing:.08em;',
             '  color:var(--accent-bright,#3eb487);}',
             '#' + PAD_ID + ' .gzp-note{font-size:calc(12px * var(--ag-font-scale,1));opacity:.7;margin-bottom:10px;min-height:1.4em;}',
+            '#' + PAD_ID + ' .gzp-note.bad{color:#ef4444;opacity:1;}',
             // rukavice: větší cíle
             'body.ag-glove #' + WRAP_ID + ' .gz-row{padding:12px;}',
             'body.ag-glove .ag-gz-row button{width:44px;height:44px;}'
@@ -821,11 +794,12 @@
     window.AGGesta = {
         open: openSettings,                       // otevře okno se zkratkami
         get: function () { return JSON.parse(JSON.stringify(load())); },
-        // pro zkoušení v prohlížeči: „jako by uživatel nakreslil kód"
+        // pro zkoušení v prohlížeči: „jako by uživatel dokreslil tenhle kód"
         simulate: function (code) {
-            if (!sess) { sess = { code: '', fired: false, timer: null }; openOverlay(); }
-            sess.code = String(code || '');
-            decide(false);
+            var st = { code: String(code || ''), fired: false, armed: true, drew: true };
+            showChip();
+            paintChip(st.code, '', '');
+            decide(st, false);
         }
     };
 })();

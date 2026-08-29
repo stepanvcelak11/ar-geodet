@@ -45,6 +45,7 @@ MARKER_END = '// <<< KONEC GENEROVANEHO SEZNAMU'
 EXTRA_ASSETS = [
     './data/zpravodaj.json',       # cte js/zpravodaj.js pres fetch
     './data/predpisy.json',        # cte js/predpisy.js pres fetch
+    './data/co-je-noveho.json',    # cte js/co-je-noveho.js pres fetch (s razitkem ?t=)
     './js/lib/qrcode.min.js',      # line (lazy) nacitani QR generatoru
     './js/lib/jsqr.min.js',        # line (lazy) nacitani QR ctecky
     # PISMA + OBRAZKY LEAFLETU: v index.html nejsou, odkazuji na ne az CSS soubory

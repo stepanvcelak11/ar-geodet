@@ -128,7 +128,7 @@
             '.agm-k{font:600 11.5px/1.3 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
             '.agm-v{font:700 15px/1.1 var(--font-mono,ui-monospace,monospace);color:var(--data,#e6bd76);',
             '  font-variant-numeric:tabular-nums;white-space:nowrap;}',
-            '.agm-v.agm-v-mag{color:#f87171;}',
+            '.agm-v.agm-v-mag{color:var(--danger,#f87171);}',
             '.agm-v sup{font-size:calc(9px * var(--ag-font-scale, 1));}',
             '.agm-note{font:400 11.5px/1.5 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);margin:10px 0 0;}',
             '.agm-note b{color:var(--text-color,#eceef2);font-weight:600;}',

@@ -68,7 +68,10 @@
             // takhle nízkém displeji stejně není kam táhnout. Plný rozjezd pro tah tedy
             // dostávají jen displeje na výšku, kde se appka reálně používá.
             '@media (max-height:560px){#' + BTN_ID + '{--ag-vc-bottom:max(6px,env(safe-area-inset-bottom,0px));}}',
-            'body.outdoor-mode #' + BTN_ID + '{background:#0a0e1a;border-color:rgba(255,255,255,0.85);}'
+            'body.outdoor-mode #' + BTN_ID + '{background:#0a0e1a;border-color:rgba(255,255,255,0.85);}',
+            // Ve SVETLEM venkovnim rezimu musi byt kolecko bile, jinak je na nem
+            // tmavy text (--text-color) na tmavem podkladu = necitelne (1,0:1).
+            'body.light-mode.outdoor-mode #' + BTN_ID + '{background:#fff;border-color:rgba(10,14,26,0.7);color:var(--text-color,#0b0e14);}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
