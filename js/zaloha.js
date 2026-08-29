@@ -80,24 +80,25 @@
             exportedAt: d.toISOString(), keys: Object.keys(data).length, data: data, idb: idb, extra: extra
         };
         _dl(`ar-geodet-zaloha-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}.json`, JSON.stringify(payload));
-        try { localStorage.setItem('arLastBackupAt', String(Date.now())); } catch (e) {}
+        // Razitko poslední zálohy. Klíče jsou historicky TŘI (kazdá vrstva si zavedla
+        // vlastní) a čtou je různá místa — arLastBackupAt výpis úložiště v logika.js,
+        // agLastBackupTs pruh v auto-zaloha.js, agLastBackup vylepseni.js. Píšeme
+        // všechny naráz, aby se nestalo, že jedna vrstva má zálohu za čerstvou a druhá
+        // za starou (přesně z toho vznikala trojice upozornění na totéž).
+        try {
+            var _ts = String(Date.now());
+            localStorage.setItem('arLastBackupAt', _ts);
+            localStorage.setItem('agLastBackupTs', _ts);
+            localStorage.setItem('agLastBackup', _ts);
+            localStorage.removeItem('agBackupSnoozeTs');
+        } catch (e) {}
         if (typeof window.agRenderStorageUsage === 'function') { try { window.agRenderStorageUsage(); } catch (e) {} }
     };
 
-    // Nenapadna pripominka zalohy: kdyz jsou v aktualni zakazce vlastni body a posledni zaloha
-    // je starsi nez 14 dni (nebo nikdy), jednou za spusteni pripomeneme. Data ziji jen v telefonu.
-    window.addEventListener('load', function () {
-        setTimeout(function () {
-            try {
-                var last = parseInt(localStorage.getItem('arLastBackupAt') || '0', 10);
-                var days = last ? (Date.now() - last) / 86400000 : 999;
-                var hasPts = (typeof persistentCustomPoints !== 'undefined' && persistentCustomPoints.length > 0);
-                if (hasPts && days > 14 && typeof quickToast === 'function') {
-                    quickToast('Tip: zálohujte data (Nastavení → Údržba → Stáhnout zálohu). ' + (last ? 'Poslední záloha ' + Math.round(days) + ' dní zpět.' : 'Zatím bez zálohy.'));
-                }
-            } catch (e) {}
-        }, 8000);
-    });
+    // ⚠ 29. 8. 2026: PŘIPOMÍNKA ZÁLOHY UŽ TADY NENÍ. Byla tu jako toast po 14 dnech
+    // a spolu s modálem z js/vylepseni.js a pruhem z js/auto-zaloha.js na uživatele
+    // po startu vyskakovala tři upozornění na totéž, každé s vlastním razítkem
+    // i odkladem. Zbyl JEDEN pruh v js/auto-zaloha.js.
 
     window.importAllData = function (event) {
         const file = event.target.files[0]; event.target.value = '';

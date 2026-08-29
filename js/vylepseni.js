@@ -713,48 +713,24 @@
     }
 
     // --------------------------------------------------------------------------------
-    // 9) ZÁLOHA — razítko po stažení + nenásilná připomínka (data jsou jen v telefonu)
-    //    Nezálohuje automaticky (to by nutilo stahovat soubor bez svolení); jen připomene
-    //    max 1×/den, když je poslední záloha starší 5 dní a v zakázkách jsou data.
+    // 9) ZÁLOHA — razítko po stažení (data jsou jen v telefonu)
+    //
+    //    ⚠ 29. 8. 2026: PŘIPOMÍNKA ZÁLOHY UŽ TADY NENÍ. Appka na ni upozorňovala
+    //    ze TŘÍ míst naráz a každé si vedlo vlastní razítko i vlastní odklad:
+    //      • tenhle modál „Doporučujeme zálohu" (po 5 dnech, klíč agLastBackup),
+    //      • toast z js/zaloha.js (po 14 dnech, klíč arLastBackupAt),
+    //      • pruh z js/auto-zaloha.js (po 7 dnech, klíč agLastBackupTs).
+    //    Uživatel tak po startu dostal několik upozornění na totéž a odbytí jednoho
+    //    ostatní neumlčelo („vyskakuje na mě spousta upozornění na zálohu, sjednoť
+    //    to"). Zbyl JEDEN pruh v js/auto-zaloha.js; razítko se odsud píše dál, aby
+    //    přežily i starší zálohy a výpis úložiště v js/logika.js.
     // --------------------------------------------------------------------------------
-    let _backupNudged = false;
     function wrapBackup() {
         if (typeof window.exportAllData === 'function' && !window.exportAllData._agStamp) {
             const orig = window.exportAllData;
             const w = function () { const r = orig.apply(this, arguments); try { localStorage.setItem('agLastBackup', String(Date.now())); } catch (e) {} return r; };
             w._agStamp = true; window.exportAllData = w;
         }
-    }
-    function hasData() {
-        try {
-            if (typeof _idbMem !== 'undefined' && _idbMem) {
-                for (const k in _idbMem) { if (/CustomPoints|OfflinePoints/.test(k)) { const v = _idbMem[k]; if (v && String(v).length > 2) return true; } }
-            }
-        } catch (e) {}
-        try {
-            for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (/Custom|Stakeout/.test(k)) { const v = localStorage.getItem(k) || ''; if (v.length > 3 && v !== '[]' && v !== '{}') return true; } }
-        } catch (e) {}
-        return false;
-    }
-    function maybeBackupNudge() {
-        if (_backupNudged) return;
-        let last = 0, nudged = 0;
-        try { last = parseInt(localStorage.getItem('agLastBackup') || '0', 10) || 0; } catch (e) {}
-        try { nudged = parseInt(localStorage.getItem('agBackupNudgedAt') || '0', 10) || 0; } catch (e) {}
-        const now = Date.now(), DAY = 86400000;
-        if (now - nudged < DAY) return;            // ne víc než 1× denně
-        if (last && now - last < 5 * DAY) return;  // záloha je čerstvá (pod iOS ~7denním eviction oknem)
-        if (!hasData()) return;                    // není co zálohovat
-        if (typeof window.exportAllData !== 'function') return;
-        _backupNudged = true;
-        try { localStorage.setItem('agBackupNudgedAt', String(now)); } catch (e) {}
-        const days = last ? Math.floor((now - last) / DAY) : null;
-        agConfirm({
-            title: 'Doporučujeme zálohu',
-            message: (last ? ('Od poslední zálohy uplynulo <b>' + days + ' dní</b>. ') : 'Zatím sis nestáhl žádnou zálohu. ') +
-                'Body a nastavení jsou jen v tomhle telefonu — stáhnout zálohu teď?',
-            okText: 'Stáhnout zálohu', cancelText: 'Později'
-        }).then(function (ok) { if (ok) try { window.exportAllData(); } catch (e) {} });
     }
 
     // --------------------------------------------------------------------------------
@@ -787,5 +763,5 @@
         init();
     }
     // Druhý průchod po plném loadu — některé prvky/funkce vznikají později.
-    window.addEventListener('load', function () { setTimeout(init, 300); setTimeout(maybeBackupNudge, 6000); });
+    window.addEventListener('load', function () { setTimeout(init, 300); });
 })();

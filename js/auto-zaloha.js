@@ -19,7 +19,15 @@
 (function () {
     'use strict';
 
-    var TS_KEY = 'agLastBackupTs';       // ms epoch poslední zálohy (localStorage, globální)
+    // ⚠ 29. 8. 2026 — JEDINÁ PŘIPOMÍNKA ZÁLOHY V CELÉ APPCE. Dřív byly tři (toast
+    // v js/zaloha.js po 14 dnech, modál v js/vylepseni.js po 5 dnech a tenhle pruh
+    // po 7) a každá si vedla VLASTNÍ razítko, takže odbytí jedné ostatní neumlčelo
+    // a po startu naskákala na uživatele upozornění na totéž. Ostatní dvě jsou
+    // zrušené; tady se čte razítko ze VŠECH TŘÍ historických klíčů (bere se to
+    // nejnovější), aby appka po aktualizaci nehlásila „nezálohováno" někomu, kdo
+    // zálohu udělal.
+    var TS_KEYS = ['agLastBackupTs', 'arLastBackupAt', 'agLastBackup'];
+    var TS_KEY = TS_KEYS[0];              // ms epoch poslední zálohy (localStorage, globální)
     var SNOOZE_KEY = 'agBackupSnoozeTs';  // ms epoch, do kdy nepřipomínat
     var REMIND_DAYS = 7;                  // starší záloha než X dní = připomenout
     var SNOOZE_MS = 24 * 3600 * 1000;     // „Později" = klid na 1 den
@@ -28,6 +36,13 @@
     function now() { return Date.now(); }
     function getTs(k) { try { var v = parseInt(localStorage.getItem(k), 10); return isFinite(v) ? v : 0; } catch (e) { return 0; } }
     function setTs(k, v) { try { localStorage.setItem(k, String(v)); } catch (e) {} }
+    // nejnovější razítko napříč historickými klíči
+    function lastBackup() {
+        var best = 0;
+        for (var i = 0; i < TS_KEYS.length; i++) { var v = getTs(TS_KEYS[i]); if (v > best) best = v; }
+        return best;
+    }
+    function stampAll(v) { for (var i = 0; i < TS_KEYS.length; i++) setTs(TS_KEYS[i], v); }
 
     function hasData() {
         try {
@@ -49,7 +64,7 @@
         var r;
         try { r = window.exportAllData(); } catch (e) { console.warn('[auto-zaloha] backup', e); return Promise.resolve(false); }
         return Promise.resolve(r).then(function () {
-            setTs(TS_KEY, now());
+            stampAll(now());
             try { localStorage.removeItem(SNOOZE_KEY); } catch (e) {}
             hideBar();
             try { if (typeof window.quickToast === 'function') window.quickToast('Záloha vytvořena ✓'); } catch (e) {}
@@ -100,7 +115,7 @@
         try {
             if (!hasData()) { hideBar(); return; }
             if (now() < getTs(SNOOZE_KEY)) { hideBar(); return; }   // odloženo
-            var ts = getTs(TS_KEY);
+            var ts = lastBackup();
             var d = daysSince(ts);
             if (ts && d != null && d < REMIND_DAYS) { hideBar(); return; }  // čerstvá záloha
             var txt = ts
@@ -119,7 +134,7 @@
         var orig = window.exportAllData;
         window.exportAllData = function () {
             var r = orig.apply(this, arguments);
-            Promise.resolve(r).then(function () { setTs(TS_KEY, now()); try { localStorage.removeItem(SNOOZE_KEY); } catch (e) {} hideBar(); }).catch(function () {});
+            Promise.resolve(r).then(function () { stampAll(now()); try { localStorage.removeItem(SNOOZE_KEY); } catch (e) {} hideBar(); }).catch(function () {});
             return r;
         };
         _wrapped = true;

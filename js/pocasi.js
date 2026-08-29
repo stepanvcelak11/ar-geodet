@@ -401,6 +401,36 @@
     function wmoKind(c) { var e = (c != null) ? WMO[c] : null; return e ? e[1] : 'cloud'; }
     function isPrecipCode(c) { return c != null && c >= 51; }
 
+    // ---- SROVNÁNÍ KÓDU POČASÍ SE SKUTEČNOSTÍ (29. 8. 2026) --------------------------
+    // Nahlášeno z terénu dvakrát: „ukazuje zataženo a přitom praží sluníčko" a „venku
+    // lije a počasí déšť neukazuje". Obojí má společnou příčinu — kód počasí se skládal
+    // VÝHRADNĚ hlasováním modelů (combineCode) a s pozorováním se nikdy nesrovnal:
+    //
+    //   • OBLAČNOST je ORDINÁLNÍ veličina (jasno → skoro jasno → polojasno → zataženo),
+    //     ale hlasování s ní zachází jako s kategoriemi. Když se osmnáct zdrojů rozloží
+    //     na 7× polojasno a 8× zataženo, vyhraje ZATAŽENO — přestože vážený PRŮMĚR
+    //     oblačnosti vyjde třeba 68 %, což je polojasno. Kategorie se proto u
+    //     bezsrážkového počasí odvodí ze spojité, váženě průměrované oblačnosti
+    //     (data.current.cloud); prahy jsou ty, které používá Open-Meteo.
+    //   • DÉŠŤ: radar (0–2 h, krok 5 min) a srážkoměr ČHMÚ jsou POZOROVÁNÍ, model je
+    //     odhad. Když radar vidí srážky nad bodem, kód „zataženo" z modelů je prostě
+    //     špatně. Nowcast to dosud věděl, ale hlásil to jen ve vlastní kartě.
+    function cloudCode(pct) {
+        if (pct == null || !isFinite(pct)) return null;
+        if (pct < 12.5) return 0;      // jasno
+        if (pct < 50) return 1;        // skoro jasno
+        if (pct < 87.5) return 2;      // polojasno
+        return 3;                      // zataženo
+    }
+    // mm/h + teplota → stupeň srážek (déšť / sněžení)
+    function wetCode(mm, tempC) {
+        var snow = (tempC != null && isFinite(tempC) && tempC <= 0.5);
+        if (mm == null || !isFinite(mm)) mm = 0.3;
+        if (mm < 0.5) return snow ? 71 : 61;
+        if (mm < 2.5) return snow ? 73 : 63;
+        return snow ? 75 : 65;
+    }
+
     // ---- MET Norway symbol_code → WMO kód ----------------------------------------
     var METNO_WMO = {
         clearsky: 0, fair: 1, partlycloudy: 2, cloudy: 3, fog: 45,
@@ -590,6 +620,7 @@
                         prob: pick(h, 'precipitation_probability', m.id) || null,
                         precip: pick(h, 'precipitation', m.id) || null,
                         code: pick(h, 'weather_code', m.id) || null,
+                        cloud: pick(h, 'cloud_cover', m.id) || null,
                         wind: pick(h, 'wind_speed_10m', m.id) || null,
                         gusts: pick(h, 'wind_gusts_10m', m.id) || null
                     };
@@ -2210,7 +2241,7 @@
             for (i = 0; i < times.length && added < 24; i++) {
                 var t = num(times[i]);
                 if (t == null || t < nowSec - 3600) continue;
-                var it = [], iwd = [], ig = [], ipr = [], icx = [], ipb = [], igh = [], iph = [];
+                var it = [], iwd = [], ig = [], ipr = [], icx = [], ipb = [], igh = [], iph = [], icl = [];
                 // do 6 h platí váhy pro krátký dosah (tam vede ICON-D2), dál pro dlouhý
                 var far = (t - nowSec) > 6 * 3600;
                 for (var k2 = 0; k2 < hs.length; k2++) {
@@ -2224,18 +2255,26 @@
                     ig.push({ v: at(s.hourly.gusts, idx), w: wh, fam: fh });
                     ipr.push({ v: at(s.hourly.precip, idx), w: wph, fam: fh });
                     icx.push({ code: at(s.hourly.code, idx), w: wph, fam: fh });
+                    icl.push({ v: at(s.hourly.cloud, idx), w: wh, fam: fh });
                     ipb.push({ v: at(s.hourly.prob, idx), w: wph, fam: fh });
                     igh.push({ v: at(s.hourly.gustHi, idx), w: wh, fam: fh });
                     iph.push({ v: at(s.hourly.precipHi, idx), w: wph, fam: fh });
                 }
                 var prSt = wstat(ipr);
+                // stejná oprava jako u „teď": bezsrážkovou kategorii určuje PRŮMĚRNÁ
+                // oblačnost, ne plurality hlasování o kategoriích (viz cloudCode výš)
+                var hCode = combineCode(icx), hCloud = wv(icl);
+                if (!isPrecipCode(hCode) && hCode !== 45 && hCode !== 48) {
+                    var hcc = cloudCode(hCloud);
+                    if (hcc != null) hCode = hcc;
+                }
                 data.hourly.push({
                     t: t,
                     temp: wv(it), wind: wv(iwd), gusts: wv(ig),
                     precip: wmedian(ipr), precipMax: (prSt ? prSt.max : null), prob: wv(ipb),
                     // nejhorší rozumná varianta z ensemblů (P90 přes členy) — z ní jdou výstrahy
                     gustHi: wvPlain(igh), precipHi: wvPlain(iph),
-                    code: combineCode(icx),
+                    code: hCode, cloud: hCloud,
                     day: isDayAt(t)
                 });
                 added++;
@@ -2263,6 +2302,48 @@
         data.pressHist = hist;
 
         return data;
+    }
+
+    // ---- SROVNÁNÍ STAVU „TEĎ" S POZOROVÁNÍM ----------------------------------------
+    // Volá se AŽ ZA nowcastem (potřebuje radar) a JEŠTĚ PŘED uložením do cache, aby
+    // opravený stav dostal i brífink, deník a checklist, které z téže cache čtou.
+    //   1) Prší-li podle RADARU nebo srážkoměru ČHMÚ, kód počasí je déšť/sníh —
+    //      pozorování má přednost před hlasováním modelů. Bouřka (≥ 95) ani kód, který
+    //      už srážky hlásí, se nepřepisuje: to by jen zhoršilo, co je správně.
+    //   2) Když neprší, určí kategorii oblačnosti PRŮMĚRNÁ oblačnost v procentech,
+    //      ne plurality hlasování o kategoriích (viz cloudCode výš).
+    // data.nowFix nese, odkud oprava přišla — ukazuje se v kartě za popisem počasí,
+    // ať je vidět, že „prší" neříká model, ale radar.
+    function reconcileNow(data) {
+        var c = data && data.current;
+        if (!c) return;
+        data.nowFix = null;
+        var nc = data.nowcast, ms = data.measured;
+        var mm = null, src = null;
+        if (nc && nc.raining) {
+            mm = (nc.steps && nc.steps.length && nc.steps[0].mm != null) ? nc.steps[0].mm : nc.peak;
+            src = nc.radar ? 'radar' : 'nowcast';
+        }
+        // Srážkoměr ČHMÚ. ⚠ Radar DWD pokrývá z Česka jen západní okraj — jinde
+        // nowcast jede z modelů a ty přeháňku minou, což je právě ten hlášený případ
+        // „venku lije a počasí déšť neukazuje". Stanice měří i tam, ale hlásí ÚHRN ZA
+        // POSLEDNÍ HODINU a publikuje se se zpožděním kolem hodiny, takže neříká
+        // přesně „prší teď". Proto se bere až když radar mlčí, odečet je čerstvý a
+        // spadlo měřitelně (0,3 mm; desetina milimetru bývá orosení čidla).
+        if (mm == null && ms && ms.precip != null && ms.precip >= 0.3 &&
+            (ms.ageMin == null || ms.ageMin <= 90)) { mm = ms.precip; src = 'stanice ČHMÚ'; }
+        if (mm != null && src) {
+            if (!isPrecipCode(c.code)) {
+                c.code = wetCode(mm, c.temp);
+                data.nowFix = { kind: 'wet', src: src, mm: mm };
+            }
+            return;
+        }
+        var cc = cloudCode(c.cloud);
+        if (cc != null && !isPrecipCode(c.code) && c.code !== 45 && c.code !== 48 && c.code !== cc) {
+            c.code = cc;
+            data.nowFix = { kind: 'cloud', src: 'oblačnost ' + Math.round(c.cloud) + ' %' };
+        }
     }
 
     function pressTrend(hist) {
@@ -2823,7 +2904,13 @@
         hero.classList.add(heroClass(c ? c.code : null, !!data.isDayNow));
         byId('ag-wx-place').textContent = pack.placeName || 'Moje poloha';
         byId('ag-wx-temp').textContent = (c && c.temp != null) ? nf(Math.round(c.temp), 0) + '°' : '–';
-        byId('ag-wx-desc').textContent = c ? wmoText(c.code) : '';
+        // za popisem počasí je vidět, když ho neurčily modely, ale POZOROVÁNÍ
+        // („déšť · radar") — na dotaz „kde je chyba?" je to první, co chce člověk
+        // vědět. U oblačnosti se to nepřipisuje: tak se kategorie počítá vždycky
+        // a procento je vidět v dlaždici Vlhkost.
+        byId('ag-wx-desc').textContent = c
+            ? (wmoText(c.code) + (data.nowFix && data.nowFix.kind === 'wet' ? ' · ' + data.nowFix.src : ''))
+            : '';
         var mm = '';
         if (data.daily && data.daily.length) {
             var d0 = data.daily[0];
@@ -3206,6 +3293,17 @@
         hRow.appendChild(el('span', 'wx-tile-un', '%'));
         th.appendChild(hRow);
         th.appendChild(el('div', 'wx-tile-sub', c.cloud != null ? ('oblačnost ' + nf(Math.round(c.cloud), 0) + ' %') : ''));
+        if (c.cloud != null) {
+            // Nahlášeno 29. 8. 2026: „ukazuje zataženo a přitom praží sluníčko."
+            // Ať je vidět, z čeho ta jedna slovní kategorie nahoře vlastně je.
+            detail(th, 'cloud', 'Odkud je „' + wmoText(c.code) + '"')
+                .appendChild(el('div', 'wx-tile-sub',
+                    'Slovní stav nahoře vychází z tohohle procenta zakrytí oblohy (vážený průměr všech modelů): '
+                    + 'do 12 % jasno, do 50 % skoro jasno, do 88 % polojasno, výš zataženo. '
+                    + 'Dřív o kategorii hlasovaly modely a stačilo, aby jich pár řeklo „zataženo“, '
+                    + 'a přebily většinu — proto se občas ukazovalo zataženo do slunečného dne. '
+                    + 'Když prší podle radaru nebo srážkoměru ČHMÚ, má pozorování přednost před vším.'));
+        }
 
         // Srážky dnes
         var ts = tile(box, 'Srážky dnes');
@@ -3433,6 +3531,8 @@
             }
             delete data.isDayAt;
             try { data.nowcast = buildNowcast(rr[6], rr[7]); } catch (e) { data.nowcast = null; }
+            // stav „teď" srovnat s radarem a měřením — MUSÍ být před saveCache()
+            try { reconcileNow(data); } catch (e) {}
             // srovnej dřívější předpovědi s právě pozorovaným stavem a ulož nové predikce
             try {
                 // „skutečnost" pro vyhodnocení předpovědí: nejdřív měření ČHMÚ,

@@ -3,7 +3,18 @@
 // spravne poloze nad volitelnym podkladem (klasicka mapa OSM / ortofoto CUZK / bez podkladu),
 // spojuji se carami ruznych typu a lze vkladat textove popisky (napr. "kamen" uvnitr plochy).
 // Podklad = vlastni Leaflet mapa (lze posouvat/zoomovat); nacrt = canvas-overlay nad ni.
-// Export jako PNG (vektorovy nacrt na bilem podkladu). Sketch v localStorage ('arTachySketch1').
+// Export jako PNG — pri exportu si vybereš, jestli chceš čistý náčrt na bílém, nebo
+// náčrt i s podkladní mapou.
+//
+// ⚠ 29. 8. 2026 — VÍC NÁČRTŮ (na přání z terénu). Dřív byl náčrt JEDINÝ (klíč
+// 'arTachySketch1'): po otevření naskočila vždycky ta samá předchozí práce a chtít
+// nový náčrt znamenalo ten starý smazat. Teď je náčrtů libovolně mnoho, přepínají se
+// rozbalovátkem v liště a každý má vlastní jméno:
+//     arTachyDocs      [{id,name}]  — seznam náčrtů (pořadí = pořadí v rozbalovátku)
+//     arTachyDocCur    id           — který je otevřený
+//     arTachyDoc_<id>  {pts,lines,…} — obsah jednoho náčrtu
+// Starý jediný náčrt se při prvním spuštění PŘESTĚHUJE do prvního záznamu, takže se
+// rozdělaná práce z terénu neztratí.
 //
 // ODPOJENÍ: smaž <script src="js/tachymetrie.js"> v index.html a tlacitka openTachymetrie().
 // Zbytek aplikace se modulu nikde nedotyka.
@@ -11,6 +22,8 @@
 (function () {
     'use strict';
     const KEY = 'arTachySketch1', BG_KEY = 'arTachyBg', STYLE_KEY = 'arTachyStyle';
+    const LIST_KEY = 'arTachyDocs', CUR_KEY = 'arTachyDocCur';
+    const docKey = id => 'arTachyDoc_' + id;
     // Stavebnice stylu — uzivatel si slozi vlastni caru (barva x tloustka x typ).
     const COLORS = ['#16a34a', '#22c55e', '#2563eb', '#06b6d4', '#d97706', '#dc2626', '#7c3aed', '#db2777', '#0f172a', '#f8fafc'];
     const WIDTHS = [{ name: 'Tenká', w: 2 }, { name: 'Střední', w: 3.5 }, { name: 'Silná', w: 6 }];
@@ -29,9 +42,46 @@
     let drawing = false, curStroke = null, activePid = null;
     let curStyle = { color: '#16a34a', width: 3.5, dash: [] };   // aktualni styl pro caru i kresleni
 
-    function load() { try { const s = localStorage.getItem(KEY); if (s) sketch = JSON.parse(s); } catch (e) {} normalize(); try { curBg = localStorage.getItem(BG_KEY) || 'osm'; } catch (e) { curBg = 'osm'; } try { const st = JSON.parse(localStorage.getItem(STYLE_KEY) || 'null'); if (st && st.color) curStyle = { color: st.color, width: st.width || 3.5, dash: Array.isArray(st.dash) ? st.dash : [] }; } catch (e) {} }
+    // ---------- Náčrty (víc dokumentů) ----------
+    let docs = [], curDoc = null;   // docs: [{id,name}]; curDoc: id otevřeného náčrtu
+    function newId() { return 'd' + Date.now().toString(36) + Math.floor(Math.random() * 1000).toString(36); }
+    function freeName() {
+        let n = docs.length + 1;
+        const used = new Set(docs.map(d => d.name));
+        while (used.has('Náčrt ' + n)) n++;
+        return 'Náčrt ' + n;
+    }
+    // Seznam náčrtů + MIGRACE starého jediného náčrtu. Bez migrace by uživatel po
+    // aktualizaci našel prázdno a rozdělaná práce z terénu by zůstala viset na klíči,
+    // ke kterému už nikdo nesahá.
+    function loadDocs() {
+        try { docs = JSON.parse(localStorage.getItem(LIST_KEY) || 'null'); } catch (e) { docs = null; }
+        if (!Array.isArray(docs)) docs = [];
+        docs = docs.filter(d => d && d.id).map(d => ({ id: String(d.id), name: String(d.name || 'Náčrt') }));
+        if (!docs.length) {
+            const id = newId();
+            let old = null;
+            try { old = localStorage.getItem(KEY); } catch (e) {}
+            docs = [{ id: id, name: 'Náčrt 1' }];
+            if (old) {
+                try { localStorage.setItem(docKey(id), old); localStorage.removeItem(KEY); } catch (e) {}
+            }
+            saveDocs();
+        }
+        try { curDoc = localStorage.getItem(CUR_KEY); } catch (e) { curDoc = null; }
+        if (!curDoc || !docs.some(d => d.id === curDoc)) { curDoc = docs[0].id; try { localStorage.setItem(CUR_KEY, curDoc); } catch (e) {} }
+    }
+    function saveDocs() { try { localStorage.setItem(LIST_KEY, JSON.stringify(docs)); } catch (e) {} }
+    function curName() { const d = docs.find(x => x.id === curDoc); return d ? d.name : 'Náčrt'; }
+    function readDoc() {
+        sketch = { pts: [], lines: [], labels: [], strokes: [], log: [] };
+        try { const s = localStorage.getItem(docKey(curDoc)); if (s) sketch = JSON.parse(s); } catch (e) {}
+        normalize();
+    }
+
+    function load() { loadDocs(); readDoc(); try { curBg = localStorage.getItem(BG_KEY) || 'osm'; } catch (e) { curBg = 'osm'; } try { const st = JSON.parse(localStorage.getItem(STYLE_KEY) || 'null'); if (st && st.color) curStyle = { color: st.color, width: st.width || 3.5, dash: Array.isArray(st.dash) ? st.dash : [] }; } catch (e) {} }
     function normalize() { if (!sketch || typeof sketch !== 'object') sketch = {}; sketch.pts = sketch.pts || []; sketch.lines = sketch.lines || []; sketch.labels = sketch.labels || []; sketch.strokes = sketch.strokes || []; sketch.log = sketch.log || []; }
-    function save() { try { localStorage.setItem(KEY, JSON.stringify(sketch)); } catch (e) {} }
+    function save() { try { localStorage.setItem(docKey(curDoc), JSON.stringify(sketch)); } catch (e) {} }
     function saveStyle() { try { localStorage.setItem(STYLE_KEY, JSON.stringify(curStyle)); } catch (e) {} }
     // Dekodovani stylu (novy objekt {color,width,dash}, nebo stary index do LINE_TYPES).
     function lineStyleOf(l) {
@@ -86,6 +136,7 @@
             .tb-btn.warn{color:#fca5a5;border-color:rgba(248,113,113,0.4);}
             .tb-btn.tb-icon{width:38px;padding:0;justify-content:center;}
             .tb-sel{flex:0 0 auto;height:38px;padding:0 10px;border-radius:11px;background:rgba(255,255,255,0.06);color:#e6edf3;border:1px solid rgba(255,255,255,0.12);font-size:calc(13px * var(--ag-font-scale, 1));}
+            #tachy-doc{max-width:44vw;font-weight:700;border-color:var(--accent,#2f9e74);}
             .tb-sep{flex:0 0 auto;width:1px;height:22px;background:rgba(255,255,255,0.12);margin:0 3px;}
             #tachy-hint{color:#9aa4b2;font-size:calc(12px * var(--ag-font-scale, 1));padding:7px 14px;background:#0b0f14;border-bottom:1px solid rgba(255,255,255,0.05);min-height:16px;}
             #tachy-wrap{position:relative;flex:1;min-height:0;}
@@ -119,6 +170,11 @@
                 <div class="ts-row"><span class="ts-lab">Styl</span><div class="ts-items" id="tachy-dashes">${dashCh}</div></div>
             </div>
             <div id="tachy-actions">
+                <select id="tachy-doc" class="tb-sel" title="Který náčrt je otevřený" aria-label="Náčrt" onchange="tachySwitchDoc(this.value)"></select>
+                <button class="tb-btn tb-icon" onclick="tachyNewDoc()" title="Nový náčrt" aria-label="Nový náčrt"><svg class="icon"><use href="#i-plus"/></svg></button>
+                <button class="tb-btn tb-icon" onclick="tachyRenameDoc()" title="Přejmenovat náčrt" aria-label="Přejmenovat náčrt"><svg class="icon"><use href="#i-edit"/></svg></button>
+                <button class="tb-btn tb-icon warn" onclick="tachyDeleteDoc()" title="Smazat tento náčrt" aria-label="Smazat tento náčrt"><svg class="icon"><use href="#i-trash"/></svg></button>
+                <span class="tb-sep"></span>
                 <button class="tb-btn prim" onclick="tachyAddCurrent()"><svg class="icon"><use href="#i-plus"/></svg> Bod (GPS)</button>
                 <button class="tb-btn" onclick="tachyAddFromPoints()"><svg class="icon"><use href="#i-map-pin"/></svg> Z bodů</button>
                 <span class="tb-sep"></span>
@@ -127,7 +183,6 @@
                     <option value="osm">Mapa</option><option value="ortofoto">Ortofoto</option><option value="none">Bez podkladu</option>
                 </select>
                 <button class="tb-btn tb-icon" onclick="tachyExport()" title="Export do PNG" aria-label="Export náčrtu do PNG"><svg class="icon"><use href="#i-download"/></svg></button>
-                <button class="tb-btn tb-icon warn" onclick="tachyClear()" title="Vymazat náčrt" aria-label="Vymazat celý náčrt"><svg class="icon"><use href="#i-trash"/></svg></button>
             </div>
             <div id="tachy-hint"></div>
             <div id="tachy-wrap">
@@ -169,10 +224,83 @@
         else { tmap.setView([49.8, 15.5], 8); }
     }
 
+    // ---------- Přepínání náčrtů ----------
+    function renderDocs() {
+        const sel = document.getElementById('tachy-doc');
+        if (!sel) return;
+        sel.innerHTML = docs.map(d =>
+            '<option value="' + esc(d.id) + '"' + (d.id === curDoc ? ' selected' : '') + '>' + esc(d.name) + '</option>'
+        ).join('');
+        sel.value = curDoc;
+    }
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+    window.tachySwitchDoc = function (id) {
+        if (!id || id === curDoc) return;
+        if (!docs.some(d => d.id === id)) { renderDocs(); return; }
+        save();                       // rozdělaný náčrt uložit, než se přepne
+        curDoc = id;
+        try { localStorage.setItem(CUR_KEY, curDoc); } catch (e) {}
+        readDoc();
+        selIdx = -1; mode = 'view'; updateModeButtons(); updateStylePanel(); applyDrawInteraction();
+        renderDocs();
+        if (tmap) fitView();
+        redraw();
+        hint('Otevřen náčrt „' + curName() + '".');
+    };
+    window.tachyNewDoc = function () {
+        agAskText('Název nového náčrtu:', { title: 'Nový náčrt', value: freeName(), okText: 'Vytvořit' }).then(nm => {
+            if (nm === null) return;
+            save();
+            const id = newId();
+            docs.push({ id: id, name: String(nm).trim() || freeName() });
+            saveDocs();
+            curDoc = id;
+            try { localStorage.setItem(CUR_KEY, curDoc); } catch (e) {}
+            sketch = { pts: [], lines: [], labels: [], strokes: [], log: [] };
+            save();
+            selIdx = -1; mode = 'view'; updateModeButtons(); updateStylePanel(); applyDrawInteraction();
+            renderDocs(); redraw();
+            hint('Nový náčrt „' + curName() + '" — začni bodem (GPS) nebo kresli.');
+        });
+    };
+    window.tachyRenameDoc = function () {
+        agAskText('Nový název náčrtu:', { title: 'Přejmenovat náčrt', value: curName(), okText: 'Uložit' }).then(nm => {
+            if (nm === null || !String(nm).trim()) return;
+            const d = docs.find(x => x.id === curDoc);
+            if (!d) return;
+            d.name = String(nm).trim();
+            saveDocs(); renderDocs();
+        });
+    };
+    // Smazat NÁČRT, ne jen jeho obsah. Když je poslední, nezmizí docela — jen se
+    // vyprázdní, aby v modulu vždycky nějaký otevřený náčrt byl.
+    window.tachyDeleteDoc = function () {
+        const empty = !sketch.pts.length && !sketch.lines.length && !sketch.labels.length && !sketch.strokes.length;
+        const doIt = function () {
+            try { localStorage.removeItem(docKey(curDoc)); } catch (e) {}
+            docs = docs.filter(d => d.id !== curDoc);
+            if (!docs.length) docs = [{ id: newId(), name: 'Náčrt 1' }];
+            saveDocs();
+            curDoc = docs[0].id;
+            try { localStorage.setItem(CUR_KEY, curDoc); } catch (e) {}
+            readDoc();
+            selIdx = -1; mode = 'view'; updateModeButtons(); updateStylePanel(); applyDrawInteraction();
+            renderDocs();
+            if (tmap) fitView();
+            redraw();
+            hint('Otevřen náčrt „' + curName() + '".');
+        };
+        if (empty) return doIt();   // prazdny nacrt smaz bez ptani
+        agAsk('Smazat náčrt „' + curName() + '" i s obsahem?', { title: 'Smazat náčrt', okText: 'Smazat', danger: true })
+            .then(ok => { if (ok) doIt(); });
+    };
+
     window.openTachymetrie = function () {
         load(); build();
         document.getElementById('tachy-modal').style.display = 'flex';
         document.getElementById('tachy-bg').value = curBg;
+        renderDocs();
         mode = 'view'; selIdx = -1; updateModeButtons(); updateStylePanel();
         setTimeout(() => { ensureMap(); tmap.invalidateSize(); fitView(); applyDrawInteraction(); redraw(); }, 60);
     };
@@ -475,25 +603,128 @@
         ctx.textAlign = 'center'; ctx.strokeText('S ↑', canvas.width - 24, 24); ctx.fillText('S ↑', canvas.width - 24, 24);
     }
 
-    window.tachyExport = function () {
-        if (!sketch.pts.length && !sketch.strokes.length && !sketch.labels.length) { agInfo('Náčrt je prázdný.'); return; }
-        // vektorovy nacrt na bilem podkladu (mapove dlazdice se kvuli CORS do PNG spolehlive neprenesou)
-        const exp = document.createElement('canvas'); exp.width = canvas.width; exp.height = canvas.height;
-        const c = exp.getContext('2d');
-        c.fillStyle = '#fff'; c.fillRect(0, 0, exp.width, exp.height);
+    // ---------- Export do PNG ----------
+    // Kresba náčrtu do libovolného kontextu; onWhite = tmavý text pro bílý podklad.
+    function drawSketchTo(c, onWhite) {
         sketch.lines.forEach(l => { if (!sketch.pts[l[0]] || !sketch.pts[l[1]]) return; const st = lineStyleOf(l); const a = scr(sketch.pts[l[0]]), b = scr(sketch.pts[l[1]]); c.strokeStyle = st.color; c.lineWidth = st.width; c.setLineDash(st.dash || []); c.lineCap = 'round'; c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke(); });
         c.setLineDash([]); c.lineCap = 'butt';
         (sketch.strokes || []).forEach(s => drawStrokePath(c, s));
-        c.textBaseline = 'middle'; c.textAlign = 'center';
-        sketch.labels.forEach(lb => { const s = scr(lb); c.font = 'bold 14px sans-serif'; c.fillStyle = '#7c2d12'; c.fillText(lb.text, s.x, s.y); });
+        // popisky: na mapě potřebují bílou podložku, na bílém stačí text
+        sketch.labels.forEach(lb => {
+            const s = scr(lb);
+            c.font = 'bold 14px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+            if (!onWhite) {
+                const w = c.measureText(lb.text).width + 14;
+                c.fillStyle = 'rgba(255,255,255,0.92)'; c.strokeStyle = '#92400e'; c.lineWidth = 1;
+                roundRect(c, s.x - w / 2, s.y - 12, w, 24, 6); c.fill(); c.stroke();
+            }
+            c.fillStyle = '#7c2d12'; c.fillText(lb.text, s.x, s.y);
+        });
         c.textBaseline = 'alphabetic'; c.textAlign = 'left';
-        sketch.pts.forEach(p => { const s = scr(p); c.beginPath(); c.arc(s.x, s.y, 4.5, 0, 2 * Math.PI); c.fillStyle = '#2563eb'; c.fill(); c.fillStyle = '#111'; c.font = 'bold 13px sans-serif'; c.fillText(p.name, s.x + 8, s.y - 6); });
-        drawMeasure(c, true); // délky čar + plocha do exportu
-        try {
-            const url = exp.toDataURL('image/png');
-            const a = document.createElement('a'); a.href = url;
-            a.download = 'nacrt_' + (typeof activeProjectId !== 'undefined' ? activeProjectId : 'tachymetrie') + '.png';
-            document.body.appendChild(a); a.click(); a.remove();
-        } catch (e) { agInfo('Export selhal: ' + (e && e.message ? e.message : e)); }
+        sketch.pts.forEach(p => {
+            const s = scr(p);
+            c.beginPath(); c.arc(s.x, s.y, 4.5, 0, 2 * Math.PI); c.fillStyle = '#2563eb'; c.fill();
+            if (!onWhite) { c.strokeStyle = '#fff'; c.lineWidth = 2; c.stroke(); }
+            c.font = 'bold 13px sans-serif';
+            if (!onWhite) { c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,0.7)'; c.strokeText(p.name, s.x + 8, s.y - 6); }
+            c.fillStyle = onWhite ? '#111' : '#fff'; c.fillText(p.name, s.x + 8, s.y - 6);
+        });
+        drawMeasure(c, onWhite);   // délky čar + plocha
+    }
+
+    // Podkladová mapa do exportu. Dlaždice NEJDE brát z Leafletu (jeho <img> jsou bez
+    // crossOrigin, takže by plátno „ušpinily" a toDataURL by spadl na SecurityError).
+    // Stahují se proto ZNOVU přes fetch() → blob → objectURL, což je same-origin,
+    // a plátno zůstane čisté. Když se to nepovede, export prostě vyjde na bílém.
+    function imgFromBlob(b) {
+        return new Promise((res, rej) => {
+            const u = URL.createObjectURL(b), im = new Image();
+            im.onload = () => { res(im); setTimeout(() => URL.revokeObjectURL(u), 2000); };
+            im.onerror = () => { URL.revokeObjectURL(u); rej(new Error('img')); };
+            im.src = u;
+        });
+    }
+    async function fetchImg(url) {
+        const r = await fetch(url, { mode: 'cors', credentials: 'omit' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return imgFromBlob(await r.blob());
+    }
+    async function drawBgTo(c) {
+        if (!tmap || curBg === 'none') return false;
+        const b = tmap.getPixelBounds();
+        const w = c.canvas.width, h = c.canvas.height;
+        if (curBg === 'ortofoto') {
+            // WMS umí vyrobit jeden obrázek přesně pro daný výřez → žádné skládání dlaždic
+            const bb = tmap.getBounds();
+            const sw = L.CRS.EPSG3857.project(bb.getSouthWest()), ne = L.CRS.EPSG3857.project(bb.getNorthEast());
+            const url = 'https://ags.cuzk.gov.cz/arcgis1/services/ORTOFOTO/MapServer/WMSServer'
+                + '?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=0&STYLES=&FORMAT=image/jpeg'
+                + '&TRANSPARENT=FALSE&CRS=EPSG:3857&WIDTH=' + w + '&HEIGHT=' + h
+                + '&BBOX=' + [sw.x, sw.y, ne.x, ne.y].join(',');
+            const im = await fetchImg(url);
+            c.drawImage(im, 0, 0, w, h);
+            return true;
+        }
+        const z = tmap.getZoom();
+        const zn = Math.min(Math.floor(z), 18);          // OSM dál než 18 nemá dlaždice
+        const scale = Math.pow(2, z - zn);
+        const size = 256 * scale, n = Math.pow(2, zn);
+        const x0 = Math.floor(b.min.x / size), x1 = Math.floor(b.max.x / size);
+        const y0 = Math.floor(b.min.y / size), y1 = Math.floor(b.max.y / size);
+        const jobs = [];
+        for (let x = x0; x <= x1; x++) {
+            for (let y = y0; y <= y1; y++) {
+                if (y < 0 || y >= n) continue;
+                jobs.push({ x: x, y: y, tx: ((x % n) + n) % n });
+            }
+        }
+        if (!jobs.length || jobs.length > 64) return false;   // nesmyslný výřez → radši bílá
+        // ⚠ `?agexp=1` NENÍ ozdoba. Service worker si dlaždice ukládá do TILE_CACHE
+        // tak, jak je stáhl Leaflet — tedy jako OPAQUE odpovědi z <img> (no-cors).
+        // Kdyby se sem sáhlo na tutéž adresu, caches.match() by tu opaque odpověď
+        // vrátil i našemu cors fetchi a prohlížeč ho zabije (ERR_FAILED: „an opaque
+        // response was used for a request whose type is not no-cors"). Jiná adresa =
+        // jiný klíč v cache, takže projde skutečná odpověď s hlavičkami CORS a plátno
+        // zůstane čisté. (Tohle je ta stará past crossOrigin × opaque cache.)
+        const imgs = await Promise.all(jobs.map(j =>
+            fetchImg('https://tile.openstreetmap.org/' + zn + '/' + j.tx + '/' + j.y + '.png?agexp=1')));
+        for (let i = 0; i < jobs.length; i++) {
+            c.drawImage(imgs[i], jobs[i].x * size - b.min.x, jobs[i].y * size - b.min.y, size, size);
+        }
+        return true;
+    }
+
+    function downloadCanvas(exp) {
+        const nm = curName().replace(/[^\wÀ-ž .-]+/g, '').replace(/\s+/g, '_') || 'nacrt';
+        const url = exp.toDataURL('image/png');
+        const a = document.createElement('a'); a.href = url;
+        a.download = 'nacrt_' + nm + '.png';
+        document.body.appendChild(a); a.click(); a.remove();
+    }
+
+    // ⚠ 29. 8. 2026: nahlášeno „při exportu se mi vyexportovala i podkladní mapa".
+    // Dřív o tom nikdo nerozhodoval — export byl natvrdo jeden způsob. Teď se před
+    // uložením ptáme: pro geodetický náčrt do spisu se hodí čistá bílá, pro doložení
+    // „kde to je" naopak podklad.
+    window.tachyExport = function () {
+        if (!sketch.pts.length && !sketch.strokes.length && !sketch.labels.length) { agInfo('Náčrt je prázdný.'); return; }
+        const withMap = (curBg !== 'none');
+        const ask = withMap
+            ? agAsk('Vyexportovat i podkladní mapu, nebo jen čistý náčrt na bílém?',
+                { title: 'Export náčrtu', okText: 'S mapou', cancelText: 'Jen náčrt' })
+            : Promise.resolve(false);
+        ask.then(async function (useMap) {
+            const exp = document.createElement('canvas'); exp.width = canvas.width; exp.height = canvas.height;
+            const c = exp.getContext('2d');
+            let onWhite = true;
+            if (useMap) {
+                try { onWhite = !(await drawBgTo(c)); } catch (e) { onWhite = true; }
+                if (onWhite && typeof quickToast === 'function') quickToast('Podkladovou mapu se nepodařilo stáhnout — export je bez ní.');
+            }
+            if (onWhite) { c.fillStyle = '#fff'; c.fillRect(0, 0, exp.width, exp.height); }
+            drawSketchTo(c, onWhite);
+            try { downloadCanvas(exp); }
+            catch (e) { agInfo('Export selhal: ' + (e && e.message ? e.message : e)); }
+        });
     };
 })();
