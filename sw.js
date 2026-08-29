@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v264';   // konzole vlastnika: prehled firem, stropy mist, zmrazeni
+const SHELL_CACHE = 'argeodet-shell-v265';   // konzole vlastnika: prehled firem, stropy mist, zmrazeni
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -31,9 +31,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=264',
-    './css/style.css?v=264',
-    './css/vylepseni.css?v=264',
+    './css/tokens.css?v=265',
+    './css/style.css?v=265',
+    './css/vylepseni.css?v=265',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
@@ -217,6 +217,10 @@ const ASSETS_TO_CACHE = [
     './js/rocenka.js',
     './js/kolize-bodu.js',
     './js/mini-panel.js',
+    './js/motivy-teren.js',
+    './js/sever-slunce.js',
+    './js/foto-protinani.js',
+    './js/odhadovacka.js',
     './data/zpravodaj.json',
     './data/predpisy.json',
     './data/co-je-noveho.json',
@@ -228,6 +232,7 @@ const ASSETS_TO_CACHE = [
     './css/duvera.css',
     './css/rocenka.css',
     './css/kolize-bodu.css',
+    './css/motivy-teren.css',
     './js/lib/qrcode.min.js',
     './js/lib/jsqr.min.js',
     './fonts/inter-var-latin.woff2',
