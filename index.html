@@ -89,8 +89,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=259">
-    <link rel="stylesheet" href="css/style.css?v=259">
+    <link rel="stylesheet" href="css/tokens.css?v=260">
+    <link rel="stylesheet" href="css/style.css?v=260">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere.
@@ -128,7 +128,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=259">
+    <link rel="stylesheet" href="css/vylepseni.css?v=260">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -943,6 +943,11 @@
          Odpojitelné: smaž tento řádek + js/pas-blizkosti.js. MUSÍ být po grafika.js.
          Nevisí na snímcích AR (na Androidu se nemusí konat) — viz hlavička souboru. -->
     <script defer src="js/pas-blizkosti.js"></script>
+    <!-- HISTORIE AKTUALIZACI (odpojitelne: smaz tento radek + js/historie-aktualizaci.js)
+         — prohlizitelny soupis zmen z nabidky Vice a z Nastaveni → Udrzba. Bere data
+         ze STEJNEHO data/co-je-noveho.json jako roletka u listy Nova verze, at
+         nevzniknou dva changelogy, ktere se rozejdou. -->
+    <script defer src="js/historie-aktualizaci.js"></script>
     <script type="ag/lazy" data-src="js/satelity.js"></script>
     <script type="ag/lazy" data-src="js/kalkulacka.js"></script>
     <script defer src="js/export.js"></script>

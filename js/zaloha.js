@@ -44,6 +44,23 @@
     ];
     function isSecretKey(k) { return SECRET_KEYS.indexOf(k) >= 0; }
 
+    // ZANORENA KOPIE TYCHZ UDAJU. Ulozene firmy (agFirmy_v1) drzi u KAZDEHO profilu
+    // snapshot PROF_KEYS (js/ucty.js) - a v nem je zase agFirmaTok_v1 a agFirmaOff_v1.
+    // Vyhozeni klicu o uroven vys je tedy neodstrani; profily se musi projit zvlast.
+    // Kdyz obsahu nerozumime, klic radeji vypustime celý - nejistota se nevyvazi.
+    // Dusledek pro uzivatele: po obnove zalohy chce prepnuti na JINOU firmu jedno
+    // online prihlaseni. Prihlaseni do te prave aktivni zustava (viz import nize).
+    var PROFILES_KEY = 'agFirmy_v1';
+    function stripProfiles(json) {
+        var a;
+        try { a = JSON.parse(json); } catch (e) { return null; }
+        if (!Array.isArray(a)) return null;
+        a.forEach(function (p) {
+            if (p && p.snap) SECRET_KEYS.forEach(function (k) { try { delete p.snap[k]; } catch (e) {} });
+        });
+        try { return JSON.stringify(a); } catch (e) { return null; }
+    }
+
     function _openDb(name, cfg) {
         return new Promise(function (res) {
             var r; try { r = indexedDB.open(name, 1); } catch (e) { return res(null); }
@@ -92,6 +109,10 @@
             const k = localStorage.key(i);
             if (isSecretKey(k)) continue;          // prihlasovaci udaje do souboru nepatri
             data[k] = localStorage.getItem(k);
+        }
+        if (typeof data[PROFILES_KEY] === 'string') {
+            const _clean = stripProfiles(data[PROFILES_KEY]);
+            if (_clean === null) delete data[PROFILES_KEY]; else data[PROFILES_KEY] = _clean;
         }
         const idb = (typeof idbDumpAll === 'function') ? await idbDumpAll() : {};
         const extra = {};
@@ -146,7 +167,14 @@
             for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); snapshot[k] = localStorage.getItem(k); }
             try {
                 localStorage.clear();
-                keys.forEach(k => { if (!isSecretKey(k) && typeof payload.data[k] === 'string') localStorage.setItem(k, payload.data[k]); });
+                keys.forEach(k => {
+                    if (isSecretKey(k)) return;
+                    let v = payload.data[k];
+                    if (typeof v !== 'string') return;
+                    // starsi zalohy (porizene pred touhle opravou) nesou udaje i uvnitr profilu
+                    if (k === PROFILES_KEY) { const c = stripProfiles(v); if (c === null) return; v = c; }
+                    localStorage.setItem(k, v);
+                });
                 // Prihlaseni patri TOMUHLE telefonu, ne zaloze: stara (nebo cizi)
                 // zaloha nesmi podstrcit svuj token ani odhlasit toho, kdo obnovuje.
                 SECRET_KEYS.forEach(k => { if (typeof snapshot[k] === 'string') localStorage.setItem(k, snapshot[k]); });

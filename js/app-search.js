@@ -45,6 +45,9 @@
         { label: 'Kompas / Azimut', keys: 'kompas azimut sever gon jednotky nula korekce', run: function () { if (typeof openCompassModal === 'function') openCompassModal(); } },
         // Poloha z mapy: hledá se hlavně tehdy, když je GPS špatná — proto i klíče
         // „les", „mesto", „nepresna gps". Cíl je odpojitelný, tak jen když existuje.
+        // Historie aktualizací je jen v nabídce Více a v Nastavení → Údržba, takze by ji
+        // hledání bez jádrového cíle nenašlo. Cíl je odpojitelný, proto typeof.
+        { label: 'Historie aktualizací', keys: 'historie aktualizaci zmeny co je noveho novinky verze changelog co pribylo vydani', run: function () { if (typeof window.agOpenHistorie === 'function') window.agOpenHistorie(); } },
         { label: 'Poloha z mapy — zpřesnit klepnutím', keys: 'poloha z mapy rucni presnost nepresna gps les mesto ulice ortofoto kde stojim zpresnit', run: function () { if (typeof window.agPosFromMap === 'function') window.agPosFromMap(); } }
     ];
 
