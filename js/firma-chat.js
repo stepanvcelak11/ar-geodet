@@ -58,6 +58,16 @@
             '  color:var(--text-muted,#9aa1ac);border-radius:999px;padding:7px 12px;font:600 12px/1 var(--font-ui,system-ui);cursor:pointer;',
             '  transition:color .15s ease,border-color .15s ease,background .15s ease;}',
             '#agch-to button.act{border-color:var(--accent,#2f9e74);background:var(--accent-soft,rgba(47,158,116,0.14));color:var(--accent,#2f9e74);}',
+            // hledání adresáta (nahradilo vodorovný pásek se všemi jmény)
+            '#agch-to .agch-tonone{font:500 11.5px/1.3 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
+            '#agch-to .agch-pickbox{flex:1 1 100%;margin-top:6px;padding:8px;border-radius:12px;',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:var(--glass-bg,rgba(255,255,255,0.04));}',
+            '#agch-to .agch-pickbox input{width:100%;box-sizing:border-box;padding:9px 11px;border-radius:10px;',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.16));background:var(--surface-2,rgba(255,255,255,0.06));',
+            '  color:var(--text-color,#e6e8eb);font:500 13.5px/1.2 var(--font-ui,system-ui);outline:none;}',
+            '#agch-to .agch-pickbox input:focus{border-color:var(--accent,#2f9e74);}',
+            '#agch-to .agch-picklist{display:flex;flex-direction:column;gap:5px;max-height:190px;overflow-y:auto;margin-top:7px;}',
+            '#agch-to .agch-picklist button{text-align:left;width:100%;}',
             '#agch-modal .agch-meta .lock{color:#d4a02c;font-weight:700;}',
             '#agch-modal .priv .agch-bubble{border-color:rgba(212,160,44,0.4);background:rgba(212,160,44,0.08);}',
             '#agch-modal .agch-day{align-self:center;font:600 10.5px/1 var(--font-ui,system-ui);letter-spacing:.05em;text-transform:uppercase;',
@@ -153,9 +163,18 @@
         m.querySelector('#agch-pt').onclick = openPicker;
         // volba adresáta: Všem / konkrétní člověk (i z pruhu a z nabídky vláken)
         m.querySelector('.modal-body').addEventListener('click', function (e) {
+            // rozbalení/zavření hledání adresáta
+            var p = e.target.closest ? e.target.closest('button[data-pick]') : null;
+            if (p) {
+                _pickOpen = p.getAttribute('data-pick') === '1';
+                if (!_pickOpen) _pickQ = '';
+                renderTo();
+                return;
+            }
             var b = e.target.closest ? e.target.closest('button[data-to]') : null;
             if (!b) return;
             _to = b.getAttribute('data-to') || '';
+            _pickOpen = false; _pickQ = '';
             renderTo();
             render();
             try { m.querySelector('#agch-inp').focus(); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'firma-chat:ensureModal'); }
@@ -176,10 +195,17 @@
     // ---- adresát zprávy: '' = všem ve firmě, jinak id uživatele -------------
     var _to = '';
     function meUser() { var u = U(); return u && u.currentUser ? u.currentUser() : null; }
+    // ⚠ ZABLOKOVANÉ ÚČTY SE NENABÍZEJÍ. Administrace je vidět schválně (admin je musí
+    // umět odblokovat), ale poslat soukromou zprávu někomu, kdo se nemůže přihlásit,
+    // je slepá ulička. Spolu s obnovou seznamu při otevření (viz open()) to je odpověď
+    // na hlášení z 29. 8. 2026: „chat má v sobě uživatele, kteří neexistují, a nejsou
+    // tam stávající členové."
     function firmUsers() {
         var u = U(); var f = u && u.getFirm();
         var me = meUser();
-        return ((f && f.users) || []).filter(function (x) { return !me || x.id !== me.id; });
+        return ((f && f.users) || []).filter(function (x) {
+            return x && !x.disabled && (!me || x.id !== me.id);
+        });
     }
     function toName(id) {
         var us = firmUsers();
@@ -189,17 +215,63 @@
         return '?';
     }
     // volba adresáta NOVÉ zprávy (na zobrazení seznamu nemá vliv)
+    //
+    // ⚠ HLEDÁNÍ MÍSTO VODOROVNÉHO PÁSKU (na přání 29. 8. 2026: „u toho chatu bych
+    // udělal vyhledávání členu, komu napsat, místo vodorovného pásku uživatelé — až
+    // jich bude hodně, ten pásek není přehledný"). Pásek se všemi jmény vedle sebe je
+    // čitelný do pěti lidí; při dvaceti je to nekonečné rolování do strany. Teď je
+    // vidět jen aktuální adresát a tlačítko, které rozbalí pole s hledáním. Pod
+    // PRAH_HLEDANI lidí se hledací pole neukazuje — u tří kolegů by jen překáželo.
+    var PRAH_HLEDANI = 6;
+    var _pickOpen = false, _pickQ = '';
+    // porovnání bez diakritiky a velikosti písmen, ať „nováková" najde „Nováková"
+    function normTxt(s) {
+        s = String(s == null ? '' : s).toLowerCase();
+        try { return s.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) { return s; }
+    }
     function renderTo() {
         var box = document.getElementById('agch-to');
         if (!box) return;
         var users = firmUsers();
         var html = '<span class="agch-tolabel">Komu:</span>' +
             '<button type="button" data-to="" class="' + (_to === '' ? 'act' : '') + '">Všem ve firmě</button>';
-        users.forEach(function (x) {
-            html += '<button type="button" data-to="' + esc(x.id) + '" class="' + (_to === x.id ? 'act' : '') + '">' +
-                LOCK_SVG + esc(String(x.name).slice(0, 14)) + '</button>';
-        });
+        if (_to) {
+            html += '<button type="button" data-to="' + esc(_to) + '" class="act">' + LOCK_SVG + esc(toName(_to)) + '</button>';
+        }
+        if (!users.length) {
+            html += '<span class="agch-tonone">ve firmě zatím nikdo další není</span>';
+        } else if (users.length <= PRAH_HLEDANI && !_pickOpen) {
+            // málo lidí → nemá cenu nic schovávat, ať je to na jeden klik
+            users.forEach(function (x) {
+                if (x.id === _to) return;
+                html += '<button type="button" data-to="' + esc(x.id) + '">' + LOCK_SVG + esc(String(x.name).slice(0, 14)) + '</button>';
+            });
+        } else {
+            html += '<button type="button" class="agch-pick" data-pick="' + (_pickOpen ? '0' : '1') + '">'
+                + (_pickOpen ? 'Zavřít' : 'Soukromě komu… (' + users.length + ')') + '</button>';
+        }
+        if (_pickOpen) {
+            var q = normTxt(_pickQ);
+            var hit = users.filter(function (x) { return !q || normTxt(x.name).indexOf(q) !== -1; });
+            html += '<div class="agch-pickbox">' +
+                '<input type="search" id="agch-pickq" placeholder="Hledej jméno…" autocomplete="off" value="' + esc(_pickQ) + '">' +
+                '<div class="agch-picklist">' +
+                (hit.length
+                    ? hit.map(function (x) {
+                        return '<button type="button" data-to="' + esc(x.id) + '">' + LOCK_SVG + esc(x.name) + '</button>';
+                    }).join('')
+                    : '<span class="agch-tonone">Nikdo takový ve firmě není.</span>') +
+                '</div></div>';
+        }
         box.innerHTML = html;
+        if (_pickOpen) {
+            var qi = document.getElementById('agch-pickq');
+            if (qi) {
+                qi.addEventListener('input', function () { _pickQ = this.value || ''; renderTo(); });
+                // fokus zpět do pole, ať se dá psát dál i po překreslení seznamu
+                try { qi.focus(); qi.setSelectionRange(qi.value.length, qi.value.length); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'firma-chat:renderTo'); }
+            }
+        }
         var inp = document.getElementById('agch-inp');
         if (inp) inp.placeholder = _to ? ('Soukromě pro ' + toName(_to) + '…') : 'Napiš zprávu všem…';
 
@@ -526,9 +598,23 @@
         var m = ensureModal();
         m.style.display = 'flex';
         cacheLoad();
+        _pickOpen = false; _pickQ = '';
         renderTo();
         render();
         load();
+        // Seznam kolegů je v telefonu z posledního stažení konfigurace — mezitím mohl
+        // někdo přibýt nebo být smazaný. Při otevření chatu se proto obnoví a soupis
+        // adresátů se překreslí. Fail-silent: bez signálu zůstane, co bylo.
+        try {
+            if (u.refreshConfig) u.refreshConfig().then(function (ok) {
+                var mm = document.getElementById('agch-modal');
+                if (ok && mm && mm.style.display !== 'none') {
+                    // adresát mezitím mohl z firmy zmizet → spadni zpátky na „všem"
+                    if (_to && !firmUsers().some(function (x) { return x.id === _to; })) _to = '';
+                    renderTo();
+                }
+            });
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'firma-chat:open'); }
         if (_poll) clearInterval(_poll);
         _poll = setInterval(function () {
             var mm = document.getElementById('agch-modal');

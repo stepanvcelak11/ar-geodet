@@ -89,8 +89,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=263">
-    <link rel="stylesheet" href="css/style.css?v=263">
+    <link rel="stylesheet" href="css/tokens.css?v=264">
+    <link rel="stylesheet" href="css/style.css?v=264">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere.
@@ -128,7 +128,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=263">
+    <link rel="stylesheet" href="css/vylepseni.css?v=264">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -141,6 +141,12 @@
     <link rel="stylesheet" href="css/ref-calibration.css">
     <link rel="stylesheet" href="css/sky-obstruction.css">
     <link rel="stylesheet" href="css/cadastre-area.css">
+    <!-- BODOVÉ POLE -->
+    <link rel="stylesheet" href="css/bodove-pole.css">
+    <!-- KONTROLNÍ MĚŘENÍ -->
+    <link rel="stylesheet" href="css/dvoji-mereni.css">
+    <!-- BALÍČEK ZAKÁZKY -->
+    <link rel="stylesheet" href="css/balicek-zakazky.css">
     <link rel="stylesheet" href="css/ar-fusion.css">
     <link rel="stylesheet" href="css/ar-calibrate.css">
     <link rel="stylesheet" href="css/dmr-terrain.css">
@@ -925,6 +931,11 @@
          okna) a AG.style. MUSÍ být hned za err-log.js, dřív než moduly. -->
     <script defer src="js/ag-guard.js"></script>
     <!-- MŮSTEK DIALOGŮ — agInfo()/agAsk() = jednotné in-app dialogy místo nativních alert()/confirm() -->
+    <!-- JAZYKY (odpojitelne: smaz tento radek, js/jazyky.js, data/jazyky.json
+         a oba zaznamy v sw.js) — preklad appky do EN/DE/PL proti slovniku, kde
+         klicem je cesky text v DOM. Cestina nestoji nic (slovnik se ani nestahuje).
+         CIM DRIV, TIM LEPE: dokud slovnik nedojde, vidi cizi uzivatel ceske texty. -->
+    <script defer src="js/jazyky.js"></script>
     <script defer src="js/dialog-bridge.js"></script>
     <!-- ČTENÍ ČÍSEL — agNum() snese desetinnou ČÁRKU (Safari/iOS jinak pole zahodí); musí být před logika.js -->
     <script defer src="js/vstupy.js"></script>
@@ -955,6 +966,15 @@
          ze STEJNEHO data/co-je-noveho.json jako roletka u listy Nova verze, at
          nevzniknou dva changelogy, ktere se rozejdou. -->
     <script defer src="js/historie-aktualizaci.js"></script>
+    <!-- NAPISTE MI (odpojitelne: smaz tento radek, js/zpetna-vazba.js a zaznam v sw.js)
+         — schranka na zpetnou vazbu z nabidky Vice a z Nastaveni → Udrzba. Psat muze
+         kdokoli i bez prihlaseni; cist schranku jen vlastnik (OWNER_KEY na serveru). -->
+    <script defer src="js/zpetna-vazba.js"></script>
+    <!-- SPRAVA APLIKACE (odpojitelne: smaz tento radek, js/sprava-appky.js a zaznam v sw.js)
+         — konzole vlastnika: vsechny firmy, stropy mist, zmrazeni, uklid, hlaska vsem.
+         Otevre ji jen ten, kdo ma OWNER_KEY (server vraci 403 komukoli jinemu).
+         Nacita se vsem, protoze taky zobrazuje hlasku vlastnika v upozornenich. -->
+    <script defer src="js/sprava-appky.js"></script>
     <script type="ag/lazy" data-src="js/satelity.js"></script>
     <script type="ag/lazy" data-src="js/kalkulacka.js"></script>
     <script type="ag/lazy" data-src="js/export.js"></script>
@@ -1007,6 +1027,15 @@
     <script type="ag/lazy" data-src="js/ref-calibration.js"></script>
     <script type="ag/lazy" data-src="js/sky-obstruction.js"></script>
     <script defer src="js/cadastre-area.js"></script>
+    <!-- BODOVÉ POLE (odpojitelné: smaž tento řádek + js/bodove-pole.js + css/bodove-pole.css)
+         — nejbližší úřední body ČÚZK: kam dojít na ověření a jedním ťukem kotva pro Posun GPS -->
+    <script defer src="js/bodove-pole.js"></script>
+    <!-- KONTROLNÍ MĚŘENÍ (odpojitelné: smaž tento řádek + js/dvoji-mereni.js + css/dvoji-mereni.css)
+         — týž bod podruhé s odstupem: jediná POCTIVÁ přesnost, kterou z mobilu lze dostat -->
+    <script defer src="js/dvoji-mereni.js"></script>
+    <!-- BALÍČEK ZAKÁZKY (odpojitelné: smaž tento řádek + js/balicek-zakazky.js + css/balicek-zakazky.css)
+         — sbalí mapu, katastr a body KOLEM ZAKÁZKY, takže to jde udělat i z kanceláře -->
+    <script defer src="js/balicek-zakazky.js"></script>
     <script defer src="js/ar-fusion.js"></script>
     <!-- VIZUÁLNÍ STABILIZACE AR / SLAM-lite #2 (odpojitelné: smaž tento řádek + js/ar-visual-track.js) — optický tok + WebXR kotvení, drží AR mezi GPS/kompas fixy; default vypnuto -->
     <script defer src="js/ar-visual-track.js"></script>

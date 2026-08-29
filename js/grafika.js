@@ -2252,7 +2252,13 @@
         // RODIC body). Ve svetlem rezimu se to ukazovalo vsude, kde neni videt body:
         // pri odtazeni obsahu (overscroll) a v bezpecnych zonach gest = tmavy pruh nahore
         // i dole. Prepiname ho proto tady, stejne jako theme-color.
-        function previewMode(m) { var light = m === 'light'; document.body.classList.toggle('light-mode', light); try { document.documentElement.style.backgroundColor = light ? '#f4f5f7' : '#0e1216'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:previewMode'); } var mc = document.querySelector('meta[name="theme-color"]'); if (mc) mc.setAttribute('content', light ? '#f4f5f7' : '#0f1216'); }
+        function previewMode(m) { var light = m === 'light'; document.body.classList.toggle('light-mode', light); try { document.documentElement.style.backgroundColor = light ? '#f4f5f7' : '#0e1216'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:previewMode'); } // color-scheme dela dve veci najednou: rekne prohlizeci, jak malovat formularove prvky
+        // a rolovatka, A ZAROVEN vynuti prekresleni korene. To druhe je oprava hlaseni
+        // z 29. 8. 2026 („po prepnuti do tmava zustane pod Dynamic Islandem bily pruh
+        // a musim appku restartovat") — WebKit si nektere pevne vrstvy nahore po zmene
+        // tridy na <body> sam neprekresli. Viz i #settings-modal .modal-content::before.
+        try { document.documentElement.style.colorScheme = light ? 'light' : 'dark'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:previewMode'); }
+        var mc = document.querySelector('meta[name="theme-color"]'); if (mc) mc.setAttribute('content', light ? '#f4f5f7' : '#0f1216'); }
 
         // ===== DUHOVY OKRAJ: zari po celou navigaci na bod, zesili a zrychli pri dohledavani (< 2 m) =====
         let _egEl = null;

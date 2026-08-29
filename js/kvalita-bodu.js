@@ -111,6 +111,9 @@
         'protinani': 'protínání',
         'tachy': 'tachymetrie'
     };
+    // Co se s bodem po kontrole stalo — do protokolu to patri, protoze to meni
+    // vyklad souradnic: „prumer obou" znamena jinou polohu nez ta puvodne zamerena.
+    var REZIM = { keep: 'ponechán původní', mean: 'průměr obou', 'new': 'přepsáno novým' };
     function metoda(p) {
         var o = (p.prov && p.prov.origin) || p.origin || '';
         return METODA[o] || (o || '—');
@@ -151,6 +154,31 @@
         });
     }
 
+    // ---- KONTROLNÍ MĚŘENÍ (js/dvoji-mereni.js) --------------------------------------
+    // Bod, který byl změřen podruhé s odstupem, nese v prov.recheck rozdíl obou
+    // určení a v prov.trueAcc přesnost ODVOZENOU z toho rozdílu. To je jediné
+    // číslo v celém protokolu, které vzniklo MĚŘENÍM, ne odhadem z jednoho stání —
+    // proto tu má vlastní sloupec a v textovém protokolu vlastní odstavec.
+    function kontrola(p) {
+        var rc = p && p.prov && p.prov.recheck;
+        return (rc && isFinite(rc.d)) ? rc : null;
+    }
+    // Meze slovního hodnocení musí sedět s js/dvoji-mereni.js — kdyby se rozešly,
+    // tentýž bod by byl v jednom okně „v pořádku" a ve druhém „velký rozdíl".
+    function kontrolaTrida(d) {
+        if (d == null || !isFinite(d)) return 'none';
+        if (d <= 1.50) return 'ok';
+        if (d <= 3.00) return 'warn';
+        return 'bad';
+    }
+    function kontrolaKratce(p) {
+        var rc = kontrola(p);
+        if (!rc) return '—';
+        var t = 'Δ' + num(rc.d);
+        if (p.prov.trueAcc != null && isFinite(p.prov.trueAcc)) t += ' → ±' + num(p.prov.trueAcc);
+        return t;
+    }
+
     function hodnoceni(p) {
         var a = (p.prov && p.prov.acc != null) ? p.prov.acc : (p.acc != null ? p.acc : null);
         if (a == null) return { t: '—', c: 'none' };
@@ -163,7 +191,7 @@
         var ps = radky();
         if (!ps.length) return '<p class="ag-kv-empty">V téhle zakázce zatím žádné body nejsou.</p>';
         var h = '<div class="ag-kv-scroll"><table class="ag-kv-t"><thead><tr>' +
-            '<th>Bod</th><th>Metoda</th><th>±&nbsp;chyba</th><th>σ</th><th>epoch</th><th>Kdy</th>' +
+            '<th>Bod</th><th>Metoda</th><th>±&nbsp;chyba</th><th>σ</th><th>epoch</th><th>Kontrola</th><th>Kdy</th>' +
             '</tr></thead><tbody>';
         ps.forEach(function (p) {
             var q = p.prov || {};
@@ -174,6 +202,7 @@
                 '<td class="ag-kv-num" data-q="' + hd.c + '">' + hd.t + '</td>' +
                 '<td class="ag-kv-num">' + (q.sigma != null ? num(q.sigma) : '—') + '</td>' +
                 '<td class="ag-kv-num">' + (q.n != null ? (q.n + (q.total && q.total !== q.n ? '/' + q.total : '')) : '—') + '</td>' +
+                '<td class="ag-kv-num" data-q="' + kontrolaTrida(q.recheck ? q.recheck.d : null) + '">' + esc(kontrolaKratce(p)) + '</td>' +
                 '<td class="ag-kv-t2">' + esc(kdyKratce(p)) + '</td>' +
                 '</tr>';
         });
@@ -190,9 +219,11 @@
         L.push('  ± chyba  směrodatná chyba výsledné polohy (sterr)');
         L.push('  σ        rozptyl jednotlivých odečtů kolem středu');
         L.push('  epoch    kolik odečtů se použilo / kolik jich přišlo');
+        L.push('  d KONTR  rozdíl dvou NEZÁVISLÝCH určení téhož bodu s časovým odstupem');
+        L.push('  ± OVĚŘ   přesnost odvozená z toho rozdílu (viz odstavec KONTROLNÍ MĚŘENÍ)');
         L.push('  Souřadnice v S-JTSK (EPSG:5514).');
         L.push('');
-        L.push('BOD; Y; X; METODA; ± CHYBA [m]; SIGMA [m]; EPOCH; KDY');
+        L.push('BOD; Y; X; METODA; ± CHYBA [m]; SIGMA [m]; EPOCH; d KONTR [m]; ± OVĚŘ [m]; VÝSLEDEK KONTROLY; KDY');
         ps.forEach(function (p) {
             var q = p.prov || {}, s = sjtsk(p);
             var a = (q.acc != null ? q.acc : (p.acc != null ? p.acc : null));
@@ -204,6 +235,9 @@
                 a != null ? a.toFixed(2) : '',
                 q.sigma != null ? q.sigma.toFixed(2) : '',
                 q.n != null ? (q.n + (q.total && q.total !== q.n ? '/' + q.total : '')) : '',
+                (q.recheck && isFinite(q.recheck.d)) ? q.recheck.d.toFixed(2) : '',
+                (q.trueAcc != null && isFinite(q.trueAcc)) ? q.trueAcc.toFixed(2) : '',
+                q.recheck ? (REZIM[q.recheck.mode] || q.recheck.mode) : '',
                 kdy(p)
             ].join('; '));
         });
@@ -213,11 +247,24 @@
         L.push('  (odrazy signálu od fasád, troposféra) průměrování neodstraní, proto se');
         L.push('  ± chyba zdola omezuje reálnou mezí. Údaj nenahrazuje kontrolní měření');
         L.push('  nezávislou metodou.');
+        var oc = ps.filter(function (p) { return kontrola(p); }).length;
+        L.push('');
+        L.push('KONTROLNÍ MĚŘENÍ  (ověřeno bodů: ' + oc + ' z ' + ps.length + ')');
+        L.push('  Sloupec d KONTR je rozdíl DVOU NEZÁVISLÝCH určení téhož bodu, mezi');
+        L.push('  kterými uplynul čas — konstelace družic se otočila a odrazy signálu');
+        L.push('  se do každého určení promítly jinak. Na rozdíl od sigmy tenhle rozdíl');
+        L.push('  systematiku OBSAHUJE, takže je to jediný údaj v protokolu, který');
+        L.push('  vznikl měřením, a ne odhadem z jednoho stání.');
+        L.push('  Z rozdílu d se odvozuje ± OVĚŘ: d/sqrt(2) pro jedno určení, d/2 pro');
+        L.push('  průměr obou. Odhad má jeden stupeň volnosti, takže je sám nejistý —');
+        L.push('  vypovídá o řádu, ne o setinách.');
+        L.push('  Prázdný sloupec = bod kontrolním měřením neprošel; jeho ± chyba je');
+        L.push('  pouze vnitřní shoda a skutečná odchylka může být násobně větší.');
         return L.join('\r\n');
     }
 
     function protokolCsv() {
-        var ps = radky(), L = ['bod;Y;X;metoda;chyba_m;sigma_m;epoch_pouzito;epoch_celkem;kdy'];
+        var ps = radky(), L = ['bod;Y;X;metoda;chyba_m;sigma_m;epoch_pouzito;epoch_celkem;kontrola_delta_m;kontrola_chyba_m;kontrola_rezim;kontrola_kdy;kdy'];
         ps.forEach(function (p) {
             var q = p.prov || {}, s = sjtsk(p);
             var a = (q.acc != null ? q.acc : (p.acc != null ? p.acc : null));
@@ -228,6 +275,10 @@
                 a != null ? a.toFixed(2) : '',
                 q.sigma != null ? q.sigma.toFixed(2) : '',
                 q.n != null ? q.n : '', q.total != null ? q.total : '',
+                (q.recheck && isFinite(q.recheck.d)) ? q.recheck.d.toFixed(3) : '',
+                (q.trueAcc != null && isFinite(q.trueAcc)) ? q.trueAcc.toFixed(3) : '',
+                q.recheck ? (REZIM[q.recheck.mode] || q.recheck.mode) : '',
+                (q.recheck && q.recheck.t2) ? new Date(q.recheck.t2).toLocaleString('cs-CZ') : '',
                 kdy(p)
             ].join(';'));
         });

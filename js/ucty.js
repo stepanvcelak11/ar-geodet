@@ -397,10 +397,21 @@
     }
 
     // převzetí konfigurace ze serveru do lokální cache (tvar agFirma_v1)
-    function adoptConfig(cfg, api) {
+    //
+    // `nova` = true jen při PŘIHLÁŠENÍ (adoptLogin), kdy se firma smí legálně změnit.
+    // ⚠⚠ JINAK SE KÓD FIRMY MUSÍ SHODOVAT (nahlášeno 29. 8. 2026: „když se přepnu do
+    // druhé firmy a kliknu na Uživatele, kopne mě to zpátky do původní firmy").
+    // Přesně to se dělo: sekce Uživatelé si na začátku říká o refreshConfig(), a když
+    // v telefonu z jakéhokoli důvodu zůstal token PŘEDCHOZÍ firmy (profil bez tokenu,
+    // rozdělané přepnutí, souběžný požadavek odeslaný ještě před přepnutím), server
+    // poslal konfiguraci TÉ STARÉ firmy — a tenhle zápis ji beze slova nastavil jako
+    // aktivní. Uživatel byl rázem zpátky ve firmě, ze které odešel. Odpověď, která
+    // nesedí na právě aktivní firmu, se teď zahodí.
+    function adoptConfig(cfg, api, nova) {
         if (!cfg || !cfg.firm) return;
         var old = null;
         try { old = JSON.parse(localStorage.getItem(LS_FIRM) || 'null'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:adoptConfig'); }
+        if (!nova && old && old.enabled && old.cloud && old.code && cfg.firm.code && old.code !== cfg.firm.code) return;
         var f = {
             enabled: true, cloud: true,
             api: api || (old && old.api) || DEFAULT_API,
@@ -412,6 +423,12 @@
             // mohl odblokovat). Z přihlašování je vyřazuje loginUsers(),
             // z práce currentUser() a server odmítne jejich token hned.
             users: (cfg.users || []),
+            // Strop míst, stav žádosti o navýšení a hláška vlastníka appky.
+            // Chodí to s /config, takže to nestojí žádný další požadavek — a když
+            // je appka offline, platí poslední známý stav místo prázdna.
+            limits: cfg.limits || (old && old.limits) || null,
+            request: cfg.request || null,
+            notice: cfg.notice || null,
             fetchedTs: Date.now()
         };
         try { localStorage.setItem(LS_FIRM, JSON.stringify(f)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:adoptConfig'); }
@@ -421,12 +438,21 @@
         // přihlášeného uživatele v nové konfiguraci → appka se sama odhlásila.
         bustFirm();
         clearGuest();
+        // ⚠⚠ PROFIL FIRMY SE MUSÍ AKTUALIZOVAT TAKY. Profil (`agFirmy_v1`) je záloha
+        // klíčů firmy, ze které se firma obnovuje při přepnutí zpátky — a psal se
+        // dosud jen v saveFirm(). Jenže čerstvý seznam uživatelů ze serveru chodí
+        // TUDY, mimo saveFirm(), takže v profilu zůstávala konfigurace z okamžiku
+        // přihlášení. Po přepnutí firem se pak obnovil TEN STARÝ stav: chyběli lidé,
+        // kteří mezitím přibyli, a svítili ti, kdo byli dávno smazaní. Přesně to je
+        // hlášení z 29. 8. 2026 — „chat má v sobě uživatele, kteří neexistují, a
+        // nejsou tam stávající členové" a „u Uživatelů vidím pouze sebe".
+        rememberCurrentFirm();
         applyPerms();
     }
 
     // po úspěšném /login nebo /firms: konfigurace + token + ověřovadlo + session
     function adoptLogin(data, api, pass) {
-        adoptConfig(data.config, api);
+        adoptConfig(data.config, api, true);   // přihlášení SMÍ změnit firmu
         setTok({ token: data.token, userId: data.user.id });
         // Overovadlo si spocita telefon sam (viz makeOffline). data.offline je tu uz
         // jen kvuli STARSIMU workeru, ktery ho jeste posila - a jako zachrana pro
@@ -449,6 +475,15 @@
         if (!isCloud() || !getTok()) return Promise.resolve(false);
         return cloudFetch('/config').then(function (r) {
             if (r.ok) {
+                // Odpověď patří jiné firmě než té právě aktivní → v telefonu visí
+                // token po předchozí firmě. Zahodit ho (a nechat přihlásit znovu),
+                // ne podle něj přepsat aktivní firmu — viz komentář u adoptConfig().
+                var f0 = getFirm();
+                if (f0 && f0.cloud && f0.code && r.data && r.data.firm && r.data.firm.code
+                    && r.data.firm.code !== f0.code) {
+                    setTok(null);
+                    return false;
+                }
                 adoptConfig(r.data);
                 // účet mohl být mezitím zablokován jinde → zamknout appku
                 if (getSess() && !currentUser()) { setSess(null); showLogin(false); }
@@ -572,6 +607,16 @@
         }).catch(function () {});
     }
     function profileKeyOf(f) { return f.cloud ? ('c:' + (f.code || '?')) : ('l:' + (f.firmName || 'Moje firma')); }
+    // KOLIK FIREM SMÍ BÝT V JEDNOM TELEFONU. Každý firemní profil si své
+    // /config obnovuje sám a má vlastní synchronizaci bodů — pět je stop,
+    // kde ještě dává smysl, že člověk dělá pro víc firem naráz. Kontroluje
+    // se při ZAKLÁDÁNÍ a PŘIPOJOVÁNÍ (js/ucty-admin.js), ne při přepínání:
+    // už uložený profil se nesmí stát nedostupným kvůli změně limitu.
+    var PROFILE_MAX = 5;
+    function profileLimit() {
+        var n = listProfiles().length;
+        return { max: PROFILE_MAX, n: n, full: n >= PROFILE_MAX };
+    }
     function listProfiles() {
         try { var a = JSON.parse(localStorage.getItem(LS_PROF) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; }
     }
@@ -2390,6 +2435,7 @@
         isGuest: isGuest,
         enterGuest: enterGuest,
         listProfiles: listProfiles,
+        profileLimit: profileLimit,
         switchProfile: switchProfile,
         removeProfile: removeProfile,
         rememberCurrentFirm: rememberCurrentFirm,

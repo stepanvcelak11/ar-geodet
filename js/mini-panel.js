@@ -75,17 +75,55 @@
     // Okna, která NEJSOU nástroj — sbalit seznam nebo dialog nedává smysl.
     // (Seznam vychází z MOD_SKIP v js/modal-close.js a z domácích modálů, které
     // jsou formulář nebo rozcestník, ne běžící měření.)
+    //
+    // ⚠ 29. 8. 2026 — NAHLÁŠENO Z TERÉNU: „tlačítko u nástrojů blbne a nepasuje"
+    // a „sbalit dej opravdu jen k nástrojům, není třeba to mít u bodu". Tlačítko
+    // se totiž lepilo na KAŽDÉ velké okno — i na nabídku Face ID hned po
+    // přihlášení a na kartu bodu. Výčet níž proto doplněn a hlavně přibyla
+    // podmínka „okno vzniklo z nástroje" (viz fromTool()).
     var SKIP = {
         'settings-modal': 1, 'tools-modal': 1, 'manage-modal': 1, 'custom-modal-overlay': 1,
         'dict-modal': 1, 'about-modal': 1, 'cluster-modal': 1, 'nearby-modal': 1,
         'compass-calib-modal': 1,
         'ag-kn': 1, 'ag-gate': 1, 'ag-login': 1, 'welcome-screen': 1, 'agtp-block': 1,
-        'ag-mini': 1, 'ag-backup-bar': 1, 'ag-stack': 1, 'hud-editor': 1
+        'ag-mini': 1, 'ag-backup-bar': 1, 'ag-stack': 1, 'hud-editor': 1,
+        // karta bodu (spodní plachta) — na přání: u bodu se sbalovat nemá
+        'bottom-sheet': 1, 'map-sheet': 1, 'side-menu': 1,
+        // nabídky a dialogy, které se otevřou samy (ne z Nástrojů)
+        'ag-bio-ask': 1, 'ag-gz-set': 1, 'ag-gz-pad': 1, 'ag-gz-tr': 1,
+        'agfa-modal': 1, 'trash-modal': 1, 'hidden-pts-modal': 1
     };
 
     var _cur = null;        // právě sbalený nástroj {cfg, modal, disp}
     var _timer = null;
     var _lastHtml = '';
+
+    // ---- „tohle okno je NÁSTROJ" ---------------------------------------------------
+    // Rozměr a z-index rozeznají VELKÉ OKNO, ne nástroj — a tak tlačítko „Sbalit"
+    // přistálo i na nabídce Face ID nebo na kartě bodu. Rozhoduje proto ještě
+    // PŮVOD okna: otevřelo se krátce po klepnutí na dlaždici v Nástrojích (nebo na
+    // řádek seznamu úkonů, na položku kolečka, na zkratku gestem — všechny tyhle
+    // cesty končí klikem na dlaždici, viz AGUkony.run). Co se objeví samo od sebe,
+    // tlačítko nedostane. Jakmile okno jednou projde, označí se atributem, takže
+    // ho pozdější prohlídky poznají i po vypršení okna.
+    var TOOL_SEL = '.tool-tile,.ag-ft-tile,.ag-uk-i[data-k],[data-tool],#ag-kn [data-k]';
+    var TOOL_MS = 15000;    // jak dlouho po klepnutí se okno ještě počítá za nástroj
+    var _toolClickTs = 0;
+    try {
+        document.addEventListener('click', function (e) {
+            try { if (e.target && e.target.closest && e.target.closest(TOOL_SEL)) _toolClickTs = Date.now(); }
+            catch (er) { window.AG && AG.swallow && AG.swallow(er, 'mini-panel:toolClick'); }
+        }, true);
+    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'mini-panel:listen'); }
+    function fromTool(modal) {
+        if (!modal) return false;
+        if (modal.getAttribute('data-ag-mini-ok') === '1') return true;
+        if (modal.hasAttribute && modal.hasAttribute('data-ag-mini')) return true;
+        for (var i = 0; i < TOOLS.length; i++) if (TOOLS[i].modal === modal.id) return true;
+        if (!_toolClickTs || (Date.now() - _toolClickTs) > TOOL_MS) return false;
+        try { modal.setAttribute('data-ag-mini-ok', '1'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'mini-panel:fromTool'); }
+        return true;
+    }
 
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function txt(el) { return el ? (el.textContent || '').replace(/\s+/g, ' ').trim() : ''; }
@@ -119,19 +157,20 @@
             'body.ag-glove #' + BAR_ID + ' button{width:32px;height:32px;line-height:32px;}',
             'body.outdoor-mode #' + BAR_ID + '{background:#0a0e1a;border-width:2px;}',
             'body.light-mode.outdoor-mode #' + BAR_ID + '{background:#fff;}',
-            // tlačítko „Sbalit" v hlavičce domácího modálu
-            '.ag-mini-btn{margin:-2px 0 10px auto;display:flex;align-items:center;gap:6px;padding:7px 12px;cursor:pointer;',
-            '  border-radius:999px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));',
-            '  background:var(--surface-2,rgba(255,255,255,0.07));color:var(--text-color,#eceef2);',
-            '  font:600 11.5px/1 var(--font-ui,system-ui);}',
-            // kulaté tlačítko pro okna modulů — vedle křížku z js/modal-close.js
-            // (ten sedí na right:10px a je 40px široký, takže my na 58px)
+            // Kulaté tlačítko vedle křížku z js/modal-close.js (ten sedí na right:10px
+            // a je 40px široký, takže my na 58px).
+            // ⚠ POZADÍ MUSÍ BÝT NEPRŮHLEDNÉ. Poloprůhledné `--surface-2` bere barvu od
+            // toho, co je pod ním, a okna modulů si kreslí podklad každé po svém —
+            // ve světlém režimu tak tmavý glyf sedl na tmavý panel a tlačítko zmizelo
+            // (nahlášeno 29. 8.: „v bílém režimu nejsou vidět křížky"). Proto pevná
+            // deska + obrys + stín, aby byl tvar čitelný na čemkoli.
             '.ag-mini-fab{position:absolute;z-index:30;top:calc(env(safe-area-inset-top,0px) + 10px);',
             '  right:calc(env(safe-area-inset-right,0px) + 58px);width:40px;height:40px;border-radius:50%;',
             '  display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;',
-            '  background:var(--surface-2,rgba(255,255,255,0.09));',
-            '  border:1px solid var(--glass-border,rgba(255,255,255,0.12));',
-            '  color:var(--text-color,#eceef2);font:700 15px/1 var(--font-ui,system-ui);}',
+            '  background:#1b2028;border:1px solid rgba(255,255,255,0.22);color:#f2f4f7;',
+            '  box-shadow:0 2px 10px rgba(0,0,0,0.45);font:700 15px/1 var(--font-ui,system-ui);}',
+            'body.light-mode .ag-mini-fab{background:#ffffff;border-color:rgba(15,23,42,0.28);color:#141821;',
+            '  box-shadow:0 2px 10px rgba(15,23,42,0.28);}',
             '.ag-mini-fab:active{transform:scale(.92);}',
             'body.left-hand .ag-mini-fab{right:auto;left:calc(env(safe-area-inset-left,0px) + 58px);}'
         ].join('\n');
@@ -344,6 +383,7 @@
         if (modal.querySelector('.ag-mini-fab') || modal.querySelector('.ag-mini-btn')) return;
         var core = coreWin(modal);
         if (!core && !modWin(modal)) return;
+        if (!fromTool(modal)) return;
         injectStyles();
         var mk = function () {
             var b = document.createElement('button');
@@ -354,47 +394,34 @@
             });
             return b;
         };
-        if (core) {
-            var content = modal.querySelector('.modal-content'); if (!content) return;
-            var b = mk();
-            b.className = 'ag-mini-btn';
-            b.innerHTML = '▾ Sbalit — nechat běžet nahoře';
-            // querySelector hleda v CELEM podstromu, takze nadpis muze byt ZANORENY
-            // (napr. v .modal-header). Pak `h.nextSibling` neni ditetem `content`
-            // a content.insertBefore(...) vyhodi NotFoundError — tlacitko "Sbalit"
-            // se u takovych oken vubec neobjevilo. Vkladame proto vedle nadpisu,
-            // tedy do jeho VLASTNIHO rodice.
-            var h = content.querySelector('h3, h2');
-            var rodic = (h && h.parentNode) ? h.parentNode : content;
-            if (h && h.nextSibling) rodic.insertBefore(b, h.nextSibling);
-            else if (h) rodic.appendChild(b);
-            else content.insertBefore(b, content.firstChild);
-        } else {
-            // Okno modulu: do cizí hlavičky se strkat nedá (každý modul ji má jinak),
-            // takže kulaté tlačítko na okno samo — vedle křížku z modal-close.js.
-            var f = mk();
-            f.className = 'ag-mini-fab';
-            f.title = 'Sbalit — nechat běžet nahoře';
-            f.setAttribute('aria-label', 'Sbalit — nechat běžet nahoře');
-            f.textContent = '▾';
-            modal.appendChild(f);
-            // Okna modulů si hlavičku dělají každé po svém a některá drží v pravém
-            // horním rohu VLASTNÍ tlačítka (Zápisník tam má „Export" a „Zavřít").
-            // Kulaté tlačítko na pevné pozici na nich přistálo a překrylo je, takže
-            // se po vložení změří, co pod ním leží, a případně se uhne.
-            // ⚠ Okno modulu je v tuhle chvíli často JEŠTĚ PRÁZDNÉ (obsah si dokresluje
-            // po načtení dat), takže první měření nemusí kolizi vidět — u Závad se
-            // kolečko takhle usadilo na filtrační chip, který v tu chvíli neexistoval.
-            // Proto se poloha přeměří ještě dvakrát, jak okno dostává obsah.
-            try { placeFab(f, modal); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'mini-panel:mk'); }
-            [250, 900].forEach(function (ms) {
-                setTimeout(function () {
-                    if (!f.isConnected) return;
-                    f.style.top = '';                      // zpět na výchozí řádek a znovu vybrat
-                    try { placeFab(f, modal); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'mini-panel:mk'); }
-                }, ms);
-            });
-        }
+        // ⚠ 29. 8. 2026 — DŘÍV TU BYLY DVA VZHLEDY: u domácích modálů široká
+        // textová pilulka „▾ Sbalit — nechat běžet nahoře" vražená pod nadpis,
+        // u oken modulů kulaté tlačítko. Ta pilulka se do hlavičky nevešla, tlačila
+        // se k pravému okraji pod křížek a vypadala přilepeně („blbne a nepasuje").
+        // Teď má KAŽDÉ okno totéž kulaté ▾ vedle křížku z js/modal-close.js —
+        // jedno místo, jeden tvar, nic se nikam nevtěsnává.
+        var f = mk();
+        f.className = 'ag-mini-fab';
+        f.title = 'Sbalit — nechat běžet nahoře';
+        f.setAttribute('aria-label', 'Sbalit — nechat běžet nahoře');
+        f.textContent = '▾';
+        modal.appendChild(f);
+        // Okna si hlavičku dělají každé po svém a některá drží v pravém horním rohu
+        // VLASTNÍ tlačítka (Zápisník tam má „Export" a „Zavřít"). Kulaté tlačítko na
+        // pevné pozici na nich přistálo a překrylo je, takže se po vložení změří, co
+        // pod ním leží, a případně se uhne.
+        // ⚠ Okno je v tuhle chvíli často JEŠTĚ PRÁZDNÉ (obsah si dokresluje po načtení
+        // dat), takže první měření nemusí kolizi vidět — u Závad se kolečko takhle
+        // usadilo na filtrační chip, který v tu chvíli neexistoval. Proto se poloha
+        // přeměří ještě dvakrát, jak okno dostává obsah.
+        try { placeFab(f, modal); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'mini-panel:mk'); }
+        [250, 900].forEach(function (ms) {
+            setTimeout(function () {
+                if (!f.isConnected) return;
+                f.style.top = '';                      // zpět na výchozí řádek a znovu vybrat
+                try { placeFab(f, modal); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'mini-panel:mk'); }
+            }, ms);
+        });
     }
 
     // vrátí true, když kolečko sedí na cizím tlačítku nebo nadpisu v tomtéž okně

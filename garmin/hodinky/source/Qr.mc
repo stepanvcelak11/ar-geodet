@@ -40,6 +40,18 @@ module Qr {
     var _rez = null;        // co je rezervované (vzory), ByteArray n*n
     var hotovo = false;
 
+    // rozpracovaný výpočet korekce a rozmisťování dat
+    var _d = null;          // datová kódová slova
+    var _ecc = null;
+    var _blok = 0;
+    var _poz = 0;
+    var _gen = null;
+    var _sloupec = 0;
+    var _nahoru = true;
+    var _bitIdx = 0;
+    var _zbytek = null;
+    var _genStupen = 0;
+
     function _tabulky() {
         if (_exp != null) { return; }
         _exp = new [512]b;
@@ -118,11 +130,22 @@ module Qr {
     }
 
     //! Jeden krok výpočtu. Vrací true, až je hotovo.
+    //! Kolik datových slov se zpracuje na jeden krok při výpočtu korekce.
+    //!
+    //! ⚠ TOHLE ROZDĚLENÍ JE NUTNÉ. Verze 9 (sedm bodů) znamená dva bloky po
+    //! 116 datových slovech a generátor o 31 členech, tedy přes SEDM TISÍC
+    //! násobení v Galoisově tělese. V jednom volání to hodinky odstřelí
+    //! watchdogem — a projeví se to pádem aplikace hned při otevření QR.
+    //! U malé dávky (verze 3) to prošlo, proto to dlouho nebylo vidět.
+    const DAVKA_ECC = 20;
+
     function krok() {
         if (hotovo) { return true; }
-        if (_faze == 0) { _kodovaSlova(); _faze = 1; return false; }
-        if (_faze == 1) { _vzory(); _faze = 2; _radek = 0; return false; }
-        if (_faze == 2) { _data(); _faze = 3; return false; }
+        if (_faze == 0) { _pripravData();  _faze = 1; return false; }
+        if (_faze == 1) { if (_generatorKrok()) { _faze = 2; } return false; }
+        if (_faze == 2) { if (_eccKrok()) { _faze = 3; } return false; }
+        if (_faze == 3) { _vzory();  _faze = 4; _sloupec = _n - 1; _nahoru = true; return false; }
+        if (_faze == 4) { if (_dataKrok()) { _faze = 5; } return false; }
         _format();
         hotovo = true;
         return true;
@@ -130,19 +153,15 @@ module Qr {
 
     // ---- data a korekce ----------------------------------------------
 
-    function _kodovaSlova() {
+    //! Připraví datová kódová slova (bitový proud, výplň). Rychlé.
+    function _pripravData() {
         var bloku = BLOKY[_verze][0];
         var dat = BLOKY[_verze][1];
         var eccN = BLOKY[_verze][2];
         var kapacit = bloku * dat;
 
-        // bitový proud: režim Byte, délka, data, ukončení, výplň
         var bajty = _bajty(_text);
         var d = new [kapacit]b;
-        var poz = 0;
-
-        // 4 bity režimu + 8 bitů délky se do bajtů nelámou zarovnaně,
-        // proto se skládá po bitech do pomocného pole
         var bity = 4 + 8 + bajty.size() * 8;
         var bitPole = new [kapacit * 8]b;
         var i;
@@ -162,30 +181,83 @@ module Qr {
         // výplň se střídá 0xEC / 0x11, jak žádá norma
         for (i = slov; i < kapacit; i++) { d[i] = ((i - slov) % 2 == 0) ? 0xEC : 0x11; }
 
-        // ECC po blocích a proložení (bloky jsou u verzí 1–9 stejně velké)
-        var ven = new [kapacit + bloku * eccN]b;
-        var ecc = new [bloku * eccN]b;
-        for (var b2 = 0; b2 < bloku; b2++) {
-            var zbytek = new [dat + eccN]b;
-            for (i = 0; i < dat; i++) { zbytek[i] = d[b2 * dat + i]; }
-            for (i = dat; i < dat + eccN; i++) { zbytek[i] = 0; }
-            var gen = _generator(eccN);
-            for (i = 0; i < dat; i++) {
-                var f = zbytek[i];
-                if (f == 0) { continue; }
-                for (var j2 = 0; j2 < gen.size(); j2++) {
-                    zbytek[i + j2] = zbytek[i + j2] ^ _nasob(gen[j2], f);
-                }
-            }
-            for (i = 0; i < eccN; i++) { ecc[b2 * eccN + i] = zbytek[dat + i]; }
+        _d = d;
+        _ecc = new [bloku * eccN]b;
+        for (i = 0; i < _ecc.size(); i++) { _ecc[i] = 0; }
+        // ⚠ Generátor se NESESTAVUJE tady. Pro 30 opravných slov to je přes
+        // 460 násobení v Galoisově tělese a 31 rostoucích polí — v jednom
+        // volání to hodinky odstřelí watchdogem (odchyceno v simulátoru:
+        // pád byl přímo v _generator). Staví se po jednom stupni.
+        _gen = new [1]b;
+        _gen[0] = 1;
+        _genStupen = 0;
+        _blok = 0;
+        _poz = 0;
+    }
+
+    //! Jeden stupeň generátorového polynomu na krok.
+    function _generatorKrok() {
+        var eccN = BLOKY[_verze][2];
+        if (_genStupen >= eccN) { return true; }
+        var novy = new [_gen.size() + 1]b;
+        for (var j = 0; j < _gen.size(); j++) {
+            novy[j] = novy[j] ^ _gen[j];
+            novy[j + 1] = novy[j + 1] ^ _nasob(_gen[j], _exp[_genStupen]);
+        }
+        _gen = novy;
+        _genStupen += 1;
+        return (_genStupen >= eccN);
+    }
+
+    //! Jedna dávka Reed–Solomonova dělení. Vrací true, až je hotová korekce
+    //! všech bloků a slova jsou proložená.
+    function _eccKrok() {
+        var bloku = BLOKY[_verze][0];
+        var dat = BLOKY[_verze][1];
+        var eccN = BLOKY[_verze][2];
+
+        if (_poz == 0) {
+            // zbytek se rozpracuje do _ecc na místě bloku
+            _zbytek = new [dat + eccN]b;
+            for (var i = 0; i < dat; i++) { _zbytek[i] = _d[_blok * dat + i]; }
+            for (var i2 = dat; i2 < dat + eccN; i2++) { _zbytek[i2] = 0; }
         }
 
+        var konec = _poz + DAVKA_ECC;
+        if (konec > dat) { konec = dat; }
+        for (var i3 = _poz; i3 < konec; i3++) {
+            var f = _zbytek[i3];
+            if (f == 0) { continue; }
+            for (var j = 0; j < _gen.size(); j++) {
+                _zbytek[i3 + j] = _zbytek[i3 + j] ^ _nasob(_gen[j], f);
+            }
+        }
+        _poz = konec;
+        if (_poz < dat) { return false; }
+
+        for (var k = 0; k < eccN; k++) { _ecc[_blok * eccN + k] = _zbytek[dat + k]; }
+        _blok += 1;
+        _poz = 0;
+        _zbytek = null;
+        if (_blok < bloku) { return false; }
+
+        _proloz();
+        return true;
+    }
+
+    //! Proložení bloků — u verzí 1–9 jsou stejně velké, takže stačí střídat.
+    function _proloz() {
+        var bloku = BLOKY[_verze][0];
+        var dat = BLOKY[_verze][1];
+        var eccN = BLOKY[_verze][2];
+        var ven = new [bloku * (dat + eccN)]b;
         var p = 0;
+        var i;
         for (i = 0; i < dat; i++) {
-            for (var b3 = 0; b3 < bloku; b3++) { ven[p] = d[b3 * dat + i]; p += 1; }
+            for (var b = 0; b < bloku; b++) { ven[p] = _d[b * dat + i]; p += 1; }
         }
         for (i = 0; i < eccN; i++) {
-            for (var b4 = 0; b4 < bloku; b4++) { ven[p] = ecc[b4 * eccN + i]; p += 1; }
+            for (var b2 = 0; b2 < bloku; b2++) { ven[p] = _ecc[b2 * eccN + i]; p += 1; }
         }
         _slova = ven;
     }
@@ -215,10 +287,11 @@ module Qr {
 
     function _vzory() {
         var n = _n;
+        // `new [n]b` vrací pole už vynulované — projít 2809 buněk dvakrát
+        // navíc je přesně ta práce, kterou si tady nemůžeme dovolit.
         _m = new [n * n]b;
         _rez = new [n * n]b;
         var i;
-        for (i = 0; i < n * n; i++) { _m[i] = 0; _rez[i] = 0; }
 
         _hledacek(0, 0);
         _hledacek(0, n - 7);
@@ -285,32 +358,33 @@ module Qr {
 
     // ---- data klikatou cestou ----------------------------------------
 
-    function _data() {
+    //! Rozmisťování dat klikatou cestou — po JEDNOM SLOUPCI na krok.
+    //!
+    //! ⚠ Taky rozdělené: matice verze 9 má 53×53 = 2809 buněk a projít je
+    //! najednou je stejná cesta k watchdogu jako u korekce.
+    function _dataKrok() {
         var n = _n;
-        var idx = 0;
         var celkem = _slova.size() * 8;
-        var sloupec = n - 1;
-        var nahoru = true;
 
-        while (sloupec > 0) {
-            if (sloupec == 6) { sloupec -= 1; }
-            for (var k = 0; k < n; k++) {
-                var r = nahoru ? (n - 1 - k) : k;
-                for (var d = 0; d < 2; d++) {
-                    var c = sloupec - d;
-                    if (_rez[r * n + c] != 0) { continue; }
-                    var b = 0;
-                    if (idx < celkem) {
-                        b = (_slova[idx / 8] >> (7 - (idx % 8))) & 1;
-                    }
-                    idx += 1;
-                    if ((r + c) % 2 == 0) { b = b ^ 1; }      // maska 0
-                    _m[r * n + c] = b;
+        if (_sloupec == 6) { _sloupec -= 1; }
+        for (var k = 0; k < n; k++) {
+            var r = _nahoru ? (n - 1 - k) : k;
+            for (var d = 0; d < 2; d++) {
+                var c = _sloupec - d;
+                if (c < 0) { continue; }
+                if (_rez[r * n + c] != 0) { continue; }
+                var b = 0;
+                if (_bitIdx < celkem) {
+                    b = (_slova[_bitIdx / 8] >> (7 - (_bitIdx % 8))) & 1;
                 }
+                _bitIdx += 1;
+                if ((r + c) % 2 == 0) { b = b ^ 1; }      // maska 0
+                _m[r * n + c] = b;
             }
-            sloupec -= 2;
-            nahoru = !nahoru;
         }
+        _sloupec -= 2;
+        _nahoru = !_nahoru;
+        return (_sloupec <= 0);
     }
 
     function _format() {

@@ -1,0 +1,201 @@
+/* ===== AR Geodet — KONTROLNÍ MĚŘENÍ (odpojitelná vrstva) ======================
+   Drží se design-tokenů ze style.css (--accent, --glass-border, --text-color,
+   --text-muted, --data, --warning, --danger, --r-md, --r-pill). Načítá se AŽ ZA
+   style.css, takže jen doplňuje. Odstranění: smaž css/dvoji-mereni.css +
+   js/dvoji-mereni.js a řádky se značkou "KONTROLNÍ MĚŘENÍ" v index.html / sw.js.
+   ============================================================================== */
+
+#agdm-modal { z-index: 19999; }
+.agdm-pick, .agdm-res { z-index: 100003; }
+
+#agdm-modal .agdm-content,
+.agdm-pick .agdm-pick-content,
+.agdm-res .agdm-res-content {
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    max-height: 88vh;
+}
+
+.agdm-title {
+    margin-top: 0;
+    margin-bottom: 6px;
+    color: var(--accent);
+    font-family: var(--font-display, sans-serif);
+}
+.agdm-title[data-q="warn"] { color: var(--warning, #fbbf24); }
+.agdm-title[data-q="bad"] { color: var(--danger, #fb7185); }
+
+.agdm-note {
+    margin: 0 0 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--glass-border, rgba(255, 255, 255, 0.14));
+    font-size: calc(12px * var(--ag-font-scale, 1));
+    line-height: 1.5;
+    color: var(--text-muted, #9aa1ac);
+}
+.agdm-note b { color: var(--text-color, #eceef2); }
+
+#agdm-modal .agdm-body,
+.agdm-pick .modal-body,
+.agdm-res .modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.agdm-sec {
+    margin: 12px 0 4px;
+    font-size: calc(11.5px * var(--ag-font-scale, 1));
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--text-faint, #6b727d);
+}
+.agdm-sec:first-child { margin-top: 0; }
+
+/* Řádek bodu. Popis se smí zkracovat, tlačítka a číslo NE — proto flex-shrink:0. */
+.agdm-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 4px;
+    border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.10));
+}
+.agdm-row:last-child { border-bottom: 0; }
+.agdm-row.ready .agdm-sub { color: var(--accent, #2f9e74); font-weight: 600; }
+
+.agdm-main { flex: 1 1 auto; min-width: 0; }
+.agdm-name {
+    font-size: calc(14px * var(--ag-font-scale, 1));
+    font-weight: 600;
+    color: var(--text-color, #eceef2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.agdm-sub {
+    margin-top: 2px;
+    font-size: calc(11.5px * var(--ag-font-scale, 1));
+    color: var(--text-muted, #9aa1ac);
+}
+
+.agdm-num {
+    flex: 0 0 auto;
+    font-family: var(--font-mono, monospace);
+    font-size: calc(14px * var(--ag-font-scale, 1));
+    font-weight: 700;
+    color: var(--data, #e6bd76);
+}
+.agdm-num[data-q="warn"] { color: var(--warning, #fbbf24); }
+.agdm-num[data-q="bad"] { color: var(--danger, #fb7185); }
+
+.agdm-acts { flex: 0 0 auto; display: flex; gap: 6px; }
+/* .btn má ve style.css width:100 % — bez width:auto tlačítko roztlačí řádek. */
+.agdm-acts .agdm-act {
+    width: auto;
+    margin-top: 0;
+    padding: 7px 10px;
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
+    white-space: nowrap;
+}
+
+.agdm-empty {
+    padding: 14px 6px;
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
+    line-height: 1.55;
+    color: var(--text-muted, #9aa1ac);
+}
+
+.agdm-foot { display: flex; gap: 10px; margin-top: 10px; }
+.agdm-foot .btn { margin-top: 0; flex: 1 1 0; }
+
+/* Výsledek kontroly */
+.agdm-tab {
+    width: 100%;
+    margin: 8px 0;
+    border-collapse: collapse;
+    font-size: calc(13px * var(--ag-font-scale, 1));
+}
+.agdm-tab td { padding: 5px 0; border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08)); }
+.agdm-tab td:first-child { color: var(--text-muted, #9aa1ac); }
+.agdm-tab td:last-child { text-align: right; font-family: var(--font-mono, monospace); color: var(--text-color, #eceef2); }
+
+.agdm-sig {
+    margin: 10px 0 0;
+    padding: 9px 11px;
+    border-radius: var(--r-md, 12px);
+    background: var(--accent-soft, rgba(47, 158, 116, 0.14));
+    border: 1px solid var(--accent-line, rgba(47, 158, 116, 0.42));
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
+    line-height: 1.5;
+    color: var(--text-color, #eceef2);
+}
+.agdm-early {
+    margin: 0 0 8px;
+    padding: 9px 11px;
+    border-radius: var(--r-md, 12px);
+    background: rgba(251, 191, 36, 0.12);
+    border: 1px solid rgba(251, 191, 36, 0.42);
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
+    line-height: 1.5;
+    color: var(--text-color, #eceef2);
+}
+.agdm-res-row { display: flex; gap: 10px; }
+.agdm-res-row .btn { flex: 1 1 0; }
+
+/* Výběr bodu */
+.agdm-picklist { display: flex; flex-direction: column; gap: 4px; }
+.agdm-pick-i {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 11px 12px;
+    border-radius: var(--r-md, 12px);
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-color, #eceef2);
+    font-size: calc(13.5px * var(--ag-font-scale, 1));
+    text-align: left;
+    cursor: pointer;
+}
+.agdm-pick-i span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.agdm-pick-i small { flex: 0 0 auto; color: var(--text-muted, #9aa1ac); font-family: var(--font-mono, monospace); }
+
+/* Úzký displej — akce na vlastní řádek pod popis */
+@media (max-width: 420px) {
+    .agdm-row { flex-wrap: wrap; }
+    .agdm-acts { width: 100%; margin-top: 6px; }
+    .agdm-acts .agdm-act { flex: 1 1 0; }
+}
+
+/* Režim rukavic */
+body.ag-glove #agdm-modal .btn,
+body.ag-glove .agdm-res .btn,
+body.ag-glove .agdm-pick .btn { min-height: 52px; font-size: calc(16px * var(--ag-font-scale, 1)); }
+body.ag-glove .agdm-pick-i { padding: 16px 14px; }
+
+/* Venkovní režim */
+body.outdoor-mode #agdm-modal,
+body.outdoor-mode .agdm-pick,
+body.outdoor-mode .agdm-res { background: rgba(0, 0, 0, 0.72); }
+body.outdoor-mode #agdm-modal .agdm-content,
+body.outdoor-mode .agdm-pick .agdm-pick-content,
+body.outdoor-mode .agdm-res .agdm-res-content {
+    background: #0a0e1a !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-color: rgba(255, 255, 255, 0.85) !important;
+}
+body.outdoor-mode .agdm-row { border-bottom-color: rgba(255, 255, 255, 0.35); }
+
+/* Dostupnost */
+#agdm-modal .btn:focus-visible,
+.agdm-pick .agdm-pick-i:focus-visible,
+.agdm-res .btn:focus-visible {
+    outline: 2px solid var(--accent, #2f9e74);
+    outline-offset: 2px;
+}

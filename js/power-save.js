@@ -246,8 +246,18 @@
         if (!el || !el.isConnected) { el = _elCache[id] = document.getElementById(id); }
         return el;
     }
+    // ⚠ SBALENÉ OKNO SE NEPOČÍTÁ ZA OTEVŘENÉ (nahlášeno 29. 8. 2026: „když mám
+    // sbalený nástroj, ať kamera, GPS atd. funguje"). js/mini-panel.js okno jen
+    // VIZUÁLNĚ schová třídou .ag-mini-off — inline display mu ZÁMĚRNĚ nechává na
+    // 'flex', aby uvnitř dál běžely rAF smyčky a nástroj nepřišel o stav. Tady to
+    // ale vypadalo jako otevřený těžký panel, takže se uspal kompas i GPS: uživatel
+    // nástroj sbalil právě proto, aby viděl mapu a kameru — a ty byly mrtvé.
+    function collapsedAway(el) {
+        return !!(el && el.classList && el.classList.contains('ag-mini-off'));
+    }
     function shownById(id) {
         var el = elById(id);
+        if (collapsedAway(el)) return false;
         return !!(el && el.style && el.style.display && el.style.display !== 'none');
     }
     function sideMenuOpen() {
@@ -255,7 +265,10 @@
         return !!(el && el.classList && el.classList.contains('open'));
     }
     function heavyOpen() {
-        try { if (document.querySelector(HEAVY_SEL)) return true; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:heavyOpen'); }
+        try {
+            var h = document.querySelector(HEAVY_SEL);
+            if (h && !collapsedAway(h)) return true;
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:heavyOpen'); }
         if (sideMenuOpen()) return true;                  // „Více"
         for (var i = 0; i < HEAVY_IDS.length; i++) if (shownById(HEAVY_IDS[i])) return true;
         return false;

@@ -3165,6 +3165,26 @@
         }
     }
 
+    // V kolik hodin má dnes pravděpodobnost srážek vrchol. Denní `pprob` je maximum
+    // přes hodiny, takže se hledá hodina, která se mu nejvíc blíží — jen dnešek a jen
+    // od téhle hodiny dál (co bylo ráno, už uživatele nezajímá). Bez trefy vrací null
+    // a dlaždice napíše obecné „někdy během dne".
+    function peakProbHour(data, d0) {
+        var hs = (data && data.hourly) || [];
+        if (!hs.length || !d0 || d0.pprob == null) return null;
+        var end = (d0.t != null) ? d0.t + 86400 : Infinity;
+        var best = null;
+        for (var i = 0; i < hs.length; i++) {
+            var h = hs[i];
+            if (h.t >= end) break;
+            if (h.prob == null) continue;
+            if (!best || h.prob > best.prob) best = h;
+        }
+        // vrchol musí být opravdu vrchol, ne o půl dne níž ležící hodina
+        if (!best || best.prob < d0.pprob - 15) return null;
+        return best;
+    }
+
     function tile(box, title, wide) {
         var t = el('div', 'wx-tile' + (wide ? ' wx-tile-wide' : ''));
         t.appendChild(el('div', 'wx-tile-h', title));
@@ -3311,13 +3331,33 @@
         sRow.appendChild(el('span', 'wx-tile-big', (d0 && d0.psum != null) ? nf(d0.psum, 1) : '–'));
         sRow.appendChild(el('span', 'wx-tile-un', 'mm'));
         ts.appendChild(sRow);
+        // ⚠⚠ NAHLÁŠENO 29. 8. 2026: „počasí mi ukazuje, že bude na 100 % pršet, ale
+        // na radaru není ani mráček a předpověď, kdy začne pršet, taky nic neukazuje."
+        // NENÍ TO CHYBA VÝPOČTU, ale popisku. `pprob` je denní MAXIMUM hodinové
+        // pravděpodobnosti (Open-Meteo precipitation_probability_max) — tedy „někdy
+        // dnes to skoro jistě spadne", klidně v deset večer. Holé „pravděpodobnost
+        // 100 %" u dlaždice, na kterou se člověk dívá v poledne, se ale čte jako
+        // „prší teď". Proto se teď píše, ŽE JDE O MAXIMUM, V KOLIK HODIN nastane,
+        // a hlavně co na to říká radar — pozorování má u srážek přednost před modelem.
         var sSub = [];
-        if (d0 && d0.pprob != null) sSub.push('pravděpodobnost ' + nf(Math.round(d0.pprob), 0) + ' %');
+        if (d0 && d0.pprob != null) {
+            var pk = peakProbHour(data, d0);
+            sSub.push('nejvýš ' + nf(Math.round(d0.pprob), 0) + ' %'
+                + (pk ? ' kolem ' + fmtHM(pk.t, off) : ' někdy během dne'));
+        }
         // když se modely rozcházejí, ať je vidět i ta deštivější varianta
         if (d0 && d0.psumMax != null && d0.psum != null && d0.psumMax - d0.psum >= 1) {
             sSub.push('některé modely až ' + nf(d0.psumMax, 1) + ' mm');
         }
         ts.appendChild(el('div', 'wx-tile-sub', sSub.join(' · ')));
+        // Druhý řádek: co je TEĎ. Bez něj vypadá „100 %" jako rozpor s prázdným radarem.
+        var ncS = data.nowcast, nowTxt;
+        if (ncS && ncS.raining) nowTxt = 'Teď prší' + (ncS.peak != null ? ' — až ' + nf(ncS.peak, 1) + ' mm/h' : '') + '.';
+        else if (ncS && ncS.startsInMin != null) nowTxt = 'Teď nic; podle ' + (ncS.radar ? 'radaru' : 'modelů') + ' začne za ' + ncS.startsInMin + ' min.';
+        else if (ncS) nowTxt = 'Teď nic a ' + (ncS.radar ? 'radar' : 'model') + ' nevidí srážky ani v nejbližších '
+            + Math.max(1, Math.round(ncS.untilMin / 60)) + ' h. Procento výš je maximum za CELÝ den, ne stav teď.';
+        else nowTxt = 'Procento výš je maximum za celý den, ne stav teď.';
+        ts.appendChild(el('div', 'wx-tile-sub', nowTxt));
 
         // Východ / západ slunce
         var tsun = tile(box, 'Východ / západ');

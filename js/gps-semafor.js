@@ -80,13 +80,39 @@
             tips.push('Koruny stromů / jedna zeď: signál je tlumený a část odražená — měř déle (10–20 min) a zvaž kampaň „3 návštěvy".');
         }
 
-        // realita ze zařízení
-        if (acc != null && acc > 15) { if (lvl < 1) lvl = 1; tips.push('Telefon právě hlásí ±' + Math.round(acc) + ' m — počkej na ustálení fixu pod volným nebem.'); }
+        // ---- REALITA ZE ZAŘÍZENÍ MÁ POSLEDNÍ SLOVO -----------------------------------
+        // ⚠⚠ NAHLÁŠENO 29. 8. 2026: „s přesností ±54 m mi to píše, že je to OK."
+        // A byla to pravda: hlášená přesnost uměla skóre zhoršit nejvýš na oranžovou
+        // (`if (lvl < 1) lvl = 1`), takže při ±54 m svítilo „Použitelné, ale ne
+        // ideální". Jenže družice nad obzorem a hezký PDOP jsou jen PŘEDPOKLAD, kdežto
+        // ±54 m je MĚŘENÍ — přijímač už započítal odrazy, rušení i to, že nemá fix ze
+        // satelitů. Když se obojí neshoduje, platí měření. Prahy jsou schválně tytéž
+        // jako u stavové bubliny a siluety (≤5 dobré, ≤15 hraniční), navíc od 30 m je
+        // to červená bez debaty: to už není měření polohy, to je odhad z okolních sítí.
+        if (acc != null) {
+            if (acc > 30) {
+                lvl = 2;
+                tips.unshift('Telefon hlásí ±' + Math.round(acc) + ' m. To NENÍ satelitní fix — takhle vypadá poloha odhadnutá z wifi a vysílačů. '
+                    + 'Ať je geometrie družic jakákoli, tohle je na měření nepoužitelné: jdi pod volné nebe a počkej, až číslo spadne pod 10 m.');
+            } else if (acc > 15) {
+                if (lvl < 1) lvl = 1;
+                tips.unshift('Telefon hlásí ±' + Math.round(acc) + ' m — počkej v klidu na ustálení fixu pod volným nebem, než začneš měřit.');
+            } else if (acc > 5 && lvl === 0) {
+                lvl = 1;
+                tips.unshift('Geometrie družic je dobrá, ale telefon zatím hlásí ±' + Math.round(acc) + ' m. Dej mu ještě půl minuty.');
+            }
+        } else {
+            if (lvl < 1) lvl = 1;
+            tips.unshift('Telefon zatím nehlásí žádnou přesnost (není fix) — skóre je jen z předpokladu, ne z měření.');
+        }
         if (lvl === 0) tips.push('Dobré podmínky — spusť měření teď. Pro nejlepší výsledek nech telefon ležet aspoň 5–10 min.');
 
         var code = ['g', 'a', 'r'][lvl];
+        // Titulek nese i to ČÍSLO, podle kterého se rozhodlo — bez něj vypadá verdikt
+        // jako věštba a uživatel ho nemá s čím porovnat.
         var title = lvl === 0 ? 'Dobré místo i čas na měření'
             : (lvl === 1 ? 'Použitelné, ale ne ideální' : 'Špatné podmínky — takhle neměř');
+        if (acc != null) title += ' (±' + Math.round(acc) + ' m)';
         return { code: code, title: title, tips: tips, detail: { n: n, pdop: pdop, mask: mk, acc: acc, best: best }, ts: Date.now() };
     }
 
@@ -102,7 +128,7 @@
         el.className = 'modal-overlay'; el.id = DLG_ID;
         el.innerHTML = '<div class="modal-content">'
             + '<h3 style="color:var(--accent); margin-top:0; margin-bottom:5px;">' + ICON + ' Skóre místa (GPS)</h3>'
-            + '<p style="margin:0 0 10px; font-size:calc(12.5px * var(--ag-font-scale, 1)); opacity:0.8;">Semafor PŘED měřením: geometrie družic + tvoje elevační maska + okolí. Prevence je účinnější než filtrování špatných dat.</p>'
+            + '<p style="margin:0 0 10px; font-size:calc(12.5px * var(--ag-font-scale, 1)); opacity:0.8;">Odpovídá na jedinou otázku: <b>vyplatí se tady a teď měřit?</b> Skládá se ze čtyř věcí — kolik družic je nad tvým obzorem, jak jsou po obloze rozházené (PDOP), co máš kolem sebe (chipy níž) a hlavně <b>jakou přesnost telefon právě hlásí</b>. Ta poslední rozhoduje: je to jediné skutečné měření, zbytek je předpoklad.</p>'
             + '<div class="modal-body" id="ag-semafor-body"></div>'
             + '<button class="btn btn-secondary" style="margin-top:15px;" id="ag-semafor-close">Zavřít</button>'
             + '</div>';
@@ -131,7 +157,11 @@
         html += '<div class="geo-data-row" style="padding:4px 0;"><span class="geo-label">Telefon hlásí</span><span class="geo-value">' + (d.acc == null ? '–' : '±' + Math.round(d.acc) + ' m') + '</span></div>';
         if (d.best) html += '<div class="geo-data-row" style="padding:4px 0;"><span class="geo-label">Nejlepší geometrie do 2 h</span><span class="geo-value">za ' + d.best.min + ' min (PDOP ' + d.best.pdop.toFixed(1) + ')</span></div>';
         html += r.tips.map(function (t) { return '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1)); margin:8px 0 0;">• ' + t + '</p>'; }).join('');
-        html += '<p style="font-size:calc(11px * var(--ag-font-scale, 1)); opacity:.55; margin:10px 0 0;">Elevační masku (kolik zaclání horizont) nastavíš v nástroji „Predikce signálu".</p>';
+        html += '<p style="font-size:calc(11px * var(--ag-font-scale, 1)); opacity:.55; margin:10px 0 0;">'
+            + '<b>Jak se to čte:</b> zelená = přesnost do 5 m a slušná geometrie, oranžová = do 15 m nebo stíněné okolí, '
+            + 'červená = nad 15 m, málo družic, nebo stojíš mezi fasádami. Nad 30 m je to vždycky červená — tak vypadá '
+            + 'poloha odhadnutá z wifi, ne ze satelitů. Prahy jsou stejné jako u stavové bubliny a siluety přesnosti, '
+            + 'ať si ukazatele neodporují. Elevační masku (kolik zaclání horizont) nastavíš v nástroji „Predikce signálu".</p>';
         body.innerHTML = html;
         var chips = body.querySelectorAll('.ag-sem-env');
         for (var i = 0; i < chips.length; i++) {

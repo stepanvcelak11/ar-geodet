@@ -96,6 +96,15 @@
             '  font-weight:700;color:var(--data,#e6bd76);}',
             '.hist-d{font-family:var(--font-mono,monospace);font-size:calc(10.5px * var(--ag-font-scale,1));',
             '  color:var(--text-faint,#6b727d);}',
+            /* členění po dnech: nadpisem je DATUM, verze se schovaly dolů pod den */
+            '.hist-d2{font-family:var(--font-display,system-ui);font-weight:700;',
+            '  font-size:calc(13px * var(--ag-font-scale,1));color:var(--accent-bright,#3eb487);',
+            '  letter-spacing:-0.2px;}',
+            '.hist-cnt{font-family:var(--font-mono,monospace);font-size:calc(10.5px * var(--ag-font-scale,1));',
+            '  color:var(--text-faint,#6b727d);}',
+            '.hist-vv{margin-top:7px;font-family:var(--font-mono,monospace);',
+            '  font-size:calc(10px * var(--ag-font-scale,1));color:var(--text-faint,#6b727d);}',
+            '.hist-e h3.hist-h + ul{margin-bottom:10px;}',
             '.hist-now{font-size:calc(10px * var(--ag-font-scale,1));font-weight:700;letter-spacing:0.06em;',
             '  text-transform:uppercase;color:var(--accent-bright,#3eb487);',
             '  border:1px solid var(--accent-line,rgba(47,158,116,0.42));border-radius:999px;padding:1px 7px;}',
@@ -111,6 +120,36 @@
             '  font-size:calc(11.5px * var(--ag-font-scale,1));line-height:1.5;color:var(--text-faint,#6b727d);}'
         ].join('');
         document.head.appendChild(s);
+    }
+
+    // ---- členění po dnech -----------------------------------------------------------
+    var MESICE = ['ledna', 'února', 'března', 'dubna', 'května', 'června',
+        'července', 'srpna', 'září', 'října', 'listopadu', 'prosince'];
+    var DNY = ['neděle', 'pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota'];
+    // '2026-08-29' -> 'sobota 29. srpna 2026'. Když datum chybí nebo je v jiném tvaru,
+    // vrací se, co přišlo — soupis se píše ručně a jeden překlep nesmí shodit okno.
+    function denTxt(d) {
+        var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(d || ''));
+        if (!m) return d || 'bez data';
+        var dt = new Date(+m[1], +m[2] - 1, +m[3]);
+        if (isNaN(dt.getTime())) return d;
+        var den = DNY[dt.getDay()];
+        // velké písmeno JEN na začátku — `text-transform:capitalize` by v CSS udělalo
+        // i „Srpna", což je česky špatně
+        return den.charAt(0).toUpperCase() + den.slice(1) + ' ' + (+m[3]) + '. ' + MESICE[+m[2] - 1] + ' ' + m[1];
+    }
+    function groupByDay(list) {
+        var out = [], byDay = {};
+        for (var i = 0; i < list.length; i++) {
+            var e = list[i], d = e.datum || '';
+            var g = byDay[d];
+            if (!g) { g = byDay[d] = { datum: d, polozky: [], verze: [], zmeny: [] }; out.push(g); }
+            g.polozky.push(e);
+            g.verze.push(e.v);
+            // počet změn dne = kolik odrážek ten den celkem přibylo (ne kolik vydání)
+            g.zmeny = g.zmeny.concat(e.body || []);
+        }
+        return out;
     }
 
     function render() {
@@ -131,22 +170,35 @@
                 if ((_data[i].v || 0) <= cur) { nowV = _data[i].v; break; }
             }
         }
-        sub.textContent = _data.length + ' záznamů' + (cur != null ? ' · běžíš na verzi ' + cur : '');
+        // ⚠ ČLENĚNÍ PO DNECH, NE PO VERZÍCH (na přání 29. 8. 2026: „aktualizace bych
+        // nepsal po verzích, ale po dnech"). Číslo vydání nikomu nic neříká a v jednom
+        // dni jich bývá i devatenáct (9. 8. 2026) — soupis pak vypadá jako výpis z
+        // gitu. Den je to, co si člověk pamatuje („co přibylo tenhle týden"), takže
+        // nadpis nese DATUM a verze zůstávají jen jako drobná stopa u jednotlivých
+        // změn. Pořadí dnů drží pořadí dat (soupis je setříděný podle verze sestupně,
+        // což je zároveň sestupně podle času).
+        var dny = groupByDay(_data);
+        sub.textContent = dny.length + (dny.length === 1 ? ' den' : (dny.length < 5 ? ' dny' : ' dnů'))
+            + ' · ' + _data.length + ' změn' + (cur != null ? ' · běžíš na verzi ' + cur : '');
         body.innerHTML =
-            '<p class="hist-note">Co se v appce kdy změnilo nebo přibylo. Psané ručně, takže tu nejsou úplně všechny verze — jen to, co je vidět na appce.</p>' +
-            _data.map(function (e) {
-                var isNow = (e.v === nowV);
+            '<p class="hist-note">Co se v appce kdy změnilo nebo přibylo, den po dni. Psané ručně, takže tu nejsou úplně všechny drobnosti — jen to, co je na appce vidět.</p>' +
+            dny.map(function (d) {
+                var isNow = d.verze.indexOf(nowV) !== -1;
                 return '<div class="hist-e' + (isNow ? ' now' : '') + '">' +
-                    '<div class="hist-m"><span class="hist-v">v' + esc(e.v) + '</span>' +
-                    (e.datum ? '<span class="hist-d">' + esc(e.datum) + '</span>' : '') +
+                    '<div class="hist-m"><span class="hist-d2">' + esc(denTxt(d.datum)) + '</span>' +
+                    '<span class="hist-cnt">' + d.zmeny.length + '×</span>' +
                     (isNow ? '<span class="hist-now">tady jsi</span>' : '') + '</div>' +
-                    '<h3 class="hist-h">' + esc(e.nadpis || ('Verze ' + e.v)) + '</h3>' +
-                    '<ul>' + (e.body || []).map(function (b) {
-                        return '<li>' + safe(b) + '</li>';
-                    }).join('') + '</ul></div>';
+                    d.polozky.map(function (e) {
+                        return '<h3 class="hist-h">' + esc(e.nadpis || ('Verze ' + e.v)) + '</h3>' +
+                            '<ul>' + (e.body || []).map(function (b) {
+                                return '<li>' + safe(b) + '</li>';
+                            }).join('') + '</ul>';
+                    }).join('') +
+                    '<div class="hist-vv">verze ' + d.verze.map(function (v) { return esc(v); }).join(', ') + '</div>' +
+                    '</div>';
             }).join('') +
-            '<p class="hist-foot">Číslo verze je číslo vydání appky — roste s každou aktualizací. ' +
-            'Když čeká nová verze, ukáže se nahoře lišta a u ní roletka „Co je nového“.</p>';
+            '<p class="hist-foot">U každého dne je vidět, kolik změn ten den přišlo; čísla vydání jsou dole u dne, ' +
+            'kdyby je bylo potřeba dohledat. Když čeká nová verze, ukáže se nahoře lišta a u ní roletka „Co je nového“.</p>';
     }
 
     function build() {

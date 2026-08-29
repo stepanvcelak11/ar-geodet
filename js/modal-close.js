@@ -82,14 +82,23 @@
             // křížek visí na OVERLAYI, ne v .modal-content — kdyby dostal
             // position:relative, změnil by se pod ním souřadný systém pro
             // absolutně umístěné prvky uvnitř modulů.
+            // ⚠ POZADÍ KŘÍŽKU MUSÍ BÝT NEPRŮHLEDNÉ (nahlášeno 29. 8. 2026: „v bílém
+            // režimu nejsou vidět křížky na vyvolání nástroje"). Dřív tu bylo
+            // `--surface-2`, tedy 6% černá — barvu si tedy brala od toho, co leželo
+            // pod ní. Okna modulů si ale podklad kreslí každé po svém a spousta jich
+            // zůstává tmavá i ve světlém režimu, takže tmavý glyf (--text-color je ve
+            // světlém #141821) sedl na tmavý panel a křížek prostě zmizel. Pevná
+            // deska + obrys + stín drží tvar čitelný na jakémkoli podkladu.
             '.agmc-x{position:absolute;z-index:30;top:calc(env(safe-area-inset-top,0px) + 10px);',
             '  right:calc(env(safe-area-inset-right,0px) + 10px);width:40px;height:40px;border-radius:50%;',
             '  display:flex;align-items:center;justify-content:center;cursor:pointer;',
-            '  background:var(--surface-2,rgba(255,255,255,0.09));',
-            '  border:1px solid var(--glass-border,rgba(255,255,255,0.12));',
-            '  color:var(--text-color,#eceef2);padding:0;line-height:0;',
+            '  background:#1b2028;border:1px solid rgba(255,255,255,0.22);color:#f2f4f7;',
+            '  box-shadow:0 2px 10px rgba(0,0,0,0.45);padding:0;line-height:0;',
             '  transition:transform .12s ease,background .15s ease;}',
-            '.agmc-x:active{transform:scale(.92);background:var(--surface-3,rgba(255,255,255,0.13));}',
+            'body.light-mode .agmc-x{background:#ffffff;border-color:rgba(15,23,42,0.28);color:#141821;',
+            '  box-shadow:0 2px 10px rgba(15,23,42,0.28);}',
+            '.agmc-x:active{transform:scale(.92);}',
+            'body.light-mode .agmc-x:active{background:#eceef1;}',
             '.agmc-x svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;}',
             // levá ruka: křížek přejde na druhou stranu jako ostatní ovládání
             'body.left-hand .agmc-x{right:auto;left:calc(env(safe-area-inset-left,0px) + 10px);}',

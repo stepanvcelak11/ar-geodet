@@ -2257,6 +2257,26 @@ body.light-mode #side-menu .menu-close { background: rgba(0, 0, 0, 0.06); }
 body.light-mode #view-seg { background: rgba(0, 0, 0, 0.06); }
 body.light-mode .seg-btn { color: var(--text-muted); }
 
+/* === SVĚTLÝ REŽIM: popisky boční lišty (Nový bod / Nástroje / Vrstvy /
+   Nastavení / Mapa) a vstupu do mapy ===
+   ⚠ NAHLÁŠENO 29. 8. 2026: „v bílém režimu se postranní tlačítka stanou
+   nečitelnýma." PŘÍČINA: popisky mají natvrdo ČERNÝ text-shadow (0 1px 3px
+   rgba(0,0,0,.9)) — psaný pro bílé písmo nad kamerou. Ve světlém režimu je text
+   naopak tmavě šedý (#5b626c) a černý stín kolem 8,5px písma slepí tahy písmen
+   do šedé kaše. Řešení: ve světlém režimu BÍLÝ stín (odděluje písmo od mapy)
+   a plná barva textu místo ztlumené — chip je bílý, ztlumená šeď je tu zbytečná
+   sleva na kontrastu. Tmavý režim zůstává beze změny. */
+body.light-mode .dock-btn,
+body.light-mode #map-ctrl-toggle,
+body.light-mode #map-recenter { color: var(--text-color); }
+body.light-mode .dock-btn span,
+body.light-mode #map-ctrl-toggle span,
+body.light-mode #map-recenter span {
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.95), 0 0 3px rgba(255, 255, 255, 0.9);
+}
+/* plovoucí „Nový bod" nemá pod sebou skleněný chip — popisek nese sám sebe */
+body.light-mode .dock-primary span { text-shadow: 0 1px 3px rgba(255, 255, 255, 1), 0 0 4px rgba(255, 255, 255, 0.95); }
+
 /* === SVĚTLÝ REŽIM: AR značky bodů ===
    Značky jsou nad KAMEROU (ne nad UI) → nechat tmavý chip s BÍLÝM textem.
    Jas pozadí podle kamery řeší samostatný body.cam-light (proto :not). */
@@ -2898,7 +2918,18 @@ body.light-mode .mng-actions { background: rgba(0, 0, 0, 0.04); }
 body.light-mode #settings-modal .tab-buttons { background: rgb(247, 248, 250); }
 /* Krytka horní safe-area: pruh záložek se lepí AŽ POD výřez (jinak by chipy
    skončily pod stavovým řádkem), takže pás nad ním je potřeba zaslepit.
-   position:fixed se kotví k .modal-content (má transform) → jede s modálem. */
+   position:fixed se kotví k .modal-content (má transform) → jede s modálem.
+
+   ⚠⚠ NAHLÁŠENO 29. 8. 2026: „když se ze světlého režimu přepnu do tmavého,
+   zůstane mi pod Dynamic Islandem bílý pruh a musím appku restartovat."
+   Je to PŘESNĚ tenhle pás — jediný prvek přes celou šířku úplně nahoře, a motiv
+   se přepíná právě v Nastavení, tedy když je vidět. PŘÍČINA: barva se dřív měnila
+   ZVLÁŠTNÍM PRAVIDLEM pro body.light-mode. Pseudoprvek s position:fixed uvnitř
+   transformovaného rodiče má ve WebKitu vlastní vrstvu a na změnu třídy vzdáleného
+   předka ji nepřekreslí — zůstane svítit poslední namalovaná barva. Teď má JEDNU
+   deklaraci s custom property: --modal-bg mění hodnotu v obou režimech sám a jeho
+   změna vrstvu spolehlivě zneplatní. NEVRACET sem druhé pravidlo pro světlý režim.
+   (Druhá půlka opravy je v previewMode() v js/grafika.js — color-scheme.) */
 #settings-modal .modal-content::before {
     content: "";
     position: fixed;
@@ -2908,7 +2939,6 @@ body.light-mode #settings-modal .tab-buttons { background: rgb(247, 248, 250); }
     background: var(--modal-bg, rgba(14, 18, 24, 0.97));
     pointer-events: none;
 }
-body.light-mode #settings-modal .modal-content::before { background: rgba(247, 248, 250, 0.98); }
 
 /* ---- 3) Kompaktnější obsah záložek ------------------------------------- */
 /* Svislé mezery dolů, dotykové cíle NE: řádek s přepínačem má 27px vypínač

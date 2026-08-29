@@ -46,6 +46,9 @@ EXTRA_ASSETS = [
     './data/zpravodaj.json',       # cte js/zpravodaj.js pres fetch
     './data/predpisy.json',        # cte js/predpisy.js pres fetch
     './data/co-je-noveho.json',    # cte js/co-je-noveho.js pres fetch (s razitkem ?t=)
+    './data/jazyky.json',          # cte js/jazyky.js pres fetch (jen kdyz nekdo prepne jazyk;
+                                   #   v predcache byt MUSI, jinak cizojazycna appka
+                                   #   po prvnim spusteni offline spadne zpatky do cestiny)
     './js/lib/qrcode.min.js',      # line (lazy) nacitani QR generatoru
     './js/lib/jsqr.min.js',        # line (lazy) nacitani QR ctecky
     # PISMA + OBRAZKY LEAFLETU: v index.html nejsou, odkazuji na ne az CSS soubory

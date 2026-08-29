@@ -26,7 +26,7 @@ const CODE_ABC = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';   // bez O/0, I/1/L
 const CORS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Owner-Key',
     'Access-Control-Max-Age': '86400'
 };
 
@@ -126,8 +126,11 @@ async function readToken(env, req) {
 async function auth(env, req) {
     const p = await readToken(env, req);
     if (!p) return null;
-    const u = await env.DB.prepare('SELECT id, firm_id, name, role, disabled FROM users WHERE id=? AND firm_id=?')
-        .bind(p.u, p.f).first();
+    // JOIN na firmu: stav zmrazení i strop lidí přijdou TÍMŽE dotazem, aby
+    // každý požadavek nestál druhý round-trip do D1.
+    const u = await dbFirst(env,
+        'SELECT u.id, u.firm_id, u.name, u.role, u.disabled, f.frozen AS frozen, f.max_users AS maxUsers '
+        + 'FROM users u JOIN firms f ON f.id = u.firm_id WHERE u.id=? AND u.firm_id=?', p.u, p.f);
     if (!u || u.disabled) return null;
     return u;
 }
@@ -166,16 +169,141 @@ function defaultPermsJson() {
 
 // ---- složení odpovědi /config (posílá se i po přihlášení) ------------------
 async function configPayload(env, firmId) {
-    const firm = await env.DB.prepare('SELECT id, code, name, perms, auto_lock FROM firms WHERE id=?').bind(firmId).first();
+    const firm = await dbFirst(env,
+        'SELECT id, code, name, perms, auto_lock, max_users, frozen FROM firms WHERE id=?', firmId);
     if (!firm) return null;
     const users = (await env.DB.prepare(
         'SELECT id, name, role, disabled FROM users WHERE firm_id=? ORDER BY name').bind(firmId).all()).results;
     let perms; try { perms = JSON.parse(firm.perms); } catch (e) { perms = {}; }
+    // stav poslední žádosti o víc míst a hláška vlastníka appky. Obojí chodí
+    // TÍMHLE kanálem schválně — klient už /config obnovuje sám, takže to
+    // nepotřebuje vlastní dotazovací smyčku (a žádný další požadavek do limitu).
+    let request = null, notice = null;
+    try {
+        request = await env.DB.prepare(
+            'SELECT id, ts, want, reason, state, decided, reply FROM firm_requests WHERE firm_id=? ORDER BY id DESC LIMIT 1')
+            .bind(firmId).first();
+    } catch (e) { request = null; }
+    try {
+        const row = await env.DB.prepare("SELECT v FROM meta WHERE k='notice'").first();
+        if (row && row.v) {
+            const n = JSON.parse(row.v);
+            if (n && n.txt && (!n.until || n.until > Date.now())) notice = n;
+        }
+    } catch (e) { notice = null; }
     return {
         firm: { code: firm.code, name: firm.name, autoLockMin: firm.auto_lock, perms: perms },
         users: users,
+        limits: {
+            users: users.length,
+            maxUsers: firm.max_users || FIRM_MAX_DEFAULT,
+            frozen: firm.frozen || 0
+        },
+        request: request || null,
+        notice: notice,
         serverTime: Date.now()
     };
+}
+
+// ---- zpětná vazba od uživatelů (klient js/zpetna-vazba.js) ----------------
+// Schránka „napište mi": kdokoli, kdo appku otevřel, může poslat zprávu autorovi.
+// ZÁMĚRNĚ BEZ PŘIHLÁŠENÍ — kdo se ještě nepřihlásil (host, člověk, co appku právě
+// dostal odkazem), má k psaní nejvíc důvodů. Proto je POST /feedback jediná
+// zapisující routa bez tokenu a hlídá ji jen počítadlo na IP.
+//
+// ⚠ ČTENÍ JE ODDĚLENÉ OD FIREM. Firemní účty (i admini) tuhle schránku vidět
+//   NESMÍ — chodí do ní zprávy od cizích lidí. Proto se GET/POST /feedback/done
+//   neváže na token, ale na tajemství OWNER_KEY, které zná jen vlastník appky:
+//       wrangler secret put OWNER_KEY --name ar-geodet-api
+//   Bez nastaveného tajemství čtení vrátí 503 (a psát jde dál) — je to bezpečný
+//   výchozí stav: raději nedostupná schránka než schránka otevřená všem.
+let _fbReady = false;
+async function ensureFeedbackTable(env) {
+    if (_fbReady) return;
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS feedback (' +
+        'id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, ' +
+        'kind TEXT, txt TEXT NOT NULL, contact TEXT, meta TEXT, ' +
+        'who TEXT, done INTEGER NOT NULL DEFAULT 0)').run();
+    await env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_feedback_ts ON feedback(done, id)').run();
+    _fbReady = true;
+}
+// Vlastník = ten, kdo pošle správné OWNER_KEY. Porovnává se timingSafeEq (stejně
+// jako hesla), aby se klíč nedal uhodnout po znacích podle doby odpovědi.
+function ownerOk(req, env) {
+    const want = env && env.OWNER_KEY;
+    if (!want) return null;                 // tajemství není nastavené → 503
+    const got = req.headers.get('X-Owner-Key') || '';
+    return timingSafeEq(String(got), String(want));
+}
+
+// ---------------------------------------------------------------------------
+// SPRÁVA APPKY (vlastník) — stropy firem, zmrazení, žádosti, hláška všem
+// ---------------------------------------------------------------------------
+// Firma smí sama nabrat FIRM_MAX_DEFAULT lidí; víc jen když strop zvedne
+// vlastník appky (žádost s odůvodněním → tabulka firm_requests). Zakladatel
+// (otisk IP, ne IP sama) smí založit nejvýš FOUND_MAX firem za FOUND_WINDOW.
+//
+// MIGRACE SE DĚLÁ SAMA A JEN PŘI POTŘEBĚ: dbFirst() zkusí dotaz s novými sloupci,
+// a teprve když selože, doplni sloupce a dotaz zopakuje. Studený start tak
+// nestojí ani jeden dotaz navíc oproti dřívějšku — na rozdíl od varianty
+// "na začátku každého requestu spusť pět ALTERů, co stejně selžou".
+const FIRM_MAX_DEFAULT = 10;               // míst ve firmě bez schvalování
+const FOUND_MAX = 3;                       // firem na jednoho zakladatele
+const FOUND_WINDOW = 90 * 864e5;           // ...za 90 dní
+let _ownerMig = false;
+async function ensureOwnerSchema(env) {
+    if (_ownerMig) return;
+    // SQLite neumí IF NOT EXISTS u ALTER — když sloupec už je, příkaz selže
+    // a to je správně (proto try/catch u každého zvlášť, ne kolem celé smyčky).
+    const alters = [
+        'ALTER TABLE firms ADD COLUMN max_users INTEGER NOT NULL DEFAULT ' + FIRM_MAX_DEFAULT,
+        'ALTER TABLE firms ADD COLUMN frozen INTEGER NOT NULL DEFAULT 0',
+        'ALTER TABLE firms ADD COLUMN note TEXT',
+        'ALTER TABLE firms ADD COLUMN founder TEXT'
+    ];
+    for (const s of alters) { try { await env.DB.prepare(s).run(); } catch (e) {} }
+    // I tyhle příkazy jdou přes try/catch: když jeden selže, nesmí to shodit
+    // požadavek, který migraci jen mimochodem spustil (třeba přihlášení).
+    const creates = [
+        'CREATE TABLE IF NOT EXISTS firm_requests ('
+        + 'id INTEGER PRIMARY KEY AUTOINCREMENT, firm_id TEXT NOT NULL, ts INTEGER NOT NULL, '
+        + 'want INTEGER NOT NULL, reason TEXT, who TEXT, '
+        + "state TEXT NOT NULL DEFAULT 'new', decided INTEGER, reply TEXT)",
+        'CREATE INDEX IF NOT EXISTS idx_freq_firm ON firm_requests(firm_id, id)',
+        'CREATE TABLE IF NOT EXISTS stats_firm ('
+        + 'day TEXT NOT NULL, firm_id TEXT NOT NULL, n INTEGER NOT NULL, PRIMARY KEY(day, firm_id))'
+    ];
+    for (const s of creates) { try { await env.DB.prepare(s).run(); } catch (e) {} }
+    _ownerMig = true;
+}
+// dotaz oprývající se o nové sloupce; při selhání doplni schéma a zkusí znovu
+async function dbFirst(env, sql, ...bind) {
+    try { return await env.DB.prepare(sql).bind(...bind).first(); }
+    catch (e) {
+        await ensureOwnerSchema(env);
+        return await env.DB.prepare(sql).bind(...bind).first();
+    }
+}
+// brána konzole: stejné tajemství jako schránka zpětné vazby, žádný firemní token
+function ownerGate(req, env) {
+    const ok = ownerOk(req, env);
+    if (ok === null) return err(503, 'Konzole není nastavená: na serveru chybí tajemství OWNER_KEY (wrangler secret put OWNER_KEY).');
+    if (!ok) return err(403, 'Špatný klíč konzole.');
+    return null;
+}
+// otisk zakladatele — podepsaná IP, ne IP sama (v databázi tak neleží adresa)
+async function founderId(env, req) {
+    const ip = req.headers.get('CF-Connecting-IP') || '0';
+    return (await hmac(env, 'founder:' + ip)).slice(0, 16);
+}
+// smazání firmy i všeho, co k ní patří (tabulky, které ještě nevznikly, se přeskočí)
+async function dropFirm(env, id) {
+    const tabs = ['users', 'usage', 'chat', 'sync_points', 'jobs', 'firm_requests',
+        'stats_firm', 'pos', 'watch_codes', 'watch_seq', 'watch_pending', 'watch_tiles', 'watch_sel'];
+    for (const t of tabs) {
+        try { await env.DB.prepare('DELETE FROM ' + t + ' WHERE firm_id=?').bind(id).run(); } catch (e) {}
+    }
+    await env.DB.prepare('DELETE FROM firms WHERE id=?').bind(id).run();
 }
 
 // ---- živá synchronizace bodů (klient js/cloud-sync.js) ---------------------
@@ -535,6 +663,8 @@ export default {
                     .bind(Date.now() - 370 * 864e5).run().catch(() => {}));
                 ctx.waitUntil(env.DB.prepare('DELETE FROM stats WHERE day<?')
                     .bind(new Date(Date.now() - 60 * 864e5).toISOString().slice(0, 10)).run().catch(() => {}));
+                ctx.waitUntil(env.DB.prepare('DELETE FROM stats_firm WHERE day<?')
+                    .bind(new Date(Date.now() - 60 * 864e5).toISOString().slice(0, 10)).run().catch(() => {}));
             }
         } catch (e) {}
         if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
@@ -546,7 +676,7 @@ export default {
             // watch:true = tenhle worker uz umi /watch/* (parovani hodinek, body, dlazdice).
             // Starsi nasazeny worker tuhle polozku nema, takze podle ni pozna appka,
             // ze na serveru bezi stara verze — viz js/hodinky-parovani.js.
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 5, wx: true, watch: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 7, wx: true, watch: true, fb: true, owner: true });
 
             // ---------------- ČHMÚ: měření z nejbližší stanice ---------------
             // veřejné (bez tokenu) — počasí není firemní údaj
@@ -627,6 +757,63 @@ export default {
                 return json({ ok: false, reason: 'žádná stanice ČHMÚ v okolí nemá dost dat' });
             }
 
+            // ---------------- zpětná vazba: PSANÍ (bez přihlášení) -----------
+            // Viz komentář u ensureFeedbackTable(). Limity jsou schválně měkké:
+            // 20 zpráv z jedné adresy za den stačí i tomu, kdo posílá jednu chybu
+            // za druhou, a přitom to nedovolí zahltit schránku.
+            if (req.method === 'POST' && path === '/feedback') {
+                await ensureFeedbackTable(env);
+                const ip = req.headers.get('CF-Connecting-IP') || '0';
+                if (!await guardHit(env, 'fb:' + ip, 20, 864e5))
+                    return err(429, 'Z tohoto zařízení už dnes odešlo hodně zpráv. Zkus to zítra.');
+                const b = await req.json().catch(() => null);
+                const txt = b && typeof b.txt === 'string' ? b.txt.trim().slice(0, 4000) : '';
+                if (!txt) return err(400, 'Prázdná zpráva.');
+                const kind = ['chyba', 'napad', 'pochvala', 'jine'].indexOf(String(b.kind || '')) >= 0 ? String(b.kind) : 'jine';
+                const contact = b.contact ? String(b.contact).trim().slice(0, 120) : null;
+                // meta = dobrovolné údaje o zařízení (verze appky, telefon, prohlížeč).
+                // Ukládá se jako řetězec, ne rozparsované — ať se schéma nemusí měnit
+                // pokaždé, když klient přidá další údaj.
+                const meta = b.meta ? JSON.stringify(b.meta).slice(0, 1500) : null;
+                const who = b.who ? String(b.who).trim().slice(0, 80) : null;
+                await env.DB.prepare('INSERT INTO feedback(ts,kind,txt,contact,meta,who,done) VALUES(?,?,?,?,?,?,0)')
+                    .bind(Date.now(), kind, txt, contact, meta, who).run();
+                return json({ ok: true, ts: Date.now() });
+            }
+
+            // ---------------- zpětná vazba: ČTENÍ (jen vlastník) -------------
+            if (req.method === 'GET' && path === '/feedback') {
+                const ok = ownerOk(req, env);
+                if (ok === null) return err(503, 'Schránka není nastavená: na serveru chybí tajemství OWNER_KEY (wrangler secret put OWNER_KEY).');
+                if (!ok) return err(403, 'Špatný klíč schránky.');
+                await ensureFeedbackTable(env);
+                const only = url.searchParams.get('stav');       // '' | 'open' | 'done'
+                const before = parseInt(url.searchParams.get('before'), 10) || 0;
+                let sql = 'SELECT id, ts, kind, txt, contact, meta, who, done FROM feedback WHERE 1=1';
+                const args = [];
+                if (only === 'open') sql += ' AND done=0';
+                else if (only === 'done') sql += ' AND done=1';
+                if (before > 0) { sql += ' AND id<?'; args.push(before); }
+                sql += ' ORDER BY id DESC LIMIT 60';
+                const rows = (await env.DB.prepare(sql).bind(...args).all()).results;
+                const open = (await env.DB.prepare('SELECT COUNT(*) AS n FROM feedback WHERE done=0').first()) || { n: 0 };
+                return json({ messages: rows, open: open.n, serverTime: Date.now() });
+            }
+
+            // Odbavení zprávy (vyřízeno / zpět mezi nevyřízené) a smazání.
+            if (req.method === 'POST' && path === '/feedback/done') {
+                const ok = ownerOk(req, env);
+                if (ok === null) return err(503, 'Schránka není nastavená: na serveru chybí tajemství OWNER_KEY.');
+                if (!ok) return err(403, 'Špatný klíč schránky.');
+                await ensureFeedbackTable(env);
+                const b = await req.json().catch(() => null);
+                const id = b && parseInt(b.id, 10);
+                if (!id) return err(400, 'Chybí id.');
+                if (b.smazat) await env.DB.prepare('DELETE FROM feedback WHERE id=?').bind(id).run();
+                else await env.DB.prepare('UPDATE feedback SET done=? WHERE id=?').bind(b.done ? 1 : 0, id).run();
+                return json({ ok: true });
+            }
+
             // ---------------- registrace firmy ------------------------------
             if (req.method === 'POST' && path === '/firms') {
                 const ip = req.headers.get('CF-Connecting-IP') || '?';
@@ -634,6 +821,16 @@ export default {
                 const b = await req.json().catch(() => null);
                 if (!b || !b.firmName || !b.adminName || !b.password) return err(400, 'Chybí firmName / adminName / password.');
                 if (String(b.password).length < 4) return err(400, 'Heslo musí mít aspoň 4 znaky.');
+                // KOLIK FIREM SMÍ JEDEN ČLOVĚK ZALOŽIT. Zakladač se pozná podle
+                // PODEPSANÉ IP (founderId) — v databázi tedy neleží adresa, ale
+                // otisk, který se dá jen porovnat. Starý čítač 'reg:<ip>' (5/den)
+                // zůstává: ten brání návalu, tenhle dlouhodobému množení firem.
+                await ensureOwnerSchema(env);
+                const founder = await founderId(env, req);
+                const founded = await env.DB.prepare('SELECT COUNT(*) AS n FROM firms WHERE founder=? AND created>?')
+                    .bind(founder, Date.now() - FOUND_WINDOW).first();
+                if (founded && founded.n >= FOUND_MAX)
+                    return err(429, 'Z tohoto připojení už vznikly ' + FOUND_MAX + ' firmy. Potřebuješ-li další, napiš mi přes Zpětnou vazbu — povím to serveru.');
                 const firmId = crypto.randomUUID(), userId = crypto.randomUUID();
                 const salt = randHex(16);
                 const hash = await pbkdf2(String(b.password), salt, ITERS);
@@ -641,8 +838,8 @@ export default {
                 // pojistka na kolizi kódu (unikátní index) — 3 pokusy
                 for (let i = 0; i < 3; i++) {
                     try {
-                        await env.DB.prepare('INSERT INTO firms(id,code,name,perms,auto_lock,created) VALUES(?,?,?,?,0,?)')
-                            .bind(firmId, code, String(b.firmName).slice(0, 60), defaultPermsJson(), Date.now()).run();
+                        await env.DB.prepare('INSERT INTO firms(id,code,name,perms,auto_lock,created,max_users,frozen,founder) VALUES(?,?,?,?,0,?,?,0,?)')
+                            .bind(firmId, code, String(b.firmName).slice(0, 60), defaultPermsJson(), Date.now(), FIRM_MAX_DEFAULT, founder).run();
                         break;
                     } catch (e) {
                         if (i === 2) throw e;
@@ -681,8 +878,9 @@ export default {
                 if (!await guardHit(env, gkey, 8, 15 * 60e3)) return err(429, 'Příliš mnoho pokusů. Zkus to za 15 minut.');
                 if (!await guardHit(env, gip, 30, 15 * 60e3)) return err(429, 'Příliš mnoho pokusů z této sítě. Zkus to za 15 minut.');
                 if (!await guardHit(env, gacct, 60, 15 * 60e3)) return err(429, 'Účet je dočasně zamčený kvůli mnoha pokusům o přihlášení. Zkus to za 15 minut.');
-                const firm = await env.DB.prepare('SELECT id FROM firms WHERE code=?').bind(String(b.code).toUpperCase()).first();
+                const firm = await dbFirst(env, 'SELECT id, frozen FROM firms WHERE code=?', String(b.code).toUpperCase());
                 if (!firm) return err(401, 'Firma s tímto kódem neexistuje.');
+                if (firm.frozen >= 2) return err(403, 'Firma je dočasně zamčená správcem aplikace.');
                 const u = await env.DB.prepare(
                     'SELECT * FROM users WHERE firm_id=? AND name=? COLLATE NOCASE').bind(firm.id, String(b.name)).first();
                 if (!u) return err(401, 'Nesprávné jméno nebo heslo.');
@@ -773,8 +971,180 @@ export default {
                 });
             }
 
+            // ================= KONZOLE VLASTNÍKA APPKY =======================
+            // Neváže se na firemní token, ale na tajemství OWNER_KEY — stejně jako
+            // schránka zpětné vazby. Firemní admini (ani ten někoho z větší firmy)
+            // se sem nedostanou ani omylem: je to jiná část routerů NAD ověřením
+            // tokenu, takže token se tu ani nečte.
+            if (path.indexOf('/owner/') === 0) {
+                const gate = ownerGate(req, env);
+                if (gate) return gate;
+                await ensureOwnerSchema(env);
+
+                // JEDNA ODPOVĚĎ = CELÁ OBRAZOVKA konzole. Záměrně: firem jsou
+                // desítky, ne tisíce, a druhý dotaz na detail by znamenal další
+                // čekání v terénu. Počty se sbírají GROUP BY dotazy (7 dotazů
+                // celkem), ne dotazem na každou firmu zvlášť.
+                if (req.method === 'GET' && path === '/owner/firms') {
+                    const firms = (await env.DB.prepare(
+                        'SELECT id, code, name, created, auto_lock, max_users, frozen, note, founder FROM firms ORDER BY created DESC LIMIT 500').all()).results;
+                    const byId = {};
+                    firms.forEach(f => {
+                        byId[f.id] = f;
+                        f.users = 0; f.off = 0; f.usage = 0; f.last = 0; f.chat = 0;
+                        f.pts = 0; f.jobs = 0; f.reqToday = 0; f.req7 = 0; f.pending = 0;
+                    });
+                    // tabulka nemusí existovat (starší nasazení) → chyba se tichá přejde
+                    async function fold(sql, bind, apply) {
+                        try {
+                            let st = env.DB.prepare(sql);
+                            if (bind.length) st = st.bind(...bind);
+                            (await st.all()).results.forEach(r => { const f = byId[r.firm_id]; if (f) apply(f, r); });
+                        } catch (e) {}
+                    }
+                    const dToday = new Date().toISOString().slice(0, 10);
+                    const d7 = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10);
+                    await fold('SELECT firm_id, COUNT(*) AS n, SUM(disabled) AS d FROM users GROUP BY firm_id', [],
+                        (f, r) => { f.users = r.n || 0; f.off = r.d || 0; });
+                    await fold('SELECT firm_id, COUNT(*) AS n, MAX(ts) AS t FROM usage GROUP BY firm_id', [],
+                        (f, r) => { f.usage = r.n || 0; f.last = r.t || 0; });
+                    await fold('SELECT firm_id, COUNT(*) AS n FROM chat GROUP BY firm_id', [], (f, r) => { f.chat = r.n || 0; });
+                    await fold('SELECT firm_id, COUNT(*) AS n FROM sync_points GROUP BY firm_id', [], (f, r) => { f.pts = r.n || 0; });
+                    await fold('SELECT firm_id, COUNT(*) AS n FROM jobs GROUP BY firm_id', [], (f, r) => { f.jobs = r.n || 0; });
+                    await fold('SELECT firm_id, n FROM stats_firm WHERE day=?', [dToday], (f, r) => { f.reqToday = r.n || 0; });
+                    await fold('SELECT firm_id, SUM(n) AS n FROM stats_firm WHERE day>=? GROUP BY firm_id', [d7],
+                        (f, r) => { f.req7 = r.n || 0; });
+                    await fold("SELECT firm_id, COUNT(*) AS n FROM firm_requests WHERE state='new' GROUP BY firm_id", [],
+                        (f, r) => { f.pending = r.n || 0; });
+
+                    let requests = [];
+                    try {
+                        requests = (await env.DB.prepare(
+                            'SELECT r.id, r.firm_id, r.ts, r.want, r.reason, r.who, r.state, r.reply, r.decided, '
+                            + 'f.name AS firmName, f.code AS firmCode, f.max_users AS maxUsers '
+                            + "FROM firm_requests r LEFT JOIN firms f ON f.id=r.firm_id ORDER BY (r.state='new') DESC, r.id DESC LIMIT 60").all()).results;
+                    } catch (e) { requests = []; }
+                    const days = (await env.DB.prepare('SELECT day, n FROM stats ORDER BY day DESC LIMIT 14').all()).results.reverse();
+                    let notice = null;
+                    try {
+                        const row = await env.DB.prepare("SELECT v FROM meta WHERE k='notice'").first();
+                        if (row && row.v) notice = JSON.parse(row.v);
+                    } catch (e) { notice = null; }
+                    return json({
+                        firms: firms, requests: requests, days: days, notice: notice,
+                        limits: { reqPerDay: 100000, plan: 'Workers Free', firmMaxDefault: FIRM_MAX_DEFAULT, foundMax: FOUND_MAX },
+                        serverTime: Date.now()
+                    });
+                }
+
+                // změna firmy: název, strop lidí, zmrazení (0 běží / 1 jen čtení / 2 zamčeno), poznámka
+                let fm = /^\/owner\/firms\/([\w-]+)$/.exec(path);
+                if (fm && req.method === 'PATCH') {
+                    const b = await req.json().catch(() => null);
+                    if (!b) return err(400, 'Chybí tělo.');
+                    const fid = fm[1];
+                    if (!await env.DB.prepare('SELECT id FROM firms WHERE id=?').bind(fid).first()) return err(404, 'Firma nenalezena.');
+                    if (b.name != null)
+                        await env.DB.prepare('UPDATE firms SET name=? WHERE id=?').bind(String(b.name).slice(0, 60), fid).run();
+                    if (b.maxUsers != null)
+                        await env.DB.prepare('UPDATE firms SET max_users=? WHERE id=?')
+                            .bind(Math.max(1, Math.min(1000, parseInt(b.maxUsers, 10) || FIRM_MAX_DEFAULT)), fid).run();
+                    if (b.frozen != null)
+                        await env.DB.prepare('UPDATE firms SET frozen=? WHERE id=?')
+                            .bind(Math.max(0, Math.min(2, parseInt(b.frozen, 10) || 0)), fid).run();
+                    if (b.note != null)
+                        await env.DB.prepare('UPDATE firms SET note=? WHERE id=?').bind(String(b.note).slice(0, 500), fid).run();
+                    return json({
+                        ok: true,
+                        firm: await env.DB.prepare('SELECT id, code, name, created, auto_lock, max_users, frozen, note FROM firms WHERE id=?').bind(fid).first()
+                    });
+                }
+
+                // smazání jedné firmy — POJISTKA: v adrese musí sedět její kód,
+                // ať se překlepem v seznamu nesmaže živá firma místo mrtvé.
+                if (fm && req.method === 'DELETE') {
+                    const fid = fm[1];
+                    const f0 = await env.DB.prepare('SELECT id, code FROM firms WHERE id=?').bind(fid).first();
+                    if (!f0) return err(404, 'Firma nenalezena.');
+                    if ((url.searchParams.get('kod') || '').toUpperCase() !== String(f0.code).toUpperCase())
+                        return err(400, 'Pro smazání firmy musí sedět její kód.');
+                    await dropFirm(env, fid);
+                    return json({ ok: true, deleted: f0.code });
+                }
+
+                // hromadný úklid mrtvých firem (seznam id poslá konzole až po potvrzení)
+                if (req.method === 'POST' && path === '/owner/cleanup') {
+                    const b = await req.json().catch(() => null) || {};
+                    const ids = Array.isArray(b.ids) ? b.ids.slice(0, 50) : [];
+                    if (!ids.length) return err(400, 'Chybí seznam firem.');
+                    let n = 0;
+                    for (const fid of ids) {
+                        const f0 = await env.DB.prepare('SELECT id FROM firms WHERE id=?').bind(String(fid)).first();
+                        if (!f0) continue;
+                        await dropFirm(env, String(fid));
+                        n++;
+                    }
+                    return json({ ok: true, n: n });
+                }
+
+                // vyřízení žádosti o víc míst: schválení rovnou zvedne strop firmy
+                let rm = /^\/owner\/requests\/(\d+)$/.exec(path);
+                if (rm && req.method === 'POST') {
+                    const b = await req.json().catch(() => null) || {};
+                    const rid = parseInt(rm[1], 10);
+                    const r0 = await env.DB.prepare('SELECT id, firm_id, want FROM firm_requests WHERE id=?').bind(rid).first();
+                    if (!r0) return err(404, 'Žádost nenalezena.');
+                    const reply = b.reply ? String(b.reply).slice(0, 400) : null;
+                    if (b.approve) {
+                        const cap = Math.max(1, Math.min(1000, parseInt(b.maxUsers, 10) || r0.want));
+                        await env.DB.prepare('UPDATE firms SET max_users=? WHERE id=?').bind(cap, r0.firm_id).run();
+                        await env.DB.prepare("UPDATE firm_requests SET state='ok', decided=?, reply=? WHERE id=?")
+                            .bind(Date.now(), reply, rid).run();
+                        return json({ ok: true, maxUsers: cap });
+                    }
+                    await env.DB.prepare("UPDATE firm_requests SET state='no', decided=?, reply=? WHERE id=?")
+                        .bind(Date.now(), reply, rid).run();
+                    return json({ ok: true });
+                }
+
+                // hláška všem firmám — uloží se do meta a chodí s každou /config
+                if (path === '/owner/notice' && req.method === 'PUT') {
+                    const b = await req.json().catch(() => null) || {};
+                    const txt = b.txt ? String(b.txt).trim().slice(0, 300) : '';
+                    if (!txt) {
+                        await env.DB.prepare("DELETE FROM meta WHERE k='notice'").run();
+                        return json({ ok: true, notice: null });
+                    }
+                    const days2 = Math.max(1, Math.min(60, parseInt(b.dni, 10) || 7));
+                    const n = { txt: txt, ts: Date.now(), until: Date.now() + days2 * 864e5 };
+                    await env.DB.prepare("INSERT OR REPLACE INTO meta(k,v) VALUES('notice',?)").bind(JSON.stringify(n)).run();
+                    return json({ ok: true, notice: n });
+                }
+
+                return err(404, 'Neznámá cesta konzole.');
+            }
+
             const me = await auth(env, req);
             if (!me) return err(401, 'Neplatné nebo prošlé přihlášení.');
+
+            // ZMRAZENÍ FIRMY (přepíná vlastník appky v konzoli). 2 = zamčeno úplpě,
+            // 1 = jen ke čtení: v terénu se dá dál měřit a stáhnout, co už na serveru
+            // je, ale nic se tam nezapisuje. Než někomu appku úplně vypnu, tohle
+            // bývá to správné — nikoho to nevyhodí uprostřed měření.
+            if (me.frozen >= 2) return err(403, 'Firma je dočasně zamčená správcem aplikace.');
+            if (me.frozen >= 1 && req.method !== 'GET')
+                return err(403, 'Firma je dočasně jen ke čtení — zápis na server je pozastavený.');
+
+            // DENNÍ POČÍTADLO PO FIRMÁCH. Globální `stats` řekne, že je zle, ale
+            // neřekne KDO — a při limitu 100 000/den je potřeba najít tu jednu
+            // firmu, která by appku sundala všem ostatním. Zápis jde na pozadí;
+            // když tabulka ještě není, doplní se schéma a příště to sedne.
+            try {
+                const dayF = new Date().toISOString().slice(0, 10);
+                const pf = env.DB.prepare('INSERT INTO stats_firm(day,firm_id,n) VALUES(?,?,1) ON CONFLICT(day,firm_id) DO UPDATE SET n=n+1')
+                    .bind(dayF, me.firm_id).run().catch(() => ensureOwnerSchema(env).catch(() => {}));
+                if (ctx && ctx.waitUntil) ctx.waitUntil(pf);
+            } catch (e) {}
 
             if (req.method === 'GET' && path === '/config') {
                 const cfg = await configPayload(env, me.firm_id);
@@ -800,6 +1170,13 @@ export default {
                 const b = await req.json().catch(() => null);
                 if (!b || !b.name || !b.password || ROLES.indexOf(b.role) === -1) return err(400, 'Chybí name / password / platná role.');
                 if (String(b.password).length < 4) return err(400, 'Heslo musí mít aspoň 4 znaky.');
+                // STROP LIDÍ VE FIRMĚ. Počítají se i zablokovaní — místo drží
+                // dál a jde uvolnit smazáním. Kdo potřebuje víc, pošle žádost
+                // (POST /requests) a strop mu zvedne vlastník appky v konzoli.
+                const cap = me.maxUsers || FIRM_MAX_DEFAULT;
+                const cnt = await env.DB.prepare('SELECT COUNT(*) AS n FROM users WHERE firm_id=?').bind(me.firm_id).first();
+                if (cnt && cnt.n >= cap)
+                    return err(409, 'Firma má zaplněných všech ' + cap + ' míst. Uvolní se smazáním účtu, nebo požádej o navýšení tlačítkem u seznamu uživatelů.');
                 const salt = randHex(16);
                 const hash = await pbkdf2(String(b.password), salt, ITERS);
                 const id = crypto.randomUUID();
@@ -842,6 +1219,29 @@ export default {
                     const hash = await pbkdf2(String(b.password), salt, ITERS);
                     await env.DB.prepare('UPDATE users SET pass_hash=?, salt=?, iters=? WHERE id=?').bind(hash, salt, ITERS, uid).run();
                 }
+                return json(await configPayload(env, me.firm_id));
+            }
+
+            // ---------------- žádost o víc míst ve firmě (admin firmy) ---------
+            // Firma smí sama až FIRM_MAX_DEFAULT lidí. Nad to se posílá žádost
+            // s odůvodněním, kterou vlastník appky vyřídí v konzoli. Stav
+            // žádosti chodí zpátky v /config (pole `request`), takže žadatel
+            // vidí "čeká na vyřízení" i po zavření appky.
+            if (req.method === 'POST' && path === '/requests') {
+                if (me.role !== 'admin') return err(403, 'Jen admin.');
+                await ensureOwnerSchema(env);
+                const b = await req.json().catch(() => null) || {};
+                const want = Math.max(2, Math.min(500, parseInt(b.want, 10) || 0));
+                const reason = b.reason ? String(b.reason).trim().slice(0, 600) : '';
+                if (!want) return err(400, 'Chybí požadovaný počet míst.');
+                if (reason.length < 10) return err(400, 'Napiš prosím pár slov, k čemu firma víc míst potřebuje.');
+                const open = await env.DB.prepare("SELECT id FROM firm_requests WHERE firm_id=? AND state='new'")
+                    .bind(me.firm_id).first();
+                if (open) return err(409, 'Žádost už čeká na vyřízení.');
+                if (!await guardHit(env, 'req:' + me.firm_id, 5, 30 * 864e5))
+                    return err(429, 'Z této firmy už přišlo hodně žádostí. Ozvi se přímo přes Zpětnou vazbu.');
+                await env.DB.prepare("INSERT INTO firm_requests(firm_id,ts,want,reason,who,state) VALUES(?,?,?,?,?,'new')")
+                    .bind(me.firm_id, Date.now(), want, reason, me.name).run();
                 return json(await configPayload(env, me.firm_id));
             }
 

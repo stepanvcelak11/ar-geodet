@@ -290,6 +290,12 @@
     function keepEl(el, tabId) {
         var keep = KEEP[tabId];
         if (keep === null) return true;                  // záložka se nekrátí
+        // OBECNÁ VÝJIMKA pro přisypané řádky: modul si může říct sám, že se
+        // schovávat nesmí, aniž by se jeho id muselo dopisovat do KEEP výš.
+        // Kvůli tomu to vzniklo: přepínač jazyka (js/jazyky.js) krátký pohled
+        // schoval — a člověk, který neumí česky, ho pak nemá jak najít, protože
+        // i tlačítko „Zobrazit vše" je česky. Takový řádek nesmí pod záhyb.
+        if (el.hasAttribute && el.hasAttribute('data-ns-keep')) return true;
         if (!keep) keep = [];
         for (var i = 0; i < keep.length; i++) {
             if (el.id === keep[i]) return true;

@@ -88,10 +88,42 @@
             ' A ' + rx.toFixed(1) + ' ' + ry.toFixed(1) + ' 0 0 0 ' + (CX + rx).toFixed(1) + ' ' + GY;
     }
 
+    // ---- OKOLÍ: co kolem sebe zrovna mám -------------------------------------------
+    // Na přání z terénu (29. 8. 2026): „u toho panáčka ať se podle semaforu zobrazí
+    // věci — pokud jsem u stromu, ať tam je strom, u domu část domu."
+    // Bere se TÁŽ volba okolí, jakou má Skóre místa (js/gps-semafor.js, klíč
+    // agSemaforEnv_v1) — nic se tu neměří znovu a obojí tak mluví o tomtéž.
+    // Kulisa se kreslí ZA kruh přesnosti a hodně potlačeně: je to kontext, ne údaj.
+    var ENV_KEY = 'agSemaforEnv_v1';
+    function envNow() {
+        try {
+            var v = localStorage.getItem(ENV_KEY);
+            if (v === 'stromy' || v === 'budovy') return v;
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-silueta:envNow'); }
+        return 'volne';
+    }
+    // Strom vlevo, dům vpravo — obojí u kraje scény, aby i velký kruh (RMAX 54)
+    // zůstal čitelný. Výška je zhruba dvojnásobek postavy = na první pohled je
+    // vidět, co stíní oblohu.
+    var ENV_SVG = {
+        volne: '',
+        stromy: '<g class="ag-sil-env">' +
+            '<path class="ag-sil-env-l" d="M15 64 V44"/>' +
+            '<path class="ag-sil-env-f" d="M15 20 L27 41 H3 Z"/>' +
+            '<path class="ag-sil-env-f" d="M15 31 L30 52 H0 Z"/>' +
+            '</g>',
+        budovy: '<g class="ag-sil-env">' +
+            '<path class="ag-sil-env-f" d="M96 64 V22 H120 V64 Z"/>' +
+            '<path class="ag-sil-env-w" d="M101 29 h5 M111 29 h5 M101 39 h5 M111 39 h5 M101 49 h5 M111 49 h5"/>' +
+            '</g>'
+    };
+
     function svgMarkup() {
         var rr = R_REF.toFixed(1), rry = (R_REF * FLAT).toFixed(1);
         return '' +
             '<svg class="ag-sil-svg" viewBox="0 0 120 92" aria-hidden="true" focusable="false">' +
+            // kulisa okolí (strom / dům) — nejníž ve vrstvení, ať nic nepřekrývá
+            '<g class="ag-sil-envwrap"></g>' +
             // země — jemná linka horizontu, aby postava „stála"
             '<line class="ag-sil-ground" x1="3" y1="' + GY + '" x2="117" y2="' + GY + '"/>' +
             // pevná značka 5 m (hranice, od které appka varuje)
@@ -111,7 +143,7 @@
             '<span class="ag-sil-num"></span>';
     }
 
-    var _box = null, _ring = null, _front = null, _num = null, _lastKey = '';
+    var _box = null, _ring = null, _front = null, _num = null, _env = null, _lastKey = '';
 
     function build() {
         if (_box) return _box;
@@ -126,6 +158,7 @@
         _ring = _box.querySelector('.ag-sil-ring');
         _front = _box.querySelector('.ag-sil-front');
         _num = _box.querySelector('.ag-sil-num');
+        _env = _box.querySelector('.ag-sil-envwrap');
         return _box;
     }
 
@@ -144,23 +177,40 @@
     }
 
     function render() {
-        if (!on()) { if (_box) _box.style.display = 'none'; return; }
+        if (!on()) {
+            if (_box) _box.style.display = 'none';
+            // sloupec upozornění se zase vrátí na střed displeje
+            try { document.documentElement.style.setProperty('--ag-sil-w', '0px'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-silueta:render'); }
+            return;
+        }
         build();
         _box.style.display = '';
+        // Šířku karty hlásíme ven: stavová bublina (js/stavovy-pruh.js ve sloupci
+        // #ag-stack) se o ni odsune doprava, aby na siluetu nelezla. Obojí pak stojí
+        // v jedné řadě pod horní hranou — nahlášeno 29. 8. 2026 („bublina překáží
+        // panáčkovi s přesností").
+        try {
+            var w = Math.round(_box.getBoundingClientRect().width) || 0;
+            if (w) document.documentElement.style.setProperty('--ag-sil-w', (w + 14) + 'px');
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-silueta:render'); }
         var a = haveFix() ? acc() : null;
         var lvl = level(a);
         var r = lvl === 'none' ? R_REF : radiusFor(a);
+        var ev = envNow();
         // překreslovat jen při skutečné změně — jinak by se DOM přepisoval 1× za sekundu
-        var key = lvl + '|' + r.toFixed(1);
+        var key = lvl + '|' + r.toFixed(1) + '|' + ev;
         if (key === _lastKey) return;
         _lastKey = key;
+        if (_env) _env.innerHTML = ENV_SVG[ev] || '';
         _ring.setAttribute('rx', r.toFixed(1));
         _ring.setAttribute('ry', (r * FLAT).toFixed(1));
         _front.setAttribute('d', frontArc(r));
         _box.setAttribute('data-lvl', lvl);
         _num.textContent = a == null ? '—' : '±' + metry(a);
-        _box.setAttribute('aria-label', 'Přesnost GPS: ' + slovy(a, lvl) + '. Klepnutím otevřeš skóre místa.');
-        _box.setAttribute('title', slovy(a, lvl));
+        var okoli = ev === 'stromy' ? ' Okolí: koruny stromů nebo jedna zeď.'
+            : (ev === 'budovy' ? ' Okolí: mezi budovami.' : '');
+        _box.setAttribute('aria-label', 'Přesnost GPS: ' + slovy(a, lvl) + '.' + okoli + ' Klepnutím otevřeš skóre místa.');
+        _box.setAttribute('title', slovy(a, lvl) + okoli);
     }
 
     // ---- přepínač v Nastavení → Vzhled ----------------------------------------------

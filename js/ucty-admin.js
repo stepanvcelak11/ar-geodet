@@ -31,6 +31,73 @@
     }
     function roleTxt(r) { return r === 'admin' ? 'Admin' : (r === 'vedeni' ? 'Vedení' : 'Zaměstnanec'); }
 
+    // KOLIK FIREM SMÍ BÝT V JEDNOM TELEFONU. Strop drží js/ucty.js
+    // (AGUcty.profileLimit); tady se ptáme DŘÍV, než člověk vyplní celý
+    // formulář — odmítnout ho až po zadaném hesle by bylo protivné.
+    function profileGate() {
+        var u = U();
+        var lim = (u && u.profileLimit) ? u.profileLimit() : null;
+        if (!lim || !lim.full) return true;
+        agAlert('Víc firem už ne', 'V tomhle telefonu je <b>' + lim.n + ' firem</b> a to je strop (' + lim.max + '). '
+            + 'Každá firma si sáma stahuje nastavení a synchronizuje body — víc jich vytěžuje server i baterku. '
+            + 'Nepoužívanou firmu odeber v sekci <b>Firma → Firmy na tomto zařízení → Zapomenout</b>.');
+        return false;
+    }
+
+    // Kolik má firma míst a jak požádat o víc. Jen v cloudu — lokální firma
+    // žije v telefonu, server ji nic nestojí, takže žádný strop nemá.
+    function mistaHtml(f) {
+        if (!f || !f.cloud) return '';
+        var lim = f.limits || null;
+        var max = (lim && lim.maxUsers) || 10;
+        var n = (lim && lim.users != null) ? lim.users : (f.users || []).length;
+        var r = f.request || null;
+        var s = '<div class="agfa-note" id="agfa-mista"><b>' + n + ' z ' + max + ' míst</b> ve firmě.';
+        if (r && r.state === 'new') s += ' Žádost o ' + r.want + ' míst čeká na vyřízení.';
+        else if (r && r.state === 'ok') s += ' Poslední žádost byla schválená.';
+        else if (r && r.state === 'no') s += ' Poslední žádost byla zamítnutá' + (r.reply ? ': ' + esc(r.reply) : '.');
+        s += '</div>';
+        if (!(r && r.state === 'new'))
+            s += '<button class="agfa-mini" id="agfa-req" style="margin-top:6px;">Požádat o víc míst</button>';
+        return s;
+    }
+
+    // ŽÁDOST O NAVÝŠENÍ. Nechodí e-mailem ani přes zpětnou vazbu — přistáne
+    // rovnou v konzoli vlastníka appky (js/sprava-appky.js), kde se jedním
+    // klepnutím schválí a strop se zvedne. Stav žádosti pak chodí zpátky
+    // s každou obnovou konfigurace, takže ho žadatel vidí i po restartu.
+    function requestForm(body) {
+        var u = U(); if (!u) return;
+        var f = u.getFirm(); if (!f) return;
+        var max = (f.limits && f.limits.maxUsers) || 10;
+        var box = body.querySelector('#agfa-uform'); if (!box) return;
+        box.innerHTML =
+            '<div style="border:1px solid var(--glass-border,rgba(255,255,255,0.15));border-radius:12px;padding:12px;margin-top:10px;">' +
+            '<label class="agfa-lb">Kolik míst potřebujete celkem</label>' +
+            '<input type="number" inputmode="numeric" id="agfa-rq-n" min="' + (max + 1) + '" max="500" value="' + (max + 5) + '">' +
+            '<label class="agfa-lb">Proč — pár slov stačí</label>' +
+            '<textarea id="agfa-rq-r" maxlength="600" rows="4" placeholder="Kolik nás je, na čem děláme…"></textarea>' +
+            '<div style="display:flex;gap:8px;margin-top:12px;">' +
+            '<button class="btn" style="flex:1;" id="agfa-rq-go">Odeslat žádost</button>' +
+            '<button class="btn btn-secondary" style="flex:1;" id="agfa-rq-x">Zrušit</button></div></div>';
+        box.querySelector('#agfa-rq-x').onclick = function () { box.innerHTML = ''; };
+        box.querySelector('#agfa-rq-go').onclick = function () {
+            var want = parseInt(box.querySelector('#agfa-rq-n').value, 10) || 0;
+            var reason = (box.querySelector('#agfa-rq-r').value || '').trim();
+            if (want <= max) return agAlert('Nesedí počet', 'Napiš víc míst, než firma má teď (' + max + ').');
+            if (reason.length < 10) return agAlert('Chybí důvod', 'Napiš prosím pár slov, k čemu ta místa jsou — podle toho se to schvaluje.');
+            var btn = box.querySelector('#agfa-rq-go');
+            btn.disabled = true; btn.textContent = 'Odesílám…';
+            u.cloudFetch('/requests', { method: 'POST', body: { want: want, reason: reason } }).then(function (r) {
+                btn.disabled = false; btn.textContent = 'Odeslat žádost';
+                if (!r.ok) return agAlert('Neodešlo se', cloudErr(r));
+                u.adoptConfig(r.data);
+                agAlert('Odesláno', 'Žádost je na cestě. Až ji vyřídím, strop se zvedne sám — nic dělat nemusíš.');
+                renderNav('uzivatele');
+            });
+        };
+    }
+
     function injectStyles() {
         if (document.getElementById(STYLE_ID)) return;
         var st = document.createElement('style');
@@ -521,15 +588,15 @@
                 message: 'Tohle dělá <b>jen správce</b>. Staneš se adminem nové firmy a budeš spravovat účty, oprávnění a nastavení.<br><br>' +
                     'Jsi zaměstnanec a chceš se jen přihlásit? Dej Zrušit a použij „Přihlásit se k firmě (mám kód)".',
                 okText: 'Jsem správce, založit'
-            }).then(function (ok) { if (ok) wizardCloud(body); });
+            }).then(function (ok) { if (ok && profileGate()) wizardCloud(body); });
         };
-        body.querySelector('#agfa-w-join').onclick = function () { wizardJoin(body); };
+        body.querySelector('#agfa-w-join').onclick = function () { if (profileGate()) wizardJoin(body); };
         body.querySelector('#agfa-w-local').onclick = function () {
             agConfirm({
                 title: 'Založit lokální firmu?',
                 message: 'Účty budou jen v tomto telefonu a staneš se jejich adminem. Pro firmu na více mobilů zvol cloud.',
                 okText: 'Jsem správce, založit'
-            }).then(function (ok) { if (ok) wizardLocal(body); });
+            }).then(function (ok) { if (ok && profileGate()) wizardLocal(body); });
         };
     }
 
@@ -775,10 +842,13 @@
         body.innerHTML =
             '<div class="agfa-pg">Účty firmy ' + esc(f.firmName || '') + '</div>' +
             (cloud ? '<div class="agfa-note">Účty platí pro celou tuto firmu — nový zaměstnanec se na svém mobilu přihlásí kódem <b>' + esc(f.code || '') + '</b>, svým jménem a heslem (nebo naskenuje QR níže).</div>' : '') +
+            mistaHtml(f) +
             '<div id="agfa-userlist" class="agfa-list">' + rows + '</div>' +
             '<button class="btn" style="margin-top:12px;width:100%;" id="agfa-add">+ Přidat uživatele</button>' +
             '<div id="agfa-uform"></div>';
         body.querySelector('#agfa-add').onclick = function () { userForm(body, null); };
+        var reqBtn = body.querySelector('#agfa-req');
+        if (reqBtn) reqBtn.onclick = function () { requestForm(body); };
         body.querySelector('#agfa-userlist').onclick = function (e) {
             var btn = e.target.closest ? e.target.closest('button[data-act]') : null;
             if (!btn) return;
@@ -1696,6 +1766,7 @@
         };
         var join2 = body.querySelector('#agfa-f-join2');
         if (join2) join2.onclick = function () {
+            if (!profileGate()) return;
             var box = body.querySelector('#agfa-join2');
             box.innerHTML =
                 '<div style="border:1px solid var(--glass-border,rgba(255,255,255,0.15));border-radius:12px;padding:12px;margin-top:10px;">' +
@@ -1723,6 +1794,7 @@
         };
         var new2 = body.querySelector('#agfa-f-new2');
         if (new2) new2.onclick = function () {
+            if (!profileGate()) return;
             u.rememberCurrentFirm();   // po založení bude aktivní nová firma; tahle zůstane v seznamu
             wizardCloud(body);
         };

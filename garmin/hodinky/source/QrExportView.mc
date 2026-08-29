@@ -98,7 +98,8 @@ class QrExportView extends WatchUi.View {
         if (!Qr.zacni(_davky[_kde])) { return; }
         _pocita = true;
         _casovac = new Timer.Timer();
-        _casovac.start(method(:tik), 100, true);
+        // Kroků je při verzi 9 kolem sedmdesáti, tak ať to netrvá věčnost.
+        _casovac.start(method(:tik), 30, true);
     }
 
     function tik() as Void {

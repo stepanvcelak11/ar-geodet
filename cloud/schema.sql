@@ -87,3 +87,57 @@ CREATE TABLE IF NOT EXISTS sync_points (
     PRIMARY KEY (firm_id, job_key, point_id)
 );
 CREATE INDEX IF NOT EXISTS idx_sync_firm_job_srv ON sync_points(firm_id, job_key, srv);
+
+-- schranka "napiste mi" (js/zpetna-vazba.js; worker si tabulku umi zalozit i sam)
+-- PSANI je verejne (bez tokenu, limit 20/den na IP), CTENI ma jen vlastnik appky:
+--   wrangler secret put OWNER_KEY --name ar-geodet-api
+-- Firemni ucty do teto tabulky nevidi - chodi do ni zpravy od cizich lidi.
+CREATE TABLE IF NOT EXISTS feedback (
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts      INTEGER NOT NULL,            -- cas prijeti na serveru (ms)
+    kind    TEXT,                        -- chyba | napad | pochvala | jine
+    txt     TEXT NOT NULL,               -- max 4000 znaku (oreze server)
+    contact TEXT,                        -- e-mail, kdyz clovek chce odpoved (nepovinne)
+    meta    TEXT,                        -- JSON: verze appky, telefon, prohlizec (nepovinne)
+    who     TEXT,                        -- jmeno z prihlaseni, pokud bylo (informativni)
+    done    INTEGER NOT NULL DEFAULT 0   -- 1 = vyrizeno
+);
+CREATE INDEX IF NOT EXISTS idx_feedback_ts ON feedback(done, id);
+
+-- ---------------------------------------------------------------------------
+-- SPRÁVA APLIKACE (konzole vlastníka, js/sprava-appky.js + routy /owner/*)
+-- Worker si tohle umí doplnit i sám při prvním použití (ensureOwnerSchema),
+-- takže nasazení nového worker.js NEVYŽADUJE ruční migraci. Tady je to kvůli
+-- úplnosti schématu — SQLite neumí IF NOT EXISTS u ALTER, takže na existující
+-- databázi ty čtyři ALTERy jednou selžou a to je v pořádku:
+--   ALTER TABLE firms ADD COLUMN max_users INTEGER NOT NULL DEFAULT 10;
+--   ALTER TABLE firms ADD COLUMN frozen    INTEGER NOT NULL DEFAULT 0;  -- 0 běží / 1 jen čtení / 2 zamčeno
+--   ALTER TABLE firms ADD COLUMN note      TEXT;                        -- poznámka vlastníka appky
+--   ALTER TABLE firms ADD COLUMN founder   TEXT;                        -- PODEPSANÁ IP zakladatele, ne IP sama
+
+-- žádost firmy o navýšení počtu míst (firma smí sama 10 lidí)
+CREATE TABLE IF NOT EXISTS firm_requests (
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    firm_id TEXT NOT NULL,
+    ts      INTEGER NOT NULL,          -- kdy žádost přišla
+    want    INTEGER NOT NULL,          -- kolik míst firma chce celkem
+    reason  TEXT,                      -- odůvodnění (max 600 znaků)
+    who     TEXT,                      -- jméno admina, který žádost poslal
+    state   TEXT NOT NULL DEFAULT 'new', -- new | ok | no
+    decided INTEGER,                   -- kdy jsem rozhodl
+    reply   TEXT                       -- co jsem k tomu napsal (vidí žadatel)
+);
+CREATE INDEX IF NOT EXISTS idx_freq_firm ON firm_requests(firm_id, id);
+
+-- denní počet požadavků PO FIRMÁCH. Globální `stats` řekne, že je zle, ale
+-- neřekne KDO — a při limitu 100 000/den je potřeba najít tu jednu firmu,
+-- která by appku sundala všem ostatním.
+CREATE TABLE IF NOT EXISTS stats_firm (
+    day     TEXT NOT NULL,             -- YYYY-MM-DD (UTC)
+    firm_id TEXT NOT NULL,
+    n       INTEGER NOT NULL,
+    PRIMARY KEY (day, firm_id)
+);
+
+-- Hláška všem firmám se ukládá do už existující tabulky meta pod klíčem
+-- 'notice' jako JSON {txt, ts, until} — chodí klientům s každou /config.

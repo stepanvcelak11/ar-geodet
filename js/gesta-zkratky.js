@@ -50,6 +50,10 @@
 //     ve svalovou paměť („marking menu"). Vypínatelné.
 //  ② PODRŽENÍ V NÁSTROJÍCH dá nástroji gesto rovnou tam, kde ho používáš. Poslouchá
 //     se na dlaždici i na řádku seznamu úkonů (ten kvůli tomu nese `data-k`).
+//     ⚠⚠ VE VÝCHOZÍM STAVU VYPNUTÉ (přepínač „Přiřazovat gesto podržením dlaždice").
+//     Nahlášeno 29. 8. 2026: „po vyvolání nástroje mi vždycky vyskakuje nakreslit
+//     gesto, ale to bych dal jako možnost, pokud chci." Práh 620 ms byl kratší než
+//     běžné klepnutí v rukavicích — místo nástroje naskočila kreslicí plocha.
 //  ③ NABÍDKA PODLE POUŽITÍ: u nástroje, který jsi otevřel aspoň OFFER_MIN×, se
 //     appka JEDNOU zeptá, jestli na něj chceš gesto. Bere se počítadlo
 //     `agToolUsage_v1`, které vede js/field-tools.js — nic se nového neměří.
@@ -77,7 +81,14 @@
     var SEG_STEP = { kratke: 40, stredni: 54, dlouhe: 72 };   // ⑥ délka tahu z Nastavení
     var GLOVE_MUL = 1.25;  // v rukavicích jsou tahy hrubší (body.ag-glove)
     var HOLD_MS = 900;     // ① po téhle době BEZ POHYBU se teprve ukáže tahák
-    var LP_MS = 620;       // ② podržení dlaždice v Nástrojích = přiřadit gesto
+    // ② Podržení dlaždice v Nástrojích = přiřadit gesto.
+    // ⚠⚠ VE VÝCHOZÍM STAVU VYPNUTO (`lp:0`) a práh zvednutý z 620 na 900 ms.
+    // Nahlášeno 29. 8. 2026: „po vyvolání nástroje mi vždycky vyskakuje nakreslit
+    // gesto, ale to bych dal jako možnost, pokud chci." 620 ms je totiž míň, než
+    // trvá běžné klepnutí v rukavicích nebo za chůze — takže se místo nástroje
+    // otevřela kreslicí plocha. Zapíná se v okně Gesta („Přiřazovat gesto podržením
+    // dlaždice"). NEVRACET zpátky na zapnuto bez vyžádání.
+    var LP_MS = 900;
     var LP_TOL = 12;       // o kolik smí u podržení ujet prst
     var OFFER_MIN = 8;     // ③ od kolika použití má cenu nabízet gesto
     var RATIO = 1.5;       // o kolik musí převládnout jedna osa (jinak je to šikmo → čeká se dál)
@@ -108,6 +119,7 @@
             prefix: 'DR',
             seg: 'stredni',   // ⑥ délka tahu
             hold: 1,          // ① tahák po podržení prstu
+            lp: 0,            // ② přiřazovat gesto podržením dlaždice (výchozí VYPNUTO, viz LP_MS)
             solo: 1,          // ⑦ samotné aktivační gesto = poslední zkratka
             offer: 1,         // ③ nabízet gesta podle použití
             last: '',         // ⑦ naposledy spuštěná zkratka
@@ -129,6 +141,7 @@
                 if (isCode(raw.prefix) && raw.prefix.length >= 2) cfg.prefix = raw.prefix;
                 if (SEG_STEP[raw.seg]) cfg.seg = raw.seg;
                 cfg.hold = raw.hold ? 1 : 0;
+                cfg.lp = raw.lp ? 1 : 0;
                 cfg.solo = raw.solo ? 1 : 0;
                 cfg.offer = raw.offer ? 1 : 0;
                 cfg.tip = raw.tip ? 1 : 0;
@@ -150,6 +163,81 @@
         var s = '';
         for (var i = 0; i < (code || '').length; i++) s += (ARROW[code.charAt(i)] || '');
         return s;
+    }
+
+    // ---- STOPA GESTA: tah nakreslený tak, jak se dělá prstem ------------------------
+    // Na přání z 29. 8. 2026 („zobrazení gesta, co jsem už udělal, bych udělal
+    // hravěji — takhle mi to přijde nudné"). Řada znaků ↓→↑↓ se musí přečíst a
+    // v hlavě přeložit zpátky na pohyb; nakreslená čára je ten pohyb rovnou.
+    //   • aktivační gesto tence a šedě, zkratka silně v barvě → je vidět, kde jedno
+    //     končí a druhé začíná (dělá se to jedním tahem, takže jinak by splynuly),
+    //   • kroužek = kde prst začíná, puntík = kde ho zvedneš.
+    //
+    // ⚠ ÚKROK U VRACEJÍCÍCH SE RAMEN. Zkratka ↑↓ jde nahoru a hned zpátky dolů po
+    // TÉŽE čáře — nakreslené doslova by z toho byla jedna úsečka a nešlo by poznat,
+    // že jsou ramena dvě. Vracející se rameno se proto posune o OFF kolmo. Je to
+    // tedy schéma tahu, ne jeho doslovná stopa; pořadí a směry sedí.
+    var TR_STEP = 15;   // délka jednoho ramene v souřadnicích viewBoxu
+    var TR_OFF = 5;     // úkrok u vracejícího se ramene
+    var TR_VEC = { U: [0, -1], D: [0, 1], L: [-1, 0], R: [1, 0] };
+
+    // Projde kód a vrátí body lomené čáry + index bodu, kterým končí každé rameno.
+    function trWalk(seq) {
+        var x = 0, y = 0, prev = null, pts = [[0, 0]], ends = [], i;
+        for (i = 0; i < seq.length; i++) {
+            var d = TR_VEC[seq.charAt(i)];
+            if (!d) continue;
+            if (prev && d[0] === -prev[0] && d[1] === -prev[1]) {
+                var px = prev[1], py = -prev[0];        // kolmice na předchozí směr
+                x += px * TR_OFF; y += py * TR_OFF;
+                pts.push([x, y]);
+            }
+            x += d[0] * TR_STEP; y += d[1] * TR_STEP;
+            pts.push([x, y]);
+            ends.push(pts.length - 1);
+            prev = d;
+        }
+        // ⚠ TAH, KTERÝ SE UZAVŘE (↓→ ↑← je obdélník), by skončil PŘESNĚ na svém
+        // začátku — puntík „tady zvedneš prst" by splynul s kroužkem „tady začínáš"
+        // a z okénka by byl jen čtvereček. Poslední rameno se proto o kousek zkrátí:
+        // zůstane viditelná mezera přesně tam, kde tah končí.
+        if (prev && pts.length > 2 && Math.abs(x - pts[0][0]) < 0.5 && Math.abs(y - pts[0][1]) < 0.5) {
+            x -= prev[0] * TR_OFF; y -= prev[1] * TR_OFF;
+            pts[pts.length - 1] = [x, y];
+        }
+        return { pts: pts, ends: ends };
+    }
+    // Hotové <svg> jako řetězec (seznam se skládá do innerHTML).
+    function strokeSvg(pre, code) {
+        var w = trWalk(String(pre || '') + String(code || ''));
+        var pts = w.pts;
+        if (pts.length < 2 || !w.ends.length) return '';
+        var cut = w.ends[Math.max(0, String(pre || '').length - 1)];
+        var i, minX = pts[0][0], maxX = pts[0][0], minY = pts[0][1], maxY = pts[0][1];
+        for (i = 1; i < pts.length; i++) {
+            if (pts[i][0] < minX) minX = pts[i][0];
+            if (pts[i][0] > maxX) maxX = pts[i][0];
+            if (pts[i][1] < minY) minY = pts[i][1];
+            if (pts[i][1] > maxY) maxY = pts[i][1];
+        }
+        // čtvercový viewBox: kresba se do něj vystředí, ať je zkratka jakkoli široká
+        var pad = 9, bw = (maxX - minX) + pad * 2, bh = (maxY - minY) + pad * 2;
+        var side = Math.max(bw, bh);
+        var dx = pad - minX + (side - bw) / 2, dy = pad - minY + (side - bh) / 2;
+        function path(a) {
+            var s = '';
+            for (var j = 0; j < a.length; j++) {
+                s += (j ? 'L' : 'M') + (a[j][0] + dx).toFixed(1) + ' ' + (a[j][1] + dy).toFixed(1) + ' ';
+            }
+            return s.trim();
+        }
+        var last = pts[pts.length - 1];
+        return '<svg class="ag-gz-tr" viewBox="0 0 ' + side.toFixed(1) + ' ' + side.toFixed(1) + '" aria-hidden="true" focusable="false">' +
+            '<circle class="ag-gz-tr-s" cx="' + (pts[0][0] + dx).toFixed(1) + '" cy="' + (pts[0][1] + dy).toFixed(1) + '" r="3.1"/>' +
+            '<path class="ag-gz-tr-p" d="' + path(pts.slice(0, cut + 1)) + '"/>' +
+            '<path class="ag-gz-tr-c" d="' + path(pts.slice(cut)) + '"/>' +
+            '<circle class="ag-gz-tr-d" cx="' + (last[0] + dx).toFixed(1) + '" cy="' + (last[1] + dy).toFixed(1) + '" r="2.9"/>' +
+            '</svg>';
     }
     function words(code) {
         var a = [];
@@ -252,8 +340,9 @@
         try { if (document.body.classList.contains('ag-glove')) v = Math.round(v * GLOVE_MUL); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:segPx'); }
         return v;
     }
-    function Stroke(x, y) { this.ax = x; this.ay = y; this.dir = ''; this.seg = segPx(); }
-    Stroke.prototype.step = function (x, y) {
+    function Stroke(x, y) { this.ax = x; this.ay = y; this.lx = x; this.ly = y; this.dir = ''; this.lenient = 0; this.seg = segPx(); }
+    // jeden krok z jednoho bodu na druhý (původní logika)
+    Stroke.prototype.one = function (x, y) {
         var dx = x - this.ax, dy = y - this.ay, adx = Math.abs(dx), ady = Math.abs(dy), d = '', SEG = this.seg;
         if (adx >= SEG && adx >= ady * RATIO) d = dx > 0 ? 'R' : 'L';
         else if (ady >= SEG && ady >= adx * RATIO) d = dy > 0 ? 'D' : 'U';
@@ -264,6 +353,57 @@
         if (d === this.dir) return '';
         this.dir = d;
         return d;
+    };
+    // ⚠⚠ RYCHLÝ TAH: JEDNA UDÁLOST MŮŽE SPOLKNOUT CELÝ LOM
+    // (nahlášeno 29. 8. 2026: „když udělám gesto moc rychle, tak ho to nedokáže vybrat").
+    //
+    // PŘÍČINA: prohlížeč pošle touchmove jen jednou za snímek. Při švihu tak jediná událost
+    // přeskočí konec prvního ramene i začátek druhého — prst je najednou hluboko za lomem.
+    // Rozdíl od kotvy má pak velké dx I velké dy, takže neproleze ani jednou větví v one()
+    // (RATIO chce, aby jedna osa převažovala 1,5×), vrátí se '' — a co je nejhorší, KOTVA SE
+    // ANI NEPOSUNE. Další události pak měří pořád od téhož starého bodu, první rameno se už
+    // nikdy nezaznamená a tah se zahodí jako „není to gesto".
+    //
+    // ŘEŠENÍ, dvě věci:
+    //   ① Když má skok výrazný pohyb v OBOU osách, nemohl být rovný — uvnitř něj leží lom.
+    //     Rozloží se proto na dvě kolmá ramena. Pořadí dá směr, kterým se právě jelo
+    //     (this.dir); na úplném začátku tahu, kdy ještě žádný není, se vezme delší osa.
+    //   ② Každé rameno se pak prochází po půl prahu, tedy stejně, jako by šlo o pomalý tah.
+    //     Rychlé gesto se tím chová přesně jako pomalé.
+    //
+    // ⚠ CENA, KTEROU TO MÁ: hodně rychlý ŠIKMÝ švih po mapě (≥ práh v obou osách v jediném
+    // snímku, tj. přes 3000 px/s) se teď dá přečíst jako lom a může spustit aktivační gesto.
+    // Uvnitř jedné události to od sebe rozeznat nejde. Proto se před rozpoznáním aktivačního
+    // gesta žádá PLNÝ práh v obou osách; po něm (lenient) stačí 0,6×, protože tam už tah patří
+    // nám a přehmat nic nestojí — nesedící kód jen zčervená a zmizí.
+    //
+    // (Vrací proto 0..N šipek najednou — volající musí umět víc znaků, viz onMove.)
+    Stroke.prototype.step = function (x, y) {
+        var jx = x - this.lx, jy = y - this.ly;
+        var half = Math.max(6, this.seg * 0.5);
+        var need = this.lenient ? this.seg * 0.6 : this.seg;
+        var legs = [];
+        if (Math.abs(jx) >= need && Math.abs(jy) >= need) {
+            var vodorovne = (this.dir === 'L' || this.dir === 'R')
+                || (!this.dir && Math.abs(jx) > Math.abs(jy));
+            if (vodorovne) legs.push([this.lx + jx, this.ly]);
+            else legs.push([this.lx, this.ly + jy]);
+        }
+        legs.push([x, y]);
+        var out = '', px = this.lx, py = this.ly, L, i;
+        for (L = 0; L < legs.length; L++) {
+            var tx = legs[L][0], ty = legs[L][1];
+            var dx = tx - px, dy = ty - py;
+            var jump = Math.max(Math.abs(dx), Math.abs(dy));
+            var n = (jump > half) ? Math.min(16, Math.ceil(jump / half)) : 1;   // strop 16 = pojistka proti smyčce
+            for (i = 1; i <= n; i++) {
+                var d = this.one(px + dx * i / n, py + dy * i / n);
+                if (d) out += d;
+            }
+            px = tx; py = ty;
+        }
+        this.lx = x; this.ly = y;
+        return out;
     };
 
     function touchMid(t) {
@@ -337,25 +477,29 @@
         var t = e.touches;
         if (!t || !t.length) return;
         if (t.length !== load().fingers) { if (!strk.armed) strk = null; return; }
+        // moc pomalé = posun mapy (platí jen do rozpoznání aktivačního gesta)
+        if (!strk.armed && Date.now() - strk.t0 > PREFIX_MS) { strk = null; return; }
         var p = touchMid(t);
-        var d = strk.s.step(p.x, p.y);
+        // Prst se hnul → odpočet taháku začíná znovu (drobné chvění se nepočítá).
+        if (strk.armed && holdAt && !sheetOn && (Math.abs(p.x - holdAt.x) > 10 || Math.abs(p.y - holdAt.y) > 10)) holdRestart(p.x, p.y);
 
-        if (strk.armed) {
-            // Od téhle chvíle patří pohyb NÁM: mapa se nesmí posouvat ani škubnout.
-            if (e.cancelable) e.preventDefault();
-            e.stopPropagation();
-            // Prst se hnul → odpočet taháku začíná znovu (drobné chvění se nepočítá).
-            if (holdAt && !sheetOn && (Math.abs(p.x - holdAt.x) > 10 || Math.abs(p.y - holdAt.y) > 10)) holdRestart(p.x, p.y);
-            if (d) { strk.drew = true; addArrow(d); }
-            return;
-        }
-        if (Date.now() - strk.t0 > PREFIX_MS) { strk = null; return; }   // moc pomalé = posun mapy
-        if (!d) return;
-        strk.pre += d;
+        // ⚠ step() vrací 0..N šipek: rychlý tah jich stihne v jedné události víc
+        // (viz komentář u Stroke.step). Zpracovávají se PO JEDNÉ, aby se aktivační
+        // gesto mohlo rozpoznat uprostřed dávky a zbytek už padl do zkratky —
+        // přesně jak by to dopadlo při pomalém tahu.
+        var ds = strk.s.step(p.x, p.y);
         var pre = load().prefix;
-        if (strk.pre === pre) {
-            arm(p);
-            // ⚠ I TENHLE pohyb už patří nám. Bez toho by obsluha mapy (bublání,
+        for (var i = 0; i < ds.length; i++) {
+            if (!strk) return;
+            var d = ds.charAt(i);
+            if (strk.armed) { strk.drew = true; addArrow(d); continue; }
+            strk.pre += d;
+            if (strk.pre === pre) { arm(p); continue; }
+            if (pre.indexOf(strk.pre) !== 0) { strk = null; return; }   // odbočil jinam → nejde o gesto
+        }
+        if (strk && strk.armed) {
+            // Od rozpoznání patří pohyb NÁM: mapa se nesmí posouvat ani škubnout.
+            // ⚠ Platí to UŽ PRO TENHLE pohyb. Bez toho by obsluha mapy (bublání,
             // běží až po nás) zpracovala poslední kousek tahu: mapa by o kus
             // poskočila hned po tom, co jsme ji vrátili, a hlavně by si znovu
             // zvedla `_mapHold` — a ten by pak zůstal navěky (její touchend už
@@ -363,9 +507,7 @@
             // podle kompasu. Odhaleno zkouškou v prohlížeči.
             if (e.cancelable) e.preventDefault();
             e.stopPropagation();
-            return;
         }
-        if (pre.indexOf(strk.pre) !== 0) strk = null;   // odbočil jinam → nejde o gesto
     }
 
     function onEnd(e) {
@@ -407,7 +549,7 @@
     }
     function lpStart(e) {
         lpCancel();
-        if (load().off) return;
+        if (load().off || !load().lp) return;
         var t = e.touches;
         if (!t || t.length !== 1) return;
         var tile = null;
@@ -462,6 +604,8 @@
     // ---- rozpoznané aktivační gesto ------------------------------------------------------
     function arm(p) {
         strk.armed = true;
+        strk.s.lenient = 1;      // od téhle chvíle patří tah nám → měkčí práh pro rozklad lomu
+
         mapBack(strk.snap);              // vrať mapu tam, kde byla před gestem
         buzz(25);
         showChip();
@@ -665,7 +809,7 @@
         var c = load();
         if (c.off) return;
         // ② jednorázový tip, ať se o podržení dlaždice vůbec ví
-        if (!c.tip) { c.tip = 1; save(); toast('Tip: podržením dlaždice jí dáš gesto.'); return; }
+        if (c.lp && !c.tip) { c.tip = 1; save(); toast('Tip: podržením dlaždice jí dáš gesto.'); return; }
         if (offerDone || !c.offer) return;
         var hit = pickOffer();
         if (!hit) return;
@@ -707,6 +851,8 @@
             '<select id="ag-gz-seg"><option value="kratke">krátké</option><option value="stredni">střední</option><option value="dlouhe">dlouhé</option></select></div>' +
             '<div class="st-row"><span class="st-lab">Tahák po podržení prstu<small>zastav prst uprostřed gesta a ukáže se soupis; při rychlém tahu nevyskočí</small></span>' +
             '<label class="st-sw"><input type="checkbox" id="ag-gz-hold"><span class="st-sw-face"></span></label></div>' +
+            '<div class="st-row"><span class="st-lab">Přiřazovat gesto podržením dlaždice<small>podržíš dlaždici v Nástrojích a rovnou jí nakreslíš gesto. Výchozí je vypnuto — delší klepnutí (v rukavicích, za chůze) jinak místo nástroje otevře kreslicí plochu.</small></span>' +
+            '<label class="st-sw"><input type="checkbox" id="ag-gz-lp"><span class="st-sw-face"></span></label></div>' +
             '<div class="st-row"><span class="st-lab">Samotné aktivační gesto<small>co udělá, když prst zvedneš hned za ním</small></span>' +
             '<select id="ag-gz-solo"><option value="1">poslední zkratka</option><option value="0">nic</option></select></div>' +
             '<div class="st-row"><span class="st-lab">Nabízet gesta podle použití<small>u nástroje, který otvíráš často, se appka jednou zeptá</small></span>' +
@@ -731,6 +877,7 @@
             load().seg = SEG_STEP[this.value] ? this.value : 'stredni'; save();
         });
         el.querySelector('#ag-gz-hold').addEventListener('change', function () { load().hold = this.checked ? 1 : 0; save(); });
+        el.querySelector('#ag-gz-lp').addEventListener('change', function () { load().lp = this.checked ? 1 : 0; save(); });
         el.querySelector('#ag-gz-offer').addEventListener('change', function () { load().offer = this.checked ? 1 : 0; save(); });
         el.querySelector('#ag-gz-solo').addEventListener('change', function () { load().solo = (this.value === '1') ? 1 : 0; save(); });
         el.querySelector('#ag-gz-train').addEventListener('click', function () { openTrainer(); });
@@ -788,6 +935,7 @@
         el.querySelector('#ag-gz-fingers').value = String(c.fingers);
         el.querySelector('#ag-gz-seg').value = c.seg;
         el.querySelector('#ag-gz-hold').checked = !!c.hold;
+        el.querySelector('#ag-gz-lp').checked = !!c.lp;
         el.querySelector('#ag-gz-offer').checked = !!c.offer;
         el.querySelector('#ag-gz-solo').value = c.solo ? '1' : '0';
         el.querySelector('.ag-gz-prefix').textContent = arrows(c.prefix);
@@ -800,8 +948,10 @@
         var h = '';
         for (var i = 0; i < codes.length; i++) {
             var key = c.map[codes[i]], ready = toolReady(key);
-            h += '<div class="ag-gz-row"><span class="ag-gz-ar">' + arrows(codes[i]) + '</span>' +
+            h += '<div class="ag-gz-row"><span class="ag-gz-box" title="' + esc(arrows(c.prefix) + ' ' + arrows(codes[i])) + '">'
+                + strokeSvg(c.prefix, codes[i]) + '</span>' +
                 '<span class="ag-gz-lb' + (ready ? '' : ' off') + '">' + esc(toolLabel(key)) +
+                '<i>' + arrows(c.prefix) + ' ' + arrows(codes[i]) + '</i>' +
                 (ready ? '' : '<small>teď není v Nástrojích dostupný</small>') + '</span>' +
                 '<button type="button" data-act="edit" data-code="' + codes[i] + '" title="Změnit gesto">✎</button>' +
                 '<button type="button" data-act="del" data-code="' + codes[i] + '" title="Odebrat">✕</button></div>';
@@ -1143,8 +1293,21 @@
             '#' + SET_ID + ' .ag-gz-p{font-size:calc(12.5px * var(--ag-font-scale,1));opacity:.8;line-height:1.5;margin:0 0 12px;}',
             '.ag-gz-row{display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:6px;border-radius:12px;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.10));background:rgba(255,255,255,0.04);}',
-            '.ag-gz-row .ag-gz-ar{font-size:calc(19px * var(--ag-font-scale,1));letter-spacing:.05em;min-width:2.6em;color:var(--accent-bright,#3eb487);}',
-            '.ag-gz-row .ag-gz-lb{flex:1;font-size:calc(13px * var(--ag-font-scale,1));}',
+            // Okénko s nakresleným tahem místo řady šipek (viz strokeSvg vyš).
+            '.ag-gz-row .ag-gz-box{flex:0 0 auto;width:46px;height:46px;border-radius:11px;',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:var(--surface-2,rgba(255,255,255,0.06));',
+            '  display:flex;align-items:center;justify-content:center;}',
+            'body.ag-glove .ag-gz-row .ag-gz-box{width:54px;height:54px;}',
+            '.ag-gz-tr{display:block;width:100%;height:100%;}',
+            // aktivační gesto: tence a šedě — je stejné u všech zkratek, nemá poutat
+            '.ag-gz-tr-p{fill:none;stroke:var(--text-muted,#9aa1ac);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;opacity:.55;}',
+            // vlastní zkratka: silně a v barvě — tohle si má člověk zapamatovat
+            '.ag-gz-tr-c{fill:none;stroke:var(--accent-bright,#3eb487);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;}',
+            '.ag-gz-tr-s{fill:none;stroke:var(--text-muted,#9aa1ac);stroke-width:1.6;opacity:.55;}',   /* kde prst začíná */
+            '.ag-gz-tr-d{fill:var(--accent-bright,#3eb487);}',                                        /* kde ho zvedneš */
+            '.ag-gz-row .ag-gz-lb{flex:1;min-width:0;font-size:calc(13px * var(--ag-font-scale,1));}',
+            '.ag-gz-row .ag-gz-lb i{display:block;font-style:normal;letter-spacing:.08em;opacity:.5;',
+            '  font-size:calc(11px * var(--ag-font-scale,1));}',
             '.ag-gz-row .ag-gz-lb small{display:block;opacity:.55;font-size:calc(11px * var(--ag-font-scale,1));}',
             '.ag-gz-row .ag-gz-lb.off{opacity:.5;}',
             '.ag-gz-row button{width:38px;height:38px;border-radius:10px;border:1px solid var(--glass-border,rgba(255,255,255,0.10));',
@@ -1213,6 +1376,23 @@
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
+
+    // ---- dlaždice v Nástrojích ------------------------------------------------------
+    // ⚠ NAHLÁŠENO 29. 8. 2026: „nemohu najít místo, kde si mohu vytvářet gesta —
+    // přidej to jako další nástroj nebo to dej do nastavení." Řádek v Nastavení →
+    // Vzhled tu byl odjakživa, ale nikdo ho tam nehledal. Gesta jsou teď i normální
+    // dlaždice v Nástrojích (kategorie Pomůcky), takže se dají najít i hledáním.
+    var TOOL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5v9a6 6 0 0 0 6 6h4a6 6 0 0 0 6-6v-3"/><path d="M20 11l-3 3M20 11l3 3" transform="translate(-3 0)"/><circle cx="4" cy="4" r="1.6"/></svg>';
+    function registerTile() {
+        if (typeof window.agRegisterFieldTool !== 'function') return;
+        window.agRegisterFieldTool({
+            id: 'gesta-zkratky', label: 'Gesta (zkratky)', icon: TOOL_ICON,
+            cat: 'Pomůcky', order: 14, onClick: function () { openSettings(); }
+        });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', registerTile);
+    else registerTile();
+    window.addEventListener('load', function () { setTimeout(registerTile, 350); });
 
     window.AGGesta = {
         open: openSettings,                       // otevře okno se zkratkami

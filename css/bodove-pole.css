@@ -1,0 +1,168 @@
+/* ===== AR Geodet — NEJBLIŽŠÍ ZNÁMÝ BOD (odpojitelná vrstva) ====================
+   Drží se design-tokenů ze style.css (--accent, --glass-border, --text-color,
+   --text-muted, --r-md, --r-pill, --color-tb/zhb/pbpp/nivel). Načítá se AŽ ZA
+   style.css, takže jen doplňuje. Odstranění: smaž css/bodove-pole.css +
+   js/bodove-pole.js a řádky se značkou "BODOVÉ POLE" v index.html / sw.js.
+   ============================================================================== */
+
+#agbp-modal { z-index: 19999; }
+#agbp-modal .agbp-content {
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    /* Seznam bývá dlouhý; obsah scrolluje uvnitř, hlavička a patka zůstávají. */
+    max-height: 86vh;
+}
+
+.agbp-title {
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: var(--accent);
+    font-family: var(--font-display, sans-serif);
+}
+.agbp-title .icon { vertical-align: -0.16em; margin-right: 6px; }
+
+/* Filtr podle druhu bodu */
+.agbp-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+.agbp-chip {
+    padding: 6px 12px;
+    border-radius: var(--r-pill, 999px);
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.14));
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-muted, #9aa1ac);
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
+    font-weight: 600;
+    cursor: pointer;
+}
+.agbp-chip.on {
+    background: var(--accent-soft, rgba(47, 158, 116, 0.14));
+    border-color: var(--accent-line, rgba(47, 158, 116, 0.42));
+    color: var(--accent, #2f9e74);
+}
+
+.agbp-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Jeden bod ve TŘECH PATRECH, ne ve třech sloupcích.
+   PROČ: souřadnice S-JTSK mají přes deset znaků a vedle sloupce s tlačítky se na
+   telefonu VŽDYCKY usekly na „Y 742777.24 · …“ — tedy zmizelo X, kvůli kterému se
+   sem člověk dívá. V úzkém flexu spolkne celé zkrácení jediný prvek s overflow
+   (tatáž chyba kdysi usekla stavový pruh na čtvrtinu). Číslo vzdálenosti proto drží
+   první patro vedle názvu, souřadnice mají CELOU šířku a akce jsou dole vedle sebe. */
+.agbp-row {
+    padding: 10px 4px;
+    border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.10));
+}
+.agbp-row:last-child { border-bottom: 0; }
+
+.agbp-head { display: flex; align-items: baseline; gap: 10px; }
+.agbp-head .agbp-name { flex: 1 1 auto; min-width: 0; }
+.agbp-name {
+    font-size: calc(14px * var(--ag-font-scale, 1));
+    font-weight: 600;
+    color: var(--text-color, #eceef2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.agbp-badge {
+    display: inline-block;
+    min-width: 40px;
+    padding: 1px 6px;
+    margin-right: 4px;
+    border-radius: var(--r-pill, 999px);
+    color: #0b0e13;
+    font-size: calc(10.5px * var(--ag-font-scale, 1));
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: 0.3px;
+}
+.agbp-sub {
+    margin-top: 2px;
+    font-size: calc(11px * var(--ag-font-scale, 1));
+    color: var(--text-muted, #9aa1ac);
+    font-family: var(--font-mono, monospace);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.agbp-warn {
+    margin-top: 2px;
+    font-size: calc(11px * var(--ag-font-scale, 1));
+    color: var(--warning, #fbbf24);
+}
+
+.agbp-num {
+    flex: 0 0 auto;
+    text-align: right;
+    line-height: 1.25;
+    /* Hodnota a jednotka patří k sobě — bez tohohle se „39 m“ zlomilo na dva řádky. */
+    white-space: nowrap;
+}
+.agbp-num b {
+    font-size: calc(15px * var(--ag-font-scale, 1));
+    color: var(--data, #e6bd76);
+    font-family: var(--font-mono, monospace);
+}
+.agbp-num small {
+    margin-left: 6px;
+    font-size: calc(11px * var(--ag-font-scale, 1));
+    color: var(--text-muted, #9aa1ac);
+}
+
+.agbp-acts { display: flex; gap: 6px; margin-top: 7px; }
+/* .btn má ve style.css width:100 % — bez width:auto by tlačítko roztlačilo řádek. */
+.agbp-acts .agbp-act {
+    width: auto;
+    flex: 1 1 0;
+    margin-top: 0;
+    padding: 7px 8px;
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
+}
+.agbp-acts .agbp-act[disabled] { opacity: 0.4; }
+
+.agbp-empty {
+    padding: 22px 6px;
+    text-align: center;
+    font-size: calc(13px * var(--ag-font-scale, 1));
+    line-height: 1.55;
+    color: var(--text-muted, #9aa1ac);
+}
+
+.agbp-foot { display: flex; gap: 10px; margin-top: 10px; }
+.agbp-foot .btn { margin-top: 0; flex: 1 1 0; }
+
+/* Velmi úzký displej — souřadnice raději menším písmem než useknout */
+@media (max-width: 340px) {
+    .agbp-sub { font-size: calc(10px * var(--ag-font-scale, 1)); }
+}
+
+/* Režim rukavic — větší terče (sladěno s body.ag-glove ve vylepseni.css) */
+body.ag-glove #agbp-modal .btn { min-height: 52px; font-size: calc(16px * var(--ag-font-scale, 1)); }
+body.ag-glove #agbp-modal .agbp-chip { padding: 11px 16px; }
+
+/* Venkovní režim — čitelnost v ostrém slunci */
+body.outdoor-mode #agbp-modal { background: rgba(0, 0, 0, 0.72); }
+body.outdoor-mode #agbp-modal .agbp-content {
+    background: #0a0e1a !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-color: rgba(255, 255, 255, 0.85) !important;
+}
+body.outdoor-mode #agbp-modal .agbp-row { border-bottom-color: rgba(255, 255, 255, 0.35); }
+
+/* Dostupnost — viditelný focus pro klávesnici */
+#agbp-modal .btn:focus-visible,
+#agbp-modal .agbp-chip:focus-visible {
+    outline: 2px solid var(--accent, #2f9e74);
+    outline-offset: 2px;
+}

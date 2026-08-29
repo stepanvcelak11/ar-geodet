@@ -2,6 +2,20 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 264,
+   "datum": "2026-08-29",
+   "nadpis": "Jiné jazyky, schránka na vzkazy, bodové pole a kontrolní měření",
+   "body": [
+    "Appka umí <b>anglicky, německy a polsky</b>. Jazyk se sám vybere podle telefonu a přepíná se v <b>Nastavení → Vzhled</b> úplně nahoře; na přihlašovací obrazovce je na to kroužek vpravo nahoře. Přepnutí je okamžité, appka se nerestartuje. Odborné názvosloví je přeložené geodeticky, ne slovníkově.",
+    "Nové <b>Napište mi</b> („Více\" nebo Nastavení → Údržba): pošlete autorovi, co nefunguje, co chybí nebo co byste změnili. <b>Nemusíte být přihlášení</b> a <b>funguje i bez signálu</b> — zpráva počká v telefonu a odejde sama, až bude připojení.",
+    "<b>Nejbližší známý bod</b>: úřední body (trigonometrické, zhušťovací, nivelační) seřazené podle vzdálenosti, se směrem a světovou stranou. Tlačítkem <b>Kotva</b> se souřadnice rovnou předvyplní do posunu GPS na známý bod — dřív se musely opisovat ručně.",
+    "<b>Kontrolní měření</b>: bod si označíte k ověření, za 25 minut se appka ozve a necháte ho určit podruhé. Z rozdílu obou určení spočítá <b>skutečnou přesnost</b> — na rozdíl od σ z jednoho stání už zahrnuje i systematickou chybu. Pak si vyberete, jestli nechat původní, zprůměrovat, nebo přepsat.",
+    "<b>Sbalit zakázku</b>: jedním tlačítkem stáhne body, mapu, katastr, ortofoto i výškopis <b>kolem středu zakázky</b> — ne kolem místa, kde právě stojíte. Konečně se dá připravit výjezd z kanceláře.",
+    "<b>Protokol kvality</b> má nový sloupec <b>Kontrola</b> s ověřenou přesností bodu a vysvětlením, jak se čte.",
+    "Drobnosti: přesnější stavová bublina a silueta přesnosti, vylepšená gesta jako zkratky na nástroje, firemní chat, historie aktualizací a počasí; hodinky Garmin lépe čtou QR."
+   ]
+  },
+  {
    "v": 263,
    "datum": "2026-08-29",
    "nadpis": "Oprava: přihlášení se zasekávalo na „příliš mnoho pokusů“",

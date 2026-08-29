@@ -179,11 +179,14 @@
         st.id = 'ag-sp-style';
         st.textContent = [
             // bublina
-            '#ag-sp{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 4px);z-index:645;',
+            // --ag-sil-w = šířka siluety přesnosti vlevo nahoře (js/gps-silueta.js);
+            // bublina se o ni odsune doprava, ať si nestíní. Platí, jen když bublina
+            // NENÍ adoptovaná sloupcem #ag-stack — ten má totéž pravidlo u sebe.
+            '#ag-sp{position:fixed;left:calc(50% + var(--ag-sil-w, 0px) / 2);transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 4px);z-index:645;',
             '  display:none;flex-direction:column;border-radius:18px;overflow:hidden;cursor:pointer;',
             '  background:var(--glass-bg,rgba(18,22,28,0.88));border:1px solid var(--glass-border,rgba(255,255,255,0.12));',
             '  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 2px 10px rgba(0,0,0,0.35);',
-            '  font:600 12.5px/1 var(--font-ui,system-ui);color:var(--text-color,#eceef2);max-width:94vw;}',
+            '  font:600 12.5px/1 var(--font-ui,system-ui);color:var(--text-color,#eceef2);max-width:calc(94vw - var(--ag-sil-w, 0px));}',
             'body.app-started #ag-sp.ag-sp-on{display:flex;}',
             '#ag-sp.ag-sp-open{border-radius:16px;}',
             '#ag-sp.ui-faded{opacity:0.3;}',
@@ -211,7 +214,13 @@
             // SLOUČENÝ PRUH: text upozornění z centra + počítadlo, když jich visí víc.
             // Text se musí umět zkrátit, jinak by dlouhá hláška vytlačila čísla
             // (přesnost a azimut) mimo pilulku — a ta jsou tu to hlavní.
-            '.ag-sp-head .ag-sp-alert{flex:1 1 auto;min-width:min(44vw, 9.5em);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+            // ⚠ TEXT UPOZORNENI SE RADSI ZALOMI, NEZ USEKNE. Bublina je od 29. 8. 2026 uzsi
+            // (vedle ni stoji silueta presnosti), takze delsi hlaska („GPS bez fixu 10 s —
+            // poloha muze byt posunuta") se na jeden radek uz nevejde a s ellipsis z ni
+            // zbyla pulka. Dva radky jsou v poradku — rodic ma flex-wrap, takze se text
+            // pri nedostatku mista odsune na vlastni radek a tam ma celou sirku.
+            '.ag-sp-head .ag-sp-alert{flex:1 1 auto;min-width:min(44vw, 9.5em);max-width:100%;overflow:hidden;',
+            '  white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}',
             '.ag-sp-ncount{font-family:var(--font-mono,ui-monospace,monospace);font-weight:700;',
             '  font-size:calc(9.5px * var(--ag-font-scale, 1));line-height:1;padding:2px 5px;border-radius:999px;',
             '  background:var(--surface-3,rgba(255,255,255,0.14));color:var(--text-color,#e6e8eb);flex:0 0 auto;}',

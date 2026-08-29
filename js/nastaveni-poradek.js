@@ -89,6 +89,16 @@
         return s.replace(/\s+/g, ' ').trim();
     }
     function isHead(el) { return !!(el.classList && el.classList.contains('set-h')); }
+    // ⚠ NADPIS SEKCE JE KLÍČ — a při přepnutém jazyce už není česky.
+    //   js/jazyky.js překladá texty přímo v DOM a na přeložený prvek zapisuje
+    //   `data-ag-cs` s původním zněním. Bez tohohle čtení by findSec() svou sekci
+    //   nenašel a makeSec() by při KAŽDÉM srovnání vyrobil další — naměřeno:
+    //   po minutě desítky duplicitních nadpisů v záložce. Bez překladů atribut
+    //   neexistuje a čte se textContent jako dřív.
+    function headText(el) {
+        var cs = el && el.getAttribute && el.getAttribute('data-ag-cs');
+        return cs || (el ? el.textContent : '');
+    }
     // „ocas" záložky — musí zůstat úplně dole
     function isTail(el) {
         return el.tagName === 'DETAILS'
@@ -115,7 +125,7 @@
             if (isTail(el)) { tail.push(el); seenTail = true; continue; }
             // cokoli, co skončilo POD „Pokročilé", je přírůstek modulu — vytáhneme ho nahoru
             if (seenTail && !isHead(el)) { strays.push(el); continue; }
-            if (isHead(el)) { cur = { h: el, t: norm(el.textContent), items: [] }; secs.push(cur); seenTail = false; continue; }
+            if (isHead(el)) { cur = { h: el, t: norm(headText(el)), items: [] }; secs.push(cur); seenTail = false; continue; }
             if (cur) cur.items.push(el); else lead.push(el);
         }
         return { lead: lead, secs: secs, tail: tail, strays: strays };
@@ -129,6 +139,9 @@
         var h = document.createElement('div');
         h.className = 'set-h';
         h.textContent = title;
+        // Český klíč rovnou při vzniku — jazyky.js ho po překladu doplní sám,
+        // ale mezitím (než doběhne jeho další kolo) by sekce neměla podle čeho párovat.
+        try { h.setAttribute('data-ag-cs', String(title)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-poradek:makeSec'); }
         var sec = { h: h, t: norm(title), items: [], made: true };
         model.secs.push(sec);
         return sec;

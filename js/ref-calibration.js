@@ -99,6 +99,51 @@
         try { if (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) return persistentCustomPoints; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:customPts'); }
         return [];
     }
+    // ÚŘEDNÍ body bodového pole (TB/ZhB/PBPP) — přesně to, na co si člověk stoupne.
+    // Dřív tu nabídka byla jen z VLASTNÍCH bodů a souřadnice úředního bodu se musely
+    // přepisovat ručně z karty bodu, což je osm číslic a překlep se pozná až podle
+    // divného posunu. Bere je js/bodove-pole.js (i z offline cache); když ta vrstva
+    // v sestavě není, sáhne se rovnou do arPoints. Nivelační body jsou VÝŠKOVÉ —
+    // na kotvení polohy se nehodí, proto se do nabídky nedávají.
+    function officialPts() {
+        try {
+            if (window.AGBodovePole && typeof AGBodovePole.points === 'function') {
+                return AGBodovePole.points().filter(function (p) { return p && p.cat !== 'NIVEL'; });
+            }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:officialPts'); }
+        try {
+            if (typeof arPoints !== 'undefined' && Array.isArray(arPoints)) {
+                return arPoints.filter(function (p) { return p && p.cat && p.cat !== 'CUSTOM' && p.cat !== 'NIVEL' && isFinite(p.lat) && isFinite(p.lng); });
+            }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:officialPts'); }
+        return [];
+    }
+    // Nejbližší napřed — v nabídce mají být body, na kterých člověk zrovna stojí,
+    // ne prvních čtyřicet v pořadí stažení. Vrací VŽDY [{p, d}] (d smí být null),
+    // ať se volající nemusí ptát, jestli zrovna byla GPS.
+    var PICK_MAX = 40;
+    function byDistance(arr) {
+        var la = null, ln = null;
+        try {
+            la = (typeof userLat !== 'undefined') ? userLat : null;
+            ln = (typeof userLng !== 'undefined') ? userLng : null;
+        } catch (e) { la = null; ln = null; }
+        var withD = arr.map(function (p) {
+            var d = null;
+            if (la != null && ln != null && typeof getDistance === 'function') {
+                try { var v = getDistance(la, ln, p.lat, p.lng); if (v != null && isFinite(v)) d = v; } catch (e) { d = null; }
+            }
+            return { p: p, d: d };
+        });
+        if (la != null && ln != null) {
+            withD.sort(function (a, b) { return (a.d == null ? Infinity : a.d) - (b.d == null ? Infinity : b.d); });
+        }
+        return withD.slice(0, PICK_MAX);
+    }
+    function fmtDist(d) {
+        if (d == null || !isFinite(d)) return '';
+        return d < 1000 ? (' · ' + Math.round(d) + ' m') : (' · ' + (d / 1000).toFixed(1) + ' km');
+    }
     function escapeHtml(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
     // S-JTSK Y,X (kladné, v metrech) -> WGS84. Stejné chování jako sjtskToLatLng v logika.js;
@@ -221,33 +266,67 @@
         return _ov;
     }
 
+    // Nabídka bodů. DVĚ skupiny: úřední body bodového pole (na ty se v terénu
+    // stoupá) a vlastní uložené body. `_pick` je plochý seznam, do kterého <option>
+    // ukazuje indexem — díky tomu je jedno, ze které skupiny bod je.
+    var _pick = [];
     function fillSelect() {
         var sel = _ov && _ov.querySelector('#agref-select');
         if (!sel) return;
-        var pts = customPts();
-        sel.innerHTML = '<option value="">— ruční zadání níže —</option>';
-        pts.forEach(function (p, i) {
-            if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
-            var o = document.createElement('option');
-            o.value = String(i);
-            o.textContent = (p.name || 'Bod') + ' (#' + (i + 1) + ')';
-            sel.appendChild(o);
+        _pick = [];
+        sel.innerHTML = '';
+        var o0 = document.createElement('option');
+        o0.value = ''; o0.textContent = '— ruční zadání níže —';
+        sel.appendChild(o0);
+
+        function addGroup(label, rows, tag) {
+            if (!rows.length) return;
+            var g = document.createElement('optgroup');
+            g.label = label;
+            rows.forEach(function (r) {
+                var p = r.p;
+                if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
+                var o = document.createElement('option');
+                o.value = String(_pick.length);
+                o.textContent = (p.name || 'Bod') + (tag ? ' · ' + tag(p) : '') + fmtDist(r.d);
+                _pick.push(p);
+                g.appendChild(o);
+            });
+            if (g.children.length) sel.appendChild(g);
+        }
+
+        addGroup('Body bodového pole (ČÚZK)', byDistance(officialPts()), function (p) {
+            return p.cat === 'TB' ? 'TB' : (p.cat === 'ZHB' ? 'ZhB' : 'PBPP');
         });
+        addGroup('Moje body', byDistance(customPts().filter(function (p) {
+            return p && typeof p.lat === 'number' && typeof p.lng === 'number';
+        })), null);
     }
 
     function onSelect() {
         var sel = _ov.querySelector('#agref-select');
         var i = parseInt(sel.value, 10);
         if (isNaN(i)) return;
-        var p = customPts()[i];
+        var p = _pick[i];
         if (!p) return;
+        // Převod přes GeoCore (jeden zdroj pravdy o pořadí os Y/X), proj4 je záloha.
+        var Y = null, X = null;
         try {
-            if (typeof proj4 === 'function') {
-                var sj = proj4('EPSG:4326', 'EPSG:5514', [p.lng, p.lat]); // [Y, X] (záporné v Křováku)
-                _ov.querySelector('#agref-y').value = Math.abs(sj[0]).toFixed(2);
-                _ov.querySelector('#agref-x').value = Math.abs(sj[1]).toFixed(2);
+            if (window.GeoCore && GeoCore.toSJTSK) {
+                var r = GeoCore.toSJTSK(p.lat, p.lng);
+                if (r && isFinite(r.y) && isFinite(r.x)) { Y = Math.abs(r.y); X = Math.abs(r.x); }
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:onSelect'); }
+        try {
+            if (Y == null && typeof proj4 === 'function') {
+                var sj = proj4('EPSG:4326', 'EPSG:5514', [p.lng, p.lat]); // [Y, X] (záporné v Křováku)
+                Y = Math.abs(sj[0]); X = Math.abs(sj[1]);
+            }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:onSelect'); }
+        if (Y != null && X != null) {
+            _ov.querySelector('#agref-y').value = Y.toFixed(2);
+            _ov.querySelector('#agref-x').value = X.toFixed(2);
+        }
         _ov.querySelector('#agref-name').value = p.name || '';
     }
 
@@ -326,11 +405,20 @@
         renderState();
     }
 
-    function open() {
+    // open(prefill?) — `prefill` {name, Y, X} posílá js/bodove-pole.js, když si
+    // uživatel vybral konkrétní bod bodového pole. Ušetří přepisování osmi číslic,
+    // při kterém stačí jeden překlep a posun vyjde o kilometry vedle.
+    function open(prefill) {
         build();
         fillSelect();
         renderState();
         renderGps();
+        if (prefill && isFinite(prefill.Y) && isFinite(prefill.X)) {
+            _ov.querySelector('#agref-y').value = Number(prefill.Y).toFixed(2);
+            _ov.querySelector('#agref-x').value = Number(prefill.X).toFixed(2);
+            _ov.querySelector('#agref-name').value = prefill.name || '';
+            var sel = _ov.querySelector('#agref-select'); if (sel) sel.value = '';
+        }
         _ov.style.display = 'flex';
         if (_gpsTimer) clearInterval(_gpsTimer);
         _gpsTimer = setInterval(renderGps, 1000);

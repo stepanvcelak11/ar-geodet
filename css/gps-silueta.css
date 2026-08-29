@@ -4,13 +4,21 @@
    Prahy jsou schválně stejné jako u stavové bubliny: ≤5 m ok, ≤15 m warn, víc bad.
    ============================================================================ */
 
+/* ⚠ POLOHA: silueta stojí v HORNÍ ŘADĚ vlevo, ve stejné rovině jako stavová
+   bublina — ta se o šířku karty odsune doprava (proměnná --ag-sil-w, kterou
+   js/gps-silueta.js hlásí ven, čte ji sloupec #ag-stack v js/upozorneni.js).
+   Dřív seděla silueta o 74 px níž, přímo pod bublinou, a bublina jí překážela
+   (nahlášeno 29. 8. 2026). */
 #ag-sil {
     position: fixed;
     left: 10px;
-    top: calc(env(safe-area-inset-top, 0px) + 78px);
+    top: calc(env(safe-area-inset-top, 0px) + 4px);
     z-index: 640;
-    /* karta drží poměr viewBoxu 120:108 + řádek s číslem pod kresbou */
-    width: 84px;
+    /* Karta drží poměr viewBoxu 120:108 + řádek s číslem pod kresbou.
+       76 px (dřív 84): vedle karty stojí od 29. 8. 2026 stavová bublina a každý
+       pixel navíc jí ubírá z textu. Na čtení kruhu vůči postavě to nemá vliv —
+       obojí se zmenšuje spolu. */
+    width: 76px;
     padding: 5px 4px 3px;
     border-radius: 14px;
     display: flex;
@@ -42,6 +50,18 @@
     height: auto;
     overflow: visible;
 }
+
+/* Kulisa okolí (strom / kus domu) podle volby ve Skóre místa. Je to KONTEXT,
+   ne údaj — proto v barvě textu, hodně potlačená a kreslená pod kruhem přesnosti,
+   aby přes ni šlo číst i velký kruh. */
+.ag-sil-env {
+    color: var(--text-color, #eceef2);
+    opacity: .28;
+}
+
+.ag-sil-env-f { fill: currentColor; stroke: none; }
+.ag-sil-env-l { fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; }
+.ag-sil-env-w { fill: none; stroke: var(--bg-color, #12151a); stroke-width: 3; stroke-linecap: butt; opacity: .75; }
 
 /* země — jen náznak, ať postava nelevituje */
 .ag-sil-ground {

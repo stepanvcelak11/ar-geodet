@@ -48,6 +48,10 @@
         // Historie aktualizací je jen v nabídce Více a v Nastavení → Údržba, takze by ji
         // hledání bez jádrového cíle nenašlo. Cíl je odpojitelný, proto typeof.
         { label: 'Historie aktualizací', keys: 'historie aktualizaci zmeny co je noveho novinky verze changelog co pribylo vydani', run: function () { if (typeof window.agOpenHistorie === 'function') window.agOpenHistorie(); } },
+        // Napiste mi a Jazyk jsou taky jen v nabidce Vice / v Nastaveni, takze bez
+        // jadroveho cile by je hledani nenaslo. Oba cile jsou odpojitelne — proto typeof.
+        { label: 'Napište mi — zpětná vazba', keys: 'napiste mi zpetna vazba feedback chyba nahlasit napad namet pripominka stiznost autor kontakt napsat', run: function () { if (typeof window.agOpenZpetnaVazba === 'function') window.agOpenZpetnaVazba(); } },
+        { label: 'Jazyk aplikace / App language', keys: 'jazyk language sprache jezyk english anglicky nemecky deutsch polsky polski cestina prelozit translate', run: function () { tab('tab-vzhled', 0)(); var r = document.getElementById('ag-lang-sel'); if (r) { try { r.scrollIntoView({ block: 'center' }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'app-search:jazyk'); } } } },
         { label: 'Poloha z mapy — zpřesnit klepnutím', keys: 'poloha z mapy rucni presnost nepresna gps les mesto ulice ortofoto kde stojim zpresnit', run: function () { if (typeof window.agPosFromMap === 'function') window.agPosFromMap(); } }
     ];
 

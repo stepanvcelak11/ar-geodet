@@ -1,0 +1,171 @@
+/* ===== AR Geodet — BALÍČEK ZAKÁZKY (odpojitelná vrstva) =======================
+   Drží se design-tokenů ze style.css (--accent, --glass-border, --text-color,
+   --text-muted, --warning, --danger, --r-md). Načítá se AŽ ZA style.css, takže jen
+   doplňuje. Odstranění: smaž css/balicek-zakazky.css + js/balicek-zakazky.js
+   a řádky se značkou "BALÍČEK ZAKÁZKY" v index.html / sw.js.
+   ============================================================================== */
+
+#agbz-modal { z-index: 19999; }
+#agbz-modal .agbz-content {
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    max-height: 88vh;
+}
+
+.agbz-title {
+    margin-top: 0;
+    margin-bottom: 6px;
+    color: var(--accent);
+    font-family: var(--font-display, sans-serif);
+}
+
+.agbz-note {
+    margin: 0 0 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--glass-border, rgba(255, 255, 255, 0.14));
+    font-size: calc(12px * var(--ag-font-scale, 1));
+    line-height: 1.5;
+    color: var(--text-muted, #9aa1ac);
+}
+.agbz-note b { color: var(--text-color, #eceef2); }
+
+#agbz-modal .agbz-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.agbz-where {
+    padding: 10px 12px;
+    border-radius: var(--r-md, 12px);
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
+    background: rgba(255, 255, 255, 0.04);
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
+    line-height: 1.5;
+    color: var(--text-color, #eceef2);
+}
+.agbz-where.bad {
+    background: rgba(251, 113, 133, 0.10);
+    border-color: rgba(251, 113, 133, 0.42);
+}
+.agbz-dim { font-size: calc(11px * var(--ag-font-scale, 1)); color: var(--text-muted, #9aa1ac); }
+
+.agbz-lbl {
+    margin: 14px 0 6px;
+    font-size: calc(11.5px * var(--ag-font-scale, 1));
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--text-faint, #6b727d);
+}
+
+/* Volba poloměru */
+.agbz-radii { display: flex; gap: 6px; }
+.agbz-r {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 9px 6px;
+    border-radius: var(--r-md, 12px);
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.14));
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-muted, #9aa1ac);
+    cursor: pointer;
+    text-align: center;
+}
+.agbz-r b {
+    display: block;
+    font-size: calc(14px * var(--ag-font-scale, 1));
+    color: var(--text-color, #eceef2);
+}
+.agbz-r small {
+    display: block;
+    margin-top: 1px;
+    font-size: calc(10.5px * var(--ag-font-scale, 1));
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.agbz-r.on {
+    background: var(--accent-soft, rgba(47, 158, 116, 0.14));
+    border-color: var(--accent-line, rgba(47, 158, 116, 0.42));
+}
+.agbz-r.on b, .agbz-r.on small { color: var(--accent, #2f9e74); }
+
+/* Kroky balení a kontrolní seznam */
+.agbz-steps { margin-top: 12px; }
+.agbz-step, .agbz-chk {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 2px;
+    border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+}
+.agbz-step:last-child { border-bottom: 0; }
+
+.agbz-mark {
+    flex: 0 0 auto;
+    width: 20px;
+    text-align: center;
+    font-size: calc(15px * var(--ag-font-scale, 1));
+    font-weight: 800;
+    color: var(--text-faint, #6b727d);
+}
+.agbz-step[data-st="run"] .agbz-mark { color: var(--accent, #2f9e74); }
+.agbz-step[data-st="ok"] .agbz-mark { color: var(--accent-bright, #3eb487); }
+.agbz-step[data-st="warn"] .agbz-mark { color: var(--warning, #fbbf24); }
+.agbz-step[data-st="err"] .agbz-mark { color: var(--danger, #fb7185); }
+.agbz-chk[data-ok="1"] .agbz-mark { color: var(--accent-bright, #3eb487); }
+.agbz-chk[data-ok="0"] .agbz-mark { color: var(--warning, #fbbf24); }
+
+.agbz-st { flex: 1 1 auto; min-width: 0; }
+.agbz-st b {
+    display: block;
+    font-size: calc(13px * var(--ag-font-scale, 1));
+    color: var(--text-color, #eceef2);
+}
+.agbz-st small {
+    display: block;
+    margin-top: 1px;
+    font-size: calc(11.5px * var(--ag-font-scale, 1));
+    color: var(--text-muted, #9aa1ac);
+}
+
+/* .btn má ve style.css width:100 %. Bez width:auto si tlačítko vzalo celou šířku
+   řádku a popisek vedle něj se zlomil na jedno slovo na řádek („předpověď / se /
+   počítá / na / místě“). Tohle je tatáž past jako u .agbp-act. */
+.agbz-mini {
+    flex: 0 0 auto;
+    width: auto;
+    margin-top: 0;
+    padding: 7px 12px;
+    font-size: calc(12px * var(--ag-font-scale, 1));
+    white-space: nowrap;
+}
+
+.agbz-check { margin-top: 4px; }
+
+/* Režim rukavic */
+body.ag-glove #agbz-modal .btn { min-height: 52px; font-size: calc(16px * var(--ag-font-scale, 1)); }
+body.ag-glove .agbz-r { padding: 14px 6px; }
+
+/* Venkovní režim */
+body.outdoor-mode #agbz-modal { background: rgba(0, 0, 0, 0.72); }
+body.outdoor-mode #agbz-modal .agbz-content {
+    background: #0a0e1a !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-color: rgba(255, 255, 255, 0.85) !important;
+}
+body.outdoor-mode .agbz-where,
+body.outdoor-mode .agbz-r { background: #11151f; border-color: rgba(255, 255, 255, 0.5); }
+body.outdoor-mode .agbz-step,
+body.outdoor-mode .agbz-chk { border-bottom-color: rgba(255, 255, 255, 0.35); }
+
+/* Dostupnost */
+#agbz-modal .btn:focus-visible,
+#agbz-modal .agbz-r:focus-visible {
+    outline: 2px solid var(--accent, #2f9e74);
+    outline-offset: 2px;
+}

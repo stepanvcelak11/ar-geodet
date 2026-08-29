@@ -79,10 +79,18 @@
     }
     // Vloží dlaždici na KONEC pojmenované statické kategorie (např. cat: 'Pomůcky').
     // Vrací false, když kategorie v mřížce není — dlaždice pak spadne do „Terénní nástroje".
+    // Název nadpisu v ČeŠTINĚ — při přepnutém jazyce je vykreslený text přeložený,
+    // ale js/jazyky.js na prvek zapsal původní znění do `data-ag-cs`. Zařazení dlaždic
+    // i zapamatované sbalení se musí řídit tím: jinak by dlaždice po přepnutí jazyka
+    // padaly do záchytné sekce a sbalení by platilo zvlášť pro každý jazyk.
+    function catName(el) {
+        var cs = el && el.getAttribute && el.getAttribute('data-ag-cs');
+        return (cs || (el ? el.textContent : '') || '').trim();
+    }
     function placeInCategory(grid, it) {
         var cats = grid.querySelectorAll('.tool-cat');
         for (var i = 0; i < cats.length; i++) {
-            if ((cats[i].textContent || '').trim() !== it.cat) continue;
+            if (catName(cats[i]) !== it.cat) continue;
             // konec bloku kategorie = další nadpis (.tool-cat / .ag-ft-head), jinak konec mřížky
             var node = cats[i].nextSibling;
             while (node) {
@@ -223,7 +231,7 @@
             if (el.id === 'ag-ft-empty') continue;
             if (el.classList.contains('tool-cat') || el.classList.contains('ag-ft-head')) {
                 flushHead(); lastHead = el; headHasHit = false;
-                secClosed = !q && el.id !== 'ag-fav-head' && closed.indexOf((el.textContent || '').trim()) !== -1;
+                secClosed = !q && el.id !== 'ag-fav-head' && closed.indexOf(catName(el)) !== -1;
                 el.classList.toggle('ag-cat-closed', secClosed);
                 continue;
             }
@@ -257,7 +265,7 @@
     document.addEventListener('click', function (e) {
         var head = e.target.closest ? e.target.closest('#tools-modal .tool-cat, #tools-modal .ag-ft-head') : null;
         if (!head || head.id === 'ag-fav-head') return;
-        var name = (head.textContent || '').trim(); if (!name) return;
+        var name = catName(head); if (!name) return;
         var closed = loadClosed(); var ix = closed.indexOf(name);
         if (ix === -1) closed.push(name); else closed.splice(ix, 1);
         saveClosed(closed); applyFilter();
