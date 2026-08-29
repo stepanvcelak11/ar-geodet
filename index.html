@@ -1325,6 +1325,18 @@
          věší se na událost ag:sync-points z js/cloud-sync.js. MUSÍ být ZA
          js/duvera.js: ptá se ho, jestli rozdíl sedí do hlášených přesností -->
     <script type="ag/lazy" data-src="js/kolize-bodu.js"></script>
+    <!-- PLAKÁT DNE (odpojitelné) — den jako jeden obrázek (canvas) ke sdílení;
+         přidá si i tlačítko „Plakát“ do patičky Deníku dne, denik-dne.js needituje -->
+    <script type="ag/lazy" data-src="js/plakat-dne.js"></script>
+    <!-- PROHLÍDKOVÝ REŽIM (odpojitelné) — „co je kolem mě“ bez zakázky: parcela pod
+         nohama, výška, slunce a popisky parcel v kameře. Nic neukládá do zakázky -->
+    <script type="ag/lazy" data-src="js/prohlidka.js"></script>
+    <!-- TERÉNNÍ TRENAŽÉR (odpojitelné) — cvičné vytyčení venku i doma. Smyšlená poloha
+         ZŮSTÁVÁ UVNITŘ modulu: nepřepisuje userLat/userLng ani AGFix a neukládá body -->
+    <script type="ag/lazy" data-src="js/trenazer.js"></script>
+    <!-- VEKTOROVÁ MAPA OFFLINE (odpojitelné) — geometrie z OpenStreetMap do IndexedDB
+         a vlastní canvas vrstva v mapě; sbalení výřezu funguje i z kanceláře -->
+    <script type="ag/lazy" data-src="js/vektor-mapa.js"></script>
     <!-- SBALITELNÝ NÁSTROJ (odpojitelné) — živá čísla v proužku nahoře místo modálu -->
     <script defer src="js/mini-panel.js"></script>
     <script>

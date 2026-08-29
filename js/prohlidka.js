@@ -274,6 +274,39 @@
         ].join('\n');
         document.head.appendChild(st);
     }
+
+    // Panel se usadí NAD OVLÁDÁNÍ PŘILEPENÉ KE SPODNÍ HRANĚ, ne přes něj.
+    // POZOR NA LAYOUT TÉHLE APPKY: #dock NENÍ spodní lišta — je to svislý sloupec
+    // vpravo (Body / Nový bod / Nastavení), který spodní hrany vůbec nedosáhne.
+    // U spodní hrany naopak sedí tlačítka z #map-controls (Vrstvy vlevo, Mapa
+    // vpravo), a ta se objevují jen v mapě. Proto se NEMĚŘÍ celý #dock (podle
+    // jeho vysokého rámečku by panel vyskočil do půlky obrazovky a pod ním
+    // zůstala díra), ale jen ty prvky, které jsou VIDĚT a KONČÍ u dolního okraje.
+    function nadDokem(el) {
+        if (!el) return;
+        var H = window.innerHeight;
+        var top = null;
+        try {
+            ['dock', 'map-controls'].forEach(function (id) {
+                var host = document.getElementById(id);
+                if (!host) return;
+                var ch = host.children;
+                for (var i = 0; i < ch.length; i++) {
+                    var c = ch[i];
+                    if (!c.getClientRects().length) continue;
+                    var r = c.getBoundingClientRect();
+                    if (!r.width || !r.height) continue;
+                    if (r.bottom < H - 40 || r.top > H) continue;   // nesedí u spodní hrany
+                    if (top == null || r.top < top) top = r.top;
+                }
+            });
+        } catch (e) { swallow(e, 'nadDokem'); }
+        // strop: i kdyby se něco změřilo špatně, panel nikdy nevyskočí přes
+        // třetinu obrazovky — radši ať trochu překrývá, než aby visel uprostřed
+        var b = (top == null) ? 0 : Math.min(Math.max(0, Math.round(H - top + 8)), Math.round(H * 0.34));
+        el.style.bottom = b ? (b + 'px') : '';
+    }
+
     function setStatus(t) {
         var el = document.getElementById('ag-ph-status');
         if (el) el.textContent = t || '';
@@ -306,6 +339,7 @@
             fetchAround(function () { whereAmI(); renderPanel(); });
         });
         el.querySelector('#ag-ph-cam').addEventListener('click', toAr);
+        nadDokem(el);
         return el;
     }
     function toAr() {
@@ -353,6 +387,7 @@
         if (!el) return;
         var body = el.querySelector('#ag-ph-body');
         if (!body) return;
+        nadDokem(el);
         var h = '';
 
         if (!haveUser()) {
