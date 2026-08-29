@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Navigace na bod v AR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700;800&display=swap">
+<style>
+/* =====================================================================
+   AR Geodet — návrhy vizuálu navigace na bod (mockup, NIC se nenasazuje)
+   Barvy a písma převzaty z css/tokens.css appky, ať je srovnání poctivé.
+   ===================================================================== */
+:root{
+  --ink:#0B0E12;          /* těleso přístroje — pozadí stránky */
+  --ink-2:#12171D;        /* karta */
+  --ink-3:#1A2027;        /* vyvýšená plocha */
+  --hair:rgba(255,255,255,.09);
+  --hair-2:rgba(255,255,255,.16);
+  --text:#ECEEF2;
+  --muted:#98A2AE;        /* šeď s posunem do zelena */
+  --faint:#68717C;
+  --emerald:#2F9E74;
+  --emerald-br:#3EB487;
+  --sand:#E6BD76;
+  --amber:#FBBF24;
+  --danger:#FB7185;
+  --font-d:"Sora","Segoe UI",sans-serif;
+  --font-u:"Inter",-apple-system,"Segoe UI",sans-serif;
+  --font-m:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+*,*::before,*::after{box-sizing:border-box;}
+body{
+  margin:0;background:var(--ink);color:var(--text);
+  font-family:var(--font-u);font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:940px;margin:0 auto;padding:34px 18px 80px;}
+h1{font-family:var(--font-d);font-weight:800;font-size:clamp(26px,5vw,38px);line-height:1.12;margin:0 0 10px;text-wrap:balance;letter-spacing:-.02em;}
+h2{font-family:var(--font-d);font-weight:700;font-size:clamp(19px,3.4vw,25px);margin:0 0 6px;letter-spacing:-.01em;text-wrap:balance;}
+p{margin:0 0 12px;max-width:66ch;}
+.lead{color:var(--muted);font-size:16px;max-width:62ch;}
+.eyebrow{font-family:var(--font-m);font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--emerald-br);margin:0 0 8px;display:flex;align-items:center;gap:9px;}
+.eyebrow::after{content:"";flex:1;height:1px;background:var(--hair);}
+
+/* ---- diagnóza -------------------------------------------------------- */
+.diag{margin:26px 0 0;padding:20px 20px 16px;background:var(--ink-2);border:1px solid var(--hair);border-left:3px solid var(--danger);border-radius:4px;}
+.diag h3{font-family:var(--font-d);font-size:17px;margin:0 0 10px;font-weight:700;}
+.diag p{font-size:14.5px;color:#C6CCD4;}
+.diag code,code{font-family:var(--font-m);font-size:12.5px;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:3px;color:var(--sand);}
+.diag pre{overflow-x:auto;background:#080B0F;border:1px solid var(--hair);border-radius:4px;padding:12px 14px;margin:12px 0;}
+.diag pre code{background:none;padding:0;color:#C6CCD4;font-size:12px;line-height:1.7;}
+.swatch{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-m);font-size:12px;background:#080B0F;border:1px solid var(--hair);padding:5px 9px;border-radius:3px;margin:2px 4px 2px 0;}
+.swatch i{width:12px;height:12px;border-radius:2px;display:block;}
+
+/* ---- ovládání (sticky) ---------------------------------------------- */
+.ctl{position:sticky;top:0;z-index:20;margin:30px 0 8px;padding:14px 16px;
+  background:rgba(11,14,18,.93);backdrop-filter:blur(10px);
+  border:1px solid var(--hair-2);border-radius:6px;
+  display:grid;grid-template-columns:1fr 1fr auto;gap:14px 20px;align-items:center;}
+@media(max-width:640px){.ctl{grid-template-columns:1fr;}}
+.ctl label{display:block;font-family:var(--font-m);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.ctl label b{text-transform:none;color:var(--sand);font-weight:700;letter-spacing:0;font-size:12.5px;font-variant-numeric:tabular-nums;}
+.ctl input[type=range]{width:100%;accent-color:var(--emerald);height:22px;}
+.ctl input:focus-visible{outline:2px solid var(--emerald-br);outline-offset:3px;}
+.sun{display:flex;gap:0;border:1px solid var(--hair-2);border-radius:4px;overflow:hidden;}
+.sun button{font-family:var(--font-u);font-size:12.5px;font-weight:600;padding:9px 13px;border:0;background:transparent;color:var(--muted);cursor:pointer;}
+.sun button.on{background:var(--emerald);color:#04130C;}
+.sun button:focus-visible{outline:2px solid var(--emerald-br);outline-offset:-2px;}
+
+/* ---- návrh ----------------------------------------------------------- */
+.card{margin:52px 0 0;}
+.card > .pitch{color:var(--muted);font-size:15px;margin-bottom:18px;}
+.duo{display:grid;grid-template-columns:300px 1fr;gap:26px;align-items:start;}
+@media(max-width:760px){.duo{grid-template-columns:1fr;}}
+.facts{display:flex;flex-direction:column;gap:14px;}
+.fact{border-left:2px solid var(--hair-2);padding-left:13px;}
+.fact dt{font-family:var(--font-m);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:3px;}
+.fact dd{margin:0;font-size:14px;color:#C6CCD4;line-height:1.55;}
+.fact.good{border-left-color:var(--emerald);}
+.fact.cost{border-left-color:var(--sand);}
+
+/* ---- telefon / scéna z kamery ---------------------------------------- */
+.phone{position:relative;width:300px;height:520px;border-radius:26px;overflow:hidden;
+  border:1px solid var(--hair-2);box-shadow:0 20px 50px rgba(0,0,0,.6);flex:0 0 auto;}
+.cam{position:absolute;inset:0;
+  background:
+    linear-gradient(#20303B 0%,#2C4353 34%,#33505F 45%,#2A3A32 45%,#1F2C26 100%);}
+.cam::before{content:"";position:absolute;left:-10%;right:-10%;bottom:0;height:58%;
+  background:linear-gradient(#3A4A40,#222D27);
+  clip-path:polygon(38% 0,62% 0,100% 100%,0 100%);opacity:.75;}
+.cam::after{content:"";position:absolute;inset:0;
+  background:radial-gradient(70% 45% at 50% 18%,rgba(255,255,255,.10),transparent 70%);}
+.phone.bright .cam{background:linear-gradient(#C9D6DE 0%,#DCE6EC 40%,#D3D8CE 45%,#C2C8BC 100%);}
+.phone.bright .cam::before{background:linear-gradient(#CBD2C4,#B4BCAE);opacity:.9;}
+.phone.bright .cam::after{background:radial-gradient(70% 45% at 50% 15%,rgba(255,255,255,.75),transparent 70%);}
+.hud{position:absolute;inset:0;}
+.mono{font-family:var(--font-m);font-variant-numeric:tabular-nums;}
+
+/* stávající stav (pro srovnání) */
+.old-pill{position:absolute;left:50%;top:74%;transform:translate(-50%,-50%);
+  padding:8px 22px;background:rgba(8,11,15,.78);border:1px solid rgba(255,255,255,.4);
+  border-radius:999px;text-align:center;white-space:nowrap;box-shadow:0 10px 30px rgba(0,0,0,.55);}
+.old-pill .n{font-family:var(--font-u);font-size:11px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--emerald-br);}
+.old-pill .d{font-family:var(--font-m);font-size:18px;font-weight:700;color:#fff;margin-top:3px;}
+.phone.bright .old-pill{background:#080B0F;}
+.phone.bright .old-pill .d{color:#0f172a;}      /* ← přesně ta chyba z kaskády */
+.phone.bright .old-pill .n{color:#1e293b;}
+.old-arrow{position:absolute;left:50%;top:64%;transform:translate(-50%,-50%) perspective(800px) rotateX(65deg);
+  width:96px;height:96px;}
+.old-arrow svg{width:100%;height:100%;filter:drop-shadow(0 12px 14px rgba(52,211,153,.55));}
+
+/* ① přístrojový odečet */
+.n1{position:absolute;left:14px;right:14px;bottom:26px;display:flex;align-items:stretch;gap:0;
+  background:#080B0F;border:1.5px solid var(--band);border-radius:3px;
+  box-shadow:0 14px 36px rgba(0,0,0,.66);}
+.n1 .chev{width:58px;display:grid;place-items:center;border-right:1px solid rgba(255,255,255,.12);}
+.n1 .chev svg{width:30px;height:30px;transition:transform .18s ease-out;}
+.n1 .body{flex:1;padding:9px 13px 10px;min-width:0;}
+.n1 .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.n1 .nm{font-family:var(--font-m);font-size:11px;font-weight:700;letter-spacing:.14em;color:#9AA6B2;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.n1 .st{font-family:var(--font-m);font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--band);white-space:nowrap;}
+.n1 .num{font-family:var(--font-m);font-variant-numeric:tabular-nums;font-weight:800;font-size:44px;line-height:1;color:var(--band);letter-spacing:-.03em;margin-top:2px;}
+.n1 .num s{text-decoration:none;font-size:17px;font-weight:500;color:#8B95A1;margin-left:5px;letter-spacing:0;}
+.n1 .sub{font-family:var(--font-m);font-size:11px;color:#8B95A1;margin-top:3px;display:flex;gap:14px;}
+.n1 .sub b{color:#C6CCD4;font-weight:700;}
+
+/* ② terč */
+.n2{position:absolute;left:50%;top:60%;transform:translate(-50%,-50%);width:196px;height:196px;}
+.n2 svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;}
+.n2 .mid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;}
+.n2 .num{font-family:var(--font-m);font-variant-numeric:tabular-nums;font-weight:800;font-size:38px;line-height:1;color:var(--band);letter-spacing:-.03em;
+  text-shadow:0 2px 10px rgba(0,0,0,.9),0 0 3px rgba(0,0,0,.9);}
+.n2 .unit{font-family:var(--font-m);font-size:12px;font-weight:600;color:#C6CCD4;letter-spacing:.1em;text-shadow:0 1px 6px rgba(0,0,0,.9);}
+.n2 .nm{position:absolute;left:50%;bottom:-30px;transform:translateX(-50%);white-space:nowrap;
+  font-family:var(--font-m);font-size:11px;font-weight:700;letter-spacing:.14em;color:#fff;text-transform:uppercase;
+  background:rgba(8,11,15,.86);padding:4px 10px;border-radius:2px;}
+.n2 .disc{position:absolute;inset:22px;border-radius:50%;background:rgba(8,11,15,.55);}
+
+/* ③ koridor po zemi */
+.n3 .cv{color:var(--band);}
+.n3 .chevs{position:absolute;left:0;right:0;bottom:0;height:72%;}
+.n3 .cv{position:absolute;left:50%;transform:translateX(-50%);}
+.n3 .cv svg{display:block;}
+.n3 .pin{position:absolute;left:50%;transform:translateX(-50%);text-align:center;}
+.n3 .flag{display:inline-block;background:#080B0F;border:1.5px solid var(--band);border-radius:3px;padding:6px 11px 7px;
+  box-shadow:0 10px 26px rgba(0,0,0,.66);}
+.n3 .flag .nm{font-family:var(--font-m);font-size:9.5px;font-weight:700;letter-spacing:.14em;color:#9AA6B2;text-transform:uppercase;}
+.n3 .flag .num{font-family:var(--font-m);font-variant-numeric:tabular-nums;font-weight:800;font-size:26px;line-height:1.05;color:var(--band);letter-spacing:-.03em;}
+.n3 .flag .num s{text-decoration:none;font-size:12px;font-weight:500;color:#8B95A1;margin-left:3px;}
+.n3 .stem{width:1.5px;height:26px;margin:0 auto;background:linear-gradient(var(--band),transparent);}
+.n3 .foot{width:22px;height:8px;margin:0 auto;border:1.5px solid var(--band);border-top:0;border-radius:0 0 50% 50%/0 0 100% 100%;opacity:.8;}
+
+/* ④ pás blízkosti */
+.n4{position:absolute;left:0;right:0;bottom:0;}
+.n4 .ticks{position:relative;height:13px;background:rgba(8,11,15,.72);border-top:1px solid rgba(255,255,255,.10);}
+.n4 .ticks i{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.32);}
+.n4 .ticks u{position:absolute;top:1px;font-family:var(--font-m);font-size:8px;color:#9AA6B2;text-decoration:none;transform:translateX(4px);letter-spacing:.06em;}
+.n4 .bar{position:relative;height:16px;background:#080B0F;overflow:hidden;}
+.n4 .fill{position:absolute;left:0;top:0;bottom:0;background:var(--band);opacity:.16;transition:width .2s ease-out;}
+.n4 .edge{position:absolute;top:0;bottom:0;width:2.5px;background:var(--band);box-shadow:0 0 16px var(--band);transition:left .2s ease-out;}
+.n4 .rd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 16px 15px;background:#080B0F;}
+.n4 .num{font-family:var(--font-m);font-variant-numeric:tabular-nums;font-weight:800;font-size:40px;line-height:1;color:var(--band);letter-spacing:-.03em;}
+.n4 .num s{text-decoration:none;font-size:15px;font-weight:500;color:#8B95A1;margin-left:5px;}
+.n4 .rt{text-align:right;font-family:var(--font-m);}
+.n4 .rt .nm{font-size:10.5px;font-weight:700;letter-spacing:.14em;color:#9AA6B2;text-transform:uppercase;}
+.n4 .rt .az{font-size:15px;font-weight:700;color:#C6CCD4;margin-top:2px;}
+.n4 .rt .az em{font-style:normal;color:var(--band);}
+
+/* ⑤ rohová karta + retikl */
+.n5 .cardlet{position:absolute;left:12px;top:38px;min-width:132px;background:#080B0F;border:1px solid rgba(255,255,255,.18);
+  border-left:2.5px solid var(--band);border-radius:3px;padding:8px 11px 9px;box-shadow:0 10px 26px rgba(0,0,0,.6);}
+.n5 .cardlet .nm{font-family:var(--font-m);font-size:10px;font-weight:700;letter-spacing:.14em;color:#9AA6B2;text-transform:uppercase;}
+.n5 .cardlet .num{font-family:var(--font-m);font-variant-numeric:tabular-nums;font-weight:800;font-size:30px;line-height:1.05;color:var(--band);letter-spacing:-.03em;margin:1px 0 4px;}
+.n5 .cardlet .num s{text-decoration:none;font-size:13px;font-weight:500;color:#8B95A1;margin-left:3px;}
+.n5 .row{display:flex;justify-content:space-between;gap:12px;font-family:var(--font-m);font-size:11px;border-top:1px solid rgba(255,255,255,.10);padding-top:3px;margin-top:3px;}
+.n5 .row span{color:#727C88;letter-spacing:.1em;}
+.n5 .row b{color:#C6CCD4;font-weight:700;}
+.n5 .ret{position:absolute;left:50%;top:56%;transform:translate(-50%,-50%);}
+.n5 .ret svg{display:block;overflow:visible;}
+.n5 .offscr[hidden]{display:none;}
+.n5 .offscr{position:absolute;top:50%;transform:translateY(-50%);padding:10px 7px;background:rgba(8,11,15,.82);
+  border:1px solid var(--band);color:var(--band);font-family:var(--font-m);font-size:11px;font-weight:700;
+  display:flex;flex-direction:column;align-items:center;gap:3px;}
+
+.hint{position:absolute;left:0;right:0;top:12px;text-align:center;font-family:var(--font-m);font-size:9.5px;
+  letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.5);}
+.phone.bright .hint{color:rgba(0,0,0,.45);}
+
+/* ---- srovnání -------------------------------------------------------- */
+.tblwrap{overflow-x:auto;margin-top:18px;border:1px solid var(--hair);border-radius:5px;}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:13.5px;}
+th,td{text-align:left;padding:10px 13px;border-bottom:1px solid var(--hair);vertical-align:top;}
+th{font-family:var(--font-m);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);font-weight:700;background:#0F141A;}
+tbody tr:last-child td{border-bottom:0;}
+td:first-child{font-weight:600;white-space:nowrap;}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:middle;}
+footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--hair);color:var(--muted);font-size:14px;}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <p class="eyebrow">AR Geodet · návrhy</p>
+  <h1>Navigace na bod v AR</h1>
+  <p class="lead">Pět směrů, jak může vypadat dohledávání bodu kamerou — a proč je dnešní vzdálenost špatně čitelná. Posuvníky nahoře hýbou <b>všemi</b> náhledy naráz, přepínač „ostré slunce“ přepne scénu i chování panelů. Nic z toho zatím není v appce.</p>
+
+  <div class="diag">
+    <h3>Nejdřív ta „zvláštní barva“ — je to chyba v kaskádě, ne vkus</h3>
+    <p>V <code>css/style.css</code> jsou na navigační štítek dvě pravidla, která si nerozumí. Adaptivní sklo při jasné scéně přebarví <b>text</b> na tmavý, ale pozdější pravidlo pro živou kameru mu vrátí <b>černé pozadí</b> — a barvu textu už nesahá:</p>
+    <pre><code>/* ř. 1735 — specificita (1,1,1) */
+body.cam-light #ar-hud-info { background: rgba(248,250,252,.85); color: #0f172a; }
+
+/* ř. 2286 — specificita (1,2,1), vyhrává v pozadí, ale barvu textu neřeší */
+body.cam-live:not(.ag-cam-glass) #ar-hud-info { background: #080b0f; }</code></pre>
+    <p><code>ag-cam-glass</code> se přidává, jen když je v Nastavení zapnuté „Sklo nad kamerou“ — a to je <b>ve výchozím stavu vypnuté</b> (<code>js/power-save.js:34</code>). Takže jakmile kamera uvidí světlou scénu, dostane vzdálenost barvu <span class="swatch"><i style="background:#0f172a"></i>#0f172a</span> na podkladu <span class="swatch"><i style="background:#080b0f"></i>#080b0f</span>. To je kontrast 1,05 : 1 — číslo prakticky zmizí. Přesně na slunci, tedy tam, kde se bod dohledává.</p>
+    <p>Druhá věc: <code>#ar-hud</code> má <code>opacity: var(--arrow-opacity)</code> (ř. 382), takže jezdec „Průhlednost šipky“ v Nastavení <b>zprůhledňuje i štítek se vzdáleností</b>. Vlevo dole je stávající stav pro srovnání — přepněte scénu na slunce.</p>
+  </div>
+
+  <div class="ctl">
+    <div>
+      <label for="rd">Vzdálenost k bodu — <b id="rdv">42,0 m</b></label>
+      <input id="rd" type="range" min="0" max="1000" value="774" step="1">
+    </div>
+    <div>
+      <label for="ra">Odchylka směru — <b id="rav">+18°</b></label>
+      <input id="ra" type="range" min="-180" max="180" value="18" step="1">
+    </div>
+    <div class="sun" role="group" aria-label="Scéna">
+      <button type="button" id="b-dark" class="on">Šero</button>
+      <button type="button" id="b-sun">Ostré slunce</button>
+    </div>
+  </div>
+
+  <!-- STÁVAJÍCÍ STAV -->
+  <section class="card">
+    <p class="eyebrow">Dnešek</p>
+    <h2>Co je v appce teď</h2>
+    <p class="pitch">Šipka položená do perspektivy (<code>rotateX(65deg)</code>) a pilulka se jménem a vzdáleností v 75 % výšky. Vzhled z dob prvních AR navigací; na slunci navíc kolabuje kontrast.</p>
+    <div class="duo">
+      <div class="phone" data-phone><div class="cam"></div><div class="hud">
+        <div class="hint">stávající stav</div>
+        <div class="old-arrow"><svg viewBox="0 0 100 100"><path d="M50 10 L90 50 L70 50 L70 95 L30 95 L30 50 L10 50 Z" fill="#34d399"/></svg></div>
+        <div class="old-pill"><div class="n">#4021</div><div class="d" id="old-d">42.0 m</div></div>
+      </div></div>
+      <dl class="facts">
+        <div class="fact"><dt>Slabina 1</dt><dd>Číslo je 18 px v pilulce s poloprůhledným sklem — nejdůležitější údaj vypadá jako popisek.</dd></div>
+        <div class="fact"><dt>Slabina 2</dt><dd>Na jasné scéně tmavý text na černém podkladu (viz výše).</dd></div>
+        <div class="fact"><dt>Slabina 3</dt><dd>Vzdálenost nemá <b>stav</b>. 120 m i 0,3 m vypadají stejně; že jsem u bodu, poznám jen z čísla.</dd></div>
+        <div class="fact"><dt>Slabina 4</dt><dd>Šipka v perspektivě zabírá střed obrazu — kryje právě to místo, kam se dívám.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ① -->
+  <section class="card">
+    <p class="eyebrow">Návrh 1 · přístrojový odečet</p>
+    <h2>Vzdálenost jako displej přístroje</h2>
+    <p class="pitch">Číslo je hrdina: 44 px, tabulární, na plné černé desce s vlasovým rámečkem v barvě stavu. Žádné sklo, žádná průhlednost — kontrast je konstantní za každého světla. Šipka se scvrkne na plochý šíp v levém poli desky. Deska sedí dole, obraz zůstává volný.</p>
+    <div class="duo">
+      <div class="phone" data-phone><div class="cam"></div><div class="hud n1w">
+        <div class="hint">návrh 1 · odečet</div>
+        <div class="n1">
+          <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" data-a1><path d="M12 20V5M12 5l-6 6M12 5l6 6"/></svg></div>
+          <div class="body">
+            <div class="top"><div class="nm">#4021 · PBPP</div><div class="st" data-st>NAVIGUJI</div></div>
+            <div class="num" data-num>42,0<s>m</s></div>
+            <div class="sub"><span>AZ <b data-az>118°</b></span><span>Δ <b data-daz>+18°</b></span><span>ΔZ <b>−0,4 m</b></span></div>
+          </div>
+        </div>
+      </div></div>
+      <dl class="facts">
+        <div class="fact good"><dt>Řeší</dt><dd>Čitelnost natvrdo: neprůhledná deska + barva textu vždy světlá. Chyba z kaskády tu nemá kam vzniknout.</dd></div>
+        <div class="fact good"><dt>Navíc</dt><dd>Barva rámečku i čísla nese stav (daleko / blížím se / hledáček / na bodu), takže vzdálenost jde přečíst periferně.</dd></div>
+        <div class="fact good"><dt>Bonus</dt><dd>Střed obrazu je volný — vidím značku i terén pod nohama.</dd></div>
+        <div class="fact cost"><dt>Cena</dt><dd>Malá. Přepis <code>#ar-hud-info</code> a <code>#ar-hud</code> v CSS + rozdělení opacity šipky a štítku. Logika v <code>renderAR</code> zůstává.</dd></div>
+        <div class="fact"><dt>Riziko</dt><dd>Deska dole soupeří o místo s dokem; na malém displeji chce test s otevřeným panelem.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ② -->
+  <section class="card">
+    <p class="eyebrow">Návrh 2 · terč</p>
+    <h2>Bullseye — kruh místo šipky</h2>
+    <p class="pitch">Prstenec jako u urovnávací libely nebo hledáčku totálky. Po obvodu běží značka směru k bodu — funguje i když je bod za zády, takže odpadá „otočka“ i pilulka na hraně displeje. Prstenec se s přiblížením plní a stahuje; číslo bydlí uvnitř.</p>
+    <div class="duo">
+      <div class="phone" data-phone><div class="cam"></div><div class="hud">
+        <div class="hint">návrh 2 · terč</div>
+        <div class="n2">
+          <div class="disc"></div>
+          <svg viewBox="0 0 200 200" aria-hidden="true">
+            <circle cx="100" cy="100" r="86" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.5"/>
+            <circle data-ring cx="100" cy="100" r="74" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"
+                    transform="rotate(-90 100 100)" style="color:var(--band)"/>
+            <g data-tick><path d="M100 4 l9 15 h-18 z" fill="currentColor" style="color:var(--band)"/>
+              <circle cx="100" cy="27" r="2.6" fill="currentColor" style="color:var(--band)"/></g>
+            <g stroke="rgba(255,255,255,.30)" stroke-width="1.5">
+              <path d="M100 100 m-11 0 h5 M100 100 m11 0 h-5"/>
+            </g>
+          </svg>
+          <div class="mid"><div class="num" data-num>42,0</div><div class="unit">METRŮ</div></div>
+          <div class="nm">#4021 · PBPP</div>
+        </div>
+      </div></div>
+      <dl class="facts">
+        <div class="fact good"><dt>Řeší</dt><dd>Jeden prvek pro směr i vzdálenost. Bod za zády se ukáže stejným způsobem jako bod před sebou.</dd></div>
+        <div class="fact good"><dt>Navíc</dt><dd>Vizuál z geodetického světa (libela, hledáček), ne z automobilové navigace.</dd></div>
+        <div class="fact cost"><dt>Cena</dt><dd>Střední. Nový SVG prvek, přepočet obvodového kroužku každý snímek (levné — jen <code>transform</code> a <code>stroke-dashoffset</code>).</dd></div>
+        <div class="fact"><dt>Riziko</dt><dd>Kruh uprostřed <b>kryje střed obrazu</b> — tedy nejspíš i hledanou značku. Chce ho posadit níž nebo udělat prstenec dutý.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ③ -->
+  <section class="card">
+    <p class="eyebrow">Návrh 3 · koridor</p>
+    <h2>Cesta po zemi až k bodu</h2>
+    <p class="pitch">Šipky nejsou v HUD, ale leží v obraze na zemi a vedou od nohou k bodu; nad posledním kolíčkem visí štítek se vzdáleností — přímo na místě, kam mám dojít. Sklon telefonu se v <code>renderAR</code> už počítá (<code>cameraPitchDown</code>, <code>imgRoll</code>), takže podklad pro projekci existuje.</p>
+    <div class="duo">
+      <div class="phone" data-phone><div class="cam"></div><div class="hud n3">
+        <div class="hint">návrh 3 · koridor</div>
+        <div class="chevs" data-chevs></div>
+        <div class="pin" data-pin style="bottom:46%">
+          <div class="flag"><div class="nm">#4021</div><div class="num" data-num>42,0<s>m</s></div></div>
+          <div class="stem"></div><div class="foot"></div>
+        </div>
+      </div></div>
+      <dl class="facts">
+        <div class="fact good"><dt>Řeší</dt><dd>Vzdálenost přestává být abstraktní číslo v rohu — sedí na bodě a zvětšuje se, jak jdu.</dd></div>
+        <div class="fact good"><dt>Navíc</dt><dd>Nejmodernější dojem z celé pětky; pro cizí lidi na stavbě čitelné bez vysvětlování.</dd></div>
+        <div class="fact cost"><dt>Cena</dt><dd><b>Vysoká.</b> Projekce na zemskou rovinu, chování při ztrátě horizontu, výkon (nové prvky nad kamerou každý snímek).</dd></div>
+        <div class="fact"><dt>Riziko</dt><dd>Stojí a padá s kvalitou směru. Při rozhozeném kompasu vede cesta viditelně vedle — a to je horší než šipka, která se „jen“ chvěje.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ④ -->
+  <section class="card">
+    <p class="eyebrow">Návrh 4 · pás blízkosti</p>
+    <h2>Pás u spodní hrany</h2>
+    <p class="pitch">Nejúspornější varianta. U spodní hrany leží pás s logaritmickou stupnicí (100 / 50 / 10 / 2 m); hrana se s přiblížením posouvá doleva a mění barvu pásma. Číslo je v pásu vlevo, velké. Obraz z kamery zůstává celý volný.</p>
+    <div class="duo">
+      <div class="phone" data-phone><div class="cam"></div><div class="hud">
+        <div class="hint">návrh 4 · pás</div>
+        <div class="n4">
+          <div class="ticks" data-ticks></div>
+          <div class="bar"><div class="fill" data-fill></div><div class="edge" data-edge></div></div>
+          <div class="rd">
+            <div class="num" data-num>42,0<s>m</s></div>
+            <div class="rt"><div class="nm">#4021</div><div class="az">Δ <em data-daz>+18°</em></div></div>
+          </div>
+        </div>
+      </div></div>
+      <dl class="facts">
+        <div class="fact good"><dt>Řeší</dt><dd>Blízkost jde přečíst <b>koutkem oka</b> — z délky pásu, ne z číslic. Při chůzi nemusím na displej vůbec zaostřit.</dd></div>
+        <div class="fact good"><dt>Navíc</dt><dd>Nic nekryje. Nejlepší varianta pro práci s otevřeným panelem nebo v rukavicích.</dd></div>
+        <div class="fact cost"><dt>Cena</dt><dd>Malá až střední. Jedna nová lišta, šířka výplně přes <code>transform</code>.</dd></div>
+        <div class="fact"><dt>Riziko</dt><dd>Směr musí zůstat jinde (šipka nebo pilulka na hraně). Sám o sobě pás k bodu nedovede.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ⑤ -->
+  <section class="card">
+    <p class="eyebrow">Návrh 5 · karta a retikl</p>
+    <h2>Data do rohu, terč na bod</h2>
+    <p class="pitch">Rozdělení rolí: čísla (jméno, vzdálenost, Δ azimut, ΔZ) jdou do klidné karty v rohu ve stylu ostatních panelů appky, a v obraze se nad bodem stahuje zaměřovací kříž. Když je bod mimo záběr, karta zůstane a na hraně se objeví jazýček se stupni.</p>
+    <div class="duo">
+      <div class="phone" data-phone><div class="cam"></div><div class="hud n5">
+        <div class="hint">návrh 5 · karta + retikl</div>
+        <div class="cardlet">
+          <div class="nm">#4021 · PBPP</div>
+          <div class="num" data-num>42,0<s>m</s></div>
+          <div class="row"><span>Δ AZ</span><b data-daz>+18°</b></div>
+          <div class="row"><span>ΔZ</span><b>−0,4 m</b></div>
+        </div>
+        <div class="ret" data-ret>
+          <svg width="120" height="120" viewBox="0 0 120 120" fill="none" stroke="currentColor" style="color:var(--band)">
+            <path d="M10 10h22M10 10v22M110 10H88M110 10v22M10 110h22M10 110v-22M110 110H88M110 110v-22" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M60 46v-16M60 74v16M46 60H30M74 60h16" stroke-width="1.6" opacity=".85"/>
+            <circle cx="60" cy="60" r="3" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+        <div class="offscr" data-off hidden>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V5M12 5l-6 6M12 5l6 6"/></svg>
+          <span data-offdeg>18°</span>
+        </div>
+      </div></div>
+      <dl class="facts">
+        <div class="fact good"><dt>Řeší</dt><dd>Střed obrazu je úplně volný a údaje sedí tam, kde je appka má i jinde — vypadá to jako přístroj, ne jako hra.</dd></div>
+        <div class="fact good"><dt>Navíc</dt><dd>Do karty se vejde i ΔZ a přesnost GPS, aniž by cokoli narostlo.</dd></div>
+        <div class="fact cost"><dt>Cena</dt><dd>Malá. Karta je variace stávajících panelů, retikl je jedno SVG. Jazýček na hraně už existuje v <code>js/cil-navigace.js</code>.</dd></div>
+        <div class="fact"><dt>Riziko</dt><dd>Nejkonzervativnější z pětky. Řeší čitelnost, ale „zastaralost“ jen částečně.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- srovnání -->
+  <section class="card">
+    <p class="eyebrow">Srovnání</p>
+    <h2>Který kdy</h2>
+    <div class="tblwrap"><table>
+      <thead><tr><th>Návrh</th><th>Čitelnost na slunci</th><th>Kryje obraz</th><th>Práce</th><th>Sedne, když</th></tr></thead>
+      <tbody>
+        <tr><td>① Odečet</td><td><span class="dot" style="background:#3EB487"></span>nejlepší</td><td>dolní pruh</td><td>malá</td><td>chci hlavně spravit čitelnost a přitom to omladit</td></tr>
+        <tr><td>② Terč</td><td><span class="dot" style="background:#E6BD76"></span>dobrá</td><td><b>střed</b></td><td>střední</td><td>chci jeden výrazný prvek s vlastní tváří</td></tr>
+        <tr><td>③ Koridor</td><td><span class="dot" style="background:#E6BD76"></span>dobrá</td><td>zem</td><td><b>vysoká</b></td><td>chci, aby to vypadalo skutečně „AR“</td></tr>
+        <tr><td>④ Pás</td><td><span class="dot" style="background:#3EB487"></span>nejlepší</td><td>nic</td><td>malá</td><td>hlavní je práce za chůze a v rukavicích</td></tr>
+        <tr><td>⑤ Karta</td><td><span class="dot" style="background:#3EB487"></span>nejlepší</td><td>nic</td><td>malá</td><td>chci to sladit se zbytkem appky a nic neriskovat</td></tr>
+      </tbody>
+    </table></div>
+    <p style="margin-top:16px;color:var(--muted);font-size:14px;">Návrhy ① a ④ se nevylučují — deska s odečtem může sedět nad pásem. ⑤ se dá zkombinovat s ③ (karta v rohu, koridor v obraze).</p>
+  </section>
+
+  <footer>
+    <p><b>Nic z toho není nasazené.</b> Řekni číslo (nebo kombinaci) a udělám to naostro — včetně opravy té kaskády, která dnes na slunci vzdálenost mázne.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var phones = [].slice.call(document.querySelectorAll('[data-phone]'));
+  var rd = document.getElementById('rd'), ra = document.getElementById('ra');
+  var rdv = document.getElementById('rdv'), rav = document.getElementById('rav');
+  var bSun = document.getElementById('b-sun'), bDark = document.getElementById('b-dark');
+  var bright = false;
+
+  // posuvník 0..1000 -> 0,05 .. 300 m logaritmicky (dole je potřeba rozlišení)
+  function toM(v){ return 0.05 * Math.pow(300/0.05, v/1000); }
+  function fmt(m){
+    if (m >= 100) return String(Math.round(m));
+    return m.toFixed(m < 10 ? 2 : 1).replace('.', ',');
+  }
+  function band(m){
+    if (m < 0.15) return {c:'#3EB487', s:'NA BODU'};
+    if (m < 2)    return {c:'#FBBF24', s:'HLEDÁČEK'};
+    if (m < 25)   return {c:'#E6BD76', s:'PŘIBLIŽUJI'};
+    return {c:'#ECEEF2', s:'NAVIGUJI'};
+  }
+  // pozice na logaritmické stupnici pásu (0 = 100 m a dál, 1 = na bodu)
+  function scale(m){
+    var hi = 100, lo = 0.1;
+    var t = 1 - (Math.log(Math.max(lo, Math.min(hi, m))/lo) / Math.log(hi/lo));
+    return t;
+  }
+
+  // stupnice pásu ④ vyrobíme jednou
+  phones.forEach(function(p){
+    var t = p.querySelector('[data-ticks]'); if (!t) return;
+    [100,50,10,2].forEach(function(v){
+      var i = document.createElement('i'), u = document.createElement('u');
+      var x = (scale(v)*100).toFixed(2) + '%';
+      i.style.left = x; u.style.left = x; u.textContent = v;
+      t.appendChild(i); t.appendChild(u);
+    });
+  });
+  // šipky koridoru ③
+  phones.forEach(function(p){
+    var c = p.querySelector('[data-chevs]'); if (!c) return;
+    for (var i = 0; i < 6; i++){
+      var d = document.createElement('div');
+      d.className = 'cv';
+      var k = i/5;                       // 0 = u nohou, 1 = daleko
+      d.style.bottom = (k*74) + '%';
+      var w = 84 - k*62;
+      d.innerHTML = '<svg width="'+w+'" height="'+(w*0.42)+'" viewBox="0 0 100 42" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 34 L50 8 L92 34"/></svg>';
+      d.style.opacity = (0.9 - k*0.45).toFixed(2);
+      c.appendChild(d);
+    }
+  });
+
+  function render(){
+    var m = toM(+rd.value);
+    var diff = +ra.value;
+    var b = band(m);
+    var txt = fmt(m);
+    rdv.textContent = txt + ' m';
+    rav.textContent = (diff > 0 ? '+' : '') + diff + '°';
+
+    phones.forEach(function(p){
+      p.style.setProperty('--band', b.c);
+      p.classList.toggle('bright', bright);
+
+      var num = p.querySelector('[data-num]');
+      // v terči ② je jednotka pod číslem („METRŮ“), jinde jako malé „m“ za číslem
+      if (num) num.innerHTML = p.querySelector('.n2') ? txt : txt + '<s>m</s>';
+      var st = p.querySelector('[data-st]'); if (st) st.textContent = b.s;
+      var daz = p.querySelector('[data-daz]'); if (daz) daz.textContent = (diff > 0 ? '+' : '') + diff + '°';
+      var az = p.querySelector('[data-az]'); if (az) az.textContent = ((118 + diff + 360) % 360) + '°';
+
+      // ① plochý šíp
+      var a1 = p.querySelector('[data-a1]');
+      if (a1) a1.style.transform = 'rotate(' + diff + 'deg)';
+
+      // ② prstenec + obvodová značka
+      var ring = p.querySelector('[data-ring]');
+      if (ring){
+        var C = 2 * Math.PI * 74;
+        ring.setAttribute('stroke-dasharray', C.toFixed(1));
+        ring.setAttribute('stroke-dashoffset', (C * (1 - scale(m))).toFixed(1));
+      }
+      var tick = p.querySelector('[data-tick]');
+      if (tick) tick.setAttribute('transform', 'rotate(' + diff + ' 100 100)');
+
+      // ③ kolíček se přibližuje a roste
+      var pin = p.querySelector('[data-pin]');
+      if (pin){
+        var t = scale(m);
+        pin.style.bottom = (58 - t*30).toFixed(1) + '%';
+        pin.style.transform = 'translateX(-50%) scale(' + (0.72 + t*0.5).toFixed(2) + ')';
+      }
+
+      // ④ výplň a hrana
+      var fill = p.querySelector('[data-fill]'), edge = p.querySelector('[data-edge]');
+      if (fill){ var w = (scale(m)*100).toFixed(2) + '%'; fill.style.width = w; edge.style.left = w; }
+
+      // ⑤ retikl se stahuje; mimo záběr místo něj jazýček na hraně
+      var ret = p.querySelector('[data-ret]'), off = p.querySelector('[data-off]');
+      if (ret){
+        var vis = Math.abs(diff) <= 40;
+        ret.hidden = !vis; off.hidden = vis;
+        var s = 0.42 + (1 - scale(m)) * 0.75;
+        var x = (diff/40) * 88;
+        ret.style.transform = 'translate(calc(-50% + ' + x.toFixed(0) + 'px),-50%) scale(' + s.toFixed(2) + ')';
+        if (!vis){
+          var left = diff < 0;
+          off.style.left = left ? '0' : 'auto';
+          off.style.right = left ? 'auto' : '0';
+          off.querySelector('svg').style.transform = 'rotate(' + (left ? -90 : 90) + 'deg)';
+          off.querySelector('[data-offdeg]').textContent = Math.abs(diff) + '°';
+        }
+      }
+    });
+
+    // stávající stav ukazuje pořád formát z appky (tečka, jedno místo)
+    var old = document.getElementById('old-d');
+    if (old) old.textContent = m.toFixed(1) + ' m';
+  }
+
+  rd.addEventListener('input', render);
+  ra.addEventListener('input', render);
+  bSun.addEventListener('click', function(){ bright = true;  bSun.classList.add('on'); bDark.classList.remove('on'); render(); });
+  bDark.addEventListener('click', function(){ bright = false; bDark.classList.add('on'); bSun.classList.remove('on'); render(); });
+  render();
+})();
+</script>
+</body>
+</html>
