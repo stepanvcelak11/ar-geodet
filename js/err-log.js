@@ -77,6 +77,106 @@
 
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
+    // ---- HLÁŠENÍ Z TERÉNU ------------------------------------------------------
+    // Chyby se sbíraly, ale nikdo se k nim nedostal: „Kopírovat" dalo holý výpis
+    // hlášek bez jediného údaje o tom, CO za appku a NA ČEM zrovna běželo. Z věty
+    // „appka mi spadla" se pak nedalo vyjít. Tohle sbalí protokol i s okolnostmi
+    // do jednoho textu, který jde poslat (navigator.share) nebo zkopírovat.
+    //
+    // CO SE DO HLÁŠENÍ NEDÁVÁ, ZÁMĚRNĚ: souřadnice (ani vlastní polohy, ani bodů),
+    // jména zakázek a bodů, přihlašovací údaje. Diagnostice stačí PŘESNOST fixu
+    // a POČTY — a hlášení může skončit v cizí schránce nebo chatu.
+    function verzeAppky() {
+        try {
+            var l = document.querySelector('link[rel="stylesheet"][href*="css/style.css?v="]');
+            var m = l && /[?&]v=(\d+)/.exec(l.getAttribute('href') || '');
+            if (m) return 'v' + m[1];
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'err-log:verzeAppky'); }
+        return 'neznámá';
+    }
+
+    function okolnosti() {
+        var r = [];
+        function pridej(k, v) { if (v !== null && v !== undefined && v !== '') r.push(k + ': ' + v); }
+        try {
+            pridej('Verze appky', verzeAppky());
+            pridej('Čas', new Date().toLocaleString('cs-CZ'));
+            pridej('Zařízení', navigator.userAgent);
+            pridej('Displej', innerWidth + '×' + innerHeight + ' @' + (devicePixelRatio || 1) + 'x');
+            pridej('Síť', navigator.onLine ? 'online' : 'OFFLINE');
+            if (navigator.deviceMemory) pridej('Paměť', navigator.deviceMemory + ' GB');
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'err-log:okolnosti'); }
+        // Stav měření — jen čísla, nic, co by ukazovalo KDE to bylo.
+        try {
+            if (typeof currentGpsAccuracy !== 'undefined' && currentGpsAccuracy)
+                pridej('Přesnost GPS', '±' + Math.round(currentGpsAccuracy * 10) / 10 + ' m');
+            else pridej('Přesnost GPS', 'bez fixu');
+            if (typeof arPoints !== 'undefined' && arPoints) pridej('Bodů v zobrazení', arPoints.length);
+            if (typeof persistentCustomPoints !== 'undefined' && persistentCustomPoints)
+                pridej('Vlastních bodů', persistentCustomPoints.length);
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'err-log:okolnosti'); }
+        // Které moduly se vůbec načetly — chybějící modul je sám o sobě nález.
+        try {
+            var chybi = [];
+            [['GeoCore', 'geo-core'], ['AGStatusBar', 'stavový pruh'], ['AGDraft', 'rozdělaná práce'],
+             ['AGKartaBodu', 'karta bodu'], ['agRegisterFieldTool', 'nástroje']].forEach(function (p) {
+                if (typeof window[p[0]] === 'undefined') chybi.push(p[1]);
+            });
+            pridej('Nenačtené moduly', chybi.length ? chybi.join(', ') : 'žádné');
+            var lazy = document.querySelectorAll('script[data-ag-lazy]').length;
+            if (lazy) pridej('Dotažených modulů', lazy);
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'err-log:okolnosti'); }
+        return r.join('\n');
+    }
+
+    function hlaseni() {
+        var list = load();
+        var chyby = list.length
+            ? list.map(function (e) {
+                return new Date(e.t).toLocaleString('cs-CZ') + (e.n > 1 ? ' (' + e.n + 'x)' : '') + '  ' + e.msg
+                    + (e.src ? '  [' + String(e.src).split('/').pop() + ':' + e.line + ']' : '')
+                    + (e.stack ? '\n' + e.stack : '');
+            }).join('\n\n')
+            : '(žádné zaznamenané chyby)';
+        return 'AR Geodet — hlášení z terénu\n'
+            + '================================\n' + okolnosti()
+            + '\n\nCO SE DĚLO (doplň prosím vlastními slovy):\n\n\n'
+            + 'PROTOKOL CHYB (' + list.length + ')\n================================\n' + chyby + '\n';
+    }
+
+    function poslat() {
+        var txt = hlaseni();
+        // Web Share s textem umí i iOS; když ne, spadne to na schránku.
+        try {
+            if (navigator.share) {
+                navigator.share({ title: 'AR Geodet — hlášení z terénu', text: txt })
+                    .catch(function (e) { if (!e || e.name !== 'AbortError') doSchranky(txt); });
+                return;
+            }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'err-log:poslat'); }
+        doSchranky(txt);
+    }
+
+    function doSchranky(txt) {
+        function hotovo() { if (typeof quickToast === 'function') quickToast('Hlášení zkopírováno — vlož ho do zprávy.'); }
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(txt).then(hotovo, function () { stahnout(txt); });
+                return;
+            }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'err-log:doSchranky'); }
+        stahnout(txt);
+    }
+
+    function stahnout(txt) {
+        try {
+            var a = document.createElement('a');
+            a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(txt);
+            a.download = 'ar-geodet-hlaseni-' + new Date().toISOString().slice(0, 10) + '.txt';
+            document.body.appendChild(a); a.click(); a.remove();
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'err-log:stahnout'); }
+    }
+
     function show() {
         var el = document.getElementById('errlog-modal');
         if (!el) {
@@ -84,15 +184,17 @@
             el.className = 'modal-overlay'; el.id = 'errlog-modal'; el.style.zIndex = '100005';
             el.innerHTML = '<div class="modal-content"><h3 style="color:var(--accent); margin-top:0;"><svg class="icon"><use href="#i-alert"/></svg> Protokol chyb</h3>'
                 + '<div class="modal-body" id="errlog-list" style="font-size:calc(12px * var(--ag-font-scale, 1));"></div>'
-                + '<div style="display:flex; gap:8px; margin-top:12px;">'
+                + '<button class="btn btn-primary" style="width:100%; margin-top:12px;" id="errlog-send">Poslat hlášení</button>'
+                + '<p style="margin:6px 2px 0; opacity:0.65; font-size:calc(11px * var(--ag-font-scale, 1));">Přibalí verzi appky, typ telefonu, stav sítě a GPS a nenačtené moduly. Souřadnice, jména zakázek ani bodů se neposílají.</p>'
+                + '<div style="display:flex; gap:8px; margin-top:10px;">'
                 + '<button class="btn btn-secondary" style="flex:1;" id="errlog-copy">Kopírovat</button>'
                 + '<button class="btn btn-secondary" style="flex:1;" id="errlog-clear">Vymazat</button>'
                 + '<button class="btn btn-secondary" style="flex:1;" onclick="document.getElementById(\'errlog-modal\').style.display=\'none\'">Zavřít</button>'
                 + '</div></div>';
             document.body.appendChild(el);
+            el.querySelector('#errlog-send').addEventListener('click', poslat);
             el.querySelector('#errlog-copy').addEventListener('click', function () {
-                var txt = load().map(function (e) { return new Date(e.t).toLocaleString('cs-CZ') + (e.n > 1 ? ' (' + e.n + 'x)' : '') + '  ' + e.msg + (e.src ? '  [' + e.src + ':' + e.line + ']' : '') + (e.stack ? '\n' + e.stack : ''); }).join('\n\n');
-                try { navigator.clipboard.writeText(txt); if (typeof quickToast === 'function') quickToast('Zkopírováno.'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'err-log:show'); }
+                doSchranky(hlaseni());
             });
             el.querySelector('#errlog-clear').addEventListener('click', function () { save([]); render(); });
         }
@@ -113,7 +215,10 @@
         }).join('');
     }
 
-    window.agErrLog = { show: show, list: load, record: function (m) { record(m, 'manual', 0, 0, ''); } };
+    window.agErrLog = {
+        show: show, list: load, report: hlaseni,
+        record: function (m) { record(m, 'manual', 0, 0, ''); }
+    };
 
     // Protokol chyb BÝVAL položkou menu „Více". Přesunut do Nástrojů — v „Více" má
     // zůstat jen to, co je o aplikaci samotné. Skončí v sekci „Další nástroje", která
