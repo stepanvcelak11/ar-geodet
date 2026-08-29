@@ -228,6 +228,14 @@
     function init() {
         injectMenu();
         injectSettings();
+        // PŘEDNAČTENÍ. Naměřeno v prohlížeči: když se okno otevře krátce po startu,
+        // stihne se v něm vteřiny ukazovat „Načítám…" — fetch stojí ve frontě za
+        // dlaždicemi mapy a dotazy na ČÚZK. Soubor má ~13 kB a service worker ho má
+        // v cache (cache-first), takže tohle je prakticky zadarmo a okno se pak
+        // otevře rovnou plné. Až v klidu po startu, ať se nepřidává k té frontě.
+        var pre = function () { try { load(); } catch (e) {} };
+        if (window.requestIdleCallback) window.requestIdleCallback(pre, { timeout: 8000 });
+        else setTimeout(pre, 6000);
         // Oba hostitelé se za běhu přestavují (oprávnění v js/ucty.js schovávají části
         // Nastavení, moduly si do „Více" přisypávají vlastní tlačítka), takže se
         // přítomnost levně překontroluje. Bez tiku by tlačítko po přestavbě zmizelo.
