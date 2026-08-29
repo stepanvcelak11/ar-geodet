@@ -1,81 +1,102 @@
 {
-  "vydani": "2026-07-30",
-  "uvodnik": "Přinášíme aktuální zprávy ze světa geodézie a technologií.",
+  "vydani": "2026-08-29",
+  "uvodnik": "Vydání 2026-08-29 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
-      "rubrika": "Z domova",
-      "top": true,
-      "nadpis": "Ukončení provozu WSGP verze 2.10",
-      "perex": "ČÚZK upozorňuje na blížící se změnu v provozu služeb WSGP.",
-      "telo": "Český úřad zeměměřický a katastrální (ČÚZK) oznámil, že na podzim 2026 dojde k ukončení provozu webových služeb pro vyhotovitele a ověřovatele geometrických plánů verze 2.10. Po tomto termínu budou k dispozici pouze služby verze 3.1. Uživatelé by měli být připraveni na tuto změnu a přizpůsobit se novým podmínkám.",
-      "body": [
-        "Ukončení provozu verze 2.10 na podzim 2026.",
-        "Přechod na verzi 3.1 pro všechny uživatele."
-      ],
-      "proc": "Tato změna může ovlivnit všechny uživatele služeb WSGP.",
-      "zdroj": "ČÚZK",
-      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10.aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
-      "datum": "2026-05-29"
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "Field Report From Concordia: Inside Topcon’s PNT Field of Dreams",
+      "perex": "A first-person visit to Topcon’s Concordia Training Center near Modena, Italy, reveals a purpose-built center of excellence where place, precision and trust come together.",
+      "telo": "A first-person visit to Topcon’s Concordia Training Center near Modena, Italy, reveals a purpose-built center of excellence where place, precision and trust come together. Image: Topcon Near Modena, in northern Italy’s Emilia-Romagna region, it is impossible to separate technology from place. This is Italy’s high-performance automotive heartland, home to Ferrari, Lamborghini, Maserati, Bugatti and Pagani — some of the world’s most admired performance machines. It is also a region of agriculture, vineyards and precision manufacturing. The landscape itself seems to insist that technology should not be abstract. It should be physical, engineered, tested, refined and enjoyed. That was my first i",
+      "body": [],
+      "proc": "",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/aerialuas/field-report-from-concordia-inside-topcons-pnt-field-of-dreams/",
+      "datum": "2026-08-28"
     },
     {
       "rubrika": "Přístroje",
       "top": false,
-      "nadpis": "Nový ZIPLEVEL PRO-2030",
-      "perex": "Technidea Corporation představila nový model ZIPLEVEL.",
-      "telo": "Technidea Corporation uvedla na trh nový ZIPLEVEL® PRO-2030, který je označován jako nejrychlejší a nejvýkonnější nivelace na trhu. Tento přístroj nabízí precizní měření s neomezeným dosahem a je navržen pro použití v různých profesích včetně stavebnictví a geodézie. Nový model slibuje rychlejší nastavení a vyšší produktivitu bez omezení, která byla spojena s tradičními rotačními lasery.",
-      "body": [
-        "Rychlé a přesné měření bez omezení.",
-        "Vhodné pro široké spektrum profesí."
-      ],
-      "proc": "Inovace v oblasti nivelace může výrazně usnadnit práci geodetům.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/19/first-major-ziplevel-upgrade-in-30-years-of-usa-production/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=first-major-ziplevel-upgrade-in-30-years-of-usa-production",
-      "datum": "2026-07-19"
+      "nadpis": "GEO-MEASURE: Bringing Precision to the Ground",
+      "perex": "GEO-MEASURE is a compact RTK receiver, but its significance may lie less in what it replaces than in what it enables.",
+      "telo": "GEO-MEASURE is a compact RTK receiver, but its significance may lie less in what it replaces than in what it enables. From a professional surveyor’s control network to a software engineer’s avocado farm in Japan, the device illustrates how lower-cost, easier-to-use positioning tools are narrowing the distance between the physical world and the digital systems increasingly used to understand, manage and change it. Surveyor Shea Gleadle tests GEO-MEASURE over a monument as part of his evaluation of the compact RTK receiver’s precision and repeatability. Credit: 3rd Dimension For Shea Gleadle, the question was straightforward: Can a roughly $700 RTK rover actually produce measurements a profess",
+      "body": [],
+      "proc": "",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/aerialuas/geo-measure-bringing-precision-to-the-ground/",
+      "datum": "2026-08-28"
     },
     {
       "rubrika": "Technologie",
       "top": false,
-      "nadpis": "Topcon a GreenValley International spolupracují na inovacích v oblasti prostorové inteligence",
-      "perex": "Nová spolupráce slibuje pokroky v technologiích pro geodézii a mapování.",
-      "telo": "Topcon Positioning Systems oznámil strategickou dohodu se společností GreenValley International (GVI) zaměřenou na vývoj technologií pro geodézii, mapování a konstrukci. Tato spolupráce se zaměří na integraci hardwarových a softwarových řešení pro sběr a zpracování dat pomocí mobilního a leteckého LiDARu. Očekává se, že výsledky této spolupráce přinesou inovace v autonomním monitorování a real-time cloudových řešeních.",
-      "body": [
-        "Integrace LiDAR technologií pro efektivnější sběr dat.",
-        "Zaměření na autonomní monitorování a cloudová řešení."
-      ],
-      "proc": "Tato spolupráce může přinést nové možnosti pro geodety a inženýry.",
+      "nadpis": "The Unity Thesis: Trimble’s Case for One Connected Asset Lifecycle",
+      "perex": "From GIS context and survey-grade positioning to asset management and field capture, Trimble is making the case for one connected asset lifecycle — a system in which precise location, operational soft…",
+      "telo": "From GIS context and survey-grade positioning to asset management and field capture, Trimble is making the case for one connected asset lifecycle — a system in which precise location, operational software and shared data reinforce one another, and where the AI layered on top is valued less for novelty than for producing consistent, trustworthy results. Image: Trimble At Trimble’s booth during this year’s Esri User Conference in San Diego, the conversation about artificial intelligence started with a crucial distinction. “When we’re talking about artificial intelligence for the asset life cycle, whether it’s construct or operations and maintenance, if you get a hallucination, that could cost",
+      "body": [],
+      "proc": "",
       "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/aerialuas/topcon-and-greenvalley-international-collaborate-on-spatial-intelligence-innovations/",
-      "datum": "2026-07-17"
-    },
-    {
-      "rubrika": "Z praxe",
-      "top": false,
-      "nadpis": "Workshop: Výzvy v mapovacích projektech",
-      "perex": "SimActive pořádá workshop zaměřený na náročné mapovací projekty.",
-      "telo": "Na workshopu pořádaném společností SimActive se diskutuje o výzvách, které přinášejí náročné mapovací projekty. Účastníci se seznámí s konkrétním projektem mapování zeleného vodíku v jižním Chile, kde bylo potřeba zpracovat více než 100 000 hektarů s vysokými požadavky na přesnost a složitou korelaci obrazů. Workshop se zaměří na využití technologie Correlator3D pro dosažení přesných ortomosaiků a DTM.",
-      "body": [
-        "Diskuze o výzvách v mapování v obtížných podmínkách.",
-        "Představení konkrétního úspěšného projektu v Chile."
-      ],
-      "proc": "Získané zkušenosti mohou inspirovat další geodety.",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/23/workshop-challenging-mapping-projects-can-you-still-get-good-results/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=workshop-challenging-mapping-projects-can-you-still-get-good-results",
-      "datum": "2026-07-23"
+      "odkaz": "https://www.xyht.com/magazine/magazine-magazine/the-unity-thesis-trimbles-case-for-one-connected-asset-lifecycle/",
+      "datum": "2026-08-27"
     },
     {
       "rubrika": "Akce",
       "top": false,
-      "nadpis": "Commercial UAV Expo 2026: Klíčový projev o BVLOS regulaci",
-      "perex": "Na Commercial UAV Expo se uskuteční klíčový projev o regulaci BVLOS.",
-      "telo": "Na závěr Commercial UAV Expo 2026 se uskuteční důležitý klíčový projev, ve kterém se setkají představitelé FAA a EASA, aby porovnali přístupy k regulaci BVLOS (Beyond Visual Line of Sight) dronů. Tento projev se zaměří na rozdíly a podobnosti v regulacích obou stran Atlantiku a bude příležitostí pro odborníky v oboru diskutovat o budoucnosti dronových operací.",
-      "body": [
-        "Porovnání regulací BVLOS mezi USA a EU.",
-        "Příležitost pro networking a sdílení znalostí."
-      ],
-      "proc": "Tato akce je klíčová pro všechny, kdo se zabývají dronovými technologiemi.",
+      "nadpis": "Esri User Conference 2026: What the Sessions Add Up To",
+      "perex": "More than fifteen thousand people filled the San Diego Convention Center for Esri’s 46th annual User Conference this year, with roughly that many more watching by livestream from 117 countries.",
+      "telo": "More than fifteen thousand people filled the San Diego Convention Center for Esri’s 46th annual User Conference this year, with roughly that many more watching by livestream from 117 countries. Taken session by session, the program is a wide survey of a mapping platform still expanding in every direction. Taken together, it resolves into a smaller number of recurring bets — about where AI belongs in a GIS, about how far one platform can scale, and about what all of it is ultimately for. Image: Esri More than 15,000 people filled the San Diego Convention Center for Esri’s 46th annual User Conference, with an equivalent number watching the livestream from 117 countries, according to Esri found",
+      "body": [],
+      "proc": "",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/aerialuas/esri-user-conference-2026-what-the-sessions-add-up-to/",
+      "datum": "2026-08-27"
+    },
+    {
+      "rubrika": "Vzdělávání",
+      "top": false,
+      "nadpis": "Geo Week Opens Event Scholarship Applications for 2027; Program Expands on Workforce Development Initiatives",
+      "perex": "The GEO Empower scholarship program is cornerstone to bridging workforce gap Salt Lake City, UT — August 25, 2026 — Organizers of Geo Week announced that the application period is now open for the GEO…",
+      "telo": "The GEO Empower scholarship program is cornerstone to bridging workforce gap Salt Lake City, UT — August 25, 2026 — Organizers of Geo Week announced that the application period is now open for the GEO Empower Event Scholarship , an initiative dedicated to empowering university students passionate about utilizing geospatial, surveying, mapping, and 3D technology for social and environmental good. Now in its third year, recipients will receive a full conference pass to Geo Week, complimentary hotel accommodation, a travel stipend, and onsite mentorship opportunities. “The GEO Empower Scholarship has connected us with some of the most talented and passionate students in the geospatial field, an",
+      "body": [],
+      "proc": "",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/07/15/commercial-uav-expo-announces-second-keynote-two-skies-one-conversation/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=commercial-uav-expo-announces-second-keynote-two-skies-one-conversation",
-      "datum": "2026-07-15"
+      "odkaz": "https://amerisurv.com/2026/08/26/geo-week-opens-event-scholarship-applications-for-2027-program-expands-on-workforce-development-initiatives/?utm_source=rss&utm_medium=rss&utm_campaign=geo-week-opens-event-scholarship-applications-for-2027-program-expands-on-workforce-development-initiatives",
+      "datum": "2026-08-26"
+    },
+    {
+      "rubrika": "Akce",
+      "top": false,
+      "nadpis": "Commercial UAV Expo 2026 Convenes Global Drone Industry in Las Vegas Next Week at a Turning Point for the U.S. Market",
+      "perex": "More than 3,700 professionals from all 50 states and around the world will gather at Caesars Forum September 1-3 as new tariffs, an FCC Covered List overhaul, and a pending Part 108 rule reshape the industry.",
+      "telo": "More than 3,700 professionals from all 50 states and around the world will gather at Caesars Forum September 1-3 as new tariffs, an FCC Covered List overhaul, and a pending Part 108 rule reshape the industry. Las Vegas, NV, USA — August 25, 2026 — Commercial UAV Expo , the world’s leading commercial drone trade show and conference, opens next Tuesday at Caesars Forum in Las Vegas at one of the most consequential moments the U.S. commercial drone industry has faced in years. More than 3,700 industry professionals from all 50 U.S. states and countries around the world, along with 240+ exhibitors, will convene September 1-3 as regulations are being rewritten and reacted to in real time. The pas",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/08/26/commercial-uav-expo-2026-convenes-global-drone-industry-in-las-vegas-next-week-at-a-turning-point-for-the-u-s-market/?utm_source=rss&utm_medium=rss&utm_campaign=commercial-uav-expo-2026-convenes-global-drone-industry-in-las-vegas-next-week-at-a-turning-point-for-the-u-s-market",
+      "datum": "2026-08-26"
+    },
+    {
+      "rubrika": "Z domova",
+      "top": true,
+      "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
+      "perex": "Vážení uživatelé webových služeb pro vyhotovitele a ověřovatele geometrických plánů (WSGP), upozorňujeme, že dne 16. 10. 2026 bude ukončen provoz webových služeb pro vyhotovitele a ověřovatele geometr…",
+      "telo": "Vážení uživatelé webových služeb pro vyhotovitele a ověřovatele geometrických plánů (WSGP), upozorňujeme, že dne 16. 10. 2026 bude ukončen provoz webových služeb pro vyhotovitele a ověřovatele geometrických plánů verze 2.10. Od tohoto data bude v provozu pouze verze 3.1 webové služby pro vyhotovitele a ověřovatele geometrických plánů. Za komplikace tímto způsobené se omlouváme a děkujeme za pochopení.",
+      "body": [],
+      "proc": "",
+      "zdroj": "ČÚZK",
+      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
+      "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Přístroje",
+      "top": false,
+      "nadpis": "Latitude Spatial Showcases UltraCam Merlin 5.0 in New iFlyUltraCam Video",
+      "perex": "Graz, Austria • August 19, 2026 — Vexcel Imaging is pleased to spotlight Latitude Spatial in a new iFlyUltraCam video , highlighting how the Australian aerial mapping company is using the UltraCam Mer…",
+      "telo": "Graz, Austria • August 19, 2026 — Vexcel Imaging is pleased to spotlight Latitude Spatial in a new iFlyUltraCam video , highlighting how the Australian aerial mapping company is using the UltraCam Merlin 5.0 to deliver efficient, high-quality spatial data across one of the world’s largest and most challenging mapping environments. Latitude Spatial, which evolved from HyVista Corporation , combines a long history in airborne remote sensing with extensive experience operating UltraCam systems. After becoming the launch customer for the UltraCam Merlin 5.0 last year, Latitude Spatial is now sharing firsthand how the system is helping support its nationwide mapping operations. “The Merlin 5.0 hi",
+      "body": [],
+      "proc": "",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/08/20/latitude-spatial-showcases-ultracam-merlin-5-0-in-new-iflyultracam-video/?utm_source=rss&utm_medium=rss&utm_campaign=latitude-spatial-showcases-ultracam-merlin-5-0-in-new-iflyultracam-video",
+      "datum": "2026-08-20"
     }
   ]
 }
