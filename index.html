@@ -116,15 +116,55 @@
             } catch (e) { need = false; }
             if (!need) return;
             document.documentElement.classList.add('ag-prelock');
-            // POJISTKA MUSI BYT TADY, ne v ucty.js: kdyby se ucty.js nenacetl,
-            // jeho vlastni failsafe by nedobehl a uzivatel by koukal na prazdnou
-            // obrazovku. Kdyz do 8 s neni videt brana ani prihlaseni, odemkni.
+            // POJISTKA MUSI BYT TADY, ne v ucty.js: kdyby se ucty.js nenacetl, jeho
+            // vlastni failsafe by nedobehl a uzivatel by koukal na prazdnou obrazovku.
+            //
+            // 29. 8. 2026 — ⚠ DRIV TAHLE POJISTKA PO 8 s ODEMKLA (sundala ag-prelock).
+            // Stacilo tedy, aby se ucty.js nestihl rozbehnout, a zpod zamku vyjela
+            // uvodni obrazovka: appka bez prihlasovani. Neni to teorie — stalo se to,
+            // kdyz na Pages viselo NEZABALENE vydani (161 <script> misto 11) a na
+            // mobilnich datech se to do 8 s nestihlo.
+            // Ted se MISTO ODEMCENI ukaze hlaska "nenacetlo se to cele" s tlacitkem na
+            // novy pokus a zamek zustava. Hlaska se stavi rovnou tady, z vlastnich
+            // prvku a inline stylu: kdyz se nenacetl JS, nemusel dojit ani zbytek, tak
+            // nesmi zaviset na zadnem modulu ani CSS souboru.
+            // Kdyby appka dobehla se zpozdenim, hlidac nize hlasku sam uklidi.
             setTimeout(function () {
                 try {
                     if (document.getElementById('ag-gate') || document.getElementById('ag-login')) return;
-                    document.documentElement.classList.remove('ag-prelock');
+                    if (document.getElementById('ag-bootfail')) return;
+                    var ov = document.createElement('div');
+                    ov.id = 'ag-bootfail';
+                    ov.setAttribute('style', 'position:fixed;inset:0;z-index:999998;display:flex;'
+                        + 'flex-direction:column;align-items:center;justify-content:center;gap:14px;'
+                        + 'padding:24px;box-sizing:border-box;text-align:center;background:#0c1014;'
+                        + 'color:#e8edf2;font:400 14px/1.5 system-ui,sans-serif');
+                    var t = document.createElement('div');
+                    t.setAttribute('style', 'font:800 20px/1.2 system-ui,sans-serif');
+                    t.textContent = 'AR Geodet';
+                    var m = document.createElement('div');
+                    m.setAttribute('style', 'max-width:300px;color:#9aa1ac');
+                    m.textContent = 'Appka se nestihla načíst celá — nejspíš je slabý signál. Zkus to znovu.';
+                    var b = document.createElement('button');
+                    b.type = 'button';
+                    b.setAttribute('style', 'margin-top:4px;border:0;border-radius:13px;padding:13px 26px;'
+                        + 'cursor:pointer;background:#2f9e74;color:#04120a;font:700 14px/1 system-ui,sans-serif');
+                    b.textContent = 'Spustit znovu';
+                    b.onclick = function () { try { location.reload(); } catch (e) {} };
+                    ov.appendChild(t); ov.appendChild(m); ov.appendChild(b);
+                    (document.body || document.documentElement).appendChild(ov);
+                    // hlidac: jakmile appka nabehne (brana/prihlaseni nebo ucty.js sundal
+                    // ag-prelock), hlaska zmizi sama a nezustane pres funkcni appku
+                    var iv = setInterval(function () {
+                        try {
+                            if (!document.getElementById('ag-gate') && !document.getElementById('ag-login')
+                                && document.documentElement.classList.contains('ag-prelock')) return;
+                            clearInterval(iv);
+                            if (ov.parentNode) ov.parentNode.removeChild(ov);
+                        } catch (e) { clearInterval(iv); }
+                    }, 1000);
                 } catch (e) {}
-            }, 8000);
+            }, 12000);
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
