@@ -371,7 +371,57 @@
             f.setAttribute('aria-label', 'Sbalit — nechat běžet nahoře');
             f.textContent = '▾';
             modal.appendChild(f);
+            // Okna modulů si hlavičku dělají každé po svém a některá drží v pravém
+            // horním rohu VLASTNÍ tlačítka (Zápisník tam má „Export" a „Zavřít").
+            // Kulaté tlačítko na pevné pozici na nich přistálo a překrylo je, takže
+            // se po vložení změří, co pod ním leží, a případně se uhne.
+            // ⚠ Okno modulu je v tuhle chvíli často JEŠTĚ PRÁZDNÉ (obsah si dokresluje
+            // po načtení dat), takže první měření nemusí kolizi vidět — u Závad se
+            // kolečko takhle usadilo na filtrační chip, který v tu chvíli neexistoval.
+            // Proto se poloha přeměří ještě dvakrát, jak okno dostává obsah.
+            try { placeFab(f, modal); } catch (e) {}
+            [250, 900].forEach(function (ms) {
+                setTimeout(function () {
+                    if (!f.isConnected) return;
+                    f.style.top = '';                      // zpět na výchozí řádek a znovu vybrat
+                    try { placeFab(f, modal); } catch (e) {}
+                }, ms);
+            });
         }
+    }
+
+    // vrátí true, když kolečko sedí na cizím tlačítku nebo nadpisu v tomtéž okně
+    function fabCollides(f, modal) {
+        var r = f.getBoundingClientRect();
+        if (!r.width || !r.height) return false;
+        var pe = f.style.pointerEvents;
+        f.style.pointerEvents = 'none';               // ať se nenajde samo sebe
+        var hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        f.style.pointerEvents = pe;
+        if (!hit || hit === modal || !modal.contains(hit)) return false;
+        for (var n = hit; n && n !== modal; n = n.parentElement) {
+            var t = n.tagName;
+            if (t === 'BUTTON' || t === 'A' || t === 'INPUT' || t === 'SELECT'
+                || t === 'H1' || t === 'H2' || t === 'H3') return true;
+        }
+        return false;
+    }
+    function placeFab(f, modal) {
+        var leftHand = false;
+        try { leftHand = document.body.classList.contains('left-hand'); } catch (e) {}
+        var side = leftHand ? 'left' : 'right';
+        var other = leftHand ? 'right' : 'left';
+        // 58 px = vedle křížku z modal-close.js; dál se uhýbá po šířce tlačítka
+        var steps = [58, 110, 162];
+        for (var i = 0; i < steps.length; i++) {
+            f.style[other] = 'auto';
+            f.style[side] = 'calc(env(safe-area-inset-' + side + ',0px) + ' + steps[i] + 'px)';
+            if (!fabCollides(f, modal)) return;
+        }
+        // v hlavičce není místo nikde → o řádek níž, k okraji
+        f.style[other] = 'auto';
+        f.style[side] = 'calc(env(safe-area-inset-' + side + ',0px) + 10px)';
+        f.style.top = 'calc(env(safe-area-inset-top,0px) + 60px)';
     }
 
     // Nástroje si okna staví až při prvním otevření → hlídáme, kdy se objeví.

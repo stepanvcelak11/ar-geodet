@@ -88,7 +88,12 @@
             '@media (prefers-reduced-motion: reduce){.ag-cil-halo i.r1{animation:none;opacity:0.7;}}',
             /* popisek na spojnici — třídu map-label-text srovnává proti otočení mapy
                stejná smyčka, která srovnává popisky bodů (grafika.js) */
-            '.ag-cil-lbl{color:' + GOLD + ' !important;font-weight:700 !important;white-space:nowrap;}',
+            // ⚠ Obrys MUSÍ zůstat ČERNÝ i ve světlém režimu. Třída map-label-text tam
+            // dostává BÍLÝ obrys (aby byl tmavý popisek bodu čitelný nad světlou OSM),
+            // jenže tenhle popisek je zlatý — zlatá na bílém obrysu nad světlou mapou
+            // se ztrácí (naměřeno 1,23:1). Zlatá s černým obrysem je čitelná v obou motivech.
+            '.ag-cil-lbl{color:' + GOLD + ' !important;font-weight:700 !important;white-space:nowrap;',
+            '  text-shadow:-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 !important;}',
             /* ④ pilulka na hraně displeje */
             '#ag-cil-edge{position:absolute;top:50%;z-index:55;display:none;flex-direction:column;',
             '  align-items:center;gap:3px;padding:11px 8px;pointer-events:none;',

@@ -188,7 +188,12 @@
             '#ag-sp.ag-sp-open{border-radius:16px;}',
             '#ag-sp.ui-faded{opacity:0.3;}',
             // hlavička (sbalený stav)
-            '.ag-sp-head{display:flex;align-items:center;gap:7px;padding:7px 13px;white-space:nowrap;',
+            // flex-wrap: pilulka je uzka (max 94vw) a text upozorneni je jediny prvek,
+            // ktery se umi zkratit (ma overflow:hidden) — pri plnem obsahu (upozorneni +
+            // prumer presnosti + azimut) tak na uzkem telefonu POHLTIL CELE ZKRACENI
+            // a zbylo z nej 41 px z potrebnych 171, tedy „Ome...". Se zalamovanim se
+            // misto toho odsunou CISLA na druhy radek a text zustane cely.
+            '.ag-sp-head{display:flex;flex-wrap:wrap;align-items:center;gap:7px;padding:7px 13px;white-space:nowrap;',
             '  font-variant-numeric:tabular-nums;}',
             '.ag-sp-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}',
             '.ag-sp-dot.green{background:#34d399;box-shadow:0 0 5px rgba(52,211,153,0.8);}',
@@ -206,10 +211,10 @@
             // SLOUČENÝ PRUH: text upozornění z centra + počítadlo, když jich visí víc.
             // Text se musí umět zkrátit, jinak by dlouhá hláška vytlačila čísla
             // (přesnost a azimut) mimo pilulku — a ta jsou tu to hlavní.
-            '.ag-sp-head .ag-sp-alert{max-width:44vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+            '.ag-sp-head .ag-sp-alert{flex:1 1 auto;min-width:min(44vw, 9.5em);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
             '.ag-sp-ncount{font-family:var(--font-mono,ui-monospace,monospace);font-weight:700;',
             '  font-size:calc(9.5px * var(--ag-font-scale, 1));line-height:1;padding:2px 5px;border-radius:999px;',
-            '  background:rgba(255,255,255,0.14);color:var(--text-color,#e6e8eb);flex:0 0 auto;}',
+            '  background:var(--surface-3,rgba(255,255,255,0.14));color:var(--text-color,#e6e8eb);flex:0 0 auto;}',
             // řádek v rozbaleném detailu, který vede na kartu se všemi hláškami
             '.ag-sp-note{display:flex;align-items:center;gap:8px;width:100%;margin:0 0 8px;padding:9px 10px;',
             '  border-radius:10px;cursor:pointer;text-align:left;',
