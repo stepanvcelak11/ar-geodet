@@ -259,6 +259,8 @@
           help: { t: 'Kniha jízd' } },
         { k: 'moje-aktivita', verb: 'Firma a papíry', vl: 'Moje aktivita', vh: 'kolik jsem ušel, co používám, co schovat', keys: 'aktivita statistika prehled kroky krokomer kilometry vyskove metry nastoupano cas souhrn dne kolik jsem udelal pouzivani nastroju skryt nepouzivane',
           help: { t: 'Moje aktivita' } },
+        { k: 'rocenka', verb: 'Firma a papíry', vl: 'Ročenka', vh: 'rok a měsíc v číslech, mapa kde jsi byl', keys: 'rocenka rok v cislech mesic statistika souhrn roku kde jsem byl mapa roku odznaky serie kolik jsem nachodil vyrocni prehled bilance',
+          help: { t: 'Ročenka' } },
 
         // ── Příručka a výpočty ──────────────────────────────────────────
         { k: 'predpisy', verb: 'Příručka a výpočty', vl: 'Předpisy a odchylky', keys: 'predpisy vyhlaska odchylky kody lhuty tahak normy trida presnosti',

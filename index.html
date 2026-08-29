@@ -1257,6 +1257,30 @@
          MUSÍ zůstat ZA js/karta-bodu.js: obaluje showDetails() až po ní, aby se
          pečeť vkládala do karty, kterou karta-bodu.js právě vykreslila. -->
     <script type="ag/lazy" data-src="js/overeni-bodu.js"></script>
+    <!-- ===== ZÁKLAD: úložiště, počítání vedle, důvěra, fronta, ročenka =====
+         Všechno ODLOŽENĚ (ag/lazy): nic z toho nepotřebuje běžet do prvního
+         vykreslení a rozpočet startu (scripts/check_start_budget.py) je těsný.
+         POŘADÍ JE ZÁVAZNÉ — lazy-load.js vkládá skripty v pořadí z dokumentu:
+         ag-store.js musí být PŘED fronta.js a rocenka.js (obě z něj čtou),
+         odznaky.js PŘED rocenka.js (ta se ho ptá na sekci s odznaky). -->
+    <!-- ÚLOŽIŠTĚ NA TĚŽKÁ DATA (odpojitelné) — jedno API nad IndexedDB místo
+         sedmi ručně psaných databází; navíc přehled zabraného místa a úklid
+         sirotků po smazané zakázce napříč všemi databázemi -->
+    <script type="ag/lazy" data-src="js/ag-store.js"></script>
+    <!-- POČÍTÁNÍ VEDLE (odpojitelné) — první Web Worker v appce; triangulace
+         kubatur už nedrží hlavní vlákno. Matematiku dostane od volajícího,
+         takže se algoritmus nepíše dvakrát -->
+    <script type="ag/lazy" data-src="js/ag-pocty.js"></script>
+    <!-- JAK MOC VĚŘIT ČÍSLU (odpojitelné) — jedna stupnice místo tří a poctivé
+         "odkud se přesnost vzala". Ptají se ho dvoji-mereni.js a kvalita-bodu.js -->
+    <script type="ag/lazy" data-src="js/duvera.js"></script>
+    <!-- FRONTA NA SIGNÁL (odpojitelné) — co appka dluží serveru, přežije zavření;
+         napojený firemní chat, který dřív zprávy bez signálu ztrácel -->
+    <script type="ag/lazy" data-src="js/fronta.js"></script>
+    <!-- ODZNAKY (odpojitelné) — tiché, jen v Ročence, nic za rychlost -->
+    <script type="ag/lazy" data-src="js/odznaky.js"></script>
+    <!-- ROČENKA (odpojitelné) — rok a měsíc v číslech, mapa "kde jsem byl" -->
+    <script type="ag/lazy" data-src="js/rocenka.js"></script>
     <!-- SBALITELNÝ NÁSTROJ (odpojitelné) — živá čísla v proužku nahoře místo modálu -->
     <script defer src="js/mini-panel.js"></script>
     <script>
