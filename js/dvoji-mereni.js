@@ -159,11 +159,18 @@
     }
 
     // Slovní verdikt + odhad poctivé přesnosti z jediného rozdílu.
+    // BARVU (třídu) bere z js/duvera.js — jediného místa, kde jsou meze uložené.
+    // Dřív je měl každý modul své a tentýž bod byl v tomhle okně „v pořádku"
+    // a v protokolu kvality „špatný". Meze v duvera.js jsou ODVOZENÉ z GOOD/OK/MEH
+    // níž (σ = Δ/√2), takže se hodnocení nezměnilo ani o kousek. Texty zůstávají
+    // zdejší: mluví o rozdílu dvou určení, ne o přesnosti obecně.
     function verdict(d) {
-        if (d <= GOOD) return { c: 'ok', t: 'Výborná shoda', h: 'Obě určení sedí na sebe. Na telefon je to velmi dobrý výsledek.' };
-        if (d <= OK) return { c: 'ok', t: 'V pořádku', h: 'Běžný rozdíl pro měření telefonem. Průměr obou určení je lepší než kterékoli samo.' };
-        if (d <= MEH) return { c: 'warn', t: 'Znatelný rozdíl', h: 'Jedno z měření bylo nejspíš rušené (odraz od fasády, stromy, málo družic). Průměr ber s rezervou.' };
-        return { c: 'bad', t: 'Velký rozdíl', h: 'Tohle není šum, ale chyba v jednom z měření. <b>Neber průměr</b> — změř bod potřetí a spolehni se na tu dvojici, která si sedne.' };
+        var tr = null;
+        try { if (window.AGDuvera) tr = AGDuvera.rozdil(d).trida; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dvoji-mereni:verdict'); }
+        if (d <= GOOD) return { c: tr || 'ok', t: 'Výborná shoda', h: 'Obě určení sedí na sebe. Na telefon je to velmi dobrý výsledek.' };
+        if (d <= OK) return { c: tr || 'ok', t: 'V pořádku', h: 'Běžný rozdíl pro měření telefonem. Průměr obou určení je lepší než kterékoli samo.' };
+        if (d <= MEH) return { c: tr || 'warn', t: 'Znatelný rozdíl', h: 'Jedno z měření bylo nejspíš rušené (odraz od fasády, stromy, málo družic). Průměr ber s rezervou.' };
+        return { c: tr || 'bad', t: 'Velký rozdíl', h: 'Tohle není šum, ale chyba v jednom z měření. <b>Neber průměr</b> — změř bod potřetí a spolehni se na tu dvojici, která si sedne.' };
     }
     // σ jednoho určení ≈ Δ/√2, σ průměru ≈ Δ/2. Odhad z jediného rozdílu (1 stupeň
     // volnosti), takže je sám dost nejistý — v UI se to říká nahlas.

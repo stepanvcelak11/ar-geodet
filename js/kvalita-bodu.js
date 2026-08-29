@@ -165,8 +165,12 @@
     }
     // Meze slovního hodnocení musí sedět s js/dvoji-mereni.js — kdyby se rozešly,
     // tentýž bod by byl v jednom okně „v pořádku" a ve druhém „velký rozdíl".
+    // Právě proto se od dubna neptáme vlastních čísel, ale js/duvera.js: meze
+    // byly ZDVOJENÉ (tady i v dvoji-mereni.js) a stačilo změnit jedno místo.
+    // Zdejší čísla zůstávají jako záloha, když je vrstva důvěry odpojená.
     function kontrolaTrida(d) {
         if (d == null || !isFinite(d)) return 'none';
+        try { if (window.AGDuvera) return AGDuvera.rozdil(d).trida; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kvalita-bodu:kontrolaTrida'); }
         if (d <= 1.50) return 'ok';
         if (d <= 3.00) return 'warn';
         return 'bad';
@@ -179,9 +183,15 @@
         return t;
     }
 
+    // Sloupec „± chyba" = co o sobě hlásil telefon při měření. ZÁMĚRNĚ se tu
+    // nebere lepší číslo z kontrolního měření — na to je vedle vlastní sloupec
+    // a míchat je do jednoho by zakrylo, které z nich vzniklo měřením.
+    // Barvu dává js/duvera.js, aby stupnice byla v celé appce jedna (dřív tu
+    // byla TŘETÍ vlastní: 0,5 / 2,0 m).
     function hodnoceni(p) {
         var a = (p.prov && p.prov.acc != null) ? p.prov.acc : (p.acc != null ? p.acc : null);
         if (a == null) return { t: '—', c: 'none' };
+        try { if (window.AGDuvera) return { t: '±' + num(a), c: AGDuvera.presnost(a).trida }; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kvalita-bodu:hodnoceni'); }
         if (a <= 0.5) return { t: '±' + num(a), c: 'ok' };
         if (a <= 2) return { t: '±' + num(a), c: 'warn' };
         return { t: '±' + num(a), c: 'bad' };

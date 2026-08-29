@@ -1,0 +1,70 @@
+/* ===== AR Geodet — JAK MOC VĚŘIT ČÍSLU: jednotný vzhled (k js/duvera.js) =====
+   Barvy se berou z css/tokens.css, takže světlý režim funguje bez další práce.
+   ⚠ Tenhle soubor NENÍ v <link> v index.html — připojuje si ho js/duvera.js přes
+   AG.cssFile(), aby se nepočítal do rozpočtu startu. Proto MUSÍ být uvedený
+   v EXTRA_ASSETS v scripts/gen_sw_assets.py, jinak offline zmizí styly.
+
+   POZOR na --text: takový token v appce NIKDY neexistoval (36 výskytů v 7
+   modulech kdysi udělalo ve světlém režimu neviditelný text). Správně je
+   --text-color / --text-muted / --text-faint.
+   ============================================================================ */
+
+.ag-duv {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 2px;
+    font-variant-numeric: tabular-nums;   /* aby čísla pod sebou neposkakovala */
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Stupnice je v js/duvera.js; tady se jen obarvuje. „ok" schválně NEMÁ vlastní
+   zelenou — akcent appky je zelený a dvě různé zelené vedle sebe matou. */
+.ag-duv[data-q="ok"]   { color: var(--accent-bright, #3eb487); }
+.ag-duv[data-q="warn"] { color: var(--warning, #fbbf24); }
+.ag-duv[data-q="bad"]  { color: var(--danger, #fb7185); }
+.ag-duv[data-q="none"] { color: var(--text-faint, #6b727d); }
+
+/* Vlnovka před číslem = přesnost NIKDO nezměřil, je to jen odhad telefonu.
+   Záměrně se neschovává do title — v terénu si nikdo nenajíždí myší. */
+.ag-duv::first-letter { font-weight: 800; }
+
+.ag-duv-box {
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
+    border-left-width: 3px;
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: var(--glass-bg, rgba(255, 255, 255, 0.05));
+    margin: 8px 0;
+}
+.ag-duv-box[data-q="ok"]   { border-left-color: var(--accent-bright, #3eb487); }
+.ag-duv-box[data-q="warn"] { border-left-color: var(--warning, #fbbf24); }
+.ag-duv-box[data-q="bad"]  { border-left-color: var(--danger, #fb7185); }
+.ag-duv-box[data-q="none"] { border-left-color: var(--text-faint, #6b727d); }
+
+.ag-duv-hl {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+    color: var(--text-color, #eceef2);
+    font-size: calc(15px * var(--ag-font-scale, 1));
+}
+/* ⚠ V úzkém flexu pohltí celé zkrácení jediný prvek s overflow:hidden — proto
+   tu žádný není a odznak si drží svou šířku (flex-shrink:0). */
+.ag-duv-hl .ag-duv { flex: 0 0 auto; }
+
+.ag-duv-proc {
+    color: var(--text-muted, #9aa1ac);
+    font-size: calc(13px * var(--ag-font-scale, 1));
+    line-height: 1.5;
+}
+.ag-duv-rada {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+    color: var(--accent, #2f9e74);
+    font-size: calc(13px * var(--ag-font-scale, 1));
+    font-weight: 600;
+}

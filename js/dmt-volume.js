@@ -234,8 +234,39 @@
         return { fill: baseVol, cut: apexVol };
     }
 
+    // POČÍTÁNÍ VEDLE: triangulace je Bowyer–Watson, tedy O(n²) — pro každý bod
+    // se prochází všechny dosud vzniklé trojúhelníky. U dvou set bodů je to
+    // neznatelné, u tisíců to hlavní vlákno drží vteřiny a appka vypadá, že
+    // spadla. Nad prahem se proto počítá ve Web Workeru (js/ag-pocty.js).
+    // Matematika se NEKOPÍRUJE — workeru se předají tyhle tři funkce.
+    var PRAH_WORKER = 400;      // pod tím je výpočet stejně okamžitý a režie workeru by se nevyplatila
+    var pocitaSe = false;
+    function zaridTriangulaci(body, hotovo) {
+        var velke = body.length > PRAH_WORKER;
+        if (!velke || !window.AGPocty) { hotovo(triangulate(body)); return; }
+        if (!AGPocty.umi('dmt-tin')) {
+            AGPocty.uloha('dmt-tin', [orient, inCircumcircle, triangulate], function (d) { return triangulate(d.body); });
+        }
+        pocitaSe = true;
+        renderResults();
+        AGPocty.spust('dmt-tin', { body: body }).then(function (t) {
+            pocitaSe = false;
+            // Mezitím se mohly body změnit (import, smazání) — pak je výsledek
+            // starý a zahodí se; poslední recompute() si doběhne vlastní.
+            if (body !== pts) return;
+            hotovo(t);
+        }, function (e) {
+            pocitaSe = false;
+            if (window.AG && AG.swallow) AG.swallow(e, 'dmt-volume:zaridTriangulaci');
+            if (body === pts) hotovo(triangulate(body));   // záloha: raději na chvíli ztuhnout než nedat výsledek
+        });
+    }
+
     function recompute() {
-        tris = triangulate(pts);
+        zaridTriangulaci(pts, dopocitej);
+    }
+    function dopocitej(trojuhelniky) {
+        tris = trojuhelniky;
         var zmin = Infinity, zmax = -Infinity;
         pts.forEach(function (p) { if (p.z < zmin) zmin = p.z; if (p.z > zmax) zmax = p.z; });
         var H0 = (refLevel != null) ? refLevel : zmin;
@@ -393,6 +424,9 @@
     function renderResults() {
         var el = document.getElementById('dmt-results');
         if (!el) return;
+        // Velký model se trianguluje vedle (worker) — bez téhle hlášky by po
+        // spuštění chvíli svítily STARÉ výsledky a vypadaly jako nové.
+        if (pocitaSe) { el.innerHTML = '<span class="dmt-muted">Počítám model z ' + pts.length + ' bodů…</span>'; return; }
         if (!result || !pts.length) { el.innerHTML = '<span class="dmt-muted">Žádná data.</span>'; return; }
         function row(l, v, c) { return '<div class="dmt-rrow"><span>' + l + '</span><b' + (c ? ' style="color:' + c + '"' : '') + '>' + v + '</b></div>'; }
         el.innerHTML =
