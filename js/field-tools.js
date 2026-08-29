@@ -140,7 +140,7 @@
             }
             rest.forEach(function (it) { grid.insertBefore(makeTile(it), node); });
         }
-        try { applyFilter(); } catch (e) {}   // znovu aplikuj aktivní hledání i na čerstvě vložené dlaždice
+        try { applyFilter(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'field-tools:syncTiles'); }   // znovu aplikuj aktivní hledání i na čerstvě vložené dlaždice
     }
 
     // ---- CHYTRÉ vyhledávání nástrojů --------------------------------------------
@@ -149,11 +149,11 @@
     // a řazení výsledků podle relevance (+ lehký bonus často používaným).
     function norm(s) {
         s = String(s == null ? '' : s).toLowerCase();
-        try { s = s.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) {}
+        try { s = s.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'field-tools:norm'); }
         return s.replace(/\s+/g, ' ').trim();
     }
     function loadClosed() { try { var a = JSON.parse(localStorage.getItem(COLL_KEY)); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
-    function saveClosed(a) { try { localStorage.setItem(COLL_KEY, JSON.stringify(a)); } catch (e) {} }
+    function saveClosed(a) { try { localStorage.setItem(COLL_KEY, JSON.stringify(a)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'field-tools:saveClosed'); } }
     // vzdalenost uprav max 1 (preklep/vynechany znak) — staci pro slova dlazdic
     function within1(a, b) {
         if (a === b) return true;
@@ -276,7 +276,7 @@
         d.innerHTML = ((s ? s.innerHTML : tile.innerHTML) || '').replace(/<br\s*\/?>/gi, ' ');   // <br> v názvu = mezera
         return (d.textContent || '').replace(/\s+/g, ' ').trim();
     }
-    function bumpUsage(key) { try { var u = loadUsage(); u[key] = (u[key] || 0) + 1; localStorage.setItem(USE_KEY, JSON.stringify(u)); } catch (e) {} }
+    function bumpUsage(key) { try { var u = loadUsage(); u[key] = (u[key] || 0) + 1; localStorage.setItem(USE_KEY, JSON.stringify(u)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'field-tools:bumpUsage'); } }
     document.addEventListener('click', function (e) {
         if (document.body.classList.contains('ag-tp-edit')) return;   // režim úprav oblíbených nepočítat
         var tile = e.target.closest ? e.target.closest('#tools-modal .tool-tile') : null;
@@ -295,7 +295,7 @@
     window.agCloseFieldTools = function () {};
     // tools-plus/tools-simple po odebrání injektované dlaždice zavolají okamžité
     // doplnění zpět do kategorie (bez čekání na periodický tick → žádné probliknutí)
-    window.agFtSyncTiles = function () { try { syncTiles(); } catch (e) {} };
+    window.agFtSyncTiles = function () { try { syncTiles(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'field-tools:agFtSyncTiles'); } };
 
     // ---- bezpečnostní udržování dlaždic (kdyby se mřížka objevila/přerenderovala) -
     function needsSync() {
@@ -324,7 +324,7 @@
             var inp = document.getElementById('tools-search');
             if (_wasOpen && !open && inp && inp.value) { inp.value = ''; applyFilter(); }
             _wasOpen = open;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'field-tools:tick'); }
     }
 
     // Dronové zóny (DronView) BÝVALY položkou menu „Více". Je to ale informace k práci
@@ -337,7 +337,7 @@
             id: 'dronview', label: 'Dronové zóny (DronView)',
             icon: '<svg class="icon"><use href="#i-drone"/></svg>',
             cat: 'Pomůcky', order: 66,
-            onClick: function () { try { window.openDronView(); } catch (e) {} }
+            onClick: function () { try { window.openDronView(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'field-tools:onClick'); } }
         });
     }
 

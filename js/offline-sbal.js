@@ -57,7 +57,7 @@
             if (on && ix === -1) a.push(HEAD_TXT);
             if (!on && ix !== -1) a.splice(ix, 1);
             localStorage.setItem(COLL_KEY, JSON.stringify(a));
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'offline-sbal:setClosed'); }
     }
 
     function ensureHead(g) {
@@ -99,7 +99,7 @@
         });
         setClosed(true);
         head.classList.add('ag-cat-closed');
-        try { if (typeof window.agFilterTools === 'function') window.agFilterTools(); } catch (e) {}
+        try { if (typeof window.agFilterTools === 'function') window.agFilterTools(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'offline-sbal:collapse'); }
     }
 
     // odkaz na sousední prvek: data-tool je stabilní, u nadpisu bereme jeho text
@@ -146,7 +146,7 @@
         var h = document.getElementById(HEAD_ID);
         if (h) h.remove();
         setClosed(false);
-        try { if (typeof window.agFilterTools === 'function') window.agFilterTools(); } catch (e) {}
+        try { if (typeof window.agFilterTools === 'function') window.agFilterTools(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'offline-sbal:restore'); }
     }
 
     function apply() {

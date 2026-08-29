@@ -19,7 +19,7 @@
                 var p = projects.find(function (x) { return x.id === activeProjectId; });
                 if (p) return p.name;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'welcome-card:activeName'); }
         return 'Zakázka';
     }
 
@@ -29,13 +29,13 @@
             if (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) {
                 return persistentCustomPoints.length;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'welcome-card:savedPointCount'); }
         try {
             if (typeof getStoredData === 'function') {
                 var raw = getStoredData('arCustomPoints12');
                 if (raw) { var arr = JSON.parse(raw); if (Array.isArray(arr)) return arr.length; }
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'welcome-card:savedPointCount'); }
         return 0;
     }
 
@@ -85,11 +85,11 @@
         var orig = window[name];
         var wrapped = function () {
             var r = orig.apply(this, arguments);
-            try { setTimeout(updateWelcomeProjectCard, 0); } catch (e) {}
+            try { setTimeout(updateWelcomeProjectCard, 0); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'welcome-card:wrapped'); }
             return r;
         };
         wrapped._wcWrapped = true;
-        try { Object.defineProperty(wrapped, 'name', { value: name }); } catch (e) {}
+        try { Object.defineProperty(wrapped, 'name', { value: name }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'welcome-card:wrapped'); }
         window[name] = wrapped;
     }
 

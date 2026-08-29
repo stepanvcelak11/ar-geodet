@@ -42,7 +42,7 @@
             var l = document.querySelector('link[rel="stylesheet"][href*="css/style.css?v="]');
             var m = l && (l.getAttribute('href') || '').match(/\?v=(\d+)/);
             if (m) return parseInt(m[1], 10);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'historie-aktualizaci:running'); }
         return null;
     }
 
@@ -193,7 +193,7 @@
             // panelu, zavřením by ho naopak otevřel. Proto se zavírá jen když je otevřený.
             try {
                 if (typeof toggleMenu === 'function' && menu.classList.contains('open')) toggleMenu();
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'historie-aktualizaci:injectMenu'); }
         });
         var after = null, all = host.querySelectorAll('.menu-btn');
         for (var i = 0; i < all.length; i++) {
@@ -233,14 +233,14 @@
         // dlaždicemi mapy a dotazy na ČÚZK. Soubor má ~13 kB a service worker ho má
         // v cache (cache-first), takže tohle je prakticky zadarmo a okno se pak
         // otevře rovnou plné. Až v klidu po startu, ať se nepřidává k té frontě.
-        var pre = function () { try { load(); } catch (e) {} };
+        var pre = function () { try { load(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'historie-aktualizaci:pre'); } };
         if (window.requestIdleCallback) window.requestIdleCallback(pre, { timeout: 8000 });
         else setTimeout(pre, 6000);
         // Oba hostitelé se za běhu přestavují (oprávnění v js/ucty.js schovávají části
         // Nastavení, moduly si do „Více" přisypávají vlastní tlačítka), takže se
         // přítomnost levně překontroluje. Bez tiku by tlačítko po přestavbě zmizelo.
         (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(function () {
-            try { injectMenu(); injectSettings(); } catch (e) {}
+            try { injectMenu(); injectSettings(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'historie-aktualizaci:pre'); }
         }, 4000);
     }
 

@@ -34,14 +34,14 @@
     var _liveTimer = null;      // živá obnova seznamu/info v modalu
 
     // ---- pomocné: opatrné mosty na globály appky ------------------------------
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) {} }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calibrate:agAlert'); } try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'ar-calibrate:agAlert'); } }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calibrate:toast'); } }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function heading() { return (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null; }
     function inMap() { return (typeof viewMode !== 'undefined' && viewMode === 'map'); }
     function started() { return (typeof appStarted === 'undefined') || !!appStarted; }
     // rozdíl úhlů -> (-180,180]; využij angDiff appky, jinak vlastní
-    function adiff(a, b) { try { if (typeof angDiff === 'function') return angDiff(a, b); } catch (e) {} return ((a - b + 540) % 360) - 180; }
+    function adiff(a, b) { try { if (typeof angDiff === 'function') return angDiff(a, b); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calibrate:adiff'); } return ((a - b + 540) % 360) - 180; }
     function circMeanDeg(arr) { var s = 0, c = 0; arr.forEach(function (a) { s += Math.sin(a * D2R); c += Math.cos(a * D2R); }); return Math.atan2(s, c) * R2D; }
 
     // ---- výběr bodů: úřední (autoritativní souřadnice) napřed, pak dle vzdálenosti
@@ -66,7 +66,7 @@
         try {
             var el = document.getElementById('compass-debug');
             if (el && (/⚠/.test(el.textContent || '') || /⚠/.test(el.innerHTML || ''))) return true;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calibrate:compassWarnDom'); }
         return false;
     }
     function compassJittery() {
@@ -113,7 +113,7 @@
         document.getElementById('agcal-clear').addEventListener('click', clearSelection);
         document.getElementById('agcal-undo').addEventListener('click', undo);
         var mo = document.getElementById('agcal-more');
-        if (mo) mo.addEventListener('click', function () { window.agCloseCalibrate(); try { window.agOpenOrientTool(); } catch (e) {} });
+        if (mo) mo.addEventListener('click', function () { window.agCloseCalibrate(); try { window.agOpenOrientTool(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calibrate:ensureModal'); } });
     }
 
     function renderList() {
@@ -136,7 +136,7 @@
             r.addEventListener('click', function () {
                 _selId = this.getAttribute('data-id');
                 // navádění: zvýrazni vybraný bod i v AR/mapě (zlatá značka + šipka)
-                try { var p = ptById(_selId); if (p && typeof highlightPoint === 'function' && (typeof highlightedPointId === 'undefined' || highlightedPointId !== p.id)) highlightPoint(p); } catch (e) {}
+                try { var p = ptById(_selId); if (p && typeof highlightPoint === 'function' && (typeof highlightedPointId === 'undefined' || highlightedPointId !== p.id)) highlightPoint(p); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calibrate:renderList'); }
                 renderList(); renderLive();
             });
         });
@@ -159,7 +159,7 @@
                 var hp = ptById(highlightedPointId);
                 if (hp && typeof highlightPoint === 'function') highlightPoint(hp); // toggle → vypne navádění
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calibrate:clearSelection'); }
         renderList(); renderLive(); updateClearBtn();
         toast('Výběr zrušen — nenaviguje se');
     }
@@ -246,7 +246,7 @@
         var delta = adiff(bearing, az);
         if (!applyDelta(delta)) { agAlert('Nelze srovnat', 'Korekce kompasu není v této verzi appky dostupná.'); cancelAim(); return; }
         _lastDelta = delta;
-        if (navigator.vibrate) { try { navigator.vibrate(30); } catch (e) {} }
+        if (navigator.vibrate) { try { navigator.vibrate(30); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calibrate:finalize'); } }
         showAim(false);
         var m = document.getElementById('agcal-modal'); if (m) m.style.display = 'flex';
         var undoBtn = document.getElementById('agcal-undo'); if (undoBtn) undoBtn.style.display = 'block';
@@ -265,7 +265,7 @@
                 if (typeof setStoredData === 'function') setStoredData('arHeadingOffset', String(userHeadingOffset));
                 if (typeof updateHeadingOffsetVal === 'function') updateHeadingOffsetVal();
                 return true;
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calibrate:applyDelta'); }
         }
         return false;
     }

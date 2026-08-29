@@ -34,13 +34,13 @@
     function alertMsg(title, message) {
         try {
             if (typeof window.agAlert === 'function') { window.agAlert({ title: title, message: message }); return; }
-        } catch (e) {}
-        try { window.alert(String(title) + '\n\n' + String(message).replace(/<[^>]+>/g, '')); } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-area:alertMsg'); }
+        try { window.alert(String(title) + '\n\n' + String(message).replace(/<[^>]+>/g, '')); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-area:alertMsg'); }
     }
     function confirmMsg(opts) {
         try {
             if (typeof window.agConfirm === 'function') return window.agConfirm(opts);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-area:confirmMsg'); }
         return new Promise(function (res) {
             try { res(window.confirm((opts.title ? opts.title + '\n\n' : '') + String(opts.message || '').replace(/<[^>]+>/g, ''))); }
             catch (e) { res(false); }
@@ -55,7 +55,7 @@
 
     // jméno bodu — stejná logika jako extractPointNumber() v logika.js (s fallbackem)
     function pointName(props) {
-        try { if (typeof extractPointNumber === 'function') return extractPointNumber(props); } catch (e) {}
+        try { if (typeof extractPointNumber === 'function') return extractPointNumber(props); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-area:pointName'); }
         if (!props) return 'Bod';
         var up = {}; for (var k in props) up[k.toUpperCase()] = props[k];
         var n = up['CISLO'] || up['CISLO_BODU'] || up['VLASTNI_CISLO'] || up['OZNACENI'] || up['UPLNE_CISLO'] || up['NAZEV'];
@@ -68,7 +68,7 @@
         // v tests/cases-geo.js). Fallback nize je pro pripad bez geo-core.js —
         // ma pevny polomer 6371 km, tedy ~1700 ppm kratke vzdalenosti.
         if (typeof GeoCore !== 'undefined' && GeoCore.getDistance) {
-            try { return GeoCore.getDistance(lat1, lng1, lat2, lng2); } catch (e) {}
+            try { return GeoCore.getDistance(lat1, lng1, lat2, lng2); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-area:metersBetween'); }
         }
         var R = 6371000, toR = Math.PI / 180;
         var dLat = (lat2 - lat1) * toR, dLng = (lng2 - lng1) * toR;
@@ -82,7 +82,7 @@
         return new Promise(function (resolve, reject) {
             var done = false;
             var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-            var t = setTimeout(function () { done = true; if (ctrl) { try { ctrl.abort(); } catch (e) {} } reject(new Error('timeout')); }, FETCH_MS);
+            var t = setTimeout(function () { done = true; if (ctrl) { try { ctrl.abort(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-area:fetchJson'); } } reject(new Error('timeout')); }, FETCH_MS);
             fetch(url, ctrl ? { signal: ctrl.signal } : undefined)
                 .then(function (r) { return r.json(); })
                 .then(function (j) { if (done) return; clearTimeout(t); resolve(j); })
@@ -114,7 +114,7 @@
         // mají přes /query/envelope omezený výstup (často vrací prázdno) — body reálně
         // tahá až identify (to je důvod, proč body na mapě jsou, ale import je „neviděl").
         function identifyStep() {
-            if (typeof onProgress === 'function') { try { onProgress(LAYERS.length, TOTAL); } catch (e) {} }
+            if (typeof onProgress === 'function') { try { onProgress(LAYERS.length, TOTAL); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-area:identifyStep'); } }
             var lat = (bbox.s + bbox.n) / 2, lng = (bbox.w + bbox.e) / 2;
             var mapExtent = bbox.w + ',' + bbox.s + ',' + bbox.e + ',' + bbox.n;
             // geometrie = střed, tolerance velká → identify vrátí VŠE v mapExtent (= bbox)
@@ -136,7 +136,7 @@
                 });
             }
             var layerId = LAYERS[idx++];
-            if (typeof onProgress === 'function') { try { onProgress(idx - 1, TOTAL); } catch (e) {} }
+            if (typeof onProgress === 'function') { try { onProgress(idx - 1, TOTAL); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-area:next'); } }
             var url = ENDPOINT + '/' + layerId + '/query' +
                 '?where=1%3D1' +
                 '&geometry=' + encodeURIComponent(geom) +
@@ -169,7 +169,7 @@
 
     function mapContainerEl() {
         var m = getMap();
-        if (m && typeof m.getContainer === 'function') { try { return m.getContainer(); } catch (e) {} }
+        if (m && typeof m.getContainer === 'function') { try { return m.getContainer(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-area:mapContainerEl'); } }
         return document.getElementById('map');
     }
 
@@ -210,7 +210,7 @@
                 var ll = window.agScreenToLatLng(px, py);
                 if (ll && isFinite(ll.lat) && isFinite(ll.lng)) return ll;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-area:screenToLatLng'); }
         // Fallback (kdyby grafika.js chyběla): vlastní převod.
         var m = getMap(); if (!m) return null;
         var cp = screenToContainerPoint(px, py); if (!cp) return null;
@@ -253,7 +253,7 @@
             _selBox.style.width = '0px';
             _selBox.style.height = '0px';
         }
-        try { _selOverlay.setPointerCapture(e.pointerId); } catch (err) {}
+        try { _selOverlay.setPointerCapture(e.pointerId); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'cadastre-area:onSelDown'); }
         if (e.cancelable) e.preventDefault();
     }
     function onSelMove(e) {
@@ -315,7 +315,7 @@
                     '<b>Split</b> (přes „Více"), najdi a přibliž místo na mapě a spusť import znovu.');
                 return;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-area:runImport'); }
 
         // SPOLEHLIVĚ: bereme přímo viditelný výřez mapy (Leaflet map.getBounds()) —
         // žádný ruční přepočet obrazovka→souřadnice (ten dělal špatný bbox → „žádné
@@ -459,7 +459,7 @@
         btn.type = 'button';
         btn.innerHTML = '<svg class="icon"><use href="#i-grid"/></svg> Stáhnout body z výřezu mapy';
         btn.addEventListener('click', function () {
-            try { if (typeof toggleMenu === 'function') toggleMenu(); } catch (e) {}
+            try { if (typeof toggleMenu === 'function') toggleMenu(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-area:onClick'); }
             // menu se zavírá animací; spustíme výběr až po něm
             setTimeout(function () { try { runImport(); } catch (err) { console.warn('[cadastre-area]', err); } }, 250);
         });

@@ -98,7 +98,7 @@
                                 return out;
                             }
                         }
-                    } catch (e) {}
+                    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-privacy:cloudFetch'); }
                     return res;
                 });
             };

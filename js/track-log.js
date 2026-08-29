@@ -24,14 +24,14 @@
     var PERSIST_MS = 10000;    // localStorage zápis je SYNCHRONNÍ a blokuje hlavní vlákno (a tím
                                // i obraz kamery) — proto stopu neukládáme každý vzorek, ale dávkově.
 
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'track-log:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function getMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
 
     function load() {
         _track = [];
         try { var s = (typeof getStoredData === 'function') ? getStoredData(KEY) : null; if (s) _track = JSON.parse(s) || []; } catch (e) { _track = []; }
     }
-    function persist() { try { if (typeof setStoredData === 'function') setStoredData(KEY, JSON.stringify(_track)); } catch (e) {} }
+    function persist() { try { if (typeof setStoredData === 'function') setStoredData(KEY, JSON.stringify(_track)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'track-log:persist'); } }
     // DÁVKOVÉ UKLÁDÁNÍ: stringify celé stopy + zápis do localStorage je synchronní a při delší
     // stopě blokuje hlavní vlákno (a tím i obraz kamery). Ukládáme max 1×/PERSIST_MS a vždy
     // naplno při zastavení / odchodu z appky, ať se o data nepřijde.
@@ -43,7 +43,7 @@
     function flushPersist() { if (_persistTimer) { clearTimeout(_persistTimer); _persistTimer = null; } if (_dirty) { _dirty = false; } persist(); }
 
     function totalLength() {
-        var L = 0; for (var i = 1; i < _track.length; i++) { try { L += getDistance(_track[i - 1].lat, _track[i - 1].lng, _track[i].lat, _track[i].lng); } catch (e) {} } return L;
+        var L = 0; for (var i = 1; i < _track.length; i++) { try { L += getDistance(_track[i - 1].lat, _track[i - 1].lng, _track[i].lat, _track[i].lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'track-log:totalLength'); } } return L;
     }
     function durationMs() { return _track.length >= 2 ? (_track[_track.length - 1].t - _track[0].t) : 0; }
 
@@ -57,13 +57,13 @@
             _line.addTo(m);
         }
     }
-    function clearLine() { var m = getMap(); if (_line && m) { try { m.removeLayer(_line); } catch (e) {} } _line = null; }
+    function clearLine() { var m = getMap(); if (_line && m) { try { m.removeLayer(_line); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'track-log:clearLine'); } } _line = null; }
     // Přírůstkové přidání jednoho bodu na čáru — O(1) místo přestavby celé polyline (O(n))
     // při každém vzorku, což u dlouhé stopy taky zatěžovalo hlavní vlákno.
     function appendPoint(lat, lng) {
         var m = getMap();
         if (!m || typeof L === 'undefined') return;
-        if (_line) { try { _line.addLatLng([lat, lng]); } catch (e) {} }
+        if (_line) { try { _line.addLatLng([lat, lng]); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'track-log:appendPoint'); } }
         else { redraw(); }
     }
 
@@ -77,7 +77,7 @@
             if (_track.length > MAX_PTS) { _track.shift(); redraw(); }   // po oříznutí nutný plný překres
             else { appendPoint(userLat, userLng); }                      // jinak jen připoj nový bod
             schedulePersist(); refreshPanel();
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'track-log:sample'); }
     }
 
     function setRecording(on) {
@@ -164,7 +164,7 @@
                 loadProjectSettings = function () { setRecording(false); clearLine(); load(); redraw(); refreshPanel(); return _orig.apply(this, arguments); };
                 loadProjectSettings.__agtr = true;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'track-log:loadProjectSettings'); }
     }
 
     function register() {
@@ -179,8 +179,8 @@
     else init();
     window.addEventListener('load', function () { setTimeout(init, 350); });
     // ulož dávku, když appka jde na pozadí nebo se zavírá (jinak by se ztratilo až PERSIST_MS dat)
-    window.addEventListener('pagehide', function () { try { flushPersist(); } catch (e) {} });
-    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') { try { flushPersist(); } catch (e) {} } });
+    window.addEventListener('pagehide', function () { try { flushPersist(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'track-log:init'); } });
+    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') { try { flushPersist(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'track-log:init'); } } });
     window.agOpenTrackLog = openTool;
     // stopa pro AR vrstvu (js/track-ar.js) — kopie, ať do pole nikdo zvenčí nesahá
     window.agTrackPoints = function () { return _track.slice(); };

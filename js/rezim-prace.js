@@ -183,10 +183,10 @@
     };
 
     function ls(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:lsSet'); } }
     // vypnutý profil = klíč NEEXISTUJE (ne uložená hodnota „univerzal"), ať se
     // stav „nechci profil" nedá splést s „vybral jsem si univerzální"
-    function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
+    function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:lsDel'); } }
     function pid() { return ls('arActiveProjectId') || 'default'; }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     // ---- VLASTNÍ PROFILY -----------------------------------------------------------
@@ -198,7 +198,7 @@
     var CUST_PREFIX = 'vlastni_';
     function customs() {
         var a = null;
-        try { a = JSON.parse(ls(CUST_KEY) || '[]'); } catch (e) {}
+        try { a = JSON.parse(ls(CUST_KEY) || '[]'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:customs'); }
         if (Object.prototype.toString.call(a) !== '[object Array]') return [];
         return a.filter(function (c) { return c && c.id && c.t; }).map(function (c) {
             return {
@@ -246,7 +246,7 @@
         var sig = customSig();
         if (mergedSig === sig) return true;
         var S = null;
-        try { S = window.AGToolsSimple; } catch (e) {}
+        try { S = window.AGToolsSimple; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:mergeProfiles'); }
         if (!S || !S.profiles || !S.order || !S.order.push) return false;
         // smazané vlastní profily z tools-simple odstranit, jinak by v <select>u
         // strašily napořád (vestavěných se to netýká — ty se nikdy nemažou)
@@ -527,7 +527,7 @@
         }).join('') || '<p class="ag-rpx-empty">Mřížka Nástrojů se ještě nenačetla. Otevři jednou Nástroje a zkus to znovu.</p>';
         countSel();
         el.classList.add('on');
-        setTimeout(function () { try { el.querySelector('#ag-rpx-name').focus(); } catch (e) {} }, 60);
+        setTimeout(function () { try { el.querySelector('#ag-rpx-name').focus(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:openEditor'); } }, 60);
     }
     function closeEditor() {
         var el = document.getElementById('ag-rpx');
@@ -555,7 +555,7 @@
         closeEditor();
         mergeProfiles();
         pick(id);                                  // nově uložený profil rovnou zapni
-        try { if (typeof window.quickToast === 'function') window.quickToast('Profil „' + name + '" uložen a zapnut.'); } catch (e) {}
+        try { if (typeof window.quickToast === 'function') window.quickToast('Profil „' + name + '" uložen a zapnut.'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:saveEditor'); }
     }
     function deleteEditor() {
         var id = _editId; if (!id) return;
@@ -568,14 +568,14 @@
             mergeProfiles();
             render();
             syncSettingRow();
-            try { if (window.AGToolsSimple && typeof window.AGToolsSimple.sync === 'function') window.AGToolsSimple.sync(); } catch (e) {}
+            try { if (window.AGToolsSimple && typeof window.AGToolsSimple.sync === 'function') window.AGToolsSimple.sync(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:go'); }
         };
         var q = 'Smazat profil „' + (rec ? rec.t : '') + '"? Nástroje ani body se nemažou, jen tenhle výběr.';
         // agGuard = „zeptej se a teprve pak to udělej" (in-app dialog je asynchronní,
         // takže `if (!confirm())` by tu nefungovalo); bez můstku spadne na confirm()
         try {
             if (typeof window.agGuard === 'function') { window.agGuard(q, go, { title: 'Smazat profil', danger: true }); return; }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:go'); }
         if (window.confirm(q)) go();
     }
 
@@ -597,7 +597,7 @@
         render();
         syncSettingRow();
         // tools-simple.js se sám dorovná svým tickem; když je po ruce, ať to je hned
-        try { if (window.AGToolsSimple && typeof window.AGToolsSimple.sync === 'function') window.AGToolsSimple.sync(); } catch (e) {}
+        try { if (window.AGToolsSimple && typeof window.AGToolsSimple.sync === 'function') window.AGToolsSimple.sync(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:pick'); }
     }
 
     function noteFor(id) {
@@ -632,7 +632,7 @@
         w.querySelector('#ag-rp-hide').addEventListener('click', function () {
             lsSet(HIDE_KEY, '1');
             render();
-            try { if (typeof window.quickToast === 'function') window.quickToast('Volbu režimu vrátíš v Nastavení → Vzhled'); } catch (e) {}
+            try { if (typeof window.quickToast === 'function') window.quickToast('Volbu režimu vrátíš v Nastavení → Vzhled'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:ensureWrap'); }
         });
         var list = w.querySelector('#ag-rp-list');
         list.addEventListener('click', function (ev) {
@@ -760,7 +760,7 @@
         d.addEventListener('click', function (ev) {
             if (!ev.target.closest || !ev.target.closest('#ag-rp-setoff')) return;
             pick('univerzal');
-            try { if (typeof window.quickToast === 'function') window.quickToast('Profil vypnut — v Nástrojích jsou zase všechny dlaždice.'); } catch (e) {}
+            try { if (typeof window.quickToast === 'function') window.quickToast('Profil vypnut — v Nástrojích jsou zase všechny dlaždice.'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:injectSettingRow'); }
         });
         syncSettingRow();
     }
@@ -795,7 +795,7 @@
             var w = document.getElementById('ag-rp-wrap');
             if (w && w.offsetParent === null && !w.hidden) return;
             render();
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:tick'); }
     }
     function init() {
         tick();

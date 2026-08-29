@@ -35,7 +35,7 @@
                 var m = (l.getAttribute('href') || '').match(/\?v=(\d+)/);
                 if (m) return parseInt(m[1], 10);
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'co-je-noveho:running'); }
         return null;
     }
 
@@ -131,10 +131,10 @@
                     }).join('') + '</ul>';
             }).join('') +
                 '<button type="button" class="cjn-go">Aktualizovat teď</button>';
-            try { localStorage.setItem(K_SEEN, String(list[0] && list[0].v || '')); } catch (e2) {}
+            try { localStorage.setItem(K_SEEN, String(list[0] && list[0].v || '')); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'co-je-noveho:openBox'); }
             box.querySelector('.cjn-go').onclick = function () {
                 closeBox();
-                try { if (typeof applyUpdate === 'function') applyUpdate(); } catch (e3) {}
+                try { if (typeof applyUpdate === 'function') applyUpdate(); } catch (e3) { window.AG && AG.swallow && AG.swallow(e3, 'co-je-noveho:onclick'); }
             };
             place();
         });
@@ -151,7 +151,7 @@
     }
 
     function toggle(e) {
-        try { e.stopPropagation(); e.preventDefault(); } catch (err) {}
+        try { e.stopPropagation(); e.preventDefault(); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'co-je-noveho:toggle'); }
         var btn = document.getElementById(BTN_ID);
         if (document.getElementById(BOX_ID)) { closeBox(); return; }
         if (btn) { btn.classList.add('on'); btn.setAttribute('aria-expanded', 'true'); }
@@ -187,7 +187,7 @@
             if (banner && window.MutationObserver) {
                 new MutationObserver(ensureBtn).observe(banner, { attributes: true, attributeFilter: ['style', 'class'] });
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'co-je-noveho:init'); }
         (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(ensureBtn, 5000);
         window.addEventListener('resize', place);
     }

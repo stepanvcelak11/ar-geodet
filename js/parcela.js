@@ -59,20 +59,20 @@
             var n = state.verts.length;
             window.AGDraft.save(DRAFT_KEY, { verts: state.verts, division: state.division },
                 'Parcela – ' + n + ' ' + (n === 1 ? 'vrchol' : (n <= 4 ? 'vrcholy' : 'vrcholů')));
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'parcela:draftSave'); }
     }
-    function draftClear() { if (window.AGDraft) try { window.AGDraft.clear(DRAFT_KEY); } catch (e) {} }
+    function draftClear() { if (window.AGDraft) try { window.AGDraft.clear(DRAFT_KEY); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'parcela:draftClear'); } }
 
     // =====================================================================
     //  Dialogy (sjednoceno s vylepseni.js, fallback na nativní)
     // =====================================================================
     function agAlert(t, m) {
-        try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {}
+        try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'parcela:agAlert'); }
         agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : ''));
         return Promise.resolve(true);
     }
     function agConfirm(t, m) {
-        try { if (typeof window.agConfirm === 'function') return window.agConfirm({ title: t, message: m }); } catch (e) {}
+        try { if (typeof window.agConfirm === 'function') return window.agConfirm({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'parcela:agConfirm'); }
         return Promise.resolve(confirm(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')));
     }
     function toast(msg) {
@@ -82,7 +82,7 @@
             t.textContent = msg; t.classList.add('show');
             clearTimeout(window.__agpcToastT);
             window.__agpcToastT = setTimeout(function () { t.classList.remove('show'); }, 2600);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'parcela:toast'); }
     }
 
     // =====================================================================
@@ -309,7 +309,7 @@
                 addVertexLL(gpsAvgResult.lat, gpsAvgResult.lng, 'V' + (state.verts.length + 1));
                 toast('Vrchol z průměru GPS (' + gpsAvgResult.n + ' měření)'); return;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'parcela:addMyGps'); }
         if (typeof userLat !== 'undefined' && userLat != null && userLng != null) {
             addVertexLL(userLat, userLng, 'V' + (state.verts.length + 1));
             toast('Vrchol z aktuální GPS');
@@ -327,7 +327,7 @@
         if (!layer) { try { layer = L.layerGroup().addTo(map); } catch (e) { layer = null; } }
         return layer;
     }
-    function clearLayer() { if (layer) { try { layer.clearLayers(); } catch (e) {} } }
+    function clearLayer() { if (layer) { try { layer.clearLayers(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'parcela:clearLayer'); } } }
     function accentColor() {
         try { var c = getComputedStyle(document.documentElement).getPropertyValue('--accent'); return (c && c.trim()) || '#2f9e74'; } catch (e) { return '#2f9e74'; }
     }
@@ -343,7 +343,7 @@
                 } else {
                     L.polyline(lls, { color: acc, weight: 2, dashArray: '4 4' }).addTo(layer);
                 }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'parcela:drawMap'); }
         }
         // vrcholy
         state.verts.forEach(function (v, i) {
@@ -351,7 +351,7 @@
                 L.circleMarker([v.lat, v.lng], { radius: 5, color: '#fff', weight: 2, fillColor: acc, fillOpacity: 1 })
                     .bindTooltip(String(i + 1), { permanent: true, direction: 'top', className: 'agpc-vtip', offset: [0, -6] })
                     .addTo(layer);
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'parcela:drawMap'); }
         });
         // popisek výměry
         if (state.verts.length >= 3) {
@@ -361,7 +361,7 @@
                     interactive: false,
                     icon: L.divIcon({ className: 'agpc-arealbl', html: fmtArea(shoelace(state.verts)), iconSize: [120, 22], iconAnchor: [60, 11] })
                 }).addTo(layer);
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'parcela:drawMap'); }
         }
         // dělicí čáry + body
         if (state.division) {
@@ -373,7 +373,7 @@
                 (state.division.points || []).forEach(function (pt) {
                     L.circleMarker([pt.lat, pt.lng], { radius: 5, color: '#111', weight: 2, fillColor: '#fbbf24', fillOpacity: 1 }).addTo(layer);
                 });
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'parcela:drawMap'); }
         }
     }
     function zoomToPolygon() {
@@ -382,7 +382,7 @@
             var lls = state.verts.map(function (v) { return [v.lat, v.lng]; });
             if (lls.length === 1) map.setView(lls[0], Math.max(map.getZoom(), 18));
             else map.fitBounds(L.latLngBounds(lls).pad(0.25));
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'parcela:zoomToPolygon'); }
     }
 
     // =====================================================================
@@ -424,7 +424,7 @@
             if (!ll || !isFinite(ll.lat) || !isFinite(ll.lng)) return;
             addVertexLL(ll.lat, ll.lng);
             toast('Vrchol ' + state.verts.length + ' přidán');
-        } catch (err) {}
+        } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'parcela:onPickTap'); }
     }
     function stopPick() {
         state.picking = false;
@@ -920,7 +920,7 @@
                     openTool();   // renderAll + drawMap uvnitř překreslí obnovený stav
                 }
             });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'parcela:open'); }
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'parcela', label: 'Parcela / dělení', icon: ICON, onClick: openTool, order: 15 });
         } else {

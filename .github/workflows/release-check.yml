@@ -43,4 +43,13 @@ jobs:
       # DronView neměl „?", 19 nástrojů se nedalo vyhledat).
       # --require-js: bez Node/V8 by kontrola tiše přeskočila a CI by lhalo.
       - name: Registr nástrojů je úplný
-        run: python scripts/check_tools_registry.py --require-js
+        run: python scripts/check_tools_registry.py --require-js
+
+      # Design tokeny a kontrast. Dvakrát už appku položila chyba, kterou nic
+      # nechytlo: var(--text, #eee) na token, který NIKDY neexistoval (36x v 7
+      # modulech → ve světlém režimu neviditelný text), a --accent-grad:var(--accent)
+      # zapsané na :root, kde se přepis ve světlém režimu neprojevil.
+      # Skript navíc počítá kontrast podle WCAG, takže .btn-primary už nemůže
+      # tiše spadnout pod 4,5:1.
+      - name: Tokeny a kontrast
+        run: python scripts/check_css_tokens.py

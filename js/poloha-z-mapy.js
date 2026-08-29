@@ -58,7 +58,7 @@
     };
 
     function $(id) { return document.getElementById(id); }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:toast'); } }
     function num(v, d) { return (Math.round(v * Math.pow(10, d)) / Math.pow(10, d)).toFixed(d).replace('.', ','); }
 
     // ---- vzhled ----------------------------------------------------------------
@@ -109,11 +109,11 @@
         // návod: text je v TOOL_HELP (js/tools-plus.js), ať je na jednom místě
         var h = el.querySelector('[data-act="help"]');
         if (h) h.addEventListener('click', function () {
-            try { if (typeof window.agToolHelp === 'function') window.agToolHelp('agPosFromMap', 'Poloha z mapy'); } catch (e) {}
+            try { if (typeof window.agToolHelp === 'function') window.agToolHelp('agPosFromMap', 'Poloha z mapy'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:hint'); }
         });
         var o = el.querySelector('[data-act="orto"]');
         if (o) o.addEventListener('click', function () {
-            try { if (typeof window.agMapSetBase === 'function') window.agMapSetBase('ortofoto'); } catch (e) {}
+            try { if (typeof window.agMapSetBase === 'function') window.agMapSetBase('ortofoto'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:hint'); }
             o.remove();
         });
     }
@@ -136,19 +136,19 @@
     // reagovaly OKAMŽITĚ — kdyby se čekalo na nejbližší GPS fix, uvnitř budovy
     // (kde fix nemusí přijít vůbec) by se nestalo nic.
     function apply() {
-        try { userLat = S.lat; userLng = S.lng; currentGpsAccuracy = S.acc; } catch (e) {}
-        try { magneticDeclination = getDeclination(S.lat, S.lng); } catch (e) {}
+        try { userLat = S.lat; userLng = S.lng; currentGpsAccuracy = S.acc; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:apply'); }
+        try { magneticDeclination = getDeclination(S.lat, S.lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:apply'); }
         try {
             window.AGFix = { ts: Date.now(), lat: S.lat, lng: S.lng, acc: S.acc, err: null, manual: true };
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:apply'); }
         // průměrování GPS začíná od čisté: staré vzorky jsou z chybné polohy a
         // „Z průměru GPS" by pak vrátilo mix ručního bodu a starého mraku fixů
-        try { gpsSamples = []; gpsAvgResult = null; } catch (e) {}
-        try { if (accuracyCircle) { accuracyCircle.setLatLng([S.lat, S.lng]); accuracyCircle.setRadius(S.acc); accuracyCircle.setStyle({ color: '#f59e0b', fillColor: '#f59e0b', dashArray: '5 5' }); } } catch (e) {}
-        try { if (userMarker) userMarker.setLatLng([S.lat, S.lng]); } catch (e) {}
+        try { gpsSamples = []; gpsAvgResult = null; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:apply'); }
+        try { if (accuracyCircle) { accuracyCircle.setLatLng([S.lat, S.lng]); accuracyCircle.setRadius(S.acc); accuracyCircle.setStyle({ color: '#f59e0b', fillColor: '#f59e0b', dashArray: '5 5' }); } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:apply'); }
+        try { if (userMarker) userMarker.setLatLng([S.lat, S.lng]); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:apply'); }
         // mapa se nemá cukat: klepnutí bylo mířené, tak si ho uživatel nechá tam,
         // kam ho dal — jen se srovná referenční střed, ať ho nesrovná příští fix
-        try { lastCenterLat = S.lat; lastCenterLng = S.lng; } catch (e) {}
+        try { lastCenterLat = S.lat; lastCenterLng = S.lng; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:apply'); }
         // Vzdálenosti/azimuty přepočítat. Zakotvené stanovisko (AR resekce) má
         // přednost — tam AR záměrně nejede z GPS, takže do toho nesaháme.
         try {
@@ -160,8 +160,8 @@
                 });
                 arPoints.sort(function (a, b) { return a.currentDist - b.currentDist; });
             }
-        } catch (e) {}
-        try { updateInfoPanel(); } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:apply'); }
+        try { updateInfoPanel(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:apply'); }
     }
 
     // ---- štítek v upozorněních --------------------------------------------------
@@ -175,10 +175,10 @@
             if (window.AGNotify && typeof AGNotify.set === 'function') {
                 AGNotify.set('manual-pos', { level: 'warn', text: txt, order: -5, action: 'Zrušit', onAction: function () { clear(true); } });
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:onAction'); }
     }
     function statusOff() {
-        try { if (window.AGNotify && typeof AGNotify.clear === 'function') AGNotify.clear('manual-pos'); } catch (e) {}
+        try { if (window.AGNotify && typeof AGNotify.clear === 'function') AGNotify.clear('manual-pos'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:statusOff'); }
     }
 
     // ---- zapnutí / vypnutí režimu sběru ----------------------------------------
@@ -192,9 +192,9 @@
                 if (typeof applyViewMode === 'function') applyViewMode();
                 if (typeof window.agSyncViewControls === 'function') window.agSyncViewControls();
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:arm'); }
         var orto = false;
-        try { orto = (typeof visSettings !== 'undefined' && visSettings && visSettings.baseLayer === 'ortofoto'); } catch (e) {}
+        try { orto = (typeof visSettings !== 'undefined' && visSettings && visSettings.baseLayer === 'ortofoto'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:arm'); }
         hint(true,
             '<svg class="icon"><use href="#i-map-pin"/></svg> Klepni do mapy tam, kde <b>doopravdy stojíš</b>.'
             + '<small>Čím víc přiblížíš, tím přesnější poloha — přesnost se počítá z měřítka mapy.</small>'
@@ -215,18 +215,18 @@
         disarm();
         var acc = accFromZoom(lat, (zoom != null && isFinite(zoom)) ? zoom : 19);
         var gpsAcc = null, moved = null;
-        try { if (typeof currentGpsAccuracy === 'number' && isFinite(currentGpsAccuracy)) gpsAcc = currentGpsAccuracy; } catch (e) {}
+        try { if (typeof currentGpsAccuracy === 'number' && isFinite(currentGpsAccuracy)) gpsAcc = currentGpsAccuracy; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:take'); }
         // surový fix si necháme jako záchytný bod pro poznání odchodu
         var raw = null;
-        try { if (window.AGFix && !window.AGFix.manual && window.AGFix.lat != null) raw = { lat: window.AGFix.lat, lng: window.AGFix.lng }; } catch (e) {}
-        if (!raw && !S.active) { try { if (typeof userLat === 'number' && userLat != null) raw = { lat: userLat, lng: userLng }; } catch (e) {} }
+        try { if (window.AGFix && !window.AGFix.manual && window.AGFix.lat != null) raw = { lat: window.AGFix.lat, lng: window.AGFix.lng }; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:take'); }
+        if (!raw && !S.active) { try { if (typeof userLat === 'number' && userLat != null) raw = { lat: userLat, lng: userLng }; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:take'); } }
         if (!raw && S.gpsAtPin) raw = S.gpsAtPin;    // přepnutí polohy za běhu režimu
-        try { if (raw) moved = getDistance(raw.lat, raw.lng, lat, lng); } catch (e) {}
+        try { if (raw) moved = getDistance(raw.lat, raw.lng, lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:take'); }
 
         S.active = true; S.armed = false;
         S.lat = lat; S.lng = lng; S.acc = acc; S.ts = Date.now();
         S.gpsAtPin = raw; S.gpsAcc = gpsAcc; S.offHits = 0;
-        try { document.body.classList.add('ag-manual-pos'); } catch (e) {}
+        try { document.body.classList.add('ag-manual-pos'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:take'); }
         apply();
         status();
         if (_tick) clearInterval(_tick);
@@ -250,11 +250,11 @@
         S.active = false; S.armed = false;
         S.lat = S.lng = S.acc = null; S.gpsAtPin = null; S.offHits = 0;
         if (_tick) { clearInterval(_tick); _tick = null; }
-        try { document.body.classList.remove('ag-manual-pos'); } catch (e) {}
+        try { document.body.classList.remove('ag-manual-pos'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:clear'); }
         statusOff();
         hint(false);
         // vzorky průměrování zahodit i teď: mrak by mísil ruční polohu s GPS
-        try { gpsSamples = []; gpsAvgResult = null; } catch (e) {}
+        try { gpsSamples = []; gpsAvgResult = null; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:clear'); }
         // kruh přesnosti si barvu i polohu srovná sám při nejbližším fixu
         syncBtn();
         if (!quiet) toast('Zpět na GPS.');
@@ -302,7 +302,7 @@
         b.addEventListener('click', function () { window.agPosFromMap(); });
         stack.appendChild(b);
         // panel si tlačítko „adoptuje" (dá mu popisek a vzhled dlaždice)
-        try { if (window.AGMapTools && typeof AGMapTools.adopt === 'function') AGMapTools.adopt(); } catch (e) {}
+        try { if (window.AGMapTools && typeof AGMapTools.adopt === 'function') AGMapTools.adopt(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'poloha-z-mapy:injectBtn'); }
         syncBtn();
     }
 

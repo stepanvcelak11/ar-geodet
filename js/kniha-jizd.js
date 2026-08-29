@@ -44,36 +44,36 @@
     var _month = null;                 // 'YYYY-MM' zobrazený měsíc (null = aktuální)
 
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
-    function info(m, t) { try { if (typeof window.agInfo === 'function') return window.agInfo(m, t); } catch (e) {} agInfo(String(m).replace(/<[^>]*>/g, '')); }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kniha-jizd:toast'); } }
+    function info(m, t) { try { if (typeof window.agInfo === 'function') return window.agInfo(m, t); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kniha-jizd:info'); } agInfo(String(m).replace(/<[^>]*>/g, '')); }
     function ask(m, cb) {
-        try { if (typeof window.agAsk === 'function') { window.agAsk(m).then(function (ok) { if (ok) cb(); }); return; } } catch (e) {}
+        try { if (typeof window.agAsk === 'function') { window.agAsk(m).then(function (ok) { if (ok) cb(); }); return; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kniha-jizd:ask'); }
         if (confirm(String(m).replace(/<[^>]*>/g, ''))) cb();
     }
     function pad2(n) { return ('0' + n).slice(-2); }
 
     function lsGet(k, def) { try { var v = JSON.parse(localStorage.getItem(k)); return (v == null) ? def : v; } catch (e) { return def; } }
-    function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+    function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kniha-jizd:lsSet'); } }
     function trips() { var a = lsGet(LS_TRIPS, []); return Array.isArray(a) ? a : []; }
     function saveTrips(a) { lsSet(LS_TRIPS, a); }
     function cfg() { var c = lsGet(LS_CFG, {}); return (c && typeof c === 'object') ? c : {}; }
     function saveCfg(c) { lsSet(LS_CFG, c); }
     function openTrip() { var o = lsGet(LS_OPEN, null); return (o && o.t0) ? o : null; }
-    function setOpenTrip(o) { if (o) lsSet(LS_OPEN, o); else { try { localStorage.removeItem(LS_OPEN); } catch (e) {} } }
+    function setOpenTrip(o) { if (o) lsSet(LS_OPEN, o); else { try { localStorage.removeItem(LS_OPEN); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kniha-jizd:setOpenTrip'); } } }
 
     // ---- kontext: poloha, zakázka, řidič -----------------------------------------------
     function pos() {
-        try { if (typeof userLat === 'number' && userLat != null && typeof userLng === 'number') return { lat: userLat, lng: userLng }; } catch (e) {}
-        try { var p = JSON.parse(localStorage.getItem('arLastPos')); if (p && p.lat) return { lat: +p.lat, lng: +(p.lng != null ? p.lng : p.lon) }; } catch (e) {}
+        try { if (typeof userLat === 'number' && userLat != null && typeof userLng === 'number') return { lat: userLat, lng: userLng }; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kniha-jizd:pos'); }
+        try { var p = JSON.parse(localStorage.getItem('arLastPos')); if (p && p.lat) return { lat: +p.lat, lng: +(p.lng != null ? p.lng : p.lon) }; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kniha-jizd:pos'); }
         return null;
     }
     function projName() {
         var id = 'default';
-        try { id = localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) {}
+        try { id = localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kniha-jizd:projName'); }
         try {
             var l = JSON.parse(localStorage.getItem('arProjectsList') || '[]');
             if (Array.isArray(l)) { for (var i = 0; i < l.length; i++) if (l[i] && l[i].id === id) return l[i].name || id; }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kniha-jizd:projName'); }
         return id === 'default' ? '' : id;
     }
     function driverName() {
@@ -84,12 +84,12 @@
                 var u = AGUcty.currentUser();
                 if (u && u.name) return u.name;
             }
-        } catch (e) {}
-        try { return localStorage.getItem('arSurveyor') || ''; } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kniha-jizd:driverName'); }
+        try { return localStorage.getItem('arSurveyor') || ''; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kniha-jizd:driverName'); }
         return '';
     }
     function dist(a, b) {
-        try { if (typeof getDistance === 'function') return getDistance(a.lat, a.lng, b.lat, b.lng); } catch (e) {}
+        try { if (typeof getDistance === 'function') return getDistance(a.lat, a.lng, b.lat, b.lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kniha-jizd:dist'); }
         var R = 6371000, dLat = (b.lat - a.lat) * Math.PI / 180, dLng = (b.lng - a.lng) * Math.PI / 180;
         var la = a.lat * Math.PI / 180, lb = b.lat * Math.PI / 180;
         var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(la) * Math.cos(lb) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
@@ -110,7 +110,7 @@
                 });
                 if (best) return best.label;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kniha-jizd:placeName'); }
         var pn = projName();
         if (pn) return pn;
         return p.lat.toFixed(4) + ', ' + p.lng.toFixed(4);
@@ -168,7 +168,7 @@
                     }, function () { cb(null); });
                 return;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kniha-jizd:askOdo'); }
         var s = (await agAskText(title + ' (prázdné = odhad):'));
         var n2 = parseFloat(String(s == null ? '' : s).replace(',', '.'));
         cb(isFinite(n2) && n2 >= 0 ? n2 : null);
@@ -184,7 +184,7 @@
             m.querySelector('#ag-kz-m-date').value = d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
             m.querySelector('#ag-kz-m-purp').value = projName();
             // formulář je pod seznamem jízd — u delšího měsíce by se otevřel mimo obraz
-            try { m.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {}
+            try { m.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kniha-jizd:manualAdd'); }
         }
     }
     function manualSave() {
@@ -394,7 +394,7 @@
                 });
                 return;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kniha-jizd:editCfg'); }
         var car = (await agAskText('SPZ / vozidlo:', { value: c.car || '' }));
         if (car != null) c.car = car.trim();
         var rr = (await agAskText('Kč/km (prázdné = nepočítat):', { value: c.rate != null ? String(c.rate) : '' }));

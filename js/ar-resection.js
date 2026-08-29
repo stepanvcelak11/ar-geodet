@@ -34,8 +34,8 @@
     var _result = null;        // poslední výsledek resekce
 
     // ---- pomocné --------------------------------------------------------------
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-resection:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-resection:toast'); } }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function heading() { return (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null; }
     function angNormDeg(a) { return ((a % 360) + 540) % 360 - 180; }      // -> (-180,180]
@@ -334,7 +334,7 @@
                 var sdir = Math.max(0.3, Math.sqrt(varsum / Math.max(1, _capSamples.length - 1)));
                 var pt = ptById(_selIds[_capIdx]);
                 if (pt) _shots[pt.id] = { az: az, n: _capSamples.length, sdir: sdir, name: pt.name, lat: pt.lat, lng: pt.lng };
-                if (navigator.vibrate) try { navigator.vibrate(25); } catch (e) {}
+                if (navigator.vibrate) try { navigator.vibrate(25); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-resection:takeShot'); }
                 _capIdx++;
                 promptNext();
             }
@@ -360,7 +360,7 @@
         _result = solveResection(shots, { lat: userLat, lng: userLng });
         if (_result) {
             _result.shiftFromGps = getDistance(userLat, userLng, _result.lat, _result.lng);
-            var sj = null; try { sj = proj4('EPSG:4326', 'EPSG:5514', [_result.lng, _result.lat]); } catch (e) {}
+            var sj = null; try { sj = proj4('EPSG:4326', 'EPSG:5514', [_result.lng, _result.lat]); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-resection:compute'); }
             if (sj) { _result.Y = Math.abs(sj[0]); _result.X = Math.abs(sj[1]); }
         }
     }
@@ -397,7 +397,7 @@
         if (acts) acts.style.display = 'block';
         var apply = document.getElementById('agrx-apply'); if (apply) apply.innerHTML = '<svg class="icon"><use href="#i-check"/></svg> Srovnat sever (' + (r.delta >= 0 ? '+' : '') + r.delta.toFixed(1) + '°)';
         var save = document.getElementById('agrx-save'); if (save) save.style.display = (r.mode === 'full') ? 'block' : 'none';
-        try { if (window.AGQc) window.AGQc.onResection(box, r); } catch (e) {}   // QC: kód kvality z posSigma (odpojitelné)
+        try { if (window.AGQc) window.AGQc.onResection(box, r); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-resection:renderResult'); }   // QC: kód kvality z posSigma (odpojitelné)
     }
 
     function applyNorth() {
@@ -405,7 +405,7 @@
         var d = _result.delta;
         if (typeof nudgeHeadingOffset === 'function') nudgeHeadingOffset(d);
         else if (typeof userHeadingOffset !== 'undefined') {
-            try { userHeadingOffset = ((userHeadingOffset + d) % 360 + 360) % 360; if (typeof setStoredData === 'function') setStoredData('arHeadingOffset', String(userHeadingOffset)); if (typeof updateHeadingOffsetVal === 'function') updateHeadingOffsetVal(); } catch (e) {}
+            try { userHeadingOffset = ((userHeadingOffset + d) % 360 + 360) % 360; if (typeof setStoredData === 'function') setStoredData('arHeadingOffset', String(userHeadingOffset)); if (typeof updateHeadingOffsetVal === 'function') updateHeadingOffsetVal(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-resection:applyNorth'); }
         } else { agAlert('Nelze srovnat', 'Korekce kompasu není dostupná.'); return; }
         // #1 AGPose: u plné resekce (3+ body) zakotvi STANOVISKO jako origin živého AR —
         // přesná GPS-nezávislá poloha se dřív spočítala a zahodila. Teď z ní AR kotví.
@@ -419,7 +419,7 @@
                     source: 'resection', note: _result.residuals.length + ' bodů'
                 });
                 _anchored = true;
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-resection:applyNorth'); }
         }
         // #9: orient mód (2 body) slibuje „poloha = GPS". Pokud drží staré kotvení z DŘÍVĚJŠÍ
         // plné resekce a reálně jsem se přesunul, zruš ho (na témže stanovisku ponech).
@@ -427,7 +427,7 @@
             try {
                 var _mv = getDistance(window.AGPose.originLat, window.AGPose.originLng, userLat, userLng);
                 if (_mv > Math.max(1.5, (window.AGPose.posSigma || 1.2))) window.AGPose.clear(false);
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-resection:applyNorth'); }
         }
         agAlert('Sever srovnán', 'Sever srovnán resekcí z ' + _result.residuals.length + ' bodů (' + (d >= 0 ? '+' : '') + d.toFixed(1) + '°).'
             + (_anchored ? '\n\n📍 Stanovisko ZAKOTVENO jako počátek AR — značky teď nekotví na kolísavou GPS, ale na spočítanou polohu (±' + (_result.posSigma != null ? _result.posSigma.toFixed(2) : '?') + ' m). Až odejdeš, AR se vrátí na GPS.' : '')

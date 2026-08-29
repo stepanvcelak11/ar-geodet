@@ -29,7 +29,7 @@
         if (!r || !r.key || !r.ts || (Date.now() - r.ts) > MAX_AGE_MS) return null;
         return r;
     }
-    function saveRec(r) { try { localStorage.setItem(KEY, JSON.stringify(r)); } catch (e) {} }
+    function saveRec(r) { try { localStorage.setItem(KEY, JSON.stringify(r)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pokracovat:saveRec'); } }
 
     function getGrid() { var m = document.getElementById('tools-modal'); return m ? m.querySelector('.tool-grid') : null; }
     function tileKey(tile) {
@@ -129,9 +129,9 @@
                     if (typeof window.changeProject === 'function') changeProject();
                 }
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pokracovat:resume'); }
         function go() {
-            try { if (typeof window.startAppFromWelcome === 'function') startAppFromWelcome(); } catch (e) {}
+            try { if (typeof window.startAppFromWelcome === 'function') startAppFromWelcome(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pokracovat:go'); }
             var waited = 0;
             var t = setInterval(function () {
                 waited += 500;
@@ -141,7 +141,7 @@
                     setTimeout(function () {
                         var tile = findTile(rec.key);
                         if (tile) tile.click();   // dlaždice sama zavře modál a otevře nástroj
-                        else if (typeof window.quickToast === 'function') { try { quickToast('Nástroj „' + rec.label + '" se nepodařilo najít.'); } catch (e) {} }
+                        else if (typeof window.quickToast === 'function') { try { quickToast('Nástroj „' + rec.label + '" se nepodařilo najít.'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pokracovat:go'); } }
                     }, 900);
                 } else if (waited >= 20000) clearInterval(t);
             }, 500);
@@ -157,7 +157,7 @@
     function init() {
         try { refreshBtn(); } catch (e) { console.warn('[pokracovat] init', e); }
         if (!window.__agPkTimer) window.__agPkTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(function () {
-            try { refreshBtn(); } catch (e) {}
+            try { refreshBtn(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pokracovat:init'); }
         }, 2000);
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

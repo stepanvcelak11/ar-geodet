@@ -84,7 +84,7 @@
                 } else if (window.console) {
                     console.warn('[lazy-load] nenačteno: ' + item.src);
                 }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'lazy-load:onerror'); }
             done(item.src);
         };
         (document.body || document.documentElement).appendChild(s);
@@ -94,14 +94,14 @@
         if (src) outstanding--;
         var cbs = pending[src];
         delete pending[src];
-        if (cbs) for (var i = 0; i < cbs.length; i++) { try { cbs[i](); } catch (e) {} }
+        if (cbs) for (var i = 0; i < cbs.length; i++) { try { cbs[i](); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'lazy-load:done'); } }
         // hotovo = nic ve frontě A nic rozjetého (jinak by se mřížka pobízela dřív,
         // než poslední moduly zaregistrují dlaždice)
         if (!queue.length && outstanding <= 0 && !finished) {
             finished = true;
             // pobídka pro mřížku Nástrojů (pozdě registrované dlaždice)
-            try { if (typeof window.agFtSyncTiles === 'function') window.agFtSyncTiles(); } catch (e) {}
-            try { window.dispatchEvent(new CustomEvent('ag:lazy-done')); } catch (e) {}
+            try { if (typeof window.agFtSyncTiles === 'function') window.agFtSyncTiles(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'lazy-load:done'); }
+            try { window.dispatchEvent(new CustomEvent('ag:lazy-done')); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'lazy-load:done'); }
         }
     }
 

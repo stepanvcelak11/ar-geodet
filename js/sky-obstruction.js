@@ -30,16 +30,16 @@
     // Drobné pomůcky (vlastní, ať nezávisíme na pořadí načtení vylepseni.js)
     // --------------------------------------------------------------------------------
     function alertBox(title, msg) {
-        try { if (typeof window.agAlert === 'function') { window.agAlert({ title: title, message: msg }); return; } } catch (e) {}
-        try { agInfo(title + '\n\n' + String(msg).replace(/<[^>]+>/g, '')); } catch (e) {}
+        try { if (typeof window.agAlert === 'function') { window.agAlert({ title: title, message: msg }); return; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'sky-obstruction:alertBox'); }
+        try { agInfo(title + '\n\n' + String(msg).replace(/<[^>]+>/g, '')); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'sky-obstruction:alertBox'); }
     }
     function getMask() {
         var m = 15;
-        try { var v = parseInt(localStorage.getItem(MASK_KEY), 10); if (isFinite(v)) m = v; } catch (e) {}
+        try { var v = parseInt(localStorage.getItem(MASK_KEY), 10); if (isFinite(v)) m = v; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'sky-obstruction:getMask'); }
         return Math.max(0, Math.min(45, m));
     }
     function setMask(v) {
-        try { localStorage.setItem(MASK_KEY, String(v)); } catch (e) {}
+        try { localStorage.setItem(MASK_KEY, String(v)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'sky-obstruction:setMask'); }
     }
     function hasGps() {
         try { return typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null; } catch (e) { return false; }
@@ -51,7 +51,7 @@
         try { return typeof tleSats !== 'undefined' && tleSats && tleSats.length > 0; } catch (e) { return false; }
     }
     function sysList() {
-        try { if (typeof SAT_SYS !== 'undefined' && Array.isArray(SAT_SYS)) return SAT_SYS; } catch (e) {}
+        try { if (typeof SAT_SYS !== 'undefined' && Array.isArray(SAT_SYS)) return SAT_SYS; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'sky-obstruction:sysList'); }
         return [];
     }
 
@@ -127,7 +127,7 @@
             return;
         }
         if (!hasTle()) {
-            try { if (typeof loadTleFromCache === 'function') loadTleFromCache(); } catch (e) {}
+            try { if (typeof loadTleFromCache === 'function') loadTleFromCache(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'sky-obstruction:render'); }
         }
         if (!hasGps()) {
             body.innerHTML = '<p class="sky-note">Čekám na GPS pozici… Skyplot se vykreslí, jakmile telefon zná polohu.</p>';
@@ -275,7 +275,7 @@
         btn.type = 'button';
         btn.innerHTML = '<svg class="icon"><use href="#i-satellite"/></svg> Predikce signálu';
         btn.addEventListener('click', function () {
-            try { if (typeof toggleMenu === 'function') toggleMenu(); } catch (e) {}
+            try { if (typeof toggleMenu === 'function') toggleMenu(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'sky-obstruction:injectMenuButton'); }
             openModal();
         });
         // vlož hned za tlačítko "GNSS satelity (AR)", ať jsou družicové funkce u sebe

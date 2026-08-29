@@ -48,13 +48,13 @@
             window.AGDraft.save(DRAFT_KEY,
                 { stId: _stId, orientId: _orientId, dist: _dist, targetName: _targetName, devOrient: _devOrient, devTarget: _devTarget, capSpread: _capSpread, result: _result },
                 'Rajón – zaměřeno ' + shots + '/2');
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rajon:draftSave'); }
     }
-    function draftClear() { if (window.AGDraft) try { window.AGDraft.clear(DRAFT_KEY); } catch (e) {} }
+    function draftClear() { if (window.AGDraft) try { window.AGDraft.clear(DRAFT_KEY); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rajon:draftClear'); } }
 
     // ---- pomocné --------------------------------------------------------------
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rajon:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rajon:toast'); } }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function heading() { return (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null; }
     function curViewMode() { try { return (typeof viewMode !== 'undefined') ? viewMode : 'both'; } catch (e) { return 'both'; } }
@@ -111,7 +111,7 @@
         var theta = ((betaSO + ang) % 360 + 360) % 360;         // směrník stanovisko→cíl
         var Te = _dist * Math.sin(theta * D2R), Tn = _dist * Math.cos(theta * D2R);
         var latP = lat0 + Tn / mLat, lngP = lng0 + Te / mLng;
-        var sj = null; try { sj = proj4('EPSG:4326', 'EPSG:5514', [lngP, latP]); } catch (e) {}
+        var sj = null; try { sj = proj4('EPSG:4326', 'EPSG:5514', [lngP, latP]); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rajon:solve'); }
         return {
             lat: latP, lng: lngP,
             Y: sj ? Math.abs(sj[0]) : null, X: sj ? Math.abs(sj[1]) : null,
@@ -193,7 +193,7 @@
     // ---- zaměřovací režim (přes kameru) — VYČIŠTĚNÁ obrazovka ------------------
     function declutter(on) {
         document.body.classList.toggle('agrj-clean', !!on);
-        if (!on) { try { if (typeof applyViewMode === 'function') applyViewMode(); } catch (e) {} }
+        if (!on) { try { if (typeof applyViewMode === 'function') applyViewMode(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rajon:declutter'); } }
     }
     function ensureAim() {
         if (document.getElementById('agrj-aim')) return;
@@ -275,7 +275,7 @@
                 var sd = circStdDeg(_capSamples);
                 if (_steps[_capIdx] === 'orient') { _devOrient = az; } else { _devTarget = az; _capSpread = sd; }
                 draftSave();   // každá hotová záměra se hned draftuje
-                if (navigator.vibrate) try { navigator.vibrate(25); } catch (e) {}
+                if (navigator.vibrate) try { navigator.vibrate(25); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rajon:takeShot'); }
                 _capIdx++;
                 promptStep();
             }
@@ -409,7 +409,7 @@
                     var nm = document.getElementById('agrj-name'); if (nm) nm.value = _targetName;
                 }
             });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rajon:open'); }
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'rajon', label: 'Rajón (nový bod ze směru + délky)', icon: ICON, cat: 'Měření', onClick: openTool, order: 7 });
         } else {

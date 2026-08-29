@@ -55,7 +55,7 @@
             _lastToast = now; _lastSig = sig;
             // toast až po startu (quickToast je v logika.js, která se teprve načte)
             setTimeout(function () {
-                try { if (typeof quickToast === 'function') quickToast('Něco se pokazilo (' + String(msg).slice(0, 60) + '). Detail: Více → Protokol chyb.'); } catch (e) {}
+                try { if (typeof quickToast === 'function') quickToast('Něco se pokazilo (' + String(msg).slice(0, 60) + '). Detail: Více → Protokol chyb.'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'err-log:record'); }
             }, 800);
         }
     }
@@ -92,7 +92,7 @@
             document.body.appendChild(el);
             el.querySelector('#errlog-copy').addEventListener('click', function () {
                 var txt = load().map(function (e) { return new Date(e.t).toLocaleString('cs-CZ') + (e.n > 1 ? ' (' + e.n + 'x)' : '') + '  ' + e.msg + (e.src ? '  [' + e.src + ':' + e.line + ']' : '') + (e.stack ? '\n' + e.stack : ''); }).join('\n\n');
-                try { navigator.clipboard.writeText(txt); if (typeof quickToast === 'function') quickToast('Zkopírováno.'); } catch (e) {}
+                try { navigator.clipboard.writeText(txt); if (typeof quickToast === 'function') quickToast('Zkopírováno.'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'err-log:show'); }
             });
             el.querySelector('#errlog-clear').addEventListener('click', function () { save([]); render(); });
         }

@@ -33,10 +33,10 @@
 
     // ---- pomocné --------------------------------------------------------------
     function agAlert(t, m) {
-        try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m, cancelText: false }); } catch (e) {}
-        try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) {}
+        try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m, cancelText: false }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'job-transfer:agAlert'); }
+        try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'job-transfer:agAlert'); }
     }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'job-transfer:toast'); } }
 
     // aktivní zakázka — čteme přímo z localStorage (nezávisle na tom, zda jsou
     // globály logika.js v dosahu); pid = klíčový prefix všech dat zakázky
@@ -46,7 +46,7 @@
         try {
             var list = JSON.parse(localStorage.getItem('arProjectsList') || '[]');
             if (Array.isArray(list)) { var p = list.find(function (x) { return x && x.id === pid; }); if (p && p.name) name = p.name; }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'job-transfer:getProjMeta'); }
         return { id: pid, name: name };
     }
     // bezpečný název souboru z názvu zakázky
@@ -101,13 +101,13 @@
                 if (suf === 'arOfflinePoints12') continue;   // úřední body: velké a znovu stažitelné z ČÚZK
                 ls[suf] = localStorage.getItem(key);
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'job-transfer:collect'); }
 
         // 2) IndexedDB klíče zakázky (body arCustomPoints12 + fotky doc_<id>)
         return collectIdb(pid, prefix, withPhotos, ls).then(function (idb) {
             // 3) žurnál (provenience) — pro .argeo přenos
             var jP = Promise.resolve([]);
-            try { if (window.AGJournal && typeof window.AGJournal.all === 'function') jP = window.AGJournal.all(pid).catch(function () { return []; }); } catch (e) {}
+            try { if (window.AGJournal && typeof window.AGJournal.all === 'function') jP = window.AGJournal.all(pid).catch(function () { return []; }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'job-transfer:collect'); }
             return jP.then(function (journal) {
                 return {
                     format: FORMAT, v: VERSION, app: 'AR Geodet',
@@ -136,7 +136,7 @@
                         if (suf.indexOf('doc_') === 0 && !withPhotos) { val = stripPhotos(val); if (val == null) return; }
                         idb[suf] = val;
                     });
-                } catch (e) {}
+                } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'job-transfer:collectIdb'); }
                 return idb;
             }).catch(function () { return idb; });
         }
@@ -147,7 +147,7 @@
     function collectIdbFallback(withPhotos, ls, idb) {
         // body: getStoredData vrací aktivní zakázku (= pid)
         var cpRaw = null;
-        try { if (typeof getStoredData === 'function') cpRaw = getStoredData('arCustomPoints12'); } catch (e) {}
+        try { if (typeof getStoredData === 'function') cpRaw = getStoredData('arCustomPoints12'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'job-transfer:collectIdbFallback'); }
         if (cpRaw == null) cpRaw = ls.arCustomPoints12 || null;
         if (cpRaw != null) idb.arCustomPoints12 = cpRaw;
         var pts = [];
@@ -171,10 +171,10 @@
     // stručný přehled co je v balíčku (pro UI a hlášku)
     function pkgSummary(pkg) {
         var cpRaw = (pkg.idb && pkg.idb.arCustomPoints12) || (pkg.ls && pkg.ls.arCustomPoints12) || null;
-        var nPts = 0; try { if (cpRaw) nPts = (JSON.parse(cpRaw) || []).length; } catch (e) {}
+        var nPts = 0; try { if (cpRaw) nPts = (JSON.parse(cpRaw) || []).length; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'job-transfer:pkgSummary'); }
         var lnRaw = (pkg.ls && pkg.ls.arLines12) || (pkg.idb && pkg.idb.arLines12) || null;
-        var nLines = 0; try { if (lnRaw) nLines = (JSON.parse(lnRaw) || []).length; } catch (e) {}
-        var nDocs = 0; try { Object.keys(pkg.idb || {}).forEach(function (k) { if (k.indexOf('doc_') === 0) nDocs++; }); } catch (e) {}
+        var nLines = 0; try { if (lnRaw) nLines = (JSON.parse(lnRaw) || []).length; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'job-transfer:pkgSummary'); }
+        var nDocs = 0; try { Object.keys(pkg.idb || {}).forEach(function (k) { if (k.indexOf('doc_') === 0) nDocs++; }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'job-transfer:pkgSummary'); }
         var nJ = (pkg.journal && pkg.journal.length) || 0;
         return { pts: nPts, lines: nLines, docs: nDocs, journal: nJ };
     }
@@ -300,7 +300,7 @@
         var sum = pkgSummary(pkg);
         var target = getProjMeta(getPid());
         var when = '';
-        try { when = new Date(pkg.exportedAt).toLocaleString('cs-CZ'); } catch (e) {}
+        try { when = new Date(pkg.exportedAt).toLocaleString('cs-CZ'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'job-transfer:confirmAndMerge'); }
         var html = 'Přenos zakázky <b>„' + escHtml(pkg.project && pkg.project.name || '?') + '"</b>' + (when ? ' (' + when + ')' : '') + ':<br>'
             + '<b>' + sum.pts + '</b> bodů · <b>' + sum.lines + '</b> spojnic · <b>' + sum.docs + '</b> foto/pozn.' + (sum.journal ? ' · ' + sum.journal + ' zázn. žurnálu' : '') + '<br><br>'
             + 'Sloučit do tvojí aktivní zakázky <b>„' + escHtml(target.name) + '"</b>?<br>'
@@ -332,7 +332,7 @@
             if (p.prov) o.prov = p.prov;
             o.origin = (p.prov && p.prov.origin) || 'transfer';
             var d = docs['doc_' + p.id];
-            if (d) { try { o.doc = JSON.parse(d); } catch (e) {} }
+            if (d) { try { o.doc = JSON.parse(d); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'job-transfer:runMerge'); } }
             toImport.push(o);
         });
         var addedPts = 0;
@@ -395,8 +395,8 @@
                 pointLines.push(newLine); added++;
             });
             if (added) {
-                try { if (typeof saveLines === 'function') saveLines(); } catch (e) {}
-                try { if (typeof drawAllLinesOnMap === 'function') drawAllLinesOnMap(); } catch (e) {}
+                try { if (typeof saveLines === 'function') saveLines(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'job-transfer:dup'); }
+                try { if (typeof drawAllLinesOnMap === 'function') drawAllLinesOnMap(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'job-transfer:dup'); }
             }
             return added;
         } catch (e) { console.warn('[job-transfer] mergeLines', e); return 0; }
@@ -475,7 +475,7 @@
         var b = document.createElement('button'); b.id = 'agjt-fab'; b.type = 'button';
         b.title = 'Poslat/načíst zakázku'; b.innerHTML = ICON;
         b.style.cssText = 'position:fixed;left:12px;bottom:322px;z-index:99990;width:48px;height:48px;border:none;border-radius:14px;background:var(--accent,#2f9e74);color:#04110b;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,0.45);';
-        try { b.querySelector('svg').style.cssText = 'width:24px;height:24px;'; } catch (e) {}
+        try { b.querySelector('svg').style.cssText = 'width:24px;height:24px;'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'job-transfer:ensureFallbackFab'); }
         b.addEventListener('click', openTool);
         if (document.body) document.body.appendChild(b);
     }

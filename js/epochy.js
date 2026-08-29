@@ -29,10 +29,10 @@
     var _prefill = null;            // {y,x,z} pro předvyplnění formuláře epochy po renderu
 
     // ---- util -------------------------------------------------------------------
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
-    function agAlertX(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy:toast'); } }
+    function agAlertX(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy:agAlertX'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function agConfirmX(t, m) {
-        try { if (typeof window.agConfirm === 'function') return window.agConfirm({ title: t, message: m, danger: true }); } catch (e) {}
+        try { if (typeof window.agConfirm === 'function') return window.agConfirm({ title: t, message: m, danger: true }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy:agConfirmX'); }
         return Promise.resolve(confirm(t + (m ? '\n' + m : '')));
     }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -50,9 +50,9 @@
             var raw = (typeof getStoredData === 'function') ? getStoredData(KEY) : null;
             var p = raw ? JSON.parse(raw) : null;
             if (p && Array.isArray(p.items)) S = p;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy:load'); }
     }
-    function save() { try { if (typeof setStoredData === 'function') setStoredData(KEY, JSON.stringify(S)); } catch (e) {} }
+    function save() { try { if (typeof setStoredData === 'function') setStoredData(KEY, JSON.stringify(S)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy:save'); } }
     function itemById(id) { for (var i = 0; i < S.items.length; i++) if (S.items[i].id === id) return S.items[i]; return null; }
     function sortEpochs(it) { it.epochs.sort(function (a, b) { return a.t - b.t; }); }
 

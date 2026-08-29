@@ -55,7 +55,7 @@
         var t = findTile(key);
         closeModal();
         if (t) { t.click(); return true; }
-        if (fallbackFn && typeof window[fallbackFn] === 'function') { closeTools(); try { window[fallbackFn](); } catch (e) {} return true; }
+        if (fallbackFn && typeof window[fallbackFn] === 'function') { closeTools(); try { window[fallbackFn](); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'usadit-ar:runTool'); } return true; }
         return false;
     }
 
@@ -188,7 +188,7 @@
     function wrapFilter() {
         if (window.__agUaWrapped || typeof window.agFilterTools !== 'function') return;
         var orig = window.agFilterTools;
-        window.agFilterTools = function (v) { var r = orig.apply(this, arguments); try { applySimple(); } catch (e) {} return r; };
+        window.agFilterTools = function (v) { var r = orig.apply(this, arguments); try { applySimple(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'usadit-ar:agFilterTools'); } return r; };
         window.__agUaWrapped = true;
     }
 
@@ -204,7 +204,7 @@
         var sw = document.createElement('label'); sw.className = 'st-sw';
         var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = simpleOn();
         cb.addEventListener('change', function () {
-            try { localStorage.setItem(SIMPLE_KEY, cb.checked ? '1' : '0'); } catch (e) {}
+            try { localStorage.setItem(SIMPLE_KEY, cb.checked ? '1' : '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'usadit-ar:injectSettingsToggle'); }
             applySimple();
         });
         var face = document.createElement('span'); face.className = 'st-sw-face';
@@ -226,7 +226,7 @@
         var anchored = !!(window.AGPose && window.AGPose.valid);
         if (!hoff && !anchored) add('usadit-ar');
         // 3) otevřené závady → seznam závad
-        try { if (window.AGZavady && window.AGZavady.count() > 0) add('zavady'); } catch (e) {}
+        try { if (window.AGZavady && window.AGZavady.count() > 0) add('zavady'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'usadit-ar:add'); }
         // 4) doplň nejpoužívanějšími
         var usage = loadUsage();
         Object.keys(usage).sort(function (a, b) { return usage[b] - usage[a]; }).forEach(function (k) {
@@ -272,7 +272,7 @@
             applySimple();
             var m = document.getElementById('tools-modal');
             if (m && m.style.display === 'flex') renderNow();
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'usadit-ar:tick'); }
     }
     function init() {
         injectStyles();

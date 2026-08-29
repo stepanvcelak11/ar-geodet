@@ -34,17 +34,17 @@
 
     function loadHeight() {
         var h = NaN;
-        try { h = parseFloat(localStorage.getItem(LS_H)); } catch (e) {}
+        try { h = parseFloat(localStorage.getItem(LS_H)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vyska-objektu:loadHeight'); }
         if (!isFinite(h) || h <= 0) {
-            try { if (typeof visSettings === 'object' && visSettings && isFinite(visSettings.eyeHeight)) h = visSettings.eyeHeight; } catch (e) {}
+            try { if (typeof visSettings === 'object' && visSettings && isFinite(visSettings.eyeHeight)) h = visSettings.eyeHeight; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vyska-objektu:loadHeight'); }
         }
         if (!isFinite(h) || h <= 0) h = 1.5;
         return Math.round(h * 100) / 100;
     }
-    function saveHeight() { try { localStorage.setItem(LS_H, String(_height)); } catch (e) {} }
+    function saveHeight() { try { localStorage.setItem(LS_H, String(_height)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vyska-objektu:saveHeight'); } }
 
-    function agAlertX(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function agAlertX(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vyska-objektu:agAlertX'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vyska-objektu:toast'); } }
     function curViewMode() { try { return (typeof viewMode !== 'undefined') ? viewMode : 'both'; } catch (e) { return 'both'; } }
     function rad(d) { return d * Math.PI / 180; }
     function pitchNow() {
@@ -94,7 +94,7 @@
     // ---- aiming overlay (přes kameru, vzor rangefinder) ---------------------------
     function declutter(on) {
         document.body.classList.toggle('agvo-clean', !!on);
-        if (!on) { try { if (typeof applyViewMode === 'function') applyViewMode(); } catch (e) {} }
+        if (!on) { try { if (typeof applyViewMode === 'function') applyViewMode(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vyska-objektu:declutter'); } }
     }
     function ensureAim() {
         if (document.getElementById('agvo-aim')) return;
@@ -169,7 +169,7 @@
     function capture() {
         var p = pitchStable();
         if (p == null) { agAlertX('Čekám na senzory', 'Zapni AR/Split režim (kamera) a podrž telefon — potřebuji náklon.'); return; }
-        if (navigator.vibrate) { try { navigator.vibrate(25); } catch (e) {} }
+        if (navigator.vibrate) { try { navigator.vibrate(25); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vyska-objektu:capture'); } }
         if (_step === 1) {
             if (_dManual == null && p <= 0.5) { agAlertX('Pata u horizontu', 'Z tohohle úhlu vzdálenost nespočtu. Jdi blíž, nebo v nastavení zadej vzdálenost ručně.'); return; }
             _pBase = p; _step = 2; setStepUI();

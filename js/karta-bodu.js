@@ -39,7 +39,7 @@
     // scope, ktery lexikalni vazby vidi. Jmena jsou v tomhle modulu vzdy literaly.
     var _gFn = {};
     function g(name) {
-        try { if (name in window) return window[name]; } catch (e) {}
+        try { if (name in window) return window[name]; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:g'); }
         try {
             var f = _gFn[name] || (_gFn[name] = new Function('return typeof ' + name + '!=="undefined"?' + name + ':undefined'));
             return f();
@@ -60,7 +60,7 @@
         try {
             if (typeof getGeoidUndulation === 'function') return alt - getGeoidUndulation(lat, lng);
             if (window.GeoCore && GeoCore.geoidUndulation) return alt - GeoCore.geoidUndulation(lat, lng);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:bpv'); }
         return null;
     }
     // Δ v S-JTSK (kladné Y/X jako všude v appce) — to je řeč, kterou geodet čte
@@ -80,14 +80,14 @@
                 var la = g('userLat'), ln = g('userLng');
                 if (la != null) return getBearing(la, ln, pt.lat, pt.lng);
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:bearingTo'); }
         return null;
     }
     function distTo(pt) {
         try {
             var la = g('userLat'), ln = g('userLng');
             if (la != null && typeof getDistance === 'function') return getDistance(la, ln, pt.lat, pt.lng);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:distTo'); }
         return null;
     }
     // výška bodu: vlastní bod (pt.vyska) i úřední záznam ČÚZK (rawData)
@@ -101,7 +101,7 @@
                 var v = parseFloat(String(p[k]).replace(',', '.'));
                 if (isFinite(v) && v > 50 && v < 3000) return v;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:ptElev'); }
         return null;
     }
 
@@ -188,7 +188,7 @@
     function actsHtml(pt) {
         var nav = (g('highlightedPointId') === pt.id);
         var staked = false;
-        try { if (typeof window.isStaked === 'function') staked = !!window.isStaked(pt.id); } catch (e) {}
+        try { if (typeof window.isStaked === 'function') staked = !!window.isStaked(pt.id); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:actsHtml'); }
         var h = '<button type="button" data-a="nav" class="' + (nav ? 'on' : '') + '">'
             + '<svg class="icon"><use href="#i-navigation"/></svg><span>' + (nav ? 'Navádí' : 'Doveď mě') + '</span></button>'
             + '<button type="button" data-a="check"><svg class="icon"><use href="#i-crosshair"/></svg><span>Kontrolní<br>bod</span></button>';
@@ -213,7 +213,7 @@
             } else if (a === 'check') {
                 newCheckPoint(_pt);
             }
-        } catch (err) {}
+        } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'karta-bodu:onAct'); }
     }
 
     // „Kontrolní bod": ulož, kde právě stojím, pod jménem odkazujícím na kontrolovaný bod.
@@ -222,7 +222,7 @@
     function newCheckPoint(pt) {
         var me = myPos();
         if (!me) { if (typeof window.agInfo === 'function') agInfo('Nemám polohu — počkej na GPS fix.'); return; }
-        try { if (typeof window.closeBottomSheet === 'function') closeBottomSheet(); } catch (e) {}
+        try { if (typeof window.closeBottomSheet === 'function') closeBottomSheet(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:newCheckPoint'); }
         try {
             if (typeof window.openNewPointModal !== 'function') return;
             openNewPointModal();
@@ -235,7 +235,7 @@
                     + ' cm, |d| ' + Math.round(dd.d * 100) + ' cm' + (me.avg ? (' (průměr ' + me.n + ' měření, ±' + n2(me.sterr) + ' m)') : '');
             }
             if (typeof window.fillAveragedGPS === 'function') fillAveragedGPS();
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:newCheckPoint'); }
     }
 
     // ---- vložení do karty --------------------------------------------------------------
@@ -268,7 +268,7 @@
         TIMER = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(function () {
             var sheet = document.getElementById('bottom-sheet');
             if (!sheet || !sheet.classList.contains('open') || !_pt) { stop(); return; }
-            try { fillNav(_pt); fillDev(_pt); } catch (e) {}
+            try { fillNav(_pt); fillDev(_pt); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:start'); }
         }, 500);
     }
     function stop() { if (TIMER) { clearInterval(TIMER); TIMER = null; } }
@@ -279,7 +279,7 @@
         var orig = window.showDetails;
         window.showDetails = function (pt, distance) {
             var r = orig.apply(this, arguments);
-            try { if (pt && document.getElementById('bottom-sheet').classList.contains('open')) render(pt); } catch (e) {}
+            try { if (pt && document.getElementById('bottom-sheet').classList.contains('open')) render(pt); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:showDetails'); }
             return r;
         };
         window.__agKbWrapped = true;

@@ -34,7 +34,7 @@
     var _layer = null;             // Leaflet vrstva
     var _pendingPixel = null;      // při přidávání bodu
 
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-overlay:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function getMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
     function projId() { try { return (typeof activeProjectId !== 'undefined') ? activeProjectId : 'default'; } catch (e) { return 'default'; } }
 
@@ -46,7 +46,7 @@
     // =====================================================================
     // IndexedDB (obrázek per zakázka)
     // =====================================================================
-    function idb() { return new Promise(function (res, rej) { try { var r = indexedDB.open(DB, 1); r.onupgradeneeded = function () { try { r.result.createObjectStore(STORE); } catch (e) {} }; r.onsuccess = function () { res(r.result); }; r.onerror = function () { rej(r.error); }; } catch (e) { rej(e); } }); }
+    function idb() { return new Promise(function (res, rej) { try { var r = indexedDB.open(DB, 1); r.onupgradeneeded = function () { try { r.result.createObjectStore(STORE); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-overlay:onupgradeneeded'); } }; r.onsuccess = function () { res(r.result); }; r.onerror = function () { rej(r.error); }; } catch (e) { rej(e); } }); }
     function idbPut(k, v) { return idb().then(function (db) { return new Promise(function (res, rej) { var t = db.transaction(STORE, 'readwrite'); t.objectStore(STORE).put(v, k); t.oncomplete = function () { res(); }; t.onerror = function () { rej(t.error); }; }); }); }
     function idbGet(k) { return idb().then(function (db) { return new Promise(function (res, rej) { var t = db.transaction(STORE, 'readonly'); var rq = t.objectStore(STORE).get(k); rq.onsuccess = function () { res(rq.result); }; rq.onerror = function () { rej(rq.error); }; }); }); }
     function idbDel(k) { return idb().then(function (db) { return new Promise(function (res) { var t = db.transaction(STORE, 'readwrite'); t.objectStore(STORE).delete(k); t.oncomplete = function () { res(); }; t.onerror = function () { res(); }; }); }).catch(function () {}); }
@@ -171,14 +171,14 @@
         try {
             if (typeof setStoredData !== 'function') return;
             setStoredData(PKEY, JSON.stringify({ cps: _cps, opacity: _opacity, visible: _visible, imgW: _img ? _img.width : 0, imgH: _img ? _img.height : 0 }));
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-overlay:saveParams'); }
     }
     function loadImageFromDataURL(url) {
         return new Promise(function (res, rej) { var im = new Image(); im.onload = function () { res(im); }; im.onerror = function () { rej(new Error('img')); }; im.src = url; });
     }
     function loadAll() {
         var p = null;
-        try { var s = (typeof getStoredData === 'function') ? getStoredData(PKEY) : null; if (s) p = JSON.parse(s); } catch (e) {}
+        try { var s = (typeof getStoredData === 'function') ? getStoredData(PKEY) : null; if (s) p = JSON.parse(s); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-overlay:loadAll'); }
         if (!p || !Array.isArray(p.cps) || p.cps.length < 2) return Promise.resolve(false);
         _cps = p.cps; _opacity = (typeof p.opacity === 'number') ? p.opacity : 0.7; _visible = (p.visible !== false);
         return idbGet('img_' + projId()).then(function (url) {
@@ -223,7 +223,7 @@
                 ctx.beginPath(); ctx.arc(sx, sy, 7, 0, 7); ctx.stroke(); }
         }
         function zoom(f) { var cx = cv.width / 2, cy = cv.height / 2; view.ox = cx - (cx - view.ox) * f; view.oy = cy - (cy - view.oy) * f; view.scale *= f; draw(); }
-        wrap.addEventListener('pointerdown', function (e) { drag = { x: e.clientX, y: e.clientY, ox: view.ox, oy: view.oy }; moved = 0; try { wrap.setPointerCapture(e.pointerId); } catch (er) {} });
+        wrap.addEventListener('pointerdown', function (e) { drag = { x: e.clientX, y: e.clientY, ox: view.ox, oy: view.oy }; moved = 0; try { wrap.setPointerCapture(e.pointerId); } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'geo-overlay:zoom'); } });
         wrap.addEventListener('pointermove', function (e) { if (!drag) return; var dx = e.clientX - drag.x, dy = e.clientY - drag.y; moved += Math.abs(dx) + Math.abs(dy); view.ox = drag.ox + dx; view.oy = drag.oy + dy; draw(); });
         wrap.addEventListener('pointerup', function (e) {
             if (drag && moved < 6) {
@@ -267,7 +267,7 @@
         var ed = document.getElementById('aggo-worlded'); if (!ed) return;
         ed.style.display = 'block';
         var ptOpts = '';
-        try { if (typeof arPoints !== 'undefined') ptOpts = arPoints.filter(function (p) { return !p.hidden; }).map(function (p) { return '<option value="' + p.id + '">#' + p.name + '</option>'; }).join(''); } catch (e) {}
+        try { if (typeof arPoints !== 'undefined') ptOpts = arPoints.filter(function (p) { return !p.hidden; }).map(function (p) { return '<option value="' + p.id + '">#' + p.name + '</option>'; }).join(''); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-overlay:showWorldEditor'); }
         ed.innerHTML =
             '<div style="margin:6px 0;padding:10px;border-radius:10px;background:rgba(255,255,255,0.06);">'
             + '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.8;margin-bottom:6px;">Skutečné souřadnice tohoto bodu:</div>'
@@ -282,7 +282,7 @@
         var gps = ed.querySelector('#aggo-gps');
         if (gps) gps.onclick = function () {
             var lat = null, lng = null;
-            try { if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.n >= 2) { lat = gpsAvgResult.lat; lng = gpsAvgResult.lng; } else if (typeof userLat !== 'undefined' && userLat != null) { lat = userLat; lng = userLng; } } catch (e) {}
+            try { if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.n >= 2) { lat = gpsAvgResult.lat; lng = gpsAvgResult.lng; } else if (typeof userLat !== 'undefined' && userLat != null) { lat = userLat; lng = userLng; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-overlay:onclick'); }
             if (lat == null) { agAlert('Bez GPS', 'Zatím nemám polohu.'); return; }
             var w = latLngToWorld(lat, lng); if (w) { ed.querySelector('#aggo-wy').value = Math.abs(w.x).toFixed(2); ed.querySelector('#aggo-wx').value = Math.abs(w.y).toFixed(2); }
         };
@@ -447,7 +447,7 @@
         if (c.querySelector('.ag-modal-x')) return;
         var wrap = document.createElement('div'); wrap.className = 'ag-modal-x';
         var b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', 'Zavřít'); b.textContent = '×';
-        b.addEventListener('click', function () { try { ov.style.display = 'none'; } catch (e) {} });
+        b.addEventListener('click', function () { try { ov.style.display = 'none'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-overlay:enhance'); } });
         wrap.appendChild(b); c.insertBefore(wrap, c.firstChild);
     }
     function tick() {
@@ -458,7 +458,7 @@
                 var ov = ovs[i], c = ov.querySelector('.modal-content');
                 if (isToolModal(ov, c)) enhance(ov, c);
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-overlay:tick'); }
     }
     // BATERIE: tohle býval nejrychlejší trvalý poll v appce — každých 400 ms se prohledávaly
     // všechny .modal-overlay, ačkoli nový modál vznikne jen občas. Doplnění křížku nezávisí
@@ -480,7 +480,7 @@
             }
             if (!window.__agModalXTimer) window.__agModalXTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(tick, 2000);
             tick();
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-overlay:init'); }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
     window.addEventListener('load', function () { setTimeout(init, 500); });

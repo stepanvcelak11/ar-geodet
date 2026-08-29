@@ -24,8 +24,8 @@
     function alertFail(title, message) {
         try {
             if (typeof window.agAlert === 'function') { window.agAlert({ title: title, message: message }); return; }
-        } catch (e) {}
-        try { agInfo(title + '\n\n' + String(message).replace(/<[^>]*>/g, '')); } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kml-export:alertFail'); }
+        try { agInfo(title + '\n\n' + String(message).replace(/<[^>]*>/g, '')); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kml-export:alertFail'); }
     }
 
     function downloadText(filename, mime, text) {

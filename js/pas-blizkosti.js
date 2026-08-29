@@ -266,7 +266,7 @@
     (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(function () { tick(true); }, 1000);
 
     // po otoceni displeje se meni i to, kde dok stoji
-    try { window.addEventListener('resize', function () { _reserve = -1; tick(true); }); } catch (e) {}
+    try { window.addEventListener('resize', function () { _reserve = -1; tick(true); }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pas-blizkosti:updateNavGlow'); }
 
     window.AGPasBlizkosti = { tick: tick, pos: pos, fmt: fmt };
 })();

@@ -41,8 +41,8 @@
             return true;
         } catch (e) { return false; }
     }
-    function call(fn) { try { if (typeof fn === 'function') fn(); } catch (e) {} }
-    function callGlobal(name) { try { if (typeof window[name] === 'function') { window[name](); return true; } } catch (e) {} return false; }
+    function call(fn) { try { if (typeof fn === 'function') fn(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tutorial-pro:call'); } }
+    function callGlobal(name) { try { if (typeof window[name] === 'function') { window[name](); return true; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tutorial-pro:callGlobal'); } return false; }
 
     var MODAL_IDS = ['tools-modal', 'measure-modal', 'custom-modal-overlay', 'manage-modal', 'settings-modal',
         'dict-modal', 'compass-modal', 'cluster-modal', 'nearby-modal', 'about-modal', 'agpc-modal'];
@@ -69,7 +69,7 @@
                     try {
                         var el = findCat(name);
                         if (el && el.scrollIntoView) el.scrollIntoView({ block: 'center' });
-                    } catch (e) {}
+                    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tutorial-pro:before'); }
                 }, opened ? 400 : 30);
             },
             target: function () { return findCat(name); }
@@ -331,7 +331,7 @@
             listening = false;
         }
         // po onboardingu na 1. spuštění nabídni kalibraci kompasu (jako původní tutoriál)
-        if (wasAuto) { try { if (typeof window.showCompassCalibHint === 'function') setTimeout(function () { window.showCompassCalibHint(); }, 400); } catch (e) {} }
+        if (wasAuto) { try { if (typeof window.showCompassCalibHint === 'function') setTimeout(function () { window.showCompassCalibHint(); }, 400); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tutorial-pro:finish'); } }
     }
 
     // ---- rozcestník (chooser) --------------------------------------------------
@@ -384,7 +384,7 @@
         return false;
     }
     function maybeStart() {
-        var seen = false; try { seen = localStorage.getItem(SEEN_KEY) === '1'; } catch (e) {}
+        var seen = false; try { seen = localStorage.getItem(SEEN_KEY) === '1'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tutorial-pro:maybeStart'); }
         if (seen || waiting) return;
         waiting = true;
         var waited = 0;
@@ -398,7 +398,7 @@
             waiting = false;
             setTimeout(function () {
                 if (startBlocked()) { maybeStart(); return; }   // mezitím naskočila brána
-                try { localStorage.setItem(SEEN_KEY, '1'); } catch (e) {}
+                try { localStorage.setItem(SEEN_KEY, '1'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tutorial-pro:attempt'); }
                 autoFirstRun = true;
                 startTour(BASIC);
             }, 700);
@@ -423,7 +423,7 @@
     window.addEventListener('load', function () {
         var orig = window.startAppFromWelcome;
         if (typeof orig === 'function' && !orig.__agtpWrapped) {
-            var wrapped = function () { var r = orig.apply(this, arguments); try { maybeStart(); } catch (e) {} return r; };
+            var wrapped = function () { var r = orig.apply(this, arguments); try { maybeStart(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tutorial-pro:wrapped'); } return r; };
             wrapped.__agtpWrapped = true;
             window.startAppFromWelcome = wrapped;
         }

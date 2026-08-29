@@ -811,7 +811,7 @@ function loadAllPointDocs() {
     if (typeof idbGetByPrefix !== 'function') return Promise.resolve({});
     return idbGetByPrefix(proj).then(raw => {
         const out = {};
-        Object.keys(raw || {}).forEach(id => { try { out[id] = _normalizeDoc(JSON.parse(raw[id])); } catch (e) {} });
+        Object.keys(raw || {}).forEach(id => { try { out[id] = _normalizeDoc(JSON.parse(raw[id])); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kalkulacka:loadAllPointDocs'); } });
         _pointDocsCache = out; _pointDocsProj = proj;
         return out;
     }).catch(() => ({}));
@@ -1014,7 +1014,7 @@ function decoratePointItem(item, pt, preloadedDoc) {
         if (!doc || !item.isConnected) return;
         if (doc.note) {
             // poznamka do hledaciho indexu radku — v seznamu ji jde najit
-            try { if (item.dataset.mngText != null && typeof agFold === 'function') item.dataset.mngText += ' ' + agFold(doc.note); } catch (e) {}
+            try { if (item.dataset.mngText != null && typeof agFold === 'function') item.dataset.mngText += ' ' + agFold(doc.note); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kalkulacka:decoratePointItem'); }
             const n = document.createElement('div');
             n.className = 'cp-note';
             n.textContent = doc.note;

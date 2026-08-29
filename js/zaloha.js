@@ -56,7 +56,7 @@
         try { a = JSON.parse(json); } catch (e) { return null; }
         if (!Array.isArray(a)) return null;
         a.forEach(function (p) {
-            if (p && p.snap) SECRET_KEYS.forEach(function (k) { try { delete p.snap[k]; } catch (e) {} });
+            if (p && p.snap) SECRET_KEYS.forEach(function (k) { try { delete p.snap[k]; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:stripProfiles'); } });
         });
         try { return JSON.stringify(a); } catch (e) { return null; }
     }
@@ -64,7 +64,7 @@
     function _openDb(name, cfg) {
         return new Promise(function (res) {
             var r; try { r = indexedDB.open(name, 1); } catch (e) { return res(null); }
-            r.onupgradeneeded = function (e) { try { if (!e.target.result.objectStoreNames.contains(cfg.store)) cfg.schema(e.target.result); } catch (er) {} };
+            r.onupgradeneeded = function (e) { try { if (!e.target.result.objectStoreNames.contains(cfg.store)) cfg.schema(e.target.result); } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'zaloha:onupgradeneeded'); } };
             r.onsuccess = function () { res(r.result); };
             r.onerror = function () { res(null); };
             r.onblocked = function () { res(null); };
@@ -81,8 +81,8 @@
                     inline = st.keyPath != null;
                     var cur = st.openCursor();
                     cur.onsuccess = function (e) { var c = e.target.result; if (c) { rows.push([c.key, c.value]); c.continue(); } };
-                    tx.oncomplete = function () { try { db.close(); } catch (e) {} res({ inline: inline, rows: rows }); };
-                    tx.onerror = function () { try { db.close(); } catch (e) {} res(null); };
+                    tx.oncomplete = function () { try { db.close(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:oncomplete'); } res({ inline: inline, rows: rows }); };
+                    tx.onerror = function () { try { db.close(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:onerror'); } res(null); };
                 } catch (e) { res(null); }
             });
         });
@@ -90,14 +90,14 @@
     function _restoreDb(name, cfg, dump) {
         return _openDb(name, cfg).then(function (db) {
             return new Promise(function (res) {
-                if (!db || !dump || !Array.isArray(dump.rows) || !db.objectStoreNames.contains(cfg.store)) { if (db) try { db.close(); } catch (e) {} return res(false); }
+                if (!db || !dump || !Array.isArray(dump.rows) || !db.objectStoreNames.contains(cfg.store)) { if (db) try { db.close(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:_restoreDb'); } return res(false); }
                 try {
                     var tx = db.transaction(cfg.store, 'readwrite');
                     var st = tx.objectStore(cfg.store);
-                    try { st.clear(); } catch (e) {}
-                    dump.rows.forEach(function (row) { try { if (dump.inline) st.put(row[1]); else st.put(row[1], row[0]); } catch (e) {} });
-                    tx.oncomplete = function () { try { db.close(); } catch (e) {} res(true); };
-                    tx.onerror = function () { try { db.close(); } catch (e) {} res(false); };
+                    try { st.clear(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:_restoreDb'); }
+                    dump.rows.forEach(function (row) { try { if (dump.inline) st.put(row[1]); else st.put(row[1], row[0]); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:_restoreDb'); } });
+                    tx.oncomplete = function () { try { db.close(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:oncomplete'); } res(true); };
+                    tx.onerror = function () { try { db.close(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:onerror'); } res(false); };
                 } catch (e) { res(false); }
             });
         });
@@ -117,7 +117,7 @@
         const idb = (typeof idbDumpAll === 'function') ? await idbDumpAll() : {};
         const extra = {};
         for (const name of Object.keys(EXTRA_DBS)) {
-            try { const d = await _dumpDb(name, EXTRA_DBS[name]); if (d && d.rows.length) extra[name] = d; } catch (e) {}
+            try { const d = await _dumpDb(name, EXTRA_DBS[name]); if (d && d.rows.length) extra[name] = d; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:onerror'); }
         }
         const d = new Date(); const p = n => String(n).padStart(2, '0');
         const payload = {
@@ -136,8 +136,8 @@
             localStorage.setItem('agLastBackupTs', _ts);
             localStorage.setItem('agLastBackup', _ts);
             localStorage.removeItem('agBackupSnoozeTs');
-        } catch (e) {}
-        if (typeof window.agRenderStorageUsage === 'function') { try { window.agRenderStorageUsage(); } catch (e) {} }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:onerror'); }
+        if (typeof window.agRenderStorageUsage === 'function') { try { window.agRenderStorageUsage(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:onerror'); } }
     };
 
     // ⚠ 29. 8. 2026: PŘIPOMÍNKA ZÁLOHY UŽ TADY NENÍ. Byla tu jako toast po 14 dnech
@@ -179,7 +179,7 @@
                 // zaloha nesmi podstrcit svuj token ani odhlasit toho, kdo obnovuje.
                 SECRET_KEYS.forEach(k => { if (typeof snapshot[k] === 'string') localStorage.setItem(k, snapshot[k]); });
             } catch (err) {
-                try { localStorage.clear(); Object.keys(snapshot).forEach(k => localStorage.setItem(k, snapshot[k])); } catch (e2) {}
+                try { localStorage.clear(); Object.keys(snapshot).forEach(k => localStorage.setItem(k, snapshot[k])); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'zaloha:importAllData'); }
                 agInfo('Obnova se nezdařila (úložiště plné?), původní data byla vrácena beze změny: ' + ((err && err.message) ? err.message : err));
                 return;
             }
@@ -191,7 +191,7 @@
             // starsi zalohy (v2) polozku extra nemaji -> preskoci se
             if (payload.extra && typeof payload.extra === 'object') {
                 for (const name of Object.keys(EXTRA_DBS)) {
-                    if (payload.extra[name]) { try { await _restoreDb(name, EXTRA_DBS[name], payload.extra[name]); } catch (e4) {} }
+                    if (payload.extra[name]) { try { await _restoreDb(name, EXTRA_DBS[name], payload.extra[name]); } catch (e4) { window.AG && AG.swallow && AG.swallow(e4, 'zaloha:importAllData'); } }
                 }
             }
             location.reload();

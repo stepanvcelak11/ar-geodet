@@ -95,16 +95,16 @@
             if (typeof projects !== 'undefined' && Array.isArray(projects)) {
                 for (var i = 0; i < projects.length; i++) { if (projects[i] && projects[i].id === id) return projects[i].name || id; }
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:projName'); }
         return (id === 'default') ? 'Výchozí zakázka' : id;
     }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:toast'); } }
     function fmtT(ts) { try { return new Date(ts).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
     function fmtDur(s) { return Math.floor(s / 60) + ':' + pad2(Math.round(s) % 60); }
     var DAYS_CS = ['neděle', 'pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota'];
     function fmtDay(ts) { var d = new Date(ts); return DAYS_CS[d.getDay()] + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear(); }
     function dist(la1, lo1, la2, lo2) {
-        try { if (typeof getDistance === 'function') return getDistance(la1, lo1, la2, lo2); } catch (e) {}
+        try { if (typeof getDistance === 'function') return getDistance(la1, lo1, la2, lo2); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:dist'); }
         var R = 6371000, r = Math.PI / 180;
         var a = Math.sin((la2 - la1) * r / 2), b = Math.sin((lo2 - lo1) * r / 2);
         var h = a * a + Math.cos(la1 * r) * Math.cos(la2 * r) * b * b;
@@ -114,7 +114,7 @@
     function geoStamp(rec) {
         if (rec.lat == null) return 'bez polohy';
         var s = null;
-        try { if (window.GeoCore && GeoCore.toSJTSK) s = GeoCore.toSJTSK(rec.lat, rec.lng); } catch (e) {}
+        try { if (window.GeoCore && GeoCore.toSJTSK) s = GeoCore.toSJTSK(rec.lat, rec.lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:geoStamp'); }
         var t = s ? 'Y ' + fmtNum(s.y) + ' · X ' + fmtNum(s.x) : rec.lat.toFixed(6) + ', ' + rec.lng.toFixed(6);
         if (rec.acc != null) t += ' (±' + Math.round(rec.acc) + ' m)';
         return t;
@@ -197,7 +197,7 @@
         if (_srSoft) return 'Přepis se nepovedl (signál nebo zabraný mikrofon). Ukládám jen zvuk.';
         return null;
     }
-    function srClearRetry() { if (_srRetry) { try { clearTimeout(_srRetry); } catch (e) {} _srRetry = null; } }
+    function srClearRetry() { if (_srRetry) { try { clearTimeout(_srRetry); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:srClearRetry'); } _srRetry = null; } }
     // jeden pokus o start; false = už se startovat nemá (nebo start spadl)
     function srStart() {
         if (!_sr || !_srOn) return false;
@@ -225,7 +225,7 @@
                     else interim += r[0].transcript;
                 }
                 _srInterim = interim;
-                if (onLive) { try { onLive((_srFinal + interim).trim()); } catch (e) {} }
+                if (onLive) { try { onLive((_srFinal + interim).trim()); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:onresult'); } }
             };
             _sr.onerror = function (ev) {
                 var e = ev && ev.error;
@@ -262,9 +262,9 @@
         var out = (_srFinal + ' ' + _srInterim).trim();
         _srFinal = ''; _srInterim = '';
         if (!sr) return '';
-        try { sr.onend = null; sr.onerror = null; sr.onresult = null; } catch (e) {}
-        try { sr.stop(); } catch (e2) {}
-        try { if (sr.abort) sr.abort(); } catch (e3) {}   // jistota, že pustí mikrofon
+        try { sr.onend = null; sr.onerror = null; sr.onresult = null; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:stopSR'); }
+        try { sr.stop(); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'hlasovky:stopSR'); }
+        try { if (sr.abort) sr.abort(); } catch (e3) { window.AG && AG.swallow && AG.swallow(e3, 'hlasovky:stopSR'); }   // jistota, že pustí mikrofon
         return fixGeo(out);
     }
 
@@ -275,7 +275,7 @@
             for (var i = 0; i < cands.length; i++) {
                 if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(cands[i])) return cands[i];
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:pickMime'); }
         return '';
     }
     function nearestPoint(lat, lng) {
@@ -292,8 +292,8 @@
     }
     function isRecording() { return !!_rec || _recStarting; }
     function clearRecTimers() {
-        if (_recTimer) { try { clearInterval(_recTimer); } catch (e) {} _recTimer = null; }
-        if (_recWd) { try { clearTimeout(_recWd); } catch (e2) {} _recWd = null; }
+        if (_recTimer) { try { clearInterval(_recTimer); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:clearRecTimers'); } _recTimer = null; }
+        if (_recWd) { try { clearTimeout(_recWd); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'hlasovky:clearRecTimers'); } _recWd = null; }
     }
     // Uvolnění mikrofonu je SAMOSTATNÝ krok a musí projít vždycky: iOS jinak drží
     // audio session, škrtí kameru v AR a ikona nahrávání zůstane svítit.
@@ -301,8 +301,8 @@
         var s = _stream; _stream = null;
         if (!s) return;
         var tr = [];
-        try { tr = s.getTracks ? s.getTracks() : []; } catch (e) {}
-        for (var i = 0; i < tr.length; i++) { try { tr[i].stop(); } catch (e2) {} }
+        try { tr = s.getTracks ? s.getTracks() : []; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:releaseMic'); }
+        for (var i = 0; i < tr.length; i++) { try { tr[i].stop(); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'hlasovky:releaseMic'); } }
     }
     function tickRec() {
         // časovač nesmí spadnout — vypadl by z něj i strop délky poznámky
@@ -333,7 +333,7 @@
                     _recGeo.lat = userLat; _recGeo.lng = userLng;
                     if (typeof currentGpsAccuracy !== 'undefined' && currentGpsAccuracy != null) _recGeo.acc = currentGpsAccuracy;
                 }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:startRec'); }
             var mime = pickMime();
             try {
                 _rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
@@ -376,15 +376,15 @@
         if (_recStarting) { _recAbort = true; syncRecUi(false); return; }   // ještě běží dotaz na mikrofon
         if (!_rec) {                                                        // nic neběží — pro jistotu uklidit
             clearRecTimers();
-            if (!_dictFor) { try { stopSR(); } catch (e) {} }               // běžící dodiktování nezabíjet
+            if (!_dictFor) { try { stopSR(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:stopRec'); } }               // běžící dodiktování nezabíjet
             releaseMic(); syncRecUi(false); return;
         }
         if (_recStopping) return;                                           // druhé klepnutí na STOP
         _recStopping = true;
         clearRecTimers();                                                   // časovač jako první
         var st = '';
-        try { st = _rec.state; } catch (e2) {}
-        try { if (st !== 'inactive') _rec.stop(); } catch (e3) {}
+        try { st = _rec.state; } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'hlasovky:stopRec'); }
+        try { if (st !== 'inactive') _rec.stop(); } catch (e3) { window.AG && AG.swallow && AG.swallow(e3, 'hlasovky:stopRec'); }
         if (st === 'inactive') { onRecStop(); return; }                     // rekordér už skončil sám, onstop nepřijde
         // pojistka: na iOS umí audio session skončit tak, že onstop nedorazí
         _recWd = setTimeout(function () { _recWd = null; onRecStop(); }, STOP_WD_MS);
@@ -396,7 +396,7 @@
         clearRecTimers();
         var recorder = _rec; _rec = null; _recStopping = false;
         var text = '';
-        try { text = stopSR(); } catch (e) {}      // pád přepisu nesmí zdržet uvolnění mikrofonu
+        try { text = stopSR(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:onRecStop'); }      // pád přepisu nesmí zdržet uvolnění mikrofonu
         releaseMic();
         syncRecUi(false);
         var dur = (Date.now() - _recT0) / 1000;
@@ -459,9 +459,9 @@
     // Úklid, který musí proběhnout, i když se okno zavře křížkem/gestem
     // (modal-close.js) nebo appka jde do pozadí — jinak visí mikrofon.
     function cleanupAll() {
-        try { if (isRecording()) stopRec(); } catch (e) {}
-        try { if (_dictFor) stopDictate(); } catch (e2) {}
-        try { stopPlay(); } catch (e3) {}
+        try { if (isRecording()) stopRec(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:cleanupAll'); }
+        try { if (_dictFor) stopDictate(); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'hlasovky:cleanupAll'); }
+        try { stopPlay(); } catch (e3) { window.AG && AG.swallow && AG.swallow(e3, 'hlasovky:cleanupAll'); }
     }
 
     // ---- dodiktování textu k existující poznámce -----------------------------------------
@@ -484,7 +484,7 @@
     }
     function resetDict() {
         var c = _dictCtx; _dictCtx = null; _dictFor = null;
-        if (c && c.btn) { try { c.btn.classList.remove('on'); c.btn.textContent = 'Diktovat'; } catch (e) {} }
+        if (c && c.btn) { try { c.btn.classList.remove('on'); c.btn.textContent = 'Diktovat'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:resetDict'); } }
         if (!isRecording()) hideLive();
     }
     // Zastavení nesmí čekat na onend (nemusí dorazit) — dokončíme rovnou.
@@ -492,7 +492,7 @@
     function finishDictate() {
         var c = _dictCtx;
         var t = '';
-        try { t = stopSR(); } catch (e) {}
+        try { t = stopSR(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:finishDictate'); }
         resetDict();
         if (!c) return;
         if (!t) { toast('Nic jsem nezachytil.'); return; }
@@ -503,8 +503,8 @@
 
     // ---- přehrávání / sdílení / mazání ------------------------------------------------
     function stopPlay() {
-        if (_audio) { try { _audio.pause(); } catch (e) {} }
-        if (_playUrl) { try { URL.revokeObjectURL(_playUrl); } catch (e2) {} _playUrl = null; }
+        if (_audio) { try { _audio.pause(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:stopPlay'); } }
+        if (_playUrl) { try { URL.revokeObjectURL(_playUrl); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'hlasovky:stopPlay'); } _playUrl = null; }
         _playingId = null;
         var btns = document.querySelectorAll('#ag-hl-modal .ag-hl-play.on');
         for (var i = 0; i < btns.length; i++) btns[i].classList.remove('on');
@@ -547,7 +547,7 @@
         var a = document.createElement('a');
         a.href = url; a.download = f.name;
         document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e) {} }, 4000);
+        setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:shareRec'); } }, 4000);
     }
 
     // ---- styly --------------------------------------------------------------------------
@@ -721,7 +721,7 @@
             m.querySelector('#ag-hl-recbtn').addEventListener('click', function () {
                 // pád obsluhy by zabil i STOP — proto celé v try
                 try { isRecording() ? stopRec() : startRec(); }
-                catch (e) { try { cleanupAll(); } catch (e2) {} toast('Nahrávání se zaseklo — ukončeno.'); }
+                catch (e) { try { cleanupAll(); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'hlasovky:open'); } toast('Nahrávání se zaseklo — ukončeno.'); }
             });
             m.querySelector('#ag-hl-close').addEventListener('click', function () {
                 cleanupAll();
@@ -733,10 +733,10 @@
                 new MutationObserver(function () {
                     if (m.style.display === 'none' && (isRecording() || _dictFor || _playingId)) cleanupAll();
                 }).observe(m, { attributes: true, attributeFilter: ['style'] });
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:open'); }
             var chk = m.querySelector('#ag-hl-txtchk');
             chk.addEventListener('change', function () {
-                try { localStorage.setItem(TXT_KEY, this.checked ? '1' : '0'); } catch (e) {}
+                try { localStorage.setItem(TXT_KEY, this.checked ? '1' : '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:open'); }
                 if (this.checked) { _srDead = false; _srSoft = false; }
                 syncRecUi(isRecording() ? (_rec ? true : 'wait') : false);
             });
@@ -762,7 +762,7 @@
         document.addEventListener('visibilitychange', function () {
             if (document.hidden && isRecording()) stopRec();
         });
-    } catch (e) {}
+    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:open'); }
 
     // ---- veřejné API (Deník dne) -----------------------------------------------------------
     window.AGHlasovky = {

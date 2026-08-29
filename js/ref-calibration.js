@@ -22,7 +22,7 @@
     // Stejny vzor uz pouziva js/localization-helmert.js.
     function mPerDeg(lat) {
         if (typeof GeoCore !== 'undefined' && GeoCore.metersPerDeg) {
-            try { var m = GeoCore.metersPerDeg(lat); if (m && m.lat) return m; } catch (e) {}
+            try { var m = GeoCore.metersPerDeg(lat); if (m && m.lat) return m; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:mPerDeg'); }
         }
         return { lat: EARTH_M_LAT, lng: EARTH_M_LAT * Math.cos(lat * Math.PI / 180) };
     }
@@ -34,7 +34,7 @@
         var m = mPerDeg((lat1 + lat2) / 2);
         return Math.hypot((lng2 - lng1) * m.lng, (lat2 - lat1) * m.lat);
     }
-    function toastSafe(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} }
+    function toastSafe(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:toastSafe'); } }
 
     // --------------------------------------------------------------------------------
     // Stav: window.agRefShift {dlat,dlng,t,acc,on}
@@ -50,13 +50,13 @@
                     return window.agRefShift;
                 }
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:loadShift'); }
         window.agRefShift = window.agRefShift || null;
         return window.agRefShift;
     }
     function saveShift(s) {
         window.agRefShift = s;
-        try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch (e) {}
+        try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:saveShift'); }
     }
 
     // Velikost posunu v cm (pro popisky) — počítáno v rovinné aproximaci kolem dané šířky.
@@ -79,7 +79,7 @@
     // --------------------------------------------------------------------------------
     function alertBox(title, msg) {
         if (typeof window.agAlert === 'function') return window.agAlert({ title: title, message: msg });
-        try { agInfo((title ? title + '\n\n' : '') + String(msg).replace(/<[^>]+>/g, '')); } catch (e) {}
+        try { agInfo((title ? title + '\n\n' : '') + String(msg).replace(/<[^>]+>/g, '')); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:alertBox'); }
         return Promise.resolve(true);
     }
     function confirmBox(title, msg, okText, cancelText, danger) {
@@ -91,12 +91,12 @@
     // Čtení živých globálů (fail-silent, přesně jako vylepseni.js)
     // --------------------------------------------------------------------------------
     function avgGps() {
-        try { if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && isFinite(gpsAvgResult.lat) && isFinite(gpsAvgResult.lng)) return { lat: gpsAvgResult.lat, lng: gpsAvgResult.lng, n: gpsAvgResult.n, sterr: gpsAvgResult.sterr, from: 'avg' }; } catch (e) {}
-        try { if (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null) return { lat: userLat, lng: userLng, n: 1, sterr: (typeof currentGpsAccuracy !== 'undefined' ? currentGpsAccuracy : null), from: 'fix' }; } catch (e) {}
+        try { if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && isFinite(gpsAvgResult.lat) && isFinite(gpsAvgResult.lng)) return { lat: gpsAvgResult.lat, lng: gpsAvgResult.lng, n: gpsAvgResult.n, sterr: gpsAvgResult.sterr, from: 'avg' }; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:avgGps'); }
+        try { if (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null) return { lat: userLat, lng: userLng, n: 1, sterr: (typeof currentGpsAccuracy !== 'undefined' ? currentGpsAccuracy : null), from: 'fix' }; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:avgGps'); }
         return null;
     }
     function customPts() {
-        try { if (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) return persistentCustomPoints; } catch (e) {}
+        try { if (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) return persistentCustomPoints; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:customPts'); }
         return [];
     }
     function escapeHtml(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -106,7 +106,7 @@
     function sjtskToWgs(Y, X) {
         try {
             if (typeof sjtskToLatLng === 'function') { var r = sjtskToLatLng(Y, X); if (r && isFinite(r.lat) && isFinite(r.lng)) return r; }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:sjtskToWgs'); }
         try {
             if (typeof proj4 !== 'function') return null;
             var y = Math.min(Math.abs(Y), Math.abs(X)), x = Math.max(Math.abs(Y), Math.abs(X));
@@ -127,7 +127,7 @@
         var wrapped = function () {
             // byla to editace? (rozhoduje stav PŘED voláním originálu)
             var wasEditing = false;
-            try { wasEditing = (typeof editingCustomPointId !== 'undefined') && !!editingCustomPointId; } catch (e) {}
+            try { wasEditing = (typeof editingCustomPointId !== 'undefined') && !!editingCustomPointId; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:wrapped'); }
             var before = customPts().length;
 
             var ret = orig.apply(this, arguments);
@@ -157,7 +157,7 @@
                         if (farM != null) det.push(Math.round(farM) + ' m od ref. bodu');
                         toastSafe('⚠ Ref-kalibrace zastaralá/daleko (' + det.join(', ') + ') — přesnost posunu klesá, změř referenční bod znovu.');
                     }
-                } catch (e) {}
+                } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:wrapped'); }
 
                 // zrcadlo v arPoints (twin se stejným id), pokud existuje
                 try {
@@ -165,12 +165,12 @@
                         var tw = arPoints.find(function (q) { return q.id === p.id; });
                         if (tw) { tw.lat = p.lat; tw.lng = p.lng; if (tw.element) { tw.element.remove(); tw.element = null; } }
                     }
-                } catch (e) {}
+                } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:wrapped'); }
 
                 // znovu ulož + překresli (původní funkce už jednou uložila, my jen aktualizujeme)
-                try { if (typeof setStoredData === 'function') setStoredData('arCustomPoints12', JSON.stringify(arr)); } catch (e) {}
-                try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) {}
-                try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) {}
+                try { if (typeof setStoredData === 'function') setStoredData('arCustomPoints12', JSON.stringify(arr)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:wrapped'); }
+                try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:wrapped'); }
+                try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:wrapped'); }
             } catch (e) { console.warn('[ref-calibration] save wrap', e); }
             return ret;
         };
@@ -247,7 +247,7 @@
                 _ov.querySelector('#agref-y').value = Math.abs(sj[0]).toFixed(2);
                 _ov.querySelector('#agref-x').value = Math.abs(sj[1]).toFixed(2);
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:onSelect'); }
         _ov.querySelector('#agref-name').value = p.name || '';
     }
 
@@ -362,7 +362,7 @@
         btn.type = 'button';
         btn.innerHTML = '<svg class="icon"><use href="#i-crosshair"/></svg> Kalibrace na ref. bod';
         btn.addEventListener('click', function () {
-            try { if (typeof toggleMenu === 'function') toggleMenu(); } catch (e) {}
+            try { if (typeof toggleMenu === 'function') toggleMenu(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:injectMenuButton'); }
             open();
         });
         // vlož před tlačítko "O aplikaci", ať destruktivní/informační akce zůstanou dole
@@ -374,7 +374,7 @@
     // Init — DOMContentLoaded i window load (prvky/funkce vznikají později)
     // --------------------------------------------------------------------------------
     function init() {
-        try { loadShift(); } catch (e) {}
+        try { loadShift(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:init'); }
         try { wrapSave(); } catch (e) { console.warn('[ref-calibration] wrapSave', e); }
         try { injectMenuButton(); } catch (e) { console.warn('[ref-calibration] menu', e); }
     }

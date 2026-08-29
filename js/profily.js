@@ -158,13 +158,13 @@
     ];
 
     function ls(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
-    function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
+    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:lsSet'); } }
+    function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:lsDel'); } }
     function $(id) { return document.getElementById(id); }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function toast(msg) {
-        try { if (typeof quickToast === 'function') { quickToast(msg); return; } } catch (e) {}
-        try { if (typeof window.agInfo === 'function') { window.agInfo(msg); return; } } catch (e) {}
+        try { if (typeof quickToast === 'function') { quickToast(msg); return; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:toast'); }
+        try { if (typeof window.agInfo === 'function') { window.agInfo(msg); return; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:toast'); }
     }
 
     // ---- styly --------------------------------------------------------------------
@@ -316,8 +316,8 @@
             if (el.value === v) return true;
             el.value = v;
         }
-        try { el.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) {}
-        try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+        try { el.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:setControl'); }
+        try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:setControl'); }
         return true;
     }
 
@@ -332,7 +332,7 @@
     function isCustom(id) { return String(id || '').indexOf(CUST_PREFIX) === 0; }
     function rawCustoms() {
         var a = null;
-        try { a = JSON.parse(ls(CUST_KEY) || '[]'); } catch (e) {}
+        try { a = JSON.parse(ls(CUST_KEY) || '[]'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:rawCustoms'); }
         if (Object.prototype.toString.call(a) !== '[object Array]') return [];
         return a.filter(function (c) { return c && c.id && c.t && c.set; });
     }
@@ -376,7 +376,7 @@
             var list = rawCustoms();
             var id = CUST_PREFIX + Date.now();
             list.push({ id: id, t: name.slice(0, 24), set: set });
-            try { lsSet(CUST_KEY, JSON.stringify(list)); } catch (e) {}
+            try { lsSet(CUST_KEY, JSON.stringify(list)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:done'); }
             lsSet(LAST_KEY, id);
             renderBar();
             toast('Profil „' + name + '" uložen z toho, jak to máš teď nastavené.');
@@ -384,13 +384,13 @@
         var msg = 'Uloží se ' + Object.keys(set).length + ' voleb tak, jak je máš právě teď. Jak se má profil jmenovat?';
         try {
             if (typeof window.agGet === 'function') { window.agGet(msg, { title: 'Vlastní profil', placeholder: 'Např. Moje pokládka' }).then(done); return; }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:done'); }
         done(window.prompt(msg, ''));
     }
     function deleteCustom(id) {
         var p = byId(id); if (!p || !p.custom) return;
         var go = function () {
-            try { lsSet(CUST_KEY, JSON.stringify(rawCustoms().filter(function (c) { return c.id !== id; }))); } catch (e) {}
+            try { lsSet(CUST_KEY, JSON.stringify(rawCustoms().filter(function (c) { return c.id !== id; }))); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:go'); }
             // smazaný profil nesmí zůstat „aktivní"; nastavení se ZÁMĚRNĚ nevrací
             // (stejný důvod jako u odznačení — viz hlavička souboru)
             if (ls(LAST_KEY) === id) lsDel(LAST_KEY);
@@ -400,7 +400,7 @@
         var q = 'Smazat profil „' + p.t + '"? Nastavení se nemění, zmizí jen tenhle uložený otisk.';
         try {
             if (typeof window.agGuard === 'function') { window.agGuard(q, go, { title: 'Smazat profil', danger: true }); return; }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:go'); }
         if (window.confirm(q)) go();
     }
 
@@ -582,7 +582,7 @@
         var list = rawCustoms();
         var id = CUST_PREFIX + Date.now();
         list.push({ id: id, t: name.slice(0, 24), set: clean });
-        try { lsSet(CUST_KEY, JSON.stringify(list)); } catch (e) {}
+        try { lsSet(CUST_KEY, JSON.stringify(list)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:wizSave'); }
         wizClose();
         apply(id);            // rovnou zapnout — projít průvodce a nic nevidět by bylo divné
     }
@@ -789,7 +789,7 @@
     // takže NEJSOU vlastnostmi window — musí se číst holým jménem s typeof guardem
     // (stejně to dělá js/calib-profiles.js). window.visSettings by bylo undefined.
     function headingOffset() {
-        try { if (typeof userHeadingOffset !== 'undefined' && isFinite(userHeadingOffset)) return +userHeadingOffset; } catch (e) {}
+        try { if (typeof userHeadingOffset !== 'undefined' && isFinite(userHeadingOffset)) return +userHeadingOffset; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:headingOffset'); }
         return 0;
     }
     function vis() {
@@ -809,7 +809,7 @@
         try {
             var raw = ls('agCalibProfiles');
             if (raw) out.calibProfiles = JSON.parse(raw);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:collectDevice'); }
         return out;
     }
     function deviceSummary() {
@@ -831,7 +831,7 @@
             a.href = URL.createObjectURL(blob);
             a.download = name;
             document.body.appendChild(a); a.click(); a.remove();
-            setTimeout(function () { try { URL.revokeObjectURL(a.href); } catch (e) {} }, 4000);
+            setTimeout(function () { try { URL.revokeObjectURL(a.href); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:exportDevice'); } }, 4000);
             toast('Profil zařízení uložen do souboru');
         } catch (e) {
             console.warn('[profily] export', e);
@@ -864,8 +864,8 @@
                 if (d.eyeHeight) v.eyeHeight = +d.eyeHeight;
                 try {
                     if (typeof setStoredData === 'function') setStoredData('arVisSettings12', JSON.stringify(v));
-                } catch (e) {}
-                try { if (typeof applyVisualSettings === 'function') applyVisualSettings(); } catch (e) {}
+                } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:nahrajProfil'); }
+                try { if (typeof applyVisualSettings === 'function') applyVisualSettings(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:nahrajProfil'); }
             }
             // korekce severu: jen přes oficiální páku appky, ať se přepočítá i AR
             try {
@@ -874,9 +874,9 @@
                     resetHeadingOffset();
                     if (d.headingOffset) nudgeHeadingOffset(d.headingOffset);
                 }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:nahrajProfil'); }
             if (d.calibProfiles && d.calibProfiles.length) {
-                try { lsSet('agCalibProfiles', JSON.stringify(d.calibProfiles)); } catch (e) {}
+                try { lsSet('agCalibProfiles', JSON.stringify(d.calibProfiles)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:nahrajProfil'); }
             }
             // posuvníky v panelu dorovnat, ať tam nesvítí stará čísla
             if (v) { setControl('s-fovh', v.fovH || 90); setControl('s-fovv', v.fovV || 75); if (v.eyeHeight) setControl('s-eyeh', v.eyeHeight); }
@@ -922,7 +922,7 @@
 
     // ---- init ---------------------------------------------------------------------
     function tick() {
-        try { renderBar(); renderDevice(); } catch (e) {}
+        try { renderBar(); renderDevice(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:tick'); }
     }
     function init() {
         tick();

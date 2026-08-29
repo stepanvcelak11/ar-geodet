@@ -118,7 +118,7 @@
         var t = findTile(key);
         closeModal();
         if (t) { t.click(); return true; }
-        if (fallbackFn && typeof window[fallbackFn] === 'function') { closeTools(); try { window[fallbackFn](); } catch (e) {} return true; }
+        if (fallbackFn && typeof window[fallbackFn] === 'function') { closeTools(); try { window[fallbackFn](); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tools-hub:runTool'); } return true; }
         return false;
     }
 
@@ -233,7 +233,7 @@
     function wrapFilter() {
         if (window.__agThWrapped || typeof window.agFilterTools !== 'function') return;
         var orig = window.agFilterTools;
-        window.agFilterTools = function (v) { var r = orig.apply(this, arguments); try { applySimple(); } catch (e) {} return r; };
+        window.agFilterTools = function (v) { var r = orig.apply(this, arguments); try { applySimple(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tools-hub:agFilterTools'); } return r; };
         window.__agThWrapped = true;
     }
 
@@ -281,7 +281,7 @@
 
     // ---- život modulu ---------------------------------------------------------------
     function tick() {
-        try { injectStyles(); wrapFilter(); applySimple(); capNow(); } catch (e) {}
+        try { injectStyles(); wrapFilter(); applySimple(); capNow(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tools-hub:tick'); }
     }
     function init() {
         injectStyles();

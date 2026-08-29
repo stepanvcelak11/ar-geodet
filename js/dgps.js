@@ -42,7 +42,7 @@
     var _lastOff = null;               // poslední okamžitá odchylka (na displej)
     var _rejected = 0;
 
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function mPerDeg(lat) {
         if (typeof GeoCore !== 'undefined' && GeoCore.metersPerDeg) return GeoCore.metersPerDeg(lat);
@@ -57,8 +57,8 @@
     function fmtTime(s) { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
 
     function loadDraft() { try { var o = JSON.parse(localStorage.getItem(LS_LOG)); return (o && o.base && Array.isArray(o.buckets)) ? o : null; } catch (e) { return null; } }
-    function saveDraft() { try { localStorage.setItem(LS_LOG, JSON.stringify({ base: _base, t0: _t0, buckets: _buckets })); } catch (e) {} }
-    function clearDraft() { try { localStorage.removeItem(LS_LOG); } catch (e) {} }
+    function saveDraft() { try { localStorage.setItem(LS_LOG, JSON.stringify({ base: _base, t0: _t0, buckets: _buckets })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:saveDraft'); } }
+    function clearDraft() { try { localStorage.removeItem(LS_LOG); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:clearDraft'); } }
 
     // ---- ZÁKLADNA: sběr --------------------------------------------------------
     function flushBucket() {
@@ -97,15 +97,15 @@
         _buckets = []; _cur = null; _lastOff = null; _rejected = 0; _t0 = Date.now();
         try { _watchId = navigator.geolocation.watchPosition(onFix, function () {}, { enableHighAccuracy: true, maximumAge: 0, timeout: 27000 }); }
         catch (e) { agAlert('DGPS', 'Nepodařilo se spustit GPS.'); _base = null; return; }
-        try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function (w) { _wakeLock = w; }).catch(function () {}); } catch (e) {}
+        try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function (w) { _wakeLock = w; }).catch(function () {}); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:startBase'); }
         saveDraft();
         if (!_tick) _tick = setInterval(renderBaseLive, 1000);
         renderModal();
     }
     function stopBase(keep) {
-        if (_watchId != null) { try { navigator.geolocation.clearWatch(_watchId); } catch (e) {} _watchId = null; }
+        if (_watchId != null) { try { navigator.geolocation.clearWatch(_watchId); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:stopBase'); } _watchId = null; }
         if (_tick) { clearInterval(_tick); _tick = null; }
-        try { if (_wakeLock) { _wakeLock.release(); _wakeLock = null; } } catch (e) {}
+        try { if (_wakeLock) { _wakeLock.release(); _wakeLock = null; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:stopBase'); }
         flushBucket();
         if (!keep) { _base = null; _buckets = []; clearDraft(); }
         renderModal();
@@ -295,16 +295,16 @@
                         if (arPoints[ai].element) { arPoints[ai].element.remove(); arPoints[ai].element = null; }
                     }
                 }
-            } catch (e) {}
-            try { if (window.AGJournal) window.AGJournal.commit({ op: 'edit', id: p.id, before: before, after: p, origin: 'dgps' }); } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:applyCorrections'); }
+            try { if (window.AGJournal) window.AGJournal.commit({ op: 'edit', id: p.id, before: before, after: p, origin: 'dgps' }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:applyCorrections'); }
             applied++; sumMag += mag;
         });
         if (applied) {
-            try { if (typeof setStoredData === 'function') setStoredData('arCustomPoints12', JSON.stringify(points())); } catch (e) {}
-            try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) {}
-            try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) {}
-            try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) {}
-            try { if (typeof renderManageList === 'function') renderManageList(); } catch (e) {}
+            try { if (typeof setStoredData === 'function') setStoredData('arCustomPoints12', JSON.stringify(points())); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:applyCorrections'); }
+            try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:applyCorrections'); }
+            try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:applyCorrections'); }
+            try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:applyCorrections'); }
+            try { if (typeof renderManageList === 'function') renderManageList(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:applyCorrections'); }
         }
         return { applied: applied, avg: applied ? sumMag / applied : 0 };
     }
@@ -462,7 +462,7 @@
             if (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null) {
                 pts.sort(function (a, b) { return planarDist(a.lat, a.lng, userLat, userLng) - planarDist(b.lat, b.lng, userLat, userLng); });
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:renderBase'); }
         var opts = pts.map(function (p) {
             var org = p.prov && p.prov.origin ? p.prov.origin : '?';
             return '<option value="' + esc(p.id) + '">' + esc(p.name) + (org === 'gps-avg' ? ' (měřen GPS — NEvhodný!)' : '') + '</option>';
@@ -512,7 +512,7 @@
                 var r = new FileReader();
                 r.onload = function (e) {
                     var log = null;
-                    try { log = JSON.parse(e.target.result); } catch (err) {}
+                    try { log = JSON.parse(e.target.result); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'dgps:onload'); }
                     if (!log || log.kind !== 'dgps-log' || !Array.isArray(log.buckets) || !log.buckets.length || !log.base) {
                         agAlert('DGPS', 'Tohle není platný korekční log základny.'); return;
                     }

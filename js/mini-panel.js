@@ -244,7 +244,7 @@
         bar().classList.add('on');
         paint();
         if (!_timer) _timer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(tick, 500);
-        try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) {}
+        try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'mini-panel:collapse'); }
     }
     function expand() {
         if (!_cur) { bar().classList.remove('on'); return; }
@@ -359,8 +359,15 @@
             var b = mk();
             b.className = 'ag-mini-btn';
             b.innerHTML = '▾ Sbalit — nechat běžet nahoře';
+            // querySelector hleda v CELEM podstromu, takze nadpis muze byt ZANORENY
+            // (napr. v .modal-header). Pak `h.nextSibling` neni ditetem `content`
+            // a content.insertBefore(...) vyhodi NotFoundError — tlacitko "Sbalit"
+            // se u takovych oken vubec neobjevilo. Vkladame proto vedle nadpisu,
+            // tedy do jeho VLASTNIHO rodice.
             var h = content.querySelector('h3, h2');
-            if (h && h.nextSibling) content.insertBefore(b, h.nextSibling);
+            var rodic = (h && h.parentNode) ? h.parentNode : content;
+            if (h && h.nextSibling) rodic.insertBefore(b, h.nextSibling);
+            else if (h) rodic.appendChild(b);
             else content.insertBefore(b, content.firstChild);
         } else {
             // Okno modulu: do cizí hlavičky se strkat nedá (každý modul ji má jinak),
@@ -379,12 +386,12 @@
             // po načtení dat), takže první měření nemusí kolizi vidět — u Závad se
             // kolečko takhle usadilo na filtrační chip, který v tu chvíli neexistoval.
             // Proto se poloha přeměří ještě dvakrát, jak okno dostává obsah.
-            try { placeFab(f, modal); } catch (e) {}
+            try { placeFab(f, modal); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'mini-panel:mk'); }
             [250, 900].forEach(function (ms) {
                 setTimeout(function () {
                     if (!f.isConnected) return;
                     f.style.top = '';                      // zpět na výchozí řádek a znovu vybrat
-                    try { placeFab(f, modal); } catch (e) {}
+                    try { placeFab(f, modal); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'mini-panel:mk'); }
                 }, ms);
             });
         }
@@ -408,7 +415,7 @@
     }
     function placeFab(f, modal) {
         var leftHand = false;
-        try { leftHand = document.body.classList.contains('left-hand'); } catch (e) {}
+        try { leftHand = document.body.classList.contains('left-hand'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'mini-panel:placeFab'); }
         var side = leftHand ? 'left' : 'right';
         var other = leftHand ? 'right' : 'left';
         // 58 px = vedle křížku z modal-close.js; dál se uhýbá po šířce tlačítka

@@ -25,7 +25,7 @@
     function hiddenPts() {
         try {
             if (typeof arPoints !== 'undefined' && Array.isArray(arPoints)) return arPoints.filter(function (p) { return p && p.hidden; });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hidden-points:hiddenPts'); }
         return [];
     }
 
@@ -40,19 +40,19 @@
         try {
             if (typeof arPoints === 'undefined' || !Array.isArray(arPoints)) return;
             arPoints.forEach(function (p) { if (p && !p.hidden && p.element && p.element.style) p.element.style.opacity = ''; });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hidden-points:clearOpacityResidue'); }
     }
 
     // Po obnově překreslit AR, mapu i případně otevřený seznam Body.
     function refreshApp() {
-        try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) {}
+        try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hidden-points:refreshApp'); }
         clearOpacityResidue();
-        try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) {}
-        try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) {}
+        try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hidden-points:refreshApp'); }
+        try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hidden-points:refreshApp'); }
         try {
             var mm = document.getElementById('manage-modal');
             if (mm && mm.style.display === 'flex' && typeof renderManageList === 'function') renderManageList();
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hidden-points:refreshApp'); }
     }
 
     function injectStyles() {
@@ -135,9 +135,9 @@
         ensureModal();
         // Zavřít vše, co by mohlo zůstat nad seznamem a požírat klepnutí:
         // bottom-sheet (z 20000) i jádrové modály (observer .ag-open sleduje inline display).
-        try { var bs = document.getElementById('bottom-sheet'); if (bs) bs.classList.remove('open'); } catch (e) {}
+        try { var bs = document.getElementById('bottom-sheet'); if (bs) bs.classList.remove('open'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hidden-points:openModal'); }
         ['settings-modal', 'manage-modal', 'tools-modal'].forEach(function (id) {
-            try { var m = document.getElementById(id); if (m && m.style.display !== 'none') m.style.display = 'none'; } catch (e) {}
+            try { var m = document.getElementById(id); if (m && m.style.display !== 'none') m.style.display = 'none'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hidden-points:openModal'); }
         });
         render();
         document.getElementById(MODAL_ID).style.display = 'flex';
@@ -145,7 +145,7 @@
     function closeModal() {
         var ov = document.getElementById(MODAL_ID);
         if (ov) ov.style.display = 'none';
-        try { if (typeof fixAppLayout === 'function') fixAppLayout(); } catch (e) {}
+        try { if (typeof fixAppLayout === 'function') fixAppLayout(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hidden-points:closeModal'); }
     }
 
     window.agOpenHiddenPoints = openModal;

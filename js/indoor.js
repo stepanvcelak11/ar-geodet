@@ -74,19 +74,19 @@
 
     // ---- pomocné --------------------------------------------------------------------
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
-    function info(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert(t, m); } catch (e) {} toast(m); }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'indoor:toast'); } }
+    function info(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert(t, m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'indoor:info'); } toast(m); }
     function points() {
         try { return (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) ? persistentCustomPoints : []; } catch (e) { return []; }
     }
     function mPerDeg(lat) {
-        try { if (typeof GeoCore !== 'undefined' && GeoCore.metersPerDeg) return GeoCore.metersPerDeg(lat); } catch (e) {}
+        try { if (typeof GeoCore !== 'undefined' && GeoCore.metersPerDeg) return GeoCore.metersPerDeg(lat); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'indoor:mPerDeg'); }
         return { lat: 111320, lng: 111320 * Math.cos(lat * Math.PI / 180) };
     }
-    function stepLen() { try { var v = parseFloat(localStorage.getItem(LS_STEP)); if (isFinite(v) && v >= 0.4 && v <= 1.2) return v; } catch (e) {} return STEP_DEF; }
+    function stepLen() { try { var v = parseFloat(localStorage.getItem(LS_STEP)); if (isFinite(v) && v >= 0.4 && v <= 1.2) return v; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'indoor:stepLen'); } return STEP_DEF; }
     function toSJTSK(lat, lng) {
-        try { if (window.GeoCore && GeoCore.toSJTSK) return GeoCore.toSJTSK(lat, lng); } catch (e) {}
-        try { if (typeof proj4 === 'function') { var c = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { y: Math.abs(c[0]), x: Math.abs(c[1]) }; } } catch (e2) {}
+        try { if (window.GeoCore && GeoCore.toSJTSK) return GeoCore.toSJTSK(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'indoor:toSJTSK'); }
+        try { if (typeof proj4 === 'function') { var c = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { y: Math.abs(c[0]), x: Math.abs(c[1]) }; } } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'indoor:toSJTSK'); }
         return null;
     }
     function fmtNum(v) { return v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
@@ -127,10 +127,10 @@
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                 DeviceOrientationEvent.requestPermission().then(function (p) { if (p === 'granted') attach(); })['catch'](function () {});
             } else if (typeof DeviceOrientationEvent !== 'undefined') attach();
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'indoor:attach'); }
     }
     function stopOri() {
-        try { window.removeEventListener('deviceorientationabsolute', onOri, true); window.removeEventListener('deviceorientation', onOri, true); } catch (e) {}
+        try { window.removeEventListener('deviceorientationabsolute', onOri, true); window.removeEventListener('deviceorientation', onOri, true); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'indoor:stopOri'); }
         _oriOn = false;
     }
 
@@ -171,9 +171,9 @@
                 })['catch'](function () {});
             } else if (typeof DeviceMotionEvent !== 'undefined') attach();
             else info('Bez čidel to nejde', 'Telefon nehlásí pohybová čidla.');
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'indoor:attach'); }
     }
-    function stopMotion() { try { window.removeEventListener('devicemotion', onMotion); } catch (e) {} _motionOn = false; }
+    function stopMotion() { try { window.removeEventListener('devicemotion', onMotion); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'indoor:stopMotion'); } _motionOn = false; }
 
     function pushTrack() {
         var last = _track[_track.length - 1];
@@ -250,12 +250,12 @@
                 var moved = Math.sqrt((e - _dE) * (e - _dE) + (n - _dN) * (n - _dN));
                 if (moved > 0.05) { _dist += moved; _dE = e; _dN = n; pushTrack(); recalcErr(); }
             }
-        } catch (e) {}
-        try { _xrSession.requestAnimationFrame(onXrFrame); } catch (e2) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'indoor:onXrFrame'); }
+        try { _xrSession.requestAnimationFrame(onXrFrame); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'indoor:onXrFrame'); }
     }
     function stopXr() {
         var s = _xrSession; _xrSession = null;
-        if (s) { try { s.end(); } catch (e) {} }
+        if (s) { try { s.end(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'indoor:stopXr'); } }
         onXrEnd();
     }
     function onXrEnd() {
@@ -329,9 +329,9 @@
         render();
     }
     function lockScreen() {
-        try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function (w) { _wake = w; })['catch'](function () {}); } catch (e) {}
+        try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function (w) { _wake = w; })['catch'](function () {}); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'indoor:lockScreen'); }
     }
-    function unlockScreen() { try { if (_wake) { _wake.release(); _wake = null; } } catch (e) {} }
+    function unlockScreen() { try { if (_wake) { _wake.release(); _wake = null; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'indoor:unlockScreen'); } }
 
     // ---- půdorys ------------------------------------------------------------------------------
     // Vlastní plátno: body zakázky + ušlá stopa + kruh nejistoty. Hlavní mapy ani AR
@@ -663,7 +663,7 @@
                 new MutationObserver(function () {
                     if (m.style.display === 'none' && _mode === 'walk') stop();
                 }).observe(m, { attributes: true, attributeFilter: ['style'] });
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'indoor:open'); }
         }
         m.style.display = 'flex';
         xrCheck().then(function () { render(); });
@@ -672,7 +672,7 @@
 
     try {
         window.addEventListener('pagehide', function () { if (_mode === 'walk') stop(); });
-    } catch (e) {}
+    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'indoor:open'); }
 
     // ---- dlaždice v Nástrojích --------------------------------------------------------------------------
     var _tries = 0;

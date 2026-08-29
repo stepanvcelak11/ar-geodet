@@ -141,10 +141,10 @@
                     }
                 }
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:load'); }
         return cfg;
     }
-    function save() { try { localStorage.setItem(KEY, JSON.stringify(load())); } catch (e) {} }
+    function save() { try { localStorage.setItem(KEY, JSON.stringify(load())); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:save'); } }
 
     function arrows(code) {
         var s = '';
@@ -160,9 +160,9 @@
         try {
             if (typeof visSettings !== 'undefined' && visSettings.vibrationEnabled === false) return;
             if (navigator.vibrate) navigator.vibrate(ms);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:buzz'); }
     }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:toast'); } }
 
     // ---- ④ AKCE APPKY jako cíl zkratky ----------------------------------------------
     // V terénu je „ulož bod tady" nebo „přepni na mapu" častější než otevření okna.
@@ -190,7 +190,7 @@
         try {
             if (window.AGReg && typeof AGReg.groups === 'function') return AGReg.groups();
             if (window.AGUkony && AGUkony.groups) return AGUkony.groups;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:groups'); }
         return [];
     }
     var LBL = null;
@@ -236,11 +236,11 @@
     function mapBack(s) {
         var m = getMap();
         if (!m || !s) return;
-        try { m.setView(s.c, s.z, { animate: false }); } catch (e) {}
+        try { m.setView(s.c, s.z, { animate: false }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:mapBack'); }
         // grafika.js si při posunu zvedne _mapHold (mapa se pak přestane točit podle
         // kompasu) a jeho touchend už k ní kvůli stopPropagation nedorazí — spustíme
         // příznak sami, jinak by mapa zůstala „zamrzlá" natrvalo.
-        try { window._mapHold = false; } catch (e) {}
+        try { window._mapHold = false; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:mapBack'); }
     }
 
     // ---- rozklad tahu na šipky --------------------------------------------------------
@@ -249,7 +249,7 @@
     // se stejně nemění a čtení `classList` v každém touchmove je zbytečné.
     function segPx() {
         var v = SEG_STEP[load().seg] || SEG_STEP.stredni;
-        try { if (document.body.classList.contains('ag-glove')) v = Math.round(v * GLOVE_MUL); } catch (e) {}
+        try { if (document.body.classList.contains('ag-glove')) v = Math.round(v * GLOVE_MUL); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:segPx'); }
         return v;
     }
     function Stroke(x, y) { this.ax = x; this.ay = y; this.dir = ''; this.seg = segPx(); }
@@ -317,7 +317,7 @@
         if (load().off) return false;
         if (!document.body.classList.contains('app-started')) return false;
         if (document.body.classList.contains('ag-kn-open')) return false;   // kolečko nástrojů
-        try { if (target && target.closest && target.closest(NOGO)) return false; } catch (e) {}
+        try { if (target && target.closest && target.closest(NOGO)) return false; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:canStart'); }
         return true;
     }
 
@@ -411,7 +411,7 @@
         var t = e.touches;
         if (!t || t.length !== 1) return;
         var tile = null;
-        try { tile = e.target && e.target.closest ? e.target.closest('.tool-tile, .ag-uk-i[data-k]') : null; } catch (er) {}
+        try { tile = e.target && e.target.closest ? e.target.closest('.tool-tile, .ag-uk-i[data-k]') : null; } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'gesta-zkratky:lpStart'); }
         if (!tile || tile.id === 'ag-sm-allbtn') return;
         var k = tile.getAttribute('data-k') || tileKeyOf(tile);
         if (!k) return;
@@ -677,7 +677,7 @@
                 window.agAsk('„' + lbl + '" jsi otevřel už ' + hit.n + '×. Chceš na něj gesto? Pak ho spustíš jedním tahem, bez hledání tady.',
                     { title: 'Zkratka gestem', okText: 'Dát mu gesto', cancelText: 'Teď ne' })
                     .then(function (yes) { if (yes) assignFor(hit.k); });
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:offerTick'); }
         }, 450);
     }
 
@@ -860,14 +860,14 @@
         var host = document.getElementById('ag-gz-tools');
         if (!host) return;
         q = String(q || '').toLowerCase();
-        try { q = q.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) {}
+        try { q = q.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:fillTools'); }
         var g = groups(), h = '', a, hay2;
         // ④ akce appky jdou první: v terénu se sahá spíš po nich než po oknech
         var arows = '';
         for (var ai = 0; ai < ACTIONS.length; ai++) {
             a = ACTIONS[ai];
             hay2 = ('akce ' + a.l).toLowerCase();
-            try { hay2 = hay2.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (e) {}
+            try { hay2 = hay2.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:fillTools'); }
             if (q && hay2.indexOf(q) < 0) continue;
             arows += '<button type="button" data-tool="' + esc(a.k) + '">' + esc(a.l) + '</button>';
         }
@@ -877,7 +877,7 @@
             for (var j = 0; j < g[i].items.length; j++) {
                 var it = g[i].items[j];
                 var lab = it.l || it.k, hay = (lab + ' ' + (it.h || '') + ' ' + g[i].t).toLowerCase();
-                try { hay = hay.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) {}
+                try { hay = hay.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:fillTools'); }
                 if (q && hay.indexOf(q) < 0) continue;
                 rows += '<button type="button" data-tool="' + esc(it.k) + '">' + esc(lab) +
                     (it.h ? '<small>' + esc(it.h) + '</small>' : '') + '</button>';
@@ -1197,17 +1197,17 @@
         document.addEventListener('touchmove', onMove, { passive: false, capture: true });
         document.addEventListener('touchend', onEnd, { passive: false, capture: true });
         document.addEventListener('touchcancel', onCancel, { passive: true, capture: true });
-        try { injectStyles(); } catch (e) {}
+        try { injectStyles(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:init'); }
         var tries = 0;
         var t = setInterval(function () {
-            try { injectSettingRow(); } catch (e) {}
+            try { injectSettingRow(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:init'); }
             if (document.getElementById('ag-gz-setrow') || ++tries > 40) clearInterval(t);
         }, 400);
         // ③ sledování, kdy se otevřou Nástroje — přes SDÍLENÝ časovač appky, aby
         // kvůli tomu nevznikala další smyčka (viz úspora baterie v js/power-save.js)
         if (!window.__agGzTimer) {
             window.__agGzTimer = (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(function () {
-                try { offerTick(); } catch (e) {}
+                try { offerTick(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:init'); }
             }, 1200);
         }
     }

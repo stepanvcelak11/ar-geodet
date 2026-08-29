@@ -55,12 +55,12 @@
     function getGrid() { var m = document.getElementById('tools-modal'); return m ? m.querySelector('.tool-grid') : null; }
     function loadFavs() { try { var a = JSON.parse(localStorage.getItem(FAV_KEY)); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
     function simpleOn() { try { return localStorage.getItem(SIMPLE_KEY) === '1'; } catch (e) { return false; } }
-    function setSimple(on) { try { localStorage.setItem(SIMPLE_KEY, on ? '1' : '0'); } catch (e) {} }
+    function setSimple(on) { try { localStorage.setItem(SIMPLE_KEY, on ? '1' : '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tools-simple:setSimple'); } }
     function profileId() {
-        var id; try { id = localStorage.getItem(PROF_PREFIX + pid()); } catch (e) {}
+        var id; try { id = localStorage.getItem(PROF_PREFIX + pid()); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tools-simple:profileId'); }
         return (id && PROFILES[id]) ? id : 'univerzal';
     }
-    function setProfileId(id) { try { localStorage.setItem(PROF_PREFIX + pid(), id); } catch (e) {} }
+    function setProfileId(id) { try { localStorage.setItem(PROF_PREFIX + pid(), id); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tools-simple:setProfileId'); } }
     function tileKey(tile) {
         var dt = tile.getAttribute('data-tool');
         if (dt) return dt;
@@ -135,7 +135,7 @@
         if (tile.classList.contains('ag-ft-tile')) {
             // injektovanou vrátí field-tools — hned, ať mřížka neproblikává čekáním na tick
             tile.remove();
-            try { if (typeof window.agFtSyncTiles === 'function') window.agFtSyncTiles(); } catch (e) {}
+            try { if (typeof window.agFtSyncTiles === 'function') window.agFtSyncTiles(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tools-simple:restoreTile'); }
             return;
         }
         var ph = tile._agTsPh;
@@ -273,7 +273,7 @@
     function init() {
         try { sync(); } catch (e) { console.warn('[tools-simple] init', e); }
         if (!window.__agTsTimer) window.__agTsTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(function () {
-            try { sync(); } catch (e) {}
+            try { sync(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tools-simple:init'); }
         }, 1700);
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

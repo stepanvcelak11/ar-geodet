@@ -18,14 +18,14 @@
             if (typeof visSettings !== 'undefined' && visSettings && typeof visSettings === 'object') {
                 if (visSettings.mode !== 'dark') {
                     visSettings.mode = 'dark';
-                    try { if (typeof setStoredData === 'function') setStoredData('arVisSettings12', JSON.stringify(visSettings)); } catch (e) {}
+                    try { if (typeof setStoredData === 'function') setStoredData('arVisSettings12', JSON.stringify(visSettings)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'theme-dark:apply'); }
                 }
             }
             // aplikuj hned vizuálně
             try {
                 if (typeof previewMode === 'function') previewMode('dark');
                 else document.body.classList.remove('light-mode');
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'theme-dark:apply'); }
             var sel = document.getElementById('v-mode'); if (sel) sel.value = 'dark';
         } catch (e) { /* fail-silent */ }
     }
@@ -34,5 +34,5 @@
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply);
         else apply();
         window.addEventListener('load', function () { setTimeout(apply, 200); });
-    } catch (e) {}
+    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'theme-dark:apply'); }
 })();

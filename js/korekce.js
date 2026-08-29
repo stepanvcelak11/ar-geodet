@@ -49,12 +49,12 @@
     // cteni cisel pres sdilene agNum() (js/vstupy.js) — desetinna carka, mezery v tisicich
     function num(v) { var n = (typeof window.agNum === 'function') ? window.agNum(v) : parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : null; }
     function st() { try { var o = JSON.parse(localStorage.getItem(LS)); return (o && typeof o === 'object') ? o : {}; } catch (e) { return {}; } }
-    function setSt(o) { try { localStorage.setItem(LS, JSON.stringify(o)); } catch (e) {} }
+    function setSt(o) { try { localStorage.setItem(LS, JSON.stringify(o)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'korekce:setSt'); } }
     function put(k, v) { var o = st(); o[k] = v; setSt(o); }
 
     // ---- meteo z cache počasí -----------------------------------------------------------
     function gpsAlt() {
-        try { if (typeof userAlt === 'number' && isFinite(userAlt)) return userAlt; } catch (e) {}
+        try { if (typeof userAlt === 'number' && isFinite(userAlt)) return userAlt; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'korekce:gpsAlt'); }
         return null;
     }
     function meteo() {
@@ -73,7 +73,7 @@
                 var T = (out.t == null) ? 15 : out.t;
                 out.pLoc = out.pmsl * Math.pow(1 - (0.0065 * out.alt) / (T + 0.0065 * out.alt + 273.15), 5.257);
             } else if (out.pmsl != null) out.pLoc = out.pmsl;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'korekce:meteo'); }
         return out;
     }
 

@@ -71,8 +71,8 @@
 
     function U() { return window.AGUcty || null; }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
-    function info(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert(t, m); } catch (e) {} toast(m); }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:toast'); } }
+    function info(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert(t, m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:info'); } toast(m); }
     function pad2(n) { return (n < 10 ? '0' : '') + n; }
     function fmtT(ts) { var d = new Date(ts); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
     function ago(ms) {
@@ -84,20 +84,20 @@
     }
     function cfg() {
         var o = {};
-        try { o = JSON.parse(localStorage.getItem(LS) || '{}') || {}; } catch (e) {}
+        try { o = JSON.parse(localStorage.getItem(LS) || '{}') || {}; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:cfg'); }
         if (typeof o.share !== 'boolean') o.share = false;
         if (typeof o.md !== 'boolean') o.md = false;
         return o;
     }
-    function saveCfg(o) { try { localStorage.setItem(LS, JSON.stringify(o)); } catch (e) {} }
+    function saveCfg(o) { try { localStorage.setItem(LS, JSON.stringify(o)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:saveCfg'); } }
     function toSJTSK(lat, lng) {
-        try { if (window.GeoCore && GeoCore.toSJTSK) return GeoCore.toSJTSK(lat, lng); } catch (e) {}
-        try { if (typeof proj4 === 'function') { var c = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { y: Math.abs(c[0]), x: Math.abs(c[1]) }; } } catch (e2) {}
+        try { if (window.GeoCore && GeoCore.toSJTSK) return GeoCore.toSJTSK(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:toSJTSK'); }
+        try { if (typeof proj4 === 'function') { var c = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { y: Math.abs(c[0]), x: Math.abs(c[1]) }; } } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'vysilacka:toSJTSK'); }
         return null;
     }
     function fmtNum(v) { return v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
     function dist(la1, lo1, la2, lo2) {
-        try { if (typeof getDistance === 'function') return getDistance(la1, lo1, la2, lo2); } catch (e) {}
+        try { if (typeof getDistance === 'function') return getDistance(la1, lo1, la2, lo2); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:dist'); }
         var R = 6371000, r = Math.PI / 180;
         var a = Math.sin((la2 - la1) * r / 2), b = Math.sin((lo2 - lo1) * r / 2);
         var h = a * a + Math.cos(la1 * r) * Math.cos(la2 * r) * b * b;
@@ -114,7 +114,7 @@
             if (typeof userLat !== 'undefined' && userLat != null) {
                 return { lat: userLat, lng: userLng, acc: (typeof currentGpsAccuracy !== 'undefined' ? currentGpsAccuracy : null) };
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:myPos'); }
         return null;
     }
     function jobName() {
@@ -207,7 +207,7 @@
             var key = p.uid + '_' + (p.sosTs || p.ts);
             if (_sosSeen[key]) return;
             _sosSeen[key] = 1;
-            try { if (navigator.vibrate) navigator.vibrate([200, 120, 200, 120, 400]); } catch (e) {}
+            try { if (navigator.vibrate) navigator.vibrate([200, 120, 200, 120, 400]); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:checkSos'); }
             var d = '';
             var me = myPos();
             if (me && p.lat != null) d = ' · ' + Math.round(dist(me.lat, me.lng, p.lat, p.lng)) + ' m odsud';
@@ -264,16 +264,16 @@
         });
     }
     function mdStop() {
-        if (_md.listener) { try { window.removeEventListener('devicemotion', _md.listener); } catch (e) {} _md.listener = null; }
+        if (_md.listener) { try { window.removeEventListener('devicemotion', _md.listener); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:mdStop'); } _md.listener = null; }
         _md.on = false; _md.armedAt = 0; _md.buf = [];
         cancelAlarm(true);
         unlockScreen();
     }
     function lockScreen() {
-        try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function (w) { _wake = w; })['catch'](function () {}); } catch (e) {}
+        try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function (w) { _wake = w; })['catch'](function () {}); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:lockScreen'); }
     }
     function unlockScreen() {
-        try { if (_wake) { _wake.release(); _wake = null; } } catch (e) {}
+        try { if (_wake) { _wake.release(); _wake = null; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:unlockScreen'); }
     }
     function onMotion(ev) {
         var a = ev.accelerationIncludingGravity;
@@ -317,8 +317,8 @@
             o.type = 'square'; o.frequency.value = 880;
             g.gain.value = 0.12;
             o.connect(g); g.connect(_md.audio.destination);
-            o.start(); setTimeout(function () { try { o.stop(); } catch (e) {} }, 180);
-        } catch (e) {}
+            o.start(); setTimeout(function () { try { o.stop(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:beep'); } }, 180);
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:beep'); }
     }
     function raiseAlarm(why) {
         if (_md.alarmT) return;
@@ -349,7 +349,7 @@
     function tickAlarm() {
         var c = document.getElementById('ag-vs-acount');
         if (c) c.textContent = String(_md.left);
-        try { if (navigator.vibrate) navigator.vibrate(300); } catch (e) {}
+        try { if (navigator.vibrate) navigator.vibrate(300); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:tickAlarm'); }
         beep();
         if (_md.left <= 0) { cancelAlarm(true); fireSos(); return; }
         _md.left--;
@@ -393,7 +393,7 @@
         try {
             var c = JSON.parse(localStorage.getItem('agSafety_v1') || '{}');
             if (c && c.contacts && c.contacts.length) ct = c.contacts[0];
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:showSosPanel'); }
         el.innerHTML =
             '<div class="ag-vs-sbox">'
             + '<div class="ag-vs-sh">Nouzová zpráva</div>'
@@ -423,7 +423,7 @@
     function drawLayer() {
         var m = getMap();
         if (!m || typeof L === 'undefined') return;
-        if (_layer) { try { m.removeLayer(_layer); } catch (e) {} _layer = null; }
+        if (_layer) { try { m.removeLayer(_layer); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:drawLayer'); } _layer = null; }
         var live = _people.filter(function (p) { return p.lat != null; });
         if (!live.length) return;
         _layer = L.layerGroup();
@@ -439,7 +439,7 @@
                     }),
                     interactive: false, zIndexOffset: 900
                 }).addTo(_layer);
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:drawLayer'); }
         });
         _layer.addTo(m);
     }
@@ -447,7 +447,7 @@
         var m = getMap();
         if (!m) { toast('Mapa není k dispozici.'); return; }
         _mapOn = !_mapOn;
-        if (!_mapOn && _layer) { try { m.removeLayer(_layer); } catch (e) {} _layer = null; toast('Kolegové v mapě skrytí.'); }
+        if (!_mapOn && _layer) { try { m.removeLayer(_layer); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:toggleMap'); } _layer = null; toast('Kolegové v mapě skrytí.'); }
         else { drawLayer(); toast(_layer ? 'Kolegové jsou v mapě.' : 'Zatím nikoho nevidím.'); }
         renderPeople();
     }
@@ -556,7 +556,7 @@
         }
         var me = myPos();
         var hd = null;
-        try { if (typeof currentHeading === 'number' && isFinite(currentHeading)) hd = currentHeading; } catch (e) {}
+        try { if (typeof currentHeading === 'number' && isFinite(currentHeading)) hd = currentHeading; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:renderPeople'); }
         var h = '';
         _people.sort(function (a, b) { return (b.sos || 0) - (a.sos || 0) || b.ts - a.ts; });
         _people.forEach(function (p) {
@@ -661,7 +661,7 @@
                 new MutationObserver(function () {
                     if (m.style.display === 'none') onClosed();
                 }).observe(m, { attributes: true, attributeFilter: ['style'] });
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:open'); }
         }
         _open = true;
         m.style.display = 'flex';
@@ -687,7 +687,7 @@
             }
         });
         window.addEventListener('pagehide', function () { unlockScreen(); });
-    } catch (e) {}
+    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:onClosed'); }
 
     // ---- start ------------------------------------------------------------------------------------------------
     // Po startu appky se obnoví jen to, co si uživatel zapnul. Man Down se ZÁMĚRNĚ

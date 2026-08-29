@@ -24,9 +24,9 @@
     window.changeProjectFromSettings = function () {
         const sel = document.getElementById('s-project-select');
         if (!sel || !sel.value) return;
-        try { if (typeof _persistOfficialPoints === 'function') _persistOfficialPoints(); } catch (e) { }
-        try { if (typeof activeProjectId !== 'undefined') activeProjectId = sel.value; } catch (e) { }
-        try { localStorage.setItem('arActiveProjectId', sel.value); } catch (e) { }
+        try { if (typeof _persistOfficialPoints === 'function') _persistOfficialPoints(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zakazky:changeProjectFromSettings'); }
+        try { if (typeof activeProjectId !== 'undefined') activeProjectId = sel.value; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zakazky:changeProjectFromSettings'); }
+        try { localStorage.setItem('arActiveProjectId', sel.value); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zakazky:changeProjectFromSettings'); }
         if (typeof loadProjectSettings === 'function') loadProjectSettings();
         if (typeof renderProjectSelect === 'function') renderProjectSelect(); // sync uvodni dropdown
         fillSettingsSelect();
@@ -38,7 +38,7 @@
         const orig = window.renderProjectSelect;
         window.renderProjectSelect = function () {
             const r = orig.apply(this, arguments);
-            try { fillSettingsSelect(); } catch (e) { }
+            try { fillSettingsSelect(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zakazky:renderProjectSelect'); }
             return r;
         };
     }

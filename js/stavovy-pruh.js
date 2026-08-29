@@ -100,7 +100,7 @@
         if (ci && ci.ts) {
             var ageMs = Date.now() - ci.ts;
             var dist = null;
-            if (haveUser() && ci.lat != null && typeof getDistance === 'function') { try { dist = getDistance(userLat, userLng, ci.lat, ci.lng); } catch (e) {} }
+            if (haveUser() && ci.lat != null && typeof getDistance === 'function') { try { dist = getDistance(userLat, userLng, ci.lat, ci.lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stavovy-pruh:arState'); } }
             var stale = ageMs > CAL_MAX_AGE || (dist != null && dist > CAL_MAX_DIST);
             if (!stale) return { c: 'green', t: 'AR ✓', d: 'Sever srovnán před ' + Math.round(ageMs / 60000) + ' min' + (dist != null ? ' (' + Math.round(dist) + ' m odsud)' : '') + '.', a: 'Platí. Po přesunu jinam nebo za ~30 min srovnej znovu.' };
             return { c: 'yellow', t: 'AR ?', d: 'Sever byl srovnán před ' + Math.round(ageMs / 60000) + ' min' + (dist != null ? ' a ' + Math.round(dist) + ' m odsud' : '') + ' — už nemusí platit.', a: 'Srovnej znovu podle bodu — tlačítko níž.' };
@@ -458,7 +458,7 @@
                 if (r.height > 0 && r.width > 0 && r.top > top + 60) limit = Math.min(limit, r.top);
             }
             bodyEl.style.maxHeight = Math.max(150, Math.round(limit - top - 12)) + 'px';
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stavovy-pruh:fitBody'); }
     }
     function onAct(e) {
         var btn = e.target.closest('button[data-act]');
@@ -472,12 +472,12 @@
             else if (act === 'gps') { if (typeof window.openGpsAvgModal === 'function') window.openGpsAvgModal(); }
             else if (act === 'skore') { if (window.AGSemafor && AGSemafor.open) AGSemafor.open(); }
             else if (act === 'off') {
-                try { localStorage.setItem(BAR_KEY, '0'); } catch (err) {}
+                try { localStorage.setItem(BAR_KEY, '0'); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'stavovy-pruh:onAct'); }
                 var cb = document.querySelector('#ag-sp-row-set input'); if (cb) cb.checked = false;
                 renderBar();
                 if (typeof quickToast === 'function') quickToast('Bublina vypnuta — původní panely jsou zpět. Zapneš ji v Nastavení → Vzhled.');
             }
-        } catch (err) {}
+        } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'stavovy-pruh:onAct'); }
     }
 
     // ---- přepínač v Nastavení → Vzhled --------------------------------------------------
@@ -492,11 +492,11 @@
         var sw = document.createElement('label'); sw.className = 'st-sw';
         var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = on();
         cb.addEventListener('change', function () {
-            try { localStorage.setItem(BAR_KEY, cb.checked ? '1' : '0'); } catch (e) {}
+            try { localStorage.setItem(BAR_KEY, cb.checked ? '1' : '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stavovy-pruh:injectSettingsToggle'); }
             _open = false; _lastHead = _lastBody = '';
             renderBar();
             // po zapnutí bubliny musí původní panely zmizet, po vypnutí se řídí svými přepínači
-            try { if (typeof toggleHudElements === 'function') toggleHudElements(); } catch (e) {}
+            try { if (typeof toggleHudElements === 'function') toggleHudElements(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stavovy-pruh:injectSettingsToggle'); }
         });
         var face = document.createElement('span'); face.className = 'st-sw-face';
         sw.appendChild(cb); sw.appendChild(face);
@@ -512,7 +512,7 @@
         var orig = window.nudgeHeadingOffset;
         window.nudgeHeadingOffset = function () {
             var r = orig.apply(this, arguments);
-            try { localStorage.setItem(CAL_KEY, JSON.stringify({ ts: Date.now(), lat: (haveUser() ? userLat : null), lng: (haveUser() ? userLng : null) })); } catch (e) {}
+            try { localStorage.setItem(CAL_KEY, JSON.stringify({ ts: Date.now(), lat: (haveUser() ? userLat : null), lng: (haveUser() ? userLng : null) })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stavovy-pruh:nudgeHeadingOffset'); }
             return r;
         };
         window.__agSpCalWrapped = true;
@@ -540,7 +540,7 @@
                 else if (!el) { _lastHead = ''; renderBar(); }
             });
             window.__agSpAzMo.observe(src, { childList: true, subtree: true, characterData: true });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stavovy-pruh:mirrorAz'); }
     }
     // stavové hlášky z #info („Stahuji data…", chyba GPS) — ukázat v bublině na 6 s
     function mirrorInfo() {
@@ -554,7 +554,7 @@
                 renderBar();
             });
             window.__agSpInfoMo.observe(src, { childList: true, subtree: true, characterData: true });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stavovy-pruh:mirrorInfo'); }
     }
     // vyblednutí HUD po nečinnosti: zrcadlíme .ui-faded z #compass-debug (řeší grafika.js)
     function syncFade() {
@@ -570,7 +570,7 @@
             window.__agSpFadeMo = new MutationObserver(syncFade);
             window.__agSpFadeMo.observe(src, { attributes: true, attributeFilter: ['class'] });
             syncFade();
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stavovy-pruh:mirrorFade'); }
     }
     function watchBattery() {
         if (!navigator.getBattery) return;
@@ -608,7 +608,7 @@
             if (_open) fitBody();      // lišta i obsah mění výšku i mimo překreslení
             syncFade();
             if ((_n++ % 15) === 0) checkTiles();   // ~1× za 30 s
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stavovy-pruh:tick'); }
     }
     function init() {
         injectStyles();
@@ -631,7 +631,7 @@
             ['touchstart', 'pointerdown', 'scroll'].forEach(function (evt) {
                 document.addEventListener(evt, function (e) {
                     if (!_open) return;
-                    try { if (e.target && e.target.closest && e.target.closest('#ag-sp')) _openTs = Date.now(); } catch (err) {}
+                    try { if (e.target && e.target.closest && e.target.closest('#ag-sp')) _openTs = Date.now(); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'stavovy-pruh:init'); }
                 }, true);
             });
             window.addEventListener('resize', function () { if (_open) fitBody(); });

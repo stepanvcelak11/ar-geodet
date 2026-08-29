@@ -54,7 +54,7 @@
             if (typeof visSettings !== 'undefined' && visSettings) {
                 alpha = Math.max(0.05, 1 - (visSettings.headingSmoothing || 0) / 100);
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-fusion:fallbackSmooth'); }
         if (prev == null) return norm360(next);
         return norm360(prev + alpha * adiff(next, prev));
     }
@@ -188,7 +188,7 @@
                     var qa = (ca < 0) ? 0.2 : Math.max(0.2, Math.min(1, 1 - (ca - 8) / 30));
                     if (qa < q) q = qa;
                 }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-fusion:fuse'); }
             w *= q;
 
             var out = predicted + w * err;
@@ -204,7 +204,7 @@
     // ---- zapnuti / vypnuti -----------------------------------------------------
     function startListening() {
         if (listening) return;
-        var attach = function () { try { window.addEventListener('devicemotion', onMotion, true); listening = true; } catch (e) {} };
+        var attach = function () { try { window.addEventListener('devicemotion', onMotion, true); listening = true; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-fusion:attach'); } };
         try {
             // iOS 13+: devicemotion (gyro) vyžaduje VLASTNÍ souhlas. Když byl udělen dřív
             // (start kamery hlavní appkou ve stejném gestu), requestPermission projde hned;
@@ -214,13 +214,13 @@
             } else {
                 attach();
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-fusion:attach'); }
     }
     // Hook pro hlavní appku: zavolat z user-gesta (start kamery/AR), ať se na iOS doptá na motion.
     window.agFusionRequestMotion = startListening;
     function stopListening() {
         if (!listening) return;
-        try { window.removeEventListener('devicemotion', onMotion, true); } catch (e) {}
+        try { window.removeEventListener('devicemotion', onMotion, true); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-fusion:stopListening'); }
         listening = false;
     }
 
@@ -244,7 +244,7 @@
         } catch (e) { return true; }
     }
     function writePref(on) {
-        try { localStorage.setItem(LS_KEY, on ? '1' : '0'); } catch (e) {}
+        try { localStorage.setItem(LS_KEY, on ? '1' : '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-fusion:writePref'); }
     }
 
     function setEnabled(on) {
@@ -321,7 +321,7 @@
         get enabled() { return enabled; },
         set enabled(v) { setEnabled(!!v); }
     };
-    try { window.ARFusion = api; } catch (e) {}
+    try { window.ARFusion = api; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-fusion:injectToggle'); }
 
     // ---- init (idempotentni) ---------------------------------------------------
     function init() {

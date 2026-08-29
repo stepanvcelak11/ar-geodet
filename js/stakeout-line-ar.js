@@ -62,7 +62,7 @@
         var bearing = getBearing(userLat, userLng, lat, lng);
         var diff = ((bearing - heading + 540) % 360) - 180;
         var dz = 0;
-        try { if (typeof terrainDZ === 'function') dz = terrainDZ(lat, lng) || 0; } catch (e) {}
+        try { if (typeof terrainDZ === 'function') dz = terrainDZ(lat, lng) || 0; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stakeout-line-ar:proj'); }
         var uH = diff, vV = Math.atan2(eyeH - dz, Math.max(dist, 0.5)) * 180 / Math.PI - pj.pitch;
         if (pj.roll) {
             var cr = Math.cos(pj.roll), sr = Math.sin(pj.roll);
@@ -100,7 +100,7 @@
 
     function loop() {
         var svg = _svg;
-        var vm = null; try { vm = viewMode; } catch (e) {}
+        var vm = null; try { vm = viewMode; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stakeout-line-ar:loop'); }
         // BATERIE: mimo AR (Mapa, appka na pozadí, vypnutá volba) nedrž 60Hz řetěz
         if (!svg || !_on || !haveUser() || vm === 'map' || !window._arProj
             || document.visibilityState !== 'visible') {
@@ -112,7 +112,7 @@
         _raf = requestAnimationFrame(loop);
 
         var pj = window._arProj, heading = null;
-        try { heading = (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null; } catch (e) {}
+        try { heading = (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stakeout-line-ar:loop'); }
         if (heading == null) { if (svg.innerHTML) svg.innerHTML = ''; return; }
 
         var g = geom();
@@ -124,8 +124,8 @@
         _lastH = heading; _lastP = pitch; _lastLat = userLat; _lastLng = userLng;
 
         var eyeH = 1.6, vOff = 0, rad = 150;
-        try { eyeH = visSettings.eyeHeight || 1.6; vOff = visSettings.arVerticalOffset || 0; } catch (e) {}
-        try { if (typeof arRadius !== 'undefined' && arRadius) rad = arRadius; } catch (e) {}
+        try { eyeH = visSettings.eyeHeight || 1.6; vOff = visSettings.arVerticalOffset || 0; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stakeout-line-ar:loop'); }
+        try { if (typeof arRadius !== 'undefined' && arRadius) rad = arRadius; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stakeout-line-ar:loop'); }
 
         var S = window.AGStakeLine;
         var html = '';
@@ -184,7 +184,7 @@
         isOn: function () { return _on; },
         set: function (v) {
             _on = !!v;
-            try { localStorage.setItem(LS, _on ? '1' : '0'); } catch (e) {}
+            try { localStorage.setItem(LS, _on ? '1' : '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stakeout-line-ar:set'); }
             if (_on) start(); else stop();
         },
         refresh: function () { _lastH = null; }

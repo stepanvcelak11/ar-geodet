@@ -41,6 +41,7 @@
                 'ag-gz-setrow': { s: 'Ovládání', i: 4 },                  // gesta = zkratky na nástroje
                 's-mapfab': { s: 'Prvky na obrazovce', i: 1 },        // tlačítko vrstev v mapě
                 'ag-sp-row-set': { s: 'Prvky na obrazovce', i: 2 },        // stavová bublina
+                'ag-sil-setrow': { s: 'Prvky na obrazovce', i: 3 },        // silueta přesnosti GPS
                 'ag-ns-setrow': { s: 'Zjednodušení', i: 1 },              // krátké nastavení
                 'ag-ts-setrow': { s: 'Zjednodušení', i: 2 },              // jednoduchý panel Nástrojů
                 'ag-ua-simple-row': { s: 'Zjednodušení', i: 3 }               // zjednodušené Nástroje
@@ -84,7 +85,7 @@
 
     function norm(s) {
         s = String(s == null ? '' : s).toLowerCase();
-        try { s = s.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) {}
+        try { s = s.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-poradek:norm'); }
         return s.replace(/\s+/g, ' ').trim();
     }
     function isHead(el) { return !!(el.classList && el.classList.contains('set-h')); }
@@ -303,7 +304,7 @@
             new MutationObserver(function () {
                 if (_dirty && settingsVisible()) arrange();
             }).observe(m, { attributes: true, attributeFilter: ['style', 'class'] });
-        } catch (e3) {}
+        } catch (e3) { window.AG && AG.swallow && AG.swallow(e3, 'nastaveni-poradek:watch'); }
         // srovnat i při každém otevření (moduly dosypávají obsah až tam). Srovnáváme
         // SYNCHRONNĚ hned po otevření — okno už v tu chvíli je vidět a odložené srovnání
         // by se uživateli projevilo jako přeskládání obsahu pod rukama.
@@ -312,18 +313,18 @@
             if (typeof open === 'function' && !open.__agOrder) {
                 var wrapped = function () {
                     var r = open.apply(this, arguments);
-                    try { arrange(); } catch (e4) {}
+                    try { arrange(); } catch (e4) { window.AG && AG.swallow && AG.swallow(e4, 'nastaveni-poradek:wrapped'); }
                     // ještě jednou HNED v příštím snímku: otevření samo probouzí moduly,
                     // které si do Nastavení dosypou řádek — takhle se srovná dřív, než
                     // okno dojede do plné viditelnosti, ne až za 220 ms uprostřed fade.
-                    try { requestAnimationFrame(function () { try { arrange(); } catch (e6) {} }); } catch (e5) {}
+                    try { requestAnimationFrame(function () { try { arrange(); } catch (e6) { window.AG && AG.swallow && AG.swallow(e6, 'nastaveni-poradek:wrapped'); } }); } catch (e5) { window.AG && AG.swallow && AG.swallow(e5, 'nastaveni-poradek:wrapped'); }
                     schedule();          // a naposled, až doběhne zbytek
                     return r;
                 };
                 wrapped.__agOrder = 1;
                 window.openSettings = wrapped;
             }
-        } catch (e2) {}
+        } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'nastaveni-poradek:wrapped'); }
         arrange();
         return true;
     }

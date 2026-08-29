@@ -97,7 +97,7 @@
         try {
             var r = document.querySelector('input[name="s-view"][value="' + cur() + '"]');
             if (r && !r.checked) r.checked = true;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'view-cycle:sync'); }
     }
     window.agSyncViewControls = sync;
 
@@ -107,10 +107,10 @@
         viewMode = m;
         // BATERIE: zapamatovat volbu na priste (grafika.js). Rezim „Dělené" drzi zivou kameru
         // i mapu naraz, takze kdo si prepne do Mapy, nechce ji priste hledat znovu.
-        try { if (typeof window.agRememberViewMode === 'function') window.agRememberViewMode(m); } catch (e) {}
+        try { if (typeof window.agRememberViewMode === 'function') window.agRememberViewMode(m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'view-cycle:setMode'); }
         try { if (typeof applyViewMode === 'function') applyViewMode(); } catch (e) { console.warn('[view-cycle]', e); }
         sync();
-        try { if (typeof visSettings !== 'undefined' && visSettings.vibrationEnabled && navigator.vibrate) navigator.vibrate(15); } catch (e) {}
+        try { if (typeof visSettings !== 'undefined' && visSettings.vibrationEnabled && navigator.vibrate) navigator.vibrate(15); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'view-cycle:setMode'); }
     }
 
     function next() {
@@ -153,7 +153,7 @@
             if (typeof window.quickToast === 'function') {
                 window.quickToast('Tip: tažením po kroužku přepneš rovnou — nahoru AR, do strany Split, dolů Mapa.');
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'view-cycle:hint'); }
     }
 
     function bindSwipe(b) {
@@ -220,9 +220,9 @@
     });
     // po klepnutí hned přepočítat i uhýbání/popisek (zapnutí nástrojů mapy z „Více"
     // by jinak čekalo až na 1,5s tick)
-    document.addEventListener('click', function () { setTimeout(function () { try { sync(); } catch (e) {} }, 50); }, { passive: true });
+    document.addEventListener('click', function () { setTimeout(function () { try { sync(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'view-cycle:ensureBtn'); } }, 50); }, { passive: true });
 
-    function tick() { try { injectStyles(); ensureBtn(); sync(); } catch (e) {} }
+    function tick() { try { injectStyles(); ensureBtn(); sync(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'view-cycle:tick'); } }
     function init() {
         tick();
         // viewMode mění i segment v „Více", radia v Nastavení a start appky — držet popisek aktuální

@@ -148,7 +148,7 @@
             var tx = (h.textContent || '').replace(/\s+/g, ' ').trim();
             if (!tx) return;
             var vis = true;
-            try { vis = getComputedStyle(h).display !== 'none'; } catch (e) {}
+            try { vis = getComputedStyle(h).display !== 'none'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-lista:sections'); }
             if (vis) out.push({ el: h, name: tx });
         });
         return out;
@@ -226,7 +226,7 @@
         // Na cizí záložku se přepíná jejím vlastním tlačítkem (switchTab + srovnání
         // pruhu). Když už je otevřená, tlačítko se ZÁMĚRNĚ nemačká: jeho onclick
         // obsahuje `scrollTop = 0`, což by skok na sekci ve stejné záložce zrušil.
-        if (t.id !== activeTabId()) { try { t.btn.click(); } catch (e) {} }
+        if (t.id !== activeTabId()) { try { t.btn.click(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-lista:goTab'); } }
         close();
         if (secEl) {
             // rolovat AŽ po přepnutí panelu, jinak se měří výška skrytého bloku
@@ -237,7 +237,7 @@
                 // rolovací vrstva je jinde. scrollIntoView si správný kontejner najde sám,
                 // ať už se rozvržení modálu kdykoli změní.
                 try { secEl.scrollIntoView({ block: 'start', behavior: 'auto' }); } catch (e) {
-                    try { secEl.scrollIntoView(true); } catch (e2) {}
+                    try { secEl.scrollIntoView(true); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'nastaveni-lista:goTab'); }
                 }
                 markEdge();
             }, 70);

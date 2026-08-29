@@ -46,7 +46,7 @@
             if (typeof currentGpsAccuracy !== 'undefined' && isFinite(currentGpsAccuracy) && currentGpsAccuracy > 0) {
                 return currentGpsAccuracy;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-warn:getAccuracy'); }
         return null;
     }
 
@@ -150,8 +150,8 @@
 
     function start() {
         if (_timer) return;
-        try { _timer = setInterval(tick, POLL_MS); } catch (e) {}
-        try { tick(); } catch (e) {}
+        try { _timer = setInterval(tick, POLL_MS); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-warn:start'); }
+        try { tick(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-warn:start'); }
     }
 
     // --- Init (DOMContentLoaded + load, druhý průchod přes setTimeout) -----------

@@ -102,10 +102,10 @@
     var _loaded = {};    // src -> Promise
 
     function toast(msg) {
-        try { if (typeof quickToast === 'function') { quickToast(msg); return; } } catch (e) {}
+        try { if (typeof quickToast === 'function') { quickToast(msg); return; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'lazy-tools:toast'); }
     }
     function fail(msg) {
-        try { if (typeof window.agAlert === 'function') { window.agAlert('Nástroj se nepovedlo načíst', msg); return; } } catch (e) {}
+        try { if (typeof window.agAlert === 'function') { window.agAlert('Nástroj se nepovedlo načíst', msg); return; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'lazy-tools:fail'); }
         toast(msg);
     }
 
@@ -139,7 +139,7 @@
     // nekonečná smyčka v mikrotaskách, takže se ani nevyčerpá zásobník — jen se úplně
     // zastaví event loop: nereaguje nic, ani vykreslování. Proto stub PŘED načtením
     // modulu odklidíme a navíc ho nikdy nevoláme jako „výsledek" načtení.
-    function markStub(fn) { try { fn._agLazyStub = true; } catch (e) {} return fn; }
+    function markStub(fn) { try { fn._agLazyStub = true; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'lazy-tools:markStub'); } return fn; }
     function isStub(o) { return !!(o && o._agLazyStub); }
     function dropStub(t) {
         if (!t.open) return;
@@ -154,7 +154,7 @@
         t._stub = false;   // kdyby se modul nenačetl, smí stubApi() zástupce vrátit
     }
     function clearGlobal(name) {
-        try { delete window[name]; } catch (e) { try { window[name] = undefined; } catch (e2) {} }
+        try { delete window[name]; } catch (e) { try { window[name] = undefined; } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'lazy-tools:clearGlobal'); } }
     }
 
     // 'AGDgps.open' -> window.AGDgps.open

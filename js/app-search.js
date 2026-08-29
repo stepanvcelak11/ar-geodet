@@ -16,7 +16,7 @@
 
     function norm(s) {
         s = String(s == null ? '' : s).toLowerCase();
-        try { s = s.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) {}
+        try { s = s.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'app-search:norm'); }
         return s.replace(/\s+/g, ' ').trim();
     }
     function closeMenu() { var m = document.getElementById('side-menu'); if (m) m.classList.remove('open'); }
@@ -168,7 +168,7 @@
         });
     }
 
-    function tick() { try { injectStyles(); } catch (e) {} }
+    function tick() { try { injectStyles(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'app-search:tick'); } }
     // ---- „Jinde v appce" — stejné hledání i pod mřížkou Nástrojů ----------------------
     // Jedno hledání pro celou appku: když uživatel píše do pole v Nástrojích,
     // pod dlaždicemi se ukážou i shody odjinud (Nastavení, menu Více, Kompas…).
@@ -199,7 +199,7 @@
                 if (it.src) { var s = document.createElement('small'); s.textContent = it.src; b.appendChild(s); }
                 b.addEventListener('click', function () {
                     var m = document.getElementById('tools-modal'); if (m) m.style.display = 'none';
-                    inp.value = ''; if (window.agFilterTools) try { window.agFilterTools(''); } catch (e) {}
+                    inp.value = ''; if (window.agFilterTools) try { window.agFilterTools(''); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'app-search:ensureToolsHook'); }
                     box.remove();
                     try { it.run(); } catch (err) { console.warn('[app-search]', err); }
                 });
@@ -219,5 +219,5 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
     // hook na pole v Nástrojích (vzniká staticky v index.html, stačí zkoušet v ticku)
-    if (!window.__agAsToolsTimer) window.__agAsToolsTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(function () { try { ensureToolsHook(); injectStyles(); } catch (e) {} }, 1500);
+    if (!window.__agAsToolsTimer) window.__agAsToolsTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(function () { try { ensureToolsHook(); injectStyles(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'app-search:init'); } }, 1500);
 })();

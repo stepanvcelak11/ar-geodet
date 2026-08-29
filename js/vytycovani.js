@@ -9,7 +9,7 @@ let stakeoutOnlyCustom = true;
 
 function loadStakeout() {
     stakeoutData = {};
-    try { const s = getStoredData('arStakeout12'); if (s) stakeoutData = JSON.parse(s) || {}; } catch (e) {}
+    try { const s = getStoredData('arStakeout12'); if (s) stakeoutData = JSON.parse(s) || {}; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vytycovani:loadStakeout'); }
 }
 function saveStakeout() { setStoredData('arStakeout12', JSON.stringify(stakeoutData)); }
 function isStaked(id) { return !!stakeoutData[id]; }

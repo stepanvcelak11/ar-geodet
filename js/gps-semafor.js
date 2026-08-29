@@ -26,13 +26,13 @@
 
     function mask() {
         var m = 15;
-        try { var v = parseInt(localStorage.getItem('skyObsMask1'), 10); if (isFinite(v)) m = v; } catch (e) {}
+        try { var v = parseInt(localStorage.getItem('skyObsMask1'), 10); if (isFinite(v)) m = v; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-semafor:mask'); }
         return Math.max(0, Math.min(45, m));
     }
     function hasSat() { try { return typeof computeSatPositions === 'function' && typeof computePDOP === 'function'; } catch (e) { return false; } }
     function gpsAcc() { try { return (typeof currentGpsAccuracy === 'number' && currentGpsAccuracy > 0) ? currentGpsAccuracy : null; } catch (e) { return null; } }
-    function loadEnv() { try { var v = localStorage.getItem(ENV_KEY); if (v === 'volne' || v === 'stromy' || v === 'budovy') _env = v; } catch (e) {} }
-    function saveEnv() { try { localStorage.setItem(ENV_KEY, _env); } catch (e) {} }
+    function loadEnv() { try { var v = localStorage.getItem(ENV_KEY); if (v === 'volne' || v === 'stromy' || v === 'budovy') _env = v; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-semafor:loadEnv'); } }
+    function saveEnv() { try { localStorage.setItem(ENV_KEY, _env); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-semafor:saveEnv'); } }
 
     // ---- vyhodnocení ---------------------------------------------------------------
     // vrací {code:'g'|'a'|'r', title, tips:[], detail:{n,pdop,mask,acc,best}}
@@ -41,7 +41,7 @@
         if (hasSat()) {
             try {
                 if ((typeof tleSats === 'undefined' || !tleSats || !tleSats.length) && typeof loadTleFromCache === 'function') loadTleFromCache();
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-semafor:evaluate'); }
             try {
                 var obs = computeSatPositions(new Date()) || [];
                 if (obs.length) {

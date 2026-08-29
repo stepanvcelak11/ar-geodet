@@ -25,7 +25,7 @@
     // Neretezcovou hodnotu (kdyby ji sem nekdo casem dal) pro jistotu kopirujeme do hloubky.
     function snapMem() {
         let src = null;
-        try { if (typeof _idbMem !== 'undefined' && _idbMem) src = _idbMem; } catch (e) {}
+        try { if (typeof _idbMem !== 'undefined' && _idbMem) src = _idbMem; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'undo:snapMem'); }
         if (!src) return null;
         const out = {};
         Object.keys(src).forEach(k => {
@@ -85,21 +85,21 @@
                     _idbMem[k] = s.mem[k];
                     if (typeof _idbSet === 'function') _idbSet(k, s.mem[k]);
                 });
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'undo:restore'); }
         }
     }
     // Obnova bez reloadu: vrati localStorage a necha appku prekreslit se z nej.
     function applyRestore(snapshot) {
         restore(snapshot);
         // resync in-memory stavu, ktery si mazaci funkce drzi mimo localStorage
-        try { const pl = localStorage.getItem('arProjectsList'); if (pl && typeof projects !== 'undefined') projects = JSON.parse(pl); } catch (e) { }
-        try { if (typeof activeProjectId !== 'undefined') activeProjectId = localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { }
+        try { const pl = localStorage.getItem('arProjectsList'); if (pl && typeof projects !== 'undefined') projects = JSON.parse(pl); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'undo:applyRestore'); }
+        try { if (typeof activeProjectId !== 'undefined') activeProjectId = localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'undo:applyRestore'); }
         let ok = false;
-        try { if (typeof renderProjectSelect === 'function') renderProjectSelect(); } catch (e) { }
-        try { if (typeof loadProjectSettings === 'function') { loadProjectSettings(); ok = true; } } catch (e) { }
-        try { if (typeof renderManageList === 'function') renderManageList(); } catch (e) { }
+        try { if (typeof renderProjectSelect === 'function') renderProjectSelect(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'undo:applyRestore'); }
+        try { if (typeof loadProjectSettings === 'function') { loadProjectSettings(); ok = true; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'undo:applyRestore'); }
+        try { if (typeof renderManageList === 'function') renderManageList(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'undo:applyRestore'); }
         // Tezke prekresleni nad zivou kamerou ji umi "zamrznout" -> proaktivne ji oziv (jinak by ji uzivatel restartoval rucne).
-        try { if (typeof ensureCameraAlive === 'function') setTimeout(() => ensureCameraAlive(true), 250); } catch (e) { }
+        try { if (typeof ensureCameraAlive === 'function') setTimeout(() => ensureCameraAlive(true), 250); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'undo:applyRestore'); }
         if (!ok) location.reload(); // kdyby app funkce nebyly k dispozici
     }
 
@@ -141,7 +141,7 @@
         window[name] = function () {
             const before = snap();
             const ret = orig.apply(this, arguments);
-            try { if (changedSince(before)) showUndo(msg, before); } catch (e) { }
+            try { if (changedSince(before)) showUndo(msg, before); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'undo:wrap'); }
             return ret;
         };
         window[name]._undoWrapped = true;

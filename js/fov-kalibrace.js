@@ -41,17 +41,17 @@
     function byId(id) { return document.getElementById(id); }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function agAlert(t, m) {
-        try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {}
+        try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'fov-kalibrace:agAlert'); }
         agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : ''));
     }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'fov-kalibrace:toast'); } }
     function heading() {
-        try { if (typeof currentHeading === 'number' && isFinite(currentHeading)) return currentHeading; } catch (e) {}
-        try { if (typeof smoothedHeading === 'number' && isFinite(smoothedHeading)) return smoothedHeading; } catch (e) {}
+        try { if (typeof currentHeading === 'number' && isFinite(currentHeading)) return currentHeading; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'fov-kalibrace:heading'); }
+        try { if (typeof smoothedHeading === 'number' && isFinite(smoothedHeading)) return smoothedHeading; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'fov-kalibrace:heading'); }
         return null;
     }
     function pitchNow() {
-        try { var p = window._arProj; if (p && typeof p.pitch === 'number' && isFinite(p.pitch)) return p.pitch; } catch (e) {}
+        try { var p = window._arProj; if (p && typeof p.pitch === 'number' && isFinite(p.pitch)) return p.pitch; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'fov-kalibrace:pitchNow'); }
         return null;
     }
     function fovH() { try { return +visSettings.fovH || 90; } catch (e) { return 90; } }
@@ -144,7 +144,7 @@
     // =====================================================================
     function declutter(on) {
         document.body.classList.toggle('agfov-clean', !!on);
-        if (!on) { try { if (typeof applyViewMode === 'function') applyViewMode(); } catch (e) {} }
+        if (!on) { try { if (typeof applyViewMode === 'function') applyViewMode(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'fov-kalibrace:declutter'); } }
     }
     function ensureAim() {
         if (byId('agfov-aim')) return;
@@ -173,7 +173,7 @@
             if (typeof viewMode !== 'undefined' && viewMode === 'map') {
                 _prevView = viewMode; viewMode = 'ar';
                 if (typeof applyViewMode === 'function') applyViewMode();
-                try { if (typeof window.agSyncViewControls === 'function') window.agSyncViewControls(); } catch (e) {}
+                try { if (typeof window.agSyncViewControls === 'function') window.agSyncViewControls(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'fov-kalibrace:startAim'); }
             } else _prevView = null;
         } catch (e) { _prevView = null; }
 
@@ -188,7 +188,7 @@
         showAim(false); declutter(false);
         try {
             if (_prevView) { viewMode = _prevView; if (typeof applyViewMode === 'function') applyViewMode(); }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'fov-kalibrace:stopAim'); }
         _prevView = null;
         _mode = null; _first = null;
         var m = byId('agfov-modal'); if (m) m.style.display = 'flex';
@@ -398,7 +398,7 @@
         });
         if ((e = byId('agfov-manual'))) e.addEventListener('click', function () {
             var m = byId('agfov-modal'); if (m) m.style.display = 'none';
-            try { window.AGSettings.reveal('s-fovh'); } catch (er) {}
+            try { window.AGSettings.reveal('s-fovh'); } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'fov-kalibrace'); }
         });
         if ((e = byId('agfov-h-start'))) e.addEventListener('click', function () { startAim('h'); });
         if ((e = byId('agfov-h-again'))) e.addEventListener('click', function () { _resH = null; startAim('h'); });

@@ -56,7 +56,7 @@
     var _prevView = null, _camWasLive = false;
     var _rotStep = 0, _rotateTs = 0, _targetS = 300;   // cílová doba měření (s); otočení o 90° ve čtvrtinách (A5)
 
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
 
     // ---- geometrie ------------------------------------------------------------
     // poloměry křivosti elipsoidu (GeoCore); fallback na starou konstantu jen kdyby
@@ -219,11 +219,11 @@
             } else if (typeof DeviceMotionEvent !== 'undefined') { attach(); }
         } catch (e) { _motionOn = false; }
     }
-    function stopMotion() { try { window.removeEventListener('devicemotion', onMotion); } catch (e) {} _motionOn = false; }
+    function stopMotion() { try { window.removeEventListener('devicemotion', onMotion); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:stopMotion'); } _motionOn = false; }
 
     // ---- Wake Lock + kamera ---------------------------------------------------
-    function lockScreen() { try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function (w) { _wakeLock = w; }).catch(function () {}); } catch (e) {} }
-    function unlockScreen() { try { if (_wakeLock) { _wakeLock.release(); _wakeLock = null; } } catch (e) {} }
+    function lockScreen() { try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function (w) { _wakeLock = w; }).catch(function () {}); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:lockScreen'); } }
+    function unlockScreen() { try { if (_wakeLock) { _wakeLock.release(); _wakeLock = null; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:unlockScreen'); } }
     function onVis() { if (_open && document.visibilityState === 'visible' && !_wakeLock) lockScreen(); }
 
     function pauseCamera() {
@@ -231,7 +231,7 @@
             _camWasLive = !!(typeof currentVideoStream !== 'undefined' && currentVideoStream);
             _prevView = (typeof viewMode !== 'undefined') ? viewMode : null;
             if (typeof stopCameraStream === 'function') stopCameraStream();
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:pauseCamera'); }
     }
     function resumeCamera() {
         try {
@@ -239,7 +239,7 @@
                 && typeof appStarted !== 'undefined' && appStarted) {
                 startCameraAndCompass(true);
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:resumeCamera'); }
     }
 
     // ====== UI =================================================================
@@ -335,7 +335,7 @@
             if (sub) sub.textContent = _result.atFloor
                 ? ('dolní mez ±' + _result.floor.toFixed(2) + ' m · rozptyl je už menší, delší měření a otočení mez povolí')
                 : ('rozptyl σ ±' + _result.sigma.toFixed(2) + ' m');
-            try { if (window.AGQc) window.AGQc.onBrutal(st); } catch (e) {}   // QC: kód kvality (odpojitelné)
+            try { if (window.AGQc) window.AGQc.onBrutal(st); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:render'); }   // QC: kód kvality (odpojitelné)
         } else if (cur) { cur.setAttribute('r', '110'); }
 
         // A5: otočení o 90° ve čtvrtinách zvolené doby (0/90/180/270°) — 3 výzvy
@@ -390,7 +390,9 @@
         if (!_sessions.length) return null;
         var ref = _sessions[_sessions.length - 1];
         var grp = _sessions.filter(function (s) { return planarDist(s.lat, s.lng, ref.lat, ref.lng) <= REOCC_GAP_M; });
-        if (grp.length === 1) return { lat: grp[0].lat, lng: grp[0].lng, sterr: grp[0].sterr, n: 1, spread: 0 };
+        // epochs/sigma nesou POCET ODECTU a jejich rozptyl — na rozdil od `n`,
+        // ktere tu znamena pocet SEZENI. Do protokolu kvality patri epochs.
+        if (grp.length === 1) return { lat: grp[0].lat, lng: grp[0].lng, sterr: grp[0].sterr, n: 1, spread: 0, epochs: grp[0].n || null, sigma: (grp[0].sigma != null ? grp[0].sigma : null) };
         var lat0 = grp[0].lat, lng0 = grp[0].lng, m = mPerDeg(lat0);
         var sw = 0, sx = 0, sy = 0;
         grp.forEach(function (s) {
@@ -403,11 +405,21 @@
         // 1/sqrt(sum w) plati jen pro NEZAVISLA sezeni; multipath tehoz dne je ale
         // korelovany -> sterr zdola omezime realnym rozptylem mezi sezenimi
         var sterr = Math.max(1 / Math.sqrt(sw), spread / Math.sqrt(grp.length));
-        return { lat: lat, lng: lng, sterr: sterr, n: grp.length, spread: spread };
+        // slouceny rozptyl odectu pres vsechna sezeni (pooled sigma):
+        //   sqrt( sum (n_i - 1) * sigma_i^2  /  sum (n_i - 1) )
+        // Prosty prumer sigem by kratkemu sezeni dal stejnou vahu jako dlouhemu.
+        var epochs = 0, sc = 0, sn = 0;
+        grp.forEach(function (s2) {
+            var ni = (s2.n != null && isFinite(s2.n)) ? s2.n : 0;
+            epochs += ni;
+            if (ni > 1 && s2.sigma != null && isFinite(s2.sigma)) { sc += (ni - 1) * s2.sigma * s2.sigma; sn += (ni - 1); }
+        });
+        return { lat: lat, lng: lng, sterr: sterr, n: grp.length, spread: spread,
+                 epochs: (epochs || null), sigma: (sn > 0 ? Math.sqrt(sc / sn) : null) };
     }
 
     function loadSessions() { try { var r = localStorage.getItem(LS_SESS); _sessions = r ? (JSON.parse(r) || []) : []; } catch (e) { _sessions = []; } if (!Array.isArray(_sessions)) _sessions = []; }
-    function persistSessions() { try { localStorage.setItem(LS_SESS, JSON.stringify(_sessions)); } catch (e) {} }
+    function persistSessions() { try { localStorage.setItem(LS_SESS, JSON.stringify(_sessions)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:persistSessions'); } }
 
     // ====== akce ===============================================================
     function start() {
@@ -425,7 +437,7 @@
     }
 
     function stopWatch() {
-        if (_watchId != null) { try { navigator.geolocation.clearWatch(_watchId); } catch (e) {} _watchId = null; }
+        if (_watchId != null) { try { navigator.geolocation.clearWatch(_watchId); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:stopWatch'); } _watchId = null; }
         stopMotion(); unlockScreen();
     }
 
@@ -447,7 +459,7 @@
         if (!_result || _samples.length < 3) { agAlert('Re-okupace', 'Nejdřív dokonči alespoň jedno měření.'); return; }
         _sessions.push({ lat: _result.lat, lng: _result.lng, n: _result.n, sigma: _result.sigma, sterr: _result.sterr, dur: (Date.now() - _t0) / 1000, t: Date.now() });
         persistSessions();
-        try { if (window.AGCampaign && AGCampaign.onSession) AGCampaign.onSession(_sessions.slice(), _ui); } catch (e) {}
+        try { if (window.AGCampaign && AGCampaign.onSession) AGCampaign.onSession(_sessions.slice(), _ui); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:addSession'); }
         var comb = combineSessions();
         if (comb && comb.spread != null && comb.spread > 1.0)
             setStatus('Sezení uloženo, ale rozptyl mezi sezeními je ' + comb.spread.toFixed(2) + ' m — zvaž další.', 'warn');
@@ -469,7 +481,7 @@
                 var n = obs.filter(function (o) { return o.el >= mask; }).length;
                 var p = computePDOP(obs);
                 if (p != null && isFinite(p) && (best === null || p < best.pdop)) best = { min: min, pdop: p, n: n };
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:whenToReturn'); }
         }
         if (!best) { agAlert('Kdy se vrátit', 'Nepodařilo se spočítat geometrii. Vrať se za 30–60 min.'); return; }
         var when = new Date(now + best.min * 60000);
@@ -494,7 +506,7 @@
                 var ageMin = sh.t ? (Date.now() - sh.t) / 60000 : null;
                 if (ageMin != null && ageMin > 20) calibTxt += ' ⚠ kalibrace stará ' + Math.round(ageMin) + ' min (přesnost klesá)';
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:save'); }
         var name = ($('bgps-name').value || '').trim() || ('BG' + Date.now().toString().slice(-4));
         if (typeof window.addImportedPoints !== 'function') { agAlert('Nelze uložit', 'Funkce pro vkládání bodů není dostupná.'); return; }
         // #2/#5: provenience 'gps-avg' (= měřeno GPS průměrem). Pozn.: pokud je aktivní Helmert
@@ -509,10 +521,18 @@
             ? _sessions.reduce(function (mn, s) { return Math.min(mn, s.t - (s.dur || 0) * 1000); }, Infinity)
             : _t0;
         var accR = (src.sterr != null && isFinite(src.sterr)) ? Math.round(src.sterr * 100) / 100 : null;
+        // KVALITA MĚŘENÍ do provenience (js/kvalita-bodu.js z toho dělá protokol).
+        // Bez sigma a n nese bod jen tvrzení „±0,3 m"; s nimi je to doklad
+        // („z 240 odečtů, rozptyl σ 0,42 m"). Počítá se to tu stejně tak jako tak.
+        var sigR = (src.sigma != null && isFinite(src.sigma)) ? Math.round(src.sigma * 1000) / 1000 : null;
         var prov = {
             origin: 'gps-avg', ts: Date.now(), acc: accR,
             t0: (isFinite(provT0) && provT0 > 0 ? Math.round(provT0) : null),
-            sess: (_sessions.length || 1)
+            sess: (_sessions.length || 1),
+            sigma: sigR,
+            // POZOR: u spojenych sezeni je src.n pocet SEZENI, ne odectu — proto epochs
+            n: (src.epochs != null && isFinite(src.epochs)) ? src.epochs
+               : ((src.n != null && isFinite(src.n) && !_sessions.length) ? src.n : null)
         };
         var added = window.addImportedPoints([{ name: name, lat: lat, lng: lng, origin: 'gps-avg', acc: accR, prov: prov }]);
         if (added > 0) {
@@ -521,7 +541,7 @@
             var srcTxt = (src.n && _sessions.length > 1) ? ('\nSpojeno z ' + src.n + ' sezení') : '';
             // re-okupace dokončena → vyčisti uložená sezení (+ ukonči případnou kampaň A1)
             _sessions = []; persistSessions();
-            try { if (window.AGCampaign && AGCampaign.onSaved) AGCampaign.onSaved(name); } catch (e) {}
+            try { if (window.AGCampaign && AGCampaign.onSaved) AGCampaign.onSaved(name); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:save'); }
             agAlert('Bod uložen', '#' + name + ' uložen do zakázky.\nDosažená přesnost ±' + (src.sterr != null ? src.sterr.toFixed(2) : '?') + ' m' + coords + srcTxt + calibTxt);
             close();
         } else {
@@ -546,8 +566,8 @@
         refreshPdop(); render();
         // A1/A3 (odpojitelné moduly): kampaň „3 návštěvy" + skóre místa se vloží
         // do overlaye, jen když jsou načtené — jinak se nic neděje
-        try { if (window.AGCampaign && AGCampaign.onBrutalOpen) AGCampaign.onBrutalOpen(_ui); } catch (e) {}
-        try { if (window.AGSemafor && AGSemafor.onBrutalOpen) AGSemafor.onBrutalOpen(_ui); } catch (e) {}
+        try { if (window.AGCampaign && AGCampaign.onBrutalOpen) AGCampaign.onBrutalOpen(_ui); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:open'); }
+        try { if (window.AGSemafor && AGSemafor.onBrutalOpen) AGSemafor.onBrutalOpen(_ui); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:open'); }
         if (!_tick) _tick = setInterval(render, 300);
     }
     function close() {

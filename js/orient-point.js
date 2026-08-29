@@ -16,8 +16,8 @@
     var _timer = null;
     var _lastDelta = null;
 
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
-    function adiff(a, b) { try { if (typeof angDiff === 'function') return angDiff(a, b); } catch (e) {} return ((a - b + 540) % 360) - 180; }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'orient-point:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function adiff(a, b) { try { if (typeof angDiff === 'function') return angDiff(a, b); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'orient-point:adiff'); } return ((a - b + 540) % 360) - 180; }
 
     function points() {
         if (typeof arPoints === 'undefined') return [];
@@ -81,7 +81,7 @@
         var delta = adiff(bearing, currentHeading);
         if (typeof nudgeHeadingOffset === 'function') { nudgeHeadingOffset(delta); }
         else if (typeof userHeadingOffset !== 'undefined') {
-            try { userHeadingOffset = ((userHeadingOffset + delta) % 360 + 360) % 360; if (typeof setStoredData === 'function') setStoredData('arHeadingOffset', String(userHeadingOffset)); } catch (e) {}
+            try { userHeadingOffset = ((userHeadingOffset + delta) % 360 + 360) % 360; if (typeof setStoredData === 'function') setStoredData('arHeadingOffset', String(userHeadingOffset)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'orient-point:apply'); }
             if (typeof updateHeadingOffsetVal === 'function') updateHeadingOffsetVal();
         } else { agAlert('Nelze srovnat', 'Korekce kompasu není dostupná.'); return; }
         _lastDelta = delta;
@@ -94,7 +94,7 @@
     function undo() {
         if (_lastDelta == null) return;
         if (typeof nudgeHeadingOffset === 'function') nudgeHeadingOffset(-_lastDelta);
-        else if (typeof userHeadingOffset !== 'undefined') { try { userHeadingOffset = ((userHeadingOffset - _lastDelta) % 360 + 360) % 360; if (typeof setStoredData === 'function') setStoredData('arHeadingOffset', String(userHeadingOffset)); if (typeof updateHeadingOffsetVal === 'function') updateHeadingOffsetVal(); } catch (e) {} }
+        else if (typeof userHeadingOffset !== 'undefined') { try { userHeadingOffset = ((userHeadingOffset - _lastDelta) % 360 + 360) % 360; if (typeof setStoredData === 'function') setStoredData('arHeadingOffset', String(userHeadingOffset)); if (typeof updateHeadingOffsetVal === 'function') updateHeadingOffsetVal(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'orient-point:undo'); } }
         _lastDelta = null;
         var u = document.getElementById('agor-undo'); if (u) u.style.display = 'none';
         refresh();

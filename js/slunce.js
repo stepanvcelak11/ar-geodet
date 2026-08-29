@@ -34,13 +34,13 @@
     function pad2(n) { return ('0' + n).slice(-2); }
     function pid() { try { return localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { return 'default'; } }
     function pos() {
-        try { if (typeof userLat === 'number' && userLat && typeof userLng === 'number') return { lat: userLat, lng: userLng }; } catch (e) {}
-        try { var p = JSON.parse(localStorage.getItem('arLastPos')); if (p && p.lat) return { lat: +p.lat, lng: +(p.lng != null ? p.lng : p.lon) }; } catch (e) {}
+        try { if (typeof userLat === 'number' && userLat && typeof userLng === 'number') return { lat: userLat, lng: userLng }; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'slunce:pos'); }
+        try { var p = JSON.parse(localStorage.getItem('arLastPos')); if (p && p.lat) return { lat: +p.lat, lng: +(p.lng != null ? p.lng : p.lon) }; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'slunce:pos'); }
         return null;
     }
     function heading() {
-        try { if (typeof smoothedHeading !== 'undefined' && smoothedHeading != null) return smoothedHeading; } catch (e) {}
-        try { if (typeof currentHeading !== 'undefined' && currentHeading != null) return currentHeading; } catch (e) {}
+        try { if (typeof smoothedHeading !== 'undefined' && smoothedHeading != null) return smoothedHeading; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'slunce:heading'); }
+        try { if (typeof currentHeading !== 'undefined' && currentHeading != null) return currentHeading; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'slunce:heading'); }
         return null;
     }
 
@@ -110,9 +110,9 @@
         var from = d0.getTime();
         function fromPoints() {
             var raw = null, arr = null, ts = [];
-            try { if (typeof getStoredData === 'function') raw = getStoredData('arCustomPoints12'); } catch (e) {}
-            if (raw == null) { try { raw = localStorage.getItem(pid() + '_arCustomPoints12'); } catch (e2) {} }
-            try { arr = raw ? JSON.parse(raw) : null; } catch (e3) {}
+            try { if (typeof getStoredData === 'function') raw = getStoredData('arCustomPoints12'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'slunce:fromPoints'); }
+            if (raw == null) { try { raw = localStorage.getItem(pid() + '_arCustomPoints12'); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'slunce:fromPoints'); } }
+            try { arr = raw ? JSON.parse(raw) : null; } catch (e3) { window.AG && AG.swallow && AG.swallow(e3, 'slunce:fromPoints'); }
             if (Array.isArray(arr)) {
                 arr.forEach(function (p) {
                     if (!p) return;
@@ -301,19 +301,19 @@
         if (pl) pl.addEventListener('change', function () {
             // pole je type="text" inputmode="decimal" (Safari zahodi carku v type=number)
             var v = (typeof window.agNum === 'function') ? window.agNum(this) : parseFloat(String(this.value).replace(',', '.'));
-            if (isFinite(v) && v > 0) { try { localStorage.setItem(LS_POLE, String(v)); } catch (e) {} render(); }
+            if (isFinite(v) && v > 0) { try { localStorage.setItem(LS_POLE, String(v)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'slunce'); } render(); }
         });
         var azi = body.querySelector('#ag-su-az');
         if (azi) azi.addEventListener('change', function () {
             var v = agNum(this.value);
-            try { if (isFinite(v)) localStorage.setItem(LS_AZ, String(((v % 360) + 360) % 360)); else localStorage.removeItem(LS_AZ); } catch (e) {}
+            try { if (isFinite(v)) localStorage.setItem(LS_AZ, String(((v % 360) + 360) % 360)); else localStorage.removeItem(LS_AZ); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'slunce'); }
             render();
         });
         var fc = body.querySelector('#ag-su-fromcomp');
         if (fc) fc.addEventListener('click', function () {
             var hd = heading();
             if (hd == null) { if (typeof window.agInfo === 'function') window.agInfo('Kompas teď nedává data — otoč se s telefonem, nebo azimut zadej ručně.'); return; }
-            try { localStorage.setItem(LS_AZ, String(((hd % 360) + 360) % 360)); } catch (e) {}
+            try { localStorage.setItem(LS_AZ, String(((hd % 360) + 360) % 360)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'slunce'); }
             render();
         });
 

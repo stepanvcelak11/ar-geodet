@@ -36,19 +36,19 @@
     var _capTimer = null, _capSamples = [];
 
     // ---- helpery (čtou globály obezřetně) --------------------------------------
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calib2:toast'); } }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calib2:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function heading() { return (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null; }
     function brg(lat, lng) { try { return getBearing(userLat, userLng, lat, lng); } catch (e) { return null; } }
     function dist(lat, lng) { try { return getDistance(userLat, userLng, lat, lng); } catch (e) { return null; } }
-    function adiff(a, b) { try { if (typeof angDiff === 'function') return angDiff(a, b); } catch (e) {} return ((a - b + 540) % 360) - 180; }
+    function adiff(a, b) { try { if (typeof angDiff === 'function') return angDiff(a, b); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calib2:adiff'); } return ((a - b + 540) % 360) - 180; }
     function circMean(arr) { var s = 0, c = 0; arr.forEach(function (a) { s += Math.sin(a * D2R); c += Math.cos(a * D2R); }); return (Math.atan2(s, c) * R2D + 360) % 360; }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
     function allPoints() {
         var out = [];
-        try { if (typeof arPoints !== 'undefined' && Array.isArray(arPoints)) out = arPoints.filter(function (p) { return p && !p.hidden && typeof p.lat === 'number' && typeof p.lng === 'number'; }); } catch (e) {}
+        try { if (typeof arPoints !== 'undefined' && Array.isArray(arPoints)) out = arPoints.filter(function (p) { return p && !p.hidden && typeof p.lat === 'number' && typeof p.lng === 'number'; }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calib2:allPoints'); }
         return out;
     }
     function ptById(id) { return allPoints().find(function (q) { return q.id === id; }) || null; }
@@ -139,7 +139,7 @@
         selA.innerHTML = opts; selB.innerHTML = opts;
         // předvyplň: A = zvýrazněný bod, B = nejvzdálenější z prvních (lepší základna)
         var preA = null;
-        try { if (typeof highlightedPointId !== 'undefined' && highlightedPointId != null && list.some(function (x) { return x.p.id === highlightedPointId; })) preA = highlightedPointId; } catch (e) {}
+        try { if (typeof highlightedPointId !== 'undefined' && highlightedPointId != null && list.some(function (x) { return x.p.id === highlightedPointId; })) preA = highlightedPointId; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calib2:fillSelects'); }
         if (!preA && list.length) preA = list[0].p.id;
         _aId = preA;
         // B = nejvzdálenější viditelný, jiný než A
@@ -237,7 +237,7 @@
         var b = brg(pt.lat, pt.lng);
         if (b == null) { cancelAim(); return; }
         _shot[_aimTarget] = { h: hMean, b: b, n: _capSamples.length };
-        if (navigator.vibrate) { try { navigator.vibrate(25); } catch (e) {} }
+        if (navigator.vibrate) { try { navigator.vibrate(25); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calib2:finalizeShot'); } }
         if (_aimTarget === 'A') { aimStep('B'); }
         else { showAim(false); applyNorth(); }
     }
@@ -298,7 +298,7 @@
                 if (typeof setStoredData === 'function') setStoredData('arHeadingOffset', String(userHeadingOffset));
                 if (typeof updateHeadingOffsetVal === 'function') updateHeadingOffsetVal();
                 return true;
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calib2:applyDelta'); }
         }
         return false;
     }
@@ -320,7 +320,7 @@
     function fovVal() { try { return (typeof visSettings !== 'undefined' && visSettings && +visSettings.fovH) || 90; } catch (e) { return 90; } }
     function setFov(v) {
         v = Math.max(50, Math.min(110, Math.round(v)));
-        try { if (typeof visSettings !== 'undefined' && visSettings) visSettings.fovH = v; } catch (e) {}
+        try { if (typeof visSettings !== 'undefined' && visSettings) visSettings.fovH = v; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calib2:setFov'); }
         var fv = document.getElementById('agc2-fov-val'); if (fv) fv.textContent = v + '°';
         var sl = document.getElementById('agc2-fov-slider'); if (sl && +sl.value !== v) sl.value = v;
         return v;
@@ -359,8 +359,8 @@
         try {
             if (typeof setStoredData === 'function' && typeof visSettings !== 'undefined')
                 setStoredData('arVisSettings12', JSON.stringify(visSettings));
-        } catch (e) {}
-        try { if (typeof applyVisualSettings === 'function') applyVisualSettings(); } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calib2:persistVis'); }
+        try { if (typeof applyVisualSettings === 'function') applyVisualSettings(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calib2:persistVis'); }
     }
     function saveFov() {
         persistVis();

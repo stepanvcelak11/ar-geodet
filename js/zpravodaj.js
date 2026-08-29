@@ -41,7 +41,7 @@
     // --------------------------------------------------------------------------------
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zpravodaj:lsSet'); } }
 
     function hexRgba(hex, a) {
         var m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
@@ -218,7 +218,7 @@
     }
 
     function openReader() {
-        try { loadEdition(); } catch (e) {}   // při otevření vždy zkus dotáhnout nejčerstvější vydání
+        try { loadEdition(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zpravodaj:openReader'); }   // při otevření vždy zkus dotáhnout nejčerstvější vydání
         buildOverlay();
         render();
         _ov.classList.add('open');
@@ -245,7 +245,7 @@
         btn.innerHTML = '<svg class="icon"><use href="#i-news"/></svg> Zpravodaj<span class="zpr-dot" id="zpr-dot" hidden></span>';
         btn.addEventListener('click', function () {
             openReader();
-            if (typeof toggleMenu === 'function') try { toggleMenu(); } catch (e) {}
+            if (typeof toggleMenu === 'function') try { toggleMenu(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zpravodaj:injectMenuButton'); }
         });
         // vlož před oddělovač (hr) / přepínače HUD, ať akční tlačítka zůstanou pohromadě
         var hr = host.querySelector('hr');
@@ -293,10 +293,10 @@
     else init();
     // druhý průchod — menu/úvodní obrazovka mohou vznikat později
     window.addEventListener('load', function () {
-        setTimeout(function () { try { injectMenuButton(); } catch (e) {} try { injectWelcomeButton(); } catch (e) {} }, 400);
+        setTimeout(function () { try { injectMenuButton(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zpravodaj:init'); } try { injectWelcomeButton(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zpravodaj:init'); } }, 400);
     });
     // když se přepne online, zkus dotáhnout čerstvé vydání
-    window.addEventListener('online', function () { try { loadEdition(); } catch (e) {} });
+    window.addEventListener('online', function () { try { loadEdition(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zpravodaj:init'); } });
     // PWA může běžet dny v paměti — po návratu do popředí zkus dotáhnout nové vydání
     // (jinak init() znovu neproběhne a 'online' se nespustí → uživatel vidí staré zprávy).
     var _lastFgFetch = 0;
@@ -305,6 +305,6 @@
         var now = Date.now();
         if (now - _lastFgFetch < 300000) return;   // max 1×/5 min, ať nezatěžujeme síť
         _lastFgFetch = now;
-        try { loadEdition(); } catch (e) {}
+        try { loadEdition(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zpravodaj:init'); }
     });
 })();

@@ -48,15 +48,15 @@
     // Globály z logika.js jsou top-level `let` — čitelné jménem, ale ReferenceError,
     // když se soubor odpojí. Všechno tedy přes typeof.
     function pts() {
-        try { if (typeof arPoints !== 'undefined' && Array.isArray(arPoints)) return arPoints; } catch (e) {}
+        try { if (typeof arPoints !== 'undefined' && Array.isArray(arPoints)) return arPoints; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:pts'); }
         return null;
     }
     function flt() {
-        try { if (typeof filters !== 'undefined' && filters && typeof filters === 'object') return filters; } catch (e) {}
+        try { if (typeof filters !== 'undefined' && filters && typeof filters === 'object') return filters; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:flt'); }
         return null;
     }
     function q() {
-        try { if (typeof searchQuery === 'string') return searchQuery.trim(); } catch (e) {}
+        try { if (typeof searchQuery === 'string') return searchQuery.trim(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:q'); }
         return '';
     }
 
@@ -64,7 +64,7 @@
     // i diakritiku a kódy bodů), použijeme JEHO, ať tenhle výpis neukazuje jiná čísla,
     // než co je doopravdy na mapě. Jinak prostý podřetězec jako v grafika.js.
     function matches(p, needleLC) {
-        try { if (typeof agMatchQuery === 'function') return !!agMatchQuery(p, needleLC); } catch (e) {}
+        try { if (typeof agMatchQuery === 'function') return !!agMatchQuery(p, needleLC); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:matches'); }
         return String(p.name == null ? '' : p.name).toLowerCase().indexOf(needleLC) >= 0;
     }
 
@@ -124,9 +124,9 @@
             });
         });
         // uložit stejným klíčem jako updateFilters() v logika.js — jinak se stav vrátí po restartu
-        try { if (typeof setStoredData === 'function' && f) setStoredData('arFilters12', JSON.stringify(f)); } catch (e) {}
+        try { if (typeof setStoredData === 'function' && f) setStoredData('arFilters12', JSON.stringify(f)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:showAll'); }
         // hledání
-        try { if (typeof searchQuery === 'string') searchQuery = ''; } catch (e) {}
+        try { if (typeof searchQuery === 'string') searchQuery = ''; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:showAll'); }
         ['s-search-name', 'w-search-name'].forEach(function (id) {
             var el = document.getElementById(id); if (el) el.value = '';
         });
@@ -137,17 +137,17 @@
                 p.hidden = false;
                 // reziduum po animaci skrytí (stejný důvod jako v js/hidden-points.js):
                 // bez vynulování opacity zůstane značka neviditelná, dokud ji něco nepřekreslí
-                try { if (p.element && p.element.style) p.element.style.opacity = ''; } catch (e) {}
+                try { if (p.element && p.element.style) p.element.style.opacity = ''; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:showAll'); }
             }
         });
-        try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) {}
-        try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) {}
-        try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) {}
+        try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:showAll'); }
+        try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:showAll'); }
+        try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:showAll'); }
         try {
             var mm = document.getElementById('manage-modal');
             if (mm && mm.style.display === 'flex' && typeof renderManageList === 'function') renderManageList();
-        } catch (e) {}
-        try { if (typeof quickToast === 'function') quickToast('Zobrazeny všechny body.'); } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:showAll'); }
+        try { if (typeof quickToast === 'function') quickToast('Zobrazeny všechny body.'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:showAll'); }
         refresh();
     }
 
@@ -163,7 +163,7 @@
                 var box = row.closest('.st-chip');
                 if (box && box.scrollIntoView) box.scrollIntoView({ block: 'center' });
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:openFilters'); }
     }
 
     // ---- hlášení do sloupce upozornění -------------------------------------------------
@@ -172,10 +172,10 @@
         if (!window.AGNotify) return;
         // před spuštěním appky (úvodní obrazovka) nemá smysl nic hlásit — body se teprve stahují
         var started = true;
-        try { if (typeof appStarted !== 'undefined') started = !!appStarted; } catch (e) {}
+        try { if (typeof appStarted !== 'undefined') started = !!appStarted; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:refresh'); }
         var c = started ? count() : null;
         if (!c || c.total === 0 || c.shown === c.total) {
-            if (_lastKey) { _lastKey = ''; try { AGNotify.clear('filtr-skryte'); } catch (e) {} }
+            if (_lastKey) { _lastKey = ''; try { AGNotify.clear('filtr-skryte'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:refresh'); } }
             return;
         }
         // překreslovat jen při skutečné změně čísel (refresh() jede po každém drawAllMarkersOnMap)
@@ -196,7 +196,7 @@
                 // vyškrtnutí je jen na tenhle stav — jakmile se počty změní, ozve se znovu
                 onDismiss: function () { _lastKey = '\u0000dismissed'; }
             });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:onDismiss'); }
     }
 
     // ---- strop „max. bodů v AR" --------------------------------------------------------
@@ -208,13 +208,13 @@
     function refreshCap() {
         if (!window.AGNotify) return;
         var c = null;
-        try { c = window._arCapped; } catch (e) {}
+        try { c = window._arCapped; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:refreshCap'); }
         // v mapovém režimu se AR nepočítá — poslední známý stav by lhal
         var arVidet = true;
-        try { if (typeof viewMode !== 'undefined') arVidet = (viewMode !== 'map'); } catch (e) {}
+        try { if (typeof viewMode !== 'undefined') arVidet = (viewMode !== 'map'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:refreshCap'); }
         if (!c || !c.capped || !arVidet) {
             _capSince = 0;
-            if (_capKey) { _capKey = ''; try { AGNotify.clear('ar-strop'); } catch (e) {} }
+            if (_capKey) { _capKey = ''; try { AGNotify.clear('ar-strop'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:refreshCap'); } }
             return;
         }
         var now = Date.now();
@@ -233,7 +233,7 @@
                 action: { label: 'Zvýšit strop', fn: raiseCap },
                 onAction: openArSettings
             });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:refreshCap'); }
     }
     // Zdvojnásobit strop (strop posuvníku je 200). Nastavení se ukládá stejnou cestou
     // jako ruční posun posuvníku, takže to přežije restart.
@@ -245,11 +245,11 @@
             visSettings.maxARPoints = next;
             var sl = document.getElementById('s-max-ar-slider'); if (sl) sl.value = next;
             var lb = document.getElementById('s-max-ar-val'); if (lb) lb.innerText = next;
-            try { if (typeof setStoredData === 'function') setStoredData('arVisSettings12', JSON.stringify(visSettings)); } catch (e) {}
+            try { if (typeof setStoredData === 'function') setStoredData('arVisSettings12', JSON.stringify(visSettings)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:raiseCap'); }
             _capKey = ''; _capSince = 0;
-            try { AGNotify.clear('ar-strop'); } catch (e) {}
-            try { if (typeof quickToast === 'function') quickToast(next >= 200 ? 'Strop na maximu: 200 bodů v AR.' : 'Strop zvýšen na ' + next + ' bodů v AR.'); } catch (e) {}
-        } catch (e) {}
+            try { AGNotify.clear('ar-strop'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:raiseCap'); }
+            try { if (typeof quickToast === 'function') quickToast(next >= 200 ? 'Strop na maximu: 200 bodů v AR.' : 'Strop zvýšen na ' + next + ' bodů v AR.'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:raiseCap'); }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:raiseCap'); }
     }
     function openArSettings() {
         try { if (typeof openSettings === 'function') openSettings(); } catch (e) { return; }
@@ -258,7 +258,7 @@
             if (btn) btn.click();
             var sl = document.getElementById('s-max-ar-slider');
             if (sl && sl.scrollIntoView) sl.scrollIntoView({ block: 'center' });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:openArSettings'); }
     }
 
     // ---- napojení -----------------------------------------------------------------------
@@ -272,7 +272,7 @@
             if (typeof orig !== 'function' || orig.__agFiltrInfo) return false;
             window.drawAllMarkersOnMap = function () {
                 var r = orig.apply(this, arguments);
-                try { refresh(); } catch (e) {}
+                try { refresh(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:drawAllMarkersOnMap'); }
                 return r;
             };
             window.drawAllMarkersOnMap.__agFiltrInfo = true;

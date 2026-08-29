@@ -38,12 +38,12 @@
             if (typeof projects !== 'undefined' && Array.isArray(projects)) {
                 for (var i = 0; i < projects.length; i++) { if (projects[i] && projects[i].id === id) return projects[i].name || id; }
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'denik-dne:projName'); }
         return (id === 'default') ? 'Výchozí zakázka' : id;
     }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function pad2(n) { return (n < 10 ? '0' : '') + n; }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'denik-dne:toast'); } }
     function fmtT(ts) { try { return new Date(ts).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
     function fmtDur(ms) { var m = Math.round(ms / 60000); return Math.floor(m / 60) + ':' + pad2(m % 60) + ' h'; }
     function fmtLen(m) { return m < 995 ? Math.round(m) + ' m' : (m / 1000).toFixed(1).replace('.', ',') + ' km'; }
@@ -51,7 +51,7 @@
     function fmtDay(d) { return DAYS_CS[d.getDay()] + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear(); }
     // vzdálenost: globál getDistance z logika.js, jinak vlastní haversine
     function dist(la1, lo1, la2, lo2) {
-        try { if (typeof getDistance === 'function') return getDistance(la1, lo1, la2, lo2); } catch (e) {}
+        try { if (typeof getDistance === 'function') return getDistance(la1, lo1, la2, lo2); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'denik-dne:dist'); }
         var R = 6371000, r = Math.PI / 180;
         var a = Math.sin((la2 - la1) * r / 2), b = Math.sin((lo2 - lo1) * r / 2);
         var h = a * a + Math.cos(la1 * r) * Math.cos(la2 * r) * b * b;
@@ -99,9 +99,9 @@
         var fallback = function () {
             var out = { add: [], edit: [], del: [], noTs: 0, total: 0, src: 'body' };
             var raw = null;
-            try { if (typeof getStoredData === 'function') raw = getStoredData('arCustomPoints12'); } catch (e) {}
-            if (raw == null) { try { raw = localStorage.getItem(proj + '_arCustomPoints12'); } catch (e2) {} }
-            var arr = null; try { arr = raw ? JSON.parse(raw) : null; } catch (e3) {}
+            try { if (typeof getStoredData === 'function') raw = getStoredData('arCustomPoints12'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'denik-dne:fallback'); }
+            if (raw == null) { try { raw = localStorage.getItem(proj + '_arCustomPoints12'); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'denik-dne:fallback'); } }
+            var arr = null; try { arr = raw ? JSON.parse(raw) : null; } catch (e3) { window.AG && AG.swallow && AG.swallow(e3, 'denik-dne:fallback'); }
             if (!Array.isArray(arr)) return out;
             out.total = arr.length;
             for (var i = 0; i < arr.length; i++) {
@@ -125,7 +125,7 @@
                 else if (q.op === 'delete') out.del.push(it);
                 else if (q.op === 'edit') { if (!seenEdit[q.id || nm]) { seenEdit[q.id || nm] = 1; out.edit.push(it); } }
             }
-            try { if (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) out.total = persistentCustomPoints.length; } catch (e) {}
+            try { if (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) out.total = persistentCustomPoints.length; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'denik-dne:fallback'); }
             return out;
         })['catch'](function () { return fallback(); });   // ['catch']: JScript parse check neskousne .catch (rezervovane slovo)
     }
@@ -148,7 +148,7 @@
                 seg.evs.forEach(function (ev) {
                     var parts = String(ev.k || '').split('|');
                     var dir = parts[0];
-                    if (parts[2] && !meta) { try { var mm = JSON.parse(decodeURIComponent(parts[2])); if (mm && typeof mm === 'object') meta = mm; } catch (e) {} }
+                    if (parts[2] && !meta) { try { var mm = JSON.parse(decodeURIComponent(parts[2])); if (mm && typeof mm === 'object') meta = mm; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'denik-dne:collectDochazka'); } }
                     if (dir === 'in') { if (open) spans.push(open); open = { i: ev.ts, o: null }; }
                     else if (dir === 'out') { if (open) { open.o = ev.ts; spans.push(open); open = null; } else spans.push({ i: null, o: ev.ts }); }
                 });
@@ -163,7 +163,7 @@
     // ZÁVADY: nové v den + vyřešené v den + kolik zbývá otevřených
     function collectZavady(r) {
         var arr = null;
-        try { arr = JSON.parse(localStorage.getItem(pid() + '_zavady')); } catch (e) {}
+        try { arr = JSON.parse(localStorage.getItem(pid() + '_zavady')); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'denik-dne:collectZavady'); }
         if (!Array.isArray(arr)) return null;
         var out = { newz: [], resolved: [], openTotal: 0 };
         arr.forEach(function (z) {
@@ -177,7 +177,7 @@
     // POČASÍ: poslední stažený balík — jen když je ze zvoleného dne
     function collectPocasi(r) {
         var o = null;
-        try { o = JSON.parse(localStorage.getItem('agWeatherCache_v1')); } catch (e) {}
+        try { o = JSON.parse(localStorage.getItem('agWeatherCache_v1')); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'denik-dne:collectPocasi'); }
         if (!o || !o.data || !inRange(o.t, r)) return null;
         var c = o.data.current || {};
         return { when: o.t, place: o.placeName || null, temp: c.temp, wind: c.wind, gusts: c.gusts, precip: c.precip, hum: c.hum, codeTxt: wmoTxt(c.code) };
@@ -185,9 +185,9 @@
     // STOPA: délka úseků, jejichž oba vzorky padnou do dne
     function collectTrack(r) {
         var raw = null;
-        try { if (typeof getStoredData === 'function') raw = getStoredData('agTrackLog'); } catch (e) {}
-        if (raw == null) { try { raw = localStorage.getItem(pid() + '_agTrackLog'); } catch (e2) {} }
-        var tr = null; try { tr = raw ? JSON.parse(raw) : null; } catch (e3) {}
+        try { if (typeof getStoredData === 'function') raw = getStoredData('agTrackLog'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'denik-dne:collectTrack'); }
+        if (raw == null) { try { raw = localStorage.getItem(pid() + '_agTrackLog'); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'denik-dne:collectTrack'); } }
+        var tr = null; try { tr = raw ? JSON.parse(raw) : null; } catch (e3) { window.AG && AG.swallow && AG.swallow(e3, 'denik-dne:collectTrack'); }
         if (!Array.isArray(tr) || tr.length < 2) return null;
         var len = 0, first = null, last = null, n = 0;
         for (var i = 1; i < tr.length; i++) {
@@ -211,9 +211,9 @@
     // ZÁPISNÍKY: založené ve zvolený den (čas = razítko v id) + poznámky z řádků
     function collectZapisnik(r) {
         var raw = null;
-        try { if (typeof getStoredData === 'function') raw = getStoredData('agZapisniky12'); } catch (e) {}
-        if (raw == null) { try { raw = localStorage.getItem(pid() + '_agZapisniky12'); } catch (e2) {} }
-        var d = null; try { d = raw ? JSON.parse(raw) : null; } catch (e3) {}
+        try { if (typeof getStoredData === 'function') raw = getStoredData('agZapisniky12'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'denik-dne:collectZapisnik'); }
+        if (raw == null) { try { raw = localStorage.getItem(pid() + '_agZapisniky12'); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'denik-dne:collectZapisnik'); } }
+        var d = null; try { d = raw ? JSON.parse(raw) : null; } catch (e3) { window.AG && AG.swallow && AG.swallow(e3, 'denik-dne:collectZapisnik'); }
         if (!d || typeof d !== 'object') return null;
         var items = [];
         (Array.isArray(d.niv) ? d.niv : []).forEach(function (nb) {
@@ -242,7 +242,7 @@
                 var u = window.AGUcty, f = u && u.getFirm && u.getFirm(), cu = u && u.currentUser && u.currentUser();
                 if (f && f.firmName) m.header.firm = f.firmName;
                 if (cu && cu.name) m.header.user = cu.name;
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'denik-dne:buildModel'); }
 
             // BODY
             var sb = { title: 'Body', sub: body.add.length + ' nových · ' + body.edit.length + ' změněných · ' + body.del.length + ' smazaných' + (body.total != null ? ' · celkem v zakázce ' + body.total : ''), rows: [], empty: 'Žádné změny bodů v tento den.' };
@@ -458,7 +458,7 @@
                 navigator.clipboard.writeText(txt).then(function () { toast(doneMsg); }, function () { legacyCopy(txt) ? toast(doneMsg) : toast('Kopírování se nepovedlo.'); });
                 return;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'denik-dne:copyText'); }
         legacyCopy(txt) ? toast(doneMsg) : toast('Kopírování se nepovedlo.');
     }
     function legacyCopy(txt) {

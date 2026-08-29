@@ -44,7 +44,7 @@
     var _gpsWatch = null, _gpsFirst = null, _gpsLast = null;   // kalibrace
     var _wakeLock = null;
 
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdr-offset:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function mPerDeg(lat) {
         if (typeof GeoCore !== 'undefined' && GeoCore.metersPerDeg) return GeoCore.metersPerDeg(lat);
@@ -55,8 +55,8 @@
         return Math.hypot((aLng - bLng) * m.lng, (aLat - bLat) * m.lat);
     }
     function points() { try { return (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) ? persistentCustomPoints : []; } catch (e) { return []; } }
-    function stepLen() { try { var v = parseFloat(localStorage.getItem(LS_STEP)); if (isFinite(v) && v >= 0.4 && v <= 1.2) return v; } catch (e) {} return STEP_DEF; }
-    function setStepLen(v) { try { localStorage.setItem(LS_STEP, String(Math.round(v * 1000) / 1000)); } catch (e) {} }
+    function stepLen() { try { var v = parseFloat(localStorage.getItem(LS_STEP)); if (isFinite(v) && v >= 0.4 && v <= 1.2) return v; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdr-offset:stepLen'); } return STEP_DEF; }
+    function setStepLen(v) { try { localStorage.setItem(LS_STEP, String(Math.round(v * 1000) / 1000)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdr-offset:setStepLen'); } }
     function decl() { try { return (typeof magneticDeclination === 'number' && isFinite(magneticDeclination)) ? magneticDeclination : 0; } catch (e) { return 0; } }
 
     // ---- směr: globál currentHeading, záloha vlastní deviceorientation ----------
@@ -99,10 +99,10 @@
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                 DeviceOrientationEvent.requestPermission().then(function (p) { if (p === 'granted') attach(); }).catch(function () {});
             } else if (typeof DeviceOrientationEvent !== 'undefined') attach();
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdr-offset:attach'); }
     }
     function stopOri() {
-        try { window.removeEventListener('deviceorientationabsolute', onOri, true); window.removeEventListener('deviceorientation', onOri, true); } catch (e) {}
+        try { window.removeEventListener('deviceorientationabsolute', onOri, true); window.removeEventListener('deviceorientation', onOri, true); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdr-offset:stopOri'); }
         _oriOn = false;
     }
 
@@ -142,9 +142,9 @@
                 DeviceMotionEvent.requestPermission().then(function (p) { if (p === 'granted') attach(); else agAlert('Senzory', 'Bez přístupu k pohybovým senzorům nejde počítat kroky.'); }).catch(function () {});
             } else if (typeof DeviceMotionEvent !== 'undefined') attach();
             else agAlert('Senzory', 'Telefon nehlásí pohybové senzory.');
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdr-offset:attach'); }
     }
-    function stopMotion() { try { window.removeEventListener('devicemotion', onMotion); } catch (e) {} _motionOn = false; }
+    function stopMotion() { try { window.removeEventListener('devicemotion', onMotion); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdr-offset:stopMotion'); } _motionOn = false; }
 
     function uncertainty(d) { return Math.sqrt(Math.pow(STEP_ERR * d, 2) + Math.pow(Math.sin(HEAD_ERR_RAD) * d, 2)); }
 
@@ -165,17 +165,17 @@
         _gpsFirst = null; _gpsLast = null;
         startMotion(); startOri();
         if (calib && navigator.geolocation) {
-            try { _gpsWatch = navigator.geolocation.watchPosition(onCalFix, function () {}, { enableHighAccuracy: true, maximumAge: 0, timeout: 27000 }); } catch (e) {}
+            try { _gpsWatch = navigator.geolocation.watchPosition(onCalFix, function () {}, { enableHighAccuracy: true, maximumAge: 0, timeout: 27000 }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdr-offset:startWalk'); }
         }
-        try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function (w) { _wakeLock = w; }).catch(function () {}); } catch (e) {}
+        try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function (w) { _wakeLock = w; }).catch(function () {}); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdr-offset:startWalk'); }
         if (!_tick) _tick = setInterval(function () { sampleHead(); renderLive(); }, 250);
         renderModal();
     }
     function stopWalk() {
         stopMotion(); stopOri();
-        if (_gpsWatch != null) { try { navigator.geolocation.clearWatch(_gpsWatch); } catch (e) {} _gpsWatch = null; }
+        if (_gpsWatch != null) { try { navigator.geolocation.clearWatch(_gpsWatch); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdr-offset:stopWalk'); } _gpsWatch = null; }
         if (_tick) { clearInterval(_tick); _tick = null; }
-        try { if (_wakeLock) { _wakeLock.release(); _wakeLock = null; } } catch (e) {}
+        try { if (_wakeLock) { _wakeLock.release(); _wakeLock = null; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdr-offset:stopWalk'); }
     }
 
     // ---- UI ------------------------------------------------------------------------
@@ -209,7 +209,7 @@
             if (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null) {
                 pts.sort(function (a, b) { return planarDist(a.lat, a.lng, userLat, userLng) - planarDist(b.lat, b.lng, userLat, userLng); });
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdr-offset:renderModal'); }
         var opts = pts.map(function (p) { return '<option value="' + esc(p.id) + '">' + esc(p.name) + '</option>'; }).join('');
         body.innerHTML =
             '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1)); opacity:0.85; margin:0 0 10px;">Do ~30 m je vektor z kroků + kompasu přesnější než dvojí GPS. Stoupni si na <b>známý bod A</b>, spusť, dojdi na nový bod B a zastav — B se spočítá jako A + vektor.</p>'
@@ -296,7 +296,7 @@
         var lng = _startPt.lng + _dE / m.lng;
         var u = uncertainty(Math.hypot(_dE, _dN));
         var sj = null;
-        try { if (typeof proj4 === 'function') sj = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); } catch (e) {}
+        try { if (typeof proj4 === 'function') sj = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdr-offset:finishWalk'); }
         body.innerHTML =
             '<p style="font-size:calc(13px * var(--ag-font-scale, 1));"><b>Došel jsi:</b> ' + _steps + ' kroků, ' + _dist.toFixed(1) + ' m<br>'
             + 'vektor ' + _dE.toFixed(2) + ' m V / ' + _dN.toFixed(2) + ' m S od bodu ' + esc(_startPt.name) + '<br>'

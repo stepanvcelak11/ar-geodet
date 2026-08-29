@@ -63,17 +63,17 @@
     // poslední vyplněné hodnoty (předvyplnění dalšího píchnutí; jen toto zařízení)
     var LS_FORM = 'agDochazkaForm_v1';
     function lastForm() { try { return JSON.parse(localStorage.getItem(LS_FORM) || '{}') || {}; } catch (e) { return {}; } }
-    function saveForm(o) { try { localStorage.setItem(LS_FORM, JSON.stringify(o)); } catch (e) {} }
+    function saveForm(o) { try { localStorage.setItem(LS_FORM, JSON.stringify(o)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dochazka:saveForm'); } }
     // název aktivní zakázky (globál `projects` ze zakazky.js; bez něj aspoň id)
     function activeProjName() {
         var id = null;
-        try { id = localStorage.getItem('arActiveProjectId'); } catch (e) {}
+        try { id = localStorage.getItem('arActiveProjectId'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dochazka:activeProjName'); }
         if (!id || id === 'default') return null;
         try {
             if (typeof projects !== 'undefined' && Array.isArray(projects)) {
                 for (var i = 0; i < projects.length; i++) if (projects[i] && projects[i].id === id) return projects[i].name || id;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dochazka:activeProjName'); }
         return id;
     }
     // hrubá poloha píchnutí (rychle a bez vysoké přesnosti; bez GPS se píchne bez ní)
@@ -335,7 +335,7 @@
     function open() {
         var u = U();
         if (!u || !u.getFirm()) {
-            try { if (typeof window.agAlert === 'function') return window.agAlert({ title: 'Docházka', message: 'Docházka funguje ve firemním režimu (Nástroje → Firma a účty).' }); } catch (e) {}
+            try { if (typeof window.agAlert === 'function') return window.agAlert({ title: 'Docházka', message: 'Docházka funguje ve firemním režimu (Nástroje → Firma a účty).' }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dochazka:open'); }
             agInfo('Docházka funguje ve firemním režimu (Nástroje → Firma a účty).');
             return;
         }
@@ -385,7 +385,7 @@
                     if (out.getTime() <= last.ts) { askOut('Odchod musí být až po příchodu (' + fmtT(last.ts) + ').'); return; }
                     u.usageLogRaw({ ts: out.getTime(), t: 'shift', k: 'out', uid: me.id, u: me.name, proj: last.proj });
                     if (u.isCloud && u.isCloud()) setTimeout(function () { u.syncUsage(); }, 1500);
-                    try { if (typeof quickToast === 'function') quickToast('Odchod ' + String(v).trim() + ' doplněn.'); } catch (e) {}
+                    try { if (typeof quickToast === 'function') quickToast('Odchod ' + String(v).trim() + ' doplněn.'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dochazka:askOut'); }
                 });
             };
             askOut('');

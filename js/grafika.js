@@ -115,7 +115,7 @@
                         strip.scrollTo({ left: strip.scrollLeft + (b.left - s.left) - 12, behavior: 'smooth' });
                     }
                 }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:switchTab'); }
         }
         function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); } function toggleHudElements() { document.getElementById('info').style.display = document.getElementById('tgl-info').checked ? 'block' : 'none'; document.getElementById('compass-debug').style.display = document.getElementById('tgl-compass').checked ? 'block' : 'none'; updateGpsAvgPanel(); }
         function fixAppLayout() { setTimeout(() => { window.scrollTo(0, 0); document.body.scrollTop = 0; }, 100); } document.querySelectorAll('input').forEach(input => { input.addEventListener('blur', fixAppLayout); });
@@ -152,9 +152,9 @@
         const APP_VERSION = '1.9';
         function openAbout() { const v = document.getElementById('about-version'); if (v) v.innerText = APP_VERSION; document.getElementById('about-modal').style.display = 'flex'; }
         let _calibActive = false, _calibSeen = null, _calibBeta = null, _calibGamma = null;
-        function dismissCompassCalib() { _calibActive = false; try { localStorage.setItem('arCompassCalibShown', '1'); } catch (e) {} const m = document.getElementById('compass-calib-modal'); if (m) m.style.display = 'none'; }
+        function dismissCompassCalib() { _calibActive = false; try { localStorage.setItem('arCompassCalibShown', '1'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:dismissCompassCalib'); } const m = document.getElementById('compass-calib-modal'); if (m) m.style.display = 'none'; }
         // Onboarding kalibrace kompasu: jednorazove pri prvnim startu AR; force=true znovu z nastaveni kompasu.
-        function showCompassCalibHint(force) { try { if (!force && localStorage.getItem('arCompassCalibShown')) return; } catch (e) {} try { if (!force && localStorage.getItem('arTutorialSeen_v1') !== '1') return; } catch (e) {} /* na 1. startu nejdriv tutorial; kalibraci spusti tutorial-pro.js po dokonceni */ const m = document.getElementById('compass-calib-modal'); if (m) { m.style.display = 'flex'; _calibActive = true; _calibSeen = new Set(); _calibBeta = { min: Infinity, max: -Infinity }; _calibGamma = { min: Infinity, max: -Infinity }; const _b = document.getElementById('calib-progress'); if (_b) _b.style.width = '0%'; const _t = document.getElementById('calib-progress-txt'); if (_t) _t.innerText = '0 %'; } }
+        function showCompassCalibHint(force) { try { if (!force && localStorage.getItem('arCompassCalibShown')) return; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:showCompassCalibHint'); } try { if (!force && localStorage.getItem('arTutorialSeen_v1') !== '1') return; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:showCompassCalibHint'); } /* na 1. startu nejdriv tutorial; kalibraci spusti tutorial-pro.js po dokonceni */ const m = document.getElementById('compass-calib-modal'); if (m) { m.style.display = 'flex'; _calibActive = true; _calibSeen = new Set(); _calibBeta = { min: Infinity, max: -Infinity }; _calibGamma = { min: Infinity, max: -Infinity }; const _b = document.getElementById('calib-progress'); if (_b) _b.style.width = '0%'; const _t = document.getElementById('calib-progress-txt'); if (_t) _t.innerText = '0 %'; } }
         // Po "osmicce" (telefon projde vice smery) se napoveda sama zavre. Bezi i pred zamerenim GPS.
         function trackCalibMotion(event) {
             if (!_calibActive || !_calibSeen) return;
@@ -184,7 +184,7 @@
         // si ji drive musel prepinat po KAZDEM startu, protoze se stav resetoval zpatky na
         // „Dělené". Uklada se mimo zakazky (jako agPowerCfg) — je to volba zarizeni, ne projektu.
         const VIEW_LS = 'agViewMode';
-        function rememberViewMode(v) { try { if (v === 'both' || v === 'map' || v === 'ar') localStorage.setItem(VIEW_LS, v); } catch (e) {} }
+        function rememberViewMode(v) { try { if (v === 'both' || v === 'map' || v === 'ar') localStorage.setItem(VIEW_LS, v); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:rememberViewMode'); } }
         window.agRememberViewMode = rememberViewMode;
         // VSTUP DO APPKY. Nejcitlivejsi funkce v celem projektu: kdyz spadne, uzivatel
         // zustane koukat na uvodni obrazovku a nema jak dal — v terenu je to konec prace.
@@ -206,7 +206,7 @@
                 const sViewRadios = document.getElementsByName('s-view'); for (let r of sViewRadios) { if (r.value === viewMode) r.checked = true; }
             } catch (e) {
                 console.warn('[start] formular uvodni obrazovky:', e);
-                try { if (window.agErrLog) agErrLog.record('startAppFromWelcome: ' + (e && e.message || e)); } catch (e2) {}
+                try { if (window.agErrLog) agErrLog.record('startAppFromWelcome: ' + (e && e.message || e)); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'grafika:startAppFromWelcome'); }
             } finally {
                 // OD TETO CHVILE MUSI APPKA NABEHNOUT — at se nahore stalo cokoli
                 { const _mb = document.getElementById('menu-toggle-btn'); if (_mb) _mb.style.display = 'block'; }
@@ -215,7 +215,7 @@
                 // Moduly, ktere na start appky cekaly pollem 2x/s (brifink, draft-store,
                 // epochy-pripominky), si ted rikaji o tuhle udalost. Kdo se nacte az po
                 // startu, pozna to z tridy vyse - proto obojí.
-                try { window.dispatchEvent(new CustomEvent('ag:app-started')); } catch (e) {}
+                try { window.dispatchEvent(new CustomEvent('ag:app-started')); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:startAppFromWelcome'); }
                 try { toggleHudElements(); } catch (e) { console.warn('[start] HUD:', e); }
                 { const _ws = document.getElementById('welcome-screen'); if (_ws) { _ws.style.opacity = '0'; setTimeout(() => { _ws.style.display = 'none'; }, 400); } }
                 try { applyViewMode(); } catch (e) { console.warn('[start] rezim zobrazeni:', e); }
@@ -224,7 +224,7 @@
                     if (userLat && userLng) initFetch(userLat, userLng);
                     else { const _i = document.getElementById('info'); if (_i) _i.innerHTML = "Hledám GPS signál..."; }
                 } catch (e) { console.warn('[start] data:', e); }
-                try { requestWakeLock(); } catch (e) {}
+                try { requestWakeLock(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:startAppFromWelcome'); }
             }
         }
 
@@ -233,7 +233,7 @@
             // jen pri posunu mapy, ale nad videem pri KAZDEM snimku — a takovych prvku je nad
             // kamerou ~10 (#info, #compass-debug, #menu-toggle-btn, #gps-avg, 5x .dock-btn,
             // #ar-hud-info). Viz pravidlo `body.cam-live:not(.ag-cam-glass)` v css/style.css.
-            try { document.body.classList.toggle('cam-live', viewMode !== 'map'); } catch (e) {}
+            try { document.body.classList.toggle('cam-live', viewMode !== 'map'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:applyViewMode'); }
             const camCont = document.getElementById('camera-container'); const mapCont = document.getElementById('map-container'); const resizer = document.getElementById('resizer'); if (viewMode === 'both') { camCont.style.display = 'block'; applySplit(splitStored(), false); mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'flex'; startCameraAndCompass(); } else if (viewMode === 'map') { camCont.style.display = 'none'; mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'none'; stopCameraStream(); startCompass(); } else if (viewMode === 'ar') { camCont.style.display = 'block'; camCont.style.flex = '1'; mapCont.style.display = 'none'; resizer.style.display = 'none'; startCameraAndCompass(); } setTimeout(() => { map.invalidateSize(); }, 300); }
 
         let compassStarted = false;
@@ -288,12 +288,12 @@
             if (denied) msg = 'Aplikace nemá povolený přístup ke kameře, takže AR nejde spustit.<br><br><b>Jak kameru povolit:</b><br>• iPhone: Nastavení → aplikace <b>AR Geodet</b> (příp. Safari) → Kamera → Povolit.<br>• Android / Chrome: ikona zámku v adresním řádku → Oprávnění → Kamera.<br><br>Zatím je zapnutý režim <b>Mapa</b> — vše kromě AR funguje dál.';
             else if (busy) msg = 'Kameru právě drží jiná aplikace nebo ji systém nedokázal spustit. Zavři ostatní aplikace s kamerou a zkus to znovu.<br><br>Zatím je zapnutý režim <b>Mapa</b>.';
             else msg = 'Kameru se nepodařilo spustit (' + ((err && (err.message || err.name)) || 'neznámá chyba') + ').<br><br>Zatím je zapnutý režim <b>Mapa</b> — AR zkusíš znovu přepnutím zobrazení.';
-            if (typeof viewMode !== 'undefined' && viewMode !== 'map') { viewMode = 'map'; applyViewMode(); try { if (typeof window.agSyncViewControls === 'function') window.agSyncViewControls(); } catch (e) {} }
+            if (typeof viewMode !== 'undefined' && viewMode !== 'map') { viewMode = 'map'; applyViewMode(); try { if (typeof window.agSyncViewControls === 'function') window.agSyncViewControls(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:handleCameraError'); } }
             if (window.agAlert) window.agAlert({ title: 'Kamera nejde spustit', message: msg });
             else agInfo(msg.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ''));
         }
         // Uspani kamery (uspora baterie / rezim mapy): zastavi stopu a vynuluje stav, aby sla znovu nahodit.
-        function stopCameraStream() { try { if (currentVideoStream) { currentVideoStream.getTracks().forEach(t => { try { t.stop(); } catch (e) {} }); } } catch (e) {} currentVideoStream = null; cameraStarted = false; const v = document.getElementById('camera-feed'); if (v) { try { v.srcObject = null; } catch (e) {} } }
+        function stopCameraStream() { try { if (currentVideoStream) { currentVideoStream.getTracks().forEach(t => { try { t.stop(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:stopCameraStream'); } }); } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:stopCameraStream'); } currentVideoStream = null; cameraStarted = false; const v = document.getElementById('camera-feed'); if (v) { try { v.srcObject = null; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:stopCameraStream'); } } }
 
         // Po navratu do appky (napr. z otevreneho Katastru) prohlizec casto ukonci kamerovy
         // stream -> cerna obrazovka. Pokud je track mrtvy, kameru automaticky restartujeme.
@@ -341,7 +341,7 @@
                     const t = v.currentTime;
                     if (t === lastT) { if (++stall >= 3) { ensureCameraAlive(true); stall = 0; lastT = -1; } }
                     else { stall = 0; lastT = t; }
-                } catch (e) {}
+                } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:anyOverlayOpen'); }
             }, 1000);
         })();
 
@@ -380,13 +380,13 @@
             try {
                 const v = parseFloat(getStoredData(SPLIT_KEY));
                 if (isFinite(v)) return splitClamp(v);
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:splitStored'); }
             return 50;
         }
         function applySplit(p, save) {
             splitPct = splitClamp(p);
             camCont.style.flex = `0 0 ${splitPct}%`;
-            if (save) { try { setStoredData(SPLIT_KEY, String(Math.round(splitPct))); } catch (e) {} }
+            if (save) { try { setStoredData(SPLIT_KEY, String(Math.round(splitPct))); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:applySplit'); } }
         }
         // Leaflet musi o zmene vysky vedet, jinak zustanou dlazdice roztazene.
         // Skrceno na jedno volani za snimek — pri tazeni by to jinak bezelo
@@ -395,7 +395,7 @@
             if (_splitRaf) return;
             _splitRaf = requestAnimationFrame(() => {
                 _splitRaf = 0;
-                try { if (typeof map !== 'undefined' && map && map.invalidateSize) map.invalidateSize({ pan: false }); } catch (e) {}
+                try { if (typeof map !== 'undefined' && map && map.invalidateSize) map.invalidateSize({ pan: false }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:splitLiveSize'); }
             });
         }
         // Zive procento + zarazky se ukazuji JEN pri tazeni (jinak by to byl
@@ -427,7 +427,7 @@
 
         resizer.addEventListener('pointerdown', (e) => {
             _splitDrag = { id: e.pointerId, y0: e.clientY, pct0: splitPct, moved: false, snap: null };
-            try { resizer.setPointerCapture(e.pointerId); } catch (err) {}
+            try { resizer.setPointerCapture(e.pointerId); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'grafika:splitShowPct'); }
             camCont.style.transition = 'none';
             resizer.classList.add('rz-drag');
             splitShowPct(null);
@@ -443,7 +443,7 @@
                 if (Math.abs(p - SPLIT_SNAPS[i]) <= SPLIT_TOL) { p = SPLIT_SNAPS[i]; snap = SPLIT_SNAPS[i]; break; }
             }
             // cuknuti jen pri VSTUPU do zarazky, ne po celou dobu, co v ni stojim
-            if (snap !== _splitDrag.snap) { _splitDrag.snap = snap; if (snap !== null) { try { agVibe(10); } catch (err) {} } }
+            if (snap !== _splitDrag.snap) { _splitDrag.snap = snap; if (snap !== null) { try { agVibe(10); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'grafika:splitShowPct'); } } }
             applySplit(p, false);
             splitShowPct(snap);
             splitLiveSize();
@@ -720,7 +720,7 @@
             } catch (e) {
                 // co se stihlo precist, to se o radek niz stejne ulozi
                 console.warn('[nastaveni] cast hodnot se nepodarilo precist:', e);
-                try { if (window.agErrLog) agErrLog.record('saveSettings: ' + (e && e.message || e)); } catch (e2) {}
+                try { if (window.agErrLog) agErrLog.record('saveSettings: ' + (e && e.message || e)); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'grafika'); }
             } finally {
                 try { setStoredData('arVisSettings12', JSON.stringify(visSettings)); applyVisualSettings(); drawAllMarkersOnMap(); } catch (e) { console.warn('[nastaveni] ulozeni:', e); }
                 { const _sm = document.getElementById('settings-modal'); if (_sm) _sm.style.display = 'none'; }
@@ -908,7 +908,7 @@
                         try {
                             if (_mngDocs) decoratePointItem(item, pt, _mngDocs[pt.id] || null);
                             else decoratePointItem(item, pt);
-                        } catch (e) {}
+                        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:buildRow'); }
                     }
                 }
                 return item;
@@ -955,7 +955,7 @@
             closeManageModal();
             if (highlightedPointId !== pt.id) highlightPoint(pt);
             else { initARMarkers(); drawAllMarkersOnMap(); updateNavGlow(); }
-            try { if (window.AGCilNav && AGCilNav.fit) AGCilNav.fit(); } catch (e) {}
+            try { if (window.AGCilNav && AGCilNav.fit) AGCilNav.fit(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:focusPointFromList'); }
             const d = (userLat != null) ? getDistance(userLat, userLng, pt.lat, pt.lng) : null;
             quickToast('Cíl: ' + pt.name + (d != null ? ' — ' + d.toFixed(1) + ' m' : ''));
             agVibe(20);
@@ -1026,7 +1026,7 @@
                 const ar = arPoints.find(q => q.id === it.id);
                 if (ar) _ptRestore(ar, it.before);
                 // do zurnalu i samotne vraceni — historie bodu musi sedet na data
-                try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: it.id, before: null, after: { ...it.before }, origin: 'vraceni-hromadne', batch: b.batch }); } catch (e) {}
+                try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: it.id, before: null, after: { ...it.before }, origin: 'vraceni-hromadne', batch: b.batch }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:agUndoLastBulk'); }
             });
             _agLastBulk = null;
             _mngAfterEdit(ids);
@@ -1044,7 +1044,7 @@
                 _mngSuspendRedraw = true;
                 // batch = true: zadny zapis do uloziste ani prekresleni po KAZDEM bode,
                 // vsechno se udela jednou na konci davky (flushPointsAfterBulk).
-                try { ids.forEach(id => { try { deleteCustomPoint(id, true, true); } catch (e) {} }); }
+                try { ids.forEach(id => { try { deleteCustomPoint(id, true, true); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:doIt'); } }); }
                 finally { _mngSuspendRedraw = false; }
                 flushPointsAfterBulk();
                 ids.forEach(id => _mngSel.delete(id));
@@ -1073,7 +1073,7 @@
                     do { cand = prefix + String(n).padStart(pad, '0'); n++; } while (persistentCustomPoints.some(q => q.id !== p.id && q.name === cand));
                     const before = { ...p }; undoItems.push({ id: p.id, before: before }); p.name = cand;
                     const ar = arPoints.find(a => a.id === p.id); if (ar) ar.name = cand;
-                    try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'hromadne-precislovani', batch: batch }); } catch (e) {}
+                    try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'hromadne-precislovani', batch: batch }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:ask'); }
                 });
                 _mngAfterEdit(ids);
                 _mngBulkDone('Přečíslováno ' + sel.length + ' bodů.', undoItems, batch);
@@ -1097,7 +1097,7 @@
                     p.lat = c.lat; p.lng = c.lng;
                     if (dZ && p.vyska != null) p.vyska = Math.round((p.vyska + dZ) * 1000) / 1000;
                     const ar = arPoints.find(a => a.id === p.id); if (ar) { ar.lat = p.lat; ar.lng = p.lng; ar.vyska = p.vyska; }
-                    try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'hromadny-posun', batch: batch }); } catch (e) {}
+                    try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'hromadny-posun', batch: batch }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:ask'); }
                 });
                 _mngAfterEdit(ids);
                 _mngBulkDone('Posunuto ' + sel.length + ' bodů (ΔY ' + dY + ' m, ΔX ' + dX + ' m' + (dZ ? ', ΔZ ' + dZ + ' m' : '') + ').', undoItems, batch);
@@ -1116,7 +1116,7 @@
                     const before = { ...p }; undoItems.push({ id: p.id, before: before });
                     if (kod) p.kod = kod; else delete p.kod;
                     const ar = arPoints.find(a => a.id === p.id); if (ar) { if (kod) ar.kod = kod; else delete ar.kod; }
-                    try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'hromadny-kod', batch: batch }); } catch (e) {}
+                    try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'hromadny-kod', batch: batch }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:ask'); }
                 });
                 if (kod && typeof window.agKodRemember === 'function') agKodRemember(kod);
                 _mngAfterEdit(ids);
@@ -1141,7 +1141,7 @@
                     if (p.vyska != null && AGLocalize.applyZ) p.vyska = AGLocalize.applyZ(c[0], c[1], p.vyska);
                     p._localized = true; done++;
                     const ar = arPoints.find(a => a.id === p.id); if (ar) { ar.lat = p.lat; ar.lng = p.lng; ar.vyska = p.vyska; ar._localized = true; }
-                    try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'helmert-hromadne', batch: batch }); } catch (e) {}
+                    try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'helmert-hromadne', batch: batch }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:doIt'); }
                 });
                 _mngAfterEdit(ids);
                 _mngBulkDone('Lokalizací srovnáno ' + done + ' bodů' + (skipped ? ' (' + skipped + ' přeskočeno — už srovnané)' : '') + '.', undoItems, batch);
@@ -1275,7 +1275,7 @@
                             _z.value = elev.toFixed(2);
                             const note = document.getElementById('custom-acc-note');
                             if (note) { note.style.display = 'block'; note.innerHTML = 'Výška <b>' + elev.toFixed(2) + ' m</b> doplněna z terénu (ČÚZK DMR 5G) — orientační, uprav dle potřeby.'; }
-                        }).catch(() => { try { _z.placeholder = _ph; } catch (e) {} });
+                        }).catch(() => { try { _z.placeholder = _ph; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:openNewPointFromMap'); } });
                     }
                 }
             }
@@ -1440,7 +1440,7 @@
         const TFM_HOLD_MS = 500, TFM_PINCH_TOL = 26, TFM_MOVE_TOL = 22, TFM_FADE_MS = 4000;
         let _tfm = null, _tfmLine = null, _tfmLabel = null, _tfmFade = null;
         function _tfmFmt(m) { if (m >= 1000) return (m / 1000).toFixed(2).replace('.', ',') + ' km'; if (m >= 100) return Math.round(m) + ' m'; return m.toFixed(1).replace('.', ',') + ' m'; }
-        function _tfmClear() { clearTimeout(_tfmFade); _tfmFade = null; if (_tfmLine) { try { map.removeLayer(_tfmLine); } catch (err) {} _tfmLine = null; } if (_tfmLabel) { try { map.removeLayer(_tfmLabel); } catch (err) {} _tfmLabel = null; } }
+        function _tfmClear() { clearTimeout(_tfmFade); _tfmFade = null; if (_tfmLine) { try { map.removeLayer(_tfmLine); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'grafika:_tfmClear'); } _tfmLine = null; } if (_tfmLabel) { try { map.removeLayer(_tfmLabel); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'grafika:_tfmClear'); } _tfmLabel = null; } }
         function _tfmSnap(t) { return [{ clientX: t[0].clientX, clientY: t[0].clientY }, { clientX: t[1].clientX, clientY: t[1].clientY }]; }
         function _tfmUpdate(t) {
             if (!t) return;
@@ -1550,7 +1550,7 @@
                 var _ovs = document.querySelectorAll('.modal-overlay');
                 for (var _i = 0; _i < _ovs.length; _i++) { if (_ovs[_i].style.display === 'flex') return; }
                 if (document.getElementById('welcome-screen') && document.getElementById('welcome-screen').style.display !== 'none' && !document.body.classList.contains('app-started')) return;
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:showDetails'); }
             activePointIdForModal = pt.id; initARMarkers(); arPoints.forEach(p => { if (p.element) p.element.classList.remove('active-reading'); }); if (pt.element) pt.element.classList.add('active-reading');
             let typBodu = "Podrobný polohový bod"; if(pt.cat === 'TB') typBodu = "Trigonometrický bod"; if(pt.cat === 'ZHB') typBodu = "Zhušťovací bod"; if(pt.cat === 'NIVEL') typBodu = "Nivelační / Výškový bod"; if(pt.cat === 'CUSTOM') typBodu = "Vlastní zadaný bod";
             document.getElementById('det-title').innerHTML = `#${_escHtml(pt.name)}`; document.getElementById('det-title').style.color = "var(--accent)"; document.getElementById('det-subtitle').innerHTML = typBodu; 
@@ -1845,7 +1845,7 @@
             // BATERIE: nejvys 1x za sekundu. Kdyby bod z nejakeho duvodu element nikdy
             // nedostal (podminky viditelnosti v renderAR a initARMarkers nejsou uplne
             // totozne), bez skrceni by se initARMarkers volalo 60x za sekundu.
-            if (_arMissingEl && (Date.now() - _arInitRetryAt) > 1000) { _arInitRetryAt = Date.now(); try { initARMarkers(); } catch (e) {} }
+            if (_arMissingEl && (Date.now() - _arInitRetryAt) > 1000) { _arInitRetryAt = Date.now(); try { initARMarkers(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika'); } }
             // stav stropu ven pro js/filtr-info.js (upozorní, až když strop opravdu ubírá)
             window._arCapped = { capped: _cappedCount, shown: renderedCount, max: maxPts };
             _updateMoreBadges(_placed);
@@ -1885,7 +1885,7 @@
                 if (inf && inf.querySelector('.info-retry')) return true;
                 // 4) bezi prumerovani GPS a uzivatel ceka, az se ustali
                 if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && !gpsAvgResult.coarse && gpsAvgResult.n > 0 && gpsAvgResult.n < 30) return true;
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:hudMustStayVisible'); }
             return false;
         }
         function resetInactivityTimer() {
@@ -2027,7 +2027,7 @@
             areaMode = false; areaVertices = []; areaGroup.clearLayers();
             const p = document.getElementById('area-panel'); if (p) p.style.display = 'none';
             fixAppLayout();
-            try { if (window.AGDraft) AGDraft.clear('plocha'); } catch (e) {}   // ukonceno zamerne -> neni co obnovovat (zachranu drzi toast nize)
+            try { if (window.AGDraft) AGDraft.clear('plocha'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:stopAreaMode'); }   // ukonceno zamerne -> neni co obnovovat (zachranu drzi toast nize)
             if (backup) showAreaUndoToast(backup);
         }
         let _areaToast = null, _areaToastTimer = null;
@@ -2076,7 +2076,7 @@
                     if (areaVertices.length) AGDraft.save('plocha', { verts: areaVertices.map(v => ({ lat: v.lat, lng: v.lng })) }, 'Měření plochy – ' + areaVertices.length + (areaVertices.length === 1 ? ' vrchol' : (areaVertices.length < 5 ? ' vrcholy' : ' vrcholů')));
                     else AGDraft.clear('plocha');
                 }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:afterAreaChange'); }
         }
         // Obnova rozdelane plochy po restartu appky (lista "Pokracovat" z draft-store.js).
         try {
@@ -2084,15 +2084,15 @@
                 label: 'Měření plochy',
                 open: function (st) {
                     if (!st || !Array.isArray(st.verts) || !st.verts.length) return;
-                    if (viewMode === 'ar') { viewMode = 'both'; try { applyViewMode(); } catch (e) {} }
+                    if (viewMode === 'ar') { viewMode = 'both'; try { applyViewMode(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:open'); } }
                     document.getElementById('measure-modal').style.display = 'none';
                     areaMode = true; areaVertices = st.verts.slice();
                     const p = document.getElementById('area-panel'); if (p) p.style.display = 'flex';
                     redrawAreaPolygon(); updateAreaPanel();
-                    try { map.fitBounds(areaVertices.map(v => [v.lat, v.lng]), { padding: [40, 40], maxZoom: 19 }); } catch (e) {}
+                    try { map.fitBounds(areaVertices.map(v => [v.lat, v.lng]), { padding: [40, 40], maxZoom: 19 }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:open'); }
                 }
             });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:open'); }
         function redrawAreaPolygon() {
             areaGroup.clearLayers();
             if (!areaVertices.length) return;
@@ -2156,7 +2156,7 @@
             { t: 'ZABAGED', d: 'Základní báze geografických dat ČR — digitální topografický model území spravovaný Zeměměřickým úřadem.' }
         ];
         function getCustomDict() { try { return JSON.parse(localStorage.getItem('arDictCustom')) || []; } catch (e) { return []; } }
-        function saveCustomDict(list) { try { localStorage.setItem('arDictCustom', JSON.stringify(list)); } catch (e) {} }
+        function saveCustomDict(list) { try { localStorage.setItem('arDictCustom', JSON.stringify(list)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:saveCustomDict'); } }
         function openDictModal() { renderDictList(); document.getElementById('dict-modal').style.display = 'flex'; }
         function addDictEntry() {
             const t = document.getElementById('dict-new-term').value.trim();
@@ -2252,7 +2252,7 @@
         // RODIC body). Ve svetlem rezimu se to ukazovalo vsude, kde neni videt body:
         // pri odtazeni obsahu (overscroll) a v bezpecnych zonach gest = tmavy pruh nahore
         // i dole. Prepiname ho proto tady, stejne jako theme-color.
-        function previewMode(m) { var light = m === 'light'; document.body.classList.toggle('light-mode', light); try { document.documentElement.style.backgroundColor = light ? '#f4f5f7' : '#0e1216'; } catch (e) {} var mc = document.querySelector('meta[name="theme-color"]'); if (mc) mc.setAttribute('content', light ? '#f4f5f7' : '#0f1216'); }
+        function previewMode(m) { var light = m === 'light'; document.body.classList.toggle('light-mode', light); try { document.documentElement.style.backgroundColor = light ? '#f4f5f7' : '#0e1216'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:previewMode'); } var mc = document.querySelector('meta[name="theme-color"]'); if (mc) mc.setAttribute('content', light ? '#f4f5f7' : '#0f1216'); }
 
         // ===== DUHOVY OKRAJ: zari po celou navigaci na bod, zesili a zrychli pri dohledavani (< 2 m) =====
         let _egEl = null;

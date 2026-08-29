@@ -31,12 +31,12 @@
     var WINDOW_MIN = 90;                      // připomínka: okno ±90 min
 
     // ---- pomůcky ----------------------------------------------------------------
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
-    function toast(msg) { try { if (typeof quickToast === 'function') { quickToast(msg); return; } } catch (e) {} try { console.log('[kampaň]', msg); } catch (e) {} }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-campaign:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function toast(msg) { try { if (typeof quickToast === 'function') { quickToast(msg); return; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-campaign:toast'); } try { console.log('[kampaň]', msg); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-campaign:toast'); } }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function load() { try { var o = JSON.parse(localStorage.getItem(LS_KEY)); return (o && typeof o === 'object' && Array.isArray(o.plan)) ? o : null; } catch (e) { return null; } }
-    function save(c) { try { localStorage.setItem(LS_KEY, JSON.stringify(c)); } catch (e) {} }
-    function clear() { try { localStorage.removeItem(LS_KEY); } catch (e) {} }
+    function save(c) { try { localStorage.setItem(LS_KEY, JSON.stringify(c)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-campaign:save'); } }
+    function clear() { try { localStorage.removeItem(LS_KEY); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-campaign:clear'); } }
     function sessCount() { try { var a = JSON.parse(localStorage.getItem(LS_SESS)); return Array.isArray(a) ? a.length : 0; } catch (e) { return 0; } }
     function mask() { try { return (typeof SAT_EL_MASK !== 'undefined' && isFinite(SAT_EL_MASK)) ? SAT_EL_MASK : 10; } catch (e) { return 10; } }
     function hasSat() { try { return typeof computeSatPositions === 'function' && typeof computePDOP === 'function'; } catch (e) { return false; } }
@@ -82,7 +82,7 @@
                 { ts: now + 27 * 3600000, pdop: null, n: null, diff: null }], true);
             return;
         }
-        try { if ((typeof tleSats === 'undefined' || !tleSats || !tleSats.length) && typeof loadTleFromCache === 'function') loadTleFromCache(); } catch (e) {}
+        try { if ((typeof tleSats === 'undefined' || !tleSats || !tleSats.length) && typeof loadTleFromCache === 'function') loadTleFromCache(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-campaign:planWindows'); }
         var sig0 = sigAt(now);
         if (!sig0 || !sig0.length) {
             cb([{ ts: now + 6 * 3600000, pdop: null, n: null, diff: null },
@@ -103,9 +103,9 @@
                     if (p == null || !isFinite(p) || p > 4.5 || vis.length < 5) continue;
                     var sig = vis.map(function (o) { return o.name || o.short || ''; });
                     cands.push({ ts: ts, pdop: p, n: vis.length, sig: sig, diff: jaccardDiff(sig0, sig) });
-                } catch (e) {}
+                } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-campaign:step'); }
             }
-            if (progress) { try { progress(Math.round(i / mins.length * 100)); } catch (e) {} }
+            if (progress) { try { progress(Math.round(i / mins.length * 100)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-campaign:step'); } }
             if (i < mins.length) { setTimeout(step, 0); return; }
             // výběr: 1. slot = max (odlišnost − pokuta za PDOP); 2. slot ≥6 h od 1. a odlišný i od něj
             if (!cands.length) {
@@ -136,10 +136,10 @@
             if (navigator.serviceWorker && navigator.serviceWorker.ready) {
                 navigator.serviceWorker.ready.then(function (reg) {
                     try { reg.showNotification(title, { body: body, icon: 'icon-192.png', tag: 'ag-campaign' }); }
-                    catch (e) { try { new Notification(title, { body: body }); } catch (e2) {} }
+                    catch (e) { try { new Notification(title, { body: body }); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'gps-campaign:notify'); } }
                 });
             } else { new Notification(title, { body: body }); }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-campaign:notify'); }
     }
 
     // ---- plánovací modal ------------------------------------------------------------
@@ -189,7 +189,7 @@
                 + '<button class="btn btn-secondary" id="ag-campaign-replan" style="margin-top:8px;">Naplánovat znovu</button>'
                 + '<button class="btn btn-secondary" id="ag-campaign-cancel" style="margin-top:8px; color:var(--danger,#fb7185);">Zrušit kampaň</button>';
             var nb = document.getElementById('ag-campaign-notif');
-            if (nb) nb.addEventListener('click', function () { try { Notification.requestPermission().then(renderModal); } catch (e) {} });
+            if (nb) nb.addEventListener('click', function () { try { Notification.requestPermission().then(renderModal); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-campaign:renderModal'); } });
             var rb = document.getElementById('ag-campaign-replan');
             if (rb) rb.addEventListener('click', function () { startPlanning(camp.lat, camp.lng, camp.name); });
             var cb = document.getElementById('ag-campaign-cancel');
@@ -198,7 +198,7 @@
         }
         // bez kampaně: nabídka založení (vyžaduje aspoň 1 sezení, ať máme polohu)
         var sess = null;
-        try { var a = JSON.parse(localStorage.getItem(LS_SESS)); if (Array.isArray(a) && a.length) sess = a[a.length - 1]; } catch (e) {}
+        try { var a = JSON.parse(localStorage.getItem(LS_SESS)); if (Array.isArray(a) && a.length) sess = a[a.length - 1]; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-campaign:renderModal'); }
         if (!sess) {
             body.innerHTML = '<p style="font-size:calc(13px * var(--ag-font-scale, 1));">Nejdřív změř v Brutální GPS <b>první sezení</b> a ulož ho tlačítkem „Přidat jako další sezení". Pak sem naplánuju zbylé 2 návštěvy.</p>';
             return;

@@ -140,7 +140,7 @@
                     + 'Zkontroluj proj4 a definici EPSG:5514 v logika.js — souřadnice mohou být prohozené.';
                 if (window.AGDiag && typeof AGDiag.error === 'function') AGDiag.error('geo-core', msg);
                 console.error(msg);
-            } catch (e2) {}
+            } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'geo-core:_resolveAxis'); }
         }
         return _axisState;
     }

@@ -131,9 +131,9 @@
             var raw = localStorage.getItem(LS); if (!raw) return;
             var o = JSON.parse(raw); if (!o || typeof o !== 'object') return;
             for (var k in cfg) if (o[k] != null) cfg[k] = o[k];
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'seznam-souradnic:loadCfg'); }
     }
-    function saveCfg() { try { localStorage.setItem(LS, JSON.stringify(cfg)); } catch (e) {} }
+    function saveCfg() { try { localStorage.setItem(LS, JSON.stringify(cfg)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'seznam-souradnic:saveCfg'); } }
 
     // ---------------------------------------------------------------------------
     // sestavení řádků

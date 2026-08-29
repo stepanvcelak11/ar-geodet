@@ -53,8 +53,8 @@
     var _lastWarnKey = null, _lastWarnTs = 0;
 
     // ---- pomocné --------------------------------------------------------------
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'utility-networks:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'utility-networks:toast'); } }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function heading() { return (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null; }
     function getMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
@@ -65,12 +65,12 @@
     // stanovisko pro AR: zakotvený origin (resekce) když je, jinak syrová GPS
     function originLL() {
         if (window.AGPose && typeof window.AGPose.origin === 'function' && haveUser()) {
-            try { var o = window.AGPose.origin(userLat, userLng); if (o && o[0] != null) return { lat: o[0], lng: o[1] }; } catch (e) {}
+            try { var o = window.AGPose.origin(userLat, userLng); if (o && o[0] != null) return { lat: o[0], lng: o[1] }; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'utility-networks:originLL'); }
         }
         return haveUser() ? { lat: userLat, lng: userLng } : null;
     }
     function surfaceEl(lat, lng) {
-        try { if (typeof window.terrainElev === 'function') { var v = window.terrainElev(lat, lng); return (typeof v === 'number' && isFinite(v)) ? v : null; } } catch (e) {}
+        try { if (typeof window.terrainElev === 'function') { var v = window.terrainElev(lat, lng); return (typeof v === 'number' && isFinite(v)) ? v : null; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'utility-networks:surfaceEl'); }
         return null;
     }
     function metersPerDeg(lat) {
@@ -207,7 +207,7 @@
                     var vv2 = verts.filter(function (q) { return q.y != null; });
                     if (vv2.length >= 2) out.push({ layer: la, verts: vv2, closed: !!(ent[70] && (parseInt(ent[70], 10) & 1)), elev: elev });
                 }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'utility-networks:flushPoly'); }
             i2 = j;
         }
         return out;
@@ -342,7 +342,7 @@
             var s = JSON.stringify(_nets);
             if (s.length > 4000000) { toast('Sítě uloženy jen do paměti (moc velké)'); return; }
             localStorage.setItem(storeKey(), s);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'utility-networks:persist'); }
     }
     function load() {
         try { var s = localStorage.getItem(storeKey()); _nets = s ? (JSON.parse(s) || []) : []; }
@@ -399,7 +399,7 @@
             var now = Date.now();
             if (kk !== _lastWarnKey || now - _lastWarnTs > 6000) {
                 _lastWarnKey = kk; _lastWarnTs = now;
-                if (navigator.vibrate) { try { navigator.vibrate([30, 40, 30]); } catch (e) {} }
+                if (navigator.vibrate) { try { navigator.vibrate([30, 40, 30]); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'utility-networks:checkProximity'); } }
                 toast('Pod tebou ' + t.label + ' — ochranné pásmo');
             }
         } else {
@@ -483,7 +483,7 @@
         if (_lastH != null && Math.abs(hd - _lastH) < 0.3 && Math.abs(pitch - (_lastP || 0)) < 0.3 && Math.abs(roll - (_lastR || 0)) < 0.005 && _lastRad === rad && _lastLat === oLL.lat && _lastLng === oLL.lng) return;
         _lastH = hd; _lastP = pitch; _lastR = roll; _lastRad = rad; _lastLat = oLL.lat; _lastLng = oLL.lng;
         var eyeH = 1.6, vOff = 0;
-        try { eyeH = visSettings.eyeHeight || 1.6; vOff = visSettings.arVerticalOffset || 0; } catch (e) {}
+        try { eyeH = visSettings.eyeHeight || 1.6; vOff = visSettings.arVerticalOffset || 0; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'utility-networks:arLoop'); }
         var html = '';
         _nets.forEach(function (nt) {
             if (nt._hidden) return;
@@ -612,7 +612,7 @@
     function startLive() {
         if (_liveTimer) return;
         var mk = (window.AG && AG.uiInterval) ? AG.uiInterval : setInterval;
-        _liveTimer = mk(function () { try { checkProximity(); } catch (e) {} }, 2000);
+        _liveTimer = mk(function () { try { checkProximity(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'utility-networks:startLive'); } }, 2000);
     }
 
     // ---- styly ----------------------------------------------------------------

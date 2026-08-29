@@ -56,11 +56,11 @@
                 window.agAlert({ title: 'Některé body přeskočeny', message: msg });
                 return;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'csv-validate:reportSkipped'); }
         try {
             // Fallback bez HTML značek
             window.alert(skipped + ' ' + slovo + ' — souřadnice mimo rozsah S-JTSK Křovák.');
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'csv-validate:reportSkipped'); }
     }
 
     // Obalení jediného globálního sinku importu. Idempotentní (značka _csvValidated).
@@ -98,7 +98,7 @@
         };
         wrapped._csvValidated = true;
         // zachovej případné jiné značky/vlastnosti původní funkce
-        try { for (const k in orig) { if (k !== '_csvValidated') wrapped[k] = orig[k]; } } catch (e) {}
+        try { for (const k in orig) { if (k !== '_csvValidated') wrapped[k] = orig[k]; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'csv-validate:wrapped'); }
         window.addImportedPoints = wrapped;
     }
 

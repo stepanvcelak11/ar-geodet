@@ -46,7 +46,7 @@ function parseTLE(txt) {
                 const satrec = satellite.twoline2satrec(lines[i + 1], lines[i + 2]);
                 const sys = _satSysOf(name);
                 out.push({ name: name, short: _satShortName(name, sys), sys: sys.key, col: sys.col, satrec: satrec });
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'satelity:parseTLE'); }
             i += 2;
         }
     }
@@ -57,7 +57,7 @@ function loadTleFromCache() {
     try {
         const c = JSON.parse(localStorage.getItem(TLE_CACHE_KEY));
         if (c && c.txt) { tleSats = parseTLE(c.txt); tleFetchedAt = c.t || null; }
-    } catch (e) {}
+    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'satelity:loadTleFromCache'); }
 }
 
 async function refreshTLE(silent) {
@@ -69,7 +69,7 @@ async function refreshTLE(silent) {
         const parsed = parseTLE(txt);
         if (parsed.length < 10) throw new Error('TLE se nepodařilo přečíst');
         tleSats = parsed; tleFetchedAt = Date.now();
-        try { localStorage.setItem(TLE_CACHE_KEY, JSON.stringify({ t: tleFetchedAt, txt: txt })); } catch (e) {}
+        try { localStorage.setItem(TLE_CACHE_KEY, JSON.stringify({ t: tleFetchedAt, txt: txt })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'satelity:refreshTLE'); }
         updateSatObs(); renderSatModalStats();
     } catch (e) {
         if (!silent) agInfo('Dráhy družic (TLE) se nepodařilo stáhnout — jste offline nebo je CelesTrak nedostupný.\nPredikce funguje z dříve stažených dat, pokud existují.');
@@ -91,7 +91,7 @@ function computeSatPositions(date) {
             const ecf = satellite.eciToEcf(pv.position, gmst);
             const la = satellite.ecfToLookAngles(obs, ecf);
             out.push({ name: s.name, short: s.short, sys: s.sys, col: s.col, az: la.azimuth * 180 / Math.PI, el: la.elevation * 180 / Math.PI });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'satelity:computeSatPositions'); }
     });
     return out;
 }
@@ -196,7 +196,7 @@ function renderSatellitesAR() {
 (function () {
     if (typeof renderAR !== 'function' || renderAR._satWrapped) return;   // idempotence (dvojí načtení)
     const _orig = renderAR;
-    renderAR = function (event) { _orig(event); try { renderSatellitesAR(); } catch (e) {} };
+    renderAR = function (event) { _orig(event); try { renderSatellitesAR(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'satelity:renderAR'); } };
     renderAR._satWrapped = true;
 })();
 

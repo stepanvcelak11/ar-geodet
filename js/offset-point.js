@@ -17,7 +17,7 @@
     var _baseMode = 'gps';     // 'gps' | 'point'
     var _basePointId = null;
 
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'offset-point:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function num(id) { var el = document.getElementById(id); var v = el ? parseFloat(String(el.value).replace(',', '.')) : NaN; return isFinite(v) ? v : NaN; }
 
     // ---- draft (AGDraft je odpojitelný, vše fail-silent) -----------------------
@@ -34,9 +34,9 @@
             window.AGDraft.save(DRAFT_KEY,
                 { baseMode: _baseMode, basePointId: _basePointId, az: az, dist: d, name: nm },
                 'Offset bod – vyplněno ' + filled + '/2');
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'offset-point:draftSave'); }
     }
-    function draftClear() { if (window.AGDraft) try { window.AGDraft.clear(DRAFT_KEY); } catch (e) {} }
+    function draftClear() { if (window.AGDraft) try { window.AGDraft.clear(DRAFT_KEY); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'offset-point:draftClear'); } }
 
     // ---- základ výpočtu --------------------------------------------------------
     function getBase() {
@@ -49,7 +49,7 @@
             if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.n >= 2) {
                 return { lat: gpsAvgResult.lat, lng: gpsAvgResult.lng, label: 'GPS (⌀ ' + gpsAvgResult.n + ' měření)', acc: gpsAvgResult.sterr };
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'offset-point:getBase'); }
         if (typeof userLat !== 'undefined' && userLat != null && userLng != null) {
             return { lat: userLat, lng: userLng, label: 'GPS (aktuální)', acc: (typeof currentGpsAccuracy !== 'undefined' ? currentGpsAccuracy : null) };
         }
@@ -89,7 +89,7 @@
             if (typeof currentHeading === 'number' && isFinite(currentHeading)) {
                 var el = document.getElementById('agof-az'); if (el) { el.value = currentHeading.toFixed(1); recompute(); draftSave(); }
             } else agAlert('Kompas', 'Zatím nemám směr z kompasu — chvíli podrž telefon ve svislé poloze.');
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'offset-point:fromCompass'); }
     }
 
     function fillPointSelect() {
@@ -185,10 +185,10 @@
                             var nm = document.getElementById('agof-name'); if (nm) nm.value = st.name || '';
                             recompute();
                         }
-                    } catch (e) {}
+                    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'offset-point:open'); }
                 }
             });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'offset-point:open'); }
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'offset-point', label: 'Offset bod', icon: ICON, onClick: openTool, order: 20 });
         }
@@ -234,7 +234,7 @@
         if (c.querySelector('.ag-modal-x')) return;   // křížek přidáváme VŽDY (i k modálům s modal-body)
         var wrap = document.createElement('div'); wrap.className = 'ag-modal-x';
         var b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', 'Zavřít'); b.textContent = '×';
-        b.addEventListener('click', function () { try { ov.style.display = 'none'; } catch (e) {} });
+        b.addEventListener('click', function () { try { ov.style.display = 'none'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'offset-point:enhance'); } });
         wrap.appendChild(b); c.insertBefore(wrap, c.firstChild);
     }
     function tick() {
@@ -242,13 +242,13 @@
             injectCss();
             var ovs = document.querySelectorAll('.modal-overlay');
             for (var i = 0; i < ovs.length; i++) { var ov = ovs[i], c = ov.querySelector('.modal-content'); if (isToolModal(ov, c)) enhance(ov, c); }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'offset-point:tick'); }
     }
     // POZN.: funkčně shodná kopie doplňovače křížku z js/geo-overlay.js — obě sdílí
     // window.__agModalXTimer, takže reálně tiká jen ta, která se načte první. Perioda
     // srovnaná s geo-overlay.js (2 s + MutationObserver tam), ať se poll nevrací zadními
     // dvířky, kdyby se pořadí načítání změnilo.
-    function init() { try { injectCss(); if (!window.__agModalXTimer) window.__agModalXTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(tick, 2000); tick(); } catch (e) {} }
+    function init() { try { injectCss(); if (!window.__agModalXTimer) window.__agModalXTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(tick, 2000); tick(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'offset-point:init'); } }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
     window.addEventListener('load', function () { setTimeout(init, 500); });
 })();

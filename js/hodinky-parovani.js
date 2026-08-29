@@ -27,8 +27,8 @@
     var ICON = '⌚';
 
     function toast(t) {
-        try { if (typeof window.quickToast === 'function') return window.quickToast(t); } catch (e) {}
-        try { if (typeof window.agInfo === 'function') window.agInfo(t); } catch (e2) {}
+        try { if (typeof window.quickToast === 'function') return window.quickToast(t); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hodinky-parovani:toast'); }
+        try { if (typeof window.agInfo === 'function') window.agInfo(t); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'hodinky-parovani:toast'); }
     }
 
     function pid() {
@@ -46,7 +46,7 @@
                     if (list[i] && list[i].id === p) { name = list[i].name; break; }
                 }
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hodinky-parovani:jobKey'); }
         var k = String(name || p).replace(/\s+/g, ' ');
         k = k.replace(/^\s+|\s+$/g, '').toLowerCase();
         return k.slice(0, 60) || String(p);

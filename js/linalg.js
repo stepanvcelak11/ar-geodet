@@ -257,7 +257,7 @@
             step = Math.sqrt(step);
 
             // přepočti rmse po kroku (aby výsledné rmse odpovídalo finálnímu x)
-            try { var rNew = residualFn(x); rmse = computeRmse(rNew); } catch (e2) {}
+            try { var rNew = residualFn(x); rmse = computeRmse(rNew); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'linalg:computeRmse'); }
 
             if (step < tol) { converged = true; iters++; break; }
         }
@@ -277,6 +277,6 @@
         gaussNewton: gaussNewton
     };
 
-    try { window.LinAlg = LinAlg; } catch (e) {}
-    try { if (typeof module !== 'undefined' && module.exports) module.exports = LinAlg; } catch (e) {}
+    try { window.LinAlg = LinAlg; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'linalg:computeRmse'); }
+    try { if (typeof module !== 'undefined' && module.exports) module.exports = LinAlg; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'linalg:computeRmse'); }
 })();

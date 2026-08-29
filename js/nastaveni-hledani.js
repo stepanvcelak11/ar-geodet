@@ -57,7 +57,7 @@
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function norm(s) {
         s = String(s == null ? '' : s).toLowerCase();
-        try { s = s.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) {}
+        try { s = s.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-hledani:norm'); }
         return s.replace(/\s+/g, ' ').trim();
     }
     function shortOn() { try { return localStorage.getItem(SHORT_KEY) !== '0'; } catch (e) { return true; } }
@@ -176,7 +176,7 @@
         var btns = document.querySelectorAll('#settings-modal .tab-btn');
         for (var i = 0; i < btns.length; i++) {
             if ((btns[i].getAttribute('onclick') || '').indexOf(tabEl.id) !== -1) {
-                try { if (typeof window.switchTab === 'function') return window.switchTab(tabEl.id, btns[i]); } catch (e) {}
+                try { if (typeof window.switchTab === 'function') return window.switchTab(tabEl.id, btns[i]); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-hledani:switchToTab'); }
                 btns[i].click();
                 return;
             }
@@ -189,7 +189,7 @@
         var row = el.closest ? (el.closest('.st-row, .st-slider, .st-chips, .color-row') || el) : el;
         var tabEl = tabOf(row);
 
-        if (!isOpen() && typeof window.openSettings === 'function') { try { window.openSettings(); } catch (e) {} }
+        if (!isOpen() && typeof window.openSettings === 'function') { try { window.openSettings(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-hledani:reveal'); } }
         switchToTab(tabEl);
         if (tabEl) tabEl.classList.add('ag-ns-all');            // ať není schovaný v „Zobrazit vše"
         var d = row.closest ? row.closest('details') : null;
@@ -197,7 +197,7 @@
 
         closeResults();
         setTimeout(function () {
-            try { row.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) { try { row.scrollIntoView(); } catch (e2) {} }
+            try { row.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) { try { row.scrollIntoView(); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'nastaveni-hledani:reveal'); } }
             row.classList.add('ag-ns-found');
             setTimeout(function () { row.classList.remove('ag-ns-found'); }, 4000);
         }, 160);
@@ -280,7 +280,7 @@
         try {
             if (typeof window.saveSettings === 'function') window.saveSettings();
             else { var m = modal(); if (m) m.style.display = 'none'; }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-hledani:runOutside'); }
         setTimeout(function () {
             try { it.run(); } catch (err) { console.warn('[nastaveni-hledani]', err); }
         }, 60);
@@ -373,7 +373,7 @@
         var cb = row.querySelector('#ag-ns-short-cb');
         cb.checked = shortOn();
         cb.addEventListener('change', function () {
-            try { localStorage.setItem(SHORT_KEY, cb.checked ? '1' : '0'); } catch (e) {}
+            try { localStorage.setItem(SHORT_KEY, cb.checked ? '1' : '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-hledani:injectToggle'); }
             syncShort();
         });
         // vlastní řádek zůstává vidět, jinak by ho krátký pohled schoval sám sebou
@@ -393,7 +393,7 @@
             syncShort();
             var cb = document.getElementById('ag-ns-short-cb');
             if (cb && cb.checked !== shortOn()) cb.checked = shortOn();
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-hledani:tick'); }
     }
     function init() {
         try { tick(); } catch (e) { console.warn('[nastaveni-hledani] init', e); }

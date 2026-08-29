@@ -18,13 +18,13 @@
 
     // cteni cisel pres sdilene agNum() (js/vstupy.js) — desetinna carka, mezery v tisicich
     function num(v) { var n = (typeof window.agNum === 'function') ? window.agNum(v) : parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; }
-    function quickToastSafe(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} try { agInfo(m); } catch (e) {} }
+    function quickToastSafe(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'check-distance:quickToastSafe'); } try { agInfo(m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'check-distance:quickToastSafe'); } }
 
     // S-JTSK: pocita GeoCore (jediny autoritativni prevod v appce, testovany proti PROJ
     // v tests/cases-geo.js). Tady se jen premapuje na lokalni tvar {Y,X}. Fallback na
     // vlastni proj4 zustava, aby modul fungoval i bez geo-core.js (odpojitelnost).
     function toSJTSK(lat, lng) {
-        try { if (window.GeoCore && GeoCore.toSJTSK) { var s = GeoCore.toSJTSK(lat, lng); return { Y: s.y, X: s.x }; } } catch (e) {}
+        try { if (window.GeoCore && GeoCore.toSJTSK) { var s = GeoCore.toSJTSK(lat, lng); return { Y: s.y, X: s.x }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'check-distance:toSJTSK'); }
         try { var r = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { Y: Math.abs(r[0]), X: Math.abs(r[1]) }; }
         catch (e) { return null; }
     }
@@ -36,13 +36,13 @@
             if (!p || typeof p.lat !== 'number' || typeof p.lng !== 'number' || !p.name) return;
             if (!(p.name in m)) m[p.name] = { lat: p.lat, lng: p.lng };
         }
-        try { if (typeof persistentCustomPoints !== 'undefined') persistentCustomPoints.forEach(add); } catch (e) {}
-        try { if (typeof arPoints !== 'undefined') arPoints.forEach(add); } catch (e) {}
+        try { if (typeof persistentCustomPoints !== 'undefined') persistentCustomPoints.forEach(add); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'check-distance:add'); }
+        try { if (typeof arPoints !== 'undefined') arPoints.forEach(add); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'check-distance:add'); }
         return m;
     }
     function resolve(name) {
         if (name === '@me') {
-            try { if (typeof userLat === 'number' && userLat) return { lat: userLat, lng: userLng }; } catch (e) {}
+            try { if (typeof userLat === 'number' && userLat) return { lat: userLat, lng: userLng }; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'check-distance:resolve'); }
             return null;
         }
         var m = pointMap(); return m[name] || null;
@@ -75,7 +75,7 @@
             var data = { checks: checks, cfg: cfg };
             if (typeof setStoredData === 'function') setStoredData(LS, JSON.stringify(data));
             else localStorage.setItem(LS, JSON.stringify(data));
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'check-distance:save'); }
     }
     function load() {
         try {
@@ -87,7 +87,7 @@
                 if (d.cfg && typeof d.cfg.baseMm === 'number') cfg.baseMm = d.cfg.baseMm;
                 if (d.cfg && typeof d.cfg.ppm === 'number') cfg.ppm = d.cfg.ppm;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'check-distance:load'); }
     }
 
     // ---- UI ------------------------------------------------------------------
@@ -128,7 +128,7 @@
         var m = pointMap();
         var names = Object.keys(m).sort(function (x, y) { return x.localeCompare(y, 'cs', { numeric: true }); });
         var optHtml = '';
-        try { if (typeof userLat === 'number' && userLat) optHtml += '<option value="@me">(moje poloha)</option>'; } catch (e) {}
+        try { if (typeof userLat === 'number' && userLat) optHtml += '<option value="@me">(moje poloha)</option>'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'check-distance:fillSelects'); }
         names.forEach(function (n) { optHtml += '<option value="' + escAttr(n) + '">' + escHtml(n) + '</option>'; });
         var a = overlay.querySelector('#omr-a'), b = overlay.querySelector('#omr-b');
         var av = a.value, bv = b.value;
@@ -235,7 +235,7 @@
         try {
             var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
             var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-            var proj = ''; try { proj = (typeof activeProjectId !== 'undefined') ? ('_' + activeProjectId) : ''; } catch (e) {}
+            var proj = ''; try { proj = (typeof activeProjectId !== 'undefined') ? ('_' + activeProjectId) : ''; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'check-distance:exportCSV'); }
             a.download = 'omerne' + proj + '.csv'; document.body.appendChild(a); a.click();
             setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
         } catch (e) { quickToastSafe('Export selhal.'); }

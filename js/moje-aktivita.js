@@ -85,7 +85,7 @@
     function on() { try { return localStorage.getItem(LS_ON) !== '0'; } catch (e) { return true; } }
     function sensorOn() { try { return localStorage.getItem(LS_SENS) === '1'; } catch (e) { return false; } }
     function stepLen() {
-        try { var v = parseFloat(localStorage.getItem(LS_STEPLEN)); if (isFinite(v) && v >= 0.4 && v <= 1.2) return v; } catch (e) {}
+        try { var v = parseFloat(localStorage.getItem(LS_STEPLEN)); if (isFinite(v) && v >= 0.4 && v <= 1.2) return v; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:stepLen'); }
         return STEP_DEF;
     }
     function visible() { return document.visibilityState !== 'hidden'; }
@@ -96,7 +96,7 @@
     function db() {
         if (_db) return _db;
         var o = null;
-        try { o = JSON.parse(localStorage.getItem(LS)); } catch (e) {}
+        try { o = JSON.parse(localStorage.getItem(LS)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:db'); }
         if (!o || typeof o !== 'object' || !o.days || typeof o.days !== 'object') o = { v: 1, days: {} };
         _db = o;
         return _db;
@@ -125,7 +125,7 @@
         _lastSave = now;
         // _dirty se shazuje AŽ po úspěšném setItem — když je úložiště plné, zápis
         // spadne, catch výjimku spolkne a nasbíraný den by se tvářil jako uložený
-        try { prune(); localStorage.setItem(LS, JSON.stringify(db())); _dirty = false; } catch (e) {}
+        try { prune(); localStorage.setItem(LS, JSON.stringify(db())); _dirty = false; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:save'); }
     }
     function sortedKeys() { return Object.keys(db().days).sort(); }
     function lastKeys(n) { var k = sortedKeys(); return k.slice(Math.max(0, k.length - n)); }
@@ -140,7 +140,7 @@
         var l = labels();
         if (l[key] === label) return;
         l[key] = label;
-        try { localStorage.setItem(LS_LABELS, JSON.stringify(l)); } catch (e) {}
+        try { localStorage.setItem(LS_LABELS, JSON.stringify(l)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:rememberLabel'); }
     }
 
     // ---- sběr: body ze žurnálu -------------------------------------------------
@@ -155,7 +155,7 @@
             else return;
             d.l = Date.now();
             _dirty = true;
-        } catch (err) {}
+        } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'moje-aktivita:rememberLabel'); }
     });
 
     // ---- sběr: nástroje --------------------------------------------------------
@@ -208,7 +208,7 @@
             if (!k) return;
             rememberLabel(k, tileLabel(tile));
             toolStart(k);
-        } catch (err) {}
+        } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'moje-aktivita:toolStart'); }
     }, true);
     document.addEventListener('pointerdown', function () { _lastTouch = Date.now(); }, true);
     document.addEventListener('keydown', function () { _lastTouch = Date.now(); }, true);
@@ -230,11 +230,11 @@
     }
     function startMotion() {
         if (_motionOn) return;
-        try { window.addEventListener('devicemotion', onMotion); _motionOn = true; } catch (e) {}
+        try { window.addEventListener('devicemotion', onMotion); _motionOn = true; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:startMotion'); }
     }
     function stopMotion() {
         if (!_motionOn) return;
-        try { window.removeEventListener('devicemotion', onMotion); } catch (e) {}
+        try { window.removeEventListener('devicemotion', onMotion); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:stopMotion'); }
         _motionOn = false;
     }
     // iOS 13+ chce povolení ze uživatelského gesta — proto se volá z přepínače
@@ -245,7 +245,7 @@
                     DeviceMotionEvent.requestPermission().then(function (p) { res(p === 'granted'); })['catch'](function () { res(false); });
                     return;
                 }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:askMotion'); }
             res(typeof DeviceMotionEvent !== 'undefined');
         });
     }
@@ -253,7 +253,7 @@
     // ---- sběr: čas, vzdálenost, výškové metry -----------------------------------
     var _prevFix = null, _lastFixTs = null, _altEma = null, _altRef = null, _lastTick = Date.now();
     function mPerDeg(lat) {
-        try { if (typeof GeoCore !== 'undefined' && GeoCore.metersPerDeg) return GeoCore.metersPerDeg(lat); } catch (e) {}
+        try { if (typeof GeoCore !== 'undefined' && GeoCore.metersPerDeg) return GeoCore.metersPerDeg(lat); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:mPerDeg'); }
         return { lat: 111320, lng: 111320 * Math.cos(lat * Math.PI / 180) };
     }
     function planar(a, b) {
@@ -329,7 +329,7 @@
             if (_cur && (now - _cur.ts > TOOL_CAP_MS || now - _lastTouch > IDLE_END_MS)) toolEnd();
             enforceHidden();
             save(false);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:tick'); }
     }
     document.addEventListener('visibilitychange', function () {
         if (!visible()) { toolEnd(); stopMotion(); save(true); }
@@ -371,22 +371,22 @@
             for (i = 0; i < SEED_WAVES[w].keys.length; i++) {
                 if (a.indexOf(SEED_WAVES[w].keys[i]) === -1) { a.push(SEED_WAVES[w].keys[i]); changed = true; }
             }
-            try { localStorage.setItem(SEED_WAVES[w].id, '1'); } catch (e) {}
+            try { localStorage.setItem(SEED_WAVES[w].id, '1'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:seedHidden'); }
         }
         // Schovat dlaždici brífinku nestačí — sám se ukazuje po spuštění. Kdo ho
         // nepoužívá, nechce ho ani jako uvítací kartu. Vypínač zůstává v Nastavení.
-        try { if (localStorage.getItem(LS_BF_AUTO) === null) localStorage.setItem(LS_BF_AUTO, '0'); } catch (e) {}
+        try { if (localStorage.getItem(LS_BF_AUTO) === null) localStorage.setItem(LS_BF_AUTO, '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:seedHidden'); }
         if (changed) saveHidden(a);
     }
     function hidden() {
         try { var a = JSON.parse(localStorage.getItem(LS_HIDDEN)); return Array.isArray(a) ? a : []; } catch (e) { return []; }
     }
     function saveHidden(a) {
-        try { localStorage.setItem(LS_HIDDEN, JSON.stringify(a)); } catch (e) {}
+        try { localStorage.setItem(LS_HIDDEN, JSON.stringify(a)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:saveHidden'); }
         enforceHidden();
         // seznam úkonů si skryté dlaždice ohlídá sám (data-ag-hidden), ale postavený
         // seznam se musí přestavět, jinak by tam položka zůstala až do dalšího tiku
-        try { if (window.AGUkony && window.AGUkony.rebuild) window.AGUkony.rebuild(); } catch (e) {}
+        try { if (window.AGUkony && window.AGUkony.rebuild) window.AGUkony.rebuild(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:saveHidden'); }
     }
     function setHidden(key, hide) {
         var a = hidden(), i = a.indexOf(key);
@@ -440,7 +440,7 @@
         // Seznam úkonů si otisk mřížky drží podle klíčů dlaždic — o změnu skrytí
         // se sám nedozví, takže mu ji musíme ohlásit (jinak by položka zmizela až
         // po jiné změně, nebo vůbec).
-        if (changed) { try { if (window.AGUkony && window.AGUkony.rebuild) window.AGUkony.rebuild(); } catch (e) {} }
+        if (changed) { try { if (window.AGUkony && window.AGUkony.rebuild) window.AGUkony.rebuild(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:enforceHidden'); } }
     }
     // field-tools.js přepisuje display všem dlaždicím při každém průchodu hledání —
     // po něm musíme skrytí prosadit znovu (stejný obal používá tools-hub.js)
@@ -449,7 +449,7 @@
         var orig = window.agFilterTools;
         window.agFilterTools = function () {
             var r = orig.apply(this, arguments);
-            try { enforceHidden(); } catch (e) {}
+            try { enforceHidden(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:agFilterTools'); }
             return r;
         };
         window.__agAktWrapped = true;
@@ -512,7 +512,7 @@
     function toggleFav(key) {
         var a = favs(), i = a.indexOf(key);
         if (i === -1) a.push(key); else a.splice(i, 1);
-        try { localStorage.setItem('agToolFavs_v1', JSON.stringify(a)); } catch (e) {}
+        try { localStorage.setItem('agToolFavs_v1', JSON.stringify(a)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:toggleFav'); }
     }
 
     // ---- styly ------------------------------------------------------------------------
@@ -752,7 +752,7 @@
         };
         var cbOn = m.querySelector('#ag-akt-on');
         if (cbOn) cbOn.onchange = function () {
-            try { localStorage.setItem(LS_ON, this.checked ? '1' : '0'); } catch (e) {}
+            try { localStorage.setItem(LS_ON, this.checked ? '1' : '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:onchange'); }
             if (!this.checked) { toolEnd(); stopMotion(); save(true); }
             else { _lastTick = Date.now(); _prevFix = null; }
         };
@@ -760,23 +760,23 @@
         if (cbS) cbS.onchange = function () {
             var el = this;
             if (!el.checked) {
-                try { localStorage.setItem(LS_SENS, '0'); } catch (e) {}
+                try { localStorage.setItem(LS_SENS, '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:onchange'); }
                 stopMotion();
                 return;
             }
             askMotion().then(function (ok) {
                 if (!ok) {
                     el.checked = false;
-                    try { if (window.agAlert) window.agAlert({ title: 'Krokoměr', message: 'Telefon nepustil přístup k senzoru pohybu, kroky zůstanou odhadem z ušlé vzdálenosti.' }); } catch (e) {}
+                    try { if (window.agAlert) window.agAlert({ title: 'Krokoměr', message: 'Telefon nepustil přístup k senzoru pohybu, kroky zůstanou odhadem z ušlé vzdálenosti.' }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:onchange'); }
                     return;
                 }
-                try { localStorage.setItem(LS_SENS, '1'); } catch (e) {}
+                try { localStorage.setItem(LS_SENS, '1'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:onchange'); }
                 startMotion();
             });
         };
         var cbBf = m.querySelector('#ag-akt-bf');
         if (cbBf) cbBf.onchange = function () {
-            try { localStorage.setItem(LS_BF_AUTO, this.checked ? '1' : '0'); } catch (e) {}
+            try { localStorage.setItem(LS_BF_AUTO, this.checked ? '1' : '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:onchange'); }
         };
         var csv = m.querySelector('#ag-akt-csv');
         if (csv) csv.onclick = exportCsv;
@@ -812,7 +812,7 @@
         a.download = 'moje-aktivita-' + dayKey() + '.csv';
         document.body.appendChild(a);
         a.click();
-        setTimeout(function () { try { URL.revokeObjectURL(a.href); a.remove(); } catch (e) {} }, 1000);
+        setTimeout(function () { try { URL.revokeObjectURL(a.href); a.remove(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:exportCsv'); } }, 1000);
     }
 
     // ---- modal ---------------------------------------------------------------------------
@@ -852,7 +852,7 @@
         wrapFilter();
         if (!window.__agAktTimer) {
             window.__agAktTimer = (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(function () {
-                try { wrapFilter(); tick(); } catch (e) {}
+                try { wrapFilter(); tick(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:init'); }
             }, TICK_MS);
         }
     }

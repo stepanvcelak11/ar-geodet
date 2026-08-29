@@ -25,10 +25,10 @@
 
     function U() { return window.AGUcty || null; }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zmenit-zakazku:toast'); } }
 
     function activeId() {
-        try { if (typeof activeProjectId !== 'undefined' && activeProjectId) return activeProjectId; } catch (e) {}
+        try { if (typeof activeProjectId !== 'undefined' && activeProjectId) return activeProjectId; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zmenit-zakazku:activeId'); }
         try { return localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { return 'default'; }
     }
 
@@ -37,8 +37,8 @@
         var u = U();
         try {
             if (u && u.allowedProjects) return u.allowedProjects(u.currentUser ? u.currentUser() : null) || [];
-        } catch (e) {}
-        try { if (typeof projects !== 'undefined' && Array.isArray(projects)) return projects; } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zmenit-zakazku:list'); }
+        try { if (typeof projects !== 'undefined' && Array.isArray(projects)) return projects; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zmenit-zakazku:list'); }
         return [{ id: 'default', name: 'Výchozí zakázka' }];
     }
 
@@ -48,7 +48,7 @@
     // kvůli popisku — a to na mobilu při otevření seznamu není zadarmo.
     function ptCount(id) {
         if (id !== activeId()) return null;
-        try { if (typeof customPoints !== 'undefined' && Array.isArray(customPoints)) return customPoints.length; } catch (e) {}
+        try { if (typeof customPoints !== 'undefined' && Array.isArray(customPoints)) return customPoints.length; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zmenit-zakazku:ptCount'); }
         return null;
     }
 

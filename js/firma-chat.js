@@ -116,10 +116,10 @@
         try {
             var c = JSON.parse(localStorage.getItem(LS_CACHE) || 'null');
             if (c && c.code === firmCode() && Array.isArray(c.msgs)) { _msgs = c.msgs; _lastId = _msgs.length ? _msgs[_msgs.length - 1].id : 0; }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'firma-chat:cacheLoad'); }
     }
     function cacheSave() {
-        try { localStorage.setItem(LS_CACHE, JSON.stringify({ code: firmCode(), msgs: _msgs.slice(-80) })); } catch (e) {}
+        try { localStorage.setItem(LS_CACHE, JSON.stringify({ code: firmCode(), msgs: _msgs.slice(-80) })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'firma-chat:cacheSave'); }
     }
 
     function ensureModal() {
@@ -158,7 +158,7 @@
             _to = b.getAttribute('data-to') || '';
             renderTo();
             render();
-            try { m.querySelector('#agch-inp').focus(); } catch (err) {}
+            try { m.querySelector('#agch-inp').focus(); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'firma-chat:ensureModal'); }
         });
         m.querySelector('#agch-inp').addEventListener('keydown', function (e) {
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
@@ -257,13 +257,13 @@
             added++;
         });
         if (added) {
-            try { setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); } catch (e) {}
-            try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) {}
-            try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) {}
-            try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) {}
+            try { setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'firma-chat:importPts'); }
+            try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'firma-chat:importPts'); }
+            try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'firma-chat:importPts'); }
+            try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'firma-chat:importPts'); }
         }
         var msg = 'Přidáno ' + added + ' bodů' + (skipped ? ', ' + skipped + ' přeskočeno (už je máš)' : '') + '.';
-        try { if (typeof quickToast === 'function') { quickToast(msg); return; } } catch (e) {}
+        try { if (typeof quickToast === 'function') { quickToast(msg); return; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'firma-chat:importPts'); }
         agInfo(msg);
     }
     // výběr vlastních bodů k odeslání
@@ -360,7 +360,7 @@
         try {
             var u = U();
             if (u && u.avatarGet) { var c = u.avatarGet(name); if (c && c.h != null) return c.h; }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'firma-chat:hue'); }
         var h = 0, s = String(name || '');
         for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360;
         return h;
@@ -430,11 +430,11 @@
         try {
             var c = JSON.parse(localStorage.getItem(LS_READ) || 'null');
             if (c && c.code === firmCode()) return c.lastId || 0;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'firma-chat:readPtr'); }
         return 0;
     }
     function markRead() {
-        try { localStorage.setItem(LS_READ, JSON.stringify({ code: firmCode(), lastId: _lastId })); } catch (e) {}
+        try { localStorage.setItem(LS_READ, JSON.stringify({ code: firmCode(), lastId: _lastId })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'firma-chat:markRead'); }
         _unread = 0;
         syncBadge();
     }
@@ -479,7 +479,7 @@
             if (!_unread) return;
             syncBadge();
             var t = 'Firemní chat: ' + _unread + ' ' + (_unread === 1 ? 'nová zpráva' : (_unread < 5 ? 'nové zprávy' : 'nových zpráv'));
-            try { if (typeof quickToast === 'function') quickToast(t); } catch (e) {}
+            try { if (typeof quickToast === 'function') quickToast(t); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'firma-chat:startupCheck'); }
         });
     }
 
@@ -517,7 +517,7 @@
         var u = U();
         var f = u && u.getFirm();
         function say(t, msg) {
-            try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: msg }); } catch (e) {}
+            try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: msg }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'firma-chat:say'); }
             agInfo(t + '\n\n' + msg);
         }
         if (!f) return say('Firemní chat', 'Chat funguje ve firemním režimu (Nástroje → Firma a účty).');

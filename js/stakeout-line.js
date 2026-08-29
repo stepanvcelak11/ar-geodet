@@ -16,7 +16,7 @@
     var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 20 4"/><circle cx="4" cy="20" r="2.2" fill="currentColor"/><circle cx="20" cy="4" r="2.2" fill="currentColor"/><path d="M12 12l3 3" opacity=".6"/></svg>';
     var _aId = null, _bId = null, _timer = null;
 
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stakeout-line:agAlert'); } alert(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     // cteni cisel pres sdilene agNum() (js/vstupy.js) — desetinna carka, mezery v tisicich
     function num(id) { var el = document.getElementById(id); if (!el) return NaN; var v = (typeof window.agNum === 'function') ? window.agNum(el) : parseFloat(String(el.value).replace(',', '.')); return isFinite(v) ? v : NaN; }
 
@@ -32,9 +32,9 @@
             window.AGDraft.save(DRAFT_KEY,
                 { aId: _aId, bId: _bId, stat: _val('agsl-stat'), off: _val('agsl-off'), name: _val('agsl-name') },
                 'Vytyčení přímky' + (A && B ? ' #' + A.name + '→#' + B.name : ''));
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stakeout-line:draftSave'); }
     }
-    function draftClear() { if (window.AGDraft) try { window.AGDraft.clear(DRAFT_KEY); } catch (e) {} }
+    function draftClear() { if (window.AGDraft) try { window.AGDraft.clear(DRAFT_KEY); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stakeout-line:draftClear'); } }
     function ptById(id) { if (typeof arPoints === 'undefined') return null; return arPoints.find(function (q) { return q.id === id; }) || (typeof persistentCustomPoints !== 'undefined' ? persistentCustomPoints.find(function (q) { return q.id === id; }) : null) || null; }
 
     // lokální rovinné metry kolem referenčního bodu (lat0,lng0);
@@ -203,10 +203,10 @@
                             var nm = document.getElementById('agsl-name'); if (nm) nm.value = st.name || '';
                             previewStake();
                         }
-                    } catch (e) {}
+                    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stakeout-line:open'); }
                 }
             });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stakeout-line:open'); }
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'stakeout-line', label: 'Vytyčení přímky', icon: ICON, onClick: openTool, order: 40 });
         }

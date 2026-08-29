@@ -138,14 +138,14 @@
         return guestFlag();          // čte přes cache, viz komentář u getFirm()
     }
     function enterGuest() {
-        try { localStorage.setItem(LS_GUEST, JSON.stringify({ ts: Date.now() })); } catch (e) {}
+        try { localStorage.setItem(LS_GUEST, JSON.stringify({ ts: Date.now() })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:enterGuest'); }
         bustFirm();
         var g = document.getElementById('ag-gate'); if (g) g.remove();
         applyPerms();
         enterApp();   // brána byla vstupní obrazovkou → úvodní kartu přeskočit
     }
     function clearGuest() {
-        try { localStorage.removeItem(LS_GUEST); } catch (e) {}
+        try { localStorage.removeItem(LS_GUEST); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:clearGuest'); }
         bustFirm();
     }
 
@@ -154,7 +154,7 @@
         try { return localStorage.getItem(LS_LOCKSTART) !== '0'; } catch (e) { return true; }
     }
     function setLockOnStart(on) {
-        try { localStorage.setItem(LS_LOCKSTART, on ? '1' : '0'); } catch (e) {}
+        try { localStorage.setItem(LS_LOCKSTART, on ? '1' : '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:setLockOnStart'); }
     }
 
     // ------------------------------------------------------------------
@@ -208,9 +208,9 @@
         window.addEventListener('storage', function (e) {
             if (!e || !e.key || e.key === LS_FIRM || e.key === LS_GUEST) bustFirm();
         });
-    } catch (e) {}
+    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:guestFlag'); }
     function saveFirm(f) {
-        try { localStorage.setItem(LS_FIRM, JSON.stringify(f)); } catch (e) {}
+        try { localStorage.setItem(LS_FIRM, JSON.stringify(f)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:saveFirm'); }
         bustFirm();
         clearGuest();
         rememberCurrentFirm();
@@ -220,7 +220,7 @@
         try { return JSON.parse(localStorage.getItem(LS_SESS) || 'null'); } catch (e) { return null; }
     }
     function setSess(s) {
-        try { if (s) localStorage.setItem(LS_SESS, JSON.stringify(s)); else localStorage.removeItem(LS_SESS); } catch (e) {}
+        try { if (s) localStorage.setItem(LS_SESS, JSON.stringify(s)); else localStorage.removeItem(LS_SESS); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:setSess'); }
     }
 
     // ------------------------------------------------------------------
@@ -235,8 +235,8 @@
         try {
             var a = JSON.parse(localStorage.getItem(LS_DEVU) || '[]');
             if (Array.isArray(a)) a.forEach(function (id) { out[id] = 1; });
-        } catch (e) {}
-        try { var o = getOff(); Object.keys(o || {}).forEach(function (id) { out[id] = 1; }); } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:devUserIds'); }
+        try { var o = getOff(); Object.keys(o || {}).forEach(function (id) { out[id] = 1; }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:devUserIds'); }
         return out;
     }
     function rememberDevUser(id) {
@@ -246,7 +246,7 @@
             if (!Array.isArray(a)) a = [];
             if (a.indexOf(id) === -1) a.push(id);
             localStorage.setItem(LS_DEVU, JSON.stringify(a.slice(-12)));
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:rememberDevUser'); }
     }
     function loginUsers(f) {
         // lokální firma: účty existují jen zde, ale zablokované se nenabízejí
@@ -293,7 +293,7 @@
                     return s;
                 }).catch(function () { return fnv(msg); });
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:hashPin'); }
         return Promise.resolve(fnv(msg));
     }
     function fnv(s) {
@@ -317,9 +317,9 @@
     function isCloud() { var f = getFirm(); return !!(f && f.cloud); }
     function apiUrl() { var f = getFirm(); return (f && f.api) || DEFAULT_API; }
     function getTok() { try { return JSON.parse(localStorage.getItem(LS_TOK) || 'null'); } catch (e) { return null; } }
-    function setTok(t) { try { if (t) localStorage.setItem(LS_TOK, JSON.stringify(t)); else localStorage.removeItem(LS_TOK); } catch (e) {} }
+    function setTok(t) { try { if (t) localStorage.setItem(LS_TOK, JSON.stringify(t)); else localStorage.removeItem(LS_TOK); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:setTok'); } }
     function getOff() { try { return JSON.parse(localStorage.getItem(LS_OFF) || '{}') || {}; } catch (e) { return {}; } }
-    function saveOff(userId, ver) { try { var o = getOff(); o[userId] = ver; localStorage.setItem(LS_OFF, JSON.stringify(o)); } catch (e) {} }
+    function saveOff(userId, ver) { try { var o = getOff(); o[userId] = ver; localStorage.setItem(LS_OFF, JSON.stringify(o)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:saveOff'); } }
 
     // PBKDF2 v prohlížeči (stejné parametry jako server) — offline odemknutí
     function pbkdf2Hex(pass, saltHex, iters) {
@@ -388,7 +388,7 @@
                 body: opts.body != null ? JSON.stringify(opts.body) : undefined,
                 signal: ctrl ? ctrl.signal : undefined
             });
-            if (ctrl) to = setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, opts.timeoutMs || 12000);
+            if (ctrl) to = setTimeout(function () { try { ctrl.abort(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:cloudFetch'); } }, opts.timeoutMs || 12000);
         } catch (e) { if (to) clearTimeout(to); return Promise.resolve({ ok: false, status: 0, data: null }); }
         return p.then(function (r) {
             if (to) { clearTimeout(to); to = null; }
@@ -400,7 +400,7 @@
     function adoptConfig(cfg, api) {
         if (!cfg || !cfg.firm) return;
         var old = null;
-        try { old = JSON.parse(localStorage.getItem(LS_FIRM) || 'null'); } catch (e) {}
+        try { old = JSON.parse(localStorage.getItem(LS_FIRM) || 'null'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:adoptConfig'); }
         var f = {
             enabled: true, cloud: true,
             api: api || (old && old.api) || DEFAULT_API,
@@ -414,7 +414,7 @@
             users: (cfg.users || []),
             fetchedTs: Date.now()
         };
-        try { localStorage.setItem(LS_FIRM, JSON.stringify(f)); } catch (e) {}
+        try { localStorage.setItem(LS_FIRM, JSON.stringify(f)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:adoptConfig'); }
         // ZÁPIS MIMO saveFirm() → cache getFirm() se MUSÍ zneplatnit ručně. Bez toho
         // vracel getFirm() až 500 ms PŘEDCHOZÍ firmu (viz FIRM_TTL): applyPerms() níž
         // pak počítalo oprávnění ze staré firmy a refreshConfig() hned poté nenašel
@@ -437,8 +437,8 @@
             });
         } else if (data.offline) saveOff(data.user.id, data.offline);
         setSess({ userId: data.user.id, ts: Date.now() });
-        try { localStorage.setItem('arSurveyor', data.user.name); } catch (e) {}
-        try { localStorage.setItem(LS_LAST, data.user.id); } catch (e) {}
+        try { localStorage.setItem('arSurveyor', data.user.name); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:adoptLogin'); }
+        try { localStorage.setItem(LS_LAST, data.user.id); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:adoptLogin'); }
         rememberDevUser(data.user.id);
         rememberCurrentFirm();
         var g = document.getElementById('ag-gate'); if (g) g.remove();
@@ -481,7 +481,7 @@
             pbkdf2Hex(pass, ver.salt, ver.iters).then(function (h) {
                 if (h && h === ver.hash) {
                     setSess({ userId: u.id, ts: Date.now() });
-                    try { localStorage.setItem('arSurveyor', u.name); } catch (e) {}
+                    try { localStorage.setItem('arSurveyor', u.name); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:cloudLogin'); }
                     done(null, u);
                 } else if (h) done('Nesprávné heslo.');
                 else done('Toto zařízení neumí offline ověření (chybí WebCrypto).', null, true);
@@ -511,7 +511,7 @@
     function syncUsage() {
         if (!isCloud() || !getTok() || _syncBusy || navigator.onLine === false) return Promise.resolve();
         var ptr = 0;
-        try { ptr = (JSON.parse(localStorage.getItem(LS_SYNC) || '{}') || {}).lastSeq || 0; } catch (e) {}
+        try { ptr = (JSON.parse(localStorage.getItem(LS_SYNC) || '{}') || {}).lastSeq || 0; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:syncUsage'); }
         _syncBusy = true;
         return usageAfter(ptr, 200).then(function (evs) {
             if (!evs.length) { _syncBusy = false; return; }
@@ -521,7 +521,7 @@
             }).then(function (r) {
                 _syncBusy = false;
                 if (r.ok) {
-                    try { localStorage.setItem(LS_SYNC, JSON.stringify({ lastSeq: evs[evs.length - 1].seq })); } catch (e) {}
+                    try { localStorage.setItem(LS_SYNC, JSON.stringify({ lastSeq: evs[evs.length - 1].seq })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:syncUsage'); }
                     if (evs.length === 200) return syncUsage();   // další dávka
                 }
             });
@@ -547,8 +547,8 @@
     // okamžiku přepnutí přihlášený (po zámku/odhlášení se PIN chce znovu).
     var LS_IDSALT = 'agIdentSalt_v1', LS_IDMAP = 'agIdentMap_v1', LS_IDCUR = 'agIdentCur_v1';
     function identSalt() {
-        var s = null; try { s = localStorage.getItem(LS_IDSALT); } catch (e) {}
-        if (!s) { s = makeSalt(); try { localStorage.setItem(LS_IDSALT, s); } catch (e) {} }
+        var s = null; try { s = localStorage.getItem(LS_IDSALT); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:identSalt'); }
+        if (!s) { s = makeSalt(); try { localStorage.setItem(LS_IDSALT, s); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:identSalt'); } }
         return s;
     }
     function identOf(name, pin) {
@@ -561,23 +561,23 @@
             var m = identMap();
             m[h] = m[h] || {};
             m[h][profileKeyOf(f)] = u.id;
-            try { localStorage.setItem(LS_IDMAP, JSON.stringify(m)); } catch (e) {}
-            try { localStorage.setItem(LS_IDCUR, h); } catch (e) {}
+            try { localStorage.setItem(LS_IDMAP, JSON.stringify(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:identRemember'); }
+            try { localStorage.setItem(LS_IDCUR, h); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:identRemember'); }
         }).catch(function () {});
     }
     function profileKeyOf(f) { return f.cloud ? ('c:' + (f.code || '?')) : ('l:' + (f.firmName || 'Moje firma')); }
     function listProfiles() {
         try { var a = JSON.parse(localStorage.getItem(LS_PROF) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; }
     }
-    function saveProfiles(a) { try { localStorage.setItem(LS_PROF, JSON.stringify(a)); } catch (e) {} }
+    function saveProfiles(a) { try { localStorage.setItem(LS_PROF, JSON.stringify(a)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:saveProfiles'); } }
     // ulož/obnov AKTUÁLNÍ firmu v seznamu profilů (volá se při každém uložení firmy)
     function rememberCurrentFirm() {
         var f = null;
-        try { f = JSON.parse(localStorage.getItem(LS_FIRM) || 'null'); } catch (e) {}
+        try { f = JSON.parse(localStorage.getItem(LS_FIRM) || 'null'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:rememberCurrentFirm'); }
         if (!f || !f.enabled) return;
         var snap = {};
         PROF_KEYS.forEach(function (k) {
-            try { var v = localStorage.getItem(k); if (v != null) snap[k] = v; } catch (e) {}
+            try { var v = localStorage.getItem(k); if (v != null) snap[k] = v; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:rememberCurrentFirm'); }
         });
         var key = profileKeyOf(f);
         var a = listProfiles().filter(function (p) { return p && p.key !== key; });
@@ -591,7 +591,7 @@
         var wasLogged = !!currentUser();             // SSO jen z přihlášeného stavu
         rememberCurrentFirm();                       // ať se dá vrátit zpět
         PROF_KEYS.forEach(function (k) {
-            try { if (p.snap[k] != null) localStorage.setItem(k, p.snap[k]); else localStorage.removeItem(k); } catch (e) {}
+            try { if (p.snap[k] != null) localStorage.setItem(k, p.snap[k]); else localStorage.removeItem(k); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:switchProfile'); }
         });
         // ZÁSADNÍ: konfiguraci jsme přepsali PŘÍMO v localStorage, mimo saveFirm().
         // Bez zneplatnění cache vracel getFirm() ještě až 500 ms PŮVODNÍ firmu (FIRM_TTL),
@@ -617,19 +617,19 @@
         var g = document.getElementById('ag-gate'); if (g) g.remove();
         if (auto) {
             setSess({ userId: auto.id, ts: Date.now() });
-            try { localStorage.setItem('arSurveyor', auto.name); } catch (e) {}
-            try { localStorage.setItem(LS_LAST, auto.id); } catch (e) {}
+            try { localStorage.setItem('arSurveyor', auto.name); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:switchProfile'); }
+            try { localStorage.setItem(LS_LAST, auto.id); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:switchProfile'); }
             rememberDevUser(auto.id);
             _touchActivity();
             applyPerms();
             usageLog('login', 'sso-switch');
-            try { if (typeof quickToast === 'function') quickToast('Přihlášen jako ' + auto.name + ' (stejný účet).'); } catch (e) {}
+            try { if (typeof quickToast === 'function') quickToast('Přihlášen jako ' + auto.name + ' (stejný účet).'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:switchProfile'); }
         } else {
             setSess(null);                           // nové přihlášení (PIN)
             applyPerms();
             if (getFirm()) showLogin(false);
         }
-        try { window.dispatchEvent(new CustomEvent('agucty:firmswitch')); } catch (e) {}
+        try { window.dispatchEvent(new CustomEvent('agucty:firmswitch')); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:switchProfile'); }
         return true;
     }
     function removeProfile(key) {
@@ -667,7 +667,7 @@
         var rec = { ts: Date.now(), u: u ? u.name : '?', uid: u ? u.id : null, t: type, k: key || null, proj: pid(), dev: devId() };
         openDb().then(function (db) {
             if (!db) return;
-            try { db.transaction(STORE, 'readwrite').objectStore(STORE).add(rec); } catch (e) {}
+            try { db.transaction(STORE, 'readwrite').objectStore(STORE).add(rec); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:usageLog'); }
         });
     }
     // zápis události s VLASTNÍMI poli (čas/uživatel) — např. zpětně doplněný
@@ -686,7 +686,7 @@
         };
         openDb().then(function (db) {
             if (!db) return;
-            try { db.transaction(STORE, 'readwrite').objectStore(STORE).add(full); } catch (e) {}
+            try { db.transaction(STORE, 'readwrite').objectStore(STORE).add(full); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:usageLogRaw'); }
         });
     }
 
@@ -728,7 +728,7 @@
             if (op === 'add') usageLog('pt-add', e.detail.id);
             else if (op === 'edit') usageLog('pt-edit', e.detail.id);
             else if (op === 'delete') usageLog('pt-del', e.detail.id);
-        } catch (err) {}
+        } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'ucty:onerror'); }
     });
 
     // otevření nástroje: delegovaně na dlaždice v modálu Nástroje
@@ -743,7 +743,7 @@
                 key = m ? m[1] : (tile.textContent || '').trim().slice(0, 40);
             }
             usageLog('tool', key);
-        } catch (err) {}
+        } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'ucty:onerror'); }
     }, true);
 
     // hrubá stopa aktivity (pro „pracovní dobu"): max 1 událost za 20 minut
@@ -789,7 +789,7 @@
                 }
                 btns[i].style.display = hide ? 'none' : '';
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:applyPerms'); }
 
         // 2) záložky Nastavení (tlačítko i panel)
         try {
@@ -805,7 +805,7 @@
                     }
                 }
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:applyPerms'); }
 
         // 3) kategorie v modálu Nástroje (statické i injektované „Terénní nástroje").
         // POZOR: display přepisujeme JEN u prvků, které jsme sami skryli (data-agucty),
@@ -855,12 +855,12 @@
                     }
                 }
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:setHide'); }
 
-        try { document.body.classList.toggle('ag-firm-restricted', restrict); } catch (e) {}
-        try { document.body.classList.toggle('ag-guest', guest); } catch (e) {}
+        try { document.body.classList.toggle('ag-firm-restricted', restrict); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:setHide'); }
+        try { document.body.classList.toggle('ag-guest', guest); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:setHide'); }
         syncGuestPill(guest);
-        try { window.dispatchEvent(new CustomEvent('agucty:perms')); } catch (e) {}
+        try { window.dispatchEvent(new CustomEvent('agucty:perms')); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:setHide'); }
     }
 
     // trvalý štítek omezeného režimu (klepnutí = zpět na přihlašovací bránu)
@@ -887,7 +887,7 @@
         _wrapped = true;
         var orig = window.agRegisterFieldTool;
         window.agRegisterFieldTool = function (item) {
-            try { if (item && item.id) _toolCat[item.id] = item.cat || 'Terénní nástroje'; } catch (e) {}
+            try { if (item && item.id) _toolCat[item.id] = item.cat || 'Terénní nástroje'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:agRegisterFieldTool'); }
             return orig.apply(this, arguments);
         };
     }
@@ -921,8 +921,8 @@
         var m = avaMap();
         if (cfg && (cfg.h != null || cfg.e)) m[avaKey(name)] = { h: (cfg.h != null ? (+cfg.h % 360 + 360) % 360 : null), e: cfg.e || '' };
         else delete m[avaKey(name)];
-        try { localStorage.setItem(LS_AVA, JSON.stringify(m)); } catch (e) {}
-        try { window.dispatchEvent(new CustomEvent('agucty:avatar')); } catch (e) {}
+        try { localStorage.setItem(LS_AVA, JSON.stringify(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:avaSet'); }
+        try { window.dispatchEvent(new CustomEvent('agucty:avatar')); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:avaSet'); }
     }
     function avStyle(name) {
         var c = avaGet(name);
@@ -988,18 +988,18 @@
         return s[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ',' + s[1];
     }
     function lvPos() {
-        try { if (typeof userLat === 'number' && userLat && typeof userLng === 'number' && userLng) return { lat: userLat, lng: userLng }; } catch (e) {}
+        try { if (typeof userLat === 'number' && userLat && typeof userLng === 'number' && userLng) return { lat: userLat, lng: userLng }; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:lvPos'); }
         try {
             var p = JSON.parse(localStorage.getItem('arLastPos'));
             if (p && p.lat != null) return { lat: +p.lat, lng: +(p.lng != null ? p.lng : p.lon) };
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:lvPos'); }
         return null;
     }
     function lvWx() {
         try {
             var o = JSON.parse(localStorage.getItem(LV_WX));
             if (o && o.data && o.t && (Date.now() - o.t) < LV_WX_MAX) return o;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:lvWx'); }
         return null;
     }
     // seznam dvojic [popisek, hodnota]; pořadí je stabilní, ať se chipy nepřehazují
@@ -1023,7 +1023,7 @@
                 var s = proj4('EPSG:4326', 'EPSG:5514', [p.lng, p.lat]);   // Křovák definuje logika.js
                 out.push(['Y', lvMez(Math.abs(s[0]))]);
                 out.push(['X', lvMez(Math.abs(s[1]))]);
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:lvVals'); }
             // desetinna CARKA jako u ostatnich hodnot (drive tu byla tecka z toFixed)
             out.push(['Šířka', Math.abs(p.lat).toFixed(5).replace('.', ',') + '° ' + (p.lat < 0 ? 'S' : 'N')]);
             out.push(['Délka', Math.abs(p.lng).toFixed(5).replace('.', ',') + '° ' + (p.lng < 0 ? 'W' : 'E')]);
@@ -1031,13 +1031,13 @@
                 var t = window.AGSun ? window.AGSun.times(d, p.lat, p.lng, 90.833) : null;   // js/slunce.js
                 if (t && t.rise) out.push(['Východ', lvP2(t.rise.getHours()) + ':' + lvP2(t.rise.getMinutes())]);
                 if (t && t.set) out.push(['Západ', lvP2(t.set.getHours()) + ':' + lvP2(t.set.getMinutes())]);
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:lvVals'); }
         }
         try {
             if (typeof persistentCustomPoints !== 'undefined' && persistentCustomPoints && persistentCustomPoints.length) {
                 out.push(['Body', String(persistentCustomPoints.length)]);
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:lvVals'); }
         return out;
     }
     // tři hloubky: vzdálené jsou menší, bledší a pomalejší (parallax)
@@ -1134,7 +1134,7 @@
             img.src = 'icon.svg';
             img.alt = 'AR Geodet';
             slot.appendChild(img);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:fillMark'); }
     }
     // aktivní zakázka + počet bodů (přihlašovací obrazovka je JEDINÝ úvod,
     // tak nese i kontext, který dřív ukazovala úvodní karta)
@@ -1145,8 +1145,8 @@
             if (typeof projects !== 'undefined' && Array.isArray(projects) && id) {
                 for (var i = 0; i < projects.length; i++) if (projects[i] && projects[i].id === id) name = projects[i].name;
             }
-        } catch (e) {}
-        try { if (typeof persistentCustomPoints !== 'undefined' && persistentCustomPoints) n = persistentCustomPoints.length; } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:projInfoHtml'); }
+        try { if (typeof persistentCustomPoints !== 'undefined' && persistentCustomPoints) n = persistentCustomPoints.length; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:projInfoHtml'); }
         if (!name && n == null) return '';
         return '<div class="agl-proj">' + (name ? 'Zakázka <b>' + esc(name) + '</b>' : 'Bez zakázky') +
             (n != null ? ' · ' + n + ' ' + (n === 1 ? 'bod' : (n >= 2 && n <= 4 ? 'body' : 'bodů')) : '') + '</div>';
@@ -1354,7 +1354,7 @@
     // ------------------------------------------------------------------
     // sundání pojistky proti probliknutí úvodní obrazovky (třída z <head>)
     function unprelock() {
-        try { document.documentElement.classList.remove('ag-prelock'); } catch (e) {}
+        try { document.documentElement.classList.remove('ag-prelock'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:unprelock'); }
     }
 
     function enterApp() {
@@ -1365,9 +1365,9 @@
             var vis = ws.style.display !== 'none' && !document.body.classList.contains('app-started');
             if (!vis) return;
             if (typeof window.startAppFromWelcome === 'function') {
-                setTimeout(function () { try { window.startAppFromWelcome(); } catch (e) {} }, 60);
+                setTimeout(function () { try { window.startAppFromWelcome(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:enterApp'); } }, 60);
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:enterApp'); }
     }
 
     // ------------------------------------------------------------------
@@ -1385,11 +1385,11 @@
         try {
             var o = JSON.parse(localStorage.getItem(LS_FAIL) || 'null');
             if (o && typeof o.n === 'number') return { n: o.n, until: o.until || 0 };
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:failGet'); }
         return { n: 0, until: 0 };
     }
-    function failSet(o) { try { localStorage.setItem(LS_FAIL, JSON.stringify(o)); } catch (e) {} }
-    function failClear() { try { localStorage.removeItem(LS_FAIL); } catch (e) {} }
+    function failSet(o) { try { localStorage.setItem(LS_FAIL, JSON.stringify(o)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:failSet'); } }
+    function failClear() { try { localStorage.removeItem(LS_FAIL); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:failClear'); } }
     // zbývající zámek v ms (0 = smí se zkoušet)
     function lockLeft() {
         var o = failGet();
@@ -1444,7 +1444,7 @@
         try { var t = JSON.parse(localStorage.getItem(LS_TRUST) || 'null'); return (t && t.userId) ? t : null; } catch (e) { return null; }
     }
     function setTrust(t) {
-        try { if (t) localStorage.setItem(LS_TRUST, JSON.stringify(t)); else localStorage.removeItem(LS_TRUST); } catch (e) {}
+        try { if (t) localStorage.setItem(LS_TRUST, JSON.stringify(t)); else localStorage.removeItem(LS_TRUST); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:setTrust'); }
     }
     function clearTrust() { setTrust(null); }
     function trustFor(userId) {
@@ -1465,7 +1465,7 @@
     function bioStore() {
         try { var o = JSON.parse(localStorage.getItem(LS_BIO) || 'null'); return (o && typeof o === 'object') ? o : {}; } catch (e) { return {}; }
     }
-    function bioSave(o) { try { localStorage.setItem(LS_BIO, JSON.stringify(o)); } catch (e) {} }
+    function bioSave(o) { try { localStorage.setItem(LS_BIO, JSON.stringify(o)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:bioSave'); } }
     function bioCred(userId) { var c = bioStore()[userId]; return (c && c.id) ? c : null; }
     function bioForget(userId) { var o = bioStore(); delete o[userId]; bioSave(o); }
     function bioAvailable(userId) { return bioSupported() && !!bioCred(userId); }
@@ -1535,7 +1535,7 @@
             return !(t && Date.now() - t < 30 * 86400000);
         } catch (e) { return true; }
     }
-    function bioAskDone() { try { localStorage.setItem(LS_BIOASK, String(Date.now())); } catch (e) {} }
+    function bioAskDone() { try { localStorage.setItem(LS_BIOASK, String(Date.now())); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:bioAskDone'); } }
 
     // ---- zakázky, do kterých účet smí (per zařízení) ---------------------------
     // Zakázky žijí v tomhle telefonu (arProjectsList), ne na serveru — přidělení
@@ -1543,8 +1543,8 @@
     // telefon a konzoli, dostane se k datům), ale úklid: zaměstnanec vidí
     // v přihlášení i v přepínačích jen zakázky, na kterých má dělat.
     function projList() {
-        try { if (typeof projects !== 'undefined' && Array.isArray(projects) && projects.length) return projects; } catch (e) {}
-        try { var a = JSON.parse(localStorage.getItem('arProjectsList')); if (Array.isArray(a) && a.length) return a; } catch (e) {}
+        try { if (typeof projects !== 'undefined' && Array.isArray(projects) && projects.length) return projects; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:projList'); }
+        try { var a = JSON.parse(localStorage.getItem('arProjectsList')); if (Array.isArray(a) && a.length) return a; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:projList'); }
         return [{ id: 'default', name: 'Výchozí zakázka' }];
     }
     function projAclAll() {
@@ -1557,7 +1557,7 @@
     function setProjAcl(userId, arr) {
         var o = projAclAll();
         if (Array.isArray(arr) && arr.length) o[userId] = arr; else delete o[userId];
-        try { localStorage.setItem(LS_PACL, JSON.stringify(o)); } catch (e) {}
+        try { localStorage.setItem(LS_PACL, JSON.stringify(o)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:setProjAcl'); }
     }
     function allowedProjects(u) {
         var list = projList();
@@ -1573,23 +1573,23 @@
     function applyProject(id) {
         if (!id) return;
         var cur = null;
-        try { cur = localStorage.getItem('arActiveProjectId'); } catch (e) {}
+        try { cur = localStorage.getItem('arActiveProjectId'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:applyProject'); }
         if (cur === id) return;
-        try { if (typeof _persistOfficialPoints === 'function') _persistOfficialPoints(); } catch (e) {}
-        try { localStorage.setItem('arActiveProjectId', id); } catch (e) {}
-        try { if (typeof activeProjectId !== 'undefined') activeProjectId = id; } catch (e) {}
-        var w = document.getElementById('w-project-select'); if (w) { try { w.value = id; } catch (e) {} }
-        var s = document.getElementById('s-project-select'); if (s) { try { s.value = id; } catch (e) {} }
+        try { if (typeof _persistOfficialPoints === 'function') _persistOfficialPoints(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:applyProject'); }
+        try { localStorage.setItem('arActiveProjectId', id); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:applyProject'); }
+        try { if (typeof activeProjectId !== 'undefined') activeProjectId = id; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:applyProject'); }
+        var w = document.getElementById('w-project-select'); if (w) { try { w.value = id; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:applyProject'); } }
+        var s = document.getElementById('s-project-select'); if (s) { try { s.value = id; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:applyProject'); } }
         try {
             if (typeof hydrateActiveProject === 'function') {
                 hydrateActiveProject().then(function () {
-                    try { if (typeof loadProjectSettings === 'function') loadProjectSettings(); } catch (e) {}
-                    try { if (typeof renderProjectSelect === 'function') renderProjectSelect(); } catch (e) {}
+                    try { if (typeof loadProjectSettings === 'function') loadProjectSettings(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:applyProject'); }
+                    try { if (typeof renderProjectSelect === 'function') renderProjectSelect(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:applyProject'); }
                 });
                 return;
             }
             if (typeof loadProjectSettings === 'function') loadProjectSettings();
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:applyProject'); }
     }
     // vymáhání: v přepínačích zakázek nechat jen povolené (renderProjectSelect je
     // plní znovu, takže se to musí opakovat v tiku — stejně jako u dlaždic Nástrojů)
@@ -1608,7 +1608,7 @@
             }
         });
         var cur = null;
-        try { cur = localStorage.getItem('arActiveProjectId'); } catch (e) {}
+        try { cur = localStorage.getItem('arActiveProjectId'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:applyProjPerms'); }
         if (cur && !allow[cur]) {
             var first = allowedProjects(u)[0];
             if (first && first.id !== cur) applyProject(first.id);
@@ -1616,7 +1616,7 @@
     }
     var _toastN = 0;
     function toast(msg) {
-        try { if (typeof window.quickToast === 'function') { window.quickToast(msg); return; } } catch (e) {}
+        try { if (typeof window.quickToast === 'function') { window.quickToast(msg); return; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:toast'); }
         // Náhradník: AGNotify umí jen TRVALÉ stavy (set/clear), žádné .info — proto se
         // hláška musí po chvíli uklidit sama, jinak by v kartě upozornění visela napořád.
         // Vlastní id na každou hlášku, ať si dvě rychle po sobě nesmažou odpočet.
@@ -1624,9 +1624,9 @@
             if (window.AGNotify && typeof AGNotify.set === 'function') {
                 var id = 'ucty-toast-' + (++_toastN);
                 AGNotify.set(id, { level: 'info', text: msg });
-                setTimeout(function () { try { AGNotify.clear(id); } catch (e) {} }, 6000);
+                setTimeout(function () { try { AGNotify.clear(id); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:toast'); } }, 6000);
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:toast'); }
     }
 
     var _selUser = null;
@@ -1640,7 +1640,7 @@
         // obrazovkou (typicky administrace firmy), patří předchozímu přihlášení —
         // moduly si to tímhle uklidí samy. Viz js/ucty-admin.js, kde se panel zavírá:
         // po přepnutí firmy v něm jinak visela celá firma předchozí.
-        try { window.dispatchEvent(new CustomEvent('agucty:logout', { detail: { lockMode: !!lockMode } })); } catch (e) {}
+        try { window.dispatchEvent(new CustomEvent('agucty:logout', { detail: { lockMode: !!lockMode } })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:showLogin'); }
 
         var ov = document.createElement('div');
         ov.id = 'ag-login';
@@ -1712,7 +1712,7 @@
             var list = u ? allowedProjects(u) : projList();
             if (projSel) {
                 var cur = null;
-                try { cur = localStorage.getItem('arActiveProjectId'); } catch (e) {}
+                try { cur = localStorage.getItem('arActiveProjectId'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:syncExtras'); }
                 projSel.innerHTML = list.map(function (p) {
                     return '<option value="' + esc(p.id) + '"' + (p.id === cur ? ' selected' : '') + '>' + esc(p.name || p.id) + '</option>';
                 }).join('');
@@ -1751,11 +1751,11 @@
             if (!cloud && (_selUser.noPin || !_selUser.pinHash)) { finish(_selUser); return; }
             pinbox.classList.add('on');
             pinInp.value = '';
-            setTimeout(function () { try { pinInp.focus(); } catch (e) {} }, 50);
+            setTimeout(function () { try { pinInp.focus(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:pick'); } }, 50);
         }
         function finish(u, pin) {
             setSess({ userId: u.id, ts: Date.now() });
-            try { localStorage.setItem('arSurveyor', u.name); } catch (e) {}
+            try { localStorage.setItem('arSurveyor', u.name); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:finish'); }
             identRemember(u, pin || '');   // stejný účet pak funguje i v dalších firmách
             afterLogin(u);
         }
@@ -1784,7 +1784,7 @@
                     bumpTrust(t);
                 } else { var t0 = getTrust(); if (t0 && t0.userId === u.id) clearTrust(); }
                 setSess({ userId: u.id, ts: Date.now() });
-                try { localStorage.setItem('arSurveyor', u.name); } catch (e) {}
+                try { localStorage.setItem('arSurveyor', u.name); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:bioUnlock'); }
                 afterLogin(u, 'bio');
             });
         }
@@ -1793,7 +1793,7 @@
         // kind: undefined = heslo/PIN, 'bio' = odemčeno telefonem
         function afterLogin(u, kind) {
             if (kind !== 'bio') failClear();   // úspěch s heslem = brzda hádání se resetuje
-            try { localStorage.setItem(LS_LAST, u.id); } catch (e) {}
+            try { localStorage.setItem(LS_LAST, u.id); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:afterLogin'); }
             rememberDevUser(u.id);   // příště se nabídne jen na tomto zařízení
             // zapamatování přihlášení na tomhle zařízení (u 'bio' už je nastavené)
             if (kind !== 'bio') {
@@ -1809,7 +1809,7 @@
             applyProjPerms();
             usageLog('login', kind === 'bio' ? 'bio' : (lockMode ? 'unlock' : 'login'));
             if (cloud) setTimeout(syncUsage, 2000);
-            try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: u, kind: kind || 'pass' } })); } catch (e) {}
+            try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: u, kind: kind || 'pass' } })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:afterLogin'); }
             enterApp();
             // nabídka Face ID: jen když chce zůstat přihlášený, telefon to umí,
             // ještě to nemá zapnuté a neodmítl to nedávno
@@ -1905,7 +1905,7 @@
             errEl.textContent = '';
             nameInp.style.display = '';
             pinbox.classList.add('on');
-            setTimeout(function () { try { nameInp.focus(); } catch (e) {} }, 50);
+            setTimeout(function () { try { nameInp.focus(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:submit'); } }, 50);
         });
 
         // Zapomenutý PIN/heslo: admin resetuje v administraci; nouzový reset
@@ -1923,7 +1923,7 @@
             agGet(msg, { title: 'Zapomenuté přihlášení', placeholder: 'RESET', okText: 'Potvrdit' }).then(function (v) {
             if (v === 'RESET') {
                 removeProfile(profileKeyOf(f));
-                try { localStorage.removeItem(LS_FIRM); localStorage.removeItem(LS_TOK); localStorage.removeItem(LS_OFF); localStorage.removeItem(LS_SYNC); } catch (e) {}
+                try { localStorage.removeItem(LS_FIRM); localStorage.removeItem(LS_TOK); localStorage.removeItem(LS_OFF); localStorage.removeItem(LS_SYNC); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:submit'); }
                 bustFirm();
                 setSess(null);
                 ov.remove();
@@ -1941,7 +1941,7 @@
         // předvyber jediného / naposledy přihlášeného uživatele (rychlé odemknutí
         // jedním tapem — heslo/PIN samozřejmě zůstává)
         var lastId = getSessLastUser();
-        if (!lastId) { try { lastId = localStorage.getItem(LS_LAST); } catch (e) {} }
+        if (!lastId) { try { lastId = localStorage.getItem(LS_LAST); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty'); } }
         if (f.users.length === 1) {
             pick(f.users[0].id);
         } else if (lastId) {
@@ -1984,7 +1984,7 @@
             '  <button type="button" class="btn btn-primary" id="ag-bio-yes" style="flex:1;">Zapnout</button>' +
             '</div></div>';
         document.body.appendChild(ov);
-        function close() { bioAskDone(); try { ov.remove(); } catch (e) {} }
+        function close() { bioAskDone(); try { ov.remove(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:close'); } }
         ov.querySelector('#ag-bio-no').onclick = close;
         ov.querySelector('#ag-bio-yes').onclick = function () {
             var btn = this;
@@ -2065,7 +2065,7 @@
         }
         ov.querySelector('#agg-show-join').onclick = function () {
             showJoin();
-            setTimeout(function () { try { ov.querySelector('#agg-code').focus(); } catch (e) {} }, 50);
+            setTimeout(function () { try { ov.querySelector('#agg-code').focus(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:onclick'); } }, 50);
         };
         ov.querySelector('#agg-scan').onclick = function () {
             scanFirmQR(function (d) {
@@ -2074,7 +2074,7 @@
                 ov.querySelector('#agg-name').value = d.name;
                 if (d.api) gateApi = d.api;
                 errEl.textContent = '';
-                setTimeout(function () { try { ov.querySelector('#agg-pass').focus(); } catch (e) {} }, 50);
+                setTimeout(function () { try { ov.querySelector('#agg-pass').focus(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:onclick'); } }, 50);
             });
         };
         var _busy = false;
@@ -2109,7 +2109,7 @@
                     failClear();
                     adoptLogin(r.data, gateApi, pass);   // odstraní i bránu
                     usageLog('login', 'join');
-                    try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: r.data.user } })); } catch (e) {}
+                    try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: r.data.user } })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:onclick'); }
                     return;
                 }
                 if (r.status === 0) {
@@ -2170,7 +2170,7 @@
             ov.querySelector('#agg-scan-x').onclick = stop;
             navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(function (s) {
                 stream = s; video.srcObject = s;
-                try { video.play(); } catch (e) {}
+                try { video.play(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:stop'); }
                 st.textContent = 'Namiř na QR kód od admina…';
                 var _lastScanT = 0;
                 function tick() {
@@ -2237,14 +2237,14 @@
         applyPerms();
         applyProjPerms();
         usageLog('login', 'auto');
-        try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: u, kind: 'auto' } })); } catch (e) {}
+        try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: u, kind: 'auto' } })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:autoLogin'); }
         unprelock();
         var left = trustLeft(t);
         if (left <= 3) setTimeout(function () { toast('Přihlášen jako ' + u.name + ' · za ' + left + ' spuštění bude potřeba heslo'); }, 1200);
     }
     function logout() {
         _lastUserId = null;
-        try { localStorage.removeItem(LS_IDCUR); } catch (e) {}   // odhlášení ruší i SSO
+        try { localStorage.removeItem(LS_IDCUR); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:logout'); }   // odhlášení ruší i SSO
         clearTrust();          // „odhlásit" musí zrušit i pamatované přihlášení
         setSess(null);
         if (getFirm()) showLogin(false);
@@ -2279,7 +2279,7 @@
             var u = currentUser();
             if (!u) showLogin(false);
             else if (getLockOnStart()) {
-                try { localStorage.setItem('arSurveyor', u.name); } catch (e) {}
+                try { localStorage.setItem('arSurveyor', u.name); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:init'); }
                 // PAMATOVANÉ PŘIHLÁŠENÍ: když si to uživatel na tomhle zařízení
                 // zapnul, appka se otevře přihlášená (u režimu 'bio' po ověření
                 // telefonem). Každé TRUST_MAX-té spuštění chce heslo doopravdy.
@@ -2288,7 +2288,7 @@
                 else if (t) { clearTrust(); showLogin(true, true); }   // kontrolní přihlášení
                 else lock();
             } else {
-                try { localStorage.setItem('arSurveyor', u.name); } catch (e) {}
+                try { localStorage.setItem('arSurveyor', u.name); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:init'); }
                 applyPerms();
             }
             if (f.cloud) {

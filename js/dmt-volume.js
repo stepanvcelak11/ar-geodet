@@ -31,7 +31,7 @@
     // S-JTSK pres GeoCore (jediny autoritativni prevod, testovany proti PROJ);
     // premapovani na lokalni {Y,X} + fallback pro pripad bez geo-core.js.
     function toSJTSK(lat, lng) {
-        try { if (window.GeoCore && GeoCore.toSJTSK) { var s = GeoCore.toSJTSK(lat, lng); return { Y: s.y, X: s.x }; } } catch (e) {}
+        try { if (window.GeoCore && GeoCore.toSJTSK) { var s = GeoCore.toSJTSK(lat, lng); return { Y: s.y, X: s.x }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmt-volume:toSJTSK'); }
         try { var r = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { Y: Math.abs(r[0]), X: Math.abs(r[1]) }; }
         catch (e) { return null; }
     }
@@ -62,8 +62,8 @@
     // s měřením uživatele neměl nic společného.
     function gatherFromProject() {
         var src = [];
-        try { if (typeof arPoints !== 'undefined' && Array.isArray(arPoints)) src = src.concat(arPoints.filter(function (p) { return p && p.cat === 'CUSTOM'; })); } catch (e) {}
-        try { if (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) src = src.concat(persistentCustomPoints); } catch (e) {}
+        try { if (typeof arPoints !== 'undefined' && Array.isArray(arPoints)) src = src.concat(arPoints.filter(function (p) { return p && p.cat === 'CUSTOM'; })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmt-volume:gatherFromProject'); }
+        try { if (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) src = src.concat(persistentCustomPoints); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmt-volume:gatherFromProject'); }
         var out = [], seen = {};
         src.forEach(function (p) {
             if (!p || typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
@@ -108,7 +108,7 @@
         return true;
     }
 
-    function quickToastSafe(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) {} try { agInfo(m); } catch (e) {} }
+    function quickToastSafe(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmt-volume:quickToastSafe'); } try { agInfo(m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmt-volume:quickToastSafe'); } }
 
     // ---- perzistence (per zakázka) -------------------------------------------
     function save() {
@@ -116,7 +116,7 @@
             var data = { pts: pts.map(function (p) { return { name: p.name, Y: p.Y, X: p.X, z: p.z }; }), step: contourStep, ref: refLevel };
             if (typeof setStoredData === 'function') setStoredData(LS, JSON.stringify(data));
             else localStorage.setItem(LS, JSON.stringify(data));
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmt-volume:save'); }
     }
     function load() {
         try {
@@ -128,7 +128,7 @@
                 if (typeof d.ref === 'number') refLevel = d.ref;
                 setPoints(d.pts);
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmt-volume:load'); }
     }
 
     // =====================================================================
@@ -514,7 +514,7 @@
             view.ox += (e.clientX - lastX) * dpr; view.oy += (e.clientY - lastY) * dpr;
             lastX = e.clientX; lastY = e.clientY; draw();
         });
-        function endDrag(e) { dragging = false; try { canvas.releasePointerCapture(e.pointerId); } catch (er) {} }
+        function endDrag(e) { dragging = false; try { canvas.releasePointerCapture(e.pointerId); } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'dmt-volume:endDrag'); } }
         canvas.addEventListener('pointerup', endDrag);
         canvas.addEventListener('pointercancel', endDrag);
         canvas.addEventListener('wheel', function (e) {
@@ -568,7 +568,7 @@
             var url = out.toDataURL('image/png');
             var a = document.createElement('a');
             var proj = '';
-            try { proj = (typeof activeProjectId !== 'undefined') ? ('_' + activeProjectId) : ''; } catch (e) {}
+            try { proj = (typeof activeProjectId !== 'undefined') ? ('_' + activeProjectId) : ''; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmt-volume:exportPNG'); }
             a.href = url; a.download = 'dmt' + proj + '.png'; document.body.appendChild(a); a.click(); a.remove();
         } catch (e) { quickToastSafe('Export selhal.'); }
     }
@@ -587,12 +587,12 @@
                             _loaded = true; load();
                             if (pts.length) { recompute(); fitView(); } else draw();
                         }
-                    } catch (e) {}
+                    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmt-volume:loadProjectSettings'); }
                     return r;
                 };
                 loadProjectSettings.__agdmt = true;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmt-volume:loadProjectSettings'); }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(hookProjectSwitch, 400); });
     else setTimeout(hookProjectSwitch, 400);

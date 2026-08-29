@@ -80,7 +80,7 @@
         b.innerHTML = p.t;
         b.addEventListener('click', function () {
             close(m);
-            try { window[p.fn](); } catch (e) {}
+            try { window[p.fn](); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-parky:place'); }
         });
         if (h && h.nextSibling) card.insertBefore(b, h.nextSibling);
         else card.insertBefore(b, card.firstChild);
@@ -113,7 +113,7 @@
         injectStyles();
         if (!window.__agParkyTimer) {
             window.__agParkyTimer = (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(function () {
-                try { tick(); } catch (e) {}
+                try { tick(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-parky:init'); }
             }, 500);
         }
     }

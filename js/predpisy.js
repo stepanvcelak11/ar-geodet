@@ -20,7 +20,7 @@
 
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'predpisy:lsSet'); } }
     // bez diakritiky + malá písmena (vyhledávání odolné proti háčkům/čárkám)
     function deburr(s) {
         // NFD rozloží písmeno+diakritiku; pak zahodíme kombinační značky (U+0300–U+036F)
@@ -193,7 +193,7 @@
         var btn = document.createElement('button');
         btn.id = 'prd-menu-btn'; btn.className = 'menu-btn'; btn.type = 'button';
         btn.innerHTML = '<svg class="icon"><use href="#i-scale"/></svg> Předpisy & odchylky';
-        btn.addEventListener('click', function () { openReader(); if (typeof toggleMenu === 'function') try { toggleMenu(); } catch (e) {} });
+        btn.addEventListener('click', function () { openReader(); if (typeof toggleMenu === 'function') try { toggleMenu(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'predpisy:injectMenuButton'); } });
         var hr = host.querySelector('hr'); var firstToggle = host.querySelector('.menu-toggle-row');
         if (hr) host.insertBefore(btn, hr); else if (firstToggle) host.insertBefore(btn, firstToggle); else host.appendChild(btn);
     }
@@ -222,7 +222,7 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
     window.addEventListener('load', function () {
-        setTimeout(function () { try { injectMenuButton(); } catch (e) {} try { injectWelcomeButton(); } catch (e) {} }, 400);
+        setTimeout(function () { try { injectMenuButton(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'predpisy:init'); } try { injectWelcomeButton(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'predpisy:init'); } }, 400);
     });
-    window.addEventListener('online', function () { try { load(); } catch (e) {} });
+    window.addEventListener('online', function () { try { load(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'predpisy:init'); } });
 })();

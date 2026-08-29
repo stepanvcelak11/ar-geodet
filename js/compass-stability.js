@@ -75,10 +75,10 @@
                 if (typeof o.scale === 'number' && isFinite(o.scale)) ui.scale = Math.max(0.6, Math.min(2.4, o.scale));
                 if (typeof o.left === 'number' && typeof o.top === 'number') { ui.left = o.left; ui.top = o.top; }
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'compass-stability:loadUI'); }
     }
     function saveUI() {
-        try { localStorage.setItem(LS_UI, JSON.stringify(ui)); } catch (e) {}
+        try { localStorage.setItem(LS_UI, JSON.stringify(ui)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'compass-stability:saveUI'); }
     }
     function applyUI() {
         if (!el) return;
@@ -97,7 +97,7 @@
             var maxL = window.innerWidth - r.width - 4, maxT = window.innerHeight - r.height - 4;
             if (ui.left != null) ui.left = Math.max(4, Math.min(maxL, ui.left));
             if (ui.top != null) ui.top = Math.max(4, Math.min(maxT, ui.top));
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'compass-stability:clampToScreen'); }
     }
 
     // ---- UI -------------------------------------------------------------------
@@ -138,7 +138,7 @@
         try {
             var src = document.getElementById('compass-debug');
             el.classList.toggle('ui-faded', !!(src && src.classList.contains('ui-faded')));
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'compass-stability:syncFade'); }
     }
     function mirrorFade() {
         try {
@@ -147,14 +147,14 @@
             var mo = new MutationObserver(syncFade);
             mo.observe(src, { attributes: true, attributeFilter: ['class'] });
             syncFade();
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'compass-stability:mirrorFade'); }
     }
 
     // ---- režim úprav (přesun + velikost) --------------------------------------
     function enterEdit() {
         editing = true;
         if (el) { el.classList.add('editing'); el.classList.remove('ui-faded'); }
-        try { if (navigator.vibrate) navigator.vibrate(15); } catch (e) {}
+        try { if (navigator.vibrate) navigator.vibrate(15); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'compass-stability:enterEdit'); }
     }
     function exitEdit() {
         editing = false;
@@ -186,7 +186,7 @@
                 dragging = true;
                 var r = el.getBoundingClientRect();
                 dragDX = e.clientX - r.left; dragDY = e.clientY - r.top;
-                try { el.setPointerCapture(e.pointerId); } catch (er) {}
+                try { el.setPointerCapture(e.pointerId); } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'compass-stability:wireEdit'); }
                 e.preventDefault();
             } else {
                 // dlouhý stisk → režim úprav
@@ -212,7 +212,7 @@
             if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; }
             if (dragging) {
                 dragging = false;
-                try { el.releasePointerCapture(e.pointerId); } catch (er) {}
+                try { el.releasePointerCapture(e.pointerId); } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'compass-stability:up'); }
                 clampToScreen(); applyUI(); saveUI();
             }
         }
@@ -272,12 +272,12 @@
             var h = readHeading();
             if (h != null) samples.push({ t: now(), h: h });
             render();
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'compass-stability:sample'); }
     }
     // BATERIE: dřív to byl obyčejný setInterval(200 ms), který se nikdy nezrušil a tikal
     // i s appkou na pozadí — 5 probuzení a 5 DOM průchodů za sekundu celý pracovní den.
     // AG.uiInterval ho na pozadí uspí; sample() navíc nic nedělá, když widget není vidět.
-    function start() { try { if (!timer) timer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(sample, SAMPLE_MS); } catch (e) {} }
+    function start() { try { if (!timer) timer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(sample, SAMPLE_MS); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'compass-stability:start'); } }
 
     // Vystaveni skore pro jine moduly (ar-fusion vazi duveru magnetometru kvalitou kompasu).
     try {
@@ -285,20 +285,20 @@
             get score() { return lastScore; },                                  // 0-100 (null dokud neni dost vzorku)
             get spread() { var st = circStats(samples); return st ? st.spread : null; } // stupne
         };
-    } catch (e) {}
+    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'compass-stability:start'); }
 
     function init() {
         try {
             if (!document.getElementById(EL_ID)) build();
             else { el = document.getElementById(EL_ID); }
             start(); render();
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'compass-stability:init'); }
     }
 
     try {
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
         else init();
         window.addEventListener('load', function () { setTimeout(init, 300); });
-        window.addEventListener('resize', function () { try { clampToScreen(); applyUI(); } catch (e) {} });
-    } catch (e) {}
+        window.addEventListener('resize', function () { try { clampToScreen(); applyUI(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'compass-stability:init'); } });
+    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'compass-stability:init'); }
 })();

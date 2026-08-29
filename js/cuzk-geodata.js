@@ -26,8 +26,8 @@
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
     function copy(txt) {
-        try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt); return true; } } catch (e) {}
-        try { var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); return true; } catch (e) {}
+        try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt); return true; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cuzk-geodata:copy'); }
+        try { var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); return true; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cuzk-geodata:copy'); }
         return false;
     }
 
@@ -52,7 +52,7 @@
     function openGeodata(pt) {
         ensureModal();
         var Y = '', X = '';
-        try { var sj = proj4('EPSG:4326', 'EPSG:5514', [pt.lng, pt.lat]); Y = Math.abs(sj[0]).toFixed(2); X = Math.abs(sj[1]).toFixed(2); } catch (e) {}
+        try { var sj = proj4('EPSG:4326', 'EPSG:5514', [pt.lng, pt.lat]); Y = Math.abs(sj[0]).toFixed(2); X = Math.abs(sj[1]).toFixed(2); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cuzk-geodata:openGeodata'); }
         document.getElementById('aggd-title').innerText = '#' + pt.name;
         document.getElementById('aggd-sub').innerText = typeLabel(pt.cat);
 

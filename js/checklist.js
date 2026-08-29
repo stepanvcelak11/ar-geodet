@@ -28,7 +28,7 @@
     var PROF_PREFIX = 'agWorkProfile::';
 
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'checklist:toast'); } }
     function pid() { try { return localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { return 'default'; } }
     function today() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
     function stateKey() { return pid() + '|' + today(); }
@@ -133,8 +133,8 @@
         var out = [];
         function raw(suffix) {
             var v = null;
-            try { if (typeof getStoredData === 'function') v = getStoredData(suffix); } catch (e) {}
-            if (v == null) { try { v = localStorage.getItem(pid() + '_' + suffix); } catch (e2) {} }
+            try { if (typeof getStoredData === 'function') v = getStoredData(suffix); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'checklist:raw'); }
+            if (v == null) { try { v = localStorage.getItem(pid() + '_' + suffix); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'checklist:raw'); } }
             return v;
         }
         // vytyčování: kolik vlastních bodů ještě není odškrtnuto jako vytyčené
@@ -146,7 +146,7 @@
             var nCustom = null;
             try {
                 if (typeof stakeoutCandidates === 'function') nCustom = stakeoutCandidates().length;
-            } catch (e1) {}
+            } catch (e1) { window.AG && AG.swallow && AG.swallow(e1, 'checklist:raw'); }
             if (nCustom == null) {
                 var arr = JSON.parse(raw('arCustomPoints12') || 'null');
                 if (Array.isArray(arr)) nCustom = arr.length;
@@ -154,14 +154,14 @@
             if (nCustom != null && nCustom - nStaked > 0) {
                 out.push({ k: 'p_stakeout', t: 'Vytyčovací seznam: ' + (nCustom - nStaked) + ' bodů neodškrtnuto', why: 'vezmi stabilizaci (kolíky/hřeby) aspoň na tolik bodů' });
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'checklist:raw'); }
         // monitoring: existují sledované body → jde se na epochu
         try {
             var ep = JSON.parse(raw('agEpochy_v1') || 'null');
             if (ep && Array.isArray(ep.items) && ep.items.length) {
                 out.push({ k: 'p_epocha', t: 'Monitoring: ' + ep.items.length + ' sledovaných bodů — vezmi čísla minulé epochy', why: 'epocha se měří na TÉŽ body, jinak je porovnání bezcenné' });
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'checklist:raw'); }
         return out;
     }
 
@@ -175,7 +175,7 @@
             var keys = Object.keys(o);
             if (keys.length > 7) { keys.sort(); keys.slice(0, keys.length - 7).forEach(function (k) { delete o[k]; }); }
             localStorage.setItem(LS_STATE, JSON.stringify(o));
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'checklist:saveState'); }
     }
     function checked() { var s = loadState(); return s[stateKey()] || {}; }
     function setChecked(k, on) {
@@ -185,11 +185,11 @@
         saveState(s);
     }
     function loadCustom() { try { var a = JSON.parse(localStorage.getItem(LS_CUSTOM)); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
-    function saveCustom(a) { try { localStorage.setItem(LS_CUSTOM, JSON.stringify(a)); } catch (e) {} }
+    function saveCustom(a) { try { localStorage.setItem(LS_CUSTOM, JSON.stringify(a)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'checklist:saveCustom'); } }
 
     function profileId() {
         var id = null;
-        try { id = localStorage.getItem(PROF_PREFIX + pid()); } catch (e) {}
+        try { id = localStorage.getItem(PROF_PREFIX + pid()); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'checklist:profileId'); }
         return (id && BY_PROFILE[id]) ? id : 'univerzal';
     }
     var PROF_LABEL = { univerzal: 'Univerzální', vytycovani: 'Vytyčování', pokladka: 'Pokládka / vrstvy', katastr: 'Katastr a mapování', kontrola: 'Kontrola a monitoring' };
@@ -301,7 +301,7 @@
                     .then(function (v) { if (v) go(v); });
                 return;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'checklist:go'); }
         var t = prompt('Položka:');
         if (t) go(t);
     }

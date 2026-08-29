@@ -248,7 +248,7 @@
                     onDismiss: (function (id, t) { return function () { _mShown[id] = t; }; })(m.id, txt)
                 });
             });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'upozorneni:fn'); }
         _syncing = false;
     }
 
@@ -275,13 +275,13 @@
     // se rozjede karta se VŠEMI upozorněními — každé s vlastním křížkem — a dole
     // s „Beru na vědomí", které vyškrtne všechna naráz.
     function dismissNote(n) {
-        if (typeof n.onDismiss === 'function') { try { n.onDismiss(); } catch (e) {} }
+        if (typeof n.onDismiss === 'function') { try { n.onDismiss(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'upozorneni:dismissNote'); } }
         clear(n.id);
     }
     function adviseFor(n) {
-        if (n && typeof n.onAction === 'function') { try { n.onAction(); } catch (e) {} return; }
+        if (n && typeof n.onAction === 'function') { try { n.onAction(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'upozorneni:adviseFor'); } return; }
         // jedno místo, které poradí co dál (GPS · sever · data · baterie)
-        try { if (window.AGStatusBar && AGStatusBar.open) AGStatusBar.open(); } catch (e) {}
+        try { if (window.AGStatusBar && AGStatusBar.open) AGStatusBar.open(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'upozorneni:adviseFor'); }
     }
     // sbalená ukazuje NEJHORŠÍ hlášku, rozjetá jen počet (texty jsou pod ní)
     function headText(list, worst) {
@@ -339,7 +339,7 @@
                 var act = document.createElement('button');
                 act.type = 'button'; act.className = 'ag-nact';
                 act.textContent = n.action.label || 'Otevřít';
-                act.addEventListener('click', function (ev) { ev.stopPropagation(); try { n.action.fn(); } catch (e) {} });
+                act.addEventListener('click', function (ev) { ev.stopPropagation(); try { n.action.fn(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'upozorneni:buildBox'); } });
                 row.appendChild(act);
             }
             var x = document.createElement('button');
@@ -424,7 +424,7 @@
         _expanded = false;
         ids.forEach(function (id) {
             var n = _notes[id];
-            if (n && typeof n.onDismiss === 'function') { try { n.onDismiss(); } catch (e) {} }
+            if (n && typeof n.onDismiss === 'function') { try { n.onDismiss(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'upozorneni:dismissAll'); } }
         });
         _notes = {};
         render();
@@ -432,7 +432,7 @@
             if (typeof window.quickToast === 'function') {
                 quickToast('Upozornění skryta. Stav měření kdykoli zjistíš klepnutím na pruh nahoře.');
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'upozorneni:dismissAll'); }
     }
 
     // Ukotvení pod stavovou bublinu + hlášení výšky sloupce ven (--ag-stack-h),
@@ -460,7 +460,7 @@
             var used = Math.max(0, Math.round(rect.bottom));
             document.documentElement.style.setProperty('--ag-stack-h', used + 'px');
             watchAnchor(sp, stack);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'upozorneni:measure'); }
     }
 
     // Strop rozjeté karty, aby se nepoložila na svislou lištu ovládání (#dock).
@@ -482,7 +482,7 @@
             var foot = stack.querySelector('.ag-nfoot');
             var footH = foot ? foot.getBoundingClientRect().height : 0;
             rows.style.maxHeight = Math.max(120, Math.round(limit - top - footH - 12)) + 'px';
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'upozorneni:fitOpen'); }
     }
 
     // Bublina mění velikost (rozbalený detail) i polohu (tažení) — sleduj obojí,
@@ -491,9 +491,9 @@
     function watchAnchor(sp, stack) {
         if (!sp || sp === _watched) return;
         _watched = sp;
-        try { if (_ro) _ro.disconnect(); } catch (e) {}
-        try { if (_mo) _mo.disconnect(); } catch (e) {}
-        var relayout = function () { try { measure(document.getElementById(STACK_ID)); } catch (e) {} };
+        try { if (_ro) _ro.disconnect(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'upozorneni:watchAnchor'); }
+        try { if (_mo) _mo.disconnect(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'upozorneni:watchAnchor'); }
+        var relayout = function () { try { measure(document.getElementById(STACK_ID)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'upozorneni:relayout'); } };
         if (typeof ResizeObserver === 'function') {
             _ro = new ResizeObserver(relayout); _ro.observe(sp);
         }
@@ -540,7 +540,7 @@
         if (nudgeBar._t) return;
         nudgeBar._t = setTimeout(function () {
             nudgeBar._t = 0;
-            try { AGStatusBar.refresh(); } catch (e) {}
+            try { AGStatusBar.refresh(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'upozorneni:nudgeBar'); }
         }, 0);
     }
 
@@ -581,7 +581,7 @@
             if (_expanded && _expandedTs && (Date.now() - _expandedTs) > AUTO_CLOSE_MS) _expanded = false;
             render();
             measure(stack);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'upozorneni:tick'); }
     }
     function init() {
         try {
@@ -606,12 +606,12 @@
         }, true);
         document.addEventListener('scroll', function (e) {
             if (!_expanded) return;
-            try { if (e.target && e.target.closest && e.target.closest('#' + STACK_ID)) _expandedTs = Date.now(); } catch (err) {}
+            try { if (e.target && e.target.closest && e.target.closest('#' + STACK_ID)) _expandedTs = Date.now(); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'upozorneni:init'); }
         }, true);
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
     window.addEventListener('load', function () { setTimeout(init, 300); });
-    window.addEventListener('resize', function () { try { measure(ensureStack()); } catch (e) {} });
+    window.addEventListener('resize', function () { try { measure(ensureStack()); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'upozorneni:init'); } });
 })();

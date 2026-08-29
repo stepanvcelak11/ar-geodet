@@ -24,9 +24,9 @@
 
     function U() { return window.AGUcty || null; }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function agConfirm(opts) {
-        try { if (typeof window.agConfirm === 'function') return window.agConfirm(opts); } catch (e) {}
+        try { if (typeof window.agConfirm === 'function') return window.agConfirm(opts); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:agConfirm'); }
         return Promise.resolve(confirm((opts.title || '') + '\n\n' + String(opts.message || '').replace(/<[^>]*>/g, '')));
     }
     function roleTxt(r) { return r === 'admin' ? 'Admin' : (r === 'vedeni' ? 'Vedení' : 'Zaměstnanec'); }
@@ -245,7 +245,7 @@
         var sw = bar.querySelector('#agfa-fb-switch');
         if (sw) sw.onclick = function () { renderNav('firma'); setTimeout(function () {
             var el = document.getElementById('agfa-firms');
-            if (el && el.scrollIntoView) try { el.scrollIntoView({ block: 'center' }); } catch (e) {}
+            if (el && el.scrollIntoView) try { el.scrollIntoView({ block: 'center' }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:onclick'); }
         }, 120); };
     }
 
@@ -369,7 +369,7 @@
                 try {
                     var cc = JSON.parse(localStorage.getItem('agChatCache_v1') || 'null');
                     if (cc && cc.code === f.code && Array.isArray(cc.msgs)) chatMsgs = cc.msgs.slice(-3);
-                } catch (e) {}
+                } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin'); }
                 if (chatMsgs.length) {
                     html += '<div class="agfa-pg">Poslední zprávy</div><div class="agfa-chatprev">' +
                         chatMsgs.map(function (msg) {
@@ -546,7 +546,7 @@
             '<button class="btn" style="margin-top:14px;width:100%;" id="agfa-w-go">Založit firmu</button>' +
             '<button class="btn btn-secondary" style="margin-top:8px;width:100%;" id="agfa-w-back">Zpět</button>';
         var prevName = '';
-        try { prevName = localStorage.getItem('arSurveyor') || ''; } catch (e) {}
+        try { prevName = localStorage.getItem('arSurveyor') || ''; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:wizardCloud'); }
         if (prevName) body.querySelector('#agfa-w-name').value = prevName;
         body.querySelector('#agfa-w-back').onclick = function () { openWizard(); };
         body.querySelector('#agfa-w-go').onclick = function () {
@@ -636,7 +636,7 @@
             '<button class="btn" style="margin-top:14px;width:100%;" id="agfa-w-go">Zapnout firemní režim</button>' +
             '<button class="btn btn-secondary" style="margin-top:8px;width:100%;" id="agfa-w-back">Zpět</button>';
         var prevName = '';
-        try { prevName = localStorage.getItem('arSurveyor') || ''; } catch (e) {}
+        try { prevName = localStorage.getItem('arSurveyor') || ''; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:wizardLocal'); }
         if (prevName) body.querySelector('#agfa-w-name').value = prevName;
         body.querySelector('#agfa-w-back').onclick = function () { openWizard(); };
         body.querySelector('#agfa-w-go').onclick = function () {
@@ -659,8 +659,8 @@
                     perms: u.defaultPerms()
                 };
                 u.saveFirm(f);
-                try { localStorage.setItem('agFirmaSess_v1', JSON.stringify({ userId: f.users[0].id, ts: Date.now() })); } catch (e) {}
-                try { localStorage.setItem('arSurveyor', name); } catch (e) {}
+                try { localStorage.setItem('agFirmaSess_v1', JSON.stringify({ userId: f.users[0].id, ts: Date.now() })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:onclick'); }
+                try { localStorage.setItem('arSurveyor', name); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:onclick'); }
                 u.usageLog('login', 'setup');
                 agAlert('Firemní režim zapnut', 'Jsi přihlášen jako admin <b>' + esc(name) + '</b>. Teď přidej uživatele a nastav oprávnění.');
                 renderNav('uzivatele');
@@ -724,7 +724,7 @@
                 box.innerHTML = '';
                 renderUsers(body, true);
             };
-            try { box.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {}
+            try { box.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:onclick'); }
         }
         function preview() {
             var pv = box.querySelector('#agfa-ava-prev'); if (!pv) return;
@@ -915,7 +915,7 @@
         var out = [];
         for (var i = 0; i < cbs.length; i++) if (cbs[i].checked) out.push(cbs[i].getAttribute('data-pid'));
         u.setProjAcl(us.id, out);
-        try { if (u.applyProjPerms) u.applyProjPerms(); } catch (e) {}
+        try { if (u.applyProjPerms) u.applyProjPerms(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:readProjAcl'); }
     }
 
     function userForm(body, us) {
@@ -966,7 +966,7 @@
                     // takže při chybě uložení účtu se nesmí propsat vůbec nic.
                     readProjAcl(box, u, us);
                     u.adoptConfig(r.data);
-                    if (us && me && me.id === us.id) { try { localStorage.setItem('arSurveyor', name); } catch (e) {} }
+                    if (us && me && me.id === us.id) { try { localStorage.setItem('arSurveyor', name); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:onclick'); } }
                     renderUsers(body, true);
                 });
                 return;
@@ -980,7 +980,7 @@
                     f.users.push({ id: 'u' + Date.now() + Math.floor(Math.random() * 1000), name: name, role: role, pinHash: pinHash, salt: salt, noPin: noPin });
                 }
                 u.saveFirm(f);
-                if (us && me && me.id === us.id) { try { localStorage.setItem('arSurveyor', name); } catch (e) {} }
+                if (us && me && me.id === us.id) { try { localStorage.setItem('arSurveyor', name); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:finish'); } }
                 // Až tady — před renderUsers(), který formulář zahodí, a zároveň až za
                 // validací PINu, aby se přidělení zakázek neuložilo po chybové hlášce.
                 readProjAcl(box, u, us);
@@ -1284,7 +1284,7 @@
             if (u.isAdmin()) {
                 var diag = body.querySelector('#agfa-diag');
                 var errN = 0;
-                try { if (window.agErrLog && typeof agErrLog.list === 'function') errN = (agErrLog.list() || []).length; } catch (e) {}
+                try { if (window.agErrLog && typeof agErrLog.list === 'function') errN = (agErrLog.list() || []).length; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:onchange'); }
                 var diagTxt = 'Zachycených chyb: <b>' + errN + '</b>';
                 try {
                     if (navigator.storage && navigator.storage.estimate) {
@@ -1298,12 +1298,12 @@
 
                 body.querySelector('#agfa-d-csv').onclick = function () { exportCsv(all); };   // CSV vždy bez filtru uživatele
                 body.querySelector('#agfa-d-err').onclick = function () {
-                    try { if (window.agErrLog && typeof agErrLog.show === 'function') agErrLog.show(); else agAlert('Protokol chyb', 'Modul err-log.js není načtený.'); } catch (e) {}
+                    try { if (window.agErrLog && typeof agErrLog.show === 'function') agErrLog.show(); else agAlert('Protokol chyb', 'Modul err-log.js není načtený.'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:onclick'); }
                 };
                 body.querySelector('#agfa-d-clear').onclick = function () {
                     agConfirm({ title: 'Smazat záznamy užívání', message: 'Smaže VŠECHNY záznamy o užívání (nejen zvolené období)' + (f.cloud ? ' — na serveru i v tomto zařízení' : '') + '. Žurnál bodů zůstane.', okText: 'Smazat', danger: true }).then(function (ok) {
                         if (!ok) return;
-                        var done = function () { try { localStorage.removeItem('agFirmaSync_v1'); } catch (e) {} u.usageClear().then(function () { renderUsage(body); }); };
+                        var done = function () { try { localStorage.removeItem('agFirmaSync_v1'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:done'); } u.usageClear().then(function () { renderUsage(body); }); };
                         if (f.cloud) {
                             u.cloudFetch('/usage', { method: 'DELETE' }).then(function (r) {
                                 if (!r.ok) { agAlert('Smazání na serveru selhalo', cloudErr(r)); return; }
@@ -1393,7 +1393,7 @@
                     if (typeof projects !== 'undefined' && Array.isArray(projects)) {
                         for (var i = 0; i < projects.length; i++) if (projects[i] && projects[i].id === id) return projects[i].name || id;
                     }
-                } catch (e) {}
+                } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:projName'); }
                 return id;
             }
             var shifts = all.filter(function (ev) { return ev.t === 'shift'; })
@@ -1574,7 +1574,7 @@
                     '<button onclick="window.print()" style="margin-top:16px;padding:8px 14px;">Vytisknout / uložit PDF</button>' +
                     '</body></html>');
                 w.document.close();
-                setTimeout(function () { try { w.print(); } catch (e) {} }, 400);
+                setTimeout(function () { try { w.print(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:onclick'); } }, 400);
             };
         });
     }
@@ -1648,7 +1648,7 @@
     // Překreslení sekce Firma — tlačítka zámku mění stav, který sekce sama vypisuje.
     // renderFirm si podle f.cloud vybere lokální/cloudovou podobu, takže stačí ono.
     function reopenSection(body) {
-        try { renderFirm(body); } catch (e) {}
+        try { renderFirm(body); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:reopenSection'); }
     }
 
     // ------------------------------------------------------------------
@@ -1790,7 +1790,7 @@
             agConfirm({ title: 'Vypnout firemní režim', message: 'Přihlašování i oprávnění se zruší, appka bude zase otevřená. Body a zakázky zůstanou.', okText: 'Vypnout', danger: true }).then(function (ok) {
                 if (!ok) return;
                 if (u.removeProfile && u.profileKeyOf) u.removeProfile(u.profileKeyOf(f));
-                try { localStorage.removeItem('agFirma_v1'); localStorage.removeItem('agFirmaSess_v1'); } catch (e) {}
+                try { localStorage.removeItem('agFirma_v1'); localStorage.removeItem('agFirmaSess_v1'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:onclick'); }
                 if (u.bustFirm) u.bustFirm();   // ucty.js si getFirm() krátce cachuje
                 document.getElementById('agfa-modal').style.display = 'none';
                 if (u.applyPerms) u.applyPerms();
@@ -1893,7 +1893,7 @@
                     localStorage.removeItem('agFirmaTok_v1');
                     localStorage.removeItem('agFirmaOff_v1');
                     localStorage.removeItem('agFirmaSync_v1');
-                } catch (e) {}
+                } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:onclick'); }
                 if (u.bustFirm) u.bustFirm();   // ucty.js si getFirm() krátce cachuje
                 document.getElementById('agfa-modal').style.display = 'none';
                 if (u.applyPerms) u.applyPerms();
@@ -1930,7 +1930,7 @@
             btn.className = 'menu-btn';
             btn.innerHTML = '<svg class="icon"><use href="#i-users"/></svg> Přepnout uživatele / zamknout';
             btn.onclick = function () {
-                try { if (typeof window.toggleMenu === 'function') toggleMenu(); } catch (e) {}
+                try { if (typeof window.toggleMenu === 'function') toggleMenu(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:onclick'); }
                 var uu = U(); if (uu) uu.lock();
             };
             scroll.insertBefore(btn, hr || null);
@@ -1943,7 +1943,7 @@
                 adm.className = 'menu-btn';
                 adm.innerHTML = '<svg class="icon"><use href="#i-users"/></svg> Administrace firmy (admin)';
                 adm.onclick = function () {
-                    try { if (typeof window.toggleMenu === 'function') toggleMenu(); } catch (e) {}
+                    try { if (typeof window.toggleMenu === 'function') toggleMenu(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:onclick'); }
                     openEntry();
                 };
                 scroll.insertBefore(adm, btn);
@@ -1978,12 +1978,12 @@
                 var nav = document.getElementById('agfa-nav'); if (nav) nav.innerHTML = '';
                 _section = 'uzivatele';
                 _limitTs = 0;      // limit serveru se ptá znovu, jde o jinou firmu
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:init'); }
         });
         // Odhlášení / zamknutí appky má stejný důvod: co zůstane pod přihlašovací
         // obrazovkou, přečte si kdokoli, kdo telefon vezme do ruky.
         window.addEventListener('agucty:logout', function () {
-            try { var m = document.getElementById('agfa-modal'); if (m) m.style.display = 'none'; } catch (e) {}
+            try { var m = document.getElementById('agfa-modal'); if (m) m.style.display = 'none'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:init'); }
         });
         window.addEventListener('agucty:perms', function () {
             try {
@@ -1995,7 +1995,7 @@
                 // bez přihlášeného uživatele nerozhodovat (za zámkem stejně nejde otevřít)
                 var show = !usr || u.isAdmin() || u.can('x.dashboard');
                 tile.style.display = show ? '' : 'none';
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:init'); }
         });
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 400); });

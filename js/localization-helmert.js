@@ -39,8 +39,8 @@
     var _capTimer = null, _capSamples = [], _capAltSamples = [], _capT0 = 0, _capDur = 8000;
 
     // ---- pomocné (defenzivně, jako okolní moduly) -----------------------------
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) {} }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:agAlert'); } try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'localization-helmert:agAlert'); } }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:toast'); } }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function curAlt() { try { return (typeof userAlt !== 'undefined' && userAlt != null && isFinite(userAlt)) ? userAlt : null; } catch (e) { return null; } }
     function escapeHtml(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -48,7 +48,7 @@
     function lsKey() { return pid() + '_helmertLoc'; }
 
     function metersPerDeg(lat) {
-        if (typeof GeoCore !== 'undefined' && GeoCore.metersPerDeg) { try { var m = GeoCore.metersPerDeg(lat); if (m && m.lat) return m; } catch (e) {} }
+        if (typeof GeoCore !== 'undefined' && GeoCore.metersPerDeg) { try { var m = GeoCore.metersPerDeg(lat); if (m && m.lat) return m; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:metersPerDeg'); } }
         return { lat: EARTH_M_LAT, lng: EARTH_M_LAT * Math.cos(lat * D2R) };
     }
     // WGS -> S-JTSK Y,X (kladné metry) nebo null
@@ -59,13 +59,13 @@
             // neprovedla; modul tise jel na vlastnim proj4 nize. Uvnitr CR to davalo
             // stejny vysledek, takze si toho nikdo nevsiml.
             if (typeof GeoCore !== 'undefined' && GeoCore.toSJTSK) { var s = GeoCore.toSJTSK(lat, lng); if (s && isFinite(s.y)) return { Y: s.y, X: s.x }; }
-        } catch (e) {}
-        try { if (typeof proj4 === 'function') { var p = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { Y: Math.abs(p[0]), X: Math.abs(p[1]) }; } } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:toSJTSK'); }
+        try { if (typeof proj4 === 'function') { var p = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { Y: Math.abs(p[0]), X: Math.abs(p[1]) }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:toSJTSK'); }
         return null;
     }
     // S-JTSK Y,X (kladné) -> WGS84 {lat,lng} nebo null
     function fromSJTSK(Y, X) {
-        try { if (typeof proj4 === 'function') { var w = proj4('EPSG:5514', 'EPSG:4326', [-Math.abs(Y), -Math.abs(X)]); return { lat: w[1], lng: w[0] }; } } catch (e) {}
+        try { if (typeof proj4 === 'function') { var w = proj4('EPSG:5514', 'EPSG:4326', [-Math.abs(Y), -Math.abs(X)]); return { lat: w[1], lng: w[0] }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:fromSJTSK'); }
         return null;
     }
 
@@ -85,7 +85,7 @@
     // ---- robustní GPS průměr --------------------------------------------------
     // Preferuj appkou průměrovaný gpsAvgResult; jinak posbírej vzorky z userLat/Lng.
     function currentAvg() {
-        try { if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && !gpsAvgResult.coarse && isFinite(gpsAvgResult.lat) && isFinite(gpsAvgResult.lng)) return { lat: gpsAvgResult.lat, lng: gpsAvgResult.lng, alt: (isFinite(gpsAvgResult.alt) ? gpsAvgResult.alt : curAlt()), sig: (isFinite(gpsAvgResult.sterr) ? gpsAvgResult.sterr : (isFinite(gpsAvgResult.sigma) ? gpsAvgResult.sigma : null)), n: gpsAvgResult.n, from: 'avg' }; } catch (e) {}
+        try { if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && !gpsAvgResult.coarse && isFinite(gpsAvgResult.lat) && isFinite(gpsAvgResult.lng)) return { lat: gpsAvgResult.lat, lng: gpsAvgResult.lng, alt: (isFinite(gpsAvgResult.alt) ? gpsAvgResult.alt : curAlt()), sig: (isFinite(gpsAvgResult.sterr) ? gpsAvgResult.sterr : (isFinite(gpsAvgResult.sigma) ? gpsAvgResult.sigma : null)), n: gpsAvgResult.n, from: 'avg' }; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:currentAvg'); }
         return null;
     }
     // robustní průměr posbíraných vzorků [{lat,lng}] přes medián E/N kolem 1. vzorku
@@ -114,7 +114,7 @@
 
     // ---- lineární MNČ (přes LinAlg, fallback vlastní Gaussova eliminace) -------
     function solveLinear(A, b) {
-        try { if (window.LinAlg && LinAlg.lstsq) { var x = LinAlg.lstsq(A, b); if (x) return x; } } catch (e) {}
+        try { if (window.LinAlg && LinAlg.lstsq) { var x = LinAlg.lstsq(A, b); if (x) return x; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:solveLinear'); }
         return lstsqLocal(A, b);
     }
     // vlastní normální rovnice AtA x = Atb + Gaussova eliminace s pivotováním
@@ -274,7 +274,7 @@
 
     // ---- persistence transformace per zakázka ---------------------------------
     function saveModel(mdl) {
-        try { if (mdl) localStorage.setItem(lsKey(), JSON.stringify({ m: mdl, pairs: _pairs, on: true })); } catch (e) {}
+        try { if (mdl) localStorage.setItem(lsKey(), JSON.stringify({ m: mdl, pairs: _pairs, on: true })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:saveModel'); }
     }
     function loadModel() {
         try {
@@ -282,9 +282,9 @@
             var o = JSON.parse(raw);
             // #17: dvojice obnov NEZÁVISLE na platnosti modelu (jinak se rozpracované páry po reloadu ztratí)
             if (o) { if (Array.isArray(o.pairs)) _pairs = o.pairs; if (o.m && isFinite(o.m.a)) { _model = o.m; _model._on = (o.on !== false); } }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:loadModel'); }
     }
-    function clearModel() { try { localStorage.removeItem(lsKey()); } catch (e) {} _model = null; }
+    function clearModel() { try { localStorage.removeItem(lsKey()); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:clearModel'); } _model = null; }
 
     // ---- veřejné API: AGLocalize ----------------------------------------------
     // apply(lat,lng): srovná surové WGS na lokalizovaný S-JTSK a zpět na WGS.
@@ -321,7 +321,7 @@
         setActive: function (on) { if (_model) { _model._on = !!on; saveModel(_model); renderState(); } },
         recompute: function () { _model = buildModel(); if (_model) { _model._on = true; saveModel(_model); } return _model; }
     };
-    try { window.AGLocalize = AGLocalize; } catch (e) {}
+    try { window.AGLocalize = AGLocalize; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:recompute'); }
 
     // ================= UI ======================================================
     function ensureModal() {
@@ -443,7 +443,7 @@
     function recomputeAndRender() {
         _model = buildModel();
         if (_model) { _model._on = true; saveModel(_model); }
-        else { try { localStorage.setItem(lsKey(), JSON.stringify({ m: null, pairs: _pairs, on: false })); } catch (e) {} }
+        else { try { localStorage.setItem(lsKey(), JSON.stringify({ m: null, pairs: _pairs, on: false })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:recomputeAndRender'); } }
         fillSelect(); renderState(); renderList(); renderResult(); renderGps(); updateWarn();
     }
 
@@ -538,7 +538,7 @@
                 eyeH: window.AGPose.eyeH, source: 'localized', note: 'Helmert lokalizace'
             });
             // #6 idempotence: source 'localized' → showPose (vyžaduje 'gps') zhasne, druhý klik nemožný (žádný dvojitý posun)
-            try { renderResult(); } catch (e) {}
+            try { renderResult(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:applyToPose'); }
             agAlert('AR počátek srovnán', 'Počátek AR byl posunut Helmertovou lokalizací (' + (_model.n) + ' bodů).'
                 + (extr ? '\n\n⚠ Počátek leží MIMO obalový polygon referenčních bodů — jde o extrapolaci, ber s rezervou.' : ''));
         } catch (e) { agAlert('Nelze aplikovat', 'Srovnání AR počátku selhalo.'); }
@@ -602,7 +602,7 @@
 
     // ---- registrace do launcheru + fallback tlačítko --------------------------
     function register() {
-        try { loadModel(); } catch (e) {}
+        try { loadModel(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:register'); }
         injectStyles();
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'localization-helmert', label: 'Lokalizace (Helmert)', icon: ICON, cat: 'AR a kalibrace', onClick: openTool, order: 8 });

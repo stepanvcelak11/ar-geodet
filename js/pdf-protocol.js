@@ -38,8 +38,8 @@
     function alertFail(title, message) {
         try {
             if (typeof window.agAlert === 'function') { window.agAlert({ title: title, message: message }); return; }
-        } catch (e) {}
-        try { agInfo(title + '\n\n' + String(message).replace(/<[^>]*>/g, '')); } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdf-protocol:alertFail'); }
+        try { agInfo(title + '\n\n' + String(message).replace(/<[^>]*>/g, '')); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdf-protocol:alertFail'); }
     }
 
     // --- transliterace na ASCII (bezpečný fallback, když TTF font selže) ---------
@@ -136,7 +136,7 @@
     function getPoints() {
         try {
             if (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) return persistentCustomPoints;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdf-protocol:getPoints'); }
         return [];
     }
     function getProjectName() {
@@ -155,13 +155,13 @@
 
     // Příznak Vytyčeno: nejdřív živá globální mapa stakeoutData, jinak z úložiště.
     function getStakeoutMap() {
-        try { if (typeof stakeoutData !== 'undefined' && stakeoutData) return stakeoutData; } catch (e) {}
+        try { if (typeof stakeoutData !== 'undefined' && stakeoutData) return stakeoutData; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdf-protocol:getStakeoutMap'); }
         try {
             if (typeof getStoredData === 'function') {
                 var s = getStoredData('arStakeout12');
                 if (s) return JSON.parse(s) || {};
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdf-protocol:getStakeoutMap'); }
         return {};
     }
 
@@ -185,13 +185,13 @@
                 return loadPointDoc(id).then(function (doc) {
                     try {
                         if (typeof _normalizeDoc === 'function') _normalizeDoc(doc);
-                    } catch (e) {}
+                    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdf-protocol:getPointThumb'); }
                     if (doc && Array.isArray(doc.photos) && doc.photos.length) return doc.photos[0];
                     if (doc && doc.photo) return doc.photo; // starý formát
                     return null;
                 }).catch(function () { return null; });
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdf-protocol:getPointThumb'); }
         return Promise.resolve(null);
     }
 
@@ -216,7 +216,7 @@
                     try {
                         if (hasUni) doc.setFont(FONT, 'normal'); // náš TTF má jen normal
                         else doc.setFont('helvetica', style || 'normal');
-                    } catch (e) { try { doc.setFont('helvetica', 'normal'); } catch (e2) {} }
+                    } catch (e) { try { doc.setFont('helvetica', 'normal'); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'pdf-protocol:setFont'); } }
                 }
 
                 // Přednačteme náhledy fotek (async), pak vykreslíme.

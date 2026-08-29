@@ -63,7 +63,7 @@
                 return;
             }
             nudgeHeadingOffset(delta);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'calib-profiles:applyHeadingOffset'); }
     }
 
     function applyFov(fovH, fovV) {
@@ -74,7 +74,7 @@
             if (typeof setStoredData === 'function') setStoredData('arVisSettings12', JSON.stringify(visSettings));
             // AR čte visSettings.fov* každý snímek → projeví se živě; jen pro jistotu:
             if (typeof applyVisualSettings === 'function') applyVisualSettings();
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'calib-profiles:applyFov'); }
         // synchronizace posuvníků v Nastavení, ať hodnoty sedí
         syncSlider('s-fovh', 's-fovh-val', getFovH());
         syncSlider('s-fovv', 's-fovv-val', getFovV());
@@ -86,7 +86,7 @@
             if (sl) sl.value = val;
             var lbl = document.getElementById(lblId);
             if (lbl) lbl.innerText = val;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'calib-profiles:syncSlider'); }
     }
 
     // --------------------------------------------------------------------------------
@@ -94,7 +94,7 @@
     // --------------------------------------------------------------------------------
     function alertMsg(opts) {
         if (typeof window.agAlert === 'function') { window.agAlert(opts); return; }
-        try { agInfo((opts.title ? opts.title + '\n\n' : '') + String(opts.message || '').replace(/<[^>]+>/g, '')); } catch (e) {}
+        try { agInfo((opts.title ? opts.title + '\n\n' : '') + String(opts.message || '').replace(/<[^>]+>/g, '')); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'calib-profiles:alertMsg'); }
     }
     function confirmMsg(opts) {
         if (typeof window.agConfirm === 'function') return window.agConfirm(opts);
@@ -157,7 +157,7 @@
         if (typeof p.headingOffset === 'number') applyHeadingOffset(p.headingOffset);
         applyFov(p.fovH, p.fovV);
         // obnov zobrazení korekce v modálu kompasu
-        try { if (typeof updateHeadingOffsetVal === 'function') updateHeadingOffsetVal(); } catch (e) {}
+        try { if (typeof updateHeadingOffsetVal === 'function') updateHeadingOffsetVal(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'calib-profiles:useProfile'); }
         renderList();
         alertMsg({
             title: 'Profil použit',
@@ -240,7 +240,7 @@
                 wrapped._agCalibProf = true;
                 window.openCompassModal = wrapped;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'calib-profiles:wrapped'); }
     }
 
     // --------------------------------------------------------------------------------

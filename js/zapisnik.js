@@ -27,8 +27,8 @@
     // ---- úložiště (per zakázka; fallback čisté localStorage) -------------------------
     function loadAll() {
         var s = null;
-        try { s = (typeof getStoredData === 'function') ? getStoredData(KEY) : localStorage.getItem(KEY); } catch (e) {}
-        var d = null; try { d = s ? JSON.parse(s) : null; } catch (e) {}
+        try { s = (typeof getStoredData === 'function') ? getStoredData(KEY) : localStorage.getItem(KEY); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zapisnik:loadAll'); }
+        var d = null; try { d = s ? JSON.parse(s) : null; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zapisnik:loadAll'); }
         if (!d || typeof d !== 'object') d = {};
         if (!Array.isArray(d.niv)) d.niv = [];
         if (!Array.isArray(d.sm)) d.sm = [];
@@ -51,8 +51,8 @@
     }
     function saveAll(d) {
         var s = JSON.stringify(d);
-        try { if (typeof setStoredData === 'function') { setStoredData(KEY, s); return; } } catch (e) {}
-        try { localStorage.setItem(KEY, s); } catch (e) {}
+        try { if (typeof setStoredData === 'function') { setStoredData(KEY, s); return; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zapisnik:saveAll'); }
+        try { localStorage.setItem(KEY, s); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zapisnik:saveAll'); }
     }
     function num(v) { if (v == null || v === '') return null; return agNum(v); }
     function f3(v) { return v == null ? '—' : v.toFixed(3); }
@@ -150,7 +150,7 @@
         cancel.onclick = function () { d.classList.remove('open'); };
         inp.onkeydown = function (e) { if (e.key === 'Enter') ok.onclick(); };
         d.classList.add('open');
-        setTimeout(function () { try { inp.focus(); } catch (e) {} }, 60);
+        setTimeout(function () { try { inp.focus(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zapisnik:onkeydown'); } }, 60);
     }
 
     // ---- overlay ------------------------------------------------------------------------

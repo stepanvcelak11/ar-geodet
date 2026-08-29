@@ -57,17 +57,17 @@
     }
     function fmt(n, d) { return isFinite(n) ? n.toFixed(d == null ? 2 : d).replace('.', ',') : '—'; }
     function info(m, t) {
-        try { if (typeof window.agInfo === 'function') return window.agInfo(m, t); } catch (e) {}
-        try { alert(String(m).replace(/<[^>]*>/g, '')); } catch (e) {}
+        try { if (typeof window.agInfo === 'function') return window.agInfo(m, t); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kontrola-vrstvy:info'); }
+        try { alert(String(m).replace(/<[^>]*>/g, '')); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kontrola-vrstvy:info'); }
     }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kontrola-vrstvy:toast'); } }
 
     function loadCfg() {
         var d = { mode: 'kota', kota: null, tol: 2, anten: 0, planeIds: [], useVrstvy: true, manualOffset: null };
-        try { var v = JSON.parse(localStorage.getItem(CFG_KEY)); if (v && typeof v === 'object') Object.assign(d, v); } catch (e) {}
+        try { var v = JSON.parse(localStorage.getItem(CFG_KEY)); if (v && typeof v === 'object') Object.assign(d, v); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kontrola-vrstvy:loadCfg'); }
         return d;
     }
-    function saveCfg(c) { try { localStorage.setItem(CFG_KEY, JSON.stringify(c)); } catch (e) {} }
+    function saveCfg(c) { try { localStorage.setItem(CFG_KEY, JSON.stringify(c)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kontrola-vrstvy:saveCfg'); } }
 
     function loadLog() {
         try {
@@ -81,7 +81,7 @@
         try {
             if (typeof window.setStoredData === 'function') setStoredData(LOG_KEY, s);
             else localStorage.setItem(LOG_KEY, s);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kontrola-vrstvy:saveLog'); }
     }
 
     // body zakázky, které mají výšku — kandidáti na proložení roviny
@@ -92,7 +92,7 @@
             persistentCustomPoints.forEach(function (p) {
                 if (p && p.vyska != null && isFinite(Number(p.vyska))) out.push(p);
             });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kontrola-vrstvy:pointsWithZ'); }
         return out;
     }
 
@@ -183,16 +183,16 @@
             if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.alt != null && isFinite(gpsAvgResult.alt)) {
                 return { z: gpsAvgResult.alt, sig: gpsAvgResult.altSterr, n: gpsAvgResult.altN, src: 'průměr GPS' };
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kontrola-vrstvy:phoneAlt'); }
         try {
             if (typeof userAlt !== 'undefined' && userAlt != null && isFinite(userAlt)) return { z: userAlt, sig: null, n: 1, src: 'poslední fix GPS' };
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kontrola-vrstvy:phoneAlt'); }
         return null;
     }
     function here() {
         try {
             if (typeof userLat !== 'undefined' && userLat != null) return { lat: userLat, lng: userLng, acc: (typeof currentGpsAccuracy !== 'undefined' ? currentGpsAccuracy : null) };
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kontrola-vrstvy:here'); }
         return null;
     }
 
@@ -260,7 +260,7 @@
     function close() {
         var m = document.getElementById(MODAL_ID);
         if (m) m.style.display = 'none';
-        try { if (typeof fixAppLayout === 'function') fixAppLayout(); } catch (e) {}
+        try { if (typeof fixAppLayout === 'function') fixAppLayout(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kontrola-vrstvy:close'); }
     }
 
     // Přepočet a vykreslení velkého výsledku. Volá se při každé změně vstupu.
@@ -356,7 +356,7 @@
         var nn2 = document.getElementById('agkv-nazev');
         if (nn2) nn2.value = nextName;
         var nz = document.getElementById('agkv-zmer');
-        try { if (nz) nz.focus(); } catch (e) {}
+        try { if (nz) nz.focus(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kontrola-vrstvy:saveMeasurement'); }
     }
 
     function delRec(i) {
@@ -390,7 +390,7 @@
         a.href = URL.createObjectURL(blob);
         a.download = 'kontrola-vrstvy-' + new Date().toISOString().slice(0, 10) + '.csv';
         document.body.appendChild(a); a.click();
-        setTimeout(function () { try { URL.revokeObjectURL(a.href); a.remove(); } catch (e) {} }, 1000);
+        setTimeout(function () { try { URL.revokeObjectURL(a.href); a.remove(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kontrola-vrstvy:exportCsv'); } }, 1000);
     }
 
     function render() {

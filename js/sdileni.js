@@ -279,7 +279,7 @@
                 if (!pkg || pkg.format !== PKG_FORMAT || !Array.isArray(pkg.points) || !pkg.points.length) {
                     agInfo('Tento soubor neobsahuje body z AR Geodet.'); return;
                 }
-                try { if (typeof closeScanQR === 'function') closeScanQR(); } catch (e) {}
+                try { if (typeof closeScanQR === 'function') closeScanQR(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'sdileni:openImportPointsFile'); }
                 importDecoded(pkg.points, 'soubor-body');
             }).catch(function () { agInfo('Soubor se nepodařilo přečíst.'); });
         });
@@ -312,7 +312,7 @@
             const u = appUrl();
             const done = function () { if (typeof quickToast === 'function') quickToast('Odkaz zkopírován.'); };
             if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(u).then(done).catch(function () {});
-            else { try { const i = document.createElement('input'); i.value = u; document.body.appendChild(i); i.select(); document.execCommand('copy'); i.remove(); done(); } catch (e) {} }
+            else { try { const i = document.createElement('input'); i.value = u; document.body.appendChild(i); i.select(); document.execCommand('copy'); i.remove(); done(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'sdileni:done'); } }
         });
         const shareBtn = m.querySelector('#qr-app-share');
         if (navigator.share) shareBtn.addEventListener('click', function () { navigator.share({ title: 'AR Geodet', text: 'Geodetická AR appka — hledání a vytyčování bodů v terénu:', url: appUrl() }).catch(function () {}); });

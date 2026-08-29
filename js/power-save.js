@@ -36,12 +36,12 @@
 
     function loadCfg() {
         var c = {};
-        try { var s = localStorage.getItem(LS); if (s) c = JSON.parse(s) || {}; } catch (e) {}
+        try { var s = localStorage.getItem(LS); if (s) c = JSON.parse(s) || {}; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:loadCfg'); }
         var out = {};
         for (var k in DEFAULTS) out[k] = (typeof c[k] === 'boolean') ? c[k] : DEFAULTS[k];
         return out;
     }
-    function saveCfg() { try { localStorage.setItem(LS, JSON.stringify(cfg)); } catch (e) {} }
+    function saveCfg() { try { localStorage.setItem(LS, JSON.stringify(cfg)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:saveCfg'); } }
 
     // ---- prodlevy (ms) ---------------------------------------------------------
     // BATERIE: 1000 ms místo dřívějších 500. Všechny prodlevy uspávání jsou 2,5 s a víc,
@@ -76,10 +76,10 @@
         try {
             w.id = _natWatch(function (pos) {
                 gpsLastFix = Date.now();
-                try { if (typeof w.success === 'function') w.success(pos); } catch (e) {}
+                try { if (typeof w.success === 'function') w.success(pos); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:_startOne'); }
             }, w.error, w.opts);
             w.active = true;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:_startOne'); }
     }
 
     (function patchGeolocation() {
@@ -102,14 +102,14 @@
                     var key = id - HANDLE_BASE;
                     _watches = _watches.filter(function (w) {
                         if (w.key !== key) return true;
-                        if (w.active && w.id != null) { try { _natClear(w.id); } catch (e) {} }
+                        if (w.active && w.id != null) { try { _natClear(w.id); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:clearWatch'); } }
                         return false;
                     });
                     return;
                 }
                 // nativní ID (watch vzniklý ještě před nasazením patche) — nech projít
                 _watches = _watches.filter(function (w) { return w.id !== id; });
-                try { return _natClear(id); } catch (e) {}
+                try { return _natClear(id); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:clearWatch'); }
             };
         } catch (e) { /* fail-silent — appka jede dál bez správy GPS */ }
     })();
@@ -118,7 +118,7 @@
         _gpsPaused = true;
         _watches.forEach(function (w) {
             // POZOR: nativní clear (ne patchovaný) — záznam musí ve _watches zůstat, ať ho umíme probudit
-            if (w.active && w.id != null) { try { _natClear(w.id); } catch (e) {} w.active = false; }
+            if (w.active && w.id != null) { try { _natClear(w.id); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:pauseGPS'); } w.active = false; }
         });
     }
     function resumeGPS() {
@@ -180,12 +180,12 @@
     function pauseOrientation() {
         _orientPaused = true;
         var rem = window.__agOrigRem;
-        _orient.forEach(function (l) { try { rem(l.type, l.fn, l.opts); } catch (e) {} });
+        _orient.forEach(function (l) { try { rem(l.type, l.fn, l.opts); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:pauseOrientation'); } });
     }
     function resumeOrientation() {
         _orientPaused = false;
         var add = window.__agOrigAdd;
-        _orient.forEach(function (l) { try { add(l.type, l.fn, l.opts); } catch (e) {} });
+        _orient.forEach(function (l) { try { add(l.type, l.fn, l.opts); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:resumeOrientation'); } });
     }
 
     // =====================================================================
@@ -205,9 +205,9 @@
             // záloha, kdyby grafika.js neměla helper: zastavit stopu přímo
             var v = document.getElementById('camera-feed');
             if (v && v.srcObject && v.srcObject.getTracks) {
-                v.srcObject.getTracks().forEach(function (t) { try { t.stop(); } catch (e) {} });
+                v.srcObject.getTracks().forEach(function (t) { try { t.stop(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:pauseCamera'); } });
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:pauseCamera'); }
     }
     function resumeCamera() {
         try {
@@ -215,7 +215,7 @@
             if (typeof viewMode !== 'undefined' && viewMode === 'map') return; // v mapě kamera nemá běžet
             if (cameraLive()) return;                                          // appka už ji nahodila sama
             if (typeof startCameraAndCompass === 'function') startCameraAndCompass(true);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:resumeCamera'); }
     }
 
     // =====================================================================
@@ -255,7 +255,7 @@
         return !!(el && el.classList && el.classList.contains('open'));
     }
     function heavyOpen() {
-        try { if (document.querySelector(HEAVY_SEL)) return true; } catch (e) {}
+        try { if (document.querySelector(HEAVY_SEL)) return true; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:heavyOpen'); }
         if (sideMenuOpen()) return true;                  // „Více"
         for (var i = 0; i < HEAVY_IDS.length; i++) if (shownById(HEAVY_IDS[i])) return true;
         return false;
@@ -302,20 +302,20 @@
                 // návratu do appky přes ensureCameraAlive), uspíme ho znovu. Dřív se stav
                 // „resting" už nepřehodnocoval → kamera svítila dál za panelem a indikátor
                 // přitom tvrdil „uspáno".
-                if (typeof liveFn === 'function' && liveFn()) { try { pauseFn(); } catch (e) {} }
+                if (typeof liveFn === 'function' && liveFn()) { try { pauseFn(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:manage'); } }
                 return;
             }
             if (!s.since) s.since = now;
-            if (now - s.since >= delay) { try { pauseFn(); } catch (e) {} s.resting = true; }
+            if (now - s.since >= delay) { try { pauseFn(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:manage'); } s.resting = true; }
         } else {
             s.since = 0;
-            if (s.resting) { try { resumeFn(); } catch (e) {} s.resting = false; }
+            if (s.resting) { try { resumeFn(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:manage'); } s.resting = false; }
         }
     }
     function wakeAll() {
-        if (st.gps.resting) { try { resumeGPS(); } catch (e) {} st.gps.resting = false; }
-        if (st.compass.resting) { try { resumeOrientation(); } catch (e) {} st.compass.resting = false; }
-        if (st.cam.resting) { try { resumeCamera(); } catch (e) {} st.cam.resting = false; }
+        if (st.gps.resting) { try { resumeGPS(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:wakeAll'); } st.gps.resting = false; }
+        if (st.compass.resting) { try { resumeOrientation(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:wakeAll'); } st.compass.resting = false; }
+        if (st.cam.resting) { try { resumeCamera(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:wakeAll'); } st.cam.resting = false; }
         st.gps.since = st.compass.since = st.cam.since = 0;
         restoreScreen();
     }
@@ -338,7 +338,7 @@
         _lastAct = Date.now();
         if (_wlReleased) {
             _wlReleased = false;
-            try { if (typeof window.agRequestWakeLock === 'function') window.agRequestWakeLock(); } catch (e) {}
+            try { if (typeof window.agRequestWakeLock === 'function') window.agRequestWakeLock(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:noteActivity'); }
         }
     }
     function restoreScreen() { if (_wlReleased) noteActivity(); }
@@ -358,7 +358,7 @@
         if (movedSinceLast()) _lastAct = now;                       // chůze = uživatel pracuje
         if (_wlReleased) return;
         if (now - _lastAct < SCREEN_IDLE_MS) return;
-        try { if (window.agWakeLockHeld()) { window.agReleaseWakeLock(); _wlReleased = true; } } catch (e) {}
+        try { if (window.agWakeLockHeld()) { window.agReleaseWakeLock(); _wlReleased = true; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:manageScreen'); }
     }
 
     function tick() {
@@ -411,7 +411,7 @@
             if (typeof currentGpsAccuracy !== 'undefined' && isFinite(currentGpsAccuracy) && currentGpsAccuracy > 0) {
                 return '±' + Math.round(currentGpsAccuracy) + ' m';
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:gpsAccuracyTxt'); }
         return '';
     }
     function updateIndicator() {
@@ -442,21 +442,21 @@
                 + [st.cam.resting ? 'kamera' : '', st.compass.resting ? 'kompas' : '', st.gps.resting ? 'GPS' : '']
                     .filter(Boolean).join(', ') + ')' : '')
                 + (_wlReleased ? '  ·  displej smí zhasnout (delší nečinnost) — dotykem se vrátí' : '');
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:updateIndicator'); }
     }
 
     // =====================================================================
     // 3) VAROVÁNÍ NA RUŠENÍ KOMPASU (skrýt přes třídu na <body>)
     // =====================================================================
     function applyCompassWarn() {
-        try { document.body.classList.toggle('ag-no-compass-warn', !cfg.compassWarn); } catch (e) {}
+        try { document.body.classList.toggle('ag-no-compass-warn', !cfg.compassWarn); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:applyCompassWarn'); }
     }
 
     // Sklo (rozostreni) nad zivou kamerou — trida jen ZAPINA drazsi variantu zpet.
     // Pri odpojeni teto vrstvy se trida nikdy nepridá, takze zustane uspornejsi
     // (neprusvitna) varianta — coz je zamer, ne regrese.
     function applyCamGlass() {
-        try { document.body.classList.toggle('ag-cam-glass', !!cfg.camGlass); } catch (e) {}
+        try { document.body.classList.toggle('ag-cam-glass', !!cfg.camGlass); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:applyCamGlass'); }
     }
 
     // =====================================================================
@@ -502,7 +502,7 @@
             cInd.addEventListener('change', function () { cfg.indicator = cInd.checked; saveCfg(); updateIndicator(); });
             cWarn.addEventListener('change', function () { cfg.compassWarn = cWarn.checked; saveCfg(); applyCompassWarn(); });
             if (cGlass) cGlass.addEventListener('change', function () { cfg.camGlass = cGlass.checked; saveCfg(); applyCamGlass(); });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:syncDisabled'); }
     }
 
     // =====================================================================
@@ -529,7 +529,7 @@
                 _visBound = true;
             }
             tick();
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:init'); }
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

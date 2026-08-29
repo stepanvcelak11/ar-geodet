@@ -33,15 +33,15 @@
                 if (parts[i] && parts[i].indexOf('zkratka=') !== 0) keep.push(parts[i]);
             }
             var clean = window.location.pathname + (keep.length ? '?' + keep.join('&') : '') + (window.location.hash || '');
-            try { window.history.replaceState(null, '', clean); } catch (e) {}
+            try { window.history.replaceState(null, '', clean); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'shortcuts'); }
         }
-    } catch (e) {}
+    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'shortcuts'); }
     if (action !== 'novy-bod' && action !== 'pokracovat' && action !== 'dochazka') return;
 
     // ---- pomocníci --------------------------------------------------------------------
     function toast(msg) {
-        try { if (typeof window.quickToast === 'function') return window.quickToast(msg); } catch (e) {}
-        try { agInfo(msg); } catch (e) {}
+        try { if (typeof window.quickToast === 'function') return window.quickToast(msg); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'shortcuts:toast'); }
+        try { agInfo(msg); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'shortcuts:toast'); }
     }
     // firemní zámek: stejná podmínka, jakou používá samo ucty.js — třída ag-prelock
     // pryč a žádný přihlašovací overlay v DOM (po úspěšném přihlášení se odstraní)
@@ -50,7 +50,7 @@
             if (document.documentElement.classList.contains('ag-prelock')) return false;
             if (document.getElementById('ag-login')) return false;
             if (document.getElementById('ag-gate')) return false;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'shortcuts:gateClear'); }
         return true;
     }
     function appStarted() { return !!(document.body && document.body.classList.contains('app-started')); }
@@ -62,20 +62,20 @@
     // jednorázové čekání na podmínku (poll 300 ms, ohraničené timeoutem — samo se uklidí)
     function waitFor(cond, timeoutMs, cb) {
         var ok = false;
-        try { ok = !!cond(); } catch (e) {}
+        try { ok = !!cond(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'shortcuts:waitFor'); }
         if (ok) { cb(true); return; }
         var waited = 0;
         var t = setInterval(function () {
             waited += 300;
             var fine = false;
-            try { fine = !!cond(); } catch (e) {}
+            try { fine = !!cond(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'shortcuts:waitFor'); }
             if (fine) { clearInterval(t); cb(true); }
             else if (waited >= timeoutMs) { clearInterval(t); cb(false); }
         }, 300);
     }
     function startApp() {
         if (appStarted()) return;
-        try { if (typeof window.startAppFromWelcome === 'function') window.startAppFromWelcome(); } catch (e) {}
+        try { if (typeof window.startAppFromWelcome === 'function') window.startAppFromWelcome(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'shortcuts:startApp'); }
     }
 
     // klíč dlaždice v Nástrojích — stejná logika jako js/pokracovat.js / tools-plus.js
@@ -113,7 +113,7 @@
                 setTimeout(function () {
                     try {
                         if (typeof window.openNewPointModal === 'function') { window.openNewPointModal(); return; }
-                    } catch (e) {}
+                    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'shortcuts:runNovyBod'); }
                     toast('Formulář nového bodu se nepodařilo otevřít.');
                 }, 900);
             });
@@ -128,11 +128,11 @@
             if (appStarted()) {
                 var rec = lastToolRec();
                 var tile = rec ? findTile(rec.key) : null;
-                if (tile) setTimeout(function () { try { tile.click(); } catch (e) {} }, 900);
+                if (tile) setTimeout(function () { try { tile.click(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'shortcuts:btnOn'); } }, 900);
                 return;
             }
             var b = document.getElementById('ag-pk-btn');
-            if (b && b.classList.contains('on')) { try { b.click(); return; } catch (e) {} }
+            if (b && b.classList.contains('on')) { try { b.click(); return; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'shortcuts:btnOn'); } }
             startApp();   // záložní cesta: bez záznamu aspoň spustit appku
         });
     }

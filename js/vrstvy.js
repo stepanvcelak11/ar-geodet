@@ -80,7 +80,7 @@
     var D = null;
 
     function load() {
-        try { var v = JSON.parse(localStorage.getItem(KEY)); if (v && Array.isArray(v.skladby)) { D = v; return; } } catch (e) {}
+        try { var v = JSON.parse(localStorage.getItem(KEY)); if (v && Array.isArray(v.skladby)) { D = v; return; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vrstvy:load'); }
         // první spuštění: ukázková skladba, ať je vidět princip
         D = {
             skladby: [{
@@ -99,7 +99,7 @@
             sel: { sk: 0, ref: 2, lay: 1 }
         };
     }
-    function save() { try { localStorage.setItem(KEY, JSON.stringify(D)); } catch (e) {} }
+    function save() { try { localStorage.setItem(KEY, JSON.stringify(D)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vrstvy:save'); } }
     function skladba() { if (!D.skladby.length) return null; D.sel.sk = Math.min(Math.max(0, D.sel.sk | 0), D.skladby.length - 1); return D.skladby[D.sel.sk]; }
 
     // ---- styly ---------------------------------------------------------------
@@ -532,7 +532,7 @@
     function closeModal() {
         var ov = document.getElementById(MODAL_ID);
         if (ov) ov.style.display = 'none';
-        try { if (typeof fixAppLayout === 'function') fixAppLayout(); } catch (e) {}
+        try { if (typeof fixAppLayout === 'function') fixAppLayout(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vrstvy:closeModal'); }
     }
 
     window.agOpenVrstvy = openModal;

@@ -48,7 +48,7 @@
     // ------------------------------------------------------------------
     function U() { return window.AGUcty || null; }
     function pid() { try { return localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { return 'default'; } }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:toast'); } }
 
     // klíč zakázky na serveru = normalizovaný NÁZEV zakázky (viz hlavička)
     function jobKey(p) {
@@ -60,7 +60,7 @@
                     if (list[i] && list[i].id === p) { name = list[i].name; break; }
                 }
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:jobKey'); }
         var k = String(name || p).replace(/\s+/g, ' ');
         k = k.replace(/^\s+|\s+$/g, '').toLowerCase();
         return k.slice(0, 60) || String(p);
@@ -70,7 +70,7 @@
     // (úklid podle prefixu) smaže automaticky s ostatními daty zakázky
     function enabled(p) { try { return localStorage.getItem(p + '_agCloudSync') === '1'; } catch (e) { return false; } }
     function setEnabled(p, on) {
-        try { if (on) localStorage.setItem(p + '_agCloudSync', '1'); else localStorage.removeItem(p + '_agCloudSync'); } catch (e) {}
+        try { if (on) localStorage.setItem(p + '_agCloudSync', '1'); else localStorage.removeItem(p + '_agCloudSync'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:setEnabled'); }
     }
 
     // stav synchronizace zakázky: { since: kurzor serveru, ok: čas posledního
@@ -84,10 +84,10 @@
                 if (typeof s.since !== 'number') s.since = 0;
                 return s;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:loadSt'); }
         return { since: 0, ok: 0, known: {} };
     }
-    function saveSt(p, s) { try { localStorage.setItem(p + '_agCloudSyncSt', JSON.stringify(s)); } catch (e) {} }
+    function saveSt(p, s) { try { localStorage.setItem(p + '_agCloudSyncSt', JSON.stringify(s)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:saveSt'); } }
     function pruneKnown(st) {
         var cut = Date.now() - TOMB_KEEP;
         for (var id in st.known) {
@@ -190,7 +190,7 @@
                 c.hidden = false;
                 arPoints.push(c);
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:insertLocal'); }
     }
 
     function updateLocal(lp, np) {
@@ -207,11 +207,11 @@
                     if (np.vyska != null) a.vyska = np.vyska; else if (a.vyska != null) delete a.vyska;
                     if (np.acc != null) a.acc = np.acc; else if (a.acc != null) delete a.acc;
                     if (np.prov) a.prov = np.prov;
-                    try { if (a.element) { a.element.remove(); a.element = null; } } catch (e) {}
-                    try { if (a.distElement) { a.distElement.remove(); a.distElement = null; } } catch (e) {}
+                    try { if (a.element) { a.element.remove(); a.element = null; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:updateLocal'); }
+                    try { if (a.distElement) { a.distElement.remove(); a.distElement = null; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:updateLocal'); }
                 }
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:updateLocal'); }
     }
 
     function removeLocal(id) {
@@ -222,22 +222,22 @@
             if (typeof arPoints !== 'undefined' && Array.isArray(arPoints)) {
                 for (i = arPoints.length - 1; i >= 0; i--) {
                     if (arPoints[i] && String(arPoints[i].id) === id) {
-                        try { if (arPoints[i].element) arPoints[i].element.remove(); } catch (e) {}
-                        try { if (arPoints[i].distElement) arPoints[i].distElement.remove(); } catch (e) {}
+                        try { if (arPoints[i].element) arPoints[i].element.remove(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:removeLocal'); }
+                        try { if (arPoints[i].distElement) arPoints[i].distElement.remove(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:removeLocal'); }
                         arPoints.splice(i, 1);
                     }
                 }
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:removeLocal'); }
         try {
             if (typeof pointLines !== 'undefined' && Array.isArray(pointLines)) {
                 var n0 = pointLines.length;
                 for (i = pointLines.length - 1; i >= 0; i--) {
                     if (pointLines[i] && (pointLines[i].aId === id || pointLines[i].bId === id)) pointLines.splice(i, 1);
                 }
-                if (n0 !== pointLines.length && typeof saveLines === 'function') { try { saveLines(); } catch (e) {} }
+                if (n0 !== pointLines.length && typeof saveLines === 'function') { try { saveLines(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:removeLocal'); } }
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:removeLocal'); }
     }
 
     // stejný fyzický bod vzniklý nezávisle na obou zařízeních (shodné jméno
@@ -260,7 +260,7 @@
             if (typeof arPoints !== 'undefined' && Array.isArray(arPoints)) {
                 for (i = 0; i < arPoints.length; i++) { if (arPoints[i] && String(arPoints[i].id) === oldId) arPoints[i].id = newId; }
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:adoptId'); }
         try {
             if (typeof pointLines !== 'undefined' && Array.isArray(pointLines)) {
                 var ch = false;
@@ -269,15 +269,15 @@
                     if (l.aId === oldId) { l.aId = newId; ch = true; }
                     if (l.bId === oldId) { l.bId = newId; ch = true; }
                 }
-                if (ch && typeof saveLines === 'function') { try { saveLines(); } catch (e) {} }
+                if (ch && typeof saveLines === 'function') { try { saveLines(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:adoptId'); } }
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:adoptId'); }
         // foto-dokumentace je klíčovaná id bodu → překopírovat pod nové id
         try {
             if (typeof loadPointDoc === 'function' && typeof savePointDoc === 'function') {
-                loadPointDoc(oldId).then(function (doc) { if (doc) { try { savePointDoc(newId, doc); } catch (e) {} } });
+                loadPointDoc(oldId).then(function (doc) { if (doc) { try { savePointDoc(newId, doc); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:adoptId'); } } });
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:adoptId'); }
     }
 
     function applyRows(p, st, rows) {
@@ -334,11 +334,11 @@
     function persistAndRedraw(p, res) {
         if (pid() !== p) return;
         var P = points(); if (!P) return;
-        try { if (typeof setStoredData === 'function') setStoredData('arCustomPoints12', JSON.stringify(P)); } catch (e) {}
-        try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) {}
-        try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) {}
-        try { if (typeof renderManageList === 'function') renderManageList(); } catch (e) {}
-        try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) {}
+        try { if (typeof setStoredData === 'function') setStoredData('arCustomPoints12', JSON.stringify(P)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:persistAndRedraw'); }
+        try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:persistAndRedraw'); }
+        try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:persistAndRedraw'); }
+        try { if (typeof renderManageList === 'function') renderManageList(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:persistAndRedraw'); }
+        try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:persistAndRedraw'); }
         var parts = [];
         if (res.add) parts.push('nové: ' + res.add);
         if (res.edit) parts.push('upravené: ' + res.edit);

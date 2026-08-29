@@ -152,7 +152,7 @@
         _timer = setInterval(function () {
             if (!modalOpen()) { clearInterval(_timer); _timer = null; return; }
             var row = document.getElementById(ROW_ID);
-            if (row) { try { renderRow(row); } catch (e) {} }
+            if (row) { try { renderRow(row); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-quality:ensureTimer'); } }
         }, 2500);
     }
 
@@ -163,8 +163,8 @@
         var wrapped = function () {
             var r = orig.apply(this, arguments);
             // modál i statistiky vznikají uvnitř orig; necháme doběhnout a pak vložíme.
-            setTimeout(function () { try { injectRow(); ensureTimer(); } catch (e) {} }, 0);
-            setTimeout(function () { try { injectRow(); } catch (e) {} }, 350);
+            setTimeout(function () { try { injectRow(); ensureTimer(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-quality:wrapped'); } }, 0);
+            setTimeout(function () { try { injectRow(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-quality:wrapped'); } }, 350);
             return r;
         };
         wrapped._gqWrapped = true;
@@ -175,7 +175,7 @@
     function init() {
         try { hookSatModal(); } catch (e) { console.warn('[gnss-quality] hook', e); }
         // Kdyby byl modál už otevřený (ojediněle), zkus rovnou doplnit.
-        try { if (modalOpen()) { injectRow(); ensureTimer(); } } catch (e) {}
+        try { if (modalOpen()) { injectRow(); ensureTimer(); } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-quality:init'); }
     }
 
     if (document.readyState === 'loading') {

@@ -276,3 +276,87 @@ test('karta bodu: navigační pruh a akce', async ({ page, context }) => {
     // převýšení k bodu se počítá z výšky bodu (200,5 m) — pruh ho musí zmínit
     await expect(page.locator('#ag-kb-sub')).toContainText('azimut');
 });
+
+// ================================================================================
+//  SILUETA PŘESNOSTI GPS (js/gps-silueta.js)
+// ================================================================================
+test('silueta přesnosti: kruh roste s klesající přesností a mění úroveň', async ({ page, context }) => {
+    await context.setGeolocation({ ...PRAHA, accuracy: 2 });
+    const errors = await bootApp(page, context);
+
+    const sil = page.locator('#ag-sil');
+    await expect(sil).toBeVisible();
+
+    // Prahy musí sedět se stavovou bublinou (≤5 ok, ≤15 warn, výš bad) — kdyby se
+    // rozešly, ukazují dva prvky na jedné obrazovce každý něco jiného.
+    const zmer = async (acc) => {
+        await context.setGeolocation({ ...PRAHA, accuracy: acc });
+        await expect.poll(async () => page.evaluate(
+            () => document.querySelector('#ag-sil .ag-sil-ring')?.getAttribute('rx')
+        ), { timeout: 8000 }).not.toBe(null);
+        await page.waitForTimeout(1600);
+        return page.evaluate(() => ({
+            rx: parseFloat(document.querySelector('#ag-sil .ag-sil-ring').getAttribute('rx')),
+            lvl: document.getElementById('ag-sil').getAttribute('data-lvl'),
+        }));
+    };
+
+    const dobra = await zmer(2);
+    const hranicni = await zmer(9);
+    const spatna = await zmer(25);
+
+    expect(dobra.lvl).toBe('ok');
+    expect(hranicni.lvl).toBe('warn');
+    expect(spatna.lvl).toBe('bad');
+    // horší přesnost = větší kruh; kdyby se měřítko obrátilo, ukazatel by LHAL
+    expect(hranicni.rx).toBeGreaterThan(dobra.rx);
+    expect(spatna.rx).toBeGreaterThan(hranicni.rx);
+
+    expect(errors, errors.join('\n')).toEqual([]);
+});
+
+// ================================================================================
+//  REGRESE: posluchači se při zavření okna odhlásí
+// ================================================================================
+// Měřeno 29. 8. 2026: appka ŽÁDNÝ podstatný únik nemá (10 otevření a zavření všech
+// nástrojů přidalo 7 posluchačů celkem, což je jednorázová inicializace). Poměr
+// 1139 addEventListener : 27 removeEventListener ve zdrojácích klame — drtivá
+// většina se navěsí JEDNOU při startu. Tenhle test to drží: kdyby někdo příště
+// zapsal posluchač do open() bez odhlášení v close(), počet poroste lineárně.
+test('REGRESE: opakované otevření okna nehromadí posluchače', async ({ page, context }) => {
+    await page.addInitScript(() => {
+        const T = new Map();
+        const kam = (o) => (o === window ? 'window' : o === document ? 'document'
+            : o === document.body ? 'body' : null);
+        const obal = (jmeno, delta) => {
+            const orig = EventTarget.prototype[jmeno];
+            EventTarget.prototype[jmeno] = function (typ) {
+                const k = kam(this);
+                if (k) T.set(k + ':' + typ, (T.get(k + ':' + typ) || 0) + delta);
+                return orig.apply(this, arguments);
+            };
+        };
+        obal('addEventListener', 1);
+        obal('removeEventListener', -1);
+        window.__posluchacu = () => { let s = 0; for (const v of T.values()) if (v > 0) s += v; return s; };
+    });
+
+    const errors = await bootApp(page, context);
+
+    // Protokol kvality je vlastní okno tohohle projektu a zavírá se přes AG.scope —
+    // na něm se dá únik změřit spolehlivě a bez klikání do cizích modálů.
+    await expect.poll(() => page.evaluate(() => typeof window.agOpenKvalitaBodu),
+        { timeout: 15000 }).toBe('function');
+
+    const pred = await page.evaluate(() => {
+        window.agOpenKvalitaBodu(); window.AGKvalita.close();   // první otevření = jednorázová stavba okna
+        return window.__posluchacu();
+    });
+    const po = await page.evaluate(() => {
+        for (let i = 0; i < 15; i++) { window.agOpenKvalitaBodu(); window.AGKvalita.close(); }
+        return window.__posluchacu();
+    });
+
+    expect(po - pred, `po 15 otevřeních a zavřeních přibylo ${po - pred} posluchačů — okno je neodhlašuje`).toBe(0);
+    expect(errors, errors.join('\n')).toEqual([]);
+});

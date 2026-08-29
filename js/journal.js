@@ -74,9 +74,9 @@
         };
         open().then(function (db) {
             if (!db) return;
-            try { db.transaction(STORE, 'readwrite').objectStore(STORE).add(rec); } catch (e) {}
+            try { db.transaction(STORE, 'readwrite').objectStore(STORE).add(rec); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'journal:commit'); }
         });
-        try { window.dispatchEvent(new CustomEvent('agjournal:commit', { detail: rec })); } catch (e) {}
+        try { window.dispatchEvent(new CustomEvent('agjournal:commit', { detail: rec })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'journal:commit'); }
     }
 
     function _query(index, range, limit, reverse) {
@@ -122,7 +122,7 @@
                 recs.forEach(function (r) {
                     if (!r || !r.op) return;
                     var rec = { proj: proj || r.proj || pid(), ts: r.ts || Date.now(), op: r.op, id: r.id || null, before: r.before || null, after: r.after || null, origin: r.origin || null, author: r.author || '', dev: r.dev || '' };
-                    try { os.add(rec); ok++; } catch (e) {}
+                    try { os.add(rec); ok++; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'journal:importRecords'); }
                 });
                 tx.oncomplete = function () { res(ok); };
                 tx.onerror = function () { res(ok); };
@@ -164,12 +164,12 @@
         if (typeof orig !== 'function' || orig._journalWrapped) return;
         window.deleteCustomPoint = function (id) {
             var before = null;
-            try { if (typeof persistentCustomPoints !== 'undefined') { var p = persistentCustomPoints.find(function (x) { return x.id === id; }); if (p) before = JSON.parse(JSON.stringify(p)); } } catch (e) {}
+            try { if (typeof persistentCustomPoints !== 'undefined') { var p = persistentCustomPoints.find(function (x) { return x.id === id; }); if (p) before = JSON.parse(JSON.stringify(p)); } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'journal:deleteCustomPoint'); }
             var ret = orig.apply(this, arguments);
             try {
                 var gone = !(typeof persistentCustomPoints !== 'undefined' && persistentCustomPoints.some(function (x) { return x.id === id; }));
                 if (before && gone) commit({ op: 'delete', id: id, before: before, origin: (before.prov && before.prov.origin) || null });
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'journal:deleteCustomPoint'); }
             return ret;
         };
         window.deleteCustomPoint._journalWrapped = true;

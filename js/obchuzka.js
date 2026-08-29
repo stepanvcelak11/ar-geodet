@@ -54,15 +54,15 @@
 
     // ---- pomocné ----------------------------------------------------------------------
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
-    function info(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert(t, m); } catch (e) {} toast(m); }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'obchuzka:toast'); } }
+    function info(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert(t, m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'obchuzka:info'); } toast(m); }
     function pid() { try { return localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { return 'default'; } }
     function pad2(n) { return (n < 10 ? '0' : '') + n; }
     function fmtDT(ts) { var d = new Date(ts); return d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear() + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
     function fmtNum(v, dec) { return Number(v).toFixed(dec == null ? 2 : dec).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
     function toSJTSK(lat, lng) {
-        try { if (window.GeoCore && GeoCore.toSJTSK) return GeoCore.toSJTSK(lat, lng); } catch (e) {}
-        try { if (typeof proj4 === 'function') { var c = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { y: Math.abs(c[0]), x: Math.abs(c[1]) }; } } catch (e2) {}
+        try { if (window.GeoCore && GeoCore.toSJTSK) return GeoCore.toSJTSK(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'obchuzka:toSJTSK'); }
+        try { if (typeof proj4 === 'function') { var c = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { y: Math.abs(c[0]), x: Math.abs(c[1]) }; } } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'obchuzka:toSJTSK'); }
         return null;
     }
     function fix() {
@@ -72,23 +72,23 @@
             var z = null;
             if (typeof userAlt !== 'undefined' && userAlt != null && isFinite(userAlt)) {
                 var und = 0;
-                try { if (typeof getGeoidUndulation === 'function') und = getGeoidUndulation(userLat, userLng) || 0; } catch (e) {}
+                try { if (typeof getGeoidUndulation === 'function') und = getGeoidUndulation(userLat, userLng) || 0; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'obchuzka:fix'); }
                 z = userAlt - und;                       // elipsoidická výška -> Bpv
             }
             return { lat: userLat, lng: userLng, z: z, acc: acc, ts: Date.now() };
         } catch (e2) { return null; }
     }
     function distM(a, b) {
-        try { if (typeof getDistance === 'function') return getDistance(a.lat, a.lng, b.lat, b.lng); } catch (e) {}
+        try { if (typeof getDistance === 'function') return getDistance(a.lat, a.lng, b.lat, b.lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'obchuzka:distM'); }
         var R = 6371000, r = Math.PI / 180;
         var s = Math.sin((b.lat - a.lat) * r / 2), t = Math.sin((b.lng - a.lng) * r / 2);
         var h = s * s + Math.cos(a.lat * r) * Math.cos(b.lat * r) * t * t;
         return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
     }
     function lockScreen() {
-        try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function (w) { _wake = w; })['catch'](function () {}); } catch (e) {}
+        try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function (w) { _wake = w; })['catch'](function () {}); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'obchuzka:lockScreen'); }
     }
-    function unlockScreen() { try { if (_wake) { _wake.release(); _wake = null; } } catch (e) {} }
+    function unlockScreen() { try { if (_wake) { _wake.release(); _wake = null; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'obchuzka:unlockScreen'); } }
 
     // ---- geometrie ----------------------------------------------------------------------
     // Gaussův vzorec nad rovinnými S-JTSK souřadnicemi (v ČR správný způsob výpočtu výměr).
@@ -295,7 +295,7 @@
             acc: nAcc ? (sAcc / nAcc) / Math.sqrt(n) : null,   // průměrování zlepší i deklarovanou přesnost
             ts: Date.now()
         }, true);
-        try { if (navigator.vibrate) navigator.vibrate(25); } catch (e) {}
+        try { if (navigator.vibrate) navigator.vibrate(25); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'obchuzka:finishManual'); }
         toast('Vrchol přidán (' + n + ' vzorků).');
     }
     function undo(which) {
@@ -309,7 +309,7 @@
     // ---- ukládání ------------------------------------------------------------------------------
     function all() {
         var o = {};
-        try { o = JSON.parse(localStorage.getItem(LS) || '{}') || {}; } catch (e) {}
+        try { o = JSON.parse(localStorage.getItem(LS) || '{}') || {}; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'obchuzka:all'); }
         if (!o[pid()]) o[pid()] = [];
         return o;
     }
@@ -378,7 +378,7 @@
         var a = document.createElement('a');
         a.href = url; a.download = 'obchuzka_' + (_job.name || 'vykop').replace(/\W+/g, '_') + '.csv';
         document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e) {} }, 4000);
+        setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'obchuzka:add'); } }, 4000);
     }
 
     // ---- náhled ------------------------------------------------------------------------------------
@@ -671,13 +671,13 @@
                 new MutationObserver(function () {
                     if (m.style.display === 'none' && _rec !== 'off') stopRec();
                 }).observe(m, { attributes: true, attributeFilter: ['style'] });
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'obchuzka:open'); }
         }
         m.style.display = 'flex';
         render();
     }
 
-    try { window.addEventListener('pagehide', function () { if (_rec !== 'off') stopRec(); }); } catch (e) {}
+    try { window.addEventListener('pagehide', function () { if (_rec !== 'off') stopRec(); }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'obchuzka:open'); }
 
     // ---- dlaždice v Nástrojích ---------------------------------------------------------------------------------
     var _tries = 0;

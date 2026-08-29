@@ -61,28 +61,28 @@
         if (!docs.length) {
             const id = newId();
             let old = null;
-            try { old = localStorage.getItem(KEY); } catch (e) {}
+            try { old = localStorage.getItem(KEY); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tachymetrie:loadDocs'); }
             docs = [{ id: id, name: 'Náčrt 1' }];
             if (old) {
-                try { localStorage.setItem(docKey(id), old); localStorage.removeItem(KEY); } catch (e) {}
+                try { localStorage.setItem(docKey(id), old); localStorage.removeItem(KEY); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tachymetrie:loadDocs'); }
             }
             saveDocs();
         }
         try { curDoc = localStorage.getItem(CUR_KEY); } catch (e) { curDoc = null; }
-        if (!curDoc || !docs.some(d => d.id === curDoc)) { curDoc = docs[0].id; try { localStorage.setItem(CUR_KEY, curDoc); } catch (e) {} }
+        if (!curDoc || !docs.some(d => d.id === curDoc)) { curDoc = docs[0].id; try { localStorage.setItem(CUR_KEY, curDoc); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tachymetrie:loadDocs'); } }
     }
-    function saveDocs() { try { localStorage.setItem(LIST_KEY, JSON.stringify(docs)); } catch (e) {} }
+    function saveDocs() { try { localStorage.setItem(LIST_KEY, JSON.stringify(docs)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tachymetrie:saveDocs'); } }
     function curName() { const d = docs.find(x => x.id === curDoc); return d ? d.name : 'Náčrt'; }
     function readDoc() {
         sketch = { pts: [], lines: [], labels: [], strokes: [], log: [] };
-        try { const s = localStorage.getItem(docKey(curDoc)); if (s) sketch = JSON.parse(s); } catch (e) {}
+        try { const s = localStorage.getItem(docKey(curDoc)); if (s) sketch = JSON.parse(s); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tachymetrie:readDoc'); }
         normalize();
     }
 
-    function load() { loadDocs(); readDoc(); try { curBg = localStorage.getItem(BG_KEY) || 'osm'; } catch (e) { curBg = 'osm'; } try { const st = JSON.parse(localStorage.getItem(STYLE_KEY) || 'null'); if (st && st.color) curStyle = { color: st.color, width: st.width || 3.5, dash: Array.isArray(st.dash) ? st.dash : [] }; } catch (e) {} }
+    function load() { loadDocs(); readDoc(); try { curBg = localStorage.getItem(BG_KEY) || 'osm'; } catch (e) { curBg = 'osm'; } try { const st = JSON.parse(localStorage.getItem(STYLE_KEY) || 'null'); if (st && st.color) curStyle = { color: st.color, width: st.width || 3.5, dash: Array.isArray(st.dash) ? st.dash : [] }; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tachymetrie:load'); } }
     function normalize() { if (!sketch || typeof sketch !== 'object') sketch = {}; sketch.pts = sketch.pts || []; sketch.lines = sketch.lines || []; sketch.labels = sketch.labels || []; sketch.strokes = sketch.strokes || []; sketch.log = sketch.log || []; }
-    function save() { try { localStorage.setItem(docKey(curDoc), JSON.stringify(sketch)); } catch (e) {} }
-    function saveStyle() { try { localStorage.setItem(STYLE_KEY, JSON.stringify(curStyle)); } catch (e) {} }
+    function save() { try { localStorage.setItem(docKey(curDoc), JSON.stringify(sketch)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tachymetrie:save'); } }
+    function saveStyle() { try { localStorage.setItem(STYLE_KEY, JSON.stringify(curStyle)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tachymetrie:saveStyle'); } }
     // Dekodovani stylu (novy objekt {color,width,dash}, nebo stary index do LINE_TYPES).
     function lineStyleOf(l) {
         const t = l[2];
@@ -215,7 +215,7 @@
         else if (curBg === 'ortofoto') ortoL.addTo(tmap);
         // 'none' -> zadna dlazdicova vrstva (tmava plocha)
     }
-    window.tachySetBg = function (v) { curBg = v; try { localStorage.setItem(BG_KEY, v); } catch (e) {} applyBg(); redraw(); };
+    window.tachySetBg = function (v) { curBg = v; try { localStorage.setItem(BG_KEY, v); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tachymetrie:tachySetBg'); } applyBg(); redraw(); };
 
     function fitView() {
         if (sketch.pts.length >= 2) { tmap.fitBounds(L.latLngBounds(sketch.pts.map(p => [p.lat, p.lng])).pad(0.35), { maxZoom: 21 }); }
@@ -240,7 +240,7 @@
         if (!docs.some(d => d.id === id)) { renderDocs(); return; }
         save();                       // rozdělaný náčrt uložit, než se přepne
         curDoc = id;
-        try { localStorage.setItem(CUR_KEY, curDoc); } catch (e) {}
+        try { localStorage.setItem(CUR_KEY, curDoc); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tachymetrie:tachySwitchDoc'); }
         readDoc();
         selIdx = -1; mode = 'view'; updateModeButtons(); updateStylePanel(); applyDrawInteraction();
         renderDocs();
@@ -256,7 +256,7 @@
             docs.push({ id: id, name: String(nm).trim() || freeName() });
             saveDocs();
             curDoc = id;
-            try { localStorage.setItem(CUR_KEY, curDoc); } catch (e) {}
+            try { localStorage.setItem(CUR_KEY, curDoc); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tachymetrie:tachyNewDoc'); }
             sketch = { pts: [], lines: [], labels: [], strokes: [], log: [] };
             save();
             selIdx = -1; mode = 'view'; updateModeButtons(); updateStylePanel(); applyDrawInteraction();
@@ -278,12 +278,12 @@
     window.tachyDeleteDoc = function () {
         const empty = !sketch.pts.length && !sketch.lines.length && !sketch.labels.length && !sketch.strokes.length;
         const doIt = function () {
-            try { localStorage.removeItem(docKey(curDoc)); } catch (e) {}
+            try { localStorage.removeItem(docKey(curDoc)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tachymetrie:doIt'); }
             docs = docs.filter(d => d.id !== curDoc);
             if (!docs.length) docs = [{ id: newId(), name: 'Náčrt 1' }];
             saveDocs();
             curDoc = docs[0].id;
-            try { localStorage.setItem(CUR_KEY, curDoc); } catch (e) {}
+            try { localStorage.setItem(CUR_KEY, curDoc); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tachymetrie:doIt'); }
             readDoc();
             selIdx = -1; mode = 'view'; updateModeButtons(); updateStylePanel(); applyDrawInteraction();
             renderDocs();
@@ -309,7 +309,7 @@
         const m = document.getElementById('tachy-modal'); if (m) m.style.display = 'none';
         // Těžký full-screen modal s vlastní Leaflet mapou umí "zamrznout" hlavní kameru -> oživit ji
         // (stejně jako po undo v undo.js). Bez toho zůstane po zavření černá/zaseklá kamera.
-        try { if (typeof ensureCameraAlive === 'function') setTimeout(function () { ensureCameraAlive(true); }, 150); } catch (e) {}
+        try { if (typeof ensureCameraAlive === 'function') setTimeout(function () { ensureCameraAlive(true); }, 150); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tachymetrie:closeTachymetrie'); }
     };
 
     // ---------- Přidávání ----------
@@ -431,7 +431,7 @@
         if (mode !== 'draw' || !tmap || drawing) return;   // jediny aktivni pointer => odmitnuti dlane / druheho prstu
         e.preventDefault();
         drawing = true; activePid = e.pointerId;
-        try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+        try { canvas.setPointerCapture(e.pointerId); } catch (_) { window.AG && AG.swallow && AG.swallow(_, 'tachymetrie:onDrawStart'); }
         const ll = tmap.containerPointToLatLng(tmap.mouseEventToContainerPoint(e));
         curStroke = { style: styleSnapshot(), pts: [{ lat: ll.lat, lng: ll.lng }], _last: evXY(e) };
         redraw();
@@ -449,7 +449,7 @@
         if (!drawing || (activePid != null && e.pointerId !== activePid)) return;
         e.preventDefault();
         drawing = false; activePid = null;
-        try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+        try { canvas.releasePointerCapture(e.pointerId); } catch (_) { window.AG && AG.swallow && AG.swallow(_, 'tachymetrie:onDrawEnd'); }
         if (curStroke && curStroke.pts.length >= 2) { delete curStroke._last; sketch.strokes.push(curStroke); sketch.log.push('stroke'); save(); }
         curStroke = null; redraw();
     }
@@ -470,7 +470,7 @@
     }
     // metrické souřadnice pro výpočet plochy — proj4 do S-JTSK (EPSG:5514) jako jinde v appce
     function metric(p) {
-        try { if (typeof proj4 === 'function') { const s = proj4('EPSG:4326', 'EPSG:5514', [p.lng, p.lat]); return [s[0], s[1]]; } } catch (e) {}
+        try { if (typeof proj4 === 'function') { const s = proj4('EPSG:4326', 'EPSG:5514', [p.lng, p.lat]); return [s[0], s[1]]; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tachymetrie:metric'); }
         const R = 6378137, la = p.lat * Math.PI / 180; return [p.lng * Math.PI / 180 * R * Math.cos(la), p.lat * Math.PI / 180 * R];
     }
     function fmtLen(m) { return m >= 1000 ? (m / 1000).toFixed(3) + ' km' : m.toFixed(m < 10 ? 2 : 1) + ' m'; }

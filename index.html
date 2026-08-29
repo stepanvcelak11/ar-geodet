@@ -154,6 +154,9 @@
     <link rel="stylesheet" href="css/pocasi.css">
     <!-- VIZUÁLNÍ DOLADĚNÍ NÁSTROJŮ — jednotný vzhled oken nástrojů (odpojitelné: smaž tento řádek + css/tools-polish.css) -->
     <link rel="stylesheet" href="css/tools-polish.css">
+    <!-- SILUETA PŘESNOSTI GPS — postava s kruhem na zemi místo holého čísla
+         (odpojitelné: smaž tento řádek + css/gps-silueta.css + js/gps-silueta.js) -->
+    <link rel="stylesheet" href="css/gps-silueta.css">
     <!-- TOKENOVÁ VRSTVA ČITELNOSTI — venkovní režim + rukavice přes design tokeny;
          MUSÍ být POSLEDNÍ css (přepisuje tokeny). Náhled: nahledy-kontrast.html.
          Odpojitelné: smaž tento řádek + css/tokens-outdoor.css -->
@@ -917,6 +920,10 @@
 
     <!-- PROTOKOL CHYB (odpojitelné: smaž tento řádek + js/err-log.js) — MUSÍ být první, chytá chyby startu ostatních modulů -->
     <script defer src="js/err-log.js"></script>
+    <!-- SPOLEČNÉ JÁDRO (odpojitelné) — AG.swallow (polknutá chyba se aspoň zapíše
+         do Protokolu chyb), AG.scope (posluchači zrušitelní najednou při zavření
+         okna) a AG.style. MUSÍ být hned za err-log.js, dřív než moduly. -->
+    <script defer src="js/ag-guard.js"></script>
     <!-- MŮSTEK DIALOGŮ — agInfo()/agAsk() = jednotné in-app dialogy místo nativních alert()/confirm() -->
     <script defer src="js/dialog-bridge.js"></script>
     <!-- ČTENÍ ČÍSEL — agNum() snese desetinnou ČÁRKU (Safari/iOS jinak pole zahodí); musí být před logika.js -->
@@ -950,14 +957,18 @@
     <script defer src="js/historie-aktualizaci.js"></script>
     <script type="ag/lazy" data-src="js/satelity.js"></script>
     <script type="ag/lazy" data-src="js/kalkulacka.js"></script>
-    <script defer src="js/export.js"></script>
+    <script type="ag/lazy" data-src="js/export.js"></script>
     <script defer src="js/kompas-check.js"></script>
-    <script defer src="js/zaloha.js"></script>
+    <script type="ag/lazy" data-src="js/zaloha.js"></script>
     <!-- POJISTKA DAT (odpojitelné: smaž tento řádek + js/auto-zaloha.js) — připomínka zálohy proti iOS mazání; MUSÍ být za zaloha.js -->
     <script defer src="js/auto-zaloha.js"></script>
     <script defer src="js/undo.js"></script>
     <!-- KOŠ (odpojitelné: smaž tento řádek + js/kos.js) — 30denní obnova smazaných zakázek/bodů; MUSÍ být za undo.js -->
     <script defer src="js/kos.js"></script>
+    <!-- PROTOKOL KVALITY (odpojitelné) — k bodu se ukládá i rozptyl odečtů (σ) a počet
+         epoch, ne jen výsledné ±. Nástroj z toho udělá doložitelný protokol (txt/CSV).
+         ag/lazy: dotáhne se až po vykreslení appky, obalení saveCustomPoint stihne. -->
+    <script type="ag/lazy" data-src="js/kvalita-bodu.js"></script>
     <script defer src="js/zakazky.js"></script>
     <!-- Šablony zakázky (odpojitelné: smaž tento řádek + js/zakazka-sablony.js) — převzetí nastavení do nové zakázky; až ZA logika.js a dialog-bridge.js, obaluje createNewProject -->
     <script defer src="js/zakazka-sablony.js"></script>
@@ -971,30 +982,30 @@
     <script type="ag/lazy" data-src="js/sdileni.js"></script>
     <script type="ag/lazy" data-src="js/tachymetrie.js"></script>
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + js/zpravodaj.js + css/zpravodaj.css + data/zpravodaj.json) -->
-    <script defer src="js/zpravodaj.js"></script>
+    <script type="ag/lazy" data-src="js/zpravodaj.js"></script>
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + js/predpisy.js + css/predpisy.css + data/predpisy.json) -->
-    <script defer src="js/predpisy.js"></script>
+    <script type="ag/lazy" data-src="js/predpisy.js"></script>
     <!-- MODULY (workflow) — odpojitelné -->
-    <script defer src="js/gnss-quality.js"></script>
+    <script type="ag/lazy" data-src="js/gnss-quality.js"></script>
     <script defer src="js/gps-warn.js"></script>
     <!-- SEMAFOR DŮVĚRY POLOHY (odpojitelné: smaž tento řádek + js/gps-trust.js) — hlídá zamrzlý GPS fix a offline -->
     <script defer src="js/gps-trust.js"></script>
     <!-- DRAFT STORE (odpojitelné: smaž tento řádek + js/draft-store.js) — rozdělaná práce přežije zabití appky -->
     <script defer src="js/draft-store.js"></script>
-    <script defer src="js/csv-validate.js"></script>
-    <script defer src="js/kml-export.js"></script>
+    <script type="ag/lazy" data-src="js/csv-validate.js"></script>
+    <script type="ag/lazy" data-src="js/kml-export.js"></script>
     <!-- EXPORT DXF (odpojitelné: smaž tento řádek + js/dxf-export.js) — vektor bodů/spojnic do CADu (S-JTSK) -->
-    <script defer src="js/dxf-export.js"></script>
+    <script type="ag/lazy" data-src="js/dxf-export.js"></script>
     <!-- SEZNAM SOUŘADNIC PRO KANCELÁŘ (odpojitelné: smaž tento řádek + js/seznam-souradnic.js
          + css/seznam-souradnic.css + položku 'exportPointsSeznam' ve výběru formátů níž)
          — nastavitelný textový seznam pro Gromu / Kokeš / Excel vč. Windows-1250 -->
     <script defer src="js/seznam-souradnic.js"></script>
     <!-- IMPORT VFK (odpojitelné: smaž tento řádek + js/vfk.js) — načtení bodů z výměnného formátu katastru -->
-    <script defer src="js/vfk.js"></script>
+    <script type="ag/lazy" data-src="js/vfk.js"></script>
     <script defer src="js/compass-stability.js"></script>
-    <script defer src="js/calib-profiles.js"></script>
-    <script defer src="js/ref-calibration.js"></script>
-    <script defer src="js/sky-obstruction.js"></script>
+    <script type="ag/lazy" data-src="js/calib-profiles.js"></script>
+    <script type="ag/lazy" data-src="js/ref-calibration.js"></script>
+    <script type="ag/lazy" data-src="js/sky-obstruction.js"></script>
     <script defer src="js/cadastre-area.js"></script>
     <script defer src="js/ar-fusion.js"></script>
     <!-- VIZUÁLNÍ STABILIZACE AR / SLAM-lite #2 (odpojitelné: smaž tento řádek + js/ar-visual-track.js) — optický tok + WebXR kotvení, drží AR mezi GPS/kompas fixy; default vypnuto -->
@@ -1038,8 +1049,8 @@
          (obejití výkopu / rovnou resekce), aby v seznamu úkonů stačil jeden vstup. -->
     <script type="ag/lazy" data-src="js/nastroje-parky.js"></script>
     <script defer src="js/track-log.js"></script>
-    <script defer src="js/fov-kalibrace.js"></script>
-    <script defer src="js/tools-back.js"></script>
+    <script type="ag/lazy" data-src="js/fov-kalibrace.js"></script>
+    <script type="ag/lazy" data-src="js/tools-back.js"></script>
     <!-- ZAVÍRÁNÍ MODÁLŮ (odpojitelné: smaž tento řádek + js/modal-close.js) — křížek
          vpravo nahoře a zavření potáhnutím dolů; tlačítka „Zavřít" zůstávají -->
     <script defer src="js/modal-close.js"></script>
@@ -1081,7 +1092,7 @@
     <!-- NOVÝ TUTORIÁL (odpojitelné: smaž tento řádek + js/tutorial-pro.js) — základní + pokročilá prohlídka -->
     <script defer src="js/tutorial-pro.js"></script>
     <!-- NÁSTROJE PLUS (odpojitelné: smaž tento řádek + js/tools-plus.js) — nápověda „?" u dlaždic + oblíbené nahoře -->
-    <script defer src="js/tools-plus.js"></script>
+    <script type="ag/lazy" data-src="js/tools-plus.js"></script>
     <!-- JEDNODUCHÝ PANEL NÁSTROJŮ + TYP PRÁCE (odpojitelné: smaž tento řádek + js/tools-simple.js) — přepínač v Nastavení → Vzhled -->
     <script defer src="js/tools-simple.js"></script>
     <!-- REŽIM PRÁCE (odpojitelné) — volba „co dnes dělám" na úvodní obrazovce;
@@ -1153,11 +1164,14 @@
     <!-- BEZPEČNOST V TERÉNU (odpojitelné: smaž tento řádek + js/bezpecnost.js) — rizika dne, tiché připomínky, poslání polohy; čte window.AGSun ze js/slunce.js -->
     <script type="ag/lazy" data-src="js/bezpecnost.js"></script>
     <!-- USADIT AR (odpojitelné) — průvodce místo 7 kalibračních dlaždic + „Teď se hodí" -->
-    <script defer src="js/usadit-ar.js"></script>
+    <script type="ag/lazy" data-src="js/usadit-ar.js"></script>
     <!-- ROZCESTNÍKY NÁSTROJŮ — Bod výpočtem / Signál GNSS / Příručka (odpojitelné: smaž tento řádek + js/tools-hub.js) -->
-    <script defer src="js/tools-hub.js"></script>
+    <script type="ag/lazy" data-src="js/tools-hub.js"></script>
     <!-- STAVOVÝ PRUH (odpojitelné) — „můžu teď měřit?": GPS · sever · data · baterie + rady -->
     <script defer src="js/stavovy-pruh.js"></script>
+    <!-- SILUETA PŘESNOSTI GPS (odpojitelné) — vizuální ukazatel nejistoty polohy:
+         postava stojící na zemi + kruh kolem ní. Stejné prahy jako stavový pruh. -->
+    <script defer src="js/gps-silueta.js"></script>
     <!-- CENTRUM UPOZORNĚNÍ (odpojitelné) — jeden sloupec nahoře místo 7 prvků,
          které si o stejné místo říkaly a překrývaly se (window.AGNotify) -->
     <script defer src="js/upozorneni.js"></script>
@@ -1177,7 +1191,7 @@
          přisypávají řádky přes appendChild, takže končily pod „Pokročilé" v pořadí
          načtení skriptů; tohle je srovná do pevných sekcí. MUSÍ být až za moduly,
          které do Nastavení vkládají (stačí defer — pořadí zajišťuje MutationObserver). -->
-    <script defer src="js/nastaveni-poradek.js"></script>
+    <script type="ag/lazy" data-src="js/nastaveni-poradek.js"></script>
     <!-- BOČNÍ REJSTŘÍK NASTAVENÍ (návrh L1, odpojitelné: smaž tento řádek + js/nastaveni-lista.js)
          — tažením od pravého okraje vyjede seznam záložek I SEKCÍ, ťuknutí skočí na blok;
          horní pruh záložek se skrývá (zůstává v DOM kvůli switchTab/app-search/oprávněním).
@@ -1195,13 +1209,13 @@
     <script defer src="js/gesta-zkratky.js"></script>
     <!-- KOMPAS S MAGNETICKÝM SEVEREM (odpojitelné) — růžice + magnetický i zeměpisný
          azimut a deklinace do modálu Kompas; jen čte currentHeading/magneticDeclination -->
-    <script defer src="js/kompas-magneticky.js"></script>
+    <script type="ag/lazy" data-src="js/kompas-magneticky.js"></script>
     <!-- VÝŠKA BODU: GPS × DMR 5G (odpojitelné) — druhý zdroj výšky u bodu z průměrované
          GPS; obaluje fillAveragedGPS, proto MUSÍ být za logika.js -->
     <script defer src="js/vyska-gps.js"></script>
     <!-- OFFLINE: dlaždice vyžadující internet do jedné sbalené záložky (odpojitelné);
          používá mechaniku sbalených kategorií z js/field-tools.js -->
-    <script defer src="js/offline-sbal.js"></script>
+    <script type="ag/lazy" data-src="js/offline-sbal.js"></script>
     <!-- SOUKROMÍ ADMINA (odpojitelné) — vedení nevidí aktivitu ani docházku adminů;
          filtruje zdroj dat, proto MUSÍ být za js/ucty.js -->
     <script defer src="js/ucty-privacy.js"></script>

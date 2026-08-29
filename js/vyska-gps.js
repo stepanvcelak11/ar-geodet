@@ -108,7 +108,7 @@
             var z = el('custom-z'); if (z && dmr != null) z.value = f2(dmr).replace(',', '.');
             box.querySelector('.agvz-btns').outerHTML = '<div class="agvz-n">✓ Výška přepsána hodnotou z DMR 5G ('
                 + f2(dmr) + ' m). Můžeš ji ještě ručně upravit.</div>';
-            try { if (typeof quickToast === 'function') quickToast('Výška z DMR 5G: ' + f2(dmr) + ' m'); } catch (e) {}
+            try { if (typeof quickToast === 'function') quickToast('Výška z DMR 5G: ' + f2(dmr) + ' m'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vyska-gps:render'); }
         });
         var k = el('agvz-keep');
         if (k) k.addEventListener('click', function () {
@@ -138,9 +138,9 @@
     function wrapAfter(name, after) {
         if (typeof window[name] !== 'function' || window[name]._vzWrapped) return false;
         var orig = window[name];
-        var wrapped = function () { var out = orig.apply(this, arguments); try { after(); } catch (e) {} return out; };
+        var wrapped = function () { var out = orig.apply(this, arguments); try { after(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vyska-gps:wrapped'); } return out; };
         wrapped._vzWrapped = true; wrapped._vzOrig = orig;
-        try { Object.defineProperty(wrapped, 'name', { value: name }); } catch (e) {}
+        try { Object.defineProperty(wrapped, 'name', { value: name }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vyska-gps:wrapped'); }
         window[name] = wrapped;
         return true;
     }

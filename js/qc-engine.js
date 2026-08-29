@@ -94,10 +94,10 @@
 
     function openWhy() {
         if (typeof window.openPredpisy === 'function') {
-            try { window.openPredpisy(); } catch (e) {}
+            try { window.openPredpisy(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'qc-engine:openWhy'); }
             setTimeout(function () {
                 var i = document.getElementById('prd-search');
-                if (i) { i.value = 'kód kvality'; try { i.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) {} }
+                if (i) { i.value = 'kód kvality'; try { i.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'qc-engine:openWhy'); } }
             }, 60);
         } else {
             gateInfo('Kód kvality podrobných bodů',
@@ -140,9 +140,9 @@
     function wrapAfter(name, after) {
         if (typeof window[name] !== 'function' || window[name]._qcWrapped) return false;
         var orig = window[name];
-        var wrapped = function () { var r = orig.apply(this, arguments); try { after.apply(this, arguments); } catch (e) {} return r; };
+        var wrapped = function () { var r = orig.apply(this, arguments); try { after.apply(this, arguments); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'qc-engine:wrapped'); } return r; };
         wrapped._qcWrapped = true; wrapped._qcOrig = orig;
-        try { Object.defineProperty(wrapped, 'name', { value: name }); } catch (e) {}
+        try { Object.defineProperty(wrapped, 'name', { value: name }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'qc-engine:wrapped'); }
         window[name] = wrapped; return true;
     }
 
@@ -150,7 +150,7 @@
     // (čip kódu kvality + výběr cílové třídy). Panel samotný je jen kompaktní řádek.
     function fillGpsModal() {
         var slot = document.getElementById('gaq-qc'); if (!slot) return;
-        var r = null; try { r = (typeof gpsAvgResult !== 'undefined') ? gpsAvgResult : null; } catch (e) {}
+        var r = null; try { r = (typeof gpsAvgResult !== 'undefined') ? gpsAvgResult : null; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'qc-engine:fillGpsModal'); }
         if (!r || r.coarse || typeof r.sterr !== 'number' || !isFinite(r.sterr) || (r.n || 0) < 2) { slot.innerHTML = ''; return; }
         slot.innerHTML = chipHtml(r.sterr);
     }
@@ -163,7 +163,7 @@
     // verdikt + výběr cílové třídy v dialogu „Vložit bod" po vyplnění z průměrované GPS
     function afterFillGps() {
         var note = document.getElementById('custom-acc-note'); if (!note) return;
-        var r = null; try { r = (typeof gpsAvgResult !== 'undefined') ? gpsAvgResult : null; } catch (e) {}
+        var r = null; try { r = (typeof gpsAvgResult !== 'undefined') ? gpsAvgResult : null; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'qc-engine:afterFillGps'); }
         if (!r || typeof r.sterr !== 'number' || !isFinite(r.sterr)) return;
         var add = document.getElementById('qc-note-add');
         if (!add) { add = document.createElement('div'); add.id = 'qc-note-add'; note.appendChild(add); }

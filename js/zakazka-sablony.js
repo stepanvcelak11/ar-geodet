@@ -43,7 +43,7 @@
         for (i = 0; i < l.length; i++) { if (l[i] && l[i].id === id) return l[i].name || id; }
         return id;
     }
-    function toast(m) { try { if (typeof window.quickToast === 'function') window.quickToast(m); } catch (e) {} }
+    function toast(m) { try { if (typeof window.quickToast === 'function') window.quickToast(m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zakazka-sablony:toast'); } }
 
     function hasAnySettings(pid) {
         var i;
@@ -71,7 +71,7 @@
     // z původní create cesty (druhé volání je neškodné, čte tatáž data).
     function applySettingsNow() {
         setTimeout(function () {
-            try { if (typeof window.loadProjectSettings === 'function') window.loadProjectSettings(); } catch (e) {}
+            try { if (typeof window.loadProjectSettings === 'function') window.loadProjectSettings(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zakazka-sablony:applySettingsNow'); }
         }, 80);
     }
 
@@ -83,7 +83,7 @@
     var _dupNext = false; // příští založení = duplikace (kopíruj bez ptaní)
 
     function stopWatch() {
-        if (_watch) { try { clearInterval(_watch.timer); } catch (e) {} _watch = null; }
+        if (_watch) { try { clearInterval(_watch.timer); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zakazka-sablony:stopWatch'); } _watch = null; }
     }
 
     function startWatch(auto) {
@@ -167,7 +167,7 @@
         btn.innerHTML = '<svg class="icon"><use href="#i-plus"/></svg> Nová zakázka podle této (převezme nastavení)';
         btn.onclick = function () {
             if (typeof window.createNewProject !== 'function') {
-                try { if (typeof window.agInfo === 'function') window.agInfo('Založení zakázky není dostupné (jádro appky se nenačetlo).'); } catch (e) {}
+                try { if (typeof window.agInfo === 'function') window.agInfo('Založení zakázky není dostupné (jádro appky se nenačetlo).'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zakazka-sablony:onclick'); }
                 return;
             }
             wrapCreate();          // pojistka, kdyby obal při startu nestihl

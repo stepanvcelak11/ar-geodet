@@ -58,7 +58,7 @@
     var _geo = null;       // geometrie posledního grafu (sdílí ji odečítací dotyk)
     var _model = null;     // poslední spočítaný model (pro odečítání v grafu)
 
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:toast'); } }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function pad2(n) { return ('0' + n).slice(-2); }
     function num1(v) { return (v == null || !isFinite(v)) ? '–' : v.toFixed(1).replace('.', ','); }
@@ -66,8 +66,8 @@
 
     // ---- poloha (GPS appky, fallback poslední známá) -------------------------------
     function pos() {
-        try { if (typeof userLat === 'number' && userLat && typeof userLng === 'number') return { lat: userLat, lng: userLng, alt: (typeof userAlt === 'number' && isFinite(userAlt)) ? userAlt : 300 }; } catch (e) {}
-        try { var p = JSON.parse(localStorage.getItem('arLastPos')); if (p && p.lat) return { lat: +p.lat, lng: +(p.lng != null ? p.lng : p.lon), alt: 300 }; } catch (e) {}
+        try { if (typeof userLat === 'number' && userLat && typeof userLng === 'number') return { lat: userLat, lng: userLng, alt: (typeof userAlt === 'number' && isFinite(userAlt)) ? userAlt : 300 }; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:pos'); }
+        try { var p = JSON.parse(localStorage.getItem('arLastPos')); if (p && p.lat) return { lat: +p.lat, lng: +(p.lng != null ? p.lng : p.lon), alt: 300 }; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:pos'); }
         return null;
     }
 
@@ -78,24 +78,24 @@
         for (i = 0; i + 2 < lines.length; i++) {
             var l1 = lines[i + 1], l2 = lines[i + 2];
             if (lines[i] && l1 && l2 && l1.charAt(0) === '1' && l2.charAt(0) === '2') {
-                try { out.push({ satrec: satellite.twoline2satrec(l1, l2) }); } catch (e) {}
+                try { out.push({ satrec: satellite.twoline2satrec(l1, l2) }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:parseTleText'); }
                 i += 2;
             }
         }
         return out;
     }
     function getSats() {
-        try { if (typeof tleSats !== 'undefined' && tleSats && tleSats.length) return tleSats; } catch (e) {}
+        try { if (typeof tleSats !== 'undefined' && tleSats && tleSats.length) return tleSats; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:getSats'); }
         if (_sats && _sats.length) return _sats;
         try {
             var c = JSON.parse(localStorage.getItem(TLE_KEY));
             if (c && c.txt) _sats = parseTleText(c.txt);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:getSats'); }
         return _sats || [];
     }
     function tleAgeH() {
-        try { if (typeof tleFetchedAt !== 'undefined' && tleFetchedAt) return (Date.now() - tleFetchedAt) / 36e5; } catch (e) {}
-        try { var c = JSON.parse(localStorage.getItem(TLE_KEY)); if (c && c.t) return (Date.now() - c.t) / 36e5; } catch (e) {}
+        try { if (typeof tleFetchedAt !== 'undefined' && tleFetchedAt) return (Date.now() - tleFetchedAt) / 36e5; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:tleAgeH'); }
+        try { var c = JSON.parse(localStorage.getItem(TLE_KEY)); if (c && c.t) return (Date.now() - c.t) / 36e5; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:tleAgeH'); }
         return null;
     }
     function ensureTle(cb) {
@@ -104,15 +104,15 @@
         // stáhnout (satelity.js refreshTLE když existuje, jinak vlastní fetch do téže cache)
         try {
             if (typeof refreshTLE === 'function') { Promise.resolve(refreshTLE(true)).then(cb, cb); return; }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:ensureTle'); }
         var ctrl = ('AbortController' in window) ? new AbortController() : null;
-        var tm = setTimeout(function () { try { if (ctrl) ctrl.abort(); } catch (e) {} }, 20000);
+        var tm = setTimeout(function () { try { if (ctrl) ctrl.abort(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:ensureTle'); } }, 20000);
         fetch(TLE_URL_FALLBACK, ctrl ? { signal: ctrl.signal } : {}).then(function (r) { return r.text(); }).then(function (txt) {
             clearTimeout(tm);
             var parsed = parseTleText(txt);
             if (parsed.length >= 10) {
                 _sats = parsed;
-                try { localStorage.setItem(TLE_KEY, JSON.stringify({ t: Date.now(), txt: txt })); } catch (e) {}
+                try { localStorage.setItem(TLE_KEY, JSON.stringify({ t: Date.now(), txt: txt })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:ensureTle'); }
             }
             cb();
         }).catch(function () { clearTimeout(tm); cb(); });
@@ -137,20 +137,20 @@
         try {
             var c = JSON.parse(localStorage.getItem(KP_KEY));
             if (c && c.rows && c.rows.length && Date.now() - c.t < KP_MAX_AGE_MS) { _kp = c.rows; _kpStale = false; cb(); return; }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:ensureKp'); }
         var ctrl = ('AbortController' in window) ? new AbortController() : null;
-        var tm = setTimeout(function () { try { if (ctrl) ctrl.abort(); } catch (e) {} }, 9000);
+        var tm = setTimeout(function () { try { if (ctrl) ctrl.abort(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:ensureKp'); } }, 9000);
         fetch(KP_URL, ctrl ? { signal: ctrl.signal } : {}).then(function (r) { return r.json(); }).then(function (j) {
             clearTimeout(tm);
             var rows = parseKpRows(j);
             if (rows.length) {
                 _kp = rows; _kpStale = false;
-                try { localStorage.setItem(KP_KEY, JSON.stringify({ t: Date.now(), rows: rows })); } catch (e) {}
+                try { localStorage.setItem(KP_KEY, JSON.stringify({ t: Date.now(), rows: rows })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:ensureKp'); }
             }
             cb();
         }).catch(function () {
             clearTimeout(tm);
-            try { var c2 = JSON.parse(localStorage.getItem(KP_KEY)); if (c2 && c2.rows) { _kp = c2.rows; _kpStale = true; } } catch (e) {}
+            try { var c2 = JSON.parse(localStorage.getItem(KP_KEY)); if (c2 && c2.rows) { _kp = c2.rows; _kpStale = true; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:ensureKp'); }
             cb();
         });
     }
@@ -177,13 +177,13 @@
                 var la = satellite.ecfToLookAngles(gd, satellite.eciToEcf(pv.position, gmst));
                 var el = la.elevation * 180 / Math.PI;
                 if (el >= EL_MASK) out.push({ az: (la.azimuth * 180 / Math.PI + 360) % 360, el: el });
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:satObsAt'); }
         }
         return out;
     }
     // PDOP (kopie geometrie ze satelity.js, ať modul stojí sám i bez něj)
     function pdopOf(obs) {
-        try { if (typeof computePDOP === 'function') { var v = computePDOP(obs); return (v != null && isFinite(v)) ? v : null; } } catch (e) {}
+        try { if (typeof computePDOP === 'function') { var v = computePDOP(obs); return (v != null && isFinite(v)) ? v : null; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:pdopOf'); }
         if (obs.length < 4) return null;
         var N = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], i, j, r;
         for (i = 0; i < obs.length; i++) {
@@ -223,7 +223,7 @@
                 else if ((h.prob != null && h.prob >= 60) || (h.precip != null && h.precip >= 1)) note = { kind: 'rain', txt: 'déšť' };
                 if (note) map[Math.floor(h.t / 3600) * 3600] = note;
             });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:weatherNotes'); }
         return map;
     }
 
@@ -367,7 +367,7 @@
         document.body.appendChild(m);
         m.querySelector('#ag-gf-close').addEventListener('click', function () { m.style.display = 'none'; });
         m.querySelector('#ag-gf-refresh').addEventListener('click', function () {
-            try { localStorage.removeItem(KP_KEY); } catch (e) {}
+            try { localStorage.removeItem(KP_KEY); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:ensureModal'); }
             refresh(true);
         });
         return m;
@@ -509,7 +509,7 @@
             var k = Math.floor((px - _geo.L) / _geo.iw);
             show(Math.min(_geo.n - 1, Math.max(0, k)));
         }
-        svg.addEventListener('pointerdown', function (e) { try { svg.setPointerCapture(e.pointerId); } catch (err) {} fromEvt(e); });
+        svg.addEventListener('pointerdown', function (e) { try { svg.setPointerCapture(e.pointerId); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'gnss-forecast:fromEvt'); } fromEvt(e); });
         svg.addEventListener('pointermove', function (e) { if (e.buttons || e.pressure > 0) fromEvt(e); });
         show(0);
     }

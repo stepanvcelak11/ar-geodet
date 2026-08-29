@@ -25,7 +25,7 @@
     var LBL_DX = 0.4;   // odsazení popisu od bodu (m), aby text nekryl značku
 
     function alertFail(title, message) {
-        try { if (typeof window.agAlert === 'function') return window.agAlert({ title: title, message: message }); } catch (e) {}
+        try { if (typeof window.agAlert === 'function') return window.agAlert({ title: title, message: message }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dxf-export:alertFail'); }
         agInfo(title + (message ? '\n\n' + message : ''));
     }
 

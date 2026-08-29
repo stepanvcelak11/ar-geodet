@@ -69,9 +69,9 @@
     // ---- pomocné -------------------------------------------------------------------
     function byId(id) { return document.getElementById(id); }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-metr:toast'); } }
     function fail(t, m) {
-        try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {}
+        try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-metr:fail'); }
         toast(m);
     }
     function pid() { try { return localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { return 'default'; } }
@@ -81,11 +81,11 @@
             if (typeof projects !== 'undefined' && Array.isArray(projects)) {
                 for (var i = 0; i < projects.length; i++) { if (projects[i] && projects[i].id === id) return projects[i].name || id; }
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-metr:projName'); }
         return (id === 'default') ? 'Výchozí zakázka' : id;
     }
     function lsGet(k, d) { try { var v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } }
-    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-metr:lsSet'); } }
     function num(v, d) { var n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : d; }
     // česká čísla: 1234.5 -> "1 234,5"
     function fmt(v, dec) {
@@ -228,20 +228,20 @@
     function startMotion() {
         if (_motionOn || !window.DeviceMotionEvent) return;
         var go = function () {
-            try { window.addEventListener('devicemotion', onMotion, { passive: true }); _motionOn = true; } catch (e) {}
+            try { window.addEventListener('devicemotion', onMotion, { passive: true }); _motionOn = true; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-metr:go'); }
         };
         // iOS 13+ chce výslovné svolení a jen z uživatelského gesta
         if (typeof DeviceMotionEvent.requestPermission === 'function') {
             try {
                 DeviceMotionEvent.requestPermission().then(function (r) { if (r === 'granted') go(); })['catch'](function () {});
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-metr:go'); }
             return;
         }
         go();
     }
     function stopMotion() {
         if (!_motionOn) return;
-        try { window.removeEventListener('devicemotion', onMotion); } catch (e) {}
+        try { window.removeEventListener('devicemotion', onMotion); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-metr:stopMotion'); }
         _motionOn = false; _tilt = null; _gx = _gy = _gz = null;
     }
     function tiltClass() {
@@ -286,17 +286,17 @@
         try {
             var v = byId('camera-feed');
             if (v && v.srcObject && v.readyState >= 2 && v.videoWidth > 0) return v.srcObject;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-metr:arStream'); }
         return null;
     }
     function stopStream() {
         if (_stream) {
-            try { _stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+            try { _stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-metr:stopStream'); }
             _stream = null;
         }
         _usingAr = false;
         var v = byId('ag-mtr-vid');
-        if (v) { try { v.pause(); } catch (e) {} v.srcObject = null; }
+        if (v) { try { v.pause(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-metr:stopStream'); } v.srcObject = null; }
     }
     function note(html) {
         var n = byId('ag-mtr-note');
@@ -557,7 +557,7 @@
         if (_pts.length >= 2) _pts = [];
         _pts.push(clampToVid(p));
         _drag = _pts.length - 1;
-        try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) {}
+        try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-metr:onDown'); }
     }
     function onMove(ev) {
         if (_drag < 0 || !_pts[_drag]) return;
@@ -573,7 +573,7 @@
     function logAll() { try { return JSON.parse(lsGet(logKey(), '[]')) || []; } catch (e) { return []; } }
     function logSave(a) { lsSet(logKey(), JSON.stringify(a.slice(-MAX_LOG))); }
     function dist(la1, lo1, la2, lo2) {
-        try { if (typeof getDistance === 'function') return getDistance(la1, lo1, la2, lo2); } catch (e) {}
+        try { if (typeof getDistance === 'function') return getDistance(la1, lo1, la2, lo2); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-metr:dist'); }
         var R = 6371000, r = Math.PI / 180;
         var a = Math.sin((la2 - la1) * r / 2), b = Math.sin((lo2 - lo1) * r / 2);
         var hh = a * a + Math.cos(la1 * r) * Math.cos(la2 * r) * b * b;
@@ -599,7 +599,7 @@
         var m = measure();
         if (!m) { toast('Nejdřív polož dva body.'); return; }
         var lat = null, lng = null;
-        try { if (typeof userLat !== 'undefined' && userLat != null) { lat = userLat; lng = userLng; } } catch (e) {}
+        try { if (typeof userLat !== 'undefined' && userLat != null) { lat = userLat; lng = userLng; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-metr:saveMeasure'); }
         var near = (lat != null) ? nearestPoint(lat, lng) : null;
         var rec = {
             id: 'mt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
@@ -615,7 +615,7 @@
             area: (m.area != null ? Math.round(m.area * 10000) / 10000 : null)
         };
         var a = logAll(); a.push(rec); logSave(a);
-        try { if (navigator.vibrate) navigator.vibrate(25); } catch (e) {}
+        try { if (navigator.vibrate) navigator.vibrate(25); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-metr:saveMeasure'); }
         toast('Uloženo: ' + recLabelSafe(rec) + (near ? ' (u bodu ' + near.name + ')' : ''));
     }
     // rec z úložiště používá hMM místo h (h je výška držení) — sjednocení pro výpis
@@ -799,7 +799,7 @@
         var a = document.createElement('a');
         a.href = url; a.download = 'metr-' + projName().replace(/[^\w\-]+/g, '_') + '.csv';
         document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e) {} }, 4000);
+        setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-metr:exportCsv'); } }, 4000);
     }
 
     // ---- hledáček ------------------------------------------------------------------------------
@@ -878,7 +878,7 @@
         });
 
         var cv = ov.querySelector('#ag-mtr-cv');
-        cv.addEventListener('pointerdown', function (e) { try { cv.setPointerCapture(e.pointerId); } catch (x) {} onDown(e); });
+        cv.addEventListener('pointerdown', function (e) { try { cv.setPointerCapture(e.pointerId); } catch (x) { window.AG && AG.swallow && AG.swallow(x, 'ar-metr:ensureOverlay'); } onDown(e); });
         cv.addEventListener('pointermove', onMove);
         cv.addEventListener('pointerup', onUp);
         cv.addEventListener('pointercancel', onUp);
@@ -910,7 +910,7 @@
         navigator.mediaDevices.getUserMedia({
             video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
         }).then(function (st) {
-            if (!ov.classList.contains('on')) { try { st.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {} return; }
+            if (!ov.classList.contains('on')) { try { st.getTracks().forEach(function (t) { t.stop(); }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-metr:open'); } return; }
             _stream = st; _usingAr = false;
             v.srcObject = st;
             v.play()['catch'](function () {});
@@ -945,7 +945,7 @@
     try {
         window.addEventListener('pagehide', close);
         document.addEventListener('visibilitychange', function () { if (document.hidden) close(); });
-    } catch (e) {}
+    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-metr:close'); }
 
     // ---- veřejné API + dlaždice ------------------------------------------------------------------
     window.AGMetr = { open: open, close: close, log: logAll };

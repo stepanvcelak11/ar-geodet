@@ -41,7 +41,7 @@
     // grafika.js umí jen cycleBaseLayer() (přepnutí OSM<->ortofoto). Podkladů jsou
     // dva, takže „nastav na X" = zavolej cycle, když tam ještě nejsem.
     function curBase() {
-        try { if (typeof visSettings !== 'undefined' && visSettings) return (visSettings.baseLayer === 'ortofoto') ? 'ortofoto' : 'osm'; } catch (e) {}
+        try { if (typeof visSettings !== 'undefined' && visSettings) return (visSettings.baseLayer === 'ortofoto') ? 'ortofoto' : 'osm'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'map-tools:curBase'); }
         // fallback: stav si drží třída na #btn-baselayer (věší ji applyMapLayers)
         var b = $('btn-baselayer');
         return (b && b.classList.contains('ctrl-active')) ? 'ortofoto' : 'osm';
@@ -51,7 +51,7 @@
         if (curBase() === want) { syncBase(); return; }
         try {
             if (typeof window.cycleBaseLayer === 'function') window.cycleBaseLayer();
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'map-tools:agMapSetBase'); }
         syncBase();
     };
 
@@ -181,13 +181,13 @@
     }
     function fabOn() {
         var v = null;
-        try { v = localStorage.getItem(FAB_KEY); } catch (e) {}
+        try { v = localStorage.getItem(FAB_KEY); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'map-tools:fabOn'); }
         if (v === '1') return true;
         if (v === '0') return false;
         return !dockHasLayers();
     }
     function applyFab() {
-        try { document.body.classList.toggle('ag-mapfab-off', !fabOn()); } catch (e) {}
+        try { document.body.classList.toggle('ag-mapfab-off', !fabOn()); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'map-tools:applyFab'); }
     }
     function injectSetting() {
         var anchor = $('s-lefthand');
@@ -202,7 +202,7 @@
         var chk = $('s-mapfab');
         chk.checked = fabOn();
         chk.addEventListener('change', function () {
-            try { localStorage.setItem(FAB_KEY, this.checked ? '1' : '0'); } catch (e) {}
+            try { localStorage.setItem(FAB_KEY, this.checked ? '1' : '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'map-tools:injectSetting'); }
             applyFab();
         });
     }
@@ -217,7 +217,7 @@
             viewMode = 'both';
             if (typeof applyViewMode === 'function') applyViewMode();
             if (typeof window.agSyncViewControls === 'function') window.agSyncViewControls();
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'map-tools:ensureMapVisible'); }
     }
 
     // ---- vybledání s ostatním HUD (zrcadlí tlačítko Menu, jako js/view-cycle.js) --------
@@ -244,7 +244,7 @@
                 if (now && !wasOpen) { ensureMapVisible(); syncCompact(); syncAll(); }
                 wasOpen = now;
             }).observe(controls(), { attributes: true, attributeFilter: ['class'] });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'map-tools:init'); }
 
         // stav: grafika.js přehazuje .ctrl-active na těchto tlačítkách
         try {
@@ -259,10 +259,10 @@
                 new MutationObserver(function () {
                     adopt(); wireOptionalRows();
                     var bt = $('btn-terrain');
-                    if (bt) { try { obs.observe(bt, { attributes: true, attributeFilter: ['class'] }); } catch (e) {} }
+                    if (bt) { try { obs.observe(bt, { attributes: true, attributeFilter: ['class'] }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'map-tools:init'); } }
                 }).observe(stack, { childList: true });
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'map-tools:init'); }
 
         // Esc zavře panel (na desktopu/při klávesnici)
         document.addEventListener('keydown', function (ev) {
@@ -275,11 +275,11 @@
         window.addEventListener('orientationchange', function () { setTimeout(syncCompact, 250); });
         try {
             if (window.ResizeObserver && controls()) new ResizeObserver(syncCompact).observe(controls());
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'map-tools:init'); }
 
         // vybledání + dopočet stavu (levné, sdílený UI časovač appky kvůli baterii)
         (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(function () {
-            try { syncFade(); if (isOpen()) { syncCompact(); syncAll(); } } catch (e) {}
+            try { syncFade(); if (isOpen()) { syncCompact(); syncAll(); } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'map-tools:init'); }
             // Výchozí stav kolečka v mapě závisí na tom, jestli je „Vrstvy" v liště —
             // a to se dozvíme až po přihlášení (applyPerms v js/ucty.js běží po initu).
             // Přepínač v Nastavení proto dorovnáváme taky, jinak by ukazoval starý stav.
@@ -287,7 +287,7 @@
                 applyFab();
                 var c = $('s-mapfab');
                 if (c && c.checked !== fabOn()) c.checked = fabOn();
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'map-tools:init'); }
         }, 3000);
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

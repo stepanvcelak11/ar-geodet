@@ -16,7 +16,7 @@
             var p = req.call(el, { navigationUI: 'hide' });
             if (p && p.catch) p.catch(function () {}); // odmítnutí ignorujeme (není kritické)
         } catch (e) { /* některé prohlížeče neberou options objekt */
-            try { req.call(el); } catch (e2) {}
+            try { req.call(el); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'fullscreen:enterFullscreen'); }
         }
     }
 

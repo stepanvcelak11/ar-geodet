@@ -31,12 +31,12 @@
     var _rasterEl = null;
 
     // ---- pomocné ---------------------------------------------------------------
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'project-import:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'project-import:toast'); } }
     function getMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function sj2ll(a, b) {
-        try { if (typeof sjtskToLatLng === 'function') return sjtskToLatLng(a, b); } catch (e) {}
+        try { if (typeof sjtskToLatLng === 'function') return sjtskToLatLng(a, b); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'project-import:sj2ll'); }
         var Y = Math.min(Math.abs(a), Math.abs(b)), X = Math.max(Math.abs(a), Math.abs(b));
         var w = proj4('EPSG:5514', 'EPSG:4326', [-Y, -X]); return { lat: w[1], lng: w[0] };
     }
@@ -119,7 +119,7 @@
                         prev = { x: vx, y: vy };
                     }
                 }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'project-import:flushPoly'); }
             i2 = j;
         }
         // pojmenování bodů: POINT entity → P1.., a lomové body čar
@@ -173,7 +173,7 @@
         var lls = [];
         _design.segs.forEach(function (s) { if (layerOn(s.layer)) { lls.push([s.a.lat, s.a.lng], [s.b.lat, s.b.lng]); } });
         _design.points.forEach(function (q) { if (layerOn(q.layer)) lls.push([q.lat, q.lng]); });
-        if (lls.length) { try { m.fitBounds(L.latLngBounds(lls).pad(0.2)); } catch (e) {} }
+        if (lls.length) { try { m.fitBounds(L.latLngBounds(lls).pad(0.2)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'project-import:fitMap'); } }
     }
 
     // ---- render: AR (vlastní SVG overlay + lehká rAF smyčka) ------------------
@@ -212,7 +212,7 @@
         var pj = window._arProj;
         var heading = (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null;
         if (heading == null) { svg.innerHTML = ''; return; }
-        var eyeH = 1.6, vOff = 0; try { eyeH = visSettings.eyeHeight || 1.6; vOff = visSettings.arVerticalOffset || 0; } catch (e) {}
+        var eyeH = 1.6, vOff = 0; try { eyeH = visSettings.eyeHeight || 1.6; vOff = visSettings.arVerticalOffset || 0; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'project-import:arLoop'); }
         var rad = (typeof arRadius !== 'undefined' && arRadius) ? arRadius : 150;
         var html = '';
         _design.segs.forEach(function (s) {
@@ -238,7 +238,7 @@
         try {
             if (typeof setStoredData !== 'function') return;
             setStoredData(KEY, JSON.stringify({ design: _design, raster: _raster ? { url: _raster.url, w: _raster.w, h: _raster.h, cp: _raster.cp, opacity: _raster.opacity, on: _raster.on } : null }));
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'project-import:persist'); }
     }
     function load() {
         try {
@@ -262,12 +262,12 @@
             var arr = (typeof persistentCustomPoints !== 'undefined') ? persistentCustomPoints : [];
             var hit = arr.find(function (p) { return p.name === name && Math.abs(p.lat - v.lat) < 1e-6 && Math.abs(p.lng - v.lng) < 1e-6; });
             if (hit) pid = hit.id;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'project-import:stakeOut'); }
         if (pid != null) {
-            try { highlightedPointId = pid; } catch (e) {}
-            try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) {}
-            try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) {}
-            try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) {}
+            try { highlightedPointId = pid; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'project-import:stakeOut'); }
+            try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'project-import:stakeOut'); }
+            try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'project-import:stakeOut'); }
+            try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'project-import:stakeOut'); }
         }
         closeModal();
         toast('Vytyčuji #' + name + ' — sleduj šipku v AR');

@@ -29,8 +29,8 @@
     var _here = null;          // parcela, na které stojím
     var _busy = false;
 
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-vector:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-vector:toast'); } }
     function getMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function escapeHtml(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -172,7 +172,7 @@
             var latlngs = p.rings.map(function (r) { return r.map(function (v) { return [v.lat, v.lng]; }); });
             var isHere = (_here && _here === p);
             var poly = L.polygon(latlngs, { color: BORDER, weight: isHere ? 3 : 1.5, opacity: 0.9, fillColor: BORDER, fillOpacity: isHere ? 0.28 : 0.04 });
-            poly.on('click', function (ev) { try { L.DomEvent.stopPropagation(ev); } catch (e) {} parcelPopup(p, ev.latlng); });
+            poly.on('click', function (ev) { try { L.DomEvent.stopPropagation(ev); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-vector:drawMap'); } parcelPopup(p, ev.latlng); });
             poly.addTo(g);
         });
     }
@@ -227,7 +227,7 @@
         var _pitch = pj.pitch || 0;
         if (_lastArHeading != null && Math.abs(heading - _lastArHeading) < 0.3 && Math.abs(_pitch - (_lastArPitch || 0)) < 0.3 && _lastArLat === userLat && _lastArLng === userLng) return;
         _lastArHeading = heading; _lastArPitch = _pitch; _lastArLat = userLat; _lastArLng = userLng;
-        var eyeH = 1.6, vOff = 0; try { eyeH = visSettings.eyeHeight || 1.6; vOff = visSettings.arVerticalOffset || 0; } catch (e) {}
+        var eyeH = 1.6, vOff = 0; try { eyeH = visSettings.eyeHeight || 1.6; vOff = visSettings.arVerticalOffset || 0; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-vector:arLoop'); }
         var rad = (typeof arRadius !== 'undefined' && arRadius) ? arRadius : 150;
         var html = '';
         // jen hrany blízko uživatele (do ~AR dosahu), ať se AR nezahltí
@@ -258,8 +258,8 @@
             var arr = (typeof persistentCustomPoints !== 'undefined') ? persistentCustomPoints : [];
             var hit = arr.find(function (q) { return q.name === name && Math.abs(q.lat - v.lat) < 1e-6 && Math.abs(q.lng - v.lng) < 1e-6; });
             if (hit) pid = hit.id;
-        } catch (e) {}
-        if (pid != null) { try { highlightedPointId = pid; } catch (e) {} try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) {} try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) {} }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-vector:stakeNearestVertex'); }
+        if (pid != null) { try { highlightedPointId = pid; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-vector:stakeNearestVertex'); } try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-vector:stakeNearestVertex'); } try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-vector:stakeNearestVertex'); } }
         closeModal();
         toast('Navádím na lomový bod (' + v.d.toFixed(0) + ' m) — sleduj šipku');
     }
@@ -271,7 +271,7 @@
             var s = JSON.stringify(_parcels);
             if (s.length > 3500000) { toast('Parcely uloženy jen do paměti (moc velké)'); return; }
             setStoredData(KEY, s);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-vector:persist'); }
     }
     function load() { try { if (typeof getStoredData !== 'function') return; var s = getStoredData(KEY); if (s) _parcels = JSON.parse(s) || []; } catch (e) { _parcels = []; } }
 

@@ -42,7 +42,7 @@ if ('serviceWorker' in navigator) {
                         const now = Date.now();
                         if (now - _lastChk < 10 * 60 * 1000) return;
                         _lastChk = now;
-                        try { reg.update(); } catch (e) {}
+                        try { reg.update(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:chk'); }
                     };
                     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') chk(); });
                     window.addEventListener('pageshow', chk);
@@ -74,7 +74,7 @@ if ('serviceWorker' in navigator) {
         // offline bez GPS fixu (uvnitř budovy) se pak body nevykreslily vůbec, dokud
         // nepřišla síťová poloha (data/wifi). Použijeme poslední známou polohu, jinak ČR.
         (function () {
-            let p = null; try { p = JSON.parse(localStorage.getItem('arLastPos')); } catch (e) {}
+            let p = null; try { p = JSON.parse(localStorage.getItem('arLastPos')); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agNumIn'); }
             if (p && isFinite(p.lat) && isFinite(p.lng)) map.setView([p.lat, p.lng], 17, { animate: false });
             else map.setView([49.8, 15.5], 7, { animate: false });
         })();
@@ -101,7 +101,7 @@ if ('serviceWorker' in navigator) {
             return new Promise((resolve) => {
                 if (_idb) return resolve(_idb);
                 let req; try { req = indexedDB.open('argeodet', 1); } catch (e) { return resolve(null); }
-                req.onupgradeneeded = () => { try { req.result.createObjectStore('kv'); } catch (e) {} };
+                req.onupgradeneeded = () => { try { req.result.createObjectStore('kv'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:onupgradeneeded'); } };
                 req.onsuccess = () => { _idb = req.result; _idbOk = true; resolve(_idb); };
                 req.onerror = () => resolve(null);
             });
@@ -127,9 +127,9 @@ if ('serviceWorker' in navigator) {
             return _idbOp('readwrite', s => {
                 try {
                     const kr = s.getAllKeys();
-                    kr.onsuccess = () => { (kr.result || []).forEach(k => { if (typeof k === 'string' && k.indexOf(prefix) === 0) { try { s.delete(k); } catch (e) {} } }); };
+                    kr.onsuccess = () => { (kr.result || []).forEach(k => { if (typeof k === 'string' && k.indexOf(prefix) === 0) { try { s.delete(k); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:onsuccess'); } } }); };
                 } catch (e) {
-                    try { const cur = s.openCursor(); cur.onsuccess = (ev) => { const c = ev.target.result; if (c) { if (typeof c.key === 'string' && c.key.indexOf(prefix) === 0) c.delete(); c.continue(); } }; } catch (e2) {}
+                    try { const cur = s.openCursor(); cur.onsuccess = (ev) => { const c = ev.target.result; if (c) { if (typeof c.key === 'string' && c.key.indexOf(prefix) === 0) c.delete(); c.continue(); } }; } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'logika:onsuccess'); }
                 }
                 return null;
             });
@@ -166,7 +166,7 @@ if ('serviceWorker' in navigator) {
             const msg = savedToFallback
                 ? 'POZOR: databáze telefonu odmítla zápis bodů. Data jsou dočasně zachráněna v záložním úložišti a po restartu se vrátí, ale udělejte co nejdřív zálohu (Nastavení → Údržba → Stáhnout zálohu) a uvolněte místo v telefonu.'
                 : 'POZOR: bod se nepodařilo trvale uložit (databáze telefonu odmítla zápis — nejspíš plné úložiště). Data se mohou po zavření aplikace ztratit.\n\nUvolněte místo a udělejte zálohu (Nastavení → Údržba → Stáhnout zálohu).';
-            try { agInfo(msg); } catch (e) {}
+            try { agInfo(msg); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:_warnStorageWriteFail'); }
         }
         // dump/restore celeho kv storu — pro zalohu vsech dat (zaloha.js)
         function idbDumpAll() {
@@ -194,7 +194,7 @@ if ('serviceWorker' in navigator) {
                         const store = tx.objectStore('kv');
                         // OPRAVA: napred vycistit cely store, jinak stare klice (z puvodniho stavu)
                         // prezijou a smichaji se s obnovenymi daty. Clear+put v JEDNE tx = atomicke.
-                        try { store.clear(); } catch (e) {}
+                        try { store.clear(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:idbRestoreAll'); }
                         Object.keys(obj).forEach(k => store.put(obj[k], k));
                         tx.oncomplete = () => resolve();
                         tx.onerror = () => resolve();
@@ -209,7 +209,7 @@ if ('serviceWorker' in navigator) {
                 let val = await _idbGet(fk);
                 if (val == null) {
                     const ls = localStorage.getItem(fk);
-                    if (ls != null) { await _idbSet(fk, ls); val = ls; if (_idbOk) { try { localStorage.removeItem(fk); } catch (e) {} } }
+                    if (ls != null) { await _idbSet(fk, ls); val = ls; if (_idbOk) { try { localStorage.removeItem(fk); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:hydrateActiveProject'); } } }
                 }
                 if (val != null) _idbMem[fk] = val; else delete _idbMem[fk];
             }
@@ -230,9 +230,9 @@ if ('serviceWorker' in navigator) {
                 // localStorage kopie se maze AZ po potvrzeni transakce, ne predem.
                 if (_idbOk) {
                     const tryWrite = (attempt) => _idbSet(fk, val).then(res => {
-                        if (res != null) { try { localStorage.removeItem(fk); } catch (e) {} return; }
+                        if (res != null) { try { localStorage.removeItem(fk); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:tryWrite'); } return; }
                         if (attempt < 1) { setTimeout(() => tryWrite(attempt + 1), 500); return; }
-                        let saved = false; try { localStorage.setItem(fk, val); saved = true; } catch (e) {}
+                        let saved = false; try { localStorage.setItem(fk, val); saved = true; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:tryWrite'); }
                         _warnStorageWriteFail(saved);
                     });
                     tryWrite(0);
@@ -297,7 +297,7 @@ if ('serviceWorker' in navigator) {
                         '\u0165': 't', '\u00fa': 'u', '\u016f': 'u', '\u00fd': 'y', '\u017e': 'z' };
         function agFold(s) {
             s = String(s == null ? '' : s).toLowerCase();
-            try { s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (e) {}
+            try { s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agFold'); }
             return s.replace(/[\u00e1\u010d\u010f\u00e9\u011b\u00ed\u0148\u00f3\u0159\u0161\u0165\u00fa\u016f\u00fd\u017e]/g,
                              function (c) { return _AG_DIA[c] || c; });
         }
@@ -319,7 +319,7 @@ if ('serviceWorker' in navigator) {
         }
         window.agMatchQuery = agMatchQuery;
 
-        function agVibe(pattern) { try { if (visSettings.vibrationEnabled !== false && navigator.vibrate) navigator.vibrate(pattern || 30); } catch (e) {} }
+        function agVibe(pattern) { try { if (visSettings.vibrationEnabled !== false && navigator.vibrate) navigator.vibrate(pattern || 30); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agVibe'); } }
         window.agVibe = agVibe;
         // ---- SERIE CISLOVANI BODU (per zakazka): z posledniho ulozeneho nazvu "PREFIX123"
         // si zapamatujeme prefix+cislo a pri dalsim novem bodu predvyplnime nasledujici.
@@ -329,7 +329,7 @@ if ('serviceWorker' in navigator) {
             const m = /^(.*?)(\d{1,9})$/.exec(String(name || '').trim());
             if (!m) { removeStoredData('agPointSerie'); return; }
             // delku cisla drzime kvuli nulam na zacatku ("001" -> "002")
-            try { setStoredData('agPointSerie', JSON.stringify({ prefix: m[1], next: parseInt(m[2], 10) + 1, pad: m[2].length })); } catch (e) {}
+            try { setStoredData('agPointSerie', JSON.stringify({ prefix: m[1], next: parseInt(m[2], 10) + 1, pad: m[2].length })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:_serieSaveFromName'); }
         }
         // Dalsi volny nazev v serii — preskakuje uz existujici (import mohl cislo obsadit)
         function agNextSerieName() {
@@ -347,18 +347,18 @@ if ('serviceWorker' in navigator) {
         const AG_KOD_DEFAULTS = ['obruba', 'hrana asfaltu', 'šachta', 'vpusť', 'sloup', 'plot', 'roh budovy', 'strom'];
         function agKodHistory() {
             let h = [];
-            try { h = JSON.parse(localStorage.getItem('agKodHistory') || '[]'); } catch (e) {}
+            try { h = JSON.parse(localStorage.getItem('agKodHistory') || '[]'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agKodHistory'); }
             if (!Array.isArray(h)) h = [];
             AG_KOD_DEFAULTS.forEach(k => { if (h.indexOf(k) < 0) h.push(k); });
             return h.slice(0, 12);
         }
         function agKodRemember(kod) {
             try {
-                let h = []; try { h = JSON.parse(localStorage.getItem('agKodHistory') || '[]'); } catch (e) {}
+                let h = []; try { h = JSON.parse(localStorage.getItem('agKodHistory') || '[]'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agKodRemember'); }
                 if (!Array.isArray(h)) h = [];
                 h = [kod].concat(h.filter(k => k !== kod)).slice(0, 12);
                 localStorage.setItem('agKodHistory', JSON.stringify(h));
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agKodRemember'); }
         }
         window.agKodHistory = agKodHistory; window.agKodRemember = agKodRemember;
         // priprava formulare na DALSI bod serie („Uložit a další"): nove cislo, prazdne souradnice
@@ -368,7 +368,7 @@ if ('serviceWorker' in navigator) {
             ['custom-y', 'custom-x', 'custom-z'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
             const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none';
             pendingPointAccuracy = null; window._agPointOrigin = null;
-            try { if (typeof resetNewPointExtras === 'function') resetNewPointExtras(null); } catch (e) {}
+            try { if (typeof resetNewPointExtras === 'function') resetNewPointExtras(null); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agPrepNextPoint'); }
         }
         let gpsSamples = [], gpsAvgResult = null, _gpsJump = 0;
         let arPoints = [], persistentCustomPoints = [], hideBtnLogic = null, editingCustomPointId = null, highlightedPointId = null, activePointIdForModal = null;
@@ -383,7 +383,7 @@ if ('serviceWorker' in navigator) {
         
         // Stazene uredni body ziji jen v pameti (initFetch je pridava, neubira) -> pred prepnutim
         // zakazky je ulozime, at se neztrati. Jen kdyz nejake jsou (neprepiseme ulozena data prazdnem).
-        function _persistOfficialPoints() { try { if (arPoints.some(p => p.cat !== 'CUSTOM')) setStoredData('arOfflinePoints12', JSON.stringify(arPoints.filter(p => p.cat !== 'CUSTOM'))); } catch (e) {} }
+        function _persistOfficialPoints() { try { if (arPoints.some(p => p.cat !== 'CUSTOM')) setStoredData('arOfflinePoints12', JSON.stringify(arPoints.filter(p => p.cat !== 'CUSTOM'))); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:_persistOfficialPoints'); } }
         function changeProject() { _persistOfficialPoints(); activeProjectId = document.getElementById('w-project-select').value; localStorage.setItem('arActiveProjectId', activeProjectId); hydrateActiveProject().then(loadProjectSettings); }
         function createNewProject() {
             const create = (name) => { if(!name) return; _persistOfficialPoints(); let id = 'proj_' + Date.now(); projects.push({id: id, name: name}); localStorage.setItem('arProjectsList', JSON.stringify(projects)); activeProjectId = id; localStorage.setItem('arActiveProjectId', activeProjectId); renderProjectSelect(); hydrateActiveProject().then(loadProjectSettings); };
@@ -400,10 +400,10 @@ if ('serviceWorker' in navigator) {
             // (vytycovaci checklist, Helmert, epochy, zapisniky, vrstvy...) zustavalo po
             // smazani zakazky navzdy jako sirotci. Prefix smete i vsechny budouci klice.
             _idbDelByPrefix(pid + "_");
-            try { for (let i = localStorage.length - 1; i >= 0; i--) { const k = localStorage.key(i); if (k && k.indexOf(pid + "_") === 0) localStorage.removeItem(k); } } catch (e) {}
+            try { for (let i = localStorage.length - 1; i >= 0; i--) { const k = localStorage.key(i); if (k && k.indexOf(pid + "_") === 0) localStorage.removeItem(k); } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:deleteProject'); }
             // Moduly s VLASTNI IndexedDB (fotky vytyceni, rastr podkladu...) si uklidi samy.
             // Zurnal (argeodet-journal) se ZAMERNE nemaze — auditni stopa prezije i zakazku.
-            try { document.dispatchEvent(new CustomEvent('ag:project-deleted', { detail: { id: pid } })); } catch (e) {}
+            try { document.dispatchEvent(new CustomEvent('ag:project-deleted', { detail: { id: pid } })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:deleteProject'); }
             projects = projects.filter(p => p.id !== pid);
             localStorage.setItem('arProjectsList', JSON.stringify(projects));
             activeProjectId = projects[0].id; localStorage.setItem('arActiveProjectId', activeProjectId);
@@ -414,12 +414,12 @@ if ('serviceWorker' in navigator) {
             let f = getStoredData('arFilters12'); try { filters = f ? JSON.parse(f) : null; } catch (e) { filters = null; } if (!filters || typeof filters !== 'object') filters = { tb: true, zhb: true, pbpp: true, nivel: true, custom: true };
             let m = getStoredData('arRadiusMap'); if(m) mapRadius = parseInt(m); else mapRadius = 1000;
             let a = getStoredData('arRadiusAR'); if(a) arRadius = parseInt(a); else arRadius = 150;
-            let vs = getStoredData('arVisSettings12'); if(vs) { try { var _vs = JSON.parse(vs); if (_vs && typeof _vs === 'object') visSettings = Object.assign(visSettings, _vs); } catch (e) {} }
+            let vs = getStoredData('arVisSettings12'); if(vs) { try { var _vs = JSON.parse(vs); if (_vs && typeof _vs === 'object') visSettings = Object.assign(visSettings, _vs); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:loadProjectSettings'); } }
             let ho = getStoredData('arHeadingOffset'); userHeadingOffset = ho ? (parseFloat(ho) || 0) : 0;
 
             arPoints.forEach(p => { if(p.element) p.element.remove(); }); arPoints = []; persistentCustomPoints = [];
-            let off = getStoredData('arOfflinePoints12'); if(off) { try { var _off = JSON.parse(off); if (Array.isArray(_off)) _off.forEach(p => { if (!p || typeof p.lat !== 'number' || typeof p.lng !== 'number' || !isFinite(p.lat) || !isFinite(p.lng)) return; p.element=null; p.distElement=null; p.ringElement=null; p.bestAccuracy=null; p.hidden=false; arPoints.push(p); }); }catch(e){} }
-            let cust = getStoredData('arCustomPoints12'); if(cust) { try { var _cust = JSON.parse(cust); if (Array.isArray(_cust)) persistentCustomPoints = _cust.filter(p => p && typeof p.lat === 'number' && typeof p.lng === 'number' && isFinite(p.lat) && isFinite(p.lng)); } catch(e) {} }
+            let off = getStoredData('arOfflinePoints12'); if(off) { try { var _off = JSON.parse(off); if (Array.isArray(_off)) _off.forEach(p => { if (!p || typeof p.lat !== 'number' || typeof p.lng !== 'number' || !isFinite(p.lat) || !isFinite(p.lng)) return; p.element=null; p.distElement=null; p.ringElement=null; p.bestAccuracy=null; p.hidden=false; arPoints.push(p); }); }catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:loadProjectSettings'); } }
+            let cust = getStoredData('arCustomPoints12'); if(cust) { try { var _cust = JSON.parse(cust); if (Array.isArray(_cust)) persistentCustomPoints = _cust.filter(p => p && typeof p.lat === 'number' && typeof p.lng === 'number' && isFinite(p.lat) && isFinite(p.lng)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:loadProjectSettings'); } }
             loadLines();
             // OPRAVA: vlastni body musi po startu i do arPoints (AR + mapa), ne jen do seznamu spravy
             persistentCustomPoints.forEach(pt => arPoints.push({...pt, hidden: false}));
@@ -438,7 +438,7 @@ if ('serviceWorker' in navigator) {
                     var _vr = document.getElementsByName('w-view');
                     for (var _i = 0; _i < _vr.length; _i++) _vr[_i].checked = (_vr[_i].value === _vm);
                 }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:loadProjectSettings'); }
 
             applyVisualSettings();
             if(appStarted) { drawAllMarkersOnMap(); initARMarkers(); if(userLat && userLng) initFetch(userLat, userLng); }
@@ -446,14 +446,14 @@ if ('serviceWorker' in navigator) {
 
         window.addEventListener('DOMContentLoaded', () => { renderProjectSelect(); hydrateActiveProject().then(loadProjectSettings); });
 
-        async function requestWakeLock() { if ('wakeLock' in navigator && visSettings.wakeLockEnabled) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } }
+        async function requestWakeLock() { if ('wakeLock' in navigator && visSettings.wakeLockEnabled) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'logika:requestWakeLock'); } } }
         document.addEventListener('visibilitychange', () => { if (wakeLock !== null && document.visibilityState === 'visible' && visSettings.wakeLockEnabled) { requestWakeLock(); } });
         // BATERIE: displej je největší spotřebič a wake lock se dřív NIKDY neuvolnil —
         // zapomenutý telefon v kapse svítil, dokud nedošla baterie. Politiku (kdy pustit,
         // kdy zase vzít) drží js/power-save.js; tady je jen bezpečné uvolnění/obnova.
         // Měřicí moduly (brutální GPS, DGPS…) si drží VLASTNÍ wake lock, takže uvolnění
         // tohoto jim měření nepřeruší — displej zůstane rozsvícený po dobu měření.
-        function releaseWakeLock() { try { if (wakeLock) { wakeLock.release(); } } catch (e) {} wakeLock = null; }
+        function releaseWakeLock() { try { if (wakeLock) { wakeLock.release(); } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:releaseWakeLock'); } wakeLock = null; }
         window.agRequestWakeLock = requestWakeLock;
         window.agReleaseWakeLock = releaseWakeLock;
         window.agWakeLockHeld = function () { return wakeLock !== null; };
@@ -509,10 +509,10 @@ if ('serviceWorker' in navigator) {
                     let minX = Math.floor((minLon + 180) / 360 * Math.pow(2, z)), maxX = Math.floor((maxLon + 180) / 360 * Math.pow(2, z));
                     let minY = Math.floor((1 - Math.log(Math.tan(maxLat * Math.PI / 180) + 1 / Math.cos(maxLat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, z));
                     let maxY = Math.floor((1 - Math.log(Math.tan(minLat * Math.PI / 180) + 1 / Math.cos(minLat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, z));
-                    for (let x = minX; x <= maxX; x++) { for (let y = minY; y <= maxY; y++) { const c = L.point(x, y); c.z = z; try { urls.push(layer.getTileUrl(c)); } catch (e) {} } }
+                    for (let x = minX; x <= maxX; x++) { for (let y = minY; y <= maxY; y++) { const c = L.point(x, y); c.z = z; try { urls.push(layer.getTileUrl(c)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:_cacheWmsForArea'); } } }
                 });
-            } catch (e) {}
-            if (!wasOnMap) { try { map.removeLayer(layer); } catch (e) {} }
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:_cacheWmsForArea'); }
+            if (!wasOnMap) { try { map.removeLayer(layer); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:_cacheWmsForArea'); } }
             out.total = urls.length;
             if (urls.length === 0) return out;
             if (urls.length > cap) { out.skipped = true; return out; }
@@ -561,8 +561,8 @@ if ('serviceWorker' in navigator) {
                 // Katastralni mapa KN je pro geodeta v terenu nejdulezitejsi -> pracovni zoomy 17-18.
                 // Ortofoto jen z17 (jinak stovky dlazdic a zbytecna zatez CUZK). Strop na vrstvu.
                 wms = {};
-                try { wms.katastr = await _cacheWmsForArea(cache, (typeof katastrLayer !== 'undefined' ? katastrLayer : null), minLat, maxLat, minLon, maxLon, [17, 18], 1500); } catch (e) {}
-                try { wms.ortofoto = await _cacheWmsForArea(cache, (typeof ortofotoLayer !== 'undefined' ? ortofotoLayer : null), minLat, maxLat, minLon, maxLon, [17], 900); } catch (e) {}
+                try { wms.katastr = await _cacheWmsForArea(cache, (typeof katastrLayer !== 'undefined' ? katastrLayer : null), minLat, maxLat, minLon, maxLon, [17, 18], 1500); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:cacheTilesForArea'); }
+                try { wms.ortofoto = await _cacheWmsForArea(cache, (typeof ortofotoLayer !== 'undefined' ? ortofotoLayer : null), minLat, maxLat, minLon, maxLon, [17], 900); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:cacheTilesForArea'); }
             }
             hideOfflineProgress();
             return { ok, total, net, http, quota, wms };
@@ -689,7 +689,7 @@ if ('serviceWorker' in navigator) {
                         var _c = window.AGLocalize.apply(p.lat, p.lng);
                         if (_c && isFinite(_c[0]) && isFinite(_c[1])) { p.lat = _c[0]; p.lng = _c[1]; if (p.vyska != null && window.AGLocalize.applyZ) p.vyska = window.AGLocalize.applyZ(_c[0], _c[1], p.vyska); p._localized = true; }
                     }
-                } catch (e) {}
+                } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:addImportedPoints'); }
                 if (persistentCustomPoints.find(ex => ex.name === p.name && Math.abs(ex.lat - p.lat) < 0.0001 && Math.abs(ex.lng - p.lng) < 0.0001)) return;
                 const id = 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6);
                 const np = { id: id, name: p.name || 'Bod', lat: p.lat, lng: p.lng, cat: 'CUSTOM', type: 'custom' };
@@ -700,8 +700,8 @@ if ('serviceWorker' in navigator) {
                 np.prov = (p.prov && typeof p.prov === 'object') ? p.prov : { origin: p.origin || 'import', ts: Date.now(), acc: (np.acc != null ? np.acc : null) };
                 persistentCustomPoints.push(np);
                 arPoints.push({ ...np, hidden: false });   // OPRAVA: hned i do pameti (AR+mapa), jinak videt az po restartu
-                if (p.doc && typeof savePointDoc === 'function') { try { savePointDoc(id, (typeof _normalizeDoc === 'function' ? _normalizeDoc(p.doc) : p.doc)); } catch (e) {} }
-                try { if (window.AGJournal) window.AGJournal.commit({ op: 'add', id: id, after: np, origin: np.prov.origin }); } catch (e) {}
+                if (p.doc && typeof savePointDoc === 'function') { try { savePointDoc(id, (typeof _normalizeDoc === 'function' ? _normalizeDoc(p.doc) : p.doc)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:addImportedPoints'); } }
+                try { if (window.AGJournal) window.AGJournal.commit({ op: 'add', id: id, after: np, origin: np.prov.origin }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:addImportedPoints'); }
                 added++;
             });
             setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
@@ -717,7 +717,7 @@ if ('serviceWorker' in navigator) {
         function _agDecodeText(buf) {
             try {
                 var utf = new TextDecoder('utf-8', { fatal: false }).decode(buf);
-                if (utf.indexOf('�') >= 0) { try { return new TextDecoder('windows-1250').decode(buf); } catch (e) {} }
+                if (utf.indexOf('�') >= 0) { try { return new TextDecoder('windows-1250').decode(buf); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:_agDecodeText'); } }
                 return utf;
             } catch (e) { try { return new TextDecoder('windows-1250').decode(buf); } catch (e2) { return ''; } }
         }
@@ -738,7 +738,7 @@ if ('serviceWorker' in navigator) {
                     event.target.value = ''; return;
                 }
                 let imported = null;
-                try { let j = JSON.parse(txt); if (Array.isArray(j)) imported = j; } catch (err) {}
+                try { let j = JSON.parse(txt); if (Array.isArray(j)) imported = j; } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'logika:onload'); }
                 if (!imported) imported = parseCoordsCSV(txt);
                 if (!imported || imported.length === 0) { agInfo("V souboru se nenašly žádné body.\n\nPodporováno: JSON, CSV/TXT s řádky 'číslo;Y;X' (oddělovač ; , tab nebo mezera), nebo VFK."); event.target.value = ''; return; }
                 const added = window.addImportedPoints(imported);
@@ -820,7 +820,7 @@ if ('serviceWorker' in navigator) {
                 const _anch = !!(window.AGPose && window.AGPose.valid && window.AGPose.originLat != null);
                 const _oLat = _anch ? window.AGPose.originLat : userLat, _oLng = _anch ? window.AGPose.originLng : userLng;
                 if (_oLat != null && _oLng != null) { pt.currentDist = getDistance(_oLat, _oLng, pt.lat, pt.lng); pt.currentBearing = getBearing(_oLat, _oLng, pt.lat, pt.lng); arPoints.sort((a, b) => (a.currentDist || 0) - (b.currentDist || 0)); }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:ensureFreshPointVisible'); }
             // aktivní hledání jména by nový bod schovalo → zrušit a říct to na rovinu
             if (!agMatchQuery(pt, searchQuery)) {
                 const _q = searchQuery; searchQuery = '';
@@ -896,7 +896,7 @@ if ('serviceWorker' in navigator) {
                     var _lc = window.AGLocalize.apply(lat, lng);
                     if (_lc && isFinite(_lc[0]) && isFinite(_lc[1])) { lat = _lc[0]; lng = _lc[1]; if (vyska != null && window.AGLocalize.applyZ) vyska = window.AGLocalize.applyZ(lat, lng, vyska); }
                 }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:saveCustomPoint'); }
             // Kontrola az TEDY: souradnice uz jsou po pripadne Helmertove lokalizaci,
             // takze merime vzdalenost k tomu, co se opravdu ulozi. Formular zustava
             // otevreny, takze po potvrzeni staci zavolat funkci znovu — vsechny vstupy
@@ -918,9 +918,9 @@ if ('serviceWorker' in navigator) {
             }
             let savedId = editingCustomPointId;
             _saveToastShown = false;
-            if (editingCustomPointId) { const idx = persistentCustomPoints.findIndex(p => p.id === editingCustomPointId); if(idx !== -1) { persistentCustomPoints[idx].name = name; persistentCustomPoints[idx].lat = lat; persistentCustomPoints[idx].lng = lng; persistentCustomPoints[idx].vyska = vyska; persistentCustomPoints[idx].kod = kod || undefined; } const arIdx = arPoints.findIndex(p => p.id === editingCustomPointId); if (arIdx !== -1) { arPoints[arIdx].name = name; arPoints[arIdx].lat = lat; arPoints[arIdx].lng = lng; arPoints[arIdx].vyska = vyska; arPoints[arIdx].kod = kod || undefined; if(arPoints[arIdx].element) { arPoints[arIdx].element.remove(); arPoints[arIdx].element = null; } } } else { const newPoint = { id: 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6), name: name, lat: lat, lng: lng, cat: "CUSTOM", type: "custom" }; if (vyska != null) newPoint.vyska = vyska; if (kod) newPoint.kod = kod; if (pendingPointAccuracy != null) newPoint.acc = Math.round(pendingPointAccuracy * 100) / 100; newPoint.prov = { origin: (window._agPointOrigin || 'ruc'), ts: Date.now(), acc: (newPoint.acc != null ? newPoint.acc : null), qc: ((window.AGQc && AGQc.lastCode) || null) }; persistentCustomPoints.push(newPoint); const _arNew = {...newPoint, hidden: false}; arPoints.push(_arNew); savedId = newPoint.id; try { ensureFreshPointVisible(_arNew); } catch (e) {} try { if (window.AGJournal) window.AGJournal.commit({ op: 'add', id: newPoint.id, after: newPoint, origin: newPoint.prov.origin }); } catch (e) {} } pendingPointAccuracy = null; window._agPointOrigin = null; setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
+            if (editingCustomPointId) { const idx = persistentCustomPoints.findIndex(p => p.id === editingCustomPointId); if(idx !== -1) { persistentCustomPoints[idx].name = name; persistentCustomPoints[idx].lat = lat; persistentCustomPoints[idx].lng = lng; persistentCustomPoints[idx].vyska = vyska; persistentCustomPoints[idx].kod = kod || undefined; } const arIdx = arPoints.findIndex(p => p.id === editingCustomPointId); if (arIdx !== -1) { arPoints[arIdx].name = name; arPoints[arIdx].lat = lat; arPoints[arIdx].lng = lng; arPoints[arIdx].vyska = vyska; arPoints[arIdx].kod = kod || undefined; if(arPoints[arIdx].element) { arPoints[arIdx].element.remove(); arPoints[arIdx].element = null; } } } else { const newPoint = { id: 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6), name: name, lat: lat, lng: lng, cat: "CUSTOM", type: "custom" }; if (vyska != null) newPoint.vyska = vyska; if (kod) newPoint.kod = kod; if (pendingPointAccuracy != null) newPoint.acc = Math.round(pendingPointAccuracy * 100) / 100; newPoint.prov = { origin: (window._agPointOrigin || 'ruc'), ts: Date.now(), acc: (newPoint.acc != null ? newPoint.acc : null), qc: ((window.AGQc && AGQc.lastCode) || null) }; persistentCustomPoints.push(newPoint); const _arNew = {...newPoint, hidden: false}; arPoints.push(_arNew); savedId = newPoint.id; try { ensureFreshPointVisible(_arNew); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika'); } try { if (window.AGJournal) window.AGJournal.commit({ op: 'add', id: newPoint.id, after: newPoint, origin: newPoint.prov.origin }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika'); } } pendingPointAccuracy = null; window._agPointOrigin = null; setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
             saveNewPointDoc(savedId);
-            try { if (window.AGDraft) AGDraft.clear('novy-bod'); } catch (e) {}   // rozepsany bod je ulozeny -> draft pryc
+            try { if (window.AGDraft) AGDraft.clear('novy-bod'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika'); }   // rozepsany bod je ulozeny -> draft pryc
             const _wasEdit = !!editingCustomPointId;
             // serii posouva jen NOVY bod — prejmenovani stareho bodu na "500" by jinak
             // preskocilo cislovani rozdelane rady
@@ -933,7 +933,7 @@ if ('serviceWorker' in navigator) {
             else if (!_wasEdit && !_saveToastShown && userLat && userLng) quickToast('Bod „' + name + '" uložen.');
             // BEZ GPS FIXU (offline/uvnitř): mapa by mohla mířit úplně jinam a v AR se bez
             // polohy nic nevykreslí — vycentrujeme mapu na nový bod a řekneme to na rovinu.
-            if (!userLat || !userLng) { try { map.setView([lat, lng], Math.max(map.getZoom(), 17), { animate: false }); } catch (e) {} quickToast('Bod uložen a je v mapě. V AR se ukáže, až telefon určí polohu (GPS).'); }
+            if (!userLat || !userLng) { try { map.setView([lat, lng], Math.max(map.getZoom(), 17), { animate: false }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika'); } quickToast('Bod uložen a je v mapě. V AR se ukáže, až telefon určí polohu (GPS).'); }
         }
         // Popis + fotka zadané při TVORBĚ bodu (formulář Vložit bod) -> foto-dokumentace bodu
         // (stejné úložiště jako na kartě bodu: savePointDoc v kalkulacka.js).
@@ -963,7 +963,7 @@ if ('serviceWorker' in navigator) {
                 const img = new Image();
                 img.onload = () => {
                     let dataUrl = null;
-                    try { dataUrl = (typeof _photoToDataUrl === 'function') ? _photoToDataUrl(img) : null; } catch (err) {}
+                    try { dataUrl = (typeof _photoToDataUrl === 'function') ? _photoToDataUrl(img) : null; } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'logika:onload'); }
                     if (!dataUrl) { agInfo('Fotku se nepodařilo zpracovat.'); return; }
                     window._agNewPtPhoto = dataUrl;
                     const pv = document.getElementById('custom-photo-note');
@@ -1072,8 +1072,8 @@ if ('serviceWorker' in navigator) {
                 P.gpsBaseLng = (typeof userLng === 'number' && isFinite(userLng)) ? userLng : null;
                 P._driftFixes = 0;
                 // #10: přepočítej AR vzdálenosti/azimuty HNED z nového originu, ať značky neskáčou až po dalším GPS fixu
-                try { if (typeof arPoints !== 'undefined' && arPoints && arPoints.length && typeof getBearing === 'function') { arPoints.forEach(function (p) { p.currentDist = getDistance(P.originLat, P.originLng, p.lat, p.lng); p.currentBearing = getBearing(P.originLat, P.originLng, p.lat, p.lng); }); window._lastCalcAnchored = true; } } catch (e) {}
-                try { window.dispatchEvent(new CustomEvent('agpose:change', { detail: { valid: true, source: P.source } })); } catch (e) {}
+                try { if (typeof arPoints !== 'undefined' && arPoints && arPoints.length && typeof getBearing === 'function') { arPoints.forEach(function (p) { p.currentDist = getDistance(P.originLat, P.originLng, p.lat, p.lng); p.currentBearing = getBearing(P.originLat, P.originLng, p.lat, p.lng); }); window._lastCalcAnchored = true; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:set'); }
+                try { window.dispatchEvent(new CustomEvent('agpose:change', { detail: { valid: true, source: P.source } })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:set'); }
                 _badge();
             };
             // vrací [lat,lng] originu když platný, jinak fallback (typicky syrová GPS)
@@ -1085,8 +1085,8 @@ if ('serviceWorker' in navigator) {
                 P.valid = false; P.source = 'gps'; P.originLat = P.originLng = P.originZ = P.posSigma = null;
                 P.gpsBaseLat = P.gpsBaseLng = null; P._driftFixes = 0;
                 // #10: zpět na syrovou GPS — přepočítej hned
-                try { if (typeof arPoints !== 'undefined' && arPoints && arPoints.length && typeof getBearing === 'function' && typeof userLat === 'number' && userLat != null) { arPoints.forEach(function (p) { p.currentDist = getDistance(userLat, userLng, p.lat, p.lng); p.currentBearing = getBearing(userLat, userLng, p.lat, p.lng); }); window._lastCalcAnchored = false; } } catch (e) {}
-                if (was) { try { window.dispatchEvent(new CustomEvent('agpose:change', { detail: { valid: false } })); } catch (e) {} }
+                try { if (typeof arPoints !== 'undefined' && arPoints && arPoints.length && typeof getBearing === 'function' && typeof userLat === 'number' && userLat != null) { arPoints.forEach(function (p) { p.currentDist = getDistance(userLat, userLng, p.lat, p.lng); p.currentBearing = getBearing(userLat, userLng, p.lat, p.lng); }); window._lastCalcAnchored = false; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:clear'); }
+                if (was) { try { window.dispatchEvent(new CustomEvent('agpose:change', { detail: { valid: false } })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:clear'); } }
                 _badge();
                 if (userInitiated && typeof quickToast === 'function') quickToast('Kotvení zrušeno — AR jede zpět z GPS.');
             };
@@ -1268,17 +1268,17 @@ if ('serviceWorker' in navigator) {
             const fetchRadius = radius || mapRadius; const latOffset = fetchRadius / 111320; const lngOffset = fetchRadius / (111320 * Math.cos(lat * Math.PI / 180)); const bbox = `${lng - lngOffset},${lat - latOffset},${lng + lngOffset},${lat + latOffset}`; let newFoundCount = 0;
             let _gstep = 0; for (let layerId of [1, 2, 4, 5, 6]) { if (onProgress) onProgress(_gstep++, 6); 
                 const url = `https://ags.cuzk.gov.cz/arcgis/rest/services/BodovaPole/MapServer/${layerId}/query?where=1%3D1&geometry=${bbox}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&outSR=4326&f=json`;
-                try { const data = await _cuzkFetchJson(url); if (data && data.features && data.features.length > 0) { data.features.forEach(feat => { const dist = getDistance(lat, lng, feat.geometry.y, feat.geometry.x); if (dist <= fetchRadius + 5) { const props = feat.attributes; const layerNum = parseInt(layerId, 10); const cisloBodu = extractPointNumber(props); const nameUpper = cisloBodu.toUpperCase(); let cat = "PBPP"; if (layerNum === 1) cat = "TB"; else if (layerNum === 2) cat = "ZHB"; else if (layerNum === 4 || layerNum === 5 || nameUpper.includes('-') || nameUpper.includes('NIVEL')) cat = "NIVEL"; const existing = arPoints.find(p => p.name === cisloBodu && Math.abs(p.lat - feat.geometry.y) < 0.00001); if (!existing) { arPoints.push({ id: stableId(feat.geometry.y, feat.geometry.x), name: cisloBodu, lat: feat.geometry.y, lng: feat.geometry.x, cat: cat, type: (cat==="NIVEL"?"vyskovy":"polohovy"), rawData: props, hidden: false, currentDist: dist, bestAccuracy: null }); newFoundCount++; } else if (existing.hidden) { existing.hidden = false; newFoundCount++; } } }); } } catch(e) {}
+                try { const data = await _cuzkFetchJson(url); if (data && data.features && data.features.length > 0) { data.features.forEach(feat => { const dist = getDistance(lat, lng, feat.geometry.y, feat.geometry.x); if (dist <= fetchRadius + 5) { const props = feat.attributes; const layerNum = parseInt(layerId, 10); const cisloBodu = extractPointNumber(props); const nameUpper = cisloBodu.toUpperCase(); let cat = "PBPP"; if (layerNum === 1) cat = "TB"; else if (layerNum === 2) cat = "ZHB"; else if (layerNum === 4 || layerNum === 5 || nameUpper.includes('-') || nameUpper.includes('NIVEL')) cat = "NIVEL"; const existing = arPoints.find(p => p.name === cisloBodu && Math.abs(p.lat - feat.geometry.y) < 0.00001); if (!existing) { arPoints.push({ id: stableId(feat.geometry.y, feat.geometry.x), name: cisloBodu, lat: feat.geometry.y, lng: feat.geometry.x, cat: cat, type: (cat==="NIVEL"?"vyskovy":"polohovy"), rawData: props, hidden: false, currentDist: dist, bestAccuracy: null }); newFoundCount++; } else if (existing.hidden) { existing.hidden = false; newFoundCount++; } } }); } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:fetchGeodata'); }
             }
             if (newFoundCount === 0 || !clearExisting) {
                 const mapExtent = `${lng-0.005},${lat-0.005},${lng+0.005},${lat+0.005}`; const idUrl = `https://ags.cuzk.gov.cz/arcgis/rest/services/BodovaPole/MapServer/identify?geometry=${lng},${lat}&geometryType=esriGeometryPoint&sr=4326&layers=all&tolerance=${Math.max(fetchRadius, 40)}&mapExtent=${mapExtent}&imageDisplay=1000,1000,96&returnGeometry=true&f=json`;
-                try { const idData = await _cuzkFetchJson(idUrl); if (idData && idData.results && idData.results.length > 0) { idData.results.forEach(res => { const dist = getDistance(lat, lng, res.geometry.y, res.geometry.x); if (dist <= fetchRadius + 5) { const props = res.attributes; const layerNum = parseInt(res.layerId, 10); const cisloBodu = extractPointNumber(props); const nameUpper = cisloBodu.toUpperCase(); let cat = "PBPP"; if (layerNum === 1) cat = "TB"; else if (layerNum === 2) cat = "ZHB"; else if (layerNum === 4 || layerNum === 5 || nameUpper.includes('-') || nameUpper.includes('NIVEL')) cat = "NIVEL"; const existing = arPoints.find(p => p.name === cisloBodu && Math.abs(p.lat - res.geometry.y) < 0.00001); if (!existing) { arPoints.push({ id: stableId(res.geometry.y, res.geometry.x), name: cisloBodu, lat: res.geometry.y, lng: res.geometry.x, cat: cat, type: (cat==="NIVEL"?"vyskovy":"polohovy"), rawData: props, hidden: false, currentDist: dist, bestAccuracy: null }); newFoundCount++; } else if (existing.hidden) { existing.hidden = false; newFoundCount++; } } }); } } catch(e) {}
+                try { const idData = await _cuzkFetchJson(idUrl); if (idData && idData.results && idData.results.length > 0) { idData.results.forEach(res => { const dist = getDistance(lat, lng, res.geometry.y, res.geometry.x); if (dist <= fetchRadius + 5) { const props = res.attributes; const layerNum = parseInt(res.layerId, 10); const cisloBodu = extractPointNumber(props); const nameUpper = cisloBodu.toUpperCase(); let cat = "PBPP"; if (layerNum === 1) cat = "TB"; else if (layerNum === 2) cat = "ZHB"; else if (layerNum === 4 || layerNum === 5 || nameUpper.includes('-') || nameUpper.includes('NIVEL')) cat = "NIVEL"; const existing = arPoints.find(p => p.name === cisloBodu && Math.abs(p.lat - res.geometry.y) < 0.00001); if (!existing) { arPoints.push({ id: stableId(res.geometry.y, res.geometry.x), name: cisloBodu, lat: res.geometry.y, lng: res.geometry.x, cat: cat, type: (cat==="NIVEL"?"vyskovy":"polohovy"), rawData: props, hidden: false, currentDist: dist, bestAccuracy: null }); newFoundCount++; } else if (existing.hidden) { existing.hidden = false; newFoundCount++; } } }); } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:fetchGeodata'); }
             }
             // Kazde zvlast: kdyz spadne initARMarkers (AR), MUSI se stejne prekreslit
             // mapa — jinak jedna chyba v AR schova body i v mape.
             if (onProgress) onProgress(6, 6);
-            try { initARMarkers(); } catch (e) {}
-            try { drawAllMarkersOnMap(); } catch (e) {}
+            try { initARMarkers(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:fetchGeodata'); }
+            try { drawAllMarkersOnMap(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:fetchGeodata'); }
             return newFoundCount;
         }
 
@@ -1298,7 +1298,7 @@ if ('serviceWorker' in navigator) {
         // Vysledek si pamatujeme (window._agPersisted) -> ukazatel uloziste v Nastavenich pak muze
         // uzivatele varovat, kdyz je trvale uloziste ODMITNUTE (typicky iOS) a data hrozi smazanim.
         window._agPersisted = null;
-        try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().then(function (g) { window._agPersisted = !!g; }).catch(function () {}); } catch (e) {}
+        try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().then(function (g) { window._agPersisted = !!g; }).catch(function () {}); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:initFetch'); }
 
         // Ukazatel obsazeni uloziste + stavu trvaleho uloziste + posledni zalohy (Nastaveni -> Udrzba).
         // Dava uzivateli VIDITELNOST driv, nez narazi do kvoty a body se prestanou ukladat.
@@ -1322,7 +1322,7 @@ if ('serviceWorker' in navigator) {
                 const last = parseInt(localStorage.getItem('arLastBackupAt') || '0', 10);
                 if (last) { const d = Math.round((Date.now() - last) / 86400000); parts.push('poslední záloha: <b>' + (d <= 0 ? 'dnes' : d + ' dní zpět') + '</b>'); }
                 else parts.push('<span style="color:var(--warning);">záloha zatím nebyla stažena</span>');
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:initFetch'); }
             el.innerHTML = parts.join(' · ');
         };
 
@@ -1336,7 +1336,7 @@ if ('serviceWorker' in navigator) {
         function agStartGpsWatch() {
             if (!("geolocation" in navigator)) return false;
             // stary watch zrusit, jinak by po opakovanem spusteni bezely dva naráz (a zral baterii)
-            if (_gpsWatchId != null) { try { navigator.geolocation.clearWatch(_gpsWatchId); } catch (e) {} _gpsWatchId = null; }
+            if (_gpsWatchId != null) { try { navigator.geolocation.clearWatch(_gpsWatchId); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agStartGpsWatch'); } _gpsWatchId = null; }
             _gpsWatchId = navigator.geolocation.watchPosition(
                 (position) => {
                     userLat = position.coords.latitude; userLng = position.coords.longitude;
@@ -1349,7 +1349,7 @@ if ('serviceWorker' in navigator) {
                     if (_mp && _mp.active) _mp.onFix(position.coords.latitude, position.coords.longitude, position.coords.accuracy);
                     if (_mp && _mp.active) { userLat = _mp.lat; userLng = _mp.lng; }
                     magneticDeclination = getDeclination(userLat, userLng);
-                    try { if (window.AGPose) window.AGPose.checkDrift(userLat, userLng); } catch (e) {}   // #1: kotvení se zneplatní, když reálně odejdu ze stanoviska
+                    try { if (window.AGPose) window.AGPose.checkDrift(userLat, userLng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agStartGpsWatch'); }   // #1: kotvení se zneplatní, když reálně odejdu ze stanoviska
                     userAlt = (position.coords.altitude != null && isFinite(position.coords.altitude)) ? position.coords.altitude : null;
                     currentGpsAccuracy = position.coords.accuracy;
                     // pri rucni poloze plati presnost odectu z mapy, ne presnost GPS
@@ -1362,7 +1362,7 @@ if ('serviceWorker' in navigator) {
                     // ma vedet, ze to neni satelitni fix
                     window.AGFix = { ts: Date.now(), lat: userLat, lng: userLng, acc: currentGpsAccuracy, alt: userAlt, err: null, manual: !!(_mp && _mp.active) };
                     // posledni znama poloha pro vychozi pohled mapy pri pristim startu (i offline); max 1x/30 s
-                    if (!window._agLastPosTs || Date.now() - window._agLastPosTs > 30000) { window._agLastPosTs = Date.now(); try { localStorage.setItem('arLastPos', JSON.stringify({ lat: userLat, lng: userLng })); } catch (e) {} }
+                    if (!window._agLastPosTs || Date.now() - window._agLastPosTs > 30000) { window._agLastPosTs = Date.now(); try { localStorage.setItem('arLastPos', JSON.stringify({ lat: userLat, lng: userLng })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agStartGpsWatch'); } }
                     gpsSpeed = (position.coords.speed != null && !isNaN(position.coords.speed)) ? position.coords.speed : 0;
                     if (position.coords.heading != null && !isNaN(position.coords.heading) && gpsSpeed > 0.5) gpsCourse = position.coords.heading;
                     updateGpsAveraging(userLat, userLng, currentGpsAccuracy, gpsSpeed, position.coords.altitude, position.coords.altitudeAccuracy);
@@ -1444,7 +1444,7 @@ if ('serviceWorker' in navigator) {
         // ===== SPOJNICE BODU (datova cast) =====
         // Ulozene cary mezi body: {id, aId, bId, aLat, aLng, bLat, bLng}. Per zakazka (klic arLines12).
         // Souradnice se ukladaji i primo do spojnice -> cara drzi, i kdyz bod zrovna neni stazeny.
-        function loadLines() { pointLines = []; const l = getStoredData('arLines12'); if (l) { try { pointLines = JSON.parse(l); } catch (e) {} } }
+        function loadLines() { pointLines = []; const l = getStoredData('arLines12'); if (l) { try { pointLines = JSON.parse(l); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:loadLines'); } } }
         function saveLines() { setStoredData('arLines12', JSON.stringify(pointLines)); }
         function resolveLineEnd(id, fLat, fLng) { const p = arPoints.find(q => q.id === id) || persistentCustomPoints.find(q => q.id === id); return p ? { lat: p.lat, lng: p.lng } : { lat: fLat, lng: fLng }; }
         function addLine(a, b) {
@@ -1594,7 +1594,7 @@ if ('serviceWorker' in navigator) {
             } catch (e) {
                 hideOfflineProgress();
                 agInfo('Čtení z fotky se nezdařilo: ' + ((e && e.message) ? e.message : e));
-            } finally { if (worker) { try { await worker.terminate(); } catch (e) {} } }
+            } finally { if (worker) { try { await worker.terminate(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:ocrFromPhoto'); } } }
         }
         // Vysledek OCR jen PREDVYPLNI formular - ulozeni az po kontrole uzivatelem
         // (nepozorovany preklep od OCR je horsi nez rucni prepis).

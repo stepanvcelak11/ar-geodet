@@ -91,7 +91,8 @@
             // ⚠ Obrys MUSÍ zůstat ČERNÝ i ve světlém režimu. Třída map-label-text tam
             // dostává BÍLÝ obrys (aby byl tmavý popisek bodu čitelný nad světlou OSM),
             // jenže tenhle popisek je zlatý — zlatá na bílém obrysu nad světlou mapou
-            // se ztrácí (naměřeno 1,23:1). Zlatá s černým obrysem je čitelná v obou motivech.
+            // se ztrácí (naměřeno 1,23:1). Zlatá s černým obrysem je čitelná v obou
+            // motivech. !important kvůli specificitě `body.light-mode #map.base-osm`.
             '.ag-cil-lbl{color:' + GOLD + ' !important;font-weight:700 !important;white-space:nowrap;',
             '  text-shadow:-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 !important;}',
             /* ④ pilulka na hraně displeje */
@@ -199,7 +200,7 @@
         }
         // popisky se srovnávají proti otočení mapy dávkou v grafika.js — ta si musí
         // znovu načíst seznam .map-label-text, jinak by ten můj zůstal natočený s mapou
-        try { window._labelsDirty = true; } catch (e) {}
+        try { window._labelsDirty = true; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cil-navigace:redrawMap'); }
     }
 
     // „Ukázat cíl" — vejde do mapy mě i cíl. _mapHold drží mapu tam, kam ji uživatel
@@ -208,13 +209,13 @@
     function fitTarget() {
         var m = gMap(), pt = target(), uLat = gLat(), uLng = gLng();
         if (!m || !pt) return;
-        if (uLat == null) { try { m.setView([pt.lat, pt.lng], 19, { animate: true }); } catch (e) {} return; }
+        if (uLat == null) { try { m.setView([pt.lat, pt.lng], 19, { animate: true }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cil-navigace:fitTarget'); } return; }
         try {
             window._mapHold = true;
             m.fitBounds(L.latLngBounds([[uLat, uLng], [pt.lat, pt.lng]]), { padding: [90, 90], maxZoom: 19, animate: true });
             clearTimeout(_holdT);
             _holdT = setTimeout(function () { window._mapHold = false; }, 6000);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cil-navigace:fitTarget'); }
         redrawMap(true);
     }
 
@@ -232,7 +233,7 @@
         _tile = b;
         // map-tools.js dlaždicím modulů dodává vzhled a popisek; naše je hotová, ale
         // ať ji zaregistruje (počítadlo / zavírání panelu po akci)
-        try { if (window.AGMapTools && AGMapTools.adopt) AGMapTools.adopt(); } catch (e) {}
+        try { if (window.AGMapTools && AGMapTools.adopt) AGMapTools.adopt(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cil-navigace:ensureTile'); }
         return b;
     }
     function syncTile(has) {
@@ -290,9 +291,9 @@
     // NAPOJENÍ: updateNavGlow() volá renderAR každý snímek (i v režimu Mapa)
     // =================================================================================
     function tick() {
-        try { updateEdge(); } catch (e) {}
-        try { redrawMap(false); } catch (e) {}
-        try { syncTile(!!target()); } catch (e) {}
+        try { updateEdge(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cil-navigace:tick'); }
+        try { redrawMap(false); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cil-navigace:tick'); }
+        try { syncTile(!!target()); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cil-navigace:tick'); }
     }
 
     function hook() {

@@ -37,17 +37,17 @@
     var _timer = null, _layer = null, _shown = false;
 
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
-    function info(m) { try { if (typeof window.agInfo === 'function') return window.agInfo(m); } catch (e) {} agInfo(String(m).replace(/<[^>]*>/g, '')); }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kde-je:toast'); } }
+    function info(m) { try { if (typeof window.agInfo === 'function') return window.agInfo(m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kde-je:info'); } agInfo(String(m).replace(/<[^>]*>/g, '')); }
     function ask(msg, cb) {
-        try { if (typeof window.agAsk === 'function') { window.agAsk(msg).then(function (ok) { if (ok) cb(); }); return; } } catch (e) {}
+        try { if (typeof window.agAsk === 'function') { window.agAsk(msg).then(function (ok) { if (ok) cb(); }); return; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kde-je:ask'); }
         if (confirm(String(msg).replace(/<[^>]*>/g, ''))) cb();
     }
 
     function load() {
         try { var a = JSON.parse(localStorage.getItem(LS_KEY)); return Array.isArray(a) ? a : []; } catch (e) { return []; }
     }
-    function save(a) { try { localStorage.setItem(LS_KEY, JSON.stringify(a)); } catch (e) {} }
+    function save(a) { try { localStorage.setItem(LS_KEY, JSON.stringify(a)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kde-je:save'); } }
 
     function me() {
         // průměrovaná GPS má přednost (je to výsledek vědomého měření)
@@ -55,30 +55,30 @@
             if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.n >= 2 && gpsAvgResult.lat != null) {
                 return { lat: gpsAvgResult.lat, lng: gpsAvgResult.lng, acc: (gpsAvgResult.acc != null ? gpsAvgResult.acc : null), src: 'průměr GPS' };
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kde-je:me'); }
         try {
             if (typeof userLat === 'number' && userLat != null && typeof userLng === 'number' && userLng != null) {
                 var a = null;
-                try { if (typeof currentGpsAccuracy === 'number' && currentGpsAccuracy > 0) a = currentGpsAccuracy; } catch (e2) {}
+                try { if (typeof currentGpsAccuracy === 'number' && currentGpsAccuracy > 0) a = currentGpsAccuracy; } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'kde-je:me'); }
                 return { lat: userLat, lng: userLng, acc: a, src: 'GPS' };
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kde-je:me'); }
         return null;
     }
     function heading() {
-        try { if (typeof smoothedHeading !== 'undefined' && smoothedHeading != null) return smoothedHeading; } catch (e) {}
-        try { if (typeof currentHeading !== 'undefined' && currentHeading != null) return currentHeading; } catch (e) {}
+        try { if (typeof smoothedHeading !== 'undefined' && smoothedHeading != null) return smoothedHeading; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kde-je:heading'); }
+        try { if (typeof currentHeading !== 'undefined' && currentHeading != null) return currentHeading; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kde-je:heading'); }
         return null;
     }
     function dist(a, b) {
-        try { if (typeof getDistance === 'function') return getDistance(a.lat, a.lng, b.lat, b.lng); } catch (e) {}
+        try { if (typeof getDistance === 'function') return getDistance(a.lat, a.lng, b.lat, b.lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kde-je:dist'); }
         var R = 6371000, dLat = (b.lat - a.lat) * Math.PI / 180, dLng = (b.lng - a.lng) * Math.PI / 180;
         var la = a.lat * Math.PI / 180, lb = b.lat * Math.PI / 180;
         var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(la) * Math.cos(lb) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
         return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
     }
     function bearing(a, b) {
-        try { if (typeof getBearing === 'function') return getBearing(a.lat, a.lng, b.lat, b.lng); } catch (e) {}
+        try { if (typeof getBearing === 'function') return getBearing(a.lat, a.lng, b.lat, b.lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kde-je:bearing'); }
         var la = a.lat * Math.PI / 180, lb = b.lat * Math.PI / 180, dL = (b.lng - a.lng) * Math.PI / 180;
         var y = Math.sin(dL) * Math.cos(lb), x = Math.cos(la) * Math.sin(lb) - Math.sin(la) * Math.cos(lb) * Math.cos(dL);
         return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
@@ -133,7 +133,7 @@
                     .then(function (v) { if (v) go(v); });
                 return;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kde-je:go'); }
         var v = prompt('Název místa:');
         if (v) go(v);
     }
@@ -156,7 +156,7 @@
         var m = getMap();
         if (!m || typeof L === 'undefined') return;
         if (onlyIfShown && !_shown) return;
-        if (_layer) { try { m.removeLayer(_layer); } catch (e) {} _layer = null; }
+        if (_layer) { try { m.removeLayer(_layer); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kde-je:drawLayer'); } _layer = null; }
         var list = load();
         if (!list.length) { _shown = false; return; }
         _layer = L.layerGroup();
@@ -171,7 +171,7 @@
                     }),
                     interactive: false, zIndexOffset: 800
                 }).addTo(_layer);
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kde-je:drawLayer'); }
         });
         _layer.addTo(m);
         _shown = true;
@@ -179,7 +179,7 @@
     function toggleLayer() {
         var m = getMap();
         if (!m) { info('Mapa není k dispozici.'); return; }
-        if (_shown && _layer) { try { m.removeLayer(_layer); } catch (e) {} _layer = null; _shown = false; toast('Značky v mapě skryté.'); }
+        if (_shown && _layer) { try { m.removeLayer(_layer); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kde-je:toggleLayer'); } _layer = null; _shown = false; toast('Značky v mapě skryté.'); }
         else { _shown = true; drawLayer(false); toast(_layer ? 'Značky jsou v mapě.' : 'Není co zobrazit.'); }
         render();
     }

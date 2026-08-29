@@ -92,16 +92,16 @@
 
     // ---- pomocné -------------------------------------------------------------------
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
-    function info(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert(t, m); } catch (e) {} toast(m); }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlas-kod:toast'); } }
+    function info(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert(t, m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlas-kod:info'); } toast(m); }
     function cfg() {
         var o = {};
-        try { o = JSON.parse(localStorage.getItem(LS) || '{}') || {}; } catch (e) {}
+        try { o = JSON.parse(localStorage.getItem(LS) || '{}') || {}; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlas-kod:cfg'); }
         if (!isFinite(o.avg) || o.avg < 1 || o.avg > 60) o.avg = AVG_DEF;
         if (typeof o.say !== 'boolean') o.say = true;
         return o;
     }
-    function saveCfg(o) { try { localStorage.setItem(LS, JSON.stringify(o)); } catch (e) {} }
+    function saveCfg(o) { try { localStorage.setItem(LS, JSON.stringify(o)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlas-kod:saveCfg'); } }
     function srCtor() { return window.SpeechRecognition || window.webkitSpeechRecognition || null; }
     function say(t) {
         if (!cfg().say) return;
@@ -110,7 +110,7 @@
             var u = new SpeechSynthesisUtterance(String(t));
             u.lang = 'cs-CZ'; u.rate = 1.05;
             window.speechSynthesis.speak(u);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlas-kod:say'); }
     }
     function beep(ok) {
         try {
@@ -121,13 +121,13 @@
             o.type = 'sine'; o.frequency.value = ok ? 1040 : 300;
             g.gain.value = 0.09;
             o.connect(g); g.connect(ctx.destination);
-            o.start(); setTimeout(function () { try { o.stop(); } catch (e) {} }, ok ? 110 : 220);
-        } catch (e) {}
+            o.start(); setTimeout(function () { try { o.stop(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlas-kod:beep'); } }, ok ? 110 : 220);
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlas-kod:beep'); }
     }
     function lockScreen() {
-        try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function (w) { _wake = w; })['catch'](function () {}); } catch (e) {}
+        try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function (w) { _wake = w; })['catch'](function () {}); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlas-kod:lockScreen'); }
     }
-    function unlockScreen() { try { if (_wake) { _wake.release(); _wake = null; } } catch (e) {} }
+    function unlockScreen() { try { if (_wake) { _wake.release(); _wake = null; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlas-kod:unlockScreen'); } }
 
     // ---- rozbor věty ------------------------------------------------------------------
     // Vrací, co ve větě bylo — pole, která ve větě nezazněla, zůstávají beze změny.
@@ -205,7 +205,7 @@
         if (_srSoft) return 'Rozpoznávání se nepovedlo (chybí signál nebo mikrofon drží něco jiného).';
         return null;
     }
-    function srClearRetry() { if (_srRetry) { try { clearTimeout(_srRetry); } catch (e) {} _srRetry = null; } }
+    function srClearRetry() { if (_srRetry) { try { clearTimeout(_srRetry); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlas-kod:srClearRetry'); } _srRetry = null; } }
     function srStart() {
         if (!_sr || !_srOn) return false;
         if (_srStarts >= SR_MAX_STARTS) return false;
@@ -266,9 +266,9 @@
         srClearRetry();
         var sr = _sr; _sr = null;
         if (sr) {
-            try { sr.onend = null; sr.onerror = null; sr.onresult = null; } catch (e) {}
-            try { sr.stop(); } catch (e2) {}
-            try { if (sr.abort) sr.abort(); } catch (e3) {}
+            try { sr.onend = null; sr.onerror = null; sr.onresult = null; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlas-kod:stopListen'); }
+            try { sr.stop(); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'hlas-kod:stopListen'); }
+            try { if (sr.abort) sr.abort(); } catch (e3) { window.AG && AG.swallow && AG.swallow(e3, 'hlas-kod:stopListen'); }
         }
         unlockScreen();
         syncUi();
@@ -294,7 +294,7 @@
         if (n) { _draft.name = n; _draft.kod = ''; _draft.note = ''; _draft.vyska = null; }
     }
     function nextSerie() {
-        try { if (typeof window.agNextSerieName === 'function') { var n = window.agNextSerieName(); if (n) return n; } } catch (e) {}
+        try { if (typeof window.agNextSerieName === 'function') { var n = window.agNextSerieName(); if (n) return n; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlas-kod:nextSerie'); }
         return '';
     }
     // po uložení posuneme sérii i pro ruční „Nový bod" — jinak by si obě cesty
@@ -304,7 +304,7 @@
             var m = /^(.*?)(\d{1,9})$/.exec(String(name || '').trim());
             if (!m || typeof setStoredData !== 'function') return;
             setStoredData('agPointSerie', JSON.stringify({ prefix: m[1], next: parseInt(m[2], 10) + 1, pad: m[2].length }));
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlas-kod:bumpSerie'); }
     }
 
     // ---- průměrování GPS a uložení bodu ----------------------------------------------------------
@@ -323,14 +323,14 @@
             try {
                 if (haveFix()) {
                     var acc = null;
-                    try { acc = (typeof currentGpsAccuracy !== 'undefined' && currentGpsAccuracy != null) ? currentGpsAccuracy : null; } catch (e) {}
+                    try { acc = (typeof currentGpsAccuracy !== 'undefined' && currentGpsAccuracy != null) ? currentGpsAccuracy : null; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlas-kod:saveDraft'); }
                     var alt = null;
-                    try { alt = (typeof userAlt !== 'undefined' && userAlt != null && isFinite(userAlt)) ? userAlt : null; } catch (e2) {}
+                    try { alt = (typeof userAlt !== 'undefined' && userAlt != null && isFinite(userAlt)) ? userAlt : null; } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'hlas-kod:saveDraft'); }
                     // stejný vzorek dvakrát (GPS ještě nedodala novou polohu) nemá cenu vážit
                     var last = _samples[_samples.length - 1];
                     if (!last || last.lat !== userLat || last.lng !== userLng) _samples.push({ lat: userLat, lng: userLng, acc: acc, alt: alt });
                 }
-            } catch (e3) {}
+            } catch (e3) { window.AG && AG.swallow && AG.swallow(e3, 'hlas-kod:saveDraft'); }
             renderDraft();
             if (Date.now() >= _avgUntil) finishAvg();
         }, 400);
@@ -356,7 +356,7 @@
         var vyska = _draft.vyska;
         if (vyska == null && nAlt) {
             var und = 0;
-            try { if (typeof getGeoidUndulation === 'function') und = getGeoidUndulation(lat, lng) || 0; } catch (e) {}
+            try { if (typeof getGeoidUndulation === 'function') und = getGeoidUndulation(lat, lng) || 0; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlas-kod:finishAvg'); }
             vyska = (sAlt / nAlt) - und;                     // elipsoidická výška -> Bpv
         }
         if (typeof window.addImportedPoints !== 'function') {
@@ -390,7 +390,7 @@
         renderHist();
     }
     function distM(la1, lo1, la2, lo2) {
-        try { if (typeof getDistance === 'function') return getDistance(la1, lo1, la2, lo2); } catch (e) {}
+        try { if (typeof getDistance === 'function') return getDistance(la1, lo1, la2, lo2); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlas-kod:distM'); }
         var R = 6371000, r = Math.PI / 180;
         var a = Math.sin((la2 - la1) * r / 2), b = Math.sin((lo2 - lo1) * r / 2);
         var h = a * a + Math.cos(la1 * r) * Math.cos(la2 * r) * b * b;
@@ -410,7 +410,7 @@
                 doc.t = Date.now();
                 savePointDoc(p.id, doc);
             });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlas-kod:attachNote'); }
     }
 
     // ---- UI ---------------------------------------------------------------------------------------
@@ -579,7 +579,7 @@
                 new MutationObserver(function () {
                     if (m.style.display === 'none' && _srOn) stopListen();
                 }).observe(m, { attributes: true, attributeFilter: ['style'] });
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlas-kod'); }
         }
         var c = cfg();
         m.querySelector('#ag-hk-say').checked = !!c.say;
@@ -596,7 +596,7 @@
     try {
         window.addEventListener('pagehide', function () { if (_srOn) stopListen(); });
         document.addEventListener('visibilitychange', function () { if (document.hidden && _srOn) stopListen(); });
-    } catch (e) {}
+    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlas-kod'); }
 
     // ---- dlaždice v Nástrojích ------------------------------------------------------------------------
     var _tries = 0;

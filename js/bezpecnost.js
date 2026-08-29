@@ -103,12 +103,12 @@
 
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function toast(m) {
-        try { if (typeof window.quickToast === 'function') { window.quickToast(m); return; } } catch (e) {}
+        try { if (typeof window.quickToast === 'function') { window.quickToast(m); return; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:toast'); }
         // Bez toastu by hlášky o (ne)úspěchu zmizely úplně — a právě tady se člověk
         // musí dozvědět, jestli se něco stalo, nebo ne.
-        try { if (typeof window.agInfo === 'function') window.agInfo(m); } catch (e) {}
+        try { if (typeof window.agInfo === 'function') window.agInfo(m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:toast'); }
     }
-    function vib(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+    function vib(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:vib'); } }
     function pad2(n) { return ('0' + n).slice(-2); }
     function cz(n, d) { return Number(n).toFixed(d == null ? 1 : d).replace('.', ','); }
     function dayKey() { var d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
@@ -116,14 +116,14 @@
 
     function cfg() {
         var o = null;
-        try { o = JSON.parse(localStorage.getItem(LS)); } catch (e) {}
+        try { o = JSON.parse(localStorage.getItem(LS)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:cfg'); }
         if (!o || typeof o !== 'object') o = {};
         if (o.drinkMin == null) o.drinkMin = DRINK_DEFAULT;
         if (!o.seen || typeof o.seen !== 'object') o.seen = {};
         if (!o.contacts || !o.contacts.length) o.contacts = [];
         return o;
     }
-    function saveCfg(o) { try { localStorage.setItem(LS, JSON.stringify(o)); } catch (e) {} }
+    function saveCfg(o) { try { localStorage.setItem(LS, JSON.stringify(o)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:saveCfg'); } }
 
     // ---- poloha VČETNĚ STÁŘÍ ---------------------------------------------------------------
     // Tři zdroje, sestupně podle důvěryhodnosti. Rozdíl mezi nimi je pro nouzi zásadní:
@@ -135,19 +135,19 @@
             if (f && typeof f.lat === 'number' && typeof f.lng === 'number' && f.ts) {
                 return { lat: f.lat, lng: f.lng, acc: (typeof f.acc === 'number' && f.acc > 0) ? f.acc : null, ts: f.ts, src: 'gps' };
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:fix'); }
         try {
             if (typeof userLat === 'number' && userLat != null && typeof userLng === 'number' && userLng != null) {
                 return { lat: userLat, lng: userLng, acc: acc(), ts: null, src: 'gps' };
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:fix'); }
         try {
             var p = JSON.parse(localStorage.getItem('arLastPos'));
             if (p && p.lat != null) return { lat: +p.lat, lng: +(p.lng != null ? p.lng : p.lon), acc: null, ts: null, src: 'ulozena' };
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:fix'); }
         return null;
     }
-    function acc() { try { if (typeof currentGpsAccuracy === 'number' && currentGpsAccuracy > 0) return currentGpsAccuracy; } catch (e) {} return null; }
+    function acc() { try { if (typeof currentGpsAccuracy === 'number' && currentGpsAccuracy > 0) return currentGpsAccuracy; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:acc'); } return null; }
     function pos() { var f = fix(); return f ? { lat: f.lat, lng: f.lng } : null; }   // pro výpočty soumraku
 
     function ageTxt(f) {
@@ -169,8 +169,8 @@
         return 2;
     }
     function sjtsk(lat, lng) {
-        try { if (window.GeoCore && typeof GeoCore.toSJTSK === 'function') { var r = GeoCore.toSJTSK(lat, lng); if (r) return { y: Math.abs(r.y), x: Math.abs(r.x) }; } } catch (e) {}
-        try { if (typeof proj4 === 'function') { var s = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { y: Math.abs(s[0]), x: Math.abs(s[1]) }; } } catch (e) {}
+        try { if (window.GeoCore && typeof GeoCore.toSJTSK === 'function') { var r = GeoCore.toSJTSK(lat, lng); if (r) return { y: Math.abs(r.y), x: Math.abs(r.x) }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:sjtsk'); }
+        try { if (typeof proj4 === 'function') { var s = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { y: Math.abs(s[0]), x: Math.abs(s[1]) }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:sjtsk'); }
         return null;
     }
 
@@ -210,7 +210,7 @@
                 var ts = AGSun.times(new Date(), p.lat, p.lng, 90.833);
                 out.twilight = tw.set; out.sunset = ts.set;
                 if (tw.set) out.toTwilight = tw.set - Date.now();
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:risks'); }
         }
 
         // sestav seznam rizik (nejzávažnější první)
@@ -298,7 +298,7 @@
                 b.addEventListener('chargingchange', upd);
                 upd();
             }).catch(function () {});
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:upd'); }
     }
 
     // ---- text zprávy s polohou --------------------------------------------------------------
@@ -343,7 +343,7 @@
                 navigator.clipboard.writeText(txt).then(function () { toast('Poloha zkopírována — vlož ji do zprávy.'); }, function () { legacy(txt); });
                 return;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:copy'); }
         legacy(txt);
     }
     function legacy(txt) {
@@ -360,7 +360,7 @@
     // nezjistí — proto se nikde neobjeví „voláno", jen „předávám telefonu".
     // quiet = nouzová obrazovka to říká sama, toast by se přes ni jen přebil.
     function dial(num, quiet) {
-        try { window.location.href = 'tel:' + num; } catch (e) {}
+        try { window.location.href = 'tel:' + num; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:dial'); }
         if (!quiet) toast('Předávám ' + num + ' telefonu. Jestli se vytáčení neotevřelo, vytoč ho ručně.');
     }
     // Otevře zprávy s předvyplněným textem. Odeslat musí uživatel sám.

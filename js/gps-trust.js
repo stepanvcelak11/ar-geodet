@@ -117,19 +117,19 @@
         return fx.err;
     }
 
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-trust:toast'); } }
 
     // Tvrdy restart GPS watchu. Umi ho jen js/power-save.js — jedine misto, ktere
     // drzi seznam zivych watchu i jejich callbacky (logika.js si handle neschovava).
     function retryGps() {
         var ok = false;
-        try { ok = !!(window.AGPowerGps && window.AGPowerGps.restart()); } catch (e) {}
+        try { ok = !!(window.AGPowerGps && window.AGPowerGps.restart()); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-trust:retryGps'); }
         // at uzivatel hned vidi, ze se neco deje: vynutime i nove jednorazove mereni
         try {
             if (navigator.geolocation && navigator.geolocation.getCurrentPosition) {
                 navigator.geolocation.getCurrentPosition(function () {}, function () {}, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-trust:retryGps'); }
         _dismissed = null;   // po rucnim pokusu chceme stav zase videt
         toast(ok ? 'Zkouším znovu chytit GPS — vyjdi pod otevřené nebe a chvíli počkej.'
                  : 'GPS se nepodařilo restartovat. Zkus appku zavřít a otevřít znovu.');
@@ -149,8 +149,8 @@
                 + steps + '\n\nPotom se sem vrať a klepni na „Zkusit znovu".';
         try {
             if (typeof window.agInfo === 'function') { window.agInfo(msg, 'Poloha je zakázaná'); return; }
-        } catch (e) {}
-        try { alert(msg); } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-trust:explainDenied'); }
+        try { alert(msg); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-trust:explainDenied'); }
     }
 
     function tick() {
@@ -216,10 +216,10 @@
             else bar.classList.remove('show');
             // prechodova hlaska jen pri zhorseni (fresh->stale/lost), at to nepipa porad
             if (started && _lastState === 'fresh' && st.state === 'lost' && typeof window.quickToast === 'function') {
-                try { quickToast('Ztracen signál GPS — měření pozastavte, než se vrátí čerstvý fix.'); } catch (e) {}
+                try { quickToast('Ztracen signál GPS — měření pozastavte, než se vrátí čerstvý fix.'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-trust'); }
             }
             if (started) _lastState = st.state;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gps-trust'); }
     }
 
     function init() {

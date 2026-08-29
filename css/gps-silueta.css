@@ -1,0 +1,143 @@
+/* ===== AR Geodet — SILUETA PŘESNOSTI GPS ======================================
+   Vizuál k js/gps-silueta.js. Barvy jdou z tokenů (css/tokens.css), aby se
+   ukazatel choval správně i ve světlém a venkovním režimu.
+   Prahy jsou schválně stejné jako u stavové bubliny: ≤5 m ok, ≤15 m warn, víc bad.
+   ============================================================================ */
+
+#ag-sil {
+    position: fixed;
+    left: 10px;
+    top: calc(env(safe-area-inset-top, 0px) + 78px);
+    z-index: 640;
+    /* karta drží poměr viewBoxu 120:108 + řádek s číslem pod kresbou */
+    width: 84px;
+    padding: 5px 4px 3px;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    /* barva prvku = barva úrovně; potomci si ji berou přes currentColor */
+    color: var(--ag-sil-c, var(--accent-bright, #3eb487));
+    transition: color .25s ease;
+}
+
+#ag-sil:active { transform: scale(0.97); }
+
+#ag-sil:focus-visible {
+    outline: 2px solid var(--accent, #2f9e74);
+    outline-offset: 2px;
+}
+
+#ag-sil[data-lvl="ok"]   { --ag-sil-c: var(--accent-bright, #3eb487); }
+#ag-sil[data-lvl="warn"] { --ag-sil-c: var(--warning, #fbbf24); }
+#ag-sil[data-lvl="bad"]  { --ag-sil-c: var(--danger, #fb7185); }
+#ag-sil[data-lvl="none"] { --ag-sil-c: var(--text-muted, #9aa1ac); }
+
+.ag-sil-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+/* země — jen náznak, ať postava nelevituje */
+.ag-sil-ground {
+    stroke: currentColor;
+    stroke-width: 1;
+    opacity: .18;
+}
+
+/* pevná značka 5 m: nehýbe se, slouží jako měřítko pro živý kruh.
+   Kreslí se v barvě textu, ne v barvě úrovně — jinak by měřítko měnilo význam
+   podle toho, jak je zrovna přesnost dobrá. */
+.ag-sil-ref {
+    fill: none;
+    stroke: var(--text-color, #eceef2);
+    stroke-width: 1.8;
+    stroke-dasharray: 4 4.5;
+    opacity: .42;
+}
+
+/* živý kruh přesnosti */
+.ag-sil-ring {
+    fill: currentColor;
+    fill-opacity: .16;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    /* plynulé nafouknutí/splasknutí místo skoku po každém fixu */
+    transition: rx .45s ease, ry .45s ease;
+}
+
+/* bez fixu kruh nebliká barvou, jen tiše dýchá — ať to nevypadá jako chyba */
+#ag-sil[data-lvl="none"] .ag-sil-ring {
+    fill-opacity: 0;
+    stroke-dasharray: 4 5;
+    animation: ag-sil-breathe 2.6s ease-in-out infinite;
+}
+
+@keyframes ag-sil-breathe {
+    0%, 100% { opacity: .30; }
+    50%      { opacity: .70; }
+}
+
+/* Přední půloblouk se kreslí PŘES postavu, takže postava stojí uvnitř kruhu.
+   Bez něj vypadá malý kruh jako kaňka pod nohama. */
+.ag-sil-front {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    transition: d .45s ease;
+}
+
+#ag-sil[data-lvl="none"] .ag-sil-front {
+    stroke-dasharray: 4 5;
+    animation: ag-sil-breathe 2.6s ease-in-out infinite;
+}
+
+/* postava má vlastní, klidnou barvu — je to měřítko, ne varování */
+.ag-sil-fig {
+    color: var(--text-color, #eceef2);
+    opacity: .92;
+}
+
+.ag-sil-head { fill: currentColor; }
+
+.ag-sil-body,
+.ag-sil-arms,
+.ag-sil-legs {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.ag-sil-body { stroke-width: 5.2; }
+.ag-sil-arms { stroke-width: 3.4; }
+.ag-sil-legs { stroke-width: 4.2; }
+
+/* číslo je až druhé v pořadí — hlavní sdělení je kresba */
+.ag-sil-num {
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: calc(11px * var(--ag-font-scale, 1));
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: .2px;
+    color: currentColor;
+}
+
+/* Uživatel, který nechce animace, dostane statický ukazatel. */
+@media (prefers-reduced-motion: reduce) {
+    .ag-sil-ring,
+    .ag-sil-front { transition: none; }
+    #ag-sil[data-lvl="none"] .ag-sil-ring,
+    #ag-sil[data-lvl="none"] .ag-sil-front { animation: none; opacity: .5; }
+}
+
+/* Malé displeje: karta o kousek menší, ať nekoliduje se stavovou bublinou. */
+@media (max-height: 700px) {
+    #ag-sil { width: 72px; }
+}

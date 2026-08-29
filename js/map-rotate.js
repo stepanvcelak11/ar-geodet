@@ -32,9 +32,9 @@
                 _mode = o.m;
                 _lockAngle = (typeof o.a === 'number' && isFinite(o.a)) ? o.a : 0;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'map-rotate:load'); }
     }
-    function save() { try { localStorage.setItem(KEY, JSON.stringify({ m: _mode, a: _lockAngle })); } catch (e) {} }
+    function save() { try { localStorage.setItem(KEY, JSON.stringify({ m: _mode, a: _lockAngle })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'map-rotate:save'); } }
 
     // ---- jediné, co po nás chce grafika.js ------------------------------------
     // live = aktuální azimut telefonu; vrací úhel, o který se má mapa natočit
@@ -45,7 +45,7 @@
     }
 
     function liveHeading() {
-        try { if (typeof currentHeading === 'number' && isFinite(currentHeading)) return ((currentHeading % 360) + 360) % 360; } catch (e) {}
+        try { if (typeof currentHeading === 'number' && isFinite(currentHeading)) return ((currentHeading % 360) + 360) % 360; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'map-rotate:liveHeading'); }
         return 0;
     }
 
@@ -62,7 +62,7 @@
                     : m === 'lock' ? ('Mapa zamčena na ' + Math.round(_lockAngle) + '°')
                     : 'Mapa se točí po směru chůze');
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'map-rotate:setMode'); }
     }
 
     // Překreslení nečekáme na další událost z kompasu — přepneme mapu hned.
@@ -81,7 +81,7 @@
             // sama při dalším snímku, tohle je jen okamžitá odezva na klepnutí
             var labs = document.querySelectorAll('.map-label-text');
             for (var i = 0; i < labs.length; i++) labs[i].style.transform = 'rotate(' + h + 'deg)';
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'map-rotate:nudge'); }
     }
 
     // ---- UI v panelu „Mapa a vrstvy" ------------------------------------------

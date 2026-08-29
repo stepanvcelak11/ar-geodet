@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v262';   // vizualni prohlidka: stavovy pruh, kolize tlacitek, popisek cile
+const SHELL_CACHE = 'argeodet-shell-v262';   // silueta presnosti GPS, protokol kvality, rychlejsi start, kontrast
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -54,10 +54,12 @@ const ASSETS_TO_CACHE = [
     './css/qc-engine.css',
     './css/pocasi.css',
     './css/tools-polish.css',
+    './css/gps-silueta.css',
     './css/tokens-outdoor.css',
     './js/lib/proj4-2.9.0.min.js',
     './js/geo-core.js',
     './js/err-log.js',
+    './js/ag-guard.js',
     './js/dialog-bridge.js',
     './js/vstupy.js',
     './js/lib/leaflet-1.9.4.js',
@@ -81,6 +83,7 @@ const ASSETS_TO_CACHE = [
     './js/auto-zaloha.js',
     './js/undo.js',
     './js/kos.js',
+    './js/kvalita-bodu.js',
     './js/zakazky.js',
     './js/zakazka-sablony.js',
     './js/zmenit-zakazku.js',
@@ -142,6 +145,7 @@ const ASSETS_TO_CACHE = [
     './js/ar-calibrate.js',
     './js/ar-calib2.js',
     './js/project-import.js',
+    './js/geo-overlay.js',
     './js/cadastre-vector.js',
     './js/tutorial-pro.js',
     './js/tools-plus.js',
@@ -169,7 +173,6 @@ const ASSETS_TO_CACHE = [
     './js/hlasovky.js',
     './js/hlas-kod.js',
     './js/geo-foto.js',
-    './js/geo-overlay.js',
     './js/ar-metr.js',
     './js/hodinky-parovani.js',
     './js/hodinky-dlazdice.js',
@@ -182,6 +185,7 @@ const ASSETS_TO_CACHE = [
     './js/usadit-ar.js',
     './js/tools-hub.js',
     './js/stavovy-pruh.js',
+    './js/gps-silueta.js',
     './js/upozorneni.js',
     './js/filtr-info.js',
     './js/nastroje-ukony.js',

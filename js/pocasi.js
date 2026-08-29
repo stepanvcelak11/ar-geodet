@@ -223,7 +223,7 @@
         } else {
             var ctl = null, to = null;
             try { ctl = new AbortController(); } catch (e) { ctl = null; }
-            if (ctl) to = setTimeout(function () { try { ctl.abort(); } catch (e) {} }, ms);
+            if (ctl) to = setTimeout(function () { try { ctl.abort(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:fetchJson'); } }, ms);
             p = fetch(url, ctl ? { signal: ctl.signal } : {}).then(
                 function (r) { if (to) clearTimeout(to); return r; },
                 function (e) { if (to) clearTimeout(to); throw e; }
@@ -515,11 +515,11 @@
             if (typeof userLat === 'number' && userLat && typeof userLng === 'number') {
                 return { lat: userLat, lon: userLng };
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:appPos'); }
         try {
             var p = JSON.parse(localStorage.getItem('arLastPos'));
             if (p && typeof p.lat === 'number' && typeof p.lng === 'number') return { lat: p.lat, lon: p.lng };
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:appPos'); }
         return null;
     }
 
@@ -589,7 +589,7 @@
                     };
                     if (curH.t != null || curH.wind != null || curH.code != null) src.cur = curH;
                 }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:g'); }
             try {
                 var c = j.current;
                 // nesufixovaný `current` patří jen prvnímu modelu — ostatním by podstrčil
@@ -610,7 +610,7 @@
                     };
                     if (cur.t != null || cur.wind != null || cur.code != null) src.cur = cur;
                 }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:g'); }
             try {
                 var time = h ? pick(h, 'time', m.id) : null;
                 if (time && time.length) {
@@ -626,7 +626,7 @@
                     };
                     if (!src.hourly.temp && !src.hourly.code) src.hourly = null;
                 }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:g'); }
             try {
                 var d = j.daily;
                 var dt = d ? pick(d, 'time', m.id) : null;
@@ -644,7 +644,7 @@
                     };
                     if (!src.daily.tmax && !src.daily.code) src.daily = null;
                 }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:g'); }
             if (src.cur || src.hourly || src.daily) out.push(src);
         }
         return out;
@@ -1104,10 +1104,10 @@
                 if (!o.histB || typeof o.histB !== 'object') o.histB = {}; // migrace: chyba SE ZNAMÉNKEM (bias)
                 return o;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:loadSkill'); }
         return { pend: [], hist: {}, histP: {}, histB: {} };
     }
-    function saveSkill(sk) { try { localStorage.setItem(LS_SKILL, JSON.stringify(sk)); } catch (e) {} }
+    function saveSkill(sk) { try { localStorage.setItem(LS_SKILL, JSON.stringify(sk)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:saveSkill'); } }
     // ---- ZPĚTNÉ dohledání trefnosti z archivu (aby platila hned, ne až za měsíc) -------
     // Živé učení výše potřebuje měsíc provozu, než něco ukáže. Proto se jednou týdně
     // (a při přesunu jinam) stáhne rovnou MĚSÍC HOTOVÉ HISTORIE:
@@ -1134,7 +1134,7 @@
         catch (e) { _bf = null; }
         return _bf;
     }
-    function saveBf(o) { _bf = o; try { localStorage.setItem(LS_SKILL_BF, JSON.stringify(o)); } catch (e) {} }
+    function saveBf(o) { _bf = o; try { localStorage.setItem(LS_SKILL_BF, JSON.stringify(o)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:saveBf'); } }
 
     // průměrná chyba TEPLOTY za poslední měsíc: archiv + živě naměřené (null = zatím nic)
     function inBand(h, band) {
@@ -1398,8 +1398,8 @@
         _cvBusy = true;
         fetchJson(u + '&days=2', 20000).then(function (j) {
             _cvBusy = false;
-            try { localStorage.setItem(LS_CHMI_V, JSON.stringify({ t: Date.now(), lat: lat, lon: lon })); } catch (e) {}
-            try { chmiVerify(j); } catch (e) {}
+            try { localStorage.setItem(LS_CHMI_V, JSON.stringify({ t: Date.now(), lat: lat, lon: lon })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:maybeChmiVerify'); }
+            try { chmiVerify(j); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:maybeChmiVerify'); }
         }, function () { _cvBusy = false; });
     }
     function chmiVerify(j) {
@@ -1475,7 +1475,7 @@
             ? { ref: Math.round(refP.ref * 1000) / 1000, models: refP.models, hit: (refP.hit != null ? refP.hit : null) }
             : null;
         if (!_open || !_ui) return;
-        try { renderGrid(_cur.data, _cur.data.off); renderSrcPanel(_cur); } catch (e) {}
+        try { renderGrid(_cur.data, _cur.data.off); renderSrcPanel(_cur); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:applySkillToCur'); }
     }
     function trimLog(log, id) {
         var lim = Date.now() - SKILL_WIN_MS;
@@ -2366,10 +2366,10 @@
         try {
             var o = JSON.parse(localStorage.getItem(LS_CACHE));
             if (o && o.data && typeof o.lat === 'number' && typeof o.lon === 'number') return o;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:loadCache'); }
         return null;
     }
-    function saveCache(obj) { try { localStorage.setItem(LS_CACHE, JSON.stringify(obj)); } catch (e) {} }
+    function saveCache(obj) { try { localStorage.setItem(LS_CACHE, JSON.stringify(obj)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:saveCache'); } }
     function loadPlaces() {
         try {
             var a = JSON.parse(localStorage.getItem(LS_PLACES));
@@ -2378,7 +2378,7 @@
                     return p && typeof p.name === 'string' && typeof p.lat === 'number' && typeof p.lon === 'number';
                 }).slice(0, 5);
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:loadPlaces'); }
         return [];
     }
     function pushPlace(p) {
@@ -2388,7 +2388,7 @@
             });
             a.unshift({ name: p.name, lat: p.lat, lon: p.lon });
             localStorage.setItem(LS_PLACES, JSON.stringify(a.slice(0, 5)));
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:pushPlace'); }
     }
 
     // ---- hero gradient podle počasí a dne/noci ----------------------------------------
@@ -2411,8 +2411,8 @@
     // převádí přes window.agScreenToLatLng (vyruší otočení mapy podle azimutu),
     // fallback je e.latlng.
     function pickOnMap() {
-        var m = null; try { m = (typeof map !== 'undefined' && map) ? map : null; } catch (e) {}
-        var vm = null; try { vm = viewMode; } catch (e) {}
+        var m = null; try { m = (typeof map !== 'undefined' && map) ? map : null; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:pickOnMap'); }
+        var vm = null; try { vm = viewMode; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:pickOnMap'); }
         if (!m) { agInfo('Mapa zatím neběží — spusť nejdřív vyhledávání.'); return; }
         if (vm === 'ar') { agInfo('Přepni na mapu nebo dělené zobrazení, pak vyber místo klepnutím.'); return; }
 
@@ -2431,7 +2431,7 @@
         document.body.appendChild(bar);
 
         function endPick() {
-            try { m.off('click', onMapClick); } catch (e) {}
+            try { m.off('click', onMapClick); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:endPick'); }
             bar.remove();
             if (_ui) _ui.classList.add('on');
         }
@@ -2441,7 +2441,7 @@
                 if (e.originalEvent && typeof window.agScreenToLatLng === 'function') {
                     ll = window.agScreenToLatLng(e.originalEvent.clientX, e.originalEvent.clientY);
                 }
-            } catch (err) {}
+            } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'pocasi:onMapClick'); }
             if (!ll && e.latlng) ll = e.latlng;
             endPick();
             if (!ll || !isFinite(ll.lat) || !isFinite(ll.lng)) return;
@@ -2507,7 +2507,7 @@
                 }).addTo(_radar.map);
             } else _radar.marker.setLatLng(_radar.center);
             // overlay je právě viditelný → mapa si musí přepočítat rozměr
-            setTimeout(function () { try { _radar.map.invalidateSize(); } catch (e) {} }, 250);
+            setTimeout(function () { try { _radar.map.invalidateSize(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:setupRadar'); } }, 250);
         } catch (e) { hideRadar(); return; }
         loadRadarFrames();
     }
@@ -2534,7 +2534,7 @@
                 opacity: 0, maxZoom: 17, maxNativeZoom: 12, tileSize: 512, zoomOffset: -1,
                 className: 'wx-radar-tiles'
             }).addTo(_radar.map);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:makeRadarLayer'); }
     }
     function ensureRadarLayers(i) {
         for (var k = i; k <= i + RADAR_PREFETCH && k < _radar.frames.length; k++) makeRadarLayer(k);
@@ -2544,7 +2544,7 @@
     }
     function clearRadarLayers() {
         for (var k = 0; k < _radar.layers.length; k++) {
-            if (_radar.layers[k]) { try { _radar.map.removeLayer(_radar.layers[k]); } catch (e) {} }
+            if (_radar.layers[k]) { try { _radar.map.removeLayer(_radar.layers[k]); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:clearRadarLayers'); } }
         }
         _radar.layers = [];
     }
@@ -2682,10 +2682,10 @@
             this.textContent = _radar.playing ? '⏸' : '▶';
         });
         byId('ag-wx-radar-center').addEventListener('click', function () {
-            try { if (_radar.map && _radar.center) _radar.map.setView(_radar.center, 7); } catch (e) {}
+            try { if (_radar.map && _radar.center) _radar.map.setView(_radar.center, 7); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi'); }
         });
-        byId('ag-wx-radar-zin').addEventListener('click', function () { try { _radar.map.zoomIn(1); } catch (e) {} });
-        byId('ag-wx-radar-zout').addEventListener('click', function () { try { _radar.map.zoomOut(1); } catch (e) {} });
+        byId('ag-wx-radar-zin').addEventListener('click', function () { try { _radar.map.zoomIn(1); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi'); } });
+        byId('ag-wx-radar-zout').addEventListener('click', function () { try { _radar.map.zoomOut(1); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi'); } });
         // tažení posuvníku = ruční listování snímky (animace se pozastaví)
         byId('ag-wx-radar-seek').addEventListener('input', function () {
             _radar.playing = false;
@@ -2703,7 +2703,7 @@
             hideResults();
             // ruční aktualizace = opravdu čerstvá data: zahoď i hodinovou paměť
             // ensemblů a nech znovu natáhnout snímky radaru
-            try { localStorage.removeItem(LS_ENS); } catch (e) {}
+            try { localStorage.removeItem(LS_ENS); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi'); }
             _radar.lastFetch = 0;
             loadWeather(true);
         });
@@ -2733,7 +2733,7 @@
                 if (on) b.classList.add('wx-spin'); else b.classList.remove('wx-spin');
                 b.disabled = !!on;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:setBusy'); }
     }
 
     // ---- vyhledávání místa (geokodér) --------------------------------------------------
@@ -3453,7 +3453,7 @@
             ]).then(function (rr) {
                 var s = rr[0];
                 if (!s) return [];
-                try { mergeStations(s, rr[1]); } catch (e) {}
+                try { mergeStations(s, rr[1]); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:refresh'); }
                 return [s];
             })
             : Promise.resolve([]);
@@ -3532,7 +3532,7 @@
             delete data.isDayAt;
             try { data.nowcast = buildNowcast(rr[6], rr[7]); } catch (e) { data.nowcast = null; }
             // stav „teď" srovnat s radarem a měřením — MUSÍ být před saveCache()
-            try { reconcileNow(data); } catch (e) {}
+            try { reconcileNow(data); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi'); }
             // srovnej dřívější předpovědi s právě pozorovaným stavem a ulož nové predikce
             try {
                 // „skutečnost" pro vyhodnocení předpovědí: nejdřív měření ČHMÚ,
@@ -3554,11 +3554,11 @@
                         hit: (refP2.hit != null ? refP2.hit : null)
                     };
                 }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi'); }
             // měsíc historie z archivu (jednou týdně, na pozadí — ať nebrzdí vykreslení)
-            setTimeout(function () { try { maybeBackfill(pos.lat, pos.lon); } catch (e) {} }, 1500);
+            setTimeout(function () { try { maybeBackfill(pos.lat, pos.lon); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi'); } }, 1500);
             // a jednou za pár hodin srovnání starších předpovědí se skutečností z ČHMÚ
-            setTimeout(function () { try { maybeChmiVerify(pos.lat, pos.lon); } catch (e) {} }, 3000);
+            setTimeout(function () { try { maybeChmiVerify(pos.lat, pos.lon); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi'); } }, 3000);
             var pack = {
                 t: Date.now(), lat: pos.lat, lon: pos.lon, placeName: name,
                 data: data,
@@ -3567,7 +3567,7 @@
             saveCache(pack);
             _cur = pack;
             _offline = false;
-            if (_open) { try { renderAll(pack, false); } catch (e) {} }
+            if (_open) { try { renderAll(pack, false); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi'); } }
         });
     }
 
@@ -3582,20 +3582,20 @@
                 var mk = (window.AG && AG.uiInterval) ? AG.uiInterval : setInterval;
                 _timer = mk(function () { if (_open) loadWeather(false); }, REFRESH_MS);
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:open'); }
     }
     function close() {
         _open = false;
         if (_ui) _ui.classList.remove('on');
         hideResults();
-        if (_radar.timer) { try { clearInterval(_radar.timer); } catch (e) {} _radar.timer = null; }
+        if (_radar.timer) { try { clearInterval(_radar.timer); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:close'); } _radar.timer = null; }
         // BATERIE/PAMĚŤ: dlaždicové vrstvy radaru pryč z mapy. Dřív jich po zavření panelu
         // zůstávalo viset ~12 i s texturami. _radar.frames zůstávají, takže se při dalším
         // otevření do 5 minut nemusí znovu ptát serveru — jen se vyrobí okno vrstev.
-        try { clearRadarLayers(); } catch (e) {}
+        try { clearRadarLayers(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:close'); }
         if (_timer) {
             if (window.AG && AG.clearUiInterval) AG.clearUiInterval(_timer);
-            else { try { clearInterval(_timer); } catch (e) {} }
+            else { try { clearInterval(_timer); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:close'); } }
             _timer = null;
         }
     }
@@ -3606,7 +3606,7 @@
             if (typeof window.agRegisterFieldTool === 'function') {
                 window.agRegisterFieldTool({ id: 'pocasi', label: 'Počasí', icon: ICON, cat: 'Pomůcky', onClick: open, order: 7 });
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:register'); }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', register);
     else register();

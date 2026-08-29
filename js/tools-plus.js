@@ -80,7 +80,7 @@
     }
     function tileLabel(tile) { var s = tile.querySelector('span'); return s ? s.textContent.replace(/\s+/g, ' ').trim() : (tile.textContent || '').trim(); }
     function loadFavs() { try { var a = JSON.parse(localStorage.getItem(FAV_KEY)); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
-    function saveFavs(a) { try { localStorage.setItem(FAV_KEY, JSON.stringify(a)); } catch (e) {} }
+    function saveFavs(a) { try { localStorage.setItem(FAV_KEY, JSON.stringify(a)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tools-plus:saveFavs'); } }
     function findTile(key) {
         var grid = getGrid(); if (!grid) return null;
         var tiles = grid.querySelectorAll('.tool-tile');
@@ -110,7 +110,7 @@
     // Návod umí otevřít i něco, co NENÍ dlaždice v Nástrojích — např. „Poloha z mapy"
     // žije v panelu Mapa a vrstvy (js/poloha-z-mapy.js) a její „?" míří sem. Bez
     // tohohle by záznam v registru existoval, ale uživatel by se k němu nedostal.
-    window.agToolHelp = function (key, label) { try { openHelp(key, label); } catch (e) {} };
+    window.agToolHelp = function (key, label) { try { openHelp(key, label); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tools-plus:agToolHelp'); } };
     // Krátká nápověda jako HOLÝ TEXT (první věty návodu). Používá ji kolečko
     // nástrojů (js/kolecko-nastroju.js): v kolečku není kam dát otazník, tak se
     // u zamířeného nástroje rovnou vypíše, co dělá. Zdroj je TÝŽ registr,
@@ -190,7 +190,7 @@
         if (tile.classList.contains('ag-ft-tile')) {
             // injektovaná dlaždice: smazat a nechat field-tools HNED vložit na správné místo
             tile.remove();
-            try { if (typeof window.agFtSyncTiles === 'function') window.agFtSyncTiles(); } catch (e) {}
+            try { if (typeof window.agFtSyncTiles === 'function') window.agFtSyncTiles(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tools-plus:restoreTile'); }
             return;
         }
         var ph = tile._agTpPh;
@@ -262,7 +262,7 @@
 
     // ---- údržba (dlaždice se přerenderovávají field-tools modulem) ---------------------
     function tick() {
-        try { injectStyles(); injectEditButton(); watchModalClose(); decorateTiles(); applyFavs(); } catch (e) {}
+        try { injectStyles(); injectEditButton(); watchModalClose(); decorateTiles(); applyFavs(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tools-plus:tick'); }
     }
     function init() {
         tick();

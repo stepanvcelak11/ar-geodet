@@ -50,8 +50,8 @@
     var LS_KEY = 'agVisualTrack';   // '1' = zapnuto, '0'/null = vypnuto (DEFAULT VYPNUTO)
 
     // ---- pomocné (nezávislé na globálech; vlastní fallbacky) -------------------
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) {} }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-visual-track:agAlert'); } try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'ar-visual-track:agAlert'); } }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-visual-track:toast'); } }
     function curViewMode() { try { return (typeof viewMode !== 'undefined') ? viewMode : 'both'; } catch (e) { return 'both'; } }
     function pageVisible() { try { return !document.hidden && document.visibilityState !== 'hidden'; } catch (e) { return true; } }
     function nowMs() { try { return (performance && performance.now) ? performance.now() : Date.now(); } catch (e) { return Date.now(); } }
@@ -337,7 +337,7 @@
         return true;
     }
     function stopFlow() {
-        if (_raf) { try { cancelAnimationFrame(_raf); } catch (e) {} _raf = 0; }
+        if (_raf) { try { cancelAnimationFrame(_raf); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-visual-track:stopFlow'); } _raf = 0; }
         _prevGray = null; _prevPts = null; _corr.dyaw = 0; _corr.dpitch = 0; _quality = 0;
     }
 
@@ -400,7 +400,7 @@
                                     }
                                     prevYaw = yp.yaw; prevPitch = yp.pitch;
                                 }
-                            } catch (e) {}
+                            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-visual-track:onXR'); }
                         };
                         _xrRaf = session.requestAnimationFrame(onXR);
                         syncUi();
@@ -414,7 +414,7 @@
         });
     }
     function stopXR() {
-        try { if (_xrSession) { if (_xrRaf) try { _xrSession.cancelAnimationFrame(_xrRaf); } catch (e) {} _xrSession.end().catch(function () {}); } } catch (e) {}
+        try { if (_xrSession) { if (_xrRaf) try { _xrSession.cancelAnimationFrame(_xrRaf); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-visual-track:stopXR'); } _xrSession.end().catch(function () {}); } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-visual-track:stopXR'); }
         _xrSession = null; _xrRefSpace = null; _xrRaf = 0;
         _corr.dyaw = 0; _corr.dpitch = 0; _quality = 0;
     }
@@ -423,7 +423,7 @@
     //  PŘEPÍNÁNÍ + PREFERENCE
     // ==========================================================================
     function readPref() { try { return localStorage.getItem(LS_KEY) === '1'; } catch (e) { return false; } }
-    function writePref(on) { try { localStorage.setItem(LS_KEY, on ? '1' : '0'); } catch (e) {} }
+    function writePref(on) { try { localStorage.setItem(LS_KEY, on ? '1' : '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-visual-track:writePref'); } }
 
     function setEnabled(on, useXR) {
         writePref(!!on);
@@ -457,7 +457,7 @@
         get quality() { return _quality; },
         get mode() { return mode; }
     };
-    try { window.AGVisualTrack = api; } catch (e) {}
+    try { window.AGVisualTrack = api; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-visual-track:getCorrection'); }
 
     // ==========================================================================
     //  UI — modal z Nástrojů + přepínač v Nastavení
@@ -566,13 +566,13 @@
     // ==========================================================================
     function register() {
         injectStyles();
-        try { injectSettingsToggle(); } catch (e) {}
+        try { injectSettingsToggle(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-visual-track:register'); }
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'ar-visual-track', label: 'Vizuální stabilizace AR (beta)', icon: ICON, cat: 'AR a kalibrace', onClick: openTool, order: 9 });
         }
         // launcher ještě nemusí existovat — druhý průchod na window.load to dožene
         // kdyby přesto někde zůstal starý FAB (stará session), ukliď ho
-        try { var fab = document.getElementById('agvt-fab'); if (fab) fab.remove(); } catch (e) {}
+        try { var fab = document.getElementById('agvt-fab'); if (fab) fab.remove(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-visual-track:register'); }
     }
 
     // ---- vypnout, když stránka zmizí na pozadí (šetři baterii) ------------------
@@ -583,16 +583,16 @@
                 _prevGray = null; _prevPts = null; _quality = 0;
             }
         });
-    } catch (e) {}
+    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-visual-track:register'); }
 
     // ---- init (idempotentní; DEFAULT VYPNUTO — nikdy nespouštět samo od sebe) ---
     function init() {
-        try { register(); } catch (e) { try { console.warn('[ar-visual-track] register', e); } catch (e2) {} }
+        try { register(); } catch (e) { try { console.warn('[ar-visual-track] register', e); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'ar-visual-track:init'); } }
         // pokud uživatel DŘÍVE zapnul, obnovíme (jeho volba, ne auto-start) — jen optický tok
-        try { if (readPref() && !enabled) startFlow(); syncUi(); } catch (e) {}
+        try { if (readPref() && !enabled) startFlow(); syncUi(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-visual-track:init'); }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
     // druhý průchod — #tab-ar / launcher vznikají později
-    window.addEventListener('load', function () { setTimeout(function () { try { injectSettingsToggle(); register(); } catch (e) {} }, 350); });
+    window.addEventListener('load', function () { setTimeout(function () { try { injectSettingsToggle(); register(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-visual-track:init'); } }, 350); });
 })();

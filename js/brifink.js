@@ -52,12 +52,12 @@
             if (typeof projects !== 'undefined' && Array.isArray(projects)) {
                 for (var i = 0; i < projects.length; i++) { if (projects[i] && projects[i].id === id) return projects[i].name || id; }
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brifink:projName'); }
         return (id === 'default') ? 'Výchozí zakázka' : id;
     }
     function pos() {
-        try { if (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null) return { lat: userLat, lng: userLng, live: true }; } catch (e) {}
-        try { var p = JSON.parse(localStorage.getItem('arLastPos')); if (p && p.lat != null) return { lat: p.lat, lng: p.lng, live: false }; } catch (e2) {}
+        try { if (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null) return { lat: userLat, lng: userLng, live: true }; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brifink:pos'); }
+        try { var p = JSON.parse(localStorage.getItem('arLastPos')); if (p && p.lat != null) return { lat: p.lat, lng: p.lng, live: false }; } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'brifink:pos'); }
         return null;
     }
     // fetch s časovým limitem (bez AbortController — starší Safari)
@@ -96,7 +96,7 @@
             + '&hourly=precipitation&forecast_days=1&timezone=auto&wind_speed_unit=ms';
         return fetchT(url, 8000).then(function (r) { return r.json(); }).then(function (j) {
             if (!j || !j.daily) throw new Error('bad');
-            try { localStorage.setItem(KEY_WX, JSON.stringify({ t: Date.now(), day: todayStr(), lat: p.lat, lng: p.lng, data: j })); } catch (e) {}
+            try { localStorage.setItem(KEY_WX, JSON.stringify({ t: Date.now(), day: todayStr(), lat: p.lat, lng: p.lng, data: j })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brifink:getWeather'); }
             return { w: j, stale: false };
         })['catch'](function () {
             var c2 = loadWxCache();
@@ -139,7 +139,7 @@
                     var mins = (parseInt(mSet[1], 10) * 60 + parseInt(mSet[2], 10)) - (now.getHours() * 60 + now.getMinutes());
                     if (mins > 0) light = ' — světla zbývá ' + Math.floor(mins / 60) + ':' + pad2(mins % 60) + ' h';
                 }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brifink:wxRows'); }
             rows.push('Slunce ' + sr + '–' + ss + light);
         }
         if (res.stale) rows.push('(offline — poslední stažená předpověď' + (res.when ? ' z ' + new Date(res.when).toLocaleString('cs-CZ') : '') + ')');
@@ -151,7 +151,7 @@
         try {
             if (typeof computeSatPositions !== 'function' || typeof computePDOP !== 'function') return null;
             if (typeof tleSats === 'undefined' || !tleSats.length) {
-                try { if (typeof loadTleFromCache === 'function') loadTleFromCache(); } catch (e0) {}
+                try { if (typeof loadTleFromCache === 'function') loadTleFromCache(); } catch (e0) { window.AG && AG.swallow && AG.swallow(e0, 'brifink:pdopByHour'); }
             }
             if (typeof tleSats === 'undefined' || !tleSats.length) return { noTle: true };
             if (typeof userLat === 'undefined' || userLat == null) return { noPos: true };
@@ -198,7 +198,7 @@
     }
     function getKp() {
         var c = null;
-        try { c = JSON.parse(localStorage.getItem(KEY_KP)); } catch (e) {}
+        try { c = JSON.parse(localStorage.getItem(KEY_KP)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brifink:getKp'); }
         if (c && (Date.now() - c.t < KP_MAX_AGE)) return Promise.resolve(c.kp);
         return fetchT('https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json', 6000)
             .then(function (r) { return r.json(); })
@@ -212,7 +212,7 @@
                     var v = parseFloat(row[1]);
                     if (!isNaN(v) && (max == null || v > max)) max = v;
                 }
-                if (max != null) { try { localStorage.setItem(KEY_KP, JSON.stringify({ t: Date.now(), kp: max })); } catch (e2) {} }
+                if (max != null) { try { localStorage.setItem(KEY_KP, JSON.stringify({ t: Date.now(), kp: max })); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'brifink:getKp'); } }
                 return max;
             })['catch'](function () { return c ? c.kp : null; });
     }
@@ -225,7 +225,7 @@
             var ep = raw ? JSON.parse(raw) : null;
             if (!ep || !Array.isArray(ep.items) || !ep.items.length) return null;
             var r = null;
-            try { r = JSON.parse(localStorage.getItem('agEpochyRemind::' + pid())); } catch (e0) {}
+            try { r = JSON.parse(localStorage.getItem('agEpochyRemind::' + pid())); } catch (e0) { window.AG && AG.swallow && AG.swallow(e0, 'brifink:monitoringRows'); }
             if (!r || !r.pts) return null;
             var od = [];
             ep.items.forEach(function (it) {
@@ -283,7 +283,7 @@
         try {
             var u = window.AGUcty, cu = u && u.currentUser && u.currentUser();
             if (cu && cu.name) g += ', ' + cu.name.split(' ')[0];
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brifink:greet'); }
         return g;
     }
     function secHtml(id, title, rows, btn) {
@@ -307,7 +307,7 @@
         for (var i = 0; i < btns.length; i++) {
             btns[i].onclick = function () {
                 var fn = this.getAttribute('data-open');
-                try { if (typeof window[fn] === 'function') { closeModal(); window[fn](); } } catch (e) {}
+                try { if (typeof window[fn] === 'function') { closeModal(); window[fn](); } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brifink:onclick'); }
             };
         }
     }
@@ -347,7 +347,7 @@
         if (typeof window.agOpenPocasi === 'function') wxb.addEventListener('click', function () { closeModal(); window.agOpenPocasi(); });
         else wxb.style.display = 'none';
         m.querySelector('#ag-bf-autochk').addEventListener('change', function () {
-            try { localStorage.setItem(KEY_AUTO, this.checked ? '1' : '0'); } catch (e) {}
+            try { localStorage.setItem(KEY_AUTO, this.checked ? '1' : '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brifink:open'); }
         });
 
         // sekce se plní nezávisle — co selže, zmizí
@@ -389,7 +389,7 @@
             if (card && card.classList.contains('show')) return true;
             var pick = document.getElementById('agtp-pick');
             if (pick && pick.style.display === 'flex') return true;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brifink:tutorialVisible'); }
         return false;
     }
     function maybeAutoOpen() {

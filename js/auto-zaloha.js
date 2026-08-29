@@ -35,7 +35,7 @@
 
     function now() { return Date.now(); }
     function getTs(k) { try { var v = parseInt(localStorage.getItem(k), 10); return isFinite(v) ? v : 0; } catch (e) { return 0; } }
-    function setTs(k, v) { try { localStorage.setItem(k, String(v)); } catch (e) {} }
+    function setTs(k, v) { try { localStorage.setItem(k, String(v)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'auto-zaloha:setTs'); } }
     // nejnovější razítko napříč historickými klíči
     function lastBackup() {
         var best = 0;
@@ -47,9 +47,9 @@
     function hasData() {
         try {
             if (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints) && persistentCustomPoints.length) return true;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'auto-zaloha:hasData'); }
         // fallback: existuje víc než výchozí zakázka? (uživatel appku reálně používá)
-        try { var l = JSON.parse(localStorage.getItem('arProjectsList')); if (Array.isArray(l) && l.length > 1) return true; } catch (e) {}
+        try { var l = JSON.parse(localStorage.getItem('arProjectsList')); if (Array.isArray(l) && l.length > 1) return true; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'auto-zaloha:hasData'); }
         return false;
     }
 
@@ -58,16 +58,16 @@
     // --- spuštění zálohy (obalí zaloha.js) --------------------------------------
     window.agBackupNow = function () {
         if (typeof window.exportAllData !== 'function') {
-            try { if (typeof window.agAlert === 'function') window.agAlert({ title: 'Záloha nedostupná', message: 'Modul zálohy (zaloha.js) není načtený.' }); else agInfo('Záloha není dostupná.'); } catch (e) {}
+            try { if (typeof window.agAlert === 'function') window.agAlert({ title: 'Záloha nedostupná', message: 'Modul zálohy (zaloha.js) není načtený.' }); else agInfo('Záloha není dostupná.'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'auto-zaloha:agBackupNow'); }
             return Promise.resolve(false);
         }
         var r;
         try { r = window.exportAllData(); } catch (e) { console.warn('[auto-zaloha] backup', e); return Promise.resolve(false); }
         return Promise.resolve(r).then(function () {
             stampAll(now());
-            try { localStorage.removeItem(SNOOZE_KEY); } catch (e) {}
+            try { localStorage.removeItem(SNOOZE_KEY); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'auto-zaloha:agBackupNow'); }
             hideBar();
-            try { if (typeof window.quickToast === 'function') window.quickToast('Záloha vytvořena ✓'); } catch (e) {}
+            try { if (typeof window.quickToast === 'function') window.quickToast('Záloha vytvořena ✓'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'auto-zaloha:agBackupNow'); }
             return true;
         }).catch(function () { return false; });
     };
@@ -134,7 +134,7 @@
         var orig = window.exportAllData;
         window.exportAllData = function () {
             var r = orig.apply(this, arguments);
-            Promise.resolve(r).then(function () { stampAll(now()); try { localStorage.removeItem(SNOOZE_KEY); } catch (e) {} hideBar(); }).catch(function () {});
+            Promise.resolve(r).then(function () { stampAll(now()); try { localStorage.removeItem(SNOOZE_KEY); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'auto-zaloha:exportAllData'); } hideBar(); }).catch(function () {});
             return r;
         };
         _wrapped = true;
@@ -142,7 +142,7 @@
 
     function init() {
         // best-effort trvalé úložiště (na iOS neúčinné, ale neškodné)
-        try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {}); } catch (e) {}
+        try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {}); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'auto-zaloha:init'); }
         wrapExport();
         // zaloha.js se načítá dřív (defer, výše v index.html), ale pro jistotu i s odkladem
         setTimeout(wrapExport, 500);

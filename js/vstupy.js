@@ -56,7 +56,7 @@
             // řetězec, který je id existujícího pole, čteme jako pole
             if (typeof src === 'string') {
                 var byId = null;
-                try { byId = document.getElementById(src); } catch (e) {}
+                try { byId = document.getElementById(src); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vstupy:agNum'); }
                 if (byId && 'value' in byId) return parse(byId.value);
             }
             return parse(src);

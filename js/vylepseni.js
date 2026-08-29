@@ -163,7 +163,7 @@
             agPrompt({ title: 'Přejmenovat zakázku', value: p.name, okText: 'Uložit' }).then(function (nv) {
                 if (nv == null || !nv) return;
                 p.name = nv;
-                try { localStorage.setItem('arProjectsList', JSON.stringify(projects)); } catch (e) {}
+                try { localStorage.setItem('arProjectsList', JSON.stringify(projects)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vylepseni:injectRename'); }
                 if (typeof renderProjectSelect === 'function') renderProjectSelect();
                 if (typeof renderSettingsProjects === 'function') renderSettingsProjects();
             });
@@ -198,16 +198,16 @@
     // 4) REŽIM RUKAVIC — přepínač v Nastavení → Vzhled (dříve boční menu „Více")
     // --------------------------------------------------------------------------------
     function applyGlove() {
-        try { document.body.classList.toggle('ag-glove', localStorage.getItem('agGlove') === '1'); } catch (e) {}
+        try { document.body.classList.toggle('ag-glove', localStorage.getItem('agGlove') === '1'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vylepseni:applyGlove'); }
     }
     function injectGloveToggle() {
         if (document.getElementById('ag-glove-row')) return;
         const cb = document.createElement('input');
         cb.type = 'checkbox';
         cb.id = 'ag-glove-cb';
-        try { cb.checked = localStorage.getItem('agGlove') === '1'; } catch (e) {}
+        try { cb.checked = localStorage.getItem('agGlove') === '1'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vylepseni:injectGloveToggle'); }
         cb.addEventListener('change', function () {
-            try { localStorage.setItem('agGlove', cb.checked ? '1' : '0'); } catch (e) {}
+            try { localStorage.setItem('agGlove', cb.checked ? '1' : '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vylepseni:injectGloveToggle'); }
             applyGlove();
         });
         const tab = document.getElementById('tab-vzhled');
@@ -256,7 +256,7 @@
                 const v = localStorage.getItem(k) || '';
                 t += (k.length + v.length) * 2; // UTF-16 ≈ 2 B/znak
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vylepseni:lsBytes'); }
         return t;
     }
     function injectQuota() {
@@ -296,7 +296,7 @@
     function hookSettings() {
         if (typeof window.openSettings === 'function' && !window.openSettings._agQuota) {
             const orig = window.openSettings;
-            const wrapped = function () { const r = orig.apply(this, arguments); try { refreshQuota(); } catch (e) {} return r; };
+            const wrapped = function () { const r = orig.apply(this, arguments); try { refreshQuota(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vylepseni:wrapped'); } return r; };
             wrapped._agQuota = true;
             wrapped._agOrig = orig;
             window.openSettings = wrapped;
@@ -321,7 +321,7 @@
                 if (!s || !isFinite(s.y) || !isFinite(s.x)) return null;
                 return [-s.y, -s.x];
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vylepseni:toSJTSK'); }
         if (typeof proj4 !== 'function') return null;
         try { const sj = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return [sj[0], sj[1]]; }
         catch (e) { return null; }
@@ -342,7 +342,7 @@
     function dxfLayer(kod) {
         let s = String(kod || '');
         // NFD rozlozi 'c' na 'c'+hacek; zahodime vse mimo tisknutelne ASCII (= prave ty znacky).
-        try { s = s.normalize('NFD').replace(/[^ -~]/g, ''); } catch (e) {}
+        try { s = s.normalize('NFD').replace(/[^ -~]/g, ''); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vylepseni:dxfLayer'); }
         s = s.toUpperCase().replace(/[^A-Z0-9_-]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 31);
         return s || 'BODY';
     }
@@ -422,14 +422,14 @@
     function getOffset() { try { let v = (typeof userHeadingOffset !== 'undefined') ? userHeadingOffset : 0; v = ((v + 180) % 360 + 360) % 360 - 180; return Math.round(v); } catch (e) { return 0; } }
     function getFov() { try { return (typeof visSettings !== 'undefined' && visSettings.fovH) ? visSettings.fovH : 90; } catch (e) { return 90; } }
 
-    function nudgeNorth(d) { try { if (typeof nudgeHeadingOffset === 'function') nudgeHeadingOffset(d); } catch (e) {} renderCalib(); }
-    function resetNorth() { try { if (typeof resetHeadingOffset === 'function') resetHeadingOffset(); } catch (e) {} renderCalib(); }
+    function nudgeNorth(d) { try { if (typeof nudgeHeadingOffset === 'function') nudgeHeadingOffset(d); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vylepseni:nudgeNorth'); } renderCalib(); }
+    function resetNorth() { try { if (typeof resetHeadingOffset === 'function') resetHeadingOffset(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vylepseni:resetNorth'); } renderCalib(); }
     function setFov(v) {
         v = Math.max(40, Math.min(120, v));
         try {
             if (typeof visSettings !== 'undefined') visSettings.fovH = v;
             if (typeof setStoredData === 'function') setStoredData('arVisSettings12', JSON.stringify(visSettings));
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vylepseni:setFov'); }
         // sync s posuvníkem v Nastavení, ať to spolu sedí
         const sl = document.getElementById('s-fovh'); if (sl) sl.value = v;
         const lbl = document.getElementById('s-fovh-val'); if (lbl) lbl.innerText = v;
@@ -548,7 +548,7 @@
         return new Promise(function (res, rej) {
             if (typeof indexedDB === 'undefined') { rej(new Error('no idb')); return; }
             const r = indexedDB.open(PDB, 1);
-            r.onupgradeneeded = function () { try { r.result.createObjectStore(PSTORE); } catch (e) {} };
+            r.onupgradeneeded = function () { try { r.result.createObjectStore(PSTORE); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vylepseni:onupgradeneeded'); } };
             r.onsuccess = function () { res(r.result); };
             r.onerror = function () { rej(r.error); };
         });
@@ -561,7 +561,7 @@
         photoDB().then(function (db) {
             var tx = db.transaction(PSTORE, 'readwrite');
             var cur = tx.objectStore(PSTORE).openCursor();
-            cur.onsuccess = function (e) { var c = e.target.result; if (c) { if (typeof c.key === 'string' && c.key.indexOf(pid + '_') === 0) { try { c.delete(); } catch (er) {} } c.continue(); } };
+            cur.onsuccess = function (e) { var c = e.target.result; if (c) { if (typeof c.key === 'string' && c.key.indexOf(pid + '_') === 0) { try { c.delete(); } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'vylepseni:onsuccess'); } } c.continue(); } };
         }).catch(function () {});
     });
     function photoGet(k) { return photoDB().then(function (db) { return new Promise(function (res, rej) { const tx = db.transaction(PSTORE, 'readonly'); const rq = tx.objectStore(PSTORE).get(k); rq.onsuccess = function () { res(rq.result || null); }; rq.onerror = function () { rej(rq.error); }; }); }); }
@@ -576,7 +576,7 @@
                 const sc = Math.min(1, maxDim / Math.max(w, h));
                 const cw = Math.max(1, Math.round(w * sc)), ch = Math.max(1, Math.round(h * sc));
                 const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
-                try { cv.getContext('2d').drawImage(img, 0, 0, cw, ch); } catch (e) {}
+                try { cv.getContext('2d').drawImage(img, 0, 0, cw, ch); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vylepseni:onload'); }
                 URL.revokeObjectURL(url);
                 try { res(cv.toDataURL('image/jpeg', quality)); } catch (e) { res(null); }
             };

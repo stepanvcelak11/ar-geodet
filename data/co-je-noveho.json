@@ -1,393 +1,406 @@
 {
-  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
-  "verze": [
-    {
-      "v": 260,
-      "datum": "2026-08-29",
-      "nadpis": "Vzdálenost k bodu na dělicí hraně a historie aktualizací",
-      "body": [
-        "Při navigaci na bod se <b>vzdálenost přestěhovala do dělicí hrany</b> mezi kamerou a mapou: pruh se vybarvuje, jak se blížíš, a barva říká, jak jsi daleko (bílá → písková pod 25 m → jantarová pod 2 m → zelená na bodu). Ve splitu tím nebere místo ani kameře, ani mapě; v AR na celou obrazovku sedí u spodní hrany.",
-        "Opraveno: na ostrém slunci byla vzdálenost prakticky neviditelná — tmavý text na skoro černé desce.",
-        "Opraveno: jezdec <b>Průhlednost šipky</b> zprůhledňoval i štítek s údaji. Teď se týká jen šipky.",
-        "Nové okno <b>Historie aktualizací</b> (Více, nebo Nastavení → Údržba) — co v appce kdy přibylo, od první verze."
-      ]
-    },
-    {
-      "v": 259,
-      "datum": "2026-08-29",
-      "nadpis": "Přepínání firem, AR navigace a světlý režim",
-      "body": [
-        "Přepnutí firmy už nenechá v administraci viset předchozí firmu — po přepnutí se panel zavře a otevře se znovu už s tou novou (dřív to vypadalo, že přepnutí nefunguje).",
-        "Nová dlaždice <b>Změnit zakázku</b> v Nástrojích (Pomůcky) — přepnutí zakázky jedním klepnutím bez odcházení od rozdělané práce.",
-        "AR navigace: šipka a vzdálenost se ukážou i tehdy, když je navigovaný bod schovaný filtrem, hledáním nebo příznakem „skrýt“. Dřív v takovém případě navigace běžela jen v mapě.",
-        "Světlý režim: opraveno 38 míst, kde byl text nečitelný — tlačítka, varování, panel „Mapa a vrstvy“ na slunci, okna Předpisů, Seznamu souřadnic a Zpravodaje.",
-        "U lišty „Nová verze“ přibyla roletka <b>Co je nového</b> (tohle okno)."
-      ]
-    },
-    {
-      "v": 258,
-      "datum": "2026-08-29",
-      "nadpis": "Gesta jako zkratky na nástroje",
-      "body": [
-        "Nakreslením gesta po displeji otevřeš zvolený nástroj — nastavíš si v Nastavení."
-      ]
-    },
-    {
-      "v": 257,
-      "datum": "2026-08-29",
-      "nadpis": "Sbalování, náčrty, jedna záloha, přesnější počasí",
-      "body": [
-        "Sbalit jde teď u všech nástrojů, ne jen u některých.",
-        "Víc možností v náčrtu.",
-        "Zálohy sloučené do jedné.",
-        "Počasí se srovnává podle skutečného pozorování ze stanic."
-      ]
-    },
-    {
-      "v": 255,
-      "datum": "2026-08-09",
-      "nadpis": "Oprava čtení QR kódů",
-      "body": [
-        "Verze 254 rozbila čtení všech QR kódů — opraveno."
-      ]
-    },
-    {
-      "v": 254,
-      "datum": "2026-08-09",
-      "nadpis": "Čtyři opravy ze zpětné vazby z terénu",
-      "body": [
-        "Drobnosti nahlášené při práci venku."
-      ]
-    },
-    {
-      "v": 252,
-      "datum": "2026-08-09",
-      "nadpis": "Hodinky Garmin",
-      "body": [
-        "Do hodinek jdou i body ČÚZK stažené online, nejen vlastní.",
-        "Mapa v hodinkách dosáhne dál a je vidět, kolik bodů je vybraných.",
-        "Body měřené hodinkami se v mapě kreslí růžově a mají vlastní přepínač v seznamu."
-      ]
-    },
-    {
-      "v": 251,
-      "datum": "2026-08-09",
-      "nadpis": "Mapa a body do hodinek jedním tlačítkem",
-      "body": [
-        "Mapa v hodinkách dosáhne dál a je vidět, kolik bodů je vybraných.",
-        "Jedno tlačítko pošle do hodinek mapu i vybrané body naráz.",
-        "Mapu si hodinky stáhnou odkudkoli — mobil jim dlaždice vyrobí sám."
-      ]
-    },
-    {
-      "v": 245,
-      "datum": "2026-08-09",
-      "nadpis": "Hodinky Garmin",
-      "body": [
-        "Appka pro Garmin Forerunner: párování, přenos bodů a měření přímo z hodinek.",
-        "Párovací kód ukazují hodinky, opisuje se v mobilu."
-      ]
-    },
-    {
-      "v": 244,
-      "datum": "2026-08-09",
-      "nadpis": "Sjednocení všech rozpracovaných větví",
-      "body": [
-        "Všechno rozdělané slito do jedné verze."
-      ]
-    },
-    {
-      "v": 243,
-      "datum": "2026-08-09",
-      "nadpis": "Seznam souřadnic pro kancelář",
-      "body": [
-        "Nastavitelný textový export souřadnic s předvolbami a náhledem — jediný „formát Gromy/Kokeše“ totiž neexistuje."
-      ]
-    },
-    {
-      "v": 242,
-      "datum": "2026-08-09",
-      "nadpis": "Srozumitelnější názvy nástrojů",
-      "body": [
-        "Sjednocené dvojice nástrojů, které dělaly skoro totéž.",
-        "Vytyčovaná přímka v kameře zapojena do Nástrojů."
-      ]
-    },
-    {
-      "v": 241,
-      "datum": "2026-08-09",
-      "nadpis": "Zorný úhel kamery z ohniskové vzdálenosti",
-      "body": [
-        "Zorný úhel jde zadat i z ohniskové vzdálenosti objektivu, nejen naměřit."
-      ]
-    },
-    {
-      "v": 240,
-      "datum": "2026-08-09",
-      "nadpis": "Úklid nástrojů podle skutečné procházky",
-      "body": [
-        "Šest málo používaných nástrojů odsunuto stranou a část přejmenována."
-      ]
-    },
-    {
-      "v": 239,
-      "datum": "2026-08-09",
-      "nadpis": "Kolečko nástrojů je květ",
-      "body": [
-        "Lístky sahají ke krajům displeje, větší písmo a vystředěné nápisy."
-      ]
-    },
-    {
-      "v": 238,
-      "datum": "2026-08-09",
-      "nadpis": "Moje aktivita a hromadný úklid nástrojů",
-      "body": [
-        "Appka si měří, které nástroje opravdu používáš, a podle toho je řadí."
-      ]
-    },
-    {
-      "v": 237,
-      "datum": "2026-08-09",
-      "nadpis": "Venkovní režim a rukavice",
-      "body": [
-        "Venkovní režim nechává i mapu světlou (dřív ztmavla a na slunci nebyla vidět).",
-        "Jezdce pro ovládání v rukavicích.",
-        "Rychlejší start."
-      ]
-    },
-    {
-      "v": 236,
-      "datum": "2026-08-09",
-      "nadpis": "Počasí ukotvené na stanice ČHMÚ",
-      "body": [
-        "Předpověď se srovnává podle skutečného měření z pěti stanic ČHMÚ.",
-        "Odchylka se počítá zvlášť pro ranní, denní a večerní část dne."
-      ]
-    },
-    {
-      "v": 235,
-      "datum": "2026-08-09",
-      "nadpis": "Kolečko a Závady",
-      "body": [
-        "Kříž uprostřed kolečka už mezi kruhy neposkakuje a u okraje je citlivější.",
-        "Závady mají plné pozadí — čitelné i nad kamerou."
-      ]
-    },
-    {
-      "v": 234,
-      "datum": "2026-08-09",
-      "nadpis": "Nastavení tahem, Kompas a Počasí",
-      "body": [
-        "Nastavení se zavře tahem po displeji.",
-        "Opravené hledání v Nastavení.",
-        "Kompas jako samostatný nástroj a Počasí bez zdi textu."
-      ]
-    },
-    {
-      "v": 233,
-      "datum": "2026-08-09",
-      "nadpis": "Světelná hrana děliče",
-      "body": [
-        "Dělič mezi kamerou a mapou zeštíhlel na světelnou čáru — kamera i mapa dostaly zpátky 8 px obrazu.",
-        "Nástroje o slot níž v liště, ať se na ně dosáhne palcem."
-      ]
-    },
-    {
-      "v": 232,
-      "datum": "2026-08-09",
-      "nadpis": "Výkon a odolnost",
-      "body": [
-        "Appka v klidu četla úložiště 190× za sekundu — teď zlomek toho.",
-        "Vyztužená kritická místa, aby jedna chyba neshodila celou obrazovku."
-      ]
-    },
-    {
-      "v": 231,
-      "datum": "2026-08-09",
-      "nadpis": "Kolečko nástrojů",
-      "body": [
-        "Nástroje se vybírají tahem prstu z lišty, bez otevírání okna.",
-        "Opraven režim levé ruky — okna byla celá mimo obrazovku."
-      ]
-    },
-    {
-      "v": 230,
-      "datum": "2026-08-08",
-      "nadpis": "Boční rejstřík v Nastavení",
-      "body": [
-        "V Nastavení přibyl boční rejstřík.",
-        "V liště je místo „Více“ rovnou ovládání mapy — to se v terénu používá pořád."
-      ]
-    },
-    {
-      "v": 228,
-      "datum": "2026-08-08",
-      "nadpis": "Dělič ve splitu",
-      "body": [
-        "Poměr kamery a mapy se táhne prstem, se zarážkami na 25 / 50 / 75 %.",
-        "Tři opravy nahlášené z terénu."
-      ]
-    },
-    {
-      "v": 226,
-      "datum": "2026-08-08",
-      "nadpis": "Úspora baterie v AR",
-      "body": [
-        "Kamera jede v 720p a nejvýš 30 snímků za sekundu — na displeji k nerozeznání, baterie o dost déle.",
-        "Appka startuje v režimu Mapa."
-      ]
-    },
-    {
-      "v": 225,
-      "datum": "2026-08-08",
-      "nadpis": "Výstraha na déšť",
-      "body": [
-        "Varování na déšť i z krátkodobé předpovědi z radaru."
-      ]
-    },
-    {
-      "v": 224,
-      "datum": "2026-08-08",
-      "nadpis": "Počasí z českých modelů",
-      "body": [
-        "Přibyly modely ČHMÚ ALADIN a AROME a další ensembly — pro Česko výrazně přesnější."
-      ]
-    },
-    {
-      "v": 223,
-      "datum": "2026-08-08",
-      "nadpis": "Průvodce vlastním profilem",
-      "body": [
-        "Srovnané prvky v Nastavení a průvodce, který ti profil sestaví podle pár otázek."
-      ]
-    },
-    {
-      "v": 222,
-      "datum": "2026-08-08",
-      "nadpis": "Jeden stavový pruh místo dvou",
-      "body": [
-        "Hlavní obrazovka má jeden stavový pruh — víc místa na obraz."
-      ]
-    },
-    {
-      "v": 221,
-      "datum": "2026-08-08",
-      "nadpis": "Nastavení na jeden řádek záložek",
-      "body": [
-        "Jednořádkové záložky a samostatná záložka Profily."
-      ]
-    },
-    {
-      "v": 220,
-      "datum": "2026-08-08",
-      "nadpis": "Nástroje jako jediný pohled",
-      "body": [
-        "Čtyři různé způsoby, jak si nástroje uspořádat, nahradil jeden seznam se sbalitelnými skupinami."
-      ]
-    },
-    {
-      "v": 218,
-      "datum": "2026-08-08",
-      "nadpis": "Úvodní obrazovka a poloha z mapy",
-      "body": [
-        "Nová úvodní obrazovka a lišta, která upozorní na novou verzi.",
-        "<b>Poloha z mapy</b>: pod stromy a mezi domy si polohu odečteš klepnutím do ortofota, když je GPS horší než to, co sám vidíš."
-      ]
-    },
-    {
-      "v": 217,
-      "datum": "2026-08-08",
-      "nadpis": "Šest chyb nalezených spuštěním appky",
-      "body": [
-        "Audit skutečným spuštěním v prohlížeči našel šest chyb, které statické kontroly nechytily."
-      ]
-    },
-    {
-      "v": 209,
-      "datum": "2026-08-08",
-      "nadpis": "Pět nových nástrojů",
-      "body": [
-        "<b>Geo-fotka</b> — fotka s polohou a azimutem.",
-        "<b>Vysílačka</b> a hlášení „Man Down“.",
-        "<b>Hlasové kódování</b> bodů.",
-        "<b>Navigace uvnitř budovy</b>, kde končí GPS.",
-        "<b>Obchůzka výkopu</b>."
-      ]
-    },
-    {
-      "v": 208,
-      "datum": "2026-08-07",
-      "nadpis": "Účty, Face ID a ranní brífink",
-      "body": [
-        "Pamatované přihlášení a Face ID.",
-        "Firemní zakázky s oprávněními.",
-        "<b>Dnešek v terénu</b> — jedna karta s počasím, okny GNSS a body po termínu."
-      ]
-    },
-    {
-      "v": 207,
-      "datum": "2026-07-27",
-      "nadpis": "Centrum upozornění a hledání",
-      "body": [
-        "Nástroje jde procházet jako seznam úkonů („co chci udělat“), ne jen jako mřížku dlaždic.",
-        "Hledání přímo v Nastavení."
-      ]
-    },
-    {
-      "v": 170,
-      "datum": "2026-07-18",
-      "nadpis": "Brutální vylepšení přesnosti",
-      "body": [
-        "<b>Kotvení AR na stanovisko</b> (resekce) — konec metrového tancování značek.",
-        "<b>Helmertova transformace</b> do místní soustavy.",
-        "<b>Foto-totálka</b>, podzemní sítě, žurnál měření a přenos zakázky.",
-        "<b>Rajón</b> (polární metoda) a průvodce Volné stanovisko."
-      ]
-    },
-    {
-      "v": 164,
-      "datum": "2026-07-12",
-      "nadpis": "Kolečko zobrazení a edge-to-edge",
-      "body": [
-        "Přepínání AR / Split / Mapa kroužkem v rohu.",
-        "Obsah sahá až ke krajům displeje, nahoře i dole."
-      ]
-    },
-    {
-      "v": 152,
-      "datum": "2026-07-12",
-      "nadpis": "Epochy a Výška objektu",
-      "body": [
-        "<b>Epochy / monitoring posunů</b> — přeměřování bodů v čase a hlídání termínů.",
-        "<b>Výška objektu</b> z kamery."
-      ]
-    },
-    {
-      "v": 123,
-      "datum": "2026-06-20",
-      "nadpis": "Redesign a QC inspektor",
-      "body": [
-        "Nový vzhled: svislá lišta, dlaždice v Nastavení, okna na celou obrazovku.",
-        "<b>QC inspektor</b> — kód kvality z dosažené přesnosti a brána, která nepustí uložit bod horší, než je cíl zakázky."
-      ]
-    },
-    {
-      "v": 64,
-      "datum": "2026-06-14",
-      "nadpis": "Náčrt, tachymetrie a QR",
-      "body": [
-        "<b>Náčrt / tachymetrie</b>: body v místní projekci, spojnice, měřítko, export PNG.",
-        "Sdílení bodů přes <b>QR kód</b> bez serveru.",
-        "Zpětný krok (undo) i pro mazání bodů a zakázek."
-      ]
-    },
-    {
-      "v": 1,
-      "datum": "2026-06-13",
-      "nadpis": "První verze",
-      "body": [
-        "Body v kameře, mapa s ortofotem a katastrem, stahování bodů z ČÚZK, měření vzdáleností."
-      ]
-    }
-  ]
+ "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
+ "verze": [
+  {
+   "v": 262,
+   "datum": "2026-08-29",
+   "nadpis": "Silueta přesnosti GPS, protokol kvality a rychlejší start",
+   "body": [
+    "Nová <b>silueta přesnosti</b> v levém horním rohu: postava stojící na zemi a kolem ní kruh, jak velká je právě nejistota polohy. Kruh těsně u nohou znamená dobré, kruh přes celou kartu „jsi někde tady“. Tečkovaná značka je pevná a odpovídá 5 m, takže se to čte bez počítání: <b>uvnitř tečkované = měř, venku = počkej</b>. Prahy i barvy jsou stejné jako u stavové bubliny. Vypnout jde v Nastavení → Vzhled.",
+    "Nový nástroj <b>Protokol kvality</b>: u každého bodu je vidět, čím byl změřen, jaká je směrodatná chyba, <b>rozptyl odečtů σ</b> a <b>kolik epoch</b> se použilo. Appka to počítala už dřív, ale k bodu se z toho dostalo jen jedno číslo — teď je to doložitelné a jde vyexportovat jako protokol (.txt) nebo tabulka (.csv) do kanceláře. Ručně zadané body rozptyl nemají a mají pomlčku.",
+    "<b>Appka startuje rychleji</b>: dvacet nástrojů a exportů, které se otevírají až na vyžádání (předpisy, zpravodaj, zálohy, kalibrace, exporty DXF/KML/CSV), se načítá až po vykreslení. Před prvním obrázkem se tak zpracuje o 277 kB a 20 souborů méně. Nic nezmizelo — první dotyk na lištu nebo Nástroje si zbytek dotáhne naráz.",
+    "Opraveno: <b>plná zelená tlačítka</b> měla v tmavém režimu bílý text s kontrastem jen 3,35 : 1 — na přímém slunci nečitelný. Nově 4,82 : 1, a stejně se srovnalo devět dalších míst (aktivní záložky, segmenty, lišta nové verze).",
+    "Opraveno: tlačítko <b>„Sbalit“</b> se u některých oken vůbec neobjevilo — vkládání selhalo, když měl nadpis okna vlastní obal.",
+    "Uvnitř: <b>chyby, které appka schválně přejde</b>, aby v terénu nespadla, se nově zapisují do Protokolu chyb (přes 1500 míst). Dřív mizely beze stopy a reklamace z terénu se neměla čeho chytit. Přibyla i kontrola v CI, která hlídá barvy a kontrast, takže se dvě dřívější chyby se světlým režimem nemůžou tiše vrátit."
+   ]
+  },
+  {
+   "v": 260,
+   "datum": "2026-08-29",
+   "nadpis": "Vzdálenost k bodu na dělicí hraně a historie aktualizací",
+   "body": [
+    "Při navigaci na bod se <b>vzdálenost přestěhovala do dělicí hrany</b> mezi kamerou a mapou: pruh se vybarvuje, jak se blížíš, a barva říká, jak jsi daleko (bílá → písková pod 25 m → jantarová pod 2 m → zelená na bodu). Ve splitu tím nebere místo ani kameře, ani mapě; v AR na celou obrazovku sedí u spodní hrany.",
+    "Opraveno: na ostrém slunci byla vzdálenost prakticky neviditelná — tmavý text na skoro černé desce.",
+    "Opraveno: jezdec <b>Průhlednost šipky</b> zprůhledňoval i štítek s údaji. Teď se týká jen šipky.",
+    "Nové okno <b>Historie aktualizací</b> (Více, nebo Nastavení → Údržba) — co v appce kdy přibylo, od první verze."
+   ]
+  },
+  {
+   "v": 259,
+   "datum": "2026-08-29",
+   "nadpis": "Přepínání firem, AR navigace a světlý režim",
+   "body": [
+    "Přepnutí firmy už nenechá v administraci viset předchozí firmu — po přepnutí se panel zavře a otevře se znovu už s tou novou (dřív to vypadalo, že přepnutí nefunguje).",
+    "Nová dlaždice <b>Změnit zakázku</b> v Nástrojích (Pomůcky) — přepnutí zakázky jedním klepnutím bez odcházení od rozdělané práce.",
+    "AR navigace: šipka a vzdálenost se ukážou i tehdy, když je navigovaný bod schovaný filtrem, hledáním nebo příznakem „skrýt“. Dřív v takovém případě navigace běžela jen v mapě.",
+    "Světlý režim: opraveno 38 míst, kde byl text nečitelný — tlačítka, varování, panel „Mapa a vrstvy“ na slunci, okna Předpisů, Seznamu souřadnic a Zpravodaje.",
+    "U lišty „Nová verze“ přibyla roletka <b>Co je nového</b> (tohle okno)."
+   ]
+  },
+  {
+   "v": 258,
+   "datum": "2026-08-29",
+   "nadpis": "Gesta jako zkratky na nástroje",
+   "body": [
+    "Nakreslením gesta po displeji otevřeš zvolený nástroj — nastavíš si v Nastavení."
+   ]
+  },
+  {
+   "v": 257,
+   "datum": "2026-08-29",
+   "nadpis": "Sbalování, náčrty, jedna záloha, přesnější počasí",
+   "body": [
+    "Sbalit jde teď u všech nástrojů, ne jen u některých.",
+    "Víc možností v náčrtu.",
+    "Zálohy sloučené do jedné.",
+    "Počasí se srovnává podle skutečného pozorování ze stanic."
+   ]
+  },
+  {
+   "v": 255,
+   "datum": "2026-08-09",
+   "nadpis": "Oprava čtení QR kódů",
+   "body": [
+    "Verze 254 rozbila čtení všech QR kódů — opraveno."
+   ]
+  },
+  {
+   "v": 254,
+   "datum": "2026-08-09",
+   "nadpis": "Čtyři opravy ze zpětné vazby z terénu",
+   "body": [
+    "Drobnosti nahlášené při práci venku."
+   ]
+  },
+  {
+   "v": 252,
+   "datum": "2026-08-09",
+   "nadpis": "Hodinky Garmin",
+   "body": [
+    "Do hodinek jdou i body ČÚZK stažené online, nejen vlastní.",
+    "Mapa v hodinkách dosáhne dál a je vidět, kolik bodů je vybraných.",
+    "Body měřené hodinkami se v mapě kreslí růžově a mají vlastní přepínač v seznamu."
+   ]
+  },
+  {
+   "v": 251,
+   "datum": "2026-08-09",
+   "nadpis": "Mapa a body do hodinek jedním tlačítkem",
+   "body": [
+    "Mapa v hodinkách dosáhne dál a je vidět, kolik bodů je vybraných.",
+    "Jedno tlačítko pošle do hodinek mapu i vybrané body naráz.",
+    "Mapu si hodinky stáhnou odkudkoli — mobil jim dlaždice vyrobí sám."
+   ]
+  },
+  {
+   "v": 245,
+   "datum": "2026-08-09",
+   "nadpis": "Hodinky Garmin",
+   "body": [
+    "Appka pro Garmin Forerunner: párování, přenos bodů a měření přímo z hodinek.",
+    "Párovací kód ukazují hodinky, opisuje se v mobilu."
+   ]
+  },
+  {
+   "v": 244,
+   "datum": "2026-08-09",
+   "nadpis": "Sjednocení všech rozpracovaných větví",
+   "body": [
+    "Všechno rozdělané slito do jedné verze."
+   ]
+  },
+  {
+   "v": 243,
+   "datum": "2026-08-09",
+   "nadpis": "Seznam souřadnic pro kancelář",
+   "body": [
+    "Nastavitelný textový export souřadnic s předvolbami a náhledem — jediný „formát Gromy/Kokeše“ totiž neexistuje."
+   ]
+  },
+  {
+   "v": 242,
+   "datum": "2026-08-09",
+   "nadpis": "Srozumitelnější názvy nástrojů",
+   "body": [
+    "Sjednocené dvojice nástrojů, které dělaly skoro totéž.",
+    "Vytyčovaná přímka v kameře zapojena do Nástrojů."
+   ]
+  },
+  {
+   "v": 241,
+   "datum": "2026-08-09",
+   "nadpis": "Zorný úhel kamery z ohniskové vzdálenosti",
+   "body": [
+    "Zorný úhel jde zadat i z ohniskové vzdálenosti objektivu, nejen naměřit."
+   ]
+  },
+  {
+   "v": 240,
+   "datum": "2026-08-09",
+   "nadpis": "Úklid nástrojů podle skutečné procházky",
+   "body": [
+    "Šest málo používaných nástrojů odsunuto stranou a část přejmenována."
+   ]
+  },
+  {
+   "v": 239,
+   "datum": "2026-08-09",
+   "nadpis": "Kolečko nástrojů je květ",
+   "body": [
+    "Lístky sahají ke krajům displeje, větší písmo a vystředěné nápisy."
+   ]
+  },
+  {
+   "v": 238,
+   "datum": "2026-08-09",
+   "nadpis": "Moje aktivita a hromadný úklid nástrojů",
+   "body": [
+    "Appka si měří, které nástroje opravdu používáš, a podle toho je řadí."
+   ]
+  },
+  {
+   "v": 237,
+   "datum": "2026-08-09",
+   "nadpis": "Venkovní režim a rukavice",
+   "body": [
+    "Venkovní režim nechává i mapu světlou (dřív ztmavla a na slunci nebyla vidět).",
+    "Jezdce pro ovládání v rukavicích.",
+    "Rychlejší start."
+   ]
+  },
+  {
+   "v": 236,
+   "datum": "2026-08-09",
+   "nadpis": "Počasí ukotvené na stanice ČHMÚ",
+   "body": [
+    "Předpověď se srovnává podle skutečného měření z pěti stanic ČHMÚ.",
+    "Odchylka se počítá zvlášť pro ranní, denní a večerní část dne."
+   ]
+  },
+  {
+   "v": 235,
+   "datum": "2026-08-09",
+   "nadpis": "Kolečko a Závady",
+   "body": [
+    "Kříž uprostřed kolečka už mezi kruhy neposkakuje a u okraje je citlivější.",
+    "Závady mají plné pozadí — čitelné i nad kamerou."
+   ]
+  },
+  {
+   "v": 234,
+   "datum": "2026-08-09",
+   "nadpis": "Nastavení tahem, Kompas a Počasí",
+   "body": [
+    "Nastavení se zavře tahem po displeji.",
+    "Opravené hledání v Nastavení.",
+    "Kompas jako samostatný nástroj a Počasí bez zdi textu."
+   ]
+  },
+  {
+   "v": 233,
+   "datum": "2026-08-09",
+   "nadpis": "Světelná hrana děliče",
+   "body": [
+    "Dělič mezi kamerou a mapou zeštíhlel na světelnou čáru — kamera i mapa dostaly zpátky 8 px obrazu.",
+    "Nástroje o slot níž v liště, ať se na ně dosáhne palcem."
+   ]
+  },
+  {
+   "v": 232,
+   "datum": "2026-08-09",
+   "nadpis": "Výkon a odolnost",
+   "body": [
+    "Appka v klidu četla úložiště 190× za sekundu — teď zlomek toho.",
+    "Vyztužená kritická místa, aby jedna chyba neshodila celou obrazovku."
+   ]
+  },
+  {
+   "v": 231,
+   "datum": "2026-08-09",
+   "nadpis": "Kolečko nástrojů",
+   "body": [
+    "Nástroje se vybírají tahem prstu z lišty, bez otevírání okna.",
+    "Opraven režim levé ruky — okna byla celá mimo obrazovku."
+   ]
+  },
+  {
+   "v": 230,
+   "datum": "2026-08-08",
+   "nadpis": "Boční rejstřík v Nastavení",
+   "body": [
+    "V Nastavení přibyl boční rejstřík.",
+    "V liště je místo „Více“ rovnou ovládání mapy — to se v terénu používá pořád."
+   ]
+  },
+  {
+   "v": 228,
+   "datum": "2026-08-08",
+   "nadpis": "Dělič ve splitu",
+   "body": [
+    "Poměr kamery a mapy se táhne prstem, se zarážkami na 25 / 50 / 75 %.",
+    "Tři opravy nahlášené z terénu."
+   ]
+  },
+  {
+   "v": 226,
+   "datum": "2026-08-08",
+   "nadpis": "Úspora baterie v AR",
+   "body": [
+    "Kamera jede v 720p a nejvýš 30 snímků za sekundu — na displeji k nerozeznání, baterie o dost déle.",
+    "Appka startuje v režimu Mapa."
+   ]
+  },
+  {
+   "v": 225,
+   "datum": "2026-08-08",
+   "nadpis": "Výstraha na déšť",
+   "body": [
+    "Varování na déšť i z krátkodobé předpovědi z radaru."
+   ]
+  },
+  {
+   "v": 224,
+   "datum": "2026-08-08",
+   "nadpis": "Počasí z českých modelů",
+   "body": [
+    "Přibyly modely ČHMÚ ALADIN a AROME a další ensembly — pro Česko výrazně přesnější."
+   ]
+  },
+  {
+   "v": 223,
+   "datum": "2026-08-08",
+   "nadpis": "Průvodce vlastním profilem",
+   "body": [
+    "Srovnané prvky v Nastavení a průvodce, který ti profil sestaví podle pár otázek."
+   ]
+  },
+  {
+   "v": 222,
+   "datum": "2026-08-08",
+   "nadpis": "Jeden stavový pruh místo dvou",
+   "body": [
+    "Hlavní obrazovka má jeden stavový pruh — víc místa na obraz."
+   ]
+  },
+  {
+   "v": 221,
+   "datum": "2026-08-08",
+   "nadpis": "Nastavení na jeden řádek záložek",
+   "body": [
+    "Jednořádkové záložky a samostatná záložka Profily."
+   ]
+  },
+  {
+   "v": 220,
+   "datum": "2026-08-08",
+   "nadpis": "Nástroje jako jediný pohled",
+   "body": [
+    "Čtyři různé způsoby, jak si nástroje uspořádat, nahradil jeden seznam se sbalitelnými skupinami."
+   ]
+  },
+  {
+   "v": 218,
+   "datum": "2026-08-08",
+   "nadpis": "Úvodní obrazovka a poloha z mapy",
+   "body": [
+    "Nová úvodní obrazovka a lišta, která upozorní na novou verzi.",
+    "<b>Poloha z mapy</b>: pod stromy a mezi domy si polohu odečteš klepnutím do ortofota, když je GPS horší než to, co sám vidíš."
+   ]
+  },
+  {
+   "v": 217,
+   "datum": "2026-08-08",
+   "nadpis": "Šest chyb nalezených spuštěním appky",
+   "body": [
+    "Audit skutečným spuštěním v prohlížeči našel šest chyb, které statické kontroly nechytily."
+   ]
+  },
+  {
+   "v": 209,
+   "datum": "2026-08-08",
+   "nadpis": "Pět nových nástrojů",
+   "body": [
+    "<b>Geo-fotka</b> — fotka s polohou a azimutem.",
+    "<b>Vysílačka</b> a hlášení „Man Down“.",
+    "<b>Hlasové kódování</b> bodů.",
+    "<b>Navigace uvnitř budovy</b>, kde končí GPS.",
+    "<b>Obchůzka výkopu</b>."
+   ]
+  },
+  {
+   "v": 208,
+   "datum": "2026-08-07",
+   "nadpis": "Účty, Face ID a ranní brífink",
+   "body": [
+    "Pamatované přihlášení a Face ID.",
+    "Firemní zakázky s oprávněními.",
+    "<b>Dnešek v terénu</b> — jedna karta s počasím, okny GNSS a body po termínu."
+   ]
+  },
+  {
+   "v": 207,
+   "datum": "2026-07-27",
+   "nadpis": "Centrum upozornění a hledání",
+   "body": [
+    "Nástroje jde procházet jako seznam úkonů („co chci udělat“), ne jen jako mřížku dlaždic.",
+    "Hledání přímo v Nastavení."
+   ]
+  },
+  {
+   "v": 170,
+   "datum": "2026-07-18",
+   "nadpis": "Brutální vylepšení přesnosti",
+   "body": [
+    "<b>Kotvení AR na stanovisko</b> (resekce) — konec metrového tancování značek.",
+    "<b>Helmertova transformace</b> do místní soustavy.",
+    "<b>Foto-totálka</b>, podzemní sítě, žurnál měření a přenos zakázky.",
+    "<b>Rajón</b> (polární metoda) a průvodce Volné stanovisko."
+   ]
+  },
+  {
+   "v": 164,
+   "datum": "2026-07-12",
+   "nadpis": "Kolečko zobrazení a edge-to-edge",
+   "body": [
+    "Přepínání AR / Split / Mapa kroužkem v rohu.",
+    "Obsah sahá až ke krajům displeje, nahoře i dole."
+   ]
+  },
+  {
+   "v": 152,
+   "datum": "2026-07-12",
+   "nadpis": "Epochy a Výška objektu",
+   "body": [
+    "<b>Epochy / monitoring posunů</b> — přeměřování bodů v čase a hlídání termínů.",
+    "<b>Výška objektu</b> z kamery."
+   ]
+  },
+  {
+   "v": 123,
+   "datum": "2026-06-20",
+   "nadpis": "Redesign a QC inspektor",
+   "body": [
+    "Nový vzhled: svislá lišta, dlaždice v Nastavení, okna na celou obrazovku.",
+    "<b>QC inspektor</b> — kód kvality z dosažené přesnosti a brána, která nepustí uložit bod horší, než je cíl zakázky."
+   ]
+  },
+  {
+   "v": 64,
+   "datum": "2026-06-14",
+   "nadpis": "Náčrt, tachymetrie a QR",
+   "body": [
+    "<b>Náčrt / tachymetrie</b>: body v místní projekci, spojnice, měřítko, export PNG.",
+    "Sdílení bodů přes <b>QR kód</b> bez serveru.",
+    "Zpětný krok (undo) i pro mazání bodů a zakázek."
+   ]
+  },
+  {
+   "v": 1,
+   "datum": "2026-06-13",
+   "nadpis": "První verze",
+   "body": [
+    "Body v kameře, mapa s ortofotem a katastrem, stahování bodů z ČÚZK, měření vzdáleností."
+   ]
+  }
+ ]
 }

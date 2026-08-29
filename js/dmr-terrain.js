@@ -60,11 +60,11 @@
     // Pomocné
     // --------------------------------------------------------------------------------
     function alertMsg(title, message) {
-        try { if (typeof window.agAlert === 'function') { window.agAlert({ title: title, message: message }); return; } } catch (e) {}
-        try { window.alert(String(title) + '\n\n' + String(message).replace(/<[^>]+>/g, '')); } catch (e) {}
+        try { if (typeof window.agAlert === 'function') { window.agAlert({ title: title, message: message }); return; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmr-terrain:alertMsg'); }
+        try { window.alert(String(title) + '\n\n' + String(message).replace(/<[^>]+>/g, '')); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmr-terrain:alertMsg'); }
     }
     function distM(lat1, lng1, lat2, lng2) {
-        if (typeof getDistance === 'function') { try { return getDistance(lat1, lng1, lat2, lng2); } catch (e) {} }
+        if (typeof getDistance === 'function') { try { return getDistance(lat1, lng1, lat2, lng2); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmr-terrain:distM'); } }
         var R = 6371000, toR = Math.PI / 180;
         var dLat = (lat2 - lat1) * toR, dLng = (lng2 - lng1) * toR;
         var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * toR) * Math.cos(lat2 * toR) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
@@ -77,7 +77,7 @@
         return new Promise(function (resolve, reject) {
             var done = false;
             var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-            var t = setTimeout(function () { done = true; if (ctrl) { try { ctrl.abort(); } catch (e) {} } reject(new Error('timeout')); }, FETCH_MS);
+            var t = setTimeout(function () { done = true; if (ctrl) { try { ctrl.abort(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmr-terrain:fetchJson'); } } reject(new Error('timeout')); }, FETCH_MS);
             fetch(url, ctrl ? { signal: ctrl.signal } : undefined)
                 .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
                 .then(function (j) { if (done) return; clearTimeout(t); resolve(j); })
@@ -193,7 +193,7 @@
                 var p = arPoints[i];
                 if (p && typeof p.lat === 'number') enqueue(cellKey(p.lat, p.lng));
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmr-terrain:primeVisible'); }
     }
 
     // --------------------------------------------------------------------------------
@@ -209,10 +209,10 @@
                 for (var i = 0; i < keys.length - CACHE_MAX; i++) delete _elev[keys[i]];
             }
             localStorage.setItem(CACHE_KEY, JSON.stringify(_elev));
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmr-terrain:schedulePersist'); }
     }
     function loadCache() {
-        try { var c = JSON.parse(localStorage.getItem(CACHE_KEY)); if (c && typeof c === 'object') _elev = c; } catch (e) {}
+        try { var c = JSON.parse(localStorage.getItem(CACHE_KEY)); if (c && typeof c === 'object') _elev = c; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmr-terrain:loadCache'); }
     }
 
     // --------------------------------------------------------------------------------
@@ -279,7 +279,7 @@
     // Init
     // --------------------------------------------------------------------------------
     function init() {
-        try { loadCache(); } catch (e) {}
+        try { loadCache(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmr-terrain:init'); }
         try { injectButton(); } catch (e) { console.warn('[dmr-terrain] init', e); }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

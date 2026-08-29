@@ -34,6 +34,14 @@
     --accent2: #2f9e74;         /* bez druhé „neonové" barvy */
     --accent3: #e6bd76;
     --accent-grad: var(--accent);   /* jeden plný akcent místo gradientu */
+
+    /* VÝPLŇ PLNÝCH TLAČÍTEK (.btn-primary) — schválně NENÍ --accent.
+       --accent musí na tmavé ploše SVÍTIT (je to barva textu, ikon a linek), ale
+       jako podklad pod BÍLÝ text dával jen 3,35:1 — pod normou 4,5:1 a na přímém
+       slunci nečitelný. Tohle je tentýž smaragd o stupeň tmavší: bílý text na něm
+       má 4,82:1 a akcent zůstává jinde beze změny.
+       Hodnotu hlídá scripts/check_css_tokens.py — neměnit „od oka". */
+    --accent-fill: #21815b;
     --accent-soft: rgba(47, 158, 116, 0.14);
     --accent-line: rgba(47, 158, 116, 0.42);
     --accent-glow: 0 8px 22px rgba(47, 158, 116, 0.30);
@@ -157,6 +165,7 @@ body.light-mode {
        na --bg-color (#f4f5f7) i na --surface-2 kontrast ≥ 4,5:1 (WCAG AA) a zároveň
        ≥ 4,5:1 pro BÍLÝ text na nich (plná tlačítka .btn-primary, aktivní segmenty). */
     --accent: #177355;          /* dřív #1f8a63 = jen 3,95:1 na světlém pozadí */
+    --accent-fill: #177355;      /* bílý text na něm 5,80:1 — výplň = accent, nemusí se ztmavovat */
     --accent-bright: #15724f;
     --accent-strong: #136448;
     --accent2: #177355;

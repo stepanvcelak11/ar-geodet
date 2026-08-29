@@ -60,8 +60,8 @@
     var _editId = null;        // detail otevřené závady
 
     // ---- pomocné ----------------------------------------------------------------
-    function agAlertW(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) {} try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) {} }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function agAlertW(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zavady:agAlertW'); } try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'zavady:agAlertW'); } }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zavady:toast'); } }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function getMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
@@ -75,8 +75,8 @@
     function fmtTs(ts) { try { var d = new Date(ts); return d.toLocaleDateString('cs-CZ') + ' ' + d.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
     function catLabel(id) { for (var i = 0; i < CATS.length; i++) if (CATS[i].id === id) return CATS[i].label; return id || '—'; }
     function toSJTSK(lat, lng) {
-        try { if (window.GeoCore && GeoCore.toSJTSK) return GeoCore.toSJTSK(lat, lng); } catch (e) {}
-        try { if (typeof proj4 === 'function') { var c = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { y: Math.abs(c[0]), x: Math.abs(c[1]) }; } } catch (e2) {}
+        try { if (window.GeoCore && GeoCore.toSJTSK) return GeoCore.toSJTSK(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zavady:toSJTSK'); }
+        try { if (typeof proj4 === 'function') { var c = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { y: Math.abs(c[0]), x: Math.abs(c[1]) }; } } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'zavady:toSJTSK'); }
         return null;
     }
 
@@ -96,7 +96,7 @@
         return new Promise(function (res, rej) {
             if (typeof indexedDB === 'undefined') { rej(new Error('no idb')); return; }
             var r = indexedDB.open(PDB, 1);
-            r.onupgradeneeded = function () { try { r.result.createObjectStore(PSTORE); } catch (e) {} };
+            r.onupgradeneeded = function () { try { r.result.createObjectStore(PSTORE); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zavady:onupgradeneeded'); } };
             r.onsuccess = function () { res(r.result); };
             r.onerror = function () { rej(r.error); };
         });
@@ -114,7 +114,7 @@
                 var sc = Math.min(1, maxDim / Math.max(w, h));
                 var cw = Math.max(1, Math.round(w * sc)), ch = Math.max(1, Math.round(h * sc));
                 var cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
-                try { cv.getContext('2d').drawImage(img, 0, 0, cw, ch); } catch (e) {}
+                try { cv.getContext('2d').drawImage(img, 0, 0, cw, ch); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zavady:onload'); }
                 URL.revokeObjectURL(url);
                 try { res(cv.toDataURL('image/jpeg', quality)); } catch (e) { res(null); }
             };

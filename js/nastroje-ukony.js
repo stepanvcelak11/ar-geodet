@@ -235,7 +235,7 @@
         if (typeof window.openPruvodce === 'function') {
             box.appendChild(item({ l: 'Poradit, co použít', h: 'průvodce úkolem' }, function () {
                 var m = modal(); if (m) m.style.display = 'none';
-                try { window.openPruvodce(); } catch (e) {}
+                try { window.openPruvodce(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:footBlock'); }
             }));
         }
         return box;
@@ -293,7 +293,7 @@
         var a = loadClosed(), ix = a.indexOf(title);
         if (closed && ix === -1) a.push(title);
         else if (!closed && ix !== -1) a.splice(ix, 1);
-        try { localStorage.setItem(CLOSED_KEY, JSON.stringify(a)); } catch (e) {}
+        try { localStorage.setItem(CLOSED_KEY, JSON.stringify(a)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:setClosed'); }
     }
 
     function favKeys() {
@@ -318,7 +318,7 @@
                 var p = AGToolsSimple.profiles[id];
                 if (p && p.label) return p.label;
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:profileLabel'); }
         var s = document.getElementById('ag-ts-profsel');
         if (!s || !s.options || s.selectedIndex < 0) return '';
         var v = s.options[s.selectedIndex];
@@ -434,7 +434,7 @@
                         + rest.map(function (r) { return r.k; }).join(', ')
                         + ' — dopsat do js/tools-registry.js (verb + vl), ať to jde najít podle toho, co chce uživatel udělat.');
                 }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:shortcutGroup'); }
         }
         host.appendChild(footBlock());
         adoptFavBtn();
@@ -465,11 +465,11 @@
         try { sync(); } catch (e) { console.warn('[nastroje-ukony] init', e); }
         if (!window.__agUkTimer) {
             window.__agUkTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(function () {
-                try { sync(); } catch (e) {}
+                try { sync(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:init'); }
             }, 1400);
         }
         document.addEventListener('input', function (e) {
-            if (e.target && e.target.id === 'tools-search') { try { sync(); } catch (er) {} }
+            if (e.target && e.target.id === 'tools-search') { try { sync(); } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'nastroje-ukony:init'); } }
         }, true);
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

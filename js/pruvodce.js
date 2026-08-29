@@ -148,21 +148,21 @@
     }
 
     function createProject(name) {
-        try { if (typeof _persistOfficialPoints === 'function') _persistOfficialPoints(); } catch (e) {}
+        try { if (typeof _persistOfficialPoints === 'function') _persistOfficialPoints(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pruvodce:createProject'); }
         var id = 'proj_' + Date.now();
         projects.push({ id: id, name: name });
-        try { localStorage.setItem('arProjectsList', JSON.stringify(projects)); } catch (e) {}
+        try { localStorage.setItem('arProjectsList', JSON.stringify(projects)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pruvodce:createProject'); }
         activeProjectId = id;
-        try { localStorage.setItem('arActiveProjectId', activeProjectId); } catch (e) {}
+        try { localStorage.setItem('arActiveProjectId', activeProjectId); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pruvodce:createProject'); }
         if (typeof renderProjectSelect === 'function') renderProjectSelect();
         if (typeof hydrateActiveProject === 'function') return hydrateActiveProject().then(function () { if (typeof loadProjectSettings === 'function') loadProjectSettings(); });
         return Promise.resolve();
     }
     function selectProject(id) {
         if (!id) return;
-        try { if (typeof _persistOfficialPoints === 'function') _persistOfficialPoints(); } catch (e) {}
+        try { if (typeof _persistOfficialPoints === 'function') _persistOfficialPoints(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pruvodce:selectProject'); }
         activeProjectId = id;
-        try { localStorage.setItem('arActiveProjectId', id); } catch (e) {}
+        try { localStorage.setItem('arActiveProjectId', id); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pruvodce:selectProject'); }
         var w = document.getElementById('w-project-select'); if (w) w.value = id;
         if (typeof hydrateActiveProject === 'function') hydrateActiveProject().then(function () { if (typeof loadProjectSettings === 'function') loadProjectSettings(); });
         if (typeof renderProjectSelect === 'function') renderProjectSelect();
@@ -480,7 +480,7 @@
     function ensureAppStarted(cb) {
         if (typeof appStarted !== 'undefined' && appStarted) { cb(); return; }
         // jsme jeste na uvodni obrazovce — spustime appku a pockame na inicializaci mapy/AR
-        if (typeof startAppFromWelcome === 'function') { try { startAppFromWelcome(); } catch (e) {} }
+        if (typeof startAppFromWelcome === 'function') { try { startAppFromWelcome(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pruvodce:ensureAppStarted'); } }
         setTimeout(cb, 700);
     }
 
@@ -492,14 +492,14 @@
             viewMode = mode;
             if (typeof applyViewMode === 'function') applyViewMode();
             if (typeof window.agSyncViewControls === 'function') window.agSyncViewControls();
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pruvodce:setWizardView'); }
     }
 
     // zapne pozadovane kategorie bodu (nic nevypina, aby se neskryly jine body)
     function applyFilters(cats) {
         if (typeof filters === 'undefined') return;
         Object.keys(cats).forEach(function (k) { if (cats[k]) filters[k] = true; });
-        try { setStoredData('arFilters12', JSON.stringify(filters)); } catch (e) {}
+        try { setStoredData('arFilters12', JSON.stringify(filters)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pruvodce:applyFilters'); }
         // synchronizace zaskrtavatek v Nastaveni i na uvodu
         [['tb', 'f-tb'], ['zhb', 'f-zhb'], ['pbpp', 'f-pbpp'], ['nivel', 'f-nivel'], ['custom', 'f-custom'],
          ['tb', 'w-f-tb'], ['zhb', 'w-f-zhb'], ['pbpp', 'w-f-pbpp'], ['nivel', 'w-f-nivel'], ['custom', 'w-f-custom']].forEach(function (m) {
@@ -549,7 +549,7 @@
                     var sm = document.getElementById('stakeout-modal'); if (sm) sm.style.display = 'none';
                     stepDone();
                 }
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pruvodce:toggleStaked'); }
         };
     }
 

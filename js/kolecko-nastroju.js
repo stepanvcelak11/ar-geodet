@@ -116,7 +116,7 @@
         try {
             if (typeof visSettings !== 'undefined' && visSettings.vibrationEnabled === false) return;
             if (navigator.vibrate) navigator.vibrate(ms);
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kolecko-nastroju:buzz'); }
     }
     function ukony() { return window.AGUkony && window.AGUkony.groups ? window.AGUkony : null; }
 
@@ -339,7 +339,7 @@
             _mctx = _mctx || document.createElement('canvas').getContext('2d');
             _mctx.font = '700 100px ' + segFamily();
             w100 = _mctx.measureText(nej).width;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kolecko-nastroju:fitFont'); }
         if (!w100) w100 = nej.length * 55;         // bez canvasu: ~0,55 em na znak
         var fit = 100 * Math.max(8, boxW - 2) / w100;
         return Math.round(Math.max(6.4 * K, Math.min(10.6 * K, fit)) * 10) / 10;
@@ -366,7 +366,7 @@
         try {
             fs = parseFloat(getComputedStyle(document.documentElement)
                 .getPropertyValue('--ag-font-scale')) || 1;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kolecko-nastroju:build'); }
         if (document.body.classList.contains('ag-glove')) fs = Math.max(fs, 1.15);
         fs = Math.max(1, Math.min(1.6, fs));
         var kfs = Math.min(fs, 1.15);
@@ -724,7 +724,7 @@
             var nm = SHORT[it.k] || it.l;
             setHub('Nástroj', nm);
             var h = '';
-            try { if (typeof window.agToolHelpText === 'function') h = window.agToolHelpText(it.k, 190); } catch (e) {}
+            try { if (typeof window.agToolHelpText === 'function') h = window.agToolHelpText(it.k, 190); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kolecko-nastroju:move'); }
             setInfo('Nástroj', it.l, h || it.h || 'pusť pro otevření');
         }
     }
@@ -736,8 +736,8 @@
         // použití, zafunguje návrat do Nástrojů i oprávnění.
         setTimeout(function () {
             var ok = false;
-            try { ok = !!(u && u.run(it.k)); } catch (e) {}
-            if (!ok) { try { document.getElementById('tools-modal').style.display = 'flex'; } catch (e2) {} }
+            try { ok = !!(u && u.run(it.k)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kolecko-nastroju:finish'); }
+            if (!ok) { try { document.getElementById('tools-modal').style.display = 'flex'; } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'kolecko-nastroju:finish'); } }
         }, 20);
         buzz(24);
     }
@@ -764,7 +764,7 @@
         var tapped = !st.moved;
         close();
         // krátké klepnutí bez tažení = klasický seznam Nástrojů (záložní cesta)
-        if (tapped) { try { document.getElementById('tools-modal').style.display = 'flex'; } catch (e) {} }
+        if (tapped) { try { document.getElementById('tools-modal').style.display = 'flex'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kolecko-nastroju:up'); } }
     }
 
     // ---- vstupy ---------------------------------------------------------------
@@ -844,7 +844,7 @@
         var cb = row.querySelector('#ag-kn-cb');
         cb.checked = on();
         cb.addEventListener('change', function () {
-            try { localStorage.setItem(KEY_OFF, cb.checked ? '0' : '1'); } catch (e) {}
+            try { localStorage.setItem(KEY_OFF, cb.checked ? '0' : '1'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kolecko-nastroju:settingRow'); }
         });
     }
 

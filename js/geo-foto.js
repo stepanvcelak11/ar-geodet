@@ -60,15 +60,15 @@
             if (typeof projects !== 'undefined' && Array.isArray(projects)) {
                 for (var i = 0; i < projects.length; i++) { if (projects[i] && projects[i].id === id) return projects[i].name || id; }
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:projName'); }
         return (id === 'default') ? 'Výchozí zakázka' : id;
     }
     function userName() {
-        try { var u = window.AGUcty && AGUcty.currentUser && AGUcty.currentUser(); if (u && u.name) return u.name; } catch (e) {}
+        try { var u = window.AGUcty && AGUcty.currentUser && AGUcty.currentUser(); if (u && u.name) return u.name; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:userName'); }
         return '';
     }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
-    function fail(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert(t, m); } catch (e) {} toast(m); }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:toast'); } }
+    function fail(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert(t, m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:fail'); } toast(m); }
     function fmtT(ts) { try { return new Date(ts).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
     function fmtDT(ts) { var d = new Date(ts); return d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear() + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
     var DAYS_CS = ['neděle', 'pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota'];
@@ -76,12 +76,12 @@
     function dayKey(ts) { var d = new Date(ts); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
     function fmtNum(v) { return v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
     function toSJTSK(lat, lng) {
-        try { if (window.GeoCore && GeoCore.toSJTSK) return GeoCore.toSJTSK(lat, lng); } catch (e) {}
-        try { if (typeof proj4 === 'function') { var c = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { y: Math.abs(c[0]), x: Math.abs(c[1]) }; } } catch (e2) {}
+        try { if (window.GeoCore && GeoCore.toSJTSK) return GeoCore.toSJTSK(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:toSJTSK'); }
+        try { if (typeof proj4 === 'function') { var c = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { y: Math.abs(c[0]), x: Math.abs(c[1]) }; } } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'geo-foto:toSJTSK'); }
         return null;
     }
     function dist(la1, lo1, la2, lo2) {
-        try { if (typeof getDistance === 'function') return getDistance(la1, lo1, la2, lo2); } catch (e) {}
+        try { if (typeof getDistance === 'function') return getDistance(la1, lo1, la2, lo2); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:dist'); }
         var R = 6371000, r = Math.PI / 180;
         var a = Math.sin((la2 - la1) * r / 2), b = Math.sin((lo2 - lo1) * r / 2);
         var h = a * a + Math.cos(la1 * r) * Math.cos(la2 * r) * b * b;
@@ -108,12 +108,12 @@
                 if (typeof currentGpsAccuracy !== 'undefined' && currentGpsAccuracy != null) s.acc = currentGpsAccuracy;
                 if (typeof userAlt !== 'undefined' && userAlt != null && isFinite(userAlt)) {
                     var und = 0;
-                    try { if (typeof getGeoidUndulation === 'function') und = getGeoidUndulation(s.lat, s.lng) || 0; } catch (e) {}
+                    try { if (typeof getGeoidUndulation === 'function') und = getGeoidUndulation(s.lat, s.lng) || 0; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:grabState'); }
                     s.bpv = userAlt - und;
                 }
             }
-        } catch (e2) {}
-        try { if (typeof currentHeading === 'number' && isFinite(currentHeading)) s.az = (currentHeading % 360 + 360) % 360; } catch (e3) {}
+        } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'geo-foto:grabState'); }
+        try { if (typeof currentHeading === 'number' && isFinite(currentHeading)) s.az = (currentHeading % 360 + 360) % 360; } catch (e3) { window.AG && AG.swallow && AG.swallow(e3, 'geo-foto:grabState'); }
         return s;
     }
 
@@ -236,17 +236,17 @@
         try {
             var v = document.getElementById('camera-feed');
             if (v && v.srcObject && v.readyState >= 2 && v.videoWidth > 0) return v.srcObject;
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:arStream'); }
         return null;
     }
     function stopStream() {
         if (_stream) {
-            try { _stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+            try { _stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:stopStream'); }
             _stream = null;
         }
         _usingAr = false;
         var v = document.getElementById('ag-gf-video');
-        if (v) { try { v.pause(); } catch (e2) {} v.srcObject = null; }
+        if (v) { try { v.pause(); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'geo-foto:stopStream'); } v.srcObject = null; }
     }
     function openView() {
         var ov = ensureViewer();
@@ -268,7 +268,7 @@
         }
         setViewNote('Zapínám kameru…');
         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1920 } } }).then(function (st) {
-            if (ov.style.display === 'none') { try { st.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {} return; }
+            if (ov.style.display === 'none') { try { st.getTracks().forEach(function (t) { t.stop(); }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:openView'); } return; }
             _stream = st; _usingAr = false;
             v.srcObject = st;
             v.play()['catch'](function () {});
@@ -344,7 +344,7 @@
                     };
                     dbPut(rec).then(function () {
                         _shooting = false;
-                        try { if (navigator.vibrate) navigator.vibrate(25); } catch (e) {}
+                        try { if (navigator.vibrate) navigator.vibrate(25); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:shoot'); }
                         flash();
                         toast('Fotka uložena' + (near ? ' (u bodu ' + near.name + ')' : '') + '.');
                         var ni = document.getElementById('ag-gf-vnotein'); if (ni) ni.value = '';
@@ -359,7 +359,7 @@
         var f = document.createElement('div');
         f.className = 'ag-gf-flash';
         ov.appendChild(f);
-        setTimeout(function () { try { f.remove(); } catch (e) {} }, 260);
+        setTimeout(function () { try { f.remove(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:flash'); } }, 260);
     }
 
     // Nouzová cesta: prohlížeč nedá kameru (odmítnuté povolení, desktop bez kamery).
@@ -381,7 +381,7 @@
         var img = new Image();
         var url = URL.createObjectURL(f);
         img.onload = function () {
-            try { URL.revokeObjectURL(url); } catch (e) {}
+            try { URL.revokeObjectURL(url); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:onload'); }
             var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
             if (Math.max(w, h) > MAX_W) { var k = MAX_W / Math.max(w, h); w = Math.round(w * k); h = Math.round(h * k); }
             var cv = document.createElement('canvas');
@@ -406,7 +406,7 @@
                 }, 'image/jpeg', JPEG_Q);
             });
         };
-        img.onerror = function () { try { URL.revokeObjectURL(url); } catch (e) {} toast('Soubor není platný obrázek.'); };
+        img.onerror = function () { try { URL.revokeObjectURL(url); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:onerror'); } toast('Soubor není platný obrázek.'); };
         img.src = url;
     }
 
@@ -466,7 +466,7 @@
         var a = document.createElement('a');
         a.href = url; a.download = (f && f.name) || 'geofoto.jpg';
         document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e) {} }, 4000);
+        setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:shareRec'); } }, 4000);
     }
     // Připojení k bodu používá STEJNÉ úložiště jako karta bodu (savePointDoc
     // v kalkulacka.js), takže fotka je i v záloze zakázky a v PDF protokolu bodů.
@@ -625,7 +625,7 @@
         });
     }
     var _urls = [];
-    function freeUrls() { _urls.forEach(function (u) { try { URL.revokeObjectURL(u); } catch (e) {} }); _urls = []; }
+    function freeUrls() { _urls.forEach(function (u) { try { URL.revokeObjectURL(u); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:freeUrls'); } }); _urls = []; }
     function renderList() {
         var box = document.getElementById('ag-gf-list');
         if (!box) return;

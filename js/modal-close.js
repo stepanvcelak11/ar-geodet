@@ -244,23 +244,23 @@
         // okno modulu: jen a pouze jeho vlastním tlačítkem (viz modOverlay výš)
         if (!mc) {
             var ob = ownCloseButton(ov);
-            if (ob) { try { ob.click(); } catch (e0) {} }
+            if (ob) { try { ob.click(); } catch (e0) { window.AG && AG.swallow && AG.swallow(e0, 'modal-close:closeOverlay'); } }
             return;
         }
         // okno, které se zavírá uložením (Nastavení) → jeho vlastní cestou
         var sfn = ov.id ? SAVE_CLOSE[ov.id] : null;
         if (sfn) {
             var sb = mc ? fnButton(mc, sfn) : null;
-            if (sb) { try { sb.click(); return; } catch (e) {} }
+            if (sb) { try { sb.click(); return; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'modal-close:closeOverlay'); } }
             // tlačítko se nenašlo (přeskládané okno) — volej funkci přímo, ta si
             // okno zavírá sama; kdyby nebyla, propadne se to na obecnou cestu níž
-            try { if (typeof window[sfn] === 'function') { window[sfn](); return; } } catch (e2) {}
+            try { if (typeof window[sfn] === 'function') { window[sfn](); return; } } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'modal-close:closeOverlay'); }
         }
         var btn = mc ? ownCloseButton(mc) : null;
-        if (btn) { try { btn.click(); return; } catch (e) {} }
+        if (btn) { try { btn.click(); return; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'modal-close:closeOverlay'); } }
         ov.style.display = 'none';
         // úklid, který dělají zavírací funkce v logika.js/grafika.js
-        try { if (typeof window.fixAppLayout === 'function') window.fixAppLayout(); } catch (e) {}
+        try { if (typeof window.fixAppLayout === 'function') window.fixAppLayout(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'modal-close:closeOverlay'); }
     }
 
     // ---- křížek + úchyt --------------------------------------------------------
@@ -436,7 +436,7 @@
                     }
                 }
             }).observe(document.body, { childList: true, subtree: true });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'modal-close:init'); }
 
         document.addEventListener('touchstart', onStart, { passive: true });
         document.addEventListener('touchmove', onMove, { passive: false });

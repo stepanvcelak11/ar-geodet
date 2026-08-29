@@ -31,7 +31,7 @@
         if (!(key in _pending)) return;
         var rec = _pending[key]; delete _pending[key];
         clearTimeout(_timers[key]); delete _timers[key];
-        try { localStorage.setItem(skey(key), JSON.stringify(rec)); } catch (e) {}
+        try { localStorage.setItem(skey(key), JSON.stringify(rec)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'draft-store:_flushKey'); }
     }
     function flushAll() { Object.keys(_pending).forEach(_flushKey); }
 
@@ -50,7 +50,7 @@
     }
     function clear(key) {
         delete _pending[key]; clearTimeout(_timers[key]); delete _timers[key];
-        try { localStorage.removeItem(skey(key)); } catch (e) {}
+        try { localStorage.removeItem(skey(key)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'draft-store:clear'); }
     }
     function register(key, cfg) { if (cfg && typeof cfg.open === 'function') _openers[key] = cfg; }
 
@@ -67,7 +67,7 @@
                 try { var r = JSON.parse(localStorage.getItem(k)); if (!r || !r.ts || Date.now() - r.ts > TTL_MS) localStorage.removeItem(k); } catch (e) { localStorage.removeItem(k); }
             }
         }
-    } catch (e) {}
+    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'draft-store:register'); }
 
     // ---- lišta „Pokračovat v rozdělané práci“ po startu ---------------------------
     var BAR_ID = 'ag-draft-bar';
@@ -94,12 +94,12 @@
         go.addEventListener('click', function () {
             bar.remove();
             var rec = load(newestKey);
-            if (rec) { try { _openers[newestKey].open(rec.state); } catch (e) {} }
+            if (rec) { try { _openers[newestKey].open(rec.state); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'draft-store:showResumeBar'); } }
         });
         drop.addEventListener('click', function () { clear(newestKey); bar.remove(); });
         bar.appendChild(lbl); bar.appendChild(go); bar.appendChild(drop);
         document.body.appendChild(bar);
-        setTimeout(function () { try { bar.remove(); } catch (e) {} }, 30000);
+        setTimeout(function () { try { bar.remove(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'draft-store:showResumeBar'); } }, 30000);
     }
     // po startu appky (tlačítko Start na welcome) — čekej na body.app-started
     var _resumeShown = false;
@@ -163,7 +163,7 @@
                     var rec = load(NP_KEY);
                     if (rec && !npIsEditing()) {
                         npRestore(rec.state);
-                        if (typeof window.quickToast === 'function') { try { quickToast('Obnoven rozepsaný bod.'); } catch (e) {} }
+                        if (typeof window.quickToast === 'function') { try { quickToast('Obnoven rozepsaný bod.'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'draft-store:wire'); } }
                     }
                 }
                 was = open;
@@ -175,7 +175,7 @@
     register(NP_KEY, {
         label: 'Nový bod',
         open: function (st) {
-            if (typeof window.openNewPointModal === 'function') { try { openNewPointModal(); } catch (e) {} }
+            if (typeof window.openNewPointModal === 'function') { try { openNewPointModal(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'draft-store:open'); } }
             setTimeout(function () { npRestore(st); }, 120);
         }
     });

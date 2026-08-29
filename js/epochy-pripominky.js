@@ -26,7 +26,7 @@
     var BOX_ID = 'ag-epr-box';
 
     // ---- util ---------------------------------------------------------------
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy-pripominky:toast'); } }
     function pid() { try { return localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { return 'default'; } }
     function rkey() { return 'agEpochyRemind::' + pid(); }
     function sameDay(a, b) { try { return new Date(a).toDateString() === new Date(b).toDateString(); } catch (e) { return false; } }
@@ -38,10 +38,10 @@
         try {
             var r = JSON.parse(localStorage.getItem(rkey()));
             if (r && typeof r === 'object') { if (!r.pts || typeof r.pts !== 'object') r.pts = {}; return r; }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy-pripominky:loadR'); }
         return { pts: {}, snoozeTs: 0, notif: false, lastNotifTs: 0 };
     }
-    function saveR(r) { try { localStorage.setItem(rkey(), JSON.stringify(r)); } catch (e) {} _cacheT = 0; }
+    function saveR(r) { try { localStorage.setItem(rkey(), JSON.stringify(r)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy-pripominky:saveR'); } _cacheT = 0; }
 
     // sledované body nástroje Epochy (jen čtení, per aktivní zakázka)
     function epItems() {
@@ -159,7 +159,7 @@
 
         // vlož za řádek s mezemi ΔP/ΔZ (nenásilně, bez zásahu do epochy.js)
         var row = null;
-        try { row = limp.closest ? limp.closest('.ag-ep-row') : null; } catch (e) {}
+        try { row = limp.closest ? limp.closest('.ag-ep-row') : null; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy-pripominky:injectDetailUI'); }
         if (row && row.parentNode) row.parentNode.insertBefore(box, row.nextSibling);
         else body.appendChild(box);
 
@@ -236,7 +236,7 @@
         body.__agEprWatched = true;
         try {
             new MutationObserver(function () { setTimeout(injectDetailUI, 0); }).observe(body, { childList: true });
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy-pripominky:watchModal'); }
         injectDetailUI();
     }
 
@@ -266,7 +266,7 @@
         go.className = 'ag-epr-go'; go.textContent = 'Otevřít';
         go.addEventListener('click', function () {
             bar.remove();
-            try { if (typeof window.agOpenEpochy === 'function') window.agOpenEpochy(); } catch (e) {}
+            try { if (typeof window.agOpenEpochy === 'function') window.agOpenEpochy(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy-pripominky:showBar'); }
         });
         var later = document.createElement('button');
         later.className = 'ag-epr-later'; later.textContent = 'Později';
@@ -278,7 +278,7 @@
         });
         bar.appendChild(lbl); bar.appendChild(go); bar.appendChild(later);
         document.body.appendChild(bar);
-        setTimeout(function () { try { bar.remove(); } catch (e) {} }, 30000);
+        setTimeout(function () { try { bar.remove(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy-pripominky:showBar'); } }, 30000);
     }
 
     function tryNotify(od) {
@@ -297,12 +297,12 @@
                     if (reg && typeof reg.showNotification === 'function') return reg.showNotification('AR Geodet — monitoring', opts);
                     throw new Error('no showNotification');
                 })['catch'](function () {
-                    try { new Notification('AR Geodet — monitoring', opts); } catch (e) {}
+                    try { new Notification('AR Geodet — monitoring', opts); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy-pripominky:tryNotify'); }
                 });
             } else {
                 new Notification('AR Geodet — monitoring', opts);
             }
-        } catch (e) {}
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy-pripominky:tryNotify'); }
     }
 
     function startupCheck() {
@@ -333,6 +333,6 @@
 
     // periodicky: badge na dlaždici + hlídání modalu (obojí levné, data s cache 30 s)
     (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(function () {
-        try { watchModal(); updateBadges(); } catch (e) {}
+        try { watchModal(); updateBadges(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy-pripominky:_onAppStarted'); }
     }, 4000);
 })();

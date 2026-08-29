@@ -26,7 +26,7 @@
     var _cache = [], _cacheTs = 0;
     var _lastH = null, _lastP = null, _lastLat = null, _lastLng = null;
 
-    try { _on = localStorage.getItem(LS) === '1'; } catch (e) {}
+    try { _on = localStorage.getItem(LS) === '1'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'track-ar'); }
 
     function haveUser() { try { return typeof userLat === 'number' && typeof userLng === 'number' && userLat != null && userLng != null; } catch (e) { return false; } }
     function num(v, d) { return (typeof v === 'number' && isFinite(v)) ? v : d; }
@@ -49,7 +49,7 @@
         var bearing = getBearing(userLat, userLng, lat, lng);
         var diff = ((bearing - heading + 540) % 360) - 180;
         var dz = 0;
-        try { if (typeof terrainDZ === 'function') dz = terrainDZ(lat, lng) || 0; } catch (e) {}
+        try { if (typeof terrainDZ === 'function') dz = terrainDZ(lat, lng) || 0; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'track-ar:proj'); }
         var uH = diff, vV = Math.atan2(eyeH - dz, Math.max(dist, 0.5)) * 180 / Math.PI - pj.pitch;
         if (pj.roll) {
             var cr = Math.cos(pj.roll), sr = Math.sin(pj.roll);
@@ -87,7 +87,7 @@
 
     function loop() {
         var svg = _svg;
-        var vm = null; try { vm = viewMode; } catch (e) {}
+        var vm = null; try { vm = viewMode; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'track-ar:loop'); }
         // BATERIE: mimo AR (režim Mapa, appka na pozadí, vypnutá stopa) nedrž 60 Hz řetěz
         // snímků — stačí kontrola 3×/s; v AR jede smyčka dál na každý snímek.
         if (!svg || !_on || !haveUser() || vm === 'map' || !window._arProj
@@ -100,7 +100,7 @@
         _raf = requestAnimationFrame(loop);
         var pj = window._arProj;
         var heading = null;
-        try { heading = (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null; } catch (e) {}
+        try { heading = (typeof currentHeading === 'number' && isFinite(currentHeading)) ? currentHeading : null; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'track-ar:loop'); }
         if (heading == null) { if (svg.innerHTML) svg.innerHTML = ''; return; }
 
         var pitch = num(pj.pitch, 0);
@@ -109,8 +109,8 @@
         _lastH = heading; _lastP = pitch; _lastLat = userLat; _lastLng = userLng;
 
         var eyeH = 1.6, vOff = 0, rad = 150;
-        try { eyeH = visSettings.eyeHeight || 1.6; vOff = visSettings.arVerticalOffset || 0; } catch (e) {}
-        try { if (typeof arRadius !== 'undefined' && arRadius) rad = arRadius; } catch (e) {}
+        try { eyeH = visSettings.eyeHeight || 1.6; vOff = visSettings.arVerticalOffset || 0; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'track-ar:loop'); }
+        try { if (typeof arRadius !== 'undefined' && arRadius) rad = arRadius; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'track-ar:loop'); }
 
         var segs = trackNear(rad), html = '', drawn = 0;
         for (var s = 0; s < segs.length && drawn < MAX_SEG; s++) {
@@ -145,7 +145,7 @@
         isOn: function () { return _on; },
         set: function (v) {
             _on = !!v;
-            try { localStorage.setItem(LS, _on ? '1' : '0'); } catch (e) {}
+            try { localStorage.setItem(LS, _on ? '1' : '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'track-ar:set'); }
             _cache = []; _cacheTs = 0;
             if (_on) { start(); if (typeof quickToast === 'function') quickToast('Stopa se zobrazí v AR pohledu.'); }
             else { stop(); }

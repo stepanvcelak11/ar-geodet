@@ -27,11 +27,11 @@
 
     function startTimer(t) {
         if (t.id == null && document.visibilityState === 'visible') {
-            try { t.id = setInterval(t.fn, t.ms); } catch (e) {}
+            try { t.id = setInterval(t.fn, t.ms); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'idle-timers:startTimer'); }
         }
     }
     function stopTimer(t) {
-        if (t.id != null) { try { clearInterval(t.id); } catch (e) {} t.id = null; }
+        if (t.id != null) { try { clearInterval(t.id); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'idle-timers:stopTimer'); } t.id = null; }
     }
 
     AG.uiInterval = function (fn, ms) {
@@ -44,7 +44,7 @@
     AG.clearUiInterval = function (t) {
         if (!t) return;
         // fallback, kdyby nekdo predal cislo z nativniho setInterval
-        if (typeof t === 'number') { try { clearInterval(t); } catch (e) {} return; }
+        if (typeof t === 'number') { try { clearInterval(t); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'idle-timers:clearUiInterval'); } return; }
         stopTimer(t);
         var i = timers.indexOf(t);
         if (i >= 0) timers.splice(i, 1);

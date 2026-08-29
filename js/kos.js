@@ -24,7 +24,7 @@
     }
 
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) {} }
+    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kos:toast'); } }
 
     // primy pristup k ulozisti CIZI (neaktivni) zakazky — getStoredData umi jen aktivni
     function rawGetCustom(projId) {
@@ -36,8 +36,8 @@
     function rawSetCustom(projId, val) {
         var fk = projId + '_arCustomPoints12';
         if (typeof _idbMem !== 'undefined' && typeof activeProjectId !== 'undefined' && projId === activeProjectId) _idbMem[fk] = val;
-        if (typeof _idbSet === 'function') { try { _idbSet(fk, val); return; } catch (e) {} }
-        try { localStorage.setItem(fk, val); } catch (e) {}
+        if (typeof _idbSet === 'function') { try { _idbSet(fk, val); return; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kos:rawSetCustom'); } }
+        try { localStorage.setItem(fk, val); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kos:rawSetCustom'); }
     }
 
     // ---- zachyceni mazani -------------------------------------------------------
@@ -57,7 +57,7 @@
             try {
                 var stillThere = typeof persistentCustomPoints !== 'undefined' && persistentCustomPoints.some(function (p) { return p.id === id; });
                 if (pt && !stillThere) push({ type: 'point', t: Date.now(), projectId: (typeof activeProjectId !== 'undefined' ? activeProjectId : 'default'), point: pt, lines: lines });
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kos:deleteCustomPoint'); }
             return ret;
         };
         window.deleteCustomPoint._trashWrapped = true;
@@ -86,7 +86,7 @@
             try {
                 var gone = rec && typeof projects !== 'undefined' && !projects.some(function (p) { return p.id === rec.projectId; });
                 if (gone) push(rec);
-            } catch (e) {}
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kos:deleteProject'); }
             return ret;
         };
         window.deleteProject._trashWrapped = true;
@@ -111,7 +111,7 @@
                     if (typeof renderManageList === 'function') renderManageList();
                     if (typeof updateInfoPanel === 'function') updateInfoPanel();
                     // #18: zapiš obnovu do žurnálu, ať auditní stopa sedí se stavem
-                    try { if (window.AGJournal) window.AGJournal.commit({ op: 'restore', id: rec.point.id, after: rec.point, origin: (rec.point.prov && rec.point.prov.origin) || null }); } catch (e) {}
+                    try { if (window.AGJournal) window.AGJournal.commit({ op: 'restore', id: rec.point.id, after: rec.point, origin: (rec.point.prov && rec.point.prov.origin) || null }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kos:restorePoint'); }
                 }
                 toast('Bod #' + rec.point.name + ' obnoven' + (projExists ? '' : ' (do aktuální zakázky — původní už neexistuje)') + '.');
             } catch (e) { toast('Obnova bodu se nezdařila.'); }
@@ -130,7 +130,7 @@
                         var lcur = []; try { lcur = JSON.parse(localStorage.getItem(lk)) || []; } catch (e) { lcur = []; }
                         rec.lines.forEach(function (l) { if (!lcur.some(function (x) { return x.id === l.id; })) lcur.push(l); });
                         localStorage.setItem(lk, JSON.stringify(lcur));
-                    } catch (e) {}
+                    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kos:restorePoint'); }
                 }
                 toast('Bod #' + rec.point.name + ' obnoven do zakázky.');
                 done();
@@ -144,8 +144,8 @@
             projects.push({ id: rec.projectId, name: rec.name });
             localStorage.setItem('arProjectsList', JSON.stringify(projects));
             if (rec.custom != null) rawSetCustom(rec.projectId, rec.custom);
-            if (rec.lines != null) { try { localStorage.setItem(rec.projectId + '_arLines12', rec.lines); } catch (e) {} }
-            Object.keys(rec.ls || {}).forEach(function (k) { try { localStorage.setItem(rec.projectId + '_' + k, rec.ls[k]); } catch (e) {} });
+            if (rec.lines != null) { try { localStorage.setItem(rec.projectId + '_arLines12', rec.lines); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kos:restoreProject'); } }
+            Object.keys(rec.ls || {}).forEach(function (k) { try { localStorage.setItem(rec.projectId + '_' + k, rec.ls[k]); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kos:restoreProject'); } });
             if (typeof renderProjectSelect === 'function') renderProjectSelect();
             toast('Zakázka „' + rec.name + '" obnovena (stažené úřední body si stáhni znovu).');
         } catch (e) { toast('Obnova zakázky se nezdařila.'); }
