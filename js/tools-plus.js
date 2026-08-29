@@ -50,6 +50,11 @@
             '  background:transparent;color:var(--text-muted,#9aa1ac);font-size:calc(12.5px * var(--ag-font-scale, 1));font-weight:600;cursor:pointer;}',
             'body.ag-tp-edit #ag-tp-editbtn{background:var(--accent-soft,rgba(47,158,116,0.15));color:var(--accent,#2f9e74);border-color:var(--accent-line,rgba(47,158,116,0.4));}',
             '#ag-fav-head{color:#fbbf24 !important;}',
+            // Proužek u dlaždic, které sahají na body zakázky. Tenká linka u SPODNÍ
+            // hrany — horní rohy jsou obsazené („?" vpravo, hvězdička vlevo).
+            '#tools-modal .tool-tile.ag-tp-w::after{content:"";position:absolute;left:22%;right:22%;bottom:0;height:3px;',
+            '  border-radius:3px 3px 0 0;background:var(--accent,#2f9e74);opacity:0.85;pointer-events:none;}',
+            'body.outdoor-mode #tools-modal .tool-tile.ag-tp-w::after{opacity:1;height:4px;}',
             // modál nápovědy
             '#ag-tp-hm{position:fixed;inset:0;z-index:1000060;display:none;align-items:center;justify-content:center;background:rgba(4,8,12,0.6);}',
             '#ag-tp-hm.open{display:flex;}',
@@ -181,6 +186,20 @@
                 var key = tileKey(tile);
                 var star = tile.querySelector('.ag-tp-star');
                 if (star) star.classList.toggle('on', key != null && favs.indexOf(key) !== -1);
+
+                // PROUŽEK U DLAŽDIC, KTERÉ SAHAJÍ NA BODY. V mřížce se všech 80
+                // nástrojů tváří stejně, přitom část z nich jen ukazuje (počasí,
+                // předpisy, kompas) a část přidá, posune nebo smaže bod. V terénu
+                // se dlaždice otevírají i omylem a z názvu to není poznat.
+                // Značí se ZÁMĚRNĚ jen ten úzký okruh (příznak `w` v registru) —
+                // kdyby proužek měla většina dlaždic, nic by neříkal.
+                if (key != null && window.AGReg && typeof AGReg.isWrite === 'function') {
+                    var w = AGReg.isWrite(key);
+                    tile.classList.toggle('ag-tp-w', w);
+                    // Popisek jen doplňuje; barvu samotnou nesmí nést informace
+                    // (venkovní režim, barvoslepost) — proto i title.
+                    if (w && !tile.getAttribute('title')) tile.setAttribute('title', 'Ukládá nebo mění body zakázky');
+                }
             })(tiles[i]);
         }
     }

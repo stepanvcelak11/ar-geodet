@@ -36,6 +36,15 @@
 //   help  { t: titulek } — že nástroj MÁ návod; samotný text je v data/navody.json
 //         pod týmž klíčem `k` (viz „KDE JSOU TĚLA NÁVODŮ" níž)
 //   net   1 = bez signálu neudělá nic (offline-sbal.js dlaždici odsune dolů)
+//   w     1 = UKLÁDÁ NEBO MĚNÍ SOUŘADNICE BODŮ. Dlaždice pak dostane v mřížce
+//         proužek (js/tools-plus.js), aby bylo předem vidět, co sáhne na data
+//         zakázky a co jen ukazuje. Význam je ZÁMĚRNĚ ÚZKÝ — ne „nástroj si
+//         něco uloží" (to dělá skoro každý: nastavení, poslední volby, protokol),
+//         ale „přibude, posune se nebo zmizí BOD". Kdyby se to rozšířilo na
+//         cokoli zapisujícího, měla by proužek většina dlaždic a značka by
+//         přestala něco znamenat.
+//         Poznávací znamení v kódu modulu: volá addImportedPoints() nebo
+//         saveCustomPoint(), případně přímo přepisuje persistentCustomPoints.
 //   base  1 = patří do základní sady jednoduchého režimu
 //   hub   1 = dlaždici vyrábí jako rozcestník js/tools-hub.js (jen pro kontrolora)
 //   notile 1 = není dlaždice v Nástrojích, návod se otevírá odjinud (jen pro kontrolora)
@@ -102,27 +111,27 @@
           help: { t: 'Výška objektu' } },
         { k: 'korekce', verb: 'Změřit', vl: 'S korekcí na teplotu a tlak', vh: 'pásmo, dálkoměr', keys: 'korekce ppm pasmo teplota tlak vlhkost refrakce zakriveni edm dalkomer atmosfericka oprava pruves',
           help: { t: 'Korekce měření' } },
-        { k: 'obchuzka', verb: 'Změřit', vl: 'Kubaturu obejitím výkopu', vh: 'obvod z GNSS + dno, objem hned na místě', keys: 'obchuzka vykop kubatura objem obejiti obvod dno jama',
+        { k: 'obchuzka', w: 1, verb: 'Změřit', vl: 'Kubaturu obejitím výkopu', vh: 'obvod z GNSS + dno, objem hned na místě', keys: 'obchuzka vykop kubatura objem obejiti obvod dno jama',
           help: { t: 'Obchůzka výkopu' } },
 
         // ── Určit nový bod ──────────────────────────────────────────────
-        { k: 'brutal-gps', cat: 'Měření', verb: 'Určit nový bod', vl: 'Přesnou GPS', vh: 'dlouhé průměrování s otočením', keys: 'presne gps mereni prumer prumerovani brutalni poloha bod', base: 1,
+        { k: 'brutal-gps', w: 1, cat: 'Měření', verb: 'Určit nový bod', vl: 'Přesnou GPS', vh: 'dlouhé průměrování s otočením', keys: 'presne gps mereni prumer prumerovani brutalni poloha bod', base: 1,
           help: { t: 'Přesná GPS (dlouhé průměrování)' } },
-        { k: 'rajon', verb: 'Určit nový bod', vl: 'Rajónem', vh: 'směr a délka ze stanoviska', keys: 'rajon polarni metoda uhel delka stanovisko novy bod',
+        { k: 'rajon', w: 1, verb: 'Určit nový bod', vl: 'Rajónem', vh: 'směr a délka ze stanoviska', keys: 'rajon polarni metoda uhel delka stanovisko novy bod',
           help: { t: 'Rajón (směr + délka)' } },
-        { k: 'offset-point', cat: 'Vytyčování a náčrt', verb: 'Určit nový bod', vl: 'Offsetem', vh: 'odsazení od jiného bodu', keys: 'odsazeny bod offset kolmice stanoveni vypocet',
+        { k: 'offset-point', w: 1, cat: 'Vytyčování a náčrt', verb: 'Určit nový bod', vl: 'Offsetem', vh: 'odsazení od jiného bodu', keys: 'odsazeny bod offset kolmice stanoveni vypocet',
           help: { t: 'Offset bod' } },
-        { k: 'ar-intersection', cat: 'Měření', verb: 'Určit nový bod', vl: 'Protínáním vpřed', vh: 'jen úhly, délku měřit nemůžu', keys: 'protinani vpred uhly neznamy bod urceni',
+        { k: 'ar-intersection', w: 1, cat: 'Měření', verb: 'Určit nový bod', vl: 'Protínáním vpřed', vh: 'jen úhly, délku měřit nemůžu', keys: 'protinani vpred uhly neznamy bod urceni',
           help: { t: 'Protínání vpřed' } },
-        { k: 'pdr-offset', cat: 'Měření', verb: 'Určit nový bod', vl: 'Krokovým offsetem', vh: 'došlápnutý vektor', keys: 'kroky krokovy offset vektor chuze pdr roh budovy dead reckoning',
+        { k: 'pdr-offset', w: 1, cat: 'Měření', verb: 'Určit nový bod', vl: 'Krokovým offsetem', vh: 'došlápnutý vektor', keys: 'kroky krokovy offset vektor chuze pdr roh budovy dead reckoning',
           help: { t: 'Krokový offset' } },
-        { k: 'ar-resection', cat: 'AR a kalibrace', verb: 'Určit nový bod', vl: 'Resekcí ze známých bodů', vh: 'určí i sever', keys: 'resekce protinani zpet stanovisko volne zname body',
+        { k: 'ar-resection', w: 1, cat: 'AR a kalibrace', verb: 'Určit nový bod', vl: 'Resekcí ze známých bodů', vh: 'určí i sever', keys: 'resekce protinani zpet stanovisko volne zname body',
           help: { t: 'Resekce ze známých bodů' } },
         { k: 'free-station', verb: 'Určit nový bod', vl: 'Volným stanoviskem', vh: 'průvodce krok za krokem', keys: 'volne stanovisko pruvodce resekce prechodne',
           help: { t: 'Volné stanovisko (průvodce)' } },
-        { k: 'dgps', cat: 'Měření', verb: 'Určit nový bod', vl: 'Dvoutelefonní DGPS', vh: 'základna a rover', keys: 'dgps diferencni korekce zakladna rover druhy telefon presnost oprava bodu',
+        { k: 'dgps', w: 1, cat: 'Měření', verb: 'Určit nový bod', vl: 'Dvoutelefonní DGPS', vh: 'základna a rover', keys: 'dgps diferencni korekce zakladna rover druhy telefon presnost oprava bodu',
           help: { t: 'Dvoutelefonní DGPS' } },
-        { k: 'hlas-kod', verb: 'Určit nový bod', vl: 'Hlasem — nadiktovat číslo a kód', vh: 'bez ťukání v rukavicích', keys: 'hlas hlasem kod bod diktovat rukavice mluvit cislo poznamka',
+        { k: 'hlas-kod', w: 1, verb: 'Určit nový bod', vl: 'Hlasem — nadiktovat číslo a kód', vh: 'bez ťukání v rukavicích', keys: 'hlas hlasem kod bod diktovat rukavice mluvit cislo poznamka',
           help: { t: 'Hlasové kódování bodu' } },
 
         // ── Vytyčit ─────────────────────────────────────────────────────
@@ -130,7 +139,7 @@
           help: { t: 'Vytyčovací checklist' } },
         { k: 'protokol-vytyceni', verb: 'Vytyčit', vl: 'Protokol vytyčení', vh: 'odchylky projekt → skutečnost, tisk a CSV', keys: 'protokol vytyceni odchylka odchylky mezni skutecnost projekt doklad papir tisk pdf kolik jsem se netrefil',
           help: { t: 'Protokol vytyčení' } },
-        { k: 'stakeout-line', cat: 'Vytyčování a náčrt', verb: 'Vytyčit', vl: 'Přímku', keys: 'vytyceni primky linie rovina stanoveni smeru',
+        { k: 'stakeout-line', w: 1, cat: 'Vytyčování a náčrt', verb: 'Vytyčit', vl: 'Přímku', keys: 'vytyceni primky linie rovina stanoveni smeru',
           help: { t: 'Vytyčení přímky' } },
         { k: 'vrstvy', cat: 'Vytyčování a náčrt', verb: 'Vytyčit', vl: 'Vrstvu pokládky', vh: 'výška a sklon za finišerem', keys: 'vrstvy pokladka skladba silnice asfalt sklon rez finisher tablet',
           help: { t: 'Vrstvy / pokládka' } },
@@ -152,13 +161,13 @@
           help: { t: 'Stopa trasy' } },
         { k: 'geo-foto', verb: 'Zaznamenat', vl: 'Fotku s razítkem', vh: 'S-JTSK, výška, čas a azimut ve fotce', keys: 'fotka foto razitko georazitko snimek dokumentace souradnice',
           help: { t: 'Geo-fotka' } },
-        { k: 'epochy', cat: 'Měření', verb: 'Zaznamenat', vl: 'Epochy — posuny v čase', vh: 'opakované měření bodu', keys: 'epochy monitoring posuny deformace sledovani opakovane',
+        { k: 'epochy', w: 1, cat: 'Měření', verb: 'Zaznamenat', vl: 'Epochy — posuny v čase', vh: 'opakované měření bodu', keys: 'epochy monitoring posuny deformace sledovani opakovane',
           help: { t: 'Epochy / monitoring' } },
         { k: 'kvalita-bodu', verb: 'Zaznamenat', vl: 'Protokol kvality', vh: 'čím byl bod změřen a jak dobře', keys: 'kvalita protokol presnost sigma smerodatna odchylka epochy doklad rozptyl mereni doložit',
           help: { t: 'Protokol kvality' } },
         { k: 'overeni-bodu', verb: 'Zaznamenat', vl: 'Ověření bodů', vh: 'které body mají druhé nezávislé určení', keys: 'overeni overeny bod kontrola druhe urceni kontrolni mereni odchylka mez mezni kod kvality dvakrat prekontrolovat',
           help: { t: 'Ověření bodů' } },
-        { k: 'kos', verb: 'Zaznamenat', vl: 'Obnovit smazaný bod', vh: 'koš — body i zakázky, 30 dní', keys: 'kos smazane body obnovit odpadky obnova vratit zpet zakazky',
+        { k: 'kos', w: 1, verb: 'Zaznamenat', vl: 'Obnovit smazaný bod', vh: 'koš — body i zakázky, 30 dní', keys: 'kos smazane body obnovit odpadky obnova vratit zpet zakazky',
           help: { t: 'Koš — obnovení smazaného' } },
 
         // ── Srovnat AR ──────────────────────────────────────────────────
@@ -174,7 +183,7 @@
           help: { t: 'Srovnat sever podle bodu' } },
         { k: 'localization-helmert', verb: 'Srovnat AR', vl: 'Lokalizace (Helmert)', vh: 'místní systém', keys: 'helmert lokalizace transformace klic mistni system',
           help: { t: 'Lokalizace (Helmert)' } },
-        { k: 'ref-calibration', verb: 'Srovnat AR', vl: 'Opravit posun GPS podle bodu', vh: 'opravuje POLOHU, ne sever', keys: 'kalibrace referencni bod srovnani ar posun usazeni znamy bod',
+        { k: 'ref-calibration', w: 1, verb: 'Srovnat AR', vl: 'Opravit posun GPS podle bodu', vh: 'opravuje POLOHU, ne sever', keys: 'kalibrace referencni bod srovnani ar posun usazeni znamy bod',
           help: { t: 'Posun GPS na známý bod' } },
         { k: 'fov-kalib', verb: 'Srovnat AR', vl: 'Změřit zorný úhel kamery', keys: 'zorny uhel kamery fov kalibrace ohnisko sirka zaberu ar presnost',
           help: { t: 'Zorný úhel kamery (FOV)' } },
@@ -200,21 +209,21 @@
         // ── Katastr a podklady ──────────────────────────────────────────
         { k: 'openKatastr', verb: 'Katastr a podklady', vl: 'Katastr — kde právě stojím', keys: 'katastr parcela kn nahlizeni kde stojim mapa cuzk', net: 1, base: 1,
           help: { t: 'Katastr (zde stojím)' } },
-        { k: 'cadastre-vector', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Parcely do mapy a do AR', keys: 'katastr vektor hranice parcely dxf import mapa kn', net: 1,
+        { k: 'cadastre-vector', w: 1, cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Parcely do mapy a do AR', keys: 'katastr vektor hranice parcely dxf import mapa kn', net: 1,
           help: { t: 'Katastr — parcely' } },
-        { k: 'cadastre-area', verb: 'Katastr a podklady', vl: 'Stáhnout body z výřezu mapy', keys: 'stahnout body vyrez oblast okoli bodove pole import mapa', net: 1,
+        { k: 'cadastre-area', w: 1, verb: 'Katastr a podklady', vl: 'Stáhnout body z výřezu mapy', keys: 'stahnout body vyrez oblast okoli bodove pole import mapa', net: 1,
           help: { t: 'Stáhnout body z výřezu mapy' } },
-        { k: 'parcela', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Parcela — geometrie a dělení', keys: 'parcela geometrie deleni vymera obvod smerniky dily',
+        { k: 'parcela', w: 1, cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Parcela — geometrie a dělení', keys: 'parcela geometrie deleni vymera obvod smerniky dily',
           help: { t: 'Parcela / dělení' } },
         { k: 'hodinky-parovani', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Hodinky Garmin', vh: 'body z hodinek a zpátky', keys: 'hodinky garmin forerunner fenix watch parovani synchronizace body zapesti connect iq', net: 1,
           help: { t: 'Hodinky Garmin' } },
-        { k: 'project-import', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Import projektu', vh: 'DXF, situace', keys: 'import projekt oblast stazeni csv dxf soubor nahrat', base: 1,
+        { k: 'project-import', w: 1, cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Import projektu', vh: 'DXF, situace', keys: 'import projekt oblast stazeni csv dxf soubor nahrat', base: 1,
           help: { t: 'Import projektu (DXF)' } },
         { k: 'geo-overlay', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Podložit plán do mapy', vh: 'georeference obrázku', keys: 'podklad georeference obrazek plan situace vykres overlay',
           help: { t: 'Vlastní podklad' } },
         { k: 'utility-networks', verb: 'Katastr a podklady', vl: 'Podzemní sítě', keys: 'site podzemni vedeni inzenyrske gml kabel plyn voda',
           help: { t: 'Podzemní sítě' } },
-        { k: 'job-transfer', verb: 'Katastr a podklady', vl: 'Poslat nebo načíst zakázku', keys: 'prenos zakazky export import argeo sdileni telefon', net: 1,
+        { k: 'job-transfer', w: 1, verb: 'Katastr a podklady', vl: 'Poslat nebo načíst zakázku', keys: 'prenos zakazky export import argeo sdileni telefon', net: 1,
           help: { t: 'Poslat/načíst zakázku' } },
         { k: 'hidden-points', verb: 'Katastr a podklady', vl: 'Skryté body', keys: 'skryte body obnovit zobrazit schovane',
           help: { t: 'Skryté body' } },
@@ -230,7 +239,7 @@
           help: { t: 'Kde co mám' } },
 
         // ── Firma a papíry ──────────────────────────────────────────────
-        { k: 'zmenit-zakazku', cat: 'Pomůcky', verb: 'Firma a papíry', vl: 'Změnit zakázku', vh: 'přepnout se na jinou práci bez restartu', keys: 'zakazka zakazky prepnout zmenit projekt praca stavba jina zakazka prepnuti vybrat zakazku zmena zakazky',
+        { k: 'zmenit-zakazku', w: 1, cat: 'Pomůcky', verb: 'Firma a papíry', vl: 'Změnit zakázku', vh: 'přepnout se na jinou práci bez restartu', keys: 'zakazka zakazky prepnout zmenit projekt praca stavba jina zakazka prepnuti vybrat zakazku zmena zakazky',
           help: { t: 'Změnit zakázku' } },
         { k: 'dochazka', verb: 'Firma a papíry', vl: 'Docházka', keys: 'dochazka prichod odchod pracovni doba hodiny smena',
           help: { t: 'Docházka' } },
@@ -260,7 +269,7 @@
           help: { t: 'Poloha z mapy' } },
         { k: 'auto-bezpeci', keys: 'auto bezpeci kde mam auto baze stativ material kniha jizd cestak kilometry bourka vedro mraz vitr tma sos rizika co s sebou balici seznam checklist rozcestnik', hub: 1,
           help: { t: 'Auto a bezpečí' } },
-        { k: 'bod-vypoctem', keys: 'bod vypoctem novy vypocet rajon offset protinani smernik delka uhel konstrukce rozcestnik', hub: 1,
+        { k: 'bod-vypoctem', w: 1, keys: 'bod vypoctem novy vypocet rajon offset protinani smernik delka uhel konstrukce rozcestnik', hub: 1,
           help: { t: 'Bod výpočtem' } },
         { k: 'err-log', keys: 'protokol chyb log chyba diagnostika hlaseni', noverb: 1,
           help: { t: 'Protokol chyb' } },
@@ -364,6 +373,8 @@
         aliases: function (k) { var r = get(k); return (r && r.keys) || ''; },
         cat: function (k) { var r = get(k); return (r && r.cat) || ''; },
         isNet: function (k) { var r = get(k); return !!(r && r.net); },
+        // ukládá / mění souřadnice bodů (viz `w` v popisu polí nahoře)
+        isWrite: function (k) { var r = get(k); return !!(r && r.w); },
         baseSet: function () {
             var out = [];
             for (var j = 0; j < T.length; j++) { if (T[j].base) out.push(T[j].k); }
