@@ -379,11 +379,15 @@ body {
     flex-direction: column;
     align-items: center;
     pointer-events: none;
-    opacity: var(--arrow-opacity);
-    transition: opacity 0.3s ease;
 }
 
+/* ⚠ OPRAVA 29. 8. 2026: opacity sedela na #ar-hud, tedy na sipce I na stitku.
+   Jezdec „Pruhlednost sipky" (Nastaveni -> AR) tak potichu zprusvitnoval i jmeno
+   bodu a vzdalenost — udaje, kvuli kterym clovek na displej kouka. Ted se tyka
+   jen sipky. NEVRACET zpet na #ar-hud. */
 #ar-hud-arrow-container {
+    opacity: var(--arrow-opacity);
+    transition: opacity 0.3s ease;
     margin-bottom: -10px;
     transform: perspective(800px) rotateX(65deg);
     transform-origin: bottom center;
@@ -2288,6 +2292,20 @@ body.cam-live:not(.ag-cam-glass) #ar-hud-info {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
 }
+/* ⚠⚠ OPRAVA 29. 8. 2026 — „vzdalenost je zvlastne zbarvena a neni moc citelna".
+   PRICINA: `body.cam-light #ar-hud-info` (viz vys) da textu #0f172a, ale pravidlo
+   PRIMO NAD TIMTO ma vyssi specificitu (dve tridy proti jedne) a vrati pozadi na
+   #080b0f — barvu textu uz nesahne. `.ag-cam-glass` se navic pridava jen kdyz je
+   zapnute „Sklo nad kamerou", a to je VE VYCHOZIM STAVU VYPNUTE (js/power-save.js).
+   Vysledek: jakmile kamera uvidela svetlou scenu (tedy venku prakticky vzdycky),
+   svitil tmavy text na skoro cerne desce = kontrast 1,05 : 1.
+   RESENI: tri tridy, takze na svetle scene vyhraje pozadi i barva zaroven.
+   ⚠ Kdyby se sem pridavalo dalsi pravidlo pro `.cam-live`, MUSI resit obe. */
+body.cam-live.cam-light:not(.ag-cam-glass) #ar-hud-info {
+    background: rgba(248, 250, 252, 0.94);
+    color: #0f172a;
+}
+body.cam-live.cam-light:not(.ag-cam-glass) #ar-hud-info .hud-name { color: #1e293b; }
 
 /* Zavřené modály nesmí žrát výkon (4 fullscreen vrstvy stále v DOM) — vypnout blur. */
 #settings-modal:not(.ag-open), #manage-modal:not(.ag-open), #tools-modal:not(.ag-open), #custom-modal-overlay:not(.ag-open),

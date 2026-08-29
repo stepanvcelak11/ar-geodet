@@ -71,6 +71,7 @@ const ASSETS_TO_CACHE = [
     './js/lib/satellite-5.0.0.min.js',
     './js/vytycovani.js',
     './js/cil-navigace.js',
+    './js/pas-blizkosti.js',
     './js/satelity.js',
     './js/kalkulacka.js',
     './js/export.js',
