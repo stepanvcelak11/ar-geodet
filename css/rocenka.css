@@ -1,0 +1,194 @@
+/* ===== AR Geodet — ROČENKA (k js/rocenka.js a js/odznaky.js) =================
+   ⚠ NENÍ v <link> v index.html — připojuje si ho modul přes AG.cssFile(), aby
+   se nepočítal do rozpočtu startu (scripts/check_start_budget.py). Proto MUSÍ
+   být v EXTRA_ASSETS v scripts/gen_sw_assets.py, jinak offline zmizí styly.
+
+   Barvy jen z css/tokens.css → světlý režim funguje bez další práce.
+   POZOR: token --text NEEXISTUJE, správně je --text-color / --text-muted.
+   ============================================================================ */
+
+.agroc-box { max-width: 760px; }
+
+.agroc-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin: 4px 0 14px;
+}
+.agroc-rok-t {
+    font-size: calc(30px * var(--ag-font-scale, 1));
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: var(--text-color, #eceef2);
+    font-variant-numeric: tabular-nums;
+}
+/* ⚠ .btn má v appce width:100% — proto tu ZÁMĚRNĚ není .btn, jinak by šipky
+   roztlačily řádek a rok by spadl na vlastní řádek po jednom slově. */
+.agroc-rok {
+    width: 40px; height: 40px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.14));
+    background: var(--glass-bg, rgba(255, 255, 255, 0.05));
+    color: var(--text-color, #eceef2);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+.agroc-rok:active { background: var(--accent-soft, rgba(47, 158, 116, 0.18)); }
+
+/* velká čísla — 2 sloupce, na úzkém telefonu pořád čitelná */
+.agroc-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.agroc-big {
+    background: var(--glass-bg, rgba(255, 255, 255, 0.05));
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+    border-radius: 14px;
+    padding: 14px 12px;
+    text-align: center;
+    min-width: 0;   /* bez toho by dlouhé číslo roztáhlo mřížku a rozbilo sloupce */
+}
+.agroc-n {
+    font-size: calc(30px * var(--ag-font-scale, 1));
+    font-weight: 800;
+    color: var(--accent-bright, #3eb487);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+}
+.agroc-n span {
+    font-size: calc(15px * var(--ag-font-scale, 1));
+    font-weight: 700;
+    margin-left: 3px;
+    color: var(--text-muted, #9aa1ac);
+}
+.agroc-l {
+    margin-top: 4px;
+    font-size: calc(13px * var(--ag-font-scale, 1));
+    color: var(--text-color, #eceef2);
+}
+.agroc-s {
+    margin-top: 2px;
+    font-size: calc(11.5px * var(--ag-font-scale, 1));
+    color: var(--text-faint, #6b727d);
+}
+
+.agroc-podgrid {
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+.agroc-radek {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 13px;
+    font-size: calc(13.5px * var(--ag-font-scale, 1));
+    border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.07));
+}
+.agroc-radek:last-child { border-bottom: 0; }
+.agroc-radek span { color: var(--text-muted, #9aa1ac); }
+.agroc-radek b { color: var(--text-color, #eceef2); text-align: right; }
+
+.agroc-h3 {
+    margin: 18px 0 8px;
+    font-size: calc(15px * var(--ag-font-scale, 1));
+    color: var(--text-color, #eceef2);
+}
+
+.agroc-mapa {
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+    border-radius: 14px;
+    background: var(--glass-bg, rgba(255, 255, 255, 0.04));
+    overflow: hidden;
+}
+.agroc-mapa canvas { display: block; width: 100%; height: auto; }
+.agroc-mapa-pod {
+    margin-top: 6px;
+    font-size: calc(12px * var(--ag-font-scale, 1));
+    color: var(--text-faint, #6b727d);
+    line-height: 1.5;
+}
+
+/* měsíční proužek */
+.agroc-mes {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 110px;
+    padding: 6px 2px 0;
+}
+.agroc-mes-i {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+}
+.agroc-mes-b {
+    width: 100%;
+    border-radius: 5px 5px 0 0;
+    background: var(--accent-fill, #21815b);
+    min-height: 2px;
+}
+.agroc-mes-i.prazdny .agroc-mes-b { background: var(--glass-border, rgba(255, 255, 255, 0.12)); }
+.agroc-mes-l {
+    margin-top: 4px;
+    font-size: calc(10px * var(--ag-font-scale, 1));
+    color: var(--text-faint, #6b727d);
+    white-space: nowrap;
+}
+
+.agroc-note {
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
+    border-radius: 12px;
+    padding: 11px 13px;
+    background: var(--glass-bg, rgba(255, 255, 255, 0.04));
+    color: var(--text-muted, #9aa1ac);
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
+    line-height: 1.55;
+    margin-bottom: 14px;
+}
+
+/* odznaky (js/odznaky.js) */
+.agodz { display: flex; flex-direction: column; gap: 8px; }
+.agodz-i {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    padding: 11px 13px;
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+    border-radius: 13px;
+    background: var(--glass-bg, rgba(255, 255, 255, 0.04));
+}
+.agodz-z { font-size: 24px; line-height: 1.1; flex: 0 0 auto; }
+.agodz-t { min-width: 0; }
+.agodz-n {
+    font-weight: 700;
+    color: var(--text-color, #eceef2);
+    font-size: calc(13.5px * var(--ag-font-scale, 1));
+}
+.agodz-n span {
+    font-weight: 600;
+    color: var(--accent-bright, #3eb487);
+    margin-left: 6px;
+}
+.agodz-p {
+    margin-top: 2px;
+    color: var(--text-muted, #9aa1ac);
+    font-size: calc(12px * var(--ag-font-scale, 1));
+    line-height: 1.5;
+}
+
+@media (max-width: 420px) {
+    .agroc-n { font-size: calc(25px * var(--ag-font-scale, 1)); }
+    .agroc-mes { height: 88px; }
+}
