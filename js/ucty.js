@@ -468,7 +468,13 @@
         var f = getFirm(); if (!f) return done('Firemní režim není nastaven.');
         cloudFetch('/login', { method: 'POST', body: { code: f.code, name: name, password: pass } }).then(function (r) {
             if (r.ok && r.data && r.data.token) { adoptLogin(r.data, f.api, pass); return done(null, r.data.user); }
-            if (r.status !== 0) return done((r.data && r.data.error) || ('Přihlášení selhalo (' + r.status + ').'));
+            if (r.status !== 0) {
+                // třetí parametr = soft: takový pokus se do brzdy v telefonu NEpočítá.
+                // 429 („moc pokusů") zvlášť — počítat ho jako uhádnutí hesla znamenalo,
+                // že se serverová a telefonní brzda navzájem krmily až do zaseknutí.
+                return done((r.data && r.data.error) || ('Přihlášení selhalo (' + r.status + ').'),
+                    null, !spatneHeslo(r.status));
+            }
             // offline: ověř proti lokálnímu ověřovadlu
             var u = null, i;
             for (i = 0; i < (f.users || []).length; i++) {
@@ -1381,14 +1387,39 @@
     var FAIL_FREE = 5;              // kolik pokusů projde bez čekání
     var FAIL_BASE = 60000;          // 1. zámek = 1 minuta
     var FAIL_MAX = 900000;          // strop 15 minut
+    var FAIL_FORGET = 1800000;      // 30 min klidu = počitadlo se zapomene
+
+    // ⚠ POČITADLO SE MUSÍ ZAPOMÍNAT. Dřív jen rostlo a maz(al) ho VÝHRADNĚ úspěšný
+    // přihlášení. Jenže než se dostaneš k úspěchu, musíš se přihlásit — takže kdo se
+    // jednou dostal přes 9 chyb, dostával od té chvíle 15minutový zámek po KAŽDÉM
+    // dalším nezdaru, napořád. Ve spojení s tím, že se jako „nezdar" počítala i
+    // odpověď serveru „příliš mnoho pokusů" (viz spatneHeslo níž), z toho byla past:
+    // uživatel psal správné heslo a appka ho odmítla dřív, než se vůbec zeptala
+    // serveru. Brzda proti hádání hesla má být OKNO, ne doživotní trest.
     function failGet() {
         try {
             var o = JSON.parse(localStorage.getItem(LS_FAIL) || 'null');
-            if (o && typeof o.n === 'number') return { n: o.n, until: o.until || 0 };
+            if (o && typeof o.n === 'number') {
+                // Záznam bez `ts` je z verze před touto opravou — nemáme, podle čeho
+                // soudit stáří, a je to nejspíš právě ten zaseklý. Zahazuje se.
+                if (!o.ts || (Date.now() - o.ts) > FAIL_FORGET) { failClear(); return { n: 0, until: 0, ts: 0 }; }
+                return { n: o.n, until: o.until || 0, ts: o.ts };
+            }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:failGet'); }
-        return { n: 0, until: 0 };
+        return { n: 0, until: 0, ts: 0 };
     }
-    function failSet(o) { try { localStorage.setItem(LS_FAIL, JSON.stringify(o)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:failSet'); } }
+    function failSet(o) {
+        o.ts = Date.now();
+        try { localStorage.setItem(LS_FAIL, JSON.stringify(o)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:failSet'); }
+    }
+
+    // ⚠ Jen 401 je „nesprávné jméno nebo heslo". Server vrací i:
+    //   429 = brzda na serveru (že se moc zkoušelo, ne že je heslo špatně),
+    //   403 = účet zablokovaný adminem, 400 = vadný dotaz, 5xx = chyba serveru.
+    // Počítat je jako uhádnutí hesla znamenalo, že serverová a telefonní brzda
+    // se navzájem krmily: jeden 429 přidal chybu i v telefonu, uživatel to zkusil
+    // znovu, přišel další 429… a zámky se sčítaly, dokud se nezaseklo obojí.
+    function spatneHeslo(status) { return status === 401; }
     function failClear() { try { localStorage.removeItem(LS_FAIL); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:failClear'); } }
     // zbývající zámek v ms (0 = smí se zkoušet)
     function lockLeft() {
@@ -2115,6 +2146,12 @@
                 if (r.status === 0) {
                     // server nedosažitelný není špatné heslo — pokus se nezapočítává
                     errEl.textContent = 'Server není dosažitelný — bez internetu se lze přihlásit jen k firmě, kterou toto zařízení už zná.';
+                    return;
+                }
+                if (!spatneHeslo(r.status)) {
+                    // brzda na serveru (429), zablokovaný účet (403) nebo chyba serveru —
+                    // nic z toho není uhádnuté heslo, takže se do brzdy v telefonu nepočítá
+                    errEl.textContent = (r.data && r.data.error) || ('Přihlášení selhalo (' + r.status + ').');
                     return;
                 }
                 var wait = failAdd();

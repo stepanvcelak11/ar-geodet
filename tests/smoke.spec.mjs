@@ -360,3 +360,109 @@ test('REGRESE: opakované otevření okna nehromadí posluchače', async ({ page
     expect(po - pred, `po 15 otevřeních a zavřeních přibylo ${po - pred} posluchačů — okno je neodhlašuje`).toBe(0);
     expect(errors, errors.join('\n')).toEqual([]);
 });
+
+// ================================================================================
+//  REGRESE: přihlášení se nesmí zaseknout napořád
+// ================================================================================
+// Nahlášeno z terénu 29. 8. 2026: „zadávám správné heslo a hned mě to vykopne, že
+// je moc pokusů." Byly to DVĚ vady, které se navzájem krmily:
+//   1) klient počítal jako „špatné heslo" KAŽDOU odpověď serveru, tedy i 429
+//      („moc pokusů") — jeden zámek na serveru tak přidával chyby i v telefonu,
+//   2) počitadlo v localStorage se NIKDY nesnižovalo a mazal ho jen ÚSPĚŠNÝ
+//      přihlášení. Kdo se dostal přes 9 chyb, dostával od té chvíle 15minutový
+//      zámek po každém dalším nezdaru — a k úspěchu se nemohl dostat, protože
+//      appka odmítla i správné heslo dřív, než se zeptala serveru.
+const FIRMA_TEST = {
+    enabled: true, cloud: true, api: 'https://api.test.invalid',
+    code: 'TESTFIRMA', name: 'Testovaci',
+    users: [{ id: 'u1', name: 'Stepan', role: 'vedeni' }],
+};
+
+async function bootLogin(page, context, failZaznam, odpoved) {
+    await page.addInitScript(([f, z]) => {
+        try {
+            localStorage.setItem('agFirma_v1', JSON.stringify(f));
+            localStorage.setItem('agTutProSeen', '1');
+            localStorage.setItem('agBrifinkAuto', '0');
+            if (z === null) localStorage.removeItem('agLoginFail_v1');
+            else localStorage.setItem('agLoginFail_v1', JSON.stringify(z));
+        } catch (e) { }
+    }, [FIRMA_TEST, failZaznam]);
+
+    let dotazu = 0;
+    if (odpoved) {
+        await context.route(/^https:\/\/api\.test\.invalid\/.*/, (route) => {
+            dotazu++;
+            route.fulfill({
+                status: odpoved.status, contentType: 'application/json',
+                headers: { 'Access-Control-Allow-Origin': '*' },
+                body: JSON.stringify({ error: odpoved.error }),
+            });
+        });
+    }
+    await page.goto('/index.html', { waitUntil: 'load' });
+    await expect(page.locator('#ag-login')).toBeAttached({ timeout: 20000 });
+    await page.waitForTimeout(1500);
+    return () => dotazu;
+}
+
+const stavPrihlaseni = (page) => page.evaluate(() => {
+    const btn = document.querySelector('#ag-login .agl-pinbox .agl-btn');
+    return {
+        tlacitko: (btn?.textContent || '').trim(),
+        zamceno: !!btn?.disabled,
+        pocitadlo: localStorage.getItem('agLoginFail_v1'),
+        hlaska: (document.querySelector('#ag-login .agl-err')?.textContent || '').trim(),
+    };
+});
+
+test('REGRESE: zaseklé počitadlo pokusů se odpustí (jinak se nedá přihlásit vůbec)', async ({ page, context }) => {
+    // přesně ten zaseknutý záznam z verze před opravou: velké n, zámek do budoucna,
+    // a hlavně BEZ `ts` — nemáme podle čeho soudit stáří, takže se musí zahodit
+    await bootLogin(page, context, { n: 12, until: Date.now() + 900000 });
+    const s = await stavPrihlaseni(page);
+    expect(s.zamceno, 'staré počitadlo drží uživatele zamčeného napořád').toBe(false);
+    expect(s.tlacitko).toBe('Přihlásit');
+    expect(s.pocitadlo).toBe(null);
+});
+
+test('REGRESE: čerstvý zámek platí dál (brzda proti hádání hesla nesmí zmizet)', async ({ page, context }) => {
+    await bootLogin(page, context, { n: 7, until: Date.now() + 300000, ts: Date.now() });
+    const s = await stavPrihlaseni(page);
+    expect(s.zamceno, 'brzda proti hádání hesla přestala fungovat').toBe(true);
+    expect(s.tlacitko).toBe('Zamčeno');
+    expect(s.hlaska).toContain('Příliš mnoho pokusů');
+});
+
+test('REGRESE: 429 ze serveru se NEpočítá jako špatné heslo, 401 ano', async ({ page, context }) => {
+    // 429 = brzda na serveru. Počítat ji jako uhádnutí hesla znamenalo, že se obě
+    // brzdy sčítaly, až se přihlášení zaseklo úplně.
+    const dotazu429 = await bootLogin(page, context, null,
+        { status: 429, error: 'Příliš mnoho pokusů. Zkus to za 15 minut.' });
+    await page.evaluate(() => {
+        for (let i = 0; i < 3; i++) {
+            document.querySelector('#ag-login .agl-user')?.click();
+            const p = document.querySelector('#ag-login input.agl-pin'); if (p) p.value = 'spravneheslo';
+            document.querySelector('#ag-login .agl-pinbox .agl-btn')?.click();
+        }
+    });
+    await page.waitForTimeout(2500);
+    expect(dotazu429(), 'dotazy vůbec nedošly na (podvržený) server').toBeGreaterThan(0);
+    const po429 = await stavPrihlaseni(page);
+    expect(po429.pocitadlo, 'brzda serveru přidala chybu i do telefonu — přesně to zaseklo přihlášení').toBe(null);
+});
+
+test('REGRESE: 401 (opravdu špatné heslo) se počítat MUSÍ', async ({ page, context }) => {
+    await bootLogin(page, context, null, { status: 401, error: 'Nesprávné jméno nebo heslo.' });
+    await page.evaluate(() => {
+        for (let i = 0; i < 3; i++) {
+            document.querySelector('#ag-login .agl-user')?.click();
+            const p = document.querySelector('#ag-login input.agl-pin'); if (p) p.value = 'spatneheslo';
+            document.querySelector('#ag-login .agl-pinbox .agl-btn')?.click();
+        }
+    });
+    await page.waitForTimeout(2500);
+    const s = await stavPrihlaseni(page);
+    expect(s.pocitadlo, 'špatné heslo se přestalo počítat — PIN by šlo uhádnout hrubou silou').not.toBe(null);
+    expect(JSON.parse(s.pocitadlo).n).toBeGreaterThan(0);
+});

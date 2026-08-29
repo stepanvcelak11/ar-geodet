@@ -2,6 +2,18 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 263,
+   "datum": "2026-08-29",
+   "nadpis": "Oprava: přihlášení se zasekávalo na „příliš mnoho pokusů“",
+   "body": [
+    "Opraveno: appka mohla odmítnout i <b>správné heslo</b> hláškou o mnoha pokusech, a to hned — bez toho, že by se vůbec zeptala serveru. Byly to dvě vady, které se navzájem krmily.",
+    "Za prvé: telefon si počítal jako <b>špatné heslo úplně každou</b> odpověď serveru. Tedy i tu, která říká „moc pokusů, počkej“. Jeden zámek na serveru tak přidával chyby i do telefonu a zámky se sčítaly.",
+    "Za druhé: počitadlo chyb v telefonu <b>nikdy neklesalo</b> a mazalo ho jen úspěšné přihlášení. Kdo se dostal přes devět chyb, dostával od té chvíle čtvrthodinový zámek po každém dalším nezdaru — a k úspěchu se nemohl dostat, protože appka odmítla i správné heslo. Byla to past bez východu.",
+    "Nově se počitadlo po <b>30 minutách klidu zapomene</b> a jako pokus o uhádnutí hesla se počítá jen skutečně odmítnuté heslo. Ochrana proti hádání PINu zůstává beze změny: pět pokusů zdarma, pak se čekání zdvojnásobuje až na 15 minut.",
+    "Kdo v té pasti uvízl, se po aktualizaci přihlásí rovnou — zaseknuté počitadlo se zahodí samo."
+   ]
+  },
+  {
    "v": 262,
    "datum": "2026-08-29",
    "nadpis": "Silueta přesnosti GPS, protokol kvality a rychlejší start",
