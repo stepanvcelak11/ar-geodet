@@ -1610,7 +1610,9 @@ if ('serviceWorker' in navigator) {
             if (r.z !== null) { const _z = document.getElementById('custom-z'); if (_z && !_z.value) _z.value = r.z.toFixed(2); }
             if (note) {
                 note.style.display = 'block';
-                note.innerHTML = 'Přečteno z fotky: ' + (r.name !== null ? 'bod <b>' + r.name + '</b> · ' : '')
+                // OCR cte text z FOTKY, tedy libovolny cizi retezec -> escapovat.
+                const _e = (window.AG && AG.esc) ? AG.esc : function (x) { return String(x == null ? '' : x).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+                note.innerHTML = 'Přečteno z fotky: ' + (r.name !== null ? 'bod <b>' + _e(r.name) + '</b> · ' : '')
                     + (r.y !== null ? 'Y <b>' + r.y.toFixed(2) + '</b>' : 'Y se nenašlo') + ' · '
                     + (r.x !== null ? 'X <b>' + r.x.toFixed(2) + '</b>' : 'X se nenašlo')
                     + (r.z !== null ? ' · Z <b>' + r.z.toFixed(2) + '</b>' : '')

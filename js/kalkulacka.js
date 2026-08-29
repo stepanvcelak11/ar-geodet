@@ -406,7 +406,7 @@ function calcPolygon() {
         let accD = 0;
         const fixed = pts.map((p, i) => { accD += p.d; return { y: p.y + oY * accD / sumD, x: p.x + oX * accD / sumD }; });
         _pgRes = mids.map((m, i) => ({ name: m.name, y: fixed[i].y, x: fixed[i].x }));
-        let rows = _pgRes.map(p => _row('<b>' + p.name + '</b>', 'Y ' + p.y.toFixed(2) + ' · X ' + p.x.toFixed(2))).join('');
+        let rows = _pgRes.map(p => _row('<b>' + _pdEsc(p.name) + '</b>', 'Y ' + p.y.toFixed(2) + ' · X ' + p.x.toFixed(2))).join('');
         const relTxt = op > 0.0005 ? '1 : ' + Math.round(sumD / op) : '—';
         const kontrola = _row('Kontrola dopočtu na koncový bod', 'ΔY ' + (oY * 100).toFixed(1) + ' cm · ΔX ' + (oX * 100).toFixed(1) + ' cm');
         document.getElementById('calc-result').innerHTML = _resBox(

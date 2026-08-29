@@ -132,6 +132,12 @@ async function auth(env, req) {
     return u;
 }
 
+// POZN. k odpovedim /firms a /login: uz NEOBSAHUJI polozku "offline".
+// Drive se v ni klientovi posilala sul + pass_hash z databaze, takze telefon
+// mel v localStorage presne tu hodnotu, kterou ma server ulozenou. Offline
+// overovadlo si od te doby dela klient sam z vlastni soli (js/ucty.js,
+// makeOffline). Starsi verze appky maji sve overovadlo ulozene z drivejska
+// a funguji dal - nova odpoved ho jen neprepise.
 // ---- rate-limit přes tabulku guard ----------------------------------------
 async function guardHit(env, key, maxN, lockMs) {
     const now = Date.now();
@@ -647,7 +653,6 @@ export default {
                 return json({
                     token: await makeToken(env, user),
                     user: { id: userId, name: user.name, role: 'admin' },
-                    offline: { salt: salt, iters: ITERS, hash: hash },
                     config: cfg
                 });
             }
@@ -656,8 +661,23 @@ export default {
             if (req.method === 'POST' && path === '/login') {
                 const b = await req.json().catch(() => null);
                 if (!b || !b.code || !b.name || b.password == null) return err(400, 'Chybí code / name / password.');
-                const gkey = 'login:' + String(b.code).toUpperCase() + ':' + String(b.name).toLowerCase();
+                // BRZDA PROTI HADANI HESLA — TRI klice, ne jeden.
+                // Drive existoval jen klic 'login:<firma>:<jmeno>' bez IP, takze kdo znal
+                // kod firmy a jmeno kolegy, ZAMKL MU UCET osmi pokusy na ctvrt hodiny -
+                // uprostred dne v terenu. Ted:
+                //   1) ucet+IP (8/15 min)  — utocnik zamkne jen SAM SEBE, ne kolegu
+                //   2) IP        (30/15 min) — jedna adresa nemuze strilet po vice uctech
+                //   3) ucet      (60/15 min) — posledni pojistka proti ROZPROSTRENEMU
+                //      utoku z mnoha adres; prah je tak vysoko, aby ho nesel zneuzit
+                //      k naschvalu, ale nizko na to, aby se nedal projit ctyrmistny PIN
+                const ip = req.headers.get('CF-Connecting-IP') || '0';
+                const acct = String(b.code).toUpperCase() + ':' + String(b.name).toLowerCase();
+                const gkey = 'login:' + acct + ':' + ip;
+                const gip = 'loginip:' + ip;
+                const gacct = 'login:' + acct;
                 if (!await guardHit(env, gkey, 8, 15 * 60e3)) return err(429, 'Příliš mnoho pokusů. Zkus to za 15 minut.');
+                if (!await guardHit(env, gip, 30, 15 * 60e3)) return err(429, 'Příliš mnoho pokusů z této sítě. Zkus to za 15 minut.');
+                if (!await guardHit(env, gacct, 60, 15 * 60e3)) return err(429, 'Účet je dočasně zamčený kvůli mnoha pokusům o přihlášení. Zkus to za 15 minut.');
                 const firm = await env.DB.prepare('SELECT id FROM firms WHERE code=?').bind(String(b.code).toUpperCase()).first();
                 if (!firm) return err(401, 'Firma s tímto kódem neexistuje.');
                 const u = await env.DB.prepare(
@@ -666,12 +686,14 @@ export default {
                 if (u.disabled) return err(403, 'Účet je zablokovaný. Obrať se na admina.');
                 const hash = await pbkdf2(String(b.password), u.salt, u.iters);
                 if (!timingSafeEq(hash, u.pass_hash)) return err(401, 'Nesprávné jméno nebo heslo.');
+                // uspesne prihlaseni maze vsechny tri citace
                 await guardClear(env, gkey);
+                await guardClear(env, gip);
+                await guardClear(env, gacct);
                 const cfg = await configPayload(env, firm.id);
                 return json({
                     token: await makeToken(env, u),
                     user: { id: u.id, name: u.name, role: u.role },
-                    offline: { salt: u.salt, iters: u.iters, hash: u.pass_hash },
                     config: cfg
                 });
             }

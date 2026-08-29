@@ -340,6 +340,35 @@
         } catch (e) { return Promise.resolve(null); }
     }
 
+    // OFFLINE OVEROVADLO SI DELA TELEFON SAM.
+    // Drive ho posilal server jako { salt, iters, hash: u.pass_hash } - v localStorage
+    // tak lezel PRESNE ten retezec, ktery ma server v databazi, a jeste na 40 000
+    // iteracich. Prihlasit se s nim na server nejde (server chce heslo a hashuje si ho
+    // sam), ale bylo to zbytecne provazani telefonu s databazi a levne k hadani.
+    // Ted si ho telefon pri online prihlaseni odvodi z VLASTNI nahodne soli a s vic
+    // iteracemi. Server uz ho tedy neposila vubec.
+    // ZPETNA KOMPATIBILITA: starsi zaznamy (bez v:2) se poznaji podle toho, ze v nich
+    // je salt/iters od serveru - overovani je cte ze zaznamu, takze funguji dal
+    // a prepisi se samy pri pristim online prihlaseni.
+    var OFF_ITERS = 210000;
+    function randSaltHex(n) {
+        try {
+            var a = new Uint8Array(n || 16); crypto.getRandomValues(a);
+            var s = '';
+            for (var i = 0; i < a.length; i++) s += ('0' + a[i].toString(16)).slice(-2);
+            return s;
+        } catch (e) { return null; }
+    }
+    function makeOffline(userId, pass) {
+        var salt = randSaltHex(16);
+        if (!salt || pass == null) return Promise.resolve(false);
+        return pbkdf2Hex(pass, salt, OFF_ITERS).then(function (h) {
+            if (!h) return false;
+            saveOff(userId, { salt: salt, iters: OFF_ITERS, hash: h, v: 2 });
+            return true;
+        }).catch(function () { return false; });
+    }
+
     // volání API s tokenem; VŽDY resolve {ok, status, data}; status 0 = síť/offline
     function cloudFetch(path, opts) {
         opts = opts || {};
@@ -396,10 +425,17 @@
     }
 
     // po úspěšném /login nebo /firms: konfigurace + token + ověřovadlo + session
-    function adoptLogin(data, api) {
+    function adoptLogin(data, api, pass) {
         adoptConfig(data.config, api);
         setTok({ token: data.token, userId: data.user.id });
-        if (data.offline) saveOff(data.user.id, data.offline);
+        // Overovadlo si spocita telefon sam (viz makeOffline). data.offline je tu uz
+        // jen kvuli STARSIMU workeru, ktery ho jeste posila - a jako zachrana pro
+        // zarizeni bez WebCrypto, kde se vlastni odvozeni nepovede.
+        if (pass != null) {
+            makeOffline(data.user.id, pass).then(function (ok) {
+                if (!ok && data.offline) saveOff(data.user.id, data.offline);
+            });
+        } else if (data.offline) saveOff(data.user.id, data.offline);
         setSess({ userId: data.user.id, ts: Date.now() });
         try { localStorage.setItem('arSurveyor', data.user.name); } catch (e) {}
         try { localStorage.setItem(LS_LAST, data.user.id); } catch (e) {}
@@ -431,7 +467,7 @@
     function cloudLogin(name, pass, done) {
         var f = getFirm(); if (!f) return done('Firemní režim není nastaven.');
         cloudFetch('/login', { method: 'POST', body: { code: f.code, name: name, password: pass } }).then(function (r) {
-            if (r.ok && r.data && r.data.token) { adoptLogin(r.data, f.api); return done(null, r.data.user); }
+            if (r.ok && r.data && r.data.token) { adoptLogin(r.data, f.api, pass); return done(null, r.data.user); }
             if (r.status !== 0) return done((r.data && r.data.error) || ('Přihlášení selhalo (' + r.status + ').'));
             // offline: ověř proti lokálnímu ověřovadlu
             var u = null, i;
@@ -2071,7 +2107,7 @@
                 _busy = false;
                 if (r.ok && r.data && r.data.token) {
                     failClear();
-                    adoptLogin(r.data, gateApi);   // odstraní i bránu
+                    adoptLogin(r.data, gateApi, pass);   // odstraní i bránu
                     usageLog('login', 'join');
                     try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: r.data.user } })); } catch (e) {}
                     return;

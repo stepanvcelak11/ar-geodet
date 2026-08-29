@@ -568,7 +568,7 @@
                             : esc((r.data && r.data.error) || ('Chyba ' + r.status)));
                         return;
                     }
-                    u.adoptLogin(r.data, u.DEFAULT_API);
+                    u.adoptLogin(r.data, u.DEFAULT_API, p1);
                     u.usageLog('login', 'setup');
                     wizardShowCode(body);
                 });
@@ -616,7 +616,7 @@
                             : esc((r.data && r.data.error) || ('Chyba ' + r.status)));
                         return;
                     }
-                    u.adoptLogin(r.data, u.DEFAULT_API);
+                    u.adoptLogin(r.data, u.DEFAULT_API, pass);
                     u.usageLog('login', 'join');
                     document.getElementById('agfa-modal').style.display = 'none';
                     agAlert('Zařízení připojeno', 'Jsi přihlášen jako <b>' + esc(r.data.user.name) + '</b> (' + roleTxt(r.data.user.role) + ') ve firmě <b>' + esc(r.data.config.firm.name) + '</b>.');
@@ -1714,7 +1714,7 @@
                 u.rememberCurrentFirm();                 // aktuální firma zůstane v seznamu
                 u.cloudFetch('/login', { method: 'POST', api: u.DEFAULT_API, body: { code: code, name: name, password: pass } }).then(function (r) {
                     if (!r.ok) { agAlert('Přihlášení selhalo', cloudErr(r)); return; }
-                    u.adoptLogin(r.data, u.DEFAULT_API);
+                    u.adoptLogin(r.data, u.DEFAULT_API, pass);
                     u.usageLog('login', 'join');
                     agAlert('Přepnuto', 'Jsi přihlášen jako <b>' + esc(r.data.user.name) + '</b> ve firmě <b>' + esc(r.data.config.firm.name) + '</b>. Původní firma zůstává v seznamu firem zařízení.');
                     renderNav(u.isAdmin() ? 'firma' : 'uzivani');
