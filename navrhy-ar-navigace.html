@@ -188,6 +188,103 @@ p{margin:0 0 12px;max-width:66ch;}
   letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.5);}
 .phone.bright .hint{color:rgba(0,0,0,.45);}
 
+/* =======================================================================
+   KOLO 2 — SPLIT. Kamera je jen pruh (výchozí 50 %, zarážky 25/50/75,
+   minimum 15 % — viz SPLIT_SNAPS v js/grafika.js). Svislé pixely jsou to
+   nejdražší, co v tomhle režimu je; šířka je naopak zadarmo. A hlavně:
+   mapa je hned pod tím, takže část práce může odvést ona.
+   ======================================================================= */
+.phone.split .stack{position:absolute;inset:0;display:flex;flex-direction:column;}
+.pane-cam{position:relative;flex:0 0 var(--cam,50%);overflow:hidden;}
+.pane-cam .cam{position:absolute;inset:0;}
+.seam{position:relative;flex:0 0 22px;background:#080B0F;border-top:1px solid rgba(255,255,255,.10);border-bottom:1px solid rgba(255,255,255,.10);overflow:hidden;}
+.seam .grab{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:3px;border-radius:3px;background:rgba(255,255,255,.30);z-index:3;}
+.pane-map{position:relative;flex:1;overflow:hidden;}
+
+/* maketa mapy pod kamerou */
+.mapbg{position:absolute;inset:0;background:#101418;}
+.phone.bright .mapbg{background:#E7EAE4;}
+.mapbg .grid{position:absolute;inset:-30%;transform:rotate(-11deg);
+  background-image:linear-gradient(rgba(255,255,255,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.055) 1px,transparent 1px);
+  background-size:36px 36px;}
+.phone.bright .mapbg .grid{background-image:linear-gradient(rgba(0,0,0,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.09) 1px,transparent 1px);}
+.mapbg .parcel{position:absolute;border:1px solid rgba(230,189,118,.30);}
+.phone.bright .mapbg .parcel{border-color:rgba(150,110,40,.35);}
+.mapbg svg{position:absolute;inset:0;width:100%;height:100%;}
+.mapbg .dot{position:absolute;width:7px;height:7px;border-radius:50%;background:#6E7A88;transform:translate(-50%,-50%);}
+.phone.bright .mapbg .dot{background:#8A94A0;}
+
+/* ⑥ šev nese pás blízkosti */
+.s6 .fill6{position:absolute;left:0;top:0;bottom:0;background:var(--band);opacity:.20;}
+.s6 .edge6{position:absolute;top:0;bottom:0;width:2px;background:var(--band);box-shadow:0 0 12px var(--band);}
+.s6 .num6{position:absolute;right:9px;top:50%;transform:translateY(-50%);z-index:3;
+  font-family:var(--font-m);font-variant-numeric:tabular-nums;font-weight:800;font-size:13px;color:var(--band);letter-spacing:-.01em;}
+.seam .tk{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.22);}
+.seam .tl{position:absolute;top:1px;font-family:var(--font-m);font-size:7.5px;color:#8B95A1;transform:translateX(3px);}
+.s6 .chev6{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);color:var(--band);}
+.s6 .chev6 svg{display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.8));transition:transform .18s ease-out;}
+
+/* ⑦ koridor pokračuje přes šev do mapy */
+[data-chevs7]{position:absolute;left:0;right:0;bottom:0;height:62%;}
+.cv7{position:absolute;left:50%;transform:translateX(-50%);color:var(--band);}
+.cv7 svg{display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.85));}
+.flag7{position:absolute;left:50%;top:calc(var(--cam,50%) + 11px);transform:translate(-50%,-50%);z-index:9;white-space:nowrap;
+  background:#080B0F;border:1.5px solid var(--band);border-radius:3px;padding:4px 10px 5px;box-shadow:0 8px 22px rgba(0,0,0,.7);}
+.flag7 .nm{font-family:var(--font-m);font-size:8.5px;font-weight:700;letter-spacing:.14em;color:#9AA6B2;text-transform:uppercase;}
+.flag7 .num{font-family:var(--font-m);font-variant-numeric:tabular-nums;font-size:20px;font-weight:800;line-height:1.05;color:var(--band);letter-spacing:-.03em;}
+.flag7 .num s{text-decoration:none;font-size:10px;font-weight:500;color:#8B95A1;margin-left:3px;}
+.seam.s7{box-shadow:inset 0 3px 0 var(--band),0 0 20px -6px var(--band);}
+
+/* ⑧ lať u pravé hrany */
+.s8 .staff{position:absolute;right:9px;top:12px;bottom:12px;width:22px;border:1px solid rgba(255,255,255,.28);
+  background:rgba(8,11,15,.80);overflow:hidden;}
+.s8 .staff .grad{position:absolute;inset:0;
+  background:repeating-linear-gradient(to top,rgba(255,255,255,.16) 0 7px,transparent 7px 14px);}
+.s8 .staff .fill8{position:absolute;left:0;right:0;bottom:0;background:var(--band);opacity:.30;}
+.s8 .staff .lbl{position:absolute;right:1px;font-family:var(--font-m);font-size:7px;font-weight:700;color:#E8ECF1;background:rgba(8,11,15,.9);padding:0 2px;transform:translateY(50%);}
+.s8 .mk{position:absolute;right:31px;display:flex;align-items:center;gap:5px;transform:translateY(-50%);white-space:nowrap;}
+.s8 .mk .chip{background:#080B0F;border:1.5px solid var(--band);border-radius:2px;padding:3px 8px;
+  font-family:var(--font-m);font-variant-numeric:tabular-nums;font-weight:800;font-size:16px;color:var(--band);letter-spacing:-.02em;}
+.s8 .mk .chip s{text-decoration:none;font-size:9px;font-weight:500;color:#8B95A1;margin-left:3px;}
+.s8 .mk .tri{width:0;height:0;border:5px solid transparent;border-left-color:var(--band);}
+.s8 .nm8{position:absolute;left:10px;top:34px;font-family:var(--font-m);font-size:9.5px;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:#fff;background:rgba(8,11,15,.82);padding:3px 8px;border-radius:2px;}
+
+/* ⑨ nahoře jen pásmo směru, čísla nechává mapě */
+.s9 .tape{position:absolute;left:0;right:0;top:0;height:26px;background:rgba(8,11,15,.86);border-bottom:1px solid rgba(255,255,255,.14);overflow:hidden;}
+.s9 .tape i{position:absolute;top:0;width:1px;height:6px;background:rgba(255,255,255,.35);}
+.s9 .tape i.maj{height:10px;background:rgba(255,255,255,.60);}
+.s9 .tape u{position:absolute;top:11px;font-family:var(--font-m);font-size:9px;color:#B7BEC7;text-decoration:none;transform:translateX(-50%);}
+.s9 .tape .tgt9{position:absolute;top:0;bottom:0;width:2px;background:var(--band);box-shadow:0 0 10px var(--band);}
+.s9 .tape .cap{position:absolute;top:0;transform:translateX(-50%);width:0;height:0;border:5px solid transparent;border-top-color:var(--band);}
+.mlbl{position:absolute;transform:translate(-50%,-50%);z-index:5;background:#080B0F;border:1.5px solid var(--band);border-radius:3px;
+  padding:4px 9px 5px;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,.7);}
+.mlbl .num{font-family:var(--font-m);font-variant-numeric:tabular-nums;font-weight:800;font-size:19px;line-height:1;color:var(--band);letter-spacing:-.03em;}
+.mlbl .num s{text-decoration:none;font-size:10px;font-weight:500;color:#8B95A1;margin-left:3px;}
+.mlbl .az{font-family:var(--font-m);font-size:9px;color:#9AA6B2;margin-top:2px;letter-spacing:.08em;}
+
+/* ⑩ koridor v obraze + pás v ševu (③+④) */
+.s10 .fill6{position:absolute;left:0;top:0;bottom:0;background:var(--band);opacity:.20;}
+.s10 .edge6{position:absolute;top:0;bottom:0;width:2px;background:var(--band);box-shadow:0 0 12px var(--band);}
+.s10 .num6{position:absolute;right:9px;top:50%;transform:translateY(-50%);z-index:3;
+  font-family:var(--font-m);font-variant-numeric:tabular-nums;font-weight:800;font-size:13px;color:var(--band);}
+.s10 .st10{position:absolute;left:6px;top:50%;transform:translateY(-50%);z-index:3;background:rgba(8,11,15,.92);padding:2px 5px;
+  font-family:var(--font-m);font-size:8.5px;font-weight:700;letter-spacing:.14em;color:var(--band);}
+.seam.s10 .tl{display:none;}   /* vlevo sedí stav, na čísla u rysek tam není místo */
+
+.ratio{display:flex;gap:0;border:1px solid var(--hair-2);border-radius:4px;overflow:hidden;margin-top:4px;}
+.ratio button{font-family:var(--font-m);font-size:11.5px;font-weight:700;padding:7px 0;flex:1;border:0;background:transparent;color:var(--muted);cursor:pointer;}
+.ratio button.on{background:var(--emerald);color:#04130C;}
+.ratio button:focus-visible{outline:2px solid var(--emerald-br);outline-offset:-2px;}
+.partline{display:flex;align-items:center;gap:14px;margin:70px 0 0;}
+.partline span{font-family:var(--font-m);font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--sand);white-space:nowrap;}
+.partline::before,.partline::after{content:"";flex:1;height:1px;background:var(--hair-2);}
+
+.mapbg .me{position:absolute;width:13px;height:13px;border-radius:50%;background:#3EB487;border:2px solid #08110C;transform:translate(-50%,-50%);box-shadow:0 0 0 3px rgba(62,180,135,.22);}
+.mapbg .tgt{position:absolute;width:11px;height:11px;border-radius:50%;background:var(--band-map,var(--band));transform:translate(-50%,-50%);box-shadow:0 0 0 4px rgba(255,255,255,.14),0 0 14px var(--band-map,var(--band));}
+.mapbg .hint2{position:absolute;left:8px;bottom:6px;font-family:var(--font-m);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.34);}
+.phone.bright .mapbg .hint2{color:rgba(0,0,0,.32);}
+.s6 .num6 s,.s10 .num6 s{text-decoration:none;font-size:9px;font-weight:500;color:#8B95A1;margin-left:3px;}
 /* ---- srovnání -------------------------------------------------------- */
 .tblwrap{overflow-x:auto;margin-top:18px;border:1px solid var(--hair);border-radius:5px;}
 table{border-collapse:collapse;width:100%;min-width:640px;font-size:13.5px;}
@@ -206,7 +303,7 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--hair);color:v
 
   <p class="eyebrow">AR Geodet · návrhy</p>
   <h1>Navigace na bod v AR</h1>
-  <p class="lead">Pět směrů, jak může vypadat dohledávání bodu kamerou — a proč je dnešní vzdálenost špatně čitelná. Posuvníky nahoře hýbou <b>všemi</b> náhledy naráz, přepínač „ostré slunce“ přepne scénu i chování panelů. Nic z toho zatím není v appce.</p>
+  <p class="lead">Pět směrů, jak může vypadat dohledávání bodu kamerou — a proč je dnešní vzdálenost špatně čitelná. Posuvníky nahoře hýbou <b>všemi</b> náhledy naráz, přepínač „ostré slunce“ přepne scénu i chování panelů. <b>Kolo 1</b> (níže) počítá s AR na celou obrazovku, <b>kolo 2</b> je navržené rovnou pro split — tam přibude i přepínač poměru kamery a mapy. Nic z toho zatím není v appce.</p>
 
   <div class="diag">
     <h3>Nejdřív ta „zvláštní barva“ — je to chyba v kaskádě, ne vkus</h3>
@@ -229,11 +326,20 @@ body.cam-live:not(.ag-cam-glass) #ar-hud-info { background: #080b0f; }</code></p
       <label for="ra">Odchylka směru — <b id="rav">+18°</b></label>
       <input id="ra" type="range" min="-180" max="180" value="18" step="1">
     </div>
-    <div class="sun" role="group" aria-label="Scéna">
-      <button type="button" id="b-dark" class="on">Šero</button>
-      <button type="button" id="b-sun">Ostré slunce</button>
+    <div style="display:flex;flex-direction:column;gap:6px;min-width:190px">
+      <div class="sun" role="group" aria-label="Scéna">
+        <button type="button" id="b-dark" class="on">Šero</button>
+        <button type="button" id="b-sun">Ostré slunce</button>
+      </div>
+      <div class="ratio" role="group" aria-label="Poměr kamery a mapy">
+        <button type="button" data-cam="25">AR 25 %</button>
+        <button type="button" data-cam="50" class="on">50 %</button>
+        <button type="button" data-cam="75">75 %</button>
+      </div>
     </div>
   </div>
+
+  <div class="partline"><span>Kolo 1 · na celou obrazovku</span></div>
 
   <!-- STÁVAJÍCÍ STAV -->
   <section class="card">
@@ -399,6 +505,199 @@ body.cam-live:not(.ag-cam-glass) #ar-hud-info { background: #080b0f; }</code></p
     </div>
   </section>
 
+  <div class="partline"><span>Kolo 2 · ve splitu</span></div>
+
+  <section class="card" style="margin-top:26px">
+    <p class="eyebrow">Proč znovu</p>
+    <h2>Ve splitu platí jiná pravidla</h2>
+    <p>Kolo 1 počítalo s AR přes celou obrazovku. Ve splitu je ale kamera jen pruh — výchozích 50 %, zarážky 25 / 50 / 75, minimum 15 % (<code>SPLIT_SNAPS</code> v <code>js/grafika.js</code>). Tím se mění tři věci naráz:</p>
+    <ul style="max-width:66ch;color:#C6CCD4;font-size:14.5px;line-height:1.6;padding-left:20px;">
+      <li><b>Svislé pixely jsou drahé, šířka je zadarmo.</b> Pás ④ přes celou šířku sedí, deska ① nebo terč ② ukrojí třetinu obrazu.</li>
+      <li><b>Mapa je hned pod tím</b> — a už dnes v ní <code>js/cil-navigace.js</code> kreslí zlatou aureolu, spojnici a popisek se vzdáleností. Číslo v kameře je tedy druhá kopie téhož.</li>
+      <li><b>Barva stavu se musí volit proti podkladu.</b> „Daleko“ je nad tmavou kamerou bílá — na světlé mapě by ale zmizela úplně stejně, jako dnes mizí vzdálenost na slunci. Mapa proto dostává vlastní odstín téhož stavu (zkus si přepnout na slunce).</li>
+      <li><b>Mezi pruhy je šev</b> (<code>#resizer</code>, 16 px na celou šířku). To je jediné místo na displeji, které nepatří ani kameře, ani mapě.</li>
+    </ul>
+    <p>Následujících pět návrhů z toho vychází. Posuvník <b>poměr kamery a mapy</b> v ovládání zkouší chování na 25 / 50 / 75 %.</p>
+  </section>
+
+  <!-- ⑥ -->
+  <section class="card">
+    <p class="eyebrow">Návrh 6 · šev = pás</p>
+    <h2>Pás blízkosti schovaný do švu</h2>
+    <p class="pitch">Návrh ④ přestěhovaný do děliče mezi kameru a mapu. Šev se vybarvuje zleva, jak se blížím, nese vzdálenost a rysky 100 / 50 / 10 / 2 m — a úchyt na tažení zůstává uprostřed. <b>Nebere ani pixel</b> kameře ani mapě, takže funguje stejně dobře při 25 i 75 %.</p>
+    <div class="duo">
+      <div class="phone split" data-phone data-split><div class="stack">
+        <div class="pane-cam"><div class="cam"></div><div class="hud s6">
+          <div class="hint">návrh 6 · šev</div>
+          <div class="chev6"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" data-a1><path d="M12 20V5M12 5l-6 6M12 5l6 6"/></svg></div>
+        </div></div>
+        <div class="seam s6"><div class="fill6" data-fill></div><div class="edge6" data-edge></div>
+          <div data-ticks6></div><div class="grab"></div><div class="num6" data-num>42,0 m</div></div>
+        <div class="pane-map"><div class="mapbg">
+          <div class="grid"></div>
+          <div class="parcel" style="left:10%;top:14%;width:46%;height:44%"></div>
+          <div class="parcel" style="left:58%;top:30%;width:36%;height:50%"></div>
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none"><line data-link x1="50" y1="78" x2="50" y2="30" stroke="currentColor" stroke-width="0.8" stroke-dasharray="3 2.4" style="color:var(--band-map,var(--band))"/></svg>
+          <div class="dot" style="left:22%;top:26%"></div><div class="dot" style="left:74%;top:20%"></div><div class="dot" style="left:34%;top:66%"></div>
+          <div class="tgt" data-tgt></div><div class="me" data-me></div>
+          <div class="hint2">mapa beze změny</div>
+        </div></div>
+      </div></div>
+      <dl class="facts">
+        <div class="fact good"><dt>Řeší</dt><dd>Nulová cena v pixelech. Jediný prvek, který se nemusí uhýbat ani kameře, ani mapě.</dd></div>
+        <div class="fact good"><dt>Navíc</dt><dd>Šev je vodorovný pruh přes celou šířku — přesně tvar, který se čte koutkem oka za chůze.</dd></div>
+        <div class="fact good"><dt>Bonus</dt><dd>V AR na celou obrazovku se ten samý pruh přilepí ke spodní hraně = návrh ④. Jeden kód, oba režimy.</dd></div>
+        <div class="fact cost"><dt>Cena</dt><dd>Malá. Šev z 16 na ~22 px, výplň přes <code>transform</code>. Pozor na tažení — pruh nesmí sníst chytací plochu (dnes ±8 px přes <code>::after</code>).</dd></div>
+        <div class="fact"><dt>Riziko</dt><dd>Do 22 px se vejde jen vzdálenost, ne už azimut a ΔZ. Směr musí zůstat v obraze (šipka).</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ⑦ -->
+  <section class="card">
+    <p class="eyebrow">Návrh 7 · koridor přes šev</p>
+    <h2>Jedna cesta přes obě poloviny</h2>
+    <p class="pitch">Návrh ③ dotažený do splitu: šipky po zemi v kameře a čárkovaná spojnice v mapě jsou <b>jedna a tatáž cesta</b> — stejná barva, stejný rytmus, obojí ústí do švu. Šev se přebarví na barvu stavu a stane se z něj obzor. Štítek se vzdáleností sedí přímo na švu, takže je vidět při jakémkoli poměru.</p>
+    <div class="duo">
+      <div class="phone split" data-phone data-split><div class="stack">
+        <div class="pane-cam"><div class="cam"></div><div class="hud s7">
+          <div class="hint">návrh 7 · koridor</div>
+          <div data-chevs7></div>
+        </div></div>
+        <div class="seam s7"><div class="grab"></div></div>
+        <div class="pane-map"><div class="mapbg">
+          <div class="grid"></div>
+          <div class="parcel" style="left:10%;top:14%;width:46%;height:44%"></div>
+          <div class="parcel" style="left:58%;top:30%;width:36%;height:50%"></div>
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none"><line data-link x1="50" y1="78" x2="50" y2="30" stroke="currentColor" stroke-width="1.1" stroke-dasharray="3 2.4" style="color:var(--band-map,var(--band))"/></svg>
+          <div class="dot" style="left:22%;top:26%"></div><div class="dot" style="left:74%;top:20%"></div><div class="dot" style="left:34%;top:66%"></div>
+          <div class="tgt" data-tgt></div><div class="me" data-me></div>
+          <div class="hint2">spojnice = pokračování koridoru</div>
+        </div></div>
+        <div class="flag7"><div class="nm">#4021 · PBPP</div><div class="num" data-num>42,0<s>m</s></div></div>
+      </div></div>
+      <dl class="facts">
+        <div class="fact good"><dt>Řeší</dt><dd>Split přestává být „dvě appky nad sebou“. Kamera říká <b>kudy</b>, mapa <b>kde</b>, a je vidět, že jde o totéž.</dd></div>
+        <div class="fact good"><dt>Navíc</dt><dd>Štítek na švu je vždycky na stejném místě — nehledá se očima podle toho, jak je split zrovna nastavený.</dd></div>
+        <div class="fact cost"><dt>Cena</dt><dd><b>Vyšší.</b> Projekce koridoru na zem + sladění s mapovou spojnicí (ta už existuje v <code>js/cil-navigace.js</code>).</dd></div>
+        <div class="fact"><dt>Riziko</dt><dd>Při 25 % kamery zbude na koridor pár desítek pixelů — musí umět degradovat na 2–3 šipky u spodní hrany.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ⑧ -->
+  <section class="card">
+    <p class="eyebrow">Návrh 8 · lať</p>
+    <h2>Nivelační lať u pravé hrany</h2>
+    <p class="pitch">Blízkost jako svislá stupnice se čtvercovou dělbou, jako na lati. Značka s číslem <b>klesá k zemi</b>, jak se blížím, a pod ní se plní barva stavu. Bere jen 30 px šířky u hrany — a ta je ve splitu to jediné, čeho je dost. Škáluje se s výškou pruhu, takže při 25 i 75 % vypadá stejně.</p>
+    <div class="duo">
+      <div class="phone split" data-phone data-split><div class="stack">
+        <div class="pane-cam"><div class="cam"></div><div class="hud s8">
+          <div class="hint">návrh 8 · lať</div>
+          <div class="nm8">#4021</div>
+          <div class="staff"><div class="grad"></div><div class="fill8" data-fill8></div><div data-lbls8></div></div>
+          <div class="mk" data-mk><span class="chip" data-num>42,0<s>m</s></span><span class="tri"></span></div>
+        </div></div>
+        <div class="seam"><div class="grab"></div></div>
+        <div class="pane-map"><div class="mapbg">
+          <div class="grid"></div>
+          <div class="parcel" style="left:10%;top:14%;width:46%;height:44%"></div>
+          <div class="parcel" style="left:58%;top:30%;width:36%;height:50%"></div>
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none"><line data-link x1="50" y1="78" x2="50" y2="30" stroke="currentColor" stroke-width="0.8" stroke-dasharray="3 2.4" style="color:var(--band-map,var(--band))"/></svg>
+          <div class="dot" style="left:22%;top:26%"></div><div class="dot" style="left:74%;top:20%"></div><div class="dot" style="left:34%;top:66%"></div>
+          <div class="tgt" data-tgt></div><div class="me" data-me></div>
+          <div class="hint2">mapa beze změny</div>
+        </div></div>
+      </div></div>
+      <dl class="facts">
+        <div class="fact good"><dt>Řeší</dt><dd>Nezávislost na výšce pruhu — stupnice se prostě natáhne. Žádné „při 25 % se to nevejde“.</dd></div>
+        <div class="fact good"><dt>Navíc</dt><dd>Tvarosloví z oboru. Pohyb značky dolů = „jsem skoro na zemi u bodu“ je čitelný bez čtení čísla.</dd></div>
+        <div class="fact cost"><dt>Cena</dt><dd>Malá až střední. Jeden nový svislý prvek, poloha značky přes <code>transform</code>.</dd></div>
+        <div class="fact"><dt>Riziko</dt><dd>Pravá hrana je v appce už obsazená (dok, chipy). Musí se vyřešit, kdo komu uhne — nejspíš se lať schová, když je dok otevřený.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ⑨ -->
+  <section class="card">
+    <p class="eyebrow">Návrh 9 · dělba rolí</p>
+    <h2>Kamera jen směr, čísla nechá mapě</h2>
+    <p class="pitch">Nejradikálnější úspora: nad obrazem není <b>vůbec nic</b> než tenké pásmo azimutu u horní hrany s ryskou cíle. Vzdálenost i azimut bydlí v popisku na spojnici v mapě — tam, kde už dnes jsou, jen výrazněji. Kamera slouží k míření, mapa ke čtení.</p>
+    <div class="duo">
+      <div class="phone split" data-phone data-split><div class="stack">
+        <div class="pane-cam"><div class="cam"></div><div class="hud s9">
+          <div class="tape" data-tape><div class="tgt9" data-t9></div><div class="cap" data-c9></div></div>
+          <div class="hint" style="top:34px">návrh 9 · dělba rolí</div>
+        </div></div>
+        <div class="seam"><div class="grab"></div></div>
+        <div class="pane-map"><div class="mapbg">
+          <div class="grid"></div>
+          <div class="parcel" style="left:10%;top:14%;width:46%;height:44%"></div>
+          <div class="parcel" style="left:58%;top:30%;width:36%;height:50%"></div>
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none"><line data-link x1="50" y1="78" x2="50" y2="30" stroke="currentColor" stroke-width="1.1" stroke-dasharray="3 2.4" style="color:var(--band-map,var(--band))"/></svg>
+          <div class="dot" style="left:22%;top:26%"></div><div class="dot" style="left:74%;top:20%"></div><div class="dot" style="left:34%;top:66%"></div>
+          <div class="tgt" data-tgt></div><div class="me" data-me></div>
+          <div class="mlbl" data-mlbl><div class="num" data-num>42,0<s>m</s></div><div class="az">AZ <span data-az>136°</span></div></div>
+          <div class="hint2">čísla jen tady</div>
+        </div></div>
+      </div></div>
+      <dl class="facts">
+        <div class="fact good"><dt>Řeší</dt><dd>Obraz z kamery zůstává celý. Ve splitu, kde je ho málo, je to největší možný zisk.</dd></div>
+        <div class="fact good"><dt>Navíc</dt><dd>Ruší dnešní zdvojení — vzdálenost se dnes píše v HUD i na spojnici v mapě, každá jinak zaokrouhlená.</dd></div>
+        <div class="fact cost"><dt>Cena</dt><dd>Malá. Popisek v mapě už existuje (<code>js/cil-navigace.js</code>), stačí mu dát pořádnou podložku; pásmo azimutu je nový, ale jednoduchý prvek.</dd></div>
+        <div class="fact"><dt>Riziko</dt><dd><b>Nefunguje v AR na celou obrazovku</b> — tam mapa není. Musela by se přepínat s jiným návrhem (třeba ①), a to je nekonzistence.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ⑩ -->
+  <section class="card">
+    <p class="eyebrow">Návrh 10 · ③ + ④</p>
+    <h2>Koridor v obraze, pás ve švu</h2>
+    <p class="pitch">Spojení obou variant, které se ti líbily, a v dělbě, která ve splitu dává smysl: <b>obraz nese směr</b> (koridor po zemi, žádná čísla), <b>šev nese vzdálenost</b> (pás blízkosti + stav). Každá informace je právě jednou a na místě, které jí sedí tvarem.</p>
+    <div class="duo">
+      <div class="phone split" data-phone data-split><div class="stack">
+        <div class="pane-cam"><div class="cam"></div><div class="hud s10">
+          <div class="hint">návrh 10 · koridor + pás</div>
+          <div data-chevs7></div>
+        </div></div>
+        <div class="seam s10"><div class="fill6" data-fill></div><div class="edge6" data-edge></div>
+          <div data-ticks6></div><div class="st10" data-st>NAVIGUJI</div><div class="grab"></div><div class="num6" data-num>42,0 m</div></div>
+        <div class="pane-map"><div class="mapbg">
+          <div class="grid"></div>
+          <div class="parcel" style="left:10%;top:14%;width:46%;height:44%"></div>
+          <div class="parcel" style="left:58%;top:30%;width:36%;height:50%"></div>
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none"><line data-link x1="50" y1="78" x2="50" y2="30" stroke="currentColor" stroke-width="1.1" stroke-dasharray="3 2.4" style="color:var(--band-map,var(--band))"/></svg>
+          <div class="dot" style="left:22%;top:26%"></div><div class="dot" style="left:74%;top:20%"></div><div class="dot" style="left:34%;top:66%"></div>
+          <div class="tgt" data-tgt></div><div class="me" data-me></div>
+          <div class="hint2">spojnice pokračuje</div>
+        </div></div>
+      </div></div>
+      <dl class="facts">
+        <div class="fact good"><dt>Řeší</dt><dd>Obojí naráz: moderní vzhled z ③ a čitelnost bez zabraného místa z ④.</dd></div>
+        <div class="fact good"><dt>Navíc</dt><dd>Přepnutí do AR na celou obrazovku nic nemění — pás jen sjede ke spodní hraně. Jeden vizuál pro oba režimy.</dd></div>
+        <div class="fact cost"><dt>Cena</dt><dd>Střední až vyšší — koridor je ta drahá část, pás levná. Dá se nasadit po etapách: nejdřív pás (hned pomůže čitelnosti), koridor potom.</dd></div>
+        <div class="fact"><dt>Riziko</dt><dd>Dva nové prvky naráz. Etapy to ale rozdělí a pás je použitelný i sám o sobě.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="card">
+    <p class="eyebrow">Srovnání · split</p>
+    <h2>Který ve splitu</h2>
+    <div class="tblwrap"><table>
+      <thead><tr><th>Návrh</th><th>Bere z kamery</th><th>Snese 25 %</th><th>Platí i na celou obr.</th><th>Práce</th></tr></thead>
+      <tbody>
+        <tr><td>⑥ Šev = pás</td><td><span class="dot" style="background:#3EB487"></span>nic</td><td>ano</td><td>ano (= ④)</td><td>malá</td></tr>
+        <tr><td>⑦ Koridor přes šev</td><td>zem</td><td>s degradací</td><td>ano (= ③)</td><td><b>vyšší</b></td></tr>
+        <tr><td>⑧ Lať</td><td>30 px vpravo</td><td><span class="dot" style="background:#3EB487"></span>ano</td><td>ano</td><td>malá–střední</td></tr>
+        <tr><td>⑨ Dělba rolí</td><td>26 px nahoře</td><td><span class="dot" style="background:#3EB487"></span>ano</td><td><span class="dot" style="background:#FB7185"></span>ne</td><td>malá</td></tr>
+        <tr><td>⑩ ③+④</td><td>zem</td><td>s degradací</td><td>ano</td><td>střední–vyšší</td></tr>
+      </tbody>
+    </table></div>
+    <p style="margin-top:16px;color:var(--muted);font-size:14px;">Doporučení: <b>⑩ po etapách</b> — nejdřív ⑥ (pás ve švu, levné a hned spraví čitelnost), pak koridor z ⑦. ⑧ je nejlepší, když se ukáže, že šev je na tažení moc citlivý.</p>
+  </section>
+
   <!-- srovnání -->
   <section class="card">
     <p class="eyebrow">Srovnání</p>
@@ -428,7 +727,8 @@ body.cam-live:not(.ag-cam-glass) #ar-hud-info { background: #080b0f; }</code></p
   var rd = document.getElementById('rd'), ra = document.getElementById('ra');
   var rdv = document.getElementById('rdv'), rav = document.getElementById('rav');
   var bSun = document.getElementById('b-sun'), bDark = document.getElementById('b-dark');
-  var bright = false;
+  var bright = false, camPct = 50;
+  var PXDEG = 2.4;                    // px na stupeň na pásmu azimutu (návrh 9)
 
   // posuvník 0..1000 -> 0,05 .. 300 m logaritmicky (dole je potřeba rozlišení)
   function toM(v){ return 0.05 * Math.pow(300/0.05, v/1000); }
@@ -535,6 +835,106 @@ body.cam-live:not(.ag-cam-glass) #ar-hud-info { background: #080b0f; }</code></p
           off.querySelector('[data-offdeg]').textContent = Math.abs(diff) + '°';
         }
       }
+      // ===== KOLO 2 — SPLIT =========================================
+      if (p.hasAttribute('data-split')) {
+        p.style.setProperty('--cam', camPct + '%');
+        // stav „daleko" je bílý — nad kamerou správně, na světlé mapě by zmizel
+        p.style.setProperty('--band-map', (bright && b.c === '#ECEEF2') ? '#26313F' : b.c);
+
+        // ⑥/⑩ rysky ve švu (staví se jednou)
+        var t6 = p.querySelector('[data-ticks6]');
+        if (t6 && !t6.dataset.built){
+          t6.dataset.built = '1';
+          [100,50,10,2].forEach(function(v){
+            var x = (scale(v)*100).toFixed(2) + '%';
+            var i = document.createElement('span'); i.className = 'tk'; i.style.left = x;
+            var u = document.createElement('span'); u.className = 'tl'; u.style.left = x; u.textContent = v;
+            t6.appendChild(i); t6.appendChild(u);
+          });
+        }
+
+        // ⑦/⑩ šipky koridoru (staví se jednou)
+        var c7 = p.querySelector('[data-chevs7]');
+        if (c7 && !c7.dataset.built){
+          c7.dataset.built = '1';
+          for (var j = 0; j < 5; j++){
+            var k = j/4;                       // 0 = u nohou, 1 = u švu
+            var d = document.createElement('div');
+            d.className = 'cv7';
+            d.style.bottom = (2 + k*74) + '%';
+            var w = 92 - k*58;
+            d.style.opacity = (0.92 - k*0.42).toFixed(2);
+            d.innerHTML = '<svg width="'+w+'" height="'+(w*0.42).toFixed(0)+'" viewBox="0 0 100 42" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 34 L50 8 L92 34"/></svg>';
+            c7.appendChild(d);
+          }
+        }
+
+        // koridor v nízkém pruhu: 5 šipek by se slilo, zůstanou 3
+        if (c7) [].forEach.call(c7.children, function(el, ix){ el.style.display = (camPct < 40 && ix > 2) ? 'none' : ''; });
+
+        // ⑧ popisky na lati (staví se jednou)
+        var l8 = p.querySelector('[data-lbls8]');
+        if (l8 && !l8.dataset.built){
+          l8.dataset.built = '1';
+          [50,10,2].forEach(function(v){
+            var u = document.createElement('span'); u.className = 'lbl';
+            u.style.bottom = (scale(v)*100).toFixed(2) + '%'; u.textContent = v;
+            l8.appendChild(u);
+          });
+        }
+
+        // ⑨ pásmo azimutu (staví se jednou; střed = můj směr 118°)
+        var tp = p.querySelector('[data-tape]');
+        if (tp && !tp.dataset.built){
+          tp.dataset.built = '1';
+          for (var a = 60; a <= 178; a += 5){
+            var maj = (a % 10 === 0);
+            var i2 = document.createElement('i');
+            if (maj) i2.className = 'maj';
+            i2.style.left = 'calc(50% + ' + ((a - 118) * PXDEG).toFixed(1) + 'px)';
+            tp.appendChild(i2);
+            if (a % 30 === 0){
+              var u2 = document.createElement('u');
+              u2.style.left = 'calc(50% + ' + ((a - 118) * PXDEG).toFixed(1) + 'px)';
+              u2.textContent = a + '°';
+              tp.appendChild(u2);
+            }
+          }
+        }
+
+        // ⑧ lať — značka klesá k zemi, pod ní se plní barva stavu
+        var f8 = p.querySelector('[data-fill8]'), mk = p.querySelector('[data-mk]');
+        if (f8){
+          var sc = scale(m), frac = 1 - sc;
+          f8.style.height = (sc*100).toFixed(2) + '%';
+          mk.style.top = 'calc(12px + ' + (frac*100).toFixed(2) + '% - ' + (frac*24).toFixed(1) + 'px)';
+        }
+
+        // ⑨ ryska cíle na pásmu (u velké odchylky se opře o kraj)
+        var t9 = p.querySelector('[data-t9]');
+        if (t9){
+          var px = Math.max(-140, Math.min(140, diff * PXDEG));
+          t9.style.left = 'calc(50% + ' + px.toFixed(1) + 'px)';
+          p.querySelector('[data-c9]').style.left = 'calc(50% + ' + px.toFixed(1) + 'px)';
+        }
+
+        // maketa mapy — spojnice, cíl a moje poloha reagují na oba posuvníky
+        var link = p.querySelector('[data-link]'), tgt = p.querySelector('[data-tgt]'), me = p.querySelector('[data-me]');
+        if (link){
+          var R = 8 + (1 - scale(m)) * 56;
+          var rad = diff * Math.PI / 180;
+          var tx = Math.max(7, Math.min(93, 50 + Math.sin(rad) * R * 0.55));
+          var ty = Math.max(7, Math.min(95, 78 - Math.cos(rad) * R));
+          link.setAttribute('x2', tx.toFixed(1)); link.setAttribute('y2', ty.toFixed(1));
+          tgt.style.left = tx.toFixed(1) + '%'; tgt.style.top = ty.toFixed(1) + '%';
+          me.style.left = '50%'; me.style.top = '78%';
+          var ml = p.querySelector('[data-mlbl]');
+          if (ml){
+            ml.style.left = Math.max(22, Math.min(78, (50 + tx) / 2)) + '%';
+            ml.style.top = Math.max(16, Math.min(84, (78 + ty) / 2)) + '%';
+          }
+        }
+      }
     });
 
     // stávající stav ukazuje pořád formát z appky (tečka, jedno místo)
@@ -544,6 +944,13 @@ body.cam-live:not(.ag-cam-glass) #ar-hud-info { background: #080b0f; }</code></p
 
   rd.addEventListener('input', render);
   ra.addEventListener('input', render);
+  [].forEach.call(document.querySelectorAll('.ratio button'), function(btn){
+    btn.addEventListener('click', function(){
+      camPct = +btn.dataset.cam;
+      [].forEach.call(document.querySelectorAll('.ratio button'), function(o){ o.classList.toggle('on', o === btn); });
+      render();
+    });
+  });
   bSun.addEventListener('click', function(){ bright = true;  bSun.classList.add('on'); bDark.classList.remove('on'); render(); });
   bDark.addEventListener('click', function(){ bright = false; bDark.classList.add('on'); bSun.classList.remove('on'); render(); });
   render();
