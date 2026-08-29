@@ -555,15 +555,66 @@
         });
     }
 
+    // Odchozí zprávy jdou přes js/fronta.js. DŮVOD: chat je jediný modul, který
+    // psal do cloudu a NEMĚL frontu — bez signálu se napsaná zpráva zahodila
+    // s hláškou „Bez internetu zprávu nejde odeslat." a kolega se nikdy
+    // nedozvěděl, že jsi psal. A geodet je bez signálu půl dne (sklep, les,
+    // zástavba), takže to nebyl okrajový stav.
+    var _frontaHotova = false;
+    function zaridFrontu() {
+        if (_frontaHotova || !window.AGFronta) return _frontaHotova;
+        AGFronta.registruj('chat', {
+            popis: 'zpráva do chatu',
+            odeslat: function (telo) {
+                var u = U();
+                // Odhlášený uživatel: 401 = fronta se pozastaví a počká,
+                // nezahodí. Přesně to chceme — po přihlášení se to odešle.
+                if (!u) return Promise.resolve({ ok: false, status: 401 });
+                return u.cloudFetch('/chat', { method: 'POST', body: telo });
+            }
+        });
+        _frontaHotova = true;
+        return true;
+    }
+
     function send() {
         if (_busySend) return;
         var inp = document.getElementById('agch-inp');
         var txt = (inp.value || '').trim();
         if (!txt) return;
         var u = U(); if (!u) return;
+        var telo = { txt: txt, to: _to || undefined };
+        var kam = _to ? (' soukromě pro ' + toName(_to)) : '';
+
+        if (zaridFrontu()) {
+            _busySend = true;
+            setOff('Odesílám…');
+            // Pole se vyprazdňuje HNED: zpráva je od téhle chvíle uložená ve
+            // frontě, takže ji nikdo neztratí ani zavřením appky. Nechat ji
+            // viset v poli by svádělo k druhému odeslání téhož.
+            inp.value = '';
+            AGFronta.posli('chat', telo).then(function (v) {
+                _busySend = false;
+                if (v.stav === 'odeslano') {
+                    setOff(_to ? ('Odesláno' + kam + '.') : '');
+                    if (_to) setTimeout(function () { setOff(''); }, 2500);
+                    load();
+                } else if (v.stav === 'ceka') {
+                    setOff('Uloženo — odešle se' + kam + ', jakmile bude signál.');
+                } else {
+                    // Server to odmítl natrvalo (moc dlouhá, prázdná). Vrátit
+                    // uživateli text, ať o něj nepřijde.
+                    inp.value = txt;
+                    setOff('Zprávu server odmítl' + (v.status ? ' (' + v.status + ')' : '') + ' — zkrať ji.');
+                }
+            });
+            return;
+        }
+
+        // Záloha, když vrstva fronty není načtená: původní chování.
         _busySend = true;
         setOff('Odesílám…');
-        u.cloudFetch('/chat', { method: 'POST', body: { txt: txt, to: _to || undefined } }).then(function (r) {
+        u.cloudFetch('/chat', { method: 'POST', body: telo }).then(function (r) {
             _busySend = false;
             if (!r.ok) {
                 setOff(r.status === 0 ? 'Bez internetu zprávu nejde odeslat.'
