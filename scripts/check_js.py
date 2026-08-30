@@ -27,6 +27,10 @@ Co skript kontroluje (vse bez zavislosti mimo stdlib, jako gen_sw_assets.py):
      tohle ji chyti i tam, kde neni Node a kontrola syntaxe se preskoci.
   6) Volitelne SYNTAXE pres `node --check`, kdyz je Node k dispozici
      (na vyvojarskem stroji neni, na GitHub Actions ano).
+  7) SYNTAXE ES MODULU v tests/*.mjs a *.mjs v korenu (Playwright testy a jeho
+     konfigurace). Kontroluji se zvlast, protoze v modulu je uz `import` na
+     prvnim radku pro skriptovy rezim chyba - viz check_syntax_modules niz.
+     Rozbity spec jinak projde lokalne a odhali se az cervenym CI.
 
 Pouziti:
     python scripts/check_js.py           # exit 1 pri jakemkoli nalezu
@@ -47,6 +51,7 @@ ROOT = Path(__file__).resolve().parent.parent
 INDEX_PATH = ROOT / 'index.html'
 SW_PATH = ROOT / 'sw.js'
 JS_DIR = ROOT / 'js'
+TESTS_DIR = ROOT / 'tests'
 
 # Knihovny treti strany se nekontroluji na duplicitni klice: jsou minifikovane
 # (jeden radek, vlastni konvence) a nemenime je.
@@ -442,9 +447,70 @@ def check_syntax(files):
     print('  syntaxe: %d souboru, %d chybnych' % (len(files), bad))
 
 
+# ---------------------------------------------------------------------------
+# Syntaxe ES MODULU (tests/*.mjs). Proc zvlast a ne do check_syntax vyse:
+# vm.Script kompiluje ve SKRIPTOVEM rezimu, kde uz `import` na prvnim radku je
+# chyba syntaxe - kazdy spec by hlasil falesny nalez. `node --check` se ridi
+# priponou .mjs a naparsuje soubor jako modul, aniz by ho spustil.
+#
+# PROC TO TU VUBEC JE: 30. 8. 2026 se do tests/smoke.spec.mjs dostal pri
+# editaci pres heredoc misto dvouznaku \n SKUTECNY konec radku uvnitr
+# retezce. Neuzavreny literal shodil parsovani CELEHO specu, takze naráz padly
+# vsechny smoke testy a s nimi obe workflow ("Testy (smoke + bundle)" i
+# "Nasazeni na Pages"), job "Publikovat" se preskocil a web se nezabalil.
+# Lokalne to nic nechytlo - check_js.py se dival jen do js/.
+#
+# ZAMERNE OPATRNE: hlasi se JEN kdyz node skutecne dobehne a rekne, ze soubor
+# neparsuje (navratovy kod 1). Cokoli jineho (chybejici node, podivny navratovy
+# kod) je NEPRUKAZNE a jen se vypise - kontrola, ktera si neni jista, nesmi
+# shodit CI vsem ostatnim.
+# ---------------------------------------------------------------------------
+
+
+def check_syntax_modules(files):
+    if not files:
+        return
+    node = shutil.which('node')
+    if not node:
+        if '--require-node' in sys.argv:
+            problem('scripts/check_js.py',
+                    'Node nenalezen, ale bylo vyzadano --require-node '
+                    '(kontrola syntaxe modulu by se tise preskocila)')
+            return
+        print('  syntaxe modulu: PRESKOCENO (Node tu neni; na GitHub Actions probehne)')
+        return
+    bad = 0
+    neprukazne = 0
+    for f in files:
+        rel = str(f.relative_to(ROOT)).replace('\\', '/')
+        try:
+            r = subprocess.run([node, '--check', str(f)],
+                               capture_output=True, text=True, timeout=60)
+        except Exception as e:                                    # noqa: BLE001
+            print('  ! %s: kontrolu nelze provest (%s)' % (rel, e))
+            neprukazne += 1
+            continue
+        if r.returncode == 0:
+            continue
+        if r.returncode == 1:
+            msg = (r.stderr or '').strip().split('\n')
+            detail = next((x.strip() for x in msg if 'Error' in x), msg[-1] if msg else '')
+            problem(rel, 'chyba syntaxe: %s' % detail[:160])
+            bad += 1
+        else:
+            print('  ! %s: neprukazne (node skoncil s %d)' % (rel, r.returncode))
+            neprukazne += 1
+    print('  syntaxe modulu: %d souboru, %d chybnych%s'
+          % (len(files), bad, (', %d neprukaznych' % neprukazne) if neprukazne else ''))
+
+
 def main():
     js_files = sorted(p for p in JS_DIR.rglob('*.js'))
     own_js = [p for p in js_files if p.parent.name not in SKIP_DUP_DIRS]
+    # Testy a konfigurace Playwrightu jsou ES moduly (.mjs) - kontroluji se zvlast,
+    # viz check_syntax_modules niz.
+    mjs_files = sorted(TESTS_DIR.rglob('*.mjs')) if TESTS_DIR.is_dir() else []
+    mjs_files += sorted(ROOT.glob('*.mjs'))
 
     if '--list' in sys.argv:
         for p in js_files:
@@ -482,6 +548,7 @@ def main():
 
     # 6) syntaxe
     check_syntax(js_files)
+    check_syntax_modules(mjs_files)
 
     if problems:
         print('\nNALEZENO %d problemu:' % len(problems))
