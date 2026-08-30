@@ -235,7 +235,13 @@
     }
     function resumeCamera() {
         try {
-            if (_camWasLive && (_prevView === 'ar' || _prevView === 'split') && typeof startCameraAndCompass === 'function'
+            // ⚠ 'both' je JEDINÝ název pro rozdělenou obrazovku (viewMode v logika.js).
+            // Dřív tu stálo 'split' — což je jen POPISEK v kroužku zobrazení (js/view-cycle.js),
+            // ne hodnota viewMode. Podmínka tedy ve Splitu nikdy neplatila: kdo si otevřel
+            // Přesnou GPS z rozdělené obrazovky, dostal po zavření mrtvou půlku s kamerou
+            // (uspal ji tenhle modul, takže ji nevzkřísil ani power-save.js — ten oživuje
+            // jen to, co uspal sám) a pomohlo až ruční přepnutí zobrazení.
+            if (_camWasLive && (_prevView === 'ar' || _prevView === 'both') && typeof startCameraAndCompass === 'function'
                 && typeof appStarted !== 'undefined' && appStarted) {
                 startCameraAndCompass(true);
             }
