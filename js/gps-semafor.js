@@ -87,7 +87,7 @@
         // ideální". Jenže družice nad obzorem a hezký PDOP jsou jen PŘEDPOKLAD, kdežto
         // ±54 m je MĚŘENÍ — přijímač už započítal odrazy, rušení i to, že nemá fix ze
         // satelitů. Když se obojí neshoduje, platí měření. Prahy jsou schválně tytéž
-        // jako u stavové bubliny a siluety (≤5 dobré, ≤15 hraniční), navíc od 30 m je
+        // jako u stavové bubliny (≤5 dobré, ≤15 hraniční), navíc od 30 m je
         // to červená bez debaty: to už není měření polohy, to je odhad z okolních sítí.
         if (acc != null) {
             if (acc > 30) {
@@ -160,7 +160,7 @@
         html += '<p style="font-size:calc(11px * var(--ag-font-scale, 1)); opacity:.55; margin:10px 0 0;">'
             + '<b>Jak se to čte:</b> zelená = přesnost do 5 m a slušná geometrie, oranžová = do 15 m nebo stíněné okolí, '
             + 'červená = nad 15 m, málo družic, nebo stojíš mezi fasádami. Nad 30 m je to vždycky červená — tak vypadá '
-            + 'poloha odhadnutá z wifi, ne ze satelitů. Prahy jsou stejné jako u stavové bubliny a siluety přesnosti, '
+            + 'poloha odhadnutá z wifi, ne ze satelitů. Prahy jsou stejné jako u stavové bubliny, '
             + 'ať si ukazatele neodporují. Elevační masku (kolik zaclání horizont) nastavíš v nástroji „Predikce signálu".</p>';
         body.innerHTML = html;
         var chips = body.querySelectorAll('.ag-sem-env');
