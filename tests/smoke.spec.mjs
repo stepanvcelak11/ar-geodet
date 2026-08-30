@@ -321,41 +321,44 @@ test('karta bodu: navigační pruh a akce', async ({ page, context }) => {
 });
 
 // ================================================================================
-//  SILUETA PŘESNOSTI GPS (js/gps-silueta.js)
+//  STAVOVA BUBLINA: JEDEN RADEK PRES CELOU SIRKU
 // ================================================================================
-test('silueta přesnosti: kruh roste s klesající přesností a mění úroveň', async ({ page, context }) => {
+// Silueta presnosti (panacek s kruhem) stala vlevo nahore od 29. do 30. 8. 2026 a
+// bublina se o ni odsouvala doprava — text se tim mackal do dvou radku. Uzivatel ji
+// zrusil („za tu cenu to neni treba"). Tenhle test hlida, ze se odsazeni nevrati:
+// bublina musi byt vystredena a jeji hlaska na JEDNOM radku.
+test('stavova bublina: vystredena pres celou sirku, hlaska na jednom radku', async ({ page, context }) => {
     await context.setGeolocation({ ...PRAHA, accuracy: 2 });
     const errors = await bootApp(page, context);
 
-    const sil = page.locator('#ag-sil');
-    await expect(sil).toBeVisible();
+    const sp = page.locator('#ag-sp');
+    await expect(sp).toBeVisible();
 
-    // Prahy musí sedět se stavovou bublinou (≤5 ok, ≤15 warn, výš bad) — kdyby se
-    // rozešly, ukazují dva prvky na jedné obrazovce každý něco jiného.
-    const zmer = async (acc) => {
-        await context.setGeolocation({ ...PRAHA, accuracy: acc });
-        await expect.poll(async () => page.evaluate(
-            () => document.querySelector('#ag-sil .ag-sil-ring')?.getAttribute('rx')
-        ), { timeout: 8000 }).not.toBe(null);
-        await page.waitForTimeout(1600);
-        return page.evaluate(() => ({
-            rx: parseFloat(document.querySelector('#ag-sil .ag-sil-ring').getAttribute('rx')),
-            lvl: document.getElementById('ag-sil').getAttribute('data-lvl'),
-        }));
-    };
+    const m = await page.evaluate(() => {
+        const el = document.getElementById('ag-sp');
+        const r = el.getBoundingClientRect();
+        const cs = getComputedStyle(el);
+        const a = el.querySelector('.ag-sp-alert');
+        return {
+            stred: Math.abs((r.left + r.right) / 2 - innerWidth / 2),
+            maxW: cs.maxWidth,
+            sirkaOkna: innerWidth,
+            zalomeni: a ? getComputedStyle(a).whiteSpace : 'nowrap',
+            silueta: !!document.getElementById('ag-sil'),
+        };
+    });
 
-    const dobra = await zmer(2);
-    const hranicni = await zmer(9);
-    const spatna = await zmer(25);
+    // panacek uz v appce nesmi byt
+    expect(m.silueta).toBe(false);
+    // bublina stoji ve stredu obrazovky (odchylka do 2 px kvuli zaokrouhleni)
+    expect(m.stred).toBeLessThan(2);
+    // ma k dispozici celou sirku (94vw), ne 94vw minus silueta
+    expect(parseFloat(m.maxW)).toBeGreaterThan(m.sirkaOkna * 0.9);
+    // hlaska se neláme na dva radky
+    expect(m.zalomeni).toBe('nowrap');
 
-    expect(dobra.lvl).toBe('ok');
-    expect(hranicni.lvl).toBe('warn');
-    expect(spatna.lvl).toBe('bad');
-    // horší přesnost = větší kruh; kdyby se měřítko obrátilo, ukazatel by LHAL
-    expect(hranicni.rx).toBeGreaterThan(dobra.rx);
-    expect(spatna.rx).toBeGreaterThan(hranicni.rx);
-
-    expect(errors, errors.join('\n')).toEqual([]);
+    expect(errors, errors.join('
+')).toEqual([]);
 });
 
 // ================================================================================

@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v265';   // konzole vlastnika: prehled firem, stropy mist, zmrazeni
+const SHELL_CACHE = 'argeodet-shell-v266';   // konzole vlastnika: prehled firem, stropy mist, zmrazeni
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -31,9 +31,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=265',
-    './css/style.css?v=265',
-    './css/vylepseni.css?v=265',
+    './css/tokens.css?v=266',
+    './css/style.css?v=266',
+    './css/vylepseni.css?v=266',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
@@ -54,7 +54,6 @@ const ASSETS_TO_CACHE = [
     './css/qc-engine.css',
     './css/pocasi.css',
     './css/tools-polish.css',
-    './css/gps-silueta.css',
     './css/tokens-outdoor.css',
     './js/lib/proj4-2.9.0.min.js',
     './js/geo-core.js',
@@ -79,6 +78,7 @@ const ASSETS_TO_CACHE = [
     './js/historie-aktualizaci.js',
     './js/zpetna-vazba.js',
     './js/sprava-appky.js',
+    './js/vlastnik.js',
     './js/satelity.js',
     './js/kalkulacka.js',
     './js/export.js',
@@ -192,7 +192,6 @@ const ASSETS_TO_CACHE = [
     './js/usadit-ar.js',
     './js/tools-hub.js',
     './js/stavovy-pruh.js',
-    './js/gps-silueta.js',
     './js/upozorneni.js',
     './js/filtr-info.js',
     './js/nastroje-ukony.js',

@@ -89,8 +89,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=265">
-    <link rel="stylesheet" href="css/style.css?v=265">
+    <link rel="stylesheet" href="css/tokens.css?v=266">
+    <link rel="stylesheet" href="css/style.css?v=266">
     <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
          probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
          tedy ještě před prvním vykreslením; ucty.js třídu zase odebere.
@@ -168,7 +168,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=265">
+    <link rel="stylesheet" href="css/vylepseni.css?v=266">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -197,9 +197,6 @@
     <link rel="stylesheet" href="css/pocasi.css">
     <!-- VIZUÁLNÍ DOLADĚNÍ NÁSTROJŮ — jednotný vzhled oken nástrojů (odpojitelné: smaž tento řádek + css/tools-polish.css) -->
     <link rel="stylesheet" href="css/tools-polish.css">
-    <!-- SILUETA PŘESNOSTI GPS — postava s kruhem na zemi místo holého čísla
-         (odpojitelné: smaž tento řádek + css/gps-silueta.css + js/gps-silueta.js) -->
-    <link rel="stylesheet" href="css/gps-silueta.css">
     <!-- TOKENOVÁ VRSTVA ČITELNOSTI — venkovní režim + rukavice přes design tokeny;
          MUSÍ být POSLEDNÍ css (přepisuje tokeny). Náhled: nahledy-kontrast.html.
          Odpojitelné: smaž tento řádek + css/tokens-outdoor.css -->
@@ -1016,6 +1013,12 @@
          Otevre ji jen ten, kdo ma OWNER_KEY (server vraci 403 komukoli jinemu).
          Nacita se vsem, protoze taky zobrazuje hlasku vlastnika v upozornenich. -->
     <script type="ag/lazy" data-src="js/sprava-appky.js"></script>
+    <!-- REZIM VLASTNIKA (odpojitelne: smaz tento radek, js/vlastnik.js, zaznam v sw.js
+         a tri mista v js/ucty.js oznacena komentarem „rezim vlastnika") — zvlastni
+         prihlaseni klicem primo na brane: odemkne vsechna opravneni a prida do „Vice"
+         Konzoli vlastnika (vsechny firmy, schranka, protokol chyb, stav serveru).
+         NENI lazy: tlacitko musi byt na brane driv, nez ji uzivatel odklikne. -->
+    <script defer src="js/vlastnik.js"></script>
     <script type="ag/lazy" data-src="js/satelity.js"></script>
     <script type="ag/lazy" data-src="js/kalkulacka.js"></script>
     <script type="ag/lazy" data-src="js/export.js"></script>
@@ -1239,9 +1242,6 @@
     <script type="ag/lazy" data-src="js/tools-hub.js"></script>
     <!-- STAVOVÝ PRUH (odpojitelné) — „můžu teď měřit?": GPS · sever · data · baterie + rady -->
     <script defer src="js/stavovy-pruh.js"></script>
-    <!-- SILUETA PŘESNOSTI GPS (odpojitelné) — vizuální ukazatel nejistoty polohy:
-         postava stojící na zemi + kruh kolem ní. Stejné prahy jako stavový pruh. -->
-    <script defer src="js/gps-silueta.js"></script>
     <!-- CENTRUM UPOZORNĚNÍ (odpojitelné) — jeden sloupec nahoře místo 7 prvků,
          které si o stejné místo říkaly a překrývaly se (window.AGNotify) -->
     <script defer src="js/upozorneni.js"></script>

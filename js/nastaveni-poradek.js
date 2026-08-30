@@ -19,6 +19,15 @@
 // Nic se nepřejmenovává ani nemaže, jen stěhuje: saveSettings() v grafika.js i
 // moduly čtou prvky podle id, takže přesun mezi sekcemi je pro ně neviditelný.
 //
+// ⚠ 30. 8. 2026 — NA PŘÁNÍ: „Nastavení začíná být znovu plnější, tak ho uhlaď."
+// Přibyly SKLÁDACÍ SEKCE: klepnutí na nadpis sekci sbalí (u nadpisu zůstane počet
+// schovaných řádků) a volba se pamatuje (agSetFold_v1), takže si každý nechá
+// rozbalené jen to, co opravdu přenastavuje. Sbalování je ZÁMĚRNĚ jen vizuální —
+// prvky zůstávají v DOM, takže saveSettings() i hledání v Nastavení fungují dál
+// (js/nastaveni-hledani.js si sekci při skoku na nalezenou volbu sám rozbalí).
+// Je to TŘETÍ vrstva viditelnosti nad „Krátkým nastavením" (.ag-ns-adv) a
+// „Pokročilé" (<details>) — proto vlastní třídy a žádné sahání do inline stylů.
+//
 // Odstranění: smaž js/nastaveni-poradek.js + řádek <script> v index.html
 // (a přegeneruj sw.js). Nastavení pak bude zase v pořadí načtení skriptů.
 // ================================================================================
@@ -39,9 +48,9 @@
             put: {
                 'ag-glove-row': { s: 'Ovládání', after: 's-lefthand' },   // rukavice hned k levé ruce
                 'ag-gz-setrow': { s: 'Ovládání', i: 4 },                  // gesta = zkratky na nástroje
+                'ag-kn-setrow': { s: 'Ovládání', i: 5 },                  // kolečko nástrojů (podržení tlačítka Nástroje)
                 's-mapfab': { s: 'Prvky na obrazovce', i: 1 },        // tlačítko vrstev v mapě
                 'ag-sp-row-set': { s: 'Prvky na obrazovce', i: 2 },        // stavová bublina
-                'ag-sil-setrow': { s: 'Prvky na obrazovce', i: 3 },        // silueta přesnosti GPS
                 'ag-ns-setrow': { s: 'Zjednodušení', i: 1 },              // krátké nastavení
                 'ag-ts-setrow': { s: 'Zjednodušení', i: 2 },              // jednoduchý panel Nástrojů
                 'ag-ua-simple-row': { s: 'Zjednodušení', i: 3 }               // zjednodušené Nástroje
@@ -221,6 +230,105 @@
         want.forEach(function (e) { tab.appendChild(e); });
     }
 
+    // ---- SKLÁDACÍ SEKCE ---------------------------------------------------------------------
+    // Stav se drží podle NADPISU sekce (ne podle pořadí) — sekce vznikají a zanikají
+    // podle toho, které moduly jsou zapojené, takže index by se rozešel. Klíčem je
+    // ČESKÝ nadpis (headText čte data-ag-cs), aby přepnutí jazyka volbu nezahodilo.
+    var FOLD_KEY = 'agSetFold_v1';
+    var FOLD_CLS = 'ag-sec-fold';    // na nadpisu = sekce je sbalená
+    var HID_CLS = 'ag-sec-hid';      // na řádku = leží ve sbalené sekci
+    var _fold = null;
+    function foldMap() {
+        if (_fold) return _fold;
+        _fold = {};
+        try { var o = JSON.parse(localStorage.getItem(FOLD_KEY) || 'null'); if (o && typeof o === 'object') _fold = o; }
+        catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-poradek:foldMap'); }
+        return _fold;
+    }
+    function foldSave() {
+        try { localStorage.setItem(FOLD_KEY, JSON.stringify(foldMap())); }
+        catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-poradek:foldSave'); }
+    }
+    function foldKey(tabId, head) { return tabId + '|' + norm(headText(head)); }
+    function foldStyles() {
+        if (document.getElementById('ag-sec-fold-style')) return;
+        var st = document.createElement('style');
+        st.id = 'ag-sec-fold-style';
+        st.textContent = [
+            // Terč na celou šířku nadpisu — do samotné šipky se v rukavicích nikdo netrefí.
+            '#settings-modal .settings-tab > .set-h{cursor:pointer;position:relative;padding-right:46px;}',
+            '#settings-modal .settings-tab > .set-h::after{content:"\u25BE";position:absolute;right:2px;top:0;',
+            '  font-size:calc(12px * var(--ag-font-scale, 1));line-height:1.25;opacity:.7;}',
+            '#settings-modal .settings-tab > .set-h.' + FOLD_CLS + '::after{content:"\u25B8";}',
+            // počet schovaných řádků — ať je vidět, že se sbalením nic neztratilo
+            '#settings-modal .settings-tab > .set-h.' + FOLD_CLS + '::before{content:attr(data-ag-n);position:absolute;',
+            '  right:18px;top:0;font-size:calc(10.5px * var(--ag-font-scale, 1));line-height:1.3;',
+            '  font-weight:700;opacity:.6;letter-spacing:0;}',
+            '#settings-modal .settings-tab > .set-h:active{opacity:.65;}',
+            '#settings-modal .settings-tab > .' + HID_CLS + '{display:none !important;}'
+        ].join('\n');
+        (document.head || document.documentElement).appendChild(st);
+    }
+    function wireHead(tab, h) {
+        if (h.__agFold) return;
+        h.__agFold = 1;
+        h.setAttribute('role', 'button');
+        h.setAttribute('tabindex', '0');
+        h.addEventListener('click', function () { toggleSec(tab, h); });
+        h.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); toggleSec(tab, h); }
+        });
+    }
+    function toggleSec(tab, h) {
+        var k = foldKey(tab.id, h), m = foldMap();
+        if (m[k]) delete m[k]; else m[k] = 1;
+        foldSave();
+        applyFold(tab);
+    }
+    // Projde PŘÍMÉ potomky záložky a schová řádky, které leží pod sbaleným nadpisem.
+    // „Ocas" (Pokročilé + Zobrazit vše) do žádné sekce nepatří a nesbaluje se nikdy.
+    function applyFold(tab) {
+        if (!tab) return;
+        foldStyles();
+        var kids = tab.children, hide = false, head = null, n = 0, i;
+        function closeSec() { if (head) head.setAttribute('data-ag-n', n ? String(n) : ''); }
+        for (i = 0; i < kids.length; i++) {
+            var el = kids[i];
+            if (isTail(el)) { closeSec(); head = null; hide = false; el.classList.remove(HID_CLS); continue; }
+            if (isHead(el)) {
+                closeSec();
+                head = el; n = 0;
+                wireHead(tab, el);
+                hide = !!foldMap()[foldKey(tab.id, el)];
+                el.classList.toggle(FOLD_CLS, hide);
+                el.classList.remove(HID_CLS);
+                el.setAttribute('aria-expanded', hide ? 'false' : 'true');
+                continue;
+            }
+            if (hide) n++;
+            el.classList.toggle(HID_CLS, hide);
+        }
+        closeSec();
+    }
+    // Rozbalí sekci, ve které leží daný prvek (volá js/nastaveni-hledani.js při skoku
+    // na nalezenou volbu — jinak by hledání ukazovalo na řádek schovaný ve sbalené sekci).
+    function unfold(el) {
+        try {
+            var tab = (el && el.closest) ? el.closest('.settings-tab') : null;
+            if (!tab) return;
+            var row = el;
+            while (row && row.parentNode !== tab) row = row.parentNode;
+            if (!row) return;
+            for (var p = row.previousElementSibling; p; p = p.previousElementSibling) {
+                if (!isHead(p)) continue;
+                var k = foldKey(tab.id, p), m = foldMap();
+                if (m[k]) { delete m[k]; foldSave(); }
+                applyFold(tab);
+                return;
+            }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-poradek:unfold'); }
+    }
+
     // ---- hlavička okna: nadpis → hledání → pruh záložek -------------------------------------
     // Pruh profilů se od návrhu C vkládá do ZÁLOŽKY „Profily", ne nad záložky, takže
     // tady většinou zbyde jen hledání. Větev s #ag-prof-bar zůstává kvůli starším
@@ -295,7 +403,10 @@
             // ids — nová záložka „Profily" se pak sice do LAYOUT zapsala, ale nikdy
             // se nesrovnala, takže její sekce vůbec nevznikly (8.8.2026).
             var ids = Object.keys(LAYOUT);
-            for (var i = 0; i < ids.length; i++) arrangeTab(ids[i]);
+            for (var i = 0; i < ids.length; i++) {
+                arrangeTab(ids[i]);
+                applyFold(document.getElementById(ids[i]));
+            }
         } catch (e) { console.warn('[nastaveni-poradek]', e); }
         _busy = false;
     }
@@ -348,5 +459,5 @@
     else init();
     window.addEventListener('load', function () { setTimeout(arrange, 800); setTimeout(arrange, 2500); });
 
-    window.AGSettingsOrder = { arrange: arrange, layout: LAYOUT };
+    window.AGSettingsOrder = { arrange: arrange, layout: LAYOUT, unfold: unfold, applyFold: applyFold };
 })();

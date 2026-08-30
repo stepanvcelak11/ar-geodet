@@ -31,6 +31,39 @@
     }
     function roleTxt(r) { return r === 'admin' ? 'Admin' : (r === 'vedeni' ? 'Vedení' : 'Zaměstnanec'); }
 
+    // ------------------------------------------------------------------
+    // KDO SE UŽ PŘIHLÁSIL ZE SVÉHO MOBILU
+    // ------------------------------------------------------------------
+    // Účet vzniká na serveru, ale žít začne až tím, že se s ním někdo přihlásí
+    // na svém telefonu. Do 30. 8. 2026 to admin z appky nepoznal: řádek vypadal
+    // stejně pro kolegu, který v appce denně měří, i pro účet, jehož heslo si
+    // nikdo nikdy nepřevzal. Odtud hlášení „ve firmě nevidím uživatele, kteří
+    // jsou na jiném mobilu" — účty tam prostě nikdy nedošly.
+    // Čas nese `lastLogin` z /config (cloud/worker.js, users.last_login).
+    // ⚠ STARŠÍ WORKER HO NEPOSÍLÁ. Chybějící údaj se proto NEsmí vykládat jako
+    //   „nepřihlásil se" — v takovém případě se stav neukazuje vůbec.
+    function relTxt(ts) {
+        if (!ts) return '';
+        var d = Date.now() - ts;
+        if (d < 0) return 'právě teď';
+        var min = Math.floor(d / 60000);
+        if (min < 2) return 'právě teď';
+        if (min < 60) return 'před ' + min + ' min';
+        var hod = Math.floor(min / 60);
+        if (hod < 24) return 'před ' + hod + ' h';
+        var dny = Math.floor(hod / 24);
+        if (dny === 1) return 'včera';
+        if (dny < 30) return 'před ' + dny + ' dny';
+        try { return new Date(ts).toLocaleDateString('cs-CZ'); } catch (e) { return 'dávno'; }
+    }
+    // Zná server vůbec časy přihlášení? Když je nemá NIKDO ve firmě včetně mě
+    // (a já jsem přihlášený právě teď), běží starší worker a stav se neukazuje.
+    function seenKnown(f) {
+        var us = (f && f.users) || [];
+        for (var i = 0; i < us.length; i++) if (us[i].lastLogin) return true;
+        return false;
+    }
+
     // KOLIK FIREM SMÍ BÝT V JEDNOM TELEFONU. Strop drží js/ucty.js
     // (AGUcty.profileLimit); tady se ptáme DŘÍV, než člověk vyplní celý
     // formulář — odmítnout ho až po zadaném hesle by bylo protivné.
@@ -188,6 +221,15 @@
             '#agfa-modal .agfa-uact{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;margin-top:9px;}',
             '#agfa-modal .agfa-uact .agfa-mini{flex:1 1 auto;min-width:92px;text-align:center;}',
             '#agfa-modal .agfa-chip.c-block{background:rgba(229,83,75,0.14);color:var(--danger,#e5534b);}',
+            // účet, který si ještě nikdo nepřevzal (založen, ale nikdy nepřihlášen)
+            '#agfa-modal .agfa-chip.c-wait{background:rgba(212,160,44,0.13);color:#d4a02c;}',
+            '#agfa-modal .agfa-urow.wait{background:rgba(212,160,44,0.05);border-radius:10px;}',
+            // pozvánka: hotový text k odeslání + údaje pod sebou
+            '#agfa-modal .agfa-inv{border:1px solid var(--glass-border,rgba(255,255,255,0.15));border-radius:12px;padding:14px;margin-top:12px;}',
+            '#agfa-modal .agfa-inv-tx{white-space:pre-wrap;font:500 12px/1.45 var(--font-ui,system-ui);color:var(--text-color,#e6e8eb);',
+            '  background:var(--surface-2,rgba(255,255,255,0.05));border-radius:10px;padding:10px;margin:8px 0;max-height:34vh;overflow:auto;}',
+            '#agfa-modal .agfa-inv-big{font:800 26px/1.2 var(--font-display,system-ui);letter-spacing:.16em;text-align:center;',
+            '  color:var(--accent,#2f9e74);user-select:all;margin:6px 0 2px;}',
             '#agfa-modal .agfa-urow.blocked .agfa-av,#agfa-modal .agfa-urow.blocked .agfa-unm b{opacity:.55;}',
             '#agfa-modal .agfa-urow.blocked{background:rgba(229,83,75,0.05);border-radius:10px;}',
             // editor vzhledu avataru (barvy + symboly)
@@ -558,7 +600,7 @@
             'Tlačítkem se špendlíkem vlevo od psacího pole jde poslat <b>vlastní body</b> — příjemce je jedním klepnutím převezme do svých bodů. ' +
             'Nové zprávy se hlásí tečkou na dlaždici a proužkem po startu. Funguje jen u cloudové firmy a s internetem; server drží posledních ~500 zpráv.</div>' +
             '<div class="agfa-pg">Připojení zařízení QR kódem</div>' +
-            '<div class="agfa-note">Admin v sekci Uživatelé klepne u člověka na <b>QR</b>; zaměstnanec na přihlašovací obrazovce dá „Naskenovat QR od admina" ' +
+            '<div class="agfa-note">Admin v sekci Uživatelé klepne u člověka na <b>Pozvánku</b> a v ní na <b>Ukázat QR</b>; zaměstnanec na přihlašovací obrazovce dá „Naskenovat QR od admina" ' +
             'a dopíše jen heslo — bez překlepávání kódu firmy. Heslo se v QR nikdy nepřenáší.</div>' +
             '<div class="agfa-pg">Vytížení serveru (admin)</div>' +
             '<div class="agfa-note">V sekci Firma admin vidí, kolik z denního limitu 100 000 požadavků free plánu Cloudflare se čerpá ' +
@@ -667,6 +709,13 @@
             '<button class="btn" style="margin-top:14px;width:100%;" id="agfa-j-go">Připojit a přihlásit</button>' +
             '<button class="btn btn-secondary" style="margin-top:8px;width:100%;" id="agfa-j-back">Zpět</button>';
         body.querySelector('#agfa-j-back').onclick = function () { openWizard(); };
+        // Přišel člověk z pozvánkového odkazu do telefonu, kde už nějaká firma je?
+        // Brána se mu neukázala, takže údaje z odkazu vyzvedneme tady.
+        var inv = (u.pendingInvite && u.pendingInvite()) || null;
+        if (inv) {
+            body.querySelector('#agfa-j-code').value = inv.code;
+            if (inv.name) body.querySelector('#agfa-j-name').value = inv.name;
+        }
         body.querySelector('#agfa-j-go').onclick = function () {
             var code = (body.querySelector('#agfa-j-code').value || '').trim().toUpperCase();
             var name = (body.querySelector('#agfa-j-name').value || '').trim();
@@ -808,6 +857,7 @@
         var u = U(), f = u.getFirm(); if (!f) return;
         var me = u.currentUser();
         var cloud = !!f.cloud;
+        var casy = cloud && seenKnown(f);
         // v cloudu si jednou stáhni čerstvý seznam (mohl se změnit jinde)
         if (cloud && !refreshed) {
             u.refreshConfig().then(function (ok) { if (ok && _section === 'uzivatele') renderUsers(body, true); });
@@ -818,19 +868,23 @@
             var initials = (us.name || '?').trim().split(/\s+/).map(function (w) { return w.charAt(0); }).slice(0, 2).join('').toUpperCase();
             var chipCls = us.role === 'admin' ? ' c-admin' : (us.role === 'vedeni' ? ' c-vedeni' : '');
             var blocked = !!us.disabled;
-            return '<div class="agfa-urow' + (blocked ? ' blocked' : '') + '" data-id="' + esc(us.id) + '">' +
+            // ⚠ „nikdy nepřihlášen" se pozná jen v cloudu a jen když server časy zná
+            var ceka = cloud && casy && !us.lastLogin && !blocked;
+            var kdy = (cloud && casy && us.lastLogin) ? ' · ' + relTxt(us.lastLogin) : '';
+            return '<div class="agfa-urow' + (blocked ? ' blocked' : (ceka ? ' wait' : '')) + '" data-id="' + esc(us.id) + '">' +
                 '<div class="agfa-uid">' +
                 (u.avatarHtml ? u.avatarHtml(us.name, 'agfa-av')
                     : '  <span class="agfa-av" style="' + (u.avatarStyle ? u.avatarStyle(us.name) : '') + '">' + esc(initials) + '</span>') +
                 '  <span class="agfa-unm"><b>' + esc(us.name) + '</b>' +
                 '    <span class="agfa-usub">' + roleTxt(us.role) + (!cloud && us.noPin ? ' · bez PINu' : '') +
                 (me && me.id === us.id ? ' · to jsi ty' : '') +
-                (blocked ? ' · nemůže se přihlásit' : '') + '</span></span>' +
+                (blocked ? ' · nemůže se přihlásit' : (ceka ? ' · účet čeká, nikdo se s ním nepřihlásil' : kdy)) + '</span></span>' +
                 (blocked ? '<span class="agfa-chip c-block">Zablokován</span>'
-                    : '<span class="agfa-chip' + chipCls + '">' + roleTxt(us.role) + '</span>') +
+                    : (ceka ? '<span class="agfa-chip c-wait">Nepřevzato</span>'
+                        : '<span class="agfa-chip' + chipCls + '">' + roleTxt(us.role) + '</span>')) +
                 '</div>' +
                 '<div class="agfa-uact">' +
-                (cloud && !blocked ? '<button class="agfa-mini" data-act="qr">QR pro mobil</button>' : '') +
+                (cloud && !blocked ? '<button class="agfa-mini" data-act="invite">Pozvánka</button>' : '') +
                 '<button class="agfa-mini" data-act="avatar">Vzhled</button>' +
                 '<button class="agfa-mini" data-act="edit">Upravit</button>' +
                 (blocked
@@ -841,7 +895,14 @@
         }).join('');
         body.innerHTML =
             '<div class="agfa-pg">Účty firmy ' + esc(f.firmName || '') + '</div>' +
-            (cloud ? '<div class="agfa-note">Účty platí pro celou tuto firmu — nový zaměstnanec se na svém mobilu přihlásí kódem <b>' + esc(f.code || '') + '</b>, svým jménem a heslem (nebo naskenuje QR níže).</div>' : '') +
+            (cloud
+                ? '<div class="agfa-note">Účty platí pro celou tuto firmu — nový zaměstnanec se na svém mobilu přihlásí kódem <b>' + esc(f.code || '') + '</b>, svým jménem a heslem. ' +
+                  'Tlačítko <b>Pozvánka</b> u člověka vyrobí hotovou zprávu (odkaz + kód + jméno), kterou mu pošleš.</div>'
+                  + (casy ? '' : '<div class="agfa-note">Kdo se už na svém mobilu přihlásil, uvidíš po další aktualizaci serveru.</div>')
+                : '<div class="agfa-note" style="border-left:3px solid #d4a02c;padding-left:9px;"><b>Účty žijí jen v tomto telefonu.</b> ' +
+                  'Kolegové je na svých mobilech neuvidí, ani když jim pošleš appku — samotné sdílení appky je do firmy nepřipojí. ' +
+                  'Aby firma platila napříč telefony, založ ji na serveru: sekce <b>Firma → Založit další firmu</b> (cloud, zdarma) ' +
+                  'a lidi pak pozvi tlačítkem Pozvánka.</div>') +
             mistaHtml(f) +
             '<div id="agfa-userlist" class="agfa-list">' + rows + '</div>' +
             '<button class="btn" style="margin-top:12px;width:100%;" id="agfa-add">+ Přidat uživatele</button>' +
@@ -857,7 +918,7 @@
             for (var i = 0; i < f.users.length; i++) if (f.users[i].id === id) us = f.users[i];
             if (!us) return;
             var act = btn.getAttribute('data-act');
-            if (act === 'qr') { showUserQR(body, us, f, u); return; }
+            if (act === 'invite') { showInvite(body, us, f, u, null); return; }
             if (act === 'avatar') { avatarForm(body, us); return; }
             if (act === 'edit') { userForm(body, us); return; }
             if (act === 'block' || act === 'unblock') { blockUser(body, us, act === 'block'); return; }
@@ -930,17 +991,131 @@
 
     // QR pro připojení zaměstnance: kód firmy + jméno (+ adresa API). Heslo se
     // NEpřenáší — to zaměstnanec na svém mobilu dopíše sám.
-    function showUserQR(body, us, f, u) {
+    // ------------------------------------------------------------------
+    // POZVÁNKA PRO KOLEGU
+    // ------------------------------------------------------------------
+    // Hlášení z 30. 8. 2026: „už jsem 2 lidem sdílel aplikaci, ale ve firmě je
+    // nevidím". Sdílet appku NESTAČÍ — appka je pro všechny stejná, do firmy
+    // pouští až účet. Dřív musel admin poskládat sám: odkaz, kód firmy, jméno,
+    // heslo a postup. Tohle z toho udělá jednu zprávu, kterou pošle přes
+    // WhatsApp/SMS, plus QR na naskenování z obrazovky.
+    //
+    // ⚠ HESLO ZNÁME JEN VE CHVÍLI ZALOŽENÍ. Server ho ukládá jako otisk a zpátky
+    //   ho nikdy nevydá — pozvánka pro STARŠÍ účet proto heslo neobsahuje a
+    //   nabízí místo něj nastavení nového (přes Upravit).
+    function appUrl() {
+        try {
+            var l = location;
+            if (!/^https?:/.test(l.protocol)) return '';   // file:// odkaz nikam nevede
+            return l.origin + l.pathname.replace(/index\.html$/i, '');
+        } catch (e) { return ''; }
+    }
+    function inviteUrl(f, us) {
+        var base = appUrl();
+        if (!base) return '';
+        // Parametry přihlašovací brána vyplní za kolegu (js/ucty.js, showGate):
+        // zbude mu jen heslo. Heslo v odkazu ZÁMĚRNĚ NENÍ — odkaz se přeposílá,
+        // zůstává v historii prohlížeče a v náhledech zpráv.
+        return base + '?firma=' + encodeURIComponent(f.code || '') + '&jmeno=' + encodeURIComponent(us.name || '');
+    }
+    function inviteText(f, us, pass) {
+        var url = inviteUrl(f, us);
+        var r = [];
+        r.push('Ahoj, posílám ti přístup do naší appky AR Geodet (firma ' + (f.firmName || '') + ').');
+        r.push('');
+        r.push('1) Otevři v mobilu: ' + (url || '(odkaz na appku)'));
+        r.push('2) Přidej si ji na plochu — iPhone: Sdílet → Přidat na plochu; Android: ⋮ → Nainstalovat aplikaci.');
+        r.push('3) Přihlas se:');
+        r.push('   kód firmy: ' + (f.code || ''));
+        r.push('   jméno: ' + us.name);
+        r.push('   heslo: ' + (pass ? pass : '(pošlu zvlášť)'));
+        r.push('');
+        r.push('Po prvním přihlášení jsi ve firmě a vidíme společné zakázky a body.');
+        return r.join('\n');
+    }
+    // návrh hesla pro nový účet — vyslovitelné, ale ne uhádnutelné
+    var INV_SLAB = ['bo', 'da', 'ka', 'le', 'mi', 'ne', 'pa', 'ro', 'se', 'ta', 'vi', 'zu'];
+    function suggestPass() {
+        var out = '', i, n;
+        for (i = 0; i < 3; i++) {
+            n = Math.floor(Math.random() * INV_SLAB.length);
+            try {
+                if (window.crypto && crypto.getRandomValues) {
+                    var a = new Uint32Array(1); crypto.getRandomValues(a);
+                    n = a[0] % INV_SLAB.length;
+                }
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:suggestPass'); }
+            out += INV_SLAB[n];
+        }
+        return out + String(10 + Math.floor(Math.random() * 90));
+    }
+
+    function showInvite(body, us, f, u, pass) {
         var box = body.querySelector('#agfa-uform');
+        var txt = inviteText(f, us, pass);
+        var url = inviteUrl(f, us);
         box.innerHTML =
-            '<div style="border:1px solid var(--glass-border,rgba(255,255,255,0.15));border-radius:12px;padding:14px;margin-top:12px;text-align:center;">' +
-            '<div class="agfa-note" style="margin-top:0;">Zaměstnanec <b>' + esc(us.name) + '</b> na svém mobilu klepne na přihlašovací obrazovce na ' +
-            '„Naskenovat QR od admina", namíří sem a dopíše už jen své heslo.</div>' +
-            '<div id="agfa-uqr" style="min-height:120px;"><span class="agfa-note">Vytvářím QR…</span></div>' +
-            '<button class="btn btn-secondary" style="width:100%;margin-top:10px;" id="agfa-uqr-x">Zavřít QR</button></div>';
-        box.querySelector('#agfa-uqr-x').onclick = function () { box.innerHTML = ''; };
+            '<div class="agfa-inv">' +
+            '<div class="agfa-pg" style="margin-top:0;">Pozvánka pro ' + esc(us.name) + '</div>' +
+            (pass
+                ? '<div class="agfa-note">Účet je založený. Tohle heslo se <b>už nikde nezobrazí</b> — pošli mu ho teď, nebo si ho opiš.</div>'
+                : '<div class="agfa-note">Heslo appka zpětně neukáže (na serveru je jen otisk). Když ho kolega nemá, nastav mu nové přes <b>Upravit</b> a pošli pozvánku znovu.</div>') +
+            '<div class="agfa-inv-big">' + esc(f.code || '') + '</div>' +
+            '<div class="agfa-note" style="text-align:center;margin-top:0;">kód firmy</div>' +
+            '<div class="agfa-inv-tx" id="agfa-inv-tx">' + esc(txt) + '</div>' +
+            '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+            (url ? '<button class="btn" style="flex:1 1 46%;" id="agfa-inv-send">Odeslat pozvánku</button>' : '') +
+            '<button class="btn btn-secondary" style="flex:1 1 46%;" id="agfa-inv-copy">Zkopírovat text</button>' +
+            '<button class="btn btn-secondary" style="flex:1 1 46%;" id="agfa-inv-qr">Ukázat QR</button>' +
+            '<button class="btn btn-secondary" style="flex:1 1 46%;" id="agfa-inv-x">Zavřít</button>' +
+            '</div>' +
+            '<div id="agfa-uqr" style="margin-top:10px;"></div>' +
+            '</div>';
+        box.querySelector('#agfa-inv-x').onclick = function () { box.innerHTML = ''; };
+        var sendBtn = box.querySelector('#agfa-inv-send');
+        if (sendBtn) sendBtn.onclick = function () {
+            try {
+                if (navigator.share) {
+                    navigator.share({ title: 'Pozvánka do firmy ' + (f.firmName || ''), text: txt })['catch'](function () { });
+                    return;
+                }
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:invite-send'); }
+            copyInvite(txt);
+        };
+        box.querySelector('#agfa-inv-copy').onclick = function () { copyInvite(txt); };
+        box.querySelector('#agfa-inv-qr').onclick = function () { drawUserQR(box, us, f, u); };
+        try { box.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:invite-scroll'); }
+    }
+    function copyInvite(txt) {
+        function hotovo() { agAlert('Zkopírováno', 'Pozvánka je ve schránce — vlož ji do zprávy kolegovi.'); }
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(txt).then(hotovo, function () { legacyCopy(txt) ? hotovo() : agAlert('Nepovedlo se', 'Text zkopíruj ručně z rámečku výše.'); });
+                return;
+            }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:copyInvite'); }
+        if (legacyCopy(txt)) hotovo(); else agAlert('Nepovedlo se', 'Text zkopíruj ručně z rámečku výše.');
+    }
+    function legacyCopy(txt) {
+        try {
+            var ta = document.createElement('textarea');
+            ta.value = txt;
+            ta.style.cssText = 'position:fixed;left:-9999px;top:0;';
+            document.body.appendChild(ta);
+            ta.select();
+            var ok = document.execCommand('copy');
+            ta.remove();
+            return !!ok;
+        } catch (e) { return false; }
+    }
+
+    // QR se stejným obsahem jako dřív (AGF1) — čte ho „Naskenovat QR od admina"
+    // na přihlašovací obrazovce. Heslo v něm NENÍ, dopisuje ho kolega sám.
+    function drawUserQR(box, us, f, u) {
+        var out = box.querySelector('#agfa-uqr'); if (!out) return;
+        out.innerHTML = '<span class="agfa-note">Vytvářím QR…</span>';
         function draw() {
-            var out = box.querySelector('#agfa-uqr'); if (!out) return;
+            out = box.querySelector('#agfa-uqr'); if (!out) return;
             if (typeof window.qrcode === 'undefined') {
                 if (!u.ensureLib) { out.innerHTML = '<span class="agfa-note" style="color:var(--danger);">Chybí AGUcty.ensureLib.</span>'; return; }
                 u.ensureLib('js/lib/qrcode.min.js').then(draw)
@@ -953,7 +1128,8 @@
                 var qr = window.qrcode(0, 'M');
                 qr.addData(payload, 'Byte');
                 qr.make();
-                out.innerHTML = '<img src="' + qr.createDataURL(6, 12) + '" alt="QR" style="width:100%;max-width:260px;image-rendering:pixelated;background:#fff;border-radius:10px;padding:4px;">';
+                out.innerHTML = '<div class="agfa-note" style="text-align:center;">Kolega dá na přihlašovací obrazovce „Naskenovat QR od admina", namíří sem a dopíše heslo.</div>' +
+                    '<div style="text-align:center;"><img src="' + qr.createDataURL(6, 12) + '" alt="QR" style="width:100%;max-width:260px;image-rendering:pixelated;background:#fff;border-radius:10px;padding:4px;"></div>';
             } catch (e) { out.innerHTML = '<span class="agfa-note" style="color:var(--danger);">QR se nepodařilo vytvořit.</span>'; }
         }
         draw();
@@ -1006,12 +1182,24 @@
             '<label class="agfa-lb">' + passLbl + '</label>' +
             (cloud ? '<input type="password" id="agfa-u-pin" maxlength="64" placeholder="••••">'
                 : '<input type="password" id="agfa-u-pin" inputmode="numeric" maxlength="8" placeholder="••••">') +
+            // Heslo si vymýšlí admin a pak ho posílá dál — návrh mu ušetří ten
+            // okamžik, kdy zadá „1234" jen aby měl formulář za sebou. Ukazuje se
+            // OTEVŘENĚ (pole se přepne na text): opsat se dá jen to, co je vidět.
+            (cloud && !us ? '<div style="display:flex;gap:8px;align-items:center;margin-top:6px;">' +
+                '<button type="button" class="agfa-mini" id="agfa-u-gen">Navrhnout heslo</button>' +
+                '<span class="agfa-note" style="margin:0;flex:1;">Heslo pak pošleš kolegovi v pozvánce.</span></div>' : '') +
             projAclHtml(u, us) +
             '<div style="display:flex;gap:8px;margin-top:12px;">' +
             '  <button class="btn" style="flex:1;" id="agfa-u-save">' + (us ? 'Uložit změny' : 'Přidat') + '</button>' +
             '  <button class="btn btn-secondary" style="flex:1;" id="agfa-u-cancel">Zrušit</button>' +
             '</div></div>';
         box.querySelector('#agfa-u-cancel').onclick = function () { box.innerHTML = ''; };
+        var genBtn = box.querySelector('#agfa-u-gen');
+        if (genBtn) genBtn.onclick = function () {
+            var inp = box.querySelector('#agfa-u-pin');
+            inp.type = 'text';
+            inp.value = suggestPass();
+        };
         box.querySelector('#agfa-u-save').onclick = function () {
             var name = (box.querySelector('#agfa-u-name').value || '').trim();
             var role = box.querySelector('#agfa-u-role').value;
@@ -1038,6 +1226,18 @@
                     u.adoptConfig(r.data);
                     if (us && me && me.id === us.id) { try { localStorage.setItem('arSurveyor', name); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:onclick'); } }
                     renderUsers(body, true);
+                    // ⚠ POZVÁNKA HNED, JEŠTĚ NEŽ SE ZAPOMENE HESLO. Server ho zpátky
+                    // nikdy nevydá (ukládá jen otisk), takže tohle je jediná chvíle,
+                    // kdy jde vyrobit kompletní zpráva pro kolegu. Bez toho končilo
+                    // zakládání účtu tím, že se nic nestalo a člověk na druhém mobilu
+                    // se pořád neměl jak přihlásit.
+                    if (!us) {
+                        var nf = u.getFirm(), nu = null, arr = (nf && nf.users) || [];
+                        for (var qi = 0; qi < arr.length; qi++) {
+                            if (String(arr[qi].name).toLowerCase() === name.toLowerCase()) nu = arr[qi];
+                        }
+                        if (nu) showInvite(body, nu, nf, u, pin);
+                    }
                 });
                 return;
             }

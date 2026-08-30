@@ -172,8 +172,13 @@ async function configPayload(env, firmId) {
     const firm = await dbFirst(env,
         'SELECT id, code, name, perms, auto_lock, max_users, frozen FROM firms WHERE id=?', firmId);
     if (!firm) return null;
-    const users = (await env.DB.prepare(
-        'SELECT id, name, role, disabled FROM users WHERE firm_id=? ORDER BY name').bind(firmId).all()).results;
+    // `created` a `last_login` jdou ven schválně: admin v appce podle nich pozná,
+    // jestli účet, který založil, už někdo na svém mobilu použil. Heslo ani sůl
+    // se tímhle kanálem NEPOSÍLAJÍ (a nikdy posílat nesmí) — seznam vidí každý
+    // přihlášený člen firmy, ne jen admin.
+    const users = (await dbAll(env,
+        'SELECT id, name, role, disabled, created, last_login FROM users WHERE firm_id=? ORDER BY name', firmId))
+        .map(u => ({ id: u.id, name: u.name, role: u.role, disabled: u.disabled, created: u.created, lastLogin: u.last_login || 0 }));
     let perms; try { perms = JSON.parse(firm.perms); } catch (e) { perms = {}; }
     // stav poslední žádosti o víc míst a hláška vlastníka appky. Obojí chodí
     // TÍMHLE kanálem schválně — klient už /config obnovuje sám, takže to
@@ -259,7 +264,11 @@ async function ensureOwnerSchema(env) {
         'ALTER TABLE firms ADD COLUMN max_users INTEGER NOT NULL DEFAULT ' + FIRM_MAX_DEFAULT,
         'ALTER TABLE firms ADD COLUMN frozen INTEGER NOT NULL DEFAULT 0',
         'ALTER TABLE firms ADD COLUMN note TEXT',
-        'ALTER TABLE firms ADD COLUMN founder TEXT'
+        'ALTER TABLE firms ADD COLUMN founder TEXT',
+        // KDY SE ČLOVĚK NAPOSLED PŘIHLÁSIL. Bez toho admin z appky nepoznal, jestli
+        // účet, který založil, někdo na svém mobilu vůbec použil — a stěžoval si
+        // právem: „ve firmě nevidím uživatele, kteří jsou na jiném mobilu".
+        'ALTER TABLE users ADD COLUMN last_login INTEGER'
     ];
     for (const s of alters) { try { await env.DB.prepare(s).run(); } catch (e) {} }
     // I tyhle příkazy jdou přes try/catch: když jeden selže, nesmí to shodit
@@ -275,6 +284,22 @@ async function ensureOwnerSchema(env) {
     ];
     for (const s of creates) { try { await env.DB.prepare(s).run(); } catch (e) {} }
     _ownerMig = true;
+}
+// totéž pro dotaz na VÍC řádků (seznam uživatelů se opírá o users.last_login)
+async function dbAll(env, sql, ...bind) {
+    try { return (await env.DB.prepare(sql).bind(...bind).all()).results; }
+    catch (e) {
+        await ensureOwnerSchema(env);
+        return (await env.DB.prepare(sql).bind(...bind).all()).results;
+    }
+}
+// zápis, který se taky může opřít o nový sloupec; selhání NESMÍ shodit požadavek
+async function dbRunSoft(env, sql, ...bind) {
+    try { await env.DB.prepare(sql).bind(...bind).run(); return true; }
+    catch (e) {
+        try { await ensureOwnerSchema(env); await env.DB.prepare(sql).bind(...bind).run(); return true; }
+        catch (e2) { return false; }
+    }
 }
 // dotaz oprývající se o nové sloupce; při selhání doplni schéma a zkusí znovu
 async function dbFirst(env, sql, ...bind) {
@@ -687,7 +712,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 7, wx: true, watch: true, fb: true, owner: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 8, wx: true, watch: true, fb: true, owner: true, seen: true });
 
             // ---------------- ČHMÚ: měření z nejbližší stanice ---------------
             // veřejné (bez tokenu) — počasí není firemní údaj
@@ -902,6 +927,10 @@ export default {
                 await guardClear(env, gkey);
                 await guardClear(env, gip);
                 await guardClear(env, gacct);
+                // Razítko PŘED configPayload(), ať čerstvý čas rovnou odjede v odpovědi.
+                // Přes dbRunSoft: na nezmigrované databázi sloupec ještě není a
+                // neúspěšný zápis razítka nesmí shodit přihlášení.
+                await dbRunSoft(env, 'UPDATE users SET last_login=? WHERE id=?', Date.now(), u.id);
                 const cfg = await configPayload(env, firm.id);
                 return json({
                     token: await makeToken(env, u),

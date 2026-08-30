@@ -60,6 +60,7 @@
     var LS_OFF = 'agFirmaOff_v1';      // cloud: offline ověřovadla {userId:{salt,iters,hash}}
     var LS_SYNC = 'agFirmaSync_v1';    // cloud: ukazatel odeslaných událostí užívání {lastSeq}
     var LS_GUEST = 'agGuest_v1';       // režim bez přihlášení {ts} — velmi omezené funkce
+    var LS_OWNER = 'agVlastnik_v1';    // rezim vlastnika appky (js/vlastnik.js)
     var LS_PROF = 'agFirmy_v1';        // uložené firmy tohoto zařízení [{key,label,code,cloud,ts,snap}]
     var LS_LAST = 'agFirmaLastUser_v1';// id naposledy přihlášeného (rychlé odemknutí)
     var LS_LOCKSTART = 'agLockStart_v1'; // '0' = NEvyžadovat přihlášení při startu (výchozí: vyžadovat)
@@ -176,7 +177,7 @@
     var FIRM_TTL = 500;                       // ms
     var _firmVal = null, _firmTs = 0, _firmHas = false;
     var _guestVal = false, _guestTs = 0, _guestHas = false;
-    function bustFirm() { _firmHas = false; _guestHas = false; }
+    function bustFirm() { _firmHas = false; _guestHas = false; _ownHas = false; }
     function getFirm() {
         var now = Date.now();
         if (_firmHas && (now - _firmTs) < FIRM_TTL) return _firmVal;
@@ -194,6 +195,21 @@
         _firmVal = out; _firmTs = now; _firmHas = true;
         return out;
     }
+    // REŽIM VLASTNÍKA (js/vlastnik.js): vývojář appky se na bráně odemkne klíčem
+    // OWNER_KEY a od té chvíle pro něj vrstva účtů neplatí — žádná brána, žádné
+    // přihlášení, can() všude true. Firma na zařízení se NEMAŽE ani nepřepisuje,
+    // jen se přeskočí; po ukončení režimu je zpátky nedotčená.
+    // Cache ze stejného důvodu jako u getFirm(): can() se volá v každém ticku
+    // desítkykrát a localStorage je synchronní.
+    var _ownVal = false, _ownTs = 0, _ownHas = false;
+    function isOwner() {
+        var now = Date.now();
+        if (_ownHas && (now - _ownTs) < FIRM_TTL) return _ownVal;
+        var v = false;
+        try { v = localStorage.getItem(LS_OWNER) === '1'; } catch (e) { v = false; }
+        _ownVal = v; _ownTs = now; _ownHas = true;
+        return v;
+    }
     // stejná úvaha jako u getFirm() — isGuest() je druhá polovina těch 137 čtení/s
     function guestFlag() {
         var now = Date.now();
@@ -206,7 +222,7 @@
     // zápis do úložiště z JINÉ záložky/okna — zahodit cache hned, ne až po TTL
     try {
         window.addEventListener('storage', function (e) {
-            if (!e || !e.key || e.key === LS_FIRM || e.key === LS_GUEST) bustFirm();
+            if (!e || !e.key || e.key === LS_FIRM || e.key === LS_GUEST || e.key === LS_OWNER) bustFirm();
         });
     } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:guestFlag'); }
     function saveFirm(f) {
@@ -268,6 +284,7 @@
     }
     function isAdmin() { var u = currentUser(); return !!(u && u.role === 'admin'); }
     function can(key) {
+        if (isOwner()) return true;      // rezim vlastnika: opravneni firem se nevztahuji
         var f = getFirm();
         if (!f) {
             if (isGuest()) return !!GUEST_ALLOW[key];    // host: jen základní měření a vzhled
@@ -945,7 +962,7 @@
     wrapRegister();
 
     // mřížku Nástrojů překreslují field-tools/tools-plus → periodicky srovnat
-    function tick() { wrapRegister(); if (getFirm() || isGuest()) { applyPerms(); applyProjPerms(); } gateCheck(); }
+    function tick() { wrapRegister(); if (getFirm() || isGuest() || isOwner()) { applyPerms(); applyProjPerms(); } gateCheck(); }
 
     // ------------------------------------------------------------------
     // Přihlašovací / zamykací obrazovka
@@ -2083,6 +2100,36 @@
     function getSessLastUser() { return _lastUserId; }
 
     // ------------------------------------------------------------------
+    // POZVÁNKA V ODKAZU  (?firma=KOD&jmeno=Jan%20Novak)
+    // ------------------------------------------------------------------
+    // Odkaz vyrábí admin v sekci Uživatelé (js/ucty-admin.js, showInvite).
+    // Kdo appku dostane takhle, má bránu předvyplněnou a dopisuje jen heslo —
+    // bez toho stál před prázdným polem „Kód firmy" a netušil, co tam patří.
+    // ⚠ HESLO V ODKAZU NIKDY NENÍ: odkaz se přeposílá dál, zůstává v historii
+    //   prohlížeče i v náhledech zpráv. Kód firmy sám o sobě nikoho nepustí.
+    // ⚠ Z ADRESY SE PARAMETRY HNED MAŽOU (replaceState): jinak by se pozvánka
+    //   držela v záložce „na ploše" a vracela se při každém spuštění appky.
+    var _invite = (function () {
+        try {
+            if (typeof URLSearchParams !== 'function' || !location.search) return null;
+            var q = new URLSearchParams(location.search);
+            var code = String(q.get('firma') || '').trim().toUpperCase().slice(0, 6);
+            if (!/^[A-Z0-9]{4,6}$/.test(code)) return null;
+            var inv = { code: code, name: String(q.get('jmeno') || '').trim().slice(0, 40) };
+            q['delete']('firma'); q['delete']('jmeno');
+            var rest = q.toString();
+            try {
+                history.replaceState(null, '', location.pathname + (rest ? '?' + rest : '') + location.hash);
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:invite-url'); }
+            return inv;
+        } catch (e) { return null; }
+    })();
+    // Pro průvodce „Připojit toto zařízení k firmě" (js/ucty-admin.js): když
+    // pozvánka dorazila do telefonu, kde UŽ nějaká firma je, brána se vůbec
+    // neukáže — údaje si vyzvedne průvodce.
+    function pendingInvite() { return _invite ? { code: _invite.code, name: _invite.name } : null; }
+
+    // ------------------------------------------------------------------
     // BRÁNA při startu: bez firmy se appka neotevře — uživatel se přihlásí
     // (kód firmy), založí firmu (průvodce v ucty-admin.js), přepne na firmu,
     // kterou zařízení už zná, nebo pokračuje v omezeném režimu bez přihlášení.
@@ -2224,6 +2271,22 @@
             } else run();
         };
         ov.querySelector('#agg-guest').onclick = function () { enterGuest(); };
+
+        // Pozvánka z odkazu: otevřít přihlašovací pole, vyplnit, co víme, a
+        // postavit kurzor na heslo. Vyplňuje se AŽ TADY, na konci — showJoin()
+        // i pole existují teprve po navěšení obsluh výše.
+        if (_invite && _invite.code) {
+            showJoin();
+            ov.querySelector('#agg-code').value = _invite.code;
+            if (_invite.name) ov.querySelector('#agg-name').value = _invite.name;
+            var fi = ov.querySelector('.agl-firm');
+            if (fi) fi.textContent = 'Pozvánka do firmy ' + _invite.code + (_invite.name ? ' pro ' + _invite.name : '')
+                + ' — dopiš heslo, které ti poslal admin.';
+            setTimeout(function () {
+                try { ov.querySelector(_invite.name ? '#agg-pass' : '#agg-name').focus(); }
+                catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:invite-focus'); }
+            }, 60);
+        }
     }
 
     // ---- sken přihlašovacího QR od admina (payload 'AGF1\ncode\tname\tapi?';
@@ -2289,6 +2352,7 @@
 
     // pojistka: bez firmy, bez hosta a bez otevřené brány/průvodce → ukázat bránu
     function gateCheck() {
+        if (isOwner()) return;                // rezim vlastnika branu nepotrebuje
         if (getFirm() || isGuest()) return;
         if (document.getElementById('ag-gate') || document.getElementById('ag-login')) return;
         var m = document.getElementById('agfa-modal');
@@ -2325,6 +2389,7 @@
         if (left <= 3) setTimeout(function () { toast('Přihlášen jako ' + u.name + ' · za ' + left + ' spuštění bude potřeba heslo'); }, 1200);
     }
     function logout() {
+        if (isOwner()) { applyPerms(); return; }   // rezim vlastnika se konci v konzoli, ne odhlasenim
         _lastUserId = null;
         try { localStorage.removeItem(LS_IDCUR); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:logout'); }   // odhlášení ruší i SSO
         clearTrust();          // „odhlásit" musí zrušit i pamatované přihlášení
@@ -2340,6 +2405,7 @@
     var _actTs = Date.now();
     function _touchActivity() { _actTs = Date.now(); }
     function lockCheck() {
+        if (isOwner()) return;                // rezim vlastnika se po necinnosti nezamyka
         var f = getFirm(); if (!f) return;
         var min = parseInt(f.autoLockMin, 10);
         if (!min || min <= 0) return;
@@ -2355,8 +2421,14 @@
     // Start
     // ------------------------------------------------------------------
     function init() {
-        var f = getFirm();
-        if (f) {
+        // rezim vlastnika: appka nabehne rovnou, s vsim odemcenym (js/vlastnik.js).
+        // ZADNY early return - periodicke srovnani UI nize musi bezet i tady,
+        // mrizku Nastroju prekresluji jine moduly a bez ticku by zustala orezana.
+        var f = isOwner() ? null : getFirm();
+        if (isOwner()) {
+            applyPerms();
+            unprelock();
+        } else if (f) {
             rememberCurrentFirm();                 // ať je aktivní firma vždy v profilech
             var u = currentUser();
             if (!u) showLogin(false);
@@ -2415,6 +2487,8 @@
         logout: logout,
         // brána + host + profily firem
         showGate: showGate,
+        // pozvánka z odkazu (?firma=&jmeno=) pro průvodce připojením
+        pendingInvite: pendingInvite,
         // Letící hodnoty na pozadí (návrh ②) k použití i mimo přihlašovací obrazovku.
         // Vloží do `root` vrstvu .agl-live a nastartuje ji. ŽÁDNÉ stahování ani GPS —
         // čte jen to, co appka už má v localStorage (viz lvVals výš). Volá to
@@ -2433,6 +2507,7 @@
             return host;
         },
         isGuest: isGuest,
+        isOwner: isOwner,
         enterGuest: enterGuest,
         listProfiles: listProfiles,
         profileLimit: profileLimit,

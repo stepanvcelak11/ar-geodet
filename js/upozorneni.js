@@ -75,17 +75,16 @@
         var st = document.createElement('style');
         st.id = STYLE_ID;
         st.textContent = [
-            // ⚠ --ag-sil-w = šířka siluety přesnosti (js/gps-silueta.js) i s mezerou,
-            // 0 když je vypnutá. Sloupec se o ni odsune doprava a vystředí se do
-            // ZBYLÉ šířky, takže bublina se siluetou stojí v jedné řadě a nelezou
-            // na sebe (nahlášeno 29. 8. 2026: „vrchní bublina překáží panáčkovi").
-            '#' + STACK_ID + '{position:fixed;left:calc(50% + var(--ag-sil-w, 0px) / 2);transform:translateX(-50%);',
+            // ⚠ SLOUPEC JE VYSTREDENY PRES CELOU SIRKU. Od 29. 8. do 30. 8. 2026 se
+            // odsouval doprava o siluetu presnosti (--ag-sil-w) — ta uz v appce neni
+            // (uzivatel: „zahod toho panacka s presnosti"), takze zadny odsun.
+            '#' + STACK_ID + '{position:fixed;left:50%;transform:translateX(-50%);',
             // z-index 12000 = nejvyssi z puvodnich pruhu (drive #ag-gpst-bar), aby
             // sloupec nezmizel pod HUD panely (#info / #compass-debug / #gps-avg maji 9999).
             // Modaly (19999) a #quick-toast (1000002) zustavaji nad nim — zamerne.
             '  top:calc(env(safe-area-inset-top,0px) + 4px);z-index:12000;',
             '  display:flex;flex-direction:column;align-items:center;gap:5px;',
-            '  width:max-content;max-width:min(calc(92vw - var(--ag-sil-w, 0px)),460px);pointer-events:none;}',
+            '  width:max-content;max-width:min(92vw,460px);pointer-events:none;}',
             // Zrcadlené štítky: schovat z dohledu, ale NE přes display — vlastník
             // přes display pozná, jestli je má ukazovat, a to nám musí zůstat čitelné.
             '.ag-mirrored{position:fixed !important;left:-9999px !important;top:0 !important;',
