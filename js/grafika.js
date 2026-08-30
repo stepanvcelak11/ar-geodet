@@ -737,7 +737,7 @@
         let _mngDocs = null;   // poznamky/fotky vsech bodu, nactene jednim pruchodem IndexedDB
         function openManageModal() {
             document.getElementById('settings-modal').style.display = 'none';
-            _mngQuery = ''; _mngSelMode = false; _mngWatchOnly = false; _mngSel.clear();
+            _mngQuery = ''; _mngSelMode = false; _mngWatchOnly = false; _mngSel.clear(); _mngOpenId = null;
             // panel se zobrazi DRIV nez se stavi obsah — renderManageList() jinak vidi
             // zavreny modal a prekresleni by jen odlozil (viz _mngVisible)
             document.getElementById('manage-modal').style.display = 'flex';
@@ -811,6 +811,129 @@
             const m = document.getElementById('manage-modal');
             return !!m && m.style.display === 'flex';
         }
+
+        // ===== TERENNI RADEK SEZNAMU (navrh A1) + DETAIL NA TUKNUTI (navrh A2) =====
+        // Driv byla kazda polozka VYSOKA KARTA: pet radku souradnic pod sebou, tuzka
+        // a kos ve vlastnim radku — na displej se vesly tri body. Souradnice pritom
+        // v terenu nepotrebujes; potrebujes vedet, KTERY bod to je, JAK DALEKO je
+        // a KTERYM SMEREM. Radek proto nese cislo, kod, stari, presnost, vzdalenost
+        // a azimut; Y/X/Z se odkryje az tuknutim, na miste, spolu s akcemi.
+        // Rozbaleny detail je POTOMEK radku (ne sourozenec) — diky tomu ho hledani
+        // schova spolu s radkem (_mngApplyFilter prepina display na .cp-item).
+        let _mngOpenId = null;    // ktery bod ma rozbaleny detail (prezije prekresleni)
+
+        function _mngAge(ts) {
+            if (!ts || !isFinite(ts)) return '';
+            const s = Math.round((Date.now() - ts) / 1000);
+            if (s < 90) return 'před chvílí';
+            const m = Math.round(s / 60);
+            if (m < 60) return 'před ' + m + ' min';
+            const h = Math.round(m / 60);
+            if (h < 24) return 'před ' + h + ' h';
+            const d = Math.round(h / 24);
+            if (d < 7) return 'před ' + d + ' dny';
+            try { return new Date(ts).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' }); } catch (e) { return ''; }
+        }
+        // Vzdalenost se v terenu cte na jeden pohled — proto tri pasma misto jednoho
+        // formatu: pod deset metru na decimetry, do kilometru na cele metry, dal v km.
+        function _mngDist(m) {
+            if (m == null || !isFinite(m)) return '';
+            if (m < 10) return m.toFixed(1).replace('.', ',') + ' m';
+            if (m < 1000) return Math.round(m) + ' m';
+            return (m / 1000).toFixed(2).replace('.', ',') + ' km';
+        }
+        // Presnost jednou stupnici pro celou appku (js/duvera.js). Modul je odpojitelny
+        // a nacita se lazy, takze zaloha musi umet totez aspon priblizne.
+        function _mngQual(pt) {
+            try {
+                if (window.AGDuvera && AGDuvera.bod) {
+                    const v = AGDuvera.bod(pt);
+                    return { a: v.a, trida: v.trida, nadpis: v.nadpis, mereno: v.mereno };
+                }
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:_mngQual'); }
+            const a = (pt && pt.acc != null && isFinite(pt.acc)) ? Number(pt.acc) : null;
+            const t = (a == null) ? 'none' : (a <= 1.06 ? 'ok' : (a <= 2.12 ? 'warn' : 'bad'));
+            return { a: a, trida: t, nadpis: '', mereno: false };
+        }
+        function _mngAcc(pt) {
+            const q = _mngQual(pt);
+            if (q.a == null) return '<span class="mngr-acc" data-q="none">bez přesnosti</span>';
+            return '<span class="mngr-acc" data-q="' + q.trida + '">' + (q.mereno ? '' : '~')
+                + '±' + q.a.toFixed(2).replace('.', ',') + ' m</span>';
+        }
+        // Odkud bod je — barva prouzku vlevo. Hodinky uz svou barvu maji (cp-watch).
+        function _mngOrigin(pt) {
+            const o = (pt && pt.prov && pt.prov.origin) || '';
+            if (o === 'import' || o === 'prenos') return 'import';
+            if (o === 'gps-avg' || o === 'gps') return 'gps';
+            return '';
+        }
+
+        // Rozbaleny detail bodu — to, co bylo driv natvrdo v kazde karte, plus akce.
+        function _mngBuildDetail(pt) {
+            const yx = _mngYX(pt);
+            const q = _mngQual(pt);
+            const ts = (pt.prov && pt.prov.ts) || null;
+            let cas = '—';
+            if (ts) { try { cas = new Date(ts).toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { cas = ''; } }
+            const det = document.createElement('div');
+            det.className = 'mngr-det';
+            det.innerHTML = '<div class="mngr-grid">'
+                + '<div><i>Y</i><b>' + yx.y + '</b></div>'
+                + '<div><i>X</i><b>' + yx.x + '</b></div>'
+                + '<div><i>Z</i><b>' + (pt.vyska != null ? Number(pt.vyska).toFixed(2) + ' m' : '—') + '</b></div>'
+                + '<div><i>Měřeno</i><b>' + _escHtml(cas) + '</b></div>'
+                + '</div>'
+                + '<div class="mngr-q" data-q="' + q.trida + '"><span class="mngr-q-track"><i></i></span>'
+                + '<span class="mngr-q-txt">' + (q.a == null ? 'přesnost neznámá' : ('±' + q.a.toFixed(2).replace('.', ',') + ' m' + (q.nadpis ? ' · ' + _escHtml(q.nadpis.toLowerCase()) : ''))) + '</span></div>'
+                + '<div class="mngr-acts">'
+                + '<button type="button" class="mngr-act mngr-act-go" data-a="go">Navést</button>'
+                + '<button type="button" class="mngr-act" data-a="edit">Upravit</button>'
+                + '<button type="button" class="mngr-act" data-a="copy">Kopírovat</button>'
+                + '<button type="button" class="mngr-act mngr-act-del" data-a="del">Smazat</button>'
+                + '</div>';
+            // Prouzek kvality: cim presnejsi bod, tim kratsi. 3 m a horsi = plny.
+            try {
+                const fill = det.querySelector('.mngr-q-track i');
+                const pct = (q.a == null) ? 100 : Math.max(6, Math.min(100, Math.round(q.a / 3 * 100)));
+                fill.style.width = pct + '%';
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:_mngBuildDetail'); }
+            // Klik uvnitr detailu se NESMI vratit na radek — ten by detail hned zase zavrel.
+            det.addEventListener('click', (ev) => {
+                const b = ev.target && ev.target.closest ? ev.target.closest('.mngr-act') : null;
+                ev.stopPropagation();
+                if (!b) return;
+                const a = b.getAttribute('data-a');
+                if (a === 'go') focusPointFromList(pt.id);
+                else if (a === 'edit') editCustomPoint(pt.id);
+                else if (a === 'del') deleteCustomPoint(pt.id);
+                else if (a === 'copy') _mngCopy(pt);
+            });
+            return det;
+        }
+        function _mngCopy(pt) {
+            const yx = _mngYX(pt);
+            const txt = pt.name + ';' + yx.y + ';' + yx.x + (pt.vyska != null ? ';' + Number(pt.vyska).toFixed(2) : '');
+            const done = () => { try { quickToast('Zkopírováno: ' + txt); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:_mngCopy'); } };
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt).then(done, () => agInfo(txt)); return; }
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:_mngCopy'); }
+            agInfo(txt);
+        }
+        // Prepnuti detailu. Otevreny je vzdy nejvys jeden — dva rozbalene body vedle
+        // sebe uz nejsou seznam, ale dve karty, a jsme zpatky tam, odkud jdeme pryc.
+        function _mngToggleDetail(item, pt) {
+            const open = item.classList.contains('mngr-open');
+            const list = document.getElementById('manage-list');
+            if (list) list.querySelectorAll('.cp-item.mngr-open').forEach(el => {
+                el.classList.remove('mngr-open');
+                const d = el.querySelector(':scope > .mngr-det'); if (d) d.remove();
+            });
+            if (open) { _mngOpenId = null; return; }
+            item.classList.add('mngr-open');
+            item.appendChild(_mngBuildDetail(pt));
+            _mngOpenId = pt.id;
+        }
         // PREKRESLENI SEZNAMU BODU — dve nezavisla zrychleni naraz:
         //  1) Driv kazde ulozeni/smazani bodu postavilo cely seznam znovu, i kdyz panel
         //     Body vubec nebyl otevreny. U zakazky o tisicich bodu to bylo nekolik set
@@ -835,31 +958,69 @@
             if (!listDiv) return;
             listDiv.innerHTML = '';
             if (persistentCustomPoints.length === 0) { listDiv.innerHTML = '<p style="text-align:center;">Žádné body v této zakázce.</p>'; renderHiddenPointsRow(listDiv); renderLinesList(listDiv); return; }
+            // SOUHRN ZAKAZKY: tri cisla, ktera appka uz zna a nikde nerikala —
+            // kolik bodu, jak presne se meri a kolik bodu jde ven bez kodu.
+            // Pocita se pres VSECHNY body zakazky, ne pres filtr: je to stav zakazky,
+            // ne stav seznamu.
+            const sumBox = document.createElement('div'); sumBox.className = 'mng-sum';
+            let accSum = 0, accN = 0, noKod = 0;
+            for (const p of persistentCustomPoints) {
+                const q = _mngQual(p);
+                if (q.a != null) { accSum += q.a; accN++; }
+                if (!p.kod) noKod++;
+            }
+            const accAvg = accN ? (accSum / accN) : null;
+            const _nP = persistentCustomPoints.length;
+            const _slovoBod = (_nP === 1) ? 'bod' : ((_nP >= 2 && _nP <= 4) ? 'body' : 'bodů');
+            sumBox.innerHTML = '<div class="mng-kpi"><b>' + _nP + '</b><span>' + _slovoBod + '</span></div>'
+                + '<div class="mng-kpi"><b>' + (accAvg == null ? '—' : '±' + accAvg.toFixed(2).replace('.', ',')) + '</b><span>průměr m</span></div>'
+                + '<div class="mng-kpi' + (noKod ? ' mng-kpi-warn' : '') + '"><b>' + noKod + '</b><span>bez kódu</span></div>';
+            listDiv.appendChild(sumBox);
+
             // listovaci panel: hledani + razeni + rezim vyberu (hromadne operace)
             const bar = document.createElement('div'); bar.className = 'mng-bar';
-            bar.innerHTML = '<input type="search" id="mng-search" placeholder="Hledat bod / kód…" autocomplete="off">'
-                + '<select id="mng-sort" aria-label="Řazení bodů">'
-                + '<option value="default">Pořadí vložení</option><option value="name">Podle názvu</option>'
-                + '<option value="dist">Nejbližší první</option><option value="new">Nejnovější první</option></select>'
-                + '<button type="button" class="btn btn-secondary mng-selbtn" id="mng-selbtn"></button>'
-                // Ctvrty prvek se ukaze, teprve kdyz je co ukazovat — v zakazce bez hodinek
-                // by to bylo tlacitko, ktere umi jedine vyprazdnit seznam.
-                + (_mngWatchCount() ? '<button type="button" class="btn btn-secondary mng-watchbtn" id="mng-watchbtn" aria-label="Jen body z hodinek">⌚ ' + _mngWatchCount() + '</button>' : '');
+            bar.innerHTML = '<input type="search" id="mng-search" placeholder="Hledat bod / kód…" autocomplete="off">';
             listDiv.appendChild(bar);
             const si = bar.querySelector('#mng-search'); si.value = _mngQuery;
             // hledani jen SKRYVA radky, seznam se neprekresluje — jinak by kazde pismeno
             // znovu postavilo DOM, prislo o fokus a na mobilu poskakovala klavesnice
             si.addEventListener('input', () => { _mngQuery = si.value; _mngApplyFilter(); });
-            const so = bar.querySelector('#mng-sort'); so.value = _mngSort;
-            so.addEventListener('change', () => { _mngSort = so.value; renderManageList(); });
-            const sb = bar.querySelector('#mng-selbtn');
-            sb.textContent = _mngSelMode ? 'Hotovo' : 'Vybrat';
-            sb.classList.toggle('mng-selbtn-on', _mngSelMode);
-            sb.addEventListener('click', () => { _mngSelMode = !_mngSelMode; if (!_mngSelMode) _mngSel.clear(); renderManageList(); });
-            const wb = bar.querySelector('#mng-watchbtn');
+
+            // RAZENI JAKO CHIPY, ne rozbalovatko. Rozbalovatko schovavalo, podle ceho
+            // je seznam serazeny, za jeden dotyk navic — a prave to je v terenu ta
+            // nejcastejsi zmena ("ukaz nejblizsi"). Ted je stav videt bez otevirani
+            // a prepnuti stoji jedno tuknuti. Hodnoty jsou tytez jako driv v <select>.
+            const SORTS = [
+                { v: 'default', l: 'Pořadí' },
+                { v: 'name', l: 'Podle čísla' },
+                { v: 'dist', l: 'Nejbližší', gps: 1 },
+                { v: 'new', l: 'Nejnovější' }
+            ];
+            const chips = document.createElement('div'); chips.className = 'mng-chips';
+            let ch = '';
+            SORTS.forEach(s => {
+                // "Nejblizsi" bez polohy nic neseradi — nabizet ho by byl slepy dotyk
+                if (s.gps && userLat == null) return;
+                ch += '<button type="button" class="mng-chip' + (_mngSort === s.v ? ' on' : '') + '" data-sort="' + s.v + '"'
+                    + ' aria-pressed="' + (_mngSort === s.v ? 'true' : 'false') + '">' + s.l + '</button>';
+            });
+            // Chip se ukaze, teprve kdyz je co ukazovat — v zakazce bez hodinek
+            // by to bylo tlacitko, ktere umi jedine vyprazdnit seznam.
+            if (_mngWatchCount()) {
+                ch += '<button type="button" class="mng-chip mng-chip-watch' + (_mngWatchOnly ? ' on' : '') + '" id="mng-watchbtn"'
+                    + ' aria-pressed="' + (_mngWatchOnly ? 'true' : 'false') + '" aria-label="Jen body z hodinek">⌚ ' + _mngWatchCount() + '</button>';
+            }
+            ch += '<button type="button" class="mng-chip mng-chip-sel' + (_mngSelMode ? ' on' : '') + '" id="mng-selbtn"'
+                + ' aria-pressed="' + (_mngSelMode ? 'true' : 'false') + '">' + (_mngSelMode ? 'Hotovo' : 'Vybrat') + '</button>';
+            chips.innerHTML = ch;
+            listDiv.appendChild(chips);
+            chips.querySelectorAll('[data-sort]').forEach(b => {
+                b.addEventListener('click', () => { _mngSort = b.getAttribute('data-sort'); renderManageList(); });
+            });
+            const sb = chips.querySelector('#mng-selbtn');
+            sb.addEventListener('click', () => { _mngSelMode = !_mngSelMode; if (!_mngSelMode) _mngSel.clear(); _mngOpenId = null; renderManageList(); });
+            const wb = chips.querySelector('#mng-watchbtn');
             if (wb) {
-                wb.classList.toggle('mng-watchbtn-on', _mngWatchOnly);
-                wb.setAttribute('aria-pressed', _mngWatchOnly ? 'true' : 'false');
                 // Vyber se pri prepnuti zahazuje: jinak by v nem zustaly body, ktere uz
                 // nejsou v seznamu videt, a hromadna akce by sahla i na ne.
                 wb.addEventListener('click', () => { _mngWatchOnly = !_mngWatchOnly; _mngSel.clear(); renderManageList(); });
@@ -873,13 +1034,28 @@
             // Radek seznamu. Vyrobit vsech 1000 naraz znamena, ze se modal otevre
             // az za par sekund — proto se stavi po davkach (viz nize).
             const buildRow = (pt) => {
-                const _yx = _mngYX(pt); const dispY = _yx.y, dispX = _yx.x;
                 const zHodinek = agZHodinek(pt);
-                const item = document.createElement('div'); item.className = 'cp-item' + (zHodinek ? ' cp-watch' : '');
+                const item = document.createElement('div');
+                item.className = 'cp-item mngr' + (zHodinek ? ' cp-watch' : '');
+                const orig = _mngOrigin(pt);
+                if (orig) item.dataset.orig = orig;
                 // "hodinky" v hledanem textu: da se je vypsat i psanim, nejen prepinacem
                 item.dataset.mngText = (String(pt.name) + ' ' + (pt.kod || '') + (zHodinek ? ' hodinky garmin' : '')).toLowerCase();
-                const dRow = (userLat != null) ? ('<br>' + getDistance(userLat, userLng, pt.lat, pt.lng).toFixed(1) + ' m od tebe') : '';
-                item.innerHTML = ` <div class="cp-title">${_escHtml(pt.name)}${pt.kod ? ' <span class="cp-kod">' + _escHtml(pt.kod) + '</span>' : ''}${zHodinek ? ' <span class="cp-watch-tag" title="Změřeno hodinkami — přesnost jednotky metrů">⌚</span>' : ''}</div> <div class="cp-coords">Y: ${dispY}<br>X: ${dispX}${pt.vyska != null ? '<br>Z: '+Number(pt.vyska).toFixed(2)+' m' : ''}${pt.acc != null ? '<br>⌀ ±'+_escHtml(pt.acc)+' m' : ''}${dRow}</div>`;
+                // Vzdalenost a azimut jdou dopredu — podle nich se v terenu rozhodujes.
+                // Souradnice jsou o jedno tuknuti dal, v detailu (viz _mngBuildDetail).
+                let far = '';
+                if (userLat != null) {
+                    const d = getDistance(userLat, userLng, pt.lat, pt.lng);
+                    const az = (typeof getBearing === 'function') ? Math.round(getBearing(userLat, userLng, pt.lat, pt.lng)) : null;
+                    far = '<b>' + _mngDist(d) + '</b><small>' + (d < 1.5 ? 'stojíš na něm' : (az == null ? '' : az + '°')) + '</small>';
+                }
+                const age = _mngAge(pt.prov && pt.prov.ts);
+                item.innerHTML = '<div class="mngr-id"><b>' + _escHtml(pt.name)
+                    + (pt.kod ? ' <span class="cp-kod">' + _escHtml(pt.kod) + '</span>' : '')
+                    + (zHodinek ? ' <span class="cp-watch-tag" title="Změřeno hodinkami — přesnost jednotky metrů">⌚</span>' : '')
+                    + '</b><small>' + (age ? _escHtml(age) + ' · ' : '') + _mngAcc(pt) + '</small></div>'
+                    + '<div class="mngr-far">' + far + '</div>'
+                    + '<span class="mngr-arw" aria-hidden="true">›</span>';
                 if (_mngSelMode) {
                     item.classList.add('mng-selectable'); item.classList.toggle('mng-selected', _mngSel.has(pt.id));
                     const chk = document.createElement('div'); chk.className = 'mng-check'; chk.textContent = _mngSel.has(pt.id) ? '✓' : ''; item.appendChild(chk);
@@ -889,21 +1065,19 @@
                         const c = document.getElementById('mng-count'); if (c) c.innerText = _mngSel.size;
                     });
                 } else {
-                    const act = document.createElement('div'); act.className = 'cp-actions';
-                    act.innerHTML = `<button class="cp-btn cp-btn-edit" aria-label="Upravit bod"><svg class="icon"><use href="#i-edit"/></svg></button> <button class="cp-btn cp-btn-delete" aria-label="Smazat bod"><svg class="icon"><use href="#i-trash"/></svg></button>`;
-                    item.appendChild(act);
-                    // stopPropagation: radek je od teto verze cely klikatelny (viz nize),
-                    // takze bez toho by klepnuti na tuzku/kos zaroven zameril bod
-                    act.querySelector('.cp-btn-edit').addEventListener('click', (ev) => { ev.stopPropagation(); editCustomPoint(pt.id); });
-                    act.querySelector('.cp-btn-delete').addEventListener('click', (ev) => { ev.stopPropagation(); deleteCustomPoint(pt.id); });
-                    // TUKNUTI NA RADEK = zamerit bod. Driv se na kartu bodu dalo klepnout a
-                    // NESTALO SE NIC — jedine, co slo, byly dve male ikonky vpravo. Pritom
-                    // "ukaz mi ten bod" je to, kvuli cemu seznam clovek v terenu otevira.
+                    // TUKNUTI NA RADEK = ROZBALIT DETAIL (souradnice, cas, kvalita, akce).
+                    // Driv tuknuti rovnou zamerilo bod a zavrelo seznam; tuzka a kos byly
+                    // dve male ikonky ve vlastnim radku u kazde polozky. Ted je v radku
+                    // jen to podstatne a vsechny ctyri akce (vcetne "Navést", coz je
+                    // puvodni zamereni) jsou v rozbalenem detailu.
                     item.classList.add('cp-focusable');
                     item.setAttribute('role', 'button');
                     item.setAttribute('tabindex', '0');
-                    item.addEventListener('click', () => focusPointFromList(pt.id));
-                    item.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); focusPointFromList(pt.id); } });
+                    item.addEventListener('click', () => _mngToggleDetail(item, pt));
+                    item.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); _mngToggleDetail(item, pt); } });
+                    // Rozbaleny bod prezije prekresleni seznamu (smazani, razeni, dobehnuti
+                    // fotek) — jinak by se pri kazde zmene sam zavrel.
+                    if (_mngOpenId === pt.id) { item.classList.add('mngr-open'); item.appendChild(_mngBuildDetail(pt)); }
                     if (typeof decoratePointItem === 'function') {
                         try {
                             if (_mngDocs) decoratePointItem(item, pt, _mngDocs[pt.id] || null);

@@ -2828,7 +2828,185 @@ body.light-mode .mng-actions { background: rgba(0, 0, 0, 0.04); }
 .mng-hint { font-size: calc(11.5px * var(--ag-font-scale, 1)); opacity: 0.7; line-height: 1.4; margin: 0 2px 9px; }
 .mng-actions-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
 .mng-actions-btns .btn { margin: 0; padding: 10px 8px; font-size: calc(13px * var(--ag-font-scale, 1)); }
+/* =========================================================================
+   PANEL BODY — TERÉNNÍ ŘÁDEK (návrh A1) + DETAIL NA ŤUKNUTÍ (návrh A2)
+   -------------------------------------------------------------------------
+   Dřív byla položka vysoká karta s pěti řádky souřadnic pod sebou a s tužkou
+   a košem ve vlastním řádku — na displej se vešly tři body. Souřadnice se
+   v terénu nečtou; čte se číslo, vzdálenost a směr. Řádek proto nese jen to
+   a Y/X/Z se odkryjí ťuknutím, na místě.
+   Vzhled starých karet (.cp-item bez .mngr) zůstává — používá ho Koš,
+   skryté body a seznam spojnic.
+   ========================================================================= */
+.mng-sum { display: flex; gap: 7px; margin-bottom: 10px; }
+.mng-kpi {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 9px;
+    background: var(--surface-1, rgba(255, 255, 255, 0.06));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-sm);
+}
+.mng-kpi b {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: calc(17px * var(--ag-font-scale, 1));
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+}
+.mng-kpi span {
+    display: block;
+    font-size: calc(10.5px * var(--ag-font-scale, 1));
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+}
+.mng-kpi-warn b { color: var(--warning); }
+body.light-mode .mng-kpi { background: rgba(0, 0, 0, 0.04); }
+
+/* Řazení chipy místo <select>: podle čeho je seznam seřazený, je vidět bez
+   otevírání, a přepnutí stojí jedno ťuknutí. */
+/* ZÁMĚRNĚ se ZALAMUJE, neroluje do strany: „Vybrat" (režim hromadných akcí) je
+   poslední a při vodorovném rolování by vždycky visel za okrajem — tedy tlačítko,
+   které není vidět. Dva řádky chipů stojí ~32 px a nic neschovají. */
+.mng-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.mng-chip {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 6px 12px;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-pill, 999px);
+    background: var(--surface-1, rgba(255, 255, 255, 0.06));
+    color: var(--text-muted);
+    font-size: calc(12px * var(--ag-font-scale, 1));
+    white-space: nowrap;
+    cursor: pointer;
+}
+.mng-chip.on { border-color: var(--accent-line); color: var(--accent-bright, #34d399); background: var(--accent-soft); }
+.mng-chip-sel { margin-left: auto; }
+.mng-chip-watch.on { border-color: var(--color-watch); color: var(--color-watch); background: rgba(244, 114, 182, 0.12); }
+body.ag-glove .mng-chip { padding: 10px 15px; }
+
+/* Řádek bodu */
+.cp-item.mngr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    margin-bottom: 0;
+    padding: 9px 6px 9px 11px;
+    border: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+    border-left: 3px solid var(--color-custom, #34d399);
+    border-radius: 0;
+    background: transparent;
+}
+body.light-mode .cp-item.mngr { border-bottom-color: rgba(0, 0, 0, 0.07); }
+.cp-item.mngr[data-orig="import"] { border-left-color: var(--warning); }
+.cp-item.mngr.cp-watch { border-left-color: var(--color-watch); }
+.cp-item.mngr.cp-focusable:active { background: var(--accent-soft); }
+/* `flex-basis: 0` (ne auto): řádek se smí zalamovat kvůli poznámce a detailu,
+   takže s basis podle obsahu by dlouhé číslo bodu odsunulo vzdálenost na další
+   řádek. Takhle se místo toho zkrátí název třemi tečkami a řádek zůstane jeden. */
+.cp-item.mngr .mngr-id { flex: 1 1 0; min-width: 0; }
+.cp-item.mngr .mngr-id > b {
+    display: block;
+    font-size: calc(15px * var(--ag-font-scale, 1));
+    font-weight: 600;
+    color: var(--text-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.cp-item.mngr .mngr-id > small {
+    display: block;
+    font-size: calc(11.5px * var(--ag-font-scale, 1));
+    color: var(--text-faint);
+}
+.mngr-acc { font-family: var(--font-mono); }
+.mngr-acc[data-q="ok"] { color: var(--accent-bright, #34d399); }
+.mngr-acc[data-q="warn"] { color: var(--warning); }
+.mngr-acc[data-q="bad"] { color: var(--danger); }
+.cp-item.mngr .mngr-far { flex: 0 0 auto; text-align: right; }
+.cp-item.mngr .mngr-far b {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: calc(14.5px * var(--ag-font-scale, 1));
+    font-variant-numeric: tabular-nums;
+    color: var(--data, #e6bd76);
+    line-height: 1.15;
+}
+.cp-item.mngr .mngr-far small { display: block; font-size: calc(10.5px * var(--ag-font-scale, 1)); color: var(--text-faint); }
+.cp-item.mngr .mngr-arw {
+    flex: 0 0 auto;
+    width: 22px;
+    text-align: center;
+    color: var(--text-faint);
+    font-size: calc(19px * var(--ag-font-scale, 1));
+    line-height: 1;
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+.cp-item.mngr.mngr-open .mngr-arw { transform: rotate(90deg); color: var(--accent-bright, #34d399); }
+/* Poznámka a fotka (js/kalkulacka.js přes hook decoratePointItem) se do řádku
+   nevejdou vedle — miniatura jde na začátek řádku, poznámka pod něj.
+   `order` je nutné: decoratePointItem je připojuje AŽ po dokreslení z IndexedDB,
+   takže bez toho by skončily za rozbaleným detailem. */
+.cp-item.mngr .cp-note { order: 8; flex: 1 0 100%; margin: 2px 0 0; }
+.cp-item.mngr .cp-thumb { position: static; order: -1; width: 34px; height: 34px; top: auto; right: auto; }
+.cp-item.mngr .mngr-det { order: 9; flex: 1 0 100%; }
+
+/* Rozbalený detail bodu */
+.mngr-det {
+    margin: 8px 0 4px;
+    padding: 11px 12px;
+    border: 1px solid var(--accent-line);
+    border-radius: var(--r-md, 12px);
+    background: var(--accent-soft);
+}
+.mngr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; margin-bottom: 10px; }
+.mngr-grid i {
+    display: block;
+    font-style: normal;
+    font-size: calc(10px * var(--ag-font-scale, 1));
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+}
+.mngr-grid b {
+    font-family: var(--font-mono);
+    font-size: calc(13.5px * var(--ag-font-scale, 1));
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-color);
+}
+.mngr-q { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.mngr-q-track { flex: 1; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.10); overflow: hidden; }
+body.light-mode .mngr-q-track { background: rgba(0, 0, 0, 0.10); }
+.mngr-q-track i { display: block; height: 100%; background: var(--accent); }
+.mngr-q[data-q="warn"] .mngr-q-track i { background: var(--warning); }
+.mngr-q[data-q="bad"] .mngr-q-track i { background: var(--danger); }
+.mngr-q[data-q="none"] .mngr-q-track i { background: var(--text-faint); }
+.mngr-q-txt { font-family: var(--font-mono); font-size: calc(11.5px * var(--ag-font-scale, 1)); color: var(--text-muted); }
+.mngr-acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.mngr-act {
+    flex: 1 1 auto;
+    margin: 0;
+    padding: 9px 6px;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-sm);
+    background: var(--surface-1, rgba(255, 255, 255, 0.06));
+    color: var(--text-color);
+    font-size: calc(12.5px * var(--ag-font-scale, 1));
+    cursor: pointer;
+}
+.mngr-act-go { background: var(--accent-fill); border-color: var(--accent-fill); color: #fff; font-weight: 600; }
+.mngr-act-del { color: var(--danger); border-color: rgba(239, 68, 68, 0.40); }
+body.ag-glove .mngr-act { padding: 13px 8px; }
+
 .cp-item.mng-selectable { cursor: pointer; padding-right: 48px; }
+/* V režimu výběru sedí vpravo zaškrtávátko (.mng-check, absolutně) — šipka
+   „rozbalit" by se s ním potkala a v tom režimu stejně nic nedělá. */
+.cp-item.mngr.mng-selectable .mngr-arw { display: none; }
 .cp-item.mng-selected { border-color: var(--accent, #34d399); box-shadow: 0 0 0 1px var(--accent, #34d399) inset; }
 .mng-check {
     position: absolute;

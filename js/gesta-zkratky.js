@@ -998,12 +998,20 @@
             box.className = 'modal-overlay'; box.id = 'ag-gz-pick';
             box.innerHTML = '<div class="modal-content">' +
                 '<h2 style="color:var(--accent);margin-top:0;">Na který nástroj?</h2>' +
+                '<div id="ag-gz-pick-ges"></div>' +
                 '<input type="search" id="ag-gz-q" placeholder="Hledat nástroj…" autocomplete="off">' +
                 '<div class="modal-body" id="ag-gz-tools"></div>' +
                 '<button class="btn btn-secondary" id="ag-gz-pick-close">Zpět</button></div>';
             document.body.appendChild(box);
             box.querySelector('#ag-gz-pick-close').addEventListener('click', function () { box.style.display = 'none'; });
             box.querySelector('#ag-gz-q').addEventListener('input', function () { fillTools(this.value); });
+            // Enter = první výsledek. Když člověk ví, co hledá, dopíše dvě písmena
+            // a potvrdí — bez hledání toho jednoho řádku očima.
+            box.querySelector('#ag-gz-q').addEventListener('keydown', function (ev) {
+                if (ev.key !== 'Enter') return;
+                var first = box.querySelector('#ag-gz-tools button[data-tool]');
+                if (first) { ev.preventDefault(); first.click(); }
+            });
             box.addEventListener('click', function (ev) {
                 var b = ev.target && ev.target.closest ? ev.target.closest('button[data-tool]') : null;
                 if (!b) return;
@@ -1018,40 +1026,121 @@
             });
         }
         if (code) pendingCode = code;
+        // Dlazdice si moduly registruji prubezne - ikony proto sbirame pri kazdem
+        // otevreni znovu, ne jednou za beh appky.
+        ICO = null;
+        // Nahore je videt gesto, ktere se prave prirazuje: aktivacni tah sede,
+        // zkratka barevne. Bez toho je "Na ktery nastroj?" otazka bez kontextu.
+        var ges = box.querySelector('#ag-gz-pick-ges');
+        if (ges) {
+            var pre = load().prefix;
+            ges.innerHTML = code
+                ? ('<div class="ag-gz-pges">' + strokeSvg(pre, code)
+                    + '<div class="ag-gz-pges-t"><b>' + esc(arrows(pre)) + ' ' + esc(arrows(code)) + '</b>'
+                    + '<small>' + (load().map[code]
+                        ? 'gesto už má \u201e' + esc(toolLabel(load().map[code])) + '\u201c'
+                        : 'tohle gesto zatím nikam nevede') + '</small></div></div>')
+                : '<div class="ag-gz-pges ag-gz-pges-later"><div class="ag-gz-pges-t"><b>Nejdřív nástroj, pak gesto</b>'
+                    + '<small>vyber nástroj a hned si k němu tah nakreslíš</small></div></div>';
+        }
         fillTools('');
         box.querySelector('#ag-gz-q').value = '';
         box.style.display = 'flex';
         el.style.display = 'flex';
     }
+    // ---- ikona nastroje: pujcena z jeho VLASTNI dlazdice v Nastrojich -------------
+    // Registr (js/tools-registry.js) ikony nevede - kresli si je moduly samy pri
+    // agRegisterFieldTool(). Druha tabulka ikon by se driv nebo pozdeji rozesla se
+    // skutecnosti, tak si ikonu bereme rovnou z dlazdice. Kdyz dlazdice neni
+    // (nenacteny modul, skryto roli), zustane obecna ikona a nic se nedeje.
+    var ICO = null;
+    var ICO_GEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>';
+    var ICO_ACT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>';
+    function toolIcon(k) {
+        if (isAct(k)) return ICO_ACT;
+        if (!ICO) {
+            ICO = {};
+            try {
+                var tiles = document.querySelectorAll('#tools-modal .tool-tile');
+                for (var ti = 0; ti < tiles.length; ti++) {
+                    var key = tiles[ti].getAttribute('data-tool');
+                    if (!key) {
+                        // stejne cteni klice, jake dela js/nastroje-ukony.js (tileKey)
+                        var ms = (tiles[ti].getAttribute('onclick') || '').match(/([A-Za-z_$][\w$]*)\s*\(/g);
+                        key = ms ? ms[ms.length - 1].replace(/\s*\($/, '') : null;
+                    }
+                    var svg = key ? tiles[ti].querySelector('svg') : null;
+                    if (key && svg && !ICO[key]) ICO[key] = svg.outerHTML;
+                }
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:toolIcon'); }
+        }
+        return ICO[k] || ICO_GEN;
+    }
+    // Kategorie z registru -> barva ramecku ikony. Orientace bez cteni.
+    var CAT_CLS = {
+        '\u004d\u011b\u0159en\u00ed': 'c-m',
+        'Katastr a data': 'c-k',
+        'Pom\u016fcky': 'c-p',
+        'Vyty\u010dov\u00e1n\u00ed a n\u00e1\u010drt': 'c-v',
+        'AR a kalibrace': 'c-a'
+    };
+    function catCls(k) {
+        if (isAct(k)) return 'c-act';
+        try { return CAT_CLS[(window.AGReg && AGReg.cat) ? AGReg.cat(k) : ''] || ''; } catch (e) { return ''; }
+    }
+    function gzFold(s) {
+        s = String(s == null ? '' : s).toLowerCase();
+        try { s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:gzFold'); }
+        return s;
+    }
+    // Zvyrazni v textu to, co uzivatel napsal - i kdyz se to trefilo do popisku.
+    // Odstraneni diakritickych znamenek z NFD zachovava pocet znaku proti predloze,
+    // takze index z "ocisteneho" retezce sedi i do puvodniho textu s hacky.
+    function gzMark(text, q) {
+        if (!q) return esc(text);
+        var i = gzFold(text).indexOf(q);
+        if (i < 0) return esc(text);
+        return esc(text.slice(0, i)) + '<em>' + esc(text.slice(i, i + q.length)) + '</em>' + esc(text.slice(i + q.length));
+    }
+    function gzRow(k, lab, hint, q, first) {
+        return '<button type="button" class="ag-gz-t' + (first ? ' ag-gz-t-hot' : '') + '" data-tool="' + esc(k) + '">'
+            + '<span class="ag-gz-ic ' + catCls(k) + '">' + toolIcon(k) + '</span>'
+            + '<span class="ag-gz-tx"><b>' + gzMark(lab, q) + '</b>'
+            + (hint ? '<small>' + gzMark(hint, q) + '</small>' : '') + '</span>'
+            + (first ? '<span class="ag-gz-kb">\u21b5</span>' : '')
+            + '</button>';
+    }
     function fillTools(q) {
         var host = document.getElementById('ag-gz-tools');
         if (!host) return;
-        q = String(q || '').toLowerCase();
-        try { q = q.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:fillTools'); }
-        var g = groups(), h = '', a, hay2;
-        // ④ akce appky jdou první: v terénu se sahá spíš po nich než po oknech
+        q = gzFold(q);
+        var g = groups(), h = '', a, hay2, n = 0;
+        // (4) akce appky jdou prvni: v terenu se saha spis po nich nez po oknech
         var arows = '';
         for (var ai = 0; ai < ACTIONS.length; ai++) {
             a = ACTIONS[ai];
-            hay2 = ('akce ' + a.l).toLowerCase();
-            try { hay2 = hay2.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:fillTools'); }
+            hay2 = gzFold('akce ' + a.l);
             if (q && hay2.indexOf(q) < 0) continue;
-            arows += '<button type="button" data-tool="' + esc(a.k) + '">' + esc(a.l) + '</button>';
+            arows += gzRow(a.k, a.l, '', q, n++ === 0);
         }
         if (arows) h += '<div class="ag-gz-grp">Akce appky</div>' + arows;
         for (var i = 0; i < g.length; i++) {
             var rows = '';
             for (var j = 0; j < g[i].items.length; j++) {
                 var it = g[i].items[j];
-                var lab = it.l || it.k, hay = (lab + ' ' + (it.h || '') + ' ' + g[i].t).toLowerCase();
-                try { hay = hay.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:fillTools'); }
+                var lab = it.l || it.k;
+                // Do hledaneho textu patri i SYNONYMA z registru ("pasmo", "distance").
+                // Bez nich se nenajde nastroj, jehoz nazev clovek nezna - a to je
+                // presne ten pripad, kdy se hleda.
+                var syn = '';
+                try { syn = (window.AGReg && AGReg.aliases) ? AGReg.aliases(it.k) : ''; } catch (e) { syn = ''; }
+                var hay = gzFold(lab + ' ' + (it.h || '') + ' ' + g[i].t + ' ' + syn);
                 if (q && hay.indexOf(q) < 0) continue;
-                rows += '<button type="button" data-tool="' + esc(it.k) + '">' + esc(lab) +
-                    (it.h ? '<small>' + esc(it.h) + '</small>' : '') + '</button>';
+                rows += gzRow(it.k, lab, it.h || '', q, n++ === 0);
             }
             if (rows) h += '<div class="ag-gz-grp">' + esc(g[i].t) + '</div>' + rows;
         }
-        host.innerHTML = h || '<div class="ag-gz-empty">Nic takového tu není.</div>';
+        host.innerHTML = h || '<div class="ag-gz-empty">Nic takov\u00e9ho tu nen\u00ed.</div>';
     }
     // Vrací false = neuloženo (volající pak nechá kreslicí plochu otevřenou).
     function assign(code, k) {
@@ -1331,12 +1420,48 @@
             '  background:transparent;color:inherit;font-size:15px;}',
             '.ag-gz-empty{opacity:.6;font-size:calc(12.5px * var(--ag-font-scale,1));padding:10px 2px;}',
             '#ag-gz-tools{max-height:52vh;overflow:auto;}',
-            '#ag-gz-tools button{display:block;width:100%;text-align:left;margin-bottom:6px;padding:10px 12px;border-radius:12px;',
+            // ---- vyber nastroje (navrh B1: rychla paleta) ----
+            // Driv to byl sloupec stejnych sedych obdelniku: bez ikon, bez barev,
+            // bez poradi. Nedalo se ocima preskocit na skupinu ani poznat nastroj
+            // podle ikony. Ted ma kazdy radek SVOU ikonu (pujcenou z dlazdice),
+            // ramecek v barve kategorie, druhy radek s upresnenim z registru
+            // a to, co uzivatel napsal, je v radku zvyraznene.
+            '#ag-gz-tools button.ag-gz-t{display:flex;align-items:center;gap:11px;width:100%;text-align:left;',
+            '  margin-bottom:6px;padding:9px 11px;border-radius:12px;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.10));background:rgba(255,255,255,0.04);color:inherit;',
             '  font:inherit;font-size:calc(13px * var(--ag-font-scale,1));}',
+            // prvni vysledek = ten, ktery potvrdi Enter -> musi byt videt, ze je jiny
+            '#ag-gz-tools button.ag-gz-t-hot{border-color:var(--accent-line,rgba(47,158,116,0.42));',
+            '  background:var(--accent-soft,rgba(47,158,116,0.14));}',
+            '.ag-gz-t .ag-gz-ic{flex:0 0 auto;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;',
+            '  border:1px solid var(--accent-line,rgba(47,158,116,0.42));background:var(--accent-soft,rgba(47,158,116,0.14));',
+            '  color:var(--accent-bright,#3eb487);}',
+            '.ag-gz-t .ag-gz-ic svg{width:18px;height:18px;display:block;}',
+            // barva ramecku podle kategorie z registru (AGReg.cat)
+            '.ag-gz-t .ag-gz-ic.c-m{border-color:rgba(230,189,118,0.42);background:rgba(230,189,118,0.13);color:var(--data,#e6bd76);}',
+            '.ag-gz-t .ag-gz-ic.c-k{border-color:rgba(59,130,246,0.42);background:rgba(59,130,246,0.13);color:var(--accent-blue,#3b82f6);}',
+            '.ag-gz-t .ag-gz-ic.c-v{border-color:rgba(139,92,246,0.44);background:rgba(139,92,246,0.14);color:#a78bfa;}',
+            '.ag-gz-t .ag-gz-ic.c-a{border-color:rgba(244,114,182,0.42);background:rgba(244,114,182,0.13);color:var(--color-watch,#f472b6);}',
+            '.ag-gz-t .ag-gz-tx{flex:1;min-width:0;}',
+            '.ag-gz-t .ag-gz-tx b{display:block;font-weight:600;}',
+            '.ag-gz-t .ag-gz-tx em{font-style:normal;border-radius:3px;padding:0 2px;',
+            '  background:var(--accent-soft,rgba(47,158,116,0.28));color:var(--accent-bright,#3eb487);}',
             '#ag-gz-tools button small{display:block;opacity:.55;font-size:calc(11px * var(--ag-font-scale,1));}',
+            '.ag-gz-t .ag-gz-kb{flex:0 0 auto;font-weight:700;font-size:calc(11px * var(--ag-font-scale,1));',
+            '  color:var(--accent-bright,#3eb487);border:1px solid var(--accent-line,rgba(47,158,116,0.42));',
+            '  border-radius:6px;padding:4px 6px;}',
+            'body.ag-glove .ag-gz-t{padding:13px 12px;}',
+            'body.ag-glove .ag-gz-t .ag-gz-ic{width:40px;height:40px;}',
             '.ag-gz-grp{margin:12px 0 6px;font-weight:700;font-size:calc(12px * var(--ag-font-scale,1));',
-            '  text-transform:uppercase;letter-spacing:.06em;opacity:.6;}',
+            '  text-transform:uppercase;letter-spacing:.06em;opacity:.6;display:flex;align-items:center;gap:8px;}',
+            // linka za nazvem skupiny: oko najde predel bez cteni
+            '.ag-gz-grp:after{content:"";flex:1;height:1px;background:var(--glass-border,rgba(255,255,255,0.10));}',
+            // prouzek s gestem, ktere se prave prirazuje
+            '.ag-gz-pges{display:flex;align-items:center;gap:11px;margin:0 0 12px;padding:10px 12px;border-radius:12px;',
+            '  border:1px solid var(--accent-line,rgba(47,158,116,0.42));background:var(--accent-soft,rgba(47,158,116,0.14));}',
+            '.ag-gz-pges .ag-gz-tr{flex:0 0 auto;width:52px;height:52px;border-radius:12px;background:rgba(0,0,0,0.22);}',
+            '.ag-gz-pges-t b{display:block;font-size:calc(14px * var(--ag-font-scale,1));}',
+            '.ag-gz-pges-t small{display:block;opacity:.7;font-size:calc(11.5px * var(--ag-font-scale,1));}',
             // ---- kreslicí plocha ----
             '#' + PAD_ID + ' .gzp-area{position:relative;height:min(46vh,300px);margin:6px 0 10px;border-radius:16px;',
             '  border:2px dashed var(--glass-border,rgba(255,255,255,0.18));background:rgba(255,255,255,0.03);',
