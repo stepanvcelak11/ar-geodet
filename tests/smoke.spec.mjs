@@ -357,8 +357,7 @@ test('stavova bublina: vystredena pres celou sirku, hlaska na jednom radku', asy
     // hlaska se neláme na dva radky
     expect(m.zalomeni).toBe('nowrap');
 
-    expect(errors, errors.join('
-')).toEqual([]);
+    expect(errors, errors.join('\n')).toEqual([]);
 });
 
 // ================================================================================
