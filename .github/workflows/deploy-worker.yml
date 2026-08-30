@@ -1,0 +1,95 @@
+# ===== AR Geodet — NASAZENÍ CLOUD WORKERU =====================================
+# PROČ EXISTUJE: cloud/worker.js se do 30. 8. 2026 nasazoval ručně (`wrangler
+# deploy` z počítače, kde je někdo přihlášený do Cloudflare). Opakovaně se stalo,
+# že změna ležela v repu dny až týdny a na serveru běžela stará verze — appka pak
+# volala cesty, které nasazený worker vůbec neznal, a chovala se „záhadně".
+# Poznámka „ZBÝVÁ nasadit cloud/worker.js" se v poznámkách k projektu opakuje
+# u pěti různých úkolů. Tohle tu třídu problémů ruší.
+#
+# CO DĚLÁ: po pushi na main, když se sáhlo do cloud/**, nasadí worker a pak
+# OVĚŘÍ, že /health hlásí tutéž verzi `v`, jaká je v repu. Samotné „deploy
+# proběhl" nestačí — Cloudflare umí vrátit úspěch a přitom nechat běžet starou
+# verzi (jiný účet, jiný název služby, chybějící binding).
+#
+# ⚠ CO MUSÍŠ NASTAVIT TY (jednorázově, my na to nemáme přístup):
+#   GitHub → Settings → Secrets and variables → Actions → New repository secret
+#     CLOUDFLARE_API_TOKEN   — dash.cloudflare.com → My Profile → API Tokens →
+#                              Create Token → šablona „Edit Cloudflare Workers"
+#                              (musí mít i D1: Account → D1 → Edit)
+#     CLOUDFLARE_ACCOUNT_ID  — dash.cloudflare.com → Workers & Pages, vpravo
+#                              v postranním sloupci „Account ID"
+#   Bez nich se běh NEPOKAZÍ — jen se přeskočí a napíše, co chybí. Tajemství
+#   OWNER_KEY zůstává tam, kde je (secret workeru), sem NEPATŘÍ.
+#
+# Nasadit jde i ručně: Actions → „Nasadit cloud worker" → Run workflow.
+# ==============================================================================
+name: Nasadit cloud worker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cloud/**'
+      - '.github/workflows/deploy-worker.yml'
+  workflow_dispatch:
+
+# Dvě nasazení naráz by se přebíjela a nedalo by se poznat, které vyhrálo.
+concurrency:
+  group: deploy-worker
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Jsou tajemství nastavená?
+        id: secrets
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$TOKEN" ] || [ -z "$ACCOUNT" ]; then
+            echo "mam=ne" >> "$GITHUB_OUTPUT"
+            {
+              echo "### Nasazení přeskočeno"
+              echo ""
+              echo "Chybí tajemství v nastavení repozitáře:"
+              [ -z "$TOKEN" ] && echo "- \`CLOUDFLARE_API_TOKEN\`"
+              [ -z "$ACCOUNT" ] && echo "- \`CLOUDFLARE_ACCOUNT_ID\`"
+              echo ""
+              echo "Přidej je v Settings → Secrets and variables → Actions."
+              echo "Do té doby zůstává nasazená stará verze workeru."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "mam=ano" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.secrets.outputs.mam == 'ano'
+        with:
+          node-version: '20'
+
+      - name: wrangler deploy
+        if: steps.secrets.outputs.mam == 'ano'
+        working-directory: cloud
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@3 deploy
+
+      # Cloudflare propisuje novou verzi na hranu pár sekund; bez čekání by
+      # kontrola občas ještě viděla tu starou a shodila zelený běh nadarmo.
+      - name: Počkat, než se verze propíše
+        if: steps.secrets.outputs.mam == 'ano'
+        run: sleep 20
+
+      - uses: actions/setup-python@v5
+        if: steps.secrets.outputs.mam == 'ano'
+        with:
+          python-version: '3.12'
+
+      - name: Běží na serveru to, co je v repu?
+        if: steps.secrets.outputs.mam == 'ano'
+        run: python scripts/check_worker_deployed.py

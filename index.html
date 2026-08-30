@@ -964,6 +964,12 @@
          do Protokolu chyb), AG.scope (posluchači zrušitelní najednou při zavření
          okna) a AG.style. MUSÍ být hned za err-log.js, dřív než moduly. -->
     <script defer src="js/ag-guard.js"></script>
+    <!-- VYPINAC MODULU NA DALKU (odpojitelne: smaz tento radek, js/priznaky.js,
+         zaznam v sw.js a blok „vypinac modulu" v js/lazy-load.js) — vlastnik zhasne
+         rozbity nastroj z Konzole vlastnika a appka to pozna pri nejblizsim /config.
+         MUSI byt PRED js/lazy-load.js, jinak lazy fronta odstartuje driv, nez je
+         koho se ptat. Seznam si drzi v telefonu, takze plati i pri startu offline. -->
+    <script defer src="js/priznaky.js"></script>
     <!-- MŮSTEK DIALOGŮ — agInfo()/agAsk() = jednotné in-app dialogy místo nativních alert()/confirm() -->
     <!-- JAZYKY (odpojitelne: smaz tento radek, js/jazyky.js, data/jazyky.json
          a oba zaznamy v sw.js) — preklad appky do EN/DE/PL proti slovniku, kde
@@ -1016,9 +1022,14 @@
     <!-- REZIM VLASTNIKA (odpojitelne: smaz tento radek, js/vlastnik.js, zaznam v sw.js
          a tri mista v js/ucty.js oznacena komentarem „rezim vlastnika") — zvlastni
          prihlaseni klicem primo na brane: odemkne vsechna opravneni a prida do „Vice"
-         Konzoli vlastnika (vsechny firmy, schranka, protokol chyb, stav serveru).
-         NENI lazy: tlacitko musi byt na brane driv, nez ji uzivatel odklikne. -->
-    <script defer src="js/vlastnik.js"></script>
+         Konzoli vlastnika (vsechny firmy, vypinac modulu, chyby od lidi, zebricek
+         nastroju, stav serveru).
+         LAZY ZAMERNE: pro beznou praci je to mrtvych 50 kB ve startu. Gesto na
+         brane (dlouhy stisk znaku appky, 1,6 s) se navesi, jakmile se modul
+         dotahne — brana stoji na obrazovce radove desitky sekund, takze rozdil
+         nikdo nepozna. Preskoceni brany v rezimu vlastnika NA TOMHLE MODULU
+         NEZAVISI: rozhoduje o nem js/ucty.js podle priznaku v localStorage. -->
+    <script type="ag/lazy" data-src="js/vlastnik.js"></script>
     <script type="ag/lazy" data-src="js/satelity.js"></script>
     <script type="ag/lazy" data-src="js/kalkulacka.js"></script>
     <script type="ag/lazy" data-src="js/export.js"></script>

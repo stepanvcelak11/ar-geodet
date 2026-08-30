@@ -59,6 +59,7 @@ const ASSETS_TO_CACHE = [
     './js/geo-core.js',
     './js/err-log.js',
     './js/ag-guard.js',
+    './js/priznaky.js',
     './js/jazyky.js',
     './js/dialog-bridge.js',
     './js/vstupy.js',

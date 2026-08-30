@@ -77,6 +77,72 @@
 
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
+    // ---- ODESÍLÁNÍ VLASTNÍKOVI --------------------------------------------------
+    // Do 30. 8. 2026 zůstal protokol chyb jen v tom telefonu, kde chyba spadla —
+    // o pádech u lidí v terénu se vlastník aplikace nedozvěděl nic a čekal, až mu
+    // někdo napíše. Odsud chodí na server jen to, co je k opravě potřeba:
+    //   hláška, soubor, řádek, kolikrát se to opakovalo, verze appky, druh telefonu.
+    // ⚠ NECHODÍ ODSUD: souřadnice, jména bodů ani zakázek, zásobník volání (může
+    //   nést cesty a hodnoty), nic z měření. Platí totéž pravidlo jako u „Nahlásit".
+    //
+    // ⚠ ODESÍLÁNÍ NESMÍ SAMO DĚLAT PROBLÉM. Proto: nejvýš jednou za 10 minut,
+    //   nejvýš 20 záznamů v dávce, jen když je člověk přihlášený do cloudové firmy
+    //   a jen když je síť. Chybová smyčka (60 výjimek za sekundu z AR smyčky) tak
+    //   nemůže ani zaplnit denní limit serveru, ani vybít baterii vysíláním.
+    var SEND_GAP = 600000;         // 10 min mezi dávkami
+    var SEND_KEY = 'agErrSent_v1'; // razítko posledního odeslaného záznamu
+    var _sendT = 0;
+
+    function sentTs() { try { return parseInt(localStorage.getItem(SEND_KEY) || '0', 10) || 0; } catch (e) { return 0; } }
+    function setSentTs(v) { try { localStorage.setItem(SEND_KEY, String(v)); } catch (e) { } }
+
+    function druhTelefonu() {
+        try {
+            var u = navigator.userAgent || '';
+            if (/iPhone|iPad|iPod/.test(u)) return 'iOS';
+            if (/Android/.test(u)) return 'Android';
+            if (/Windows/.test(u)) return 'Windows';
+            if (/Mac/.test(u)) return 'Mac';
+        } catch (e) { }
+        return '?';
+    }
+
+    function odeslat() {
+        try {
+            if (navigator.onLine === false) return;
+            var now = Date.now();
+            if (now - _sendT < SEND_GAP) return;
+            var U = window.AGUcty;
+            // Bez cloudové firmy není kam ani za koho posílat (a lokální firma
+            // server vůbec nemá). Ticho je tady správná odpověď, ne chyba.
+            if (!U || !U.isCloud || !U.isCloud() || !U.currentUser || !U.currentUser()) return;
+            var od = sentTs();
+            var nove = load().filter(function (e) { return (e.t || 0) > od; });
+            if (!nove.length) return;
+            _sendT = now;
+            var davka = nove.slice(-20);
+            var maxT = 0;
+            var items = davka.map(function (e) {
+                if ((e.t || 0) > maxT) maxT = e.t || 0;
+                return { t: e.t, sig: e.sig, msg: e.msg, src: e.src, line: e.line, n: e.n || 1 };
+            });
+            U.cloudFetch('/errors', {
+                method: 'POST',
+                body: { ver: verzeAppky(), dev: druhTelefonu(), items: items }
+            }).then(function (r) {
+                // Razítko se posouvá JEN při úspěchu — jinak by se chyby z terénu
+                // (kde se dotaz nezdaří nejčastěji) tiše zahodily a nikdy nedošly.
+                if (r && r.ok) setSentTs(maxT || now);
+            }).catch(function () { });
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'err-log:odeslat'); }
+    }
+
+    // Zkusit v klidu po startu a pak jednou za deset minut. Ne hned při chybě:
+    // ve chvíli pádu má appka jiné starosti a další požadavek do sítě jí nepomůže.
+    setTimeout(odeslat, 20000);
+    (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(odeslat, SEND_GAP);
+    window.addEventListener('online', function () { setTimeout(odeslat, 4000); });
+
     // ---- HLÁŠENÍ Z TERÉNU ------------------------------------------------------
     // Chyby se sbíraly, ale nikdo se k nim nedostal: „Kopírovat" dalo holý výpis
     // hlášek bez jediného údaje o tom, CO za appku a NA ČEM zrovna běželo. Z věty
@@ -217,6 +283,7 @@
 
     window.agErrLog = {
         show: show, list: load, report: hlaseni,
+        send: odeslat,
         record: function (m) { record(m, 'manual', 0, 0, ''); }
     };
 

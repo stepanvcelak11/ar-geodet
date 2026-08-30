@@ -14,8 +14,10 @@
 # CO SKRIPT DELA: precte ocekavane `v` z cloud/worker.js, zavola /health zive
 # sluzby a porovna. Rozdil = zmena lezi v repu a NENI nasazena.
 #
-# ZAMERNE NENI V CI: chodi po siti a zavisi na cizi sluzbe. CI ma byt o kodu.
-# Tenhle skript se pousti rucne — hlavne PO nasazeni, jako potvrzeni.
+# KDE SE POUSTI: v .github/workflows/deploy-worker.yml HNED PO `wrangler deploy`
+# jako potvrzeni, ze se nasadilo to, co je v repu (Cloudflare umi vratit uspech
+# a pritom nechat bezet starou verzi — jiny ucet, jiny nazev sluzby). Do testu
+# kodu ale NEPATRI: chodi po siti a zavisi na cizi sluzbe. Rucne kdykoli.
 #
 # Pouziti:
 #   python scripts/check_worker_deployed.py

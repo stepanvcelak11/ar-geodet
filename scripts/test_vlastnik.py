@@ -82,8 +82,17 @@ async def main():
     from playwright.async_api import async_playwright
 
     srv = subprocess.Popen([sys.executable, os.path.join(ROOT, 'scripts', 'test_server.py'), str(PORT)],
-                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    time.sleep(1.5)
+                           cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # Cekat, az server OPRAVDU odpovi. Pevna pauza 1,5 s stacila jen na volnem
+    # stroji - se soubeznou session vedle server nabehl pozdeji a cely beh pak
+    # spadl na "Page.goto: Timeout", coz vypada jako chyba appky, a neni.
+    import urllib.request
+    for _ in range(60):
+        try:
+            urllib.request.urlopen(URL, timeout=1).read(64)
+            break
+        except Exception:
+            time.sleep(0.5)
     try:
         async with async_playwright() as pw:
             browser = await pw.chromium.launch()
@@ -211,10 +220,12 @@ async def main():
                 };
             }""")
             ok('konzole se otevrela', kon['open'])
-            ok('konzole ma vsechny polozky', kon['polozek'] == 9, kon['polozek'])
+            ok('konzole ma vsechny polozky', kon['polozek'] == 12, kon['polozek'])
             ok('konzole nabizi vsechny firmy', 'Všechny firmy' in kon['texty'], kon['texty'])
             ok('konzole nabizi schranku', 'Zprávy od lidí' in kon['texty'])
             ok('konzole nabizi protokol chyb', 'Protokol chyb' in kon['texty'])
+            ok('konzole nabizi vypinac modulu', 'Vypínač modulů' in kon['texty'])
+            ok('konzole nabizi chyby od lidi', 'Chyby od lidí' in kon['texty'])
 
             if online:
                 try:

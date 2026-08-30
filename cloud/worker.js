@@ -196,6 +196,18 @@ async function configPayload(env, firmId) {
             if (n && n.txt && (!n.until || n.until > Date.now())) notice = n;
         }
     } catch (e) { notice = null; }
+    // VYPINAC MODULU. Kdyz se neco rozbije, vlastnik to zhasne z konzole a appka
+    // to pozna pri nejblizsim /config - bez cekani na nove vydani a bez toho, aby
+    // si kazdy musel stahnout aktualizaci. Chodi to TIMHLE kanalem schvalne:
+    // klient uz /config obnovuje sam, takze to nestoji zadny dotaz navic.
+    let flags = null;
+    try {
+        const rowF = await env.DB.prepare("SELECT v FROM meta WHERE k='flags'").first();
+        if (rowF && rowF.v) {
+            const g = JSON.parse(rowF.v);
+            if (g && Array.isArray(g.off) && g.off.length) flags = g;
+        }
+    } catch (e) { flags = null; }
     return {
         firm: { code: firm.code, name: firm.name, autoLockMin: firm.auto_lock, perms: perms },
         users: users,
@@ -206,6 +218,7 @@ async function configPayload(env, firmId) {
         },
         request: request || null,
         notice: notice,
+        flags: flags,
         serverTime: Date.now()
     };
 }
@@ -280,7 +293,17 @@ async function ensureOwnerSchema(env) {
         + "state TEXT NOT NULL DEFAULT 'new', decided INTEGER, reply TEXT)",
         'CREATE INDEX IF NOT EXISTS idx_freq_firm ON firm_requests(firm_id, id)',
         'CREATE TABLE IF NOT EXISTS stats_firm ('
-        + 'day TEXT NOT NULL, firm_id TEXT NOT NULL, n INTEGER NOT NULL, PRIMARY KEY(day, firm_id))'
+        + 'day TEXT NOT NULL, firm_id TEXT NOT NULL, n INTEGER NOT NULL, PRIMARY KEY(day, firm_id))',
+        // CHYBY OD LIDI. Do 30. 8. 2026 zustaval protokol chyb (js/err-log.js) jen
+        // v tom jednom telefonu, kde chyba spadla - o padech u uzivatelu se vlastnik
+        // nedozvedel vubec nic. Sem chodi POUZE hlaska, soubor, radek, verze appky
+        // a jmeno uctu; ZADNE souradnice, zadna data mereni, zadny obsah zakazky.
+        'CREATE TABLE IF NOT EXISTS errors ('
+        + 'id INTEGER PRIMARY KEY AUTOINCREMENT, firm_id TEXT NOT NULL, uname TEXT, '
+        + 'ts INTEGER NOT NULL, sig TEXT NOT NULL, msg TEXT NOT NULL, src TEXT, '
+        + 'line INTEGER, n INTEGER NOT NULL DEFAULT 1, ver TEXT, dev TEXT)',
+        'CREATE INDEX IF NOT EXISTS idx_err_ts ON errors(ts)',
+        'CREATE INDEX IF NOT EXISTS idx_err_firm ON errors(firm_id, ts)'
     ];
     for (const s of creates) { try { await env.DB.prepare(s).run(); } catch (e) {} }
     _ownerMig = true;
@@ -690,6 +713,9 @@ export default {
                     .bind(new Date(Date.now() - 60 * 864e5).toISOString().slice(0, 10)).run().catch(() => {}));
                 ctx.waitUntil(env.DB.prepare('DELETE FROM stats_firm WHERE day<?')
                     .bind(new Date(Date.now() - 60 * 864e5).toISOString().slice(0, 10)).run().catch(() => {}));
+                // chyby starsi nez 90 dni uz nikomu nic nereknou (a ta tabulka roste nejrychleji)
+                ctx.waitUntil(env.DB.prepare('DELETE FROM errors WHERE ts<?')
+                    .bind(Date.now() - 90 * 864e5).run().catch(() => {}));
             }
         } catch (e) {}
         if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
@@ -712,7 +738,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 8, wx: true, watch: true, fb: true, owner: true, seen: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 9, wx: true, watch: true, fb: true, owner: true, seen: true, flags: true, errors: true });
 
             // ---------------- ČHMÚ: měření z nejbližší stanice ---------------
             // veřejné (bez tokenu) — počasí není firemní údaj
@@ -1070,8 +1096,14 @@ export default {
                         const row = await env.DB.prepare("SELECT v FROM meta WHERE k='notice'").first();
                         if (row && row.v) notice = JSON.parse(row.v);
                     } catch (e) { notice = null; }
+                    // stav vypinace chodi s prehledem, at si ho konzole nemusi tahat zvlast
+                    let flagsO = null;
+                    try {
+                        const rowG = await env.DB.prepare("SELECT v FROM meta WHERE k='flags'").first();
+                        if (rowG && rowG.v) flagsO = JSON.parse(rowG.v);
+                    } catch (e) { flagsO = null; }
                     return json({
-                        firms: firms, requests: requests, days: days, notice: notice,
+                        firms: firms, requests: requests, days: days, notice: notice, flags: flagsO,
                         limits: { reqPerDay: 100000, plan: 'Workers Free', firmMaxDefault: FIRM_MAX_DEFAULT, foundMax: FOUND_MAX },
                         serverTime: Date.now()
                     });
@@ -1159,6 +1191,73 @@ export default {
                     const n = { txt: txt, ts: Date.now(), until: Date.now() + days2 * 864e5 };
                     await env.DB.prepare("INSERT OR REPLACE INTO meta(k,v) VALUES('notice',?)").bind(JSON.stringify(n)).run();
                     return json({ ok: true, notice: n });
+                }
+
+                // VYPINAC MODULU - seznam vypnutych ID (nastroj nebo js/soubor.js).
+                // Zapsat smi jen vlastnik; cist ho pak muze kdokoli prihlaseny
+                // (chodi v /config), coz je v poradku: je to seznam nazvu, nic vic.
+                if (path === '/owner/flags' && (req.method === 'PUT' || req.method === 'POST')) {
+                    const b = await req.json().catch(() => null) || {};
+                    const off = Array.isArray(b.off) ? b.off : [];
+                    const clean = [];
+                    for (const x of off) {
+                        const v = String(x || '').trim().slice(0, 60);
+                        if (v && clean.indexOf(v) === -1) clean.push(v);
+                        if (clean.length >= 60) break;
+                    }
+                    if (!clean.length) {
+                        await env.DB.prepare("DELETE FROM meta WHERE k='flags'").run();
+                        return json({ ok: true, flags: null });
+                    }
+                    const g = { off: clean, ts: Date.now() };
+                    await env.DB.prepare("INSERT OR REPLACE INTO meta(k,v) VALUES('flags',?)").bind(JSON.stringify(g)).run();
+                    return json({ ok: true, flags: g });
+                }
+
+                // CHYBY OD LIDI, seskupene podle podpisu. Zajima "co pada nejcasteji
+                // a kolika firmam", ne vypis jednotlivych radku - proto GROUP BY sig
+                // a pocet ROZDILNYCH firem (jedna zacyklena smycka u jednoho cloveka
+                // by jinak prebila skutecnou chybu, ktera trapi deset lidi).
+                if (req.method === 'GET' && path === '/owner/errors') {
+                    const dniE = Math.max(1, Math.min(90, parseInt(url.searchParams.get('dni'), 10) || 14));
+                    const odE = Date.now() - dniE * 864e5;
+                    let rowsE = [];
+                    try {
+                        rowsE = (await env.DB.prepare(
+                            'SELECT sig, MAX(msg) AS msg, MAX(src) AS src, MAX(line) AS line, '
+                            + 'SUM(n) AS n, COUNT(DISTINCT firm_id) AS firms, MAX(ts) AS last, MAX(ver) AS ver '
+                            + 'FROM errors WHERE ts>=? GROUP BY sig ORDER BY n DESC LIMIT 80').bind(odE).all()).results;
+                    } catch (e) { rowsE = []; }
+                    let totalE = 0;
+                    try {
+                        const t = await env.DB.prepare('SELECT SUM(n) AS n FROM errors WHERE ts>=?').bind(odE).first();
+                        totalE = (t && t.n) || 0;
+                    } catch (e) { totalE = 0; }
+                    return json({ dni: dniE, total: totalE, rows: rowsE });
+                }
+                if (req.method === 'DELETE' && path === '/owner/errors') {
+                    try { await env.DB.prepare('DELETE FROM errors').run(); } catch (e) {}
+                    return json({ ok: true });
+                }
+
+                // KTERE NASTROJE SE DOOPRAVDY POUZIVAJI - napric VSEMI firmami.
+                // `usage` sbira zaznamy uz dlouho, ale doted je videla jen firma sama;
+                // vlastnik tak nemel jak poznat, co ma cenu doladovat a co je mrtve.
+                if (req.method === 'GET' && path === '/owner/usage') {
+                    const dniU = Math.max(1, Math.min(365, parseInt(url.searchParams.get('dni'), 10) || 30));
+                    const odU = Date.now() - dniU * 864e5;
+                    let rowsU = [], firmsU = 0, lidiU = 0;
+                    try {
+                        rowsU = (await env.DB.prepare(
+                            "SELECT k, COUNT(*) AS n, COUNT(DISTINCT firm_id) AS firms, COUNT(DISTINCT uid) AS lidi, MAX(ts) AS last "
+                            + "FROM usage WHERE t='tool' AND ts>=? AND k IS NOT NULL AND k<>'' GROUP BY k ORDER BY n DESC LIMIT 200")
+                            .bind(odU).all()).results;
+                        const c = await env.DB.prepare(
+                            "SELECT COUNT(DISTINCT firm_id) AS f, COUNT(DISTINCT uid) AS u FROM usage WHERE t='tool' AND ts>=?")
+                            .bind(odU).first();
+                        firmsU = (c && c.f) || 0; lidiU = (c && c.u) || 0;
+                    } catch (e) { rowsU = []; }
+                    return json({ dni: dniU, firms: firmsU, lidi: lidiU, rows: rowsU });
                 }
 
                 return err(404, 'Neznámá cesta konzole.');
@@ -1423,6 +1522,48 @@ export default {
                     chat: chatRows.reverse(),
                     note: 'Hesla jsou jen PBKDF2 otisky, nejsou čitelná. Slouží jako pojistka/archiv.'
                 });
+            }
+
+            // ---------------- chyby z telefonu -------------------------------
+            // Protejsek js/err-log.js. Posila se JEN hlaska, soubor, radek, pocet
+            // opakovani, verze appky a hrube oznaceni zarizeni - zadne souradnice,
+            // zadny obsah mereni. Vlastnik to cte seskupene v GET /owner/errors.
+            // ⚠ ODESILANI NESMI SHODIT APPKU ANI VYCERPAT LIMIT: klient posila
+            //   nejvys jednou za deset minut, tady je strop 20 zaznamu na davku a
+            //   200 zaznamu na firmu a den. Chybova smycka v jednom telefonu tak
+            //   nemuze zaplnit databazi ostatnim.
+            if (req.method === 'POST' && path === '/errors') {
+                const b = await req.json().catch(() => null);
+                if (!b || !Array.isArray(b.items)) return err(400, 'Chybí items[].');
+                const items = b.items.slice(0, 20);
+                if (!items.length) return json({ ok: true, saved: 0 });
+                const ver = b.ver != null ? String(b.ver).slice(0, 20) : null;
+                const dev = b.dev != null ? String(b.dev).slice(0, 20) : null;
+                try {
+                    const dnes = await env.DB.prepare('SELECT COUNT(*) AS n FROM errors WHERE firm_id=? AND ts>=?')
+                        .bind(me.firm_id, Date.now() - 864e5).first();
+                    if (dnes && dnes.n >= 200) return json({ ok: true, saved: 0, plno: true });
+                } catch (e) { await ensureOwnerSchema(env); }
+                const stE = env.DB.prepare(
+                    'INSERT INTO errors(firm_id,uname,ts,sig,msg,src,line,n,ver,dev) VALUES(?,?,?,?,?,?,?,?,?,?)');
+                const rowsE = items.map(it => stE.bind(
+                    me.firm_id,
+                    String(me.name || '?').slice(0, 40),
+                    Math.min(Math.max(0, +it.t || Date.now()), Date.now() + 864e5),
+                    String(it.sig || it.msg || '?').slice(0, 200),
+                    String(it.msg || '?').slice(0, 300),
+                    it.src != null ? String(it.src).slice(0, 120) : null,
+                    parseInt(it.line, 10) || 0,
+                    Math.max(1, Math.min(9999, parseInt(it.n, 10) || 1)),
+                    ver, dev
+                ));
+                try { await env.DB.batch(rowsE); }
+                catch (e) {
+                    // tabulka jeste neexistuje (starsi nasazeni) - doplnit a zkusit znovu
+                    await ensureOwnerSchema(env);
+                    try { await env.DB.batch(rowsE); } catch (e2) { return json({ ok: false, saved: 0 }); }
+                }
+                return json({ ok: true, saved: rowsE.length });
             }
 
             // ---------------- záznamy užívání --------------------------------

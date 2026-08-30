@@ -65,6 +65,19 @@
 
     function inject(item) {
         if (loaded[item.src]) return;
+        // VYPINAC MODULU (js/priznaky.js): vypnuty modul se ani nestahuje.
+        // Znaci se jako nacteny a projde se pres done(), aby se spustily
+        // callbacky z need() — jinak by na nem volajici visel navzdy. Dvojice
+        // outstanding++ / done() je zamerna: vysledek je nula, ale probehne
+        // i kontrola "uz je hotovo" na konci done().
+        try {
+            if (window.AGFlags && window.AGFlags.off(item.src)) {
+                loaded[item.src] = true;
+                outstanding++;
+                done(item.src);
+                return;
+            }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'lazy-load:flags'); }
         loaded[item.src] = true;
         outstanding++;
         var s = document.createElement('script');

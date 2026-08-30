@@ -46,6 +46,14 @@
     var STYLE_ID = 'agv-style';
     var API_FALLBACK = 'https://ar-geodet-api.ar-geodet.workers.dev';
     var HOLD_MS = 1600;               // jak dlouho drzet znak appky, nez se vstup otevre
+    var VERIFY_GAP = 6 * 3600000;     // jak casto se klic potichu preveri na serveru
+    var LS_VERIF = 'agVlastnikOveren_v1';
+
+    // Konzole je jedno okno s nekolika pohledy: '' = rozcestnik, 'flags' = vypinac
+    // modulu, 'errors' = chyby od lidi, 'usage' = zebricek nastroju. Zamerne jedno
+    // okno: druhy modal nad modalem se na telefonu spatne zaviral a pod nim zustaval
+    // otevreny prvni.
+    var _view = '', _load = null, _pick = null, _dni = 14;
 
     var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
         '<path d="M14.7 6.3a5 5 0 0 0 6 6l-9.9 9.9a2.1 2.1 0 0 1-3 0l-3-3a2.1 2.1 0 0 1 0-3z"/><circle cx="18" cy="6" r="3"/></svg>';
@@ -87,12 +95,15 @@
     // Vlastní fetch s hlavičkou X-Owner-Key (AGUcty.cloudFetch ji předat neumí).
     // Timeout ze stejného důvodu jako u schránky: na „mrtvém, ale otevřeném" spoji
     // visí dotaz jinak minuty a drží rádio ve vysokém příkonu.
-    function api(path, k, timeoutMs) {
+    function api(path, k, timeoutMs, opts) {
+        opts = opts || {};
         var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
         var to = null, p;
         try {
             p = fetch(base() + path, {
+                method: opts.method || 'GET',
                 headers: { 'Content-Type': 'application/json', 'X-Owner-Key': (k == null ? key() : k) },
+                body: opts.body != null ? JSON.stringify(opts.body) : undefined,
                 signal: ctrl ? ctrl.signal : undefined
             });
             if (ctrl) to = setTimeout(function () { try { ctrl.abort(); } catch (e) { swallow(e, 'abort'); } }, timeoutMs || 15000);
@@ -265,7 +276,38 @@
             '  background:var(--glass-bg,rgba(255,255,255,0.04));border-radius:11px;padding:9px 11px;word-break:break-word;}',
             '#' + MODAL_ID + ' .agv-st b{color:var(--text-color,#e6e8eb);}',
             '#' + MODAL_ID + ' .agv-st .ok{color:var(--accent,#2f9e74);}',
-            '#' + MODAL_ID + ' .agv-st .bad{color:#e0574a;}'
+            '#' + MODAL_ID + ' .agv-st .bad{color:#e0574a;}',
+            // podpohledy konzole
+            '#' + MODAL_ID + ' .agv-back{background:transparent;border:none;color:var(--accent,#2f9e74);',
+            '  font:700 13px/1 var(--font-ui,system-ui);padding:2px 0 10px;cursor:pointer;}',
+            '#' + MODAL_ID + ' .agv-h2{font:800 17px/1.25 var(--font-display,system-ui);color:var(--text-color,#e6e8eb);margin:0 0 6px;}',
+            '#' + MODAL_ID + ' .agv-p{font:500 12.5px/1.55 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);margin:0 0 12px;}',
+            '#' + MODAL_ID + ' .agv-p code{font-family:var(--font-mono,monospace);}',
+            '#' + MODAL_ID + ' .agv-filtr{display:flex;gap:6px;flex-wrap:wrap;}',
+            '#' + MODAL_ID + ' .agv-b{border:1px solid var(--glass-border,rgba(255,255,255,0.16));background:transparent;',
+            '  color:var(--text-muted,#9aa1ac);border-radius:9px;padding:7px 11px;font:600 11.5px/1 var(--font-ui,system-ui);cursor:pointer;flex:none;}',
+            '#' + MODAL_ID + ' .agv-b.on{border-color:var(--accent,#2f9e74);background:var(--accent-soft,rgba(47,158,116,0.14));color:var(--accent,#2f9e74);}',
+            '#' + MODAL_ID + ' .agv-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;',
+            '  background:var(--glass-bg,rgba(255,255,255,0.04));margin:0 0 5px;cursor:pointer;}',
+            '#' + MODAL_ID + ' .agv-row.off{background:rgba(224,87,74,0.10);}',
+            '#' + MODAL_ID + ' .agv-row input{flex:none;margin:0;width:18px;height:18px;}',
+            '#' + MODAL_ID + ' .agv-row b{display:block;font:600 12.5px/1.3 var(--font-ui,system-ui);color:var(--text-color,#e6e8eb);}',
+            '#' + MODAL_ID + ' .agv-row small{display:block;margin-top:1px;font:500 10.5px/1.2 var(--font-mono,monospace);color:var(--text-muted,#9aa1ac);}',
+            '#' + MODAL_ID + ' .agv-err{border-left:3px solid #e0574a;background:var(--glass-bg,rgba(255,255,255,0.04));',
+            '  border-radius:0 10px 10px 0;padding:8px 11px;margin:0 0 7px;}',
+            '#' + MODAL_ID + ' .agv-err .hd{display:flex;align-items:center;gap:8px;margin-bottom:3px;}',
+            '#' + MODAL_ID + ' .agv-err .hd b{font:800 13px/1 var(--font-display,system-ui);color:#e0574a;}',
+            '#' + MODAL_ID + ' .agv-err .fm{font:600 10px/1 var(--font-ui,system-ui);color:#d4a02c;',
+            '  background:rgba(212,160,44,0.14);border-radius:999px;padding:3px 7px;}',
+            '#' + MODAL_ID + ' .agv-err .dt{margin-left:auto;font:500 10.5px/1 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
+            '#' + MODAL_ID + ' .agv-err .ms{font:500 12.5px/1.45 var(--font-ui,system-ui);color:var(--text-color,#e6e8eb);word-break:break-word;}',
+            '#' + MODAL_ID + ' .agv-err .sr{margin-top:3px;font:500 10.5px/1.3 var(--font-mono,monospace);color:var(--text-muted,#9aa1ac);}',
+            '#' + MODAL_ID + ' .agv-bar{position:relative;border-radius:9px;overflow:hidden;margin:0 0 5px;',
+            '  background:var(--glass-bg,rgba(255,255,255,0.04));}',
+            '#' + MODAL_ID + ' .agv-bar .fill{position:absolute;inset:0 auto 0 0;background:var(--accent-soft,rgba(47,158,116,0.18));}',
+            '#' + MODAL_ID + ' .agv-bar .tx{position:relative;padding:7px 10px;}',
+            '#' + MODAL_ID + ' .agv-bar .tx b{display:block;font:600 12.5px/1.3 var(--font-ui,system-ui);color:var(--text-color,#e6e8eb);}',
+            '#' + MODAL_ID + ' .agv-bar .tx small{display:block;margin-top:1px;font:500 10.5px/1.2 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}'
         ].join('');
         document.head.appendChild(st);
     }
@@ -289,6 +331,21 @@
                 ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.9 2.9M16.2 16.2l2.9 2.9M2 12h4M18 12h4M4.9 19.1l2.9-2.9M16.2 7.8l2.9-2.9"/></svg>',
                 t: 'Stav serveru', d: 'Verze workeru, co má zapnuté a jestli klíč sedí',
                 keep: true, run: function () { stav(true); }
+            },
+            {
+                ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="22" height="12" rx="6"/><circle cx="8" cy="12" r="3"/></svg>',
+                t: 'Vypínač modulů', d: 'Zhasnout rozbitý nástroj všem, bez čekání na novou verzi',
+                keep: true, run: function () { jdi('flags'); }
+            },
+            {
+                ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.6 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>',
+                t: 'Chyby od lidí', d: 'Co padá uživatelům v terénu, seřazeno podle četnosti',
+                keep: true, run: function () { jdi('errors'); }
+            },
+            {
+                ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-5 3 3 5-7"/></svg>',
+                t: 'Co lidi doopravdy používají', d: 'Žebříček nástrojů napříč všemi firmami — i ty, co nepoužil nikdo',
+                keep: true, run: function () { jdi('usage'); }
             },
             {
                 sec: 'Tenhle telefon',
@@ -345,9 +402,236 @@
         return m;
     }
 
+    // Kazdy pohled ma jine rozumne okno: u chyb je 14 dni akorat, u zebricku
+    // nastroju by z nej vypadly ty sezonni, tak se zacina mesicem.
+    function jdi(v) {
+        _view = v; _load = null; _pick = null;
+        if (v === 'errors') _dni = 14;
+        if (v === 'usage') _dni = 30;
+        render();
+    }
+
+    // Spolecna hlavicka podpohledu (nadpis + zpet na rozcestnik).
+    function hlava(nadpis, popis) {
+        return '<button type="button" class="agv-back" id="agv-zpet">‹ Konzole</button>' +
+            '<div class="agv-h2">' + esc(nadpis) + '</div>' +
+            (popis ? '<div class="agv-p">' + popis + '</div>' : '');
+    }
+    function wireZpet(b) {
+        var z = b.querySelector('#agv-zpet');
+        if (z) z.addEventListener('click', function () { jdi(''); });
+    }
+    function cekam(b, txt) { b.innerHTML = '<div class="agv-p" style="padding:26px 4px;text-align:center;">' + esc(txt || 'Načítám…') + '</div>'; }
+
+    // ---- pohled: VYPINAC MODULU -------------------------------------------------
+    // Seznam nabizi nastroje z registru (js/tools-registry.js), protoze prave ty
+    // ma smysl zhasinat. Pole dole bere cokoli — vcetne `js/soubor.js`, cimz se da
+    // vypnout cely lazy modul, ktery se pak ani nestahne.
+    function viewFlags(b) {
+        if (!_load) {
+            cekam(b, 'Načítám stav vypínače…');
+            _load = 1;
+            api('/owner/firms').then(function (r) {
+                if (!r.ok) { _load = null; sayFail(r, 'vypínač'); jdi(''); return; }
+                _pick = {};
+                (((r.data || {}).flags || {}).off || []).forEach(function (x) { _pick[x] = 1; });
+                _load = 2;
+                render();
+            });
+            return;
+        }
+        var reg = [];
+        try { if (window.AGReg && AGReg.all) reg = AGReg.all(); } catch (e) { swallow(e, 'reg'); }
+        var vyp = Object.keys(_pick || {});
+        var h = [hlava('Vypínač modulů',
+            'Vypnutý nástroj se lidem přestane nabízet při nejbližším spuštění aplikace. ' +
+            'Zapsat sem smí jen tenhle klíč; ostatní ho jen čtou spolu s konfigurací firmy.')];
+
+        h.push('<div class="agv-st" style="margin-bottom:10px;">Vypnuto teď: <b>' + vyp.length + '</b>' +
+            (vyp.length ? ' — ' + esc(vyp.join(', ')) : '') + '</div>');
+
+        h.push('<div class="agv-sec">Nástroje z registru</div>');
+        if (!reg.length) h.push('<div class="agv-p">Registr nástrojů se nenačetl, použij pole níž.</div>');
+        var cat = '';
+        reg.forEach(function (t) {
+            var id = t.k;
+            if (!id) return;
+            if (t.cat !== cat) { cat = t.cat; h.push('<div class="agv-sec">' + esc(cat || 'Ostatní') + '</div>'); }
+            var on = !!(_pick && _pick[id]);
+            h.push('<label class="agv-row' + (on ? ' off' : '') + '">' +
+                '<input type="checkbox" data-flag="' + esc(id) + '"' + (on ? ' checked' : '') + '>' +
+                '<span><b>' + esc((t.verb ? t.verb + ' ' : '') + (t.vl || id)) + '</b><small>' + esc(id) + '</small></span>' +
+                '</label>');
+        });
+
+        // rucne pridane (soubory, nebo id, ktere v registru nejsou)
+        var mimo = vyp.filter(function (x) {
+            for (var i = 0; i < reg.length; i++) if (reg[i].k === x) return false;
+            return true;
+        });
+        h.push('<div class="agv-sec">Ručně zadané</div>');
+        if (!mimo.length) h.push('<div class="agv-p">Zatím nic. Sem patří třeba <code>js/trenazer.js</code> — takový modul se pak vůbec nestáhne.</div>');
+        mimo.forEach(function (x) {
+            h.push('<label class="agv-row off"><input type="checkbox" data-flag="' + esc(x) + '" checked>' +
+                '<span><b>' + esc(x) + '</b><small>ručně zadané</small></span></label>');
+        });
+        h.push('<div class="sa-line" style="display:flex;gap:6px;margin-top:8px;">' +
+            '<input type="text" id="agv-add" placeholder="id nástroje nebo js/soubor.js" style="flex:1;min-width:80px;margin:0;">' +
+            '<button type="button" class="agv-b" id="agv-addb">Přidat</button></div>');
+
+        h.push('<button type="button" class="btn" id="agv-save" style="margin-top:16px;">Uložit vypínač</button>');
+        h.push('<button type="button" class="btn btn-secondary" id="agv-none" style="margin-top:8px;">Zapnout zase všechno</button>');
+        b.innerHTML = h.join('');
+        wireZpet(b);
+        Array.prototype.forEach.call(b.querySelectorAll('[data-flag]'), function (el) {
+            el.addEventListener('change', function () {
+                var id = el.getAttribute('data-flag');
+                if (el.checked) _pick[id] = 1; else delete _pick[id];
+            });
+        });
+        var add = b.querySelector('#agv-add');
+        b.querySelector('#agv-addb').addEventListener('click', function () {
+            var v = (add.value || '').trim();
+            if (!v) return;
+            _pick[v] = 1; add.value = '';
+            render();
+        });
+        b.querySelector('#agv-save').addEventListener('click', function () { ulozFlags(Object.keys(_pick)); });
+        b.querySelector('#agv-none').addEventListener('click', function () { ulozFlags([]); });
+    }
+    function ulozFlags(list) {
+        api('/owner/flags', null, 15000, { method: 'PUT', body: { off: list } }).then(function (r) {
+            if (!r.ok) return sayFail(r, 'vypínač');
+            // Vlastnik ma videt ucinek hned na svem telefonu, ne az po /config.
+            try { if (window.AGFlags) AGFlags.set(list, Date.now()); } catch (e) { swallow(e, 'flags:set'); }
+            _load = null;
+            agAlert('Uloženo', list.length
+                ? 'Vypnuto: <b>' + esc(list.join(', ')) + '</b>.<br><br>Lidem se to projeví, jakmile si aplikace natáhne konfiguraci firmy — u spuštěné appky do minuty, jinak při dalším startu.'
+                : 'Vypínač je prázdný, všechno je zase zapnuté.');
+            render();
+        });
+    }
+
+    // ---- pohled: CHYBY OD LIDI ---------------------------------------------------
+    function viewErrors(b) {
+        if (!_load) {
+            cekam(b, 'Načítám chyby ze serveru…');
+            _load = 1;
+            api('/owner/errors?dni=' + _dni).then(function (r) {
+                if (!r.ok) { _load = null; sayFail(r, 'chyby'); jdi(''); return; }
+                _load = r.data || { rows: [], total: 0 };
+                render();
+            });
+            return;
+        }
+        var d = _load, rows = d.rows || [];
+        var h = [hlava('Chyby od lidí',
+            'Sbírá je <code>js/err-log.js</code> v každém telefonu a jednou za deset minut posílá dál. ' +
+            'Chodí jen hláška, soubor, řádek a verze — žádné souřadnice ani data měření.')];
+        h.push('<div class="agv-filtr">' +
+            [7, 14, 30, 90].map(function (x) {
+                return '<button type="button" class="agv-b' + (x === _dni ? ' on' : '') + '" data-dni="' + x + '">' + x + ' dní</button>';
+            }).join('') + '</div>');
+        h.push('<div class="agv-st" style="margin:8px 0 12px;">Celkem <b>' + (d.total || 0) + '</b> výskytů v <b>' + rows.length + '</b> různých chybách</div>');
+        if (!rows.length) {
+            h.push('<div class="agv-p" style="padding:22px 4px;text-align:center;">Nic nespadlo. Buď je klid, nebo ještě nikdo nemá verzi, která chyby posílá.</div>');
+        }
+        rows.forEach(function (r) {
+            h.push('<div class="agv-err">' +
+                '<div class="hd"><b>' + (r.n || 1) + '×</b>' +
+                (r.firms > 1 ? '<span class="fm">' + r.firms + ' firmy</span>' : '') +
+                '<span class="dt">' + esc(kdy(r.last)) + '</span></div>' +
+                '<div class="ms">' + esc(r.msg || '') + '</div>' +
+                '<div class="sr">' + esc((r.src || '').split('/').pop() || 'neznámý soubor') +
+                (r.line ? ':' + r.line : '') + (r.ver ? ' · ' + esc(r.ver) : '') + '</div>' +
+                '</div>');
+        });
+        h.push('<button type="button" class="btn btn-secondary" id="agv-err-clr" style="margin-top:16px;">Smazat nasbírané chyby</button>');
+        b.innerHTML = h.join('');
+        wireZpet(b);
+        Array.prototype.forEach.call(b.querySelectorAll('[data-dni]'), function (el) {
+            el.addEventListener('click', function () { _dni = parseInt(el.getAttribute('data-dni'), 10) || 14; _load = null; render(); });
+        });
+        b.querySelector('#agv-err-clr').addEventListener('click', function () {
+            ask('Smazat všechny nasbírané chyby ze serveru?').then(function (ok) {
+                if (!ok) return;
+                api('/owner/errors', null, 15000, { method: 'DELETE' }).then(function (r) {
+                    if (!r.ok) return sayFail(r, 'mazání chyb');
+                    _load = null; render();
+                });
+            });
+        });
+    }
+
+    // ---- pohled: ZEBRICEK NASTROJU ------------------------------------------------
+    // Nejcennejsi neni prvni desitka, ale POSLEDNI: nastroje, ktere za mesic
+    // neotevrel NIKDO. Proto se dopocitavaji z registru a vypisuji zvlast.
+    function viewUsage(b) {
+        if (!_load) {
+            cekam(b, 'Počítám napříč firmami…');
+            _load = 1;
+            api('/owner/usage?dni=' + _dni).then(function (r) {
+                if (!r.ok) { _load = null; sayFail(r, 'užívání'); jdi(''); return; }
+                _load = r.data || { rows: [] };
+                render();
+            });
+            return;
+        }
+        var d = _load, rows = d.rows || [];
+        var max = rows.length ? (rows[0].n || 1) : 1;
+        var videl = {};
+        rows.forEach(function (r) { videl[r.k] = 1; });
+        var reg = [];
+        try { if (window.AGReg && AGReg.all) reg = AGReg.all(); } catch (e) { swallow(e, 'reg2'); }
+        var nikdo = reg.filter(function (t) { return t.k && !videl[t.k]; });
+
+        var h = [hlava('Co lidi doopravdy používají',
+            'Ze záznamů užívání ze všech firem. Ukazuje, co má cenu dolaďovat — a co je mrtvé.')];
+        h.push('<div class="agv-filtr">' +
+            [7, 30, 90, 365].map(function (x) {
+                return '<button type="button" class="agv-b' + (x === _dni ? ' on' : '') + '" data-dni="' + x + '">' + (x === 365 ? 'rok' : x + ' dní') + '</button>';
+            }).join('') + '</div>');
+        h.push('<div class="agv-st" style="margin:8px 0 12px;">' + rows.length + ' nástrojů · ' +
+            (d.firms || 0) + ' firem · ' + (d.lidi || 0) + ' lidí</div>');
+        rows.forEach(function (r) {
+            var t = null;
+            try { t = window.AGReg && AGReg.get ? AGReg.get(r.k) : null; } catch (e) { t = null; }
+            var pct = Math.max(2, Math.round((r.n || 0) / max * 100));
+            h.push('<div class="agv-bar"><div class="fill" style="width:' + pct + '%;"></div>' +
+                '<div class="tx"><b>' + esc(t && t.vl ? t.vl : r.k) + '</b>' +
+                '<small>' + (r.n || 0) + '× · ' + (r.firms || 0) + ' firem · ' + (r.lidi || 0) + ' lidí</small></div></div>');
+        });
+        h.push('<div class="agv-sec">Neotevřel nikdo (' + nikdo.length + ')</div>');
+        if (!nikdo.length) h.push('<div class="agv-p">Každý nástroj z registru někdo za tu dobu použil.</div>');
+        else h.push('<div class="agv-p">' + nikdo.map(function (t) { return esc(t.vl || t.k); }).join(' · ') + '</div>');
+        b.innerHTML = h.join('');
+        wireZpet(b);
+        Array.prototype.forEach.call(b.querySelectorAll('[data-dni]'), function (el) {
+            el.addEventListener('click', function () { _dni = parseInt(el.getAttribute('data-dni'), 10) || 30; _load = null; render(); });
+        });
+    }
+
+    function kdy(ts) {
+        if (!ts) return '—';
+        var d = Math.floor((Date.now() - ts) / 864e5);
+        if (d <= 0) return 'dnes';
+        if (d === 1) return 'včera';
+        if (d < 31) return 'před ' + d + ' dny';
+        return new Date(ts).toLocaleDateString('cs-CZ');
+    }
+    // spolecna hlaska pro odmitnuty dotaz (drive jen v sprava-appky.js)
+    function sayFail(r, kde) {
+        if (r.status === 403 || r.status === 503 || r.status === 404 || r.status === 0)
+            return agAlert('Nepovedlo se', proc(r));
+        agAlert('Nepovedlo se', esc((r.data && r.data.error) || ('Chyba ' + r.status + ' — ' + kde)));
+    }
+
     function render() {
         var b = document.getElementById('agv-body');
         if (!b) return;
+        if (_view === 'flags') return viewFlags(b);
+        if (_view === 'errors') return viewErrors(b);
+        if (_view === 'usage') return viewUsage(b);
         var h = ['<div class="agv-hd"><div style="flex:none;width:22px;height:22px;color:var(--accent);">' + ICON + '</div>' +
             '<div><b>Máš odemčeno všechno</b><small>Oprávnění firem a rolí se na tenhle telefon nevztahují.</small></div></div>'];
         var items = polozky();
@@ -413,6 +697,7 @@
 
     function open() {
         if (!isOn()) return login();
+        _view = ''; _load = null; _pick = null;
         var m = build();
         m.style.display = 'flex';
         m.classList.add('ag-open');
@@ -505,8 +790,30 @@
         } else if (b && b.parentNode) b.parentNode.removeChild(b);
     }
 
+    // ⑦ TICHE OVERENI KLICE. Priznak `agVlastnik_v1` sam o sobe odemyka jen UI
+    // tohohle telefonu, ale nema smysl ho drzet zapnuty, kdyz uz klic neplati
+    // (zmenil jsem OWNER_KEY na serveru, telefon jsem pujcil dal, …). Jednou za
+    // sest hodin se proto potichu zeptame serveru — a JEN pri jasnem 403 se rezim
+    // vypne. Nedostupny server ani 503 rezim NEVYPINA: v terenu bez signalu by se
+    // vlastnik jinak sam zamkl ven z vlastni aplikace.
+    function overKlic() {
+        if (!isOn() || !key()) return;
+        if (navigator.onLine === false) return;
+        var last = 0;
+        try { last = parseInt(localStorage.getItem(LS_VERIF) || '0', 10) || 0; } catch (e) { last = 0; }
+        if (Date.now() - last < VERIFY_GAP) return;
+        api('/owner/firms').then(function (r) {
+            if (r.ok) { try { localStorage.setItem(LS_VERIF, String(Date.now())); } catch (e) { swallow(e, 'verif'); } return; }
+            if (r.status !== 403) return;
+            setOn(false); injectMenu();
+            try { if (window.AGUcty && AGUcty.applyPerms) AGUcty.applyPerms(); } catch (e) { swallow(e, 'verif:perms'); }
+            agAlert('Režim vlastníka vypnut', 'Klíč už serveru nesedí, tak se režim sám vypnul. Zadej nový dlouhým stiskem znaku aplikace na úvodní obrazovce.');
+        });
+    }
+
     function init() {
         injectGate(); injectMenu();
+        setTimeout(overKlic, 12000);
         (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(function () {
             try { injectGate(); injectMenu(); } catch (e) { swallow(e, 'tick'); }
         }, 2000);
