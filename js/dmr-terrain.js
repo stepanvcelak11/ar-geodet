@@ -247,7 +247,14 @@
     function setOn(on) {
         _on = on;
         var btn = document.getElementById('btn-terrain');
-        if (btn) btn.classList.toggle('on', on);
+        // ⚠⚠ NAHLÁŠENO 30. 8. 2026: „když kliknu na Terén (DMR 5G), tak se nic nestane."
+        // Vrstva se přitom zapínala správně — jen o tom nikdo nevěděl. Appka totiž
+        // značí zapnuté vrstvy mapy třídou `ctrl-active` (tak to čte js/map-tools.js:
+        // syncTerrain() = přepínač v panelu Vrstvy, activeLayers() = počítadlo v bublině
+        // u tlačítka), kdežto tenhle modul si od začátku psal vlastní `on`. Přepínač se
+        // tedy nikdy nepřeklopil a v panelu to vypadalo na mrtvé tlačítko.
+        // Držíme OBĚ třídy: `ctrl-active` kvůli appce, `on` kvůli css/dmr-terrain.css.
+        if (btn) { btn.classList.toggle('on', on); btn.classList.toggle('ctrl-active', on); }
         if (!on) { hideStatus(); return; }
         setStatus(true);
         updateObserver();

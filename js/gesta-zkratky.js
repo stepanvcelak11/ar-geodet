@@ -57,6 +57,10 @@
 //  ③ NABÍDKA PODLE POUŽITÍ: u nástroje, který jsi otevřel aspoň OFFER_MIN×, se
 //     appka JEDNOU zeptá, jestli na něj chceš gesto. Bere se počítadlo
 //     `agToolUsage_v1`, které vede js/field-tools.js — nic se nového neměří.
+//     ⚠⚠ VE VÝCHOZÍM STAVU VYPNUTO (přepínač „Nabízet gesta podle použití").
+//     Nahlášeno 30. 8. 2026: „pokud nástroj použiji víckrát, ať mi to nenabízí
+//     vytvořit gesto." Kdo nástroj používá často, chce ho používat — ne odpovídat
+//     na otázku. Stejným směrem už šlo ② (podržení dlaždice). NEVRACET.
 //  ④ CÍLEM ZKRATKY NENÍ JEN NÁSTROJ, ale i AKCE appky (uložit bod, přepnout
 //     zobrazení, mapa na mou polohu, katastr…). Akce se spouští KLIKNUTÍM na
 //     příslušné tlačítko, takže platí oprávnění rolí stejně jako u nástrojů.
@@ -90,7 +94,8 @@
     // dlaždice"). NEVRACET zpátky na zapnuto bez vyžádání.
     var LP_MS = 900;
     var LP_TOL = 12;       // o kolik smí u podržení ujet prst
-    var OFFER_MIN = 8;     // ③ od kolika použití má cenu nabízet gesto
+    var OFFER_MIN = 8;     // ③ od kolika použití má cenu nabízet gesto (když si ji uživatel zapne)
+    var OFFER_V = 2;       // ③ verze výchozího stavu nabídky — zvedni, až se bude měnit znovu
     var RATIO = 1.5;       // o kolik musí převládnout jedna osa (jinak je to šikmo → čeká se dál)
     var PREFIX_MS = 1600;  // do kdy musí být aktivační gesto hotové (pomalý tah = posun mapy)
     var RUN_MS = 200;      // ať je na okamžik vidět, co se spouští (pod hranicí, kdy to působí jako prodleva)
@@ -121,7 +126,12 @@
             hold: 1,          // ① tahák po podržení prstu
             lp: 0,            // ② přiřazovat gesto podržením dlaždice (výchozí VYPNUTO, viz LP_MS)
             solo: 1,          // ⑦ samotné aktivační gesto = poslední zkratka
-            offer: 1,         // ③ nabízet gesta podle použití
+            // ③ nabízet gesta podle použití — ⚠⚠ VÝCHOZÍ STAV VYPNUTO (30. 8. 2026).
+            // Nahlášeno z terénu: „pokud nástroj použiji víckrát, ať mi to nenabízí
+            // vytvořit gesto." Kdo nabídku chce, zapne si ji v okně Gesta.
+            // NEVRACET zpátky na zapnuto bez vyžádání.
+            offer: 0,
+            offerV: OFFER_V,  // ③ verze výchozího stavu — kvůli jednorázové migraci, viz load()
             last: '',         // ⑦ naposledy spuštěná zkratka
             offered: [],      // ③ co už appka jednou nabídla (víckrát neotravuje)
             tip: 0,           // ② jestli už padl tip o podržení dlaždice
@@ -143,7 +153,14 @@
                 cfg.hold = raw.hold ? 1 : 0;
                 cfg.lp = raw.lp ? 1 : 0;
                 cfg.solo = raw.solo ? 1 : 0;
-                cfg.offer = raw.offer ? 1 : 0;
+                // ⚠ MIGRACE VÝCHOZÍHO STAVU. Nabídka gest podle použití se 30. 8. 2026
+                // na přání vypnula, jenže ve stávajících instalacích už leží v localStorage
+                // staré `offer:1` — bez tohohle by nabídka dál vyskakovala právě tomu, kdo
+                // si na ni stěžoval. Migrace proběhne JEDNOU (podle offerV), takže když si
+                // ji někdo v okně Gesta zase zapne, už mu ji nikdo nesundá.
+                cfg.offerV = (+raw.offerV || 0);
+                cfg.offer = (cfg.offerV >= OFFER_V) ? (raw.offer ? 1 : 0) : 0;
+                cfg.offerV = OFFER_V;
                 cfg.tip = raw.tip ? 1 : 0;
                 if (isCode(raw.last)) cfg.last = raw.last;
                 if (Array.isArray(raw.offered)) cfg.offered = raw.offered.slice(0, 200);
@@ -855,7 +872,7 @@
             '<label class="st-sw"><input type="checkbox" id="ag-gz-lp"><span class="st-sw-face"></span></label></div>' +
             '<div class="st-row"><span class="st-lab">Samotné aktivační gesto<small>co udělá, když prst zvedneš hned za ním</small></span>' +
             '<select id="ag-gz-solo"><option value="1">poslední zkratka</option><option value="0">nic</option></select></div>' +
-            '<div class="st-row"><span class="st-lab">Nabízet gesta podle použití<small>u nástroje, který otvíráš často, se appka jednou zeptá</small></span>' +
+            '<div class="st-row"><span class="st-lab">Nabízet gesta podle použití<small>výchozí je vypnuto — zapnuté se appka u často otvíraného nástroje jednou zeptá, jestli mu dát gesto</small></span>' +
             '<label class="st-sw"><input type="checkbox" id="ag-gz-offer"><span class="st-sw-face"></span></label></div>' +
             '<h3 class="set-h" style="margin-top:18px;">Zkratky</h3>' +
             '<div id="ag-gz-rows"></div>' +

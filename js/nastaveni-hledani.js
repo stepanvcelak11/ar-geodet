@@ -194,6 +194,10 @@
         if (tabEl) tabEl.classList.add('ag-ns-all');            // ať není schovaný v „Zobrazit vše"
         var d = row.closest ? row.closest('details') : null;
         if (d) d.open = true;
+        // Sekce Nastavení se dají sbalit (js/nastaveni-poradek.js). Nalezená volba
+        // může ležet právě ve sbalené sekci — pak by skok doskrolloval na prázdno.
+        try { if (window.AGSettingsOrder && window.AGSettingsOrder.unfold) window.AGSettingsOrder.unfold(row); }
+        catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-hledani:reveal'); }
 
         closeResults();
         setTimeout(function () {

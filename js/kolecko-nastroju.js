@@ -834,12 +834,17 @@
     function settingRow() {
         var host = document.getElementById('tab-vzhled');
         if (!host || document.getElementById('ag-kn-setrow')) return;
-        var row = document.createElement('label');
-        row.className = 'filter-row';
+        // ⚠ 30. 8. 2026 — sjednoceno se zbytkem Nastavení („uhladit Nastavení").
+        // Řádek byl jediný v celém okně postavený jako .filter-row s holým
+        // zaškrtávátkem, kdežto všechny ostatní přepínače jsou .st-row + .st-sw
+        // (přepínadlo vpravo). Ids (#ag-kn-setrow, #ag-kn-cb) zůstávají — čte je
+        // js/nastaveni-poradek.js i hledání v Nastavení.
+        var row = document.createElement('div');
+        row.className = 'st-row';
         row.id = 'ag-kn-setrow';
-        row.innerHTML = '<input type="checkbox" id="ag-kn-cb"><span>Kolečko nástrojů'
-            + '<small style="display:block;color:var(--text-muted);font-weight:400;">'
-            + 'podržením tlačítka Nástroje vybereš nástroj tažením, bez zvedání prstu</small></span>';
+        row.innerHTML = '<span class="st-lab">Kolečko nástrojů'
+            + '<small>podržením tlačítka Nástroje vybereš nástroj tažením, bez zvedání prstu</small></span>'
+            + '<label class="st-sw"><input type="checkbox" id="ag-kn-cb"><span class="st-sw-face"></span></label>';
         host.appendChild(row);
         var cb = row.querySelector('#ag-kn-cb');
         cb.checked = on();

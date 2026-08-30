@@ -35,6 +35,13 @@
 // (a volitelně data-ag-mini-src="#id" s kontejnerem živých hodnot).
 // Vypnout sbalení pro jedno okno: atribut data-ag-mini-off.
 //
+// ⚠ 30. 8. 2026 — NA PŘÁNÍ Z TERÉNU: „sbalený nástroj bych chtěl mít možnost
+// posouvat po obrazovce, aby mi případně nepřekážel." Proužek se proto dá chytit
+// prstem a odtáhnout kamkoli; místo si pamatuje (agMiniPos_v1) i pro příště a při
+// otočení displeje se sám vejde zpátky do obrazovky. Puštění zpátky nahoru na
+// střed uložené místo ZAHODÍ, takže se proužek vrátí na výchozí chování — jiné
+// „vrátit na místo" by si stejně nikdo nenašel.
+//
 // Odstranění: smaž js/mini-panel.js + řádek <script> v index.html (a v sw.js).
 // ================================================================================
 (function () {
@@ -44,6 +51,10 @@
     var BAR_ID = 'ag-mini';
     var HIDE_CLS = 'ag-mini-off';
     var MAX_VALS = 3;
+    var POS_KEY = 'agMiniPos_v1';   // odtažené místo proužku {x,y} v px levého horního rohu
+    var DRAG_MIN = 7;               // kolik musí prst ujet, aby to bylo tažení a ne klepnutí
+    var SNAP_BACK = 34;             // puštění tak blízko výchozího místa = „vrať se, kam patříš"
+    var EDGE = 6;                   // nejmenší mezera od okraje displeje
 
     // Nástroje s RUČNĚ vybranými hodnotami. src = kontejner s živými řádky
     // (label + <b>), vals = ruční výběr, když nástroj nemá jeden společný kontejner.
@@ -125,6 +136,51 @@
         return true;
     }
 
+    // ---- odtažené místo proužku ----------------------------------------------------
+    // Ukládá se levý horní roh v px. Ne v procentech: proužek má proměnlivou šířku
+    // (mění se s hodnotami v něm), takže by se procenta při každé obnově posouvala.
+    // Proti otočení displeje a jinému telefonu chrání clampPos() při každém zobrazení.
+    var _pos = null, _posLoaded = false;
+    function loadPos() {
+        if (_posLoaded) return _pos;
+        _posLoaded = true;
+        try {
+            var raw = JSON.parse(localStorage.getItem(POS_KEY) || 'null');
+            if (raw && isFinite(raw.x) && isFinite(raw.y)) _pos = { x: +raw.x, y: +raw.y };
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'mini-panel:loadPos'); }
+        return _pos;
+    }
+    function savePos() {
+        try {
+            if (_pos) localStorage.setItem(POS_KEY, JSON.stringify(_pos));
+            else localStorage.removeItem(POS_KEY);
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'mini-panel:savePos'); }
+    }
+    // Výchozí místo (nahoře na střed) — spočítané z toho, kde proužek leží BEZ
+    // inline polohy. Používá se na snap zpátky, aby se „vrácení" trefilo přesně.
+    function homeRect(el) {
+        var l = el.style.left, t = el.style.top, tr = el.style.transform;
+        el.style.left = ''; el.style.top = ''; el.style.transform = '';
+        var r = el.getBoundingClientRect();
+        el.style.left = l; el.style.top = t; el.style.transform = tr;
+        return r;
+    }
+    function clampPos(x, y, w, h) {
+        var maxX = Math.max(EDGE, window.innerWidth - w - EDGE);
+        var maxY = Math.max(EDGE, window.innerHeight - h - EDGE);
+        return { x: Math.min(Math.max(x, EDGE), maxX), y: Math.min(Math.max(y, EDGE), maxY) };
+    }
+    // Nasadí uložené místo (nebo vrátí proužek na výchozí, když žádné není).
+    function applyPos(el) {
+        if (!el) return;
+        if (!loadPos()) { el.style.left = ''; el.style.top = ''; el.style.transform = ''; return; }
+        var r = el.getBoundingClientRect();
+        _pos = clampPos(_pos.x, _pos.y, r.width || 200, r.height || 40);
+        el.style.transform = 'none';
+        el.style.left = _pos.x + 'px';
+        el.style.top = _pos.y + 'px';
+    }
+
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function txt(el) { return el ? (el.textContent || '').replace(/\s+/g, ' ').trim() : ''; }
     function cs(el) { try { return window.getComputedStyle(el); } catch (e) { return null; } }
@@ -147,6 +203,12 @@
             '  backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);box-shadow:0 4px 16px rgba(0,0,0,0.42);',
             '  color:var(--text-color,#eceef2);font:600 12px/1.15 var(--font-ui,system-ui);white-space:nowrap;}',
             '#' + BAR_ID + '.on{display:flex;}',
+            // Tažení: bez touch-action:none by prst místo proužku roloval stránku pod ním.
+            '#' + BAR_ID + '{touch-action:none;-webkit-user-select:none;user-select:none;}',
+            '#' + BAR_ID + '.agm-drag{opacity:.93;box-shadow:0 8px 26px rgba(0,0,0,0.55);}',
+            // Úchyt: bez něj není na proužku vidět, že se dá odtáhnout.
+            '#' + BAR_ID + ' .agm-grip{flex:0 0 auto;margin:0 1px 0 -4px;letter-spacing:-2px;',
+            '  color:var(--text-muted,#9aa1ac);font-size:calc(13px * var(--ag-font-scale, 1));line-height:1;}',
             '#' + BAR_ID + ' .agm-t{flex:0 0 auto;font-size:calc(10.5px * var(--ag-font-scale, 1));letter-spacing:.04em;text-transform:uppercase;color:var(--accent,#2f9e74);}',
             '#' + BAR_ID + ' .agm-v{display:flex;gap:9px;min-width:0;overflow:hidden;font-variant-numeric:tabular-nums;}',
             '#' + BAR_ID + ' .agm-v i{font-style:normal;color:var(--text-muted,#9aa1ac);font-weight:600;margin-right:3px;}',
@@ -244,20 +306,83 @@
         el = document.createElement('div');
         el.id = BAR_ID;
         el.setAttribute('role', 'button');
-        el.setAttribute('aria-label', 'Sbalený nástroj — klepni pro rozbalení');
+        el.setAttribute('aria-label', 'Sbalený nástroj — klepni pro rozbalení, tažením přesuneš');
         el.addEventListener('click', function (e) {
+            // Po tažení nesmí přijít klepnutí — jinak by se nástroj po přesunu rozbalil.
+            if (Date.now() - _dragEnd < 400) { e.stopPropagation(); return; }
             var b = e.target.closest('button[data-a]');
             if (!b) { expand(); return; }
             e.stopPropagation();
             if (b.getAttribute('data-a') === 'close') closeTool(); else expand();
         });
+        makeDraggable(el);
         (document.body || document.documentElement).appendChild(el);
+        applyPos(el);
         return el;
     }
+
+    // ---- tažení proužku po displeji ------------------------------------------------
+    // Pointer události (ne touch): tentýž kód pak funguje prstem i myší při zkoušení
+    // v prohlížeči. Chytá se CELÝ proužek kromě tlačítek ▴ a ✕ — ta musí zůstat
+    // tlačítky, jinak by se na malém terči nedalo trefit zavření.
+    // ⚠ Tažení se pozná až po DRAG_MIN px: prst při klepnutí vždycky trochu ujede a
+    //   bez prahu by se proužek „rozbalit klepnutím" prakticky nedal.
+    var _dragEnd = 0;
+    function makeDraggable(el) {
+        var id = null, sx = 0, sy = 0, ox = 0, oy = 0, w = 0, h = 0, moved = false;
+        el.addEventListener('pointerdown', function (e) {
+            if (e.button != null && e.button !== 0) return;
+            try { if (e.target.closest && e.target.closest('button')) return; } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'mini-panel:down'); }
+            var r = el.getBoundingClientRect();
+            id = e.pointerId; sx = e.clientX; sy = e.clientY;
+            ox = r.left; oy = r.top; w = r.width; h = r.height; moved = false;
+            try { el.setPointerCapture(id); } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'mini-panel:capture'); }
+        });
+        el.addEventListener('pointermove', function (e) {
+            if (id === null || e.pointerId !== id) return;
+            var dx = e.clientX - sx, dy = e.clientY - sy;
+            if (!moved && (Math.abs(dx) + Math.abs(dy)) < DRAG_MIN) return;
+            if (!moved) {
+                moved = true;
+                el.classList.add('agm-drag');
+                // od téhle chvíle řídí polohu levý horní roh, ne translateX(-50%)
+                el.style.transform = 'none';
+                el.style.left = ox + 'px';
+                el.style.top = oy + 'px';
+            }
+            e.preventDefault();
+            _pos = clampPos(ox + dx, oy + dy, w, h);
+            el.style.left = _pos.x + 'px';
+            el.style.top = _pos.y + 'px';
+        }, { passive: false });
+        function end(e) {
+            if (id === null || (e && e.pointerId !== id)) return;
+            try { el.releasePointerCapture(id); } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'mini-panel:release'); }
+            id = null;
+            if (!moved) return;
+            el.classList.remove('agm-drag');
+            _dragEnd = Date.now();
+            // puštění blízko výchozího místa = zahodit uložené a vrátit se pod stavovou bublinu
+            var home = homeRect(el);
+            if (_pos && Math.abs(_pos.x - home.left) < SNAP_BACK && Math.abs(_pos.y - home.top) < SNAP_BACK) {
+                _pos = null;
+                el.style.left = ''; el.style.top = ''; el.style.transform = '';
+            }
+            savePos();
+            try { if (navigator.vibrate) navigator.vibrate(8); } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'mini-panel:end'); }
+        }
+        el.addEventListener('pointerup', end);
+        el.addEventListener('pointercancel', end);
+    }
+    // Otočení displeje / jiná velikost okna: odtažený proužek by zůstal mimo obraz.
+    function reclamp() { var el = document.getElementById(BAR_ID); if (el && loadPos()) applyPos(el); }
+    window.addEventListener('resize', reclamp);
+    window.addEventListener('orientationchange', function () { setTimeout(reclamp, 250); });
     function paint() {
         if (!_cur) return;
         var vals = readVals(_cur.cfg, _cur.modal);
-        var h = '<span class="agm-t">' + esc(_cur.cfg.title) + '</span><span class="agm-v">';
+        var h = '<span class="agm-grip" aria-hidden="true">⋮⋮</span>'
+            + '<span class="agm-t">' + esc(_cur.cfg.title) + '</span><span class="agm-v">';
         for (var i = 0; i < vals.length; i++) {
             h += '<span>' + (vals[i].l ? '<i>' + esc(vals[i].l) + '</i>' : '')
                 + '<b' + (vals[i].c ? ' style="color:' + esc(vals[i].c) + '"' : '') + '>' + esc(vals[i].v) + '</b></span>';
@@ -266,7 +391,11 @@
             + '<button type="button" data-a="close" aria-label="Zavřít nástroj">✕</button>';
         if (h === _lastHtml) return;
         _lastHtml = h;
-        bar().innerHTML = h;
+        var b = bar();
+        b.innerHTML = h;
+        // Šířka proužku se mění s hodnotami v něm (±2,4 m → ±12,7 m). Odtažený
+        // proužek u kraje by tím vylezl z displeje, tak ho po každé změně dorovnáme.
+        if (loadPos()) applyPos(b);
     }
 
     // ---- sbalit / rozbalit / zavřít ------------------------------------------------
@@ -280,8 +409,10 @@
         _cur = { modal: modal, cfg: cfg, disp: modal.style.display };
         _lastHtml = '';
         modal.classList.add(HIDE_CLS);
-        bar().classList.add('on');
+        var b = bar();
+        b.classList.add('on');
         paint();
+        applyPos(b);          // až po paint(): šířka proužku závisí na hodnotách v něm
         if (!_timer) _timer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(tick, 500);
         try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'mini-panel:collapse'); }
     }
