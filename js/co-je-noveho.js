@@ -7,6 +7,14 @@
 // Odstranění: smaž tenhle soubor + řádek <script> v index.html, řádky
 // './js/co-je-noveho.js' a './data/co-je-noveho.json' v sw.js a data/co-je-noveho.json.
 //
+// ⚠⚠ LIŠTA SE UKÁŽE NEJVÝŠ JEDNOU ZA DEN (dayGate níž). Nahlášeno 31. 8. 2026:
+// „to nezobrazování aktualizace jsem myslel při prvotním spuštění, ne pokaždé když
+// to spustím — nebo tak den, abych si mohl to tlačítko najít a jít to aktualizovat
+// když budu chtít." Lišta je výzva k restartu uprostřed práce; jednou za den o ní
+// dát vědět stačí. Kdo aktualizovat CHCE, najde tlačítko kdykoli ve „Více →
+// Historie aktualizací" (js/historie-aktualizaci.js si stav bere z
+// window.agUpdateWaiting()).
+//
 // ⚠ PROČ SE SOUPIS TAHÁ S RAZÍTKEM (`?t=`): service worker má na vlastní soubory
 // CACHE-FIRST (viz sw.js). Kdyby se data/co-je-noveho.json načetlo normálně,
 // dostali bychom STAROU verzi souboru z cache běžící verze — tedy přesně ten
@@ -21,6 +29,7 @@
     var BOX_ID = 'ag-cjn-box';
     var BTN_ID = 'ag-cjn-btn';
     var K_SEEN = 'agCjnSeen';          // číslo verze, jejíž soupis už uživatel viděl
+    var K_DAY = 'agUpdBannerDen_v1';   // den (YYYY-M-D), kdy se lišta naposledy ukázala
 
     var _data = null, _loading = false;
 
@@ -166,9 +175,54 @@
         openBox();
     }
 
+    // ---- JEDNOU ZA DEN ---------------------------------------------------------
+    // Lištu zobrazuje showUpdateBanner() (js/grafika.js) pokaždé, když service
+    // worker ohlásí čekající verzi — tedy při KAŽDÉM spuštění appky, dokud se
+    // uživatel neaktualizuje. Tenhle hlídač ji nechá projít jen jednou denně.
+    //
+    // ⚠ MUSÍ SE SÁHNOUT AŽ NA VIDITELNOU LIŠTU, ne na showUpdateBanner(). Prvních
+    //   120 s po startu ji drží „klid po startu" (js/welcome-card.js) schovanou a
+    //   pak ji zase vytáhne. Kdyby se den razítkoval už při showUpdateBanner(),
+    //   spotřeboval by se na okamžik, kdy ji nikdo neviděl — a uživatel by ji
+    //   nedostal ani jednou.
+    // ⚠ `data-ag-held` se ZÁMĚRNĚ maže: je to značka „klidu po startu", že si lištu
+    //   podržel a má ji vrátit. Bez smazání by ji po dvou minutách vrátil zpátky.
+    function dnesKlic() {
+        var d = new Date();
+        return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+    }
+    function videnaDnes() {
+        try { return localStorage.getItem(K_DAY) === dnesKlic(); } catch (e) { return false; }
+    }
+    // ⚠⚠ DEN SE „UTRATÍ" AŽ PO DWELL_MS SKUTEČNÉ VIDITELNOSTI. Naměřeno při zkoušce
+    //   v prohlížeči: „klid po startu" (js/welcome-card.js) lištu prvních 120 s
+    //   schovává, ale schová ji AŽ POTÉ, co ji showUpdateBanner() ukáže. Mezi tím
+    //   je lišta na okamžik `display:flex` — a bez téhle prodlevy se právě na ten
+    //   okamžik zapsal dnešní den. Uživatel by tak lištu neviděl ani jednou, jen
+    //   by mu tiše zmizela možnost o nové verzi vědět.
+    var DWELL_MS = 3000;
+    var _viditelnaOd = 0;
+    function dayGate() {
+        var b = document.getElementById('update-banner');
+        if (!b) return;
+        if (!b.style.display || b.style.display === 'none') { _viditelnaOd = 0; return; }
+        if (videnaDnes()) {
+            b.style.display = 'none';
+            b.removeAttribute('data-ag-held');   // ať ji „klid po startu" nevrátí zpátky
+            closeBox();
+            _viditelnaOd = 0;
+            return;
+        }
+        // dnešní jediné ukázání — utratí se, až lišta chvíli opravdu stála na obrazovce
+        if (!_viditelnaOd) { _viditelnaOd = Date.now(); return; }
+        if (Date.now() - _viditelnaOd < DWELL_MS) return;
+        try { localStorage.setItem(K_DAY, dnesKlic()); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'co-je-noveho:dayGate'); }
+    }
+
     // Tlačítko se přidá, jakmile se lišta poprvé ukáže. Lišta se vyrábí v index.html
     // a zobrazuje ji showUpdateBanner() z logika.js, takže se jen hlídá její stav.
     function ensureBtn() {
+        dayGate();
         var banner = document.getElementById('update-banner');
         if (!banner) return;
         if (getComputedStyle(banner).display === 'none') { closeBox(); return; }
@@ -197,6 +251,10 @@
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'co-je-noveho:init'); }
         (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(ensureBtn, 5000);
+        // Vlastní, hustší tik jen pro bránu: pětisekundový by ji s DWELL_MS 3 s
+        // vyhodnocoval příliš hrubě (a MutationObserver výš hlídá jen ZMĚNU stylu,
+        // ne plynutí času). Je to jedno čtení atributu, takže to nic nestojí.
+        (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(dayGate, 1000);
         window.addEventListener('resize', place);
     }
 

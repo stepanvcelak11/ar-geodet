@@ -352,6 +352,8 @@ test('stavova bublina: vystredena pres celou sirku, hlaska na jednom radku', asy
             sirkaOkna: innerWidth,
             zalomeni: a ? getComputedStyle(a).whiteSpace : 'nowrap',
             silueta: !!document.getElementById('ag-sil'),
+            vyska: Math.round(r.height),
+            wrap: getComputedStyle(el.querySelector('.ag-sp-head')).flexWrap,
         };
     });
 
@@ -363,6 +365,12 @@ test('stavova bublina: vystredena pres celou sirku, hlaska na jednom radku', asy
     expect(parseFloat(m.maxW)).toBeGreaterThan(m.sirkaOkna * 0.9);
     // hlaska se neláme na dva radky
     expect(m.zalomeni).toBe('nowrap');
+    // ⚠ HUBENA PILULKA, NE TLUSTY PRUH (31. 8. 2026). Sbalena bublina merila 48 px,
+    // protoze se hlavicka zalamovala na dva radky a mela odsazeni 7px + pismo 12,5px.
+    // Namereno po oprave: 21 px. Strop 30 px nechava rezervu na vetsi pismo v
+    // nastaveni, ale druhy radek uz se pod nej nevejde.
+    expect(m.wrap).toBe('nowrap');
+    expect(m.vyska).toBeLessThan(30);
 
     expect(errors, errors.join('\n')).toEqual([]);
 });

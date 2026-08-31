@@ -3,7 +3,12 @@
 // Nacita se PO logika.js (pouziva jeji promenne a funkce).
 
 // PWA: nova verze ceka -> nabidnout obnovu (resi matouci starou cache)
-        function showUpdateBanner() { const b = document.getElementById('update-banner'); if (b) b.style.display = 'flex'; }
+        // `__agUpdateWaiting` je JEDINY zdroj pravdy o tom, ze nova verze ceka. Cte ho
+        // js/historie-aktualizaci.js (trvale tlacitko „Aktualizovat teď") — lista sama
+        // uz na to nestaci, protoze se od 31. 8. 2026 ukazuje NEJVYS JEDNOU ZA DEN
+        // (viz dayGate v js/co-je-noveho.js), takze vetsinu casu videt neni.
+        function showUpdateBanner() { window.__agUpdateWaiting = true; const b = document.getElementById('update-banner'); if (b) b.style.display = 'flex'; }
+        window.agUpdateWaiting = function () { return !!window.__agUpdateWaiting; };
         // Priznak "uzivatel si obnovu vyzadal" cte handler controllerchange v logika.js:
         // ten se po opravce reloadu drzi jen skutecnych aktualizaci, a tohle pokryva i
         // pripad, kdy se stranka nactla BEZ controlleru (tvrdy reload) a uzivatel pak

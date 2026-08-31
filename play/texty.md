@@ -74,8 +74,18 @@ https://stepanvcelak11.github.io/ar-geodet/soukromi.html
 **Kategorie:** Nástroje (Tools) · značky: geodézie, mapy, měření
 
 **Ikona 512×512:** `icon-512.png` (v kořeni repa)
-**Feature graphic 1024×500:** `play/feature-graphic.png`
-**Screenshoty telefonu:** `play/screenshoty/` (minimálně 2, ideálně 4–8)
+**Feature graphic 1024×500:** `play/promo/feature.png`
+**Screenshoty telefonu:** `play/promo/play-1…8.png` (1080×1920, minimálně 2, ideálně 4–8)
+**App Store 6,7":** `play/promo/ios-1…8.png` (1290×2796)
+
+> Obrázky vyrábí `python scripts/gen_promo.py` z předlohy `play/promo.html`.
+> **Nic se k nim nedodává** — každý panel má místo fotky kreslenou scénu (AR značky,
+> šipka navádění, parcely katastru, terč vytyčení, kóty a výměra, semafor přesnosti,
+> seznam souřadnic, tým), nadpis a tři výhody. Nadpisy, texty i scény se mění
+> v předloze; po úpravě se spustí generátor znovu.
+> ⚠ Čísla ve scénách (souřadnice, výměry, parcelní čísla) jsou UKÁZKOVÁ, ne data.
+> Starší `play/feature-graphic.png` a `play/screenshoty/` (z `play/make-play-graphics.py`)
+> zůstávají jako záloha; screenshoty v nich jsou ale z úvodní obrazovky, která už v appce není.
 
 ---
 

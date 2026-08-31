@@ -194,12 +194,20 @@
             // třeba"), takže bublina je zase vystředěná přes celou šířku a hláška se
             // vejde na jeden řádek. Nevracet odsazení bez toho, že by vlevo nahoře
             // zase něco stálo.
+            // ⚠⚠ HUBENA A PODLOUHLA PILULKA, NE TLUSTY PRUH (nahlaseno 31. 8. 2026:
+            //   „nech ji jak byla puvodne hubena a podlouhla, ted je tam tlusty pruh").
+            //   Sirka je v poradku a zustava cela rada (94vw, viz nize) — problem byla
+            //   VYSKA. Delalo ji dohromady trojí: `border-radius:18px` misto pilulky,
+            //   pismo 12,5px a hlavne odsazeni hlavicky 7px svisle. Puvodni bublina
+            //   z 7193091 mela `border-radius:999px`, pismo 11px a odsazeni 4px.
+            //   NEZVETSOVAT bez skutecneho duvodu — merit vysku, ne jen „vypada to ok".
             '#ag-sp{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 4px);z-index:645;',
-            '  display:none;flex-direction:column;border-radius:18px;overflow:hidden;cursor:pointer;',
+            '  display:none;flex-direction:column;border-radius:999px;overflow:hidden;cursor:pointer;',
             '  background:var(--glass-bg,rgba(18,22,28,0.88));border:1px solid var(--glass-border,rgba(255,255,255,0.12));',
             '  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 2px 10px rgba(0,0,0,0.35);',
-            '  font:600 12.5px/1 var(--font-ui,system-ui);color:var(--text-color,#eceef2);max-width:94vw;}',
+            '  font:600 11px/1 var(--font-ui,system-ui);color:var(--text-color,#eceef2);max-width:94vw;}',
             'body.app-started #ag-sp.ag-sp-on{display:flex;}',
+            // rozbaleny detail uz pilulka byt nemuze (je to karta) — tam kulate rohy
             '#ag-sp.ag-sp-open{border-radius:16px;}',
             '#ag-sp.ui-faded{opacity:0.3;}',
             // hlavička (sbalený stav)
@@ -208,9 +216,14 @@
             // prumer presnosti + azimut) tak na uzkem telefonu POHLTIL CELE ZKRACENI
             // a zbylo z nej 41 px z potrebnych 171, tedy „Ome...". Se zalamovanim se
             // misto toho odsunou CISLA na druhy radek a text zustane cely.
-            '.ag-sp-head{display:flex;flex-wrap:wrap;align-items:center;gap:7px;padding:7px 13px;white-space:nowrap;',
+            // ⚠ JEDEN RADEK (flex-wrap:nowrap). Zalamovani sem prislo, protoze text
+            //   upozorneni pohltil cele zkraceni a z cisel zbyla pulka — jenze tim
+            //   bublina narostla na dva radky a byl z ni „tlusty pruh". Resi se to
+            //   jinak: text ma `min-width:0` a zkracuje se tremi teckami (viz nize),
+            //   takze cisla zustanou na svem a vyska se nehne.
+            '.ag-sp-head{display:flex;flex-wrap:nowrap;align-items:center;gap:6px;padding:4px 11px;white-space:nowrap;',
             '  font-variant-numeric:tabular-nums;}',
-            '.ag-sp-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}',
+            '.ag-sp-dot{width:7px;height:7px;border-radius:50%;flex:0 0 auto;}',
             '.ag-sp-dot.green{background:#34d399;box-shadow:0 0 5px rgba(52,211,153,0.8);}',
             '.ag-sp-dot.yellow{background:#fbbf24;box-shadow:0 0 5px rgba(251,191,36,0.8);}',
             '.ag-sp-dot.red{background:#fb7185;box-shadow:0 0 5px rgba(251,113,133,0.9);animation:agSpBlink 1.2s ease-in-out infinite;}',
@@ -232,7 +245,12 @@
             // z ni delaly „zmacklou" placku. Kdyz se text presto nevejde, radeji se
             // useknou tri tecky nez aby narostla vyska; cisla vedle nej mohou spadnout
             // na dalsi radek (flex-wrap vyse).
-            '.ag-sp-head .ag-sp-alert{flex:1 1 auto;min-width:min(44vw, 9.5em);max-width:100%;overflow:hidden;',
+            // ⚠ `min-width:0`, ne `min(44vw, 9.5em)`. Flexovy prvek ma implicitne
+            //   `min-width:auto`, takze se pod svuj obsah nesmrskne — s pevnym
+            //   spodkem 44vw vytlacil text pri plnem obsahu cisla z pilulky ven
+            //   (a s flex-wrap misto toho na druhy radek). S nulou se zkrati text,
+            //   coz je spravne poradi obeti: cisla jsou tu to hlavni.
+            '.ag-sp-head .ag-sp-alert{flex:1 1 auto;min-width:0;max-width:100%;overflow:hidden;',
             '  text-overflow:ellipsis;white-space:nowrap;}',
             '.ag-sp-ncount{font-family:var(--font-mono,ui-monospace,monospace);font-weight:700;',
             '  font-size:calc(9.5px * var(--ag-font-scale, 1));line-height:1;padding:2px 5px;border-radius:999px;',
@@ -281,7 +299,7 @@
             // venku dobře viditelná varianta
             'body.outdoor-mode #ag-sp{background:#0a0e1a;border-color:rgba(255,255,255,0.85);font-size:calc(13px * var(--ag-font-scale, 1));}',
             'body.light-mode.outdoor-mode #ag-sp{background:#fff;border-color:rgba(10,14,26,0.7);}',
-            'body.ag-glove #ag-sp .ag-sp-head{padding:9px 15px;font-size:calc(13.5px * var(--ag-font-scale, 1));}',
+            'body.ag-glove #ag-sp .ag-sp-head{padding:6px 13px;font-size:calc(12.5px * var(--ag-font-scale, 1));}',
             'body.ag-glove #ag-sp .ag-sp-acts button{padding:12px 5px;}',
             // sloučené panely — dokud je bublina zapnutá, jsou schované (v DOM zůstávají)
             'body.ag-bubble #compass-debug,body.ag-bubble #gps-avg,',

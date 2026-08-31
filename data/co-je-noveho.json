@@ -2,6 +2,18 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 269,
+   "datum": "2026-08-31",
+   "nadpis": "Hubená stavová bublina, Ročenka přes celou obrazovku, aktualizace jednou denně a rychlejší gesta",
+   "body": [
+    "<b>Lišta „Nová verze“ už neotravuje při každém spuštění.</b> Ukáže se nejvýš jednou za den. Aktualizovat jde kdykoli ručně: <b>Více → Historie aktualizací</b>, nahoře je zelené tlačítko <b>Aktualizovat</b> — a dokud nová verze čeká, svítí u té položky odznak.",
+    "<b>Stavová bublina je zase hubená pilulka.</b> Vyrostla na dvojnásobek, protože se v ní hláška lámala na dva řádky. Teď se text radši zkrátí třemi tečkami a čísla — přesnost a azimut — zůstanou na svém.",
+    "<b>Ročenka a „Body na sobě“ se otevíraly MÍSTO mapy.</b> Ve splitu se okno vecpalo mezi kameru a mapu jako třetí pruh a kamera nad ním běžela dál. Obě okna teď jedou přes celou obrazovku jako všechna ostatní.",
+    "<b>Gesta reagují dřív.</b> Po aktivačním gestu stačí na každou šipku zkratky kratší tah (34 px místo 54) a nemusí být tak přesně vodorovná či svislá. Nástroj se navíc spouští hned — dosud se dvě desetiny vteřiny čekalo, jen aby byl vidět ukazatel.",
+    "<b>Ve firmě je vidět, když se seznam lidí nestáhl ze serveru.</b> Dřív se v takovém případě potichu ukázal starý seznam z paměti telefonu — vypadalo to, že se lidi ztratili. Teď je nahoře napsané proč (bez signálu / nepřihlášený telefon / vypršelý přístup) a co s tím, plus tlačítko <b>Načíst seznam ze serveru</b>."
+   ]
+  },
+  {
    "v": 265,
    "datum": "2026-08-29",
    "nadpis": "Ročenka, trenažér, offline vektorová mapa, prohlídka okolí a nové vzhledy",

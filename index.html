@@ -89,14 +89,16 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=269">
-    <link rel="stylesheet" href="css/style.css?v=269">
+    <link rel="stylesheet" href="css/tokens.css?v=270">
+    <link rel="stylesheet" href="css/style.css?v=270">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
          Třída už NIC NESCHOVÁVÁ — úvodní obrazovka, která pod zámkem problikávala,
-         je od 31. 8. 2026 zrušená (viz #welcome-screen níž). Zůstává jako spínač
-         pojistky proti nedonačtené appce hned pod tímhle blokem. -->
+         je od 31. 8. 2026 zrušená (viz #welcome-screen níž, už jen skrytý pahýl).
+         Zůstává jako spínač pojistky proti nedonačtené appce hned pod tímhle blokem.
+         POZOR: platí i pro PRVNÍ spuštění appky — dřív se tady při chybějící firmě
+         rovnou vyskočilo a prvouživateli probliklo staré „Spustit vyhledávání". -->
     <script>
         (function () {
             var need = false;
@@ -176,7 +178,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=269">
+    <link rel="stylesheet" href="css/vylepseni.css?v=270">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->

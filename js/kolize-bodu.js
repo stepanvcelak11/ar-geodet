@@ -330,7 +330,14 @@
         if (!m) {
             m = document.createElement('div');
             m.id = MODAL_ID;
-            m.className = 'modal';
+            // ⚠⚠ `modal-overlay`, NE `modal`. Třída `modal` v appce NEEXISTUJE (css/style.css
+            //   zná jen `.modal-overlay` a `.modal-content`), takže tenhle <div> nedostal ani
+            //   `position:fixed`, ani `inset:0`. A protože <body> je flex-sloupec (kamera +
+            //   mapa), stal se z okna při `display:flex` TŘETÍ SLOUPEC LAYOUTU: ve splitu se
+            //   vykreslilo MÍSTO MAPY, kamera nad ním zůstala běžet a zavřít to nešlo jinak
+            //   než křížkem. Nahlášeno 31. 8. 2026 („Ročenka se mi zobrazuje místo mapy ve
+            //   splitu a nechává mi to tam kameru"). NEVRACET.
+            m.className = 'modal-overlay';
             m.innerHTML =
                 '<div class="modal-content agkol-box">' +
                 '<span class="close-btn" id="agkol-x" role="button" tabindex="0" aria-label="Zavřít">&times;</span>' +

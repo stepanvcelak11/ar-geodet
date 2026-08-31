@@ -859,8 +859,14 @@
         var cloud = !!f.cloud;
         var casy = cloud && seenKnown(f);
         // v cloudu si jednou stáhni čerstvý seznam (mohl se změnit jinde)
+        // ⚠⚠ PŘEKRESLIT I KDYŽ OBNOVA SELŽE (31. 8. 2026 — „ve firmě nevidím lidi").
+        //   Dřív se při `false` nedělalo NIC: seznam zůstal z paměti telefonu a
+        //   nikde nestálo, že se se serverem vůbec nemluvilo. Kdo přidal člověka na
+        //   jiném mobilu, nebo komu vypršel token, viděl starý seznam a měl za to,
+        //   že se lidi ztratili. Teď se překreslí tak jako tak a nahoře je vidět,
+        //   co se stalo (syncNote níž).
         if (cloud && !refreshed) {
-            u.refreshConfig().then(function (ok) { if (ok && _section === 'uzivatele') renderUsers(body, true); });
+            u.refreshConfig().then(function () { if (_section === 'uzivatele') renderUsers(body, true); });
         }
         // řádek = 2 pásma: identita (avatar + jméno + role) a pod ní akce zprava.
         // Dřív bylo všechno v jedné řádce a na mobilu se to lámalo přes sebe.
@@ -899,6 +905,7 @@
                 ? '<div class="agfa-note">Účty platí pro celou tuto firmu — nový zaměstnanec se na svém mobilu přihlásí kódem <b>' + esc(f.code || '') + '</b>, svým jménem a heslem. ' +
                   'Tlačítko <b>Pozvánka</b> u člověka vyrobí hotovou zprávu (odkaz + kód + jméno), kterou mu pošleš.</div>'
                   + (casy ? '' : '<div class="agfa-note">Kdo se už na svém mobilu přihlásil, uvidíš po další aktualizaci serveru.</div>')
+                  + syncNote(u, cloud)
                 : '<div class="agfa-note" style="border-left:3px solid #d4a02c;padding-left:9px;"><b>Účty žijí jen v tomto telefonu.</b> ' +
                   'Kolegové je na svých mobilech neuvidí, ani když jim pošleš appku — samotné sdílení appky je do firmy nepřipojí. ' +
                   'Aby firma platila napříč telefony, založ ji na serveru: sekce <b>Firma → Založit další firmu</b> (cloud, zdarma) ' +
@@ -906,8 +913,17 @@
             mistaHtml(f) +
             '<div id="agfa-userlist" class="agfa-list">' + rows + '</div>' +
             '<button class="btn" style="margin-top:12px;width:100%;" id="agfa-add">+ Přidat uživatele</button>' +
+            // ⚠ RUČNÍ NAČTENÍ ZE SERVERU. Seznam se stahuje jen při otevření sekce;
+            //   když to tehdy nevyšlo (chvilkový výpadek signálu v terénu), nebylo
+            //   jak si o něj říct znovu jinak než zavřít a otevřít celou administraci.
+            (cloud ? '<button type="button" class="agfa-mini" id="agfa-reload" style="margin-top:8px;">Načíst seznam ze serveru</button>' : '') +
             '<div id="agfa-uform"></div>';
         body.querySelector('#agfa-add').onclick = function () { userForm(body, null); };
+        var rl = body.querySelector('#agfa-reload');
+        if (rl) rl.onclick = function () {
+            rl.disabled = true; rl.textContent = 'Načítám…';
+            u.refreshConfig().then(function () { if (_section === 'uzivatele') renderUsers(body, true); });
+        };
         var reqBtn = body.querySelector('#agfa-req');
         if (reqBtn) reqBtn.onclick = function () { requestForm(body); };
         body.querySelector('#agfa-userlist').onclick = function (e) {
@@ -946,6 +962,32 @@
             });
         };
     }
+    // ---- STAV SYNCHRONIZACE SEZNAMU UŽIVATELŮ ---------------------------------
+    // Seznam účtů žije NA SERVERU; v telefonu je jen poslední známá kopie. Když se
+    // čerstvá kopie nestáhne, musí to být vidět — jinak vypadá zastaralý seznam
+    // úplně stejně jako čerstvý. Text mluví o tom, CO S TÍM, ne o návratovém kódu.
+    var SYNC_TXT = {
+        'offline': ['Seznam je z paměti telefonu — server teď není dosažitelný.',
+            'Až budeš mít signál, otevři sekci znovu. Kdo přibyl na jiném mobilu, se objeví.'],
+        'server': ['Server odpověděl chybou, seznam je z paměti telefonu.',
+            'Zkus to za chvíli znovu. Když to potrvá, napiš mi přes Nastavení → Napište mi.'],
+        'bez-tokenu': ['Tenhle telefon není přihlášený k serveru — seznam je jen z jeho paměti.',
+            'Přihlas se znovu (Více → Přepnout uživatele / zamknout); pak bude seznam platit pro celou firmu.'],
+        'odmitnuto': ['Server přihlášení odmítl (vypršelo, nebo byl účet zablokován).',
+            'Přihlas se znovu — heslo se nezměnilo.'],
+        'jina-firma': ['V telefonu visel přístup k jiné firmě, tak se zahodil.',
+            'Přihlas se znovu do téhle firmy, pak se seznam stáhne správně.']
+    };
+    function syncNote(u, cloud) {
+        if (!cloud || !u.lastSync) return '';
+        var st = u.lastSync();
+        if (!st || !st.ts || st.ok || !st.duvod || st.duvod === 'lokalni') return '';
+        var t = SYNC_TXT[st.duvod];
+        if (!t) return '';
+        return '<div class="agfa-note" style="border-left:3px solid #d4a02c;padding-left:9px;">' +
+            '<b>' + esc(t[0]) + '</b><br>' + esc(t[1]) + '</div>';
+    }
+
     function cloudErr(r) {
         if (r.status === 0) return 'Server není dosažitelný — správa firmy potřebuje internet.';
         return esc((r.data && r.data.error) || ('Chyba ' + r.status));

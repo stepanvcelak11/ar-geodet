@@ -114,6 +114,21 @@
             '.hist-e li{margin:0 0 5px;font-size:calc(13px * var(--ag-font-scale,1));line-height:1.5;',
             '  color:var(--text-color,#eceef2);}',
             '.hist-e li:last-child{margin-bottom:0;}',
+            // PRUH „nová verze čeká" nahoře v okně. Je to JEDINÉ trvalé místo, odkud
+            // jde aktualizaci spustit — lišta nahoře v appce se od 31. 8. 2026 ukazuje
+            // nejvýš jednou za den (js/co-je-noveho.js), takže se na ni nedá spolehnout.
+            '.hist-up{display:flex;align-items:center;gap:10px;margin:0 0 16px;padding:12px 14px;',
+            '  border-radius:12px;border:1px solid var(--accent,#2f9e74);',
+            '  background:var(--accent-soft,rgba(47,158,116,0.14));}',
+            '.hist-up-t{flex:1;min-width:0;font-size:calc(13px * var(--ag-font-scale,1));line-height:1.45;',
+            '  color:var(--text-color,#eceef2);}',
+            '.hist-up-t b{color:var(--accent-bright,#3eb487);}',
+            '.hist-up button{flex:0 0 auto;padding:10px 15px;border-radius:10px;cursor:pointer;border:none;',
+            '  background:var(--accent,#2f9e74);color:#fff;font:700 calc(13px * var(--ag-font-scale,1))/1 var(--font-ui,system-ui);}',
+            '.hist-up button:active{transform:scale(0.97);}',
+            '.hist-badge{margin-left:8px;padding:2px 8px;border-radius:999px;flex:0 0 auto;',
+            '  background:var(--accent,#2f9e74);color:#fff;font-weight:700;',
+            '  font-size:calc(10.5px * var(--ag-font-scale,1));letter-spacing:0.02em;}',
             '.hist-note{margin:2px 0 18px;font-size:calc(12.5px * var(--ag-font-scale,1));line-height:1.5;',
             '  color:var(--text-muted,#9aa1ac);}',
             '.hist-foot{margin:6px 0 0;padding-top:14px;border-top:1px solid var(--glass-border,rgba(255,255,255,0.10));',
@@ -156,9 +171,14 @@
         var body = _ov.querySelector('.hist-body');
         var sub = _ov.querySelector('.hist-s');
         if (!_data || !_data.length) {
-            body.innerHTML = '<p class="hist-note">' + (_err
+            // ⚠ PRUH S AKTUALIZACÍ I TADY. Soupis změn se tahá ze sítě; bez signálu
+            //   by se okno vykreslilo jen s hláškou „nepodařilo se načíst" — a s ním
+            //   by zmizelo jediné trvalé tlačítko, kterým jde novou verzi nasadit.
+            //   Aktualizace přitom čeká ve service workeru a jde nasadit i offline.
+            body.innerHTML = upHtml() + '<p class="hist-note">' + (_err
                 ? 'Soupis změn se nepodařilo načíst. Zkus to znovu, až budeš mít signál — pak zůstane k dispozici i offline.'
                 : 'Načítám…') + '</p>';
+            vazUp(body);
             return;
         }
         var cur = running();
@@ -181,6 +201,7 @@
         sub.textContent = dny.length + (dny.length === 1 ? ' den' : (dny.length < 5 ? ' dny' : ' dnů'))
             + ' · ' + _data.length + ' změn' + (cur != null ? ' · běžíš na verzi ' + cur : '');
         body.innerHTML =
+            upHtml() +
             '<p class="hist-note">Co se v appce kdy změnilo nebo přibylo, den po dni. Psané ručně, takže tu nejsou úplně všechny drobnosti — jen to, co je na appce vidět.</p>' +
             dny.map(function (d) {
                 var isNow = d.verze.indexOf(nowV) !== -1;
@@ -198,7 +219,37 @@
                     '</div>';
             }).join('') +
             '<p class="hist-foot">U každého dne je vidět, kolik změn ten den přišlo; čísla vydání jsou dole u dne, ' +
-            'kdyby je bylo potřeba dohledat. Když čeká nová verze, ukáže se nahoře lišta a u ní roletka „Co je nového“.</p>';
+            'kdyby je bylo potřeba dohledat. Lišta „Nová verze“ nahoře v appce se ukáže nejvýš jednou za den, ' +
+            'aby nerušila při práci — <b>aktualizovat jde vždycky odtud</b>, tlačítkem nahoře v tomhle okně.</p>';
+        vazUp(body);
+    }
+
+    // ---- NOVÁ VERZE ČEKÁ: trvalé tlačítko -------------------------------------
+    // ⚠ TOHLE JE JEDINÉ MÍSTO, KDE JE OBNOVA PO RUCE. Lišta nahoře v appce se od
+    //   31. 8. 2026 ukazuje nejvýš jednou za den (js/co-je-noveho.js) — do té doby
+    //   neexistoval žádný jiný vchod a kdo lištu přehlédl, neměl appku jak
+    //   aktualizovat jinak než tím, že ji zavře a otevře další den.
+    // Stav se čte z window.agUpdateWaiting() (js/grafika.js). Když funkce chybí
+    // (starší kód, odpojený modul), pruh se prostě neukáže — nic nespadne.
+    function updateCeka() {
+        try { return typeof window.agUpdateWaiting === 'function' && window.agUpdateWaiting(); }
+        catch (e) { return false; }
+    }
+    function upHtml() {
+        if (!updateCeka()) return '';
+        return '<div class="hist-up"><div class="hist-up-t"><b>Nová verze je připravená.</b> ' +
+            'Nasadí se za pár vteřin a appka se sama načte znovu. Rozdělaná měřená data zůstanou.</div>' +
+            '<button type="button" class="hist-up-go">Aktualizovat</button></div>';
+    }
+    function vazUp(body) {
+        var b = body.querySelector('.hist-up-go');
+        if (!b) return;
+        b.addEventListener('click', function () {
+            b.disabled = true;
+            b.textContent = 'Nasazuji…';
+            try { if (typeof window.applyUpdate === 'function') window.applyUpdate(); }
+            catch (e) { window.AG && AG.swallow && AG.swallow(e, 'historie-aktualizaci:vazUp'); }
+        });
     }
 
     function build() {
@@ -277,6 +328,30 @@
         else tab.appendChild(btn);
     }
 
+    // Když nová verze čeká, ať je to poznat UŽ NA VSTUPU — jinak by uživatel neměl
+    // důvod okno otevřít a tlačítko „Aktualizovat" uvnitř by nikdy nenašel.
+    // Popisek se jen doplní; ikona ani pořadí se nemění.
+    function znacka() {
+        var ceka = updateCeka();
+        // Styly se jinak vkládají až při prvním otevření okna (build → injectStyles),
+        // jenže odznak se ukazuje DŘÍV a bez stylu by to byl holý text.
+        if (ceka) injectStyles();
+        ['hist-menu-btn', 'hist-set-btn'].forEach(function (id) {
+            var b = document.getElementById(id);
+            if (!b) return;
+            var mel = b.getAttribute('data-ag-up') === '1';
+            if (ceka === mel) return;
+            var sp = b.querySelector('.hist-badge');
+            if (ceka && !sp) {
+                sp = document.createElement('span');
+                sp.className = 'hist-badge';
+                sp.textContent = 'nová verze';
+                b.appendChild(sp);
+            } else if (!ceka && sp) sp.remove();
+            b.setAttribute('data-ag-up', ceka ? '1' : '0');
+        });
+    }
+
     function init() {
         injectMenu();
         injectSettings();
@@ -292,8 +367,9 @@
         // Nastavení, moduly si do „Více" přisypávají vlastní tlačítka), takže se
         // přítomnost levně překontroluje. Bez tiku by tlačítko po přestavbě zmizelo.
         (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(function () {
-            try { injectMenu(); injectSettings(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'historie-aktualizaci:pre'); }
+            try { injectMenu(); injectSettings(); znacka(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'historie-aktualizaci:pre'); }
         }, 4000);
+        znacka();
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
