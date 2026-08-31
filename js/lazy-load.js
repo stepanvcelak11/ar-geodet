@@ -219,22 +219,37 @@
             // stahování: klepnutí se zopakuje, funkce pořád není a uživatel dostane
             // tutéž nefunkční dlaždici, jen o tři vteřiny později. Proto se každých
             // 150 ms kouká, jestli už modul dorazil, a klepne se HNED jak je venku.
-            // Po WAIT_MAX_MS se to vzdá a klepnutí pustí dál tak, jak přišlo — ať se
-            // případná chyba objeví v protokolu místo tichého spolknutí.
+            //
+            // ⚠ NA KONCI ČEKÁNÍ SE UŽ NEKLEPE. Dřív tu bylo „po WAIT_MAX_MS klepnutí
+            // pustit dál, ať je chyba vidět v protokolu" — jenže to je přesně ta
+            // původní vada: inline onclick spadne na `… is not defined`, okno se
+            // neotevře a navenek se zase NESTANE NIC. Ověřeno v prohlížeči na
+            // zdrženém js/kalkulacka.js: fronta 98 modulů se do osmi vteřin
+            // nevyprázdnila, pojistka to vzdala, znovu klepla do prázdna a
+            // kalkulačka se neotevřela. Když modul do té doby nedorazí, řekne se to
+            // tedy člověku nahlas a chyba jde do protokolu přes AG.swallow.
             var WAIT_MAX_MS = 8000;      // po osmi vteřinách už držet klepnutí nemá smysl
             var fired = false, waited = 0;
-            var again = function () {
+            var again = function (vzdano) {
                 if (fired) return;
                 fired = true;
                 clearInterval(iv);
                 if (!t.isConnected) return;
+                if (vzdano) {
+                    if (typeof window.quickToast === 'function')
+                        quickToast('Nástroj se ještě stahuje. Zkuste to prosím za chvíli.');
+                    window.AG && AG.swallow && AG.swallow(
+                        new Error('modul dlazdice nedorazil do ' + WAIT_MAX_MS + ' ms'), 'lazy-load:retry');
+                    return;
+                }
                 t.setAttribute(RETRY_ATTR, '1');
                 try { t.click(); } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'lazy-load:retry'); }
                 t.removeAttribute(RETRY_ATTR);
             };
             var iv = setInterval(function () {
                 waited += 150;
-                if (!missingFn(t) || waited >= WAIT_MAX_MS) again();
+                if (!missingFn(t)) again(false);
+                else if (waited >= WAIT_MAX_MS) again(true);
             }, 150);
         }, true);
 

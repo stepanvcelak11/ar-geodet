@@ -2,10 +2,11 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
-   "v": 269,
+   "v": 270,
    "datum": "2026-08-31",
-   "nadpis": "Hubená stavová bublina, Ročenka přes celou obrazovku, aktualizace jednou denně a rychlejší gesta",
+   "nadpis": "Hubená stavová bublina, Ročenka přes celou obrazovku, aktualizace jednou denně, rychlejší gesta a nástroj se otevře i při rychlém ťuknutí",
    "body": [
+    "<b>Nástroj se otevře, i když na dlaždici ťukneš hned po startu.</b> Appka si část nástrojů dotahuje až po spuštění, aby naběhla rychle. Kdo byl rychlejší než ona, ťukl do prázdna — navenek se nestalo nic a vypadalo to, že je nástroj rozbitý. Teď se takové ťuknutí podrží a nástroj se otevře sám, jakmile je připravený.",
     "<b>Lišta „Nová verze“ už neotravuje při každém spuštění.</b> Ukáže se nejvýš jednou za den. Aktualizovat jde kdykoli ručně: <b>Více → Historie aktualizací</b>, nahoře je zelené tlačítko <b>Aktualizovat</b> — a dokud nová verze čeká, svítí u té položky odznak.",
     "<b>Stavová bublina je zase hubená pilulka.</b> Vyrostla na dvojnásobek, protože se v ní hláška lámala na dva řádky. Teď se text radši zkrátí třemi tečkami a čísla — přesnost a azimut — zůstanou na svém.",
     "<b>Ročenka a „Body na sobě“ se otevíraly MÍSTO mapy.</b> Ve splitu se okno vecpalo mezi kameru a mapu jako třetí pruh a kamera nad ním běžela dál. Obě okna teď jedou přes celou obrazovku jako všechna ostatní.",
