@@ -78,17 +78,20 @@ https://stepanvcelak11.github.io/ar-geodet/soukromi.html
 **Screenshoty telefonu:** `play/promo/play-1…4.png` (1080×1920)
 
 > Obrázky vyrábí `python scripts/gen_promo.py` z předlohy `play/promo.html`.
-> **Nic se k nim nedodává** — každý panel má místo fotky kreslenou scénu, nadpis
-> a čtyři až pět výhod. Čtyři panely místo osmi a jen pro Android (přání 31. 8. 2026:
+> **Nic se k nim nedodává.** Scéna je APPKA V RÁMU TELEFONU a k němu dvě vyzdvižené
+> karty, které přesahují jeho okraj a nesou další fakt — tak se do panelu vejde víc
+> věcí, aniž by se obrazovka ucpala. Písma jsou firemní (Sora / Inter / JetBrains
+> Mono z `css/fonts.css`), čísla vždy v mono řezu. Pod scénou nadpis a čtyři až pět
+> výhod. Čtyři panely místo osmi a jen pro Android (přání 31. 8. 2026:
 > „udělej jich méně, jen pro Android, a na každou fotku klidně více věcí"), takže
 > každý spojuje celou oblast:
 >
 > | # | Panel | Co je na obrázku |
 > |---|---|---|
-> | 1 | V terénu | AR značky nad terénem + navádění šipkou |
-> | 2 | Podklady | parcely katastru + přepínač vrstev + odznak offline |
-> | 3 | Měření a výpočty | terč vytyčení s odchylkou + výměra parcely + přesnost GPS |
-> | 4 | Po měření | seznam souřadnic + formáty exportu + tým firmy |
+> | 1 | V terénu | AR pohled se značkami + karty „128 bodů v okolí" a „sever srovnán" |
+> | 2 | Podklady | mapa s parcelami + karta vrstev + karta „staženo 12 km² offline" |
+> | 3 | Měření a výpočty | terč vytyčení s odchylkou + karty výměry a stavu GPS |
+> | 4 | Po měření | body zakázky + karta formátů exportu + karta týmu |
 >
 > ⚠ Čísla ve scénách (souřadnice, výměry, parcelní čísla) jsou UKÁZKOVÁ, ne data.
 > ⚠ Starší `play/feature-graphic.png` a `play/screenshoty/` (z `play/make-play-graphics.py`)

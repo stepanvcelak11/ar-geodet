@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>AR Geodet — propagační obrázky do Google Play</title>
+
 <!--
   ===== PROPAGAČNÍ OBRÁZKY PRO GOOGLE PLAY =====================================
   Tahle stránka NENÍ součást appky. Je to PŘEDLOHA, ze které skript
@@ -11,27 +12,32 @@
       play/promo/feature.png     1024 ×  500   „feature graphic" (povinný banner)
       play/promo/play-1..4.png   1080 × 1920   screenshoty telefonu
 
-  ⚠⚠ ŽÁDNÉ MÍSTO NA FOTKU. Do 31. 8. 2026 měl každý panel prázdný rámeček, kam
-  si měl uživatel vložit vlastní snímek z terénu. Na přání se to zahodilo:
-  panely mají být SAMY O SOBĚ HOTOVÉ — informační leták propagačním způsobem,
-  který říká, co appka umí a na co se hodí, a nečeká na nic dalšího.
-  Místo fotky je proto v každém panelu KRESLENÁ SCÉNA (inline SVG), kreslená
-  čárou ve stejné řeči jako ikona appky (kulaté konce, smaragdový akcent) —
-  ne stínky a ne fotorealismus.
+  ⚠⚠ ŽÁDNÉ MÍSTO NA FOTKU. Panely jsou SAMY O SOBĚ HOTOVÉ — informační leták
+  propagačním způsobem, který říká, co appka umí, a nečeká na nic dalšího.
 
-  ⚠⚠ ČTYŘI PANELY, NE OSM, A JEN PRO ANDROID (na přání 31. 8. 2026: „udělej
-  jich méně, jen pro Android, a na každou fotku klidně více věcí"). Osm panelů
-  po jedné vlastnosti nikdo v obchodě nedolistuje; čtyři hutné projde. Každý
-  proto spojuje CELOU OBLAST a jeho scéna má víc dílů:
-      1  terén        AR značky + navádění šipkou
-      2  podklady     parcely katastru + vrstvy mapy + odznak offline
-      3  výpočty      terč vytyčení s odchylkou + výměra parcely + přesnost
-      4  po měření    seznam souřadnic + formáty exportu + tým firmy
-  ⚠ VARIANTA PRO APP STORE (ios-*.png, 1290 × 2796) JE PRYČ. Kdyby se vracela,
-    stačí do `TYPY` níž přidat zpátky `ios` a do CSS `.panel.ios` — layout je
-    v jednotkách --u (1 % šířky), takže se přizpůsobí sám. A pozor: staré
-    ios-*.png ze složky play/promo/ je pak potřeba smazat ručně, generátor
-    maže jen to, co zrovna vyrábí.
+  ⚠⚠ ČTYŘI PANELY, JEN PRO ANDROID (přání 31. 8. 2026: „udělej jich méně, jen
+  pro Android, a na každou fotku klidně více věcí"). Osm panelů po jedné
+  vlastnosti nikdo v obchodě nedolistuje; čtyři hutné projde. Každý proto
+  spojuje CELOU OBLAST. Varianta pro App Store (ios-*.png, 1290 × 2796) je
+  pryč — kdyby se vracela, stačí do `TYPY` níž přidat `ios` a do CSS
+  `.panel.ios`; layout je v jednotkách --u (1 % šířky), takže se přizpůsobí
+  sám. Staré ios-*.png by se pak musely smazat ručně (generátor maže jen to,
+  co zrovna vyrábí).
+
+  ⚠⚠ SCÉNA JE TELEFON, NE PLOVOUCÍ KRESBA (přání 31. 8. 2026: „dokážeš je
+  vylepšit, aby byly více profesionální"). Do té doby ležely kresby volně na
+  pozadí a panel působil jako infografika, ne jako appka. Teď má každý panel
+  TELEFON s obrazovkou (uvnitř výjev z té oblasti) a k němu DVĚ VYZDVIŽENÉ
+  KARTY, které přesahují jeho okraj a nesou další fakt. Tím se do panelu vejde
+  víc věcí, aniž by se obrazovka ucpala — a je na první pohled poznat, že jde
+  o mobilní appku. Přesně tak vypadají listingy, se kterými appka v obchodě
+  soupeří.
+
+  ⚠ PÍSMA JSOU FIREMNÍ, ne systémová. Sora (nadpisy), Inter (text) a JetBrains
+  Mono (čísla) jsou tytéž řezy, které používá samotná appka, a berou se z
+  `css/fonts.css` v repu — ne z internetu, takže render funguje i offline.
+  Čísla V CELÉ PŘEDLOZE patří do mono řezu: souřadnice, vzdálenosti a odchylky
+  pak stojí pod sebou jako na měřickém přístroji, ne jako v letáku.
 
   ⚠ Popisky ve scénách (čísla parcel, vzdálenosti, souřadnice, výměry) jsou
   VYMYŠLENÉ, ale realistické — jsou to ukázky, ne data. Kdyby se měnily, musí
@@ -42,24 +48,28 @@
   pixel); ručně v prohlížeči jde stránka jen prohlédnout.
   =============================================================================
 -->
+<link rel="stylesheet" href="../css/fonts.css">
 <style>
     :root {
-        --bg0: #1c222a;
-        --bg1: #0c1014;
+        --bg0: #1b212a;
+        --bg1: #0a0e13;
         --accent: #2f9e74;
         --accent-bright: #3eb487;
         --accent-soft: rgba(47, 158, 116, 0.14);
         --accent-line: rgba(47, 158, 116, 0.42);
         --text: #eceef2;
-        --muted: #9aa1ac;
+        --muted: #98a0ab;
         --gold: #e6bd76;
+        --font-nadpis: "Sora", "Inter", system-ui, sans-serif;
+        --font-text: "Inter", system-ui, -apple-system, sans-serif;
+        --font-cisla: "JetBrains Mono", ui-monospace, monospace;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
         background: #05070a;
-        font-family: "Segoe UI", "Inter", system-ui, -apple-system, sans-serif;
+        font-family: var(--font-text);
         color: var(--text);
         padding: 40px;
         display: flex;
@@ -80,167 +90,217 @@
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        background:
-            radial-gradient(120% 70% at 50% -10%, rgba(47, 158, 116, 0.20) 0%, rgba(47, 158, 116, 0) 60%),
-            linear-gradient(160deg, var(--bg0) 0%, var(--bg1) 100%);
+        background: linear-gradient(168deg, var(--bg0) 0%, var(--bg1) 62%, #070a0e 100%);
         flex: 0 0 auto;
     }
     .panel.play { --w: 1080px; --h: 1920px; }
 
-    /* jemná síť na pozadí — geodetický „papír", ne dekorace pro dekoraci */
+    /* Dvě vrstvy pozadí: jemná síť („geodetický papír") a nad ní světlo zhora,
+       aby panel nebyl plochá deska. Vinětace dole potlačí spodní roh, kde
+       stojí patička — text na ní pak drží kontrast. */
     .panel::before {
         content: "";
         position: absolute; inset: 0;
         background-image:
-            linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+            linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
         background-size: calc(var(--u) * 8) calc(var(--u) * 8);
+        -webkit-mask-image: radial-gradient(115% 75% at 50% 30%, #000 0%, transparent 78%);
+        mask-image: radial-gradient(115% 75% at 50% 30%, #000 0%, transparent 78%);
+        pointer-events: none;
+    }
+    .panel::after {
+        content: "";
+        position: absolute; inset: 0;
+        background:
+            radial-gradient(78% 42% at 50% 0%, rgba(62, 180, 135, 0.20) 0%, rgba(62, 180, 135, 0) 68%),
+            radial-gradient(120% 60% at 50% 108%, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0) 62%);
         pointer-events: none;
     }
 
+    /* ---- hlavička --------------------------------------------------------- */
     .head {
         position: relative;
-        padding: calc(var(--u) * 7) calc(var(--u) * 7) 0;
+        z-index: 1;
+        padding: calc(var(--u) * 7.5) calc(var(--u) * 7) 0;
         flex: 0 0 auto;
     }
     .kicker {
         display: inline-flex;
         align-items: center;
-        gap: calc(var(--u) * 1.4);
-        padding: calc(var(--u) * 1.1) calc(var(--u) * 2.4);
+        gap: calc(var(--u) * 1.5);
+        padding: calc(var(--u) * 1.15) calc(var(--u) * 2.6);
         border-radius: 999px;
         border: 1px solid var(--accent-line);
         background: var(--accent-soft);
         color: var(--accent-bright);
-        font-size: calc(var(--u) * 2.35);
-        font-weight: 700;
-        letter-spacing: 0.08em;
+        font-family: var(--font-cisla);
+        font-size: calc(var(--u) * 2.15);
+        font-weight: 600;
+        letter-spacing: 0.13em;
         text-transform: uppercase;
-        margin-bottom: calc(var(--u) * 3);
+        margin-bottom: calc(var(--u) * 3.2);
     }
-    .kicker svg { width: calc(var(--u) * 3); height: calc(var(--u) * 3); }
+    .kicker svg { width: calc(var(--u) * 2.8); height: calc(var(--u) * 2.8); }
     h1 {
-        font-size: calc(var(--u) * 6.4);
-        line-height: 1.1;
+        font-family: var(--font-nadpis);
+        font-size: calc(var(--u) * 6.5);
+        line-height: 1.08;
         font-weight: 800;
-        letter-spacing: -0.02em;
+        letter-spacing: -0.028em;
+        text-wrap: balance;
     }
     h1 em { color: var(--accent-bright); font-style: normal; }
     .sub {
-        margin-top: calc(var(--u) * 2);
-        font-size: calc(var(--u) * 3);
-        line-height: 1.4;
+        margin-top: calc(var(--u) * 2.1);
+        font-size: calc(var(--u) * 2.95);
+        line-height: 1.42;
         color: var(--muted);
-        max-width: 94%;
+        max-width: 93%;
     }
 
-    /* ---- kreslená scéna -------------------------------------------------- */
+    /* ---- scéna: telefon + vyzdvižené karty -------------------------------- */
     .art {
         position: relative;
+        z-index: 1;
         flex: 1 1 auto;
         min-height: 0;
-        margin: calc(var(--u) * 3) calc(var(--u) * 6) calc(var(--u) * 2);
+        margin: calc(var(--u) * 3.5) calc(var(--u) * 5) calc(var(--u) * 2.5);
         display: flex;
         align-items: center;
         justify-content: center;
     }
     .art svg { width: 100%; height: 100%; overflow: visible; }
 
-    /* společná řeč čar ve scénách */
-    .art .lin { fill: none; stroke: var(--accent-bright); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-    .art .lin-tenka { fill: none; stroke: rgba(255, 255, 255, 0.30); stroke-width: 0.9; stroke-linecap: round; stroke-linejoin: round; }
-    .art .lin-prerus { fill: none; stroke: rgba(255, 255, 255, 0.34); stroke-width: 0.9; stroke-dasharray: 2.6 2.2; stroke-linecap: round; }
-    .art .plocha { fill: rgba(47, 158, 116, 0.13); stroke: var(--accent-bright); stroke-width: 1.3; stroke-linejoin: round; }
-    .art .karta { fill: rgba(255, 255, 255, 0.05); stroke: rgba(255, 255, 255, 0.16); stroke-width: 0.9; }
+    /* společná řeč čar */
+    .art .lin { fill: none; stroke: var(--accent-bright); stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; }
+    .art .lin-tenka { fill: none; stroke: rgba(255, 255, 255, 0.26); stroke-width: 0.6; stroke-linecap: round; stroke-linejoin: round; }
+    .art .lin-prerus { fill: none; stroke: rgba(255, 255, 255, 0.30); stroke-width: 0.6; stroke-dasharray: 1.8 1.5; stroke-linecap: round; }
+    .art .plocha { fill: rgba(47, 158, 116, 0.14); stroke: var(--accent-bright); stroke-width: 0.85; stroke-linejoin: round; }
     .art .terc { fill: var(--accent-bright); }
     .art .zlata { fill: var(--gold); }
-    .art text { font-family: "Segoe UI", system-ui, sans-serif; }
-    .art .t-popis { fill: var(--text); font-size: 3.2px; font-weight: 700; }
-    .art .t-cislo { fill: var(--gold); font-size: 3.2px; font-weight: 700; font-variant-numeric: tabular-nums; }
-    .art .t-mala { fill: var(--muted); font-size: 2.6px; font-weight: 600; }
-    /* ⚠ VLASTNÍ, MENŠÍ ŘEZ PRO TABULKU SOUŘADNIC. S obecným .t-cislo se sloupce
-       X a Z do karty nevešly a PŘEKRÝVALY se — souřadnice v S-JTSK mají sedm
-       míst před desetinnou čárkou, takže je to nejširší text v celé předloze.
-       Když se bude tabulka měnit, PŘEPOČÍTAT šířku sloupců. */
-    .art .t-tab { fill: var(--gold); font-size: 2.7px; font-weight: 700; font-variant-numeric: tabular-nums; }
-    .art .t-tab-h { fill: var(--muted); font-size: 2.3px; font-weight: 700; letter-spacing: 0.04em; }
-    .art .t-velka { fill: var(--text); font-size: 6.4px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+    /* tělo telefonu a jeho obrazovka */
+    .art .telo { fill: #0b0f14; stroke: rgba(255, 255, 255, 0.26); stroke-width: 0.9; }
+    .art .obrazovka { fill: #0d1218; }
+    .art .sluchatko { fill: rgba(255, 255, 255, 0.16); }
+    /* prvek rozhraní uvnitř obrazovky */
+    .art .ui { fill: rgba(255, 255, 255, 0.06); stroke: rgba(255, 255, 255, 0.14); stroke-width: 0.5; }
+    /* vyzdvižená karta, která přesahuje okraj telefonu */
+    .art .vyzdvih { fill: #141a21; stroke: rgba(255, 255, 255, 0.20); stroke-width: 0.7; }
+
+    .art text { font-family: var(--font-text); }
+    .art .t-nadpis { fill: var(--text); font-size: 2.6px; font-weight: 700; }
+    .art .t-drobne { fill: var(--muted); font-size: 2.05px; font-weight: 500; }
+    .art .t-stitek {
+        fill: var(--muted); font-size: 1.95px; font-weight: 600;
+        letter-spacing: 0.11em; font-family: var(--font-cisla);
+    }
+    /* ⚠ ČÍSLA VŽDY MONO. Souřadnice, vzdálenosti i odchylky pak stojí pod sebou
+       jako na přístroji — v proporcionálním řezu se sloupce rozjížděly. */
+    .art .t-cislo { fill: var(--gold); font-size: 2.5px; font-weight: 600; font-family: var(--font-cisla); }
+    .art .t-velke { fill: var(--text); font-size: 4.6px; font-weight: 700; font-family: var(--font-cisla); letter-spacing: -0.02em; }
+    .art .t-akcent { fill: var(--accent-bright); font-size: 2.5px; font-weight: 600; font-family: var(--font-cisla); }
+    /* ⚠⚠ DVA ÚDAJE V JEDNÉ PILULCE PATŘÍ DO JEDNOHO <text> S <tspan>, ne do dvou
+       textů s ručně spočítaným x. Ručně to nešlo trefit: „4001" a „27,4 m" se
+       slily v „400127,4 m", protože skutečná šířka řezu se od odhadu liší —
+       a dvě čísla vedle sebe bez oddělovače se stejně čtou jako jedno. Takhle
+       o rozestup i o tečku mezi nimi účtuje prohlížeč. */
+    .art .cs-sep { fill: var(--muted); opacity: 0.55; }
 
     /* ---- výhody ----------------------------------------------------------- */
     .vyhody {
         position: relative;
+        z-index: 1;
         flex: 0 0 auto;
         padding: 0 calc(var(--u) * 7);
         display: flex;
         flex-direction: column;
-        gap: calc(var(--u) * 1.7);
+        gap: calc(var(--u) * 1.75);
     }
     .vyhody div {
         display: flex;
         align-items: flex-start;
         gap: calc(var(--u) * 1.9);
-        font-size: calc(var(--u) * 2.85);
-        line-height: 1.33;
+        font-size: calc(var(--u) * 2.8);
+        line-height: 1.32;
         color: var(--text);
     }
     .vyhody svg {
-        width: calc(var(--u) * 3.2);
-        height: calc(var(--u) * 3.2);
+        width: calc(var(--u) * 3.1);
+        height: calc(var(--u) * 3.1);
         flex: 0 0 auto;
         margin-top: calc(var(--u) * 0.3);
         color: var(--accent-bright);
     }
 
-    /* ---- patička se jménem appky ---------------------------------------- */
+    /* ---- patička ---------------------------------------------------------- */
     .foot {
         position: relative;
+        z-index: 1;
         flex: 0 0 auto;
-        padding: calc(var(--u) * 4.5) calc(var(--u) * 7) calc(var(--u) * 5.5);
+        margin: calc(var(--u) * 4.5) calc(var(--u) * 7) 0;
+        padding: calc(var(--u) * 4) 0 calc(var(--u) * 5.5);
+        border-top: 1px solid rgba(255, 255, 255, 0.09);
         display: flex;
         align-items: center;
-        gap: calc(var(--u) * 2);
+        gap: calc(var(--u) * 2.2);
     }
-    .foot .ico { width: calc(var(--u) * 6.4); height: calc(var(--u) * 6.4); flex: 0 0 auto; }
-    .foot .nm { font-size: calc(var(--u) * 3.4); font-weight: 800; letter-spacing: -0.01em; }
+    .foot .ico { width: calc(var(--u) * 6.2); height: calc(var(--u) * 6.2); flex: 0 0 auto; }
+    .foot .nm { font-family: var(--font-nadpis); font-size: calc(var(--u) * 3.5); font-weight: 800; letter-spacing: -0.02em; }
     .foot .nm span { color: var(--accent-bright); }
-    .foot .cl { margin-left: auto; font-size: calc(var(--u) * 2.4); color: var(--muted); text-align: right; }
+    .foot .cl {
+        margin-left: auto; text-align: right;
+        font-family: var(--font-cisla);
+        font-size: calc(var(--u) * 2.15);
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        line-height: 1.5;
+        color: var(--muted);
+    }
 
     /* ---- feature graphic 1024x500 --------------------------------------- */
     .feature {
         width: 1024px; height: 500px;
-        --u: 10.24px;
         position: relative;
         overflow: hidden;
         display: flex;
         align-items: center;
-        gap: 44px;
-        padding: 0 64px;
-        background:
-            radial-gradient(90% 140% at 12% 50%, rgba(47, 158, 116, 0.26) 0%, rgba(47, 158, 116, 0) 62%),
-            linear-gradient(120deg, var(--bg0) 0%, var(--bg1) 100%);
+        gap: 46px;
+        padding: 0 66px;
+        background: linear-gradient(118deg, var(--bg0) 0%, var(--bg1) 70%, #070a0e 100%);
         flex: 0 0 auto;
     }
     .feature::before {
         content: "";
         position: absolute; inset: 0;
         background-image:
-            linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+            linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
         background-size: 40px 40px;
+        -webkit-mask-image: radial-gradient(90% 120% at 16% 50%, #000 0%, transparent 82%);
+        mask-image: radial-gradient(90% 120% at 16% 50%, #000 0%, transparent 82%);
     }
-    .feature .ico { width: 168px; height: 168px; flex: 0 0 auto; position: relative; }
-    .feature .tx { position: relative; }
-    .feature h2 { font-size: 62px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.05; }
+    .feature::after {
+        content: "";
+        position: absolute; inset: 0;
+        background: radial-gradient(58% 120% at 14% 50%, rgba(62, 180, 135, 0.24) 0%, rgba(62, 180, 135, 0) 70%);
+    }
+    .feature .ico { width: 172px; height: 172px; flex: 0 0 auto; position: relative; z-index: 1; }
+    .feature .tx { position: relative; z-index: 1; }
+    .feature h2 { font-family: var(--font-nadpis); font-size: 64px; font-weight: 800; letter-spacing: -0.032em; line-height: 1.02; }
     .feature h2 span { color: var(--accent-bright); }
-    .feature p { margin-top: 16px; font-size: 25px; line-height: 1.4; color: var(--muted); max-width: 640px; }
-    .feature .chips { margin-top: 22px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .feature p { margin-top: 16px; font-size: 24.5px; line-height: 1.42; color: var(--muted); max-width: 620px; }
+    .feature .chips { margin-top: 24px; display: flex; gap: 10px; flex-wrap: wrap; }
     .feature .chips b {
-        font-size: 19px; font-weight: 700; padding: 7px 15px; border-radius: 999px;
+        font-family: var(--font-cisla);
+        font-size: 17px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase;
+        padding: 8px 16px; border-radius: 999px;
         border: 1px solid var(--accent-line); background: var(--accent-soft); color: var(--accent-bright);
     }
 
     /* popisek nad každým panelem — do PNG se nedostane, je jen pro prohlížení */
-    .stitek { width: 100%; font-size: 15px; color: #8b93a1; font-family: ui-monospace, monospace; }
+    .stitek { width: 100%; font-size: 15px; color: #8b93a1; font-family: var(--font-cisla); }
 </style>
 </head>
 <body>
@@ -250,7 +310,7 @@
 <!-- ===================== FEATURE GRAPHIC 1024×500 ===================== -->
 <div class="feature" data-promo="feature" data-w="1024" data-h="500">
     <div class="ico">
-        <svg viewBox="98 98 316 316" width="168" height="168">
+        <svg viewBox="98 98 316 316" width="172" height="172">
             <defs>
                 <linearGradient id="fg-em" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0" stop-color="#4ccd99"/><stop offset="1" stop-color="#2a945f"/>
@@ -275,16 +335,14 @@
     <div class="tx">
         <h2>AR <span>Geodet</span></h2>
         <p>Bodové pole v obraze kamery. Mapa, katastr, vytyčování a měření — i tam, kde není signál.</p>
-        <div class="chips"><b>Body ČÚZK v AR</b><b>Katastr offline</b><b>Vytyčování</b><b>Export DXF</b></div>
+        <!-- ⚠ TŘI ODZNAKY, NE ČTYŘI. Se čtyřmi se poslední zalomil na druhý řádek
+             a banner ztratil rovnováhu; Play navíc feature graphic na některých
+             rozvrženích ořízne, takže obsah patří do prostřední části. -->
+        <div class="chips"><b>Body ČÚZK v AR</b><b>Katastr offline</b><b>Vytyčování a export</b></div>
     </div>
 </div>
 
 <!-- ===================== ČTYŘI PANELY DO GOOGLE PLAY ==================== -->
-<!--
-  Pořadí je záměrné: první dva panely vidí v obchodě skoro každý, takže nesou
-  to, čím se appka liší (body v kameře, práce bez signálu). Výpočty a předání
-  do kanceláře jsou pro toho, kdo listuje dál.
--->
 <script id="panely" type="application/json">
 [
   {
@@ -327,7 +385,7 @@
   {
     "kicker": "Po měření",
     "h1": "Z terénu rovnou <em>do kanceláře i celé partě</em>",
-    "sub": "Co změříš, odejde ven ve formátu, který kancelář otevře — a kolegům se to ukáže samo.",
+    "sub": "Co změříš, odejde ven ve formátu, který kancelář otevře. Kolegům ve firmě se to ukáže samo.",
     "art": "kancelar",
     "vyhody": [
       "Body v zakázkách s poznámkami a fotkami",
@@ -343,175 +401,251 @@
 <script>
 (function () {
     'use strict';
-    // Panely se skládají v JS ze seznamu výš, ať se text mění na JEDNOM místě.
     var TYPY = ['play'];      // ⚠ App Store (ios) je pryč — viz hlavička souboru
     var data = JSON.parse(document.getElementById('panely').textContent);
     var IKONA = document.querySelector('.feature .ico svg').outerHTML.replace(/fg-em/g, 'ft-em');
     var SIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="6"/></svg>';
     var FAJFKA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.5"/></svg>';
 
+    // ==================================================================
+    // GEOMETRIE SCÉNY — jedno místo, odkud se počítá všechno ostatní.
+    // Soustava 0 0 110 112 (poměr 0,98) odpovídá tvaru volného místa mezi
+    // podnadpisem a výhodami, takže se scéna vejde bez letterboxu.
+    // ==================================================================
+    var T = { x: 31, y: 4, w: 48, h: 104, r: 7.5 };            // tělo telefonu
+    var O = { x: T.x + 2.6, y: T.y + 2.6, w: T.w - 5.2, h: T.h - 5.2, r: 5.5 };  // obrazovka
+
+    // Obsah obrazovky se píše v JEJÍCH SOUŘADNICÍCH (0,0 = levý horní roh
+    // obrazovky) a tahle obálka ho posune na místo. Bez toho by se každé
+    // číslo muselo ručně přičítat k O.x / O.y a při posunu telefonu by se
+    // přepisovala celá scéna.
+    function displej(vnitrek) {
+        // ⚠ OŘEZ TVAREM OBRAZOVKY. Bez něj čtvercové výplně (obloha, mapa)
+        //    přetekly přes zaoblené rohy a telefon vypadal, jako by měl
+        //    obrazovku nalepenou přes rám.
+        return '<g clip-path="url(#displej)" transform="translate(' + O.x + ' ' + O.y + ')">' + vnitrek + '</g>';
+    }
+
+    // Rám telefonu: záře pod ním, tělo, obrazovka, sluchátko. Záře je
+    // radiální přechod, ne filtr — filtry v Chromiu při screenshotu občas
+    // vyjdou zrnitě a tady jde o čistou plochu.
+    function telefon(vnitrek) {
+        return '' +
+            '<ellipse cx="' + (T.x + T.w / 2) + '" cy="' + (T.y + T.h / 2) + '" rx="' + (T.w * 0.95) + '" ry="' + (T.h * 0.56) + '" fill="url(#zare)"/>' +
+            '<rect class="telo" x="' + T.x + '" y="' + T.y + '" width="' + T.w + '" height="' + T.h + '" rx="' + T.r + '"/>' +
+            '<rect class="obrazovka" x="' + O.x + '" y="' + O.y + '" width="' + O.w + '" height="' + O.h + '" rx="' + O.r + '"/>' +
+            displej(vnitrek) +
+            '<rect class="sluchatko" x="' + (T.x + T.w / 2 - 4) + '" y="' + (T.y + 3.6) + '" width="8" height="1.5" rx="0.75"/>';
+    }
+
+    // Vyzdvižená karta, která přesahuje okraj telefonu. Nese JEDEN fakt:
+    // štítek nahoře, hodnota dole. Víc by z ní udělalo druhou obrazovku.
+    function karta(x, y, w, h, obsah) {
+        return '<rect class="vyzdvih" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="3"/>' + obsah;
+    }
+
+    var S = O.w;      // šířka obrazovky — obsah se do ní musí vejít
+    var SV = O.h;     // výška obrazovky
+
     // ------------------------------------------------------------------
-    // KRESLENÉ SCÉNY v soustavě 0 0 100 100. Každá spojuje víc věcí z téže
-    // oblasti — proto je rozdělená na PÁSMA oddělená vodorovnou linkou, ať se
-    // díly nepřekrývají a oko ví, kde jedna věc končí a druhá začíná.
+    // ČTYŘI SCÉNY
     // ------------------------------------------------------------------
     var SCENY = {
 
-        // 1) TERÉN: nahoře AR značky nad horizontem, dole navádění šipkou.
-        teren: '' +
-            // rám hledáčku
-            '<g class="lin" opacity="0.5">' +
-            '  <path d="M4 20V8a4 4 0 0 1 4-4h12"/><path d="M80 4h12a4 4 0 0 1 4 4v12"/>' +
-            '  <path d="M96 56v12a4 4 0 0 1-4 4H80"/><path d="M20 72H8a4 4 0 0 1-4-4V56"/>' +
+        // 1) V TERÉNU: obrazovka = AR pohled (stavová pilulka, terén, značky,
+        //    spodní navádění). Karty = počet bodů v okolí a azimut s přesností.
+        teren: telefon('' +
+            // obloha a země pod ní
+            '<path d="M0 0 H' + S + ' V' + (SV * 0.52) + ' Q' + (S * 0.55) + ' ' + (SV * 0.46) + ' 0 ' + (SV * 0.5) + ' Z" fill="url(#obloha)"/>' +
+            '<path class="lin-tenka" d="M0 ' + (SV * 0.5) + ' Q' + (S * 0.55) + ' ' + (SV * 0.46) + ' ' + S + ' ' + (SV * 0.52) + '"/>' +
+            '<path class="lin-prerus" d="M0 ' + (SV * 0.62) + ' Q' + (S * 0.5) + ' ' + (SV * 0.58) + ' ' + S + ' ' + (SV * 0.63) + '"/>' +
+            // stavová pilulka appky
+            '<rect class="ui" x="3" y="4.5" width="' + (S - 6) + '" height="6.4" rx="3.2"/>' +
+            '<circle cx="7.4" cy="7.7" r="1.5" fill="#34d399"/>' +
+            '<text class="t-akcent" x="10.6" y="8.6" font-size="2.4">± 0,8 m' +
+            '  <tspan class="cs-sep"> · </tspan>' +
+            '  <tspan class="t-drobne" font-size="2.3">214,6°</tspan></text>' +
+            // vzdálenější značka
+            // ⚠ ČÍSLO BODU A VZDÁLENOST MUSÍ MÍT MEZI SEBOU MÍSTO. Napoprvé stály
+            //    tak těsně, že se slily v „400127,4 m", a obě pilulky se navíc
+            //    překrývaly navzájem. Proto jsou od sebe odsazené i VÝŠKOVĚ.
+            '<g><line class="lin-tenka" x1="10" y1="' + (SV * 0.5) + '" x2="10" y2="' + (SV * 0.36) + '"/>' +
+            '<circle class="lin" cx="10" cy="' + (SV * 0.335) + '" r="2.4"/>' +
+            '<circle class="terc" cx="10" cy="' + (SV * 0.335) + '" r="1"/>' +
+            '<rect class="ui" x="1.5" y="' + (SV * 0.215) + '" width="20" height="5.4" rx="2.7"/>' +
+            '<text class="t-nadpis" x="4" y="' + (SV * 0.215 + 3.7) + '" font-size="2.3">4001' +
+            '  <tspan class="cs-sep"> · </tspan>' +
+            '  <tspan class="t-cislo" font-size="2.2">27,4 m</tspan></text></g>' +
+            // cílová značka
+            '<g><line class="lin-tenka" x1="28" y1="' + (SV * 0.56) + '" x2="28" y2="' + (SV * 0.42) + '"/>' +
+            '<circle class="lin" cx="28" cy="' + (SV * 0.375) + '" r="4" stroke-width="1.4"/>' +
+            '<circle class="lin" cx="28" cy="' + (SV * 0.375) + '" r="7" opacity="0.3"/>' +
+            '<circle class="terc" cx="28" cy="' + (SV * 0.375) + '" r="1.6"/>' +
+            '<rect class="ui" x="21" y="' + (SV * 0.245) + '" width="20.5" height="5.8" rx="2.9"/>' +
+            '<text class="t-nadpis" x="23.5" y="' + (SV * 0.245 + 3.9) + '" font-size="2.4">4002' +
+            '  <tspan class="cs-sep"> · </tspan>' +
+            '  <tspan class="t-cislo" font-size="2.3">8,1 m</tspan></text></g>' +
+            // spodní navádění
+            '<rect class="ui" x="3" y="' + (SV - 16) + '" width="' + (S - 6) + '" height="11" rx="3.5"/>' +
+            '<g transform="translate(9.5 ' + (SV - 10.5) + ')">' +
+            '  <circle class="lin" cx="0" cy="0" r="4" opacity="0.4"/>' +
+            '  <path d="M0 -3 L1.9 1.6 L0 0.6 L-1.9 1.6 Z" fill="rgba(47,158,116,0.3)" stroke="#3eb487" stroke-width="0.6" stroke-linejoin="round"/>' +
             '</g>' +
-            // terén
-            '<path class="lin-tenka" d="M4 52 Q32 46 50 49 Q74 53 96 48"/>' +
-            '<path class="lin-prerus" d="M4 62 Q32 56 50 59 Q74 63 96 58"/>' +
-            // vzdálenější bod
-            '<g><line class="lin-tenka" x1="26" y1="50" x2="26" y2="36"/>' +
-            '<circle class="lin" cx="26" cy="32" r="3.6"/><circle class="terc" cx="26" cy="32" r="1.5"/>' +
-            '<rect class="karta" x="12" y="22" width="29" height="7.6" rx="3.8"/>' +
-            '<text class="t-popis" x="16" y="27.2">4001</text>' +
-            '<text class="t-cislo" x="28" y="27.2">27,4 m</text></g>' +
-            // bližší, cílový bod
-            '<g><line class="lin-tenka" x1="66" y1="58" x2="66" y2="40"/>' +
-            '<circle class="lin" cx="66" cy="34" r="6" stroke-width="2"/>' +
-            '<circle class="lin" cx="66" cy="34" r="10.5" opacity="0.32"/>' +
-            '<circle class="terc" cx="66" cy="34" r="2.2"/>' +
-            '<rect class="karta" x="50" y="19" width="33" height="8.6" rx="4.3"/>' +
-            '<text class="t-popis" x="54" y="25.1">4002</text>' +
-            '<text class="t-cislo" x="67" y="25.1">8,1 m</text></g>' +
-            '<g opacity="0.75"><line class="lin-tenka" x1="88" y1="56" x2="88" y2="48"/>' +
-            '<circle class="lin" cx="88" cy="45.5" r="2.6"/><circle class="terc" cx="88" cy="45.5" r="1.1"/>' +
-            '<text class="t-mala" x="79" y="41">4003 · 41 m</text></g>' +
-            // pásmo navádění
-            '<line class="lin-tenka" x1="4" y1="78" x2="96" y2="78" opacity="0.5"/>' +
-            '<g transform="translate(20 90)">' +
-            '  <circle class="lin" cx="0" cy="0" r="13" opacity="0.3"/>' +
-            '  <circle class="lin" cx="0" cy="0" r="8.5" opacity="0.5"/>' +
-            '  <path d="M0 -9 L5.2 4.2 L0 1.4 L-5.2 4.2 Z" fill="rgba(47,158,116,0.25)" stroke="#3eb487" stroke-width="1.4" stroke-linejoin="round"/>' +
-            '</g>' +
-            '<text class="t-velka" x="40" y="88">8,4 m</text>' +
-            '<text class="t-mala" x="40" y="94.5">DO BODU 4002 · MÍRNĚ VPRAVO</text>',
+            '<text class="t-velke" x="16" y="' + (SV - 9.6) + '">8,4 m</text>' +
+            '<text class="t-stitek" x="16" y="' + (SV - 6.2) + '">DO BODU 4002</text>'
+        ) +
+            karta(2, 20, 34, 11,
+                '<text class="t-stitek" x="5" y="25">BODOVÉ POLE ČÚZK</text>' +
+                '<text class="t-nadpis" x="5" y="29.2">128 bodů v okolí</text>') +
+            karta(74, 74, 34, 11,
+                '<text class="t-stitek" x="77" y="79">SEVER SROVNÁN</text>' +
+                '<text class="t-nadpis" x="77" y="83.2">azimut 214,6°</text>'),
 
-        // 2) PODKLADY: parcely vlevo, přepínač vrstev vpravo, odznak offline dole.
-        podklady: '' +
-            '<polygon class="plocha" points="4,20 34,13 40,38 8,45"/>' +
-            '<polygon class="plocha" points="34,13 64,9 70,33 40,38" opacity="0.62"/>' +
-            '<polygon class="plocha" points="8,45 40,38 46,64 12,72"/>' +
-            '<polygon class="plocha" points="40,38 70,33 76,58 46,64" opacity="0.5"/>' +
-            '<text class="t-cislo" x="11" y="32">421/7</text>' +
-            '<text class="t-cislo" x="45" y="24">422</text>' +
-            '<text class="t-cislo" x="16" y="57">423/2</text>' +
-            '<text class="t-cislo" x="51" y="51">424</text>' +
-            '<g class="lin-tenka"><path d="M4 20 L34 13 L64 9"/><path d="M12 72 L46 64 L76 58"/></g>' +
-            // přepínač vrstev vpravo — vybraná vrstva svítí akcentem
-            '<g>' +
-            '  <text class="t-mala" x="88.5" y="13" text-anchor="middle">VRSTVY</text>' +
-            '  <rect class="karta" x="79" y="17" width="19" height="10" rx="3"/>' +
-            '  <text class="t-mala" x="88.5" y="23.6" text-anchor="middle">ortofoto</text>' +
-            '  <rect x="79" y="30" width="19" height="10" rx="3" fill="rgba(47,158,116,0.18)" stroke="#3eb487" stroke-width="0.9"/>' +
-            '  <text class="t-mala" x="88.5" y="36.6" text-anchor="middle" fill="#3eb487">katastr</text>' +
-            '  <rect class="karta" x="79" y="43" width="19" height="10" rx="3"/>' +
-            '  <text class="t-mala" x="88.5" y="49.6" text-anchor="middle">základní</text>' +
-            '</g>' +
-            // pásmo offline
-            '<line class="lin-tenka" x1="4" y1="76" x2="96" y2="76" opacity="0.5"/>' +
-            '<g transform="translate(50 86)">' +
-            '  <rect class="karta" x="-42" y="-8" width="84" height="16" rx="8"/>' +
-            '  <g class="lin" transform="translate(-32 0) scale(0.4)" stroke-width="3.2">' +
-            '    <path d="M-8 4 a6 6 0 0 1 1-11 a8 8 0 0 1 15 2 a5 5 0 0 1 0 9 Z"/>' +
-            '    <path d="M-12 -12 L12 12"/>' +
-            '  </g>' +
-            '  <text class="t-popis" x="-24" y="1.4">Staženo · v terénu bez signálu</text>' +
-            '</g>' +
-            '<text class="t-mala" x="50" y="99" text-anchor="middle">DATA ČÚZK · ULOŽENO V TELEFONU</text>',
+        // 2) PODKLADY: obrazovka = mapa s parcelami. Karty = přepínač vrstev
+        //    a odznak staženého okolí.
+        podklady: telefon('' +
+            '<rect x="0" y="0" width="' + S + '" height="' + SV + '" fill="#0e141a"/>' +
+            '<polygon class="plocha" points="2,18 16,14 20,30 5,35"/>' +
+            '<polygon class="plocha" points="16,14 34,10 38,26 20,30" opacity="0.62"/>' +
+            '<polygon class="plocha" points="5,35 20,30 24,48 8,53"/>' +
+            '<polygon class="plocha" points="20,30 38,26 41,44 24,48" opacity="0.5"/>' +
+            '<polygon class="plocha" points="8,53 24,48 28,66 11,71" opacity="0.72"/>' +
+            '<text class="t-cislo" x="6" y="26" font-size="2.1">421/7</text>' +
+            '<text class="t-cislo" x="25" y="21" font-size="2.1">422</text>' +
+            '<text class="t-cislo" x="10" y="43" font-size="2.1">423/2</text>' +
+            '<text class="t-cislo" x="29" y="39" font-size="2.1">424</text>' +
+            '<text class="t-cislo" x="14" y="61" font-size="2.1">425/1</text>' +
+            // moje poloha
+            '<circle cx="21" cy="' + (SV * 0.56) + '" r="5.5" fill="rgba(47,158,116,0.16)"/>' +
+            '<circle cx="21" cy="' + (SV * 0.56) + '" r="2" fill="#3eb487" stroke="#0d1218" stroke-width="0.7"/>' +
+            // měřítko dole
+            '<line class="lin-tenka" x1="4" y1="' + (SV - 7) + '" x2="16" y2="' + (SV - 7) + '"/>' +
+            '<line class="lin-tenka" x1="4" y1="' + (SV - 8.6) + '" x2="4" y2="' + (SV - 5.4) + '"/>' +
+            '<line class="lin-tenka" x1="16" y1="' + (SV - 8.6) + '" x2="16" y2="' + (SV - 5.4) + '"/>' +
+            '<text class="t-drobne" x="18" y="' + (SV - 6.2) + '" font-size="1.9">50 m</text>' +
+            // tlačítko vrstev
+            '<rect class="ui" x="' + (S - 10) + '" y="4.5" width="7" height="7" rx="2"/>' +
+            '<g class="lin" transform="translate(' + (S - 6.5) + ' 8) scale(0.16)" stroke-width="6">' +
+            '  <path d="M-9 0 L0 -6 L9 0 L0 6 Z"/><path d="M-9 6 L0 12 L9 6"/></g>'
+        ) +
+            karta(2, 14, 33, 25,
+                '<text class="t-stitek" x="5" y="19">VRSTVY</text>' +
+                '<rect x="5" y="21" width="27" height="4.6" rx="1.6" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.12)" stroke-width="0.4"/>' +
+                '<text class="t-drobne" x="7.4" y="24.4">ortofoto</text>' +
+                '<rect x="5" y="26.6" width="27" height="4.6" rx="1.6" fill="rgba(47,158,116,0.18)" stroke="#3eb487" stroke-width="0.5"/>' +
+                '<text class="t-drobne" x="7.4" y="30" fill="#3eb487">katastr KN</text>' +
+                '<rect x="5" y="32.2" width="27" height="4.6" rx="1.6" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.12)" stroke-width="0.4"/>' +
+                '<text class="t-drobne" x="7.4" y="35.6">základní mapa</text>') +
+            karta(74, 78, 34, 13,
+                '<g class="lin" transform="translate(80 84.5) scale(0.22)" stroke-width="5">' +
+                '  <path d="M-8 4 a6 6 0 0 1 1-11 a8 8 0 0 1 15 2 a5 5 0 0 1 0 9 Z"/><path d="M-12 -12 L12 12"/></g>' +
+                '<text class="t-stitek" x="85" y="83">STAŽENO</text>' +
+                '<text class="t-nadpis" x="85" y="87.4">12 km² offline</text>'),
 
-        // 3) VÝPOČTY: terč vytyčení vlevo, výměra parcely vpravo, přesnost dole.
-        vypocty: '' +
-            // terč vytyčení
-            '<g transform="translate(25 30)">' +
-            '  <circle class="lin" cx="0" cy="0" r="24" opacity="0.16"/>' +
-            '  <circle class="lin" cx="0" cy="0" r="15.5" opacity="0.32"/>' +
-            '  <circle class="lin" cx="0" cy="0" r="7.5" opacity="0.55"/>' +
-            '  <g class="lin" opacity="0.45"><path d="M0 -29v7M0 22v7M-29 0h7M22 0h7"/></g>' +
-            '  <circle class="terc" cx="0" cy="0" r="1.8"/>' +
-            '  <line class="lin-prerus" x1="0" y1="0" x2="8" y2="-5.5"/>' +
-            '  <circle cx="8" cy="-5.5" r="3.6" fill="rgba(230,189,118,0.25)" stroke="#e6bd76" stroke-width="1.3"/>' +
-            '  <circle class="zlata" cx="8" cy="-5.5" r="1.3"/>' +
+        // 3) MĚŘENÍ A VÝPOČTY: obrazovka = terč vytyčení s odchylkou.
+        //    Karty = výměra parcely a stav GPS.
+        vypocty: telefon('' +
+            '<rect class="ui" x="3" y="4.5" width="' + (S - 6) + '" height="6.4" rx="3.2"/>' +
+            '<text class="t-drobne" x="6" y="8.6">Vytyčení bodu' +
+            '  <tspan class="cs-sep"> · </tspan>' +
+            '  <tspan class="t-akcent" font-size="2.4">4002</tspan></text>' +
+            // terč
+            '<g transform="translate(' + (S / 2) + ' ' + (SV * 0.42) + ')">' +
+            '  <circle class="lin" cx="0" cy="0" r="17" opacity="0.14"/>' +
+            '  <circle class="lin" cx="0" cy="0" r="11" opacity="0.3"/>' +
+            '  <circle class="lin" cx="0" cy="0" r="5.5" opacity="0.5"/>' +
+            '  <g class="lin" opacity="0.4"><path d="M0 -20v4M0 16v4M-20 0h4M16 0h4"/></g>' +
+            '  <circle class="terc" cx="0" cy="0" r="1.3"/>' +
+            '  <line class="lin-prerus" x1="0" y1="0" x2="6" y2="-4"/>' +
+            '  <circle cx="6" cy="-4" r="2.6" fill="rgba(230,189,118,0.25)" stroke="#e6bd76" stroke-width="0.9"/>' +
+            '  <circle class="zlata" cx="6" cy="-4" r="0.9"/>' +
             '</g>' +
-            '<rect class="karta" x="31" y="5" width="24" height="8" rx="4"/>' +
-            '<text class="t-cislo" x="34" y="10.8">Δ 0,03 m</text>' +
-            '<text class="t-mala" x="25" y="61" text-anchor="middle">VYTYČENÍ BODU</text>' +
-            // parcela s výměrou a kótou
-            '<polygon class="plocha" points="60,20 92,15 96,44 64,50"/>' +
-            '<g class="lin-tenka">' +
-            '  <path d="M60 18 L60 11"/><path d="M92 13 L92 11"/><path d="M62 11 H90"/>' +
-            '  <path d="M62 11 l2.6 -1.8 M62 11 l2.6 1.8"/><path d="M90 11 l-2.6 -1.8 M90 11 l-2.6 1.8"/>' +
-            '</g>' +
-            '<text class="t-cislo" x="76" y="8" text-anchor="middle">24,15 m</text>' +
-            '<text class="t-velka" x="78" y="36" text-anchor="middle">1 042 m²</text>' +
-            '<g><circle class="terc" cx="60" cy="20" r="1.6"/><circle class="terc" cx="92" cy="15" r="1.6"/>' +
-            '<circle class="terc" cx="96" cy="44" r="1.6"/><circle class="terc" cx="64" cy="50" r="1.6"/></g>' +
-            '<text class="t-mala" x="78" y="61" text-anchor="middle">VÝMĚRA PARCELY</text>' +
-            // pásmo přesnosti
-            '<line class="lin-tenka" x1="4" y1="68" x2="96" y2="68" opacity="0.5"/>' +
-            '<rect class="karta" x="12" y="74" width="76" height="12" rx="6"/>' +
-            '<circle cx="21" cy="80" r="2.6" fill="#34d399"/>' +
-            '<circle cx="21" cy="80" r="5" fill="none" stroke="#34d399" stroke-width="0.8" opacity="0.35"/>' +
-            '<text class="t-cislo" x="28" y="81.6">± 0,8 m</text>' +
-            '<text class="t-mala" x="45" y="81.6">·</text>' +
-            '<text class="t-cislo" x="49" y="81.6">214,6°</text>' +
-            '<text class="t-mala" x="66" y="81.6">12 družic</text>' +
-            '<text class="t-mala" x="50" y="93" text-anchor="middle">ORIENTAČNÍ POMŮCKA, NE MĚŘICÍ PŘÍSTROJ —</text>' +
-            '<text class="t-mala" x="50" y="97.5" text-anchor="middle">PŘESNOST ODPOVÍDÁ GPS V TELEFONU</text>',
+            // odchylka
+            '<rect class="ui" x="3" y="' + (SV * 0.68) + '" width="' + (S - 6) + '" height="12" rx="3.5"/>' +
+            '<text class="t-stitek" x="6" y="' + (SV * 0.68 + 4.4) + '">ODCHYLKA</text>' +
+            '<text class="t-velke" x="6" y="' + (SV * 0.68 + 9.6) + '">0,03 m' +
+            '  <tspan class="t-drobne" font-size="2.3">  k severu</tspan></text>' +
+            // protokol
+            '<rect class="ui" x="3" y="' + (SV - 13) + '" width="' + (S - 6) + '" height="8" rx="2.6"/>' +
+            '<text class="t-drobne" x="6" y="' + (SV - 7.6) + '">Protokol vytyčení' +
+            '  <tspan class="cs-sep"> · </tspan>' +
+            '  <tspan class="t-akcent" font-size="2.1">PDF</tspan></text>'
+        ) +
+            karta(2, 16, 34, 13,
+                '<text class="t-stitek" x="5" y="21">VÝMĚRA PARCELY</text>' +
+                '<text class="t-velke" x="5" y="26.4" font-size="4">1 042 m²</text>') +
+            karta(74, 71, 34, 17,
+                '<text class="t-stitek" x="77" y="76.5">STAV GPS</text>' +
+                '<circle cx="78.6" cy="81.2" r="1.5" fill="#34d399"/>' +
+                '<text class="t-akcent" x="81.6" y="82.1">± 0,8 m</text>' +
+                '<text class="t-drobne" x="77" y="86.4" font-size="1.9">12 družic · dá se měřit</text>'),
 
-        // 4) PO MĚŘENÍ: seznam souřadnic, formáty exportu, tým firmy.
-        kancelar: '' +
-            '<rect class="karta" x="4" y="4" width="92" height="46" rx="4"/>' +
-            '<text class="t-popis" x="9" y="13">Zakázka · Rekonstrukce III/3084</text>' +
-            '<line class="lin-tenka" x1="9" y1="17" x2="91" y2="17"/>' +
-            // sloupce: 9 (č. bodu) · 27 (Y) · 51 (X) · 78 (Z)
-            '<g class="t-tab-h"><text x="9" y="22">Č. BODU</text><text x="27" y="22">Y</text><text x="51" y="22">X</text><text x="78" y="22">Z</text></g>' +
-            '<g class="t-tab">' +
-            '  <text x="9" y="29">4001</text><text x="27" y="29">596 956,46</text><text x="51" y="29">1 163 343,31</text><text x="78" y="29">312,45</text>' +
-            '  <text x="9" y="36">4002</text><text x="27" y="36">596 981,02</text><text x="51" y="36">1 163 361,74</text><text x="78" y="36">311,98</text>' +
-            '  <text x="9" y="43">4003</text><text x="27" y="43">597 014,88</text><text x="51" y="43">1 163 372,10</text><text x="78" y="43">312,60</text>' +
-            '</g>' +
-            // ⚠ Patička karty musí zůstat NAD jejím okrajem (karta končí na y 50);
-            //    na y 48 dosedaly háčky a čárky přesně na rámeček.
-            '<text class="t-mala" x="9" y="46.5">S-JTSK / Bpv · 128 bodů</text>' +
-            // formáty exportu
-            '<g>' +
-            '  <rect x="7" y="56" width="26" height="11" rx="5.5" fill="rgba(47,158,116,0.16)" stroke="#3eb487" stroke-width="1"/>' +
-            '  <text class="t-popis" x="20" y="63.5" text-anchor="middle">CSV</text>' +
-            '  <rect x="37" y="56" width="26" height="11" rx="5.5" fill="rgba(47,158,116,0.16)" stroke="#3eb487" stroke-width="1"/>' +
-            '  <text class="t-popis" x="50" y="63.5" text-anchor="middle">DXF</text>' +
-            '  <rect x="67" y="56" width="26" height="11" rx="5.5" fill="rgba(47,158,116,0.16)" stroke="#3eb487" stroke-width="1"/>' +
-            '  <text class="t-popis" x="80" y="63.5" text-anchor="middle">PDF</text>' +
-            '</g>' +
-            // pásmo týmu
-            '<line class="lin-tenka" x1="4" y1="74" x2="96" y2="74" opacity="0.5"/>' +
-            '<g>' +
-            '  <circle cx="14" cy="86" r="7.5" fill="rgba(47,158,116,0.20)" stroke="#3eb487" stroke-width="1.2"/>' +
-            '  <text class="t-popis" x="14" y="87.7" text-anchor="middle">ŠV</text>' +
-            '  <text class="t-mala" x="14" y="98" text-anchor="middle">admin</text>' +
-            '  <circle cx="32" cy="86" r="7.5" fill="rgba(230,189,118,0.18)" stroke="#e6bd76" stroke-width="1.2"/>' +
-            '  <text class="t-popis" x="32" y="87.7" text-anchor="middle">PN</text>' +
-            '  <text class="t-mala" x="32" y="98" text-anchor="middle">měření</text>' +
-            '  <circle cx="50" cy="86" r="7.5" fill="rgba(255,255,255,0.10)" stroke="rgba(255,255,255,0.45)" stroke-width="1.2"/>' +
-            '  <text class="t-popis" x="50" y="87.7" text-anchor="middle">JD</text>' +
-            '  <text class="t-mala" x="50" y="98" text-anchor="middle">vedení</text>' +
-            '</g>' +
-            '<text class="t-popis" x="62" y="84">Sdílená zakázka</text>' +
-            '<text class="t-mala" x="62" y="89.5">aktualizováno před 2 min</text>'
+        // 4) PO MĚŘENÍ: obrazovka = seznam bodů zakázky. Karty = formáty
+        //    exportu a tým, který na zakázce dělá.
+        kancelar: telefon('' +
+            '<rect class="ui" x="3" y="4.5" width="' + (S - 6) + '" height="8" rx="2.6"/>' +
+            '<text class="t-nadpis" x="6" y="8.4" font-size="2.4">Rekonstrukce III/3084</text>' +
+            '<text class="t-drobne" x="6" y="11.4" font-size="1.9">128 bodů · S-JTSK / Bpv</text>' +
+            (function () {
+                var r = '', i, y;
+                var body = [['4001', 'Mezník', '±0,8'], ['4002', 'Roh budovy', '±0,6'],
+                            ['4003', 'Šachta', '±1,1'], ['4004', 'Obruba', '±0,7'],
+                            ['4005', 'Sloup VN', '±0,9']];
+                for (i = 0; i < body.length; i++) {
+                    y = 16.5 + i * 9;
+                    r += '<rect class="ui" x="3" y="' + y + '" width="' + (S - 6) + '" height="7.6" rx="2.2"/>' +
+                         '<text class="t-akcent" x="6" y="' + (y + 4.9) + '" font-size="2.3">' + body[i][0] + '</text>' +
+                         '<text class="t-drobne" x="14" y="' + (y + 4.9) + '" font-size="2.1">' + body[i][1] + '</text>' +
+                         '<text class="t-cislo" x="' + (S - 9.5) + '" y="' + (y + 4.9) + '" font-size="2.1">' + body[i][2] + '</text>';
+                }
+                return r;
+            })() +
+            '<rect x="3" y="' + (SV - 13) + '" width="' + (S - 6) + '" height="8.5" rx="2.8" fill="rgba(47,158,116,0.2)" stroke="#3eb487" stroke-width="0.6"/>' +
+            '<text class="t-nadpis" x="' + (S / 2) + '" y="' + (SV - 7.3) + '" text-anchor="middle" fill="#3eb487" font-size="2.4">Exportovat zakázku</text>'
+        ) +
+            karta(2, 18, 33, 22,
+                '<text class="t-stitek" x="5" y="23">EXPORT</text>' +
+                '<rect x="5" y="25" width="27" height="4.4" rx="2.2" fill="rgba(47,158,116,0.16)" stroke="#3eb487" stroke-width="0.4"/>' +
+                '<text class="t-drobne" x="7.4" y="28.2" fill="#3eb487">CSV — souřadnice</text>' +
+                '<rect x="5" y="30.4" width="27" height="4.4" rx="2.2" fill="rgba(47,158,116,0.16)" stroke="#3eb487" stroke-width="0.4"/>' +
+                '<text class="t-drobne" x="7.4" y="33.6" fill="#3eb487">DXF — výkres</text>' +
+                '<rect x="5" y="35.8" width="27" height="4.4" rx="2.2" fill="rgba(47,158,116,0.16)" stroke="#3eb487" stroke-width="0.4"/>' +
+                '<text class="t-drobne" x="7.4" y="39" fill="#3eb487">PDF — protokol</text>') +
+            karta(74, 70, 34, 20,
+                '<text class="t-stitek" x="77" y="75">SDÍLENÁ ZAKÁZKA</text>' +
+                '<circle cx="81" cy="81" r="3.6" fill="rgba(47,158,116,0.22)" stroke="#3eb487" stroke-width="0.6"/>' +
+                '<text class="t-nadpis" x="81" y="81.9" text-anchor="middle" font-size="2.1">ŠV</text>' +
+                '<circle cx="89" cy="81" r="3.6" fill="rgba(230,189,118,0.2)" stroke="#e6bd76" stroke-width="0.6"/>' +
+                '<text class="t-nadpis" x="89" y="81.9" text-anchor="middle" font-size="2.1">PN</text>' +
+                '<circle cx="97" cy="81" r="3.6" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.42)" stroke-width="0.6"/>' +
+                '<text class="t-nadpis" x="97" y="81.9" text-anchor="middle" font-size="2.1">JD</text>' +
+                '<text class="t-drobne" x="77" y="88" font-size="1.9">admin · měření · vedení</text>')
     };
 
+    // přechody, které scény používají (jedny pro všechny panely)
+    var DEFS = '<defs>' +
+        // ⚠⚠ OŘEZ SE POČÍTÁ V SOUŘADNICÍCH OŘEZÁVANÉHO PRVKU, TEDY UŽ PO JEHO
+        //    `transform`. Napoprvé tu byl obdélník na absolutní pozici obrazovky
+        //    (O.x, O.y) — jenže skupina, na kterou se váže, je sama posunutá
+        //    o totéž, takže se ořez posunul dvakrát a z obrazovky zbyl proužek
+        //    u pravého okraje. Proto 0,0 a jen rozměr obrazovky.
+        '<clipPath id="displej">' +
+        '  <rect x="0" y="0" width="' + O.w + '" height="' + O.h + '" rx="' + O.r + '"/>' +
+        '</clipPath>' +
+        '<radialGradient id="zare" cx="50%" cy="42%" r="50%">' +
+        '  <stop offset="0" stop-color="#3eb487" stop-opacity="0.26"/>' +
+        '  <stop offset="0.55" stop-color="#3eb487" stop-opacity="0.07"/>' +
+        '  <stop offset="1" stop-color="#3eb487" stop-opacity="0"/>' +
+        '</radialGradient>' +
+        '<linearGradient id="obloha" x1="0" y1="0" x2="0" y2="1">' +
+        '  <stop offset="0" stop-color="#16202a"/><stop offset="1" stop-color="#0f171e"/>' +
+        '</linearGradient>' +
+        '</defs>';
+
     function panel(d, i, typ) {
-        var n = i + 1;
         var el = document.createElement('div');
         el.className = 'panel ' + typ;
-        el.setAttribute('data-promo', typ + '-' + n);
+        el.setAttribute('data-promo', typ + '-' + (i + 1));
         el.setAttribute('data-w', 1080);
         el.setAttribute('data-h', 1920);
         el.innerHTML =
@@ -521,13 +655,13 @@
             '  <div class="sub">' + d.sub + '</div>' +
             '</div>' +
             '<div class="art">' +
-            '  <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">' + (SCENY[d.art] || '') + '</svg>' +
+            '  <svg viewBox="0 0 110 112" preserveAspectRatio="xMidYMid meet">' + DEFS + (SCENY[d.art] || '') + '</svg>' +
             '</div>' +
             '<div class="vyhody">' +
             d.vyhody.map(function (v) { return '<div>' + FAJFKA + '<span>' + v + '</span></div>'; }).join('') +
             '</div>' +
             '<div class="foot">' +
-            '  <div class="ico">' + IKONA.replace(/width="168" height="168"/, 'width="100%" height="100%"') + '</div>' +
+            '  <div class="ico">' + IKONA.replace(/width="172" height="172"/, 'width="100%" height="100%"') + '</div>' +
             '  <div class="nm">AR <span>Geodet</span></div>' +
             '  <div class="cl">data ČÚZK<br>funguje offline</div>' +
             '</div>';
