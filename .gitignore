@@ -35,6 +35,12 @@ Screenshot*.png
 # Obrazky nahodne pustene do korene repa (uzivatelske screenshoty)
 unnamed*.jpg
 unnamed*.jpeg
+Screenshot*.jpg
+Screenshot*.jpeg
+
+# Vystup diagnostickych skriptu (scripts/diag_*.py) - screenshoty a report.json,
+# vznikaji pri kazdem behu znovu, do repa nepatri
+_diag/
 # Playwright (testy)
 playwright-report/
 test-results/

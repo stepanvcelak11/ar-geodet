@@ -61,10 +61,16 @@
     // Rozcestníky z tools-hub.js: v seznamu sloves jsou jejich položky rovnou,
     // takže samotné rozcestníky by byly jen mezikrok navíc. Kdyby tu nebyly, spadly
     // by do sekce „Další nástroje" a uživatel by měl stejnou věc v seznamu dvakrát.
-    var SKIP = {
-        'bod-vypoctem': 1, 'gnss-signal': 1, 'prirucka': 1,
-        'pocasi-svetlo': 1, 'auto-bezpeci': 1
-    };
+    // Od 30. 8. 2026 se oba seznamy berou ROVNOU Z REGISTRU misto rucniho opisu:
+    //   hub    = rozcestnik (duvod viz odstavec vys)
+    //   noverb = zamerne bez slovesa, do "Dalsich nastroju" PATRI
+    // Do te doby tu petice klicu stala napsana podruhe, takze novy rozcestnik by se
+    // musel dopisovat zvlast sem a zvlast do js/tools-registry.js.
+    var SKIP = {}, NOVERB = {};
+    ((window.AGReg && window.AGReg.all()) || []).forEach(function (r) {
+        if (r.hub) SKIP[r.k] = 1;
+        if (r.noverb) NOVERB[r.k] = 1;
+    });
 
     var KNOWN = {};
     GROUPS.forEach(function (g) { g.items.forEach(function (it) { KNOWN[it.k] = 1; }); });
@@ -427,11 +433,15 @@
             // za finišerem — protože je nikdo do mapy sloves nedopsal a uživatel je
             // v obecné škatuli nenašel. Teď se to aspoň ozve v konzoli, ať to při
             // přidávání dalšího modulu nezůstane bez povšimnutí.
+            // "noverb" z registru = nastroj tu MA byt (protokol chyb se slovesem popsat
+            // neda), takze se na nej neupozornuje. A kdyz registr vubec nenabehl, je
+            // v "rest" cela appka a rada "dopsat do tools-registry.js" by byla mylna.
+            var chybi = rest.filter(function (r) { return !NOVERB[r.k]; });
             try {
-                if (!_restWarned) {
+                if (!_restWarned && chybi.length && GROUPS.length) {
                     _restWarned = true;
                     console.warn('[nastroje-ukony] mimo mapu sloves (spadlo do „Další nástroje"): '
-                        + rest.map(function (r) { return r.k; }).join(', ')
+                        + chybi.map(function (r) { return r.k; }).join(', ')
                         + ' — dopsat do js/tools-registry.js (verb + vl), ať to jde najít podle toho, co chce uživatel udělat.');
                 }
             } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:shortcutGroup'); }

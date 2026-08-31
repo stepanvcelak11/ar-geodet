@@ -1950,7 +1950,15 @@
             if (wait > 0) startLockTick();
             else {
                 var zb = FAIL_FREE - failGet().n;
-                if (zb <= 2) errEl.textContent += ' Zbývá ' + zb + (zb === 1 ? ' pokus' : ' pokusy') + ' do zamčení.';
+                // ⚠ VLASTNÍ UZEL, ne přilepení k hlášce. Překlad (js/jazyky.js) hledá
+                //   podle CELÉHO textového uzlu, takže slepenec „Špatné heslo. Zbývá 2
+                //   pokusy do zamčení." by musel být ve slovníku pro každou hlášku zvlášť
+                //   — a cizinec ho neviděl přeložený vůbec.
+                if (zb <= 2) {
+                    var zbEl = document.createElement('span');
+                    zbEl.textContent = ' Zbývá ' + zb + (zb === 1 ? ' pokus' : ' pokusy') + ' do zamčení.';
+                    errEl.appendChild(zbEl);
+                }
             }
         }
         var _busy = false;

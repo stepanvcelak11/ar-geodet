@@ -261,6 +261,15 @@
         for (var i = 0; i < (code || '').length; i++) a.push(DIRNAME[code.charAt(i)] || '?');
         return a.join(', ');
     }
+    // Totéž, ale KAŽDÉ SLOVO VE VLASTNÍM <span>. Překladač (js/jazyky.js) pracuje
+    // s celými textovými uzly, takže slepenec „dolů, doprava" by musel být ve
+    // slovníku pro každou kombinaci šipek zvlášť (4² až 4⁴ položek). Po slovech
+    // stačí čtyři klíče a hlášku pod „Aktivační gesto" je vidět i anglicky.
+    function wordsHtml(code) {
+        var a = [];
+        for (var i = 0; i < (code || '').length; i++) a.push('<span>' + esc(DIRNAME[code.charAt(i)] || '?') + '</span>');
+        return a.join(', ');
+    }
     function buzz(ms) {
         try {
             if (typeof visSettings !== 'undefined' && visSettings.vibrationEnabled === false) return;
@@ -957,7 +966,7 @@
         el.querySelector('#ag-gz-solo').value = c.solo ? '1' : '0';
         el.querySelector('.ag-gz-prefix').textContent = arrows(c.prefix);
         el.querySelector('#ag-gz-prefix-btn').textContent = arrows(c.prefix) + '  Změnit';
-        el.querySelector('.ag-gz-prewords').textContent = words(c.prefix);
+        el.querySelector('.ag-gz-prewords').innerHTML = wordsHtml(c.prefix);
 
         var codes = [], k;
         for (k in c.map) codes.push(k);

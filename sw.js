@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v267';   // semafor GPS uz nemluvi o zrusene siluete; kontrola syntaxe i na .mjs
+const SHELL_CACHE = 'argeodet-shell-v268';   // deleny slovnik jazyku (jadro + rozsireni), rozcestniky z registru
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -31,9 +31,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=267',
-    './css/style.css?v=267',
-    './css/vylepseni.css?v=267',
+    './css/tokens.css?v=268',
+    './css/style.css?v=268',
+    './css/vylepseni.css?v=268',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',

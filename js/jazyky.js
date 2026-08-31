@@ -32,8 +32,23 @@
 // aby šlo jazyk přepnout i bez signálu; to je JEDINÁ cena, kterou platí i ten,
 // kdo appku používá česky.
 //
+// ⚠ SLOVNÍKY JSOU DVA A JE TO ZÁMĚR.
+//   • data/jazyky.json — JÁDRO (~700 nejčastějších textů + vzory `re`). Je malé,
+//     service worker si ho ukládá do předcache, takže jazyk jde přepnout i bez
+//     signálu hned napoprvé.
+//   • data/jazyky-en|de|pl.json — ROZŠÍŘENÍ (~5 700 klíčů, ~480 kB na jazyk).
+//     Stahuje se AŽ po volbě jazyka a JEN ten jeden zvolený. V předcache není:
+//     kdo appku používá česky, nestáhne z něj ani bajt, a i cizinec platí za
+//     svůj jazyk, ne za tři. Po prvním stažení ho service worker uloží (běžná
+//     cache-first cesta pro vlastní soubory), takže offline funguje dál.
+//   Když se rozšíření nestáhne (offline při prvním přepnutí), appka se prostě
+//   přeloží jen z jádra — nic nespadne, jen zůstane víc textů česky.
+//   ⚠ JÁDRO MÁ PŘEDNOST: klíč, který je v obou, se bere z jádra (je ručně
+//   protříděné a ověřené v appce).
+//
 // Odstranění: smaž tenhle soubor + řádek <script> v index.html + './js/jazyky.js'
-// a './data/jazyky.json' v sw.js (EXTRA_ASSETS v scripts/gen_sw_assets.py).
+// a './data/jazyky.json' v sw.js (EXTRA_ASSETS v scripts/gen_sw_assets.py);
+// data/jazyky-*.json se nikde neregistrují, stačí je smazat.
 // ================================================================================
 (function () {
     'use strict';
@@ -57,6 +72,9 @@
     var _re = [];             // [{ p: RegExp, r: 'náhrada' }]
     var _raw = null;          // celý JSON (aby šlo přepínat bez dalšího stahování)
     var _loading = null;
+    // rozšiřující slovníky: kód jazyka -> { český text: překlad } | null (nedostupné)
+    var _extra = {};
+    var _extraLoading = {};
 
     // uzly, do kterých se sáhlo — kvůli přepnutí jazyka i návratu na češtinu
     var _seen = typeof WeakMap === 'function' ? new WeakMap() : null;
@@ -108,6 +126,34 @@
         return _loading;
     }
 
+    // Rozšiřující slovník JEDNOHO jazyka. Nikdy nekončí chybou: když se nestáhne
+    // (offline, 404), překládá se dál jen z jádra.
+    // ⚠ NEÚSPĚCH SE NEPAMATUJE. Nejčastější důvod, proč se rozšíření nestáhne, je
+    //   výpadek signálu v terénu — kdyby se zapsalo `null` natrvalo, zůstala by
+    //   appka do konce běhu přeložená jen z jádra i poté, co se signál vrátí a
+    //   uživatel jazyk přepne znovu. Stahuje se jen při výslovné volbě jazyka
+    //   (set/init), takže opakovaný pokus nehrozí, že by se to tahalo dokola.
+    function loadExtra(code) {
+        if (!code || code === 'cs') return Promise.resolve(null);
+        if (Object.prototype.hasOwnProperty.call(_extra, code)) return Promise.resolve(_extra[code]);
+        if (_extraLoading[code]) return _extraLoading[code];
+        _extraLoading[code] = fetch('./data/jazyky-' + code + '.json')
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (j) {
+                _extraLoading[code] = null;
+                if (j && j.t && typeof j.t === 'object') { _extra[code] = j.t; return _extra[code]; }
+                delete _extra[code];          // prázdná/pokažená odpověď = zkusit příště znovu
+                return null;
+            })
+            .catch(function (e) {
+                swallow(e, 'loadExtra');
+                delete _extra[code];
+                _extraLoading[code] = null;
+                return null;
+            });
+        return _extraLoading[code];
+    }
+
     // Jazyk, který je ve slovníku navíc oproti seznamu výš, se do nabídky doplní —
     // přidat další překlad tak znamená sáhnout jen do data/jazyky.json.
     function mergeLangs() {
@@ -132,6 +178,15 @@
             if (!Object.prototype.hasOwnProperty.call(_raw.t, k)) continue;
             var v = _raw.t[k] && _raw.t[k][ix];
             if (v) m[k] = v;
+        }
+        // Rozšíření se přimíchá až POD jádro: klíč, který už z jádra je, se
+        // nepřepisuje (jádro je ručně protříděné, rozšíření vzniklo hromadně).
+        var ex = _extra[code];
+        if (ex) {
+            for (k in ex) {
+                if (!Object.prototype.hasOwnProperty.call(ex, k)) continue;
+                if (m[k] == null && ex[k]) m[k] = ex[k];
+            }
         }
         _map = m;
         var rr = _raw.re || [];
@@ -390,7 +445,18 @@
             return Promise.resolve(true);
         }
 
-        return load().then(function () {
+        // Nejdřív jádro, pak rozšíření pro TENHLE jazyk. Rozšíření se čeká
+        // schválně: kdyby se překládalo dvakrát (nejdřív z jádra, pak znovu),
+        // uživatel by viděl, jak se mu texty pod rukama mění.
+        return load().then(function () { return loadExtra(code); }).then(function () {
+            // ⚠ ZÁVOD DVOU PŘEPNUTÍ. Rozšíření má každý jazyk vlastní (~490 kB), takže
+            //   se stahují nezávisle a rozhoduje, KTERÉ DOBĚHNE POZDĚJI, ne na co se
+            //   klikalo naposled. Kroužek na bráně jazyky cykluje jedním ťuknutím —
+            //   dvě rychlá ťuknutí rozjedou dvě stahování. Bez téhle pojistky pomalejší
+            //   starší volání přepsalo novější: v nastavení i v localStorage byla
+            //   němčina, appka byla anglicky. (Než se slovník rozdělil, visela obě
+            //   volání na jednom sdíleném `_loading`, takže se to stát nemohlo.)
+            if (code !== _lang) return false;
             build(code);
             if (!_map) { fire(); return false; }
             applyAll();
@@ -493,7 +559,12 @@
         _lang = c;
         try { document.documentElement.setAttribute('lang', c); } catch (e) { swallow(e, 'init:lang'); }
         if (c !== 'cs') {
-            load().then(function () {
+            // ⚠ I TADY SE MUSÍ POČKAT NA ROZŠÍŘENÍ (loadExtra), ne jen na jádro.
+            // Bez toho se při startu appky přeložilo jen ~700 textů z jádra a
+            // zbytek zůstal česky — rozšíření se dotáhlo až při ručním přepnutí
+            // jazyka v Nastavení, což nikdo nedělá, když už jazyk uložený má.
+            load().then(function () { return loadExtra(c); }).then(function () {
+                if (c !== _lang) return;   // uživatel stihl přepnout dřív, než se rozšíření stáhlo (viz set)
                 build(c);
                 if (!_map) return;
                 applyAll();
