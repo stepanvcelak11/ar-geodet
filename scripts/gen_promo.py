@@ -13,9 +13,12 @@
 # videt v prohlizeci. `play/make-play-graphics.py` (feature graphic z geometrie
 # ikony + prerovnani surovych screenshotu) zustava — dela neco jineho.
 #
-# VLASTNI FOTKY: dej je do `play/promo-fotky/` jako 1.jpg .. 8.jpg (nebo .png)
-# a skript spust znovu. Dokud tam nejsou, je v ramecku napsane, JAKY SNIMEK tam
-# patri — takze prvni beh slouzi jako seznam, co v terenu nafotit.
+# ⚠⚠ ZADNE FOTKY SE NEDOPLNUJI. Panely jsou samy o sobe hotove: kazdy ma
+# misto snimku KRESLENOU SCENU (inline SVG v play/promo.html) - AR znacky nad
+# terenem, sipku navadeni, parcely katastru, terc vytyceni, koty a vymeru,
+# semafor presnosti, seznam souradnic, tym. Do 31. 8. 2026 tu byl prazdny
+# ramecek na vlastni fotku z terenu; na prani se to zahodilo, protoze obrazky
+# maji fungovat jako informacni letak, ktery na nic neceka.
 #
 # Pouziti (z korene repa):   python scripts/gen_promo.py [port]
 # ==============================================================================
@@ -71,7 +74,7 @@ async def main():
                                             device_scale_factor=1)
             page = await ctx.new_page()
             await page.goto(url, wait_until='networkidle')
-            await page.wait_for_timeout(900)   # fotky z promo-fotky/ se dohledavaji asynchronne
+            await page.wait_for_timeout(600)   # at dobehne sazba pisma a vykresleni SVG
 
             uzly = await page.eval_on_selector_all(
                 '[data-promo]',
@@ -81,8 +84,7 @@ async def main():
                 print('V predloze nejsou zadne panely (chybi data-promo).')
                 return 1
 
-            fotek = await page.eval_on_selector_all('.shot img', 'els => els.length')
-            print('predloha: %d panelu, vlastnich fotek nalezeno: %d' % (len(uzly), fotek))
+            print('predloha: %d panelu' % len(uzly))
 
             for u in uzly:
                 el = page.locator('[data-promo="%s"]' % u['id'])
@@ -103,7 +105,7 @@ async def main():
     print('\nHotovo -> %s' % OUT)
     print('Nahravat do Play Console: feature.png (feature graphic) + play-*.png (screenshoty telefonu).')
     print('Do App Store Connect: ios-*.png (6,7").')
-    print('Az budes mit vlastni fotky, dej je do play/promo-fotky/ (1.jpg .. 8.jpg) a spust znovu.')
+    print('Texty, barvy a scenky se meni v predloze play/promo.html - pak spustit znovu.')
     return 0
 
 

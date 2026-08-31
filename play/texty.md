@@ -79,9 +79,11 @@ https://stepanvcelak11.github.io/ar-geodet/soukromi.html
 **App Store 6,7":** `play/promo/ios-1…8.png` (1290×2796)
 
 > Obrázky vyrábí `python scripts/gen_promo.py` z předlohy `play/promo.html`.
-> Vlastní fotky z terénu dej do `play/promo-fotky/` jako `1.jpg` … `8.jpg` a spusť ho znovu;
-> dokud tam nejsou, je v každém rámečku napsané, jaký snímek tam patří — takže to
-> zároveň slouží jako seznam, co v terénu nafotit.
+> **Nic se k nim nedodává** — každý panel má místo fotky kreslenou scénu (AR značky,
+> šipka navádění, parcely katastru, terč vytyčení, kóty a výměra, semafor přesnosti,
+> seznam souřadnic, tým), nadpis a tři výhody. Nadpisy, texty i scény se mění
+> v předloze; po úpravě se spustí generátor znovu.
+> ⚠ Čísla ve scénách (souřadnice, výměry, parcelní čísla) jsou UKÁZKOVÁ, ne data.
 > Starší `play/feature-graphic.png` a `play/screenshoty/` (z `play/make-play-graphics.py`)
 > zůstávají jako záloha; screenshoty v nich jsou ale z úvodní obrazovky, která už v appce není.
 
