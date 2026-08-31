@@ -89,15 +89,14 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=268">
-    <link rel="stylesheet" href="css/style.css?v=268">
-    <!-- FIREMNÍ ZÁMEK: když se bude hned po startu přihlašovat (js/ucty.js), nesmí
-         probliknout původní úvodní obrazovka. Rozhodne se TADY, synchronně v <head>,
-         tedy ještě před prvním vykreslením; ucty.js třídu zase odebere.
-         POZOR: plati i pro PRVNI spusteni appky. Driv se tady pri chybejici
-         firme rovnou vyskocilo, takze prvouzivateli probliklo stare
-         "Spustit vyhledavani" a teprve pres nej se otevrela brana. -->
-    <style>html.ag-prelock #welcome-screen{display:none !important;}</style>
+    <link rel="stylesheet" href="css/tokens.css?v=269">
+    <link rel="stylesheet" href="css/style.css?v=269">
+    <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
+         Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
+         ucty.js třídu zase odebere (unprelock).
+         Třída už NIC NESCHOVÁVÁ — úvodní obrazovka, která pod zámkem problikávala,
+         je od 31. 8. 2026 zrušená (viz #welcome-screen níž). Zůstává jako spínač
+         pojistky proti nedonačtené appce hned pod tímhle blokem. -->
     <script>
         (function () {
             var need = false;
@@ -132,6 +131,15 @@
             setTimeout(function () {
                 try {
                     if (document.getElementById('ag-gate') || document.getElementById('ag-login')) return;
+                    // ⚠⚠ 31. 8. 2026 — TAHLE PODMÍNKA TU CHYBĚLA A HLÁŠKA PROBLIKÁVALA
+                    // PŘES FUNGUJÍCÍ APPKU. Když se uživatel přihlásil (nebo jel jako
+                    // vlastník), ucty.js bránu ODSTRANIL a sundal ag-prelock — ve 12. s
+                    // tedy žádná brána nestála, hláška se postavila, a uklidil ji až
+                    // hlídač o vteřinu později. Celou tu vteřinu svítilo přes rozdělanou
+                    // práci „Appka se nestihla načíst celá" s tlačítkem Spustit znovu.
+                    // Sundaný zámek znamená, že ucty.js DOBĚHL — tedy přesně to, na co
+                    // se tu čeká. Není co hlásit.
+                    if (!document.documentElement.classList.contains('ag-prelock')) return;
                     if (document.getElementById('ag-bootfail')) return;
                     var ov = document.createElement('div');
                     ov.id = 'ag-bootfail';
@@ -168,7 +176,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=268">
+    <link rel="stylesheet" href="css/vylepseni.css?v=269">
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
     <link rel="stylesheet" href="css/zpravodaj.css">
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
@@ -259,93 +267,77 @@
         <symbol id="i-drone" viewBox="0 0 24 24"><circle cx="5" cy="5" r="2.5"/><circle cx="19" cy="5" r="2.5"/><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="19" r="2.5"/><rect x="9.5" y="9.5" width="5" height="5" rx="1.5"/><line x1="7" y1="7" x2="9.5" y2="9.5"/><line x1="17" y1="7" x2="14.5" y2="9.5"/><line x1="7" y1="17" x2="9.5" y2="14.5"/><line x1="17" y1="17" x2="14.5" y2="14.5"/></symbol>
     </svg>
 
-    <div id="welcome-screen">
-        <div class="modal-content">
-            <!-- Návrh C „Zakázka v centru": vodorovná hlavička + karta aktivní zakázky s kontextem -->
-            <div class="w-topbar">
-                <svg class="welcome-logo w-mini-logo" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs><linearGradient id="wl-vf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4ccd99"/><stop offset="1" stop-color="#2a945f"/></linearGradient></defs>
-                    <g fill="none" stroke="url(#wl-vf)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M22 33 L22 26 Q22 22 26 22 L33 22"/>
-                        <path d="M63 22 L70 22 Q74 22 74 26 L74 33"/>
-                        <path d="M74 63 L74 70 Q74 74 70 74 L63 74"/>
-                        <path d="M33 74 L26 74 Q22 74 22 70 L22 63"/>
-                    </g>
-                    <circle cx="48" cy="48" r="14" fill="none" stroke="#3eb487" stroke-opacity="0.25" stroke-width="1.5"/>
-                    <circle cx="48" cy="48" r="9.5" fill="none" stroke="#3eb487" stroke-opacity="0.5" stroke-width="1.5"/>
-                    <g stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity="0.9">
-                        <line x1="48" y1="38.5" x2="48" y2="42.5"/><line x1="48" y1="53.5" x2="48" y2="57.5"/>
-                        <line x1="38.5" y1="48" x2="42.5" y2="48"/><line x1="53.5" y1="48" x2="57.5" y2="48"/>
-                    </g>
-                    <circle cx="48" cy="48" r="4.2" fill="url(#wl-vf)"/>
-                    <circle cx="48" cy="48" r="1.8" fill="#ffffff"/>
-                </svg>
-                <div class="w-brand">
-                    <div class="w-brand-name">AR&nbsp;Geodet</div>
-                    <div class="w-brand-tag">Geodetický AR nástroj</div>
-                </div>
-                <button class="w-info-btn" onclick="openAbout()" aria-label="O aplikaci a soukromí"><svg class="icon"><use href="#i-info"/></svg></button>
-            </div>
+    <!-- ================================================================================
+         ÚVODNÍ OBRAZOVKA ZRUŠENA (na přání, 31. 8. 2026).
+         Byla to druhá vstupní stránka vedle přihlášení a v režimu hosta se ukazovala
+         MÍSTO něj — kdo jednou klepl na „Pokračovat bez přihlášení", neměl se pak
+         kde přihlásit (štítek hosta ležel pod ní, měla z-index 999999). Jediný vchod
+         do appky je teď přihlašovací obrazovka #ag-gate / #ag-login (js/ucty.js);
+         po vstupu jde appka rovnou do práce.
 
-            <label class="w-c-label">Aktivní zakázka</label>
-            <div class="w-proj-row">
-                <div class="w-proj-card">
-                    <div class="w-proj-top">
-                        <span class="w-proj-folder"><svg class="icon"><use href="#i-folder"/></svg></span>
-                        <div class="w-proj-meta">
-                            <div class="w-proj-name" id="w-proj-name">Načítám…</div>
-                            <div class="w-proj-sub" id="w-proj-sub">S-JTSK · Křovák</div>
-                        </div>
-                        <span class="w-proj-chev"><svg class="icon"><use href="#i-chevron-down"/></svg></span>
-                    </div>
-                    <div class="w-proj-chips" id="w-proj-chips"></div>
-                    <!-- Nativní select leží průhledně přes kartu: ťuknutí kamkoli otevře výběr zakázky -->
-                    <select id="w-project-select" class="w-proj-select-ov" onchange="changeProject()" aria-label="Vybrat zakázku"></select>
-                </div>
-                <button class="w-proj-icon" onclick="createNewProject()" aria-label="Nová zakázka"><svg class="icon"><use href="#i-plus"/></svg></button>
+         ZŮSTÁVÁ jen tahle SKRYTÁ kostra, a to ze dvou konkrétních důvodů:
+          • .welcome-logo — přihlašovací obrazovka si logo KLONUJE (fillMark v js/ucty.js),
+            aby se kresba nemusela duplikovat;
+          • .modal-body s posuvníky a filtry — čte je startAppFromWelcome() v js/grafika.js
+            (mapRadius, arRadius, filtry, režim zobrazení, výběr objektivu). Kdyby pole
+            zmizela, funkce by při každém startu přepsala tytéž volby v Nastavení
+            náhradními hodnotami (nejnápadněji by resetovala vybraný objektiv).
+         .modal-content tu ZÁMĚRNĚ NENÍ: podle ní se moduly (zpravodaj, předpisy,
+         průvodce, režim práce, pokračovat) poznávaly, že mají co vkládat do úvodu —
+         bez ní se samy odmlčí a nic mrtvého se nevykresluje.
+         NEVRACET. ================================================================== -->
+    <div id="welcome-screen" hidden style="display:none !important;">
+    <svg class="welcome-logo w-mini-logo" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="wl-vf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4ccd99"/><stop offset="1" stop-color="#2a945f"/></linearGradient></defs>
+        <g fill="none" stroke="url(#wl-vf)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 33 L22 26 Q22 22 26 22 L33 22"/>
+            <path d="M63 22 L70 22 Q74 22 74 26 L74 33"/>
+            <path d="M74 63 L74 70 Q74 74 70 74 L63 74"/>
+            <path d="M33 74 L26 74 Q22 74 22 70 L22 63"/>
+        </g>
+        <circle cx="48" cy="48" r="14" fill="none" stroke="#3eb487" stroke-opacity="0.25" stroke-width="1.5"/>
+        <circle cx="48" cy="48" r="9.5" fill="none" stroke="#3eb487" stroke-opacity="0.5" stroke-width="1.5"/>
+        <g stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity="0.9">
+            <line x1="48" y1="38.5" x2="48" y2="42.5"/><line x1="48" y1="53.5" x2="48" y2="57.5"/>
+            <line x1="38.5" y1="48" x2="42.5" y2="48"/><line x1="53.5" y1="48" x2="57.5" y2="48"/>
+        </g>
+        <circle cx="48" cy="48" r="4.2" fill="url(#wl-vf)"/>
+        <circle cx="48" cy="48" r="1.8" fill="#ffffff"/>
+    </svg>
+<div class="modal-body" style="padding-right: 0; display: none;">
+    <label>Poloměr pro mapu (Stahování): <span id="w-map-radius-val" style="color:var(--accent); font-size: 16px;">1000</span> m</label>
+    <input type="range" id="w-map-radius-slider" min="50" max="5000" step="50" value="1000" oninput="document.getElementById('w-map-radius-val').innerText = this.value">
+    <label>Viditelnost v AR kameře: <span id="w-ar-radius-val" style="color:var(--accent); font-size: 16px;">150</span> m</label>
+    <input type="range" id="w-ar-radius-slider" min="50" max="5000" step="50" value="150" oninput="document.getElementById('w-ar-radius-val').innerText = this.value">
+    <label style="margin-top: 20px;">Druh hledaných bodů</label>
+    <div class="filter-group">
+        <label class="filter-row"><input type="checkbox" id="w-f-tb" checked><svg class="cat-ic" viewBox="0 0 24 24"><polygon points="12,3 22,21 2,21" fill="#8b5cf6"/></svg> Trigonometrické</label>
+        <label class="filter-row"><input type="checkbox" id="w-f-zhb" checked><svg class="cat-ic" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" fill="#0ea5e9"/></svg> Zhušťovací</label>
+        <label class="filter-row"><input type="checkbox" id="w-f-pbpp" checked><svg class="cat-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#3b82f6"/></svg> Podrobné polohové</label>
+        <label class="filter-row"><input type="checkbox" id="w-f-nivel" checked><svg class="cat-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#ef4444" stroke-width="3"/><circle cx="12" cy="12" r="3" fill="#ef4444"/></svg> Výškové / Nivelační</label>
+        <label class="filter-row"><input type="checkbox" id="w-f-custom" checked><svg class="cat-ic" viewBox="0 0 24 24"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7Z" fill="#34d399"/></svg> Vlastní body</label>
+    </div>
+    <details style="margin-top: 20px;">
+        <summary style="color: #bbb; border: 1px solid var(--glass-border); border-radius: 10px; padding: 12px; text-align: center;"><svg class="icon"><use href="#i-settings"/></svg> Zobrazit pokročilé nastavení</summary>
+        <div style="padding: 10px;">
+            <label>Rozvržení displeje</label>
+            <div class="filter-group" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- BATERIE: výchozí je Mapa (kamera uspaná). „Dělené" drží živou kameru
+                     I mapu naráz — nejdražší kombinaci — a bylo předvybrané, takže ji
+                     dostal každý, kdo volbu nepřečetl. Poslední použitý režim se pamatuje
+                     (localStorage 'agViewMode', viz loadProjectSettings v js/logika.js). -->
+                <label class="filter-row"><input type="radio" name="w-view" value="map" checked> Pouze 2D Mapa (Šetří baterii)</label>
+                <label class="filter-row"><input type="radio" name="w-view" value="both"> Mapa i AR kamera (Dělené)</label>
+                <label class="filter-row"><input type="radio" name="w-view" value="ar"> Pouze AR Kamera</label>
             </div>
-
-            <!-- Pokročilé volby přesunuty do Nastavení; ponecháno skryté kvůli startAppFromWelcome() -->
-            <div class="modal-body" style="padding-right: 0; display: none;">
-                <label>Poloměr pro mapu (Stahování): <span id="w-map-radius-val" style="color:var(--accent); font-size: 16px;">1000</span> m</label>
-                <input type="range" id="w-map-radius-slider" min="50" max="5000" step="50" value="1000" oninput="document.getElementById('w-map-radius-val').innerText = this.value">
-                <label>Viditelnost v AR kameře: <span id="w-ar-radius-val" style="color:var(--accent); font-size: 16px;">150</span> m</label>
-                <input type="range" id="w-ar-radius-slider" min="50" max="5000" step="50" value="150" oninput="document.getElementById('w-ar-radius-val').innerText = this.value">
-                <label style="margin-top: 20px;">Druh hledaných bodů</label>
-                <div class="filter-group">
-                    <label class="filter-row"><input type="checkbox" id="w-f-tb" checked><svg class="cat-ic" viewBox="0 0 24 24"><polygon points="12,3 22,21 2,21" fill="#8b5cf6"/></svg> Trigonometrické</label>
-                    <label class="filter-row"><input type="checkbox" id="w-f-zhb" checked><svg class="cat-ic" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" fill="#0ea5e9"/></svg> Zhušťovací</label>
-                    <label class="filter-row"><input type="checkbox" id="w-f-pbpp" checked><svg class="cat-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#3b82f6"/></svg> Podrobné polohové</label>
-                    <label class="filter-row"><input type="checkbox" id="w-f-nivel" checked><svg class="cat-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#ef4444" stroke-width="3"/><circle cx="12" cy="12" r="3" fill="#ef4444"/></svg> Výškové / Nivelační</label>
-                    <label class="filter-row"><input type="checkbox" id="w-f-custom" checked><svg class="cat-ic" viewBox="0 0 24 24"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7Z" fill="#34d399"/></svg> Vlastní body</label>
-                </div>
-                <details style="margin-top: 20px;">
-                    <summary style="color: #bbb; border: 1px solid var(--glass-border); border-radius: 10px; padding: 12px; text-align: center;"><svg class="icon"><use href="#i-settings"/></svg> Zobrazit pokročilé nastavení</summary>
-                    <div style="padding: 10px;">
-                        <label>Rozvržení displeje</label>
-                        <div class="filter-group" style="display: flex; flex-direction: column; gap: 8px;">
-                            <!-- BATERIE: výchozí je Mapa (kamera uspaná). „Dělené" drží živou kameru
-                                 I mapu naráz — nejdražší kombinaci — a bylo předvybrané, takže ji
-                                 dostal každý, kdo volbu nepřečetl. Poslední použitý režim se pamatuje
-                                 (localStorage 'agViewMode', viz loadProjectSettings v js/logika.js). -->
-                            <label class="filter-row"><input type="radio" name="w-view" value="map" checked> Pouze 2D Mapa (Šetří baterii)</label>
-                            <label class="filter-row"><input type="radio" name="w-view" value="both"> Mapa i AR kamera (Dělené)</label>
-                            <label class="filter-row"><input type="radio" name="w-view" value="ar"> Pouze AR Kamera</label>
-                        </div>
-                        <label style="margin-top: 15px;">Hledat konkrétní bod (Plný název)</label>
-                        <input type="text" id="w-search-name" placeholder="Např. 567 nebo celá značka">
-                        <label style="margin-top: 15px;">Širokoúhlý objektiv (0.5x)</label>
-                        <button id="camera-load-btn" class="btn btn-secondary" onclick="loadCameras()" style="padding: 10px; font-size: 14px;"><svg class="icon"><use href="#i-camera"/></svg> Vyhledat zadní objektivy</button>
-                        <select id="w-camera-select" style="display:none;"><option value="">Výchozí zadní kamera</option></select>
-                    </div>
-                </details>
-            </div>
-            <div class="w-c-actions">
-                <button id="welcome-start-btn" class="btn btn-primary w-c-start" onclick="startAppFromWelcome()"><svg class="icon"><use href="#i-navigation"/></svg> Spustit vyhledávání</button>
-                <button id="pruv-welcome-btn" class="btn btn-secondary w-c-pruv" onclick="openPruvodce()"><svg class="icon"><use href="#i-navigation"/></svg> Průvodce úkolem</button>
-            </div>
-            <p class="w-c-foot">Orientační pomůcka, ne měřicí přístroj — poloha závisí na GPS a kompasu telefonu.<br>© 2026 Štěpán Včelák — vlastník aplikace</p>
+            <label style="margin-top: 15px;">Hledat konkrétní bod (Plný název)</label>
+            <input type="text" id="w-search-name" placeholder="Např. 567 nebo celá značka">
+            <label style="margin-top: 15px;">Širokoúhlý objektiv (0.5x)</label>
+            <button id="camera-load-btn" class="btn btn-secondary" onclick="loadCameras()" style="padding: 10px; font-size: 14px;"><svg class="icon"><use href="#i-camera"/></svg> Vyhledat zadní objektivy</button>
+            <select id="w-camera-select" style="display:none;"><option value="">Výchozí zadní kamera</option></select>
         </div>
+    </details>
+</div>
     </div>
 
     <button id="menu-toggle-btn" class="glass-panel" onclick="toggleMenu()"><svg class="icon"><use href="#i-menu"/></svg> Menu</button>

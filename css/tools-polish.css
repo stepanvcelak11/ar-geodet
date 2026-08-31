@@ -74,13 +74,25 @@
     list-style: none;
 }
 .modal-content details:not(.adv):not(.exp-menu):not(.lines-menu) > summary::-webkit-details-marker { display: none; }
+/* Šipka je NAKRESLENÁ, ne znak — viz .ag-chev v css/style.css (31. 8. 2026).
+   Rotace o 180° u znaku „▾" navíc dělala vzhůru nohama otočený trojúhelník
+   posazený mimo účtaří řádku; nakreslený roh se otáčí o 90° a sedí. */
 .modal-content details:not(.adv):not(.exp-menu):not(.lines-menu) > summary::after {
-    content: "▾";
+    content: "";
     float: right;
+    width: 6px;
+    height: 6px;
+    box-sizing: border-box;
+    margin: 5px 2px 0 0;
+    border-radius: 1px;
+    border-right: 1.8px solid currentColor;
+    border-bottom: 1.8px solid currentColor;
     color: var(--text-muted);
+    transform: rotate(45deg);
+    transform-origin: 60% 60%;
     transition: transform 0.15s ease;
 }
-.modal-content details:not(.adv):not(.exp-menu):not(.lines-menu)[open] > summary::after { transform: rotate(180deg); }
+.modal-content details:not(.adv):not(.exp-menu):not(.lines-menu)[open] > summary::after { transform: rotate(-135deg); }
 .modal-content details:not(.adv):not(.exp-menu):not(.lines-menu)[open] > summary { color: var(--text-color); }
 .modal-content details:not(.adv):not(.exp-menu):not(.lines-menu) > *:not(summary) { padding-left: 13px; padding-right: 13px; }
 .modal-content details:not(.adv):not(.exp-menu):not(.lines-menu) > *:last-child { padding-bottom: 11px; }

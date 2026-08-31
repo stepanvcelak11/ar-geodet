@@ -10,9 +10,24 @@
         // na listu klepnul — jinak by se nova verze nasadila az pri dalsim spusteni.
         function applyUpdate() { window.__agUpdateRequested = true; navigator.serviceWorker.getRegistration().then(reg => { if (reg && reg.waiting) reg.waiting.postMessage('SKIP_WAITING'); }); const b = document.getElementById('update-banner'); if (b) b.style.display = 'none'; }
 
+        // ⚠⚠ 31. 8. 2026 — TOHLE SHAZOVALO CELÝ START APPKY.
+        // Se zrušenou úvodní obrazovkou přestal existovat #w-project-select a řádek
+        // `sel.innerHTML = ''` házel "Cannot set properties of null". Volá se to
+        // z window DOMContentLoaded handleru HNED PŘED `hydrateActiveProject()`,
+        // takže se výjimkou zabil i ten — zakázka se nenahydratovala, body se
+        // nenačetly a loadProjectSettings() (filtry, poloměry, vzhled) nikdy
+        // neproběhlo. Navenek to vypadalo jako „půlka nástrojů blbne".
+        // Přepínač zakázek dnes bydlí v Nastavení → Data (#s-project-select).
+        // Plní se OBA přepínače, které kdy existovaly, a chybějící se přeskočí — funkce
+        // tak nezávisí na tom, jestli je v dokumentu ještě úvodní obrazovka, nebo už ne.
         function renderProjectSelect() {
-            const sel = document.getElementById('w-project-select'); sel.innerHTML = '';
-            projects.forEach(p => { const opt = document.createElement('option'); opt.value = p.id; opt.innerText = p.name; if(p.id === activeProjectId) opt.selected = true; sel.appendChild(opt); });
+            if (typeof projects === 'undefined' || !Array.isArray(projects)) return;
+            ['w-project-select', 's-project-select'].forEach(id => {
+                const sel = document.getElementById(id);
+                if (!sel) return;
+                sel.innerHTML = '';
+                projects.forEach(p => { const opt = document.createElement('option'); opt.value = p.id; opt.innerText = p.name; if(p.id === activeProjectId) opt.selected = true; sel.appendChild(opt); });
+            });
         }
         const arrowPaths = { '1': "M50 10 L90 50 L70 50 L70 95 L30 95 L30 50 L10 50 Z", '2': "M50 10 L70 30 L55 30 L55 95 L45 95 L45 30 L30 30 Z", '3': "M50 10 L90 50 L70 60 L50 40 L30 60 L10 50 Z", '4': "M50 10 L90 90 L50 70 L10 90 Z", '5': "M50 10 L90 50 L50 90 L10 50 Z" };
 

@@ -399,8 +399,17 @@
         var to = null;
         var p;
         try {
-            p = fetch((opts.api || apiUrl()) + path, {
-                method: opts.method || 'GET',
+            // RAZITKO U GET. Service worker uz sam nechava *.workers.dev vzdy jit na
+            // sit, ale firma si smi nastavit vlastni host (getFirm().api), na ktery
+            // ta vyjimka nesedi. Bez razitka maji /config, /chat?after=N a
+            // /sync/points?since=T porad stejnou URL, takze je jakakoli cache-first
+            // vrstva (SW i HTTP cache) po prvni odpovedi zmrazi. Parametr `_`
+            // worker nikde necte, na routovani ani na after/since nema vliv.
+            var _m = opts.method || 'GET';
+            var _u = (opts.api || apiUrl()) + path;
+            if (_m === 'GET') _u += (_u.indexOf('?') < 0 ? '?' : '&') + '_=' + Date.now();
+            p = fetch(_u, {
+                method: _m,
                 headers: headers,
                 body: opts.body != null ? JSON.stringify(opts.body) : undefined,
                 signal: ctrl ? ctrl.signal : undefined
@@ -446,6 +455,14 @@
             limits: cfg.limits || (old && old.limits) || null,
             request: cfg.request || null,
             notice: cfg.notice || null,
+            // VYPÍNAČ MODULŮ NA DÁLKU (js/priznaky.js). Seznam vypnutých nástrojů
+            // posílá worker v /config a čte se právě odsud (AGUcty.getFirm().flags).
+            // ⚠ ZÁMĚRNĚ BEZ fallbacku na `old` jako u perms/limits: worker posílá
+            //   flags: null ve chvíli, kdy vlastník vypínač ZRUŠIL, a právě na tom
+            //   stojí druhá větev v priznaky.js (vyprázdnit seznam). S fallbackem
+            //   by vypínač nešlo vypnout. Když pole chybí (starší worker), zapíše
+            //   se null a priznaky.js na lokální seznam nesáhne.
+            flags: cfg.flags || null,
             fetchedTs: Date.now()
         };
         try { localStorage.setItem(LS_FIRM, JSON.stringify(f)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:adoptConfig'); }
@@ -1413,28 +1430,42 @@
     }
 
     // ------------------------------------------------------------------
-    // JEDNA úvodní obrazovka: přihlášení je vstupní branou, takže původní
-    // úvodní karta (#welcome-screen se „Spustit vyhledávání") se po přihlášení
-    // přeskočí — appka jde rovnou do práce. Bez firemního režimu (host) zůstává
-    // úvodní karta jako dřív, aby appka měla vždy PRÁVĚ JEDNU vstupní stránku.
-    // startAppFromWelcome() je globál z logika.js (obaluje ho i tutorial-pro.js,
-    // takže výuka na prvním spuštění dál funguje).
+    // JEDINÝ VCHOD DO APPKY (31. 8. 2026). Přihlašovací obrazovka #ag-gate /
+    // #ag-login je jediná vstupní stránka; stará úvodní karta #welcome-screen je
+    // zrušená (v index.html po ní zbyla jen skrytá kostra s poli formuláře).
+    //
+    // ⚠ DŘÍV TU BYLA PODMÍNKA `ws.style.display !== 'none'`, tedy „spusť appku,
+    // JEN KDYŽ je úvodní karta zrovna vidět". Se zrušenou kartou by neplatila
+    // nikdy a po přihlášení by uživatel koukal na nenastartovanou appku. Teď se
+    // rozhoduje podle toho, co nás doopravdy zajímá: jestli appka UŽ BĚŽÍ.
+    //
+    // startAppFromWelcome() je globál z grafika.js (obaluje ho i tutorial-pro.js,
+    // takže výuka na prvním spuštění dál funguje). Nemusí být v tuhle chvíli
+    // načtený — brána umí naskočit dřív než zbytek appky — proto se na něj chvíli
+    // počká místo tichého vzdání.
     // ------------------------------------------------------------------
-    // sundání pojistky proti probliknutí úvodní obrazovky (třída z <head>)
+    // sundání pojistky proti probliknutí přihlašovací obrazovky (třída z <head>)
     function unprelock() {
         try { document.documentElement.classList.remove('ag-prelock'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:unprelock'); }
+    }
+
+    function appRunning() {
+        try { return !!(document.body && document.body.classList.contains('app-started')); } catch (e) { return false; }
     }
 
     function enterApp() {
         unprelock();
         try {
-            var ws = document.getElementById('welcome-screen');
-            if (!ws) return;
-            var vis = ws.style.display !== 'none' && !document.body.classList.contains('app-started');
-            if (!vis) return;
-            if (typeof window.startAppFromWelcome === 'function') {
-                setTimeout(function () { try { window.startAppFromWelcome(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:enterApp'); } }, 60);
-            }
+            if (appRunning()) return;
+            var tries = 0;
+            (function go() {
+                if (appRunning()) return;
+                if (typeof window.startAppFromWelcome === 'function') {
+                    try { window.startAppFromWelcome(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:enterApp'); }
+                    return;
+                }
+                if (tries++ < 40) setTimeout(go, 150);   // ~6 s, pak to vzdáme (pojistka v <head> ukáže hlášku)
+            })();
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:enterApp'); }
     }
 
@@ -2392,7 +2423,7 @@
         applyProjPerms();
         usageLog('login', 'auto');
         try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: u, kind: 'auto' } })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:autoLogin'); }
-        unprelock();
+        enterApp();          // pamatovane prihlaseni branu preskoci -> appka musi nastartovat sama
         var left = trustLeft(t);
         if (left <= 3) setTimeout(function () { toast('Přihlášen jako ' + u.name + ' · za ' + left + ' spuštění bude potřeba heslo'); }, 1200);
     }
@@ -2435,7 +2466,7 @@
         var f = isOwner() ? null : getFirm();
         if (isOwner()) {
             applyPerms();
-            unprelock();
+            enterApp();                            // vlastnik branou neprochazi -> spustit rovnou
         } else if (f) {
             rememberCurrentFirm();                 // ať je aktivní firma vždy v profilech
             var u = currentUser();
@@ -2452,6 +2483,7 @@
             } else {
                 try { localStorage.setItem('arSurveyor', u.name); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:init'); }
                 applyPerms();
+                enterApp();                        // zamek pri startu vypnuty -> zadna brana, spustit rovnou
             }
             if (f.cloud) {
                 setTimeout(refreshConfig, 2500);   // oprávnění/uživatelé se mohli změnit jinde
@@ -2459,12 +2491,17 @@
             }
         } else if (isGuest()) {
             applyPerms();                          // omezený režim bez přihlášení
-            unprelock();
+            enterApp();                            // host uz branou prosel -> rovnou do prace
         } else {
             showGate();                            // bez firmy se appka neotevře
         }
         // pojistka: kdyby cokoli selhalo, úvodní obrazovka se nesmí zaseknout skrytá
-        setTimeout(function () { if (!document.getElementById('ag-login') && !document.getElementById('ag-gate')) unprelock(); }, 6000);
+        // pojistka: kdyz po 6 s nestoji zadna brana a appka porad nebezi, spustit ji
+        // (jinak by uzivatel koukal na zamcenou prazdnou obrazovku)
+        setTimeout(function () {
+            if (document.getElementById('ag-login') || document.getElementById('ag-gate')) return;
+            enterApp();
+        }, 6000);
         // periodické srovnání UI (mřížku Nástrojů překreslují jiné moduly) + auto-zámek
         // + jednou za ~2 minuty synchronizace fronty užívání (cloud)
         // BATERIE: přes AG.uiInterval, ať to netiká s appkou na pozadí (na pozadí není co

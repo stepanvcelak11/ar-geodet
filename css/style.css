@@ -111,85 +111,18 @@ body {
 }
 
 /* =========================================================================
-   Úvodní obrazovka — hero s aurora září a jemnou mřížkou
-   ========================================================================= */
-@keyframes aurora {
-    0%   { transform: translate(-4%, -3%) scale(1);    opacity: 0.85; }
-    50%  { transform: translate(4%, 3%) scale(1.15);   opacity: 1; }
-    100% { transform: translate(-4%, -3%) scale(1);    opacity: 0.85; }
-}
-
-#welcome-screen {
-    position: fixed;
-    inset: 0;
-    z-index: 999999;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    background-color: var(--bg-color);
-    /* Barevný diagonální nádech: zeleň vpravo nahoře, jantar vlevo dole, blend uprostřed */
-    background-image:
-        radial-gradient(60% 55% at 84% 12%, rgba(47, 158, 116, 0.34), transparent 60%),
-        radial-gradient(62% 58% at 14% 90%, rgba(176, 128, 66, 0.24), transparent 62%),
-        radial-gradient(120% 100% at 50% 50%, rgba(47, 158, 116, 0.05), transparent 70%);
-    transition: opacity 0.4s ease;
-}
-/* měkké rozostřené záře pro hloubku (jako původní aurora): zeleň vpravo nahoře, jantar vlevo dole */
-#welcome-screen::before, #welcome-screen::after {
-    content: "";
-    position: absolute;
-    width: 78vmin;
-    height: 78vmin;
-    border-radius: 50%;
-    filter: blur(80px);
-    pointer-events: none;
-    z-index: 0;
-}
-#welcome-screen::before {
-    top: -22%; right: -16%;
-    background: radial-gradient(circle, var(--glow1), transparent 64%);
-    animation: aurora 18s ease-in-out infinite;
-}
-#welcome-screen::after {
-    bottom: -24%; left: -16%;
-    background: radial-gradient(circle, var(--glow2), transparent 64%);
-    animation: aurora 24s ease-in-out infinite reverse;
-}
-
-/* Obsah leží přímo na pozadí (žádná plovoucí karta) a je svisle vycentrovaný */
-#welcome-screen .modal-content {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 460px;
-    max-height: 100%;
-    padding: max(20px, env(safe-area-inset-top)) 26px max(20px, env(safe-area-inset-bottom));
-    background: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    border: none;
-    box-shadow: none;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    touch-action: pan-y;
-}
-
-@keyframes float {
-    0%   { transform: translateY(0); }
-    50%  { transform: translateY(-8px); }
-    100% { transform: translateY(0); }
-}
-
-.welcome-logo {
-    width: 78px;
-    height: 78px;
-    margin: 4px auto 16px;
-    display: block;
-    animation: float 5s ease-in-out infinite;
-    filter: drop-shadow(0 14px 26px rgba(47, 158, 116, 0.40));
-}
+   Úvodní obrazovka — ZRUŠENA (31. 8. 2026)
+   Tady byl hero s aurora září (#welcome-screen + ::before/::after,
+   @keyframes aurora, @keyframes float, .welcome-logo a plátno .modal-content
+   přes celou obrazovku). Úvodní karta byla druhá vstupní stránka vedle
+   přihlášení a v režimu hosta se ukazovala MÍSTO něj — viz komentář
+   u #welcome-screen v index.html. V dokumentu po ní zbyla jen skrytá kostra
+   s poli formuláře, takže tyhle styly neměly co obarvovat.
+   Rozvržení karty zakázky (.w-topbar, .w-brand*, .w-info-btn, .w-c-*,
+   .w-proj-card/-top/-folder/-meta/-name/-sub/-chev/-chips/-chip/-select-ov)
+   je smazané níž ze stejného důvodu. ZŮSTÁVAJÍ .w-proj-select a .w-proj-icon:
+   ty používá Nastavení → Zakázky, js/geo-overlay.js a js/vylepseni.js.
+   NEVRACET. ===================================================== */
 
 /* =========================================================================
    Kamera + AR vrstva
@@ -1474,42 +1407,40 @@ body.app-started #map-controls { display: block; }
 .w-proj-icon .icon { width: 20px; height: 20px; }
 
 /* =========================================================================
-   Úvod — Návrh C „Zakázka v centru": vodorovná hlavička + karta s kontextem
-   ========================================================================= */
-.w-topbar { display: flex; align-items: center; gap: 14px; margin-bottom: 34px; }
-.w-mini-logo { width: 50px; height: 50px; margin: 0; flex: 0 0 auto; animation: none; }
-.w-brand { flex: 1; min-width: 0; }
-.w-brand-name { font-family: var(--font-display); font-size: calc(27px * var(--ag-font-scale, 1)); font-weight: 800; letter-spacing: -0.5px; color: var(--text-color); line-height: 1.05; }
-.w-brand-tag { font-family: var(--font-mono); font-size: calc(10px * var(--ag-font-scale, 1)); letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); margin-top: 5px; }
-.w-info-btn { flex: 0 0 auto; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: var(--r-md); color: var(--text-muted); cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }
-.w-info-btn:active { transform: scale(0.94); }
-.w-info-btn .icon { width: 20px; height: 20px; }
+   SBALOVACÍ ŠIPKA — jeden tvar pro celou appku (31. 8. 2026)
+   Do téhle chvíle si každé sbalitelné místo kreslilo šipku vlastním ZNAKEM
+   (▾ ▸ ▴ ▼ ▲) v ::after. Tři věci na tom byly špatně a dohromady působily,
+   jako by šipka „problikávala":
+     • přepnutí obsahu ::after je SKOK na jiný tvar (a jinou šířku), takže se
+       posunulo i to, co stálo vedle ní;
+     • ▾/▸/▴ jsou znaky z bloku geometrických tvarů — každý systém je bere
+       z jiného záložního fontu, na iOS vyjdou o polovinu menší než na Androidu
+       a některé je překreslí jako barevné emoji;
+     • sedí na účtaří řádku, takže proti číslu nebo textu vedle jsou vejš.
+   .ag-chev je nakreslený roh, který se OTÁČÍ. Rotace nemění šířku, takže se
+   vedle ní nic neposouvá, a je všude stejně velká.
+   Použití: prázdný <span class="ag-chev"></span>, nebo ::after s tímhle
+   deklarativním obsahem. Stav „rozbaleno" = třída .ag-chev-up na šipce
+   (nebo rotace přebitá u konkrétního místa). ========================== */
+.ag-chev {
+    flex: 0 0 auto;
+    align-self: center;
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    box-sizing: border-box;
+    border-right: 1.8px solid currentColor;
+    border-bottom: 1.8px solid currentColor;
+    border-radius: 1px;
+    transform: rotate(45deg);
+    transform-origin: 60% 60%;
+    transition: transform 0.16s ease;
+}
+.ag-chev-up { transform: rotate(-135deg); }
+@media (prefers-reduced-motion: reduce) { .ag-chev { transition: none; } }
 
-.w-c-label { display: block; margin: 0 0 12px; font-size: calc(11px * var(--ag-font-scale, 1)); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
-
-.w-proj-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 30px; }
-.w-proj-card { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 15px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 16px; }
-.w-proj-card:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-line,rgba(47,158,116,0.42)); }
-.w-proj-top { display: flex; align-items: center; gap: 12px; }
-.w-proj-folder { flex: 0 0 auto; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: rgba(47,158,116,0.16); color: var(--accent); }
-.w-proj-folder .icon { width: 21px; height: 21px; }
-.w-proj-meta { flex: 1; min-width: 0; }
-.w-proj-name { font-size: calc(18px * var(--ag-font-scale, 1)); font-weight: 800; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.w-proj-sub { font-size: calc(12px * var(--ag-font-scale, 1)); color: var(--text-muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.w-proj-chev { flex: 0 0 auto; color: var(--text-muted); display: flex; }
-.w-proj-chev .icon { width: 18px; height: 18px; }
-.w-proj-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
-.w-proj-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border); font-size: calc(12.5px * var(--ag-font-scale, 1)); font-weight: 700; color: var(--text-color); }
-.w-proj-chip .icon { width: 14px; height: 14px; color: var(--accent); }
-.w-proj-chip.empty { color: var(--text-muted); font-weight: 600; }
-/* Průhledný nativní select přes celou kartu (mimo "+" vedle) — ťuknutí kamkoli otevře výběr zakázky */
-.w-proj-select-ov { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; border: none; background: transparent; color: transparent; opacity: 0; -webkit-appearance: none; appearance: none; cursor: pointer; font-size: calc(16px * var(--ag-font-scale, 1)); }
-.w-proj-select-ov option { color: var(--text-color); background: var(--bg-color); }
-
-.w-c-actions { display: flex; flex-direction: column; gap: 12px; }
-.w-c-start { font-size: calc(18px * var(--ag-font-scale, 1)); padding: 17px; box-shadow: 0 10px 24px rgba(47, 158, 116, 0.32); }
-.w-c-pruv { border-color: var(--accent); color: var(--accent); }
-.w-c-foot { text-align: center; font-size: calc(11px * var(--ag-font-scale, 1)); line-height: 1.5; color: var(--text-muted); margin: 18px 6px 0; }
+/* Úvod „Návrh C — Zakázka v centru": rozvržení karty na úvodní obrazovce SMAZÁNO
+   31. 8. 2026 spolu s celou úvodní obrazovkou (viz komentář u hero bloku nahoře). */
 
 /* =========================================================================
    Ruční posun HUD prvků (přesnost, azimut, přepínač, GPS) — přetažením

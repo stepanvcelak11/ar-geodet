@@ -32,9 +32,10 @@
 // tedy nemůže zastarat. Dlaždice schované oprávněním role (ucty.js dává
 // data-agucty) se do výčtu záměrně nepočítají, ať se nenabízí, co uživatel nesmí.
 //
-// VOLITELNÉ: karta jde odklidit odkazem „Nezobrazovat" (agRpHide) — pak se volba
-// dělá dál jen v Nástrojích. Zapnout zpátky: Nastavení → Vzhled → „Volba režimu
-// práce na úvodu". Nic se nikdy nemaže a žádná dlaždice nezmizí nevratně.
+// VOLITELNÉ: karta jde odklidit odkazem „Nezobrazovat" (agRpHide) — profil pak
+// zůstává, jak je, a vypnout se dá v Nastavení. Zapnout zpátky: Nastavení → Vzhled
+// → „Volba profilu práce v Nástrojích". Nic se nikdy nemaže a žádná dlaždice
+// nezmizí nevratně.
 //
 // ZÁMĚRNĚ NEMĚNÍ zobrazení (AR/Split/Mapa), dok ani HUD — o ty se stará
 // js/view-cycle.js a stavová bublina; míchat jim do toho by znamenalo dvě místa,
@@ -344,7 +345,7 @@
         var st = document.createElement('style');
         st.id = STYLE_ID;
         st.textContent = [
-            '#ag-rp-wrap{margin:-18px 0 26px;}',           // karta zakázky má pod sebou 30px
+            '#ag-rp-wrap{margin:0 0 16px;}',               // nad seznamem nástrojů, ne pod kartou zakázky
             '#ag-rp-wrap[hidden]{display:none;}',
             '#ag-rp-head{display:flex;align-items:baseline;gap:8px;margin:0 0 8px;}',
             '#ag-rp-head .t{font:700 11px/1.2 var(--font-ui,system-ui),sans-serif;letter-spacing:.12em;',
@@ -355,12 +356,13 @@
             '#ag-rp-head .x{margin-left:auto;background:none;border:none;padding:2px 0;cursor:pointer;',
             '  color:var(--text-muted,#9aa1ac);font:500 11px/1 var(--font-ui,system-ui),sans-serif;text-decoration:underline;}',
             // pás voleb — vodorovný scroll, ať karta neroste do výšky
-            // POZOR (kontrola 27.7.): #welcome-screen .modal-content má v css/style.css
-            // touch-action:pan-y. Prohlížeč PRŮNIKUJE touch-action prvku s předky, takže
-            // uvnitř by nešlo posunout prstem VODOROVNĚ vůbec nic — pás režimů by se dal
-            // rolovat leda myší a „posuň ›" by lhalo. Povolujeme oba směry; kontejner sám
-            // vodorovně nepřetéká, takže se pro zbytek úvodní obrazovky nic nemění.
-            '#welcome-screen .modal-content{touch-action:pan-x pan-y;}',
+            // POZOR (kontrola 27.7., přepsáno 31. 8. 2026 po přesunu do Nástrojů):
+            // rolovací tělo modálu má v css/style.css touch-action:pan-y. Prohlížeč
+            // PRŮNIKUJE touch-action prvku s předky, takže uvnitř by nešlo posunout
+            // prstem VODOROVNĚ vůbec nic — pás režimů by se dal rolovat leda myší
+            // a „posuň ›" by lhalo. Povolujeme oba směry na samotném pásu, ne na celém
+            // modálu: svislé rolování dlouhého seznamu nástrojů tím zůstane nedotčené.
+            '#ag-rp-list{touch-action:pan-x pan-y;}',
             '#ag-rp-strip{position:relative;}',
             '#ag-rp-list{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 4px;scroll-snap-type:x proximity;',
             '  -webkit-overflow-scrolling:touch;}',
@@ -609,26 +611,41 @@
     }
 
     // ---- vykreslení do úvodní obrazovky -------------------------------------------
+    // ⚠⚠ 31. 8. 2026 — KARTA BYDLELA NA ÚVODNÍ OBRAZOVCE A TA JE ZRUŠENÁ.
+    // Byla to JEDINÁ cesta, jak profil práce přepnout: select „Typ práce" nad mřížkou
+    // Nástrojů byl dřív odstraněn PRÁVĚ PROTO, že tuhle kartu člověk viděl dřív
+    // (viz komentář v js/tools-simple.js). Bez náhrady by se profil nedal změnit
+    // vůbec — jen vypnout v Nastavení → Vzhled — a kdo měl zapnutou třeba
+    // „Pokládku", zůstal by v zúžených Nástrojích natrvalo.
+    // Karta se proto přestěhovala NA ZAČÁTEK SEZNAMU NÁSTROJŮ, tedy přesně tam,
+    // kde se volba projeví. Zůstává odklizitelná („Nezobrazovat", agRpHide)
+    // a Nastavení → Vzhled ji vrátí.
     function ensureWrap() {
         var w = document.getElementById('ag-rp-wrap');
         if (w) return w;
-        var ws = document.getElementById('welcome-screen');
-        if (!ws) return null;
-        var content = ws.querySelector('.modal-content');
-        var row = ws.querySelector('.w-proj-row');
-        if (!content || !row) return null;
+        var m = document.getElementById('tools-modal');
+        var content = m ? m.querySelector('.modal-content') : null;
+        if (!content) return null;
+        // kotva = seznam sloves (js/nastroje-ukony.js), jinak původní mřížka dlaždic
+        var row = content.querySelector('#ag-uk-list') || content.querySelector('.tool-grid');
+        if (!row) return null;
         w = document.createElement('div');
         w.id = 'ag-rp-wrap';
         w.innerHTML =
-            '<div id="ag-rp-head"><span class="t">Jak dnes budeš appku používat</span>'
+            '<div id="ag-rp-head"><span class="t">Co dnes děláš</span>'
             + '<span class="hint">posuň ›</span>'
             + '<button type="button" class="x" id="ag-rp-hide">Nezobrazovat</button></div>'
             + '<div id="ag-rp-strip"><div id="ag-rp-list" role="group" aria-label="Režim práce"></div></div>'
             + '<div id="ag-rp-detail"></div>'
             + '<p id="ag-rp-note"></p>';
-        // pod kartu zakázky (režim se vztahuje k zakázce), nad tlačítka Spustit
-        if (row.nextSibling) content.insertBefore(w, row.nextSibling);
-        else content.appendChild(w);
+        // NAD seznam nástrojů: volba se vztahuje k tomu, co je pod ní.
+        // ⚠ VKLÁDÁ SE PŘES SKUTEČNÉHO RODIČE KOTVY, ne přes .modal-content: seznam
+        // sloves si js/nastroje-ukony.js vkládá vedle mřížky, tedy o úroveň hlouběji.
+        // `content.insertBefore(w, row)` by hodilo NotFoundError („node is not a child
+        // of this node") — přesně na tomhle spadla 8. 8. tlačítka zpravodaje a předpisů
+        // na úvodní obrazovce, viz js/zpravodaj.js.
+        if (!row.parentNode) return null;
+        row.parentNode.insertBefore(w, row);
         w.querySelector('#ag-rp-hide').addEventListener('click', function () {
             lsSet(HIDE_KEY, '1');
             render();
@@ -715,9 +732,17 @@
             var m = modeById(cur);
             var d = m ? m.d : '';
             var html = '<p class="d">' + esc(d) + '</p>';
+            // ⚠ 31. 8. 2026 — VÝČET „Vytáhne dopředu" SE UŽ NEVYPISUJE.
+            // Na úvodní obrazovce dával smysl: člověk tam nástroje neviděl, tak se mu
+            // musely vyjmenovat dopředu. V Nástrojích, kam se karta přestěhovala, stojí
+            // TYTÉŽ nástroje o pár řádků níž ve skupině „◆ Pro tuto práci" — třináct
+            // pilulek s jejich názvy byla jen druhá kopie téhož seznamu, která odsunula
+            // skutečné dlaždice pod okraj displeje. Zůstává jen počet, který je i na
+            // dlaždici profilu. Kdo chce jména, sroluje o kousek níž.
             if (names.length) {
-                html += '<span class="lab">Vytáhne dopředu</span><ul id="ag-rp-chips">'
-                    + names.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>';
+                html += '<span class="lab">Vytáhne dopředu ' + names.length + ' '
+                    + (names.length === 1 ? 'nástroj' : (names.length <= 4 ? 'nástroje' : 'nástrojů'))
+                    + ' — jsou hned pod touhle kartou.</span>';
             }
             // vlastní profil jde rovnou doladit (vestavěné se needitují)
             if (m && m.custom) html += '<button type="button" class="ag-rp-edit" data-edit="' + esc(cur) + '">Upravit tenhle profil</button>';
@@ -747,7 +772,7 @@
             if (!row || !row.parentNode) return;
             host = row.parentNode; after = row.nextSibling;
         }
-        d.innerHTML = '<span class="st-lab">Volba profilu práce na úvodu<small id="ag-rp-setnote">na úvodní obrazovce vybereš, co dnes děláš, a Nástroje se podle toho zúží</small></span>'
+        d.innerHTML = '<span class="st-lab">Volba profilu práce v Nástrojích<small id="ag-rp-setnote">nahoře v Nástrojích vybereš, co dnes děláš, a seznam se podle toho zúží</small></span>'
             + '<label class="st-sw"><input type="checkbox" id="ag-rp-sw"><span class="st-sw-face"></span></label>';
         if (after) host.insertBefore(d, after); else host.appendChild(d);
         var cb = d.querySelector('#ag-rp-sw');
@@ -772,7 +797,7 @@
         var m = modeById(cur);
         var html;
         if (cur === 'univerzal' || !m) {
-            html = 'na úvodní obrazovce vybereš, co dnes děláš, a Nástroje se podle toho zúží. '
+            html = 'nahoře v Nástrojích vybereš, co dnes děláš, a seznam se podle toho zúží. '
                 + 'Teď <b>žádný profil neběží</b> — v Nástrojích jsou všechny dlaždice.';
         } else {
             html = 'Právě běží profil <b>' + esc(m.t) + '</b>, takže Nástroje ukazují hlavně jeho dlaždice. '
@@ -790,8 +815,8 @@
             var cb = document.getElementById('ag-rp-sw');
             if (cb && cb.checked === hidden()) cb.checked = !hidden();
             syncSettingRow();
-            // Když je úvodní obrazovka schovaná, nemá smysl číst mřížku Nástrojů
-            // a přepočítávat výčet — šetříme baterii (viz js/power-save.js).
+            // Když je modál Nástrojů zavřený, nemá smysl číst mřížku a přepočítávat
+            // výčet — šetříme baterii (viz js/power-save.js).
             var w = document.getElementById('ag-rp-wrap');
             if (w && w.offsetParent === null && !w.hidden) return;
             render();

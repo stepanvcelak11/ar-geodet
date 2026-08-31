@@ -134,12 +134,21 @@
     // ---- hlavička bubliny --------------------------------------------------------
     // azimut zrcadlíme z #compass-debug (jednotné jednotky °/gon i varování ⚠,
     // které tam píše grafika.js) — bez vlastního přepočtu a vlastního časovače
+    // ⚠ 31. 8. 2026 — PILULKA UKAZOVALA „Azimut: --", TEDY PRÁZDNOU HODNOTU.
+    // Odmítalo se to podle `/^--/`, jenže #compass-debug má popisek ve vlastním
+    // <span class="hud-k"> jen tehdy, když ho stihl přestavět HUD. Než k tomu dojde
+    // (a v prohlížeči bez kompasu vůbec nikdy), je uvnitř prostý text
+    // „Azimut: --" — ten na `^--` nesedne, takže placka propustila pomlčky dál
+    // a ve stavovém pruhu svítilo „· Azimut: --" vedle věty, která už říkala,
+    // že se čeká. Teď se popisek utne, ať je ve spanu nebo ne, a odmítá se
+    // všechno, v čem nezůstalo ČÍSLO.
     function azHtml() {
         var el = document.getElementById('compass-debug');
         if (!el) return '';
         var h = el.innerHTML || '';
         h = h.replace(/<span class="hud-k">[^<]*<\/span>/i, '').trim();
-        if (!h || /^--/.test(h)) return '';
+        var plain = h.replace(/<[^>]*>/g, '').replace(/^[^:]{0,16}:\s*/, '').trim();
+        if (!plain || !/\d/.test(plain)) return '';
         return h;
     }
     // Pilulka ukazuje ŽIVOU přesnost telefonu — tedy PŘESNĚ to číslo, co po rozkliknutí
@@ -236,7 +245,11 @@
             '.ag-sp-note-tx{flex:1 1 auto;min-width:0;}',
             '.ag-sp-note-go{opacity:0.5;flex:0 0 auto;}',
             '.ag-sp-note:focus-visible{outline:2px solid var(--accent,#2f9e74);outline-offset:2px;}',
-            '.ag-sp-caret{font-size:calc(9px * var(--ag-font-scale, 1));opacity:0.45;margin-left:1px;}',
+            '.ag-sp-caret{flex:0 0 auto;align-self:center;margin-left:4px;width:5px;height:5px;box-sizing:border-box;',
+            '  border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;border-radius:1px;',
+            '  opacity:0.45;transform:rotate(45deg);transform-origin:60% 60%;transition:transform .16s ease;}',
+            '#ag-sp.ag-sp-open .ag-sp-caret{transform:rotate(-135deg);}',
+            '@media (prefers-reduced-motion: reduce){.ag-sp-caret{transition:none;}}',
             // rozbalený detail (na místě, pod hlavičkou)
             // OPRAVA 27. 7. — „rozbalená lišta se překrývá s Nástroji a Body“.
             // PŘÍČINA: detail neměl žádný výškový strop. Se čtyřmi řádky (GPS · Sever ·
@@ -332,24 +345,35 @@
         var note = noteNow();
         // Upozornění PŘEBIJE i tečku závažnosti: centrum agreguje víc modulů než
         // tenhle pruh, takže když hlásí kritický stav, nesmí tu svítit zelená.
+        // ⚠ 31. 8. 2026 — ODDĚLOVAČE SE LEPILY NATVRDO ZA KAŽDÝ KUS, takže když další
+        // kus nebyl, zůstala v pilulce viset tečka: bez GPS fixu se četlo
+        // „GPS bez fixu 7 s — poloha může být posunutá · —". Teď se kusy sbírají do
+        // seznamu a tečky se dosadí AŽ MEZI TY, které opravdu jsou.
         var h = '<span class="ag-sp-dot ' + (note ? noteCls(note.level) : w) + '"></span>';
+        var parts = [];
         if (note) {
             // Vlastní alertFor() se záměrně přeskakuje — centrum tu hlášku už nese
             // (jinak by tu „Srovnej sever" stálo dvakrát vedle sebe).
-            h += '<span class="ag-sp-alert ' + noteCls(note.level) + '">' + esc(note.text) + '</span>'
-                + (note.count > 1 ? '<span class="ag-sp-ncount">' + note.count + '</span>' : '')
-                + '<span class="ag-sp-sep">·</span>';
+            parts.push('<span class="ag-sp-alert ' + noteCls(note.level) + '">' + esc(note.text) + '</span>'
+                + (note.count > 1 ? '<span class="ag-sp-ncount">' + note.count + '</span>' : ''));
         } else if (_msg && (Date.now() - _msgTs) < MSG_MS) {
             // hláška z #info (krátkodobá: „Stahuji data…")
-            h += '<span class="ag-sp-msg">' + esc(_msg) + '</span>';
+            parts.push('<span class="ag-sp-msg">' + esc(_msg) + '</span>');
         } else {
             var al = alertFor(g, ar, d, b);
-            if (al && (Date.now() - _alertTs) < ALERT_MS) h += '<span class="ag-sp-alert ' + al.c + '">' + esc(al.t) + '</span><span class="ag-sp-sep">·</span>';
+            if (al && (Date.now() - _alertTs) < ALERT_MS) parts.push('<span class="ag-sp-alert ' + al.c + '">' + esc(al.t) + '</span>');
         }
-        h += '<span class="ag-sp-num ag-sp-acc">' + accHtml() + '</span>';   // sestaveno z čísel, ne z textu uživatele
+        // sestaveno z čísel, ne z textu uživatele. Prázdná pomlčka se ukáže, JEN když
+        // vedle ní nestojí věta, která už říká totéž slovy („GPS bez fixu…").
+        var accv = accHtml();
+        if (accv && !(accv === '—' && parts.length)) parts.push('<span class="ag-sp-num ag-sp-acc">' + accv + '</span>');
         var az = azHtml();
-        if (az) h += '<span class="ag-sp-sep">·</span><span class="ag-sp-num ag-sp-az">' + az + '</span>';
-        h += '<span class="ag-sp-caret">' + (_open ? '▴' : '▾') + '</span>';
+        if (az) parts.push('<span class="ag-sp-num ag-sp-az">' + az + '</span>');
+        h += parts.join('<span class="ag-sp-sep">·</span>');
+        // šipka je PRÁZDNÝ span obarvený v CSS — dřív to byly znaky ▴/▾, které si
+        // každý systém bere z jiného záložního fontu (na iOS vyjdou o polovinu
+        // menší) a přepnutí znaku byl skok. Viz stejná oprava v js/nastroje-ukony.js.
+        h += '<span class="ag-sp-caret"></span>';
         return h;
     }
     function row(name, s, extra) {

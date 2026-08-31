@@ -122,8 +122,17 @@
     var _toolClickTs = 0;
     try {
         document.addEventListener('click', function (e) {
-            try { if (e.target && e.target.closest && e.target.closest(TOOL_SEL)) _toolClickTs = Date.now(); }
-            catch (er) { window.AG && AG.swallow && AG.swallow(er, 'mini-panel:toolClick'); }
+            try {
+                if (!(e.target && e.target.closest && e.target.closest(TOOL_SEL))) return;
+                _toolClickTs = Date.now();
+                // ⚠ 31. 8. 2026: DŘÍV se čekalo jen na periodickou prohlídku (scan každé
+                // 2 s), takže tlačítko „Sbalit" naskočilo do už otevřeného nástroje
+                // klidně o dvě sekundy později — vypadalo to, že do okna něco blikne.
+                // Okno nástroje se staví hned po klepnutí, tak se rovnou podíváme.
+                // Třikrát: hned (okno už stojí), za 260 ms (nástroje s animací otevření)
+                // a za 850 ms (okna, která se dokreslují ze stažených dat).
+                [40, 260, 850].forEach(function (ms) { setTimeout(function () { try { scan(); } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'mini-panel:toolClick'); } }, ms); });
+            } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'mini-panel:toolClick'); }
         }, true);
     } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'mini-panel:listen'); }
     function fromTool(modal) {
@@ -234,6 +243,16 @@
             'body.light-mode .ag-mini-fab{background:#ffffff;border-color:rgba(15,23,42,0.28);color:#141821;',
             '  box-shadow:0 2px 10px rgba(15,23,42,0.28);}',
             '.ag-mini-fab:active{transform:scale(.92);}',
+            // ⚠ 31. 8. 2026 — „ta šipka mi tam probliká". Tlačítko se rodí NEVIDITELNÉ
+            // (.ag-mini-fab bez .rdy) a ukáže se teprve, až je jeho místo vybrané. Když
+            // se pak musí uhnout cizímu tlačítku v hlavičce (okno si obsah dokresluje
+            // po načtení dat, takže první měření kolizi vidět nemusí), DOJEDE tam
+            // plynule místo skoku. Přechod na opacity a poloze, NE na transform —
+            // ten si bere :active na stisk.
+            '.ag-mini-fab{opacity:0;pointer-events:none;',
+            '  transition:opacity .16s ease,right .18s ease,left .18s ease,top .18s ease;}',
+            '.ag-mini-fab.rdy{opacity:1;pointer-events:auto;}',
+            '@media (prefers-reduced-motion: reduce){.ag-mini-fab{transition:none;}}',
             'body.left-hand .ag-mini-fab{right:auto;left:calc(env(safe-area-inset-left,0px) + 58px);}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
@@ -387,7 +406,7 @@
             h += '<span>' + (vals[i].l ? '<i>' + esc(vals[i].l) + '</i>' : '')
                 + '<b' + (vals[i].c ? ' style="color:' + esc(vals[i].c) + '"' : '') + '>' + esc(vals[i].v) + '</b></span>';
         }
-        h += '</span><button type="button" data-a="open" aria-label="Rozbalit">▴</button>'
+        h += '</span><button type="button" data-a="open" aria-label="Rozbalit"><span class="ag-chev ag-chev-up"></span></button>'
             + '<button type="button" data-a="close" aria-label="Zavřít nástroj">✕</button>';
         if (h === _lastHtml) return;
         _lastHtml = h;
@@ -471,8 +490,24 @@
     // ---- rozpoznání okna nástroje --------------------------------------------------
     // Domácí modál appky: .modal-overlay s .modal-content.
     function coreWin(el) {
-        return !!(el && el.classList && el.classList.contains('modal-overlay') && el.querySelector('.modal-content'));
+        if (!(el && el.classList && el.classList.contains('modal-overlay') && el.querySelector('.modal-content'))) return false;
+        // ⚠ 31. 8. 2026 — DŘÍV SE VIDITELNOST NEHLÍDALA. Prohlídka běží každé 2 s přes
+        // VŠECHNY .modal-overlay v dokumentu, takže tlačítko „Sbalit" dostala i okna,
+        // která byla zrovna zavřená. To by samo o sobě nevadilo (leží ve skrytém
+        // rodiči), jenže usazení placeFab() měří elementFromPoint — a nad zavřeným
+        // oknem nevrátí nic, takže se kolize NIKDY nenajde. Tlačítko tak zůstalo
+        // natvrdo na 58 px a v okně, které má vpravo nahoře vlastní tlačítka
+        // (Zápisník má „Export"), na ně po otevření sedlo. Když se okno otevře,
+        // ensureBtn() už se k němu nevrátí — tlačítko tam totiž je.
+        // Zavřené modály NEMAJÍ display:none: parkují mimo displej a rozhoduje
+        // .ag-open (viz skript na konci index.html), proto se ptáme na obojí.
+        var st = cs(el);
+        if (!st || st.display === 'none' || st.visibility === 'hidden') return false;
+        if (el.id && CORE_ANIM[el.id] && !el.classList.contains('ag-open')) return false;
+        return true;
     }
+    // modály, jejichž viditelnost řídí .ag-open (zavřené parkují mimo displej)
+    var CORE_ANIM = { 'settings-modal': 1, 'manage-modal': 1, 'tools-modal': 1, 'custom-modal-overlay': 1 };
     // Okno, které si kreslí modul sám. Pravidla jsou ZÁMĚRNĚ stejná jako
     // modOverlay() v js/modal-close.js: přes celý displej, viditelné, klikatelné
     // a z-index ≥ 1000 (níž leží mapa, AR a dok — do těch se sahat nesmí).
@@ -535,7 +570,9 @@
         f.className = 'ag-mini-fab';
         f.title = 'Sbalit — nechat běžet nahoře';
         f.setAttribute('aria-label', 'Sbalit — nechat běžet nahoře');
-        f.textContent = '▾';
+        // znak '▾' nahrazen kreslenou šipkou (.ag-chev v css/style.css) — na iOS
+        // se znak bral z jiného fontu a vycházel o polovinu menší než na Androidu
+        f.innerHTML = '<span class="ag-chev"></span>';
         modal.appendChild(f);
         // Okna si hlavičku dělají každé po svém a některá drží v pravém horním rohu
         // VLASTNÍ tlačítka (Zápisník tam má „Export" a „Zavřít"). Kulaté tlačítko na
@@ -545,29 +582,76 @@
         // dat), takže první měření nemusí kolizi vidět — u Závad se kolečko takhle
         // usadilo na filtrační chip, který v tu chvíli neexistoval. Proto se poloha
         // přeměří ještě dvakrát, jak okno dostává obsah.
-        try { placeFab(f, modal); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'mini-panel:mk'); }
-        [250, 900].forEach(function (ms) {
-            setTimeout(function () {
-                if (!f.isConnected) return;
-                f.style.top = '';                      // zpět na výchozí řádek a znovu vybrat
-                try { placeFab(f, modal); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'mini-panel:mk'); }
-            }, ms);
-        });
+        // ⚠ DŘÍV se měřilo TŘIKRÁT (hned, v 250 ms a v 900 ms) a pokaždé se `top`
+        // vynulovalo a vybíralo se od začátku — tlačítko tedy uživateli VIDITELNĚ
+        // dvakrát poskočilo, protože první měření proběhlo na okně, které ještě
+        // nemělo obsah. Teď je do prvního usazení NEVIDITELNÉ (třída .rdy níž)
+        // a pozdější korekce si dojede přechodem.
+        var settle = function (show) {
+            if (!f.isConnected) return;
+            f.style.top = '';                          // zpět na výchozí řádek a znovu vybrat
+            try { placeFab(f, modal); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'mini-panel:settle'); }
+            if (show) f.classList.add('rdy');
+        };
+        // ~90 ms stačí, aby okno mělo layout (a u většiny nástrojů i obsah); do té doby
+        // je tlačítko průhledné, takže se nikdy neukáže na špatném místě
+        setTimeout(function () { settle(true); }, 90);
+        setTimeout(function () { settle(true); }, 900);   // okno dokreslené z dat
     }
 
-    // vrátí true, když kolečko sedí na cizím tlačítku nebo nadpisu v tomtéž okně
+    // Překrývá kolečko něco, co v tomtéž okně překrývat nesmí?
+    //
+    // ⚠ 31. 8. 2026 — DŘÍV STAČIL NADPIS POD KOLEČKEM A PLATIL ZA KOLIZI. Jenže
+    // <h3> je blokový prvek přes CELOU šířku okna, takže elementFromPoint ho vrátí
+    // i v prázdné pravé části, kde žádné písmeno není. Kolečko tak u nástrojů
+    // s nadpisem (Hodinky Garmin, …) postupně vyzkoušelo všechny tři pozice
+    // v hlavičce, všude „narazilo" a spadlo o řádek níž — naměřeno: v 900 ms
+    // odjelo z [314,10] na [362,60]. U nadpisu proto rozhoduje, jestli pod
+    // kolečkem leží jeho TEXT (obdélníky řádků z Range), ne jeho blok.
+    // Ovládací prvky (tlačítko, odkaz, pole) zůstávají kolizí vždy — ty se
+    // překrýt nesmí, i kdyby byly prázdné.
+    var HEADS = { H1: 1, H2: 1, H3: 1, H4: 1 };
+    var CTRLS = { BUTTON: 1, A: 1, INPUT: 1, SELECT: 1, TEXTAREA: 1 };
+
+    function rectsHit(el, r) {
+        // obdélníky JEDNOTLIVÝCH ŘÁDKŮ textu — ne rect celého bloku
+        var rects;
+        try {
+            var rng = document.createRange();
+            rng.selectNodeContents(el);
+            rects = rng.getClientRects();
+        } catch (e) { return true; }              // neumíme změřit → radši uhnout
+        if (!rects || !rects.length) return false;
+        for (var i = 0; i < rects.length; i++) {
+            var a = rects[i];
+            if (a.right > r.left && a.left < r.right && a.bottom > r.top && a.top < r.bottom) return true;
+        }
+        return false;
+    }
+
     function fabCollides(f, modal) {
         var r = f.getBoundingClientRect();
         if (!r.width || !r.height) return false;
         var pe = f.style.pointerEvents;
         f.style.pointerEvents = 'none';               // ať se nenajde samo sebe
-        var hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        // střed + čtyři body u okrajů: tlačítko, které kolečko zakrývá jen z půlky,
+        // by ze samotného středu propadlo
+        var pts = [
+            [r.left + r.width / 2, r.top + r.height / 2],
+            [r.left + 4, r.top + 4], [r.right - 4, r.top + 4],
+            [r.left + 4, r.bottom - 4], [r.right - 4, r.bottom - 4]
+        ];
+        var hits = [];
+        for (var i = 0; i < pts.length; i++) hits.push(document.elementFromPoint(pts[i][0], pts[i][1]));
         f.style.pointerEvents = pe;
-        if (!hit || hit === modal || !modal.contains(hit)) return false;
-        for (var n = hit; n && n !== modal; n = n.parentElement) {
-            var t = n.tagName;
-            if (t === 'BUTTON' || t === 'A' || t === 'INPUT' || t === 'SELECT'
-                || t === 'H1' || t === 'H2' || t === 'H3') return true;
+
+        for (var j = 0; j < hits.length; j++) {
+            var hit = hits[j];
+            if (!hit || hit === modal || !modal.contains(hit)) continue;
+            for (var n = hit; n && n !== modal; n = n.parentElement) {
+                if (CTRLS[n.tagName]) return true;
+                if (HEADS[n.tagName]) { if (rectsHit(n, r)) return true; break; }
+            }
         }
         return false;
     }

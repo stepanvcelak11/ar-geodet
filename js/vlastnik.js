@@ -203,13 +203,23 @@
         try { if (window.AGUcty && AGUcty.applyPerms) AGUcty.applyPerms(); } catch (e) { swallow(e, 'enter:perms'); }
         try { if (!localStorage.getItem('arSurveyor')) localStorage.setItem('arSurveyor', 'Vývojář'); } catch (e) { swallow(e, 'enter:jmeno'); }
         injectMenu();
+        // ⚠ 31. 8. 2026 — DŘÍV tu byla podmínka „jen když je zrovna vidět úvodní
+        // obrazovka". Ta je zrušená (jediný vchod je přihlášení), takže by neplatila
+        // nikdy a po odemčení klíčem by vlastník koukal na nenastartovanou appku.
+        // Rozhoduje jediné, na čem záleží: jestli appka UŽ BĚŽÍ.
         try {
-            var ws = document.getElementById('welcome-screen');
-            var vis = ws && ws.style.display !== 'none' && !document.body.classList.contains('app-started');
-            if (vis && typeof window.startAppFromWelcome === 'function') {
-                setTimeout(function () { try { window.startAppFromWelcome(); } catch (e) { swallow(e, 'enter:start'); } }, 60);
+            if (!(document.body && document.body.classList.contains('app-started'))) {
+                var tries = 0;
+                (function go() {
+                    if (document.body && document.body.classList.contains('app-started')) return;
+                    if (typeof window.startAppFromWelcome === 'function') {
+                        try { window.startAppFromWelcome(); } catch (e) { swallow(e, 'enter:start'); }
+                        return;
+                    }
+                    if (tries++ < 40) setTimeout(go, 150);
+                })();
             }
-        } catch (e) { swallow(e, 'enter:welcome'); }
+        } catch (e) { swallow(e, 'enter:start'); }
         try { if (typeof window.quickToast === 'function') quickToast('Režim vlastníka zapnut — vidíš úplně všechno.'); } catch (e) { swallow(e, 'enter:toast'); }
         setTimeout(open, 500);
     }

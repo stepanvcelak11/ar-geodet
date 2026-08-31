@@ -47,8 +47,17 @@
             '#tools-modal .ag-ft-tile span{display:block;}',
             // sbalitelné kategorie: nadpis je klikací, šipka ukazuje stav
             '#tools-modal .tool-cat,#tools-modal .ag-ft-head{cursor:pointer;-webkit-user-select:none;user-select:none;}',
-            '#tools-modal .tool-cat:not(#ag-fav-head)::after,#tools-modal .ag-ft-head::after{content:"▾";float:right;font-size:calc(11px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);}',
-            '#tools-modal .ag-cat-closed::after{content:"▸" !important;}',
+            // ⚠ 31. 8. 2026: šipka byla ZNAK (▾ / ▸ při sbalení) — viz .ag-chev
+            // v css/style.css, kde je popsané, proč to bylo špatně. Tady se stejný
+            // tvar nakreslí přímo v ::after, protože kotvou je cizí nadpis, do kterého
+            // se prázdný <span> vložit nedá.
+            '#tools-modal .tool-cat:not(#ag-fav-head)::after,#tools-modal .ag-ft-head::after{content:"";float:right;',
+            '  width:6px;height:6px;box-sizing:border-box;margin:5px 2px 0 0;border-radius:1px;',
+            '  border-right:1.8px solid currentColor;border-bottom:1.8px solid currentColor;',
+            '  color:var(--text-muted,#9aa1ac);transform:rotate(45deg);transform-origin:60% 60%;',
+            '  transition:transform .16s ease;}',
+            '#tools-modal .ag-cat-closed::after{transform:rotate(-45deg) !important;}',
+            '@media (prefers-reduced-motion: reduce){#tools-modal .tool-cat::after,#tools-modal .ag-ft-head::after{transition:none;}}',
             // hlaska „nic nenalezeno" pri hledani bez zasahu
             '#ag-ft-empty{grid-column:1/-1;display:none;padding:14px 8px;text-align:center;color:var(--text-muted,#9aa1ac);font:500 13px/1.4 var(--font-ui,system-ui),sans-serif;}',
             '#ag-ft-empty.on{display:block;}'

@@ -102,7 +102,7 @@
         },
         { title: 'Nový bod', target: '.dock-primary', body: 'Založ vlastní bod. Nahoře ve formuláři jsou čtyři dlaždice, odkud vzít souřadnice: <b>Z průměru GPS</b> (běžná volba), <b>Z mapy</b>, <b>Z fotky (OCR)</b> a <b>Přesná GPS</b> (dlouhé průměrování). Podržením tlačítka založíš místo bodu <b>závadu</b>.' },
         { title: 'Body', target: '#dock button[onclick*="openManageModal"]', body: 'Nahoře souhrn zakázky, pak řádky bodů: číslo, stáří, přesnost, <b>vzdálenost a azimut</b>. Ťuknutím na bod se rozbalí Y/X/Z a akce (<b>Navést</b>, Upravit, Kopírovat, Smazat). Pod <b>Export / Import</b> je mřížka akcí: import souboru, <b>PDF protokol</b>, <b>sdílet QR</b> a <b>načíst QR</b>.' },
-        { title: 'Nástroje', target: '#dock button[onclick*="tools-modal"]', body: 'Měření vzdálenosti a plochy, kalkulačka, GNSS satelity, vytyčovací checklist, náčrt — a pokročilé geodetické nástroje. Kolik dlaždic uvidíš, řídí <b>režim práce</b>: vybíráš ho na úvodní obrazovce („Jak dnes budeš appku používat") nebo nahoře v Nástrojích. Schované nástroje najde vyhledávání vždy.' },
+        { title: 'Nástroje', target: '#dock button[onclick*="tools-modal"]', body: 'Měření vzdálenosti a plochy, kalkulačka, GNSS satelity, vytyčovací checklist, náčrt — a pokročilé geodetické nástroje. Kolik dlaždic uvidíš, řídí <b>režim práce</b>: vybíráš ho nahoře v Nástrojích v pásu „Co dnes děláš". Schované nástroje najde vyhledávání vždy.' },
         { title: 'Vrstvy', target: '#dock-vice-btn', body: 'Podkladová mapa, katastr a další vrstvy. „Více" (návod, sdílení, offline) najdeš v <b>Nastavení → Údržba → Aplikace</b>.' },
         { title: 'Nastavení', target: '#dock button[onclick*="openSettings"]', body: 'Nahoře <b>profil použití</b> — <b>Terén</b> (celý den na baterku), <b>Přesnost</b> (nejlepší AR) a <b>Ukázka</b> — nastaví několik voleb naráz. Pod ním zůstávají jednotlivá nastavení: vzhled, <b>AR &amp; přesnost</b> (zorný úhel, vyhlazení, senzory) a správa zakázek a dat.' },
         { title: 'Základ máš za sebou', body: 'Pokračuj <b>Pokročilou prohlídkou</b> — ukáže nové geodetické nástroje, které appka umí navíc.' }
@@ -136,9 +136,18 @@
             before: function () { closeAllModals(); }
         },
         {
-            title: 'Průvodce úkolem', target: '#welcome-start-btn',
-            body: 'Nevíš, čím začít? <b>Průvodce úkolem</b> na úvodní obrazovce (a v <b>Nastavení → Údržba → Aplikace → Více</b>) ti podle činnosti — vytyčování, sběr bodů, úřední body, měření — sám nachystá zakázku a správné nástroje.',
-            before: function () { closeAllModals(); }
+            // ⚠ 31. 8. 2026: krok mířil na #welcome-start-btn („Spustit vyhledávání")
+            // na úvodní obrazovce. Ta je zrušená, takže cíl neexistoval — karta se
+            // ukázala bez vykrojeného místa a text posílal uživatele na obrazovku,
+            // kterou už nikdy neuvidí. Průvodce se teď otevírá z bočního menu
+            // (#pruv-menu-btn, vkládá ho js/pruvodce.js) — a na to se ukazuje.
+            title: 'Průvodce úkolem', target: '#pruv-menu-btn',
+            body: 'Nevíš, čím začít? <b>Průvodce úkolem</b> v <b>Menu</b> (a v <b>Nastavení → Údržba → Aplikace → Více</b>) ti podle činnosti — vytyčování, sběr bodů, úřední body, měření — sám nachystá zakázku a správné nástroje.',
+            before: function () {
+                try { closeAllModals(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tutorial-pro:pruvodce'); }
+                // menu musí být otevřené, jinak by se ukazovalo na neviditelné tlačítko
+                try { var m = document.getElementById('side-menu'); if (m) m.classList.add('open'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tutorial-pro:pruvodce'); }
+            }
         },
         { title: 'Hotovo!', body: 'Skoro vše funguje <b>offline</b> a každý nástroj má návod pod <b>?</b> na dlaždici. Hodně zdaru v terénu. 📐' }
     ];

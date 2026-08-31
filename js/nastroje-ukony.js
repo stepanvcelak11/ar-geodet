@@ -182,9 +182,27 @@
             '.ag-uk-h{width:100%;-webkit-appearance:none;appearance:none;text-align:left;cursor:pointer;',
             '  border:0;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.12));',
             '  -webkit-user-select:none;user-select:none;}',
-            '.ag-uk-h::after{content:"▾";margin-left:8px;font-size:calc(11px * var(--ag-font-scale, 1));',
-            '  color:var(--text-muted,#9aa1ac);}',
-            '.ag-uk-closed > .ag-uk-h::after{content:"▸";}',
+            // ⚠ 31. 8. 2026 — sipka BYLA textovy znak: content:"▾", pri sbaleni "▸".
+            // Tri veci na tom byly spatne a dohromady vypadaly jako blikani:
+            //  1) prepnuti obsahu ::after je SKOK, ne pohyb — znak se v jedne snimku
+            //     zmenil na uplne jiny tvar (a jinou sirku, takze se posunul i pocet vedle);
+            //  2) ▾/▸ jsou znaky z bloku geometrickych tvaru: kazdy system je bere z jineho
+            //     zalozniho fontu, na iOS vyjdou o polovinu mensi nez na Androidu a nekde
+            //     je system prekresli jako barevne emoji;
+            //  3) hlavicka ma align-items:baseline, takze znak sedel na uctari radku
+            //     a proti cislu poctu byl viditelne vejs.
+            // Ted je to kreslena sipka (::after s vlastnim ramem), ktera se OTOCI o 90°
+            // s prechodem. Rotace nemeni sirku, takze se uz nic vedle ni neposouva.
+            '.ag-uk-h::after{content:"";flex:0 0 auto;align-self:center;margin-left:8px;',
+            '  width:6px;height:6px;box-sizing:border-box;',
+            '  border-right:1.8px solid currentColor;border-bottom:1.8px solid currentColor;',
+            '  border-radius:1px;color:var(--text-faint,#7b828c);',
+            '  transform:rotate(45deg);transform-origin:60% 60%;',
+            '  transition:transform .16s ease;}',
+            '.ag-uk-closed > .ag-uk-h::after{transform:rotate(-45deg);}',
+            // zapnute setreni pohybem (i sporici rezim) prechod vypina — sipka pak jen
+            // preskoci, ale nic neblika, protoze se meni jen uhel
+            '@media (prefers-reduced-motion: reduce){.ag-uk-h::after{transition:none;}}',
             '.ag-uk-closed > .ag-uk-i{display:none;}',
             '.ag-uk-h:focus-visible{outline:2px solid var(--accent,#2f9e74);outline-offset:2px;}',
             // patička seznamu — co se dělá zřídka (průvodce, úprava oblíbených).

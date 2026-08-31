@@ -1,7 +1,12 @@
 // CELÁ OBRAZOVKA / IMMERSIVE (odpojitelné: smaž tento řádek v index.html + tento soubor)
 // Schová systémovou navigační lištu Androidu (ten prázdný proužek dole),
 // aby appka šla až do spodní hrany displeje. Spouští se na uživatelské gesto
-// (tap na "Spustit vyhledávání"), protože requestFullscreen() jinak prohlížeč odmítne.
+// (tap na tlačítko na PŘIHLAŠOVACÍ obrazovce), protože requestFullscreen() jinak
+// prohlížeč odmítne.
+// ⚠ 31. 8. 2026: gesto bývalo „Spustit vyhledávání" na úvodní obrazovce. Ta je
+// zrušená, takže by se fullscreen NIKDY nezapnul — appka by po celém dni v terénu
+// koukala na navigační lištu Androidu. Vstupní obrazovkou je teď přihlášení
+// (#ag-gate / #ag-login z js/ucty.js), tak se posloucháme tam.
 // iOS Safari requestFullscreen na dokumentu neumí → tam to tiše přeskočí a spoléhá
 // na PWA režim (přidat na plochu).
 (function () {
@@ -21,18 +26,26 @@
     }
 
     function bind() {
-        // Fullscreen vyžadujeme POUZE při odchodu z úvodní obrazovky (jakékoli tlačítko
-        // uvnitř #welcome-screen). Tím je fullscreen aktivní DŘÍV, než se uživatel dotkne
-        // doku — vstup do fullscreenu totiž přeskládá layout (skryjí se systémové lišty),
-        // a kdyby k tomu došlo na stejném kliknutí, které otevírá Nastavení/Body/Nástroje,
-        // přeruší to jejich otevírací animaci (a tap by se mohl „sníst"). „Více" je odolné,
-        // protože nemění display. Proto NEvážeme na globální první klik v dokumentu.
-        var ws = document.getElementById('welcome-screen');
-        if (ws) ws.addEventListener('click', function (e) {
-            if (e.target && e.target.closest && e.target.closest('button')) enterFullscreen();
-        }, { passive: true });
-        var btn = document.getElementById('welcome-start-btn');
-        if (btn) btn.addEventListener('click', enterFullscreen, { passive: true });
+        // Fullscreen vyžadujeme POUZE při odchodu ze vstupní obrazovky (jakékoli tlačítko
+        // uvnitř #ag-gate / #ag-login). Tím je fullscreen aktivní DŘÍV, než se uživatel
+        // dotkne doku — vstup do fullscreenu totiž přeskládá layout (skryjí se systémové
+        // lišty), a kdyby k tomu došlo na stejném kliknutí, které otevírá
+        // Nastavení/Body/Nástroje, přeruší to jejich otevírací animaci (a tap by se mohl
+        // „sníst"). Proto NEvážeme na globální první klik v dokumentu.
+        //
+        // Posluchač je DELEGOVANÝ na dokumentu: brána i přihlášení se staví až za běhu
+        // (a mezi odhlášením a novým přihlášením se postaví znovu), takže na konkrétní
+        // uzel se navázat nedá. Zachytáváme ve fázi zachytávání, aby nás nepředběhlo
+        // odstranění obrazovky ve vlastní obsluze tlačítka.
+        document.addEventListener('click', function (e) {
+            try {
+                var t = e.target;
+                if (!t || !t.closest) return;
+                if (!t.closest('#ag-gate, #ag-login')) return;
+                if (!t.closest('button')) return;
+                enterFullscreen();
+            } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'fullscreen:bind'); }
+        }, true);
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);

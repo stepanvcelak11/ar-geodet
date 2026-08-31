@@ -1,9 +1,14 @@
 // ===== AR Geodet — POKRAČOVAT, KDE JSEM SKONČIL (ODPOJITELNÁ) =====
-// Denní rutina: otevřít appku → vybrat zakázku → Spustit → Nástroje → najít dlaždici.
+// Denní rutina: otevřít appku → vybrat zakázku → Nástroje → najít dlaždici.
 // Tenhle modul si pamatuje POSLEDNÍ použitý nástroj (klepnutí na dlaždici v modálu
-// Nástroje) včetně zakázky a na úvodní obrazovce nabídne jedno tlačítko
-// „Pokračovat: <nástroj> · <zakázka>" — jeden ťuk přepne zakázku, spustí appku
-// a otevře nástroj.
+// Nástroje) včetně zakázky a hned po startu nabídne „Pokračovat: <nástroj>" —
+// jeden ťuk přepne zakázku a otevře nástroj.
+//
+// ⚠ 31. 8. 2026: nabídka bývala TLAČÍTKEM NA ÚVODNÍ OBRAZOVCE. Ta je zrušená
+// (jediný vchod je přihlášení), takže by modul ztratil jediný vchod. Přesunut do
+// CENTRA UPOZORNĚNÍ (window.AGNotify, js/upozorneni.js): sbalí se do téže pilulky
+// nahoře jako ostatní hlášky, má akci „Otevřít" a jde odklepnout křížkem — místo
+// další samostatné plovoucí lišty, kterých už appka měla dost.
 //
 // Doplňuje (neduplikuje) draft-store.js: draft bar řeší ROZDĚLANÝ STAV uvnitř
 // vícekrokových úloh po startu, tohle řeší CESTU k nástroji před startem.
@@ -19,7 +24,6 @@
 
     var KEY = 'agLastTool_v1';
     var MAX_AGE_MS = 48 * 3600 * 1000;
-    var STYLE_ID = 'ag-pk-style';
 
     function pid() { try { return localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { return 'default'; } }
     function loadRec() {
@@ -51,8 +55,10 @@
         for (var i = 0; i < tiles.length; i++) { if (tileKey(tiles[i]) === key) return tiles[i]; }
         return null;
     }
+    // ⚠ Dřív se četlo z #w-project-select na úvodní obrazovce. Ta je od 31. 8. 2026
+    // zrušená, takže se bere TÝŽ seznam zakázek z Nastavení → Zakázky.
     function projName(id) {
-        var sel = document.getElementById('w-project-select');
+        var sel = document.getElementById('s-project-select');
         if (sel) for (var i = 0; i < sel.options.length; i++) { if (sel.options[i].value === id) return sel.options[i].text; }
         return null;
     }
@@ -74,64 +80,52 @@
         saveRec({ pid: pid(), key: key, label: tileLabel(tile) || key, ts: Date.now() });
     });
 
-    // ---- tlačítko na úvodní obrazovce -------------------------------------------------
-    function injectStyles() {
-        if (document.getElementById(STYLE_ID)) return;
-        var st = document.createElement('style');
-        st.id = STYLE_ID;
-        st.textContent = [
-            '#ag-pk-btn{display:none;width:100%;margin:0;padding:11px 14px;border-radius:14px;cursor:pointer;',
-            '  border:1px solid var(--accent-line,rgba(47,158,116,0.4));background:var(--accent-soft,rgba(47,158,116,0.12));',
-            '  color:var(--text-color,#eceef2);text-align:left;font:600 14px/1.3 var(--font-ui,system-ui),sans-serif;}',
-            '#ag-pk-btn.on{display:block;}',
-            '#ag-pk-btn small{display:block;margin-top:2px;font-weight:500;font-size:calc(11.5px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);}',
-            '#ag-pk-btn b{color:var(--accent,#2f9e74);}'
-        ].join('\n');
-        (document.head || document.documentElement).appendChild(st);
-    }
-    function ensureBtn() {
-        var btn = document.getElementById('ag-pk-btn');
-        if (btn) return btn;
-        var actions = document.querySelector('#welcome-screen .w-c-actions');
-        if (!actions) return null;
-        btn = document.createElement('button');
-        btn.type = 'button'; btn.id = 'ag-pk-btn';
-        btn.addEventListener('click', resume);
-        // hned pod hlavní Start — je to nejpravděpodobnější ranní akce
-        var start = actions.querySelector('#welcome-start-btn');
-        if (start && start.nextSibling) actions.insertBefore(btn, start.nextSibling);
-        else actions.appendChild(btn);
-        return btn;
-    }
+    // ---- nabídka ------------------------------------------------------------------
+    // Nabídka žije v centru upozornění. Ukazuje se JEN v prvních PK_WINDOW_MS po
+    // startu appky: „pokračovat, kde jsem skončil" je ranní úkon — po půl hodině
+    // práce už je to jen řádek navíc v hlášeních. Jakmile uživatel klepne na
+    // Otevřít nebo hlášku odklepne, znovu se v tomhle běhu neozve.
+    var PK_WINDOW_MS = 4 * 60 * 1000;
+    var _startedTs = 0, _dismissed = false, _done = false;
+
+    function started() { return !!(document.body && document.body.classList.contains('app-started')); }
+
     function refreshBtn() {
-        injectStyles();
-        var btn = ensureBtn(); if (!btn) return;
-        var ws = document.getElementById('welcome-screen');
-        var visible = ws && getComputedStyle(ws).display !== 'none';
-        var rec = visible ? loadRec() : null;
-        if (!rec) { btn.classList.remove('on'); return; }
+        if (!window.AGNotify || !AGNotify.set) return;
+        if (!started()) { _startedTs = 0; return; }
+        if (!_startedTs) _startedTs = Date.now();
+        if (_dismissed || _done || (Date.now() - _startedTs) > PK_WINDOW_MS) { AGNotify.clear('pokracovat'); return; }
+        var rec = loadRec();
+        if (!rec) { AGNotify.clear('pokracovat'); return; }
         var pn = (rec.pid !== pid()) ? projName(rec.pid) : null;
-        if (rec.pid !== pid() && !pn) { btn.classList.remove('on'); return; }   // zakázka už neexistuje
-        btn.innerHTML = '▶ Pokračovat: <b></b><small></small>';
-        btn.querySelector('b').textContent = rec.label;
-        btn.querySelector('small').textContent = (pn ? 'zakázka ' + pn + ' · ' : '') + relAge(rec.ts);
-        btn.classList.add('on');
+        if (rec.pid !== pid() && !pn) { AGNotify.clear('pokracovat'); return; }   // zakázka už neexistuje
+        AGNotify.set('pokracovat', {
+            level: 'info', order: 40,
+            text: 'Naposledy jsi měl otevřené: ' + rec.label
+                + ' (' + (pn ? 'zakázka ' + pn + ' · ' : '') + relAge(rec.ts) + ')',
+            action: 'Otevřít',
+            onAction: function () { _done = true; AGNotify.clear('pokracovat'); resume(); },
+            onDismiss: function () { _dismissed = true; }
+        });
     }
 
     // ---- obnovení: zakázka → start → nástroj -------------------------------------------
     function resume() {
         var rec = loadRec(); if (!rec) return;
         try {
-            if (rec.pid !== pid()) {
-                var sel = document.getElementById('w-project-select');
-                if (sel && projName(rec.pid) != null) {
+            if (rec.pid !== pid() && projName(rec.pid) != null) {
+                var sel = document.getElementById('s-project-select');
+                if (sel) {
                     sel.value = rec.pid;
-                    if (typeof window.changeProject === 'function') changeProject();
+                    if (typeof window.changeProjectFromSettings === 'function') changeProjectFromSettings();
+                    else if (typeof window.changeProject === 'function') changeProject();
                 }
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pokracovat:resume'); }
         function go() {
-            try { if (typeof window.startAppFromWelcome === 'function') startAppFromWelcome(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pokracovat:go'); }
+            // appka uz zpravidla bezi (nabidka se ukazuje az po startu); spousteni
+            // zustava jen jako pojistka, kdyby resume() zavolal nekdo driv
+            try { if (!started() && typeof window.startAppFromWelcome === 'function') startAppFromWelcome(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pokracovat:go'); }
             var waited = 0;
             var t = setInterval(function () {
                 waited += 500;

@@ -24,7 +24,12 @@
 (function () {
     'use strict';
 
-    var ICON = '⌚';
+    // ⚠ 31. 8. 2026: tady bylo EMOJI '⌚' a byl to JEDINÝ nástroj v celé appce, který
+    // neměl kreslenou ikonu. V mřížce Nástrojů proto vypadal jako by mu ikona chyběla:
+    // emoji si systém kreslí vlastním (barevným) fontem, nedědí barvu ani tloušťku
+    // čáry jako <svg stroke="currentColor"> a vedle 87 tenkých zelených ikon prostě
+    // sedělo něco cizího a jinak velkého. Teď má hodinky ve stejném stylu jako zbytek.
+    var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="3.4"/><path d="M12 9.6V12l1.8 1.2"/><path d="M9 6V3.6h6V6M9 18v2.4h6V18"/></svg>';
 
     function toast(t) {
         try { if (typeof window.quickToast === 'function') return window.quickToast(t); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hodinky-parovani:toast'); }
@@ -71,7 +76,8 @@
         var mala = 'font-size:calc(12.5px * var(--ag-font-scale, 1));';
         back.innerHTML =
             '<div class="modal-content" style="display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
-            + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Hodinky Garmin</h3>'
+            + '<h3 style="color:var(--accent);margin-top:0;display:flex;align-items:center;gap:8px;">'
+            + '<span style="display:inline-flex;width:1em;height:1em;">' + ICON + '</span>Hodinky Garmin</h3>'
             + '<p style="' + mala + 'opacity:.75;margin:2px 0 10px;">Připojí hodinky k zakázce '
             + '<b id="agwatch-job"></b>. Body naměřené na hodinkách se pak objeví tady a body '
             + 'odsud uvidíš na hodinkách.</p>'

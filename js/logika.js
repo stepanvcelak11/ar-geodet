@@ -384,7 +384,15 @@ if ('serviceWorker' in navigator) {
         // Stazene uredni body ziji jen v pameti (initFetch je pridava, neubira) -> pred prepnutim
         // zakazky je ulozime, at se neztrati. Jen kdyz nejake jsou (neprepiseme ulozena data prazdnem).
         function _persistOfficialPoints() { try { if (arPoints.some(p => p.cat !== 'CUSTOM')) setStoredData('arOfflinePoints12', JSON.stringify(arPoints.filter(p => p.cat !== 'CUSTOM'))); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:_persistOfficialPoints'); } }
-        function changeProject() { _persistOfficialPoints(); activeProjectId = document.getElementById('w-project-select').value; localStorage.setItem('arActiveProjectId', activeProjectId); hydrateActiveProject().then(loadProjectSettings); }
+        // ⚠ Čtlo to #w-project-select z úvodní obrazovky, ta je od 31. 8. 2026 zrušená
+        // (viz komentář v index.html). Přepínač zakázek je v Nastavení → Data. Bez téhle
+        // pojistky by funkce spadla na `.value` z null — volá ji ještě js/pokracovat.js
+        // jako záložní cestu, když není k dispozici changeProjectFromSettings().
+        function changeProject() {
+            const sel = document.getElementById('s-project-select') || document.getElementById('w-project-select');
+            if (!sel || !sel.value) return;
+            _persistOfficialPoints(); activeProjectId = sel.value; localStorage.setItem('arActiveProjectId', activeProjectId); hydrateActiveProject().then(loadProjectSettings);
+        }
         function createNewProject() {
             const create = (name) => { if(!name) return; _persistOfficialPoints(); let id = 'proj_' + Date.now(); projects.push({id: id, name: name}); localStorage.setItem('arProjectsList', JSON.stringify(projects)); activeProjectId = id; localStorage.setItem('arActiveProjectId', activeProjectId); renderProjectSelect(); hydrateActiveProject().then(loadProjectSettings); };
             // in-app dialog místo nativního prompt() (vzhledem i chováním ladí se zbytkem appky)
