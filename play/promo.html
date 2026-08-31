@@ -415,20 +415,19 @@
     var T = { x: 31, y: 4, w: 48, h: 104, r: 7.5 };            // tělo telefonu
     var O = { x: T.x + 2.6, y: T.y + 2.6, w: T.w - 5.2, h: T.h - 5.2, r: 5.5 };  // obrazovka
 
-    // Obsah obrazovky se píše v JEJÍCH SOUŘADNICÍCH (0,0 = levý horní roh
+    // Obsah obrazovky se píše v JEJÍCH souřadnicích (0,0 = levý horní roh
     // obrazovky) a tahle obálka ho posune na místo. Bez toho by se každé
     // číslo muselo ručně přičítat k O.x / O.y a při posunu telefonu by se
     // přepisovala celá scéna.
     function displej(vnitrek) {
-        // ⚠ OŘEZ TVAREM OBRAZOVKY. Bez něj čtvercové výplně (obloha, mapa)
-        //    přetekly přes zaoblené rohy a telefon vypadal, jako by měl
-        //    obrazovku nalepenou přes rám.
+        // ⚠⚠ OŘEZ SE POČÍTÁ V SOUŘADNICÍCH OŘEZÁVANÉHO PRVKU, TEDY UŽ PO JEHO
+        //    `transform`. Napoprvé tu byl obdélník na absolutní pozici obrazovky
+        //    (O.x, O.y) — jenže skupina, na kterou se váže, je sama posunutá
+        //    o totéž, takže se ořez posunul dvakrát a z obrazovky zbyl proužek
+        //    u pravého okraje. Proto má clipPath 0,0 a jen rozměr obrazovky.
         return '<g clip-path="url(#displej)" transform="translate(' + O.x + ' ' + O.y + ')">' + vnitrek + '</g>';
     }
 
-    // Rám telefonu: záře pod ním, tělo, obrazovka, sluchátko. Záře je
-    // radiální přechod, ne filtr — filtry v Chromiu při screenshotu občas
-    // vyjdou zrnitě a tady jde o čistou plochu.
     function telefon(vnitrek) {
         return '' +
             '<ellipse cx="' + (T.x + T.w / 2) + '" cy="' + (T.y + T.h / 2) + '" rx="' + (T.w * 0.95) + '" ry="' + (T.h * 0.56) + '" fill="url(#zare)"/>' +
@@ -447,86 +446,182 @@
     var S = O.w;      // šířka obrazovky — obsah se do ní musí vejít
     var SV = O.h;     // výška obrazovky
 
+    // ==================================================================
+    // ROZHRANÍ APPKY — OPSANÉ Z NÍ, NE VYMYŠLENÉ
+    // ==================================================================
+    // ⚠⚠ NAHLÁŠENO 31. 8. 2026: „jen to moc nevypadá podle aplikace designem."
+    // Do té doby si předloha rozhraní VYMÝŠLELA (spodní lišta, vystředěné
+    // pilulky), zatímco appka má úplně jiné rozvržení. Podoba níž je opsaná
+    // ze skutečných snímků běžící appky:
+    //
+    //   • STAVOVÁ PILULKA nahoře přes celou šířku: barevná tečka, hláška,
+    //     „· ± 0,8 m · Azimut: 214,6°" a šipka na rozbalení. Čísla mono.
+    //   • SVISLÝ DOK U PRAVÉHO OKRAJE (ne dole!): Body · Nástroje ·
+    //     Nový bod · Vrstvy · Nastavení. Skleněné zaoblené čtverce s ikonou
+    //     nahoře a popiskem pod ní; „Nový bod" je VELKÉ ZELENÉ KOLEČKO s +,
+    //     které z řady vystupuje.
+    //   • ZNAČKY BODŮ jsou KAPKY (ne kroužky) v akcentní zelené s bílým
+    //     obrysem a tučným číslem bodu vedle.
+    //   • MOJE POLOHA je zelený kroužek se šipkou uvnitř.
+    //   • OKNA (Nástroje, Body) jsou celoobrazovková: zelený nadpis s ikonou
+    //     vlevo, kulaté ✕ vpravo, vlásková linka, hledací pole, sekce
+    //     VELKÝMI PÍSMENY s počtem vpravo a řádky se zelenou ikonou,
+    //     tučným názvem a šedým podtitulkem. Dole tlačítko „Zavřít".
+    //
+    // Kdyby se appka překreslila, TOHLE je místo, které se musí srovnat —
+    // jinak budou obrázky v obchodě slibovat něco jiného, než co se spustí.
+
+    // svislý dok u pravého okraje
+    // ⚠ ŠÍŘKA DOKU JE DANÁ NEJDELŠÍM POPISKEM („Nastavení"), ne ikonou. Napoprvé
+    //   byl dok užší a popisky mu přetékaly do mapy.
+    var DOK_X = S - 8.8, DOK_W = 7.4;
+    function dokTlacitko(y, ikona, popis) {
+        return '<rect class="ui" x="' + DOK_X + '" y="' + y + '" width="' + DOK_W + '" height="' + DOK_W + '" rx="2.3"/>' +
+            '<g class="lin" stroke-width="0.75" transform="translate(' + (DOK_X + DOK_W / 2) + ' ' + (y + 2.6) + ') scale(0.082)">' + ikona + '</g>' +
+            '<text class="t-drobne" x="' + (DOK_X + DOK_W / 2) + '" y="' + (y + 6) + '" text-anchor="middle" font-size="1.15">' + popis + '</text>';
+    }
+    var I_BODY = '<path d="M0 22 C0 22 -14 6 -14 -4 a14 14 0 0 1 28 0 C14 6 0 22 0 22 Z"/><circle cx="0" cy="-4" r="6"/>';
+    var I_METR = '<rect x="-18" y="-8" width="36" height="16" rx="4"/><path d="M-10 -8v6M-2 -8v9M6 -8v6M14 -8v9"/>';
+    var I_VRSTVY = '<path d="M-14 0 L0 -9 L14 0 L0 9 Z"/><path d="M-14 8 L0 17 L14 8"/>';
+    // ⚠ Zuby MUSÍ být krátké a kolo mít vnitřní kroužek — s dlouhými paprsky to
+    //   v téhle velikosti vypadalo jako sluníčko (jas), ne jako nastavení.
+    var I_OZUB = '<circle cx="0" cy="0" r="9"/><circle cx="0" cy="0" r="4"/>' +
+        '<path d="M0 -13v4M0 9v4M-13 0h4M9 0h4M-9.2 -9.2l2.8 2.8M6.4 6.4l2.8 2.8M9.2 -9.2l-2.8 2.8M-6.4 6.4l-2.8 2.8"/>';
+    function dok(aktivni) {
+        function zvyraznit(y) {
+            return aktivni ? '<rect x="' + DOK_X + '" y="' + y + '" width="' + DOK_W + '" height="' + DOK_W + '" rx="2.3" fill="rgba(47,158,116,0.20)" stroke="#3eb487" stroke-width="0.5"/>' : '';
+        }
+        return '' +
+            dokTlacitko(26, I_BODY, 'Body') +
+            dokTlacitko(34.2, I_METR, 'Nástroje') +
+            // „Nový bod" je v appce velké zelené kolečko, které z řady vystupuje
+            '<circle cx="' + (DOK_X + DOK_W / 2) + '" cy="45.6" r="4.3" fill="rgba(47,158,116,0.30)" stroke="#3eb487" stroke-width="0.8"/>' +
+            '<path d="M' + (DOK_X + DOK_W / 2 - 1.9) + ' 45.6h3.8M' + (DOK_X + DOK_W / 2) + ' 43.7v3.8" stroke="#eceef2" stroke-width="0.8" stroke-linecap="round"/>' +
+            '<text class="t-drobne" x="' + (DOK_X + DOK_W / 2) + '" y="52" text-anchor="middle" font-size="1.15">Nový bod</text>' +
+            (aktivni === 'vrstvy' ? zvyraznit(54.4) : '') +
+            dokTlacitko(54.4, I_VRSTVY, 'Vrstvy') +
+            dokTlacitko(62.6, I_OZUB, 'Nastavení');
+    }
+
+    // horní stavová pilulka appky
+    function stav(hlaska, barva) {
+        return '<rect class="ui" x="1.6" y="2.2" width="' + (S - 3.2) + '" height="4.4" rx="2.2"/>' +
+            '<circle cx="4.4" cy="4.4" r="1.05" fill="' + (barva || '#34d399') + '"/>' +
+            '<text class="t-drobne" x="6.6" y="5.15" font-size="1.85">' + hlaska +
+            '  <tspan class="cs-sep"> · </tspan>' +
+            '  <tspan class="t-akcent" font-size="1.85">± 0,8 m</tspan></text>' +
+            '<path d="M' + (S - 4.2) + ' 3.9 l1 1.1 l1 -1.1" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="0.45" stroke-linecap="round"/>';
+    }
+
+    // kapkovitá značka bodu s tučným číslem vedle — přesně jako v mapě appky
+    // ⚠ MĚŘÍTKO PODLE APPKY, NE OD OKA. Kapka je v appce ~28 px na displeji
+    //   širokém 412, tedy 2,9 jednotky téhle soustavy. Napoprvé byla dvojnásobná
+    //   a značky přelezly půl obrazovky i dok — vypadalo to jako jiná appka.
+    function pin(x, y, cislo, vzdalenost) {
+        return '<g transform="translate(' + x + ' ' + y + ') scale(0.5)">' +
+            '  <path d="M0 0 C0 0 -2.9 -3.6 -2.9 -5.6 a2.9 2.9 0 0 1 5.8 0 C2.9 -3.6 0 0 0 0 Z" fill="#3eb487" stroke="#eceef2" stroke-width="0.9"/>' +
+            '</g>' +
+            '<text class="t-nadpis" x="' + (x + 2.1) + '" y="' + (y - 1.1) + '" font-size="1.85">' + cislo +
+            (vzdalenost ? '  <tspan class="t-cislo" font-size="1.7">  ' + vzdalenost + '</tspan>' : '') +
+            '</text>';
+    }
+
+    // moje poloha: zelený kroužek se šipkou
+    function poloha(x, y) {
+        return '<circle cx="' + x + '" cy="' + y + '" r="2.5" fill="rgba(47,158,116,0.22)" stroke="#3eb487" stroke-width="0.6"/>' +
+            '<path d="M' + x + ' ' + (y - 1.5) + ' l1.1 2.5 l-1.1 -0.75 l-1.1 0.75 Z" fill="#eceef2"/>';
+    }
+
+    // celoobrazovkové okno appky (Nástroje, Body): nadpis, ✕, linka, obsah
+    function okno(nadpis, ikona, obsah, tlacitko) {
+        return '' +
+            '<rect x="0" y="0" width="' + S + '" height="' + SV + '" fill="#0d1218"/>' +
+            '<g class="lin" stroke-width="0.7" transform="translate(4.4 5.4) scale(0.1)">' + ikona + '</g>' +
+            '<text x="8.4" y="6.3" font-size="3.4" font-weight="700" fill="#3eb487" font-family="Sora, Inter, sans-serif">' + nadpis + '</text>' +
+            '<circle cx="' + (S - 4.6) + '" cy="5.2" r="2.8" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.16)" stroke-width="0.45"/>' +
+            '<path d="M' + (S - 5.7) + ' 4.1 l2.2 2.2 M' + (S - 3.5) + ' 4.1 l-2.2 2.2" stroke="#eceef2" stroke-width="0.6" stroke-linecap="round"/>' +
+            '<line class="lin-tenka" x1="1.6" y1="9.4" x2="' + (S - 1.6) + '" y2="9.4"/>' +
+            obsah +
+            '<rect class="ui" x="1.6" y="' + (SV - 8.6) + '" width="' + (S - 3.2) + '" height="6.4" rx="2.2"/>' +
+            '<text class="t-nadpis" x="' + (S / 2) + '" y="' + (SV - 4.3) + '" text-anchor="middle" font-size="2.5">' + (tlacitko || 'Zavřít') + '</text>';
+    }
+    // sekce v okně: VELKÝMI PÍSMENY vlevo, počet vpravo, vlásková linka pod
+    function sekce(y, jmeno, pocet) {
+        return '<text class="t-stitek" x="1.6" y="' + y + '" font-size="1.9">' + jmeno + '</text>' +
+            '<text class="t-drobne" x="' + (S - 1.6) + '" y="' + y + '" text-anchor="end" font-size="1.9">' + pocet + '</text>' +
+            '<line class="lin-tenka" x1="1.6" y1="' + (y + 1.8) + '" x2="' + (S - 1.6) + '" y2="' + (y + 1.8) + '"/>';
+    }
+    // řádek okna: ikona, tučný název, šedý podtitulek
+    function radek(y, ikona, nazev, podtitul) {
+        return '<rect class="ui" x="1.6" y="' + y + '" width="' + (S - 3.2) + '" height="' + (podtitul ? 8.4 : 6.6) + '" rx="2.4"/>' +
+            '<g class="lin" stroke-width="0.75" transform="translate(5.2 ' + (y + (podtitul ? 4.2 : 3.3)) + ') scale(0.085)">' + ikona + '</g>' +
+            '<text class="t-nadpis" x="9.4" y="' + (y + (podtitul ? 3.9 : 4.2)) + '" font-size="2.35">' + nazev + '</text>' +
+            (podtitul ? '<text class="t-drobne" x="9.4" y="' + (y + 6.9) + '" font-size="1.95">' + podtitul + '</text>' : '');
+    }
+
     // ------------------------------------------------------------------
     // ČTYŘI SCÉNY
     // ------------------------------------------------------------------
     var SCENY = {
 
-        // 1) V TERÉNU: obrazovka = AR pohled (stavová pilulka, terén, značky,
-        //    spodní navádění). Karty = počet bodů v okolí a azimut s přesností.
+        // 1) V TERÉNU: obraz kamery se značkami bodů, nad ním stavová pilulka
+        //    a svislý dok — tedy přesně to, co uživatel v terénu vidí.
         teren: telefon('' +
-            // obloha a země pod ní
-            '<path d="M0 0 H' + S + ' V' + (SV * 0.52) + ' Q' + (S * 0.55) + ' ' + (SV * 0.46) + ' 0 ' + (SV * 0.5) + ' Z" fill="url(#obloha)"/>' +
-            '<path class="lin-tenka" d="M0 ' + (SV * 0.5) + ' Q' + (S * 0.55) + ' ' + (SV * 0.46) + ' ' + S + ' ' + (SV * 0.52) + '"/>' +
-            '<path class="lin-prerus" d="M0 ' + (SV * 0.62) + ' Q' + (S * 0.5) + ' ' + (SV * 0.58) + ' ' + S + ' ' + (SV * 0.63) + '"/>' +
-            // stavová pilulka appky
-            '<rect class="ui" x="3" y="4.5" width="' + (S - 6) + '" height="6.4" rx="3.2"/>' +
-            '<circle cx="7.4" cy="7.7" r="1.5" fill="#34d399"/>' +
-            '<text class="t-akcent" x="10.6" y="8.6" font-size="2.4">± 0,8 m' +
-            '  <tspan class="cs-sep"> · </tspan>' +
-            '  <tspan class="t-drobne" font-size="2.3">214,6°</tspan></text>' +
-            // vzdálenější značka
-            // ⚠ ČÍSLO BODU A VZDÁLENOST MUSÍ MÍT MEZI SEBOU MÍSTO. Napoprvé stály
-            //    tak těsně, že se slily v „400127,4 m", a obě pilulky se navíc
-            //    překrývaly navzájem. Proto jsou od sebe odsazené i VÝŠKOVĚ.
-            '<g><line class="lin-tenka" x1="10" y1="' + (SV * 0.5) + '" x2="10" y2="' + (SV * 0.36) + '"/>' +
-            '<circle class="lin" cx="10" cy="' + (SV * 0.335) + '" r="2.4"/>' +
-            '<circle class="terc" cx="10" cy="' + (SV * 0.335) + '" r="1"/>' +
-            '<rect class="ui" x="1.5" y="' + (SV * 0.215) + '" width="20" height="5.4" rx="2.7"/>' +
-            '<text class="t-nadpis" x="4" y="' + (SV * 0.215 + 3.7) + '" font-size="2.3">4001' +
-            '  <tspan class="cs-sep"> · </tspan>' +
-            '  <tspan class="t-cislo" font-size="2.2">27,4 m</tspan></text></g>' +
-            // cílová značka
-            '<g><line class="lin-tenka" x1="28" y1="' + (SV * 0.56) + '" x2="28" y2="' + (SV * 0.42) + '"/>' +
-            '<circle class="lin" cx="28" cy="' + (SV * 0.375) + '" r="4" stroke-width="1.4"/>' +
-            '<circle class="lin" cx="28" cy="' + (SV * 0.375) + '" r="7" opacity="0.3"/>' +
-            '<circle class="terc" cx="28" cy="' + (SV * 0.375) + '" r="1.6"/>' +
-            '<rect class="ui" x="21" y="' + (SV * 0.245) + '" width="20.5" height="5.8" rx="2.9"/>' +
-            '<text class="t-nadpis" x="23.5" y="' + (SV * 0.245 + 3.9) + '" font-size="2.4">4002' +
-            '  <tspan class="cs-sep"> · </tspan>' +
-            '  <tspan class="t-cislo" font-size="2.3">8,1 m</tspan></text></g>' +
-            // spodní navádění
-            '<rect class="ui" x="3" y="' + (SV - 16) + '" width="' + (S - 6) + '" height="11" rx="3.5"/>' +
-            '<g transform="translate(9.5 ' + (SV - 10.5) + ')">' +
-            '  <circle class="lin" cx="0" cy="0" r="4" opacity="0.4"/>' +
-            '  <path d="M0 -3 L1.9 1.6 L0 0.6 L-1.9 1.6 Z" fill="rgba(47,158,116,0.3)" stroke="#3eb487" stroke-width="0.6" stroke-linejoin="round"/>' +
+            '<path d="M0 0 H' + S + ' V' + (SV * 0.54) + ' Q' + (S * 0.55) + ' ' + (SV * 0.48) + ' 0 ' + (SV * 0.52) + ' Z" fill="url(#obloha)"/>' +
+            '<path class="lin-tenka" d="M0 ' + (SV * 0.52) + ' Q' + (S * 0.55) + ' ' + (SV * 0.48) + ' ' + S + ' ' + (SV * 0.54) + '"/>' +
+            '<path class="lin-prerus" d="M0 ' + (SV * 0.64) + ' Q' + (S * 0.5) + ' ' + (SV * 0.6) + ' ' + S + ' ' + (SV * 0.65) + '"/>' +
+            stav('Můžeš měřit') +
+            // značky bodů v obraze, každá se vzdáleností pod číslem
+            pin(5, 31, '4003', '27,4 m') +
+            pin(13, 23, '4002', '8,1 m') +
+            pin(9, 42, '4005', '41,0 m') +
+            poloha(11, 58) +
+            dok() +
+            // spodní navádění na vybraný bod
+            '<rect class="ui" x="1.6" y="' + (SV - 12.6) + '" width="' + (S - 11.6) + '" height="9.4" rx="3"/>' +
+            '<g transform="translate(6.2 ' + (SV - 7.9) + ')">' +
+            '  <circle class="lin" cx="0" cy="0" r="3.2" opacity="0.45" stroke-width="0.6"/>' +
+            '  <path d="M0 -2.3 L1.5 1.3 L0 0.5 L-1.5 1.3 Z" fill="#3eb487"/>' +
             '</g>' +
-            '<text class="t-velke" x="16" y="' + (SV - 9.6) + '">8,4 m</text>' +
-            '<text class="t-stitek" x="16" y="' + (SV - 6.2) + '">DO BODU 4002</text>'
+            '<text class="t-velke" x="11.4" y="' + (SV - 7.6) + '" font-size="3.9">8,4 m</text>' +
+            '<text class="t-stitek" x="11.4" y="' + (SV - 4.4) + '" font-size="1.75">DO BODU 4002</text>'
         ) +
             karta(2, 20, 34, 11,
                 '<text class="t-stitek" x="5" y="25">BODOVÉ POLE ČÚZK</text>' +
                 '<text class="t-nadpis" x="5" y="29.2">128 bodů v okolí</text>') +
-            karta(74, 74, 34, 11,
-                '<text class="t-stitek" x="77" y="79">SEVER SROVNÁN</text>' +
-                '<text class="t-nadpis" x="77" y="83.2">azimut 214,6°</text>'),
+            karta(74, 79, 34, 11,
+                '<text class="t-stitek" x="77" y="84">SEVER SROVNÁN</text>' +
+                '<text class="t-nadpis" x="77" y="88.2">azimut 214,6°</text>'),
 
-        // 2) PODKLADY: obrazovka = mapa s parcelami. Karty = přepínač vrstev
-        //    a odznak staženého okolí.
+        // 2) PODKLADY: mapa appky — parcely, kapky bodů, moje poloha, měřítko
+        //    a dok se zvýrazněnými Vrstvami.
         podklady: telefon('' +
-            '<rect x="0" y="0" width="' + S + '" height="' + SV + '" fill="#0e141a"/>' +
-            '<polygon class="plocha" points="2,18 16,14 20,30 5,35"/>' +
-            '<polygon class="plocha" points="16,14 34,10 38,26 20,30" opacity="0.62"/>' +
-            '<polygon class="plocha" points="5,35 20,30 24,48 8,53"/>' +
-            '<polygon class="plocha" points="20,30 38,26 41,44 24,48" opacity="0.5"/>' +
-            '<polygon class="plocha" points="8,53 24,48 28,66 11,71" opacity="0.72"/>' +
-            '<text class="t-cislo" x="6" y="26" font-size="2.1">421/7</text>' +
-            '<text class="t-cislo" x="25" y="21" font-size="2.1">422</text>' +
-            '<text class="t-cislo" x="10" y="43" font-size="2.1">423/2</text>' +
-            '<text class="t-cislo" x="29" y="39" font-size="2.1">424</text>' +
-            '<text class="t-cislo" x="14" y="61" font-size="2.1">425/1</text>' +
-            // moje poloha
-            '<circle cx="21" cy="' + (SV * 0.56) + '" r="5.5" fill="rgba(47,158,116,0.16)"/>' +
-            '<circle cx="21" cy="' + (SV * 0.56) + '" r="2" fill="#3eb487" stroke="#0d1218" stroke-width="0.7"/>' +
-            // měřítko dole
-            '<line class="lin-tenka" x1="4" y1="' + (SV - 7) + '" x2="16" y2="' + (SV - 7) + '"/>' +
-            '<line class="lin-tenka" x1="4" y1="' + (SV - 8.6) + '" x2="4" y2="' + (SV - 5.4) + '"/>' +
-            '<line class="lin-tenka" x1="16" y1="' + (SV - 8.6) + '" x2="16" y2="' + (SV - 5.4) + '"/>' +
-            '<text class="t-drobne" x="18" y="' + (SV - 6.2) + '" font-size="1.9">50 m</text>' +
-            // tlačítko vrstev
-            '<rect class="ui" x="' + (S - 10) + '" y="4.5" width="7" height="7" rx="2"/>' +
-            '<g class="lin" transform="translate(' + (S - 6.5) + ' 8) scale(0.16)" stroke-width="6">' +
-            '  <path d="M-9 0 L0 -6 L9 0 L0 6 Z"/><path d="M-9 6 L0 12 L9 6"/></g>'
+            '<rect x="0" y="0" width="' + S + '" height="' + SV + '" fill="#11171d"/>' +
+            '<polygon class="plocha" points="-2,20 14,15 18,33 1,39"/>' +
+            '<polygon class="plocha" points="14,15 31,11 35,28 18,33" opacity="0.6"/>' +
+            '<polygon class="plocha" points="1,39 18,33 22,52 4,58"/>' +
+            '<polygon class="plocha" points="18,33 35,28 39,46 22,52" opacity="0.48"/>' +
+            '<polygon class="plocha" points="4,58 22,52 26,71 8,77" opacity="0.7"/>' +
+            '<text class="t-cislo" x="4" y="28" font-size="1.9">421/7</text>' +
+            '<text class="t-cislo" x="22" y="23" font-size="1.9">422</text>' +
+            '<text class="t-cislo" x="8" y="47" font-size="1.9">423/2</text>' +
+            '<text class="t-cislo" x="26" y="42" font-size="1.9">424</text>' +
+            '<text class="t-cislo" x="11" y="66" font-size="1.9">425/1</text>' +
+            // ⚠ Značky patří DO PRÁZDNÝCH MÍST mezi parcelní čísla — jinak jedno
+            //   přes druhé (kapka 4003 seděla přesně na „421/7").
+            pin(17, 33, '4003') +
+            pin(6, 57, '4002') +
+            poloha(17, 61) +
+            stav('Staženo pro offline') +
+            dok('vrstvy') +
+            // měřítko dole vlevo, jako v mapě appky
+            '<line class="lin-tenka" x1="2.6" y1="' + (SV - 5.4) + '" x2="11" y2="' + (SV - 5.4) + '"/>' +
+            '<line class="lin-tenka" x1="2.6" y1="' + (SV - 6.6) + '" x2="2.6" y2="' + (SV - 4.2) + '"/>' +
+            '<line class="lin-tenka" x1="11" y1="' + (SV - 6.6) + '" x2="11" y2="' + (SV - 4.2) + '"/>' +
+            '<text class="t-drobne" x="12.4" y="' + (SV - 4.7) + '" font-size="1.8">50 m</text>' +
+            // kulaté tlačítko přepnutí zobrazení vpravo dole
+            '<circle class="ui" cx="' + (DOK_X + DOK_W / 2) + '" cy="' + (SV - 7) + '" r="3.6"/>' +
+            '<text class="t-drobne" x="' + (DOK_X + DOK_W / 2) + '" y="' + (SV - 6.3) + '" text-anchor="middle" font-size="1.5">Mapa</text>'
         ) +
             karta(2, 14, 33, 25,
                 '<text class="t-stitek" x="5" y="19">VRSTVY</text>' +
@@ -542,66 +637,52 @@
                 '<text class="t-stitek" x="85" y="83">STAŽENO</text>' +
                 '<text class="t-nadpis" x="85" y="87.4">12 km² offline</text>'),
 
-        // 3) MĚŘENÍ A VÝPOČTY: obrazovka = terč vytyčení s odchylkou.
-        //    Karty = výměra parcely a stav GPS.
-        vypocty: telefon('' +
-            '<rect class="ui" x="3" y="4.5" width="' + (S - 6) + '" height="6.4" rx="3.2"/>' +
-            '<text class="t-drobne" x="6" y="8.6">Vytyčení bodu' +
-            '  <tspan class="cs-sep"> · </tspan>' +
-            '  <tspan class="t-akcent" font-size="2.4">4002</tspan></text>' +
-            // terč
-            '<g transform="translate(' + (S / 2) + ' ' + (SV * 0.42) + ')">' +
-            '  <circle class="lin" cx="0" cy="0" r="17" opacity="0.14"/>' +
-            '  <circle class="lin" cx="0" cy="0" r="11" opacity="0.3"/>' +
-            '  <circle class="lin" cx="0" cy="0" r="5.5" opacity="0.5"/>' +
-            '  <g class="lin" opacity="0.4"><path d="M0 -20v4M0 16v4M-20 0h4M16 0h4"/></g>' +
-            '  <circle class="terc" cx="0" cy="0" r="1.3"/>' +
-            '  <line class="lin-prerus" x1="0" y1="0" x2="6" y2="-4"/>' +
-            '  <circle cx="6" cy="-4" r="2.6" fill="rgba(230,189,118,0.25)" stroke="#e6bd76" stroke-width="0.9"/>' +
-            '  <circle class="zlata" cx="6" cy="-4" r="0.9"/>' +
-            '</g>' +
-            // odchylka
-            '<rect class="ui" x="3" y="' + (SV * 0.68) + '" width="' + (S - 6) + '" height="12" rx="3.5"/>' +
-            '<text class="t-stitek" x="6" y="' + (SV * 0.68 + 4.4) + '">ODCHYLKA</text>' +
-            '<text class="t-velke" x="6" y="' + (SV * 0.68 + 9.6) + '">0,03 m' +
-            '  <tspan class="t-drobne" font-size="2.3">  k severu</tspan></text>' +
-            // protokol
-            '<rect class="ui" x="3" y="' + (SV - 13) + '" width="' + (S - 6) + '" height="8" rx="2.6"/>' +
-            '<text class="t-drobne" x="6" y="' + (SV - 7.6) + '">Protokol vytyčení' +
-            '  <tspan class="cs-sep"> · </tspan>' +
-            '  <tspan class="t-akcent" font-size="2.1">PDF</tspan></text>'
+        // 3) MĚŘENÍ A VÝPOČTY: okno Nástroje tak, jak v appce vypadá —
+        //    i s názvy nástrojů, které v ní opravdu jsou.
+        vypocty: telefon(
+            okno('Nástroje', I_METR,
+                '<rect class="ui" x="1.6" y="11.6" width="' + (S - 3.2) + '" height="5.4" rx="2"/>' +
+                '<text class="t-drobne" x="4.4" y="15.3" font-size="2.1">Hledat nástroj…</text>' +
+                sekce(22.4, 'ZMĚŘIT', '8') +
+                radek(26, I_METR, 'Vzdálenost a převýšení', 'mezi dvěma body') +
+                radek(36, '<path d="M-14 -6 L0 -14 L14 -6 L9 10 L-9 10 Z"/>', 'Plochu a obvod pozemku', 'výměra na pár ťuknutí') +
+                radek(46, '<path d="M0 -14 L14 -6 V8 L0 16 L-14 8 V-6 Z"/><path d="M-14 -6 L0 2 L14 -6M0 2v14"/>', 'Kubaturu a vrstevnice', 'z naměřených bodů') +
+                radek(56, '<circle cx="0" cy="0" r="9"/><path d="M0 -14v5M9 6l4 3"/>', 'Kontrolní měření', 'týž bod podruhé, jediná poctivá přesnost') +
+                sekce(70.4, 'VYTYČIT', '5') +
+                radek(74, '<circle cx="0" cy="0" r="12"/><circle cx="0" cy="0" r="4"/><path d="M0 -18v4M0 14v4M-18 0h4M14 0h4"/>', 'Bod i přímku', 's živou odchylkou'),
+                'Zavřít')
         ) +
             karta(2, 16, 34, 13,
                 '<text class="t-stitek" x="5" y="21">VÝMĚRA PARCELY</text>' +
                 '<text class="t-velke" x="5" y="26.4" font-size="4">1 042 m²</text>') +
             karta(74, 71, 34, 17,
-                '<text class="t-stitek" x="77" y="76.5">STAV GPS</text>' +
-                '<circle cx="78.6" cy="81.2" r="1.5" fill="#34d399"/>' +
-                '<text class="t-akcent" x="81.6" y="82.1">± 0,8 m</text>' +
-                '<text class="t-drobne" x="77" y="86.4" font-size="1.9">12 družic · dá se měřit</text>'),
+                '<text class="t-stitek" x="77" y="76.5">ODCHYLKA VYTYČENÍ</text>' +
+                '<text class="t-velke" x="77" y="82.4" font-size="4">0,03 m</text>' +
+                '<text class="t-drobne" x="77" y="86.4" font-size="1.9">± 0,8 m · 12 družic</text>'),
 
-        // 4) PO MĚŘENÍ: obrazovka = seznam bodů zakázky. Karty = formáty
-        //    exportu a tým, který na zakázce dělá.
-        kancelar: telefon('' +
-            '<rect class="ui" x="3" y="4.5" width="' + (S - 6) + '" height="8" rx="2.6"/>' +
-            '<text class="t-nadpis" x="6" y="8.4" font-size="2.4">Rekonstrukce III/3084</text>' +
-            '<text class="t-drobne" x="6" y="11.4" font-size="1.9">128 bodů · S-JTSK / Bpv</text>' +
-            (function () {
-                var r = '', i, y;
-                var body = [['4001', 'Mezník', '±0,8'], ['4002', 'Roh budovy', '±0,6'],
-                            ['4003', 'Šachta', '±1,1'], ['4004', 'Obruba', '±0,7'],
-                            ['4005', 'Sloup VN', '±0,9']];
-                for (i = 0; i < body.length; i++) {
-                    y = 16.5 + i * 9;
-                    r += '<rect class="ui" x="3" y="' + y + '" width="' + (S - 6) + '" height="7.6" rx="2.2"/>' +
-                         '<text class="t-akcent" x="6" y="' + (y + 4.9) + '" font-size="2.3">' + body[i][0] + '</text>' +
-                         '<text class="t-drobne" x="14" y="' + (y + 4.9) + '" font-size="2.1">' + body[i][1] + '</text>' +
-                         '<text class="t-cislo" x="' + (S - 9.5) + '" y="' + (y + 4.9) + '" font-size="2.1">' + body[i][2] + '</text>';
-                }
-                return r;
-            })() +
-            '<rect x="3" y="' + (SV - 13) + '" width="' + (S - 6) + '" height="8.5" rx="2.8" fill="rgba(47,158,116,0.2)" stroke="#3eb487" stroke-width="0.6"/>' +
-            '<text class="t-nadpis" x="' + (S / 2) + '" y="' + (SV - 7.3) + '" text-anchor="middle" fill="#3eb487" font-size="2.4">Exportovat zakázku</text>'
+        // 4) PO MĚŘENÍ: okno Body — terénní seznam bodů zakázky, u každého
+        //    přesnost. Dole tlačítko exportu.
+        kancelar: telefon(
+            okno('Body', I_BODY,
+                '<text class="t-drobne" x="1.6" y="14.4" font-size="2.1">Rekonstrukce III/3084' +
+                '  <tspan class="cs-sep"> · </tspan><tspan font-size="2.1">128 bodů</tspan></text>' +
+                sekce(19.4, 'DNES ZMĚŘENO', '8') +
+                (function () {
+                    var r = '', i, y;
+                    var b = [['4001', 'Mezník', '± 0,8'], ['4002', 'Roh budovy', '± 0,6'],
+                             ['4003', 'Šachta', '± 1,1'], ['4004', 'Obruba', '± 0,7'],
+                             ['4005', 'Sloup VN', '± 0,9'], ['4006', 'Hraniční kámen', '± 0,8'],
+                             ['4007', 'Patník', '± 1,0'], ['4008', 'Roh plotu', '± 0,6']];
+                    for (i = 0; i < b.length; i++) {
+                        y = 22.6 + i * 8.4;
+                        r += '<rect class="ui" x="1.6" y="' + y + '" width="' + (S - 3.2) + '" height="7" rx="2.3"/>' +
+                             '<text class="t-akcent" x="4.2" y="' + (y + 4.5) + '" font-size="2.3">' + b[i][0] + '</text>' +
+                             '<text class="t-drobne" x="11.4" y="' + (y + 4.5) + '" font-size="2.05">' + b[i][1] + '</text>' +
+                             '<text class="t-cislo" x="' + (S - 4.2) + '" y="' + (y + 4.5) + '" text-anchor="end" font-size="2">' + b[i][2] + '</text>';
+                    }
+                    return r;
+                })(),
+                'Exportovat zakázku')
         ) +
             karta(2, 18, 33, 22,
                 '<text class="t-stitek" x="5" y="23">EXPORT</text>' +
@@ -621,6 +702,7 @@
                 '<text class="t-nadpis" x="97" y="81.9" text-anchor="middle" font-size="2.1">JD</text>' +
                 '<text class="t-drobne" x="77" y="88" font-size="1.9">admin · měření · vedení</text>')
     };
+
 
     // přechody, které scény používají (jedny pro všechny panely)
     var DEFS = '<defs>' +
