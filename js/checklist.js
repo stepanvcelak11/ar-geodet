@@ -328,7 +328,7 @@
                     '</label>';
             });
         });
-        h += '<div class="ag-cl-note">Seznam se skládá podle typu práce zakázky (změníš ho v Nástrojích → jednoduchý režim) a podle posledního staženého počasí. ' +
+        h += '<div class="ag-cl-note">Seznam se skládá podle typu práce zakázky (změníš ho nahoře v Nástrojích v pásu „Co dnes děláš") a podle posledního staženého počasí. ' +
             'Odškrtání platí na dnešní den a tuhle zakázku — ráno je seznam znovu prázdný.</div>';
         body.innerHTML = h;
     }

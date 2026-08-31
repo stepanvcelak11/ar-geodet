@@ -89,6 +89,22 @@
         return { lat: 111320, lng: 111320 * Math.cos((lat || 49.8) * Math.PI / 180) };
     }
 
+    // ⚠⚠ VYSKA BODU JE Bpv, ALE gpsAvgResult.alt JE ELIPSOIDICKA (WGS84).
+    // V CR je mezi nimi ~45 m, takze bez tohohle prevodu hlasila kontrola rozdil
+    // vysky +45 m i u dokonale sedicich mereni — a „Ulozit prumer obou" / „Prepsat
+    // novym" tu chybu ZAPSALO do bodu, odkud sla dal do CSV i do protokolu kvality.
+    // Stejny prevod delaji js/vyska-gps.js, js/karta-bodu.js i
+    // js/localization-helmert.js; tenhle modul na nej jako jediny zapomnel.
+    // Kdyz undulaci neni odkud vzit, vraci se null: radsi zadna vyska nez o 45 m mimo.
+    function bpvOf(r) {
+        if (!r || r.alt == null || !isFinite(r.alt)) return null;
+        try {
+            if (typeof getGeoidUndulation === 'function') return r.alt - getGeoidUndulation(r.lat, r.lng);
+            if (window.GeoCore && GeoCore.geoidUndulation) return r.alt - GeoCore.geoidUndulation(r.lat, r.lng);
+        } catch (e) { swallow(e, 'dvoji-mereni:bpvOf'); }
+        return null;
+    }
+
     // --------------------------------------------------------------------------------
     // Fronta „čeká na ověření"  { id: {t0, wait} }
     // --------------------------------------------------------------------------------
@@ -153,7 +169,7 @@
         var d = Math.hypot(dE, dN);
         var dH = null;
         var h1 = (p.vyska != null && isFinite(p.vyska)) ? p.vyska : null;
-        var h2 = (r.alt != null && isFinite(r.alt)) ? r.alt : null;
+        var h2 = bpvOf(r);                    // prevod na Bpv, viz bpvOf() vys
         if (h1 != null && h2 != null) dH = h2 - h1;
         return { dE: dE, dN: dN, d: d, dH: dH };
     }
@@ -200,10 +216,12 @@
         if (mode === 'mean') {
             p.lat = (p.lat + r.lat) / 2;
             p.lng = (p.lng + r.lng) / 2;
-            if (dl.dH != null && p.vyska != null && r.alt != null) p.vyska = (p.vyska + r.alt) / 2;
+            var _b = bpvOf(r);
+            if (dl.dH != null && p.vyska != null && _b != null) p.vyska = Math.round(((p.vyska + _b) / 2) * 100) / 100;
         } else if (mode === 'new') {
             p.lat = r.lat; p.lng = r.lng;
-            if (r.alt != null && isFinite(r.alt)) p.vyska = r.alt;
+            var _b2 = bpvOf(r);
+            if (_b2 != null) p.vyska = Math.round(_b2 * 100) / 100;
         }
         p.prov = p.prov || {};
         p.prov.recheck = rc;

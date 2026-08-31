@@ -392,13 +392,17 @@
     }
 
     // ---- re-okupace: spoj sezení (inverzně-varianční vážený průměr) -----------
-    function combineSessions() {
-        if (!_sessions.length) return null;
-        var ref = _sessions[_sessions.length - 1];
-        var grp = _sessions.filter(function (s) { return planarDist(s.lat, s.lng, ref.lat, ref.lng) <= REOCC_GAP_M; });
+    // `extra` = právě doměřené, ještě nezařazené sezení. Bez něj se skupina
+    // vztahovala k POSLEDNÍMU ULOŽENÉMU sezení, takže se nemělo jak poznat, že
+    // uživatel mezitím stojí úplně jinde — viz save().
+    function combineSessions(extra) {
+        var list = _sessions.concat(extra ? [extra] : []);
+        if (!list.length) return null;
+        var ref = extra || list[list.length - 1];
+        var grp = list.filter(function (s) { return planarDist(s.lat, s.lng, ref.lat, ref.lng) <= REOCC_GAP_M; });
         // epochs/sigma nesou POCET ODECTU a jejich rozptyl — na rozdil od `n`,
         // ktere tu znamena pocet SEZENI. Do protokolu kvality patri epochs.
-        if (grp.length === 1) return { lat: grp[0].lat, lng: grp[0].lng, sterr: grp[0].sterr, n: 1, spread: 0, epochs: grp[0].n || null, sigma: (grp[0].sigma != null ? grp[0].sigma : null) };
+        if (grp.length === 1) return { lat: grp[0].lat, lng: grp[0].lng, sterr: grp[0].sterr, n: 1, spread: 0, epochs: grp[0].n || null, sigma: (grp[0].sigma != null ? grp[0].sigma : null), grp: grp };
         var lat0 = grp[0].lat, lng0 = grp[0].lng, m = mPerDeg(lat0);
         var sw = 0, sx = 0, sy = 0;
         grp.forEach(function (s) {
@@ -421,7 +425,7 @@
             if (ni > 1 && s2.sigma != null && isFinite(s2.sigma)) { sc += (ni - 1) * s2.sigma * s2.sigma; sn += (ni - 1); }
         });
         return { lat: lat, lng: lng, sterr: sterr, n: grp.length, spread: spread,
-                 epochs: (epochs || null), sigma: (sn > 0 ? Math.sqrt(sc / sn) : null) };
+                 epochs: (epochs || null), sigma: (sn > 0 ? Math.sqrt(sc / sn) : null), grp: grp };
     }
 
     function loadSessions() { try { var r = localStorage.getItem(LS_SESS); _sessions = r ? (JSON.parse(r) || []) : []; } catch (e) { _sessions = []; } if (!Array.isArray(_sessions)) _sessions = []; }
@@ -498,7 +502,20 @@
     }
 
     function save() {
-        var src = combineSessions() || _result;
+        // ⚠⚠ PRÁVĚ DOMĚŘENÉ SEZENÍ SE MUSÍ ZAPOČÍTAT. Dokud se `_result` do spojení
+        // nedával, platilo: je-li ve frontě `_sessions` cokoli (a ta přežívá v
+        // localStorage i restart appky), combineSessions() vrátil neprázdný výsledek
+        // a čerstvé měření se do bodu VŮBEC nedostalo — uložily se staré souřadnice,
+        // klidně z jiného bodu o 200 m dál, a uživatel přitom na obrazovce četl
+        // „Hotovo: ±0,25 m" z toho měření, které se zahodilo.
+        // Teď se aktuální měření přidá jako další sezení a slouží zároveň jako
+        // vztažný bod skupiny: stará, vzdálená sezení do ní nespadnou (filtr
+        // REOCC_GAP_M) a zůstanou ve frontě pro svůj vlastní bod.
+        var cur = (_result && _samples.length >= 3)
+            ? { lat: _result.lat, lng: _result.lng, n: _result.n, sigma: _result.sigma,
+                sterr: _result.sterr, dur: (Date.now() - _t0) / 1000, t: Date.now() }
+            : null;
+        var src = combineSessions(cur) || _result;
         if (!src) { agAlert('Uložit', 'Nemám žádný výsledek k uložení.'); return; }
         var lat = src.lat, lng = src.lng, calibTxt = '';
         // lokální kalibrace (P-DGPS) — přičti korekční vektor, pokud je zapnutá
@@ -523,8 +540,13 @@
         // brutálního měření se korigovala poslední třetina. Kombinace „Brutální GPS +
         // DGPS" je tím teprve doopravdy jedna metoda, ne dvě vedle sebe.
         // (pozor: _t0 je modulový začátek běžícího měření — tady se z něj jen ČTE)
-        var provT0 = _sessions.length
-            ? _sessions.reduce(function (mn, s) { return Math.min(mn, s.t - (s.dur || 0) * 1000); }, Infinity)
+        // Okno měření i počet sezení se berou ze SKUPINY, která do výsledku opravdu
+        // vešla (src.grp), ne z celé fronty _sessions. Ve frontě může zůstat sezení
+        // z jiného bodu, které filtr REOCC_GAP_M vyřadil — a to by protokol kvality
+        // nafouklo o měření, které v tomhle bodu vůbec není.
+        var pouzito = (src && Array.isArray(src.grp) && src.grp.length) ? src.grp : (cur ? [cur] : []);
+        var provT0 = pouzito.length
+            ? pouzito.reduce(function (mn, s) { return Math.min(mn, s.t - (s.dur || 0) * 1000); }, Infinity)
             : _t0;
         var accR = (src.sterr != null && isFinite(src.sterr)) ? Math.round(src.sterr * 100) / 100 : null;
         // KVALITA MĚŘENÍ do provenience (js/kvalita-bodu.js z toho dělá protokol).
@@ -534,7 +556,7 @@
         var prov = {
             origin: 'gps-avg', ts: Date.now(), acc: accR,
             t0: (isFinite(provT0) && provT0 > 0 ? Math.round(provT0) : null),
-            sess: (_sessions.length || 1),
+            sess: (pouzito.length || 1),
             sigma: sigR,
             // POZOR: u spojenych sezeni je src.n pocet SEZENI, ne odectu — proto epochs
             n: (src.epochs != null && isFinite(src.epochs)) ? src.epochs
@@ -544,9 +566,12 @@
         if (added > 0) {
             var sj = (typeof proj4 === 'function') ? proj4('EPSG:4326', 'EPSG:5514', [lng, lat]) : null;
             var coords = sj ? ('\nY ' + Math.abs(sj[0]).toFixed(2) + '  X ' + Math.abs(sj[1]).toFixed(2)) : '';
-            var srcTxt = (src.n && _sessions.length > 1) ? ('\nSpojeno z ' + src.n + ' sezení') : '';
-            // re-okupace dokončena → vyčisti uložená sezení (+ ukonči případnou kampaň A1)
-            _sessions = []; persistSessions();
+            var srcTxt = (pouzito.length > 1) ? ('\nSpojeno z ' + pouzito.length + ' sezení') : '';
+            // Re-okupace dokončena → z fronty vyřadit JEN sezení, která do bodu vešla.
+            // Vzdálená sezení (patřící jinému bodu) tam musí zůstat — paušální
+            // `_sessions = []` je dřív tiše zahodilo i s celou jejich okupací.
+            _sessions = _sessions.filter(function (s) { return pouzito.indexOf(s) === -1; });
+            persistSessions();
             try { if (window.AGCampaign && AGCampaign.onSaved) AGCampaign.onSaved(name); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:save'); }
             agAlert('Bod uložen', '#' + name + ' uložen do zakázky.\nDosažená přesnost ±' + (src.sterr != null ? src.sterr.toFixed(2) : '?') + ' m' + coords + srcTxt + calibTxt);
             close();

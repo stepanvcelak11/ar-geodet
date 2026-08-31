@@ -27,10 +27,29 @@
         try { if (typeof _persistOfficialPoints === 'function') _persistOfficialPoints(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zakazky:changeProjectFromSettings'); }
         try { if (typeof activeProjectId !== 'undefined') activeProjectId = sel.value; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zakazky:changeProjectFromSettings'); }
         try { localStorage.setItem('arActiveProjectId', sel.value); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zakazky:changeProjectFromSettings'); }
-        if (typeof loadProjectSettings === 'function') loadProjectSettings();
-        if (typeof renderProjectSelect === 'function') renderProjectSelect(); // sync uvodni dropdown
-        fillSettingsSelect();
-        if (typeof renderManageList === 'function') renderManageList();
+        // ⚠⚠ HYDRATACE SE NESMI PRESKOCIT — jinak PRIJDES O BODY ZAKAZKY.
+        // Velka data (arCustomPoints12, arOfflinePoints12) lezi v IndexedDB a do
+        // synchronni cache _idbMem je dostane JEDINE hydrateActiveProject(), a to
+        // jen pro prave aktivni zakazku. Bez nej vratil getStoredData() null,
+        // loadProjectSettings() nechal persistentCustomPoints prazdne — zakazka
+        // vypadala prazdna — a PRVNI dalsi zapis (ulozeni bodu, import) prepsal
+        // zaznam zakazky v IndexedDB prazdnym polem. Body byly nenavratne pryc:
+        // nejsou v kosi ani v zurnalu jako smazane, a cloud-sync na ne jeste
+        // vyrobil nahrobky a rozeslal mazani na telefony kolegu.
+        // Vsechny ostatni cesty k prepnuti zakazky to delaji spravne — logika.js
+        // (changeProject/createNewProject/deleteProject), pruvodce.js, ucty.js —
+        // vzdy jako hydrateActiveProject().then(loadProjectSettings). Tahle jedina
+        // ne, a chodi pres ni i nastroj „Zmenit zakazku" mimo cloudovou firmu.
+        var after = function () {
+            if (typeof loadProjectSettings === 'function') loadProjectSettings();
+            if (typeof renderProjectSelect === 'function') renderProjectSelect(); // sync uvodni dropdown
+            fillSettingsSelect();
+            if (typeof renderManageList === 'function') renderManageList();
+        };
+        if (typeof hydrateActiveProject === 'function') {
+            try { hydrateActiveProject().then(after)['catch'](after); }
+            catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zakazky:hydrate'); after(); }
+        } else after();
     };
 
     // Kdykoli app prekresli uvodni seznam zakazek (create/delete/switch), srovnat i ten v Nastaveni.

@@ -9,13 +9,21 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v268';   // deleny slovnik jazyku (jadro + rozsireni), rozcestniky z registru
+const SHELL_CACHE = 'argeodet-shell-v269';   // vypinac modulu doopravdy vypina, offline start ze zkratky, firemni API ze site
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
 // nemaze se pri updatu (stejny princip jako TILE_CACHE u mapovych dlazdic).
 const FONT_CACHE = 'argeodet-fonts-v1';
-const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE, FONT_CACHE];
+// DICT_CACHE — rozsirujici slovniky data/jazyky-en|de|pl.json (~480 kB na jazyk).
+// V predcache ZAMERNE nejsou (stahuje se az ten jeden zvoleny, viz js/jazyky.js),
+// takze je ukladala jen behova vetev fetch handleru — a ta je posilala do
+// VERZOVANE SHELL_CACHE, kterou activate pri kazdem bumpu smaze. Cizojazycna
+// appka pak po aktualizaci spadla zpatky do cestiny (offline uz slovnik nebyla
+// odkud vzit) a online ho stahovala znovu po kazdem vydani. STABILNI nazev,
+// stejny princip jako FONT_CACHE. Bumpnout jen pri zmene obsahu slovniku.
+const DICT_CACHE = 'argeodet-dict-v1';
+const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE, FONT_CACHE, DICT_CACHE];
 
 const ASSETS_TO_CACHE = [
     // >>> GENEROVANO scripts/gen_sw_assets.py — needitovat rucne
@@ -31,9 +39,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=268',
-    './css/style.css?v=268',
-    './css/vylepseni.css?v=268',
+    './css/tokens.css?v=269',
+    './css/style.css?v=269',
+    './css/vylepseni.css?v=269',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
@@ -268,6 +276,9 @@ const ASSETS_TO_CACHE = [
 // 209 kB pisem se stahovalo znovu pri KAZDEM bumpu SHELL_CACHE — presne to, cemu
 // mela FONT_CACHE zabranit. Obe cesty tu nechavame kvuli starym instalacim.
 function isFont(url) { return url.includes('/fonts/') || url.endsWith('.woff2'); }
+// Pozor na pomlcku: jadro ./data/jazyky.json patri do predcache a ma se s verzi
+// obnovovat, do DICT_CACHE smi jen rozsireni data/jazyky-xx.json.
+function isDict(url) { return url.includes('/data/jazyky-'); }
 
 // Mapove dlazdice (OSM, CUZK WMS) ukladame do TILE_CACHE, aby prezily update kodu.
 function isTile(url) {
@@ -339,6 +350,14 @@ self.addEventListener('fetch', event => {
     if (url.includes('api.open-meteo.com') || url.includes('geocoding-api.open-meteo.com') || url.includes('api.met.no')
         || url.includes('api.brightsky.dev') || url.includes('api.rainviewer.com') || url.includes('rainviewer.com/v2')
         || url.includes('tilecache.rainviewer.com')) return; // pocasi + srazkovy radar vzdy ze site â€” posledni data si pocasi.js cachuje samo v localStorage
+    // FIREMNI CLOUD API (login/config/chat/sync/pos/stats) VZDY ZE SITE.
+    // Driv spadalo pod obecnou cache-first vetev pro cizi domeny dole, a protoze
+    // js/ucty.js posila GET bez razitka, mely /config i /chat?after=N porad stejnou
+    // URL => SW od DRUHEHO dotazu vracel ulozenou odpoved a na sit uz nesel.
+    // Dusledek: nova zprava v chatu nedorazila, zmena opravneni ani vzdaleny
+    // vypinac modulu se neprojevily a synchronizace bodu zamrzla — az do bumpu
+    // SHELL_CACHE. Posledni znamy stav si appka drzi sama v localStorage.
+    if (url.includes('.workers.dev')) return;
 
     // Vlastni kod aplikace (stejny puvod): CACHE-FIRST. Cerstvy kod se k uzivateli
     // dostava JEN pres bump verze SW (install znovu stahne ASSETS_TO_CACHE ->
@@ -351,11 +370,18 @@ self.addEventListener('fetch', event => {
         const isNav = event.request.mode === 'navigate' || url === self.location.origin + '/' || url.endsWith('/index.html');
         if (isNav) {
             event.respondWith(
-                caches.match(event.request).then(cached => {
+                // ignoreSearch: klic cache je cela URL VCETNE query, ale v predcache je
+                // jen './index.html' a './'. Zkratky z plochy (manifest.json: Novy bod,
+                // Pokracovat, Dochazka) i pozvankovy odkaz ?firma=... proto v cache
+                // minuly a offline skoncily jako net::ERR_FAILED — appka se ze zkratky
+                // bez signalu VUBEC neotevrela. Obsah index.html je na query nezavisly
+                // (parametr ctou az js/shortcuts.js a js/ucty.js z location.search).
+                caches.match(event.request, { ignoreSearch: true }).then(cached => {
                     const network = fetch(event.request).then(response => {
                         if (response && response.ok) {
                             const clone = response.clone();
-                            caches.open(SHELL_CACHE).then(cache => cache.put(event.request, clone));
+                            // klic BEZ query, at se v cache nekupi ./index.html?firma=XXXX
+                            caches.open(SHELL_CACHE).then(cache => cache.put('./index.html', clone));
                         }
                         return response;
                     }).catch(() => cached);
@@ -369,7 +395,8 @@ self.addEventListener('fetch', event => {
                 if (response && response.ok) {
                     const clone = response.clone();
                     // pisma do vlastni (neverzovane) cache, at prezijou update kodu
-                    caches.open(isFont(url) ? FONT_CACHE : SHELL_CACHE).then(cache => cache.put(event.request, clone));
+                    caches.open(isFont(url) ? FONT_CACHE : (isDict(url) ? DICT_CACHE : SHELL_CACHE))
+                        .then(cache => cache.put(event.request, clone));
                 }
                 return response;
             }))

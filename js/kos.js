@@ -17,6 +17,14 @@
     function save(list) { try { localStorage.setItem(KEY, JSON.stringify(list)); return true; } catch (e) { return false; } }
     function purge() { var now = Date.now(); var list = load().filter(function (r) { return now - r.t < TTL; }); save(list); return list; }
     function push(rec) {
+        // ⚠⚠ VLASTNI IDENTITA ZAZNAMU. Driv se zaznam v kosi poznaval podle dvojice
+        // (cas, typ), jenze `t` je Date.now() s rozlisenim 1 ms a hromadne mazani
+        // smaze i tucet bodu za dve milisekundy — na jedno razitko tak pripadalo
+        // bezne 4-7 zaznamu. Obnova JEDNOHO bodu pak z kose vymazala VSECHNY se
+        // stejnym razitkem: jeden se vratil do zakazky, zbytek zmizel nadobro.
+        // A kos je posledni zachrana, protoze u hromadneho mazani se toast
+        // „Vratit zpet" schvalne neukazuje (js/grafika.js).
+        if (!rec.id) rec.id = 'tr' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
         var list = purge(); list.push(rec);
         if (list.length > MAX) list = list.slice(list.length - MAX);
         // plna kvota: zahazuj nejstarsi, dokud se zaznam nevejde (kos nesmi blokovat mazani)
@@ -197,7 +205,17 @@
         });
     }
 
-    function removeRec(rec) { save(load().filter(function (r) { return !(r.t === rec.t && r.type === rec.type); })); }
+    // Maze se podle vlastniho id (viz push). Zaznamy, ktere v kosi uzivatele uz lezi
+    // ze starsi verze, zadne nemaji — u tech se rozlisuje jeste podle id bodu resp.
+    // zakazky, at ani ony nemizi po skupinach.
+    function removeRec(rec) {
+        save(load().filter(function (r) {
+            if (rec.id || r.id) return r.id !== rec.id;
+            if (r.t !== rec.t || r.type !== rec.type) return true;
+            if (r.type === 'point') return !(r.point && rec.point && r.point.id === rec.point.id);
+            return r.projectId !== rec.projectId;
+        }));
+    }
 
     // Koš BÝVAL položkou menu „Více". Přesunut do Nástrojů: „Více" má být o aplikaci
     // (návod, o aplikaci, sdílení, offline), zatímco obnova smazaného bodu je práce

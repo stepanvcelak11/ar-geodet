@@ -178,14 +178,30 @@
     // ---- ZMĚŘENÁ VÝŠKA -------------------------------------------------------
     // Z telefonu jen jako hrubá orientace. gpsAvgResult.alt je průměr z průměrování,
     // altSterr jeho střední chyba; když průměrování neběželo, bereme poslední fix.
+    // ⚠⚠ MUSI SE PREVEST NA Bpv. Pole „Zmerena vyska Z z roveru" i projektova kota
+    // i rovina prolozena body zakazky jsou v Bpv, ale gpsAvgResult.alt/userAlt jsou
+    // ELIPSOIDICKE (WGS84) — v CR o ~45 m vys. Odkaz „Presto vzit z telefonu" tedy
+    // plnil pole hodnotou z jineho vyskoveho systemu a kontrola pak hlasila odchylku
+    // pres 4500 cm („UBRAT 4531 cm") u vrstvy, ktera byla v poradku; ta hodnota sla
+    // i do CSV protokolu. Kdyz undulaci neni odkud vzit, radsi odkaz nenabizet
+    // (phoneAlt() se v render() vola i jen jako test dostupnosti, takze null ho skryje).
     function phoneAlt() {
+        var und = 0;
+        try {
+            var p = here();
+            if (p && p.lat != null) {
+                if (typeof getGeoidUndulation === 'function') und = getGeoidUndulation(p.lat, p.lng) || 0;
+                else if (window.GeoCore && GeoCore.geoidUndulation) und = GeoCore.geoidUndulation(p.lat, p.lng) || 0;
+            }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kontrola-vrstvy:phoneAlt'); }
+        if (!und) return null;
         try {
             if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.alt != null && isFinite(gpsAvgResult.alt)) {
-                return { z: gpsAvgResult.alt, sig: gpsAvgResult.altSterr, n: gpsAvgResult.altN, src: 'průměr GPS' };
+                return { z: gpsAvgResult.alt - und, sig: gpsAvgResult.altSterr, n: gpsAvgResult.altN, src: 'průměr GPS' };
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kontrola-vrstvy:phoneAlt'); }
         try {
-            if (typeof userAlt !== 'undefined' && userAlt != null && isFinite(userAlt)) return { z: userAlt, sig: null, n: 1, src: 'poslední fix GPS' };
+            if (typeof userAlt !== 'undefined' && userAlt != null && isFinite(userAlt)) return { z: userAlt - und, sig: null, n: 1, src: 'poslední fix GPS' };
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kontrola-vrstvy:phoneAlt'); }
         return null;
     }

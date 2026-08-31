@@ -122,14 +122,25 @@
     var _busySend = false;
 
     function firmCode() { var u = U(); var f = u && u.getFirm(); return (f && f.code) || null; }
+    function meId() { var m = meUser(); return (m && m.id) || null; }
+    // MEZIPAMET PATRI KONKRETNIMU CLOVEKU, NE JEN FIRME. Do _msgs se dostanou i
+    // SOUKROME zpravy (server je posila jen adresatovi), takze kdyz se cache
+    // klicovala jen kodem firmy, precetl si je na sdilenem firemnim telefonu
+    // i dalsi kolega, ktery se prihlasil po nem — appka mu je vykreslila z
+    // localStorage jeste driv, nez se server stihl zeptat.
     function cacheLoad() {
         try {
             var c = JSON.parse(localStorage.getItem(LS_CACHE) || 'null');
-            if (c && c.code === firmCode() && Array.isArray(c.msgs)) { _msgs = c.msgs; _lastId = _msgs.length ? _msgs[_msgs.length - 1].id : 0; }
+            if (c && c.code === firmCode() && c.uid === meId() && Array.isArray(c.msgs)) {
+                _msgs = c.msgs; _lastId = _msgs.length ? _msgs[_msgs.length - 1].id : 0;
+            } else if (c) {
+                _msgs = []; _lastId = 0;
+                try { localStorage.removeItem(LS_CACHE); } catch (e2) { }
+            }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'firma-chat:cacheLoad'); }
     }
     function cacheSave() {
-        try { localStorage.setItem(LS_CACHE, JSON.stringify({ code: firmCode(), msgs: _msgs.slice(-80) })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'firma-chat:cacheSave'); }
+        try { localStorage.setItem(LS_CACHE, JSON.stringify({ code: firmCode(), uid: meId(), msgs: _msgs.slice(-80) })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'firma-chat:cacheSave'); }
     }
 
     function ensureModal() {
@@ -501,12 +512,12 @@
     function readPtr() {
         try {
             var c = JSON.parse(localStorage.getItem(LS_READ) || 'null');
-            if (c && c.code === firmCode()) return c.lastId || 0;
+            if (c && c.code === firmCode() && c.uid === meId()) return c.lastId || 0;
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'firma-chat:readPtr'); }
         return 0;
     }
     function markRead() {
-        try { localStorage.setItem(LS_READ, JSON.stringify({ code: firmCode(), lastId: _lastId })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'firma-chat:markRead'); }
+        try { localStorage.setItem(LS_READ, JSON.stringify({ code: firmCode(), uid: meId(), lastId: _lastId })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'firma-chat:markRead'); }
         _unread = 0;
         syncBadge();
     }
@@ -681,7 +692,16 @@
             window.agRegisterFieldTool({ id: 'firma-chat', label: 'Firemní chat', icon: ICON, onClick: open, order: 89, cat: 'Pomůcky' });
         }
         setTimeout(startupCheck, 9000);
-        window.addEventListener('agucty:login', function () { setTimeout(startupCheck, 2500); });
+        // Prepnuti uzivatele/firmy musi vyhodit i to, co uz je v pameti — jinak by
+        // dalsi prihlaseny videl zpravy predchoziho, dokud by se stranka nenacetla.
+        function zapomen() {
+            _msgs = []; _lastId = 0; _unread = 0;
+            try { localStorage.removeItem(LS_CACHE); localStorage.removeItem(LS_READ); } catch (e) { }
+            try { syncBadge(); } catch (e) { }
+        }
+        window.addEventListener('agucty:logout', function () { zapomen(); try { close(); } catch (e) { } });
+        window.addEventListener('agucty:firmswitch', zapomen);
+        window.addEventListener('agucty:login', function () { zapomen(); setTimeout(startupCheck, 2500); });
         // odznak nepřečtených je jen DOM; přes AG.uiInterval se uspí, když je appka na pozadí
         (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(syncBadge, 5000);
     }

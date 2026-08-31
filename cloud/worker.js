@@ -132,6 +132,13 @@ async function auth(env, req) {
         'SELECT u.id, u.firm_id, u.name, u.role, u.disabled, f.frozen AS frozen, f.max_users AS maxUsers '
         + 'FROM users u JOIN firms f ON f.id = u.firm_id WHERE u.id=? AND u.firm_id=?', p.u, p.f);
     if (!u || u.disabled) return null;
+    // TOKEN HODINEK se pozna podle pole `j` (zakazka, na kterou byl sparovany).
+    // Podepisuje se TYMZ tajemstvim jako bezny uzivatelsky token, takze bez tehle
+    // znacky prosel kamkoli — komentar u parovani sliboval opak („hodinky nemohou
+    // sahnout jinam"), ale nic to nevynucovalo. Kdo se k te hodnote dostal
+    // (pujcene nebo prodane hodinky, zaloha nastaveni), mel 180 dni pristup k cele
+    // firme. Ted si priznak nese `me` a brana ho pousti jen na /watch/*.
+    u.watchJob = (typeof p.j === 'string' && p.j) ? p.j : null;
     return u;
 }
 
@@ -1265,6 +1272,10 @@ export default {
 
             const me = await auth(env, req);
             if (!me) return err(401, 'Neplatné nebo prošlé přihlášení.');
+
+            // Token hodinek smi JEN cesty hodinek — viz poznamka v auth().
+            if (me.watchJob && !(path === '/watch/points' || path === '/watch/tile'))
+                return err(403, 'Token hodinek smí jen /watch/*.');
 
             // ZMRAZENÍ FIRMY (přepíná vlastník appky v konzoli). 2 = zamčeno úplpě,
             // 1 = jen ke čtení: v terénu se dá dál měřit a stáhnout, co už na serveru

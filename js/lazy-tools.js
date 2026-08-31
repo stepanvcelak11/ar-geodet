@@ -170,7 +170,22 @@
     // Otevření nástroje: dotáhni soubor a zavolej jeho vlastní otevírací funkci.
     // Modul si při načtení sám přepíše i případný stub, takže druhé klepnutí už jde
     // přímo na něj a tímhle kódem vůbec neprojde.
+    // VYPÍNAČ MODULŮ (js/priznaky.js) se vymáhal jen u registrace dlaždice a u lazy
+    // fronty z index.html. Tenhle soubor má ale vlastní načítací cestu i vlastní
+    // zástupné globály, takže zhasnutý nástroj šel dál otevřít z rozcestníku,
+    // z ranního brífinku i přes window.agOpenPocasi() — vlastník ho viděl vypnutý,
+    // uživatel ho měl dál k dispozici. Ptáme se na id i na soubor, protože vlastník
+    // smí zapsat obojí.
+    function vypnuty(t) {
+        try { return !!(window.AGFlags && (AGFlags.off(t.id) || AGFlags.off(t.src))); }
+        catch (e) { return false; }
+    }
+
     function openTool(t, args) {
+        // Kontrola i tady, ne jen ve stubApi(): vypínač může dorazit ze serveru AŽ
+        // ZA BĚHU (tick v priznaky.js), kdy zástupce dávno existuje — a přes
+        // window.AGLazyTools.open(id) se sem dá vejít i mimo něj.
+        if (vypnuty(t)) { toast('Nástroj „' + t.label + '" správce aplikace vypnul.'); return Promise.resolve(); }
         var slow = setTimeout(function () { toast('Načítám ' + t.label + '…'); }, 250);
         dropStub(t);                       // ať modul nevidí našeho zástupce (viz dropStub)
         return load(t.src).then(function () {
@@ -209,7 +224,10 @@
 
     function stubApi() {
         MANIFEST.forEach(function (t) {
-            if (!t.open || t._stub) return;
+            // Zástupce vypnutého nástroje se vůbec nevystaví: runTool() v
+            // js/tools-hub.js pak vrátí false, brífink tlačítko schová a
+            // balíček zakázky řekne, že nástroj v téhle sestavě není.
+            if (!t.open || t._stub || vypnuty(t)) return;
             var parts = t.open.split('.');
             if (parts.length === 1) {
                 if (typeof window[parts[0]] === 'function') return;   // modul už je načtený

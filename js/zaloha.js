@@ -22,7 +22,16 @@
     const EXTRA_DBS = {
         'argeodet-journal': { store: 'ops', schema: function (db) { var os = db.createObjectStore('ops', { keyPath: 'seq', autoIncrement: true }); os.createIndex('proj', 'proj', { unique: false }); os.createIndex('pt', ['proj', 'id'], { unique: false }); } },
         'agGeoOverlay': { store: 'kv', schema: function (db) { db.createObjectStore('kv'); } },
-        'arGeodetFotky': { store: 'fotky', schema: function (db) { db.createObjectStore('fotky'); } }
+        'arGeodetFotky': { store: 'fotky', schema: function (db) { db.createObjectStore('fotky'); } },
+        // Tyhle tri chybely a "Stahnout zalohu (vse)" se pritom tvarila kompletni.
+        // Cely obsah techhle modulu lezi VYHRADNE v IndexedDB (v localStorage maji
+        // jen par prepinacu), takze po obnove na novem telefonu byly geo-fotky,
+        // hlasovky i fotky zavad nenavratne pryc — a u zavad zbyl seznam s mrtvymi
+        // odkazy na fotky. Presne ten scenar, kvuli kteremu js/auto-zaloha.js
+        // zalohu pripomina (iOS smaze uloziste PWA po ~7 dnech neaktivity).
+        'agGeoFoto1': { store: 'foto', schema: function (db) { db.createObjectStore('foto', { keyPath: 'id' }); } },
+        'agHlasovky1': { store: 'rec', schema: function (db) { db.createObjectStore('rec', { keyPath: 'id' }); } },
+        'arGeodetZavady': { store: 'fotky', schema: function (db) { db.createObjectStore('fotky'); } }
     };
     // KLICE, KTERE DO ZALOHY NESMI. Zaloha je jeden JSON, ktery uzivatel posila
     // mailem nebo AirDropem - drive s ni odchazel i PRISTUP K FIREMNIMU UCTU:
@@ -70,6 +79,53 @@
             r.onblocked = function () { res(null); };
         });
     }
+    // ⚠⚠ BLOB SE DO JSONU NEVEJDE. Geo-fotky (agGeoFoto1) i hlasovky (agHlasovky1)
+    // drží média jako Blob a `JSON.stringify(blob)` z něj udělá `{}` — záloha by
+    // tedy vypadala kompletní, ale obnovila by fotky a nahrávky PRÁZDNÉ, což je
+    // horší než je tam nemít vůbec (uživatel se na ni spolehne). Proto se každý
+    // Blob v hodnotě převede na dataURL a při obnově zpátky. Ostatní databáze
+    // (dataURL řetězce, plain objekty) tím projdou beze změny.
+    var BLOB_MARK = '__agBlob';
+    function _blobToDataUrl(b) {
+        return new Promise(function (res) {
+            try {
+                var fr = new FileReader();
+                fr.onload = function () { res({ __agBlob: 1, type: b.type || '', d: String(fr.result || '') }); };
+                fr.onerror = function () { res(null); };
+                fr.readAsDataURL(b);
+            } catch (e) { res(null); }
+        });
+    }
+    function _dataUrlToBlob(o) {
+        try {
+            var s = String(o.d || ''), i = s.indexOf(',');
+            if (i < 0) return null;
+            var bin = atob(s.slice(i + 1));
+            var arr = new Uint8Array(bin.length);
+            for (var n = 0; n < bin.length; n++) arr[n] = bin.charCodeAt(n);
+            return new Blob([arr], { type: o.type || '' });
+        } catch (e) { return null; }
+    }
+    // Projde vlastní vlastnosti hodnoty a Bloby vymění za značku (a zpět).
+    function _packRow(v) {
+        if (!v || typeof v !== 'object') return Promise.resolve(v);
+        var jobs = [];
+        Object.keys(v).forEach(function (k) {
+            if (typeof Blob !== 'undefined' && v[k] instanceof Blob) {
+                jobs.push(_blobToDataUrl(v[k]).then(function (packed) { v[k] = packed; }));
+            }
+        });
+        return jobs.length ? Promise.all(jobs).then(function () { return v; }) : Promise.resolve(v);
+    }
+    function _unpackRow(v) {
+        if (!v || typeof v !== 'object') return v;
+        Object.keys(v).forEach(function (k) {
+            var x = v[k];
+            if (x && typeof x === 'object' && x[BLOB_MARK]) v[k] = _dataUrlToBlob(x);
+        });
+        return v;
+    }
+
     function _dumpDb(name, cfg) {
         return _openDb(name, cfg).then(function (db) {
             return new Promise(function (res) {
@@ -81,7 +137,12 @@
                     inline = st.keyPath != null;
                     var cur = st.openCursor();
                     cur.onsuccess = function (e) { var c = e.target.result; if (c) { rows.push([c.key, c.value]); c.continue(); } };
-                    tx.oncomplete = function () { try { db.close(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:oncomplete'); } res({ inline: inline, rows: rows }); };
+                    tx.oncomplete = function () {
+                        try { db.close(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:oncomplete'); }
+                        Promise.all(rows.map(function (r) { return _packRow(r[1]); }))
+                            .then(function () { res({ inline: inline, rows: rows }); })
+                            ['catch'](function () { res({ inline: inline, rows: rows }); });
+                    };
                     tx.onerror = function () { try { db.close(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:onerror'); } res(null); };
                 } catch (e) { res(null); }
             });
@@ -95,7 +156,7 @@
                     var tx = db.transaction(cfg.store, 'readwrite');
                     var st = tx.objectStore(cfg.store);
                     try { st.clear(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:_restoreDb'); }
-                    dump.rows.forEach(function (row) { try { if (dump.inline) st.put(row[1]); else st.put(row[1], row[0]); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:_restoreDb'); } });
+                    dump.rows.forEach(function (row) { try { var v = _unpackRow(row[1]); if (dump.inline) st.put(v); else st.put(v, row[0]); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:_restoreDb'); } });
                     tx.oncomplete = function () { try { db.close(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:oncomplete'); } res(true); };
                     tx.onerror = function () { try { db.close(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:onerror'); } res(false); };
                 } catch (e) { res(false); }

@@ -143,8 +143,37 @@
     //    zapnutí vypínače za běhu už jsou dávno na obrazovce. Proto se mřížka
     //    ještě protírá podle `data-tool`. Schovává se, nemaže: mřížku překresluje
     //    několik modulů a smazaný uzel by se stejně vrátil.
+    //    ⚠ SCHOVÁVAT SE MUSÍ PRAVIDLEM, NE INLINE STYLEM. Hledání v Nástrojích
+    //    (js/field-tools.js, applyFilter) přepisuje `style.display` u každé
+    //    dlaždice — inline `display:none` tedy vydrželo jen do prvního napsaného
+    //    písmene a vypnutý nástroj se zase objevil.
+    function pravidlo() {
+        if (document.getElementById('ag-off-css')) return;
+        try {
+            var st = document.createElement('style');
+            st.id = 'ag-off-css';
+            st.textContent = '[data-agoff="1"]{display:none !important;}';
+            (document.head || document.documentElement).appendChild(st);
+        } catch (e) { swallow(e, 'pravidlo'); }
+    }
+
+    // Klíč dlaždice. `data-tool` má jen dlaždice vyrobená modulem; ty statické
+    // v index.html (Kalkulačka, Katastr, Oměrné, GNSS satelity…) ho nemají a klíč
+    // se u nich v celé appce odvozuje z POSLEDNÍ funkce volané v `onclick` — viz
+    // tileKey() v js/tools-hub.js, js/field-tools.js i js/nastroje-ukony.js.
+    // Vypínač jako jediný tuhle konvenci neznal, takže těch 11 dlaždic nešlo
+    // zhasnout, i když je Konzole vlastníka nabízela a hlásila úspěch.
+    function klicDlazdice(el) {
+        if (!el) return null;
+        var k = el.getAttribute('data-tool') || el.getAttribute('data-k');
+        if (k) return k;
+        var ms = String(el.getAttribute('onclick') || '').match(/([A-Za-z_$][\w$]*)\s*\(/g);
+        return ms ? ms[ms.length - 1].replace(/\s*\($/, '') : null;
+    }
+
     function uklidDlazdice() {
         if (!_off.length) return;
+        pravidlo();
         for (var i = 0; i < _off.length; i++) {
             var id = _off[i];
             if (!id || id.slice(-3) === '.js') continue;
@@ -154,10 +183,60 @@
             for (var j = 0; j < sel.length; j++) {
                 if (sel[j].getAttribute('data-agoff') === '1') continue;
                 sel[j].setAttribute('data-agoff', '1');
-                sel[j].style.display = 'none';
             }
         }
+        // Druhý průchod: statické dlaždice bez `data-tool`, klíč z `onclick`.
+        var t;
+        try { t = document.querySelectorAll('.tool-tile'); } catch (e) { return; }
+        for (var n = 0; n < t.length; n++) {
+            if (t[n].getAttribute('data-agoff') === '1') continue;
+            var kk = klicDlazdice(t[n]);
+            if (kk && off(kk)) t[n].setAttribute('data-agoff', '1');
+        }
     }
+
+    // 2b) POSLEDNÍ ZÁPADKA: klik na vypnutý nástroj. Dlaždice není jediná cesta —
+    //     spustit nástroj umí i gesta, kolečko nástrojů, mini-panel a rozcestníky,
+    //     a ty sahají rovnou na `tile.click()` nebo na globální funkci. U nástroje
+    //     vypnutého zápisem souborem (`js/kalkulacka.js`) navíc dlaždice zůstane
+    //     viset (soubor se nestáhne, ale HTML tlačítko v index.html je pořád tam)
+    //     a klik skončil `ReferenceError: openCalcModal is not defined` — v terénu
+    //     to vypadalo jako zaseknutá appka, ne jako vypnutý nástroj.
+    //     Musí to být v CAPTURE fázi, aby to předběhlo inline `onclick`.
+    document.addEventListener('click', function (e) {
+        try {
+            if (!_off.length) return;
+            var tile = e.target && e.target.closest ? e.target.closest('.tool-tile,[data-tool],[data-k]') : null;
+            if (!tile) return;
+            var k = klicDlazdice(tile);
+            if (!k) return;
+            // Dva důvody zastavit klik:
+            //  (a) klíč je na seznamu vypnutých — přímé vypnutí nástroje;
+            //  (b) MRTVÝ GLOBÁL: dlaždice volá funkci, která neexistuje a už se
+            //      nemá odkud vzít (lazy fronta dojela). To je případ vypnutí
+            //      SOUBOREM (`js/kalkulacka.js`): soubor se nestáhne, ale statická
+            //      dlaždice v index.html zůstane a klik dosud končil
+            //      `ReferenceError: openCalcModal is not defined` — v terénu to
+            //      vypadalo jako zaseknutá appka. Klíč dlaždice se souborem
+            //      spárovat nedá (mapa klíč→soubor nikde není), tohle je tedy
+            //      jediná spolehlivá záchrana. Zabírá i na jiné příčiny mrtvého
+            //      tlačítka, což je taky lepší než pád.
+            var mrtvy = false;
+            if (!off(k)) {
+                if (tile.getAttribute('data-tool') || tile.getAttribute('data-k')) return;  // klíč není název funkce
+                if (typeof window[k] === 'function') return;
+                var fronta = [];
+                try { fronta = (window.AGLazy && AGLazy.pending()) || []; } catch (x2) { }
+                if (fronta.length) return;                  // modul se ještě dotahuje
+                mrtvy = true;
+            }
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            if (typeof window.quickToast === 'function')
+                quickToast(mrtvy ? 'Tenhle nástroj není v téhle sestavě dostupný.'
+                                 : 'Tenhle nástroj správce aplikace vypnul.');
+        } catch (x) { swallow(x, 'klik'); }
+    }, true);
 
     // 3) LAZY MODULY: js/lazy-load.js se ptá sám (viz „vypínač modulů" v inject()).
 
@@ -173,7 +252,12 @@
             if (!f) return;
             var g = f.flags;
             if (g && Array.isArray(g.off)) set(g.off, g.ts);
-            else if (_off.length && f.cloud) set([], Date.now());   // vlastník vypínač zrušil
+            // Vyprázdnit se smí JEN tehdy, když konfigurace o vypínači opravdu ví
+            // (klíč `flags` v ní je, byť s hodnotou null = vlastník vypínač zrušil).
+            // Bez té podmínky mazal tick i seznam, který si vlastník právě uložil
+            // ručně z Konzole — u starší uložené konfigurace firmy, která pole
+            // `flags` ještě nemá, se to jinak stane do dvou sekund.
+            else if (_off.length && f.cloud && Object.prototype.hasOwnProperty.call(f, 'flags')) set([], Date.now());
         } catch (e) { swallow(e, 'tick'); }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick);

@@ -100,7 +100,14 @@
         var all = data.verze.slice().sort(function (a, b) { return (b.v || 0) - (a.v || 0); });
         if (cur == null) return all.slice(0, 1);
         var out = all.filter(function (x) { return (x.v || 0) > cur; });
-        return out.length ? out.slice(0, 5) : all.slice(0, 1);
+        if (out.length) return out.slice(0, 5);
+        // NIC NOVEJSIHO NEZ BEZICI VERZE. Driv se v tom pripade ukazal nejnovejsi
+        // ZNAMY zaznam — jenze ten uz uzivatel v telefonu ma, takze pod listou
+        // „Nova verze" cetl soupis zmen, ktere pul dne pouziva, a o tom, co v
+        // aktualizaci opravdu je, se nedozvedel nic. Nastava to pokazde, kdyz se
+        // vyda verze a nedopise se k ni zaznam do data/co-je-noveho.json.
+        // Radsi nic nez cizi soupis; text obstara openBox().
+        return [];
     }
 
     function openBox() {
@@ -130,6 +137,7 @@
                         return '<li>' + String(b).replace(/<(?!\/?(b|i|u)>)/g, '&lt;') + '</li>';
                     }).join('') + '</ul>';
             }).join('') +
+                (list.length ? '' : '<p class="cjn-note">Tahle aktualizace přináší drobné opravy a vylepšení.</p>') +
                 '<button type="button" class="cjn-go">Aktualizovat teď</button>';
             try { localStorage.setItem(K_SEEN, String(list[0] && list[0].v || '')); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'co-je-noveho:openBox'); }
             box.querySelector('.cjn-go').onclick = function () {
