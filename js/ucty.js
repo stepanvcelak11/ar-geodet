@@ -487,9 +487,27 @@
         var g = document.getElementById('ag-gate'); if (g) g.remove();
     }
 
+    // ⚠⚠ PROČ SE PAMATUJE, JAK OBNOVA DOPADLA (31. 8. 2026 — „ve firmě nevidím lidi").
+    //   refreshConfig() vracel holé `false` pro čtyři úplně různé situace: firma není
+    //   cloudová, v telefonu není token, server je nedosažitelný, odpověď patří jiné
+    //   firmě. Sekce Uživatelé si o obnovu říká a při `false` prostě NEUDĚLÁ NIC —
+    //   vykreslí seznam z paměti telefonu a MLČÍ. Kdo si tedy někoho přidal na jiném
+    //   mobilu (nebo komu vypršel token), koukal na starý seznam bez jediného slova
+    //   o tom, že se se serverem nemluvilo. Vypadalo to, že se lidi „ztratili".
+    //   Důvod se proto ukládá a UI ho umí říct nahlas (AGUcty.lastSync()).
+    //   Hodnoty `duvod`: 'lokalni' | 'bez-tokenu' | 'offline' | 'jina-firma' |
+    //                    'odmitnuto' | 'server' | null (v pořádku)
+    var _sync = { ts: 0, ok: false, duvod: null };
+    function lastSync() { return { ts: _sync.ts, ok: _sync.ok, duvod: _sync.duvod }; }
+    function syncStav(ok, duvod) {
+        _sync = { ts: Date.now(), ok: !!ok, duvod: ok ? null : duvod };
+        return !!ok;
+    }
+
     // obnova konfigurace (perms/uživatelé se mohli změnit na jiném zařízení)
     function refreshConfig() {
-        if (!isCloud() || !getTok()) return Promise.resolve(false);
+        if (!isCloud()) return Promise.resolve(syncStav(false, 'lokalni'));
+        if (!getTok()) return Promise.resolve(syncStav(false, 'bez-tokenu'));
         return cloudFetch('/config').then(function (r) {
             if (r.ok) {
                 // Odpověď patří jiné firmě než té právě aktivní → v telefonu visí
@@ -499,19 +517,21 @@
                 if (f0 && f0.cloud && f0.code && r.data && r.data.firm && r.data.firm.code
                     && r.data.firm.code !== f0.code) {
                     setTok(null);
-                    return false;
+                    return syncStav(false, 'jina-firma');
                 }
                 adoptConfig(r.data);
                 // účet mohl být mezitím zablokován jinde → zamknout appku
                 if (getSess() && !currentUser()) { setSess(null); showLogin(false); }
-                return true;
+                return syncStav(true, null);
             }
             if (r.status === 401 || r.status === 403) {
                 // token prošel nebo účet zablokován → vynutit nové přihlášení
                 setTok(null); setSess(null);
                 if (getFirm()) showLogin(false);
+                return syncStav(false, 'odmitnuto');
             }
-            return false;   // status 0 (offline) → cache platí dál, nic se neděje
+            // status 0 (offline) → cache platí dál, nic se neděje
+            return syncStav(false, r.status === 0 ? 'offline' : 'server');
         });
     }
 
@@ -2563,6 +2583,7 @@
         adoptLogin: adoptLogin,
         adoptConfig: adoptConfig,
         refreshConfig: refreshConfig,
+        lastSync: lastSync,
         syncUsage: syncUsage
     };
 })();

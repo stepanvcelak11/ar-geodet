@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<title>AR Geodet — propagační obrázky do obchodů</title>
+<!--
+  ===== PROPAGAČNÍ OBRÁZKY PRO GOOGLE PLAY A APP STORE =========================
+  Tahle stránka NENÍ součást appky. Je to PŘEDLOHA, ze které skript
+  `scripts/gen_promo.py` vyrenderuje hotové PNG v přesných rozměrech obchodů:
+
+      play/promo/play-1..8.png     1080 × 1920   (Google Play, telefon)
+      play/promo/ios-1..8.png      1290 × 2796   (App Store, 6,7")
+      play/promo/feature.png       1024 ×  500   (Google Play, „feature graphic")
+
+  VLASTNÍ FOTKY: dej je do `play/promo-fotky/` jako 1.jpg … 8.jpg (nebo .png)
+  a skript spusť znovu. Dokud tam nejsou, je v rámečku napsané, JAKÝ SNÍMEK
+  tam patří — takže stránka zároveň slouží jako seznam, co v terénu nafotit.
+
+  Otevřít jde i ručně v prohlížeči (jen se podívat), ale rozměry sedí až
+  z generátoru — ten každý panel vyfotí zvlášť a přesně na pixel.
+  =============================================================================
+-->
+<style>
+    :root {
+        --bg0: #1c222a;
+        --bg1: #0c1014;
+        --accent: #2f9e74;
+        --accent-bright: #3eb487;
+        --accent-soft: rgba(47, 158, 116, 0.14);
+        --accent-line: rgba(47, 158, 116, 0.42);
+        --text: #eceef2;
+        --muted: #9aa1ac;
+        --gold: #e6bd76;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        background: #05070a;
+        font-family: "Segoe UI", "Inter", system-ui, -apple-system, sans-serif;
+        color: var(--text);
+        padding: 40px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 40px;
+        align-items: flex-start;
+    }
+
+    /* ---- společný panel obchodu -------------------------------------------
+       Rozměr se řídí proměnnými --w/--h, které nastavuje třída .play / .ios.
+       Všechno uvnitř je v `em` odvozeném od --u (1 % šířky), takže obě
+       velikosti vypadají stejně a nemusí se nic ladit dvakrát. */
+    .panel {
+        width: var(--w);
+        height: var(--h);
+        --u: calc(var(--w) / 100);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        background:
+            radial-gradient(120% 70% at 50% -10%, rgba(47, 158, 116, 0.20) 0%, rgba(47, 158, 116, 0) 60%),
+            linear-gradient(160deg, var(--bg0) 0%, var(--bg1) 100%);
+        flex: 0 0 auto;
+    }
+    .panel.play { --w: 1080px; --h: 1920px; }
+    .panel.ios  { --w: 1290px; --h: 2796px; }
+
+    /* jemná síť na pozadí — geodetický „papír", ne dekorace pro dekoraci */
+    .panel::before {
+        content: "";
+        position: absolute; inset: 0;
+        background-image:
+            linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+        background-size: calc(var(--u) * 8) calc(var(--u) * 8);
+        pointer-events: none;
+    }
+
+    .head {
+        position: relative;
+        padding: calc(var(--u) * 8) calc(var(--u) * 7) calc(var(--u) * 3);
+        flex: 0 0 auto;
+    }
+    .kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: calc(var(--u) * 1.4);
+        padding: calc(var(--u) * 1.1) calc(var(--u) * 2.4);
+        border-radius: 999px;
+        border: 1px solid var(--accent-line);
+        background: var(--accent-soft);
+        color: var(--accent-bright);
+        font-size: calc(var(--u) * 2.35);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: calc(var(--u) * 3.2);
+    }
+    .kicker svg { width: calc(var(--u) * 3); height: calc(var(--u) * 3); }
+    h1 {
+        font-size: calc(var(--u) * 6.6);
+        line-height: 1.1;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+    }
+    h1 em { color: var(--accent-bright); font-style: normal; }
+    .sub {
+        margin-top: calc(var(--u) * 2.2);
+        font-size: calc(var(--u) * 3.1);
+        line-height: 1.42;
+        color: var(--muted);
+        max-width: 82%;
+    }
+
+    /* ---- rámeček telefonu se snímkem ------------------------------------ */
+    .shot {
+        position: relative;
+        flex: 1 1 auto;
+        margin: calc(var(--u) * 2) calc(var(--u) * 7) calc(var(--u) * 5);
+        border-radius: calc(var(--u) * 5);
+        border: calc(var(--u) * 0.55) solid rgba(255, 255, 255, 0.14);
+        background: #0a0d11;
+        overflow: hidden;
+        box-shadow: 0 calc(var(--u) * 3) calc(var(--u) * 8) rgba(0, 0, 0, 0.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .shot img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+        object-position: center top;
+        display: block;
+    }
+    /* Když fotka chybí, není tu prázdno, ale ZADÁNÍ: co vyfotit. */
+    .todo {
+        padding: calc(var(--u) * 6);
+        text-align: center;
+        color: var(--muted);
+    }
+    .todo .big {
+        font-size: calc(var(--u) * 3.4);
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: calc(var(--u) * 2);
+    }
+    .todo .small { font-size: calc(var(--u) * 2.5); line-height: 1.5; }
+    .todo .ram {
+        margin-top: calc(var(--u) * 3);
+        display: inline-block;
+        padding: calc(var(--u) * 1.2) calc(var(--u) * 2.4);
+        border-radius: calc(var(--u) * 1.4);
+        border: 1px dashed var(--accent-line);
+        color: var(--accent-bright);
+        font-family: ui-monospace, "Cascadia Mono", monospace;
+        font-size: calc(var(--u) * 2.3);
+    }
+
+    /* ---- patička se jménem appky ---------------------------------------- */
+    .foot {
+        position: relative;
+        flex: 0 0 auto;
+        padding: 0 calc(var(--u) * 7) calc(var(--u) * 6);
+        display: flex;
+        align-items: center;
+        gap: calc(var(--u) * 2);
+    }
+    .foot .ico { width: calc(var(--u) * 6.4); height: calc(var(--u) * 6.4); flex: 0 0 auto; }
+    .foot .nm { font-size: calc(var(--u) * 3.4); font-weight: 800; letter-spacing: -0.01em; }
+    .foot .nm span { color: var(--accent-bright); }
+    .foot .cl { margin-left: auto; font-size: calc(var(--u) * 2.4); color: var(--muted); text-align: right; }
+
+    /* ---- feature graphic 1024x500 --------------------------------------- */
+    .feature {
+        width: 1024px; height: 500px;
+        --u: 10.24px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        gap: 44px;
+        padding: 0 64px;
+        background:
+            radial-gradient(90% 140% at 12% 50%, rgba(47, 158, 116, 0.26) 0%, rgba(47, 158, 116, 0) 62%),
+            linear-gradient(120deg, var(--bg0) 0%, var(--bg1) 100%);
+        flex: 0 0 auto;
+    }
+    .feature::before {
+        content: "";
+        position: absolute; inset: 0;
+        background-image:
+            linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+        background-size: 40px 40px;
+    }
+    .feature .ico { width: 168px; height: 168px; flex: 0 0 auto; position: relative; }
+    .feature .tx { position: relative; }
+    .feature h2 { font-size: 62px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.05; }
+    .feature h2 span { color: var(--accent-bright); }
+    .feature p { margin-top: 16px; font-size: 25px; line-height: 1.4; color: var(--muted); max-width: 640px; }
+    .feature .chips { margin-top: 22px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .feature .chips b {
+        font-size: 19px; font-weight: 700; padding: 7px 15px; border-radius: 999px;
+        border: 1px solid var(--accent-line); background: var(--accent-soft); color: var(--accent-bright);
+    }
+
+    /* popisek nad každým panelem — do PNG se nedostane, je jen pro prohlížení */
+    .stitek { width: 100%; font-size: 15px; color: #8b93a1; font-family: ui-monospace, monospace; }
+</style>
+</head>
+<body>
+
+<div class="stitek">Předloha pro scripts/gen_promo.py — hotové PNG budou v play/promo/</div>
+
+<!-- ===================== FEATURE GRAPHIC 1024×500 ===================== -->
+<div class="feature" data-promo="feature" data-w="1024" data-h="500">
+    <div class="ico">
+        <svg viewBox="98 98 316 316" width="168" height="168">
+            <defs>
+                <linearGradient id="fg-em" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#4ccd99"/><stop offset="1" stop-color="#2a945f"/>
+                </linearGradient>
+            </defs>
+            <g fill="none" stroke="url(#fg-em)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M118 178 L118 140 Q118 118 140 118 L178 118"/>
+                <path d="M334 118 L372 118 Q394 118 394 140 L394 178"/>
+                <path d="M394 334 L394 372 Q394 394 372 394 L334 394"/>
+                <path d="M178 394 L140 394 Q118 394 118 372 L118 334"/>
+            </g>
+            <circle cx="256" cy="256" r="74" fill="none" stroke="#3eb487" stroke-opacity="0.22" stroke-width="6"/>
+            <circle cx="256" cy="256" r="50" fill="none" stroke="#3eb487" stroke-opacity="0.45" stroke-width="6"/>
+            <g stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.9">
+                <line x1="256" y1="206" x2="256" y2="226"/><line x1="256" y1="286" x2="256" y2="306"/>
+                <line x1="206" y1="256" x2="226" y2="256"/><line x1="286" y1="256" x2="306" y2="256"/>
+            </g>
+            <circle cx="256" cy="256" r="22" fill="url(#fg-em)"/>
+            <circle cx="256" cy="256" r="9" fill="#ffffff"/>
+        </svg>
+    </div>
+    <div class="tx">
+        <h2>AR <span>Geodet</span></h2>
+        <p>Bodové pole v obraze kamery. Mapa, katastr, vytyčování a měření — i tam, kde není signál.</p>
+        <div class="chips"><b>Body ČÚZK v AR</b><b>Katastr offline</b><b>Vytyčování</b><b>Export DXF</b></div>
+    </div>
+</div>
+
+<!-- ===================== PANELY DO OBCHODŮ ============================ -->
+<!--
+  Pořadí je záměrné: první tři panely vidí v obchodě skoro každý, takže nesou
+  to, čím se appka liší (body v kameře, navádění, práce bez signálu). Zbytek
+  je pro toho, kdo listuje dál.
+-->
+<script id="panely" type="application/json">
+[
+  {
+    "kicker": "Rozšířená realita",
+    "h1": "Body bodového pole <em>vidíš v kameře</em>",
+    "sub": "Zvedneš telefon a značky sedí na místech, kde body doopravdy jsou — se vzdáleností a směrem. Žádné papírové náčrty.",
+    "foto": "Obraz appky v terénu: kamera s AR značkami bodů a vzdáleností."
+  },
+  {
+    "kicker": "Navádění",
+    "h1": "Šipka tě dovede <em>až k bodu</em>",
+    "sub": "Vybereš bod, appka ukazuje směr a kolik zbývá. Když jsi blízko, řekne si o zpomalení — hledání v křoví končí.",
+    "foto": "Navádění na bod: velká šipka a vzdálenost přes obraz kamery."
+  },
+  {
+    "kicker": "Bez signálu",
+    "h1": "Katastr a mapa <em>i v díře bez sítě</em>",
+    "sub": "Okolí zakázky si stáhneš dopředu. Hranice parcel, parcelní čísla i letecký snímek pak fungují offline.",
+    "foto": "Mapa s katastrálními hranicemi a parcelními čísly, ideálně s ortofotem."
+  },
+  {
+    "kicker": "Vytyčování",
+    "h1": "Odchylka <em>na centimetry</em>, průběžně",
+    "sub": "Vytyčení bodu i přímky s živou odchylkou. Protokol vytyčení si odneseš do kanceláře.",
+    "foto": "Obrazovka vytyčování s odchylkou a terčem."
+  },
+  {
+    "kicker": "Měření",
+    "h1": "Metr, oměrné, <em>plochy i protínání</em>",
+    "sub": "Rychlé kontroly přímo na místě: metr v obraze kamery, oměrné míry, výměra parcely, rajón i volné stanovisko.",
+    "foto": "Metr v kameře nebo výpočet plochy — něco, kde je vidět číslo výsledku."
+  },
+  {
+    "kicker": "Přesnost",
+    "h1": "Pořád víš, <em>čemu můžeš věřit</em>",
+    "sub": "Stav GPS, družice a odhad přesnosti máš na očích. Kontrolní dvojí měření pozná, když se bod nesejde.",
+    "foto": "Horní stavová bublina se semaforem a přesností, nebo detail GPS."
+  },
+  {
+    "kicker": "Do kanceláře",
+    "h1": "Zakázky, seznam souřadnic <em>a DXF</em>",
+    "sub": "Body se řadí do zakázek i s poznámkami a fotkami. Ven jde seznam souřadnic i výkres — a záloha mezi telefony.",
+    "foto": "Seznam bodů zakázky nebo obrazovka exportu."
+  },
+  {
+    "kicker": "Pro firmy",
+    "h1": "Celá parta <em>na stejných datech</em>",
+    "sub": "Sdílené zakázky a body pro tým, účty s rolemi a docházka. Kdo chce jen měřit, může i bez přihlášení.",
+    "foto": "Administrace firmy — seznam lidí, nebo sdílená zakázka."
+  }
+]
+</script>
+
+<script>
+(function () {
+    'use strict';
+    // Panely se skládají v JS ze seznamu výš, ať se text mění na JEDNOM místě
+    // a nemusí se držet dvě kopie (Play + App Store) v ruce.
+    var data = JSON.parse(document.getElementById('panely').textContent);
+    var IKONA = document.querySelector('.feature .ico svg').outerHTML.replace(/fg-em/g, 'ft-em');
+    var SIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="6"/></svg>';
+
+    function panel(d, i, typ) {
+        var n = i + 1;
+        var el = document.createElement('div');
+        el.className = 'panel ' + typ;
+        el.setAttribute('data-promo', typ + '-' + n);
+        el.setAttribute('data-w', typ === 'play' ? 1080 : 1290);
+        el.setAttribute('data-h', typ === 'play' ? 1920 : 2796);
+        el.innerHTML =
+            '<div class="head">' +
+            '  <div class="kicker">' + SIT + d.kicker + '</div>' +
+            '  <h1>' + d.h1 + '</h1>' +
+            '  <div class="sub">' + d.sub + '</div>' +
+            '</div>' +
+            '<div class="shot">' +
+            '  <div class="todo">' +
+            '    <div class="big">Sem patří tvůj snímek č. ' + n + '</div>' +
+            '    <div class="small">' + d.foto + '</div>' +
+            '    <div class="ram">play/promo-fotky/' + n + '.jpg</div>' +
+            '  </div>' +
+            '</div>' +
+            '<div class="foot">' +
+            '  <div class="ico">' + IKONA.replace(/width="168" height="168"/, 'width="100%" height="100%"') + '</div>' +
+            '  <div class="nm">AR <span>Geodet</span></div>' +
+            '  <div class="cl">data ČÚZK<br>funguje offline</div>' +
+            '</div>';
+        // fotka, když existuje; jinak zůstane zadání, co vyfotit
+        var box = el.querySelector('.shot');
+        ['jpg', 'jpeg', 'png'].forEach(function (ext) {
+            var img = new Image();
+            img.onload = function () {
+                if (box.querySelector('img')) return;
+                box.innerHTML = '';
+                box.appendChild(img);
+            };
+            img.src = 'promo-fotky/' + n + '.' + ext;
+        });
+        return el;
+    }
+
+    var body = document.body;
+    ['play', 'ios'].forEach(function (typ) {
+        var st = document.createElement('div');
+        st.className = 'stitek';
+        st.textContent = typ === 'play'
+            ? 'Google Play — telefon, 1080 × 1920'
+            : 'App Store — 6,7", 1290 × 2796';
+        body.appendChild(st);
+        data.forEach(function (d, i) { body.appendChild(panel(d, i, typ)); });
+    });
+})();
+</script>
+</body>
+</html>

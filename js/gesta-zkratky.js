@@ -98,7 +98,12 @@
     var OFFER_V = 2;       // ③ verze výchozího stavu nabídky — zvedni, až se bude měnit znovu
     var RATIO = 1.5;       // o kolik musí převládnout jedna osa (jinak je to šikmo → čeká se dál)
     var PREFIX_MS = 1600;  // do kdy musí být aktivační gesto hotové (pomalý tah = posun mapy)
-    var RUN_MS = 200;      // ať je na okamžik vidět, co se spouští (pod hranicí, kdy to působí jako prodleva)
+    // ⚠ NÁSTROJ SE SPOUŠTÍ HNED, ukazatel dobíhá po něm. Do 31. 8. 2026 se mezi
+    //   rozpoznáním a spuštěním čekalo 200 ms „ať je vidět, co se spouští" — jenže
+    //   to je přesně ta prodleva, kterou uživatel cítil („pořád to není dost
+    //   rychlé"). Co se spustilo, je vidět na samotném nástroji; ukazatel se ještě
+    //   CHIP_MS mihne se jménem nástroje, ale nikoho už nezdržuje.
+    var CHIP_MS = 260;     // jak dlouho po spuštění ještě dobíhá ukazatel
     var MAXSEG = 3;        // nejvýš tři šipky na zkratku (delší si nikdo nezapamatuje)
 
     var ARROW = { U: '↑', D: '↓', L: '←', R: '→' };
@@ -368,10 +373,21 @@
     }
     function Stroke(x, y) { this.ax = x; this.ay = y; this.lx = x; this.ly = y; this.dir = ''; this.lenient = 0; this.seg = segPx(); }
     // jeden krok z jednoho bodu na druhý (původní logika)
+    // ⚠⚠ PO AKTIVAČNÍM GESTU JE PRÁH MĚKČÍ (31. 8. 2026: „gesta reagují rychleji, ale
+    //   stále to není dostatečně rychle"). Do té doby chtěla KAŽDÁ šipka celý práh
+    //   (54 px) a převahu osy 1,5×, takže zkratka ↓→ + ↑↓ znamenala urazit přes
+    //   200 px — a spěšný tah bývá šikmý, takže se navíc čekalo, než jedna osa
+    //   dost převládne.
+    //   Po `lenient` (nastavuje arm(), tj. tah UŽ PATŘÍ NÁM) stačí 0,62× práh a
+    //   převaha 1,25×. Přehmat tam nic nestojí: nesedící kód jen zčervená a zmizí.
+    //   PŘED rozpoznáním zůstává plný práh — tam by měkčí práh znamenal, že se
+    //   nástroj spustí při obyčejném posunutí mapy.
     Stroke.prototype.one = function (x, y) {
-        var dx = x - this.ax, dy = y - this.ay, adx = Math.abs(dx), ady = Math.abs(dy), d = '', SEG = this.seg;
-        if (adx >= SEG && adx >= ady * RATIO) d = dx > 0 ? 'R' : 'L';
-        else if (ady >= SEG && ady >= adx * RATIO) d = dy > 0 ? 'D' : 'U';
+        var dx = x - this.ax, dy = y - this.ay, adx = Math.abs(dx), ady = Math.abs(dy), d = '';
+        var SEG = this.lenient ? Math.max(14, this.seg * 0.62) : this.seg;
+        var R = this.lenient ? 1.25 : RATIO;
+        if (adx >= SEG && adx >= ady * R) d = dx > 0 ? 'R' : 'L';
+        else if (ady >= SEG && ady >= adx * R) d = dy > 0 ? 'D' : 'U';
         if (!d) return '';
         // kotva jde za prstem i u pokračování téhož směru — lom se pak měří od
         // MÍSTA ZLOMU, ne od začátku tahu (jinak by dlouhý tah lom „přejel")
@@ -685,12 +701,9 @@
         if (load().last !== code) { load().last = code; save(); }
         buzz(30);
         paintChip(code, 'hit', toolLabel(k));   // jediná zpráva: co se spouští
-        var ready = toolReady(k);
-        setTimeout(function () {
-            hideChip(0);
-            if (!ready) { toast('Nástroj „' + toolLabel(k) + '" teď není dostupný.'); return; }
-            if (!runTool(k)) toast('Nástroj „' + toolLabel(k) + '" se nepodařilo otevřít.');
-        }, RUN_MS);
+        setTimeout(function () { hideChip(0); }, CHIP_MS);
+        if (!toolReady(k)) { toast('Nástroj „' + toolLabel(k) + '" teď není dostupný.'); return; }
+        if (!runTool(k)) toast('Nástroj „' + toolLabel(k) + '" se nepodařilo otevřít.');
     }
     // Nesedící gesto se NEKOMENTUJE oknem ani nabídkou — jen krátce zčervená a zmizí.
     // Kdo si nevzpomene, najde soupis v Nastavení; smysl téhle vrstvy je dělat
