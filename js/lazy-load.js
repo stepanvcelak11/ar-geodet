@@ -175,6 +175,69 @@
         document.addEventListener('click', flushOn, true);
         document.addEventListener('touchstart', flushOn, true);
 
+        // ---- POJISTKA: dlaždice klepnutá dřív, než dorazil její modul --------------
+        // Dlaždice v Nástrojích volají svou funkci PŘÍMO z inline onclick
+        // (`… ; openCalcModal();`). Když modul ještě stojí ve frontě, skončí tap
+        // hláškou „openCalcModal is not defined" v konzoli a navenek se NIC NESTANE.
+        // Člověk ťukne podruhé, potřetí a má za to, že nástroj je rozbitý — přesně
+        // takhle to bylo nahlášeno z terénu.
+        //
+        // Flush výš sice pustí stahování hned při doteku doku, jenže stažení a
+        // spuštění skriptu trvá; na pomalém telefonu je to okno klidně vteřina a do
+        // něj se pohodlně vejde „ťuknu na Nástroje a hned na nástroj".
+        //
+        // Tahle pojistka klepnutí ZADRŽÍ (zjistí, že funkce z onclick zatím není),
+        // dotáhne zbytek fronty a klepnutí zopakuje. Uživatel vidí jen to, že se
+        // nástroj otevřel o chviličku později. Jakmile je fronta prázdná, celá
+        // pojistka je mimo hru (`finished`).
+        var RETRY_ATTR = 'data-ag-lazy-retry';
+        var KEYWORDS = { 'if': 1, 'for': 1, 'while': 1, 'switch': 1, 'catch': 1, 'return': 1, 'typeof': 1, 'function': 1, 'new': 1, 'void': 1, 'delete': 1, 'else': 1, 'do': 1 };
+        // jména volaná v onclick, ale NE jako metoda (tj. bez tečky před sebou)
+        var CALL_RE = /(^|[^\w.$])([A-Za-z_$][\w$]*)\s*\(/g;
+        function missingFn(el) {
+            var oc = el.getAttribute('onclick');
+            if (!oc) return null;
+            CALL_RE.lastIndex = 0;
+            var m;
+            while ((m = CALL_RE.exec(oc))) {
+                var n = m[2];
+                if (KEYWORDS[n]) continue;
+                if (typeof window[n] === 'undefined') return n;
+            }
+            return null;
+        }
+        document.addEventListener('click', function (e) {
+            if (finished) return;
+            var t = e.target && e.target.closest ? e.target.closest('#tools-modal .tool-tile') : null;
+            if (!t || t.hasAttribute(RETRY_ATTR)) return;
+            if (!missingFn(t)) return;
+            e.preventDefault();
+            e.stopPropagation();
+            flush();
+            // ČEKÁ SE NA FUNKCI, NE NA HODINY. Pevný odklad („zkus to za 3 s") vypadá
+            // v pohodě na rychlém spoji, ale na slabém signálu se trefí přesně doprostřed
+            // stahování: klepnutí se zopakuje, funkce pořád není a uživatel dostane
+            // tutéž nefunkční dlaždici, jen o tři vteřiny později. Proto se každých
+            // 150 ms kouká, jestli už modul dorazil, a klepne se HNED jak je venku.
+            // Po WAIT_MAX_MS se to vzdá a klepnutí pustí dál tak, jak přišlo — ať se
+            // případná chyba objeví v protokolu místo tichého spolknutí.
+            var WAIT_MAX_MS = 8000;      // po osmi vteřinách už držet klepnutí nemá smysl
+            var fired = false, waited = 0;
+            var again = function () {
+                if (fired) return;
+                fired = true;
+                clearInterval(iv);
+                if (!t.isConnected) return;
+                t.setAttribute(RETRY_ATTR, '1');
+                try { t.click(); } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'lazy-load:retry'); }
+                t.removeAttribute(RETRY_ATTR);
+            };
+            var iv = setInterval(function () {
+                waited += 150;
+                if (!missingFn(t) || waited >= WAIT_MAX_MS) again();
+            }, 150);
+        }, true);
+
         // jinak: po načtení stránky v nečinnosti
         if (document.readyState === 'complete') setTimeout(start, START_MS);
         else window.addEventListener('load', function () { setTimeout(start, START_MS); });

@@ -70,9 +70,9 @@ async function bootApp(page, context) {
     const cdp = await context.newCDPSession(page);
     await cdp.send('DeviceOrientation.setDeviceOrientationOverride', { alpha: 120, beta: 80, gamma: 2 });
 
-    const start = page.locator('#welcome-start-btn');
-    await expect(start).toBeVisible({ timeout: 20000 });
-    await start.click();
+    // ⚠ 31. 8. 2026: úvodní obrazovka („Spustit vyhledávání") je ZRUŠENÁ — jediným
+    // vchodem je přihlášení. V režimu host se appka rozjede sama (enterApp v
+    // js/ucty.js), takže se na nic neklepe a jen se počká na `app-started`.
     await expect.poll(() => page.evaluate(() => document.body.classList.contains('app-started')), { timeout: 20000 }).toBe(true);
 
     // Dotáhni odložené moduly HNED a počkej, až budou venku. Dřív tu byla jen
@@ -221,13 +221,21 @@ test('REGRESE: appka se po startu sama NEREloaduje', async ({ page, context }) =
     expect(await page.evaluate(() => document.body.classList.contains('app-started'))).toBe(true);
 });
 
-test('REGRESE: vstupy na úvodní obrazovce a řádek terénu se vloží', async ({ page, context }) => {
-    // js/zpravodaj.js i js/predpisy.js volaly wrap.insertBefore(btn, kotva…), ale
-    // kotva leží v .w-c-actions, ne přímo v .modal-content → NotFoundError (jen
-    // console.warn) a tlačítka na úvodní obrazovce CHYBĚLA. Stejná chyba v
-    // js/dmr-terrain.js znamenala, že se nevyrobil #btn-terrain, a protože
-    // js/map-tools.js bez něj řádek „Terén (DMR 5G)" SKRÝVÁ, byl celý terénní AR
-    // z UI nedostupný.
+test('REGRESE: vstupy modulů a řádek terénu se vloží', async ({ page, context }) => {
+    // Původně to hlídalo tlačítka Geo zpravodaje a Předpisů NA ÚVODNÍ OBRAZOVCE:
+    // oba moduly volaly wrap.insertBefore(btn, kotva…), ale kotva ležela
+    // v .w-c-actions, ne přímo v .modal-content → NotFoundError (jen console.warn)
+    // a tlačítka chyběla.
+    //
+    // ⚠ 31. 8. 2026: úvodní obrazovka je zrušená, takže obě tlačítka NEMAJÍ kam
+    // přibýt a jejich vkládací funkce tiše vyskočí (querySelector vrátí null).
+    // Moduly zůstávají dostupné jinudy a hlídá se to tady:
+    //   • Geo zpravodaj — tlačítko v bočním menu (#zpr-menu-btn),
+    //   • Předpisy a odchylky — dlaždice v Nástrojích (registrace field-tool).
+    // Řádek terénu (#btn-terrain / #ms-terrain) se hlídá dál beze změny: stejná
+    // chyba v js/dmr-terrain.js znamenala, že se #btn-terrain nevyrobil, a
+    // js/map-tools.js bez něj řádek „Terén (DMR 5G)" SKRÝVÁ — celý terénní AR
+    // byl pak z UI nedostupný.
     const warns = [];
     page.on('console', (m) => { if (m.type() === 'warning' && /insertBefore/.test(m.text())) warns.push(m.text()); });
 
@@ -240,15 +248,14 @@ test('REGRESE: vstupy na úvodní obrazovce a řádek terénu se vloží', async
         } catch (e) { }
     });
     await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('#welcome-start-btn')).toBeVisible({ timeout: 20000 });
-    await page.waitForTimeout(2500);
-
-    await expect(page.locator('#zpr-welcome-btn'), 'tlačítko Geo zpravodaj na úvodní obrazovce').toHaveCount(1);
-    await expect(page.locator('#prd-welcome-btn'), 'tlačítko Předpisy & odchylky na úvodní obrazovce').toHaveCount(1);
-
-    await page.locator('#welcome-start-btn').click();
     await expect.poll(() => page.evaluate(() => document.body.classList.contains('app-started')), { timeout: 20000 }).toBe(true);
     await page.waitForTimeout(2500);
+
+    await expect(page.locator('#zpr-menu-btn'), 'tlačítko Geo zpravodaj v bočním menu').toHaveCount(1);
+    await expect.poll(() => page.evaluate(
+        () => document.querySelectorAll('#tools-modal [data-tool="predpisy"]').length
+    ), { timeout: 20000 }).toBe(1);
+    await page.waitForTimeout(500);
     await expect(page.locator('#btn-terrain'), '#btn-terrain vyrobený dmr-terrain.js').toHaveCount(1);
     await page.locator('#map-ctrl-toggle').click();
     await expect(page.locator('#ms-terrain'), 'řádek „Terén (DMR 5G)" v panelu Mapa a vrstvy').toBeVisible();
@@ -577,9 +584,7 @@ test('den v terénu: bod → vytyčení → restart appky → nic se neztratilo'
     // POZOR: podvržený kompas (CDP) přežije reload sám; druhý override skončí
     // chybou „sensor type is already overridden", proto se neposílá znovu.
     await page.reload({ waitUntil: 'domcontentloaded' });
-    const start2 = page.locator('#welcome-start-btn');
-    await expect(start2).toBeVisible({ timeout: 20000 });
-    await start2.click();
+    // úvodní obrazovka zrušená (31. 8. 2026) → v režimu host se appka rozjede sama
     await expect.poll(() => page.evaluate(
         () => document.body.classList.contains('app-started')), { timeout: 20000 }).toBe(true);
     await page.evaluate(() => { try { window.AGLazy && window.AGLazy.flush && window.AGLazy.flush(); } catch (e) { } });
