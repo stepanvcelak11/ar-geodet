@@ -79,10 +79,20 @@ https://stepanvcelak11.github.io/ar-geodet/soukromi.html
 
 > Obrázky vyrábí `python scripts/gen_promo.py` z předlohy `play/promo.html`.
 > **Nic se k nim nedodává.** Scéna je APPKA V RÁMU TELEFONU a k němu dvě vyzdvižené
-> karty, které přesahují jeho okraj a nesou další fakt — tak se do panelu vejde víc
-> věcí, aniž by se obrazovka ucpala. Písma jsou firemní (Sora / Inter / JetBrains
-> Mono z `css/fonts.css`), čísla vždy v mono řezu. Pod scénou nadpis a čtyři až pět
-> výhod. Čtyři panely místo osmi a jen pro Android (přání 31. 8. 2026:
+> karty, které přesahují jeho okraj a nesou další fakt.
+>
+> ⚠⚠ **ROZHRANÍ NA OBRAZOVKÁCH JE OPSANÉ ZE SKUTEČNÉ APPKY**, ne vymyšlené
+> (nahlášeno 31. 8. 2026: „jen to moc nevypadá podle aplikace designem"): horní
+> stavová pilulka, **svislý dok u pravého okraje** (Body · Nástroje · Nový bod ·
+> Vrstvy · Nastavení), kapkovité značky bodů s tučným číslem, moje poloha jako
+> kroužek se šipkou a celoobrazovková okna se zeleným nadpisem, kulatým ✕,
+> hledacím polem a sekcemi VELKÝMI PÍSMENY. Panel 3 ukazuje okno **Nástroje** i se
+> skutečnými názvy nástrojů, panel 4 okno **Body**. Kdyby se appka překreslila,
+> srovnat i tohle — jinak budou obrázky v obchodě slibovat něco jiného, než co se
+> spustí.
+>
+> Písma jsou firemní (Sora / Inter / JetBrains Mono z `css/fonts.css`), čísla vždy
+> v mono řezu. Pod scénou nadpis a čtyři až pět výhod. Čtyři panely místo osmi a jen pro Android (přání 31. 8. 2026:
 > „udělej jich méně, jen pro Android, a na každou fotku klidně více věcí"), takže
 > každý spojuje celou oblast:
 >
