@@ -75,17 +75,25 @@ https://stepanvcelak11.github.io/ar-geodet/soukromi.html
 
 **Ikona 512×512:** `icon-512.png` (v kořeni repa)
 **Feature graphic 1024×500:** `play/promo/feature.png`
-**Screenshoty telefonu:** `play/promo/play-1…8.png` (1080×1920, minimálně 2, ideálně 4–8)
-**App Store 6,7":** `play/promo/ios-1…8.png` (1290×2796)
+**Screenshoty telefonu:** `play/promo/play-1…4.png` (1080×1920)
 
 > Obrázky vyrábí `python scripts/gen_promo.py` z předlohy `play/promo.html`.
-> **Nic se k nim nedodává** — každý panel má místo fotky kreslenou scénu (AR značky,
-> šipka navádění, parcely katastru, terč vytyčení, kóty a výměra, semafor přesnosti,
-> seznam souřadnic, tým), nadpis a tři výhody. Nadpisy, texty i scény se mění
-> v předloze; po úpravě se spustí generátor znovu.
+> **Nic se k nim nedodává** — každý panel má místo fotky kreslenou scénu, nadpis
+> a čtyři až pět výhod. Čtyři panely místo osmi a jen pro Android (přání 31. 8. 2026:
+> „udělej jich méně, jen pro Android, a na každou fotku klidně více věcí"), takže
+> každý spojuje celou oblast:
+>
+> | # | Panel | Co je na obrázku |
+> |---|---|---|
+> | 1 | V terénu | AR značky nad terénem + navádění šipkou |
+> | 2 | Podklady | parcely katastru + přepínač vrstev + odznak offline |
+> | 3 | Měření a výpočty | terč vytyčení s odchylkou + výměra parcely + přesnost GPS |
+> | 4 | Po měření | seznam souřadnic + formáty exportu + tým firmy |
+>
 > ⚠ Čísla ve scénách (souřadnice, výměry, parcelní čísla) jsou UKÁZKOVÁ, ne data.
-> Starší `play/feature-graphic.png` a `play/screenshoty/` (z `play/make-play-graphics.py`)
-> zůstávají jako záloha; screenshoty v nich jsou ale z úvodní obrazovky, která už v appce není.
+> ⚠ Starší `play/feature-graphic.png` a `play/screenshoty/` (z `play/make-play-graphics.py`)
+> zůstávají jako záloha; screenshoty v nich jsou ale z úvodní obrazovky, která už
+> v appce není.
 
 ---
 

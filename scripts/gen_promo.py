@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-# ===== AR Geodet — PROPAGACNI OBRAZKY DO OBCHODU ==============================
+# ===== AR Geodet — PROPAGACNI OBRAZKY DO GOOGLE PLAY =========================
 # Z predlohy `play/promo.html` vyrenderuje hotove PNG v presnych rozmerech,
-# ktere chce Google Play a App Store:
+# ktere chce Google Play:
 #
-#     play/promo/feature.png     1024 x  500   Play "feature graphic" (povinny)
-#     play/promo/play-1..8.png   1080 x 1920   Play, screenshoty telefonu
-#     play/promo/ios-1..8.png    1290 x 2796   App Store, 6,7"
+#     play/promo/feature.png     1024 x  500   "feature graphic" (povinny banner)
+#     play/promo/play-1..4.png   1080 x 1920   screenshoty telefonu
+#
+# ⚠ CTYRI PANELY, NE OSM, A JEN PRO ANDROID (prani 31. 8. 2026). Kazdy panel
+#   proto spojuje celou oblast a jeho scena ma vic dilu - podrobne v hlavicce
+#   play/promo.html. Varianta pro App Store (ios-*.png) je pryc.
 #
 # PROC PRES PROHLIZEC A NE PRES PIL: panely maji gradienty, kulate rohy, sit na
 # pozadi a hlavne SAZBU TEXTU (zalomeni, ligatury, ruzne rezy). V Pillow by to
@@ -103,9 +106,8 @@ async def main():
             srv.terminate()
 
     print('\nHotovo -> %s' % OUT)
-    print('Nahravat do Play Console: feature.png (feature graphic) + play-*.png (screenshoty telefonu).')
-    print('Do App Store Connect: ios-*.png (6,7").')
-    print('Texty, barvy a scenky se meni v predloze play/promo.html - pak spustit znovu.')
+    print('Do Play Console: feature.png jako feature graphic, play-1..4.png jako screenshoty telefonu.')
+    print('Texty, vyhody i kreslene sceny se meni v predloze play/promo.html - pak spustit znovu.')
     return 0
 
 
