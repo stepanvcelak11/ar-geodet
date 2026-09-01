@@ -1,7 +1,19 @@
 {
-  "vydani": "2026-08-31",
-  "uvodnik": "Vydání 2026-08-31 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-09-01",
+  "uvodnik": "Vydání 2026-09-01 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "GeoCue Expands NDAA-Compliant Drone LiDAR Portfolio with New TV1 NDAA and TV1 NDAA UL",
+      "perex": "New Ouster OS1 MAX REV8 integrations deliver longer range, higher resolution, increased point density and direct colorization in a lightweight drone mapping payload.",
+      "telo": "New Ouster OS1 MAX REV8 integrations deliver longer range, higher resolution, increased point density and direct colorization in a lightweight drone mapping payload. Las Vegas, NV – September 1, 2026 –From Commercial UAV Expo 2026, GeoCue is announcing a major expansion of its TrueView aerial LiDAR portfolio with the launch of the TV1 NDAA UL and TV1 NDAA . The High-Density TV1 NDAA Drone LiDAR with Integrated Camera. Responding to strong demand for NDAA-compliant technology and evolving FCC guidance for procurement requirements affecting government, state, local and education or SLED projects, GeoCue is adding two new smaller and lighter options to its growing lineup of NDAA-compliant aeria",
+      "body": [],
+      "proc": "",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/09/01/geocue-expands-ndaa-compliant-drone-lidar-portfolio-with-new-tv1-ndaa-and-tv1-ndaa-ul/?utm_source=rss&utm_medium=rss&utm_campaign=geocue-expands-ndaa-compliant-drone-lidar-portfolio-with-new-tv1-ndaa-and-tv1-ndaa-ul",
+      "datum": "2026-09-01"
+    },
     {
       "rubrika": "Z praxe",
       "top": false,
@@ -85,18 +97,6 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
-    },
-    {
-      "rubrika": "Přístroje",
-      "top": false,
-      "nadpis": "Latitude Spatial Showcases UltraCam Merlin 5.0 in New iFlyUltraCam Video",
-      "perex": "Graz, Austria • August 19, 2026 — Vexcel Imaging is pleased to spotlight Latitude Spatial in a new iFlyUltraCam video , highlighting how the Australian aerial mapping company is using the UltraCam Mer…",
-      "telo": "Graz, Austria • August 19, 2026 — Vexcel Imaging is pleased to spotlight Latitude Spatial in a new iFlyUltraCam video , highlighting how the Australian aerial mapping company is using the UltraCam Merlin 5.0 to deliver efficient, high-quality spatial data across one of the world’s largest and most challenging mapping environments. Latitude Spatial, which evolved from HyVista Corporation , combines a long history in airborne remote sensing with extensive experience operating UltraCam systems. After becoming the launch customer for the UltraCam Merlin 5.0 last year, Latitude Spatial is now sharing firsthand how the system is helping support its nationwide mapping operations. “The Merlin 5.0 hi",
-      "body": [],
-      "proc": "",
-      "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/08/20/latitude-spatial-showcases-ultracam-merlin-5-0-in-new-iflyultracam-video/?utm_source=rss&utm_medium=rss&utm_campaign=latitude-spatial-showcases-ultracam-merlin-5-0-in-new-iflyultracam-video",
-      "datum": "2026-08-20"
     }
   ]
 }
