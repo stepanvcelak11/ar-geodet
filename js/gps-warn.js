@@ -28,8 +28,15 @@
     var _hiddenSince = 0;
     // „Rozumím": uživatel varování odklikl — nepřekážet. Pamatujeme si přesnost při
     // odkliknutí; varování se znovu ukáže, až se signál VÝRAZNĚ zhorší (>1.5×),
-    // nebo poté, co se mezitím zlepšil pod práh (nová situace = nové varování).
+    // nebo poté, co byl mezitím DÉLE dobrý (nová situace = nové varování).
+    // ⚠ 1. 9. 2026 — odkliknutí dřív zrušil JEDINÝ tik s přesností pod prahem.
+    //   V terénu přesnost kolísá kolem 10 m (9 → 12 → 9 m), takže se varování po
+    //   „Rozumím" za pár vteřin vracelo pořád dokola — a to je přesně to, čemu má
+    //   odkliknutí zabránit. Teď se zapomene až po souvislých 3 minutách dobrého
+    //   signálu; krátký záblesk pod práh ho nechá být.
     var _dismissedAcc = null;
+    var _goodSince = 0;                       // odkdy je přesnost nepřetržitě pod prahem
+    var REARM_GOOD_MS = 3 * 60 * 1000;
 
     // --- čtení globálů (vždy obezřetně) -----------------------------------------
     function isLive() {
@@ -137,12 +144,18 @@
             if (!isLive() || !arVisible()) { hideWarn(); return; }
             var acc = getAccuracy();
             if (acc != null && acc > WEAK_GPS_THRESHOLD_M) {
+                _goodSince = 0;
                 // odklepnuto „Rozumím": mlčet, dokud se signál výrazně nezhorší
                 if (_dismissedAcc != null && acc <= _dismissedAcc * 1.5) { hideWarn(); return; }
                 _dismissedAcc = null;
                 showWarn(acc);
             } else {
-                _dismissedAcc = null;   // signál se spravil — příští zhoršení je nová situace
+                // signál je dobrý — odkliknutí zapomeň až po souvislých 3 minutách,
+                // krátký záblesk pod práh nesmí varování vzkřísit (viz _dismissedAcc)
+                if (_dismissedAcc != null) {
+                    if (!_goodSince) _goodSince = Date.now();
+                    else if (Date.now() - _goodSince > REARM_GOOD_MS) { _dismissedAcc = null; _goodSince = 0; }
+                }
                 hideWarn();
             }
         } catch (e) { /* fail-silent */ }

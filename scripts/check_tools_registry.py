@@ -216,6 +216,32 @@ def main():
                 errs.append(u'%s: text v data/navody.json, ale registr u nej nema help '
                             u'— "?" se u dlazdice neukaze' % k)
 
+    # ---- rozcestniky (`hub` / `inhub`) a schovane nastroje (`hidden`) -----------
+    # OD 31. 8. 2026 se clenstvi v rozcestniku pise JEN sem (pole `inhub`) a ctou
+    # ho DVA pohledy: mrizka dlazdic (js/tools-hub.js) i seznam ukonu
+    # (js/nastroje-ukony.js). Oba podle nej nastroj ze sveho vypisu VYNECHAJI —
+    # takze preklep v `inhub` (nebo rozcestnik, ktery uz neexistuje) neni kosmeticka
+    # vada: nastroj zmizi z mrizky i ze seznamu a zbyde po nem prazdno.
+    # A `hidden` je "at to neprekazi", ne "smazat" — jedina cesta k takovemu
+    # nastroji vede pres hledani, takze BEZ `keys` by fakticky zmizel z appky.
+    for r in recs:
+        k = r['k']
+        h = r.get('inhub')
+        if h:
+            cil = by.get(h)
+            if not cil:
+                errs.append(u'%s: inhub ukazuje na "%s", ktery v registru NENI — '
+                            u'nastroj vypadne z mrizky i ze seznamu ukonu' % (k, h))
+            elif not cil.get('hub'):
+                errs.append(u'%s: inhub ukazuje na "%s", ale ten neni rozcestnik '
+                            u'(chybi mu hub: 1) — v mrizce zadna takova dlazdice nestoji' % (k, h))
+            if r.get('hub'):
+                errs.append(u'%s: ma zaroven hub: 1 i inhub — rozcestnik nemuze byt '
+                            u'polozkou jineho rozcestniku' % k)
+        if r.get('hidden') and not (r.get('keys') or '').strip():
+            errs.append(u'%s: ma hidden: 1, ale zadna synonyma (keys) — schovany nastroj '
+                        u'se da otevrit uz jen hledanim, takze by z appky zmizel uplne' % k)
+
     # zaznam bez nastroje = zbytek po smazanem modulu; hub/notile jsou vyjimky
     for r in recs:
         k = r['k']

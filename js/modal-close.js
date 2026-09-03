@@ -117,7 +117,29 @@
             // tažení: panel jde do strany, pozadí se prosvětluje
             '.agmc-drag{transition:none !important;}',
             '.agmc-back{transition:transform .22s cubic-bezier(.22,.61,.36,1);}',
-            '@media (prefers-reduced-motion:reduce){.agmc-back{transition:none;}}'
+            '@media (prefers-reduced-motion:reduce){.agmc-back{transition:none;}}',
+            // ---- USAZENÍ OKNA (viz oddíl v JS níž) ---------------------------------
+            // Vnitřek okna se drží neviditelný, ale NA SVÉM MÍSTĚ: opacity, ne
+            // display/visibility. Rozměry i rolování tak zůstávají spočítané a prvek,
+            // na který si modul při otevření sáhl fokusem (hledáček v chatu), o fokus
+            // nepřijde — visibility:hidden by mu ho sebrala.
+            '.modal-overlay[data-agmc-usazeni] > .modal-content > *{opacity:0 !important;}',
+            // Nápis dostane jen DLOUHÉ čekání (hodnotu atributu přepne JS po NAPIS_MS) —
+            // krátké usazení tak nemá jak ho ukázat. Text je v CSS schválně: do cizího
+            // okna se nevkládá žádný prvek, který by tam po odpojení vrstvy zůstal.
+            '.modal-overlay[data-agmc-usazeni="napis"]::after{content:"Načítám…";position:absolute;z-index:28;',
+            '  left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;pointer-events:none;',
+            '  color:var(--text-muted,#9aa1ac);font:500 15px/1.4 var(--font-ui,system-ui),sans-serif;',
+            '  animation:agmc-usaz-in .18s both;}',
+            '@keyframes agmc-usaz-in{from{opacity:0;}to{opacity:1;}}',
+            // Opozdilec (proužek, který do OTEVŘENÉHO okna vloží jiná vrstva) se
+            // nerozsvítí skokem, ale rozvine se. ⚠ ROZMĚR JDE INLINE STYLEM, NE var()
+            // V @keyframes — var() uvnitř @keyframes starší WebKity celý blok zahodí
+            // (vypsáno v css/style.css u @keyframes pulse-target). Proto přechod.
+            '.agmc-pozde{overflow:hidden;transition:max-height .24s var(--ease-out,ease),opacity .24s ease;}',
+            '.agmc-pozde-0{max-height:0 !important;opacity:0 !important;}',
+            '@media (prefers-reduced-motion:reduce){.agmc-pozde{transition:none;}',
+            '  .modal-overlay[data-agmc-usazeni="napis"]::after{animation:none;}}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
@@ -272,10 +294,203 @@
         try { if (typeof window.fixAppLayout === 'function') window.fixAppLayout(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'modal-close:closeOverlay'); }
     }
 
+    // ---- USAZENÍ OKNA: obsah se ukáže, až je co ukazovat -------------------------
+    // NAHLÁŠENO 31. 8. 2026: „když něco otevřu, něco mi tam problikne, něco jiného
+    // než jak má. Zvláštně se to načítá."
+    //
+    // CO SE DĚJE (naměřeno v Chromiu snímek po snímku, ne odhadnuto): okno se ukáže
+    // hotové, ale pak do NĚJ JEŠTĚ NĚKDO SÁHNE a obsah poskočí. Nejde o jeden nástroj:
+    //   • Obchůzka výkopu — 64 ms okno, 332 ms se nahoru vsune proužek s odkazem na
+    //     druhou cestu (js/nastroje-parky.js hlídá okna tikem 2×/s) a všechno pod ním
+    //     spadne o dva řádky níž. Totéž Kubatury (474 ms), Volné stanovisko (287 ms).
+    //   • Ročenka — 46 ms „Počítám…", 85 ms hotová tabulka. Čtyřicet milisekund
+    //     nápisu, který nemá kdo přečíst; navenek to je přesně to „probliknutí".
+    // Společný jmenovatel: okno se vykreslí DŘÍV, než je hotové.
+    //
+    // JAK SE TO ŘEŠÍ: okno, které se právě ukázalo, má vnitřek neviditelný a odhalí
+    // se teprve ve chvíli, kdy se do něj přestalo sypat. Klidné okno je venku po
+    // DVOU SNÍMCÍCH (~32 ms), takže se nikde nic nezdrží.
+    //
+    // ⚠ ŽÁDNÉ PEVNÉ ČEKÁNÍ NA OTEVÍRACÍ ANIMACI. Nejdřív se tu drželo okno vždycky
+    // až do konce modal-in (0,32 s) s úvahou „dokud okno naskakuje, obsah se stejně
+    // nedá číst". V prohlížeči to dopadlo přesně naopak: KAŽDÉ okno se rozjelo
+    // prázdné, na 100 ms v něm probliklo „Načítám…" a teprve pak přišel obsah —
+    // tedy nové probliknutí místo opraveného. Podlaha je proto nula a čeká se JEN
+    // na klid.
+    //
+    // ⚠ USAZOVÁNÍ SLEDUJE JEN PŘIBÝVÁNÍ A UBÝVÁNÍ PRVKŮ, ne textu. Okna se živou
+    // hodnotou (azimut v Kompasu, čas v Odhadni to) přepisují textové uzly každou
+    // chvíli; kdyby se to počítalo jako „ještě se sype", visela by nad nimi plachta
+    // až do stropu a člověk by místo okna koukal na „Načítám…".
+    //
+    // ⚠ OKNO, KTERÉ SE DOSYPÁVÁ POZDĚ, SI TO PAMATUJE. Proužek z nastroje-parky.js
+    // přiletí kdykoli během jeho půlvteřinového tiku — čekat na něj plošně u všech
+    // nástrojů by zdrželo devadesát oken kvůli čtyřem. Když se ale u konkrétního okna
+    // JEDNOU stane, že mu do hotového obsahu ještě přibyl prvek, počká se u něj příště
+    // rovnou celý tik (DOSYP_MS). Ostatních se to nedotkne.
+    //
+    // Odpojení: smaž tenhle oddíl i jeho pravidla z injectStyles(). Bez CSS je
+    // atribut jen značka a okna se chovají jako dřív — nic se nezasekne.
+    var USAZ_ATTR = 'data-agmc-usazeni';
+    var USAZ_MAX = 600;      // strop pro okno, které se nikdy neuklidní
+    var DOSYP_MS = 560;      // okno, které už jednou dosypávalo (tik parků je 500 ms)
+    var POZDE_MS = 1200;     // do kdy po odhalení se přírůstek počítá za „opozdilce"
+    var NAPIS_MS = 380;      // od kdy má čekání nápis (kratší se nesmí ani mihnout)
+    // Nástroje se plní postupně, jak doléhají líně načtené moduly (js/lazy-load.js);
+    // držet je pod plachtou by znamenalo čekat na seznam, který stejně roste dál.
+    var USAZ_SKIP = { 'tools-modal': 1, 'welcome-screen': 1, 'ag-gate': 1, 'ag-login': 1 };
+
+    function raf(fn) {
+        if (typeof window.requestAnimationFrame === 'function') return window.requestAnimationFrame(fn);
+        return setTimeout(fn, 16);
+    }
+    function ted() { return (window.performance && performance.now) ? performance.now() : Date.now(); }
+    // ⚠ ČTYŘI HLAVNÍ OKNA NEMAJÍ display:none. Nastavení, Body, Nástroje a Nový bod
+    // mají v css/style.css natvrdo `display:flex !important` (aby transition naběhla
+    // i při prvním otevření) a otevřenost jim řídí JEN třída .ag-open — tu podle
+    // inline display přepíná skript na konci index.html. Kdyby se videt() ptala jen
+    // na display, byla by tahle okna „viditelná" už od startu appky: sleduj() by si
+    // hned uložilo bylo=true, plachta by proběhla naprázdno nad zavřeným oknem a při
+    // skutečném otevření by se nenasadila. Stejnou výjimku má coreWin() v js/mini-panel.js.
+    var CORE_ANIM = { 'settings-modal': 1, 'manage-modal': 1, 'tools-modal': 1, 'custom-modal-overlay': 1 };
+    function videt(el) {
+        try {
+            var st = window.getComputedStyle(el);
+            if (st.display === 'none' || st.visibility === 'hidden') return false;
+            if (el.id && CORE_ANIM[el.id] && !el.classList.contains('ag-open')) return false;
+            return true;
+        } catch (e) { return false; }
+    }
+    function prvekMezi(list) {
+        for (var i = 0; i < list.length; i++) if (list[i].nodeType === 1) return true;
+        return false;
+    }
+    // Opozdilec: prvek, který přibyl do UŽ ODHALENÉHO okna. Skokem by shodil obsah
+    // pod sebou; takhle se rozvine. Rozměr se měří až po vložení, aby se dlouhý
+    // proužek na konci neusekl.
+    function rozvin(el) {
+        var h;
+        try { h = el.offsetHeight; } catch (e) { return; }
+        // Rozvíjí se jen PROUŽEK. Velký panel by se musel na 240 ms osekat výškou a
+        // scrollovací oblast (.modal-body) by u toho na okamžik přišla o rolování —
+        // to je horší než to, co se tím spravuje.
+        if (!h || h > window.innerHeight * 0.5) return;
+        try {
+            var st = window.getComputedStyle(el);
+            if (st.overflowY === 'auto' || st.overflowY === 'scroll') return;
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'modal-close:rozvin'); }
+        el.classList.add('agmc-pozde', 'agmc-pozde-0');
+        raf(function () {
+            raf(function () {
+                el.style.maxHeight = h + 'px';
+                el.classList.remove('agmc-pozde-0');
+                setTimeout(function () {
+                    el.classList.remove('agmc-pozde');
+                    el.style.maxHeight = '';
+                }, 320);
+            });
+        });
+    }
+
+    function usadit(ov) {
+        if (ov.__agmcUsaz) return;                     // usazení už běží
+        if (ov.id && USAZ_SKIP[ov.id]) return;
+        var mc = ov.querySelector('.modal-content');
+        if (!mc) return;                               // okno modulu s vlastním obalem
+        ov.__agmcUsaz = true;
+        ov.setAttribute(USAZ_ATTR, '1');
+
+        var neklid = true;                             // první snímek je vždycky „ještě se sype"
+        var mo = null;
+        try {
+            mo = new MutationObserver(function (recs) {
+                for (var i = 0; i < recs.length; i++) {
+                    if (prvekMezi(recs[i].addedNodes) || prvekMezi(recs[i].removedNodes)) { neklid = true; return; }
+                }
+            });
+            mo.observe(mc, { childList: true, subtree: true });
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'modal-close:usadit'); }
+
+        var start = ted();
+        var podlaha = ov.__agmcDosypava ? DOSYP_MS : 0;
+        var strop = Math.max(USAZ_MAX, podlaha);
+        // Nápis se zapíná AŽ TEĎ, ne v CSS s prodlevou: krátké usazení (drtivá
+        // většina oken) tak nemá jak ho ukázat ani na jeden snímek.
+        var napis = setTimeout(function () {
+            if (ov.__agmcUsaz) ov.setAttribute(USAZ_ATTR, 'napis');
+        }, NAPIS_MS);
+
+        // ⚠ POJISTKA PROTI PRÁZDNÉMU OKNU: requestAnimationFrame se v zavřeném/skrytém
+        // prohlížeči ZASTAVÍ. Kdyby se okno otevřelo těsně předtím, než člověk odejde
+        // z appky, zůstalo by po návratu viset pod plachtou, dokud se snímky nerozjedou.
+        // Prázdné okno v terénu je horší než probliknutí, takže tohle plachtu sundá
+        // i bez snímků.
+        var pojistka = setTimeout(function () { if (ov.__agmcUsaz) konec(); }, strop + 1500);
+
+        function konec() {
+            clearTimeout(napis);
+            clearTimeout(pojistka);
+            if (mo) { try { mo.disconnect(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'modal-close:usadit'); } }
+            ov.removeAttribute(USAZ_ATTR);
+            ov.__agmcUsaz = false;
+            hlidejOpozdilce(ov, mc);
+        }
+        function tik() {
+            var uply = ted() - start;
+            // zavřeno pod plachtou (Esc, gesto) → plachtu pryč, ať se okno příště
+            // neotevře rovnou zakryté
+            if (!videt(ov)) { konec(); return; }
+            if (uply >= strop || (!neklid && uply >= podlaha)) { konec(); return; }
+            neklid = false;
+            raf(tik);
+        }
+        raf(tik);
+    }
+
+    // Po odhalení se ještě chvíli kouká, jestli do okna někdo nesáhne. Bere se JEN
+    // přímý potomek .modal-content — to je stavební zásah (proužek, panel), kdežto
+    // překreslení vnitřku seznamu je normální život okna a rozvíjet se nemá.
+    function hlidejOpozdilce(ov, mc) {
+        var mo;
+        try {
+            mo = new MutationObserver(function (recs) {
+                for (var i = 0; i < recs.length; i++) {
+                    if (recs[i].target !== mc) continue;
+                    var add = recs[i].addedNodes;
+                    for (var j = 0; j < add.length; j++) {
+                        if (add[j].nodeType !== 1) continue;
+                        ov.__agmcDosypava = true;      // příště se na něj počká rovnou
+                        rozvin(add[j]);
+                    }
+                }
+            });
+            mo.observe(mc, { childList: true });
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'modal-close:hlidejOpozdilce'); return; }
+        setTimeout(function () { try { mo.disconnect(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'modal-close:hlidejOpozdilce'); } }, POZDE_MS);
+    }
+
+    // Okno se otevírá dvěma způsoby (style.display i classList), takže se hlídají
+    // oba atributy. Změna atributu dorazí jako mikroúkol JEŠTĚ PŘED VYKRESLENÍM
+    // snímku, takže se plachta stihne nasadit dřív, než se okno poprvé ukáže.
+    function sleduj(ov) {
+        if (ov.__agmcSled) return;
+        ov.__agmcSled = true;
+        var bylo = videt(ov);
+        if (bylo) usadit(ov);                          // okno vzniklo rovnou otevřené
+        try {
+            new MutationObserver(function () {
+                var je = videt(ov);
+                if (je && !bylo) usadit(ov);
+                bylo = je;
+            }).observe(ov, { attributes: true, attributeFilter: ['style', 'class'] });
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'modal-close:sleduj'); }
+    }
+
     // ---- křížek + úchyt --------------------------------------------------------
     function decorate(ov) {
-        if (!swipeable(ov)) return;
         injectStyles();
+        sleduj(ov);              // usazení platí i pro okna bez křížku a bez gesta
+        if (!swipeable(ov)) return;
         // KŘÍŽEK jen tam, kde se smí zavřít bez uložení (viz SAVE_CLOSE výš)
         if (eligible(ov) && !ov.querySelector(':scope > .agmc-x')) {
             var x = document.createElement('button');

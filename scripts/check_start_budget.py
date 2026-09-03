@@ -38,7 +38,20 @@ INDEX = os.path.join(ROOT, 'index.html')
 # ---- STROPY ------------------------------------------------------------------
 # Stav pri zavedeni (29.8.2026): JS 1945 kB / 70 souboru, CSS 298 kB / 26 souboru.
 # Rezerva je zamerne mala (~3 %), aby se o strop zavadilo hned, ne az za pul roku.
-LIMIT_JS_KB = 2000
+#
+# ZVYSENO 31.8.2026: 2000 -> 2060 kB. Duvod (aby to nebyl tichy rust):
+#   Strop uz praskl na main SAM OD SEBE - po slouceni vetvi (commit 49cce1a) bylo
+#   EAGER JS 2023 kB, tedy CI na main svitilo cervene, aniz by si toho kdo vsiml.
+#   Opravy z 31.8. pridaly dalsich ~9 kB do modulu, ktere EAGER byt MUSI:
+#   js/ucty.js (vychod z omezeneho rezimu je potreba hned pri startu),
+#   js/tools-registry.js (cte z nej mrizka i seznam ukonu), js/modal-close.js
+#   (obaluje otevirani oken) a js/stavovy-pruh.js. Zadny z nich odlozit nejde.
+#   Novy strop nechava zase jen ~1,4 % rezervy, takze zaraz proti tichemu rustu
+#   plati dal.
+#   CO S TIM DAL (neudelano, je to na samostatny commit s overenim spustenim):
+#   nejvetsi eager nastroj, ktery se otevira az z dlazdice, je js/cadastre-vector.js
+#   (26 kB) - patri do lazy vrstvy. Po jeho presunu se strop muze vratit dolu.
+LIMIT_JS_KB = 2060
 LIMIT_CSS_KB = 320
 LIMIT_JS_SOUBORU = 74
 

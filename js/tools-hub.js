@@ -1,19 +1,38 @@
-// ===== AR Geodet — ROZCESTNÍKY NÁSTROJŮ (declutter mřížky, 2. kolo) ============
+// ===== AR Geodet — ROZCESTNÍKY NÁSTROJŮ (declutter mřížky i seznamu úkonů) =====
 // ODPOJITELNÁ vrstva ve stylu js/usadit-ar.js. NEEDITUJE logika.js ani grafika.js.
 // Pokračuje v úklidu Nástrojů: po „Usadit AR" (7 kalibračních dlaždic → průvodce)
-// slučuje další příbuzné dlaždice do PĚTI rozcestníků:
+// slučuje další příbuzné dlaždice do DESETI rozcestníků:
 //
-//   • „Bod výpočtem"    = Rajón + Offset bod + Protínání vpřed
-//   • „Signál GNSS"     = GNSS satelity + Predikce signálu + Semafor místa
-//   • „Příručka"        = Předpisy & odchylky + Postupy měření + Slovník
-//   • „Počasí a světlo" = Počasí + Slunce a světlo + GNSS předpověď + Dnešek v terénu
-//   • „Auto a bezpečí"  = Kde mám auto + Kniha jízd + Bezpečnost + Co s sebou
+//   • „Bod výpočtem"      = Rajón + Offset bod + Protínání vpřed
+//   • „Signál GNSS"       = Družice teď + Predikce signálu + Semafor místa
+//   • „Příručka"          = Předpisy & odchylky + Postupy měření + Slovník
+//   • „Počasí a světlo"   = Počasí + Slunce + GNSS předpověď + Dnešek v terénu
+//   • „Auto a bezpečí"    = Kde co mám + Kniha jízd + Bezpečnost + Co s sebou
+//   • „Moje čísla"        = Moje aktivita + Ročenka
+//   • „Zápis dne"         = Deník dne + Plakát dne
+//   • „Firma"             = Firma a účty + Docházka + Firemní chat + Vysílačka
+//   • „Podklady a katastr"= Prohlídka okolí + Parcely + Body z výřezu +
+//                           Vektorová mapa offline + Sbalit zakázku
+//   • „Přenosy a zařízení"= Hodinky Garmin + Poslat/načíst zakázku
 //
-// a navíc SKRÝVÁ dlaždice, které mají vstup jinde (v DOM zůstávají — hledáním
-// i průvodcem „Usadit AR" jdou dál spustit):
+// a navíc SKRÝVÁ nástroje, které mají vstup jinde nebo je uživatel nechce vidět
+// (v DOM zůstávají — hledáním i průvodcem „Usadit AR" jdou dál spustit):
 //   • Brutální GPS       → tlačítko v modálu Nový bod (+ větev průvodce Usadit AR)
 //   • Vizuální stabilizace → přepínač v Nastavení → AR & přesnost
 //   • Skryté body        → tlačítko v Nastavení → Údržba
+//   • + vše, co má v js/tools-registry.js `hidden: 1` (Podzemní sítě, Hlasová
+//     poznámka — uživatel je 31. 8. 2026 označil za nepoužitelné, resp. zbytečné)
+//
+// ⚠⚠ PROČ SE ČLENSTVÍ ROZCESTNÍKŮ ČTE Z REGISTRU A NEPÍŠE SE TADY
+// Do 31. 8. 2026 byl seznam položek zapsaný v tomhle souboru a rozcestník podle
+// něj skrýval DLAŽDICE V MŘÍŽCE. Jenže mřížku dnes nikdo nevidí: panel Nástrojů
+// ukazuje SEZNAM ÚKONŮ (js/nastroje-ukony.js), který mřížku schová a vypíše
+// nástroje po slovesech — a tam se položky rozcestníku objevovaly dál každá
+// zvlášť. Sloučení tedy neušetřilo ANI JEDEN řádek, uživatel dál viděl Počasí,
+// Slunce, GNSS předpověď i Dnešek vedle sebe a žádal totéž sloučení znovu.
+// Teď je členství JEDNOU v js/tools-registry.js (pole `inhub`), odkud ho čtou
+// oba pohledy. Tady zůstává jen to, co registr nemá: ikona, titulek, uvedení
+// a delší popisky voleb.
 //
 // Kromě slučování dělá modul ještě dvě věci proti „bordelu" v panelu:
 //   • hlídá blok „⚡ Teď se hodí" (staví ho usadit-ar.js) — nechá nahoře nejvýš
@@ -29,71 +48,190 @@
 (function () {
     'use strict';
 
+    // ⚠ NEPLÉST s 'agSimpleTools_v1' (js/tools-simple.js, js/rezim-prace.js) — to je
+    // JINÝ přepínač („jednoduchý režim" = jen základní sada dlaždic) a je výchozím
+    // stavem VYPNUTÝ. Tenhle klíč (bez _v1) řídí slučování do rozcestníků a je
+    // výchozím stavem ZAPNUTÝ. Podobná jména, opačné výchozí hodnoty.
     var SIMPLE_KEY = 'agSimpleTools';   // sdílený přepínač s usadit-ar.js
 
     // ---- definice rozcestníků ---------------------------------------------------
-    // items: { key: klíč dlaždice (data-tool / funkce z onclicku), fn: nouzová
-    //          globální funkce, t: titulek volby, s: popisek volby }
+    // Položky (a jejich pořadí) NEJSOU tady — jsou v js/tools-registry.js jako
+    // `inhub: '<id>'`, protože z nich musí číst i seznam úkonů (viz hlavička).
     var HUBS = [
         {
             id: 'bod-vypoctem', label: 'Bod<br>výpočtem', title: 'Bod výpočtem', cat: 'Měření', order: 6,
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="19" r="2"/><circle cx="19" cy="5" r="2"/><path d="M6.5 17.5L17.5 6.5"/><path d="M12 12l7 7"/></svg>',
-            sub: 'Nový bod z existujících bodů — vyber metodu podle toho, co umíš změřit:',
-            items: [
-                { key: 'rajon', t: 'Rajón (směr + délka)', s: 'Stojím na známém bodě a mám směr a vodorovnou délku (pásmo, dálkoměr).' },
-                { key: 'offset-point', t: 'Offset bod (odsazení)', s: 'Bod odsadím od jiného bodu o azimut/směrník a vzdálenost — třeba roh budovy.' },
-                { key: 'ar-intersection', t: 'Protínání vpřed (jen úhly)', s: 'Délku změřit nemůžu — bod protnu záměrami ze dvou známých stanovisek.' }
-            ]
+            poradi: ['rajon', 'offset-point', 'ar-intersection'],
+            sub: 'Nový bod z existujících bodů — vyber metodu podle toho, co umíš změřit:'
         },
         {
             id: 'gnss-signal', label: 'Signál<br>GNSS', title: 'Signál GNSS', cat: 'Měření', order: 7,
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/><circle cx="4" cy="20" r="0.5" fill="currentColor"/></svg>',
-            sub: 'Jak dobré jsou teď (a budou) podmínky pro GPS měření:',
-            items: [
-                { key: 'openSatModal', fn: 'openSatModal', t: 'Družice teď', s: 'Kolik družic je nad obzorem a jaká je geometrie (GPS, Galileo, GLONASS, BeiDou).' },
-                { key: 'sky-obstruction', t: 'Predikce signálu', s: 'Skyplot s maskou překážek — kolik družic zbude u lesa, v zástavbě, ve svahu.' },
-                { key: 'gps-semafor', t: 'Semafor místa', s: 'Skóre aktuálního místa: odrazy od fasád (multipath), stabilita, doporučení.' }
-            ]
+            poradi: ['openSatModal', 'sky-obstruction', 'gps-semafor'],
+            sub: 'Jak dobré jsou teď (a budou) podmínky pro GPS měření:'
         },
         {
             id: 'prirucka', label: 'Příručka', title: 'Příručka', cat: 'Pomůcky', order: 6,
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
-            sub: 'Offline tahák do terénu — vše s uvedeným zdrojem:',
-            items: [
-                { key: 'predpisy', t: 'Předpisy & odchylky', s: 'Mezní odchylky, kódy kvality, lhůty a paragrafy z katastrálních předpisů.' },
-                { key: 'postupy', t: 'Postupy měření', s: 'Krok za krokem: rajón, volné stanovisko, polygonový pořad, nivelace, GNSS-RTK…' },
-                { key: 'openDictModal', fn: 'openDictModal', t: 'Slovník', s: 'Pojmy a zkratky (TB, ZhB, Bpv, ZPMZ…), vlastní pojmy jdou přidat.' }
-            ]
+            poradi: ['predpisy', 'postupy', 'openDictModal'],
+            sub: 'Offline tahák do terénu — vše s uvedeným zdrojem:'
         },
         {
             id: 'pocasi-svetlo', label: 'Počasí<br>a světlo', title: 'Počasí a světlo', cat: 'Pomůcky', order: 7,
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><path d="M8 2v1.4M8 12.6V14M2 8h1.4M12.6 8H14M3.8 3.8l1 1M11.2 11.2l1 1M12.2 3.8l-1 1M4.8 11.2l-1 1"/><path d="M10.8 20.5h7.4a3 3 0 0 0 .3-6 4.5 4.5 0 0 0-8.5-.8 3.4 3.4 0 0 0 .8 6.8z"/></svg>',
-            sub: 'Co dnes udělá obloha — počasí, denní světlo i podmínky pro družice na jednom místě:',
-            items: [
-                { key: 'pocasi', fn: 'agOpenPocasi', t: 'Počasí', s: 'Předpověď pro místo měření z 18 zdrojů, srážkový radar, vítr, tlak v tvé výšce.' },
-                { key: 'slunce', fn: 'agOpenSlunce', t: 'Slunce a světlo', s: 'Východ, západ, konec soumraku, délka stínu a hodiny, kdy budeš mít slunce v ose záměry.' },
-                { key: 'gnss-forecast', fn: 'agOpenGnssForecast', t: 'GNSS předpověď', s: 'Kdy dnes bude nejlepší geometrie družic (PDOP) a jestli nezlobí ionosféra (Kp).' },
-                { key: 'brifink', fn: 'agOpenBrifink', t: 'Dnešek v terénu', s: 'Ranní souhrn na jedné kartě: počasí, světlo, GNSS okna, body po termínu.' }
-            ]
+            poradi: ['pocasi', 'slunce', 'gnss-forecast', 'brifink'],
+            sub: 'Co dnes udělá obloha — počasí, denní světlo i podmínky pro družice na jednom místě:'
         },
         {
             id: 'auto-bezpeci', label: 'Auto<br>a bezpečí', title: 'Auto a bezpečí', cat: 'Pomůcky', order: 8,
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3v-5l2.4-4.9A2 2 0 0 1 7.2 6h9.6a2 2 0 0 1 1.8 1.1L21 12v5h-2"/><path d="M9 17h6"/><path d="M3 12h18"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>',
-            sub: 'Kolem měření, ne měření samo — auto, kilometry a vlastní kůže:',
-            items: [
-                { key: 'kde-je', fn: 'agOpenKdeJe', t: 'Kde co mám', s: 'Označ, kde máš bázi, stativ, materiál nebo auto — pak tě tam navede šipka.' },
-                { key: 'kniha-jizd', fn: 'agOpenKnihaJizd', t: 'Kniha jízd', s: 'Cesťák navázaný na zakázky, měsíční součty a export CSV pro účetní.' },
-                { key: 'bezpecnost', fn: 'agOpenBezpecnost', t: 'Bezpečnost a rizika', s: 'Bouřka, vedro, mráz, vítr, blížící se tma — a poslání vlastní polohy.' },
-                { key: 'checklist', fn: 'agOpenChecklist', t: 'Co s sebou', s: 'Balicí seznam podle typu práce a dnešního počasí; odškrtáváš ráno u auta.' }
-            ]
+            poradi: ['kde-je', 'kniha-jizd', 'bezpecnost', 'checklist'],
+            sub: 'Kolem měření, ne měření samo — auto, kilometry a vlastní kůže:'
+        },
+        {
+            id: 'moje-cisla', label: 'Moje<br>čísla', title: 'Moje čísla', cat: 'Pomůcky', order: 9,
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><rect x="5" y="11" width="3.6" height="7" rx="1"/><rect x="10.2" y="6" width="3.6" height="12" rx="1"/><rect x="15.4" y="13" width="3.6" height="5" rx="1"/></svg>',
+            poradi: ['moje-aktivita', 'rocenka'],
+            sub: 'Co jsi za den, měsíc a rok nachodil a naměřil — vlastní čísla, ne data zakázky:'
+        },
+        {
+            id: 'zapis-dne', label: 'Zápis<br>dne', title: 'Zápis dne', cat: 'Pomůcky', order: 10,
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/><path d="M8 13h8M8 17h5"/></svg>',
+            poradi: ['denik-dne', 'plakat-dne'],
+            sub: 'Uzavření dne — slovy do výkazu, nebo obrázkem do skupiny:'
+        },
+        {
+            id: 'firma-hub', label: 'Firma', title: 'Firma', cat: 'Pomůcky', order: 11,
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M4 21V8l8-5 8 5v13"/><path d="M9.5 21v-6h5v6"/><path d="M9 10h.01M15 10h.01"/></svg>',
+            poradi: ['ucty-firma', 'dochazka', 'firma-chat', 'vysilacka'],
+            sub: 'Lidé, hodiny a zprávy — všechno firemní na jednom místě:'
+        },
+        {
+            id: 'podklady-katastr', label: 'Podklady<br>a katastr', title: 'Podklady a katastr', cat: 'Katastr a data', order: 5,
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3.5L3 6.5v14l6-3 6 3 6-3v-14l-6 3-6-3z"/><path d="M9 3.5v14M15 6.5v14"/></svg>',
+            poradi: ['prohlidka', 'cadastre-vector', 'cadastre-area', 'vektor-mapa', 'balicek-zakazky'],
+            sub: 'Co si přitáhneš do mapy a do AR. (Katastr „kde právě stojím" má vlastní dlaždici — to je jedno klepnutí.)'
+        },
+        {
+            id: 'prenosy-zarizeni', label: 'Přenosy<br>a zařízení', title: 'Přenosy a zařízení', cat: 'Katastr a data', order: 6,
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="6" width="10" height="12" rx="3"/><path d="M9.5 6V3.5h5V6M9.5 18v2.5h5V18"/><path d="M12 9.5V12l1.7 1"/></svg>',
+            poradi: ['hodinky-parovani', 'job-transfer'],
+            sub: 'Data ven z telefonu a zpátky — jiná parketa než měření:'
         }
     ];
+
+    // Titulek volby, když `vl` z registru nezní samostatně: `vl` je psané tak, aby
+    // navazovalo na sloveso v seznamu úkonů („Zjistit podmínky → Predikci signálu"),
+    // kdežto v rozcestníku stojí samo. Co tady není, bere se z `vl`.
+    var NAZEV = {
+        'rajon': 'Rajón (směr + délka)',
+        'offset-point': 'Offset bod (odsazení)',
+        'ar-intersection': 'Protínání vpřed (jen úhly)',
+        'openSatModal': 'Družice teď',
+        'sky-obstruction': 'Predikce signálu',
+        'gps-semafor': 'Semafor místa',
+        'predpisy': 'Předpisy & odchylky',
+        'postupy': 'Postupy měření',
+        'openDictModal': 'Slovník',
+        'gnss-forecast': 'GNSS předpověď',
+        'brifink': 'Dnešek v terénu',
+        'kde-je': 'Kde co mám',
+        'kniha-jizd': 'Kniha jízd',
+        'bezpecnost': 'Bezpečnost a rizika',
+        'checklist': 'Co s sebou',
+        'cadastre-vector': 'Katastr — parcely',
+        'cadastre-area': 'Body z výřezu mapy',
+        'balicek-zakazky': 'Sbalit zakázku',
+        'job-transfer': 'Poslat / načíst zakázku',
+        'ucty-firma': 'Firma a účty'
+    };
+
+    // Delší popisek volby v rozcestníku (celá věta — v registru je jen krátké `vh`
+    // do seznamu úkonů). Když klíč chybí, vezme se `vh` z registru, takže nový
+    // nástroj s `inhub` se v rozcestníku objeví i bez zápisu sem.
+    var TXT = {
+        'rajon': 'Stojím na známém bodě a mám směr a vodorovnou délku (pásmo, dálkoměr).',
+        'offset-point': 'Bod odsadím od jiného bodu o azimut/směrník a vzdálenost — třeba roh budovy.',
+        'ar-intersection': 'Délku změřit nemůžu — bod protnu záměrami ze dvou známých stanovisek.',
+        'openSatModal': 'Kolik družic je nad obzorem a jaká je geometrie (GPS, Galileo, GLONASS, BeiDou).',
+        'sky-obstruction': 'Skyplot s maskou překážek — kolik družic zbude u lesa, v zástavbě, ve svahu.',
+        'gps-semafor': 'Skóre aktuálního místa: odrazy od fasád (multipath), stabilita, doporučení.',
+        'predpisy': 'Mezní odchylky, kódy kvality, lhůty a paragrafy z katastrálních předpisů.',
+        'postupy': 'Krok za krokem: rajón, volné stanovisko, polygonový pořad, nivelace, GNSS-RTK…',
+        'openDictModal': 'Pojmy a zkratky (TB, ZhB, Bpv, ZPMZ…), vlastní pojmy jdou přidat.',
+        'pocasi': 'Předpověď pro místo měření z 18 zdrojů, srážkový radar, vítr, tlak v tvé výšce.',
+        'slunce': 'Východ, západ, konec soumraku, délka stínu a hodiny, kdy budeš mít slunce v ose záměry.',
+        'gnss-forecast': 'Kdy dnes bude nejlepší geometrie družic (PDOP) a jestli nezlobí ionosféra (Kp).',
+        'brifink': 'Ranní souhrn na jedné kartě: počasí, světlo, GNSS okna, body po termínu.',
+        'kde-je': 'Označ, kde máš bázi, stativ, materiál nebo auto — pak tě tam navede šipka.',
+        'kniha-jizd': 'Cesťák navázaný na zakázky, měsíční součty a export CSV pro účetní.',
+        'bezpecnost': 'Bouřka, vedro, mráz, vítr, blížící se tma — a poslání vlastní polohy.',
+        'checklist': 'Balicí seznam podle typu práce a dnešního počasí; odškrtáváš ráno u auta.',
+        'moje-aktivita': 'Kolik jsi ušel a nastoupal, co používáš — a co si z Nástrojů schovat.',
+        'rocenka': 'Rok a měsíc v číslech, mapa míst, kde jsi byl, odznaky a série.',
+        'denik-dne': 'Co jsi dnes dělal, na které zakázce a jak dlouho — psaný záznam do výkazu.',
+        'plakat-dne': 'Týž den jako jeden obrázek (mapa stopy, čísla, počasí) k poslání do skupiny.',
+        'ucty-firma': 'Uživatelé, role a oprávnění, přihlašování do firmy.',
+        'dochazka': 'Příchod, odchod, hodiny na směně a měsíční přehled.',
+        'firma-chat': 'Zprávy kolegům, i když zrovna nejsou v terénu.',
+        'vysilacka': 'Kde je kolega teď, rychlé zprávy a hlídání pádu.',
+        'prohlidka': 'Co je kolem mě — hranice, sousední parcely, bez zakládání zakázky.',
+        'cadastre-vector': 'Vektorové hranice parcel z KN do mapy i do AR; jdou vytyčovat a exportovat.',
+        'cadastre-area': 'Bodové pole z oblasti, kterou máš právě na obrazovce.',
+        'vektor-mapa': 'Výřez OSM sbalený v kanceláři — kreslí i úplně bez signálu.',
+        'balicek-zakazky': 'Mapa, katastr a body kolem ZAKÁZKY (ne kolem tebe) — dělá se na wi-fi před výjezdem.',
+        'hodinky-parovani': 'Spárování a body z hodinek do appky a zpátky (Forerunner, fenix, Connect IQ).',
+        'job-transfer': 'Předat celou zakázku kolegovi nebo si ji převzít — do druhého telefonu i do kanceláře.'
+    };
+
+    // Nouzová globální funkce, kdyby dlaždice v mřížce (ještě) nebyla — modul může
+    // být lazy a klik na rozcestník nesmí spadnout do prázdna.
+    var FN = {
+        'openSatModal': 'openSatModal', 'openDictModal': 'openDictModal',
+        'pocasi': 'agOpenPocasi', 'slunce': 'agOpenSlunce', 'gnss-forecast': 'agOpenGnssForecast',
+        'brifink': 'agOpenBrifink', 'kde-je': 'agOpenKdeJe', 'kniha-jizd': 'agOpenKnihaJizd',
+        'bezpecnost': 'agOpenBezpecnost', 'checklist': 'agOpenChecklist',
+        'moje-aktivita': 'agOpenMojeAktivita', 'rocenka': 'openRocenka',
+        'denik-dne': 'agOpenDenikDne', 'plakat-dne': 'agOpenPlakatDne',
+        'vysilacka': 'agOpenVysilacka'
+    };
+
+    // Položky rozcestníku ve tvaru, který čeká openHub(). Členství je z registru,
+    // pořadí z `hub.poradi` — a to je jen NÁPOVĚDA: co v něm není, přijde nakonec
+    // v pořadí registru, takže nový nástroj s `inhub` z rozcestníku nikdy nevypadne.
+    function hubItems(hub) {
+        var keys = (window.AGReg && AGReg.hubItems) ? AGReg.hubItems(hub.id) : [];
+        var por = hub.poradi || [], serazene = [], i, ix;
+        for (i = 0; i < por.length; i++) { ix = keys.indexOf(por[i]); if (ix !== -1) serazene.push(keys.splice(ix, 1)[0]); }
+        serazene = serazene.concat(keys);
+        var out = [];
+        for (i = 0; i < serazene.length; i++) {
+            var k = serazene[i], r = (window.AGReg && AGReg.get(k)) || {};
+            out.push({ key: k, fn: FN[k], t: NAZEV[k] || r.vl || k, s: TXT[k] || r.vh || '' });
+        }
+        return out;
+    }
+
     // dlaždice skryté bez rozcestníku — vstup mají jinde (viz hlavička souboru)
     var EXTRA_HIDE = ['brutal-gps', 'ar-visual-track', 'hidden-points'];
 
-    var HIDE_KEYS = EXTRA_HIDE.slice();
-    HUBS.forEach(function (h) { h.items.forEach(function (it) { HIDE_KEYS.push(it.key); }); });
-
+    // Co všechno se v mřížce schová: položky rozcestníků + `hidden` z registru
+    // + EXTRA_HIDE. Počítá se až s registrem (modul je lazy, registr už stojí)
+    // a jednou — applySimple() běží každou 1,2 s a průchod 90 záznamy tam nemá co dělat.
+    var _hideKeys = null;
+    function hideKeys() {
+        if (_hideKeys) return _hideKeys;
+        if (!window.AGReg || !AGReg.hubItems) return EXTRA_HIDE;   // registr ještě nenaběhl
+        var out = EXTRA_HIDE.slice(), i, j, ks;
+        for (i = 0; i < HUBS.length; i++) {
+            ks = AGReg.hubItems(HUBS[i].id);
+            for (j = 0; j < ks.length; j++) out.push(ks[j]);
+        }
+        ks = AGReg.hiddenKeys ? AGReg.hiddenKeys() : [];
+        for (j = 0; j < ks.length; j++) out.push(ks[j]);
+        _hideKeys = out;
+        return out;
+    }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function simpleOn() { try { return localStorage.getItem(SIMPLE_KEY) !== '0'; } catch (e) { return true; } }
     function getGrid() { var m = document.getElementById('tools-modal'); return m ? m.querySelector('.tool-grid') : null; }
@@ -103,7 +241,8 @@
     function tileKey(tile) {
         var dt = tile.getAttribute('data-tool'); if (dt) return dt;
         var oc = tile.getAttribute('onclick') || '';
-        for (var i = 0; i < HIDE_KEYS.length; i++) { if (oc.indexOf(HIDE_KEYS[i]) !== -1) return HIDE_KEYS[i]; }
+        var hk = hideKeys();
+        for (var i = 0; i < hk.length; i++) { if (oc.indexOf(hk[i]) !== -1) return hk[i]; }
         var ms = oc.match(/([A-Za-z_$][\w$]*)\s*\(/g);
         return ms ? ms[ms.length - 1].replace(/\s*\($/, '') : null;
     }
@@ -189,10 +328,10 @@
         m.querySelector('#ag-th-sub').innerHTML = hub.sub;
         var body = m.querySelector('#ag-th-body');
         body.innerHTML = '';
-        hub.items.forEach(function (it) {
+        hubItems(hub).forEach(function (it) {
             var b = document.createElement('button');
             b.type = 'button'; b.className = 'ag-th-opt';
-            b.innerHTML = '<b>' + esc(it.t) + '</b><small>' + esc(it.s) + '</small>';
+            b.innerHTML = '<b>' + esc(it.t) + '</b>' + (it.s ? '<small>' + esc(it.s) + '</small>' : '');
             b.addEventListener('click', function () { runTool(it.key, it.fn); });
             body.appendChild(b);
         });
@@ -213,6 +352,7 @@
         // průchod DOMem na každou dlaždici. Hodnota se během jednoho průchodu nemění.
         var q = searchQuery();
         var on = simpleOn() && !q && !showAll;
+        var hk = hideKeys();
         var tiles = grid.querySelectorAll('.tool-tile');
         for (var i = 0; i < tiles.length; i++) {
             if (tiles[i].classList.contains('ag-th-tile')) continue;   // vlastní rozcestníky neskrývat
@@ -221,7 +361,7 @@
             // v ticku přetahovaly a dlaždice by problikávala.
             if (tiles[i].hasAttribute('data-ag-hidden')) continue;
             var k = tileKey(tiles[i]);
-            if (k && HIDE_KEYS.indexOf(k) !== -1) {
+            if (k && hk.indexOf(k) !== -1) {
                 // dlaždice v sekci „Pro tuto práci" (tools-simple.js) se neskrývá
                 if (tiles[i].getAttribute('data-ag-ts')) { if (tiles[i].style.display === 'none') tiles[i].style.display = ''; continue; }
                 if (on) tiles[i].style.display = 'none';

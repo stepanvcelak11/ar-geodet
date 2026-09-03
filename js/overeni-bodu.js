@@ -18,9 +18,10 @@
 // CO MODUL DĚLÁ:
 //   1) Při uložení kontrolního bodu zapíše STROJOVĚ ČITELNÝ odkaz prov.checkOf
 //      = id ověřovaného bodu (dosud jen text v názvu a poznámce).
-//   2) Do karty bodu přidá PEČEŤ — jeden řádek, který rozhodne:
-//        „✓ Ověřeno druhým určením · Δ 12 cm (mez 39 cm)"
-//        „⚠ Jediné určení — neověřeno"
+//   2) (ZRUŠENO 31. 8. 2026) Do karty bodu vkládal PEČEŤ — řádek s verdiktem.
+//      Uživateli v kartě překážela: druhé určení má v praxi zlomek bodů, takže
+//      pod každým čerstvě uloženým bodem svítilo „⚠ Jediné určení — neověřeno".
+//      Verdikt i odchylka žijí dál v soupisu (bod 3 níž). Podrobnosti u sledujKartu().
 //   3) Přidá nástroj „Ověření bodů": soupis všech vlastních bodů zakázky
 //      s odchylkou druhého určení, verdiktem a exportem do CSV.
 //
@@ -123,7 +124,14 @@
         var orig = window.showDetails;
         window.showDetails = function (pt) {
             var r = orig.apply(this, arguments);
-            try { _kartaPt = pt || null; pecet(pt); } catch (e) { swallow(e, 'overeni:showDetails'); }
+            // ⚠ 31. 8. 2026 — DO KARTY BODU UŽ TENHLE MODUL NIC NEVKLÁDÁ (na přání
+            // uživatele: „mě to tam jenom překáží"). Pečeť #ag-ov-seal svítila po
+            // rozkliknutí skoro každého bodu jako „⚠ Jediné určení — neověřeno",
+            // protože bod uložený před chvílí druhé určení mít NEMŮŽE — appka tedy
+            // kárala za něco, co v tu chvíli nejde splnit.
+            // Obal ale MUSÍ zůstat: drží _kartaPt, na kterém visí tlačítko
+            // „Kontrolní bod" (sledujTlacitko níž) a zápis prov.checkOf.
+            try { _kartaPt = pt || null; } catch (e) { swallow(e, 'overeni:showDetails'); }
             return r;
         };
         window.__agOvShowWrapped = true;
@@ -259,20 +267,22 @@
     }
 
     // ================================================================
-    //  3) pečeť v kartě bodu
+    //  3) styly soupisu (pečeť v kartě bodu ZRUŠENA 31. 8. 2026)
     // ================================================================
+    // Karta bodu tu mívala pruh #ag-ov-seal s verdiktem — „✓ Ověřeno druhým
+    // určením · Δ 12 cm", u kontrolního bodu „⌕ Kontrolní měření bodu…".
+    // Většina bodů ale druhé určení nemá (a čerstvě uložený bod ho mít ani
+    // NEMŮŽE), takže z pečeti byla v praxi pořád jedna a táž věta: „⚠ Jediné
+    // určení — neověřeno. Systematickou chybu GNSS průměrování neodstraní…"
+    // Uživatel ji 31. 8. 2026 odmítl („mě to tam jenom překáží, to zahoď“),
+    // takže verdikt, odchylka i mez žijí UŽ JEN v nástroji „Ověření bodů" níž
+    // (tabulka + export CSV) — tam si o ně řekne sám, když je chce.
+    // NEVRACET do karty bodu bez toho, že by si o to uživatel znovu řekl.
     function injectStyles() {
         if (document.getElementById(STYLE_ID)) return;
         var st = document.createElement('style');
         st.id = STYLE_ID;
         st.textContent = [
-            '#ag-ov-seal{margin:6px 0 2px;padding:8px 10px;border-radius:12px;display:flex;gap:8px;align-items:flex-start;',
-            '  font-size:calc(12.5px * var(--ag-font-scale, 1));line-height:1.4;border:1px solid var(--glass-border,rgba(255,255,255,0.14));}',
-            '#ag-ov-seal.ok{background:rgba(16,185,129,0.14);border-color:rgba(16,185,129,0.45);}',
-            '#ag-ov-seal.mimo{background:rgba(239,68,68,0.14);border-color:rgba(239,68,68,0.5);}',
-            '#ag-ov-seal.chybi{background:rgba(148,163,184,0.12);}',
-            '#ag-ov-seal b{font-weight:700;}',
-            '#ag-ov-seal .ag-ov-pozn{opacity:0.75;}',
             '#' + MODAL_ID + ' table{width:100%;border-collapse:collapse;font-size:calc(12px * var(--ag-font-scale, 1));}',
             '#' + MODAL_ID + ' th,#' + MODAL_ID + ' td{padding:5px 4px;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.12));text-align:right;white-space:nowrap;}',
             '#' + MODAL_ID + ' th:first-child,#' + MODAL_ID + ' td:first-child{text-align:left;white-space:normal;}',
@@ -283,53 +293,6 @@
             '#ag-ov-souhrn{margin:2px 0 10px;font-size:calc(13px * var(--ag-font-scale, 1));}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
-    }
-
-    function pecet(pt) {
-        try {
-            if (!pt) return;
-            var det = document.getElementById('det-body');
-            if (!det) return;
-            injectStyles();
-            var el = document.getElementById('ag-ov-seal');
-            if (!el) {
-                el = document.createElement('div');
-                el.id = 'ag-ov-seal';
-            }
-            // Pečeť patří pod navigační pruh a odchylku z js/karta-bodu.js, ale
-            // NAD lištu akcí — ať je vidět dřív, než se sáhne po tlačítku.
-            var acts = document.getElementById('ag-kb-acts');
-            if (acts && acts.parentNode) acts.parentNode.insertBefore(el, acts);
-            else det.insertBefore(el, det.firstChild);
-
-            // Kontrolní bod sám o sobě se neověřuje — ukáže, čí kontrola to je.
-            if (pt.prov && pt.prov.checkOf != null) {
-                var rodic = null, vse = body();
-                for (var i = 0; i < vse.length; i++) { if (vse[i].id === pt.prov.checkOf) { rodic = vse[i]; break; } }
-                el.className = 'chybi';
-                el.innerHTML = '<span>🔎</span><span>Kontrolní měření bodu <b>' + esc(rodic ? (rodic.name || 'bez názvu') : 'smazaného') + '</b>'
-                    + '<div class="ag-ov-pozn">Verdikt najdeš v kartě ověřovaného bodu a v nástroji Ověření bodů.</div></span>';
-                return;
-            }
-
-            var o = overeni(pt, body());
-            if (!o) {
-                el.className = 'chybi';
-                el.innerHTML = '<span>⚠</span><span><b>Jediné určení — neověřeno.</b>'
-                    + '<div class="ag-ov-pozn">Systematickou chybu GNSS průměrování neodstraní. Dojdi k bodu znovu a ťukni na <b>Kontrolní bod</b>.</div></span>';
-                return;
-            }
-            el.className = o.ok ? 'ok' : 'mimo';
-            var pozn = [];
-            pozn.push(o.zdroj === 'recheck' ? 'z Kontrolního měření' : 'z kontrolního bodu');
-            pozn.push('odstup ' + odstupText(o.odstupMs));
-            if (o.slaba) pozn.push('pod 20 min = slabá kontrola, systematika je nejspíš stejná');
-            if (o.podleNazvu) pozn.push('spárováno podle názvu');
-            el.innerHTML = '<span>' + (o.ok ? '✓' : '✕') + '</span><span><b>'
-                + (o.ok ? 'Ověřeno druhým určením' : 'Druhé určení MIMO mez') + '</b> · Δ ' + cm(o.d) + ' cm'
-                + ' (mez ' + cm(o.mez) + ' cm, kód ' + kod() + ')'
-                + '<div class="ag-ov-pozn">' + esc(pozn.join(' · ')) + '</div></span>';
-        } catch (e) { swallow(e, 'overeni:pecet'); }
     }
 
     // ================================================================

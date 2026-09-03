@@ -35,6 +35,11 @@
 // papíry a příručkou 3725 px a se všemi sbalenými se vejde na jednu obrazovku.
 // Nic se sbalením neschovává — je to jedno klepnutí a stav se pamatuje.
 //
+// ROZCESTNÍKY (js/tools-hub.js) jsou v seznamu JEDEN řádek a jejich položky se
+// samostatně nevypisují — podle pole `inhub` v js/tools-registry.js. Do 31. 8. 2026
+// to bylo naopak a slučování do rozcestníků tak v tomhle (jediném viditelném)
+// pohledu neušetřilo ani řádek; podrobně u proměnné INHUB níž.
+//
 // Hledání se nepřepisuje: jakmile začneš psát, pohled se přepne na mřížku, kde
 // běží chytré vyhledávání z field-tools.js (synonyma, překlepy, řazení). Po
 // smazání dotazu se vrátí seznam úkonů.
@@ -58,19 +63,29 @@
     // „Další nástroje": nic nezmizí, jen se to neroztřídí podle sloves.
     var GROUPS = (window.AGReg && window.AGReg.groups()) || [];
 
-    // Rozcestníky z tools-hub.js: v seznamu sloves jsou jejich položky rovnou,
-    // takže samotné rozcestníky by byly jen mezikrok navíc. Kdyby tu nebyly, spadly
-    // by do sekce „Další nástroje" a uživatel by měl stejnou věc v seznamu dvakrát.
-    // Od 30. 8. 2026 se oba seznamy berou ROVNOU Z REGISTRU misto rucniho opisu:
-    //   hub    = rozcestnik (duvod viz odstavec vys)
+    // ⚠⚠ ROZCESTNÍKY (js/tools-hub.js) — 31. 8. 2026 OBRÁCENO NARUBY.
+    // Do té doby platilo: v seznamu sloves jsou rovnou POLOŽKY rozcestníku a sám
+    // rozcestník se přeskočí. Znamenalo to, že slučování do rozcestníků NEUŠETŘILO
+    // V SEZNAMU ANI JEDEN ŘÁDEK — rozcestník skrýval dlaždice v mřížce, jenže mřížku
+    // tenhle soubor schovává (`body.ag-uk-on .tool-grid{display:none}`), takže ji
+    // uživatel vůbec nevidí. Počasí, Slunce, GNSS předpověď i Dnešek tedy stály
+    // v seznamu dál vedle sebe a uživatel táž sloučení žádal podruhé.
+    // TEĎ: rozcestník je v seznamu JEDEN řádek (má v registru vlastní `verb`/`vl`)
+    // a jeho položky se samostatně nevypisují.
+    //   inhub  = položka rozcestníku — v seznamu ji zastupuje řádek rozcestníku
+    //   hidden = „ať to není vidět" (řádek ani dlaždice); najde se dál hledáním
     //   noverb = zamerne bez slovesa, do "Dalsich nastroju" PATRI
-    // Do te doby tu petice klicu stala napsana podruhe, takze novy rozcestnik by se
-    // musel dopisovat zvlast sem a zvlast do js/tools-registry.js.
-    var SKIP = {}, NOVERB = {};
+    var INHUB = {}, NOVERB = {}, HIDDEN = {};
     ((window.AGReg && window.AGReg.all()) || []).forEach(function (r) {
-        if (r.hub) SKIP[r.k] = 1;
+        if (r.inhub) INHUB[r.k] = r.inhub;
         if (r.noverb) NOVERB[r.k] = 1;
+        if (r.hidden) HIDDEN[r.k] = 1;
     });
+    // POJISTKA: když se js/tools-hub.js nenačte (je lazy, nebo ho někdo odpojil),
+    // jeho dlaždice v mřížce není — a položky by pak zmizely ÚPLNĚ: řádek
+    // rozcestníku by nebyl a jednotlivé nástroje by byly potlačené. Proto se
+    // položka skryje jen tehdy, když dlaždice jejího rozcestníku OPRAVDU existuje.
+    function vHubu(k) { var h = INHUB[k]; return !!(h && findTile(h)); }
 
     var KNOWN = {};
     GROUPS.forEach(function (g) { g.items.forEach(function (it) { KNOWN[it.k] = 1; }); });
@@ -402,7 +417,9 @@
         // Personalizace z mřížky se do seznamu propíše — ★ Oblíbené i ◆ typ práce
         // (jinak by volba „Typ práce" nad seznamem zdánlivě nic nedělala).
         function shortcutGroup(title, keys) {
-            var live = keys.filter(function (k) { return !SKIP[k] && findTile(k); });
+            // Oblíbené a typ práce jsou VOLBA UŽIVATELE — co si sem dál sám, to
+            // rozcestník ani `hidden` nepotlačuje.
+            var live = keys.filter(function (k) { return findTile(k); });
             if (!live.length) return;
             var sec = section(title, live.length);
             live.forEach(function (k) {
@@ -416,7 +433,9 @@
 
         var used = {};
         GROUPS.forEach(function (grp) {
-            var live = grp.items.filter(function (it) { return !!findTile(it.k); });
+            var live = grp.items.filter(function (it) {
+                return !HIDDEN[it.k] && !vHubu(it.k) && !!findTile(it.k);
+            });
             if (!live.length) return;                       // celá skupina chybí (role/odpojený modul)
             var sec = section(grp.t, live.length);
             live.forEach(function (it) {
@@ -431,7 +450,7 @@
         var tiles = g.querySelectorAll('.tool-tile');
         for (var i = 0; i < tiles.length; i++) {
             var k = tileKey(tiles[i]);
-            if (!k || used[k] || KNOWN[k] || SKIP[k]) continue;
+            if (!k || used[k] || KNOWN[k] || HIDDEN[k] || vHubu(k)) continue;
             // Stejná dvě skrytí jako ve findTile(): tahle smyčka sahá na dlaždice
             // přímo, takže si je musí ohlídat sama. Bez toho by pojistka ukázala
             // (a přes run() i spustila) nástroj zakázaný rolí nebo ten, který si

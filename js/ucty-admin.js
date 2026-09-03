@@ -327,6 +327,7 @@
         uzivani: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
         dochazka: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>',
         firma: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-4h6v4"/></svg>',
+        firmy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21h20"/><path d="M4 21V9l6-3v15"/><path d="M14 21V6l6 3v12"/><path d="M7 12h0M7 16h0M17 12h0M17 16h0"/></svg>',
         napoveda: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.33c-.8.32-1.4 1-1.4 1.87v.3"/><path d="M12 17h.01"/></svg>',
         chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2.4-2.9A8 8 0 1 1 21 12z"/></svg>'
     };
@@ -340,22 +341,40 @@
         var bar = document.getElementById('agfa-firmbar');
         if (!bar) return;
         var f = u.getFirm();
-        if (!f) { bar.innerHTML = ''; bar.className = 'agfa-firmbar'; return; }
-        var me = u.currentUser();
-        var profs = u.listProfiles ? u.listProfiles() : [];
-        var more = profs.length > 1;
+        var me = f ? u.currentUser() : null;
         bar.className = 'agfa-firmbar on';
-        bar.innerHTML =
-            '<span class="agfa-fb-ico">' + (NAV_ICO.firma || '') + '</span>' +
-            '<span class="agfa-fb-txt"><b>' + esc(f.firmName || 'Moje firma') + '</b>' +
-            '<span>' + (f.cloud ? 'cloud · kód ' + esc(f.code || '?') : 'jen toto zařízení') +
-            (me ? ' · ' + esc(me.name) + ' (' + roleTxt(me.role).toLowerCase() + ')' : '') + '</span></span>' +
-            (more ? '<button type="button" class="agfa-mini" id="agfa-fb-switch">Přepnout firmu</button>' : '');
+        // ⚠⚠ TLAČÍTKO TU MUSÍ BÝT VŽDY (31. 8. 2026 — „když chci přepnout firmu, nic
+        //   mě to nedovolí"). Do té doby se ukazovalo jen tehdy, když zařízení znalo
+        //   VÍC NEŽ JEDNU firmu — jenže právě to je ta situace, kdy člověk potřebuje
+        //   druhou firmu teprve přidat. A bez firmy (host) byl pruh docela prázdný,
+        //   takže z panelu nevedla cesta k přihlášení vůbec žádná.
+        if (!f) {
+            bar.innerHTML =
+                '<span class="agfa-fb-ico">' + (NAV_ICO.firma || '') + '</span>' +
+                '<span class="agfa-fb-txt"><b>Nejsi přihlášen k žádné firmě</b>' +
+                '<span>omezený režim — jen základní měření bodů</span></span>' +
+                '<button type="button" class="agfa-mini" id="agfa-fb-switch">Přihlásit se</button>';
+        } else {
+            bar.innerHTML =
+                '<span class="agfa-fb-ico">' + (NAV_ICO.firma || '') + '</span>' +
+                '<span class="agfa-fb-txt"><b>' + esc(f.firmName || 'Moje firma') + '</b>' +
+                '<span>' + (f.cloud ? 'cloud · kód ' + esc(f.code || '?') : 'jen toto zařízení') +
+                (me ? ' · ' + esc(me.name) + ' (' + roleTxt(me.role).toLowerCase() + ')' : ' · nepřihlášen') + '</span></span>' +
+                '<button type="button" class="agfa-mini" id="agfa-fb-switch">Přihlásit / přepnout</button>';
+        }
         var sw = bar.querySelector('#agfa-fb-switch');
-        if (sw) sw.onclick = function () { renderNav('firma'); setTimeout(function () {
-            var el = document.getElementById('agfa-firms');
-            if (el && el.scrollIntoView) try { el.scrollIntoView({ block: 'center' }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:onclick'); }
-        }, 120); };
+        if (sw) sw.onclick = function () {
+            if (!u.getFirm()) {                       // host: rovnou přihlašovací brána
+                var m = document.getElementById('agfa-modal'); if (m) m.style.display = 'none';
+                if (u.showGate) u.showGate();
+                return;
+            }
+            renderNav(u.isAdmin() ? 'firma' : 'firmy');
+            setTimeout(function () {
+                var el = document.getElementById('agfa-firms');
+                if (el && el.scrollIntoView) try { el.scrollIntoView({ block: 'center' }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:onclick'); }
+            }, 120);
+        };
     }
 
     var _section = 'uzivatele';
@@ -369,8 +388,19 @@
         if (admin) {
             items = [['prehled', 'Přehled'], ['uzivatele', 'Uživatelé'], ['opravneni', 'Oprávnění'], ['uzivani', 'Užívání'], ['dochazka', 'Docházka'], ['firma', 'Firma'], ['napoveda', 'Nápověda']];
         } else {
-            items = [['uzivani', 'Užívání'], ['dochazka', 'Docházka'], ['napoveda', 'Nápověda']];
-            if (['uzivani', 'dochazka', 'napoveda'].indexOf(_section) === -1) _section = 'uzivani';
+            // ⚠ SEKCE „FIRMY" MUSÍ MÍT KAŽDÝ. Přepnutí a připojení další firmy dřív
+            //   žilo jen v adminské sekci Firma — zaměstnanec, vedení ani host se
+            //   tedy k jiné firmě neměli jak dostat (a host neviděl v panelu vůbec nic).
+            // ⚠⚠ PODMÍNKA `!!u.getFirm()` JE NUTNÁ: can() bez firmy vrací TRUE (stav
+            //   „před branou", kdy se ještě nemá co zamykat). Bez ní se hostovi
+            //   nabídlo Užívání i Docházka, jenže obě se bez firmy hned vrátí a
+            //   nechají tělo panelu PRÁZDNÉ — přesně to hlášené „nic tam není".
+            var dash = !!u.getFirm() && u.can && u.can('x.dashboard');
+            items = [];
+            if (dash) items.push(['uzivani', 'Užívání'], ['dochazka', 'Docházka']);
+            items.push(['firmy', 'Firmy'], ['napoveda', 'Nápověda']);
+            var povolene = items.map(function (it) { return it[0]; });
+            if (povolene.indexOf(_section) === -1) _section = povolene[0];
         }
         nav.innerHTML = items.map(function (it) {
             return '<button type="button" data-s="' + it[0] + '" class="' + (it[0] === _section ? 'act' : '') + '">' +
@@ -392,6 +422,7 @@
         else if (_section === 'uzivani') renderUsage(body);
         else if (_section === 'dochazka') renderDochazka(body);
         else if (_section === 'napoveda') renderHelp(body);
+        else if (_section === 'firmy') renderFirmy(body);
         else renderFirm(body);
     }
 
@@ -515,9 +546,12 @@
                 u.cloudFetch('/stats').then(function (r) {
                     if (!el) return;
                     if (!r.ok || !r.data) {
+                        // TÝŽ VZOR jako u seznamů (CLOUD_TXT): 401 není „nefunguje server",
+                        // ale „tenhle telefon nemá přístup" — a musí k tomu být tlačítko.
                         el.innerHTML = r.status === 404
                             ? '<span style="color:#d4a02c;">⚠ Server běží na <b>staré verzi</b> — vytížení, chat i záloha začnou fungovat až po nasazení nového <b>cloud/worker.js</b> (Cloudflare dashboard → ar-geodet-api → Edit code; návod v cloud/README.md).</span>'
-                            : 'Vytížení se nepodařilo načíst (' + (r.status === 0 ? 'offline' : 'chyba ' + r.status) + ').';
+                            : (cloudNoteHtml(cloudDuvod(r)) || 'Vytížení se nepodařilo načíst (chyba ' + r.status + ').');
+                        wireCloudNote(el, function () { renderPrehled(body); });
                         return;
                     }
                     var lim = (r.data.limits && r.data.limits.reqPerDay) || 100000;
@@ -542,8 +576,15 @@
         body.innerHTML =
             '<div class="agfa-pg">Administrace patří jedné firmě</div>' +
             '<div class="agfa-note">Nahoře v zeleném pruhu je vidět, <b>kterou firmu právě spravuješ</b> (a jako kdo). Všechno níž — uživatelé, ' +
-            'oprávnění, užívání i docházka — patří jen téhle firmě. Když má zařízení víc firem, přepneš je tlačítkem <b>Přepnout firmu</b> ' +
-            'v tom pruhu (nebo v sekci Firma). Přepnutí vždy chce heslo/PIN.</div>' +
+            'oprávnění, užívání i docházka — patří jen téhle firmě. Přepínáš je tlačítkem <b>Přihlásit / přepnout</b> v tom pruhu; ' +
+            'admin má seznam firem v sekci <b>Firma</b>, ostatní v sekci <b>Firmy</b>. Přepnutí vždy chce heslo/PIN.</div>' +
+            '<div class="agfa-pg">Když se data nestáhnou ze serveru</div>' +
+            '<div class="agfa-note">Nahoře v sekci se objeví žlutě orámovaná hláška a v ní tlačítko, které to řeší. Rozlišuje čtyři různé věci, ' +
+            'protože každá se řeší jinak: <b>bez signálu</b> (server nejspíš běží, jen se k němu nejde dovolat — <i>Zkusit znovu</i>), ' +
+            '<b>telefon není přihlášený k serveru</b> (chybí přístup tohohle mobilu, ne server — <i>Přihlásit se</i>), ' +
+            '<b>přístup vypršel / účet zablokován</b> (server odpovídá, jen tenhle přístup neuznává — <i>Přihlásit se</i>) a ' +
+            '<b>chyba serveru</b> (za chvíli znovu). Do 31. 8. 2026 se všem čtyřem říkalo „Server nedostupný", což byla ve třech ' +
+            'případech ze čtyř nepravda. Dokud se data nestáhnou, ukazují se záznamy z tohoto telefonu — nikdy se nic nemaže.</div>' +
             '<div class="agfa-pg">Kdo co vidí</div>' +
             '<div class="agfa-note"><b>Zaměstnanec</b> používá appku klasicky — jen nástroje pro práci v terénu. ' +
             '<b>Vedení</b> vidí navíc firemní přehledy (užívání, docházka). <b>Admin</b> má sekci <b>Přehled</b> — ' +
@@ -556,14 +597,17 @@
             '<div class="agfa-note">Appka se otevře až po přihlášení. Každá firma má <b>kód</b> (např. K7M2PX) — ' +
             'zaměstnanec na svém mobilu zadá kód firmy + své jméno + heslo (účet mu předtím založí admin v sekci Uživatelé). ' +
             'Po prvním přihlášení s internetem funguje přihlášení i <b>offline</b> (heslo se ověří proti otisku uloženému v zařízení). ' +
-            'Kdo nemá účet, může appku zkusit v <b>omezeném režimu</b> — jen základní měření bodů, bez nástrojů a exportu.</div>' +
+            'Kdo nemá účet, může appku zkusit v <b>omezeném režimu</b> — jen základní měření bodů, bez nástrojů a exportu. ' +
+            'Z omezeného režimu vede zpátky <b>pruh dole nad lištou</b> („Omezený režim — Přihlásit se"); ' +
+            'omezený režim se tedy nezavírá napořád, jak to od 31. 8. 2026 chvíli vypadalo.</div>' +
             '<div class="agfa-pg">Role a oprávnění</div>' +
             '<div class="agfa-note"><b>Admin</b> vidí a může vše: spravuje uživatele, oprávnění i firmu a vidí přehled užívání. ' +
             '<b>Vedení</b> a <b>zaměstnanec</b> vidí jen to, co jim admin povolí v sekci Oprávnění (vedení může navíc dostat přehled užívání). ' +
             'Oprávnění platí pro celou firmu na všech zařízeních.</div>' +
             '<div class="agfa-pg">Více firem na jednom zařízení</div>' +
             '<div class="agfa-note">Zařízení si pamatuje každou firmu, ke které ses přihlásil. Mezi firmami se přepíná v sekci ' +
-            '<b>Firma → Firmy na tomto zařízení</b>, nebo na přihlašovací obrazovce (odhlas se, firmy se nabídnou). ' +
+            '<b>Firmy → Firmy na tomto zařízení</b> (u admina <b>Firma</b>), kde se tlačítkem <b>+ Připojit další firmu (kód)</b> ' +
+            'i přidá nová, nebo na přihlašovací obrazovce (odhlas se, firmy se nabídnou). ' +
             'Přepnutí vždy chce heslo/PIN — nikdo si bez ověření nepřepne do cizí firmy. ' +
             '<b>Body a zakázky se s firmou nepřepínají</b> — patří zařízení a zůstávají stejné; přepíná se jen „kdo je přihlášen, co smí a kam se hlásí užívání".</div>' +
             '<div class="agfa-pg">Cloud vs. lokální firma</div>' +
@@ -614,6 +658,7 @@
         var m = ensureModal();
         m.style.display = 'flex';
         document.getElementById('agfa-nav').innerHTML = '';
+        renderFirmBar();          // hostovi tím nahoře přibude tlačítko „Přihlásit se"
         var body = document.getElementById('agfa-body');
         body.innerHTML =
             '<div class="agfa-note"><b>Zaměstnanec</b> se jen přihlásí kódem firmy, který dostal od svého admina — nic nezakládá. ' +
@@ -919,6 +964,7 @@
             (cloud ? '<button type="button" class="agfa-mini" id="agfa-reload" style="margin-top:8px;">Načíst seznam ze serveru</button>' : '') +
             '<div id="agfa-uform"></div>';
         body.querySelector('#agfa-add').onclick = function () { userForm(body, null); };
+        wireCloudNote(body, function () { u.refreshConfig().then(function () { if (_section === 'uzivatele') renderUsers(body, true); }); });
         var rl = body.querySelector('#agfa-reload');
         if (rl) rl.onclick = function () {
             rl.disabled = true; rl.textContent = 'Načítám…';
@@ -962,30 +1008,78 @@
             });
         };
     }
-    // ---- STAV SYNCHRONIZACE SEZNAMU UŽIVATELŮ ---------------------------------
+    // ---- STAV SPOJENÍ SE SERVEREM: JEDEN VZOR PRO VŠECHNY SEZNAMY -------------
+    // Uživatelé, Užívání i Docházka čtou stejná data ze stejného serveru, takže
+    // musí i stejně mluvit o tom, když se čtení nepovede. Do 31. 8. 2026 to byly
+    // TŘI různé texty a dva z nich LHALY: Užívání i Docházka psaly „⚠ Server
+    // nedostupný", i když server běžel a jen tomuhle telefonu chyběl (nebo vypršel)
+    // přístup — vrátil 401. Uživatel z toho měl „nefunguje vám server" místo
+    // „přihlas se". Odteď se stav pojmenuje jednou (cloudDuvod) a vypíše jednou
+    // (cloudNoteHtml) — a ke každému stavu patří TLAČÍTKO, které to řeší.
+    //
+    // Kódy jsou tytéž, jaké hlásí AGUcty.lastSync().duvod (js/ucty.js).
+    //   t = co se stalo · c = co s tím · a = akce tlačítka
+    var CLOUD_TXT = {
+        'offline': { t: 'Bez signálu — ukazuje se, co má v paměti tenhle telefon.',
+            c: 'Server je pravděpodobně v pořádku, jen se k němu teď nejde dovolat. Až budeš mít internet, otevři sekci znovu — dotáhne se i to, co zapsali ostatní.', a: 'znovu' },
+        'server': { t: 'Server odpověděl chybou — ukazuje se, co má v paměti tenhle telefon.',
+            c: 'Zkus to za chvíli znovu. Když to potrvá, napiš mi přes Nastavení → Napište mi.', a: 'znovu' },
+        'bez-tokenu': { t: 'Tenhle telefon není přihlášený k firmě na serveru.',
+            c: 'Se serverem to nesouvisí — chybí jen přístup tohohle mobilu (odhlášení, nová instalace). Přihlas se heslem a data se stáhnou ze všech zařízení firmy.', a: 'prihlasit' },
+        'odmitnuto': { t: 'Přístup vypršel (nebo byl účet zablokován).',
+            c: 'Server běží a odpovídá, jen tenhle přístup už neuznává. Přihlas se znovu — heslo se nezměnilo.', a: 'prihlasit' },
+        'jina-firma': { t: 'V telefonu visel přístup k jiné firmě, tak se zahodil.',
+            c: 'Přihlas se znovu do téhle firmy, pak se data stáhnou správně.', a: 'prihlasit' }
+    };
+    // Z odpovědi cloudFetch() (a ze stavu telefonu) urči kód stavu. POŘADÍ JE
+    // ZÁMĚRNÉ: chybějící přístup se pozná DŘÍV než návratový kód, protože právě
+    // ten se navenek tvářil jako výpadek serveru.
+    function cloudDuvod(r) {
+        var u = U(); if (!u) return 'server';
+        var f = u.getFirm();
+        if (!f || !f.cloud) return null;                          // lokální firma: data JSOU úplná
+        if (!u.hasToken || !u.hasToken()) return 'bez-tokenu';
+        if (!r || r.status === 0) return 'offline';
+        if (r.status === 401 || r.status === 403) return 'odmitnuto';
+        if (!r.ok) return 'server';
+        return null;
+    }
+    function cloudNoteHtml(duvod) {
+        var t = CLOUD_TXT[duvod];
+        if (!t) return '';
+        var btn = '';
+        if (t.a === 'prihlasit') btn = '<button type="button" class="agfa-mini" data-cloud="prihlasit">Přihlásit se</button>';
+        else if (t.a === 'znovu') btn = '<button type="button" class="agfa-mini" data-cloud="znovu">Zkusit znovu</button>';
+        return '<div class="agfa-note" style="border-left:3px solid #d4a02c;padding-left:9px;">' +
+            '<b>' + esc(t.t) + '</b><br>' + esc(t.c) +
+            (btn ? '<div style="margin-top:8px;">' + btn + '</div>' : '') + '</div>';
+    }
+    // Tlačítka z cloudNoteHtml. `znovu` = překreslit sekci (dotaz se zopakuje),
+    // `prihlasit` = zavřít panel a pustit přihlašovací obrazovku (bez firmy bránu).
+    function wireCloudNote(body, znovu) {
+        var els = body.querySelectorAll('[data-cloud]');
+        for (var i = 0; i < els.length; i++) {
+            (function (b) {
+                b.onclick = function () {
+                    var u = U(); if (!u) return;
+                    if (b.getAttribute('data-cloud') === 'prihlasit') {
+                        var m = document.getElementById('agfa-modal'); if (m) m.style.display = 'none';
+                        if (u.getFirm()) u.lock(); else if (u.showGate) u.showGate();
+                        return;
+                    }
+                    if (typeof znovu === 'function') znovu();
+                };
+            })(els[i]);
+        }
+    }
     // Seznam účtů žije NA SERVERU; v telefonu je jen poslední známá kopie. Když se
     // čerstvá kopie nestáhne, musí to být vidět — jinak vypadá zastaralý seznam
-    // úplně stejně jako čerstvý. Text mluví o tom, CO S TÍM, ne o návratovém kódu.
-    var SYNC_TXT = {
-        'offline': ['Seznam je z paměti telefonu — server teď není dosažitelný.',
-            'Až budeš mít signál, otevři sekci znovu. Kdo přibyl na jiném mobilu, se objeví.'],
-        'server': ['Server odpověděl chybou, seznam je z paměti telefonu.',
-            'Zkus to za chvíli znovu. Když to potrvá, napiš mi přes Nastavení → Napište mi.'],
-        'bez-tokenu': ['Tenhle telefon není přihlášený k serveru — seznam je jen z jeho paměti.',
-            'Přihlas se znovu (Více → Přepnout uživatele / zamknout); pak bude seznam platit pro celou firmu.'],
-        'odmitnuto': ['Server přihlášení odmítl (vypršelo, nebo byl účet zablokován).',
-            'Přihlas se znovu — heslo se nezměnilo.'],
-        'jina-firma': ['V telefonu visel přístup k jiné firmě, tak se zahodil.',
-            'Přihlas se znovu do téhle firmy, pak se seznam stáhne správně.']
-    };
+    // úplně stejně jako čerstvý.
     function syncNote(u, cloud) {
         if (!cloud || !u.lastSync) return '';
         var st = u.lastSync();
         if (!st || !st.ts || st.ok || !st.duvod || st.duvod === 'lokalni') return '';
-        var t = SYNC_TXT[st.duvod];
-        if (!t) return '';
-        return '<div class="agfa-note" style="border-left:3px solid #d4a02c;padding-left:9px;">' +
-            '<b>' + esc(t[0]) + '</b><br>' + esc(t[1]) + '</div>';
+        return cloudNoteHtml(st.duvod);
     }
 
     function cloudErr(r) {
@@ -1423,9 +1517,10 @@
         var from = new Date();
         from.setHours(0, 0, 0, 0);
         if (_range > 1) from.setDate(from.getDate() - (_range - 1));
-        var cloudNote = '';
+        var cloudNote = '', neuplne = false;
         // cloud: nejdřív odešli lokální frontu, pak čti ze serveru (VŠECHNA zařízení);
-        // bez signálu spadni na lokální záznamy tohoto zařízení
+        // když se to nepovede, spadni na lokální záznamy tohoto zařízení A ŘEKNI PROČ
+        // (viz CLOUD_TXT — dřív tu stálo paušální „Server nedostupný", i když server běžel)
         var getEvents = (f.cloud
             ? u.syncUsage().then(function () {
                 return u.cloudFetch('/usage?from=' + from.getTime()).then(function (r) {
@@ -1433,7 +1528,8 @@
                         cloudNote = '<div class="agfa-note">Data ze všech zařízení firmy (server).</div>';
                         return r.data.events;
                     }
-                    cloudNote = '<div class="agfa-note" style="color:var(--danger,#e5534b);">⚠ Server nedostupný — zobrazeny jen záznamy z tohoto zařízení.</div>';
+                    neuplne = true;
+                    cloudNote = cloudNoteHtml(cloudDuvod(r));
                     return u.usageQuery(from.getTime());
                 });
             })
@@ -1550,7 +1646,15 @@
                 var b = byUser[name];
                 html += '<tr><td><b>' + esc(name) + '</b></td><td>' + b.add + '</td><td>' + (b.edit + b.del) + '</td><td>' + Object.keys(b.days).length + '</td><td>' + fmtH(b.work) + ' h</td><td>' + new Date(b.last).toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }) + '</td></tr>';
             });
-            if (!Object.keys(byUser).length) html += '<tr><td colspan="6" style="color:var(--text-muted);">Zatím žádné záznamy ve zvoleném období.</td></tr>';
+            if (!Object.keys(byUser).length) {
+                // PRÁZDNO MUSÍ ŘÍCT, PROČ JE PRÁZDNÉ. Když se čtení ze serveru nepovedlo,
+                // není to „nikdo nic nedělal" — jsou to jen záznamy tohoto telefonu.
+                html += '<tr><td colspan="6" style="color:var(--text-muted);">' +
+                    (neuplne
+                        ? 'Tenhle telefon nemá ve zvoleném období žádné záznamy — a ze serveru se nic stáhnout nepodařilo (viz hláška nahoře), takže o práci na ostatních mobilech tady nevíme.'
+                        : 'Zatím žádné záznamy ve zvoleném období.') +
+                    '</td></tr>';
+            }
             html += '</table>';
 
             var userBars = Object.keys(byUser).map(function (n) {
@@ -1592,6 +1696,7 @@
 
             body.querySelector('#agfa-d-range').onchange = function () { _range = parseInt(this.value, 10) || 7; renderUsage(body); };
             body.querySelector('#agfa-d-user').onchange = function () { _userF = this.value || '*'; renderUsage(body); };
+            wireCloudNote(body, function () { renderUsage(body); });
 
             if (u.isAdmin()) {
                 var diag = body.querySelector('#agfa-diag');
@@ -1663,7 +1768,7 @@
         var from = new Date();
         from.setHours(0, 0, 0, 0);
         if (_doRange > 1) from.setDate(from.getDate() - (_doRange - 1));
-        var cloudNote = '';
+        var cloudNote = '', neuplne = false;
         var getEvents = (f.cloud
             ? u.syncUsage().then(function () {
                 return u.cloudFetch('/usage?from=' + from.getTime()).then(function (r) {
@@ -1671,7 +1776,9 @@
                         cloudNote = '<div class="agfa-note">Docházka ze všech zařízení firmy (server).</div>';
                         return r.data.events;
                     }
-                    cloudNote = '<div class="agfa-note" style="color:var(--danger,#e5534b);">⚠ Server nedostupný — jen záznamy z tohoto zařízení.</div>';
+                    // TÝŽ VZOR jako u seznamu uživatelů a u Užívání — viz CLOUD_TXT
+                    neuplne = true;
+                    cloudNote = cloudNoteHtml(cloudDuvod(r));
                     return u.usageQuery(from.getTime());
                 });
             })
@@ -1763,8 +1870,19 @@
 
             var names = Object.keys(sum).sort();
             if (!names.length) {
-                html += '<div class="agfa-note">Ve zvoleném období nikdo docházku nezapsal. Zaměstnanci si příchod/odchod ' +
-                    'značí dlaždicí <b>Docházka</b> v Nástrojích (kategorie Pomůcky) — funguje i bez signálu.</div>';
+                // ⚠ PRÁZDNÁ DOCHÁZKA MÁ TŘI ÚPLNĚ RŮZNÉ PŘÍČINY a do 31. 8. 2026 vypadaly
+                //   všechny stejně („nic tam není"): (1) opravdu nikdo nepíchl, (2) data
+                //   leží na serveru, ke kterému se telefon nedostal, (3) docházku nikdo
+                //   nezačal používat. Každá se řeší jinak, takže se každá jinak i napíše.
+                html += '<div class="agfa-note">' +
+                    (neuplne
+                        ? '<b>Ze serveru se docházka nestáhla</b> (viz hláška nahoře), a tenhle telefon v období žádné píchnutí nemá. ' +
+                          'Co zapsali kolegové na svých mobilech, se sem dostane až po přihlášení / obnově spojení.'
+                        : '<b>Ve zvoleném období nikdo docházku nezapsal.</b> Zkus delší období přepínačem nahoře.') +
+                    '</div>' +
+                    '<div class="agfa-note">Příchod a odchod si každý značí sám: <b>Nástroje → Pomůcky → Docházka</b> — jedno velké tlačítko, ' +
+                    'funguje i bez signálu (záznam se odešle, až je internet). Dokud to nikdo neudělá, je tahle sekce prázdná i při ' +
+                    'zcela funkčním serveru.</div>';
             } else {
                 html += '<div class="agfa-pg">Souhrn (' + (_doRange === 1 ? 'dnes' : 'za období') + ')</div>' +
                     '<table class="agfa-tbl"><tr><th>Uživatel</th><th>Dní</th><th>Hodin</th><th>Teď</th></tr>';
@@ -1819,6 +1937,7 @@
             }
             body.innerHTML = html;
             body.querySelector('#agfa-do-range').onchange = function () { _doRange = parseInt(this.value, 10) || 7; renderDochazka(body); };
+            wireCloudNote(body, function () { renderDochazka(body); });
 
             // admin: zpětné doplnění odchodu (zapíše se jako běžná událost a doputuje na server)
             body.onclick = async function (e) {
@@ -1986,6 +2105,48 @@
             '  <button class="agfa-mini" id="agfa-f-new2">Založit další firmu</button>' +
             '</div><div id="agfa-join2"></div>';
     }
+    // ------------------------------------------------------------------
+    // Sekce FIRMY — přihlášení a přepínání firem pro KOHOKOLI (host, zaměstnanec,
+    // vedení). Admin má totéž uvnitř své sekce Firma, kde k tomu patří i název
+    // firmy, zámek a zálohy; sem se proto nedostane a nic se nedubluje.
+    // ⚠ VZNIKLA 31. 8. 2026: do té doby vedla jediná cesta k přepnutí firmy přes
+    //   adminskou sekci, takže „přepnout firmu mi to nedovolí" platilo doslova.
+    // ------------------------------------------------------------------
+    function renderFirmy(body) {
+        var u = U(); if (!u) return;
+        var f = u.getFirm();
+        var me = f ? u.currentUser() : null;
+        if (!f) {
+            body.innerHTML =
+                '<div class="agfa-pg">Přihlášení k firmě</div>' +
+                '<div class="agfa-note">Teď jedeš v <b>omezeném režimu</b> bez přihlášení — jde jen základní měření bodů. ' +
+                'Nástroje, export, zakázky a firemní přehledy potřebují účet ve firmě.</div>' +
+                '<div class="agfa-note">Kód firmy, jméno a heslo dostaneš od svého admina. Kdo firmu teprve zakládá, ' +
+                'najde průvodce tlačítkem níž.</div>' +
+                '<button class="btn" style="width:100%;margin-top:10px;" id="agfa-fy-gate">Přihlásit se ke své firmě</button>' +
+                '<button class="btn btn-secondary" style="width:100%;margin-top:8px;" id="agfa-fy-wiz">Založit firmu / další možnosti</button>';
+            body.querySelector('#agfa-fy-gate').onclick = function () {
+                var m = document.getElementById('agfa-modal'); if (m) m.style.display = 'none';
+                if (u.showGate) u.showGate();
+            };
+            body.querySelector('#agfa-fy-wiz').onclick = function () { openWizard(); };
+            return;
+        }
+        body.innerHTML =
+            firmsHtml(u, f) +
+            '<div class="agfa-pg">Přihlášený účet</div>' +
+            '<div class="agfa-note">' + (me
+                ? 'Na tomhle telefonu je přihlášen <b>' + esc(me.name) + '</b> (' + roleTxt(me.role).toLowerCase() + '). ' +
+                  'Odhlášením se dostaneš na přihlašovací obrazovku — tam se přihlásí kdokoli jiný z firmy.'
+                : 'Zrovna není nikdo přihlášený. Přihlášením se stáhne i to, co zapsali kolegové na svých mobilech.') + '</div>' +
+            '<button class="agfa-mini" id="agfa-fy-lock" style="margin-top:6px;">' + (me ? 'Odhlásit se / přihlásit jiného' : 'Přihlásit se') + '</button>';
+        wireFirms(body, u);
+        body.querySelector('#agfa-fy-lock').onclick = function () {
+            var m = document.getElementById('agfa-modal'); if (m) m.style.display = 'none';
+            u.lock();
+        };
+    }
+
     function wireFirms(body, u) {
         var list = body.querySelector('#agfa-firms');
         if (list) list.onclick = function (e) {
@@ -1996,7 +2157,7 @@
                 agConfirm({ title: 'Zapomenout firmu', message: 'Odebere firmu jen ze seznamu tohoto zařízení (na serveru se nic nemění). Znovu se lze kdykoli přihlásit kódem firmy.', okText: 'Zapomenout', danger: true }).then(function (ok) {
                     if (!ok) return;
                     u.removeProfile(key);
-                    renderNav('firma');
+                    renderNav(u.isAdmin() ? 'firma' : 'firmy');   // zaměstnanec sekci Firma nemá
                 });
                 return;
             }
@@ -2030,7 +2191,7 @@
                     u.adoptLogin(r.data, u.DEFAULT_API, pass);
                     u.usageLog('login', 'join');
                     agAlert('Přepnuto', 'Jsi přihlášen jako <b>' + esc(r.data.user.name) + '</b> ve firmě <b>' + esc(r.data.config.firm.name) + '</b>. Původní firma zůstává v seznamu firem zařízení.');
-                    renderNav(u.isAdmin() ? 'firma' : 'uzivani');
+                    renderNav(u.isAdmin() ? 'firma' : 'firmy');
                 });
             };
         };
@@ -2223,10 +2384,16 @@
         var u = U();
         if (!u) { agAlert('Chybí jádro', 'Modul js/ucty.js není načtený.'); return; }
         var f = u.getFirm();
-        if (!f) { openWizard(); return; }
+        // Bez firmy (host) se dřív otevřel HOLÝ průvodce založením — bez navigace,
+        // takže z panelu nebyla dostupná ani nápověda, ani cesta na přihlášení.
+        if (!f) { openModal('firmy'); return; }
         if (u.isAdmin()) { openModal('prehled'); return; }
         if (u.can('x.dashboard')) { openModal('uzivani'); return; }
-        agAlert('Jen pro admina', 'Administraci firmy otevře administrátor. Ty se můžeš odhlásit nebo přepnout v menu Více.');
+        // ⚠ DŘÍV TU BYLA JEN HLÁŠKA „Jen pro admina" a panel se neotevřel vůbec —
+        //   zaměstnanec se tedy z appky neměl jak přihlásit do jiné firmy ani si
+        //   přečíst, jak to celé funguje. Firemní data zůstávají skrytá, ale
+        //   přihlášení, přepnutí firmy a nápověda patří každému.
+        openModal('firmy');
     }
 
     function syncMenuBtn() {
