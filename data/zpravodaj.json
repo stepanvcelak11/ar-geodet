@@ -1,7 +1,19 @@
 {
-  "vydani": "2026-09-02",
-  "uvodnik": "Vydání 2026-09-02 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-09-03",
+  "uvodnik": "Vydání 2026-09-03 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "First-Ever National Field Data Study on Multiskilled Construction",
+      "perex": "Washington, Sept. 2 —Associated Builders and Contractors today celebrated the release of Multiskilling in the U.S.",
+      "telo": "Washington, Sept. 2 —Associated Builders and Contractors today celebrated the release of Multiskilling in the U.S. Construction Industry , the largest national dataset documenting the relationship between multiskilling labor strategies and performance outcomes, including productivity, staffing levels and schedule durations. Among other findings, the research showed that multiskilling increased the share of crew time spent on directly advancing construction work by 39%. Multiskilled craft professionals build select, verified capabilities by obtaining credentials in multiple crafts and then utilizing them safely and competently on the jobsite. In the research, the typical observed worker used",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/02/first-ever-national-field-data-study-on-multiskilled-construction-shows-wins-for-workers-taxpayers-industry/?utm_source=rss&utm_medium=rss&utm_campaign=first-ever-national-field-data-study-on-multiskilled-construction-shows-wins-for-workers-taxpayers-industry",
+      "datum": "2026-09-03"
+    },
     {
       "rubrika": "Z praxe",
       "top": false,
@@ -85,18 +97,6 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
-    },
-    {
-      "rubrika": "Přístroje",
-      "top": false,
-      "nadpis": "Latitude Spatial Showcases UltraCam Merlin 5.0 in New iFlyUltraCam Video",
-      "perex": "Graz, Austria • August 19, 2026 — Vexcel Imaging is pleased to spotlight Latitude Spatial in a new iFlyUltraCam video , highlighting how the Australian aerial mapping company is using the UltraCam Mer…",
-      "telo": "Graz, Austria • August 19, 2026 — Vexcel Imaging is pleased to spotlight Latitude Spatial in a new iFlyUltraCam video , highlighting how the Australian aerial mapping company is using the UltraCam Merlin 5.0 to deliver efficient, high-quality spatial data across one of the world’s largest and most challenging mapping environments. Latitude Spatial, which evolved from HyVista Corporation , combines a long history in airborne remote sensing with extensive experience operating UltraCam systems. After becoming the launch customer for the UltraCam Merlin 5.0 last year, Latitude Spatial is now sharing firsthand how the system is helping support its nationwide mapping operations. “The Merlin 5.0 hi",
-      "body": [],
-      "proc": "",
-      "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/08/20/latitude-spatial-showcases-ultracam-merlin-5-0-in-new-iflyultracam-video/?utm_source=rss&utm_medium=rss&utm_campaign=latitude-spatial-showcases-ultracam-merlin-5-0-in-new-iflyultracam-video",
-      "datum": "2026-08-20"
     }
   ]
 }
