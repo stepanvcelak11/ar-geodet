@@ -2576,7 +2576,21 @@
         var n = 0;
         (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(function () {
             tick(); lockCheck();
-            if (++n % 60 === 0 && isCloud() && currentUser() && navigator.onLine !== false) syncUsage();
+            n++;
+            if (n % 60 === 0 && isCloud() && currentUser() && navigator.onLine !== false) syncUsage();
+            // ⚠⚠ ZABLOKOVANÝ ÚČET SE MUSÍ SÁM ODHLÁSIT (doplněno 3. 9. 2026).
+            //   Admin při blokaci čte: „nebude se moct přihlásit — ani na mobilu, kde
+            //   je právě přihlášený (ODHLÁSÍ SE DO MINUTY)". Ten slib ale nikdo neplnil:
+            //   refreshConfig() (ten zámek umí — viz `if (getSess() && !currentUser())`)
+            //   se volal jen po přihlášení, po návratu online a z panelu firmy. Změřeno:
+            //   účet zablokovaný na serveru jel na mobilu dál i po 160 s a otevíral
+            //   nástroje; ven ho dostal až restart appky.
+            //   Teď se konfigurace srovná jednou za minutu (30 × 2 s). Je to jeden malý
+            //   GET /config; na pozadí netiká vůbec (AG.uiInterval) a offline se
+            //   refreshConfig() sám vrátí bez požadavku.
+            if (n % 30 === 0 && isCloud() && currentUser() && navigator.onLine !== false) {
+                try { refreshConfig(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:tickRefreshConfig'); }
+            }
         }, 2000);
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 200); });

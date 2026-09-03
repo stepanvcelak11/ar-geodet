@@ -11,7 +11,20 @@
 
     var KEY = 'agTrash';
     var TTL = 30 * 24 * 3600 * 1000; // 30 dni
-    var MAX = 15;
+    // ⚠⚠ STROP 3. 9. 2026: 15 → 400 ZÁZNAMŮ. Patnáct byla tichá ztráta práce:
+    //   hromadné smazání v panelu Body se ptá „Opravdu smazat 25 vybraných bodů?
+    //   Obnovit je půjde 30 dní z koše" — jenže do koše se z těch 25 vešlo jen
+    //   POSLEDNÍCH 15 a zbytek zmizel nadobro. Změřeno: smazáno 25 bodů, v koši
+    //   15 (T110…T124), prvních deset pryč. A u hromadného mazání se toast
+    //   „Vrátit zpět" schválně neukazuje, takže koš je tam JEDINÁ záchrana.
+    //   Počet se proto řídí velikostí, ne palcem: bod je v koši ~300 B, takže
+    //   400 záznamů je pod 150 kB. O skutečnou mez se stará BYTES níž a pojistka
+    //   `while (!save(list) …)` na konci push() — kvóta úložiště platila vždycky.
+    var MAX = 400;
+    // Strop v bajtech (zakázka v koši je o řád větší než bod, takže sám počet
+    // nestačí). Přeteče-li, zahazují se NEJSTARŠÍ záznamy — ne ty čerstvě smazané,
+    // o které uživatel přišel před minutou a které shání.
+    var MAX_BYTES = 1500000;
 
     function load() { try { var v = JSON.parse(localStorage.getItem(KEY)); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
     function save(list) { try { localStorage.setItem(KEY, JSON.stringify(list)); return true; } catch (e) { return false; } }
@@ -27,6 +40,10 @@
         if (!rec.id) rec.id = 'tr' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
         var list = purge(); list.push(rec);
         if (list.length > MAX) list = list.slice(list.length - MAX);
+        // velikostni strop: zahazuj nejstarsi, dokud se kos vejde do MAX_BYTES
+        try {
+            while (list.length > 1 && JSON.stringify(list).length > MAX_BYTES) list.shift();
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kos:push'); }
         // plna kvota: zahazuj nejstarsi, dokud se zaznam nevejde (kos nesmi blokovat mazani)
         while (!save(list) && list.length > 1) list.shift();
     }

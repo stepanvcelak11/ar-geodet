@@ -234,10 +234,24 @@
         var anyHit = false, bestScore = 0;
         _bestTile = null;
         // při hledání se sbalení ignoruje (ukázat zásahy), bez hledání se nadpisy nechávají vidět
-        function flushHead() { if (lastHead) lastHead.style.display = (q && !headHasHit) ? 'none' : ''; }
+        function flushHead() {
+            if (!lastHead) return;
+            // zakázaný nadpis zůstává schovaný (viz data-agucty níž) — jinak by se
+            // při hledání ukázala prázdná hlavička kategorie, kterou role nemá
+            if (lastHead.hasAttribute && lastHead.hasAttribute('data-agucty')) { lastHead.style.display = 'none'; return; }
+            lastHead.style.display = (q && !headHasHit) ? 'none' : '';
+        }
         for (var i = 0; i < kids.length; i++) {
             var el = kids[i];
             if (el.id === 'ag-ft-empty') continue;
+            // ⚠⚠ CO ZAKÁZALA ROLE, TO HLEDÁNÍ NESMÍ ODKRÝT (3. 9. 2026).
+            // js/ucty.js schovává zakázané dlaždice i nadpisy přes display:none
+            // + značku data-agucty. Tenhle filtr ale display PŘEPISOVAL, takže se
+            // při psaní do hledání zakázané nástroje na dvě vteřiny rozsvítily
+            // (změřeno: zaměstnanec bez kategorie „Katastr a data" viděl po napsání
+            // „k" devět zakázaných dlaždic) a schoval je až další tik applyPerms.
+            // Klepnutí sice nic nespustí, ale appka ukazovala, co admin zakázal.
+            if (el.hasAttribute && el.hasAttribute('data-agucty')) { el.style.display = 'none'; el.style.order = ''; continue; }
             if (el.classList.contains('tool-cat') || el.classList.contains('ag-ft-head')) {
                 flushHead(); lastHead = el; headHasHit = false;
                 secClosed = !q && el.id !== 'ag-fav-head' && closed.indexOf(catName(el)) !== -1;

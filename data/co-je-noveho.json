@@ -2,6 +2,17 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 272,
+   "datum": "2026-09-03",
+   "nadpis": "Prohlídka appky: koš už nespolkne polovinu smazaných bodů a hledání neukáže, co zakázal admin",
+   "body": [
+    "<b>Koš pobere i hromadné mazání.</b> Když jsi v panelu Body smazal víc bodů najednou, appka slibovala „Obnovit je půjde 30 dní z koše“ — ale do koše se vešlo jen <b>posledních 15</b> a zbytek zmizel nadobro. U hromadného mazání se přitom „Vrátit zpět“ záměrně neukazuje, takže koš je tam jediná záchrana. Teď se do něj vejde celý den práce (400 záznamů) a místo se hlídá velikostí, ne počtem.",
+    "<b>Hledání už neodkryje nástroje, které role nemá.</b> Zaměstnanci, kterému admin zakázal kategorii, se při psaní do hledání zakázané dlaždice na dvě vteřiny rozsvítily a pak zase zhasly. Klepnutí sice nic nespustilo, ale appka ukazovala, co ukazovat neměla.",
+    "<b>Nástroj se najde pod jménem, které appka sama ukazuje.</b> Dlaždice a řádek v seznamu úkonů se umí jmenovat různě („Hlasové poznámky“ × „Hlasovou poznámku“) a hledalo se jen podle jména dlaždice. Kdo hledal to, co v appce četl, nenašel nic — a u schovaných nástrojů je hledání jediná cesta k nim.",
+    "<b>Zablokovaný účet se opravdu odhlásí do minuty.</b> Admin při blokaci čte, že se účet odhlásí i na mobilu, kde je právě přihlášený. Zatím to platilo až po restartu appky — zablokovaný člověk měl měření dál otevřené. Teď se firemní nastavení srovnává jednou za minutu (na pozadí a offline se neděje nic)."
+   ]
+  },
+  {
    "v": 271,
    "datum": "2026-09-03",
    "nadpis": "Přihlášení a firma bez slepých uliček, kratší seznam nástrojů, prohlídka okolí přes celou obrazovku",

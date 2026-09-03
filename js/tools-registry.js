@@ -434,7 +434,15 @@
         helpAsync: helpAsync,
         helpLoad: helpLoad,
         helpKeys: helpKeys,
-        aliases: function (k) { var r = get(k); return (r && r.keys) || ''; },
+        // Synonyma pro hledání. ⚠ Od 3. 9. 2026 se přibaluje i `vl` — název, pod
+        // kterým nástroj stojí v SEZNAMU ÚKONŮ. Dlaždice mívá jiný název než řádek
+        // („Hlasové poznámky" × „Hlasovou poznámku"), a hledá se jen podle názvu
+        // dlaždice a `keys`. Kdo tedy hledal to, co v appce četl, nenašel nic —
+        // u nástrojů s `hidden: 1` je přitom hledání JEDINÁ cesta k nim.
+        aliases: function (k) {
+            var r = get(k); if (!r) return '';
+            return ((r.keys || '') + ' ' + (r.vl || '')).trim();
+        },
         cat: function (k) { var r = get(k); return (r && r.cat) || ''; },
         isNet: function (k) { var r = get(k); return !!(r && r.net); },
         // id rozcestníku, do kterého nástroj spadl ('' = stojí samostatně)
