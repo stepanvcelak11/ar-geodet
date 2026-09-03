@@ -2,6 +2,23 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 271,
+   "datum": "2026-09-03",
+   "nadpis": "Přihlášení a firma bez slepých uliček, kratší seznam nástrojů, prohlídka okolí přes celou obrazovku",
+   "body": [
+    "<b>Z omezeného režimu vede cesta zpátky.</b> Kdo appku pustil bez přihlášení, zůstal v ní zamčený — slovo „přihlásit“ nebylo na obrazovce nikde. Teď svítí dole nad lištou pruh <b>Omezený režim — Přihlásit se</b>, kterým se kdykoli dostaneš na přihlašovací obrazovku.",
+    "<b>Firmu si přepne každý, ne jen admin.</b> V panelu firmy přibyla sekce <b>Firmy</b>: seznam firem, ke kterým ses kdy přihlásil, přepnutí (vždycky proti heslu) a <b>+ Připojit další firmu (kód)</b>. Zelený pruh nahoře má tlačítko <b>Přihlásit / přepnout</b> pořád — dřív se ukazovalo jen tomu, kdo už druhou firmu měl.",
+    "<b>Hláška „Server nedostupný“ přestala lhát.</b> Ve třech případech ze čtyř server běžel a chyběl jen přístup tohohle telefonu. Teď se rozlišuje <b>bez signálu</b>, <b>telefon není přihlášený k serveru</b>, <b>přístup vypršel</b> a <b>chyba serveru</b> — a u každé hlášky je tlačítko, které to řeší. Prázdná Docházka taky napíše, jestli je prázdná proto, že nikdo nepíchl, nebo proto, že se data nestáhla.",
+    "<b>Seznam nástrojů se zkrátil o čtvrtinu</b> (80 řádků na 59). Příbuzné věci teď zastupuje jeden řádek, který se rozklikne: <b>Moje čísla</b>, <b>Zápis dne</b>, <b>Firma</b>, <b>Podklady a katastr</b>, <b>Přenosy a zařízení</b> — vedle dřívějších rozcestníků. Nic nezmizelo, jen se to přestalo vypisovat po jednom.",
+    "<b>Podzemní sítě a Hlasová poznámka jsou z nabídky pryč.</b> Zůstávají v appce a najdeš je hledáním, jen už nezabírají místo mezi nástroji, které používáš.",
+    "<b>Z karty bodu zmizel pruh „Jediné určení — neověřeno“.</b> Svítil skoro u každého bodu a kárat za druhé určení bod uložený před minutou nedává smysl. Odchylka i verdikt zůstávají tam, kde si o ně řekneš sám — v nástroji <b>Ověření bodů</b>.",
+    "<b>Prohlídka okolí jede přes celou obrazovku</b> a přibyl v ní seznam <b>Kolem tebe</b> (sousední parcely a jak jsou daleko). Tlačítkem <b>Ukázat v kameře</b> se okno sbalí do pilulky u spodní hrany, aby byl vidět obraz; v kameře jsou hranice položené na zem (počítá se s terénem) a čáry jsou konečně vidět i na slunci.",
+    "<b>Okna už při otevírání neproblikávají.</b> Obsah se ukáže, až je hotový — dosud se okno vykreslilo dřív, než se do něj dosypal zbytek, a všechno v něm poskočilo.",
+    "<b>Varování „Slabá GPS“ odklikneš jedním ťuknutím — a zůstane odkliknuté.</b> Křížek je teď rovnou ve stavové bublině (dřív vedla cesta přes detail a kartu upozornění, tedy tři ťuknutí). A hlavně: odkliknutí už nezruší jediný tik dobrého signálu. Přesnost v terénu skáče kolem 10 m (9 → 12 → 9 m), takže se varování po „Rozumím“ za pár vteřin vracelo pořád dokola; teď se zapomene až po třech minutách souvislého dobrého signálu — nebo hned, když se signál <b>výrazně</b> zhorší, protože to už je nová situace.",
+    "<b>Stavová bublina je o kousek větší.</b> Po zeštíhlení byla až moc hubená; přidala se dvě písmenka na výšku, a přitom pořád drží text na jednom řádku."
+   ]
+  },
+  {
    "v": 270,
    "datum": "2026-08-31",
    "nadpis": "Hubená stavová bublina, Ročenka přes celou obrazovku, aktualizace jednou denně, rychlejší gesta a nástroj se otevře i při rychlém ťuknutí",

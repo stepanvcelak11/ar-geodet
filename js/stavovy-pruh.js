@@ -205,7 +205,16 @@
             '  display:none;flex-direction:column;border-radius:999px;overflow:hidden;cursor:pointer;',
             '  background:var(--glass-bg,rgba(18,22,28,0.88));border:1px solid var(--glass-border,rgba(255,255,255,0.12));',
             '  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 2px 10px rgba(0,0,0,0.35);',
-            '  font:600 11px/1 var(--font-ui,system-ui);color:var(--text-color,#eceef2);max-width:94vw;}',
+            // ⚠ VELIKOST PILULKY — DOLADĚNO 31. 8. 2026, NESRAŽOVAT ZPĚT.
+            //   Po „odtučnění" ve v270 byla uživateli už příliš hubená („někdy
+            //   byla nahoře tlustší, o malilinko bych ji zvětšil, ale ne moc"),
+            //   takže se vrátil jen KOUSÍCEK: písmo 11 → 12 px a svislé odsazení
+            //   hlavičky 4 → 5 px (tedy +2 px výšky). Celkem je pilulka o 3 px
+            //   vyšší než v270 a pořád o 3 px nižší než „tlustý pruh" z v269
+            //   (12,5px písmo + 7px odsazení), který uživatel reklamoval.
+            //   STROP: víc už ne — text se pak na 320px displeji začne uřezávat
+            //   třemi tečkami a čísla (přesnost, azimut) se začnou tlačit ven.
+            '  font:600 12px/1 var(--font-ui,system-ui);color:var(--text-color,#eceef2);max-width:94vw;}',
             'body.app-started #ag-sp.ag-sp-on{display:flex;}',
             // rozbaleny detail uz pilulka byt nemuze (je to karta) — tam kulate rohy
             '#ag-sp.ag-sp-open{border-radius:16px;}',
@@ -221,7 +230,10 @@
             //   bublina narostla na dva radky a byl z ni „tlusty pruh". Resi se to
             //   jinak: text ma `min-width:0` a zkracuje se tremi teckami (viz nize),
             //   takze cisla zustanou na svem a vyska se nehne.
-            '.ag-sp-head{display:flex;flex-wrap:nowrap;align-items:center;gap:6px;padding:4px 11px;white-space:nowrap;',
+            // padding svisle 5px (bylo 4px) — viz poznámka u velikosti pilulky výš.
+            // VODOROVNĚ ZŮSTÁVÁ 11px: šířka je tu vzácná, na 320px displeji ji
+            // potřebuje text upozornění, aby se neuřízl.
+            '.ag-sp-head{display:flex;flex-wrap:nowrap;align-items:center;gap:6px;padding:5px 11px;white-space:nowrap;',
             '  font-variant-numeric:tabular-nums;}',
             '.ag-sp-dot{width:7px;height:7px;border-radius:50%;flex:0 0 auto;}',
             '.ag-sp-dot.green{background:#34d399;box-shadow:0 0 5px rgba(52,211,153,0.8);}',
@@ -255,6 +267,15 @@
             '.ag-sp-ncount{font-family:var(--font-mono,ui-monospace,monospace);font-weight:700;',
             '  font-size:calc(9.5px * var(--ag-font-scale, 1));line-height:1;padding:2px 5px;border-radius:999px;',
             '  background:var(--surface-3,rgba(255,255,255,0.14));color:var(--text-color,#e6e8eb);flex:0 0 auto;}',
+            // křížek „Rozumím" u textu upozornění ve SBALENÉ pilulce. ⚠ VÝŠKA PILULKY
+            // SE NESMÍ HNOUT (viz strop u velikosti výše) — tlačítko je 18 px, ale
+            // zápornými okraji zabírá ve flexu jen 12 px jako písmo; přesah 3 px na
+            // každou stranu se vejde do svislého odsazení hlavičky (5 px).
+            '.ag-sp-x{flex:0 0 auto;width:18px;height:18px;margin:-3px 0;padding:0;border:none;border-radius:50%;',
+            '  background:var(--surface-3,rgba(255,255,255,0.14));color:inherit;',
+            '  font:700 12px/18px var(--font-ui,system-ui);cursor:pointer;-webkit-tap-highlight-color:transparent;}',
+            '.ag-sp-x:focus-visible{outline:2px solid var(--accent,#2f9e74);outline-offset:1px;}',
+            'body.ag-glove .ag-sp-x{width:24px;height:24px;margin:-6px 0;line-height:24px;}',
             // řádek v rozbaleném detailu, který vede na kartu se všemi hláškami
             '.ag-sp-note{display:flex;align-items:center;gap:8px;width:100%;margin:0 0 8px;padding:9px 10px;',
             '  border-radius:10px;cursor:pointer;text-align:left;',
@@ -318,6 +339,16 @@
         el.setAttribute('tabindex', '0');
         el.setAttribute('aria-label', 'Stav měření — klepni pro detail a rady');
         el.addEventListener('click', function (e) {
+            // křížek „Rozumím" ve sbalené hlavičce — vyškrtne hlášku, detail neotvírá
+            var x = e.target.closest && e.target.closest('.ag-sp-x');
+            if (x) {
+                e.stopPropagation();
+                try { if (window.AGNotify && typeof AGNotify.dismiss === 'function') AGNotify.dismiss(x.getAttribute('data-note')); }
+                catch (err) { window.AG && AG.swallow && AG.swallow(err, 'stavovy-pruh:dismissNote'); }
+                _lastHead = _lastBody = '';
+                renderBar();
+                return;
+            }
             if (e.target.closest('.ag-sp-body')) return;   // klik uvnitř detailu nezavírá
             toggle();
         });
@@ -372,8 +403,14 @@
         if (note) {
             // Vlastní alertFor() se záměrně přeskakuje — centrum tu hlášku už nese
             // (jinak by tu „Srovnej sever" stálo dvakrát vedle sebe).
+            // Křížek = „Rozumím": vyškrtne hlášku ROVNOU z pilulky (jedno ťuknutí),
+            // dřív vedla jediná cesta přes detail → kartu upozornění (tři ťuknutí).
+            // O paměť odkliknutí se stará modul hlášky (gps-warn se ozve zas až při
+            // výrazném zhoršení) — tady se jen volá AGNotify.dismiss(id).
             parts.push('<span class="ag-sp-alert ' + noteCls(note.level) + '">' + esc(note.text) + '</span>'
-                + (note.count > 1 ? '<span class="ag-sp-ncount">' + note.count + '</span>' : ''));
+                + (note.count > 1 ? '<span class="ag-sp-ncount">' + note.count + '</span>' : '')
+                + (note.id ? '<button type="button" class="ag-sp-x" data-note="' + esc(note.id)
+                    + '" aria-label="Rozumím, skrýt upozornění">×</button>' : ''));
         } else if (_msg && (Date.now() - _msgTs) < MSG_MS) {
             // hláška z #info (krátkodobá: „Stahuji data…")
             parts.push('<span class="ag-sp-msg">' + esc(_msg) + '</span>');

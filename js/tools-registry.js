@@ -49,6 +49,15 @@
 //   hub   1 = dlaždici vyrábí jako rozcestník js/tools-hub.js (jen pro kontrolora)
 //   notile 1 = není dlaždice v Nástrojích, návod se otevírá odjinud (jen pro kontrolora)
 //   noverb 1 = záměrně bez slovesa, zůstává v „Dalších nástrojích“ (jen pro kontrolora)
+//   inhub id rozcestníku (`hub`), pod který nástroj patří. PROČ JE TO TADY A NE
+//         jen v js/tools-hub.js: rozcestník dřív skrýval jen DLAŽDICI v mřížce,
+//         jenže mřížku dnes nikdo nevidí — panel Nástrojů ukazuje SEZNAM ÚKONŮ
+//         (js/nastroje-ukony.js) a v něm se položky dál vypisovaly jednotlivě.
+//         Sloučení tak žádný řádek neušetřilo. Podle `inhub` ukáže seznam
+//         místo položek JEDEN řádek rozcestníku.
+//   hidden 1 = nástroj se NEUKAZUJE ani v mřížce, ani v seznamu úkonů. Zůstává
+//         celý v appce a spustit ho jde hledáním — „dát pryč“ znamená „ať to
+//         nepřekáží“, ne „smazat“.
 //
 // KDE JSOU TĚLA NÁVODŮ A PROČ NE TADY
 // Návody jsou dlouhé HTML odstavce a bylo jich tu 80 — dvě třetiny objemu celého
@@ -119,11 +128,14 @@
         // ── Určit nový bod ──────────────────────────────────────────────
         { k: 'brutal-gps', w: 1, cat: 'Měření', verb: 'Určit nový bod', vl: 'Přesnou GPS', vh: 'dlouhé průměrování s otočením', keys: 'presne gps mereni prumer prumerovani brutalni poloha bod', base: 1,
           help: { t: 'Přesná GPS (dlouhé průměrování)' } },
-        { k: 'rajon', w: 1, verb: 'Určit nový bod', vl: 'Rajónem', vh: 'směr a délka ze stanoviska', keys: 'rajon polarni metoda uhel delka stanovisko novy bod',
+        { k: 'bod-vypoctem', w: 1, verb: 'Určit nový bod', vl: 'Výpočtem z jiných bodů', vh: 'rajón, offset, protínání vpřed', hub: 1,
+          keys: 'bod vypoctem novy vypocet rajon offset protinani smernik delka uhel konstrukce rozcestnik',
+          help: { t: 'Bod výpočtem' } },
+        { k: 'rajon', w: 1, inhub: 'bod-vypoctem', verb: 'Určit nový bod', vl: 'Rajónem', vh: 'směr a délka ze stanoviska', keys: 'rajon polarni metoda uhel delka stanovisko novy bod',
           help: { t: 'Rajón (směr + délka)' } },
-        { k: 'offset-point', w: 1, cat: 'Vytyčování a náčrt', verb: 'Určit nový bod', vl: 'Offsetem', vh: 'odsazení od jiného bodu', keys: 'odsazeny bod offset kolmice stanoveni vypocet',
+        { k: 'offset-point', w: 1, inhub: 'bod-vypoctem', cat: 'Vytyčování a náčrt', verb: 'Určit nový bod', vl: 'Offsetem', vh: 'odsazení od jiného bodu', keys: 'odsazeny bod offset kolmice stanoveni vypocet',
           help: { t: 'Offset bod' } },
-        { k: 'ar-intersection', w: 1, cat: 'Měření', verb: 'Určit nový bod', vl: 'Protínáním vpřed', vh: 'jen úhly, délku měřit nemůžu', keys: 'protinani vpred uhly neznamy bod urceni',
+        { k: 'ar-intersection', w: 1, inhub: 'bod-vypoctem', cat: 'Měření', verb: 'Určit nový bod', vl: 'Protínáním vpřed', vh: 'jen úhly, délku měřit nemůžu', keys: 'protinani vpred uhly neznamy bod urceni',
           help: { t: 'Protínání vpřed' } },
         { k: 'foto-protinani', w: 1, cat: 'Měření', verb: 'Určit nový bod', vl: 'Ze dvou fotek', vh: 'na cíl, kam se nedá dojít; mířit nemusíš',
           keys: 'foto fotka fotky protinani snimek obraz klepnuti cil nedostupny roh strecha komin pres plot druha strana reky',
@@ -158,11 +170,14 @@
           help: { t: 'Zápisníky' } },
         { k: 'zavady', verb: 'Zaznamenat', vl: 'Závadu s fotkou', keys: 'zavada zavady porucha vada nalez hlaseni defekt kontrola oprava foto protokol reklamace',
           help: { t: 'Závady / hlášení' } },
-        { k: 'hlasovky', verb: 'Zaznamenat', vl: 'Hlasovou poznámku', vh: 's georazítkem', keys: 'hlasovka nahravka diktafon zvuk mluvena poznamka audio',
+        { k: 'hlasovky', hidden: 1, verb: 'Zaznamenat', vl: 'Hlasovou poznámku', vh: 's georazítkem', keys: 'hlasovka nahravka diktafon zvuk mluvena poznamka audio',
           help: { t: 'Hlasové poznámky' } },
-        { k: 'denik-dne', verb: 'Zaznamenat', vl: 'Deník dne', keys: 'denik dne zaznam prace vykaz co jsem delal poznamky',
+        { k: 'zapis-dne', verb: 'Zaznamenat', vl: 'Zápis dne', vh: 'deník dne a plakát dne', hub: 1,
+          keys: 'zapis dne denik plakat vykaz co jsem delal souhrn dne obrazek sdilet rozcestnik',
+          help: { t: 'Zápis dne' } },
+        { k: 'denik-dne', inhub: 'zapis-dne', verb: 'Zaznamenat', vl: 'Deník dne', keys: 'denik dne zaznam prace vykaz co jsem delal poznamky',
           help: { t: 'Deník dne' } },
-        { k: 'plakat-dne', cat: 'Pomůcky', verb: 'Zaznamenat', vl: 'Plakát dne', vh: 'den jako jeden obrázek ke sdílení', keys: 'plakat obrazek den stopa kresba sdilet png souhrn dne mapa dne co jsem nachodil vysledek dne foto do skupiny',
+        { k: 'plakat-dne', inhub: 'zapis-dne', cat: 'Pomůcky', verb: 'Zaznamenat', vl: 'Plakát dne', vh: 'den jako jeden obrázek ke sdílení', keys: 'plakat obrazek den stopa kresba sdilet png souhrn dne mapa dne co jsem nachodil vysledek dne foto do skupiny',
           help: { t: 'Plakát dne' } },
         { k: 'track-log', cat: 'Měření', verb: 'Zaznamenat', vl: 'Stopu trasy', keys: 'stopa trasa log gpx zaznam cesty prochazka',
           help: { t: 'Stopa trasy' } },
@@ -201,17 +216,23 @@
           help: { t: 'Vizuální stabilizace AR (beta)' } },
 
         // ── Zjistit podmínky ────────────────────────────────────────────
-        { k: 'gps-semafor', cat: 'Měření', verb: 'Zjistit podmínky', vl: 'Dá se tady měřit?', vh: 'skóre místa, odrazy od fasád', keys: 'semafor skore mista multipath signal kvalita gps fasada odrazy podminky',
+        { k: 'gnss-signal', verb: 'Zjistit podmínky', vl: 'Signál GNSS', vh: 'družice teď, predikce, semafor místa', hub: 1,
+          keys: 'gnss signal gps kvalita druzice satelity predikce semafor skore multipath obloha podminky',
+          help: { t: 'Signál GNSS' } },
+        { k: 'pocasi-svetlo', verb: 'Zjistit podmínky', vl: 'Počasí a světlo', vh: 'počasí, slunce, GNSS předpověď, dnešek v terénu', hub: 1, net: 1,
+          keys: 'pocasi svetlo slunce vychod zapad soumrak stin srazky dest radar vitr tlak gnss predpoved pdop kp brifink dnesek obloha podminky rozcestnik',
+          help: { t: 'Počasí a světlo' } },
+        { k: 'gps-semafor', inhub: 'gnss-signal', cat: 'Měření', verb: 'Zjistit podmínky', vl: 'Dá se tady měřit?', vh: 'skóre místa, odrazy od fasád', keys: 'semafor skore mista multipath signal kvalita gps fasada odrazy podminky',
           help: { t: 'Skóre místa (GPS)' } },
-        { k: 'openSatModal', verb: 'Zjistit podmínky', vl: 'Družice teď', vh: 'kolik jich vidím a jaká geometrie', keys: 'gnss satelity druzice obloha prekazky signal gps kvalita',
+        { k: 'openSatModal', inhub: 'gnss-signal', verb: 'Zjistit podmínky', vl: 'Družice teď', vh: 'kolik jich vidím a jaká geometrie', keys: 'gnss satelity druzice obloha prekazky signal gps kvalita',
           help: { t: 'GNSS satelity' } },
-        { k: 'sky-obstruction', verb: 'Zjistit podmínky', vl: 'Predikci signálu', vh: 'maska překážek', keys: 'predikce signalu obloha prekazky stromy budovy gnss planovani',
+        { k: 'sky-obstruction', inhub: 'gnss-signal', verb: 'Zjistit podmínky', vl: 'Predikci signálu', vh: 'maska překážek', keys: 'predikce signalu obloha prekazky stromy budovy gnss planovani',
           help: { t: 'Predikce signálu' } },
-        { k: 'gnss-forecast', verb: 'Zjistit podmínky', vl: 'Kdy bude nejlíp měřit', vh: 'GNSS předpověď', keys: 'gnss predpoved kdy merit pdop dop okno planovani ionosfera kp bourka geometrie druzic pocasi pro gps', net: 1,
+        { k: 'gnss-forecast', inhub: 'pocasi-svetlo', verb: 'Zjistit podmínky', vl: 'Kdy bude nejlíp měřit', vh: 'GNSS předpověď', keys: 'gnss predpoved kdy merit pdop dop okno planovani ionosfera kp bourka geometrie druzic pocasi pro gps', net: 1,
           help: { t: 'GNSS předpověď' } },
-        { k: 'pocasi', verb: 'Zjistit podmínky', vl: 'Počasí', keys: 'pocasi predpoved dest vitr teplota radar srazky obloha bourka', net: 1,
+        { k: 'pocasi', inhub: 'pocasi-svetlo', verb: 'Zjistit podmínky', vl: 'Počasí', keys: 'pocasi predpoved dest vitr teplota radar srazky obloha bourka', net: 1,
           help: { t: 'Počasí' } },
-        { k: 'slunce', verb: 'Zjistit podmínky', vl: 'Slunce a světlo', vh: 'protisvětlo, soumrak', keys: 'slunce svetlo zapad vychod soumrak stin protisvetlo oslneni tma azimut zlata hodina',
+        { k: 'slunce', inhub: 'pocasi-svetlo', verb: 'Zjistit podmínky', vl: 'Slunce a světlo', vh: 'protisvětlo, soumrak', keys: 'slunce svetlo zapad vychod soumrak stin protisvetlo oslneni tma azimut zlata hodina',
           help: { t: 'Slunce a světlo' } },
         { k: 'dronview', verb: 'Zjistit podmínky', vl: 'Dronové zóny', vh: 'omezení vzdušného prostoru (ŘLP)', keys: 'dron drony zony letani omezeni vzdusny prostor uas dronview rlp', net: 1,
           help: { t: 'Dronové zóny (DronView)' } },
@@ -219,71 +240,89 @@
         // ── Katastr a podklady ──────────────────────────────────────────
         { k: 'openKatastr', verb: 'Katastr a podklady', vl: 'Katastr — kde právě stojím', keys: 'katastr parcela kn nahlizeni kde stojim mapa cuzk', net: 1, base: 1,
           help: { t: 'Katastr (zde stojím)' } },
-        { k: 'cadastre-vector', w: 1, cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Parcely do mapy a do AR', keys: 'katastr vektor hranice parcely dxf import mapa kn', net: 1,
+        { k: 'podklady-katastr', w: 1, verb: 'Katastr a podklady', vl: 'Podklady a katastr', vh: 'parcely, body z výřezu, offline mapa, sbalení zakázky', hub: 1,
+          keys: 'podklady katastr parcely hranice vektor vyrez body offline mapa osm sbalit balicek zakazka prohlidka okoli rozcestnik',
+          help: { t: 'Podklady a katastr' } },
+        { k: 'cadastre-vector', w: 1, inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Parcely do mapy a do AR', keys: 'katastr vektor hranice parcely dxf import mapa kn', net: 1,
           help: { t: 'Katastr — parcely' } },
-        { k: 'cadastre-area', w: 1, verb: 'Katastr a podklady', vl: 'Stáhnout body z výřezu mapy', keys: 'stahnout body vyrez oblast okoli bodove pole import mapa', net: 1,
+        { k: 'cadastre-area', w: 1, inhub: 'podklady-katastr', verb: 'Katastr a podklady', vl: 'Stáhnout body z výřezu mapy', keys: 'stahnout body vyrez oblast okoli bodove pole import mapa', net: 1,
           help: { t: 'Stáhnout body z výřezu mapy' } },
-        { k: 'prohlidka', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Prohlídka okolí', vh: 'co je kolem mě — bez zakázky', keys: 'prohlidka okoli kde stojim parcela hranice rozhlednout se zvedni telefon vychazka prochazka soused plot vyska slunce laik ukazat', net: 1,
+        { k: 'prohlidka', inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Prohlídka okolí', vh: 'co je kolem mě — bez zakázky', keys: 'prohlidka okoli kde stojim parcela hranice rozhlednout se zvedni telefon vychazka prochazka soused plot vyska slunce laik ukazat', net: 1,
           help: { t: 'Prohlídka okolí' } },
-        { k: 'vektor-mapa', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Vektorová mapa offline', vh: 'sbal výřez z kanceláře, kresli bez signálu', keys: 'vektorova mapa offline podklad osm openstreetmap sbalit vyrez bez signalu budovy silnice cesty voda les kresba',
+        { k: 'vektor-mapa', inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Vektorová mapa offline', vh: 'sbal výřez z kanceláře, kresli bez signálu', keys: 'vektorova mapa offline podklad osm openstreetmap sbalit vyrez bez signalu budovy silnice cesty voda les kresba',
           help: { t: 'Vektorová mapa offline' } },
-        { k: 'balicek-zakazky', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Sbalit zakázku pro terén', vh: 'mapa, katastr a body kolem ZAKÁZKY, ne kolem mě', keys: 'sbalit balicek offline pred vyjezdem stahnout mapu katastr body zakazka kancelar wifi priprava',
+        { k: 'balicek-zakazky', inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Sbalit zakázku pro terén', vh: 'mapa, katastr a body kolem ZAKÁZKY, ne kolem mě', keys: 'sbalit balicek offline pred vyjezdem stahnout mapu katastr body zakazka kancelar wifi priprava',
           help: { t: 'Sbalit zakázku' } },
         { k: 'bodove-pole', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Nejbližší známý bod', vh: 'kam dojít na ověření / kotvu GPS', keys: 'znamy bod bodove pole trigonometricky zhustovaci pbpp nivelacni nejblizsi overeni kotva cuzk kam dojit',
           help: { t: 'Nejbližší známý bod' } },
         { k: 'parcela', w: 1, cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Parcela — geometrie a dělení', keys: 'parcela geometrie deleni vymera obvod smerniky dily',
           help: { t: 'Parcela / dělení' } },
-        { k: 'hodinky-parovani', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Hodinky Garmin', vh: 'body z hodinek a zpátky', keys: 'hodinky garmin forerunner fenix watch parovani synchronizace body zapesti connect iq', net: 1,
+        { k: 'hodinky-parovani', inhub: 'prenosy-zarizeni', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Hodinky Garmin', vh: 'body z hodinek a zpátky', keys: 'hodinky garmin forerunner fenix watch parovani synchronizace body zapesti connect iq', net: 1,
           help: { t: 'Hodinky Garmin' } },
         { k: 'project-import', w: 1, cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Import projektu', vh: 'DXF, situace', keys: 'import projekt oblast stazeni csv dxf soubor nahrat', base: 1,
           help: { t: 'Import projektu (DXF)' } },
         { k: 'geo-overlay', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Podložit plán do mapy', vh: 'georeference obrázku', keys: 'podklad georeference obrazek plan situace vykres overlay',
           help: { t: 'Vlastní podklad' } },
-        { k: 'utility-networks', verb: 'Katastr a podklady', vl: 'Podzemní sítě', keys: 'site podzemni vedeni inzenyrske gml kabel plyn voda',
+        { k: 'utility-networks', hidden: 1, verb: 'Katastr a podklady', vl: 'Podzemní sítě', keys: 'site podzemni vedeni inzenyrske gml kabel plyn voda',
           help: { t: 'Podzemní sítě' } },
-        { k: 'job-transfer', w: 1, verb: 'Katastr a podklady', vl: 'Poslat nebo načíst zakázku', keys: 'prenos zakazky export import argeo sdileni telefon', net: 1,
+        { k: 'job-transfer', w: 1, inhub: 'prenosy-zarizeni', verb: 'Katastr a podklady', vl: 'Poslat nebo načíst zakázku', keys: 'prenos zakazky export import argeo sdileni telefon', net: 1,
           help: { t: 'Poslat/načíst zakázku' } },
         { k: 'hidden-points', verb: 'Katastr a podklady', vl: 'Skryté body', keys: 'skryte body obnovit zobrazit schovane',
           help: { t: 'Skryté body' } },
 
         // ── Před výjezdem ───────────────────────────────────────────────
-        { k: 'brifink', verb: 'Před výjezdem', vl: 'Dnešek v terénu', vh: 'souhrn na ráno', keys: 'brifink dnesek souhrn rano prehled dne pocasi svetlo terminy', net: 1,
+        { k: 'prenosy-zarizeni', w: 1, verb: 'Před výjezdem', vl: 'Přenosy a zařízení', vh: 'hodinky Garmin, poslat nebo načíst zakázku', hub: 1, net: 1,
+          keys: 'prenos prenosy zarizeni hodinky garmin fenix forerunner watch parovani synchronizace poslat nacist zakazku export import sdileni telefon rozcestnik',
+          help: { t: 'Přenosy a zařízení' } },
+        { k: 'auto-bezpeci', verb: 'Před výjezdem', vl: 'Auto a bezpečí', vh: 'kde co mám, kniha jízd, bezpečnost, co s sebou', hub: 1,
+          keys: 'auto bezpeci kde mam auto baze stativ material kniha jizd cestak kilometry bourka vedro mraz vitr tma sos rizika co s sebou balici seznam checklist rozcestnik',
+          help: { t: 'Auto a bezpečí' } },
+        { k: 'brifink', inhub: 'pocasi-svetlo', verb: 'Před výjezdem', vl: 'Dnešek v terénu', vh: 'souhrn na ráno', keys: 'brifink dnesek souhrn rano prehled dne pocasi svetlo terminy', net: 1,
           help: { t: 'Dnešek v terénu' } },
-        { k: 'checklist', verb: 'Před výjezdem', vl: 'Co s sebou', keys: 'checklist co s sebou baleni vybaveni seznam rano nezapomen vzit',
+        { k: 'checklist', inhub: 'auto-bezpeci', verb: 'Před výjezdem', vl: 'Co s sebou', keys: 'checklist co s sebou baleni vybaveni seznam rano nezapomen vzit',
           help: { t: 'Co s sebou' } },
-        { k: 'bezpecnost', verb: 'Před výjezdem', vl: 'Bezpečnost a rizika', keys: 'bezpecnost bozp riziko vedro pitny rezim bourka blesk vesta soumrak mraz vitr sos poloha pomoc',
+        { k: 'bezpecnost', inhub: 'auto-bezpeci', verb: 'Před výjezdem', vl: 'Bezpečnost a rizika', keys: 'bezpecnost bozp riziko vedro pitny rezim bourka blesk vesta soumrak mraz vitr sos poloha pomoc',
           help: { t: 'Bezpečnost' } },
-        { k: 'kde-je', verb: 'Před výjezdem', vl: 'Kde co mám', vh: 'báze, stativ, materiál — i auto', keys: 'auto parkovani kde stoji baze stativ material najit zpatky navigace znacka',
+        { k: 'kde-je', inhub: 'auto-bezpeci', verb: 'Před výjezdem', vl: 'Kde co mám', vh: 'báze, stativ, materiál — i auto', keys: 'auto parkovani kde stoji baze stativ material najit zpatky navigace znacka',
           help: { t: 'Kde co mám' } },
 
         // ── Firma a papíry ──────────────────────────────────────────────
         { k: 'zmenit-zakazku', w: 1, cat: 'Pomůcky', verb: 'Firma a papíry', vl: 'Změnit zakázku', vh: 'přepnout se na jinou práci bez restartu', keys: 'zakazka zakazky prepnout zmenit projekt praca stavba jina zakazka prepnuti vybrat zakazku zmena zakazky',
           help: { t: 'Změnit zakázku' } },
-        { k: 'dochazka', verb: 'Firma a papíry', vl: 'Docházka', keys: 'dochazka prichod odchod pracovni doba hodiny smena',
+        { k: 'firma-hub', verb: 'Firma a papíry', vl: 'Firma', vh: 'účty a role, docházka, firemní chat, vysílačka', hub: 1, net: 1,
+          keys: 'firma ucty uzivatele role opravneni zamestnanci dochazka prichod odchod smena chat zpravy kolegove vysilacka poloha tym kde jsou rozcestnik',
+          help: { t: 'Firma' } },
+        { k: 'dochazka', inhub: 'firma-hub', verb: 'Firma a papíry', vl: 'Docházka', keys: 'dochazka prichod odchod pracovni doba hodiny smena',
           help: { t: 'Docházka' } },
-        { k: 'firma-chat', verb: 'Firma a papíry', vl: 'Firemní chat', keys: 'chat zpravy firma kolegove komunikace vzkaz psani', net: 1,
+        { k: 'firma-chat', inhub: 'firma-hub', verb: 'Firma a papíry', vl: 'Firemní chat', keys: 'chat zpravy firma kolegove komunikace vzkaz psani', net: 1,
           help: { t: 'Firemní chat' } },
-        { k: 'vysilacka', verb: 'Firma a papíry', vl: 'Vysílačka', vh: 'kde je kolega, rychlé zprávy, hlídání pádu', keys: 'vysilacka poloha kolegove tym kde jsou sdileni pozice',
+        { k: 'vysilacka', inhub: 'firma-hub', verb: 'Firma a papíry', vl: 'Vysílačka', vh: 'kde je kolega, rychlé zprávy, hlídání pádu', keys: 'vysilacka poloha kolegove tym kde jsou sdileni pozice',
           help: { t: 'Vysílačka' } },
-        { k: 'ucty-firma', verb: 'Firma a papíry', vl: 'Firma a účty', keys: 'firma ucty uzivatele role opravneni sprava zamestnanci prihlaseni',
+        { k: 'ucty-firma', inhub: 'firma-hub', verb: 'Firma a papíry', vl: 'Firma a účty', keys: 'firma ucty uzivatele role opravneni sprava zamestnanci prihlaseni',
           help: { t: 'Firma a účty' } },
-        { k: 'kniha-jizd', verb: 'Firma a papíry', vl: 'Kniha jízd', keys: 'kniha jizd cestak kilometry km naklady cestovni nahrady tachometr vozidlo ucetni',
+        { k: 'kniha-jizd', inhub: 'auto-bezpeci', verb: 'Firma a papíry', vl: 'Kniha jízd', keys: 'kniha jizd cestak kilometry km naklady cestovni nahrady tachometr vozidlo ucetni',
           help: { t: 'Kniha jízd' } },
-        { k: 'moje-aktivita', verb: 'Firma a papíry', vl: 'Moje aktivita', vh: 'kolik jsem ušel, co používám, co schovat', keys: 'aktivita statistika prehled kroky krokomer kilometry vyskove metry nastoupano cas souhrn dne kolik jsem udelal pouzivani nastroju skryt nepouzivane',
+        { k: 'moje-cisla', verb: 'Firma a papíry', vl: 'Moje čísla', vh: 'moje aktivita a ročenka', hub: 1,
+          keys: 'moje cisla aktivita statistika prehled kroky krokomer kilometry vyskove metry rocenka rok mesic souhrn kde jsem byl odznaky serie bilance rozcestnik',
+          help: { t: 'Moje čísla' } },
+        { k: 'moje-aktivita', inhub: 'moje-cisla', verb: 'Firma a papíry', vl: 'Moje aktivita', vh: 'kolik jsem ušel, co používám, co schovat', keys: 'aktivita statistika prehled kroky krokomer kilometry vyskove metry nastoupano cas souhrn dne kolik jsem udelal pouzivani nastroju skryt nepouzivane',
           help: { t: 'Moje aktivita' } },
-        { k: 'rocenka', verb: 'Firma a papíry', vl: 'Ročenka', vh: 'rok a měsíc v číslech, mapa kde jsi byl', keys: 'rocenka rok v cislech mesic statistika souhrn roku kde jsem byl mapa roku odznaky serie kolik jsem nachodil vyrocni prehled bilance',
+        { k: 'rocenka', inhub: 'moje-cisla', verb: 'Firma a papíry', vl: 'Ročenka', vh: 'rok a měsíc v číslech, mapa kde jsi byl', keys: 'rocenka rok v cislech mesic statistika souhrn roku kde jsem byl mapa roku odznaky serie kolik jsem nachodil vyrocni prehled bilance',
           help: { t: 'Ročenka' } },
         { k: 'kolize-bodu', cat: 'Měření', verb: 'Změřit', vl: 'Body na sobě', vh: 'nezměřili jste s kolegou týž bod dvakrát?', keys: 'kolize duplicita dvojity bod dva body na sobe stejny bod tyz bod kolega spoluprace sdilena zakazka slouceni bodu prekryv',
           help: { t: 'Body na sobě' }, w: 1 },
 
         // ── Příručka a výpočty ──────────────────────────────────────────
-        { k: 'predpisy', verb: 'Příručka a výpočty', vl: 'Předpisy a odchylky', keys: 'predpisy vyhlaska odchylky kody lhuty tahak normy trida presnosti',
+        { k: 'prirucka', verb: 'Příručka a výpočty', vl: 'Příručka', vh: 'předpisy a odchylky, postupy měření, slovník', hub: 1,
+          keys: 'prirucka predpisy postupy slovnik odchylky kody lhuty navody tahak pojmy zkratky rozcestnik',
+          help: { t: 'Příručka' } },
+        { k: 'predpisy', inhub: 'prirucka', verb: 'Příručka a výpočty', vl: 'Předpisy a odchylky', keys: 'predpisy vyhlaska odchylky kody lhuty tahak normy trida presnosti',
           help: { t: 'Předpisy & odchylky' } },
-        { k: 'postupy', cat: 'Pomůcky', verb: 'Příručka a výpočty', vl: 'Postupy měření', keys: 'postupy navody checklisty pracovni kroky jak na',
+        { k: 'postupy', inhub: 'prirucka', cat: 'Pomůcky', verb: 'Příručka a výpočty', vl: 'Postupy měření', keys: 'postupy navody checklisty pracovni kroky jak na',
           help: { t: 'Postupy měření' } },
         { k: 'trenazer', cat: 'Pomůcky', verb: 'Příručka a výpočty', vl: 'Terénní trenažér', vh: 'cvičné vytyčení — i doma v pokoji', keys: 'trenazer cviceni cvicna zakazka hra skore naucit se zauceni novacek vytyceni nanecisto zabava doma procvicit test odchylka',
           help: { t: 'Terénní trenažér' } },
-        { k: 'openDictModal', verb: 'Příručka a výpočty', vl: 'Slovník pojmů', keys: 'slovnik pojmy zkratky vyznam terminologie',
+        { k: 'openDictModal', inhub: 'prirucka', verb: 'Příručka a výpočty', vl: 'Slovník pojmů', keys: 'slovnik pojmy zkratky vyznam terminologie',
           help: { t: 'Slovník' } },
         { k: 'openCalcModal', verb: 'Příručka a výpočty', vl: 'Kalkulačka', keys: 'kalkulacka vypocet prevod gon stupne uhly plocha',
           help: { t: 'Kalkulačka' } },
@@ -297,20 +336,13 @@
           help: { t: 'Správa aplikace' } },
 
         // ── bez slovesa (spadnou do „Další nástroje“ / nejsou dlaždice) ─────
+        // ROZCESTNÍKY (`hub`) tu dřív ležely taky — bez slovesa, protože seznam úkonů
+        // vypisoval rovnou jejich položky. Teď je to naopak (viz `inhub` v hlavičce),
+        // takže každý rozcestník stojí se slovesem u svých položek výš.
         { k: 'agPosFromMap', notile: 1,
           help: { t: 'Poloha z mapy' } },
-        { k: 'auto-bezpeci', keys: 'auto bezpeci kde mam auto baze stativ material kniha jizd cestak kilometry bourka vedro mraz vitr tma sos rizika co s sebou balici seznam checklist rozcestnik', hub: 1,
-          help: { t: 'Auto a bezpečí' } },
-        { k: 'bod-vypoctem', w: 1, keys: 'bod vypoctem novy vypocet rajon offset protinani smernik delka uhel konstrukce rozcestnik', hub: 1,
-          help: { t: 'Bod výpočtem' } },
         { k: 'err-log', keys: 'protokol chyb log chyba diagnostika hlaseni', noverb: 1,
-          help: { t: 'Protokol chyb' } },
-        { k: 'gnss-signal', keys: 'gnss signal gps kvalita druzice satelity predikce semafor skore multipath obloha podminky', hub: 1,
-          help: { t: 'Signál GNSS' } },
-        { k: 'pocasi-svetlo', keys: 'pocasi svetlo slunce vychod zapad soumrak stin srazky dest radar vitr tlak gnss predpoved pdop kp brifink dnesek obloha podminky rozcestnik', hub: 1,
-          help: { t: 'Počasí a světlo' } },
-        { k: 'prirucka', keys: 'prirucka predpisy postupy slovnik odchylky kody lhuty navody tahak pojmy zkratky', hub: 1,
-          help: { t: 'Příručka' } }
+          help: { t: 'Protokol chyb' } }
     ];
 
     // ---- rejstřík a API ---------------------------------------------------------
@@ -405,6 +437,21 @@
         aliases: function (k) { var r = get(k); return (r && r.keys) || ''; },
         cat: function (k) { var r = get(k); return (r && r.cat) || ''; },
         isNet: function (k) { var r = get(k); return !!(r && r.net); },
+        // id rozcestníku, do kterého nástroj spadl ('' = stojí samostatně)
+        hubOf: function (k) { var r = get(k); return (r && r.inhub) || ''; },
+        // položky rozcestníku v pořadí, v jakém jsou zapsané v T
+        hubItems: function (id) {
+            var out = [];
+            for (var j = 0; j < T.length; j++) { if (T[j].inhub === id) out.push(T[j].k); }
+            return out;
+        },
+        // „nástroj zůstává, jen ať není vidět“ — dlaždice ani řádek v seznamu úkonů
+        isHidden: function (k) { var r = get(k); return !!(r && r.hidden); },
+        hiddenKeys: function () {
+            var out = [];
+            for (var j = 0; j < T.length; j++) { if (T[j].hidden) out.push(T[j].k); }
+            return out;
+        },
         // ukládá / mění souřadnice bodů (viz `w` v popisu polí nahoře)
         isWrite: function (k) { var r = get(k); return !!(r && r.w); },
         baseSet: function () {

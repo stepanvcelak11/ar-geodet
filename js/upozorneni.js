@@ -549,13 +549,24 @@
 
     window.AGNotify = {
         set: set, clear: clear, has: has, render: render,
+        // Vyškrtnutí ZVENČÍ (křížek „Rozumím" ve sbaleném stavovém pruhu) — na
+        // rozdíl od clear() zavolá i onDismiss, takže si modul odkliknutí
+        // zapamatuje a hláška se hned nevrátí.
+        dismiss: function (id) {
+            var n = _notes[id];
+            if (!n) return false;
+            dismissNote(n);
+            return true;
+        },
         // Nejzávažnější hláška pro sloučený pruh: stejný text i úroveň, jaké by
-        // měla sbalená pilulka. count = kolik hlášek celkem visí.
+        // měla sbalená pilulka. count = kolik hlášek celkem visí; id je klíč pro
+        // dismiss() výše.
         worst: function () {
             var list = activeNotes();
             if (!list.length) return null;
             var w = list[0];
             return {
+                id: w.id,
                 text: headText(list, w),
                 level: (LVL[w.level] != null ? w.level : 'info'),
                 count: list.length

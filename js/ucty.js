@@ -968,18 +968,50 @@
         try { window.dispatchEvent(new CustomEvent('agucty:perms')); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:setHide'); }
     }
 
-    // trvalý štítek omezeného režimu (klepnutí = zpět na přihlašovací bránu)
+    // ⚠⚠ JEDINÁ CESTA Z OMEZENÉHO REŽIMU ZPÁTKY K PŘIHLÁŠENÍ (31. 8. 2026).
+    //   Klíč `agGuest_v1` se tlačítkem „Pokračovat bez přihlášení" nastaví NATRVALO,
+    //   takže gateCheck() od té chvíle bránu nikdy neukáže. Celá možnost přihlásit se
+    //   pak visela na jediné pilulce #ag-guest-pill nahoře uprostřed — jenže tu si
+    //   od zavedení centra upozornění (js/upozorneni.js, seznam MIRROR) PŘEBÍRÁ ono:
+    //   originál odsune na left:-9999px a místo něj ukáže vlastní hlášku. A když je
+    //   zapnutá stavová bublina (#ag-sp.ag-sp-on), sloupec upozornění se do ní slije
+    //   a bublina píše jen tu NEJZÁVAŽNĚJŠÍ větu — u hosta typicky „Poloha je
+    //   zakázaná". Výsledek naměřený v prohlížeči: na obrazovce nebylo slovo
+    //   „přihlásit" NIKDE a uživatel se do appky neměl jak dostat („úvodní stránka
+    //   mi to rovnou přeskočí, nedokážu se ani přihlásit").
+    //
+    //   Proto jsou štítky dva a každý má jinou práci:
+    //     • #ag-guest-pill — krmivo pro centrum upozornění. Staví se JEN když
+    //       AGNotify existuje (jinak by se dublovalo s pruhem níž).
+    //     • #ag-guest-exit — pruh dole nad lištou, který si nikdo nepřebírá a který
+    //       je vidět pořád. Klepnutí = přihlašovací brána.
     function syncGuestPill(on) {
-        var el = document.getElementById('ag-guest-pill');
-        if (!on) { if (el) el.remove(); return; }
-        if (el || !document.body) return;
+        var pill = document.getElementById('ag-guest-pill');
+        var exit = document.getElementById('ag-guest-exit');
+        if (!on) {
+            if (pill) pill.remove();
+            if (exit) exit.remove();
+            return;
+        }
+        if (!document.body) return;
         injectStyles();
-        el = document.createElement('button');
-        el.type = 'button';
-        el.id = 'ag-guest-pill';
-        el.innerHTML = 'Omezený režim · <b>přihlásit</b>';
-        el.onclick = function () { showGate(); };
-        document.body.appendChild(el);
+        if (!pill && window.AGNotify) {
+            pill = document.createElement('button');
+            pill.type = 'button';
+            pill.id = 'ag-guest-pill';
+            pill.innerHTML = 'Omezený režim · <b>přihlásit</b>';
+            pill.onclick = function () { showGate(); };
+            document.body.appendChild(pill);
+        }
+        if (!exit) {
+            exit = document.createElement('button');
+            exit.type = 'button';
+            exit.id = 'ag-guest-exit';
+            exit.setAttribute('aria-label', 'Omezený režim bez přihlášení — přihlásit se');
+            exit.innerHTML = '<span>Omezený režim</span><b>Přihlásit se</b>';
+            exit.onclick = function () { showGate(); };
+            document.body.appendChild(exit);
+        }
     }
 
     // mapa id injektovaného nástroje -> kategorie (pro posouzení oblíbených dlaždic);
@@ -1444,7 +1476,22 @@
             // ni vysel tmavy text na tmavem (1,8:1). Ve svetlem rezimu proto svetle pismo.
             'body.light-mode #ag-guest-pill{color:#d7dbe2;border-color:rgba(255,255,255,0.28);}',
             'body.light-mode #ag-guest-pill b{color:#7ee0b4;}',
-            'body.light-mode #ag-guest-pill::before{background:#f0b429;}'
+            'body.light-mode #ag-guest-pill::before{background:#f0b429;}',
+            // ---- VÝCHOD Z OMEZENÉHO REŽIMU (viz syncGuestPill) ----
+            // Dole nad lištou, protože horní střed patří centru upozornění a cokoli,
+            // co se tam postaví, se do něj vsákne. Tady si štítek nikdo nepřebírá.
+            '#ag-guest-exit{position:fixed;left:50%;transform:translateX(-50%);',
+            '  bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:9500;',
+            '  display:inline-flex;align-items:center;gap:9px;max-width:92vw;',
+            '  background:rgba(13,17,23,0.90);border:1px solid rgba(212,160,44,0.55);',
+            '  border-radius:999px;color:#d7dbe2;font:500 11.5px/1 var(--font-ui,system-ui);',
+            '  padding:7px 8px 7px 14px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,0.45);}',
+            '#ag-guest-exit::before{content:"";flex:0 0 auto;width:7px;height:7px;border-radius:50%;background:#f0b429;}',
+            '#ag-guest-exit span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+            '#ag-guest-exit b{flex:0 0 auto;background:var(--accent,#2f9e74);color:#08130e;',
+            '  border-radius:999px;padding:6px 12px;font:700 11.5px/1 var(--font-ui,system-ui);}',
+            '#ag-guest-exit:active{transform:translateX(-50%) scale(.97);}',
+            'body.light-mode #ag-guest-exit{background:rgba(13,17,23,0.92);}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
@@ -2614,6 +2661,11 @@
         applyPerms: applyPerms,
         // cloud
         isCloud: isCloud,
+        // Má telefon platný přístup k serveru firmy? Bez tokenu vrací server 401 —
+        // a to NENÍ výpadek serveru, i když to tak dřív vypadalo (viz cloudDuvod()
+        // v js/ucty-admin.js). Panely to potřebují vědět, aby nabídly přihlášení
+        // místo hlášky „Server nedostupný".
+        hasToken: function () { return !!getTok(); },
         apiUrl: apiUrl,
         DEFAULT_API: DEFAULT_API,
         cloudFetch: cloudFetch,
