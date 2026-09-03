@@ -48,9 +48,19 @@ INDEX = os.path.join(ROOT, 'index.html')
 #   (obaluje otevirani oken) a js/stavovy-pruh.js. Zadny z nich odlozit nejde.
 #   Novy strop nechava zase jen ~1,4 % rezervy, takze zaraz proti tichemu rustu
 #   plati dal.
-#   CO S TIM DAL (neudelano, je to na samostatny commit s overenim spustenim):
-#   nejvetsi eager nastroj, ktery se otevira az z dlazdice, je js/cadastre-vector.js
-#   (26 kB) - patri do lazy vrstvy. Po jeho presunu se strop muze vratit dolu.
+#   CO S TIM DAL - PROVERENO 3.9.2026, CESTA PRES cadastre-vector JE SLEPA:
+#   scripts/check_lazy.py nabizi jako nejvetsiho kandidata js/cadastre-vector.js
+#   (26 kB, "nikdo jiny ho pri startu nezminuje"), ale ODLOZIT HO NELZE. Jeho
+#   register() pri nacteni vola load() + startLive(): natahne ulozene parcely
+#   a rovnou je kresli do mapy i do AR. V lazy vrstve by se hranice objevily az
+#   po flushi (tedy az po prvnim tuknuti na dok/Nastroje) - uzivatel by po
+#   restartu appky videl mapu bez svych parcel. Presne proto ho hlavicka
+#   js/lazy-load.js jmenovite radi mezi moduly, ktere musi zustat s `defer`
+#   (spolu s geo-overlay a track-log). Heuristika check_lazy.py o vkladani do
+#   ciziho DOM nevi - jeji seznam kandidatu je namet, ne verdikt.
+#   Kdo bude strop chtit srazit zpatky, musi hledat jinde (nebo cadastre-vector
+#   rozdelit na male eager jadro, ktere kresli ulozene parcely, a lazy zbytek
+#   s celym nastrojem).
 LIMIT_JS_KB = 2060
 LIMIT_CSS_KB = 320
 LIMIT_JS_SOUBORU = 74
