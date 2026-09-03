@@ -26,6 +26,16 @@
 #      nikdo neplnil: refreshConfig() se volal jen po prihlaseni, po navratu online
 #      a z panelu firmy. Ucet zablokovany na serveru jel dal i po 160 s.
 #
+#   E) SLOUCENE NASTROJE STALY V MRIZCE DVAKRAT (js/tools-hub.js). Polozky
+#      rozcestniku se skryvaly jen pri ZAPNUTEM prepinaci "Zjednodusene Nastroje";
+#      kdo ho mel vypnuty, videl rozcestnik "Pocasi a svetlo" A vedle nej porad
+#      Pocasi, Slunce, GNSS predpoved i Dnesek. Hlaseno z terenu 3. 9. 2026.
+#
+#   F) KONZOLE VLASTNIKA SE PO ZAVRENI NASTROJE NEVRATILA (js/vlastnik.js).
+#      Polozka, ktera otevira cizi okno, konzoli uhne z cesty - a ta uz se
+#      neobjevila. Vlastnik se k dalsimu pohledu dostal jen znovu pres dlouhy
+#      stisk znaku appky.
+#
 # Pouziti (z korene repa):  python scripts/test_opravy_3_9.py [port]
 # ==============================================================================
 import asyncio
@@ -371,6 +381,133 @@ async def test_blokace(ctx, base):
     await page.close()
 
 
+BOOT_OWNER = """
+  localStorage.setItem('agTutProSeen','1');
+  localStorage.setItem('agBrifinkAuto','0');
+  localStorage.setItem('agVlastnik_v1','1');
+  localStorage.setItem('agFbKey_v1','klic-na-zkousku');
+"""
+
+
+async def test_rozcestniky(ctx):
+    """E) slouceny nastroj nesmi stat vedle svych polozek - v seznamu ANI v kolecku."""
+    print('\n--- E) sloucene nastroje: rozcestnik ano, polozky samostatne ne ---')
+    page = await ctx.new_page()
+    chyby = []
+    page.on('pageerror', lambda e: chyby.append(str(e)[:200]))
+    await nacti(page, "typeof window.AGUkony === 'object' && typeof window.AGReg === 'object'")
+    await page.evaluate("() => { const m = document.getElementById('tools-modal'); if (m) m.style.display = 'flex'; }")
+    await page.evaluate("() => window.AGLazy && AGLazy.flush()")
+    await page.wait_for_timeout(4000)
+
+    st = await page.evaluate("""() => {
+        const huby = AGReg.all().filter(r => r.hub).map(r => r.k);
+        const polozky = []; huby.forEach(h => (AGReg.hubItems(h) || []).forEach(k => polozky.push(k)));
+        const skryte = AGReg.hiddenKeys ? AGReg.hiddenKeys() : [];
+        // PRESNE TO, z ceho stavi okvetni listky kolecko nastroju
+        // (js/kolecko-nastroju.js -> liveGroups() -> AGUkony.has)
+        const vidno = (typeof AGUkony.vVypisu === 'function') ? AGUkony.vVypisu : AGUkony.has;
+        const kolecko = [];
+        AGUkony.groups.forEach(g => g.items.forEach(it => { if (vidno.call(AGUkony, it.k)) kolecko.push(it.k); }));
+        // a seznam ukonu, jak ho vidi uzivatel v panelu Nastroje
+        const host = document.getElementById('ag-uk-list');
+        const seznam = host ? [...host.querySelectorAll('.ag-uk-i')].map(r => r.getAttribute('data-k')) : [];
+        return {
+            kolecko: kolecko.length,
+            hubuVKolecku: huby.filter(h => kolecko.indexOf(h) >= 0).length,
+            polozekVKolecku: polozky.filter(k => kolecko.indexOf(k) >= 0),
+            skrytychVKolecku: skryte.filter(k => kolecko.indexOf(k) >= 0),
+            firmaHub: kolecko.indexOf('firma-hub') >= 0,
+            firmaPolozky: (AGReg.hubItems('firma-hub') || []).filter(k => kolecko.indexOf(k) >= 0),
+            seznamRadku: seznam.length,
+            polozekVSeznamu: polozky.filter(k => seznam.indexOf(k) >= 0)
+        };
+    }""")
+    print('   ', st)
+    ok('E1 kolecko nastroju ma z ceho stavet', st.get('kolecko', 0) > 30, st.get('kolecko'))
+    ok('E2 rozcestniky v kolecku stoji', st.get('hubuVKolecku', 0) >= 8, st.get('hubuVKolecku'))
+    ok('E3 polozky rozcestniku uz v kolecku samostatne nestoji',
+       not st.get('polozekVKolecku'), st.get('polozekVKolecku'))
+    ok('E4 `hidden` nastroje v kolecku nejsou', not st.get('skrytychVKolecku'), st.get('skrytychVKolecku'))
+    ok('E5 "Firma" je v kolecku JEDEN nastroj, ne pet',
+       st.get('firmaHub') and not st.get('firmaPolozky'),
+       {'hub': st.get('firmaHub'), 'polozky': st.get('firmaPolozky')})
+    ok('E6 v seznamu ukonu polozky rozcestniku taky nestoji', not st.get('polozekVSeznamu'), st.get('polozekVSeznamu'))
+
+    # hledani v mrizce je najit MUSI - jinak by se z nich stal nedostupny kod
+    await page.fill('#tools-modal #tools-search', 'dochazka')
+    await page.wait_for_timeout(1000)
+    naslo = await page.evaluate("""() => {
+        const vidno = (el) => { const r = el.getBoundingClientRect();
+            return r.width > 2 && r.height > 2 && getComputedStyle(el).display !== 'none'; };
+        return [...document.querySelectorAll('#tools-modal .tool-tile')].filter(vidno)
+               .map(t => (t.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 20));
+    }""")
+    print('   hledani "dochazka" ->', naslo[:4])
+    ok('E7 polozku rozcestniku porad najde hledani', len(naslo) > 0, naslo[:4])
+    # ⚠ has() MUSI zustat "jde to spustit?" - gesta (js/gesta-zkratky.js) se pta jim
+    #   a zkratka na Pocasi musi jet dal, i kdyz je Pocasi polozka rozcestniku.
+    spust = await page.evaluate("""() => {
+        const items = (AGReg.hubItems('pocasi-svetlo') || []);
+        return { polozky: items, spustitelne: items.filter(k => AGUkony.has(k)) };
+    }""")
+    print('   spustitelnost polozek rozcestniku (pro gesta):', spust)
+    ok('E9 polozky rozcestniku jdou porad SPUSTIT (gesta, hledani)',
+       len(spust.get('spustitelne') or []) >= 2, spust)
+    ok('E8 bez chyby v konzoli', not chyby, chyby[:3])
+    await page.close()
+
+
+async def test_konzole_vlastnika(ctx):
+    """F) konzole vlastnika se po zavreni otevreneho nastroje sama vrati."""
+    print('\n--- F) konzole vlastnika se vraci ---')
+    page = await ctx.new_page()
+    chyby = []
+    page.on('pageerror', lambda e: chyby.append(str(e)[:200]))
+    await nacti(page, "typeof window.AGVlastnik === 'object'")
+    await page.evaluate("() => AGVlastnik.open()")
+    await page.wait_for_timeout(1300)
+    st = await page.evaluate("""() => {
+        const m = document.getElementById('agv-modal');
+        return { disp: m ? getComputedStyle(m).display : null,
+                 polozek: m ? m.querySelectorAll('.agv-it').length : 0 };
+    }""")
+    ok('F1 konzole vlastnika se otevrela', st.get('disp') == 'flex' and st.get('polozek', 0) > 5, st)
+
+    po = await page.evaluate("""async () => {
+        const its = [...document.querySelectorAll('#agv-modal .agv-it')];
+        const t = its.find(e => /V\\u0161echny firmy/.test(e.textContent || ''));
+        if (!t) return { nasel: false, popisky: its.map(e => (e.textContent || '').slice(0, 20)) };
+        t.click();
+        await new Promise(r => setTimeout(r, 2600));
+        const m = document.getElementById('agv-modal');
+        return { nasel: true, konzole: m ? getComputedStyle(m).display : null };
+    }""")
+    ok('F2 po otevreni polozky konzole uhne z cesty', po.get('nasel') and po.get('konzole') == 'none', po)
+
+    # uzivatel zavre okno nastroje krizkem
+    await page.evaluate("""() => {
+        // ⚠ i pripadny dialog ("Nepovedlo se" od serveru, ktery v testu nebezi) —
+        //   dokud visi, konzole SPRAVNE ceka, az ho clovek odklikne
+        document.querySelectorAll('.ag-dlg-overlay.open').forEach(d => d.classList.remove('open'));
+        document.querySelectorAll('.modal-overlay,[id$="-modal"]').forEach(e => {
+            if (e.id !== 'agv-modal') { e.style.display = 'none'; e.classList.remove('ag-open'); }
+        });
+    }""")
+    vratila = None
+    for i in range(14):
+        await page.wait_for_timeout(600)
+        d = await page.evaluate("""() => { const m = document.getElementById('agv-modal');
+            return m ? getComputedStyle(m).display : null; }""")
+        if d == 'flex':
+            vratila = round((i + 1) * 0.6, 1)
+            break
+    print('   konzole se vratila po', vratila, 's')
+    ok('F3 po zavreni nastroje se konzole sama vrati (do 8 s)', vratila is not None, vratila)
+    ok('F4 bez chyby v konzoli', not chyby, chyby[:3])
+    await page.close()
+
+
 async def main():
     from playwright.async_api import async_playwright
     srv = server()
@@ -393,6 +530,19 @@ async def main():
                                             permissions=['geolocation'], geolocation=geo,
                                             service_workers='block')
             await test_blokace(ctx, base)
+            await ctx.close()
+
+            ctx = await browser.new_context(viewport={'width': 412, 'height': 915}, has_touch=True,
+                                            permissions=['geolocation'], geolocation=geo)
+            await ctx.add_init_script(BOOT_ADMIN)
+            await test_rozcestniky(ctx)
+            await ctx.close()
+
+            ctx = await browser.new_context(viewport={'width': 412, 'height': 915}, has_touch=True,
+                                            permissions=['geolocation'], geolocation=geo,
+                                            service_workers='block')
+            await ctx.add_init_script(BOOT_OWNER)
+            await test_konzole_vlastnika(ctx)
             await ctx.close()
             await browser.close()
     finally:

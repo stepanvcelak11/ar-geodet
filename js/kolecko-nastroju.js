@@ -127,7 +127,12 @@
         var u = ukony(); if (!u) return [];
         var out = [];
         u.groups.forEach(function (g) {
-            var items = g.items.filter(function (it) { return u.has(it.k); });
+            // ⚠ vVypisu() (ne has()): rozcestník zastupuje své položky i tady, jinak
+            //   v kolečku stojí „Firma" a hned vedle ní Docházka, Chat, Vysílačka
+            //   a Účty — tatáž věc dvakrát. Fallback na has() drží kolečko funkční
+            //   i se starší verzí js/nastroje-ukony.js.
+            var vidno = (typeof u.vVypisu === 'function') ? u.vVypisu : u.has;
+            var items = g.items.filter(function (it) { return vidno.call(u, it.k); });
             if (items.length) out.push({ t: SHORT_G[g.t] || g.t, full: g.t, items: items });
         });
         return out;

@@ -533,6 +533,23 @@
         setView: function () { sync(); },
         groups: GROUPS,
         run: run,
-        has: function (k) { return !!findTile(k); }
+        // JDE TENHLE NÁSTROJ VŮBEC SPUSTIT? (dlaždice v DOM + právo role)
+        // ⚠⚠ ZÁMĚRNĚ BEZ pravidla o rozcestnících. Podle `has()` se ptají i GESTA
+        //   (js/gesta-zkratky.js), a zkratka na Počasí musí jet dál i po tom, co se
+        //   Počasí sloučilo pod rozcestník „Počasí a světlo". Když se sem to pravidlo
+        //   přidalo, přestala fungovat výchozí zkratka gesta — chyba odhalená testem
+        //   scripts/test_opravy_31_8.py (15/15 → 13/15). Sloučení je věc VÝPISU,
+        //   ne spouštění; pro výpis je vVypisu() níž.
+        has: function (k) { return !!findTile(k); },
+        // PATŘÍ NÁSTROJ DO NABÍDKY? = has() + pravidlo rozcestníků a `hidden`.
+        // Používá to kolečko nástrojů (js/kolecko-nastroju.js): do 3. 9. 2026 v něm
+        // stál rozcestník „Firma" A VEDLE NĚJ pořád Docházka, Chat, Vysílačka i Účty.
+        // Hlášeno uživatelem: „když si rozkliknu firmu, jsou tam ty nástroje
+        // duplicitně — chci tam jen ten jeden, ve kterém jsou ty podnástroje."
+        vVypisu: function (k) {
+            if (HIDDEN[k]) return false;
+            if (vHubu(k)) return false;
+            return !!findTile(k);
+        }
     };
 })();

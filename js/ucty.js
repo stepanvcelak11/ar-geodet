@@ -522,7 +522,21 @@
     }
 
     // obnova konfigurace (perms/uživatelé se mohli změnit na jiném zařízení)
-    function refreshConfig() {
+    //
+    // ⚠⚠ `tichy` = VOLÁ TO PERIODICKÝ TIK NA POZADÍ, NE ČLOVĚK.
+    //   Takové volání NESMÍ nikoho odhlásit kvůli 401/403. Server vrací 401 i za
+    //   situací, které s platností účtu nesouvisejí (výpadek workeru, token po
+    //   starším nasazení, hodiny mimo), a na pozadí to tikne každou minutu —
+    //   geodet uprostřed měření by tak dostával přihlašovací obrazovku pořád
+    //   dokola. Hlášeno z terénu 3. 9. 2026 („i po přihlášení mi appka píše,
+    //   ať se přihlásím") hned po zavedení periodické obnovy.
+    //   Na pozadí se proto jen zapíše stav 'odmitnuto' — panel firmy z něj sám
+    //   napíše „přístup vypršel / účet zablokován" a nabídne tlačítko Přihlásit
+    //   se. Odhlašuje jen volání OD ČLOVĚKA (start appky, návrat online, panel
+    //   firmy), kde je přihlašovací obrazovka očekávaná reakce.
+    //   Zablokovaný účet tím o nic nepřijde: server mu odmítá zápisy okamžitě
+    //   a při dalším přihlášení ho nepustí.
+    function refreshConfig(tichy) {
         if (!isCloud()) return Promise.resolve(syncStav(false, 'lokalni'));
         if (!getTok()) return Promise.resolve(syncStav(false, 'bez-tokenu'));
         return cloudFetch('/config').then(function (r) {
@@ -542,7 +556,9 @@
                 return syncStav(true, null);
             }
             if (r.status === 401 || r.status === 403) {
-                // token prošel nebo účet zablokován → vynutit nové přihlášení
+                // token prošel nebo účet zablokován → vynutit nové přihlášení.
+                // NA POZADÍ SE NEODHLAŠUJE (viz hlavička funkce) — jen se zapíše stav.
+                if (tichy) return syncStav(false, 'odmitnuto');
                 setTok(null); setSess(null);
                 if (getFirm()) showLogin(false);
                 return syncStav(false, 'odmitnuto');
@@ -2589,7 +2605,7 @@
             //   GET /config; na pozadí netiká vůbec (AG.uiInterval) a offline se
             //   refreshConfig() sám vrátí bez požadavku.
             if (n % 30 === 0 && isCloud() && currentUser() && navigator.onLine !== false) {
-                try { refreshConfig(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:tickRefreshConfig'); }
+                try { refreshConfig(true); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:tickRefreshConfig'); }
             }
         }, 2000);
     }

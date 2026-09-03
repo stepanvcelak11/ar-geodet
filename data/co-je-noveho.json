@@ -2,6 +2,18 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 273,
+   "datum": "2026-09-03",
+   "nadpis": "Podle hlášení z terénu: kolečko nástrojů už neukáže tutéž věc dvakrát a konzole vlastníka se vrací",
+   "body": [
+    "<b>V kolečku nástrojů („kytička\") stojí sloučený nástroj JEDNOU.</b> Dosud tam byl rozcestník <b>Firma</b> a hned vedle něj pořád i Docházka, Chat, Vysílačka a Účty zvlášť — tatáž věc dvakrát. Kolečko si bralo seznam obchozí cestou, která o sloučení nevěděla. Teď platí stejné pravidlo všude: v seznamu úkonů, v mřížce i v kolečku je rozcestník jedna položka, která se rozklikne. Hledání jednotlivé nástroje najde dál.",
+    "<b>Konzole vlastníka se po zavření nástroje vrátí sama.</b> Kdo si z ní něco otevřel, přišel o ni — po zavření toho okna zbyla prázdná mapa a k dalšímu pohledu vedl jen dlouhý stisk znaku a klíč. Teď se konzole otevře zpátky tam, kde jsi přestal.",
+    "<b>Kontrola firmy na pozadí už nikoho nevyhodí z měření.</b> Appka se jednou za minutu ptá serveru na nastavení firmy; když ten dotaz selhal (výpadek, starší token), poslala geodeta uprostřed práce na přihlašovací obrazovku. Teď se taková odpověď jen zaznamená a panel firmy o ní napíše — z appky nikoho nevyhodí.",
+    "<b>Když se správa firmy nepovede, appka řekne proč.</b> U mazání a úprav účtů se objevovalo jen „Smazání selhalo\". Teď se pozná, že <b>server běží na starší verzi</b>, která tu akci ještě neumí (a že místo toho jde účet <b>Zablokovat</b>), i to, že telefon už není přihlášený jako admin firmy.",
+    "<b>Návod k hodinkám Garmin popisoval opačné párování.</b> Sliboval tlačítko „Vygenerovat kód\" a opisování do Garmin Connect — jenže kód dnes ukážou <b>hodinky</b> a opisuje se do appky. Teď návod sedí a přibyla v něm i část <b>Připravit pro hodinky</b> (mapa a body před výjezdem)."
+   ]
+  },
+  {
    "v": 272,
    "datum": "2026-09-03",
    "nadpis": "Prohlídka appky: koš už nespolkne polovinu smazaných bodů a hledání neukáže, co zakázal admin",

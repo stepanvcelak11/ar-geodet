@@ -665,17 +665,18 @@
                     el.classList.add('off');
                     AGLazy.need(it.lazy, function () {
                         el.classList.remove('off');
-                        if (!it.keep) close();
+                        if (!it.keep) { close(); vratSeDoKonzole(); }
                         it.run();
                     });
                     return;
                 }
-                if (!it.keep) close();
+                if (!it.keep) { close(); vratSeDoKonzole(); }
                 it.run();
             });
         });
         var x = b.querySelector('#agv-close');
-        if (x) x.addEventListener('click', close);
+        // ZAVŘÍT rukou = konec, žádný návrat (jinak by se konzole za chvíli vrátila sama)
+        if (x) x.addEventListener('click', function () { if (_zpetT) { clearInterval(_zpetT); _zpetT = null; } close(); });
         stav(false);
     }
 
@@ -718,6 +719,64 @@
         if (!m) return;
         m.style.display = 'none';
         m.classList.remove('ag-open');
+    }
+
+    // ⚠⚠ NÁVRAT DO KONZOLE PO ZAVŘENÍ NÁSTROJE (3. 9. 2026).
+    //   Položka, která otevírá cizí okno (Všechny firmy, Zprávy od lidí, Protokol
+    //   chyb…), musí konzoli uklidit z cesty — jenže tím konzole ZMIZELA NADOBRO:
+    //   po zavření toho okna zůstala prázdná mapa a k dalšímu pohledu se člověk
+    //   dostal jen znovu přes dlouhý stisk znaku a klíč. Hlášeno vlastníkem:
+    //   „jakmile tu funkci zavřu, zavřou se mi i všechny ostatní funkce a musím
+    //   se znovu přihlašovat, abych je viděl."
+    //   Teď se počká, až okno nástroje zmizí, a konzole se otevře zpátky sama.
+    //   Pojistky: čeká se nejvýš PAUZA_MAX (ať tik nevisí donekonečna), po ztrátě
+    //   režimu vlastníka nebo po objevení přihlašovací brány se návrat zahodí,
+    //   a další otevření konzole rukou hlídač taky ukončí.
+    var _zpetT = null;
+    var PAUZA_MAX = 15 * 60 * 1000;
+    function velkeOkno() {
+        // „okno nástroje" = viditelný celoobrazovkový překryv, který není konzole.
+        // ⚠⚠ NESTAČÍ display: čtyři hlavní modály (Nástroje, Nastavení, Body, Nový bod)
+        //   VISÍ V DOM POŘÁD s display:flex kvůli animaci a zavřené je jen posune
+        //   `transform: translateX(100%)` mimo obraz (viz .ag-open v css/style.css).
+        //   Test podle display je tedy pořád „true" a hlídač návratu by čekal marně.
+        //   Rozhoduje proto SKUTEČNÁ POLOHA obsahu: co je odsunuté za okraj, je zavřené.
+        var uzly = document.querySelectorAll('.modal-overlay, .ag-dlg-overlay.open, [id$="-modal"], [id$="-overlay"]');
+        for (var i = 0; i < uzly.length; i++) {
+            var el = uzly[i];
+            if (el.id === MODAL_ID) continue;
+            var cs;
+            try { cs = getComputedStyle(el); } catch (e) { continue; }
+            if (cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) < 0.05) continue;
+            var box = el.querySelector('.modal-content') || el;
+            var r = box.getBoundingClientRect();
+            if (r.right <= 4 || r.left >= innerWidth - 4) continue;      // odsunuté mimo obraz
+            if (r.bottom <= 4 || r.top >= innerHeight - 4) continue;
+            if (r.width > innerWidth * 0.5 && r.height > 150) return true;
+        }
+        return false;
+    }
+    function vratSeDoKonzole() {
+        if (_zpetT) { clearInterval(_zpetT); _zpetT = null; }
+        var start = Date.now(), videno = false;
+        _zpetT = setInterval(function () {
+            try {
+                if (!isOn() || Date.now() - start > PAUZA_MAX) { clearInterval(_zpetT); _zpetT = null; return; }
+                // brána / přihlášení má přednost — do té se konzole plést nesmí
+                if (document.getElementById('ag-login') || document.getElementById('ag-gate')) {
+                    clearInterval(_zpetT); _zpetT = null; return;
+                }
+                var m = document.getElementById(MODAL_ID);
+                if (m && m.style.display === 'flex') { clearInterval(_zpetT); _zpetT = null; return; }  // otevřel ji sám
+                if (velkeOkno()) { videno = true; return; }
+                // okno nástroje bylo vidět a teď je pryč → konzole zpátky.
+                // Když se nikdy neukázalo (nástroj okno nemá), vrátíme ji po 3 s.
+                if (videno || Date.now() - start > 3000) {
+                    clearInterval(_zpetT); _zpetT = null;
+                    open();
+                }
+            } catch (e) { clearInterval(_zpetT); _zpetT = null; swallow(e, 'vlastnik:zpet'); }
+        }, 600);
     }
 
     // ---- vstupy v UI ------------------------------------------------------------

@@ -232,6 +232,31 @@
         _hideKeys = out;
         return out;
     }
+
+    // ⚠⚠ CO NAHRADIL ROZCESTNÍK, TO V MŘÍŽCE STÁT NESMÍ — ANI SE ZJEDNODUŠENÍM VYPNUTÝM.
+    //   Do 3. 9. 2026 se položky rozcestníků skrývaly jen při zapnutém přepínači
+    //   „Zjednodušené Nástroje". Kdo ho měl vypnutý, viděl v mřížce OBOJE: rozcestník
+    //   „Počasí a světlo" A vedle něj pořád Počasí, Slunce, GNSS předpověď i Dnešek —
+    //   tedy přesný opak toho, proč se nástroje slučovaly. Hlášeno z terénu:
+    //   „některé nástroje jsou sjednocené do jednoho a zůstaly tam i ty původní".
+    //   Vypnuté zjednodušení znamená „ukaž mi i to ostatní", ne „ukaž mi totéž dvakrát".
+    //   Totéž platí pro `hidden: 1` (Hlasové poznámky, Podzemní sítě) — ty se schovaly
+    //   na přání uživatele a vypínač vzhledu je vracet nemá.
+    //   Cesta k nim zůstává: rozcestník, hledání (najde je vždycky) a „Pro tuto práci".
+    var _vzdyPryc = null;
+    function vzdyPryc() {
+        if (_vzdyPryc) return _vzdyPryc;
+        if (!window.AGReg || !AGReg.hubItems) return null;         // registr ještě nenaběhl
+        var out = [], i, j, ks;
+        for (i = 0; i < HUBS.length; i++) {
+            ks = AGReg.hubItems(HUBS[i].id);
+            for (j = 0; j < ks.length; j++) out.push(ks[j]);
+        }
+        ks = AGReg.hiddenKeys ? AGReg.hiddenKeys() : [];
+        for (j = 0; j < ks.length; j++) out.push(ks[j]);
+        _vzdyPryc = out;
+        return out;
+    }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function simpleOn() { try { return localStorage.getItem(SIMPLE_KEY) !== '0'; } catch (e) { return true; } }
     function getGrid() { var m = document.getElementById('tools-modal'); return m ? m.querySelector('.tool-grid') : null; }
@@ -360,10 +385,24 @@
             // ji značí data-ag-hidden), tady NESMÍME odkrýt zpátky — jinak by se oba moduly
             // v ticku přetahovaly a dlaždice by problikávala.
             if (tiles[i].hasAttribute('data-ag-hidden')) continue;
+            // co zakázala role (js/ucty.js), do toho tenhle modul nesahá vůbec
+            if (tiles[i].hasAttribute('data-agucty')) continue;
             var k = tileKey(tiles[i]);
             if (k && hk.indexOf(k) !== -1) {
                 // dlaždice v sekci „Pro tuto práci" (tools-simple.js) se neskrývá
                 if (tiles[i].getAttribute('data-ag-ts')) { if (tiles[i].style.display === 'none') tiles[i].style.display = ''; continue; }
+                // Položka rozcestníku / `hidden` — v klidové mřížce pryč vždycky (viz
+                // vzdyPryc() výš). PŘI HLEDÁNÍ SE JI TENHLE MODUL NESMÍ POKOUŠET
+                // UKÁZAT: o tom, co dotazu odpovídá, rozhoduje filtr ve field-tools.js
+                // (a ten sám nechává skryté to, co zakázala role — data-agucty).
+                // Když se to tady „pomáhalo" nastavením display:'', ukázaly se při
+                // hledání i dlaždice zakázané rolí a na nesmyslný dotaz vyskákaly
+                // všechny položky rozcestníků.
+                var vzdy = vzdyPryc();
+                if (vzdy && vzdy.indexOf(k) !== -1 && !showAll) {
+                    if (!q) tiles[i].style.display = 'none';
+                    continue;
+                }
                 if (on) tiles[i].style.display = 'none';
                 else if (tiles[i].style.display === 'none' && !q) tiles[i].style.display = '';
             }

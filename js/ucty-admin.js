@@ -1084,7 +1084,25 @@
 
     function cloudErr(r) {
         if (r.status === 0) return 'Server není dosažitelný — správa firmy potřebuje internet.';
-        return esc((r.data && r.data.error) || ('Chyba ' + r.status));
+        // ⚠⚠ 404 MÁ DVA VÝZNAMY a bez rozlišení z toho byla hláška, která lže.
+        //   Stejný kód vrací (a) endpoint, který o věci opravdu neví („Uživatel
+        //   nenalezen"), a (b) STARŠÍ NASAZENÍ WORKERU, které tu cestu vůbec nezná —
+        //   jeho catch-all odpoví „Neznámá cesta.". Adminovi pak u mazání uživatele
+        //   svítilo „Smazání selhalo: Neznámá cesta", ze které se nedá poznat, že
+        //   stačí nasadit worker. Hlášeno 3. 9. 2026 („nefunguje mi mazání uživatelů").
+        //   Stejný trik používá js/hodinky-parovani.js (staryServer()).
+        var e = (r.data && r.data.error) || '';
+        if (r.status === 404 && typeof e === 'string' && e.indexOf('Neznámá cesta') >= 0) {
+            return 'Server běží na starší verzi, která tuhle akci ještě neumí. ' +
+                   'Nasaď worker (cloud/worker.js) a zkus to znovu — do té doby jde účet aspoň <b>Zablokovat</b>, ' +
+                   'což ho z přihlášení vyřadí stejně spolehlivě.';
+        }
+        if (r.status === 401 || r.status === 403) {
+            return esc(e || 'Server tenhle přístup neuznává') +
+                   '<br><br>Nejčastěji to znamená, že tenhle telefon už není přihlášený jako <b>admin firmy</b> — ' +
+                   'zkus se v zeleném pruhu nahoře přihlásit znovu.';
+        }
+        return esc(e || ('Chyba ' + r.status));
     }
     // ------------------------------------------------------------------
     // Zablokování / povolení účtu (admin). Blokace je šetrná alternativa
