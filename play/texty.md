@@ -75,17 +75,38 @@ https://stepanvcelak11.github.io/ar-geodet/soukromi.html
 
 **Ikona 512×512:** `icon-512.png` (v kořeni repa)
 **Feature graphic 1024×500:** `play/promo/feature.png`
-**Screenshoty telefonu:** `play/promo/play-1…8.png` (1080×1920, minimálně 2, ideálně 4–8)
-**App Store 6,7":** `play/promo/ios-1…8.png` (1290×2796)
+**Screenshoty telefonu:** `play/promo/play-1…4.png` (1080×1920)
 
 > Obrázky vyrábí `python scripts/gen_promo.py` z předlohy `play/promo.html`.
-> **Nic se k nim nedodává** — každý panel má místo fotky kreslenou scénu (AR značky,
-> šipka navádění, parcely katastru, terč vytyčení, kóty a výměra, semafor přesnosti,
-> seznam souřadnic, tým), nadpis a tři výhody. Nadpisy, texty i scény se mění
-> v předloze; po úpravě se spustí generátor znovu.
+> **Nic se k nim nedodává.** Scéna je APPKA V RÁMU TELEFONU a k němu dvě vyzdvižené
+> karty, které přesahují jeho okraj a nesou další fakt.
+>
+> ⚠⚠ **ROZHRANÍ NA OBRAZOVKÁCH JE OPSANÉ ZE SKUTEČNÉ APPKY**, ne vymyšlené
+> (nahlášeno 31. 8. 2026: „jen to moc nevypadá podle aplikace designem"): horní
+> stavová pilulka, **svislý dok u pravého okraje** (Body · Nástroje · Nový bod ·
+> Vrstvy · Nastavení), kapkovité značky bodů s tučným číslem, moje poloha jako
+> kroužek se šipkou a celoobrazovková okna se zeleným nadpisem, kulatým ✕,
+> hledacím polem a sekcemi VELKÝMI PÍSMENY. Panel 3 ukazuje okno **Nástroje** i se
+> skutečnými názvy nástrojů, panel 4 okno **Body**. Kdyby se appka překreslila,
+> srovnat i tohle — jinak budou obrázky v obchodě slibovat něco jiného, než co se
+> spustí.
+>
+> Písma jsou firemní (Sora / Inter / JetBrains Mono z `css/fonts.css`), čísla vždy
+> v mono řezu. Pod scénou nadpis a čtyři až pět výhod. Čtyři panely místo osmi a jen pro Android (přání 31. 8. 2026:
+> „udělej jich méně, jen pro Android, a na každou fotku klidně více věcí"), takže
+> každý spojuje celou oblast:
+>
+> | # | Panel | Co je na obrázku |
+> |---|---|---|
+> | 1 | V terénu | AR pohled se značkami + karty „128 bodů v okolí" a „sever srovnán" |
+> | 2 | Podklady | mapa s parcelami + karta vrstev + karta „staženo 12 km² offline" |
+> | 3 | Měření a výpočty | terč vytyčení s odchylkou + karty výměry a stavu GPS |
+> | 4 | Po měření | body zakázky + karta formátů exportu + karta týmu |
+>
 > ⚠ Čísla ve scénách (souřadnice, výměry, parcelní čísla) jsou UKÁZKOVÁ, ne data.
-> Starší `play/feature-graphic.png` a `play/screenshoty/` (z `play/make-play-graphics.py`)
-> zůstávají jako záloha; screenshoty v nich jsou ale z úvodní obrazovky, která už v appce není.
+> ⚠ Starší `play/feature-graphic.png` a `play/screenshoty/` (z `play/make-play-graphics.py`)
+> zůstávají jako záloha; screenshoty v nich jsou ale z úvodní obrazovky, která už
+> v appce není.
 
 ---
 
