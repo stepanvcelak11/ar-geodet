@@ -1,7 +1,43 @@
 {
-  "vydani": "2026-09-03",
-  "uvodnik": "Vydání 2026-09-03 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-09-04",
+  "uvodnik": "Vydání 2026-09-04 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
+    {
+      "rubrika": "Z domova",
+      "top": true,
+      "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
+      "perex": "Vážení uživatelé webových služeb pro vyhotovitele a ověřovatele geometrických plánů (WSGP), upozorňujeme, že dne 16. 10. 2026 bude ukončen provoz webových služeb pro vyhotovitele a ověřovatele geometr…",
+      "telo": "Vážení uživatelé webových služeb pro vyhotovitele a ověřovatele geometrických plánů (WSGP), upozorňujeme, že dne 16. 10. 2026 bude ukončen provoz webových služeb pro vyhotovitele a ověřovatele geometrických plánů verze 2.10. Od tohoto data bude v provozu pouze verze 3.1 webové služby pro vyhotovitele a ověřovatele geometrických plánů. Za komplikace tímto způsobené se omlouváme a děkujeme za pochopení.",
+      "body": [],
+      "proc": "",
+      "zdroj": "ČÚZK",
+      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
+      "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "OGC Announces Publication of the LAZ 1.4 Community Standard",
+      "perex": "The Open Geospatial Consortium (OGC) is excited to announce the publication of the LAZ 1.4 Community Standard , which defines a lossless compression format for LAS 1.4 point cloud data.",
+      "telo": "The Open Geospatial Consortium (OGC) is excited to announce the publication of the LAZ 1.4 Community Standard , which defines a lossless compression format for LAS 1.4 point cloud data. LAZ uses lossless compression to reduce the size of a LAS file while maintaining the general structure of the LAS format. The LAZ 1.4 format is based on LAS 1.4, as specified in the LAS Specification 1.4 — R15 by the American Society for Photogrammetry Remote Sensing (ASPRS), also an OGC Community Standard. LAZ compresses the point data block, while other LAS 1.4 structures, such as the header format, remain unchanged, although some header fields are slightly changed. The specific meaning of the uncompressed",
+      "body": [],
+      "proc": "",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/09/03/ogc-announces-publication-of-the-laz-1-4-community-standard/?utm_source=rss&utm_medium=rss&utm_campaign=ogc-announces-publication-of-the-laz-1-4-community-standard",
+      "datum": "2026-09-03"
+    },
+    {
+      "rubrika": "Akce",
+      "top": false,
+      "nadpis": "Harris Aerial, Skyline Nav AI, and UtopiaCompression win “Pitch the Press” at Commercial UAV Expo 2026",
+      "perex": "Top Products and Solutions Selected by Leading UAV Industry Journalists Las Vegas, NV, September 3, 2026 – Harris Aerial , Skyline Nav AI , and UtopiaCompression have been named the three winners of t…",
+      "telo": "Top Products and Solutions Selected by Leading UAV Industry Journalists Las Vegas, NV, September 3, 2026 – Harris Aerial , Skyline Nav AI , and UtopiaCompression have been named the three winners of the annual “Pitch the Press” competition at Commercial UAV Expo , the leading international trade show and conference focused on commercial drone technology. Each year, Commercial UAV Expo hosts “Pitch the Press,” a unique opportunity for exhibitors to present their products to a group of editors and reporters looking for the most unique new technology being showcased at Commercial UAV Expo. Fourteen exhibitors were selected from a large pool of applicants to share their new product or service du",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/03/harris-aerial-skyline-nav-ai-and-utopiacompression-win-pitch-the-press-at-commercial-uav-expo-2026/?utm_source=rss&utm_medium=rss&utm_campaign=harris-aerial-skyline-nav-ai-and-utopiacompression-win-pitch-the-press-at-commercial-uav-expo-2026",
+      "datum": "2026-09-03"
+    },
     {
       "rubrika": "Z praxe",
       "top": false,
@@ -61,42 +97,6 @@
       "zdroj": "xyHt",
       "odkaz": "https://www.xyht.com/aerialuas/esri-user-conference-2026-what-the-sessions-add-up-to/",
       "datum": "2026-08-27"
-    },
-    {
-      "rubrika": "Vzdělávání",
-      "top": false,
-      "nadpis": "Geo Week Opens Event Scholarship Applications for 2027; Program Expands on Workforce Development Initiatives",
-      "perex": "The GEO Empower scholarship program is cornerstone to bridging workforce gap Salt Lake City, UT — August 25, 2026 — Organizers of Geo Week announced that the application period is now open for the GEO…",
-      "telo": "The GEO Empower scholarship program is cornerstone to bridging workforce gap Salt Lake City, UT — August 25, 2026 — Organizers of Geo Week announced that the application period is now open for the GEO Empower Event Scholarship , an initiative dedicated to empowering university students passionate about utilizing geospatial, surveying, mapping, and 3D technology for social and environmental good. Now in its third year, recipients will receive a full conference pass to Geo Week, complimentary hotel accommodation, a travel stipend, and onsite mentorship opportunities. “The GEO Empower Scholarship has connected us with some of the most talented and passionate students in the geospatial field, an",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/08/26/geo-week-opens-event-scholarship-applications-for-2027-program-expands-on-workforce-development-initiatives/?utm_source=rss&utm_medium=rss&utm_campaign=geo-week-opens-event-scholarship-applications-for-2027-program-expands-on-workforce-development-initiatives",
-      "datum": "2026-08-26"
-    },
-    {
-      "rubrika": "Akce",
-      "top": false,
-      "nadpis": "Commercial UAV Expo 2026 Convenes Global Drone Industry in Las Vegas Next Week at a Turning Point for the U.S. Market",
-      "perex": "More than 3,700 professionals from all 50 states and around the world will gather at Caesars Forum September 1-3 as new tariffs, an FCC Covered List overhaul, and a pending Part 108 rule reshape the industry.",
-      "telo": "More than 3,700 professionals from all 50 states and around the world will gather at Caesars Forum September 1-3 as new tariffs, an FCC Covered List overhaul, and a pending Part 108 rule reshape the industry. Las Vegas, NV, USA — August 25, 2026 — Commercial UAV Expo , the world’s leading commercial drone trade show and conference, opens next Tuesday at Caesars Forum in Las Vegas at one of the most consequential moments the U.S. commercial drone industry has faced in years. More than 3,700 industry professionals from all 50 U.S. states and countries around the world, along with 240+ exhibitors, will convene September 1-3 as regulations are being rewritten and reacted to in real time. The pas",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/08/26/commercial-uav-expo-2026-convenes-global-drone-industry-in-las-vegas-next-week-at-a-turning-point-for-the-u-s-market/?utm_source=rss&utm_medium=rss&utm_campaign=commercial-uav-expo-2026-convenes-global-drone-industry-in-las-vegas-next-week-at-a-turning-point-for-the-u-s-market",
-      "datum": "2026-08-26"
-    },
-    {
-      "rubrika": "Z domova",
-      "top": true,
-      "nadpis": "WSGP - ukončení provozu služeb verze 2.10",
-      "perex": "Vážení uživatelé webových služeb pro vyhotovitele a ověřovatele geometrických plánů (WSGP), upozorňujeme, že dne 16. 10. 2026 bude ukončen provoz webových služeb pro vyhotovitele a ověřovatele geometr…",
-      "telo": "Vážení uživatelé webových služeb pro vyhotovitele a ověřovatele geometrických plánů (WSGP), upozorňujeme, že dne 16. 10. 2026 bude ukončen provoz webových služeb pro vyhotovitele a ověřovatele geometrických plánů verze 2.10. Od tohoto data bude v provozu pouze verze 3.1 webové služby pro vyhotovitele a ověřovatele geometrických plánů. Za komplikace tímto způsobené se omlouváme a děkujeme za pochopení.",
-      "body": [],
-      "proc": "",
-      "zdroj": "ČÚZK",
-      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
-      "datum": "2026-08-25"
     }
   ]
 }
