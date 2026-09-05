@@ -95,8 +95,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=276">
-    <link rel="stylesheet" href="css/style.css?v=276">
+    <link rel="stylesheet" href="css/tokens.css?v=277">
+    <link rel="stylesheet" href="css/style.css?v=277">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -189,7 +189,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=276">
+    <link rel="stylesheet" href="css/vylepseni.css?v=277">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
          render-blokující: prohlížeč nevykreslí ani pixel, dokud nedorazí VŠECHNY.
          Jedenáct z nich (69 kB) přitom patřilo oknům, která se při startu vůbec
@@ -568,6 +568,17 @@
                      ZÁMĚRNĚ poslední — indexy tlačítek 0–3 tak zůstaly platné pro
                      js/app-search.js (skoky na záložky) i pro js/ucty.js (oprávnění). -->
                 <div class="tab-btn" id="tabbtn-profily" onclick="switchTab('tab-profily', this); try{this.closest('.modal-content').scrollTop=0}catch(e){}"><svg class="icon"><use href="#i-star"/></svg><span class="tb-tx"><b>Profily</b><small>Profil nastavení a profil práce, přednastavení voleb</small></span></div>
+            </div>
+            <!-- PRUH POD ZÁLOŽKAMI (5. 9. 2026). Panel „Více" (návod, prohlídka, uložit
+                 pro offline, o aplikaci, historie, sdílení QR, zpravodaj) neměl od přechodu
+                 na dok VIDITELNÝ vstup: #menu-toggle-btn je v css/style.css skrytý a jediná
+                 cesta vedla přes Nastavení → Údržba → předposlední tlačítko. Tady stojí
+                 MIMO záložky, takže ho vidí i host (Údržbu má schovanou oprávněním) a
+                 z každé záložky bez rolování. Tlačítko v Údržbě ZŮSTÁVÁ — kdo si na něj
+                 zvykl, najde ho tam dál. Druhý slot pruhu si doplňuje js/zpetna-vazba.js
+                 (Napsat autorovi); když se ta vrstva odpojí, zbude jen „Více". -->
+            <div class="ag-set-strip" id="ag-set-strip">
+                <button type="button" class="ag-strip-btn" id="ag-set-vice" onclick="document.getElementById('settings-modal').style.display='none'; toggleMenu();"><svg class="icon"><use href="#i-menu"/></svg><span>Více <small>návod, offline, sdílení</small></span></button>
             </div>
             <div class="modal-body">
                 <div id="tab-vzhled" class="settings-tab active">

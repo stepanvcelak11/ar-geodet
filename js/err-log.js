@@ -210,6 +210,39 @@
             + 'PROTOKOL CHYB (' + list.length + ')\n================================\n' + chyby + '\n';
     }
 
+    // ---- POSLAT AUTOROVI (js/zpetna-vazba.js) ----------------------------------
+    // ⚠ PROČ TOHLE VZNIKLO: „Poslat hlášení" dosud jen otevřelo systémové sdílení
+    // nebo hodilo text do schránky — tedy odsud vedla cesta k autorovi jen přes
+    // e‑mail, který si člověk musel složit sám. Chyby, které nikdo nenahlásí, jsou
+    // přesně ty, co appku sráží; tohle je nejlevnější způsob, jak se o nich dozvědět.
+    //
+    // ⚠ ZPRÁVA MÁ STROP 4000 ZNAKŮ (server i klient), takže se posílá ZKRÁCENÝ výpis:
+    // okolnosti + posledních pár chyb. Celý protokol zůstává pod „Kopírovat".
+    var PRO_ZPRAVU = 2500;
+    function proZpravu() {
+        var list = load().slice(-6).reverse();
+        var chyby = list.length
+            ? list.map(function (e) {
+                return new Date(e.t).toLocaleString('cs-CZ') + (e.n > 1 ? ' (' + e.n + 'x)' : '') + '  ' + e.msg
+                    + (e.src ? '  [' + String(e.src).split('/').pop() + ':' + e.line + ']' : '');
+            }).join('\n')
+            : '(zadne zaznamenane chyby)';
+        var txt = '--- PROTOKOL CHYB (' + load().length + ', posledni ' + list.length + ') ---\n'
+            + chyby + '\n\n--- OKOLNOSTI ---\n' + okolnosti();
+        return txt.length > PRO_ZPRAVU ? txt.slice(0, PRO_ZPRAVU) + '\n… (zkraceno)' : txt;
+    }
+    function autorovi() {
+        try {
+            if (window.AGZpetna && typeof AGZpetna.open === 'function') {
+                var el = document.getElementById('errlog-modal');
+                if (el) el.style.display = 'none';
+                AGZpetna.open({ kind: 'chyba', txt: proZpravu() });
+                return;
+            }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'err-log:autorovi'); }
+        poslat();   // vrstva zpětné vazby je odpojená — zbývá sdílení / schránka
+    }
+
     function poslat() {
         var txt = hlaseni();
         // Web Share s textem umí i iOS; když ne, spadne to na schránku.
@@ -250,14 +283,16 @@
             el.className = 'modal-overlay'; el.id = 'errlog-modal'; el.style.zIndex = '100005';
             el.innerHTML = '<div class="modal-content"><h3 style="color:var(--accent); margin-top:0;"><svg class="icon"><use href="#i-alert"/></svg> Protokol chyb</h3>'
                 + '<div class="modal-body" id="errlog-list" style="font-size:calc(12px * var(--ag-font-scale, 1));"></div>'
-                + '<button class="btn btn-primary" style="width:100%; margin-top:12px;" id="errlog-send">Poslat hlášení</button>'
-                + '<p style="margin:6px 2px 0; opacity:0.65; font-size:calc(11px * var(--ag-font-scale, 1));">Přibalí verzi appky, typ telefonu, stav sítě a GPS a nenačtené moduly. Souřadnice, jména zakázek ani bodů se neposílají.</p>'
+                + '<button class="btn btn-primary" style="width:100%; margin-top:12px;" id="errlog-autor">Poslat autorovi appky</button>'
+                + '<p style="margin:6px 2px 0; opacity:0.65; font-size:calc(11px * var(--ag-font-scale, 1));">Přibalí verzi appky, typ telefonu, stav sítě a GPS a nenačtené moduly. Souřadnice, jména zakázek ani bodů se neposílají. Bez signálu zpráva počká a odejde sama.</p>'
                 + '<div style="display:flex; gap:8px; margin-top:10px;">'
+                + '<button class="btn btn-secondary" style="flex:1;" id="errlog-send">Sdílet</button>'
                 + '<button class="btn btn-secondary" style="flex:1;" id="errlog-copy">Kopírovat</button>'
                 + '<button class="btn btn-secondary" style="flex:1;" id="errlog-clear">Vymazat</button>'
                 + '<button class="btn btn-secondary" style="flex:1;" onclick="document.getElementById(\'errlog-modal\').style.display=\'none\'">Zavřít</button>'
                 + '</div></div>';
             document.body.appendChild(el);
+            el.querySelector('#errlog-autor').addEventListener('click', autorovi);
             el.querySelector('#errlog-send').addEventListener('click', poslat);
             el.querySelector('#errlog-copy').addEventListener('click', function () {
                 doSchranky(hlaseni());

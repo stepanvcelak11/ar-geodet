@@ -3125,3 +3125,60 @@ body.ag-glove #settings-modal .modal-content .btn { margin-top: 10px; }
     background: none;
     pointer-events: auto;
 }
+
+/* =========================================================================
+   PRUH POD ZÁLOŽKAMI NASTAVENÍ (#ag-set-strip)
+   Vstup do panelu „Více" a do „Napsat autorovi" (ten si druhý slot doplňuje
+   js/zpetna-vazba.js). Oboje stálo do 5. 9. 2026 až v záložce Údržba, kterou
+   má host schovanou oprávněním — pruh je proto MIMO záložky a vidí ho každý
+   z každé záložky bez rolování.
+   Terč má 44 px kvůli rukavicím; barvy jdou přes tokeny, aby držel venkovní
+   režim i světlý motiv.
+   ========================================================================= */
+.ag-set-strip {
+    display: flex;
+    gap: 8px;
+    margin: 10px 0 2px;
+    flex-wrap: wrap;
+}
+
+.ag-set-strip .ag-strip-btn,
+.ag-set-strip .ag-fb-foot {
+    flex: 1 1 150px;
+    margin: 0;
+}
+
+.ag-strip-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px dashed var(--glass-border, rgba(255, 255, 255, 0.16));
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text-muted, #9aa1ac);
+    font: 600 calc(12.5px * var(--ag-font-scale, 1))/1.35 var(--font-ui, system-ui);
+    text-align: center;
+    cursor: pointer;
+}
+
+.ag-strip-btn .icon {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    color: var(--accent);
+}
+
+.ag-strip-btn small {
+    display: block;
+    font-weight: 500;
+    font-size: calc(10.5px * var(--ag-font-scale, 1));
+    opacity: 0.8;
+}
+
+.ag-strip-btn:active {
+    border-color: var(--accent);
+    color: var(--accent);
+}

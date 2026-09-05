@@ -132,6 +132,118 @@
         } catch (e) { swallow(e, 'meta'); }
         return o;
     }
+    // ---- CO APPKA ZROVNA DĚLALA (dobrovolná druhá příloha) ---------------------
+    // ⚠ PROČ: „něco se rozbilo" se opravit nedá. Rozdíl mezi nepoužitelným
+    // a opravitelným hlášením je pár údajů, které si člověk sám nikdy neopíše:
+    // kde zrovna byl, co appce spadlo, kolik má bodů a jestli měl signál.
+    // Appka nemá žádnou analytiku — tohle je jediný zdroj pravdy o terénu.
+    //
+    // ⚠⚠ SERVER OŘEZÁVÁ meta NA 1500 ZNAKŮ (cloud/worker.js, `JSON.stringify(b.meta)
+    // .slice(0, 1500)`). Ořezaný JSON se ale nedá rozparsovat — ve schránce by pak
+    // z celé přílohy nezbylo nic. Proto se sem vejde jen to podstatné a výsledek se
+    // ještě před odesláním změří (viz fit() níž): co se nevejde, radši vypadne celé
+    // pole, než aby se rozbil zápis.
+    var _kde = { okno: null, nastroj: null, t: 0 };
+    function sledujKde() {
+        try {
+            document.addEventListener('click', function (e) {
+                var el = e.target && e.target.closest ? e.target.closest('.tool-tile,.menu-btn,.dock-btn') : null;
+                if (!el) return;
+                var s = (el.innerText || el.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim().slice(0, 40);
+                if (!s) return;
+                if (el.classList.contains('tool-tile')) _kde.nastroj = s;
+                _kde.okno = s; _kde.t = Date.now();
+            }, true);
+        } catch (e) { swallow(e, 'sledujKde'); }
+    }
+    // Okno, které je v tuhle chvíli otevřené.
+    // ⚠⚠ ZAVŘENÁ OKNA APPKY NEMAJÍ display:none — parkují mimo displej a o zobrazení
+    // rozhoduje třída .ag-open (skript na konci index.html). Ptát se na `display`
+    // tedy nestačí: naměřeno, že takhle vyšlo „Nástroje" i ve chvíli, kdy bylo na
+    // obrazovce jen okno zprávy. Špatné „kde" je horší než žádné, takže se okno
+    // počítá, jen když jeho střed opravdu leží na displeji a nic ho nepřekrývá.
+    function otevreneOkno() {
+        try {
+            var m = document.querySelectorAll('.modal-overlay');
+            for (var i = 0; i < m.length; i++) {
+                if (m[i].id === 'ag-fb-modal') continue;
+                var cs = getComputedStyle(m[i]);
+                if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) continue;
+                var r = m[i].getBoundingClientRect();
+                if (r.width < 40 || r.height < 40) continue;
+                var cx = Math.min(Math.max(r.left + r.width / 2, 1), window.innerWidth - 1);
+                var cy = Math.min(Math.max(r.top + r.height / 2, 1), window.innerHeight - 1);
+                if (r.right < 0 || r.left > window.innerWidth || r.bottom < 0 || r.top > window.innerHeight) continue;
+                var el = document.elementFromPoint(cx, cy);
+                if (!el || !(el === m[i] || m[i].contains(el))) continue;
+                var h = m[i].querySelector('h2,h3');
+                var s = h ? (h.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 40) : m[i].id;
+                if (s) return s;
+            }
+        } catch (e) { swallow(e, 'otevreneOkno'); }
+        return null;
+    }
+    function pocetBodu() {
+        try {
+            var raw = (typeof getStoredData === 'function') ? getStoredData('arCustomPoints12') : null;
+            if (!raw) return null;
+            var a = JSON.parse(raw);
+            return Array.isArray(a) ? a.length : null;
+        } catch (e) { return null; }
+    }
+    function zakazka() {
+        try {
+            var id = localStorage.getItem('arActiveProjectId') || 'default';
+            var l = JSON.parse(localStorage.getItem('arProjectsList') || 'null');
+            if (Array.isArray(l)) {
+                for (var i = 0; i < l.length; i++) if (l[i] && l[i].id === id) return String(l[i].name || id).slice(0, 40);
+            }
+            return String(id).slice(0, 40);
+        } catch (e) { return null; }
+    }
+    function ctx() {
+        var o = {};
+        try {
+            o.kde = otevreneOkno() || _kde.okno || null;
+            if (_kde.nastroj && _kde.nastroj !== o.kde) o.nastroj = _kde.nastroj;
+            o.online = (typeof navigator !== 'undefined' && navigator.onLine === false) ? 0 : 1;
+            var n = pocetBodu(); if (n != null) o.bodu = n;
+            var z = zakazka(); if (z) o.zakazka = z;
+            try { if (typeof viewMode !== 'undefined' && viewMode) o.pohled = String(viewMode); } catch (e2) { }
+            var f = window.AGFix;
+            if (f && f.acc != null) o.gps = Math.round(f.acc * 10) / 10 + (f.manual ? ' (ručně)' : '');
+        } catch (e) { swallow(e, 'ctx'); }
+        // posledních pár chyb z Protokolu chyb — přesně ty, které by jinak nikdo nehlásil
+        try {
+            var l = (window.agErrLog && typeof agErrLog.list === 'function') ? agErrLog.list() : null;
+            if (l && l.length) {
+                o.chyby = l.slice(-3).map(function (e) {
+                    return String(e.msg || '').slice(0, 90)
+                        + (e.src ? ' [' + String(e.src).split('/').pop() + ':' + (e.line || 0) + ']' : '')
+                        + (e.n > 1 ? ' x' + e.n : '');
+                });
+            }
+        } catch (e) { swallow(e, 'ctx:chyby'); }
+        return o;
+    }
+    // Ořezání na straně KLIENTA, ať server nedostane rozbitý JSON: nejdřív padají
+    // chyby (nejdelší pole), pak celý kontext. Údaje o zařízení jsou malé a zůstávají.
+    function fit(rec) {
+        try {
+            for (var i = 0; i < 4; i++) {
+                if (JSON.stringify(rec.meta || {}).length <= 1400) return rec;
+                if (rec.meta && rec.meta.co && rec.meta.co.chyby) {
+                    if (rec.meta.co.chyby.length > 1) rec.meta.co.chyby.pop();
+                    else delete rec.meta.co.chyby;
+                    continue;
+                }
+                if (rec.meta && rec.meta.co) { delete rec.meta.co; continue; }
+                break;
+            }
+        } catch (e) { swallow(e, 'fit'); }
+        return rec;
+    }
+
     function who() {
         try {
             var u = window.AGUcty, c = u && u.currentUser && u.currentUser();
@@ -249,6 +361,8 @@
             '    <input type="email" id="ag-fb-contact" maxlength="120" autocomplete="email" placeholder="jen když chcete odpověď">' +
             '    <label class="ag-fb-chk"><input type="checkbox" id="ag-fb-meta" checked>' +
             '      <span>Přiložit údaje o zařízení<small>verze appky, telefon, prohlížeč — pomůže při hledání chyby</small></span></label>' +
+            '    <label class="ag-fb-chk"><input type="checkbox" id="ag-fb-ctx" checked>' +
+            '      <span>Přiložit, co appka zrovna dělala<small>otevřené okno, poslední nástroj, počet bodů, signál a poslední chyby — bez toho se chyba často dohledat nedá</small></span></label>' +
             '    <div class="ag-fb-note" id="ag-fb-note"></div>' +
             '    <button type="button" class="btn" id="ag-fb-send" style="margin-top:16px;">Odeslat</button>' +
             '    <div class="ag-fb-owner"><button type="button" id="ag-fb-owner-btn">Jsem vlastník — otevřít schránku</button></div>' +
@@ -274,6 +388,7 @@
         txt.addEventListener('input', function () { count(); saveDraft(); });
         m.querySelector('#ag-fb-contact').addEventListener('input', saveDraft);
         m.querySelector('#ag-fb-meta').addEventListener('change', saveDraft);
+        m.querySelector('#ag-fb-ctx').addEventListener('change', saveDraft);
         m.querySelector('#ag-fb-send').addEventListener('click', send);
         m.querySelector('#ag-fb-close').addEventListener('click', close);
         m.querySelector('#ag-fb-owner-btn').addEventListener('click', openInbox);
@@ -295,7 +410,8 @@
             kind: act ? act.dataset.k : 'chyba',
             txt: m.querySelector('#ag-fb-txt').value,
             contact: m.querySelector('#ag-fb-contact').value,
-            meta: !!m.querySelector('#ag-fb-meta').checked
+            meta: !!m.querySelector('#ag-fb-meta').checked,
+            ctx: !!m.querySelector('#ag-fb-ctx').checked
         });
     }
     function loadDraft() {
@@ -305,6 +421,7 @@
         m.querySelector('#ag-fb-txt').value = d.txt || '';
         m.querySelector('#ag-fb-contact').value = d.contact || '';
         m.querySelector('#ag-fb-meta').checked = d.meta !== false;
+        m.querySelector('#ag-fb-ctx').checked = d.ctx !== false;
         Array.prototype.forEach.call(m.querySelectorAll('#ag-fb-kinds button'), function (b) {
             b.className = (b.dataset.k === d.kind) ? 'act' : '';
         });
@@ -331,6 +448,8 @@
             who: who()
         };
         if (m.querySelector('#ag-fb-meta').checked) rec.meta = meta();
+        if (m.querySelector('#ag-fb-ctx').checked) { rec.meta = rec.meta || {}; rec.meta.co = ctx(); }
+        fit(rec);
 
         // ⚠ NEJDŘÍV DO FRONTY, teprve pak odeslat. Kdyby se posílalo napřímo a spoj
         //   spadl uprostřed, napsaný text by byl pryč — a to je přesně ta situace,
@@ -353,13 +472,32 @@
         });
     }
 
-    function open() {
+    // opts = { kind: 'chyba', txt: '...' } — používá Protokol chyb („Poslat autorovi").
+    // ⚠ ROZEPSANÝ TEXT SE NEPŘEPISUJE. Kdo má něco načatého, o to přijít nesmí —
+    // předvyplněné se proto připojí ZA něj, a kurzor skočí na začátek, kde má člověk
+    // dopsat, co se dělo (samotný výpis chyb je bez toho k ničemu).
+    function open(opts) {
         var m = build();
         m.style.display = 'flex';
         loadDraft();
+        if (opts && opts.txt) {
+            var ta = m.querySelector('#ag-fb-txt');
+            var stary = (ta.value || '').trim();
+            ta.value = (stary ? stary + '\n\n' : '') + opts.txt;
+            if (opts.kind) {
+                Array.prototype.forEach.call(m.querySelectorAll('#ag-fb-kinds button'), function (b2) {
+                    b2.className = (b2.dataset.k === opts.kind) ? 'act' : '';
+                });
+            }
+            saveDraft();
+        }
         count();
         renderQueueNote();
-        try { m.querySelector('#ag-fb-txt').focus(); } catch (e) { swallow(e, 'open:focus'); }
+        try {
+            var t2 = m.querySelector('#ag-fb-txt');
+            t2.focus();
+            if (opts && opts.txt) t2.setSelectionRange(0, 0);
+        } catch (e) { swallow(e, 'open:focus'); }
     }
     function close() {
         var m = document.getElementById('ag-fb-modal');
@@ -598,7 +736,9 @@
     //   2. je vidět z KAŽDÉ záložky Nastavení bez rolování, ne až na konci jedné z nich.
     // Terč má 44 px (režim rukavic), text je přes slovník (data/jazyky.json zná
     // „Napsat autorovi" i ve všech třech jazycích).
-    function footBtn(id) {
+    // kratky = text do pruhu pod záložkami Nastavení, kde stojí vedle „Více" a je
+    // na něj půl šířky. V patičce Nástrojů je místa dost, tam zůstává celá věta.
+    function footBtn(id, kratky) {
         // ⚠ BEZ TOHOHLE JE ŘÁDEK NEUPRAVENÝ. Styly se do téhle chvíle vkládaly až
         // v build(), tedy při prvním otevření okna — jenže patička vzniká dřív, takže
         // do prvního otevření zůstávala holým tlačítkem (naměřeno: inline-block,
@@ -607,7 +747,7 @@
         var b = document.createElement('button');
         b.id = id; b.type = 'button'; b.className = 'ag-fb-foot';
         b.innerHTML = '<span class="ag-fb-fi">' + ICON + '</span><span>' +
-            esc(t('Něco nesedí, nebo něco chybí? Napsat autorovi')) + '</span>';
+            esc(t(kratky ? 'Napsat autorovi' : 'Něco nesedí, nebo něco chybí? Napsat autorovi')) + '</span>';
         b.addEventListener('click', function () {
             // Hostitelské okno se musí zavřít, jinak by leželo přes formulář.
             try {
@@ -624,9 +764,15 @@
         //    jen #ag-ns-search a #ag-prof-bar PŘED .tab-buttons, takže si nepřekážíme.
         try {
             if (!document.getElementById('ag-fb-foot-set')) {
-                var sm = document.getElementById('settings-modal');
-                var tabs = sm && sm.querySelector('.tab-buttons');
-                if (tabs && tabs.parentNode) tabs.parentNode.insertBefore(footBtn('ag-fb-foot-set'), tabs.nextSibling);
+                // Přednostně do pruhu #ag-set-strip (index.html), kde už stojí „Více" —
+                // dvě půlky jednoho řádku místo dvou řádků nad obsahem Nastavení.
+                var strip = document.getElementById('ag-set-strip');
+                if (strip) strip.appendChild(footBtn('ag-fb-foot-set', true));
+                else {
+                    var sm = document.getElementById('settings-modal');
+                    var tabs = sm && sm.querySelector('.tab-buttons');
+                    if (tabs && tabs.parentNode) tabs.parentNode.insertBefore(footBtn('ag-fb-foot-set'), tabs.nextSibling);
+                }
             }
         } catch (e) { swallow(e, 'injectFooters:set'); }
         // b) Nástroje — pod mřížku dlaždic. Mimo .tool-grid, aby řádek nebral
@@ -640,6 +786,7 @@
     }
 
     function init() {
+        sledujKde();
         injectMenu();
         injectSettings();
         injectFooters();

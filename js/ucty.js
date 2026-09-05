@@ -975,8 +975,75 @@
                         node = node.nextElementSibling;
                     }
                 }
+                // 3. průchod: DLAŽDICE MIMO KATEGORIE I MIMO OBLÍBENÉ.
+                // ⚠⚠ Naměřeno 5. 9. 2026: v mřížce jsou i zóny bez nadpisu .tool-cat —
+                // „⚡ Teď se hodí" (js/tools-plus.js) a rozcestníky. Průchod podle
+                // kategorií je tedy minul a hostovi, který nemá povolenou ANI JEDNU
+                // kategorii, zůstala viditelná dlaždice „Firma a účty". Tenhle průchod
+                // dojede zbytek podle SKUTEČNÉ kategorie nástroje (_toolCat), takže
+                // nová zóna v mřížce už díru neudělá.
+                if (restrict) {
+                    var vse = grid.querySelectorAll('.tool-tile[data-tool]');
+                    for (var vi = 0; vi < vse.length; vi++) {
+                        var t3 = vse[vi];
+                        var c3 = _toolCat[t3.getAttribute('data-tool')] || 'Terénní nástroje';
+                        if (!can('tools.' + c3)) setHide(t3, true);
+                    }
+                }
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:setHide'); }
+
+        // 4) PRÁZDNÁ MŘÍŽKA NESMÍ BÝT NĚMÁ (naměřeno 5. 9. 2026).
+        // Host má zakázané všechny kategorie nástrojů, takže v okně Nástroje uviděl
+        // profilový přepínač „Co dnes děláš", „Poradit, co použít" — a pod tím
+        // ze sta dlaždic PRÁZDNO, bez jediné věty vysvětlení. Appka, kterou člověk
+        // právě dostal odkazem, se tím tváří prázdně přesně na toho, koho má získat.
+        // Karta se staví jen tehdy, když opravdu není vidět ANI JEDNA dlaždice —
+        // zaměstnanec s jednou zakázanou kategorií ji nedostane.
+        try {
+            var grid2 = document.querySelector('#tools-modal .tool-grid');
+            var karta = document.getElementById('ag-tools-empty');
+            var videt = 0;
+            if (grid2) {
+                var tiles = grid2.querySelectorAll('.tool-tile');
+                for (var ti = 0; ti < tiles.length; ti++) {
+                    if (getComputedStyle(tiles[ti]).display !== 'none') { videt++; break; }
+                }
+            }
+            if (grid2 && restrict && !videt) {
+                if (!karta) {
+                    // styly jinak vkládá až syncGuestPill (tedy jen u hosta) — zaměstnanec
+                    // bez jediné povolené kategorie by dostal neupravenou kartu
+                    injectStyles();
+                    karta = document.createElement('div');
+                    karta.id = 'ag-tools-empty';
+                    karta.className = 'ag-tools-empty';
+                    karta.innerHTML = guest
+                        ? '<b>Nástroje se odemknou po přihlášení.</b>'
+                        + '<p>V omezeném režimu appka umí mapu, vlastní body a nastavení vzhledu. '
+                        + 'Měření, vytyčování, katastr a AR jsou v plné verzi.</p>'
+                        : '<b>Tvoje role nemá povolený žádný nástroj.</b>'
+                        + '<p>Kategorie nástrojů přiděluje správce firmy v Účtech a rolích.</p>';
+                    if (guest) {
+                        var b2 = document.createElement('button');
+                        b2.type = 'button'; b2.className = 'btn btn-primary';
+                        b2.textContent = 'Přihlásit se';
+                        b2.addEventListener('click', function () {
+                            try { var tm = document.getElementById('tools-modal'); if (tm) tm.style.display = 'none'; } catch (e2) { }
+                            showGate();
+                        });
+                        karta.appendChild(b2);
+                    }
+                    // PŘED mřížku, ne za ni: za ní by karta ležela až pod profilovým
+                    // přepínačem a „Upravit oblíbené", tedy o obrazovku níž — a to je
+                    // přesně to prázdno, které má vysvětlit.
+                    grid2.parentNode.insertBefore(karta, grid2);
+                }
+                karta.style.display = '';
+            } else if (karta) {
+                karta.style.display = 'none';
+            }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:prazdneNastroje'); }
 
         try { document.body.classList.toggle('ag-firm-restricted', restrict); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:setHide'); }
         try { document.body.classList.toggle('ag-guest', guest); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:setHide'); }
@@ -1507,7 +1574,21 @@
             '#ag-guest-exit b{flex:0 0 auto;background:var(--accent,#2f9e74);color:#08130e;',
             '  border-radius:999px;padding:6px 12px;font:700 11.5px/1 var(--font-ui,system-ui);}',
             '#ag-guest-exit:active{transform:translateX(-50%) scale(.97);}',
-            'body.light-mode #ag-guest-exit{background:rgba(13,17,23,0.92);}'
+            'body.light-mode #ag-guest-exit{background:rgba(13,17,23,0.92);}',
+            // karta u prazdne mrizky Nastroju (viz applyPerms, bod 4)
+            '.ag-tools-empty{margin:8px 2px 4px;padding:16px 16px 18px;border-radius:14px;text-align:center;',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:var(--glass-bg,rgba(255,255,255,0.04));}',
+            '.ag-tools-empty b{display:block;margin-bottom:6px;color:var(--text-color,#e6e8eb);',
+            '  font:700 calc(14px * var(--ag-font-scale,1))/1.4 var(--font-ui,system-ui);}',
+            '.ag-tools-empty p{margin:0 0 12px;color:var(--text-muted,#9aa1ac);',
+            '  font:500 calc(12.5px * var(--ag-font-scale,1))/1.5 var(--font-ui,system-ui);}',
+            '.ag-tools-empty .btn{min-height:44px;}',
+            // ⚠⚠ POJISTKA K applyPerms: dlaždici, kterou role zakazuje, schovává ucty.js
+            // přes inline style. Jenže zónu „⚡ Teď se hodí“ přestavuje js/tools-plus.js a při
+            // té přestavbě inline style přepíše — dlaždice se vrátí a zmizí až při dalším tiku
+            // (až 4 s). Naměřeno u hosta: „Firma a účty“. Značku data-agucty vlastní ucty.js,
+            // takže pravidlo nemůže schovat nic, co samo neschovalo.
+            '.tool-tile[data-agucty="1"]{display:none !important;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
