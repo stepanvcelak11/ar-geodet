@@ -60,7 +60,7 @@
     // (label + <b>), vals = ruční výběr, když nástroj nemá jeden společný kontejner.
     // Kdo tu není, dostane tlačítko taky — hodnoty si najde autoVals() níž.
     var TOOLS = [
-        { modal: 'agsl-modal', title: 'Vytyčení přímky', src: '#agsl-live' },
+        { modal: 'agsl-modal', title: 'Vytyčení osy', src: '#agsl-live' },
         {
             modal: 'ag-pdr-modal', title: 'Krokový offset', vals: [
                 { l: 'Kroky', s: '#ag-pdr-steps' },

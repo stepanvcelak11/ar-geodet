@@ -2,6 +2,29 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 275,
+   "datum": "2026-09-05",
+   "nadpis": "Vytyčení osy: lomená osa se staničením a kolíky po metrech",
+   "body": [
+    "<b>Osa může být lomená, ne jen přímka A→B.</b> Do nástroje (dřív „Vytyčení přímky“, teď <b>Vytyčení osy</b>) se body zadávají v pořadí od začátku a tlačítkem <b>Přidat lom</b> jich přibude, kolik je potřeba. Staničení běží <b>přes lomy</b> — druhý úsek navazuje tam, kde první skončil, ne od nuly.",
+    "<b>Odečet si sám najde úsek, na kterém stojíš.</b> Kromě staničení a kolmého odstupu okno píše, na kterém úseku jsi (a mezi kterými body), kolik zbývá <b>do lomu</b> a kolik <b>do konce osy</b>. Totéž vidíš ve sbaleném proužku i v kameře — čísla se nikde nerozejdou.",
+    "<b>Staničení počátku srovná čísla s projektem.</b> Když úsek začíná na km 1,200, zadáš 1200 a appka počítá 1200…1400 místo 0…200 — a vytyčovaný bod se zadává rovnou v projektovém staničení.",
+    "<b>Vytyčit celou osu po metrech.</b> Nový příkaz nasype do zakázky kolíky po pravidelném kroku (po 10, 25, 50 m) na celý úsek včetně jeho konce, volitelně odsazené od osy. Pojmenují se podle staničení (ST1225), takže je vytyčovací checklist rovnou odškrtává.",
+    "<b>V kameře se kreslí i lomy.</b> Osa v AR sleduje lomenou trasu (roh se neuřízne), vrcholy mají vlastní kroužky a patka kolmice hlásí staničení včetně posunu počátku."
+   ]
+  },
+  {
+   "v": 274,
+   "datum": "2026-09-05",
+   "nadpis": "Po celkové prohlídce appky: ruční poloha z mapy už není měření, koš vrátí celou zakázku",
+   "body": [
+    "<b>Ruční poloha z mapy se netváří jako změřený bod.</b> Když sis polohu klepnul do mapy, prolila se do průměrování GPS a uložila se, jako by ji změřila družice. Teď je ručně zadaná poloha oddělená a jako měření se neuloží.",
+    "<b>Koš drží všechna data zakázky.</b> Smazání zakázky dřív smetlo i rodiny dat, které koš neuměl vrátit. Teď se do koše ukládá celá zakázka.",
+    "<b>Odkládání modulů zase funguje.</b> Appka měla těžké nástroje načítat až ve chvíli, kdy je otevřeš — jenže se stejně natáhly všechny hned po startu. Start je zase takový, jaký měl být.",
+    "<b>Sdílení souboru vede jedinou cestou.</b> Export, protokol i záloha končí ve stejném systémovém listu sdílení, ne v deseti obchozích cestách podle nástroje."
+   ]
+  },
+  {
    "v": 273,
    "datum": "2026-09-03",
    "nadpis": "Podle hlášení z terénu: kolečko nástrojů už neukáže tutéž věc dvakrát a konzole vlastníka se vrací",

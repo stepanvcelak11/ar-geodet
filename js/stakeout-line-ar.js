@@ -1,22 +1,22 @@
-// ===== AR Geodet — VYTYČOVANÁ PŘÍMKA V AR (ODPOJITELNÁ vrstva) =================
-// Přímku A→B z nástroje „Vytyčení přímky" (js/stakeout-line.js) položí do KAMERY:
-// v obraze vidíš, kudy osa vede, kde je tvoje patka na ní a jak daleko od ní stojíš.
+// ===== AR Geodet — VYTYČOVANÁ OSA V AR (ODPOJITELNÁ vrstva) ===================
+// Osu z nástroje „Vytyčení osy" (js/stakeout-line.js) položí do KAMERY: v obraze
+// vidíš, kudy vede (i s lomy), kde je tvoje patka na ní a jak daleko od ní stojíš.
 // Uživatel to chtěl přesně takhle: „vybral bych si dva body, mezi kterýma chci
 // vytyčit přímku, a v realitě by se mi tam zobrazovala kolmice — i když to bude
 // plus mínus metr, tak to je v pohodě."
 //
 // CO SE KRESLÍ:
-//   • OSA A→B — plná čára po zemi, navzorkovaná po kouscích (rovná čára se v
+//   • OSA — plná čára po zemi, navzorkovaná po kouscích (rovná čára se v
 //     perspektivě láme, takže úsečka mezi dvěma promítnutými konci by ležela jinde
 //     než skutečná osa; proto se vzorkuje a spojuje po segmentech),
 //   • KOLMICE — čárkovaně od tvé polohy k patce na ose (to, oč tady jde),
-//   • PATKA + KONCE A/B — kroužky s popiskem (staničení, odstup).
+//   • PATKA + KONCE A/B + LOMY — kroužky s popiskem (staničení, odstup).
 //
 // Do grafika.js ani logika.js nesahá — stejný vzor jako js/track-ar.js: bere si
 // window._arProj (sklon, náklon, poloviční zorné úhly; publikuje renderAR),
 // currentHeading, userLat/userLng a kreslí do vlastního <svg> v #ar-overlay.
 //
-// Zapíná se zaškrtávátkem v nástroji „Vytyčení přímky", volba se pamatuje.
+// Zapíná se zaškrtávátkem v nástroji „Vytyčení osy", volba se pamatuje.
 // Ve výchozím stavu VYPNUTO — v AR má být klid, dokud si čáru nevyžádáš.
 //
 // Odstranění: smaž js/stakeout-line-ar.js + řádek <script> v index.html
@@ -130,11 +130,19 @@
         var S = window.AGStakeLine;
         var html = '';
 
-        // ---- osa A→B navzorkovaná po STEP_M ------------------------------------
+        // ---- osa navzorkovaná po STEP_M ----------------------------------------
+        // U LOMENÉ osy musí mezi vzorky padnout i každý vrchol — jinak by vzorek
+        // přeskočil lom a čára by roh uřízla (kreslila by tětivu místo osy).
         var n = Math.min(MAX_SEG, Math.max(1, Math.ceil(g.len / STEP_M)));
-        var prev = null, i, t, p, cur;
-        for (i = 0; i <= n; i++) {
-            t = (g.len * i) / n;
+        var stations = [], i;
+        for (i = 0; i <= n; i++) stations.push((g.len * i) / n);
+        if (g.verts && g.verts.length > 2) {
+            for (i = 1; i < g.verts.length - 1; i++) stations.push(g.verts[i].s);
+            stations.sort(function (a, b) { return a - b; });
+        }
+        var prev = null, t, p, cur;
+        for (i = 0; i < stations.length; i++) {
+            t = stations[i];
             p = S.pointAt(g, t, 0);
             cur = proj(p.lat, p.lng, heading, pj, eyeH, vOff);
             if (prev && Math.min(prev.dist, cur.dist) <= rad
@@ -159,15 +167,21 @@
             html += line(pMe, pFoot, okCol, 2.5, '2 3', 0.85);
             html += dot(pFoot, okCol, 1.6);
             html += label(pFoot, absOff.toFixed(2) + ' m ' + (me.offset >= 0 ? 'vlevo' : 'vpravo'), okCol, -2.4);
-            html += label(pFoot, 'st. ' + st.toFixed(1), COL_AXIS, 4.2);
+            // staničení se hlásí SHODNĚ s okénkem nástroje — i s posunem počátku
+            var s0 = 0; try { if (S.startStation) s0 = S.startStation() || 0; } catch (e) { s0 = 0; }
+            html += label(pFoot, 'st. ' + (st + s0).toFixed(1), COL_AXIS, 4.2);
         }
 
-        // ---- konce A a B --------------------------------------------------------
-        [[g.A, 'A'], [g.B, 'B']].forEach(function (pair) {
-            var q = proj(pair[0].lat, pair[0].lng, heading, pj, eyeH, vOff);
+        // ---- konce a lomy -------------------------------------------------------
+        // U lomené osy je vrcholů víc než dva; prostřední jsou lomy a značí se
+        // menším kroužkem, ať se konce osy pořád poznají na první pohled.
+        var vs = (g.verts && g.verts.length) ? g.verts : [{ p: g.A }, { p: g.B }];
+        vs.forEach(function (v, k) {
+            var last = k === vs.length - 1;
+            var q = proj(v.p.lat, v.p.lng, heading, pj, eyeH, vOff);
             if (Math.abs(q.diff) > CULL_DEG || q.dist > rad) return;
-            html += dot(q, COL_AXIS, 1.9);
-            html += label(q, pair[1] + ' #' + pair[0].name, COL_AXIS, -2.6);
+            html += dot(q, COL_AXIS, (k === 0 || last) ? 1.9 : 1.3);
+            html += label(q, ((k === 0) ? 'A ' : (last ? 'B ' : '')) + '#' + v.p.name, COL_AXIS, -2.6);
         });
 
         svg.innerHTML = html;

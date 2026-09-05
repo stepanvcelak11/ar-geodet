@@ -276,7 +276,7 @@
         var vs = stakeVertices(); if (!vs.length) { agAlert('Nic k přenosu', 'Žádné body ve viditelných vrstvách.'); return; }
         if (typeof window.addImportedPoints !== 'function') { agAlert('Nelze', 'Vkládání bodů není dostupné.'); return; }
         var added = window.addImportedPoints(vs.map(function (v) { return { name: 'V_' + v.name, lat: v.lat, lng: v.lng }; }));
-        agAlert('Přeneseno', added + ' bodů návrhu uloženo do zakázky. Najdeš je v seznamu Body a navigovat můžeš nativní šipkou i nástrojem Vytyčení přímky.');
+        agAlert('Přeneseno', added + ' bodů návrhu uloženo do zakázky. Najdeš je v seznamu Body a navigovat můžeš nativní šipkou i nástrojem Vytyčení osy.');
         renderStakeList();
     }
 
