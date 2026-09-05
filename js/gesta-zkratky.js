@@ -304,7 +304,13 @@
         // cestou, jakou to dělá js/ar-calib2.js (setStoredData + applyVisualSettings).
         // Zkratka na to musí být: ruční cesta je dok → Nastavení → Vzhled → rolovat,
         // tedy čtyři klepnutí na displej, na který zrovna kvůli slunci není vidět.
-        { k: 'act:slunce', l: 'Vysoký kontrast na slunci', sel: '#s-outdoor', po: outdoorApply }
+        { k: 'act:slunce', l: 'Vysoký kontrast na slunci', sel: '#s-outdoor', po: outdoorApply },
+        // Napsat autorovi: v rukavicích u finišeru je gesto rychlejší než dvě okna,
+        // a hlásit se má ve chvíli, kdy se to stalo — ne večer, až si člověk vzpomene.
+        // Míří na řádek v patičce Nastavení (js/zpetna-vazba.js, injectFooters), takže
+        // stačí .click() jako u ostatních akcí: když je vrstva zpětné vazby odpojená,
+        // prvek prostě není a zkratka nic nespustí — stejně jako u schovaných dlaždic.
+        { k: 'act:napiste', l: 'Napsat autorovi', sel: '#ag-fb-foot-set' }
     ];
 
     // Přepnutí venkovního režimu podle stavu políčka. Vrací text do bubliny, ať je

@@ -19,7 +19,8 @@
 //   uloží do fronty v telefonu a odesílá se z ní: hned, při návratu signálu a při
 //   dalším startu appky. Uživatel se tak nikdy nemusí vracet a psát to znovu.
 //
-// Vstupy: „Více" → Napište mi; Nastavení → Údržba → Aplikace; hledání v appce.
+// Vstupy: patička Nastavení (vidí ji i host) a patička Nástrojů — viz injectFooters();
+// dál „Více" → Napsat autorovi; Nastavení → Údržba → Aplikace; hledání v appce.
 //
 // Odstranění: smaž tenhle soubor + řádek <script> v index.html + './js/zpetna-vazba.js'
 // v sw.js. Routy /feedback ve workeru pak jen zůstanou nepoužité.
@@ -214,7 +215,14 @@
             '.ag-fb-meta{margin-top:7px;font:500 11px/1.4 var(--font-mono,monospace);color:var(--text-muted,#9aa1ac);word-break:break-all;}',
             '.ag-fb-acts{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap;}',
             '.ag-fb-acts button{border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:transparent;color:var(--text-muted,#9aa1ac);',
-            '  border-radius:9px;padding:6px 11px;font:600 11.5px/1 var(--font-ui,system-ui);cursor:pointer;}'
+            '  border-radius:9px;padding:6px 11px;font:600 11.5px/1 var(--font-ui,system-ui);cursor:pointer;}',
+            // trvalý řádek v patičce Nastavení a Nástrojů (viz injectFooters)
+            '.ag-fb-foot{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;',
+            '  margin:10px 0 2px;padding:10px 12px;border:1px dashed var(--glass-border,rgba(255,255,255,0.16));',
+            '  border-radius:12px;background:transparent;color:var(--text-muted,#9aa1ac);cursor:pointer;',
+            '  font:600 12.5px/1.35 var(--font-ui,system-ui);text-align:center;}',
+            '.ag-fb-foot:active{border-color:var(--accent,#2f9e74);color:var(--accent,#2f9e74);}',
+            '.ag-fb-foot .ag-fb-fi{display:inline-block;width:16px;height:16px;flex:none;color:var(--accent,#2f9e74);}'
         ].join('');
         document.head.appendChild(st);
     }
@@ -228,7 +236,7 @@
         m.id = 'ag-fb-modal';
         m.innerHTML =
             '<div class="modal-content">' +
-            '  <h2 style="margin-top:0;"><span style="display:inline-block;width:22px;height:22px;vertical-align:-4px;color:var(--accent);">' + ICON + '</span> Napište mi</h2>' +
+            '  <h2 style="margin-top:0;"><span style="display:inline-block;width:22px;height:22px;vertical-align:-4px;color:var(--accent);">' + ICON + '</span> Napsat autorovi</h2>' +
             '  <div class="modal-body">' +
             '    <p style="margin:0 0 14px;color:var(--text-muted,#9aa1ac);font:500 13px/1.5 var(--font-ui,system-ui);">' +
             '      Co vám nesedí, co chybí, co byste změnili? Čte to autor appky — a podle toho, co sem přijde, se appka mění.</p>' +
@@ -315,7 +323,7 @@
         if (_sending) return;
         var m = document.getElementById('ag-fb-modal'); if (!m) return;
         var txt = (m.querySelector('#ag-fb-txt').value || '').trim();
-        if (!txt) { info(t('Zpráva je prázdná.'), t('Napište mi')); return; }
+        if (!txt) { info(t('Zpráva je prázdná.'), t('Napsat autorovi')); return; }
         var rec = {
             kind: (m.querySelector('#ag-fb-kinds .act') || { dataset: {} }).dataset.k || 'jine',
             txt: txt.slice(0, MAX),
@@ -340,8 +348,8 @@
             m.querySelector('#ag-fb-txt').value = '';
             count();
             renderQueueNote();
-            if (n > 0) { close(); info(t('Děkuji! Zpráva odešla.'), t('Napište mi')); }
-            else info(t('Bez signálu — zpráva počká a odejde sama.'), t('Napište mi'));
+            if (n > 0) { close(); info(t('Děkuji! Zpráva odešla.'), t('Napsat autorovi')); }
+            else info(t('Bez signálu — zpráva počká a odejde sama.'), t('Napsat autorovi'));
         });
     }
 
@@ -521,7 +529,7 @@
         var host = menu.querySelector('.menu-scroll') || menu;
         var btn = document.createElement('button');
         btn.id = 'ag-fb-menu-btn'; btn.className = 'menu-btn'; btn.type = 'button';
-        btn.innerHTML = '<span style="display:inline-block;width:18px;height:18px;vertical-align:-3px;">' + ICON + '</span> Napište mi';
+        btn.innerHTML = '<span style="display:inline-block;width:18px;height:18px;vertical-align:-3px;">' + ICON + '</span> Napsat autorovi';
         btn.addEventListener('click', function () {
             open();
             // toggleMenu() PŘEPÍNÁ — kdyby se sem někdo dostal jinak než z otevřeného
@@ -545,7 +553,7 @@
         if (!document.getElementById('ag-fb-set-btn')) {
             var btn = document.createElement('button');
             btn.id = 'ag-fb-set-btn'; btn.type = 'button'; btn.className = 'btn btn-secondary';
-            btn.innerHTML = '<span style="display:inline-block;width:18px;height:18px;vertical-align:-3px;">' + ICON + '</span> Napište mi — nápady a chyby';
+            btn.innerHTML = '<span style="display:inline-block;width:18px;height:18px;vertical-align:-3px;">' + ICON + '</span> Napsat autorovi — nápady a chyby';
             btn.addEventListener('click', function () {
                 var mm = document.getElementById('settings-modal');
                 if (mm) mm.style.display = 'none';
@@ -571,9 +579,70 @@
         } else if (!has && ib && ib.parentNode) ib.parentNode.removeChild(ib);
     }
 
+    // ---- TRVALÝ VSTUP: patička Nastavení a Nástrojů ------------------------------
+    // ⚠⚠ PROČ TO VZNIKLO (5. 9. 2026). Do téhle chvíle vedly k „Napište mi" jen dvě
+    // cesty a obě byly zavřené:
+    //   • panel „Více" (#side-menu) nemá od přechodu na dok VIDITELNÉ tlačítko —
+    //     #menu-toggle-btn má v css/style.css dvakrát `display:none !important`,
+    //     takže se do něj dá dostat jen přes Nastavení → Údržba → „Více…";
+    //   • Nastavení → Údržba je HOSTOVI schované oprávněním (GUEST_ALLOW v js/ucty.js
+    //     pouští jen dok Nový bod / Body / Nastavení a záložku Vzhled).
+    // Host tedy neměl k autorovi appky ŽÁDNOU cestu — přestože server ho schválně
+    // pouští psát i bez přihlášení (POST /feedback bez tokenu, viz hlavička souboru)
+    // a přestože právě on má k psaní nejvíc důvodů.
+    //
+    // Řádek proto stojí MIMO záložky Nastavení (hned pod dlaždicemi záložek) a MIMO
+    // mřížku Nástrojů. Dvě věci z toho plynou a obě jsou úmysl:
+    //   1. applyPerms() v js/ucty.js schovává záložky a dlaždice — na tenhle řádek
+    //      nesáhne, takže ho vidí i host;
+    //   2. je vidět z KAŽDÉ záložky Nastavení bez rolování, ne až na konci jedné z nich.
+    // Terč má 44 px (režim rukavic), text je přes slovník (data/jazyky.json zná
+    // „Napsat autorovi" i ve všech třech jazycích).
+    function footBtn(id) {
+        // ⚠ BEZ TOHOHLE JE ŘÁDEK NEUPRAVENÝ. Styly se do téhle chvíle vkládaly až
+        // v build(), tedy při prvním otevření okna — jenže patička vzniká dřív, takže
+        // do prvního otevření zůstávala holým tlačítkem (naměřeno: inline-block,
+        // 301×309 px místo 44 px vysokého řádku).
+        injectStyles();
+        var b = document.createElement('button');
+        b.id = id; b.type = 'button'; b.className = 'ag-fb-foot';
+        b.innerHTML = '<span class="ag-fb-fi">' + ICON + '</span><span>' +
+            esc(t('Něco nesedí, nebo něco chybí? Napsat autorovi')) + '</span>';
+        b.addEventListener('click', function () {
+            // Hostitelské okno se musí zavřít, jinak by leželo přes formulář.
+            try {
+                var s = document.getElementById('settings-modal'); if (s) s.style.display = 'none';
+                var n = document.getElementById('tools-modal'); if (n) n.style.display = 'none';
+            } catch (e) { swallow(e, 'footBtn:close'); }
+            open();
+        });
+        return b;
+    }
+    function injectFooters() {
+        // a) Nastavení — pod pruh záložek, do .modal-content (ne do .modal-body,
+        //    tam by řádek patřil jedné záložce). js/nastaveni-poradek.js přerovnává
+        //    jen #ag-ns-search a #ag-prof-bar PŘED .tab-buttons, takže si nepřekážíme.
+        try {
+            if (!document.getElementById('ag-fb-foot-set')) {
+                var sm = document.getElementById('settings-modal');
+                var tabs = sm && sm.querySelector('.tab-buttons');
+                if (tabs && tabs.parentNode) tabs.parentNode.insertBefore(footBtn('ag-fb-foot-set'), tabs.nextSibling);
+            }
+        } catch (e) { swallow(e, 'injectFooters:set'); }
+        // b) Nástroje — pod mřížku dlaždic. Mimo .tool-grid, aby řádek nebral
+        //    hledání ani oprávněním schované dlaždice.
+        try {
+            if (!document.getElementById('ag-fb-foot-tools')) {
+                var body = document.querySelector('#tools-modal .modal-body');
+                if (body) body.appendChild(footBtn('ag-fb-foot-tools'));
+            }
+        } catch (e) { swallow(e, 'injectFooters:tools'); }
+    }
+
     function init() {
         injectMenu();
         injectSettings();
+        injectFooters();
         // Fronta se zkusí doručit až v klidu po startu — na startu appka stahuje
         // dlaždice mapy a body, a jedna odložená zpráva nikam nespěchá.
         var later = function () { try { flush(); } catch (e) { swallow(e, 'init:flush'); } };
@@ -581,7 +650,7 @@
         else setTimeout(later, 8000);
         window.addEventListener('online', function () { setTimeout(later, 1500); });
         (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(function () {
-            try { injectMenu(); injectSettings(); } catch (e) { swallow(e, 'tick'); }
+            try { injectMenu(); injectSettings(); injectFooters(); } catch (e) { swallow(e, 'tick'); }
         }, 4000);
     }
 

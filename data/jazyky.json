@@ -499,6 +499,8 @@
     "část textů zůstává česky": ["some texts stay in Czech", "manche Texte bleiben tschechisch", "część tekstów pozostaje po czesku"],
     "Napište mi": ["Write to me", "Schreib mir", "Napisz do mnie"],
     "Napsat autorovi": ["Write to the author", "An den Autor schreiben", "Napisz do autora"],
+    "Napsat autorovi — nápady a chyby": ["Write to the author — ideas and bugs", "An den Autor schreiben — Ideen und Fehler", "Napisz do autora — pomysły i błędy"],
+    "Něco nesedí, nebo něco chybí? Napsat autorovi": ["Something wrong or missing? Write to the author", "Stimmt etwas nicht oder fehlt etwas? Schreib dem Autor", "Coś nie gra albo czegoś brakuje? Napisz do autora"],
     "Zpětná vazba": ["Feedback", "Feedback", "Opinie"],
     "Co vám nesedí, co chybí, co byste změnili?": ["What bothers you, what is missing, what would you change?", "Was stört dich, was fehlt, was würdest du ändern?", "Co ci nie pasuje, czego brakuje, co byś zmienił?"],
     "Chyba": ["Bug", "Fehler", "Błąd"],

@@ -1,6 +1,6 @@
 {
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
- "verze": [
+ "verze": [{"v": 276, "datum": "2026-09-05", "nadpis": "Napsat autorovi jde teď ze dvou klepnutí — a i bez přihlášení", "body": ["<b>Řádek „Něco nesedí, nebo něco chybí? Napsat autorovi“ je teď v Nastavení hned pod hledáním a v patičce Nástrojů.</b> Do téhle chvíle vedla jediná cesta přes Nastavení → Údržba → poslední tlačítko, a kdo není přihlášený, ten se k ní nedostal vůbec — přestože zprávu poslat smí.", "<b>Zkratka gestem.</b> V <b>Gesta a zkratky</b> přibyla akce <b>Napsat autorovi</b>, takže jde chybu nahlásit v rukavicích jedním tahem, ne dvěma okny.", "<b>Jednotný název.</b> Všude teď stojí <b>Napsat autorovi</b> místo „Napište mi“ — u appky, kterou dostaneš odkazem, není z „mi“ poznát, komu se píše."]}, 
   {
    "v": 275,
    "datum": "2026-09-05",

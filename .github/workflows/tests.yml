@@ -93,7 +93,7 @@ jobs:
         run: |
           for t in test_opravy_3_9 test_uhlazeni_31_8 test_navrhy_d2 test_vypinac \
                    test_vlastnik test_opravy_31_8 test_gps_rozumim test_body_paleta \
-                   test_lomena_osa; do
+                   test_lomena_osa test_napsat_autorovi; do
             echo "::group::$t"
             python "scripts/$t.py" || { echo "-- prvni beh selhal, opakuji jednou --"; python "scripts/$t.py"; }
             echo "::endgroup::"
