@@ -60,9 +60,16 @@
     function pad2(n) { return (n < 10 ? '0' : '') + n; }
     function fmtDT(ts) { var d = new Date(ts); return d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear() + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
     function fmtNum(v, dec) { return Number(v).toFixed(dec == null ? 2 : dec).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+    // S-JTSK počítá VÝHRADNĚ GeoCore: je to jediné místo v appce, které si ověří
+    // POŘADÍ OS Křováku (_resolveAxis v js/geo-core.js). Dřív tu byla vlastní záloha
+    // přes proj4 s pořadím zadrátovaným natvrdo ([-Y, -X]) — jenže právě to je věc,
+    // která se při bumpu proj4 nebo přidání +axis= může změnit: GeoCore to ohlásí
+    // a přehodí, záloha by osy TIŠE prohodila a bod by skončil o stovky km jinde.
+    // V geodetické appce je „souřadnici neznám" lepší než „souřadnice vedle".
     function toSJTSK(lat, lng) {
         try { if (window.GeoCore && GeoCore.toSJTSK) return GeoCore.toSJTSK(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'obchuzka:toSJTSK'); }
-        try { if (typeof proj4 === 'function') { var c = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { y: Math.abs(c[0]), x: Math.abs(c[1]) }; } } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'obchuzka:toSJTSK'); }
+        // do protokolu jen jednou za sezení — toSJTSK se volá v cyklu přes všechny body
+        if (!toSJTSK._warn) { toSJTSK._warn = 1; try { if (window.agErrLog) agErrLog.record('obchuzka: chybí GeoCore — S-JTSK se nepočítá'); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'obchuzka:toSJTSK'); } }
         return null;
     }
     function fix() {
@@ -78,9 +85,17 @@
             return { lat: userLat, lng: userLng, z: z, acc: acc, ts: Date.now() };
         } catch (e2) { return null; }
     }
+    // VZDÁLENOST: nejdřív obě autority — globální getDistance (js/logika.js) a GeoCore.
+    // Nouzový výpočet tu ZŮSTÁVÁ schválně: null by se v porovnání typu `d <= LIMIT`
+    // přetypoval na 0, tedy „bod je na dosah" — tichá lež horší než chyba v centimetrech.
+    // Počítá se ale Gaussovým poloměrem ve střední šířce, ne globální konstantou
+    // 6371 km: ta v ČR zkracovala KAŽDOU vzdálenost o ~1700 ppm = 17 cm na 100 m.
     function distM(a, b) {
         try { if (typeof getDistance === 'function') return getDistance(a.lat, a.lng, b.lat, b.lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'obchuzka:distM'); }
-        var R = 6371000, r = Math.PI / 180;
+        try { if (window.GeoCore && GeoCore.getDistance) return GeoCore.getDistance(a.lat, a.lng, b.lat, b.lng); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'obchuzka:distM'); }
+        var r = Math.PI / 180, A = 6378137.0, E2 = 0.00669438002290;      // GRS80
+        var sm = Math.sin((a.lat + b.lat) / 2 * r), w2 = 1 - E2 * sm * sm, w = Math.sqrt(w2);
+        var R = Math.sqrt((A * (1 - E2) / (w2 * w)) * (A / w));           // Gaussův poloměr sqrt(M*N)
         var s = Math.sin((b.lat - a.lat) * r / 2), t = Math.sin((b.lng - a.lng) * r / 2);
         var h = s * s + Math.cos(a.lat * r) * Math.cos(b.lat * r) * t * t;
         return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));

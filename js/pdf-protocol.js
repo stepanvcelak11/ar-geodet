@@ -225,7 +225,20 @@
                 })).then(function (rows) {
                     renderPdf(doc, rows, { FONT: FONT, T: T, setFont: setFont, hasUni: hasUni });
                     var fname = 'protokol_' + sanitizeFilename(getProjectId()) + '.pdf';
-                    try { doc.save(fname); }
+                    // doc.save() uvnitř klikne na <a download> — a ten na iPhonu (PWA
+                    // z plochy) často neudělá nic, takže protokol z telefonu nešel
+                    // dostat ven. Když je po ruce js/sdilet-soubor.js, jde PDF rovnou
+                    // do systémového listu sdílení; jinak zůstává původní doc.save().
+                    try {
+                        if (typeof window.agShareOrDownload === 'function') {
+                            window.agShareOrDownload(doc.output('blob'), fname, 'application/pdf')['catch'](function (e3) {
+                                try { alertFail('Export selhal', 'PDF se nepodařilo poslat ven.'); }
+                                catch (e4) { window.AG && AG.swallow && AG.swallow(e4, 'pdf-protocol:ven'); }
+                            });
+                        } else {
+                            doc.save(fname);
+                        }
+                    }
                     catch (e) {
                         // fallback download přes blob
                         try {

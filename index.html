@@ -80,7 +80,13 @@
          v předcache service workeru, takže offline nedorazila vůbec.
          Písma jsou variabilní, proto stačí 6 souborů (fonts/) místo 22 — detail
          v hlavičce css/fonts.css. Přegenerování: scripts/stahni-pisma.ps1 -->
+    <!-- OBA řezy Interu, ne jen „latin". Česká diakritika (č ď ě ň ř š ť ů ž) leží
+         v U+0100-017E, tedy v latin-ext — s jediným preloadem prohlížeč větší soubor
+         objeví až ve chvíli, kdy sázení narazí na první „ě", tj. o okruh později,
+         a písmena s háčky uvnitř slova chvíli blikají systémovým písmem.
+         JetBrains Mono a Sora se nepředčítají schválně: tvoří menšinu textu. -->
     <link rel="preload" href="fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/inter-var-latin-ext.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="css/fonts.css">
     <link rel="stylesheet" href="js/lib/leaflet-1.9.4.css">
     <script defer src="js/lib/proj4-2.9.0.min.js"></script>
@@ -89,8 +95,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=273">
-    <link rel="stylesheet" href="css/style.css?v=273">
+    <link rel="stylesheet" href="css/tokens.css?v=274">
+    <link rel="stylesheet" href="css/style.css?v=274">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -143,6 +149,11 @@
                     // se tu čeká. Není co hlásit.
                     if (!document.documentElement.classList.contains('ag-prelock')) return;
                     if (document.getElementById('ag-bootfail')) return;
+                    // Barvy i velikosti jsou tu NATVRDO (a zkratkou `font:`, ne
+                    // font-size) SCHVALNE: tahle hlaska se stavi prave tehdy, kdyz se
+                    // appka nenacetla, takze se nesmi opirat o zadny stylopis ani o
+                    // promennou --ag-font-scale, kterou nastavuje az js/. Jezdec
+                    // "Velikost pisma" na ni proto zamerne nepusobi — neni to opomenuti.
                     var ov = document.createElement('div');
                     ov.id = 'ag-bootfail';
                     ov.setAttribute('style', 'position:fixed;inset:0;z-index:999998;display:flex;'
@@ -178,33 +189,28 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=273">
-    <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + css/zpravodaj.css + js/zpravodaj.js + data/zpravodaj.json) -->
-    <link rel="stylesheet" href="css/zpravodaj.css">
-    <!-- PŘEDPISY (odpojitelné: smaž tento řádek + css/predpisy.css + js/predpisy.js + data/predpisy.json) -->
-    <link rel="stylesheet" href="css/predpisy.css">
-    <!-- MODULY (workflow) — odpojitelné -->
-    <link rel="stylesheet" href="css/gnss-quality.css">
+    <link rel="stylesheet" href="css/vylepseni.css?v=274">
+    <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
+         render-blokující: prohlížeč nevykreslí ani pixel, dokud nedorazí VŠECHNY.
+         Jedenáct z nich (69 kB) přitom patřilo oknům, která se při startu vůbec
+         neotevřou. Jedou teď s modulem — `data-css="…"` na jeho řádku
+         <script type="ag/lazy"> dole (obsluhuje js/lazy-load.js), u Počasí
+         přes MANIFEST v js/lazy-tools.js. Do předcache se dostanou samy:
+         scripts/gen_sw_assets.py čte `data-css` i MANIFEST lazy-tools.js,
+         takže ruční seznam se s realitou nemůže rozejít.
+         MODULY (workflow) — odpojitelné: -->
     <link rel="stylesheet" href="css/gps-warn.css">
     <link rel="stylesheet" href="css/compass-stability.css">
-    <link rel="stylesheet" href="css/calib-profiles.css">
-    <link rel="stylesheet" href="css/ref-calibration.css">
-    <link rel="stylesheet" href="css/sky-obstruction.css">
     <link rel="stylesheet" href="css/cadastre-area.css">
     <!-- BODOVÉ POLE -->
     <!-- KONTROLNÍ MĚŘENÍ -->
     <!-- BALÍČEK ZAKÁZKY -->
     <link rel="stylesheet" href="css/ar-fusion.css">
-    <link rel="stylesheet" href="css/ar-calibrate.css">
     <link rel="stylesheet" href="css/dmr-terrain.css">
     <link rel="stylesheet" href="css/power-save.css">
-    <link rel="stylesheet" href="css/dmt-volume.css">
-    <link rel="stylesheet" href="css/check-distance.css">
     <link rel="stylesheet" href="css/seznam-souradnic.css">
-    <link rel="stylesheet" href="css/brutal-gps.css">
     <!-- QC INSPEKTOR / kód kvality (odpojitelné: smaž tento řádek + css/qc-engine.css + js/qc-engine.js) -->
     <link rel="stylesheet" href="css/qc-engine.css">
-    <link rel="stylesheet" href="css/pocasi.css">
     <!-- VIZUÁLNÍ DOLADĚNÍ NÁSTROJŮ — jednotný vzhled oken nástrojů (odpojitelné: smaž tento řádek + css/tools-polish.css) -->
     <link rel="stylesheet" href="css/tools-polish.css">
     <!-- TOKENOVÁ VRSTVA ČITELNOSTI — venkovní režim + rukavice přes design tokeny;
@@ -307,9 +313,9 @@
         <circle cx="48" cy="48" r="1.8" fill="#ffffff"/>
     </svg>
 <div class="modal-body" style="padding-right: 0; display: none;">
-    <label>Poloměr pro mapu (Stahování): <span id="w-map-radius-val" style="color:var(--accent); font-size: 16px;">1000</span> m</label>
+    <label>Poloměr pro mapu (Stahování): <span id="w-map-radius-val" style="color:var(--accent); font-size: calc(16px * var(--ag-font-scale, 1));">1000</span> m</label>
     <input type="range" id="w-map-radius-slider" min="50" max="5000" step="50" value="1000" oninput="document.getElementById('w-map-radius-val').innerText = this.value">
-    <label>Viditelnost v AR kameře: <span id="w-ar-radius-val" style="color:var(--accent); font-size: 16px;">150</span> m</label>
+    <label>Viditelnost v AR kameře: <span id="w-ar-radius-val" style="color:var(--accent); font-size: calc(16px * var(--ag-font-scale, 1));">150</span> m</label>
     <input type="range" id="w-ar-radius-slider" min="50" max="5000" step="50" value="150" oninput="document.getElementById('w-ar-radius-val').innerText = this.value">
     <label style="margin-top: 20px;">Druh hledaných bodů</label>
     <div class="filter-group">
@@ -335,7 +341,7 @@
             <label style="margin-top: 15px;">Hledat konkrétní bod (Plný název)</label>
             <input type="text" id="w-search-name" placeholder="Např. 567 nebo celá značka">
             <label style="margin-top: 15px;">Širokoúhlý objektiv (0.5x)</label>
-            <button id="camera-load-btn" class="btn btn-secondary" onclick="loadCameras()" style="padding: 10px; font-size: 14px;"><svg class="icon"><use href="#i-camera"/></svg> Vyhledat zadní objektivy</button>
+            <button id="camera-load-btn" class="btn btn-secondary" onclick="loadCameras()" style="padding: 10px; font-size: calc(14px * var(--ag-font-scale, 1));"><svg class="icon"><use href="#i-camera"/></svg> Vyhledat zadní objektivy</button>
             <select id="w-camera-select" style="display:none;"><option value="">Výchozí zadní kamera</option></select>
         </div>
     </details>
@@ -479,7 +485,7 @@
     <div class="modal-overlay" id="measure-modal">
         <div class="modal-content">
             <h3 style="color: var(--accent); margin-top:0;"><svg class="icon"><use href="#i-ruler"/></svg>Měření vzdálenosti</h3>
-            <p style="font-size: 13px; margin-top:0; opacity: 0.8;">Vypočítá vzdálenost a převýšení mezi dvěma místy podle GPS.</p>
+            <p style="font-size: calc(13px * var(--ag-font-scale, 1)); margin-top:0; opacity: 0.8;">Vypočítá vzdálenost a převýšení mezi dvěma místy podle GPS.</p>
             <div class="modal-body">
                 <div class="cp-item">
                     <div class="cp-title">Bod A (Výchozí bod)</div>
@@ -492,7 +498,7 @@
                     <button class="btn btn-blue" style="margin-top:5px; padding: 10px; width: 100%;" onclick="setMeasurePoint('B')"><svg class="icon"><use href="#i-map-pin"/></svg> Uložit moji aktuální pozici</button>
                 </div>
                 <div class="geo-highlight" style="margin-top: 15px; border-left-color: var(--accent);">
-                    <div class="geo-data-row"><span class="geo-label">Vodorovná délka:</span><span class="geo-value" style="font-size: 16px; color: var(--accent);" id="meas-horiz">-- m</span></div>
+                    <div class="geo-data-row"><span class="geo-label">Vodorovná délka:</span><span class="geo-value" style="font-size: calc(16px * var(--ag-font-scale, 1)); color: var(--accent);" id="meas-horiz">-- m</span></div>
                     <div class="geo-data-row"><span class="geo-label">Převýšení:</span><span class="geo-value" id="meas-elev">-- m</span></div>
                     <div class="geo-data-row" style="border-bottom:none;"><span class="geo-label">Šikmá délka (3D):</span><span class="geo-value" id="meas-slant">-- m</span></div>
                 </div>
@@ -508,7 +514,7 @@
     <div class="modal-overlay" id="cluster-modal">
         <div class="modal-content">
             <h3 style="color: var(--accent); margin-top:0; margin-bottom: 5px;">Skupina bodů</h3>
-            <p style="margin-top: 0; font-size: 13px; opacity: 0.8;">Vyberte bod pro zobrazení v AR a detailech:</p>
+            <p style="margin-top: 0; font-size: calc(13px * var(--ag-font-scale, 1)); opacity: 0.8;">Vyberte bod pro zobrazení v AR a detailech:</p>
             <div class="modal-body" id="cluster-list" style="margin-top: 10px;"></div>
             <button class="btn btn-secondary" style="margin-top: 15px;" onclick="document.getElementById('cluster-modal').style.display='none'">Zrušit výběr</button>
         </div>
@@ -517,7 +523,7 @@
     <div class="modal-overlay" id="nearby-modal">
         <div class="modal-content">
             <h3 style="color: var(--accent); margin-top:0; margin-bottom: 5px;">Body v okolí</h3>
-            <p style="margin-top: 0; font-size: 13px; opacity: 0.8;">Seřazeno podle vzdálenosti · klepni pro navigaci:</p>
+            <p style="margin-top: 0; font-size: calc(13px * var(--ag-font-scale, 1)); opacity: 0.8;">Seřazeno podle vzdálenosti · klepni pro navigaci:</p>
             <div class="modal-body" id="nearby-list" style="margin-top: 10px;"></div>
             <button class="btn btn-secondary" style="margin-top: 15px;" onclick="document.getElementById('nearby-modal').style.display='none'">Zavřít</button>
         </div>
@@ -527,8 +533,8 @@
         <div class="sheet-handle"></div>
         <div class="sheet-content">
             <h2 id="det-title" style="margin:0 0 5px 0;">#Bod</h2>
-            <div id="det-subtitle" style="font-weight: 600; margin-bottom: 15px; font-size: 14px;">Typ bodu</div>
-            <div id="det-body" style="margin-bottom: 15px; font-size: 15px;"></div>
+            <div id="det-subtitle" style="font-weight: 600; margin-bottom: 15px; font-size: calc(14px * var(--ag-font-scale, 1));">Typ bodu</div>
+            <div id="det-body" style="margin-bottom: 15px; font-size: calc(15px * var(--ag-font-scale, 1));"></div>
             <!-- akce karty: 3 kompaktní tlačítka vedle sebe (šetří výšku karty); „Vytyčeno" záměrně pryč — na to je nástroj Vytyčovací checklist -->
             <div class="sheet-actions">
                 <button class="btn btn-warning" id="highlight-btn" onclick="toggleHighlight()"><svg class="icon"><use href="#i-star"/></svg><span>Zvýraznit</span></button>
@@ -762,7 +768,7 @@
                     <button class="btn btn-secondary" onclick="exportAllData()"><svg class="icon"><use href="#i-download"/></svg> Stáhnout zálohu (vše)</button>
                     <button class="btn btn-blue" onclick="document.getElementById('restore-file').click()"><svg class="icon"><use href="#i-upload"/></svg> Obnovit ze zálohy</button>
                     <input type="file" id="restore-file" style="display:none" accept=".json,application/json" onchange="importAllData(event)">
-                    <div id="storage-usage" style="margin-top:10px; font-size:12px; color:var(--text-muted); line-height:1.5;"></div>
+                    <div id="storage-usage" style="margin-top:10px; font-size: calc(12px * var(--ag-font-scale, 1)); color:var(--text-muted); line-height:1.5;"></div>
                     <div class="set-h">Úklid</div>
                     <button class="btn btn-danger" onclick="clearAllPoints()"><svg class="icon"><use href="#i-trash"/></svg> Vymazat stáhnuté okolí z této zakázky</button>
                     <!-- „VÍCE" SE PŘESTĚHOVALO SEM z lišty (na přání 8. 8. 2026, v liště je
@@ -827,10 +833,10 @@
         </div>
     </div>
 
-    <div class="modal-overlay" id="manage-modal"><div class="modal-content"><h2 style="color: var(--accent); margin-top:0;">Mé body (S-JTSK)</h2><details class="exp-menu" style="margin-bottom: 12px;"><summary><svg class="icon"><use href="#i-upload"/></svg> Export / Import bodů</summary><div class="exp-opts"><div class="exp-fmt-wrap"><label style="display:flex;justify-content:space-between;align-items:center;margin:0 2px 6px;font-size:13px;">Formát exportu <b id="exp-fmt-name" style="color:var(--accent);">CSV (číslo;Y;X)</b></label><input type="range" id="exp-fmt" min="0" max="6" step="1" value="0" oninput="window.agExpFmt&&agExpFmt()" onfocus="window.agExpInit&&agExpInit()"><div style="font-size:11px;opacity:.6;text-align:center;margin-top:2px;">posuň a vyber formát</div><button class="btn" style="margin-top:10px;" onclick="window.agExpDo&&agExpDo()"><svg class="icon"><use href="#i-upload"/></svg> Exportovat</button></div><div class="ag-quad" id="exp-actions" role="group" aria-label="Další akce s body"><button type="button" onclick="document.getElementById('import-file').click()" title="Import souboru (CSV, JSON, VFK…)"><svg class="icon"><use href="#i-folder"/></svg><span>Import<br>souboru</span></button><button type="button" id="exp-share-qr" onclick="openShareQR()" title="Sdílet body QR kódem"><svg class="icon"><use href="#i-upload"/></svg><span>Sdílet<br>QR</span></button><button type="button" id="exp-scan-qr" onclick="openScanQR()" title="Načíst body z QR kódu"><svg class="icon"><use href="#i-camera"/></svg><span>Načíst<br>QR</span></button></div><input type="file" id="import-file" style="display:none" accept=".json,.csv,.txt,.vfk" onchange="importPoints(event)"></div></details><div class="modal-body" id="manage-list"></div><button class="btn btn-secondary" style="margin-top: 15px;" onclick="closeManageModal()">Zpět</button></div></div>
+    <div class="modal-overlay" id="manage-modal"><div class="modal-content"><h2 style="color: var(--accent); margin-top:0;">Mé body (S-JTSK)</h2><details class="exp-menu" style="margin-bottom: 12px;"><summary><svg class="icon"><use href="#i-upload"/></svg> Export / Import bodů</summary><div class="exp-opts"><div class="exp-fmt-wrap"><label style="display:flex;justify-content:space-between;align-items:center;margin:0 2px 6px;font-size: calc(13px * var(--ag-font-scale, 1));">Formát exportu <b id="exp-fmt-name" style="color:var(--accent);">CSV (číslo;Y;X)</b></label><input type="range" id="exp-fmt" min="0" max="6" step="1" value="0" oninput="window.agExpFmt&&agExpFmt()" onfocus="window.agExpInit&&agExpInit()"><div style="font-size: calc(11px * var(--ag-font-scale, 1));opacity:.6;text-align:center;margin-top:2px;">posuň a vyber formát</div><button class="btn" style="margin-top:10px;" onclick="window.agExpDo&&agExpDo()"><svg class="icon"><use href="#i-upload"/></svg> Exportovat</button></div><div class="ag-quad" id="exp-actions" role="group" aria-label="Další akce s body"><button type="button" onclick="document.getElementById('import-file').click()" title="Import souboru (CSV, JSON, VFK…)"><svg class="icon"><use href="#i-folder"/></svg><span>Import<br>souboru</span></button><button type="button" id="exp-share-qr" onclick="openShareQR()" title="Sdílet body QR kódem"><svg class="icon"><use href="#i-upload"/></svg><span>Sdílet<br>QR</span></button><button type="button" id="exp-scan-qr" onclick="openScanQR()" title="Načíst body z QR kódu"><svg class="icon"><use href="#i-camera"/></svg><span>Načíst<br>QR</span></button></div><input type="file" id="import-file" style="display:none" accept=".json,.csv,.txt,.vfk" onchange="importPoints(event)"></div></details><div class="modal-body" id="manage-list"></div><button class="btn btn-secondary" style="margin-top: 15px;" onclick="closeManageModal()">Zpět</button></div></div>
     <!-- data-no-swipe: krizek ano, gesto ne (js/modal-close.js). Tuknout na X je
          rozhodnuti, ale nechtene cuknuti prstem by zahodilo rozepsany bod. -->
-    <div class="modal-overlay" id="custom-modal-overlay" data-no-swipe><div class="modal-content"><h3 id="custom-modal-title" style="color: var(--accent); margin-top:0;">Vložit vlastní bod</h3><div class="modal-body"><!-- pomocníci vyplnění jen pro NOVÝ bod — při úpravě je grafika.js skryje --><div id="custom-create-helpers"><div class="ag-quad" role="group" aria-label="Odkud vzít souřadnice"><button type="button" class="qt-prim" onclick="fillAveragedGPS()" title="Vyplnit z průměru GPS"><svg class="icon"><use href="#i-locate"/></svg><span>Z průměru<br>GPS</span></button><button type="button" onclick="startMapPick()" title="Vybrat polohu z mapy"><svg class="icon"><use href="#i-map-pin"/></svg><span>Z mapy</span></button><button type="button" onclick="document.getElementById('ocr-file').click()" title="Přečíst souřadnice z fotky (OCR)"><svg class="icon"><use href="#i-camera"/></svg><span>Z fotky<br>(OCR)</span></button><button type="button" onclick="closeCustomModal(); if(window.agOpenBrutalGps) agOpenBrutalGps();" title="Přesná GPS — dlouhé průměrování"><svg class="icon"><use href="#i-crosshair"/></svg><span>Přesná<br>GPS</span></button></div><input type="file" id="ocr-file" style="display:none" accept="image/*" capture="environment" onchange="ocrFromPhoto(event)"><div id="ocr-note" style="display:none;"></div></div><div id="custom-acc-note" style="display:none;"></div><label>Název / Číslo bodu:</label><input type="text" id="custom-name" placeholder="Např. Mezník 1"><label>Kód bodu — volitelné (do CSV/DXF):</label><input type="text" id="custom-kod" list="kod-datalist" autocomplete="off" placeholder="Např. obruba, šachta…"><datalist id="kod-datalist"></datalist><div id="kod-chips" class="kod-chips" style="display:none;"></div><label>S-JTSK Y (v metrech):</label><input type="text" id="custom-y" inputmode="decimal" autocomplete="off" placeholder="Např. 596956,46"><label>S-JTSK X (v metrech):</label><input type="text" id="custom-x" inputmode="decimal" autocomplete="off" placeholder="Např. 1163343,34"><label>Výška Z / Bpv (v metrech) — volitelné:</label><input type="text" id="custom-z" inputmode="decimal" autocomplete="off" placeholder="Např. 312,45"><label>Popis / poznámka — volitelné:</label><textarea id="custom-note" rows="2" placeholder="Stabilizace, popis místa, číslo náčrtu…"></textarea><button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('custom-photo').click()"><svg class="icon"><use href="#i-camera"/></svg> Přiložit fotku bodu</button><input type="file" id="custom-photo" style="display:none" accept="image/*" capture="environment" onchange="agNewPointPhoto(event)"><div id="custom-photo-note" style="display:none; margin-top:6px; font-size:12.5px; color:var(--accent-bright);"></div></div><div class="row-buttons"><button class="btn btn-secondary" onclick="closeCustomModal()">Zrušit</button><button class="btn btn-blue" id="btn-save-next" onclick="saveCustomPoint(true)" title="Uloží bod a rovnou připraví formulář s dalším číslem">Uložit a další</button><button class="btn btn-primary" onclick="saveCustomPoint()">Uložit</button></div></div></div>
+    <div class="modal-overlay" id="custom-modal-overlay" data-no-swipe><div class="modal-content"><h3 id="custom-modal-title" style="color: var(--accent); margin-top:0;">Vložit vlastní bod</h3><div class="modal-body"><!-- pomocníci vyplnění jen pro NOVÝ bod — při úpravě je grafika.js skryje --><div id="custom-create-helpers"><div class="ag-quad" role="group" aria-label="Odkud vzít souřadnice"><button type="button" class="qt-prim" onclick="fillAveragedGPS()" title="Vyplnit z průměru GPS"><svg class="icon"><use href="#i-locate"/></svg><span>Z průměru<br>GPS</span></button><button type="button" onclick="startMapPick()" title="Vybrat polohu z mapy"><svg class="icon"><use href="#i-map-pin"/></svg><span>Z mapy</span></button><button type="button" onclick="document.getElementById('ocr-file').click()" title="Přečíst souřadnice z fotky (OCR)"><svg class="icon"><use href="#i-camera"/></svg><span>Z fotky<br>(OCR)</span></button><button type="button" onclick="closeCustomModal(); if(window.agOpenBrutalGps) agOpenBrutalGps();" title="Přesná GPS — dlouhé průměrování"><svg class="icon"><use href="#i-crosshair"/></svg><span>Přesná<br>GPS</span></button></div><input type="file" id="ocr-file" style="display:none" accept="image/*" capture="environment" onchange="ocrFromPhoto(event)"><div id="ocr-note" style="display:none;"></div></div><div id="custom-acc-note" style="display:none;"></div><label>Název / Číslo bodu:</label><input type="text" id="custom-name" placeholder="Např. Mezník 1"><label>Kód bodu — volitelné (do CSV/DXF):</label><input type="text" id="custom-kod" list="kod-datalist" autocomplete="off" placeholder="Např. obruba, šachta…"><datalist id="kod-datalist"></datalist><div id="kod-chips" class="kod-chips" style="display:none;"></div><label>S-JTSK Y (v metrech):</label><input type="text" id="custom-y" inputmode="decimal" autocomplete="off" placeholder="Např. 596956,46"><label>S-JTSK X (v metrech):</label><input type="text" id="custom-x" inputmode="decimal" autocomplete="off" placeholder="Např. 1163343,34"><label>Výška Z / Bpv (v metrech) — volitelné:</label><input type="text" id="custom-z" inputmode="decimal" autocomplete="off" placeholder="Např. 312,45"><label>Popis / poznámka — volitelné:</label><textarea id="custom-note" rows="2" placeholder="Stabilizace, popis místa, číslo náčrtu…"></textarea><button class="btn btn-secondary" style="margin-top:8px;" onclick="document.getElementById('custom-photo').click()"><svg class="icon"><use href="#i-camera"/></svg> Přiložit fotku bodu</button><input type="file" id="custom-photo" style="display:none" accept="image/*" capture="environment" onchange="agNewPointPhoto(event)"><div id="custom-photo-note" style="display:none; margin-top:6px; font-size: calc(12.5px * var(--ag-font-scale, 1)); color:var(--accent-bright);"></div></div><div class="row-buttons"><button class="btn btn-secondary" onclick="closeCustomModal()">Zrušit</button><button class="btn btn-blue" id="btn-save-next" onclick="saveCustomPoint(true)" title="Uloží bod a rovnou připraví formulář s dalším číslem">Uložit a další</button><button class="btn btn-primary" onclick="saveCustomPoint()">Uložit</button></div></div></div>
 
     <div class="modal-overlay" id="dict-modal">
         <div class="modal-content">
@@ -838,7 +844,7 @@
             <input type="text" id="dict-search" placeholder="Hledat pojem, zkratku nebo znak…" oninput="renderDictList()">
             <div class="modal-body" id="dict-list" style="margin-top:10px;"></div>
             <details style="margin-top:10px;">
-                <summary style="color:var(--text-muted); font-size:13px; padding:6px 0; cursor:pointer;">＋ Přidat vlastní pojem</summary>
+                <summary style="color:var(--text-muted); font-size: calc(13px * var(--ag-font-scale, 1)); padding:6px 0; cursor:pointer;">＋ Přidat vlastní pojem</summary>
                 <input type="text" id="dict-new-term" placeholder="Pojem / zkratka / znak">
                 <input type="text" id="dict-new-def" placeholder="Vysvětlení">
                 <button class="btn btn-blue" style="margin-top:10px; padding:10px;" onclick="addDictEntry()"><svg class="icon"><use href="#i-plus"/></svg> Přidat do slovníku</button>
@@ -851,31 +857,31 @@
         <div class="modal-content">
             <h2 style="margin-top:0;">O aplikaci</h2>
             <div class="modal-body">
-                <p style="margin-top:0; font-size:13px; opacity:0.8;">AR Geodet — geodetická appka do terénu: body v rozšířené realitě i v mapě, měření a výpočty, katastr, vytyčování a denní pomůcky. Funguje offline. Verze <span id="about-version">1.0</span>.</p>
+                <p style="margin-top:0; font-size: calc(13px * var(--ag-font-scale, 1)); opacity:0.8;">AR Geodet — geodetická appka do terénu: body v rozšířené realitě i v mapě, měření a výpočty, katastr, vytyčování a denní pomůcky. Funguje offline. Verze <span id="about-version">1.0</span>.</p>
                 <div class="geo-highlight">
                     <strong><svg class="icon" style="vertical-align:-0.18em; color:var(--accent);"><use href="#i-star"/></svg> Autor a vlastník</strong>
-                    <p style="font-size:14px; line-height:1.55; margin:8px 0 0;">Vlastníkem aplikace AR Geodet je <b>Štěpán Včelák</b>, který ji také navrhl, vytvořil a provozuje.</p>
-                    <p style="font-size:13px; line-height:1.55; margin:6px 0 0;">© 2026 Štěpán Včelák. Všechna práva vyhrazena.</p>
-                    <p style="font-size:12px; line-height:1.5; margin:8px 0 0; opacity:0.75;">AR Geodet je autorské dílo. Aplikaci, její zdrojový kód ani jednotlivé části není dovoleno kopírovat, upravovat, dále šířit, prodávat ani nabízet jako vlastní produkt bez písemného souhlasu vlastníka. Podkladová data třetích stran (ČÚZK, OpenStreetMap) zůstávají majetkem jejich poskytovatelů a řídí se jejich licencemi.</p>
+                    <p style="font-size: calc(14px * var(--ag-font-scale, 1)); line-height:1.55; margin:8px 0 0;">Vlastníkem aplikace AR Geodet je <b>Štěpán Včelák</b>, který ji také navrhl, vytvořil a provozuje.</p>
+                    <p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.55; margin:6px 0 0;">© 2026 Štěpán Včelák. Všechna práva vyhrazena.</p>
+                    <p style="font-size: calc(12px * var(--ag-font-scale, 1)); line-height:1.5; margin:8px 0 0; opacity:0.75;">AR Geodet je autorské dílo. Aplikaci, její zdrojový kód ani jednotlivé části není dovoleno kopírovat, upravovat, dále šířit, prodávat ani nabízet jako vlastní produkt bez písemného souhlasu vlastníka. Podkladová data třetích stran (ČÚZK, OpenStreetMap) zůstávají majetkem jejich poskytovatelů a řídí se jejich licencemi.</p>
                 </div>
                 <div class="geo-highlight" style="border-left-color:#fbbf24;">
                     <strong><svg class="icon" style="vertical-align:-0.18em; color:#fbbf24;"><use href="#i-alert"/></svg> Upozornění</strong>
-                    <p style="font-size:13px; line-height:1.55; margin:8px 0 0;">Aplikace je <b>orientační pomůcka</b>, nikoli měřicí přístroj. Zobrazená poloha bodů závisí na přesnosti GPS a kompasu telefonu (běžně ±3–7 m, kompas je citlivý na magnetické rušení). Ani dlouhé průměrování, DGPS z druhého mobilu nebo kalibrace na referenční bod z telefonu <b>neudělají RTK rover</b> — pro geometrický plán, vytyčení hranice a další úřední výstupy platí měření ověřeným přístrojem. Body v terénu vždy ověřte a nehledejte je na centimetr přímo na AR značce. Za rozhodnutí učiněná na základě aplikace nese odpovědnost uživatel.</p>
+                    <p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.55; margin:8px 0 0;">Aplikace je <b>orientační pomůcka</b>, nikoli měřicí přístroj. Zobrazená poloha bodů závisí na přesnosti GPS a kompasu telefonu (běžně ±3–7 m, kompas je citlivý na magnetické rušení). Ani dlouhé průměrování, DGPS z druhého mobilu nebo kalibrace na referenční bod z telefonu <b>neudělají RTK rover</b> — pro geometrický plán, vytyčení hranice a další úřední výstupy platí měření ověřeným přístrojem. Body v terénu vždy ověřte a nehledejte je na centimetr přímo na AR značce. Za rozhodnutí učiněná na základě aplikace nese odpovědnost uživatel.</p>
                 </div>
                 <h4 style="color:var(--accent); margin-top:18px; border-bottom:1px solid var(--glass-border); padding-bottom:5px;">Soukromí</h4>
-                <p style="font-size:13px; line-height:1.55;">Měření zůstává <b>ve vašem telefonu</b>: poloha (GPS) i obraz z kamery se zpracovávají lokálně, kamerový obraz se nikam neodesílá a body i nastavení jsou uložené v tomto zařízení. Internet se používá pro stažení bodů a mapových podkladů (služby níže) a pro předpověď počasí (souřadnice místa).</p><p style="font-size:13px; line-height:1.55;">Navíc jen tehdy, když si je sami zapnete:<br>• <b>Firemní režim</b> — přihlášení, docházka, chat a synchronizace bodů běží přes firemní server aplikace; bez přihlášení k firmě se nic neodesílá.<br>• <b>Přepis hlasových poznámek</b> — rozpoznávání řeči v prohlížeči posílá zvuk na server jeho výrobce (Google/Apple). Přepis lze vypnout, pak zůstane jen nahrávka v telefonu.<br>• <b>Zpravodaj a předpovědi GNSS</b> — stahují veřejná data (dráhy družic, geomagnetický index).</p>
+                <p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.55;">Měření zůstává <b>ve vašem telefonu</b>: poloha (GPS) i obraz z kamery se zpracovávají lokálně, kamerový obraz se nikam neodesílá a body i nastavení jsou uložené v tomto zařízení. Internet se používá pro stažení bodů a mapových podkladů (služby níže) a pro předpověď počasí (souřadnice místa).</p><p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.55;">Navíc jen tehdy, když si je sami zapnete:<br>• <b>Firemní režim</b> — přihlášení, docházka, chat a synchronizace bodů běží přes firemní server aplikace; bez přihlášení k firmě se nic neodesílá.<br>• <b>Přepis hlasových poznámek</b> — rozpoznávání řeči v prohlížeči posílá zvuk na server jeho výrobce (Google/Apple). Přepis lze vypnout, pak zůstane jen nahrávka v telefonu.<br>• <b>Zpravodaj a předpovědi GNSS</b> — stahují veřejná data (dráhy družic, geomagnetický index).</p>
                 <h4 style="color:var(--accent); margin-top:18px; border-bottom:1px solid var(--glass-border); padding-bottom:5px;">Zdroje dat</h4>
-                <p style="font-size:13px; line-height:1.55;">Bodová pole, ortofoto a katastrální mapa: <b>Podkladová data © ČÚZK</b> — užití se řídí Podmínkami poskytování ČÚZK a Zásadami užívání dat a služeb ZÚ.<br>Mapový podklad: © přispěvatelé <b>OpenStreetMap</b> (licence ODbL).<br>Odkazy na katastr: Mapy.cz, iKatastr.cz, Geoprohlížeč ČÚZK.<br>Počasí: Open-Meteo (modely ECMWF, DWD ICON, Météo-France, NOAA a další), MET Norway, DWD MOSMIX, srážkový radar RainViewer.<br>Dráhy družic: Celestrak (TLE). Geomagnetický index Kp: NOAA SWPC.</p>
+                <p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.55;">Bodová pole, ortofoto a katastrální mapa: <b>Podkladová data © ČÚZK</b> — užití se řídí Podmínkami poskytování ČÚZK a Zásadami užívání dat a služeb ZÚ.<br>Mapový podklad: © přispěvatelé <b>OpenStreetMap</b> (licence ODbL).<br>Odkazy na katastr: Mapy.cz, iKatastr.cz, Geoprohlížeč ČÚZK.<br>Počasí: Open-Meteo (modely ECMWF, DWD ICON, Météo-France, NOAA a další), MET Norway, DWD MOSMIX, srážkový radar RainViewer.<br>Dráhy družic: Celestrak (TLE). Geomagnetický index Kp: NOAA SWPC.</p>
             </div>
             <button class="btn btn-secondary" style="margin-top:15px;" onclick="document.getElementById('about-modal').style.display='none'">Zavřít</button>
         </div>
     </div>
     <div class="modal-overlay" id="compass-calib-modal">
         <div class="modal-content" style="text-align:center;">
-            <div style="font-size:54px; line-height:1; margin:6px 0 10px; color:var(--accent);">∞</div>
+            <div style="font-size: calc(54px * var(--ag-font-scale, 1)); line-height:1; margin:6px 0 10px; color:var(--accent);">∞</div>
             <h3 style="color:var(--accent); margin:0 0 10px;">Zkalibrujte kompas</h3>
-            <p style="font-size:14px; line-height:1.55; opacity:0.9;">Než začnete navigovat, několikrát otočte telefonem ve vzduchu do tvaru <b>ležaté osmičky</b> (∞) a nakloňte ho přitom do všech směrů.</p>
-            <p style="font-size:13px; line-height:1.5; opacity:0.75;">Ukazatel níže se plní, jak telefonem hýbete. Bez kalibrace může směr ukazovat chybně; zopakujte ji, když se u azimutu objeví ⚠ nebo jste poblíž kovu či elektrického vedení.</p>
+            <p style="font-size: calc(14px * var(--ag-font-scale, 1)); line-height:1.55; opacity:0.9;">Než začnete navigovat, několikrát otočte telefonem ve vzduchu do tvaru <b>ležaté osmičky</b> (∞) a nakloňte ho přitom do všech směrů.</p>
+            <p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.5; opacity:0.75;">Ukazatel níže se plní, jak telefonem hýbete. Bez kalibrace může směr ukazovat chybně; zopakujte ji, když se u azimutu objeví ⚠ nebo jste poblíž kovu či elektrického vedení.</p>
             <div id="calib-progress-wrap"><div id="calib-progress"></div></div>
             <div id="calib-progress-txt">0 %</div>
             <button class="btn btn-secondary" style="margin-top:14px;" onclick="dismissCompassCalib()">Přeskočit</button>
@@ -982,8 +988,8 @@
     <script defer src="js/grafika.js"></script>
     <!-- ŽURNÁL + PROVENIENCE BODU #5 (odpojitelné: smaž tento řádek + js/journal.js) — append-only historie změn bodů -->
     <script defer src="js/journal.js"></script>
-    <script type="ag/lazy" data-src="js/dmt-volume.js"></script>
-    <script type="ag/lazy" data-src="js/check-distance.js"></script>
+    <script type="ag/lazy" data-src="js/dmt-volume.js" data-css="css/dmt-volume.css"></script>
+    <script type="ag/lazy" data-src="js/check-distance.js" data-css="css/check-distance.css"></script>
     <script defer src="js/lib/satellite-5.0.0.min.js"></script>
     <script type="ag/lazy" data-src="js/vytycovani.js"></script>
     <!-- PROTOKOL O VYTYČENÍ (odpojitelné) — k odškrtnutému bodu zapíše i SKUTEČNOU
@@ -1026,6 +1032,14 @@
     <script type="ag/lazy" data-src="js/vlastnik.js"></script>
     <script type="ag/lazy" data-src="js/satelity.js"></script>
     <script type="ag/lazy" data-src="js/kalkulacka.js"></script>
+    <!-- JEDNA CESTA SOUBORU VEN Z TELEFONU (odpojitelné: smaž tento řádek + js/sdilet-soubor.js)
+         — v PWA na iOS je <a download> u blob: URL nespolehlivý, spolehlivě jede jen
+         navigator.share. Nepatří do ag/lazy a musí být PŘED prvním exportním modulem:
+         konzumenti si ho nedotahují, jen se ptají, jestli tu je (a mají vlastní nouzové
+         stažení odkazem, kdyby nebyl). Dnes jich je deset: export.js, kml-export.js,
+         dxf-export.js, seznam-souradnic.js, zaloha.js, pdf-protocol.js,
+         protokol-vytyceni.js, kalkulacka.js, vylepseni.js a záloha bodů z logika.js. -->
+    <script defer src="js/sdilet-soubor.js"></script>
     <script type="ag/lazy" data-src="js/export.js"></script>
     <script defer src="js/kompas-check.js"></script>
     <script type="ag/lazy" data-src="js/zaloha.js"></script>
@@ -1051,11 +1065,11 @@
     <script type="ag/lazy" data-src="js/sdileni.js"></script>
     <script type="ag/lazy" data-src="js/tachymetrie.js"></script>
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + js/zpravodaj.js + css/zpravodaj.css + data/zpravodaj.json) -->
-    <script type="ag/lazy" data-src="js/zpravodaj.js"></script>
+    <script type="ag/lazy" data-src="js/zpravodaj.js" data-css="css/zpravodaj.css"></script>
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + js/predpisy.js + css/predpisy.css + data/predpisy.json) -->
-    <script type="ag/lazy" data-src="js/predpisy.js"></script>
+    <script type="ag/lazy" data-src="js/predpisy.js" data-css="css/predpisy.css"></script>
     <!-- MODULY (workflow) — odpojitelné -->
-    <script type="ag/lazy" data-src="js/gnss-quality.js"></script>
+    <script type="ag/lazy" data-src="js/gnss-quality.js" data-css="css/gnss-quality.css"></script>
     <script defer src="js/gps-warn.js"></script>
     <!-- SEMAFOR DŮVĚRY POLOHY (odpojitelné: smaž tento řádek + js/gps-trust.js) — hlídá zamrzlý GPS fix a offline -->
     <script type="ag/lazy" data-src="js/gps-trust.js"></script>
@@ -1072,9 +1086,9 @@
     <!-- IMPORT VFK (odpojitelné: smaž tento řádek + js/vfk.js) — načtení bodů z výměnného formátu katastru -->
     <script type="ag/lazy" data-src="js/vfk.js"></script>
     <script defer src="js/compass-stability.js"></script>
-    <script type="ag/lazy" data-src="js/calib-profiles.js"></script>
-    <script type="ag/lazy" data-src="js/ref-calibration.js"></script>
-    <script type="ag/lazy" data-src="js/sky-obstruction.js"></script>
+    <script type="ag/lazy" data-src="js/calib-profiles.js" data-css="css/calib-profiles.css"></script>
+    <script type="ag/lazy" data-src="js/ref-calibration.js" data-css="css/ref-calibration.css"></script>
+    <script type="ag/lazy" data-src="js/sky-obstruction.js" data-css="css/sky-obstruction.css"></script>
     <script defer src="js/cadastre-area.js"></script>
     <!-- BODOVÉ POLE (odpojitelné: smaž tento řádek + js/bodove-pole.js + css/bodove-pole.css)
          — nejbližší úřední body ČÚZK: kam dojít na ověření a jedním ťukem kotva pro Posun GPS -->
@@ -1106,16 +1120,16 @@
          service workeru (EXTRA_ASSETS v scripts/gen_sw_assets.py), takze to
          funguje i offline. Seznam nastroju je v MANIFEST uvnitr modulu. -->
     <script defer src="js/lazy-tools.js"></script>
-    <script type="ag/lazy" data-src="js/hidden-points.js"></script>
-    <script type="ag/lazy" data-src="js/orient-point.js"></script>
+    <!-- js/hidden-points.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
+    <!-- js/orient-point.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
     <script type="ag/lazy" data-src="js/offset-point.js"></script>
-    <script type="ag/lazy" data-src="js/brutal-gps.js"></script>
+    <script type="ag/lazy" data-src="js/brutal-gps.js" data-css="css/brutal-gps.css"></script>
     <!-- SADA A (přesnější GPS jen mobilem, každý modul odpojitelný samostatně):
          gps-campaign = kampaň „3 návštěvy" (A1), gps-semafor = skóre místa (A3),
          dgps = dvoutelefonní korekce (A2), pdr-offset = krokový vektor (A4) -->
     <script type="ag/lazy" data-src="js/gps-campaign.js"></script>
     <script defer src="js/gps-semafor.js"></script>
-    <script type="ag/lazy" data-src="js/pdr-offset.js"></script>
+    <!-- js/pdr-offset.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
     <script type="ag/lazy" data-src="js/stakeout-line.js"></script>
     <!-- Vytyčovaná přímka v kameře: osa po zemi + kolmice od tebe k ose
          (odpojitelné: smaž tento řádek + js/stakeout-line-ar.js a zaškrtávátko
@@ -1127,7 +1141,7 @@
          (obejití výkopu / rovnou resekce), aby v seznamu úkonů stačil jeden vstup. -->
     <script type="ag/lazy" data-src="js/nastroje-parky.js"></script>
     <script defer src="js/track-log.js"></script>
-    <script type="ag/lazy" data-src="js/fov-kalibrace.js"></script>
+    <!-- js/fov-kalibrace.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
     <script type="ag/lazy" data-src="js/tools-back.js"></script>
     <!-- ZAVÍRÁNÍ MODÁLŮ (odpojitelné: smaž tento řádek + js/modal-close.js) — křížek
          vpravo nahoře a zavření potáhnutím dolů; tlačítka „Zavřít" zůstávají -->
@@ -1140,25 +1154,25 @@
     <script defer src="js/lazy-load.js"></script>
     <script defer src="js/track-ar.js"></script>
     <script defer src="js/linalg.js"></script>
-    <script type="ag/lazy" data-src="js/ar-resection.js"></script>
+    <!-- js/ar-resection.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
     <script type="ag/lazy" data-src="js/ar-intersection.js"></script>
     <script type="ag/lazy" data-src="js/rajon.js"></script>
-    <script type="ag/lazy" data-src="js/free-station.js"></script>
+    <!-- js/free-station.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
     <!-- LOKALIZACE (HELMERT) #3 (odpojitelné: smaž tento řádek + js/localization-helmert.js) — srovnání systematiky GPS přes staveniště 2D podobnostní transformací -->
     <script defer src="js/localization-helmert.js"></script>
     <!-- PODZEMNÍ SÍTĚ #7 (odpojitelné: smaž tento řádek + js/utility-networks.js) — trasy sítí pod terénem v AR z DXF/GeoJSON -->
     <script type="ag/lazy" data-src="js/utility-networks.js"></script>
     <!-- PŘENOS ZAKÁZKY .argeo #6 (odpojitelné: smaž tento řádek + js/job-transfer.js) — export/import celé zakázky bez serveru -->
-    <script type="ag/lazy" data-src="js/job-transfer.js"></script>
+    <!-- js/job-transfer.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
     <!-- VÝŠKA OBJEKTU (odpojitelné: smaž tento řádek + js/vyska-objektu.js) — trigonometricky pata+vrchol -->
-    <script type="ag/lazy" data-src="js/vyska-objektu.js"></script>
+    <!-- js/vyska-objektu.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
     <!-- EPOCHY / MONITORING POSUNŮ (odpojitelné: smaž tento řádek + js/epochy.js) — souřadnice z totálky/roveru v čase -->
     <script type="ag/lazy" data-src="js/epochy.js"></script>
     <!-- Připomínky epoch monitoringu (odpojitelné: smaž tento řádek + js/epochy-pripominky.js) — interval přeměření + upozornění po startu -->
     <script type="ag/lazy" data-src="js/epochy-pripominky.js"></script>
-    <script type="ag/lazy" data-src="js/ar-calibrate.js"></script>
+    <script type="ag/lazy" data-src="js/ar-calibrate.js" data-css="css/ar-calibrate.css"></script>
     <!-- SROVNAT AR NA 2 BODY (odpojitelné: smaž tento řádek + js/ar-calib2.js) — sever + šířka záběru (FOV) na dvou bodech -->
-    <script type="ag/lazy" data-src="js/ar-calib2.js"></script>
+    <!-- js/ar-calib2.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
     <script type="ag/lazy" data-src="js/project-import.js"></script>
     <!-- VLASTNÍ GEOREFERENCOVANÝ PODKLAD (odpojitelné: smaž tento řádek + js/geo-overlay.js)
          — sken výkresu/situace se georeferencuje na 2+ vlícovacích bodů (Helmert / afinní
@@ -1216,11 +1230,11 @@
     <!-- HLASOVÉ POZNÁMKY s georazítkem (odpojitelné: smaž tento řádek + js/hlasovky.js) — namluvené poznámky s časem, S-JTSK polohou a nejbližším bodem; sbírá je Deník dne -->
     <script type="ag/lazy" data-src="js/hlasovky.js"></script>
     <!-- HLASOVÉ KÓDOVÁNÍ BODU (odpojitelné: smaž tento řádek + js/hlas-kod.js) — „Bod 105, roh plotu, poznámka…" → číslo/kód/poznámka + uložení z průměrované GPS -->
-    <script type="ag/lazy" data-src="js/hlas-kod.js"></script>
+    <!-- js/hlas-kod.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
     <!-- GEO-FOTKA (odpojitelné: smaž tento řádek + js/geo-foto.js) — fotka s vypáleným razítkem (S-JTSK, Bpv, čas, azimut), řetěz otisků SHA-256, tiskový protokol -->
-    <script type="ag/lazy" data-src="js/geo-foto.js"></script>
+    <!-- js/geo-foto.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
     <!-- METR V KAMEŘE (odpojitelné: smaž tento řádek + js/ar-metr.js) — pravítko promítnuté na zem: telefon plocho, ruční výška držení, libela z devicemotion, klepnutí dvou bodů -->
-    <script type="ag/lazy" data-src="js/ar-metr.js"></script>
+    <!-- js/ar-metr.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
     <!-- HODINKY GARMIN (odpojitelné: smaž tento řádek + js/hodinky-parovani.js) — párovací kód,
          kterým se k zakázce připojí aplikace v hodinkách (garmin/hodinky); body pak putují přes
          Cloudflare Worker do téže tabulky sync_points jako z mobilu -->
@@ -1232,13 +1246,13 @@
     <!-- VYSÍLAČKA (odpojitelné: smaž tento řádek + js/vysilacka.js) — kde je kdo, rychlé zprávy, Man Down; staví na js/ucty.js (/pos + /chat) -->
     <script type="ag/lazy" data-src="js/vysilacka.js"></script>
     <!-- UVNITŘ BUDOVY (odpojitelné: smaž tento řádek + js/indoor.js) — poloha bez GPS: WebXR nebo kroky, přesedlání na známé body; sdílí kalibraci s js/pdr-offset.js -->
-    <script type="ag/lazy" data-src="js/indoor.js"></script>
+    <!-- js/indoor.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
     <!-- OBCHŮZKA VÝKOPU (odpojitelné: smaž tento řádek + js/obchuzka.js) — kubatura z obejité hrany + dna (komolý jehlan), předání do js/dmt-volume.js -->
-    <script type="ag/lazy" data-src="js/obchuzka.js"></script>
+    <!-- js/obchuzka.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
     <!-- SLUNCE A SVĚTLO (odpojitelné: smaž tento řádek + js/slunce.js) — východ/západ, zbývá světla, stíny, protisvětlo na záměře; vystavuje window.AGSun -->
     <script defer src="js/slunce.js"></script>
     <!-- KDE MÁM AUTO (odpojitelné: smaž tento řádek + js/kde-je.js) — značky auto/báze/stativ + navigační šipka -->
-    <script type="ag/lazy" data-src="js/kde-je.js"></script>
+    <!-- js/kde-je.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
     <!-- BEZPEČNOST V TERÉNU (odpojitelné: smaž tento řádek + js/bezpecnost.js) — rizika dne, tiché připomínky, poslání polohy; čte window.AGSun ze js/slunce.js -->
     <script type="ag/lazy" data-src="js/bezpecnost.js"></script>
     <!-- USADIT AR (odpojitelné) — průvodce místo 7 kalibračních dlaždic + „Teď se hodí" -->
@@ -1302,6 +1316,13 @@
          MUSÍ zůstat ZA js/karta-bodu.js: obaluje showDetails() až po ní, aby se
          pečeť vkládala do karty, kterou karta-bodu.js právě vykreslila. -->
     <script type="ag/lazy" data-src="js/overeni-bodu.js"></script>
+    <!-- GEODETICKÉ ÚDAJE BODU (ČÚZK) (odpojitelné: smaž tento řádek + js/cuzk-geodata.js
+         a jeho položku v sw.js) — u úředního bodu (TB/ZhB/PBPP/nivelačního) přidá do
+         karty tlačítko s atributy z ČÚZK a odkazem do DATAZ.
+         MUSÍ zůstat ZA js/karta-bodu.js: obaluje showDetails() stejně jako ověření bodu.
+         POZOR: modul byl od svého vzniku v žádném seznamu — ani v index.html, ani
+         v lazy-tools.js, ani v sw.js — takže ho uživatel nikdy neviděl. -->
+    <script type="ag/lazy" data-src="js/cuzk-geodata.js"></script>
     <!-- ===== ZÁKLAD: úložiště, počítání vedle, důvěra, fronta, ročenka =====
          Všechno ODLOŽENĚ (ag/lazy): nic z toho nepotřebuje běžet do prvního
          vykreslení a rozpočet startu (scripts/check_start_budget.py) je těsný.
@@ -1325,7 +1346,7 @@
     <!-- ODZNAKY (odpojitelné) — tiché, jen v Ročence, nic za rychlost -->
     <script type="ag/lazy" data-src="js/odznaky.js"></script>
     <!-- ROČENKA (odpojitelné) — rok a měsíc v číslech, mapa "kde jsem byl" -->
-    <script type="ag/lazy" data-src="js/rocenka.js"></script>
+    <!-- js/rocenka.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
     <!-- BODY NA SOBĚ (odpojitelné) — dva lidi na jedné zakázce změřili týž bod;
          věší se na událost ag:sync-points z js/cloud-sync.js. MUSÍ být ZA
          js/duvera.js: ptá se ho, jestli rozdíl sedí do hlášených přesností -->
@@ -1338,7 +1359,7 @@
     <script type="ag/lazy" data-src="js/prohlidka.js"></script>
     <!-- TERÉNNÍ TRENAŽÉR (odpojitelné) — cvičné vytyčení venku i doma. Smyšlená poloha
          ZŮSTÁVÁ UVNITŘ modulu: nepřepisuje userLat/userLng ani AGFix a neukládá body -->
-    <script type="ag/lazy" data-src="js/trenazer.js"></script>
+    <!-- js/trenazer.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
     <!-- VEKTOROVÁ MAPA OFFLINE (odpojitelné) — geometrie z OpenStreetMap do IndexedDB
          a vlastní canvas vrstva v mapě; sbalení výřezu funguje i z kanceláře -->
     <script type="ag/lazy" data-src="js/vektor-mapa.js"></script>
@@ -1361,7 +1382,7 @@
     <script type="ag/lazy" data-src="js/foto-protinani.js"></script>
     <!-- ODHADNI TO (odpojitelné) — cvičiště odhadu vzdálenosti a azimutu proti
          skutečným senzorům. -->
-    <script type="ag/lazy" data-src="js/odhadovacka.js"></script>
+    <!-- js/odhadovacka.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
     <script>
         // Přepínač zobrazení v doku (AR / Split / Mapa) — využívá globální viewMode a applyViewMode() z grafika.js
         function setView(mode, btn) {

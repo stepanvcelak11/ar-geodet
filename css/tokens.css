@@ -13,6 +13,25 @@
     --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
 
+    /* ---- TYPOGRAFICKÝ ŽEBŘÍK ------------------------------------------------
+       PROČ: v appce se sešlo 29 různých velikostí písma, z toho SEDM půlkroků
+       v pásmu 9–16 px (9,5 / 10,5 / 11,5 / 12,5 / 13,5 / 14,5 / 15,5). Rozdíl
+       půl pixelu oko nepozná, ale právě v tomhle pásmu se rozhoduje o tom, jestli
+       se text přečte na slunci a na délku paže — a hlavně: každý nový modul si
+       k žebříku přidal další půlkrok, protože žádný nebyl.
+       Šest stupňů stačí. Škála --ag-font-scale (jezdec „Velikost písma" v
+       Nastavení) je zabalená UVNITŘ tokenu, takže se na ni nedá zapomenout —
+       to byla druhá polovina nálezu: velikosti psané natvrdo jezdec ignorovaly.
+       PRAVIDLO: nový kód píše font-size: var(--fs-*). Stávající velikosti se
+       převádějí postupně, vždy když se souboru stejně sahá — plošná výměna
+       132 půlkroků naráz by se nedala ověřit a rozbila by úzké chipy. */
+    --fs-xs:  calc(10px * var(--ag-font-scale, 1));    /* popisky HUD, atribuce, patičky */
+    --fs-sm:  calc(12px * var(--ag-font-scale, 1));    /* vedlejší text, jednotky, badge */
+    --fs-md:  calc(13.5px * var(--ag-font-scale, 1));  /* běžný text v modálech */
+    --fs-lg:  calc(15px * var(--ag-font-scale, 1));    /* tlačítka, položky seznamů */
+    --fs-xl:  calc(17px * var(--ag-font-scale, 1));    /* nadpisy sekcí */
+    --fs-2xl: calc(20px * var(--ag-font-scale, 1));    /* nadpisy oken, velká čísla */
+
     /* Plochy a text — neutrální tmavá (zelená jen jako akcent, ne závoj přes celou obrazovku) */
     --bg-color: #0f1216;
     --bg-elev: #171b20;

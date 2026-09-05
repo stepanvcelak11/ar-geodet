@@ -67,6 +67,19 @@
 
     // ---- zachyceni mazani -------------------------------------------------------
 
+    // ⚠⚠ #27 PRENOS PRIZNAKU OBALENI. window.deleteCustomPoint obaluji CTYRI moduly
+    // (kos -> undo -> kalkulacka -> journal -> logika) a kazdy si na svou novou funkci
+    // dava vlastni priznak (_trashWrapped, _undoWrapped, _journalWrapped). Novou funkci
+    // ale nikdo nededil, takze priznaky predchozich obalu ZMIZELY — v bezici appce tedy
+    // platila jen pojistka toho POSLEDNIHO v rade a kdokoli dalsi mohl obalit podruhe
+    // (dvojity zapis do zurnalu, dvojity zaznam v kosi, dvojity dialog). Tenhle pomocnik
+    // priznaky prenese, takze pojistky plati vsem naraz.
+    // Pozn.: hlida se `/Wrapped$/`, at to funguje i pro obaly, ktere teprve vzniknou.
+    function prenesPriznaky(nova, stara) {
+        try { for (var k in stara) { if (/Wrapped$/.test(k)) nova[k] = stara[k]; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kos:prenesPriznaky'); }
+        return nova;
+    }
+
     function wrapDeletePoint() {
         var orig = window.deleteCustomPoint;
         if (typeof orig !== 'function' || orig._trashWrapped) return;
@@ -85,6 +98,7 @@
             } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kos:deleteCustomPoint'); }
             return ret;
         };
+        prenesPriznaky(window.deleteCustomPoint, orig);
         window.deleteCustomPoint._trashWrapped = true;
     }
 
@@ -103,9 +117,32 @@
                     lines: (typeof getStoredData === 'function' ? getStoredData('arLines12') : null),
                     ls: {}
                 };
-                ['arFilters12', 'arRadiusMap', 'arRadiusAR', 'arVisSettings12', 'arHeadingOffset'].forEach(function (k) {
-                    var v = localStorage.getItem(pid + '_' + k); if (v != null) rec.ls[k] = v;
-                });
+                // ⚠⚠ #4: PREFIXOVY PRUCHOD, ne pevny vycet peti klicu. Kos slibuje
+                // „smazane zakazky tu zustavaji 30 dni", ale bral jen filtry, dosahy,
+                // vzhled a otoceni kompasu. VSECHNA ostatni per-zakazkova data lezi
+                // pod tymz prefixem `<zakazka>_` (getStoreKey v logika.js) — zapisniky,
+                // epochy, stopa, Helmertova lokalizace, protokol vytyceni, zavady,
+                // stav cloud syncu — a mizela nadobro. Prefix zachyti i klice modulu,
+                // ktere jeste nevznikly; pevny seznam by zastaraval znovu.
+                // (Fotky u bodu tudy NEPROJDOU: `<zakazka>_doc_<id>` lezi v IndexedDB.
+                //  Proto o nich mluvi potvrzeni mazani v js/logika.js.)
+                var pref = pid + '_';
+                // Rozpocet na JEDNU zakazku. Bez nej by tucna zakazka (stopa, rastry)
+                // pri ukladani prerostla MAX_BYTES a push() by kvuli ni vyhazoval
+                // NEJSTARSI zaznamy — tedy body smazane driv, ktere uzivatel shani.
+                var LS_BUDGET = 600000, used = 0;
+                for (var i = 0; i < localStorage.length; i++) {
+                    var k = localStorage.key(i);
+                    if (!k || k.indexOf(pref) !== 0) continue;
+                    var sub = k.slice(pref.length);
+                    // uz mame vys (rec.custom / rec.lines), nebo se daji stahnout znovu
+                    if (sub === 'arCustomPoints12' || sub === 'arLines12' || sub === 'arOfflinePoints12') continue;
+                    var v = localStorage.getItem(k);
+                    if (v == null) continue;
+                    if (used + v.length > LS_BUDGET) { (rec.lsSkipped || (rec.lsSkipped = [])).push(sub); continue; }
+                    used += v.length;
+                    rec.ls[sub] = v;
+                }
             } catch (e) { rec = null; }
             var ret = orig.apply(this, arguments);
             try {
@@ -114,12 +151,19 @@
             } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kos:deleteProject'); }
             return ret;
         };
+        prenesPriznaky(window.deleteProject, orig);
         window.deleteProject._trashWrapped = true;
     }
 
     // ---- obnova -----------------------------------------------------------------
 
     function restorePoint(rec, done) {
+        // ⚠ #23 OBNOVENY BOD JE CERSTVA ZMENA. Firemni cloud drzi po smazani nahrobek
+        // s casem smazani a zapis se STARSIM casem mlcky zahodi (worker.js:
+        // `WHERE excluded.ts>sync_points.ts`). Kdyby se bod vratil s puvodnim `mts`,
+        // u kolegu by zustal smazany a nikdo by se to nedozvedel. Razitko proto
+        // posouvame na TED — vzkriseni je ta nejcerstvejsi zmena, jaka na bodu byla.
+        try { if (rec && rec.point) rec.point.mts = Date.now(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kos:restorePoint'); }
         var targetProj = rec.projectId;
         var projExists = typeof projects !== 'undefined' && projects.some(function (p) { return p.id === targetProj; });
         if (!projExists) targetProj = (typeof activeProjectId !== 'undefined' ? activeProjectId : 'default');
@@ -172,7 +216,12 @@
             if (rec.lines != null) { try { localStorage.setItem(rec.projectId + '_arLines12', rec.lines); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kos:restoreProject'); } }
             Object.keys(rec.ls || {}).forEach(function (k) { try { localStorage.setItem(rec.projectId + '_' + k, rec.ls[k]); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kos:restoreProject'); } });
             if (typeof renderProjectSelect === 'function') renderProjectSelect();
-            toast('Zakázka „' + rec.name + '" obnovena (stažené úřední body si stáhni znovu).');
+            // ⚠ #4: rict NAHLAS, co se nevratilo. Fotky a hlasovky u bodu lezi ve
+            // vlastnich databazich (IndexedDB), kam kos nedosahne — kdyz to zamlci,
+            // geodet zjisti ztratu az za tri tydny u reklamace.
+            var chybi = 'stažené úřední body si stáhni znovu; fotky a hlasovky u bodů se obnovit nedají';
+            if (rec.lsSkipped && rec.lsSkipped.length) chybi += '; příliš velká data se do koše nevešla (' + rec.lsSkipped.length + ' položek)';
+            toast('Zakázka „' + rec.name + '" obnovena (' + chybi + ').');
         } catch (e) { toast('Obnova zakázky se nezdařila.'); }
         done();
     }
@@ -185,7 +234,7 @@
             el = document.createElement('div');
             el.className = 'modal-overlay'; el.id = 'trash-modal'; el.style.zIndex = '100005';
             el.innerHTML = '<div class="modal-content"><h3 style="color:var(--accent); margin-top:0;"><svg class="icon"><use href="#i-trash"/></svg> Koš</h3>'
-                + '<p style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:0.7; margin:4px 0 10px;">Smazané zakázky a body tu zůstávají 30 dní. Stažené úřední body se do koše neukládají (dají se stáhnout znovu).</p>'
+                + '<p style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:0.7; margin:4px 0 10px;">Smazané zakázky a body tu zůstávají 30 dní: body, spojnice, zápisníky a nastavení zakázky. <b>Fotky a hlasovky u bodů koš nedrží</b> — ty se smazáním ztratí nadobro. Stažené úřední body se do koše neukládají (dají se stáhnout znovu).</p>'
                 + '<div class="modal-body" id="trash-list"></div>'
                 + '<button class="btn btn-secondary" style="margin-top:12px; width:100%;" onclick="document.getElementById(\'trash-modal\').style.display=\'none\'">Zavřít</button></div>';
             document.body.appendChild(el);

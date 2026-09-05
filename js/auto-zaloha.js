@@ -6,9 +6,11 @@
 // CO DĚLÁ:
 //   1) Při startu si (best-effort) vyžádá trvalé úložiště (persist()) — na Androidu/
 //      desktopu pomůže, na iOS je to neškodné no-op.
-//   2) Obalí window.exportAllData() z js/zaloha.js a po každé záloze si uloží čas
-//      (klíč 'agLastBackupTs' — globální, ne per zakázka; záloha je celého stavu).
-//   3) Když má uživatel body a poslední záloha je starší než REMIND_DAYS (nebo nikdy),
+//   2) Obalí window.exportAllData() z js/zaloha.js, aby po ÚSPĚŠNÉ záloze schoval
+//      pruh. Razítko času si NEPÍŠE — to je výhradně věc js/zaloha.js, který ho
+//      napíše až ve chvíli, kdy je jisté, že soubor někde přistál.
+//   3) Když má uživatel body a poslední záloha je starší než REMIND_DAYS, nikdy
+//      nebyla, nebo od ní přibylo aspoň REMIND_PTS bodů,
 //      ukáže nenápadný pruh „Data nezálohována X dní" s tlačítkem „Zálohovat teď"
 //      (1 klik = exportAllData) a „Později" (odloží na 1 den). Objeví se i po návratu
 //      do appky (visibilitychange), ne však dotěrně (snooze).
@@ -27,13 +29,18 @@
     // nejnovější), aby appka po aktualizaci nehlásila „nezálohováno" někomu, kdo
     // zálohu udělal.
     var TS_KEYS = ['agLastBackupTs', 'arLastBackupAt', 'agLastBackup'];
-    var TS_KEY = TS_KEYS[0];              // ms epoch poslední zálohy (localStorage, globální)
     var SNOOZE_KEY = 'agBackupSnoozeTs';  // ms epoch, do kdy nepřipomínat
-    var REMIND_DAYS = 7;                  // starší záloha než X dní = připomenout
+    // ⚠ 5. 9. 2026: ze 7 na 3 dny. Sedm dní byla přesně ta lhůta, po které iOS maže
+    // úložiště nepoužívané PWA — připomínka tak dorazila až ve chvíli, kdy už mohla
+    // být data pryč. Tři dny dají prostor zareagovat.
+    var REMIND_DAYS = 3;                  // starší záloha než X dní = připomenout
+    var PTS_KEY = 'agLastBackupPts';      // počet bodů při poslední záloze (píše js/zaloha.js)
+    var PID_KEY = 'agLastBackupPid';      // zakázka, ke které se ten počet váže (píše js/zaloha.js)
+    var REMIND_PTS = 10;                  // od zálohy přibylo X bodů = připomenout bez ohledu na čas
     var SNOOZE_MS = 24 * 3600 * 1000;     // „Později" = klid na 1 den
     // ⚠ 29. 8. 2026 (test balíčku pro Google Play): pruh naskakoval 2,5 s po startu,
     // takže první, co člověk po zapnutí appky viděl, bylo napomenutí. Připomínka
-    // není nikdy naléhavá (jde o data starší 7 dní), tak počká, až bude appka
+    // není nikdy naléhavá (jde o data starší REMIND_DAYS), tak počká, až bude appka
     // opravdu používaná — a nikdy neleze přes přihlášení ani bránu.
     var BOOT_QUIET_MS = 4 * 60 * 1000;    // prvních X minut po startu ticho
     var _bootTs = Date.now();
@@ -48,7 +55,18 @@
         for (var i = 0; i < TS_KEYS.length; i++) { var v = getTs(TS_KEYS[i]); if (v > best) best = v; }
         return best;
     }
-    function stampAll(v) { for (var i = 0; i < TS_KEYS.length; i++) setTs(TS_KEYS[i], v); }
+    // ⚠ Razítko se odsud UŽ NEPÍŠE. Jediný, kdo ho smí napsat, je js/zaloha.js — a to
+    // až potom, co je jisté, že soubor někde přistál (sdílení dokončeno, nebo to
+    // uživatel potvrdil). Dřív razítkovala tahle vrstva hned po zavolání exportu,
+    // takže zrušený list sdílení nebo plný disk skončil hláškou „Záloha vytvořena ✓"
+    // a sedmidenním tichem.
+
+    // Kolik bodů má uživatel teď (aktivní zakázka) — proti stavu při poslední záloze.
+    function pocetBodu() {
+        try { if (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) return persistentCustomPoints.length; }
+        catch (e) { window.AG && AG.swallow && AG.swallow(e, 'auto-zaloha:pocetBodu'); }
+        return 0;
+    }
 
     function hasData() {
         try {
@@ -68,15 +86,28 @@
             return Promise.resolve(false);
         }
         var r;
-        try { r = window.exportAllData(); } catch (e) { console.warn('[auto-zaloha] backup', e); return Promise.resolve(false); }
-        return Promise.resolve(r).then(function () {
-            stampAll(now());
-            try { localStorage.removeItem(SNOOZE_KEY); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'auto-zaloha:agBackupNow'); }
+        try { r = window.exportAllData(); } catch (e) { selhalo(e); return Promise.resolve(false); }
+        return Promise.resolve(r).then(function (ok) {
+            // „Hotovo" hlásíme jen tehdy, když to řekl zaloha.js. Když uživatel sdílení
+            // zrušil nebo se soubor neuložil, pruh záměrně zůstane viset.
+            if (!ok) return false;
             hideBar();
             try { if (typeof window.quickToast === 'function') window.quickToast('Záloha vytvořena ✓'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'auto-zaloha:agBackupNow'); }
             return true;
-        }).catch(function () { return false; });
+        }).catch(function (e) { selhalo(e); return false; });
     };
+
+    // Spadlý export (velký JSON.stringify se všemi fotkami, plné úložiště) se dřív
+    // spolkl a po kliknutí na „Zálohovat" se prostě nic nestalo. Ticho je tady to
+    // nejhorší, co appka může udělat.
+    function selhalo(e) {
+        console.warn('[auto-zaloha] backup', e);
+        var m = (e && e.message) ? String(e.message) : 'Zkus uvolnit místo v telefonu a opakovat.';
+        try {
+            if (typeof window.agAlert === 'function') window.agAlert({ title: 'Záloha se nezdařila', message: m });
+            else agInfo('Záloha se nezdařila: ' + m);
+        } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'auto-zaloha:selhalo'); }
+    }
 
     // --- nenápadný pruh připomínky ----------------------------------------------
     function ensureBar() {
@@ -126,15 +157,36 @@
             if (now() < getTs(SNOOZE_KEY)) { hideBar(); return; }   // odloženo
             var ts = lastBackup();
             var d = daysSince(ts);
-            if (ts && d != null && d < REMIND_DAYS) { hideBar(); return; }  // čerstvá záloha
-            var txt = ts
-                ? ('Data nezálohována ' + d + ' ' + plural(d) + '. Zálohu ulož do Souborů.')
-                : 'Ještě sis nezálohoval body. Na iOS se data mohou po ~7 dnech smazat.';
+            // Přírůstek dat je naléhavější než kalendář: dvacet bodů naměřených dneska
+            // ráno je ztráta celého dne, i když je záloha „stará jen dva dny".
+            // ⚠ CHYBĚJÍCÍ KLÍČ NENÍ NULA. `agLastBackupPts` píše výhradně js/zaloha.js
+            // po potvrzené záloze, takže KAŽDÝ, kdo zálohoval před 5. 9. 2026, ho nemá —
+            // getTs() by vrátil 0 a „přibylo" by vyšlo jako CELÝ počet bodů. Hned po
+            // aktualizaci by tak appka každému s deseti body vyčítala nezálohovanou
+            // práci, kterou dávno zálohovanou má. Dokud klíč nevznikne, jede se jen
+            // podle kalendáře; první potvrzená záloha ho založí a kritérium se zapne.
+            var _rawPts = null, _pidOk = false;
+            try {
+                _rawPts = localStorage.getItem(PTS_KEY);
+                // Pocet se vaze ke KONKRETNI zakazce (zapsal ji js/zaloha.js). Nad jinou
+                // zakazkou by se porovnavaly dve ruzne hromady bodu a "prirustek" by
+                // vznikl pouhym prepnutim; tam se tedy jede jen podle kalendare.
+                var _pid = localStorage.getItem(PID_KEY);
+                _pidOk = (_pid == null) || (typeof activeProjectId === 'undefined') || (_pid === String(activeProjectId));
+            } catch (e) { _rawPts = null; _pidOk = false; }
+            var pribylo = (ts && _rawPts != null && _pidOk) ? (pocetBodu() - getTs(PTS_KEY)) : 0;
+            var cerstva = (ts && d != null && d < REMIND_DAYS);
+            if (cerstva && pribylo < REMIND_PTS) { hideBar(); return; }
+            var txt;
+            if (!ts) txt = 'Ještě sis nezálohoval body. Na iOS se data mohou po ~7 dnech smazat.';
+            else if (cerstva) txt = 'Od poslední zálohy přibylo ' + pribylo + ' ' + pluralBod(pribylo) + '. Zálohu ulož do Souborů.';
+            else txt = 'Data nezálohována ' + d + ' ' + plural(d) + '. Zálohu ulož do Souborů.';
             showBar(txt);
         } catch (e) { /* fail-silent */ }
     }
 
     function plural(n) { if (n === 1) return 'den'; if (n >= 2 && n <= 4) return 'dny'; return 'dní'; }
+    function pluralBod(n) { if (n === 1) return 'bod'; if (n >= 2 && n <= 4) return 'body'; return 'bodů'; }
 
     // --- init -------------------------------------------------------------------
     function wrapExport() {
@@ -143,9 +195,17 @@
         var orig = window.exportAllData;
         window.exportAllData = function () {
             var r = orig.apply(this, arguments);
-            Promise.resolve(r).then(function () { stampAll(now()); try { localStorage.removeItem(SNOOZE_KEY); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'auto-zaloha:exportAllData'); } hideBar(); }).catch(function () {});
-            return r;
+            // Razítko ani odklad se tady NEmění — o tom rozhoduje jen zaloha.js podle
+            // toho, jestli soubor opravdu odešel. Tahle vrstva jen schová pruh, když
+            // záloha dopadla. VRACÍME řetězenou Promise, ať se volající (agBackupNow,
+            // tlačítko v Nastavení) dozví výsledek, a ne jen „něco se spustilo".
+            return Promise.resolve(r).then(function (ok) { if (ok) hideBar(); return ok; })
+                .catch(function (e) { selhalo(e); return false; });
         };
+        // Značku „razítko si řídím sám" přebíráme na sebe — jinak by řetěz vypadal jako
+        // neoznačený a příští vrstva by ho zase mohla obalit a razítkovat naslepo
+        // (viz komentář u _agStamp v js/zaloha.js).
+        try { window.exportAllData._agStamp = true; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'auto-zaloha:wrapExport'); }
         _wrapped = true;
     }
 

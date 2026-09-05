@@ -1,9 +1,15 @@
 # Nasazení appky na GitHub Pages ZE ZABALENÉHO KÓDU.
 #
-# Proč: appka se dnes načítá 112 samostatnými <script> tagy (~3,7 MB JS) a po
-# každém pushi se musí ručně bumpnout SHELL_CACHE v sw.js, jinak mobil drží
+# Proč: appka se při startu načítá 70 samostatnými <script> tagy (~1,8 MB JS) a
+# po každém pushi se musí ručně bumpnout SHELL_CACHE v sw.js, jinak mobil drží
 # starou verzi. Tenhle workflow z toho udělá jediný zminifikovaný soubor
 # dist/app.<hash>.min.js — hash v názvu je cache-busting sám o sobě.
+#
+# ODLOŽENÉ NÁSTROJE SE NEBALÍ. V index.html zůstávají jako <script type="ag/lazy"
+# data-src="…"> a stahuje si je js/lazy-load.js až po prvním obraze (nástroje
+# z js/lazy-tools.js dokonce až na klepnutí na dlaždici). Kdyby spadly do
+# bundlu, spustilo by se před prvním obrazem všech 4,5 MB — a s nimi i vzdálený
+# vypínač modulů, cílené AGLazy.need() a data-css by přestaly dávat smysl.
 #
 # ZDROJE V REPU SE NEMĚNÍ. Přepis index.html (build.mjs --apply) i přegenerování
 # sw.js se dějí jen v checkoutu tohoto běhu, nic se necommituje.
@@ -67,6 +73,17 @@ jobs:
       - name: Přegenerovat seznam assetů v sw.js
         run: python scripts/gen_sw_assets.py
 
+      # Rozpočet startu se v release-check.yml měří nad ZDROJI, jenže uživatel
+      # venku dostává tenhle balíček. Do 5. 9. 2026 to byly dvě různé appky:
+      # build.mjs bral do bundlu i moduly s data-src, takže se v nasazené verzi
+      # spouštělo před prvním obrazem VŠECHNO (4,5 MB zdrojů) a odkládací vrstva
+      # byla mrtvá — proto tu krok visel jen informativně (continue-on-error).
+      # Teď bundle obsahuje pouze eager moduly a odložené řádky zůstávají
+      # v index.html, takže je z kroku BRÁNA: když se to zase rozejde, nasazení
+      # se zastaví, místo aby se rozdíl tiše vydal do terénu.
+      - name: Rozpočet startu ZABALENÉ verze
+        run: python scripts/check_start_budget.py --dist
+
       - name: Smoke testy nad ZABALENOU verzí
         run: |
           npx playwright install --with-deps chromium
@@ -83,8 +100,19 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
-      # Do nasazované kopie nepatří vývojářské věci. js/*.js necháváme (nic je
-      # už nenačítá, ale některé nástroje si soubory dotahují za běhu samy).
+      # Do nasazované kopie nepatří vývojářské věci. js/*.js se nasazují a MUSÍ
+      # se nasazovat: v bundlu je jen eager jádro, kdežto odložené nástroje
+      # (script type="ag/lazy") a nástroje s děleným načítáním (js/lazy-tools.js)
+      # si prohlížeč stahuje po souborech až po prvním obraze / na klepnutí.
+      #
+      # Druhá skupina vyloučení (play, garmin, _archiv, logo-navrhy, nahledy-*,
+      # navrhy-*, test-fullscreen*, manifest-test*, tests.html) jsou podklady pro
+      # vývoj a pro Obchod Play — appka je nikdy nenačte, ale bez nich se
+      # nasazovalo o 5,9 MB víc a hlavně: manifest-test*.json ležely veřejně
+      # vedle ostrého manifest.json a test-fullscreen*.html na doméně appky, kde
+      # na ně mohl narazit prohlížeč i vyhledávač.
+      # VEDOUCÍ LOMÍTKO je schválně: rsync vzor bez lomítka se páruje na KAŽDÉ
+      # úrovni stromu, takže 'play' by vyhodilo i budoucí js/play.
       - name: Připravit _site
         run: |
           mkdir -p _site
@@ -93,6 +121,10 @@ jobs:
                    --exclude '_site' --exclude 'scripts' --exclude 'cloud' \
                    --exclude '*.md' --exclude 'package.json' --exclude 'package-lock.json' \
                    --exclude 'playwright.config.mjs' \
+                   --exclude '/play' --exclude '/garmin' --exclude '/_archiv' \
+                   --exclude '/logo-navrhy' --exclude '/nahledy-*' --exclude '/navrhy-*' \
+                   --exclude '/test-fullscreen*' --exclude '/manifest-test*' \
+                   --exclude '/tests.html' \
                    ./ _site/
           echo "Velikost nasazované kopie:"; du -sh _site
 

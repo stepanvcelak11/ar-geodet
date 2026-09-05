@@ -127,9 +127,19 @@
                     return;
                 }
                 const nm = projName(typeof activeProjectId !== 'undefined' ? activeProjectId : '') || 'tuto zakázku';
+                // ⚠⚠ #4b: TOHLE JE DIALOG, KTERÝ UŽIVATEL OPRAVDU VIDÍ. Nativní confirm
+                // z js/logika.js si níže podstrčíme na `true`, takže jeho (poctivý) text
+                // nikdo nepřečte — pravda o koši musí být napsaná ZDE. Slib „30 dní v koši"
+                // platí jen na to, co koš umí zachytit (localStorage + body zakázky);
+                // fotky u bodů, hlasovky a podložené plány leží ve vlastních databázích
+                // a mizí nadobro. Dřív tu stálo jen „objeví se Vrátit zpět" — geodet tedy
+                // mazal v přesvědčení, že má měsíc na rozmyšlenou.
                 agConfirm({
                     title: 'Smazat zakázku?',
-                    message: 'Smaže se <b>' + escapeHtml(nm) + '</b> včetně všech jejích uložených bodů.<br>Hned po smazání se na pár vteřin objeví „Vrátit zpět".',
+                    message: 'Smaže se <b>' + escapeHtml(nm) + '</b> se vším, co k ní patří.'
+                        + '<br><br>Z <b>koše</b> půjde 30 dní vrátit: body, spojnice, zápisníky a nastavení zakázky.'
+                        + '<br><b>Nenávratně</b> se smažou: fotky u bodů, hlasovky a podložené plány.'
+                        + '<br><br>Hned po smazání se na pár vteřin objeví „Vrátit zpět". Když fotky potřebuješ, nejdřív si stáhni zálohu (Nastavení → Údržba).',
                     okText: 'Smazat', cancelText: 'Ponechat', danger: true
                 }).then(function (ok) {
                     if (!ok) return;
@@ -138,6 +148,11 @@
                     try { orig.call(window); } finally { window.confirm = oc; }
                 });
             };
+            // ⚠⚠ #27 PŘENOS PŘÍZNAKŮ OBALENÍ. Tenhle modul se načítá POSLEDNÍ, takže je
+            // v řetězu deleteProject nejzevnější — a kdyby příznaky předchozích obalů
+            // (kos.js: _trashWrapped, undo.js: _undoWrapped) nezdědil, zmizely by úplně
+            // a kdokoli další by mohl obalit podruhé (dvojí záznam v koši, dvojí toast).
+            try { for (const k in orig) { if (/Wrapped$/.test(k)) wrapped[k] = orig[k]; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vylepseni:rewireProjects'); }
             wrapped._agWrapped = true;
             window.deleteProject = wrapped;
         }
@@ -329,12 +344,24 @@
     function dxfDownload(filename, text) {
         try {
             const blob = new Blob([text], { type: 'application/dxf;charset=utf-8' });
+            // ⚠ #9 TICHÁ PAST: tenhle modul se načítá POSLEDNÍ a window.exportPointsDXF
+            // níže přebíjí ten z js/dxf-export.js — oprava cesty ven udělaná tam by tedy
+            // v běžící appce nic nedělala. DXF je typický „pošli to do kanceláře" soubor
+            // a na iPhonu (PWA z plochy) ho ven dostane jen systémový list sdílení,
+            // ne atribut download. Viz js/sdilet-soubor.js; bez něj zůstane stažení odkazem.
+            if (typeof window.agShareOrDownload === 'function') {
+                return window.agShareOrDownload(blob, filename, 'application/dxf')['catch'](function (e) {
+                    agAlert({ title: 'Export selhal', message: 'Nepodařilo se soubor poslat ven.' });
+                    return 'fail';
+                });
+            }
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url; a.download = filename;
             document.body.appendChild(a); a.click(); a.remove();
             setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
-        } catch (e) { agAlert({ title: 'Export selhal', message: 'Nepodařilo se stáhnout soubor.' }); }
+            return Promise.resolve('download');
+        } catch (e) { agAlert({ title: 'Export selhal', message: 'Nepodařilo se stáhnout soubor.' }); return Promise.resolve('fail'); }
     }
     function dxfClean(s) { return String(s == null ? '' : s).replace(/[\r\n]+/g, ' ').slice(0, 250); }
     // Kod bodu -> nazev DXF vrstvy (bez diakritiky/mezer, max 31 znaku; bez kodu = BODY).
@@ -387,10 +414,12 @@
             '0\nSECTION\n2\nENTITIES\n' + e + '0\nENDSEC\n0\nEOF\n';
 
         const proj = (typeof activeProjectId !== 'undefined') ? activeProjectId : 'body';
-        dxfDownload('body_' + proj + '.dxf', dxf);
-        if (nSkip) {
+        // ⚠ Výhrada se hlásí AŽ PODLE VÝSLEDKU — po „Zrušit“ v listu sdílení se nic
+        // neuložilo a věta „Export DXF vytvořen“ by byla nepravda.
+        dxfDownload('body_' + proj + '.dxf', dxf).then(function (jak) {
+            if (!nSkip || jak === 'abort' || jak === 'fail') return;
             agAlert({ title: 'Hotovo (s výhradou)', message: 'Export DXF vytvořen. <b>' + nSkip + '</b> ' + (nSkip === 1 ? 'prvek byl přeskočen' : 'prvků bylo přeskočeno') + ' (chybějící/neplatné souřadnice).' });
-        }
+        });
     };
 
     function injectDxfButton() {
@@ -724,14 +753,14 @@
     //    ostatní neumlčelo („vyskakuje na mě spousta upozornění na zálohu, sjednoť
     //    to"). Zbyl JEDEN pruh v js/auto-zaloha.js; razítko se odsud píše dál, aby
     //    přežily i starší zálohy a výpis úložiště v js/logika.js.
+    //
+    //    ⚠⚠ 5. 9. 2026 (#24): RAZÍTKO SE ODSUD UŽ NEPÍŠE VŮBEC — wrapBackup() je pryč.
+    //    Byla to čtvrtá vrstva, která psala „zálohováno" hned po zavolání exportAllData,
+    //    tedy i tehdy, když uživatel list sdílení zrušil nebo se soubor nikdy neuložil.
+    //    Appka pak mlčela další dny s tím, že zálohu má. Razítko (všechny tři klíče
+    //    naráz) teď píše JEDINÉ místo — js/zaloha.js — a to až potom, co je jisté,
+    //    že soubor někde přistál.
     // --------------------------------------------------------------------------------
-    function wrapBackup() {
-        if (typeof window.exportAllData === 'function' && !window.exportAllData._agStamp) {
-            const orig = window.exportAllData;
-            const w = function () { const r = orig.apply(this, arguments); try { localStorage.setItem('agLastBackup', String(Date.now())); } catch (e) {} return r; };
-            w._agStamp = true; window.exportAllData = w;
-        }
-    }
 
     // --------------------------------------------------------------------------------
     // Pomocné
@@ -750,7 +779,6 @@
         try { injectDxfButton(); } catch (e) { console.warn('[vylepseni] dxf', e); }
         try { injectCalibButton(); } catch (e) { console.warn('[vylepseni] calib', e); }
         try { hookStakeout(); } catch (e) { console.warn('[vylepseni] stakeout', e); }
-        try { wrapBackup(); } catch (e) { console.warn('[vylepseni] backup', e); }
     }
 
     if (document.readyState === 'loading') {

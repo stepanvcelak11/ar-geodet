@@ -564,8 +564,12 @@
         };
         var added = window.addImportedPoints([{ name: name, lat: lat, lng: lng, origin: 'gps-avg', acc: accR, prov: prov }]);
         if (added > 0) {
-            var sj = (typeof proj4 === 'function') ? proj4('EPSG:4326', 'EPSG:5514', [lng, lat]) : null;
-            var coords = sj ? ('\nY ' + Math.abs(sj[0]).toFixed(2) + '  X ' + Math.abs(sj[1]).toFixed(2)) : '';
+            // Převod přes GeoCore — jediné místo, které si ověří pořadí os Křováku.
+            // Přímé volání proj4 tu mělo pořadí zadrátované, takže by při jeho změně
+            // ukázalo Y a X prohozené (a geodet by si to opsal do zápisníku).
+            var sj = null;
+            try { if (window.GeoCore && GeoCore.toSJTSK) sj = GeoCore.toSJTSK(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:save'); }
+            var coords = sj ? ('\nY ' + sj.y.toFixed(2) + '  X ' + sj.x.toFixed(2)) : '';
             var srcTxt = (pouzito.length > 1) ? ('\nSpojeno z ' + pouzito.length + ' sezení') : '';
             // Re-okupace dokončena → z fronty vyřadit JEN sezení, která do bodu vešla.
             // Vzdálená sezení (patřící jinému bodu) tam musí zůstat — paušální

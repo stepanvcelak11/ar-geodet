@@ -52,7 +52,10 @@
     function me() {
         // průměrovaná GPS má přednost (je to výsledek vědomého měření)
         try {
-            if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.n >= 2 && gpsAvgResult.lat != null) {
+            // ⚠ #22: jen kdyz je prumer cerstvy — jinak by "kde jsem" ukazalo misto,
+            // kde telefon stal naposledy s fixem (auto, tunel), a to bez varovani.
+            if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.n >= 2 && gpsAvgResult.lat != null
+                && ((typeof window.agAvgFresh !== 'function') || window.agAvgFresh(15000))) {
                 return { lat: gpsAvgResult.lat, lng: gpsAvgResult.lng, acc: (gpsAvgResult.acc != null ? gpsAvgResult.acc : null), src: 'průměr GPS' };
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kde-je:me'); }

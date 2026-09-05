@@ -14,6 +14,8 @@
 //   • „Podklady a katastr"= Prohlídka okolí + Parcely + Body z výřezu +
 //                           Vektorová mapa offline + Sbalit zakázku
 //   • „Přenosy a zařízení"= Hodinky Garmin + Poslat/načíst zakázku
+//   • „Srovnat jinak"    = Srovnat na 2 body + podle bodu + podle Slunce +
+//                           Lokalizace (Helmert) + Posun GPS na bod + Zorný úhel
 //
 // a navíc SKRÝVÁ nástroje, které mají vstup jinde nebo je uživatel nechce vidět
 // (v DOM zůstávají — hledáním i průvodcem „Usadit AR" jdou dál spustit):
@@ -113,6 +115,19 @@
             sub: 'Co si přitáhneš do mapy a do AR. (Katastr „kde právě stojím" má vlastní dlaždici — to je jedno klepnutí.)'
         },
         {
+            // ⚠⚠ PROČ TENHLE ROZCESTNÍK: sloveso „Srovnat AR" mělo DESET řádků — víc než
+            // kterékoli jiné a dvakrát víc než „Vytyčit", což je hlavní denní úkon
+            // geodeta u pokládky. Deset názvů, které všechny slibují „ať značky sedí",
+            // není volba, ale hádanka. Nahoře zůstávají tři vstupy: průvodce (usadit-ar),
+            // Kompas a Srovnat sever — tedy „nevím čím začít", „chci se podívat" a
+            // „udělám to nejběžnější". Zbytek je tady, kde je u každé volby napsané, KDY
+            // se hodí. Členství je v js/tools-registry.js (`inhub: 'srovnat-sever'`).
+            id: 'srovnat-sever', label: 'Srovnat<br>jinak', title: 'Srovnat AR — další způsoby', cat: 'AR a kalibrace', order: 5,
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15.2 8.8l-2 4.4-4.4 2 2-4.4z"/><path d="M12 1.8v1.6"/></svg>',
+            poradi: ['ar-calib2', 'orient-point', 'sever-slunce', 'ref-calibration', 'localization-helmert', 'fov-kalib'],
+            sub: 'Značky v AR nesedí na realitu. Vyber podle toho, CO je špatně a co máš kolem sebe:'
+        },
+        {
             id: 'prenosy-zarizeni', label: 'Přenosy<br>a zařízení', title: 'Přenosy a zařízení', cat: 'Katastr a data', order: 6,
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="6" width="10" height="12" rx="3"/><path d="M9.5 6V3.5h5V6M9.5 18v2.5h5V18"/><path d="M12 9.5V12l1.7 1"/></svg>',
             poradi: ['hodinky-parovani', 'job-transfer'],
@@ -143,7 +158,13 @@
         'cadastre-area': 'Body z výřezu mapy',
         'balicek-zakazky': 'Sbalit zakázku',
         'job-transfer': 'Poslat / načíst zakázku',
-        'ucty-firma': 'Firma a účty'
+        'ucty-firma': 'Firma a účty',
+        'ar-calib2': 'Srovnat na dva body',
+        'orient-point': 'Srovnat sever podle bodu',
+        'sever-slunce': 'Srovnat sever podle Slunce',
+        'ref-calibration': 'Opravit posun GPS podle bodu',
+        'localization-helmert': 'Lokalizace (Helmert)',
+        'fov-kalib': 'Změřit zorný úhel kamery'
     };
 
     // Delší popisek volby v rozcestníku (celá věta — v registru je jen krátké `vh`
@@ -181,7 +202,15 @@
         'vektor-mapa': 'Výřez OSM sbalený v kanceláři — kreslí i úplně bez signálu.',
         'balicek-zakazky': 'Mapa, katastr a body kolem ZAKÁZKY (ne kolem tebe) — dělá se na wi-fi před výjezdem.',
         'hodinky-parovani': 'Spárování a body z hodinek do appky a zpátky (Forerunner, fenix, Connect IQ).',
-        'job-transfer': 'Předat celou zakázku kolegovi nebo si ji převzít — do druhého telefonu i do kanceláře.'
+        'job-transfer': 'Předat celou zakázku kolegovi nebo si ji převzít — do druhého telefonu i do kanceláře.',
+        // Rozlišení „co je špatně" je tu důležitější než název metody — proto každý
+        // popisek začíná situací, ne postupem.
+        'ar-calib2': 'Značky jsou posunuté I otočené. Zamiř na dva známé body a srovná se sever i poloha naráz.',
+        'orient-point': 'Poloha sedí, ale všechno je pootočené. Zamiř na JEDEN známý bod — opraví se AZIMUT.',
+        'sever-slunce': 'Kompas lže (armatura, plot, auto) a není na co zamířit. Sever se dopočítá ze Slunce a času.',
+        'ref-calibration': 'Otočení sedí, ale všechno je odsunuté o kus. Stoupni si na známý bod — opraví se POLOHA.',
+        'localization-helmert': 'Projekt je v místním systému (staveništní síť). Ze 2+ identických bodů se spočítá transformační klíč.',
+        'fov-kalib': 'Značky sedí uprostřed obrazu, ale u krajů utíkají. Změří se skutečný zorný úhel kamery tohohle telefonu.'
     };
 
     // Nouzová globální funkce, kdyby dlaždice v mřížce (ještě) nebyla — modul může
@@ -193,7 +222,10 @@
         'bezpecnost': 'agOpenBezpecnost', 'checklist': 'agOpenChecklist',
         'moje-aktivita': 'agOpenMojeAktivita', 'rocenka': 'openRocenka',
         'denik-dne': 'agOpenDenikDne', 'plakat-dne': 'agOpenPlakatDne',
-        'vysilacka': 'agOpenVysilacka'
+        'vysilacka': 'agOpenVysilacka',
+        'ar-calib2': 'agOpenCalib2', 'orient-point': 'agOpenOrientTool',
+        'sever-slunce': 'agOpenSeverSlunce', 'ref-calibration': 'openRefCalibration',
+        'localization-helmert': 'agOpenLocalize', 'fov-kalib': 'agOpenFovKalibrace'
     };
 
     // Položky rozcestníku ve tvaru, který čeká openHub(). Členství je z registru,

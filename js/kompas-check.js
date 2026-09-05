@@ -36,7 +36,7 @@
             + 'display:none; align-items:center; gap:8px; max-width:90%; padding:9px 10px 9px 14px; border-radius:12px; '
             + 'background:rgba(239,68,68,0.92); color:#fff; font-family:var(--font-display,sans-serif); '
             + 'font-size:calc(13px * var(--ag-font-scale, 1)); font-weight:600; line-height:1.25; text-align:left; '
-            + 'box-shadow:0 6px 20px rgba(0,0,0,0.45); backdrop-filter:blur(4px); pointer-events:none;';
+            + 'box-shadow:0 6px 20px rgba(0,0,0,0.45); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); pointer-events:none;';
         // Text varovani nereaguje na dotek (pointer-events:none na kontejneru), klikaci je jen krizek.
         banner.innerHTML = '<span style="flex:1 1 auto;">⚠ Kompas pravděpodobně rušen (kov poblíž) — ověř směr, AR šipka může mířit mimo</span>'
             + '<button type="button" id="compass-interference-x" aria-label="Skrýt upozornění" '

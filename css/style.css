@@ -206,7 +206,7 @@ body {
     background: var(--accent);
     color: #0b1020;
     font-family: var(--font-display, sans-serif);
-    font-size: 13px;
+    font-size: calc(13px * var(--ag-font-scale, 1));
     font-weight: 700;
     line-height: 1;
     cursor: pointer;
@@ -220,8 +220,11 @@ body {
 /* Přístrojový readout v info panelu */
 #info .rdt { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
 #info .rdt + .rdt { margin-top: 3px; }
-#info .rdt-l { font-family: var(--font-mono); font-size: calc(10px * var(--ag-font-scale, 1)); letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
-#info .rdt-v { font-family: var(--font-mono); font-size: calc(14px * var(--ag-font-scale, 1)); font-weight: 700; color: var(--data); }
+/* POZOR: velikost popisku i hodnoty se NEURCUJE tady — prebiji ji blok „Horni HUD:
+   kompaktni chip" na konci souboru (9 px / 12 px). Kdo cte soubor odshora, dostal
+   driv spatnou odpoved; proto tu velikost radeji vubec nestoji. */
+#info .rdt-l { font-family: var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+#info .rdt-v { font-family: var(--font-mono); font-weight: 700; color: var(--data); }
 
 #compass-debug {
     position: absolute;
@@ -231,7 +234,8 @@ body {
     display: none;
     padding: 7px 14px;
     font-family: var(--font-mono);
-    font-size: calc(15px * var(--ag-font-scale, 1));
+    /* velikost NEsahat tady — plati az 12 px z bloku „Horni HUD: kompaktni chip"
+       na konci souboru (drive tu stalo 15 px, ktere se nikdy neuplatnilo) */
     font-weight: 700;
     color: var(--data);
     cursor: pointer;
@@ -940,7 +944,7 @@ body.light-mode .btn-warning { color: #fff; }
     position: absolute; left: 0; top: 0; display: inline-block; white-space: nowrap;
     background: rgba(14, 18, 24, 0.92); color: #fbbf24;
     border: 1px solid rgba(251, 191, 36, 0.55); border-radius: 8px;
-    padding: 3px 9px; font: 700 13px/1.25 var(--font-mono, monospace);
+    padding: 3px 9px; font: 700 calc(13px * var(--ag-font-scale, 1)) / 1.25 var(--font-mono, monospace);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 body.outdoor-mode .tfm-label { background: #0a0e1a; border-color: #fbbf24; }
@@ -1310,42 +1314,11 @@ body.app-started #map-controls { display: block; }
 }
 .seg-btn.active { background: var(--accent-fill, var(--accent-grad)); color: #fff; }
 
-/* Spodní dok s nástroji */
-#dock {
-    position: absolute;
-    left: 12px;
-    right: 12px;
-    bottom: max(12px, env(safe-area-inset-bottom));
-    z-index: var(--z-hud, 9000);
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    padding: 8px;
-    border-radius: 22px;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    backdrop-filter: blur(18px) saturate(150%);
-    -webkit-backdrop-filter: blur(18px) saturate(150%);
-    box-shadow: var(--shadow-2);
-    opacity: var(--panel-opacity);
-}
-.dock-btn {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    border: none;
-    background: transparent;
-    color: var(--text-muted);
-    font-family: var(--font-ui);
-    font-size: calc(9.5px * var(--ag-font-scale, 1));
-    font-weight: 600;
-    cursor: pointer;
-    padding: 6px 2px;
-    transition: color 0.15s ease;
-}
-.dock-btn .icon { width: 22px; height: 22px; }
+/* Hlavní lišta (dok) — JEDINÁ definice #dock / .dock-btn je až v bloku
+   „Boční lišta: samostatné skleněné chipy" na konci souboru. Dřív ležely tři
+   generace redesignu nad sebou (vodorovný dok → svislá lišta → skleněné chipy)
+   a platily jen ty poslední hodnoty; kdo četl soubor odshora, dostal na otázku
+   „jak vypadá dok" špatnou odpověď. Tady zůstávají jen stavy a plovoucí „Nový bod". */
 .dock-btn:active { color: var(--accent-bright); transform: scale(0.95); }
 .dock-primary { color: var(--text-color); }
 .dock-fab {
@@ -1508,15 +1481,14 @@ body.outdoor-mode #side-menu, body.outdoor-mode #ar-hud-info {
     opacity: 1 !important;
 }
 body.outdoor-mode #dock { background: transparent !important; border: none !important; box-shadow: none !important; }
-/* Popisky doku jsou základně 8,5 px (naměřeno 9 px) — na slunci, v rukavicích a na
-   délku paže se to nepřečte. Venkovní režim dosud zvyšoval jen kontrast, ne velikost.
-   Zvětšuje se ZDRŽENLIVĚ: dok je svislý pruh pěti chipů širokých 54 px a delší slovo
-   („Nastavení") by se při větším písmu zalomilo na dva řádky a pruh by narostl.
-   NAMĚŘENO: 10 px je největší velikost, která „Nastavení" udrží na jednom řádku
-   (dok 313 px); od 10,5 px se láme na „Nastaven|í" a dok naroste na 327 px. Kdo si
-   v Nastavení zvedne velikost písma, dostane zalomení na dva řádky — to je ošklivé,
-   ale ne rozbité, protože popisek z chipu pořád nevyleze (overflow-wrap: anywhere). */
-body.outdoor-mode .dock-btn { font-size: calc(10px * var(--ag-font-scale, 1)); }
+/* Popisky doku byly základně 8,5 px — na slunci, v rukavicích a na délku paže se to
+   nepřečte, a venkovní režim to dorovnával na 10 px. Základ je teď 10 px (viz jediná
+   definice .dock-btn na konci souboru), takže venkovní režim už velikost nemění, jen
+   přitvrdí řez. PŘEMĚŘENO 5. 9. v běžící appce na PLATNÉM chipu 56 px (dřívější měření
+   „dok 313 px" bylo z generace s chipem 54 px): při 10 px drží „Nastavení" jeden řádek
+   i v tučném řezu venkovního režimu (49,1 px proti 50 px místa), od 10,5 px se láme.
+   Kdo si v Nastavení zvedne velikost písma, dostane zalomení na dva řádky — to je
+   ošklivé, ale ne rozbité, popisek z chipu nevyleze (overflow-wrap: anywhere). */
 body.outdoor-mode .dock-btn span:not(.dock-fab) { font-weight: 700; }
 /* Znacky: jen plne pozadi + silny okraj; opacitu NEsahat (ridi zobrazeni/skryti v renderAR) */
 body.outdoor-mode .ar-marker {
@@ -1719,7 +1691,7 @@ body.cam-light .ar-marker.highlighted .ar-marker-dist { color: #334155; }
     width: 100%; min-height: 76px; margin: 0; padding: 10px 3px; box-sizing: border-box;
     border-radius: var(--r-md, 12px); border: 1px solid var(--glass-border);
     background: rgba(255, 255, 255, 0.05); color: var(--text-color);
-    font: 600 10.5px/1.25 var(--font-ui, system-ui), sans-serif; text-align: center; cursor: pointer;
+    font: 600 calc(10.5px * var(--ag-font-scale, 1)) / 1.25 var(--font-ui, system-ui), sans-serif; text-align: center; cursor: pointer;
 }
 .ag-quad > button .icon { width: 21px; height: 21px; flex: none; color: var(--accent-bright, #3eb487); }
 .ag-quad > button:active { transform: scale(0.97); }
@@ -1843,7 +1815,7 @@ body.light-mode .tools-search { background: rgba(0, 0, 0, 0.04); }
     margin: 10px 2px 0;
     padding-top: 10px;
     border-top: 1px solid var(--glass-border);
-    font: 700 11px/1 var(--font-display, system-ui), sans-serif;
+    font: 700 calc(11px * var(--ag-font-scale, 1)) / 1 var(--font-display, system-ui), sans-serif;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-muted);
@@ -1931,58 +1903,10 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
    ========================================================================= */
 
 /* ---- Spodní dok → svislá lišta u pravého okraje (palec pravé ruky) ----- */
-/* Střed lišty v 60 % výšky (ne 50 %): telefon se drží ve spodní třetině,
-   palec tam pohodlně dosáhne. Na přání uživatele. */
-/* OPRAVA 27. 7. — „levá strana je uřízlá okrajem displeje“ (Split, režim levé ruky).
-   PŘÍČINY byly dvě a obě žily přímo tady:
-   1) Odsazení se počítalo přes max(8px, env(safe-area-inset-*)). max() mezeru
-      NEPŘIČÍTÁ, jen vybere větší z hodnot — jakmile displej hlásí boční
-      bezpečnou zónu (iPhone naležato, zaoblené rohy, širší rámeček v PWA),
-      vyjde odsazení PŘESNĚ na hranu zóny a lišta se o ni opře bez mezery;
-      zaoblený roh pak z chipů ukousne kus. Teď je to calc(inset + 8px),
-      takže mezera zůstává v každé orientaci.
-   2) align-items:center vystřeďovalo chipy v boxu doku, jehož šířku určuje
-      NEJŠIRŠÍ potomek. Cokoliv širšího než 56 px (delší popisek, režim rukavic,
-      zvětšené písmo systému) tedy přetékalo na OBĚ strany — a ta ke kraji
-      displeje neměla kam. Lišta je teď KOTVENÁ k hraně (flex-end, u leváka
-      flex-start), takže širší chip roste dovnitř obrazovky, nikdy ven.
-   (Oblouk --dock-arc posouvá prostřední chipy jen dovnitř, ten v tom není.) */
-#dock {
-    left: auto;
-    right: calc(env(safe-area-inset-right, 0px) + 8px);
-    top: 60%;
-    bottom: auto;
-    transform: translateY(-50%);
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-end;
-    gap: 6px;
-    width: auto;
-    /* pojistka: lišta se nikdy neroztáhne přes celou šířku displeje */
-    max-width: calc(100vw - 24px);
-    padding: 9px 7px;
-    border-radius: 20px;
-}
-.dock-btn {
-    flex: 0 0 auto;
-    width: 54px;
-    gap: 3px;
-    padding: 7px 2px;
-    font-size: calc(8.5px * var(--ag-font-scale, 1));
-    line-height: 1.15;
-}
-.dock-btn .icon { width: 21px; height: 21px; }
 /* „Nový bod" zůstává zvýrazněný kruh, ale bez vyvýšení (to bylo pro vodorovný dok) */
 .dock-fab { margin-top: 0; width: 46px; height: 46px; }
-/* (uhnuti ovladani mapy doku resi blok "MAPA A VRSTVY" na konci souboru) */
-
-/* Na nízkých displejích lištu nezvětšovat přes celou výšku (a posun dolů zmírnit,
-   ať se spodek lišty nepotká s kroužkem zobrazení / ovládáním mapy) */
-@media (max-height: 560px) {
-    #dock { top: 55%; }
-    .dock-btn { width: 50px; padding: 5px 2px; }
-    .dock-btn .icon { width: 19px; height: 19px; }
-}
+/* (uhnuti ovladani mapy doku resi blok "MAPA A VRSTVY" na konci souboru;
+   samotné #dock/.dock-btn jsou v jediné definici na konci souboru) */
 
 /* ---- Nastavení → KOMPAKTNÍ pruh záložek --------------------------------
    PROČ: dřív to byly velké dlaždice (mřížka 2×2, každá 92 px vysoká: ikona
@@ -2075,19 +1999,62 @@ body.ag-glove .settings-tiles .tab-btn .tb-tx b { font-size: calc(14px * var(--a
    přesun GPS indikátoru a posuvníků mapy do „Více".
    ========================================================================= */
 
-/* ---- Boční lišta: samostatné skleněné chipy v jemném oblouku ----------- */
-/* (palec klouže po křivce, ne po rovné čáře) */
+/* ---- Boční lišta: JEDINÁ definice #dock a .dock-btn -------------------- */
+/* (palec klouže po křivce, ne po rovné čáře)
+
+   Tři generace redesignu (vodorovný dok dole → svislá lišta vpravo → samostatné
+   skleněné chipy) tu dřív ležely ve třech blocích nad sebou, roztažené přes
+   750 řádků. Platily jen poslední hodnoty a nikdo to z jednoho místa nepoznal —
+   navíc @media (max-height:560px) stál PŘED posledním blokem, takže se na nízkých
+   displejích vůbec neuplatnil (stejná specificita, rozhodovalo pořadí). Teď je to
+   jedna definice a výjimky (venkovní režim, levá ruka, nízký displej) jdou za ní.
+
+   Historie, která se sem hodí:
+   1) Odsazení se počítalo přes max(8px, env(safe-area-inset-*)). max() mezeru
+      NEPŘIČÍTÁ, jen vybere větší z hodnot — jakmile displej hlásí boční
+      bezpečnou zónu (iPhone naležato, zaoblené rohy, širší rámeček v PWA),
+      vyjde odsazení PŘESNĚ na hranu zóny a lišta se o ni opře bez mezery;
+      zaoblený roh pak z chipů ukousne kus. Proto calc(inset + 8px).
+   2) align-items:center vystřeďovalo chipy v boxu doku, jehož šířku určuje
+      NEJŠIRŠÍ potomek — cokoliv širšího než 56 px přetékalo na OBĚ strany.
+      Lišta je proto KOTVENÁ k hraně (flex-end, u leváka flex-start).
+   3) Střed lišty v 60 % výšky (ne 50 %): telefon se drží ve spodní třetině.
+   (Oblouk --dock-arc posouvá prostřední chipy jen dovnitř, ten v tom není.) */
 #dock {
+    position: absolute;
+    left: auto;
+    right: calc(env(safe-area-inset-right, 0px) + 8px);
+    top: 60%;
+    bottom: auto;
+    transform: translateY(-50%);
+    z-index: var(--z-hud, 9000);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 8px;
+    width: auto;
+    /* pojistka: lišta se nikdy neroztáhne přes celou šířku displeje */
+    max-width: calc(100vw - 24px);
+    /* kontejner je PRŮHLEDNÝ — podklad nesou jednotlivé chipy, plné pozadí tady
+       by pod ovládáním vykreslilo černý obdélník */
+    padding: 0;
     background: transparent;
     border: none;
     box-shadow: none;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-    padding: 0;
-    gap: 8px;
+    border-radius: 20px;
+    opacity: var(--panel-opacity);
 }
 .dock-btn {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
     width: 56px;
+    padding: 7px 2px;
     background: var(--glass-bg);
     /* VYKON: tohle je PET samostatnych backdrop pruchodu nad ZIVOU kamerou (dok ma 5 chipu)
        a kazdy se prepocitava s kazdym snimkem videa — po optimalizaci znacek nejvetsi zbyly
@@ -2098,6 +2065,38 @@ body.ag-glove .settings-tiles .tab-btn .tb-tx b { font-size: calc(14px * var(--a
     border: 1px solid var(--glass-border);
     border-radius: 16px;
     box-shadow: var(--shadow-1);
+    /* Popisek: dřív 8,5 px a --text-muted. Tohle je HLAVNÍ navigace appky, čte se
+       na délku paže a v rukavicích, proto 10 px a plná barva textu.
+       PŘEMĚŘENO 5. 9. v BĚŽÍCÍ appce (Inter, tedy skutečné písmo — ne náhradní):
+       chip je široký 56 px, na text zbývá 50 px (2× padding 2 px + 2× rám 1 px).
+       „Nastavení" má při 10 px 48,3 px (tučný řez venkovního režimu 49,1 px) → jeden
+       řádek. Při 10,5 px je to 50,7 px a láme se na „Nastaven|í". 10 px je tedy strop.
+       (Starší komentář o „doku 313 px" měřil ještě chip 54 px — neplatil.)
+       10 px = --fs-xs, ale ponecháno natvrdo: hodnota vyšla z MĚŘENÍ šířky chipu,
+       ne z žebříku velikostí, a token by ji od toho měření odpojil. */
+    color: var(--text-color);
+    font-family: var(--font-ui);
+    font-size: calc(10px * var(--ag-font-scale, 1));
+    font-weight: 600;
+    line-height: 1.15;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+.dock-btn .icon { width: 21px; height: 21px; }
+
+/* Na nízkých displejích lištu nezvětšovat přes celou výšku (a posun dolů zmírnit,
+   ať se spodek lišty nepotká s kroužkem zobrazení / ovládáním mapy).
+   MUSÍ stát ZA definicí výše — stejná specificita, rozhoduje pořadí.
+   Užší chip (50 px = 44 px na text) neuveze 10px popisek („Nastavení" 48,3 px),
+   proto o stupeň zpět na 9 px (43,5 px). */
+@media (max-height: 560px) {
+    #dock { top: 55%; }
+    .dock-btn {
+        width: 50px;
+        padding: 5px 2px;
+        font-size: calc(9px * var(--ag-font-scale, 1));
+    }
+    .dock-btn .icon { width: 19px; height: 19px; }
 }
 /* „Nový bod" zůstává čistý akcentní kruh (bez skleněného chipu kolem) */
 .dock-primary {
@@ -2277,6 +2276,24 @@ body.cam-live.cam-light:not(.ag-cam-glass) #ar-hud-info {
 }
 body.cam-live.cam-light:not(.ag-cam-glass) #ar-hud-info .hud-name { color: #1e293b; }
 
+/* ⚠ Kontrast HUD chipu ve SVETLEM rezimu BEZ kamery (zobrazeni „Pouze mapa").
+   Nad kamerou zadny problem neni — pravidlo o kus vys da chipum plne #171b20.
+   Jenze v mape se .cam-live sundava (js/grafika.js), takze tam plati sklo
+   --glass-bg rgba(255,255,255,0.92) a k tomu --panel-opacity 0.85. Popisek
+   #info .rdt-l (9 px, --text-muted) z toho nad svetlou mapou vysel na 3,15:1,
+   tedy pod AA (4,5:1) i pod hranici pro velky text.
+   RESENI: plny podklad (chip uz nic neprosviti) a popisek plnou barvou textu.
+   OPACITY SE NESAHA — `opacity: var(--panel-opacity)` na #info je zaroven to,
+   cim HUD po necinnosti bledne (.ui-faded); prepsat ji tady by blednuti zabilo. */
+body.light-mode:not(.cam-live) #info,
+body.light-mode:not(.cam-live) #compass-debug,
+body.light-mode:not(.cam-live) #gps-avg {
+    background: var(--bg-elev);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+body.light-mode:not(.cam-live) #info .rdt-l { color: var(--text-color); }
+
 /* Zavřené modály nesmí žrát výkon (4 fullscreen vrstvy stále v DOM) — vypnout blur. */
 #settings-modal:not(.ag-open), #manage-modal:not(.ag-open), #tools-modal:not(.ag-open), #custom-modal-overlay:not(.ag-open),
 #settings-modal:not(.ag-open) .modal-content, #manage-modal:not(.ag-open) .modal-content,
@@ -2397,7 +2414,7 @@ body.left-hand #ag-ft-fab { right: auto !important; left: 12px !important; }
     flex-direction: column; align-items: center; justify-content: center; gap: 2px;
     border-radius: 50%;
     border: 1px solid var(--accent);
-    font: 600 8px/1.1 var(--font-ui, system-ui), sans-serif; letter-spacing: 0.02em;
+    font: 600 calc(8px * var(--ag-font-scale, 1)) / 1.1 var(--font-ui, system-ui), sans-serif; letter-spacing: 0.02em;
     box-shadow: var(--shadow-1); cursor: pointer;
 }
 #map-recenter.on { display: flex; }
@@ -2405,7 +2422,7 @@ body.left-hand #ag-ft-fab { right: auto !important; left: 12px !important; }
 #map-controls.expanded #map-recenter { display: none; }
 #map-recenter .icon { width: 20px; height: 20px; color: var(--accent-bright, #3eb487); }
 #map-recenter:active { transform: scale(0.94); }
-body.ag-glove #map-recenter { width: 64px; height: 64px; font-size: 9.5px; bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); }
+body.ag-glove #map-recenter { width: 64px; height: 64px; font-size: calc(9.5px * var(--ag-font-scale, 1)); bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); }
 body.ag-glove #map-recenter .icon { width: 24px; height: 24px; }
 /* v režimu levé ruky drží stranu s tlačítkem Vrstvy */
 body.left-hand #map-recenter { left: auto; right: calc(env(safe-area-inset-right, 0px) + 10px); }
@@ -2420,7 +2437,7 @@ body.left-hand #map-recenter { left: auto; right: calc(env(safe-area-inset-right
     width: 54px; height: 54px; padding: 0;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
     border-radius: 50%;
-    font: 600 8px/1.1 var(--font-ui, system-ui), sans-serif; letter-spacing: 0.02em;
+    font: 600 calc(8px * var(--ag-font-scale, 1)) / 1.1 var(--font-ui, system-ui), sans-serif; letter-spacing: 0.02em;
     box-shadow: var(--shadow-1); cursor: pointer;
     transition: opacity 0.2s var(--ease-out);
 }
@@ -2438,8 +2455,8 @@ body.left-hand #map-ctrl-toggle { left: auto; right: calc(env(safe-area-inset-ri
     min-width: 17px; height: 17px; padding: 0 4px; box-sizing: border-box;
     display: flex; align-items: center; justify-content: center;
     border-radius: 99px; background: var(--accent-fill, var(--accent)); color: #fff;
-    font: 700 10px/1 var(--font-ui, system-ui), sans-serif;
-    border: 1.5px solid var(--bg-color, #12151a);
+    font: 700 calc(10px * var(--ag-font-scale, 1)) / 1 var(--font-ui, system-ui), sans-serif;
+    border: 1.5px solid var(--bg-color, #0f1216);
 }
 #map-ctrl-badge[hidden] { display: none; }
 /* uživatel si může vstup z mapy schovat (Nastavení → Vzhled) */
@@ -2487,7 +2504,7 @@ body.left-hand #map-sheet {
 }
 #map-sheet .ms-title {
     display: flex; align-items: center; gap: 8px;
-    font: 700 14px/1.2 var(--font-ui, system-ui), sans-serif; color: var(--text-color);
+    font: 700 calc(14px * var(--ag-font-scale, 1)) / 1.2 var(--font-ui, system-ui), sans-serif; color: var(--text-color);
 }
 #map-sheet .ms-title .icon { width: 17px; height: 17px; color: var(--accent); }
 #map-sheet .ms-close {
@@ -2506,7 +2523,7 @@ body.left-hand #map-sheet {
     -webkit-overflow-scrolling: touch; padding: 10px 12px 12px;
 }
 #map-sheet .ms-lbl {
-    font: 700 10.5px/1.3 var(--font-ui, system-ui), sans-serif;
+    font: 700 calc(10.5px * var(--ag-font-scale, 1)) / 1.3 var(--font-ui, system-ui), sans-serif;
     letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted);
     margin: 0 0 7px;
 }
@@ -2551,7 +2568,7 @@ body.left-hand #map-sheet {
 #map-sheet .ms-seg button {
     flex: 1; padding: 9px 6px; border: 0; border-radius: 9px;
     background: transparent; color: var(--text-muted);
-    font: 600 13px/1 var(--font-ui, system-ui), sans-serif; cursor: pointer;
+    font: 600 calc(13px * var(--ag-font-scale, 1)) / 1 var(--font-ui, system-ui), sans-serif; cursor: pointer;
 }
 #map-sheet .ms-seg button.on { background: var(--accent-fill, var(--accent)); color: #fff; }
 
@@ -2567,10 +2584,10 @@ body.left-hand #map-sheet {
 #map-sheet .ms-row[hidden] { display: none; }
 #map-sheet .ms-row.ctrl-active { border-color: var(--accent-line); background: var(--accent-soft); }
 #map-sheet .ms-row.ctrl-active > .icon { color: var(--accent); }
-#map-sheet .ms-row-t { flex: 1; min-width: 0; font: 600 13.5px/1.25 var(--font-ui, system-ui), sans-serif; }
+#map-sheet .ms-row-t { flex: 1; min-width: 0; font: 600 calc(13.5px * var(--ag-font-scale, 1)) / 1.25 var(--font-ui, system-ui), sans-serif; }
 #map-sheet .ms-row-t em {
     display: block; margin-top: 2px; font-style: normal;
-    font: 500 11.5px/1.35 var(--font-ui, system-ui), sans-serif; color: var(--text-muted);
+    font: 500 calc(11.5px * var(--ag-font-scale, 1)) / 1.35 var(--font-ui, system-ui), sans-serif; color: var(--text-muted);
 }
 /* Drazka prepinace mela natvrdo BILY ZAVOJ — ve svetlem rezimu byla neviditelna
    (nameren pomer jasu 1,00 proti podkladu, v tmavem 1,56). Token --surface-3 se
@@ -2587,7 +2604,7 @@ body.left-hand #map-sheet {
 #map-sheet .ms-row.ctrl-active .ms-sw { background: var(--accent); }
 #map-sheet .ms-row.ctrl-active .ms-sw::after { transform: translateX(16px); }
 /* řádek, který otevírá nástroj (ne přepínač) — jiná afordance, ne falešný switch */
-#map-sheet .ms-go { flex: none; color: var(--text-muted); font: 700 16px/1 var(--font-ui, system-ui), sans-serif; }
+#map-sheet .ms-go { flex: none; color: var(--text-muted); font: 700 calc(16px * var(--ag-font-scale, 1)) / 1 var(--font-ui, system-ui), sans-serif; }
 
 /* dlaždice nástrojů — S POPISKY (dřív bezejmenné ikony) */
 #map-sheet .ms-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 7px; }
@@ -2595,7 +2612,7 @@ body.left-hand #map-sheet {
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
     padding: 10px 4px; border-radius: 12px;
     border: 1px solid var(--glass-border); background: rgba(255, 255, 255, 0.035);
-    color: var(--text-color); font: 600 10.5px/1.2 var(--font-ui, system-ui), sans-serif;
+    color: var(--text-color); font: 600 calc(10.5px * var(--ag-font-scale, 1)) / 1.2 var(--font-ui, system-ui), sans-serif;
     text-align: center; cursor: pointer;
 }
 #map-sheet .ms-tile .icon { width: 20px; height: 20px; color: var(--accent-bright, #3eb487); }
@@ -2712,7 +2729,7 @@ body.light-mode .kod-chip { background: rgba(0, 0, 0, 0.05); }
     padding: 1px 8px;
     border-radius: var(--r-pill, 999px);
     background: rgba(52, 211, 153, 0.16);
-    color: var(--accent-bright, #34d399);
+    color: var(--accent-bright, #3eb487);
     font-size: calc(11.5px * var(--ag-font-scale, 1)); font-weight: 700;
     vertical-align: 1px;
 }
@@ -2736,7 +2753,7 @@ body.light-mode .kod-chip { background: rgba(0, 0, 0, 0.05); }
 body.light-mode .mng-bar input[type="search"] { background: rgba(0, 0, 0, 0.05); }
 .mng-bar select { flex: 0 0 auto; width: auto; max-width: 42%; margin: 0; padding: 10px 8px; font-size: calc(13.5px * var(--ag-font-scale, 1)); }
 .mng-bar .mng-selbtn { flex: 0 0 auto; width: auto; margin: 0; padding: 10px 14px; }
-.mng-bar .mng-selbtn.mng-selbtn-on { border-color: var(--accent); color: var(--accent-bright, #34d399); }
+.mng-bar .mng-selbtn.mng-selbtn-on { border-color: var(--accent); color: var(--accent-bright, #3eb487); }
 /* Ctvrty prvek panelu: "jen body z hodinek". Panel je flex a na uzkem telefonu uz
    ctyri prvky vedle sebe nevyjdou — proto se smi zalomit a hledani si drzi celou
    sirku prvniho radku (flex-basis 100 % pri zalomeni resi min-width vyse). */
@@ -2755,7 +2772,7 @@ body.light-mode .mng-bar input[type="search"] { background: rgba(0, 0, 0, 0.05);
 }
 body.light-mode .mng-actions { background: rgba(0, 0, 0, 0.04); }
 .mng-actions-head { font-size: calc(13px * var(--ag-font-scale, 1)); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-.mng-lnk { background: none; border: none; color: var(--accent-bright, #34d399); font-weight: 700; font-size: calc(13px * var(--ag-font-scale, 1)); cursor: pointer; padding: 4px 6px; margin-left: auto; }
+.mng-lnk { background: none; border: none; color: var(--accent-bright, #3eb487); font-weight: 700; font-size: calc(13px * var(--ag-font-scale, 1)); cursor: pointer; padding: 4px 6px; margin-left: auto; }
 .mng-hint { font-size: calc(11.5px * var(--ag-font-scale, 1)); opacity: 0.7; line-height: 1.4; margin: 0 2px 9px; }
 .mng-actions-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
 .mng-actions-btns .btn { margin: 0; padding: 10px 8px; font-size: calc(13px * var(--ag-font-scale, 1)); }
@@ -2813,7 +2830,7 @@ body.light-mode .mng-kpi { background: rgba(0, 0, 0, 0.04); }
     white-space: nowrap;
     cursor: pointer;
 }
-.mng-chip.on { border-color: var(--accent-line); color: var(--accent-bright, #34d399); background: var(--accent-soft); }
+.mng-chip.on { border-color: var(--accent-line); color: var(--accent-bright, #3eb487); background: var(--accent-soft); }
 .mng-chip-sel { margin-left: auto; }
 .mng-chip-watch.on { border-color: var(--color-watch); color: var(--color-watch); background: rgba(244, 114, 182, 0.12); }
 body.ag-glove .mng-chip { padding: 10px 15px; }
@@ -2855,7 +2872,7 @@ body.light-mode .cp-item.mngr { border-bottom-color: rgba(0, 0, 0, 0.07); }
     color: var(--text-faint);
 }
 .mngr-acc { font-family: var(--font-mono); }
-.mngr-acc[data-q="ok"] { color: var(--accent-bright, #34d399); }
+.mngr-acc[data-q="ok"] { color: var(--accent-bright, #3eb487); }
 .mngr-acc[data-q="warn"] { color: var(--warning); }
 .mngr-acc[data-q="bad"] { color: var(--danger); }
 .cp-item.mngr .mngr-far { flex: 0 0 auto; text-align: right; }
@@ -2877,7 +2894,7 @@ body.light-mode .cp-item.mngr { border-bottom-color: rgba(0, 0, 0, 0.07); }
     line-height: 1;
     transition: transform 0.15s ease, color 0.15s ease;
 }
-.cp-item.mngr.mngr-open .mngr-arw { transform: rotate(90deg); color: var(--accent-bright, #34d399); }
+.cp-item.mngr.mngr-open .mngr-arw { transform: rotate(90deg); color: var(--accent-bright, #3eb487); }
 /* Poznámka a fotka (js/kalkulacka.js přes hook decoratePointItem) se do řádku
    nevejdou vedle — miniatura jde na začátek řádku, poznámka pod něj.
    `order` je nutné: decoratePointItem je připojuje AŽ po dokreslení z IndexedDB,
@@ -2938,7 +2955,7 @@ body.ag-glove .mngr-act { padding: 13px 8px; }
 /* V režimu výběru sedí vpravo zaškrtávátko (.mng-check, absolutně) — šipka
    „rozbalit" by se s ním potkala a v tom režimu stejně nic nedělá. */
 .cp-item.mngr.mng-selectable .mngr-arw { display: none; }
-.cp-item.mng-selected { border-color: var(--accent, #34d399); box-shadow: 0 0 0 1px var(--accent, #34d399) inset; }
+.cp-item.mng-selected { border-color: var(--accent, #2f9e74); box-shadow: 0 0 0 1px var(--accent, #2f9e74) inset; }
 .mng-check {
     position: absolute;
     right: 12px; top: 50%;
@@ -2946,11 +2963,11 @@ body.ag-glove .mngr-act { padding: 13px 8px; }
     width: 26px; height: 26px;
     border-radius: 8px;
     border: 2px solid var(--glass-border-strong, rgba(255, 255, 255, 0.3));
-    color: var(--accent-bright, #34d399);
+    color: var(--accent-bright, #3eb487);
     font-weight: 800; font-size: calc(16px * var(--ag-font-scale, 1)); line-height: 22px;
     text-align: center;
 }
-.cp-item.mng-selected .mng-check { border-color: var(--accent, #34d399); }
+.cp-item.mng-selected .mng-check { border-color: var(--accent, #2f9e74); }
 
 /* =========================================================================
    NASTAVENÍ — ROLUJE CELÉ OKNO (ne jen výřez dole) + KOMPAKTNÍ ROZVRŽENÍ

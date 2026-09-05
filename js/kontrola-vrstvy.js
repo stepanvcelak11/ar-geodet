@@ -96,12 +96,14 @@
         return out;
     }
 
-    // WGS84 -> S-JTSK; rovina se prokládá v metrických souřadnicích, ne ve stupních
+    // WGS84 -> S-JTSK; rovina se prokládá v metrických souřadnicích, ne ve stupních.
+    // Počítá VÝHRADNĚ GeoCore (js/geo-core.js, eager) — přímé proj4 tu mělo pořadí os
+    // zadrátované natvrdo, a to je jediná věc, kterou GeoCore hlídá (_resolveAxis).
     function toJTSK(lat, lng) {
         try {
-            var s = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]);
-            return { y: Math.abs(s[0]), x: Math.abs(s[1]) };
-        } catch (e) { return null; }
+            if (window.GeoCore && GeoCore.toSJTSK) { var s = GeoCore.toSJTSK(lat, lng); return { y: s.y, x: s.x }; }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kontrola-vrstvy:toJTSK'); }
+        return null;
     }
 
     // ---- REFERENČNÍ ROVINA (MNČ) ---------------------------------------------
@@ -196,7 +198,10 @@
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kontrola-vrstvy:phoneAlt'); }
         if (!und) return null;
         try {
-            if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.alt != null && isFinite(gpsAvgResult.alt)) {
+            // ⚠ #22: vyska z prumeru se pouziva na odchylku vrstvy v centimetrech —
+            // zmrzly prumer by hlasil odchylku proti vysce z jineho mista a jine hodiny.
+            if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.alt != null && isFinite(gpsAvgResult.alt)
+                && ((typeof window.agAvgFresh !== 'function') || window.agAvgFresh(15000))) {
                 return { z: gpsAvgResult.alt - und, sig: gpsAvgResult.altSterr, n: gpsAvgResult.altN, src: 'průměr GPS' };
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kontrola-vrstvy:phoneAlt'); }

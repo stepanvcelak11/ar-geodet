@@ -695,7 +695,7 @@
             'tím se pak přihlásí zaměstnanci na svých mobilech. Potřebuje internet.</div>' +
             '<label class="agfa-lb">Název firmy</label><input type="text" id="agfa-w-firm" placeholder="Geodetika s.r.o." maxlength="60">' +
             '<label class="agfa-lb">Tvoje jméno (admin)</label><input type="text" id="agfa-w-name" placeholder="Jan Novák" maxlength="40">' +
-            '<label class="agfa-lb">Heslo admina (min. 4 znaky)</label><input type="password" id="agfa-w-pin" maxlength="64" placeholder="••••">' +
+            '<label class="agfa-lb">Heslo admina (min. 8 znaků)</label><input type="password" id="agfa-w-pin" maxlength="64" placeholder="••••">' +
             '<label class="agfa-lb">Heslo znovu</label><input type="password" id="agfa-w-pin2" maxlength="64" placeholder="••••">' +
             '<button class="btn" style="margin-top:14px;width:100%;" id="agfa-w-go">Založit firmu</button>' +
             '<button class="btn btn-secondary" style="margin-top:8px;width:100%;" id="agfa-w-back">Zpět</button>';
@@ -709,7 +709,7 @@
             var p1 = body.querySelector('#agfa-w-pin').value || '';
             var p2 = body.querySelector('#agfa-w-pin2').value || '';
             if (!name) { agAlert('Chybí jméno', 'Zadej jméno administrátora.'); return; }
-            if (p1.length < 4) { agAlert('Slabé heslo', 'Heslo musí mít aspoň 4 znaky.'); return; }
+            if (p1.length < 8) { agAlert('Slabé heslo', 'Heslo musí mít aspoň 8 znaků.'); return; }
             if (p1 !== p2) { agAlert('Heslo nesouhlasí', 'Zadaná hesla se liší.'); return; }
             this.disabled = true; this.textContent = 'Zakládám…';
             var btn = this;
@@ -1323,7 +1323,7 @@
         var cloud = !!f.cloud;
         var box = body.querySelector('#agfa-uform');
         var passLbl = cloud
-            ? (us ? 'Nové heslo (nech prázdné = beze změny)' : 'Heslo (min. 4 znaky)')
+            ? (us ? 'Nové heslo (nech prázdné = beze změny)' : 'Heslo (min. 8 znaků)')
             : (us ? 'Nový PIN (nech prázdné = beze změny)' : 'PIN (4–8 číslic; prázdné = bez PINu)');
         box.innerHTML =
             '<div style="border:1px solid var(--glass-border,rgba(255,255,255,0.15));border-radius:12px;padding:12px;margin-top:12px;">' +
@@ -1366,8 +1366,10 @@
             }
             var me = u.currentUser();
             if (cloud) {
-                if (!us && pin.length < 4) { agAlert('Slabé heslo', 'Heslo musí mít aspoň 4 znaky.'); return; }
-                if (us && pin && pin.length < 4) { agAlert('Slabé heslo', 'Heslo musí mít aspoň 4 znaky (nebo nech prázdné).'); return; }
+                // 8 znaků, ne 4: heslo do cloudu se hashuje PBKDF2 a otisk se dá u
+                // krátkého hesla dopočítat hrubou silou. Server kratší odmítne taky.
+                if (!us && pin.length < 8) { agAlert('Slabé heslo', 'Heslo musí mít aspoň 8 znaků.'); return; }
+                if (us && pin && pin.length < 8) { agAlert('Slabé heslo', 'Heslo musí mít aspoň 8 znaků (nebo nech prázdné).'); return; }
                 var req = us
                     ? u.cloudFetch('/users/' + encodeURIComponent(us.id), { method: 'PATCH', body: Object.assign({ name: name, role: role }, pin ? { password: pin } : {}) })
                     : u.cloudFetch('/users', { method: 'POST', body: { name: name, role: role, password: pin } });

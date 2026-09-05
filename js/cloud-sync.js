@@ -7,6 +7,14 @@
 // změny na server a stáhnou změny od kolegů. Konflikty řeší „poslední úprava
 // vyhrává" (podle času změny), mazání se přenáší náhrobky (tombstony).
 //
+// ⚠ ČAS ZMĚNY = pole `mts` na bodu, NE čas odeslání. Kdo je den v lese bez
+//   signálu, nesmí večer přepsat odpolední opravu z kanceláře. Body, které mts
+//   nemají (starší data), jedou dál na čas pushe — jinak by se musel použít
+//   prov.ts, což je čas VZNIKU bodu, a každá pozdější úprava by se tvářila jako
+//   prastará. A protože server starší zápis mlčky zahodí, vrací v odpovědi
+//   `accepted` = id, která opravdu uložil: jen ta si klient smí odškrtnout jako
+//   odeslaná (dřív si odškrtl všechna po HTTP 200 a odmítnutá úprava zmizela).
+//
 //   • zapíná se RUČNĚ per zakázka: Nastavení → Data → sekce „Firemní cloud"
 //     (viditelná jen u zařízení přihlášeného do firmy s cloudem)
 //   • zakázky se mezi zařízeními PÁRUJÍ NÁZVEM (velikost písmen a přebytečné
@@ -116,6 +124,11 @@
         var o = { id: String(p.id), name: p.name != null ? String(p.name) : 'Bod', lat: +p.lat, lng: +p.lng, cat: 'CUSTOM', type: 'custom' };
         if (p.vyska != null && isFinite(+p.vyska)) o.vyska = +p.vyska;
         if (p.acc != null && isFinite(+p.acc)) o.acc = +p.acc;
+        // kód bodu (druh podrobného bodu) patří k měření stejně jako výška —
+        // do firmy se dosud nesdílel vůbec a kolegovi v seznamu i exportu chyběl
+        if (p.kod != null && String(p.kod) !== '') o.kod = String(p.kod).slice(0, 60);
+        // čas poslední úpravy; jde do otisku, aby se úprava poznala jako změna
+        if (p.mts != null && isFinite(+p.mts)) o.mts = +p.mts;
         if (p.prov && typeof p.prov === 'object') o.prov = p.prov;
         return o;
     }
@@ -149,6 +162,8 @@
         var np = { id: String(d.id), name: d.name != null ? String(d.name) : 'Bod', lat: +d.lat, lng: +d.lng, cat: 'CUSTOM', type: 'custom' };
         if (d.vyska != null && isFinite(+d.vyska)) np.vyska = +d.vyska;
         if (d.acc != null && isFinite(+d.acc)) np.acc = +d.acc;
+        if (d.kod != null && String(d.kod) !== '') np.kod = String(d.kod).slice(0, 60);
+        if (d.mts != null && isFinite(+d.mts)) np.mts = +d.mts;
         if (d.prov && typeof d.prov === 'object') np.prov = d.prov;
         return np;
     }
@@ -197,6 +212,10 @@
         lp.name = np.name; lp.lat = np.lat; lp.lng = np.lng;
         if (np.vyska != null) lp.vyska = np.vyska; else if (lp.vyska != null) delete lp.vyska;
         if (np.acc != null) lp.acc = np.acc; else if (lp.acc != null) delete lp.acc;
+        if (np.kod != null) lp.kod = np.kod; else if (lp.kod != null) delete lp.kod;
+        // mts se přebírá s obsahem — jinak by otisk po převzetí kolegovy verze
+        // nesouhlasil a bod by se hned pushnul zpátky
+        if (np.mts != null) lp.mts = np.mts; else if (lp.mts != null) delete lp.mts;
         if (np.prov) lp.prov = np.prov;
         try {
             if (typeof arPoints !== 'undefined' && Array.isArray(arPoints)) {
@@ -206,6 +225,8 @@
                     a.name = np.name; a.lat = np.lat; a.lng = np.lng;
                     if (np.vyska != null) a.vyska = np.vyska; else if (a.vyska != null) delete a.vyska;
                     if (np.acc != null) a.acc = np.acc; else if (a.acc != null) delete a.acc;
+                    if (np.kod != null) a.kod = np.kod; else if (a.kod != null) delete a.kod;
+                    if (np.mts != null) a.mts = np.mts; else if (a.mts != null) delete a.mts;
                     if (np.prov) a.prov = np.prov;
                     try { if (a.element) { a.element.remove(); a.element = null; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:updateLocal'); }
                     try { if (a.distElement) { a.distElement.remove(); a.distElement = null; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:updateLocal'); }
@@ -280,7 +301,11 @@
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:adoptId'); }
     }
 
-    function applyRows(p, st, rows) {
+    // `force` = tyhle řádky jsme si vyžádali adresně proto, že server náš zápis
+    // ODMÍTL jako starší. Jeho verze je tedy prokazatelně novější (podle času
+    // úpravy) a lokální nesesynchronizovaná změna tentokrát NEVYHRÁVÁ — jinak by
+    // se obě strany dohadovaly donekonečna a uživatel by o tom nevěděl.
+    function applyRows(p, st, rows, force) {
         if (!rows || !rows.length) return { add: 0, edit: 0, del: 0 };
         if (pid() !== p || !ready()) return null;
         var res = { add: 0, edit: 0, del: 0 };
@@ -293,7 +318,7 @@
                 var lp = findPt(id);
                 if (lp) {
                     var hNow = hashPt(lp);
-                    if (k && k.h && hNow !== k.h) {
+                    if (!force && k && k.h && hNow !== k.h) {
                         // lokální nesesynchronizovaná úprava → bod nechat, diff ho pushne s novějším časem
                         st.known[id] = { ts: rts, h: k.h };
                     } else {
@@ -317,13 +342,13 @@
                 if (twin) { adoptId(twin, id); lp2 = twin; }
             }
             if (!lp2) {
-                if (k && k.del && k.ts >= rts) continue;   // náš novější náhrobek — nevzkřísit
+                if (!force && k && k.del && k.ts >= rts) continue;   // náš novější náhrobek — nevzkřísit
                 insertLocal(np); res.add++;
                 st.known[id] = { ts: rts, h: hRem };
             } else {
                 var hLoc = hashPt(lp2);
                 if (hLoc === hRem) { st.known[id] = { ts: rts, h: hRem }; continue; }
-                if (k && k.h && hLoc !== k.h) { st.known[id] = { ts: rts, h: k.h }; continue; }   // lokální změna vyhrává
+                if (!force && k && k.h && hLoc !== k.h) { st.known[id] = { ts: rts, h: k.h }; continue; }   // lokální změna vyhrává
                 updateLocal(lp2, np); res.edit++;
                 st.known[id] = { ts: rts, h: hRem };
             }
@@ -367,7 +392,33 @@
             seen[id] = 1;
             var s = slim(pt), h = fnv(stable(s));
             var k = st.known[id];
-            if (!k || k.del || k.h !== h) out.push({ id: id, data: JSON.stringify(s), ts: now, deleted: 0, _h: h });
+            if (!k || k.del || k.h !== h) {
+                // ČAS ÚPRAVY, ne čas odeslání (viz hlavička souboru). prov.ts by se
+                // použít NESMĚLO — to je čas vzniku bodu.
+                var mts = (pt.mts != null && isFinite(+pt.mts)) ? +pt.mts : now;
+                // ⚠⚠ ZÁCHYTNÁ SÍŤ NA `mts`. Razítko si nastavuje jen editace bodu
+                // (js/logika.js), obnova z koše a undo. Bod ale mění i spousta dalších
+                // modulů: hromadné akce ve Správě bodů (posun ΔY/ΔX/ΔZ, přečíslování,
+                // přiřazení kódu, srovnání lokalizací — všechny končí v _mngAfterEdit
+                // v js/grafika.js), korekce DGPS, ref-kalibrace, řešení kolizí, dvojí
+                // měření, ověření bodu, epochy. Ty razítko nechají STARÉ.
+                // Kdyby se takové staré `mts` odeslalo, server by zápis odmítl
+                // (`WHERE excluded.ts > sync_points.ts`), resolveConflicts by si bod
+                // adresně stáhl zpátky a hromadná úprava by se člověku pod rukama
+                // TIŠE VRÁTILA — i s hláškou „mezitím upravil kolega", ačkoli nikdo nic
+                // nedělal. Nejvíc by to trefilo právě nově sdílený `kod`, který se
+                // přiřazuje hromadně.
+                // Sem se dostaneme jen tehdy, když se otisk bodu LIŠÍ od naposledy
+                // sesynchronizovaného, tedy když se na tomhle telefonu opravdu něco
+                // změnilo. Není-li razítko novější než to, co už o bodu víme, je
+                // prokazatelně zastaralé a čas změny je „teď".
+                // POZOR: `now` se tu tedy dosazuje jen jako HORNÍ ODHAD chybějícího
+                // razítka. Kdo bod mění a `mts` nastaví (editace), si tím pádem svůj
+                // čas udrží — a den v lese bez signálu odpolední opravu z kanceláře
+                // dál nepřepíše, protože jeho `mts` je starší než serverové.
+                if (k && k.ts != null && mts <= +k.ts) mts = now;
+                out.push({ id: id, data: JSON.stringify(s), ts: mts, deleted: 0, _h: h });
+            }
         }
         for (var kid in st.known) {
             if (!Object.prototype.hasOwnProperty.call(st.known, kid)) continue;
@@ -401,7 +452,32 @@
         });
     }
 
-    function pushAll(u, p, job, st) {
+    // Server náš zápis odmítl → má NOVĚJŠÍ verzi bodu. Kurzor `since` by nám ji
+    // nepřinesl (odmítnutý zápis srv neposunul, řádek je dávno za kurzorem), tak
+    // si o ty body řekneme adresně a vezmeme je za své. Bez toho by se odmítnutá
+    // změna posílala pořád dokola a uživatel by se nikdy nedozvěděl, že jeho
+    // úprava do firmy nedošla.
+    function resolveConflicts(u, p, job, st, ids) {
+        var seznam = [];
+        for (var i = 0; i < ids.length && seznam.length < 100; i++) {
+            if (String(ids[i]).indexOf(',') === -1) seznam.push(String(ids[i]));   // čárka je oddělovač v URL
+        }
+        if (!seznam.length) return Promise.resolve(false);
+        return u.cloudFetch('/sync/points?job=' + encodeURIComponent(job) + '&ids=' + encodeURIComponent(seznam.join(','))).then(function (r) {
+            if (!r.ok || !r.data || !r.data.points) return false;
+            var res = applyRows(p, st, r.data.points, true);
+            if (!res) return false;
+            saveSt(p, st);
+            var n = (res.add || 0) + (res.edit || 0) + (res.del || 0);
+            if (n) {
+                persistAndRedraw(p, res);
+                toast('Bodů (' + n + ') mezitím upravil kolega novější verzí — ta má přednost, tvoje starší úprava se do firmy nezapsala.');
+            }
+            return true;
+        })['catch'](function () { return false; });
+    }
+
+    function pushAll(u, p, job, st, depth) {
         if (pid() !== p || !ready() || !consistent()) return Promise.resolve(false);
         var chg = localChanges(st);
         if (!chg.length) return Promise.resolve(true);
@@ -420,14 +496,26 @@
                 if (r.status === 404) _noServerTs = Date.now();
                 return false;
             }
+            // Odškrtnout jako odeslané smí jen to, co server OPRAVDU uložil:
+            // starší změnu upsert mlčky zahodí a odškrtnutí by ji pohřbilo
+            // navždy. Starý worker pole `accepted` nezná — tam zůstává staré
+            // chování, aby se sdílení nezaseklo.
+            var acc = (r.data && Object.prototype.toString.call(r.data.accepted) === '[object Array]') ? r.data.accepted : null;
+            var prosly = null, odmitnuta = [];
+            if (acc) { prosly = {}; for (var a = 0; a < acc.length; a++) prosly[String(acc[a])] = 1; }
             for (var j = 0; j < batch.length; j++) {
                 var c2 = batch[j];
+                if (prosly && !prosly[c2.id]) { odmitnuta.push(c2.id); continue; }
                 st.known[c2.id] = c2.deleted ? { ts: c2.ts, del: 1 } : { ts: c2.ts, h: c2._h };
             }
             pruneKnown(st);
             saveSt(p, st);
-            if (chg.length > batch.length) return pushAll(u, p, job, st);
-            return true;
+            var d2 = (depth || 0) + 1;
+            // strop opakování: kdyby se konflikt nepodařilo dotáhnout, nesmí se
+            // z toho stát nekonečná smyčka pushů (odmítnutá změna z fronty nezmizí)
+            var dal = function () { return (chg.length > batch.length && d2 < 10) ? pushAll(u, p, job, st, d2) : true; };
+            if (odmitnuta.length) return resolveConflicts(u, p, job, st, odmitnuta).then(dal);
+            return dal();
         });
     }
 
@@ -453,7 +541,7 @@
         try {
             pullAll(u, p, job, st, 0).then(function (ok) {
                 if (!ok) { fin(); return; }
-                return pushAll(u, p, job, st).then(function (ok2) {
+                return pushAll(u, p, job, st, 0).then(function (ok2) {
                     if (ok2) { st.ok = Date.now(); _lastErr = 0; _noServerTs = 0; saveSt(p, st); }
                     fin();
                 });

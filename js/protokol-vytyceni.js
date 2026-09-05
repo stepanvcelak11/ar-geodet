@@ -69,12 +69,17 @@
         try { if (window.AG && AG.toast) return AG.toast(m); } catch (e) { swallow(e, 'protvyt:toast'); }
         try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) { swallow(e, 'protvyt:toast'); }
     }
+    // S-JTSK pocítá VÝHRADNĚ GeoCore (js/geo-core.js, eager v index.html) — jediný
+    // autoritativní převod v appce, testovaný proti PROJ v tests/cases-geo.js.
+    // Přímé volání proj4 tu mělo pořadí os zadrátované (Math.abs(s[0]) = Y), a pořadí os
+    // je právě to jediné, co GeoCore hlídá (_resolveAxis). Čísla odsud jdou do PROTOKOLU
+    // PRO ZÁKAZNÍKA, takže „souřadnici neznám“ je tu lepší než „souřadnice vedle“.
     function sjtsk(lat, lng) {
         try {
-            if (typeof proj4 !== 'function' || lat == null || lng == null) return null;
-            var s = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]);
-            return { y: Math.abs(s[0]), x: Math.abs(s[1]) };
-        } catch (e) { return null; }
+            if (lat == null || lng == null) return null;
+            if (window.GeoCore && GeoCore.toSJTSK) { var s = GeoCore.toSJTSK(lat, lng); return { y: s.y, x: s.x }; }
+        } catch (e) { swallow(e, 'protvyt:sjtsk'); }
+        return null;
     }
 
     // ================================================================
@@ -82,10 +87,23 @@
     // ================================================================
     // Kde právě stojím. Průměr z GPS je NEPOROVNATELNĚ lepší podklad než jeden
     // fix, ale nemusí být k dispozici — pak bereme poslední fix i s jeho přesností.
+    //
+    // ⚠⚠ TATÁŽ BRÁNA JAKO V js/vytycovani.js:28-32, a to ze dvou důvodů.
+    // (1) Zmrzlý průměr: když GPS přestane dodávat fixy (tunel, auto, iOS suspend),
+    //     `gpsAvgResult` zůstane stát a tvářil by se tu jako čerstvé měření.
+    // (2) Ruční poloha z mapy má `coarse:false` a vyplněné lat/lng (js/logika.js:1221),
+    //     takže první větví projde — a `sterr` je pak přesnost z MĚŘÍTKA MAPY.
+    // Bez brány to bylo zvlášť zrádné: toggleStaked() v js/vytycovani.js `acc` poctivě
+    // zahodí, ale obal v tomhle souboru doběhne hned po něm, vezme polohu znovu odsud
+    // a zapíše `sacc` — a to má pak v CSV i ve verdiktu „průkazné" PŘEDNOST před `acc`.
+    // Do dokladu pro zákazníka by tedy šlo přesně to číslo, které vytycovani.js zahodil.
+    // Když nezbude nic, vrací se null; volající s tím počítá (`if (!me) return ret;`)
+    // a v protokolu zůstane poctivé prázdno.
     function kdeStojim() {
         try {
             var r = (typeof gpsAvgResult !== 'undefined') ? gpsAvgResult : null;
-            if (r && !r.coarse && r.lat != null && r.lng != null) {
+            var avgOk = (typeof window.agAvgFresh !== 'function') || window.agAvgFresh(15000, true);
+            if (avgOk && r && !r.coarse && r.lat != null && r.lng != null) {
                 return {
                     lat: r.lat, lng: r.lng,
                     acc: (r.sterr != null && isFinite(r.sterr)) ? r.sterr : null,
@@ -94,7 +112,11 @@
             }
         } catch (e) { swallow(e, 'protvyt:kdeStojim'); }
         try {
-            if (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null) {
+            // Záložní větev bere JEDEN fix — musí být čerstvý a nesmí to být odečet
+            // z mapy (js/poloha-z-mapy.js si přepisuje AGFix.manual).
+            var fx = window.AGFix;
+            var fixOk = !(fx && (fx.manual || (fx.ts != null && (Date.now() - fx.ts) >= 30000)));
+            if (fixOk && typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null) {
                 var a = (typeof currentGpsAccuracy !== 'undefined' && currentGpsAccuracy) ? currentGpsAccuracy : null;
                 return { lat: userLat, lng: userLng, acc: a, n: 1, avg: 0 };
             }
@@ -301,10 +323,20 @@
         });
         try {
             var csv = '﻿' + lines.join('\r\n') + '\r\n';
+            var fname = 'protokol-vytyceni-' + new Date().toISOString().slice(0, 10) + '.csv';
+            // Dřív to šlo přes data:text/csv URL — tu iOS Safari nestáhne ani teoreticky
+            // (odkaz jen otevře text v prohlížeči, nebo neudělá nic). Blob + systémový
+            // list sdílení je jediná cesta, po které protokol z telefonu odejde.
+            var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+            if (typeof window.agShareOrDownload === 'function') {
+                window.agShareOrDownload(blob, fname, 'text/csv')['catch'](function (e2) { swallow(e2, 'protvyt:csv'); });
+                return;
+            }
+            var url = URL.createObjectURL(blob);
             var a = document.createElement('a');
-            a.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv));
-            a.setAttribute('download', 'protokol-vytyceni-' + new Date().toISOString().slice(0, 10) + '.csv');
+            a.href = url; a.download = fname;
             document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e2) { swallow(e2, 'protvyt:csv'); } }, 1500);
         } catch (e) { swallow(e, 'protvyt:csv'); }
     }
 

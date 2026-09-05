@@ -9,7 +9,7 @@
     width: 9px; height: 9px;
     margin-left: 6px;
     border-radius: 50%;
-    background: var(--accent3, #f472b6);
+    background: var(--accent3, #e6bd76);
     box-shadow: 0 0 0 3px rgba(244, 114, 182, 0.22);
     display: inline-block;
     vertical-align: middle;

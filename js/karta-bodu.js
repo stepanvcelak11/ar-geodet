@@ -50,6 +50,13 @@
     function myPos() {
         // PŘESNOST: pro odchylku má smysl jen průměrovaná poloha, ne poslední fix
         var r = g('gpsAvgResult');
+        // ⚠ #22 BRANA CERSTVOSTI. gpsAvgResult drzi posledni vysledek DONEKONECNA —
+        // kdyz GPS prestane dodavat fixy (auto, tunel, iOS suspend), karta bodu by
+        // dal pocitala odchylku proti poloze, kde telefon stal pred dvaceti minutami,
+        // a jeste by u ni napsala „průměr N měření". Bez razitka (starsi data)
+        // se chovame jako driv, at se nic neztrati.
+        var cerstve = (typeof window.agAvgFresh === 'function') ? window.agAvgFresh(15000) : true;
+        if (r && r.ts && !cerstve) r = null;
         if (r && !r.coarse && r.n >= 2 && r.lat != null) return { lat: r.lat, lng: r.lng, alt: r.alt, sterr: r.sterr, n: r.n, avg: true };
         var la = g('userLat'), ln = g('userLng');
         if (la == null || ln == null) return null;

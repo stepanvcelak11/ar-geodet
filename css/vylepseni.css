@@ -31,7 +31,7 @@
     background: var(--glass-bg, rgba(17, 22, 42, 0.96));
     border: 1px solid var(--glass-border-strong, rgba(255, 255, 255, 0.16));
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
-    color: var(--text-color, #fff);
+    color: var(--text-color, #eceef2);
     font-family: var(--font-ui, sans-serif);
     animation: ag-pop 0.16s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -46,7 +46,7 @@
     margin: 0 0 6px;
     font-size: calc(14px * var(--ag-font-scale, 1));
     line-height: 1.5;
-    color: var(--text-muted, #aab2c8);
+    color: var(--text-muted, #9aa1ac);
 }
 .ag-dlg-msg:empty { display: none; }
 .ag-dlg-input {
@@ -55,7 +55,7 @@
     margin-top: 12px;
     padding: 13px 14px;
     font-size: calc(16px * var(--ag-font-scale, 1)); /* 16px = iOS nezoomuje při focusu */
-    color: var(--text-color, #fff);
+    color: var(--text-color, #eceef2);
     background: rgba(0, 0, 0, 0.28);
     border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
     border-radius: 12px;
@@ -82,7 +82,7 @@
     font-weight: 700;
     cursor: pointer;
     background: rgba(255, 255, 255, 0.06);
-    color: var(--text-color, #fff);
+    color: var(--text-color, #eceef2);
 }
 .ag-dlg-btn.ag-ok {
     background: var(--accent,#2f9e74);
@@ -108,7 +108,7 @@
     border-top: 1px dashed var(--glass-border, rgba(255, 255, 255, 0.14));
     font-size: calc(12px * var(--ag-font-scale, 1));
     line-height: 1.5;
-    color: var(--text-muted, #aab2c8);
+    color: var(--text-muted, #9aa1ac);
 }
 #ag-gps-note b { color: var(--warning, #fbbf24); }
 
@@ -128,9 +128,9 @@
     align-items: baseline;
     font-size: calc(12.5px * var(--ag-font-scale, 1));
     font-weight: 600;
-    color: var(--text-muted, #aab2c8);
+    color: var(--text-muted, #9aa1ac);
 }
-.ag-quota-head b { color: var(--text-color, #fff); font-family: var(--font-mono, monospace); }
+.ag-quota-head b { color: var(--text-color, #eceef2); font-family: var(--font-mono, monospace); }
 .ag-quota-bar {
     margin-top: 8px;
     height: 7px;
@@ -147,7 +147,7 @@
 }
 .ag-quota.warn .ag-quota-fill { background: #fbbf24; }
 .ag-quota.crit .ag-quota-fill { background: var(--danger,#fb7185); }
-.ag-quota-note { margin-top: 8px; font-size: calc(10.5px * var(--ag-font-scale, 1)); line-height: 1.45; color: var(--text-muted, #aab2c8); }
+.ag-quota-note { margin-top: 8px; font-size: calc(10.5px * var(--ag-font-scale, 1)); line-height: 1.45; color: var(--text-muted, #9aa1ac); }
 .ag-quota.warn .ag-quota-note, .ag-quota.crit .ag-quota-note { color: #fbbf24; }
 
 /* --------------------------------------------------------------------------------
@@ -210,9 +210,9 @@ body.ag-glove input[type="range"]::-moz-range-thumb { width: 26px; height: 26px;
    -------------------------------------------------------------------------------- */
 
 /* Pružná typografie nadpisů (místo fixních px) */
-#welcome-screen h1 { font-size: clamp(24px, 7vw, 32px) !important; }
-.modal-content h2 { font-size: clamp(18px, 5.2vw, 22px); }
-.ag-dlg-title { font-size: clamp(17px, 5vw, 19px); }
+#welcome-screen h1 { font-size: clamp(calc(24px * var(--ag-font-scale, 1)), 7vw, calc(32px * var(--ag-font-scale, 1))) !important; }
+.modal-content h2 { font-size: clamp(calc(18px * var(--ag-font-scale, 1)), 5.2vw, calc(22px * var(--ag-font-scale, 1))); }
+.ag-dlg-title { font-size: clamp(calc(17px * var(--ag-font-scale, 1)), 5vw, calc(19px * var(--ag-font-scale, 1))); }
 
 /* Malé telefony (≤ 380 px): méně vnitřního odsazení, ať se modály vejdou */
 @media (max-width: 380px) {
@@ -260,29 +260,29 @@ body.ag-glove input[type="range"]::-moz-range-thumb { width: 26px; height: 26px;
     background: var(--glass-bg, rgba(17, 22, 42, 0.94));
     border: 1px solid var(--glass-border-strong, rgba(255, 255, 255, 0.16));
     box-shadow: 0 16px 44px rgba(0, 0, 0, 0.55);
-    color: var(--text-color, #fff);
+    color: var(--text-color, #eceef2);
     font-family: var(--font-ui, sans-serif);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
 }
 #ag-calib.open { display: block; }
 .ag-calib-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.ag-calib-step { font-family: var(--font-mono, monospace); font-size: calc(10px * var(--ag-font-scale, 1)); letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted, #aab2c8); }
+.ag-calib-step { font-family: var(--font-mono, monospace); font-size: calc(10px * var(--ag-font-scale, 1)); letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted, #9aa1ac); }
 /* jednotné zavírací „×" (kruh jako .lvl-x/.prd-x/.zpr-x, jen menší kvůli kompaktnímu panelu) */
-.ag-calib-x { flex: none; width: 34px; height: 34px; border: none; border-radius: 50%; background: rgba(255, 255, 255, 0.08); color: var(--text-color, #fff); font-size: calc(18px * var(--ag-font-scale, 1)); line-height: 1; cursor: pointer; }
+.ag-calib-x { flex: none; width: 34px; height: 34px; border: none; border-radius: 50%; background: rgba(255, 255, 255, 0.08); color: var(--text-color, #eceef2); font-size: calc(18px * var(--ag-font-scale, 1)); line-height: 1; cursor: pointer; }
 .ag-calib-title { margin: 0 0 4px; font-family: var(--font-display, sans-serif); font-size: calc(17px * var(--ag-font-scale, 1)); font-weight: 700; }
-.ag-calib-desc { margin: 0 0 10px; font-size: calc(12.5px * var(--ag-font-scale, 1)); line-height: 1.45; color: var(--text-muted, #aab2c8); }
+.ag-calib-desc { margin: 0 0 10px; font-size: calc(12.5px * var(--ag-font-scale, 1)); line-height: 1.45; color: var(--text-muted, #9aa1ac); }
 .ag-calib-read { display: flex; align-items: baseline; justify-content: center; gap: 8px; margin: 6px 0 10px; }
-.ag-calib-read .lbl { font-size: calc(11px * var(--ag-font-scale, 1)); color: var(--text-muted, #aab2c8); }
+.ag-calib-read .lbl { font-size: calc(11px * var(--ag-font-scale, 1)); color: var(--text-muted, #9aa1ac); }
 .ag-calib-read .val { font-family: var(--font-mono, monospace); font-size: calc(24px * var(--ag-font-scale, 1)); font-weight: 700; color: var(--accent,#2f9e74); }
 .ag-calib-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
 .ag-calib-grid.cols2 { grid-template-columns: 1fr 1fr; }
-.ag-calib-btn { min-height: 46px; padding: 10px 6px; border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12)); border-radius: 11px; background: rgba(255, 255, 255, 0.06); color: var(--text-color, #fff); font-family: var(--font-display, sans-serif); font-weight: 700; font-size: calc(15px * var(--ag-font-scale, 1)); cursor: pointer; }
+.ag-calib-btn { min-height: 46px; padding: 10px 6px; border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12)); border-radius: 11px; background: rgba(255, 255, 255, 0.06); color: var(--text-color, #eceef2); font-family: var(--font-display, sans-serif); font-weight: 700; font-size: calc(15px * var(--ag-font-scale, 1)); cursor: pointer; }
 .ag-calib-btn:active { transform: scale(0.97); }
 .ag-calib-foot { display: flex; gap: 8px; margin-top: 12px; }
 .ag-calib-foot .ag-calib-btn { flex: 1; }
 .ag-calib-foot .prim { background: var(--accent,#2f9e74); border-color: transparent; color: #0b1020; }
-.ag-calib-mini { background: transparent; border: none; color: var(--text-muted, #aab2c8); font-size: calc(12px * var(--ag-font-scale, 1)); text-decoration: underline; cursor: pointer; padding: 4px; }
+.ag-calib-mini { background: transparent; border: none; color: var(--text-muted, #9aa1ac); font-size: calc(12px * var(--ag-font-scale, 1)); text-decoration: underline; cursor: pointer; padding: 4px; }
 body.ag-glove .ag-calib-btn { min-height: 54px; font-size: calc(16px * var(--ag-font-scale, 1)); }
 
 /* --------------------------------------------------------------------------------
@@ -291,7 +291,7 @@ body.ag-glove .ag-calib-btn { min-height: 54px; font-size: calc(16px * var(--ag-
 #ag-stk-photo { margin-top: 12px; }
 .ag-stk-thumb img { display: block; width: 100%; max-height: 220px; object-fit: cover; border-radius: 12px; border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.14)); }
 .ag-stk-del { margin-top: 6px; background: transparent; border: none; color: var(--danger,#fb7185); font-size: calc(12px * var(--ag-font-scale, 1)); text-decoration: underline; cursor: pointer; padding: 4px; }
-.ag-stk-empty { padding: 14px; text-align: center; font-size: calc(12px * var(--ag-font-scale, 1)); color: var(--text-muted, #aab2c8); border: 1px dashed var(--glass-border, rgba(255, 255, 255, 0.18)); border-radius: 12px; }
+.ag-stk-empty { padding: 14px; text-align: center; font-size: calc(12px * var(--ag-font-scale, 1)); color: var(--text-muted, #9aa1ac); border: 1px dashed var(--glass-border, rgba(255, 255, 255, 0.18)); border-radius: 12px; }
 
 /* --------------------------------------------------------------------------------
    10) Venkovní režim — i nové prvky vrstvy musí být v ostrém slunci čitelné
@@ -334,9 +334,16 @@ body.outdoor-mode .ag-dlg-btn, body.outdoor-mode .ag-calib-btn { border-color: r
       PIN se odděluje popiskem „nebo zadej PIN".                                    */
 
 @keyframes agBootPulse { 0%, 100% { opacity: .78; } 50% { opacity: 1; } }
+/* ⚠ MĚŘENO 5. 9. 2026: sweep se dřív dělal animací `background-position` na
+   pseudoprvku přes CELÝ displej. background-position NENÍ kompozitovaná vlastnost,
+   takže si prohlížeč pro každý snímek přepočítal styl i layout celé stránky:
+   1 807 layoutů za 30 s (= 60/s) a ~10 % jádra po celou dobu, co člověk hledá
+   heslo nebo čeká na Face ID. Na mrazu s poloprázdnou baterií to není nic, co by
+   geodet chtěl. Proužek je teď SAMOSTATNÝ malý prvek posouvaný přes transform —
+   to jde na GPU a layout se nepřepočítává vůbec. */
 @keyframes agBootSweep {
-    0%   { background-position: center calc(50% - 44px), left calc(50% - 46px) top calc(50% + 74px); }
-    100% { background-position: center calc(50% - 44px), left calc(50% + 14px) top calc(50% + 74px); }
+    from { transform: translateX(0); }
+    to   { transform: translateX(60px); }
 }
 
 html.ag-prelock body::before {
@@ -361,15 +368,43 @@ html.ag-prelock body::after {
     justify-content: center;
     padding-top: 90px;                     /* text posazený pod znak */
     box-sizing: border-box;
-    font: 800 21px/1.2 var(--font-display, system-ui), sans-serif;
+    font: 800 calc(21px * var(--ag-font-scale, 1)) / 1.2 var(--font-display, system-ui), sans-serif;
     letter-spacing: .02em;
     color: #e8edf2;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cg fill='none' stroke='%234ccd99' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M118 178V140q0-22 22-22h38'/%3E%3Cpath d='M334 118h38q22 0 22 22v38'/%3E%3Cpath d='M394 334v38q0 22-22 22h-38'/%3E%3Cpath d='M178 394h-38q-22 0-22-22v-38'/%3E%3C/g%3E%3Ccircle cx='256' cy='256' r='74' fill='none' stroke='%233eb487' stroke-opacity='.22' stroke-width='6'/%3E%3Ccircle cx='256' cy='256' r='50' fill='none' stroke='%233eb487' stroke-opacity='.45' stroke-width='6'/%3E%3Ccircle cx='256' cy='256' r='22' fill='%233eb487'/%3E%3Ccircle cx='256' cy='256' r='9' fill='%23ffffff'/%3E%3C/svg%3E"),
-        linear-gradient(90deg, rgba(76, 205, 153, 0), #4ccd99, rgba(76, 205, 153, 0));
-    background-repeat: no-repeat, no-repeat;
-    background-position: center calc(50% - 44px), left calc(50% - 46px) top calc(50% + 74px);
-    background-size: 92px 92px, 32px 3px;
-    animation: agBootPulse 2s ease-in-out infinite, agBootSweep 1.3s ease-in-out infinite alternate;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cg fill='none' stroke='%234ccd99' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M118 178V140q0-22 22-22h38'/%3E%3Cpath d='M334 118h38q22 0 22 22v38'/%3E%3Cpath d='M394 334v38q0 22-22 22h-38'/%3E%3Cpath d='M178 394h-38q-22 0-22-22v-38'/%3E%3C/g%3E%3Ccircle cx='256' cy='256' r='74' fill='none' stroke='%233eb487' stroke-opacity='.22' stroke-width='6'/%3E%3Ccircle cx='256' cy='256' r='50' fill='none' stroke='%233eb487' stroke-opacity='.45' stroke-width='6'/%3E%3Ccircle cx='256' cy='256' r='22' fill='%233eb487'/%3E%3Ccircle cx='256' cy='256' r='9' fill='%23ffffff'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center calc(50% - 44px);
+    background-size: 92px 92px;
+    animation: agBootPulse 2s ease-in-out infinite;
+}
+
+/* Ujíždějící proužek pod názvem. Dřív to byla DRUHÁ vrstva pozadí v body::after
+   posouvaná přes background-position (viz komentář u @keyframes agBootSweep) —
+   proto je z něj teď vlastní malý prvek. Pseudoprvky <body> jsou obsazené, takže
+   se bere ::after od <html>; třetí volný pseudoprvek na stránce.
+   Souřadnice odpovídají původnímu pozadí: levý okraj v 50 % šířky − 62 px
+   (= 50 % z (šířka − 32 px) − 46 px) a 74 px pod svislým středem. */
+html.ag-prelock::after {
+    content: "";
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    width: 32px;
+    height: 3px;
+    margin-left: -62px;
+    margin-top: 74px;
+    z-index: 900002;
+    pointer-events: none;
+    background-image: linear-gradient(90deg, rgba(76, 205, 153, 0), #4ccd99, rgba(76, 205, 153, 0));
+    animation: agBootSweep 1.3s ease-in-out infinite alternate;
+    will-change: transform;
+}
+
+/* Kdo si v systému vypnul animace, nemá se na co dívat ani tady — a zároveň to
+   sundá i zbytek zátěže na starším telefonu. (Stejný vzor jako css/power-save.css.) */
+@media (prefers-reduced-motion: reduce) {
+    html.ag-prelock body::after,
+    html.ag-prelock::after { animation: none !important; }
 }
 
 /* --- b) odemknutí telefonem (Face ID / Touch ID / kód) ------------------------- */

@@ -71,26 +71,59 @@
     // localStorage a poslala se transakce do IndexedDB za KAZDY klic - u velke zakazky
     // to znamenalo megabajty zbytecnych zapisu (a na skoro plnem telefonu i riziko, ze
     // nektery z nich narazi na kvotu). Vraceni jednoho bodu ma sahnout na jeden klic.
+    // Vraci slib, ktery dobehne, AZ jsou zapisy do IndexedDB opravdu na disku —
+    // volajici pak muze stav overit proti ulozisti (viz applyRestore).
+    // ⚠ #23 VRACENY BOD JE CERSTVA ZMENA. Firemni cloud (js/cloud-sync.js) resi
+    // konflikty podle casu upravy `mts` a server zapis se starsim casem MLCKY zahodi
+    // (`WHERE excluded.ts>sync_points.ts`). Po smazani uz ma na bod nahrobek s casem
+    // smazani — kdyby se bod vratil s puvodnim `mts`, u kolegu by zustal smazany.
+    // Razitko proto posouvame na TED, ale JEN bodum, ktere se opravdu vraceji do
+    // zivota (v ulozisti ted nejsou). Kdybychom orazitkovali cely snimek, po kazdem
+    // "Vratit zpet" by se do firmy pushla cela zakazka znovu.
+    function orazitkujVracene(ted, snimek) {
+        if (typeof snimek !== 'string' || !snimek) return snimek;
+        try {
+            const zive = {};
+            const cur = JSON.parse(ted || '[]');
+            if (Array.isArray(cur)) cur.forEach(p => { if (p && p.id) zive[p.id] = 1; });
+            const pole = JSON.parse(snimek);
+            if (!Array.isArray(pole)) return snimek;
+            const now = Date.now();
+            let n = 0;
+            pole.forEach(p => { if (p && p.id && !zive[p.id]) { p.mts = now; n++; } });
+            return n ? JSON.stringify(pole) : snimek;
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'undo:orazitkujVracene'); return snimek; }
+    }
+    // Klic s vlastnimi body zakazky (`<zakazka>_arCustomPoints12`) — jen u nej ma
+    // razitkovani smysl, ostatni klice zadne body neobsahuji.
+    function jsouToBody(k) { return typeof k === 'string' && k.indexOf('arCustomPoints12') >= 0; }
+
     function restore(s) {
         const cur = [];
         for (let i = 0; i < localStorage.length; i++) cur.push(localStorage.key(i));
         cur.forEach(k => { if (!(k in s.ls)) localStorage.removeItem(k); });
-        Object.keys(s.ls).forEach(k => { if (localStorage.getItem(k) !== s.ls[k]) localStorage.setItem(k, s.ls[k]); });
+        Object.keys(s.ls).forEach(k => {
+            const v = jsouToBody(k) ? orazitkujVracene(localStorage.getItem(k), s.ls[k]) : s.ls[k];
+            if (localStorage.getItem(k) !== v) localStorage.setItem(k, v);
+        });
         // IndexedDB (velka data: body) — vrat synchronni cache i samotne IDB
+        const zapisy = [];
         if (s.mem && typeof _idbMem !== 'undefined' && _idbMem) {
             try {
-                Object.keys(_idbMem).forEach(k => { if (!(k in s.mem)) { delete _idbMem[k]; if (typeof _idbDel === 'function') _idbDel(k); } });
+                Object.keys(_idbMem).forEach(k => { if (!(k in s.mem)) { delete _idbMem[k]; if (typeof _idbDel === 'function') zapisy.push(_idbDel(k)); } });
                 Object.keys(s.mem).forEach(k => {
-                    if (_idbMem[k] === s.mem[k]) return;          // beze zmeny -> zadny zapis
-                    _idbMem[k] = s.mem[k];
-                    if (typeof _idbSet === 'function') _idbSet(k, s.mem[k]);
+                    const v = jsouToBody(k) ? orazitkujVracene(_idbMem[k], s.mem[k]) : s.mem[k];
+                    if (_idbMem[k] === v) return;                 // beze zmeny -> zadny zapis
+                    _idbMem[k] = v;
+                    if (typeof _idbSet === 'function') zapisy.push(_idbSet(k, v));
                 });
             } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'undo:restore'); }
         }
+        return Promise.all(zapisy).catch(() => null);
     }
     // Obnova bez reloadu: vrati localStorage a necha appku prekreslit se z nej.
     function applyRestore(snapshot) {
-        restore(snapshot);
+        const zapisy = restore(snapshot);
         // resync in-memory stavu, ktery si mazaci funkce drzi mimo localStorage
         try { const pl = localStorage.getItem('arProjectsList'); if (pl && typeof projects !== 'undefined') projects = JSON.parse(pl); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'undo:applyRestore'); }
         try { if (typeof activeProjectId !== 'undefined') activeProjectId = localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'undo:applyRestore'); }
@@ -100,6 +133,20 @@
         try { if (typeof renderManageList === 'function') renderManageList(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'undo:applyRestore'); }
         // Tezke prekresleni nad zivou kamerou ji umi "zamrznout" -> proaktivne ji oziv (jinak by ji uzivatel restartoval rucne).
         try { if (typeof ensureCameraAlive === 'function') setTimeout(() => ensureCameraAlive(true), 250); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'undo:applyRestore'); }
+        // ⚠ #13 OVERENI PROTI DISKU. Vsechno vys se prekreslilo z pameti (_idbMem),
+        // takze obnova vypadala hotova i tehdy, kdyz se zapis do IndexedDB nepovedl —
+        // uzivatel to poznal az rano po restartu, kdy byly body pryc. Az DOPSANE
+        // zapisy proto nacteme zpatky z uloziste a appku prekreslime z toho, co
+        // na disku opravdu je. Poradi je dulezite: kdyby se cetlo pred dopsanim,
+        // hydratace by cerstve vracena data z pameti zase smazala.
+        try {
+            if (ok && typeof hydrateActiveProject === 'function') {
+                Promise.resolve(zapisy)
+                    .then(() => hydrateActiveProject())
+                    .then(() => { try { if (typeof loadProjectSettings === 'function') loadProjectSettings(); if (typeof renderManageList === 'function') renderManageList(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'undo:applyRestore'); } })
+                    .catch(() => { });
+            }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'undo:applyRestore'); }
         if (!ok) location.reload(); // kdyby app funkce nebyly k dispozici
     }
 
@@ -144,6 +191,12 @@
             try { if (changedSince(before)) showUndo(msg, before); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'undo:wrap'); }
             return ret;
         };
+        // ⚠⚠ #27 PRENOS PRIZNAKU OBALENI. deleteCustomPoint obaluji ctyri moduly
+        // (kos -> undo -> kalkulacka -> journal -> logika) a kazdy si dava vlastni
+        // priznak. Kdyz ho novy obal nezdedi, priznaky predchozich ZMIZI — v bezici
+        // appce pak plati jen pojistka toho posledniho v rade a kdokoli dalsi muze
+        // obalit podruhe (dvojity toast „Vratit zpet", dvojity zapis do zurnalu).
+        try { for (const k in orig) { if (/Wrapped$/.test(k)) window[name][k] = orig[k]; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'undo:wrap'); }
         window[name]._undoWrapped = true;
     }
 

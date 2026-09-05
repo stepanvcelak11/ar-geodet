@@ -54,18 +54,28 @@ def extract_proj_def():
 
 # Moduly, ktere maji vlastni toSJTSK delegujici na GeoCore, a tvar, jaky vraci.
 # 'sign' = -1 znamena, ze modul zamerne vraci ZNAMENKOVY (negativni) Krovak do DXF.
+#
+# 'zaloha' = ma modul jeste vlastni proj4 zalohu pro pripad, ze geo-core.js chybi?
+#   True  -> obe cesty musi dat TOTEZ (pujde-li nekdo premapovat klice spatne, rozejdou se).
+#   False -> modul zalohu ZAMERNE nema a bez GeoCore vraci null. Duvod (5. 9. 2026):
+#            zaloha mela poradi os zadratovane natvrdo, a poradi os je prave to jedine,
+#            co GeoCore hlida (_resolveAxis) — pri zmene proj4 by tise prohodila Y a X.
+#            V geodeticke appce je "souradnici neznam" lepsi nez "souradnice vedle".
+#            Test proto u techhle modulu tvrdi OPAK: cesta bez GeoCore MUSI vratit null.
+#   ⚠ Kdo zalohu z modulu odstrani, MUSI tady prehodit True na False — jinak se test
+#     zastavi na tom, ze "jedna z cest vratila null", a nerekne, ze to byl zamer.
 DELEGATING = [
-    ('js/check-distance.js',       'obj', 'Y', 'X',  1),
-    ('js/dmt-volume.js',           'obj', 'Y', 'X',  1),
-    ('js/localization-helmert.js', 'obj', 'Y', 'X',  1),
-    ('js/pdf-protocol.js',         'obj', 'y', 'x',  1),
-    ('js/zavady.js',               'obj', 'y', 'x',  1),
-    ('js/dxf-export.js',           'obj', 'y', 'x', -1),
-    ('js/vylepseni.js',            'arr',   0,   1, -1),
-    ('js/geo-foto.js',             'obj', 'y', 'x',  1),
-    ('js/vysilacka.js',            'obj', 'y', 'x',  1),
-    ('js/indoor.js',               'obj', 'y', 'x',  1),
-    ('js/obchuzka.js',             'obj', 'y', 'x',  1),
+    ('js/check-distance.js',       'obj', 'Y', 'X',  1, False),
+    ('js/dmt-volume.js',           'obj', 'Y', 'X',  1, True),
+    ('js/localization-helmert.js', 'obj', 'Y', 'X',  1, True),
+    ('js/pdf-protocol.js',         'obj', 'y', 'x',  1, True),
+    ('js/zavady.js',               'obj', 'y', 'x',  1, False),
+    ('js/dxf-export.js',           'obj', 'y', 'x', -1, True),
+    ('js/vylepseni.js',            'arr',   0,   1, -1, True),
+    ('js/geo-foto.js',             'obj', 'y', 'x',  1, False),
+    ('js/vysilacka.js',            'obj', 'y', 'x',  1, False),
+    ('js/indoor.js',               'obj', 'y', 'x',  1, False),
+    ('js/obchuzka.js',             'obj', 'y', 'x',  1, False),
 ]
 
 
@@ -89,18 +99,24 @@ def extract_fn(src, name):
 
 
 def suite_delegace(read_fn, proj_def):
-    """Overi, ze v kazdem modulu dava DELEGACE na GeoCore totez jako jeho vlastni fallback.
+    """Overi, ze kazdy modul bere S-JTSK z GeoCore — a ze jeho druha cesta dela, co ma.
 
     Tohle je pojistka na refaktor „jedno geodeticke jadro": kdyz nekdo premapuje klice
     spatne (napr. {Y:s.x}) nebo zapomene znamenko u DXF, cisla se rozejdou a tady to
     spadne. Bez toho by se to poznalo az na vykresu u zakaznika.
+
+    Moduly se ZALOHOU: obe cesty musi dat totez.
+    Moduly BEZ zalohy (viz sloupec 'zaloha' v DELEGATING): cesta bez GeoCore musi
+    vratit null. Kdyby tam nekdo zalohu vratil, vrati misto null cislo — a prave to
+    tenhle test zachyti, protoze zaloha ma poradi os zadratovane a GeoCore ho hlida.
     """
     from py_mini_racer import MiniRacer
     results = []
     PTS = [(50.0875, 14.4213), (49.1951, 16.6068), (48.7589, 16.8820), (50.1109, 8.6821)]
 
-    for rel, kind, ky, kx, sign in DELEGATING:
-        name = 'delegace: %s vraci s GeoCore totez jako bez nej' % rel.replace('js/', '')
+    for rel, kind, ky, kx, sign, zaloha in DELEGATING:
+        name = ('delegace: %s vraci s GeoCore totez jako bez nej' if zaloha
+                else 'delegace: %s pocita jen pres GeoCore, bez nej vraci null') % rel.replace('js/', '')
         try:
             fn = extract_fn(read_fn(rel), 'toSJTSK')
             ctx = MiniRacer()
@@ -116,22 +132,32 @@ def suite_delegace(read_fn, proj_def):
                 without = ctx.eval('JSON.stringify(__mod(%r, %r))' % (lat, lng))
                 ctx.eval('window.GeoCore = __savedCore;')
                 a, b = json.loads(withCore), json.loads(without)
-                if a is None or b is None:
-                    raise RuntimeError('jedna z cest vratila null (lat=%s lng=%s)' % (lat, lng))
-                if kind == 'obj':
-                    pa, pb = (a[ky], a[kx]), (b[ky], b[kx])
-                else:
-                    pa, pb = (a[ky], a[kx]), (b[ky], b[kx])
-                worst = max(worst, abs(pa[0] - pb[0]), abs(pa[1] - pb[1]))
+                if a is None:
+                    raise RuntimeError('delegace na GeoCore vratila null (lat=%s lng=%s)' % (lat, lng))
+                pa = (a[ky], a[kx])
                 # znamenko musi odpovidat deklarovanemu zameru modulu
                 if sign < 0 and pa[0] > 0:
                     raise RuntimeError('ceka se znamenkovy (negativni) Krovak, doslo %+.1f' % pa[0])
                 if sign > 0 and pa[0] < 0:
                     raise RuntimeError('ceka se kladny Krovak, doslo %+.1f' % pa[0])
+                if not zaloha:
+                    # Modul zalohu zamerne nema: bez GeoCore nesmi vzniknout ZADNE cislo.
+                    if b is not None:
+                        raise RuntimeError('bez GeoCore vratil %r misto null — vratila se sem '
+                                           'proj4 zaloha se zadratovanym poradim os? '
+                                           '(lat=%s lng=%s)' % (b, lat, lng))
+                    continue
+                if b is None:
+                    raise RuntimeError('zaloha bez GeoCore vratila null (lat=%s lng=%s) — '
+                                       'kdyz uz byla odstranena, prepis sloupec zaloha v DELEGATING '
+                                       'na False' % (lat, lng))
+                pb = (b[ky], b[kx])
+                worst = max(worst, abs(pa[0] - pb[0]), abs(pa[1] - pb[1]))
             if worst > 1e-6:
                 raise RuntimeError('delegace a fallback se rozchazi o %.6f m' % worst)
             results.append({'name': name, 'ok': True,
-                            'detail': 'obe cesty shodne (max rozdil %.1e m)' % worst})
+                            'detail': ('obe cesty shodne (max rozdil %.1e m)' % worst) if zaloha
+                                      else 'delegace pocita, cesta bez GeoCore vraci null'})
         except Exception as e:
             results.append({'name': name, 'ok': False, 'detail': '%s: %s' % (type(e).__name__, e)})
     return results

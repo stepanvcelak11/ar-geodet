@@ -9,11 +9,21 @@
 
     function _downloadText(filename, mime, text) {
         const blob = new Blob([text], { type: mime + ';charset=utf-8' });
+        // Na iPhonu (PWA z plochy) <a download> často neudělá nic — jediná spolehlivá
+        // cesta ven je systémový list sdílení. Viz js/sdilet-soubor.js; kdyby ten
+        // modul chyběl, zůstane stažení odkazem jako dřív.
+        if (typeof window.agShareOrDownload === 'function') {
+            return window.agShareOrDownload(blob, filename, mime)['catch'](function (e) {
+                window.AG && AG.swallow && AG.swallow(e, 'export:_downloadText');
+                return 'fail';
+            });
+        }
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url; a.download = filename;
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
+        return Promise.resolve('download');
     }
 
     function _xml(s) {

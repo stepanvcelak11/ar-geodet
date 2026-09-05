@@ -28,6 +28,20 @@
 //   • Offline: soubory zůstávají v ASSETS_TO_CACHE (gen_sw_assets.py čte i
 //     data-src), takže je service worker cachuje jako dřív a doložení funguje
 //     bez signálu.
+//   • STYLOPIS NÁSTROJE JEDE S NÍM: `data-css="css/neco.css"` na tomtéž řádku.
+//     Dřív měly odložené nástroje svůj <link rel=stylesheet> nahoře v <head>,
+//     kde je render-blokující — prohlížeč nevykreslí ani pixel, dokud nedorazí
+//     VŠECHNY stylopisy, i těch jedenáct, které patří oknům otevíraným jednou
+//     za měsíc (69 kB, jedenáct okruhů navíc na slabém signálu u silnice).
+//     Link se teď připojí těsně před skriptem, tedy až po prvním obraze.
+//     POZOR: soubor pak MUSÍ být v EXTRA_ASSETS (scripts/gen_sw_assets.py) —
+//     index.html na něj už neodkazuje, takže by se do předcache jinak nedostal
+//     a nástroj by v terénu bez signálu zůstal bez stylu.
+//
+// CO SEM UŽ NEPATŘÍ SHORA (5. 9. 2026): nástroj, který do klepnutí nedělá NIC než
+// že zapíše svou dlaždici, je levnější v MANIFESTu js/lazy-tools.js — ten stáhne
+// soubor teprve na klepnutí, kdežto tahle fronta ho stáhne VŽDY (jen později).
+// Tady zůstávají moduly, které si musí doběhnout samy, i když je nikdo neotevře.
 //
 // CO SEM NEPATŘÍ (a proč): moduly, na které někdo sahá hned při startu nebo
 // v renderovací smyčce (slunce.js kvůli přihlašovací obrazovce, ar-visual-track.js
@@ -59,7 +73,7 @@
         for (var i = 0; i < tags.length; i++) {
             var src = tags[i].getAttribute('data-src');
             if (!src || loaded[src]) continue;
-            queue.push({ src: src, el: tags[i] });
+            queue.push({ src: src, el: tags[i], css: tags[i].getAttribute('data-css') || '' });
         }
     }
 
@@ -80,6 +94,24 @@
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'lazy-load:flags'); }
         loaded[item.src] = true;
         outstanding++;
+        // Stylopis PŘED skriptem: oba se stahují souběžně, ale link jde do fronty
+        // dřív, takže bývá na místě dřív, než modul poprvé něco vykreslí.
+        // AG.cssFile hlídá, aby se nepřipojil dvakrát.
+        if (item.css) {
+            try {
+                var cssId = 'agcss-' + item.css.replace(/[^\w]+/g, '-');
+                if (window.AG && typeof AG.cssFile === 'function') AG.cssFile(cssId, item.css);
+                else if (!document.getElementById(cssId)) {
+                    // NOUZOVKA: bez tohohle by se stylopis TISE nepripojil a nastroj by
+                    // se v terenu otevrel nesestaveny. ag-guard.js sice jede driv (oba
+                    // defer, poradi je dane dokumentem), ale kdyz jeden soubor nedorazi,
+                    // nesmi to shodit vzhled vsech odlozenych nastroju.
+                    var l = document.createElement('link');
+                    l.id = cssId; l.rel = 'stylesheet'; l.href = item.css;
+                    (document.head || document.documentElement).appendChild(l);
+                }
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'lazy-load:css'); }
+        }
         var s = document.createElement('script');
         s.src = item.src;
         // POZOR: u dynamicky vlozeneho skriptu je async ve vychozim stavu true =
@@ -153,10 +185,20 @@
         return false;
     }
 
+    // PROČ SE FRONTA POUŠTÍ BEZPODMÍNEČNĚ (a ne až „na požádání")
+    // Nabízelo se nespouštět ji vůbec a spolehnout se na flush() při prvním doteku
+    // doku / Nástrojů. Jenže tahle fronta UŽ NENÍ seznam oken: nástroje, které do
+    // klepnutí nedělají nic, se od 5. 9. 2026 stěhují do MANIFESTu v js/lazy-tools.js
+    // (ty se opravdu stahují až na klepnutí na dlaždici). Co zbylo tady, si musí
+    // doběhnout samo — obaluje saveCustomPoint, vkládá řádek do Nastavení, hlásí
+    // odznak, obnovuje rozdělanou úlohu do lišty „Pokračovat". Kdyby se to spustilo
+    // až na dotek doku, uživatel, který po startu jen změří bod, by o to tiše přišel.
+    // Proto se fronta pouští dál — ale až v NEČINNOSTI po `load`, ne uprostřed
+    // dokreslování mapy: 700 ms je odklad, idle() je povolení.
     function start() {
         if (started) return;
         started = true;
-        step();
+        idle(step);
     }
 
     function init() {

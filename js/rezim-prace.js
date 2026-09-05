@@ -79,18 +79,23 @@
         {
             id: 'pokladka', ic: 'layers', t: 'Pokládka za finišerem',
             s: 'Výška a sklon vrstvy roverem',
-            d: 'Kontrola vrstvy za finišerem: skladba a odsazení „do tabletu“, přesná výška roverem, '
-                + 'kontrolní míry proti projektu a závada zapsaná rovnou k bodu.',
-            tools: ['vrstvy', 'brutal-gps', 'gps-semafor', 'openCheckDist', 'track-log', 'zavady',
-                'epochy', 'openMeasureModal', 'ref-calibration', 'korekce']
+            d: 'Celý řetěz za finišerem: vytyč, změř hotovou vrstvu, porovnej s projektem a odevzdej '
+                + 'protokol. Skladba a odsazení „do tabletu“, přesná výška roverem, závada rovnou k bodu.',
+            // ⚠⚠ SHODNÝ SEZNAM MUSÍ BÝT I v js/tools-registry.js (PROFILES, id 'pokladka').
+            // mergeProfiles() níž u vestavěných profilů jen PŘIDÁVÁ — co se vyškrtne jen
+            // tady, registr vrátí zpátky. Do 5. 9. 2026 tu nebyl ANI JEDEN vytyčovací
+            // nástroj, ani „Kontrola vrstvy“, kterou má profil ve vlastním popisu.
+            tools: ['openStakeoutModal', 'stakeout-line', 'kontrola-vrstvy', 'vrstvy', 'brutal-gps',
+                'protokol-vytyceni', 'zavady', 'openMeasureModal', 'ref-calibration', 'korekce',
+                'project-import']
         },
         {
             id: 'vytycovani', ic: 'target', t: 'Vytyčování',
             s: 'Body, přímky, offsety, AR',
             d: 'Body podle seznamu s odškrtáváním, přímka se staničením a kolmým odstupem, offsety '
                 + 'a usazení AR, aby značky seděly na realitu.',
-            tools: ['openStakeoutModal', 'stakeout-line', 'offset-point', 'usadit-ar', 'agOpenCalibrate',
-                'rajon', 'project-import', 'openMeasureModal']
+            tools: ['openStakeoutModal', 'stakeout-line', 'protokol-vytyceni', 'offset-point',
+                'usadit-ar', 'agOpenCalibrate', 'rajon', 'project-import', 'openMeasureModal']
         },
         {
             id: 'podrobne', ic: 'sketch', t: 'Podrobné měření',
@@ -144,7 +149,8 @@
             s: 'Závady, deník, papíry',
             d: 'Papíry z terénu: závada s fotkou vázaná na konkrétní bod, hlasová poznámka '
                 + 's georazítkem, deník dne pro kancelář a docházka party.',
-            tools: ['zavady', 'denik-dne', 'hlasovky', 'openCheckDist', 'epochy', 'dochazka', 'zapisnik']
+            tools: ['zavady', 'protokol-vytyceni', 'denik-dne', 'hlasovky', 'openCheckDist', 'epochy',
+                'dochazka', 'zapisnik']
         },
         {
             id: 'priprava', ic: 'folder', t: 'Příprava a kancelář',
@@ -172,6 +178,7 @@
         'ref-calibration': 'Posun GPS na známý bod', 'korekce': 'Korekce měření',
         'zavady': 'Závady / hlášení', 'track-log': 'Stopa trasy', 'epochy': 'Epochy / monitoring',
         'zapisnik': 'Zápisníky', 'stakeout-line': 'Vytyčení přímky', 'offset-point': 'Offset bod',
+        'kontrola-vrstvy': 'Kontrola vrstvy', 'protokol-vytyceni': 'Protokol vytyčení',
         'usadit-ar': 'Usadit AR (průvodce)', 'rajon': 'Rajón', 'project-import': 'Import projektu (DXF)',
         'ar-intersection': 'Protínání vpřed', 'free-station': 'Volné stanovisko',
         'orient-point': 'Srovnat sever podle bodu', 'vyska-objektu': 'Výška objektu',

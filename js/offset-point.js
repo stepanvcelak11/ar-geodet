@@ -46,7 +46,10 @@
         }
         // GPS: preferuj zprůměrovanou polohu (přesnější)
         try {
-            if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.n >= 2) {
+            // ⚠ #22: zmrzly prumer (GPS prestala dodavat fixy) by tu tise nabidl polohu
+            // z jine hodiny jako zaklad offsetu; brana ho pusti, jen kdyz je cerstvy.
+            if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.n >= 2
+                && ((typeof window.agAvgFresh !== 'function') || window.agAvgFresh(15000))) {
                 return { lat: gpsAvgResult.lat, lng: gpsAvgResult.lng, label: 'GPS (⌀ ' + gpsAvgResult.n + ' měření)', acc: gpsAvgResult.sterr };
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'offset-point:getBase'); }

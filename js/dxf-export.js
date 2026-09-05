@@ -31,11 +31,20 @@
 
     function _downloadText(filename, mime, text) {
         var blob = new Blob([text], { type: mime + ';charset=utf-8' });
+        // DXF do CADu je typický „pošli to do kanceláře" soubor — na iPhonu ho ven
+        // dostane jen list sdílení (js/sdilet-soubor.js), ne <a download>.
+        if (typeof window.agShareOrDownload === 'function') {
+            return window.agShareOrDownload(blob, filename, mime)['catch'](function (e) {
+                window.AG && AG.swallow && AG.swallow(e, 'dxf-export:_downloadText');
+                return 'fail';
+            });
+        }
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
         a.href = url; a.download = filename;
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+        return Promise.resolve('download');
     }
 
     // POZN.: za běhu appky přebíjí window.exportPointsDXF verze z vylepseni.js (načítá se
@@ -128,13 +137,19 @@
 
             var dxf = o.join('\r\n') + '\r\n';
             var proj = (typeof activeProjectId !== 'undefined') ? activeProjectId : 'body';
-            _downloadText('body_' + proj + '.dxf', 'application/dxf', dxf);
+            // ⚠ Hlásit se smí AŽ PODLE VÝSLEDKU. Když člověk v systémovém listu sdílení
+            // klepne na „Zrušit“, NIC se neuložilo — a appka mu přesto psala „DXF vytvořeno“.
+            // Prázdné ruce a hláška o úspěchu jsou horší než žádná hláška.
+            var _ven = _downloadText('body_' + proj + '.dxf', 'application/dxf', dxf);
 
             var msg = 'Exportováno: ' + np + ' bodů' + (nl ? ', ' + nl + ' spojnic' : '') + '.'
                 + (skipped ? '\n(' + skipped + ' přeskočeno — chybné souřadnice.)' : '')
                 + '\n\nSouřadnice S-JTSK (sever nahoru), výška v ose Z. Text v UTF-8.';
-            try { if (typeof window.quickToast === 'function') window.quickToast('DXF vytvořeno (' + np + ' bodů)'); else alertFail('DXF vytvořeno', msg); }
-            catch (e) { alertFail('DXF vytvořeno', msg); }
+            _ven.then(function (jak) {
+                if (jak === 'abort' || jak === 'fail') return;
+                try { if (typeof window.quickToast === 'function') window.quickToast('DXF vytvořeno (' + np + ' bodů)'); else alertFail('DXF vytvořeno', msg); }
+                catch (e) { alertFail('DXF vytvořeno', msg); }
+            });
         } catch (e) {
             console.warn('[dxf-export] generate', e);
             alertFail('Export selhal', 'Při tvorbě DXF došlo k chybě.');

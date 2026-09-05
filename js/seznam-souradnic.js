@@ -224,6 +224,15 @@
         var blob = (bytesOrText instanceof Uint8Array)
             ? new Blob([bytesOrText], { type: mime })
             : new Blob([bytesOrText], { type: mime + ';charset=utf-8' });
+        // Seznam souřadnic je konec denní smyčky — musí se dostat do kanceláře. Na
+        // iPhonu to umí jen systémový list sdílení (js/sdilet-soubor.js); atribut
+        // download tam u blob: URL nespolehlivě mlčí.
+        if (typeof window.agShareOrDownload === 'function') {
+            return window.agShareOrDownload(blob, name, mime)['catch'](function (e) {
+                window.AG && AG.swallow && AG.swallow(e, 'seznam-souradnic:ven');
+                return 'fail';
+            });
+        }
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
         a.href = url; a.download = name;

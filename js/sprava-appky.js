@@ -109,8 +109,12 @@
     // společná hláška pro odmítnutou konzoli (ať se nepíše u každé akce znovu)
     function sayFail(r, kde) {
         if (r.status === 0) return agAlert('Bez signálu', 'Server neodpověděl. Zkus to, až bude síť.');
+        // 503 = OWNER_KEY chybí, NEBO je kratší než 24 znaků (cloud/worker.js:263 ho pak
+        // bere, jako by tam nebyl). Bez té druhé věty by ten, kdo má krátký klíč uložený,
+        // marně přepisoval hodnotu, která podle Cloudflare „nastavená je".
         if (r.status === 503) return agAlert('Konzole není nastavená',
-            'Na serveru chybí tajemství <b>OWNER_KEY</b>. Nastavíš ho příkazem:<br><br>' +
+            'Na serveru chybí použitelné tajemství <b>OWNER_KEY</b> — buď není nastavené vůbec, ' +
+            'nebo je <b>kratší než 24 znaků</b> a server ho odmítá. Nastavíš ho příkazem:<br><br>' +
             '<code>wrangler secret put OWNER_KEY --name ar-geodet-api</code>');
         if (r.status === 403) return agAlert('Špatný klíč', 'Klíč konzole nesedí. Zadej ho znovu tlačítkem <b>Změnit klíč</b>.');
         agAlert('Nepovedlo se', esc((r.data && r.data.error) || ('Chyba ' + r.status + ' — ' + kde)));

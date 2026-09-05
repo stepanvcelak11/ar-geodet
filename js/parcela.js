@@ -88,14 +88,18 @@
     // =====================================================================
     //  Převody souřadnic  (lat/lng  <->  S-JTSK Y,X kladné)
     // =====================================================================
+    // Převod dělá VÝHRADNĚ GeoCore (js/geo-core.js) — jediné místo, které si ověří
+    // pořadí os Křováku. Tady bývalo vlastní proj4 s heuristikou min/max („v ČR je
+    // Y < X"): uvnitř ČR sedí, ale u importované zahraniční zakázky (|Y| > |X|, třeba
+    // Frankfurt) osy TIŠE PROHODILA a parcela vyšla o stovky kilometrů jinde.
+    // GeoCore se načítá eager (index.html), takže je při otevření parcely vždy po ruce.
     function llToYX(lat, lng) {
-        var r = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]);
-        var a = Math.abs(r[0]), b = Math.abs(r[1]);
-        return { Y: Math.min(a, b), X: Math.max(a, b) };   // v ČR Y < X
+        var s = GeoCore.toSJTSK(lat, lng);
+        return { Y: s.y, X: s.x };
     }
     function yxToLL(Y, X) {
-        var w = proj4('EPSG:5514', 'EPSG:4326', [-Math.abs(Y), -Math.abs(X)]);
-        return { lat: w[1], lng: w[0] };
+        var w = GeoCore.fromSJTSK(Y, X);
+        return { lat: w.lat, lng: w.lng };
     }
 
     // =====================================================================

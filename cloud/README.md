@@ -75,8 +75,11 @@ Alternativně jde `worker.js` vložit přes webový editor v dashboardu
 - `GET /stats` (admin) — vytížení: denní počty požadavků (celé API, posledních
   14 dní, tabulka `stats`) + počty záznamů firmy; klient z toho kreslí ukazatel
   proti limitu free plánu
-- `GET /backup` (admin) — kompletní záloha firmy (účty s otisky hesel,
-  oprávnění, užívání max 20 000 záznamů, chat) jako JSON
+- `GET /backup` (admin) — kompletní záloha firmy (účty **bez hesel**,
+  oprávnění, užívání max 20 000 záznamů, chat) jako JSON.
+  ⚠ 5. 9. 2026: otisky hesel v záloze **nejsou vůbec** — dřív si je admin stáhl
+  jako obyčejný soubor a mohl je hádat mimo server, kde na něj žádná brzda
+  nedosáhne. Po obnově ze zálohy si tedy lidé nastaví heslo znovu.
 - `POST /sync/points` · `GET /sync/points?job=...&since=...` — živá
   synchronizace vlastních bodů zakázky mezi zařízeními firmy (klient
   js/cloud-sync.js; tabulku `sync_points` si worker založí sám) —

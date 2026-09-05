@@ -37,6 +37,7 @@
     var _selKnownId = null; // právě vybraný známý bod pro nový pár
     var _model = null;      // spočítaná transformace (viz buildModel)
     var _capTimer = null, _capSamples = [], _capAltSamples = [], _capT0 = 0, _capDur = 8000;
+    var _capLastFix = null, _capFixTracked = false;   // ⚠ #22: pocitame ROZDILNE fixy, ne tiky timeru
 
     // ---- pomocné (defenzivně, jako okolní moduly) -----------------------------
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:agAlert'); } try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'localization-helmert:agAlert'); } }
@@ -85,6 +86,10 @@
     // ---- robustní GPS průměr --------------------------------------------------
     // Preferuj appkou průměrovaný gpsAvgResult; jinak posbírej vzorky z userLat/Lng.
     function currentAvg() {
+        // ⚠ #22: Helmertem se pak srovnavaji VSECHNY nove merene body zakazky, takze
+        // par "znamy bod <-> poloha" se nesmi opirat o zmrzly prumer (GPS bez fixu)
+        // ani o polohu odectenou z ortofota — proto jenMereni = true.
+        try { if (typeof window.agAvgFresh === 'function' && !window.agAvgFresh(15000, true)) return null; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:currentAvg'); }
         try { if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && !gpsAvgResult.coarse && isFinite(gpsAvgResult.lat) && isFinite(gpsAvgResult.lng)) return { lat: gpsAvgResult.lat, lng: gpsAvgResult.lng, alt: (isFinite(gpsAvgResult.alt) ? gpsAvgResult.alt : curAlt()), sig: (isFinite(gpsAvgResult.sterr) ? gpsAvgResult.sterr : (isFinite(gpsAvgResult.sigma) ? gpsAvgResult.sigma : null)), n: gpsAvgResult.n, from: 'avg' }; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:currentAvg'); }
         return null;
     }
@@ -197,7 +202,13 @@
         }
         // střední chyba na bod: SSR / (2n - 4) stupňů volnosti (4 parametry)
         var dof = 2 * nP - 4;
-        var sigma0 = dof > 0 ? Math.sqrt(sumsq / dof) : null;   // ~ střední polohová chyba (m)
+        // ⚠ #41: sumsq scita 2n reziduálních SLOŽEK (rE, rN) a dof = 2n-4, takže tohle
+        // je střední chyba na JEDNU SOUŘADNICI (mxy), ne polohová chyba bodu. Polohová je
+        // o √2 větší (mp = mxy·√2) — ukládáme obě, ať si každý bere, co potřebuje,
+        // a nemíchá to. Prahy barev v renderResult zůstávají na sigma0: jsou kalibrované
+        // na střední souřadnicovou chybu (katastrální kód 3 = mxy 0,14 m).
+        var sigma0 = dof > 0 ? Math.sqrt(sumsq / dof) : null;   // mxy: střední chyba na souřadnici (m)
+        var sigmaPos = (sigma0 != null) ? sigma0 * Math.SQRT2 : null;   // mp: polohová chyba bodu (m)
 
         // podmíněnost / kolinearita: geometrie referenčních bodů. Když leží skoro
         // na přímce nebo jsou namačkané, transformace (hlavně rotace/měřítko) je
@@ -228,7 +239,7 @@
         return {
             a: a, b: b, tx: tx, ty: ty, scale: scale, rot: rot,
             latC: latC, lngC: lngC, mLat: m.lat, mLng: m.lng, kE0: kE0, kN0: kN0,
-            n: nP, residuals: residuals, sigma0: sigma0, maxRes: maxRes, maxName: maxName,
+            n: nP, residuals: residuals, sigma0: sigma0, sigmaPos: sigmaPos, maxRes: maxRes, maxName: maxName,
             geom: geom, hull: hull, heightPlane: heightPlane, ts: Date.now()
         };
     }
@@ -315,7 +326,8 @@
         applyZ: _applyZ,
         _lastExtrapolated: false,
         get active() { return !!_activeModel(); },
-        get params() { var m = _activeModel(); return m ? { tx: m.tx, ty: m.ty, scale: m.scale, rot: m.rot, sigma0: m.sigma0, n: m.n, heightTrend: !!m.heightPlane } : null; },
+        // sigma0 = stř. chyba na souřadnici (mxy), sigmaPos = polohová (mp = mxy·√2) — viz #41
+        get params() { var m = _activeModel(); return m ? { tx: m.tx, ty: m.ty, scale: m.scale, rot: m.rot, sigma0: m.sigma0, sigmaPos: (m.sigmaPos != null ? m.sigmaPos : (m.sigma0 != null ? m.sigma0 * Math.SQRT2 : null)), n: m.n, heightTrend: !!m.heightPlane } : null; },
         get residuals() { var m = _activeModel(); return m ? m.residuals : null; },
         // ruční přepnutí aktivní/neaktivní (nechává model uložený)
         setActive: function (on) { if (_model) { _model._on = !!on; saveModel(_model); renderState(); } },
@@ -391,12 +403,24 @@
     function startCapture() {
         if (!_selKnownId) { agAlert('Vyber bod', 'Nejdřív vyber známý bod, na kterém stojíš.'); return; }
         if (!haveUser()) { agAlert('Není GPS', 'Počkej na zaměření GPS polohy.'); return; }
+        // ⚠ #2: pri rucni poloze je userLat/userLng odecet prstem z ortofota, ne mereni.
+        // Postavit na nem lokalizaci znamena posunout tim VSECHNY nove body zakazky.
+        if ((window.AGManualPos && window.AGManualPos.active) || (window.AGFix && window.AGFix.manual)) {
+            agAlert('Ruční poloha z mapy', 'Právě máš polohu odečtenou z mapy. Lokalizace se musí opírat o měření GPS — vypni ruční polohu a změř se na místě pod volným nebem.');
+            return;
+        }
         if (_capTimer) return;
-        _capSamples = []; _capAltSamples = []; _capT0 = 0;
+        _capSamples = []; _capAltSamples = []; _capT0 = 0; _capLastFix = null; _capFixTracked = false;
         var bar = document.getElementById('aghl-capbar'); if (bar) bar.style.display = 'block';
         var btn = document.getElementById('aghl-measure'); if (btn) btn.disabled = true;
         _capTimer = setInterval(function () {
-            if (haveUser()) { _capSamples.push({ lat: userLat, lng: userLng }); var al = curAlt(); if (al != null) _capAltSamples.push(al); }
+            // ⚠ #22: timer tika po 400 ms, ale GPS umi zmrznout (tunel, auto, iOS uspi
+            // kartu). Driv se sem 20x zapsala TATAZ souradnice, robustMean vratil sig = 0
+            // a dvojice se ulozila jako dokonale zamerena. AGFix.ts se meni s KAZDYM novym
+            // fixem — bereme vzorek jen tehdy, kdyz opravdu prisel novy.
+            var _ft = (window.AGFix && window.AGFix.ts) ? window.AGFix.ts : null;
+            if (_ft != null) _capFixTracked = true;
+            if (haveUser() && (_ft == null || _ft !== _capLastFix)) { _capLastFix = _ft; _capSamples.push({ lat: userLat, lng: userLng }); var al = curAlt(); if (al != null) _capAltSamples.push(al); }
             _capT0 += 400;
             var fill = document.getElementById('aghl-capfill'), txt = document.getElementById('aghl-captxt');
             if (fill) fill.style.width = Math.min(100, (_capT0 / _capDur) * 100) + '%';
@@ -408,6 +432,12 @@
         if (_capTimer) { clearInterval(_capTimer); _capTimer = null; }
         var bar = document.getElementById('aghl-capbar'); if (bar) bar.style.display = 'none';
         var btn = document.getElementById('aghl-measure'); if (btn) btn.disabled = false;
+        // ⚠ #22: pod peti ruznymi fixy to neni mereni, ale par kopii teze souradnice —
+        // a takovy par by v Helmertovi vysel s nulovym rozptylem, tedy zdanlive dokonaly.
+        if (_capFixTracked && _capSamples.length < 5) {
+            agAlert('GPS nedodává čerstvé fixy', 'Za ' + Math.round(_capDur / 1000) + ' s dorazil jen tento počet různých fixů: <b>' + _capSamples.length + '</b>. Telefon nejspíš nemá výhled na oblohu (nebo appka běžela na pozadí). Zkus to znovu pod volným nebem.');
+            return;
+        }
         var avg = robustMean(_capSamples, _capAltSamples);
         if (!avg) { toast('Nezachyceno — zkus znovu.'); return; }
         addPair(avg);
@@ -453,7 +483,7 @@
         if (m) {
             st.className = 'aghl-state on';
             st.innerHTML = '<b>Lokalizace aktivní</b> · ' + m.n + ' bodů · posun/měřítko/rotace nastaveny'
-                + (m.sigma0 != null ? ' · ±' + (m.sigma0 * 100).toFixed(0) + ' cm/bod' : '');
+                + (m.sigma0 != null ? ' · mxy ±' + (m.sigma0 * 100).toFixed(0) + ' cm/bod' : '');
         } else if (_model) {
             st.className = 'aghl-state off';
             st.innerHTML = 'Lokalizace <b>vypnutá</b> (model uložen). Zapni tlačítkem níže nebo přidej bod.';
@@ -504,8 +534,13 @@
             + 'rotace: <b>' + m.rot.toFixed(4) + '°</b> · měřítko: <b>' + m.scale.toFixed(6) + '</b> (' + (scalePpm >= 0 ? '+' : '') + scalePpm.toFixed(0) + ' ppm)</div>';
         if (m.sigma0 != null) {
             var col = m.sigma0 > 0.5 ? '#f87171' : (m.sigma0 > 0.15 ? '#fbbf24' : '#34d399');
-            html += '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));">Polohová přesnost: <b style="color:' + col + '">±' + (m.sigma0 * 100).toFixed(0) + ' cm</b> na bod'
-                + (m.maxName ? ' · největší oprava <b>#' + escapeHtml(m.maxName) + '</b> (' + (m.maxRes * 100).toFixed(0) + ' cm)' : '') + '</div>';
+            // #41: dřív tu stálo „Polohová přesnost ±X cm na bod", ale X je střední chyba
+            // na SOUŘADNICI — polohově je bod o √2 horší. Číslo se nemění (prahy barev výš
+            // jsou na mxy kalibrované), jen se jmenuje pravdivě a polohová se dopíše vedle.
+            var _mp = (m.sigmaPos != null) ? m.sigmaPos : (m.sigma0 * Math.SQRT2);
+            html += '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));">Střední souřadnicová chyba mxy: <b style="color:' + col + '">±' + (m.sigma0 * 100).toFixed(0) + ' cm</b> na bod'
+                + (m.maxName ? ' · největší oprava <b>#' + escapeHtml(m.maxName) + '</b> (' + (m.maxRes * 100).toFixed(0) + ' cm)' : '') + '</div>'
+                + '<div style="font-size:calc(11px * var(--ag-font-scale, 1));opacity:.8;">polohově mp ±' + (_mp * 100).toFixed(0) + ' cm <span class="aghl-dim">(mxy·√2 — tolik je bod vedle ve skutečnosti)</span></div>';
         } else {
             html += '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.85;">2 body — bez kontroly přesnosti (nulová nadbytečnost).</div>';
         }

@@ -295,12 +295,14 @@
         var lat = _startPt.lat + _dN / m.lat;
         var lng = _startPt.lng + _dE / m.lng;
         var u = uncertainty(Math.hypot(_dE, _dN));
+        // Převod přes GeoCore — jediné místo, které si ověří pořadí os Křováku
+        // (přímé proj4 tu mělo pořadí zadrátované a při jeho změně by Y a X prohodilo).
         var sj = null;
-        try { if (typeof proj4 === 'function') sj = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdr-offset:finishWalk'); }
+        try { if (window.GeoCore && GeoCore.toSJTSK) sj = GeoCore.toSJTSK(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdr-offset:finishWalk'); }
         body.innerHTML =
             '<p style="font-size:calc(13px * var(--ag-font-scale, 1));"><b>Došel jsi:</b> ' + _steps + ' kroků, ' + _dist.toFixed(1) + ' m<br>'
             + 'vektor ' + _dE.toFixed(2) + ' m V / ' + _dN.toFixed(2) + ' m S od bodu ' + esc(_startPt.name) + '<br>'
-            + (sj ? 'Y ' + Math.abs(sj[0]).toFixed(2) + '  X ' + Math.abs(sj[1]).toFixed(2) + '<br>' : '')
+            + (sj ? 'Y ' + sj.y.toFixed(2) + '  X ' + sj.x.toFixed(2) + '<br>' : '')
             + 'odhad nejistoty <b>±' + u.toFixed(2) + ' m</b></p>'
             + '<input class="bgps-name" id="ag-pdr-name" type="text" placeholder="Název nového bodu (např. ROH1)" style="width:100%; margin:6px 0;">'
             + '<button class="btn" id="ag-pdr-save">✓ Uložit bod B</button>'

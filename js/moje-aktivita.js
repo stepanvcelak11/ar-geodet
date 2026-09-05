@@ -343,7 +343,7 @@
     // takže je hledání v Nástrojích dál najde a v „Moje aktivita → Skryté nástroje"
     // se jedním ťuknutím vrátí. Proto tu není mazání, ale seed skrytého seznamu.
     //   openCheckDist   Oměrné — na GPS v mobilu není dost přesné (ani mezi dvěma body)
-    //   kontrola-vrstvy Sedí hotová vrstva na projekt — nepoužívá, netýká se jeho práce
+    //   kontrola-vrstvy Sedí hotová vrstva na projekt — VRÁCENO 5. 9. 2026, viz vlna v4
     //   track-log       Stopa trasy — překrývá se s Krokovým offsetem
     //   brifink         Dnešek v terénu — souhrn na ráno, nepoužívá
     //   bezpecnost      Bezpečnost a rizika — nepoužívá
@@ -355,21 +355,41 @@
     // schoval. A proto se nová položka přidává jako DALŠÍ VLNA, ne do té staré:
     // rozšířit v1 by u toho, komu už proběhla, znovu schovalo i nástroje, které si
     // mezitím ručně vrátil.
+    //
+    // ⚠⚠ VLNA UMÍ I OPAK: `vrat` místo `keys` znamená „tenhle klíč ze skrytých ODEBER".
+    // Bez toho by se omyl v seedu nedal opravit: vyhodit klíč ze starší vlny pomůže
+    // jen novým instalacím, kdežto komu už ta vlna proběhla, drží nástroj skrytý dál
+    // (klíč mu leží v agAktHidden_v1) a musel by si ho ručně vrátit v „Skryté nástroje".
+    // Vrácení je jednorázové stejně jako skrytí — kdo si nástroj po vlně schová znovu,
+    // schovaný mu zůstane.
     var SEED_WAVES = [
         { id: 'agAktHiddenSeed_v1', keys: ['openCheckDist', 'kontrola-vrstvy', 'track-log', 'brifink', 'bezpecnost', 'kniha-jizd'] },
         { id: 'agAktHiddenSeed_v2', keys: ['ar-visual-track'] },
         // Sjednocené dvojice: v seznamu úkonů zůstává jeden vstup a druhá cesta je
         // odkazem uvnitř okna (js/nastroje-parky.js). Dlaždice se proto schová —
         // nemaže se, hledání ji najde dál a v „Skryté nástroje" se vrátí.
-        { id: 'agAktHiddenSeed_v3', keys: ['obchuzka', 'ar-resection'] }
+        { id: 'agAktHiddenSeed_v3', keys: ['obchuzka', 'ar-resection'] },
+        // OPRAVA OMYLU: 'kontrola-vrstvy' se do v1 dostala den po svém vzniku jako
+        // „netýká se jeho práce", jenže je to přesně ta práce — hlavička toho modulu
+        // zní „jdu za finišerem, změřím výšku hotové vrstvy a chci HNED vědět, jestli
+        // sedí na projekt". Schovaná dlaždice navíc vypadne i ze sekce „Pro tuto práci",
+        // kam ji od 5. 9. 2026 dává profil Pokládka (js/rezim-prace.js) — profil by pak
+        // ukazoval na prázdno.
+        { id: 'agAktHiddenSeed_v4', vrat: ['kontrola-vrstvy'] }
     ];
     function seedHidden() {
         var a = hidden(), changed = false, w, i, done;
         for (w = 0; w < SEED_WAVES.length; w++) {
             try { done = !!localStorage.getItem(SEED_WAVES[w].id); } catch (e) { return; }
             if (done) continue;
-            for (i = 0; i < SEED_WAVES[w].keys.length; i++) {
-                if (a.indexOf(SEED_WAVES[w].keys[i]) === -1) { a.push(SEED_WAVES[w].keys[i]); changed = true; }
+            var pryc = SEED_WAVES[w].keys || [];
+            for (i = 0; i < pryc.length; i++) {
+                if (a.indexOf(pryc[i]) === -1) { a.push(pryc[i]); changed = true; }
+            }
+            var zpet = SEED_WAVES[w].vrat || [];
+            for (i = 0; i < zpet.length; i++) {
+                var ix = a.indexOf(zpet[i]);
+                if (ix !== -1) { a.splice(ix, 1); changed = true; }
             }
             try { localStorage.setItem(SEED_WAVES[w].id, '1'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'moje-aktivita:seedHidden'); }
         }

@@ -172,6 +172,11 @@
             } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'journal:deleteCustomPoint'); }
             return ret;
         };
+        // ⚠⚠ #27 PRENOS PRIZNAKU OBALENI. deleteCustomPoint obaluji ctyri moduly
+        // (kos -> undo -> kalkulacka -> journal -> logika) a kazdy si dava vlastni
+        // priznak. Kdyz ho novy obal nezdedi, priznaky predchozich ZMIZI — plati pak
+        // jen pojistka posledniho v rade a bod se do zurnalu / kose muze zapsat dvakrat.
+        try { for (var k in orig) { if (/Wrapped$/.test(k)) window.deleteCustomPoint[k] = orig[k]; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'journal:wrapDelete'); }
         window.deleteCustomPoint._journalWrapped = true;
     }
     // deleteCustomPoint definují jiné moduly (kalkulacka/kos) po startu -> zkusíme opakovaně

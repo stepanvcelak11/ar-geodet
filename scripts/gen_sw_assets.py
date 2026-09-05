@@ -34,6 +34,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SW_PATH = ROOT / 'sw.js'
 INDEX_PATH = ROOT / 'index.html'
 MANIFEST_PATH = ROOT / 'manifest.json'
+LAZY_TOOLS_PATH = ROOT / 'js' / 'lazy-tools.js'   # MANIFEST nastroju na klepnuti
 
 MARKER_BEGIN = '// >>> GENEROVANO scripts/gen_sw_assets.py — needitovat rucne'
 MARKER_END = '// <<< KONEC GENEROVANEHO SEZNAMU'
@@ -73,19 +74,11 @@ EXTRA_ASSETS = [
     './js/lib/images/layers.png',
     './js/lib/images/layers-2x.png',
     './js/lib/images/marker-icon.png',
-    # NASTROJE S DELENYM NACITANIM (js/lazy-tools.js) — uz nejsou v index.html,
-    # ale MUSI zustat v predcache, jinak je v terenu bez signalu nejde otevrit.
-    './js/pocasi.js',
-    './js/zapisnik.js',
-    './js/dgps.js',
-    './js/vrstvy.js',
-    './js/kontrola-vrstvy.js',
-    './js/denik-dne.js',
-    './js/kniha-jizd.js',
-    './js/postupy.js',
-    './js/gnss-forecast.js',
-    './js/korekce.js',
-    './js/checklist.js',
+    # NASTROJE S DELENYM NACITANIM (js/lazy-tools.js) sem NEPISEME RUCNE — cte se
+    # primo jeho MANIFEST, viz collect_lazy_tools_assets() niz. Rucni seznam se uz
+    # jednou rozesel: 2. davka (5.9.2026) pridala do MANIFESTu 18 nastroju, tady
+    # zustalo 11 — a protoze generator sw.js PREPISUJE, priste by tech 18 souboru
+    # z predcache vypadlo a v terenu bez signalu by dlazdice nesla otevrit.
 ]
 
 # VLASTNI PISMA (bod 8): nahradila render-blokujici <link> na fonts.googleapis.com.
@@ -154,6 +147,13 @@ class IndexParser(HTMLParser):
         # jako driv - bez nich by appka offline prisla o nastroje.
         elif tag == 'script' and a.get('data-src'):
             self.scripts.append(a['data-src'])
+        # STYLOPIS ODLOZENEHO NASTROJE jede az s nim: data-css="css/neco.css" na
+        # tomtez radku (pripojuje ho js/lazy-load.js tesne pred skriptem, aby
+        # neblokoval prvni vykresleni). Do predcache MUSI, jinak se nastroj
+        # v terenu bez signalu otevre nesestaveny — a na tenhle atribut uz nikde
+        # jinde v index.html odkaz neni.
+        if tag == 'script' and a.get('data-css'):
+            self.stylesheets.append(a['data-css'])
         elif tag == 'link':
             rel = (a.get('rel') or '').lower()
             href = a.get('href')
@@ -179,6 +179,34 @@ def normalize(url):
     return './' + url
 
 
+def collect_lazy_tools_assets():
+    """Soubory z MANIFESTu js/lazy-tools.js (src + css) jako './...' polozky.
+
+    PROC SE CTOU ZE SOUBORU a nejsou vypsane rucne v EXTRA_ASSETS: nastroje
+    s delenym nacitanim v index.html VUBEC NEJSOU (stahuji se az na klepnuti na
+    dlazdici), takze generator o nich jinak nevi — a co v ASSETS_TO_CACHE neni,
+    to v terenu bez signalu nejde otevrit. Rucni kopie seznamu se uz jednou
+    rozesla (11 zapsanych proti 29 v MANIFESTu), tak at je zdroj pravdy jeden.
+
+    Cte se radkove a komentare se preskakuji: hlavicka lazy-tools.js ukazuje
+    vzor `css: 'css/neco.css'`, ktery by jinak skoncil v predcache jako
+    neexistujici soubor a shodil cache.addAll() CELY.
+    """
+    try:
+        text, _ = read_text(LAZY_TOOLS_PATH)
+    except OSError:
+        return []
+    out = []
+    for line in text.split('\n'):
+        if line.lstrip().startswith('//'):
+            continue
+        for m in re.finditer(r"\b(?:src|css)\s*:\s*'((?:\./)?(?:js|css)/[^']+)'", line):
+            a = normalize(m.group(1))
+            if a not in out:
+                out.append(a)
+    return out
+
+
 def collect_assets(version):
     """Sestavi kompletni seznam ASSETS_TO_CACHE pro danou verzi NNN."""
     html_text, _ = read_text(INDEX_PATH)
@@ -198,6 +226,7 @@ def collect_assets(version):
             if is_external(url):
                 continue  # externi drzime rucne v EXTRA_ASSETS
             assets.append(normalize(url))
+    assets.extend(collect_lazy_tools_assets())
     assets.extend(EXTRA_ASSETS)
 
     # dedup pri zachovani poradi + verzovani korenovych CSS

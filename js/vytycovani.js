@@ -18,9 +18,18 @@ function toggleStaked(pt) {
     if (stakeoutData[pt.id]) { delete stakeoutData[pt.id]; }
     else {
         // pri odkliknuti ulozime i dosazenou presnost (mini-protokol o vytyceni)
+        // ⚠ #22 CERSTVOST: tohle cislo odchazi do CSV protokolu na stavbu. gpsAvgResult
+        // ale drzi posledni vysledek donekonecna — kdyz GPS prestane dodavat fixy (tunel,
+        // auto, iOS uspi kartu), zapsala by se sem presnost z jine hodiny a jineho mista.
+        // agAvgFresh(.., true) pusti jen cerstvy PRUMER a odmitne i polohu odectenou z mapy:
+        // vytyceni se dokladuje merenim, ne klepnutim do ortofota. Bez brany radeji nic —
+        // prazdna kolonka "nezaznamenana" je poctivejsi nez cizi cislo.
         let acc = null;
-        if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.n >= 3) acc = Math.round(gpsAvgResult.sterr * 100) / 100;
-        else if (typeof currentGpsAccuracy !== 'undefined' && currentGpsAccuracy) acc = Math.round(currentGpsAccuracy * 10) / 10;
+        const _avgOk = (typeof window.agAvgFresh !== 'function') || window.agAvgFresh(15000, true);
+        const _fixTs = (window.AGFix && window.AGFix.ts) ? window.AGFix.ts : null;
+        const _fixOk = (_fixTs == null) || ((Date.now() - _fixTs) < 30000);
+        if (_avgOk && typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.n >= 3) acc = Math.round(gpsAvgResult.sterr * 100) / 100;
+        else if (_fixOk && typeof currentGpsAccuracy !== 'undefined' && currentGpsAccuracy) acc = Math.round(currentGpsAccuracy * 10) / 10;
         stakeoutData[pt.id] = { t: Date.now(), acc: acc };
     }
     saveStakeout();

@@ -20,7 +20,7 @@
     backdrop-filter: blur(14px) saturate(140%);
     -webkit-backdrop-filter: blur(14px) saturate(140%);
     color: var(--text-color, #eceef2);
-    font: 600 11px/1 var(--font-ui, sans-serif);
+    font: 600 calc(11px * var(--ag-font-scale, 1)) / 1 var(--font-ui, sans-serif);
     letter-spacing: 0.2px;
     white-space: nowrap;
     opacity: var(--panel-opacity, 0.85);

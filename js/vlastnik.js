@@ -125,8 +125,16 @@
     function proc(r) {
         if (r.ok) return '';
         if (r.status === 0) return 'Server neodpověděl. Zkontroluj připojení a zkus to znovu.';
-        if (r.status === 503) return 'Na serveru zatím žádný klíč nastavený není. Nastav ho na dash.cloudflare.com → Workers &amp; Pages → <b>ar-geodet-api</b> → Settings → Variables and Secrets → přidej secret <b>OWNER_KEY</b>. Pak sem napiš tutéž hodnotu.';
+        // ⚠ 503 znamená DVĚ věci, ne jednu: buď na serveru OWNER_KEY vůbec není, NEBO je
+        // kratší než 24 znaků — pak ho cloud/worker.js:263 (ownerOk) bere, jako by tam
+        // nebyl. Kdo měl dosud klíč kratší, dostane po nasazení tuhle hlášku a bez té
+        // druhé věty by marně přepisoval hodnotu, která „přece je nastavená".
+        if (r.status === 503) return 'Na serveru žádný použitelný klíč není. Buď <b>OWNER_KEY</b> nastavený vůbec není, nebo je <b>kratší než 24 znaků</b> — takový server odmítá, protože se dá vystřílet. Nastav ho na dash.cloudflare.com → Workers &amp; Pages → <b>ar-geodet-api</b> → Settings → Variables and Secrets → secret <b>OWNER_KEY</b> (aspoň 24 znaků). Pak sem napiš tutéž hodnotu.';
         if (r.status === 403) return 'Tenhle klíč serveru nesedí. Musí to být PŘESNĚ hodnota, která je na Cloudflare uložená jako secret <b>OWNER_KEY</b> — rozlišuje velká a malá písmena a vadí i mezera na konci.';
+        // 429 = brzda proti hádání klíče v cloud/worker.js (ownerGate: deset pokusů
+        // z adresy za hodinu). Bez téhle větve by se to schovalo pod obecné „Server
+        // odpověděl chybou 429" a vypadalo by to jako výpadek — přitom stačí počkat.
+        if (r.status === 429) return 'Moc pokusů o klíč, zkus to za hodinu. Server po deseti chybných klíčích z jedné adresy na hodinu zavře — ne kvůli tobě, ale kvůli hádání zvenčí.';
         if (r.status === 404) return 'Server tuhle funkci nezná — běží na něm starší verze. Nasaď aktuální cloud/worker.js (wrangler deploy).';
         return 'Server odpověděl chybou ' + r.status + '.';
     }

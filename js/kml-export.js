@@ -31,13 +31,24 @@
     function downloadText(filename, mime, text) {
         try {
             const blob = new Blob([text], { type: mime + ';charset=utf-8' });
+            // iOS Safari atribut download u blob: URL ignoruje — na telefonu musí ven
+            // přes systémový list sdílení (js/sdilet-soubor.js). Bez toho modulu se
+            // chová jako dřív.
+            if (typeof window.agShareOrDownload === 'function') {
+                return window.agShareOrDownload(blob, filename, mime)['catch'](function (e) {
+                    alertFail('Export selhal', 'Nepodařilo se soubor poslat ven.');
+                    return 'fail';
+                });
+            }
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url; a.download = filename;
             document.body.appendChild(a); a.click(); a.remove();
             setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+            return Promise.resolve('download');
         } catch (e) {
             alertFail('Export selhal', 'Nepodařilo se stáhnout soubor.');
+            return Promise.resolve('fail');
         }
     }
 

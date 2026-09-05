@@ -260,20 +260,47 @@
         // BATERIE: přišla použitelná ABSOLUTNÍ událost kompasu? Nastavuje handleOrientation.
         // Nezávisle na GPS fixu (renderAR se bez fixu vrací dřív, než by se to dalo poznat).
         let _absSeen = false;
+        // iOS: když uživatel u pohybu a orientace klepne na „Nepovolit", promise se SPLNÍ
+        // hodnotou 'denied' — NESPADNE. Bez téhle větve zůstal compassStarted = true, žádný
+        // posluchač se nenavěsil a AR němě zhaslo (renderAR se vrací už na rawCompass === null),
+        // zatímco stavová bublina dál smířlivě hlásila „sever jede z kompasu telefonu".
+        // Hlášku ukazujeme jednou za spuštění — startCompass() běží při každém přepnutí zobrazení.
+        let _compassDeniedShown = false;
+        function compassPermissionDenied() {
+            compassStarted = false;            // jinak by další startCompass() hned vypadl na stráži nahoře
+            window.AGCompassDenied = true;     // čte stavový pruh (arState) -> červený stav „Kompas nepovolen"
+            if (_compassDeniedShown) return;
+            _compassDeniedShown = true;
+            const msg = 'Telefon nepustil aplikaci k <b>pohybu a orientaci</b>, takže kompas mlčí a AR nemá podle čeho otáčet obraz — značky ani šipka se neukážou.<br><br><b>Jak to vrátit:</b><br>• <b>Safari:</b> Nastavení → Safari → <b>Pohyb a orientace</b> zapnout a stránku načíst znovu.<br>• <b>Ikona na ploše (PWA):</b> iOS se už sám znovu nezeptá — ikonu smaž a přidej aplikaci na plochu znovu (uložená data zůstanou).<br><br>Bez kompasu funguje vše ostatní: mapa, měření i ukládání bodů.';
+            // „Zkusit znovu" musí projít AŽ po compassStarted = false, jinak neudělá nic. Klik na
+            // tlačítko je skutečné gesto uživatele, takže requestPermission() smí ven; kdyby iOS
+            // aktivaci přesto neuznal, promise spadne a chytí ji .catch() níž (pokus na další ťuknutí).
+            const zkusitZnovu = () => { compassStarted = false; _compassDeniedShown = false; startCompass(); };
+            if (window.agConfirm) window.agConfirm({ title: 'Kompas nemá povolení', message: msg, okText: 'Zkusit znovu', cancelText: 'Zavřít' }).then(yes => { if (yes) zkusitZnovu(); });
+            else if (window.agAlert) window.agAlert({ title: 'Kompas nemá povolení', message: msg });
+            else agInfo(msg.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ''));
+        }
         // iOS dovolí requestPermission() jen uvnitř gesta uživatele. Mimo gesto (auto-start
         // přes „Pokračovat", obnova kamery po návratu) promise spadne — pak počkáme na
         // příští ťuknutí kamkoliv a zkusíme to znovu, ať kompas nezůstane mrtvý.
         function startCompass() {
-            if (compassStarted) return; compassStarted = true; showCompassCalibHint();
+            if (compassStarted) return; compassStarted = true;
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                 DeviceOrientationEvent.requestPermission().then(permission => {
-                    if (permission === 'granted') window.addEventListener('deviceorientation', handleOrientation);
+                    if (permission !== 'granted') { compassPermissionDenied(); return; }
+                    window.AGCompassDenied = false;
+                    window.addEventListener('deviceorientation', handleOrientation);
+                    // Kalibrační okno až TEĎ: dřív se otevíralo ještě před odpovědí na oprávnění,
+                    // takže na odmítnutém iPhonu viselo „Zkalibrujte kompas" s ukazatelem navždy
+                    // na 0 % — jeho postup krmí až události kompasu, které nikdy nepřijdou.
+                    showCompassCalibHint();
                 }).catch(() => {
                     compassStarted = false;
                     const retry = () => { document.removeEventListener('click', retry, true); startCompass(); };
                     document.addEventListener('click', retry, true);
                 });
             } else {
+                showCompassCalibHint();
                 // BATERIE: Chrome na Androidu doručuje 'deviceorientationabsolute' I
                 // 'deviceorientation', obě ~60x/s — se stejným handlerem tedy handleOrientation
                 // běžel 2x na snímek (renderAR sice druhý zahodí přes _orientPending, ale
@@ -1513,6 +1540,16 @@
                 setTxt('ga-n', '0'); setTxt('ga-pos', '\u2026'); setTxt('ga-se', '\u2026');
                 return;
             }
+            // ⚠ #2 RUCNI POLOHA (js/poloha-z-mapy.js): vzorky se zamerne nesbiraji, takze n
+            // zustane 0 a bez teto vetve by panel navzdy hlasil "prumeruji...". Rikame rovnou,
+            // odkud poloha je - a ze to neni mereni, aby si to nikdo nepletl s presnou GPS.
+            if (r && r.manual) {
+                const _accMap = (Math.round((r.acc || 0) * 10) / 10).toFixed(1).replace('.', ',');
+                if (line) line.innerText = 'z mapy ±' + _accMap + ' m';
+                if (warn) { warn.style.display = 'block'; warn.innerText = 'Poloha odečtená z mapy (±' + _accMap + ' m) — není to měření, přesnost vychází z měřítka mapy při klepnutí.'; }
+                setTxt('ga-n', '0'); setTxt('ga-pos', '±' + _accMap + ' m'); setTxt('ga-se', '—');
+                return;
+            }
             if (warn) warn.style.display = 'none';
             // znacka \u2300 = stredni chyba PRUMERU (ne okamzita presnost fixu); stejne se to
             // pise v bubline i v radku \u201eStr. chyba \u2300" niz, at je to jedna vec
@@ -1723,7 +1760,7 @@
             let el = document.getElementById('offline-progress');
             if (!el) {
                 el = document.createElement('div'); el.id = 'offline-progress';
-                el.style.cssText = 'position:fixed; top:0; right:0; bottom:0; left:0; z-index:999999; display:none; align-items:center; justify-content:center; background:rgba(4,8,12,0.55); backdrop-filter:blur(2px);';
+                el.style.cssText = 'position:fixed; top:0; right:0; bottom:0; left:0; z-index:999999; display:none; align-items:center; justify-content:center; background:rgba(4,8,12,0.55); -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px);';
                 el.innerHTML = '<div style="width:min(82vw,320px); padding:22px; border-radius:18px; background:rgba(14,18,24,0.96); border:1px solid rgba(255,255,255,0.12); box-shadow:0 20px 50px rgba(0,0,0,0.5); text-align:center; color:#fff;"><div id="offline-progress-title" style="font-size:calc(14.5px * var(--ag-font-scale, 1)); font-weight:700; margin-bottom:14px;">Stahuji\u2026</div><div style="width:100%; height:10px; background:rgba(255,255,255,0.12); border-radius:99px; overflow:hidden;"><div id="offline-progress-bar" style="height:100%; width:0%; background:var(--accent-grad,#34d399); border-radius:99px; transition:width 0.15s linear;"></div></div><div id="offline-progress-txt" style="margin-top:10px; font-size:calc(12px * var(--ag-font-scale, 1)); color:var(--accent-bright,#3eb487); font-family:var(--font-mono,monospace);">0 %</div></div>';
                 document.body.appendChild(el);
             }
@@ -2104,14 +2141,38 @@
         // STABILITA: watchdog AR render smycky. Jediny "motor" AR jsou udalosti kompasu; kdyz prestanou
         // chodit (navrat z pozadi, uspani senzoru, iOS), AR by zamrzlo / "zmizely body". Kdyz se >0.4 s nic
         // nevykreslilo, prekreslime z posledni platne udalosti (drzi posledni znamy smer, AR zustane naziva).
+        // Watchdog dřív začínal podmínkou na _lastGoodEvent — jenže když se posluchač kompasu
+        // vůbec nenavěsí (odmítnuté oprávnění, telefon bez magnetometru), žádná událost NIKDY
+        // nepřijde, watchdog se nezapne a AR jen mlčí. Proto se teď hlídá i tenhle stav.
+        let _compassSilentFrom = 0, _compassSilentShown = false;
+        function compassSilentHint() {
+            if (_compassSilentShown || window.AGCompassDenied) return;   // odmítnuté oprávnění má vlastní, přesnější hlášku
+            _compassSilentShown = true;
+            const msg = 'Z kompasu telefonu nepřišel ani jeden údaj o směru, takže AR neví, kam míříš — značky se v obraze neobjeví.<br><br>• Na iPhonu bývá důvodem vypnutý přístup k <b>pohybu a orientaci</b> (Nastavení → Safari → Pohyb a orientace).<br>• Některé tablety a starší telefony magnetometr nemají vůbec.<br><br>Mapa, měření i ukládání bodů fungují dál.';
+            const zkusitZnovu = () => { compassStarted = false; _compassSilentShown = false; _compassSilentFrom = 0; startCompass(); };
+            if (window.agConfirm) window.agConfirm({ title: 'Kompas mlčí', message: msg, okText: 'Zkusit znovu', cancelText: 'Zavřít' }).then(yes => { if (yes) zkusitZnovu(); });
+            else if (window.agAlert) window.agAlert({ title: 'Kompas mlčí', message: msg });
+            else agInfo(msg.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ''));
+        }
         setInterval(function () {
-            if (!appStarted || !_lastGoodEvent) return;
+            if (!appStarted) return;
             // BATERIE: watchdog je pojistka proti ZAMRZLEMU AR, takze ma smysl jen kdyz je
             // AR opravdu videt. Driv tikal i na pozadi, v rezimu Mapa a pod celoobrazovkovym
             // panelem, kde 4x/s vynucoval plne prekresleni scény — a tim maril uspani kompasu.
-            if (document.visibilityState !== 'visible') return;
-            if (viewMode === 'map') return;
+            if (document.visibilityState !== 'visible') { _compassSilentFrom = 0; return; }
+            if (viewMode === 'map') { _compassSilentFrom = 0; return; }
             if (anyOverlayOpen()) return;
+            // „Kompas mlčí" = buď nepřišla ani jediná událost orientace (posluchač se vůbec
+            // nenavěsil), nebo události chodí, ale žádná nenese směr — a to POUZE když už je
+            // GPS fix: renderAR se bez polohy vrací hned na začátku, takže bez téhle podmínky
+            // by se čekání na GPS tvářilo jako mrtvý kompas. 8 s je s rezervou nad rozběhem senzoru.
+            const _compassMute = !_lastOrientEvent || (!_lastGoodEvent && userLat && userLng);
+            if (_compassMute) {
+                const _t = performance.now();
+                if (!_compassSilentFrom) _compassSilentFrom = _t;
+                else if (_t - _compassSilentFrom > 8000) compassSilentHint();
+            } else { _compassSilentFrom = 0; }
+            if (!_lastGoodEvent) return;
             if (performance.now() - _lastRenderTs < 400) return;   // udalosti chodi, watchdog netreba
             if (_orientPending) return;
             _orientPending = true;
@@ -2255,7 +2316,9 @@
             _areaToastTimer = setTimeout(hideAreaUndoToast, 8000);
         }
         function areaAddGps() {
-            if (gpsAvgResult && gpsAvgResult.n >= 2) areaVertices.push({ lat: gpsAvgResult.lat, lng: gpsAvgResult.lng });
+            // ⚠ #22: zmrzly prumer by do obchazene plochy vlozil vrchol z jineho mista;
+            // kdyz neni cerstvy, radeji vezmeme posledni fix (nize) — ten aspon zije.
+            if (gpsAvgResult && gpsAvgResult.n >= 2 && ((typeof window.agAvgFresh !== 'function') || window.agAvgFresh(15000))) areaVertices.push({ lat: gpsAvgResult.lat, lng: gpsAvgResult.lng });
             else if (userLat != null) areaVertices.push({ lat: userLat, lng: userLng });
             else { agInfo('Čekám na GPS pozici...'); return; }
             afterAreaChange();
@@ -2502,12 +2565,89 @@
             }
         }
 
+        // VENKOVNI REZIM V MAPE: jas se meri z obrazu kamery, jenze v zobrazeni „Mapa" kamera
+        // vubec nebezi — a Mapa je VYCHOZI zobrazeni a zaroven to, do ktereho appka sama radi
+        // prejit, kdyz dochazi baterie. Automatika tam tedy nikdy nenaskocila, prave v situaci,
+        // kdy geodet stoji na slunci u silnice. Nahradni znak: vyska Slunce nad obzorem A ZAROVEN
+        // jasno podle naposledy stazenych dat pocasi. Samotna vyska Slunce nerika nic o tom,
+        // jestli telefon zrovna neni ve stinu, takze se venkovni rezim NEZAPINA sam — jen se
+        // nabidne, a nejvys jednou za spusteni, at to v lese neotravuje.
+        const _SUN_EL_MIN = 25;                 // stupnu nad obzorem
+        const _SUN_WX_MAX_AGE = 3 * 3600e3;     // starsi pocasi uz o dnesni obloze nic nerika
+        const _SUN_WX_MAX_DIST = 50000;         // data jsou pro misto, kde uzivatel byl; po prejezdu neplati
+        let _sunHintShown = false;
+        // Jasno = oblacnost do 40 %, a kdyz chybi, WMO kod 0/1 (jasno / skoro jasno).
+        // Cte se hotova cache modulu pocasi (js/pocasi.js), aby se kvuli tomuhle nic nestahovalo.
+        function _wxJasno() {
+            try {
+                const o = JSON.parse(localStorage.getItem('agWeatherCache_v1'));
+                if (!o || !o.data || !o.data.current || !o.t) return false;
+                if (Date.now() - o.t > _SUN_WX_MAX_AGE) return false;
+                if (userLat != null && typeof getDistance === 'function' && o.lat != null && o.lon != null) {
+                    if (getDistance(userLat, userLng, o.lat, o.lon) > _SUN_WX_MAX_DIST) return false;
+                }
+                const c = o.data.current;
+                if (typeof c.cloud === 'number') return c.cloud <= 40;
+                return c.code === 0 || c.code === 1;
+            } catch (e) { return false; }
+        }
+        function _sunOutdoorOffer() {
+            if (_sunHintShown) return;
+            if (visSettings.autoOutdoor === false || visSettings.outdoorMode) return;
+            if (userLat == null || userLng == null) return;
+            const S = window.AGSun;
+            if (!S || typeof S.pos !== 'function') return;     // js/slunce.js jeste nenactena
+            let elev;
+            try { elev = S.pos(new Date(), userLat, userLng).el; } catch (e) { return; }
+            if (!(elev > _SUN_EL_MIN) || !_wxJasno()) return;
+            _sunHintShown = true;
+            showOutdoorOfferToast();
+        }
+        // Toast s tlacitkem (quickToast ma pointer-events:none, takze se do nej klikat neda);
+        // vzhled je schvalne stejny jako u toastu „Vratit zpet" niz, at je to jeden jazyk.
+        let _sunToast = null, _sunToastTimer = null;
+        function hideOutdoorOfferToast() { if (_sunToastTimer) { clearTimeout(_sunToastTimer); _sunToastTimer = null; } if (_sunToast) _sunToast.style.display = 'none'; }
+        function showOutdoorOfferToast() {
+            if (!_sunToast) {
+                _sunToast = document.createElement('div');
+                _sunToast.id = 'ag-sun-toast';
+                _sunToast.style.cssText = 'position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom, 0px) + 88px); transform:translateX(-50%); z-index:var(--z-dialog,2000000); '
+                    + 'display:flex; align-items:center; gap:10px; max-width:90%; padding:8px 8px 8px 16px; '
+                    + 'border-radius:12px; background:rgba(17,22,33,0.96); color:#fff; font-family:var(--font-display,sans-serif); '
+                    + 'box-shadow:0 8px 26px rgba(0,0,0,0.55); border:1px solid var(--glass-border,rgba(255,255,255,0.12));';
+                const label = document.createElement('span');
+                label.style.cssText = 'font-size:calc(14px * var(--ag-font-scale, 1)); line-height:1.25;';
+                label.textContent = 'Slunce vysoko a jasno — zapnout vysoký kontrast?';
+                const btn = document.createElement('button'); btn.id = 'ag-sun-toast-btn';
+                btn.textContent = 'Zapnout';
+                btn.style.cssText = 'flex:none; padding:8px 16px; border:none; border-radius:9px; cursor:pointer; '
+                    + 'background:var(--accent,#2f9e74); color:#0b1020; font-weight:700; font-size:calc(13px * var(--ag-font-scale, 1)); line-height:1; white-space:nowrap;';
+                _sunToast.appendChild(label); _sunToast.appendChild(btn);
+                document.body.appendChild(_sunToast);
+            }
+            document.getElementById('ag-sun-toast-btn').onclick = function () {
+                hideOutdoorOfferToast();
+                visSettings.outdoorMode = true;
+                setStoredData('arVisSettings12', JSON.stringify(visSettings));
+                applyVisualSettings();
+                quickToast('Venkovní režim zapnut. Vypnout: Nastavení → Displej a čitelnost.');
+            };
+            _sunToast.style.display = 'flex';
+            if (_sunToastTimer) clearTimeout(_sunToastTimer);
+            _sunToastTimer = setTimeout(hideOutdoorOfferToast, 12000);
+        }
+
         (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(() => {
             // Kdyz venkovni rezim zapnula automatika, vzorkujeme DAL — jinak by se
             // uz nedalo poznat, ze slunce zaslo, a rezim by zustal viset do rana.
             // Rucne zapnuty venkovni rezim vzorkovani preskakuje jako driv (baterie).
             const _keepSampling = visSettings.outdoorMode && _aoAuto && visSettings.autoOutdoor !== false;
-            if (visSettings.adaptiveGlass === false || (visSettings.outdoorMode && !_keepSampling) || !appStarted || viewMode === 'map' || document.visibilityState !== 'visible') { document.body.classList.remove('cam-light'); return; }
+            if (visSettings.adaptiveGlass === false || (visSettings.outdoorMode && !_keepSampling) || !appStarted || viewMode === 'map' || document.visibilityState !== 'visible') {
+                document.body.classList.remove('cam-light');
+                // v Mape se jas nema odkud zmerit — viz _sunOutdoorOffer() vyse
+                if (appStarted && viewMode === 'map' && document.visibilityState === 'visible') _sunOutdoorOffer();
+                return;
+            }
             // BATERIE: getImageData je synchronni readback GPU -> CPU, ktery stopne pipeline.
             // Pod otevrenym panelem nikdo AR stitky nevidi, takze jas obrazu nema co ovlivnit
             // (a `cam-light` zustane na posledni znane hodnote — po zavreni panelu se dorovna

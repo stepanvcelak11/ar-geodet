@@ -12,8 +12,9 @@
 //   Platné body se NEMĚNÍ a projdou beze změny. Na konci ohlásí počet přeskočených.
 //
 // Pozn.: addImportedPoints dostává body už převedené do WGS84 (lat/lng). Rozsah Křováku
-//   ověříme zpětným převodem proj4 EPSG:4326 -> EPSG:5514 (stejná transformace, jakou
-//   používá sjtskToLatLng v logika.js) — kontroluje se tedy přesně S-JTSK rozsah.
+//   ověříme zpětným převodem přes GeoCore.toSJTSK (js/geo-core.js) — jediný autoritativní
+//   převod v appce, který si navíc ověří pořadí os. Vlastní volání proj4 tu bylo dřív,
+//   ale s heuristikou min/max, která u souřadnic mimo ČR osy tiše prohazovala.
 //
 // Odstranění vrstvy: smaž js/csv-validate.js a její řádek v index.html (+ záznam v sw.js).
 // Aplikace pak importuje přesně jako předtím (bez kontroly rozsahu).
@@ -27,19 +28,19 @@
     const X_MIN = 900000, X_MAX = 1300000;    // "větší" souřadnice
 
     // Vrátí true, pokud bod (WGS84 lat/lng) po převodu do S-JTSK leží v rozsahu Křováku.
-    // Fail-open: když převod nelze provést (chybí proj4 / nesmyslné vstupy), bod NEZAHAZUJEME
-    //   — kontrolu rozsahu prostě nepřidáváme a chování zůstane jako bez této vrstvy.
+    // Fail-open: když převod nelze provést (chybí GeoCore / nesmyslné vstupy), bod
+    //   NEZAHAZUJEME — kontrolu rozsahu prostě nepřidáváme a chování zůstane jako bez
+    //   této vrstvy. Import je vstupní brána dat: nic se tu nesmí ztratit jen proto, že
+    //   se nepodařilo spočítat kontrolu.
     function inSjtskRange(lat, lng) {
         try {
-            if (typeof proj4 !== 'function') return true;
+            if (!window.GeoCore || typeof GeoCore.toSJTSK !== 'function') return true;
             if (typeof lat !== 'number' || typeof lng !== 'number' || !isFinite(lat) || !isFinite(lng)) return true;
-            const sj = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]);
-            if (!sj || !isFinite(sj[0]) || !isFinite(sj[1])) return true;
-            // V Křováku jsou obě souřadnice záporné; bereme absolutní hodnoty.
-            // sjtskToLatLng() bere menší = Y, větší = X — stejné pořadí dodržíme i tady.
-            const a = Math.abs(sj[0]), b = Math.abs(sj[1]);
-            const Y = Math.min(a, b), X = Math.max(a, b);
-            return (Y >= Y_MIN && Y <= Y_MAX && X >= X_MIN && X <= X_MAX);
+            // GeoCore vrací {y, x} kladné a v ověřeném pořadí os — proto tu už není
+            // heuristika „menší = Y, větší = X", která u zahraničních souřadnic selhávala.
+            const sj = GeoCore.toSJTSK(lat, lng);
+            if (!sj || !isFinite(sj.y) || !isFinite(sj.x)) return true;
+            return (sj.y >= Y_MIN && sj.y <= Y_MAX && sj.x >= X_MIN && sj.x <= X_MAX);
         } catch (e) { return true; }
     }
 

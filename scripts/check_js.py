@@ -22,11 +22,19 @@ Co skript kontroluje (vse bez zavislosti mimo stdlib, jako gen_sw_assets.py):
      Tohle je nejzradnejsi: cache.addAll() u chybejiciho souboru SELZE CELY,
      service worker se nenainstaluje a uzivateli se prestane aktualizovat
      CELA appka - bez jedine chybove hlasky.
-  5) ZBYTKY PO MERGI ('<<<<<<<' / '>>>>>>>' na zacatku radku) v js/*.js.
+  5) ZBYTKY PO MERGI ('<<<<<<<' / '>>>>>>>' na zacatku radku) v js/*.js a sw.js.
      Nezacommitovany konflikt je syntakticka chyba, ktera cely soubor odrovna;
      tohle ji chyti i tam, kde neni Node a kontrola syntaxe se preskoci.
   6) Volitelne SYNTAXE pres `node --check`, kdyz je Node k dispozici
-     (na vyvojarskem stroji neni, na GitHub Actions ano).
+     (na vyvojarskem stroji neni, na GitHub Actions ano). Krome js/*.js se
+     kontroluje i sw.js (lezi v korenu, takze dlouho stal mimo) a INLINE
+     <script> bloky z index.html (~22 kB, mimo jine firemni zamek). Preklep
+     v sw.js je pritom nejtissi chyba, jakou repo umi: novy service worker se
+     nenainstaluje, telefon zustane napořád na stare verzi a nic to neohlasi.
+  8) OSIRELY MODUL: js/*.js, ktery neni zminen ani v index.html (src/data-src),
+     ani v MANIFESTu js/lazy-tools.js, ani v ASSETS_TO_CACHE v sw.js. Takovy
+     soubor se v prohlizeci nikdy nespusti, ale v repu vypada hotovy — presne
+     tak zustal js/cuzk-geodata.js mesice nezapojeny.
   7) SYNTAXE ES MODULU v tests/*.mjs a *.mjs v korenu (Playwright testy a jeho
      konfigurace). Kontroluji se zvlast, protoze v modulu je uz `import` na
      prvnim radku pro skriptovy rezim chyba - viz check_syntax_modules niz.
@@ -44,6 +52,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -323,11 +332,19 @@ def add_key(frame, key, path, src, pos):
 # 2) + 3) index.html: duplicitni id, neexistujici soubory
 # ---------------------------------------------------------------------------
 
+# Typy <script>, ktere prohlizec spousti jako klasicky skript. Cokoli jineho
+# (ag/lazy, application/ld+json, sablony) je pro nas jen text.
+INLINE_TYPES = {'', 'text/javascript', 'application/javascript', 'javascript'}
+
+
 class IndexCheck(HTMLParser):
     def __init__(self):
         super().__init__()
         self.ids = {}
         self.files = []      # (atribut, url)
+        self.inline = []     # (radek v index.html, zdrojak) - bezsrcove <script>
+        self._buf = None     # sbirame obsah prave otevreneho inline skriptu
+        self._buf_line = 0
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
@@ -344,8 +361,23 @@ class IndexCheck(HTMLParser):
         elif tag == 'script' and a.get('data-src'):
             # odlozene moduly (type="ag/lazy") - existovat musi uplne stejne
             self.files.append(('script data-src', a['data-src']))
+        elif tag == 'script' and (a.get('type') or '').lower() in INLINE_TYPES:
+            # INLINE SKRIPT bez src. V index.html je ho 22 kB (mimo jine cely
+            # firemni zamek) a dosud stal MIMO vsechny kontroly - preklep v nem
+            # shodi start appky uplne stejne jako preklep v js/*.js.
+            self._buf = []
+            self._buf_line = self.getpos()[0]
         elif tag == 'link' and a.get('href') and 'stylesheet' in (a.get('rel') or '').lower():
             self.files.append(('link href', a['href']))
+
+    def handle_data(self, data):
+        if self._buf is not None:
+            self._buf.append(data)
+
+    def handle_endtag(self, tag):
+        if tag == 'script' and self._buf is not None:
+            self.inline.append((self._buf_line, ''.join(self._buf)))
+            self._buf = None
 
 
 def local_path(url):
@@ -378,6 +410,47 @@ def check_sw():
         if not p.exists():
             problem('sw.js', 'ASSETS_TO_CACHE odkazuje na neexistujici %s '
                              '- cache.addAll() selze CELY a service worker se nenainstaluje' % url)
+
+
+# ---------------------------------------------------------------------------
+# 8) OSIRELY MODUL: js/*.js, ktery nikdo nenacita
+#
+# Nacitani modulu ma v appce TRI nezavisle seznamy — <script src>/<script
+# type="ag/lazy" data-src> v index.html, MANIFEST v js/lazy-tools.js (stahne se
+# az na klepnuti na dlazdici) a ASSETS_TO_CACHE v sw.js. Kdyz se novy modul
+# zapise jen do jednoho z nich (nebo do zadneho), NIC to neohlasi: soubor je
+# v repu, vypada hotove, a pritom se v prohlizeci nikdy nespusti. Presne to se
+# stalo js/cuzk-geodata.js — hotova funkce (udaje bodu z CUZK + odkaz do DATAZ),
+# kterou uzivatel nikdy nevidel, protoze jeho <script> radek nikdy neexistoval.
+#
+# sw.js se pocita jako platne misto ZAMERNE: nektere nastroje si soubor dotahuji
+# za behu samy (fetch/dynamicky <script>) a v index.html nemaji co delat — hlasit
+# je jako osirele by byl falesny poplach a kontrola by se zacala ignorovat.
+# ---------------------------------------------------------------------------
+
+LAZY_TOOLS_PATH = JS_DIR / 'lazy-tools.js'
+
+
+def check_orphan_modules(js_files):
+    haystack = []
+    for p in (INDEX_PATH, LAZY_TOOLS_PATH, SW_PATH):
+        try:
+            haystack.append(p.read_text(encoding='utf-8-sig'))
+        except OSError:
+            problem(p.name, 'soubor nejde precist - kontrola osirelych modulu je slepa')
+    text = '\n'.join(haystack)
+    orphans = 0
+    for p in js_files:
+        rel = p.relative_to(ROOT).as_posix()
+        if rel.startswith('js/lib/'):
+            continue                      # knihovny treti strany maji vlastni zivot
+        if rel in text:
+            continue
+        orphans += 1
+        problem(rel, 'modul nikdo nenacita - neni v index.html (src ani data-src), '
+                     'v MANIFESTu js/lazy-tools.js ani v ASSETS_TO_CACHE v sw.js. '
+                     'Bud ho zapoj, nebo presun do _archiv/')
+    return orphans
 
 
 # ---------------------------------------------------------------------------
@@ -417,7 +490,32 @@ def check_conflicts(files):
                 problem(rel, 'radek %d: zbytek po mergi: %s' % (i, t[:40]))
 
 
-def check_syntax(files):
+# ---------------------------------------------------------------------------
+# Inline <script> z index.html -> docasne .js soubory.
+#
+# Kazdy blok se ulozi ZVLAST (v prohlizeci je to taky samostatny skript, takze
+# `const` se stejnym jmenem ve dvou blocich neni chyba parsovani) a PREDSADI se
+# mu tolik prazdnych radku, kolik jich v index.html predchazi. Diky tomu sedi
+# cislo radku v chybove hlasce presne na index.html a nemusi se prepocitavat.
+# ---------------------------------------------------------------------------
+
+
+def inline_temp_files(bloky):
+    """Vrati (cesty, popisky, docasny adresar). Popisky mapuji cestu -> 'index.html …'."""
+    if not bloky:
+        return [], {}, None
+    tmpdir = tempfile.mkdtemp(prefix='agcheck-')
+    files, labels = [], {}
+    for line, src in bloky:
+        p = Path(tmpdir) / ('index-inline-%d.js' % line)
+        p.write_text('\n' * (line - 1) + src, encoding='utf-8')
+        files.append(p)
+        labels[str(p)] = 'index.html (inline <script> od radku %d)' % line
+    return files, labels, tmpdir
+
+
+def check_syntax(files, labels=None):
+    labels = labels or {}
     node = shutil.which('node')
     if not node:
         # V CI se spousti s --require-node: tam Node JE a tiche preskoceni by
@@ -436,10 +534,12 @@ def check_syntax(files):
         if not line.strip():
             continue
         fname, _, msg = line.partition('\t')
-        try:
-            rel = str(Path(fname).relative_to(ROOT)).replace('\\', '/')
-        except ValueError:
-            rel = fname
+        rel = labels.get(fname)
+        if rel is None:
+            try:
+                rel = str(Path(fname).relative_to(ROOT)).replace('\\', '/')
+            except ValueError:
+                rel = fname
         problem(rel, 'chyba syntaxe: %s' % msg)
         bad += 1
     if r.returncode not in (0, 1) and not bad:
@@ -543,11 +643,24 @@ def main():
     # 4) sw.js
     check_sw()
 
-    # 5) zbytky po mergi
-    check_conflicts(own_js)
+    # 8) osirele moduly (nikdo je nenacita)
+    orphans = check_orphan_modules(js_files)
+    print('  osirele moduly: %d' % orphans)
 
-    # 6) syntaxe
-    check_syntax(js_files)
+    # 5) zbytky po mergi
+    check_conflicts(own_js + [SW_PATH])
+
+    # 6) syntaxe. sw.js lezi v koreni (ne v js/), takze do teto kontroly dlouho
+    #    nespadal — a pritom je to soubor, u ktereho tichá chyba boli nejvic:
+    #    novy service worker se neda nainstalovat, telefon zustane napořád na
+    #    stare verzi appky a NIKDE se to neohlasi. Inline skripty z index.html
+    #    se kontroluji pres docasne soubory, viz inline_temp_files.
+    inline_files, inline_labels, tmpdir = inline_temp_files(parser.inline)
+    try:
+        check_syntax(js_files + [SW_PATH] + inline_files, inline_labels)
+    finally:
+        if tmpdir:
+            shutil.rmtree(tmpdir, ignore_errors=True)
     check_syntax_modules(mjs_files)
 
     if problems:

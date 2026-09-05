@@ -20,13 +20,15 @@
     function num(v) { var n = (typeof window.agNum === 'function') ? window.agNum(v) : parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; }
     function quickToastSafe(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'check-distance:quickToastSafe'); } try { agInfo(m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'check-distance:quickToastSafe'); } }
 
-    // S-JTSK: pocita GeoCore (jediny autoritativni prevod v appce, testovany proti PROJ
-    // v tests/cases-geo.js). Tady se jen premapuje na lokalni tvar {Y,X}. Fallback na
-    // vlastni proj4 zustava, aby modul fungoval i bez geo-core.js (odpojitelnost).
+    // S-JTSK: pocita VYHRADNE GeoCore (jediny autoritativni prevod v appce, testovany
+    // proti PROJ v tests/cases-geo.js). Tady se jen premapuje na lokalni tvar {Y,X}.
+    // Vlastni proj4 zaloha tu byla kvuli odpojitelnosti, jenze mela poradi os zadratovane
+    // natvrdo — a poradi os je prave to jedine, co GeoCore hlida (_resolveAxis). Pri
+    // zmene proj4 by zaloha Y a X TISE prohodila, takze radsi nic nez cislo vedle.
     function toSJTSK(lat, lng) {
         try { if (window.GeoCore && GeoCore.toSJTSK) { var s = GeoCore.toSJTSK(lat, lng); return { Y: s.y, X: s.x }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'check-distance:toSJTSK'); }
-        try { var r = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { Y: Math.abs(r[0]), X: Math.abs(r[1]) }; }
-        catch (e) { return null; }
+        try { if (window.agErrLog) agErrLog.record('check-distance: chybi GeoCore — S-JTSK se nepocita'); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'check-distance:toSJTSK'); }
+        return null;
     }
 
     // ---- seznam dostupných bodů (jméno -> souřadnice) -------------------------

@@ -2,7 +2,9 @@
 # Overeni navrhu A1 (terenni radek) + A2 (detail na tuknuti) + B1 (paleta nastroju).
 import asyncio, json, os, subprocess, sys, time
 
-ROOT = r'C:\Users\stepa\Desktop\ar_geodet'
+# Kotva na koren repa z vlastni cesty — natvrdo zapsana cesta k plose fungovala
+# jen na jednom stroji a v CI by skript spadl hned na startu serveru.
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8135
 URL = 'http://127.0.0.1:%d/index.html' % PORT
 OUT = os.environ.get('AG_SHOTS', os.path.join(ROOT, '_diag'))
@@ -61,8 +63,11 @@ async def main():
             try:
                 await p.wait_for_function("() => !!window.AGDuvera", timeout=12000)
                 ok('js/duvera.js se nacetl (jednotna stupnice presnosti)', True)
-            except Exception:
-                ok('js/duvera.js se nacetl (jednotna stupnice presnosti)', False, 'bezi zaloha v grafika.js')
+            except Exception as e:
+                # duvod se vypisuje: "bezi zaloha v grafika.js" byla domnenka,
+                # ktera pri hledani skutecne priciny nepomohla ani trochu
+                ok('js/duvera.js se nacetl (jednotna stupnice presnosti)', False,
+                   'bezi zaloha v grafika.js (%s)' % type(e).__name__)
             now = await p.evaluate("() => Date.now()")
             pts = json.loads(json.dumps(PTS))
             for k, off in zip(pts, (60000, 3600000, 86400000 * 2, 86400000 * 9, 300000)):
@@ -212,7 +217,10 @@ async def main():
             for n in bad:
                 print('  SELHALO: ' + a(n))
             await b.close()
+            return 1 if bad else 0
     finally:
         srv.terminate()
 
-asyncio.run(main())
+# NAVRATOVY KOD: bez nej skript koncil nulou i pri selhani, takze jako brana
+# v CI by svitil zelene navzdy.
+sys.exit(asyncio.run(main()))

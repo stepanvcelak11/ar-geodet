@@ -57,7 +57,20 @@
     function snapshot() {
         try {
             var r = (typeof gpsAvgResult !== 'undefined') ? gpsAvgResult : null;
-            if (!r || r.coarse || !isFinite(r.sigma)) return null;
+            // ⚠ #2: rucni poloha z mapy ma sigma === null a isFinite(null) je TRUE —
+            // bod trefeny prstem do ortofota tudy proslel a ulozil se s prov.sigma = 0,
+            // tedy s priznakem DOKONALEHO mereni. Kvalitu z odectu mapy neurcujeme vubec.
+            if (!r || r.coarse || r.manual || r.sigma == null || !isFinite(r.sigma)) return null;
+            // ⚠ #22: BRÁNA ČERSTVOSTI, stejná jako u ostatních osmi čtenářů gpsAvgResult
+            // (vytycovani, localization-helmert, offset-point, kde-je, grafika,
+            // geo-overlay, kontrola-vrstvy, dvoji-mereni). Bez ní se sem dostane sigma
+            // ze ZMRZLÉHO průměru: GPS přestala dodávat fixy (tunel, auto, iOS suspend),
+            // gpsAvgResult zůstal stát a jeho čísla by se natrvalo zapsala do prov.sigma /
+            // prov.n, tedy do protokolu kvality i do karty bodu. Zvlášť zrádné je to při
+            // ruční poloze z mapy: `pendingPointAccuracy` ji propustí přes strážce ve
+            // wrapSave, ale gpsAvgResult je pořád ten starý skutečný průměr z jiného místa.
+            // Volající (wrapSave) na null umí — bod se prostě uloží bez prov.sigma.
+            if (typeof window.agAvgFresh === 'function' && !window.agAvgFresh(15000, true)) return null;
             return {
                 sigma: Math.round(r.sigma * 1000) / 1000,
                 n: r.n || 0,

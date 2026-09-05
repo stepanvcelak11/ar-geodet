@@ -295,8 +295,30 @@
         { k: 'act:zobrazeni', l: 'Přepnout AR / Split / Mapa', sel: '#ag-view-wheel' },
         { k: 'act:namne', l: 'Mapu zpátky na mou polohu', sel: '#map-recenter' },
         { k: 'act:katastr', l: 'Katastr zapnout / vypnout', sel: '#btn-katastr' },
-        { k: 'act:nastaveni', l: 'Nastavení', sel: '[onclick*="openSettings"]' }
+        { k: 'act:nastaveni', l: 'Nastavení', sel: '[onclick*="openSettings"]' },
+        // ⚠⚠ VENKOVNÍ REŽIM je výjimka z pravidla „stačí kliknout na tlačítko":
+        // #s-outdoor je sice v DOM i při zavřených Nastaveních, ale je to jen políčko
+        // v panelu — Nastavení se aplikují až tlačítkem „Uložit vše" (saveSettings
+        // v grafika.js). Samotný .click() by tedy jen přehodil zaškrtnutí a nic by se
+        // nestalo. Proto `po`: po kliknutí se hodnota rovnou promítne a uloží stejnou
+        // cestou, jakou to dělá js/ar-calib2.js (setStoredData + applyVisualSettings).
+        // Zkratka na to musí být: ruční cesta je dok → Nastavení → Vzhled → rolovat,
+        // tedy čtyři klepnutí na displej, na který zrovna kvůli slunci není vidět.
+        { k: 'act:slunce', l: 'Vysoký kontrast na slunci', sel: '#s-outdoor', po: outdoorApply }
     ];
+
+    // Přepnutí venkovního režimu podle stavu políčka. Vrací text do bubliny, ať je
+    // i bez pohledu na displej jasné, co se stalo.
+    function outdoorApply(el) {
+        try {
+            if (typeof visSettings === 'undefined' || !visSettings) return null;
+            visSettings.outdoorMode = !!(el && el.checked);
+            if (typeof setStoredData === 'function') setStoredData('arVisSettings12', JSON.stringify(visSettings));
+            if (typeof applyVisualSettings === 'function') applyVisualSettings();
+            return visSettings.outdoorMode ? 'Vysoký kontrast zapnut' : 'Vysoký kontrast vypnut';
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:outdoorApply'); }
+        return null;
+    }
     function isAct(k) { return String(k || '').indexOf('act:') === 0; }
     function actionOf(k) {
         for (var i = 0; i < ACTIONS.length; i++) if (ACTIONS[i].k === k) return ACTIONS[i];
@@ -338,9 +360,12 @@
     }
     function runTool(k) {
         if (isAct(k)) {
-            var el = actionEl(actionOf(k));
+            var a = actionOf(k), el = actionEl(a);
             if (!el) return false;
             el.click();
+            // Akce, které klikem teprve začínají (viz `po` u act:slunce) — hláška
+            // z nich má přednost před obecnou „Spuštěno".
+            if (a && a.po) { var m = a.po(el); if (m) toast(m); }
             return true;
         }
         try { return !!(window.AGUkony && AGUkony.run(k)); } catch (e) { return false; }

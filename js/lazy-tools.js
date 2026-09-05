@@ -3,8 +3,8 @@
 //
 // PROČ: při každém startu se stahovalo a spouštělo 118 skriptů (~3,1 MB). Většinu
 // z toho tvoří nástroje, které se za celý den ani neotevřou — a každý nový nástroj
-// zdražoval start VŠEM. Tohle je startovní dávka: 10 nástrojů, které do doby, než
-// je uživatel otevře, nedělají NIC než že zapíší svou dlaždici (~362 kB).
+// zdražoval start VŠEM. Tohle je dávka 29 nástrojů, které do doby, než je
+// uživatel otevře, nedělají NIC než že zapíší svou dlaždici (~1 054 kB).
 //
 // JAK: modul za ně zapíše ZÁSTUPNOU dlaždici (stejný popisek, ikona, kategorie
 // i pořadí) a teprve klepnutí stáhne skutečný soubor. Ten se pak zaregistruje sám
@@ -27,7 +27,14 @@
 //   • cokoli, co při startu vkládá řádek do Nastavení, do menu „Více", kreslí do
 //     mapy/AR, obaluje funkce appky nebo hlásí odznak (epochy, závady, docházka…)
 // Pravidlo pro rozšiřování dávky: nástroj smí do MANIFESTu, jen když jeho init()
-// nedělá nic než agRegisterFieldTool a nikdo jiný nevolá jeho API.
+// nedělá nic než agRegisterFieldTool a nikdo jiný nevolá jeho API. Ověřuje se to
+// ČTENÍM modulu, ne odhadem: `register()` musí končit u dlaždice, tělo IIFE smí
+// nanejvýš definovat globály a poslouchat 'pagehide', a grep přes celou appku
+// nesmí najít jinou cestu do jeho API než otevírací funkci z `open`.
+//
+// STYLOPIS: `css: 'css/neco.css'` — připojí se až s modulem. V <head> index.html
+// je <link> render-blokující, takže okno otvírané jednou za měsíc tam zdržovalo
+// PRVNÍ OBRAZ appky. Soubor musí zůstat v EXTRA_ASSETS (gen_sw_assets.py).
 //
 // Odstranění: smaž js/lazy-tools.js + jeho řádek <script> v index.html, vrať do
 // index.html <script> řádky nástrojů z MANIFESTu a přegeneruj sw.js.
@@ -45,7 +52,7 @@
     var MANIFEST = [
         {
             id: 'pocasi', src: 'js/pocasi.js', label: 'Počasí', cat: 'Pomůcky', order: 7,
-            open: 'agOpenPocasi', icon: I_SUN
+            open: 'agOpenPocasi', icon: I_SUN, css: 'css/pocasi.css'
         },
         {
             id: 'zapisnik', src: 'js/zapisnik.js', label: 'Zápisníky (nivelace, směry)', order: 4,
@@ -96,6 +103,123 @@
             id: 'checklist', src: 'js/checklist.js', label: 'Co s sebou', cat: 'Pomůcky', order: 10,
             open: 'agOpenChecklist',
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z"/><rect x="4" y="6" width="16" height="15" rx="2"/><path d="m8.5 12 1.8 1.8 3.5-3.6M8.5 17.5h7"/></svg>'
+        },
+
+        // ---- 2. dávka (5. 9. 2026) — samá okna, která do klepnutí nedělají NIC -------
+        // Ověřeno u každého zvlášť: jeho register() jen vloží vlastní <style> a zapíše
+        // dlaždici, tělo modulu při načtení nanejvýš zaregistruje 'pagehide' (uklidit
+        // kameru/nahrávání) a jeho API nevolá nikdo jiný než přes otevírací funkci níž.
+        // Dřív visely v index.html jako type="ag/lazy", jenže tu frontu js/lazy-load.js
+        // pouští 700 ms po startu BEZPODMÍNEČNĚ — takže se stáhly a spustily všem,
+        // i tomu, kdo za celý den otevře tři nástroje. Tohle je 495 kB, které se
+        // teď stahují až na klepnutí.
+        // ZÁMĚRNĚ TU NEJSOU (ověřeno, že by to rozbily):
+        //   rajon, ar-intersection, stakeout-line, offset-point — hlásí se do lišty
+        //     „Pokračovat" (AGDraft), takže rozdělaná úloha by po restartu zmizela
+        //   utility-networks, project-import — při startu kreslí uložené sítě/situaci
+        //     do mapy a AR
+        //   epochy — obaluje loadProjectSettings()
+        //   foto-protinani — window.AGFotoProtinani.test čte scripts/test_navrhy_d2.py
+        //   plakat-dne — má vlastní tik 1,5 s (hookDenik)
+        {
+            id: 'ar-resection', src: 'js/ar-resection.js', label: 'Resekce ze známých bodů (poloha + sever)', order: 5,
+            open: 'agOpenResection',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.4"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/></svg>'
+        },
+        {
+            id: 'free-station', src: 'js/free-station.js', label: 'Volné stanovisko (průvodce)', cat: 'AR a kalibrace', order: 4,
+            open: 'agOpenFreeStation',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>'
+        },
+        {
+            id: 'orient-point', src: 'js/orient-point.js', label: 'Srovnat sever podle bodu', order: 10,
+            open: 'agOpenOrientTool',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="12,7 14.5,14.5 12,13 9.5,14.5" fill="currentColor" stroke="none"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>'
+        },
+        {
+            id: 'ar-calib2', src: 'js/ar-calib2.js', label: 'Srovnat AR na 2 body', cat: 'AR a kalibrace', order: 1,
+            open: 'agOpenCalib2',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="2.3"/><circle cx="19" cy="6" r="2.3"/><path d="M6.7 16.3 17.3 7.7"/></svg>'
+        },
+        {
+            id: 'fov-kalib', src: 'js/fov-kalibrace.js', label: 'Zorný úhel kamery', cat: 'AR a kalibrace', order: 20,
+            open: 'agOpenFovKalibrace',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V7"/><path d="M4 20 12 7l8 13"/><path d="M3.5 9.5a11 11 0 0 1 17 0"/></svg>'
+        },
+        {
+            id: 'ar-metr', src: 'js/ar-metr.js', label: 'Metr v kameře', cat: 'Měření', order: 13,
+            open: 'agOpenMetr',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="20" height="8" rx="1.6"/><path d="M6 8v3M10 8v4.5M14 8v3M18 8v4.5"/></svg>'
+        },
+        {
+            id: 'indoor', src: 'js/indoor.js', label: 'Uvnitř budovy', cat: 'Měření', order: 12,
+            open: 'agOpenIndoor',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V6.5L12 3l7 3.5V21"/><path d="M10 21v-5h4v5"/><circle cx="12" cy="10" r="1.4"/></svg>'
+        },
+        {
+            id: 'obchuzka', src: 'js/obchuzka.js', label: 'Obchůzka výkopu', cat: 'Měření', order: 8,
+            open: 'agOpenObchuzka',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 8 5l8 3 5-2.5"/><path d="M3 8.5V18l5 3 8-3 5 2.5V6.5"/><path d="M8 5v16M16 8v10"/></svg>'
+        },
+        {
+            id: 'pdr-offset', src: 'js/pdr-offset.js', label: 'Krokový offset', cat: 'Měření', order: 8,
+            open: 'AGPdr.open',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21v-3a3 3 0 0 1 3-3h0a3 3 0 0 0 3-3V9"/><circle cx="13" cy="5" r="2"/><path d="M17 21l2-5-3-2"/></svg>'
+        },
+        {
+            id: 'hlas-kod', src: 'js/hlas-kod.js', label: 'Hlasové kódování', cat: 'Měření', order: 11,
+            open: 'agOpenHlasKod',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="2.5" width="5" height="10" rx="2.5"/><path d="M5 10.5a6 6 0 0 0 12 0"/><path d="M11 16.5v2"/><path d="M17.5 17.5h4M19.5 15.5v4"/></svg>'
+        },
+        {
+            id: 'vyska-objektu', src: 'js/vyska-objektu.js', label: 'Výška objektu', order: 9,
+            open: 'agOpenVyskaObjektu',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h16"/><path d="M7 21V8l5-4 5 4v13" opacity="0.85"/><path d="M20 4v13M20 4l-2 2M20 4l2 2M20 17l-2-2M20 17l2-2" transform="translate(-1 0)"/></svg>'
+        },
+        {
+            id: 'job-transfer', src: 'js/job-transfer.js', label: 'Poslat/načíst zakázku', cat: 'Data a přenos', order: 20,
+            open: 'agOpenJobTransfer',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v5a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5"/><path d="M8 8l4-4 4 4"/><path d="M12 4v12"/></svg>'
+        },
+        {
+            id: 'geo-foto', src: 'js/geo-foto.js', label: 'Geo-fotka', cat: 'Pomůcky', order: 64,
+            open: 'agOpenGeoFoto',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6H8l1.2-2h5.6L16 6h2.5A2.5 2.5 0 0 1 21 8.5v9A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5z"/><circle cx="12" cy="13" r="3.4"/><path d="M12 8.4v1.2M12 16.4v1.2M7.4 13h1.2M15.4 13h1.2"/></svg>'
+        },
+        {
+            id: 'kde-je', src: 'js/kde-je.js', label: 'Kde co mám', cat: 'Pomůcky', order: 9,
+            open: 'agOpenKdeJe',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16V11l1.7-4.2A2 2 0 0 1 8.6 5.5h6.8a2 2 0 0 1 1.9 1.3L19 11v5"/><path d="M5 16h14M7.5 16v2M16.5 16v2M7 11.5h10"/></svg>'
+        },
+        {
+            id: 'trenazer', src: 'js/trenazer.js', label: 'Terénní trenažér', cat: 'Pomůcky', order: 64,
+            open: 'AGTrenazer.open',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>'
+        },
+        {
+            id: 'rocenka', src: 'js/rocenka.js', label: 'Ročenka',
+            open: 'openRocenka',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/><circle cx="19" cy="6" r="1.6"/></svg>'
+        },
+        {
+            // Oba konzumenti se ptají `if (window.agOpenHiddenPoints)` a zástupce
+            // z stubApi() jim stačí — ten je funkce jako každá jiná, takže dotaz projde
+            // a modul se dotáhne až při klepnutí. POZOR na rozdíl: index.html:761 se ptá
+            // až UVNITŘ onclick, kdežto grafika.js:1385 („Správa bodů") při VYKRESLENÍ
+            // řádku, tedy dřív. Drží to jen díky tomu, že se zástupci vystavují hned
+            // v init() (DOMContentLoaded), tj. dávno před otevřením Správy bodů. Kdyby
+            // se stubApi() někdy zpozdila nebo se zástupce nevystavil (vypnutý nástroj),
+            // vykreslí se ve Správě bodů chudší varianta „Obnovit skryté body" bez
+            // seznamu — nespadne to, ale je to tichá ztráta funkce.
+            // Modul sám při načtení jen zapíše dlaždici.
+            id: 'hidden-points', src: 'js/hidden-points.js', label: 'Skryté body',
+            cat: 'Katastr a data', order: 50,
+            open: 'agOpenHiddenPoints', icon: '<svg class="icon"><use href="#i-eye-off"/></svg>'
+        },
+        {
+            id: 'odhadovacka', src: 'js/odhadovacka.js', label: 'Odhadni to', cat: 'Pomůcky',
+            open: 'agOpenOdhad',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>'
         }
     ];
 
@@ -110,6 +234,24 @@
     }
 
     // ---- načtení souboru -----------------------------------------------------------
+    // Stylopis nástroje (css: v manifestu). Dřív visel jako <link> v <head>
+    // index.html, kde je render-blokující — u Počasí to bylo 21 kB, o které se
+    // odkládal PRVNÍ OBRAZ appky kvůli oknu, co se za den většinou neotevře.
+    // Připojí se těsně před skriptem, ať je styl na místě dřív, než okno vyskočí.
+    // Soubor MUSÍ zůstat v EXTRA_ASSETS (scripts/gen_sw_assets.py), jinak by
+    // v terénu bez signálu nedorazil.
+    function loadCss(href) {
+        if (!href) return;
+        try {
+            if (window.AG && typeof AG.cssFile === 'function') { AG.cssFile('agcss-' + href.replace(/[^\w]+/g, '-'), href); return; }
+            var id = 'agcss-' + href.replace(/[^\w]+/g, '-');
+            if (document.getElementById(id)) return;
+            var l = document.createElement('link');
+            l.id = id; l.rel = 'stylesheet'; l.href = href;
+            (document.head || document.documentElement).appendChild(l);
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'lazy-tools:css'); }
+    }
+
     function load(src) {
         if (_loaded[src]) return _loaded[src];
         _loaded[src] = new Promise(function (res, rej) {
@@ -187,6 +329,7 @@
         // window.AGLazyTools.open(id) se sem dá vejít i mimo něj.
         if (vypnuty(t)) { toast('Nástroj „' + t.label + '" správce aplikace vypnul.'); return Promise.resolve(); }
         var slow = setTimeout(function () { toast('Načítám ' + t.label + '…'); }, 250);
+        loadCss(t.css);                    // styl okna jede s modulem, ne v <head>
         dropStub(t);                       // ať modul nevidí našeho zástupce (viz dropStub)
         return load(t.src).then(function () {
             clearTimeout(slow);

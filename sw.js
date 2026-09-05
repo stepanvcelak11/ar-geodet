@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v273';   // kolecko ukazuje rozcestnik misto peti nastroju, konzole vlastnika se vraci, tichá obnova nikoho neodhlasi, navod k hodinkam sedi
+const SHELL_CACHE = 'argeodet-shell-v274';   // jedna cesta souboru ven pres list sdileni, odkladani modulu zase zive, kos drzi vsechna data zakazky, rucni poloha z mapy se netvari jako mereni
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -23,7 +23,15 @@ const FONT_CACHE = 'argeodet-fonts-v1';
 // odkud vzit) a online ho stahovala znovu po kazdem vydani. STABILNI nazev,
 // stejny princip jako FONT_CACHE. Bumpnout jen pri zmene obsahu slovniku.
 const DICT_CACHE = 'argeodet-dict-v1';
-const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE, FONT_CACHE, DICT_CACHE];
+// LIB_CACHE — knihovny z cizich CDN (cdn.jsdelivr.net: tesseract pro cteni
+// souradnic z fotky, jspdf pro protokol o vytyceni, jejich fonty). V predcache
+// nejsou (stahuji se az pri prvnim pouziti nastroje), takze je ukladala jen
+// behova vetev fetch handleru — a ta je posilala do VERZOVANE SHELL_CACHE,
+// kterou activate pri kazdem bumpu smaze. Geodet, ktery rano prevzal aktualizaci
+// a odjel k pokladce bez signalu, tak prisel o OCR i o PDF protokol, i kdyz mu
+// den predtim offline fungovaly. STABILNI nazev, stejny princip jako FONT_CACHE.
+const LIB_CACHE = 'argeodet-lib-v1';
+const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE, FONT_CACHE, DICT_CACHE, LIB_CACHE];
 
 const ASSETS_TO_CACHE = [
     // >>> GENEROVANO scripts/gen_sw_assets.py — needitovat rucne
@@ -39,30 +47,29 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=273',
-    './css/style.css?v=273',
-    './css/vylepseni.css?v=273',
+    './css/tokens.css?v=274',
+    './css/style.css?v=274',
+    './css/vylepseni.css?v=274',
+    './css/gps-warn.css',
+    './css/compass-stability.css',
+    './css/cadastre-area.css',
+    './css/ar-fusion.css',
+    './css/dmr-terrain.css',
+    './css/power-save.css',
+    './css/seznam-souradnic.css',
+    './css/qc-engine.css',
+    './css/tools-polish.css',
+    './css/tokens-outdoor.css',
+    './css/dmt-volume.css',
+    './css/check-distance.css',
     './css/zpravodaj.css',
     './css/predpisy.css',
     './css/gnss-quality.css',
-    './css/gps-warn.css',
-    './css/compass-stability.css',
     './css/calib-profiles.css',
     './css/ref-calibration.css',
     './css/sky-obstruction.css',
-    './css/cadastre-area.css',
-    './css/ar-fusion.css',
-    './css/ar-calibrate.css',
-    './css/dmr-terrain.css',
-    './css/power-save.css',
-    './css/dmt-volume.css',
-    './css/check-distance.css',
-    './css/seznam-souradnic.css',
     './css/brutal-gps.css',
-    './css/qc-engine.css',
-    './css/pocasi.css',
-    './css/tools-polish.css',
-    './css/tokens-outdoor.css',
+    './css/ar-calibrate.css',
     './js/lib/proj4-2.9.0.min.js',
     './js/geo-core.js',
     './js/err-log.js',
@@ -90,6 +97,7 @@ const ASSETS_TO_CACHE = [
     './js/vlastnik.js',
     './js/satelity.js',
     './js/kalkulacka.js',
+    './js/sdilet-soubor.js',
     './js/export.js',
     './js/kompas-check.js',
     './js/zaloha.js',
@@ -131,35 +139,26 @@ const ASSETS_TO_CACHE = [
     './js/tools-registry.js',
     './js/field-tools.js',
     './js/lazy-tools.js',
-    './js/hidden-points.js',
-    './js/orient-point.js',
     './js/offset-point.js',
     './js/brutal-gps.js',
     './js/gps-campaign.js',
     './js/gps-semafor.js',
-    './js/pdr-offset.js',
     './js/stakeout-line.js',
     './js/stakeout-line-ar.js',
     './js/nastroje-parky.js',
     './js/track-log.js',
-    './js/fov-kalibrace.js',
     './js/tools-back.js',
     './js/modal-close.js',
     './js/lazy-load.js',
     './js/track-ar.js',
     './js/linalg.js',
-    './js/ar-resection.js',
     './js/ar-intersection.js',
     './js/rajon.js',
-    './js/free-station.js',
     './js/localization-helmert.js',
     './js/utility-networks.js',
-    './js/job-transfer.js',
-    './js/vyska-objektu.js',
     './js/epochy.js',
     './js/epochy-pripominky.js',
     './js/ar-calibrate.js',
-    './js/ar-calib2.js',
     './js/project-import.js',
     './js/geo-overlay.js',
     './js/cadastre-vector.js',
@@ -187,16 +186,10 @@ const ASSETS_TO_CACHE = [
     './js/zavady.js',
     './js/brifink.js',
     './js/hlasovky.js',
-    './js/hlas-kod.js',
-    './js/geo-foto.js',
-    './js/ar-metr.js',
     './js/hodinky-parovani.js',
     './js/hodinky-dlazdice.js',
     './js/vysilacka.js',
-    './js/indoor.js',
-    './js/obchuzka.js',
     './js/slunce.js',
-    './js/kde-je.js',
     './js/bezpecnost.js',
     './js/usadit-ar.js',
     './js/tools-hub.js',
@@ -217,21 +210,49 @@ const ASSETS_TO_CACHE = [
     './js/map-rotate.js',
     './js/karta-bodu.js',
     './js/overeni-bodu.js',
+    './js/cuzk-geodata.js',
     './js/ag-store.js',
     './js/ag-pocty.js',
     './js/duvera.js',
     './js/fronta.js',
     './js/odznaky.js',
-    './js/rocenka.js',
     './js/kolize-bodu.js',
     './js/plakat-dne.js',
     './js/prohlidka.js',
-    './js/trenazer.js',
     './js/vektor-mapa.js',
     './js/mini-panel.js',
     './js/motivy-teren.js',
     './js/sever-slunce.js',
     './js/foto-protinani.js',
+    './js/pocasi.js',
+    './css/pocasi.css',
+    './js/zapisnik.js',
+    './js/dgps.js',
+    './js/vrstvy.js',
+    './js/kontrola-vrstvy.js',
+    './js/denik-dne.js',
+    './js/kniha-jizd.js',
+    './js/postupy.js',
+    './js/gnss-forecast.js',
+    './js/korekce.js',
+    './js/checklist.js',
+    './js/ar-resection.js',
+    './js/free-station.js',
+    './js/orient-point.js',
+    './js/ar-calib2.js',
+    './js/fov-kalibrace.js',
+    './js/ar-metr.js',
+    './js/indoor.js',
+    './js/obchuzka.js',
+    './js/pdr-offset.js',
+    './js/hlas-kod.js',
+    './js/vyska-objektu.js',
+    './js/job-transfer.js',
+    './js/geo-foto.js',
+    './js/kde-je.js',
+    './js/trenazer.js',
+    './js/rocenka.js',
+    './js/hidden-points.js',
     './js/odhadovacka.js',
     './data/zpravodaj.json',
     './data/predpisy.json',
@@ -256,17 +277,6 @@ const ASSETS_TO_CACHE = [
     './js/lib/images/layers.png',
     './js/lib/images/layers-2x.png',
     './js/lib/images/marker-icon.png',
-    './js/pocasi.js',
-    './js/zapisnik.js',
-    './js/dgps.js',
-    './js/vrstvy.js',
-    './js/kontrola-vrstvy.js',
-    './js/denik-dne.js',
-    './js/kniha-jizd.js',
-    './js/postupy.js',
-    './js/gnss-forecast.js',
-    './js/korekce.js',
-    './js/checklist.js',
     // <<< KONEC GENEROVANEHO SEZNAMU
 ];
 
@@ -279,6 +289,12 @@ function isFont(url) { return url.includes('/fonts/') || url.endsWith('.woff2');
 // Pozor na pomlcku: jadro ./data/jazyky.json patri do predcache a ma se s verzi
 // obnovovat, do DICT_CACHE smi jen rozsireni data/jazyky-xx.json.
 function isDict(url) { return url.includes('/data/jazyky-'); }
+
+// Knihovny z CDN. Zamerne se matchuje CELA DOMENA, ne jen *.js: z jsdelivr se
+// tahaji i pisma pro jspdf a wasm/jazykova data pro tesseract — kdyby spadly do
+// SHELL_CACHE, prvni bump verze by je smazal a PDF protokol by v terenu skoncil
+// na pulce.
+function isLib(url) { return url.includes('cdn.jsdelivr.net'); }
 
 // Mapove dlazdice (OSM, CUZK WMS) ukladame do TILE_CACHE, aby prezily update kodu.
 function isTile(url) {
@@ -309,7 +325,14 @@ self.addEventListener('install', event => {
             const target = font ? fontCache : cache;
             if (font && await target.match(url)) return;
             try {
-                const res = await fetch(new Request(url, { cache: 'reload' }));
+                // 'no-cache', NE 'reload': obe varianty jdou vzdy na server (takze
+                // se nikdy nevezme zastarala kopie), ale 'reload' si vynuti PLNE
+                // telo u vsech 239 polozek = ~2,3 MB gzip pri KAZDEM vydani, i kdyz
+                // se zmenilo par set kB. 'no-cache' posle If-None-Match a na 304
+                // vezme telo z HTTP cache — GitHub Pages ETag posila, takze se po
+                // drate prenese jen to, co se opravdu zmenilo. To je rozdil pro
+                // geodeta, ktery mackne "Aktualizovat" na mobilnich datech u silnice.
+                const res = await fetch(new Request(url, { cache: 'no-cache' }));
                 if (res && (res.ok || res.type === 'opaque')) await target.put(url, res);
             } catch (e) { /* offline / blokovany CDN â€” preskocit, nevadi */ }
         }));
@@ -415,7 +438,9 @@ self.addEventListener('fetch', event => {
                 // protoze cache-first ji dal vracel misto noveho pokusu.
                 const okToCache = response && (response.ok || response.type === 'opaque');
                 if (url.startsWith('http') && okToCache) {
-                    const targetCache = isTile(url) ? TILE_CACHE : (isFont(url) ? FONT_CACHE : SHELL_CACHE);
+                    const targetCache = isTile(url) ? TILE_CACHE
+                        : (isFont(url) ? FONT_CACHE
+                            : (isLib(url) ? LIB_CACHE : SHELL_CACHE));
                     const responseClone = response.clone();
                     caches.open(targetCache).then(cache => cache.put(event.request, responseClone));
                 }

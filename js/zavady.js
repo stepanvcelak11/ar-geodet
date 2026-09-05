@@ -74,9 +74,16 @@
     function fmtDist(d) { return d == null ? '' : (d < 995 ? Math.round(d) + ' m' : (d / 1000).toFixed(1) + ' km'); }
     function fmtTs(ts) { try { var d = new Date(ts); return d.toLocaleDateString('cs-CZ') + ' ' + d.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
     function catLabel(id) { for (var i = 0; i < CATS.length; i++) if (CATS[i].id === id) return CATS[i].label; return id || '—'; }
+    // S-JTSK počítá VÝHRADNĚ GeoCore: je to jediné místo v appce, které si ověří
+    // POŘADÍ OS Křováku (_resolveAxis v js/geo-core.js). Dřív tu byla vlastní záloha
+    // přes proj4 s pořadím zadrátovaným natvrdo ([-Y, -X]) — jenže právě to je věc,
+    // která se při bumpu proj4 nebo přidání +axis= může změnit: GeoCore to ohlásí
+    // a přehodí, záloha by osy TIŠE prohodila a bod by skončil o stovky km jinde.
+    // V geodetické appce je „souřadnici neznám" lepší než „souřadnice vedle".
     function toSJTSK(lat, lng) {
         try { if (window.GeoCore && GeoCore.toSJTSK) return GeoCore.toSJTSK(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zavady:toSJTSK'); }
-        try { if (typeof proj4 === 'function') { var c = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { y: Math.abs(c[0]), x: Math.abs(c[1]) }; } } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'zavady:toSJTSK'); }
+        // do protokolu jen jednou za sezení — toSJTSK se volá v cyklu přes všechny body
+        if (!toSJTSK._warn) { toSJTSK._warn = 1; try { if (window.agErrLog) agErrLog.record('zavady: chybí GeoCore — S-JTSK se nepočítá'); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'zavady:toSJTSK'); } }
         return null;
     }
 

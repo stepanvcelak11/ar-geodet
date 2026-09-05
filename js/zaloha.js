@@ -6,13 +6,66 @@
 (function () {
     'use strict';
 
-    function _dl(filename, text) {
+    // Poslat zálohu ven z telefonu. Vrací Promise s tím, CO se stalo ('share' /
+    // 'download' / 'abort') — razítko „zálohováno" se totiž smí napsat jen tehdy,
+    // když soubor někde opravdu přistál. Na iPhonu (PWA z plochy) atribut download
+    // u blob: URL mlčky nic neudělá, proto se jde přes js/sdilet-soubor.js; kdyby
+    // ten modul chyběl, zůstane stažení odkazem jako dřív.
+    function _ven(filename, text) {
         const blob = new Blob([text], { type: 'application/json;charset=utf-8' });
+        if (typeof window.agShareOrDownload === 'function') return window.agShareOrDownload(blob, filename, 'application/json');
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url; a.download = filename;
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
+        return Promise.resolve('download');
+    }
+
+    function _pocetBodu() {
+        try { if (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) return persistentCustomPoints.length; }
+        catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:_pocetBodu'); }
+        return 0;
+    }
+
+    // JEDINÉ místo v appce, kde se píše razítko poslední zálohy. Klíče jsou historicky
+    // TŘI (každá vrstva si zavedla vlastní) a čtou je různá místa — arLastBackupAt
+    // výpis úložiště v logika.js, agLastBackupTs pruh v auto-zaloha.js, agLastBackup
+    // vylepseni.js. Píšeme všechny naráz, aby jedna vrstva neměla zálohu za čerstvou
+    // a druhá za starou. Vedle razítka jde i počet bodů, ať umí připomínka reagovat
+    // na PŘÍRŮSTEK dat, ne jen na uplynulý čas.
+    function _stampBackup() {
+        try {
+            const _ts = String(Date.now());
+            localStorage.setItem('arLastBackupAt', _ts);
+            localStorage.setItem('agLastBackupTs', _ts);
+            localStorage.setItem('agLastBackup', _ts);
+            localStorage.setItem('agLastBackupPts', String(_pocetBodu()));
+            // Zakazka, ke ktere se ten pocet vaze. _pocetBodu() cte AKTIVNI zakazku,
+            // kdezto zaloha je celeho stavu — bez teto znacky by pouhe prepnuti na
+            // jinou zakazku s deseti body vyrobilo falesny "prirustek" a pruh by
+            // vyzval k zaloze, kterou clovek prave udelal. Cte to js/auto-zaloha.js.
+            try { localStorage.setItem('agLastBackupPid', String(typeof activeProjectId !== 'undefined' ? activeProjectId : '')); }
+            catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'zaloha:_stampBackup'); }
+            localStorage.removeItem('agBackupSnoozeTs');
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:_stampBackup'); }
+        if (typeof window.agRenderStorageUsage === 'function') { try { window.agRenderStorageUsage(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:_stampBackup'); } }
+    }
+
+    // Po stažení appka NEMÁ jak zjistit, jestli soubor opravdu přistál v Souborech
+    // (list sdílení jde zrušit, disk může být plný, PWA na iOS stahování tiše zahodí).
+    // Dřív se razítko psalo naslepo — geodet pak sedm dní žil v přesvědčení, že zálohu
+    // má. Radši se jednou zeptáme, než abychom mu lhali.
+    function _potvrdUlozeni() {
+        const t = 'Uložila se záloha?';
+        const m = 'Zkontroluj, že soubor <b>opravdu</b> přistál v Souborech / iCloudu. Dokud to nepotvrdíš, appka zálohu za hotovou nepovažuje a bude ti ji dál připomínat.';
+        try {
+            if (typeof window.agConfirm === 'function') {
+                return Promise.resolve(window.agConfirm({ title: t, message: m, okText: 'Ano, uložilo se', cancelText: 'Nezdařilo se' })).then(ok => !!ok);
+            }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:_potvrdUlozeni'); }
+        try { return Promise.resolve(window.confirm(t + '\n\nUložil se soubor do Souborů / iCloudu?')); }
+        catch (e) { return Promise.resolve(false); }
     }
 
     // DALSI IndexedDB databaze modulu — DRIVE v zaloze NEBYLY (zurnal, rastr podkladu,
@@ -164,7 +217,11 @@
         });
     }
 
-    window.exportAllData = async function () {
+    // Vlastní práce zálohy. Ven se volá přes window.exportAllData níž, který k tomu
+    // přidává hlášku o neúspěchu — tichý pád (velký JSON.stringify se všemi fotkami,
+    // plné úložiště) byl to nejhorší, co appka mohla udělat: po kliknutí na
+    // „Zálohovat" se prostě nestalo nic.
+    async function _exportAllData() {
         const data = {};
         for (let i = 0; i < localStorage.length; i++) {
             const k = localStorage.key(i);
@@ -185,21 +242,37 @@
             app: 'AR Geodet', type: 'full-backup', version: 3,
             exportedAt: d.toISOString(), keys: Object.keys(data).length, data: data, idb: idb, extra: extra
         };
-        _dl(`ar-geodet-zaloha-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}.json`, JSON.stringify(payload));
-        // Razitko poslední zálohy. Klíče jsou historicky TŘI (kazdá vrstva si zavedla
-        // vlastní) a čtou je různá místa — arLastBackupAt výpis úložiště v logika.js,
-        // agLastBackupTs pruh v auto-zaloha.js, agLastBackup vylepseni.js. Píšeme
-        // všechny naráz, aby se nestalo, že jedna vrstva má zálohu za čerstvou a druhá
-        // za starou (přesně z toho vznikala trojice upozornění na totéž).
-        try {
-            var _ts = String(Date.now());
-            localStorage.setItem('arLastBackupAt', _ts);
-            localStorage.setItem('agLastBackupTs', _ts);
-            localStorage.setItem('agLastBackup', _ts);
-            localStorage.removeItem('agBackupSnoozeTs');
-        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:onerror'); }
-        if (typeof window.agRenderStorageUsage === 'function') { try { window.agRenderStorageUsage(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:onerror'); } }
+        const how = await _ven(`ar-geodet-zaloha-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}.json`, JSON.stringify(payload));
+        // Zrušený list sdílení = nic se neuložilo. Razítko se nepíše a pruh připomínky
+        // zůstane viset — o to tu celou dobu jde.
+        if (how === 'abort') return false;
+        // Po sdílení víme, že soubor někam odešel; po stažení to appka nepozná a zeptá se.
+        const ok = (how === 'share') ? true : await _potvrdUlozeni();
+        if (ok) _stampBackup();
+        return ok;
+    }
+
+    // Vrací Promise<boolean>: true = záloha je opravdu venku (a razítko je zapsané).
+    // Nikdy se nezamítá — chybu ohlásí uživateli a vrátí false, aby ji nikdo nespolkl
+    // cestou (do „Zálohovat" se dá kliknout i z Nastavení, mimo js/auto-zaloha.js).
+    window.exportAllData = async function () {
+        try { return await _exportAllData(); }
+        catch (e) {
+            console.warn('[zaloha] export', e);
+            const m = (e && e.message) ? String(e.message) : 'Zkus uvolnit místo v telefonu a opakovat.';
+            try {
+                if (typeof window.agAlert === 'function') window.agAlert({ title: 'Záloha se nezdařila', message: m });
+                else if (typeof agInfo === 'function') agInfo('Záloha se nezdařila: ' + m);
+            } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'zaloha:exportAllData'); }
+            return false;
+        }
     };
+    // ⚠ Vlaječka pro js/vylepseni.js:728 (wrapBackup). Ten si kolem exportAllData
+    // přidával VLASTNÍ obal, který razítko 'agLastBackup' psal bezpodmínečně hned po
+    // zavolání — tedy i po „Nezdařilo se". Tím by celá poctivost razítka padla, protože
+    // připomínka v js/auto-zaloha.js bere z historických klíčů to NEJNOVĚJŠÍ. Flag je
+    // jeho vlastní pojistka proti dvojímu obalení, takže stačí ji nasadit tady.
+    window.exportAllData._agStamp = true;
 
     // ⚠ 29. 8. 2026: PŘIPOMÍNKA ZÁLOHY UŽ TADY NENÍ. Byla tu jako toast po 14 dnech
     // a spolu s modálem z js/vylepseni.js a pruhem z js/auto-zaloha.js na uživatele

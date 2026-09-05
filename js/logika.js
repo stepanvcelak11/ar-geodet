@@ -401,13 +401,28 @@ if ('serviceWorker' in navigator) {
         }
         function deleteProject() {
             if(projects.length <= 1) return agInfo("Nelze smazat poslední zakázku.");
-            if(!confirm("Opravdu smazat aktuální zakázku a všechny její uložené body?")) return;
+            // ⚠ #4: POTVRZENI MUSI ZUSTAT SYNCHRONNI (nativni confirm). js/undo.js i
+            // js/kos.js tuhle funkci obaluji a porovnavaji stav TESNE pred a po volani —
+            // asynchronni dialog by jim vratil "nic se nezmenilo", takze by se neukazalo
+            // "Vratit zpet" a do kose by nepadlo NIC. In-app dialog dodava js/vylepseni.js
+            // tim, ze window.confirm docasne podstrci `true` (tam je i hezci text);
+            // tenhle retezec je zaloha pro pripad, ze je vrstva vylepseni vypnuta.
+            // Text rika naplno, co se z kose vrati a co uz ne — slib "30 dni v kosi"
+            // na fotky, hlasovky ani podlozene plany NEPLATI (leží ve vlastnich
+            // databazich, ktere kos neumi zachytit).
+            if(!confirm("Opravdu smazat aktuální zakázku?\n\nZ koše půjde 30 dní vrátit body, spojnice, zápisníky a nastavení zakázky.\nNENÁVRATNĚ se smažou fotky u bodů, hlasovky a podložené plány — pokud je potřebuješ, nejdřív si stáhni zálohu (Nastavení → Údržba).")) return;
             const pid = activeProjectId;
             // UKLID PODLE PREFIXU, ne rucnim vyctem: VSECHNA per-zakazkova data zacinaji
             // `${pid}_` (getStoreKey). Rucni seznam klicu tu zastaraval — ~13 klicu modulu
             // (vytycovaci checklist, Helmert, epochy, zapisniky, vrstvy...) zustavalo po
             // smazani zakazky navzdy jako sirotci. Prefix smete i vsechny budouci klice.
             _idbDelByPrefix(pid + "_");
+            // ⚠ #13: VYCISTIT I SYNCHRONNI CACHE _idbMem. js/undo.js pri "Vratit zpet"
+            // zapisuje jen klice, ktere se proti snimku LISI (`if (_idbMem[k] === s.mem[k]) return`).
+            // Kdyz tu po smazani zustane klic `<zakazka>_arCustomPoints12` se starou
+            // hodnotou, porovnani vyjde na rovnost, zapis do IndexedDB se preskoci a
+            // obnova je jen zdanliva: v bezici appce jsou body zpatky, po restartu pryc.
+            try { Object.keys(_idbMem).forEach(k => { if (k.indexOf(pid + "_") === 0) delete _idbMem[k]; }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:deleteProject'); }
             try { for (let i = localStorage.length - 1; i >= 0; i--) { const k = localStorage.key(i); if (k && k.indexOf(pid + "_") === 0) localStorage.removeItem(k); } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:deleteProject'); }
             // Moduly s VLASTNI IndexedDB (fotky vytyceni, rastr podkladu...) si uklidi samy.
             // Zurnal (argeodet-journal) se ZAMERNE nemaze — auditni stopa prezije i zakazku.
@@ -615,7 +630,29 @@ if ('serviceWorker' in navigator) {
             if (window.agConfirm) { window.agConfirm({ title: 'Vymazat stáhnuté okolí', message: msg.replace(/\n/g, '<br>'), okText: 'Vymazat', danger: true }).then(ok => { if (ok) doIt(); }); }
             else if (confirm(msg)) doIt();
         } function getVisiblePointsCount() { return arPoints.filter(p => !p.hidden && p.currentDist <= arRadius && agMatchQuery(p, searchQuery)).length; }
-        function exportPoints() { if (persistentCustomPoints.length === 0) return agInfo("Nemáte žádné body."); const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(persistentCustomPoints)); const downloadAnchorNode = document.createElement('a'); downloadAnchorNode.setAttribute("href", dataStr); downloadAnchorNode.setAttribute("download", `moje_body_${activeProjectId}.json`); document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove(); }
+        // ⚠ #9 CESTA SOUBORU VEN. Všechny tři exporty níže šly přes „data:" URL
+        // s atributem download. Na iOS Safari (a v PWA z plochy iPhonu obzvlášť)
+        // to nestáhne nic — odkaz text buď jen otevře v prohlížeči, nebo neudělá
+        // vůbec nic. Jediná spolehlivá cesta ven je systémový list sdílení;
+        // sjednocuje ji window.agShareOrDownload (js/sdilet-soubor.js, eager
+        // v index.html). Kdyby ten modul chyběl, zůstane stažení odkazem jako dřív.
+        function _exportVen(filename, mime, text) {
+            const blob = new Blob([text], { type: mime + ';charset=utf-8' });
+            if (typeof window.agShareOrDownload === 'function') {
+                return window.agShareOrDownload(blob, filename, mime)['catch'](function (e) {
+                    window.AG && AG.swallow && AG.swallow(e, 'logika:_exportVen');
+                    return 'fail';
+                });
+            }
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = filename;
+            document.body.appendChild(a); a.click(); a.remove();
+            // Odklad kvůli Safari: revoke hned po click() stihne URL zneplatnit dřív,
+            // než ji prohlížeč vůbec začne číst.
+            setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:_exportVen'); } }, 1500);
+        }
+        function exportPoints() { if (persistentCustomPoints.length === 0) return agInfo("Nem\u00e1te \u017e\u00e1dn\u00e9 body."); _exportVen(`moje_body_${activeProjectId}.json`, 'application/json', JSON.stringify(persistentCustomPoints)); }
         // Export do CSV (seznam souradnic): radky "nazev;Y;X" v S-JTSK. BOM kvuli diakritice v Excelu.
         function exportPointsCSV() {
             if (persistentCustomPoints.length === 0) return agInfo("Nemáte žádné body.");
@@ -628,10 +665,7 @@ if ('serviceWorker' in navigator) {
                 return nm + ';' + y + ';' + x + (pt.vyska != null ? ';' + Number(pt.vyska).toFixed(2) : (kd ? ';' : '')) + (kd ? ';' + kd : '');
             });
             const csv = "\uFEFF" + lines.join("\r\n") + "\r\n";
-            const a = document.createElement('a');
-            a.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(csv));
-            a.setAttribute("download", `body_${activeProjectId}.csv`);
-            document.body.appendChild(a); a.click(); a.remove();
+            _exportVen(`body_${activeProjectId}.csv`, 'text/csv', csv);
         }
         // Export do TXT: stejne radky "nazev;Y;X" jako CSV (jdou rovnou zpet naimportovat), jen bez BOM
         function exportPointsTXT() {
@@ -642,10 +676,7 @@ if ('serviceWorker' in navigator) {
                 let kd = pt.kod ? String(pt.kod).replace(/[;\r\n]/g, ' ') : '';
                 return nm + ';' + Math.abs(sj[0]).toFixed(2) + ';' + Math.abs(sj[1]).toFixed(2) + (pt.vyska != null ? ';' + Number(pt.vyska).toFixed(2) : (kd ? ';' : '')) + (kd ? ';' + kd : '');
             });
-            const a = document.createElement('a');
-            a.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(lines.join("\r\n") + "\r\n"));
-            a.setAttribute("download", `body_${activeProjectId}.txt`);
-            document.body.appendChild(a); a.click(); a.remove();
+            _exportVen(`body_${activeProjectId}.txt`, 'text/plain', lines.join("\r\n") + "\r\n");
         }
         // S-JTSK Y,X (kladne) -> WGS84. Pořadí os podle ROZSAHŮ pro ČR (Y 400-935k,
         // X 935-1300k) — sdílená logika v GeoCore.fromSJTSK; mimo rozsah padá na min/max.
@@ -793,6 +824,32 @@ if ('serviceWorker' in navigator) {
         }
         // Vyplnit Y/X z PRUMEROVANE GPS polohy (presnejsi nez jeden odecet) + ulozit dosazenou presnost
         function fillAveragedGPS() {
+            // ⚠ #2 POLOHA Z MAPY: odecet prstem do ortofota NENI mereni. Vyplnime ho —
+            // je to casto poctivejsi zdroj nez GPS mezi panelaky — ale s VLASTNI
+            // presnosti (z meritka mapy) a s vlastni provenienci, at appka netvrdi
+            // "zprumerovano z 300 mereni". Tahle odbocka MUSI byt uplne prvni: pri rucni
+            // poloze se prumer zamerne nesbira (viz updateGpsAveraging), takze by se driv
+            // trefila hlaska "Pockejte na ustaleni prumerovani GPS" a bod by nesel vyplnit.
+            const _mpf = window.AGManualPos;
+            if (_mpf && _mpf.active && _mpf.lat != null) {
+                const _sjm = proj4("EPSG:4326", "EPSG:5514", [_mpf.lng, _mpf.lat]);
+                document.getElementById('custom-y').value = Math.abs(_sjm[0]).toFixed(2);
+                document.getElementById('custom-x').value = Math.abs(_sjm[1]).toFixed(2);
+                pendingPointAccuracy = _mpf.acc;
+                // origin 'mapa' zaroven VYRADI bod z Helmertovy lokalizace (ta bezi jen nad
+                // 'gps-avg', viz saveCustomPoint) — posunout rucne trefeny roh budovy
+                // o systematiku GPS staveniste znamena odsunout ho prave odtud, kam clovek miril.
+                window._agPointOrigin = 'mapa';
+                // vysku z mapy appka nezna; stara hodnota v poli by byla podvrzena
+                const _zm = document.getElementById('custom-z'); if (_zm) _zm.value = '';
+                const _nm = document.getElementById('custom-acc-note');
+                if (_nm) {
+                    _nm.style.display = 'block';
+                    _nm.innerHTML = 'Poloha <b>odečtená z mapy</b> — ±' + (Math.round(_mpf.acc * 10) / 10).toFixed(1).replace('.', ',')
+                        + ' m. Není to měření: přesnost vychází z měřítka mapy při klepnutí, ne z GPS. Výšku z mapy appka neurčí.';
+                }
+                return;
+            }
             // BRANA CERSTVOSTI: kdyz GPS prestala dodavat fixy (tunel, suspend), prumer je
             // ze STARE polohy — bod by se tise ulozil jinam, nez clovek stoji.
             const _fx = window.AGFix;
@@ -881,6 +938,32 @@ if ('serviceWorker' in navigator) {
         }
         let _dupAckOnce = false;   // po potvrzeni "Uložit i tak" se saveCustomPoint zavola znovu
 
+        // ⚠ #12: PO RUCNI ZMENE SOURADNICE UZ STARA PROVENIENCE NEPLATI.
+        // Editacni vetev saveCustomPoint drive prepsala jen name/lat/lng/vyska/kod —
+        // `acc` i `prov` zustavaly z puvodniho mereni. Bod prepsany z papiru nebo
+        // z uredniho vypisu se tedy dal tvaril jako "průměr GPS ±0,35 m" a tohle cislo
+        // slo do karty bodu, do zurnalu, do protokolu i do firemniho cloudu.
+        // Nova presnost pri editaci VZNIKNOUT NEMUZE: tlacitko "Z průměru GPS" sedi
+        // v #custom-create-helpers, ktere editCustomPoint schova. Presnost proto
+        // poctive zahodime a duvera.js u origin 'edit' rekne, ze cislo neni.
+        // POZOR na prejmenovani: kdyz se souradnice ani vyska NEZMENILY, provenienci
+        // NECHAVAME — jinak by pouhe prepsani nazvu zahodilo i presnost z kontrolniho
+        // mereni (prov.trueAcc), tedy to jedine cislo, ktere opravdu vzniklo merenim.
+        // Porovnava se v S-JTSK na dve desetinna mista, tedy PRESNE v tom tvaru, jaky
+        // do formulare zapsal editCustomPoint — zpetny prevod pres proj4 by jinak
+        // i pri necinnosti vratil rozdil v milimetrech a "zmenu" hlasil vzdycky.
+        function _provPoEdici(stary, inputY, inputX, vyska) {
+            try {
+                const sj = proj4("EPSG:4326", "EPSG:5514", [stary.lng, stary.lat]);
+                const stejneYX = Math.abs(sj[0]).toFixed(2) === Math.abs(inputY).toFixed(2)
+                    && Math.abs(sj[1]).toFixed(2) === Math.abs(inputX).toFixed(2);
+                const staraZ = (stary.vyska == null || !isFinite(stary.vyska)) ? null : Math.round(stary.vyska * 100) / 100;
+                if (stejneYX && staraZ === vyska) return null;   // jen prejmenovani/kod -> puvod zustava
+                const p = stary.prov || {};
+                return { origin: 'edit', ts: Date.now(), acc: null, prevOrigin: p.origin || null };
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:_provPoEdici'); return null; }
+        }
+
         function saveCustomPoint(keepOpen) {
             let name = String(document.getElementById('custom-name').value || '').trim();
             if (!name) name = agNextSerieName() || "Bod";   // prazdne pole: dalsi cislo serie misto kolidujiciho "Bod"
@@ -926,7 +1009,14 @@ if ('serviceWorker' in navigator) {
             }
             let savedId = editingCustomPointId;
             _saveToastShown = false;
-            if (editingCustomPointId) { const idx = persistentCustomPoints.findIndex(p => p.id === editingCustomPointId); if(idx !== -1) { persistentCustomPoints[idx].name = name; persistentCustomPoints[idx].lat = lat; persistentCustomPoints[idx].lng = lng; persistentCustomPoints[idx].vyska = vyska; persistentCustomPoints[idx].kod = kod || undefined; } const arIdx = arPoints.findIndex(p => p.id === editingCustomPointId); if (arIdx !== -1) { arPoints[arIdx].name = name; arPoints[arIdx].lat = lat; arPoints[arIdx].lng = lng; arPoints[arIdx].vyska = vyska; arPoints[arIdx].kod = kod || undefined; if(arPoints[arIdx].element) { arPoints[arIdx].element.remove(); arPoints[arIdx].element = null; } } } else { const newPoint = { id: 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6), name: name, lat: lat, lng: lng, cat: "CUSTOM", type: "custom" }; if (vyska != null) newPoint.vyska = vyska; if (kod) newPoint.kod = kod; if (pendingPointAccuracy != null) newPoint.acc = Math.round(pendingPointAccuracy * 100) / 100; newPoint.prov = { origin: (window._agPointOrigin || 'ruc'), ts: Date.now(), acc: (newPoint.acc != null ? newPoint.acc : null), qc: ((window.AGQc && AGQc.lastCode) || null) }; persistentCustomPoints.push(newPoint); const _arNew = {...newPoint, hidden: false}; arPoints.push(_arNew); savedId = newPoint.id; try { ensureFreshPointVisible(_arNew); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika'); } try { if (window.AGJournal) window.AGJournal.commit({ op: 'add', id: newPoint.id, after: newPoint, origin: newPoint.prov.origin }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika'); } } pendingPointAccuracy = null; window._agPointOrigin = null; setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
+            // ⚠ #23 ČAS POSLEDNÍ ÚPRAVY (`mts`) PRO FIREMNÍ CLOUD. js/cloud-sync.js řeší
+            // konflikty podle „poslední úprava vyhrává", ale bod žádné takové pole neměl —
+            // posílal se čas ODESLÁNÍ. Kdo byl den v lese bez signálu, večer po připojení
+            // přepsal odpolední opravu z kanceláře. `prov.ts` použít nelze, to je čas
+            // VZNIKU bodu (a při pouhém přejmenování se navíc záměrně nemění).
+            // Razítko se posouvá při KAŽDÉ editaci, i při přejmenování — pro kolegu je
+            // změna názvu stejná změna jako změna souřadnice.
+            if (editingCustomPointId) { const idx = persistentCustomPoints.findIndex(p => p.id === editingCustomPointId); let _editProv = null; const _mts = Date.now(); if(idx !== -1) { _editProv = _provPoEdici(persistentCustomPoints[idx], inputY, inputX, vyska); persistentCustomPoints[idx].mts = _mts; persistentCustomPoints[idx].name = name; persistentCustomPoints[idx].lat = lat; persistentCustomPoints[idx].lng = lng; persistentCustomPoints[idx].vyska = vyska; persistentCustomPoints[idx].kod = kod || undefined; if (_editProv) { persistentCustomPoints[idx].prov = _editProv; delete persistentCustomPoints[idx].acc; } } const arIdx = arPoints.findIndex(p => p.id === editingCustomPointId); if (arIdx !== -1) { arPoints[arIdx].mts = _mts; arPoints[arIdx].name = name; arPoints[arIdx].lat = lat; arPoints[arIdx].lng = lng; arPoints[arIdx].vyska = vyska; arPoints[arIdx].kod = kod || undefined; if (_editProv) { arPoints[arIdx].prov = _editProv; delete arPoints[arIdx].acc; } if(arPoints[arIdx].element) { arPoints[arIdx].element.remove(); arPoints[arIdx].element = null; } } } else { const newPoint = { id: 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6), name: name, lat: lat, lng: lng, cat: "CUSTOM", type: "custom", mts: Date.now() }; if (vyska != null) newPoint.vyska = vyska; if (kod) newPoint.kod = kod; if (pendingPointAccuracy != null) newPoint.acc = Math.round(pendingPointAccuracy * 100) / 100; newPoint.prov = { origin: (window._agPointOrigin || 'ruc'), ts: Date.now(), acc: (newPoint.acc != null ? newPoint.acc : null), qc: ((window.AGQc && AGQc.lastCode) || null) }; persistentCustomPoints.push(newPoint); const _arNew = {...newPoint, hidden: false}; arPoints.push(_arNew); savedId = newPoint.id; try { ensureFreshPointVisible(_arNew); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika'); } try { if (window.AGJournal) window.AGJournal.commit({ op: 'add', id: newPoint.id, after: newPoint, origin: newPoint.prov.origin }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika'); } } pendingPointAccuracy = null; window._agPointOrigin = null; setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
             saveNewPointDoc(savedId);
             try { if (window.AGDraft) AGDraft.clear('novy-bod'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika'); }   // rozepsany bod je ulozeny -> draft pryc
             const _wasEdit = !!editingCustomPointId;
@@ -1125,13 +1215,25 @@ if ('serviceWorker' in navigator) {
         // sterr pocitame z efektivniho n (po sobe jdouci fixy jsou korelovane, nejsou nezavisle).
         function _median(arr) { const a = arr.slice().sort((p, q) => p - q); const m = a.length >> 1; return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; }
         function updateGpsAveraging(lat, lng, acc, speed, alt, altAcc) {
+            // ⚠ #2 RUCNI POLOHA (js/poloha-z-mapy.js): do prumeru padala pri KAZDEM fixu
+            // tataz rucne zadana souradnice (volajici uz userLat/userLng prepsal), takze
+            // sigma vysla 0 a appka u bodu trefeneho prstem hlasila "prumer z 300 mereni,
+            // ⌀ ±0,30 m". Vzorky proto nesbirame vubec a vysledek drzi rovnou odecet
+            // z mapy — vcetne jeho vlastni, poctive horsi presnosti.
+            const _mpu = window.AGManualPos;
+            if (_mpu && _mpu.active && _mpu.lat != null) {
+                gpsSamples = [];
+                gpsAvgResult = { lat: _mpu.lat, lng: _mpu.lng, n: 0, total: 0, sigma: null, sterr: _mpu.acc, acc: _mpu.acc, coarse: false, alt: null, altSterr: null, altN: 0, manual: true, ts: Date.now() };
+                updateGpsAvgPanel();
+                return;
+            }
             // HRUBY FIX: presnost horsi nez GPS_COARSE_ACC = sitova/fused poloha (Wi-Fi/cell), ne
             // realny satelitni GNSS. Takove vzorky do presneho prumeru NEpoustime — jinak vyleze
             // klidne +-17 m i na otevrenem poli (garbage in). Misto toho oznacime stav "coarse"
             // a appka rekne "cekam na satelitni fix". Mame-li uz dobre vzorky, hruby fix ignorujeme.
             const GPS_COARSE_ACC = 20;
             if (acc && acc > GPS_COARSE_ACC) {
-                if (!gpsSamples.length) { gpsAvgResult = { coarse: true, acc: acc, n: 0, total: 0 }; updateGpsAvgPanel(); }
+                if (!gpsSamples.length) { gpsAvgResult = { coarse: true, acc: acc, n: 0, total: 0, manual: false, ts: Date.now() }; updateGpsAvgPanel(); }
                 return;
             }
             if (gpsSamples.length) {
@@ -1226,9 +1328,24 @@ if ('serviceWorker' in navigator) {
                     altN = aS.length;
                 }
             }
-            gpsAvgResult = { lat: lat0 + wy / mLat, lng: lng0 + wx / mLng, n: used.length, total: total, sigma: sigma, sterr: sterr, acc: meanAcc, coarse: false, alt: altMean, altSterr: altSterr, altN: altN };
+            // ⚠ #22: `ts` je RAZITKO CERSTVOSTI vysledku. Kdyz GPS prestane dodavat fixy
+            // (auto, tunel, iOS suspend), updateGpsAveraging se prestane volat a tenhle
+            // objekt drzi starou hodnotu donekonecna — cetlo ho ale devet modulu bez
+            // jakekoli brany (protokol vytyceni, Helmert, offset, kontrola vrstvy...),
+            // takze do dokumentu na stavbu slo cislo z jine hodiny. Ptejte se agAvgFresh().
+            gpsAvgResult = { lat: lat0 + wy / mLat, lng: lng0 + wx / mLng, n: used.length, total: total, sigma: sigma, sterr: sterr, acc: meanAcc, coarse: false, alt: altMean, altSterr: altSterr, altN: altN, manual: false, ts: Date.now() };
             updateGpsAvgPanel();
         }
+        // SPOLECNA BRANA CERSTVOSTI pro vsechny ctenare gpsAvgResult (#22). Vraci false
+        // i pro rucni polohu z mapy tam, kde volajici chce jen skutecne mereni
+        // (`agAvgFresh(15000, true)`); bez druheho argumentu rucni poloha projde, protoze
+        // je to platna — jen jinak vznikla — poloha.
+        window.agAvgFresh = function (maxMs, jenMereni) {
+            const r = gpsAvgResult;
+            if (!r || !r.ts) return false;
+            if (jenMereni && r.manual) return false;
+            return (Date.now() - r.ts) < (maxMs || 15000);
+        };
 
         // FETCH s timeoutem: aby se stahovani nezaseklo navzdy, kdyz CUZK neodpovida.
         // Pri chybe site/timeoutu nastavi lastFetchNetworkError a chybu znovu vyhodi (puvodni try/catch ji spolkne).

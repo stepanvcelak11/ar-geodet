@@ -95,8 +95,16 @@
     // v přepínači; `tools` je pořadí dlaždic v sekci „Pro tuto práci“.
     var PROFILES = [
         { id: 'univerzal', label: 'Univerzální', tools: [] },
-        { id: 'vytycovani', label: 'Vytyčování', tools: ['openStakeoutModal', 'stakeout-line', 'offset-point', 'usadit-ar', 'agOpenCalibrate', 'kompas', 'rajon', 'project-import', 'openMeasureModal'] },
-        { id: 'pokladka', label: 'Pokládka / vrstvy', tools: ['vrstvy', 'brutal-gps', 'gps-semafor', 'openCheckDist', 'track-log', 'kompas', 'zavady', 'epochy', 'openMeasureModal'] },
+        { id: 'vytycovani', label: 'Vytyčování', tools: ['openStakeoutModal', 'stakeout-line', 'protokol-vytyceni', 'offset-point', 'usadit-ar', 'agOpenCalibrate', 'rajon', 'project-import', 'openMeasureModal'] },
+        // ⚠⚠ POKLÁDKA: seznam MUSÍ zůstat shodný s js/rezim-prace.js (MODES, id 'pokladka').
+        // mergeProfiles() tam vestavěným profilům jen PŘIDÁVÁ, takže co se vyškrtne jen
+        // na jednom místě, druhé místo vrátí zpátky. Do 5. 9. 2026 tu byl profil bez
+        // JEDINÉHO vytyčovacího nástroje — ani „Kontrola vrstvy“, kterou má ve vlastním
+        // popisu. Teď je to celý řetěz: vytyč → změř hotovou vrstvu → protokol.
+        // Pryč: 'openCheckDist' a 'track-log' (uživatel je označil za nepoužívané, takže
+        // je moje-aktivita.js stejně schová a v profilu by byly mrtvá místa) a 'kompas'
+        // (je v základní sadě `base: 1`, do profilu ho tahat netřeba).
+        { id: 'pokladka', label: 'Pokládka / vrstvy', tools: ['openStakeoutModal', 'stakeout-line', 'kontrola-vrstvy', 'vrstvy', 'brutal-gps', 'protokol-vytyceni', 'zavady', 'openMeasureModal', 'ref-calibration', 'korekce', 'project-import'] },
         { id: 'katastr', label: 'Katastr a mapování', tools: ['openKatastr', 'cadastre-vector', 'parcela', 'startAreaMode', 'openTachymetrie', 'project-import', 'openMeasureModal'] },
         { id: 'kontrola', label: 'Kontrola a monitoring', tools: ['openCheckDist', 'epochy', 'zavady', 'openDmtVolume', 'vyska-objektu', 'track-log', 'zapisnik', 'openMeasureModal'] }
     ];
@@ -197,21 +205,34 @@
           help: { t: 'Usadit AR (průvodce)' } },
         { k: 'kompas', verb: 'Srovnat AR', vl: 'Podívat se na kompas', vh: 'růžice se zeměpisným i magnetickým severem', keys: 'kompas busola ruzice sever magneticky zemepisny pravy azimut deklinace smer strelka gon nula', base: 1,
           help: { t: 'Kompas a sever' } },
+        // ⚠⚠ ROZCESTNÍK „Srovnat sever": do 5. 9. 2026 mělo sloveso „Srovnat AR" DESET
+        // řádků (víc než kterékoli jiné) a geodet u pokládky mezi nimi nemá jak
+        // kvalifikovaně vybrat — všechny slibují totéž, „ať značky sedí". Zbývají tu
+        // proto tři samostatné vstupy (průvodce, kompas, srovnat sever) a zbytek je
+        // za jedním rozcestníkem, kde je u každé volby napsané, KDY se hodí.
+        // Definice rozcestníku (ikona, titulek, pořadí voleb) je v js/tools-hub.js
+        // v poli HUBS — bez ní by se položky jen skryly a dlaždice by nevznikla.
+        { k: 'srovnat-sever', w: 1, verb: 'Srovnat AR', vl: 'Srovnat jinak', vh: 'dva body, podle bodu, Slunce, Helmert, posun GPS, FOV', hub: 1,
+          keys: 'srovnat sever ar kalibrace helmert lokalizace posun gps referencni bod slunce dva body zorny uhel fov stabilizace znacky nesedi rozcestnik',
+          help: { t: 'Srovnat AR — další způsoby' } },
         { k: 'agOpenCalibrate', verb: 'Srovnat AR', vl: 'Srovnat sever', keys: 'sever kalibrace kompas azimut srovnat smer odchylka', base: 1,
           help: { t: 'Srovnat sever' } },
-        { k: 'ar-calib2', verb: 'Srovnat AR', vl: 'Srovnat na dva body', keys: 'srovnat ar dva body kalibrace posun sever usadit znacky nesedi',
+        { k: 'ar-calib2', inhub: 'srovnat-sever', verb: 'Srovnat AR', vl: 'Srovnat na dva body', keys: 'srovnat ar dva body kalibrace posun sever usadit znacky nesedi',
           help: { t: 'Srovnat AR na 2 body' } },
-        { k: 'orient-point', cat: 'AR a kalibrace', verb: 'Srovnat AR', vl: 'Srovnat sever podle bodu', vh: 'opravuje AZIMUT, ne polohu', keys: 'orientace bod sever srovnani smer',
+        { k: 'orient-point', inhub: 'srovnat-sever', cat: 'AR a kalibrace', verb: 'Srovnat AR', vl: 'Srovnat sever podle bodu', vh: 'opravuje AZIMUT, ne polohu', keys: 'orientace bod sever srovnani smer',
           help: { t: 'Srovnat sever podle bodu' } },
-        { k: 'sever-slunce', cat: 'AR a kalibrace', verb: 'Srovnat AR', vl: 'Srovnat sever podle Slunce', vh: 'když kompas lže a není na co orientovat',
+        { k: 'sever-slunce', inhub: 'srovnat-sever', cat: 'AR a kalibrace', verb: 'Srovnat AR', vl: 'Srovnat sever podle Slunce', vh: 'když kompas lže a není na co orientovat',
           keys: 'slunce sever azimut kompas srovnat stin orientace magnetometr rusi armatura kov bez bodu',
           help: { t: 'Sever podle Slunce' } },
-        { k: 'localization-helmert', verb: 'Srovnat AR', vl: 'Lokalizace (Helmert)', vh: 'místní systém', keys: 'helmert lokalizace transformace klic mistni system',
+        { k: 'localization-helmert', inhub: 'srovnat-sever', verb: 'Srovnat AR', vl: 'Lokalizace (Helmert)', vh: 'místní systém', keys: 'helmert lokalizace transformace klic mistni system',
           help: { t: 'Lokalizace (Helmert)' } },
-        { k: 'ref-calibration', w: 1, verb: 'Srovnat AR', vl: 'Opravit posun GPS podle bodu', vh: 'opravuje POLOHU, ne sever', keys: 'kalibrace referencni bod srovnani ar posun usazeni znamy bod',
+        { k: 'ref-calibration', w: 1, inhub: 'srovnat-sever', verb: 'Srovnat AR', vl: 'Opravit posun GPS podle bodu', vh: 'opravuje POLOHU, ne sever', keys: 'kalibrace referencni bod srovnani ar posun usazeni znamy bod',
           help: { t: 'Posun GPS na známý bod' } },
-        { k: 'fov-kalib', verb: 'Srovnat AR', vl: 'Změřit zorný úhel kamery', keys: 'zorny uhel kamery fov kalibrace ohnisko sirka zaberu ar presnost',
+        { k: 'fov-kalib', inhub: 'srovnat-sever', verb: 'Srovnat AR', vl: 'Změřit zorný úhel kamery', keys: 'zorny uhel kamery fov kalibrace ohnisko sirka zaberu ar presnost',
           help: { t: 'Zorný úhel kamery (FOV)' } },
+        // ar-visual-track do rozcestníku ZÁMĚRNĚ nejde: uživatel ho 9. 8. 2026 označil
+        // za trvale vypnutý (seed v2 v js/moje-aktivita.js) a vstup má v Nastavení →
+        // AR & přesnost. Přidat mu druhou cestu by šlo přesně proti tomuhle úklidu.
         { k: 'ar-visual-track', verb: 'Srovnat AR', vl: 'Vizuální stabilizace', vh: 'beta', keys: 'stabilizace ar obraz kamera drift plavani znacek vizualni beta',
           help: { t: 'Vizuální stabilizace AR (beta)' } },
 

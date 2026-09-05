@@ -63,8 +63,10 @@ function openCalcPicker(idp) {
     pts = pts.slice(0, 80);
     if (!pts.length) list.innerHTML = '<p style="text-align:center; opacity:0.7;">Žádné body. Stáhněte okolí nebo vložte vlastní.</p>';
     pts.forEach(p => {
-        const sj = proj4('EPSG:4326', 'EPSG:5514', [p.lng, p.lat]);
-        const Y = Math.abs(sj[0]), X = Math.abs(sj[1]);
+        // S-JTSK z GeoCore (jediný autoritativní převod, hlídá pořadí os) — tahle
+        // čísla se geodetovi rovnou vypisují do dlaždice a dosazují do formuláře.
+        const _sjp = (window.GeoCore && GeoCore.toSJTSK) ? GeoCore.toSJTSK(p.lat, p.lng) : null;
+        const Y = _sjp ? _sjp.y : NaN, X = _sjp ? _sjp.x : NaN;
         const item = document.createElement('div'); item.className = 'cluster-list-item';
         item.innerHTML = `<div><div class="cluster-item-title">#${_escHtml(p.name)}</div><div class="cluster-item-subtitle">Y ${Y.toFixed(2)} · X ${X.toFixed(2)}</div></div><div style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:0.7;">${p.cat}</div>`;
         item.addEventListener('click', () => {
@@ -743,10 +745,13 @@ function calcPrevod() {
         else if (s === 'wgs') { lat = a; lng = b; }
         else { const w = proj4('UTM33N', 'EPSG:4326', [a, b]); lng = w[0]; lat = w[1]; }
         if (!isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) throw 'Souřadnice jsou mimo rozsah.';
-        const sj = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]);
+        // S-JTSK z GeoCore (jediný autoritativní převod, hlídá pořadí os).
+        // UTM je jiný systém, ten GeoCore neřeší a zůstává na proj4.
+        if (!(window.GeoCore && GeoCore.toSJTSK)) throw 'Geodetické jádro se nenačetlo — zkus appku spustit znovu.';
+        const sj = GeoCore.toSJTSK(lat, lng);
         const utm = proj4('EPSG:4326', 'UTM33N', [lng, lat]);
         document.getElementById('calc-result').innerHTML = _resBox(
-            _row('<b>S-JTSK Y</b>', '<b>' + Math.abs(sj[0]).toFixed(2) + '</b>') + _row('<b>S-JTSK X</b>', '<b>' + Math.abs(sj[1]).toFixed(2) + '</b>')
+            _row('<b>S-JTSK Y</b>', '<b>' + sj.y.toFixed(2) + '</b>') + _row('<b>S-JTSK X</b>', '<b>' + sj.x.toFixed(2) + '</b>')
             + _row('WGS84 šířka', lat.toFixed(7) + ' °') + _row('WGS84 délka', lng.toFixed(7) + ' °')
             + _row('UTM 33N E', utm[0].toFixed(2) + ' m') + _row('UTM 33N N', utm[1].toFixed(2) + ' m'));
     } catch (e) { _calcErr(e); }
@@ -1062,10 +1067,23 @@ function decoratePointItem(item, pt, preloadedDoc) {
             try { const doc = await loadPointDoc(pt.id); _normalizeDoc(doc); if (doc && ((doc.photos && doc.photos.length) || doc.note)) o.doc = doc; } catch (e) {}
             out.push(o);
         }
+        // ⚠ #9 TICHÁ PAST: tenhle exportPoints PŘEBÍJÍ ten z js/logika.js (načítá se
+        // po něm), takže oprava cesty ven musí být i tady — jinak by byla za běhu
+        // neúčinná. „data:" URL na iOS Safari nestáhne nic; jediná spolehlivá cesta
+        // je systémový list sdílení (window.agShareOrDownload, js/sdilet-soubor.js).
+        const nazev = `moje_body_${activeProjectId}.json`;
+        const blob = new Blob([JSON.stringify(out)], { type: 'application/json;charset=utf-8' });
+        if (typeof window.agShareOrDownload === 'function') {
+            return window.agShareOrDownload(blob, nazev, 'application/json')['catch'](function (e) {
+                window.AG && AG.swallow && AG.swallow(e, 'kalkulacka:exportPoints');
+                return 'fail';
+            });
+        }
+        const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.setAttribute('href', 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(out)));
-        a.setAttribute('download', `moje_body_${activeProjectId}.json`);
+        a.href = url; a.download = nazev;
         document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e) {} }, 1500);
     };
 })();
 
@@ -1076,6 +1094,11 @@ function decoratePointItem(item, pt, preloadedDoc) {
 (function () {
     if (typeof window.deleteCustomPoint !== 'function') return;
     const _origDel = window.deleteCustomPoint;
+    // ⚠⚠ #27 POJISTKA PROTI DVOJIMU OBALENI. kos.js i journal.js ji davno maji,
+    // tenhle obal ji nemel — a pritom je LAZY (index.html: type="ag/lazy"), takze
+    // jeho druhe nacteni (nebo rucni vyvolani modulu) by foto-dokumentaci mazalo
+    // dvakrat a cely retez prodlouzilo o dalsi patro.
+    if (_origDel._docWrapped) return;
     window.deleteCustomPoint = function (id) {
         const before = (typeof persistentCustomPoints !== 'undefined') ? persistentCustomPoints.length : 0;
         // MUSI predat CELE arguments, ne jen id. deleteCustomPoint bere druhy argument
@@ -1089,6 +1112,15 @@ function decoratePointItem(item, pt, preloadedDoc) {
         if (typeof persistentCustomPoints !== 'undefined' && persistentCustomPoints.length < before) { try { deletePointDoc(id); } catch (e) {} }
         return ret;
     };
+    // ⚠⚠ #27 PRENOS PRIZNAKU OBALENI. Tenhle obal je v retezu NEJZEVNEJSI (nacita se
+    // az z odkladane vrstvy, tedy po kos.js, undo.js i journal.js). Kdyz priznaky
+    // predchozich obalu nezdedi, ZMIZI VSECHNY naraz — zmereno v prohlizeci po startu:
+    // Object.keys(window.deleteCustomPoint) filtrovane na /Wrapped$/ vracelo prazdne
+    // pole, takze pojistky kose, undo i zurnalu byly za behu mrtve a kdokoli dalsi
+    // mohl obalit podruhe (dvojity zaznam v kosi, dvojity zapis do zurnalu, u
+    // in-app dialogu i nekonecna smycka potvrzovani).
+    try { for (const k in _origDel) { if (/Wrapped$/.test(k)) window.deleteCustomPoint[k] = _origDel[k]; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kalkulacka:wrapDelete'); }
+    window.deleteCustomPoint._docWrapped = true;
 })();
 
 // styly foto-dokumentace
@@ -1096,8 +1128,10 @@ function decoratePointItem(item, pt, preloadedDoc) {
     const st = document.createElement('style');
     st.textContent = `
         .point-doc { margin-top: 14px; border-top: 1px solid var(--glass-border); padding-top: 12px; }
-        .pd-head { font-size: calc(12px * var(--ag-font-scale, 1)); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.55; margin-bottom: 8px; }
-        .pd-empty { font-size: calc(13px * var(--ag-font-scale, 1)); opacity: 0.5; font-style: italic; padding: 2px 0 10px; }
+        /* Ztlumeni BARVOU, ne opacity: venkovni rezim prebiji tokeny, ale pres
+           opacity nema jak sahnout — na slunci pak tenhle text spadne pod normu. */
+        .pd-head { font-size: calc(12px * var(--ag-font-scale, 1)); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted, #9aa1ac); margin-bottom: 8px; }
+        .pd-empty { font-size: calc(13px * var(--ag-font-scale, 1)); color: var(--text-faint, #6b727d); font-style: italic; padding: 2px 0 10px; }
         .pd-thumbs { display: flex; gap: 8px; margin-bottom: 8px; }
         .pd-thumb { position: relative; flex: 1 1 0; min-width: 0; }
         .pd-thumb img { width: 100%; height: 88px; object-fit: cover; border-radius: 10px; display: block; }

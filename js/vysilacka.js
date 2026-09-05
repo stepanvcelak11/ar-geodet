@@ -90,15 +90,30 @@
         return o;
     }
     function saveCfg(o) { try { localStorage.setItem(LS, JSON.stringify(o)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:saveCfg'); } }
+    // S-JTSK počítá VÝHRADNĚ GeoCore: je to jediné místo v appce, které si ověří
+    // POŘADÍ OS Křováku (_resolveAxis v js/geo-core.js). Dřív tu byla vlastní záloha
+    // přes proj4 s pořadím zadrátovaným natvrdo ([-Y, -X]) — jenže právě to je věc,
+    // která se při bumpu proj4 nebo přidání +axis= může změnit: GeoCore to ohlásí
+    // a přehodí, záloha by osy TIŠE prohodila a bod by skončil o stovky km jinde.
+    // V geodetické appce je „souřadnici neznám" lepší než „souřadnice vedle".
     function toSJTSK(lat, lng) {
         try { if (window.GeoCore && GeoCore.toSJTSK) return GeoCore.toSJTSK(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:toSJTSK'); }
-        try { if (typeof proj4 === 'function') { var c = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { y: Math.abs(c[0]), x: Math.abs(c[1]) }; } } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'vysilacka:toSJTSK'); }
+        // do protokolu jen jednou za sezení — toSJTSK se volá v cyklu přes všechny body
+        if (!toSJTSK._warn) { toSJTSK._warn = 1; try { if (window.agErrLog) agErrLog.record('vysilacka: chybí GeoCore — S-JTSK se nepočítá'); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'vysilacka:toSJTSK'); } }
         return null;
     }
     function fmtNum(v) { return v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+    // VZDÁLENOST: nejdřív obě autority — globální getDistance (js/logika.js) a GeoCore.
+    // Nouzový výpočet tu ZŮSTÁVÁ schválně: null by se v porovnání typu `d <= LIMIT`
+    // přetypoval na 0, tedy „bod je na dosah" — tichá lež horší než chyba v centimetrech.
+    // Počítá se ale Gaussovým poloměrem ve střední šířce, ne globální konstantou
+    // 6371 km: ta v ČR zkracovala KAŽDOU vzdálenost o ~1700 ppm = 17 cm na 100 m.
     function dist(la1, lo1, la2, lo2) {
         try { if (typeof getDistance === 'function') return getDistance(la1, lo1, la2, lo2); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vysilacka:dist'); }
-        var R = 6371000, r = Math.PI / 180;
+        try { if (window.GeoCore && GeoCore.getDistance) return GeoCore.getDistance(la1, lo1, la2, lo2); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'vysilacka:dist'); }
+        var r = Math.PI / 180, A = 6378137.0, E2 = 0.00669438002290;      // GRS80
+        var sm = Math.sin((la1 + la2) / 2 * r), w2 = 1 - E2 * sm * sm, w = Math.sqrt(w2);
+        var R = Math.sqrt((A * (1 - E2) / (w2 * w)) * (A / w));           // Gaussův poloměr sqrt(M*N)
         var a = Math.sin((la2 - la1) * r / 2), b = Math.sin((lo2 - lo1) * r / 2);
         var h = a * a + Math.cos(la1 * r) * Math.cos(la2 * r) * b * b;
         return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));

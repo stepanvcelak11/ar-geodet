@@ -157,6 +157,11 @@
         try {
             var r = (typeof gpsAvgResult !== 'undefined') ? gpsAvgResult : null;
             if (!r || r.coarse || !isFinite(r.lat) || !isFinite(r.lng)) return null;
+            // ⚠ #22: druhe URCENI musi byt cerstve a musi to byt mereni. Zmrzly prumer by
+            // porovnal bod sam se sebou (rozdil 0 = "vyborna shoda") nebo s mistem, kde
+            // telefon stal pred hodinou; odecet z mapy neni kontrolni mereni vubec.
+            // Volajici na null reaguje srozumitelne — poradi nechat dobehnout prumerovani.
+            if (typeof window.agAvgFresh === 'function' && !window.agAvgFresh(15000, true)) return null;
             return r;
         } catch (e) { return null; }
     }

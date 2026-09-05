@@ -85,12 +85,20 @@
         try { r = (typeof gpsAvgResult !== 'undefined') ? gpsAvgResult : null; } catch (e) { r = null; }
         if (!r) return null;
         if (r.coarse) return { txt: null, detail: 'Síťová poloha ' + accTxt(r.acc) + ' — počkej na satelitní fix.' };
+        // ⚠ #2 RUCNI POLOHA z mapy: prumer se u ni zamerne nesbira (n zustane 0),
+        // takze bez teto vetve by bublina navzdy hlasila "Prumeruji...", i kdyz appka
+        // polohu zna. Rikame nahlas, ze to neni mereni — cislo je z meritka mapy.
+        if (r.manual) return { txt: null, detail: 'Poloha odečtená z mapy ' + accTxt(r.acc) + ' — není to měření, přesnost vychází z měřítka mapy.' };
         if (!(r.n >= 2)) return { txt: null, detail: 'Průměruji…' };
         var kolik = (r.total && r.total > r.n) ? (r.n + ' z ' + r.total) : ('' + r.n);
         return { txt: avgTxt(r.sterr), detail: '<b>' + avgTxt(r.sterr) + '</b> = stř. chyba průměru z <b>' + kolik + ' měření</b> (rozptyl σ ±' + num(r.sigma, 2) + ' m). Stejné číslo je v „Detail GPS".' };
     }
     // AR / sever: resekce (AGPose) > ruční srovnání (calInfo) > nic
     function arState() {
+        // Kompas bez povolení (iPhone, „Nepovolit" u pohybu a orientace) = AR nemá čím otáčet
+        // obraz a zůstane prázdné. Bez téhle větve tu dál svítilo smířlivé „sever jede z kompasu
+        // telefonu", i když žádný kompas neběžel. Příznak nastavuje js/grafika.js (startCompass).
+        if (window.AGCompassDenied) return { c: 'red', t: 'Kompas ✗', d: 'Aplikace nemá povolený přístup k pohybu a orientaci — kompas mlčí a AR neukáže značky ani šipku.', a: 'iPhone: Nastavení → Safari → Pohyb a orientace zapnout a stránku načíst znovu. U ikony na ploše se iOS znovu nezeptá — smaž ji a přidej appku na plochu znovu. Mapa a měření fungují dál.' };
         if (window.AGPose && window.AGPose.valid && window.AGPose.source === 'resection') {
             var age = Math.round((Date.now() - (window.AGPose.ts || 0)) / 60000);
             return { c: 'green', t: 'AR ✓ resekce', d: 'Stanovisko zakotveno resekcí' + (age ? ' před ' + age + ' min' : '') + (window.AGPose.posSigma != null ? ' (±' + num(window.AGPose.posSigma, 2) + ' m)' : '') + '.', a: 'Nejlepší možný stav. Když poodejdeš, kotva se sama zruší.' };
@@ -166,6 +174,7 @@
     // co je nejhorší a jak to pojmenovat jednou větou
     function alertFor(g, ar, d, b) {
         if (g.c === 'red') return { c: 'red', k: 'gps-r', t: 'GPS nestačí' };
+        if (ar.c === 'red') return { c: 'red', k: 'ar-r', t: 'Kompas nepovolen' };
         if (d.c === 'red') return { c: 'red', k: 'data-r', t: 'Offline bez mapy' };
         if (b && b.c === 'red') return { c: 'red', k: 'bat-r', t: 'Baterie dochází' };
         if (g.c === 'yellow') return { c: 'yellow', k: 'gps-y', t: 'Slabá GPS' };

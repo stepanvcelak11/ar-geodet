@@ -89,7 +89,29 @@ def main():
         print('  %-6s html: %s -> %s' % ('OK' if ok else 'CHYBA', name,
                                          'nahlaseno' if got else 'ticho'))
 
-    total = len(DUP_CASES) + len(HTML_CASES)
+    # SBER INLINE <script> z index.html. Kdyby prestal fungovat, 22 kB kodu
+    # (mimo jine firemni zamek) by zase tise vypadlo z kontroly syntaxe — a
+    # presne kvuli takovemu tichemu vypadku tenhle sebetest existuje.
+    inline_cases = [
+        ('inline skript se sebere', ['var x = 1;'],
+         '<script src="js/a.js"></script><script>var x = 1;</script>'),
+        ('skript se src se nesbira', [],
+         '<script src="js/a.js"></script>'),
+        ('odlozeny modul (ag/lazy) se nesbira', [],
+         '<script type="ag/lazy" data-src="js/b.js"></script>'),
+        ('dva bloky = dva zaznamy', ['a();', 'b();'],
+         '<script>a();</script><div></div><script>b();</script>'),
+    ]
+    for name, cekano, html in inline_cases:
+        cj.problems.clear()
+        p = cj.IndexCheck()
+        p.feed(html)
+        got = [src.strip() for _, src in p.inline]
+        ok = got == cekano
+        fails += 0 if ok else 1
+        print('  %-6s inline: %s -> %s' % ('OK' if ok else 'CHYBA', name, got))
+
+    total = len(DUP_CASES) + len(HTML_CASES) + len(inline_cases)
     if fails:
         print('\nSELHALO %d z %d testu' % (fails, total))
         return 1

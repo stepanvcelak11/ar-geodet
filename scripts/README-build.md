@@ -42,12 +42,23 @@ checkoutu, do repa nic nezapisuje:
 
 1. `python scripts/check_js.py` — syntaxe a duplicitní klíče ve všech `js/*.js`.
 2. `npm run build -- --apply` — vyrobí `dist/app.<hash>.min.js` **a přepíše
-   `index.html`**: všech ~112 vlastních `<script src="js/…">` tagů zmizí a na místo
-   posledního z nich se vloží jeden tag s bundlem. Knihovny `js/lib/*` zůstávají
-   samostatné a před bundlem; kdyby některá byla v dokumentu ZA posledním vlastním
-   skriptem, build to odmítne (jinak by se pořadí tiše rozbilo).
+   `index.html`**: zmizí **jen EAGER** `<script src="js/…">` tagy (dnes 73 souborů,
+   2 098 kB včetně tří knihoven) a na místo posledního z nich se vloží jeden tag
+   s bundlem. Knihovny `js/lib/*` zůstávají samostatné a před bundlem; kdyby některá
+   byla v dokumentu ZA posledním vlastním skriptem, build to odmítne (jinak by se
+   pořadí tiše rozbilo).
+
+   ⚠⚠ **ODLOŽENÉ MODULY SE NEBALÍ.** Řádky `<script type="ag/lazy" data-src="…">`
+   (dnes 81 souborů, 2 311 kB) zůstávají v `index.html` netknuté i s `data-css`;
+   stahuje si je `js/lazy-load.js` až po prvním obraze a 29 nástrojů z MANIFESTu
+   v `js/lazy-tools.js` dokonce až na klepnutí na dlaždici. Do 5. 9. 2026 je build
+   bral do bundlu taky — v nasazené verzi se pak před prvním obrazem spustilo
+   VŠECHNO (~4,5 MB) a celá odkládací vrstva byla mrtvá, aniž by to kdokoli poznal
+   ze zdrojů. Proto je v `pages.yml` krok `check_start_budget.py --dist` jako brána.
 3. `python scripts/gen_sw_assets.py` — `sw.js` si přegeneruje `ASSETS_TO_CACHE`
-   podle nového `index.html`, takže se cachuje bundle a ne 112 nepoužitých souborů.
+   podle nového `index.html`: bundle **plus** jednotlivé odložené soubory (ty se
+   z bundlu neberou, takže musí být v předcache samostatně) **plus** 29 souborů
+   z MANIFESTu `js/lazy-tools.js`, které v `index.html` vůbec nejsou.
 4. `npm run test:smoke` — Playwright nastartuje **zabalenou** verzi appky. Když
    nenaběhne, deploy se nespustí a venku zůstane předchozí verze.
 5. `upload-pages-artifact` + `deploy-pages`.
@@ -65,7 +76,8 @@ se samo.
 - **Ruční bump `SHELL_CACHE`** po každém pushi: název bundlu obsahuje contenthash,
   takže každá změna kódu = jiná URL = prohlížeč si vezme čerstvý kód sám. Bump
   zůstává jako pojistka pro CSS (`?v=NNN`), o který se stará `gen_sw_assets.py`.
-- **112 HTTP requestů a ~3,7 MB JS** při studeném startu na telefonu.
+- **73 HTTP requestů a ~2,1 MB JS** při studeném startu na telefonu (zbylých
+  2 311 kB se dotahuje až po prvním obraze, resp. na klepnutí na dlaždici).
 
 Dokud běží Pages ze branche (tj. před přepnutím Source), nasazuje se pořád
 nezabalený `index.html` z repa a `SHELL_CACHE` se bumpuje ručně jako dosud.

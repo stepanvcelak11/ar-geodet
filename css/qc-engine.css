@@ -96,7 +96,7 @@
 .qc-gate-b p { margin: 0 0 9px; }
 .qc-gate-b b { font-weight: 700; }
 .qc-gate-tip { color: #cfe7d8; }
-.qc-gate-note { font-size: calc(11.5px * var(--ag-font-scale, 1)); opacity: 0.6; }
+.qc-gate-note { font-size: calc(11.5px * var(--ag-font-scale, 1)); color: var(--text-muted); }
 .qc-gate-f {
     display: flex;
     flex-wrap: wrap;

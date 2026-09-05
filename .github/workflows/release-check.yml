@@ -17,7 +17,72 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
+      # fetch-depth: 0 — krok „Změna kódu vyžaduje bump SHELL_CACHE" potřebuje
+      # sáhnout do PŘEDCHOZÍHO commitu (git show BASE:sw.js). S mělkým klonem
+      # (výchozí depth 1) tam ten commit prostě není.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ZAPOMENUTÝ BUMP je nejzrádnější způsob, jak vydat rozbitou appku:
+      # service worker servíruje js/*.js CACHE-FIRST (klíč = SHELL_CACHE), ale
+      # index.html jede stale-while-revalidate. Když se pošle změna v kódu a
+      # SHELL_CACHE zůstane stejný, prohlížeč nového SW vůbec nevidí (žádná lišta
+      # „Nová verze"), zatímco index.html se mu na pozadí PŘESTO obnoví — geodet
+      # tak dostane NOVÉ HTML se STARÝM JS. Přesně tímhle prošlo 11 z posledních
+      # 40 commitů (např. 55c0626: z index.html zmizel #w-project-select a starý
+      # js/grafika.js na něj dál sahal → výjimka v DOMContentLoaded shodila
+      # i načtení bodů zakázky). Uživatel z toho nemá cestu ven, protože mu SW
+      # novou verzi nikdy nenabídne.
+      #
+      # Proti čemu porovnávat: na push do main proti github.event.before (přesně
+      # to, co se právě přidalo), na pull_request proti merge-base s main —
+      # HEAD~1 by tu ukazoval na slučovací commit a hlásil nesmysly.
+      - name: Změna kódu vyžaduje bump SHELL_CACHE
+        run: |
+          set -eu
+          BASE=""
+          if [ "${{ github.event_name }}" = "push" ]; then
+            B="${{ github.event.before }}"
+            if [ -n "$B" ] && git cat-file -e "$B^{commit}" 2>/dev/null; then BASE="$B"; fi
+          fi
+          if [ -z "$BASE" ]; then
+            git fetch --quiet origin main 2>/dev/null || true
+            BASE="$(git merge-base origin/main HEAD 2>/dev/null || true)"
+          fi
+          if [ -z "$BASE" ] || [ "$BASE" = "$(git rev-parse HEAD)" ]; then
+            echo "Není s čím porovnat (BASE='$BASE') — kontrola se přeskakuje."
+            exit 0
+          fi
+          echo "Porovnávám proti $BASE"
+          ZMENY="$(git diff --name-only "$BASE" HEAD)"
+          KOD="$(printf '%s\n' "$ZMENY" | grep -E '^(js/|css/|index\.html$)' || true)"
+          if [ -z "$KOD" ]; then
+            echo "Kód appky (js/, css/, index.html) se nezměnil — bump není potřeba."
+            exit 0
+          fi
+          # || true u obou: bez nej by `set -e` shodilo krok uz na tom, ze grep
+          # nic nenasel (napr. sw.js v BASE jeste neexistoval) — a chybova hlaska
+          # by mluvila o necem uplne jinem, nez co se stalo.
+          STARA="$(git show "$BASE:sw.js" 2>/dev/null | grep -oE 'argeodet-shell-v[0-9]+' | head -1 || true)"
+          NOVA="$(grep -oE 'argeodet-shell-v[0-9]+' sw.js | head -1 || true)"
+          echo "SHELL_CACHE: ${STARA:-?} -> ${NOVA:-?}"
+          if [ -z "$STARA" ] || [ -z "$NOVA" ]; then
+            echo "SHELL_CACHE se nepodarilo precist — kontrola se preskakuje."
+            exit 0
+          fi
+          if [ "$STARA" = "$NOVA" ]; then
+            echo "::error file=sw.js::Změnil se kód appky, ale SHELL_CACHE zůstal $NOVA."
+            echo ""
+            echo "Změněné soubory:"
+            printf '%s\n' "$KOD" | sed 's/^/  /'
+            echo ""
+            echo "CO S TÍM: zvedni číslo v sw.js (SHELL_CACHE = 'argeodet-shell-vNNN')"
+            echo "a stejné NNN dej do ?v= u css/tokens.css i css/style.css —"
+            echo "nejjistěji:  python scripts/gen_sw_assets.py --bump"
+            exit 1
+          fi
+          echo "OK — kód se změnil a verze je bumpnutá."
 
       # Python 3 je na ubuntu-latest předinstalovaný, skripty používají jen stdlib.
       - name: Verze a seznam assetů (sw.js / index.html)

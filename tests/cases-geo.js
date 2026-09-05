@@ -106,6 +106,28 @@
             return checked + ' bodu s Y > X, zadny prohozeny';
         });
 
+        // Stejna trida chyby, jen z druhe strany: nekolik modulu (js/parcela.js,
+        // js/csv-validate.js a zalohy v dalsich) melo VLASTNI prevod, ktery poradi os
+        // urcoval podle VELIKOSTI — {Y: min(|a|,|b|), X: max(|a|,|b|)}, tedy „v CR je
+        // Y < X". Uvnitr CR to sedi, mimo CR to osy TISE PROHODI. Tenhle test drzi duvod,
+        // proc uz ta heuristika v appce neni a proc ji nikdo nesmi vratit zpatky.
+        t('REGRESE: heuristika min/max prohazuje osy mimo CR (proto uz ji nikdo nepouziva)', function () {
+            var selhava = [];
+            for (var i = 0; i < fx.points.length; i++) {
+                var p = fx.points[i];
+                var a = Math.abs(p.raw0), b = Math.abs(p.raw1);
+                var hY = Math.min(a, b), hX = Math.max(a, b);        // stara heuristika
+                var s = GeoCore.toSJTSK(p.lat, p.lng);
+                // GeoCore musi sedet s PROJ vzdycky, at heuristika rika cokoli
+                near(s.y, p.y, TOL, p.name + ' Y');
+                near(s.x, p.x, TOL, p.name + ' X');
+                if (Math.abs(hY - s.y) > TOL || Math.abs(hX - s.x) > TOL) selhava.push(p.name);
+            }
+            assert(selhava.length >= 2, 'fixtures musi obsahovat aspon 2 body, kde stara heuristika '
+                + 'selhava (regresni pojistka) — je jich ' + selhava.length);
+            return 'min/max by prohodilo osy u: ' + selhava.join(', ');
+        });
+
         // ---- 4) Zpetny prevod ---------------------------------------------------
         t('fromSJTSK: prevod tam a zpet je bezeztratovy (< 10 mm) na cele mrizce', function () {
             var worst = 0;
@@ -128,6 +150,22 @@
             var d = GeoCore.getDistance(spravne.lat, spravne.lng, naopak.lat, naopak.lng);
             assert(d < 0.01, 'zamenene zadani nedalo stejny bod (rozdil ' + d.toFixed(3) + ' m)');
             return 'oba zapisy daly stejny bod';
+        });
+
+        // Appka drzi S-JTSK KLADNE, ale Krovak je nativne zaporny. Moduly, ktere si
+        // prevod delaly samy (js/parcela.js), volaly proj4 rovnou se zapornymi cisly;
+        // po prechodu na GeoCore posilaji kladna. Kdyby na znamenku zalezelo, parcela by
+        // skocila na druhou stranu zemekoule a pri prohlidce by si toho nikdo nevsiml.
+        t('fromSJTSK: kladne i zaporne zadani S-JTSK da tentyz bod', function () {
+            var worst = 0;
+            for (var i = 0; i < fx.grid.length; i++) {
+                var g = fx.grid[i];
+                var a = GeoCore.fromSJTSK(g.y, g.x);
+                var b = GeoCore.fromSJTSK(-g.y, -g.x);
+                worst = Math.max(worst, GeoCore.getDistance(a.lat, a.lng, b.lat, b.lng));
+            }
+            assert(worst < 0.001, 'znamenko zmenilo vysledek o ' + worst.toFixed(4) + ' m');
+            return 'shoda na ' + fx.grid.length + ' bodech mrizky';
         });
 
         t('looksLikeSJTSK: pozna S-JTSK vs WGS84 vs nesmysl', function () {
@@ -288,6 +326,31 @@
                 + d.toFixed(3) + ' m, geodetika ' + p.m + ' m, stary vzorec ' + stary.toFixed(3) + ' m');
             return 'odchylka od geodetiky ' + (kSpravnemu * 1000).toFixed(1)
                 + ' mm, od stareho vzorce ' + (kStaremu * 1000).toFixed(0) + ' mm';
+        });
+
+        // Kvantifikuje chybu, kvuli ktere se z modulu vyhazely vlastni kopie haversinu
+        // s konstantou R = 6371 km (globalni stredni polomer Zeme). V sirkach CR je
+        // Gaussuv polomer ~6382 km, takze kulova verze KAZDOU vzdalenost zkracuje.
+        // Test nemeri GeoCore, ale samotnou konstantu: drzi cislo, ktere se cituje
+        // v poznamkach u opravenych modulu (~17 cm na 100 m), aby se nikdy nerozeslo
+        // s realitou a aby bylo videt, oc presne slo, kdyby ji nekdo chtel vratit.
+        t('REGRESE: konstanta R = 6371 km zkracuje vzdalenosti o ~1600 ppm (17 cm na 100 m)', function () {
+            var R = 6371000, r = Math.PI / 180;
+            var pairs = fx.distances.pairs, minPpm = 1e9, maxPpm = -1e9;
+            for (var i = 0; i < pairs.length; i++) {
+                var p = pairs[i];
+                var f1 = p.lat1 * r, f2 = p.lat2 * r;
+                var df = (p.lat2 - p.lat1) * r, dl = (p.lng2 - p.lng1) * r;
+                var h = Math.sin(df / 2) * Math.sin(df / 2) + Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+                var kulova = R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+                var spravne = GeoCore.getDistance(p.lat1, p.lng1, p.lat2, p.lng2);
+                var ppm = (spravne - kulova) / spravne * 1e6;        // kladne = kulova je KRATSI
+                minPpm = Math.min(minPpm, ppm); maxPpm = Math.max(maxPpm, ppm);
+            }
+            assert(minPpm > 1450 && maxPpm < 1900, 'ocekavano zkraceni 1450-1900 ppm, zmereno '
+                + minPpm.toFixed(0) + '-' + maxPpm.toFixed(0) + ' ppm — zmenil se vypocet polomeru?');
+            return 'kulova aproximace je kratsi o ' + minPpm.toFixed(0) + '-' + maxPpm.toFixed(0)
+                + ' ppm, tj. az ' + (maxPpm / 1e6 * 100 * 100).toFixed(1) + ' cm na 100 m';
         });
 
         t('getBearing: hlavni smery', function () {

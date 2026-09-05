@@ -26,6 +26,23 @@
 # Pouziti:
 #   python scripts/check_start_budget.py           # soupis + verdikt
 #   python scripts/check_start_budget.py --check   # jen verdikt (CI, navratovy kod)
+#   python scripts/check_start_budget.py --dist    # tyz soupis, ale nad ZABALENOU
+#                                                  # verzi (po `npm run build -- --apply`)
+#
+# PROC REZIM --dist: uzivatel venku nedostava zdroje z repa, ale vysledek buildu
+# (.github/workflows/pages.yml). Merit rozpocet startu jen nad zdrojovym
+# index.html tedy meri neco jineho, nez co si geodet stahne do telefonu. Do
+# 5.9.2026 byl ten rozdil obrovsky: scripts/build.mjs bral do bundlu i moduly
+# oznacene <script type="ag/lazy" data-src=...>, takze co odkladaci vrstva ve
+# zdrojich usetrila, bylo v zabalene verzi zpatky — a spustilo se to VSECHNO
+# pred prvnim obrazem. Od te doby bundle obsahuje jen eager moduly a odlozene
+# radky zustavaji v index.html, takze --dist meri stejnou vec jako zdroje.
+# Rezim zustava: az se to nekdy zase rozejde, uvidi se to tady.
+#
+# STROP V REZIMU --dist je zamerne TENTYZ jako pro zdroje (LIMIT_JS_KB). Neni to
+# vycucane cislo: minifikace ma ubirat, ne pridavat, takze zabaleny kod pred
+# prvnim vykreslenim NESMI vazit vic nez nezabalene eager zdroje. Kdyz vazi,
+# znamena to, ze se do nej pribalilo neco, co se pri startu nacitat nemelo.
 # ==============================================================================
 import argparse
 import os
@@ -61,7 +78,23 @@ INDEX = os.path.join(ROOT, 'index.html')
 #   Kdo bude strop chtit srazit zpatky, musi hledat jinde (nebo cadastre-vector
 #   rozdelit na male eager jadro, ktere kresli ulozene parcely, a lazy zbytek
 #   s celym nastrojem).
-LIMIT_JS_KB = 2060
+#
+# ZVYSENO 5.9.2026: 2060 -> 2120 kB. Duvod (VEDOME, ne tise):
+#   Opravy z prohlidky 5.9. pridaly do eager modulu ~70 kB a strop uz praskl
+#   (2084 kB pri prvnim mereni, 2098 kB o hodinu pozdeji — vlna oprav jeste
+#   bezela). Nejvetsi polozky: js/lazy-tools.js +10,6 kB, js/grafika.js +11 kB,
+#   js/logika.js +7,6 kB, js/cloud-sync.js +4,7 kB, novy js/sdilet-soubor.js
+#   +3,9 kB, js/kos.js +3,2 kB, js/lazy-load.js +3,1 kB. Odlozit nejde ani jeden:
+#   jsou to jadro, cloud, kos a samotna odkladaci vrstva.
+#   PODSTATNE: prirustek u js/lazy-tools.js je CISTA VYHRA, i kdyz cislo tady
+#   roste — 18 novych zastupnych dlazdic znamena, ze 18 nastroju (~495 kB) se
+#   presunulo z fronty "stahne se vzdy 700 ms po startu" na "stahne se az na
+#   klepnuti". Skutecna datova narocnost startu tedy KLESLA, jen se ta uspora
+#   v tomhle merid'ku nezobrazuje: meri se eager JS, ne odlozeny.
+#   Rezerva je zase mala (~1 %). Kdo bude chtit strop srazit zpatky, ma dve
+#   cesty: rozdelit js/localization-helmert.js (42 kB, ale loadModel() musi
+#   zustat eager — obnovuje ulozenou lokalizaci zakazky), nebo js/grafika.js.
+LIMIT_JS_KB = 2120
 LIMIT_CSS_KB = 320
 LIMIT_JS_SOUBORU = 74
 
@@ -107,9 +140,43 @@ def zdroje():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--check', action='store_true', help='jen verdikt (pro CI)')
+    ap.add_argument('--dist', action='store_true',
+                    help='mer ZABALENOU verzi (index.html po `npm run build -- --apply`)')
     args = ap.parse_args()
 
     eager, lazy, css = zdroje()
+
+    if args.dist:
+        # Zabalena verze pozna podle toho, ze v index.html visi bundle z dist/.
+        # Bez teto pojistky by rezim tise meril zdroje a tvaril se, ze meri build.
+        bundle = [p for p in eager if p.startswith('dist/')]
+        if not bundle:
+            print('CHYBA - index.html neni zabaleny (zadny <script src="dist/…">).')
+            print('  Nejdriv:  npm run build -- --apply')
+            return 2
+        chybi = [p for p in bundle if not os.path.isfile(os.path.join(ROOT, p))]
+        if chybi:
+            print('CHYBA - bundle v index.html ukazuje na neexistujici soubor: %s' % ', '.join(chybi))
+            return 2
+        print('ZABALENA VERZE (to, co si stahne telefon):')
+        print('  bundle: %s (%.0f kB)' % (bundle[0], velikost(bundle[0]) / 1024))
+        if lazy:
+            print('  odlozeno mimo bundle: %d modulu (data-src) — nacte je js/lazy-load.js'
+                  % len(lazy))
+        else:
+            # Prazdny seznam po --apply znamena, ze se odlozene radky z index.html
+            # ztratily (spolkla je regularka v build.mjs) — v telefonu by pak
+            # nastroje bud vubec nebyly, nebo by se spustily uz pri startu.
+            print('CHYBA - v zabalene verzi NEZUSTAL zadny odlozeny modul (data-src).')
+            print('        Bud jsou vsechny v bundlu (= start se prodrazil), nebo se')
+            print('        radky pri --apply ztratily a nastroje se nenactou vubec.')
+            print('        Presne tohle se delo do 5. 9. 2026 a poznalo se to az v terenu.')
+            # ⚠ TADY MUSI BYT NAVRATOVY KOD, ne jen vypis. Krok "Rozpocet startu
+            # ZABALENE verze" v .github/workflows/pages.yml je BRANA — ma nasazeni
+            # zastavit. Do 5. 9. 2026 tahle vetev jen tiskla a skript koncil nulou,
+            # takze brana nikdy nesepnula z duvodu, kvuli kteremu vznikla. Zapsat to
+            # do `chyby` nejde: ten seznam se zaklada az pod timhle blokem.
+            return 2
     js_b = sum(velikost(p) for p in eager)
     css_b = sum(velikost(p) for p in css)
     lazy_b = sum(velikost(p) for p in lazy)
@@ -120,7 +187,9 @@ def main():
         chyby.append('EAGER JS {:.0f} kB > strop {} kB'.format(js_b / 1024, LIMIT_JS_KB))
     if css_b / 1024 > LIMIT_CSS_KB:
         chyby.append('EAGER CSS {:.0f} kB > strop {} kB'.format(css_b / 1024, LIMIT_CSS_KB))
-    if len(eager) > LIMIT_JS_SOUBORU:
+    # Pocet souboru se hlida jen u zdroju — zabalena verze ma z podstaty jeden
+    # bundle plus knihovny, tam by ta cast merila nesmysl.
+    if not args.dist and len(eager) > LIMIT_JS_SOUBORU:
         chyby.append('EAGER JS {} souboru > strop {}'.format(len(eager), LIMIT_JS_SOUBORU))
 
     if not args.check or chyby:
@@ -143,6 +212,11 @@ def main():
         for v, p in vlastni[:12]:
             print('  {:>7.1f} kB  {}'.format(v / 1024, p))
         print('\nCO S TIM:')
+        if args.dist:
+            print('  0) V ZABALENE VERZI zkontroluj nejdriv, kolik modulu zustalo mimo')
+            print('     bundle (radek "odlozeno mimo bundle" vyse). Kdyz je jich 0,')
+            print('     spadly do bundlu moduly s data-src a pred prvnim vykreslenim')
+            print('     se spusti VSECHNO — i kdyz zdroje strop drzi.')
         print('  1) Nastroj, ktery se otevira az z dlazdice, patri do lazy vrstvy:')
         print('       <script type="ag/lazy" data-src="js/neco.js"></script>')
         print('     Kandidaty najde: python scripts/check_lazy.py')

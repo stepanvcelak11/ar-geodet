@@ -32,7 +32,7 @@
     border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.14));
     background: var(--glass-bg, rgba(255, 255, 255, 0.05));
     color: var(--text-color, #eceef2);
-    font-size: 22px;
+    font-size: calc(22px * var(--ag-font-scale, 1));
     line-height: 1;
     cursor: pointer;
 }
@@ -169,7 +169,7 @@
     border-radius: 13px;
     background: var(--glass-bg, rgba(255, 255, 255, 0.04));
 }
-.agodz-z { font-size: 24px; line-height: 1.1; flex: 0 0 auto; }
+.agodz-z { font-size: calc(24px * var(--ag-font-scale, 1)); line-height: 1.1; flex: 0 0 auto; }
 .agodz-t { min-width: 0; }
 .agodz-n {
     font-weight: 700;

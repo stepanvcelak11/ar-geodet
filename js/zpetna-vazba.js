@@ -429,6 +429,10 @@
         if (!reset && last) q += '&before=' + last.id;
         api(q, { ownerKey: ownerKey() }).then(function (r) {
             if (r.status === 403) { list.innerHTML = '<p style="color:#e0574a;">Špatný klíč schránky. Smaž ho dole a zadej znovu.</p>'; return; }
+            // 429 = brzda proti hádání klíče (ownerGate v cloud/worker.js). Bez téhle
+            // větve spadne do obecného „Nepovedlo se načíst (429)" a vypadá to jako
+            // porucha serveru, přitom se jen čeká.
+            if (r.status === 429) { list.innerHTML = '<p style="color:#d4a02c;">Moc pokusů o klíč, zkus to za hodinu.</p>'; return; }
             if (r.status === 503) { list.innerHTML = '<p style="color:#d4a02c;">' + esc((r.data && r.data.error) || 'Schránka není na serveru nastavená.') + '</p>'; return; }
             if (!r.ok) { list.innerHTML = '<p style="color:#e0574a;">Nepovedlo se načíst (' + r.status + ').</p>'; return; }
             var msgs = (r.data && r.data.messages) || [];

@@ -23,6 +23,11 @@
 //      zaparkovaný u zdi hlásí krásné σ a je metr a půl vedle.
 //   4. prov.acc / p.acc — co hlásí sám telefon. Nejslabší: je to odhad výrobce
 //      čipu, ne měření.
+// PŘED body 3 a 4 se ale ptáme na PŮVOD souřadnice (prov.origin): u bodu
+// odečteného z mapy ('mapa') a u bodu, jehož souřadnici někdo po uložení ručně
+// přepsal ('edit'), žádné číslo o měření nevypovídá — a σ, které k nim jiné
+// moduly stihly dopsat, je jen rozptyl NEMĚŘENÉ hodnoty (tedy nula). Body 1 a 2
+// zůstávají výš: kontrolní měření platí, ať bod vznikl jakkoli.
 // Kdyby se tyhle čtyři míchaly do jednoho čísla, appka by lhala. Proto se vždy
 // vrací i `zdroj` a `zdrojText` — uživatel má vidět ROZDÍL mezi „±0,4 m změřeno"
 // a „±0,4 m tvrdí telefon".
@@ -91,6 +96,17 @@
         return 'spatne';
     }
 
+    // Kódy provenience (prov.origin) česky — pro větu „původně …" u editovaného bodu.
+    // Nezname kody se vypisuji tak, jak jsou: lepsi syrovy kod nez vymyslene tvrzeni.
+    var PUVOD_CZ = {
+        'gps-avg': 'průměr GPS', 'dgps': 'diferenční GPS', 'ruc': 'ruční zadání',
+        'mapa': 'odečet z mapy', 'rajon': 'rajón', 'pdr': 'krokový offset',
+        'recheck': 'kontrolní měření', 'kolize': 'řešení kolize', 'edit': 'ruční úprava',
+        'garmin-qr': 'import z hodinek'
+    };
+    // `proc` se vklada jako HTML, a origin muze prijit z importovaneho souboru -> escape
+    function puvodCesky(o) { return PUVOD_CZ[o] || esc(o); }
+
     // ---- odkud se přesnost vzala (pořadí důvěryhodnosti, viz hlavička) --------
     // Vrací i `mereno: true/false` — to je ta informace, kterou dnes appka
     // nikde neukazuje, a přitom je nejdůležitější ze všech.
@@ -107,6 +123,23 @@
             return { a: zRozdilu(rc.d), zdroj: 'rozdil', mereno: true,
                 zdrojText: 'odvozeno z rozdílu dvou určení',
                 proc: 'Dvě určení téhož bodu se liší o ' + fmt(rc.d) + ' m. Z toho vychází přesnost jednoho určení.' };
+        }
+        // ⚠ PUVOD SOURADNICE je silnejsi informace nez holy udaj o presnosti.
+        // Bod odecteny z mapy ani rucne prepsana souradnice nejsou mereni — kdyby
+        // spadly do vetve "jen co hlasi telefon", appka by o nich tvrdila neco,
+        // co se nikdy nestalo. Az ZA merenymi vetvemi vys: kdyz nekdo takovy bod
+        // pozdeji zmeril podruhé, plati to mereni, ne puvod.
+        if (prov.origin === 'edit') {
+            return { a: null, zdroj: 'edit', mereno: false,
+                zdrojText: 'souřadnice byla po měření ručně změněna',
+                proc: 'Souřadnici tohohle bodu někdo po uložení ručně přepsal' + (prov.prevOrigin ? ' (původně ' + puvodCesky(prov.prevOrigin) + ')' : '') + '. Původní přesnost tím přestala platit a nová nevznikla — appka o tomhle bodu neví, jak přesný je. Chceš číslo? Změř ho.' };
+        }
+        if (prov.origin === 'mapa') {
+            var am = cislo(prov.acc);
+            if (am == null) am = cislo(p && p.acc);
+            return { a: am, zdroj: 'mapa', mereno: false,
+                zdrojText: 'odečteno z mapy, ne změřeno',
+                proc: 'Polohu sis odečetl klepnutím do mapy. Číslo vychází jen z měřítka mapy v okamžiku klepnutí (jak velký kus terénu byl pod prstem) — neříká nic o tom, jak dobře jsi sám sebe v podkladu poznal, ani o vlastní chybě ortofota. Mezi paneláky to bývá poctivější než GPS, ale měření to není.' };
         }
         var s = cislo(prov.sigma);
         if (s != null) {

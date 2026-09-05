@@ -7,7 +7,10 @@
 #     GPS, kamerou i kompasem a overi, ze nabehne bez chyb v konzoli a ze jsou na
 #     obrazovce klicove prvky. Plus kontrola, ze jde vsechny skripty zabalit do
 #     jednoho bundlu (to je predpoklad nasazeni pres pages.yml).
-name: Testy (smoke + bundle)
+#   * TADY TAKY: regresni testy z scripts/test_*.py — deset sad, ktere hlidaji
+#     konkretni opravy z minulych vydani (kos, hledani, gesta, vlastnik, undo…).
+#     Do 5. 9. 2026 je nepoustelo NIC.
+name: Testy (smoke + bundle + regrese)
 
 on:
   push:
@@ -56,4 +59,55 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 14
+          if-no-files-found: ignore
+
+  regrese:
+    name: Regresni testy (opravy z minulych vydani)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Deset regresnich testu v scripts/test_*.py hlidalo opravy od kvetna do
+      # zari, ale NIC je nepoustelo — cisty pomnik prace. Zmereno 5. 9. 2026:
+      # vsech deset po dvou opravach prochazi (test_body_paleta.py mel natvrdo
+      # zapsanou cestu k plose jednoho stroje a nevracel chybovy kod), takze se
+      # radi do CI a ne do _archiv/.
+      #
+      # Dve zavislosti, dve party:
+      #   playwright    — osm testu, ktere appku SPUSTI v Chromiu (server si
+      #                   kazdy startuje sam pres scripts/test_server.py)
+      #   py-mini-racer — dva testy, ktere modul spusti v holem V8 bez prohlizece
+      - name: Zavislosti
+        run: |
+          python -m pip install --quiet playwright py-mini-racer
+          python -m playwright install --with-deps chromium
+
+      # Jeden opakovany pokus po selhani: testy sahaji na kameru, GPS a casovace,
+      # takze na vytizenem runneru obcas ujede timing. Dvakrat za sebou uz
+      # nahoda nebyva — a trvale cervene CI, kteremu nikdo neveri, je horsi nez
+      # zadne.
+      - name: Regrese v prohlizeci (Playwright pro Python)
+        run: |
+          for t in test_opravy_3_9 test_uhlazeni_31_8 test_navrhy_d2 test_vypinac \
+                   test_vlastnik test_opravy_31_8 test_gps_rozumim test_body_paleta; do
+            echo "::group::$t"
+            python "scripts/$t.py" || { echo "-- prvni beh selhal, opakuji jednou --"; python "scripts/$t.py"; }
+            echo "::endgroup::"
+          done
+
+      - name: Regrese ve V8 (bez prohlizece)
+        run: |
+          python scripts/test_filtr_info.py
+          python scripts/test_undo.py
+
+      - name: Screenshoty z regresi (i pri chybe)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regrese-screenshoty
+          path: _diag/
+          retention-days: 7
           if-no-files-found: ignore

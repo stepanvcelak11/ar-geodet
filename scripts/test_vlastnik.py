@@ -166,8 +166,17 @@ async def main():
                     "() => { const e = document.getElementById('agv-err'); return e && e.textContent && e.textContent.indexOf('Ověřuji') < 0; }",
                     timeout=20000)
                 hl = await page.evaluate("() => document.getElementById('agv-err').textContent")
-                ok('spatny klic: hlaska mluvi o OWNER_KEY, ne jen o cisle chyby',
-                   ('OWNER_KEY' in hl) and ('nesedí' in hl or 'není' in hl), hl[:120])
+                # Smysl testu: hlaska mluvi LIDSKY, ne jen cislem chyby.
+                # ⚠ Po 5. 9. 2026 ma server brzdu (cloud/worker.js, ownerGate: deset
+                # pokusu z adresy za hodinu). Tenhle test posila spatny klic schvalne a
+                # v CI se pri selhani jeste jednou opakuje, takze se do brzdy DRIV NEBO
+                # POZDEJI trefi a dostane 429 misto 403. To je SPRAVNE chovani serveru,
+                # ne chyba appky — 429 vetev proto plati taky. Bez teto vetve by test
+                # zacal padat sam od sebe, nezavisle na tom, co je v kodu.
+                lidska = (('OWNER_KEY' in hl) and ('nesedí' in hl or 'není' in hl)) \
+                    or ('Moc pokusů' in hl)
+                ok('spatny klic: hlaska mluvi lidsky (OWNER_KEY / brzda), ne jen cislem chyby',
+                   lidska, hl[:120])
                 ok('spatny klic rezim NEZAPNE',
                    not await page.evaluate("() => window.AGVlastnik.isOn()"))
             except Exception as e:

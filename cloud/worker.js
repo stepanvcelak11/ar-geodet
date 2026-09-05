@@ -257,6 +257,10 @@ async function ensureFeedbackTable(env) {
 function ownerOk(req, env) {
     const want = env && env.OWNER_KEY;
     if (!want) return null;                 // tajemství není nastavené → 503
+    // Krátký klíč je totéž co žádný: za těmihle dveřmi se mažou celé firmy
+    // i s body a docházkou. Radši ať konzole hlásí „není nastavená", než aby
+    // ji hlídalo heslo, které se dá vystřílet dřív, než brzda stihne zabrat.
+    if (String(want).length < 24) return null;
     const got = req.headers.get('X-Owner-Key') || '';
     return timingSafeEq(String(got), String(want));
 }
@@ -339,11 +343,29 @@ async function dbFirst(env, sql, ...bind) {
         return await env.DB.prepare(sql).bind(...bind).first();
     }
 }
-// brána konzole: stejné tajemství jako schránka zpětné vazby, žádný firemní token
-function ownerGate(req, env) {
+// brána konzole i schránky zpětné vazby: stejné tajemství, žádný firemní token.
+// BRZDA NA HÁDÁNÍ: OWNER_KEY je ručně zvolené heslo a za dveřmi je mazání celých
+// firem, takže deset pokusů z adresy za hodinu. Zamčený stav vrací guardHit ještě
+// PŘED zápisem do D1, útok tedy po zamčení databázi nezatěžuje. Počítadlo se maže
+// až po ÚSPĚŠNÉM ověření — jinak by si ho útočník každým pokusem sám čistil.
+async function ownerGate(req, env, co) {
+    const ip = req.headers.get('CF-Connecting-IP') || '0';
+    const kl = 'own:' + ip;
     const ok = ownerOk(req, env);
-    if (ok === null) return err(503, 'Konzole není nastavená: na serveru chybí tajemství OWNER_KEY (wrangler secret put OWNER_KEY).');
-    if (!ok) return err(403, 'Špatný klíč konzole.');
+    const kdo = co || 'Konzole';
+    // ⚠ NENASTAVENY SERVER SE RESI DRIV NEZ BRZDA. Kdyz na serveru zadny OWNER_KEY
+    // neni, neni co hadat — a kdyby se pocitadlo zvedalo uz tady, po deseti otevrenich
+    // konzole by prestal chodit i navod, kvuli kteremu ta 503 vznikla, a misto nej by
+    // prisla hlaska "Moc pokusu o klic". Pocitadlo je navic spolecne pro konzoli
+    // i schranku zpetne vazby ('own:' + ip), takze se ty marne pokusy jeste scitaly.
+    if (ok === null) return err(503, kdo + ' není nastavená: na serveru chybí tajemství OWNER_KEY, nebo je kratší než 24 znaků (wrangler secret put OWNER_KEY).');
+    let pusti = true;
+    // brzda nesmí konzoli shodit (tabulka guard nemusí být v cizí databázi);
+    // klíč se ověřuje dál i tehdy, když se počítadlo nepodaří přečíst
+    try { pusti = await guardHit(env, kl, 10, 60 * 60e3); } catch (e) { pusti = true; }
+    if (!pusti) return err(429, 'Moc pokusů o klíč. Zkus to za hodinu.');
+    if (!ok) return err(403, 'Špatný klíč.');
+    try { await guardClear(env, kl); } catch (e) {}
     return null;
 }
 // otisk zakladatele — podepsaná IP, ne IP sama (v databázi tak neleží adresa)
@@ -509,6 +531,31 @@ function jobVisible(row, me) {
         const a = JSON.parse(row.acl);
         return !Array.isArray(a) || !a.length || a.indexOf(me.id) !== -1;
     } catch (e) { return true; }
+}
+// Smí přihlášený sáhnout na zakázku? Ptá se registru `jobs` — a ten řádek NEMUSÍ
+// existovat. Neznámá zakázka se propouští, jinak by kontrola rozbila stávající
+// sdílení. Klíč zakázky přitom není tajemství (je to jen název malými písmeny),
+// takže bez téhle brány si vyřazený zaměstnanec stáhl i přepsal cizí body pouhým
+// uhodnutím názvu.
+//
+// ⚠⚠ REGISTR `jobs` DNES NIKDO NEPLNÍ, takže brána zatím propouští VŽDYCKY.
+// Jediný klient, který na POST /jobs a PATCH /jobs/<key> uměl sáhnout, byl
+// js/zakazky-cloud.js a ten je smazaný (commit 77aada6) — přidělování zakázek
+// lidem žije v localStorage (`agProjAcl_v1`, js/ucty.js). Kolej je tedy položená,
+// ale vlak po ní zatím nejede: v hlášení k vydání se to nesmí psát jako „opraveno",
+// jen jako „připraveno, čeká na registr zakázek".
+// ⚠ Klienta nezapojovat narychlo: fail-open v js/ucty.js překládá „nemá nic
+// přiděleno" na „vidí všechno" a přesně proto je js/zakazky-cloud.js dodnes mimo.
+// Ostrá se brána stane až s klientem, který rozliší „bez omezení" od „nic přiděleno".
+async function jobAllowed(env, me, job) {
+    if (me.role === 'admin' || me.role === 'vedeni') return true;
+    let row = null;
+    try {
+        await ensureJobsTable(env);
+        row = await env.DB.prepare('SELECT acl FROM jobs WHERE firm_id=? AND job_key=?')
+            .bind(me.firm_id, job).first();
+    } catch (e) { return true; }   // registr ještě nevznikl → nezavírat dveře
+    return !row || jobVisible(row, me);
 }
 
 // ---- živá poloha lidí ve firmě (klient js/vysilacka.js) --------------------
@@ -745,7 +792,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 9, wx: true, watch: true, fb: true, owner: true, seen: true, flags: true, errors: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 10, wx: true, watch: true, fb: true, owner: true, seen: true, flags: true, errors: true, acl: true, accepted: true });
 
             // ---------------- ČHMÚ: měření z nejbližší stanice ---------------
             // veřejné (bez tokenu) — počasí není firemní údaj
@@ -852,9 +899,8 @@ export default {
 
             // ---------------- zpětná vazba: ČTENÍ (jen vlastník) -------------
             if (req.method === 'GET' && path === '/feedback') {
-                const ok = ownerOk(req, env);
-                if (ok === null) return err(503, 'Schránka není nastavená: na serveru chybí tajemství OWNER_KEY (wrangler secret put OWNER_KEY).');
-                if (!ok) return err(403, 'Špatný klíč schránky.');
+                const brana = await ownerGate(req, env, 'Schránka');
+                if (brana) return brana;
                 await ensureFeedbackTable(env);
                 const only = url.searchParams.get('stav');       // '' | 'open' | 'done'
                 const before = parseInt(url.searchParams.get('before'), 10) || 0;
@@ -871,9 +917,8 @@ export default {
 
             // Odbavení zprávy (vyřízeno / zpět mezi nevyřízené) a smazání.
             if (req.method === 'POST' && path === '/feedback/done') {
-                const ok = ownerOk(req, env);
-                if (ok === null) return err(503, 'Schránka není nastavená: na serveru chybí tajemství OWNER_KEY.');
-                if (!ok) return err(403, 'Špatný klíč schránky.');
+                const brana2 = await ownerGate(req, env, 'Schránka');
+                if (brana2) return brana2;
                 await ensureFeedbackTable(env);
                 const b = await req.json().catch(() => null);
                 const id = b && parseInt(b.id, 10);
@@ -889,7 +934,7 @@ export default {
                 if (!await guardHit(env, 'reg:' + ip, 5, 864e5)) return err(429, 'Příliš mnoho registrací z této adresy, zkus to zítra.');
                 const b = await req.json().catch(() => null);
                 if (!b || !b.firmName || !b.adminName || !b.password) return err(400, 'Chybí firmName / adminName / password.');
-                if (String(b.password).length < 4) return err(400, 'Heslo musí mít aspoň 4 znaky.');
+                if (String(b.password).length < 8) return err(400, 'Heslo musí mít aspoň 8 znaků.');
                 // KOLIK FIREM SMÍ JEDEN ČLOVĚK ZALOŽIT. Zakladač se pozná podle
                 // PODEPSANÉ IP (founderId) — v databázi tedy neleží adresa, ale
                 // otisk, který se dá jen porovnat. Starý čítač 'reg:<ip>' (5/den)
@@ -1050,7 +1095,7 @@ export default {
             // se sem nedostanou ani omylem: je to jiná část routerů NAD ověřením
             // tokenu, takže token se tu ani nečte.
             if (path.indexOf('/owner/') === 0) {
-                const gate = ownerGate(req, env);
+                const gate = await ownerGate(req, env, 'Konzole');
                 if (gate) return gate;
                 await ensureOwnerSchema(env);
 
@@ -1319,7 +1364,7 @@ export default {
                 if (me.role !== 'admin') return err(403, 'Jen admin.');
                 const b = await req.json().catch(() => null);
                 if (!b || !b.name || !b.password || ROLES.indexOf(b.role) === -1) return err(400, 'Chybí name / password / platná role.');
-                if (String(b.password).length < 4) return err(400, 'Heslo musí mít aspoň 4 znaky.');
+                if (String(b.password).length < 8) return err(400, 'Heslo musí mít aspoň 8 znaků.');
                 // STROP LIDÍ VE FIRMĚ. Počítají se i zablokovaní — místo drží
                 // dál a jde uvolnit smazáním. Kdo potřebuje víc, pošle žádost
                 // (POST /requests) a strop mu zvedne vlastník appky v konzoli.
@@ -1364,7 +1409,7 @@ export default {
                 if (b.disabled != null)
                     await env.DB.prepare('UPDATE users SET disabled=? WHERE id=?').bind(b.disabled ? 1 : 0, uid).run();
                 if (b.password != null) {
-                    if (String(b.password).length < 4) return err(400, 'Heslo musí mít aspoň 4 znaky.');
+                    if (String(b.password).length < 8) return err(400, 'Heslo musí mít aspoň 8 znaků.');
                     const salt = randHex(16);
                     const hash = await pbkdf2(String(b.password), salt, ITERS);
                     await env.DB.prepare('UPDATE users SET pass_hash=?, salt=?, iters=? WHERE id=?').bind(hash, salt, ITERS, uid).run();
@@ -1399,7 +1444,7 @@ export default {
             if (req.method === 'POST' && path === '/password') {
                 const b = await req.json().catch(() => null);
                 if (!b || b.old == null || !b.password) return err(400, 'Chybí old / password.');
-                if (String(b.password).length < 4) return err(400, 'Heslo musí mít aspoň 4 znaky.');
+                if (String(b.password).length < 8) return err(400, 'Heslo musí mít aspoň 8 znaků.');
                 const u = await env.DB.prepare('SELECT * FROM users WHERE id=?').bind(me.id).first();
                 const oldHash = await pbkdf2(String(b.old), u.salt, u.iters);
                 if (!timingSafeEq(oldHash, u.pass_hash)) return err(401, 'Staré heslo nesouhlasí.');
@@ -1521,7 +1566,11 @@ export default {
             if (req.method === 'GET' && path === '/backup') {
                 if (me.role !== 'admin') return err(403, 'Jen admin.');
                 const firm = await env.DB.prepare('SELECT code, name, perms, auto_lock, created FROM firms WHERE id=?').bind(me.firm_id).first();
-                const users = (await env.DB.prepare('SELECT id, name, role, pass_hash, salt, iters, disabled, created FROM users WHERE firm_id=?').bind(me.firm_id).all()).results;
+                // ZÁLOHA ZÁMĚRNĚ NEOBSAHUJE pass_hash/salt/iters. Je to obyčejný
+                // JSON, který admin nosí v Downloads a posílá mailem — a PBKDF2
+                // otisk krátkého hesla se dá dopočítat. Obnova firmy ze zálohy
+                // stejně neexistuje, hesla se při zakládání nastavují nová.
+                const users = (await env.DB.prepare('SELECT id, name, role, disabled, created FROM users WHERE firm_id=?').bind(me.firm_id).all()).results;
                 const usage = (await env.DB.prepare('SELECT uid, uname, ts, t, k, proj, dev FROM usage WHERE firm_id=? ORDER BY ts DESC LIMIT 20000').bind(me.firm_id).all()).results;
                 const chatRows = (await env.DB.prepare('SELECT id, uid, uname, ts, txt FROM chat WHERE firm_id=? ORDER BY id DESC LIMIT 500').bind(me.firm_id).all()).results;
                 let perms; try { perms = JSON.parse(firm.perms); } catch (e) { perms = {}; }
@@ -1531,7 +1580,7 @@ export default {
                     users: users,
                     usage: usage.reverse(),
                     chat: chatRows.reverse(),
-                    note: 'Hesla jsou jen PBKDF2 otisky, nejsou čitelná. Slouží jako pojistka/archiv.'
+                    note: 'Hesla v záloze nejsou vůbec — ani jako otisky. Slouží jako pojistka/archiv.'
                 });
             }
 
@@ -1695,6 +1744,7 @@ export default {
                 if (!b || typeof b.job !== 'string' || !b.job.trim() || !Array.isArray(b.changes))
                     return err(400, 'Chybí job / changes[].');
                 const job = b.job.trim().slice(0, 80);
+                if (!await jobAllowed(env, me, job)) return err(403, 'K této zakázce nemáš přístup.');
                 const now = Date.now();
                 const list = b.changes.slice(0, 300).filter(c =>
                     c && typeof c.id === 'string' && c.id.length > 0 && c.id.length <= 80);
@@ -1705,7 +1755,7 @@ export default {
                     'ON CONFLICT(firm_id,job_key,point_id) DO UPDATE SET ' +
                     'data=excluded.data, ts=excluded.ts, srv=excluded.srv, deleted=excluded.deleted, uname=excluded.uname ' +
                     'WHERE excluded.ts>sync_points.ts');
-                await env.DB.batch(list.map(c => stmt.bind(
+                const vysledky = await env.DB.batch(list.map(c => stmt.bind(
                     me.firm_id, job, c.id,
                     c.deleted ? null : String(c.data == null ? '' : (typeof c.data === 'string' ? c.data : JSON.stringify(c.data))).slice(0, 8000),
                     Math.min(Math.max(0, +c.ts || now), now + 60e3),   // ochrana proti rozjetým hodinám
@@ -1713,18 +1763,57 @@ export default {
                     c.deleted ? 1 : 0,
                     me.name
                 )));
+                // CO SERVER OPRAVDU ZAPSAL. Upsert starší změnu tiše zahodí
+                // (WHERE excluded.ts>ts) — a klient si ji dosud odškrtl jako
+                // odeslanou hned po HTTP 200, takže ji už nikdy neposlal a ta
+                // úprava zmizela beze stopy. Vracíme proto seznam přijatých id.
+                // Když D1 počet změn neumí říct, pole vynecháme a starší klient
+                // se chová po staru.
+                let prijato = null;
+                try {
+                    if (Array.isArray(vysledky) && vysledky.length === list.length) {
+                        const m0 = vysledky[0] && vysledky[0].meta;
+                        if (m0 && (m0.changes != null || m0.rows_written != null)) {
+                            prijato = [];
+                            for (let i = 0; i < list.length; i++) {
+                                const m = vysledky[i] && vysledky[i].meta;
+                                const n = m ? (m.changes != null ? m.changes : m.rows_written) : 0;
+                                if (+n > 0) prijato.push(list[i].id);
+                            }
+                        }
+                    }
+                } catch (e) { prijato = null; }
                 // občasný úklid: náhrobky starší půl roku už všechna zařízení viděla
                 if (Math.random() < 0.02 && ctx && ctx.waitUntil) {
                     ctx.waitUntil(env.DB.prepare('DELETE FROM sync_points WHERE firm_id=? AND deleted=1 AND srv<?')
                         .bind(me.firm_id, now - 180 * 864e5).run().catch(() => {}));
                 }
-                return json({ ok: true, saved: list.length, serverTime: now });
+                const odpoved = { ok: true, saved: list.length, serverTime: now };
+                if (prijato) odpoved.accepted = prijato;
+                return json(odpoved);
             }
 
             if (path === '/sync/points' && req.method === 'GET') {
                 await ensureSyncTable(env);
                 const job = String(url.searchParams.get('job') || '').trim().slice(0, 80);
                 if (!job) return err(400, 'Chybí ?job=.');
+                if (!await jobAllowed(env, me, job)) return err(403, 'K této zakázce nemáš přístup.');
+                // ADRESNÉ DOTAŽENÍ konkrétních bodů (?ids=a,b,c). Klient si o ně
+                // řekne, když mu server zápis odmítl jako starší: kurzor `since`
+                // by mu je nepřinesl, protože odmítnutý upsert srv neposunul,
+                // takže ten řádek je dávno „za kurzorem". Strop 100 kvůli limitu
+                // vázaných parametrů v D1.
+                const idsQ = String(url.searchParams.get('ids') || '').trim();
+                if (idsQ) {
+                    const ids = idsQ.split(',').map(x => x.trim().slice(0, 80)).filter(x => x).slice(0, 100);
+                    if (!ids.length) return json({ points: [], more: false, serverTime: Date.now() });
+                    const otazniky = ids.map(() => '?').join(',');
+                    const radky = (await env.DB.prepare(
+                        'SELECT point_id AS id, data, ts, srv, deleted, uname FROM sync_points ' +
+                        'WHERE firm_id=? AND job_key=? AND point_id IN (' + otazniky + ')')
+                        .bind(me.firm_id, job, ...ids).all()).results;
+                    return json({ points: radky, more: false, serverTime: Date.now() });
+                }
                 const since = parseInt(url.searchParams.get('since'), 10) || 0;
                 const rows = (await env.DB.prepare(
                     'SELECT point_id AS id, data, ts, srv, deleted, uname FROM sync_points ' +
@@ -1807,6 +1896,7 @@ export default {
                 const b = await req.json().catch(() => null);
                 const job = String((b && b.job) || '').trim().slice(0, 80);
                 if (!job) return err(400, 'Chybí zakázka.');
+                if (!await jobAllowed(env, me, job)) return err(403, 'K této zakázce nemáš přístup.');
                 // ⚠ Posílají se CELÉ BODY, ne jen jejich id. Většina bodů, které
                 // geodet potřebuje, jsou bodová pole ČÚZK — ta žijí jen v mobilu
                 // (stahují se za běhu z ArcGIS) a v sync_points nikdy nebyly.
@@ -1858,6 +1948,10 @@ export default {
                 const job = (await watchJob(env, req)) ||
                     String(url.searchParams.get('job') || '').trim().slice(0, 80);
                 if (!job) return err(400, 'Token není spárovaný na zakázku.');
+                // Táž brána jako u /sync/points: přes ?job= sem jde vlézt i běžným
+                // uživatelským tokenem, takže bez ní by hodinková cesta obcházela
+                // přidělení zakázky (a vydala body i tomu, koho admin vyřadil).
+                if (!await jobAllowed(env, me, job)) return err(403, 'K této zakázce nemáš přístup.');
 
                 if (req.method === 'GET') {
                     const lat = parseFloat(url.searchParams.get('lat'));

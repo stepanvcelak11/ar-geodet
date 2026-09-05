@@ -629,3 +629,41 @@ test('den v terénu: bod → vytyčení → restart appky → nic se neztratilo'
 
     expect(errors, 'chyby v konzoli:\n' + errors.join('\n')).toEqual([]);
 });
+
+// ===== SERVICE WORKER ===========================================================
+// PROC ZVLAST BLOK: `serviceWorkers` je v playwright.config.mjs v globalnim `use`
+// nastaveny na 'block' (v ostatnich testech SW jen sumi — cachuje a hlasi chyby
+// u nedostupnych CDN). Prepnout ho uvnitr testu nejde, jde to jen pres test.use()
+// v samostatnem describe bloku; zbylym testum tak 'block' zustava.
+//
+// PROC TO TU MUSI BYT: sw.js je soubor, u ktereho tichá chyba boli nejvic —
+// preklep znamena, ze se novy service worker NENAINSTALUJE, telefon zustane
+// napořád na stare verzi appky a nikde se to neohlasi. Ani jeden ze smoke testu
+// dosud SW vubec nespustil.
+test.describe('service worker', () => {
+    test.use({ serviceWorkers: 'allow' });
+
+    test('sw.js se zaregistruje a dojde do stavu activated', async ({ page }) => {
+        await page.goto('/');
+        // Registrace visi na window 'load' (js/logika.js), instalace jeste stahne
+        // predcache — proto vlastni cekani s velkorysym stropem misto expect timeoutu.
+        const stav = await page.evaluate(async () => {
+            const reg = await Promise.race([
+                navigator.serviceWorker.ready,
+                new Promise((r) => setTimeout(() => r(null), 60000)),
+            ]);
+            if (!reg) return { stav: null, skript: null, cache: [] };
+            let cache = [];
+            try { cache = await caches.keys(); } catch (e) { }
+            return {
+                stav: reg.active ? reg.active.state : null,
+                skript: reg.active ? reg.active.scriptURL : null,
+                cache,
+            };
+        });
+        expect(stav.stav, 'service worker se nedostal do stavu activated (chyba syntaxe v sw.js? selhala instalace?)').toBe('activated');
+        expect(stav.skript || '', 'aktivovany worker neni nas sw.js').toContain('sw.js');
+        expect(stav.cache.some((k) => k.startsWith('argeodet-shell-')),
+            'instalace nezalozila SHELL_CACHE — predcache neprobehla: ' + stav.cache.join(', ')).toBe(true);
+    });
+});

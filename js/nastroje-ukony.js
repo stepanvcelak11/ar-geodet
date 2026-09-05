@@ -40,6 +40,28 @@
 // to bylo naopak a slučování do rozcestníků tak v tomhle (jediném viditelném)
 // pohledu neušetřilo ani řádek; podrobně u proměnné INHUB níž.
 //
+// ⚠⚠ STROP: DALŠÍ POVRCH „JAK NAJÍT NÁSTROJ" UŽ NEPŘIDÁVAT (zapsáno 5. 9. 2026).
+// Meta-vrstva „jak se dostat k nástroji" váží 433 kB vlastního JS — 3,4× víc než
+// celý pokládkový okruh (vytyčení + vrstvy + protokol, 127 kB), a do jednoho
+// nástroje dnes vede dvanáct souběžných cest: seznam úkonů · mřížka při hledání ·
+// rozcestníky · ★ Oblíbené · ⚡ Teď se hodí · ◆ Pro tuto práci · kolečko · gesta ·
+// globální hledání · mini panel · jednoduchý režim · průvodci. Každý nový nástroj
+// se musí chovat správně ve všech a každá změna v jedné z nich hrozí regresí
+// v ostatních (a taková regrese se v repu už několikrát stala).
+//
+// CO SE ODEBRAT NEDÁ: mřížka. Není to zbytkový pohled, ale KLIKACÍ CÍL všeho
+// ostatního (viz odstavec „KLÍČOVÉ" níž) — s ní by naráz přestaly fungovat všechny
+// povrchy a tools-plus.js/tools-simple.js by se stejně neuvolnily, protože staví
+// právě sekce V TÉ mřížce.
+// CO SE ODEBRAT DÁ: jedno ze dvou gest. js/kolecko-nastroju.js (50 kB) a
+// js/gesta-zkratky.js (98 kB) dělají tutéž úlohu („spustit nástroj bez hledání")
+// a obě končí u téhož AGUkony.run. Obě jsou psané jako odpojitelné vrstvy, takže
+// stačí smazat soubor + řádek v index.html + přegenerovat sw.js. Které z nich —
+// to je otázka na uživatele, ne na kód; dokud neodpoví, nesahat ani na jedno.
+// LEVNÝ PRŮBĚŽNÝ KROK: slučovat do rozcestníků (`inhub` v js/tools-registry.js).
+// Jeden zápis ubere řádek v seznamu úkonů, dlaždici v mřížce i položku v kolečku
+// naráz — tak 5. 9. 2026 zmizelo sedm kalibračních řádků pod „Srovnat jinak".
+//
 // Hledání se nepřepisuje: jakmile začneš psát, pohled se přepne na mřížku, kde
 // běží chytré vyhledávání z field-tools.js (synonyma, překlepy, řazení). Po
 // smazání dotazu se vrátí seznam úkonů.

@@ -40,7 +40,10 @@
 
     // ---- proj4 svět <-> WGS84 (svět = [záporné Y, záporné X] Křováka) -----------
     function worldToLatLng(w) { try { var ll = proj4('EPSG:5514', 'EPSG:4326', [w.x, w.y]); return { lat: ll[1], lng: ll[0] }; } catch (e) { return null; } }
-    function latLngToWorld(lat, lng) { try { var s = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { x: s[0], y: s[1] }; } catch (e) { return null; } }
+    // S-JTSK počítá GeoCore (jediný autoritativní převod, hlídá pořadí os); vrací
+    // KLADNÉ {y,x}, svět tady je záporný Křovák — proto se znaménko vrací ručně,
+    // stejně jako to dělá sjtskToWorld() o řádek níž.
+    function latLngToWorld(lat, lng) { try { if (window.GeoCore && GeoCore.toSJTSK) { var s = GeoCore.toSJTSK(lat, lng); return { x: -s.y, y: -s.x }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-overlay:latLngToWorld'); } return null; }
     function sjtskToWorld(Y, X) { return { x: -Math.abs(Y), y: -Math.abs(X) }; }   // kladné Y,X -> záporný Křovák
 
     // =====================================================================
@@ -282,7 +285,10 @@
         var gps = ed.querySelector('#aggo-gps');
         if (gps) gps.onclick = function () {
             var lat = null, lng = null;
-            try { if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.n >= 2) { lat = gpsAvgResult.lat; lng = gpsAvgResult.lng; } else if (typeof userLat !== 'undefined' && userLat != null) { lat = userLat; lng = userLng; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-overlay:onclick'); }
+            // ⚠ #22: vlicovaci bod urcuje georeferenci celeho podkladu — zmrzly prumer
+            // (GPS bez fixu) by ho posunul o desitky metru, a to potichu. Bez cerstveho
+            // prumeru bereme posledni fix, ktery je aspon oznaceny jako okamzity.
+            try { if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.n >= 2 && ((typeof window.agAvgFresh !== 'function') || window.agAvgFresh(15000))) { lat = gpsAvgResult.lat; lng = gpsAvgResult.lng; } else if (typeof userLat !== 'undefined' && userLat != null) { lat = userLat; lng = userLng; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-overlay:onclick'); }
             if (lat == null) { agAlert('Bez GPS', 'Zatím nemám polohu.'); return; }
             var w = latLngToWorld(lat, lng); if (w) { ed.querySelector('#aggo-wy').value = Math.abs(w.x).toFixed(2); ed.querySelector('#aggo-wx').value = Math.abs(w.y).toFixed(2); }
         };
