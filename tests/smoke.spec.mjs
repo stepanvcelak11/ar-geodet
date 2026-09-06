@@ -687,10 +687,26 @@ test.describe('service worker', () => {
                 new Promise((r) => setTimeout(() => r(null), 60000)),
             ]);
             if (!reg) return { stav: null, skript: null, cache: [] };
+            // ⚠⚠ `ready` SE SPLNÍ UŽ VE STAVU 'activating', NE AŽ 'activated'.
+            //   Registrace je „aktivní" ve chvíli, kdy worker existuje — jeho
+            //   `activate` (mazání starých cache + clients.claim) ale ještě běží.
+            //   Odečíst stav hned v další řádce je proto sázka na to, kdo bude
+            //   rychlejší; naměřeno: první odečet 'activating', o 200 ms později
+            //   'activated'. Test na tom padal a shazoval s sebou CELÉ NASAZENÍ,
+            //   přestože sw.js je v pořádku. Čeká se tedy na skutečný přechod.
+            const cil = await new Promise((r) => {
+                const t0 = Date.now();
+                (function zkus() {
+                    const w = reg.active;
+                    if (w && w.state === 'activated') return r(w.state);
+                    if (Date.now() - t0 > 30000) return r(w ? w.state : null);
+                    setTimeout(zkus, 150);
+                })();
+            });
             let cache = [];
             try { cache = await caches.keys(); } catch (e) { }
             return {
-                stav: reg.active ? reg.active.state : null,
+                stav: cil,
                 skript: reg.active ? reg.active.scriptURL : null,
                 cache,
             };
