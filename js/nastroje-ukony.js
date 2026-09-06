@@ -541,9 +541,19 @@
             if (e.target && e.target.id === 'tools-search') { try { sync(); } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'nastroje-ukony:init'); } }
         }, true);
     }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-    else init();
-    window.addEventListener('load', function () { setTimeout(init, 500); });
+    // ⚠ STAVBA SEZNAMU AŽ ZA START (5. 9. 2026). build() poskládá celý seznam
+    // sloves do okna Nástroje — tedy do okna, které při startu nikdo neotevřel.
+    // Měřeno v prohlížeči (CPU 4×): 311 ms vlastního času, nejdražší modul startu
+    // hned po Leafletu. Odsouvá se za první dotek a i pak se pouští v nečinnosti;
+    // do Nástrojů vede vždycky ještě jedno klepnutí, takže je seznam včas hotový.
+    // Záložní doba zaručuje, že se to stane i uživateli, který se ničeho nedotkne.
+    function initPozdeji() {
+        if (window.AG && typeof AG.poPrvnimDoteku === 'function') AG.poPrvnimDoteku(init, 3500);
+        else init();
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initPozdeji);
+    else initPozdeji();
+    window.addEventListener('load', function () { setTimeout(initPozdeji, 500); });
 
     // setView() zrušen spolu s přepínačem pohledů — pohled je jeden. Necháváme ho
     // v API jako no-op, aby starší volání odjinud nespadlo na „not a function".

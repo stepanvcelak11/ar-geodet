@@ -379,7 +379,17 @@
             if (!window.__agFtTimer) window.__agFtTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(tick, 1500);
         } catch (e) { console.warn('[field-tools] init', e); }
     }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-    else init();
-    window.addEventListener('load', function () { setTimeout(init, 300); });
+    // ⚠ VYKRESLENÍ DLAŽDIC AŽ ZA START (5. 9. 2026). Dlaždice se kreslí do okna
+    // Nástroje, které při startu nikdo nevidí — a stálo to 195 ms zablokovaného
+    // hlavního vlákna z ~1 s, které start celkem blokuje (měřeno CPU 4×).
+    // Registrace nástrojů (agRegisterFieldTool) běží dál hned, jen se výsledek
+    // vykreslí po prvním doteku (a nejpozději po záložní době). Do Nástrojů vede
+    // vždy aspoň jedno další klepnutí, takže je mřížka hotová dřív, než se otevřou.
+    function initPozdeji() {
+        if (window.AG && typeof AG.poPrvnimDoteku === 'function') AG.poPrvnimDoteku(init, 3500);
+        else init();
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initPozdeji);
+    else initPozdeji();
+    window.addEventListener('load', function () { setTimeout(initPozdeji, 300); });
 })();

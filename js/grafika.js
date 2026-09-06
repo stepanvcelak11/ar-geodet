@@ -581,11 +581,28 @@
             try { const b = map.getBounds(); return (b && b.isValid()) ? b.pad(pad) : null; } catch (e) { return null; }
         }
 
-        function drawAllMarkersOnMap() {
-            if (_mngSuspendRedraw) return;   // hromadna davka prekresli mapu az na konci
-            markersGroup.clearLayers();
-            _mapDrawnBounds = _mapPadBounds(_MAP_DRAW_PAD);
-            arPoints.forEach(pt => {
+        // ===== PROGRESIVNI KRESLENI ==========================================
+        // ⚠⚠ NAMERENO 5. 9. 2026 (produkcni balicek, CPU 4x): se zakazkou o 1000
+        // bodech je hlavni vlakno pri startu zablokovane 2,45 s misto 0,47 s
+        // prazdne zakazky. V CPU profilu to je Leaflet createIcon + appendChild:
+        // kazdy bod je jeden divIcon, tedy DOM uzel se stylem i popiskem, a stavi
+        // se jich devet set NARAZ. Orez na vyrez (nize) pomaha jen kdyz je zakazka
+        // rozliha; hustou zakazku podel silnice neoreze nic.
+        //
+        // RESENI: znacky se stavi po davkach. Prvni davka (nejblizsi stredu mapy)
+        // jde hned, zbytek v NECINNOSTI prohlizece. Uzivatel vidi sve okoli hned
+        // a mezitim se dokresli zbytek — misto toho, aby cekal na vsechno.
+        //
+        // ⚠ GENERACE: kazde nove vykresleni (zmena filtru, ulozeni bodu, posun
+        // mapy) zvedne _drawGen a rozdelana davka se tim zahodi — jinak by
+        // dokreslovala do mezitim vycistene vrstvy body podle STARYCH filtru.
+        const _DRAW_CHUNK = 200;
+        let _drawGen = 0;
+        function _drawIdle(fn) {
+            if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(fn, { timeout: 250 });
+            else setTimeout(fn, 16);
+        }
+        function _drawOneMarker(pt) {
                 if (_mapDrawnBounds && !_mapDrawnBounds.contains([pt.lat, pt.lng])) return;
                 if (pt.hidden) return; if (pt.cat === 'TB' && !filters.tb) return; if (pt.cat === 'ZHB' && !filters.zhb) return; if (pt.cat === 'PBPP' && !filters.pbpp) return; if (pt.cat === 'NIVEL' && !filters.nivel) return; if (pt.cat === 'CUSTOM' && !filters.custom) return; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return;
                 let col = agBarvaBodu(pt);
@@ -593,7 +610,33 @@
                 const svgIcon = getMapMarkerSVG(pt.cat, col); const htmlContent = `<div style="position: relative; width: 24px; height: 24px; pointer-events:none;${stakedBadge ? ' opacity:0.65;' : ''}">${svgIcon}${stakedBadge}<div class="map-label-text" style="transform: rotate(${mapRotation}deg);">${_escHtml(pt.name)}</div></div>`;
                 const icon = L.divIcon({ className: 'custom-map-marker', html: htmlContent, iconSize: [24, 24], iconAnchor: [12, 12] });
                 L.marker([pt.lat, pt.lng], { icon: icon }).addTo(markersGroup);
-            });
+        }
+
+        function drawAllMarkersOnMap() {
+            if (_mngSuspendRedraw) return;   // hromadna davka prekresli mapu az na konci
+            const gen = ++_drawGen;
+            markersGroup.clearLayers();
+            _mapDrawnBounds = _mapPadBounds(_MAP_DRAW_PAD);
+            // Poradi podle vzdalenosti od stredu mapy: co ma geodet pod nohama,
+            // je na obrazovce driv nez bod na druhem konci zakazky.
+            let seznam = arPoints;
+            if (arPoints.length > _DRAW_CHUNK) {
+                try {
+                    const c = map.getCenter();
+                    seznam = arPoints.slice().sort(function (a, b) {
+                        const da = (a.lat - c.lat) * (a.lat - c.lat) + (a.lng - c.lng) * (a.lng - c.lng);
+                        const db = (b.lat - c.lat) * (b.lat - c.lat) + (b.lng - c.lng) * (b.lng - c.lng);
+                        return da - db;
+                    });
+                } catch (e) { seznam = arPoints; }
+            }
+            let i = 0;
+            (function davka() {
+                if (gen !== _drawGen) return;          // mezitim prisla novejsi kresba
+                const konec = Math.min(i + _DRAW_CHUNK, seznam.length);
+                for (; i < konec; i++) _drawOneMarker(seznam[i]);
+                if (i < seznam.length) _drawIdle(davka);
+            })();
             drawAllLinesOnMap();
         }
 

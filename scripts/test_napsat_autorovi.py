@@ -136,6 +136,13 @@ async def test_host(ctx):
     # A) host otevre Nastaveni (jedina cesta, kterou ma) a radek musi byt hned videt
     await page.evaluate("() => { if (typeof openSettings === 'function') openSettings(); }")
     await page.wait_for_timeout(1500)
+    # Vrstva zpetne vazby je odlozeny modul (ag/lazy) - na pomalem stroji dorazi
+    # o chvili pozdeji. Test se pta, jestli cesta EXISTUJE, ne jak je rychla.
+    for _ in range(20):
+        if await page.evaluate("() => !!document.getElementById('ag-fb-foot-set')"):
+            break
+        await page.evaluate("() => window.AGLazy && AGLazy.flush()")
+        await page.wait_for_timeout(300)
     v = await page.evaluate(VIDITELNOST, 'ag-fb-foot-set')
     ok('A1 radek "Napsat autorovi" je v Nastaveni', not v.get('chybi'), v)
     if not v.get('chybi'):
@@ -283,10 +290,11 @@ async def test_druha_vlna(ctx):
             var g = document.querySelector('#tools-modal .tool-grid');
             var vis = 0, tiles = g ? g.querySelectorAll('.tool-tile') : [];
             for (var i = 0; i < tiles.length; i++) if (getComputedStyle(tiles[i]).display !== 'none') vis++;
-            return { predMrizkou: !!(k && g && k.nextElementSibling === g),
+            var poradi = (k && g) ? k.compareDocumentPosition(g) : 0;
+            return { predMrizkou: !!(poradi & Node.DOCUMENT_POSITION_FOLLOWING),
                      schovana: getComputedStyle(k).display === 'none',
                      videtDlazdic: vis, dlazdicCelkem: tiles.length }; }""")
-        ok('I2 karta stoji PRED mrizkou a je zapnuta',
+        ok('I2 karta stoji NAD mrizkou a je zapnuta',
            umist['predMrizkou'] and not umist['schovana'], umist)
         ok('I3 rika, ze nastroje odemkne prihlaseni', 'p\u0159ihl' in k['text'].lower(), k['text'])
         # ⚠⚠ Zony bez nadpisu kategorie („⚡ Ted se hodi") drive prusvih: hostovi

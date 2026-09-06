@@ -94,7 +94,19 @@ INDEX = os.path.join(ROOT, 'index.html')
 #   Rezerva je zase mala (~1 %). Kdo bude chtit strop srazit zpatky, ma dve
 #   cesty: rozdelit js/localization-helmert.js (42 kB, ale loadModel() musi
 #   zustat eager — obnovuje ulozenou lokalizaci zakazky), nebo js/grafika.js.
-LIMIT_JS_KB = 2120
+# ZVYSENO 6.9.2026: 2120 -> 2128 kB. Duvod (VEDOME, ne tise):
+#   Prace na rychlosti startu pridala ~5 kB ZDROJE (odkladaci pomocnik
+#   AG.poPrvnimDoteku v js/ag-guard.js, davkove kresleni znacek v js/grafika.js
+#   a jejich komentare) a strop o 3 kB praskl. Ty kilobajty ale start
+#   NEZDRZUJI, naopak: merenim v prohlizeci (produkcni balicek, CPU 4x,
+#   zakazka o 1000 bodech, median z 5 kol) kleslo zablokovani hlavniho vlakna
+#   pri startu z 1 952 ms na 910 ms a nejdelsi souvisla uloha z 679 na 389 ms.
+#   Strop hlida BAJTY, ale smysl ma CAS — a ten se zlepsil o polovinu.
+#   Rezerva zustava mala (~0,2 %). Kdo bude chtit strop srazit zpatky:
+#   nejblizsi kandidati na odlozeni jsou js/seznam-souradnic.js (23 kB, okno
+#   se otevira z Nastroju) a js/localization-helmert.js (46 kB) — obojí
+#   OVERIT SPUSTENIM, ne odhadem.
+LIMIT_JS_KB = 2128
 LIMIT_CSS_KB = 320
 LIMIT_JS_SOUBORU = 74
 

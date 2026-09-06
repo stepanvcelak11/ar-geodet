@@ -60,7 +60,14 @@
 
     var BATCH = 4;          // kolik skriptů vložit v jedné dávce
     var IDLE_MS = 90;       // rozestup dávek, když prohlížeč requestIdleCallback nemá
-    var START_MS = 700;     // odklad po načtení stránky, ať se appka stihne vykreslit
+    // ⚠ ODKLAD PO NAČTENÍ STRÁNKY. Bylo 700 ms — jenže `load` na telefonu padne
+    // dřív, než je appka doopravdy použitelná: měřeno 5. 9. 2026 na produkčním
+    // balíčku (CPU 4×, gzip) je `load` na 1,55 s, ale mapa a ovladatelný dok až
+    // na 1,83 s. Fronta se tedy pouštěla přesně do posledních metrů startu a
+    // 2,3 MB dalšího kódu si bralo hlavní vlákno i pásmo, které v tu chvíli
+    // potřebují dlaždice mapy. Kdo appku hned použije, si frontu stejně vynutí
+    // sám — flush() visí na doteku doku i Nástrojů (viz init níž).
+    var START_MS = 2200;
 
     var queue = [];          // [{src, el}] v pořadí z dokumentu
     var loaded = {};         // src -> true (i při chybě, ať se nezacyklíme)

@@ -95,6 +95,40 @@
         return _add(cil, typ, fn, opts) || function () {};
     };
 
+    // ================================================================
+    //  2b) AG.poPrvnimDoteku(fn) — PRÁCE, KTEROU NIKDO NEVIDÍ, AŽ ZA START
+    // ================================================================
+    // ⚠ PROČ: měřeno 5. 9. 2026 v prohlížeči (CPU 4×, produkční balíček):
+    // opakovaný start trvá do použitelné appky ~1,8 s a z toho je přes vteřinu
+    // ZABLOKOVANÉ hlavní vlákno. Půlku té vteřiny spotřebují dva moduly, které
+    // při startu vykreslují obsah okna Nástroje — tedy DOM, na který se nikdo
+    // nedívá, dokud to okno neotevře (js/nastroje-ukony.js 311 ms,
+    // js/field-tools.js 195 ms).
+    //
+    // Tenhle pomocník takovou práci odsune za PRVNÍ DOTEK uživatele a i pak ji
+    // pustí až v nečinnosti. Do okna Nástrojů vede vždycky aspoň jedno další
+    // klepnutí, takže se stihne vykreslit dřív, než tam někdo dojde.
+    //
+    // ⚠ POJISTKA JE POVINNÁ. Kdo se appky ani nedotkne (nechá ji ležet, kouká na
+    // mapu), musí mít po chvíli všechno na svém místě — jinak by se „odložení"
+    // změnilo v „nikdy". Proto `zaloha` ms: co se nespustí dotekem, spustí se samo.
+    AG.poPrvnimDoteku = function (fn, zaloha) {
+        if (typeof fn !== 'function') return;
+        var hotovo = false, odhlas = [];
+        function spust() {
+            if (hotovo) return;
+            hotovo = true;
+            for (var i = 0; i < odhlas.length; i++) { try { odhlas[i](); } catch (e) {} }
+            odhlas.length = 0;
+            var b = function () { try { fn(); } catch (e) { AG.swallow && AG.swallow(e, 'poPrvnimDoteku'); } };
+            if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(b, { timeout: 200 });
+            else setTimeout(b, 0);
+        }
+        odhlas.push(AG.on(document, 'pointerdown', spust, true));
+        odhlas.push(AG.on(document, 'keydown', spust, true));
+        setTimeout(spust, zaloha || 4000);
+    };
+
     // Sada posluchačů. Typické použití v modálu:
     //     var s = AG.scope();
     //     s.on(window, 'resize', prekresli);
