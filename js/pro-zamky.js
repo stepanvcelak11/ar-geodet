@@ -49,6 +49,19 @@
         });
     }
 
+    // KDE BYDLÍ PRO. Obě vydání jsou na TÉMŽE originu (Základ na kořeni, Pro pod
+    // /pro/) — schválně: localStorage i cache jsou per-origin, takže se po koupi
+    // nepřenáší nic ručně. Zakázky, body i opsaný klíč jsou v Pro rovnou. Cesta
+    // je RELATIVNÍ, aby fungovala i na Pages v podadresáři (/ar_geodet/pro/).
+    var ADRESA_PRO = './pro/';
+
+    // Vydání sestaveného balíčku. Ve zdrojích (bez sestavení) je 'pro', aby se
+    // dalo vyvíjet obojí — zapisuje to scripts/vydani.py při sestavení.
+    function jeZaklad() {
+        try { return !!(window.AGLic && AGLic.vydani && AGLic.vydani() === 'zaklad'); }
+        catch (e) { return false; }
+    }
+
     function maPro() { try { return !!(window.AGLic && AGLic.isPro()); } catch (e) { return false; } }
     function jePro(k) { try { return !!(k && window.AGReg && AGReg.isPro(k)); } catch (e) { return false; } }
     function zamceno(k) { return jePro(k) && !maPro(); }
@@ -110,7 +123,9 @@
                 '#' + MODAL_ID + ' .agp-rada button{flex:1 1 0;padding:12px;border-radius:11px;font:inherit;',
                 '  font-weight:600;cursor:pointer;border:1px solid var(--glass-border,rgba(255,255,255,.16));',
                 '  background:transparent;color:inherit;}',
-                '#' + MODAL_ID + ' .agp-rada button.hlavni{background:var(--accent,#2f9e74);border-color:transparent;color:#fff;}'
+                '#' + MODAL_ID + ' .agp-rada button.hlavni{background:var(--accent,#2f9e74);border-color:transparent;color:#fff;}',
+                '#' + MODAL_ID + ' .agp-pozn{margin:9px 0 0;opacity:.7;line-height:1.45;',
+                '  font-size:calc(12px * var(--ag-font-scale,1));}'
             ].join('\n');
             (document.head || document.documentElement).appendChild(st);
             // Zámek jako maska, ať se obarví podle motivu (v CSS nejde vložit SVG přímo).
@@ -170,23 +185,88 @@
     //   nástroj: zámek držel do prvního otevření a pak tiše zmizel. (Změřeno
     //   testem E1 v scripts/test_pro_verze.py — nejdřív propadlo.)
     var _obalene = {};      // klíč -> náš obal, ať poznáme cizí přepsání
+    // ⚠⚠ ZÁMEK NESMÍ STÁT NA PŘEOBALOVÁNÍ V INTERVALU. Odkládací vrstva
+    //   (js/lazy-load.js, js/lazy-tools.js) zapíše pod `window.openDmtVolume`
+    //   nejdřív zástupce a skutečný modul si po načtení jméno PŘEPÍŠE. Obal se
+    //   sice pozná podle identity (`fn.__agPro`) a příští tik ho vrátí, jenže
+    //   mezi přepsáním a tikem je až 1,5 s, kdy pod tím jménem visí HOLÁ funkce
+    //   — a gesto, hledání nebo přímé volání ji v tom okně otevřou. Nebyla to
+    //   teorie: scripts/test_pro_verze.py na kontrole E1 padal zhruba obden.
+    //
+    //   Proto se pod to jméno místo hodnoty položí PŘÍSTUPOVÁ VLASTNOST: čtení
+    //   vrací obal, zápis se uloží jako nová vnitřní funkce a obalí se rovnou,
+    //   takže okno, ve kterém by šla vzít holá, vůbec nevznikne.
+    //
+    // ⚠ Ne každé jméno se dá takhle pohlídat: `function openX(){}` v hlavičce
+    //   klasického skriptu vyrobí na window vlastnost s configurable:false a
+    //   defineProperty na ni vyhodí výjimku. Pro ty zůstává původní obalení
+    //   v tiku — je slabší, ale pořád lepší než nic.
+    var _hlidane = {};
+
+    function obalPrimo(k) {
+        var cur = window[k];
+        if (typeof cur !== 'function' || cur.__agPro === k) return;
+        var obal = function () {
+            if (zamceno(k)) { otevriKartu(k); return; }
+            return cur.apply(this, arguments);
+        };
+        obal.__agPro = k;
+        obal.__agRaw = cur;
+        try { window[k] = obal; _obalene[k] = obal; } catch (e) { swallow(e, 'obalPrimo'); }
+    }
+
+    function hlidejFunkci(k) {
+        var popis = null;
+        try { popis = Object.getOwnPropertyDescriptor(window, k); } catch (e) { popis = null; }
+        // Hlídka drží, jen dokud je na window pořád NAŠE přístupová vlastnost.
+        // Kdyby ji někdo přepsal vlastní (nebo smazal), příznak se zahodí a
+        // položí se znovu — jinak by se `_hlidane` tvářilo, že je zamčeno, a
+        // zámek by tiše zmizel na zbytek běhu.
+        if (_hlidane[k]) {
+            if (popis && popis.get && popis.get.__agPro === k) return;
+            _hlidane[k] = false;
+        }
+        if (popis && popis.configurable === false) { obalPrimo(k); return; }
+
+        var vnitrni;
+        try { vnitrni = window[k]; } catch (e) { vnitrni = undefined; }
+        if (vnitrni && vnitrni.__agRaw) vnitrni = vnitrni.__agRaw;   // nešahat na vlastní obal
+        var obal = null;
+
+        function dej() {
+            if (typeof vnitrni !== 'function') return vnitrni;
+            if (obal && obal.__agRaw === vnitrni) return obal;
+            obal = function () {
+                if (zamceno(k)) { otevriKartu(k); return; }
+                return vnitrni.apply(this, arguments);
+            };
+            obal.__agPro = k;
+            obal.__agRaw = vnitrni;
+            return obal;
+        }
+
+        dej.__agPro = k;
+        try {
+            Object.defineProperty(window, k, {
+                configurable: true,
+                enumerable: popis ? popis.enumerable !== false : true,
+                get: dej,
+                set: function (v) {
+                    vnitrni = (v && v.__agRaw) ? v.__agRaw : v;
+                    obal = null;
+                }
+            });
+            _hlidane[k] = true;
+        } catch (e) {
+            swallow(e, 'hlidejFunkci');
+            obalPrimo(k);
+        }
+    }
+
     function obalFunkce() {
         try {
             var klice = (window.AGReg && AGReg.proKeys && AGReg.proKeys()) || [];
-            for (var i = 0; i < klice.length; i++) {
-                var k = klice[i], cur = window[k];
-                if (typeof cur !== 'function') continue;
-                if (cur.__agPro === k) continue;          // to je pořád náš obal
-                (function (k, orig) {
-                    var obal = function () {
-                        if (zamceno(k)) { otevriKartu(k); return; }
-                        return orig.apply(this, arguments);
-                    };
-                    obal.__agPro = k;
-                    window[k] = obal;
-                    _obalene[k] = obal;
-                })(k, cur);
-            }
+            for (var i = 0; i < klice.length; i++) hlidejFunkci(klice[i]);
         } catch (e) { swallow(e, 'obalFunkce'); }
     }
 
@@ -265,11 +345,20 @@
             '    <button type="button" class="agp-zpet">Zpět</button>' +
             '    <button type="button" class="hlavni agp-ok">Odemknout</button>' +
             '  </div>' +
+            '  <div class="agp-rada agp-prechod" hidden>' +
+            '    <button type="button" class="hlavni agp-otevri">Otevřít verzi Pro</button>' +
+            '  </div>' +
+            '  <p class="agp-pozn" hidden>Pro bydlí na téže adrese pod <b>/pro/</b>. Zakázky, body' +
+            ' i klíč tam máš rovnou — appka je pro prohlížeč pořád táž stránka, takže se nic' +
+            ' nepřenáší ručně.</p>' +
             '</div>';
         document.body.appendChild(m);
         m.addEventListener('click', function (e) { if (e.target === m) zavri(); });
         m.querySelector('.agp-zpet').addEventListener('click', zavri);
         m.querySelector('.agp-ok').addEventListener('click', odemkni);
+        m.querySelector('.agp-otevri').addEventListener('click', function () {
+            try { window.location.href = ADRESA_PRO; } catch (e) { swallow(e, 'prechod'); }
+        });
         m.querySelector('#agp-klic').addEventListener('keydown', function (e) {
             if (e.key === 'Enter') { e.preventDefault(); odemkni(); }
         });
@@ -292,8 +381,11 @@
             // Zástupné dlaždice ze Základu je potřeba nahradit skutečnými moduly,
             // které v tomhle balíčku vůbec nejsou. Říct to rovnou je poctivější
             // než nechat člověka klepat na dlaždice, které se neotevřou.
-            if (window.AGLic.vydani && AGLic.vydani() === 'zaklad') {
-                hl.textContent = 'Klíč platí. Pro nástroje jsou ale ve vydání Pro — otevři ho a klíč tam už bude.';
+            if (jeZaklad()) {
+                hl.textContent = 'Klíč platí. Pro nástroje jsou ale ve vydání Pro — otevři ho, klíč tam už bude.';
+                prechod(true);
+                oznac();
+                return;         // kartu nezavíráme: ať je na co klepnout
             }
             oznac();
             setTimeout(zavri, 1400);
@@ -308,8 +400,21 @@
         })[r && r.duvod] || 'Klíč nesedí.';
     }
 
+    // Přepnutí karty do stavu „tady to nekoupíš, Pro je vedle".
+    // V balíčku ZÁKLAD Pro moduly fyzicky nejsou (scripts/vydani.py je vynechá),
+    // takže odemknutí klíčem tady nemá co odemknout — jediná smysluplná akce je
+    // přejít na /pro/. Ve vydání PRO se řádek neukazuje vůbec.
+    function prechod(zapni) {
+        var m = document.getElementById(MODAL_ID);
+        if (!m) return;
+        var r = m.querySelector('.agp-prechod'), p = m.querySelector('.agp-pozn');
+        if (r) r.hidden = !zapni;
+        if (p) p.hidden = !zapni;
+    }
+
     function otevriKartu(k) {
         var m = karta();
+        prechod(jeZaklad());
         var r = (window.AGReg && AGReg.get(k)) || {};
         var nazev = (r.help && r.help.t) || r.vl || k;
         m.querySelector('.agp-nazev').textContent = nazev;
@@ -354,6 +459,7 @@
 
     function otevriPrehled() {
         var m = karta();
+        prechod(jeZaklad());
         var s = (window.AGLic && AGLic.stav()) || { pro: false };
         m.querySelector('.agp-nazev').textContent = s.pro ? 'Verze Pro — odemčeno' : 'Verze Pro';
         m.querySelector('.agp-pod').textContent = s.pro

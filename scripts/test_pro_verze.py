@@ -203,6 +203,29 @@ async def bezi(ctx):
            obchoz.get('karta') is True, obchoz)
     await page.evaluate("() => { var m=document.getElementById('ag-pro-modal'); if(m) m.classList.remove('on'); }")
 
+    # ---- E2) OKNO PO PREPSANI FUNKCE ------------------------------------------
+    # Presne to, co dela odkladaci vrstva: pod jmeno Pro nastroje zapise novou
+    # funkci (skutecny modul si po nacteni prepise zastupce) a hned se vola.
+    # Zamek, ktery se obnovuje az v intervalu, tady PROPADNE - mezi zapisem a
+    # tikem je az 1,5 s, kdy pod tim jmenem visi hola funkce. Test proto necha
+    # BEZ jakehokoli cekani. E1 vyse na tomhle padal zhruba obden.
+    okno = await page.evaluate("""() => {
+      var k = null, klice = (window.AGReg && AGReg.proKeys()) || [];
+      for (var i = 0; i < klice.length; i++) { if (typeof window[klice[i]] === 'function') { k = klice[i]; break; } }
+      if (!k) return { zadna: true };
+      var otevreno = false;
+      window[k] = function () { otevreno = true; };   // "modul se donacetl"
+      try { window[k](); } catch (e) { return { k: k, spadlo: String(e) }; }
+      var m = document.getElementById('ag-pro-modal');
+      return { k: k, otevreno: otevreno, karta: !!(m && m.classList.contains('on')) };
+    }""")
+    if okno.get('zadna'):
+        ok('E2 (preskoceno - zadny Pro nastroj nema globalni funkci)', True, okno)
+    else:
+        ok('E2 prepsani funkce zamek neobejde (okno po donacteni modulu)',
+           okno.get('otevreno') is False and okno.get('karta') is True, okno)
+    await page.evaluate("() => { var m=document.getElementById('ag-pro-modal'); if(m) m.classList.remove('on'); }")
+
     # ---- H) vstup ke koupi je ve "Vice" ---------------------------------------
     vstup = await page.evaluate("""() => {
       var b = document.getElementById('ag-pro-menu-btn');

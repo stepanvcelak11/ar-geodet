@@ -67,11 +67,65 @@ jobs:
       - name: Statická kontrola JS
         run: python scripts/check_js.py --require-node
 
-      - name: Zabalit a přepsat index.html
-        run: npm run build -- --apply
+      # Prohlížeč se stahuje JEDNOU pro obě vydání — smoke testy běží dvakrát.
+      - name: Prohlížeč pro smoke testy
+        run: npx playwright install --with-deps chromium
 
-      - name: Přegenerovat seznam assetů v sw.js
-        run: python scripts/gen_sw_assets.py
+      # ---- DVĚ VYDÁNÍ NA JEDNOM ORIGINU ---------------------------------------
+      # Appka se prodává jako ZÁKLAD (zdarma) a PRO (placené) a nasazují se
+      # jako DVA BALÍČKY, ne jeden s přepínačem: Základ tak nestahuje kód, který
+      # nikdy nespustí.
+      #
+      # ⚠ PRO BYDLÍ POD /pro/ NA TÉMŽE ORIGINU. Není to kosmetika: localStorage
+      #   i cache jsou per-origin, takže si geodet po koupi otevře druhý odkaz
+      #   a má tam rovnou svoje zakázky, body i opsaný klíč. Samostatné nasazení
+      #   by znamenalo zadávat klíč dvakrát a data stěhovat exportem.
+      #
+      # ⚠ POŘADÍ JE PRO NAPŘED. Sestavení Základu ze stromu MAŽE Pro moduly
+      #   (scripts/vydani.py --zaklad --pred), takže po něm už není z čeho Pro
+      #   postavit. Opačné pořadí by tiše vyrobilo dvě kopie Základu.
+      - name: Sestavit vydání PRO (nasadí se do /pro/)
+        run: |
+          python scripts/vydani.py --pro --pred
+          npm run build -- --apply
+          python scripts/gen_sw_assets.py
+          python scripts/vydani.py --pro --po
+
+      # Obě vydání se testují ZVLÁŠŤ. Kdyby se pouštěl smoke jen nad Základem
+      # (ten je rizikovější, mažou se v něm soubory), rozbité Pro by se nasadilo
+      # bez povšimnutí — a platí ho ti, kteří si za appku zaplatili.
+      - name: Smoke testy nad vydáním PRO
+        run: npm run test:smoke
+
+      - name: Odložit /pro/ stranou
+        run: |
+          mkdir -p _site/pro
+          rsync -a --exclude '.git' --exclude '.github' --exclude 'node_modules' \
+                   --exclude 'tests' --exclude 'playwright-report' --exclude 'test-results' \
+                   --exclude '_site' --exclude 'scripts' --exclude 'cloud' \
+                   --exclude '*.md' --exclude 'package.json' --exclude 'package-lock.json' \
+                   --exclude 'playwright.config.mjs' \
+                   --exclude '/play' --exclude '/garmin' --exclude '/_archiv' \
+                   --exclude '/logo-navrhy' --exclude '/nahledy-*' --exclude '/navrhy-*' \
+                   --exclude '/test-fullscreen*' --exclude '/manifest-test*' \
+                   --exclude '/tests.html' \
+                   ./ _site/pro/
+
+      # Zdroje zpátky do původního stavu, ať Základ nestaví nad přepsaným
+      # index.html. `git checkout` bere jen sledované soubory — dist/ se maže
+      # zvlášť, jinak by v balíčku Základu zůstal bundle vyrobený z Pro kódu
+      # (jméno má hash, takže by se ani nepřepsal, jen by tam ležel navíc).
+      - name: Vrátit strom do stavu z checkoutu
+        run: |
+          git checkout -- index.html sw.js manifest.json
+          rm -rf dist
+
+      - name: Sestavit vydání ZÁKLAD (nasadí se na kořen)
+        run: |
+          python scripts/vydani.py --zaklad --pred
+          npm run build -- --apply
+          python scripts/gen_sw_assets.py
+          python scripts/vydani.py --zaklad --po
 
       # Rozpočet startu se v release-check.yml měří nad ZDROJI, jenže uživatel
       # venku dostává tenhle balíček. Do 5. 9. 2026 to byly dvě různé appky:
@@ -84,10 +138,8 @@ jobs:
       - name: Rozpočet startu ZABALENÉ verze
         run: python scripts/check_start_budget.py --dist
 
-      - name: Smoke testy nad ZABALENOU verzí
-        run: |
-          npx playwright install --with-deps chromium
-          npm run test:smoke
+      - name: Smoke testy nad vydáním ZÁKLAD
+        run: npm run test:smoke
 
       - name: Report z testů (i při chybě)
         if: always()
@@ -126,7 +178,26 @@ jobs:
                    --exclude '/test-fullscreen*' --exclude '/manifest-test*' \
                    --exclude '/tests.html' \
                    ./ _site/
-          echo "Velikost nasazované kopie:"; du -sh _site
+          echo "Velikost nasazované kopie:"; du -sh _site _site/pro
+
+      # POJISTKA PŘED PUBLIKACÍ. Kdyby se kroky nad tím přeuspořádaly (a bylo by
+      # to lákavé — vypadají zaměnitelně), nasadila by se dvakrát táž appka a
+      # nikdo by si toho nevšiml: obě vydání vypadají na první pohled stejně.
+      # Značka vydání je jediné místo, kde se poznají.
+      - name: Ověřit, že jsou to opravdu dvě různá vydání
+        run: |
+          grep -q "window.__AG_VYDANI = 'zaklad'" _site/index.html \
+            || { echo "::error::_site/index.html není vydání ZÁKLAD"; exit 1; }
+          grep -q "window.__AG_VYDANI = 'pro'" _site/pro/index.html \
+            || { echo "::error::_site/pro/index.html není vydání PRO"; exit 1; }
+          # Pro moduly v Základu být nesmí — kdyby tam zůstaly, prodává se něco,
+          # co má každý už teď v balíčku.
+          for f in $(python scripts/check_verze.py --mapa | python -c \
+                     "import json,sys; print(' '.join(json.load(sys.stdin)['smazatelne']))"); do
+            if [ -e "_site/$f" ]; then echo "::error::v Základu zůstal Pro modul $f"; exit 1; fi
+            if [ ! -e "_site/pro/$f" ]; then echo "::error::v Pro chybí modul $f"; exit 1; fi
+          done
+          echo "OK — kořen je ZÁKLAD, /pro/ je PRO."
 
       - uses: actions/upload-pages-artifact@v3
         with:

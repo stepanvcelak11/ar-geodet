@@ -51,6 +51,30 @@ MUSI_ZUSTAT_ZDARMA = {
 }
 
 
+# Pro nastroje, ktere scanner NENAJDE, protoze se neregistruji pres
+# agRegisterFieldTool({id:...}) - jsou to staticke dlazdice v index.html volane
+# z onclick. Soubor u nich PRESTO existuje a delene sestaveni ho z balicku
+# Zakladu vynechat MUSI, jinak si Zaklad stahuje kod, ktery nikdy nespusti.
+#
+# ⚠ SMI SEM JEN ODLOZENY MODUL (<script type="ag/lazy" data-src=...>). U eager
+#   skriptu by vynechani znamenalo, ze `onclick` v index.html vola neexistujici
+#   funkci a klik by spadl do konzole misto na zamek; u odlozeneho se nestane
+#   nic - js/lazy-load.js ho proste nema odkud vzit a klik odchyti driv
+#   js/pro-zamky.js (capture faze).
+# Hlida to kontrola nize: kazdy zaznam musi byt `pro`, soubor musi existovat
+# a v index.html musi byt zapsany jako odlozeny.
+RUCNE_SOUBORY = {
+    'openDmtVolume': 'dmt-volume.js',
+    'openTachymetrie': 'tachymetrie.js',
+}
+
+# Soubory, ktere do Zakladu nepatri, i kdyz to nejsou nastroje z registru.
+# Klic je popis duvodu (vypisuje se v --mapa), hodnota cesta od korene repa.
+PRO_SOUBORY_NAVIC = {
+    'js/pro-klice.js': u'dilna vlastnika appky na vyrobu licencnich klicu',
+}
+
+
 def read(p):
     return io.open(os.path.join(ROOT, p), encoding='utf-8', errors='replace').read()
 
@@ -83,12 +107,64 @@ def main():
         popis[k] = m.group(1) if m else ''
 
     soubory = registered_ids()
+    # rucni doplnky (staticke dlazdice) - az po scanneru, aby ho neprepsaly tise
+    for k, f in RUCNE_SOUBORY.items():
+        if k not in soubory:
+            soubory[k] = f
+
+    # ---- ktery soubor smi delene sestaveni z balicku ZAKLADU vynechat --------
+    # DVE PODMINKY, A KAZDA MA SVUJ VLASTNI PRIPAD, KTERY UZ NASTAL:
+    #
+    # (a) VSECHNY nastroje v souboru musi byt `pro`. Mapa nastroj -> soubor sama
+    #     o sobe nestaci: jeden soubor umi hostit vic nastroju a vynechanim by
+    #     Zaklad prisel i o ty zdarma.
+    #
+    # (b) ⚠⚠ SOUBOR MUSI BYT ODLOZENY (`type="ag/lazy"` v index.html nebo zaznam
+    #     v MANIFESTu js/lazy-tools.js). Podminka (a) sama LZE: js/field-tools.js
+    #     registruje JEDINY nastroj, `dronview`, a ten `pro` je - jenze v temze
+    #     souboru bydli CELA MRIZKA NASTROJU, ktera se neregistruje pres
+    #     agRegisterFieldTool, takze o ni scanner nevi. Podle (a) by soubor vysel
+    #     jako "cisty Pro" a Zaklad by se nasadil BEZ NASTROJU.
+    #     Odlozeny modul je proti tomu z definice pouhy nastroj: nacita se az po
+    #     prvnim obraze, takze na nem nemuze stat start appky. Co se spousti pri
+    #     startu (eager <script src>), zustava v obou vydanich a zamyka se az za
+    #     behu pres js/pro-zamky.js - stoji to par set kB v Zakladu a je to
+    #     jedina varianta, kde se nema co tise rozbit.
+    html_src = read('index.html')
+    try:
+        lazy_src = read('js/lazy-tools.js')
+    except OSError:
+        lazy_src = u''
+
+    def je_odlozeny(cesta):
+        if ('data-src="%s"' % cesta) in html_src:
+            return True
+        return ("src: '%s'" % cesta) in lazy_src or ("src: './%s'" % cesta) in lazy_src
+
+    v_souboru = {}
+    for k, f in soubory.items():
+        v_souboru.setdefault('js/' + f, []).append(k)
+    smazatelne, sdilene, eager = [], {}, {}
+    for f, klice in sorted(v_souboru.items()):
+        if not any(k in pro for k in klice):
+            continue
+        zdarma = sorted(k for k in klice if k not in pro)
+        if zdarma:
+            sdilene[f] = zdarma
+        elif not je_odlozeny(f):
+            eager[f] = sorted(klice)
+        else:
+            smazatelne.append(f)
 
     if '--mapa' in sys.argv:
         sys.stdout.write(json.dumps({
             'pro': sorted(pro),
+            'smazatelne': sorted(set(smazatelne) | set(PRO_SOUBORY_NAVIC)),
+            'sdilene': sdilene,
+            'eager': eager,
             'zaklad': sorted(set(k for k, _ in recs) - pro),
             'soubory': {k: soubory[k] for k in sorted(pro) if k in soubory},
+            'navic': sorted(PRO_SOUBORY_NAVIC),
             'bez_souboru': sorted(k for k in pro if k not in soubory),
         }, ensure_ascii=False, indent=1))
         return 0
@@ -121,6 +197,25 @@ def main():
         if k in pro:
             chyby.append(u'%s: nesmi byt `pro` - %s.' % (k, proc))
 
+    # 4) rucni mapa nastroj -> soubor musi sedet, jinak delene sestaveni tise
+    #    vynecha soubor, ktery Zaklad potrebuje (nebo naopak necha Pro kod uvnitr)
+    html = read('index.html')
+    for k, f in sorted(RUCNE_SOUBORY.items()):
+        if k not in pro:
+            chyby.append(u'RUCNE_SOUBORY: %s uz neni `pro` - vyrad ho odtud, jinak by '
+                         u'--zaklad vynechal soubor nastroje, ktery ma byt zdarma.' % k)
+            continue
+        if not os.path.exists(os.path.join(ROOT, 'js', f)):
+            chyby.append(u'RUCNE_SOUBORY: js/%s neexistuje (nastroj %s).' % (f, k))
+            continue
+        if ('data-src="js/%s"' % f) not in html:
+            chyby.append(u'RUCNE_SOUBORY: js/%s uz v index.html neni odlozeny (ag/lazy data-src). '
+                         u'Eager soubor se z balicku vynechat nesmi - onclick by volal '
+                         u'neexistujici funkci misto zamku.' % f)
+    for f in sorted(PRO_SOUBORY_NAVIC):
+        if not os.path.exists(os.path.join(ROOT, f)):
+            chyby.append(u'PRO_SOUBORY_NAVIC: %s neexistuje.' % f)
+
     # ---- vypis ----
     vsechny = [k for k, _ in recs]
     zaklad = [k for k in vsechny if k not in pro]
@@ -128,8 +223,19 @@ def main():
 
     out = sys.stdout
     out.write(u'ZAKLAD: %d nastroju    PRO: %d nastroju\n' % (len(zaklad), len(pro)))
-    out.write(u'Pro nastroju s vlastnim souborem: %d (ty --zaklad vynecha uz pri sestaveni)\n'
-              % (len(pro) - len(bez_souboru)))
+    out.write(u'Pro nastroju s vlastnim souborem: %d\n' % (len(pro) - len(bez_souboru)))
+    out.write(u'Souboru vynechanych uz pri sestaveni (scripts/vydani.py --zaklad): %d\n'
+              % (len(smazatelne) + len(PRO_SOUBORY_NAVIC)))
+    if sdilene:
+        out.write(u'Sdilene soubory - Pro nastroj bydli spolu s nastrojem zdarma, takze\n'
+                  u'se z balicku vynechat NESMI; zamyka az js/pro-zamky.js za behu:\n')
+        for f in sorted(sdilene):
+            out.write(u'  %s  (zdarma: %s)\n' % (f, ', '.join(sdilene[f])))
+    if eager:
+        out.write(u'Pro soubory spoustene pri STARTU (ne odlozene) - v balicku Zakladu\n'
+                  u'zustavaji a zamykaji se az za behu, protoze na nich muze stat start:\n')
+        for f in sorted(eager):
+            out.write(u'  %s  (%s)\n' % (f, ', '.join(eager[f])))
     if bez_souboru:
         out.write(u'Pro nastroju bez vlastniho souboru: %d - zamyka je az js/pro-zamky.js za behu:\n'
                   % len(bez_souboru))

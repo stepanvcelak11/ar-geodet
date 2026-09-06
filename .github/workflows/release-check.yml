@@ -119,6 +119,14 @@ jobs:
       - name: Licence Pro (vyroba klice sedi s overenim)
         run: python scripts/test_licence.py
 
+      # Delici cara se da rozbit tise a v OBOU smerech: bud z balicku Zakladu
+      # vypadne soubor, na kterem stoji start, nebo naopak Pro kod v Zakladu
+      # zustane a prodava se neco, co uz kazdy ma. Tady bezi jen staticka cast
+      # (sestavi obe vydani do docasnych kopii a porovna je) - bez prohlizece,
+      # aby release-check zustal rychly. Spusteni Zakladu hlida tests.yml.
+      - name: Delene sestaveni (Zaklad vs Pro)
+        run: python scripts/test_vydani.py --staticky
+
       # Rozpočet startu: kolik JS a CSS musí prohlížeč stáhnout a spustit JEŠTĚ
       # PŘED prvním vykreslením. Rostlo to tiše (každý nový modul o kus) až na
       # 2273 kB v 79 souborech; přesun devíti nástrojů do lazy vrstvy to srazil
