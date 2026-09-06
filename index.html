@@ -95,8 +95,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=279">
-    <link rel="stylesheet" href="css/style.css?v=279">
+    <link rel="stylesheet" href="css/tokens.css?v=280">
+    <link rel="stylesheet" href="css/style.css?v=280">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -111,10 +111,14 @@
             try {
                 var f = JSON.parse(localStorage.getItem('agFirma_v1') || 'null');
                 if (!f || !f.enabled || !f.users || !f.users.length) {
-                    // Zadna firma => ucty.js ukaze BRANU (showGate), takze uvodni
-                    // kartu je taky potreba schovat. Host si ji ale nechava - viz
-                    // komentar u enterApp() v js/ucty.js.
-                    need = !localStorage.getItem('agGuest_v1');
+                    // Zadny ucet => ucty.js ukaze BRANU (showGate), takze uvodni
+                    // kartu je taky potreba schovat.
+                    // ⚠ HOST BYL ZRUSEN 6. 9. 2026. Driv se tu cetl `agGuest_v1`
+                    //   a pri jeho pritomnosti se zamek NEZAPNUL - jenze ten klic
+                    //   se nastavoval NATRVALO, takze komu appka jednou naskocila
+                    //   jako hostovi, tomu by brana uz nikdy nenaskocila. Ted se
+                    //   zamyka vzdycky a klic uklidi js/ucty.js.
+                    need = true;
                 } else {
                     var lock = localStorage.getItem('agLockStart_v1') !== '0';
                     var sess = localStorage.getItem('agFirmaSess_v1');
@@ -189,7 +193,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=279">
+    <link rel="stylesheet" href="css/vylepseni.css?v=280">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
          render-blokující: prohlížeč nevykreslí ani pixel, dokud nedorazí VŠECHNY.
          Jedenáct z nich (69 kB) přitom patřilo oknům, která se při startu vůbec

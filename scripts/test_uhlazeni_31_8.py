@@ -80,8 +80,11 @@ BOOT_ZAM = """
   })();
 """
 
-# Host: presne stav, do ktereho se uzivatel zamkl tlacitkem "Pokracovat bez
-# prihlaseni" - zadna firma, jen priznak agGuest_v1.
+# ⚠ HOST BYL 6. 9. 2026 ZRUSEN a s nim i cely omezeny rezim. Test se proto
+#   OTOCIL: driv overoval, ze se z hostovskeho rezimu da ven; ted overuje, ze
+#   se do nej uz NEDA dovnitr. Je to dulezitejsi nez to vypada - klic
+#   `agGuest_v1` se nastavoval NATRVALO, takze komu v telefonu zustal, tomu
+#   by se brana uz nikdy neukazala a appka by ho pustila k mereni bez uctu.
 BOOT_HOST = """
   localStorage.setItem('agTutProSeen','1');
   localStorage.setItem('agBrifinkAuto','0');
@@ -135,40 +138,49 @@ async def nacti(page, cekej_na='true'):
 
 
 async def test_host(ctx):
-    """A) vychod z omezeneho rezimu"""
+    """A) stary hostovsky klic uz nikoho dovnitr nepusti"""
     page = await ctx.new_page()
     chyby = []
     page.on('pageerror', lambda e: chyby.append(str(e)[:200]))
     await nacti(page, "typeof window.AGUcty === 'object'")
 
-    st = await page.evaluate("""() => {
-        const e = document.getElementById('ag-guest-exit');
-        if (!e) return { je: false };
-        const r = e.getBoundingClientRect(), cs = getComputedStyle(e);
-        return { je: true,
-                 vidno: cs.display !== 'none' && cs.visibility !== 'hidden' && parseFloat(cs.opacity) > 0.05,
-                 vObraze: r.top >= 0 && r.bottom <= innerHeight + 1 && r.width > 40,
-                 dole: Math.round(innerHeight - r.bottom),
-                 text: (e.textContent || '').replace(/\\s+/g, ' ').trim() };
-    }""")
-    ok('A1 pruh "vychod z omezeneho rezimu" je v DOM', st.get('je'), st)
-    if st.get('je'):
-        ok('A2 pruh je opravdu videt a cely v obraze', st.get('vidno') and st.get('vObraze'), st)
-        ok('A3 pruh nabizi prihlaseni slovy', 'Přihlásit' in (st.get('text') or ''), st.get('text'))
-
-    # A4: klepnuti = prihlasovaci brana. Klepe se PRVKEM (ne souradnici) - pruh
-    # muze byt cizim prvkem prekryty a to uz je jina vada.
-    await page.evaluate("() => document.getElementById('ag-guest-exit').click()")
-    await page.wait_for_timeout(900)
+    # A1: brana MUSI stat. Telefon ma v uloziste `agGuest_v1` z drivejska a
+    # zadny ucet - do 6. 9. 2026 by ho ten klic pustil rovnou do appky.
     gate = await page.evaluate("""() => {
         const g = document.getElementById('ag-gate') || document.getElementById('ag-login');
         if (!g) return { je: false };
         const cs = getComputedStyle(g);
-        return { je: true, vidno: cs.display !== 'none' && cs.visibility !== 'hidden' };
+        return { je: true, vidno: cs.display !== 'none' && cs.visibility !== 'hidden',
+                 text: (g.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 200) };
     }""")
-    ok('A4 klepnuti otevre prihlasovaci branu', gate.get('je') and gate.get('vidno'), gate)
+    ok('A1 stary hostovsky klic uz appku neodemyka - stoji brana', gate.get('je') and gate.get('vidno'), gate)
 
-    ok('A5 host nabootoval bez chyby v konzoli', not chyby, chyby[:3])
+    # A2: klic se navic UKLIDI, aby se na nej uz nikdo nemohl spolehnout.
+    zbyl = await page.evaluate("() => localStorage.getItem('agGuest_v1')")
+    ok('A2 klic agGuest_v1 je z uloziste smazany', zbyl is None, zbyl)
+
+    # A3: zadny zbytek omezeneho rezimu na obrazovce.
+    zbytky = await page.evaluate("""() => ({
+        pruh: !!document.getElementById('ag-guest-exit'),
+        pilulka: !!document.getElementById('ag-guest-pill'),
+        trida: document.body.classList.contains('ag-guest')
+    })""")
+    ok('A3 po omezenem rezimu nezbyl na obrazovce zadny stitek',
+       not (zbytky['pruh'] or zbytky['pilulka'] or zbytky['trida']), zbytky)
+
+    # A4: brana nabizi obe cesty - prihlaseni i zalozeni uctu. Bez druhe
+    # z nich by novy clovek zustal viset na obrazovce, ktera po nem chce
+    # kod, jaky nikde nezískal.
+    cesty = await page.evaluate("""() => ({
+        prihlasit: !!document.getElementById('agg-show-join'),
+        zalozit: !!document.getElementById('agg-reg'),
+        host: !!document.getElementById('agg-guest')
+    })""")
+    ok('A4 brana nabizi prihlaseni i zalozeni uctu',
+       cesty['prihlasit'] and cesty['zalozit'], cesty)
+    ok('A5 tlacitko "pokracovat bez prihlaseni" uz na brane neni', not cesty['host'], cesty)
+
+    ok('A6 nabootovalo bez chyby v konzoli', not chyby, chyby[:3])
     await page.close()
 
 

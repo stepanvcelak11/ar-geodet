@@ -59,7 +59,15 @@
     var LS_TOK = 'agFirmaTok_v1';      // cloud: {token, userId} tohoto zařízení
     var LS_OFF = 'agFirmaOff_v1';      // cloud: offline ověřovadla {userId:{salt,iters,hash}}
     var LS_SYNC = 'agFirmaSync_v1';    // cloud: ukazatel odeslaných událostí užívání {lastSeq}
-    var LS_GUEST = 'agGuest_v1';       // režim bez přihlášení {ts} — velmi omezené funkce
+    // ⚠⚠ HOST (`agGuest_v1`) BYL ZRUŠEN 6. 9. 2026. Klíč se tu drží jen proto, aby
+    //   se dal při startu SMAZAT — kdo appku měl v hostovském režimu, měl ho
+    //   nastavený natrvalo a bez úklidu by mu brána nikdy nenaskočila.
+    //   Proč zrušen: bez profilu neměla otázka „kdo to naměřil" odpověď, a přitom
+    //   se v hostovském režimu měřilo. Nově se do appky bez účtu nedostane nikdo;
+    //   registrace je za tři pole a nechce e-mail (viz showRegister níž).
+    var LS_GUEST_STARY = 'agGuest_v1';
+    var LS_ACC = 'agUcet_v1';          // účet: {id, code, name, tarif, tarifDo}
+    var LS_SPACES = 'agProstory_v1';   // prostory účtu (přepínač) [{firmId,...}]
     var LS_OWNER = 'agVlastnik_v1';    // rezim vlastnika appky (js/vlastnik.js)
     var LS_PROF = 'agFirmy_v1';        // uložené firmy tohoto zařízení [{key,label,code,cloud,ts,snap}]
     var LS_LAST = 'agFirmaLastUser_v1';// id naposledy přihlášeného (rychlé odemknutí)
@@ -129,26 +137,61 @@
     }
 
     // ------------------------------------------------------------------
-    // Režim BEZ PŘIHLÁŠENÍ (host): appka jinak vyžaduje přihlášení (brána
-    // při startu). Host smí jen základní měření a vzhled — vše ostatní
-    // (Nástroje, Více, záložky dat/údržby) je skryté.
-    // ------------------------------------------------------------------
-    var GUEST_ALLOW = { 'dock.novybod': 1, 'dock.body': 1, 'dock.nastaveni': 1 };
-    function isGuest() {
-        if (getFirm()) return false;
-        return guestFlag();          // čte přes cache, viz komentář u getFirm()
-    }
-    function enterGuest() {
-        try { localStorage.setItem(LS_GUEST, JSON.stringify({ ts: Date.now() })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:enterGuest'); }
-        bustFirm();
-        var g = document.getElementById('ag-gate'); if (g) g.remove();
-        applyPerms();
-        enterApp();   // brána byla vstupní obrazovkou → úvodní kartu přeskočit
-    }
+    // ÚKLID PO ZRUŠENÉM HOSTOVI. Klíč `agGuest_v1` se nastavoval NATRVALO,
+    // takže komu appka jednou v hostovském režimu naskočila, tomu by brána
+    // nenaskočila nikdy. Smaže se hned při startu modulu, ne až v init() —
+    // jinak by ho stihl přečíst kód v <head> index.html, který podle něj
+    // rozhoduje, jestli vůbec ukázat úvodní obrazovku.
     function clearGuest() {
-        try { localStorage.removeItem(LS_GUEST); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:clearGuest'); }
+        try { localStorage.removeItem(LS_GUEST_STARY); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:clearGuest'); }
         bustFirm();
     }
+    clearGuest();
+
+    // ------------------------------------------------------------------
+    // ÚČET A JEHO PROSTORY
+    // ------------------------------------------------------------------
+    // Identita (kdo jsi, tarif) je ÚČET; kde zrovna pracuješ, je PROSTOR.
+    // Vlastní prostor má účet vždycky a nikdy o něj nepřijde — firma je
+    // členství DRUHÉ. V Základu se o žádné „firmě" neví: prostor je jen
+    // místo, kterému si člověk při registraci dal jméno.
+    function getUcet() {
+        try { return JSON.parse(localStorage.getItem(LS_ACC) || 'null'); } catch (e) { return null; }
+    }
+    function setUcet(u) {
+        try {
+            if (u) localStorage.setItem(LS_ACC, JSON.stringify(u));
+            else localStorage.removeItem(LS_ACC);
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:setUcet'); }
+        // ⚠ TARIF SE MUSÍ PROPSAT DO LICENCE HNED. Kdyby se čekalo na příští
+        //   /config, měl by člověk s Pro po přihlášení zamčené nástroje a
+        //   nevěděl proč. AGLic si hodnotu uloží, takže platí i bez signálu.
+        try {
+            if (window.AGLic && AGLic.tarifUctu) AGLic.tarifUctu(u && u.tarif, u && u.tarifDo);
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:tarif'); }
+    }
+    function getProstory() {
+        try {
+            var p = JSON.parse(localStorage.getItem(LS_SPACES) || '[]');
+            return Array.isArray(p) ? p : [];
+        } catch (e) { return []; }
+    }
+    function setProstory(p) {
+        try { localStorage.setItem(LS_SPACES, JSON.stringify(Array.isArray(p) ? p : [])); }
+        catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:setProstory'); }
+    }
+    // Prostor, ve kterém appka právě je (podle kódu firmy v agFirma_v1).
+    function aktualniProstor() {
+        var f = getFirm();
+        if (!f) return null;
+        var vse = getProstory();
+        for (var i = 0; i < vse.length; i++) if (vse[i].kod && vse[i].kod === f.code) return vse[i];
+        // Vlastní prostor kód neposílá (je jednomístný, není kam zvát) — pozná
+        // se podle toho, že je jediný vlastní.
+        for (i = 0; i < vse.length; i++) if (vse[i].vlastni) return vse[i];
+        return null;
+    }
+    function tarif() { var u = getUcet(); return (u && u.tarif === 'pro') ? 'pro' : 'zaklad'; }
 
     // vyžadovat přihlášení při každém startu appky (výchozí ANO; per zařízení)
     function getLockOnStart() {
@@ -176,8 +219,7 @@
     // volající nikdy nedostal objekt sdílený s dřívějším stavem.
     var FIRM_TTL = 500;                       // ms
     var _firmVal = null, _firmTs = 0, _firmHas = false;
-    var _guestVal = false, _guestTs = 0, _guestHas = false;
-    function bustFirm() { _firmHas = false; _guestHas = false; _ownHas = false; }
+    function bustFirm() { _firmHas = false; _ownHas = false; }
     function getFirm() {
         var now = Date.now();
         if (_firmHas && (now - _firmTs) < FIRM_TTL) return _firmVal;
@@ -210,21 +252,16 @@
         _ownVal = v; _ownTs = now; _ownHas = true;
         return v;
     }
-    // stejná úvaha jako u getFirm() — isGuest() je druhá polovina těch 137 čtení/s
-    function guestFlag() {
-        var now = Date.now();
-        if (_guestHas && (now - _guestTs) < FIRM_TTL) return _guestVal;
-        var v = false;
-        try { v = !!localStorage.getItem(LS_GUEST); } catch (e) { v = false; }
-        _guestVal = v; _guestTs = now; _guestHas = true;
-        return v;
-    }
+    // Bez profilu se do appky nedostane nikdo — hostovský režim byl zrušen,
+    // takže tahle otázka má vždycky tutéž odpověď. Funkce zůstává kvůli
+    // modulům, které se na ni ptají (a kvůli starším zálohám nastavení).
+    function isGuest() { return false; }
     // zápis do úložiště z JINÉ záložky/okna — zahodit cache hned, ne až po TTL
     try {
         window.addEventListener('storage', function (e) {
-            if (!e || !e.key || e.key === LS_FIRM || e.key === LS_GUEST || e.key === LS_OWNER) bustFirm();
+            if (!e || !e.key || e.key === LS_FIRM || e.key === LS_ACC || e.key === LS_OWNER) bustFirm();
         });
-    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:guestFlag'); }
+    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:storage'); }
     function saveFirm(f) {
         try { localStorage.setItem(LS_FIRM, JSON.stringify(f)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:saveFirm'); }
         bustFirm();
@@ -286,10 +323,7 @@
     function can(key) {
         if (isOwner()) return true;      // rezim vlastnika: opravneni firem se nevztahuji
         var f = getFirm();
-        if (!f) {
-            if (isGuest()) return !!GUEST_ALLOW[key];    // host: jen základní měření a vzhled
-            return true;                                  // před branou / po nouzovém resetu
-        }
+        if (!f) return true;              // před branou / po nouzovém resetu
         var u = currentUser(); if (!u) return false;      // nepřihlášen -> nic (stejně kryje overlay)
         if (u.role === 'admin') return true;
         var p = f.perms && f.perms[u.role];
@@ -487,6 +521,14 @@
     // po úspěšném /login nebo /firms: konfigurace + token + ověřovadlo + session
     function adoptLogin(data, api, pass) {
         adoptConfig(data.config, api, true);   // přihlášení SMÍ změnit firmu
+        // ÚČET A JEHO PROSTORY. Chodí to z /login i /register; starší worker je
+        // neposílá vůbec (pole chybí) — v tom případě se na uložený účet NESAHÁ,
+        // aby nasazení nového klienta proti starému serveru nesebralo lidem Pro.
+        if (data.ucet) setUcet({
+            id: data.ucet.id, code: data.ucet.code, name: data.ucet.name,
+            tarif: data.ucet.tarif || 'zaklad', tarifDo: data.ucet.tarifDo || 0
+        });
+        if (data.prostory) setProstory(data.prostory);
         setTok({ token: data.token, userId: data.user.id });
         // Overovadlo si spocita telefon sam (viz makeOffline). data.offline je tu uz
         // jen kvuli STARSIMU workeru, ktery ho jeste posila - a jako zachrana pro
@@ -551,6 +593,16 @@
                     return syncStav(false, 'jina-firma');
                 }
                 adoptConfig(r.data);
+                // ⚠ TARIF SE OBNOVUJE PŘI KAŽDÉM /config, ne jen při přihlášení.
+                //   Token platí 60 dní — kdyby se tarif četl jen z přihlášení,
+                //   zaplacené Pro by se rozsvítilo až za dva měsíce a skončené
+                //   předplatné by dva měsíce svítilo dál. Tenhle GET appka dělá
+                //   tak jako tak (jednou za minutu), takže to nestojí nic navíc.
+                if (r.data.me) setUcet({
+                    id: r.data.me.ucet, code: (getUcet() || {}).code, name: r.data.me.name,
+                    tarif: r.data.me.tarif || 'zaklad', tarifDo: (getUcet() || {}).tarifDo || 0
+                });
+                if (r.data.prostory) setProstory(r.data.prostory);
                 // účet mohl být mezitím zablokován jinde → zamknout appku
                 if (getSess() && !currentUser()) { setSess(null); showLogin(false); }
                 return syncStav(true, null);
@@ -894,8 +946,7 @@
     function applyPerms() {
         var f = getFirm();
         var u = currentUser();
-        var guest = !f && isGuest();
-        var restrict = !!(f && u && u.role !== 'admin') || guest;
+        var restrict = !!(f && u && u.role !== 'admin');
 
         // 1) dok
         try {
@@ -1012,28 +1063,14 @@
             }
             if (grid2 && restrict && !videt) {
                 if (!karta) {
-                    // styly jinak vkládá až syncGuestPill (tedy jen u hosta) — zaměstnanec
-                    // bez jediné povolené kategorie by dostal neupravenou kartu
+                    // zaměstnanec bez jediné povolené kategorie by jinak dostal
+                    // neupravenou kartu — styly se sem musí vložit ručně
                     injectStyles();
                     karta = document.createElement('div');
                     karta.id = 'ag-tools-empty';
                     karta.className = 'ag-tools-empty';
-                    karta.innerHTML = guest
-                        ? '<b>Nástroje se odemknou po přihlášení.</b>'
-                        + '<p>V omezeném režimu appka umí mapu, vlastní body a nastavení vzhledu. '
-                        + 'Měření, vytyčování, katastr a AR jsou v plné verzi.</p>'
-                        : '<b>Tvoje role nemá povolený žádný nástroj.</b>'
+                    karta.innerHTML = '<b>Tvoje role nemá povolený žádný nástroj.</b>'
                         + '<p>Kategorie nástrojů přiděluje správce firmy v Účtech a rolích.</p>';
-                    if (guest) {
-                        var b2 = document.createElement('button');
-                        b2.type = 'button'; b2.className = 'btn btn-primary';
-                        b2.textContent = 'Přihlásit se';
-                        b2.addEventListener('click', function () {
-                            try { var tm = document.getElementById('tools-modal'); if (tm) tm.style.display = 'none'; } catch (e2) { }
-                            showGate();
-                        });
-                        karta.appendChild(b2);
-                    }
                     // PŘED mřížku, ne za ni: za ní by karta ležela až pod profilovým
                     // přepínačem a „Upravit oblíbené", tedy o obrazovku níž — a to je
                     // přesně to prázdno, které má vysvětlit.
@@ -1046,55 +1083,23 @@
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:prazdneNastroje'); }
 
         try { document.body.classList.toggle('ag-firm-restricted', restrict); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:setHide'); }
-        try { document.body.classList.toggle('ag-guest', guest); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:setHide'); }
-        syncGuestPill(guest);
+        // ⚠ `ag-guest` se odstraňuje, ne jen nenastavuje: komu třída zůstala
+        //   v DOM z předchozí verze appky (a v CSS jiných modulů něco schovávala),
+        //   by jinak koukal na díry, které už nic nevysvětluje.
+        try { document.body.classList.remove('ag-guest'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:setHide'); }
+        syncGuestPill(false);
         try { window.dispatchEvent(new CustomEvent('agucty:perms')); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:setHide'); }
     }
 
-    // ⚠⚠ JEDINÁ CESTA Z OMEZENÉHO REŽIMU ZPÁTKY K PŘIHLÁŠENÍ (31. 8. 2026).
-    //   Klíč `agGuest_v1` se tlačítkem „Pokračovat bez přihlášení" nastaví NATRVALO,
-    //   takže gateCheck() od té chvíle bránu nikdy neukáže. Celá možnost přihlásit se
-    //   pak visela na jediné pilulce #ag-guest-pill nahoře uprostřed — jenže tu si
-    //   od zavedení centra upozornění (js/upozorneni.js, seznam MIRROR) PŘEBÍRÁ ono:
-    //   originál odsune na left:-9999px a místo něj ukáže vlastní hlášku. A když je
-    //   zapnutá stavová bublina (#ag-sp.ag-sp-on), sloupec upozornění se do ní slije
-    //   a bublina píše jen tu NEJZÁVAŽNĚJŠÍ větu — u hosta typicky „Poloha je
-    //   zakázaná". Výsledek naměřený v prohlížeči: na obrazovce nebylo slovo
-    //   „přihlásit" NIKDE a uživatel se do appky neměl jak dostat („úvodní stránka
-    //   mi to rovnou přeskočí, nedokážu se ani přihlásit").
-    //
-    //   Proto jsou štítky dva a každý má jinou práci:
-    //     • #ag-guest-pill — krmivo pro centrum upozornění. Staví se JEN když
-    //       AGNotify existuje (jinak by se dublovalo s pruhem níž).
-    //     • #ag-guest-exit — pruh dole nad lištou, který si nikdo nepřebírá a který
-    //       je vidět pořád. Klepnutí = přihlašovací brána.
-    function syncGuestPill(on) {
+    // Zbyl z toho jen ÚKLID. Oba štítky patřily hostovskému režimu, který byl
+    // 6. 9. 2026 zrušen — appka je od té chvíle vždycky přihlášená, takže není
+    // o čem informovat. Volá se dál, protože prvky mohly zůstat v DOM po
+    // předchozí verzi appky (service worker drží starý shell až do bumpu).
+    function syncGuestPill() {
         var pill = document.getElementById('ag-guest-pill');
         var exit = document.getElementById('ag-guest-exit');
-        if (!on) {
-            if (pill) pill.remove();
-            if (exit) exit.remove();
-            return;
-        }
-        if (!document.body) return;
-        injectStyles();
-        if (!pill && window.AGNotify) {
-            pill = document.createElement('button');
-            pill.type = 'button';
-            pill.id = 'ag-guest-pill';
-            pill.innerHTML = 'Omezený režim · <b>přihlásit</b>';
-            pill.onclick = function () { showGate(); };
-            document.body.appendChild(pill);
-        }
-        if (!exit) {
-            exit = document.createElement('button');
-            exit.type = 'button';
-            exit.id = 'ag-guest-exit';
-            exit.setAttribute('aria-label', 'Omezený režim bez přihlášení — přihlásit se');
-            exit.innerHTML = '<span>Omezený režim</span><b>Přihlásit se</b>';
-            exit.onclick = function () { showGate(); };
-            document.body.appendChild(exit);
-        }
+        if (pill) pill.remove();
+        if (exit) exit.remove();
     }
 
     // mapa id injektovaného nástroje -> kategorie (pro posouzení oblíbených dlaždic);
@@ -1114,7 +1119,7 @@
     wrapRegister();
 
     // mřížku Nástrojů překreslují field-tools/tools-plus → periodicky srovnat
-    function tick() { wrapRegister(); if (getFirm() || isGuest() || isOwner()) { applyPerms(); applyProjPerms(); } gateCheck(); }
+    function tick() { wrapRegister(); if (getFirm() || isOwner()) { applyPerms(); applyProjPerms(); prostoryMenu(); } gateCheck(); }
 
     // ------------------------------------------------------------------
     // Přihlašovací / zamykací obrazovka
@@ -1390,7 +1395,16 @@
             '#ag-login>*,#ag-gate>*{position:relative;z-index:1;}',   // obsah nad září i terénem
             // ---- pozadí „Terén": pomalu plující vrstevnice + měřická linie (dekorace) ----
             // #ag-login/#ag-gate v selektoru: musí přebít '#ag-login>*' (position/z-index) výš
-            '#ag-login .agl-topo,#ag-gate .agl-topo{position:absolute;inset:-20%;width:140%;height:140%;z-index:0;pointer-events:none;',
+            // ⚠⚠ `fixed`, NE `absolute`. Vrstva je 140 % vysoká s inset:-20%, takže
+            //   jako `absolute` přečnívala 169 px pod spodní hranu a dělala z brány
+            //   ROLOVATELNOU plochu — a to je čistě dekorace, kterou nikdo rolovat
+            //   nechce. Projevilo se to tím, že prohlížeč před klepnutím na spodní
+            //   tlačítko plochu odroloval a klepnutí spadlo na jiné tlačítko
+            //   (naměřeno: „Založit účet" trefilo „Přihlásit se"). Je to TÁŽ vada
+            //   jako `overflow-x:hidden` o pár řádků výš, jen na druhé ose — tam se
+            //   řešila následkem, tady příčinou. `#ag-gate` je sám `position:fixed;
+            //   inset:0`, takže se obraz nikam neposune.
+            '#ag-login .agl-topo,#ag-gate .agl-topo{position:fixed;inset:-20%;width:140%;height:140%;z-index:0;pointer-events:none;',
             '  animation:agldrift 40s ease-in-out infinite alternate;}',
             // vrstevnice jsou ztlumené — hlavní dění v pozadí jsou teď létající hodnoty
             '.agl-topo path{fill:none;stroke:rgba(47,158,116,0.08);stroke-width:1.2;}',
@@ -1547,34 +1561,6 @@
             '#ag-gate .agg-alt:active{transform:scale(.97);border-color:var(--accent,#2f9e74);}',
             '#ag-gate #agg-show-join{width:min(330px,88vw);}',
             '#ag-gate .agg-note{max-width:330px;text-align:center;font:500 11.5px/1.5 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
-            // ---- štítek omezeného režimu ----
-            '#ag-guest-pill{position:fixed;top:calc(env(safe-area-inset-top) + 8px);left:50%;transform:translateX(-50%);z-index:9500;',
-            '  display:inline-flex;align-items:center;gap:7px;background:rgba(13,17,23,0.85);border:1px solid var(--glass-border,rgba(255,255,255,0.2));',
-            '  border-radius:999px;color:var(--text-muted,#9aa1ac);font:500 11.5px/1 var(--font-ui,system-ui);padding:8px 14px;cursor:pointer;',
-            '  box-shadow:0 4px 14px rgba(0,0,0,0.35);}',
-            '#ag-guest-pill::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--warn,#d4a02c);}',
-            '#ag-guest-pill b{color:var(--accent,#2f9e74);font-weight:700;}',
-            // Pilulka ma natvrdo TMAVE pozadi (aby byla videt nad kamerou i mapou),
-            // ale barvy textu bere z tokenu — ve svetlem rezimu jsou tmave, takze na
-            // ni vysel tmavy text na tmavem (1,8:1). Ve svetlem rezimu proto svetle pismo.
-            'body.light-mode #ag-guest-pill{color:#d7dbe2;border-color:rgba(255,255,255,0.28);}',
-            'body.light-mode #ag-guest-pill b{color:#7ee0b4;}',
-            'body.light-mode #ag-guest-pill::before{background:#f0b429;}',
-            // ---- VÝCHOD Z OMEZENÉHO REŽIMU (viz syncGuestPill) ----
-            // Dole nad lištou, protože horní střed patří centru upozornění a cokoli,
-            // co se tam postaví, se do něj vsákne. Tady si štítek nikdo nepřebírá.
-            '#ag-guest-exit{position:fixed;left:50%;transform:translateX(-50%);',
-            '  bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:9500;',
-            '  display:inline-flex;align-items:center;gap:9px;max-width:92vw;',
-            '  background:rgba(13,17,23,0.90);border:1px solid rgba(212,160,44,0.55);',
-            '  border-radius:999px;color:#d7dbe2;font:500 11.5px/1 var(--font-ui,system-ui);',
-            '  padding:7px 8px 7px 14px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,0.45);}',
-            '#ag-guest-exit::before{content:"";flex:0 0 auto;width:7px;height:7px;border-radius:50%;background:#f0b429;}',
-            '#ag-guest-exit span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
-            '#ag-guest-exit b{flex:0 0 auto;background:var(--accent,#2f9e74);color:#08130e;',
-            '  border-radius:999px;padding:6px 12px;font:700 11.5px/1 var(--font-ui,system-ui);}',
-            '#ag-guest-exit:active{transform:translateX(-50%) scale(.97);}',
-            'body.light-mode #ag-guest-exit{background:rgba(13,17,23,0.92);}',
             // karta u prazdne mrizky Nastroju (viz applyPerms, bod 4)
             '.ag-tools-empty{margin:8px 2px 4px;padding:16px 16px 18px;border-radius:14px;text-align:center;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:var(--glass-bg,rgba(255,255,255,0.04));}',
@@ -1590,6 +1576,23 @@
             // takže pravidlo nemůže schovat nic, co samo neschovalo.
             '.tool-tile[data-agucty="1"]{display:none !important;}'
         ].join('\n');
+        // ⚠ ZALOŽENÍ ÚČTU (#ag-reg) A KÓD ÚČTU (#ag-kod) VYPADAJÍ JAKO BRÁNA,
+        //   ale mají vlastní id. Místo aby se ke každému z těch ~40 pravidel
+        //   dopisovaly další dva selektory (a na jeden se pak zapomnělo), se
+        //   celý blok JEDNOU zopakuje s `#ag-gate` přepsaným na `.ag-gate-like`.
+        //   Nové pravidlo pro bránu tak platí pro obě obrazovky samo od sebe.
+        //   Dělí se po PRAVIDLECH (na `}`), ne po řádcích: skoro každé pravidlo je
+        //   tu rozepsané na dva až tři prvky pole a filtr po řádcích by ukrojil
+        //   jen ten první — zbyla by neuzavřená složená závorka, která spolkne
+        //   všechno za sebou. Žádné `@media` ani `@keyframes` #ag-gate neobsahuje,
+        //   takže vnořené závorky tu nehrozí (kdyby přibyly, tohle přestane stačit).
+        st.textContent += '\n' + st.textContent.split('}')
+            .filter(function (r) { return r.indexOf('#ag-gate') !== -1; })
+            .map(function (r) { return r.replace(/#ag-gate/g, '.ag-gate-like') + '}'; })
+            .join('\n')
+            + '\n.ag-gate-like{position:fixed;inset:0;z-index:999999;}'
+            + '\n#ag-kod .agk-kod{font:800 30px/1.2 var(--font-display,system-ui);letter-spacing:.22em;'
+            + '  color:var(--accent,#2f9e74);padding:12px 8px;word-break:break-all;text-align:center;}';
         (document.head || document.documentElement).appendChild(st);
     }
 
@@ -2340,7 +2343,14 @@
     function showGate() {
         if (getFirm()) { showLogin(false); return; }   // firma už nastavena → rovnou přihlášení
         injectStyles();
-        var old = document.getElementById('ag-gate'); if (old) old.remove();
+        // ⚠⚠ STOJÍCÍ BRÁNU NEBOURAT. Do 6. 9. 2026 se tady overlay bezpodmínečně
+        //   odstranil a postavil znovu. Kdo v tu chvíli psal heslo, přišel o
+        //   napsané — a hůř: prvek pod prstem se mezi dotykem a klepnutím vyměnil
+        //   za jiný, takže klepnutí spadlo vedle. Chytil to test nového
+        //   přihlašování (klepnutí na „Založit účet" trefilo „Přihlásit se")
+        //   a nejdřív jsem to považoval za vrtkavost testu; není.
+        var old = document.getElementById('ag-gate');
+        if (old) { old.style.display = ''; return; }
         var ov = document.createElement('div');
         ov.id = 'ag-gate';
         var profs = listProfiles();
@@ -2359,20 +2369,28 @@
             terrainHtml() +
             '<div class="agl-card">' +
             brandHtml() +
-            '<div class="agl-firm">Přihlas se ke své firmě, nebo pokračuj bez přihlášení s omezenými funkcemi.</div>' +
+            '<div class="agl-firm">Přihlas se svým kódem účtu, nebo si účet za chvilku založ.</div>' +
             profHtml +
             '<div class="agg-box" id="agg-join">' +
-            '  <input type="text" id="agg-code" maxlength="6" placeholder="Kód firmy" autocapitalize="characters" autocomplete="off" style="text-transform:uppercase;letter-spacing:.15em;">' +
-            '  <input type="text" id="agg-name" maxlength="40" placeholder="Jméno" autocomplete="username">' +
+            '  <input type="text" id="agg-code" maxlength="8" placeholder="Kód účtu" autocapitalize="characters" autocomplete="username" style="text-transform:uppercase;letter-spacing:.15em;">' +
+            // Jméno se ptá JEN u šestiznakového kódu firmy (stará cesta pro telefony
+            // s neaktualizovanou appkou). U kódu účtu je zbytečné — kód je unikátní
+            // sám o sobě — a pole navíc na přihlašovací obrazovce zdržuje každý den.
+            '  <input type="text" id="agg-name" maxlength="40" placeholder="Jméno" autocomplete="username" hidden>' +
             '  <input type="password" id="agg-pass" maxlength="64" placeholder="Heslo" autocomplete="current-password">' +
             '  <div class="agl-err" id="agg-err"></div>' +
             '  <button type="button" class="agl-btn" id="agg-go">Přihlásit</button>' +
             '  <button type="button" class="agl-ghost" id="agg-scan">Naskenovat QR od admina</button>' +
             '</div>' +
-            '<button type="button" class="agl-btn" id="agg-show-join">Přihlásit se (mám kód firmy)</button>' +
-            '<button type="button" class="agg-alt" id="agg-new">Založit firmu / další možnosti</button>' +
-            '<button type="button" class="agl-ghost" id="agg-guest">Pokračovat bez přihlášení (omezený režim)</button>' +
-            '<div class="agg-note">Bez přihlášení funguje jen základní měření bodů a vzhled. Nástroje, export, zakázky a nastavení dat vyžadují firemní účet.</div>' +
+            '<button type="button" class="agl-btn" id="agg-show-join">Přihlásit se (mám kód účtu)</button>' +
+            '<button type="button" class="agl-btn" id="agg-reg">Založit účet</button>' +
+            '<button type="button" class="agg-alt" id="agg-new">Další možnosti</button>' +
+            // ⚠ ŽÁDNÁ OBNOVA HESLA (rozhodnutí uživatele): registrace nechce e-mail,
+            //   takže není kam poslat odkaz. Musí to být napsané TADY, u hesla,
+            //   ne až někde v nápovědě — jinak se to člověk dozví ve chvíli, kdy
+            //   už je pozdě.
+            '<div class="agg-note">Registrace je na tři pole a nechce e-mail. Heslo proto nejde obnovit — ' +
+            'ulož si ho a čas od času si stáhni zálohu zakázky.</div>' +
             '</div>';
         document.body.appendChild(ov);
         fillMark(ov);
@@ -2398,6 +2416,7 @@
                 showJoin();
                 ov.querySelector('#agg-code').value = d.code;
                 ov.querySelector('#agg-name').value = d.name;
+                srovnejPole();       // QR nese kód FIRMY → jméno se musí odkrýt
                 if (d.api) gateApi = d.api;
                 errEl.textContent = '';
                 setTimeout(function () { try { ov.querySelector('#agg-pass').focus(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:onclick'); } }, 50);
@@ -2426,10 +2445,19 @@
             var code = (ov.querySelector('#agg-code').value || '').trim().toUpperCase();
             var name = (ov.querySelector('#agg-name').value || '').trim();
             var pass = ov.querySelector('#agg-pass').value || '';
-            if (!code || !name || !pass) { errEl.textContent = 'Vyplň kód firmy, jméno i heslo.'; return; }
+            // OSM ZNAKŮ = kód účtu (nová cesta, jméno se nezadává),
+            // ŠEST = kód firmy (stará cesta pro telefony s neaktualizovanou appkou).
+            // Rozhoduje délka, ne přepínač: uživatel má jedno pole a nemusí vědět,
+            // který ze dvou světů zrovna používá.
+            var jeUcet = code.length === 8;
+            if (!code || !pass || (!jeUcet && !name)) {
+                errEl.textContent = jeUcet ? 'Vyplň kód účtu i heslo.' : 'Vyplň kód, jméno i heslo.';
+                return;
+            }
+            var telo = jeUcet ? { code: code, password: pass } : { code: code, name: name, password: pass };
             _busy = true;
             errEl.textContent = 'Ověřuji…';
-            cloudFetch('/login', { method: 'POST', api: gateApi, body: { code: code, name: name, password: pass } }).then(function (r) {
+            cloudFetch('/login', { method: 'POST', api: gateApi, body: telo }).then(function (r) {
                 _busy = false;
                 if (r.ok && r.data && r.data.token) {
                     failClear();
@@ -2456,6 +2484,15 @@
         };
         var passInp = ov.querySelector('#agg-pass');
         passInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') ov.querySelector('#agg-go').click(); });
+        // Pole „Jméno" se ukáže, teprve když je v kódu vidět, že jde o starou
+        // cestu (kód firmy má šest znaků). Osmiznakový kód účtu si vystačí sám.
+        var codeInp = ov.querySelector('#agg-code'), nameInp = ov.querySelector('#agg-name');
+        function srovnejPole() {
+            var d = (codeInp.value || '').trim().length;
+            nameInp.hidden = !(d > 0 && d <= 6);
+        }
+        codeInp.addEventListener('input', srovnejPole);
+        srovnejPole();
         ov.querySelector('#agg-new').onclick = function () {
             // ucty-admin.js (nejtěžší modul appky) se načítá až po startu — viz
             // js/lazy-load.js. Brána je ale vidět HNED, takže když sem někdo ťukne
@@ -2473,7 +2510,7 @@
                 AGLazy.need('js/ucty-admin.js', function () { errEl.textContent = ''; run(); });
             } else run();
         };
-        ov.querySelector('#agg-guest').onclick = function () { enterGuest(); };
+        ov.querySelector('#agg-reg').onclick = function () { showRegister(gateApi); };
 
         // Pozvánka z odkazu: otevřít přihlašovací pole, vyplnit, co víme, a
         // postavit kurzor na heslo. Vyplňuje se AŽ TADY, na konci — showJoin()
@@ -2482,6 +2519,7 @@
             showJoin();
             ov.querySelector('#agg-code').value = _invite.code;
             if (_invite.name) ov.querySelector('#agg-name').value = _invite.name;
+            srovnejPole();
             var fi = ov.querySelector('.agl-firm');
             if (fi) fi.textContent = 'Pozvánka do firmy ' + _invite.code + (_invite.name ? ' pro ' + _invite.name : '')
                 + ' — dopiš heslo, které ti poslal admin.';
@@ -2490,6 +2528,214 @@
                 catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:invite-focus'); }
             }, 60);
         }
+    }
+
+    // ---- založení účtu -------------------------------------------------------
+    // TŘI POLE A ŽÁDNÝ E-MAIL. Registrace je pro obě verze STEJNÁ: člověk si
+    // vymyslí jméno, název místa, kde má data, a heslo. Sólo uživatel se o žádné
+    // „firmě" nedozví — jen si pojmenoval svůj prostor; teprve s Pro se z něj
+    // stane firma, do které jde někoho pozvat.
+    //
+    // ⚠ HESLO NEJDE OBNOVIT a musí to být napsané TADY, u toho pole, ne v nápovědě.
+    //   Bez e-mailu není kam poslat odkaz — a člověk, který si to přečte až ve
+    //   chvíli, kdy heslo zapomněl, přijde o data.
+    function showRegister(api) {
+        injectStyles();
+        var g = document.getElementById('ag-gate'); if (g) g.remove();
+        var old = document.getElementById('ag-reg'); if (old) old.remove();
+        var ov = document.createElement('div');
+        ov.id = 'ag-reg';
+        ov.className = 'ag-gate-like';
+        ov.innerHTML =
+            terrainHtml() +
+            '<div class="agl-card">' +
+            brandHtml() +
+            '<div class="agl-firm">Založení účtu — bez e-mailu, za dvě minuty.</div>' +
+            '<div class="agg-box on">' +
+            '  <input type="text" id="agr-name" maxlength="40" placeholder="Tvoje jméno" autocomplete="name">' +
+            '  <input type="text" id="agr-space" maxlength="60" placeholder="Název místa, kde budeš mít data" autocomplete="off">' +
+            '  <input type="password" id="agr-pass" maxlength="64" placeholder="Heslo (aspoň 8 znaků)" autocomplete="new-password">' +
+            '  <input type="password" id="agr-pass2" maxlength="64" placeholder="Heslo ještě jednou" autocomplete="new-password">' +
+            '  <div class="agl-err" id="agr-err"></div>' +
+            '  <button type="button" class="agl-btn" id="agr-go">Založit účet</button>' +
+            '  <button type="button" class="agl-ghost" id="agr-back">Zpět na přihlášení</button>' +
+            '</div>' +
+            '<div class="agg-note">Heslo nejde obnovit — nikam se neposílá e-mail. Zapiš si ho. ' +
+            'Zakázky si čas od času stáhni jako zálohu, je to jediná pojistka.</div>' +
+            '</div>';
+        document.body.appendChild(ov);
+        fillMark(ov);
+        startLive(ov);
+
+        var err = ov.querySelector('#agr-err');
+        ov.querySelector('#agr-back').onclick = function () { ov.remove(); showGate(); };
+        var busy = false;
+        ov.querySelector('#agr-go').onclick = function () {
+            if (busy) return;
+            var jm = (ov.querySelector('#agr-name').value || '').trim();
+            var pr = (ov.querySelector('#agr-space').value || '').trim();
+            var h1 = ov.querySelector('#agr-pass').value || '';
+            var h2 = ov.querySelector('#agr-pass2').value || '';
+            if (!jm) { err.textContent = 'Napiš, jak ti máme říkat.'; return; }
+            if (!pr) { err.textContent = 'Pojmenuj místo, kde budeš mít data — třeba svým jménem nebo názvem firmy.'; return; }
+            if (h1.length < 8) { err.textContent = 'Heslo musí mít aspoň 8 znaků.'; return; }
+            // Heslo dvakrát je tu SCHVÁLNĚ, i když to jinde v appce není zvykem:
+            // překlep v hesle bez možnosti obnovy znamená ztrátu dat.
+            if (h1 !== h2) { err.textContent = 'Hesla se neshodují.'; return; }
+            busy = true;
+            err.textContent = 'Zakládám…';
+            cloudFetch('/register', {
+                method: 'POST', api: api || DEFAULT_API,
+                body: { name: jm, spaceName: pr, password: h1 }
+            }).then(function (r) {
+                busy = false;
+                if (r.ok && r.data && r.data.token) {
+                    failClear();
+                    adoptLogin(r.data, api || DEFAULT_API, h1);
+                    ov.remove();
+                    usageLog('login', 'register');
+                    // Kód účtu je JEDINÁ cesta zpátky, když si člověk appku smaže
+                    // nebo vymění telefon — ukázat ho jednou v hlášce nestačí.
+                    ukazKodUctu(r.data.ucet);
+                    try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: r.data.user } })); }
+                    catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:register'); }
+                    return;
+                }
+                if (r.status === 0) { err.textContent = 'Server není dosažitelný — účet se zakládá přes internet.'; return; }
+                err.textContent = (r.data && r.data.error) || ('Registrace selhala (' + r.status + ').');
+            });
+        };
+        setTimeout(function () { try { ov.querySelector('#agr-name').focus(); } catch (e) { } }, 60);
+    }
+
+    // ---- prostory účtu: přepínač, vstup do firmy, odchod ---------------------
+    // ⚠ V ZÁKLADU SE TENHLE VCHOD NEUKAZUJE VŮBEC. Sólo uživatel má jediný
+    //   prostor a slovo „firma" se mu podle rozhodnutí uživatele nikde ukázat
+    //   nesmí — pro něj je to prostě appka. Vchod se objeví, teprve když má
+    //   Pro (může zvát) nebo když ho někdo pozval (má víc prostorů).
+    function maProstory() {
+        return tarif() === 'pro' || getProstory().length > 1;
+    }
+
+    function prostoryMenu() {
+        var menu = document.getElementById('side-menu');
+        if (!menu) return;
+        var btn = document.getElementById('ag-prostory-btn');
+        if (!maProstory()) { if (btn) btn.remove(); return; }
+        if (btn) return;
+        btn = document.createElement('button');
+        btn.id = 'ag-prostory-btn'; btn.className = 'menu-btn'; btn.type = 'button';
+        btn.textContent = 'Kde pracuju (prostory)';
+        btn.addEventListener('click', function () {
+            try { if (typeof toggleMenu === 'function' && menu.classList.contains('open')) toggleMenu(); }
+            catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:prostoryMenu'); }
+            showProstory();
+        });
+        var host = menu.querySelector('.menu-scroll') || menu;
+        var after = document.getElementById('ag-pro-menu-btn');
+        if (after && after.parentNode) after.parentNode.insertBefore(btn, after.nextSibling);
+        else host.appendChild(btn);
+    }
+
+    function showProstory() {
+        injectStyles();
+        var old = document.getElementById('ag-prostory'); if (old) old.remove();
+        var ov = document.createElement('div');
+        ov.id = 'ag-prostory';
+        ov.className = 'ag-gate-like';
+        var ted = aktualniProstor();
+        var seznam = getProstory().map(function (p) {
+            var kde = p.vlastni ? 'Moje vlastní místo' : (p.nazev || 'Firma');
+            var pod = p.vlastni
+                ? 'Zůstává ti navždy — sem se nikdo jiný nedostane.'
+                : (p.archiv ? 'Archiv — jen ke čtení, do dne odchodu.' : ('Role: ' + p.role));
+            var tady = ted && ted.firmId === p.firmId;
+            return '<button type="button" class="agg-prof" data-firm="' + esc(p.firmId) + '"' +
+                (tady ? ' disabled' : '') + '>' +
+                '<span class="agg-pt"><b>' + esc(kde) + (tady ? ' · tady jsi' : '') + '</b>' +
+                '<span>' + esc(pod) + '</span></span><span class="agg-go">›</span></button>';
+        }).join('');
+        ov.innerHTML =
+            '<div class="agl-card">' +
+            '<div class="agl-firm">Kde právě pracuješ</div>' +
+            (seznam || '<div class="agg-note">Zatím máš jen svoje místo.</div>') +
+            '<div class="agg-box on">' +
+            '  <input type="text" id="agp-kod" maxlength="6" placeholder="Pozvací kód firmy" ' +
+            '         autocapitalize="characters" autocomplete="off" style="text-transform:uppercase;letter-spacing:.15em;">' +
+            '  <div class="agl-err" id="agp-err"></div>' +
+            '  <button type="button" class="agl-btn" id="agp-join">Připojit se k firmě</button>' +
+            '</div>' +
+            '<button type="button" class="agl-ghost" id="agp-zpet">Zpět</button>' +
+            // Odchod je popsaný přesně tak, jak se chová — člověk se musí předem
+            // dozvědět, že mu prostor zůstane, ale zamrzlý.
+            '<div class="agg-note">Když z firmy odejdeš, prostor ti tu zůstane jako archiv jen ke čtení ' +
+            '(do dne odchodu). Správce firmy ti ho ale může odebrat.</div>' +
+            '</div>';
+        document.body.appendChild(ov);
+        var err = ov.querySelector('#agp-err');
+        ov.querySelector('#agp-zpet').onclick = function () { ov.remove(); };
+        ov.addEventListener('click', function (e) {
+            var b = e.target.closest ? e.target.closest('.agg-prof') : null;
+            if (!b || b.disabled) return;
+            prepniProstor(b.getAttribute('data-firm'), function (chyba) {
+                if (chyba) { err.textContent = chyba; return; }
+                ov.remove();
+            });
+        });
+        ov.querySelector('#agp-join').onclick = function () {
+            var kod = (ov.querySelector('#agp-kod').value || '').trim().toUpperCase();
+            if (kod.length !== 6) { err.textContent = 'Pozvací kód má šest znaků.'; return; }
+            err.textContent = 'Připojuji…';
+            cloudFetch('/spaces/join', { method: 'POST', body: { code: kod } }).then(function (r) {
+                if (r.ok && r.data && r.data.prostory) {
+                    setProstory(r.data.prostory);
+                    err.textContent = '';
+                    ov.remove();
+                    showProstory();
+                    return;
+                }
+                err.textContent = (r.data && r.data.error) || ('Připojení selhalo (' + r.status + ').');
+            });
+        };
+    }
+
+    // Přepnutí do jiného prostoru = NOVÝ TOKEN, ne jen jiný pohled. Server
+    // vydává token na konkrétní členství; bez výměny by appka dál sahala na
+    // data té předchozí firmy.
+    function prepniProstor(firmId, done) {
+        done = done || function () { };
+        cloudFetch('/spaces/switch', { method: 'POST', body: { firmId: firmId } }).then(function (r) {
+            if (!(r.ok && r.data && r.data.token)) {
+                return done((r.data && r.data.error) || ('Přepnutí selhalo (' + r.status + ').'));
+            }
+            // Heslo se sem nepředává (nezadávalo se) — ověřovadlo pro offline
+            // přihlášení zůstává to, které si telefon udělal při přihlášení.
+            adoptLogin(r.data, apiUrl(), null);
+            applyPerms();
+            try { window.dispatchEvent(new CustomEvent('agucty:prostor', { detail: r.data.prostor || null })); }
+            catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:prepniProstor'); }
+            done(null);
+        });
+    }
+
+    // Kód účtu po registraci. Zůstává na obrazovce, dokud ho člověk neodklikne —
+    // je to jediné, čím se příště přihlásí, a heslo mu nikdo neobnoví.
+    function ukazKodUctu(ucet) {
+        if (!ucet || !ucet.code) return;
+        injectStyles();
+        var ov = document.createElement('div');
+        ov.id = 'ag-kod';
+        ov.className = 'ag-gate-like';
+        ov.innerHTML =
+            '<div class="agl-card">' +
+            '<div class="agl-firm">Hotovo. Tímhle kódem se budeš přihlašovat:</div>' +
+            '<div class="agk-kod">' + esc(ucet.code) + '</div>' +
+            '<div class="agg-note">Opiš si ho někam mimo telefon. Spolu s heslem je to všechno, ' +
+            'co potřebuješ, aby ses dostal ke svým datům na jiném zařízení.</div>' +
+            '<button type="button" class="agl-btn" id="agk-ok">Zapsáno, jdeme měřit</button>' +
+            '</div>';
+        document.body.appendChild(ov);
+        ov.querySelector('#agk-ok').onclick = function () { ov.remove(); enterApp(); };
     }
 
     // ---- sken přihlašovacího QR od admina (payload 'AGF1\ncode\tname\tapi?';
@@ -2553,11 +2799,17 @@
         }).catch(function () { agInfo('Knihovnu pro čtení QR se nepodařilo načíst.'); });
     }
 
-    // pojistka: bez firmy, bez hosta a bez otevřené brány/průvodce → ukázat bránu
+    // pojistka: bez účtu a bez otevřené brány/průvodce → ukázat bránu
     function gateCheck() {
         if (isOwner()) return;                // rezim vlastnika branu nepotrebuje
-        if (getFirm() || isGuest()) return;
-        if (document.getElementById('ag-gate') || document.getElementById('ag-login')) return;
+        if (getFirm()) return;
+        // ⚠⚠ SEZNAM MUSÍ OBSAHOVAT VŠECHNY OBRAZOVKY, KTERÉ BRÁNU ZASTUPUJÍ.
+        //   Pojistka běží v tiku po 2 s, takže cokoli, co tu chybí, se po dvou
+        //   sekundách překryje bránou — a člověk uprostřed zakládání účtu přijde
+        //   o všechno napsané. Přesně to udělalo zapomenuté `ag-reg`: registrace
+        //   se otevřela a za dvě vteřiny přes ni naskočilo přihlášení.
+        if (document.getElementById('ag-gate') || document.getElementById('ag-login')
+            || document.getElementById('ag-reg') || document.getElementById('ag-kod')) return;
         var m = document.getElementById('agfa-modal');
         if (m && m.style.display === 'flex') return;   // běží průvodce založením firmy
         showGate();
@@ -2598,7 +2850,6 @@
         clearTrust();          // „odhlásit" musí zrušit i pamatované přihlášení
         setSess(null);
         if (getFirm()) showLogin(false);
-        else if (isGuest()) applyPerms();
         else showGate();
     }
 
@@ -2653,11 +2904,8 @@
                 setTimeout(refreshConfig, 2500);   // oprávnění/uživatelé se mohli změnit jinde
                 setTimeout(syncUsage, 9000);       // odešli, co se nasbíralo offline
             }
-        } else if (isGuest()) {
-            applyPerms();                          // omezený režim bez přihlášení
-            enterApp();                            // host uz branou prosel -> rovnou do prace
         } else {
-            showGate();                            // bez firmy se appka neotevře
+            showGate();                            // bez účtu se appka neotevře
         }
         // pojistka: kdyby cokoli selhalo, úvodní obrazovka se nesmí zaseknout skrytá
         // pojistka: kdyz po 6 s nestoji zadna brana a appka porad nebezi, spustit ji
@@ -2730,8 +2978,15 @@
             return host;
         },
         isGuest: isGuest,
+        // ucet a jeho prostory (novy model prihlasovani, 6. 9. 2026)
+        ucet: getUcet,
+        tarif: tarif,
+        prostory: getProstory,
+        aktualniProstor: aktualniProstor,
+        prepniProstor: prepniProstor,
+        showProstory: showProstory,
+        showRegister: showRegister,
         isOwner: isOwner,
-        enterGuest: enterGuest,
         listProfiles: listProfiles,
         profileLimit: profileLimit,
         switchProfile: switchProfile,

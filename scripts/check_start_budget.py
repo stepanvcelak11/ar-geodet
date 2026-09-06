@@ -125,7 +125,18 @@ INDEX = os.path.join(ROOT, 'index.html')
 #   Rezerva ~0,4 %. Kdo bude chtit strop srazit: kandidati na odlozeni jsou
 #   dal js/seznam-souradnic.js (23 kB) a js/localization-helmert.js (46 kB)
 #   — obojí OVERIT SPUSTENIM, ne odhadem.
-LIMIT_JS_KB = 2168
+# ZVYSENO 6.9.2026 (potreti): 2168 -> 2192 kB. Duvod:
+#   Nove prihlasovani (ucty, prostory, tarif). Host byl zrusen, takze appka
+#   ted VZDYCKY zacina prihlasovaci branou — a k ni pribyla obrazovka zalozeni
+#   uctu a prepinac prostoru. Vsechno je to v js/ucty.js, ktery uz eager JE
+#   (drzi branu pri startu), takze zadny NOVY soubor nepribyl; +12 kB je cena
+#   za to, ze se clovek bez uctu vubec ma jak dovnitr dostat.
+#   ⚠ ODLOZIT SE TO NEDA. Brana stoji PRED prvnim obrazem a modul, ktery se
+#     nacte pozde, ji neukaze — presne tim uz jednou zpod zamku vyjela cela
+#     appka bez prihlaseni (viz pojistka v <head> index.html).
+#   Rezerva ~0,5 %. Kandidati na odlozeni zustavaji tíž: js/seznam-souradnic.js
+#   (23 kB) a js/localization-helmert.js (46 kB) — OVERIT SPUSTENIM, ne odhadem.
+LIMIT_JS_KB = 2192
 LIMIT_CSS_KB = 320
 LIMIT_JS_SOUBORU = 76
 

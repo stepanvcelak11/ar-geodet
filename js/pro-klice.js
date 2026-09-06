@@ -47,7 +47,7 @@
                 '  justify-content:center;padding:16px;background:rgba(0,0,0,.62);}',
                 '#' + MODAL_ID + '.on{display:flex;}',
                 '#' + MODAL_ID + ' .pk-box{width:min(400px,94vw);border-radius:16px;padding:18px;',
-                '  background:var(--panel,#141a26);color:var(--text,#e9eef7);',
+                '  background:var(--modal-bg,#141a26);color:var(--text-color,#e9eef7);',
                 '  border:1px solid var(--glass-border,rgba(255,255,255,.12));}',
                 'body.light-mode #' + MODAL_ID + ' .pk-box{background:#fff;color:#16202e;}',
                 '#' + MODAL_ID + ' h2{margin:0 0 12px;font-size:calc(17px * var(--ag-font-scale,1));}',

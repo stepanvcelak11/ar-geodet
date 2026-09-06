@@ -127,6 +127,15 @@ jobs:
       - name: Delene sestaveni (Zaklad vs Pro)
         run: python scripts/test_vydani.py --staticky
 
+      # Server se v CI nespousti (Workers + D1 by znamenaly druhou sadu
+      # zavislosti kvuli jedinemu souboru), takze tohle je jedina brana nad
+      # cloud/worker.js krome kontroly nasazeni. Hlida to, co by se v nem dalo
+      # tise rozbit: placenou cestu bez tarifni brany, branu az za routou, tarif
+      # az za roli, archiv, ktery jde zapsat, token bez uctu a migraci, ktera
+      # mysli MAZAT (bezi automaticky na zive databazi).
+      - name: Ucty, tarify a archiv v cloud/worker.js
+        run: python scripts/check_worker_ucty.py
+
       # Rozpočet startu: kolik JS a CSS musí prohlížeč stáhnout a spustit JEŠTĚ
       # PŘED prvním vykreslením. Rostlo to tiše (každý nový modul o kus) až na
       # 2273 kB v 79 souborech; přesun devíti nástrojů do lazy vrstvy to srazil

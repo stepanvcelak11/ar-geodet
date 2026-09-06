@@ -198,16 +198,57 @@
 
     var _stav = _klic ? over(_klic) : { ok: false, duvod: 'nemá' };
 
+    // ---- DRUHÁ CESTA K PRO: TARIF ÚČTU ------------------------------------------
+    // Pro se dá mít dvěma způsoby a obojí je schválně:
+    //   • KLÍČ (výš) — ověřuje se v telefonu, bez serveru, aby si ho geodet mohl
+    //     odemknout v lese. Kdo si Pro koupí napřímo, dostane papírek s klíčem.
+    //   • TARIF ÚČTU — kdo se přihlásí účtem, který má Pro, dostane Pro sám a klíč
+    //     nikdy neuvidí. Tarif chodí v /config (js/ucty.js) a vymáhá ho SERVER
+    //     u placených cest; tady jen rozsvěcí nástroje v mobilu.
+    //
+    // ⚠ UKLÁDÁ SE DO TELEFONU. Bez toho by geodet po startu bez signálu neměl Pro,
+    //   dokud by appka nedosáhla na server — a to je přesně situace, kdy ho
+    //   potřebuje. Zapisuje se jen to, co server naposled řekl; jakmile
+    //   předplatné skončí, přijde s příštím /config 'zaklad' a Pro zhasne.
+    var LS_TARIF = 'agTarifUctu_v1';
+    var _tarif = 'zaklad', _tarifDo = 0;
+    try {
+        var t = JSON.parse(localStorage.getItem(LS_TARIF) || 'null');
+        if (t && t.tarif === 'pro' && (!t.do || t.do > Date.now())) { _tarif = 'pro'; _tarifDo = t.do || 0; }
+    } catch (e) { swallow(e, 'tarif'); }
+
+    function proZTarifu() { return _tarif === 'pro' && (!_tarifDo || _tarifDo > Date.now()); }
+    function jePro() { return !!_stav.ok || proZTarifu(); }
+
     function stav() {
-        if (!_stav.ok) return { pro: false, duvod: _stav.duvod || 'nemá' };
+        if (!jePro()) return { pro: false, duvod: _stav.duvod || 'nemá' };
+        if (!_stav.ok) return { pro: true, zdroj: 'ucet', cislo: 0, do: _tarifDo, dniDoKonce: _tarifDo ? Math.max(0, Math.ceil((_tarifDo - Date.now()) / DEN)) : 0 };
         return {
-            pro: true, cislo: _stav.cislo, do: _stav.do,
+            pro: true, zdroj: 'klic', cislo: _stav.cislo, do: _stav.do,
             dniDoKonce: _stav.do ? Math.max(0, Math.ceil((_stav.do - Date.now()) / DEN)) : 0
         };
     }
 
     window.AGLic = {
-        isPro: function () { return !!_stav.ok; },
+        isPro: jePro,
+        // Tarif z účtu — volá js/ucty.js po každém /login a /config.
+        // Vrací true, když se stav změnil (aby volající nemusel hlídat sám).
+        tarifUctu: function (tarif, doKdy) {
+            var novy = (tarif === 'pro') ? 'pro' : 'zaklad';
+            var noveDo = doKdy || 0;
+            if (novy === _tarif && noveDo === _tarifDo) return false;
+            var predtim = jePro();
+            _tarif = novy; _tarifDo = noveDo;
+            try {
+                if (novy === 'pro') localStorage.setItem(LS_TARIF, JSON.stringify({ tarif: 'pro', do: noveDo }));
+                else localStorage.removeItem(LS_TARIF);
+            } catch (e) { swallow(e, 'tarifUloz'); }
+            if (predtim !== jePro()) {
+                try { window.dispatchEvent(new CustomEvent('aglic:zmena', { detail: stav() })); } catch (e) { swallow(e, 'udalost'); }
+            }
+            return true;
+        },
+        tarif: function () { return proZTarifu() ? 'pro' : 'zaklad'; },
         stav: stav,
         over: over,
         vyrob: vyrob,

@@ -24,7 +24,7 @@
 //   a všechno ostatní dělá CSS pravidlo. (Tatáž past už jednou chytila vypínač
 //   modulů, viz komentář v js/priznaky.js.)
 //
-// ⚠ V BALÍČKU „ZÁKLAD" PRO MODULY VŮBEC NEJSOU (scripts/build.mjs --zaklad je
+// ⚠ V BALÍČKU „ZÁKLAD" PRO MODULY VŮBEC NEJSOU (scripts/vydani.py --zaklad je
 //   vynechá), takže se nemají jak zaregistrovat a v seznamu by prostě chyběly.
 //   Uživatel by se o Pro nedozvěděl. Modul proto pro každý Pro nástroj, který se
 //   sám nepřihlásil, VYROBÍ ZÁSTUPNÝ ŘÁDEK z registru — registr se posílá v obou
@@ -98,7 +98,7 @@
                 '  justify-content:center;padding:16px;background:rgba(0,0,0,.62);}',
                 '#' + MODAL_ID + '.on{display:flex;}',
                 '#' + MODAL_ID + ' .agp-box{width:min(430px,94vw);max-height:88vh;overflow:auto;border-radius:16px;',
-                '  padding:18px 18px 16px;background:var(--panel,#141a26);color:var(--text,#e9eef7);',
+                '  padding:18px 18px 16px;background:var(--modal-bg,#141a26);color:var(--text-color,#e9eef7);',
                 '  border:1px solid var(--glass-border,rgba(255,255,255,.12));box-shadow:0 18px 50px rgba(0,0,0,.5);}',
                 'body.light-mode #' + MODAL_ID + ' .agp-box{background:#fff;color:#16202e;}',
                 '#' + MODAL_ID + ' h2{margin:0 0 4px;font-size:calc(18px * var(--ag-font-scale,1));display:flex;align-items:center;gap:9px;}',
@@ -462,9 +462,14 @@
         prechod(jeZaklad());
         var s = (window.AGLic && AGLic.stav()) || { pro: false };
         m.querySelector('.agp-nazev').textContent = s.pro ? 'Verze Pro — odemčeno' : 'Verze Pro';
-        m.querySelector('.agp-pod').textContent = s.pro
-            ? ('Klíč č. ' + s.cislo + (s.do ? (', platí ještě ' + s.dniDoKonce + ' dní.') : ', platí natrvalo.'))
-            : 'Základ umí celý den v terénu. Pro přidává navrch tohle:';
+        // Pro se dá mít z KLÍČE (opsaného z papíru) nebo z TARIFU ÚČTU. Pro toho,
+        // kdo si Pro pořídil účtem, by „Klíč č. 0" byla nesmyslná odpověď na otázku,
+        // proč to má odemčené.
+        m.querySelector('.agp-pod').textContent = !s.pro
+            ? 'Základ umí celý den v terénu. Pro přidává navrch tohle:'
+            : (s.zdroj === 'ucet'
+                ? ('Máš to v účtu' + (s.do ? (' — platí ještě ' + s.dniDoKonce + ' dní.') : ', platí natrvalo.'))
+                : ('Klíč č. ' + s.cislo + (s.do ? (', platí ještě ' + s.dniDoKonce + ' dní.') : ', platí natrvalo.')));
         m.querySelector('.agp-co').innerHTML =
             '<b>' + (s.pro ? 'Máš odemčeno' : 'Ve verzi Pro') + '</b>' +
             '<ul>' +

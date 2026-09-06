@@ -11,12 +11,46 @@ CREATE TABLE IF NOT EXISTS firms (
     created   INTEGER NOT NULL
 );
 
+-- ÚČET = identita člověka (kdo jsi, heslo, tarif). Od 6. 9. 2026 je oddělený od
+-- ČLENSTVÍ (řádek v `users`), protože jeden člověk může být ve víc prostorech.
+--
+-- ⚠⚠ TARIF DRŽÍ ÚČET, NE PROSTOR. Kdyby ho držel prostor, pozvaný člověk bez Pro
+--    by vstupem do Pro firmy dostal chat i vysílačku. S tarifem na účtu je
+--    „Základ ve firmě vidí jen body a zakázky" automatický důsledek, ne výjimka.
+--    Prostor drží jen POČET MÍST (firms.max_users: 1 sólo vs 10 firma).
+--
+-- ⚠ ŽÁDNÝ E-MAIL. Rozhodnutí uživatele: registrace je jméno + název prostoru +
+--   heslo, obnova hesla neexistuje. Kdo ztratí heslo, ztratí data — jediná
+--   pojistka je stažená záloha. Kdyby sem e-mail přibyl, přibude s ním i celý
+--   nikdy nedodělaný kolotoč s odesíláním odkazů.
+CREATE TABLE IF NOT EXISTS accounts (
+    id         TEXT PRIMARY KEY,         -- uuid
+    code       TEXT UNIQUE NOT NULL,     -- OSMIZNAKOVÝ kód účtu (přihlašovací)
+    name       TEXT NOT NULL,
+    pass_hash  TEXT NOT NULL,            -- hex PBKDF2-SHA256
+    salt       TEXT NOT NULL,
+    iters      INTEGER NOT NULL,
+    tarif      TEXT NOT NULL DEFAULT 'zaklad',  -- zaklad | pro
+    tarif_do   INTEGER,                  -- do kdy Pro platí (NULL = navždy)
+    disabled   INTEGER NOT NULL DEFAULT 0,
+    created    INTEGER NOT NULL,
+    last_login INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_acc_code ON accounts(code);
+
+-- ČLENSTVÍ: jeden řádek = „tenhle účet je v tomhle prostoru s touhle rolí".
+-- ⚠⚠ TABULKA SE ZÁMĚRNĚ NEPŘEJMENOVALA NA `members`, jak říkal první návrh:
+--    usage, chat, sync_points, jobs i stats_firm se klíčují přes users.id
+--    a firm_id. Přejmenování by znamenalo přepsat každý dotaz v workeru
+--    a odmigrovat všechna data — a jediná chyba v tom by nenávratně rozpojila
+--    body od lidí, kteří je naměřili. Členství uz JE tenhle řádek; chybělo jen
+--    spojení na účet (acc_id) a dva stavy (left_ts, own).
 CREATE TABLE IF NOT EXISTS users (
     id        TEXT PRIMARY KEY,          -- uuid
     firm_id   TEXT NOT NULL,
     name      TEXT NOT NULL,
     role      TEXT NOT NULL,             -- admin | vedeni | zamestnanec
-    pass_hash TEXT NOT NULL,             -- hex PBKDF2-SHA256
+    pass_hash TEXT NOT NULL,             -- hex PBKDF2-SHA256 (od účtů jen dědictví)
     salt      TEXT NOT NULL,             -- hex 16 B
     iters     INTEGER NOT NULL,          -- iterace PBKDF2 (40000; Workers max 100000)
     disabled  INTEGER NOT NULL DEFAULT 0,
@@ -24,6 +58,13 @@ CREATE TABLE IF NOT EXISTS users (
     UNIQUE (firm_id, name)
 );
 CREATE INDEX IF NOT EXISTS idx_users_firm ON users(firm_id);
+-- Tři sloupce k účtům (worker si je doplní sám v ensureUctySchema, takže
+-- nasazení nevyžaduje ruční migraci; SQLite neumí IF NOT EXISTS u ALTER,
+-- takže na existující databázi jednou selžou a to je v pořádku):
+--   ALTER TABLE users ADD COLUMN acc_id  TEXT;     -- ke kterému účtu členství patří
+--   ALTER TABLE users ADD COLUMN left_ts INTEGER;  -- odešel z firmy → archiv jen ke čtení
+--   ALTER TABLE users ADD COLUMN own     INTEGER NOT NULL DEFAULT 0;  -- vlastní prostor účtu
+-- CREATE INDEX IF NOT EXISTS idx_users_acc ON users(acc_id);
 
 -- záznamy užívání ze všech zařízení (append-only)
 CREATE TABLE IF NOT EXISTS usage (

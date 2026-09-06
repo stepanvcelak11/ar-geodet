@@ -11,10 +11,11 @@
 #   k zamitnuti za zavadejici zaznam. Tenhle skript proto foti realnou appku.
 #
 # JAK SE OBCHAZI PRIHLASOVACI BRANA:
-#   js/ucty.js drzi pri startu branu (#ag-gate). Rezim HOSTA (agGuest_v1) pusti
-#   jen tri dlazdice, takze by na snimcich chybelo skoro vsechno. Pouziva se
-#   proto REZIM VLASTNIKA (agVlastnik_v1='1', js/vlastnik.js) — brana se
-#   preskoci a can() vraci vsude true, takze je videt cela appka.
+#   js/ucty.js drzi pri startu branu (#ag-gate). Pouziva se REZIM VLASTNIKA
+#   (agVlastnik_v1='1', js/vlastnik.js) — brana se preskoci a can() vraci
+#   vsude true, takze je videt cela appka.
+#   (Hostovsky rezim, ktery se tu driv zminoval jako alternativa, byl 6. 9.
+#   2026 zrusen — bez profilu se do appky nedostane nikdo.)
 #
 # ⚠ ROZMER: viewport 360x640 CSS pri device_scale_factor=3 => PNG 1080x1920.
 #   Neni to nahodne cislo: 360x640 je klasicky androidi telefon, takze appka
