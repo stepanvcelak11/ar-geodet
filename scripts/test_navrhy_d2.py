@@ -24,13 +24,15 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8101
 URL = 'http://127.0.0.1:%d/index.html' % PORT
 
-BOOT = """
-  localStorage.setItem('agGuest_v1', JSON.stringify({ts: Date.now()}));
-  localStorage.setItem('agTutProSeen','1');
-  localStorage.setItem('agBrifinkAuto','0');
-  localStorage.setItem('agBrifinkLastShown', new Date().toISOString().slice(0,10));
-  localStorage.setItem('agLockStart_v1','0');
-"""
+import sys as _sys, os as _os
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from ag_boot import BOOT_UCET
+
+# ⚠ HOST BYL ZRUSEN 6. 9. 2026 — driv se sem appka pouštěla přes
+#   `agGuest_v1`. Ted se nastartuje PRIHLASENA k lokalnimu prostoru;
+#   je to tentyz stav, jaky v telefonu zustane po beznem prihlaseni
+#   (viz scripts/ag_boot.py), ne zvlastni cesta pro testy.
+BOOT = BOOT_UCET
 
 results = []
 

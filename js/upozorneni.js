@@ -1,7 +1,7 @@
 // ===== AR Geodet — CENTRUM UPOZORNĚNÍ (jeden sloupec nahoře, ODPOJITELNÁ vrstva) ==
 // PROBLÉM, který řeší: nahoře uprostřed si o stejné místo říkalo SEDM nezávislých
 // prvků, každý s vlastním vzhledem a vlastní výškou:
-//   #ag-sp (stavový pruh, safe+4) · #ag-guest-pill (safe+8) · #ag-gpst-bar
+//   #ag-sp (stavový pruh, safe+4) · #ag-gpst-bar
 //   (GPS ztracena, safe+44) · #dmr-status (safe+46) · #agpose-badge (safe+54) ·
 //   #gps-warn (slabá GPS, safe+96) · #compass-interference (kompas rušen, 96px
 //   BEZ safe-area → na telefonu s výřezem lezl přesně na #gps-warn).
@@ -54,7 +54,6 @@
     //   act: popisek tlačítka v rozjeté kartě. 'btn' = převezmi tlačítko uvnitř
     //        originálu (kotva AR má „Zrušit"), jinak se klikne na prvek samotný.
     var MIRROR = [
-        { sel: '#ag-guest-pill', id: 'guest', level: 'warn', act: 'Přihlásit' },
         { sel: '#agpose-badge', id: 'ar-anchor', level: 'ok', act: 'btn' },
         { sel: '#dmr-status', id: 'dmr', level: 'info', act: 'Co to je?' }
     ];

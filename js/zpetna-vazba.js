@@ -723,11 +723,12 @@
     //   • panel „Více" (#side-menu) nemá od přechodu na dok VIDITELNÉ tlačítko —
     //     #menu-toggle-btn má v css/style.css dvakrát `display:none !important`,
     //     takže se do něj dá dostat jen přes Nastavení → Údržba → „Více…";
-    //   • Nastavení → Údržba je HOSTOVI schované oprávněním (GUEST_ALLOW v js/ucty.js
-    //     pouští jen dok Nový bod / Body / Nastavení a záložku Vzhled).
-    // Host tedy neměl k autorovi appky ŽÁDNOU cestu — přestože server ho schválně
-    // pouští psát i bez přihlášení (POST /feedback bez tokenu, viz hlavička souboru)
-    // a přestože právě on má k psaní nejvíc důvodů.
+    //   • Nastavení → Údržba schovává applyPerms() podle role, takže se do ní
+    //     řadový člen firmy nedostane.
+    // Kdo nemá roli admina, tedy neměl k autorovi appky ŽÁDNOU cestu — přestože
+    // server schválně pouští psát i bez přihlášení (POST /feedback bez tokenu,
+    // viz hlavička souboru). Do 6. 9. 2026 to platilo hlavně o HOSTOVI; ten byl
+    // zrušen, ale past zůstává tatáž, a proto řádek stojí tam, kde stojí.
     //
     // Řádek proto stojí MIMO záložky Nastavení (hned pod dlaždicemi záložek) a MIMO
     // mřížku Nástrojů. Dvě věci z toho plynou a obě jsou úmysl:

@@ -6,7 +6,7 @@
 // Co dělá:
 //   • pustí index.html v Chromiu s podvrženou GPS (Praha), falešnou kamerou
 //     a podvrženým kompasem (CDP DeviceOrientation),
-//   • přeskočí přihlašovací bránu (režim host = localStorage agGuest_v1),
+//   • nastartuje appku PŘIHLÁŠENOU k lokálnímu prostoru (host byl 6. 9. 2026 zrušen),
 //   • klikne „Spustit vyhledávání" a čeká, až se appka rozjede,
 //   • posbírá chyby z konzole a nezachycené výjimky (síťové chyby ignoruje —
 //     dlaždice mapy a ČÚZK v CI nejsou k dispozici),
@@ -42,10 +42,22 @@ async function bootApp(page, context) {
     await context.grantPermissions(['geolocation'], { origin: 'http://127.0.0.1:8099' });
     await context.setGeolocation(PRAHA);
 
-    // režim host = přeskočí přihlašovací bránu (js/ucty.js), aby test neřešil PIN
+    // ⚠ HOST BYL 6. 9. 2026 ZRUSEN — bez profilu se do appky nedostane nikdo.
+    // Test proto appku nastartuje PRIHLASENOU k lokalnimu prostoru: je to
+    // presne ten stav, ktery v telefonu zustane po beznem prihlaseni, ne
+    // zvlastni cesta dovnitr (tentyz seed ma scripts/ag_boot.py pro testy
+    // v Pythonu). Zamek pri startu je vypnuty, jinak by appka chtela heslo.
     await page.addInitScript(() => {
         try {
-            localStorage.setItem('agGuest_v1', JSON.stringify({ ts: Date.now() }));
+            const UID = 'test-user-1';
+            localStorage.setItem('agFirma_v1', JSON.stringify({
+                enabled: true, cloud: false, firmName: 'Testovaci mereni',
+                perms: {}, users: [{ id: UID, name: 'Tester', role: 'admin' }],
+                fetchedTs: Date.now()
+            }));
+            localStorage.setItem('agFirmaSess_v1', JSON.stringify({ userId: UID, ts: Date.now() }));
+            localStorage.setItem('agLockStart_v1', '0');
+            localStorage.removeItem('agGuest_v1');
             localStorage.setItem('agTutProSeen', '1');       // ať nevyskočí prohlídka
             // Ranní brífink (js/brifink.js) se sám otevře 1× denně a je to celoobrazovkový
             // modál — přes něj se nedá klikat a testy pak umíraly na timeout. Vypínáme ho
@@ -241,7 +253,15 @@ test('REGRESE: vstupy modulů a řádek terénu se vloží', async ({ page, cont
 
     await page.addInitScript(() => {
         try {
-            localStorage.setItem('agGuest_v1', JSON.stringify({ ts: Date.now() }));
+            const UID = 'test-user-1';
+            localStorage.setItem('agFirma_v1', JSON.stringify({
+                enabled: true, cloud: false, firmName: 'Testovaci mereni',
+                perms: {}, users: [{ id: UID, name: 'Tester', role: 'admin' }],
+                fetchedTs: Date.now()
+            }));
+            localStorage.setItem('agFirmaSess_v1', JSON.stringify({ userId: UID, ts: Date.now() }));
+            localStorage.setItem('agLockStart_v1', '0');
+            localStorage.removeItem('agGuest_v1');
             localStorage.setItem('agTutProSeen', '1');
             localStorage.setItem('agBrifinkAuto', '0');
             localStorage.setItem('agBrifinkLastShown', new Date().toISOString().slice(0, 10));
@@ -274,12 +294,11 @@ test('REGRESE: lazy nástroj s objektovým API (DGPS) appku nezamrzne', async ({
 
     // POZOR — proč NE klepnutí na dlaždici (kvůli tomu byl tenhle test od zavedení
     // červený a s ním celý workflow, včetně nasazení na Pages):
-    // bootApp přeskakuje přihlašovací bránu režimem HOST (agGuest_v1). Host má ale
-    // omezená oprávnění a js/ucty.js je vymáhá SKRÝVÁNÍM dlaždic — dlaždici označí
-    // `data-agucty="1"` a nastaví jí display:none (ucty.js, applyPerms). Dělá to
-    // v ticku, takže i kdyby ji hledání odkrylo, hned se zase schová. V režimu
-    // host je tak skrytá zhruba třetina mřížky včetně DGPS, takže `.click()` na ni
-    // neměl šanci a skončil vypršením. Není to vada appky: host na DGPS prostě nemá.
+    // bootApp startuje appku přihlášenou (dřív to byl režim HOST, ten byl 6. 9.
+    // 2026 zrušen). Klepnutí na dlaždici se tu přesto NEPOUŽÍVÁ: js/ucty.js umí
+    // dlaždici podle role skrýt (`data-agucty="1"` + display:none v ticku), a test,
+    // který stojí na tom, že je vidět, je pak rukojmím nastavení oprávnění.
+    // Regrese, o kterou tu jde, je navíc v otevírací funkci, ne v dlaždici.
     //
     // Otevíráme proto stejným globálem, na který ukazuje i dlaždice
     // (js/lazy-tools.js, `open: 'AGDgps.open'`). Regrese se tím testuje beze změny:

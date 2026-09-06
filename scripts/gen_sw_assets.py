@@ -232,14 +232,28 @@ def collect_assets(version):
     # dedup pri zachovani poradi + verzovani korenovych CSS
     seen = set()
     result = []
+    chybejici = []
     for a in assets:
         key = a.split('?')[0]
         if key in seen:
             continue
         seen.add(key)
+        # ⚠⚠ SOUBOR, KTERY NEEXISTUJE, SHODI CELOU PREDCACHE. cache.addAll() je
+        #    atomicke: jediny 404 zahodi vsech ~250 polozek a appka je pak
+        #    OFFLINE UPLNE MRTVA. Drzi se to tu proto, ze delene sestaveni
+        #    (scripts/vydani.py --zaklad) Pro moduly ze stromu MAZE, ale
+        #    js/lazy-tools.js na ne dal odkazuje - jeho MANIFEST je zdroj
+        #    zastupnych dlazdic, ktere v Zakladu ukazuji zamek.
+        if not (key.startswith('http') or key in ('./',)) \
+                and not (ROOT / key.lstrip('./')).exists():
+            chybejici.append(key)
+            continue
         if key in VERSIONED_CSS:
             a = '%s?v=%d' % (key, version)
         result.append(a)
+    if chybejici:
+        print('Vynechano z ASSETS_TO_CACHE (soubor ve stromu neni): %s'
+              % ', '.join(chybejici))
     return result
 
 

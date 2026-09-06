@@ -919,29 +919,40 @@
             var initials = (us.name || '?').trim().split(/\s+/).map(function (w) { return w.charAt(0); }).slice(0, 2).join('').toUpperCase();
             var chipCls = us.role === 'admin' ? ' c-admin' : (us.role === 'vedeni' ? ' c-vedeni' : '');
             var blocked = !!us.disabled;
+            // ⚠ BÝVALÝ ČLEN SE ZE SEZNAMU NEMAŽE. Kdo z firmy odešel, drží dál
+            //   ARCHIV — svůj prostor jen ke čtení, do dne odchodu. Správce ho
+            //   v seznamu vidět MUSÍ, jinak by nevěděl, komu ještě archiv zůstal,
+            //   a nemohl by ho odebrat. Do stropu míst se ale nepočítá.
+            var odesel = !!us.odesel;
             // ⚠ „nikdy nepřihlášen" se pozná jen v cloudu a jen když server časy zná
             var ceka = cloud && casy && !us.lastLogin && !blocked;
             var kdy = (cloud && casy && us.lastLogin) ? ' · ' + relTxt(us.lastLogin) : '';
-            return '<div class="agfa-urow' + (blocked ? ' blocked' : (ceka ? ' wait' : '')) + '" data-id="' + esc(us.id) + '">' +
+            return '<div class="agfa-urow' + (odesel ? ' blocked' : (blocked ? ' blocked' : (ceka ? ' wait' : ''))) + '" data-id="' + esc(us.id) + '">' +
                 '<div class="agfa-uid">' +
                 (u.avatarHtml ? u.avatarHtml(us.name, 'agfa-av')
                     : '  <span class="agfa-av" style="' + (u.avatarStyle ? u.avatarStyle(us.name) : '') + '">' + esc(initials) + '</span>') +
                 '  <span class="agfa-unm"><b>' + esc(us.name) + '</b>' +
                 '    <span class="agfa-usub">' + roleTxt(us.role) + (!cloud && us.noPin ? ' · bez PINu' : '') +
                 (me && me.id === us.id ? ' · to jsi ty' : '') +
-                (blocked ? ' · nemůže se přihlásit' : (ceka ? ' · účet čeká, nikdo se s ním nepřihlásil' : kdy)) + '</span></span>' +
-                (blocked ? '<span class="agfa-chip c-block">Zablokován</span>'
-                    : (ceka ? '<span class="agfa-chip c-wait">Nepřevzato</span>'
-                        : '<span class="agfa-chip' + chipCls + '">' + roleTxt(us.role) + '</span>')) +
+                (odesel ? ' · odešel ' + relTxt(us.odesel) + ', zůstal mu archiv jen ke čtení'
+                    : (blocked ? ' · nemůže se přihlásit' : (ceka ? ' · účet čeká, nikdo se s ním nepřihlásil' : kdy))) + '</span></span>' +
+                (odesel ? '<span class="agfa-chip c-block">Odešel</span>'
+                    : (blocked ? '<span class="agfa-chip c-block">Zablokován</span>'
+                        : (ceka ? '<span class="agfa-chip c-wait">Nepřevzato</span>'
+                            : '<span class="agfa-chip' + chipCls + '">' + roleTxt(us.role) + '</span>'))) +
                 '</div>' +
                 '<div class="agfa-uact">' +
-                (cloud && !blocked ? '<button class="agfa-mini" data-act="invite">Pozvánka</button>' : '') +
-                '<button class="agfa-mini" data-act="avatar">Vzhled</button>' +
-                '<button class="agfa-mini" data-act="edit">Upravit</button>' +
-                (blocked
-                    ? '<button class="agfa-mini" data-act="unblock">Povolit</button>'
-                    : '<button class="agfa-mini danger" data-act="block">Zablokovat</button>') +
-                '<button class="agfa-mini danger" data-act="del">Smazat</button>' +
+                // U bývalého člena nedává většina akcí smysl — zůstává jediná:
+                // sebrat mu i archiv. Je to rozhodnutí firmy, ne výchozí stav.
+                (odesel ? '<button class="agfa-mini danger" data-act="archiv">Odebrat i archiv</button>' : '') +
+                (odesel ? '' : (cloud && !blocked ? '<button class="agfa-mini" data-act="invite">Pozvánka</button>' : '')) +
+                (odesel ? '' :
+                    '<button class="agfa-mini" data-act="avatar">Vzhled</button>' +
+                    '<button class="agfa-mini" data-act="edit">Upravit</button>' +
+                    (blocked
+                        ? '<button class="agfa-mini" data-act="unblock">Povolit</button>'
+                        : '<button class="agfa-mini danger" data-act="block">Zablokovat</button>') +
+                    '<button class="agfa-mini danger" data-act="del">Smazat</button>') +
                 '</div></div>';
         }).join('');
         body.innerHTML =
@@ -984,6 +995,27 @@
             if (act === 'avatar') { avatarForm(body, us); return; }
             if (act === 'edit') { userForm(body, us); return; }
             if (act === 'block' || act === 'unblock') { blockUser(body, us, act === 'block'); return; }
+            // ODEBRÁNÍ ARCHIVU BÝVALÉMU ČLENOVI. Výchozí stav je, že si odcházející
+            // odnáší čitelnou kopii toho, na čem dělal — tohle je páka pro firmy,
+            // kterým to vadí. Smaže se JEN členství: body a zakázky zůstávají firmě,
+            // protože patří jí, ne odešlému.
+            if (act === 'archiv') {
+                agConfirm({
+                    title: 'Odebrat archiv',
+                    message: '<b>' + esc(us.name) + '</b> z firmy odešel a zůstal mu archiv — vidí zakázky a body '
+                        + 'do dne odchodu, ale nic v nich změnit nemůže.<br><br>Odebráním o ten pohled přijde. '
+                        + 'Naměřená data zůstávají firmě.',
+                    okText: 'Odebrat archiv', danger: true
+                }).then(function (ok) {
+                    if (!ok) return;
+                    u.cloudFetch('/spaces/archiv-pryc', { method: 'POST', body: { uid: us.id } }).then(function (r) {
+                        if (!r.ok) { agAlert('Nepovedlo se', cloudErr(r)); return; }
+                        u.adoptConfig(r.data);
+                        renderUsers(body, true);
+                    });
+                });
+                return;
+            }
             // smazání: nesmí zmizet poslední admin (server to hlídá taky)
             var admins = f.users.filter(function (x) { return x.role === 'admin'; });
             if (us.role === 'admin' && admins.length <= 1) {

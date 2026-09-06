@@ -106,8 +106,13 @@ async function hmac(env, msg) {
     const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(msg));
     return b64u(sig);
 }
-async function makeToken(env, user) {
-    const payload = b64u(JSON.stringify({ u: user.id, f: user.firm_id, exp: Date.now() + TOKEN_DAYS * 864e5 }));
+// `a` = id účtu. Ve starých tokenech chybí a chybět SMÍ — appka v telefonu se
+// nepřehraje ze dne na den a token platí 60 dní. auth() si účet v tom případě
+// dohledá přes users.acc_id, takže se nikdo neodhlásí kvůli nasazení.
+async function makeToken(env, user, accId) {
+    const p = { u: user.id, f: user.firm_id, exp: Date.now() + TOKEN_DAYS * 864e5 };
+    if (accId || user.acc_id) p.a = accId || user.acc_id;
+    const payload = b64u(JSON.stringify(p));
     return payload + '.' + await hmac(env, payload);
 }
 async function readToken(env, req) {
@@ -129,9 +134,20 @@ async function auth(env, req) {
     // JOIN na firmu: stav zmrazení i strop lidí přijdou TÍMŽE dotazem, aby
     // každý požadavek nestál druhý round-trip do D1.
     const u = await dbFirst(env,
-        'SELECT u.id, u.firm_id, u.name, u.role, u.disabled, f.frozen AS frozen, f.max_users AS maxUsers '
+        'SELECT u.id, u.firm_id, u.name, u.role, u.disabled, u.acc_id, u.left_ts, u.own, '
+        + 'f.frozen AS frozen, f.max_users AS maxUsers '
         + 'FROM users u JOIN firms f ON f.id = u.firm_id WHERE u.id=? AND u.firm_id=?', p.u, p.f);
     if (!u || u.disabled) return null;
+    // ÚČET (identita + tarif). Čte se čerstvý z DB, ne z tokenu: konec
+    // předplatného ani zablokování účtu nesmí čekat 60 dní, než token vyprší.
+    // Když účet ještě není (starý řádek, který se od migrace nepřihlásil),
+    // zůstává tarif 'zaklad' — placené cesty se tím zavřou, ale zbytek appky
+    // běží dál a při nejbližším přihlášení se účet doplní.
+    const accId = p.a || u.acc_id;
+    u.acc = accId ? await dbFirst(env, 'SELECT * FROM accounts WHERE id=?', accId) : null;
+    if (u.acc && u.acc.disabled) return null;
+    u.tarif = tarifUctu(u.acc);
+    u.accId = u.acc ? u.acc.id : null;
     // TOKEN HODINEK se pozna podle pole `j` (zakazka, na kterou byl sparovany).
     // Podepisuje se TYMZ tajemstvim jako bezny uzivatelsky token, takze bez tehle
     // znacky prosel kamkoli — komentar u parovani sliboval opak („hodinky nemohou
@@ -183,9 +199,15 @@ async function configPayload(env, firmId) {
     // jestli účet, který založil, už někdo na svém mobilu použil. Heslo ani sůl
     // se tímhle kanálem NEPOSÍLAJÍ (a nikdy posílat nesmí) — seznam vidí každý
     // přihlášený člen firmy, ne jen admin.
+    // `left_ts` (kdo z firmy odešel) chodí ven schválně: admin musí bývalé členy
+    // v seznamu vidět, jinak by nevěděl, komu ještě zůstal archiv — a nemohl by
+    // ho odebrat. Do stropu míst se ale nepočítají (viz POST /users).
     const users = (await dbAll(env,
-        'SELECT id, name, role, disabled, created, last_login FROM users WHERE firm_id=? ORDER BY name', firmId))
-        .map(u => ({ id: u.id, name: u.name, role: u.role, disabled: u.disabled, created: u.created, lastLogin: u.last_login || 0 }));
+        'SELECT id, name, role, disabled, created, last_login, left_ts FROM users WHERE firm_id=? ORDER BY name', firmId))
+        .map(u => ({
+            id: u.id, name: u.name, role: u.role, disabled: u.disabled, created: u.created,
+            lastLogin: u.last_login || 0, odesel: u.left_ts || 0
+        }));
     let perms; try { perms = JSON.parse(firm.perms); } catch (e) { perms = {}; }
     // stav poslední žádosti o víc míst a hláška vlastníka appky. Obojí chodí
     // TÍMHLE kanálem schválně — klient už /config obnovuje sám, takže to
@@ -219,7 +241,7 @@ async function configPayload(env, firmId) {
         firm: { code: firm.code, name: firm.name, autoLockMin: firm.auto_lock, perms: perms },
         users: users,
         limits: {
-            users: users.length,
+            users: users.filter(u => !u.odesel).length,
             maxUsers: firm.max_users || FIRM_MAX_DEFAULT,
             frozen: firm.frozen || 0
         },
@@ -279,6 +301,7 @@ function ownerOk(req, env) {
 const FIRM_MAX_DEFAULT = 10;               // míst ve firmě bez schvalování
 const FOUND_MAX = 3;                       // firem na jednoho zakladatele
 const FOUND_WINDOW = 90 * 864e5;           // ...za 90 dní
+const SOLO_MAX = 1;                        // míst ve VLASTNÍM prostoru účtu (Základ)
 let _ownerMig = false;
 async function ensureOwnerSchema(env) {
     if (_ownerMig) return;
@@ -319,6 +342,165 @@ async function ensureOwnerSchema(env) {
     for (const s of creates) { try { await env.DB.prepare(s).run(); } catch (e) {} }
     _ownerMig = true;
 }
+// ---------------------------------------------------------------------------
+// ÚČTY A PROSTORY (nový model přihlašování, 6. 9. 2026)
+// ---------------------------------------------------------------------------
+// CO SE ZMĚNILO A PROČ:
+//   Do teď platilo „účet = řádek ve firmě". Kdo chtěl appku sám pro sebe, musel
+//   si založit firmu; kdo přešel k jinému zaměstnavateli, začínal od nuly, a kdo
+//   dělal pro dva, měl dvě hesla. A hlavně: bez přihlášení se dalo dovnitř jako
+//   HOST, takže „kdo to naměřil" nemělo odpověď.
+//
+//   Nově je IDENTITA (kdo jsi, heslo, tarif) v tabulce `accounts` a ČLENSTVÍ
+//   (v jakém prostoru a s jakou rolí) zůstává řádkem v `users`. Jeden účet může
+//   mít členství víc — vlastní prostor má vždycky a nikdy o něj nepřijde, firma
+//   je členství DRUHÉ.
+//
+// ⚠⚠ PROČ SE `users` NEROZBILA NA `members`, JAK ŘÍKAL PŮVODNÍ NÁVRH:
+//   `usage`, `chat`, `sync_points`, `jobs` i `stats_firm` se klíčují přes
+//   users.id a firm_id. Přejmenovat tabulku by znamenalo přepsat každý dotaz
+//   v souboru a odmigrovat všechna data — a jediná chyba v tom by nenávratně
+//   rozpojila body od lidí, kteří je naměřili. Členství uz JE řádek v `users`;
+//   chybělo jen spojení na účet. Přibyly proto TŘI SLOUPCE (acc_id, left_ts,
+//   own) a jedna nová tabulka. Všechny dosavadní dotazy platí beze změny.
+//
+// ⚠⚠ TARIF DRŽÍ ÚČET, NE PROSTOR. Kdyby ho držel prostor, pozvaný člověk bez
+//   Pro by vstupem do Pro firmy dostal chat i vysílačku. S tarifem na účtu je
+//   „Základ ve firmě vidí jen body a zakázky" automatický důsledek, ne výjimka.
+//   Prostor drží jen POČET MÍST (firms.max_users: 1 sólo vs 10 firma).
+//
+// ⚠⚠ TARIF SE NESMÍ VYMÁHAT JEN SKRÝVÁNÍM V UI. `applyPerms()` v appce stačí na
+//   role (kolegové v jedné firmě), ale ne na placení — kdo si appku otevře
+//   v prohlížeči, skrytou dlaždici si odkryje. Placené cesty proto kontroluje
+//   SERVER (PLACENE_CESTY níž) a dělá to PŘED rolí: sólo uživatel je ve svém
+//   prostoru správce, takže rolí by prošel na všechno.
+const TARIFY = ['zaklad', 'pro'];
+
+// Cesty, které smí jen účet s tarifem Pro. Co v seznamu NENÍ, je zdarma —
+// vědomě: body, zakázky, konfigurace, změna hesla a záloha jsou to, čím člověk
+// vládne svým vlastním datům, a za to se neplatí. Placené je všechno kolem
+// SPOLUPRÁCE a VYKAZOVÁNÍ (rozhodnutí uživatele: pozvaný bez Pro vidí ve firmě
+// jen body a zakázky).
+const PLACENE_CESTY = [
+    '/chat',        // firemní chat
+    '/pos',         // vysílačka (kde kdo je)
+    '/usage',       // užívání a docházka
+    '/stats',       // přehledy firmy
+    '/watch'        // hodinky (prefix — /watch/code, /watch/tiles, …)
+];
+function placenaCesta(path) {
+    return PLACENE_CESTY.some(p => path === p || path.indexOf(p + '/') === 0);
+}
+
+// Kód účtu je OSMIZNAKOVÝ, kód firmy ŠESTIZNAKOVÝ — schválně, ne kosmeticky:
+// přihlašovací pole bere JEDEN kód a server podle délky pozná, jestli hledat
+// v účtech, nebo (u starých klientů) ve firmách. Se stejnou délkou by musel
+// zkoušet obojí a kolize dvou kódů by tiše přihlásila do špatného místa.
+function accCode() {
+    const a = new Uint8Array(8);
+    crypto.getRandomValues(a);
+    let s = '';
+    for (let i = 0; i < 8; i++) s += CODE_ABC[a[i] % CODE_ABC.length];
+    return s;
+}
+
+let _uctyMig = false;
+async function ensureUctySchema(env) {
+    if (_uctyMig) return;
+    const creates = [
+        'CREATE TABLE IF NOT EXISTS accounts ('
+        + 'id TEXT PRIMARY KEY, code TEXT UNIQUE NOT NULL, name TEXT NOT NULL, '
+        + 'pass_hash TEXT NOT NULL, salt TEXT NOT NULL, iters INTEGER NOT NULL, '
+        + "tarif TEXT NOT NULL DEFAULT 'zaklad', tarif_do INTEGER, "
+        + 'disabled INTEGER NOT NULL DEFAULT 0, created INTEGER NOT NULL, last_login INTEGER)',
+        'CREATE INDEX IF NOT EXISTS idx_acc_code ON accounts(code)'
+    ];
+    for (const s of creates) { try { await env.DB.prepare(s).run(); } catch (e) {} }
+    // SQLite neumí IF NOT EXISTS u ALTER — když sloupec už je, příkaz selže
+    // a to je v pořádku (proto try/catch u každého zvlášť).
+    const alters = [
+        'ALTER TABLE users ADD COLUMN acc_id TEXT',
+        // ⚠ ODCHOD Z FIRMY NEMAŽE ČLENSTVÍ. Vyplní se `left_ts` a prostor
+        //   zůstane v přepínači jako ARCHIV jen ke čtení. MUSÍ být zamrzlý:
+        //   server vydává jen záznamy do toho času, jinak by bývalý člen viděl,
+        //   co firma naměřila potom.
+        'ALTER TABLE users ADD COLUMN left_ts INTEGER',
+        // 1 = vlastní prostor účtu. Ten se nedá opustit ani smazat — je to
+        // místo, kde člověku data zůstanou, i když ze všech firem odejde.
+        'ALTER TABLE users ADD COLUMN own INTEGER NOT NULL DEFAULT 0'
+    ];
+    for (const s of alters) { try { await env.DB.prepare(s).run(); } catch (e) {} }
+    try { await env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_users_acc ON users(acc_id)').run(); } catch (e) {}
+    _uctyMig = true;
+}
+
+// Účet pro starý řádek v `users`, který ještě žádný nemá.
+// ⚠ DĚLÁ SE LÍNĚ, AŽ PŘI PŘIHLÁŠENÍ, A NIC NEMAŽE. Hromadná migrace všech řádků
+//   naráz by musela proběhnout v jednom požadavku (10 ms CPU na free plánu)
+//   a při chybě uprostřed by nechala databázi rozpůlenou. Takhle si každý účet
+//   svůj záznam vyrobí sám, když se poprvé přihlásí, a stará cesta funguje dál
+//   pro každého, kdo ještě má v telefonu starou appku.
+async function ucetProUzivatele(env, u) {
+    if (u.acc_id) {
+        const a = await dbFirst(env, 'SELECT * FROM accounts WHERE id=?', u.acc_id);
+        if (a) return a;
+    }
+    await ensureUctySchema(env);
+    const id = crypto.randomUUID();
+    const firm = await dbFirst(env, 'SELECT max_users FROM firms WHERE id=?', u.firm_id);
+    // Zděděné heslo se PŘENÁŠÍ TAK, JAK JE (hash, sůl i počet iterací) — kdyby
+    // se přepočítávalo, musel by tu být otevřený text a ten server nikdy nemá.
+    let code = accCode();
+    for (let i = 0; i < 3; i++) {
+        try {
+            await env.DB.prepare(
+                'INSERT INTO accounts(id,code,name,pass_hash,salt,iters,tarif,disabled,created,last_login) '
+                + "VALUES(?,?,?,?,?,?,?,?,?,?)")
+                .bind(id, code, u.name, u.pass_hash, u.salt, u.iters,
+                    // Kdo dosud platil za firmu (víc než jedno místo), o nic
+                    // nepřijde: dostane Pro. Sólo účet začíná na Základu.
+                    (firm && firm.max_users > SOLO_MAX) ? 'pro' : 'zaklad',
+                    u.disabled ? 1 : 0, u.created || Date.now(), u.last_login || null).run();
+            break;
+        } catch (e) {
+            if (i === 2) return null;
+            code = accCode();
+        }
+    }
+    await dbRunSoft(env, 'UPDATE users SET acc_id=? WHERE id=?', id, u.id);
+    return await dbFirst(env, 'SELECT * FROM accounts WHERE id=?', id);
+}
+
+// Prostory (členství) účtu — i ty opuštěné, ty se vrací jako archiv.
+async function prostoryUctu(env, accId) {
+    const rows = await dbAll(env,
+        'SELECT u.id AS uid, u.firm_id, u.role, u.own, u.left_ts, u.disabled, '
+        + 'f.name AS nazev, f.code AS kod, f.max_users AS mist, f.frozen '
+        + 'FROM users u JOIN firms f ON f.id=u.firm_id WHERE u.acc_id=? ORDER BY u.own DESC, f.name',
+        accId);
+    return (rows || []).map(r => ({
+        uid: r.uid, firmId: r.firm_id, role: r.role,
+        vlastni: !!r.own, archiv: !!r.left_ts, odesel: r.left_ts || 0,
+        zablokovan: !!r.disabled,
+        // ⚠ U VLASTNÍHO PROSTORU SE JMÉNO ANI KÓD NEPOSÍLÁ. Základ nemá o žádné
+        //   „firmě" vědět — slovo firma se mu nikde ukázat nesmí. Kód je navíc
+        //   POZVACÍ: rozdat ho u jednomístného prostoru nemá co dělat.
+        nazev: r.own ? null : r.nazev,
+        kod: (r.own || r.role !== 'admin') ? null : r.kod,
+        mist: r.mist || FIRM_MAX_DEFAULT, frozen: r.frozen || 0
+    }));
+}
+
+// Tarif účtu podle stavu v DB. Pro s prošlou platností padá zpátky na Základ —
+// kontroluje se při KAŽDÉM požadavku, ne jen při přihlášení, aby konec
+// předplatného nepočkal až na příští přihlášení (token platí 60 dní).
+function tarifUctu(acc) {
+    if (!acc) return 'zaklad';
+    if (acc.tarif !== 'pro') return 'zaklad';
+    if (acc.tarif_do && acc.tarif_do < Date.now()) return 'zaklad';
+    return 'pro';
+}
+
 // totéž pro dotaz na VÍC řádků (seznam uživatelů se opírá o users.last_login)
 async function dbAll(env, sql, ...bind) {
     try { return (await env.DB.prepare(sql).bind(...bind).all()).results; }
@@ -792,7 +974,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 10, wx: true, watch: true, fb: true, owner: true, seen: true, flags: true, errors: true, acl: true, accepted: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 11, wx: true, watch: true, fb: true, owner: true, seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true });
 
             // ---------------- ČHMÚ: měření z nejbližší stanice ---------------
             // veřejné (bez tokenu) — počasí není firemní údaj
@@ -971,10 +1153,132 @@ export default {
                 });
             }
 
-            // ---------------- přihlášení ------------------------------------
-            if (req.method === 'POST' && path === '/login') {
+            // ---------------- registrace ÚČTU (nový model) -------------------
+            // Jedna obrazovka pro obě verze: člověk si vymyslí jméno, název
+            // svého prostoru a heslo. Založí se ÚČET (identita + heslo + tarif)
+            // a k němu jeho VLASTNÍ PROSTOR, o kterém v Základu ani neví — slovo
+            // „firma" se mu nikde neukáže, jen si pojmenoval, kde má data.
+            //
+            // ⚠ ŽÁDNÝ E-MAIL, ŽÁDNÁ OBNOVA HESLA (rozhodnutí uživatele). Kdo
+            //   ztratí heslo, ztratí data — jediná pojistka je stažená záloha.
+            //   Server proto nemá kam poslat odkaz a ani o to nikdo nepožádá.
+            //
+            // ⚠⚠ STROP ZAKLADATELE SE TU NEUPLATŇUJE. FOUND_MAX (3 firmy za 90
+            //   dní) dával smysl, dokud firmu zakládal jen ten, kdo ji opravdu
+            //   měl. Teď vzniká prostor při KAŽDÉ registraci, takže by ten strop
+            //   zavřel dveře čtvrtému člověku na společné wifi. Vlastní prostory
+            //   se do něj nepočítají; návaly dál brzdí čítač 'reg:<ip>' (5/den)
+            //   a stropu podléhá jen zakládání skutečné firmy (POST /firms).
+            if (req.method === 'POST' && path === '/register') {
+                await ensureUctySchema(env);
+                const ip = req.headers.get('CF-Connecting-IP') || '?';
+                if (!await guardHit(env, 'reg:' + ip, 5, 864e5))
+                    return err(429, 'Příliš mnoho registrací z této adresy, zkus to zítra.');
                 const b = await req.json().catch(() => null);
-                if (!b || !b.code || !b.name || b.password == null) return err(400, 'Chybí code / name / password.');
+                if (!b || !b.name || !b.spaceName || !b.password)
+                    return err(400, 'Chybí name / spaceName / password.');
+                if (String(b.password).length < 8) return err(400, 'Heslo musí mít aspoň 8 znaků.');
+                await ensureOwnerSchema(env);
+
+                const accId = crypto.randomUUID();
+                const firmId = crypto.randomUUID();
+                const userId = crypto.randomUUID();
+                const salt = randHex(16);
+                const hash = await pbkdf2(String(b.password), salt, ITERS);
+                const nyni = Date.now();
+
+                let code = accCode(), ok = false;
+                for (let i = 0; i < 3 && !ok; i++) {
+                    try {
+                        await env.DB.prepare(
+                            'INSERT INTO accounts(id,code,name,pass_hash,salt,iters,tarif,disabled,created,last_login) '
+                            + "VALUES(?,?,?,?,?,?,'zaklad',0,?,?)")
+                            .bind(accId, code, String(b.name).slice(0, 40), hash, salt, ITERS, nyni, nyni).run();
+                        ok = true;
+                    } catch (e) { code = accCode(); }
+                }
+                if (!ok) return err(500, 'Nepodařilo se vyrobit kód účtu, zkus to prosím znovu.');
+
+                // Vlastní prostor: JEDNO MÍSTO. Až si účet pořídí Pro, strop se
+                // zvedne na FIRM_MAX_DEFAULT (viz /owner/tarif) a teprve tehdy
+                // se z prostoru stane firma, do které jde někoho pozvat.
+                let fcode = firmCode();
+                for (let i = 0; i < 3; i++) {
+                    try {
+                        await env.DB.prepare(
+                            'INSERT INTO firms(id,code,name,perms,auto_lock,created,max_users,frozen,founder) '
+                            + 'VALUES(?,?,?,?,0,?,?,0,?)')
+                            .bind(firmId, fcode, String(b.spaceName).slice(0, 60), defaultPermsJson(),
+                                nyni, SOLO_MAX, await founderId(env, req)).run();
+                        break;
+                    } catch (e) {
+                        if (i === 2) return err(500, 'Nepodařilo se založit prostor.');
+                        fcode = firmCode();
+                    }
+                }
+                await env.DB.prepare(
+                    'INSERT INTO users(id,firm_id,name,role,pass_hash,salt,iters,disabled,created,acc_id,own) '
+                    + 'VALUES(?,?,?,?,?,?,?,0,?,?,1)')
+                    .bind(userId, firmId, String(b.name).slice(0, 40), 'admin', hash, salt, ITERS,
+                        nyni, accId).run();
+
+                const u = { id: userId, firm_id: firmId, name: b.name, role: 'admin', acc_id: accId };
+                return json({
+                    token: await makeToken(env, u, accId),
+                    ucet: { id: accId, code: code, name: String(b.name).slice(0, 40), tarif: 'zaklad' },
+                    user: { id: userId, name: u.name, role: 'admin' },
+                    prostory: await prostoryUctu(env, accId),
+                    config: await configPayload(env, firmId)
+                });
+            }
+
+            // ---------------- přihlášení ------------------------------------
+            // DVĚ CESTY V JEDNÉ ROUTĚ, a rozhoduje DÉLKA KÓDU:
+            //   8 znaků = kód ÚČTU  → nový model, jméno se nezadává
+            //   6 znaků = kód FIRMY → stará cesta {code, name, password}, kterou
+            //     dál potřebují telefony s neaktualizovanou appkou. Až doslouží,
+            //     smaže se celá druhá větev a nic jiného se měnit nebude.
+            if (req.method === 'POST' && path === '/login') {
+              const b = await req.json().catch(() => null) || {};
+              const kod = String(b.code || '').trim().toUpperCase();
+              if (kod.length === 8) {
+                await ensureUctySchema(env);
+                if (b.password == null) return err(400, 'Chybí password.');
+                const ip = req.headers.get('CF-Connecting-IP') || '0';
+                const gkey = 'log2:' + kod + ':' + ip, gip = 'loginip:' + ip, gacct = 'log2:' + kod;
+                if (!await guardHit(env, gkey, 8, 15 * 60e3)) return err(429, 'Příliš mnoho pokusů. Zkus to za 15 minut.');
+                if (!await guardHit(env, gip, 30, 15 * 60e3)) return err(429, 'Příliš mnoho pokusů z této sítě. Zkus to za 15 minut.');
+                if (!await guardHit(env, gacct, 60, 15 * 60e3)) return err(429, 'Účet je dočasně zamčený kvůli mnoha pokusům o přihlášení. Zkus to za 15 minut.');
+
+                const acc = await dbFirst(env, 'SELECT * FROM accounts WHERE code=?', kod);
+                if (!acc) return err(401, 'Nesprávný kód nebo heslo.');
+                if (acc.disabled) return err(403, 'Účet je zablokovaný.');
+                const h = await pbkdf2(String(b.password), acc.salt, acc.iters);
+                if (!timingSafeEq(h, acc.pass_hash)) return err(401, 'Nesprávný kód nebo heslo.');
+                await guardClear(env, gkey); await guardClear(env, gip); await guardClear(env, gacct);
+                await dbRunSoft(env, 'UPDATE accounts SET last_login=? WHERE id=?', Date.now(), acc.id);
+
+                const prostory = await prostoryUctu(env, acc.id);
+                // Kam se přihlásit: buď kam si klient řekl (`firmId`), nebo do
+                // posledního živého prostoru. Archiv se za výchozí nebere nikdy —
+                // člověk by se přihlásil do místa, kde nesmí nic zapsat, a nechápal
+                // by proč.
+                let cil = null;
+                if (b.firmId) cil = prostory.find(p => p.firmId === b.firmId && !p.archiv) || null;
+                if (!cil) cil = prostory.find(p => p.vlastni && !p.archiv) || prostory.find(p => !p.archiv) || null;
+                if (!cil) return err(403, 'Účet nemá žádný živý prostor.');
+                await dbRunSoft(env, 'UPDATE users SET last_login=? WHERE id=?', Date.now(), cil.uid);
+                return json({
+                    token: await makeToken(env, { id: cil.uid, firm_id: cil.firmId }, acc.id),
+                    ucet: { id: acc.id, code: acc.code, name: acc.name, tarif: tarifUctu(acc), tarifDo: acc.tarif_do || 0 },
+                    user: { id: cil.uid, name: acc.name, role: cil.role },
+                    prostory: prostory,
+                    config: await configPayload(env, cil.firmId)
+                });
+              }
+
+                // ---- stará cesta: kód FIRMY + jméno ------------------------
+                if (!b.code || !b.name || b.password == null) return err(400, 'Chybí code / name / password.');
                 // BRZDA PROTI HADANI HESLA — TRI klice, ne jeden.
                 // Drive existoval jen klic 'login:<firma>:<jmeno>' bez IP, takze kdo znal
                 // kod firmy a jmeno kolegy, ZAMKL MU UCET osmi pokusy na ctvrt hodiny -
@@ -1009,10 +1313,18 @@ export default {
                 // Přes dbRunSoft: na nezmigrované databázi sloupec ještě není a
                 // neúspěšný zápis razítka nesmí shodit přihlášení.
                 await dbRunSoft(env, 'UPDATE users SET last_login=? WHERE id=?', Date.now(), u.id);
+                // MIGRACE STARÉHO ÚČTU, LÍNĚ A PŘI PŘIHLÁŠENÍ. Tenhle člověk se
+                // zrovna prokázal heslem, takže je to jediná chvíle, kdy se dá
+                // jeho členství svázat s účtem bez ptaní. Když to selže, přihlášení
+                // to nesmí shodit — appka bude fungovat jako dosud, jen bez tarifu.
+                let ucet = null;
+                try { ucet = await ucetProUzivatele(env, u); } catch (e) { ucet = null; }
                 const cfg = await configPayload(env, firm.id);
                 return json({
-                    token: await makeToken(env, u),
+                    token: await makeToken(env, u, ucet ? ucet.id : null),
+                    ucet: ucet ? { id: ucet.id, code: ucet.code, name: ucet.name, tarif: tarifUctu(ucet) } : null,
                     user: { id: u.id, name: u.name, role: u.role },
+                    prostory: ucet ? await prostoryUctu(env, ucet.id) : [],
                     config: cfg
                 });
             }
@@ -1312,6 +1624,56 @@ export default {
                     return json({ dni: dniU, firms: firmsU, lidi: lidiU, rows: rowsU });
                 }
 
+                // ---- ÚČTY A TARIFY (konzole vlastníka) ----------------------
+                // Prodej Pro má dvě cesty a obě jsou schválně:
+                //   • LICENČNÍ KLÍČ (js/licence.js) — ověřuje se v telefonu, bez
+                //     serveru, aby si ho geodet mohl odemknout v lese. Odemyká
+                //     ale jen NÁSTROJE v mobilu, ne placené cesty na serveru.
+                //   • TARIF ÚČTU (tady) — vymáhá server, takže na něj nedosáhne
+                //     ani ten, kdo si v prohlížeči odkryje schované dlaždice.
+                // Kdo má tarif Pro, klíč nikdy neuvidí; appka si Pro rozsvítí
+                // sama podle `tarif` z /config.
+                if (req.method === 'GET' && path === '/owner/ucty') {
+                    await ensureUctySchema(env);
+                    const q = String(url.searchParams.get('q') || '').trim().toUpperCase();
+                    const rows = q
+                        ? await dbAll(env, 'SELECT id, code, name, tarif, tarif_do, disabled, created, last_login '
+                            + 'FROM accounts WHERE code=? OR name LIKE ? ORDER BY created DESC LIMIT 100', q, '%' + q + '%')
+                        : await dbAll(env, 'SELECT id, code, name, tarif, tarif_do, disabled, created, last_login '
+                            + 'FROM accounts ORDER BY created DESC LIMIT 100');
+                    return json({ ucty: rows || [] });
+                }
+
+                if (req.method === 'POST' && path === '/owner/tarif') {
+                    await ensureUctySchema(env);
+                    const b = await req.json().catch(() => null) || {};
+                    const tarif = TARIFY.indexOf(b.tarif) === -1 ? null : b.tarif;
+                    if (!tarif) return err(400, 'Tarif musí být zaklad nebo pro.');
+                    const acc = await dbFirst(env, 'SELECT * FROM accounts WHERE id=? OR code=?',
+                        String(b.id || ''), String(b.code || '').toUpperCase());
+                    if (!acc) return err(404, 'Účet nenalezen.');
+                    const doKdy = b.dni ? (Date.now() + Math.max(1, Math.min(3650, b.dni | 0)) * 864e5) : null;
+                    await env.DB.prepare('UPDATE accounts SET tarif=?, tarif_do=? WHERE id=?')
+                        .bind(tarif, doKdy, acc.id).run();
+                    // ⚠ MÍSTA V PROSTORU JDOU S TARIFEM. Tarif drží účet, ale
+                    //   „kolik lidí se sem vejde" je vlastnost prostoru — a bez
+                    //   téhle jedné věty by si čerstvě zaplacené Pro nemělo koho
+                    //   pozvat: vlastní prostor by dál měl jediné místo.
+                    //   Zpátky na Základ se strop stahuje JEN u prostoru, kde
+                    //   nikdo další není. Jinak by firma o pěti lidech zůstala
+                    //   nad stropem: nikoho to nevyhodí (strop se čte až při
+                    //   přidávání), ale admin by v seznamu viděl „5 z 1" a
+                    //   nemohl by nikoho vrátit zpátky.
+                    const vlastni = await dbFirst(env,
+                        'SELECT f.id, (SELECT COUNT(*) FROM users x WHERE x.firm_id=f.id AND x.left_ts IS NULL) AS lidi '
+                        + 'FROM firms f JOIN users u ON u.firm_id=f.id WHERE u.acc_id=? AND u.own=1', acc.id);
+                    if (vlastni && (tarif === 'pro' || vlastni.lidi <= SOLO_MAX)) {
+                        await dbRunSoft(env, 'UPDATE firms SET max_users=? WHERE id=?',
+                            tarif === 'pro' ? FIRM_MAX_DEFAULT : SOLO_MAX, vlastni.id);
+                    }
+                    return json({ ok: true, ucet: await dbFirst(env, 'SELECT id, code, name, tarif, tarif_do FROM accounts WHERE id=?', acc.id) });
+                }
+
                 return err(404, 'Neznámá cesta konzole.');
             }
 
@@ -1330,6 +1692,30 @@ export default {
             if (me.frozen >= 1 && req.method !== 'GET')
                 return err(403, 'Firma je dočasně jen ke čtení — zápis na server je pozastavený.');
 
+            // ---- ARCHIV PO ODCHODU Z FIRMY ---------------------------------
+            // Kdo z firmy odešel, má prostor dál v přepínači, ale JEN KE ČTENÍ a
+            // jen do dne odchodu. Zápis se sem nesmí dostat vůbec — jinak by
+            // bývalý zaměstnanec psal firmě do dat. Ořez podle času řeší
+            // jednotlivé čtecí cesty (`me.leftTs` níž).
+            me.leftTs = me.left_ts || 0;
+            if (me.leftTs && req.method !== 'GET') {
+                // ⚠⚠ PŘEPÍNAČ PROSTORŮ MUSÍ ZŮSTAT PRŮJEZDNÝ. Přepnutí i vstup do
+                //   firmy jsou POST, takže by je zákaz zápisu zavřel taky — a kdo
+                //   se přihlásí do archivovaného prostoru, by se z něj UŽ NEDOSTAL
+                //   VEN. Nic to neotevírá: /spaces/* sahá jen na členství účtu,
+                //   ne na data firmy, a ta jsou dál jen ke čtení.
+                if (path !== '/spaces' && path.indexOf('/spaces/') !== 0)
+                    return err(403, 'Z tohoto prostoru jsi odešel — zůstává jen ke čtení.');
+            }
+
+            // ---- TARIF (placené cesty) --------------------------------------
+            // ⚠⚠ TOHLE JE PŘED ROLÍ, NE ZA NÍ. Sólo uživatel je ve svém prostoru
+            //   správce, takže rolí projde na všechno — a placené věci by měl
+            //   zadarmo. Skrývání v appce na to nestačí: co se schová v UI, dá
+            //   se v prohlížeči odkrýt, a příslušné volání by pak prošlo.
+            if (placenaCesta(path) && me.tarif !== 'pro')
+                return err(402, 'Tohle je ve verzi Pro.');
+
             // DENNÍ POČÍTADLO PO FIRMÁCH. Globální `stats` řekne, že je zle, ale
             // neřekne KDO — a při limitu 100 000/den je potřeba najít tu jednu
             // firmu, která by appku sundala všem ostatním. Zápis jde na pozadí;
@@ -1343,7 +1729,117 @@ export default {
 
             if (req.method === 'GET' && path === '/config') {
                 const cfg = await configPayload(env, me.firm_id);
-                return json(Object.assign({ me: { id: me.id, name: me.name, role: me.role } }, cfg));
+                // `tarif` chodí TÍMHLE kanálem schválně: appka /config obnovuje
+                // sama, takže konec předplatného pozná bez dalšího dotazu — a
+                // zámky placených nástrojů se rozsvítí samy, bez odhlášení.
+                return json(Object.assign({
+                    me: {
+                        id: me.id, name: me.name, role: me.role,
+                        ucet: me.accId || null, tarif: me.tarif,
+                        vlastni: !!me.own, archiv: !!me.leftTs, odesel: me.leftTs || 0
+                    },
+                    prostory: me.accId ? await prostoryUctu(env, me.accId) : []
+                }, cfg));
+            }
+
+            // ---------------- prostory účtu (přepínač) ------------------------
+            // ⚠ VSTUP DO FIRMY JE DRUHÉ ČLENSTVÍ, NE PŘESUN. Vlastní prostor
+            //   účtu zůstává navždy; při odchodu z firmy si člověk svá data
+            //   odnáší, protože se nikdy nikam nehnula. Přesouvat `firm_id`
+            //   u řádků by data zabilo — `usage`, `chat`, `sync_points`, `jobs`
+            //   i `stats_firm` se přes něj klíčují.
+            if (req.method === 'GET' && path === '/spaces') {
+                if (!me.accId) return json({ prostory: [] });
+                return json({ prostory: await prostoryUctu(env, me.accId), tarif: me.tarif });
+            }
+
+            if (req.method === 'POST' && path === '/spaces/switch') {
+                if (!me.accId) return err(400, 'Účet ještě nemá prostory.');
+                const b = await req.json().catch(() => null) || {};
+                const p = (await prostoryUctu(env, me.accId)).find(x => x.firmId === b.firmId);
+                if (!p) return err(404, 'Do tohoto prostoru účet nepatří.');
+                if (p.zablokovan) return err(403, 'Členství je zablokované.');
+                await dbRunSoft(env, 'UPDATE users SET last_login=? WHERE id=?', Date.now(), p.uid);
+                return json({
+                    token: await makeToken(env, { id: p.uid, firm_id: p.firmId }, me.accId),
+                    user: { id: p.uid, name: me.name, role: p.role },
+                    prostor: p,
+                    config: await configPayload(env, p.firmId)
+                });
+            }
+
+            // Vstup do firmy na POZVACÍ KÓD. Kód firmy tím přestává být částí
+            // přihlášení a stává se jen pozvánkou — přihlašuje se kódem ÚČTU.
+            if (req.method === 'POST' && path === '/spaces/join') {
+                if (!me.accId) return err(400, 'Účet ještě nemá prostory.');
+                const b = await req.json().catch(() => null) || {};
+                const kod = String(b.code || '').trim().toUpperCase();
+                if (kod.length !== 6) return err(400, 'Pozvací kód má šest znaků.');
+                const ip = req.headers.get('CF-Connecting-IP') || '0';
+                if (!await guardHit(env, 'join:' + ip, 20, 15 * 60e3))
+                    return err(429, 'Příliš mnoho pokusů. Zkus to za 15 minut.');
+                const firm = await dbFirst(env, 'SELECT id, name, max_users, frozen FROM firms WHERE code=?', kod);
+                if (!firm) return err(404, 'Firma s tímto kódem neexistuje.');
+                if (firm.frozen >= 2) return err(403, 'Firma je dočasně zamčená správcem aplikace.');
+                // ⚠ JEDNOMÍSTNÝ PROSTOR NENÍ FIRMA. Do cizího sólo prostoru se
+                //   pozvat nedá — jeho kód se ani nikde neukazuje, ale kdyby ho
+                //   někdo uhodl, nesmí se tam dostat.
+                if ((firm.max_users || FIRM_MAX_DEFAULT) <= SOLO_MAX)
+                    return err(403, 'Tenhle kód nikam nezve.');
+                const uz = await dbFirst(env, 'SELECT id, left_ts FROM users WHERE acc_id=? AND firm_id=?', me.accId, firm.id);
+                if (uz && !uz.left_ts) return err(409, 'V téhle firmě už jsi.');
+                const cnt = await dbFirst(env, 'SELECT COUNT(*) AS n FROM users WHERE firm_id=? AND left_ts IS NULL', firm.id);
+                if (cnt && cnt.n >= (firm.max_users || FIRM_MAX_DEFAULT))
+                    return err(409, 'Firma má zaplněná všechna místa.');
+                if (uz) {
+                    // NÁVRAT DO FIRMY, ZE KTERÉ ODEŠEL: členství se oživí, takže
+                    // se mu vrátí i to, co tam kdysi naměřil. Zakládat druhé
+                    // členství by ta data nechalo viset u toho archivovaného.
+                    await env.DB.prepare('UPDATE users SET left_ts=NULL, disabled=0 WHERE id=?').bind(uz.id).run();
+                    return json({ ok: true, firmId: firm.id, prostory: await prostoryUctu(env, me.accId) });
+                }
+                const acc = await dbFirst(env, 'SELECT * FROM accounts WHERE id=?', me.accId);
+                const uid = crypto.randomUUID();
+                try {
+                    await env.DB.prepare(
+                        'INSERT INTO users(id,firm_id,name,role,pass_hash,salt,iters,disabled,created,acc_id,own) '
+                        + "VALUES(?,?,?,'zamestnanec',?,?,?,0,?,?,0)")
+                        .bind(uid, firm.id, acc.name, acc.pass_hash, acc.salt, acc.iters, Date.now(), me.accId).run();
+                } catch (e) {
+                    return err(409, 'Ve firmě už je někdo se stejným jménem — ať ti admin založí místo ručně.');
+                }
+                return json({ ok: true, firmId: firm.id, prostory: await prostoryUctu(env, me.accId) });
+            }
+
+            // Odchod z firmy. NEMAŽE ČLENSTVÍ — vyplní `left_ts` a prostor
+            // zůstane v přepínači jako zamrzlý archiv jen ke čtení.
+            if (req.method === 'POST' && path === '/spaces/leave') {
+                if (!me.accId) return err(400, 'Účet ještě nemá prostory.');
+                const b = await req.json().catch(() => null) || {};
+                const p = (await prostoryUctu(env, me.accId)).find(x => x.firmId === b.firmId);
+                if (!p) return err(404, 'Do tohoto prostoru účet nepatří.');
+                if (p.vlastni) return err(400, 'Z vlastního prostoru odejít nejde — je to místo, kde ti data zůstávají.');
+                if (p.archiv) return err(409, 'Z téhle firmy už jsi odešel.');
+                if (p.role === 'admin' && !await lastActiveAdminGuard(env, p.firmId, p.uid))
+                    return err(400, 'Jsi poslední admin firmy — napřed předej správu někomu jinému.');
+                await env.DB.prepare('UPDATE users SET left_ts=? WHERE id=?').bind(Date.now(), p.uid).run();
+                return json({ ok: true, prostory: await prostoryUctu(env, me.accId) });
+            }
+
+            // Správce firmy smí bývalému členovi archiv i sebrat (rozhodnutí
+            // uživatele 6. 9. 2026). Výchozí stav zůstává archiv — odcházející
+            // si odnáší čitelnou kopii toho, na čem dělal —, ale firma, které to
+            // vadí, má páku. Smaže se JEN členství: body a zakázky ve firmě
+            // zůstávají, protože patří firmě, ne odešlému.
+            if (req.method === 'POST' && path === '/spaces/archiv-pryc') {
+                if (me.role !== 'admin') return err(403, 'Jen admin firmy.');
+                const b = await req.json().catch(() => null) || {};
+                const t = await dbFirst(env, 'SELECT id, left_ts, own FROM users WHERE id=? AND firm_id=?', b.uid, me.firm_id);
+                if (!t) return err(404, 'Takové členství tu není.');
+                if (!t.left_ts) return err(400, 'Tenhle člověk ve firmě pořád je — napřed ho odeber ze seznamu lidí.');
+                if (t.own) return err(400, 'Vlastní prostor účtu se odebrat nedá.');
+                await env.DB.prepare('DELETE FROM users WHERE id=?').bind(t.id).run();
+                return json(await configPayload(env, me.firm_id));
             }
 
             if (req.method === 'PUT' && path === '/config') {
@@ -1369,7 +1865,11 @@ export default {
                 // dál a jde uvolnit smazáním. Kdo potřebuje víc, pošle žádost
                 // (POST /requests) a strop mu zvedne vlastník appky v konzoli.
                 const cap = me.maxUsers || FIRM_MAX_DEFAULT;
-                const cnt = await env.DB.prepare('SELECT COUNT(*) AS n FROM users WHERE firm_id=?').bind(me.firm_id).first();
+                // left_ts IS NULL: kdo z firmy odešel, drží už jen archiv a
+                // místo neblokuje — jinak by firmu po pár odchodech nešlo doplnit
+                // a admin by musel mazat lidem archiv, aby vůbec mohl nabrat.
+                const cnt = await dbFirst(env,
+                    'SELECT COUNT(*) AS n FROM users WHERE firm_id=? AND left_ts IS NULL', me.firm_id);
                 if (cnt && cnt.n >= cap)
                     return err(409, 'Firma má zaplněných všech ' + cap + ' míst. Uvolní se smazáním účtu, nebo požádej o navýšení tlačítkem u seznamu uživatelů.');
                 const salt = randHex(16);
@@ -1676,9 +2176,11 @@ export default {
             // PATCH /jobs/<key> {acl?,deleted?} — přidělení lidem / archivace (jen admin)
             if (path === '/jobs' && req.method === 'GET') {
                 await ensureJobsTable(env);
+                // srv<=? : archiv po odchodu je zamrzlý ke dni odchodu (viz auth)
                 const rows = (await env.DB.prepare(
-                    'SELECT job_key AS key, name, acl, ts, srv, deleted, uname FROM jobs WHERE firm_id=? ORDER BY name')
-                    .bind(me.firm_id).all()).results;
+                    'SELECT job_key AS key, name, acl, ts, srv, deleted, uname FROM jobs '
+                    + 'WHERE firm_id=? AND srv<=? ORDER BY name')
+                    .bind(me.firm_id, me.leftTs || Number.MAX_SAFE_INTEGER).all()).results;
                 const boss = (me.role === 'admin' || me.role === 'vedeni');
                 const out = rows.filter(r => jobVisible(r, me)).map(r => ({
                     key: r.key, name: r.name, ts: r.ts, srv: r.srv, deleted: r.deleted ? 1 : 0,
@@ -1810,15 +2312,20 @@ export default {
                     const otazniky = ids.map(() => '?').join(',');
                     const radky = (await env.DB.prepare(
                         'SELECT point_id AS id, data, ts, srv, deleted, uname FROM sync_points ' +
-                        'WHERE firm_id=? AND job_key=? AND point_id IN (' + otazniky + ')')
-                        .bind(me.firm_id, job, ...ids).all()).results;
+                        'WHERE firm_id=? AND job_key=? AND srv<=? AND point_id IN (' + otazniky + ')')
+                        .bind(me.firm_id, job, me.leftTs || Number.MAX_SAFE_INTEGER, ...ids).all()).results;
                     return json({ points: radky, more: false, serverTime: Date.now() });
                 }
                 const since = parseInt(url.searchParams.get('since'), 10) || 0;
+                // ⚠ ARCHIV JE ZAMRZLÝ. Kdo z firmy odešel, vidí svůj prostor dál,
+                //   ale JEN do dne odchodu — jinak by bývalý zaměstnanec sledoval,
+                //   co firma měří teď. Ořez patří do dotazu, ne za něj: filtrovat
+                //   až po `LIMIT 500` by u aktivní firmy vracelo prázdné stránky.
+                const strop = me.leftTs || Number.MAX_SAFE_INTEGER;
                 const rows = (await env.DB.prepare(
                     'SELECT point_id AS id, data, ts, srv, deleted, uname FROM sync_points ' +
-                    'WHERE firm_id=? AND job_key=? AND srv>? ORDER BY srv LIMIT 500')
-                    .bind(me.firm_id, job, since).all()).results;
+                    'WHERE firm_id=? AND job_key=? AND srv>? AND srv<=? ORDER BY srv LIMIT 500')
+                    .bind(me.firm_id, job, since, strop).all()).results;
                 return json({ points: rows, more: rows.length === 500, serverTime: Date.now() });
             }
 

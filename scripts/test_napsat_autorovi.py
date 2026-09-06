@@ -56,14 +56,16 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8951
 URL = None
 
-# Host = clovek, ktery appku prave dostal odkazem a jen klepl na "Pokracovat
-# bez prihlaseni". Presne ten, kdo ma k psani nejvic duvodu.
-BOOT_HOST = """
-  localStorage.setItem('agGuest_v1', JSON.stringify({ts: Date.now()}));
-  localStorage.setItem('agTutProSeen','1');
-  localStorage.setItem('agBrifinkAuto','0');
-  localStorage.setItem('agBrifinkLastShown', new Date().toISOString().slice(0,10));
-"""
+import sys as _sys, os as _os
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from ag_boot import BOOT_UCET_ZAMESTNANEC
+
+# ⚠ HOST BYL ZRUSEN 6. 9. 2026. Test drzel na tom, ze vstup "Napsat autorovi"
+#   vidi i clovek, na ktereho sahaji opravneni - driv to byl host, ted je to
+#   RADOVY CLEN FIRMY (role zamestnanec). Pointa zustava tataz a je to porad
+#   ta sama past: applyPerms() umi schovat zalozky Nastaveni i .tool-grid,
+#   takze vstup musi stat mimo oboji.
+BOOT_HOST = BOOT_UCET_ZAMESTNANEC
 
 vysledky = []
 
@@ -276,7 +278,21 @@ async def test_druha_vlna(ctx):
         await page.evaluate("""() => { if (window.AGZpetna) AGZpetna.close();
             try { localStorage.removeItem('agFbDraft_v1'); } catch (e) { } }""")
 
-    # I) prazdna mrizka Nastroju u hosta
+    # I) prazdna mrizka Nastroju
+    # ⚠ Driv tuhle situaci zastupoval HOST (zrusen 6. 9. 2026). Ted se navodi
+    #   tim, co ji vyroba i v ostre appce: role, ktere sprava firmy nepovolila
+    #   ani jednu kategorii nastroju. Opravneni se meni ZA BEHU (bustFirm +
+    #   applyPerms), aby test nemusel zakladat druhy kontext a znovu cekat na
+    #   nacteni appky.
+    await page.evaluate('''() => {
+      var f = JSON.parse(localStorage.getItem('agFirma_v1') || '{}');
+      f.perms = { zamestnanec: { 'tools.Měření': false, 'tools.Vytyčování a náčrt': false,
+        'tools.Katastr a data': false, 'tools.AR a kalibrace': false,
+        'tools.Pomůcky': false, 'tools.Terénní nástroje': false } };
+      localStorage.setItem('agFirma_v1', JSON.stringify(f));
+      if (window.AGUcty) { AGUcty.bustFirm(); AGUcty.applyPerms(); }
+    }''')
+    await page.wait_for_timeout(400)
     await page.evaluate("() => { var n = document.getElementById('tools-modal'); if (n) n.style.display = 'flex'; }")
     await page.wait_for_timeout(1800)
     k = await page.evaluate(VIDITELNOST, 'ag-tools-empty')
@@ -296,7 +312,9 @@ async def test_druha_vlna(ctx):
                      videtDlazdic: vis, dlazdicCelkem: tiles.length }; }""")
         ok('I2 karta stoji NAD mrizkou a je zapnuta',
            umist['predMrizkou'] and not umist['schovana'], umist)
-        ok('I3 rika, ze nastroje odemkne prihlaseni', 'p\u0159ihl' in k['text'].lower(), k['text'])
+        # Karta uz nemluvi o prihlaseni (host zrusen 6. 9. 2026), ale rekne,
+        # KDO prazdnou mrizku spravi: kategorie prideluje spravce firmy v rolich.
+        ok('I3 rika, kdo prazdnou mrizku spravi', 'role' in k['text'].lower(), k['text'])
         # ⚠⚠ Zony bez nadpisu kategorie („⚡ Ted se hodi") drive prusvih: hostovi
         # v nich zustala viditelna dlazdice „Firma a ucty". Treti pruchod applyPerms
         # to dojizdi podle skutecne kategorie nastroje.
