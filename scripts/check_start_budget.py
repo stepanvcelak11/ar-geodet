@@ -106,9 +106,28 @@ INDEX = os.path.join(ROOT, 'index.html')
 #   nejblizsi kandidati na odlozeni jsou js/seznam-souradnic.js (23 kB, okno
 #   se otevira z Nastroju) a js/localization-helmert.js (46 kB) — obojí
 #   OVERIT SPUSTENIM, ne odhadem.
-LIMIT_JS_KB = 2128
+# ZVYSENO 6.9.2026 (podruhe): 2128 -> 2168 kB, 74 -> 76 souboru. Duvod:
+#   Rozdeleni appky na ZAKLAD (zdarma) a PRO (placene) pridalo dva eager
+#   moduly, js/licence.js (odpoved na "ma tenhle telefon Pro?") a
+#   js/pro-zamky.js (zamky ve vsech pohledech naraz). ODLOZIT SE NEDA ANI
+#   JEDEN, a neni to pohodlnost:
+#     * licence.js musi odpovedet DRIV, nez se zacnou registrovat nastroje
+#       (obal registrace se rozhoduje podle isPro()), a musi odpovedet
+#       SYNCHRONNE — proto si nese vlastni SHA-256 misto crypto.subtle,
+#       coz je vetsina jeho velikosti;
+#     * pro-zamky.js, ktery se nacte pozde, je zamek s oknem dokoran: do
+#       nez se stihne obalit registrace a odchyt kliku, jde placeny nastroj
+#       normalne otevrit. Odlozeny zamek nezamyka.
+#   Co to stoji: +31 kB na kritickou cestu (~1,5 %). Co to vraci: v balicku
+#   ZAKLAD (scripts/build.mjs --zaklad) se z eager vrstvy VYPUSTI Pro moduly,
+#   takze temto uzivatelum start naopak vyrazne zlehci — tenhle strop meri
+#   zdroje, tedy vzdycky to TEZSI z obou vydani.
+#   Rezerva ~0,4 %. Kdo bude chtit strop srazit: kandidati na odlozeni jsou
+#   dal js/seznam-souradnic.js (23 kB) a js/localization-helmert.js (46 kB)
+#   — obojí OVERIT SPUSTENIM, ne odhadem.
+LIMIT_JS_KB = 2168
 LIMIT_CSS_KB = 320
-LIMIT_JS_SOUBORU = 74
+LIMIT_JS_SOUBORU = 76
 
 # Cizi knihovny neumime zmensit ani odlozit (mapa je bez nich prazdna), ale maji
 # byt videt v soupisu, aby bylo jasne, kolik z rozpoctu zabiraji.

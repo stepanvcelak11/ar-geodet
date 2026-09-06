@@ -1123,6 +1123,11 @@
          nastroje-ukony.js, tools-plus.js, tools-simple.js a offline-sbal.js, takže MUSÍ
          být před nimi. Jen data, žádný DOM — proto ne lazy. -->
     <script defer src="js/tools-registry.js"></script>
+    <!-- LICENCE PRO VERZE (odpojitelne: smaz radek, js/licence.js a zaznam v sw.js)
+         — odpoved na jedinou otazku: ma tenhle telefon Pro? Klic se overuje
+         v telefonu bez serveru (geodet ho odemkne i v lese). MUSI byt pred
+         js/pro-zamky.js a pred registraci nastroju. -->
+    <script defer src="js/licence.js"></script>
     <!-- TERÉNNÍ NÁSTROJE (odpojitelné) — launcher field-tools.js MUSÍ být první, registrují se do něj -->
     <script defer src="js/field-tools.js"></script>
     <!-- DELENE NACITANI NASTROJU (odpojitelne) — misto 10 samostatnych <script>
@@ -1281,6 +1286,16 @@
     <!-- NÁSTROJE JAKO SEZNAM ÚKONŮ (odpojitelné) — druhý pohled vedle mřížky;
          seznam sloves místo 61 ikon, mřížka zůstává pod přepínačem „Vše" -->
     <script defer src="js/nastroje-ukony.js"></script>
+    <!-- ZAMKY PRO VERZE (odpojitelne: smaz radek, js/pro-zamky.js a zaznam v sw.js)
+         — Pro nastroj bez licence nejde spustit, ale je videt, ze existuje.
+         Jeden odchyt kliku v capture fazi pokryva mrizku, seznam ukonu,
+         kolecko i hledani naraz. V balicku Zaklad navic vyrobi zastupne
+         radky za moduly, ktere v nem vubec nejsou. -->
+    <script defer src="js/pro-zamky.js"></script>
+    <!-- VYROBA KLICU PRO (odpojitelne: smaz radek, js/pro-klice.js a zaznam v sw.js)
+         — dilna vlastnika: "Vice" -> "Klice Pro". ODLOZENE schvalne: uvidi to
+         jen rezim vlastnika, takze to nema co delat na kriticke ceste startu. -->
+    <script type="ag/lazy" data-src="js/pro-klice.js"></script>
     <!-- MOJE AKTIVITA (odpojitelné) — vlastní statistika dne (čas, kroky, výškové metry,
          body, nástroje) a schování nástrojů, do kterých uživatel nešáhl; musí být
          načtené od startu, protože průběžně měří (nesmí jít do lazy dávky) -->

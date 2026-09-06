@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v278';   // rychlejsi start: davkove kresleni znacek, Nastroje se skladaji az po prvnim doteku, odlozena fronta ceka dele
+const SHELL_CACHE = 'argeodet-shell-v279';   // Zaklad vs Pro: delici cara v registru, licencni klic, zamky placenych nastroju
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -137,6 +137,7 @@ const ASSETS_TO_CACHE = [
     './js/dmr-terrain.js',
     './js/parcela.js',
     './js/tools-registry.js',
+    './js/licence.js',
     './js/field-tools.js',
     './js/lazy-tools.js',
     './js/offset-point.js',
@@ -197,6 +198,8 @@ const ASSETS_TO_CACHE = [
     './js/upozorneni.js',
     './js/filtr-info.js',
     './js/nastroje-ukony.js',
+    './js/pro-zamky.js',
+    './js/pro-klice.js',
     './js/moje-aktivita.js',
     './js/nastaveni-hledani.js',
     './js/nastaveni-poradek.js',

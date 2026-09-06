@@ -110,6 +110,15 @@ jobs:
       - name: Registr nástrojů je úplný
         run: python scripts/check_tools_registry.py --require-js
 
+      - name: Delici cara Zaklad/Pro (registr)
+        run: python scripts/check_verze.py
+
+      - name: Zaklad nesaha na Pro moduly
+        run: python scripts/check_zaklad.py
+
+      - name: Licence Pro (vyroba klice sedi s overenim)
+        run: python scripts/test_licence.py
+
       # Rozpočet startu: kolik JS a CSS musí prohlížeč stáhnout a spustit JEŠTĚ
       # PŘED prvním vykreslením. Rostlo to tiše (každý nový modul o kus) až na
       # 2273 kB v 79 souborech; přesun devíti nástrojů do lazy vrstvy to srazil
