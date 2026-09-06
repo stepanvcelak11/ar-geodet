@@ -20,7 +20,14 @@ export default defineConfig({
     fullyParallel: false,          // appka sahá na localStorage a jeden port
     workers: 1,
     retries: process.env.CI ? 1 : 0,
-    reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : [['list']],
+    // ⚠⚠ REPORTER 'github' JE TU KVŮLI DIAGNOSTICE, NE KVŮLI KRÁSE. Logy běhů
+    //   Actions jsou pro nepřihlášeného nedostupné (HTTP 403), takže když smoke
+    //   test spadne jen na CI, není JAK zjistit proč — a hádání stálo 6. 9. 2026
+    //   několik kol nasazení naprázdno. Tenhle reportér vypisuje chyby jako
+    //   ::error:: anotace, a ty se u veřejného repozitáře dají přečíst přes API
+    //   (check-runs → annotations) i bez přístupu k logům. Pár řádků navíc ve
+    //   výpisu je za tu možnost levná cena.
+    reporter: process.env.CI ? [['github'], ['list'], ['html', { open: 'never' }]] : [['list']],
     use: {
         baseURL: `http://127.0.0.1:${PORT}`,
         locale: 'cs-CZ',
