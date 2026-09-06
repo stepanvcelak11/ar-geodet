@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Hleda vazby, ktere by ROZBILY balicek ZAKLAD.
 
-PROC: v balicku Zaklad (scripts/build.mjs --zaklad) Pro moduly VUBEC NEJSOU.
+PROC: v balicku Zaklad (scripts/vydani.py --zaklad) Pro moduly VUBEC NEJSOU.
 Kdyz na neco z nich sahne modul, ktery v Zakladu zustava, nespadne build ani
 zadna staticka kontrola — appka se tise rozbije az u uzivatele, a jen na tom
 jednom vydani, ktere se pri vyvoji nespousti. Presne ta trida chyby, kterou

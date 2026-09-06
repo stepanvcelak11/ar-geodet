@@ -119,7 +119,7 @@ INDEX = os.path.join(ROOT, 'index.html')
 #       nez se stihne obalit registrace a odchyt kliku, jde placeny nastroj
 #       normalne otevrit. Odlozeny zamek nezamyka.
 #   Co to stoji: +31 kB na kritickou cestu (~1,5 %). Co to vraci: v balicku
-#   ZAKLAD (scripts/build.mjs --zaklad) se z eager vrstvy VYPUSTI Pro moduly,
+#   ZAKLAD (scripts/vydani.py --zaklad) se z eager vrstvy VYPUSTI Pro moduly,
 #   takze temto uzivatelum start naopak vyrazne zlehci — tenhle strop meri
 #   zdroje, tedy vzdycky to TEZSI z obou vydani.
 #   Rezerva ~0,4 %. Kdo bude chtit strop srazit: kandidati na odlozeni jsou

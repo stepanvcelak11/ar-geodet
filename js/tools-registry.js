@@ -50,7 +50,7 @@
 //         rozhoduje, co Základ umí a co ne. Čte se ze DVOU stran:
 //           • za běhu js/pro-zamky.js — dlaždice i řádek v seznamu úkonů
 //             dostanou zámek a místo nástroje otevřou kartu „co to umí“,
-//           • při sestavení scripts/build.mjs --zaklad — modul se do balíčku
+//           • při sestavení scripts/vydani.py --zaklad — modul se do balíčku
 //             vůbec nedostane, ani jako lazy `data-src`.
 //         Registr se ale posílá v OBOU balíčcích celý, včetně Pro záznamů:
 //         zámek musí mít odkud vzít popisek. Registr je POPIS, ne kód.

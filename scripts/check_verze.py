@@ -23,7 +23,7 @@ tise. Nejhorsi tri zpusoby, a presne ty tenhle skript hlida:
      MUSI_ZUSTAT_ZDARMA proto `pro` byt nesmi, i kdyz "firemne" vypadaji.
 
 Krome hlidani vypisuje MAPU NASTROJ -> SOUBOR, kterou potrebuje delene
-sestaveni (scripts/build.mjs --zaklad musi vedet, ktere soubory vynechat).
+sestaveni (scripts/vydani.py --zaklad musi vedet, ktere soubory vynechat).
 Pro nastroje BEZ vlastniho souboru (staticke dlazdice v index.html, rozcestniky)
 se z balicku vynechat nedaji - ty musi zamknout az js/pro-zamky.js za behu.
 
