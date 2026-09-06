@@ -467,9 +467,11 @@
         // proč to má odemčené.
         m.querySelector('.agp-pod').textContent = !s.pro
             ? 'Základ umí celý den v terénu. Pro přidává navrch tohle:'
-            : (s.zdroj === 'ucet'
-                ? ('Máš to v účtu' + (s.do ? (' — platí ještě ' + s.dniDoKonce + ' dní.') : ', platí natrvalo.'))
-                : ('Klíč č. ' + s.cislo + (s.do ? (', platí ještě ' + s.dniDoKonce + ' dní.') : ', platí natrvalo.')));
+            : (s.zdroj === 'vlastnik'
+                ? 'Máš zapnutý režim vlastníka aplikace — Pro je tím odemčené.'
+                : (s.zdroj === 'ucet'
+                    ? ('Máš to v účtu' + (s.do ? (' — platí ještě ' + s.dniDoKonce + ' dní.') : ', platí natrvalo.'))
+                    : ('Klíč č. ' + s.cislo + (s.do ? (', platí ještě ' + s.dniDoKonce + ' dní.') : ', platí natrvalo.'))));
         m.querySelector('.agp-co').innerHTML =
             '<b>' + (s.pro ? 'Máš odemčeno' : 'Ve verzi Pro') + '</b>' +
             '<ul>' +

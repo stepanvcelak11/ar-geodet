@@ -165,7 +165,9 @@ test('otáčení mapy: sever nahoře zamkne rotaci', async ({ page, context }) =
     await bootApp(page, context);
 
     // panel Vrstvy → segment „Otáčení mapy" (js/map-rotate.js)
-    await page.locator('#map-ctrl-toggle').click();
+    // Vstup se hledá stejně jako níž u řádku Terén: kolečko v mapě je výchozím
+    // nastavením schované, panel otevírá „Vrstvy" v liště (viz js/map-tools.js).
+    await page.locator('#dock-vice-btn:visible, #map-ctrl-toggle:visible').first().click();
     const seg = page.locator('#ms-rot');
     await expect(seg).toBeVisible();
 
@@ -277,7 +279,20 @@ test('REGRESE: vstupy modulů a řádek terénu se vloží', async ({ page, cont
     ), { timeout: 20000 }).toBe(1);
     await page.waitForTimeout(500);
     await expect(page.locator('#btn-terrain'), '#btn-terrain vyrobený dmr-terrain.js').toHaveCount(1);
-    await page.locator('#map-ctrl-toggle').click();
+
+    // ⚠⚠ PANEL SE OTEVÍRÁ Z LIŠTY, NE KOLEČKEM V MAPĚ. Dřív se tu klepalo na
+    //   #map-ctrl-toggle — jenže to tlačítko je od 9. 8. 2026 VÝCHOZE SCHOVANÉ
+    //   (`body.ag-mapfab-off`, js/map-tools.js): když týž panel otevírá „Vrstvy"
+    //   v liště, dvě vstupní místa nemají smysl. Appka je tedy v pořádku a test
+    //   měl vadu — klepal na knoflík, který uživatel nevidí, a od 5. 9. 2026 kvůli
+    //   tomu padal CELÝ smoke test. S ním se zastavilo i nasazení na Pages, takže
+    //   sedm commitů po sobě vůbec nevyjelo ven.
+    //   Testuje se proto CESTA, ne konkrétní knoflík: panel musí jít otevřít tím,
+    //   co je vidět. Když se vstup zase přesune, test spadne na jasné hlášce.
+    const vstup = page.locator('#dock-vice-btn:visible, #map-ctrl-toggle:visible').first();
+    await expect(vstup, 'panel „Mapa a vrstvy" nemá viditelný vstup — ani lišta, ani kolečko v mapě')
+        .toBeVisible({ timeout: 10000 });
+    await vstup.click();
     await expect(page.locator('#ms-terrain'), 'řádek „Terén (DMR 5G)" v panelu Mapa a vrstvy').toBeVisible();
 
     expect(warns, 'insertBefore selhalo:\n' + warns.join('\n')).toEqual([]);

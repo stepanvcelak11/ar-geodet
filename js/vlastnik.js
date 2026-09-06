@@ -874,7 +874,19 @@
     // vypne. Nedostupny server ani 503 rezim NEVYPINA: v terenu bez signalu by se
     // vlastnik jinak sam zamkl ven z vlastni aplikace.
     function overKlic() {
-        if (!isOn() || !key()) return;
+        if (!isOn()) return;
+        // ⚠⚠ PŘÍZNAK BEZ KLÍČE SE VYPÍNÁ ROVNOU. Takový stav nemůže vzniknout
+        //   poctivě — režim se zapíná jedině zadáním klíče, který se zároveň
+        //   uloží. Vzniknout umí jen tak, že si někdo do úložiště napsal
+        //   `agVlastnik_v1` rukou. Dřív to `!key()` propustilo bez ověření, takže
+        //   ta jednička držela navždycky; od chvíle, kdy režim vlastníka odemyká
+        //   i PRO (js/licence.js), by to byl nejlacinější způsob, jak placenou
+        //   verzi obejít — levnější než podepsaný licenční klíč.
+        if (!key()) {
+            setOn(false); injectMenu();
+            try { if (window.AGUcty && AGUcty.applyPerms) AGUcty.applyPerms(); } catch (e) { swallow(e, 'verif:bezKlice'); }
+            return;
+        }
         if (navigator.onLine === false) return;
         var last = 0;
         try { last = parseInt(localStorage.getItem(LS_VERIF) || '0', 10) || 0; } catch (e) { last = 0; }

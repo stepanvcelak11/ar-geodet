@@ -218,10 +218,41 @@
     } catch (e) { swallow(e, 'tarif'); }
 
     function proZTarifu() { return _tarif === 'pro' && (!_tarifDo || _tarifDo > Date.now()); }
-    function jePro() { return !!_stav.ok || proZTarifu(); }
+
+    // ---- TŘETÍ CESTA: REŽIM VLASTNÍKA APPKY -------------------------------------
+    // Kdo appku vlastní, má v ní pochopitelně všechno. Bez tohohle by si sám sebe
+    // zamkl z placených nástrojů ven — nemohl by je ani vyzkoušet, natož nafotit
+    // do obchodu.
+    //
+    // ⚠ ČTE SE PŘÍMO Z ÚLOŽIŠTĚ, NE PŘES `AGUcty.isOwner()`. js/licence.js se
+    //   načítá DŘÍV než js/ucty.js, takže při startu by nebylo koho se zeptat —
+    //   a `isPro()` musí odpovědět dřív, než se registrují nástroje. Klíč je týž,
+    //   jaký čte isOwner(), takže se ty dvě odpovědi nemají jak rozejít.
+    //
+    // ⚠⚠ POŽADUJE SE I ULOŽENÝ KLÍČ, NE JEN PŘÍZNAK. Samotný `agVlastnik_v1` je
+    //   obyčejná jednička v localStorage — kdyby na ní stálo odemčení Pro, byl by
+    //   z placené verze zámek slabší než ten licenční (ten chce PODEPSANÝ klíč).
+    //   S podmínkou na uložený klíč je na tom stejně jako režim vlastníka sám:
+    //   bez klíče se navíc režim do šesti hodin sám vypne (viz overKlic()
+    //   v js/vlastnik.js).
+    // ⚠ `agFbKey_v1` je SPRÁVNÉ jméno, i když vypadá jako od zpětné vazby: je to
+    //   tentýž OWNER_KEY, kterým se ověřuje schránka „napište mi" i Správa
+    //   aplikace (viz LS_KEY v js/vlastnik.js). Nehádat podle jména.
+    var LS_OWN = 'agVlastnik_v1', LS_OWN_KEY = 'agFbKey_v1';
+    function proZVlastnika() {
+        try {
+            return localStorage.getItem(LS_OWN) === '1' && !!localStorage.getItem(LS_OWN_KEY);
+        } catch (e) { return false; }
+    }
+
+    function jePro() { return !!_stav.ok || proZTarifu() || proZVlastnika(); }
 
     function stav() {
         if (!jePro()) return { pro: false, duvod: _stav.duvod || 'nemá' };
+        // Pořadí odpovědí je pořadí, v jakém dávají smysl uživateli: klíč, který
+        // opsal, je konkrétnější odpověď než „máš to v účtu", a ta zas
+        // konkrétnější než „jsi vlastník appky".
+        if (!_stav.ok && !proZTarifu()) return { pro: true, zdroj: 'vlastnik', cislo: 0, do: 0, dniDoKonce: 0 };
         if (!_stav.ok) return { pro: true, zdroj: 'ucet', cislo: 0, do: _tarifDo, dniDoKonce: _tarifDo ? Math.max(0, Math.ceil((_tarifDo - Date.now()) / DEN)) : 0 };
         return {
             pro: true, zdroj: 'klic', cislo: _stav.cislo, do: _stav.do,

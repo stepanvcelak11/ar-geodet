@@ -228,6 +228,31 @@ async def bezi(ctx):
            okno.get('otevreno') is False and okno.get('karta') is True, okno)
     await page.evaluate("() => { var m=document.getElementById('ag-pro-modal'); if(m) m.classList.remove('on'); }")
 
+    # ---- J) REZIM VLASTNIKA APPKY -----------------------------------------
+    # Kdo appku vlastni, ma v ni vsechno - jinak by si sam sebe zamkl z placenych
+    # nastroju ven. Zaroven to NESMI byt lacinejsi cesta k Pro nez podepsany klic:
+    # samotny priznak `agVlastnik_v1` je obycejna jednicka v localStorage, takze
+    # se vyzaduje i ulozeny klic vlastnika (js/licence.js, proZVlastnika).
+    stav_vl = await page.evaluate("""() => {
+      const puv = { on: localStorage.getItem('agVlastnik_v1'), k: localStorage.getItem('agFbKey_v1') };
+      const out = {};
+      try {
+        localStorage.setItem('agVlastnik_v1', '1');
+        localStorage.removeItem('agFbKey_v1');
+        out.bezKlice = !!(window.AGLic && AGLic.isPro());
+        localStorage.setItem('agFbKey_v1', 'tajny-klic-vlastnika-appky');
+        out.sKlicem = !!(window.AGLic && AGLic.isPro());
+        out.zdroj = (window.AGLic && AGLic.stav().zdroj) || null;
+      } finally {
+        if (puv.on == null) localStorage.removeItem('agVlastnik_v1'); else localStorage.setItem('agVlastnik_v1', puv.on);
+        if (puv.k == null) localStorage.removeItem('agFbKey_v1'); else localStorage.setItem('agFbKey_v1', puv.k);
+      }
+      return out;
+    }""")
+    ok('J1 rezim vlastnika S klicem odemyka Pro', stav_vl.get('sKlicem') is True, stav_vl)
+    ok('J2 a licence rekne, ze to je z rezimu vlastnika', stav_vl.get('zdroj') == 'vlastnik', stav_vl)
+    ok('J3 samotny priznak BEZ klice Pro NEODEMYKA', stav_vl.get('bezKlice') is False, stav_vl)
+
     # ---- H) vstup ke koupi je ve "Vice" ---------------------------------------
     vstup = await page.evaluate("""() => {
       var b = document.getElementById('ag-pro-menu-btn');
