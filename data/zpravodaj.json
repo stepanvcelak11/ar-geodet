@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-09-06",
-  "uvodnik": "Vydání 2026-09-06 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-09-07",
+  "uvodnik": "Vydání 2026-09-07 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,30 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "SimActive Introduces Faster Script Processing in Correlator3D",
+      "perex": "Montreal, Canada, September 8th, 2026 – SimActive Inc. announces a new interactive mode in Correlator3D , designed to accelerate automated workflows.",
+      "telo": "Montreal, Canada, September 8th, 2026 – SimActive Inc. announces a new interactive mode in Correlator3D , designed to accelerate automated workflows. Users can now run multiple scripts in succession within the same session, avoiding delays between operations and reducing total execution time. The feature is particularly useful for repetitive workflows involving several short scripts. Correlator3D remains ready for the next operation after each script is completed, making the overall process faster and more efficient. Completion messages can also be generated to facilitate integration with external automation tools. “Automation plays an important role in large-scale mapping workflows,” said L",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/06/simactive-introduces-faster-script-processing-in-correlator3d/?utm_source=rss&utm_medium=rss&utm_campaign=simactive-introduces-faster-script-processing-in-correlator3d",
+      "datum": "2026-09-06"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "GEO Business Virtual Returns for 2026 with Three Days of Free Geospatial Content",
+      "perex": "GEO Business , the UK’s leading geospatial event, is bringing back GEO Business Virtual for the second year – and this time, there’s even more content.",
+      "telo": "GEO Business , the UK’s leading geospatial event, is bringing back GEO Business Virtual for the second year – and this time, there’s even more content. After thousands of people joined the debut event in 2025, GEO Business Virtual is expanding to three days, with 11 free-to-attend, CPD-accredited webinars taking place from 29 September–1 October. Designed to fit around busy working days, the event gives geospatial professionals the chance to hear from people tackling real industry challenges, explore new approaches and earn CPD hours – without having to travel or take a full day out of the office. From AI and mobile mapping to reality capture, utilities, careers and geospatial data, the prog",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/06/geo-business-virtual-returns-for-2026-with-three-days-of-free-geospatial-content/?utm_source=rss&utm_medium=rss&utm_campaign=geo-business-virtual-returns-for-2026-with-three-days-of-free-geospatial-content",
+      "datum": "2026-09-06"
     },
     {
       "rubrika": "Technologie",
@@ -73,30 +97,6 @@
       "zdroj": "xyHt",
       "odkaz": "https://www.xyht.com/aerialuas/geo-measure-bringing-precision-to-the-ground/",
       "datum": "2026-08-28"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "The Unity Thesis: Trimble’s Case for One Connected Asset Lifecycle",
-      "perex": "From GIS context and survey-grade positioning to asset management and field capture, Trimble is making the case for one connected asset lifecycle — a system in which precise location, operational soft…",
-      "telo": "From GIS context and survey-grade positioning to asset management and field capture, Trimble is making the case for one connected asset lifecycle — a system in which precise location, operational software and shared data reinforce one another, and where the AI layered on top is valued less for novelty than for producing consistent, trustworthy results. Image: Trimble At Trimble’s booth during this year’s Esri User Conference in San Diego, the conversation about artificial intelligence started with a crucial distinction. “When we’re talking about artificial intelligence for the asset life cycle, whether it’s construct or operations and maintenance, if you get a hallucination, that could cost",
-      "body": [],
-      "proc": "",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/magazine/magazine-magazine/the-unity-thesis-trimbles-case-for-one-connected-asset-lifecycle/",
-      "datum": "2026-08-27"
-    },
-    {
-      "rubrika": "Akce",
-      "top": false,
-      "nadpis": "Esri User Conference 2026: What the Sessions Add Up To",
-      "perex": "More than fifteen thousand people filled the San Diego Convention Center for Esri’s 46th annual User Conference this year, with roughly that many more watching by livestream from 117 countries.",
-      "telo": "More than fifteen thousand people filled the San Diego Convention Center for Esri’s 46th annual User Conference this year, with roughly that many more watching by livestream from 117 countries. Taken session by session, the program is a wide survey of a mapping platform still expanding in every direction. Taken together, it resolves into a smaller number of recurring bets — about where AI belongs in a GIS, about how far one platform can scale, and about what all of it is ultimately for. Image: Esri More than 15,000 people filled the San Diego Convention Center for Esri’s 46th annual User Conference, with an equivalent number watching the livestream from 117 countries, according to Esri found",
-      "body": [],
-      "proc": "",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/aerialuas/esri-user-conference-2026-what-the-sessions-add-up-to/",
-      "datum": "2026-08-27"
     }
   ]
 }
