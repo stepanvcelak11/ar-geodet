@@ -1,0 +1,361 @@
+/* ===== AR Geodet — JEDNODUCHÝ REŽIM (odpojitelné: smaž + js/jednoduchy-rezim.js) =====
+   Celoobrazovkový přebal nad appkou. Žádná mapa, kamera, dok ani nástroje —
+   jen „Přidat bod" a „Navigovat k bodu".
+
+   z-index 999995: NAD celou appkou (dok, HUD i modály nástrojů mají nejvýš 99999),
+   ale POD přihlašovací branou #ag-login/#ag-gate a úvodní obrazovkou (999999) a pod
+   lištou „nová verze" (1000002) i toastem (1000002) — obojí musí jít vidět i tady.
+
+   ⚠ SPODNÍ OKRAJ: iPhone má domácí ukazatel. Odsazení se počítá jako
+   max(vlastní, env(safe-area-inset-bottom)) — NIKDY se nesčítá (dvakrát v tomhle
+   repu z toho byl tlustý mrtvý pruh, viz project-geogame-spodni-okraj).
+   ================================================================================ */
+
+#ag-jr {
+    position: fixed;
+    inset: 0;
+    z-index: 999995;
+    display: none;
+    flex-direction: column;
+    background: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-ui);
+    overscroll-behavior: contain;
+}
+
+#ag-jr.jr-on { display: flex; }
+
+/* PLACHTA PROTI PROBLIKNUTÍ. Třídu ag-jr-prelock nasazuje „rychlá cesta"
+   v <head> (index.html) tomu, kdo má režim zapnutý — mezi prvním obrazem
+   a spuštěním modulu by mu jinak na chvíli vyjela mapa a dok, tedy přesně
+   to, co si vypnul. Modul plachtu sundá, jakmile postaví svou obrazovku.
+   z-index o jedničku POD #ag-jr, ať se s ním nepřetahuje. */
+html.ag-jr-prelock body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 999994;
+    background: var(--bg-color);
+}
+
+/* stránky režimu (domů / nový bod / seznam / navigace) — vždy je vidět jedna */
+.jr-page {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    padding: calc(env(safe-area-inset-top, 0px) + 12px) max(14px, env(safe-area-inset-right, 0px)) max(14px, env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px));
+}
+
+.jr-page.jr-vidno { display: flex; }
+
+/* ---- horní řádek: stav GPS vlevo, odchod / zpět vpravo ---------------------- */
+.jr-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 40px;
+    flex: 0 0 auto;
+}
+
+.jr-stav {
+    flex: 1 1 auto;
+    font-size: var(--fs-md);
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.jr-stav b { color: var(--data); font-weight: 700; }
+.jr-stav.jr-bez { color: var(--warning); }
+
+.jr-maly {
+    flex: 0 0 auto;
+    min-height: var(--tap-min);
+    padding: 8px 14px;
+    border-radius: var(--r-lg);
+    border: 1px solid var(--glass-border-strong);
+    background: var(--surface-1);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: var(--fs-md);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.jr-maly:active { background: var(--surface-3); }
+
+/* ---- domovská stránka: dvě tlačítka přes celou obrazovku -------------------- */
+.jr-hlavni {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 14px 0 4px;
+    min-height: 0;
+}
+
+.jr-velke {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: none;
+    border-radius: var(--r-xl);
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: calc(26px * var(--ag-font-scale, 1));
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-align: center;
+    cursor: pointer;
+    padding: 12px;
+}
+
+.jr-velke small {
+    display: block;
+    font-family: var(--font-ui);
+    font-size: var(--fs-md);
+    font-weight: 500;
+    opacity: 0.88;
+    letter-spacing: 0;
+}
+
+.jr-velke .icon { width: 46px; height: 46px; color: #fff; }
+.jr-velke:active { transform: scale(0.985); }
+
+.jr-velke-pridat { background: var(--accent-fill); box-shadow: var(--accent-glow); }
+.jr-velke-jit { background: #1f5f96; box-shadow: 0 8px 22px rgba(31, 95, 150, 0.30); }
+
+/* ---- společné: nadpis stránky ---------------------------------------------- */
+.jr-nadpis {
+    flex: 0 0 auto;
+    margin: 10px 0 2px;
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.jr-telo {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 6px 2px 10px;
+}
+
+/* ---- nový bod --------------------------------------------------------------- */
+.jr-popis {
+    font-size: var(--fs-md);
+    color: var(--text-muted);
+    margin: 0 0 8px;
+}
+
+.jr-label {
+    display: block;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    font-weight: 600;
+    margin: 14px 0 5px;
+}
+
+.jr-vstup {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 52px;
+    padding: 12px 14px;
+    border-radius: var(--r-md);
+    border: 1px solid var(--glass-border-strong);
+    background: var(--bg-elev);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: calc(19px * var(--ag-font-scale, 1));
+    font-variant-numeric: tabular-nums;
+}
+
+.jr-vstup:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.jr-dvojice { display: flex; gap: 10px; }
+.jr-dvojice > div { flex: 1 1 0; min-width: 0; }
+
+.jr-zpusob { display: flex; gap: 10px; margin-top: 6px; }
+
+.jr-zpusob button {
+    flex: 1 1 0;
+    min-height: 78px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 8px;
+    border-radius: var(--r-lg);
+    border: 2px solid var(--glass-border-strong);
+    background: var(--surface-1);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.jr-zpusob button .icon { width: 26px; height: 26px; color: var(--accent-bright); }
+.jr-zpusob button.jr-vybrano { border-color: var(--accent); background: var(--accent-soft); }
+.jr-zpusob button:disabled { opacity: 0.5; }
+
+.jr-vysledek {
+    margin-top: 12px;
+    padding: 11px 13px;
+    border-radius: var(--r-md);
+    background: var(--surface-1);
+    border: 1px solid var(--glass-border);
+    font-size: var(--fs-md);
+    line-height: 1.5;
+}
+
+.jr-vysledek b { color: var(--data); font-variant-numeric: tabular-nums; }
+.jr-vysledek.jr-chyba { border-color: var(--warning); color: var(--warning); }
+
+/* spodní pás s hlavním tlačítkem — drží se dole, ať je formulář jakkoli dlouhý */
+.jr-pata {
+    flex: 0 0 auto;
+    padding-top: 10px;
+}
+
+.jr-ulozit {
+    width: 100%;
+    min-height: 62px;
+    border: none;
+    border-radius: var(--r-lg);
+    background: var(--accent-fill);
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: calc(20px * var(--ag-font-scale, 1));
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: var(--accent-glow);
+}
+
+.jr-ulozit:disabled { background: var(--surface-2); color: var(--text-faint); box-shadow: none; cursor: default; }
+
+/* ---- seznam bodů ------------------------------------------------------------ */
+#ag-jr-hledat { flex: 0 0 auto; margin: 8px 0 2px; min-height: 46px; font-size: var(--fs-lg); }
+
+.jr-radek {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 64px;
+    margin-bottom: 8px;
+    padding: 10px 14px;
+    border-radius: var(--r-md);
+    border: 1px solid var(--glass-border);
+    background: var(--surface-1);
+    color: var(--text-color);
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.jr-radek:active { background: var(--surface-3); }
+
+.jr-radek-jm {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: calc(18px * var(--ag-font-scale, 1));
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.jr-radek-vzd {
+    flex: 0 0 auto;
+    font-size: calc(18px * var(--ag-font-scale, 1));
+    font-weight: 700;
+    color: var(--data);
+    font-variant-numeric: tabular-nums;
+}
+
+.jr-prazdno {
+    padding: 30px 16px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: var(--fs-lg);
+    line-height: 1.6;
+}
+
+/* ---- navigace: šipka přes celou obrazovku ----------------------------------- */
+#ag-jr-go { padding-bottom: max(14px, env(safe-area-inset-bottom, 0px)); }
+
+.jr-cil {
+    flex: 0 0 auto;
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 700;
+    padding: 4px 0 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.jr-sipka-box {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 0;
+}
+
+.jr-sipka-box svg {
+    width: min(74vw, 62vh);
+    height: min(74vw, 62vh);
+    /* Přechod je DELŠÍ než tik přepočtu (200 ms) a lineární — jinak by se šipka
+       mezi tiky zastavovala a cukala. Kratší hodnota tady vypadala jako záseky. */
+    transition: transform 0.22s linear;
+}
+
+.jr-vzdalenost {
+    flex: 0 0 auto;
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: calc(58px * var(--ag-font-scale, 1));
+    font-weight: 800;
+    line-height: 1.05;
+    color: var(--data);
+    font-variant-numeric: tabular-nums;
+}
+
+.jr-vzdalenost span {
+    font-size: calc(26px * var(--ag-font-scale, 1));
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-left: 6px;
+}
+
+.jr-pozn {
+    flex: 0 0 auto;
+    text-align: center;
+    font-size: var(--fs-md);
+    color: var(--text-muted);
+    min-height: calc(1.4 * var(--fs-md));
+    padding: 4px 6px 10px;
+}
+
+.jr-pozn.jr-varovani { color: var(--warning); }
+
+/* na bodě: zelený nádech celé obrazovky, ať to jde poznat i koutkem oka */
+#ag-jr-go.jr-doma .jr-vzdalenost { color: var(--accent-bright); }
+#ag-jr-go.jr-doma { background: linear-gradient(180deg, var(--accent-soft), transparent 55%); }
+
+/* ---- světlý režim ----------------------------------------------------------- */
+body.light-mode .jr-velke-jit { background: #1a5688; }

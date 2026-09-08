@@ -192,6 +192,40 @@
             }, 12000);
         })();
     </script>
+    <!-- JEDNODUCHÝ REŽIM — RYCHLÁ CESTA (odpojitelné: smaž tenhle <script> spolu
+         s js/jednoduchy-rezim.js). Modul sám jede v ODKLÁDACÍ FRONTĚ (řádek
+         <script type="ag/lazy"> dole), aby nezdržoval start těm, kdo režim
+         nepoužívají — a to je většina.
+         ⚠ Kdo ho ale ZAPNUTÝ MÁ, ten by z fronty čekal několik vteřin a celou tu
+         dobu by koukal na mapu a dok, které si výslovně nepřál. Proto se mu kód
+         vyzvedne hned tady a přes appku se zatím položí neprůhledná plachta
+         (třída ag-jr-prelock, pravidlo v css/jednoduchy-rezim.css) — stejná
+         pojistka proti probliknutí jako ag-prelock u přihlašování výš.
+         Modul plachtu sundá, jakmile postaví svou obrazovku. -->
+    <script>
+        (function () {
+            try {
+                if (localStorage.getItem('agJednoduchy_v1') !== '1') return;
+                document.documentElement.classList.add('ag-jr-prelock');
+                // Předběhnout frontu se musí přes AGLazy.need(): ten si položku
+                // z fronty VYNDÁ a vloží hned. Vlastní <script> by soubor stáhl
+                // podruhé — fronta si svůj seznam sestaví v js/lazy-load.js už
+                // při DOMContentLoaded a o cizím tagu neví.
+                // Posluchač je tu proto, že AGLazy vzniká až z odloženého (defer)
+                // js/lazy-load.js, tedy později než tenhle řádek v <head>.
+                document.addEventListener('DOMContentLoaded', function () {
+                    try {
+                        if (window.AGLazy && window.AGLazy.need('js/jednoduchy-rezim.js')) return;
+                        // NOUZOVKA: odkládací vrstva je odpojitelná (viz hlavička
+                        // js/lazy-load.js). Bez ní by režim nikdo nenačetl.
+                        var s = document.createElement('script');
+                        s.src = 'js/jednoduchy-rezim.js'; s.defer = true;
+                        (document.head || document.documentElement).appendChild(s);
+                    } catch (e) { }
+                });
+            } catch (e) { /* bez localStorage se rezim proste nacte az z fronty */ }
+        })();
+    </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
     <link rel="stylesheet" href="css/vylepseni.css?v=281">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -217,6 +251,9 @@
     <link rel="stylesheet" href="css/qc-engine.css">
     <!-- VIZUÁLNÍ DOLADĚNÍ NÁSTROJŮ — jednotný vzhled oken nástrojů (odpojitelné: smaž tento řádek + css/tools-polish.css) -->
     <link rel="stylesheet" href="css/tools-polish.css">
+    <!-- JEDNODUCHÝ REŽIM — celoobrazovkový přebal „jen bod + navigace"
+         (odpojitelné: smaž tento řádek + css/jednoduchy-rezim.css + js/jednoduchy-rezim.js) -->
+    <link rel="stylesheet" href="css/jednoduchy-rezim.css">
     <!-- TOKENOVÁ VRSTVA ČITELNOSTI — venkovní režim + rukavice přes design tokeny;
          MUSÍ být POSLEDNÍ css (přepisuje tokeny). Náhled: nahledy-kontrast.html.
          Odpojitelné: smaž tento řádek + css/tokens-outdoor.css -->
@@ -1210,6 +1247,17 @@
     <!-- REŽIM PRÁCE (odpojitelné) — volba „co dnes dělám" na úvodní obrazovce;
          zapisuje stejné klíče jako tools-simple.js, proto AŽ ZA ním -->
     <script defer src="js/rezim-prace.js"></script>
+    <!-- JEDNODUCHÝ REŽIM (odpojitelné: smaž tento řádek + js/jednoduchy-rezim.js
+         + css/jednoduchy-rezim.css + „rychlou cestu" v <head>) — celoobrazovkový
+         přebal se dvěma tlačítky: Přidat bod / Navigovat k bodu. Přepínač
+         v Nastavení → Vzhled → Ovládání.
+         V ODKLÁDACÍ FRONTĚ schválně: kdo režim nemá zapnutý, potřebuje z modulu
+         jen ten přepínač v Nastavení — a k tomu se nikdo nedostane dřív než za
+         pár vteřin. Kdo ho zapnutý má, tomu ho vyzvedne rychlá cesta v <head>
+         a tenhle řádek si toho všimne (modul se pak už znovu nespouští).
+         data-css tu NENÍ: stylopis musí být v <head>, jinak by plachta rychlé
+         cesty neměla podle čeho být neprůhledná. -->
+    <script type="ag/lazy" data-src="js/jednoduchy-rezim.js"></script>
     <!-- PROFILY (odpojitelné) — Terén/Přesnost/Ukázka nad záložkami Nastavení
          + export/import profilu zařízení (kalibrace telefonu) v Údržbě -->
     <script type="ag/lazy" data-src="js/profily.js"></script>
