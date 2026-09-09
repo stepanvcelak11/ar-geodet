@@ -359,6 +359,9 @@
         _items = _items.filter(function (x) { return x.id !== id; });
         if (_items.length !== n) syncTiles();
     };
+    // Které nástroje jsou zaregistrované. Ptá se js/pro-zamky.js, než vyrobí
+    // zástupnou dlaždici: DOM nestačí, mřížka se kreslí až za startem.
+    window.agListFieldTools = function () { return _items.map(function (x) { return x.id; }); };
     // zpětná kompatibilita (dříve zavíralo plovoucí menu — teď není potřeba)
     window.agCloseFieldTools = function () {};
     // tools-plus/tools-simple po odebrání injektované dlaždice zavolají okamžité

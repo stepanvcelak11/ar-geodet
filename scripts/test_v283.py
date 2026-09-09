@@ -475,6 +475,112 @@ async def test_kompas(ctx):
     await page.close()
 
 
+# ------------------------------------------------- J) zamky Pro v zakladni verzi
+BOOT_ZAKLAD = "window.__AG_VYDANI = 'zaklad';\n" + BOOT
+# Telefon vyvojare v PLNEM balicku: Pro ma byt ODEMCENE a dlazdice ZIVE.
+BOOT_VLASTNIK_PRO = ("window.__AG_VYDANI = 'pro';\n"
+                     "  localStorage.setItem('agTutProSeen','1');\n"
+                     "  localStorage.setItem('agBrifinkAuto','0');\n"
+                     "  localStorage.setItem('agVlastnik_v1','1');\n"
+                     "  localStorage.setItem('agFbKey_v1','klic-vlastnika-aspon-24-znaku!!');\n")
+
+
+async def test_pro(ctx):
+    print('\n--- J) v Zakladu nesmi zadna oteviraci funkce zamek obejit ---')
+    page = await ctx.new_page()
+    chyby = []
+    page.on('pageerror', lambda e: chyby.append(str(e)[:200]))
+    await ctx.add_init_script(BOOT_ZAKLAD)
+    await nacti(page, "document.body.classList.contains('app-started')")
+    await page.evaluate("() => window.AGLazy && AGLazy.flush()")
+    await page.wait_for_timeout(3000)
+
+    st = await page.evaluate("() => ({ vydani: window.AGLic && AGLic.vydani(), pro: !!(window.AGLic && AGLic.isPro()) })")
+    ok('appka bezi jako ZAKLAD bez Pro', st['vydani'] == 'zaklad' and not st['pro'], st)
+
+    # projit VSECHNY Pro nastroje a VSECHNA jejich jmena otviraku
+    st = await page.evaluate("""() => {
+        const pro = (window.AGReg && AGReg.proKeys) ? AGReg.proKeys() : [];
+        const man = (window.AGLazyTools && AGLazyTools.manifest) || [];
+        const dej = (o, n) => { const c = n.split('.'); let x = o; for (const p of c) { if (!x) return undefined; x = x[p]; } return x; };
+        const diry = [], zkouseno = [];
+        for (const k of pro) {
+            const jm = [k];
+            try { if (AGReg.fn && AGReg.fn(k)) jm.push(AGReg.fn(k)); } catch (e) {}
+            for (const m of man) if (m && m.id === k && m.open) jm.push(m.open);
+            for (const n of jm) {
+                if (typeof dej(window, n) !== 'function') continue;
+                zkouseno.push(k + '->' + n);
+                const m0 = document.getElementById('ag-pro-modal'); if (m0) m0.classList.remove('on');
+                try { dej(window, n)(); } catch (e) {}
+                const mm = document.getElementById('ag-pro-modal');
+                if (!(mm && mm.classList.contains('on'))) diry.push(k + ' -> ' + n);
+                // zavri, co se pripadne otevrelo
+                document.querySelectorAll('.modal-overlay').forEach(el => { if (el.id !== 'ag-pro-modal') el.style.display = 'none'; });
+                if (mm) mm.classList.remove('on');
+            }
+        }
+        return { pro: pro.length, zkouseno: zkouseno.length, diry: diry };
+    }""")
+    print('    zkouseno oteviraku:', st['zkouseno'], 'z', st['pro'], 'Pro nastroju')
+    ok('zadna oteviraci funkce zamek neobejde', not st['diry'], st['diry'][:12])
+    ok('zkouselo se aspon 20 oteviraku', st['zkouseno'] >= 20, st['zkouseno'])
+    ok('bez chyb v konzoli', not chyby, chyby[:3])
+    await page.close()
+
+
+async def test_vlastnik_pro(ctx):
+    print('\n--- K) vlastnik: Pro je odemcene a dlazdice jsou ZIVE (ne zastupci) ---')
+    page = await ctx.new_page()
+    chyby = []
+    page.on('pageerror', lambda e: chyby.append(str(e)[:200]))
+    await ctx.add_init_script(BOOT_VLASTNIK_PRO)
+    for _ in range(60):
+        try:
+            await page.goto(URL, wait_until='domcontentloaded', timeout=45000)
+            break
+        except Exception:
+            await page.wait_for_timeout(1500)
+    await page.wait_for_timeout(2500)
+    # prihlasit se jako vlastnik (server neni -> pusti proti ulozenemu klici)
+    for _ in range(60):
+        if await page.evaluate("() => !!document.getElementById('ag-gate')"):
+            break
+        await page.wait_for_timeout(500)
+    await page.evaluate("""() => {
+        document.getElementById('agg-show-join').click();
+        document.getElementById('agg-code').value = 'VLASTNIK';
+        document.getElementById('agg-code').dispatchEvent(new Event('input'));
+        document.getElementById('agg-pass').value = 'klic-vlastnika-aspon-24-znaku!!';
+        document.getElementById('agg-go').click();
+    }""")
+    for _ in range(40):
+        if await page.evaluate("() => document.body.classList.contains('app-started')"):
+            break
+        await page.wait_for_timeout(500)
+    await page.evaluate("() => window.AGLazy && AGLazy.flush()")
+    await page.wait_for_timeout(4000)
+
+    st = await page.evaluate("""() => {
+        const zamek = 'M7 11V7a5 5 0 0 1 10 0v4';
+        const dl = [...document.querySelectorAll('#tools-modal .tool-tile')];
+        const zastupci = dl.filter(e => (e.innerHTML || '').includes(zamek)).map(e => e.getAttribute('data-tool'));
+        return {
+            pro: !!(window.AGLic && AGLic.isPro()),
+            zdroj: (window.AGLic && AGLic.stav()) ? AGLic.stav().zdroj : '?',
+            zamcenych: document.querySelectorAll('#tools-modal [data-agpro="1"]').length,
+            zastupci: zastupci,
+            parcelaZamcena: !!(window.AGProZamky && AGProZamky.zamceno('parcela'))
+        };
+    }""")
+    ok('vlastnik ma Pro odemcene', st['pro'], st)
+    ok('parcela neni pro vlastnika zamcena', not st['parcelaZamcena'], st)
+    ok('zadna dlazdice nema visaci zamek', not st['zastupci'], st['zastupci'][:12])
+    ok('zadna dlazdice neni oznacena data-agpro', st['zamcenych'] == 0, st)
+    ok('bez chyb v konzoli', not chyby, chyby[:3])
+    await page.close()
+
+
 async def main():
     from playwright.async_api import async_playwright
     srv = server()
@@ -484,7 +590,7 @@ async def main():
     try:
         async with async_playwright() as p:
             b = await p.chromium.launch()
-            for fn in (test_vlastnik, test_mrizka, test_mapa, test_dosah, test_kompas):
+            for fn in (test_vlastnik, test_mrizka, test_mapa, test_dosah, test_kompas, test_pro, test_vlastnik_pro):
                 ctx = await b.new_context(viewport={'width': 412, 'height': 915},
                                           is_mobile=True, has_touch=True,
                                           permissions=['geolocation'], geolocation=GEO,

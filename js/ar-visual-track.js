@@ -525,6 +525,7 @@
         if (!tab) return;
         var row = document.createElement('div');
         row.className = 'st-row'; row.id = 'agvt-settings-row';
+        row.setAttribute('data-tool', 'ar-visual-track');
         var lab = document.createElement('span');
         lab.className = 'st-lab';
         lab.innerHTML = 'Vizuální stabilizace AR (beta)<small>drží obraz z kamery stabilní mezi GPS/kompas fixy — orientační, ne měřicí</small>';
@@ -532,7 +533,19 @@
         sw.className = 'st-sw';
         var cb = document.createElement('input');
         cb.type = 'checkbox'; cb.id = 'agvt-settings-cb'; cb.checked = !!enabled;
-        cb.addEventListener('change', function () { setEnabled(cb.checked, false); });
+        cb.addEventListener('change', function () {
+            // ⚠ Vstup MIMO mřížku nástrojů: odchyt kliku v js/pro-zamky.js
+            //   hledá dlaždici (data-tool / .tool-tile), takže sem nedosáhne
+            //   a Pro nástroj by šel v Základu otevřít bez klíče.
+            //   Samotné `data-tool` navíc NESTAČÍ: u <input type=checkbox> se stav
+            //   změní dřív, než by ho odchyt stihl zastavit, takže se musí vrátit ručně.
+            if (window.AGProZamky && AGProZamky.zamceno('ar-visual-track')) {
+                cb.checked = false;
+                AGProZamky.karta('ar-visual-track');
+                return;
+            }
+            setEnabled(cb.checked, false);
+        });
         var face = document.createElement('span'); face.className = 'st-sw-face';
         sw.appendChild(cb); sw.appendChild(face);
         row.appendChild(lab); row.appendChild(sw);
