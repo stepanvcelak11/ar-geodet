@@ -98,15 +98,25 @@
             'body.light-mode .agmc-x{background:#ffffff;border-color:rgba(15,23,42,0.28);color:#141821;',
             '  box-shadow:0 2px 10px rgba(15,23,42,0.28);}',
             '.agmc-x:active{transform:scale(.92);}',
+            // ⚠ TERČ, NE KOLEČKO (8. 9. 2026). Kolečko má 40 px a zvětšit ho nejde —
+            //   přeskládalo by nadpisy. Appka má přitom vlastní mez `--tap-min`
+            //   (44 px, v režimu rukavic 56 px) a nejpoužívanější zavírací prvek
+            //   v celé appce ji jako jediný nedodržoval. Neviditelná plocha kolem
+            //   je týž trik, jaký repo používá v css/style.css u dokových tlačítek.
+            '.agmc-x::after{content:"";position:absolute;left:50%;top:50%;width:100%;height:100%;',
+            '  min-width:var(--tap-min,44px);min-height:var(--tap-min,44px);',
+            '  transform:translate(-50%,-50%);background:none;pointer-events:auto;}',
             'body.light-mode .agmc-x:active{background:#eceef1;}',
             '.agmc-x svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;}',
             // levá ruka: křížek přejde na druhou stranu jako ostatní ovládání
             'body.left-hand .agmc-x{right:auto;left:calc(env(safe-area-inset-left,0px) + 10px);}',
             // nadpis se musí křížku vyhnout (jinak by ho dlouhý název podlezl)
-            '.modal-overlay .modal-content > h2:first-child,',
-            '.modal-overlay .modal-content > h3:first-child{padding-right:46px;}',
-            'body.left-hand .modal-overlay .modal-content > h2:first-child,',
-            'body.left-hand .modal-overlay .modal-content > h3:first-child{padding-right:0;padding-left:46px;}',
+            // ⚠ `first-of-type`, ne `first-child`: dvě okna mají před nadpisem ještě
+            //   jiný prvek, takže jim rezerva 46 px vypadla a dlouhý název podlézal křížek.
+            '.modal-overlay .modal-content > h2:first-of-type,',
+            '.modal-overlay .modal-content > h3:first-of-type{padding-right:46px;}',
+            'body.left-hand .modal-overlay .modal-content > h2:first-of-type,',
+            'body.left-hand .modal-overlay .modal-content > h3:first-of-type{padding-right:0;padding-left:46px;}',
             // úchyt: SVISLÁ čárka u té hrany, ze které se táhne — tichá nápověda
             // na směr gesta. Vlevo (pravá ruka), v levorukém režimu vpravo.
             '.agmc-grab{position:absolute;z-index:29;top:50%;',
@@ -568,10 +578,29 @@
         // posouvat obsah do stran > zavírat: v takovém prvku gesto vůbec nezakládáme
         if (hScrollAncestor(t, mc)) return;
         drag = {
-            ov: ov, mc: mc, dir: closeDir(),
+            ov: ov, mc: mc, dir: closeDir(), tgt: t,
             x0: e.touches[0].clientX, y0: e.touches[0].clientY,
             t0: (e.timeStamp || 0), p: 0, armed: false, dead: false
         };
+        // ⚠⚠ POSLUCHAČ I PŘÍMO NA PRVKU, KDE TAH ZAČAL (8. 9. 2026). `touchend`
+        //   se sem dostává BUBLÁNÍM přes document — jenže když okno během tahu
+        //   překreslí obsah a prvek, na kterém prst začal, ODPOJÍ z DOM, událost
+        //   už bublat nemá kudy a konec tahu nikdy nepřijde. Panel pak zůstane
+        //   viset odsunutý stranou i po zavření a znovuotevření okna.
+        //   Naměřeno v okně Vrstvy: náhled řezu má vlastní `pointerdown`
+        //   (js/vrstvy.js), jeho `vrDragEnd()` přepíše `host.innerHTML` a tím
+        //   uzel odpojí. Odpojenému uzlu se ale událost DORUČÍ, takže posluchač
+        //   pověšený rovnou na něj proběhne. Odebírá se sám v onEnd/onCancel.
+        try {
+            t.addEventListener('touchend', onEnd);
+            t.addEventListener('touchcancel', onCancel);
+        } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'modal-close:onStart'); }
+    }
+    // Posluchače z onStart uklidit, ať se na jednom prvku nevrší.
+    function odpojCil(d) {
+        if (!d || !d.tgt) return;
+        try { d.tgt.removeEventListener('touchend', onEnd); d.tgt.removeEventListener('touchcancel', onCancel); }
+        catch (e) { window.AG && AG.swallow && AG.swallow(e, 'modal-close:odpojCil'); }
     }
 
     function onMove(e) {
@@ -597,6 +626,7 @@
 
     function onEnd(e) {
         var d = drag; drag = null;
+        odpojCil(d);
         if (!d || !d.armed) return;
         d.mc.classList.remove('agmc-drag');
         var dt = Math.max(1, (e.timeStamp || 0) - d.t0);
@@ -621,6 +651,7 @@
     }
 
     function onCancel() {
+        odpojCil(drag);
         var d = drag; drag = null;
         if (d && d.armed) { d.mc.classList.remove('agmc-drag'); resetPull(d.mc); }
     }

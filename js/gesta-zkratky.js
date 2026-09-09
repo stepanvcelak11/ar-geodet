@@ -531,6 +531,24 @@
         if (!document.body.classList.contains('app-started')) return false;
         if (document.body.classList.contains('ag-kn-open')) return false;   // kolečko nástrojů
         try { if (target && target.closest && target.closest(NOGO)) return false; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:canStart'); }
+        // ⚠⚠ NAD OKNEM NÁSTROJE SE GESTO NEZAKLÁDÁ (8. 9. 2026). NOGO vyřazuje
+        //   `.modal-overlay`, jenže ~20 modulů si obal kreslí samo a tu třídu
+        //   nemá (#ag-wx-overlay Počasí, #ag-zz-ov Změnit zakázku, …). Nad nimi
+        //   se aktivační tah normálně rozpoznal a appka rovnou spustila zkratku
+        //   jiného nástroje — přitom to byl obyčejný tah po obsahu okna.
+        //   Poznáme je stejně jako js/modal-close.js: prvek `position:fixed`,
+        //   viditelný, přes většinu obrazovky a s vlastním z-indexem.
+        try {
+            var e2 = target;
+            while (e2 && e2 !== document.body && e2.nodeType === 1) {
+                var st = window.getComputedStyle(e2);
+                if (st.position === 'fixed' && st.display !== 'none' && st.visibility !== 'hidden') {
+                    var r = e2.getBoundingClientRect();
+                    if (r.width > window.innerWidth * 0.7 && r.height > window.innerHeight * 0.5) return false;
+                }
+                e2 = e2.parentElement;
+            }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:canStart2'); }
         return true;
     }
 

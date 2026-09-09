@@ -458,16 +458,10 @@
             m.className = 'modal-overlay';
             m.innerHTML =
                 '<div class="modal-content agroc-box">' +
-                '<span class="close-btn" id="agroc-x" role="button" tabindex="0" aria-label="Zavřít">&times;</span>' +
                 '<h2>Ročenka</h2>' +
                 '<div class="agroc-telo"></div>' +
                 '</div>';
             document.body.appendChild(m);
-            var x = m.querySelector('#agroc-x');
-            if (x) {
-                x.addEventListener('click', zavri);
-                x.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); zavri(); } });
-            }
         }
         m.style.display = 'flex';
         vykresli(new Date().getFullYear());
