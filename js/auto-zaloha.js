@@ -44,7 +44,7 @@
     // opravdu používaná — a nikdy neleze přes přihlášení ani bránu.
     var BOOT_QUIET_MS = 4 * 60 * 1000;    // prvních X minut po startu ticho
     var _bootTs = Date.now();
-    var _bar = null, _wrapped = false;
+    var _wrapped = false;
 
     function now() { return Date.now(); }
     function getTs(k) { try { var v = parseInt(localStorage.getItem(k), 10); return isFinite(v) ? v : 0; } catch (e) { return 0; } }
@@ -109,48 +109,60 @@
         } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'auto-zaloha:selhalo'); }
     }
 
-    // --- nenápadný pruh připomínky ----------------------------------------------
-    function ensureBar() {
-        if (_bar && document.body.contains(_bar)) return _bar;
-        if (!document.body) return null;
-        _bar = document.createElement('div');
-        _bar.id = 'ag-backup-bar';
-        _bar.setAttribute('role', 'status');
-        _bar.style.cssText = [
-            'position:fixed', 'left:50%', 'transform:translateX(-50%)',
-            'bottom:calc(env(safe-area-inset-bottom,0px) + 84px)',
-            'z-index:8000', 'max-width:min(94vw,460px)', 'box-sizing:border-box',
-            'display:none', 'align-items:center', 'gap:10px',
-            'padding:10px 12px', 'border-radius:14px',
-            'background:rgba(20,22,28,0.96)', 'color:#fff',
-            'border:1px solid rgba(255,255,255,0.14)',
-            'box-shadow:0 8px 26px rgba(0,0,0,0.45)',
-            'font-size:calc(13px * var(--ag-font-scale, 1))', 'line-height:1.25', 'pointer-events:auto'
-        ].join(';');
-        _bar.innerHTML =
-            '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" style="flex:0 0 auto;color:#fbbf24">'
-            + '<path d="M12 2 1 21h22L12 2z" fill="currentColor"></path>'
-            + '<rect x="11" y="9" width="2" height="6" rx="1" fill="#1a1205"></rect>'
-            + '<rect x="11" y="17" width="2" height="2" rx="1" fill="#1a1205"></rect></svg>'
-            + '<span id="ag-backup-txt" style="flex:1 1 auto"></span>'
-            + '<button id="ag-backup-now" type="button" style="flex:0 0 auto;border:0;background:#22c55e;color:#04120a;font-weight:700;font-size:calc(12px * var(--ag-font-scale, 1));padding:8px 11px;border-radius:10px;cursor:pointer">Zálohovat</button>'
-            + '<button id="ag-backup-later" type="button" aria-label="Později" style="flex:0 0 auto;border:1px solid rgba(255,255,255,0.25);background:transparent;color:#cbd5e1;font-size:calc(12px * var(--ag-font-scale, 1));padding:8px 10px;border-radius:10px;cursor:pointer">Později</button>';
-        document.body.appendChild(_bar);
-        _bar.querySelector('#ag-backup-now').addEventListener('click', function () { window.agBackupNow(); });
-        _bar.querySelector('#ag-backup-later').addEventListener('click', function () { setTs(SNOOZE_KEY, now() + SNOOZE_MS); hideBar(); });
-        return _bar;
+    // ⚠⚠ PLOVOUCÍ PRUH ZRUŠEN 8. 9. 2026. Uživatel: „taky mi teď vyskočila ikonka
+    //   aktualizace aplikace, jakože stáhnout zálohu, tak ať mi toto nevyskakuje,
+    //   ať to je maximálně někde schované stranou v nějakém nastavení."
+    //   Připomínka se proto NEVYSKAKUJE nikde nad appkou — stojí jako řádek
+    //   v Nastavení → Údržba, hned nad tlačítkem zálohy. Veškerá logika, KDY
+    //   připomínat (kalendář + přírůstek bodů), zůstala beze změny; změnilo se
+    //   jen to, KAM se výsledek napíše. ensureBar() je pryč, ať ho někdo omylem
+    //   nezavolá zpátky.
+    var _row = null;
+    function ensureRow() {
+        if (_row && document.body.contains(_row)) return _row;
+        var tab = document.getElementById('tab-udrzba');
+        if (!tab) return null;
+        _row = document.getElementById('ag-backup-row');
+        if (!_row) {
+            _row = document.createElement('div');
+            _row.id = 'ag-backup-row';
+            _row.setAttribute('role', 'status');
+            _row.style.cssText = [
+                'display:none', 'align-items:center', 'gap:10px',
+                'margin:0 0 10px', 'padding:10px 12px', 'border-radius:12px',
+                'background:var(--accent-soft,rgba(251,191,36,0.12))',
+                'border:1px solid rgba(251,191,36,0.45)',
+                'font-size:calc(12.5px * var(--ag-font-scale, 1))', 'line-height:1.35'
+            ].join(';');
+            _row.innerHTML =
+                '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="flex:0 0 auto;color:#fbbf24">'
+                + '<path d="M12 2 1 21h22L12 2z" fill="currentColor"></path>'
+                + '<rect x="11" y="9" width="2" height="6" rx="1" fill="#1a1205"></rect>'
+                + '<rect x="11" y="17" width="2" height="2" rx="1" fill="#1a1205"></rect></svg>'
+                + '<span id="ag-backup-txt" style="flex:1 1 auto"></span>'
+                + '<button id="ag-backup-now" type="button" style="flex:0 0 auto;border:0;background:#22c55e;color:#04120a;font-weight:700;'
+                + 'font-size:calc(12px * var(--ag-font-scale, 1));padding:9px 12px;border-radius:10px;min-height:38px;cursor:pointer">Zálohovat</button>';
+            tab.insertBefore(_row, tab.firstChild);
+            var b = _row.querySelector('#ag-backup-now');
+            if (b) b.addEventListener('click', function () { window.agBackupNow(); });
+        } else if (_row.parentNode !== tab) {
+            tab.insertBefore(_row, tab.firstChild);
+        }
+        return _row;
     }
-
     function showBar(txt) {
-        var b = ensureBar(); if (!b) return;
+        var b = ensureRow(); if (!b) return;
         var t = b.querySelector('#ag-backup-txt'); if (t) t.textContent = txt;
         b.style.display = 'flex';
     }
-    function hideBar() { if (_bar) _bar.style.display = 'none'; }
+    function hideBar() { if (_row) _row.style.display = 'none'; }
 
     function maybeRemind() {
         try {
-            if (Date.now() - _bootTs < BOOT_QUIET_MS) { hideBar(); return; }   // čerstvý start
+            // Řádek v Nastavení nikoho nepřepadá, takže „klid po startu" ztratil
+            // smysl — jen by po spuštění appky 4 minuty lhal, že je vše zálohované.
+            // Zůstává krátká prodleva, než se stihnou načíst body.
+            if (Date.now() - _bootTs < 8000) { hideBar(); return; }
             // přes přihlašovací obrazovku ani bránu se nic nepřekresluje
             if (document.getElementById('ag-login') || document.getElementById('ag-gate')) { hideBar(); return; }
             if (!hasData()) { hideBar(); return; }

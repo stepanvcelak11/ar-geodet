@@ -20,9 +20,35 @@ if ('serviceWorker' in navigator) {
             });
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js').then(reg => {
-                    // Nová verze už čeká z minulého běhu (banner tehdy nikdo neklepl)
-                    // → bez tohohle by se lišta při dalším startu už NEUKÁZALA.
-                    if (reg.waiting && navigator.serviceWorker.controller) showUpdateBanner();
+                    // ⚠⚠ NOVÁ VERZE SE NASAZUJE SAMA PŘI STARTU (8. 9. 2026).
+                    //   Dřív se tu jen ukázala lišta a čekalo se, až na ni někdo klepne —
+                    //   uživatel to označil za „strašně náročný a zbytečný" a chce, aby
+                    //   stačilo appku zavřít a znovu otevřít. Když tedy při startu čeká
+                    //   nachystaný service worker, pustíme ho DOVNITŘ hned a stránku
+                    //   jednou obnovíme. Děje se to v první vteřině po spuštění, kdy
+                    //   uživatel stejně ještě nic nedělá.
+                    //   ⚠ POJISTKA PROTI SMYČCE: `agSwSelfUpdate` v sessionStorage. Kdyby
+                    //     se nový worker z jakéhokoli důvodu nedokázal ujmout vlády
+                    //     (zamítnutá aktivace, chyba v sw.js), reload by se opakoval
+                    //     donekonečna. Značka žije jen po dobu jednoho spuštění appky,
+                    //     takže při příštím otevření se pokus poctivě zopakuje.
+                    //   ⚠ Když se do 4 s nic nestane, ukáže se aspoň oznamovací lišta —
+                    //     ať člověk ví, proč appka pořád vypadá po staru.
+                    if (reg.waiting && navigator.serviceWorker.controller) {
+                        let uzZkouseno = false;
+                        try { uzZkouseno = sessionStorage.getItem('agSwSelfUpdate') === '1'; } catch (e) { uzZkouseno = false; }
+                        if (uzZkouseno) showUpdateBanner();
+                        else {
+                            try { sessionStorage.setItem('agSwSelfUpdate', '1'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:selfUpdate'); }
+                            // aby handler controllerchange výš reload povolil (bere to jako
+                            // vyžádanou obnovu, ne jako první zabrání stránky)
+                            window.__agUpdateRequested = true;
+                            // „Co je nového" se po obnově ukáže samo — viz js/co-je-noveho.js
+                            try { localStorage.setItem('agCjnPoAktualizaci', '1'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:selfUpdate2'); }
+                            try { reg.waiting.postMessage('SKIP_WAITING'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:selfUpdate3'); }
+                            setTimeout(() => { if (!_swReloaded) showUpdateBanner(); }, 4000);
+                        }
+                    }
                     reg.addEventListener('updatefound', () => {
                         const nw = reg.installing; if (!nw) return;
                         nw.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdateBanner(); });

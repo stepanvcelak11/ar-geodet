@@ -23,19 +23,19 @@
 //   nepřepisuje — kdo měl na zařízení firmu, najde ji po ukončení režimu
 //   nedotčenou (tři místa v js/ucty.js označená komentářem „režim vlastníka").
 //
-// ⚠ VSTUP NA BRANE JE SCHVALNE NEVIDITELNY (na prani 30. 8. 2026): na uvodni
-//   obrazovce nema stat nic, co ostatnim rekne, ze appka ma zvlastni rezim pro
-//   vyvojare. Otevira ho DLOUHY STISK ZNAKU APPKY (kolecko s logem nahore,
-//   .agl-mark) po dobu HOLD_MS. Od 400. ms se znak pomalu zmensuje a bledne —
-//   to vidi jen ten, kdo drzi, takze to nic neprozradi, ale drzeni to prestane
-//   byt loterie. Odezva se pri pusteni vzdy vrati zpatky (funkce konec()).
-//
-// Vstupy: brana → dlouhy stisk znaku appky; Vice → „Konzole vlastnika";
-//   window.agOpenKonzole().
-//
-// Odstranění: smaž tenhle soubor + řádek <script> v index.html + './js/vlastnik.js'
-// v sw.js a tři místa v js/ucty.js označená komentářem „režim vlastníka".
-// ================================================================================
+// ⚠⚠ 8. 9. 2026 — VSTUP JE NOVE V KLASICKEM PRIHLASENI, NE V DLOUHEM STISKU.
+//   Do teto chvile se rezim otviral DLOUHYM STISKEM ZNAKU APPKY na brane a pak
+//   branu i prihlaseni UPLNE PRESKAKOVAL. Uzivatel si na to 8. 9. 2026 stezoval
+//   dvema vetami naraz: "musim se nejak prihlasovat specialne pres podrzeni ty
+//   ikony" a "aby se tam pri kazdem spusteni zobrazovalo prihlaseni, coz tam
+//   vubec momentalne neni". Obe stiznosti mely tutez pricinu.
+//   Ted je vlastnik OBYCEJNE PRIHLASENI: do pole "kod uctu" (na brane) nebo
+//   "Jmeno" (na prihlasovaci obrazovce firmy) se napise VLASTNIK, do hesla klic
+//   OWNER_KEY. Odchyt je v CAPTURE fazi kliku na cele obrazovce — diky tomu se
+//   nemusi sahat do obsluh v js/ucty.js a kdyz se jmeno nerovna VLASTNIK, klik
+//   projde dal beze zmeny. Navenek to porad vypada jako bezne prihlaseni, takze
+//   prani z 30. 8. 2026 ("na uvodni obrazovce nema stat nic o rezimu pro
+//   vyvojare") plati dal — jen uz to neni skryte gesto, ale jmeno a heslo.
 (function () {
     'use strict';
     if (window.AGVlastnik) return;
@@ -142,6 +142,96 @@
     // ---- přihlášení vlastníka na bráně / přihlašovací obrazovce -----------------
     function loginOverlay() {
         return document.getElementById('ag-gate') || document.getElementById('ag-login') || null;
+    }
+
+    // ---- PRIHLASENI VLASTNIKA V KLASICKEM FORMULARI --------------------------------
+    // Jmeno se porovnava BEZ DIAKRITIKY a bez ohledu na velikost pismen: klic se
+    // opisuje na mobilu, kde prvni pismeno naskoci velke samo a ceska klavesnice
+    // umi podstrcit "VLASTNÍK". Dve varianty schvalne — obe si clovek vybavi.
+    var JMENA = ['VLASTNIK', 'VYVOJAR'];
+    function normJm(v) {
+        v = String(v == null ? '' : v).trim().toUpperCase();
+        try { v = v.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (e) { swallow(e, 'normJm'); }
+        return v;
+    }
+    function jeJmenoVlastnika(v) { return JMENA.indexOf(normJm(v)) !== -1; }
+
+    // Ktera pole na TEHLE obrazovce nesou jmeno, heslo a hlasku. Brana (#ag-gate)
+    // a prihlaseni do firmy (#ag-login) maji jina id, jinak se chovaji stejne.
+    function poleFormulare(ov, btn) {
+        if (!ov || !btn) return null;
+        if (ov.id === 'ag-gate') {
+            if (btn.id !== 'agg-go') return null;
+            return {
+                jm: ov.querySelector('#agg-code'), heslo: ov.querySelector('#agg-pass'),
+                err: ov.querySelector('#agg-err'), btn: btn
+            };
+        }
+        if (ov.id === 'ag-login') {
+            if (!btn.closest || !btn.closest('.agl-pinbox')) return null;
+            return {
+                jm: ov.querySelector('.agl-name'), heslo: ov.querySelector('.agl-pin'),
+                err: ov.querySelector('.agl-err'), btn: btn
+            };
+        }
+        return null;
+    }
+
+    var _odemykam = false;
+    function odemkni(p) {
+        if (_odemykam) return;
+        var k = ((p.heslo && p.heslo.value) || '').trim();
+        if (!k) { p.err.innerHTML = 'Do hesla napi\u0161 kl\u00ed\u010d vlastn\u00edka (OWNER_KEY).'; return; }
+        _odemykam = true;
+        if (p.btn) p.btn.disabled = true;
+        p.err.innerHTML = 'Ov\u011b\u0159uji na serveru\u2026';
+        api('/owner/firms', k).then(function (r) {
+            _odemykam = false;
+            if (p.btn) p.btn.disabled = false;
+            if (!r.ok) {
+                // ⚠ OFFLINE SE VLASTNIK MUSI DOSTAT DOVNITR TAKY. V terenu bez signalu
+                //   by ho jinak vlastni appka zamkla ven. Klic se porovna proti tomu,
+                //   co je z minula ulozeny; server si ho stejne overi sam, jakmile je
+                //   signal (overKlic nize) — a pri 403 rezim vypne.
+                // ⚠ NEJEN status 0. Server umí být nedostupný i tak, že odpoví
+                //   (proxy hotelové wifi, 404 ze starého workeru, 5xx při výpadku).
+                //   Jediná odpověď, která znamená "tenhle klíč NEPLATÍ", je 403 —
+                //   u všech ostatních se vlastník pustí dovnitř proti klíči, který
+                //   už na zařízení uložený je (ten se v minulosti ověřit musel).
+                //   Kdyby přece jen neplatil, overKlic() režim do šesti hodin vypne.
+                if (r.status !== 403 && key() && k === key()) { setOn(true); vstup(); return; }
+                p.err.innerHTML = proc(r);
+                return;
+            }
+            setKey(k); setOn(true);
+            vstup();
+        });
+    }
+
+    // Pustit vlastnika do appky POTE, co prosel prihlasenim. Rozdil proti enter()
+    // je jediny: rekne se to vrstve uctu, aby branu uz nevracela (gateCheck).
+    function vstup() {
+        try { if (window.AGUcty && AGUcty.ownerEnter) AGUcty.ownerEnter(); } catch (e) { swallow(e, 'vstup:ucty'); }
+        enter();
+    }
+
+    // Odchyt kliku na tlacitko "Prihlasit" v CAPTURE fazi. Bezi driv nez obsluha
+    // v js/ucty.js, takze kdyz je ve jmene VLASTNIK, klik se tam vubec nedostane
+    // a nezapocita se jako spatne heslo do brzdy proti hadani.
+    function hookForm() {
+        var ov = loginOverlay();
+        if (!ov || ov.getAttribute('data-agv') === '1') return;
+        ov.setAttribute('data-agv', '1');
+        ov.addEventListener('click', function (e) {
+            var btn = e.target && e.target.closest ? e.target.closest('button') : null;
+            if (!btn) return;
+            var p = poleFormulare(ov, btn);
+            if (!p || !p.jm || !p.heslo || !p.err) return;
+            if (!jeJmenoVlastnika(p.jm.value)) return;
+            e.preventDefault(); e.stopPropagation();
+            if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+            odemkni(p);
+        }, true);
     }
     // Karta se NEPŘEKRESLUJE na místě staré (to by sebralo obsluhu tlačítek brány),
     // ale položí se do TÉHOŽ overlaye vedle ní a stará se jen schová. Díky tomu na
@@ -795,50 +885,95 @@
     //    ⚠ Obsluha visí na .agl-mark, ne na jeho obsahu: fillMark() v ucty.js
     //      vnitřek znaku po chvíli PŘEPÍŠE (klon loga z úvodní karty), takže
     //      listener na dítěti by tiše zmizel. Události z vnitřku probublají.
-    function injectGate() {
-        var ov = loginOverlay();
-        if (!ov) return;
-        var mark = ov.querySelector('.agl-mark');
-        if (!mark || mark.getAttribute('data-agv') === '1') return;
-        mark.setAttribute('data-agv', '1');
-        // iOS by na dlouhý stisk obrázku nabídl „Uložit obrázek" / výběr textu
-        mark.style.webkitTouchCallout = 'none';
-        mark.style.webkitUserSelect = 'none';
-        mark.style.userSelect = 'none';
-
-        var t = null;
-        function konec() {
-            if (t) { clearTimeout(t); t = null; }
-            mark.style.transition = 'transform .18s ease-out, opacity .18s ease-out';
-            mark.style.transform = ''; mark.style.opacity = '';
+    // ---- 3) SPRAVA APLIKACE MEZI NASTROJI (8. 9. 2026) -----------------------------
+    // Na prani uzivatele: "akorat mezi nastroji uvidim zaroven dalsi nastroje jako
+    // rizeni aplikace, rizeni firem, rizeni spravcu, co mi prisli". Konzole zustava
+    // (je v ni vypinac modulu, chyby, zebricek), ale ctyri veci, ke kterym se chodi
+    // nejcasteji, stoji rovnou v mrizce Nastroju pod vlastni kategorii.
+    //
+    // ⚠ KATEGORII VYRABI TENHLE MODUL, NENI V index.html. Kdyby v HTML byla,
+    //   musela by se schovavat — a js/field-tools.js pri hledani nadpisum
+    //   display PREPISUJE (viz applyFilter), takze by se pri psani do hledani
+    //   rozsvitila i tomu, kdo vlastnik neni. Kdyz nadpis vyrobime az tady a pri
+    //   vypnutem rezimu ho SMAZEME, nema se co rozsvitit.
+    var KAT = 'Správa aplikace';
+    var NASTROJE = [
+        {
+            id: 'vlastnik-konzole', label: 'Řízení aplikace', order: 10,
+            ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg>',
+            run: function () { open(); }
+        },
+        {
+            id: 'vlastnik-firmy', label: 'Řízení firem', order: 20,
+            ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-6h6v6"/><path d="M9 11h.01M15 11h.01"/></svg>',
+            lazy: 'js/sprava-appky.js',
+            run: function () { if (window.AGSprava) AGSprava.open(); else chybi('js/sprava-appky.js'); }
+        },
+        {
+            id: 'vlastnik-spravci', label: 'Řízení správců', order: 30,
+            ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><path d="M23 21v-2a4 4 0 0 0-3-3.9"/></svg>',
+            lazy: 'js/ucty-admin.js',
+            run: function () { if (window.AGUctyAdmin) AGUctyAdmin.open(); else chybi('js/ucty-admin.js'); }
+        },
+        {
+            id: 'vlastnik-zpravy', label: 'Zprávy od lidí', order: 40,
+            ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H7l-3 3z"/></svg>',
+            lazy: 'js/zpetna-vazba.js',
+            run: function () { if (window.AGZpetna) AGZpetna.inbox(); else chybi('js/zpetna-vazba.js'); }
         }
-        function zacatek() {
-            if (ov.querySelector('.agv-card')) return;   // karta klíče už je otevřená
-            if (t) return;
-            // Odezva se ukáže až po 400 ms a JEN tomu, kdo drží — kdo znak jen
-            // mine prstem, nic nepozná. Bez ní by to byla loterie („drží se to
-            // vůbec?"), s ní je poznat, že se něco děje, ještě než se to otevře.
-            t = setTimeout(function () {
-                t = setTimeout(function () {
-                    t = null;
-                    konec();
-                    try { if (navigator.vibrate) navigator.vibrate(18); } catch (e) { swallow(e, 'vibrate'); }
-                    login();
-                }, HOLD_MS - 400);
-                mark.style.transition = 'transform ' + (HOLD_MS - 400) + 'ms linear, opacity ' + (HOLD_MS - 400) + 'ms linear';
-                mark.style.transform = 'scale(.86)';
-                mark.style.opacity = '.55';
-            }, 400);
-        }
-        ['touchstart', 'mousedown'].forEach(function (n) {
-            mark.addEventListener(n, zacatek, { passive: true });
-        });
-        ['touchend', 'touchcancel', 'touchmove', 'mouseup', 'mouseleave'].forEach(function (n) {
-            mark.addEventListener(n, konec, { passive: true });
-        });
-        // Prst sjede po obrazovce (rolování karty) → stisk se nesmí dopočítat.
-        ov.addEventListener('scroll', konec, { passive: true });
+    ];
+    function katHead(grid) {
+        var h = document.getElementById('agv-cat');
+        if (h && h.parentNode === grid) return h;
+        h = document.createElement('div');
+        h.id = 'agv-cat';
+        h.className = 'tool-cat';
+        h.textContent = KAT;
+        grid.appendChild(h);
+        return h;
     }
+    var _toolsOn = null;
+    function injectTools() {
+        var grid = document.querySelector('#tools-modal .tool-grid');
+        if (!grid) return;
+        var on = isOn();
+        if (on === _toolsOn && (!on || document.getElementById('agv-cat'))) return;
+        _toolsOn = on;
+        var i;
+        if (!on) {
+            var h = document.getElementById('agv-cat');
+            if (h && h.parentNode) h.parentNode.removeChild(h);
+            for (i = 0; i < NASTROJE.length; i++) {
+                if (typeof window.agUnregisterFieldTool === 'function') window.agUnregisterFieldTool(NASTROJE[i].id);
+            }
+            return;
+        }
+        if (typeof window.agRegisterFieldTool !== 'function') { _toolsOn = null; return; }
+        katHead(grid);
+        for (i = 0; i < NASTROJE.length; i++) {
+            (function (it) {
+                window.agRegisterFieldTool({
+                    id: it.id, label: it.label, icon: it.ic, cat: KAT, order: it.order,
+                    onClick: function () {
+                        // Tezke moduly jsou odlozene (js/lazy-load.js) — nez se doahnou,
+                        // by tlacitko jinak jen reklo "modul chybi".
+                        if (it.lazy && window.AGLazy && typeof AGLazy.need === 'function') {
+                            AGLazy.need(it.lazy, function () { try { it.run(); } catch (e) { swallow(e, 'nastroj'); } });
+                            return;
+                        }
+                        try { it.run(); } catch (e) { swallow(e, 'nastroj'); }
+                    }
+                });
+            })(NASTROJE[i]);
+        }
+    }
+
+    // ⚠ DLOUHY STISK ZNAKU APPKY BYL ZRUSEN 8. 9. 2026. Byl to jediny vchod do
+    //   rezimu vlastnika a uzivatel ho oznacil za nejvetsi problem appky
+    //   ("musim se nejak prihlasovat specialne pres podrzeni ty ikony"). Nahradilo
+    //   ho jmeno VLASTNIK v beznem prihlasovacim formulari, viz hookForm() vyse.
+    //   Funkce tu zustava jako PRAZDNA, aby se dalo dohledat, proc gesto zmizelo.
+    function injectGate() { }
 
     // 2) položka v „Více" — konzole PATŘÍ SEM, ne do Nastavení → Údržba. Tam byla
     //    schovaná pod dvěma rozbaleními a ukazovala se jen tomu, kdo klíč už měl.
@@ -896,15 +1031,15 @@
             if (r.status !== 403) return;
             setOn(false); injectMenu();
             try { if (window.AGUcty && AGUcty.applyPerms) AGUcty.applyPerms(); } catch (e) { swallow(e, 'verif:perms'); }
-            agAlert('Režim vlastníka vypnut', 'Klíč už serveru nesedí, tak se režim sám vypnul. Zadej nový dlouhým stiskem znaku aplikace na úvodní obrazovce.');
+            agAlert('Režim vlastníka vypnut', 'Klíč už serveru nesedí, tak se režim sám vypnul. Nový zadej při přihlášení: do jména <b>VLASTNIK</b>, do hesla nový klíč.');
         });
     }
 
     function init() {
-        injectGate(); injectMenu();
+        hookForm(); injectMenu(); injectTools();
         setTimeout(overKlic, 12000);
         (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(function () {
-            try { injectGate(); injectMenu(); } catch (e) { swallow(e, 'tick'); }
+            try { hookForm(); injectMenu(); injectTools(); } catch (e) { swallow(e, 'tick'); }
         }, 2000);
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

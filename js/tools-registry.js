@@ -371,7 +371,7 @@
         { k: 'odhadovacka', pro: 1, cat: 'Pomůcky', verb: 'Příručka a výpočty', vl: 'Odhadni to (cvičiště)', vh: 'trénink odhadu vzdálenosti a azimutu',
           keys: 'odhad odhadni cviceni cviciste hra trenink vzdalenost azimut oko krok skore serie zabava',
           help: { t: 'Odhadni to' } },
-        { k: 'sprava-appky', notile: 1,
+        { k: 'sprava-appky', cat: 'Správa aplikace', notile: 1,
           help: { t: 'Správa aplikace' } },
 
         // ── bez slovesa (spadnou do „Další nástroje“ / nejsou dlaždice) ─────
@@ -483,6 +483,17 @@
             return ((r.keys || '') + ' ' + (r.vl || '')).trim();
         },
         cat: function (k) { var r = get(k); return (r && r.cat) || ''; },
+        // ⚠⚠ KATEGORIE V MŘÍŽCE NÁSTROJŮ = SLOVESO, NE `cat` (8. 9. 2026).
+        //   Pole `cat` mělo jen pět hodnot a mělo ho 33 nástrojů ze 102 — zbylých
+        //   69 padalo do jediné záchytné sekce „Terénní nástroje", takže mřížka
+        //   byla dole jedna nekonečná hromada dlaždic. Uživatel: „kdyz kliknu na
+        //   tlacitko nastroje, tak je tam jako spousta nastroju, tady to zkus
+        //   nejak jako usporadat, urovnat, uhladit, at to neni jenom tak nahozeny."
+        //   `verb` má naproti tomu skoro každý nástroj a je to tatáž skupina,
+        //   pod kterou nástroj stojí v seznamu úkonů — obě obrazovky tedy nově
+        //   třídí stejně. `cat` zůstává, protože podle něj barví rámečky
+        //   js/gesta-zkratky.js (CAT_CLS) a nemá smysl to rozbíjet.
+        mrizka: function (k) { var r = get(k); return (r && (r.verb || r.cat)) || ''; },
         isNet: function (k) { var r = get(k); return !!(r && r.net); },
         // id rozcestníku, do kterého nástroj spadl ('' = stojí samostatně)
         hubOf: function (k) { var r = get(k); return (r && r.inhub) || ''; },

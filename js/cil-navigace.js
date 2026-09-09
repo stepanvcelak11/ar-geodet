@@ -60,18 +60,9 @@
         if (m >= 100) return Math.round(m) + ' m';
         return m.toFixed(1).replace('.', ',') + ' m';
     }
-    // azimut ve stejné soustavě, v jaké ho ukazuje HUD („AZ") — včetně srovnání severu
-    // a jednotky gon, jinak by číslo v mapě neodpovídalo číslu na obrazovce
-    function fmtAz(brg) {
-        var zero = (typeof compassZeroOffset === 'number') ? compassZeroOffset : 0;
-        var rel = ((brg - zero) % 360 + 360) % 360;
-        if (typeof compassUnit !== 'undefined' && compassUnit === 'gon') {
-            var gt = rel * (400 / 360), gr = Math.floor(gt);
-            return gr + ',' + Math.round((gt - gr) * 100).toString().padStart(2, '0') + ' g';
-        }
-        return rel.toFixed(0) + '°';
-    }
-
+    // ⚠ fmtAz() (azimut ve stupních/gonech) odsud 8. 9. 2026 ZMIZEL i s jediným
+    //   svým voláním — popisek v mapě ukazuje už jen vzdálenost. Kdyby se stupně
+    //   měly vrátit, je vzor v HUD (grafika.js) a v js/kompas-*.js.
     // ---- styly (vlastní, ať se dá modul vyhodit jedním smazáním) ----------------------
     function ensureStyle() {
         if (document.getElementById('ag-cil-style')) return;
@@ -182,16 +173,19 @@
             interactive: false, pane: 'shadowPane', keyboard: false
         }).addTo(grp);
 
-        // popisek: vzdálenost + azimut ve stejné soustavě jako HUD
+        // Popisek: UŽ JEN VZDÁLENOST. Azimut odsud vypadl 8. 9. 2026 na přání
+        // uživatele („v mapě to vypadá hezky, jak je ta rovná čára a vzdálenost.
+        // Ty stupně tam vymaž, to je zbytečný."). V mapě je směr vidět ze samotné
+        // čáry, takže číslo ve stupních tam jen přidávalo šum. Na obrazovce AR
+        // azimut zůstává (pilulka na hraně displeje si ho počítá sama, viz updateEdge).
         if (hasGeo()) {
             var d = (pt.currentDist != null) ? pt.currentDist : getDistance(uLat, uLng, pt.lat, pt.lng);
-            var brg = (pt.currentBearing != null) ? pt.currentBearing : getBearing(uLat, uLng, pt.lat, pt.lng);
             var pos = labelLatLng(m, A, B);
             if (pos) {
                 var rot = (typeof mapRotation === 'number') ? mapRotation : 0;
                 var html = '<div style="position:relative;width:0;height:0;">'
                     + '<div class="map-label-text ag-cil-lbl" style="left:-30px;top:-20px;transform:rotate(' + rot + 'deg);">'
-                    + fmtD(d) + ' · ' + fmtAz(brg) + '</div></div>';
+                    + fmtD(d) + '</div></div>';
                 L.marker(pos, {
                     icon: L.divIcon({ className: 'custom-map-marker', html: html, iconSize: [0, 0] }),
                     interactive: false, keyboard: false

@@ -334,7 +334,10 @@
             '  border-radius:12px;background:transparent;color:var(--text-muted,#9aa1ac);cursor:pointer;',
             '  font:600 12.5px/1.35 var(--font-ui,system-ui);text-align:center;}',
             '.ag-fb-foot:active{border-color:var(--accent,#2f9e74);color:var(--accent,#2f9e74);}',
-            '.ag-fb-foot .ag-fb-fi{display:inline-block;width:16px;height:16px;flex:none;color:var(--accent,#2f9e74);}'
+            '.ag-fb-foot .ag-fb-fi{display:inline-block;width:16px;height:16px;flex:none;color:var(--accent,#2f9e74);}',
+            // Nahoře v Nástrojích to není patička, ale výzva — zvýrazněná,
+            // ať je hned vidět, kam se píše (viz injectFooters níž).
+            '.ag-fb-foot.ag-fb-top{margin:0 0 10px;background:var(--accent-soft,rgba(47,158,116,.13));border-color:var(--accent,#2f9e74);color:var(--accent,#2f9e74);font-weight:700;}'
         ].join('');
         document.head.appendChild(st);
     }
@@ -776,10 +779,25 @@
                 }
             }
         } catch (e) { swallow(e, 'injectFooters:set'); }
-        // b) Nástroje — pod mřížku dlaždic. Mimo .tool-grid, aby řádek nebral
-        //    hledání ani oprávněním schované dlaždice.
+        // b) Nástroje — ⚠⚠ NAHOŘE, HNED POD NADPISEM (na přání 8. 9. 2026).
+        //    Do této chvíle to byla PATIČKA pod mřížkou, tedy až za stovkou
+        //    dlaždic: „v tech nastrojich je to takovy schovany, tak kdyz kliknu
+        //    na nastroje, dej hnedka, at je to prvni, at je to tam proste
+        //    napevno, aby vzdycky jako bylo to snadny dohledat to psani."
+        //    Stojí PŘED polem hledání, takže je vidět bez jediného posunutí a
+        //    hledání ho neschová (je mimo .tool-grid, kterou filtr prochází).
         try {
-            if (!document.getElementById('ag-fb-foot-tools')) {
+            var stary = document.getElementById('ag-fb-foot-tools');
+            var mc = document.querySelector('#tools-modal .modal-content');
+            var hled = document.getElementById('tools-search');
+            if (mc && hled) {
+                if (!stary) { stary = footBtn('ag-fb-foot-tools'); stary.classList.add('ag-fb-top'); }
+                // i už vloženou patičku přesuň nahoru — telefony s appkou z minulé
+                // verze ji mají dole a tick by ji tam jinak nechal navždy
+                if (stary.previousElementSibling !== hled.previousElementSibling || stary.nextElementSibling !== hled) {
+                    mc.insertBefore(stary, hled);
+                }
+            } else if (!stary) {
                 var body = document.querySelector('#tools-modal .modal-body');
                 if (body) body.appendChild(footBtn('ag-fb-foot-tools'));
             }

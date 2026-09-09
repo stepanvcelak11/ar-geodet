@@ -13,6 +13,10 @@
         // ten se po opravce reloadu drzi jen skutecnych aktualizaci, a tohle pokryva i
         // pripad, kdy se stranka nactla BEZ controlleru (tvrdy reload) a uzivatel pak
         // na listu klepnul — jinak by se nova verze nasadila az pri dalsim spusteni.
+        // ⚠ applyUpdate() UŽ NIKDO NEVOLÁ Z LIŠTY (od 8. 9. 2026 se aktualizace bere
+        //   sama při startu, viz js/logika.js). Funkce tu zůstává jako ruční cesta
+        //   pro Nastavení → Údržba a pro starší uložené stránky, které ji mají
+        //   v inline onclick.
         function applyUpdate() { window.__agUpdateRequested = true; navigator.serviceWorker.getRegistration().then(reg => { if (reg && reg.waiting) reg.waiting.postMessage('SKIP_WAITING'); }); const b = document.getElementById('update-banner'); if (b) b.style.display = 'none'; }
 
         // ⚠⚠ 31. 8. 2026 — TOHLE SHAZOVALO CELÝ START APPKY.

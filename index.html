@@ -458,7 +458,14 @@
         </div>
         <div class="ap-hint">Klepni do mapy pro přidání vrcholu — nebo obejdi pozemek a přidávej „Můj bod" (použije průměrovanou GPS).</div>
     </div>
-    <div id="update-banner" onclick="applyUpdate()"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Nová verze — klepni pro obnovení</div>
+    <!-- ⚠⚠ LIŠTA UŽ NENÍ TLAČÍTKO (8. 9. 2026). Uživatel: „když přichází aktualizace,
+         tak ji dej, ať se aplikace aktualizuje tím způsobem, že tu aplikaci zapnu,
+         upozorní mě to na aktualizaci, vypnu aplikaci, zapnu ji a už to bude fungovat.
+         Žádný někde nějaký tlačítko, to je jako strašně náročný a zbytečný."
+         Novou verzi proto nasazuje SÁM start appky (viz registrace service workeru
+         v js/logika.js) a tahle lišta jen OZNAMUJE, že je připravená. Klikací zůstává
+         jedině roletka „Co je nového", kterou do ní přidává js/co-je-noveho.js. -->
+    <div id="update-banner"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Nová verze je připravená — použije se po zavření a spuštění aplikace</div>
     <div id="edge-glow"></div>
     <!-- Kompaktní panel průměrování GPS (jeden řádek) — klik otevře detail v modálu (vzor Azimut) -->
     <div id="gps-avg" class="glass-panel" onclick="openGpsAvgModal()">
@@ -498,24 +505,34 @@
             <input type="search" id="tools-search" class="tools-search" placeholder="Hledat nástroj…" autocomplete="off" oninput="window.agFilterTools && window.agFilterTools(this.value)">
             <div class="modal-body">
                 <div class="tool-grid">
-                    <div class="tool-cat">Měření</div>
+                    <div class="tool-cat">Změřit</div>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openMeasureModal();"><svg class="icon"><use href="#i-ruler"/></svg><span>Měření<br>vzdálenosti</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; startAreaMode();"><svg class="icon"><use href="#i-area"/></svg><span>Měření<br>plochy</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openCheckDist();"><svg class="icon"><use href="#i-omerne"/></svg><span>Oměrné /<br>kontrola</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openDmtVolume();"><svg class="icon"><use href="#i-volume"/></svg><span>Kubatury /<br>vrstevnice</span></button>
 
-                    <div class="tool-cat">Vytyčování a náčrt</div>
+                    <div class="tool-cat">Určit nový bod</div>
+
+                    <div class="tool-cat">Vytyčit</div>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openStakeoutModal();"><svg class="icon"><use href="#i-check"/></svg><span>Vytyčovací<br>checklist</span></button>
+
+                    <div class="tool-cat">Zaznamenat</div>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openTachymetrie();"><svg class="icon"><use href="#i-grid"/></svg><span>Náčrt /<br>Tachymetrie</span></button>
 
-                    <div class="tool-cat">Katastr a data</div>
-                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openKatastr();"><svg class="icon"><use href="#i-map-pin"/></svg><span>Katastr<br>(zde stojím)</span></button>
-                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openSatModal();"><svg class="icon"><use href="#i-satellite"/></svg><span>GNSS<br>satelity</span></button>
-
-                    <div class="tool-cat">AR a kalibrace</div>
+                    <div class="tool-cat">Srovnat AR</div>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; if(window.agOpenCalibrate) window.agOpenCalibrate();"><svg class="icon"><use href="#i-navigation"/></svg><span>Srovnat<br>sever</span></button>
 
-                    <div class="tool-cat">Pomůcky</div>
+                    <div class="tool-cat">Zjistit podmínky</div>
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openSatModal();"><svg class="icon"><use href="#i-satellite"/></svg><span>GNSS<br>satelity</span></button>
+
+                    <div class="tool-cat">Katastr a podklady</div>
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openKatastr();"><svg class="icon"><use href="#i-map-pin"/></svg><span>Katastr<br>(zde stojím)</span></button>
+
+                    <div class="tool-cat">Před výjezdem</div>
+
+                    <div class="tool-cat">Firma a papíry</div>
+
+                    <div class="tool-cat">Příručka a výpočty</div>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openCalcModal();"><svg class="icon"><use href="#i-calc"/></svg><span>Kalkulačka</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openDictModal();"><svg class="icon"><use href="#i-book"/></svg><span>Slovník</span></button>
                 </div>
