@@ -39,7 +39,13 @@ async function bootApp(page, context) {
     page.on('console', (m) => { if (m.type() === 'error' && !isIgnored(m.text())) errors.push('console: ' + m.text()); });
     page.on('pageerror', (e) => { const t = String(e); if (!isIgnored(t)) errors.push('pageerror: ' + t); });
 
-    await context.grantPermissions(['geolocation'], { origin: 'http://127.0.0.1:8099' });
+    // ⚠ SENZORY PATŘÍ K TELEFONU. Bez accelerometer/gyroscope/magnetometer se
+    //   v novějším Chromiu neodemkne kompas a appka (správně) hlásí, že nemá
+    //   povolený přístup k pohybu a orientaci — celoobrazovkovou hláškou, přes
+    //   kterou pak neprojde ani jeden klik.
+    await context.grantPermissions(
+        ['geolocation', 'accelerometer', 'gyroscope', 'magnetometer'],
+        { origin: 'http://127.0.0.1:8099' });
     await context.setGeolocation(PRAHA);
 
     // ⚠ HOST BYL 6. 9. 2026 ZRUSEN — bez profilu se do appky nedostane nikdo.
@@ -91,7 +97,21 @@ async function bootApp(page, context) {
     // Skutečný telefon posílá orientaci desetkrát za vteřinu — tak ji posílá i test.
     // Hodnoty jsou konstantní schválně: appce stačí živý senzor, otáčející se mapa
     // by jen rozhoupala ostatní testy. Init skript běží i po reloadu („den v terénu").
+    // ⚠⚠ A DRUHÁ POLOVINA TÉHOŽ: POVOLENÍ K POHYBU A ORIENTACI.
+    //   Kde prohlížeč zná `DeviceOrientationEvent.requestPermission` (iOS Safari a
+    //   novější Chromium), zeptá se appka na svolení — a mimo gesto uživatele
+    //   odpověď „granted" nepřijde. Appka pak zcela správně otevře hlášku „Kompas
+    //   nemá povolení", jenže ta zase leží přes celou obrazovku a spolkne kliky.
+    //   Grant výše to řeší tam, kde Chromium na permissions dá; tohle je pojistka
+    //   pro build, kde se ptá i tak. Emuluje se telefon, na kterém člověk přístup
+    //   POVOLIL — což je stav, ve kterém má smoke test appku zkoušet. Šahá se na to
+    //   jen tehdy, když ta funkce vůbec existuje, takže jinde se nemění nic.
     await page.addInitScript(() => {
+        for (const E of [window.DeviceOrientationEvent, window.DeviceMotionEvent]) {
+            if (E && typeof E.requestPermission === 'function') {
+                E.requestPermission = () => Promise.resolve('granted');
+            }
+        }
         const TICK = { alpha: 120, beta: 80, gamma: 2, absolute: true };
         const posli = () => {
             window.dispatchEvent(new DeviceOrientationEvent('deviceorientationabsolute', TICK));
@@ -148,7 +168,17 @@ async function bootApp(page, context) {
         });
         return jde;
     });
-    expect(blokuje, 'přes appku leží celoobrazovkový prvek — další testy by umřely na timeout').toEqual([]);
+    // Stav kompasu do hlášky: většina celoobrazovkových oken, která tady kdy
+    // vyskočila, byla právě o kompasu — a bez těchhle tří čísel se příčina hádá
+    // naslepo přes celé kolo CI (logy Actions jsou bez tokenu nedostupné).
+    const kompas = await page.evaluate(() => ({
+        maRequestPermission: (typeof DeviceOrientationEvent !== 'undefined')
+            ? typeof DeviceOrientationEvent.requestPermission : 'DeviceOrientationEvent chybí',
+        appHlasiOdmitnuti: !!window.AGCompassDenied,
+        rezim: document.body.classList.contains('cam-live') ? 'AR/dělené' : 'mapa',
+    }));
+    expect(blokuje, 'přes appku leží celoobrazovkový prvek — další testy by umřely na timeout.'
+        + ' Stav kompasu: ' + JSON.stringify(kompas)).toEqual([]);
 
     return errors;
 }

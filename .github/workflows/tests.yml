@@ -91,14 +91,36 @@ jobs:
       # zadne.
       - name: Regrese v prohlizeci (Playwright pro Python)
         run: |
+          # ⚠ test_jednoduchy_rezim pribyl 9. 9. 2026: sada k v282 v repu LEZELA,
+          #   ale nepoustelo ji NIC — nejnovejsi funkce appky (a ta, kterou uvidi
+          #   tester jako prvni) byla jako jedina bez hlidace.
+          # ⚠⚠ CHYBA MUSI DO ::error:: ANOTACE. Logy behu Actions jsou pro
+          #   neprihlaseneho nedostupne (HTTP 403), takze kdyz tenhle krok spadl,
+          #   nebylo JAK zjistit ktery test a proc — API vratilo jen "Process
+          #   completed with exit code 1". Stejny duvod, proc ma smoke test
+          #   reporter 'github' (viz playwright.config.mjs).
+          # ⚠ Nekonci se u prvniho padu: projdou se VSECHNY sady a teprve pak se
+          #   krok utne. Jinak jedna vada schova zbytek a opravuje se po kolech.
+          spadlo=""
           for t in test_opravy_3_9 test_uhlazeni_31_8 test_navrhy_d2 test_vypinac \
                    test_vlastnik test_opravy_31_8 test_gps_rozumim test_body_paleta \
                    test_lomena_osa test_napsat_autorovi test_pro_verze test_vydani \
-                   test_ucty_prostory; do
+                   test_ucty_prostory test_jednoduchy_rezim; do
             echo "::group::$t"
-            python "scripts/$t.py" || { echo "-- prvni beh selhal, opakuji jednou --"; python "scripts/$t.py"; }
+            if ! python "scripts/$t.py" > "/tmp/$t.log" 2>&1; then
+              cat "/tmp/$t.log"
+              echo "-- prvni beh selhal, opakuji jednou --"
+              if ! python "scripts/$t.py" > "/tmp/$t.log" 2>&1; then
+                cat "/tmp/$t.log"
+                echo "::error title=Regrese $t::$(grep -E 'CHYBA|Error|error:' "/tmp/$t.log" | head -n 6 | tr '\n' ' ' | cut -c1-700)"
+                spadlo="$spadlo $t"
+              fi
+            else
+              cat "/tmp/$t.log"
+            fi
             echo "::endgroup::"
           done
+          if [ -n "$spadlo" ]; then echo "::error::Padly regresni sady:$spadlo"; exit 1; fi
 
       - name: Regrese ve V8 (bez prohlizece)
         run: |
