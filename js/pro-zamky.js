@@ -356,8 +356,14 @@
         //   žádná dlaždice neměla data-agpro, a přesto 21 dlaždic místo nástroje
         //   otevíralo kartu „Verze Pro". Přesně to hlásil uživatel 8. 9. 2026:
         //   „ani mi to neodemkne tu pro verzi, jenom vidím nějaký věci návrh".
-        if (!jeZaklad()) return;   // v Pro balíčku moduly JSOU — zástupce by je přepsal
-        if (maPro()) return;       // s odemčeným Pro nemá zástupce co zastupovat
+        // ⚠⚠ ROZHODUJE VÝHRADNĚ VYDÁNÍ, NE TO, JESTLI JE PRO ODEMČENÉ.
+        //   Nejdřív tu stálo i `if (maPro()) return;` — a byla by to nová vada:
+        //   v balíčku ZÁKLAD Pro moduly VŮBEC NEJSOU, takže zástupná dlaždice je
+        //   jediná zmínka o tom, že takový nástroj existuje, a jediná cesta na
+        //   /pro/ (kartu s odkazem otevírá otevriKartu). Kdo si v Základu opíše
+        //   klíč, přišel by tím o všechny ty řádky naráz.
+        //   V balíčku PRO (co má vlastník) moduly jsou — a tam zástupce škodí.
+        if (!jeZaklad()) return;
         _zastupciHotovi = true;
         try {
             var klice = AGReg.proKeys();

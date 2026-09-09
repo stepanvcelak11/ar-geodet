@@ -426,6 +426,25 @@
     function writePref(on) { try { localStorage.setItem(LS_KEY, on ? '1' : '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-visual-track:writePref'); } }
 
     function setEnabled(on, useXR) {
+        // ⚠ ZÁMEK PRO VERZE JE TADY, NE U PŘEPÍNAČE. Přepínače jsou DVA —
+
+        //   v Nastavení → AR (#agvt-settings-cb) a v okně samotného nástroje
+
+        //   (#agvt-cb). Odchyt kliku v js/pro-zamky.js sem nedosáhne (hledá
+
+        //   dlaždici) a u <input type=checkbox> se stav mění dřív, než by ho
+
+        //   stihl zastavit. Jedno místo pro obě cesty.
+
+        if (on && window.AGProZamky && AGProZamky.zamceno('ar-visual-track')) {
+
+            try { syncUi(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-visual-track:zamek'); }
+
+            AGProZamky.karta('ar-visual-track');
+
+            return;
+
+        }
         writePref(!!on);
         if (on) {
             if (mode === 'xr' || mode === 'flow') return;   // už běží
@@ -533,19 +552,7 @@
         sw.className = 'st-sw';
         var cb = document.createElement('input');
         cb.type = 'checkbox'; cb.id = 'agvt-settings-cb'; cb.checked = !!enabled;
-        cb.addEventListener('change', function () {
-            // ⚠ Vstup MIMO mřížku nástrojů: odchyt kliku v js/pro-zamky.js
-            //   hledá dlaždici (data-tool / .tool-tile), takže sem nedosáhne
-            //   a Pro nástroj by šel v Základu otevřít bez klíče.
-            //   Samotné `data-tool` navíc NESTAČÍ: u <input type=checkbox> se stav
-            //   změní dřív, než by ho odchyt stihl zastavit, takže se musí vrátit ručně.
-            if (window.AGProZamky && AGProZamky.zamceno('ar-visual-track')) {
-                cb.checked = false;
-                AGProZamky.karta('ar-visual-track');
-                return;
-            }
-            setEnabled(cb.checked, false);
-        });
+        cb.addEventListener('change', function () { setEnabled(cb.checked, false); });
         var face = document.createElement('span'); face.className = 'st-sw-face';
         sw.appendChild(cb); sw.appendChild(face);
         row.appendChild(lab); row.appendChild(sw);

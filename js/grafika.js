@@ -295,11 +295,14 @@
         //   (2) 'denied' na dotaz mimo gesto se nehlásí jako zamítnutí; (3) po každém
         //   zamítnutí se JEDNOU ozbrojí opakování na příští dotek a příznak se uklidí.
         let _gestoTed = false;
+        // ⚠ PASIVNĚ. Nepasivní capture posluchač `touchstart` na documentu brzdí
+        //   rolování a posun mapy (Chrome to hlásí jako 'non-passive event listener').
+        //   Značka se jen čte, takže preventDefault stejně nepotřebujeme.
         ['pointerdown', 'touchstart', 'touchend', 'click', 'keydown'].forEach(function (t) {
             document.addEventListener(t, function () {
                 _gestoTed = true;
                 setTimeout(function () { _gestoTed = false; }, 0);
-            }, true);
+            }, { capture: true, passive: true });
         });
         function vGestuUzivatele() {
             try {
@@ -316,16 +319,16 @@
             if (_cekamNaDotyk) return;
             _cekamNaDotyk = true;
             const go = () => {
-                document.removeEventListener('click', go, true);
-                document.removeEventListener('touchend', go, true);
+                document.removeEventListener('click', go, { capture: true });
+                document.removeEventListener('touchend', go, { capture: true });
                 _cekamNaDotyk = false;
                 compassStarted = false;
                 _deniedRetryArmed = false;
                 try { window.AGCompassDenied = false; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:kompasAzPoDoteku'); }
                 startCompass();
             };
-            document.addEventListener('click', go, true);
-            document.addEventListener('touchend', go, true);
+            document.addEventListener('click', go, { capture: true, passive: true });
+            document.addEventListener('touchend', go, { capture: true, passive: true });
         }
         let _deniedRetryArmed = false;
 
@@ -2368,7 +2371,13 @@
             if (_compassSilentShown || window.AGCompassDenied) return;   // odmítnuté oprávnění má vlastní, přesnější hlášku
             _compassSilentShown = true;
             const msg = 'Z kompasu telefonu nepřišel ani jeden údaj o směru, takže AR neví, kam míříš — značky se v obraze neobjeví.<br><br>• Na iPhonu bývá důvodem vypnutý přístup k <b>pohybu a orientaci</b> (Nastavení → Safari → Pohyb a orientace).<br>• Některé tablety a starší telefony magnetometr nemají vůbec.<br><br>Mapa, měření i ukládání bodů fungují dál.';
-            const zkusitZnovu = () => { compassStarted = false; _compassSilentShown = false; _compassSilentFrom = 0; startCompass(); };
+            const zkusitZnovu = () => {
+                compassStarted = false; _compassSilentShown = false; _compassSilentFrom = 0;
+                // ⚠ Táž proměnná jako v compassPermissionDenied — bez uvolnění by
+                //   ozbrojení pokusu na další dotek zůstalo vyčerpané.
+                _deniedRetryArmed = false;
+                startCompass();
+            };
             if (window.agConfirm) window.agConfirm({ title: 'Kompas mlčí', message: msg, okText: 'Zkusit znovu', cancelText: 'Zavřít' }).then(yes => { if (yes) zkusitZnovu(); });
             else if (window.agAlert) window.agAlert({ title: 'Kompas mlčí', message: msg });
             else agInfo(msg.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ''));
