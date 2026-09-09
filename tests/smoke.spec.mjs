@@ -314,25 +314,15 @@ test('REGRESE: vstupy modulů a řádek terénu se vloží', async ({ page, cont
     const warns = [];
     page.on('console', (m) => { if (m.type() === 'warning' && /insertBefore/.test(m.text())) warns.push(m.text()); });
 
-    await page.addInitScript(() => {
-        try {
-            const UID = 'test-user-1';
-            localStorage.setItem('agFirma_v1', JSON.stringify({
-                enabled: true, cloud: false, firmName: 'Testovaci mereni',
-                perms: {}, users: [{ id: UID, name: 'Tester', role: 'admin' }],
-                fetchedTs: Date.now()
-            }));
-            localStorage.setItem('agFirmaSess_v1', JSON.stringify({ userId: UID, ts: Date.now() }));
-            localStorage.setItem('agLockStart_v1', '0');
-            localStorage.removeItem('agGuest_v1');
-            localStorage.setItem('agTutProSeen', '1');
-            localStorage.setItem('agBrifinkAuto', '0');
-            localStorage.setItem('agBrifinkLastShown', new Date().toISOString().slice(0, 10));
-        } catch (e) { }
-    });
-    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
-    await expect.poll(() => page.evaluate(() => document.body.classList.contains('app-started')), { timeout: 20000 }).toBe(true);
-    await page.waitForTimeout(2500);
+    // ⚠⚠ STARTUJE SE PŘES bootApp, NE VLASTNÍ CESTOU. Tenhle test si dřív appku
+    //   rozjížděl sám (vlastní init skript + goto) a byl JEDINÝ takový v souboru.
+    //   Tím si ale nechal ujít všechno, co bootApp pro test zařizuje — hlavně
+    //   ŽIVÝ KOMPAS a povolení k pohybu a orientaci. Appka proto po 8 s otevřela
+    //   celoobrazovkovou hlášku o kompasu a klepnutí na „Více" umřelo na timeout:
+    //   9. 9. 2026 zbyl po opravě zbytku sady jako poslední červený test a sám
+    //   držel nasazení. Seed byl přitom TOTOŽNÝ s tím v bootApp, jen opsaný.
+    //   Dvě cesty do appky = jedna z nich zaostane; ať je tedy jedna.
+    await bootApp(page, context);
 
     await expect(page.locator('#zpr-menu-btn'), 'tlačítko Geo zpravodaj v bočním menu').toHaveCount(1);
     await expect.poll(() => page.evaluate(
