@@ -270,16 +270,83 @@
         // zatímco stavová bublina dál smířlivě hlásila „sever jede z kompasu telefonu".
         // Hlášku ukazujeme jednou za spuštění — startCompass() běží při každém přepnutí zobrazení.
         let _compassDeniedShown = false;
+
+        // ⚠⚠⚠ KOMPAS SE PTÁ NA POVOLENÍ JEN V GESTU UŽIVATELE (oprava 8. 9. 2026).
+        //   HLÁŠENÍ: „Kompas nemá povolení, přitom ho celou dobu měl, ale prostě
+        //   z ničeho nic to přestalo fungovat" — a v navigaci k bodu chyběla šipka.
+        //
+        //   CO SE DĚLO. Na iOS smí DeviceOrientationEvent.requestPermission() jen
+        //   uvnitř skutečného doteku. Appka se ale ptá HNED PŘI STARTU (řetěz
+        //   startAppFromWelcome → applyViewMode → startCompass; v jednoduchém režimu
+        //   ještě dřív z js/jednoduchy-rezim.js přes událost 'ag:app-started'), a to
+        //   gesto není — appka se dnes otevírá sama. WebKit v takovém případě promise
+        //   NEZAMÍTNE, ale SPLNÍ ji hodnotou 'denied'. Ten stav byl k nerozeznání od
+        //   „uživatel klepl na Nepovolit".
+        //
+        //   PROČ AŽ TEĎ. Do v274 se na jinou odpověď než 'granted' nedělalo NIC.
+        //   Commit 4c346c3 přidal `if (permission !== 'granted') { compassPermissionDenied(); }`
+        //   — chování iOS se nezměnilo, změnila se reakce appky na jeho odpověď.
+        //   Naměřeno: podstrčené requestPermission vracející resolve('denied') → okno
+        //   „Kompas nemá povolení" hned po startu, AGCompassDenied = true a ani po
+        //   čtyřech dotecích se pokus NEZOPAKOVAL (compassPermissionDenied na rozdíl
+        //   od větve catch žádný posluchač nevěší) → kompas mrtvý do konce běhu.
+        //
+        //   OPRAVA MÁ TŘI ČÁSTI: (1) mimo gesto se vůbec neptáme a počkáme na dotek;
+        //   (2) 'denied' na dotaz mimo gesto se nehlásí jako zamítnutí; (3) po každém
+        //   zamítnutí se JEDNOU ozbrojí opakování na příští dotek a příznak se uklidí.
+        let _gestoTed = false;
+        ['pointerdown', 'touchstart', 'touchend', 'click', 'keydown'].forEach(function (t) {
+            document.addEventListener(t, function () {
+                _gestoTed = true;
+                setTimeout(function () { _gestoTed = false; }, 0);
+            }, true);
+        });
+        function vGestuUzivatele() {
+            try {
+                if (navigator.userActivation && typeof navigator.userActivation.isActive === 'boolean') return navigator.userActivation.isActive;
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:vGestuUzivatele'); }
+            return _gestoTed;   // Safari < 16.4 navigator.userActivation nezná
+        }
+        // Počkat na PRVNÍ skutečný dotek a teprve pak se zeptat. ⚠ Poslouchá se i
+        // 'touchend', ne jen 'click': dotek, který skončí tažením (posun mapy, swipe
+        // mezi stránkami menu, rolování seznamu bodů) na iOS žádný 'click' nevyvolá —
+        // a tažení je na mapě většinou to úplně první, co člověk udělá.
+        let _cekamNaDotyk = false;
+        function kompasAzPoDoteku() {
+            if (_cekamNaDotyk) return;
+            _cekamNaDotyk = true;
+            const go = () => {
+                document.removeEventListener('click', go, true);
+                document.removeEventListener('touchend', go, true);
+                _cekamNaDotyk = false;
+                compassStarted = false;
+                _deniedRetryArmed = false;
+                try { window.AGCompassDenied = false; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:kompasAzPoDoteku'); }
+                startCompass();
+            };
+            document.addEventListener('click', go, true);
+            document.addEventListener('touchend', go, true);
+        }
+        let _deniedRetryArmed = false;
+
         function compassPermissionDenied() {
             compassStarted = false;            // jinak by další startCompass() hned vypadl na stráži nahoře
             window.AGCompassDenied = true;     // čte stavový pruh (arState) -> červený stav „Kompas nepovolen"
+            // I skutečné zamítnutí smí dostat druhou šanci: kdo si v Nastavení telefonu
+            // „Pohyb a orientaci" zapne a vrátí se, nemusí kvůli tomu appku restartovat.
+            // Jednou za běh, ať se requestPermission nevolá při každém ťuknutí.
+            if (!_deniedRetryArmed) { _deniedRetryArmed = true; kompasAzPoDoteku(); }
             if (_compassDeniedShown) return;
             _compassDeniedShown = true;
             const msg = 'Telefon nepustil aplikaci k <b>pohybu a orientaci</b>, takže kompas mlčí a AR nemá podle čeho otáčet obraz — značky ani šipka se neukážou.<br><br><b>Jak to vrátit:</b><br>• <b>Safari:</b> Nastavení → Safari → <b>Pohyb a orientace</b> zapnout a stránku načíst znovu.<br>• <b>Ikona na ploše (PWA):</b> iOS se už sám znovu nezeptá — ikonu smaž a přidej aplikaci na plochu znovu (uložená data zůstanou).<br><br>Bez kompasu funguje vše ostatní: mapa, měření i ukládání bodů.';
             // „Zkusit znovu" musí projít AŽ po compassStarted = false, jinak neudělá nic. Klik na
             // tlačítko je skutečné gesto uživatele, takže requestPermission() smí ven; kdyby iOS
             // aktivaci přesto neuznal, promise spadne a chytí ji .catch() níž (pokus na další ťuknutí).
-            const zkusitZnovu = () => { compassStarted = false; _compassDeniedShown = false; startCompass(); };
+            const zkusitZnovu = () => {
+                compassStarted = false; _compassDeniedShown = false; _deniedRetryArmed = false;
+                try { window.AGCompassDenied = false; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:zkusitZnovu'); }
+                startCompass();
+            };
             if (window.agConfirm) window.agConfirm({ title: 'Kompas nemá povolení', message: msg, okText: 'Zkusit znovu', cancelText: 'Zavřít' }).then(yes => { if (yes) zkusitZnovu(); });
             else if (window.agAlert) window.agAlert({ title: 'Kompas nemá povolení', message: msg });
             else agInfo(msg.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ''));
@@ -290,18 +357,26 @@
         function startCompass() {
             if (compassStarted) return; compassStarted = true;
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                // ① MIMO GESTO SE VŮBEC NEPTÁME. Dotaz by na iOS stejně neprošel a
+                //    vrátil by 'denied', které appka dřív vydávala za rozhodnutí
+                //    uživatele. Radši počkáme na první dotek — ten přijde do vteřin.
+                //    ⚠ Tahle jediná podmínka je celá oprava. Do 'then' se od téhle chvíle
+                //    dostane výhradně odpověď na dotaz, který si uživatel vyvolal
+                //    dotekem — a 'denied' z takového dotazu UŽ zamítnutí opravdu je.
+                if (!vGestuUzivatele()) { compassStarted = false; kompasAzPoDoteku(); return; }
                 DeviceOrientationEvent.requestPermission().then(permission => {
                     if (permission !== 'granted') { compassPermissionDenied(); return; }
                     window.AGCompassDenied = false;
+                    _deniedRetryArmed = false;
                     window.addEventListener('deviceorientation', handleOrientation);
                     // Kalibrační okno až TEĎ: dřív se otevíralo ještě před odpovědí na oprávnění,
                     // takže na odmítnutém iPhonu viselo „Zkalibrujte kompas" s ukazatelem navždy
                     // na 0 % — jeho postup krmí až události kompasu, které nikdy nepřijdou.
                     showCompassCalibHint();
                 }).catch(() => {
+                    // promise spadla = gesto iOS neuznal; zkusit na příští dotek
                     compassStarted = false;
-                    const retry = () => { document.removeEventListener('click', retry, true); startCompass(); };
-                    document.addEventListener('click', retry, true);
+                    kompasAzPoDoteku();
                 });
             } else {
                 showCompassCalibHint();
@@ -2086,6 +2161,13 @@
             // Bez tohohle čísla uživatel nemá jak poznat, že na hustém staveništi kouká
             // na neúplný obraz — a strop je přitom skrytý na posuvníku v Nastavení.
             let _cappedCount = 0;
+            // ⚠⚠ VLASTNÍ STROP PRO VZDÁLENÝ VÝBĚR (js/ar-dosah.js). Vybraných bodů
+            //   můžou být stovky (výřez katastru z 1,5 km na stranu jich má běžně
+            //   tolik). Kdyby obcházely `maxPts` jako navigovaný cíl — ten je vždycky
+            //   JEDEN — počítala by se každý snímek kompasu projekce a přepisoval
+            //   transform stovkám značek. Na obrazovku se jich stejně vejde hrstka.
+            const MAX_DALEKO = 25;
+            let _farCount = 0;
             let _arMissingEl = false;   // narazili jsme na bod bez DOM elementu?
 
             let maxPts = visSettings.maxARPoints || 100; let vOffset = visSettings.arVerticalOffset || 0;
@@ -2132,9 +2214,12 @@
                 const distance = pt.currentDist || getDistance(_oLat, _oLng, pt.lat, pt.lng);
                 let isSelectedForDetail = (pt.id === activePointIdForModal);
                 if (distance > arRadius && !_keepFar) { isVisible = false; _beyond = true; }
-                // Strop počtu značek: vybraný vzdálený bod se do něj nepočítá stejně
-                // jako navigovaný cíl — jinak by ho spolklo bodové pole u nohou.
+                // Strop počtu značek. Navigovaný cíl a otevřený bod ho obcházejí (jsou
+                // vždy nejvýš dva), vzdálený VÝBĚR má strop vlastní — viz MAX_DALEKO.
                 if (isVisible && !_keepFar) { if (renderedCount >= maxPts) { isVisible = false; _cappedCount++; } else { renderedCount++; } }
+                else if (isVisible && _vzdyAR && pt.id !== highlightedPointId && !isSelectedForDetail) {
+                    if (_farCount >= MAX_DALEKO) { isVisible = false; _cappedCount++; } else { _farCount++; }
+                }
                 if (!isVisible) { if (pt.element && pt._opLast !== '0') { pt.element.style.opacity = '0'; pt.element.style.pointerEvents = 'none'; pt._opLast = '0'; } continue; }
                 // Bod bez DOM elementu (pridany do arPoints az po poslednim initARMarkers —
                 // import, cloud sync, rajon...): preskocit a na konci snimku si element nechat

@@ -34,7 +34,10 @@
 
     var KEY = 'agArVzdy_v1';          // seznam id (per zakázka — přes setStoredData)
     var STYLE_ID = 'ag-dosah-style';
-    var MAX_BODU = 400;               // strop výběru, ať se řez nezruší úplně
+    // ⚠ Strop VÝBĚRU. Na obrazovce jich stejně naráz svítí nejvýš MAX_DALEKO (25,
+    //   js/grafika.js) — tenhle strop je proti tomu, aby se řez v renderAR nezrušil
+    //   úplně: každý vybraný bod se totiž prochází i za koncem dosahu.
+    var MAX_BODU = 250;
     var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
         + '<path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/>'
         + '<circle cx="12" cy="12" r="2.2"/></svg>';

@@ -117,11 +117,14 @@ async def test_vlastnik(ctx):
     await ctx.add_init_script(BOOT_VLASTNIK)
     await nacti(page, "!!document.getElementById('ag-gate') || !!document.body.classList.contains('app-started')")
 
+    for _ in range(40):
+        if await page.evaluate("() => !!document.getElementById('ag-gate')"):
+            break
+        await page.wait_for_timeout(500)
     st = await page.evaluate("""() => ({
         brana: !!document.getElementById('ag-gate'),
         bezi: document.body.classList.contains('app-started'),
-        znakMaGesto: !!(document.querySelector('#ag-gate .agl-mark') || {}).getAttribute
-                     && document.querySelector('#ag-gate .agl-mark').getAttribute('data-agv') === '1'
+        vlastnik: (() => { try { return localStorage.getItem('agVlastnik_v1'); } catch (e) { return '?'; } })()
     })""")
     ok('brana se ukaze i vlastnikovi', st['brana'], st)
     ok('appka pod branou jeste nebezi', not st['bezi'], st)
@@ -181,9 +184,12 @@ async def test_mrizka(ctx):
     await page.evaluate("() => window.AGLazy && AGLazy.flush()")
     await page.wait_for_timeout(2500)
     await page.evaluate("() => { document.getElementById('tools-modal').style.display='flex'; }")
-    for _ in range(30):
-        n = await page.evaluate("() => document.querySelectorAll('#tools-modal .tool-tile').length")
-        if n > 60:
+    for _ in range(40):
+        st0 = await page.evaluate("""() => ({
+            dlazdic: document.querySelectorAll('#tools-modal .tool-tile').length,
+            fb: !!document.getElementById('ag-fb-foot-tools')
+        })""")
+        if st0['dlazdic'] > 60 and st0['fb']:
             break
         await page.wait_for_timeout(500)
     await page.wait_for_timeout(800)
@@ -409,6 +415,66 @@ async def test_dosah(ctx):
     await page.close()
 
 
+# ------------------------------------------------ I) kompas se pta jen v gestu
+# Podstrcime iOS API: requestPermission, ktere si vede pocitadlo a vraci 'denied'.
+# Presne tak se chova WebKit na dotaz MIMO gesto uzivatele — a prave to appka do
+# 8. 9. 2026 vydavala za "uzivatel nepovolil".
+IOS = """
+  window.__ios = { volani: 0, gesta: [] };
+  window.DeviceOrientationEvent = window.DeviceOrientationEvent || function () {};
+  window.DeviceOrientationEvent.requestPermission = function () {
+    window.__ios.volani++;
+    var g = false;
+    try { g = !!(navigator.userActivation && navigator.userActivation.isActive); } catch (e) {}
+    window.__ios.gesta.push(g);
+    return Promise.resolve('denied');
+  };
+"""
+
+
+async def test_kompas(ctx):
+    print('\n--- I) kompas: dotaz na povoleni jen v geste uzivatele ---')
+    page = await ctx.new_page()
+    chyby = []
+    page.on('pageerror', lambda e: chyby.append(str(e)[:200]))
+    await ctx.add_init_script(BOOT + IOS)
+    await nacti(page, "document.body.classList.contains('app-started')")
+    await page.wait_for_timeout(2500)
+
+    st = await page.evaluate("""() => ({
+        volani: window.__ios.volani, gesta: window.__ios.gesta,
+        odepren: !!window.AGCompassDenied,
+        okno: !!document.querySelector('.ag-dlg, .modal-overlay[style*="flex"]') &&
+              (document.body.innerText || '').includes('Kompas nemá povolení')
+    })""")
+    ok('pri startu se appka na povoleni NEPTA', st['volani'] == 0, st)
+    ok('okno "Kompas nema povoleni" po startu nenaskoci', not st['okno'], st)
+    ok('priznak AGCompassDenied neni nastaveny', not st['odepren'], st)
+
+    # skutecny dotek: ted uz se ptat SMI (a odpoved 'denied' uz zamitnuti opravdu je)
+    await page.touchscreen.tap(200, 500)
+    await page.wait_for_timeout(1500)
+    st = await page.evaluate("""() => ({
+        volani: window.__ios.volani, gesta: window.__ios.gesta,
+        odepren: !!window.AGCompassDenied
+    })""")
+    ok('po doteku se appka zepta', st['volani'] >= 1, st)
+    ok('dotaz probehl v geste uzivatele', bool(st['gesta']) and all(st['gesta']), st)
+    ok('teprve ted se hlasi zamitnuti', st['odepren'], st)
+
+    # a po dalsim doteku se pokus zopakuje (drive uz nikdy)
+    pred = st['volani']
+    await page.evaluate("() => { const d = document.querySelector('.ag-dlg-x, .ag-dlg button'); if (d) d.click(); }")
+    await page.wait_for_timeout(400)
+    await page.touchscreen.tap(120, 300)
+    await page.wait_for_timeout(1200)
+    st = await page.evaluate("() => ({ volani: window.__ios.volani })")
+    ok('pokus se po dalsim doteku zopakuje', st['volani'] > pred, {'pred': pred, 'po': st['volani']})
+
+    ok('bez chyb v konzoli', not chyby, chyby[:3])
+    await page.close()
+
+
 async def main():
     from playwright.async_api import async_playwright
     srv = server()
@@ -418,7 +484,7 @@ async def main():
     try:
         async with async_playwright() as p:
             b = await p.chromium.launch()
-            for fn in (test_vlastnik, test_mrizka, test_mapa, test_dosah):
+            for fn in (test_vlastnik, test_mrizka, test_mapa, test_dosah, test_kompas):
                 ctx = await b.new_context(viewport={'width': 412, 'height': 915},
                                           is_mobile=True, has_touch=True,
                                           permissions=['geolocation'], geolocation=GEO,
