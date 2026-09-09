@@ -287,29 +287,7 @@
             if (compassStarted) return; compassStarted = true;
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                 DeviceOrientationEvent.requestPermission().then(permission => {
-                    if (permission !== 'granted') {
-                        // ⚠⚠ ODMITNUTI, O KTERE NIKDO NEPOZADAL, SE NEHLASI.
-                        // startCompass() bezi i pri automatickem rozjezdu AR, tedy MIMO
-                        // gesto uzivatele. Na iOS v takovem pripade promise SPADNE a chyti
-                        // ji .catch() nize (zkusi to po prvnim doteku) — jenze prohlizec,
-                        // ktery misto vyjimky v klidu vrati 'denied', poslal cloveka rovnou
-                        // do celoobrazovkove hlasky "Kompas nema povoleni", presto ze se ho
-                        // nikdo na nic nezeptal. Naslo se to 9. 9. 2026 na runneru CI, kde
-                        // takovy Chromium uz je; na telefonu by to znamenalo mrtve AR hned
-                        // po startu a hlasku, kterou nejde nijak splnit.
-                        // Kdyz clovek displeje jeste nesahnul, chovame se stejne jako u
-                        // vyjimky: ticho a novy pokus pri prvnim doteku (to uz JE gesto,
-                        // takze se smi zeptat doopravdy). Kdyz uz gesto probehlo, je
-                        // 'denied' skutecna odpoved uzivatele a hlaska patri ven.
-                        var bezGesta = !(navigator.userActivation && navigator.userActivation.hasBeenActive);
-                        if (bezGesta) {
-                            compassStarted = false;
-                            const znovu = () => { document.removeEventListener('click', znovu, true); startCompass(); };
-                            document.addEventListener('click', znovu, true);
-                            return;
-                        }
-                        compassPermissionDenied(); return;
-                    }
+                    if (permission !== 'granted') { compassPermissionDenied(); return; }
                     window.AGCompassDenied = false;
                     window.addEventListener('deviceorientation', handleOrientation);
                     // Kalibrační okno až TEĎ: dřív se otevíralo ještě před odpovědí na oprávnění,
