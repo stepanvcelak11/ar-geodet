@@ -441,28 +441,28 @@ async def main():
             geo = {'latitude': 50.08, 'longitude': 14.43, 'accuracy': 3}
 
             print('\n--- A) omezeny rezim (host) ---')
-            ctx = await browser.new_context(viewport={'width': 412, 'height': 915}, has_touch=True,
+            ctx = await browser.new_context(locale='cs-CZ', viewport={'width': 412, 'height': 915}, has_touch=True,
                                             permissions=['geolocation'], geolocation=geo)
             await ctx.add_init_script(BOOT_HOST)
             await test_host(ctx)
             await ctx.close()
 
             print('\n--- B/C/D/F) seznam ukonu, karta bodu, usazeni oken, bublina ---')
-            ctx = await browser.new_context(viewport={'width': 412, 'height': 915}, has_touch=True,
+            ctx = await browser.new_context(locale='cs-CZ', viewport={'width': 412, 'height': 915}, has_touch=True,
                                             permissions=['geolocation'], geolocation=geo)
             await ctx.add_init_script(BOOT_ADMIN)
             await test_admin(ctx)
             await ctx.close()
 
             print('\n--- G) panel firmy ocima zamestnance ---')
-            ctx = await browser.new_context(viewport={'width': 412, 'height': 915}, has_touch=True,
+            ctx = await browser.new_context(locale='cs-CZ', viewport={'width': 412, 'height': 915}, has_touch=True,
                                             permissions=['geolocation'], geolocation=geo)
             await ctx.add_init_script(BOOT_ZAM)
             await test_firmy(ctx)
             await ctx.close()
 
             print('\n--- E) prohlidka okoli ---')
-            ctx = await browser.new_context(viewport={'width': 412, 'height': 915}, has_touch=True,
+            ctx = await browser.new_context(locale='cs-CZ', viewport={'width': 412, 'height': 915}, has_touch=True,
                                             permissions=['geolocation'], geolocation=geo)
             await ctx.add_init_script(BOOT_ADMIN)
             await test_prohlidka(ctx)

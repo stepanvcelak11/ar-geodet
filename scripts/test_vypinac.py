@@ -95,7 +95,7 @@ async def main():
     try:
         async with async_playwright() as pw:
             browser = await pw.chromium.launch()
-            ctx = await browser.new_context(viewport={'width': 412, 'height': 915})
+            ctx = await browser.new_context(locale='cs-CZ', viewport={'width': 412, 'height': 915})
             await ctx.add_init_script(BOOT.replace('__FAKE__', json.dumps(FAKE)))
             page = await ctx.new_page()
             errs = []

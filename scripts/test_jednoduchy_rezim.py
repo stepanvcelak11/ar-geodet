@@ -422,7 +422,7 @@ async def main():
             browser = await pw.chromium.launch()
             for boot, fn in ((BOOT, test_zapnuti), (BOOT, test_provoz), (BOOT, test_nazev),
                              (BOOT_ZAPNUTO, test_po_restartu)):
-                ctx = await browser.new_context(viewport={'width': 412, 'height': 915}, has_touch=True,
+                ctx = await browser.new_context(locale='cs-CZ', viewport={'width': 412, 'height': 915}, has_touch=True,
                                                 permissions=['geolocation'], geolocation=GEO,
                                                 service_workers='block')
                 await ctx.add_init_script(boot)

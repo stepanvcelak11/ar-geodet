@@ -322,7 +322,7 @@ async def main():
     try:
         async with async_playwright() as p:
             b = await p.chromium.launch()
-            ctx = await b.new_context(viewport={'width': 390, 'height': 844},
+            ctx = await b.new_context(locale='cs-CZ', viewport={'width': 390, 'height': 844},
                                       user_agent='Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) '
                                                  'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile Safari/604.1',
                                       service_workers='block')

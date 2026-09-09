@@ -161,7 +161,7 @@ async def za_behu(url):
     chyby, ch404 = [], []
     async with async_playwright() as pw:
         br = await pw.chromium.launch()
-        ctx = await br.new_context(viewport={'width': 390, 'height': 844})
+        ctx = await br.new_context(locale='cs-CZ', viewport={'width': 390, 'height': 844})
         page = await ctx.new_page()
         page.on('pageerror', lambda e: chyby.append('pageerror: ' + str(e)))
         page.on('console', lambda m: chyby.append('console: ' + m.text) if m.type == 'error' else None)

@@ -520,25 +520,25 @@ async def main():
             browser = await pw.chromium.launch()
             geo = {'latitude': 50.08, 'longitude': 14.43, 'accuracy': 3}
             for boot, fn in ((BOOT_ADMIN, test_kos), (BOOT_ZAM, test_hledani_prava), (BOOT_ADMIN, test_hledani_nazvu)):
-                ctx = await browser.new_context(viewport={'width': 412, 'height': 915}, has_touch=True,
+                ctx = await browser.new_context(locale='cs-CZ', viewport={'width': 412, 'height': 915}, has_touch=True,
                                                 permissions=['geolocation'], geolocation=geo)
                 await ctx.add_init_script(boot)
                 await fn(ctx)
                 await ctx.close()
 
-            ctx = await browser.new_context(viewport={'width': 412, 'height': 915}, has_touch=True,
+            ctx = await browser.new_context(locale='cs-CZ', viewport={'width': 412, 'height': 915}, has_touch=True,
                                             permissions=['geolocation'], geolocation=geo,
                                             service_workers='block')
             await test_blokace(ctx, base)
             await ctx.close()
 
-            ctx = await browser.new_context(viewport={'width': 412, 'height': 915}, has_touch=True,
+            ctx = await browser.new_context(locale='cs-CZ', viewport={'width': 412, 'height': 915}, has_touch=True,
                                             permissions=['geolocation'], geolocation=geo)
             await ctx.add_init_script(BOOT_ADMIN)
             await test_rozcestniky(ctx)
             await ctx.close()
 
-            ctx = await browser.new_context(viewport={'width': 412, 'height': 915}, has_touch=True,
+            ctx = await browser.new_context(locale='cs-CZ', viewport={'width': 412, 'height': 915}, has_touch=True,
                                             permissions=['geolocation'], geolocation=geo,
                                             service_workers='block')
             await ctx.add_init_script(BOOT_OWNER)

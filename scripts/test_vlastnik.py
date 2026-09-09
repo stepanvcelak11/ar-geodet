@@ -111,7 +111,7 @@ async def main():
             browser = await pw.chromium.launch()
 
             async def mk(boot):
-                c = await browser.new_context(viewport={'width': 412, 'height': 915})
+                c = await browser.new_context(locale='cs-CZ', viewport={'width': 412, 'height': 915})
                 await c.add_init_script(boot)
                 return c
 

@@ -57,7 +57,7 @@ async def main():
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(args=[
                 '--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'])
-            ctx = await browser.new_context(
+            ctx = await browser.new_context(locale='cs-CZ', 
                 permissions=['geolocation'],
                 geolocation={'latitude': 50.0875, 'longitude': 14.4213},
                 viewport={'width': 412, 'height': 915})
