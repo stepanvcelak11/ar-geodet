@@ -522,7 +522,16 @@
         var active = q ? 'vse' : view();
 
         var host = document.getElementById(LIST_ID);
-        if (active === 'ukony' && (!host || host.getAttribute('data-sig') !== gridSig())) build();
+        // ⚠⚠ SKLÁDAT SEZNAM DO ZAVŘENÉHO OKNA JE ČISTÁ ZTRÁTA (8. 9. 2026). Tik
+        //   běží každých 1400 ms a při startu do mřížky přibývají dlaždice z
+        //   odkládací fronty, takže se otisk pokaždé změní a build() poskládal
+        //   celou stovku položek znovu — do okna, které nikdo neotevřel.
+        //   Naměřeno při startu: 253 ms ve čtyřech voláních, nejdelší tik 104 ms.
+        //   Po otevření okna se seznam postaví hned (viz posluchač níž), takže
+        //   uživatel na nic nečeká.
+        var _m = modal();
+        var _otevreno = !!(_m && _m.style.display && _m.style.display !== 'none');
+        if (_otevreno && active === 'ukony' && (!host || host.getAttribute('data-sig') !== gridSig())) build();
 
         document.body.classList.toggle('ag-uk-on', active === 'ukony');
         // tools-plus.js si tlačítko oblíbených vkládá zpátky na začátek .modal-body,
@@ -530,8 +539,19 @@
         if (active === 'ukony') adoptFavBtn();
     }
 
+    // Okno Nástrojů se otevírá inline onclickem (index.html), takže na něj není
+    // událost — hlídáme klepnutí na cokoli, co ho otevírá, a hned poté srovnáme.
+    // Bez tohohle by po zavedení podmínky „jen otevřené okno" byl seznam prvních
+    // až 1,4 s prázdný.
+    function hlidejOtevreni() {
+        document.addEventListener('click', function () {
+            setTimeout(function () { try { sync(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:hlidejOtevreni'); } }, 0);
+        }, true);
+    }
+
     function init() {
         try { sync(); } catch (e) { console.warn('[nastroje-ukony] init', e); }
+        try { hlidejOtevreni(); } catch (e) { console.warn('[nastroje-ukony] hlidejOtevreni', e); }
         if (!window.__agUkTimer) {
             window.__agUkTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(function () {
                 try { sync(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:init'); }

@@ -1059,7 +1059,7 @@
     <script defer src="js/journal.js"></script>
     <script type="ag/lazy" data-src="js/dmt-volume.js" data-css="css/dmt-volume.css"></script>
     <script type="ag/lazy" data-src="js/check-distance.js" data-css="css/check-distance.css"></script>
-    <script defer src="js/lib/satellite-5.0.0.min.js"></script>
+    <script type="ag/lazy" data-src="js/lib/satellite-5.0.0.min.js"></script>
     <script type="ag/lazy" data-src="js/vytycovani.js"></script>
     <!-- PROTOKOL O VYTYČENÍ (odpojitelné) — k odškrtnutému bodu zapíše i SKUTEČNOU
          polohu a udělá z toho protokol s odchylkami projekt → skutečnost.
@@ -1108,7 +1108,7 @@
          stažení odkazem, kdyby nebyl). Dnes jich je deset: export.js, kml-export.js,
          dxf-export.js, seznam-souradnic.js, zaloha.js, pdf-protocol.js,
          protokol-vytyceni.js, kalkulacka.js, vylepseni.js a záloha bodů z logika.js. -->
-    <script defer src="js/sdilet-soubor.js"></script>
+    <script type="ag/lazy" data-src="js/sdilet-soubor.js"></script>
     <script type="ag/lazy" data-src="js/export.js"></script>
     <script defer src="js/kompas-check.js"></script>
     <script type="ag/lazy" data-src="js/zaloha.js"></script>
@@ -1139,7 +1139,7 @@
     <script type="ag/lazy" data-src="js/predpisy.js" data-css="css/predpisy.css"></script>
     <!-- MODULY (workflow) — odpojitelné -->
     <script type="ag/lazy" data-src="js/gnss-quality.js" data-css="css/gnss-quality.css"></script>
-    <script defer src="js/gps-warn.js"></script>
+    <script type="ag/lazy" data-src="js/gps-warn.js"></script>
     <!-- SEMAFOR DŮVĚRY POLOHY (odpojitelné: smaž tento řádek + js/gps-trust.js) — hlídá zamrzlý GPS fix a offline -->
     <script type="ag/lazy" data-src="js/gps-trust.js"></script>
     <!-- DRAFT STORE (odpojitelné: smaž tento řádek + js/draft-store.js) — rozdělaná práce přežije zabití appky -->
@@ -1172,7 +1172,7 @@
     <!-- VZDÁLENÉ BODY DO AR (odpojitelné: smaž tento řádek + js/ar-dosah.js) — výběr
          obdélníkem v mapě pustí vybrané body v AR i za nastavený dosah. Načítat AŽ ZA
          grafika.js: čte jeho agScreenToLatLng a initARMarkers. -->
-    <script defer src="js/ar-dosah.js"></script>
+    <script type="ag/lazy" data-src="js/ar-dosah.js"></script>
     <!-- VIZUÁLNÍ STABILIZACE AR / SLAM-lite #2 (odpojitelné: smaž tento řádek + js/ar-visual-track.js) — optický tok + WebXR kotvení, drží AR mezi GPS/kompas fixy; default vypnuto -->
     <script defer src="js/ar-visual-track.js"></script>
     <script defer src="js/theme-dark.js"></script>
@@ -1301,7 +1301,7 @@
     <script type="ag/lazy" data-src="js/pdf-protocol.js"></script>
     <script defer src="js/vylepseni.js"></script>
     <!-- Karta zakázky na úvodu (Návrh C) — až za vším, ať obalí finální loadProjectSettings/renderProjectSelect -->
-    <script defer src="js/welcome-card.js"></script>
+    <script type="ag/lazy" data-src="js/welcome-card.js"></script>
     <!-- QC inspektor / kód kvality — až za logikou, grafikou, brutal-gps a pdf-protocol (obaluje jejich funkce) -->
     <script defer src="js/qc-engine.js"></script>
     <!-- Firemní režim: účty, role, přihlašování (ucty.js = jádro, ucty-admin.js = administrace) -->
