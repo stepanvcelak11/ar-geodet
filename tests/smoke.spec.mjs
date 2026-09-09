@@ -76,9 +76,33 @@ async function bootApp(page, context) {
         window.addEventListener('ag:lazy-done', () => { window.__agLazyDone = true; });
     });
 
+    // ⚠⚠ ŽIVÝ KOMPAS — TOHLE DRŽELO NASAZENÍ OD 5. 9. 2026.
+    // `DeviceOrientation.setDeviceOrientationOverride` (CDP) doručí JEDINOU událost,
+    // a to v okamžiku volání. Appka si ale posluchač věší až později a v Chromiu
+    // navíc nejdřív jen 'deviceorientationabsolute' (relativní až po 1,2 s — viz
+    // startCompass v js/grafika.js), takže tu jedinou událost vždycky PROŠVIHNE
+    // a nedostane ani jeden údaj o směru. Watchdog v grafika.js to po 8 s správně
+    // vyhodnotí jako mrtvý kompas a otevře celoobrazovkový modál „Kompas mlčí"
+    // (.ag-dlg-overlay), který pak spolkne KAŽDÝ klik → čtyři testy umřely na
+    // timeout „element is visible, enabled and stable" a s nimi i deploy na Pages.
+    // ⚠ U vývojáře to nešlo reprodukovat: bez funkční kamery spadne appka do režimu
+    //   Mapa a watchdog se v něm vrací dřív, takže modál nevyskočí. Na runneru
+    //   kamera (fake device) JE, takže appka je v AR a modál přijde.
+    // Skutečný telefon posílá orientaci desetkrát za vteřinu — tak ji posílá i test.
+    // Hodnoty jsou konstantní schválně: appce stačí živý senzor, otáčející se mapa
+    // by jen rozhoupala ostatní testy. Init skript běží i po reloadu („den v terénu").
+    await page.addInitScript(() => {
+        const TICK = { alpha: 120, beta: 80, gamma: 2, absolute: true };
+        const posli = () => {
+            window.dispatchEvent(new DeviceOrientationEvent('deviceorientationabsolute', TICK));
+            window.dispatchEvent(new DeviceOrientationEvent('deviceorientation', TICK));
+        };
+        setInterval(posli, 100);
+    });
+
     await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
 
-    // kompas: bez podvrženého azimutu se AR smyčka vůbec nerozjede
+    // Stav „zařízení" držíme i přes CDP, ať sedí i to, na co se appka zeptá sama.
     const cdp = await context.newCDPSession(page);
     await cdp.send('DeviceOrientation.setDeviceOrientationOverride', { alpha: 120, beta: 80, gamma: 2 });
 
@@ -107,13 +131,20 @@ async function bootApp(page, context) {
     // DIAGNOSTIKA: když něco leží přes celou appku (modál, brána, brífink), klikání
     // v dalších testech umře na timeout a z hlášky se nedá poznat proč. Radši to
     // řekneme jménem prvku hned tady.
+    // ⚠ `.ag-dlg-overlay` (agConfirm/agAlert z js/vylepseni.js) v tomhle seznamu
+    //   6. 9. 2026 CHYBĚLA — a byl to přesně ten prvek, který appku na CI zavřel
+    //   („Kompas mlčí"). Diagnostika mlčela a čtyři testy místo jména viníka hlásily
+    //   jen „timeout“. Proto se sem bere i on a hlásí se i TEXT okna, ne jen třída.
     const blokuje = await page.evaluate(() => {
         const jde = [];
-        document.querySelectorAll('.modal-overlay, #ag-gate, #ag-login').forEach((el) => {
+        document.querySelectorAll('.modal-overlay, .ag-dlg-overlay, #ag-gate, #ag-login').forEach((el) => {
             const s = getComputedStyle(el);
             if (s.display === 'none' || s.visibility === 'hidden' || s.opacity === '0') return;
             const r = el.getBoundingClientRect();
-            if (r.width > innerWidth * 0.6 && r.height > innerHeight * 0.6) jde.push(el.id || el.className);
+            if (r.width > innerWidth * 0.6 && r.height > innerHeight * 0.6) {
+                const popis = (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+                jde.push((el.id || el.className) + (popis ? ' — „' + popis + '"' : ''));
+            }
         });
         return jde;
     });
