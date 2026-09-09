@@ -1536,7 +1536,12 @@ if ('serviceWorker' in navigator) {
                         // zakazky s tisicem bodu to usetri polovinu goniometrie za sekundu.
                         // Kdo azimut potrebuje i dal (cil navigace), ma u sebe fallback
                         // `pt.currentBearing != null ? ... : getBearing(...)`.
-                        arPoints.forEach(p => { p.currentDist = getDistance(_oc[0], _oc[1], p.lat, p.lng); p.currentBearing = (p.currentDist <= _brgLim) ? getBearing(_oc[0], _oc[1], p.lat, p.lng) : null; }); arPoints.sort((a, b) => a.currentDist - b.currentDist); _lastCalcLat = userLat; _lastCalcLng = userLng; _lastCalcCount = arPoints.length; }
+                        // ⚠ AZIMUT I PRO VYBRANÉ VZDÁLENÉ BODY (js/ar-dosah.js). Bez toho by
+                        //   měl bod za _brgLim `currentBearing === null` a renderAR by ho
+                        //   neměl kam v obraze posadit — výběr obdélníkem by navenek
+                        //   „nefungoval", i když by řezem prošel.
+                        var _dsh = window.AGDosah;
+                        arPoints.forEach(p => { p.currentDist = getDistance(_oc[0], _oc[1], p.lat, p.lng); p.currentBearing = (p.currentDist <= _brgLim || (_dsh && _dsh.vzdy(p.id))) ? getBearing(_oc[0], _oc[1], p.lat, p.lng) : null; }); arPoints.sort((a, b) => a.currentDist - b.currentDist); _lastCalcLat = userLat; _lastCalcLng = userLng; _lastCalcCount = arPoints.length; }
                     if (activePointIdForModal) { const activePt = arPoints.find(p => p.id === activePointIdForModal); if (activePt) { const newDist = getDistance(userLat, userLng, activePt.lat, activePt.lng); const distEl = document.getElementById('sheet-distance-val'); if (distEl) distEl.innerText = `${newDist.toFixed(1)} m`; const gpsEl = document.getElementById('sheet-gps-val'); if (gpsEl) gpsEl.innerText = currentGpsAccuracy.toFixed(1); } }
                     if (lastCenterLat === null) { map.setView([userLat, userLng], 19, { animate: false }); lastCenterLat = userLat; lastCenterLng = userLng; } else if (!window._mapHold && getDistance(lastCenterLat, lastCenterLng, userLat, userLng) > 1.5) { map.setView([userLat, userLng], map.getZoom(), { animate: false }); lastCenterLat = userLat; lastCenterLng = userLng; }
                     // BATERIE/RADIO: dotazovat CUZK po kazdych 25 m chuze bylo silne redundantni —

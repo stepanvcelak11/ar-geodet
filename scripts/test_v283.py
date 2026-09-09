@@ -92,12 +92,20 @@ async def nacti(page, cekej_na='true'):
         except Exception:
             await page.wait_for_timeout(1500)
     await page.wait_for_timeout(2200)
-    for _ in range(40):
-        if await page.evaluate("() => " + cekej_na):
-            break
-        await page.evaluate("() => window.AGLazy && AGLazy.flush()")
-        await page.wait_for_timeout(400)
-    await page.wait_for_timeout(1200)
+    # ⚠ Pod zatezenym strojem (soubezne bezici agenti) appka nabiha i 20 s, takze
+    #   cekani MUSI byt smyckou na podminku, ne pevnym timeoutem.
+    for _ in range(60):
+        try:
+            if await page.evaluate("() => " + cekej_na):
+                break
+        except Exception:
+            pass
+        try:
+            await page.evaluate("() => window.AGLazy && AGLazy.flush()")
+        except Exception:
+            pass
+        await page.wait_for_timeout(500)
+    await page.wait_for_timeout(1500)
 
 
 # ---------------------------------------------------- A+B) prihlaseni vlastnika
@@ -128,7 +136,13 @@ async def test_vlastnik(ctx):
     }""")
     await page.wait_for_timeout(200)
     await page.evaluate("() => document.getElementById('agg-go').click()")
-    await page.wait_for_timeout(4000)
+    # ⚠ Cekat na VYSLEDEK, ne pevnou dobu: overeni klice jde na server, ktery tu
+    #   neni, a nez sit vyprsi, trva to pod zatezenym strojem i pres 10 s.
+    for _ in range(40):
+        if await page.evaluate("() => document.body.classList.contains('app-started')"):
+            break
+        await page.wait_for_timeout(500)
+    await page.wait_for_timeout(800)
     st = await page.evaluate("""() => ({
         brana: !!document.getElementById('ag-gate'),
         bezi: document.body.classList.contains('app-started'),
@@ -167,7 +181,12 @@ async def test_mrizka(ctx):
     await page.evaluate("() => window.AGLazy && AGLazy.flush()")
     await page.wait_for_timeout(2500)
     await page.evaluate("() => { document.getElementById('tools-modal').style.display='flex'; }")
-    await page.wait_for_timeout(1800)
+    for _ in range(30):
+        n = await page.evaluate("() => document.querySelectorAll('#tools-modal .tool-tile').length")
+        if n > 60:
+            break
+        await page.wait_for_timeout(500)
+    await page.wait_for_timeout(800)
 
     st = await page.evaluate("""() => {
         const g = document.querySelector('#tools-modal .tool-grid');
@@ -197,6 +216,199 @@ async def test_mrizka(ctx):
     await page.close()
 
 
+# ---------------------------------------------- E+F+G) mapa, mereni prstem, lista
+DOTYK = """([x, y, typ]) => {
+    const el = document.getElementById('map-container');
+    const t = new Touch({ identifier: 1, target: el, clientX: x, clientY: y, pageX: x, pageY: y });
+    el.dispatchEvent(new TouchEvent(typ, {
+        bubbles: true, cancelable: true,
+        touches: typ === 'touchend' ? [] : [t],
+        targetTouches: typ === 'touchend' ? [] : [t],
+        changedTouches: [t]
+    }));
+}"""
+
+
+async def test_mapa(ctx):
+    print('\n--- E+F+G) mapa: stupne pryc, mereni prstem, lista aktualizace ---')
+    page = await ctx.new_page()
+    chyby = []
+    page.on('pageerror', lambda e: chyby.append(str(e)[:200]))
+    await ctx.add_init_script(BOOT)
+    await nacti(page, "document.body.classList.contains('app-started')")
+    await page.evaluate("() => window.AGLazy && AGLazy.flush()")
+    await page.wait_for_timeout(2500)
+
+    # G) lista "Nova verze" nesmi byt klikaci (uzivatel: zadny tlacitko)
+    st = await page.evaluate("""() => {
+        const b = document.getElementById('update-banner');
+        return { je: !!b, onclick: b ? (b.getAttribute('onclick') || '') : 'NENI',
+                 text: b ? (b.textContent || '').trim() : '' };
+    }""")
+    ok('lista Nova verze uz neni tlacitko', st['je'] and not st['onclick'], st)
+    ok('lista rika, ze se verze vezme po restartu', 'spu' in st['text'] or 'restart' in st['text'].lower(), st['text'][:90])
+
+    # pripominka zalohy: zadny plovouci pruh nad appkou
+    st = await page.evaluate("() => ({ pruh: !!document.getElementById('ag-backup-bar') })")
+    ok('plovouci pruh se zalohou uz v appce neni', not st['pruh'], st)
+
+    # E) popisek cile navigace v mape: vzdalenost bez stupnu
+    st = await page.evaluate("""() => {
+        // vyrob bod ~120 m severne a udelej z nej cil navigace
+        const lat = userLat, lng = userLng;
+        if (lat == null) return { chyba: 'bez GPS' };
+        const id = 'test-cil-1';
+        const p = { id: id, name: 'Cil', lat: lat + 0.0011, lng: lng, type: 'custom' };
+        arPoints.push(p);
+        highlightedPointId = id;   // POZOR: `let` ve skript-scope, window.x je jina promenna
+        if (typeof viewMode !== 'undefined' && viewMode === 'ar') { viewMode = 'both'; if (typeof applyViewMode === 'function') applyViewMode(); }
+        if (window.AGCilNav && AGCilNav.redraw) AGCilNav.redraw(true);
+        return { ok: true, view: (typeof viewMode !== 'undefined') ? viewMode : '?',
+                 bezi: (typeof appStarted !== 'undefined') ? appStarted : '?',
+                 modul: !!window.AGCilNav, bodu: arPoints.length };
+    }""")
+    print('    priprava cile:', st)
+    await page.wait_for_timeout(2500)
+    st = await page.evaluate("""() => {
+        const l = [...document.querySelectorAll('.ag-cil-lbl')].map(e => (e.textContent || '').trim());
+        return { popisky: l,
+                 aureola: document.querySelectorAll('.ag-cil-halo').length,
+                 cary: document.querySelectorAll('#map path[stroke="#fbbf24"]').length,
+                 geo: (typeof getDistance === 'function') && (typeof getBearing === 'function'),
+                 cil: (typeof highlightedPointId !== 'undefined') ? highlightedPointId : '?', view: (typeof viewMode !== 'undefined') ? viewMode : '?' };
+    }""")
+    stupne = [t for t in st['popisky'] if '\u00b0' in t or ' g' in t]
+    ok('popisek cile v mape existuje', len(st['popisky']) > 0, st)
+    ok('popisek cile neobsahuje stupne', not stupne, st)
+
+    # F) podrzeni jednoho prstu na mape = vzdalenost od moji polohy
+    await page.evaluate(DOTYK, [220, 400, 'touchstart'])
+    await page.wait_for_timeout(900)
+    st = await page.evaluate("""() => {
+        const l = [...document.querySelectorAll('.tfm-label')].map(e => (e.textContent || '').trim());
+        const cary = document.querySelectorAll('#map path.leaflet-interactive, #map path').length;
+        return { stitky: l, cary: cary };
+    }""")
+    ok('po podrzeni prstu je videt vzdalenost', len(st['stitky']) > 0, st)
+    await page.evaluate(DOTYK, [220, 400, 'touchend'])
+
+    # a posun prstem se tim nesmi rozbit: rychly tah mapu posune
+    stred0 = await page.evaluate("() => { const c = map.getCenter(); return [c.lat, c.lng]; }")
+    await page.evaluate(DOTYK, [200, 300, 'touchstart'])
+    await page.evaluate(DOTYK, [200, 240, 'touchmove'])
+    await page.evaluate(DOTYK, [200, 180, 'touchmove'])
+    await page.evaluate(DOTYK, [200, 180, 'touchend'])
+    await page.wait_for_timeout(400)
+    stred1 = await page.evaluate("() => { const c = map.getCenter(); return [c.lat, c.lng]; }")
+    ok('rychly tah mapou porad posouva mapu', stred0 != stred1, [stred0, stred1])
+
+    ok('bez chyb v konzoli', not chyby, chyby[:3])
+    await page.close()
+
+
+# ------------------------------------------- H) vzdalene body do AR pres vyrez
+async def test_dosah(ctx):
+    print('\n--- H) vyber obdelnikem pusti vzdalene body do AR ---')
+    page = await ctx.new_page()
+    chyby = []
+    page.on('pageerror', lambda e: chyby.append(str(e)[:200]))
+    await ctx.add_init_script(BOOT)
+    await nacti(page, "document.body.classList.contains('app-started')")
+    await page.evaluate("() => window.AGLazy && AGLazy.flush()")
+    await page.wait_for_timeout(2500)
+
+    st = await page.evaluate("""() => ({ modul: !!window.AGDosah, dosah: (typeof arRadius !== 'undefined') ? arRadius : null })""")
+    ok('modul AGDosah je nactenY', st['modul'], st)
+
+    # bod ~800 m severne = daleko za beznym dosahem 150 m
+    st = await page.evaluate("""() => {
+        if (userLat == null) return { chyba: 'bez GPS' };
+        const id = 'test-daleky-1';
+        arPoints.push({ id: id, name: 'Daleky', lat: userLat + 0.0072, lng: userLng, cat: 'CUSTOM', hidden: false });
+        window._lastCalcCount = -1;
+        // mapa musi bod obsahovat, jinak ho obdelnik na obrazovce nemuze trefit
+        map.fitBounds(L.latLngBounds([[userLat, userLng], [userLat + 0.0072, userLng]]), { padding: [40, 40] });
+        window._mapHold = true;      // jinak dalsi GPS fix mapu vycentruje zpet na me
+        return { ok: true, dosah: arRadius, bodu: arPoints.length };
+    }""")
+    print('    priprava:', st)
+    await page.wait_for_timeout(1500)
+
+    pred = await page.evaluate("""() => {
+        const p = arPoints.find(x => x.id === 'test-daleky-1');
+        if (p) { p.currentDist = getDistance(userLat, userLng, p.lat, p.lng); p.currentBearing = null; }
+        if (typeof initARMarkers === 'function') initARMarkers();
+        return { vzdy: !!(window.AGDosah && AGDosah.vzdy('test-daleky-1')),
+                 element: !!(p && p.element), dist: p ? Math.round(p.currentDist || 0) : null };
+    }""")
+    ok('daleky bod je pred vyberem mimo AR', not pred['vzdy'] and not pred['element'], pred)
+
+    # spustit nastroj a natahnout obdelnik pres celou mapu
+    await page.evaluate("() => window.agOpenArDosah && window.agOpenArDosah()")
+    await page.wait_for_timeout(600)
+    st = await page.evaluate("() => ({ vrstva: !!document.getElementById('ag-dosah-vrstva'), lista: !!document.getElementById('ag-dosah-lista') })")
+    ok('vyber obdelnikem se otevrel', st['vrstva'] and st['lista'], st)
+
+    await page.evaluate("""() => {
+        const p = arPoints.find(x => x.id === 'test-daleky-1');
+        // ⚠ #map lezi v #map-wrapper o rozmeru 150vmax (kvuli otaceni mapy), takze
+        //   Leaflet "fituje" do plochy VETSI nez obrazovka a videt je jen jeji stred.
+        //   Bez odzoomovani by bod zustal nad hornim okrajem displeje.
+        map.fitBounds(L.latLngBounds([[userLat, userLng], [p.lat, p.lng]]), { padding: [40, 40] });
+        map.setZoom(map.getZoom() - 2);
+        window._mapHold = true;
+    }""")
+    await page.wait_for_timeout(800)
+    kde = await page.evaluate("""([x1, y1, x2, y2]) => {
+        const p = arPoints.find(x => x.id === 'test-daleky-1');
+        const rohy = [[x1, y1], [x2, y1], [x2, y2], [x1, y2]].map(c => window.agScreenToLatLng(c[0], c[1]));
+        if (rohy.some(r => !r)) return { chyba: 'agScreenToLatLng nevraci' };
+        const la = rohy.map(r => r.lat), ln = rohy.map(r => r.lng);
+        return { uvnitr: p.lat >= Math.min(...la) && p.lat <= Math.max(...la)
+                      && p.lng >= Math.min(...ln) && p.lng <= Math.max(...ln),
+                 bod: [p.lat.toFixed(5), p.lng.toFixed(5)],
+                 vyrez: [Math.min(...la).toFixed(5), Math.max(...la).toFixed(5)] };
+    }""", [5, 60, 405, 880])
+    print('    lezi bod v tazenem obdelniku?', kde)
+    await page.mouse.move(5, 60)
+    await page.mouse.down()
+    await page.mouse.move(200, 400, steps=6)
+    await page.mouse.move(405, 880, steps=6)
+    await page.mouse.up()
+    await page.wait_for_timeout(1200)
+
+    po = await page.evaluate("""() => {
+        const p = arPoints.find(x => x.id === 'test-daleky-1');
+        return { pocet: window.AGDosah ? AGDosah.pocet() : -1,
+                 vzdy: !!(window.AGDosah && AGDosah.vzdy('test-daleky-1')),
+                 element: !!(p && p.element),
+                 obrys: !!(p && p.element && p.element.classList.contains('ag-daleko')),
+                 hlaska: (document.querySelector('#ag-dosah-lista .txt') || {}).textContent || '' };
+    }""")
+    ok('obdelnik vybral daleky bod', po['vzdy'] and po['pocet'] >= 1, po)
+    ok('daleky bod dostal znacku v AR', po['element'], po)
+    ok('vybrany bod je poznat obrysem', po['obrys'], po)
+
+    # azimut se musi dopocitat i za _brgLim, jinak nema znacka kam
+    await page.evaluate("() => { window._lastCalcCount = -1; }")
+    await page.wait_for_timeout(2200)
+    az = await page.evaluate("""() => {
+        const p = arPoints.find(x => x.id === 'test-daleky-1');
+        return { bearing: p ? p.currentBearing : null, dist: p ? Math.round(p.currentDist || 0) : null };
+    }""")
+    ok('vzdaleny bod ma spocitany azimut', az['bearing'] != None, az)
+
+    # zavrit + zrusit vyber
+    await page.evaluate("() => { const b = document.getElementById('ag-dosah-zrus'); if (b) b.click(); }")
+    await page.wait_for_timeout(500)
+    kon = await page.evaluate("() => ({ pocet: window.AGDosah ? AGDosah.pocet() : -1 })")
+    ok('zruseni vyberu funguje', kon['pocet'] == 0, kon)
+    await page.evaluate("() => { const b = document.getElementById('ag-dosah-hotovo'); if (b) b.click(); }")
+
+    ok('bez chyb v konzoli', not chyby, chyby[:3])
+    await page.close()
+
+
 async def main():
     from playwright.async_api import async_playwright
     srv = server()
@@ -206,7 +418,7 @@ async def main():
     try:
         async with async_playwright() as p:
             b = await p.chromium.launch()
-            for fn in (test_vlastnik, test_mrizka):
+            for fn in (test_vlastnik, test_mrizka, test_mapa, test_dosah):
                 ctx = await b.new_context(viewport={'width': 412, 'height': 915},
                                           is_mobile=True, has_touch=True,
                                           permissions=['geolocation'], geolocation=GEO,

@@ -95,8 +95,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=282">
-    <link rel="stylesheet" href="css/style.css?v=282">
+    <link rel="stylesheet" href="css/tokens.css?v=283">
+    <link rel="stylesheet" href="css/style.css?v=283">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -227,7 +227,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=282">
+    <link rel="stylesheet" href="css/vylepseni.css?v=283">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
          render-blokující: prohlížeč nevykreslí ani pixel, dokud nedorazí VŠECHNY.
          Jedenáct z nich (69 kB) přitom patřilo oknům, která se při startu vůbec
@@ -1169,6 +1169,10 @@
          — sbalí mapu, katastr a body KOLEM ZAKÁZKY, takže to jde udělat i z kanceláře -->
     <script type="ag/lazy" data-src="js/balicek-zakazky.js"></script>
     <script defer src="js/ar-fusion.js"></script>
+    <!-- VZDÁLENÉ BODY DO AR (odpojitelné: smaž tento řádek + js/ar-dosah.js) — výběr
+         obdélníkem v mapě pustí vybrané body v AR i za nastavený dosah. Načítat AŽ ZA
+         grafika.js: čte jeho agScreenToLatLng a initARMarkers. -->
+    <script defer src="js/ar-dosah.js"></script>
     <!-- VIZUÁLNÍ STABILIZACE AR / SLAM-lite #2 (odpojitelné: smaž tento řádek + js/ar-visual-track.js) — optický tok + WebXR kotvení, drží AR mezi GPS/kompas fixy; default vypnuto -->
     <script defer src="js/ar-visual-track.js"></script>
     <script defer src="js/theme-dark.js"></script>

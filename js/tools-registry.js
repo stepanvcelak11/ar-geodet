@@ -251,6 +251,8 @@
         // ar-visual-track do rozcestníku ZÁMĚRNĚ nejde: uživatel ho 9. 8. 2026 označil
         // za trvale vypnutý (seed v2 v js/moje-aktivita.js) a vstup má v Nastavení →
         // AR & přesnost. Přidat mu druhou cestu by šlo přesně proti tomuhle úklidu.
+        { k: 'ar-dosah', verb: 'Srovnat AR', vl: 'Vzdálené body do AR', vh: 'obdélníkem v mapě vyber body, které chceš vidět i z dálky', keys: 'vzdalene body daleko dosah vyrez obdelnik ctverecek 2 km viditelnost ar dalka vybrat oblast uzemi',
+          help: { t: 'Vzdálené body do AR' } },
         { k: 'ar-visual-track', pro: 1, verb: 'Srovnat AR', vl: 'Vizuální stabilizace', vh: 'beta', keys: 'stabilizace ar obraz kamera drift plavani znacek vizualni beta',
           help: { t: 'Vizuální stabilizace AR (beta)' } },
 
