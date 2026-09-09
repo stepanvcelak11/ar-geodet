@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-09-08",
-  "uvodnik": "Vydání 2026-09-08 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-09-09",
+  "uvodnik": "Vydání 2026-09-09 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,30 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "INTERGEO 2026: A Field Guide by Role",
+      "perex": "INTERGEO returns to Munich September 15–17, and depending on who you are, it is effectively several different shows under one roof.",
+      "telo": "INTERGEO returns to Munich September 15–17, and depending on who you are, it is effectively several different shows under one roof. Rather than a session-by-session recap, this is a practical guide to which parts of the 32nd edition are actually worth a surveyor’s, a GIS manager’s, or a BIM lead’s limited floor time — organized by who you are, not by hall number. Image: INTERGEO INTERGEO 2026 runs September 15–17 at Messe München, spread across Halls B5, B6, C5, and C6. It is organized by DVW e.V., the German Society for Geodesy, Geoinformation and Land Management, which owns the INTERGEO brand and sets the conference program, with HINTE Expo & Conference GmbH running logistics. Last year’s",
+      "body": [],
+      "proc": "",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/aerialuas/intergeo-2026-a-field-guide-by-role/",
+      "datum": "2026-09-08"
+    },
+    {
+      "rubrika": "Přístroje",
+      "top": false,
+      "nadpis": "xyHt Magazine July / August 2026",
+      "perex": "Read the July/August xyHt digital edition.",
+      "telo": "Read the July/August xyHt digital edition. Table of Contents A Field Guide by Role INTERGEO returns to Munich September 15–17 — what’s worth a surveyor’s, a GIS manager’s, or a BIM lead’s floor time, organized by role. Inside Concordia Topcon’s PNT proving ground near Modena, where trust in precision gets built, tested, and re-tested in the field, year after year. Bringing Precision to the Ground A roughly $700 RTK receiver won’t replace a survey rover — it changes who gets to carry centimeter-level positioning around. The Unity Thesis Trimble’s case that GIS context, survey-grade position, and asset management are three views of the same problem. One Platform, Every Direction More than 15,0",
+      "body": [],
+      "proc": "",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/magazine/xyht-magazine-july-august-2026/",
+      "datum": "2026-09-08"
     },
     {
       "rubrika": "Ze světa",
@@ -73,30 +97,6 @@
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/09/02/first-ever-national-field-data-study-on-multiskilled-construction-shows-wins-for-workers-taxpayers-industry/?utm_source=rss&utm_medium=rss&utm_campaign=first-ever-national-field-data-study-on-multiskilled-construction-shows-wins-for-workers-taxpayers-industry",
       "datum": "2026-09-03"
-    },
-    {
-      "rubrika": "Z praxe",
-      "top": false,
-      "nadpis": "Field Report From Concordia: Inside Topcon’s PNT Field of Dreams",
-      "perex": "A first-person visit to Topcon’s Concordia Training Center near Modena, Italy, reveals a purpose-built center of excellence where place, precision and trust come together.",
-      "telo": "A first-person visit to Topcon’s Concordia Training Center near Modena, Italy, reveals a purpose-built center of excellence where place, precision and trust come together. Image: Topcon Near Modena, in northern Italy’s Emilia-Romagna region, it is impossible to separate technology from place. This is Italy’s high-performance automotive heartland, home to Ferrari, Lamborghini, Maserati, Bugatti and Pagani — some of the world’s most admired performance machines. It is also a region of agriculture, vineyards and precision manufacturing. The landscape itself seems to insist that technology should not be abstract. It should be physical, engineered, tested, refined and enjoyed. That was my first i",
-      "body": [],
-      "proc": "",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/aerialuas/field-report-from-concordia-inside-topcons-pnt-field-of-dreams/",
-      "datum": "2026-08-28"
-    },
-    {
-      "rubrika": "Přístroje",
-      "top": false,
-      "nadpis": "GEO-MEASURE: Bringing Precision to the Ground",
-      "perex": "GEO-MEASURE is a compact RTK receiver, but its significance may lie less in what it replaces than in what it enables.",
-      "telo": "GEO-MEASURE is a compact RTK receiver, but its significance may lie less in what it replaces than in what it enables. From a professional surveyor’s control network to a software engineer’s avocado farm in Japan, the device illustrates how lower-cost, easier-to-use positioning tools are narrowing the distance between the physical world and the digital systems increasingly used to understand, manage and change it. Surveyor Shea Gleadle tests GEO-MEASURE over a monument as part of his evaluation of the compact RTK receiver’s precision and repeatability. Credit: 3rd Dimension For Shea Gleadle, the question was straightforward: Can a roughly $700 RTK rover actually produce measurements a profess",
-      "body": [],
-      "proc": "",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/aerialuas/geo-measure-bringing-precision-to-the-ground/",
-      "datum": "2026-08-28"
     }
   ]
 }
