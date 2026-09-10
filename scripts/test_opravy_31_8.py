@@ -49,6 +49,16 @@ BOOT = """
     localStorage.setItem('agFirma_v1', JSON.stringify(f));
     localStorage.setItem('agFirmaSess_v1', JSON.stringify({ userId: 'u1', ts: Date.now() }));
   })();
+  // ⚠⚠ TARIF PRO JE TU KVULI ROCENCE, NE PRO POHODLI.
+  //   Rocenka ma v js/tools-registry.js `pro: 1`. Do v283 se ale zamky Pro
+  //   hlidaly pod SPATNYM jmenem otviraku, takze placene nastroje sly spustit
+  //   i v Zakladu — a tenhle test si na tom (netuse) stal. Jakmile zamky zacaly
+  //   opravdu drzet, Rocenka se v Zakladu SPRAVNE neotevre a naskoci misto ni
+  //   zamek; test hlasil vadu vzhledu okna, ktere nikdo neotevrel.
+  //   Zmereno na v283: Zaklad -> okno neni + zamek Pro; Pro -> `modal-overlay`
+  //   pres celou obrazovku. Appka je v poradku, zastaraly byl test.
+  //   Klic cte js/licence.js; Body na sobe (`kolize-bodu`) je Zaklad a nevadi mu to.
+  localStorage.setItem('agTarifUctu_v1', JSON.stringify({ tarif: 'pro', do: 0 }));
 """
 
 vysledky = []
