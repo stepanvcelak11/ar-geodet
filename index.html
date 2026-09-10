@@ -95,8 +95,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=282">
-    <link rel="stylesheet" href="css/style.css?v=282">
+    <link rel="stylesheet" href="css/tokens.css?v=283">
+    <link rel="stylesheet" href="css/style.css?v=283">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -227,7 +227,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=282">
+    <link rel="stylesheet" href="css/vylepseni.css?v=283">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
          render-blokující: prohlížeč nevykreslí ani pixel, dokud nedorazí VŠECHNY.
          Jedenáct z nich (69 kB) přitom patřilo oknům, která se při startu vůbec
@@ -458,7 +458,14 @@
         </div>
         <div class="ap-hint">Klepni do mapy pro přidání vrcholu — nebo obejdi pozemek a přidávej „Můj bod" (použije průměrovanou GPS).</div>
     </div>
-    <div id="update-banner" onclick="applyUpdate()"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Nová verze — klepni pro obnovení</div>
+    <!-- ⚠⚠ LIŠTA UŽ NENÍ TLAČÍTKO (8. 9. 2026). Uživatel: „když přichází aktualizace,
+         tak ji dej, ať se aplikace aktualizuje tím způsobem, že tu aplikaci zapnu,
+         upozorní mě to na aktualizaci, vypnu aplikaci, zapnu ji a už to bude fungovat.
+         Žádný někde nějaký tlačítko, to je jako strašně náročný a zbytečný."
+         Novou verzi proto nasazuje SÁM start appky (viz registrace service workeru
+         v js/logika.js) a tahle lišta jen OZNAMUJE, že je připravená. Klikací zůstává
+         jedině roletka „Co je nového", kterou do ní přidává js/co-je-noveho.js. -->
+    <div id="update-banner"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Nová verze je připravená — použije se po zavření a spuštění aplikace</div>
     <div id="edge-glow"></div>
     <!-- Kompaktní panel průměrování GPS (jeden řádek) — klik otevře detail v modálu (vzor Azimut) -->
     <div id="gps-avg" class="glass-panel" onclick="openGpsAvgModal()">
@@ -498,24 +505,34 @@
             <input type="search" id="tools-search" class="tools-search" placeholder="Hledat nástroj…" autocomplete="off" oninput="window.agFilterTools && window.agFilterTools(this.value)">
             <div class="modal-body">
                 <div class="tool-grid">
-                    <div class="tool-cat">Měření</div>
+                    <div class="tool-cat">Změřit</div>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openMeasureModal();"><svg class="icon"><use href="#i-ruler"/></svg><span>Měření<br>vzdálenosti</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; startAreaMode();"><svg class="icon"><use href="#i-area"/></svg><span>Měření<br>plochy</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openCheckDist();"><svg class="icon"><use href="#i-omerne"/></svg><span>Oměrné /<br>kontrola</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openDmtVolume();"><svg class="icon"><use href="#i-volume"/></svg><span>Kubatury /<br>vrstevnice</span></button>
 
-                    <div class="tool-cat">Vytyčování a náčrt</div>
+                    <div class="tool-cat">Určit nový bod</div>
+
+                    <div class="tool-cat">Vytyčit</div>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openStakeoutModal();"><svg class="icon"><use href="#i-check"/></svg><span>Vytyčovací<br>checklist</span></button>
+
+                    <div class="tool-cat">Zaznamenat</div>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openTachymetrie();"><svg class="icon"><use href="#i-grid"/></svg><span>Náčrt /<br>Tachymetrie</span></button>
 
-                    <div class="tool-cat">Katastr a data</div>
-                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openKatastr();"><svg class="icon"><use href="#i-map-pin"/></svg><span>Katastr<br>(zde stojím)</span></button>
-                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openSatModal();"><svg class="icon"><use href="#i-satellite"/></svg><span>GNSS<br>satelity</span></button>
-
-                    <div class="tool-cat">AR a kalibrace</div>
+                    <div class="tool-cat">Srovnat AR</div>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; if(window.agOpenCalibrate) window.agOpenCalibrate();"><svg class="icon"><use href="#i-navigation"/></svg><span>Srovnat<br>sever</span></button>
 
-                    <div class="tool-cat">Pomůcky</div>
+                    <div class="tool-cat">Zjistit podmínky</div>
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openSatModal();"><svg class="icon"><use href="#i-satellite"/></svg><span>GNSS<br>satelity</span></button>
+
+                    <div class="tool-cat">Katastr a podklady</div>
+                    <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openKatastr();"><svg class="icon"><use href="#i-map-pin"/></svg><span>Katastr<br>(zde stojím)</span></button>
+
+                    <div class="tool-cat">Před výjezdem</div>
+
+                    <div class="tool-cat">Firma a papíry</div>
+
+                    <div class="tool-cat">Příručka a výpočty</div>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openCalcModal();"><svg class="icon"><use href="#i-calc"/></svg><span>Kalkulačka</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openDictModal();"><svg class="icon"><use href="#i-book"/></svg><span>Slovník</span></button>
                 </div>
@@ -1042,7 +1059,7 @@
     <script defer src="js/journal.js"></script>
     <script type="ag/lazy" data-src="js/dmt-volume.js" data-css="css/dmt-volume.css"></script>
     <script type="ag/lazy" data-src="js/check-distance.js" data-css="css/check-distance.css"></script>
-    <script defer src="js/lib/satellite-5.0.0.min.js"></script>
+    <script type="ag/lazy" data-src="js/lib/satellite-5.0.0.min.js"></script>
     <script type="ag/lazy" data-src="js/vytycovani.js"></script>
     <!-- PROTOKOL O VYTYČENÍ (odpojitelné) — k odškrtnutému bodu zapíše i SKUTEČNOU
          polohu a udělá z toho protokol s odchylkami projekt → skutečnost.
@@ -1052,11 +1069,6 @@
          ukazatel na hraně displeje, když je cíl mimo záběr kamery.
          Odpojitelné: smaž tento řádek + js/cil-navigace.js. MUSÍ být po grafika.js. -->
     <script defer src="js/cil-navigace.js"></script>
-    <!-- PÁS BLÍZKOSTI VE ŠVU (návrh ⑥) — vzdálenost k navigovanému bodu jako
-         vybarvující se pruh na dělicí hraně kamera/mapa (v AR u spodní hrany).
-         Odpojitelné: smaž tento řádek + js/pas-blizkosti.js. MUSÍ být po grafika.js.
-         Nevisí na snímcích AR (na Androidu se nemusí konat) — viz hlavička souboru. -->
-    <script type="ag/lazy" data-src="js/pas-blizkosti.js"></script>
     <!-- HISTORIE AKTUALIZACI (odpojitelne: smaz tento radek + js/historie-aktualizaci.js)
          — prohlizitelny soupis zmen z nabidky Vice a z Nastaveni → Udrzba. Bere data
          ze STEJNEHO data/co-je-noveho.json jako roletka u listy Nova verze, at
@@ -1091,7 +1103,7 @@
          stažení odkazem, kdyby nebyl). Dnes jich je deset: export.js, kml-export.js,
          dxf-export.js, seznam-souradnic.js, zaloha.js, pdf-protocol.js,
          protokol-vytyceni.js, kalkulacka.js, vylepseni.js a záloha bodů z logika.js. -->
-    <script defer src="js/sdilet-soubor.js"></script>
+    <script type="ag/lazy" data-src="js/sdilet-soubor.js"></script>
     <script type="ag/lazy" data-src="js/export.js"></script>
     <script defer src="js/kompas-check.js"></script>
     <script type="ag/lazy" data-src="js/zaloha.js"></script>
@@ -1122,7 +1134,7 @@
     <script type="ag/lazy" data-src="js/predpisy.js" data-css="css/predpisy.css"></script>
     <!-- MODULY (workflow) — odpojitelné -->
     <script type="ag/lazy" data-src="js/gnss-quality.js" data-css="css/gnss-quality.css"></script>
-    <script defer src="js/gps-warn.js"></script>
+    <script type="ag/lazy" data-src="js/gps-warn.js"></script>
     <!-- SEMAFOR DŮVĚRY POLOHY (odpojitelné: smaž tento řádek + js/gps-trust.js) — hlídá zamrzlý GPS fix a offline -->
     <script type="ag/lazy" data-src="js/gps-trust.js"></script>
     <!-- DRAFT STORE (odpojitelné: smaž tento řádek + js/draft-store.js) — rozdělaná práce přežije zabití appky -->
@@ -1152,6 +1164,10 @@
          — sbalí mapu, katastr a body KOLEM ZAKÁZKY, takže to jde udělat i z kanceláře -->
     <script type="ag/lazy" data-src="js/balicek-zakazky.js"></script>
     <script defer src="js/ar-fusion.js"></script>
+    <!-- VZDÁLENÉ BODY DO AR (odpojitelné: smaž tento řádek + js/ar-dosah.js) — výběr
+         obdélníkem v mapě pustí vybrané body v AR i za nastavený dosah. Načítat AŽ ZA
+         grafika.js: čte jeho agScreenToLatLng a initARMarkers. -->
+    <script type="ag/lazy" data-src="js/ar-dosah.js"></script>
     <!-- VIZUÁLNÍ STABILIZACE AR / SLAM-lite #2 (odpojitelné: smaž tento řádek + js/ar-visual-track.js) — optický tok + WebXR kotvení, drží AR mezi GPS/kompas fixy; default vypnuto -->
     <script defer src="js/ar-visual-track.js"></script>
     <script defer src="js/theme-dark.js"></script>
@@ -1280,7 +1296,7 @@
     <script type="ag/lazy" data-src="js/pdf-protocol.js"></script>
     <script defer src="js/vylepseni.js"></script>
     <!-- Karta zakázky na úvodu (Návrh C) — až za vším, ať obalí finální loadProjectSettings/renderProjectSelect -->
-    <script defer src="js/welcome-card.js"></script>
+    <script type="ag/lazy" data-src="js/welcome-card.js"></script>
     <!-- QC inspektor / kód kvality — až za logikou, grafikou, brutal-gps a pdf-protocol (obaluje jejich funkce) -->
     <script defer src="js/qc-engine.js"></script>
     <!-- Firemní režim: účty, role, přihlašování (ucty.js = jádro, ucty-admin.js = administrace) -->

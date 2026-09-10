@@ -302,7 +302,12 @@
         btn.type = 'button';
         btn.style.marginTop = '8px';
         btn.innerHTML = '<svg class="icon"><use href="#i-satellite"/></svg> Predikce signálu (skyplot + maska)';
+        btn.setAttribute('data-tool', 'sky-obstruction');
         btn.addEventListener('click', function () {
+            // ⚠ Vstup MIMO mřížku nástrojů: odchyt kliku v js/pro-zamky.js
+            //   hledá dlaždici (data-tool / .tool-tile), takže sem nedosáhne
+            //   a Pro nástroj by šel v Základu otevřít bez klíče.
+            if (window.AGProZamky && AGProZamky.zamceno('sky-obstruction')) { AGProZamky.karta('sky-obstruction'); return; }
             var sm = document.getElementById('sat-modal'); if (sm) sm.style.display = 'none';
             openModal();
         });

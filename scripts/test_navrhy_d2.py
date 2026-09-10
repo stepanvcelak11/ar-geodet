@@ -81,6 +81,23 @@ async def main():
             except Exception:
                 pass
 
+            # ⚠⚠ ODEMKNOUT PRO (od v283). "Odhadni to" i "Bod ze dvou fotek" jsou
+            #   PLACENE nastroje (`pro: 1` v js/tools-registry.js). Do teto chvile
+            #   se daly spustit primo pres window.agOpenOdhad() proto, ze druha
+            #   zavora zamku hlidala SPATNE JMENO — obalovala `window[<klic>]`,
+            #   jenze modul vystavuje `agOpenOdhad`. Ta dira je opravena, takze
+            #   volani ted spravne otevre kartu "Verze Pro". Tahle sada zkousi
+            #   chovani modulu, ne licencovani (to hlida scripts/test_pro_verze.py),
+            #   tak si klic vyrobi a ulozi.
+            await page.evaluate("""() => {
+                if (!window.AGLic) return false;
+                if (AGLic.isPro()) return true;
+                return AGLic.uloz(AGLic.vyrob(1, 0));
+            }""")
+            await page.wait_for_timeout(400)
+            ok('Pro odemceno (placene nastroje jdou otevrit)',
+               await page.evaluate("() => !!(window.AGLic && AGLic.isPro())"))
+
             # ---- 1) nacteni modulu -------------------------------------------
             api = await page.evaluate("""() => ({
                 motivy: typeof window.AGMotivy,

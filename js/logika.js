@@ -20,9 +20,35 @@ if ('serviceWorker' in navigator) {
             });
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js').then(reg => {
-                    // Nová verze už čeká z minulého běhu (banner tehdy nikdo neklepl)
-                    // → bez tohohle by se lišta při dalším startu už NEUKÁZALA.
-                    if (reg.waiting && navigator.serviceWorker.controller) showUpdateBanner();
+                    // ⚠⚠ NOVÁ VERZE SE NASAZUJE SAMA PŘI STARTU (8. 9. 2026).
+                    //   Dřív se tu jen ukázala lišta a čekalo se, až na ni někdo klepne —
+                    //   uživatel to označil za „strašně náročný a zbytečný" a chce, aby
+                    //   stačilo appku zavřít a znovu otevřít. Když tedy při startu čeká
+                    //   nachystaný service worker, pustíme ho DOVNITŘ hned a stránku
+                    //   jednou obnovíme. Děje se to v první vteřině po spuštění, kdy
+                    //   uživatel stejně ještě nic nedělá.
+                    //   ⚠ POJISTKA PROTI SMYČCE: `agSwSelfUpdate` v sessionStorage. Kdyby
+                    //     se nový worker z jakéhokoli důvodu nedokázal ujmout vlády
+                    //     (zamítnutá aktivace, chyba v sw.js), reload by se opakoval
+                    //     donekonečna. Značka žije jen po dobu jednoho spuštění appky,
+                    //     takže při příštím otevření se pokus poctivě zopakuje.
+                    //   ⚠ Když se do 4 s nic nestane, ukáže se aspoň oznamovací lišta —
+                    //     ať člověk ví, proč appka pořád vypadá po staru.
+                    if (reg.waiting && navigator.serviceWorker.controller) {
+                        let uzZkouseno = false;
+                        try { uzZkouseno = sessionStorage.getItem('agSwSelfUpdate') === '1'; } catch (e) { uzZkouseno = false; }
+                        if (uzZkouseno) showUpdateBanner();
+                        else {
+                            try { sessionStorage.setItem('agSwSelfUpdate', '1'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:selfUpdate'); }
+                            // aby handler controllerchange výš reload povolil (bere to jako
+                            // vyžádanou obnovu, ne jako první zabrání stránky)
+                            window.__agUpdateRequested = true;
+                            // „Co je nového" se po obnově ukáže samo — viz js/co-je-noveho.js
+                            try { localStorage.setItem('agCjnPoAktualizaci', '1'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:selfUpdate2'); }
+                            try { reg.waiting.postMessage('SKIP_WAITING'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:selfUpdate3'); }
+                            setTimeout(() => { if (!_swReloaded) showUpdateBanner(); }, 4000);
+                        }
+                    }
                     reg.addEventListener('updatefound', () => {
                         const nw = reg.installing; if (!nw) return;
                         nw.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdateBanner(); });
@@ -1390,14 +1416,31 @@ if ('serviceWorker' in navigator) {
         async function fetchGeodata(lat, lng, radius, clearExisting = false, onProgress = null) {
             lastFetchNetworkError = false; lastFetchServerError = false;
             if (clearExisting) { arPoints.forEach(p => { if(p.element) p.element.remove(); }); arPoints = []; persistentCustomPoints.forEach(pt => arPoints.push({...pt})); }
+            // ⚠⚠ REJSTŘÍK MÍSTO arPoints.find() V CYKLU (8. 9. 2026). Pro každý
+            //   stažený prvek se tu hledalo lineárně přes CELÉ pole bodů, tedy
+            //   O(vlastní body × stažené prvky). Naměřeno v prohlížeči (CPU 4×,
+            //   1000 vlastních bodů, 2250 stažených prvků): porovnávací funkce se
+            //   zavolala 2 697 379×. Právě proto appka prvních pár vteřin po
+            //   objevení obrazovky „nejede plynule" a proč to rostlo s počtem bodů
+            //   (dlouhé úlohy 915 ms při 0 bodech, 2193 ms při 1000, 4066 ms při 3000).
+            //   Rejstřík se staví JEDNOU a při vkládání se rovnou doplňuje.
+            const _ixJm = new Map();
+            const _ixPridej = (pt) => { let a = _ixJm.get(pt.name); if (!a) _ixJm.set(pt.name, a = []); a.push(pt); };
+            arPoints.forEach(_ixPridej);
+            const _najdiBod = (jm, la) => {
+                const a = _ixJm.get(jm);
+                if (!a) return undefined;
+                for (let i = 0; i < a.length; i++) if (Math.abs(a[i].lat - la) < 0.00001) return a[i];
+                return undefined;
+            };
             const fetchRadius = radius || mapRadius; const latOffset = fetchRadius / 111320; const lngOffset = fetchRadius / (111320 * Math.cos(lat * Math.PI / 180)); const bbox = `${lng - lngOffset},${lat - latOffset},${lng + lngOffset},${lat + latOffset}`; let newFoundCount = 0;
             let _gstep = 0; for (let layerId of [1, 2, 4, 5, 6]) { if (onProgress) onProgress(_gstep++, 6); 
                 const url = `https://ags.cuzk.gov.cz/arcgis/rest/services/BodovaPole/MapServer/${layerId}/query?where=1%3D1&geometry=${bbox}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&outSR=4326&f=json`;
-                try { const data = await _cuzkFetchJson(url); if (data && data.features && data.features.length > 0) { data.features.forEach(feat => { const dist = getDistance(lat, lng, feat.geometry.y, feat.geometry.x); if (dist <= fetchRadius + 5) { const props = feat.attributes; const layerNum = parseInt(layerId, 10); const cisloBodu = extractPointNumber(props); const nameUpper = cisloBodu.toUpperCase(); let cat = "PBPP"; if (layerNum === 1) cat = "TB"; else if (layerNum === 2) cat = "ZHB"; else if (layerNum === 4 || layerNum === 5 || nameUpper.includes('-') || nameUpper.includes('NIVEL')) cat = "NIVEL"; const existing = arPoints.find(p => p.name === cisloBodu && Math.abs(p.lat - feat.geometry.y) < 0.00001); if (!existing) { arPoints.push({ id: stableId(feat.geometry.y, feat.geometry.x), name: cisloBodu, lat: feat.geometry.y, lng: feat.geometry.x, cat: cat, type: (cat==="NIVEL"?"vyskovy":"polohovy"), rawData: props, hidden: false, currentDist: dist, bestAccuracy: null }); newFoundCount++; } else if (existing.hidden) { existing.hidden = false; newFoundCount++; } } }); } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:fetchGeodata'); }
+                try { const data = await _cuzkFetchJson(url); if (data && data.features && data.features.length > 0) { data.features.forEach(feat => { const dist = getDistance(lat, lng, feat.geometry.y, feat.geometry.x); if (dist <= fetchRadius + 5) { const props = feat.attributes; const layerNum = parseInt(layerId, 10); const cisloBodu = extractPointNumber(props); const nameUpper = cisloBodu.toUpperCase(); let cat = "PBPP"; if (layerNum === 1) cat = "TB"; else if (layerNum === 2) cat = "ZHB"; else if (layerNum === 4 || layerNum === 5 || nameUpper.includes('-') || nameUpper.includes('NIVEL')) cat = "NIVEL"; const existing = _najdiBod(cisloBodu, feat.geometry.y); if (!existing) { const _novy = { id: stableId(feat.geometry.y, feat.geometry.x), name: cisloBodu, lat: feat.geometry.y, lng: feat.geometry.x, cat: cat, type: (cat==="NIVEL"?"vyskovy":"polohovy"), rawData: props, hidden: false, currentDist: dist, bestAccuracy: null }; arPoints.push(_novy); _ixPridej(_novy); newFoundCount++; } else if (existing.hidden) { existing.hidden = false; newFoundCount++; } } }); } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:fetchGeodata'); }
             }
             if (newFoundCount === 0 || !clearExisting) {
                 const mapExtent = `${lng-0.005},${lat-0.005},${lng+0.005},${lat+0.005}`; const idUrl = `https://ags.cuzk.gov.cz/arcgis/rest/services/BodovaPole/MapServer/identify?geometry=${lng},${lat}&geometryType=esriGeometryPoint&sr=4326&layers=all&tolerance=${Math.max(fetchRadius, 40)}&mapExtent=${mapExtent}&imageDisplay=1000,1000,96&returnGeometry=true&f=json`;
-                try { const idData = await _cuzkFetchJson(idUrl); if (idData && idData.results && idData.results.length > 0) { idData.results.forEach(res => { const dist = getDistance(lat, lng, res.geometry.y, res.geometry.x); if (dist <= fetchRadius + 5) { const props = res.attributes; const layerNum = parseInt(res.layerId, 10); const cisloBodu = extractPointNumber(props); const nameUpper = cisloBodu.toUpperCase(); let cat = "PBPP"; if (layerNum === 1) cat = "TB"; else if (layerNum === 2) cat = "ZHB"; else if (layerNum === 4 || layerNum === 5 || nameUpper.includes('-') || nameUpper.includes('NIVEL')) cat = "NIVEL"; const existing = arPoints.find(p => p.name === cisloBodu && Math.abs(p.lat - res.geometry.y) < 0.00001); if (!existing) { arPoints.push({ id: stableId(res.geometry.y, res.geometry.x), name: cisloBodu, lat: res.geometry.y, lng: res.geometry.x, cat: cat, type: (cat==="NIVEL"?"vyskovy":"polohovy"), rawData: props, hidden: false, currentDist: dist, bestAccuracy: null }); newFoundCount++; } else if (existing.hidden) { existing.hidden = false; newFoundCount++; } } }); } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:fetchGeodata'); }
+                try { const idData = await _cuzkFetchJson(idUrl); if (idData && idData.results && idData.results.length > 0) { idData.results.forEach(res => { const dist = getDistance(lat, lng, res.geometry.y, res.geometry.x); if (dist <= fetchRadius + 5) { const props = res.attributes; const layerNum = parseInt(res.layerId, 10); const cisloBodu = extractPointNumber(props); const nameUpper = cisloBodu.toUpperCase(); let cat = "PBPP"; if (layerNum === 1) cat = "TB"; else if (layerNum === 2) cat = "ZHB"; else if (layerNum === 4 || layerNum === 5 || nameUpper.includes('-') || nameUpper.includes('NIVEL')) cat = "NIVEL"; const existing = _najdiBod(cisloBodu, res.geometry.y); if (!existing) { const _novy = { id: stableId(res.geometry.y, res.geometry.x), name: cisloBodu, lat: res.geometry.y, lng: res.geometry.x, cat: cat, type: (cat==="NIVEL"?"vyskovy":"polohovy"), rawData: props, hidden: false, currentDist: dist, bestAccuracy: null }; arPoints.push(_novy); _ixPridej(_novy); newFoundCount++; } else if (existing.hidden) { existing.hidden = false; newFoundCount++; } } }); } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:fetchGeodata'); }
             }
             // Kazde zvlast: kdyz spadne initARMarkers (AR), MUSI se stejne prekreslit
             // mapa — jinak jedna chyba v AR schova body i v mape.
@@ -1510,7 +1553,12 @@ if ('serviceWorker' in navigator) {
                         // zakazky s tisicem bodu to usetri polovinu goniometrie za sekundu.
                         // Kdo azimut potrebuje i dal (cil navigace), ma u sebe fallback
                         // `pt.currentBearing != null ? ... : getBearing(...)`.
-                        arPoints.forEach(p => { p.currentDist = getDistance(_oc[0], _oc[1], p.lat, p.lng); p.currentBearing = (p.currentDist <= _brgLim) ? getBearing(_oc[0], _oc[1], p.lat, p.lng) : null; }); arPoints.sort((a, b) => a.currentDist - b.currentDist); _lastCalcLat = userLat; _lastCalcLng = userLng; _lastCalcCount = arPoints.length; }
+                        // ⚠ AZIMUT I PRO VYBRANÉ VZDÁLENÉ BODY (js/ar-dosah.js). Bez toho by
+                        //   měl bod za _brgLim `currentBearing === null` a renderAR by ho
+                        //   neměl kam v obraze posadit — výběr obdélníkem by navenek
+                        //   „nefungoval", i když by řezem prošel.
+                        var _dsh = window.AGDosah;
+                        arPoints.forEach(p => { p.currentDist = getDistance(_oc[0], _oc[1], p.lat, p.lng); p.currentBearing = (p.currentDist <= _brgLim || (_dsh && _dsh.vzdy(p.id))) ? getBearing(_oc[0], _oc[1], p.lat, p.lng) : null; }); arPoints.sort((a, b) => a.currentDist - b.currentDist); _lastCalcLat = userLat; _lastCalcLng = userLng; _lastCalcCount = arPoints.length; }
                     if (activePointIdForModal) { const activePt = arPoints.find(p => p.id === activePointIdForModal); if (activePt) { const newDist = getDistance(userLat, userLng, activePt.lat, activePt.lng); const distEl = document.getElementById('sheet-distance-val'); if (distEl) distEl.innerText = `${newDist.toFixed(1)} m`; const gpsEl = document.getElementById('sheet-gps-val'); if (gpsEl) gpsEl.innerText = currentGpsAccuracy.toFixed(1); } }
                     if (lastCenterLat === null) { map.setView([userLat, userLng], 19, { animate: false }); lastCenterLat = userLat; lastCenterLng = userLng; } else if (!window._mapHold && getDistance(lastCenterLat, lastCenterLng, userLat, userLng) > 1.5) { map.setView([userLat, userLng], map.getZoom(), { animate: false }); lastCenterLat = userLat; lastCenterLng = userLng; }
                     // BATERIE/RADIO: dotazovat CUZK po kazdych 25 m chuze bylo silne redundantni —
