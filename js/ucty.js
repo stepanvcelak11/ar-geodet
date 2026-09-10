@@ -1055,10 +1055,20 @@
             var grid2 = document.querySelector('#tools-modal .tool-grid');
             var karta = document.getElementById('ag-tools-empty');
             var videt = 0;
+            // ⚠⚠ NEPTÁT SE NA `display` DLAŽDICE — ta odpověď LŽE, když je schovaná
+            //   celá mřížka. Od úklidu Nástrojů je `.tool-grid` sama `display:none`
+            //   (místo ní se ukazuje rozcestník úkonů), jenže potomek schovaného
+            //   rodiče má svůj vlastní `display` pořád nenulový. Naměřeno u člena
+            //   BEZ jediné povolené kategorie: ze 101 dlaždic jich tenhle test
+            //   napočítal 52 „viditelných", zatímco člověk viděl NULA — karta se
+            //   proto nepostavila a Nástroje zůstaly prázdné a němé. Přesně tomu
+            //   měla zabránit (viz odstavec výše).
+            //   `data-agucty` sází setHide() na to, co role NESMÍ vidět, takže se
+            //   ptáme na povolení, ne na vykreslení — a platí to i se zavřeným oknem.
             if (grid2) {
                 var tiles = grid2.querySelectorAll('.tool-tile');
                 for (var ti = 0; ti < tiles.length; ti++) {
-                    if (getComputedStyle(tiles[ti]).display !== 'none') { videt++; break; }
+                    if (!tiles[ti].hasAttribute('data-agucty')) { videt++; break; }
                 }
             }
             if (grid2 && restrict && !videt) {
