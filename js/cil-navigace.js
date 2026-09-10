@@ -12,8 +12,13 @@
 //     ryska se přilepí ke kraji a změní se v šipku s počtem stupňů; nad 135° je
 //     cíl za zády a šipka se změní na otočku.
 //     ⚠ VE SPLITU JE PÁSKA SAMOTNÝM DĚLIČEM (#resizer) — nezabírá tedy ani pixel
-//       navíc proti dnešku (dělič se roztáhne z 16 na 26 px a jen dokud je cíl
-//       nastavený). Tažení děliče funguje dál: páska nebere klepnutí.
+//       navíc (dělič se roztáhne z 16 na 24 px, přesně jako dřív s pásem
+//       blízkosti, a jen dokud je cíl nastavený). Tažení funguje dál: páska
+//       nebere klepnutí a chytací plocha #resizer::after zůstává.
+//     ⚠ VZDÁLENOST NA PÁSCE NENÍ — páska odpovídá na „kam". Číslo je v HUD nad
+//       kamerou a v mapě u čáry ke cíli. Pás blízkosti, který vzdálenost do
+//       děliče kreslil, byl 10. 9. 2026 na přání uživatele zrušen
+//       (js/pas-blizkosti.js smazán); tím se `#ar-hud-dist` vrátil do hry.
 //
 // ZÁMĚRNĚ nesahá do grafika.js/logika.js/style.css: jen obalí updateNavGlow()
 // (volá se každý snímek z renderAR, viz grafika.js) a styly + prvky si vyrobí sám.
@@ -111,11 +116,14 @@
             '  border:1px solid rgba(255,255,255,0.14);}',
             /* v děliči vyplní celý pruh a nekreslí si vlastní rám — rámem je dělič */
             '.ag-cil-paska.v-delic{top:0;bottom:0;height:auto;background:transparent;border:0;}',
-            // ⚠ `flex:0 0 auto` NENÍ ozdoba: dělič je pružná položka sloupce a bez
-            //   toho se z požadovaných 26 px smrskl na 24 (naměřeno). Páska sice
-            //   vyplní, co dostane, ale rysky a písmena chtějí svou výšku.
-            '#resizer.ag-cil-paska-on{height:26px;flex:0 0 auto;}',
-            'body.ag-glove #resizer.ag-cil-paska-on{height:30px;}',
+            // ⚠ 24 px SCHVÁLNĚ: přesně tolik měl dělič i s pásem blízkosti, který
+            //   páska nahradila (volba uživatele 10. 9. 2026). Split se tím proti
+            //   dnešku nezmění ani o pixel — a přesně o to šlo („ať nezabírá víc
+            //   prostoru než je třeba"). Bez cíle je dělič dál jen 16 px.
+            // ⚠ `flex:0 0 auto` není ozdoba: dělič je pružná položka sloupce a bez
+            //   toho si výšku, o kterou si řekne, neudrží.
+            '#resizer.ag-cil-paska-on{height:24px;flex:0 0 auto;}',
+            'body.ag-glove #resizer.ag-cil-paska-on{height:28px;}',
             /* úchyt děliče by seděl přesně tam, kde je hrot pásky — schová se a
                místo něj drží „tady se táhne" dvě rysky u pravého kraje */
             '#resizer.ag-cil-paska-on .grabber{display:none;}',
@@ -130,11 +138,14 @@
             /* stužka rysek: jeden široký pás, který se posouvá transformem
                (kompozitor) — žádné přepisování DOM 60x za sekundu */
             '.ag-cil-skala{position:absolute;left:0;top:0;bottom:0;will-change:transform;}',
-            '.ag-cil-skala i{position:absolute;bottom:4px;width:1px;background:#8b969e;opacity:.55;}',
-            '.ag-cil-skala i.d15{height:5px;}',
-            '.ag-cil-skala i.d45{height:8px;opacity:.75;}',
-            '.ag-cil-skala b{position:absolute;bottom:2px;transform:translateX(-50%);',
-            '  font:700 10px/1 var(--font-mono,monospace);color:#c6d0d6;opacity:.9;}',
+            // ⚠ TŘI PATRA NAD SEBOU, NE VŠECHNO PŘES SEBE. Rysky i písmena nejdřív
+            //   visely od spodní hrany a v 24px pruhu se překrývaly. Teď: hrot 0–6,
+            //   rysky 8–14, písmena úplně dole.
+            '.ag-cil-skala i{position:absolute;top:8px;width:1px;background:#8b969e;opacity:.55;}',
+            '.ag-cil-skala i.d15{height:4px;}',
+            '.ag-cil-skala i.d45{height:6px;opacity:.75;}',
+            '.ag-cil-skala b{position:absolute;bottom:0;transform:translateX(-50%);',
+            '  font:700 9px/1 var(--font-mono,monospace);color:#c6d0d6;opacity:.9;}',
             /* pás, který ukazuje, co je zrovna v obraze kamery */
             '.ag-cil-zaber{position:absolute;top:0;bottom:0;background:rgba(255,255,255,0.07);',
             '  border-left:1px solid rgba(255,255,255,0.16);border-right:1px solid rgba(255,255,255,0.16);}',
@@ -160,12 +171,10 @@
             '.ag-cil-paska.vzad .ag-cil-mimo{background:rgba(239,68,68,.18);color:#f87171;}',
             '.ag-cil-paska.vzad .ag-cil-mimo .m-c{display:none;}',
             '.ag-cil-paska.vzad .ag-cil-mimo .m-u{display:block;}',
-            /* vzdálenost: v čisté AR nad hrotem, ve splitu NE — mapa pod děličem
-               ji ukazuje u čáry taky a dvakrát totéž číslo je šum */
-            '.ag-cil-dist{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 4px);',
-            '  font:700 13px/1 var(--font-mono,monospace);color:' + GOLD + ';',
-            '  text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;white-space:nowrap;}',
-            '.ag-cil-paska.v-delic .ag-cil-dist{display:none;}',
+            /* ⚠ VZDÁLENOST NA PÁSCE NENÍ. Páska odpovídá na „kam", ne na „jak daleko" —
+               číslo je v HUD nad kamerou (#ar-hud-dist) a v mapě u čáry ke cíli.
+               Třetí výskyt téhož čísla by byl jen šum. (Volba uživatele 10. 9. 2026:
+               pás blízkosti, který vzdálenost do děliče kreslil, byl zrušen.) */
             /* na slunci (adaptivní sklo) je tmavý podklad nečitelný */
             'body.cam-light .ag-cil-paska.v-ar{background:rgba(248,250,252,0.92);border-color:rgba(15,23,42,0.2);}',
             'body.cam-light .ag-cil-skala i{background:#4b5563;}',
@@ -242,7 +251,9 @@
         // čáry, takže číslo ve stupních tam jen přidávalo šum. Na obrazovce AR
         // azimut zůstává na obrazovce (kompasová páska níž si ho počítá sama).
         if (hasGeo()) {
-            var d = (pt.currentDist != null) ? pt.currentDist : getDistance(uLat, uLng, pt.lat, pt.lng);
+            // vzdálenost se na pásku nekreslí (viz styl výš); je v otisku stavu jen proto,
+        // aby se DOM přepsal, když se změní i to, co na pásce vidět JE
+        var d = (pt.currentDist != null) ? pt.currentDist : getDistance(uLat, uLng, pt.lat, pt.lng);
             var pos = labelLatLng(m, A, B);
             if (pos) {
                 var rot = (typeof mapRotation === 'number') ? mapRotation : 0;
@@ -316,7 +327,7 @@
     var TREFA = 3;               // do kolika stupňů se ryska považuje za trefu
     var VZAD = 135;              // nad kolik stupňů je cíl „za zády"
     var _pas = null, _pasHost = null, _pasW = 0, _pasPx = 0, _pasOkno = 0, _pasHalf = 0;
-    var _pTx = null, _pZnak = null, _pMimoL = null, _pMimoR = null, _pDist = null, _pZaber = null;
+    var _pTx = null, _pZnak = null, _pMimoL = null, _pMimoR = null, _pZaber = null;
     var _pStav = '';             // otisk posledního zápisu do DOM (ať se nepíše 60x/s)
 
     var SIP = '<svg class="m-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 5 8 12 15 19"/></svg>'
@@ -342,14 +353,12 @@
             + '<div class="ag-cil-hrot"></div>'
             + '<div class="ag-cil-mimo m-l">' + SIP + '<span class="m-t"></span></div>'
             + '<div class="ag-cil-mimo m-r"><span class="m-t"></span>' + SIP + '</div>'
-            + '<div class="ag-cil-dist"></div>'
             + '<span class="ag-cil-uchyt"><i></i><i></i></span>';
         _pas = el;
         _pTx = el.querySelector('.ag-cil-skala');
         _pZnak = el.querySelector('.ag-cil-znak');
         _pMimoL = el.querySelector('.ag-cil-mimo.m-l .m-t');
         _pMimoR = el.querySelector('.ag-cil-mimo.m-r .m-t');
-        _pDist = el.querySelector('.ag-cil-dist');
         _pZaber = el.querySelector('.ag-cil-zaber');
         return el;
     }
@@ -418,6 +427,15 @@
             _pasW = 0;                       // vynutit přestavbu stupnice v nové šířce
         }
         if (!el.classList.contains('on')) el.classList.add('on');
+        // ⚠⚠ ZNAČKU NA DĚLIČ VRACET POKAŽDÉ, NE JEN PŘI PŘESTĚHOVÁNÍ. paskaOff() ji
+        //   sundá, kdykoli cíl zmizí — a když se pak cíl nastaví znovu ve STEJNÉM
+        //   zobrazení, podmínka `_pasHost !== host` neplatí a značka se nevrátila:
+        //   dělič zůstal 16 px a páska se do něj zmáčkla (naměřeno — rysky se
+        //   překryly s písmeny světových stran).
+        if (host.id === 'resizer' && !host.classList.contains('ag-cil-paska-on')) {
+            host.classList.add('ag-cil-paska-on');
+            _pasW = 0;                       // v jiné výšce se stupnice staví znovu
+        }
 
         var w = el.clientWidth || host.clientWidth;
         if (!w) return;
@@ -449,7 +467,6 @@
             var txt = Math.round(ad) + '\u00b0';
             if (mimo && diff < 0) _pMimoL.textContent = txt;
             if (mimo && diff > 0) _pMimoR.textContent = txt;
-            _pDist.textContent = fmtD(d);
         }
         // ryska cíle: uvnitř okna na svém místě, mimo něj přilepená ke kraji
         var x = w / 2 + Math.max(-mez, Math.min(mez, diff)) * _pasPx;

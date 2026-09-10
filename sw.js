@@ -91,7 +91,6 @@ const ASSETS_TO_CACHE = [
     './js/vytycovani.js',
     './js/protokol-vytyceni.js',
     './js/cil-navigace.js',
-    './js/pas-blizkosti.js',
     './js/historie-aktualizaci.js',
     './js/zpetna-vazba.js',
     './js/sprava-appky.js',

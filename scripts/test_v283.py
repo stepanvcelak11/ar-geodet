@@ -581,6 +581,138 @@ async def test_vlastnik_pro(ctx):
     await page.close()
 
 
+# --------------------------------------------- L) kompasova paska v delici
+# ⚠ TAHLE ZKOUSKA POTREBUJE FALESNOU KAMERU. Bez ni getUserMedia v headless selze,
+#   handleCameraError() prepne viewMode zpatky na 'map' a mereni pak meri mapu,
+#   pricemz se tvari, ze se rezim neprepnul (stalo se mi to dvakrat po sobe).
+async def test_paska(ctx):
+    print('\n--- L) kompasova paska: delic, cil mimo zaber, tazeni ---')
+    page = await ctx.new_page()
+    chyby = []
+    page.on('pageerror', lambda e: chyby.append(str(e)[:200]))
+    await ctx.add_init_script(BOOT)
+    await nacti(page, "document.body.classList.contains('app-started')")
+    await page.evaluate("() => window.AGLazy && AGLazy.flush()")
+    await page.wait_for_timeout(2500)
+
+    ok('pas blizkosti je z appky pryc', await page.evaluate(
+        "() => typeof window.AGPasBlizkosti === 'undefined' && !document.body.classList.contains('agpb-on')"))
+
+    await page.evaluate("""() => {
+        viewMode = 'both'; applyViewMode();
+        arPoints.push({ id: 'p-cil', name: 'Cil', lat: userLat + 0.0011, lng: userLng, cat: 'CUSTOM', hidden: false });
+        highlightedPointId = 'p-cil';
+        window._lastCalcCount = -1;
+    }""")
+    await page.wait_for_timeout(1200)
+
+    async def stav(hd):
+        await page.evaluate("(h) => { currentHeading = h; }", hd)
+        await page.wait_for_timeout(250)
+        await page.evaluate("() => { if (window.AGCilNav) AGCilNav.tick(); }")
+        await page.wait_for_timeout(250)
+        return await page.evaluate("""() => {
+            const pas = document.querySelector('.ag-cil-paska');
+            const rz = document.getElementById('resizer');
+            const vid = (sel) => { const e = pas && pas.querySelector(sel);
+                return e && getComputedStyle(e).display !== 'none' ? (e.textContent || '').trim() : null; };
+            const box = (sel) => { const e = pas && pas.querySelector(sel); if (!e) return null;
+                const r = e.getBoundingClientRect(), pr = pas.getBoundingClientRect();
+                return [Math.round(r.top - pr.top), Math.round(r.bottom - pr.top)]; };
+            return {
+                tridy: pas ? pas.className : null,
+                rodic: pas && pas.parentElement ? pas.parentElement.id : null,
+                vyska: pas ? Math.round(pas.getBoundingClientRect().height) : 0,
+                delic: rz ? getComputedStyle(rz).height : null,
+                mimoL: vid('.ag-cil-mimo.m-l'), mimoR: vid('.ag-cil-mimo.m-r'),
+                znakVidet: (() => { const z = pas && pas.querySelector('.ag-cil-znak');
+                    return z ? getComputedStyle(z).opacity : null; })(),
+                hrot: box('.ag-cil-hrot'), tick: box('.ag-cil-skala i.d45'), pismeno: box('.ag-cil-skala b')
+            };
+        }""")
+
+    st = await stav(0)
+    ok('paska bydli v delici', st['rodic'] == 'resizer' and 'v-delic' in (st['tridy'] or ''), st)
+    ok('delic ma 24 px jako driv s pasem blizkosti', st['delic'] == '24px' and st['vyska'] == 24, st)
+    ok('mireni na cil je oznacene jako trefa', 'trefa' in (st['tridy'] or ''), st['tridy'])
+    # tri patra nad sebou se nesmi prekryvat
+    def prekryv(a, b):
+        return bool(a) and bool(b) and not (a[1] <= b[0] or b[1] <= a[0])
+    ok('rysky a pismena se neprekryvaji', not prekryv(st['tick'], st['pismeno']), st)
+    ok('hrot a rysky se neprekryvaji', not prekryv(st['hrot'], st['tick']), st)
+
+    st = await stav(100)
+    ok('cil mimo pasku: sipka vlevo se stupni', st['mimoL'] and '100' in st['mimoL'], st)
+    ok('cil mimo pasku: ryska zhasne', st['znakVidet'] == '0', st)
+
+    st = await stav(180)
+    ok('cil za zady: stav vzad', 'vzad' in (st['tridy'] or ''), st['tridy'])
+
+    # ⚠ elementFromPoint, ne el.click(): klik z JS projde i pres prekryti
+    await stav(20)
+    tah = await page.evaluate("""() => {
+        const r = document.getElementById('resizer').getBoundingClientRect();
+        const x = Math.round(r.left + r.width / 2), y = Math.round(r.top + r.height / 2);
+        const e = document.elementFromPoint(x, y);
+        return { x: x, y: y, pod: e ? (e.id || e.className) : null,
+                 kamera: Math.round(document.getElementById('camera-container').getBoundingClientRect().height) };
+    }""")
+    ok('pod prstem uprostred delice je delic, ne paska', tah['pod'] == 'resizer', tah)
+    await page.mouse.move(tah['x'], tah['y'])
+    await page.mouse.down()
+    await page.mouse.move(tah['x'], tah['y'] - 120, steps=6)
+    await page.mouse.up()
+    await page.wait_for_timeout(600)
+    po = await page.evaluate("() => Math.round(document.getElementById('camera-container').getBoundingClientRect().height)")
+    ok('delic jde s paskou porad tahnout', abs((tah['kamera'] - po) - 120) < 25, {'pred': tah['kamera'], 'po': po})
+
+    # bez cile se delic vrati a uchyt taky
+    await page.evaluate("() => { highlightedPointId = null; }")
+    await page.wait_for_timeout(300)
+    await page.evaluate("() => { if (window.AGCilNav) AGCilNav.tick(); }")
+    await page.wait_for_timeout(300)
+    bez = await page.evaluate("""() => {
+        const rz = document.getElementById('resizer');
+        return { delic: getComputedStyle(rz).height,
+                 grabber: getComputedStyle(rz.querySelector('.grabber')).display };
+    }""")
+    ok('bez cile je delic zase 16 px i s uchytem', bez['delic'] == '16px' and bez['grabber'] == 'block', bez)
+
+    # ⚠ REGRESE, KTEROU JSEM SI SAM VYROBIL: znacka na delici se vracela jen pri
+    #   prestehovani, takze po znovunastaveni cile zustal delic 16 px.
+    await page.evaluate("() => { highlightedPointId = 'p-cil'; }")
+    await page.wait_for_timeout(300)
+    await page.evaluate("() => { if (window.AGCilNav) AGCilNav.tick(); }")
+    await page.wait_for_timeout(400)
+    znovu = await page.evaluate("() => getComputedStyle(document.getElementById('resizer')).height")
+    ok('po znovunastaveni cile je delic zase 24 px', znovu == '24px', znovu)
+
+    # cista AR: plovouci stuzka nad spodni hranou
+    await page.evaluate("() => { viewMode = 'ar'; applyViewMode(); }")
+    await page.wait_for_timeout(900)
+    await page.evaluate("() => { if (window.AGCilNav) AGCilNav.tick(); }")
+    await page.wait_for_timeout(300)
+    ar = await page.evaluate("""() => {
+        const pas = document.querySelector('.ag-cil-paska');
+        const r = pas.getBoundingClientRect();
+        return { rodic: pas.parentElement.id, tridy: pas.className,
+                 y: Math.round(r.top), dole: Math.round(innerHeight - r.bottom) };
+    }""")
+    ok('v ciste AR sedi paska v kamere nad spodni hranou', ar['rodic'] == 'camera-container'
+       and 'v-ar' in ar['tridy'] and 0 < ar['dole'] < 40, ar)
+
+    # jen mapa: paska se schova
+    await page.evaluate("() => { viewMode = 'map'; applyViewMode(); }")
+    await page.wait_for_timeout(700)
+    await page.evaluate("() => { if (window.AGCilNav) AGCilNav.tick(); }")
+    await page.wait_for_timeout(300)
+    mp = await page.evaluate("() => document.querySelector('.ag-cil-paska').classList.contains('on')")
+    ok('v samotne mape se paska schova', not mp, mp)
+
+    ok('bez chyb v konzoli', not chyby, chyby[:3])
+    await page.close()
+
+
 async def main():
     from playwright.async_api import async_playwright
     srv = server()
@@ -590,10 +722,18 @@ async def main():
     try:
         async with async_playwright() as p:
             b = await p.chromium.launch()
-            for fn in (test_vlastnik, test_mrizka, test_mapa, test_dosah, test_kompas, test_pro, test_vlastnik_pro):
-                ctx = await b.new_context(viewport={'width': 412, 'height': 915},
+            # ⚠ Druhy prohlizec JEN pro pasku: potrebuje falesnou kameru, jinak se
+            #   rezim 'both' vubec nezapne (viz komentar u test_paska). Ostatni
+            #   zkousky ho nesmi dostat — s bezici kamerou by startovaly v jinem
+            #   zobrazeni, nez na jake jsou psane.
+            bcam = await p.chromium.launch(args=['--use-fake-device-for-media-stream',
+                                                 '--use-fake-ui-for-media-stream'])
+            for fn in (test_vlastnik, test_mrizka, test_mapa, test_dosah, test_kompas,
+                       test_pro, test_vlastnik_pro, test_paska):
+                prohlizec = bcam if fn is test_paska else b
+                ctx = await prohlizec.new_context(viewport={'width': 412, 'height': 915},
                                           is_mobile=True, has_touch=True,
-                                          permissions=['geolocation'], geolocation=GEO,
+                                          permissions=['geolocation', 'camera'], geolocation=GEO,
                                           locale='cs-CZ')
                 try:
                     await fn(ctx)
@@ -601,6 +741,7 @@ async def main():
                     ok(fn.__name__ + ' probehl', False, repr(e)[:300])
                 await ctx.close()
             await b.close()
+            await bcam.close()
     finally:
         srv.terminate()
     spatne = [j for o, j in vysledky if not o]
