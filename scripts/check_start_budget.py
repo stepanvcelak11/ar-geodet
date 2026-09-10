@@ -151,8 +151,21 @@ def read(p):
 
 
 def velikost(rel):
+    u"""Velikost souboru v bajtech, ale VZDY s konci radku jako LF.
+
+    ⚠⚠ NEPOUZIVAT os.path.getsize. Na Windows ma repo `core.autocrlf=true`,
+       takze soubory v pracovnim strome maji CRLF a kazdy radek je o bajt delsi.
+       Pri ~2 MB eager JS to dela +35 kB, tedy VIC nez cela rezerva pod stropem:
+       kontrola pak LOKALNE hlasi "rozpocet prekrocen", zatimco na CI (Linux, LF)
+       i ve skutecne nasazene verzi je vse v poradku. Uz dvakrat to poslalo
+       hledani po falesne stope - naposledy 9. 9. 2026 v cerstvem `git worktree`.
+       Meri se proto to, co se opravdu nasazuje: LF.
+    """
     p = os.path.join(ROOT, rel)
-    return os.path.getsize(p) if os.path.isfile(p) else 0
+    if not os.path.isfile(p):
+        return 0
+    with open(p, 'rb') as f:
+        return len(f.read().replace(b'\r\n', b'\n'))
 
 
 def zdroje():
