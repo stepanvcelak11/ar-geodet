@@ -2475,8 +2475,13 @@
                 adm.id = 'agfa-admin-btn';
                 adm.className = 'menu-btn';
                 adm.innerHTML = '<svg class="icon"><use href="#i-users"/></svg> Administrace firmy (admin)';
+                adm.setAttribute('data-tool', 'ucty-firma');
                 adm.onclick = function () {
                     try { if (typeof window.toggleMenu === 'function') toggleMenu(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:onclick'); }
+                    // ⚠ Vstup MIMO mřížku nástrojů: odchyt kliku v js/pro-zamky.js
+                    //   hledá dlaždici (data-tool / .tool-tile), takže sem nedosáhne
+                    //   a Pro nástroj by šel v Základu otevřít bez klíče.
+                    if (window.AGProZamky && AGProZamky.zamceno('ucty-firma')) { AGProZamky.karta('ucty-firma'); return; }
                     openEntry();
                 };
                 scroll.insertBefore(adm, btn);

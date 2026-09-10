@@ -114,12 +114,23 @@
         // všem firmám při aktualizaci zahodilo uložené oprávnění pro tenhle slot.
         { k: 'dock.vice',      g: 'Hlavní obrazovka', t: 'Vrstvy (ovládání mapy)' },
         { k: 'dock.nastaveni', g: 'Hlavní obrazovka', t: 'Nastavení' },
-        { k: 'tools.Měření',               g: 'Kategorie nástrojů', t: 'Měření' },
-        { k: 'tools.Vytyčování a náčrt',   g: 'Kategorie nástrojů', t: 'Vytyčování a náčrt' },
-        { k: 'tools.Katastr a data',       g: 'Kategorie nástrojů', t: 'Katastr a data' },
-        { k: 'tools.AR a kalibrace',       g: 'Kategorie nástrojů', t: 'AR a kalibrace' },
-        { k: 'tools.Pomůcky',              g: 'Kategorie nástrojů', t: 'Pomůcky' },
-        { k: 'tools.Terénní nástroje',     g: 'Kategorie nástrojů', t: 'Terénní nástroje' },
+        // ⚠ 8. 9. 2026 — KLÍČE JDOU PODLE NOVÝCH SKUPIN V MŘÍŽCE (sloves z registru).
+        //   Staré klíče (tools.Měření, tools.Pomůcky, tools.Terénní nástroje…) zůstanou
+        //   v uložené konfiguraci firem ležet, ale nikdo se na ně už neptá. can() vrací
+        //   u neznámého klíče TRUE (fail-open), takže firmám po aktualizaci nic nezmizí —
+        //   jen si musí případné omezení nastavit znovu podle nových skupin.
+        { k: 'tools.Změřit',               g: 'Kategorie nástrojů', t: 'Změřit' },
+        { k: 'tools.Určit nový bod',       g: 'Kategorie nástrojů', t: 'Určit nový bod' },
+        { k: 'tools.Vytyčit',              g: 'Kategorie nástrojů', t: 'Vytyčit' },
+        { k: 'tools.Zaznamenat',           g: 'Kategorie nástrojů', t: 'Zaznamenat' },
+        { k: 'tools.Srovnat AR',           g: 'Kategorie nástrojů', t: 'Srovnat AR' },
+        { k: 'tools.Zjistit podmínky',     g: 'Kategorie nástrojů', t: 'Zjistit podmínky' },
+        { k: 'tools.Katastr a podklady',   g: 'Kategorie nástrojů', t: 'Katastr a podklady' },
+        { k: 'tools.Před výjezdem',        g: 'Kategorie nástrojů', t: 'Před výjezdem' },
+        { k: 'tools.Firma a papíry',       g: 'Kategorie nástrojů', t: 'Firma a papíry' },
+        { k: 'tools.Příručka a výpočty',   g: 'Kategorie nástrojů', t: 'Příručka a výpočty' },
+        { k: 'tools.Správa aplikace',      g: 'Kategorie nástrojů', t: 'Správa aplikace (vlastník)' },
+        { k: 'tools.Ostatní',              g: 'Kategorie nástrojů', t: 'Ostatní nástroje' },
         { k: 'set.tab-ar',     g: 'Záložky Nastavení', t: 'AR a přesnost' },
         { k: 'set.tab-data',   g: 'Záložky Nastavení', t: 'Data (zakázky, export)' },
         { k: 'set.tab-udrzba', g: 'Záložky Nastavení', t: 'Údržba (záloha, koš)' },
@@ -1013,8 +1024,7 @@
                         if (restrict) {
                             var key = node.getAttribute('data-tool');
                             if (key) {
-                                var c = _toolCat[key] || 'Terénní nástroje';
-                                ban2 = !can('tools.' + c);
+                                ban2 = !smiNastroj(key);
                             } else {
                                 var oc = node.getAttribute('onclick') || '';
                                 for (var bi = 0; bi < bannedKeys.length; bi++) {
@@ -1034,11 +1044,15 @@
                 // dojede zbytek podle SKUTEČNÉ kategorie nástroje (_toolCat), takže
                 // nová zóna v mřížce už díru neudělá.
                 if (restrict) {
-                    var vse = grid.querySelectorAll('.tool-tile[data-tool]');
+                    // ⚠ VŠECHNY dlaždice, ne jen ty s `data-tool`: statické z index.html
+                    //   ho nemají a spoléhaly se na průchod podle nadpisů. Ten ale
+                    //   hlídá jen NOVÉ jméno skupiny, takže by přes něj prošel starý
+                    //   zákaz (viz smiNastroj výš).
+                    var vse = grid.querySelectorAll('.tool-tile');
                     for (var vi = 0; vi < vse.length; vi++) {
                         var t3 = vse[vi];
-                        var c3 = _toolCat[t3.getAttribute('data-tool')] || 'Terénní nástroje';
-                        if (!can('tools.' + c3)) setHide(t3, true);
+                        var k3 = klicDlazdice(t3);
+                        if (k3 && !smiNastroj(k3)) setHide(t3, true);
                     }
                 }
             }
@@ -1056,9 +1070,18 @@
             var karta = document.getElementById('ag-tools-empty');
             var videt = 0;
             if (grid2) {
+                // ⚠⚠ PTÁT SE NA POVOLENÍ, NE NA VYKRESLENÍ (10. 9. 2026). Dřív tu
+                //   stálo `getComputedStyle(dlaždice).display !== 'none'` — jenže
+                //   potomek SCHOVANÉHO rodiče má svůj display pořád nenulový a
+                //   `.tool-grid` je v běžném pohledu celá `display:none` (schovává
+                //   ji seznam úkonů, `body.ag-uk-on`). Napočítalo to 52 „viditelných"
+                //   dlaždic ze 101, zatímco člověk viděl NULA — a karta „Tvoje role
+                //   nemá povolený žádný nástroj" se proto nikdy nepostavila.
+                //   Značku `data-agucty` sázíme o pár řádků výš my sami, takže je
+                //   to přesně ta otázka, na kterou se ptát chceme.
                 var tiles = grid2.querySelectorAll('.tool-tile');
                 for (var ti = 0; ti < tiles.length; ti++) {
-                    if (getComputedStyle(tiles[ti]).display !== 'none') { videt++; break; }
+                    if (!tiles[ti].hasAttribute('data-agucty')) { videt++; break; }
                 }
             }
             if (grid2 && restrict && !videt) {
@@ -1107,12 +1130,99 @@
     // registrace ostatních modulů běží ještě později (na load), takže obal je stihne
     var _toolCat = {};
     var _wrapped = false;
+    // Skutečná kategorie nástroje: co řekl modul, jinak registr (skupina = sloveso),
+    // jinak záchytná sekce. Čte se AŽ TEĎ, ne při registraci — viz komentář níž.
+    // ⚠⚠⚠ KATEGORIE MUSÍ BÝT VŽDYCKY TAKOVÁ, NA KTEROU SE DÁ ZEPTAT `can()`.
+    //   `can()` u NEZNÁMÉHO klíče vrací TRUE (fail-open, viz níž) — takže nástroj,
+    //   jehož kategorie v PERMS není, projde i roli, která má zakázané všechno.
+    //   Naměřeno 10. 9. 2026 po přestavbě kategorií ze `cat` na `verb`: zaměstnanci
+    //   se zakázanými VŠEMI kategoriemi zůstalo dostupných 12 nástrojů ze 101
+    //   (na mainu 0). Unikaly ty, jejichž kategorie pochází z `cat` modulu
+    //   („Data a přenos", „Pomůcky" a spol.) nebo které v registru vůbec nejsou —
+    //   takové jméno v PERMS není a admin je nemá jak zakázat.
+    //   Cokoli, co není mezi známými kategoriemi, proto spadne do „Ostatní",
+    //   která v PERMS JE. Nová kategorie tím pádem nikdy nevyrobí novou díru;
+    //   nejhůř skončí pod cizím (ale existujícím) přepínačem.
+    var _znameKat = null;
+    function znameKategorie() {
+        if (_znameKat) return _znameKat;
+        _znameKat = {};
+        for (var i = 0; i < PERMS.length; i++) {
+            var k = PERMS[i].k;
+            if (k.indexOf('tools.') === 0) _znameKat[k.slice(6)] = 1;
+        }
+        return _znameKat;
+    }
+    // ⚠⚠⚠ STARÁ KATEGORIE SE MUSÍ VYMÁHAT DÁL (10. 9. 2026).
+    //   Mřížka se 8. 9. 2026 přestavěla z pěti kategorií (`cat`) na deset skupin
+    //   podle sloves (`verb`) a s ní se přejmenovaly i klíče `tools.*`. Jenže
+    //   firmy mají v uložené konfiguraci zákazy pod STARÝMI jmény — a `can()`
+    //   u neznámého klíče vrací TRUE. Po aktualizaci by tedy zaměstnanci, kterému
+    //   admin zakázal „Katastr a data", byl katastr zase otevřený. Tiché
+    //   ZRUŠENÍ zákazu je horší než cokoli jiného, co tahle přestavba mohla udělat.
+    //   Nástroj je proto dostupný, jen když ho pouští OBĚ jména: nové (skupina
+    //   v mřížce) i staré (`cat` z registru / z registrace modulu). Staré klíče
+    //   se do PERMS nevrací — v administraci by z deseti přepínačů udělaly
+    //   šestnáct — jen se dál vymáhají, pokud je firma uložené má.
+    // Šest kategorií, které mřížka měla do 8. 9. 2026. Firmy mají zákazy uložené
+    // pod nimi, takže se podle nich pořád rozhoduje — viz smiNastroj().
+    var KAT_STARE = {
+        'Měření': 1, 'Vytyčování a náčrt': 1, 'Katastr a data': 1,
+        'AR a kalibrace': 1, 'Pomůcky': 1, 'Terénní nástroje': 1
+    };
+    function katStara(id) {
+        if (!id) return 'Terénní nástroje';
+        var c = '';
+        try { if (window.AGReg && AGReg.cat) c = AGReg.cat(id) || ''; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:katStara'); }
+        c = c || _toolCat[id] || '';
+        // ⚠⚠ ZÁLOHA JE „Terénní nástroje", ne prázdno a ne novodobé jméno.
+        //   (a) Nástroj, který starou kategorii nikdy neměl — a takových byla
+        //       většina, 69 ze 102 — padal do záchytné sekce, a ta mezi šesti
+        //       přepínači byla. Bez zálohy přes starý zákaz propadl: 33 ze 101.
+        //   (b) `_toolCat` u nově psaných modulů nese UŽ NOVÉ jméno skupiny
+        //       („Srovnat AR"), které ve starých oprávněních nikdy nebylo —
+        //       takové by propadlo taky (naměřeno na js/ar-dosah.js).
+        //   Nový nástroj v době, kdy admin ta oprávnění nastavoval, neexistoval,
+        //   takže „spadl do zbytku" je ta správná domněnka.
+        return KAT_STARE[c] ? c : 'Terénní nástroje';
+    }
+    // Jediná otázka, na kterou se applyPerms ptá u dlaždice: smí ji tenhle člověk vidět?
+    function smiNastroj(id) {
+        if (!can('tools.' + katNastroje(id))) return false;
+        var st = katStara(id);
+        return !st || can('tools.' + st);
+    }
+    // Klíč dlaždice i pro statické dlaždice z index.html, které `data-tool` nemají
+    // (bere se poslední volaná funkce z onclick — stejně jako v js/field-tools.js).
+    function klicDlazdice(el) {
+        if (!el || !el.getAttribute) return '';
+        var k = el.getAttribute('data-tool');
+        if (k) return k;
+        var ms = (el.getAttribute('onclick') || '').match(/([A-Za-z_$][\w$]*)\s*\(/g);
+        return ms ? ms[ms.length - 1].replace(/\s*\($/, '') : '';
+    }
+    function katNastroje(id) {
+        if (!id) return 'Ostatní';
+        // Přednost má registr — stejné pořadí jako v js/field-tools.js (syncTiles),
+        // jinak by oprávnění hlídala jinou kategorii, než pod kterou dlaždice leží.
+        var c = '';
+        try {
+            if (window.AGReg && AGReg.mrizka) c = AGReg.mrizka(id) || '';
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:katNastroje'); }
+        c = c || _toolCat[id] || '';
+        return znameKategorie()[c] ? c : 'Ostatní';
+    }
     function wrapRegister() {
         if (_wrapped || typeof window.agRegisterFieldTool !== 'function') return;
         _wrapped = true;
         var orig = window.agRegisterFieldTool;
         window.agRegisterFieldTool = function (item) {
-            try { if (item && item.id) _toolCat[item.id] = item.cat || 'Terénní nástroje'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:agRegisterFieldTool'); }
+            // ⚠ Kategorii NEZAMRAZOVAT na hodnotě z registrace: modul ji často
+            //   neuvádí a registr (js/tools-registry.js) v tu chvíli nemusí být
+            //   načtený (tatáž past, jaká 8. 9. 2026 sesypala 65 dlaždic do
+            //   záchytné sekce — viz agRegisterFieldTool v js/field-tools.js).
+            //   Ukládá se jen to, co modul řekl; zbytek se dopočítá při čtení.
+            try { if (item && item.id) _toolCat[item.id] = item.cat || ''; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:agRegisterFieldTool'); }
             return orig.apply(this, arguments);
         };
     }
@@ -1974,7 +2084,12 @@
             '</div>' +
             '<label class="agl-keep" id="agl-keepwrap"><input type="checkbox" id="agl-keep" checked>' +
             '<span>Zůstat přihlášený na tomhle telefonu<small id="agl-keepnote"></small></span></label>' +
-            (cloud ? '<button type="button" class="agl-ghost" id="agl-other">Přihlásit jiné jméno</button>' : '') +
+            // ⚠ 8. 9. 2026: TLAČÍTKO JE NOVĚ I U LOKÁLNÍ FIRMY. Dřív bylo jen v cloudu,
+            // takže na telefonu s lokální firmou a aspoň jedním uloženým účtem NEBYLO
+            // KAM NAPSAT JMÉNO — a tudy vede jediný vchod vlastníka (jméno VLASTNIK
+            // + klíč OWNER_KEY, viz js/vlastnik.js). Pro běžného člověka je to navíc
+            // jediná cesta, jak se přihlásit pod účtem, který na tomhle telefonu ještě nebyl.
+            '<button type="button" class="agl-ghost" id="agl-other">Přihlásit jiné jméno</button>' +
             '<button type="button" class="agl-ghost" id="agl-forgot">' + (cloud ? 'Zapomenuté heslo?' : 'Zapomenutý PIN?') + '</button>' +
             '</div>';
         document.body.appendChild(ov);
@@ -2800,8 +2915,24 @@
     }
 
     // pojistka: bez účtu a bez otevřené brány/průvodce → ukázat bránu
+    // ⚠⚠ 8. 9. 2026 — PŘÍZNAK VLASTNÍKA UŽ BRÁNU NEPŘESKAKUJE. Do téhle chvíle
+    //   platilo `if (isOwner()) return;`, takže komu jednou naskočil režim
+    //   vlastníka, ten se do appky VŮBEC NEPŘIHLAŠOVAL — a na přání 8. 9. 2026
+    //   („aby se tam při každém spuštění zobrazovalo přihlášení, což tam vůbec
+    //   momentálně není") je vlastník obyčejné přihlášení jako každé jiné:
+    //   do pole kódu VLASTNIK, do hesla OWNER_KEY (viz js/vlastnik.js).
+    //   Bránu proto nepřeskakuje ULOŽENÝ PŘÍZNAK, ale až přihlášení v TOMHLE
+    //   běhu — jinak by se brána po dvou vteřinách vrátila přes už běžící appku.
+    var _ownerIn = false;
+    function ownerEnter() {
+        _ownerIn = true;
+        bustFirm();
+        applyPerms();
+        try { applyProjPerms(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:ownerEnter'); }
+        enterApp();
+    }
     function gateCheck() {
-        if (isOwner()) return;                // rezim vlastnika branu nepotrebuje
+        if (_ownerIn) return;                 // vlastník se v tomhle běhu už přihlásil
         if (getFirm()) return;
         // ⚠⚠ SEZNAM MUSÍ OBSAHOVAT VŠECHNY OBRAZOVKY, KTERÉ BRÁNU ZASTUPUJÍ.
         //   Pojistka běží v tiku po 2 s, takže cokoli, co tu chybí, se po dvou
@@ -2844,7 +2975,10 @@
         if (left <= 3) setTimeout(function () { toast('Přihlášen jako ' + u.name + ' · za ' + left + ' spuštění bude potřeba heslo'); }, 1200);
     }
     function logout() {
-        if (isOwner()) { applyPerms(); return; }   // rezim vlastnika se konci v konzoli, ne odhlasenim
+        // Vlastník se odhlašuje jako každý jiný — vrátí se brána a chce se klíč
+        // znovu. Uložený příznak se NEMAŽE (ten se ruší v konzoli, položkou
+        // „Ukončit režim vlastníka"), takže se stačí znovu přihlásit.
+        if (_ownerIn) { _ownerIn = false; setSess(null); applyPerms(); showGate(); return; }
         _lastUserId = null;
         try { localStorage.removeItem(LS_IDCUR); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:logout'); }   // odhlášení ruší i SSO
         clearTrust();          // „odhlásit" musí zrušit i pamatované přihlášení
@@ -2878,11 +3012,13 @@
         // rezim vlastnika: appka nabehne rovnou, s vsim odemcenym (js/vlastnik.js).
         // ZADNY early return - periodicke srovnani UI nize musi bezet i tady,
         // mrizku Nastroju prekresluji jine moduly a bez ticku by zustala orezana.
-        var f = isOwner() ? null : getFirm();
-        if (isOwner()) {
-            applyPerms();
-            enterApp();                            // vlastnik branou neprochazi -> spustit rovnou
-        } else if (f) {
+        // ⚠⚠ VLASTNÍK UŽ TU NEMÁ VÝJIMKU (8. 9. 2026). Dřív se mu appka spustila
+        //   rovnou a on se za celou dobu ani jednou nepřihlásil. Teď projde
+        //   TOUTÉŽ bránou jako kdokoli jiný a odemkne se v ní jménem VLASTNIK
+        //   a klíčem OWNER_KEY (odchyt v js/vlastnik.js). Uložený příznak dál
+        //   odemyká oprávnění a Pro — jen už nenahrazuje přihlášení.
+        var f = getFirm();
+        if (f) {
             rememberCurrentFirm();                 // ať je aktivní firma vždy v profilech
             var u = currentUser();
             if (!u) showLogin(false);
@@ -2997,6 +3133,7 @@
         avatarHtml: avHtml,     // hotový <span> avataru (respektuje vlastní vzhled)
         avatarGet: avaGet,      // {h: odstín 0-359 | null, e: symbol/emoji | ''} nebo null
         avatarSet: avaSet,      // uloží vzhled avataru pro jméno v aktuální firmě
+        ownerEnter: ownerEnter,
         getLockOnStart: getLockOnStart,
         setLockOnStart: setLockOnStart,
         // pamatované přihlášení + Face ID (nastavení v js/ucty-admin.js)

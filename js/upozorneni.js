@@ -460,7 +460,13 @@
             var rect = stack.getBoundingClientRect();
             // výška od horní hrany displeje po konec sloupce — o tolik se odsune zbytek
             var used = Math.max(0, Math.round(rect.bottom));
-            document.documentElement.style.setProperty('--ag-stack-h', used + 'px');
+            (function () {
+                // ⚠ Zápis vlastní proměnné na <html> zneplatní styl CELÉ stránky, takže
+                //   si každé další čtení geometrie kdekoli v appce vynutí přepočet.
+                //   Když se hodnota nezměnila, zapisovat se nesmí.
+                var _st = document.documentElement.style.getPropertyValue('--ag-stack-h');
+                if (_st !== used + 'px') document.documentElement.style.setProperty('--ag-stack-h', used + 'px');
+            })();
             watchAnchor(sp, stack);
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'upozorneni:measure'); }
     }

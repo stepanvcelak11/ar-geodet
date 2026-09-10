@@ -426,6 +426,25 @@
     function writePref(on) { try { localStorage.setItem(LS_KEY, on ? '1' : '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-visual-track:writePref'); } }
 
     function setEnabled(on, useXR) {
+        // ⚠ ZÁMEK PRO VERZE JE TADY, NE U PŘEPÍNAČE. Přepínače jsou DVA —
+
+        //   v Nastavení → AR (#agvt-settings-cb) a v okně samotného nástroje
+
+        //   (#agvt-cb). Odchyt kliku v js/pro-zamky.js sem nedosáhne (hledá
+
+        //   dlaždici) a u <input type=checkbox> se stav mění dřív, než by ho
+
+        //   stihl zastavit. Jedno místo pro obě cesty.
+
+        if (on && window.AGProZamky && AGProZamky.zamceno('ar-visual-track')) {
+
+            try { syncUi(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-visual-track:zamek'); }
+
+            AGProZamky.karta('ar-visual-track');
+
+            return;
+
+        }
         writePref(!!on);
         if (on) {
             if (mode === 'xr' || mode === 'flow') return;   // už běží
@@ -525,6 +544,7 @@
         if (!tab) return;
         var row = document.createElement('div');
         row.className = 'st-row'; row.id = 'agvt-settings-row';
+        row.setAttribute('data-tool', 'ar-visual-track');
         var lab = document.createElement('span');
         lab.className = 'st-lab';
         lab.innerHTML = 'Vizuální stabilizace AR (beta)<small>drží obraz z kamery stabilní mezi GPS/kompas fixy — orientační, ne měřicí</small>';

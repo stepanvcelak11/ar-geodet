@@ -221,7 +221,21 @@
 
     // Tlačítko se přidá, jakmile se lišta poprvé ukáže. Lišta se vyrábí v index.html
     // a zobrazuje ji showUpdateBanner() z logika.js, takže se jen hlídá její stav.
+    // ⚠ PO SAMOČINNÉ AKTUALIZACI SE LIŠTA UKÁŽE I BEZ ČEKAJÍCÍHO WORKERU (8. 9. 2026).
+    //   Od chvíle, kdy si appka novou verzi bere sama při startu (js/logika.js), už
+    //   při spuštění žádný `reg.waiting` není — a bez tohohle by se „Co je nového"
+    //   po aktualizaci NEUKÁZALO ANI JEDNOU. Značku zapisuje logika.js těsně před
+    //   obnovou stránky a smaže se hned, jak se lišta jednou vytáhne.
+    function poAktualizaci() {
+        var v = null;
+        try { v = localStorage.getItem('agCjnPoAktualizaci'); } catch (e) { return; }
+        if (v !== '1') return;
+        try { localStorage.removeItem('agCjnPoAktualizaci'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'co-je-noveho:poAktualizaci'); }
+        var b = document.getElementById('update-banner');
+        if (b) b.style.display = 'flex';
+    }
     function ensureBtn() {
+        poAktualizaci();
         dayGate();
         var banner = document.getElementById('update-banner');
         if (!banner) return;

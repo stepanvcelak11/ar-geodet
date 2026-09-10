@@ -340,16 +340,10 @@
             m.className = 'modal-overlay';
             m.innerHTML =
                 '<div class="modal-content agkol-box">' +
-                '<span class="close-btn" id="agkol-x" role="button" tabindex="0" aria-label="Zavřít">&times;</span>' +
                 '<h2>Body na sobě</h2>' +
                 '<div class="agkol-telo"></div>' +
                 '</div>';
             document.body.appendChild(m);
-            var x = m.querySelector('#agkol-x');
-            if (x) {
-                x.addEventListener('click', zavri);
-                x.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); zavri(); } });
-            }
         }
         m.style.display = 'flex';
         vykresli();

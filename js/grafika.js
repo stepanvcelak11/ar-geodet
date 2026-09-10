@@ -13,6 +13,10 @@
         // ten se po opravce reloadu drzi jen skutecnych aktualizaci, a tohle pokryva i
         // pripad, kdy se stranka nactla BEZ controlleru (tvrdy reload) a uzivatel pak
         // na listu klepnul — jinak by se nova verze nasadila az pri dalsim spusteni.
+        // ⚠ applyUpdate() UŽ NIKDO NEVOLÁ Z LIŠTY (od 8. 9. 2026 se aktualizace bere
+        //   sama při startu, viz js/logika.js). Funkce tu zůstává jako ruční cesta
+        //   pro Nastavení → Údržba a pro starší uložené stránky, které ji mají
+        //   v inline onclick.
         function applyUpdate() { window.__agUpdateRequested = true; navigator.serviceWorker.getRegistration().then(reg => { if (reg && reg.waiting) reg.waiting.postMessage('SKIP_WAITING'); }); const b = document.getElementById('update-banner'); if (b) b.style.display = 'none'; }
 
         // ⚠⚠ 31. 8. 2026 — TOHLE SHAZOVALO CELÝ START APPKY.
@@ -266,16 +270,86 @@
         // zatímco stavová bublina dál smířlivě hlásila „sever jede z kompasu telefonu".
         // Hlášku ukazujeme jednou za spuštění — startCompass() běží při každém přepnutí zobrazení.
         let _compassDeniedShown = false;
+
+        // ⚠⚠⚠ KOMPAS SE PTÁ NA POVOLENÍ JEN V GESTU UŽIVATELE (oprava 8. 9. 2026).
+        //   HLÁŠENÍ: „Kompas nemá povolení, přitom ho celou dobu měl, ale prostě
+        //   z ničeho nic to přestalo fungovat" — a v navigaci k bodu chyběla šipka.
+        //
+        //   CO SE DĚLO. Na iOS smí DeviceOrientationEvent.requestPermission() jen
+        //   uvnitř skutečného doteku. Appka se ale ptá HNED PŘI STARTU (řetěz
+        //   startAppFromWelcome → applyViewMode → startCompass; v jednoduchém režimu
+        //   ještě dřív z js/jednoduchy-rezim.js přes událost 'ag:app-started'), a to
+        //   gesto není — appka se dnes otevírá sama. WebKit v takovém případě promise
+        //   NEZAMÍTNE, ale SPLNÍ ji hodnotou 'denied'. Ten stav byl k nerozeznání od
+        //   „uživatel klepl na Nepovolit".
+        //
+        //   PROČ AŽ TEĎ. Do v274 se na jinou odpověď než 'granted' nedělalo NIC.
+        //   Commit 4c346c3 přidal `if (permission !== 'granted') { compassPermissionDenied(); }`
+        //   — chování iOS se nezměnilo, změnila se reakce appky na jeho odpověď.
+        //   Naměřeno: podstrčené requestPermission vracející resolve('denied') → okno
+        //   „Kompas nemá povolení" hned po startu, AGCompassDenied = true a ani po
+        //   čtyřech dotecích se pokus NEZOPAKOVAL (compassPermissionDenied na rozdíl
+        //   od větve catch žádný posluchač nevěší) → kompas mrtvý do konce běhu.
+        //
+        //   OPRAVA MÁ TŘI ČÁSTI: (1) mimo gesto se vůbec neptáme a počkáme na dotek;
+        //   (2) 'denied' na dotaz mimo gesto se nehlásí jako zamítnutí; (3) po každém
+        //   zamítnutí se JEDNOU ozbrojí opakování na příští dotek a příznak se uklidí.
+        let _gestoTed = false;
+        // ⚠ PASIVNĚ. Nepasivní capture posluchač `touchstart` na documentu brzdí
+        //   rolování a posun mapy (Chrome to hlásí jako 'non-passive event listener').
+        //   Značka se jen čte, takže preventDefault stejně nepotřebujeme.
+        ['pointerdown', 'touchstart', 'touchend', 'click', 'keydown'].forEach(function (t) {
+            document.addEventListener(t, function () {
+                _gestoTed = true;
+                setTimeout(function () { _gestoTed = false; }, 0);
+            }, { capture: true, passive: true });
+        });
+        function vGestuUzivatele() {
+            try {
+                if (navigator.userActivation && typeof navigator.userActivation.isActive === 'boolean') return navigator.userActivation.isActive;
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:vGestuUzivatele'); }
+            return _gestoTed;   // Safari < 16.4 navigator.userActivation nezná
+        }
+        // Počkat na PRVNÍ skutečný dotek a teprve pak se zeptat. ⚠ Poslouchá se i
+        // 'touchend', ne jen 'click': dotek, který skončí tažením (posun mapy, swipe
+        // mezi stránkami menu, rolování seznamu bodů) na iOS žádný 'click' nevyvolá —
+        // a tažení je na mapě většinou to úplně první, co člověk udělá.
+        let _cekamNaDotyk = false;
+        function kompasAzPoDoteku() {
+            if (_cekamNaDotyk) return;
+            _cekamNaDotyk = true;
+            const go = () => {
+                document.removeEventListener('click', go, { capture: true });
+                document.removeEventListener('touchend', go, { capture: true });
+                _cekamNaDotyk = false;
+                compassStarted = false;
+                _deniedRetryArmed = false;
+                try { window.AGCompassDenied = false; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:kompasAzPoDoteku'); }
+                startCompass();
+            };
+            document.addEventListener('click', go, { capture: true, passive: true });
+            document.addEventListener('touchend', go, { capture: true, passive: true });
+        }
+        let _deniedRetryArmed = false;
+
         function compassPermissionDenied() {
             compassStarted = false;            // jinak by další startCompass() hned vypadl na stráži nahoře
             window.AGCompassDenied = true;     // čte stavový pruh (arState) -> červený stav „Kompas nepovolen"
+            // I skutečné zamítnutí smí dostat druhou šanci: kdo si v Nastavení telefonu
+            // „Pohyb a orientaci" zapne a vrátí se, nemusí kvůli tomu appku restartovat.
+            // Jednou za běh, ať se requestPermission nevolá při každém ťuknutí.
+            if (!_deniedRetryArmed) { _deniedRetryArmed = true; kompasAzPoDoteku(); }
             if (_compassDeniedShown) return;
             _compassDeniedShown = true;
             const msg = 'Telefon nepustil aplikaci k <b>pohybu a orientaci</b>, takže kompas mlčí a AR nemá podle čeho otáčet obraz — značky ani šipka se neukážou.<br><br><b>Jak to vrátit:</b><br>• <b>Safari:</b> Nastavení → Safari → <b>Pohyb a orientace</b> zapnout a stránku načíst znovu.<br>• <b>Ikona na ploše (PWA):</b> iOS se už sám znovu nezeptá — ikonu smaž a přidej aplikaci na plochu znovu (uložená data zůstanou).<br><br>Bez kompasu funguje vše ostatní: mapa, měření i ukládání bodů.';
             // „Zkusit znovu" musí projít AŽ po compassStarted = false, jinak neudělá nic. Klik na
             // tlačítko je skutečné gesto uživatele, takže requestPermission() smí ven; kdyby iOS
             // aktivaci přesto neuznal, promise spadne a chytí ji .catch() níž (pokus na další ťuknutí).
-            const zkusitZnovu = () => { compassStarted = false; _compassDeniedShown = false; startCompass(); };
+            const zkusitZnovu = () => {
+                compassStarted = false; _compassDeniedShown = false; _deniedRetryArmed = false;
+                try { window.AGCompassDenied = false; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:zkusitZnovu'); }
+                startCompass();
+            };
             if (window.agConfirm) window.agConfirm({ title: 'Kompas nemá povolení', message: msg, okText: 'Zkusit znovu', cancelText: 'Zavřít' }).then(yes => { if (yes) zkusitZnovu(); });
             else if (window.agAlert) window.agAlert({ title: 'Kompas nemá povolení', message: msg });
             else agInfo(msg.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ''));
@@ -286,18 +360,26 @@
         function startCompass() {
             if (compassStarted) return; compassStarted = true;
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                // ① MIMO GESTO SE VŮBEC NEPTÁME. Dotaz by na iOS stejně neprošel a
+                //    vrátil by 'denied', které appka dřív vydávala za rozhodnutí
+                //    uživatele. Radši počkáme na první dotek — ten přijde do vteřin.
+                //    ⚠ Tahle jediná podmínka je celá oprava. Do 'then' se od téhle chvíle
+                //    dostane výhradně odpověď na dotaz, který si uživatel vyvolal
+                //    dotekem — a 'denied' z takového dotazu UŽ zamítnutí opravdu je.
+                if (!vGestuUzivatele()) { compassStarted = false; kompasAzPoDoteku(); return; }
                 DeviceOrientationEvent.requestPermission().then(permission => {
                     if (permission !== 'granted') { compassPermissionDenied(); return; }
                     window.AGCompassDenied = false;
+                    _deniedRetryArmed = false;
                     window.addEventListener('deviceorientation', handleOrientation);
                     // Kalibrační okno až TEĎ: dřív se otevíralo ještě před odpovědí na oprávnění,
                     // takže na odmítnutém iPhonu viselo „Zkalibrujte kompas" s ukazatelem navždy
                     // na 0 % — jeho postup krmí až události kompasu, které nikdy nepřijdou.
                     showCompassCalibHint();
                 }).catch(() => {
+                    // promise spadla = gesto iOS neuznal; zkusit na příští dotek
                     compassStarted = false;
-                    const retry = () => { document.removeEventListener('click', retry, true); startCompass(); };
-                    document.addEventListener('click', retry, true);
+                    kompasAzPoDoteku();
                 });
             } else {
                 showCompassCalibHint();
@@ -1655,8 +1737,11 @@
                 if (typeof pt.cat !== 'string' || !pt.cat) pt.cat = 'CUSTOM';
                 let matchesSearch = true; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) { matchesSearch = false; }
                 let outOfReach = (pt.currentDist > arRadius); let isSelectedForDetail = (pt.id === activePointIdForModal);
-                if (pt.hidden || !matchesSearch || (outOfReach && pt.id !== highlightedPointId && !isSelectedForDetail)) { if (pt.element && pt.element.parentNode) pt.element.parentNode.removeChild(pt.element); return; }
-                if (!pt.element) { _resetPtRenderCache(pt); const marker = document.createElement('div'); marker.className = `ar-marker cat-${String(pt.cat).toLowerCase()}${agZHodinek(pt) ? ' src-watch' : ''}`; if (pt.id === highlightedPointId) marker.classList.add('highlighted'); if (window.isStaked && isStaked(pt.id)) marker.classList.add('staked'); marker.style.opacity = '0'; const title = document.createElement('div'); title.className = 'ar-marker-title'; title.innerText = pt.name; const dist = document.createElement('div'); dist.className = 'ar-marker-dist'; const more = document.createElement('div'); more.className = 'ar-marker-more'; marker.appendChild(title); marker.appendChild(dist); marker.appendChild(more); marker.addEventListener('click', () => { if (pt._arCluster && pt._arCluster.length) { showClusterList([pt].concat(pt._arCluster)); return; } const currentDist = getDistance(userLat, userLng, pt.lat, pt.lng); showDetails(pt, currentDist); }); pt.element = marker; pt.distElement = dist; pt.moreElement = more; arOverlay.appendChild(marker); } else if (!pt.element.parentNode) { arOverlay.appendChild(pt.element); }
+                // vybraný vzdálený bod (js/ag-dosah.js) musí DOM element dostat, jinak
+                // by ho renderAR neměl co zobrazit — viz `_keepFar` v renderAR
+                let keepFarInit = (pt.id === highlightedPointId || isSelectedForDetail || !!(window.AGDosah && window.AGDosah.vzdy(pt.id)));
+                if (pt.hidden || !matchesSearch || (outOfReach && !keepFarInit)) { if (pt.element && pt.element.parentNode) pt.element.parentNode.removeChild(pt.element); return; }
+                if (!pt.element) { _resetPtRenderCache(pt); const marker = document.createElement('div'); marker.className = `ar-marker cat-${String(pt.cat).toLowerCase()}${agZHodinek(pt) ? ' src-watch' : ''}`; if (pt.id === highlightedPointId) marker.classList.add('highlighted'); if (window.AGDosah && window.AGDosah.vzdy(pt.id)) marker.classList.add('ag-daleko'); if (window.isStaked && isStaked(pt.id)) marker.classList.add('staked'); marker.style.opacity = '0'; const title = document.createElement('div'); title.className = 'ar-marker-title'; title.innerText = pt.name; const dist = document.createElement('div'); dist.className = 'ar-marker-dist'; const more = document.createElement('div'); more.className = 'ar-marker-more'; marker.appendChild(title); marker.appendChild(dist); marker.appendChild(more); marker.addEventListener('click', () => { if (pt._arCluster && pt._arCluster.length) { showClusterList([pt].concat(pt._arCluster)); return; } const currentDist = getDistance(userLat, userLng, pt.lat, pt.lng); showDetails(pt, currentDist); }); pt.element = marker; pt.distElement = dist; pt.moreElement = more; arOverlay.appendChild(marker); } else if (!pt.element.parentNode) { arOverlay.appendChild(pt.element); }
               } catch (e) { /* jeden rozbity bod nesmi zabit smycku ani drawAllMarkersOnMap() volane za ni */ }
             });
         }
@@ -1741,6 +1826,70 @@
             if (_tfm.active) { clearTimeout(_tfmFade); _tfmFade = setTimeout(_tfmClear, TFM_FADE_MS); } // výsledek nech chvíli svítit
             _tfm = null;
         }
+        // ===== MĚŘENÍ JEDNÍM PRSTEM: OD MĚ K PRSTU ================================
+        // Na přání 8. 9. 2026: „přidej nějakou možnost ve smyslu měření vzdálenosti,
+        // že když podržím prst na mapě, tak to změří vzdálenost mezi mou polohou
+        // a tím prstem, kde ho mám položený."
+        //
+        // Doplňuje měření dvěma prsty výš — to měří mezi DVĚMA MÍSTY v mapě, tohle
+        // od TEBE. V terénu je to ta častější otázka („jak daleko je tamten roh?").
+        //
+        // ⚠ PROČ SE TO NEPERE S POSOUVÁNÍM MAPY: měření se zapne teprve po OFM_HOLD_MS
+        //   klidu. Jakmile prst do té doby ujede víc než OFM_MOVE_TOL, je to posun
+        //   mapy a časovač se zruší. Když se naopak měření zapne, přebírá gesto:
+        //   isDraggingMap se shodí, takže mapa pod prstem nikam neuteče.
+        // ⚠ DLOUHÝ STISK NA MAPĚ DODNES NIC JINÉHO NEDĚLAL — podržení v
+        //   js/gesta-zkratky.js visí jen na dlaždicích nástrojů (.tool-tile,
+        //   .ag-uk-i), ne na mapě, takže se tu nic nepřebíjí.
+        const OFM_HOLD_MS = 450, OFM_MOVE_TOL = 14, OFM_FADE_MS = 4000;
+        let _ofm = null, _ofmLine = null, _ofmLabel = null, _ofmDot = null, _ofmFade = null;
+        function _ofmClear() {
+            clearTimeout(_ofmFade); _ofmFade = null;
+            if (_ofmLine) { try { map.removeLayer(_ofmLine); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'grafika:_ofmClear'); } _ofmLine = null; }
+            if (_ofmLabel) { try { map.removeLayer(_ofmLabel); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'grafika:_ofmClear'); } _ofmLabel = null; }
+            if (_ofmDot) { try { map.removeLayer(_ofmDot); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'grafika:_ofmClear'); } _ofmDot = null; }
+        }
+        function _ofmUpdate(x, y) {
+            if (userLat == null || userLng == null) return;
+            const b = window.agScreenToLatLng(x, y);
+            if (!b) return;
+            const a = L.latLng(userLat, userLng);
+            const dist = getDistance(userLat, userLng, b.lat, b.lng);
+            if (!_ofmLine) _ofmLine = L.polyline([a, b], { color: '#38bdf8', weight: 3, dashArray: '7,7', interactive: false }).addTo(map);
+            else _ofmLine.setLatLngs([a, b]);
+            if (!_ofmDot) _ofmDot = L.circleMarker(b, { radius: 7, color: '#38bdf8', weight: 3, fillColor: '#38bdf8', fillOpacity: 0.35, interactive: false }).addTo(map);
+            else _ofmDot.setLatLng(b);
+            // štítek nad prstem, ať ho prst nezakrývá; srovnaný proti otočení mapy
+            const mid = L.latLng((a.lat + b.lat) / 2, (a.lng + b.lng) / 2);
+            const icon = L.divIcon({ className: 'tfm-label-wrap', html: '<div class="tfm-label" style="transform:translate(-50%,-50%) rotate(' + mapRotation + 'deg);">' + _tfmFmt(dist) + '</div>', iconSize: [0, 0] });
+            if (!_ofmLabel) _ofmLabel = L.marker(mid, { icon: icon, interactive: false, zIndexOffset: 2000 }).addTo(map);
+            else { _ofmLabel.setLatLng(mid); _ofmLabel.setIcon(icon); }
+        }
+        function _ofmStart(t) {
+            _ofmCancel(); _ofmClear();
+            _ofm = { x: t.clientX, y: t.clientY, active: false, timer: null };
+            _ofm.timer = setTimeout(() => {
+                if (!_ofm) return;
+                if (userLat == null) {
+                    // Bez fixu není od čeho měřit. Radši to říct, než tiše nic neudělat.
+                    _ofm = null;
+                    try { if (typeof quickToast === 'function') quickToast('Měření od tebe potřebuje polohu — počkej na GPS.'); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'grafika:_ofmStart'); }
+                    return;
+                }
+                _ofm.active = true;
+                isDraggingMap = false;                 // gesto přebírá měření, mapa se nesmí posouvat
+                window._mapHold = true;
+                try { if (navigator.vibrate) navigator.vibrate(16); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'grafika:_ofmStart'); }
+                _ofmUpdate(_ofm.x, _ofm.y);
+            }, OFM_HOLD_MS);
+        }
+        function _ofmCancel() { if (_ofm) { clearTimeout(_ofm.timer); _ofm = null; } }
+        function _ofmEnd() {
+            if (!_ofm) return;
+            const byl = _ofm.active;
+            _ofmCancel();
+            if (byl) { clearTimeout(_ofmFade); _ofmFade = setTimeout(_ofmClear, OFM_FADE_MS); }   // výsledek nech chvíli svítit
+        }
         // ==========================================================================
         mapContainerEl.addEventListener('touchstart', (e) => {
             // #map-controls = panel Mapa a vrstvy; jeho vlastní scroll nesmí hýbat mapou
@@ -1748,8 +1897,8 @@
             clearTimeout(mapReturnTimer);
             // (Dříve se tu mapová tlačítka hned sbalila při každém doteku mapy — bylo to
             //  matoucí „všechno zmizí". Sbalení teď řídí jen přepínač, ne dotek mapy.)
-            if (e.touches.length >= 2) { isPinchingMap = true; isDraggingMap = false; pinchStartDist = _touchDist(e.touches); pinchStartZoom = map.getZoom(); _tfmStart(e.touches); }
-            else if (e.touches.length === 1) { isDraggingMap = true; isPinchingMap = false; lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; }
+            if (e.touches.length >= 2) { isPinchingMap = true; isDraggingMap = false; pinchStartDist = _touchDist(e.touches); pinchStartZoom = map.getZoom(); _tfmStart(e.touches); _ofmCancel(); _ofmClear(); }
+            else if (e.touches.length === 1) { isDraggingMap = true; isPinchingMap = false; lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; _ofmStart(e.touches[0]); }
         }, { passive: true });
         mapContainerEl.addEventListener('touchmove', (e) => {
             // dotyk zacinajici na popupu (napr. 'Vzdalena oblast') nebo v panelu vrstev
@@ -1772,6 +1921,17 @@
                 if (pinchStartDist > 0 && d > 0) { let nz = pinchStartZoom + Math.log2(d / pinchStartDist); nz = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), nz)); const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2, my = (e.touches[0].clientY + e.touches[1].clientY) / 2; map.setZoomAround(_screenToContainerPoint(mx, my), nz, { animate: false }); }
                 if (e.cancelable) e.preventDefault(); return;
             }
+            // měření jedním prstem: buď gesto vede (pak jen kreslíme), nebo prst ujel
+            // a je z toho obyčejný posun mapy
+            if (_ofm && e.touches.length === 1) {
+                if (_ofm.active) {
+                    _ofmUpdate(e.touches[0].clientX, e.touches[0].clientY);
+                    if (e.cancelable) e.preventDefault();
+                    return;
+                }
+                if (Math.abs(e.touches[0].clientX - _ofm.x) > OFM_MOVE_TOL
+                    || Math.abs(e.touches[0].clientY - _ofm.y) > OFM_MOVE_TOL) _ofmCancel();
+            }
             if (!isDraggingMap || e.touches.length !== 1) return;
             window._mapHold = true;
             const dx = e.touches[0].clientX - lastTouchX; const dy = e.touches[0].clientY - lastTouchY;
@@ -1786,6 +1946,7 @@
         // navzdy a mapa by se uz nikdy neotocila podle kompasu.
         function onMapTouchEnd(e) {
             if (e.touches.length < 2) _tfmEnd();   // konec gesta dvou prstů (výsledek měření dosvítí sám)
+            if (e.touches.length === 0) _ofmEnd();  // konec měření jedním prstem
             // ZADNY automaticky navrat po 5 s — mapa zustane tam, kam ji uzivatel dal.
             // Misto toho se ukaze tlacitko "Na me" (viz recenterOnUser vyse).
             if (e.touches.length === 0) { if (isDraggingMap || isPinchingMap || window._mapHold) { clearTimeout(mapReturnTimer); agUpdateRecenterBtn(); } isDraggingMap = false; isPinchingMap = false; }
@@ -2003,6 +2164,13 @@
             // Bez tohohle čísla uživatel nemá jak poznat, že na hustém staveništi kouká
             // na neúplný obraz — a strop je přitom skrytý na posuvníku v Nastavení.
             let _cappedCount = 0;
+            // ⚠⚠ VLASTNÍ STROP PRO VZDÁLENÝ VÝBĚR (js/ar-dosah.js). Vybraných bodů
+            //   můžou být stovky (výřez katastru z 1,5 km na stranu jich má běžně
+            //   tolik). Kdyby obcházely `maxPts` jako navigovaný cíl — ten je vždycky
+            //   JEDEN — počítala by se každý snímek kompasu projekce a přepisoval
+            //   transform stovkám značek. Na obrazovku se jich stejně vejde hrstka.
+            const MAX_DALEKO = 25;
+            let _farCount = 0;
             let _arMissingEl = false;   // narazili jsme na bod bez DOM elementu?
 
             let maxPts = visSettings.maxARPoints || 100; let vOffset = visSettings.arVerticalOffset || 0;
@@ -2021,7 +2189,13 @@
             let _beyond = false;
             for (let _pi = 0; _pi < arPoints.length; _pi++) {
                 const pt = arPoints[_pi];
-                const _keepFar = (pt.id === highlightedPointId || pt.id === activePointIdForModal);
+                // ⚠ TŘETÍ DŮVOD, PROČ BOD PROJDE ŘEZEM (8. 9. 2026): uživatel si ho sám
+                //   vybral obdélníkem v mapě (js/ar-dosah.js) — „chci vidět i body 2 km
+                //   daleko". Výběr je omezený stropem (400 bodů), takže se řez ruší jen
+                //   pro hrstku bodů a smyčka se dál za prvním vzdáleným nevybraným
+                //   nepočítá pro stovky bodů z ČÚZK.
+                const _vzdyAR = !!(window.AGDosah && window.AGDosah.vzdy(pt.id));
+                const _keepFar = (pt.id === highlightedPointId || pt.id === activePointIdForModal || _vzdyAR);
                 // NAVIGOVANY BOD: sipku a vzdalenost pocitej VZDY, jeste PRED vsemi
                 // podminkami viditelnosti nize. Driv se highlightedPointData plnilo az
                 // uprostred smycky, takze staci vypnuty filtr kategorie, aktivni hledani,
@@ -2042,8 +2216,13 @@
                 let isVisible = true; if (pt.hidden) isVisible = false; if (pt.cat === 'TB' && !filters.tb) isVisible = false; if (pt.cat === 'ZHB' && !filters.zhb) isVisible = false; if (pt.cat === 'PBPP' && !filters.pbpp) isVisible = false; if (pt.cat === 'NIVEL' && !filters.nivel) isVisible = false; if (pt.cat === 'CUSTOM' && !filters.custom) isVisible = false; if (_sqLC && !pt.name.toLowerCase().includes(_sqLC)) isVisible = false;
                 const distance = pt.currentDist || getDistance(_oLat, _oLng, pt.lat, pt.lng);
                 let isSelectedForDetail = (pt.id === activePointIdForModal);
-                if (distance > arRadius && pt.id !== highlightedPointId && !isSelectedForDetail) { isVisible = false; _beyond = true; }
-                if (isVisible && pt.id !== highlightedPointId && !isSelectedForDetail) { if (renderedCount >= maxPts) { isVisible = false; _cappedCount++; } else { renderedCount++; } }
+                if (distance > arRadius && !_keepFar) { isVisible = false; _beyond = true; }
+                // Strop počtu značek. Navigovaný cíl a otevřený bod ho obcházejí (jsou
+                // vždy nejvýš dva), vzdálený VÝBĚR má strop vlastní — viz MAX_DALEKO.
+                if (isVisible && !_keepFar) { if (renderedCount >= maxPts) { isVisible = false; _cappedCount++; } else { renderedCount++; } }
+                else if (isVisible && _vzdyAR && pt.id !== highlightedPointId && !isSelectedForDetail) {
+                    if (_farCount >= MAX_DALEKO) { isVisible = false; _cappedCount++; } else { _farCount++; }
+                }
                 if (!isVisible) { if (pt.element && pt._opLast !== '0') { pt.element.style.opacity = '0'; pt.element.style.pointerEvents = 'none'; pt._opLast = '0'; } continue; }
                 // Bod bez DOM elementu (pridany do arPoints az po poslednim initARMarkers —
                 // import, cloud sync, rajon...): preskocit a na konci snimku si element nechat
@@ -2192,7 +2371,13 @@
             if (_compassSilentShown || window.AGCompassDenied) return;   // odmítnuté oprávnění má vlastní, přesnější hlášku
             _compassSilentShown = true;
             const msg = 'Z kompasu telefonu nepřišel ani jeden údaj o směru, takže AR neví, kam míříš — značky se v obraze neobjeví.<br><br>• Na iPhonu bývá důvodem vypnutý přístup k <b>pohybu a orientaci</b> (Nastavení → Safari → Pohyb a orientace).<br>• Některé tablety a starší telefony magnetometr nemají vůbec.<br><br>Mapa, měření i ukládání bodů fungují dál.';
-            const zkusitZnovu = () => { compassStarted = false; _compassSilentShown = false; _compassSilentFrom = 0; startCompass(); };
+            const zkusitZnovu = () => {
+                compassStarted = false; _compassSilentShown = false; _compassSilentFrom = 0;
+                // ⚠ Táž proměnná jako v compassPermissionDenied — bez uvolnění by
+                //   ozbrojení pokusu na další dotek zůstalo vyčerpané.
+                _deniedRetryArmed = false;
+                startCompass();
+            };
             if (window.agConfirm) window.agConfirm({ title: 'Kompas mlčí', message: msg, okText: 'Zkusit znovu', cancelText: 'Zavřít' }).then(yes => { if (yes) zkusitZnovu(); });
             else if (window.agAlert) window.agAlert({ title: 'Kompas mlčí', message: msg });
             else agInfo(msg.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ''));

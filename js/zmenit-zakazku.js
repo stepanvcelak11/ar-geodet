@@ -79,7 +79,7 @@
             '#' + OV_ID + ' .zz-t span{display:block;margin-top:2px;font:400 calc(11.5px * var(--ag-font-scale, 1))/1.2 var(--font-ui,system-ui),sans-serif;color:var(--text-muted,#9aa1ac);}',
             '#' + OV_ID + ' .zz-ok{flex:none;width:20px;height:20px;color:var(--accent,#2f9e74);}',
             '#' + OV_ID + ' .zz-btns{display:flex;gap:8px;margin-top:4px;}',
-            '#' + OV_ID + ' .zz-btns button{flex:1;padding:12px;border-radius:var(--r-md,12px);cursor:pointer;',
+            '#' + OV_ID + ' .zz-btns button{min-height:var(--tap-min,44px);flex:1;padding:12px;border-radius:var(--r-md,12px);cursor:pointer;',
             '  font:600 calc(14px * var(--ag-font-scale, 1))/1 var(--font-ui,system-ui),sans-serif;',
             '  background:var(--surface-1,rgba(255,255,255,0.06));border:1px solid var(--glass-border,rgba(255,255,255,0.12));color:var(--text-color,#eceef2);}',
             '#' + OV_ID + ' .zz-btns button.pri{background:var(--accent-grad,var(--accent,#2f9e74));border-color:transparent;color:#fff;}'

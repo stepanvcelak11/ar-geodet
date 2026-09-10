@@ -203,33 +203,71 @@
     //   v tiku — je slabší, ale pořád lepší než nic.
     var _hlidane = {};
 
-    function obalPrimo(k) {
-        var cur = window[k];
+    // ⚠ KLÍČ ZÁMKU A JMÉNO FUNKCE JSOU DVĚ RŮZNÉ VĚCI (od 8. 9. 2026). `k` je klíč
+    //   v registru (podle něj se ptáme `zamceno()` a otevírá karta), `n` je jméno
+    //   vlastnosti na window. Do téhle chvíle to byl jeden řetězec — viz obalFunkce().
+    //   Jméno smí být i tečkové (`AGPdr.open`): pak se obaluje metoda na objektu.
+    function drzitel(n) {
+        if (n.indexOf('.') === -1) return { obj: window, klic: n };
+        var casti = n.split('.'), o = window;
+        for (var i = 0; i < casti.length - 1; i++) { o = o && o[casti[i]]; if (!o) return null; }
+        return { obj: o, klic: casti[casti.length - 1] };
+    }
+    // ⚠⚠⚠ OBAL MUSÍ ZŮSTAT PRŮHLEDNÝ PRO ZNAČKY NA PŮVODNÍ FUNKCI (10. 9. 2026).
+    //   js/lazy-tools.js si na zástupce odloženého nástroje sází `_agLazyStub` a
+    //   pak se ptá `isStub()`, aby zástupce NIKDY nezavolal jako výsledek načtení
+    //   modulu — je to jeho pojistka proti nekonečné smyčce (viz dropStub tamtéž).
+    //   Jenže náš obal je jiná funkce a značku nenesl, takže `isStub(obal)` vyšlo
+    //   false, openTool() zavolal obal, ten zavolal zástupce, ten zase openTool…
+    //   NAMĚŘENO: `window.agOpenOdhad()` se po odemčení Pro UŽ NIKDY nevrátilo
+    //   (test_navrhy_d2 visel na místě, kde na mainu prochází).
+    //   Značky se proto z původní funkce na obal ZKOPÍRUJÍ. `__agPro`/`__agRaw`
+    //   nastavuje volající AŽ POTOM, aby je kopie nepřebila.
+    function prenesZnacky(zdroj, cil) {
+        try {
+            for (var k in zdroj) {
+                if (!Object.prototype.hasOwnProperty.call(zdroj, k)) continue;
+                if (k === '__agPro' || k === '__agRaw') continue;
+                cil[k] = zdroj[k];
+            }
+        } catch (e) { swallow(e, 'prenesZnacky'); }
+        return cil;
+    }
+
+    function obalPrimo(k, n) {
+        n = n || k;
+        var d = drzitel(n); if (!d) return;
+        var cur = d.obj[d.klic];
         if (typeof cur !== 'function' || cur.__agPro === k) return;
         var obal = function () {
             if (zamceno(k)) { otevriKartu(k); return; }
             return cur.apply(this, arguments);
         };
+        prenesZnacky(cur, obal);
         obal.__agPro = k;
         obal.__agRaw = cur;
-        try { window[k] = obal; _obalene[k] = obal; } catch (e) { swallow(e, 'obalPrimo'); }
+        try { d.obj[d.klic] = obal; _obalene[n] = obal; } catch (e) { swallow(e, 'obalPrimo'); }
     }
 
-    function hlidejFunkci(k) {
+    function hlidejFunkci(k, n) {
+        n = n || k;
+        // tečkové jméno (metoda objektu) přístupovou vlastností hlídat neumíme —
+        // obalí se přímo a znovu při každém tiku, kdyby modul metodu přepsal
+        if (n.indexOf('.') !== -1) { obalPrimo(k, n); return; }
         var popis = null;
-        try { popis = Object.getOwnPropertyDescriptor(window, k); } catch (e) { popis = null; }
+        try { popis = Object.getOwnPropertyDescriptor(window, n); } catch (e) { popis = null; }
         // Hlídka drží, jen dokud je na window pořád NAŠE přístupová vlastnost.
         // Kdyby ji někdo přepsal vlastní (nebo smazal), příznak se zahodí a
         // položí se znovu — jinak by se `_hlidane` tvářilo, že je zamčeno, a
         // zámek by tiše zmizel na zbytek běhu.
-        if (_hlidane[k]) {
+        if (_hlidane[n]) {
             if (popis && popis.get && popis.get.__agPro === k) return;
-            _hlidane[k] = false;
+            _hlidane[n] = false;
         }
-        if (popis && popis.configurable === false) { obalPrimo(k); return; }
+        if (popis && popis.configurable === false) { obalPrimo(k, n); return; }
 
         var vnitrni;
-        try { vnitrni = window[k]; } catch (e) { vnitrni = undefined; }
+        try { vnitrni = window[n]; } catch (e) { vnitrni = undefined; }
         if (vnitrni && vnitrni.__agRaw) vnitrni = vnitrni.__agRaw;   // nešahat na vlastní obal
         var obal = null;
 
@@ -240,6 +278,7 @@
                 if (zamceno(k)) { otevriKartu(k); return; }
                 return vnitrni.apply(this, arguments);
             };
+            prenesZnacky(vnitrni, obal);
             obal.__agPro = k;
             obal.__agRaw = vnitrni;
             return obal;
@@ -247,7 +286,7 @@
 
         dej.__agPro = k;
         try {
-            Object.defineProperty(window, k, {
+            Object.defineProperty(window, n, {
                 configurable: true,
                 enumerable: popis ? popis.enumerable !== false : true,
                 get: dej,
@@ -256,17 +295,45 @@
                     obal = null;
                 }
             });
-            _hlidane[k] = true;
+            _hlidane[n] = true;
         } catch (e) {
             swallow(e, 'hlidejFunkci');
-            obalPrimo(k);
+            obalPrimo(k, n);
         }
     }
 
+    // ⚠⚠ DRUHÁ ZÁVORA HLÍDALA ŠPATNÉ JMÉNO (opraveno 8. 9. 2026).
+    //   Do téhle chvíle se obalovalo `window[<klíč z registru>]` — jenže klíč se
+    //   názvu funkce rovná jen u DVOU nástrojů ze třiceti, a to náhodou
+    //   (openDmtVolume, openTachymetrie). Moduly svůj otvírák vystavují pod jiným
+    //   jménem: klíč `parcela` → `window.agOpenParcela`. Hlídka se tedy pokládala
+    //   na neexistující vlastnost a skutečný otvírák zůstal HOLÝ.
+    //   Naměřeno ve stavu Základ (AGLic.isPro() === false): 28 z 30 Pro nástrojů
+    //   šlo spustit přímo — `agOpenParcela()` otevřelo Parcelu, `agOpenFreeStation()`
+    //   Volné stanovisko, `agOpenLocalize()` Helmerta. Klik na dlaždici držel, ale
+    //   Průvodce úkolem (js/pruvodce.js) volá právě `window[it.fn]()`.
+    //
+    //   Jména se berou ze TŘÍ zdrojů, ať se nemusí vést čtvrtá tabulka:
+    //     ① klíč sám (kvůli openDmtVolume / openTachymetrie),
+    //     ② `fn` v js/tools-registry.js,
+    //     ③ `open` z manifestu js/lazy-tools.js (odložené nástroje ho mají odjakživa).
+    //   Že žádný Pro nástroj nezůstal bez hlídky, hlídá scripts/test_pro_verze.py.
+    function jmenaOtviraku(k) {
+        var out = [k];
+        try { var f = (window.AGReg && AGReg.fn) ? AGReg.fn(k) : ''; if (f) out.push(f); } catch (e) { swallow(e, 'jmenaOtviraku:reg'); }
+        try {
+            var man = (window.AGLazyTools && AGLazyTools.manifest) || [];
+            for (var i = 0; i < man.length; i++) if (man[i] && man[i].id === k && man[i].open) { out.push(man[i].open); break; }
+        } catch (e) { swallow(e, 'jmenaOtviraku:lazy'); }
+        return out;
+    }
     function obalFunkce() {
         try {
             var klice = (window.AGReg && AGReg.proKeys && AGReg.proKeys()) || [];
-            for (var i = 0; i < klice.length; i++) hlidejFunkci(klice[i]);
+            for (var i = 0; i < klice.length; i++) {
+                var jm = jmenaOtviraku(klice[i]);
+                for (var j = 0; j < jm.length; j++) hlidejFunkci(klice[i], jm[j]);
+            }
         } catch (e) { swallow(e, 'obalFunkce'); }
     }
 
@@ -301,6 +368,25 @@
     function zastupci() {
         if (_zastupciHotovi) return;
         if (typeof window.agRegisterFieldTool !== 'function' || !window.AGReg) return;
+        // ⚠⚠⚠ ZÁSTUPCE UMÍ MODUL ZABÍT (opraveno 8. 9. 2026). Tahle funkce se
+        //   pouštěla BEZ OHLEDU na vydání a na to, jestli telefon Pro má. Jediná
+        //   pojistka byla „už je dlaždice v DOM?" — jenže mřížku kreslí
+        //   js/field-tools.js až za startem a Pro moduly jsou odložené, takže
+        //   dlaždice v tu chvíli neexistuje. agRegisterFieldTool pak záznam se
+        //   stejným id NAHRADÍ mrtvým zástupcem s onClick „otevři kartu Pro" —
+        //   a moduly se registrují jen jednou, takže se to už nevrátí.
+        //   NAMĚŘENO s odemčeným Pro (režim vlastníka): AGLic.isPro() === true,
+        //   žádná dlaždice neměla data-agpro, a přesto 21 dlaždic místo nástroje
+        //   otevíralo kartu „Verze Pro". Přesně to hlásil uživatel 8. 9. 2026:
+        //   „ani mi to neodemkne tu pro verzi, jenom vidím nějaký věci návrh".
+        // ⚠⚠ ROZHODUJE VÝHRADNĚ VYDÁNÍ, NE TO, JESTLI JE PRO ODEMČENÉ.
+        //   Nejdřív tu stálo i `if (maPro()) return;` — a byla by to nová vada:
+        //   v balíčku ZÁKLAD Pro moduly VŮBEC NEJSOU, takže zástupná dlaždice je
+        //   jediná zmínka o tom, že takový nástroj existuje, a jediná cesta na
+        //   /pro/ (kartu s odkazem otevírá otevriKartu). Kdo si v Základu opíše
+        //   klíč, přišel by tím o všechny ty řádky naráz.
+        //   V balíčku PRO (co má vlastník) moduly jsou — a tam zástupce škodí.
+        if (!jeZaklad()) return;
         _zastupciHotovi = true;
         try {
             var klice = AGReg.proKeys();
@@ -311,7 +397,10 @@
                 // buď jsou (statické jsou v index.html v obou balíčcích), nebo je
                 // vyrábí js/tools-hub.js, který v Základu taky zůstává
                 if (r.hub || r.notile) continue;
+                // DOM nestačí: dlaždice se kreslí až za startem (js/field-tools.js),
+                // takže se musíme zeptat i SEZNAMU registrovaných nástrojů.
                 if (document.querySelector('[data-tool="' + k + '"]')) continue;
+                if (window.agListFieldTools && agListFieldTools().indexOf(k) !== -1) continue;
                 (function (k, r) {
                     window.agRegisterFieldTool({
                         id: k,

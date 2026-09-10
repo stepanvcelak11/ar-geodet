@@ -278,21 +278,33 @@ async def test_hledani_nazvu(ctx):
         return await page.evaluate("""() => {
           const vidno = (el) => { const r = el.getBoundingClientRect(); return r.width > 2 && r.height > 2
               && getComputedStyle(el).display !== 'none'; };
+          const klic = (t) => t.getAttribute('data-tool')
+              || ((t.getAttribute('onclick') || '').match(/([A-Za-z_$][\\w$]*)\\s*\\(/g) || [])
+                 .slice(-1).map(x => x.replace(/\\s*\\($/, ''))[0] || '';
           return [...document.querySelectorAll('#tools-modal .tool-tile')].filter(vidno)
-                 .map(t => (t.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 24));
+                 .map(t => ({ k: klic(t),
+                              t: (t.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 24) }));
         }""")
 
     # `vl` z registru = jmeno, pod kterym nastroj stoji v seznamu ukonu
+    # ⚠⚠ NESTACI "NECO NASLO". Tvrzeni driv znelo `len(v) > 0` a tim regresi
+    #   PROPUSTILO: kdyz hledani prestalo nachazet "Presnou GPS", vratilo misto ni
+    #   "Firma a ucty" — a test byl spokojeny. Hlida se proto, ze mezi zasahy je
+    #   TEN SPRAVNY nastroj, a podle KLICE dlazdice, ne podle popisku: dlazdice se
+    #   jmenuje jinak nez radek v seznamu ukonu ("Presna GPS (dlouhe prumerovani)"
+    #   vs. "Presnou GPS") — prave o to v tehle kontrole jde.
     for dotaz, klic in [('Hlasovou poznámku', 'hlasovky'),
                         ('Přesnou GPS', 'brutal-gps'),
                         ('Ověření bodů', 'overeni-bodu')]:
         v = await hledej(dotaz)
-        print('   "%s" -> %d: %s' % (dotaz, len(v), v[:3]))
-        ok('C "%s" (jmeno ze seznamu ukonu) neco najde' % dotaz, len(v) > 0, v[:3])
+        klice = [x['k'] for x in v]
+        print('   "%s" -> %d: %s' % (dotaz, len(v), [x['t'] for x in v][:3]))
+        ok('C "%s" (jmeno ze seznamu ukonu) najde PRAVE ten nastroj' % dotaz,
+           klic in klice, {'hledal': klic, 'nasel': klice[:5]})
 
     # kontrola, ze se hledani nerozsypalo do "najde vzdycky vsechno"
     v = await hledej('xyzqwertz')
-    ok('C nesmysl nenajde nic', len(v) == 0, v[:3])
+    ok('C nesmysl nenajde nic', len(v) == 0, [x['t'] for x in v][:3])
     await page.close()
 
 
@@ -381,11 +393,26 @@ async def test_blokace(ctx, base):
     await page.close()
 
 
+# ⚠⚠ VLASTNIK MUSI BYT UZ PRIHLASENY (od v283). Driv priznak `agVlastnik_v1`
+#   branu UPLNE PRESKAKOVAL, takze stacil on sam. Ted je vlastnik obycejne
+#   prihlaseni (do pole kodu VLASTNIK, do hesla OWNER_KEY) a bez nej stoji na
+#   obrazovce BRANA — a konzole se pres branu SPRAVNE neotevira (vratSeDoKonzole
+#   se ji zamerne neplete do cesty). Tahle sada zkousi chovani konzole, ne
+#   prihlasovani (to hlida scripts/test_v283.py a scripts/test_vlastnik.py),
+#   takze si sem firmu i sezeni nabootuje rovnou.
 BOOT_OWNER = """
   localStorage.setItem('agTutProSeen','1');
   localStorage.setItem('agBrifinkAuto','0');
+  localStorage.setItem('arSurveyor','Stepan');
+  localStorage.setItem('agFirmaBioAsk_v1', String(Date.now()));
   localStorage.setItem('agVlastnik_v1','1');
   localStorage.setItem('agFbKey_v1','klic-na-zkousku');
+  (function () {
+    var f = { enabled: true, firmName: 'Test', createdTs: Date.now(), autoLockMin: 0,
+      users: [{ id: 'u1', name: 'Stepan', role: 'admin', salt: 'aa', pinHash: 'x', noPin: true }] };
+    localStorage.setItem('agFirma_v1', JSON.stringify(f));
+    localStorage.setItem('agFirmaSess_v1', JSON.stringify({ userId: 'u1', ts: Date.now() }));
+  })();
 """
 
 

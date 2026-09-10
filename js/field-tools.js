@@ -26,7 +26,13 @@
     // Tabulka id -> kategorie bývala tady; teď je v js/tools-registry.js, ať je
     // všechno o nástroji na jednom místě. Bez registru se dlaždice jen sesypou
     // do „Terénních nástrojů" — mřížka funguje dál.
-    function toolCat(id) { return (window.AGReg && window.AGReg.cat(id)) || ''; }
+    function toolCat(id) {
+        if (!window.AGReg) return '';
+        // mrizka() = sloveso z registru (viz komentar tamtéž); cat() je záložní
+        // cesta pro případ, že by se sem dostal registr ze starší verze.
+        if (window.AGReg.mrizka) return window.AGReg.mrizka(id) || '';
+        return window.AGReg.cat(id) || '';
+    }
 
     // Synonyma pro hledání (geodetický slang -> dlaždice) jsou taktéž v registru.
     function toolAliases(key) { return (window.AGReg && window.AGReg.aliases(key)) || ''; }
@@ -96,10 +102,10 @@
         var cs = el && el.getAttribute && el.getAttribute('data-ag-cs');
         return (cs || (el ? el.textContent : '') || '').trim();
     }
-    function placeInCategory(grid, it) {
+    function placeInCategory(grid, it, kat) {
         var cats = grid.querySelectorAll('.tool-cat');
         for (var i = 0; i < cats.length; i++) {
-            if (catName(cats[i]) !== it.cat) continue;
+            if (catName(cats[i]) !== (kat || it.cat)) continue;
             // konec bloku kategorie = další nadpis (.tool-cat / .ag-ft-head), jinak konec mřížky
             var node = cats[i].nextSibling;
             while (node) {
@@ -138,14 +144,22 @@
         // dlaždice s cat jdou do své statické kategorie, zbytek pod „Terénní nástroje"
         var rest = sorted.filter(function (it) {
             if (have[it.id]) return false;
-            return !(it.cat && placeInCategory(grid, it));
+            // ⚠⚠ PŘEDNOST MÁ REGISTR, NE `cat` Z REGISTRACE (8. 9. 2026). Moduly si
+            //   do agRegisterFieldTool píšou kategorie z doby pěti sekcí — naměřeno
+            //   48× 'Pomůcky', 37× 'Měření', 18× 'Katastr a data'. Takový nadpis
+            //   v mřížce od 8. 9. 2026 neexistuje, takže by dlaždice spadla do
+            //   záchytné sekce (bylo jich tam 65 z 89). Registr je jediné místo,
+            //   kde se kategorie udržuje (viz hlavička js/tools-registry.js), tak
+            //   rozhoduje on; `cat` z modulu zůstává jen pro nástroje mimo registr.
+            var k = toolCat(it.id) || it.cat;
+            return !(k && placeInCategory(grid, it, k));
         });
         if (rest.length) {
             var head = grid.querySelector('.ag-ft-head');
             if (!head) {
                 head = document.createElement('div');
                 head.className = 'ag-ft-head';
-                head.textContent = 'Terénní nástroje';
+                head.textContent = 'Ostatní';
                 grid.appendChild(head);
             }
             // vlož na konec bloku „Terénní nástroje" (za nadpis, před další nadpis)
@@ -202,7 +216,15 @@
         var label = norm(tileToolLabel(tile));
         var lWords = label.split(' ');
         var key = tileToolKey(tile);
-        var alias = toolAliases(key);
+        // ⚠⚠ SYNONYMA SE MUSÍ NORMALIZOVAT (10. 9. 2026). Dotaz se porovnává jako
+        //   `norm()` — malými písmeny a bez diakritiky — kdežto tenhle řetězec se
+        //   sem bral SYROVÝ. `AGReg.aliases()` do něj přitom přibaluje `vl`, tedy
+        //   jméno, pod kterým nástroj stojí v SEZNAMU ÚKONŮ; to má velké písmeno
+        //   i háčky, takže se nikdy netrefilo. Naměřeno: „Přesnou GPS" nenašlo nic,
+        //   ačkoli appka tenhle název sama nabízí (dlaždice se jmenuje jinak —
+        //   „Přesná GPS (dlouhé průměrování)"). Netýkalo se to jednoho nástroje,
+        //   ale KAŽDÉHO, jehož `vl` má diakritiku nebo velké písmeno.
+        var alias = norm(toolAliases(key));
         var aWords = alias ? alias.split(' ') : [];
         var total = 0;
         for (var t = 0; t < tokens.length; t++) {
@@ -230,7 +252,7 @@
         var tokens = q ? q.split(' ') : [];
         var closed = loadClosed();
         var usage = loadUsage();
-        var kids = grid.children, lastHead = null, headHasHit = false, secClosed = false;
+        var kids = grid.children, lastHead = null, headHasHit = false, headHasAny = false, secClosed = false;
         var anyHit = false, bestScore = 0;
         _bestTile = null;
         // při hledání se sbalení ignoruje (ukázat zásahy), bez hledání se nadpisy nechávají vidět
@@ -239,6 +261,12 @@
             // zakázaný nadpis zůstává schovaný (viz data-agucty níž) — jinak by se
             // při hledání ukázala prázdná hlavička kategorie, kterou role nemá
             if (lastHead.hasAttribute && lastHead.hasAttribute('data-agucty')) { lastHead.style.display = 'none'; return; }
+            // ⚠ PRÁZDNÝ NADPIS SE SCHOVÁVÁ (8. 9. 2026). Nadpisy všech skupin stojí
+            //   v index.html natvrdo, aby měly PEVNÉ POŘADÍ — jenže co skupina, to
+            //   jiné vydání a jiná role: v Základu, u zaměstnance nebo při odpojeném
+            //   modulu zůstane skupina bez jediné dlaždice a byl by z ní jen nadpis
+            //   nad prázdnem. `headHasAny` počítá dlaždice bez ohledu na hledání.
+            if (!headHasAny) { lastHead.style.display = 'none'; return; }
             lastHead.style.display = (q && !headHasHit) ? 'none' : '';
         }
         for (var i = 0; i < kids.length; i++) {
@@ -253,12 +281,13 @@
             // Klepnutí sice nic nespustí, ale appka ukazovala, co admin zakázal.
             if (el.hasAttribute && el.hasAttribute('data-agucty')) { el.style.display = 'none'; el.style.order = ''; continue; }
             if (el.classList.contains('tool-cat') || el.classList.contains('ag-ft-head')) {
-                flushHead(); lastHead = el; headHasHit = false;
+                flushHead(); lastHead = el; headHasHit = false; headHasAny = false;
                 secClosed = !q && el.id !== 'ag-fav-head' && closed.indexOf(catName(el)) !== -1;
                 el.classList.toggle('ag-cat-closed', secClosed);
                 continue;
             }
             if (el.classList.contains('tool-tile') || el.classList.contains('ag-ft-tile')) {
+                headHasAny = true;
                 if (!q) {
                     el.style.display = secClosed ? 'none' : '';
                     el.style.order = '';
@@ -319,9 +348,28 @@
         if (!item || !item.id || typeof item.onClick !== 'function') return;
         // přepsat existující se stejným id (idempotentní při dvojím initu modulu)
         _items = _items.filter(function (x) { return x.id !== item.id; });
-        _items.push({ id: item.id, label: item.label || item.id, icon: item.icon || '', onClick: item.onClick, order: item.order, cat: item.cat || toolCat(item.id) });
+        // ⚠⚠ KATEGORIE SE TU NESMÍ ZAMRAZIT (naměřeno 8. 9. 2026). Do téhle chvíle
+        //   se sem psalo `cat: item.cat || toolCat(item.id)` — jenže registrace běží
+        //   při načtení modulu a js/tools-registry.js v tu chvíli často ještě není,
+        //   takže toolCat() vrátilo prázdno a v `_items` zůstalo prázdno NAVŽDY.
+        //   Následek: 65 z 89 dlaždic spadlo do záchytné sekce a mřížka byla dole
+        //   jedna nekonečná hromada. Ukládá se proto jen to, co řekl modul, a
+        //   registr se ptá až syncTiles() — tam už je jistě načtený.
+        _items.push({ id: item.id, label: item.label || item.id, icon: item.icon || '', onClick: item.onClick, order: item.order, cat: item.cat || '' });
         syncTiles();
     };
+    // Odebrání nástroje z mřížky. Potřebuje to js/vlastnik.js: když se režim
+    // vlastníka vypne, musí čtyři dlaždice správy aplikace zmizet — bez tohohle
+    // by v mřížce zůstaly viset až do reloadu.
+    window.agUnregisterFieldTool = function (id) {
+        if (!id) return;
+        var n = _items.length;
+        _items = _items.filter(function (x) { return x.id !== id; });
+        if (_items.length !== n) syncTiles();
+    };
+    // Které nástroje jsou zaregistrované. Ptá se js/pro-zamky.js, než vyrobí
+    // zástupnou dlaždici: DOM nestačí, mřížka se kreslí až za startem.
+    window.agListFieldTools = function () { return _items.map(function (x) { return x.id; }); };
     // zpětná kompatibilita (dříve zavíralo plovoucí menu — teď není potřeba)
     window.agCloseFieldTools = function () {};
     // tools-plus/tools-simple po odebrání injektované dlaždice zavolají okamžité
