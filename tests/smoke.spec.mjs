@@ -114,6 +114,11 @@ async function bootApp(page, context) {
         }
         const TICK = { alpha: 120, beta: 80, gamma: 2, absolute: true };
         const posli = () => {
+            // ⚠ Init skript běží i nad PRÁZDNÝM dokumentem (about:blank před navigací),
+            //   kde `DeviceOrientationEvent` nemusí existovat — bez téhle stráže by tam
+            //   tikající kopie házela výjimku desetkrát za vteřinu a shodila by test
+            //   „appka nastartuje BEZ CHYB v konzoli" na chybě, kterou vyrobil test sám.
+            if (typeof DeviceOrientationEvent === 'undefined') return;
             window.dispatchEvent(new DeviceOrientationEvent('deviceorientationabsolute', TICK));
             window.dispatchEvent(new DeviceOrientationEvent('deviceorientation', TICK));
         };
