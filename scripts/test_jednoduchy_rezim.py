@@ -345,9 +345,18 @@ async def test_po_restartu(ctx):
         except Exception:
             await page.wait_for_timeout(1500)
     # ⚠ PLACHTA: dokud modul nepostavi svou obrazovku, nesmi byt videt mapa ani dok.
+    # ⚠ ODOLNE PROTI PRAZDNEMU DOKUMENTU. `wait_until='commit'` se vraci uz ve chvili,
+    #   kdy je navigace potvrzena, ale HTML jeste nemusi byt rozparsovane - a v tom
+    #   okamziku je `document.documentElement` NULL. Prvni odecet pak shodil CELY test
+    #   vyjimkou "Cannot read properties of null (reading 'classList')" misto toho, aby
+    #   pockal o 50 ms dele. Merenim overeno, ze plachta i rezim naskoci spravne
+    #   (prelock hned, jr-on do ~1 s); byla to vada testu, ne appky.
     plachta = None
     for _ in range(40):
-        plachta = await page.evaluate("() => ({ prelock: document.documentElement.classList.contains('ag-jr-prelock'), jr: !!document.getElementById('ag-jr') })")
+        plachta = await page.evaluate(
+            "() => ({ prelock: !!(document.documentElement"
+            " && document.documentElement.classList.contains('ag-jr-prelock')),"
+            " jr: !!document.getElementById('ag-jr') })")
         if plachta['prelock'] or plachta['jr']:
             break
         await page.wait_for_timeout(50)
@@ -413,7 +422,7 @@ async def main():
             browser = await pw.chromium.launch()
             for boot, fn in ((BOOT, test_zapnuti), (BOOT, test_provoz), (BOOT, test_nazev),
                              (BOOT_ZAPNUTO, test_po_restartu)):
-                ctx = await browser.new_context(viewport={'width': 412, 'height': 915}, has_touch=True,
+                ctx = await browser.new_context(locale='cs-CZ', viewport={'width': 412, 'height': 915}, has_touch=True,
                                                 permissions=['geolocation'], geolocation=GEO,
                                                 service_workers='block')
                 await ctx.add_init_script(boot)

@@ -104,7 +104,7 @@ async def nacti(page):
 
 async def brana(browser):
     """U1-U4: prazdny telefon se starym hostovskym klicem."""
-    ctx = await browser.new_context(viewport={'width': 390, 'height': 844}, service_workers='block')
+    ctx = await browser.new_context(locale='cs-CZ', viewport={'width': 390, 'height': 844}, service_workers='block')
     # Podvrzeny server: /register vrati hotovy ucet, nic jineho se nevola.
     async def obsluha(route):
         if route.request.url.endswith('/register'):
@@ -198,7 +198,7 @@ async def brana(browser):
 
 async def tarif(browser, tarif_uctu, cekej_pro):
     """U5/U6: tarif uctu odemyka Pro; prepinac prostoru jen s Pro."""
-    ctx = await browser.new_context(viewport={'width': 390, 'height': 844}, service_workers='block')
+    ctx = await browser.new_context(locale='cs-CZ', viewport={'width': 390, 'height': 844}, service_workers='block')
     await ctx.add_init_script(boot(tarif=tarif_uctu))
     page = await ctx.new_page()
     await nacti(page)

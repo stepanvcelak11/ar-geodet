@@ -39,7 +39,13 @@ async function bootApp(page, context) {
     page.on('console', (m) => { if (m.type() === 'error' && !isIgnored(m.text())) errors.push('console: ' + m.text()); });
     page.on('pageerror', (e) => { const t = String(e); if (!isIgnored(t)) errors.push('pageerror: ' + t); });
 
-    await context.grantPermissions(['geolocation'], { origin: 'http://127.0.0.1:8099' });
+    // ⚠ SENZORY PATŘÍ K TELEFONU. Bez accelerometer/gyroscope/magnetometer se
+    //   v novějším Chromiu neodemkne kompas a appka (správně) hlásí, že nemá
+    //   povolený přístup k pohybu a orientaci — celoobrazovkovou hláškou, přes
+    //   kterou pak neprojde ani jeden klik.
+    await context.grantPermissions(
+        ['geolocation', 'accelerometer', 'gyroscope', 'magnetometer'],
+        { origin: 'http://127.0.0.1:8099' });
     await context.setGeolocation(PRAHA);
 
     // ⚠ HOST BYL 6. 9. 2026 ZRUSEN — bez profilu se do appky nedostane nikdo.
@@ -76,9 +82,52 @@ async function bootApp(page, context) {
         window.addEventListener('ag:lazy-done', () => { window.__agLazyDone = true; });
     });
 
+    // ⚠⚠ ŽIVÝ KOMPAS — TOHLE DRŽELO NASAZENÍ OD 5. 9. 2026.
+    // `DeviceOrientation.setDeviceOrientationOverride` (CDP) doručí JEDINOU událost,
+    // a to v okamžiku volání. Appka si ale posluchač věší až později a v Chromiu
+    // navíc nejdřív jen 'deviceorientationabsolute' (relativní až po 1,2 s — viz
+    // startCompass v js/grafika.js), takže tu jedinou událost vždycky PROŠVIHNE
+    // a nedostane ani jeden údaj o směru. Watchdog v grafika.js to po 8 s správně
+    // vyhodnotí jako mrtvý kompas a otevře celoobrazovkový modál „Kompas mlčí"
+    // (.ag-dlg-overlay), který pak spolkne KAŽDÝ klik → čtyři testy umřely na
+    // timeout „element is visible, enabled and stable" a s nimi i deploy na Pages.
+    // ⚠ U vývojáře to nešlo reprodukovat: bez funkční kamery spadne appka do režimu
+    //   Mapa a watchdog se v něm vrací dřív, takže modál nevyskočí. Na runneru
+    //   kamera (fake device) JE, takže appka je v AR a modál přijde.
+    // Skutečný telefon posílá orientaci desetkrát za vteřinu — tak ji posílá i test.
+    // Hodnoty jsou konstantní schválně: appce stačí živý senzor, otáčející se mapa
+    // by jen rozhoupala ostatní testy. Init skript běží i po reloadu („den v terénu").
+    // ⚠⚠ A DRUHÁ POLOVINA TÉHOŽ: POVOLENÍ K POHYBU A ORIENTACI.
+    //   Kde prohlížeč zná `DeviceOrientationEvent.requestPermission` (iOS Safari a
+    //   novější Chromium), zeptá se appka na svolení — a mimo gesto uživatele
+    //   odpověď „granted" nepřijde. Appka pak zcela správně otevře hlášku „Kompas
+    //   nemá povolení", jenže ta zase leží přes celou obrazovku a spolkne kliky.
+    //   Grant výše to řeší tam, kde Chromium na permissions dá; tohle je pojistka
+    //   pro build, kde se ptá i tak. Emuluje se telefon, na kterém člověk přístup
+    //   POVOLIL — což je stav, ve kterém má smoke test appku zkoušet. Šahá se na to
+    //   jen tehdy, když ta funkce vůbec existuje, takže jinde se nemění nic.
+    await page.addInitScript(() => {
+        for (const E of [window.DeviceOrientationEvent, window.DeviceMotionEvent]) {
+            if (E && typeof E.requestPermission === 'function') {
+                E.requestPermission = () => Promise.resolve('granted');
+            }
+        }
+        const TICK = { alpha: 120, beta: 80, gamma: 2, absolute: true };
+        const posli = () => {
+            // ⚠ Init skript běží i nad PRÁZDNÝM dokumentem (about:blank před navigací),
+            //   kde `DeviceOrientationEvent` nemusí existovat — bez téhle stráže by tam
+            //   tikající kopie házela výjimku desetkrát za vteřinu a shodila by test
+            //   „appka nastartuje BEZ CHYB v konzoli" na chybě, kterou vyrobil test sám.
+            if (typeof DeviceOrientationEvent === 'undefined') return;
+            window.dispatchEvent(new DeviceOrientationEvent('deviceorientationabsolute', TICK));
+            window.dispatchEvent(new DeviceOrientationEvent('deviceorientation', TICK));
+        };
+        setInterval(posli, 100);
+    });
+
     await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
 
-    // kompas: bez podvrženého azimutu se AR smyčka vůbec nerozjede
+    // Stav „zařízení" držíme i přes CDP, ať sedí i to, na co se appka zeptá sama.
     const cdp = await context.newCDPSession(page);
     await cdp.send('DeviceOrientation.setDeviceOrientationOverride', { alpha: 120, beta: 80, gamma: 2 });
 
@@ -107,17 +156,34 @@ async function bootApp(page, context) {
     // DIAGNOSTIKA: když něco leží přes celou appku (modál, brána, brífink), klikání
     // v dalších testech umře na timeout a z hlášky se nedá poznat proč. Radši to
     // řekneme jménem prvku hned tady.
+    // ⚠ `.ag-dlg-overlay` (agConfirm/agAlert z js/vylepseni.js) v tomhle seznamu
+    //   6. 9. 2026 CHYBĚLA — a byl to přesně ten prvek, který appku na CI zavřel
+    //   („Kompas mlčí"). Diagnostika mlčela a čtyři testy místo jména viníka hlásily
+    //   jen „timeout“. Proto se sem bere i on a hlásí se i TEXT okna, ne jen třída.
     const blokuje = await page.evaluate(() => {
         const jde = [];
-        document.querySelectorAll('.modal-overlay, #ag-gate, #ag-login').forEach((el) => {
+        document.querySelectorAll('.modal-overlay, .ag-dlg-overlay, #ag-gate, #ag-login').forEach((el) => {
             const s = getComputedStyle(el);
             if (s.display === 'none' || s.visibility === 'hidden' || s.opacity === '0') return;
             const r = el.getBoundingClientRect();
-            if (r.width > innerWidth * 0.6 && r.height > innerHeight * 0.6) jde.push(el.id || el.className);
+            if (r.width > innerWidth * 0.6 && r.height > innerHeight * 0.6) {
+                const popis = (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+                jde.push((el.id || el.className) + (popis ? ' — „' + popis + '"' : ''));
+            }
         });
         return jde;
     });
-    expect(blokuje, 'přes appku leží celoobrazovkový prvek — další testy by umřely na timeout').toEqual([]);
+    // Stav kompasu do hlášky: většina celoobrazovkových oken, která tady kdy
+    // vyskočila, byla právě o kompasu — a bez těchhle tří čísel se příčina hádá
+    // naslepo přes celé kolo CI (logy Actions jsou bez tokenu nedostupné).
+    const kompas = await page.evaluate(() => ({
+        maRequestPermission: (typeof DeviceOrientationEvent !== 'undefined')
+            ? typeof DeviceOrientationEvent.requestPermission : 'DeviceOrientationEvent chybí',
+        appHlasiOdmitnuti: !!window.AGCompassDenied,
+        rezim: document.body.classList.contains('cam-live') ? 'AR/dělené' : 'mapa',
+    }));
+    expect(blokuje, 'přes appku leží celoobrazovkový prvek — další testy by umřely na timeout.'
+        + ' Stav kompasu: ' + JSON.stringify(kompas)).toEqual([]);
 
     return errors;
 }
@@ -253,25 +319,15 @@ test('REGRESE: vstupy modulů a řádek terénu se vloží', async ({ page, cont
     const warns = [];
     page.on('console', (m) => { if (m.type() === 'warning' && /insertBefore/.test(m.text())) warns.push(m.text()); });
 
-    await page.addInitScript(() => {
-        try {
-            const UID = 'test-user-1';
-            localStorage.setItem('agFirma_v1', JSON.stringify({
-                enabled: true, cloud: false, firmName: 'Testovaci mereni',
-                perms: {}, users: [{ id: UID, name: 'Tester', role: 'admin' }],
-                fetchedTs: Date.now()
-            }));
-            localStorage.setItem('agFirmaSess_v1', JSON.stringify({ userId: UID, ts: Date.now() }));
-            localStorage.setItem('agLockStart_v1', '0');
-            localStorage.removeItem('agGuest_v1');
-            localStorage.setItem('agTutProSeen', '1');
-            localStorage.setItem('agBrifinkAuto', '0');
-            localStorage.setItem('agBrifinkLastShown', new Date().toISOString().slice(0, 10));
-        } catch (e) { }
-    });
-    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
-    await expect.poll(() => page.evaluate(() => document.body.classList.contains('app-started')), { timeout: 20000 }).toBe(true);
-    await page.waitForTimeout(2500);
+    // ⚠⚠ STARTUJE SE PŘES bootApp, NE VLASTNÍ CESTOU. Tenhle test si dřív appku
+    //   rozjížděl sám (vlastní init skript + goto) a byl JEDINÝ takový v souboru.
+    //   Tím si ale nechal ujít všechno, co bootApp pro test zařizuje — hlavně
+    //   ŽIVÝ KOMPAS a povolení k pohybu a orientaci. Appka proto po 8 s otevřela
+    //   celoobrazovkovou hlášku o kompasu a klepnutí na „Více" umřelo na timeout:
+    //   9. 9. 2026 zbyl po opravě zbytku sady jako poslední červený test a sám
+    //   držel nasazení. Seed byl přitom TOTOŽNÝ s tím v bootApp, jen opsaný.
+    //   Dvě cesty do appky = jedna z nich zaostane; ať je tedy jedna.
+    await bootApp(page, context);
 
     await expect(page.locator('#zpr-menu-btn'), 'tlačítko Geo zpravodaj v bočním menu').toHaveCount(1);
     await expect.poll(() => page.evaluate(

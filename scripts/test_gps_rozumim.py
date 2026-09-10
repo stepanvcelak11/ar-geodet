@@ -140,7 +140,7 @@ async def main():
     try:
         async with async_playwright() as p:
             browser = await p.chromium.launch()
-            ctx = await browser.new_context(viewport={'width': 390, 'height': 780})
+            ctx = await browser.new_context(locale='cs-CZ', viewport={'width': 390, 'height': 780})
             await ctx.add_init_script(BOOT_ADMIN)
             page = await ctx.new_page()
             chyby = []

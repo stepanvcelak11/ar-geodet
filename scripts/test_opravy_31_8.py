@@ -49,6 +49,16 @@ BOOT = """
     localStorage.setItem('agFirma_v1', JSON.stringify(f));
     localStorage.setItem('agFirmaSess_v1', JSON.stringify({ userId: 'u1', ts: Date.now() }));
   })();
+  // ⚠⚠ TARIF PRO JE TU KVULI ROCENCE, NE PRO POHODLI.
+  //   Rocenka ma v js/tools-registry.js `pro: 1`. Do v283 se ale zamky Pro
+  //   hlidaly pod SPATNYM jmenem otviraku, takze placene nastroje sly spustit
+  //   i v Zakladu — a tenhle test si na tom (netuse) stal. Jakmile zamky zacaly
+  //   opravdu drzet, Rocenka se v Zakladu SPRAVNE neotevre a naskoci misto ni
+  //   zamek; test hlasil vadu vzhledu okna, ktere nikdo neotevrel.
+  //   Zmereno na v283: Zaklad -> okno neni + zamek Pro; Pro -> `modal-overlay`
+  //   pres celou obrazovku. Appka je v poradku, zastaraly byl test.
+  //   Klic cte js/licence.js; Body na sobe (`kolize-bodu`) je Zaklad a nevadi mu to.
+  localStorage.setItem('agTarifUctu_v1', JSON.stringify({ tarif: 'pro', do: 0 }));
 """
 
 vysledky = []
@@ -87,9 +97,17 @@ async def nacti(page):
             await page.wait_for_timeout(1500)
     await page.wait_for_timeout(2200)
     await page.evaluate("() => { if (typeof window.startAppFromWelcome === 'function') startAppFromWelcome(); }")
-    # Gesta i Rocenka jsou lazy moduly - bez tohohle bychom testovali prazdno.
+    # Gesta, Rocenka i Body na sobe jsou lazy moduly - bez tohohle bychom testovali prazdno.
+    #
+    # ⚠⚠ NA `openRocenka` SE ČEKAT NEDÁ. Rocenka se od zavedeni js/lazy-tools.js stahuje
+    #   az na klepnuti na dlazdici a do te doby za ni stoji ZASTUPNA globalni funkce
+    #   (API stub). `typeof window.openRocenka === 'function'` je tedy splnene skoro
+    #   hned - smycka vyskocila driv, nez se dotahly ostatni odlozene moduly, a
+    #   `window.openKolizeBodu` (js/kolize-bodu.js, bezny <script type="ag/lazy">)
+    #   jeste neexistoval. Test pak hlasil "modul neni k dispozici", ackoli appka
+    #   byla v poradku. Ceka se proto na modul, ktery stub NEMA.
     for _ in range(40):
-        if await page.evaluate("() => typeof window.AGGesta === 'object' && typeof window.openRocenka === 'function'"):
+        if await page.evaluate("() => typeof window.AGGesta === 'object' && typeof window.openKolizeBodu === 'function'"):
             break
         await page.evaluate("() => window.AGLazy && AGLazy.flush()")
         await page.wait_for_timeout(400)
@@ -120,7 +138,7 @@ async def main():
     try:
         async with async_playwright() as pw:
             browser = await pw.chromium.launch()
-            ctx = await browser.new_context(viewport={'width': 412, 'height': 915}, has_touch=True,
+            ctx = await browser.new_context(locale='cs-CZ', viewport={'width': 412, 'height': 915}, has_touch=True,
                                             permissions=['geolocation'],
                                             geolocation={'latitude': 50.08, 'longitude': 14.43, 'accuracy': 3})
             await ctx.add_init_script(BOOT)
@@ -154,7 +172,16 @@ async def main():
                 if not otevreno:
                     ok(jm + ': modul je k dispozici', False, 'window.' + fn + ' neexistuje')
                     continue
-                await page.wait_for_timeout(1400)
+                # ⚠ Pevna pauza 1,4 s tu byla MALO: u nastroje z js/lazy-tools.js
+                #   (Rocenka) prvni otevreni nejdriv STAHNE modul a teprve pak vyrobi
+                #   okno. Cekalo se tedy na okno, ktere jeste nikdo nezacal delat, a
+                #   test hlasil vadu vzhledu misto toho, ze se nedockal. Ceka se na
+                #   VYSLEDEK, ne na cas.
+                for _ in range(30):
+                    if await page.evaluate("(id) => !!document.getElementById(id)", mid):
+                        break
+                    await page.wait_for_timeout(300)
+                await page.wait_for_timeout(400)     # okno se jeste musi rozbalit
                 m = await page.evaluate("""(id) => {
                     const el = document.getElementById(id); if (!el) return null;
                     const r = el.getBoundingClientRect(), cs = getComputedStyle(el);

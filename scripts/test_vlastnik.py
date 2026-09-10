@@ -36,6 +36,19 @@ BOOT_OWNER = """
   localStorage.setItem('agBrifinkAuto','0');
   localStorage.setItem('agVlastnik_v1','1');
   localStorage.setItem('agFbKey_v1','klic-na-zkousku');
+  // ⚠⚠ PROFIL TU MUSI BYT. Do v283 samotny priznak `agVlastnik_v1` branu
+  //   PRESKAKOVAL — vlastnik se tedy nikdy neprihlasoval a tenhle boot bez firmy
+  //   stacil. Byla to dira a v283 ji zavrela: vlastnik ted prochazi branou jako
+  //   kazdy jiny. Bez profilu proto test sedi na brane, appka pod ni nebezi a
+  //   sekce B hlasi „brana se vlastnikovi UKAZUJE" — jenze to neni vada appky,
+  //   jen neuplny boot. Prihlaseny stav se sklada stejne jako jinde v sade.
+  (function () {
+    var f = { enabled: true, firmName: 'Test', createdTs: Date.now(), autoLockMin: 0,
+      users: [{ id: 'u1', name: 'Stepan', role: 'admin', salt: 'aa', pinHash: 'x', noPin: true }] };
+    localStorage.setItem('agFirma_v1', JSON.stringify(f));
+    localStorage.setItem('agFirmaSess_v1', JSON.stringify({ userId: 'u1', ts: Date.now() }));
+    localStorage.setItem('agLockStart_v1', '0');
+  })();
 """
 
 results = []
@@ -111,7 +124,7 @@ async def main():
             browser = await pw.chromium.launch()
 
             async def mk(boot):
-                c = await browser.new_context(viewport={'width': 412, 'height': 915})
+                c = await browser.new_context(locale='cs-CZ', viewport={'width': 412, 'height': 915})
                 await c.add_init_script(boot)
                 return c
 
@@ -126,8 +139,19 @@ async def main():
                await page.evaluate("() => typeof (window.AGUcty && AGUcty.isOwner)") == 'function')
 
             # 1) na brane NESMI byt nic videt
-            await page.wait_for_function("() => document.querySelector('#ag-gate .agl-mark[data-agv=\"1\"]')",
-                                         timeout=8000)
+            # ⚠ Ceka se na znacku „vlastnik.js si branu uz osahal". Ta znacka se
+            #   ve v283 PRESUNULA: driv ji dostal znak uvnitr brany (.agl-mark),
+            #   ted ji dostane rovnou cely overlay (ov.setAttribute('data-agv','1')
+            #   v hookForm), protoze prihlaseni vlastnika uz nejede pres skryte
+            #   gesto na znaku, ale pres JMENO ve formulari. Test cekal na potomka,
+            #   ktery ji uz nikdy nedostane, a umrel na timeout — appka byla v poradku.
+            # ⚠ Berou se OBE mista schvalne: na teto vetvi je jeste stara podoba,
+            #   po slouceni v283 nova. Kdyby se bralo jen jedno, test by byl chvili
+            #   cerveny na jedne strane a chvili na druhe. Az znacka zmizi uplne,
+            #   spadne to znovu — a to uz bude opravdovy nalez.
+            await page.wait_for_function(
+                "() => document.querySelector('#ag-gate[data-agv=\"1\"], #ag-gate .agl-mark[data-agv=\"1\"]')",
+                timeout=8000)
             vid = await page.evaluate("""() => {
                 const g = document.getElementById('ag-gate');
                 return {
@@ -141,60 +165,77 @@ async def main():
                vid['text'].replace(chr(10), ' | ')[:160])
 
             # 2) skryty vstup: dlouhy stisk znaku appky
-            ok('kratke ťuknuti na znak NIC neotevre', not await tap(page, 250))
-            ok('dlouhy stisk znaku otevre kartu klice', await tap(page, 2200))
-            await page.wait_for_timeout(200)
-            st = await page.evaluate("""() => ({
-                karta: !!document.querySelector('#ag-gate .agv-card'),
-                inp: !!document.getElementById('agv-key'),
-                stara: (document.querySelector('#ag-gate .agl-card:not(.agv-card)') || {}).style
-                       ? document.querySelector('#ag-gate .agl-card:not(.agv-card)').style.display : '?'
-            })""")
-            ok('karta klice se otevrela', st['karta'] and st['inp'], st)
-            ok('puvodni karta brany se schovala', st['stara'] == 'none', st['stara'])
-
-            await page.click('#agv-back')
-            await page.wait_for_timeout(300)
-            zpet = await page.evaluate("""() => ({
-                karta: !!document.querySelector('#ag-gate .agv-card'),
-                stara: document.querySelector('#ag-gate .agl-card').style.display,
-                zive: !!document.getElementById('agg-show-join')
-            })""")
-            ok('"Zpet" kartu klice odstrani', not zpet['karta'])
-            ok('puvodni brana je zpatky viditelna', zpet['stara'] != 'none', zpet['stara'])
-            # obsluha PREZILA (proto se karta schovava, ne prepisuje innerHTML)
-            await page.click('#agg-show-join')
-            await page.wait_for_timeout(200)
-            ok('tlacitka brany porad fungujou (obsluha neztracena)',
-               await page.evaluate("() => document.getElementById('agg-join').classList.contains('on')"))
-
-            # 3) spatny klic -> lidska hlaska
+            #
+            # ⚠⚠ TENHLE VSTUP VE v283 SKONCIL. Vlastnik uz se nedostane dovnitr
+            #   dlouhym stiskem znaku, ale JMENEM A HESLEM v bezne brane — a tu
+            #   cestu hlida scripts/test_v283.py::test_vlastnik. Kdyby se tu na
+            #   gesto cekalo natvrdo, test by po slouceni v283 umrel na `#agv-back`
+            #   (karta klice se uz neotevre) a hlasil by vadu appky tam, kde je
+            #   zmena zamerna.
+            #   Blok se proto pousti JEN kdyz gesto v teto verzi jeste zije. Nemaze
+            #   se: dokud v283 neni na mainu, je to poradna kontrola skryteho vstupu.
+            # `online` se dole rozhoduje, jestli se ma zkouset stav serveru. Drive
+            # ho nastavovala az vetev se spatnym klicem — ta ale ted nemusi probehnout,
+            # a bez teto predvolby by test spadl na NameError misto na tvrzeni.
             online = True
-            try:
-                await tap(page, 2200)
-                await page.wait_for_timeout(250)
-                await page.fill('#agv-key', 'urcite-spatny-klic-12345')
-                await page.click('#agv-go')
-                await page.wait_for_function(
-                    "() => { const e = document.getElementById('agv-err'); return e && e.textContent && e.textContent.indexOf('Ověřuji') < 0; }",
-                    timeout=20000)
-                hl = await page.evaluate("() => document.getElementById('agv-err').textContent")
-                # Smysl testu: hlaska mluvi LIDSKY, ne jen cislem chyby.
-                # ⚠ Po 5. 9. 2026 ma server brzdu (cloud/worker.js, ownerGate: deset
-                # pokusu z adresy za hodinu). Tenhle test posila spatny klic schvalne a
-                # v CI se pri selhani jeste jednou opakuje, takze se do brzdy DRIV NEBO
-                # POZDEJI trefi a dostane 429 misto 403. To je SPRAVNE chovani serveru,
-                # ne chyba appky — 429 vetev proto plati taky. Bez teto vetve by test
-                # zacal padat sam od sebe, nezavisle na tom, co je v kodu.
-                lidska = (('OWNER_KEY' in hl) and ('nesedí' in hl or 'není' in hl)) \
-                    or ('Moc pokusů' in hl)
-                ok('spatny klic: hlaska mluvi lidsky (OWNER_KEY / brzda), ne jen cislem chyby',
-                   lidska, hl[:120])
-                ok('spatny klic rezim NEZAPNE',
-                   not await page.evaluate("() => window.AGVlastnik.isOn()"))
-            except Exception as e:
-                online = False
-                ok('spatny klic: PRESKOCENO (bez site)', True, a(e)[:80])
+            ok('kratke ťuknuti na znak NIC neotevre', not await tap(page, 250))
+            gesto_zije = await tap(page, 2200)
+            if not gesto_zije:
+                print('   [skryte gesto uz v teto verzi neni — prihlaseni vlastnika '
+                      'jmenem hlida scripts/test_v283.py::test_vlastnik]')
+            if gesto_zije:
+              await page.wait_for_timeout(200)
+              st = await page.evaluate("""() => ({
+                  karta: !!document.querySelector('#ag-gate .agv-card'),
+                  inp: !!document.getElementById('agv-key'),
+                  stara: (document.querySelector('#ag-gate .agl-card:not(.agv-card)') || {}).style
+                         ? document.querySelector('#ag-gate .agl-card:not(.agv-card)').style.display : '?'
+              })""")
+              ok('karta klice se otevrela', st['karta'] and st['inp'], st)
+              ok('puvodni karta brany se schovala', st['stara'] == 'none', st['stara'])
+
+              await page.click('#agv-back')
+              await page.wait_for_timeout(300)
+              zpet = await page.evaluate("""() => ({
+                  karta: !!document.querySelector('#ag-gate .agv-card'),
+                  stara: document.querySelector('#ag-gate .agl-card').style.display,
+                  zive: !!document.getElementById('agg-show-join')
+              })""")
+              ok('"Zpet" kartu klice odstrani', not zpet['karta'])
+              ok('puvodni brana je zpatky viditelna', zpet['stara'] != 'none', zpet['stara'])
+              # obsluha PREZILA (proto se karta schovava, ne prepisuje innerHTML)
+              await page.click('#agg-show-join')
+              await page.wait_for_timeout(200)
+              ok('tlacitka brany porad fungujou (obsluha neztracena)',
+                 await page.evaluate("() => document.getElementById('agg-join').classList.contains('on')"))
+
+              # 3) spatny klic -> lidska hlaska
+              online = True
+              try:
+                  await tap(page, 2200)
+                  await page.wait_for_timeout(250)
+                  await page.fill('#agv-key', 'urcite-spatny-klic-12345')
+                  await page.click('#agv-go')
+                  await page.wait_for_function(
+                      "() => { const e = document.getElementById('agv-err'); return e && e.textContent && e.textContent.indexOf('Ověřuji') < 0; }",
+                      timeout=20000)
+                  hl = await page.evaluate("() => document.getElementById('agv-err').textContent")
+                  # Smysl testu: hlaska mluvi LIDSKY, ne jen cislem chyby.
+                  # ⚠ Po 5. 9. 2026 ma server brzdu (cloud/worker.js, ownerGate: deset
+                  # pokusu z adresy za hodinu). Tenhle test posila spatny klic schvalne a
+                  # v CI se pri selhani jeste jednou opakuje, takze se do brzdy DRIV NEBO
+                  # POZDEJI trefi a dostane 429 misto 403. To je SPRAVNE chovani serveru,
+                  # ne chyba appky — 429 vetev proto plati taky. Bez teto vetve by test
+                  # zacal padat sam od sebe, nezavisle na tom, co je v kodu.
+                  lidska = (('OWNER_KEY' in hl) and ('nesedí' in hl or 'není' in hl)) \
+                      or ('Moc pokusů' in hl)
+                  ok('spatny klic: hlaska mluvi lidsky (OWNER_KEY / brzda), ne jen cislem chyby',
+                     lidska, hl[:120])
+                  ok('spatny klic rezim NEZAPNE',
+                     not await page.evaluate("() => window.AGVlastnik.isOn()"))
+              except Exception as e:
+                  online = False
+                  ok('spatny klic: PRESKOCENO (bez site)', True, a(e)[:80])
 
             ok('zadna vyjimka v konzoli (brana)', not errs, '; '.join(errs)[:200])
             await ctx.close()
@@ -206,6 +247,9 @@ async def main():
             # gateCheck() tika po 2 s - pockat pres nej, at se brana neukaze pozdeji
             await page2.wait_for_timeout(3000)
 
+            # ⚠ Tahle tri tvrzeni plati DIKY profilu v BOOT_OWNER (viz komentar tam).
+            #   Bez nej by test sedel na brane a hlasil vadu appky tam, kde je jen
+            #   neuplny boot.
             ok('brana se vlastnikovi NEUKAZE',
                not await page2.evaluate("() => !!document.getElementById('ag-gate')"))
             ok('prihlasovaci obrazovka se neukaze',
@@ -277,8 +321,13 @@ async def main():
                 return window.AGVlastnik.leave();
             }""")
             await page2.wait_for_timeout(800)
-            ok('ukonceni rezimu vrati branu',
-               await page2.evaluate("() => !!document.getElementById('ag-gate')"))
+            # ⚠ Drive se tu cekala BRANA: vlastnik do te doby zadny profil nemel, takze
+            #   po vypnuti rezimu nezbylo nic a appka se zamkla. Ted ma profil (viz
+            #   BOOT_OWNER), takze spravne zustane prihlasenym clenem firmy — brana by
+            #   byla vada, ne uspech. Meri se proto to, o co v tomhle kroku jde:
+            #   rezim vlastnika opravdu zhasnul.
+            ok('ukonceni rezimu vlastnika opravdu vypne',
+               not await page2.evaluate("() => window.AGVlastnik.isOn()"))
             ok('po ukonceni uz polozka v menu neni',
                not await page2.evaluate("() => !!document.getElementById('agv-menu-btn')"))
             ok('klic zustal ulozeny (jen rezim se vypnul)',

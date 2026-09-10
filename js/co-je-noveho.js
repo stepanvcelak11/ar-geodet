@@ -205,7 +205,18 @@
     function dayGate() {
         var b = document.getElementById('update-banner');
         if (!b) return;
-        if (!b.style.display || b.style.display === 'none') { _viditelnaOd = 0; return; }
+        if (!b.style.display || b.style.display === 'none') {
+            _viditelnaOd = 0;
+            // ⚠⚠ ZÁVOD DVOU HLÍDAČŮ. „Klid po startu" (js/welcome-card.js) tiká nad TOUŽ
+            //   lištou a může ji schovat DŘÍV, než ji stihne uvidět tenhle hlídač: schová
+            //   ji a označí `data-ag-held`, aby si ji po 120 s vrátil. My jsme se pak na
+            //   schované liště hned vraceli — značka zůstala viset a lišta se po dvou
+            //   minutách vytáhla zpátky, přestože dnešní jediné ukázání už bylo utracené.
+            //   Uživatel tak dostal výzvu k restartu podruhé za den. Kdo drží den, ruší
+            //   i podržení. (Hlídá scripts/test_opravy_31_8.py.)
+            if (b.getAttribute('data-ag-held') === '1' && videnaDnes()) b.removeAttribute('data-ag-held');
+            return;
+        }
         if (videnaDnes()) {
             b.style.display = 'none';
             b.removeAttribute('data-ag-held');   // ať ji „klid po startu" nevrátí zpátky

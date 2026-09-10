@@ -50,7 +50,7 @@ async def main():
         from playwright.async_api import async_playwright
         async with async_playwright() as pw:
             b = await pw.chromium.launch(args=['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'])
-            ctx = await b.new_context(permissions=['geolocation', 'camera'],
+            ctx = await b.new_context(locale='cs-CZ', permissions=['geolocation', 'camera'],
                                       geolocation={'latitude': 50.0875, 'longitude': 14.4213},
                                       viewport={'width': 412, 'height': 915})
             await ctx.add_init_script(BOOT)

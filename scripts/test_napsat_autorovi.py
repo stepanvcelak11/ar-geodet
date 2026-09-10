@@ -353,7 +353,7 @@ async def main():
     try:
         async with async_playwright() as pw:
             browser = await pw.chromium.launch()
-            ctx = await browser.new_context(viewport={'width': 390, 'height': 844}, has_touch=True, is_mobile=True,
+            ctx = await browser.new_context(locale='cs-CZ', viewport={'width': 390, 'height': 844}, has_touch=True, is_mobile=True,
                                             permissions=['geolocation'],
                                             geolocation={'latitude': 50.0875, 'longitude': 14.4213},
                                             service_workers='block')

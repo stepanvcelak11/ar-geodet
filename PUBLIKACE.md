@@ -62,7 +62,17 @@ webu; balíček se znovu nahrává jen při změně názvu/ikony/balíčku.
   (žádné osobní údaje, kamera zůstává v zařízení). Odpovídá `soukromi.html`.
 - **Content rating** (IARC dotazník): utilita, bez násilí/hazardu → rating 3+/Everyone.
 - **Target audience**: 18+ (pracovní nástroj), appka necílí na děti.
-- Reklamy: NE. Přístup vyžadující přihlášení: NE.
+- Reklamy: NE.
+- ⚠⚠ **Přístup k aplikaci (App access): ANO — „Všechny nebo některé funkce jsou
+  omezené".** Do 6. 9. 2026 tu stálo „NE" a to už **NEPLATÍ**: hostovský režim byl
+  zrušen, appka má bránu hned při startu (`js/ucty.js`) a bez účtu se dovnitř
+  nedostane nikdo — tedy ani kontrolor Googlu. S deklarací „NE" by se na to přišlo
+  až při kontrole a vydání by se vrátilo zamítnuté.
+  **Vyplň přihlašovací údaje demo účtu** (kód účtu + heslo; založený 6. 9. 2026 na
+  ostrém serveru, tarif Základ) a jako postup napiš: *na úvodní obrazovce zvol
+  „Přihlásit se (mám kód účtu)", zadej kód účtu a heslo*.
+  ⚠ Tahle jediná položka drží start 14denních hodin — dokud není zelená, Console
+  nepustí vydání ani do uzavřeného testu.
 
 ### A5. Nahraj balíček — začni Internal testing
 1. **Testing → Internal testing → Create release** → nahraj `.aab`.

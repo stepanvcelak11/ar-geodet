@@ -34,7 +34,11 @@ Než rozešleš: v `ODKAZ` níže nahraď **opt-in odkaz** z Play Console
 >
 > **2.** Na téže stránce klikni na odkaz do Google Play a **appku nainstaluj**.
 >
-> **3.** A teď to hlavní: **nech si ji v telefonu aspoň 14 dní** a z testu se
+> **3.** Při prvním spuštění tě appka poprosí o **účet** — dej „Založit účet",
+> jsou to tři políčka a nechce to e‑mail. Bez něj se dovnitř nedostaneš.
+> Heslo si ulož, obnovit ho zatím nejde.
+>
+> **4.** A teď to hlavní: **nech si ji v telefonu aspoň 14 dní** a z testu se
 > neodhlašuj. Používat ji nemusíš — stačí, že je nainstalovaná. Kdyby ji někdo
 > smazal, celé čtrnáctidenní okno se láme a začínám znovu, takže mi tím fakt
 > pomůžeš.
@@ -51,7 +55,26 @@ Než rozešleš: v `ODKAZ` níže nahraď **opt-in odkaz** z Play Console
 
 > Ahoj, dodělávám appku pro geodety a Google chce, aby ji 14 dní testovalo
 > 12 lidí. Pomůžeš? Na Androidu otevři ODKAZ → „Stát se testerem" → nainstaluj
-> z Play. A pak už jen prosím **nemazat 14 dní**, používat nemusíš. Díky!
+> z Play → při prvním spuštění dej **„Založit účet"** (tři políčka, bez e‑mailu).
+> A pak už jen prosím **nemazat 14 dní**, používat nemusíš. Díky!
+
+---
+
+## ⚠⚠ ÚČET JE POVINNÝ — bez něj se tester dovnitř NEDOSTANE
+
+Od 6. 9. 2026 je **hostovský režim zrušený**: appka má bránu hned při startu
+(`js/ucty.js`) a bez profilu ji neotevře nikdo. Do té doby tři dlaždice fungovaly
+i bez přihlášení, takže starší znění pozvánky o účtu vůbec nemluvilo — a člověk,
+který si appku nainstaluje a narazí na přihlašovací obrazovku, ji nejspíš prostě
+zavře. **Do pozvánky proto účet PATŘÍ, jinak se na tom zasekne dvanáct lidí naráz.**
+
+Registrace je krátká (jméno, heslo, potvrzení), **nechce e‑mail** a udělá se přímo
+v appce. ⚠ Právě proto, že e‑mail nemá, **heslo nejde obnovit** — komu se ztratí,
+zakládá účet znovu a přijde o zakázku. Řekni jim, ať si ho uloží.
+
+Totéž platí pro **kontrolora Googlu**: v Play Console → *Zásady → Obsah aplikace →
+Přístup k aplikaci* musí být vyplněný demo účet, jinak vydání zamítnou
+(viz `PUBLIKACE.md`, oddíl A4).
 
 ---
 

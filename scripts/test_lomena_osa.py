@@ -138,7 +138,7 @@ async def main():
     try:
         async with async_playwright() as pw:
             b = await pw.chromium.launch()
-            ctx = await b.new_context(viewport={'width': 390, 'height': 844}, is_mobile=True, has_touch=True,
+            ctx = await b.new_context(locale='cs-CZ', viewport={'width': 390, 'height': 844}, is_mobile=True, has_touch=True,
                                       geolocation={'latitude': LAT0, 'longitude': LNG0},
                                       permissions=['geolocation'], service_workers='block')
             await ctx.add_init_script(BOOT)
