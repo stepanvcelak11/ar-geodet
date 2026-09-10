@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-09-09",
-  "uvodnik": "Vydání 2026-09-09 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-09-10",
+  "uvodnik": "Vydání 2026-09-10 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,30 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "Trimble VRS Network to Provide High-Precision Positioning Services in Japan",
+      "perex": "Westminster, Colo., Sept. 9, 2026 — Trimble announced today the acquisition of Terasat Japan, one of the largest virtual reference station (VRS) service providers in the Japanese market.",
+      "telo": "Westminster, Colo., Sept. 9, 2026 — Trimble announced today the acquisition of Terasat Japan, one of the largest virtual reference station (VRS) service providers in the Japanese market. The acquisition allows Trimble to now directly offer its VRS correction service in Japan, providing significant incremental coverage for real-time, centimeter-level positioning for the geospatial, construction, automotive and agriculture industries. By providing a high-precision positioning foundation across Japan’s infrastructure, Trimble bridges the connection between digital models and the physical world. Financial terms were not disclosed. With full Global Navigation Satellite System (GNSS) constellation",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/09/trimble-vrs-network-to-provide-high-precision-positioning-services-in-japan/?utm_source=rss&utm_medium=rss&utm_campaign=trimble-vrs-network-to-provide-high-precision-positioning-services-in-japan",
+      "datum": "2026-09-09"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "Geo Week Announces Strategic Partnerships for 2027 Event",
+      "perex": "Leading geospatial and mapping event confirms partners to unite the industry and enhance offerings through collaboration Salt Lake City, UT – USA, September 9, 2026 – Organizers of Geo Week , the prem…",
+      "telo": "Leading geospatial and mapping event confirms partners to unite the industry and enhance offerings through collaboration Salt Lake City, UT – USA, September 9, 2026 – Organizers of Geo Week , the premier conference and trade show for geospatial and mapping professionals, have announced their Strategic Partnerships for 2027, comprised of Event Partners, Industry Partners, and Supporting Partners. Each partnership plays a pivotal role in bolstering the event’s success and bringing together a multi-faceted audience with complex challenges under one roof. Geo Week will take place February 23-25, 2027, in Salt Lake City, Utah, at the Salt Palace Convention Center. Supporting Partners encompass mo",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/09/geo-week-announces-strategic-partnerships-for-2027-event/?utm_source=rss&utm_medium=rss&utm_campaign=geo-week-announces-strategic-partnerships-for-2027-event",
+      "datum": "2026-09-09"
     },
     {
       "rubrika": "Z praxe",
@@ -72,30 +96,6 @@
       "proc": "",
       "zdroj": "LiDAR Magazine",
       "odkaz": "https://lidarmag.com/2026/09/03/ogc-announces-publication-of-the-laz-1-4-community-standard/?utm_source=rss&utm_medium=rss&utm_campaign=ogc-announces-publication-of-the-laz-1-4-community-standard",
-      "datum": "2026-09-03"
-    },
-    {
-      "rubrika": "Akce",
-      "top": false,
-      "nadpis": "Harris Aerial, Skyline Nav AI, and UtopiaCompression win “Pitch the Press” at Commercial UAV Expo 2026",
-      "perex": "Top Products and Solutions Selected by Leading UAV Industry Journalists Las Vegas, NV, September 3, 2026 – Harris Aerial , Skyline Nav AI , and UtopiaCompression have been named the three winners of t…",
-      "telo": "Top Products and Solutions Selected by Leading UAV Industry Journalists Las Vegas, NV, September 3, 2026 – Harris Aerial , Skyline Nav AI , and UtopiaCompression have been named the three winners of the annual “Pitch the Press” competition at Commercial UAV Expo , the leading international trade show and conference focused on commercial drone technology. Each year, Commercial UAV Expo hosts “Pitch the Press,” a unique opportunity for exhibitors to present their products to a group of editors and reporters looking for the most unique new technology being showcased at Commercial UAV Expo. Fourteen exhibitors were selected from a large pool of applicants to share their new product or service du",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/03/harris-aerial-skyline-nav-ai-and-utopiacompression-win-pitch-the-press-at-commercial-uav-expo-2026/?utm_source=rss&utm_medium=rss&utm_campaign=harris-aerial-skyline-nav-ai-and-utopiacompression-win-pitch-the-press-at-commercial-uav-expo-2026",
-      "datum": "2026-09-03"
-    },
-    {
-      "rubrika": "Z praxe",
-      "top": false,
-      "nadpis": "First-Ever National Field Data Study on Multiskilled Construction",
-      "perex": "Washington, Sept. 2 —Associated Builders and Contractors today celebrated the release of Multiskilling in the U.S.",
-      "telo": "Washington, Sept. 2 —Associated Builders and Contractors today celebrated the release of Multiskilling in the U.S. Construction Industry , the largest national dataset documenting the relationship between multiskilling labor strategies and performance outcomes, including productivity, staffing levels and schedule durations. Among other findings, the research showed that multiskilling increased the share of crew time spent on directly advancing construction work by 39%. Multiskilled craft professionals build select, verified capabilities by obtaining credentials in multiple crafts and then utilizing them safely and competently on the jobsite. In the research, the typical observed worker used",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/02/first-ever-national-field-data-study-on-multiskilled-construction-shows-wins-for-workers-taxpayers-industry/?utm_source=rss&utm_medium=rss&utm_campaign=first-ever-national-field-data-study-on-multiskilled-construction-shows-wins-for-workers-taxpayers-industry",
       "datum": "2026-09-03"
     }
   ]
