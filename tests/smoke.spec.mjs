@@ -307,6 +307,17 @@ test('REGRESE: lazy nástroj s objektovým API (DGPS) appku nezamrzne', async ({
     // ani vykreslování). Test proto hlídá, že appka po otevření DGPS ODPOVÍDÁ.
     await bootApp(page, context);
 
+    // ⚠⚠ VE VYDÁNÍ ZÁKLAD TENHLE TEST PROJÍT NEMŮŽE. `scripts/vydani.py --zaklad`
+    // placené moduly z balíčku MAŽE (js/dgps.js je jedním ze 41), ale položka
+    // v manifestu js/lazy-tools.js zůstává a ukazuje na soubor, který tam už není.
+    // Zástupce se proto zavolá, stažení skončí 404 a #ag-dgps-modal nenaskočí —
+    // naměřeno 10. 9. 2026 nad sestaveným Základem: ani za 15 s, a to i s odemčeným
+    // Pro (appka přitom žije, takže o tu regresi se nejedná). `pages.yml` pouští
+    // smoke DVAKRÁT, nad Pro i nad Základem; bez tohohle přeskočení by druhý běh
+    // zastavil nasazení pokaždé.
+    const jeZaklad = await page.evaluate(() => window.__AG_VYDANI === 'zaklad');
+    test.skip(jeZaklad, 'vydání ZÁKLAD placené moduly nemá — js/dgps.js se z balíčku maže');
+
     // POZOR — proč NE klepnutí na dlaždici (kvůli tomu byl tenhle test od zavedení
     // červený a s ním celý workflow, včetně nasazení na Pages):
     // bootApp startuje appku přihlášenou (dřív to byl režim HOST, ten byl 6. 9.
@@ -319,6 +330,17 @@ test('REGRESE: lazy nástroj s objektovým API (DGPS) appku nezamrzne', async ({
     // (js/lazy-tools.js, `open: 'AGDgps.open'`). Regrese se tím testuje beze změny:
     // window.AGDgps.open je před načtením ZÁSTUPCE (_agLazyStub) a právě jeho
     // zavolání dřív roztočilo nekonečnou smyčku.
+    // ⚠⚠ DGPS je PLACENÝ nástroj (`pro: 1` v js/tools-registry.js) a od v283 drží
+    // zámky Pro i na PŘÍMÉ volání globálu, ne jen na klepnutí do mřížky. Bez
+    // odemčení se `AGDgps.open()` tiše nedostane dál, #ag-dgps-modal nenaskočí a
+    // test spadne na vypršení — ačkoli appka je v pořádku.
+    // Naměřeno 10. 9. 2026 nad mainem 9d47b1a, tentýž strom: BEZ odemčení se modál
+    // neukázal ani za 15 s (appka přitom žila, počítala dál), S odemčením naskočil
+    // za 0,5 s i s obsahem. Před v283 tenhle test procházel, protože zámky Pro
+    // přímé volání nehlídaly — proto se pád objevil až po sloučení v283 na main
+    // a zastavil nasazení v `pages.yml`.
+    await page.evaluate(() => { try { AGLic.uloz(AGLic.vyrob(1, 0)); } catch (e) {} });
+
     expect(await page.evaluate(() => !!(window.AGDgps && window.AGDgps.open && window.AGDgps.open._agLazyStub)),
         'AGDgps.open měl být před otevřením zástupce z lazy-tools.js — jinak tenhle test netestuje nic').toBe(true);
     await page.evaluate(() => window.AGDgps.open());
