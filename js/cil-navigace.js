@@ -4,9 +4,16 @@
 //     nevedla k němu žádná čára — po odzoomování se ztratil. Teď má zlatou pulzující
 //     aureolu, čárkovanou spojnici ode mě k němu, popisek se vzdáleností a azimutem
 //     a dlaždici „Ukázat cíl" (vejde do mapy mě i cíl).
-//   ④ Když je cíl mimo záběr kamery, řekla to jen šipka dole. Teď se na hranu displeje
-//     přilepí zlatá pilulka se šipkou a počtem stupňů („40°" vlevo) — a zmizí, jakmile
-//     je cíl v záběru.
+//   ④ NAVÁDĚNÍ JE KOMPASOVÁ PÁSKA (od 9. 9. 2026 nahradila pilulku na hraně).
+//     Vodorovná stužka se světovými stranami a ryskami po 15°; na ní zlatá ryska
+//     cíle, uprostřed pevný hrot = kam se dívám. Prostřední pás ukazuje, co je
+//     zrovna v obraze kamery, takže je poznat rozdíl mezi „cíl je těsně vedle
+//     záběru" a „cíl je úplně jinde". Když odchylka přeroste půlku okna (±60°),
+//     ryska se přilepí ke kraji a změní se v šipku s počtem stupňů; nad 135° je
+//     cíl za zády a šipka se změní na otočku.
+//     ⚠ VE SPLITU JE PÁSKA SAMOTNÝM DĚLIČEM (#resizer) — nezabírá tedy ani pixel
+//       navíc proti dnešku (dělič se roztáhne z 16 na 26 px a jen dokud je cíl
+//       nastavený). Tažení děliče funguje dál: páska nebere klepnutí.
 //
 // ZÁMĚRNĚ nesahá do grafika.js/logika.js/style.css: jen obalí updateNavGlow()
 // (volá se každý snímek z renderAR, viz grafika.js) a styly + prvky si vyrobí sám.
@@ -28,7 +35,7 @@
     var navGroup = null;
     var _pt = null, _ptId = null, _ptN = -1;            // cache dohledaného cíle
     var _mLat = null, _mLng = null, _mTLat = null, _mTLng = null, _mId = null, _mView = null;
-    var _edge = null, _eSide = '', _eTxt = '', _eOn = null, _eBack = null;
+    // (proměnné po pilulce na hraně zmizely s ní — 9. 9. 2026, viz páska níž)
     var _tile = null, _tileOn = null, _holdT = null;
 
     // ---- čtení globálů z grafika.js / logika.js (jsou ve vnějším scope) ---------------
@@ -86,30 +93,86 @@
             // motivech. !important kvůli specificitě `body.light-mode #map.base-osm`.
             '.ag-cil-lbl{color:' + GOLD + ' !important;font-weight:700 !important;white-space:nowrap;',
             '  text-shadow:-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 !important;}',
-            /* ④ pilulka na hraně displeje */
-            '#ag-cil-edge{position:absolute;top:50%;z-index:55;display:none;flex-direction:column;',
-            '  align-items:center;gap:3px;padding:11px 8px;pointer-events:none;',
-            '  background:rgba(8,11,15,0.74);border:1px solid rgba(251,191,36,0.55);',
-            '  color:' + GOLD + ';font:700 12px/1 var(--font-mono,monospace);',
-            '  box-shadow:0 0 20px rgba(251,191,36,0.28);}',
-            '#ag-cil-edge.on{display:flex;}',
-            /* POZOR: #map-sheet .ms-tile ma display:flex, coz PREBIJI atribut hidden
-               (u .ms-row na to style.css pamatuje, u dlazdic ne) — bez tohoto radku
-               by dlazdice „Ukazat cil" svitila v panelu i kdyz zadny cil nastaveny neni */
-            '#ms-cil[hidden]{display:none !important;}',
-            '#ag-cil-edge.side-l{left:0;border-left:0;border-radius:0 15px 15px 0;',
-            '  transform:translateY(-50%) translateX(env(safe-area-inset-left,0px));}',
-            '#ag-cil-edge.side-r{right:0;border-right:0;border-radius:15px 0 0 15px;',
-            '  transform:translateY(-50%) translateX(calc(-1 * env(safe-area-inset-right,0px)));}',
-            '#ag-cil-edge svg{width:26px;height:26px;display:block;}',
-            '#ag-cil-edge .ag-cil-u{display:none;}',
-            '#ag-cil-edge.back{border-color:rgba(239,68,68,0.6);color:#ef4444;box-shadow:0 0 20px rgba(239,68,68,0.28);}',
-            '#ag-cil-edge.back .ag-cil-c{display:none;}',
-            '#ag-cil-edge.back .ag-cil-u{display:block;}',
-            /* na slunci (adaptivní sklo, body.cam-light) je tmavá pilulka nečitelná */
-            'body.cam-light #ag-cil-edge{background:rgba(248,250,252,0.9);color:#92400e;',
-            '  border-color:rgba(146,64,14,0.45);box-shadow:0 0 18px rgba(0,0,0,0.25);}',
-            'body.cam-light #ag-cil-edge.back{color:#b91c1c;border-color:rgba(185,28,28,0.5);}'
+            /* ④ KOMPASOVÁ PÁSKA (na přání 9. 9. 2026 nahradila pilulku na hraně).
+               Vodorovná stužka jako na kompasu: světové strany, rysky po 15° a na
+               nich zlatá ryska cíle. Uprostřed pevný hrot = kam se právě dívám.
+               ⚠ VE SPLITU JE PÁSKA SAMOTNÝM DĚLIČEM (#resizer), ne dalším pruhem
+                 navíc — uživatel to řekl jednou větou: „ve splitu mi ji dej do
+                 rozdělovače, aby nezabírala více prostoru než je třeba". Dělič je
+                 běžně 16 px; s páskou se roztáhne na 26 px a jen po dobu, kdy je
+                 nastavený cíl. Tažení tím netrpí: páska nebere klepnutí
+                 (pointer-events:none) a chytací plocha #resizer::after zůstává. */
+            '.ag-cil-paska{position:absolute;left:0;right:0;height:26px;z-index:55;display:none;',
+            '  overflow:hidden;pointer-events:none;-webkit-user-select:none;user-select:none;}',
+            '.ag-cil-paska.on{display:block;}',
+            /* v čisté AR je to plovoucí stužka nad spodní hranou obrazu */
+            '.ag-cil-paska.v-ar{bottom:calc(env(safe-area-inset-bottom,0px) + 10px);',
+            '  left:8px;right:8px;border-radius:9px;background:rgba(8,11,15,0.72);',
+            '  border:1px solid rgba(255,255,255,0.14);}',
+            /* v děliči vyplní celý pruh a nekreslí si vlastní rám — rámem je dělič */
+            '.ag-cil-paska.v-delic{top:0;bottom:0;height:auto;background:transparent;border:0;}',
+            // ⚠ `flex:0 0 auto` NENÍ ozdoba: dělič je pružná položka sloupce a bez
+            //   toho se z požadovaných 26 px smrskl na 24 (naměřeno). Páska sice
+            //   vyplní, co dostane, ale rysky a písmena chtějí svou výšku.
+            '#resizer.ag-cil-paska-on{height:26px;flex:0 0 auto;}',
+            'body.ag-glove #resizer.ag-cil-paska-on{height:30px;}',
+            /* úchyt děliče by seděl přesně tam, kde je hrot pásky — schová se a
+               místo něj drží „tady se táhne" dvě rysky u pravého kraje */
+            '#resizer.ag-cil-paska-on .grabber{display:none;}',
+            '#resizer.ag-cil-paska-on::before{opacity:0.25;}',
+            '.ag-cil-uchyt{position:absolute;right:7px;top:50%;transform:translateY(-50%);',
+            '  display:flex;gap:3px;pointer-events:none;}',
+            '.ag-cil-uchyt i{display:block;width:2px;height:11px;border-radius:1px;',
+            '  background:var(--text-muted,#9aa1ac);opacity:.5;}',
+            // v čisté AR není co táhnout (dělič tam není) a pod odchylkou vpravo
+            // by rysky ležely přesně tam, kde je šipka „cíl je mimo pásku"
+            '.ag-cil-paska.v-ar .ag-cil-uchyt,.ag-cil-paska.mimo-r .ag-cil-uchyt{display:none;}',
+            /* stužka rysek: jeden široký pás, který se posouvá transformem
+               (kompozitor) — žádné přepisování DOM 60x za sekundu */
+            '.ag-cil-skala{position:absolute;left:0;top:0;bottom:0;will-change:transform;}',
+            '.ag-cil-skala i{position:absolute;bottom:4px;width:1px;background:#8b969e;opacity:.55;}',
+            '.ag-cil-skala i.d15{height:5px;}',
+            '.ag-cil-skala i.d45{height:8px;opacity:.75;}',
+            '.ag-cil-skala b{position:absolute;bottom:2px;transform:translateX(-50%);',
+            '  font:700 10px/1 var(--font-mono,monospace);color:#c6d0d6;opacity:.9;}',
+            /* pás, který ukazuje, co je zrovna v obraze kamery */
+            '.ag-cil-zaber{position:absolute;top:0;bottom:0;background:rgba(255,255,255,0.07);',
+            '  border-left:1px solid rgba(255,255,255,0.16);border-right:1px solid rgba(255,255,255,0.16);}',
+            /* pevný hrot uprostřed = směr pohledu */
+            '.ag-cil-hrot{position:absolute;left:50%;top:0;width:0;height:0;transform:translateX(-50%);',
+            '  border-left:5px solid transparent;border-right:5px solid transparent;',
+            '  border-top:6px solid #e8eef2;}',
+            /* ryska cíle */
+            '.ag-cil-znak{position:absolute;top:0;bottom:0;width:2.5px;margin-left:-1.25px;',
+            '  background:' + GOLD + ';border-radius:2px;box-shadow:0 0 8px rgba(251,191,36,.7);}',
+            '.ag-cil-paska.trefa .ag-cil-znak{background:#34d399;box-shadow:0 0 10px rgba(52,211,153,.8);}',
+            /* ⚠ CÍL MIMO PÁSKU. Když je odchylka větší než půlka okna, ryska by
+               ležela za krajem a uživatel by nevěděl NIC. Místo toho se přilepí
+               na kraj, změní se v šipku a připíše, o kolik stupňů jde. Nad 135°
+               je cíl za zády a šipka se změní na otočku. */
+            '.ag-cil-mimo{position:absolute;top:0;bottom:0;display:none;align-items:center;gap:3px;',
+            '  padding:0 7px;background:rgba(251,191,36,.16);color:' + GOLD + ';',
+            '  font:700 11px/1 var(--font-mono,monospace);}',
+            '.ag-cil-paska.mimo-l .ag-cil-mimo.m-l{display:flex;left:0;border-radius:0 7px 7px 0;}',
+            '.ag-cil-paska.mimo-r .ag-cil-mimo.m-r{display:flex;right:0;border-radius:7px 0 0 7px;}',
+            '.ag-cil-mimo svg{width:13px;height:13px;flex:none;}',
+            '.ag-cil-mimo .m-u{display:none;}',
+            '.ag-cil-paska.vzad .ag-cil-mimo{background:rgba(239,68,68,.18);color:#f87171;}',
+            '.ag-cil-paska.vzad .ag-cil-mimo .m-c{display:none;}',
+            '.ag-cil-paska.vzad .ag-cil-mimo .m-u{display:block;}',
+            /* vzdálenost: v čisté AR nad hrotem, ve splitu NE — mapa pod děličem
+               ji ukazuje u čáry taky a dvakrát totéž číslo je šum */
+            '.ag-cil-dist{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 4px);',
+            '  font:700 13px/1 var(--font-mono,monospace);color:' + GOLD + ';',
+            '  text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;white-space:nowrap;}',
+            '.ag-cil-paska.v-delic .ag-cil-dist{display:none;}',
+            /* na slunci (adaptivní sklo) je tmavý podklad nečitelný */
+            'body.cam-light .ag-cil-paska.v-ar{background:rgba(248,250,252,0.92);border-color:rgba(15,23,42,0.2);}',
+            'body.cam-light .ag-cil-skala i{background:#4b5563;}',
+            'body.cam-light .ag-cil-skala b{color:#1f2937;}',
+            'body.cam-light .ag-cil-hrot{border-top-color:#111827;}',
+            'body.cam-light .ag-cil-zaber{background:rgba(15,23,42,0.06);}',
+            'body.cam-light .ag-cil-dist{color:#92400e;text-shadow:none;}'
         ].join('\n');
         document.head.appendChild(s);
     }
@@ -177,7 +240,7 @@
         // uživatele („v mapě to vypadá hezky, jak je ta rovná čára a vzdálenost.
         // Ty stupně tam vymaž, to je zbytečný."). V mapě je směr vidět ze samotné
         // čáry, takže číslo ve stupních tam jen přidávalo šum. Na obrazovce AR
-        // azimut zůstává (pilulka na hraně displeje si ho počítá sama, viz updateEdge).
+        // azimut zůstává na obrazovce (kompasová páska níž si ho počítá sama).
         if (hasGeo()) {
             var d = (pt.currentDist != null) ? pt.currentDist : getDistance(uLat, uLng, pt.lat, pt.lng);
             var pos = labelLatLng(m, A, B);
@@ -237,55 +300,168 @@
     }
 
     // =================================================================================
-    // ④ UKAZATEL MIMO ZÁBĚR
+    // ④ KOMPASOVÁ PÁSKA (nahradila pilulku na hraně, 9. 9. 2026)
     // =================================================================================
-    function ensureEdge() {
-        if (_edge && _edge.isConnected) return _edge;
-        var host = document.getElementById('camera-container'); if (!host) return null;
+    // Okno pásky je ±OKNO/2 stupňů kolem směru pohledu. Zorný úhel kamery je kolem
+    // 60°, takže při okně 120° zabírá „co je v obraze" prostřední polovinu pásky —
+    // a je na první pohled vidět rozdíl mezi „cíl je těsně vedle záběru" a „cíl je
+    // úplně jinde". Rysky jsou po 15°, písmena světových stran po 90°.
+    // ⚠⚠ OKNO PÁSKY SE ŘÍDÍ ZORNÝM ÚHLEM KAMERY, NE PEVNÝM ČÍSLEM. Nejdřív tu
+    //   stálo natvrdo 120° — jenže naměřený poloviční záběr je 45°, takže by pás
+    //   „co je v obraze" zabral 90 ze 120 stupňů, tedy tři čtvrtiny pásky, a na
+    //   to podstatné (o kolik JSEM VEDLE záběru) by nezbylo místo. Okno je proto
+    //   záběr + REZERVA na každou stranu; při 45° vyjde 150°, při užší kameře míň.
+    var REZERVA = 30;            // kolik stupňů mimo záběr je vidět na každé straně
+    var OKNO_MIN = 110, OKNO_MAX = 200;
+    var TREFA = 3;               // do kolika stupňů se ryska považuje za trefu
+    var VZAD = 135;              // nad kolik stupňů je cíl „za zády"
+    var _pas = null, _pasHost = null, _pasW = 0, _pasPx = 0, _pasOkno = 0, _pasHalf = 0;
+    var _pTx = null, _pZnak = null, _pMimoL = null, _pMimoR = null, _pDist = null, _pZaber = null;
+    var _pStav = '';             // otisk posledního zápisu do DOM (ať se nepíše 60x/s)
+
+    var SIP = '<svg class="m-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 5 8 12 15 19"/></svg>'
+        + '<svg class="m-u" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20V10a5 5 0 0 1 10 0v4"/><polyline points="13 11 17 15 21 11"/></svg>';
+
+    // Kde má páska bydlet: ve splitu v děliči, v čisté AR nad spodní hranou obrazu.
+    function hostPasky() {
+        var vm = view();
+        if (vm === 'both') return document.getElementById('resizer');
+        if (vm === 'ar') return document.getElementById('camera-container');
+        return null;                      // v samotné mapě páska nedává smysl
+    }
+
+    function ensurePaska() {
+        if (_pas) return _pas;
         var el = document.createElement('div');
-        el.id = 'ag-cil-edge'; el.setAttribute('aria-hidden', 'true');
+        el.className = 'ag-cil-paska';
+        el.setAttribute('aria-hidden', 'true');
         el.innerHTML =
-            '<svg class="ag-cil-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 5 8 12 15 19"/></svg>'
-            + '<svg class="ag-cil-u" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20V10a5 5 0 0 1 10 0v4"/><polyline points="13 11 17 15 21 11"/></svg>'
-            + '<b>0°</b>';
-        host.appendChild(el);
-        _edge = el;
+            '<div class="ag-cil-zaber"></div>'
+            + '<div class="ag-cil-skala"></div>'
+            + '<div class="ag-cil-znak"></div>'
+            + '<div class="ag-cil-hrot"></div>'
+            + '<div class="ag-cil-mimo m-l">' + SIP + '<span class="m-t"></span></div>'
+            + '<div class="ag-cil-mimo m-r"><span class="m-t"></span>' + SIP + '</div>'
+            + '<div class="ag-cil-dist"></div>'
+            + '<span class="ag-cil-uchyt"><i></i><i></i></span>';
+        _pas = el;
+        _pTx = el.querySelector('.ag-cil-skala');
+        _pZnak = el.querySelector('.ag-cil-znak');
+        _pMimoL = el.querySelector('.ag-cil-mimo.m-l .m-t');
+        _pMimoR = el.querySelector('.ag-cil-mimo.m-r .m-t');
+        _pDist = el.querySelector('.ag-cil-dist');
+        _pZaber = el.querySelector('.ag-cil-zaber');
         return el;
     }
-    function edgeOff() {
-        if (_eOn === false) return;
-        var el = ensureEdge(); if (!el) return;
-        el.classList.remove('on'); _eOn = false;
+
+    // Stupnice se staví JEDNOU pro 720° (dvě otočky vedle sebe). Posun pak dělá
+    // jediný transform — proto se dá hýbat každý snímek bez zápisu do DOM.
+    // ⚠ Dvě otočky jsou tam kvůli přetečení přes sever: kdyby byla jen jedna, na
+    //   359° by páska skočila. Kreslí se do souřadnic „stupeň × px na stupeň",
+    //   takže se při změně šířky musí přepočítat.
+    var SVET = { 0: 'S', 45: 'SV', 90: 'V', 135: 'JV', 180: 'J', 225: 'JZ', 270: 'Z', 315: 'SZ' };
+    function okno(half) {
+        var o = 2 * half + 2 * REZERVA;
+        return Math.max(OKNO_MIN, Math.min(OKNO_MAX, o));
     }
-    function updateEdge() {
+    function postavSkalu(w, half) {
+        _pasW = w;
+        _pasHalf = half;
+        _pasOkno = okno(half);
+        _pasPx = w / _pasOkno;
+        var h = [], d;
+        for (d = 0; d < 720; d += 15) {
+            var a = d % 360;
+            var x = (d * _pasPx).toFixed(1);
+            if (SVET[a] !== undefined) {
+                h.push('<i class="d45" style="left:' + x + 'px"></i>');
+                h.push('<b style="left:' + x + 'px">' + SVET[a] + '</b>');
+            } else {
+                h.push('<i class="d15" style="left:' + x + 'px"></i>');
+            }
+        }
+        _pTx.style.width = (720 * _pasPx).toFixed(1) + 'px';
+        _pTx.innerHTML = h.join('');
+        // pás „tohle je zrovna v obraze kamery"
+        _pZaber.style.left = (w / 2 - half * _pasPx).toFixed(1) + 'px';
+        _pZaber.style.width = (2 * half * _pasPx).toFixed(1) + 'px';
+    }
+    function polovinaZaberu() {
+        var h = (window._arProj && window._arProj.halfH)
+            || ((typeof visSettings !== 'undefined' && visSettings && visSettings.fovH) ? visSettings.fovH / 2 : 30);
+        if (!isFinite(h) || h <= 0) h = 30;
+        return Math.max(10, Math.min(h, 80));
+    }
+
+    function paskaOff() {
+        if (_pas && _pas.classList.contains('on')) _pas.classList.remove('on');
+        if (_pasHost && _pasHost.id === 'resizer') _pasHost.classList.remove('ag-cil-paska-on');
+        _pStav = '';
+    }
+
+    function updatePaska() {
         var pt = target(), uLat = gLat(), uLng = gLng();
         var hd = (typeof currentHeading === 'number') ? currentHeading : null;
-        if (!pt || uLat == null || hd === null || !started() || view() === 'map' || !hasGeo()) return edgeOff();
+        if (!pt || uLat == null || hd === null || !started() || !hasGeo()) return paskaOff();
+        var host = hostPasky();
+        if (!host || host.style.display === 'none') return paskaOff();
+
+        var el = ensurePaska();
+        // přestěhování mezi děličem a kamerou (přepnutí zobrazení)
+        if (_pasHost !== host) {
+            if (_pasHost && _pasHost.id === 'resizer') _pasHost.classList.remove('ag-cil-paska-on');
+            host.appendChild(el);
+            _pasHost = host;
+            el.classList.toggle('v-delic', host.id === 'resizer');
+            el.classList.toggle('v-ar', host.id !== 'resizer');
+            if (host.id === 'resizer') host.classList.add('ag-cil-paska-on');
+            _pasW = 0;                       // vynutit přestavbu stupnice v nové šířce
+        }
+        if (!el.classList.contains('on')) el.classList.add('on');
+
+        var w = el.clientWidth || host.clientWidth;
+        if (!w) return;
+        var half = polovinaZaberu();
+        // přestavět i po změně zorného úhlu (kalibrace FOV), ne jen po změně šířky
+        if (Math.abs(w - _pasW) > 1 || Math.abs(half - _pasHalf) > 0.5) postavSkalu(w, half);
+
+        // posun stupnice: azimut `a` má být na x = střed + (a - hd) * px.
+        // Kreslíme prostřední otočku (proto hd + 360), aby zbylo místo na obě strany.
+        var tx = (w / 2 - (hd + 360) * _pasPx);
+        _pTx.style.transform = 'translate3d(' + tx.toFixed(1) + 'px,0,0)';
+
         var brg = (pt.currentBearing != null) ? pt.currentBearing : getBearing(uLat, uLng, pt.lat, pt.lng);
-        var diff = ((brg - hd + 540) % 360) - 180, ad = Math.abs(diff);
+        var diff = ((brg - hd + 540) % 360) - 180;   // kladné = cíl je vpravo
+        var ad = Math.abs(diff);
+        var mez = _pasOkno / 2 - 4;                   // rezerva, ať ryska nelepí na kraj
+        var mimo = ad > mez;
+        var d = (pt.currentDist != null) ? pt.currentDist : getDistance(uLat, uLng, pt.lat, pt.lng);
 
-        // hranice = půlka zorného úhlu kamery (stejná, kterou renderAR používá na značky),
-        // s hysterezí ±3°, aby pilulka na kraji záběru neblikala
-        var half = (window._arProj && window._arProj.halfH)
-            || ((typeof visSettings !== 'undefined' && visSettings && visSettings.fovH) ? visSettings.fovH / 2 : 45);
-        if (ad < half - 3) return edgeOff();
-        if (_eOn !== true && ad < half + 3) return;   // pořád v „mrtvém pásmu" → nezapínat
-
-        var el = ensureEdge(); if (!el) return;
-        var side = (diff < 0) ? 'side-l' : 'side-r';
-        var back = (ad > 135);
-        var txt = Math.round(ad) + '°';
-        if (_eSide !== side) { el.classList.remove('side-l', 'side-r'); el.classList.add(side); _eSide = side; }
-        if (_eBack !== back) { el.classList.toggle('back', back); _eBack = back; }
-        if (_eTxt !== txt) { var bb = el.querySelector('b'); if (bb) bb.textContent = txt; _eTxt = txt; }
-        if (_eOn !== true) { el.classList.add('on'); _eOn = true; }
+        // DOM píšeme jen při skutečné změně (funkce běží každý snímek kompasu)
+        var stav = (mimo ? 'M' : 'I') + (diff < 0 ? 'L' : 'R') + Math.round(ad) + '|'
+            + (ad <= TREFA ? 'T' : '-') + '|' + (ad > VZAD ? 'B' : '-') + '|' + fmtD(d);
+        if (stav !== _pStav) {
+            _pStav = stav;
+            el.classList.toggle('trefa', ad <= TREFA);
+            el.classList.toggle('vzad', ad > VZAD);
+            el.classList.toggle('mimo-l', mimo && diff < 0);
+            el.classList.toggle('mimo-r', mimo && diff > 0);
+            var txt = Math.round(ad) + '\u00b0';
+            if (mimo && diff < 0) _pMimoL.textContent = txt;
+            if (mimo && diff > 0) _pMimoR.textContent = txt;
+            _pDist.textContent = fmtD(d);
+        }
+        // ryska cíle: uvnitř okna na svém místě, mimo něj přilepená ke kraji
+        var x = w / 2 + Math.max(-mez, Math.min(mez, diff)) * _pasPx;
+        _pZnak.style.transform = 'translate3d(' + x.toFixed(1) + 'px,0,0)';
+        _pZnak.style.opacity = mimo ? '0' : '1';
     }
 
     // =================================================================================
     // NAPOJENÍ: updateNavGlow() volá renderAR každý snímek (i v režimu Mapa)
     // =================================================================================
     function tick() {
-        try { updateEdge(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cil-navigace:tick'); }
+        try { updatePaska(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cil-navigace:tick'); }
         try { redrawMap(false); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cil-navigace:tick'); }
         try { syncTile(!!target()); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cil-navigace:tick'); }
     }
