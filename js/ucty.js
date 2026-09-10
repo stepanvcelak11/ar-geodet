@@ -1024,7 +1024,7 @@
                         if (restrict) {
                             var key = node.getAttribute('data-tool');
                             if (key) {
-                                ban2 = !can('tools.' + katNastroje(key));
+                                ban2 = !smiNastroj(key);
                             } else {
                                 var oc = node.getAttribute('onclick') || '';
                                 for (var bi = 0; bi < bannedKeys.length; bi++) {
@@ -1044,11 +1044,15 @@
                 // dojede zbytek podle SKUTEČNÉ kategorie nástroje (_toolCat), takže
                 // nová zóna v mřížce už díru neudělá.
                 if (restrict) {
-                    var vse = grid.querySelectorAll('.tool-tile[data-tool]');
+                    // ⚠ VŠECHNY dlaždice, ne jen ty s `data-tool`: statické z index.html
+                    //   ho nemají a spoléhaly se na průchod podle nadpisů. Ten ale
+                    //   hlídá jen NOVÉ jméno skupiny, takže by přes něj prošel starý
+                    //   zákaz (viz smiNastroj výš).
+                    var vse = grid.querySelectorAll('.tool-tile');
                     for (var vi = 0; vi < vse.length; vi++) {
                         var t3 = vse[vi];
-                        var c3 = katNastroje(t3.getAttribute('data-tool'));
-                        if (!can('tools.' + c3)) setHide(t3, true);
+                        var k3 = klicDlazdice(t3);
+                        if (k3 && !smiNastroj(k3)) setHide(t3, true);
                     }
                 }
             }
@@ -1066,9 +1070,18 @@
             var karta = document.getElementById('ag-tools-empty');
             var videt = 0;
             if (grid2) {
+                // ⚠⚠ PTÁT SE NA POVOLENÍ, NE NA VYKRESLENÍ (10. 9. 2026). Dřív tu
+                //   stálo `getComputedStyle(dlaždice).display !== 'none'` — jenže
+                //   potomek SCHOVANÉHO rodiče má svůj display pořád nenulový a
+                //   `.tool-grid` je v běžném pohledu celá `display:none` (schovává
+                //   ji seznam úkonů, `body.ag-uk-on`). Napočítalo to 52 „viditelných"
+                //   dlaždic ze 101, zatímco člověk viděl NULA — a karta „Tvoje role
+                //   nemá povolený žádný nástroj" se proto nikdy nepostavila.
+                //   Značku `data-agucty` sázíme o pár řádků výš my sami, takže je
+                //   to přesně ta otázka, na kterou se ptát chceme.
                 var tiles = grid2.querySelectorAll('.tool-tile');
                 for (var ti = 0; ti < tiles.length; ti++) {
-                    if (getComputedStyle(tiles[ti]).display !== 'none') { videt++; break; }
+                    if (!tiles[ti].hasAttribute('data-agucty')) { videt++; break; }
                 }
             }
             if (grid2 && restrict && !videt) {
@@ -1119,6 +1132,75 @@
     var _wrapped = false;
     // Skutečná kategorie nástroje: co řekl modul, jinak registr (skupina = sloveso),
     // jinak záchytná sekce. Čte se AŽ TEĎ, ne při registraci — viz komentář níž.
+    // ⚠⚠⚠ KATEGORIE MUSÍ BÝT VŽDYCKY TAKOVÁ, NA KTEROU SE DÁ ZEPTAT `can()`.
+    //   `can()` u NEZNÁMÉHO klíče vrací TRUE (fail-open, viz níž) — takže nástroj,
+    //   jehož kategorie v PERMS není, projde i roli, která má zakázané všechno.
+    //   Naměřeno 10. 9. 2026 po přestavbě kategorií ze `cat` na `verb`: zaměstnanci
+    //   se zakázanými VŠEMI kategoriemi zůstalo dostupných 12 nástrojů ze 101
+    //   (na mainu 0). Unikaly ty, jejichž kategorie pochází z `cat` modulu
+    //   („Data a přenos", „Pomůcky" a spol.) nebo které v registru vůbec nejsou —
+    //   takové jméno v PERMS není a admin je nemá jak zakázat.
+    //   Cokoli, co není mezi známými kategoriemi, proto spadne do „Ostatní",
+    //   která v PERMS JE. Nová kategorie tím pádem nikdy nevyrobí novou díru;
+    //   nejhůř skončí pod cizím (ale existujícím) přepínačem.
+    var _znameKat = null;
+    function znameKategorie() {
+        if (_znameKat) return _znameKat;
+        _znameKat = {};
+        for (var i = 0; i < PERMS.length; i++) {
+            var k = PERMS[i].k;
+            if (k.indexOf('tools.') === 0) _znameKat[k.slice(6)] = 1;
+        }
+        return _znameKat;
+    }
+    // ⚠⚠⚠ STARÁ KATEGORIE SE MUSÍ VYMÁHAT DÁL (10. 9. 2026).
+    //   Mřížka se 8. 9. 2026 přestavěla z pěti kategorií (`cat`) na deset skupin
+    //   podle sloves (`verb`) a s ní se přejmenovaly i klíče `tools.*`. Jenže
+    //   firmy mají v uložené konfiguraci zákazy pod STARÝMI jmény — a `can()`
+    //   u neznámého klíče vrací TRUE. Po aktualizaci by tedy zaměstnanci, kterému
+    //   admin zakázal „Katastr a data", byl katastr zase otevřený. Tiché
+    //   ZRUŠENÍ zákazu je horší než cokoli jiného, co tahle přestavba mohla udělat.
+    //   Nástroj je proto dostupný, jen když ho pouští OBĚ jména: nové (skupina
+    //   v mřížce) i staré (`cat` z registru / z registrace modulu). Staré klíče
+    //   se do PERMS nevrací — v administraci by z deseti přepínačů udělaly
+    //   šestnáct — jen se dál vymáhají, pokud je firma uložené má.
+    // Šest kategorií, které mřížka měla do 8. 9. 2026. Firmy mají zákazy uložené
+    // pod nimi, takže se podle nich pořád rozhoduje — viz smiNastroj().
+    var KAT_STARE = {
+        'Měření': 1, 'Vytyčování a náčrt': 1, 'Katastr a data': 1,
+        'AR a kalibrace': 1, 'Pomůcky': 1, 'Terénní nástroje': 1
+    };
+    function katStara(id) {
+        if (!id) return 'Terénní nástroje';
+        var c = '';
+        try { if (window.AGReg && AGReg.cat) c = AGReg.cat(id) || ''; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:katStara'); }
+        c = c || _toolCat[id] || '';
+        // ⚠⚠ ZÁLOHA JE „Terénní nástroje", ne prázdno a ne novodobé jméno.
+        //   (a) Nástroj, který starou kategorii nikdy neměl — a takových byla
+        //       většina, 69 ze 102 — padal do záchytné sekce, a ta mezi šesti
+        //       přepínači byla. Bez zálohy přes starý zákaz propadl: 33 ze 101.
+        //   (b) `_toolCat` u nově psaných modulů nese UŽ NOVÉ jméno skupiny
+        //       („Srovnat AR"), které ve starých oprávněních nikdy nebylo —
+        //       takové by propadlo taky (naměřeno na js/ar-dosah.js).
+        //   Nový nástroj v době, kdy admin ta oprávnění nastavoval, neexistoval,
+        //   takže „spadl do zbytku" je ta správná domněnka.
+        return KAT_STARE[c] ? c : 'Terénní nástroje';
+    }
+    // Jediná otázka, na kterou se applyPerms ptá u dlaždice: smí ji tenhle člověk vidět?
+    function smiNastroj(id) {
+        if (!can('tools.' + katNastroje(id))) return false;
+        var st = katStara(id);
+        return !st || can('tools.' + st);
+    }
+    // Klíč dlaždice i pro statické dlaždice z index.html, které `data-tool` nemají
+    // (bere se poslední volaná funkce z onclick — stejně jako v js/field-tools.js).
+    function klicDlazdice(el) {
+        if (!el || !el.getAttribute) return '';
+        var k = el.getAttribute('data-tool');
+        if (k) return k;
+        var ms = (el.getAttribute('onclick') || '').match(/([A-Za-z_$][\w$]*)\s*\(/g);
+        return ms ? ms[ms.length - 1].replace(/\s*\($/, '') : '';
+    }
     function katNastroje(id) {
         if (!id) return 'Ostatní';
         // Přednost má registr — stejné pořadí jako v js/field-tools.js (syncTiles),
@@ -1127,7 +1209,8 @@
         try {
             if (window.AGReg && AGReg.mrizka) c = AGReg.mrizka(id) || '';
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:katNastroje'); }
-        return c || _toolCat[id] || 'Ostatní';
+        c = c || _toolCat[id] || '';
+        return znameKategorie()[c] ? c : 'Ostatní';
     }
     function wrapRegister() {
         if (_wrapped || typeof window.agRegisterFieldTool !== 'function') return;

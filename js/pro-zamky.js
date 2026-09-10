@@ -213,6 +213,27 @@
         for (var i = 0; i < casti.length - 1; i++) { o = o && o[casti[i]]; if (!o) return null; }
         return { obj: o, klic: casti[casti.length - 1] };
     }
+    // ⚠⚠⚠ OBAL MUSÍ ZŮSTAT PRŮHLEDNÝ PRO ZNAČKY NA PŮVODNÍ FUNKCI (10. 9. 2026).
+    //   js/lazy-tools.js si na zástupce odloženého nástroje sází `_agLazyStub` a
+    //   pak se ptá `isStub()`, aby zástupce NIKDY nezavolal jako výsledek načtení
+    //   modulu — je to jeho pojistka proti nekonečné smyčce (viz dropStub tamtéž).
+    //   Jenže náš obal je jiná funkce a značku nenesl, takže `isStub(obal)` vyšlo
+    //   false, openTool() zavolal obal, ten zavolal zástupce, ten zase openTool…
+    //   NAMĚŘENO: `window.agOpenOdhad()` se po odemčení Pro UŽ NIKDY nevrátilo
+    //   (test_navrhy_d2 visel na místě, kde na mainu prochází).
+    //   Značky se proto z původní funkce na obal ZKOPÍRUJÍ. `__agPro`/`__agRaw`
+    //   nastavuje volající AŽ POTOM, aby je kopie nepřebila.
+    function prenesZnacky(zdroj, cil) {
+        try {
+            for (var k in zdroj) {
+                if (!Object.prototype.hasOwnProperty.call(zdroj, k)) continue;
+                if (k === '__agPro' || k === '__agRaw') continue;
+                cil[k] = zdroj[k];
+            }
+        } catch (e) { swallow(e, 'prenesZnacky'); }
+        return cil;
+    }
+
     function obalPrimo(k, n) {
         n = n || k;
         var d = drzitel(n); if (!d) return;
@@ -222,6 +243,7 @@
             if (zamceno(k)) { otevriKartu(k); return; }
             return cur.apply(this, arguments);
         };
+        prenesZnacky(cur, obal);
         obal.__agPro = k;
         obal.__agRaw = cur;
         try { d.obj[d.klic] = obal; _obalene[n] = obal; } catch (e) { swallow(e, 'obalPrimo'); }
@@ -256,6 +278,7 @@
                 if (zamceno(k)) { otevriKartu(k); return; }
                 return vnitrni.apply(this, arguments);
             };
+            prenesZnacky(vnitrni, obal);
             obal.__agPro = k;
             obal.__agRaw = vnitrni;
             return obal;

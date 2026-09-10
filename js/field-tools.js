@@ -216,7 +216,15 @@
         var label = norm(tileToolLabel(tile));
         var lWords = label.split(' ');
         var key = tileToolKey(tile);
-        var alias = toolAliases(key);
+        // ⚠⚠ SYNONYMA SE MUSÍ NORMALIZOVAT (10. 9. 2026). Dotaz se porovnává jako
+        //   `norm()` — malými písmeny a bez diakritiky — kdežto tenhle řetězec se
+        //   sem bral SYROVÝ. `AGReg.aliases()` do něj přitom přibaluje `vl`, tedy
+        //   jméno, pod kterým nástroj stojí v SEZNAMU ÚKONŮ; to má velké písmeno
+        //   i háčky, takže se nikdy netrefilo. Naměřeno: „Přesnou GPS" nenašlo nic,
+        //   ačkoli appka tenhle název sama nabízí (dlaždice se jmenuje jinak —
+        //   „Přesná GPS (dlouhé průměrování)"). Netýkalo se to jednoho nástroje,
+        //   ale KAŽDÉHO, jehož `vl` má diakritiku nebo velké písmeno.
+        var alias = norm(toolAliases(key));
         var aWords = alias ? alias.split(' ') : [];
         var total = 0;
         for (var t = 0; t < tokens.length; t++) {

@@ -878,13 +878,8 @@
     }
 
     // ---- vstupy v UI ------------------------------------------------------------
-    // 1) SKRYTY vstup na bráně / přihlašovací obrazovce: dlouhý stisk znaku appky.
-    //    Obě obrazovky se vytvářejí až za běhu a po každém přepnutí firmy znovu,
-    //    proto se to zkouší v ticku, ne jednorázově při startu. Příznak data-agv
-    //    hlídá, aby se obsluha na tentýž znak nenavěsila podruhé.
-    //    ⚠ Obsluha visí na .agl-mark, ne na jeho obsahu: fillMark() v ucty.js
-    //      vnitřek znaku po chvíli PŘEPÍŠE (klon loga z úvodní karty), takže
-    //      listener na dítěti by tiše zmizel. Události z vnitřku probublají.
+    // 1) VSTUP VLASTNÍKA je v běžném přihlašovacím formuláři — viz hookForm() výš.
+    //    (Do 8. 9. 2026 tu byl popis dlouhého stisku znaku appky; gesto je zrušené.)
     // ---- 3) SPRAVA APLIKACE MEZI NASTROJI (8. 9. 2026) -----------------------------
     // Na prani uzivatele: "akorat mezi nastroji uvidim zaroven dalsi nastroje jako
     // rizeni aplikace, rizeni firem, rizeni spravcu, co mi prisli". Konzole zustava

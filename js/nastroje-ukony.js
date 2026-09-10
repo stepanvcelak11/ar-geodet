@@ -533,25 +533,46 @@
         var _otevreno = !!(_m && _m.style.display && _m.style.display !== 'none');
         if (_otevreno && active === 'ukony' && (!host || host.getAttribute('data-sig') !== gridSig())) build();
 
-        document.body.classList.toggle('ag-uk-on', active === 'ukony');
+        // ⚠⚠⚠ `ag-uk-on` SMÍ BÝT JEN TEHDY, KDYŽ SEZNAM SKUTEČNĚ EXISTUJE. Ta třída
+        //   schová mřížku (`body.ag-uk-on #tools-modal .tool-grid{display:none}`),
+        //   takže když se seznam nepostavil, zůstalo okno Nástrojů ÚPLNĚ PRÁZDNÉ.
+        //   Přesně to jsem 8. 9. 2026 způsobil podmínkou „stavět jen do otevřeného
+        //   okna": kdo okno otevřel jinak než klepnutím (test, gesto, volání z kódu),
+        //   neměl v Nástrojích nic. Chytily to až regresní sady test_opravy_3_9
+        //   a test_navrhy_d2 — obě spadly na tom, že v mřížce nic nenašly.
+        //   Podmínka na existenci seznamu tenhle stav vylučuje bez ohledu na to,
+        //   jakou cestou se okno otevře.
+        document.body.classList.toggle('ag-uk-on',
+            active === 'ukony' && !!document.getElementById(LIST_ID));
         // tools-plus.js si tlačítko oblíbených vkládá zpátky na začátek .modal-body,
         // kdykoli ho tam nenajde — tak ho po každém ticku vrátíme do patičky seznamu.
         if (active === 'ukony') adoptFavBtn();
     }
 
     // Okno Nástrojů se otevírá inline onclickem (index.html), takže na něj není
-    // událost — hlídáme klepnutí na cokoli, co ho otevírá, a hned poté srovnáme.
-    // Bez tohohle by po zavedení podmínky „jen otevřené okno" byl seznam prvních
-    // až 1,4 s prázdný.
+    // událost. Bez tohohle by po zavedení podmínky „stavět jen do otevřeného okna"
+    // byl seznam prvních až 1,4 s prázdný (než přijde tik).
+    // ⚠ HLÍDÁ SE ZMĚNA ATRIBUTU, NE KLEPNUTÍ. Klepnutí mine každou jinou cestu
+    //   k otevření — volání z kódu, gesto, zkratku, test. Pozorovatel na `style`
+    //   a `class` okna je chytí všechny a je levný: běží jen při skutečné změně.
     function hlidejOtevreni() {
-        document.addEventListener('click', function () {
-            setTimeout(function () { try { sync(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:hlidejOtevreni'); } }, 0);
-        }, true);
+        var m = modal();
+        if (!m || m.getAttribute('data-uk-obs') === '1') return;
+        try {
+            m.setAttribute('data-uk-obs', '1');
+            new MutationObserver(function () {
+                try { sync(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:obs'); }
+            }).observe(m, { attributes: true, attributeFilter: ['style', 'class'] });
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:hlidejOtevreni'); }
     }
 
     function init() {
         try { sync(); } catch (e) { console.warn('[nastroje-ukony] init', e); }
         try { hlidejOtevreni(); } catch (e) { console.warn('[nastroje-ukony] hlidejOtevreni', e); }
+        // okno může vzniknout až za startem — pozorovatel se doveší v tiku
+        (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(function () {
+            try { hlidejOtevreni(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:tik-obs'); }
+        }, 3000);
         if (!window.__agUkTimer) {
             window.__agUkTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(function () {
                 try { sync(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:init'); }
