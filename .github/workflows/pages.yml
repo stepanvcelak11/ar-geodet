@@ -71,6 +71,28 @@ jobs:
       - name: Prohlížeč pro smoke testy
         run: npx playwright install --with-deps chromium
 
+      # ⚠⚠ SOUPIS PRO MODULŮ SE MUSÍ POŘÍDIT TEĎ, DOKUD JE STROM CELÝ.
+      # `check_verze.py --mapa` si mapu odvozuje ze SOUČASNÉHO stromu. Sestavení
+      # Základu ale těch 41 souborů ze stromu SMAŽE, takže když se na mapu zeptá
+      # až závěrečná pojistka (běží po obou buildech), nemá už co najít: naměřeno
+      # 10. 9. 2026 — na čistém stromě 41 modulů, po `vydani.py --zaklad --pred`
+      # jediný (js/pro-klice.js). Pojistka „Pro moduly v Základu být nesmí" tak
+      # kontrolovala 1 soubor ze 41, tedy prakticky nic. Soupis se proto uloží
+      # dopředu a závěrečný krok čte JEHO, ne živý strom.
+      - name: Zapsat soupis Pro modulů (dokud je strom celý)
+        run: |
+          python scripts/check_verze.py --mapa | python -c \
+            "import json,sys; print('\n'.join(json.load(sys.stdin)['smazatelne']))" \
+            > /tmp/pro-moduly.txt
+          pocet=$(wc -l < /tmp/pro-moduly.txt)
+          echo "Pro modulů v soupisu: $pocet"
+          # Kdyby se mapa jednou vyprázdnila (přejmenovaná kategorie, rozbitý
+          # registr), pojistka níž by tiše prošla, aniž by cokoli ověřila.
+          if [ "$pocet" -lt 20 ]; then
+            echo "::error::Soupis Pro modulů má jen $pocet položek — čekáno aspoň 20. Pojistka by neověřila nic."
+            exit 1
+          fi
+
       # ---- DVĚ VYDÁNÍ NA JEDNOM ORIGINU ---------------------------------------
       # Appka se prodává jako ZÁKLAD (zdarma) a PRO (placené) a nasazují se
       # jako DVA BALÍČKY, ne jeden s přepínačem: Základ tak nestahuje kód, který
@@ -192,12 +214,17 @@ jobs:
             || { echo "::error::_site/pro/index.html není vydání PRO"; exit 1; }
           # Pro moduly v Základu být nesmí — kdyby tam zůstaly, prodává se něco,
           # co má každý už teď v balíčku.
-          for f in $(python scripts/check_verze.py --mapa | python -c \
-                     "import json,sys; print(' '.join(json.load(sys.stdin)['smazatelne']))"); do
-            if [ -e "_site/$f" ]; then echo "::error::v Základu zůstal Pro modul $f"; exit 1; fi
-            if [ ! -e "_site/pro/$f" ]; then echo "::error::v Pro chybí modul $f"; exit 1; fi
-          done
-          echo "OK — kořen je ZÁKLAD, /pro/ je PRO."
+          # ⚠ Soupis se ČTE ZE SOUBORU pořízeného před buildy. Ptát se tady znovu
+          #   `check_verze.py --mapa` nejde: strom už je po sestavení Základu
+          #   ochuzený o právě ty soubory, které se mají hlídat (viz krok výše).
+          chybelo=0
+          while read -r f; do
+            [ -n "$f" ] || continue
+            if [ -e "_site/$f" ]; then echo "::error::v Základu zůstal Pro modul $f"; chybelo=1; fi
+            if [ ! -e "_site/pro/$f" ]; then echo "::error::v Pro chybí modul $f"; chybelo=1; fi
+          done < /tmp/pro-moduly.txt
+          [ "$chybelo" -eq 0 ] || exit 1
+          echo "OK — kořen je ZÁKLAD, /pro/ je PRO, zkontrolováno $(wc -l < /tmp/pro-moduly.txt) Pro modulů."
 
       - uses: actions/upload-pages-artifact@v3
         with:
