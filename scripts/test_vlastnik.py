@@ -36,6 +36,19 @@ BOOT_OWNER = """
   localStorage.setItem('agBrifinkAuto','0');
   localStorage.setItem('agVlastnik_v1','1');
   localStorage.setItem('agFbKey_v1','klic-na-zkousku');
+  // ⚠⚠ PROFIL TU MUSI BYT. Do v283 samotny priznak `agVlastnik_v1` branu
+  //   PRESKAKOVAL — vlastnik se tedy nikdy neprihlasoval a tenhle boot bez firmy
+  //   stacil. Byla to dira a v283 ji zavrela: vlastnik ted prochazi branou jako
+  //   kazdy jiny. Bez profilu proto test sedi na brane, appka pod ni nebezi a
+  //   sekce B hlasi „brana se vlastnikovi UKAZUJE" — jenze to neni vada appky,
+  //   jen neuplny boot. Prihlaseny stav se sklada stejne jako jinde v sade.
+  (function () {
+    var f = { enabled: true, firmName: 'Test', createdTs: Date.now(), autoLockMin: 0,
+      users: [{ id: 'u1', name: 'Stepan', role: 'admin', salt: 'aa', pinHash: 'x', noPin: true }] };
+    localStorage.setItem('agFirma_v1', JSON.stringify(f));
+    localStorage.setItem('agFirmaSess_v1', JSON.stringify({ userId: 'u1', ts: Date.now() }));
+    localStorage.setItem('agLockStart_v1', '0');
+  })();
 """
 
 results = []
@@ -234,26 +247,15 @@ async def main():
             # gateCheck() tika po 2 s - pockat pres nej, at se brana neukaze pozdeji
             await page2.wait_for_timeout(3000)
 
-            # ⚠⚠ TADY SE VE v283 OBRATIL SMYSL. Do te doby samotny priznak
-            #   `agVlastnik_v1` appku ODEMKL — vlastnik se tedy NIKDY neprihlasoval
-            #   a brana se mu neukazala. To byla dira, kterou v283 zavrela: vlastnik
-            #   ted prochazi branou jako kazdy jiny, jen se prihlasi JMENEM a klicem.
-            #   Puvodni dve tvrzeni proto hlidala presne to, co uz platit NEMA.
-            #   Spravne je nove chovani; stara vetev tu zustava jen dokud v283 neni
-            #   na mainu. Celou novou cestu hlida scripts/test_v283.py::test_vlastnik.
-            brana_stoji = await page2.evaluate("() => !!document.getElementById('ag-gate')")
-            if brana_stoji:
-                ok('vlastnika NEPUSTI dovnitr samotny priznak — brana ho zastavi (v283+)',
-                   await page2.evaluate(
-                       "() => document.documentElement.classList.contains('ag-prelock')"),
-                   'brana stoji, appka pod ni jeste nebezi')
-            else:
-                ok('brana se vlastnikovi NEUKAZE', True)
-                ok('zamek pres celou appku je sundany',
-                   not await page2.evaluate(
-                       "() => document.documentElement.classList.contains('ag-prelock')"))
+            # ⚠ Tahle tri tvrzeni plati DIKY profilu v BOOT_OWNER (viz komentar tam).
+            #   Bez nej by test sedel na brane a hlasil vadu appky tam, kde je jen
+            #   neuplny boot.
+            ok('brana se vlastnikovi NEUKAZE',
+               not await page2.evaluate("() => !!document.getElementById('ag-gate')"))
             ok('prihlasovaci obrazovka se neukaze',
                not await page2.evaluate("() => !!document.getElementById('ag-login')"))
+            ok('zamek pres celou appku je sundany',
+               not await page2.evaluate("() => document.documentElement.classList.contains('ag-prelock')"))
             ok('AGUcty.isOwner() je true', await page2.evaluate("() => AGUcty.isOwner()"))
             ok('can() vraci true i pro udrzbu a dashboard',
                await page2.evaluate("() => AGUcty.can('set.tab-udrzba') && AGUcty.can('x.dashboard') && AGUcty.can('dock.nastroje')"))
@@ -319,8 +321,13 @@ async def main():
                 return window.AGVlastnik.leave();
             }""")
             await page2.wait_for_timeout(800)
-            ok('ukonceni rezimu vrati branu',
-               await page2.evaluate("() => !!document.getElementById('ag-gate')"))
+            # ⚠ Drive se tu cekala BRANA: vlastnik do te doby zadny profil nemel, takze
+            #   po vypnuti rezimu nezbylo nic a appka se zamkla. Ted ma profil (viz
+            #   BOOT_OWNER), takze spravne zustane prihlasenym clenem firmy — brana by
+            #   byla vada, ne uspech. Meri se proto to, o co v tomhle kroku jde:
+            #   rezim vlastnika opravdu zhasnul.
+            ok('ukonceni rezimu vlastnika opravdu vypne',
+               not await page2.evaluate("() => window.AGVlastnik.isOn()"))
             ok('po ukonceni uz polozka v menu neni',
                not await page2.evaluate("() => !!document.getElementById('agv-menu-btn')"))
             ok('klic zustal ulozeny (jen rezim se vypnul)',
