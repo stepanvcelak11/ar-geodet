@@ -155,7 +155,9 @@ def velikost(rel):
 
     ⚠⚠ NEPOUZIVAT os.path.getsize. Na Windows ma repo `core.autocrlf=true`,
        takze soubory v pracovnim strome maji CRLF a kazdy radek je o bajt delsi.
-       Pri ~2 MB eager JS to dela +35 kB, tedy VIC nez cela rezerva pod stropem:
+       Pri ~2 MB eager JS to dela +30 kB, tedy VIC nez cele prekroceni stropu
+       (namereno na mainu 10. 9. 2026: CRLF 2199,3 kB = o 7,3 kB pres strop,
+       LF 2169,3 kB = rezerva 22,7 kB):
        kontrola pak LOKALNE hlasi "rozpocet prekrocen", zatimco na CI (Linux, LF)
        i ve skutecne nasazene verzi je vse v poradku. Uz dvakrat to poslalo
        hledani po falesne stope - naposledy 9. 9. 2026 v cerstvem `git worktree`.
