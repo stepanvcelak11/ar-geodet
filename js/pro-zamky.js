@@ -63,6 +63,54 @@
     }
 
     function maPro() { try { return !!(window.AGLic && AGLic.isPro()); } catch (e) { return false; } }
+
+    // KOUPĚ PRO. Samotný nákup (cena, QR platba, objednávka) je v ODLOŽENÉM
+    // js/pro-koupe.js — tenhle soubor jede při startu a rozpočet startu má
+    // pár kB rezervy. Tady je jen tlačítko a rozhodnutí, jestli se smí ukázat.
+    //
+    // ⚠ V APPCE Z GOOGLE PLAY SE NEPRODÁVÁ. Pravidla Play zakazují v aplikaci
+    //   z obchodu nabízet vlastní platbu za digitální obsah (chtějí svou
+    //   pokladnu s provizí) — a appka z Play je tentýž web (TWA). Pozná se
+    //   podle refereru `android-app://…`, který má jen první navigace, proto
+    //   se poznatek uloží. V Play verzi zůstává jen pole na klíč; cena a QR
+    //   jsou na webu a na iPhonu (tam žádný obchod nestojí v cestě).
+    var LS_TWA = 'agTwa_v1';
+    function jeTwa() {
+        try {
+            if (localStorage.getItem(LS_TWA) === '1') return true;
+            if ((document.referrer || '').indexOf('android-app://') === 0) { localStorage.setItem(LS_TWA, '1'); return true; }
+        } catch (e) { swallow(e, 'jeTwa'); }
+        return false;
+    }
+    function cenaText() {
+        try {
+            var c = JSON.parse(localStorage.getItem('agProdej_v1') || 'null');
+            var p = c && c.prodej, m = p && p.produkty && p.produkty[0];
+            if (!m || !m.cena) return '';
+            return ' — od ' + m.cena + ' Kč / měsíc';
+        } catch (e) { return ''; }
+    }
+    function koupeRadek(m) {
+        var r = m.querySelector('.agp-koupe'), b = m.querySelector('.agp-koupit');
+        if (!r || !b) return;
+        // Bez Pro: koupit. S předplatným z účtu (má konec): prodloužit. Klíč
+        // a režim vlastníka nemají co prodlužovat.
+        var s = (window.AGLic && AGLic.stav && AGLic.stav()) || { pro: false };
+        var ukaz = !jeTwa() && (!s.pro || (s.zdroj === 'ucet' && !!s.do));
+        r.hidden = !ukaz;
+        if (ukaz) {
+            var z = null;
+            try { z = (JSON.parse(localStorage.getItem('agProdej_v1') || 'null') || {}).prodej; z = z && z.zkouska; } catch (e) { z = null; }
+            b.textContent = s.pro ? 'Prodloužit Pro'
+                : ((z && z.dni && !z.pouzita) ? ('Vyzkoušet ' + z.dni + ' dny zdarma / koupit') : ('Koupit Pro' + cenaText()));
+        }
+    }
+    function otevriKoupi() {
+        var jdi = function () { if (window.AGProKoupe) AGProKoupe.open(); else alert('Nákup se nenačetl — zkus to znovu, až bude signál.'); };
+        if (window.AGProKoupe) return jdi();
+        if (window.AGLazy && typeof AGLazy.need === 'function') AGLazy.need('js/pro-koupe.js', jdi);
+        else jdi();
+    }
     function jePro(k) { try { return !!(k && window.AGReg && AGReg.isPro(k)); } catch (e) { return false; } }
     function zamceno(k) { return jePro(k) && !maPro(); }
 
@@ -426,6 +474,9 @@
             '  <h2><span>' + ZAMEK + '</span><span class="agp-nazev"></span></h2>' +
             '  <p class="agp-pod"></p>' +
             '  <div class="agp-co"></div>' +
+            '  <div class="agp-rada agp-koupe" hidden>' +
+            '    <button type="button" class="hlavni agp-koupit">Koupit Pro</button>' +
+            '  </div>' +
             '  <label for="agp-klic">Máš klíč Pro? Opiš ho sem — funguje i bez signálu.</label>' +
             '  <input id="agp-klic" type="text" autocomplete="off" autocapitalize="characters"' +
             '         spellcheck="false" placeholder="ARG-0000-0000-0000-0000">' +
@@ -445,6 +496,7 @@
         m.addEventListener('click', function (e) { if (e.target === m) zavri(); });
         m.querySelector('.agp-zpet').addEventListener('click', zavri);
         m.querySelector('.agp-ok').addEventListener('click', odemkni);
+        m.querySelector('.agp-koupit').addEventListener('click', otevriKoupi);
         m.querySelector('.agp-otevri').addEventListener('click', function () {
             try { window.location.href = ADRESA_PRO; } catch (e) { swallow(e, 'prechod'); }
         });
@@ -521,6 +573,7 @@
             '</ul>';
         m.querySelector('.agp-hl').textContent = '';
         m.querySelector('.agp-hl').className = 'agp-hl';
+        koupeRadek(m);
         m.classList.add('on');
         try { m.querySelector('#agp-klic').focus(); } catch (e) { swallow(e, 'focus'); }
     }
@@ -572,6 +625,7 @@
             '</ul>';
         m.querySelector('.agp-hl').textContent = '';
         m.querySelector('.agp-hl').className = 'agp-hl';
+        koupeRadek(m);
         m.classList.add('on');
     }
 
@@ -591,5 +645,5 @@
     setInterval(tik, 1500);
     window.addEventListener('aglic:zmena', function () { _obalene = {}; tik(); });
 
-    window.AGProZamky = { oznac: oznac, karta: otevriKartu, prehled: otevriPrehled, zamceno: zamceno };
+    window.AGProZamky = { oznac: oznac, karta: otevriKartu, prehled: otevriPrehled, zamceno: zamceno, koupit: otevriKoupi, jeTwa: jeTwa, zavri: zavri };
 })();

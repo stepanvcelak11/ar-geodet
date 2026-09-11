@@ -91,6 +91,49 @@ Alternativně jde `worker.js` vložit přes webový editor v dashboardu
 znovu aplikovat `schema.sql` (nové tabulky `chat` a `stats`) a znovu nasadit
 `worker.js`** — jinak appka funguje po staru a chat/vytížení ohlásí chybu.
 
+## Prodej Pro — zapnutí krok za krokem (11. 9. 2026)
+
+Kód umí prodávat předplatné Pro (měsíc / rok) a zkoušku zdarma; platí se
+QR platbou na účet vlastníka a Pro se zapne buď ručně z Konzole vlastníka
+(Lidé a prodej Pro), nebo **samo** podle výpisu z Fio banky. Dokud není
+nastaven `PRODEJ_IBAN`, je prodej vypnutý — appka ukáže ceník a řekne, že se
+zatím platí klíčem. Nic z toho nevyžaduje změnu kódu.
+
+**Proměnné workeru** (dash.cloudflare.com → Workers & Pages → ar-geodet-api →
+Settings → Variables and Secrets; obyčejné „Variables", ne secrets):
+
+| proměnná | význam | výchozí |
+|---|---|---|
+| `PRODEJ_IBAN` | účet, kam se platí (IBAN bez mezer). **Prázdné = prodej vypnutý.** | — |
+| `PRODEJ_UCET` | totéž lidsky, např. `2301234567/2010` (jen k zobrazení) | — |
+| `PRODEJ_CENA_MESIC` | Kč za 30 dní | 149 |
+| `PRODEJ_CENA_ROK` | Kč za 365 dní | 990 |
+| `PRODEJ_ZKOUSKA_DNI` | zkouška zdarma, jednou na účet (0 = žádná) | 3 |
+| `PRODEJ_PRIJEMCE` | jméno příjemce do QR | QTRIG |
+
+**Automat z banky (volitelné, Fio):** v internetovém bankovnictví Fio →
+Nastavení → API → vytvořit token **jen pro čtení pohybů**; uložit jako
+**secret** `FIO_TOKEN` (`wrangler secret put FIO_TOKEN --name ar-geodet-api`
+nebo v dashboardu jako Secret). Cron v `wrangler.toml` (`*/5 * * * *`) pak
+každých 5 minut stáhne pohyby za 7 dní, spáruje je podle variabilního symbolu
+(náhradně podle kódu účtu ve zprávě) a zapne Pro. Co se nespáruje, ukáže
+konzole jako „nezařazenou platbu" k ručnímu přiřazení. Bez tokenu cron hned
+skončí a nic nestojí.
+
+**Než se prodej zapne:** doplnit zástupné údaje v `podminky.html` (jméno,
+IČO, sídlo, e-mail, číslo účtu, datum) — dokud tam jsou hranaté závorky,
+`PRODEJ_IBAN` nechat prázdný. Živnost, daně a Google Play viz poznámky
+k projektu.
+
+**Routy:** `POST /objednavky {produkt}` (založí/vrátí otevřenou objednávku:
+VS + SPAYD), `GET /objednavky/moje`, `DELETE /objednavky/:vs`, `POST /zkouska`;
+konzole: `GET /owner/ucty` (lidé, prostory, aktivita, objednávky),
+`POST /owner/tarif {id|code, tarif, dni}` (0 = navždy, prodlužuje od konce
+běžícího), `POST /owner/blokace {id|code, disabled}`, `GET /owner/objednavky`,
+`POST /owner/objednavky/:vs/zaplaceno|zrusit`, `POST /owner/fio/zkontrolovat`,
+`POST /owner/fio/:id/priradit {code}`. Testy: `scripts/test_prodej_worker.py`
+(routy ve V8 s falešnou D1), `scripts/test_prodej.py` (appka v Chromiu).
+
 ## Bezpečnost (poctivě)
 
 - hesla PBKDF2-SHA256, 40 000 iterací, sůl 16 B (Workers strop je 100 000;

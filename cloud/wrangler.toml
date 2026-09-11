@@ -8,3 +8,8 @@ compatibility_date = "2026-07-01"
 binding = "DB"
 database_name = "ar-geodet-db"
 database_id = "774b47e6-41c0-4e3a-a738-cfbd0a5657ae"
+
+# Párování plateb z Fio (cloud/worker.js: scheduled → fioZkontroluj).
+# Bez tajemství FIO_TOKEN běh hned skončí, takže je zadarmo i naprázdno.
+[triggers]
+crons = ["*/5 * * * *"]

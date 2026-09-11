@@ -286,8 +286,10 @@ async def main():
                 };
             }""")
             ok('konzole se otevrela', kon['open'])
-            ok('konzole ma vsechny polozky', kon['polozek'] == 12, kon['polozek'])
+            # 13 od 11. 9. 2026: pribyla „Lide a prodej Pro" (js/prodej-konzole.js)
+            ok('konzole ma vsechny polozky', kon['polozek'] == 13, kon['polozek'])
             ok('konzole nabizi vsechny firmy', 'Všechny firmy' in kon['texty'], kon['texty'])
+            ok('konzole nabizi lidi a prodej', 'Lidé a prodej Pro' in kon['texty'])
             ok('konzole nabizi schranku', 'Zprávy od lidí' in kon['texty'])
             ok('konzole nabizi protokol chyb', 'Protokol chyb' in kon['texty'])
             ok('konzole nabizi vypinac modulu', 'Vypínač modulů' in kon['texty'])
