@@ -1,4 +1,4 @@
-// ===== AR Geodet — ROZCESTNÍKY NÁSTROJŮ (declutter mřížky i seznamu úkonů) =====
+// ===== QTRIG — ROZCESTNÍKY NÁSTROJŮ (declutter mřížky i seznamu úkonů) =====
 // ODPOJITELNÁ vrstva ve stylu js/usadit-ar.js. NEEDITUJE logika.js ani grafika.js.
 // Pokračuje v úklidu Nástrojů: po „Usadit AR" (7 kalibračních dlaždic → průvodce)
 // slučuje další příbuzné dlaždice do DESETI rozcestníků:

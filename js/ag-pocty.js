@@ -1,4 +1,4 @@
-// ===== AR Geodet — POČÍTÁNÍ VEDLE (Web Worker) (ODPOJITELNÁ vrstva) ==========
+// ===== QTRIG — POČÍTÁNÍ VEDLE (Web Worker) (ODPOJITELNÁ vrstva) ==========
 // PROBLÉM, KTERÝ TENHLE SOUBOR ŘEŠÍ: appka nemá ANI JEDEN Web Worker, takže
 // každý delší výpočet běží na tomtéž vlákně, které kreslí obrazovku. Když
 // uživatel v terénu spustí kubaturu, appka na několik vteřin ZTUHNE — nereaguje

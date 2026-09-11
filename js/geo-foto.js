@@ -1,4 +1,4 @@
-// ===== AR Geodet — GEO-FOTKA: fotodokumentace s vypáleným razítkem (ODPOJITELNÁ) =
+// ===== QTRIG — GEO-FOTKA: fotodokumentace s vypáleným razítkem (ODPOJITELNÁ) =
 // PROČ: geodet fotí stav bodu, výkop, poškozený mezník nebo hotovou vrstvu — a v
 // kanceláři pak u fotky nikdo neví, KDE a KDY vznikla. EXIF se při přeposlání přes
 // WhatsApp, mail nebo Teams zahodí, takže „metadata ve fotce" jsou v praxi iluze.
@@ -239,7 +239,7 @@
         // patička pásu: původ snímku + navázání na předchozí fotku (řetěz otisků)
         ctx.font = '500 ' + Math.round(fs * 0.72) + 'px -apple-system, "Segoe UI", Roboto, sans-serif';
         ctx.fillStyle = 'rgba(255,255,255,0.6)';
-        var foot = 'AR Geodet · razítko vypáleno při pořízení' + (prevHash ? '  ·  navazuje na ' + short(prevHash) : '  ·  první snímek zakázky');
+        var foot = 'QTRIG · razítko vypáleno při pořízení' + (prevHash ? '  ·  navazuje na ' + short(prevHash) : '  ·  první snímek zakázky');
         ctx.fillText(foot, padX, H - Math.round(fs * 1.15));
         ctx.restore();
     }
@@ -527,7 +527,7 @@
                     + '</style></head><body>'
                     + '<button onclick="window.print()" style="padding:8px 16px;margin-bottom:14px;">Tisk / Uložit PDF</button>'
                     + '<h1>Fotodokumentace — ' + esc(projName()) + '</h1>'
-                    + '<p class="sub">' + esc(_day ? ('den ' + _day) : 'celá zakázka') + ' · ' + rows.length + ' snímků · vygenerováno ' + esc(fmtDT(Date.now())) + ' · AR Geodet</p>';
+                    + '<p class="sub">' + esc(_day ? ('den ' + _day) : 'celá zakázka') + ' · ' + rows.length + ' snímků · vygenerováno ' + esc(fmtDT(Date.now())) + ' · QTRIG</p>';
                 rows.forEach(function (r, i) {
                     var sj = (r.lat != null) ? toSJTSK(r.lat, r.lng) : null;
                     h += '<div class="f"><h2>' + (i + 1) + '. ' + esc(fmtDT(r.ts)) + (r.ptName ? ' — u bodu ' + esc(r.ptName) + ' (' + r.ptDist + ' m)' : '') + '</h2>'

@@ -1,4 +1,4 @@
-// ===== AR Geodet — BRUTÁLNÍ GPS MÓD (ODPOJITELNÁ vrstva) =======================
+// ===== QTRIG — BRUTÁLNÍ GPS MÓD (ODPOJITELNÁ vrstva) =======================
 // Samostatná METODA měření (ne náhrada běžného průměrování): celoobrazovkový
 // režim bez AR/kamery, který z HOLÉHO MOBILU vymáčkne maximum přesnosti při
 // statickém měření jednoho bodu. NEEDITUJE logika.js ani grafika.js — jen čte

@@ -1,4 +1,4 @@
-// ===== AR Geodet — STOPA TRASY V AR (ODPOJITELNÁ vrstva) =======================
+// ===== QTRIG — STOPA TRASY V AR (ODPOJITELNÁ vrstva) =======================
 // Zaznamenanou stopu (js/track-log.js) vykreslí i v AR pohledu — jako oranžovou
 // čárkovanou čáru položenou po zemi, stejnou barvou jako v mapě. Hodí se, když se
 // vracíš po vlastní stopě nebo kontroluješ, kudy jsi projel.

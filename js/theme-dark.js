@@ -1,4 +1,4 @@
-// ===== AR Geodet — VÝCHOZÍ TMAVÝ MOTIV (jednorázová migrace) ===================
+// ===== QTRIG — VÝCHOZÍ TMAVÝ MOTIV (jednorázová migrace) ===================
 // Odpojitelná vrstva. Fresh instalace už je tmavá (visSettings.mode je undefined →
 // previewMode → tmavý). Tohle JEDNORÁZOVĚ překlopí starší uložené 'light' na 'dark',
 // aby byl výchozí motiv tmavý. Po migraci si uživatel může v Nastavení zvolit světlý

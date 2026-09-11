@@ -1,4 +1,4 @@
-// ===== AR Geodet — JAZYKY (odpojitelná vrstva) ==================================
+// ===== QTRIG — JAZYKY (odpojitelná vrstva) ==================================
 // Appka je napsaná česky — texty jsou přímo ve zdrojích (index.html + ~150 modulů),
 // ne za klíči typu t('save'). Přepsat to na klíče by znamenalo sáhnout do každého
 // souboru a rozbít každou rozdělanou větev; navíc by se to při každém novém

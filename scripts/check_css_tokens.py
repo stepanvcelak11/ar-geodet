@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet — KONTROLOR DESIGN TOKENU A KONTRASTU =========================
+# ===== QTRIG — KONTROLOR DESIGN TOKENU A KONTRASTU =========================
 # PROC: dvakrat uz appku polozila tatáz chyba, kterou zadny test nechytil:
 #
 #   1) var(--text, #eee) — token `--text` NIKDY neexistoval. CSS proto vzdycky

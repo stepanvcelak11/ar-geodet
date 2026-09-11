@@ -1,4 +1,4 @@
-// ===== AR Geodet — JEDNOTNÉ ČTENÍ ČÍSEL Z FORMULÁŘŮ (ODPOJITELNÁ vrstva) ========
+// ===== QTRIG — JEDNOTNÉ ČTENÍ ČÍSEL Z FORMULÁŘŮ (ODPOJITELNÁ vrstva) ========
 // PROČ: appka je česká a česká klávesnice píše DESETINNOU ČÁRKU. Pole
 // <input type="number"> ale podle specifikace drží číslo jen s TEČKOU:
 //   • Chrome/Firefox mají lokalizovaný vstup a čárku samy přepíšou,

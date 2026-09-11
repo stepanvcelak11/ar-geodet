@@ -1,4 +1,4 @@
-// ===== AR Geodet — DLAŽDICE PODKLADU PRO HODINKY (ODPOJITELNÁ VRSTVA) ========
+// ===== QTRIG — DLAŽDICE PODKLADU PRO HODINKY (ODPOJITELNÁ VRSTVA) ========
 // Stáhne z OpenStreetMap okolí, zjednoduší ho na pár set čar a nahraje jako
 // dlaždice na server. Hodinky si je pak při synchronizaci vyzvednou a kreslí
 // pod body — cesty, vodu, zeleň a hlavně srázy, kudy se neprojde.

@@ -1,4 +1,4 @@
-// ===== AR Geodet — EXPORT DXF (vektor do CADu) (ODPOJITELNÁ vrstva) ============
+// ===== QTRIG — EXPORT DXF (vektor do CADu) (ODPOJITELNÁ vrstva) ============
 // Neinvazivní, ve stylu js/kml-export.js + js/export.js: NEEDITUJE logika.js ani
 // grafika.js. Za běhu přidá tlačítko „Export DXF (do CADu)" do exportního menu
 // (#manage-modal .exp-opts) a vygeneruje validní DXF R12 (AC1009) — nejširší

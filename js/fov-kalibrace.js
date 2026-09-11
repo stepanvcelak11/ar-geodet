@@ -1,4 +1,4 @@
-// ===== AR Geodet — ZMĚŘENÍ ZORNÉHO ÚHLU KAMERY (FOV) — ODPOJITELNÁ vrstva ======
+// ===== QTRIG — ZMĚŘENÍ ZORNÉHO ÚHLU KAMERY (FOV) — ODPOJITELNÁ vrstva ======
 // Průvodce, který zorný úhel telefonu ZMĚŘÍ místo hádání z posuvníku. AR počítá
 // polohu značek na obrazovce právě z FOV: když je zadaný špatně, značky se od
 // skutečnosti rozjíždějí tím víc, čím dál jsou od středu obrazu (uprostřed sedí,

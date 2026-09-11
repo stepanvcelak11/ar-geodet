@@ -1,4 +1,4 @@
-// ===== AR Geodet — TERÉNNÍ NÁSTROJE: dlaždice v sekci „Nástroje" (ODPOJITELNÁ) ==
+// ===== QTRIG — TERÉNNÍ NÁSTROJE: dlaždice v sekci „Nástroje" (ODPOJITELNÁ) ==
 // Neinvazivní vrstva ve stylu js/gps-warn.js / js/kml-export.js: NEEDITUJE
 // logika.js ani grafika.js. Ostatní moduly (orientace přes bod, offset bodu,
 // stopa trasy, vytyčení přímky, AR resekce, import projektu, katastr, parcela…)

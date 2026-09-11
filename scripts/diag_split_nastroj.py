@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet - DIAGNOSTIKA: nastroj "misto mapy", split s kamerou ===========
+# ===== QTRIG - DIAGNOSTIKA: nastroj "misto mapy", split s kamerou ===========
 # Hlaseni z terenu: "nejaky nastroj se mi zapl misto mapy a byl splitnuty s kamerou".
 # Skript prepne appku do rezimu Split (kamera + mapa), postupne otevre AR nastroje
 # a po kazdem se zepta rozvrzeni:

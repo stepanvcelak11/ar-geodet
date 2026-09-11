@@ -1,4 +1,4 @@
-// ===== AR Geodet — REŽIM VLASTNÍKA APLIKACE (ODPOJITELNÁ vrstva) ===============
+// ===== QTRIG — REŽIM VLASTNÍKA APLIKACE (ODPOJITELNÁ vrstva) ===============
 // Jedno zvláštní přihlášení rovnou na úvodní bráně: vlastník (vývojář) aplikace se
 // odemkne KLÍČEM (OWNER_KEY ze serveru), dostane VŠECHNA oprávnění bez ohledu na
 // firmy a role a v „Více" mu přibude jediný vchod do vývojářských nástrojů —

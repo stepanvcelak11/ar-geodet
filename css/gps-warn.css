@@ -1,4 +1,4 @@
-/* ===== AR Geodet — VAROVÁNÍ NA SLABOU GPS (odpojitelná vrstva) =================
+/* ===== QTRIG — VAROVÁNÍ NA SLABOU GPS (odpojitelná vrstva) =================
    Vzhled indikátoru nad AR. Sladěno s design tokeny v css/style.css.
    Logiku řídí js/gps-warn.js (přidá/odebere třídu .on).
    Odstranění: smaž tento soubor + js/gps-warn.js a jejich řádky v index.html.

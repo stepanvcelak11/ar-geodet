@@ -1,4 +1,4 @@
-// ===== AR Geodet — HLEDÁNÍ V NASTAVENÍ + KRÁTKÝ VÝCHOZÍ POHLED (ODPOJITELNÁ) ====
+// ===== QTRIG — HLEDÁNÍ V NASTAVENÍ + KRÁTKÝ VÝCHOZÍ POHLED (ODPOJITELNÁ) ====
 // PROBLÉM: záložka „Vzhled" má 10 přepínačů a rozbalovací „Pokročilé" s dalšími
 // dvanácti jezdci a barvami — a moduly do ní ZA BĚHU přisypávají další řádky
 // (stavový pruh, jednoduchý panel Nástrojů, režim rukavic, zjednodušené Nástroje).

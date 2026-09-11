@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet - VYTYCENI LOMENE OSY SE STANICENIM (js/stakeout-line.js) =====
+# ===== QTRIG - VYTYCENI LOMENE OSY SE STANICENIM (js/stakeout-line.js) =====
 # Do 5. 9. 2026 umel nastroj jen primku A->B. U pokladky silnice je ale denni
 # chleba LOMENA OSA se stanicenim od zacatku useku - a se stanicenim pocatku,
 # aby cisla sedela s projektem (osa zacina treba na km 1,200).

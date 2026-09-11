@@ -1,4 +1,4 @@
-// ===== AR Geodet — ODHADNI TO / cvičiště odhadu (ODPOJITELNÁ vrstva) ===========
+// ===== QTRIG — ODHADNI TO / cvičiště odhadu (ODPOJITELNÁ vrstva) ===========
 // Neinvazivní. NEEDITUJE logika.js ani grafika.js — jen čte globály
 // (userLat/userLng, currentHeading, currentGpsAccuracy, arPoints, getDistance)
 // a otevírá vlastní modal.

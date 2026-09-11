@@ -1,4 +1,4 @@
-// ===== AR Geodet — DMT: KUBATURY A VRSTEVNICE (odpojitelná vrstva) =============
+// ===== QTRIG — DMT: KUBATURY A VRSTEVNICE (odpojitelná vrstva) =============
 // Digitální model terénu z 3D bodů: Delaunayho trojúhelníková síť (TIN),
 // výpočet OBJEMŮ (výkop/násyp vůči vodorovné rovině) a VRSTEVNICE.
 // Neinvazivní vrstva ve stylu ostatních modulů — čte globály (proj4, arPoints,

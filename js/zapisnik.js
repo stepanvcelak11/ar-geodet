@@ -1,4 +1,4 @@
-// ===== AR Geodet — ZÁPISNÍKY (ODPOJITELNÁ vrstva) ================================
+// ===== QTRIG — ZÁPISNÍKY (ODPOJITELNÁ vrstva) ================================
 // Digitální měřické zápisníky místo papíru:
 //   1) TECHNICKÁ NIVELACE — řádky: bod, čtení zpět (z), čtení vpřed (p).
 //      Auto-výpočet: převýšení h = z − p, průběžné výšky od zadané výchozí výšky,

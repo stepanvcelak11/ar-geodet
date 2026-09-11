@@ -1,4 +1,4 @@
-// ===== AR Geodet — DRAFT STORE: rozdělaná práce přežije zabití appky (ODPOJITELNÁ) =====
+// ===== QTRIG — DRAFT STORE: rozdělaná práce přežije zabití appky (ODPOJITELNÁ) =====
 // iOS Safari běžně zabije PWA při přepnutí na foťák/telefonát. Vícekrokové úlohy
 // (parcela, protínání, rajón, rozepsaný Nový bod…) držely stav jen v proměnných
 // a v celé appce nebyl jediný beforeunload → reálná denní ztráta práce v terénu.

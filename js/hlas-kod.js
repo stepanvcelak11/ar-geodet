@@ -1,4 +1,4 @@
-// ===== AR Geodet — HLASOVÉ KÓDOVÁNÍ BODU (ODPOJITELNÁ vrstva) ===================
+// ===== QTRIG — HLASOVÉ KÓDOVÁNÍ BODU (ODPOJITELNÁ vrstva) ===================
 // K čemu: při tachymetrii se u každého bodu vyťukává číslo, kód a poznámka. V
 // rukavicích, v dešti a s výtyčkou v druhé ruce je to nejpomalejší část práce.
 // Tady se řekne jedna věta — „Bod 105, roh plotu, poznámka zborceno" — appka ji

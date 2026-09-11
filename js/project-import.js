@@ -1,4 +1,4 @@
-// ===== AR Geodet — IMPORT PROJEKTU (DXF / situace) + VYTYČENÍ (ODPOJITELNÁ) ====
+// ===== QTRIG — IMPORT PROJEKTU (DXF / situace) + VYTYČENÍ (ODPOJITELNÁ) ====
 // Neinvazivní vrstva. NEEDITUJE logika.js ani grafika.js — čte globály (map, L,
 // userLat/userLng, currentHeading, window._arProj, arPoints, highlightedPointId)
 // a ukládá body přes oficiální window.addImportedPoints().

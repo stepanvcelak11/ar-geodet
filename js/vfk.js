@@ -1,4 +1,4 @@
-// ===== AR Geodet - IMPORT VFK (vymenny format CUZK) =====
+// ===== QTRIG - IMPORT VFK (vymenny format CUZK) =====
 // VFK je povinny vymenny format katastru. Struktura:
 //   &H<...>            hlavicka souboru (metadata) - ignorujeme
 //   &B<BLOK>;COL TYP;COL TYP;...   definice sloupcu datoveho bloku

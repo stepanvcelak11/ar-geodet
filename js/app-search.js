@@ -1,4 +1,4 @@
-// ===== AR Geodet — CHYTRÉ VYHLEDÁVÁNÍ V MENU „VÍCE" (ODPOJITELNÁ) ===============
+// ===== QTRIG — CHYTRÉ VYHLEDÁVÁNÍ V MENU „VÍCE" (ODPOJITELNÁ) ===============
 // Kolonka nahoře v menu „Více": napiš „předpisy", „nástroje", „kompas", „koš"…
 // a klepnutím na výsledek se cíl rovnou OTEVŘE — bez hledání, kde co v appce je.
 // Prohledává tři zdroje (bez diakritiky):

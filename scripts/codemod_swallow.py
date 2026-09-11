@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet — PREVODNIK PRAZDNYCH catch (e) {} NA AG.swallow ==============
+# ===== QTRIG — PREVODNIK PRAZDNYCH catch (e) {} NA AG.swallow ==============
 # PROC: v js/ bylo pres 1500 prazdnych catchu. Jsou tam spravne — appka v terenu
 # nesmi spadnout kvuli tomu, ze telefon odmitl localStorage nebo ze chybi jeden
 # modul. Jenze tim se ztratila i informace, ZE se neco stalo. Kdyz prijde

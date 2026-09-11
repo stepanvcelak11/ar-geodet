@@ -1,4 +1,4 @@
-// ===== AR Geodet — VRSTVY / POKLÁDKA: skladby vozovky + kalkulátor odsazení =====
+// ===== QTRIG — VRSTVY / POKLÁDKA: skladby vozovky + kalkulátor odsazení =====
 // Neinvazivní, ODPOJITELNÁ vrstva ve stylu field-tools modulů: NEEDITUJE
 // logika.js ani grafika.js.
 //

@@ -1,4 +1,4 @@
-// ===== AR Geodet — PODZEMNÍ SÍTĚ „RENTGEN DO ZEMĚ" (ODPOJITELNÁ vrstva) ========
+// ===== QTRIG — PODZEMNÍ SÍTĚ „RENTGEN DO ZEMĚ" (ODPOJITELNÁ vrstva) ========
 // Neinvazivní vrstva ve stylu js/cadastre-vector.js + js/rajon.js. NEEDITUJE
 // logika.js ani grafika.js. Přidá nástroj „Podzemní sítě":
 //

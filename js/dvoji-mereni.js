@@ -1,4 +1,4 @@
-// ===== AR Geodet — KONTROLNÍ MĚŘENÍ: TÝŽ BOD PODRUHÉ S ODSTUPEM (ODPOJITELNÁ) ===
+// ===== QTRIG — KONTROLNÍ MĚŘENÍ: TÝŽ BOD PODRUHÉ S ODSTUPEM (ODPOJITELNÁ) ===
 // Neinvazivní vrstva ve stylu js/kvalita-bodu.js: NEEDITUJE logika.js ani
 // grafika.js, jen čte globály přes typeof-guardy a registruje vlastní dlaždici.
 //

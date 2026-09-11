@@ -1,4 +1,4 @@
-// ===== AR Geodet - PROTOKOL CHYB (odpojitelné: smaž tento řádek v index.html + js/err-log.js) =====
+// ===== QTRIG - PROTOKOL CHYB (odpojitelné: smaž tento řádek v index.html + js/err-log.js) =====
 // Globální zachytávač chyb: window 'error' + 'unhandledrejection'. Bez něj výjimka
 // v kterémkoli z ~60 modulů tiše vyřadí funkci a v terénu se nedá zjistit proč.
 // Chyby se ukládají do kruhového logu v localStorage (jede i offline, přežije reload
@@ -204,7 +204,7 @@
                     + (e.stack ? '\n' + e.stack : '');
             }).join('\n\n')
             : '(žádné zaznamenané chyby)';
-        return 'AR Geodet — hlášení z terénu\n'
+        return 'QTRIG — hlášení z terénu\n'
             + '================================\n' + okolnosti()
             + '\n\nCO SE DĚLO (doplň prosím vlastními slovy):\n\n\n'
             + 'PROTOKOL CHYB (' + list.length + ')\n================================\n' + chyby + '\n';
@@ -248,7 +248,7 @@
         // Web Share s textem umí i iOS; když ne, spadne to na schránku.
         try {
             if (navigator.share) {
-                navigator.share({ title: 'AR Geodet — hlášení z terénu', text: txt })
+                navigator.share({ title: 'QTRIG — hlášení z terénu', text: txt })
                     .catch(function (e) { if (!e || e.name !== 'AbortError') doSchranky(txt); });
                 return;
             }

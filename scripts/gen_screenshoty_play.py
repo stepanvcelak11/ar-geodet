@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet — SKUTECNE SNIMKY OBRAZOVKY DO GOOGLE PLAY ===================
+# ===== QTRIG — SKUTECNE SNIMKY OBRAZOVKY DO GOOGLE PLAY ===================
 # Vyfoti BEZICI appku (ne kreslene panely) v rozmeru, ktery Google Play bere:
 #
 #     play/screenshoty/01-mapa.png .. 05-*.png    1080 x 1920 (pomer presne 9:16)

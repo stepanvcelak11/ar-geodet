@@ -1,4 +1,4 @@
-// ===== AR Geodet — SJEDNOCENÉ DVOJICE NÁSTROJŮ (ODPOJITELNÁ vrstva) ============
+// ===== QTRIG — SJEDNOCENÉ DVOJICE NÁSTROJŮ (ODPOJITELNÁ vrstva) ============
 // Uživatel při průchodu seznamem úkonů 9. 8. 2026 našel dvě dvojice, které dělají
 // TOTÉŽ, jen jinou cestou, a chtěl je sjednotit:
 //   • „Kubaturu a vrstevnice" (z bodů zakázky) × „Kubaturu obejitím výkopu"

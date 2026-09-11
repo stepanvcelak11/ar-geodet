@@ -1,4 +1,4 @@
-// ===== AR Geodet — PRACOVNÍ KARTA BODU (ODPOJITELNÁ vrstva) ====================
+// ===== QTRIG — PRACOVNÍ KARTA BODU (ODPOJITELNÁ vrstva) ====================
 // Neinvazivní vrstva ve stylu js/cuzk-geodata.js: NEEDITUJE logika.js ani
 // grafika.js, jen za běhu OBALÍ showDetails() a doplní kartu bodu.
 //

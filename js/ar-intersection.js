@@ -1,4 +1,4 @@
-// ===== AR Geodet — PROTÍNÁNÍ VPŘED Z ÚHLŮ (ODPOJITELNÁ vrstva) ================
+// ===== QTRIG — PROTÍNÁNÍ VPŘED Z ÚHLŮ (ODPOJITELNÁ vrstva) ================
 // Neinvazivní vrstva. NEEDITUJE logika.js ani grafika.js. Doplněk k „AR resekci"
 // (js/ar-resection.js) — řeší OPAČNOU úlohu: ze ZNÁMÝCH bodů určí souřadnice
 // jednoho NEZNÁMÉHO bodu, na který se nedá dojít (přes potok, na střeše, v poli…).

@@ -1,4 +1,4 @@
-// ===== AR Geodet — EPOCHY / MONITORING POSUNŮ (ODPOJITELNÁ vrstva) =============
+// ===== QTRIG — EPOCHY / MONITORING POSUNŮ (ODPOJITELNÁ vrstva) =============
 // Sledování posunů bodů v čase (deformační monitoring): mosty, opěrné zdi, sesuvy,
 // skládky… Ke sledovanému bodu se opakovaně zapisují souřadnice Y/X/Z (S-JTSK/Bpv)
 // z TOTÁLNÍ STANICE nebo GNSS ROVERU — ručně, čtením OCR z fotky displeje/protokolu,

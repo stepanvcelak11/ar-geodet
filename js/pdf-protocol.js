@@ -1,4 +1,4 @@
-// ===== AR Geodet — PDF PROTOKOL O BODECH (ODPOJITELNÁ vrstva) ==================
+// ===== QTRIG — PDF PROTOKOL O BODECH (ODPOJITELNÁ vrstva) ==================
 // Neinvazivní, ve stylu js/kml-export.js + js/export.js: NEEDITUJE logika.js ani
 // grafika.js. Za běhu přidá tlačítko "PDF protokol" do existujícího exportního menu
 // (#manage-modal .exp-opts) a vygeneruje profesionální PDF protokol k zakázce:
@@ -288,7 +288,7 @@
             y += 6;
             doc.setFontSize(10); doc.setTextColor(90, 90, 90);
             doc.text(T('Vyhotoveno: ' + dateStr), ML, y);
-            doc.text(T('AR Geodet'), PW - MR, y, { align: 'right' });
+            doc.text(T('QTRIG'), PW - MR, y, { align: 'right' });
             y += 4;
             doc.setDrawColor(120, 158, 47); doc.setLineWidth(0.6);
             doc.line(ML, y, PW - MR, y);
@@ -335,7 +335,7 @@
             doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.2);
             doc.line(ML, fy - 3, PW - MR, fy - 3);
             setFont('normal'); doc.setFontSize(7.5); doc.setTextColor(120, 120, 120);
-            doc.text(T('Podkladová data © ČÚZK. AR Geodet je orientační pomůcka — výstup nenahrazuje úřední geodetické zaměření a ověření.'), ML, fy, { maxWidth: contentW });
+            doc.text(T('Podkladová data © ČÚZK. QTRIG je orientační pomůcka — výstup nenahrazuje úřední geodetické zaměření a ověření.'), ML, fy, { maxWidth: contentW });
             var pageNo = doc.internal.getNumberOfPages();
             doc.text(T('Strana ' + pageNo), PW - MR, fy + 6, { align: 'right' });
         }

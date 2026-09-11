@@ -1,4 +1,4 @@
-// ===== AR Geodet — DENÍK DNE (ODPOJITELNÁ vrstva) ===============================
+// ===== QTRIG — DENÍK DNE (ODPOJITELNÁ vrstva) ===============================
 // Jeden tap večer = souhrn dne za aktivní zakázku pro kancelář / stavební deník:
 //   • nové / změněné / smazané body (žurnál bodů js/journal.js, fallback prov.ts),
 //   • docházka party (lokální záznamy směn z js/dochazka.js přes AGUcty.usageQuery),
@@ -335,7 +335,7 @@
         L.push('DENÍK DNE — ' + m.header.proj);
         L.push('Datum: ' + m.header.day);
         if (m.header.firm || m.header.user) L.push((m.header.firm ? 'Firma: ' + m.header.firm : '') + (m.header.firm && m.header.user ? ' · ' : '') + (m.header.user ? 'Zapsal: ' + m.header.user : ''));
-        L.push('Vygenerováno: ' + m.header.gen.toLocaleString('cs-CZ') + ' · AR Geodet');
+        L.push('Vygenerováno: ' + m.header.gen.toLocaleString('cs-CZ') + ' · QTRIG');
         m.sections.forEach(function (s) {
             L.push('');
             L.push(s.title.toUpperCase() + (s.sub ? ' — ' + s.sub : ''));
@@ -499,7 +499,7 @@
             + '<p class="sub">' + esc(m.header.day)
             + (m.header.firm ? ' · ' + esc(m.header.firm) : '')
             + (m.header.user ? ' · zapsal ' + esc(m.header.user) : '')
-            + ' · vygenerováno ' + esc(m.header.gen.toLocaleString('cs-CZ')) + ' · AR Geodet</p>';
+            + ' · vygenerováno ' + esc(m.header.gen.toLocaleString('cs-CZ')) + ' · QTRIG</p>';
         m.sections.forEach(function (s) {
             h += '<div class="sec"><h2>' + esc(s.title) + '</h2>'
                 + (s.sub ? '<p class="cnt">' + esc(s.sub) + '</p>' : '');

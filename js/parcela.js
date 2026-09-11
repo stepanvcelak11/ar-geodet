@@ -1,4 +1,4 @@
-// ===== AR Geodet — PARCELA: geometrie & dělení pozemku (ODPOJITELNÁ vrstva) =====
+// ===== QTRIG — PARCELA: geometrie & dělení pozemku (ODPOJITELNÁ vrstva) =====
 // Neinvazivní modul ve stylu js/offset-point.js / js/field-tools.js.
 // NEEDITUJE logika.js ani grafika.js — jen čte globály (map, L, proj4, arPoints,
 // userLat/Lng, gpsAvgResult) a ukládá body přes oficiální window.addImportedPoints().
@@ -657,7 +657,7 @@
     function exportProtokol() {
         if (state.verts.length < 3) { agAlert('Málo vrcholů', 'Protokol dává smysl od 3 vrcholů.'); return; }
         var n = state.verts.length, lines = [];
-        lines.push('AR Geodet — PARCELA / protokol');
+        lines.push('QTRIG — PARCELA / protokol');
         lines.push('Vygenerováno: ' + new Date().toLocaleString('cs-CZ'));
         lines.push('Souřadnicový systém: S-JTSK (EPSG:5514), výměra Gaussovým vzorcem.');
         lines.push('');

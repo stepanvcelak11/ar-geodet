@@ -1,4 +1,4 @@
-// ===== AR Geodet — VZDÁLENÉ BODY DO AR: výběr výřezem mapy (ODPOJITELNÁ vrstva) ==
+// ===== QTRIG — VZDÁLENÉ BODY DO AR: výběr výřezem mapy (ODPOJITELNÁ vrstva) ==
 // Na přání 8. 9. 2026: „když budu chtít bod, který je někde v dálce a nezobrazuje
 // se mi v AR, protože mám omezenou vzdálenost, a budu si z toho území to chtít vzít
 // třeba 2 km daleko — natáhl bych tam čtvereček a zobrazily by se mi ještě body

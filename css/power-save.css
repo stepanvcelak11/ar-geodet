@@ -1,4 +1,4 @@
-/* ===== AR Geodet — ÚSPORA BATERIE A STAV GPS (odpojitelná vrstva) ==============
+/* ===== QTRIG — ÚSPORA BATERIE A STAV GPS (odpojitelná vrstva) ==============
    Vzhled indikátoru stavu GPS (#ag-pwr) a skrytí varování na rušení kompasu.
    Logiku řídí js/power-save.js. Sladěno s design tokeny v css/style.css.
    Odstranění: smaž tento soubor + js/power-save.js a jejich řádky v index.html/sw.js.

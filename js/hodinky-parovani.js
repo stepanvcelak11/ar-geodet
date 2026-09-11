@@ -1,4 +1,4 @@
-// ===== AR Geodet — PÁROVÁNÍ HODINEK GARMIN (ODPOJITELNÁ VRSTVA) ==============
+// ===== QTRIG — PÁROVÁNÍ HODINEK GARMIN (ODPOJITELNÁ VRSTVA) ==============
 // Vygeneruje šestimístný kód, kterým se k zakázce připojí aplikace v hodinkách
 // (garmin/hodinky). Odsud dál si hodinky poradí samy.
 //

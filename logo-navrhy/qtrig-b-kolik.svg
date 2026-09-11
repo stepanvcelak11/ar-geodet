@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- B — KOLIK Q: ocasek Q je vytycovaci kolik zarazeny do zeme -->
+  <defs>
+    <linearGradient id="b-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1c222a"/><stop offset="1" stop-color="#0c1014"/>
+    </linearGradient>
+    <linearGradient id="b-em" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5ce0a8"/><stop offset="1" stop-color="#2a945f"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#b-bg)"/>
+
+  <!-- teren -->
+  <line x1="112" y1="356" x2="400" y2="356" stroke="#3eb487" stroke-opacity="0.34" stroke-width="12" stroke-linecap="round"/>
+  <line x1="150" y1="398" x2="362" y2="398" stroke="#3eb487" stroke-opacity="0.15" stroke-width="9" stroke-linecap="round"/>
+
+  <g fill="none" stroke="url(#b-em)" stroke-width="40" stroke-linecap="butt">
+    <path d="M305.1 306.1 A104 104 0 0 1 182.9 306.1"/>
+    <path d="M159.9 283.1 A104 104 0 0 1 159.9 160.9"/>
+    <path d="M182.9 137.9 A104 104 0 0 1 305.1 137.9"/>
+    <path d="M328.1 160.9 A104 104 0 0 1 328.1 283.1"/>
+  </g>
+
+  <!-- kolik: siroky u kroužku, spicaty v zemi -->
+  <path d="M287.1 235.5 L385.4 356.4 L378.4 363.4 L257.5 265.1 Z" fill="url(#b-em)"/>
+  <circle cx="244" cy="222" r="19" fill="#ffffff"/>
+</svg>

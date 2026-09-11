@@ -1,4 +1,4 @@
-// ===== AR Geodet — POČASÍ (odpojitelná vrstva) =================================
+// ===== QTRIG — POČASÍ (odpojitelná vrstva) =================================
 // Celoobrazovkový nástroj „Počasí" ve stylu Apple Weather pro geodety v terénu.
 //
 // Co dělá:

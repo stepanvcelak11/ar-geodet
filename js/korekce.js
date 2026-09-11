@@ -1,4 +1,4 @@
-// ===== AR Geodet — ATMOSFÉRICKÉ KOREKCE MĚŘENÍ (ODPOJITELNÁ vrstva) =============
+// ===== QTRIG — ATMOSFÉRICKÉ KOREKCE MĚŘENÍ (ODPOJITELNÁ vrstva) =============
 // Teploměr a barometr jako každodenní věc — ale zapojené do výpočtů, které geodet
 // stejně musí udělat. Vše OFFLINE, meteo hodnoty se PŘEDVYPLNÍ z poslední cache
 // nástroje Počasí (agWeatherCache_v1) a jdou ručně přepsat:

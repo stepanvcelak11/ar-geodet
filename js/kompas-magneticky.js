@@ -1,4 +1,4 @@
-// ===== AR Geodet — KOMPAS S MAGNETICKÝM SEVEREM (ODPOJITELNÁ vrstva) ===========
+// ===== QTRIG — KOMPAS S MAGNETICKÝM SEVEREM (ODPOJITELNÁ vrstva) ===========
 // PROČ: appka všude počítá azimuty k ZEMĚPISNÉMU (pravému) severu — tak jsou zadané
 // souřadnice, tak to chce katastr, tak se orientuje mapa. Magnetometr telefonu ale
 // měří MAGNETICKÝ sever a logika.js k němu automaticky přičítá deklinaci, takže

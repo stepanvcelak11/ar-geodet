@@ -1,4 +1,4 @@
-// ===== AR Geodet — FUZE SMERU (komplementarni filtr gyro + magnetometr) ==========
+// ===== QTRIG — FUZE SMERU (komplementarni filtr gyro + magnetometr) ==========
 // NAHRADA za beta js/ar-stabilize.js. Na rozdil od stabilizace, ktera jen ladila
 // silu vyhlazeni (visSettings.headingSmoothing), tato vrstva pocita SKUTECNY
 // komplementarni filtr azimutu:

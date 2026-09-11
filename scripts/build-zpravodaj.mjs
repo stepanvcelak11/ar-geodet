@@ -1,5 +1,5 @@
 // =============================================================================
-// AR Geodet — sestavení denního Geo zpravodaje (běží v GitHub Actions)
+// QTRIG — sestavení denního Geo zpravodaje (běží v GitHub Actions)
 //
 // Co dělá:
 //   1) Stáhne RSS/Atom zdroje (geodézie ČR i svět), posbírá čerstvé položky.
@@ -202,7 +202,7 @@ function extractJson(text) {
 
 async function polishWithClaude(edition, today) {
     const SYS = [
-        'Jsi editor českého geodetického zpravodaje pro aplikaci AR Geodet (nástroj pro geodety v terénu).',
+        'Jsi editor českého geodetického zpravodaje pro aplikaci QTRIG (nástroj pro geodety v terénu).',
         'Dostaneš HOTOVÉ vydání složené z reálných RSS zpráv. Tvoje práce je jazyková, ne rešeršní:',
         '- Přelož do češtiny nadpis, perex a telo u cizojazyčných položek.',
         '- Perex zkrať na 1–2 věty, telo na 4–8 vět. Je-li podklad krátký, napiš kratší text.',

@@ -1,4 +1,4 @@
-// ===== AR Geodet - VYTYCOVACI CHECKLIST =====
+// ===== QTRIG - VYTYCOVACI CHECKLIST =====
 // Odskrtavani vytycenych bodu v terenu: dojdu k bodu, zatlucu kolik, odkliknu hotovo.
 // Stav je per zakazka (getStoreKey) v 'arStakeout12' jako mapa { idBodu: {t: cas, acc: presnost} }.
 // Uredni body maji stabilni id z polohy (stableId), vlastni body cp_..., takze stav prezije refetch.

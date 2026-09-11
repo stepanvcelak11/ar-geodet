@@ -1,4 +1,4 @@
-// ===== AR Geodet — VYSÍLAČKA: kde je kolega, rychlé zprávy, Man Down (ODPOJITELNÁ) =
+// ===== QTRIG — VYSÍLAČKA: kde je kolega, rychlé zprávy, Man Down (ODPOJITELNÁ) =
 // K čemu to je: měřič u přístroje a figurant s výtyčkou se dorozumívají křikem přes
 // silnici nebo telefonem, který se v rukavicích nedá ovládat. Tenhle nástroj dělá tři
 // věci, které se v terénu potřebují pořád:

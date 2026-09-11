@@ -1,4 +1,4 @@
-// ===== AR Geodet — GNSS KVALITA (odpojitelná vrstva) ============================
+// ===== QTRIG — GNSS KVALITA (odpojitelná vrstva) ============================
 // Neinvazivní, ODPOJITELNÁ vrstva ve stylu js/vylepseni.js: obaluje za běhu globál
 // openSatModal() z js/satelity.js a doplní do satelitního modálu řádek s aktuálním
 // PDOP + slovním hodnocením geometrie a s "nejlepším oknem pro měření dnes".

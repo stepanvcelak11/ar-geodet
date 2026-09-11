@@ -1,4 +1,4 @@
-// ===== AR Geodet - GNSS SATELITY (AR predikce) =====
+// ===== QTRIG - GNSS SATELITY (AR predikce) =====
 // Kde na obloze jsou (a za chvili budou) druzice GPS/GLONASS/Galileo/BeiDou.
 // Polohy se pocitaji lokalne ze SGP4 (knihovna satellite.js) z TLE elementu CelesTrak;
 // TLE se cachuji v localStorage (globalne, nezavisle na zakazce) a vydrzi dny offline.

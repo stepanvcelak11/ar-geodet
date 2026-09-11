@@ -1,4 +1,4 @@
-// ===== AR Geodet — QC INSPEKTOR / KÓD KVALITY (odpojitelná vrstva) =============
+// ===== QTRIG — QC INSPEKTOR / KÓD KVALITY (odpojitelná vrstva) =============
 // Po každém určení bodu (resekce, průměrování GPS, Brutální GPS) porovná dosaženou
 // vnitřní přesnost se základní střední souřadnicovou chybou mxy podle katastrální
 // vyhlášky a řekne, jaký KÓD KVALITY bod splňuje (3 / 4 / 5). Nic neblokuje — je to

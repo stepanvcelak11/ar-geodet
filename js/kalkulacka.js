@@ -1,4 +1,4 @@
-// ===== AR Geodet - GEODETICKA KALKULACKA =====
+// ===== QTRIG - GEODETICKA KALKULACKA =====
 // Offline vypocty v rovine S-JTSK (zadava se kladne Y, X jako vsude v appce; uhly v gonech).
 // Naradi: smernik+delka, rajon, ortogonalni metoda, protinani vpred z uhlu, protinani z delek,
 // volne stanovisko (vyrovnani), polygonovy porad (oboustranne pripojeny a orientovany),

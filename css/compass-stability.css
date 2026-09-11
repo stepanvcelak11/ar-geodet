@@ -1,4 +1,4 @@
-/* ===== AR Geodet — STABILITA KOMPASU (odpojitelná vrstva) =====================
+/* ===== QTRIG — STABILITA KOMPASU (odpojitelná vrstva) =====================
    Malý semafor stability kompasu. Vybledá s HUD (.ui-faded zrcadleno z JS), jde
    PŘESUNOUT a ZMĚNIT VELIKOST (režim úprav přes dlouhý stisk). Polohu/velikost
    řídí JS inline (transform/left/top) — CSS dává jen základ a stavy.

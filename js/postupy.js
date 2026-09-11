@@ -1,4 +1,4 @@
-// ===== AR Geodet — POSTUPY MĚŘENÍ (ODPOJITELNÁ vrstva) ==========================
+// ===== QTRIG — POSTUPY MĚŘENÍ (ODPOJITELNÁ vrstva) ==========================
 // Terénní tahák „jak na to" pro běžné geodetické metody: rajón, volné stanovisko,
 // tachymetrie, polygonový pořad, technická nivelace, GNSS-RTK, protínání, vytyčení.
 // Kroky vychází z oficiálních postupů (Návod pro obnovu katastrálního operátu

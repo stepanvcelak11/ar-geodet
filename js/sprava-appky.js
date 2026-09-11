@@ -1,4 +1,4 @@
-// ===== AR Geodet — SPRÁVA APLIKACE: konzole vlastníka (ODPOJITELNÁ vrstva) ======
+// ===== QTRIG — SPRÁVA APLIKACE: konzole vlastníka (ODPOJITELNÁ vrstva) ======
 // Jediné místo, odkud je vidět na CELOU aplikaci: všechny firmy, kolik má která
 // lidí, kdy naposledy někdo měřil a kolik z denního limitu serveru spotřebovala.
 // Odsud se taky zvedají stropy míst, mrazí firmy, uklízí mrtvé a píše hláška

@@ -1,4 +1,4 @@
-// ===== AR Geodet — ZMĚNIT ZAKÁZKU (dlaždice v Nástrojích) =======================
+// ===== QTRIG — ZMĚNIT ZAKÁZKU (dlaždice v Nástrojích) =======================
 // Přepnutí aktivní zakázky jedním klepnutím přímo z Nástrojů (skupina „Firma
 // a papíry"). Dřív se zakázka měnila jen na úvodní obrazovce nebo v Nastavení →
 // Data, což je v terénu s rukavicemi několik kroků a člověk se musel proklikat

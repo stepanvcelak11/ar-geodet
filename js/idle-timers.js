@@ -1,4 +1,4 @@
-// ===== AR Geodet — VIDITELNOSTNE-VEDOME UI CASOVACE (odpojitelna vrstva) =======
+// ===== QTRIG — VIDITELNOSTNE-VEDOME UI CASOVACE (odpojitelna vrstva) =======
 // Maly sdileny helper: casovace, ktere jen osvezuji UI (kontrola "je modal
 // otevreny?", zive prepocty v nastrojich, vzorkovani jasu kamery…), nemaji
 // smysl, kdyz je appka na pozadi. Tady se daji vytvorit pres AG.uiInterval()

@@ -1,4 +1,4 @@
-// ===== AR Geodet — OBCHŮZKA VÝKOPU: kubatura z obejití hrany (ODPOJITELNÁ) ======
+// ===== QTRIG — OBCHŮZKA VÝKOPU: kubatura z obejití hrany (ODPOJITELNÁ) ======
 // K čemu: „kolik se z toho vykopalo" se dneska počítá tak, že se výkop zaměří,
 // data se odvezou do kanceláře a tam se z nich udělá model. Tenhle nástroj to
 // zvládne na místě: obejdeš hranu výkopu, zaměříš dno a hned víš objem — i s

@@ -1,4 +1,4 @@
-// ===== AR Geodet — MŮSTEK NA JEDNOTNÉ DIALOGY (ODPOJITELNÁ vrstva) ==============
+// ===== QTRIG — MŮSTEK NA JEDNOTNÉ DIALOGY (ODPOJITELNÁ vrstva) ==============
 // Appka má vlastní glass dialogy (agAlert/agConfirm/agPrompt z js/vylepseni.js),
 // ale jádro i moduly volaly na ~130 místech nativní alert()/confirm() — na iOS
 // v PWA režimu vypadají cize (Cancel/OK, jiná typografie) a chovají se
@@ -38,7 +38,7 @@
 
     window.agInfo = window.agInfo || function (msg, title) {
         try {
-            if (typeof window.agAlert === 'function') { window.agAlert({ title: title || 'AR Geodet', message: esc(msg) }); return; }
+            if (typeof window.agAlert === 'function') { window.agAlert({ title: title || 'QTRIG', message: esc(msg) }); return; }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dialog-bridge:esc'); }
         try { alert(msg); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dialog-bridge:esc'); }
     };

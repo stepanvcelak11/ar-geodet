@@ -1,4 +1,4 @@
-// ===== AR Geodet — JEDNODUCHÝ PANEL NÁSTROJŮ + TYP PRÁCE ZAKÁZKY (ODPOJITELNÁ) =====
+// ===== QTRIG — JEDNODUCHÝ PANEL NÁSTROJŮ + TYP PRÁCE ZAKÁZKY (ODPOJITELNÁ) =====
 // Panel Nástrojů má přes 50 dlaždic — pro běžný den v terénu zbytečně mnoho.
 // Tenhle modul přidává dvě věci (obě čistě nad existující mřížkou #tools-modal,
 // NEEDITUJE logika.js, grafika.js ani field-tools.js):

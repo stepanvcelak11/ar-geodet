@@ -1,5 +1,5 @@
 /* =========================================================================
-   AR Geodet — Design tokeny (css/tokens.css)
+   QTRIG — Design tokeny (css/tokens.css)
    Jediné místo, kde žijí CSS proměnné (:root), barevné motivy (body.theme-*)
    a přepisy světlého režimu (body.light-mode).
    Načítá se PŘED style.css (viz index.html) — kaskáda zůstává stejná, jako

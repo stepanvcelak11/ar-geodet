@@ -1,4 +1,4 @@
-// ===== AR Geodet — SPOLEČNÉ JÁDRO: POLKNUTÉ CHYBY, POSLUCHAČI, STYLY ==========
+// ===== QTRIG — SPOLEČNÉ JÁDRO: POLKNUTÉ CHYBY, POSLUCHAČI, STYLY ==========
 // Tři drobnosti, které v appce chyběly a každá stála čas při hledání závady.
 //
 // 1) AG.swallow(e, 'kde')  — MÍSTO PRÁZDNÉHO catch (e) {}

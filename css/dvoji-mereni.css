@@ -1,4 +1,4 @@
-/* ===== AR Geodet — KONTROLNÍ MĚŘENÍ (odpojitelná vrstva) ======================
+/* ===== QTRIG — KONTROLNÍ MĚŘENÍ (odpojitelná vrstva) ======================
    Drží se design-tokenů ze style.css (--accent, --glass-border, --text-color,
    --text-muted, --data, --warning, --danger, --r-md, --r-pill). Načítá se AŽ ZA
    style.css, takže jen doplňuje. Odstranění: smaž css/dvoji-mereni.css +

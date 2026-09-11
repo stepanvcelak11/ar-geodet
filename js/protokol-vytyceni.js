@@ -1,4 +1,4 @@
-// ===== AR Geodet — PROTOKOL O VYTYČENÍ (ODPOJITELNÁ vrstva) =====================
+// ===== QTRIG — PROTOKOL O VYTYČENÍ (ODPOJITELNÁ vrstva) =====================
 // Neinvazivní vrstva: NEEDITUJE js/vytycovani.js ani logika.js — jen za běhu
 // OBALÍ toggleStaked() a přidá vlastní nástroj.
 //

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet - CESTA "NAPSAT AUTOROVI" (v276) =============================
+# ===== QTRIG - CESTA "NAPSAT AUTOROVI" (v276) =============================
 # PROC TENHLE TEST EXISTUJE: 5. 9. 2026 se pri prohlidce zmerilo, ze zprava
 # autorovi appky je NEDOSAZITELNA pro toho, kdo ma k psani nejvic duvodu.
 #

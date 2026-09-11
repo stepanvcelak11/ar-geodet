@@ -1,4 +1,4 @@
-// ===== AR Geodet - SDILENI BODU PŘES QR =====
+// ===== QTRIG - SDILENI BODU PŘES QR =====
 // Bez serveru: kolega zobrazi QR ze svych vlastnich bodu, ja ho naskenuji kamerou
 // a body se mi pridaji (read-only kopie — cizi body neprepisuji, jen pridavam).
 // Vlastni body = persistentCustomPoints (cat 'CUSTOM'). QR pobere cislo, souradnice, vysku
@@ -135,7 +135,7 @@
     }
     function buildPkg(pts, docs) {
         return {
-            format: PKG_FORMAT, v: PKG_V, app: 'AR Geodet', exportedAt: new Date().toISOString(),
+            format: PKG_FORMAT, v: PKG_V, app: 'QTRIG', exportedAt: new Date().toISOString(),
             points: pts.map((p, i) => {
                 const o = { name: p.name || 'Bod', lat: +p.lat, lng: +p.lng };
                 if (p.vyska != null && isFinite(p.vyska)) o.vyska = +p.vyska;
@@ -253,7 +253,7 @@
                 const file = new File([blob], fname, { type: 'application/octet-stream' });
                 const info = `${pkg.points.length} bodů, ${notes}× poznámka, ${photos} fotek — ${fmtSize(blob.size)}`;
                 if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
-                    return navigator.share({ files: [file], title: 'Body — AR Geodet' })
+                    return navigator.share({ files: [file], title: 'Body — QTRIG' })
                         .then(function () { out.textContent = 'Odesláno: ' + info; })
                         .catch(function (e) { if (e && e.name === 'AbortError') { out.textContent = ''; return; } download(blob, fname, out, info); });
                 }
@@ -277,7 +277,7 @@
             const f = inp.files && inp.files[0]; if (!f) return;
             readPkgFile(f).then(pkg => {
                 if (!pkg || pkg.format !== PKG_FORMAT || !Array.isArray(pkg.points) || !pkg.points.length) {
-                    agInfo('Tento soubor neobsahuje body z AR Geodet.'); return;
+                    agInfo('Tento soubor neobsahuje body z QTRIG.'); return;
                 }
                 try { if (typeof closeScanQR === 'function') closeScanQR(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'sdileni:openImportPointsFile'); }
                 importDecoded(pkg.points, 'soubor-body');
@@ -298,7 +298,7 @@
         m.className = 'modal-overlay'; m.id = 'qr-app-modal';
         m.innerHTML = `<div class="modal-content" style="max-width:420px; text-align:center;">
             <h3 style="color:var(--accent); margin-top:0;">Sdílet aplikaci</h3>
-            <div style="font-size:calc(13px * var(--ag-font-scale, 1)); color:var(--text-muted); margin-bottom:12px;">Kolega naskenuje kód fotoaparátem a AR&nbsp;Geodet se mu otevře. Pak si ho může „Přidat na plochu".</div>
+            <div style="font-size:calc(13px * var(--ag-font-scale, 1)); color:var(--text-muted); margin-bottom:12px;">Kolega naskenuje kód fotoaparátem a QTRIG se mu otevře. Pak si ho může „Přidat na plochu".</div>
             <div id="qr-app-out" style="min-height:120px;"><span style="color:var(--text-muted);">Vytvářím QR…</span></div>
             <div id="qr-app-url" style="font-size:calc(12px * var(--ag-font-scale, 1)); color:var(--text-muted); margin-top:8px; word-break:break-all; user-select:all;"></div>
             <div style="display:flex; gap:8px; margin-top:12px;">
@@ -315,7 +315,7 @@
             else { try { const i = document.createElement('input'); i.value = u; document.body.appendChild(i); i.select(); document.execCommand('copy'); i.remove(); done(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'sdileni:done'); } }
         });
         const shareBtn = m.querySelector('#qr-app-share');
-        if (navigator.share) shareBtn.addEventListener('click', function () { navigator.share({ title: 'AR Geodet', text: 'Geodetická AR appka — hledání a vytyčování bodů v terénu:', url: appUrl() }).catch(function () {}); });
+        if (navigator.share) shareBtn.addEventListener('click', function () { navigator.share({ title: 'QTRIG', text: 'Geodetická AR appka — hledání a vytyčování bodů v terénu:', url: appUrl() }).catch(function () {}); });
         else shareBtn.style.display = 'none';
     }
     function renderAppQR() {
@@ -409,7 +409,7 @@
         startScan({
             title: 'Načíst body z QR',
             hint: 'Namiřte kameru na QR kód kolegy.',
-            badMsg: 'Tento QR neobsahuje body AR Geodet.',
+            badMsg: 'Tento QR neobsahuje body QTRIG.',
             showFile: true,
             onData: function (txt) {
                 const pts = decodePoints(txt);

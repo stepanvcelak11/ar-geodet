@@ -1,4 +1,4 @@
-/* ===== AR Geodet — NEJBLIŽŠÍ ZNÁMÝ BOD (odpojitelná vrstva) ====================
+/* ===== QTRIG — NEJBLIŽŠÍ ZNÁMÝ BOD (odpojitelná vrstva) ====================
    Drží se design-tokenů ze style.css (--accent, --glass-border, --text-color,
    --text-muted, --r-md, --r-pill, --color-tb/zhb/pbpp/nivel). Načítá se AŽ ZA
    style.css, takže jen doplňuje. Odstranění: smaž css/bodove-pole.css +

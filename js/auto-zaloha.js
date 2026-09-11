@@ -1,4 +1,4 @@
-// ===== AR Geodet — POJISTKA DAT: připomínka zálohy + stav (ODPOJITELNÁ vrstva) ==
+// ===== QTRIG — POJISTKA DAT: připomínka zálohy + stav (ODPOJITELNÁ vrstva) ==
 // Neinvazivní, ve stylu js/gps-warn.js: NEEDITUJE logika.js ani grafika.js. Řeší
 // riziko TICHÉ ztráty terénních dat — zvlášť na iOS, kde se localStorage i IndexedDB
 // po ~7 dnech nečinnosti mažou (a navigator.storage.persist() tam nezabírá).

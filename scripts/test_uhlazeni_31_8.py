@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet - UHLAZENI Z 31. 8. 2026 (v271) ==============================
+# ===== QTRIG - UHLAZENI Z 31. 8. 2026 (v271) ==============================
 # Overuje v Chromiu sest veci, ktere se ten den menily. Vsechny maji spolecne to,
 # ze se STATICKY (gropem po zdrojacich) nepoznaji - vznikaji az slozenim registru,
 # lazy modulu, CSS a DOM:

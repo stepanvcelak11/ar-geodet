@@ -1,5 +1,5 @@
 // ============================================================================
-// AR Geodet — ŽIVÁ SYNCHRONIZACE BODŮ VE FIRMĚ (ODPOJITELNÁ vrstva)
+// QTRIG — ŽIVÁ SYNCHRONIZACE BODŮ VE FIRMĚ (ODPOJITELNÁ vrstva)
 // ----------------------------------------------------------------------------
 // Zařízení přihlášená do STEJNÉ CLOUDOVÉ FIRMY (js/ucty.js + cloud/worker.js)
 // sdílejí VLASTNÍ body aktivní zakázky. Offline-first: každých ~30 s (a při

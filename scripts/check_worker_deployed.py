@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# ===== AR Geodet — BEZI NA SERVERU TO, CO MAM V REPU? ==========================
+# ===== QTRIG — BEZI NA SERVERU TO, CO MAM V REPU? ==========================
 # PROC EXISTUJE: cloud/worker.js se nasazuje RUCNE (`wrangler deploy` ve slozce
 # cloud/, chce prihlaseni do Cloudflare). Uz nekolikrat se stalo, ze zmena
 # workeru lezela v repu tydny a nikdo nevedel, jestli je venku — poznamka

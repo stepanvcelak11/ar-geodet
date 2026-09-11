@@ -1,4 +1,4 @@
-// ===== AR Geodet — TERÉNNÍ AR: výškopis ČÚZK DMR 5G (ODPOJITELNÁ vrstva) =======
+// ===== QTRIG — TERÉNNÍ AR: výškopis ČÚZK DMR 5G (ODPOJITELNÁ vrstva) =======
 // Neinvazivní vrstva. NEEDITUJE projekci v grafika.js přímo — jen vystaví globální
 // hook window.terrainDZ(lat,lng), který grafika.js VOLITELNĚ použije ve svislém
 // úhlu AR (přes typeof-guard). Bez tohoto modulu hook neexistuje → projekce počítá

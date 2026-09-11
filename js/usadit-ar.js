@@ -1,4 +1,4 @@
-// ===== AR Geodet — USADIT AR (průvodce) + ZJEDNODUŠENÁ MŘÍŽKA NÁSTROJŮ =========
+// ===== QTRIG — USADIT AR (průvodce) + ZJEDNODUŠENÁ MŘÍŽKA NÁSTROJŮ =========
 // ODPOJITELNÁ vrstva. NEEDITUJE logika.js ani grafika.js. Řeší zahlcení Nástrojů:
 //
 //   • „Usadit AR (průvodce)": v appce je 7 nástrojů, které všechny znamenají

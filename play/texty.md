@@ -1,4 +1,4 @@
-# Texty do Google Play — AR Geodet
+# Texty do Google Play — QTRIG
 
 Připraveno k okopírování do Play Console → **Grow → Store presence → Main store listing**.
 Limity znaků hlídá `python play/kontrola-textu.py`.
@@ -8,7 +8,7 @@ Limity znaků hlídá `python play/kontrola-textu.py`.
 ## Název aplikace (max 30 znaků)
 
 ```
-AR Geodet
+QTRIG
 ```
 
 ## Krátký popis (max 80 znaků)
@@ -20,7 +20,7 @@ Bodové pole v rozšířené realitě. Mapa, katastr, vytyčování i bez signá
 ## Dlouhý popis (max 4000 znaků)
 
 ```
-AR Geodet je terénní pomůcka pro geodety. Zvedneš telefon, namíříš ho před sebe a v obraze kamery uvidíš, kde jsou body bodového pole a kam máš jít — bez papírových náčrtů a bez zdlouhavého dohledávání.
+QTRIG je terénní pomůcka pro geodety. Zvedneš telefon, namíříš ho před sebe a v obraze kamery uvidíš, kde jsou body bodového pole a kam máš jít — bez papírových náčrtů a bez zdlouhavého dohledávání.
 
 VYHLEDÁVÁNÍ BODŮ V TERÉNU
 • Body bodového pole ČÚZK vidíš přímo v obraze kamery, se vzdáleností a směrem

@@ -1,4 +1,4 @@
-// ===== AR Geodet — RANNÍ CHECKLIST „Co s sebou" (ODPOJITELNÁ vrstva) ============
+// ===== QTRIG — RANNÍ CHECKLIST „Co s sebou" (ODPOJITELNÁ vrstva) ============
 // Balicí seznam, který se sám přizpůsobí dnešní práci a dnešnímu počasí:
 //   • ZÁKLAD (vždy): nabíječka, powerbanka, vesta, blok…
 //   • PODLE TYPU PRÁCE zakázky (agWorkProfile::<pid> z js/tools-simple.js):

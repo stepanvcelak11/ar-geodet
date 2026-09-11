@@ -1,4 +1,4 @@
-/* ===== AR Geodet — PREDIKCE GNSS SIGNÁLU (skyplot) =============================
+/* ===== QTRIG — PREDIKCE GNSS SIGNÁLU (skyplot) =============================
    Neinvazivní, ODPOJITELNÁ vrstva. Načítá se AŽ ZA style.css. Drží se design-tokenů
    (--accent, --glass-bg, --glass-border, --text-color, --text-muted, --r-md, --warning).
    Odstranění: smaž css/sky-obstruction.css + js/sky-obstruction.js a řádky v index.html.

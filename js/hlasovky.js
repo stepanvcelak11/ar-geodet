@@ -1,4 +1,4 @@
-// ===== AR Geodet — HLASOVÉ POZNÁMKY S GEORAZÍTKEM A PŘEPISEM (ODPOJITELNÁ) ======
+// ===== QTRIG — HLASOVÉ POZNÁMKY S GEORAZÍTKEM A PŘEPISEM (ODPOJITELNÁ) ======
 // V rukavicích a blátě se nepíše: podržíš jedno velké tlačítko, řekneš co vidíš,
 // a poznámka se uloží s časem, polohou (WGS + S-JTSK přes GeoCore), přesností GPS
 // a NEJBLIŽŠÍM vlastním bodem zakázky do 25 m („u bodu 105, 3 m").

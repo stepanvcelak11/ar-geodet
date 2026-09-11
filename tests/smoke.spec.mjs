@@ -1,4 +1,4 @@
-// ===== AR Geodet — SMOKE TEST (Playwright) ======================================
+// ===== QTRIG — SMOKE TEST (Playwright) ======================================
 // Appka nemá build ani testy: každá změna se dosud zkoušela až na telefonu
 // v terénu. Tenhle test v CI odpoví na to nejdůležitější: NASTARTUJE appka a
 // nespadl při startu některý z ~100 modulů?

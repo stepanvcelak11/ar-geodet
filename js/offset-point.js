@@ -1,4 +1,4 @@
-// ===== AR Geodet — OFFSET BOD / NEPŘÍSTUPNÝ BOD (ODPOJITELNÁ vrstva) ============
+// ===== QTRIG — OFFSET BOD / NEPŘÍSTUPNÝ BOD (ODPOJITELNÁ vrstva) ============
 // Neinvazivní vrstva. NEEDITUJE logika.js ani grafika.js — čte globály a ukládá
 // přes oficiální window.addImportedPoints(). Spočítá souřadnice bodu, ke kterému
 // se nedá stoupnout (roh budovy, střed šachty, pata sloupu): ze základu

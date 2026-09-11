@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet - "ROZUMIM" U SLABE GPS (1. 9. 2026) =========================
+# ===== QTRIG - "ROZUMIM" U SLABE GPS (1. 9. 2026) =========================
 # Overuje v Chromiu, ze varovani "Slaba GPS - ted nemer" jde odkliknout PRIMO
 # ze sbalene stavove pilulky a ze odkliknuti VYDRZI:
 #

@@ -1,4 +1,4 @@
-// ===== AR Geodet - KOŠ (odpojitelné: smaž tento řádek v index.html + js/kos.js) =====
+// ===== QTRIG - KOŠ (odpojitelné: smaž tento řádek v index.html + js/kos.js) =====
 // Smazané zakázky a vlastní body se 30 dní drží v koši (localStorage) a dají se obnovit
 // v menu „Více" → Koš. Doplňuje undo.js: toast „Vrátit zpět" zmizí za pár vteřin,
 // koš zůstává — omylem smazaná zakázka z terénu tak není definitivní ztráta.

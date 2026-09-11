@@ -1,4 +1,4 @@
-// ===== AR Geodet — ŠABLONY ZAKÁZKY (převzetí nastavení) — ODPOJITELNÁ NADSTAVBA =====
+// ===== QTRIG — ŠABLONY ZAKÁZKY (převzetí nastavení) — ODPOJITELNÁ NADSTAVBA =====
 // Co dělá:
 //  1) Po založení nové zakázky (tlačítko „+" na úvodu i v Nastavení → Data) se zeptá,
 //     zda převzít NASTAVENÍ z právě opuštěné zakázky: filtry bodů (arFilters12),

@@ -1,4 +1,4 @@
-// ===== AR Geodet — GPS KAMPAŇ „3 NÁVŠTĚVY" (A1, ODPOJITELNÁ vrstva) ============
+// ===== QTRIG — GPS KAMPAŇ „3 NÁVŠTĚVY" (A1, ODPOJITELNÁ vrstva) ============
 // Vícedenní měřicí kampaň pro Brutální GPS. Chyba mobilní GNSS je během jedné
 // návštěvy systematicky posunutá (atmosféra + okamžitá geometrie družic);
 // konstelace GPS se opakuje po ~23 h 56 min, takže měření v JINOU denní dobu
@@ -282,7 +282,7 @@
                 var key = 'w' + i;
                 var msg = 'Kampaň „' + camp.name + '": teď je vhodné okno na sezení ' + (k + 1) + '/3 (' + fmtWhen(w.ts) + ').';
                 toast(msg);
-                if (!camp.notified[key]) { notify('AR Geodet — kampaň', msg); camp.notified[key] = 1; save(camp); }
+                if (!camp.notified[key]) { notify('QTRIG — kampaň', msg); camp.notified[key] = 1; save(camp); }
                 return;
             }
         }

@@ -1,4 +1,4 @@
-// ===== AR Geodet — HELMERTOVA LOKALIZACE STAVENIŠTĚ (ODPOJITELNÁ vrstva) =======
+// ===== QTRIG — HELMERTOVA LOKALIZACE STAVENIŠTĚ (ODPOJITELNÁ vrstva) =======
 // Neinvazivní, samostatný nástroj. NEEDITUJE logika.js, grafika.js ani jiný
 // soubor — jen si registruje dlaždici přes agRegisterFieldTool a vystaví
 // window.agOpenLocalize + window.AGLocalize.

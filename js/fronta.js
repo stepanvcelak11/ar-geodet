@@ -1,4 +1,4 @@
-// ===== AR Geodet — FRONTA NA SIGNÁL: co appka dluží serveru (ODPOJITELNÁ vrstva) =
+// ===== QTRIG — FRONTA NA SIGNÁL: co appka dluží serveru (ODPOJITELNÁ vrstva) =
 // PROBLÉM, KTERÝ TENHLE SOUBOR ŘEŠÍ: geodet je půl dne ve sklepě, v lese nebo
 // v zástavbě bez signálu. Co v té době odešle do cloudu, se podle modulu buď
 // podrží, nebo TIŠE ZTRATÍ:

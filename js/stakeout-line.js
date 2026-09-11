@@ -1,4 +1,4 @@
-// ===== AR Geodet — VYTYČENÍ OSY + STANIČENÍ (ODPOJITELNÁ vrstva) ==============
+// ===== QTRIG — VYTYČENÍ OSY + STANIČENÍ (ODPOJITELNÁ vrstva) ==============
 // Neinvazivní vrstva. NEEDITUJE logika.js ani grafika.js. Pro liniové stavby:
 // zadáš OSU (dva body = přímka, víc bodů = lomená osa) a appka ti za chůze
 // ukazuje:

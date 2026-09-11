@@ -1,4 +1,4 @@
-// ===== AR Geodet — PŘENOS CELÉ ZAKÁZKY BEZ SERVERU (.argeo) (ODPOJITELNÁ vrstva) =
+// ===== QTRIG — PŘENOS CELÉ ZAKÁZKY BEZ SERVERU (.argeo) (ODPOJITELNÁ vrstva) =
 // Neinvazivní vrstva. NEEDITUJE logika.js ani grafika.js. Doplněk k záloze
 // (js/zaloha.js) a QR sdílení bodů — tohle přenáší CELOU aktivní zakázku (body +
 // spojnice + foto-dokumentace + žurnál + nastavení) do JEDNOHO souboru .argeo a
@@ -110,7 +110,7 @@
             try { if (window.AGJournal && typeof window.AGJournal.all === 'function') jP = window.AGJournal.all(pid).catch(function () { return []; }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'job-transfer:collect'); }
             return jP.then(function (journal) {
                 return {
-                    format: FORMAT, v: VERSION, app: 'AR Geodet',
+                    format: FORMAT, v: VERSION, app: 'QTRIG',
                     exportedAt: new Date().toISOString(),
                     project: proj,
                     withPhotos: !!withPhotos,
@@ -216,12 +216,12 @@
             + (canS ? '<button class="btn" id="agjt-do-share"><svg class="icon"><use href="#i-upload"/></svg> Sdílet (Airdrop/chat…)</button>' : '')
             + '<button class="btn ' + (canS ? 'btn-secondary' : '') + '" id="agjt-do-dl"><svg class="icon"><use href="#i-download"/></svg> Stáhnout soubor</button>'
             + '</div>'
-            + '<div style="font-size:calc(11.5px * var(--ag-font-scale, 1));opacity:.65;margin-top:6px;line-height:1.45;">Na druhém telefonu otevři AR Geodet → Nástroje → „Poslat/načíst zakázku" → <b>Načíst</b> a vyber tenhle .argeo soubor. Body se <b>přidají</b> do jeho aktivní zakázky (nic se nepřepíše).</div>'
+            + '<div style="font-size:calc(11.5px * var(--ag-font-scale, 1));opacity:.65;margin-top:6px;line-height:1.45;">Na druhém telefonu otevři QTRIG → Nástroje → „Poslat/načíst zakázku" → <b>Načíst</b> a vyber tenhle .argeo soubor. Body se <b>přidají</b> do jeho aktivní zakázky (nic se nepřepíše).</div>'
             + '</div>';
         var sh = document.getElementById('agjt-do-share');
         if (sh) sh.addEventListener('click', function () {
             try {
-                navigator.share({ files: [file], title: 'AR Geodet — zakázka', text: 'Přenos zakázky (.argeo)' })
+                navigator.share({ files: [file], title: 'QTRIG — zakázka', text: 'Přenos zakázky (.argeo)' })
                     .then(function () { toast('Sdíleno'); })
                     .catch(function (err) { if (err && err.name === 'AbortError') return; downloadBlob(file, file.name); });
             } catch (e) { downloadBlob(file, file.name); }
@@ -265,7 +265,7 @@
         if (out) out.innerHTML = '<div style="opacity:.75;font-size:calc(13px * var(--ag-font-scale, 1));padding:6px 0;">Čtu soubor…</div>';
         readFileToJson(file).then(function (pkg) {
             if (!pkg || pkg.format !== FORMAT) {
-                agAlert('Nepodporovaný soubor', 'Tohle nevypadá jako přenos AR Geodet (.argeo). Zkontroluj, že jsi vybral správný soubor.');
+                agAlert('Nepodporovaný soubor', 'Tohle nevypadá jako přenos QTRIG (.argeo). Zkontroluj, že jsi vybral správný soubor.');
                 if (out) out.innerHTML = '';
                 return;
             }

@@ -1,4 +1,4 @@
-// ===== AR Geodet — VEKTOROVÁ MAPA OFFLINE (ODPOJITELNÁ vrstva) =================
+// ===== QTRIG — VEKTOROVÁ MAPA OFFLINE (ODPOJITELNÁ vrstva) =================
 // Neinvazivní vrstva: NEEDITUJE logika.js ani grafika.js. Přidá si do mapy
 // VLASTNÍ kreslicí vrstvu a vlastní dlaždici; když soubor smažeš, mapa jede
 // přesně jako dřív.

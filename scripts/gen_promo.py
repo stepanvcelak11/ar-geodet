@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet — PROPAGACNI OBRAZKY DO GOOGLE PLAY =========================
+# ===== QTRIG — PROPAGACNI OBRAZKY DO GOOGLE PLAY =========================
 # Z predlohy `play/promo.html` vyrenderuje hotove PNG v presnych rozmerech,
 # ktere chce Google Play:
 #

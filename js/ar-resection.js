@@ -1,4 +1,4 @@
-// ===== AR Geodet — AR RESEKCE / PROTÍNÁNÍ ZPĚT (ODPOJITELNÁ vrstva) ============
+// ===== QTRIG — AR RESEKCE / PROTÍNÁNÍ ZPĚT (ODPOJITELNÁ vrstva) ============
 // Neinvazivní vrstva. NEEDITUJE logika.js ani grafika.js. Řeší nejtěžší slabinu
 // celé appky — nepřesný telefonní kompas A GPS — tím, že z telefonu udělá
 // jednoduchou „totálku":

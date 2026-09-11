@@ -1,4 +1,4 @@
-// ===== AR Geodet — TERÉNNÍ TRENAŽÉR (ODPOJITELNÁ vrstva) =======================
+// ===== QTRIG — TERÉNNÍ TRENAŽÉR (ODPOJITELNÁ vrstva) =======================
 // Neinvazivní vrstva ve stylu js/prohlidka.js: NEEDITUJE logika.js ani grafika.js,
 // kreslí do vlastní <svg> v #ar-overlay a do vlastní vrstvy v mapě.
 //

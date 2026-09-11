@@ -1,4 +1,4 @@
-// ===== AR Geodet — ZKRATKY Z PLOCHY TELEFONU (ODPOJITELNÁ) =====
+// ===== QTRIG — ZKRATKY Z PLOCHY TELEFONU (ODPOJITELNÁ) =====
 // Dlouhé podržení ikony appky (PWA/TWA "app shortcuts" z manifest.json) nabídne:
 //   • Nový bod    → ?zkratka=novy-bod    (spustí appku a otevře formulář nového bodu)
 //   • Pokračovat  → ?zkratka=pokracovat  (klikne na tlačítko „Pokračovat" z js/pokracovat.js,

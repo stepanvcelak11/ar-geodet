@@ -1,5 +1,5 @@
 // ============================================================================
-// AR Geodet — DOCHÁZKA (ODPOJITELNÁ vrstva nad js/ucty.js)
+// QTRIG — DOCHÁZKA (ODPOJITELNÁ vrstva nad js/ucty.js)
 // ----------------------------------------------------------------------------
 // Jedno velké tlačítko Příchod/Odchod pro každého přihlášeného. Záznamy jdou
 // STEJNOU cestou jako užívání (AGUcty.usageLog, typ 'shift', klíč 'in'/'out'):

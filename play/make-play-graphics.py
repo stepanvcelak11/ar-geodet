@@ -95,7 +95,7 @@ def feature_graphic(path, w=1024, h=500):
     f_sub = font('seguisb.ttf', 36 * SS)
     f_small = font('segoeui.ttf', 27 * SS)
 
-    d.text((tx, int(H * 0.30)), 'AR Geodet', font=f_title, fill=TEXT, anchor='ls')
+    d.text((tx, int(H * 0.30)), 'QTRIG', font=f_title, fill=TEXT, anchor='ls')
     d.text((tx, int(H * 0.47)), 'Bodové pole v rozšířené realitě', font=f_sub, fill=ACCENT, anchor='ls')
     d.text((tx, int(H * 0.63)), 'Vyhledávání bodů kamerou · mapa a katastr', font=f_small, fill=MUTED, anchor='ls')
     d.text((tx, int(H * 0.72)), 'vytyčování · měření · funguje offline', font=f_small, fill=MUTED, anchor='ls')

@@ -1,4 +1,4 @@
-// ===== AR Geodet — VEKTOROVÝ KATASTR OFFLINE (ODPOJITELNÁ vrstva) =============
+// ===== QTRIG — VEKTOROVÝ KATASTR OFFLINE (ODPOJITELNÁ vrstva) =============
 // Neinvazivní vrstva. NEEDITUJE logika.js ani grafika.js. Z katastru dělá
 // DOTAZOVATELNÁ GEODATA (ne jen obrázek jako WMS):
 //

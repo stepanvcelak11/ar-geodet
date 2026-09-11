@@ -1,4 +1,4 @@
-// ===== AR Geodet — KOLEČKO NÁSTROJŮ (návrh N4, ODPOJITELNÁ vrstva) ==============
+// ===== QTRIG — KOLEČKO NÁSTROJŮ (návrh N4, ODPOJITELNÁ vrstva) ==============
 // Výběr nástroje TAŽENÍM, aniž by se zvedl prst z lišty. Prst leží na tlačítku
 // Nástroje, hlavní obrazovka zhasne a uprostřed se objeví kruh se slovesy; vybírá
 // se ÚHLEM tažení a potvrzuje NAČÍTÁNÍM (0,8 s). Druhé kolečko nabídne nástroje

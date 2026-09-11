@@ -1,4 +1,4 @@
-// ===== AR Geodet — DVOUTELEFONNÍ DGPS (A2, ODPOJITELNÁ vrstva) =================
+// ===== QTRIG — DVOUTELEFONNÍ DGPS (A2, ODPOJITELNÁ vrstva) =================
 // Diferenční korekce bez referenční stanice a bez serveru: ionosféra, troposféra
 // a chyby drah družic jsou na vzdálenost do ~2 km pro dva telefony prakticky
 // STEJNÉ. Telefon A („Základna") leží na PŘESNĚ ZNÁMÉM bodě a průběžně loguje,

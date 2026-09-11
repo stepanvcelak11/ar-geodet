@@ -1,4 +1,4 @@
-// ===== AR Geodet — ÚSPORA BATERIE A SPRÁVA SENZORŮ (odpojitelná vrstva) =========
+// ===== QTRIG — ÚSPORA BATERIE A SPRÁVA SENZORŮ (odpojitelná vrstva) =========
 // Neinvazivní vrstva ve stylu js/gps-warn.js / js/kompas-check.js. NEEDITUJE
 // logiku přímo — místo toho centrálně "obalí" navigator.geolocation.watchPosition
 // a window.addEventListener('deviceorientation'…), takže umí GPS i kompas

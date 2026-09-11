@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet — JEDNODUCHY REZIM (js/jednoduchy-rezim.js) ===================
+# ===== QTRIG — JEDNODUCHY REZIM (js/jednoduchy-rezim.js) ===================
 # Rezim schova CELOU appku za dve tlacitka. Prave proto ho nejde overit ctenim
 # kodu: musi se spustit a saha se na nej PRSTEM. Test proto jede v prohlizeci
 # (Playwright, mobilni viewport 412x915, povolena poloha).

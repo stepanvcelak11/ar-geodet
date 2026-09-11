@@ -1,4 +1,4 @@
-// ===== AR Geodet — SEMAFOR DŮVĚRY POLOHY (ODPOJITELNÁ vrstva) ===================
+// ===== QTRIG — SEMAFOR DŮVĚRY POLOHY (ODPOJITELNÁ vrstva) ===================
 // Zamrzlý GPS fix se dřív nedal poznat: watchPosition prostě přestane doručovat
 // (tunel, budova, iOS suspend), userLat/currentGpsAccuracy drží poslední hodnotu
 // a AR i měření tiše jedou ze STARÉ polohy. Tenhle modul čte window.AGFix
@@ -142,8 +142,8 @@
         var ios = /iPhone|iPad|iPod/i.test(ua);
         var steps = ios
             ? 'Nastavení → Soukromí a zabezpečení → Polohové služby → zapnout, '
-              + 'pak najít Safari (nebo AR Geodet, když ho máš na ploše) → Při používání aplikace.'
-            : 'Nastavení telefonu → Aplikace → prohlížeč / AR Geodet → Oprávnění → Poloha → Povolit. '
+              + 'pak najít Safari (nebo QTRIG, když ho máš na ploše) → Při používání aplikace.'
+            : 'Nastavení telefonu → Aplikace → prohlížeč / QTRIG → Oprávnění → Poloha → Povolit. '
               + 'V Chromu jde poloha povolit i klepnutím na ikonu zámku vlevo od adresy.';
         var msg = 'Aplikace nemá přístup k poloze, takže nemůže měřit ani navigovat na body.\n\n'
                 + steps + '\n\nPotom se sem vrať a klepni na „Zkusit znovu".';

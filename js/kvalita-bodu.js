@@ -1,4 +1,4 @@
-// ===== AR Geodet — KVALITA MĚŘENÍ A PROTOKOL (ODPOJITELNÁ vrstva) ==============
+// ===== QTRIG — KVALITA MĚŘENÍ A PROTOKOL (ODPOJITELNÁ vrstva) ==============
 // PROČ: appka rozptyl měření POČÍTALA už dřív (sigma a sterr v logika.js i
 // v brutal-gps.js), ale k uloženému bodu se z toho dostala jediná hodnota —
 // `acc`. Zmizelo, KOLIKA odečty vznikla a jaký byl kolem nich rozptyl. Přesně
@@ -234,7 +234,7 @@
 
     function protokolText() {
         var ps = radky(), L = [];
-        L.push('AR Geodet — PROTOKOL KVALITY MĚŘENÍ');
+        L.push('QTRIG — PROTOKOL KVALITY MĚŘENÍ');
         L.push('Vygenerováno: ' + new Date().toLocaleString('cs-CZ'));
         L.push('Počet bodů: ' + ps.length);
         L.push('');

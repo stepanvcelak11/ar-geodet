@@ -1,4 +1,4 @@
-// ===== AR Geodet — RANNÍ BRÍFINK „DNEŠEK V TERÉNU" (ODPOJITELNÁ vrstva) =========
+// ===== QTRIG — RANNÍ BRÍFINK „DNEŠEK V TERÉNU" (ODPOJITELNÁ vrstva) =========
 // Jedna karta při prvním spuštění dne: co geodeta ten den čeká, bez klikání po
 // čtyřech nástrojích. Obsah (co v zařízení/na síti není, sekce prostě vynechá):
 //   • POČASÍ DNES na aktuální poloze (vlastní lehké volání Open-Meteo: teploty,

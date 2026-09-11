@@ -1,4 +1,4 @@
-// ===== AR Geodet — ÚLOŽIŠTĚ NA TĚŽKÁ DATA: jedno API (ODPOJITELNÁ vrstva) =====
+// ===== QTRIG — ÚLOŽIŠTĚ NA TĚŽKÁ DATA: jedno API (ODPOJITELNÁ vrstva) =====
 // PROBLÉM, KTERÝ TENHLE SOUBOR ŘEŠÍ: appka drží velká data v IndexedDB — ale
 // KAŽDÝ modul si k ní napsal vlastní cestu. Dneska je v repu SEDM samostatných
 // databází, každá s vlastním open/upgrade/transakce/chyby:

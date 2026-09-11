@@ -1,4 +1,4 @@
-// ===== AR Geodet — DVA LIDI NA JEDNÉ ZAKÁZCE: kolize bodů (ODPOJITELNÁ vrstva) ===
+// ===== QTRIG — DVA LIDI NA JEDNÉ ZAKÁZCE: kolize bodů (ODPOJITELNÁ vrstva) ===
 // PROBLÉM, KTERÝ TENHLE SOUBOR ŘEŠÍ: appka už umí sdílet zakázku mezi lidmi —
 // js/cloud-sync.js protáhne body oběma směry každých 30 s a js/vysilacka.js
 // ukáže, kde kolega stojí. Co ale NIKDO nepozná: že jste OBA změřili TÝŽ BOD.

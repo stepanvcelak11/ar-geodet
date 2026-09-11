@@ -1,4 +1,4 @@
-/* ===== AR Geodet — KALIBRACE NA REFERENČNÍ BOD (odpojitelná vrstva) ============
+/* ===== QTRIG — KALIBRACE NA REFERENČNÍ BOD (odpojitelná vrstva) ============
    Drží se design-tokenů ze style.css (--accent, --glass-bg, --glass-border,
    --text-color, --text-muted, --r-md, --r-pill, --danger). Načítá se AŽ ZA
    style.css, takže jen doplňuje. Odstranění: smaž css/ref-calibration.css +

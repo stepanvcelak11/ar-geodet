@@ -56,7 +56,7 @@
         document.addEventListener('focusout', function () { setTimeout(function () { if (!typing()) setH(); }, 300); });
     })();
     </script>
-    <title>AR Geodet</title>
+    <title>QTRIG</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f1216">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -68,7 +68,7 @@
          nového ověření testem. Změna meta se projeví až po novém PŘIDÁNÍ NA
          PLOCHU (iOS si ji ukládá při instalaci ikony). -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="Geodet">
+    <meta name="apple-mobile-web-app-title" content="QTRIG">
     <link rel="icon" type="image/svg+xml" href="icon.svg">
     <!-- iOS ikonu na plochu bere JEN z PNG (SVG ignoruje → obecný screenshot).
          Projeví se až při novém „Přidat na plochu". -->
@@ -166,7 +166,7 @@
                         + 'color:#e8edf2;font:400 14px/1.5 system-ui,sans-serif');
                     var t = document.createElement('div');
                     t.setAttribute('style', 'font:800 20px/1.2 system-ui,sans-serif');
-                    t.textContent = 'AR Geodet';
+                    t.textContent = 'QTRIG';
                     var m = document.createElement('div');
                     m.setAttribute('style', 'max-width:300px;color:#9aa1ac');
                     m.textContent = 'Appka se nestihla načíst celá — nejspíš je slabý signál. Zkus to znovu.';
@@ -926,12 +926,12 @@
         <div class="modal-content">
             <h2 style="margin-top:0;">O aplikaci</h2>
             <div class="modal-body">
-                <p style="margin-top:0; font-size: calc(13px * var(--ag-font-scale, 1)); opacity:0.8;">AR Geodet — geodetická appka do terénu: body v rozšířené realitě i v mapě, měření a výpočty, katastr, vytyčování a denní pomůcky. Funguje offline. Verze <span id="about-version">1.0</span>.</p>
+                <p style="margin-top:0; font-size: calc(13px * var(--ag-font-scale, 1)); opacity:0.8;">QTRIG — geodetická appka do terénu: body v rozšířené realitě i v mapě, měření a výpočty, katastr, vytyčování a denní pomůcky. Funguje offline. Verze <span id="about-version">1.0</span>.</p>
                 <div class="geo-highlight">
                     <strong><svg class="icon" style="vertical-align:-0.18em; color:var(--accent);"><use href="#i-star"/></svg> Autor a vlastník</strong>
-                    <p style="font-size: calc(14px * var(--ag-font-scale, 1)); line-height:1.55; margin:8px 0 0;">Vlastníkem aplikace AR Geodet je <b>Štěpán Včelák</b>, který ji také navrhl, vytvořil a provozuje.</p>
+                    <p style="font-size: calc(14px * var(--ag-font-scale, 1)); line-height:1.55; margin:8px 0 0;">Vlastníkem aplikace QTRIG je <b>Štěpán Včelák</b>, který ji také navrhl, vytvořil a provozuje.</p>
                     <p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.55; margin:6px 0 0;">© 2026 Štěpán Včelák. Všechna práva vyhrazena.</p>
-                    <p style="font-size: calc(12px * var(--ag-font-scale, 1)); line-height:1.5; margin:8px 0 0; opacity:0.75;">AR Geodet je autorské dílo. Aplikaci, její zdrojový kód ani jednotlivé části není dovoleno kopírovat, upravovat, dále šířit, prodávat ani nabízet jako vlastní produkt bez písemného souhlasu vlastníka. Podkladová data třetích stran (ČÚZK, OpenStreetMap) zůstávají majetkem jejich poskytovatelů a řídí se jejich licencemi.</p>
+                    <p style="font-size: calc(12px * var(--ag-font-scale, 1)); line-height:1.5; margin:8px 0 0; opacity:0.75;">QTRIG je autorské dílo. Aplikaci, její zdrojový kód ani jednotlivé části není dovoleno kopírovat, upravovat, dále šířit, prodávat ani nabízet jako vlastní produkt bez písemného souhlasu vlastníka. Podkladová data třetích stran (ČÚZK, OpenStreetMap) zůstávají majetkem jejich poskytovatelů a řídí se jejich licencemi.</p>
                 </div>
                 <div class="geo-highlight" style="border-left-color:#fbbf24;">
                     <strong><svg class="icon" style="vertical-align:-0.18em; color:#fbbf24;"><use href="#i-alert"/></svg> Upozornění</strong>

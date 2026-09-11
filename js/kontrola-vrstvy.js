@@ -1,4 +1,4 @@
-// ===== AR Geodet — KONTROLA VRSTVY ZA FINIŠEREM (ODPOJITELNÁ vrstva) ===========
+// ===== QTRIG — KONTROLA VRSTVY ZA FINIŠEREM (ODPOJITELNÁ vrstva) ===========
 // Denní smyčka geodeta na pokládce: jdu za finišerem, na vytyčeném místě změřím
 // výšku hotové vrstvy a chci HNED vědět, jestli sedí na projekt — a o kolik ne.
 //

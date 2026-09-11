@@ -1,4 +1,4 @@
-// ===== AR Geodet — JEDNODUCHÝ REŽIM (ODPOJITELNÁ vrstva) ========================
+// ===== QTRIG — JEDNODUCHÝ REŽIM (ODPOJITELNÁ vrstva) ========================
 // Celá appka schovaná za dvě tlačítka: PŘIDAT BOD a NAVIGOVAT K BODU.
 //
 // PROČ: appka umí přes 60 nástrojů, mapu, katastr, AR a firemní účty. To je

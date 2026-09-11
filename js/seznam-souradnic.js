@@ -1,4 +1,4 @@
-// ===== AR Geodet — SEZNAM SOUŘADNIC PRO KANCELÁŘ (ODPOJITELNÁ vrstva) =========
+// ===== QTRIG — SEZNAM SOUŘADNIC PRO KANCELÁŘ (ODPOJITELNÁ vrstva) =========
 // Neinvazivní, ve stylu js/kml-export.js + js/dxf-export.js: NEEDITUJE logika.js
 // ani grafika.js. Přidává do exportu formát „Seznam souřadnic (kancelář)“, který
 // se dá NASTAVIT tak, aby ho bez ručních úprav načetla Groma, Kokeš nebo GEUS.

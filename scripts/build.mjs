@@ -1,5 +1,5 @@
 // =============================================================================
-// AR Geodet — volitelný (opt-in) build: zabal + zminifikuj vlastní JS do jednoho
+// QTRIG — volitelný (opt-in) build: zabal + zminifikuj vlastní JS do jednoho
 // hashovaného souboru dist/app.<contenthash>.min.js
 //
 // PROČ vůbec:

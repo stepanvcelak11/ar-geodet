@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     Nastavení aplikace se edituje v Garmin Connect na mobilu (Zařízení →
-    Connect IQ → AR Geodet → Nastavení).
+    Connect IQ → QTRIG → Nastavení).
 
     Je to jediná cesta, jak do watch app dostat text — hodinky nemají
     klávesnici. Párovací kód se proto opíše sem, ne na displeji.

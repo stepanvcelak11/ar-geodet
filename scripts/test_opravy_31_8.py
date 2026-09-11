@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet - OPRAVY Z 31. 8. 2026 =======================================
+# ===== QTRIG - OPRAVY Z 31. 8. 2026 =======================================
 # Overuje v Chromiu ctyri veci, ktere se ten den menily:
 #
 #   A) STAVOVA BUBLINA je zase HUBENA PILULKA (js/stavovy-pruh.js).

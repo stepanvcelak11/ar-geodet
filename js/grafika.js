@@ -1,4 +1,4 @@
-// ===== AR Geodet - GRAFICKA CAST (vykreslovani) =====
+// ===== QTRIG - GRAFICKA CAST (vykreslovani) =====
 // AR znacky a sipka, mapa, kompas, modaly, nastaveni vzhledu, ovladani displeje.
 // Nacita se PO logika.js (pouziva jeji promenne a funkce).
 
@@ -414,7 +414,7 @@
             const denied = name === 'NotAllowedError' || name === 'SecurityError' || name === 'PermissionDeniedError';
             const busy = name === 'NotReadableError' || name === 'AbortError';
             let msg;
-            if (denied) msg = 'Aplikace nemá povolený přístup ke kameře, takže AR nejde spustit.<br><br><b>Jak kameru povolit:</b><br>• iPhone: Nastavení → aplikace <b>AR Geodet</b> (příp. Safari) → Kamera → Povolit.<br>• Android / Chrome: ikona zámku v adresním řádku → Oprávnění → Kamera.<br><br>Zatím je zapnutý režim <b>Mapa</b> — vše kromě AR funguje dál.';
+            if (denied) msg = 'Aplikace nemá povolený přístup ke kameře, takže AR nejde spustit.<br><br><b>Jak kameru povolit:</b><br>• iPhone: Nastavení → aplikace <b>QTRIG</b> (příp. Safari) → Kamera → Povolit.<br>• Android / Chrome: ikona zámku v adresním řádku → Oprávnění → Kamera.<br><br>Zatím je zapnutý režim <b>Mapa</b> — vše kromě AR funguje dál.';
             else if (busy) msg = 'Kameru právě drží jiná aplikace nebo ji systém nedokázal spustit. Zavři ostatní aplikace s kamerou a zkus to znovu.<br><br>Zatím je zapnutý režim <b>Mapa</b>.';
             else msg = 'Kameru se nepodařilo spustit (' + ((err && (err.message || err.name)) || 'neznámá chyba') + ').<br><br>Zatím je zapnutý režim <b>Mapa</b> — AR zkusíš znovu přepnutím zobrazení.';
             if (typeof viewMode !== 'undefined' && viewMode !== 'map') { viewMode = 'map'; applyViewMode(); try { if (typeof window.agSyncViewControls === 'function') window.agSyncViewControls(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:handleCameraError'); } }

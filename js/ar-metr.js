@@ -1,4 +1,4 @@
-// ===== AR Geodet — METR V KAMEŘE (ODPOJITELNÁ vrstva) ==========================
+// ===== QTRIG — METR V KAMEŘE (ODPOJITELNÁ vrstva) ==========================
 // Pravítko promítnuté do obrazu kamery. Telefon se drží PLOCHO, displejem nahoru,
 // takže zadní kamera míří kolmo dolů na zem. Tím je rovina země rovnoběžná se
 // senzorem — v obraze NENÍ perspektiva a měřítko je po celé ploše STEJNÉ. Celá

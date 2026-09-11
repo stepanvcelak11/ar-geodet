@@ -1,4 +1,4 @@
-// ===== AR Geodet — GEODETICKE TESTY (bezi v prohlizeci i bez nodu) =============
+// ===== QTRIG — GEODETICKE TESTY (bezi v prohlizeci i bez nodu) =============
 // Definice testu geodetickeho jadra (js/geo-core.js). Zadny framework — jen cista
 // funkce, kterou zavola bud tests.html (prohlizec), nebo scripts/run_js_tests.py
 // (Python + V8 pres py_mini_racer, protoze na vyvojarskem stroji neni node).

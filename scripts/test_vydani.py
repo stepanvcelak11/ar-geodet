@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# ===== AR Geodet - DELENE SESTAVENI: opravdu se ZAKLAD sestavi a nabehne? =====
+# ===== QTRIG - DELENE SESTAVENI: opravdu se ZAKLAD sestavi a nabehne? =====
 # Delici cara mezi vydanimi se da rozbit tise a nejhorsi zpusoby jsou dva:
 #
 #   1) Z balicku ZAKLADU vypadne soubor, na kterem stoji start. Mapa

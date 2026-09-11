@@ -1,4 +1,4 @@
-// ===== AR Geodet — PROHLÍDKOVÝ REŽIM: „co je kolem mě" (ODPOJITELNÁ vrstva) ====
+// ===== QTRIG — PROHLÍDKOVÝ REŽIM: „co je kolem mě" (ODPOJITELNÁ vrstva) ====
 // Neinvazivní vrstva ve stylu js/cadastre-vector.js: NEEDITUJE logika.js ani
 // grafika.js. Jen čte globály přes typeof-guardy, kreslí do vlastní <svg>
 // v #ar-overlay a registruje si vlastní dlaždici.

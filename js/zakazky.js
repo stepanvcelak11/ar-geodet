@@ -1,4 +1,4 @@
-// ===== AR Geodet - PREPINAC ZAKAZEK V NASTAVENI =====
+// ===== QTRIG - PREPINAC ZAKAZEK V NASTAVENI =====
 // Umozni prepnout aktivni zakazku primo z Nastaveni (drive jen na uvodni obrazovce -> nutny
 // restart appky). Prepnuti probehne ZA BEHU pres loadProjectSettings() (nacte body/nastaveni
 // nove zakazky a prekresli mapu i AR). Cte globaly projects/activeProjectId z logika.js.

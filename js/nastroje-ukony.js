@@ -1,4 +1,4 @@
-// ===== AR Geodet — NÁSTROJE JAKO SEZNAM ÚKONŮ (ODPOJITELNÁ vrstva) =============
+// ===== QTRIG — NÁSTROJE JAKO SEZNAM ÚKONŮ (ODPOJITELNÁ vrstva) =============
 // PROBLÉM: Nástroje měly 70 dlaždic v 6 kategoriích. Kategorie „Pomůcky" jich
 // nesla 23 a byla to skládka (Kalkulačka, Docházka, Počasí, Předpisy, Kniha jízd…),
 // dlaždice byly zatoulané (Kalibrace na ref. bod patří k AR, Rajón není kalibrace)

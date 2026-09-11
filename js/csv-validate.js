@@ -1,4 +1,4 @@
-// ===== AR Geodet — VALIDACE IMPORTU CSV (kontrola rozsahu S-JTSK) ================
+// ===== QTRIG — VALIDACE IMPORTU CSV (kontrola rozsahu S-JTSK) ================
 // Neinvazivní, ODPOJITELNÁ vrstva ve stylu vylepseni.js: obaluje globální funkci
 // importu bodů za běhu, NEEDITUJE logika.js. Načítá se jako jeden z posledních skriptů.
 //

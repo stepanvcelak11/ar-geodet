@@ -1,4 +1,4 @@
-// ===== AR Geodet — DVA TERÉNNÍ MOTIVY + NOČNÍ AUTOMATIKA (ODPOJITELNÁ vrstva) ==
+// ===== QTRIG — DVA TERÉNNÍ MOTIVY + NOČNÍ AUTOMATIKA (ODPOJITELNÁ vrstva) ==
 // Neinvazivní. NEEDITUJE js/grafika.js ani css/tokens.css — jen:
 //   • doplní dvě položky do <select id="v-theme"> (Nastavení → Vzhled),
 //   • obalí globální previewTheme() z grafika.js (aby uměla naše třídy sundat),

@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "AR Geodet",
-  "short_name": "Geodet",
-  "description": "Terénní pomůcka pro geodety: vyhledávání bodů bodového pole v rozšířené realitě (AR), mapa, vytyčování, měření a katastr — vše offline v telefonu.",
+  "name": "QTRIG",
+  "short_name": "QTRIG",
+  "description": "QTRIG — AR vytyčování. Terénní pomůcka pro geodety: vyhledávání bodů bodového pole v rozšířené realitě (AR), mapa, vytyčování, měření a katastr — vše offline v telefonu.",
   "lang": "cs",
   "dir": "ltr",
   "start_url": "./index.html",

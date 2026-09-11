@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# ===== AR Geodet - NOVE PRIHLASOVANI: ucty, prostory, tarif ===================
+# ===== QTRIG - NOVE PRIHLASOVANI: ucty, prostory, tarif ===================
 # Model rozhodnuty 6. 9. 2026: HOST SE RUSI (bez profilu se do appky nedostane
 # nikdo), identita je UCET s vlastnim kodem, misto kde clovek pracuje je PROSTOR
 # a TARIF DRZI UCET, ne prostor.

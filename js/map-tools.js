@@ -1,4 +1,4 @@
-// ===== AR Geodet — MAPA A VRSTVY: chování panelu (ODPOJITELNÁ vrstva) ===========
+// ===== QTRIG — MAPA A VRSTVY: chování panelu (ODPOJITELNÁ vrstva) ===========
 // Doplněk k markupu #map-controls v index.html a bloku „MAPA A VRSTVY" ve
 // style.css. Nástroje mapy byly dřív 6 bezejmenných koleček schovaných ve
 // „Více → Nástroje mapy" — nešlo poznat, co která ikona dělá ani co je zapnuté.

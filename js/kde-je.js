@@ -1,4 +1,4 @@
-// ===== AR Geodet — KDE MÁM AUTO / BÁZI / STATIV (ODPOJITELNÁ vrstva) ============
+// ===== QTRIG — KDE MÁM AUTO / BÁZI / STATIV (ODPOJITELNÁ vrstva) ============
 // Každodenní „kde jsem zaparkoval", ale pro geodetické vybavení. Jedním tapem
 // uloží aktuální polohu pod štítkem (Auto, Báze, Stativ, Materiál, vlastní) a pak
 // k ní naviguje: živá vzdálenost, azimut a ŠIPKA otočená podle kompasu telefonu.

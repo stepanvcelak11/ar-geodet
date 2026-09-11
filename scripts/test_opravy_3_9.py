@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet - OPRAVY Z 3. 9. 2026 (v272) ================================
+# ===== QTRIG - OPRAVY Z 3. 9. 2026 (v272) ================================
 # Ctyri vady, ktere nasla prohlidka appky spustenim. Vsechny maji spolecne to, ze
 # appka delala neco JINEHO, nez slibovala uzivateli - a zadna kontrola v CI je
 # chytit nemohla, protoze vznikaji az slozenim modulu za behu.

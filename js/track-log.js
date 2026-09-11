@@ -1,4 +1,4 @@
-// ===== AR Geodet — STOPA TRASY / BREADCRUMB (ODPOJITELNÁ vrstva) ===============
+// ===== QTRIG — STOPA TRASY / BREADCRUMB (ODPOJITELNÁ vrstva) ===============
 // Neinvazivní vrstva. NEEDITUJE logika.js ani grafika.js — čte userLat/userLng,
 // kreslí čáru na existující mapu (L/map) a ukládá stopu per zakázka pod klíčem
 // 'agTrackLog' (přes setStoredData → prefix zakázkou). Záznam kudy jsem šel:
@@ -105,7 +105,7 @@
                 (p.t ? '<time>' + new Date(p.t).toISOString() + '</time>' : '') + '</trkpt>';
         }).join('\n');
         var gpx = '<?xml version="1.0" encoding="UTF-8"?>\n' +
-            '<gpx version="1.1" creator="AR Geodet" xmlns="http://www.topografix.com/GPX/1/1">\n' +
+            '<gpx version="1.1" creator="QTRIG" xmlns="http://www.topografix.com/GPX/1/1">\n' +
             ' <trk><name>Stopa ' + proj + '</name><trkseg>\n' + pts + '\n </trkseg></trk>\n</gpx>\n';
         try {
             var blob = new Blob([gpx], { type: 'application/gpx+xml;charset=utf-8' });

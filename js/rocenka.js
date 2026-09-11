@@ -1,4 +1,4 @@
-// ===== AR Geodet — ROČENKA: rok a měsíc v číslech (ODPOJITELNÁ vrstva) ========
+// ===== QTRIG — ROČENKA: rok a měsíc v číslech (ODPOJITELNÁ vrstva) ========
 // PROČ TO EXISTUJE: appka o uživateli ví spoustu věcí — kolik nachodil, kolik
 // bodů změřil, kde všude byl — a nikdy mu je neukáže jinak než jako dnešek.
 // Tohle je jediná obrazovka, kterou si člověk zapne i doma na gauči, protože

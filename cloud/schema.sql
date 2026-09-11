@@ -1,4 +1,4 @@
--- AR Geodet — firemní cloud (Cloudflare D1)
+-- QTRIG — firemní cloud (Cloudflare D1)
 -- Schéma se aplikuje příkazem: wrangler d1 execute ar-geodet-db --remote --file=cloud/schema.sql
 -- (nebo přes Claude/Cloudflare dashboard). Všechny příkazy jsou idempotentní.
 

@@ -1,4 +1,4 @@
-// ===== AR Geodet — PŘEDPISY / PRÁVNÍ TAHÁK (odpojitelná vrstva) ===============
+// ===== QTRIG — PŘEDPISY / PRÁVNÍ TAHÁK (odpojitelná vrstva) ===============
 // Offline vyhledávatelný tahák konkrétních hodnot (mezní odchylky, kódy kvality…)
 // s citací a odkazem na plné znění. Neinvazivní vrstva ve stylu zpravodaj.js:
 // NEEDITUJE logika.js ani grafika.js.

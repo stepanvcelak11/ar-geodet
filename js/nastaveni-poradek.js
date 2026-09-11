@@ -1,4 +1,4 @@
-// ===== AR Geodet — POŘÁDEK V NASTAVENÍ (ODPOJITELNÁ VRSTVA) ======================
+// ===== QTRIG — POŘÁDEK V NASTAVENÍ (ODPOJITELNÁ VRSTVA) ======================
 // PROBLÉM: záložky Nastavení jsou v index.html poskládané do sekcí (.set-h), jenže
 // PŮLKA voleb do nich přiletí až za běhu z modulů — a ty skoro všechny končí
 // `tab.appendChild(...)`. Výsledek: přepínače spadnou AŽ POD sbalené „Pokročilé",

@@ -1,4 +1,4 @@
-// ===== AR Geodet — ZÁVADY / HLÁŠENÍ PORUCH V TERÉNU (ODPOJITELNÁ vrstva) ========
+// ===== QTRIG — ZÁVADY / HLÁŠENÍ PORUCH V TERÉNU (ODPOJITELNÁ vrstva) ========
 // Neinvazivní vrstva ve stylu js/utility-networks.js: NEEDITUJE logika.js ani
 // grafika.js. Přidá nástroj „Závady / hlášení":
 //
@@ -714,7 +714,7 @@
                 + '</style></head><body>'
                 + '<button onclick="window.print()" style="padding:8px 16px;margin-bottom:14px;">🖨 Tisk / Uložit PDF</button>'
                 + '<h1>Protokol závad — ' + esc(projName) + '</h1>'
-                + '<p class="sub">Vygenerováno ' + fmtTs(Date.now()) + ' · AR Geodet · poloha dle GPS telefonu (orientační)</p>';
+                + '<p class="sub">Vygenerováno ' + fmtTs(Date.now()) + ' · QTRIG · poloha dle GPS telefonu (orientační)</p>';
             rows.forEach(function (z, i) {
                 var sv = SEV[z.sev] || SEV[1];
                 var sj = toSJTSK(z.lat, z.lng);

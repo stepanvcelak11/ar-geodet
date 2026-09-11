@@ -1,4 +1,4 @@
-// ===== AR Geodet — JEDNODOTYKOVÁ KALIBRACE SEVERU (ODPOJITELNÁ vrstva) =========
+// ===== QTRIG — JEDNODOTYKOVÁ KALIBRACE SEVERU (ODPOJITELNÁ vrstva) =========
 // Neinvazivní vrstva. NEEDITUJE logika.js ani grafika.js. Povyšuje „srovnání
 // severu podle známého bodu" (dnes schované v Nastavení kompasu / mezi nástroji)
 // na PROMINENTNÍ jednodotykovou akci přímo v AR:

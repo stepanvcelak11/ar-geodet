@@ -1,4 +1,4 @@
-// ===== AR Geodet — SEVER PODLE SLUNCE (ODPOJITELNÁ vrstva) =====================
+// ===== QTRIG — SEVER PODLE SLUNCE (ODPOJITELNÁ vrstva) =====================
 // Neinvazivní. NEEDITUJE logika.js, grafika.js ani js/kompas-check.js — jen čte
 // globály (currentHeading, userLat/userLng, userHeadingOffset) a volá TÉHOŽ
 // nudgeHeadingOffset() z grafika.js, který používá „Srovnat sever podle bodu".

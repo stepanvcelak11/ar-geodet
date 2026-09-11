@@ -1,4 +1,4 @@
-// ===== AR Geodet — SKRYTÉ BODY: přehled a obnova (ODPOJITELNÁ) ==================
+// ===== QTRIG — SKRYTÉ BODY: přehled a obnova (ODPOJITELNÁ) ==================
 // Neinvazivní vrstva ve stylu field-tools modulů: NEEDITUJE logika.js ani
 // grafika.js, vše čte přes globály s typeof-guardy.
 //

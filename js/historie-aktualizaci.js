@@ -1,4 +1,4 @@
-// ===== AR Geodet — HISTORIE AKTUALIZACÍ (odpojitelná vrstva) ====================
+// ===== QTRIG — HISTORIE AKTUALIZACÍ (odpojitelná vrstva) ====================
 // Prohlížitelný soupis toho, co se v appce kdy změnilo nebo přibylo. Otevírá se
 // z „Více" a z Nastavení → Údržba → Aplikace. Je to čtení pro zajímavost, ne
 // nástroj do terénu — proto nemá dlaždici v Nástrojích ani sloveso v registru.

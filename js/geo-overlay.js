@@ -1,4 +1,4 @@
-// ===== AR Geodet — VLASTNÍ GEOREFERENCOVANÝ PODKLAD (ODPOJITELNÁ vrstva) =======
+// ===== QTRIG — VLASTNÍ GEOREFERENCOVANÝ PODKLAD (ODPOJITELNÁ vrstva) =======
 // Neinvazivní vrstva. NEEDITUJE logika.js ani grafika.js. Umožní naimportovat
 // vlastní rastr (plán / situaci / sken výkresu), GEOREFERENCOVAT ho na ≥2
 // vlícovací body a položit ho jako WARPED (zkreslenou) vrstvu přes mapu —

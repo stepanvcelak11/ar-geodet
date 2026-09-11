@@ -1,4 +1,4 @@
-// ===== AR Geodet - UNDO U MAZANI =====
+// ===== QTRIG - UNDO U MAZANI =====
 // Po smazani zakazky / vlastniho bodu nabidne "Vratit zpet". Neinvazivni: obali existujici
 // globalni funkce (deleteProject, deleteCustomPoint) z logika.js bez zasahu do jejich vnitrku.
 // Princip: snapshot localStorage PRED akci; kdyz se neco zmenilo, ukaze se toast s undo.

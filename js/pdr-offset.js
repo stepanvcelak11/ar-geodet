@@ -1,4 +1,4 @@
-// ===== AR Geodet — KROKOVÝ OFFSET / PDR (A4, ODPOJITELNÁ vrstva) ===============
+// ===== QTRIG — KROKOVÝ OFFSET / PDR (A4, ODPOJITELNÁ vrstva) ===============
 // Na 10–30 m je relativní vektor z kroků + kompasu přesnější než rozdíl dvou
 // samostatných GPS měření (jejich chyby se nesčítají příznivě). Bod A změř
 // pořádně (Brutální GPS / import), k bodu B dojdi pěšky: kroky počítá

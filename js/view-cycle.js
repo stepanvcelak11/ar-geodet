@@ -1,4 +1,4 @@
-// ===== AR Geodet — PŘEPÍNAČ ZOBRAZENÍ NA JEDEN TAP (ODPOJITELNÁ) ================
+// ===== QTRIG — PŘEPÍNAČ ZOBRAZENÍ NA JEDEN TAP (ODPOJITELNÁ) ================
 // Malý plovoucí „KROUŽEK ZOBRAZENÍ" vpravo dole: každé klepnutí přepne zobrazení
 // dokola AR → Split → Mapa → AR… Na rozdíl od segmentu v menu „Více" (2 tapy) je
 // po ruce pořád — i v celoobrazovkovém AR nebo Mapě, kde dělicí příčka není.

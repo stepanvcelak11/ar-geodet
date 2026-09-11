@@ -1,4 +1,4 @@
-// ===== AR Geodet — REŽIM PRÁCE NA ÚVODNÍ OBRAZOVCE (ODPOJITELNÁ vrstva) ========
+// ===== QTRIG — REŽIM PRÁCE NA ÚVODNÍ OBRAZOVCE (ODPOJITELNÁ vrstva) ========
 // Neinvazivní vrstva ve stylu js/pokracovat.js: NEEDITUJE logika.js, grafika.js
 // ani tools-simple.js — jen si na úvodní obrazovku přidá kartu a přepisuje TÉŽ
 // klíče v localStorage, které už čte js/tools-simple.js.

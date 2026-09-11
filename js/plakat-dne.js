@@ -1,4 +1,4 @@
-// ===== AR Geodet — PLAKÁT DNE: den jako obrázek (ODPOJITELNÁ vrstva) ===========
+// ===== QTRIG — PLAKÁT DNE: den jako obrázek (ODPOJITELNÁ vrstva) ===========
 // Neinvazivní vrstva ve stylu js/denik-dne.js: NEEDITUJE logika.js ani grafika.js,
 // jen čte data, která už appka stejně sbírá, a vykresluje je na <canvas>.
 //
@@ -519,7 +519,7 @@
         g.beginPath(); g.moveTo(M, H - 96); g.lineTo(W - M, H - 96); g.stroke();
         g.fillStyle = C.dim;
         g.font = '500 24px system-ui, -apple-system, "Segoe UI", sans-serif';
-        g.fillText('AR Geodet · stopa a výškové metry jsou z mobilní GPS, orientačně', M, H - 52);
+        g.fillText('QTRIG · stopa a výškové metry jsou z mobilní GPS, orientačně', M, H - 52);
         g.textAlign = 'right';
         g.fillStyle = C.accent;
         g.font = '700 24px system-ui, -apple-system, "Segoe UI", sans-serif';
@@ -631,7 +631,7 @@
             var file = null;
             try { file = new File([b], name, { type: 'image/png' }); } catch (e) { file = null; }
             if (share && file && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
-                navigator.share({ files: [file], title: 'Deník dne — AR Geodet' })['catch'](function () { /* uživatel zrušil */ });
+                navigator.share({ files: [file], title: 'Deník dne — QTRIG' })['catch'](function () { /* uživatel zrušil */ });
                 return;
             }
             // Bez sdílení souborů: stažení. Na starším iOS `download` nefunguje,

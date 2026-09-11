@@ -1,5 +1,5 @@
 ﻿# =============================================================================
-# AR Geodet — stažení písem z Google Fonts do repa + generování css/fonts.css
+# QTRIG — stažení písem z Google Fonts do repa + generování css/fonts.css
 #
 # PROČ: appka je offline-first PWA pro terén. Písma se dřív tahala z
 # fonts.googleapis.com <link>em, který je RENDER-BLOKUJÍCÍ (prohlížeč nevykreslí
@@ -81,7 +81,7 @@ foreach ($fam in @("Inter", "JetBrains Mono", "Sora")) {
 
 $header = @'
 /* =========================================================================
-   AR Geodet — PÍSMA NASAZENÁ LOKÁLNĚ (generováno, needituj ručně)
+   QTRIG — PÍSMA NASAZENÁ LOKÁLNĚ (generováno, needituj ručně)
 
    PROČ MÍSTNĚ: appka je offline-first PWA pro terén, ale písma se tahala
    z fonts.googleapis.com. Takový <link> je RENDER-BLOKUJÍCÍ — prohlížeč čeká

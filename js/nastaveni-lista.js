@@ -1,4 +1,4 @@
-// ===== AR Geodet — BOČNÍ VYJÍŽDĚCÍ REJSTŘÍK NASTAVENÍ (návrh L1, ODPOJITELNÁ) =====
+// ===== QTRIG — BOČNÍ VYJÍŽDĚCÍ REJSTŘÍK NASTAVENÍ (návrh L1, ODPOJITELNÁ) =====
 // PROBLÉM (nahlášeno 8. 8. 2026): „nastavení nevypadá moc dobře… jednotlivé sekce
 // jak jsou rolovací, tak se mi ztrácí." Nastavení má pět záložek a pod nimi dlouhé
 // rolující sekce. Jakmile se začne rolovat, nadpis sekce uteče nahoru a zůstane jen

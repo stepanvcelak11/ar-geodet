@@ -1,4 +1,4 @@
-// ===== AR Geodet — GNSS PŘEDPOVĚĎ „počasí pro GPS" (ODPOJITELNÁ vrstva) ========
+// ===== QTRIG — GNSS PŘEDPOVĚĎ „počasí pro GPS" (ODPOJITELNÁ vrstva) ========
 // Hodinová předpověď podmínek pro GNSS měření na dnešek/zítřek — jako předpověď
 // počasí, ale pro družice:
 //   • GEOMETRIE: PDOP + počet družic po hodinách z drah TLE (SGP4, satellite.js).

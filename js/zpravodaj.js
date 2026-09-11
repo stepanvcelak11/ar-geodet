@@ -1,4 +1,4 @@
-// ===== AR Geodet — GEO ZPRAVODAJ (odpojitelná vrstva) ==========================
+// ===== QTRIG — GEO ZPRAVODAJ (odpojitelná vrstva) ==========================
 // Denní geodetický zpravodaj. Neinvazivní vrstva ve stylu vylepseni.js: NEEDITUJE
 // logika.js ani grafika.js, vše si staví a obsluhuje sama.
 //

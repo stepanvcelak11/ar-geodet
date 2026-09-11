@@ -1,4 +1,4 @@
-// ===== AR Geodet — HROMADNÝ IMPORT BODŮ Z KATASTRU TAHEM PO MAPĚ ================
+// ===== QTRIG — HROMADNÝ IMPORT BODŮ Z KATASTRU TAHEM PO MAPĚ ================
 // Neinvazivní, ODPOJITELNÁ vrstva ve stylu js/vylepseni.js: NEEDITUJE logika.js
 // ani grafika.js, vše čte přes globály s typeof-guardy a obaluje try/catch.
 // Načítá se jako jeden z POSLEDNÍCH skriptů.

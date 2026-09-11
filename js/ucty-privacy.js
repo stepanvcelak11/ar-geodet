@@ -1,4 +1,4 @@
-// ===== AR Geodet — SOUKROMÍ ADMINA PŘED VEDENÍM (ODPOJITELNÁ vrstva) ===========
+// ===== QTRIG — SOUKROMÍ ADMINA PŘED VEDENÍM (ODPOJITELNÁ vrstva) ===========
 // Na přání: „ať člověk určený jako vedení nevidí, co dělá admin — nevidí jeho aktivitu."
 //
 // V administraci firmy jsou dvě sekce, které ukazují, kdo co kdy dělal:

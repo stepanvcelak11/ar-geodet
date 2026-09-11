@@ -1,4 +1,4 @@
-// ===== AR Geodet — STABILITA KOMPASU (UI/UX vrstva) ============================
+// ===== QTRIG — STABILITA KOMPASU (UI/UX vrstva) ============================
 // Neinvazivní, ODPOJITELNÁ vrstva ve stylu js/vylepseni.js: čte globál currentHeading
 // za běhu, NEEDITUJE logika.js ani grafika.js.
 //

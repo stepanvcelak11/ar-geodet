@@ -1,4 +1,4 @@
-// ===== AR Geodet — CÍL NAVIGACE: v mapě a na hraně displeje (ODPOJITELNÁ vrstva) =====
+// ===== QTRIG — CÍL NAVIGACE: v mapě a na hraně displeje (ODPOJITELNÁ vrstva) =====
 // Řeší dvě díry v dohledávání bodu:
 //   ③ Cíl (highlightedPointId) vypadal v mapě úplně stejně jako každý jiný bod a
 //     nevedla k němu žádná čára — po odzoomování se ztratil. Teď má zlatou pulzující

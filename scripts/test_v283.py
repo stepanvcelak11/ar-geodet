@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet — KONTROLA ZMEN v283 ==========================================
+# ===== QTRIG — KONTROLA ZMEN v283 ==========================================
 # Zadani z 8. 9. 2026 (mluvene). Kazdy bod se overuje SPUSTENIM appky v prohlizeci,
 # ne ctenim kodu — vetsina veci ze zadani je o tom, co uzivatel VIDI.
 #

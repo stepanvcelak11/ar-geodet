@@ -1,4 +1,4 @@
-// ===== AR Geodet — PROFILY KALIBRACE (ODPOJITELNÁ vrstva) =======================
+// ===== QTRIG — PROFILY KALIBRACE (ODPOJITELNÁ vrstva) =======================
 // Neinvazivní vrstva ve stylu js/vylepseni.js: NEEDITUJE logika.js ani grafika.js,
 // jen za běhu vkládá UI do existujícího modálu Kompasu. Načítá se jako poslední skript.
 //

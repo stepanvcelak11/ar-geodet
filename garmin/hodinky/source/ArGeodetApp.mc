@@ -2,7 +2,7 @@ using Toybox.Application;
 using Toybox.System;
 using Toybox.WatchUi;
 
-//! AR Geodet — hodinky.
+//! QTRIG — hodinky.
 //!
 //! Zjednodušený pomocník k mobilní aplikaci. Umí čtyři věci a nic víc:
 //!   • mapku okolních bodů kolem sebe

@@ -1,5 +1,5 @@
 // ============================================================================
-// AR Geodet — firemní cloud API (Cloudflare Worker + D1)
+// QTRIG — firemní cloud API (Cloudflare Worker + D1)
 // ----------------------------------------------------------------------------
 // Backend pro přihlašování mezi zařízeními: firmy, uživatelé, role, oprávnění
 // a sběr dat o užívání ze všech mobilů. Free plán Workers (100k požadavků/den)

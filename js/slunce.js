@@ -1,4 +1,4 @@
-// ===== AR Geodet — SLUNCE A SVĚTLO (ODPOJITELNÁ vrstva) =========================
+// ===== QTRIG — SLUNCE A SVĚTLO (ODPOJITELNÁ vrstva) =========================
 // Každodenní „kdy zapadá slunce", ale v geodetické verzi. Vše 100% OFFLINE
 // (výpočet NOAA, žádné API):
 //   • Východ / západ / pravé polodne + občanský soumrak (do kdy je vidět na náčrt).

@@ -1,4 +1,4 @@
-# AR Geodet — firemní cloud (Cloudflare)
+# QTRIG — firemní cloud (Cloudflare)
 
 Backend pro přihlašování mezi zařízeními: firmy, uživatelé, role, oprávnění,
 sběr užívání. Běží na **Cloudflare Workers + D1** (free plán: 100 000

@@ -1,4 +1,4 @@
-// ===== AR Geodet — JAK MOC VĚŘIT ČÍSLU: jeden zdroj pravdy (ODPOJITELNÁ vrstva) ===
+// ===== QTRIG — JAK MOC VĚŘIT ČÍSLU: jeden zdroj pravdy (ODPOJITELNÁ vrstva) ===
 // PROBLÉM, KTERÝ TENHLE SOUBOR ŘEŠÍ: appka o TÉMŽE BODU umí tvrdit dvě různé
 // věci, protože si každý modul zavedl vlastní stupnici. Dnešní stav v repu:
 //     js/dvoji-mereni.js   0,50 / 1,50 / 3,00 m   (na rozdílu dvou určení)

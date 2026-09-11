@@ -1,4 +1,4 @@
-/* ===== AR Geodet — ROČENKA (k js/rocenka.js a js/odznaky.js) =================
+/* ===== QTRIG — ROČENKA (k js/rocenka.js a js/odznaky.js) =================
    ⚠ NENÍ v <link> v index.html — připojuje si ho modul přes AG.cssFile(), aby
    se nepočítal do rozpočtu startu (scripts/check_start_budget.py). Proto MUSÍ
    být v EXTRA_ASSETS v scripts/gen_sw_assets.py, jinak offline zmizí styly.

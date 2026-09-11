@@ -1,4 +1,4 @@
-/* ===== AR Geodet — BALÍČEK ZAKÁZKY (odpojitelná vrstva) =======================
+/* ===== QTRIG — BALÍČEK ZAKÁZKY (odpojitelná vrstva) =======================
    Drží se design-tokenů ze style.css (--accent, --glass-border, --text-color,
    --text-muted, --warning, --danger, --r-md). Načítá se AŽ ZA style.css, takže jen
    doplňuje. Odstranění: smaž css/balicek-zakazky.css + js/balicek-zakazky.js

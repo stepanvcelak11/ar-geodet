@@ -1,5 +1,5 @@
 // ============================================================================
-// AR Geodet — FIREMNÍ REŽIM: ÚČTY, ROLE A PŘIHLAŠOVÁNÍ (ODPOJITELNÁ vrstva)
+// QTRIG — FIREMNÍ REŽIM: ÚČTY, ROLE A PŘIHLAŠOVÁNÍ (ODPOJITELNÁ vrstva)
 // ----------------------------------------------------------------------------
 // DVA režimy firmy:
 //   LOKÁLNÍ — účty žijí jen na tomto zařízení (bez serveru); PINy SHA-256+sůl
@@ -1279,7 +1279,7 @@
     var BIO_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 10v1M15 10v1M9.5 15c.8.7 1.6 1 2.5 1s1.7-.3 2.5-1"/></svg>';
     function brandHtml() {
         return '<div class="agl-brand"><span class="agl-mark"></span>' +
-            '<span class="agl-logo">AR <b>Geodet</b></span></div>';
+            '<span class="agl-logo"><b>Q</b>TRIG</span></div>';
     }
     // Pozadí „Terén" (vybraný návrh 1): vrstevnice + živé hodnoty (návrh ② ze
     // zpětné vazby 27.7. — navrhy-uvod-pozadi.html). Dřív tu byla měřická čárka
@@ -1467,7 +1467,7 @@
             }
             var img = document.createElement('img');
             img.src = 'icon.svg';
-            img.alt = 'AR Geodet';
+            img.alt = 'QTRIG';
             slot.appendChild(img);
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:fillMark'); }
     }
@@ -1900,7 +1900,7 @@
         return navigator.credentials.create({
             publicKey: {
                 challenge: rndBuf(32),
-                rp: { name: 'AR Geodet' },
+                rp: { name: 'QTRIG' },
                 user: { id: strBuf('ag:' + u.id), name: u.name || u.id, displayName: u.name || u.id },
                 pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
                 authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'preferred' },
@@ -2902,7 +2902,7 @@
                                 done({ code: (c[0] || '').toUpperCase(), name: c[1] || '', api: c[2] || '' });
                                 return;
                             }
-                            st.textContent = 'Tohle není přihlašovací QR AR Geodet.';
+                            st.textContent = 'Tohle není přihlašovací QR QTRIG.';
                         }
                     }
                     raf = requestAnimationFrame(tick);

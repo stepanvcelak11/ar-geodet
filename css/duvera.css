@@ -1,4 +1,4 @@
-/* ===== AR Geodet — JAK MOC VĚŘIT ČÍSLU: jednotný vzhled (k js/duvera.js) =====
+/* ===== QTRIG — JAK MOC VĚŘIT ČÍSLU: jednotný vzhled (k js/duvera.js) =====
    Barvy se berou z css/tokens.css, takže světlý režim funguje bez další práce.
    ⚠ Tenhle soubor NENÍ v <link> v index.html — připojuje si ho js/duvera.js přes
    AG.cssFile(), aby se nepočítal do rozpočtu startu. Proto MUSÍ být uvedený

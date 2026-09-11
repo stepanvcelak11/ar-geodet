@@ -1,5 +1,5 @@
 // ============================================================================
-// AR Geodet — ŽURNÁL OPERACÍ + PROVENIENCE BODU (#5)
+// QTRIG — ŽURNÁL OPERACÍ + PROVENIENCE BODU (#5)
 // ----------------------------------------------------------------------------
 // Append-only záznam každé změny bodů (add / edit / delete) do VLASTNÍ IndexedDB
 // (argeodet-journal), aby se nemuselo sahat do schématu hlavní DB 'argeodet' (v1).

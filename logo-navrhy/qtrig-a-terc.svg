@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- A — TERC Q: ctyri oblouky terce (S/Z/S/V), ocasek Q vyjizdi mezerou na jihovychod -->
+  <defs>
+    <linearGradient id="a-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1c222a"/><stop offset="1" stop-color="#0c1014"/>
+    </linearGradient>
+    <linearGradient id="a-em" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5ce0a8"/><stop offset="1" stop-color="#2a945f"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#a-bg)"/>
+  <g transform="translate(8,8)">
+
+  <g fill="none" stroke="url(#a-em)" stroke-width="42" stroke-linecap="butt">
+    <path d="M311.5 323.4 A108 108 0 0 1 184.5 323.4"/>
+    <path d="M160.6 299.5 A108 108 0 0 1 160.6 172.5"/>
+    <path d="M184.5 148.6 A108 108 0 0 1 311.5 148.6"/>
+    <path d="M335.4 172.5 A108 108 0 0 1 335.4 299.5"/>
+  </g>
+
+  <!-- ocasek Q -->
+  <line x1="280" y1="268" x2="355" y2="343" stroke="url(#a-em)" stroke-width="38" stroke-linecap="round"/>
+
+  <!-- hledany bod -->
+  <circle cx="248" cy="236" r="20" fill="#ffffff"/>
+  </g>
+</svg>

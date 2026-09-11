@@ -1,4 +1,4 @@
-// ===== AR Geodet — POKRAČOVAT, KDE JSEM SKONČIL (ODPOJITELNÁ) =====
+// ===== QTRIG — POKRAČOVAT, KDE JSEM SKONČIL (ODPOJITELNÁ) =====
 // Denní rutina: otevřít appku → vybrat zakázku → Nástroje → najít dlaždici.
 // Tenhle modul si pamatuje POSLEDNÍ použitý nástroj (klepnutí na dlaždici v modálu
 // Nástroje) včetně zakázky a hned po startu nabídne „Pokračovat: <nástroj>" —

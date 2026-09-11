@@ -1,4 +1,4 @@
-// ===== AR Geodet - TACHYMETRIE / NÁČRT V TERÉNU =====
+// ===== QTRIG - TACHYMETRIE / NÁČRT V TERÉNU =====
 // EXPERIMENTÁLNÍ a ZÁMĚRNĚ SAMOSTATNÉ: digitalni nahrada rucniho nacrtu. Body se kresli ve
 // spravne poloze nad volitelnym podkladem (klasicka mapa OSM / ortofoto CUZK / bez podkladu),
 // spojuji se carami ruznych typu a lze vkladat textove popisky (napr. "kamen" uvnitr plochy).

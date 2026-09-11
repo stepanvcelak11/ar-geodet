@@ -1,4 +1,4 @@
-// ===== AR Geodet — PREDIKCE GNSS SIGNÁLU (skyplot + elevační maska) ==============
+// ===== QTRIG — PREDIKCE GNSS SIGNÁLU (skyplot + elevační maska) ==============
 // Neinvazivní, ODPOJITELNÁ vrstva ve stylu vylepseni.js: NEEDITUJE logika.js ani
 // grafika.js ani satelity.js. Načítá se jako jeden z posledních skriptů.
 //

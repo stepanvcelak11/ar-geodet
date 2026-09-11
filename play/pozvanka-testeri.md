@@ -18,11 +18,11 @@ Než rozešleš: v `ODKAZ` níže nahraď **opt-in odkaz** z Play Console
 
 ## A) Dlouhá verze — e-mail / Messenger
 
-> **Předmět: Prosba o 5 minut — testuju appku AR Geodet v Google Play**
+> **Předmět: Prosba o 5 minut — testuju appku QTRIG v Google Play**
 >
 > Ahoj,
 >
-> dodělávám appku **AR Geodet** — terénní pomůcka pro geodety: hledání bodů
+> dodělávám appku **QTRIG** — terénní pomůcka pro geodety: hledání bodů
 > bodového pole v rozšířené realitě, vytyčování osy se staničením, katastr,
 > měření a export souřadnic. Všechno funguje i offline.
 >
@@ -80,7 +80,7 @@ Přístup k aplikaci* musí být vyplněný demo účet, jinak vydání zamítno
 
 ## C) Připomínka po pár dnech
 
-> Ahoj, díky za přihlášení do testu AR Geodeta. Jen prosba: **appku ještě
+> Ahoj, díky za přihlášení do testu QTRIGa. Jen prosba: **appku ještě
 > ~10 dní nemaž** — Google počítá nepřetržitou dobu a když někdo vypadne, začíná
 > se od nuly. Až to doběhne, dám vědět. Díky!
 

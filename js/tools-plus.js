@@ -1,4 +1,4 @@
-// ===== AR Geodet — NÁSTROJE PLUS: nápověda „?" + oblíbené nahoře (ODPOJITELNÁ) ====
+// ===== QTRIG — NÁSTROJE PLUS: nápověda „?" + oblíbené nahoře (ODPOJITELNÁ) ====
 // Neinvazivní vrstva ve stylu js/field-tools.js: NEEDITUJE logika.js ani grafika.js.
 // Co dělá v modálu „Nástroje" (#tools-modal):
 //   1) Každá dlaždice dostane badge „?" — klepnutí otevře krátký návod k nástroji

@@ -1,4 +1,4 @@
-// ===== AR Geodet — PŘIPOMÍNKY EPOCH MONITORINGU (ODPOJITELNÁ vrstva) ===========
+// ===== QTRIG — PŘIPOMÍNKY EPOCH MONITORINGU (ODPOJITELNÁ vrstva) ===========
 // Doplněk nástroje Epochy (js/epochy.js): u každého sledovaného bodu jde nastavit
 // interval přeměření (7/14/30 dní nebo vlastní). Appka pak po startu ukáže lištu
 // „Monitoring: N bodů po termínu přeměření — Otevřít / Později" a na dlaždici
@@ -294,13 +294,13 @@
             // v PWA (Android) funguje jen showNotification přes service worker
             if (navigator.serviceWorker && navigator.serviceWorker.ready) {
                 navigator.serviceWorker.ready.then(function (reg) {
-                    if (reg && typeof reg.showNotification === 'function') return reg.showNotification('AR Geodet — monitoring', opts);
+                    if (reg && typeof reg.showNotification === 'function') return reg.showNotification('QTRIG — monitoring', opts);
                     throw new Error('no showNotification');
                 })['catch'](function () {
-                    try { new Notification('AR Geodet — monitoring', opts); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy-pripominky:tryNotify'); }
+                    try { new Notification('QTRIG — monitoring', opts); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy-pripominky:tryNotify'); }
                 });
             } else {
-                new Notification('AR Geodet — monitoring', opts);
+                new Notification('QTRIG — monitoring', opts);
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy-pripominky:tryNotify'); }
     }

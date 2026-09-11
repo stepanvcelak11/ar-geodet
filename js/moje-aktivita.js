@@ -1,4 +1,4 @@
-// ===== AR Geodet — MOJE AKTIVITA (ODPOJITELNÁ vrstva) ==========================
+// ===== QTRIG — MOJE AKTIVITA (ODPOJITELNÁ vrstva) ==========================
 // Vlastní statistika práce v terénu — pro zájem, pro pocit z odvedeného dne
 // a hlavně jako PODKLAD PRO ÚKLID: appka má přes 60 nástrojů a nikdo nepoužívá
 // všechny. Když člověk černé na bílém vidí, že do dvou z nich za měsíc nešáhl,

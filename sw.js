@@ -1,4 +1,4 @@
-// AR Geodet â€” Service Worker (verze = SHELL_CACHE niz; TENTO komentar needituj)
+// QTRIG â€” Service Worker (verze = SHELL_CACHE niz; TENTO komentar needituj)
 // Strategie: vlastni kod = CACHE-FIRST (verzovano bumpem SHELL_CACHE + update banner),
 //            index.html (navigace) = stale-while-revalidate (pojistka),
 //            CDN/dlazdice = NEJDRIV CACHE.
@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v283';   // Jednoduchy rezim: appka za dvema tlacitky (Pridat bod / Navigovat k bodu)
+const SHELL_CACHE = 'argeodet-shell-v285';   // Prejmenovani na QTRIG + nove ikony
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,

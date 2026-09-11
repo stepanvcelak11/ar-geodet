@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet - VYPINAC MODULU, CHYBY OD LIDI, ZEBRICEK NASTROJU ============
+# ===== QTRIG - VYPINAC MODULU, CHYBY OD LIDI, ZEBRICEK NASTROJU ============
 # Overuje v Chromiu tri veci, ktere se pridaly 30. 8. 2026:
 #   A) js/priznaky.js  - vypnuty nastroj se NEZAREGISTRUJE a vypnuty lazy modul
 #                        se VUBEC NESTAHNE (a lazy fronta u nej nezustane viset)

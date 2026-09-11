@@ -1,4 +1,4 @@
-// ===== AR Geodet — RAJÓN / POLÁRNÍ METODA (ODPOJITELNÁ vrstva) ================
+// ===== QTRIG — RAJÓN / POLÁRNÍ METODA (ODPOJITELNÁ vrstva) ================
 // Neinvazivní vrstva. NEEDITUJE logika.js ani grafika.js. Doplněk k AR resekci a
 // protínání vpřed. Řeší úlohu „znám svou polohu, stačí směr":
 //

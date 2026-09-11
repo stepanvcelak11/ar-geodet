@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Vývojářské nástroje pro AR Geodet: (1) build — zabalí a zminifikuje vlastní JS do jediného hashovaného souboru dist/app.<hash>.min.js, (2) smoke testy v Playwrightu, které v CI ověří, že appka nastartuje. Samotná appka build nepotřebuje, běží pořád přes jednotlivé <script> tagy v index.html.",
+  "description": "Vývojářské nástroje pro QTRIG: (1) build — zabalí a zminifikuje vlastní JS do jediného hashovaného souboru dist/app.<hash>.min.js, (2) smoke testy v Playwrightu, které v CI ověří, že appka nastartuje. Samotná appka build nepotřebuje, běží pořád přes jednotlivé <script> tagy v index.html.",
   "scripts": {
     "build": "node scripts/build.mjs",
     "build:check": "node scripts/build.mjs --check",

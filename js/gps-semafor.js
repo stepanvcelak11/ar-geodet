@@ -1,4 +1,4 @@
-// ===== AR Geodet — SKÓRE MÍSTA / MULTIPATH SEMAFOR (A3, ODPOJITELNÁ vrstva) ====
+// ===== QTRIG — SKÓRE MÍSTA / MULTIPATH SEMAFOR (A3, ODPOJITELNÁ vrstva) ====
 // Nejhorší mobilní měření nevznikají špatnou konstelací, ale odrazy signálu od
 // fasád a aut (multipath) — chyby v metrech, které průměrování NEodstraní.
 // Tenhle modul PŘED měřením spojí, co appka už má, do jednoduchého semaforu:

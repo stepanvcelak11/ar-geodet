@@ -1,4 +1,4 @@
-// ===== AR Geodet — VÝROBA KLÍČŮ PRO (ODPOJITELNÁ vrstva, jen pro vlastníka) ===
+// ===== QTRIG — VÝROBA KLÍČŮ PRO (ODPOJITELNÁ vrstva, jen pro vlastníka) ===
 // Kdo prodá licenci, potřebuje klíč vyrobit. Tenhle modul je ta dílna: v režimu
 // vlastníka přibude ve „Více“ položka „Klíče Pro“, kde se zadá pořadové číslo a
 // délka platnosti a vypadne klíč k opsání nebo poslání.

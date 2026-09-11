@@ -1,4 +1,4 @@
-// ===== AR Geodet — VYPÍNAČ MODULŮ NA DÁLKU (ODPOJITELNÁ vrstva) ===============
+// ===== QTRIG — VYPÍNAČ MODULŮ NA DÁLKU (ODPOJITELNÁ vrstva) ===============
 // Když se v aplikaci něco rozbije, vlastník to zhasne z Konzole vlastníka a všem
 // to zhasne samo — bez vydávání nové verze a bez čekání, až si ji lidi stáhnou.
 //

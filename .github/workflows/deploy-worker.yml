@@ -1,4 +1,4 @@
-# ===== AR Geodet — NASAZENÍ CLOUD WORKERU =====================================
+# ===== QTRIG — NASAZENÍ CLOUD WORKERU =====================================
 # PROČ EXISTUJE: cloud/worker.js se do 30. 8. 2026 nasazoval ručně (`wrangler
 # deploy` z počítače, kde je někdo přihlášený do Cloudflare). Opakovaně se stalo,
 # že změna ležela v repu dny až týdny a na serveru běžela stará verze — appka pak

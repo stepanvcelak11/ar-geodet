@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet - OVERENI REZIMU VLASTNIKA V PROHLIZECI ======================
+# ===== QTRIG - OVERENI REZIMU VLASTNIKA V PROHLIZECI ======================
 # Spousti appku v Chromiu a overuje js/vlastnik.js + ctyri zasahy v js/ucty.js:
 #   1) na BRANE NENI VIDET NIC (na prani) a vstup otevre az dlouhy stisk znaku
 #   2) karta klice se otevre a "Zpet" vrati puvodni branu I S OBSLUHOU tlacitek

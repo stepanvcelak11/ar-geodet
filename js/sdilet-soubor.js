@@ -1,4 +1,4 @@
-// ===== AR Geodet — JEDNA CESTA SOUBORU VEN Z TELEFONU =====================
+// ===== QTRIG — JEDNA CESTA SOUBORU VEN Z TELEFONU =====================
 // Proč tenhle soubor vůbec je: appka běží jako PWA z plochy iPhonu ("display":
 // "standalone" v manifest.json) a tam je atribut <a download> u blob: URL
 // nespolehlivý — klik často neudělá vůbec nic. Geodet tak z telefonu nedostal

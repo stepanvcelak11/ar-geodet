@@ -1,4 +1,4 @@
-// ===== AR Geodet — PROVOZNÍ PROFILY + PROFIL ZAŘÍZENÍ (ODPOJITELNÁ vrstva) ======
+// ===== QTRIG — PROVOZNÍ PROFILY + PROFIL ZAŘÍZENÍ (ODPOJITELNÁ vrstva) ======
 // Neinvazivní vrstva ve stylu js/map-tools.js: NEEDITUJE logika.js ani grafika.js.
 //
 // PROČ: Nastavení má ~80 ovládacích prvků ve čtyřech záložkách a dalších 17 modulů

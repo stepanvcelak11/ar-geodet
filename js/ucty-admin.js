@@ -1,5 +1,5 @@
 // ============================================================================
-// AR Geodet — ADMINISTRACE FIRMY: uživatelé, oprávnění, dashboard užívání
+// QTRIG — ADMINISTRACE FIRMY: uživatelé, oprávnění, dashboard užívání
 // ----------------------------------------------------------------------------
 // Nadstavba nad js/ucty.js (jádro účtů) — bez něj se modul tiše vypne.
 // Vstup: dlaždice „Firma a účty" v Nástrojích (kategorie Pomůcky).
@@ -1207,7 +1207,7 @@
     function inviteText(f, us, pass) {
         var url = inviteUrl(f, us);
         var r = [];
-        r.push('Ahoj, posílám ti přístup do naší appky AR Geodet (firma ' + (f.firmName || '') + ').');
+        r.push('Ahoj, posílám ti přístup do naší appky QTRIG (firma ' + (f.firmName || '') + ').');
         r.push('');
         r.push('1) Otevři v mobilu: ' + (url || '(odkaz na appku)'));
         r.push('2) Přidej si ji na plochu — iPhone: Sdílet → Přidat na plochu; Android: ⋮ → Nainstalovat aplikaci.');

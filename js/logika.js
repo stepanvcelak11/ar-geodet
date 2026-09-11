@@ -1,4 +1,4 @@
-// ===== AR Geodet - TECHNICKA CAST (logika) =====
+// ===== QTRIG - TECHNICKA CAST (logika) =====
 // Vypocty, prevody souradnic, stahovani dat z CUZK, GPS, ukladani, zakazky.
 // Nacita se PRED grafika.js a sdili s ni globalni promenne.
 

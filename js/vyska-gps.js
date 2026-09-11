@@ -1,4 +1,4 @@
-// ===== AR Geodet — VÝŠKA BODU: GPS × TERÉNNÍ MODEL (ODPOJITELNÁ vrstva) ========
+// ===== QTRIG — VÝŠKA BODU: GPS × TERÉNNÍ MODEL (ODPOJITELNÁ vrstva) ========
 // Svislá složka je na telefonu nejslabší: GPS výška je 1,5–3× horší než poloha, takže
 // i po dlouhém průměrování je ±1,5 až ±4 m. Tenhle modul do dialogu „Vložit bod"
 // (u bodu vyplněného z průměrované GPS) přidá DRUHÝ, nezávislý zdroj výšky —

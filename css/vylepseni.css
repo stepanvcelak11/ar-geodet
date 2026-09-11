@@ -1,4 +1,4 @@
-/* ===== AR Geodet — VYLEPŠENÍ (UI/UX vrstva) =====================================
+/* ===== QTRIG — VYLEPŠENÍ (UI/UX vrstva) =====================================
    Neinvazivní, ODPOJITELNÁ vrstva. Načítá se AŽ ZA style.css, takže jen doplňuje /
    jemně přebíjí. Odstranění celé vrstvy: smaž css/vylepseni.css + js/vylepseni.js
    a oba řádky se značkou "VYLEPŠENÍ" v index.html.
@@ -359,7 +359,7 @@ html.ag-prelock body::before {
 
 /* znak appky + název; obojí v jednom pseudoprvku (víc jich na <body> není) */
 html.ag-prelock body::after {
-    content: "AR Geodet";
+    content: "QTRIG";
     position: fixed;
     inset: 0;
     z-index: 900001;

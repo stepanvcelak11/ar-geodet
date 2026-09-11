@@ -1,4 +1,4 @@
-// ===== AR Geodet - EXPORTY pro GIS / handheldy =====
+// ===== QTRIG - EXPORTY pro GIS / handheldy =====
 // Doplnkove exportni formaty vedle JSON/CSV/TXT (ty zustavaji v logika.js).
 // Pouziva globalni promenne z logika.js: persistentCustomPoints, pointLines, activeProjectId.
 // GPX i GeoJSON jsou ve WGS84 (lat/lng) - tak to oba formaty vyzaduji (zadny prevod do S-JTSK,
@@ -38,7 +38,7 @@
         if (!pts.length) { agInfo('Nemáte žádné body.'); return; }
         const lines = (typeof pointLines !== 'undefined') ? pointLines : [];
         let out = '<?xml version="1.0" encoding="UTF-8"?>\n';
-        out += '<gpx version="1.1" creator="AR Geodet" xmlns="http://www.topografix.com/GPX/1/1">\n';
+        out += '<gpx version="1.1" creator="QTRIG" xmlns="http://www.topografix.com/GPX/1/1">\n';
         // GPX <ele> je dle konvence výška nad mořem (ortometrická) — Bpv sem sedí, NEpřevádět na elipsoid.
         pts.forEach(p => {
             if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;

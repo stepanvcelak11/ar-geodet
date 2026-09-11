@@ -1,4 +1,4 @@
-// ===== AR Geodet — CENTRUM UPOZORNĚNÍ (jeden sloupec nahoře, ODPOJITELNÁ vrstva) ==
+// ===== QTRIG — CENTRUM UPOZORNĚNÍ (jeden sloupec nahoře, ODPOJITELNÁ vrstva) ==
 // PROBLÉM, který řeší: nahoře uprostřed si o stejné místo říkalo SEDM nezávislých
 // prvků, každý s vlastním vzhledem a vlastní výškou:
 //   #ag-sp (stavový pruh, safe+4) · #ag-gpst-bar

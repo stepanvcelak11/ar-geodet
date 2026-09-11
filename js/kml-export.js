@@ -1,4 +1,4 @@
-// ===== AR Geodet — KML EXPORT (ODPOJITELNÁ vrstva) ==============================
+// ===== QTRIG — KML EXPORT (ODPOJITELNÁ vrstva) ==============================
 // Neinvazivní, ve stylu js/vylepseni.js: NEEDITUJE logika.js ani grafika.js, jen za
 // běhu přidá tlačítko "Export KML" do existujícího exportního menu (#manage-modal
 // .exp-opts) a vygeneruje validní KML 2.2 pro Google Earth / GIS.
@@ -106,7 +106,7 @@
             }
 
             const proj = (typeof activeProjectId !== 'undefined') ? activeProjectId : 'body';
-            const docName = 'AR Geodet — body (' + proj + ')';
+            const docName = 'QTRIG — body (' + proj + ')';
 
             const kml =
                 '<?xml version="1.0" encoding="UTF-8"?>\n' +

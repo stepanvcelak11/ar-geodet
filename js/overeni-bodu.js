@@ -1,4 +1,4 @@
-// ===== AR Geodet — OVĚŘENÍ BODU DRUHÝM URČENÍM (ODPOJITELNÁ vrstva) ============
+// ===== QTRIG — OVĚŘENÍ BODU DRUHÝM URČENÍM (ODPOJITELNÁ vrstva) ============
 // Neinvazivní vrstva ve stylu js/kvalita-bodu.js: NEEDITUJE logika.js ani
 // grafika.js, jen za běhu OBALÍ showDetails() a saveCustomPoint().
 //

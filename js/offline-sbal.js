@@ -1,4 +1,4 @@
-// ===== AR Geodet — OFFLINE: CO POTŘEBUJE SÍŤ, JDE DO SBALENÉ ZÁLOŽKY ============
+// ===== QTRIG — OFFLINE: CO POTŘEBUJE SÍŤ, JDE DO SBALENÉ ZÁLOŽKY ============
 // PROČ (na přání): v terénu bez signálu zabírala půlka Nástrojů věci, které bez
 // internetu nic neudělají (katastr online, stažení bodů, počasí, zpravodaj, firemní
 // cloud…). Vypadaly stejně jako použitelné dlaždice, jen zprava „zbarvené" a šedé —

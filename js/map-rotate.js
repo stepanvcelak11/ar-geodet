@@ -1,4 +1,4 @@
-// ===== AR Geodet — OTÁČENÍ MAPY: sever nahoře / po směru / zamknout (ODPOJITELNÁ) =
+// ===== QTRIG — OTÁČENÍ MAPY: sever nahoře / po směru / zamknout (ODPOJITELNÁ) =
 // Mapa se dosud VŽDY otáčela s telefonem. Při kontrole úseku silnice je to
 // nečitelné (popisky se převracejí, člověk ztrácí orientaci ve staničení) a stojí
 // to výkon: každá změna směru o 0,15° překomponuje vrstvu #map-wrapper (150 vmax)

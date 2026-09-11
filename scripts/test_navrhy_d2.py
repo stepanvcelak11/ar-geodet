@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet - OVERENI CTYR NOVYCH VRSTEV V PROHLIZECI =====================
+# ===== QTRIG - OVERENI CTYR NOVYCH VRSTEV V PROHLIZECI =====================
 # Spousti appku v Chromiu a overuje moduly z vetve feat/navrhy-3467-89:
 #   js/motivy-teren.js    (motivy Modrotisk + nocni rezim vc. automatiky)
 #   js/sever-slunce.js    (srovnani severu podle Slunce)

@@ -1,4 +1,4 @@
-// ===== AR Geodet — GESTA JAKO ZKRATKY NA NÁSTROJE (ODPOJITELNÁ vrstva) ===========
+// ===== QTRIG — GESTA JAKO ZKRATKY NA NÁSTROJE (ODPOJITELNÁ vrstva) ===========
 // Nástroj, který používáš pořád, si přiřadíš ke gestu a pak ho spouštíš ZPAMĚTI —
 // jedním tahem prstu kdekoli po displeji, bez hledání v Nástrojích. Tah má dvě
 // části a kreslí se BEZ ZVEDNUTÍ PRSTU:

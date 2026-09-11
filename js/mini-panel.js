@@ -1,4 +1,4 @@
-// ===== AR Geodet — SBALITELNÝ NÁSTROJ „MINI PANEL" (ODPOJITELNÁ vrstva) =========
+// ===== QTRIG — SBALITELNÝ NÁSTROJ „MINI PANEL" (ODPOJITELNÁ vrstva) =========
 // Neinvazivní vrstva. NEEDITUJE logika.js, grafika.js ani jednotlivé nástroje.
 //
 // PROBLÉM: nástroje s živými čísly (Vytyčení přímky, Krokový offset) běží

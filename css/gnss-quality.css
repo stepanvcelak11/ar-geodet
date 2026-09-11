@@ -1,4 +1,4 @@
-/* ===== AR Geodet — GNSS KVALITA (odpojitelná vrstva) ============================
+/* ===== QTRIG — GNSS KVALITA (odpojitelná vrstva) ============================
    Neinvazivní, ODPOJITELNÁ vrstva. Načítá se AŽ ZA style.css (a klidně i za
    css/vylepseni.css), takže jen doplňuje. Drží se design-tokenů z style.css.
    Odstranění celé vrstvy: smaž css/gnss-quality.css + js/gnss-quality.js a řádky

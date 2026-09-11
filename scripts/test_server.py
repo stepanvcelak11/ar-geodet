@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet — STATICKY SERVER PRO SMOKE TESTY ==============================
+# ===== QTRIG — STATICKY SERVER PRO SMOKE TESTY ==============================
 # PROC vlastni skript misto `python3 -m http.server`:
 #
 #   `python3 -m http.server` jede v rezimu HTTP/1.0, kde se spojeni ZAVIRA po

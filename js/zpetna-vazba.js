@@ -1,4 +1,4 @@
-// ===== AR Geodet — NAPIŠTE MI: schránka na zpětnou vazbu (odpojitelná vrstva) ====
+// ===== QTRIG — NAPIŠTE MI: schránka na zpětnou vazbu (odpojitelná vrstva) ====
 // Místo, kam může KDOKOLI, kdo appku otevřel, napsat autorovi: co nefunguje, co
 // chybí, co ho štve. Zprávy jdou do firemního cloudu (cloud/worker.js, routa
 // POST /feedback) a čte je jen vlastník appky.
@@ -638,7 +638,7 @@
         if (a === 'mail') {
             try {
                 window.location.href = 'mailto:' + encodeURIComponent(rec.contact) +
-                    '?subject=' + encodeURIComponent('AR Geodet — odpověď na vaši zprávu') +
+                    '?subject=' + encodeURIComponent('QTRIG — odpověď na vaši zprávu') +
                     '&body=' + encodeURIComponent('\n\n---\nVaše zpráva:\n' + rec.txt);
             } catch (err) { swallow(err, 'mail'); }
             return;

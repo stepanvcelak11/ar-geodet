@@ -1,4 +1,4 @@
-// ===== AR Geodet — GEODETICKÉ ÚDAJE BODU (ČÚZK) (ODPOJITELNÁ vrstva) ===========
+// ===== QTRIG — GEODETICKÉ ÚDAJE BODU (ČÚZK) (ODPOJITELNÁ vrstva) ===========
 // Neinvazivní vrstva ve stylu js/vytycovani.js: NEEDITUJE logika.js ani
 // grafika.js, jen za běhu OBALÍ showDetails() a do karty bodu přidá tlačítko
 // „Geodetické údaje (ČÚZK)". Pro úřední body (TB/ZhB/PBPP/nivelační) ukáže

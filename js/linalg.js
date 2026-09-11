@@ -1,4 +1,4 @@
-// ===== AR Geodet — LINEÁRNÍ ALGEBRA (robustní řešiče pro geodetické výpočty) ===
+// ===== QTRIG — LINEÁRNÍ ALGEBRA (robustní řešiče pro geodetické výpočty) ===
 // Neinvazivní knihovna ČISTÝCH funkcí. NEEDITUJE žádný existující soubor a nic
 // nevykresluje — jen vystaví window.LinAlg. Cílem je nahradit ručně psané, méně
 // stabilní řešiče roztroušené po appce:

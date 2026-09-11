@@ -1,4 +1,4 @@
-// ===== AR Geodet - ZALOHA / OBNOVA VSECH DAT =====
+// ===== QTRIG - ZALOHA / OBNOVA VSECH DAT =====
 // Export/import KOMPLETNIHO stavu appky (vsechny zakazky + nastaveni) do jednoho souboru.
 // Pojistka proti tomu, ze localStorage tise spadne/vycisti se. Cte/zapisuje primo
 // localStorage, nezavisle na ostatnich modulech. Po obnove se appka znovu nacte (reload).
@@ -239,7 +239,7 @@
         }
         const d = new Date(); const p = n => String(n).padStart(2, '0');
         const payload = {
-            app: 'AR Geodet', type: 'full-backup', version: 3,
+            app: 'QTRIG', type: 'full-backup', version: 3,
             exportedAt: d.toISOString(), keys: Object.keys(data).length, data: data, idb: idb, extra: extra
         };
         const how = await _ven(`ar-geodet-zaloha-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}.json`, JSON.stringify(payload));
@@ -288,7 +288,7 @@
             try { payload = JSON.parse(e.target.result); }
             catch (err) { agInfo('Soubor zálohy je poškozený nebo to není JSON.'); return; }
             if (!payload || typeof payload.data !== 'object' || payload.data === null) {
-                agInfo('Tohle nevypadá jako záloha AR Geodet.'); return;
+                agInfo('Tohle nevypadá jako záloha QTRIG.'); return;
             }
             const keys = Object.keys(payload.data);
             // destruktivni potvrzeni v app dialogu (fallback na nativni, kdyz bridge chybi)

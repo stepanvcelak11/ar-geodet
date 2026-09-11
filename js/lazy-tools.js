@@ -1,4 +1,4 @@
-// ===== AR Geodet — DĚLENÉ NAČÍTÁNÍ NÁSTROJŮ (ODPOJITELNÁ vrstva) ================
+// ===== QTRIG — DĚLENÉ NAČÍTÁNÍ NÁSTROJŮ (ODPOJITELNÁ vrstva) ================
 // Neinvazivní vrstva ve stylu js/field-tools.js. NEEDITUJE logika.js ani grafika.js.
 //
 // PROČ: při každém startu se stahovalo a spouštělo 118 skriptů (~3,1 MB). Většinu

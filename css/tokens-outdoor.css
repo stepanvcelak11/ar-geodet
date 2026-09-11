@@ -1,5 +1,5 @@
 /* =========================================================================
-   AR Geodet — TOKENOVÁ VRSTVA ČITELNOSTI (odpojitelná)
+   QTRIG — TOKENOVÁ VRSTVA ČITELNOSTI (odpojitelná)
    Venkovní režim (slunce) a režim rukavic řešené PŘES DESIGN TOKENY,
    ne pravidlem per modul: přepíšou se --glass-bg, --surface-*, --text-*…
    a všech ~80 modulů, které tokeny používají (var(--glass-bg, …)),

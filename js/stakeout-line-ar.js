@@ -1,4 +1,4 @@
-// ===== AR Geodet — VYTYČOVANÁ OSA V AR (ODPOJITELNÁ vrstva) ===================
+// ===== QTRIG — VYTYČOVANÁ OSA V AR (ODPOJITELNÁ vrstva) ===================
 // Osu z nástroje „Vytyčení osy" (js/stakeout-line.js) položí do KAMERY: v obraze
 // vidíš, kudy vede (i s lomy), kde je tvoje patka na ní a jak daleko od ní stojíš.
 // Uživatel to chtěl přesně takhle: „vybral bych si dva body, mezi kterýma chci

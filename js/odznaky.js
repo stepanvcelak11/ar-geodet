@@ -1,4 +1,4 @@
-// ===== AR Geodet — ODZNAKY A SÉRIE: tiše (ODPOJITELNÁ vrstva) =================
+// ===== QTRIG — ODZNAKY A SÉRIE: tiše (ODPOJITELNÁ vrstva) =================
 // PROČ: appka má být něco, co si člověk zapne i doma. Odznaky to umí — ale
 // jenom když nejsou otravné. Proto tahle vrstva dodržuje čtyři pravidla:
 //

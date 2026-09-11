@@ -1,4 +1,4 @@
-// ===== AR Geodet — ZÁMKY PRO VERZE (ODPOJITELNÁ vrstva) =======================
+// ===== QTRIG — ZÁMKY PRO VERZE (ODPOJITELNÁ vrstva) =======================
 // Základ (zdarma) umí celý den v terénu; Pro přidává navrch protokoly, objemy,
 // firmu a pokročilé výpočty. CO je čí, stojí na jediném místě — pole `pro: 1`
 // u záznamu v js/tools-registry.js. ZDA to tenhle telefon má, ví js/licence.js.

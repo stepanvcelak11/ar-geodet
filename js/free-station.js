@@ -1,4 +1,4 @@
-// ===== AR Geodet — VOLNÉ STANOVISKO: průvodce (ODPOJITELNÁ vrstva) ============
+// ===== QTRIG — VOLNÉ STANOVISKO: průvodce (ODPOJITELNÁ vrstva) ============
 // Neinvazivní vrstva. NEEDITUJE logika.js ani grafika.js. Spojuje do JEDNOHO toku
 // tři kroky „volného stanoviska měřeného telefonem":
 //

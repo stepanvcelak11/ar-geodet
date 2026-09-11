@@ -1,4 +1,4 @@
-// ===== AR Geodet — VYLEPŠENÍ (UI/UX vrstva) =====================================
+// ===== QTRIG — VYLEPŠENÍ (UI/UX vrstva) =====================================
 // Neinvazivní, ODPOJITELNÁ vrstva ve stylu undo.js / zakazky.js: obaluje globální
 // funkce za běhu, NEEDITUJE logika.js ani grafika.js. Načítá se jako POSLEDNÍ skript.
 //
@@ -409,7 +409,7 @@
         if (!nOk && !lines.length) { agAlert({ title: 'Není co exportovat', message: 'Body nemají platné souřadnice.' }); return; }
 
         const dxf =
-            '999\nAR Geodet — S-JTSK (EPSG:5514), vykresova orientace (sever nahoru), metry\n' +
+            '999\nQTRIG — S-JTSK (EPSG:5514), vykresova orientace (sever nahoru), metry\n' +
             '0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1009\n9\n$INSUNITS\n70\n6\n0\nENDSEC\n' +
             '0\nSECTION\n2\nENTITIES\n' + e + '0\nENDSEC\n0\nEOF\n';
 

@@ -1,4 +1,4 @@
-// ===== AR Geodet — STAVOVÁ BUBLINA „MŮŽU TOMU VĚŘIT?" (ODPOJITELNÁ vrstva) =====
+// ===== QTRIG — STAVOVÁ BUBLINA „MŮŽU TOMU VĚŘIT?" (ODPOJITELNÁ vrstva) =====
 // Neinvazivní vrstva: NEEDITUJE logika.js ani grafika.js, jen čte globály.
 // Odpovídá na jedinou otázku terénu: „můžu teď uložit bod, nebo je to k ničemu?"
 //

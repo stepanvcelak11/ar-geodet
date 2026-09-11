@@ -1,4 +1,4 @@
-// ===== AR Geodet — ZAVÍRÁNÍ MODÁLŮ: křížek + potáhnutí do strany (ODPOJITELNÁ vrstva) =====
+// ===== QTRIG — ZAVÍRÁNÍ MODÁLŮ: křížek + potáhnutí do strany (ODPOJITELNÁ vrstva) =====
 // Modály jedou přes celou obrazovku (na přání) a zavírají se tlačítkem „Zavřít"
 // AŽ NA KONCI obsahu — u dlouhých oken (O aplikaci, Předpisy, Slovník) se k němu
 // musíš prorolovat. Tahle vrstva přidává dvě běžné cesty ven:

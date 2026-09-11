@@ -1,4 +1,4 @@
-// ===== AR Geodet - PRUVODCE UKOLEM =====
+// ===== QTRIG - PRUVODCE UKOLEM =====
 // Vetveny dotaznik, ktery uzivatele provede typickou cinnosti a sam posklada to, co
 // appka uz umi (zalozeni zakazky, vlozeni/import bodu, vytycovaci checklist, sber bodu
 // GPS, mereni). Nezdvojuje logiku — jen orchestruje existujici globalni funkce.

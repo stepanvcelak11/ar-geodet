@@ -1,4 +1,4 @@
-// ===== AR Geodet — GEO-CORE: sdílená geodetická knihovna ========================
+// ===== QTRIG — GEO-CORE: sdílená geodetická knihovna ========================
 // Jediný autoritativní zdroj geodetických výpočtů (haversine, azimuty, S-JTSK,
 // lokální ENU rovina, plocha/obvod, statistika GPS průměrování). Slouží
 // k odstranění duplicit roztroušených v logika.js / grafika.js / parcela.js /

@@ -1,4 +1,4 @@
-// ===== AR Geodet — KLID PO STARTU (ODPOJITELNÁ vrstva) ==========================
+// ===== QTRIG — KLID PO STARTU (ODPOJITELNÁ vrstva) ==========================
 // ⚠ 31. 8. 2026 — SOUBOR SE VYPRÁZDNIL O SVOU PŮVODNÍ PRÁCI.
 // Jmenuje se „welcome-card", protože plnil kartu aktivní zakázky na úvodní
 // obrazovce (návrh C „Zakázka v centru"): název zakázky, chip počtu bodů, datum

@@ -12,7 +12,7 @@ using Toybox.Time;
 //!
 //! ⚠⚠ Hodinky NEMLUVÍ s telefonem přímo. Cesta „telefon ↔ hodinky“ přes
 //! Bluetooth vyžaduje nativní doprovodnou aplikaci (Connect IQ Mobile SDK)
-//! a AR Geodet je webová aplikace v prohlížeči — do té BLE linky se
+//! a QTRIG je webová aplikace v prohlížeči — do té BLE linky se
 //! nedostane, drží ji Garmin Connect a protokol je uzavřený.
 //!
 //! Jde to tedy oklikou přes internet, kterou Connect IQ nabízí:

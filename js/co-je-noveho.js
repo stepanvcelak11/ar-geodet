@@ -1,4 +1,4 @@
-// ===== AR Geodet — CO JE NOVÉHO (roletka u lišty „Nová verze“) ==================
+// ===== QTRIG — CO JE NOVÉHO (roletka u lišty „Nová verze“) ==================
 // K liště #update-banner přidá druhé tlačítko „Co je nového“, které rozbalí soupis
 // změn čekající verze. Klepnutí na text lišty dělá dál totéž co dřív (applyUpdate),
 // takže kdo aktualizaci jen odklepne, nic navíc neřeší.

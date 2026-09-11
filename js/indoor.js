@@ -1,4 +1,4 @@
-// ===== AR Geodet — UVNITŘ BUDOVY: navigace bez GPS (ODPOJITELNÁ vrstva) ==========
+// ===== QTRIG — UVNITŘ BUDOVY: navigace bez GPS (ODPOJITELNÁ vrstva) ==========
 // Jakmile se vejde do haly, garáží nebo tunelu, GPS končí — a s ní i všechno, na
 // čem appka venku stojí. Tenhle nástroj drží polohu dál: od bodu, který znáš,
 // počítá, kam ses posunul, a ukazuje vzdálenost a směr k bodům zakázky.

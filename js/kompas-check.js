@@ -1,4 +1,4 @@
-// ===== AR Geodet - KONTROLA KOMPASU =====
+// ===== QTRIG - KONTROLA KOMPASU =====
 // Dve nezavisle funkce, oddelene od grafika.js (zadny zasah do handleOrientation):
 //   1) Varovani na ruseni magnetometru. Geodeticke body byvaji kovove / u armatury,
 //      kde kompas lze -> AR sipka miri mimo. Detekujeme bud z iOS webkitCompassAccuracy,

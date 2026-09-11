@@ -1,4 +1,4 @@
-// ===== AR Geodet — POZDĚJŠÍ NAČTENÍ NÁSTROJŮ (ODPOJITELNÁ vrstva) ==============
+// ===== QTRIG — POZDĚJŠÍ NAČTENÍ NÁSTROJŮ (ODPOJITELNÁ vrstva) ==============
 // Appka má přes 110 samostatných <script defer>. Prohlížeč MUSÍ všechny stáhnout,
 // naparsovat a spustit JEŠTĚ PŘED prvním vykreslením — na starším telefonu to jsou
 // vteřiny čekání na obrazovku, kde uživatel akorát chce vidět mapu. Přitom většina

@@ -1,4 +1,4 @@
-// ===== AR Geodet — NOVÝ TUTORIÁL: základní + pokročilá prohlídka (ODPOJITELNÁ vrstva) =====
+// ===== QTRIG — NOVÝ TUTORIÁL: základní + pokročilá prohlídka (ODPOJITELNÁ vrstva) =====
 // Neinvazivní modul ve stylu ostatních odpojitelných vrstev (IIFE + try/catch +
 // idempotentní + fail-silent). NEEDITUJE logika.js ani grafika.js. Má vlastní
 // spotlight (coachmark) engine. NAHRAZUJE původní js/tutorial.js (ten je odpojený).
@@ -86,7 +86,7 @@
     // ---- kroky -----------------------------------------------------------------
     // {title, body, target?:selector|fn, before?:fn}  — bez target = vystředí kartu
     var BASIC = [
-        { title: 'Vítej v AR&nbsp;Geodet', body: 'Krátká prohlídka základního ovládání. Posouvej tlačítkem <b>Další</b>.' },
+        { title: 'Vítej v QTRIG', body: 'Krátká prohlídka základního ovládání. Posouvej tlačítkem <b>Další</b>.' },
         { title: 'Přepínání zobrazení', target: '#ag-view-wheel', body: 'Kolečko vpravo dole přepíná mezi <b>AR</b> kamerou, <b>Split</b> (dělené) a 2D <b>Mapou</b>. <b>Tažením po kolečku</b> skočíš rovnou: <b>nahoru</b> AR, <b>do strany</b> Split, <b>dolů</b> Mapa. Klepnutí posune na další dokola. Appka startuje v <b>Mapě</b> — kamera je zdaleka největší žrout baterie, tak se zapíná, až když ji potřebuješ.' },
         { title: 'Vrstvy v mapě', target: '#map-ctrl-toggle', body: 'Tlačítko <b>Vrstvy</b> vlevo dole v mapě: přepnutí <b>mapa / ortofoto</b>, zapnutí <b>katastru</b> a <b>terénu (DMR 5G)</b> a nástroje mapy (na mě, body v okolí, spojit body, měřit plochu, uložit offline). Odznak ukazuje, kolik vrstev je zapnutých.' },
         {

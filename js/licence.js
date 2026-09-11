@@ -1,4 +1,4 @@
-// ===== AR Geodet — LICENCE PRO VERZE (ODPOJITELNÁ vrstva) =====================
+// ===== QTRIG — LICENCE PRO VERZE (ODPOJITELNÁ vrstva) =====================
 // Appka existuje ve dvou vydáních: ZÁKLAD (zdarma, celý den v terénu — změřit,
 // vytyčit, zaznamenat, srovnat AR, katastr, import/export zakázky) a PRO
 // (placené, přidává navrch protokoly, objemy, firmu a pokročilé výpočty).

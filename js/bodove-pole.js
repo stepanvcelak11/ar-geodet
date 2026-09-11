@@ -1,4 +1,4 @@
-// ===== AR Geodet — NEJBLIŽŠÍ ZNÁMÝ BOD (BODOVÉ POLE ČÚZK) (ODPOJITELNÁ vrstva) ==
+// ===== QTRIG — NEJBLIŽŠÍ ZNÁMÝ BOD (BODOVÉ POLE ČÚZK) (ODPOJITELNÁ vrstva) ==
 // Neinvazivní vrstva ve stylu js/ref-calibration.js: NEEDITUJE logika.js ani
 // grafika.js, jen čte globály přes typeof-guardy a registruje vlastní dlaždici.
 //

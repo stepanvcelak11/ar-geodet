@@ -1,4 +1,4 @@
-// ===== AR Geodet — BOD ZE DVOU FOTEK (ODPOJITELNÁ vrstva) ======================
+// ===== QTRIG — BOD ZE DVOU FOTEK (ODPOJITELNÁ vrstva) ======================
 // Neinvazivní. NEEDITUJE logika.js, grafika.js ani js/ar-intersection.js — čte
 // jen globály (userLat/userLng, currentHeading, currentGpsAccuracy, arPoints,
 // getDistance/getBearing, visSettings, window._arProj) a ukládá přes

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet - DIAGNOSTIKA: panel Body, vyber nastroje, cizi jazyky =========
+# ===== QTRIG - DIAGNOSTIKA: panel Body, vyber nastroje, cizi jazyky =========
 # Spousti appku v Chromiu, naplni zakazku body a:
 #   1) vyfoti panel Body (cesky / anglicky / nemecky),
 #   2) vyfoti okno "Na ktery nastroj?" (vyber zkratky),

@@ -1,4 +1,4 @@
-// ===== AR Geodet — VÝŠKA OBJEKTU (trigonometricky) (ODPOJITELNÁ vrstva) ========
+// ===== QTRIG — VÝŠKA OBJEKTU (trigonometricky) (ODPOJITELNÁ vrstva) ========
 // Určení výšky stožáru, komína, stromu, budovy… BEZ totálky: telefonem se zaměří
 // PATA a VRCHOL objektu (svislé úhly ze senzorů), vodorovná vzdálenost se buď
 // spočte ze záměru na patu (rovná zem, jako optický dálkoměr), nebo zadá ručně:

@@ -1,4 +1,4 @@
-# AR Geodet → Google Play (Android) + „Přidat na plochu" (iOS)
+# QTRIG → Google Play (Android) + „Přidat na plochu" (iOS)
 
 Kompletní návod. **Část technické přípravy je už hotová v repu** — viz checklist níže.
 Hosting běží na `https://stepanvcelak11.github.io/ar-geodet/` (veřejné repo, HTTPS ✓).
@@ -42,7 +42,7 @@ webu; balíček se znovu nahrává jen při změně názvu/ikony/balíčku.
 3. Nastavení balíčku:
    - **Package ID**: `cz.stepanvcelak.argeodet` (musí sedět s `.well-known/assetlinks.json`;
      když zvolíš jiné, přepiš ho i tam),
-   - **App name**: AR Geodet, **verze**: 1.0.0,
+   - **App name**: QTRIG, **verze**: 1.0.0,
    - **Signing key**: nech „Create new" — PWABuilder vygeneruje podpisový klíč,
    - ⚠️ **Location delegation: ZAPNOUT** (jinak GPS v TWA nedostane nativní permission dialog),
    - Display: standalone/fullscreen dle chuti (standalone doporučuji), barvy se načtou z manifestu.
@@ -50,7 +50,7 @@ webu; balíček se znovu nahrává jen při změně názvu/ikony/balíčku.
    kameru + GPS!), `signing.keystore` + hesla (**bezpečně zálohovat!**), `assetlinks.json`.
 
 ### A3. Založ appku v Play Console
-1. **Create app** → jazyk čeština, název „AR Geodet", App (ne hra), Free.
+1. **Create app** → jazyk čeština, název „QTRIG", App (ne hra), Free.
 2. Vyplň **Store listing**: krátký popis (80 znaků), dlouhý popis, **min. 2 screenshoty**
    z telefonu (stačí printscreeny appky), **ikona 512×512** (`icon-512.png`),
    **feature graphic 1024×500** (banner — řekni si, vygeneruji).

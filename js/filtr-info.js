@@ -1,4 +1,4 @@
-// ===== AR Geodet — KOLIK BODŮ JE PRÁVĚ SCHOVANÝCH (ODPOJITELNÁ vrstva) ==========
+// ===== QTRIG — KOLIK BODŮ JE PRÁVĚ SCHOVANÝCH (ODPOJITELNÁ vrstva) ==========
 // PROBLÉM, který řeší: body se zahazují na TŘECH nezávislých místech a ani jedno
 // nedá o sobě vědět:
 //   • filtry kategorií (filters.tb/zhb/pbpp/nivel/custom) — ULOŽENÉ PER ZAKÁZKA

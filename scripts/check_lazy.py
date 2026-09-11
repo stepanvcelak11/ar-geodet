@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet — CO SE DA ODLOZIT ZA PRVNI VYKRESLENI =======================
+# ===== QTRIG — CO SE DA ODLOZIT ZA PRVNI VYKRESLENI =======================
 # PROC: pri startu se PRED prvnim vykreslenim stahne a spusti ~2,4 MB JavaScriptu
 # v skoro sta souborech. Vetsina z toho jsou nastroje, ktere se za cely den ani
 # neotevrou — a kazdy novy nastroj zdrazoval start VSEM.

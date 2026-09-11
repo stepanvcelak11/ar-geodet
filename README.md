@@ -1,4 +1,4 @@
-# AR Geodet
+# QTRIG
 
 Webový nástroj (PWA) pro geodety k vyhledávání bodů v rozšířené realitě (AR). Aplikace zobrazuje geodetické body přímo v obraze z kamery a naviguje uživatele k nim pomocí směrové šipky, kompasu a mapy.
 
@@ -73,7 +73,7 @@ Kdyby byl Source přepnutý na `Deploy from a branch`, job „Publikovat" selže
 
 ## Upozornění, soukromí a data
 
-**Upozornění:** AR Geodet je orientační pomůcka, nikoli měřicí přístroj. Zobrazená poloha bodů závisí na přesnosti GPS a kompasu telefonu (běžně ±3–7 m). Body v terénu vždy ověřte; za rozhodnutí na základě aplikace odpovídá uživatel.
+**Upozornění:** QTRIG je orientační pomůcka, nikoli měřicí přístroj. Zobrazená poloha bodů závisí na přesnosti GPS a kompasu telefonu (běžně ±3–7 m). Body v terénu vždy ověřte; za rozhodnutí na základě aplikace odpovídá uživatel.
 
 **Soukromí:** Obraz z kamery zařízení nikdy neopustí — AR se počítá celá v telefonu a žádný snímek se nikam neposílá. **Poloha (GPS) ale ven odchází**, a to čtyřmi kanály: (1) do služeb počasí (`open-meteo.com`, `met.no`, `brightsky.dev`, srážkový radar) jde zeměpisná šířka a délka na pět desetinných míst — děje se to i bez přihlášení do firmy, protože bez souřadnic nejde předpověď na místo stavby zjistit; (2) při píchnutí docházky jde poloha na firemní server; (3) vysílačka posílá živou polohu kolegům ve firmě; (4) synchronizace zakázek do firemního cloudu odesílá souřadnice bodů. Tři z těch čtyř kanálů (docházka, vysílačka, cloud) fungují jen v přihlášeném firemním režimu — bez něj zůstávají body i nastavení uložené pouze v telefonu. Podrobně, včetně toho, co se ukládá a na jak dlouho, je to popsáno v [soukromi.html](soukromi.html).
 

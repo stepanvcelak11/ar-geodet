@@ -1,4 +1,4 @@
-// ===== AR Geodet — KNIHA JÍZD / CESŤÁK (ODPOJITELNÁ vrstva) =====================
+// ===== QTRIG — KNIHA JÍZD / CESŤÁK (ODPOJITELNÁ vrstva) =====================
 // Každodenní „kolik jsem najezdil", ale navázané na zakázky:
 //   • „Odjíždím" uloží start (čas, poloha, název místa = aktivní zakázka nebo
 //     nejbližší značka z js/kde-je.js), „Přijel jsem" uloží cíl a jízdu uzavře.

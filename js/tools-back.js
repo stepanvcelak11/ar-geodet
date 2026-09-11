@@ -1,4 +1,4 @@
-// ===== AR Geodet — NÁVRAT DO NÁSTROJŮ (ODPOJITELNÁ vrstva) =====================
+// ===== QTRIG — NÁVRAT DO NÁSTROJŮ (ODPOJITELNÁ vrstva) =====================
 // Když si v Nástrojích otevřeš špatný nástroj a zavřeš ho, appka tě dosud vyhodila
 // na hlavní obrazovku a musel jsi Nástroje otevírat znovu. Tahle vrstva si pamatuje,
 // že nástroj byl otevřen Z NÁSTROJŮ, a po jeho zavření mřížku zase vytáhne — takže

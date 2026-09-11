@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet - ROZPOCET STARTU (brana v CI) ================================
+# ===== QTRIG - ROZPOCET STARTU (brana v CI) ================================
 # PROC TENHLE SKRIPT EXISTUJE:
 # Prohlizec musi VSECHNY soubory, ktere jsou v index.html zapsane jako obycejny
 # <script src> a <link rel=stylesheet>, stahnout, naparsovat a spustit JESTE PRED

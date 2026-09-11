@@ -1,4 +1,4 @@
-// ===== AR Geodet — VIZUÁLNĚ-INERCIÁLNÍ KOTVENÍ AR (SLAM-lite, ODPOJITELNÉ) =======
+// ===== QTRIG — VIZUÁLNĚ-INERCIÁLNÍ KOTVENÍ AR (SLAM-lite, ODPOJITELNÉ) =======
 // Neinvazivní vrstva. NEEDITUJE logika.js ani grafika.js. Cíl: mezi pomalými GPS /
 // kompas fixy držet AR obraz STABILNÍ tím, že se čte pohyb SAMOTNÉHO obrazu z kamery
 // (vizuální odometrie). Kompas/gyro jsou pomalá absolutní reference; kamera je rychlá

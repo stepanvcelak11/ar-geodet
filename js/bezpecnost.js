@@ -1,4 +1,4 @@
-// ===== AR Geodet — BEZPEČNOST V TERÉNU (ODPOJITELNÁ vrstva) =====================
+// ===== QTRIG — BEZPEČNOST V TERÉNU (ODPOJITELNÁ vrstva) =====================
 // PROČ tenhle modul existuje: geodet je venku často sám, daleko od cesty, s výtyčkou
 // v ruce. Když se něco stane (kolaps z vedra, pád do výkopu, uklouznutí na svahu,
 // zásah proudem u trafostanice), rozhoduje se o tom, jak rychle se k němu někdo

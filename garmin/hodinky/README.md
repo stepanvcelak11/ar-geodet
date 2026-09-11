@@ -1,4 +1,4 @@
-# AR Geodet — hodinky (Garmin Forerunner 255)
+# QTRIG — hodinky (Garmin Forerunner 255)
 
 Zjednodušený pomocník k mobilní aplikaci. Umí čtyři věci a schválně nic víc:
 
@@ -165,7 +165,7 @@ nastavení; na FR255 je L1+L5 znát.
 
 **⚠ Hodinky s telefonem přímo nemluví.** Cesta „telefon ↔ hodinky" přes
 Bluetooth vyžaduje nativní doprovodnou aplikaci (Connect IQ Mobile SDK)
-a AR Geodet je web — do té BLE linky se nedostane, drží ji Garmin Connect
+a QTRIG je web — do té BLE linky se nedostane, drží ji Garmin Connect
 a protokol je uzavřený. Jde to tedy oklikou přes internet:
 
 ```

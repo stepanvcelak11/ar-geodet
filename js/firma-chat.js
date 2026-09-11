@@ -1,5 +1,5 @@
 // ============================================================================
-// AR Geodet — FIREMNÍ CHAT (ODPOJITELNÁ vrstva nad js/ucty.js)
+// QTRIG — FIREMNÍ CHAT (ODPOJITELNÁ vrstva nad js/ucty.js)
 // ----------------------------------------------------------------------------
 // Jednoduché zprávy mezi všemi přihlášenými ve firmě („pošli mi číslo bodu,
 // jsem u šachty B"). ŽÁDNÝ realtime — prosté dotazování serveru (Cloudflare

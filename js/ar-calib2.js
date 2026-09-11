@@ -1,4 +1,4 @@
-// ===== AR Geodet — SROVNAT AR NA 2 BODY: sever + šířka záběru (ODPOJITELNÁ) =====
+// ===== QTRIG — SROVNAT AR NA 2 BODY: sever + šířka záběru (ODPOJITELNÁ) =====
 // Neinvazivní vrstva ve stylu js/ar-calibrate.js: NEEDITUJE logika.js ani grafika.js,
 // jen za běhu čte globály a sahá na existující „páky" appky:
 //   • SEVER  → nudgeHeadingOffset() / userHeadingOffset (+ setStoredData('arHeadingOffset'))

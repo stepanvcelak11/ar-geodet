@@ -1,4 +1,4 @@
-// ===== AR Geodet — LOKÁLNÍ KALIBRACE NA REFERENČNÍ BOD (offline P-DGPS) =========
+// ===== QTRIG — LOKÁLNÍ KALIBRACE NA REFERENČNÍ BOD (offline P-DGPS) =========
 // Neinvazivní, ODPOJITELNÁ vrstva ve stylu js/vylepseni.js. NEEDITUJE logika.js
 // ani grafika.js — jen obaluje globální funkci za běhu a injektuje UI.
 //

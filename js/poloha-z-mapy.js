@@ -1,4 +1,4 @@
-// ===== AR Geodet — POLOHA Z MAPY (ODPOJITELNÁ vrstva) ==========================
+// ===== QTRIG — POLOHA Z MAPY (ODPOJITELNÁ vrstva) ==========================
 // PROČ: v lese, v úzké ulici a mezi paneláky je GPS telefonu nejslabší — odrazy
 // od fasád a listí dělají chyby v metrech a průměrování je NEODSTRANÍ (je to
 // systematická chyba, ne šum). Zatímco se telefon plete o 15 m, člověk často

@@ -1,4 +1,4 @@
-// ===== AR Geodet — BALÍČEK ZAKÁZKY: sbalit všechno před výjezdem (ODPOJITELNÁ) ==
+// ===== QTRIG — BALÍČEK ZAKÁZKY: sbalit všechno před výjezdem (ODPOJITELNÁ) ==
 // Neinvazivní vrstva ve stylu js/bodove-pole.js: NEEDITUJE logika.js ani grafika.js,
 // jen volá jejich existující globální funkce přes typeof-guardy.
 //

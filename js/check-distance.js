@@ -1,4 +1,4 @@
-// ===== AR Geodet — OMĚRNÉ KONTROLNÍ MÍRY (odpojitelná vrstva) ==================
+// ===== QTRIG — OMĚRNÉ KONTROLNÍ MÍRY (odpojitelná vrstva) ==================
 // Kontrola geometrie zaměření: porovná pásmem měřené délky mezi body s délkami
 // vypočtenými ze S-JTSK souřadnic. Spočte odchylku (mm i ppm), označí překročení
 // tolerance a ukáže systematiku (průměrná odchylka = náznak měřítka/jednotek).

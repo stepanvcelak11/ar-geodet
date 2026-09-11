@@ -1,4 +1,4 @@
-// ===== AR Geodet — VAROVÁNÍ NA SLABOU GPS (odpojitelná vrstva) ===================
+// ===== QTRIG — VAROVÁNÍ NA SLABOU GPS (odpojitelná vrstva) ===================
 // Neinvazivní, ODPOJITELNÁ vrstva ve stylu js/vylepseni.js a js/kompas-check.js:
 // NEEDITUJE logika.js ani grafika.js, jen čte globály za běhu. Načítá se jako
 // jeden z posledních skriptů.

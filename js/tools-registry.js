@@ -1,4 +1,4 @@
-// ===== AR Geodet — REGISTR NÁSTROJŮ: jeden záznam na nástroj (ODPOJITELNÁ vrstva) =
+// ===== QTRIG — REGISTR NÁSTROJŮ: jeden záznam na nástroj (ODPOJITELNÁ vrstva) =
 // PROBLÉM, KTERÝ TENHLE SOUBOR ŘEŠÍ: appka má ~70 nástrojů a co o každém z nich
 // platí, bylo rozepsané v ŠESTI ručních tabulkách v pěti různých souborech —
 // kategorie v mřížce a synonyma pro hledání (field-tools.js), sloveso a popisek

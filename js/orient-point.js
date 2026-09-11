@@ -1,4 +1,4 @@
-// ===== AR Geodet — SROVNÁNÍ SEVERU PODLE ZNÁMÉHO BODU (ODPOJITELNÁ vrstva) =====
+// ===== QTRIG — SROVNÁNÍ SEVERU PODLE ZNÁMÉHO BODU (ODPOJITELNÁ vrstva) =====
 // Neinvazivní vrstva. NEEDITUJE logika.js ani grafika.js. Řeší nejslabší článek
 // AR — magnetický kompas: místo spoléhání na magnetometr namíříš telefon na
 // VIDITELNÝ známý bod (trig./BP/roh) a appka srovná sever podle skutečného

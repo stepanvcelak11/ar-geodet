@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ===== AR Geodet - ZAKLAD vs PRO: zamky placene verze =========================
+# ===== QTRIG - ZAKLAD vs PRO: zamky placene verze =========================
 # PROC TENHLE TEST EXISTUJE: appka se deli na ZAKLAD (zdarma, cely den v terenu)
 # a PRO (placene, pridava protokoly, objemy, firmu a pokrocile vypocty). Co je
 # ci, stoji v js/tools-registry.js jako `pro: 1`; zda to telefon ma, rika
