@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-09-10",
-  "uvodnik": "Vydání 2026-09-10 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-09-11",
+  "uvodnik": "Vydání 2026-09-11 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,18 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Akce",
+      "top": false,
+      "nadpis": "Commercial UAV Expo 2026 Draws Record Turnout",
+      "perex": "3,800 professionals and more than 250 exhibiting companies convened at Caesars Forum as Part 108, the FCC Covered List, and Section 232 tariffs reshape the U.S. commercial drone market Las Vegas, NV,…",
+      "telo": "3,800 professionals and more than 250 exhibiting companies convened at Caesars Forum as Part 108, the FCC Covered List, and Section 232 tariffs reshape the U.S. commercial drone market Las Vegas, NV, USA — September 10, 2026 — Commercial drone professionals from around the world gathered last week for the 12th edition of Commercial UAV Expo , held September 1-3, 2026, at Caesars Forum in Las Vegas. The event drew 3,800 verified professionals from all 50 U.S. states and 65 countries, alongside more than 250 exhibiting companies, the largest turnout in the event’s 12-year history and a signal of how squarely the industry is looking to Commercial UAV Expo as it works through a period of rapid r",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/10/commercial-uav-expo-2026-draws-record-turnout/?utm_source=rss&utm_medium=rss&utm_campaign=commercial-uav-expo-2026-draws-record-turnout",
+      "datum": "2026-09-10"
     },
     {
       "rubrika": "Z praxe",
@@ -85,18 +97,6 @@
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/09/06/geo-business-virtual-returns-for-2026-with-three-days-of-free-geospatial-content/?utm_source=rss&utm_medium=rss&utm_campaign=geo-business-virtual-returns-for-2026-with-three-days-of-free-geospatial-content",
       "datum": "2026-09-06"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "OGC Announces Publication of the LAZ 1.4 Community Standard",
-      "perex": "The Open Geospatial Consortium (OGC) is excited to announce the publication of the LAZ 1.4 Community Standard , which defines a lossless compression format for LAS 1.4 point cloud data.",
-      "telo": "The Open Geospatial Consortium (OGC) is excited to announce the publication of the LAZ 1.4 Community Standard , which defines a lossless compression format for LAS 1.4 point cloud data. LAZ uses lossless compression to reduce the size of a LAS file while maintaining the general structure of the LAS format. The LAZ 1.4 format is based on LAS 1.4, as specified in the LAS Specification 1.4 — R15 by the American Society for Photogrammetry Remote Sensing (ASPRS), also an OGC Community Standard. LAZ compresses the point data block, while other LAS 1.4 structures, such as the header format, remain unchanged, although some header fields are slightly changed. The specific meaning of the uncompressed",
-      "body": [],
-      "proc": "",
-      "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/09/03/ogc-announces-publication-of-the-laz-1-4-community-standard/?utm_source=rss&utm_medium=rss&utm_campaign=ogc-announces-publication-of-the-laz-1-4-community-standard",
-      "datum": "2026-09-03"
     }
   ]
 }
