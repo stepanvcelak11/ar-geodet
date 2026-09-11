@@ -105,7 +105,8 @@ jobs:
           for t in test_opravy_3_9 test_uhlazeni_31_8 test_navrhy_d2 test_vypinac \
                    test_vlastnik test_opravy_31_8 test_gps_rozumim test_body_paleta \
                    test_lomena_osa test_napsat_autorovi test_pro_verze test_vydani \
-                   test_ucty_prostory test_v283 test_jednoduchy_rezim \n                   test_opravy_11_9; do
+                   test_ucty_prostory test_v283 test_jednoduchy_rezim test_prodej \
+                   test_opravy_11_9; do
             echo "::group::$t"
             if ! python "scripts/$t.py" > "/tmp/$t.log" 2>&1; then
               cat "/tmp/$t.log"
@@ -126,6 +127,9 @@ jobs:
         run: |
           python scripts/test_filtr_info.py
           python scripts/test_undo.py
+          # Prodej Pro: routy workeru s falesnou D1 — jedina brana, kde chyba
+          # stoji penize (dny za platbu, dvakrat zapnute Pro, spolknuta platba).
+          python scripts/test_prodej_worker.py
 
       - name: Screenshoty z regresi (i pri chybe)
         if: always()

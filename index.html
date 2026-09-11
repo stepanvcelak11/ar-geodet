@@ -95,8 +95,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=286">
-    <link rel="stylesheet" href="css/style.css?v=286">
+    <link rel="stylesheet" href="css/tokens.css?v=287">
+    <link rel="stylesheet" href="css/style.css?v=287">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -227,7 +227,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=286">
+    <link rel="stylesheet" href="css/vylepseni.css?v=287">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
          render-blokující: prohlížeč nevykreslí ani pixel, dokud nedorazí VŠECHNY.
          Jedenáct z nich (69 kB) přitom patřilo oknům, která se při startu vůbec
@@ -1380,6 +1380,14 @@
          — dilna vlastnika: "Vice" -> "Klice Pro". ODLOZENE schvalne: uvidi to
          jen rezim vlastnika, takze to nema co delat na kriticke ceste startu. -->
     <script type="ag/lazy" data-src="js/pro-klice.js"></script>
+    <!-- KOUPE PRO (odpojitelne: smaz radek, js/pro-koupe.js a zaznam v sw.js)
+         — cenik, zkouska zdarma, objednavka a QR platba. ODLOZENE: otevira se
+         tlacitkem Koupit z karty Verze Pro (js/pro-zamky.js), kupuje se jednou. -->
+    <script type="ag/lazy" data-src="js/pro-koupe.js"></script>
+    <!-- LIDE A PRODEJ (odpojitelne: smaz radek, js/prodej-konzole.js a zaznam v sw.js)
+         — konzole vlastnika: vsechny ucty, zapnout Pro, zablokovat, objednavky
+         a platby z banky. Uvidi to jen rezim vlastnika (server chce OWNER_KEY). -->
+    <script type="ag/lazy" data-src="js/prodej-konzole.js"></script>
     <!-- MOJE AKTIVITA (odpojitelné) — vlastní statistika dne (čas, kroky, výškové metry,
          body, nástroje) a schování nástrojů, do kterých uživatel nešáhl; musí být
          načtené od startu, protože průběžně měří (nesmí jít do lazy dávky) -->

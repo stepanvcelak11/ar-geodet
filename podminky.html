@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Obchodní podmínky — QTRIG Pro</title>
+<!--
+  OBCHODNÍ PODMÍNKY PRODEJE VERZE PRO. Odkazuje sem karta koupě (js/pro-koupe.js)
+  a musí sedět s tím, co karta slibuje (předplatné na dobu určitou, zapnutí po
+  připsání platby, souhlas s okamžitým plněním).
+
+  ⚠ ZÁSTUPNÉ ÚDAJE V HRANATÝCH ZÁVORKÁCH DOPLNÍ VLASTNÍK, až bude mít živnost
+    a účet: jméno, IČO, sídlo, e-mail, číslo účtu, datum účinnosti. Dokud tam
+    jsou závorky, prodej nezapínat (PRODEJ_IBAN na serveru nechat prázdný).
+  ⚠ Ceny se sem NEPÍŠOU — platí ceník v aplikaci (server: PRODEJ_CENA_*),
+    aby změna ceny nevyžadovala novou verzi podmínek.
+-->
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0; padding: 20px 18px 40px; max-width: 720px; margin-inline: auto;
+         font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; color: #16202e; background: #f7f8fa; }
+  @media (prefers-color-scheme: dark) { body { color: #e9eef7; background: #101520; } a { color: #6fd1a6; } }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 16px; margin: 22px 0 6px; }
+  p, li { margin: 6px 0; }
+  .meta { opacity: .7; font-size: 13px; margin-bottom: 18px; }
+  .box { border: 1px solid rgba(127,127,127,.35); border-radius: 12px; padding: 12px 14px; margin: 12px 0; }
+  .todo { background: rgba(212,160,44,.15); border-radius: 6px; padding: 0 4px; }
+  ol { padding-left: 22px; }
+</style>
+</head>
+<body>
+<h1>Obchodní podmínky — QTRIG, verze Pro</h1>
+<p class="meta">Účinné od <span class="todo">[datum]</span>. Platí pro koupi předplatného verze Pro aplikace QTRIG (dále „aplikace").</p>
+
+<h2>1. Kdo prodává</h2>
+<div class="box">
+  <p><b><span class="todo">[Jméno a příjmení]</span></b><br>
+  IČO: <span class="todo">[doplnit]</span> · sídlo: <span class="todo">[ulice, město, PSČ]</span><br>
+  e-mail: <span class="todo">[doplnit]</span><br>
+  Fyzická osoba podnikající podle živnostenského zákona, nezapsaná v obchodním rejstříku. Není plátcem DPH.</p>
+</div>
+
+<h2>2. Co se kupuje</h2>
+<ol>
+  <li><b>Základ</b> aplikace je zdarma a zůstane zdarma — měření, vytyčení, záznam bodů, mapa, export zakázky.</li>
+  <li><b>Pro</b> je <b>předplatné</b>: nevýhradní licence užívat rozšířené funkce aplikace (protokoly, objemy, pokročilé výpočty, firemní prostor a další — přesný seznam je vždy v aplikaci) po dobu určitou: <b>měsíc (30 dní)</b> nebo <b>rok (365 dní)</b>. Cena je uvedena v aplikaci před objednáním.</li>
+  <li>Předplatné se <b>neobnovuje samo</b>. Po uplynutí doby se aplikace vrátí do Základu; naměřená data zůstávají. Další platbou se doba prodlouží — dny se přičítají za konec té běžící.</li>
+  <li><b>Zkušební verze:</b> každý účet může Pro jednou vyzkoušet zdarma na dobu uvedenou v aplikaci (typicky 3 dny). Zkouška nic nestojí, nic se z ní neobnovuje a nezakládá žádný závazek.</li>
+</ol>
+
+<h2>3. Objednávka a platba</h2>
+<ol>
+  <li>Objednávka vzniká v aplikaci (Více → Verze Pro). Aplikace vygeneruje číslo objednávky (variabilní symbol) a platební údaje včetně QR kódu.</li>
+  <li>Platí se bankovním převodem na účet prodávajícího <span class="todo">[číslo účtu / IBAN]</span> s uvedeným variabilním symbolem. Jiné způsoby platby nejsou.</li>
+  <li>Smlouva je uzavřena a licence <b>začíná okamžikem připsání platby</b> na účet prodávajícího. Aplikace se o tom dozví automaticky, zpravidla do několika minut od připsání; převod mezi bankami může trvat i jeden pracovní den.</li>
+  <li>Objednávku, která nebyla zaplacena, lze kdykoli zrušit v aplikaci; nic z ní neplyne.</li>
+  <li>Doklad o zaplacení (fakturu) prodávající vystaví elektronicky na vyžádání e-mailem; pro firemní zákazníky s uvedením IČO.</li>
+</ol>
+
+<h2>4. Odstoupení od smlouvy (spotřebitel)</h2>
+<p>Verze Pro je digitální obsah dodávaný bez hmotného nosiče. Zaškrtnutím souhlasu před objednáním zákazník <b>výslovně žádá o zpřístupnění Pro ihned po zaplacení a bere na vědomí, že tím ztrácí právo odstoupit od smlouvy ve lhůtě 14 dnů</b> (§ 1837 písm. l zákona č. 89/2012 Sb., občanský zákoník). Kdo si nechce Pro pořídit naslepo, má k dispozici zkušební verzi zdarma.</p>
+
+<h2>5. Když něco nefunguje</h2>
+<ol>
+  <li>Vady hlaste na e-mail výše nebo přímo z aplikace (Více → Napsat autorovi). Prodávající odpoví do 30 dnů.</li>
+  <li>Pokud Pro po zaplacení nefunguje z důvodů na straně prodávajícího déle než 3 dny v kuse, prodlouží se předplatné o dobu výpadku, nebo na žádost vrátí prodávající poměrnou část ceny.</li>
+  <li>Aplikace je <b>pomůcka</b>. Přesnost měření je dána snímači telefonu a podmínkami; pro účely, kde zákon vyžaduje ověřené geodetické měření, ji nelze použít jako jediný zdroj. Výsledky si ověřujte.</li>
+</ol>
+
+<h2>6. Účet a data</h2>
+<ol>
+  <li>Předplatné se váže na účet v aplikaci (osmiznakový kód). Lze ho užívat na více zařízeních téhož účtu.</li>
+  <li>Prodávající může účet zablokovat při zneužívání služby (například útoky na server nebo šíření přístupových údajů); zaplacenou dobu v takovém případě nevrací jen tehdy, jde-li o úmyslné zneužití.</li>
+  <li>Osobní údaje: k prodeji se zpracovává kód účtu, jméno zadané při registraci, číslo a částka objednávky a údaje o platbě z bankovního výpisu (jméno plátce, číslo účtu), a to za účelem plnění smlouvy a splnění účetních povinností, po dobu, kterou vyžadují daňové předpisy. Údaje se nepředávají nikomu dalšímu kromě banky a případné účetní; server aplikace běží u Cloudflare (EU). Žádost o výpis nebo výmaz údajů vyřídí prodávající e-mailem.</li>
+</ol>
+
+<h2>7. Ostatní</h2>
+<ol>
+  <li>Právní vztahy se řídí právem České republiky.</li>
+  <li>Spotřebitel může spor řešit mimosoudně u České obchodní inspekce (<a href="https://www.coi.cz" target="_blank" rel="noopener">coi.cz</a>) nebo přes platformu <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener">ODR</a>.</li>
+  <li>Prodávající může podmínky změnit; pro už zaplacené předplatné platí znění účinné v den zaplacení.</li>
+</ol>
+</body>
+</html>

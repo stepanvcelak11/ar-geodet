@@ -124,7 +124,7 @@
     // uživatel viděl jen „Špatný klíč" i tehdy, když na serveru VŮBEC ŽÁDNÝ NEBYL.
     function proc(r) {
         if (r.ok) return '';
-        if (r.status === 0) return 'Server neodpověděl. Zkontroluj připojení a zkus to znovu.';
+        if (r.status === 0) return 'Server neodpověděl. Zkontroluj připojení a zkus to znovu. (Když je síť v pořádku: klíč s háčkem, čárkou nebo emoji hlavička neunese — nastav OWNER_KEY jen z písmen a–z, číslic a pomlček.)';
         // ⚠ 503 znamená DVĚ věci, ne jednu: buď na serveru OWNER_KEY vůbec není, NEBO je
         // kratší než 24 znaků — pak ho cloud/worker.js:263 (ownerOk) bere, jako by tam
         // nebyl. Kdo měl dosud klíč kratší, dostane po nasazení tuhle hlášku a bez té
@@ -181,6 +181,15 @@
     function odemkni(p) {
         if (_odemykam) return;
         var k = ((p.heslo && p.heslo.value) || '').trim();
+        // ⚠ HTTP HLAVIČKA UNESE JEN ASCII. Klíč s háčkem, čárkou nebo emoji fetch()
+        //   odmítne SYNCHRONNĚ (TypeError) ještě před odesláním — catch to proměnil
+        //   na status 0 a hláška lhala „server neodpověděl", přitom síť byla v pořádku
+        //   (hlášení uživatele 11. 9. 2026). Říct to rovnou a přesně.
+        if (k && !/^[ -~]+$/.test(k)) {
+            p.err.innerHTML = 'Klíč obsahuje znak, který HTTP hlavička neunese (háček, čárka, emoji…). ' +
+                'Nastav OWNER_KEY jen z písmen a–z, číslic a pomlček, aspoň 24 znaků.';
+            return;
+        }
         if (!k) { p.err.innerHTML = 'Do hesla napi\u0161 kl\u00ed\u010d vlastn\u00edka (OWNER_KEY).'; return; }
         _odemykam = true;
         if (p.btn) p.btn.disabled = true;
@@ -429,6 +438,11 @@
                 ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-6h6v6"/></svg>',
                 t: 'Všechny firmy', d: 'Kdo aplikaci používá, kolik má míst, žádosti o navýšení, zmrazení a úklid',
                 lazy: 'js/sprava-appky.js', run: function () { if (window.AGSprava) AGSprava.open(); else chybi('js/sprava-appky.js'); }
+            },
+            {
+                ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2"/><path d="M17 3.5a3 3 0 0 1 0 6"/><path d="M19 13.5a5 5 0 0 1 3 4.5v3"/></svg>',
+                t: 'Lidé a prodej Pro', d: 'Každý účet: kde je a co dělá, zapnout Pro, zablokovat; objednávky a platby z banky',
+                lazy: 'js/prodej-konzole.js', run: function () { if (window.AGProdej) AGProdej.open(); else chybi('js/prodej-konzole.js'); }
             },
             {
                 ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H7l-3 3z"/></svg>',
@@ -909,6 +923,12 @@
             ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><path d="M23 21v-2a4 4 0 0 0-3-3.9"/></svg>',
             lazy: 'js/ucty-admin.js',
             run: function () { if (window.AGUctyAdmin) AGUctyAdmin.open(); else chybi('js/ucty-admin.js'); }
+        },
+        {
+            id: 'vlastnik-lide', label: 'Lidé a prodej Pro', order: 35,
+            ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2"/><path d="M17 3.5a3 3 0 0 1 0 6"/><path d="M19 13.5a5 5 0 0 1 3 4.5v3"/></svg>',
+            lazy: 'js/prodej-konzole.js',
+            run: function () { if (window.AGProdej) AGProdej.open(); else chybi('js/prodej-konzole.js'); }
         },
         {
             id: 'vlastnik-zpravy', label: 'Zprávy od lidí', order: 40,

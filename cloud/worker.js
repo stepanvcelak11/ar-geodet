@@ -501,6 +501,269 @@ function tarifUctu(acc) {
     return 'pro';
 }
 
+// ---------------------------------------------------------------------------
+// PRODEJ PRO — objednávky, QR platba, párování plateb z banky
+// ---------------------------------------------------------------------------
+// Jak se Pro kupuje: appka založí OBJEDNÁVKU (číslo = variabilní symbol), ukáže
+// QR platbu (český standard „QR platba" / SPAYD, čte ho každá banka v ČR) a
+// člověk pošle peníze z vlastní bankovní appky. Žádná platební brána, žádná
+// provize, žádné karty — jen převod na účet vlastníka.
+//
+// Jak se objednávka pozná jako zaplacená — DVĚ cesty, obě končí v zapniPro():
+//   • RUČNĚ: vlastník vidí platbu ve výpisu, v konzoli klepne „Zaplaceno".
+//   • SAMA: když je nastavený FIO_TOKEN (Fio banka, API jen ke čtení), worker se
+//     každých pár minut (cron) zeptá banky na pohyby za posledních 7 dní, spáruje
+//     příchozí platby podle VS (náhradně podle kódu účtu ve zprávě pro příjemce)
+//     a Pro zapne bez lidské ruky. Co se nespáruje, zůstane v konzoli jako
+//     „nezařazená platba" k ručnímu přiřazení — peníze se nikdy tiše nezahodí.
+//
+// ⚠ ÚDAJE PRODEJCE NEJSOU V KÓDU. Číslo účtu a ceny jsou proměnné workeru
+//   (Cloudflare → Settings → Variables): PRODEJ_IBAN, PRODEJ_UCET (lidsky
+//   čitelné „číslo/kód banky"), PRODEJ_CENA_MESIC a PRODEJ_CENA_ROK (Kč),
+//   PRODEJ_ZKOUSKA_DNI (zkouška zdarma, 0 = žádná), PRODEJ_PRIJEMCE. Dokud
+//   PRODEJ_IBAN chybí, je prodej VYPNUTÝ: appka ceník ukáže, ale místo QR řekne,
+//   že se zatím platí jen klíčem. Tajemství FIO_TOKEN je secret
+//   (wrangler secret put FIO_TOKEN) — má právo jen číst pohyby.
+//
+// MODEL (rozhodnutí uživatele 11. 9. 2026): PŘEDPLATNÉ po měsíci, nebo na rok
+//   levněji, plus ZKOUŠKA ZDARMA na pár dní — jednou na účet. Doživotní licence
+//   se neprodává; „navždy" umí jen ruční zapnutí z konzole (klíč nebo dar).
+//
+// ⚠ PÁROVÁNÍ JE IDEMPOTENTNÍ. Fio vrací pohyby za období a tentýž pohyb přijde
+//   při každém dotazu znovu; každý má „ID pohybu" (column22), které se ukládá
+//   do fio_pohyby jako PRIMARY KEY. Zpracuje se jen to, co tam ještě není —
+//   pád uprostřed běhu tak nikomu nezapne Pro dvakrát ani ho nepřeskočí.
+//   (Fio má i /last/ s automatickou zarážkou, ale ta se posune už při STAŽENÍ —
+//   kdyby worker spadl mezi stažením a zápisem, platba by se ztratila.)
+//
+// ⚠ KOLIK DNÍ ZA PLATBU URČUJE ČÁSTKA, NE OBJEDNÁVKA. Kdo si objednal měsíc a
+//   poslal roční částku, dostane rok (a naopak). Objednávka je jen VS a
+//   připomínka; peníze jsou pravda. Díky tomu nevadí ani platba na zrušenou
+//   objednávku (člověk přepnul měsíc→rok a zaplatil starý QR).
+function prodejCfg(env) {
+    const n = (v, d) => { const x = parseInt(v, 10); return isFinite(x) && x >= 0 ? x : d; };
+    const iban = String((env && env.PRODEJ_IBAN) || '').replace(/\s+/g, '').toUpperCase();
+    return {
+        produkty: [
+            { k: 'mesic', nazev: 'Měsíc', dni: 30, cena: n(env && env.PRODEJ_CENA_MESIC, 149) },
+            { k: 'rok', nazev: 'Rok', dni: 365, cena: n(env && env.PRODEJ_CENA_ROK, 990) }
+        ],
+        zkouskaDni: n(env && env.PRODEJ_ZKOUSKA_DNI, 3),
+        iban: /^[A-Z]{2}\d{2}[A-Z0-9]{8,30}$/.test(iban) ? iban : '',
+        ucet: String((env && env.PRODEJ_UCET) || '').trim().slice(0, 40),
+        prijemce: String((env && env.PRODEJ_PRIJEMCE) || 'QTRIG').trim().slice(0, 35),
+        fio: !!(env && env.FIO_TOKEN)
+    };
+}
+function produkt(cfg, k) { return cfg.produkty.find(p => p.k === k) || null; }
+// Kolik dní si člověk zaplatil — nejdražší produkt, na který částka stačí
+// (koruna tolerance kvůli zaokrouhlení). 0 = na nic nestačí (podplaceno).
+function dniZaCastku(cfg, castka) {
+    let dni = 0;
+    cfg.produkty.forEach(p => { if (castka + 1 >= p.cena && p.dni > dni) dni = p.dni; });
+    return dni;
+}
+
+let _prodejMig = false;
+async function ensureProdejSchema(env) {
+    if (_prodejMig) return;
+    const creates = [
+        // vs = číslo objednávky = variabilní symbol platby (8 číslic, náhodné,
+        // aby se z něj nedalo číst, kolik lidí koupilo)
+        'CREATE TABLE IF NOT EXISTS orders ('
+        + 'vs INTEGER PRIMARY KEY, acc_id TEXT NOT NULL, code TEXT NOT NULL, '
+        + 'amount INTEGER NOT NULL, dni INTEGER NOT NULL, created INTEGER NOT NULL, '
+        + 'paid_ts INTEGER, paid_by TEXT, paid_amount INTEGER, paid_note TEXT, '
+        + 'cancelled INTEGER NOT NULL DEFAULT 0)',
+        'CREATE INDEX IF NOT EXISTS idx_orders_acc ON orders(acc_id)',
+        // každý příchozí pohyb z banky, ať se spároval nebo ne
+        'CREATE TABLE IF NOT EXISTS fio_pohyby ('
+        + 'id TEXT PRIMARY KEY, ts INTEGER NOT NULL, castka INTEGER NOT NULL, mena TEXT, '
+        + 'vs TEXT, msg TEXT, protiucet TEXT, nazev TEXT, stav TEXT NOT NULL, order_vs INTEGER, seen INTEGER NOT NULL)',
+        // stav automatu: kdy naposled koukal, co řekla banka
+        'CREATE TABLE IF NOT EXISTS fio_stav (k TEXT PRIMARY KEY, v TEXT)'
+    ];
+    for (const s of creates) { try { await env.DB.prepare(s).run(); } catch (e) {} }
+    // zkouška zdarma: kdy si ji účet vzal (jednou a dost)
+    try { await env.DB.prepare('ALTER TABLE accounts ADD COLUMN trial_ts INTEGER').run(); } catch (e) {}
+    _prodejMig = true;
+}
+
+function novyVs() {
+    const a = new Uint32Array(1);
+    crypto.getRandomValues(a);
+    return 10000000 + (a[0] % 90000000);          // 8 číslic, první nenulová
+}
+
+// QR platba (SPAYD). Zpráva bez diakritiky a bez hvězdičky — hvězdička je
+// oddělovač formátu a diakritiku některé bankovní appky rozbijí.
+function spayd(cfg, castka, vs, msg) {
+    const cist = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[*]/g, ' ').trim();
+    let s = 'SPD*1.0*ACC:' + cfg.iban + '*AM:' + (castka | 0) + '.00*CC:CZK';
+    if (vs) s += '*X-VS:' + String(vs);
+    if (msg) s += '*MSG:' + cist(msg).slice(0, 60);
+    if (cfg.prijemce) s += '*RN:' + cist(cfg.prijemce).slice(0, 35);
+    return s;
+}
+
+// Co z objednávky vidí appka (bez id účtu, bez interních polí).
+function objednavkaProAppku(o, cfg, code) {
+    const msg = 'QTRIG PRO ' + (code || o.code || '');
+    return {
+        vs: o.vs, castka: o.amount, dni: o.dni, created: o.created,
+        stav: o.cancelled ? 'zrusena' : (o.paid_ts ? 'zaplacena' : 'ceka'),
+        zaplaceno: o.paid_ts || 0,
+        msg: msg,
+        spayd: (cfg.iban && !o.paid_ts && !o.cancelled) ? spayd(cfg, o.amount, o.vs, msg) : ''
+    };
+}
+function cfgProAppku(cfg, acc) {
+    return {
+        produkty: cfg.produkty, iban: cfg.iban, ucet: cfg.ucet, prijemce: cfg.prijemce,
+        zapnuto: !!cfg.iban, automat: cfg.fio,
+        zkouska: { dni: cfg.zkouskaDni, pouzita: !!(acc && acc.trial_ts), kdy: (acc && acc.trial_ts) || 0 }
+    };
+}
+
+// Zapne (nebo prodlouží) Pro účtu. `dni` 0 = navždy. Prodloužení se počítá od
+// konce běžícího předplatného, ne ode dneška — kdo zaplatí měsíc předem, o ten
+// měsíc nepřijde.
+async function zapniPro(env, acc, dni) {
+    const now = Date.now();
+    let doKdy = null;
+    if (dni > 0) {
+        const od = (acc.tarif === 'pro' && acc.tarif_do && acc.tarif_do > now) ? acc.tarif_do : now;
+        doKdy = od + Math.max(1, Math.min(3650, dni | 0)) * 864e5;
+    }
+    await env.DB.prepare('UPDATE accounts SET tarif=?, tarif_do=? WHERE id=?').bind('pro', doKdy, acc.id).run();
+    await mistaPodleTarifu(env, acc.id, 'pro');
+    return doKdy;
+}
+async function vypniPro(env, acc) {
+    await env.DB.prepare("UPDATE accounts SET tarif='zaklad', tarif_do=NULL WHERE id=?").bind(acc.id).run();
+    await mistaPodleTarifu(env, acc.id, 'zaklad');
+}
+// ⚠ MÍSTA V PROSTORU JDOU S TARIFEM. Tarif drží účet, ale „kolik lidí se sem
+//   vejde" je vlastnost prostoru — bez téhle věty by si čerstvě zaplacené Pro
+//   nemělo koho pozvat. Zpátky na Základ se strop stahuje JEN u prostoru, kde
+//   nikdo další není: nikoho to nevyhodí, ale admin by viděl „5 z 1".
+async function mistaPodleTarifu(env, accId, tarif) {
+    const vlastni = await dbFirst(env,
+        'SELECT f.id, (SELECT COUNT(*) FROM users x WHERE x.firm_id=f.id AND x.left_ts IS NULL) AS lidi '
+        + 'FROM firms f JOIN users u ON u.firm_id=f.id WHERE u.acc_id=? AND u.own=1', accId);
+    if (vlastni && (tarif === 'pro' || vlastni.lidi <= SOLO_MAX)) {
+        await dbRunSoft(env, 'UPDATE firms SET max_users=? WHERE id=?',
+            tarif === 'pro' ? FIRM_MAX_DEFAULT : SOLO_MAX, vlastni.id);
+    }
+}
+
+// Označí objednávku jako zaplacenou a zapne Pro na tolik dní, na kolik částka
+// stačí (viz dniZaCastku). Vrací počet dní, nebo 0 když už zaplacená byla
+// (druhé zavolání nesmí prodloužit podruhé) nebo částka na nic nestačí.
+async function objednavkaZaplacena(env, cfg, order, kym, castka, pozn) {
+    const dni = dniZaCastku(cfg, castka);
+    if (!dni) return 0;
+    const r = await env.DB.prepare(
+        'UPDATE orders SET paid_ts=?, paid_by=?, paid_amount=?, paid_note=?, dni=?, cancelled=0 WHERE vs=? AND paid_ts IS NULL')
+        .bind(Date.now(), String(kym).slice(0, 24), castka | 0, String(pozn || '').slice(0, 200), dni, order.vs).run();
+    if (!r || !r.meta || !r.meta.changes) return 0;
+    const acc = await dbFirst(env, 'SELECT * FROM accounts WHERE id=?', order.acc_id);
+    if (!acc) return 0;
+    await zapniPro(env, acc, dni);
+    return dni;
+}
+
+async function fioStav(env, k) {
+    try { const r = await env.DB.prepare('SELECT v FROM fio_stav WHERE k=?').bind(k).first(); return r ? r.v : null; }
+    catch (e) { return null; }
+}
+async function fioStavZapis(env, k, v) {
+    try { await env.DB.prepare('INSERT OR REPLACE INTO fio_stav(k,v) VALUES(?,?)').bind(k, String(v)).run(); } catch (e) {}
+}
+function fioCol(t, n) { const c = t && t['column' + n]; return c && c.value != null ? c.value : null; }
+function fioDen(ts) { return new Date(ts).toISOString().slice(0, 10); }
+
+// Jeden průchod bankou. `duvod` je jen do protokolu. Vrací shrnutí pro konzoli.
+// ⚠ Fio pustí JEDEN dotaz za 30 s na token (jinak 409) — proto se tu drží
+//   razítko posledního dotazu a dřív než za 30 s se nejde znovu.
+async function fioZkontroluj(env, duvod) {
+    const out = { nastaveno: !!env.FIO_TOKEN, novych: 0, sparovano: 0, nezarazeno: 0, chyba: null, ts: Date.now() };
+    if (!env.FIO_TOKEN) return out;
+    await ensureProdejSchema(env);
+    await ensureUctySchema(env);
+    const posl = parseInt(await fioStav(env, 'posledni_dotaz'), 10) || 0;
+    if (Date.now() - posl < 30e3) { out.chyba = 'Banka pustí jeden dotaz za 30 s — zkus to za chvíli.'; out.preskoceno = true; return out; }
+    await fioStavZapis(env, 'posledni_dotaz', Date.now());
+    const od = fioDen(Date.now() - 7 * 864e5), doD = fioDen(Date.now());
+    const url = 'https://fioapi.fio.cz/v1/rest/periods/' + encodeURIComponent(env.FIO_TOKEN) + '/' + od + '/' + doD + '/transactions.json';
+    let data = null;
+    try {
+        const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        if (r.status === 409) { out.chyba = 'Banka: moc dotazů za sebou (409).'; }
+        else if (r.status === 500 || r.status === 422) { out.chyba = 'Banka odmítla token (' + r.status + ') — je FIO_TOKEN platný a má právo číst pohyby?'; }
+        else if (!r.ok) { out.chyba = 'Banka odpověděla ' + r.status + '.'; }
+        else data = await r.json();
+    } catch (e) { out.chyba = 'Banka neodpověděla: ' + (e && e.message ? e.message : e); }
+    await fioStavZapis(env, 'posledni_vysledek', JSON.stringify({ ts: Date.now(), duvod: duvod, chyba: out.chyba }));
+    if (!data) return out;
+
+    const cfg = prodejCfg(env);
+    const list = (((data.accountStatement || {}).transactionList || {}).transaction) || [];
+    for (const t of list) {
+        const id = String(fioCol(t, 22) || '');
+        const castka = Math.round(Number(fioCol(t, 1)) || 0);
+        if (!id || castka <= 0) continue;                       // odchozí a nulové pohyby nezajímají
+        const uz = await env.DB.prepare('SELECT id FROM fio_pohyby WHERE id=?').bind(id).first();
+        if (uz) continue;
+        const mena = String(fioCol(t, 14) || 'CZK');
+        const vs = String(fioCol(t, 5) || '').replace(/\D/g, '');
+        const msg = [fioCol(t, 16), fioCol(t, 7), fioCol(t, 25)].filter(Boolean).join(' | ').slice(0, 200);
+        const protiucet = String(fioCol(t, 2) || '') + (fioCol(t, 3) ? '/' + fioCol(t, 3) : '');
+        const nazev = String(fioCol(t, 10) || '').slice(0, 60);
+        const tsP = Date.parse(String(fioCol(t, 0) || '')) || Date.now();
+        out.novych++;
+
+        let stav = 'nezarazeno', orderVs = null;
+        if (mena === 'CZK') {
+            // 1) podle variabilního symbolu — i zrušená objednávka: člověk mohl
+            //    zaplatit starší QR (viz hlavička)
+            let order = vs ? await env.DB.prepare('SELECT * FROM orders WHERE vs=?').bind(parseInt(vs, 10) || 0).first() : null;
+            // 2) náhradně podle kódu účtu ve zprávě (kdo VS zapomněl, ale kód opsal)
+            let acc = null;
+            if (!order) {
+                const m = msg.toUpperCase().match(/\b[A-HJ-NP-Z2-9]{8}\b/g) || [];
+                for (const k of m) {
+                    acc = await dbFirst(env, 'SELECT * FROM accounts WHERE code=?', k);
+                    if (acc) break;
+                }
+                if (acc) order = await env.DB.prepare('SELECT * FROM orders WHERE acc_id=? AND paid_ts IS NULL AND cancelled=0 ORDER BY created DESC').bind(acc.id).first();
+            }
+            if (order && order.paid_ts) {
+                // VS už zaplacený → člověk platí PODRUHÉ tímtéž QR (další měsíc).
+                // Založit novou objednávku pod jeho účtem a zaplatit ji.
+                acc = acc || await dbFirst(env, 'SELECT * FROM accounts WHERE id=?', order.acc_id);
+                order = null;
+            }
+            if (!order && acc && dniZaCastku(cfg, castka)) {
+                const nvs = novyVs();
+                await env.DB.prepare('INSERT INTO orders(vs,acc_id,code,amount,dni,created,cancelled) VALUES(?,?,?,?,?,?,0)')
+                    .bind(nvs, acc.id, acc.code, castka, dniZaCastku(cfg, castka), Date.now()).run();
+                order = await env.DB.prepare('SELECT * FROM orders WHERE vs=?').bind(nvs).first();
+            }
+            if (order) {
+                const dni = await objednavkaZaplacena(env, cfg, order, 'fio', castka, id);
+                if (dni) { stav = 'sparovano'; orderVs = order.vs; out.sparovano++; }
+                else { stav = 'podplaceno'; orderVs = order.vs; }
+            }
+        }
+        if (stav === 'nezarazeno' || stav === 'podplaceno') out.nezarazeno++;
+        await env.DB.prepare('INSERT OR IGNORE INTO fio_pohyby(id,ts,castka,mena,vs,msg,protiucet,nazev,stav,order_vs,seen) VALUES(?,?,?,?,?,?,?,?,?,?,?)')
+            .bind(id, tsP, castka, mena, vs, msg, protiucet, nazev, stav, orderVs, Date.now()).run();
+    }
+    await fioStavZapis(env, 'posledni_ok', Date.now());
+    return out;
+}
+
 // totéž pro dotaz na VÍC řádků (seznam uživatelů se opírá o users.last_login)
 async function dbAll(env, sql, ...bind) {
     try { return (await env.DB.prepare(sql).bind(...bind).all()).results; }
@@ -964,6 +1227,7 @@ export default {
             // Starsi nasazeny worker tuhle polozku nema, takze podle ni pozna appka,
             // ze na serveru bezi stara verze — viz js/hodinky-parovani.js.
             //
+            // v:12 = prodej Pro: /objednavky, /owner/objednavky, /owner/blokace, cron s Fio.
             // v:7 = /feedback (schranka na vzkazy, bez tokenu) + /owner/* (konzole vlastnika).
             // v:6 = bezpecnostni zmena z 9bc1401 (brzda prihlaseni
             //       na TRI klice vcetne IP, aby kolegovi nesel zamknout ucet, a
@@ -974,7 +1238,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 11, wx: true, watch: true, fb: true, owner: true, seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 12, wx: true, watch: true, fb: true, owner: true, seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true });
 
             // ---------------- ČHMÚ: měření z nejbližší stanice ---------------
             // veřejné (bez tokenu) — počasí není firemní údaj
@@ -1633,15 +1897,62 @@ export default {
                 //     ani ten, kdo si v prohlížeči odkryje schované dlaždice.
                 // Kdo má tarif Pro, klíč nikdy neuvidí; appka si Pro rozsvítí
                 // sama podle `tarif` z /config.
+                // LIDÉ: všechny účty, u každého kde je (prostory) a co naposledy
+                // dělal. Poslední aktivita se skládá ze dvou zdrojů: přihlášení
+                // (accounts.last_login) a poslední záznam užívání za 30 dní
+                // (`usage` přes users.acc_id) — jeden GROUP BY dotaz, ne dotaz
+                // na každý účet zvlášť.
                 if (req.method === 'GET' && path === '/owner/ucty') {
                     await ensureUctySchema(env);
+                    await ensureProdejSchema(env);
                     const q = String(url.searchParams.get('q') || '').trim().toUpperCase();
                     const rows = q
-                        ? await dbAll(env, 'SELECT id, code, name, tarif, tarif_do, disabled, created, last_login '
-                            + 'FROM accounts WHERE code=? OR name LIKE ? ORDER BY created DESC LIMIT 100', q, '%' + q + '%')
-                        : await dbAll(env, 'SELECT id, code, name, tarif, tarif_do, disabled, created, last_login '
-                            + 'FROM accounts ORDER BY created DESC LIMIT 100');
-                    return json({ ucty: rows || [] });
+                        ? await dbAll(env, 'SELECT id, code, name, tarif, tarif_do, disabled, created, last_login, trial_ts '
+                            + 'FROM accounts WHERE code=? OR UPPER(name) LIKE ? ORDER BY created DESC LIMIT 200', q, '%' + q + '%')
+                        : await dbAll(env, 'SELECT id, code, name, tarif, tarif_do, disabled, created, last_login, trial_ts '
+                            + 'FROM accounts ORDER BY created DESC LIMIT 200');
+                    const ids = (rows || []).map(r => r.id);
+                    const prostory = {}, aktivita = {}, objednavky = {};
+                    if (ids.length) {
+                        const ph = ids.map(() => '?').join(',');
+                        try {
+                            const pr = await dbAll(env,
+                                'SELECT u.acc_id, u.role, u.own, u.left_ts, u.disabled, u.last_login, f.name AS nazev, f.code AS kod, '
+                                + '(SELECT COUNT(*) FROM users x WHERE x.firm_id=f.id AND x.left_ts IS NULL) AS lidi '
+                                + 'FROM users u JOIN firms f ON f.id=u.firm_id WHERE u.acc_id IN (' + ph + ') ORDER BY u.own DESC, f.name', ...ids);
+                            (pr || []).forEach(r => {
+                                (prostory[r.acc_id] = prostory[r.acc_id] || []).push({
+                                    nazev: r.own ? null : r.nazev, kod: r.own ? null : r.kod, role: r.role,
+                                    vlastni: !!r.own, archiv: !!r.left_ts, lidi: r.lidi || 0, lastLogin: r.last_login || 0
+                                });
+                            });
+                        } catch (e) {}
+                        try {
+                            const ak = await dbAll(env,
+                                "SELECT u.acc_id, MAX(g.ts) AS ts, COUNT(*) AS n FROM usage g JOIN users u ON u.id=g.uid "
+                                + 'WHERE g.ts>=? AND u.acc_id IN (' + ph + ') GROUP BY u.acc_id', Date.now() - 30 * 864e5, ...ids);
+                            (ak || []).forEach(r => { aktivita[r.acc_id] = { ts: r.ts || 0, n: r.n || 0 }; });
+                        } catch (e) {}
+                        try {
+                            const ob = await dbAll(env,
+                                'SELECT acc_id, COUNT(*) AS n, SUM(CASE WHEN paid_ts IS NOT NULL THEN 1 ELSE 0 END) AS zaplaceno, '
+                                + 'SUM(CASE WHEN paid_ts IS NULL AND cancelled=0 THEN 1 ELSE 0 END) AS ceka '
+                                + 'FROM orders WHERE acc_id IN (' + ph + ') GROUP BY acc_id', ...ids);
+                            (ob || []).forEach(r => { objednavky[r.acc_id] = { n: r.n || 0, zaplaceno: r.zaplaceno || 0, ceka: r.ceka || 0 }; });
+                        } catch (e) {}
+                    }
+                    return json({
+                        ucty: (rows || []).map(r => {
+                            const ak = aktivita[r.id] || { ts: 0, n: 0 };
+                            return Object.assign({}, r, {
+                                tarifPlati: tarifUctu(r) === 'pro',
+                                prostory: prostory[r.id] || [],
+                                aktivita: Math.max(ak.ts, r.last_login || 0), akcí30d: ak.n,
+                                objednavky: objednavky[r.id] || { n: 0, zaplaceno: 0, ceka: 0 }
+                            });
+                        }),
+                        prodej: prodejCfg(env)
+                    });
                 }
 
                 if (req.method === 'POST' && path === '/owner/tarif') {
@@ -1652,26 +1963,110 @@ export default {
                     const acc = await dbFirst(env, 'SELECT * FROM accounts WHERE id=? OR code=?',
                         String(b.id || ''), String(b.code || '').toUpperCase());
                     if (!acc) return err(404, 'Účet nenalezen.');
-                    const doKdy = b.dni ? (Date.now() + Math.max(1, Math.min(3650, b.dni | 0)) * 864e5) : null;
-                    await env.DB.prepare('UPDATE accounts SET tarif=?, tarif_do=? WHERE id=?')
-                        .bind(tarif, doKdy, acc.id).run();
-                    // ⚠ MÍSTA V PROSTORU JDOU S TARIFEM. Tarif drží účet, ale
-                    //   „kolik lidí se sem vejde" je vlastnost prostoru — a bez
-                    //   téhle jedné věty by si čerstvě zaplacené Pro nemělo koho
-                    //   pozvat: vlastní prostor by dál měl jediné místo.
-                    //   Zpátky na Základ se strop stahuje JEN u prostoru, kde
-                    //   nikdo další není. Jinak by firma o pěti lidech zůstala
-                    //   nad stropem: nikoho to nevyhodí (strop se čte až při
-                    //   přidávání), ale admin by v seznamu viděl „5 z 1" a
-                    //   nemohl by nikoho vrátit zpátky.
-                    const vlastni = await dbFirst(env,
-                        'SELECT f.id, (SELECT COUNT(*) FROM users x WHERE x.firm_id=f.id AND x.left_ts IS NULL) AS lidi '
-                        + 'FROM firms f JOIN users u ON u.firm_id=f.id WHERE u.acc_id=? AND u.own=1', acc.id);
-                    if (vlastni && (tarif === 'pro' || vlastni.lidi <= SOLO_MAX)) {
-                        await dbRunSoft(env, 'UPDATE firms SET max_users=? WHERE id=?',
-                            tarif === 'pro' ? FIRM_MAX_DEFAULT : SOLO_MAX, vlastni.id);
-                    }
+                    // Ruční zapnutí z konzole PRODLUŽUJE (od konce běžícího Pro),
+                    // stejně jako platba — vlastník, který dá „rok" člověku s
+                    // půlrokem zbývajícím, mu ho nesmí zkrátit.
+                    if (tarif === 'pro') await zapniPro(env, acc, b.dni | 0);
+                    else await vypniPro(env, acc);
                     return json({ ok: true, ucet: await dbFirst(env, 'SELECT id, code, name, tarif, tarif_do FROM accounts WHERE id=?', acc.id) });
+                }
+
+                // „VYHODIT Z APPKY" = zablokovat účet. auth() vrací null hned při
+                // příštím požadavku (účet se čte čerstvý z DB, ne z tokenu), takže
+                // člověk vypadne do minuty i na telefonu, kde je přihlášený. Data
+                // se nemažou — odblokování všechno vrátí.
+                if (req.method === 'POST' && path === '/owner/blokace') {
+                    await ensureUctySchema(env);
+                    const b = await req.json().catch(() => null) || {};
+                    const acc = await dbFirst(env, 'SELECT * FROM accounts WHERE id=? OR code=?',
+                        String(b.id || ''), String(b.code || '').toUpperCase());
+                    if (!acc) return err(404, 'Účet nenalezen.');
+                    const dis = b.disabled ? 1 : 0;
+                    await env.DB.prepare('UPDATE accounts SET disabled=? WHERE id=?').bind(dis, acc.id).run();
+                    // i členství — starší appky se hlásí starou cestou přes users.disabled
+                    await dbRunSoft(env, 'UPDATE users SET disabled=? WHERE acc_id=?', dis, acc.id);
+                    return json({ ok: true, ucet: await dbFirst(env, 'SELECT id, code, name, tarif, tarif_do, disabled FROM accounts WHERE id=?', acc.id) });
+                }
+
+                // ---- OBJEDNÁVKY A PLATBY -------------------------------------
+                if (req.method === 'GET' && path === '/owner/objednavky') {
+                    await ensureProdejSchema(env);
+                    // Když je automat zapnutý a naposled koukal před víc než minutou,
+                    // kouknout hned teď na pozadí — konzole tak ukazuje čerstvý stav
+                    // i bez čekání na cron. Odpověď se tím nezdrží.
+                    let fio = { nastaveno: !!env.FIO_TOKEN };
+                    try {
+                        fio.posledniOk = parseInt(await fioStav(env, 'posledni_ok'), 10) || 0;
+                        fio.posledniDotaz = parseInt(await fioStav(env, 'posledni_dotaz'), 10) || 0;
+                        const v = await fioStav(env, 'posledni_vysledek');
+                        fio.posledni = v ? JSON.parse(v) : null;
+                    } catch (e) {}
+                    if (env.FIO_TOKEN && Date.now() - (fio.posledniDotaz || 0) > 60e3 && ctx && ctx.waitUntil)
+                        ctx.waitUntil(fioZkontroluj(env, 'konzole').catch(() => {}));
+                    const rows = await dbAll(env,
+                        'SELECT o.*, a.name AS jmeno, a.tarif, a.tarif_do FROM orders o LEFT JOIN accounts a ON a.id=o.acc_id '
+                        + 'ORDER BY o.created DESC LIMIT 300');
+                    let pohyby = [];
+                    try {
+                        pohyby = await dbAll(env,
+                            "SELECT * FROM fio_pohyby WHERE stav IN ('nezarazeno','podplaceno','duplicitni') ORDER BY ts DESC LIMIT 100");
+                    } catch (e) {}
+                    return json({ objednavky: rows || [], pohyby: pohyby, fio: fio, prodej: prodejCfg(env) });
+                }
+
+                // ruční „Zaplaceno" (vlastník to viděl ve výpisu)
+                {
+                    const mo = path.match(/^\/owner\/objednavky\/(\d{1,12})\/(zaplaceno|zrusit)$/);
+                    if (mo && req.method === 'POST') {
+                        await ensureProdejSchema(env);
+                        const o = await env.DB.prepare('SELECT * FROM orders WHERE vs=?').bind(parseInt(mo[1], 10)).first();
+                        if (!o) return err(404, 'Objednávka nenalezena.');
+                        const b = await req.json().catch(() => null) || {};
+                        if (mo[2] === 'zrusit') {
+                            if (o.paid_ts) return err(409, 'Zaplacenou objednávku nejde zrušit — vypni Pro u účtu.');
+                            await env.DB.prepare('UPDATE orders SET cancelled=1 WHERE vs=?').bind(o.vs).run();
+                            return json({ ok: true });
+                        }
+                        if (o.paid_ts) return err(409, 'Už je zaplacená (' + (o.paid_by || '?') + ').');
+                        if (o.cancelled) return err(409, 'Objednávka je zrušená.');
+                        const dniZ = await objednavkaZaplacena(env, prodejCfg(env), o, 'vlastnik', b.castka != null ? (b.castka | 0) : o.amount, b.pozn || '');
+                        if (!dniZ) return err(409, 'Částka nestačí ani na měsíc — nebo už je označená.');
+                        return json({ ok: true, ucet: await dbFirst(env, 'SELECT id, code, name, tarif, tarif_do FROM accounts WHERE id=?', o.acc_id) });
+                    }
+                }
+
+                // kouknout do banky hned (tlačítko v konzoli)
+                if (req.method === 'POST' && path === '/owner/fio/zkontrolovat') {
+                    const r = await fioZkontroluj(env, 'rucne');
+                    return json(r);
+                }
+
+                // nezařazená platba → přiřadit účtu (kód) a zapnout Pro
+                {
+                    const mp = path.match(/^\/owner\/fio\/([\w.-]{1,40})\/priradit$/);
+                    if (mp && req.method === 'POST') {
+                        await ensureProdejSchema(env);
+                        await ensureUctySchema(env);
+                        const p = await env.DB.prepare('SELECT * FROM fio_pohyby WHERE id=?').bind(mp[1]).first();
+                        if (!p) return err(404, 'Pohyb nenalezen.');
+                        if (p.stav === 'sparovano' || p.stav === 'zarazeno') return err(409, 'Tenhle pohyb už je přiřazený.');
+                        const b = await req.json().catch(() => null) || {};
+                        const acc = await dbFirst(env, 'SELECT * FROM accounts WHERE code=?', String(b.code || '').toUpperCase());
+                        if (!acc) return err(404, 'Účet s tímhle kódem není.');
+                        const cfg = prodejCfg(env);
+                        if (!dniZaCastku(cfg, p.castka)) return err(409, 'Částka nestačí ani na měsíc — zapni Pro ručně u účtu.');
+                        // otevřená objednávka účtu, nebo nová rovnou zaplacená
+                        let o = await env.DB.prepare('SELECT * FROM orders WHERE acc_id=? AND paid_ts IS NULL AND cancelled=0 ORDER BY created DESC').bind(acc.id).first();
+                        if (!o) {
+                            const nvs = novyVs();
+                            await env.DB.prepare('INSERT INTO orders(vs,acc_id,code,amount,dni,created,cancelled) VALUES(?,?,?,?,?,?,0)')
+                                .bind(nvs, acc.id, acc.code, p.castka, dniZaCastku(cfg, p.castka), Date.now()).run();
+                            o = await env.DB.prepare('SELECT * FROM orders WHERE vs=?').bind(nvs).first();
+                        }
+                        if (!o || !await objednavkaZaplacena(env, cfg, o, 'vlastnik', p.castka, p.id)) return err(409, 'Nepodařilo se přiřadit.');
+                        await env.DB.prepare("UPDATE fio_pohyby SET stav='zarazeno', order_vs=? WHERE id=?").bind(o.vs, p.id).run();
+                        return json({ ok: true, vs: o.vs, ucet: await dbFirst(env, 'SELECT id, code, name, tarif, tarif_do FROM accounts WHERE id=?', acc.id) });
+                    }
                 }
 
                 return err(404, 'Neznámá cesta konzole.');
@@ -1740,6 +2135,85 @@ export default {
                     },
                     prostory: me.accId ? await prostoryUctu(env, me.accId) : []
                 }, cfg));
+            }
+
+            // ---------------- objednávky Pro (koupě z appky) ------------------
+            // ⚠ NENÍ v PLACENE_CESTY schválně: objednat si Pro musí umět právě
+            //   ten, kdo Pro NEMÁ. Vždy jedna otevřená objednávka na účet — druhé
+            //   klepnutí vrátí tu samou (stejný VS), aby člověk neposlal peníze
+            //   pod dvěma symboly.
+            if (req.method === 'POST' && path === '/objednavky') {
+                if (!me.accId) return err(400, 'Účet ještě nemá identitu — přihlas se znovu.');
+                await ensureProdejSchema(env);
+                const cfg = prodejCfg(env);
+                if (!cfg.iban) return err(503, 'Prodej ještě není zapnutý — Pro se zatím odemyká klíčem.');
+                const b = await req.json().catch(() => null) || {};
+                const pr = produkt(cfg, b.produkt || 'rok');
+                if (!pr) return err(400, 'Neznámý produkt.');
+                if (!await guardHit(env, 'obj:' + me.accId, 20, 864e5)) return err(429, 'Moc objednávek za den.');
+                let o = await env.DB.prepare('SELECT * FROM orders WHERE acc_id=? AND paid_ts IS NULL AND cancelled=0 ORDER BY created DESC')
+                    .bind(me.accId).first();
+                if (o && (o.amount !== pr.cena || o.dni !== pr.dni)) {
+                    // jiný produkt nebo změněná cena — stará neplacená objednávka
+                    // by ukazovala jinou částku; platba na ni se stejně pozná (VS)
+                    await env.DB.prepare('UPDATE orders SET cancelled=1 WHERE vs=?').bind(o.vs).run();
+                    o = null;
+                }
+                if (!o) {
+                    for (let i = 0; i < 5 && !o; i++) {
+                        const vs = novyVs();
+                        try {
+                            await env.DB.prepare('INSERT INTO orders(vs,acc_id,code,amount,dni,created,cancelled) VALUES(?,?,?,?,?,?,0)')
+                                .bind(vs, me.accId, me.acc.code, pr.cena, pr.dni, Date.now()).run();
+                            o = await env.DB.prepare('SELECT * FROM orders WHERE vs=?').bind(vs).first();
+                        } catch (e) { o = null; }       // srážka VS — zkus jiný
+                    }
+                    if (!o) return err(500, 'Nepodařilo se založit objednávku.');
+                }
+                return json({ objednavka: objednavkaProAppku(o, cfg, me.acc.code), prodej: cfgProAppku(cfg, me.acc), tarif: me.tarif, tarifDo: (me.acc && me.acc.tarif_do) || 0 });
+            }
+
+            // ZKOUŠKA ZDARMA — jednou na účet. Zapne Pro na PRODEJ_ZKOUSKA_DNI a
+            // zapíše razítko; druhé klepnutí vrátí 409. Nákup během zkoušky se
+            // připočte za její konec (zapniPro počítá od tarif_do).
+            if (req.method === 'POST' && path === '/zkouska') {
+                if (!me.accId || !me.acc) return err(400, 'Účet ještě nemá identitu — přihlas se znovu.');
+                await ensureProdejSchema(env);
+                const cfg = prodejCfg(env);
+                if (!cfg.zkouskaDni) return err(503, 'Zkouška zdarma teď není.');
+                const acc = await dbFirst(env, 'SELECT * FROM accounts WHERE id=?', me.accId);
+                if (!acc) return err(404, 'Účet nenalezen.');
+                if (acc.trial_ts) return err(409, 'Zkoušku už tenhle účet měl.');
+                if (tarifUctu(acc) === 'pro') return err(409, 'Pro už máš.');
+                const r = await env.DB.prepare('UPDATE accounts SET trial_ts=? WHERE id=? AND trial_ts IS NULL').bind(Date.now(), acc.id).run();
+                if (!r || !r.meta || !r.meta.changes) return err(409, 'Zkoušku už tenhle účet měl.');
+                const doKdy = await zapniPro(env, acc, cfg.zkouskaDni);
+                return json({ ok: true, tarif: 'pro', tarifDo: doKdy, dni: cfg.zkouskaDni });
+            }
+
+            // stav mých objednávek — appka se ptá, když má kartu otevřenou
+            if (req.method === 'GET' && path === '/objednavky/moje') {
+                await ensureProdejSchema(env);
+                const cfg = prodejCfg(env);
+                const rows = me.accId
+                    ? await dbAll(env, 'SELECT * FROM orders WHERE acc_id=? ORDER BY created DESC LIMIT 10', me.accId)
+                    : [];
+                return json({
+                    objednavky: (rows || []).map(o => objednavkaProAppku(o, cfg, me.acc ? me.acc.code : '')),
+                    prodej: cfgProAppku(cfg, me.acc), tarif: me.tarif, tarifDo: (me.acc && me.acc.tarif_do) || 0
+                });
+            }
+
+            {
+                const mz = path.match(/^\/objednavky\/(\d{1,12})$/);
+                if (mz && req.method === 'DELETE') {
+                    await ensureProdejSchema(env);
+                    const o = await env.DB.prepare('SELECT * FROM orders WHERE vs=? AND acc_id=?').bind(parseInt(mz[1], 10), me.accId || '').first();
+                    if (!o) return err(404, 'Objednávka nenalezena.');
+                    if (o.paid_ts) return err(409, 'Zaplacená objednávka se neruší.');
+                    await env.DB.prepare('UPDATE orders SET cancelled=1 WHERE vs=?').bind(o.vs).run();
+                    return json({ ok: true });
+                }
             }
 
             // ---------------- prostory účtu (přepínač) ------------------------
@@ -2569,5 +3043,11 @@ export default {
         } catch (e) {
             return err(500, 'Chyba serveru: ' + (e && e.message ? e.message : String(e)));
         }
+    },
+
+    // CRON (wrangler.toml → [triggers] crons). Jediná práce: kouknout do banky
+    // a spárovat, co přišlo. Bez FIO_TOKEN se hned vrátí — běh nic nestojí.
+    async scheduled(event, env, ctx) {
+        try { await fioZkontroluj(env, 'cron'); } catch (e) {}
     }
 };
