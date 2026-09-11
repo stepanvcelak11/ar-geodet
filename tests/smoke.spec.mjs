@@ -529,7 +529,15 @@ test('REGRESE: opakované otevření okna nehromadí posluchače', async ({ page
         return window.__posluchacu();
     });
 
-    expect(po - pred, `po 15 otevřeních a zavřeních přibylo ${po - pred} posluchačů — okno je neodhlašuje`).toBe(0);
+    // ⚠ PROC PRAH A NE PRESNA NULA: pocitadlo sleduje VSECHNY posluchace na
+    // window/document/body, takze do nej promlouva i bezny provoz appky behem
+    // tech 15 kol — dorazivsi odlozeny modul, mapa, GPS, casovace. Sum je +-2
+    // a umi byt i ZAPORNY (nasazeni na Pages kvuli tomu stalo od 6. 9. 2026:
+    // jeden beh hlasil +1, opakovani -1 — a zaporny unik neexistuje).
+    // Test tim neztraci smysl: kdyby okno neodhlasovalo byt JEDINY posluchac na
+    // otevreni, pricte jich 15, ne jeden.
+    const PRAH = 5;
+    expect(po - pred, `po 15 otevřeních a zavřeních přibylo ${po - pred} posluchačů (práh ${PRAH}; skutečný únik dělá ~15) — okno je neodhlašuje`).toBeLessThan(PRAH);
     expect(errors, errors.join('\n')).toEqual([]);
 });
 
