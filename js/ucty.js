@@ -1278,8 +1278,12 @@
     // obličej v rámečku — Face ID / Touch ID / kód zámku obrazovky
     var BIO_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 10v1M15 10v1M9.5 15c.8.7 1.6 1 2.5 1s1.7-.3 2.5-1"/></svg>';
     function brandHtml() {
+        // „QTRIG PRO" — přání uživatele (11. 9. 2026): ať je na první pohled vidět,
+        // že běží placená verze. Štítek se ukáže, když telefon Pro MÁ (klíč, tarif,
+        // vlastník), ne podle toho, z jaké adresy se appka spustila — vydání Pro
+        // bez licence je pořád Základ a nemá se tvářit jinak.
         return '<div class="agl-brand"><span class="agl-mark"></span>' +
-            '<span class="agl-logo"><b>Q</b>TRIG</span></div>';
+            '<span class="agl-logo"><b>Q</b>TRIG' + (maPro() ? '<i class="agl-pro">PRO</i>' : '') + '</span></div>';
     }
     // Pozadí „Terén" (vybraný návrh 1): vrstevnice + živé hodnoty (návrh ② ze
     // zpětné vazby 27.7. — navrhy-uvod-pozadi.html). Dřív tu byla měřická čárka
@@ -1448,6 +1452,14 @@
     // Logo: použij SKUTEČNÉ logo appky z úvodní obrazovky (klon uzlu, ať se
     // nemusí duplikovat kresba a vždy odpovídá tomu, co uživatel zná).
     // Záloha: icon.svg (stejná grafika jako ikona na ploše).
+    // Vydání sestaveného balíčku (zapisuje scripts/vydani.py). Ve zdrojích je 'pro'.
+    function jeVydaniZaklad() {
+        try { return (window.__AG_VYDANI || (window.AGLic && AGLic.vydani && AGLic.vydani()) || 'pro') === 'zaklad'; }
+        catch (e) { return false; }
+    }
+    // Má tenhle telefon Pro (klíč, tarif účtu nebo vlastník)? Čte se při každém
+    // vykreslení brány — po přihlášení se tarif může změnit.
+    function maPro() { try { return !!(window.AGLic && AGLic.isPro && AGLic.isPro()); } catch (e) { return false; } }
     function fillMark(root) {
         try {
             var slot = root.querySelector('.agl-mark');
@@ -1582,6 +1594,10 @@
             '#ag-login .agl-hint,#ag-gate .agl-hint{font:500 12.5px/1.45 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);text-align:center;max-width:300px;}',
             '#ag-login .agl-logo,#ag-gate .agl-logo{font:800 21px/1.2 var(--font-display,system-ui);color:var(--text-color,#e6e8eb);letter-spacing:.02em;}',
             '#ag-login .agl-logo b,#ag-gate .agl-logo b{color:var(--accent,#2f9e74);}',
+            // štítek PRO: zlatý, malý, vedle názvu (táž barva jako 2. úroveň kolečka nástrojů)
+            '.agl-logo .agl-pro{display:inline-block;vertical-align:.32em;margin-left:7px;padding:2px 7px 1px;border-radius:6px;',
+            '  font:800 11px/1.3 var(--font-display,system-ui);letter-spacing:.12em;font-style:normal;color:#1b1406;',
+            '  background:linear-gradient(135deg,#f0cf85,#d8a54a);box-shadow:0 1px 4px rgba(0,0,0,.35);}',
             '#ag-login .agl-firm,#ag-gate .agl-firm{font:600 13.5px/1.45 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);max-width:340px;text-align:center;}',
             '#ag-login .agl-firmchip{display:inline-flex;align-items:center;gap:7px;background:var(--glass-bg,rgba(255,255,255,0.06));',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));border-radius:999px;padding:7px 14px;',
@@ -1730,8 +1746,48 @@
         try { return !!(document.body && document.body.classList.contains('app-started')); } catch (e) { return false; }
     }
 
+    // ---- JEDNA IKONA NA PLOŠE, OBĚ VYDÁNÍ (11. 9. 2026) ---------------------------
+    // Uživatel (vlastník): „chci se přihlásit jako vlastník a mít všechno otevřené —
+    // Základ, Pro i svoje vlastnické věci — a NECHCI si přidávat na plochu druhou
+    // appku s koncovkou pro." Vydání Základ ale Pro moduly fyzicky nemá
+    // (scripts/vydani.py je vynechá), takže se odemknout NEDAJÍ — jediná cesta je
+    // na ./pro/ téhož originu. Rozsah PWA je „./", tedy /pro/ je uvnitř: ikona
+    // z plochy tam přejde bez Safari a bez druhé ikony; localStorage je společný,
+    // takže účet, zakázky i klíč vlastníka jedou dál.
+    // Přechází se JEDNOU za běh záložky (sessionStorage), aby se to nezacyklilo,
+    // kdyby ./pro/ z jakéhokoli důvodu vrátilo zase Základ.
+    var PRECHOD_PRO = 'agProPrechod_v1', PRECHOD_VLASTNIK = 'agVlastnikPrechod_v1';
+    function naProCeste() { try { return /\/pro\/?$/.test(location.pathname.replace(/index\.html$/, '')); } catch (e) { return false; } }
+    function prechodNaPro(vlastnik) {
+        if (!jeVydaniZaklad() || naProCeste()) return false;
+        try { if (sessionStorage.getItem(PRECHOD_PRO) === '1') return false; } catch (e) { return false; }
+        try {
+            sessionStorage.setItem(PRECHOD_PRO, '1');
+            if (vlastnik) sessionStorage.setItem(PRECHOD_VLASTNIK, String(Date.now()));
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:prechod'); }
+        try { location.replace('./pro/'); return true; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:prechod2'); }
+        return false;
+    }
+    // Na ./pro/ po přechodu vlastníka: brána se nestaví, vlastník je uvnitř.
+    // Značka žije jen v TÉŽE záložce a jen PRECHOD_MS po ověřeném přihlášení (a jen
+    // když je příznak režimu uložený), takže to není zadní vrátka — je to totéž
+    // přihlášení, jen o jednu navigaci dál.
+    // ⚠ NEMAŽE SE HNED PO PRVNÍM POUŽITÍ (naměřeno 11. 9. 2026): první návštěva
+    //   ./pro/ je pod service workerem KOŘENE; sw.js z /pro/ se nainstaluje, zabere
+    //   stránku (clients.claim) a js/logika.js ji jednou OBNOVÍ — a po obnově by
+    //   vlastník stál znovu před přihlášením. Proto platí dvě minuty, ne jedno použití.
+    var PRECHOD_MS = 2 * 60 * 1000;
+    function prechodVlastnika() {
+        var t = 0;
+        try { t = parseInt(sessionStorage.getItem(PRECHOD_VLASTNIK) || '0', 10) || 0; } catch (e) { return false; }
+        if (!t) return false;
+        if (Date.now() - t > PRECHOD_MS) { try { sessionStorage.removeItem(PRECHOD_VLASTNIK); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:prechod3'); } return false; }
+        return isOwner();
+    }
     function enterApp() {
         unprelock();
+        // Pro účet (tarif / klíč / vlastník) v balíčku Základ → rovnou do ./pro/
+        if (maPro() && prechodNaPro(_ownerIn)) return;
         try {
             if (appRunning()) return;
             var tries = 0;
@@ -2499,7 +2555,13 @@
             '</div>' +
             '<button type="button" class="agl-btn" id="agg-show-join">Přihlásit se (mám kód účtu)</button>' +
             '<button type="button" class="agl-btn" id="agg-reg">Založit účet</button>' +
-            '<button type="button" class="agg-alt" id="agg-new">Další možnosti</button>' +
+            // ⚠ „DALŠÍ MOŽNOSTI" JEN VE VYDÁNÍ PRO (11. 9. 2026). Tlačítko otevírá
+            //   průvodce z js/ucty-admin.js (založení firmy…), jenže ten modul se do
+            //   balíčku Základu nedává (scripts/vydani.py) — klepnutí pak jen tiše
+            //   vypsalo „modul není načtený" a uživatel hlásil, že tlačítko nic nedělá.
+            //   Firma je Pro, takže v Základu nemá co nabídnout: radši žádné tlačítko
+            //   než tlačítko, které nefunguje.
+            (jeVydaniZaklad() ? '' : '<button type="button" class="agg-alt" id="agg-new">Další možnosti</button>') +
             // ⚠ ŽÁDNÁ OBNOVA HESLA (rozhodnutí uživatele): registrace nechce e-mail,
             //   takže není kam poslat odkaz. Musí to být napsané TADY, u hesla,
             //   ne až někde v nápovědě — jinak se to člověk dozví ve chvíli, kdy
@@ -2608,7 +2670,8 @@
         }
         codeInp.addEventListener('input', srovnejPole);
         srovnejPole();
-        ov.querySelector('#agg-new').onclick = function () {
+        var aggNew = ov.querySelector('#agg-new');
+        if (aggNew) aggNew.onclick = function () {
             // ucty-admin.js (nejtěžší modul appky) se načítá až po startu — viz
             // js/lazy-load.js. Brána je ale vidět HNED, takže když sem někdo ťukne
             // dřív, než se modul dotáhne, počká se na něj místo hlášky o nenačtení.
@@ -3018,7 +3081,9 @@
         //   a klíčem OWNER_KEY (odchyt v js/vlastnik.js). Uložený příznak dál
         //   odemyká oprávnění a Pro — jen už nenahrazuje přihlášení.
         var f = getFirm();
-        if (f) {
+        if (prechodVlastnika()) {
+            ownerEnter();                          // přišel z Základu jako vlastník — viz prechodNaPro
+        } else if (f) {
             rememberCurrentFirm();                 // ať je aktivní firma vždy v profilech
             var u = currentUser();
             if (!u) showLogin(false);

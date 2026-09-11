@@ -312,10 +312,10 @@ test('REGRESE: vstupy modulů a řádek terénu se vloží', async ({ page, cont
     // Moduly zůstávají dostupné jinudy a hlídá se to tady:
     //   • Geo zpravodaj — tlačítko v bočním menu (#zpr-menu-btn),
     //   • Předpisy a odchylky — dlaždice v Nástrojích (registrace field-tool).
-    // Řádek terénu (#btn-terrain / #ms-terrain) se hlídá dál beze změny: stejná
-    // chyba v js/dmr-terrain.js znamenala, že se #btn-terrain nevyrobil, a
-    // js/map-tools.js bez něj řádek „Terén (DMR 5G)" SKRÝVÁ — celý terénní AR
-    // byl pak z UI nedostupný.
+    // ⚠ 11. 9. 2026: terénní AR (DMR 5G) je ZRUŠENÝ na přání uživatele — řádek
+    // #ms-terrain ani #btn-terrain už neexistují; js/dmr-terrain.js zůstal jen
+    // jako datová služba výšek. Panel se místo toho hlídá řádkem „Katastrální
+    // mapa" (#btn-katastr, v index.html natvrdo — když panel nenaskočí, chybí i on).
     const warns = [];
     page.on('console', (m) => { if (m.type() === 'warning' && /insertBefore/.test(m.text())) warns.push(m.text()); });
 
@@ -334,7 +334,6 @@ test('REGRESE: vstupy modulů a řádek terénu se vloží', async ({ page, cont
         () => document.querySelectorAll('#tools-modal [data-tool="predpisy"]').length
     ), { timeout: 20000 }).toBe(1);
     await page.waitForTimeout(500);
-    await expect(page.locator('#btn-terrain'), '#btn-terrain vyrobený dmr-terrain.js').toHaveCount(1);
 
     // ⚠⚠ PANEL SE OTEVÍRÁ Z LIŠTY, NE KOLEČKEM V MAPĚ. Dřív se tu klepalo na
     //   #map-ctrl-toggle — jenže to tlačítko je od 9. 8. 2026 VÝCHOZE SCHOVANÉ
@@ -349,7 +348,7 @@ test('REGRESE: vstupy modulů a řádek terénu se vloží', async ({ page, cont
     await expect(vstup, 'panel „Mapa a vrstvy" nemá viditelný vstup — ani lišta, ani kolečko v mapě')
         .toBeVisible({ timeout: 10000 });
     await vstup.click();
-    await expect(page.locator('#ms-terrain'), 'řádek „Terén (DMR 5G)" v panelu Mapa a vrstvy').toBeVisible();
+    await expect(page.locator('#btn-katastr'), 'řádek „Katastrální mapa" v panelu Mapa a vrstvy').toBeVisible();
 
     expect(warns, 'insertBefore selhalo:\n' + warns.join('\n')).toEqual([]);
 });

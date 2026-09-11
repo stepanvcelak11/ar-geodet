@@ -318,7 +318,8 @@ async def test_dosah(ctx):
     page = await ctx.new_page()
     chyby = []
     page.on('pageerror', lambda e: chyby.append(str(e)[:200]))
-    await ctx.add_init_script(BOOT)
+    # `ar-dosah` je od 11. 9. 2026 Pro - bez tarifu by agOpenArDosah() otevrel zamek
+    await ctx.add_init_script(BOOT + TARIF_PRO)
     await nacti(page, "document.body.classList.contains('app-started')")
     await page.evaluate("() => window.AGLazy && AGLazy.flush()")
     await page.wait_for_timeout(2500)
@@ -477,6 +478,9 @@ async def test_kompas(ctx):
 
 # ------------------------------------------------- J) zamky Pro v zakladni verzi
 BOOT_ZAKLAD = "window.__AG_VYDANI = 'zaklad';\n" + BOOT
+# Ucet s tarifem Pro (js/licence.js, proZTarifu) - pro casti, ktere spousteji
+# nastroj, jenz je od 11. 9. 2026 za Pro (H: Vzdalene body do AR = `ar-dosah`).
+TARIF_PRO = "  localStorage.setItem('agTarifUctu_v1', JSON.stringify({ tarif: 'pro', do: 0 }));\n"
 # Telefon vyvojare v PLNEM balicku: Pro ma byt ODEMCENE a dlazdice ZIVE.
 BOOT_VLASTNIK_PRO = ("window.__AG_VYDANI = 'pro';\n"
                      "  localStorage.setItem('agTutProSeen','1');\n"

@@ -95,8 +95,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=285">
-    <link rel="stylesheet" href="css/style.css?v=285">
+    <link rel="stylesheet" href="css/tokens.css?v=286">
+    <link rel="stylesheet" href="css/style.css?v=286">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -227,7 +227,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=285">
+    <link rel="stylesheet" href="css/vylepseni.css?v=286">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
          render-blokující: prohlížeč nevykreslí ani pixel, dokud nedorazí VŠECHNY.
          Jedenáct z nich (69 kB) přitom patřilo oknům, která se při startu vůbec
@@ -244,7 +244,6 @@
     <!-- KONTROLNÍ MĚŘENÍ -->
     <!-- BALÍČEK ZAKÁZKY -->
     <link rel="stylesheet" href="css/ar-fusion.css">
-    <link rel="stylesheet" href="css/dmr-terrain.css">
     <link rel="stylesheet" href="css/power-save.css">
     <link rel="stylesheet" href="css/seznam-souradnic.css">
     <!-- QC INSPEKTOR / kód kvality (odpojitelné: smaž tento řádek + css/qc-engine.css + js/qc-engine.js) -->
@@ -337,21 +336,26 @@
          NEVRACET. ================================================================== -->
     <div id="welcome-screen" hidden style="display:none !important;">
     <svg class="welcome-logo w-mini-logo" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs><linearGradient id="wl-vf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4ccd99"/><stop offset="1" stop-color="#2a945f"/></linearGradient></defs>
-        <g fill="none" stroke="url(#wl-vf)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 33 L22 26 Q22 22 26 22 L33 22"/>
-            <path d="M63 22 L70 22 Q74 22 74 26 L74 33"/>
-            <path d="M74 63 L74 70 Q74 74 70 74 L63 74"/>
-            <path d="M33 74 L26 74 Q22 74 22 70 L22 63"/>
+        <!-- TÁŽ KRESBA JAKO icon.svg (QTRIG, 11. 9. 2026): rohové závorky hledáčku + Q ze čtyř
+             oblouků nitkového kříže. Přihlašovací obrazovka si tenhle uzel klonuje (fillMark
+             v js/ucty.js) a první <g> (závorky) nechá pomalu rotovat — proto musí zůstat první. -->
+        <defs><linearGradient id="wl-vf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5ce0a8"/><stop offset="1" stop-color="#2a945f"/></linearGradient></defs>
+        <g fill="none" stroke="url(#wl-vf)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.55">
+            <path d="M21 32.3 L21 25.1 Q21 21 25.1 21 L32.3 21"/>
+            <path d="M63.8 21 L70.9 21 Q75 21 75 25.1 L75 32.3"/>
+            <path d="M75 63.8 L75 70.9 Q75 75 70.9 75 L63.8 75"/>
+            <path d="M32.3 75 L25.1 75 Q21 75 21 70.9 L21 63.8"/>
         </g>
-        <circle cx="48" cy="48" r="14" fill="none" stroke="#3eb487" stroke-opacity="0.25" stroke-width="1.5"/>
-        <circle cx="48" cy="48" r="9.5" fill="none" stroke="#3eb487" stroke-opacity="0.5" stroke-width="1.5"/>
-        <g stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity="0.9">
-            <line x1="48" y1="38.5" x2="48" y2="42.5"/><line x1="48" y1="53.5" x2="48" y2="57.5"/>
-            <line x1="38.5" y1="48" x2="42.5" y2="48"/><line x1="53.5" y1="48" x2="57.5" y2="48"/>
+        <g transform="translate(1.5,2.6)">
+            <g fill="none" stroke="url(#wl-vf)" stroke-width="6" stroke-linecap="butt">
+                <path d="M55.1 56.8 A14.6 14.6 0 0 1 37.9 56.8"/>
+                <path d="M34.7 53.6 A14.6 14.6 0 0 1 34.7 36.4"/>
+                <path d="M37.9 33.2 A14.6 14.6 0 0 1 55.1 33.2"/>
+                <path d="M58.3 36.4 A14.6 14.6 0 0 1 58.3 53.6"/>
+            </g>
+            <line x1="50.8" y1="49.3" x2="60.9" y2="59.4" stroke="url(#wl-vf)" stroke-width="5.6" stroke-linecap="round"/>
+            <circle cx="46.5" cy="45" r="2.8" fill="#ffffff"/>
         </g>
-        <circle cx="48" cy="48" r="4.2" fill="url(#wl-vf)"/>
-        <circle cx="48" cy="48" r="1.8" fill="#ffffff"/>
     </svg>
 <div class="modal-body" style="padding-right: 0; display: none;">
     <label>Poloměr pro mapu (Stahování): <span id="w-map-radius-val" style="color:var(--accent); font-size: calc(16px * var(--ag-font-scale, 1));">1000</span> m</label>
@@ -964,7 +968,15 @@
          tlačítek modulů): js/map-tools.js. Vzhled: blok „MAPA A VRSTVY" v style.css.
          POZOR: ids btn-baselayer / btn-katastr / btn-connect MUSÍ zůstat — grafika.js
          na ně věší třídu .ctrl-active (applyMapLayers, toggleConnectMode).
-         Vstup „Více → Nástroje mapy" (toggleMapControls) funguje dál. -->
+         Vstup „Více → Nástroje mapy" (toggleMapControls) funguje dál.
+         ZÁKLAD/PRO (11. 9. 2026, přání uživatele „vrstvy bych dal do Pročka, nechal
+         bych mapu/ortofoto, Na mě a otáčení"): prvek s data-ms-pro="…" je bez
+         licence Pro ZAMČENÝ — js/map-tools.js mu dá data-agpro="1" (zámek jako
+         u dlaždic Nástrojů) a klik místo akce otevře kartu Pro. Hodnota atributu
+         je klíč z js/tools-registry.js pro kartu s popisem (cadastre-vector),
+         nebo "1" pro obecnou kartu „Vrstvy a nástroje mapy". Zdarma zůstává:
+         Podklad, Otáčení mapy (vkládá js/map-rotate.js), Na mě, Měřit plochu
+         (startAreaMode je v registru `base: 1` — zamknout ho tu by byl rozpor). -->
     <div id="map-controls">
         <!-- NAVRAT NA MOU POLOHU. Objevi se, teprve kdyz uzivatel mapou posune —
              dokud mapa polohu sleduje, je schovane. Drive se mapa vracela sama
@@ -989,22 +1001,19 @@
 
                 <div class="ms-lbl">Vrstvy přes mapu</div>
                 <div class="ms-rows">
-                    <button type="button" class="ms-row" id="btn-katastr" onclick="toggleKatastr()">
+                    <button type="button" class="ms-row" id="btn-katastr" onclick="toggleKatastr()" data-ms-pro="cadastre-vector">
                         <svg class="icon"><use href="#i-grid"/></svg>
                         <span class="ms-row-t">Katastrální mapa<em>Hranice a čísla parcel z ČÚZK — potřebuje signál</em></span>
                         <span class="ms-sw" aria-hidden="true"></span>
                     </button>
-                    <button type="button" class="ms-row" id="ms-terrain" hidden>
-                        <svg class="icon" viewBox="0 0 24 24"><path d="M3 20l6-11 4 6 2.5-4L21 20z"/></svg>
-                        <span class="ms-row-t">Terén (DMR 5G)<em>AR objekty sedí na skutečném terénu, ne na rovině</em></span>
-                        <span class="ms-sw" aria-hidden="true"></span>
-                    </button>
-                    <button type="button" class="ms-row" id="ms-parcely" hidden>
+                    <!-- Řádek „Terén (DMR 5G)" tu byl do 11. 9. 2026 — terénní AR zrušen
+                         (js/dmr-terrain.js zůstává jen jako datová služba výšek). -->
+                    <button type="button" class="ms-row" id="ms-parcely" hidden data-ms-pro="cadastre-vector">
                         <svg class="icon"><use href="#i-area"/></svg>
                         <span class="ms-row-t">Parcely (vektor)<em>Přesné hranice jako čáry — i v AR, funguje offline</em></span>
                         <span class="ms-go" aria-hidden="true">›</span>
                     </button>
-                    <button type="button" class="ms-row" id="ms-overlay" hidden>
+                    <button type="button" class="ms-row" id="ms-overlay" hidden data-ms-pro="1">
                         <svg class="icon"><use href="#i-file-text"/></svg>
                         <span class="ms-row-t">Vlastní podklad<em>Situace, geometrák nebo starý plán nakalibrovaný do mapy</em></span>
                         <span class="ms-go" aria-hidden="true">›</span>
@@ -1014,13 +1023,13 @@
                 <div class="ms-lbl">Nástroje mapy</div>
                 <div class="ms-grid" id="ms-actions">
                     <button type="button" class="ms-tile" onclick="recenterOnUser()"><svg class="icon"><use href="#i-crosshair"/></svg><span>Na mě</span></button>
-                    <button type="button" class="ms-tile" onclick="openNearbyModal()"><svg class="icon"><use href="#i-list"/></svg><span>Body v okolí</span></button>
-                    <button type="button" class="ms-tile" id="btn-connect" onclick="toggleConnectMode()"><svg class="icon"><use href="#i-line"/></svg><span>Spojit body</span></button>
+                    <button type="button" class="ms-tile" onclick="openNearbyModal()" data-ms-pro="1"><svg class="icon"><use href="#i-list"/></svg><span>Body v okolí</span></button>
+                    <button type="button" class="ms-tile" id="btn-connect" onclick="toggleConnectMode()" data-ms-pro="1"><svg class="icon"><use href="#i-line"/></svg><span>Spojit body</span></button>
                     <button type="button" class="ms-tile" onclick="startAreaMode()"><svg class="icon"><use href="#i-area"/></svg><span>Měřit plochu</span></button>
                     <button type="button" class="ms-tile" onclick="saveForOffline()"><svg class="icon"><use href="#i-download"/></svg><span>Uložit offline</span></button>
-                    <!-- sem injektují tlačítka jiné moduly (js/dmr-terrain.js…); kontejner je
-                         display:contents, takže padnou přímo do mřížky a map-tools.js jim
-                         dodá popisek z aria-label -->
+                    <!-- sem injektují tlačítka jiné moduly (js/poloha-z-mapy.js, js/cil-navigace.js…);
+                         kontejner je display:contents, takže padnou přímo do mřížky a map-tools.js
+                         jim dodá popisek z aria-label. Všechno injektované je bez Pro zamčené. -->
                     <div id="map-ctrl-stack"></div>
                 </div>
             </div>
@@ -1171,7 +1180,10 @@
     <!-- VIZUÁLNÍ STABILIZACE AR / SLAM-lite #2 (odpojitelné: smaž tento řádek + js/ar-visual-track.js) — optický tok + WebXR kotvení, drží AR mezi GPS/kompas fixy; default vypnuto -->
     <script defer src="js/ar-visual-track.js"></script>
     <script defer src="js/theme-dark.js"></script>
-    <script defer src="js/dmr-terrain.js"></script>
+    <!-- VÝŠKOPIS DMR 5G (odpojitelné: smaž tento řádek + js/dmr-terrain.js) — od 11. 9. 2026 jen
+         datová služba terrainElevAsync (výška bodu z mapy, balíček zakázky, počasí); terénní AR
+         s tlačítkem v mapě je zrušený, takže už nemusí být eager — všichni volají až na klepnutí -->
+    <script type="ag/lazy" data-src="js/dmr-terrain.js"></script>
     <!-- PARCELA (odpojitelné: smaž tento řádek + js/parcela.js) — geometrie & dělení parcel; styly injektované z JS -->
     <script type="ag/lazy" data-src="js/parcela.js"></script>
     <!-- REGISTR NÁSTROJŮ (odpojitelné: smaž tento řádek + js/tools-registry.js) — jeden
@@ -1302,9 +1314,8 @@
     <!-- Firemní režim: účty, role, přihlašování (ucty.js = jádro, ucty-admin.js = administrace) -->
     <script defer src="js/ucty.js"></script>
     <script type="ag/lazy" data-src="js/ucty-admin.js"></script>
-    <!-- Docházka (příchod/odchod přes události užívání) + firemní chat (cloud) -->
+    <!-- Docházka (příchod/odchod přes události užívání). Firemní chat ZRUŠEN 11. 9. 2026 (přání uživatele: „společný chat zahoď, je zbytečný") — js/firma-chat.js smazán, cesta /chat na serveru zůstává nevolaná. -->
     <script type="ag/lazy" data-src="js/dochazka.js"></script>
-    <script type="ag/lazy" data-src="js/firma-chat.js"></script>
     <!-- ŽIVÁ SYNCHRONIZACE BODŮ VE FIRMĚ (odpojitelné: smaž tento řádek + js/cloud-sync.js) — opt-in per zakázka v Nastavení → Data; potřebuje js/ucty.js (cloudová firma) -->
     <script defer src="js/cloud-sync.js"></script>
     <!-- ZÁVADY / HLÁŠENÍ PORUCH (odpojitelné) — nálezy v terénu: foto+kategorie+závažnost, mapa/AR, protokol -->
@@ -1313,8 +1324,7 @@
     <script type="ag/lazy" data-src="js/brifink.js"></script>
     <!-- HLASOVÉ POZNÁMKY s georazítkem (odpojitelné: smaž tento řádek + js/hlasovky.js) — namluvené poznámky s časem, S-JTSK polohou a nejbližším bodem; sbírá je Deník dne -->
     <script type="ag/lazy" data-src="js/hlasovky.js"></script>
-    <!-- HLASOVÉ KÓDOVÁNÍ BODU (odpojitelné: smaž tento řádek + js/hlas-kod.js) — „Bod 105, roh plotu, poznámka…" → číslo/kód/poznámka + uložení z průměrované GPS -->
-    <!-- js/hlas-kod.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
+    <!-- HLASOVÉ KÓDOVÁNÍ BODU (js/hlas-kod.js) ZRUŠENO 11. 9. 2026 na přání uživatele („zbytečné") — modul smazán. -->
     <!-- GEO-FOTKA (odpojitelné: smaž tento řádek + js/geo-foto.js) — fotka s vypáleným razítkem (S-JTSK, Bpv, čas, azimut), řetěz otisků SHA-256, tiskový protokol -->
     <!-- js/geo-foto.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
     <!-- METR V KAMEŘE (odpojitelné: smaž tento řádek + js/ar-metr.js) — pravítko promítnuté na zem: telefon plocho, ruční výška držení, libela z devicemotion, klepnutí dvou bodů -->
@@ -1360,6 +1370,12 @@
          kolecko i hledani naraz. V balicku Zaklad navic vyrobi zastupne
          radky za moduly, ktere v nem vubec nejsou. -->
     <script defer src="js/pro-zamky.js"></script>
+    <!-- CO JE V PRO (odpojitelne: smaz radek, js/pro-prehled.js a zaznam v sw.js)
+         — prehled Zaklad × Pro slozeny z registru („Vice" → „Co je v Pro")
+         + znak Pro (body.ag-pro: pilulka PRO v Nastrojich a Vice, zlaty obrys
+         Nastroju v doku). ODLOZENE kvuli rozpoctu startu; tridu body.ag-pro
+         dava od prvniho obrazu js/licence.js, modul ji jen udrzuje. -->
+    <script type="ag/lazy" data-src="js/pro-prehled.js"></script>
     <!-- VYROBA KLICU PRO (odpojitelne: smaz radek, js/pro-klice.js a zaznam v sw.js)
          — dilna vlastnika: "Vice" -> "Klice Pro". ODLOZENE schvalne: uvidi to
          jen rezim vlastnika, takze to nema co delat na kriticke ceste startu. -->

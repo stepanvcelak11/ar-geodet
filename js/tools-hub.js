@@ -10,7 +10,8 @@
 //   • „Auto a bezpečí"    = Kde co mám + Kniha jízd + Bezpečnost + Co s sebou
 //   • „Moje čísla"        = Moje aktivita + Ročenka
 //   • „Zápis dne"         = Deník dne + Plakát dne
-//   • „Firma"             = Firma a účty + Docházka + Firemní chat + Vysílačka
+//   • „Firma"             = Firma a účty + Docházka + Vysílačka
+//                           (Firemní chat ZRUŠEN 11. 9. 2026 na přání uživatele; Vysílačka zůstává)
 //   • „Podklady a katastr"= Prohlídka okolí + Parcely + Body z výřezu +
 //                           Vektorová mapa offline + Sbalit zakázku
 //   • „Přenosy a zařízení"= Hodinky Garmin + Poslat/načíst zakázku
@@ -105,8 +106,8 @@
         {
             id: 'firma-hub', label: 'Firma', title: 'Firma', cat: 'Pomůcky', order: 11,
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M4 21V8l8-5 8 5v13"/><path d="M9.5 21v-6h5v6"/><path d="M9 10h.01M15 10h.01"/></svg>',
-            poradi: ['ucty-firma', 'dochazka', 'firma-chat', 'vysilacka'],
-            sub: 'Lidé, hodiny a zprávy — všechno firemní na jednom místě:'
+            poradi: ['ucty-firma', 'dochazka', 'vysilacka'],
+            sub: 'Lidé, hodiny a rychlé zprávy — všechno firemní na jednom místě:'
         },
         {
             id: 'podklady-katastr', label: 'Podklady<br>a katastr', title: 'Podklady a katastr', cat: 'Katastr a data', order: 5,
@@ -194,7 +195,6 @@
         'plakat-dne': 'Týž den jako jeden obrázek (mapa stopy, čísla, počasí) k poslání do skupiny.',
         'ucty-firma': 'Uživatelé, role a oprávnění, přihlašování do firmy.',
         'dochazka': 'Příchod, odchod, hodiny na směně a měsíční přehled.',
-        'firma-chat': 'Zprávy kolegům, i když zrovna nejsou v terénu.',
         'vysilacka': 'Kde je kolega teď, rychlé zprávy a hlídání pádu.',
         'prohlidka': 'Co je kolem mě — hranice, sousední parcely, bez zakládání zakázky.',
         'cadastre-vector': 'Vektorové hranice parcel z KN do mapy i do AR; jdou vytyčovat a exportovat.',

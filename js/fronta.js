@@ -4,7 +4,7 @@
 // podrží, nebo TIŠE ZTRATÍ:
 //   • js/zpetna-vazba.js  — má vlastní frontu (agFbQ_v1), retry na 'online',
 //                           poctivá pravidla, co se smí zahodit. Funguje.
-//   • js/firma-chat.js    — NEMÁ NIC. Napsaná zpráva skončí hláškou „Bez
+//   • js/firma-chat.js    — (modul ZRUŠEN 11. 9. 2026) NEMĚL NIC. Napsaná zpráva skončí hláškou „Bez
 //                           internetu zprávu nejde odeslat." a je pryč. Kolega
 //                           na druhé straně se nikdy nedozví, že jsi psal.
 //   • js/cloud-sync.js    — synchronizuje na vyžádání a při 'online', frontu
@@ -15,6 +15,7 @@
 // ŘEŠENÍ: jedna fronta, do které se dá zařadit odchozí požadavek jakéhokoli
 // druhu, a jedno místo, kde se počítá, kolik jich čeká.
 //
+//     (příklad — firemní chat byl 11. 9. 2026 zrušen, druh 'chat' je v ZRUSENE)
 //     AGFronta.registruj('chat', {
 //         popis: 'zpráva do firemního chatu',
 //         odeslat: function (telo) { return u.cloudFetch('/chat', { method:'POST', body: telo }); }
@@ -65,6 +66,13 @@
     function swallow(e, kde) { try { if (window.AG && AG.swallow) AG.swallow(e, kde || 'fronta'); } catch (e2) { /* i hlášení chyby smí selhat */ } }
 
     var druhy = {};                 // druh -> { popis, odeslat }
+    // ⚠ DRUH, KTERÝ UŽ NIKDO NEZAREGISTRUJE. Firemní chat byl 11. 9. 2026 ZRUŠEN
+    //   (přání uživatele) a byl jediným, kdo sem něco řadil. Neodeslaná zpráva
+    //   z doby před zrušením ale na telefonu ležet MŮŽE — a protože se fronta
+    //   zpracovává od začátku a u neznámého druhu se ZASTAVÍ („modul je lazy,
+    //   ještě se nenačetl“, viz krok()), zablokovala by navždy všechno za sebou.
+    //   Proto se zrušené druhy při načtení fronty vyhodí — nemají kam jít.
+    var ZRUSENE = { chat: 1 };
     var fronta = [];                // [{ id, druh, telo, kdy, pokusu }]
     var nacteno = false;
     var bezi = false;
@@ -83,15 +91,23 @@
         if (!p) {
             try {
                 var s = localStorage.getItem(LS_ZALOHA);
-                fronta = s ? (JSON.parse(s) || []) : [];
+                fronta = vycisti(s ? (JSON.parse(s) || []) : []);
             } catch (e) { fronta = []; swallow(e, 'fronta:nacti'); }
             nacteno = true;
             return Promise.resolve();
         }
         return p.get('vse').then(function (v) {
-            fronta = Array.isArray(v) ? v : [];
+            fronta = vycisti(Array.isArray(v) ? v : []);
             nacteno = true;
         }).catch(function (e) { swallow(e, 'fronta:nacti'); fronta = []; nacteno = true; });
+    }
+    function vycisti(pole) {
+        var out = [];
+        for (var i = 0; i < pole.length; i++) {
+            if (pole[i] && ZRUSENE[pole[i].druh]) continue;   // viz ZRUSENE
+            out.push(pole[i]);
+        }
+        return out;
     }
     function uloz() {
         while (fronta.length > MAX) fronta.shift();

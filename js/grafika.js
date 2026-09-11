@@ -2367,6 +2367,14 @@
         // vůbec nenavěsí (odmítnuté oprávnění, telefon bez magnetometru), žádná událost NIKDY
         // nepřijde, watchdog se nezapne a AR jen mlčí. Proto se teď hlídá i tenhle stav.
         let _compassSilentFrom = 0, _compassSilentShown = false;
+        // jednorázový pokyn, když kompas čeká na gesto (iOS) — bez okna, bez tlačítek
+        let _kompasPokynDan = false;
+        function kompasPokynNaDotek() {
+            if (_kompasPokynDan) return;
+            _kompasPokynDan = true;
+            try { if (typeof window.quickToast === 'function') window.quickToast('Klepni kamkoli — telefon se zeptá na kompas'); }
+            catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:kompasPokyn'); }
+        }
         function compassSilentHint() {
             if (_compassSilentShown || window.AGCompassDenied) return;   // odmítnuté oprávnění má vlastní, přesnější hlášku
             _compassSilentShown = true;
@@ -2395,6 +2403,15 @@
             // GPS fix: renderAR se bez polohy vrací hned na začátku, takže bez téhle podmínky
             // by se čekání na GPS tvářilo jako mrtvý kompas. 8 s je s rezervou nad rozběhem senzoru.
             const _compassMute = !_lastOrientEvent || (!_lastGoodEvent && userLat && userLng);
+            // ⚠⚠ ČEKÁNÍ NA PRVNÍ DOTEK NENÍ MLČENÍ (11. 9. 2026). Na iOS se kompas smí
+            //   zapnout až v gestu (viz kompasAzPoDoteku), takže od startu do prvního
+            //   klepnutí nemá odkud přijít jediná událost. Hlídač to počítal jako
+            //   „nepřišel ani jeden údaj" a po 8 s otevřel okno „Kompas mlčí" — a jeho
+            //   tlačítko Zavřít bylo zároveň tím prvním dotekem, po kterém kompas naskočil.
+            //   Uživatel: „píše mi to, že kompas mlčí, a přitom v mapě funguje."
+            //   Dokud se čeká na dotek, hodiny se nespouští; místo okna stačí jednou
+            //   tichý pokyn v liště.
+            if (_cekamNaDotyk) { _compassSilentFrom = 0; kompasPokynNaDotek(); return; }
             if (_compassMute) {
                 const _t = performance.now();
                 if (!_compassSilentFrom) _compassSilentFrom = _t;

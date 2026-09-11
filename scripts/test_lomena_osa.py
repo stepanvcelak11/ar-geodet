@@ -55,6 +55,11 @@ BOOT = """
   localStorage.setItem('agTutProSeen','1');
   localStorage.setItem('agBrifinkAuto','0');
   localStorage.setItem('arSurveyor','Stepan');
+  // ⚠ VYTYCENI OSY JE OD 11. 9. 2026 PRO (js/tools-registry.js, `stakeout-line`).
+  //   Bez tarifu by window.agOpenStakeLine() otevrel kartu "Verze Pro" misto
+  //   nastroje a test by hlasil vadu geometrie, ktera neexistuje. Klic cte
+  //   js/licence.js (proZTarifu), stejne jako scripts/ag_boot.py boot(tarif='pro').
+  localStorage.setItem('agTarifUctu_v1', JSON.stringify({ tarif: 'pro', do: 0 }));
 """
 
 # Tri body do "L": A -> 100 m na vychod -> 100 m na sever.

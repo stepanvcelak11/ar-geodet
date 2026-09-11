@@ -63,7 +63,7 @@
             if (!r || r.coarse || r.manual || r.sigma == null || !isFinite(r.sigma)) return null;
             // ⚠ #22: BRÁNA ČERSTVOSTI, stejná jako u ostatních osmi čtenářů gpsAvgResult
             // (vytycovani, localization-helmert, offset-point, kde-je, grafika,
-            // geo-overlay, kontrola-vrstvy, dvoji-mereni). Bez ní se sem dostane sigma
+            // geo-overlay, dvoji-mereni; do 11. 9. 2026 i kontrola-vrstvy). Bez ní se sem dostane sigma
             // ze ZMRZLÉHO průměru: GPS přestala dodávat fixy (tunel, auto, iOS suspend),
             // gpsAvgResult zůstal stát a jeho čísla by se natrvalo zapsala do prov.sigma /
             // prov.n, tedy do protokolu kvality i do karty bodu. Zvlášť zrádné je to při

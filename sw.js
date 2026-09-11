@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v285';   // Prejmenovani na QTRIG + nove ikony
+const SHELL_CACHE = 'argeodet-shell-v286';   // Hlaseni z 11. 9.: Zaklad mensi, vrstvy do Pro, kompas, krizky, logo
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -47,14 +47,13 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=285',
-    './css/style.css?v=285',
-    './css/vylepseni.css?v=285',
+    './css/tokens.css?v=286',
+    './css/style.css?v=286',
+    './css/vylepseni.css?v=286',
     './css/gps-warn.css',
     './css/compass-stability.css',
     './css/cadastre-area.css',
     './css/ar-fusion.css',
-    './css/dmr-terrain.css',
     './css/power-save.css',
     './css/seznam-souradnic.css',
     './css/qc-engine.css',
@@ -184,7 +183,6 @@ const ASSETS_TO_CACHE = [
     './js/ucty.js',
     './js/ucty-admin.js',
     './js/dochazka.js',
-    './js/firma-chat.js',
     './js/cloud-sync.js',
     './js/zavady.js',
     './js/brifink.js',
@@ -201,6 +199,7 @@ const ASSETS_TO_CACHE = [
     './js/filtr-info.js',
     './js/nastroje-ukony.js',
     './js/pro-zamky.js',
+    './js/pro-prehled.js',
     './js/pro-klice.js',
     './js/moje-aktivita.js',
     './js/nastaveni-hledani.js',
@@ -234,7 +233,6 @@ const ASSETS_TO_CACHE = [
     './js/zapisnik.js',
     './js/dgps.js',
     './js/vrstvy.js',
-    './js/kontrola-vrstvy.js',
     './js/denik-dne.js',
     './js/kniha-jizd.js',
     './js/postupy.js',
@@ -250,7 +248,6 @@ const ASSETS_TO_CACHE = [
     './js/indoor.js',
     './js/obchuzka.js',
     './js/pdr-offset.js',
-    './js/hlas-kod.js',
     './js/vyska-objektu.js',
     './js/job-transfer.js',
     './js/geo-foto.js',

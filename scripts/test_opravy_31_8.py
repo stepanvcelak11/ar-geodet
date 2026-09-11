@@ -57,7 +57,8 @@ BOOT = """
   //   zamek; test hlasil vadu vzhledu okna, ktere nikdo neotevrel.
   //   Zmereno na v283: Zaklad -> okno neni + zamek Pro; Pro -> `modal-overlay`
   //   pres celou obrazovku. Appka je v poradku, zastaraly byl test.
-  //   Klic cte js/licence.js; Body na sobe (`kolize-bodu`) je Zaklad a nevadi mu to.
+  //   Klic cte js/licence.js. Body na sobe (`kolize-bodu`) byly Zaklad; od 11. 9. 2026
+  //   jsou take Pro, takze tarif potrebuji obe casti testu.
   localStorage.setItem('agTarifUctu_v1', JSON.stringify({ tarif: 'pro', do: 0 }));
 """
 

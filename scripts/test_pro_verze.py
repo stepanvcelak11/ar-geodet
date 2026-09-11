@@ -153,10 +153,12 @@ async def bezi(ctx):
       return el ? { je: true, zamek: el.getAttribute('data-agpro') === '1' } : { je: false };
     }"""
     stav = {}
-    for kl in ('epochy', 'kontrola-vrstvy', 'openDmtVolume'):
+    # ('kontrola-vrstvy' tu bylo do 11. 9. 2026 - modul je zruseny; geo-foto je
+    #  Pro od tehoz dne a jako odlozeny nastroj ma zastupnou dlazdici hned od startu)
+    for kl in ('epochy', 'geo-foto', 'openDmtVolume'):
         stav[kl] = await page.evaluate(NAJDI, kl)
     stav['zaklad'] = await page.evaluate(NAJDI, 'openMeasureModal')
-    nalezene = [k for k in ('epochy', 'kontrola-vrstvy', 'openDmtVolume') if stav[k]['je']]
+    nalezene = [k for k in ('epochy', 'geo-foto', 'openDmtVolume') if stav[k]['je']]
     ok('B2 Pro nastroj v seznamu je (nezmizel)', len(nalezene) > 0, stav)
     ok('B3 a je oznaceny zamkem',
        all(stav[k]['zamek'] for k in nalezene) if nalezene else False, stav)

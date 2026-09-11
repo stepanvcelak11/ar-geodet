@@ -3,7 +3,8 @@
 //
 // PROČ: při každém startu se stahovalo a spouštělo 118 skriptů (~3,1 MB). Většinu
 // z toho tvoří nástroje, které se za celý den ani neotevřou — a každý nový nástroj
-// zdražoval start VŠEM. Tohle je dávka 29 nástrojů, které do doby, než je
+// zdražoval start VŠEM. Tohle je dávka 27 nástrojů (29 do 11. 9. 2026 — Kontrola
+// vrstvy a Hlasové kódování jsou ZRUŠENÉ, ne odložené), které do doby, než je
 // uživatel otevře, nedělají NIC než že zapíší svou dlaždici (~1 054 kB).
 //
 // JAK: modul za ně zapíše ZÁSTUPNOU dlaždici (stejný popisek, ikona, kategorie
@@ -67,12 +68,6 @@
         {
             id: 'vrstvy', src: 'js/vrstvy.js', label: 'Vrstvy / pokládka', order: 7,
             open: 'agOpenVrstvy', icon: '<svg class="icon"><use href="#i-layers"/></svg>'
-        },
-        {
-            id: 'kontrola-vrstvy', src: 'js/kontrola-vrstvy.js', label: 'Kontrola vrstvy',
-            cat: 'Vytyčování a náčrt', order: 15,
-            open: 'agOpenKontrolaVrstvy',
-            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h18"/><path d="M3 12h18"/><path d="m7 8 2-3 3 4 2-2 3 5"/><path d="M5 20h1M11 20h2M18 20h1"/></svg>'
         },
         {
             id: 'denik-dne', src: 'js/denik-dne.js', label: 'Deník dne', cat: 'Pomůcky', order: 62,
@@ -165,11 +160,6 @@
             id: 'pdr-offset', src: 'js/pdr-offset.js', label: 'Krokový offset', cat: 'Měření', order: 8,
             open: 'AGPdr.open',
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21v-3a3 3 0 0 1 3-3h0a3 3 0 0 0 3-3V9"/><circle cx="13" cy="5" r="2"/><path d="M17 21l2-5-3-2"/></svg>'
-        },
-        {
-            id: 'hlas-kod', src: 'js/hlas-kod.js', label: 'Hlasové kódování', cat: 'Měření', order: 11,
-            open: 'agOpenHlasKod',
-            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="2.5" width="5" height="10" rx="2.5"/><path d="M5 10.5a6 6 0 0 0 12 0"/><path d="M11 16.5v2"/><path d="M17.5 17.5h4M19.5 15.5v4"/></svg>'
         },
         {
             id: 'vyska-objektu', src: 'js/vyska-objektu.js', label: 'Výška objektu', order: 9,

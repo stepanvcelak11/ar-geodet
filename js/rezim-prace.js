@@ -26,11 +26,15 @@
 // se do tools-simple.js zaregistrují za běhu — proto se tenhle soubor v index.html
 // načítá AŽ ZA ním. Bez tools-simple.js karta funguje jako popis (nic se nefiltruje).
 //
-// VÝČET NÁSTROJŮ pod pásem se NEPÍŠE ručně: bere se z toho, co režim opravdu
-// filtruje (window.AGToolsSimple.profiles), a jména se čtou z dlaždic v mřížce
-// Nástrojů. Když nástroj někdo odpojí (smaže <script>), zmizí i z výčtu — text
-// tedy nemůže zastarat. Dlaždice schované oprávněním role (ucty.js dává
-// data-agucty) se do výčtu záměrně nepočítají, ať se nenabízí, co uživatel nesmí.
+// PÁS JE JEN PILULKY (11. 9. 2026, hlášení z iPhonu): „tlačítka jsou strašně
+// velký, jdou vidět maximálně tak dva … texty okolo zahoďte". Dřív měla každá
+// karta ikonu, název, popisek a počet nástrojů (168×123 px → na šířce 390 px se
+// vešly DVĚ), pod pásem k tomu věta „co režim udělá" a poznámka o profilu.
+// Teď: pilulka ikona + KRÁTKÉ jméno (pole `p`), DVA ŘÁDKY nad sebou v jednom
+// vodorovně rolovacím pásu, žádný text pod ním — vybraný režim poznáš jen podle
+// zvýrazněné pilulky. Jména nástrojů se ale dál čtou z dlaždic v mřížce Nástrojů
+// (tileLabels) — potřebuje je editor vlastního profilu, takže seznam nezastará
+// a nenabízí, co uživatel nesmí (data-agucty od ucty.js).
 //
 // VOLITELNÉ: karta jde odklidit odkazem „Nezobrazovat" (agRpHide) — profil pak
 // zůstává, jak je, a vypnout se dá v Nastavení. Zapnout zpátky: Nastavení → Vzhled
@@ -57,9 +61,15 @@
     // Režimy práce. Klíče (id) MUSÍ u prvních pěti zůstat shodné s tools-simple.js,
     // jinak by si obě místa uložila každé něco jiného a už uložená volba by se
     // ztratila. Pořadí pole = pořadí v pásu i v <select>u v Nástrojích.
-    //   t  = jméno na kartě (a v <select>u v Nástrojích)
-    //   s  = krátký popisek na kartu (jeden řádek, ať pás zůstane nízký)
-    //   d  = co se stane — věta pod pásem u zvoleného režimu
+    //   t  = plné jméno (v <select>u v Nástrojích, v Nastavení, v editoru)
+    //   p  = KRÁTKÉ jméno na pilulku v pásu (11. 9. 2026: „Pokládka", ne „Pokládka
+    //        za finišerem" — dlouhé jméno roztáhne pilulku a do dvou řádků na
+    //        390 px se pak nevejde šest režimů). Chybí-li, vezme se t.
+    //        Změřeno na 390 px (Inter 12 px): s „Bez profilu" a „Zemní práce" bylo
+    //        vidět 5 celých pilulek, s „Vše" a „Kubatury" 7 — proto ta dvě zkrácení.
+    //   s  = krátký popisek (dnes jen v editoru vlastního profilu; na pilulce NENÍ)
+    //   d  = co se stane — věta se od 11. 9. 2026 v pásu nevypisuje, drží se pro
+    //        veřejné API a případné použití v nápovědě
     //   ic = klíč do ICONS
     //   tools = nástroje, které režim vytáhne dopředu (klíč = data-tool id nebo
     //           název otevírací funkce statické dlaždice — stejné klíčování jako
@@ -71,13 +81,13 @@
         // a uživatel neměl jak se dostat ke stavu „nechci žádný profil". Teď je to
         // jednoznačné: vybráním se uložená volba SMAŽE a nic se neschovává.
         {
-            id: 'univerzal', ic: 'grid', t: 'Bez profilu',
+            id: 'univerzal', ic: 'grid', t: 'Bez profilu', p: 'Vše',
             s: 'Nefiltrovat — všechny nástroje',
             d: 'Žádný profil. V Nástrojích zůstanou všechny dlaždice tak, jak je znáš, a nic se neschovává.',
             tools: []
         },
         {
-            id: 'pokladka', ic: 'layers', t: 'Pokládka za finišerem',
+            id: 'pokladka', ic: 'layers', t: 'Pokládka za finišerem', p: 'Pokládka',
             s: 'Výška a sklon vrstvy roverem',
             d: 'Celý řetěz za finišerem: vytyč, změř hotovou vrstvu, porovnej s projektem a odevzdej '
                 + 'protokol. Skladba a odsazení „do tabletu“, přesná výška roverem, závada rovnou k bodu.',
@@ -85,12 +95,12 @@
             // mergeProfiles() níž u vestavěných profilů jen PŘIDÁVÁ — co se vyškrtne jen
             // tady, registr vrátí zpátky. Do 5. 9. 2026 tu nebyl ANI JEDEN vytyčovací
             // nástroj, ani „Kontrola vrstvy“, kterou má profil ve vlastním popisu.
-            tools: ['openStakeoutModal', 'stakeout-line', 'kontrola-vrstvy', 'vrstvy', 'brutal-gps',
+            tools: ['openStakeoutModal', 'stakeout-line', 'vrstvy', 'brutal-gps',
                 'protokol-vytyceni', 'zavady', 'openMeasureModal', 'ref-calibration', 'korekce',
                 'project-import']
         },
         {
-            id: 'vytycovani', ic: 'target', t: 'Vytyčování',
+            id: 'vytycovani', ic: 'target', t: 'Vytyčování', p: 'Vytyčování',
             s: 'Body, přímky, offsety, AR',
             d: 'Body podle seznamu s odškrtáváním, přímka se staničením a kolmým odstupem, offsety '
                 + 'a usazení AR, aby značky seděly na realitu.',
@@ -98,7 +108,7 @@
                 'usadit-ar', 'agOpenCalibrate', 'rajon', 'project-import', 'openMeasureModal']
         },
         {
-            id: 'podrobne', ic: 'sketch', t: 'Podrobné měření',
+            id: 'podrobne', ic: 'sketch', t: 'Podrobné měření', p: 'Podrobné měření',
             s: 'Tachymetrie, náčrt, zápisník',
             d: 'Klasické podrobné měření: náčrt s čarami a popisky, zápisník vodorovných směrů '
                 + 'a zenitů, nové body rajónem, offsetem nebo protínáním vpřed.',
@@ -106,14 +116,14 @@
                 'free-station', 'orient-point', 'openMeasureModal']
         },
         {
-            id: 'vysky', ic: 'level', t: 'Výšky a nivelace',
+            id: 'vysky', ic: 'level', t: 'Výšky a nivelace', p: 'Výšky',
             s: 'Nivelace, převýšení, korekce',
             d: 'Výškové práce: nivelační zápisník s uzávěrem, převýšení mezi body, výška objektu '
                 + 'a korekce měření (refrakce, teplota, tlak).',
             tools: ['zapisnik', 'openMeasureModal', 'vyska-objektu', 'korekce', 'openDmtVolume', 'epochy']
         },
         {
-            id: 'zemni', ic: 'area', t: 'Zemní práce a kubatury',
+            id: 'zemni', ic: 'area', t: 'Zemní práce a kubatury', p: 'Kubatury',
             s: 'Kubatury, vrstevnice, plochy',
             d: 'Před hutněním i po něm: model terénu z bodů, vrstevnice a objem výkopu a násypu, '
                 + 'plochy a obchůzka staveniště se stopou.',
@@ -121,7 +131,7 @@
                 'openMeasureModal', 'zavady']
         },
         {
-            id: 'katastr', ic: 'pin', t: 'Katastr a mapování',
+            id: 'katastr', ic: 'pin', t: 'Katastr a mapování', p: 'Katastr',
             s: 'Parcely, výměry, mapování',
             d: 'Parcely z ČÚZK stažené do telefonu (fungují offline v mapě i v AR), výměry '
                 + 'a dělení pozemku, náčrt a import podkladů.',
@@ -129,7 +139,7 @@
                 'project-import', 'openMeasureModal', 'cadastre-area']
         },
         {
-            id: 'site', ic: 'line', t: 'Podzemní sítě',
+            id: 'site', ic: 'line', t: 'Podzemní sítě', p: 'Sítě',
             s: 'Vedení v mapě i v AR',
             d: '„Rentgen do země“: trasy vedení v mapě i v AR pod nohama, podklady od správců '
                 + '(DXF, plán z vyjádření) a vytyčení trasy před výkopem.',
@@ -137,7 +147,7 @@
                 'openStakeoutModal', 'offset-point', 'zavady']
         },
         {
-            id: 'kontrola', ic: 'ruler', t: 'Kontrola a monitoring',
+            id: 'kontrola', ic: 'ruler', t: 'Kontrola a monitoring', p: 'Kontrola',
             s: 'Oměrné, epochy, posuny',
             d: 'Kontrola vlastního i cizího díla: oměrné míry proti souřadnicím, opakované epochy '
                 + 'bodu a posuny v čase, kubatury pro ověření.',
@@ -145,7 +155,7 @@
                 'track-log', 'zapisnik', 'openMeasureModal']
         },
         {
-            id: 'dozor', ic: 'alert', t: 'Dozor a přejímka',
+            id: 'dozor', ic: 'alert', t: 'Dozor a přejímka', p: 'Dozor',
             s: 'Závady, deník, papíry',
             d: 'Papíry z terénu: závada s fotkou vázaná na konkrétní bod, hlasová poznámka '
                 + 's georazítkem, deník dne pro kancelář a docházka party.',
@@ -153,7 +163,7 @@
                 'dochazka', 'zapisnik']
         },
         {
-            id: 'priprava', ic: 'folder', t: 'Příprava a kancelář',
+            id: 'priprava', ic: 'folder', t: 'Příprava a kancelář', p: 'Příprava',
             s: 'Brífink, počasí, přenos dat',
             d: 'Ráno v autě a večer po práci: brífink dne, počasí a nejlepší GNSS okno, natažení '
                 + 'projektu a přenos zakázky mezi telefony.',
@@ -178,7 +188,7 @@
         'ref-calibration': 'Posun GPS na známý bod', 'korekce': 'Korekce měření',
         'zavady': 'Závady / hlášení', 'track-log': 'Stopa trasy', 'epochy': 'Epochy / monitoring',
         'zapisnik': 'Zápisníky', 'stakeout-line': 'Vytyčení přímky', 'offset-point': 'Offset bod',
-        'kontrola-vrstvy': 'Kontrola vrstvy', 'protokol-vytyceni': 'Protokol vytyčení',
+        'protokol-vytyceni': 'Protokol vytyčení',
         'usadit-ar': 'Usadit AR (průvodce)', 'rajon': 'Rajón', 'project-import': 'Import projektu (DXF)',
         'ar-intersection': 'Protínání vpřed', 'free-station': 'Volné stanovisko',
         'orient-point': 'Srovnat sever podle bodu', 'vyska-objektu': 'Výška objektu',
@@ -332,30 +342,17 @@
         lblCache = { n: tiles.length, map: map };
         return map;
     }
-    // Výčet nástrojů režimu: jména z mřížky, a co v mřížce není, se vynechá
-    // (nástroj byl odpojen nebo ho role nemá) — text tak nemůže zastarat.
-    function toolNames(id) {
-        var keys = toolsOf(id), map = tileLabels(), out = [];
-        keys.forEach(function (k) {
-            var l;
-            if (map) { if (!(k in map)) return; l = map[k]; if (l === null) return; }
-            else { l = NAMES[k]; if (!l) return; }
-            if (!l) l = NAMES[k] || k;
-            if (out.indexOf(l) === -1) out.push(l);
-        });
-        return out;
-    }
-
     // ---- styly -------------------------------------------------------------------
     function injectStyles() {
         if (document.getElementById(STYLE_ID)) return;
         var st = document.createElement('style');
         st.id = STYLE_ID;
         st.textContent = [
-            '#ag-rp-wrap{margin:0 0 16px;}',               // nad seznamem nástrojů, ne pod kartou zakázky
+            '#ag-rp-wrap{margin:0 0 10px;}',               // nad seznamem nástrojů, ne pod kartou zakázky
             '#ag-rp-wrap[hidden]{display:none;}',
-            '#ag-rp-head{display:flex;align-items:baseline;gap:8px;margin:0 0 8px;}',
-            '#ag-rp-head .t{font:700 11px/1.2 var(--font-ui,system-ui),sans-serif;letter-spacing:.12em;',
+            // hlavička co nejnižší: jeden řádek, bez rezervy pod ním
+            '#ag-rp-head{display:flex;align-items:baseline;gap:8px;margin:0 0 5px;}',
+            '#ag-rp-head .t{font:700 10.5px/1.2 var(--font-ui,system-ui),sans-serif;letter-spacing:.12em;',
             '  text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
             '#ag-rp-head .hint{display:none;font:600 10.5px/1.2 var(--font-ui,system-ui),sans-serif;',
             '  color:var(--accent,#2f9e74);opacity:.9;}',
@@ -371,9 +368,16 @@
             // modálu: svislé rolování dlouhého seznamu nástrojů tím zůstane nedotčené.
             '#ag-rp-list{touch-action:pan-x pan-y;}',
             '#ag-rp-strip{position:relative;}',
-            '#ag-rp-list{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 4px;scroll-snap-type:x proximity;',
-            '  -webkit-overflow-scrolling:touch;}',
+            // DVA ŘÁDKY PILULEK v jednom rolovacím pásu (11. 9. 2026). Ne CSS grid
+            // s grid-auto-flow:column: tam má sloupec šířku své NEJŠIRŠÍ pilulky, takže
+            // „Výšky" pod „Podrobné měření" zabírá stejně místa jako ono a na 390 px
+            // se vešly jen čtyři režimy. Dva nezávislé flex řádky (.ag-rp-row, pilulky
+            // se do nich sypou střídavě) se zhušťují každý zvlášť — vidět je jich šest
+            // a víc. Rolují spolu, protože roluje jejich společný rodič.
+            '#ag-rp-list{overflow-x:auto;padding:2px 2px 4px;-webkit-overflow-scrolling:touch;}',
             '#ag-rp-list::-webkit-scrollbar{height:0;}',
+            '.ag-rp-row{display:flex;gap:5px;width:max-content;min-width:100%;}',
+            '.ag-rp-row + .ag-rp-row{margin-top:5px;}',
             // náznak, že se dá rolovat: okraj pásu se vytrácí (maska funguje na
             // libovolném pozadí, gradient v barvě by se s motivem rozešel)
             '#ag-rp-strip.sr:not(.sl) #ag-rp-list{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 34px),transparent);',
@@ -382,46 +386,38 @@
             '  mask-image:linear-gradient(90deg,transparent,#000 34px);}',
             '#ag-rp-strip.sl.sr #ag-rp-list{-webkit-mask-image:linear-gradient(90deg,transparent,#000 34px,#000 calc(100% - 34px),transparent);',
             '  mask-image:linear-gradient(90deg,transparent,#000 34px,#000 calc(100% - 34px),transparent);}',
-            '#ag-rp-list button{flex:0 0 auto;scroll-snap-align:start;min-width:132px;max-width:168px;',
-            '  display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:10px 12px;',
-            '  border-radius:14px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));',
+            // pilulka: ikona + krátké jméno na jednom řádku, nic víc; min-height 34 px
+            // je spodní mez pro prst (dvě pilulky nad sebou = 74 px, míň než jedna
+            // stará karta)
+            '#ag-rp-list button{flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;',
+            '  min-height:34px;padding:5px 10px 5px 8px;white-space:nowrap;border-radius:999px;',
+            '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));',
             '  background:rgba(255,255,255,0.04);color:var(--text-color,#eceef2);cursor:pointer;text-align:left;}',
-            '#ag-rp-list button .icon{width:19px;height:19px;color:var(--accent-bright,#3eb487);}',
-            '#ag-rp-list button b{font:700 13px/1.2 var(--font-ui,system-ui),sans-serif;}',
-            '#ag-rp-list button span{font:500 10.5px/1.3 var(--font-ui,system-ui),sans-serif;',
-            '  color:var(--text-muted,#9aa1ac);white-space:normal;}',
-            '#ag-rp-list button i{font-style:normal;font:700 9.5px/1.2 var(--font-ui,system-ui),sans-serif;',
-            '  letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);opacity:.75;}',
-            '#ag-rp-list button.on{border-color:var(--accent-line,rgba(47,158,116,0.42));',
-            '  background:var(--accent-soft,rgba(47,158,116,0.14));}',
-            '#ag-rp-list button.on b{color:var(--accent,#2f9e74);}',
-            '#ag-rp-list button.on i{color:var(--accent,#2f9e74);opacity:1;}',
-            '#ag-rp-list button:active{transform:scale(0.98);}',
-            // co režim udělá + výčet nástrojů, které vytáhne dopředu
-            '#ag-rp-detail{margin:8px 2px 0;}',
-            '#ag-rp-detail .d{margin:0;font:500 12px/1.5 var(--font-ui,system-ui),sans-serif;',
-            '  color:var(--text-color,#eceef2);opacity:.92;}',
-            '#ag-rp-detail .lab{display:block;margin:8px 0 5px;font:700 10px/1.2 var(--font-ui,system-ui),sans-serif;',
-            '  letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
-            '#ag-rp-chips{display:flex;flex-wrap:wrap;gap:5px;margin:0;padding:0;list-style:none;}',
-            '#ag-rp-chips li{padding:4px 9px;border-radius:999px;font:600 11px/1.25 var(--font-ui,system-ui),sans-serif;',
-            '  color:var(--text-color,#eceef2);background:var(--surface-2,rgba(255,255,255,0.06));',
-            '  border:1px solid var(--glass-border,rgba(255,255,255,0.12));}',
-            '#ag-rp-note{margin:8px 2px 0;font:500 11.5px/1.45 var(--font-ui,system-ui),sans-serif;',
-            '  color:var(--text-muted,#9aa1ac);}',
-            '#ag-rp-note b{color:var(--accent,#2f9e74);font-weight:700;}',
+            '#ag-rp-list button .icon{flex:0 0 auto;width:14px;height:14px;color:var(--accent-bright,#3eb487);}',
+            '#ag-rp-list button b{font:600 12px/1.2 var(--font-ui,system-ui),sans-serif;}',
+            '#ag-rp-list button.on{border-color:var(--accent,#2f9e74);',
+            '  background:var(--accent-soft,rgba(47,158,116,0.16));box-shadow:0 0 0 1px var(--accent,#2f9e74) inset;}',
+            '#ag-rp-list button.on b{color:var(--accent,#2f9e74);font-weight:700;}',
+            '#ag-rp-list button:active{transform:scale(0.97);}',
             // režim levé ruky: odkládací odkaz pod palec vlevo (ovládání se zrcadlí)
             'body.left-hand #ag-rp-head .x{order:-1;margin-left:0;margin-right:auto;}',
-            'body.ag-glove #ag-rp-list button{min-width:146px;padding:13px 14px;}',
-            'body.ag-glove #ag-rp-list button b{font-size:calc(14px * var(--ag-font-scale, 1));}',
-            'body.ag-glove #ag-rp-chips li{padding:6px 11px;font-size:calc(12px * var(--ag-font-scale, 1));}',
+            'body.ag-glove #ag-rp-list button{min-height:40px;padding:8px 13px 8px 11px;}',
+            'body.ag-glove #ag-rp-list button b{font-size:calc(13.5px * var(--ag-font-scale, 1));}',
 
-            // ---- dlaždice „Vlastní profil" (založení) ----
+            // ---- pilulka „Vlastní profil" (založení) ----
             '#ag-rp-list button.add{border-style:dashed;}',
             '#ag-rp-list button.add b,#ag-rp-list button.add .icon{color:var(--accent,#2f9e74);}',
-            // odkaz „Upravit tenhle profil" pod výčtem
-            '.ag-rp-edit{margin-top:8px;background:none;border:none;padding:2px 0;cursor:pointer;',
-            '  color:var(--accent,#2f9e74);font:600 12px/1.2 var(--font-ui,system-ui),sans-serif;text-decoration:underline;}',
+            // tužka uvnitř pilulky VLASTNÍHO profilu = „upravit" (dřív odkaz pod
+            // výčtem, který je zrušený). <span role=button> místo <button>: tlačítko
+            // v tlačítku HTML nedovolí. Klik na ni pilulku nepřepíná (viz posluchač).
+            '#ag-rp-list button .ed{display:inline-flex;align-items:center;justify-content:center;',
+            '  width:22px;height:22px;margin:-3px -5px -3px 0;border-radius:999px;color:var(--text-muted,#9aa1ac);}',
+            '#ag-rp-list button .ed .icon{width:12px;height:12px;color:inherit;}',
+            // terč pro prst: tužka je vidět 22 px, ale chytá celou výšku pilulky (34 px)
+            // — na 22 px se trefí málokdo a místo úpravy jen přepne profil
+            '#ag-rp-list button .ed{position:relative;}',
+            '#ag-rp-list button .ed::before{content:"";position:absolute;left:50%;top:50%;width:34px;height:34px;transform:translate(-50%,-50%);}',
+            '#ag-rp-list button.on .ed{color:var(--accent,#2f9e74);background:rgba(255,255,255,0.08);}',
 
             // ---- editor vlastního profilu ----
             // z-index nad úvodní obrazovkou (999999), ale POD dialogy (--z-dialog
@@ -609,14 +605,6 @@
         try { if (window.AGToolsSimple && typeof window.AGToolsSimple.sync === 'function') window.AGToolsSimple.sync(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:pick'); }
     }
 
-    function noteFor(id) {
-        if (id === 'univerzal') {
-            return 'Žádný profil se nepoužívá — v Nástrojích uvidíš <b>všechny dlaždice</b>. Profil si můžeš zapnout kdykoli později.';
-        }
-        return 'V Nástrojích se tyhle dlaždice vytáhnou <b>dopředu</b>; ostatní zůstávají pod '
-            + '„Zobrazit všechny nástroje“ a hledání najde vždy vše. Platí pro aktivní zakázku.';
-    }
-
     // ---- vykreslení do úvodní obrazovky -------------------------------------------
     // ⚠⚠ 31. 8. 2026 — KARTA BYDLELA NA ÚVODNÍ OBRAZOVCE A TA JE ZRUŠENÁ.
     // Byla to JEDINÁ cesta, jak profil práce přepnout: select „Typ práce" nad mřížkou
@@ -642,9 +630,10 @@
             '<div id="ag-rp-head"><span class="t">Co dnes děláš</span>'
             + '<span class="hint">posuň ›</span>'
             + '<button type="button" class="x" id="ag-rp-hide">Nezobrazovat</button></div>'
-            + '<div id="ag-rp-strip"><div id="ag-rp-list" role="group" aria-label="Režim práce"></div></div>'
-            + '<div id="ag-rp-detail"></div>'
-            + '<p id="ag-rp-note"></p>';
+            + '<div id="ag-rp-strip"><div id="ag-rp-list" role="group" aria-label="Režim práce"></div></div>';
+        // ⚠ Pod pásem už NIC není (11. 9. 2026): #ag-rp-detail („co režim udělá",
+        // „Vytáhne dopředu N nástrojů") i #ag-rp-note („Žádný profil se nepoužívá…")
+        // uživatel označil za zbytečné — braly místo dlaždicím pod nimi.
         // NAD seznam nástrojů: volba se vztahuje k tomu, co je pod ní.
         // ⚠ VKLÁDÁ SE PŘES SKUTEČNÉHO RODIČE KOTVY, ne přes .modal-content: seznam
         // sloves si js/nastroje-ukony.js vkládá vedle mřížky, tedy o úroveň hlouběji.
@@ -661,16 +650,21 @@
         var list = w.querySelector('#ag-rp-list');
         list.addEventListener('click', function (ev) {
             if (!ev.target.closest) return;
+            // tužka uvnitř pilulky vlastního profilu: jen otevřít editor, NEpřepínat
+            var e2 = ev.target.closest('[data-edit]');
+            if (e2) { ev.preventDefault(); openEditor(e2.getAttribute('data-edit')); return; }
             if (ev.target.closest('button[data-add]')) { openEditor(null); return; }
             var b = ev.target.closest('button[data-mode]');
             if (b) pick(b.getAttribute('data-mode'));
         });
-        list.addEventListener('scroll', edgeHints, { passive: true });
-        // detail se překresluje přes innerHTML → posluchač delegovaně na obalu
-        w.querySelector('#ag-rp-detail').addEventListener('click', function (ev) {
-            var e2 = ev.target.closest ? ev.target.closest('button[data-edit]') : null;
-            if (e2) openEditor(e2.getAttribute('data-edit'));
+        // tužka je <span tabindex=0>, ne <button>: Enter/mezerník na ní klik nevyvolá,
+        // kdo jde klávesnicí (čtečka, bluetooth klávesnice), by editor neotevřel
+        list.addEventListener('keydown', function (ev) {
+            if (ev.key !== 'Enter' && ev.key !== ' ') return;
+            var e2 = ev.target && ev.target.closest ? ev.target.closest('[data-edit]') : null;
+            if (e2) { ev.preventDefault(); ev.stopPropagation(); openEditor(e2.getAttribute('data-edit')); }
         });
+        list.addEventListener('scroll', edgeHints, { passive: true });
         return w;
     }
 
@@ -711,52 +705,32 @@
         w.hidden = false;
         var cur = curMode();
         var list = w.querySelector('#ag-rp-list');
-        var names = toolNames(cur);
-        // Překresluj jen při skutečné změně — úvodní obrazovka se refreshuje i po
-        // přepnutí zakázky a překreslování každou vteřinu by stálo baterii.
+        // Překresluj jen při skutečné změně — tick běží každou 1,5 s a překreslování
+        // pásu naprázdno by stálo baterii. Podpis = volba + vlastní profily
+        // (po uložení/smazání vlastního profilu se musí pás přeskládat).
         var csig = customSig();
-        var sig = cur + '|' + csig + '|' + names.join('~');
-        // překreslit pás i po změně vlastních profilů, ne jen po změně volby
         if (list.getAttribute('data-cur') !== cur + '|' + csig) {
             list.setAttribute('data-cur', cur + '|' + csig);
-            list.innerHTML = allModes().map(function (m) {
-                var n = toolsOf(m.id).length;
-                return '<button type="button" data-mode="' + m.id + '"'
+            var pills = allModes().map(function (m) {
+                // title = plné jméno; na pilulce je krátké (p), ať se jich vejde víc
+                return '<button type="button" data-mode="' + m.id + '" title="' + esc(m.t) + '"'
                     + (m.id === cur ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>'
                     + '<svg class="icon"><use href="' + (ICONS[m.ic] || '#i-grid') + '"/></svg>'
-                    + '<b>' + esc(m.t) + '</b><span>' + esc(m.s) + '</span>'
-                    + '<i>' + (m.id === 'univerzal' ? 'vypnuto' : n + ' ' + (n < 5 ? 'nástroje' : 'nástrojů')) + '</i>'
+                    + '<b>' + esc(m.p || m.t) + '</b>'
+                    // vlastní profil jde doladit tužkou přímo v pilulce (vestavěné se needitují)
+                    + (m.custom ? '<span class="ed" role="button" tabindex="0" data-edit="' + esc(m.id) + '" aria-label="Upravit profil ' + esc(m.t) + '">'
+                        + '<svg class="icon"><use href="#i-edit"/></svg></span>' : '')
                     + '</button>';
-            }).join('')
-                // poslední dlaždice: založení vlastního profilu
-                + '<button type="button" class="add" data-add="1" aria-label="Vytvořit vlastní profil">'
-                + '<svg class="icon"><use href="#i-plus"/></svg>'
-                + '<b>Vlastní profil</b><span>Vyber si nástroje sám</span><i>vytvořit</i></button>';
+            });
+            // poslední pilulka: založení vlastního profilu
+            pills.push('<button type="button" class="add" data-add="1" aria-label="Vytvořit vlastní profil">'
+                + '<svg class="icon"><use href="#i-plus"/></svg><b>Vlastní</b></button>');
+            // střídavě do dvou řádků (sudé nahoru, liché dolů) — pořadí čtení zleva
+            // doprava po sloupcích zůstává pořadím MODES
+            var rows = ['', ''];
+            pills.forEach(function (h, i) { rows[i % 2] += h; });
+            list.innerHTML = '<div class="ag-rp-row">' + rows[0] + '</div><div class="ag-rp-row">' + rows[1] + '</div>';
             needScroll = true;
-        }
-        if (w.getAttribute('data-sig') !== sig) {
-            w.setAttribute('data-sig', sig);
-            var m = modeById(cur);
-            var d = m ? m.d : '';
-            var html = '<p class="d">' + esc(d) + '</p>';
-            // ⚠ 31. 8. 2026 — VÝČET „Vytáhne dopředu" SE UŽ NEVYPISUJE.
-            // Na úvodní obrazovce dával smysl: člověk tam nástroje neviděl, tak se mu
-            // musely vyjmenovat dopředu. V Nástrojích, kam se karta přestěhovala, stojí
-            // TYTÉŽ nástroje o pár řádků níž ve skupině „◆ Pro tuto práci" — třináct
-            // pilulek s jejich názvy byla jen druhá kopie téhož seznamu, která odsunula
-            // skutečné dlaždice pod okraj displeje. Zůstává jen počet, který je i na
-            // dlaždici profilu. Kdo chce jména, sroluje o kousek níž.
-            if (names.length) {
-                html += '<span class="lab">Vytáhne dopředu ' + names.length + ' '
-                    + (names.length === 1 ? 'nástroj' : (names.length <= 4 ? 'nástroje' : 'nástrojů'))
-                    + ' — jsou hned pod touhle kartou.</span>';
-            }
-            // vlastní profil jde rovnou doladit (vestavěné se needitují)
-            if (m && m.custom) html += '<button type="button" class="ag-rp-edit" data-edit="' + esc(cur) + '">Upravit tenhle profil</button>';
-            w.querySelector('#ag-rp-detail').innerHTML = html;
-            var note = w.querySelector('#ag-rp-note');
-            var nh = noteFor(cur);
-            if (note.innerHTML !== nh) note.innerHTML = nh;
         }
         scrollToActive(list);
         edgeHints();

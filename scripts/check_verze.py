@@ -72,6 +72,10 @@ RUCNE_SOUBORY = {
 # Klic je popis duvodu (vypisuje se v --mapa), hodnota cesta od korene repa.
 PRO_SOUBORY_NAVIC = {
     'js/pro-klice.js': u'dilna vlastnika appky na vyrobu licencnich klicu',
+    # Kamerova vrstva Vytyceni osy: nastroj neregistruje, jen kresli osu z
+    # window.AGStakeLine. Od 11. 9. 2026 je stakeout-line Pro, takze by v Zakladu
+    # zustal 15kB modul, ktery nema odkud vzit geometrii (check_zaklad.py to hlasil).
+    'js/stakeout-line-ar.js': u'kamerova vrstva k Pro nastroji Vytyceni osy (js/stakeout-line.js)',
 }
 
 

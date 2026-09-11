@@ -105,7 +105,19 @@
             //   je týž trik, jaký repo používá v css/style.css u dokových tlačítek.
             '.agmc-x::after{content:"";position:absolute;left:50%;top:50%;width:100%;height:100%;',
             '  min-width:var(--tap-min,44px);min-height:var(--tap-min,44px);',
-            '  transform:translate(-50%,-50%);background:none;pointer-events:auto;}',
+            // ⚠⚠ BEZ `pointer-events:auto` (11. 9. 2026). Nástroje, Body, Nastavení
+            //   a Nový bod jsou v CSS trvale display:flex a zavřené drží jen
+            //   opacity:0 + pointer-events:none (css/style.css, blok „vyjetí zprava").
+            //   Křížek je jejich přímý potomek a pseudo-prvek s `pointer-events:auto`
+            //   tu dědičnost PROLOMIL: neviditelný křížek ZAVŘENÉHO okna „Nový bod"
+            //   (v DOM až za Nástroji, stejný z-index) ležel na TÉMŽE místě a chytal
+            //   klepnutí místo křížku otevřeného okna. Uživatel: „křížek vpravo nahoře
+            //   nefunguje ani u nástrojů, ani u bodů." Terč dědí pointer-events od
+            //   tlačítka, takže zavřené okno ho zavře s sebou.
+            '  transform:translate(-50%,-50%);background:none;}',
+            // pojistka i pro samotné tlačítko: v zavřeném animovaném okně nesmí chytat nic
+            '#settings-modal:not(.ag-open) > .agmc-x,#manage-modal:not(.ag-open) > .agmc-x,',
+            '#tools-modal:not(.ag-open) > .agmc-x,#custom-modal-overlay:not(.ag-open) > .agmc-x{pointer-events:none;visibility:hidden;}',
             'body.light-mode .agmc-x:active{background:#eceef1;}',
             '.agmc-x svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;}',
             // levá ruka: křížek přejde na druhou stranu jako ostatní ovládání

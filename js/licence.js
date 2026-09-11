@@ -301,4 +301,13 @@
         // ve zdrojích (bez sestavení) je vždycky 'pro', aby šlo vyvíjet obojí.
         vydani: function () { return window.__AG_VYDANI || 'pro'; }
     };
+    // ZNAK PRO NA <body> (11. 9. 2026, přání uživatele „ať je na pohled vidět, že
+    // je to Pro"). Třídu čte CSS v js/pro-prehled.js (zlatá pilulka PRO v
+    // Nástrojích a ve „Více", obrys tlačítka Nástroje v doku). Dává se TADY, ne
+    // až v tom modulu: ten jede v odkládací frontě a dok by prvních pár vteřin
+    // vypadal jako Základ. Modul přehledu totéž jen udržuje (idempotentní).
+    function znakPro() { try { if (document.body) document.body.classList.toggle('ag-pro', jePro()); } catch (e) { swallow(e, 'znakPro'); } }
+    if (document.body) znakPro(); else document.addEventListener('DOMContentLoaded', znakPro);
+    window.addEventListener('aglic:zmena', znakPro);
+
 })();

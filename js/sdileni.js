@@ -435,7 +435,8 @@
         closeScan: function () { window.closeScanQR(); }
     };
 
-    // Sdilene API — firma-chat posila body uplne stejnym formatem, at se to nerozjede.
+    // Sdilene API — stejny format bodu pouzival i firemni chat (zrusen 11. 9. 2026);
+    // zustava verejne, at se pripadny dalsi odberatel nerozjede s vysilackou.
     window.AGShare = { encode: encodePoints, decode: decodePoints, importPoints: importDecoded, loadDocs: loadDocs };
 
     window.closeScanQR = function () {

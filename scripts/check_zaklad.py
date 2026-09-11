@@ -42,10 +42,23 @@ def main():
     pro_klice = set(k for k, b in recs if 'pro: 1' in b)
     soubory = registered_ids()                     # klic nastroje -> jmeno souboru v js/
 
+    # ⚠ JEN SOUBORY, KTERE SE Z BALICKU ZAKLADU OPRAVDU SMAZOU (od 11. 9. 2026).
+    #   Do te doby se tu bral kazdy soubor s Pro nastrojem - jenze EAGER Pro modul
+    #   (js/slunce.js, js/track-log.js: <script defer src>) v Zakladu ZUSTAVA a
+    #   zamyka se az za behu (check_verze.py, podminka b). Hlasit vazbu na
+    #   window.AGSun jako 'chybi v Zakladu' bylo falesne: js/slunce.js tam je.
+    #   Zdroj pravdy je tentyz, ktery cte scripts/vydani.py - `smazatelne`.
     pro_soubory = set()
-    for k in pro_klice:
-        if k in soubory:
-            pro_soubory.add('js/' + soubory[k])
+    try:
+        import json as _json, subprocess as _sp
+        _m = _json.loads(_sp.check_output(
+            [sys.executable, os.path.join(ROOT, 'scripts', 'check_verze.py'), '--mapa']).decode('utf-8'))
+        pro_soubory = set(_m.get('smazatelne', []))
+    except Exception as e:
+        sys.stderr.write('check_zaklad: check_verze.py --mapa selhal (%s), beru vsechny Pro soubory\n' % e)
+        for k in pro_klice:
+            if k in soubory:
+                pro_soubory.add('js/' + soubory[k])
 
     # Soubory, ktere v Zakladu ZUSTAVAJI = vsechny ostatni js krome lib.
     vsechny = set()
@@ -122,6 +135,18 @@ def main():
                     # zacalo omlouvat vazby, ktere s tou hlidkou nemaji nic spolecneho.
                     if any(strezeno(radky[j], jm) for j in range(max(0, ci - 8), ci + 1)):
                         continue                       # vazba s pojistkou = v poradku
+                    # Druhy bezny tvar pojistky: globál se nejdriv ulozi do lokalni
+                    # promenne a TA se hlida o radek niz:
+                    #   const S = window.AGSun;
+                    #   if (!S || typeof S.pos !== 'function') return;   <- pojistka
+                    # (grafika.js, motivy-teren.js, logika.js - vsechny tri tak sahaji
+                    # na AGSun/AGDosah). Bez tehle vetve se hlasily jako nalez.
+                    ml = re.search(r"(?:var|let|const)\s+([A-Za-z_$][\w$]*)\s*=\s*window\.%s\b" % re.escape(jm), txt)
+                    if ml:
+                        lok = re.escape(ml.group(1))
+                        hl = re.compile(r"if\s*\(\s*!\s*%s\b|\(\s*%s\s*&&|\b%s\s*&&|typeof\s+%s\b" % (lok, lok, lok, lok))
+                        if any(hl.search(radky[j]) for j in range(ci, min(len(radky), ci + 4))):
+                            continue
                     nalezy.append((f, ci + 1, jm, kde))
                     hotovo = True
                     break

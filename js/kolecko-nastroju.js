@@ -32,6 +32,18 @@
 //  • ZESÍLENÍ U OKRAJE (9. 8. 2026): tlačítko stojí u pravého okraje, takže palci
 //    zbývá doprava jen pár desítek pixelů. V těsných směrech se posun násobí podle
 //    toho, kolik místa kotva reálně má — viz measureGain() / reanchor() níž.
+//  • DVĚ PODOBY — ZÁKLAD a PRO (11. 9. 2026, na přání: „aby ta kytička vypadala
+//    jinak pro základní verzi a pro Pro verzi, protože v tý základní je toho značně
+//    míň"). Liší se OBSAHEM i VZHLEDEM, mechanika je stejná:
+//      – Základ nabízí jen to, co jde spustit: zamčené Pro nástroje v kytce nejsou
+//        (dřív tam byly a klepnutí skončilo kartou „Verze Pro" — slepá ulička uprostřed
+//        gesta), sloveso bez volných nástrojů vypadne celé. Rozhoduje AGReg.isPro(k)
+//        a AGLic.isPro() — stejná dvojice jako v js/pro-zamky.js.
+//      – Základ je zelený (#3fbc8c), střed nese malý nápis ZÁKLAD, lístky bez okrasy.
+//      – Pro je zlaté v OBOU kruzích (#e6bd76 — dřív jen 2. kruh), střed nese zlatou
+//        pilulku PRO a poupě má osm lístků s dvojitou linkou.
+//    Vydání se čte PŘI KAŽDÉM OTEVŘENÍ (licence se mění za běhu: klíč, tarif účtu,
+//    režim vlastníka), ne při načtení modulu. Bez AGLic se kytka chová jako Základ.
 //
 // ⚠⚠ POHYB SE POSLOUCHÁ NA `window`, NE NA TLAČÍTKU. Na myši drží
 // setPointerCapture, na DOTYKU ne — jakmile prst z tlačítka sjede, žádná další
@@ -94,7 +106,6 @@
         'korekce': 'S korekcí',
         'obchuzka': 'Kubatura obejitím',
         'ar-resection': 'Resekcí',
-        'hlas-kod': 'Hlasem',
         'indoor': 'Bod uvnitř budovy',
         'epochy': 'Epochy',
         'usadit-ar': 'Nevím čím začít',
@@ -119,20 +130,34 @@
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kolecko-nastroju:buzz'); }
     }
     function ukony() { return window.AGUkony && window.AGUkony.groups ? window.AGUkony : null; }
+    // MÁ TENHLE ÚČET PRO? Bez js/licence.js (nebo když spadne) = Základ.
+    function maPro() { try { return !!(window.AGLic && AGLic.isPro()); } catch (e) { return false; } }
+    // ZAMČENÝ PRO NÁSTROJ (táž dvojice podmínek jako zamceno() v js/pro-zamky.js).
+    // ⚠ Nečte se atribut data-agpro z dlaždice: ten přidává pro-zamky.js až po svém
+    //   tiku a kolečko se může otevřít dřív — registr je pravda hned.
+    function zamceno(k, pro) {
+        if (pro) return false;
+        try { return !!(k && window.AGReg && AGReg.isPro && AGReg.isPro(k)); } catch (e) { return false; }
+    }
 
     // Slovesa i nástroje se čtou ŽIVĚ při každém otevření: dlaždice přibývají
     // (lazy moduly) a ubývají (oprávnění, „Moje aktivita"), takže seznam
     // uložený dopředu by lhal.
     function liveGroups() {
         var u = ukony(); if (!u) return [];
-        var out = [];
+        var out = [], pro = maPro();
         u.groups.forEach(function (g) {
             // ⚠ vVypisu() (ne has()): rozcestník zastupuje své položky i tady, jinak
             //   v kolečku stojí „Firma" a hned vedle ní Docházka, Chat, Vysílačka
             //   a Účty — tatáž věc dvakrát. Fallback na has() drží kolečko funkční
             //   i se starší verzí js/nastroje-ukony.js.
             var vidno = (typeof u.vVypisu === 'function') ? u.vVypisu : u.has;
-            var items = g.items.filter(function (it) { return vidno.call(u, it.k); });
+            // ⚠ ZAMČENÉ PRO NÁSTROJE V ZÁKLADU VYPADNOU (11. 9. 2026). Do té doby kytka
+            //   v Základu nabízela i to, co po načtení skončilo kartou „Verze Pro" —
+            //   v Změřit to byly 4 lístky z 9. Sloveso bez volných nástrojů vypadne
+            //   celé, prázdný kruh „jen Zpět" nemá smysl. Počet lístků se tím v Základu
+            //   mění, layout() to snese (sudý i lichý počet, viz komentář u něj).
+            var items = g.items.filter(function (it) { return vidno.call(u, it.k) && !zamceno(it.k, pro); });
             if (items.length) out.push({ t: SHORT_G[g.t] || g.t, full: g.t, items: items });
         });
         return out;
@@ -197,9 +222,10 @@
             '#' + WRAP_ID + ' .kn-ret .m{fill:var(--accent-bright,#3fbc8c);stroke:none;}',
             '#' + WRAP_ID + ' .kn-ret .p{fill:none;stroke:var(--accent-bright,#3fbc8c);stroke-width:3.4;stroke-linecap:round;',
             '  transform:rotate(-90deg);transform-origin:28px 28px;}',
-            '#' + WRAP_ID + '.lvl2 .kn-ret .l{stroke:var(--data,#e6bd76);filter:drop-shadow(0 0 5px rgba(230,189,118,0.9));}',
-            '#' + WRAP_ID + '.lvl2 .kn-ret .m{fill:var(--data,#e6bd76);}',
-            '#' + WRAP_ID + '.lvl2 .kn-ret .p{stroke:var(--data,#e6bd76);}',
+            // PRO: zlato v obou kruzích (selektor `.lvl2, .pro`), ZÁKLAD: zelená v 1. kruhu
+            '#' + WRAP_ID + '.lvl2 .kn-ret .l,#' + WRAP_ID + '.pro .kn-ret .l{stroke:var(--data,#e6bd76);filter:drop-shadow(0 0 5px rgba(230,189,118,0.9));}',
+            '#' + WRAP_ID + '.lvl2 .kn-ret .m,#' + WRAP_ID + '.pro .kn-ret .m{fill:var(--data,#e6bd76);}',
+            '#' + WRAP_ID + '.lvl2 .kn-ret .p,#' + WRAP_ID + '.pro .kn-ret .p{stroke:var(--data,#e6bd76);}',
             '#' + WRAP_ID + ' .kn-ret.read .l{stroke:var(--text-muted,#9aa1ac);filter:none;}',
             '#' + WRAP_ID + ' .kn-ret.read .m{fill:var(--text-muted,#9aa1ac);}',
             // STŘED: malý květ a nápis UVNITŘ něj, přesně na středu kytky.
@@ -215,6 +241,15 @@
             '  margin-top:4px;color:var(--text-color,#e6e8eb);}',
             '#' + WRAP_ID + ' .kn-hub.idle .n{color:var(--text-muted,#9aa1ac);font-weight:500;',
             '  font-size:calc(12.5px * var(--knfs,1));}',
+            // ŠTÍTEK VYDÁNÍ pod názvem: v Základu drobný šedý nápis, v Pro zlatá pilulka.
+            // Je to inline-block, ať pilulka obepne jen slovo a nezabere celou šířku hubu.
+            '#' + WRAP_ID + ' .kn-ed{display:inline-block;margin-top:5px;',
+            '  font:700 calc(7.5px * var(--knfs,1))/1 var(--font-mono,ui-monospace,monospace);',
+            '  letter-spacing:.16em;text-indent:.16em;text-transform:uppercase;color:#6f7986;}',
+            '#' + WRAP_ID + '.pro .kn-ed{color:var(--data,#e6bd76);border:1px solid rgba(230,189,118,0.7);',
+            '  border-radius:999px;padding:2px 6px 2px 7px;background:rgba(230,189,118,0.10);',
+            '  box-shadow:0 0 6px rgba(230,189,118,0.25);}',
+            '#' + WRAP_ID + '.pro .kn-crumb b{color:var(--data,#e6bd76);}',
             '#' + WRAP_ID + ' .kn-crumb{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 26px);',
             '  text-align:center;font:600 calc(11px * var(--knsc,1))/1 var(--font-mono,ui-monospace,monospace);letter-spacing:.1em;',
             '  text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
@@ -251,7 +286,7 @@
             '  <svg class="kn-gfx" aria-hidden="true"></svg>' +
             '  <div class="kn-hub idle">' +
             '    <svg class="kn-bud" viewBox="-54 -54 108 108" aria-hidden="true"></svg>' +
-            '    <div class="c">Vyber</div><div class="n">zamiř prstem</div></div>' +
+            '    <div class="c">Vyber</div><div class="n">zamiř prstem</div><div class="kn-ed"></div></div>' +
             '  <div class="kn-ret"><svg viewBox="0 0 56 56">' +
             '    <circle class="p" cx="28" cy="28" r="20"/>' +
             '    <path class="l" d="M28 21V10M28 35V46M21 28H10M35 28H46"/>' +
@@ -455,22 +490,35 @@
             ring.appendChild(el);
             segs.push(el);
         }
-        buildBud();
+        buildBud(wrap.classList.contains('pro'));
         wrap.classList.toggle('lvl2', lvl === 2);
         paintPetals();
     }
 
-    // Malý květ ve středu — kreslí se jednou, je to jen podklad nápisu.
-    function buildBud() {
+    // Malý květ ve středu — je to jen podklad nápisu, kreslí se jednou PRO KAŽDOU
+    // PODOBU: šest lístků v Základu, osm s dvojitou linkou v Pro. Kdy se kreslí
+    // znovu, hlídá `bud._agPro` — licence se může mezi dvěma otevřeními změnit
+    // (klíč, tarif, vlastník) a poupě z minula by pak lhalo o vydání.
+    function buildBud(pro) {
         var bud = wrap.querySelector('.kn-bud');
-        if (!bud || bud.firstChild) return;
-        for (var i = 0; i < 6; i++) {
-            bud.appendChild(svgEl('path', { d: petal(9, 47, 17), fill: 'rgba(255,255,255,0.055)',
-                stroke: 'rgba(255,255,255,0.17)', 'stroke-width': 1,
-                transform: 'rotate(' + (i * 60 + 30) + ')' }));
+        if (!bud) return;
+        if (bud.firstChild && bud._agPro === !!pro) return;
+        while (bud.firstChild) bud.removeChild(bud.firstChild);
+        bud._agPro = !!pro;
+        var n = pro ? 8 : 6, stepDeg = 360 / n;
+        for (var i = 0; i < n; i++) {
+            var rot = 'rotate(' + (i * stepDeg + stepDeg / 2) + ')';
+            bud.appendChild(svgEl('path', { d: petal(9, 47, pro ? 14 : 17), fill: 'rgba(255,255,255,0.055)',
+                stroke: pro ? 'rgba(230,189,118,0.42)' : 'rgba(255,255,255,0.17)', 'stroke-width': 1,
+                transform: rot }));
+            // DVOJITÁ LINKA (jen Pro): vnitřní obrys téhož lístku, o kousek menší.
+            if (pro) bud.appendChild(svgEl('path', { d: petal(13, 41, 10), fill: 'none',
+                stroke: 'rgba(230,189,118,0.30)', 'stroke-width': 0.8, transform: rot }));
         }
         bud.appendChild(svgEl('circle', { cx: 0, cy: 0, r: 8, fill: 'rgba(255,255,255,0.055)',
-            stroke: 'rgba(255,255,255,0.20)', 'stroke-width': 1 }));
+            stroke: pro ? 'rgba(230,189,118,0.55)' : 'rgba(255,255,255,0.20)', 'stroke-width': 1 }));
+        if (pro) bud.appendChild(svgEl('circle', { cx: 0, cy: 0, r: 5.5, fill: 'none',
+            stroke: 'rgba(230,189,118,0.35)', 'stroke-width': 0.8 }));
     }
 
     // Překreslení lístků: rozvíjení poupěte (po lístcích) + roztažení vybraného.
@@ -478,9 +526,10 @@
     function paintPetals() {
         if (!petals.length) return;
         var t = Date.now();
-        var lvl2 = wrap.classList.contains('lvl2');
-        var A = lvl2 ? '#e6bd76' : '#3fbc8c';
-        var soft = lvl2 ? 'rgba(230,189,118,0.22)' : 'rgba(63,188,140,0.20)';
+        // Zlatá: 2. kruh vždy, v Pro i 1. kruh (viz hlavička „dvě podoby").
+        var gold = wrap.classList.contains('lvl2') || wrap.classList.contains('pro');
+        var A = gold ? '#e6bd76' : '#3fbc8c';
+        var soft = gold ? 'rgba(230,189,118,0.22)' : 'rgba(63,188,140,0.20)';
         for (var j = 0; j < petals.length; j++) {
             var bl = 1;
             if (bloomFrom) bl = Math.max(0, Math.min(1, (t - bloomFrom - j * STAGGER) / BLOOM));
@@ -587,6 +636,11 @@
         hub.querySelector('.c').textContent = cap;
         hub.querySelector('.n').textContent = nm;
     }
+    // Štítek vydání ve středu (ZÁKLAD / PRO) — nastaví se jednou při otevření.
+    function setEdice(pro) {
+        var ed = hub.querySelector('.kn-ed');
+        if (ed) ed.textContent = pro ? 'PRO' : 'ZÁKLAD';
+    }
     function setInfo(kind, name, hint) {
         info.querySelector('.k').textContent = kind;
         info.querySelector('.n').textContent = name;
@@ -678,6 +732,12 @@
         var g = liveGroups();
         if (!g.length) return false;      // host / bez oprávnění — ať se otevře modál
         ensure();
+        // PODOBA PODLE VYDÁNÍ — čte se teď, ne při načtení modulu (licence se mění
+        // za běhu). Třída `pro` řídí barvy kříže, lístků, drobečku i štítek v hubu;
+        // musí být na wrapu DŘÍV než build(), ten podle ní kreslí poupě a lístky.
+        var pro = maPro();
+        wrap.classList.toggle('pro', pro);
+        setEdice(pro);
         st = { ox: x, oy: y, px: x, py: y, level: 1, group: -1, moved: false, groups: g,
                graceTo: 0, gr: 1, gl: 1, gu: 1, gd: 1 };
         measureGain();
@@ -724,7 +784,10 @@
         if (it.back) { setHub('Zpět', 'o krok zpátky'); return; }
         if (st.level === 1) {
             setHub('Skupina', it.t);
-            setInfo('Skupina', it.full || it.t, it.items.length + ' nástrojů');
+            // ⚠ Skloňování: v Základu má sloveso běžně 1–4 nástroje, takže „2 nástrojů"
+            //   by tam svítilo skoro u každého (v Pro to s 5+ položkami nebylo vidět).
+            var pn = it.items.length;
+            setInfo('Skupina', it.full || it.t, pn + (pn === 1 ? ' nástroj' : (pn >= 2 && pn <= 4) ? ' nástroje' : ' nástrojů'));
         } else {
             var nm = SHORT[it.k] || it.l;
             setHub('Nástroj', nm);
@@ -872,5 +935,6 @@
     else init();
     window.addEventListener('load', function () { setTimeout(init, 400); });
 
-    window.AGKolecko = { open: open, close: close, enabled: on };
+    // groups: živý seznam sloves a nástrojů, jak ho kytka právě nabídne (testy).
+    window.AGKolecko = { open: open, close: close, enabled: on, groups: liveGroups };
 })();

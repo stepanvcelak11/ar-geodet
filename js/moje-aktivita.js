@@ -343,7 +343,9 @@
     // takže je hledání v Nástrojích dál najde a v „Moje aktivita → Skryté nástroje"
     // se jedním ťuknutím vrátí. Proto tu není mazání, ale seed skrytého seznamu.
     //   openCheckDist   Oměrné — na GPS v mobilu není dost přesné (ani mezi dvěma body)
-    //   kontrola-vrstvy Sedí hotová vrstva na projekt — VRÁCENO 5. 9. 2026, viz vlna v4
+    //   kontrola-vrstvy Sedí hotová vrstva na projekt — VRÁCENO 5. 9. 2026 (vlna v4),
+    //                   11. 9. 2026 modul ZRUŠEN ÚPLNĚ („mobil nemá takovou přesnost“);
+    //                   klíč tu v datech vln zůstává, vlny už na telefonech proběhly
     //   track-log       Stopa trasy — překrývá se s Krokovým offsetem
     //   brifink         Dnešek v terénu — souhrn na ráno, nepoužívá
     //   bezpecnost      Bezpečnost a rizika — nepoužívá
@@ -671,7 +673,12 @@
         }).join('');
     }
     function hiddenRows(all) {
-        var h = hidden();
+        // Klíč nástroje, který už v appce NENÍ (11. 9. 2026 zrušené kontrola-vrstvy,
+        // hlas-kod, firma-chat), mohl na telefonu zůstat ve skrytých z ručního
+        // úklidu — ukazoval by se holým klíčem a „vrátit“ by nevrátilo nic.
+        var h = hidden().filter(function (k) {
+            try { return !(window.AGReg && AGReg.get && !AGReg.get(k) && labelOf(k, all) === k); } catch (e) { return true; }
+        });
         if (!h.length) return '';
         return '<h4>Skryté nástroje (' + h.length + ')</h4>'
             + '<p class="ag-akt-sub">Nezmizely — v Nástrojích je pořád najde hledání. Tady je vrátíš do mřížky i do seznamu úkonů.</p>'

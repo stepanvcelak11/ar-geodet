@@ -10,13 +10,16 @@ URL = 'http://127.0.0.1:%d/index.html' % PORT
 OUT = os.environ.get('AG_SHOTS', os.path.join(ROOT, '_diag'))
 import sys as _sys, os as _os
 _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
-from ag_boot import BOOT_UCET
+from ag_boot import BOOT_UCET_PRO
 
 # ⚠ HOST BYL ZRUSEN 6. 9. 2026 — driv se sem appka pouštěla přes
 #   `agGuest_v1`. Ted se nastartuje PRIHLASENA k lokalnimu prostoru;
 #   je to tentyz stav, jaky v telefonu zustane po beznem prihlaseni
 #   (viz scripts/ag_boot.py), ne zvlastni cesta pro testy.
-BOOT = BOOT_UCET
+# Tarif Pro: cast B1 otevira okno Gest (window.AGGesta.open), ktere je od
+# 11. 9. 2026 za Pro (`gesta-zkratky` v js/tools-registry.js). V Zakladu by
+# misto nej naskocila karta "Verze Pro" a test by hlasil, ze paleta chybi.
+BOOT = BOOT_UCET_PRO
 PTS = [
     {"name": "1001", "lat": 50.0875, "lng": 14.4213, "vyska": 231.44, "acc": 0.25, "kod": "ROH",
      "prov": {"origin": "gps-avg", "ts": 0, "acc": 0.25}},
