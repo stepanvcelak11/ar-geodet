@@ -517,6 +517,14 @@ test('REGRESE: opakované otevření okna nehromadí posluchače', async ({ page
 
     // Protokol kvality je vlastní okno tohohle projektu a zavírá se přes AG.scope —
     // na něm se dá únik změřit spolehlivě a bez klikání do cizích modálů.
+    //
+    // ⚠⚠ VE VYDÁNÍ ZÁKLAD TENHLE TEST PROJÍT NEMŮŽE. Měří se na okně Protokol
+    // kvality, což je PLACENÝ nástroj — `scripts/vydani.py --zaklad` maže
+    // js/kvalita-bodu.js z balíčku, takže `agOpenKvalitaBodu` v Základu vůbec
+    // není. Není to vada Základu, je to jeho rozsah.
+    const jeZaklad = await page.evaluate(() => window.__AG_VYDANI === 'zaklad');
+    test.skip(jeZaklad, 'vydání ZÁKLAD placené moduly nemá — js/kvalita-bodu.js se z balíčku maže');
+
     await expect.poll(() => page.evaluate(() => typeof window.agOpenKvalitaBodu),
         { timeout: 15000 }).toBe('function');
 
@@ -659,6 +667,10 @@ test('REGRESE: 401 (opravdu špatné heslo) se počítat MUSÍ', async ({ page, 
 test('den v terénu: bod → vytyčení → restart appky → nic se neztratilo', async ({ page, context }) => {
     const errors = await bootApp(page, context);
 
+    // Test běží nad OBĚMA vydáními. Jádro (bod, výška, odškrtnutí, rozdělaná
+    // práce, přežití restartu) se kontroluje v obou; placené části níž jen v PRO.
+    const jeZaklad = await page.evaluate(() => window.__AG_VYDANI === 'zaklad');
+
     // ---- 1) nový bod přes SKUTEČNÝ formulář (ne přes API) --------------------
     await page.evaluate(() => openNewPointModal());
     await expect(page.locator('#custom-modal-overlay')).toBeVisible({ timeout: 8000 });
@@ -695,11 +707,17 @@ test('den v terénu: bod → vytyčení → restart appky → nic se neztratilo'
         return { odskrtnuto: !!rec, poloha: !!(rec && rec.sy), vProtokolu: !!r, dp: r && r.dp != null ? r.dp : null };
     });
     expect(vytyceni.odskrtnuto, 'bod se neodškrtl').toBe(true);
-    expect(vytyceni.poloha, 'k odškrtnutí se nezapsala skutečná poloha').toBe(true);
-    expect(vytyceni.vProtokolu, 'bod není v protokolu vytyčení').toBe(true);
-    // bod je 5 m od podvržené polohy telefonu → odchylka musí vyjít kolem 5 m
-    expect(vytyceni.dp).toBeGreaterThan(3);
-    expect(vytyceni.dp).toBeLessThan(8);
+    // ⚠⚠ ZÁPIS SKUTEČNÉ POLOHY A PROTOKOL VYTYČENÍ JSOU PLACENÉ. Dělá je
+    // js/protokol-vytyceni.js a `scripts/vydani.py --zaklad` ho z balíčku maže,
+    // takže v Základu neexistuje `rec.sy` ani `AGProtVyt`. Odškrtnutí samo je
+    // jádro a kontroluje se v obou vydáních.
+    if (!jeZaklad) {
+        expect(vytyceni.poloha, 'k odškrtnutí se nezapsala skutečná poloha').toBe(true);
+        expect(vytyceni.vProtokolu, 'bod není v protokolu vytyčení').toBe(true);
+        // bod je 5 m od podvržené polohy telefonu → odchylka musí vyjít kolem 5 m
+        expect(vytyceni.dp).toBeGreaterThan(3);
+        expect(vytyceni.dp).toBeLessThan(8);
+    }
 
     // ---- 3) rozdělaná práce (js/draft-store.js) ------------------------------
     await page.evaluate(() => {
@@ -742,10 +760,16 @@ test('den v terénu: bod → vytyčení → restart appky → nic se neztratilo'
     expect(po.bod, 'bod nepřežil restart appky').toBe(true);
     expect(po.vyska, 'výška se restartem ztratila').toBe(312.45);
     expect(po.odskrtnuto, 'odškrtnutí vytyčení nepřežilo restart').toBe(true);
-    expect(po.poloha, 'skutečná poloha u odškrtnutí nepřežila restart').toBe(true);
     expect(po.draft, 'rozdělaná práce se po restartu nenabídla').toBe(2);
-    expect(po.protokol, 'protokol vytyčení po restartu bod nevidí').toBe(true);
-    expect(po.dlazdic, 'po restartu se zaregistrovala jen část nástrojů').toBeGreaterThan(60);
+    if (!jeZaklad) {
+        expect(po.poloha, 'skutečná poloha u odškrtnutí nepřežila restart').toBe(true);
+        expect(po.protokol, 'protokol vytyčení po restartu bod nevidí').toBe(true);
+    }
+    // Dlaždic je v každém vydání jinak: js/tools-registry.js má 49 nástrojů
+    // s `pro: 1` a 55 základních, takže Základ se přes 60 nikdy nedostane.
+    // Práh hlídá, že se po restartu nezaregistroval jen zlomek nástrojů.
+    expect(po.dlazdic, 'po restartu se zaregistrovala jen část nástrojů')
+        .toBeGreaterThan(jeZaklad ? 40 : 60);
 
     expect(errors, 'chyby v konzoli:\n' + errors.join('\n')).toEqual([]);
 });
