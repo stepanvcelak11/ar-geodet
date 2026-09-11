@@ -177,7 +177,7 @@ def uprav_manifest(vydani, nanecisto):
     with io.open(p, encoding='utf-8-sig') as f:
         m = json.load(f)
     m['name'] = 'QTRIG Pro'
-    m['short_name'] = 'Geodet Pro'
+    m['short_name'] = 'QTRIG Pro'
     if nanecisto:
         print(u'  manifest.json: name -> %s' % m['name'])
         return
