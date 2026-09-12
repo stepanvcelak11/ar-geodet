@@ -398,7 +398,10 @@
             injectToggle();
             ensureBox();
             var open = isOpen();
-            if (open && !_wasOpen) { buildIndex(); closeResults(); }   // svěží index při každém otevření
+            // svěží index při každém otevření. ⚠ NEMAZAT, když už člověk píše (12. 9. 2026):
+            // tick běží na časovači, takže když někdo otevřel Nastavení a hned začal hledat,
+            // první tick po otevření mu text z pole tiše smazal.
+            if (open && !_wasOpen) { buildIndex(); var q0 = document.getElementById('ag-ns-q'); if (!(q0 && (document.activeElement === q0 || q0.value))) closeResults(); }
             _wasOpen = open;
             syncShort();
             var cb = document.getElementById('ag-ns-short-cb');
