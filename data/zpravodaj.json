@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-09-11",
-  "uvodnik": "Vydání 2026-09-11 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-09-12",
+  "uvodnik": "Vydání 2026-09-12 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,30 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Aerial Surveys International Awarded GSA Multiple Award Schedule Contract",
+      "perex": "WATKINS, Colorado — 11 September 2026 — Aerial Surveys International (ASIntl), a Watkins, Colorado-based provider of high-resolution digital aerial imagery, LiDAR data, and geospatial analytics, has b…",
+      "telo": "WATKINS, Colorado — 11 September 2026 — Aerial Surveys International (ASIntl), a Watkins, Colorado-based provider of high-resolution digital aerial imagery, LiDAR data, and geospatial analytics, has been awarded a Multiple Award Schedule (MAS) contract by the U.S. General Services Administration (GSA). The award enables federal, state, local, and tribal government agencies nationwide to procure GIS and Earth observation services directly from ASIntl as a prime contractor — a significant expansion of a role the company has built over nearly three decades as a trusted subcontractor to the federal mapping community. The Aerial Surveys International GSA contract number is 47QTCA26D008Q – Visit t",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/11/aerial-surveys-international-awarded-gsa-multiple-award-schedule-contract/?utm_source=rss&utm_medium=rss&utm_campaign=aerial-surveys-international-awarded-gsa-multiple-award-schedule-contract",
+      "datum": "2026-09-11"
+    },
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "Topcon Releases Advanced Version of Delta Watch, Now Powered by GEOvis",
+      "perex": "Topcon Positioning Systems announces Delta Watch powered by GEOvis, a cloud-based workflow platform that brings advanced visualization, reporting, alarms, project administration, stakeholder communica…",
+      "telo": "Topcon Positioning Systems announces Delta Watch powered by GEOvis, a cloud-based workflow platform that brings advanced visualization, reporting, alarms, project administration, stakeholder communication, and geodetic network adjustment into the Delta Solutions deformation monitoring system. Image: Topcon Developed with Amberg Infra 7D and based on GEOvis technology, Delta Watch integrates automated and manually collected data from total stations, GNSS receivers, and geotechnical, structural, and environmental sensors. The platform helps teams streamline monitoring workflows, improve accuracy through least-squares adjustment, and manage project data in one connected environment. GIS-based s",
+      "body": [],
+      "proc": "",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/constructionbim/topcon-releases-advanced-version-of-delta-watch-now-powered-by-geovis/",
+      "datum": "2026-09-11"
     },
     {
       "rubrika": "Akce",
@@ -73,30 +97,6 @@
       "zdroj": "xyHt",
       "odkaz": "https://www.xyht.com/magazine/xyht-magazine-july-august-2026/",
       "datum": "2026-09-08"
-    },
-    {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "SimActive Introduces Faster Script Processing in Correlator3D",
-      "perex": "Montreal, Canada, September 8th, 2026 – SimActive Inc. announces a new interactive mode in Correlator3D , designed to accelerate automated workflows.",
-      "telo": "Montreal, Canada, September 8th, 2026 – SimActive Inc. announces a new interactive mode in Correlator3D , designed to accelerate automated workflows. Users can now run multiple scripts in succession within the same session, avoiding delays between operations and reducing total execution time. The feature is particularly useful for repetitive workflows involving several short scripts. Correlator3D remains ready for the next operation after each script is completed, making the overall process faster and more efficient. Completion messages can also be generated to facilitate integration with external automation tools. “Automation plays an important role in large-scale mapping workflows,” said L",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/06/simactive-introduces-faster-script-processing-in-correlator3d/?utm_source=rss&utm_medium=rss&utm_campaign=simactive-introduces-faster-script-processing-in-correlator3d",
-      "datum": "2026-09-06"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "GEO Business Virtual Returns for 2026 with Three Days of Free Geospatial Content",
-      "perex": "GEO Business , the UK’s leading geospatial event, is bringing back GEO Business Virtual for the second year – and this time, there’s even more content.",
-      "telo": "GEO Business , the UK’s leading geospatial event, is bringing back GEO Business Virtual for the second year – and this time, there’s even more content. After thousands of people joined the debut event in 2025, GEO Business Virtual is expanding to three days, with 11 free-to-attend, CPD-accredited webinars taking place from 29 September–1 October. Designed to fit around busy working days, the event gives geospatial professionals the chance to hear from people tackling real industry challenges, explore new approaches and earn CPD hours – without having to travel or take a full day out of the office. From AI and mobile mapping to reality capture, utilities, careers and geospatial data, the prog",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/06/geo-business-virtual-returns-for-2026-with-three-days-of-free-geospatial-content/?utm_source=rss&utm_medium=rss&utm_campaign=geo-business-virtual-returns-for-2026-with-three-days-of-free-geospatial-content",
-      "datum": "2026-09-06"
     }
   ]
 }
