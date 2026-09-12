@@ -195,6 +195,8 @@
             // sekce zamčených (Pro): oddělená čarou a zlatým nadpisem, ať je na první pohled hranice
             '.ag-uk-pro{margin-top:18px;padding-top:12px;border-top:1px dashed var(--glass-border,rgba(255,255,255,0.18));}',
             '.ag-uk-pro > .ag-uk-h > span:first-child{color:#e6bd76;}',
+            '.ag-uk-owner > .ag-uk-h > span:first-child{color:#d4a02c;}',
+            '.ag-uk-owner .ag-uk-i{border-color:rgba(212,160,44,.45);}',
             '.ag-uk-pro > .ag-uk-h > span:first-child::before{content:"";display:inline-block;width:12px;height:12px;margin-right:6px;vertical-align:-1px;',
             '  background:#e6bd76;-webkit-mask:var(--ag-pro-mask) center/12px 12px no-repeat;mask:var(--ag-pro-mask) center/12px 12px no-repeat;}',
             'body.light-mode.outdoor-mode .ag-uk-h{background:#fff;}',
@@ -398,9 +400,10 @@
         // do otisku patří i personalizace — po změně oblíbených nebo typu práce
         // se seznam musí přestavět, jinak by volba nahoře zdánlivě nic nedělala
         // …a licence: po odemčení Pro se zamčené položky stěhují zpátky ke slovesům
-        var pro = '0';
+        var pro = '0', own = '0';
         try { pro = (window.AGLic && AGLic.isPro && AGLic.isPro()) ? '1' : '0'; } catch (e) { pro = '0'; }
-        return out.join(',') + '|f:' + favKeys().join(',') + '|p:' + profileKeys().join(',') + '|pro:' + pro;
+        try { own = (window.AGVlastnik && AGVlastnik.isOn && AGVlastnik.isOn()) ? '1' : '0'; } catch (e) { own = '0'; }
+        return out.join(',') + '|f:' + favKeys().join(',') + '|p:' + profileKeys().join(',') + '|pro:' + pro + '|own:' + own;
     }
     function iconOf(key) {
         var t = findTile(key); if (!t) return '';
@@ -419,6 +422,7 @@
 
         var nb = nowBlock();
         if (nb) host.appendChild(nb);
+        var used = {};
 
         // Každá skupina je samostatná sekce — jen díky tomu se sticky hlavička
         // odlepí, jakmile skupina skončí (sticky se drží uvnitř svého rodiče).
@@ -457,11 +461,28 @@
                 sec.appendChild(item({ l: tileLabel(t) }, (function (kk) { return function () { run(kk); }; })(k), iconOf(k), k));
             });
         }
+        // VLASTNÍK APLIKACE ÚPLNĚ NAHOŘE (12. 9. 2026). Dlaždice vlastnik-* z js/vlastnik.js
+        // (kategorie „Správa aplikace") padaly do sbalené sekce „Další nástroje" —
+        // uživatel konzoli nenašel. Tady jsou první, zlatě, jen když je režim zapnutý.
+        var vlast = [];
+        try {
+            if (window.AGVlastnik && AGVlastnik.isOn && AGVlastnik.isOn()) {
+                var vt = g.querySelectorAll('.tool-tile[data-tool^="vlastnik-"]');
+                for (var vi = 0; vi < vt.length; vi++) { var vk = tileKey(vt[vi]); if (vk) vlast.push(vk); }
+            }
+        } catch (e) { vlast = []; }
+        if (vlast.length) {
+            var vsec = section('Vlastník aplikace', vlast.length);
+            vsec.classList.add('ag-uk-owner');
+            vlast.forEach(function (k) {
+                used[k] = 1;
+                vsec.appendChild(item({ l: tileLabel(findTile(k)) }, (function (kk) { return function () { run(kk); }; })(k), iconOf(k), k));
+            });
+        }
         shortcutGroup('★ Oblíbené', favKeys());
         var pl = profileLabel();
         if (pl) shortcutGroup('◆ Pro tuto práci · ' + pl, profileKeys());
 
-        var used = {};
         // ⚠ ZAMČENÉ (PRO BEZ LICENCE) AŽ DOLŮ (12. 9. 2026, přání uživatele: „všechny
         //   zamčené nástroje se přesunou dolů a odemčené budou nahoře — ať to není, že
         //   skroluješ a něco tam je uzavřený, něco otevřený"). Slovesné skupiny nahoře

@@ -106,7 +106,7 @@ jobs:
                    test_vlastnik test_opravy_31_8 test_gps_rozumim test_body_paleta \
                    test_lomena_osa test_napsat_autorovi test_pro_verze test_vydani \
                    test_ucty_prostory test_v283 test_jednoduchy_rezim test_prodej \
-                   test_opravy_11_9; do
+                   test_opravy_11_9 test_vlastnik_data; do
             echo "::group::$t"
             if ! python "scripts/$t.py" > "/tmp/$t.log" 2>&1; then
               cat "/tmp/$t.log"

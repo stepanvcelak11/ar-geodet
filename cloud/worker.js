@@ -1259,7 +1259,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 13, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 14, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
 
             // ---------------- ČHMÚ: měření z nejbližší stanice ---------------
             // veřejné (bez tokenu) — počasí není firemní údaj
@@ -1759,6 +1759,44 @@ export default {
                         firms: firms, requests: requests, days: days, notice: notice, flags: flagsO,
                         limits: { reqPerDay: 100000, plan: 'Workers Free', firmMaxDefault: FIRM_MAX_DEFAULT, foundMax: FOUND_MAX },
                         serverTime: Date.now()
+                    });
+                }
+
+                // DATA FIRMY KE STAŽENÍ DO VLASTNÍ APPKY (12. 9. 2026, přání uživatele:
+                // „z jakékoliv firmy si stáhnout data a dát si je k sobě do aplikace").
+                // Vrací zakázky (tabulka jobs) a k nim živé body ze sync_points
+                // (deleted=0) — tj. to, co firma synchronizovala z mobilů. Fotky u
+                // bodů na server nechodí, takže tu nejsou. Strop 20 000 bodů na
+                // odpověď (D1 i telefon to snesou; větší firma se nečeká).
+                const fdm = /^\/owner\/firms\/([\w-]+)\/data$/.exec(path);
+                if (fdm && req.method === 'GET') {
+                    const fid = fdm[1];
+                    const firma = await env.DB.prepare('SELECT id, code, name FROM firms WHERE id=?').bind(fid).first();
+                    if (!firma) return err(404, 'Firma nenalezena.');
+                    const nazvy = {};
+                    try {
+                        const jr = await dbAll(env, 'SELECT job_key, name, deleted FROM jobs WHERE firm_id=?', fid);
+                        (jr || []).forEach(j => { nazvy[j.job_key] = { name: j.name || j.job_key, deleted: !!j.deleted }; });
+                    } catch (e) {}
+                    let rows = [];
+                    try {
+                        await ensureSyncTable(env);
+                        rows = await dbAll(env, 'SELECT job_key, point_id, data, ts, uname FROM sync_points WHERE firm_id=? AND deleted=0 ORDER BY job_key, ts LIMIT 20000', fid) || [];
+                    } catch (e) {}
+                    const podle = {};
+                    rows.forEach(r => {
+                        let d = null;
+                        try { d = JSON.parse(r.data || 'null'); } catch (e) { d = null; }
+                        if (!d || typeof d !== 'object') return;
+                        d.id = r.point_id; d.ts = r.ts; if (r.uname) d.uname = r.uname;
+                        (podle[r.job_key] = podle[r.job_key] || []).push(d);
+                    });
+                    const keys = Object.keys(podle);
+                    Object.keys(nazvy).forEach(k => { if (keys.indexOf(k) === -1 && !nazvy[k].deleted) keys.push(k); });
+                    return json({
+                        firm: firma,
+                        jobs: keys.map(k => ({ key: k, name: (nazvy[k] && nazvy[k].name) || k, deleted: !!(nazvy[k] && nazvy[k].deleted), points: podle[k] || [] })),
+                        total: rows.length, capped: rows.length >= 20000, serverTime: Date.now()
                     });
                 }
 

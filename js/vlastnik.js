@@ -1064,11 +1064,61 @@
         });
     }
 
+    // 3) VIDITELNÝ VSTUP V NASTAVENÍ A V NÁSTROJÍCH (12. 9. 2026). Uživatel: „dej tu
+    //    konzoli po mém přihlášení do nastavení/více/nástroje, abych to dokázal najít."
+    //    Do té chvíle: ve „Více" tlačítko (nahoře až teď), v Nástrojích dlaždice v
+    //    kategorii „Správa aplikace", která v seznamu úkonů padala do SBALENÉ sekce
+    //    „Další nástroje". Teď: zlatý řádek pod záložkami Nastavení (vidět z každé
+    //    záložky) a v Nástrojích zlaté tlačítko hned nahoře; sekci „Vlastník aplikace"
+    //    v seznamu úkonů skládá js/nastroje-ukony.js z dlaždic vlastnik-*.
+    var ZLATE = 'background:rgba(212,160,44,0.15);border:1px solid #d4a02c;color:#d4a02c;';
+    function vstupBtn(id, text) {
+        var b = document.createElement('button');
+        b.id = id; b.type = 'button';
+        b.style.cssText = ZLATE + 'display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;' +
+            'margin:0 0 10px;padding:10px 12px;border-radius:12px;font:700 calc(13px * var(--ag-font-scale,1))/1.35 var(--font-ui,system-ui);cursor:pointer;';
+        b.innerHTML = '<span style="display:inline-block;width:18px;height:18px;">' + ICON + '</span><span>' + esc(text) + '</span>';
+        b.addEventListener('click', function () {
+            try {
+                var sm = document.getElementById('settings-modal'); if (sm) sm.style.display = 'none';
+                var tm = document.getElementById('tools-modal'); if (tm) { tm.style.display = 'none'; tm.classList.remove('ag-open'); }
+            } catch (e) { swallow(e, 'vstupBtn'); }
+            open();
+        });
+        return b;
+    }
+    function injectVstupy() {
+        var on = isOn();
+        // Nastavení: pruh #ag-set-strip stojí MIMO záložky (vidí ho každá záložka);
+        // když pruh chybí (starší index.html), pod pruh záložek.
+        var sb = document.getElementById('agv-set-btn');
+        if (on && !sb) {
+            var strip = document.getElementById('ag-set-strip');
+            var sm = document.getElementById('settings-modal');
+            var host = strip ? strip.parentNode : (sm && sm.querySelector('.tab-buttons') && sm.querySelector('.tab-buttons').parentNode);
+            if (host) {
+                sb = vstupBtn('agv-set-btn', 'Konzole vlastníka — lidé, firmy, žádosti o Pro');
+                if (strip) host.insertBefore(sb, strip.nextSibling); else host.appendChild(sb);
+            }
+        } else if (!on && sb) sb.remove();
+        // Nástroje: hned pod nadpisem, před hledáním (jako „Napsat autorovi").
+        var tb = document.getElementById('agv-tools-btn');
+        if (on && !tb) {
+            var hled = document.getElementById('tools-search');
+            var mc = document.querySelector('#tools-modal .modal-content');
+            if (hled && mc) {
+                tb = vstupBtn('agv-tools-btn', 'Konzole vlastníka');
+                var kotva = document.getElementById('ag-fb-foot-tools') || hled;
+                kotva.parentNode.insertBefore(tb, kotva);
+            }
+        } else if (!on && tb) tb.remove();
+    }
+
     function init() {
-        hookForm(); injectMenu(); injectTools();
+        hookForm(); injectMenu(); injectTools(); injectVstupy();
         setTimeout(overKlic, 12000);
         (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(function () {
-            try { hookForm(); injectMenu(); injectTools(); } catch (e) { swallow(e, 'tick'); }
+            try { hookForm(); injectMenu(); injectTools(); injectVstupy(); } catch (e) { swallow(e, 'tick'); }
         }, 2000);
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

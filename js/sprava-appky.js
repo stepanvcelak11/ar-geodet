@@ -412,9 +412,125 @@
 
         h.push('<div class="sa-note">Založena ' + datum(f.created) + ' · zakladatel <code>' + esc(String(f.founder || '—').slice(0, 8)) + '</code>' +
             (f.off ? ' · ' + f.off + ' zablokovaných účtů' : '') + '</div>');
+        h.push('<div class="sa-lab">Data firmy</div>');
+        h.push('<div class="sa-tools"><button type="button" class="sa-b on" data-data="' + esc(f.id) + '">Stáhnout body do mé appky</button></div>');
+        h.push('<div class="sa-note">Zakázky a body, které firma synchronizovala z mobilů, se uloží jako tvoje zakázky „' + esc(f.name) + ' · název zakázky". Fotky u bodů na server nechodí.</div>');
         h.push('<div class="sa-tools"><button type="button" class="sa-b cv" data-del="' + esc(f.id) + '">Smazat firmu i s daty</button></div>');
         h.push('</div>');
         return h.join('');
+    }
+
+    // ---- STAŽENÍ DAT FIRMY DO VLASTNÍ APPKY (12. 9. 2026) --------------------------------
+    // Přání uživatele: „z jakékoliv firmy si stáhnout data a dát si je k sobě do aplikace
+    // (například vytvořené body)". Server (GET /owner/firms/:id/data) vrátí zakázky a
+    // body ze sync_points; tady se z každé udělá MÍSTNÍ zakázka „Firma · Zakázka".
+    // ⚠ Zapisuje se stejně jako js/kos.js při obnově zakázky: přímo do úložiště
+    //   (`_idbSet` / localStorage pod klíčem `<pid>_arCustomPoints12`) a do
+    //   `projects` + 'arProjectsList', bez přepínání aktivní zakázky. Když je cílová
+    //   zakázka zrovna AKTIVNÍ, jde to přes window.addImportedPoints (paměť + mapa).
+    //   Opakované stažení body nezdvojí (dedup podle id ze serveru).
+    function fromData(d, firma) {
+        if (!d || typeof d.lat !== 'number' || typeof d.lng !== 'number' || !isFinite(d.lat) || !isFinite(d.lng)) return null;
+        var np = { id: String(d.id), name: d.name != null ? String(d.name) : 'Bod', lat: +d.lat, lng: +d.lng, cat: 'CUSTOM', type: 'custom' };
+        if (d.vyska != null && isFinite(+d.vyska)) np.vyska = +d.vyska;
+        if (d.acc != null && isFinite(+d.acc)) np.acc = +d.acc;
+        if (d.kod != null && String(d.kod) !== '') np.kod = String(d.kod).slice(0, 60);
+        if (d.mts != null && isFinite(+d.mts)) np.mts = +d.mts;
+        np.prov = (d.prov && typeof d.prov === 'object') ? d.prov : { origin: 'firma', ts: d.ts || Date.now(), acc: (np.acc != null ? np.acc : null) };
+        try { np.prov = Object.assign({}, np.prov, { firma: firma.code || firma.id, kdo: d.uname || null }); } catch (e) { swallow(e, 'prov'); }
+        return np;
+    }
+    function seznamZakazek() {
+        try { if (typeof projects !== 'undefined' && Array.isArray(projects)) return projects; } catch (e) { swallow(e, 'projects'); }
+        try { var l = JSON.parse(localStorage.getItem('arProjectsList') || '[]'); return Array.isArray(l) ? l : []; } catch (e) { return []; }
+    }
+    function ulozSeznam(list) {
+        try { localStorage.setItem('arProjectsList', JSON.stringify(list)); } catch (e) { swallow(e, 'ulozSeznam'); }
+        try { if (typeof renderProjectSelect === 'function') renderProjectSelect(); } catch (e) { swallow(e, 'renderProjectSelect'); }
+    }
+    function aktivniPid() { try { return localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { return 'default'; } }
+    function ctiBody(pid) {
+        var fk = pid + '_arCustomPoints12';
+        var parse = function (raw) { try { var a = JSON.parse(raw || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } };
+        try { if (typeof _idbGet === 'function') return _idbGet(fk).then(function (v) { return v != null ? parse(v) : parse(localStorage.getItem(fk)); }); } catch (e) { swallow(e, 'ctiBody'); }
+        return Promise.resolve(parse(localStorage.getItem(fk)));
+    }
+    function zapisBody(pid, arr) {
+        var fk = pid + '_arCustomPoints12', val = JSON.stringify(arr);
+        try { if (typeof _idbMem !== 'undefined' && pid === aktivniPid()) _idbMem[fk] = val; } catch (e) { swallow(e, 'mem'); }
+        try { if (typeof _idbSet === 'function') return _idbSet(fk, val).then(function () { return true; }); } catch (e) { swallow(e, 'zapisBody'); }
+        try { localStorage.setItem(fk, val); } catch (e) { swallow(e, 'ls'); }
+        return Promise.resolve(true);
+    }
+    // jedna zakázka firmy → místní zakázka; vrací Promise<{nazev, pridano, celkem}>
+    function ulozZakazku(firma, job) {
+        var nazev = (firma.name || firma.code || 'Firma') + ' · ' + (job.name || job.key);
+        var list = seznamZakazek(), pid = null, i;
+        for (i = 0; i < list.length; i++) if (list[i] && list[i].name === nazev) { pid = list[i].id; break; }
+        if (!pid) {
+            pid = 'proj_' + Date.now() + '_' + Math.floor(Math.random() * 1e4);
+            list.push({ id: pid, name: nazev });
+            ulozSeznam(list);
+        }
+        var body = [];
+        (job.points || []).forEach(function (d) { var np = fromData(d, firma); if (np) body.push(np); });
+        if (pid === aktivniPid() && typeof window.addImportedPoints === 'function') {
+            var n = 0;
+            try { n = window.addImportedPoints(body) || 0; } catch (e) { swallow(e, 'addImportedPoints'); }
+            return Promise.resolve({ nazev: nazev, pridano: n, celkem: body.length });
+        }
+        return ctiBody(pid).then(function (mam) {
+            var ids = {}, pridano = 0;
+            mam.forEach(function (p) { if (p && p.id != null) ids[String(p.id)] = 1; });
+            body.forEach(function (np) { if (!ids[np.id]) { mam.push(np); ids[np.id] = 1; pridano++; } });
+            return zapisBody(pid, mam).then(function () { return { nazev: nazev, pridano: pridano, celkem: body.length }; });
+        });
+    }
+    function stahnoutData(fid) {
+        var f = null; (_data && _data.firms || []).forEach(function (x) { if (x.id === fid) f = x; });
+        var jm = f ? f.name : fid;
+        agAlert('Stahuji', 'Načítám zakázky a body firmy ' + esc(jm) + '…');
+        api('/owner/firms/' + encodeURIComponent(fid) + '/data', { timeoutMs: 60000 }).then(function (r) {
+            if (!r.ok) {
+                if (r.status === 404) return agAlert('Starý worker', 'Server tuhle funkci ještě nezná — nasaď aktuální cloud/worker.js.');
+                return agAlert('Nepodařilo se', (r.data && r.data.error) || ('Server odpověděl ' + r.status + '.'));
+            }
+            var d = r.data || {}, jobs = (d.jobs || []).filter(function (j) { return (j.points || []).length || !j.deleted; });
+            if (!jobs.length) return agAlert('Nic ke stažení', 'Firma ' + esc(jm) + ' na serveru žádné zakázky ani body nemá (body chodí na server jen ze synchronizace v Pro).');
+            var firma = d.firm || { id: fid, name: jm };
+            var ov = document.createElement('div');
+            ov.className = 'modal-overlay'; ov.style.zIndex = '100070'; ov.style.display = 'flex';
+            ov.innerHTML = '<div class="modal-content"><h3 style="color:var(--accent);margin-top:0;">Body firmy ' + esc(firma.name) + '</h3>' +
+                '<p style="font-size:calc(12.5px * var(--ag-font-scale,1));opacity:.75;margin:0 0 10px;">Každá zakázka se uloží jako tvoje místní zakázka „' + esc(firma.name) + ' · …". Celkem ' + (d.total || 0) + ' bodů' + (d.capped ? ' (strop 20 000 — víc se nevešlo)' : '') + '.</p>' +
+                // ⚠ Styly .sa-* jsou scoped na #ag-sa-modal — tohle okno stojí mimo něj,
+                //   proto obecné .btn appky a řádky inline.
+                '<div class="modal-body" id="ag-sa-jobs">' + jobs.map(function (j, i) {
+                    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;margin:0 0 8px;border-radius:12px;background:var(--glass-bg,rgba(255,255,255,.05));border:1px solid var(--glass-border,rgba(255,255,255,.12));">' +
+                        '<span style="flex:1;min-width:0;"><b>' + esc(j.name || j.key) + '</b>' + (j.deleted ? ' <small>(ve firmě smazaná)</small>' : '') +
+                        '<br><small style="opacity:.7;">' + (j.points || []).length + ' bodů</small></span>' +
+                        '<button type="button" class="btn btn-secondary" style="width:auto;margin:0;padding:9px 14px;" data-job="' + i + '">Uložit</button></div>';
+                }).join('') + '</div>' +
+                '<button type="button" class="btn btn-blue" style="width:100%;margin-top:10px;" id="ag-sa-jobs-all">Uložit všechny zakázky</button>' +
+                '<button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px;" id="ag-sa-jobs-x">Zavřít</button></div>';
+            document.body.appendChild(ov);
+            var hotovo = function (vys) {
+                var txt = vys.map(function (v) { return '„' + esc(v.nazev) + '": přidáno ' + v.pridano + ' z ' + v.celkem; }).join('<br>');
+                agAlert('Uloženo', txt + '<br><br>Zakázky najdeš v Nastavení → Data → přepínač zakázky.');
+            };
+            each(ov, '[data-job]', 'click', function (el) {
+                el.disabled = true; el.textContent = 'Ukládám…';
+                ulozZakazku(firma, jobs[parseInt(el.getAttribute('data-job'), 10)]).then(function (v) { el.textContent = 'Uloženo'; hotovo([v]); });
+            });
+            ov.querySelector('#ag-sa-jobs-all').addEventListener('click', function () {
+                var b = this; b.disabled = true; b.textContent = 'Ukládám…';
+                var vys = [], i = 0;
+                (function dalsi() {
+                    if (i >= jobs.length) { b.textContent = 'Uloženo'; hotovo(vys); return; }
+                    ulozZakazku(firma, jobs[i++]).then(function (v) { vys.push(v); dalsi(); });
+                })();
+            });
+            ov.querySelector('#ag-sa-jobs-x').addEventListener('click', function () { ov.remove(); });
+        });
     }
 
     // ---- obsluha ----------------------------------------------------------------
@@ -457,6 +573,7 @@
             patch(el.getAttribute('data-fz'), { frozen: parseInt(el.getAttribute('data-v'), 10) || 0 });
         });
         each(b, '[data-del]', 'click', function (el) { smazat(el.getAttribute('data-del')); });
+        each(b, '[data-data]', 'click', function (el) { stahnoutData(el.getAttribute('data-data')); });
         each(b, '[data-ok]', 'click', function (el) { resit(el.getAttribute('data-ok'), true, 0); });
         each(b, '[data-ne]', 'click', function (el) { resit(el.getAttribute('data-ne'), false, 0); });
         each(b, '[data-jine]', 'click', function (el) {

@@ -14,7 +14,7 @@
 # ⚠ Vsechno musi byt na Promise/microtaskach — py_mini_racer nema smycku udalosti,
 #   takze setTimeout uvnitr workeru by test tise zasekl (OUT zustane null).
 #
-#   A) /health hlasi v:13, prodej:true a stav klice vlastnika (ownerKey)
+#   A) /health hlasi v:14, prodej:true a stav klice vlastnika (ownerKey)
 #   B) POST /objednavky bez PRODEJ_IBAN -> 503 (prodej vypnuty), s IBAN -> 8mistny
 #      VS, SPAYD s castkou a VS, cenik se dvema produkty, zkouska 3 dny
 #   C) jiny produkt zrusi starou otevrenou objednavku a zalozi novou (jina castka)
@@ -218,7 +218,7 @@ def main():
     # ---- A) health -------------------------------------------------------------
     base_rules()
     h = call('GET', '/health')
-    ok('A1 /health v:13', h['data'].get('v') == 13, h['data'].get('v'))
+    ok('A1 /health v:14', h['data'].get('v') == 14, h['data'].get('v'))
     ok('A2 /health prodej:true', h['data'].get('prodej') is True)
     # 12. 9. 2026: /health rika, v jakem stavu je OWNER_KEY ('ok' | 'chybi' | 'kratky') —
     # uzivatel klic „nastavoval nekolikrat" a appka hlasila jen obecnou 503.
@@ -237,6 +237,17 @@ def main():
     fb = call('POST', '/feedback', body={'kind': 'pro', 'txt': 'Chci Pro.', 'contact': 'x@y.cz', 'who': 'Jan · K7QM3XP2', 'meta': {'ucet': 'K7QM3XP2'}})
     fbl = [l for l in log() if l.get('fb')]
     ok('A8 POST /feedback kind=pro se ulozi jako pro (ne jine)', fb['status'] == 200 and fbl and fbl[-1]['fb'][1] == 'pro', (fb, fbl[-1:] if fbl else None))
+    # data firmy ke stazeni do vlastni appky (12. 9. 2026): jobs + zive body ze sync_points
+    rule(r'/SELECT id, code, name FROM firms WHERE id=\?/', 'function(a){ return { first: a[0] === "f1" ? { id: "f1", code: "ABCDEF", name: "Geo s.r.o." } : null }; }')
+    rule(r'/SELECT job_key, name, deleted FROM jobs WHERE firm_id=\?/', 'function(){ return { all: [{ job_key: "pole", name: "Pole u lesa", deleted: 0 }, { job_key: "stara", name: "Stara", deleted: 1 }] }; }')
+    rule(r'/FROM sync_points WHERE firm_id=\? AND deleted=0/', 'function(){ return { all: [{ job_key: "pole", point_id: "cp_1", data: JSON.stringify({ name: "101", lat: 50.1, lng: 14.4, kod: "obruba" }), ts: 5, uname: "Jan" }, { job_key: "bezjmena", point_id: "cp_2", data: JSON.stringify({ name: "7", lat: 50.2, lng: 14.5 }), ts: 6, uname: null }, { job_key: "pole", point_id: "cp_x", data: "{rozbite", ts: 7, uname: null }] }; }')
+    fd = call('GET', '/owner/firms/f1/data', headers=OWN)
+    jobs = { j['key']: j for j in (fd['data'].get('jobs') or []) }
+    ok('A9 GET /owner/firms/:id/data vraci firmu, zakazky a body (rozbity JSON se preskoci, smazana zakazka bez bodu se nevypisuje)',
+       fd['status'] == 200 and fd['data'].get('firm', {}).get('code') == 'ABCDEF' and set(jobs) == {'pole', 'bezjmena'}
+       and jobs['pole']['name'] == 'Pole u lesa' and len(jobs['pole']['points']) == 1 and jobs['pole']['points'][0]['id'] == 'cp_1'
+       and jobs['pole']['points'][0]['uname'] == 'Jan' and jobs['bezjmena']['name'] == 'bezjmena', fd)
+    ok('A10 /owner/firms/neznama/data -> 404', call('GET', '/owner/firms/neni/data', headers=OWN)['status'] == 404)
 
     # ---- B) objednavka ---------------------------------------------------------
     base_rules()
