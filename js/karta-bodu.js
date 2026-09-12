@@ -1,28 +1,13 @@
-// ===== QTRIG — PRACOVNÍ KARTA BODU (ODPOJITELNÁ vrstva) ====================
-// Neinvazivní vrstva ve stylu js/cuzk-geodata.js: NEEDITUJE logika.js ani
-// grafika.js, jen za běhu OBALÍ showDetails() a doplní kartu bodu.
-//
-// PROČ: karta uměla „Zvýraznit / Skrýt / Zavřít". „Zvýraznit" přitom ve
-// skutečnosti spouští navigaci (nastaví cíl AR šipky a rozsvítí okraje obrazu) —
-// z názvu to nikdo nepozná. A když k bodu dojdeš, karta ti neřekne to hlavní:
-// jak daleko od něj doopravdy stojíš.
-//
-// CO PŘIDÁVÁ (od 12. 9. 2026 — karta je PŘEHLED O BODU, ne navigace; na navigaci
-// je mapa / AR / split — rozhodnutí uživatele):
-//   • MOZAIKA DAT („bento"): Y a X velké, ikona druhu bodu, přesnost barevně,
-//     stav vytyčení, výška, „ode mě" (jen vzdálenost, bez šipek), kdy / odkud / kdo,
-//     počet fotek. Každá informace má velikost podle důležitosti.
-//   • NÁČRT OKOLÍ z reálných dat: tenhle bod uprostřed, sousední body zakázky kolem
-//     v měřítku (sever nahoře), k nim oměrné se vzdálenostmi v S-JTSK, hranice parcel
-//     z vektorového katastru (když jsou stažené), měřítko. Statický obrázek jako
-//     v zápisníku — nehýbe se podle tebe. Pod ním dlaždice oměrných.
-//   • ODCHYLKA — jen když stojíš prakticky na bodě (< 3 m) a máš průměrovanou
-//     polohu: Δ Y, Δ X, |d| v cm. Jinak se neukazuje (daleko od bodu je to šum).
-//   • AKCE dole: „Doveď mě" · „Kontrolní bod" · „Vytyčeno ✓".
-//
-// Vše fail-silent: co appka zrovna nemá (výška, průměr GPS, checklist), se
-// prostě nezobrazí. Odstranění: smaž js/karta-bodu.js + řádek v index.html (a v sw.js).
-// ================================================================================
+// ===== QTRIG — KARTA BODU (odpojitelná vrstva; obaluje showDetails z grafika.js) =====
+// Karta je PŘEHLED O BODU, ne navigace (na tu je mapa / AR / split — 12. 9. 2026):
+//   • mozaika dat: Y/X velké + ikona druhu, přesnost barevně, stav vytyčení, výška,
+//     „ode mě" (jen vzdálenost), kdo/kdy/odkud
+//   • náčrt okolí nad ortofotem+KN: sousední body zakázky, oměrné v S-JTSK, parcely
+//     z vektorového katastru, tlačítko Polohopis ČÚZK; pod ním dlaždice oměrných
+//   • odchylka ΔY/ΔX jen když stojíš na bodě (< 3 m) s průměrovanou polohou
+//   • akce dole: Doveď mě · Kontrolní bod · Vytyčeno; karta jde tahat za proužek
+// Fail-silent. Odstranění: smaž js/karta-bodu.js + řádek v index.html (a v sw.js).
+// ==========================================================================================
 (function () {
     'use strict';
     if (window.AGKartaBodu) return;
@@ -32,13 +17,8 @@
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function n2(v) { return (Math.round(v * 100) / 100).toFixed(2).replace('.', ','); }
     function n1(v) { return (Math.round(v * 10) / 10).toFixed(1).replace('.', ','); }
-    // POZOR (nalezeno 8.8. v prohlizeci): userLat/userLng/userAlt/gpsAvgResult…
-    // deklaruje logika.js pres `let` na nejvyssi urovni skriptu. To je GLOBALNI
-    // LEXIKALNI vazba — NENI to vlastnost window, takze window['userLat'] vracelo
-    // VZDY undefined. Dusledek: myPos()/distTo()/bearingTo() vracely null a
-    // navigacni pruh karty bodu nikdy neukazal vzdalenost ani azimut — porad jen
-    // „— m". Ctreme proto pres Function konstruktor: jeho telo bezi v globalnim
-    // scope, ktery lexikalni vazby vidi. Jmena jsou v tomhle modulu vzdy literaly.
+    // userLat/gpsAvgResult… jsou v logika.js `let` na nejvyšší úrovni = globální LEXIKÁLNÍ
+    // vazba, ne window[...] (8. 8.: window['userLat'] bylo vždy undefined). Proto Function.
     var _gFn = {};
     function g(name) {
         try { if (name in window) return window[name]; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:g'); }
@@ -52,11 +32,7 @@
     function myPos() {
         // PŘESNOST: pro odchylku má smysl jen průměrovaná poloha, ne poslední fix
         var r = g('gpsAvgResult');
-        // ⚠ #22 BRANA CERSTVOSTI. gpsAvgResult drzi posledni vysledek DONEKONECNA —
-        // kdyz GPS prestane dodavat fixy (auto, tunel, iOS suspend), karta bodu by
-        // dal pocitala odchylku proti poloze, kde telefon stal pred dvaceti minutami,
-        // a jeste by u ni napsala „průměr N měření". Bez razitka (starsi data)
-        // se chovame jako driv, at se nic neztrati.
+        // #22 brána čerstvosti: gpsAvgResult drží poslední výsledek donekonečna (tunel, iOS suspend)
         var cerstve = (typeof window.agAvgFresh === 'function') ? window.agAvgFresh(15000) : true;
         if (r && r.ts && !cerstve) r = null;
         if (r && !r.coarse && r.n >= 2 && r.lat != null) return { lat: r.lat, lng: r.lng, alt: r.alt, sterr: r.sterr, n: r.n, avg: true };
@@ -119,10 +95,7 @@
             '#ag-kb-acts button .icon{width:19px;height:19px;}',
             '#ag-kb-acts button.on{background:var(--accent,#2f9e74);border-color:transparent;color:#fff;}',
             'body.ag-glove #ag-kb-acts button{padding:14px 4px;font-size:calc(12px * var(--ag-font-scale, 1));}',
-            // ===== OBNOVA KARTY 12. 9. 2026 („dlouho jsme to neměnili, jen vizuálně obnovit") =====
-            // Hlavička: číslo velké, druh a kód jako štítky. Data bodu jako mřížka dlaždic
-            // (Y, X, Z, přesnost, kdy, zdroj) místo dlouhého sloupce řádků. Rádius hledání
-            // jedním řádkem pod daty. Původní řádky z grafika.js se jen schovají (nic se nemaže).
+            // hlavička: číslo velké, druh a kód jako štítky; původní řádky grafika.js jen schované
             '#bottom-sheet #det-title{font:800 calc(26px * var(--ag-font-scale,1))/1.1 var(--font-display,system-ui);letter-spacing:-.01em;margin:0 0 6px !important;}',
             '#bottom-sheet #det-subtitle{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px !important;font-size:calc(11px * var(--ag-font-scale,1)) !important;}',
             '#bottom-sheet #det-subtitle .ag-kb-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;font:600 11px/1 var(--font-ui,system-ui);',
@@ -130,16 +103,6 @@
             '#bottom-sheet #det-subtitle .ag-kb-chip.kod{color:var(--accent,#2f9e74);border-color:var(--accent-line,rgba(47,158,116,.4));background:var(--accent-soft,rgba(47,158,116,.12));}',
             '#bottom-sheet #det-subtitle .ag-kb-chip.ok{color:#3fbc8c;}',
             '#det-body > .geo-data-row,#det-body > div[style*="border-left:4px solid #fbbf24"],#det-body > div[style*="font-style:italic"]{display:none;}',
-            '.ag-kb-lbl{margin:2px 0 7px;font:700 10.5px/1 var(--font-ui,system-ui);letter-spacing:.09em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
-            '.ag-kb-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:0 0 10px;}',
-            '.ag-kb-cell{padding:9px 11px;border-radius:12px;background:var(--surface-1,rgba(255,255,255,.05));border:1px solid var(--glass-border,rgba(255,255,255,.09));min-width:0;}',
-            '.ag-kb-cell.w{grid-column:1/-1;}',
-            '.ag-kb-cell small{display:block;font:600 10px/1.2 var(--font-ui,system-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);margin-bottom:3px;}',
-            '.ag-kb-cell b{display:block;font:600 calc(15px * var(--ag-font-scale,1))/1.2 var(--font-mono,ui-monospace,Menlo,monospace);font-variant-numeric:tabular-nums;color:var(--text-color,#e6e8eb);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
-            '.ag-kb-cell b.t{font-family:var(--font-ui,system-ui);font-weight:600;white-space:normal;}',
-            '.ag-kb-radius{display:flex;align-items:center;gap:8px;margin:0 0 12px;padding:8px 11px;border-radius:10px;font:500 calc(12px * var(--ag-font-scale,1))/1.4 var(--font-ui,system-ui);',
-            '  color:var(--text-muted,#9aa1ac);background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.25);}',
-            '.ag-kb-radius b{color:#fbbf24;font-family:var(--font-mono,ui-monospace,monospace);}',
             '#bottom-sheet .sheet-actions .btn{border-radius:12px;}',
             // ===== KARTA JAKO PŘEHLED (12. 9. 2026): mozaika dat + náčrt okolí ===========
             '#ag-kb-nav{display:none;}',
@@ -157,7 +120,6 @@
             '.ag-kb-t.bad{background:rgba(226,104,95,.08);border-color:rgba(226,104,95,.35);}.ag-kb-t.bad b{color:#e2685f;}',
             '.ag-kb-t.tap{cursor:pointer;}',
             '.ag-kb-sk{position:relative;margin:0 0 8px;border-radius:14px;overflow:hidden;background:#0f151d;border:1px solid var(--glass-border,rgba(255,255,255,.12));}',
-            '.ag-kb-sk svg{display:block;width:100%;height:auto;}',
             '.ag-kb-sk .lg{position:absolute;left:9px;top:7px;font:600 10px/1.4 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);pointer-events:none;}',
             '.ag-kb-sk .lg i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle;font-style:normal;}',
             '.ag-kb-sk .pz{position:absolute;left:0;right:0;bottom:0;padding:22px 10px 8px;text-align:center;font:500 11px/1.4 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);background:linear-gradient(transparent,rgba(0,0,0,.55));pointer-events:none;}',
@@ -256,10 +218,7 @@
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:newCheckPoint'); }
     }
 
-    // ---- vložení do karty --------------------------------------------------------------
-    // Pořadí v #det-body: [odchylka — jen u bodu] → mozaika dat → náčrt okolí → oměrné →
-    // akce → (původní bloky grafika.js: stabilizace ČÚZK, polohopis, úřední záznamy) →
-    // foto-dokumentace (kalkulacka.js). Původní řádky Y/X/vzdálenost jsou schované CSS.
+    // pořadí v #det-body: odchylka (jen u bodu) → mozaika → náčrt → oměrné → akce → bloky grafika.js → foto
     function render(pt) {
         injectStyles();
         _pt = pt;
@@ -371,10 +330,7 @@
         if (dist != null && dist < 10) d.textContent += ' m';
     }
 
-    // ---- náčrt okolí z reálných dat ----------------------------------------------------------
-    // Sousední body zakázky (max 6, do 150 m; když je okolí prázdné, aspoň 3 nejbližší do
-    // 500 m), hranice parcel z vektorového katastru (klíč agCadastreParcels, když jsou
-    // stažené), moje poloha (jen tečka, když je v záběru), měřítko, sever nahoře.
+    // sousedé: max 5 do 150 m, jinak 3 nejbližší do 500 m; parcely z klíče agCadastreParcels
     function enu(lat0, lng0, lat, lng) {
         var m = (window.GeoCore && GeoCore.metersPerDeg) ? GeoCore.metersPerDeg(lat0) : { lat: 111320, lng: 111320 * Math.cos(lat0 * Math.PI / 180) };
         return { e: (lng - lng0) * m.lng, n: (lat - lat0) * m.lat };
@@ -400,7 +356,6 @@
             return s ? (JSON.parse(s) || []) : [];
         } catch (e) { return []; }
     }
-    function hezkeMeritko(m) { var k = [1, 2, 5, 10, 20, 50, 100, 200, 500]; for (var i = k.length - 1; i >= 0; i--) if (k[i] <= m) return k[i]; return 1; }
     var _mapa = null;
     function polohopisUrl(pt) {
         try {
@@ -418,13 +373,12 @@
         var oldO = document.getElementById('ag-kb-om'); if (oldO) oldO.remove();
         if (_mapa) { try { _mapa.remove(); } catch (e) { } _mapa = null; }
         var sb = sousede(pt);
-        if (window.L && typeof L.map === 'function') { nacrtMapa(pt, body, sb); return; }
-        nacrtSvg(pt, body, sb);
+        // Leaflet je v index.html natvrdo (defer), takže tu vždycky je; kdyby ne, náčrt se
+        // prostě nekreslí (mozaika a oměrné zůstávají). SVG záloha byla, ale stála 6 kB startu.
+        if (!(window.L && typeof L.map === 'function')) return;
+        nacrtMapa(pt, body, sb);
     }
-    // ---- náčrt nad podkladní mapou (12. 9. 2026: „ať se v tom vyznám") --------------------------
-    // Ortofoto ČÚZK + průhledný katastr (KN) jako podklad, nad tím body zakázky, oměrné a
-    // hranice parcel ze staženého vektorového katastru. Mapa je statická (nehýbe se prstem —
-    // karta se posouvá), sever nahoře. Offline: dlaždice, které jsou v TILE_CACHE; jinak tma.
+    // náčrt nad ortofotem ČÚZK + KN; statická mapa (karta se posouvá), sever nahoře; offline = TILE_CACHE
     function nacrtMapa(pt, body, sb) {
         var sk = document.createElement('div'); sk.id = 'ag-kb-sk'; sk.className = 'ag-kb-sk';
         var link = polohopisUrl(pt);
@@ -493,80 +447,7 @@
         }
         usad(); setTimeout(usad, 60); setTimeout(usad, 450);   // karta se ještě vysouvá (animace 0,45 s)
     }
-    function nacrtSvg(pt, body, sb) {
-        var W = 340, H = 210, cx = W / 2, cy = H / 2;
-        var R = 10;
-        for (var i = 0; i < sb.length; i++) R = Math.max(R, Math.sqrt(sb[i].e * sb[i].e + sb[i].n * sb[i].n));
-        R *= 1.18;
-        var sc = (Math.min(W, H) / 2 - 14) / R;        // px na metr
-        function X(e) { return cx + e * sc; } function Y(n) { return cy - n * sc; }
-        var f = function (v) { return Math.round(v * 10) / 10; };
-        var h = [];
-        // mřížka
-        h.push('<defs><pattern id="ag-kb-g" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="rgba(255,255,255,.05)"/></pattern><clipPath id="ag-kb-c"><rect width="' + W + '" height="' + H + '"/></clipPath></defs>');
-        h.push('<rect width="' + W + '" height="' + H + '" fill="url(#ag-kb-g)"/>');
-        // parcely (jen segmenty, co zasahují do záběru)
-        var pc = parcely(), nPar = 0;
-        for (var p = 0; p < pc.length && nPar < 400; p++) {
-            var rings = pc[p].rings || [];
-            for (var r = 0; r < rings.length; r++) {
-                var pts = rings[r], d = [], vid = false;
-                for (var k = 0; k < pts.length; k++) {
-                    var o = enu(pt.lat, pt.lng, pts[k].lat, pts[k].lng);
-                    if (Math.abs(o.e) < R * 1.6 && Math.abs(o.n) < R * 1.1) vid = true;
-                    d.push((k ? 'L' : 'M') + f(X(o.e)) + ' ' + f(Y(o.n)));
-                }
-                if (vid) { h.push('<path d="' + d.join('') + '" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="1" clip-path="url(#ag-kb-c)"/>'); nPar++; }
-            }
-        }
-        // oměrné + sousedé
-        for (i = 0; i < sb.length; i++) {
-            var q = sb[i], x2 = X(q.e), y2 = Y(q.n);
-            h.push('<line x1="' + cx + '" y1="' + cy + '" x2="' + f(x2) + '" y2="' + f(y2) + '" stroke="#fbbf24" stroke-opacity=".8" stroke-dasharray="4 3"/>');
-            if (i >= 3) continue;   // popisky vzdáleností jen u tří nejbližších (ty jsou i v dlaždicích) — jinak se přepisují
-            var mx = cx + (x2 - cx) * 0.58, my = cy + (y2 - cy) * 0.58;
-            var lab = (q.d < 10 ? n2(q.d) : n1(q.d)) + ' m';
-            h.push('<text x="' + f(mx) + '" y="' + f(my - 4) + '" font-size="10" font-weight="600" fill="#fbbf24" text-anchor="middle" paint-order="stroke" stroke="#0b0f15" stroke-width="3" font-family="ui-monospace,Menlo,monospace">' + esc(lab) + '</text>');
-        }
-        for (i = 0; i < sb.length; i++) {
-            q = sb[i]; x2 = X(q.e); y2 = Y(q.n);
-            h.push('<circle cx="' + f(x2) + '" cy="' + f(y2) + '" r="4.5" fill="#9aa1ac" stroke="#0b0f15" stroke-width="1.5"/>');
-            h.push('<text x="' + f(x2 + 7) + '" y="' + f(y2 - 6) + '" font-size="10.5" font-weight="700" fill="#e6e8eb" paint-order="stroke" stroke="#0b0f15" stroke-width="3" font-family="ui-monospace,Menlo,monospace">' + esc(String(q.pt.name || '')) + '</text>');
-        }
-        // já (jen tečka, když jsem v záběru)
-        var la = g('userLat'), ln = g('userLng');
-        if (la != null && ln != null) {
-            var me = enu(pt.lat, pt.lng, la, ln);
-            if (Math.abs(me.e) * sc < W / 2 - 10 && Math.abs(me.n) * sc < H / 2 - 10) {
-                h.push('<circle cx="' + f(X(me.e)) + '" cy="' + f(Y(me.n)) + '" r="5" fill="#fff" stroke="#0b0f15" stroke-width="1.5"/>');
-                h.push('<text x="' + f(X(me.e) + 8) + '" y="' + f(Y(me.n) + 4) + '" font-size="10" font-weight="700" fill="#fff" paint-order="stroke" stroke="#0b0f15" stroke-width="3" font-family="system-ui">ty</text>');
-            }
-        }
-        // tenhle bod
-        h.push('<circle cx="' + cx + '" cy="' + cy + '" r="13" fill="none" stroke="#3fbc8c" stroke-opacity=".35"/>');
-        h.push('<circle cx="' + cx + '" cy="' + cy + '" r="6" fill="#3fbc8c" stroke="#0b0f15" stroke-width="1.5"/>');
-        h.push('<text x="' + (cx - 10) + '" y="' + (cy + 22) + '" font-size="12" font-weight="800" fill="#3fbc8c" paint-order="stroke" stroke="#0b0f15" stroke-width="3" font-family="ui-monospace,Menlo,monospace">' + esc(String(pt.name || '')) + '</text>');
-        // sever + měřítko
-        h.push('<path d="M' + (W - 22) + ' 34 l0 -18 m-5 6 l5 -6 5 6" fill="none" stroke="#e6e8eb" stroke-width="1.4" stroke-linecap="round"/><text x="' + (W - 26) + '" y="47" font-size="10" font-weight="700" fill="#9aa1ac" font-family="system-ui">S</text>');
-        var mm = hezkeMeritko(R * 0.6), mpx = mm * sc;
-        h.push('<line x1="12" y1="' + (H - 12) + '" x2="' + f(12 + mpx) + '" y2="' + (H - 12) + '" stroke="#e6e8eb" stroke-width="2"/><text x="12" y="' + (H - 17) + '" font-size="10" fill="#9aa1ac" font-family="system-ui">' + mm + ' m</text>');
-        var sk = document.createElement('div'); sk.id = 'ag-kb-sk'; sk.className = 'ag-kb-sk';
-        sk.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Náčrt okolí bodu">' + h.join('') + '</svg>'
-            + '<div class="lg"><i style="background:#3fbc8c"></i>tento bod' + (sb.length ? ' &nbsp;<i style="background:#9aa1ac"></i>sousední body &nbsp;<i style="background:#fbbf24;border-radius:0;height:2px"></i>oměrné' : '') + (nPar ? ' &nbsp;<i style="background:rgba(255,255,255,.4);border-radius:0;height:2px"></i>parcely' : '') + '</div>'
-            + ((!sb.length && !nPar) ? '<div class="pz">Zatím jen tenhle bod. Přidej další body zakázky, nebo stáhni parcely (Nástroje → Katastr — parcely) a náčrt se doplní sám.</div>' : '');
-        var bento = document.getElementById('ag-kb-bento');
-        (bento || body.firstChild).insertAdjacentElement('afterend', sk);
-        if (sb.length) {
-            var om = document.createElement('div'); om.id = 'ag-kb-om'; om.className = 'ag-kb-om';
-            om.innerHTML = omerneHtml(sb);
-            sk.insertAdjacentElement('afterend', om);
-        }
-    }
-
-    // ---- karta jde chytit za proužek a posunout / stáhnout dolů (12. 9. 2026) ----------------
-    // Dřív šla zavřít jen klepnutím mimo. Teď: tah NAHORU za proužek nebo nadpis kartu
-    // zvětší (až 92 % výšky), tah DOLŮ ji zmenší a když se táhne dál (nebo rychle), zavře.
-    // Tah dolů funguje i z obsahu, když je odrolovaný úplně nahoře (obvyklé chování).
+    // karta za proužek/nadpis: tah nahoru zvětší (≤ 92 %), tah dolů zmenší, delší tah/švih zavře
     var _dragOn = false;
     function sheetDrag() {
         var sheet = document.getElementById('bottom-sheet');
