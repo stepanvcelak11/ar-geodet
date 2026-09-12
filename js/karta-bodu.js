@@ -87,7 +87,9 @@
         if (pt.vyska != null && isFinite(pt.vyska)) return Number(pt.vyska);
         try {
             var p = pt.rawData; if (!p) return null;
-            var KEYS = ['VYSKA_BPV', 'NADMORSKA_VYSKA', 'VYSKA_BODU', 'VYSKA_H', 'H_BPV'];
+            // ČÚZK BodovaPole (ověřeno 12. 9. 2026): výška Bpv je ve VŠECH vrstvách (ZPBP, ZhB, PPBP,
+            // ZVBP/PVBP = nivelační) v poli VYSKA; HEL je elipsoidická — tu nechceme.
+            var KEYS = ['VYSKA_BPV', 'NADMORSKA_VYSKA', 'VYSKA_BODU', 'VYSKA_H', 'H_BPV', 'VYSKA', 'H'];
             for (var k in p) {
                 if (KEYS.indexOf(k.toUpperCase()) < 0) continue;
                 var v = parseFloat(String(p[k]).replace(',', '.'));
@@ -162,7 +164,19 @@
             '.ag-kb-om{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 4px;}',
             '.ag-kb-om div{padding:7px 6px;border-radius:10px;background:var(--surface-1,rgba(255,255,255,.05));border:1px solid var(--glass-border,rgba(255,255,255,.08));text-align:center;min-width:0;}',
             '.ag-kb-om small{display:block;font:600 9.5px/1.2 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
-            '.ag-kb-om b{display:block;font:700 calc(13px * var(--ag-font-scale,1))/1.3 var(--font-mono,ui-monospace,monospace);color:#fbbf24;}'
+            '.ag-kb-om b{display:block;font:700 calc(13px * var(--ag-font-scale,1))/1.3 var(--font-mono,ui-monospace,monospace);color:#fbbf24;}',
+            '.ag-kb-sk .leaflet-container{background:#0f151d;font-family:var(--font-ui,system-ui);}',
+            '.ag-kb-sk .leaflet-control-scale-line{background:rgba(11,15,21,.6);color:#e6e8eb;border-color:#e6e8eb;font-size:10px;}',
+            '.ag-kb-ml{white-space:nowrap;font:700 11px/1 var(--font-mono,ui-monospace,Menlo,monospace);color:#e6e8eb;text-shadow:0 0 3px #000,0 0 3px #000,0 0 2px #000;}',
+            '.ag-kb-ml.om{color:#fbbf24;font-weight:600;}.ag-kb-ml.ja{color:#3fbc8c;font-size:12.5px;}.ag-kb-ml.ty{color:#fff;font-family:var(--font-ui,system-ui);}',
+            '.ag-kb-polo{position:absolute;right:8px;bottom:8px;z-index:500;display:inline-flex;align-items:center;gap:6px;padding:8px 11px;border-radius:999px;',
+            '  background:rgba(11,15,21,.85);border:1px solid rgba(255,255,255,.2);color:#fff;font:700 11.5px/1 var(--font-ui,system-ui);text-decoration:none;}',
+            '.ag-kb-polo .icon{width:14px;height:14px;}',
+            '.ag-kb-sk .lg{z-index:500;left:6px;top:6px;padding:4px 8px;border-radius:8px;background:rgba(11,15,21,.72);color:#e6e8eb;}',
+            // proužek karty = úchyt: větší plocha na prst, bez změny vzhledu
+            '#bottom-sheet .sheet-handle{position:relative;}',
+            '#bottom-sheet .sheet-handle::before{content:"";position:absolute;left:-60px;right:-60px;top:-14px;bottom:-14px;}',
+            '#bottom-sheet{touch-action:pan-y;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
@@ -311,14 +325,6 @@
         var d = DRUH_IKONA[pt.cat] || DRUH_IKONA.CUSTOM;
         return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
     }
-    function zakazka() {
-        try {
-            var id = g('activeProjectId'), ps = g('projects');
-            if (!ps || !ps.length) { ps = JSON.parse(localStorage.getItem('arProjectsList') || '[]'); }
-            var p = (ps || []).filter(function (x) { return x && x.id === id; })[0];
-            return p ? p.name : null;
-        } catch (e) { return null; }
-    }
 
     // ---- mozaika dat („bento") --------------------------------------------------------------
     function mozaika(pt, body, dev) {
@@ -347,30 +353,15 @@
         var o = pt.prov && pt.prov.origin;
         var odkud = o ? (ZDROJ[o] || o) : (pt.type !== 'custom' ? 'bodové pole ČÚZK' : null);
         var kdo = pt.prov && pt.prov.kdo;
+        // 12. 9. 2026 (uživatel): bez dlaždic Fotky (jsou dole ve foto-dokumentaci) a Zakázka
+        // (zbytečná); „bodové pole ČÚZK" až jako poslední řádek, ne nahoře.
         var puvod = [kdo, kdyS, odkud].filter(Boolean).join(' · ');
         if (puvod) tile('c2', kdyS ? 'Změřeno' : 'Zdroj', '<b class="t">' + esc(puvod) + '</b>');
-        var zk = zakazka();
-        if (zk) tile('', 'Zakázka', '<b class="t">' + esc(zk) + '</b>');
-        tile((zk ? '' : 'c2 ') + 'tap', 'Fotky a poznámka', '<b class="t" id="ag-kb-foto">—</b>', ' data-a="foto"');
         // úřední bod: výšku už máme v mozaice, v zeleném rámečku (stabilizace…) by byla dvakrát
         if (z != null) { var dup = body.querySelectorAll('.geo-highlight .geo-data-row'); for (var d = 0; d < dup.length; d++) { var dl = dup[d].querySelector('.geo-label'); if (dl && /^Nadmořská/.test(dl.textContent || '')) dup[d].remove(); } }
         var box = document.createElement('div'); box.id = 'ag-kb-bento'; box.className = 'ag-kb-bento';
         box.innerHTML = t.join('');
-        box.addEventListener('click', function (e) {
-            var f = e.target.closest('[data-a="foto"]'); if (!f) return;
-            var sec = body.querySelector('.point-doc'); if (sec && sec.scrollIntoView) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
         (dev || body.firstChild).insertAdjacentElement('afterend', box);
-        // počet fotek dorazí z IndexedDB
-        try {
-            if (typeof loadPointDoc === 'function') loadPointDoc(pt.id).then(function (doc) {
-                var el = document.getElementById('ag-kb-foto'); if (!el || _pt !== pt) return;
-                var n = (doc && doc.photos && doc.photos.length) || (doc && doc.photo ? 1 : 0);
-                var pozn = doc && doc.note ? ' · poznámka' : '';
-                el.textContent = (n ? (n + (n === 1 ? ' fotka' : (n < 5 ? ' fotky' : ' fotek'))) : 'žádná') + pozn;
-            }).catch(function () { var el = document.getElementById('ag-kb-foto'); if (el) el.textContent = 'žádná'; });
-            else { var el0 = document.getElementById('ag-kb-foto'); if (el0) el0.textContent = 'žádná'; }
-        } catch (e) { }
     }
     // „Ode mě": jen vzdálenost — žádné šipky, karta nenavádí
     function fillDist(pt) {
@@ -410,11 +401,100 @@
         } catch (e) { return []; }
     }
     function hezkeMeritko(m) { var k = [1, 2, 5, 10, 20, 50, 100, 200, 500]; for (var i = k.length - 1; i >= 0; i--) if (k[i] <= m) return k[i]; return 1; }
+    var _mapa = null;
+    function polohopisUrl(pt) {
+        try {
+            var p = pt.rawData; if (!p) return null;
+            if (p.GEODETICKE_UDAJE && /^http/.test(String(p.GEODETICKE_UDAJE))) return String(p.GEODETICKE_UDAJE);
+            for (var k in p) if (typeof p[k] === 'string' && /^http/.test(p[k])) return p[k];
+        } catch (e) { }
+        return null;
+    }
+    function omerneHtml(sb) {
+        return sb.slice(0, 3).map(function (q) { return '<div><small>→ ' + esc(String(q.pt.name || '')) + '</small><b>' + (q.d < 10 ? n2(q.d) : n1(q.d)) + ' m</b></div>'; }).join('');
+    }
     function nacrt(pt, body) {
         var old = document.getElementById('ag-kb-sk'); if (old) old.remove();
         var oldO = document.getElementById('ag-kb-om'); if (oldO) oldO.remove();
-        var W = 340, H = 210, cx = W / 2, cy = H / 2;
+        if (_mapa) { try { _mapa.remove(); } catch (e) { } _mapa = null; }
         var sb = sousede(pt);
+        if (window.L && typeof L.map === 'function') { nacrtMapa(pt, body, sb); return; }
+        nacrtSvg(pt, body, sb);
+    }
+    // ---- náčrt nad podkladní mapou (12. 9. 2026: „ať se v tom vyznám") --------------------------
+    // Ortofoto ČÚZK + průhledný katastr (KN) jako podklad, nad tím body zakázky, oměrné a
+    // hranice parcel ze staženého vektorového katastru. Mapa je statická (nehýbe se prstem —
+    // karta se posouvá), sever nahoře. Offline: dlaždice, které jsou v TILE_CACHE; jinak tma.
+    function nacrtMapa(pt, body, sb) {
+        var sk = document.createElement('div'); sk.id = 'ag-kb-sk'; sk.className = 'ag-kb-sk';
+        var link = polohopisUrl(pt);
+        sk.innerHTML = '<div id="ag-kb-mapa" style="height:220px;"></div>'
+            + '<div class="lg"><i style="background:#3fbc8c"></i>tento bod' + (sb.length ? ' &nbsp;<i style="background:#e6e8eb"></i>sousední body &nbsp;<i style="background:#fbbf24;border-radius:0;height:2px"></i>oměrné' : '') + '</div>'
+            + (link ? '<a class="ag-kb-polo" href="' + esc(link) + '" target="_blank" rel="noopener"><svg class="icon"><use href="#i-file-text"/></svg> Polohopis (nákres ČÚZK)</a>' : '')
+            + ((!sb.length) ? '<div class="pz">Zatím jen tenhle bod. Přidej další body zakázky a náčrt se doplní sám.</div>' : '');
+        var bento = document.getElementById('ag-kb-bento');
+        (bento || body.firstChild).insertAdjacentElement('afterend', sk);
+        if (sb.length) {
+            var om = document.createElement('div'); om.id = 'ag-kb-om'; om.className = 'ag-kb-om';
+            om.innerHTML = omerneHtml(sb);
+            sk.insertAdjacentElement('afterend', om);
+        }
+        var el = sk.querySelector('#ag-kb-mapa');
+        var m = L.map(el, { zoomControl: false, attributionControl: false, dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, tap: false, zoomSnap: 0, maxZoom: 22, minZoom: 10 });
+        _mapa = m;
+        try {
+            L.tileLayer.wms('https://ags.cuzk.gov.cz/arcgis1/services/ORTOFOTO/MapServer/WMSServer', { layers: '0', format: 'image/jpeg', version: '1.3.0', maxZoom: 22, opacity: .85 }).addTo(m);
+            L.tileLayer.wms('https://services.cuzk.cz/wms/wms.asp', { layers: 'KN', format: 'image/png', transparent: true, version: '1.3.0', maxZoom: 22, opacity: .9 }).addTo(m);
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:podklad'); }
+        var lab = function (ll, txt, cls, dx, dy) {
+            L.marker(ll, { icon: L.divIcon({ className: 'ag-kb-ml ' + (cls || ''), html: esc(txt), iconSize: null, iconAnchor: [-(dx || 8), (dy == null ? 8 : dy)] }), interactive: false }).addTo(m);
+        };
+        var pts = [[pt.lat, pt.lng]];
+        // parcely ze staženého katastru (offline) — slabé bílé linky
+        try {
+            var pc = parcely(), nP = 0;
+            for (var p = 0; p < pc.length && nP < 300; p++) {
+                var rings = pc[p].rings || [];
+                for (var r = 0; r < rings.length; r++) {
+                    var blizko = false;
+                    for (var k = 0; k < rings[r].length; k += 3) { var o = enu(pt.lat, pt.lng, rings[r][k].lat, rings[r][k].lng); if (Math.abs(o.e) < 200 && Math.abs(o.n) < 200) { blizko = true; break; } }
+                    if (!blizko) continue;
+                    L.polyline(rings[r].map(function (c) { return [c.lat, c.lng]; }), { color: '#ffffff', opacity: .55, weight: 1, interactive: false }).addTo(m); nP++;
+                }
+            }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:parcely'); }
+        for (var i = 0; i < sb.length; i++) {
+            var q = sb[i], ll = [q.pt.lat, q.pt.lng];
+            pts.push(ll);
+            L.polyline([[pt.lat, pt.lng], ll], { color: '#fbbf24', weight: 2, dashArray: '5 4', opacity: .9, interactive: false }).addTo(m);
+            if (i < 3) lab([(pt.lat + q.pt.lat) / 2, (pt.lng + q.pt.lng) / 2], (q.d < 10 ? n2(q.d) : n1(q.d)) + ' m', 'om', -18, 8);
+            L.circleMarker(ll, { radius: 5, color: '#0b0f15', weight: 1.5, fillColor: '#e6e8eb', fillOpacity: 1, interactive: false }).addTo(m);
+            lab(ll, String(q.pt.name || ''), '', 7, 14);
+        }
+        var la = g('userLat'), ln = g('userLng');
+        if (la != null && ln != null) {
+            var me = enu(pt.lat, pt.lng, la, ln), R = 15;
+            for (i = 0; i < sb.length; i++) R = Math.max(R, Math.sqrt(sb[i].e * sb[i].e + sb[i].n * sb[i].n));
+            if (Math.abs(me.e) < R * 1.2 && Math.abs(me.n) < R * 1.2) {
+                L.circleMarker([la, ln], { radius: 5, color: '#0b0f15', weight: 1.5, fillColor: '#ffffff', fillOpacity: 1, interactive: false }).addTo(m);
+                lab([la, ln], 'ty', 'ty', 8, 6);
+            }
+        }
+        L.circleMarker([pt.lat, pt.lng], { radius: 12, color: '#3fbc8c', weight: 1, opacity: .5, fill: false, interactive: false }).addTo(m);
+        L.circleMarker([pt.lat, pt.lng], { radius: 6.5, color: '#0b0f15', weight: 1.5, fillColor: '#3fbc8c', fillOpacity: 1, interactive: false }).addTo(m);
+        lab([pt.lat, pt.lng], String(pt.name || ''), 'ja', 9, 22);
+        try { L.control.scale({ imperial: false, position: 'bottomleft', maxWidth: 90 }).addTo(m); } catch (e) { }
+        function usad() {
+            try {
+                m.invalidateSize();
+                if (pts.length > 1) m.fitBounds(pts, { padding: [28, 28], maxZoom: 21 });
+                else m.setView([pt.lat, pt.lng], 19.5);
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:usad'); }
+        }
+        usad(); setTimeout(usad, 60); setTimeout(usad, 450);   // karta se ještě vysouvá (animace 0,45 s)
+    }
+    function nacrtSvg(pt, body, sb) {
+        var W = 340, H = 210, cx = W / 2, cy = H / 2;
         var R = 10;
         for (var i = 0; i < sb.length; i++) R = Math.max(R, Math.sqrt(sb[i].e * sb[i].e + sb[i].n * sb[i].n));
         R *= 1.18;
@@ -478,9 +558,71 @@
         (bento || body.firstChild).insertAdjacentElement('afterend', sk);
         if (sb.length) {
             var om = document.createElement('div'); om.id = 'ag-kb-om'; om.className = 'ag-kb-om';
-            om.innerHTML = sb.slice(0, 3).map(function (q) { return '<div><small>→ ' + esc(String(q.pt.name || '')) + '</small><b>' + (q.d < 10 ? n2(q.d) : n1(q.d)) + ' m</b></div>'; }).join('');
+            om.innerHTML = omerneHtml(sb);
             sk.insertAdjacentElement('afterend', om);
         }
+    }
+
+    // ---- karta jde chytit za proužek a posunout / stáhnout dolů (12. 9. 2026) ----------------
+    // Dřív šla zavřít jen klepnutím mimo. Teď: tah NAHORU za proužek nebo nadpis kartu
+    // zvětší (až 92 % výšky), tah DOLŮ ji zmenší a když se táhne dál (nebo rychle), zavře.
+    // Tah dolů funguje i z obsahu, když je odrolovaný úplně nahoře (obvyklé chování).
+    var _dragOn = false;
+    function sheetDrag() {
+        var sheet = document.getElementById('bottom-sheet');
+        if (!sheet || _dragOn) return;
+        _dragOn = true;
+        var cont = sheet.querySelector('.sheet-content');
+        var y0 = 0, x0 = 0, t0 = 0, h0 = 0, active = false, smer = 0, zHandle = false, custom = false;
+        var VH = function () { return window.innerHeight || 800; };
+        function start(e) {
+            if (!sheet.classList.contains('open')) return;
+            var t = e.touches ? e.touches[0] : e;
+            var cil = e.target;
+            zHandle = !(cont && cont.contains(cil)) || !!(cil.closest && cil.closest('#det-title,#det-subtitle'));
+            if (!zHandle && cont && cont.scrollTop > 0) return;
+            y0 = t.clientY; x0 = t.clientX; t0 = Date.now(); h0 = sheet.getBoundingClientRect().height; active = true; smer = 0;
+            custom = !!sheet.style.height;
+        }
+        function move(e) {
+            if (!active) return;
+            var t = e.touches ? e.touches[0] : e;
+            var dy = t.clientY - y0, dx = t.clientX - x0;
+            if (!smer) { if (Math.abs(dy) < 8 && Math.abs(dx) < 8) return; if (Math.abs(dx) > Math.abs(dy)) { active = false; return; } smer = dy > 0 ? 1 : -1; if (smer < 0 && !zHandle) { active = false; return; } sheet.style.transition = 'none'; sheet.style.animation = 'none'; }
+            if (e.cancelable) e.preventDefault();
+            if (dy < 0) {   // nahoru = zvětšit
+                var h = Math.min(VH() * 0.92, h0 - dy);
+                sheet.style.height = h + 'px'; sheet.style.maxHeight = '92%'; sheet.style.transform = 'translateY(0)';
+            } else {        // dolů = zmenšit až po minimum, pak odsouvat
+                var minH = Math.min(h0, VH() * 0.32);
+                var h2 = h0 - dy;
+                if (custom && h2 > minH) { sheet.style.height = h2 + 'px'; sheet.style.transform = 'translateY(0)'; }
+                else { if (custom) sheet.style.height = minH + 'px'; sheet.style.transform = 'translateY(' + (custom ? dy - (h0 - minH) : dy) + 'px)'; }
+            }
+        }
+        function end(e) {
+            if (!active) return;
+            active = false;
+            var t = (e.changedTouches && e.changedTouches[0]) || e;
+            var dy = t.clientY - y0, dt = Math.max(1, Date.now() - t0);
+            sheet.style.transition = ''; sheet.style.animation = 'none';
+            if (!smer) return;
+            var posun = 0; try { posun = parseFloat((/translateY\(([-\d.]+)px\)/.exec(sheet.style.transform) || [])[1]) || 0; } catch (x) { posun = 0; }
+            // zavřít: odsunuto o > 90 px, nebo švih, nebo tah přes půlku původní výšky karty
+            if (posun > 90 || (dy > 40 && dy / dt > 0.6) || dy > h0 * 0.5) {
+                sheet.style.transform = ''; sheet.style.height = ''; sheet.style.maxHeight = '';
+                try { if (typeof window.closeBottomSheet === 'function') closeBottomSheet(); else sheet.classList.remove('open'); } catch (x) { sheet.classList.remove('open'); }
+                return;
+            }
+            sheet.style.transform = 'translateY(0)';
+        }
+        sheet.addEventListener('touchstart', start, { passive: true });
+        sheet.addEventListener('touchmove', move, { passive: false });
+        sheet.addEventListener('touchend', end, { passive: true });
+        sheet.addEventListener('touchcancel', end, { passive: true });
+        // po zavření vrátit výchozí výšku i animaci otevření
+        var mo = new MutationObserver(function () { if (!sheet.classList.contains('open')) { sheet.style.transform = ''; sheet.style.animation = ''; } });
+        mo.observe(sheet, { attributes: true, attributeFilter: ['class'] });
     }
 
     // živé hodnoty, dokud je karta otevřená (2×/s stačí — čísla se čtou očima)
@@ -517,6 +659,7 @@
         injectStyles();
         wrap();
         relabel();
+        try { sheetDrag(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:sheetDrag'); }
         if (!window.__agKbWatch) {
             window.__agKbWatch = setInterval(function () { wrap(); relabel(); }, 1500);
             setTimeout(function () { clearInterval(window.__agKbWatch); window.__agKbWatch = 0; }, 15000);

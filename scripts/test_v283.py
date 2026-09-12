@@ -168,7 +168,8 @@ async def test_vlastnik(ctx):
                  ma: ['vlastnik-konzole','vlastnik-firmy','vlastnik-spravci','vlastnik-zpravy'].filter(k => ids.includes(k)) };
     }""")
     ok('v Nastrojich je kategorie Sprava aplikace', st3['kat'], st3)
-    ok('vsechny ctyri nastroje spravy jsou v mrizce', len(st3['ma']) == 4, st3)
+    # 12. 9. 2026: v Nastrojich JEN JEDNA dlazdice (Rizeni aplikace), zbytek je uvnitr konzole
+    ok('v mrizce je jen Rizeni aplikace (firmy/spravci/zpravy az v konzoli)', st3['ma'] == ['vlastnik-konzole'], st3)
     ok('bez chyb v konzoli', not chyby, chyby[:3])
     await page.close()
 

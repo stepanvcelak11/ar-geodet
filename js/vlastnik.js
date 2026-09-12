@@ -521,7 +521,8 @@
             '#' + MODAL_ID + ' .agv-hd small{display:block;margin-top:2px;font:500 11.5px/1.4 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
             '#' + MODAL_ID + ' .agv-sec{font:600 10.5px/1 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);',
             '  text-transform:uppercase;letter-spacing:.06em;margin:16px 0 7px;}',
-            '#' + MODAL_ID + ' .agv-it{display:flex;align-items:center;gap:11px;width:100%;box-sizing:border-box;text-align:left;',
+            '#' + MODAL_ID + ' .agv-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 4px;}',
+            '#' + MODAL_ID + ' .agv-it{display:flex;flex-direction:column;align-items:flex-start;gap:9px;width:100%;box-sizing:border-box;text-align:left;min-height:118px;',
             '  background:var(--glass-bg,rgba(255,255,255,0.04));border:1px solid var(--glass-border,rgba(255,255,255,0.1));',
             '  border-radius:12px;padding:11px 12px;margin:0 0 7px;cursor:pointer;color:var(--text-color,#e6e8eb);}',
             '#' + MODAL_ID + ' .agv-it:active{transform:scale(.99);}',
@@ -530,8 +531,8 @@
             '#' + MODAL_ID + ' .agv-it .ic svg{width:100%;height:100%;display:block;}',
             '#' + MODAL_ID + ' .agv-it .tx{flex:1;min-width:0;}',
             '#' + MODAL_ID + ' .agv-it .tx b{display:block;font:700 13.5px/1.3 var(--font-ui,system-ui);}',
-            '#' + MODAL_ID + ' .agv-it .tx small{display:block;margin-top:2px;font:500 11.5px/1.4 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
-            '#' + MODAL_ID + ' .agv-it .go{flex:none;color:var(--text-muted,#9aa1ac);font:700 16px/1 var(--font-ui,system-ui);}',
+            '#' + MODAL_ID + ' .agv-it .tx small{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-top:3px;font:500 11px/1.35 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
+            '#' + MODAL_ID + ' .agv-it .go{display:none;}',
             '#' + MODAL_ID + ' .agv-it.off{opacity:.45;}',
             '#' + MODAL_ID + ' .agv-st{font:500 12px/1.5 var(--font-mono,monospace);color:var(--text-muted,#9aa1ac);',
             '  background:var(--glass-bg,rgba(255,255,255,0.04));border-radius:11px;padding:9px 11px;word-break:break-word;}',
@@ -638,7 +639,7 @@
             },
             {
                 ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><path d="M23 21v-2a4 4 0 0 0-3-3.9"/></svg>',
-                t: 'Administrace firmy', d: 'Uživatelé, role a oprávnění firmy uložené na tomhle zařízení',
+                t: 'Správci firmy (tenhle telefon)', d: 'Kdo je ve firmě admin a co smí — nastavení uložené jen na tomhle zařízení, ne na serveru',
                 lazy: 'js/ucty-admin.js', run: function () { if (window.AGUctyAdmin) AGUctyAdmin.open(); else chybi('js/ucty-admin.js'); }
             },
             {
@@ -967,14 +968,18 @@
         // jeden tichý řádek místo zeleného boxu — kicker „Vlastník aplikace" už je v nadpisu
         var h = ['<div class="agv-hd"><div style="flex:none;width:18px;height:18px;">' + ICON + '</div>' +
             '<div><b>Máš odemčeno všechno</b><small>Oprávnění firem a rolí se na tenhle telefon nevztahují.</small></div></div>'];
-        var items = polozky();
+        // 12. 9. 2026 (uživatel): místo dlouhého seznamu DLAŽDICE po dvou v každé sekci —
+        // stejný princip jako kytička v Nástrojích: přehled na jeden pohled, ne rolování.
+        var items = polozky(), otevreno = false;
         items.forEach(function (it, i) {
-            if (it.sec) h.push('<div class="agv-sec">' + esc(it.sec) + '</div>');
+            if (it.sec) { if (otevreno) h.push('</div>'); h.push('<div class="agv-sec">' + esc(it.sec) + '</div><div class="agv-grid">'); otevreno = true; }
+            else if (!otevreno) { h.push('<div class="agv-grid">'); otevreno = true; }
             h.push('<button type="button" class="agv-it" data-i="' + i + '">' +
                 '<span class="ic">' + it.ic + '</span>' +
                 '<span class="tx"><b>' + esc(it.t) + '</b><small>' + esc(it.d) + '</small></span>' +
                 '<span class="go">›</span></button>');
         });
+        if (otevreno) h.push('</div>');
         h.push('<div class="agv-sec">Server</div>');
         h.push('<div class="agv-st" id="agv-stav">Zjišťuji…</div>');
         h.push('<button type="button" class="btn btn-secondary" id="agv-close" style="margin-top:16px;">Zavřít</button>');
@@ -1119,36 +1124,14 @@
     //   rozsvitila i tomu, kdo vlastnik neni. Kdyz nadpis vyrobime az tady a pri
     //   vypnutem rezimu ho SMAZEME, nema se co rozsvitit.
     var KAT = 'Správa aplikace';
+    // 12. 9. 2026 (uživatel): v Nástrojích JEN JEDNA dlaždice — „Řízení aplikace". Firmy,
+    // správci, prodej i zprávy jsou uvnitř konzole jako dlaždice, ne pět položek v seznamu.
     var NASTROJE = [
         {
             id: 'vlastnik-konzole', label: 'Řízení aplikace', order: 10,
             ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg>',
             run: function () { open(); }
         },
-        {
-            id: 'vlastnik-firmy', label: 'Řízení firem', order: 20,
-            ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-6h6v6"/><path d="M9 11h.01M15 11h.01"/></svg>',
-            lazy: 'js/sprava-appky.js',
-            run: function () { if (window.AGSprava) AGSprava.open(); else chybi('js/sprava-appky.js'); }
-        },
-        {
-            id: 'vlastnik-spravci', label: 'Řízení správců', order: 30,
-            ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><path d="M23 21v-2a4 4 0 0 0-3-3.9"/></svg>',
-            lazy: 'js/ucty-admin.js',
-            run: function () { if (window.AGUctyAdmin) AGUctyAdmin.open(); else chybi('js/ucty-admin.js'); }
-        },
-        {
-            id: 'vlastnik-lide', label: 'Lidé a prodej Pro', order: 35,
-            ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2"/><path d="M17 3.5a3 3 0 0 1 0 6"/><path d="M19 13.5a5 5 0 0 1 3 4.5v3"/></svg>',
-            lazy: 'js/prodej-konzole.js',
-            run: function () { if (window.AGProdej) AGProdej.open(); else chybi('js/prodej-konzole.js'); }
-        },
-        {
-            id: 'vlastnik-zpravy', label: 'Zprávy od lidí', order: 40,
-            ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H7l-3 3z"/></svg>',
-            lazy: 'js/zpetna-vazba.js',
-            run: function () { if (window.AGZpetna) AGZpetna.inbox(); else chybi('js/zpetna-vazba.js'); }
-        }
     ];
     function katHead(grid) {
         var h = document.getElementById('agv-cat');

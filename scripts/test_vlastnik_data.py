@@ -203,7 +203,7 @@ async def beh(br, url):
     await page.tap('#dock button:has-text("Nástroje")')
     await page.wait_for_timeout(1200)
     sek = await page.evaluate("() => { var s=document.querySelector('.ag-uk-owner'); if(!s) return null; return { prvni: document.querySelector('.ag-uk-g') === s, n: s.querySelectorAll('.ag-uk-i').length, open: !s.classList.contains('ag-uk-closed'), t: s.querySelector('.ag-uk-h span').textContent }; }")
-    ok('A4 seznam ukonu: sekce „Vlastnik aplikace" je PRVNI, otevrena, s polozkami', sek and sek['prvni'] and sek['open'] and sek['n'] >= 3, sek)
+    ok('A4 seznam ukonu: sekce „Vlastnik aplikace" je PRVNI, otevrena, s polozkami', sek and sek['prvni'] and sek['open'] and sek['n'] == 1, sek)   # 12. 9. 2026: jen Rizeni aplikace
     ok('A5 zadna vlastnik-* polozka nezbyla v „Dalsi nastroje"', await page.evaluate("() => !document.querySelector('.ag-uk-g:not(.ag-uk-owner) .ag-uk-i[data-k^=\\\"vlastnik-\\\"]')"))
     # klepnuti na vstup v Nastrojich otevre konzoli a zavre Nastroje
     await page.evaluate("() => document.getElementById('agv-tools-btn').click()")
