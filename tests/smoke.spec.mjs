@@ -423,7 +423,7 @@ test('REGRESE: lazy nástroj s objektovým API (DGPS) appku nezamrzne', async ({
         'AGDgps.open zůstal zástupcem z lazy-tools.js').toBe(false);
 });
 
-test('karta bodu: navigační pruh a akce', async ({ page, context }) => {
+test('karta bodu: mozaika dat, náčrt okolí a akce', async ({ page, context }) => {
     await bootApp(page, context);
 
     // vlastní bod 30 m severně od podvržené polohy → karta se otevře přes showDetails
@@ -443,12 +443,14 @@ test('karta bodu: navigační pruh a akce', async ({ page, context }) => {
     test.skip(!ok, 'showDetails/arPoints nejsou globální — přeskočeno');
 
     await expect(page.locator('#bottom-sheet')).toHaveClass(/open/);
-    await expect(page.locator('#ag-kb-nav')).toBeVisible();
+    // od 12. 9. 2026 je karta PŘEHLED o bodu (bez navigačního pruhu): mozaika dat + náčrt okolí
+    await expect(page.locator('#ag-kb-bento')).toBeVisible();
+    await expect(page.locator('#ag-kb-bento .yx')).toContainText('S-JTSK Y');
     await expect(page.locator('#ag-kb-dist')).toContainText('m');
+    await expect(page.locator('#ag-kb-bento')).toContainText('200,50 m');   // výška bodu v dlaždici
+    await expect(page.locator('#ag-kb-sk svg')).toBeVisible();
     await expect(page.locator('#ag-kb-acts button[data-a="nav"]')).toContainText('Doveď mě');
     await expect(page.locator('#ag-kb-acts button[data-a="check"]')).toBeVisible();
-    // převýšení k bodu se počítá z výšky bodu (200,5 m) — pruh ho musí zmínit
-    await expect(page.locator('#ag-kb-sub')).toContainText('azimut');
 });
 
 // ================================================================================

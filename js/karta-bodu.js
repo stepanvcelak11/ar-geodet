@@ -7,16 +7,18 @@
 // z názvu to nikdo nepozná. A když k bodu dojdeš, karta ti neřekne to hlavní:
 // jak daleko od něj doopravdy stojíš.
 //
-// CO PŘIDÁVÁ:
-//   • NAVIGAČNÍ PRUH nahoře — velká vzdálenost, kam se otočit (◀ ▶ ▲ s počtem
-//     stupňů) a převýšení k bodu, když má bod i telefon výšku. Aktualizuje se
-//     průběžně, dokud je karta otevřená.
-//   • ODCHYLKA — porovná PRŮMĚROVANOU polohu (gpsAvgResult, ne syrový fix) se
-//     souřadnicemi bodu a ukáže Δ Y, Δ X, |d| v centimetrech i s tím, jestli se
-//     na to dá při dané přesnosti spolehnout. To je celá kontrola vytyčení.
-//   • AKCE: „Doveď mě" (dřív Zvýraznit) · „Kontrolní bod" (uloží, kde stojíš,
-//     s odkazem na kontrolovaný bod) · „Vytyčeno ✓" (zapíše do vytyčovacího
-//     checklistu, když je zapojený) · Skrýt · Zavřít.
+// CO PŘIDÁVÁ (od 12. 9. 2026 — karta je PŘEHLED O BODU, ne navigace; na navigaci
+// je mapa / AR / split — rozhodnutí uživatele):
+//   • MOZAIKA DAT („bento"): Y a X velké, ikona druhu bodu, přesnost barevně,
+//     stav vytyčení, výška, „ode mě" (jen vzdálenost, bez šipek), kdy / odkud / kdo,
+//     počet fotek. Každá informace má velikost podle důležitosti.
+//   • NÁČRT OKOLÍ z reálných dat: tenhle bod uprostřed, sousední body zakázky kolem
+//     v měřítku (sever nahoře), k nim oměrné se vzdálenostmi v S-JTSK, hranice parcel
+//     z vektorového katastru (když jsou stažené), měřítko. Statický obrázek jako
+//     v zápisníku — nehýbe se podle tebe. Pod ním dlaždice oměrných.
+//   • ODCHYLKA — jen když stojíš prakticky na bodě (< 3 m) a máš průměrovanou
+//     polohu: Δ Y, Δ X, |d| v cm. Jinak se neukazuje (daleko od bodu je to šum).
+//   • AKCE dole: „Doveď mě" · „Kontrolní bod" · „Vytyčeno ✓".
 //
 // Vše fail-silent: co appka zrovna nemá (výška, průměr GPS, checklist), se
 // prostě nezobrazí. Odstranění: smaž js/karta-bodu.js + řádek v index.html (a v sw.js).
@@ -62,14 +64,6 @@
         if (la == null || ln == null) return null;
         return { lat: la, lng: ln, alt: g('userAlt'), sterr: g('currentGpsAccuracy'), n: 1, avg: false };
     }
-    function bpv(alt, lat, lng) {
-        if (alt == null || !isFinite(alt)) return null;
-        try {
-            if (typeof getGeoidUndulation === 'function') return alt - getGeoidUndulation(lat, lng);
-            if (window.GeoCore && GeoCore.geoidUndulation) return alt - GeoCore.geoidUndulation(lat, lng);
-        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:bpv'); }
-        return null;
-    }
     // Δ v S-JTSK (kladné Y/X jako všude v appce) — to je řeč, kterou geodet čte
     function deltaJtsk(from, to) {
         try {
@@ -80,15 +74,6 @@
             var dx = Math.abs(b[1]) - Math.abs(a[1]);
             return { dy: dy, dx: dx, d: Math.sqrt(dy * dy + dx * dx) };
         } catch (e) { return null; }
-    }
-    function bearingTo(pt) {
-        try {
-            if (typeof getBearing === 'function') {
-                var la = g('userLat'), ln = g('userLng');
-                if (la != null) return getBearing(la, ln, pt.lat, pt.lng);
-            }
-        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:bearingTo'); }
-        return null;
     }
     function distTo(pt) {
         try {
@@ -120,11 +105,6 @@
         st.textContent = [
             '#ag-kb-nav{display:flex;align-items:center;gap:12px;margin:0 0 12px;padding:12px 14px;border-radius:14px;',
             '  background:var(--surface-1,rgba(255,255,255,0.05));border:1px solid var(--glass-border,rgba(255,255,255,0.09));}',
-            '#ag-kb-turn{flex:0 0 auto;width:52px;text-align:center;font:700 26px/1 var(--font-ui,system-ui);color:var(--warning,#fbbf24);}',
-            '#ag-kb-turn small{display:block;font:600 10.5px/1.2 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);margin-top:3px;}',
-            '#ag-kb-main{flex:1;min-width:0;}',
-            '#ag-kb-dist{font:800 30px/1 var(--font-mono,ui-monospace,Menlo,monospace);color:var(--data,#e6bd76);font-variant-numeric:tabular-nums;}',
-            '#ag-kb-sub{margin-top:4px;font:600 12px/1.35 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
             '#ag-kb-dev{margin:0 0 12px;padding:11px 13px;border-radius:12px;font:600 12.5px/1.45 var(--font-ui,system-ui);',
             '  background:rgba(52,211,153,0.10);border-left:4px solid #34d399;}',
             '#ag-kb-dev.warn{background:rgba(251,191,36,0.10);border-left-color:#fbbf24;}',
@@ -158,43 +138,36 @@
             '.ag-kb-radius{display:flex;align-items:center;gap:8px;margin:0 0 12px;padding:8px 11px;border-radius:10px;font:500 calc(12px * var(--ag-font-scale,1))/1.4 var(--font-ui,system-ui);',
             '  color:var(--text-muted,#9aa1ac);background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.25);}',
             '.ag-kb-radius b{color:#fbbf24;font-family:var(--font-mono,ui-monospace,monospace);}',
-            '#bottom-sheet .sheet-actions .btn{border-radius:12px;}'
+            '#bottom-sheet .sheet-actions .btn{border-radius:12px;}',
+            // ===== KARTA JAKO PŘEHLED (12. 9. 2026): mozaika dat + náčrt okolí ===========
+            '#ag-kb-nav{display:none;}',
+            '#ag-kb-acts{margin:12px 0 14px;}',
+            '.ag-kb-bento{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:minmax(56px,auto);gap:7px;margin:0 0 12px;}',
+            '.ag-kb-t{position:relative;min-width:0;overflow:hidden;padding:8px 10px;border-radius:13px;background:var(--surface-1,rgba(255,255,255,.05));border:1px solid var(--glass-border,rgba(255,255,255,.09));}',
+            '.ag-kb-t small{display:block;font:600 9.5px/1.2 var(--font-ui,system-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
+            '.ag-kb-t b{display:block;margin-top:3px;font:700 calc(14px * var(--ag-font-scale,1))/1.2 var(--font-mono,ui-monospace,Menlo,monospace);font-variant-numeric:tabular-nums;color:var(--text-color,#e6e8eb);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+            '.ag-kb-t b.t{font-family:var(--font-ui,system-ui);font-weight:600;font-size:calc(12.5px * var(--ag-font-scale,1));white-space:normal;}',
+            '.ag-kb-t.c2{grid-column:1/-1;}.ag-kb-t.r2{grid-row:span 2;}',
+            '.ag-kb-t.yx{display:flex;flex-direction:column;justify-content:center;gap:6px;background:linear-gradient(135deg,var(--accent-soft,rgba(47,158,116,.18)),rgba(47,158,116,.04));border-color:var(--accent-line,rgba(47,158,116,.4));}',
+            '.ag-kb-t.yx b{font-size:calc(17px * var(--ag-font-scale,1));color:var(--accent,#3fbc8c);margin-top:1px;}',
+            '.ag-kb-t.yx .ic{position:absolute;right:8px;top:8px;width:30px;height:30px;color:var(--accent,#3fbc8c);opacity:.55;}',
+            '.ag-kb-t.ok b{color:#3fbc8c;}.ag-kb-t.warn{background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.35);}.ag-kb-t.warn b{color:#fbbf24;}',
+            '.ag-kb-t.bad{background:rgba(226,104,95,.08);border-color:rgba(226,104,95,.35);}.ag-kb-t.bad b{color:#e2685f;}',
+            '.ag-kb-t.tap{cursor:pointer;}',
+            '.ag-kb-sk{position:relative;margin:0 0 8px;border-radius:14px;overflow:hidden;background:#0f151d;border:1px solid var(--glass-border,rgba(255,255,255,.12));}',
+            '.ag-kb-sk svg{display:block;width:100%;height:auto;}',
+            '.ag-kb-sk .lg{position:absolute;left:9px;top:7px;font:600 10px/1.4 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);pointer-events:none;}',
+            '.ag-kb-sk .lg i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle;font-style:normal;}',
+            '.ag-kb-sk .pz{position:absolute;left:0;right:0;bottom:0;padding:22px 10px 8px;text-align:center;font:500 11px/1.4 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);background:linear-gradient(transparent,rgba(0,0,0,.55));pointer-events:none;}',
+            '.ag-kb-om{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 4px;}',
+            '.ag-kb-om div{padding:7px 6px;border-radius:10px;background:var(--surface-1,rgba(255,255,255,.05));border:1px solid var(--glass-border,rgba(255,255,255,.08));text-align:center;min-width:0;}',
+            '.ag-kb-om small{display:block;font:600 9.5px/1.2 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+            '.ag-kb-om b{display:block;font:700 calc(13px * var(--ag-font-scale,1))/1.3 var(--font-mono,ui-monospace,monospace);color:#fbbf24;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
 
     // ---- vykreslení ------------------------------------------------------------------
-    function turnHtml(pt) {
-        var b = bearingTo(pt), h = g('currentHeading');
-        if (b == null || h == null || !isFinite(h)) return '<span style="opacity:.45;">•</span><small>směr</small>';
-        var diff = ((b - h + 540) % 360) - 180;
-        var a = Math.abs(diff);
-        var sym = a < 10 ? '▲' : (diff > 0 ? '▶' : '◀');
-        return sym + '<small>' + (a < 10 ? 'rovně' : Math.round(a) + '° ' + (diff > 0 ? 'vpravo' : 'vlevo')) + '</small>';
-    }
-    function fillNav(pt) {
-        var t = document.getElementById('ag-kb-turn');
-        var d = document.getElementById('ag-kb-dist');
-        var s = document.getElementById('ag-kb-sub');
-        if (!t || !d) return;
-        t.innerHTML = turnHtml(pt);
-        var dist = distTo(pt);
-        d.textContent = (dist == null) ? '— m' : (dist < 10 ? n2(dist) : n1(dist)) + ' m';
-
-        var bits = [];
-        var pe = ptElev(pt);
-        var me = myPos();
-        var mine = me ? bpv(me.alt, me.lat, me.lng) : null;
-        if (pe != null && mine != null) {
-            var dz = pe - mine;
-            bits.push('převýšení k bodu <b style="color:var(--text-color,#eceef2);">' + (dz >= 0 ? '+' : '−') + n2(Math.abs(dz)) + ' m</b>');
-        } else if (pe != null) {
-            bits.push('bod ' + n2(pe) + ' m Bpv');
-        }
-        var br = bearingTo(pt);
-        if (br != null) bits.push('azimut ' + n1(br) + '°');
-        if (s) s.innerHTML = bits.join(' · ');
-    }
     function fillDev(pt) {
         var box = document.getElementById('ag-kb-dev');
         if (!box) return;
@@ -202,9 +175,11 @@
         if (!me) { box.style.display = 'none'; return; }
         var dd = deltaJtsk(me, pt);
         if (!dd) { box.style.display = 'none'; return; }
-        box.style.display = '';
         // Odchylka dává smysl, jen když stojíš prakticky na bodě a máš průměr.
+        // Daleko od bodu se box vůbec neukáže — karta je přehled, ne navigace (12. 9. 2026).
         var far = dd.d > 3;
+        if (far) { box.style.display = 'none'; return; }
+        box.style.display = '';
         var loose = !me.avg || (me.sterr != null && me.sterr > 0.5);
         box.classList.toggle('warn', far || loose);
         var cm = function (v) { return (v >= 0 ? '+' : '−') + Math.round(Math.abs(v) * 100) + ' cm'; };
@@ -268,27 +243,26 @@
     }
 
     // ---- vložení do karty --------------------------------------------------------------
+    // Pořadí v #det-body: [odchylka — jen u bodu] → mozaika dat → náčrt okolí → oměrné →
+    // akce → (původní bloky grafika.js: stabilizace ČÚZK, polohopis, úřední záznamy) →
+    // foto-dokumentace (kalkulacka.js). Původní řádky Y/X/vzdálenost jsou schované CSS.
     function render(pt) {
         injectStyles();
         _pt = pt;
         var body = document.getElementById('det-body');
         if (!body) return;
-
-        var nav = document.getElementById('ag-kb-nav');
-        if (!nav) {
-            nav = document.createElement('div'); nav.id = 'ag-kb-nav';
-            nav.innerHTML = '<div id="ag-kb-turn"></div><div id="ag-kb-main"><div id="ag-kb-dist">— m</div><div id="ag-kb-sub"></div></div>';
-            var dev = document.createElement('div'); dev.id = 'ag-kb-dev';
-            var acts = document.createElement('div'); acts.id = 'ag-kb-acts';
-            acts.addEventListener('click', onAct);
-            body.insertBefore(nav, body.firstChild);
-            nav.insertAdjacentElement('afterend', dev);
-            dev.insertAdjacentElement('afterend', acts);
-        }
-        var acts2 = document.getElementById('ag-kb-acts');
-        if (acts2) acts2.innerHTML = actsHtml(pt);
-        fillNav(pt); fillDev(pt);
-        try { hlavicka(pt); mrizka(pt, body, acts2); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:mrizka'); }
+        var dev = document.getElementById('ag-kb-dev');
+        if (!dev) { dev = document.createElement('div'); dev.id = 'ag-kb-dev'; body.insertBefore(dev, body.firstChild); }
+        var acts = document.getElementById('ag-kb-acts');
+        if (!acts) { acts = document.createElement('div'); acts.id = 'ag-kb-acts'; acts.addEventListener('click', onAct); }
+        acts.innerHTML = actsHtml(pt);
+        try { hlavicka(pt); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:hlavicka'); }
+        try { mozaika(pt, body, dev); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:mozaika'); }
+        try { nacrt(pt, body); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:nacrt'); }
+        // akce až pod náčrtem (nebo pod mozaikou, když náčrt není)
+        var kotva = document.getElementById('ag-kb-om') || document.getElementById('ag-kb-sk') || document.getElementById('ag-kb-bento') || dev;
+        kotva.insertAdjacentElement('afterend', acts);
+        fillDev(pt); fillDist(pt);
         start();
     }
 
@@ -297,6 +271,7 @@
         var sub = document.getElementById('det-subtitle');
         if (!sub || sub.getAttribute('data-kb') === String(pt.id)) return;
         var druh = (sub.textContent || '').trim();
+        sub.setAttribute('data-druh', druh);
         var h = '<span class="ag-kb-chip">' + esc(druh) + '</span>';
         if (pt.kod) h += '<span class="ag-kb-chip kod">' + esc(pt.kod) + '</span>';
         try { if (window.isStaked && isStaked(pt.id)) h += '<span class="ag-kb-chip ok">✓ vytyčeno</span>'; } catch (e) { }
@@ -304,46 +279,207 @@
         sub.innerHTML = h;
         sub.setAttribute('data-kb', String(pt.id));
     }
-    // ---- data bodu jako mřížka ---------------------------------------------------------------
-    // Hodnoty se berou z řádků, které grafika.js už vykreslila (Y/X i pro úřední body z
-    // rawData), plus přesnost, kdy a odkud bod je (prov) — to dřív karta neukazovala vůbec.
-    function mrizka(pt, body, acts) {
-        var old = document.getElementById('ag-kb-grid'); if (old) old.remove();
+
+    // ---- souřadnice bodu v S-JTSK (kladné Y/X jako všude v appce) ----------------------------
+    function jtsk(pt) {
+        try {
+            if (pt.type === 'custom' || !pt.rawData) {
+                if (typeof proj4 !== 'function') return null;
+                var c = proj4('EPSG:4326', 'EPSG:5514', [pt.lng, pt.lat]);
+                return { y: Math.abs(c[0]), x: Math.abs(c[1]) };
+            }
+            var p = pt.rawData, sY = null, sX = null;
+            for (var k in p) {
+                var K = k.toUpperCase(), v = parseFloat(String(p[k]).replace(',', '.'));
+                if (!isFinite(v)) continue;
+                if (K === 'Y' || K === 'SOURADNICE_Y') sY = v;
+                if (K === 'X' || K === 'SOURADNICE_X') sX = v;
+            }
+            if (sY == null || sX == null) return null;
+            return sY < sX ? { y: sY, x: sX } : { y: sX, x: sY };   // Y je vždy to menší
+        } catch (e) { return null; }
+    }
+    function fmtS(v) { return v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+    var DRUH_IKONA = {
+        CUSTOM: '<path d="M9 3h6l-1 8H10z"/><path d="M11 11l1 10 1-10"/><path d="M5 21h14"/>',
+        TB: '<path d="M12 4l9 16H3z"/><circle cx="12" cy="14" r="2"/>',
+        ZHB: '<path d="M12 4l9 16H3z"/><path d="M12 10v8M8 18h8"/>',
+        PBPP: '<circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/>',
+        NIVEL: '<path d="M4 18h16M6 14h12M8 10h8M10 6h4"/>'
+    };
+    function ikona(pt) {
+        var d = DRUH_IKONA[pt.cat] || DRUH_IKONA.CUSTOM;
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+    }
+    function zakazka() {
+        try {
+            var id = g('activeProjectId'), ps = g('projects');
+            if (!ps || !ps.length) { ps = JSON.parse(localStorage.getItem('arProjectsList') || '[]'); }
+            var p = (ps || []).filter(function (x) { return x && x.id === id; })[0];
+            return p ? p.name : null;
+        } catch (e) { return null; }
+    }
+
+    // ---- mozaika dat („bento") --------------------------------------------------------------
+    function mozaika(pt, body, dev) {
+        var old = document.getElementById('ag-kb-bento'); if (old) old.remove();
+        var oldG = document.getElementById('ag-kb-grid'); if (oldG) oldG.remove();
         var oldR = document.getElementById('ag-kb-radius'); if (oldR) oldR.remove();
-        var rows = body.querySelectorAll(':scope > .geo-data-row');
-        var m = {};
-        for (var i = 0; i < rows.length; i++) {
-            var l = rows[i].querySelector('.geo-label'), v = rows[i].querySelector('.geo-value');
-            if (l && v) m[(l.textContent || '').trim()] = (v.textContent || '').trim();
-        }
-        var cells = [];
-        function cell(lbl, val, cls) { if (val == null || val === '' || val === 'Neznámé') return; cells.push('<div class="ag-kb-cell' + (cls ? ' ' + cls : '') + '"><small>' + esc(lbl) + '</small><b' + (cls === 't' || cls === 'w t' ? ' class="t"' : '') + '>' + esc(val) + '</b></div>'); }
-        function sour(v) { var f = parseFloat(String(v || '').replace(',', '.')); return isFinite(f) ? f.toFixed(2) : v; }
-        cell('S-JTSK Y', sour(m['S-JTSK Y'])); cell('S-JTSK X', sour(m['S-JTSK X']));
+        var t = [];
+        function tile(cls, lbl, val, extra) { t.push('<div class="ag-kb-t ' + cls + '"' + (extra || '') + '><small>' + esc(lbl) + '</small>' + val + '</div>'); }
+        var s = jtsk(pt);
+        var sub = document.getElementById('det-subtitle');
+        var druh = (sub && sub.getAttribute('data-druh')) || '';
+        // Y a X — to hlavní, velké
+        t.push('<div class="ag-kb-t r2 yx"><div><small>S-JTSK Y</small><b>' + (s ? fmtS(s.y) : '—') + '</b></div><div><small>S-JTSK X</small><b>' + (s ? fmtS(s.x) : '—') + '</b></div><span class="ic" title="' + esc(druh) + '">' + ikona(pt) + '</span></div>');
+        // přesnost: barevně
+        if (pt.acc != null && isFinite(pt.acc)) tile('acc ' + (pt.acc <= 0.5 ? 'ok' : (pt.acc <= 2 ? 'warn' : 'bad')), 'Přesnost', '<b>±' + n2(pt.acc) + ' m</b>');
+        else if (pt.type !== 'custom') tile('ok', 'Přesnost', '<b class="t">úřední bod</b>');
+        else tile('', 'Přesnost', '<b class="t">neuvedena</b>');
+        var staked = false; try { staked = !!(window.isStaked && isStaked(pt.id)); } catch (e) { }
+        tile(staked ? 'ok' : '', 'Stav', '<b class="t">' + (staked ? '✓ vytyčeno' : 'nevytyčeno') + '</b>');
         var z = ptElev(pt);
-        cell('Výška Bpv', z != null ? n2(z) + ' m' : null);
-        // úřední bod: výšku už máme v mřížce, v zeleném rámečku (stabilizace…) by byla dvakrát
-        if (z != null) { var dup = body.querySelectorAll('.geo-highlight .geo-data-row'); for (var d = 0; d < dup.length; d++) { var dl = dup[d].querySelector('.geo-label'); if (dl && /^Nadmořská/.test(dl.textContent || '')) dup[d].remove(); } }
-        cell('Přesnost bodu', (pt.acc != null && isFinite(pt.acc)) ? '±' + n2(pt.acc) + ' m' : null);
-        var kdy = (pt.prov && pt.prov.ts) || pt.mts || null;
-        if (kdy) { try { cell('Změřeno', new Date(kdy).toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }), 't'); } catch (e) { } }
-        var ZDROJ = { 'gps-avg': 'průměr GPS', gps: 'GPS', import: 'import ze souboru', firma: 'z firmy', foto: 'z fotky', map: 'z mapy', resekce: 'resekce', protinani: 'protínání', argeo: 'přenos zakázky', watch: 'hodinky' };
+        tile('', 'Výška Bpv', '<b>' + (z != null ? n2(z) + ' m' : '—') + '</b>');
+        tile('', 'Ode mě', '<b id="ag-kb-dist">— m</b>');
+        var kdy = (pt.prov && pt.prov.ts) || pt.mts || null, kdyS = null;
+        if (kdy) { try { kdyS = new Date(kdy).toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { } }
+        var ZDROJ = { 'gps-avg': 'průměr GPS', gps: 'GPS', import: 'import ze souboru', firma: 'z firmy', foto: 'z fotky', map: 'z mapy', resekce: 'resekce', protinani: 'protínání', argeo: 'přenos zakázky', watch: 'hodinky', ruc: 'ručně' };
         var o = pt.prov && pt.prov.origin;
-        if (o) cell('Zdroj', ZDROJ[o] || o, 't');
-        if (pt.prov && pt.prov.kdo) cell('Změřil', pt.prov.kdo, 't');
-        if (pt.type !== 'custom' && !o) cell('Zdroj', 'bodové pole ČÚZK', 't');
-        if (!cells.length) return;
-        var box = document.createElement('div'); box.id = 'ag-kb-grid';
-        box.innerHTML = '<div class="ag-kb-lbl">Data bodu</div><div class="ag-kb-grid">' + cells.join('') + '</div>';
-        var kotva = acts || document.getElementById('ag-kb-acts');
-        if (kotva && kotva.parentNode === body) kotva.insertAdjacentElement('afterend', box); else body.insertBefore(box, body.firstChild);
-        // rádius hledání jedním řádkem (přesnost telefonu teď)
-        var acc = null;
-        try { acc = g('currentGpsAccuracy'); } catch (e) { acc = null; }
-        if (acc != null && isFinite(acc)) {
-            var r = document.createElement('div'); r.id = 'ag-kb-radius'; r.className = 'ag-kb-radius';
-            r.innerHTML = '<span>⌖</span><span>Značka v AR má rozptyl <b>±' + n1(acc) + ' m</b> (přesnost GPS teď) — bod hledej v tomhle okruhu, ne na centimetr.</span>';
-            box.insertAdjacentElement('afterend', r);
+        var odkud = o ? (ZDROJ[o] || o) : (pt.type !== 'custom' ? 'bodové pole ČÚZK' : null);
+        var kdo = pt.prov && pt.prov.kdo;
+        var puvod = [kdo, kdyS, odkud].filter(Boolean).join(' · ');
+        if (puvod) tile('c2', kdyS ? 'Změřeno' : 'Zdroj', '<b class="t">' + esc(puvod) + '</b>');
+        var zk = zakazka();
+        if (zk) tile('', 'Zakázka', '<b class="t">' + esc(zk) + '</b>');
+        tile((zk ? '' : 'c2 ') + 'tap', 'Fotky a poznámka', '<b class="t" id="ag-kb-foto">—</b>', ' data-a="foto"');
+        // úřední bod: výšku už máme v mozaice, v zeleném rámečku (stabilizace…) by byla dvakrát
+        if (z != null) { var dup = body.querySelectorAll('.geo-highlight .geo-data-row'); for (var d = 0; d < dup.length; d++) { var dl = dup[d].querySelector('.geo-label'); if (dl && /^Nadmořská/.test(dl.textContent || '')) dup[d].remove(); } }
+        var box = document.createElement('div'); box.id = 'ag-kb-bento'; box.className = 'ag-kb-bento';
+        box.innerHTML = t.join('');
+        box.addEventListener('click', function (e) {
+            var f = e.target.closest('[data-a="foto"]'); if (!f) return;
+            var sec = body.querySelector('.point-doc'); if (sec && sec.scrollIntoView) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        (dev || body.firstChild).insertAdjacentElement('afterend', box);
+        // počet fotek dorazí z IndexedDB
+        try {
+            if (typeof loadPointDoc === 'function') loadPointDoc(pt.id).then(function (doc) {
+                var el = document.getElementById('ag-kb-foto'); if (!el || _pt !== pt) return;
+                var n = (doc && doc.photos && doc.photos.length) || (doc && doc.photo ? 1 : 0);
+                var pozn = doc && doc.note ? ' · poznámka' : '';
+                el.textContent = (n ? (n + (n === 1 ? ' fotka' : (n < 5 ? ' fotky' : ' fotek'))) : 'žádná') + pozn;
+            }).catch(function () { var el = document.getElementById('ag-kb-foto'); if (el) el.textContent = 'žádná'; });
+            else { var el0 = document.getElementById('ag-kb-foto'); if (el0) el0.textContent = 'žádná'; }
+        } catch (e) { }
+    }
+    // „Ode mě": jen vzdálenost — žádné šipky, karta nenavádí
+    function fillDist(pt) {
+        var d = document.getElementById('ag-kb-dist'); if (!d) return;
+        var dist = distTo(pt);
+        d.textContent = (dist == null) ? '— m' : (dist < 10 ? n2(dist) : (dist < 1000 ? n1(dist) + ' m' : (dist / 1000).toFixed(1).replace('.', ',') + ' km'));
+        if (dist != null && dist < 10) d.textContent += ' m';
+    }
+
+    // ---- náčrt okolí z reálných dat ----------------------------------------------------------
+    // Sousední body zakázky (max 6, do 150 m; když je okolí prázdné, aspoň 3 nejbližší do
+    // 500 m), hranice parcel z vektorového katastru (klíč agCadastreParcels, když jsou
+    // stažené), moje poloha (jen tečka, když je v záběru), měřítko, sever nahoře.
+    function enu(lat0, lng0, lat, lng) {
+        var m = (window.GeoCore && GeoCore.metersPerDeg) ? GeoCore.metersPerDeg(lat0) : { lat: 111320, lng: 111320 * Math.cos(lat0 * Math.PI / 180) };
+        return { e: (lng - lng0) * m.lng, n: (lat - lat0) * m.lat };
+    }
+    function sousede(pt) {
+        var all = g('arPoints') || [], out = [];
+        for (var i = 0; i < all.length; i++) {
+            var q = all[i];
+            if (!q || q === pt || q.id === pt.id || q.hidden || q.lat == null) continue;
+            var o = enu(pt.lat, pt.lng, q.lat, q.lng), d = Math.sqrt(o.e * o.e + o.n * o.n);
+            if (d > 500 || d < 0.01) continue;
+            var dj = deltaJtsk(pt, q);
+            out.push({ pt: q, e: o.e, n: o.n, d: dj ? dj.d : d });
+        }
+        out.sort(function (a, b) { return a.d - b.d; });
+        var blizko = out.filter(function (x) { return x.d <= 150; }).slice(0, 5);
+        return blizko.length >= 2 ? blizko : out.slice(0, 3);
+    }
+    function parcely() {
+        try {
+            if (typeof getStoredData !== 'function') return [];
+            var s = getStoredData('agCadastreParcels');
+            return s ? (JSON.parse(s) || []) : [];
+        } catch (e) { return []; }
+    }
+    function hezkeMeritko(m) { var k = [1, 2, 5, 10, 20, 50, 100, 200, 500]; for (var i = k.length - 1; i >= 0; i--) if (k[i] <= m) return k[i]; return 1; }
+    function nacrt(pt, body) {
+        var old = document.getElementById('ag-kb-sk'); if (old) old.remove();
+        var oldO = document.getElementById('ag-kb-om'); if (oldO) oldO.remove();
+        var W = 340, H = 210, cx = W / 2, cy = H / 2;
+        var sb = sousede(pt);
+        var R = 10;
+        for (var i = 0; i < sb.length; i++) R = Math.max(R, Math.sqrt(sb[i].e * sb[i].e + sb[i].n * sb[i].n));
+        R *= 1.18;
+        var sc = (Math.min(W, H) / 2 - 14) / R;        // px na metr
+        function X(e) { return cx + e * sc; } function Y(n) { return cy - n * sc; }
+        var f = function (v) { return Math.round(v * 10) / 10; };
+        var h = [];
+        // mřížka
+        h.push('<defs><pattern id="ag-kb-g" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="rgba(255,255,255,.05)"/></pattern><clipPath id="ag-kb-c"><rect width="' + W + '" height="' + H + '"/></clipPath></defs>');
+        h.push('<rect width="' + W + '" height="' + H + '" fill="url(#ag-kb-g)"/>');
+        // parcely (jen segmenty, co zasahují do záběru)
+        var pc = parcely(), nPar = 0;
+        for (var p = 0; p < pc.length && nPar < 400; p++) {
+            var rings = pc[p].rings || [];
+            for (var r = 0; r < rings.length; r++) {
+                var pts = rings[r], d = [], vid = false;
+                for (var k = 0; k < pts.length; k++) {
+                    var o = enu(pt.lat, pt.lng, pts[k].lat, pts[k].lng);
+                    if (Math.abs(o.e) < R * 1.6 && Math.abs(o.n) < R * 1.1) vid = true;
+                    d.push((k ? 'L' : 'M') + f(X(o.e)) + ' ' + f(Y(o.n)));
+                }
+                if (vid) { h.push('<path d="' + d.join('') + '" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="1" clip-path="url(#ag-kb-c)"/>'); nPar++; }
+            }
+        }
+        // oměrné + sousedé
+        for (i = 0; i < sb.length; i++) {
+            var q = sb[i], x2 = X(q.e), y2 = Y(q.n);
+            h.push('<line x1="' + cx + '" y1="' + cy + '" x2="' + f(x2) + '" y2="' + f(y2) + '" stroke="#fbbf24" stroke-opacity=".8" stroke-dasharray="4 3"/>');
+            if (i >= 3) continue;   // popisky vzdáleností jen u tří nejbližších (ty jsou i v dlaždicích) — jinak se přepisují
+            var mx = cx + (x2 - cx) * 0.58, my = cy + (y2 - cy) * 0.58;
+            var lab = (q.d < 10 ? n2(q.d) : n1(q.d)) + ' m';
+            h.push('<text x="' + f(mx) + '" y="' + f(my - 4) + '" font-size="10" font-weight="600" fill="#fbbf24" text-anchor="middle" paint-order="stroke" stroke="#0b0f15" stroke-width="3" font-family="ui-monospace,Menlo,monospace">' + esc(lab) + '</text>');
+        }
+        for (i = 0; i < sb.length; i++) {
+            q = sb[i]; x2 = X(q.e); y2 = Y(q.n);
+            h.push('<circle cx="' + f(x2) + '" cy="' + f(y2) + '" r="4.5" fill="#9aa1ac" stroke="#0b0f15" stroke-width="1.5"/>');
+            h.push('<text x="' + f(x2 + 7) + '" y="' + f(y2 - 6) + '" font-size="10.5" font-weight="700" fill="#e6e8eb" paint-order="stroke" stroke="#0b0f15" stroke-width="3" font-family="ui-monospace,Menlo,monospace">' + esc(String(q.pt.name || '')) + '</text>');
+        }
+        // já (jen tečka, když jsem v záběru)
+        var la = g('userLat'), ln = g('userLng');
+        if (la != null && ln != null) {
+            var me = enu(pt.lat, pt.lng, la, ln);
+            if (Math.abs(me.e) * sc < W / 2 - 10 && Math.abs(me.n) * sc < H / 2 - 10) {
+                h.push('<circle cx="' + f(X(me.e)) + '" cy="' + f(Y(me.n)) + '" r="5" fill="#fff" stroke="#0b0f15" stroke-width="1.5"/>');
+                h.push('<text x="' + f(X(me.e) + 8) + '" y="' + f(Y(me.n) + 4) + '" font-size="10" font-weight="700" fill="#fff" paint-order="stroke" stroke="#0b0f15" stroke-width="3" font-family="system-ui">ty</text>');
+            }
+        }
+        // tenhle bod
+        h.push('<circle cx="' + cx + '" cy="' + cy + '" r="13" fill="none" stroke="#3fbc8c" stroke-opacity=".35"/>');
+        h.push('<circle cx="' + cx + '" cy="' + cy + '" r="6" fill="#3fbc8c" stroke="#0b0f15" stroke-width="1.5"/>');
+        h.push('<text x="' + (cx - 10) + '" y="' + (cy + 22) + '" font-size="12" font-weight="800" fill="#3fbc8c" paint-order="stroke" stroke="#0b0f15" stroke-width="3" font-family="ui-monospace,Menlo,monospace">' + esc(String(pt.name || '')) + '</text>');
+        // sever + měřítko
+        h.push('<path d="M' + (W - 22) + ' 34 l0 -18 m-5 6 l5 -6 5 6" fill="none" stroke="#e6e8eb" stroke-width="1.4" stroke-linecap="round"/><text x="' + (W - 26) + '" y="47" font-size="10" font-weight="700" fill="#9aa1ac" font-family="system-ui">S</text>');
+        var mm = hezkeMeritko(R * 0.6), mpx = mm * sc;
+        h.push('<line x1="12" y1="' + (H - 12) + '" x2="' + f(12 + mpx) + '" y2="' + (H - 12) + '" stroke="#e6e8eb" stroke-width="2"/><text x="12" y="' + (H - 17) + '" font-size="10" fill="#9aa1ac" font-family="system-ui">' + mm + ' m</text>');
+        var sk = document.createElement('div'); sk.id = 'ag-kb-sk'; sk.className = 'ag-kb-sk';
+        sk.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Náčrt okolí bodu">' + h.join('') + '</svg>'
+            + '<div class="lg"><i style="background:#3fbc8c"></i>tento bod' + (sb.length ? ' &nbsp;<i style="background:#9aa1ac"></i>sousední body &nbsp;<i style="background:#fbbf24;border-radius:0;height:2px"></i>oměrné' : '') + (nPar ? ' &nbsp;<i style="background:rgba(255,255,255,.4);border-radius:0;height:2px"></i>parcely' : '') + '</div>'
+            + ((!sb.length && !nPar) ? '<div class="pz">Zatím jen tenhle bod. Přidej další body zakázky, nebo stáhni parcely (Nástroje → Katastr — parcely) a náčrt se doplní sám.</div>' : '');
+        var bento = document.getElementById('ag-kb-bento');
+        (bento || body.firstChild).insertAdjacentElement('afterend', sk);
+        if (sb.length) {
+            var om = document.createElement('div'); om.id = 'ag-kb-om'; om.className = 'ag-kb-om';
+            om.innerHTML = sb.slice(0, 3).map(function (q) { return '<div><small>→ ' + esc(String(q.pt.name || '')) + '</small><b>' + (q.d < 10 ? n2(q.d) : n1(q.d)) + ' m</b></div>'; }).join('');
+            sk.insertAdjacentElement('afterend', om);
         }
     }
 
@@ -353,7 +489,7 @@
         TIMER = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(function () {
             var sheet = document.getElementById('bottom-sheet');
             if (!sheet || !sheet.classList.contains('open') || !_pt) { stop(); return; }
-            try { fillNav(_pt); fillDev(_pt); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:start'); }
+            try { fillDev(_pt); fillDist(_pt); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:start'); }
         }, 500);
     }
     function stop() { if (TIMER) { clearInterval(TIMER); TIMER = null; } }
