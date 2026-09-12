@@ -87,6 +87,7 @@ def server(port):
 class Server:
     def __init__(self):
         self.log = []
+        self.vydano = {'verze': 200, 'ts': NOW - 86400e3, 'pozn': None}   # venku je stara verze
 
     async def handle(self, route):
         req = route.request
@@ -128,6 +129,12 @@ class Server:
                     'nastroje': [{'k': 'openMeasureModal', 'n': 9, 'last': NOW - 86400e3}], 'zarizeni': [{'dev': 'iPhone 15', 'last': NOW, 'n': 20}], 'vzkazy': []}
         elif path == '/owner/export':
             data = {'ts': NOW, 'verze': 15, 'tabulky': {'firms': [FIRMA], 'users': [], 'accounts': [{'id': 'acc1', 'code': 'K7QM3XP2', 'name': 'Jan Novák'}], 'jobs': [], 'sync_points': [], 'feedback': [], 'orders': [], 'vzkazy': [], 'owner_log': [], 'meta': []}}
+        elif path == '/owner/vydano':
+            data = dict(self.vydano)
+        elif path == '/owner/vydat' and req.method == 'POST':
+            b = json.loads(req.post_data or '{}')
+            self.vydano = {'verze': b.get('verze'), 'ts': NOW, 'pozn': b.get('pozn')}
+            data = dict(self.vydano, ok=True)
         elif path == '/config':
             st, data = 503, {'error': 'test'}
         await route.fulfill(status=st, content_type='application/json',
@@ -247,6 +254,28 @@ async def beh(br, url):
     await page.evaluate("() => { var s=document.getElementById('s-project-select'); var o=Array.from(s.options).filter(o => o.textContent === 'Geo s.r.o. · Pole u lesa')[0]; s.value = o.value; if (typeof changeProjectFromSettings === 'function') changeProjectFromSettings(); else changeProject(); }")
     ok('C9 po prepnuti na stazenou zakazku jsou 3 body v pameti appky', await pockej(page, "() => typeof arPoints !== 'undefined' && arPoints.filter(p => p.cat === 'CUSTOM').length === 3"), await page.evaluate("() => typeof arPoints !== 'undefined' ? arPoints.filter(p => p.cat === 'CUSTOM').length : 'arPoints?'"))
     ok('C10 zadna chyba v konzoli', not [c for c in chyby if 'sprava-appky' in c or 'vlastnik' in c or 'nastroje-ukony' in c], chyby[:3])
+
+    # ---- V) brzda vydani: pustit tuhle verzi ostatnim (12. 9. 2026) ------------------
+    ok('V1 rezim vlastnika zapsal znacku ag-vlastnik do Cache Storage (pro sw.js)', await pockej(page, "() => caches.has('ag-vlastnik')"))
+    moje = await page.evaluate("() => AGVlastnik.ext.verze()")
+    ok('V2 appka zna cislo sve verze (z ?v= u tokens.css)', isinstance(moje, int) and moje > 200, moje)
+    await page.evaluate("() => { document.querySelectorAll('.ag-dlg-overlay.open .ag-dlg-ok, .ag-dlg-overlay.open button').forEach(b => b.click()); var m = document.getElementById('ag-sa-modal'); if (m) m.style.display = 'none'; }")
+    await page.wait_for_timeout(400)
+    await page.evaluate("() => { AGVlastnik.open(); AGVlastnik.jdi('vydani'); }")
+    ok('V3 pohled Vydani: dlazdice „u tebe" a „venku" (v200)', await pockej(page, "() => { var t=document.querySelectorAll('#agv-modal .agvp-t b'); return t.length >= 2 && t[0].textContent === 'v' + AGVlastnik.ext.verze() && t[1].textContent === 'v200'; }"),
+       await page.evaluate("() => Array.from(document.querySelectorAll('#agv-modal .agvp-t b')).map(b => b.textContent)"))
+    ok('V4 tlacitko „Pustit vN ostatnim" je aktivni, kdyz venku je starsi', await pockej(page, "() => { var b=document.getElementById('agvp-vyd-go'); return !!b && !b.disabled && /Pustit v\\d+ ostatn/.test(b.textContent); }"))
+    await page.evaluate("() => document.getElementById('agvp-vyd-go').click()")
+    ok('V5 klepnuti posle POST /owner/vydat', await cekejLog(page, srv, 'POST', '/owner/vydat'))
+    ok('V6 server drzi novou verzi a pohled ukaze „Lide maji to same co ty"', await pockej(page, "() => document.getElementById('agvp-vyd-st') && /to samé co ty/.test(document.getElementById('agvp-vyd-st').textContent)") and srv.vydano['verze'] == moje, (srv.vydano, await page.evaluate("() => document.getElementById('agvp-vyd-st') && document.getElementById('agvp-vyd-st').textContent")))
+    ok('V7 po vydani je „Pustit" neaktivni a „Vypnout brzdu" aktivni', await page.evaluate("() => document.getElementById('agvp-vyd-go').disabled && !document.getElementById('agvp-vyd-off').disabled"))
+    await page.evaluate("() => document.getElementById('agvp-vyd-off').click()")
+    ok('V8 vypnuti brzdy posle verze:null a pohled to rekne', await pockej(page, "() => /Brzda je vypnutá/.test((document.getElementById('agvp-vyd-st')||{}).textContent||'')") and srv.vydano['verze'] is None, srv.vydano)
+    try:
+        os.makedirs(os.path.join(ROOT, '_diag'), exist_ok=True)
+        await page.screenshot(path=os.path.join(ROOT, '_diag', 'vlastnik_vydani.png'))
+    except Exception:
+        pass
     await ctx.close()
 
     # ---- B) bez rezimu vlastnika nic ----------------------------------------------

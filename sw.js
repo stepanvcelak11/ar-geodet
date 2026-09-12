@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v295';   // Karta bodu = prehled o bodu: mozaika dat (Y/X velke, presnost, stav, vyska, kdy/odkud, fotky) + nacrt okoli z realnych dat (sousedi, omerne, parcely)
+const SHELL_CACHE = 'argeodet-shell-v296';   // Brzda vydani: nova verze se lidem instaluje az po „Pustit ostatnim" v konzoli vlastnika (GET /vydano); vlastnikuv telefon ma vyjimku
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -31,7 +31,11 @@ const DICT_CACHE = 'argeodet-dict-v1';
 // a odjel k pokladce bez signalu, tak prisel o OCR i o PDF protokol, i kdyz mu
 // den predtim offline fungovaly. STABILNI nazev, stejny princip jako FONT_CACHE.
 const LIB_CACHE = 'argeodet-lib-v1';
-const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE, FONT_CACHE, DICT_CACHE, LIB_CACHE];
+// OWNER_CACHE — znacka „tenhle telefon je vlastnika" (zapisuje js/vlastnik.js pri
+// zapnuti rezimu vlastnika, maze pri ukonceni). Service worker nevidi do
+// localStorage, Cache Storage je jedine, co sdili se strankou. Viz brzda vydani nize.
+const OWNER_CACHE = 'ag-vlastnik';
+const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE, FONT_CACHE, DICT_CACHE, LIB_CACHE, OWNER_CACHE];
 
 const ASSETS_TO_CACHE = [
     // >>> GENEROVANO scripts/gen_sw_assets.py — needitovat rucne
@@ -47,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=295',
-    './css/style.css?v=295',
-    './css/vylepseni.css?v=295',
+    './css/tokens.css?v=296',
+    './css/style.css?v=296',
+    './css/vylepseni.css?v=296',
     './css/gps-warn.css',
     './css/compass-stability.css',
     './css/cadastre-area.css',
@@ -319,8 +323,36 @@ async function previousShellCaches() {
     } catch (e) { return []; }
 }
 
+// ===== BRZDA VYDANI (12. 9. 2026) ==========================================
+// Vlastnik appku vyviji a testuje na svem telefonu, ale lidem venku nesmi kazdy
+// push skakat do appky. Nova verze se proto NEINSTALUJE, dokud ji vlastnik v
+// konzoli nepusti ostatnim (POST /owner/vydat -> GET /vydano vraci cislo verze).
+//   • telefon vlastnika (znacka OWNER_CACHE) dostava vzdy nejnovejsi verzi
+//   • prvni instalace (zadna predchozi verze v cache) se nebrzdi — neni co drzet
+//   • server nedostupny / brzda nenastavena (verze null) = brana OTEVRENA, jinak
+//     by se appka pri vypadku Cloudflare nikdy neaktualizovala
+// Kontrola bezi PRED stahovanim souboru: odmitnuta instalace stoji jeden maly
+// dotaz, ne 2 MB dat. Prohlizec ji zkusi znovu pri pristi kontrole aktualizace.
+const VYDANO_URL = 'https://ar-geodet-api.ar-geodet.workers.dev/vydano';
+const SHELL_VERZE = parseInt((SHELL_CACHE.match(/v(\d+)$/) || [])[1], 10) || 0;
+async function vydanoProOstatni() {
+    try { if (await caches.has(OWNER_CACHE)) return true; } catch (e) { /* bez znacky = bezny telefon */ }
+    if (!(await previousShellCaches()).length) return true;
+    try {
+        const ctl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+        const t = ctl ? setTimeout(() => ctl.abort(), 4000) : null;
+        const r = await fetch(VYDANO_URL, { cache: 'no-store', signal: ctl ? ctl.signal : undefined });
+        if (t) clearTimeout(t);
+        if (!r.ok) return true;
+        const j = await r.json();
+        if (j && j.verze != null && isFinite(j.verze) && SHELL_VERZE > Number(j.verze)) return false;
+    } catch (e) { /* offline / vypadek = brana otevrena */ }
+    return true;
+}
+
 self.addEventListener('install', event => {
     event.waitUntil((async () => {
+        if (!(await vydanoProOstatni())) throw new Error('QTRIG v' + SHELL_VERZE + ' ceka, az ji vlastnik pusti ostatnim');
         const cache = await caches.open(SHELL_CACHE);
         const fontCache = await caches.open(FONT_CACHE);
         // Kazdy soubor zvlast â€” selhani jednoho nesmi zablokovat instalaci (a tim i aktualizaci).

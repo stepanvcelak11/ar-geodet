@@ -130,6 +130,9 @@ jobs:
           # Prodej Pro: routy workeru s falesnou D1 — jedina brana, kde chyba
           # stoji penize (dny za platbu, dvakrat zapnute Pro, spolknuta platba).
           python scripts/test_prodej_worker.py
+          # Brzda vydani v sw.js: moc zavrena = appka se nikdy neaktualizuje,
+          # moc otevrena = kazdy push skace lidem do appky.
+          python scripts/test_brzda_vydani.py
 
       - name: Screenshoty z regresi (i pri chybe)
         if: always()

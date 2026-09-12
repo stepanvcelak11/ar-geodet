@@ -82,6 +82,25 @@
     function isOn() { try { return localStorage.getItem(LS_ON) === '1'; } catch (e) { return false; } }
     function setOn(v) {
         try { if (v) localStorage.setItem(LS_ON, '1'); else localStorage.removeItem(LS_ON); } catch (e) { swallow(e, 'setOn'); }
+        znackaSw(v);
+    }
+    // Značka pro service worker „tenhle telefon je vlastníka" — sw.js nevidí do
+    // localStorage, Cache Storage je jediné společné místo. Bez ní by brzda vydání
+    // (sw.js: vydanoProOstatni) držela starou verzi i vlastníkovi.
+    function znackaSw(v) {
+        try {
+            if (!('caches' in window)) return;
+            if (v) caches.open('ag-vlastnik').then(function (c) { return c.put('/vlastnik', new Response('1')); }).catch(function (e) { swallow(e, 'znackaSw'); });
+            else caches.delete('ag-vlastnik').catch(function (e) { swallow(e, 'znackaSw'); });
+        } catch (e) { swallow(e, 'znackaSw'); }
+    }
+    // číslo verze téhle appky (?v=NNN u css/tokens.css píše scripts/gen_sw_assets.py = SHELL_CACHE)
+    function verzeAppky() {
+        try {
+            var l = document.querySelector('link[href*="tokens.css?v="]');
+            var m = l && /v=(\d+)/.exec(l.getAttribute('href'));
+            return m ? parseInt(m[1], 10) : null;
+        } catch (e) { return null; }
     }
 
     function base() {
@@ -621,6 +640,12 @@
                 ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><path d="M23 21v-2a4 4 0 0 0-3-3.9"/></svg>',
                 t: 'Administrace firmy', d: 'Uživatelé, role a oprávnění firmy uložené na tomhle zařízení',
                 lazy: 'js/ucty-admin.js', run: function () { if (window.AGUctyAdmin) AGUctyAdmin.open(); else chybi('js/ucty-admin.js'); }
+            },
+            {
+                sec: 'Vydání',
+                ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/><path d="M4 21h16"/></svg>',
+                t: 'Pustit tuhle verzi ostatním', d: 'Ty máš vždy nejnovější; lidem venku se nová verze nainstaluje, až ji tady pustíš',
+                lazy: 'js/vlastnik-plus.js', keep: true, run: function () { jdi('vydani'); }
             },
             {
                 sec: 'Vlastník plus',
@@ -1290,6 +1315,7 @@
 
     function init() {
         hookForm(); injectMenu(); injectTools(); injectVstupy(); injectBio();
+        if (isOn()) znackaSw(true);   // telefony, kde režim běžel už před brzdou vydání
         setTimeout(overKlic, 12000);
         (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(function () {
             try { hookForm(); injectMenu(); injectTools(); injectVstupy(); injectBio(); } catch (e) { swallow(e, 'tick'); }
@@ -1303,6 +1329,6 @@
         isOn: isOn, open: open, close: close, login: login, leave: leave,
         key: key, setKey: setKey, promptKey: promptKey,
         // pro js/vlastnik-plus.js (souhrn, deník, kalendář, záloha, pohled očima účtu)
-        jdi: jdi, ext: { hlava: hlava, wireZpet: wireZpet, cekam: cekam, api: api, esc: esc, kdy: kdy, sayFail: sayFail, ask: ask, agAlert: agAlert, render: render, view: function () { return _view; } }
+        jdi: jdi, ext: { verze: verzeAppky, hlava: hlava, wireZpet: wireZpet, cekam: cekam, api: api, esc: esc, kdy: kdy, sayFail: sayFail, ask: ask, agAlert: agAlert, render: render, view: function () { return _view; } }
     };
 })();

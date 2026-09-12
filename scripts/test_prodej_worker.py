@@ -14,7 +14,8 @@
 # ⚠ Vsechno musi byt na Promise/microtaskach — py_mini_racer nema smycku udalosti,
 #   takze setTimeout uvnitr workeru by test tise zasekl (OUT zustane null).
 #
-#   A) /health hlasi v:15, prodej:true a stav klice vlastnika (ownerKey)
+#   A) /health hlasi v:16, prodej:true a stav klice vlastnika (ownerKey)
+#   J) brzda vydani: GET /vydano (verejne) null -> POST /owner/vydat 296 -> 296; bez klice 403
 #   B) POST /objednavky bez PRODEJ_IBAN -> 503 (prodej vypnuty), s IBAN -> 8mistny
 #      VS, SPAYD s castkou a VS, cenik se dvema produkty, zkouska 3 dny
 #   C) jiny produkt zrusi starou otevrenou objednavku a zalozi novou (jina castka)
@@ -218,7 +219,7 @@ def main():
     # ---- A) health -------------------------------------------------------------
     base_rules()
     h = call('GET', '/health')
-    ok('A1 /health v:15', h['data'].get('v') == 15, h['data'].get('v'))
+    ok('A1 /health v:16', h['data'].get('v') == 16, h['data'].get('v'))
     ok('A2 /health prodej:true', h['data'].get('prodej') is True)
     # 12. 9. 2026: /health rika, v jakem stavu je OWNER_KEY ('ok' | 'chybi' | 'kratky') —
     # uzivatel klic „nastavoval nekolikrat" a appka hlasila jen obecnou 503.
@@ -480,6 +481,28 @@ def main():
     ok('I3 aktivita = max(usage, last_login), akce za 30 d', row.get('aktivita') == 777 and row.get('akcí30d') == 12, (row.get('aktivita'), row.get('akcí30d')))
     ok('I4 objednavky u uctu', row.get('objednavky') == {'n': 2, 'zaplaceno': 1, 'ceka': 1}, row.get('objednavky'))
     ok('I5 odpoved nese cenik pro konzoli', ((u['data'] or {}).get('prodej') or {}).get('produkty') is not None)
+
+    # ---- J) brzda vydani (12. 9. 2026) -----------------------------------------
+    # Vlastnik vyviji a testuje, lidem venku se nova verze instaluje az po „pustit".
+    # Server drzi jen cislo verze v k/v tabulce fio_stav pod klicem 'vydano'.
+    base_rules()
+    r.eval('globalThis.VYD = null;')
+    rule('/SELECT v FROM fio_stav WHERE k=\?/', 'function(a){ return { first: (a[0] === "vydano" && VYD) ? { v: VYD } : null }; }')
+    rule('/INSERT OR REPLACE INTO fio_stav/', 'function(a){ if (a[0] === "vydano") VYD = a[1]; return { run: true }; }')
+    v0 = call('GET', '/vydano')
+    ok('J1 GET /vydano je verejne a bez brzdy vraci verze:null', v0['status'] == 200 and v0['data'].get('verze') is None, v0)
+    v1 = call('POST', '/owner/vydat', {'verze': 296, 'pozn': 'karta bodu'}, headers=OWN)
+    ok('J2 POST /owner/vydat zapise verzi', v1['status'] == 200 and v1['data'].get('verze') == 296 and v1['data'].get('pozn') == 'karta bodu', v1)
+    v2 = call('GET', '/vydano')
+    ok('J3 GET /vydano pak vraci 296 (to cte sw.js pred instalaci)', v2['data'].get('verze') == 296 and v2['data'].get('ts'), v2)
+    v3 = call('POST', '/owner/vydat', {'verze': 297})
+    ok('J4 bez klice vlastnika 403', v3['status'] in (401, 403), v3['status'])
+    v4 = call('POST', '/owner/vydat', {'verze': 'abc'}, headers=OWN)
+    ok('J5 nesmyslna verze 400', v4['status'] == 400, v4)
+    v5 = call('POST', '/owner/vydat', {'verze': None}, headers=OWN)
+    ok('J6 verze:null brzdu vypne', v5['status'] == 200 and v5['data'].get('verze') is None and call('GET', '/vydano')['data'].get('verze') is None, v5)
+    lg = [l for l in log() if 'owner_log' in l.get('sql', '') and 'INSERT' in l.get('sql', '')]
+    ok('J7 vydani se zapisuje do deniku vlastnika', any(x.get('args', [None, None])[1] == 'vydani' for x in lg), [x.get('args') for x in lg][:3])
 
     return vypis()
 

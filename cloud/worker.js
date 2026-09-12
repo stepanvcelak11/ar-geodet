@@ -693,6 +693,14 @@ async function fioStav(env, k) {
 async function fioStavZapis(env, k, v) {
     try { await env.DB.prepare('INSERT OR REPLACE INTO fio_stav(k,v) VALUES(?,?)').bind(k, String(v)).run(); } catch (e) {}
 }
+// Stav brzdy vydání: {verze, ts, pozn}. Uloženo v tabulce fio_stav (obecné k/v).
+async function vydanoStav(env) {
+    try {
+        const raw = await fioStav(env, 'vydano');
+        const o = raw ? JSON.parse(raw) : null;
+        return { verze: (o && o.verze != null && isFinite(o.verze)) ? Number(o.verze) : null, ts: (o && o.ts) || null, pozn: (o && o.pozn) || null };
+    } catch (e) { return { verze: null, ts: null, pozn: null }; }
+}
 function fioCol(t, n) { const c = t && t['column' + n]; return c && c.value != null ? c.value : null; }
 function fioDen(ts) { return new Date(ts).toISOString().slice(0, 10); }
 
@@ -1303,7 +1311,18 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 15, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 16, vydani: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+
+            // ---------------- BRZDA VYDÁNÍ (12. 9. 2026) ---------------------
+            // Vlastník vyvíjí a testuje na svém telefonu, ale lidem venku nesmí
+            // každý push skákat do appky. sw.js se před instalací nové verze
+            // zeptá SEM: když je verze v sw.js NOVĚJŠÍ než `verze` tady, instalaci
+            // odmítne (telefon vlastníka má výjimku — značku v Cache Storage).
+            // `verze: null` = brzda vypnutá, jede se jako dřív. Veřejné bez tokenu:
+            // číslo verze není tajemství a ptá se na něj i nepřihlášený telefon.
+            if (req.method === 'GET' && path === '/vydano') {
+                return json(await vydanoStav(env));
+            }
 
             // ---------------- ČHMÚ: měření z nejbližší stanice ---------------
             // veřejné (bez tokenu) — počasí není firemní údaj
@@ -1745,6 +1764,22 @@ export default {
                 if (gate) return gate;
                 await ensureOwnerSchema(env);
                 await ensureOwnerPlusSchema(env);
+
+                // ===== BRZDA VYDÁNÍ: co je venku pro ostatní ============================
+                if (req.method === 'GET' && path === '/owner/vydano') return json(await vydanoStav(env));
+                // POST {verze: 296, pozn?} pustí verzi ostatním; {verze: null} brzdu vypne
+                if (req.method === 'POST' && path === '/owner/vydat') {
+                    const b = await req.json().catch(() => null) || {};
+                    let v = null;
+                    if (b.verze != null && b.verze !== '') {
+                        v = parseInt(b.verze, 10);
+                        if (!isFinite(v) || v < 1 || v > 100000) return err(400, 'Verze musí být celé číslo (např. 296).');
+                    }
+                    const stav = { verze: v, ts: Date.now(), pozn: b.pozn ? String(b.pozn).slice(0, 200) : null };
+                    await fioStavZapis(env, 'vydano', JSON.stringify(stav));
+                    await ownerLog(env, 'vydani', v == null ? 'brzda vypnuta' : ('v' + v), stav.pozn);
+                    return json(Object.assign({ ok: true }, stav));
+                }
 
                 // ===== VLASTNÍK PLUS =====================================================
                 // Souhrn dne (návrh „dnes") + tečka „něco čeká" (?lite=1, návrh „badge")

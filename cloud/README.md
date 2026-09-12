@@ -172,3 +172,19 @@ běžícího), `POST /owner/blokace {id|code, disabled}`, `GET /owner/objednavky
 - zámek přihlašování 8 chyb → 15 min; registrace firem max 5/den z jedné IP
 - ochrana posledního admina (nejde smazat/odstavit/degradovat)
 - určeno pro geodetická data malé firmy — přiměřené, ne bankovní úroveň
+
+
+## Brzda vydání (od 12. 9. 2026, worker v16)
+
+Vlastník vyvíjí a testuje na svém telefonu, ale lidem venku nesmí každý push
+skákat do appky. Proto:
+
+- `GET /vydano` (veřejné) vrací `{verze, ts, pozn}` — číslo verze (SHELL_CACHE
+  v `sw.js`), která je „puštěná" ostatním. `verze: null` = brzda vypnutá.
+- `sw.js` se před instalací nové verze zeptá `/vydano`; když je jeho verze vyšší,
+  instalaci odmítne (nic se nestáhne, lidé pracují dál po staru). Výjimky: telefon
+  vlastníka (značka `ag-vlastnik` v Cache Storage), první instalace, nedostupný
+  server (fail-open).
+- Konzole vlastníka → **Pustit tuhle verzi ostatním** → `POST /owner/vydat
+  {verze}`; `{verze: null}` brzdu vypne. Zapisuje se do deníku vlastníka (`vydani`).
+- Stav leží v tabulce `fio_stav` pod klíčem `vydano` (obecné k/v, žádná migrace).

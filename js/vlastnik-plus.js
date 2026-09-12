@@ -170,7 +170,7 @@
 
     // ---- DENÍK VLASTNÍKA --------------------------------------------------------------------
     var AKCE = { 'pro-zapnout': 'Zapnuto Pro', 'pro-vypnout': 'Vypnuto Pro', blokace: 'Zablokován účet', odblokovat: 'Odblokován účet', vypinac: 'Vypínač modulů', 'hlaska-vsem': 'Hláška všem firmám',
-        'firma-smazat': 'Smazána firma', 'firma-zmrazit': 'Zmrazení firmy', 'zprava-vyrizeno': 'Zpráva vyřízena', 'zprava-zpet': 'Zpráva zpět mezi nevyřízené', 'zprava-smazat': 'Zpráva smazána', vzkaz: 'Vzkaz', poznamka: 'Poznámka u účtu', zaloha: 'Záloha serveru' };
+        'firma-smazat': 'Smazána firma', 'firma-zmrazit': 'Zmrazení firmy', 'zprava-vyrizeno': 'Zpráva vyřízena', 'zprava-zpet': 'Zpráva zpět mezi nevyřízené', 'zprava-smazat': 'Zpráva smazána', vzkaz: 'Vzkaz', poznamka: 'Poznámka u účtu', zaloha: 'Záloha serveru', vydani: 'Vydání pro ostatní' };
     function viewDenik(b) {
         var x = X(); styly();
         if (!_log) {
@@ -388,11 +388,60 @@
         return radky.length - 1;
     }
 
+    // ---- brzda vydání: pustit tuhle verzi ostatním ------------------------------------
+    // Vlastník má na svém telefonu vždy nejnovější verzi (značka ag-vlastnik v Cache
+    // Storage, sw.js ji respektuje). Ostatním se nová verze nainstaluje, až ji tady
+    // pustí. Server drží jen číslo verze (GET /vydano, POST /owner/vydat).
+    function viewVydani(b) {
+        var x = X(); styly();
+        var moje = (x && x.verze) ? x.verze() : null;
+        var h = [x.hlava('Pustit tuhle verzi ostatním', 'Ty vyvíjíš a testuješ, lidem venku skáče nová verze do appky až po tvém „pustit". Do té doby jim zůstává ta, co mají.')];
+        h.push('<div class="agvp-tiles" style="grid-template-columns:1fr 1fr;"><div class="agvp-t"><b>' + (moje ? 'v' + moje : '—') + '</b><small>tahle verze (u tebe)</small></div><div class="agvp-t" id="agvp-vyd-venku"><b>…</b><small>venku pro ostatní</small></div></div>');
+        h.push('<div class="agv-p" id="agvp-vyd-st">Zjišťuji, co je venku…</div>');
+        h.push('<button type="button" class="btn btn-primary" id="agvp-vyd-go" style="width:100%;margin-top:10px;" disabled>Pustit ' + (moje ? 'v' + moje : 'tuhle verzi') + ' ostatním</button>');
+        h.push('<button type="button" class="btn" id="agvp-vyd-off" style="width:100%;margin-top:8px;" disabled>Vypnout brzdu (každá verze hned všem)</button>');
+        h.push('<div class="agv-p" style="margin-top:14px;">Jak to funguje: každý telefon se při kontrole aktualizace zeptá serveru, jaká verze je venku. Když je nová verze vyšší, nenainstaluje se — a nic se neukáže, lidé pracují dál po staru. Tvůj telefon má výjimku (režim vlastníka). Když server neodpoví, brzda se pro jistotu neuplatní, aby se appka nezasekla na věky. Nový telefon bez appky dostane vždy nejnovější verzi.</div>');
+        b.innerHTML = h.join('');
+        x.wireZpet(b);
+        var venku = b.querySelector('#agvp-vyd-venku b'), st = b.querySelector('#agvp-vyd-st'), go = b.querySelector('#agvp-vyd-go'), off = b.querySelector('#agvp-vyd-off');
+        function ukaz(d) {
+            var v = d && d.verze != null ? d.verze : null;
+            venku.textContent = v != null ? 'v' + v : 'vše';
+            var t = venku.parentNode; t.classList.toggle('warn', moje != null && v != null && moje > v);
+            if (v == null) st.textContent = 'Brzda je vypnutá — každá nasazená verze jde hned všem (jako dřív).';
+            else st.textContent = 'Venku je v' + v + (d.ts ? ' od ' + cas(d.ts) : '') + (d.pozn ? ' · ' + d.pozn : '') + (moje != null && moje > v ? '. Tvoje v' + moje + ' ještě lidem nejede.' : (moje != null && moje === v ? '. Lidé mají to samé co ty.' : ''));
+            go.disabled = !(moje != null && (v == null || moje !== v));
+            off.disabled = (v == null);
+        }
+        api('/owner/vydano').then(function (r) {
+            if (!plati('vydani')) return;
+            if (!r.ok) { st.textContent = 'Server neodpověděl — zkus to za chvíli.'; venku.textContent = '?'; return; }
+            ukaz(r.data);
+        });
+        function posli(verze, txt) {
+            go.disabled = true; off.disabled = true; st.textContent = txt;
+            api('/owner/vydat', { method: 'POST', body: { verze: verze } }).then(function (r) {
+                if (!plati('vydani')) return;
+                if (!r.ok) { x.sayFail(r, 'vydání'); go.disabled = false; return; }
+                ukaz(r.data);
+                try { if (typeof window.quickToast === 'function') quickToast(verze == null ? 'Brzda vypnuta.' : 'v' + verze + ' puštěna ostatním.'); } catch (e) { swallow(e, 'toast'); }
+            });
+        }
+        go.addEventListener('click', function () {
+            if (moje == null) return;
+            x.ask('Pustit v' + moje + ' všem lidem? Nainstaluje se jim při příštím otevření appky.').then(function (ok) { if (ok) posli(moje, 'Pouštím v' + moje + '…'); });
+        });
+        off.addEventListener('click', function () {
+            x.ask('Vypnout brzdu? Každá další nasazená verze půjde hned všem.').then(function (ok) { if (ok) posli(null, 'Vypínám brzdu…'); });
+        });
+    }
+
     function view(name, b) {
         if (name === 'prehled') { viewPrehled(b); return true; }
         if (name === 'denik') { viewDenik(b); return true; }
         if (name === 'kalendar') { viewKalendar(b); return true; }
         if (name === 'zaloha') { viewZaloha(b); return true; }
+        if (name === 'vydani') { viewVydani(b); return true; }
         if (name === 'pohled') { viewPohled(b); return true; }
         return false;
     }
