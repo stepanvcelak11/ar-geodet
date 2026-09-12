@@ -8,6 +8,9 @@
 #   A) v rezimu vlastnika je vstup do konzole v Nastaveni (pod zalozkami), v Nastrojich
 #      (nahore + sekce „Vlastnik aplikace" v seznamu ukonu) i ve Vice
 #   B) bez rezimu vlastnika tam nic z toho neni
+#   D) Face ID vlastnika: po prihlaseni klicem nabidka, zapnuti (virtualni WebAuthn
+#      autentikator pres CDP), po restartu zlate tlacitko na prihlaseni -> vstup bez klice
+#   E) „Prepnout firmu" na prihlasovaci obrazovce: ulozene profily telefonu
 #   C) Vsechny firmy -> detail -> „Stahnout body do me appky" -> GET /owner/firms/:id/data
 #      -> vyber zakazek -> „Ulozit vsechny" vyrobi mistni zakazky „Firma · Zakazka"
 #      a body do nich (dedup podle id pri opakovanem stazeni; do AKTIVNI zakazky pres
@@ -219,6 +222,65 @@ async def beh(br, url):
     await ctx.close()
 
 
+# ⚠ init skript běží při KAŽDÉ navigaci — po reloadu by seed smazal právě zapnutý režim
+# vlastníka i Face ID; proto se seje jen napoprvé (značka v sessionStorage)
+SEED_LOGIN = "if (!sessionStorage.getItem('agTestSeed')) { sessionStorage.setItem('agTestSeed', '1');" + chr(10) + boot() + """
+localStorage.setItem('agLockStart_v1', '1');
+localStorage.removeItem('agVlastnik_v1'); localStorage.removeItem('agFbKey_v1');
+var f = JSON.parse(localStorage.getItem('agFirma_v1')); f.cloud = true; f.code = 'ABC123'; f.firmName = 'Moje firma s.r.o.'; localStorage.setItem('agFirma_v1', JSON.stringify(f));
+localStorage.setItem('agFirmy_v1', JSON.stringify([
+  { key: 'c:ABC123', label: 'Moje firma s.r.o.', code: 'ABC123', cloud: true, ts: 1, snap: { agFirma_v1: JSON.stringify(f) } },
+  { key: 'c:XYZ789', label: 'Druhá firma a.s.', code: 'XYZ789', cloud: true, ts: 2, snap: { agFirma_v1: JSON.stringify(Object.assign({}, f, { code: 'XYZ789', firmName: 'Druhá firma a.s.' })) } }
+]));
+}
+"""
+
+
+async def beh2(br, url):
+    # ---- D) Face ID vlastnika ----------------------------------------------------
+    srv = Server()
+    ctx = await br.new_context(locale='cs-CZ', viewport={'width': 390, 'height': 844}, has_touch=True, is_mobile=True)
+    await ctx.route(API + '/**', srv.handle)
+    page = await ctx.new_page()
+    chyby = []
+    page.on('pageerror', lambda e: chyby.append('pageerror: ' + str(e)))
+    cdp = await ctx.new_cdp_session(page)
+    await cdp.send('WebAuthn.enable')
+    auth = await cdp.send('WebAuthn.addVirtualAuthenticator', {'options': {
+        'protocol': 'ctap2', 'transport': 'internal', 'hasResidentKey': True, 'hasUserVerification': True,
+        'isUserVerified': True, 'automaticPresenceSimulation': True}})
+    await page.add_init_script(SEED_LOGIN + KOMPAS)
+    # ⚠ WebAuthn NEBERE IP ADRESU jako RP ID (127.0.0.1 → SecurityError) — jede se přes localhost
+    await page.goto(url.replace('127.0.0.1', 'localhost'), wait_until='domcontentloaded', timeout=45000)
+    ok('D0 prihlasovaci obrazovka firmy stoji', await pockej(page, "() => !!document.getElementById('ag-login')"))
+    # E) prepnout firmu (nez se prihlasime)
+    ok('E1 na prihlaseni je „Prepnout firmu" (dva ulozene profily, zadne prostory uctu)', await pockej(page, "() => !!document.getElementById('agl-swfirm')"))
+    await page.evaluate("() => document.getElementById('agl-swfirm').click()")
+    ok('E2 rozcestnik vypise obe firmy, aktualni je „tady jsi"', await pockej(page, "() => { var b=document.querySelectorAll('#ag-firmy .agg-prof'); return b.length === 2 && Array.from(b).some(x => x.disabled && /tady jsi/.test(x.textContent)); }"))
+    await page.evaluate("() => document.querySelector('#ag-firmy .agg-prof[data-key=\"c:XYZ789\"]').click()")
+    ok('E3 po volbe stoji prihlaseni DRUHE firmy', await pockej(page, "() => { var l=document.getElementById('ag-login'); return !!l && /Druhá firma/.test((l.querySelector('.agl-firmchip')||{}).textContent||'') && !document.getElementById('ag-firmy'); }"),
+       await page.evaluate("() => (document.querySelector('#ag-login .agl-firmchip')||{}).textContent"))
+    # D) prihlaseni VLASTNIK + klic → nabidka Face ID
+    await page.evaluate("() => document.getElementById('agl-other').click()")
+    await page.wait_for_timeout(300)
+    await page.fill('#ag-login .agl-name', 'VLASTNIK')
+    await page.fill('#ag-login .agl-pin', 'klic-vlastnika-aspon-24-znaku-dlouhy')
+    await page.evaluate("() => document.querySelector('#ag-login .agl-pinbox .agl-btn').click()")
+    ok('D1 klic prosel (rezim vlastnika zapnuty, appka bezi)', await pockej(page, "() => localStorage.getItem('agVlastnik_v1') === '1' && document.body.classList.contains('app-started')", 40))
+    ok('D2 nabidka „Priste jako vlastnik pres Face ID?"', await pockej(page, "() => !!document.getElementById('agv-bio-yes')"))
+    await page.evaluate("() => document.getElementById('agv-bio-yes').click()")
+    ok('D3 zapnuti ulozi WebAuthn klic pro pseudo-ucet vlastnik', await pockej(page, "() => { try { var o = JSON.parse(localStorage.getItem('agFirmaBio_v1')||'{}'); return !!(o.vlastnik && o.vlastnik.id); } catch (e) { return false; } }", 40),
+       await page.evaluate("() => localStorage.getItem('agFirmaBio_v1')"))
+    # restart: prihlaseni musi nabidnout zlate tlacitko
+    await page.reload(wait_until='domcontentloaded')
+    ok('D4 po restartu stoji prihlaseni a je na nem „Vlastnik — odemknout Face ID"', await pockej(page, "() => !!document.getElementById('ag-login') && !!document.getElementById('agv-bio-btn')", 60))
+    await page.evaluate("() => document.getElementById('agv-bio-btn').click()")
+    ok('D5 Face ID pusti vlastnika dovnitr bez klice', await pockej(page, "() => !document.getElementById('ag-login') && document.body.classList.contains('app-started') && !!document.getElementById('agv-menu-btn')", 60))
+    ok('D6 zadna chyba v konzoli', not [c for c in chyby if 'vlastnik' in c or 'ucty' in c], chyby[:3])
+    await cdp.send('WebAuthn.removeVirtualAuthenticator', {'authenticatorId': auth['authenticatorId']})
+    await ctx.close()
+
+
 async def main():
     from playwright.async_api import async_playwright
     srv, url = server(PORT)
@@ -228,6 +290,7 @@ async def main():
         async with async_playwright() as pw:
             br = await pw.chromium.launch()
             await beh(br, url)
+            await beh2(br, url)
             await br.close()
     finally:
         srv.terminate()

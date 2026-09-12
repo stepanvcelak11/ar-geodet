@@ -2121,8 +2121,11 @@
             (cloud && f.code ? ' · ' + esc(f.code) : '') + (lockMode ? ' <span class="lock">· zamčeno</span>' : '') + '</div>' +
             // PŘEPNUTÍ FIRMY NA ÚVODU (12. 9. 2026, přání uživatele). Jen s víc než jedním
             // prostorem A s tokenem (POST /spaces/switch by bez něj vrátil 401).
-            (getProstory().length > 1 && getTok()
-                ? '<button type="button" class="agl-ghost agl-swfirm" id="agl-swfirm">Přepnout firmu / prostor ›</button>'
+            // 12. 9. 2026 (2. kolo): „na úvodní stránce stále nemůžu změnit firmu" — vlastník
+            // ani člověk se dvěma STARÝMI účty žádné prostory účtu nemá, zato má v telefonu
+            // uložené firemní profily (Více → Přepnout uživatele). Nabízí se obojí.
+            (jinaFirmaKDispozici(f)
+                ? '<button type="button" class="agl-ghost agl-swfirm" id="agl-swfirm">Přepnout firmu ›</button>'
                 : '') +
             projInfoHtml() +
             // Duvod ANO (jinak by ťuknuti na heslo z niceho nic vypadalo jako chyba),
@@ -2373,7 +2376,7 @@
         });
         pinInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
         var swBtn = ov.querySelector('#agl-swfirm');
-        if (swBtn) swBtn.addEventListener('click', function () { showProstory(); });
+        if (swBtn) swBtn.addEventListener('click', function () { showFirmy(); });
         // „Přihlásit jiné jméno" (cloud): nový zaměstnanec, kterého tahle cache ještě nezná
         var otherBtn = ov.querySelector('#agl-other');
         if (otherBtn) otherBtn.addEventListener('click', function () {
@@ -2888,6 +2891,54 @@
         };
     }
 
+    // Je kam přepnout? Jiný uložený profil firmy v telefonu, nebo víc prostorů účtu.
+    function jinaFirmaKDispozici(f) {
+        try {
+            var cur = f ? profileKeyOf(f) : null;
+            if (listProfiles().some(function (p) { return p && p.key !== cur; })) return true;
+            return getProstory().length > 1 && !!getTok();
+        } catch (e) { return false; }
+    }
+    // Rozcestník „Přepnout firmu" z přihlašovací obrazovky: uložené firemní profily
+    // tohoto telefonu (přepnutí = jiná firma + její přihlášení, viz switchProfile) a
+    // případně prostory účtu (viz showProstory). Nic se nemaže, jen se přepíná.
+    function showFirmy() {
+        injectStyles();
+        var old = document.getElementById('ag-firmy'); if (old) old.remove();
+        var f = getFirm(), cur = f ? profileKeyOf(f) : null;
+        var prof = listProfiles().filter(function (p) { return p && p.key; });
+        var ov = document.createElement('div');
+        ov.id = 'ag-firmy';
+        ov.className = 'ag-gate-like';
+        var seznam = prof.map(function (p) {
+            var tady = p.key === cur;
+            return '<button type="button" class="agg-prof" data-key="' + esc(p.key) + '"' + (tady ? ' disabled' : '') + '>' +
+                '<span class="agg-pt"><b>' + esc(p.label || 'Firma') + (tady ? ' · tady jsi' : '') + '</b>' +
+                '<span>' + esc(p.cloud ? ('cloud' + (p.code ? ' · kód ' + p.code : '')) : 'jen v tomto telefonu') + '</span></span><span class="agg-go">›</span></button>';
+        }).join('');
+        var maProstory = getProstory().length > 1 && !!getTok();
+        ov.innerHTML =
+            '<div class="agl-card">' +
+            '<div class="agl-firm">Přepnout firmu</div>' +
+            (seznam || '<div class="agg-note">V telefonu je uložená jen tahle firma.</div>') +
+            (maProstory ? '<button type="button" class="agl-btn" id="agf-prostory" style="margin-top:8px;">Prostory mého účtu ›</button>' : '') +
+            '<button type="button" class="agl-ghost" id="agf-zpet">Zpět</button>' +
+            '<div class="agg-note">Přepnutí firmu nemaže — jen ukáže její přihlášení. Body a zakázky zůstávají v telefonu.</div>' +
+            '</div>';
+        document.body.appendChild(ov);
+        ov.querySelector('#agf-zpet').onclick = function () { ov.remove(); };
+        var pb = ov.querySelector('#agf-prostory');
+        if (pb) pb.onclick = function () { ov.remove(); showProstory(); };
+        ov.addEventListener('click', function (e) {
+            var b = e.target.closest ? e.target.closest('.agg-prof') : null;
+            if (!b || b.disabled) return;
+            var key = b.getAttribute('data-key');
+            ov.remove();
+            var lg = document.getElementById('ag-login'); if (lg) lg.remove();
+            switchProfile(key);                      // bez přihlášení → showLogin() cílové firmy
+        });
+    }
+
     // Přepnutí do jiného prostoru = NOVÝ TOKEN, ne jen jiný pohled. Server
     // vydává token na konkrétní členství; bez výměny by appka dál sahala na
     // data té předchozí firmy.
@@ -3205,6 +3256,9 @@
         showProstory: showProstory,
         showRegister: showRegister,
         isOwner: isOwner,
+        showFirmy: showFirmy,
+        // Face ID / odemknutí telefonem (WebAuthn) — pro vlastníka (js/vlastnik.js)
+        bio: { supported: bioSupported, available: bioAvailable, enroll: bioEnroll, verify: bioVerify, forget: bioForget },
         listProfiles: listProfiles,
         profileLimit: profileLimit,
         switchProfile: switchProfile,

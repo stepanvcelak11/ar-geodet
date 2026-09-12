@@ -228,8 +228,75 @@
             }
             setKey(k); setOn(true);
             vstup();
+            setTimeout(nabidniFaceId, 900);
         });
     }
+
+    // ---- FACE ID PRO VLASTNÍKA (12. 9. 2026) -------------------------------------
+    // Uživatel: „když appku vypnu a znovu se chci přihlásit, nenabízí mi to vlastníka
+    // — heslo je fakt dlouhé a nechci ho psát pokaždé, byl bych rád za Face ID."
+    // Stejná mechanika jako u běžného účtu (WebAuthn, platform authenticator —
+    // js/ucty.js `bio`), jen pod pseudo-účtem BIO_ID. Ověřuje TELEFON; klíč vlastníka
+    // zůstává uložený v agFbKey_v1 (server ho dál ověřuje v overKlic).
+    var BIO_ID = 'vlastnik', LS_BIO_ASK = 'agVlastnikBioAsk_v1';
+    function bio() { return (window.AGUcty && AGUcty.bio) || null; }
+    function bioJe() { var b = bio(); try { return !!(b && b.supported() && b.available(BIO_ID)); } catch (e) { return false; } }
+    function nabidniFaceId() {
+        var b = bio(); if (!b) return;
+        try {
+            if (!b.supported() || b.available(BIO_ID)) return;
+            var t = parseInt(localStorage.getItem(LS_BIO_ASK) || '0', 10);
+            if (t && Date.now() - t < 30 * 864e5) return;
+        } catch (e) { return; }
+        var ov = document.createElement('div');
+        ov.className = 'modal-overlay'; ov.style.cssText = 'display:flex;z-index:1000000;';
+        ov.innerHTML = '<div class="modal-content" style="max-width:420px;">' +
+            '<h3 style="color:#d4a02c;margin-top:0;">Příště jako vlastník přes Face ID?</h3>' +
+            '<p style="font-size:calc(13px * var(--ag-font-scale,1));line-height:1.5;">Klíč vlastníka je dlouhý. Když to zapneš, na přihlašovací obrazovce přibude zlaté tlačítko ' +
+            '<b>Vlastník — odemknout Face ID</b> a klíč už psát nemusíš. Ověřuje samotný telefon (Face ID / Touch ID / kód); klíč zůstává uložený jen v tomhle zařízení.</p>' +
+            '<div style="display:flex;gap:8px;margin-top:6px;">' +
+            '<button type="button" class="btn btn-secondary" id="agv-bio-no" style="flex:1;">Teď ne</button>' +
+            '<button type="button" class="btn btn-primary" id="agv-bio-yes" style="flex:1;">Zapnout</button></div></div>';
+        document.body.appendChild(ov);
+        var zavri = function () { try { localStorage.setItem(LS_BIO_ASK, String(Date.now())); } catch (e) { swallow(e, 'bioAsk'); } ov.remove(); };
+        ov.querySelector('#agv-bio-no').onclick = zavri;
+        ov.querySelector('#agv-bio-yes').onclick = function () {
+            var btn = this; btn.disabled = true; btn.textContent = 'Ověřuji…';
+            // MUSÍ běžet z gesta (klik) — Safari jinak vyhodí NotAllowedError
+            b.enroll({ id: BIO_ID, name: 'Vlastník aplikace' }).then(function (ok) {
+                zavri();
+                toast(ok ? 'Face ID pro vlastníka zapnuto.' : 'Telefon to nepovolil — zůstává klíč.');
+            });
+        };
+    }
+    // Zlaté tlačítko na bráně / přihlášení: ověřit telefonem a vstoupit jako vlastník.
+    function injectBio() {
+        var ov = loginOverlay();
+        var b = document.getElementById('agv-bio-btn');
+        if (!ov || !isOn() || !bioJe()) { if (b) b.remove(); return; }
+        if (b && ov.contains(b)) return;
+        if (b) b.remove();
+        var card = ov.querySelector('.agl-card'); if (!card) return;
+        b = document.createElement('button');
+        b.id = 'agv-bio-btn'; b.type = 'button'; b.className = 'agl-btn';
+        b.style.cssText = 'background:rgba(212,160,44,0.16);border:1px solid #d4a02c;color:#d4a02c;margin:4px 0 6px;';
+        b.innerHTML = '<span style="display:inline-block;width:18px;height:18px;vertical-align:-3px;margin-right:6px;">' + ICON + '</span>Vlastník — odemknout Face ID';
+        b.addEventListener('click', function (e) {
+            e.preventDefault(); e.stopPropagation();
+            if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+            b.disabled = true; b.textContent = 'Ověřuji…';
+            bio().verify(BIO_ID).then(function (ok) {
+                b.disabled = false;
+                b.innerHTML = '<span style="display:inline-block;width:18px;height:18px;vertical-align:-3px;margin-right:6px;">' + ICON + '</span>Vlastník — odemknout Face ID';
+                if (!ok) { toast('Ověření telefonem neprošlo — zkus znovu, nebo napiš klíč (jméno VLASTNIK).'); return; }
+                vstup();
+            });
+        }, true);
+        // nahoru pod čip firmy / pod nadpis — první věc, na kterou se dá klepnout
+        var kotva = card.querySelector('.agl-users, .agl-projpick, .agl-pinbox, #agg-show-join, .agg-box');
+        if (kotva) card.insertBefore(b, kotva); else card.appendChild(b);
+    }
+    function toast(m) { try { if (typeof window.quickToast === 'function') window.quickToast(m); else agAlert('Vlastník', m); } catch (e) { swallow(e, 'toast'); } }
 
     // Pustit vlastnika do appky POTE, co prosel prihlasenim. Rozdil proti enter()
     // je jediny: rekne se to vrstve uctu, aby branu uz nevracela (gateCheck).
@@ -363,6 +430,7 @@
         ask('Ukončit režim vlastníka? Aplikace se vrátí k běžnému přihlášení. Klíč zůstane uložený.').then(function (ok) {
             if (!ok) return;
             setOn(false);
+            try { var b = bio(); if (b && b.forget) b.forget(BIO_ID); } catch (e) { swallow(e, 'leave:bio'); }   // Face ID vlastníka pryč
             close(); injectMenu();
             try { if (window.AGUcty && AGUcty.applyPerms) AGUcty.applyPerms(); } catch (e) { swallow(e, 'leave:perms'); }
             try { if (window.AGUcty && AGUcty.showGate) AGUcty.showGate(); } catch (e) { swallow(e, 'leave:gate'); }
@@ -1115,10 +1183,10 @@
     }
 
     function init() {
-        hookForm(); injectMenu(); injectTools(); injectVstupy();
+        hookForm(); injectMenu(); injectTools(); injectVstupy(); injectBio();
         setTimeout(overKlic, 12000);
         (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(function () {
-            try { hookForm(); injectMenu(); injectTools(); injectVstupy(); } catch (e) { swallow(e, 'tick'); }
+            try { hookForm(); injectMenu(); injectTools(); injectVstupy(); injectBio(); } catch (e) { swallow(e, 'tick'); }
         }, 2000);
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

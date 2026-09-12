@@ -739,6 +739,12 @@ async def main():
                                           is_mobile=True, has_touch=True,
                                           permissions=['geolocation', 'camera'], geolocation=GEO,
                                           locale='cs-CZ')
+                # ⚠ ZIVY SERVER SE NESMI VOLAT (12. 9. 2026). Sada pocita s tim, ze /owner/*
+                #   "neni" (status 0) a vlastnik projde proti ulozenemu klici. Dokud byl
+                #   na Cloudflare OWNER_KEY kratky, server vracel 503 a proslo to nahodou;
+                #   po nastaveni skutecneho klice vraci 403 = "klic nesedi" a sada padla.
+                #   Sit se proto zahazuje — test je o klientovi, ne o Cloudflare.
+                await ctx.route('**/*.workers.dev/**', lambda route: route.abort())
                 try:
                     await fn(ctx)
                 except Exception as e:
