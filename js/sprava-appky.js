@@ -413,7 +413,8 @@
         h.push('<div class="sa-note">Založena ' + datum(f.created) + ' · zakladatel <code>' + esc(String(f.founder || '—').slice(0, 8)) + '</code>' +
             (f.off ? ' · ' + f.off + ' zablokovaných účtů' : '') + '</div>');
         h.push('<div class="sa-lab">Data firmy</div>');
-        h.push('<div class="sa-tools"><button type="button" class="sa-b on" data-data="' + esc(f.id) + '">Stáhnout body do mé appky</button></div>');
+        h.push('<div class="sa-tools"><button type="button" class="sa-b on" data-data="' + esc(f.id) + '">Stáhnout body do mé appky</button>' +
+            '<button type="button" class="sa-b" data-vzkazf="' + esc(f.id) + '">Vzkaz firmě do appky</button></div>');
         h.push('<div class="sa-note">Zakázky a body, které firma synchronizovala z mobilů, se uloží jako tvoje zakázky „' + esc(f.name) + ' · název zakázky". Fotky u bodů na server nechodí.</div>');
         h.push('<div class="sa-tools"><button type="button" class="sa-b cv" data-del="' + esc(f.id) + '">Smazat firmu i s daty</button></div>');
         h.push('</div>');
@@ -511,6 +512,8 @@
                         '<button type="button" class="btn btn-secondary" style="width:auto;margin:0;padding:9px 14px;" data-job="' + i + '">Uložit</button></div>';
                 }).join('') + '</div>' +
                 '<button type="button" class="btn btn-blue" style="width:100%;margin-top:10px;" id="ag-sa-jobs-all">Uložit všechny zakázky</button>' +
+                // CSV pro kancelář (návrh „export"): bez zakládání zakázky v telefonu
+                '<button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px;" id="ag-sa-jobs-csv">Stáhnout jako CSV (Y, X, výška, kód)</button>' +
                 '<button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px;" id="ag-sa-jobs-x">Zavřít</button></div>';
             document.body.appendChild(ov);
             var hotovo = function (vys) {
@@ -530,6 +533,11 @@
                 })();
             });
             ov.querySelector('#ag-sa-jobs-x').addEventListener('click', function () { ov.remove(); });
+            ov.querySelector('#ag-sa-jobs-csv').addEventListener('click', function () {
+                var b2 = this;
+                var go = function () { try { var n = AGVlastnikPlus.csv(firma, jobs); b2.textContent = 'CSV: ' + n + ' bodů'; } catch (e) { swallow(e, 'csv'); } };
+                if (window.AGVlastnikPlus) go(); else if (window.AGLazy) AGLazy.need('js/vlastnik-plus.js', go);
+            });
         });
     }
 
@@ -574,6 +582,11 @@
         });
         each(b, '[data-del]', 'click', function (el) { smazat(el.getAttribute('data-del')); });
         each(b, '[data-data]', 'click', function (el) { stahnoutData(el.getAttribute('data-data')); });
+        each(b, '[data-vzkazf]', 'click', function (el) {
+            var fid = el.getAttribute('data-vzkazf');
+            var go = function () { try { AGProdejVzkaz(null, fid); } catch (e) { swallow(e, 'vzkazf'); } };
+            if (window.AGProdejVzkaz) go(); else if (window.AGLazy) AGLazy.need('js/prodej-konzole.js', go);
+        });
         each(b, '[data-ok]', 'click', function (el) { resit(el.getAttribute('data-ok'), true, 0); });
         each(b, '[data-ne]', 'click', function (el) { resit(el.getAttribute('data-ne'), false, 0); });
         each(b, '[data-jine]', 'click', function (el) {
@@ -669,6 +682,22 @@
         if (!window.AGNotify) return;
         var f = null;
         try { f = window.AGUcty && AGUcty.getFirm ? AGUcty.getFirm() : null; } catch (e) { swallow(e, 'noticeTick'); }
+        // VZKAZY OD VLASTNÍKA KONKRÉTNÍMU ÚČTU / FIRMĚ (návrh „vzkaz", 12. 9. 2026): chodí
+        // s /config jako `vzkazy` (jen nepřečtené); křížek = přečteno → POST /vzkaz/precteno,
+        // takže se už nevrátí ani na jiném telefonu.
+        try {
+            var vz = (f && f.vzkazy) || [];
+            vz.forEach(function (v) {
+                if (!v || !v.id) return;
+                AGNotify.set('ag-vzkaz-' + v.id, {
+                    text: 'Vzkaz od autora appky' + (v.komu === 'firma' ? ' (celé firmě)' : '') + ': ' + v.txt, level: 'info', order: -6,
+                    onDismiss: function () {
+                        try { AGUcty.cloudFetch('/vzkaz/precteno', { method: 'POST', body: { id: v.id } }); } catch (e) { swallow(e, 'precteno'); }
+                        try { f.vzkazy = (f.vzkazy || []).filter(function (x) { return x.id !== v.id; }); localStorage.setItem('agFirma_v1', JSON.stringify(f)); } catch (e) { swallow(e, 'vzkaz-ls'); }
+                    }
+                });
+            });
+        } catch (e) { swallow(e, 'vzkazy'); }
         var n = f && f.notice;
         if (!n || !n.txt || (n.until && n.until < Date.now())) { try { AGNotify.clear('ag-notice'); } catch (e) { swallow(e, 'clear'); } return; }
         var seen = 0;

@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v291';   // Vlastnik: Face ID misto dlouheho klice, Prepnout firmu na prihlaseni (profily telefonu)
+const SHELL_CACHE = 'argeodet-shell-v292';   // Vlastnik plus: 13 schvalenych navrhu (souhrn dne, tecka, kdo je v terenu, denik, kalendar Pro, zaloha, ocima uctu, vzkazy, poznamky, CSV, zkouska 14 dni, chyby podle verze, jen Pro)
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -47,9 +47,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=291',
-    './css/style.css?v=291',
-    './css/vylepseni.css?v=291',
+    './css/tokens.css?v=292',
+    './css/style.css?v=292',
+    './css/vylepseni.css?v=292',
     './css/gps-warn.css',
     './css/compass-stability.css',
     './css/cadastre-area.css',
@@ -94,6 +94,7 @@ const ASSETS_TO_CACHE = [
     './js/zpetna-vazba.js',
     './js/sprava-appky.js',
     './js/vlastnik.js',
+    './js/vlastnik-plus.js',
     './js/satelity.js',
     './js/kalkulacka.js',
     './js/sdilet-soubor.js',

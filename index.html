@@ -95,8 +95,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=291">
-    <link rel="stylesheet" href="css/style.css?v=291">
+    <link rel="stylesheet" href="css/tokens.css?v=292">
+    <link rel="stylesheet" href="css/style.css?v=292">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -227,7 +227,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=291">
+    <link rel="stylesheet" href="css/vylepseni.css?v=292">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
          render-blokující: prohlížeč nevykreslí ani pixel, dokud nedorazí VŠECHNY.
          Jedenáct z nich (69 kB) přitom patřilo oknům, která se při startu vůbec
@@ -1105,6 +1105,11 @@
          nikdo nepozna. Preskoceni brany v rezimu vlastnika NA TOMHLE MODULU
          NEZAVISI: rozhoduje o nem js/ucty.js podle priznaku v localStorage. -->
     <script type="ag/lazy" data-src="js/vlastnik.js"></script>
+    <!-- VLASTNIK PLUS (odpojitelne: smaz radek, js/vlastnik-plus.js a zaznam v sw.js)
+         — souhrn dne, kdo je v terenu, denik vlastnika, kalendar vyprseni Pro, zaloha
+         serveru, pohled ocima uctu, tecka "neco ceka" na vstupech do konzole. 13 navrhu
+         schvalenych 12. 9. 2026; vidi to jen rezim vlastnika (server chce OWNER_KEY). -->
+    <script type="ag/lazy" data-src="js/vlastnik-plus.js"></script>
     <script type="ag/lazy" data-src="js/satelity.js"></script>
     <script type="ag/lazy" data-src="js/kalkulacka.js"></script>
     <!-- JEDNA CESTA SOUBORU VEN Z TELEFONU (odpojitelné: smaž tento řádek + js/sdilet-soubor.js)

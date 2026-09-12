@@ -290,6 +290,13 @@
             '<button type="button" class="pd-b" data-pro="' + esc(u.id) + '" data-dni="0">navždy</button>' +
             (u.tarif === 'pro' ? '<button type="button" class="pd-b cv" data-propryc="' + esc(u.id) + '">Vypnout Pro</button>' : '') +
             '</div>');
+        // poznámka u účtu (návrh „pozn-ucet") + vzkaz + pohled očima účtu (12. 9. 2026)
+        h.push('<div class="pd-lab">Poznámka (vidíš jen ty)</div>');
+        h.push('<div class="pd-tools" style="flex-wrap:nowrap;"><input type="text" maxlength="500" placeholder="s kým jsem mluvil, co slíbil, kdy volat…" value="' + esc(u.note || '') + '" data-pozn="' + esc(u.id) + '" style="flex:1;min-width:0;">' +
+            '<button type="button" class="pd-b" data-poznulozit="' + esc(u.id) + '">Uložit</button></div>');
+        h.push('<div class="pd-tools">' +
+            '<button type="button" class="pd-b" data-vzkaz="' + esc(u.id) + '">Poslat vzkaz do appky</button>' +
+            '<button type="button" class="pd-b" data-ocima="' + esc(u.id) + '">Očima účtu</button></div>');
         h.push('<div class="pd-lab">Účet</div>');
         h.push('<div class="pd-tools">' +
             (u.disabled
@@ -332,6 +339,9 @@
                       '<button type="button" class="pd-b on" data-zpro="' + esc(u.id) + '" data-zid="' + esc(m.id) + '" data-dni="0">Zapnout Pro navždy</button>' +
                       '<button type="button" class="pd-b" data-zpro="' + esc(u.id) + '" data-zid="' + esc(m.id) + '" data-dni="365">na rok</button>' +
                       '<button type="button" class="pd-b" data-zpro="' + esc(u.id) + '" data-zid="' + esc(m.id) + '" data-dni="30">na měsíc</button>' +
+                      // 14 dní zkušebně (návrh „zkouska", 12. 9. 2026): den před koncem
+                      // to ukáže Souhrn dne (Pro vyprší do 7 dní) a Kalendář vypršení
+                      '<button type="button" class="pd-b" data-zpro="' + esc(u.id) + '" data-zid="' + esc(m.id) + '" data-dni="14">na 14 dní zkušebně</button>' +
                       '<button type="button" class="pd-b cv" data-zhotovo="' + esc(m.id) + '">Jen vyřídit (nezapínat)</button>' +
                       '</div>')
                    : ('<p><b>Účet se nenašel</b>' + (mt.ucet ? ' (kód ' + esc(mt.ucet) + ' v seznamu není — člověk ho možná smazal nebo píše ze staršího workeru)' : ' — žádost přišla bez kódu účtu') +
@@ -442,6 +452,19 @@
         each(b, '[data-pro]', 'click', function (el) { zapniPro(el.getAttribute('data-pro'), parseInt(el.getAttribute('data-dni'), 10) || 0); });
         each(b, '[data-zpro]', 'click', function (el) { zadostPro(el.getAttribute('data-zpro'), parseInt(el.getAttribute('data-zid'), 10), parseInt(el.getAttribute('data-dni'), 10) || 0); });
         each(b, '[data-zhotovo]', 'click', function (el) { zadostHotovo(parseInt(el.getAttribute('data-zhotovo'), 10)); });
+        each(b, '[data-poznulozit]', 'click', function (el) {
+            var id = el.getAttribute('data-poznulozit'), inp = b.querySelector('[data-pozn="' + id + '"]');
+            api('/owner/ucty/' + encodeURIComponent(id) + '/pozn', { method: 'POST', body: { note: inp ? inp.value : '' } }).then(function (r) {
+                if (!r.ok) { sayFail(r, 'poznámka'); return; }
+                el.textContent = 'Uloženo'; var u = najdi(id); if (u) u.note = (r.data && r.data.note) || '';
+            });
+        });
+        each(b, '[data-vzkaz]', 'click', function (el) { vzkaz(el.getAttribute('data-vzkaz')); });
+        each(b, '[data-ocima]', 'click', function (el) {
+            var id = el.getAttribute('data-ocima');
+            var go = function () { close(); try { AGVlastnikPlus.pohled(id); } catch (e) { swallow(e, 'ocima'); } };
+            if (window.AGVlastnikPlus) go(); else if (window.AGLazy) AGLazy.need('js/vlastnik-plus.js', go); else agAlert('Modul chybí', 'js/vlastnik-plus.js není načtený.');
+        });
         each(b, '[data-propryc]', 'click', function (el) { vypniPro(el.getAttribute('data-propryc')); });
         each(b, '[data-blok]', 'click', function (el) { blokace(el.getAttribute('data-blok'), el.getAttribute('data-on') === '1'); });
         each(b, '[data-zpravy]', 'click', function () {
@@ -463,6 +486,24 @@
     }
     function najdi(id) { var r = null; ((_lide || {}).ucty || []).forEach(function (u) { if (u.id === id) r = u; }); return r; }
     function hotovo(r, kde) { if (!r.ok) { sayFail(r, kde); return; } load(); }
+
+    // Vzkaz konkrétnímu účtu (návrh „vzkaz"): ukáže se mu v appce jako upozornění,
+    // po přečtení zmizí (POST /vzkaz/precteno). Odpověď na žádost bez e-mailu.
+    function vzkaz(id, firmId) {
+        var u = id ? najdi(id) : null;
+        var komu = u ? (u.name + ' (' + u.code + ')') : (firmId ? 'celé firmě' : '?');
+        var text = function (v) {
+            v = String(v || '').trim();
+            if (!v) return;
+            api('/owner/vzkaz', { method: 'POST', body: id ? { acc_id: id, txt: v } : { firm_id: firmId, txt: v } }).then(function (r) {
+                if (!r.ok) { sayFail(r, 'vzkaz'); return; }
+                agAlert('Odesláno', 'Vzkaz pro ' + esc(komu) + ' se ukáže v appce při příští synchronizaci (do minuty, s připojením).');
+            });
+        };
+        if (typeof window.agPrompt === 'function') window.agPrompt({ title: 'Vzkaz — ' + komu, message: 'Krátký text, ukáže se v appce jako upozornění.', placeholder: 'Např. Pro máš zapnuté na 14 dní zkušebně…', okText: 'Poslat' }).then(text);
+        else text(window.prompt('Vzkaz pro ' + komu + ':', ''));
+    }
+    window.AGProdejVzkaz = vzkaz;
 
     function zapniPro(id, dni) {
         var u = najdi(id); if (!u) return;

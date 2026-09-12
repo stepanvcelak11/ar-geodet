@@ -500,6 +500,8 @@
             limits: cfg.limits || (old && old.limits) || null,
             request: cfg.request || null,
             notice: cfg.notice || null,
+            // vzkazy od vlastníka tomuhle účtu / firmě (js/sprava-appky.js je ukáže); jen nepřečtené
+            vzkazy: Array.isArray(cfg.vzkazy) ? cfg.vzkazy : ((old && old.vzkazy) || []),
             // VYPÍNAČ MODULŮ NA DÁLKU (js/priznaky.js). Seznam vypnutých nástrojů
             // posílá worker v /config a čte se právě odsud (AGUcty.getFirm().flags).
             // ⚠ ZÁMĚRNĚ BEZ fallbacku na `old` jako u perms/limits: worker posílá

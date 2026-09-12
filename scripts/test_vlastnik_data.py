@@ -100,6 +100,34 @@ class Server:
                     'requests': [], 'notice': '', 'stats': {'firms': 1, 'users': 3, 'active7': 2, 'points': 4}, 'serverTime': NOW}
         elif path == '/owner/firms/f1/data':
             data = DATA
+        # ---- vlastnik plus (12. 9. 2026) ----
+        elif path == '/owner/prehled':
+            if 'lite=1' in req.url:
+                data = {'zadosti': 2, 'zpravy': 1, 'serverTime': NOW}
+            else:
+                data = {'serverTime': NOW, 'lidi24': 4, 'body24': 40, 'ucty24': 1, 'chyby24': 3, 'zadosti': 2, 'zpravy': 1, 'uctyCelkem': 9, 'proCelkem': 2,
+                        'vyprsi': [{'id': 'acc2', 'code': 'ZZZZ2222', 'name': 'Petra Malá', 'tarif_do': NOW + 3 * 864e5}],
+                        'online': [{'uid': 'u1', 'jmeno': 'Jan Novák', 'firma': 'Geo s.r.o.', 'ts': NOW - 120e3, 'n': 7}],
+                        'shluky': [{'lat': 50.08, 'lng': 14.42, 'n': 30}, {'lat': 49.2, 'lng': 16.6, 'n': 10}]}
+        elif path == '/owner/log':
+            data = {'rows': [{'id': 3, 'ts': NOW - 3600e3, 'akce': 'pro-zapnout', 'cil': 'K7QM3XP2 Jan Novák', 'detail': '14 dní'}, {'id': 2, 'ts': NOW - 7200e3, 'akce': 'vzkaz', 'cil': 'acc1', 'detail': 'Ahoj'}], 'more': False}
+        elif path == '/owner/ucty':
+            data = {'ucty': [
+                {'id': 'acc1', 'code': 'K7QM3XP2', 'name': 'Jan Novák', 'tarif': 'zaklad', 'tarif_do': None, 'disabled': 0, 'created': NOW - 20 * 864e5, 'last_login': NOW - 3600e3, 'trial_ts': None, 'tarifPlati': False, 'note': 'volat v pátek',
+                 'prostory': [{'nazev': 'Geo s.r.o.', 'kod': 'ABCDEF', 'role': 'admin', 'vlastni': False, 'archiv': False, 'lidi': 3, 'lastLogin': NOW}], 'aktivita': NOW, 'akcí30d': 12, 'objednavky': {'n': 0, 'zaplaceno': 0, 'ceka': 0}},
+                {'id': 'acc2', 'code': 'ZZZZ2222', 'name': 'Petra Malá', 'tarif': 'pro', 'tarif_do': NOW + 3 * 864e5, 'disabled': 0, 'created': NOW - 60 * 864e5, 'last_login': NOW, 'trial_ts': None, 'tarifPlati': True, 'prostory': [], 'aktivita': NOW, 'akcí30d': 2, 'objednavky': {'n': 0, 'zaplaceno': 0, 'ceka': 0}}
+            ], 'prodej': {'zapnuto': False, 'produkty': [], 'iban': ''}}
+        elif path == '/owner/objednavky':
+            data = {'objednavky': [], 'pohyby': [], 'fio': {'nastaveno': False}, 'prodej': {'zapnuto': False, 'produkty': [], 'iban': ''}}
+        elif path == '/feedback' and req.method == 'GET':
+            data = {'messages': [{'id': 7, 'ts': NOW, 'kind': 'pro', 'txt': 'Chci Pro.', 'contact': 'jan@example.cz', 'meta': json.dumps({'ucet': 'K7QM3XP2', 'zadost': 'pro'}), 'who': 'Jan Novák · K7QM3XP2', 'done': 0}], 'open': 1}
+        elif path == '/owner/ucty/acc1/pohled':
+            data = {'ucet': {'id': 'acc1', 'code': 'K7QM3XP2', 'name': 'Jan Novák', 'tarif': 'zaklad', 'tarif_do': None, 'disabled': 0, 'created': NOW - 20 * 864e5, 'last_login': NOW - 3600e3, 'note': 'volat v pátek', 'tarifPlati': False},
+                    'clenstvi': [{'firm_id': 'f1', 'nazev': 'Geo s.r.o.', 'kod': 'ABCDEF', 'role': 'admin', 'vlastni': False, 'archiv': False, 'blokovan': False, 'lastLogin': NOW, 'frozen': 0, 'perms': {}}],
+                    'chyby': [{'ts': NOW - 5000e3, 'msg': 'TypeError: x is null', 'src': 'js/grafika.js', 'line': 12, 'n': 2, 'ver': 'v290', 'dev': 'iPhone'}],
+                    'nastroje': [{'k': 'openMeasureModal', 'n': 9, 'last': NOW - 86400e3}], 'zarizeni': [{'dev': 'iPhone 15', 'last': NOW, 'n': 20}], 'vzkazy': []}
+        elif path == '/owner/export':
+            data = {'ts': NOW, 'verze': 15, 'tabulky': {'firms': [FIRMA], 'users': [], 'accounts': [{'id': 'acc1', 'code': 'K7QM3XP2', 'name': 'Jan Novák'}], 'jobs': [], 'sync_points': [], 'feedback': [], 'orders': [], 'vzkazy': [], 'owner_log': [], 'meta': []}}
         elif path == '/config':
             st, data = 503, {'error': 'test'}
         await route.fulfill(status=st, content_type='application/json',
@@ -281,6 +309,86 @@ async def beh2(br, url):
     await ctx.close()
 
 
+async def beh3(br, url):
+    # ---- F) VLASTNIK PLUS: souhrn, tecka, denik, kalendar, zaloha, ocima uctu, vzkaz, CSV ----
+    srv = Server()
+    ctx, page, chyby = await nova(br, url, BOOT_OWNER, srv)
+    await page.evaluate("() => { window.agAsk = function () { return Promise.resolve(true); }; window.confirm = function () { return true; }; window.agPrompt = function () { return Promise.resolve('Pro máš na 14 dní.'); }; }")
+    ok('F1 tecka „neco ceka" (2 zadosti + 1 zprava = 3) na zlatych vstupech', await pockej(page, "() => { var b=document.querySelector('#agv-set-btn .agvp-badge'); return !!b && b.textContent === '3' && !!document.querySelector('#agv-tools-btn .agvp-badge'); }", 40))
+    await page.evaluate("() => AGVlastnik.open()")
+    ok('F2 konzole ma nahore dlazdice souhrnu (lide 4, body 40, zadosti 2, chyby 3, Pro vyprsi)', await pockej(page, "() => { var t=Array.from(document.querySelectorAll('#agv-modal .agvp-t')).map(x => x.textContent.replace(/\\s+/g,' ').trim()); return t.length >= 6 && t.some(x => /^4 ?lidí/i.test(x)) && t.some(x => /^40 ?bodů/i.test(x)) && t.some(x => /^2 ?žádostí/i.test(x)) && t.some(x => /^3 ?chyb/i.test(x)) && t.some(x => /vyprší/i.test(x)); }"),
+       await page.evaluate("() => Array.from(document.querySelectorAll('#agv-modal .agvp-t')).map(x => x.textContent.trim())"))
+    await page.evaluate("() => { var b=Array.from(document.querySelectorAll('#agv-modal .agv-it')).filter(x => /Souhrn dne/.test(x.textContent))[0]; b.click(); }")
+    ok('F3 pohled Souhrn dne: kdo je v terenu (Jan Novak, pred 2 min) + mapa shluku', await pockej(page, "() => /Jan Novák/.test(document.getElementById('agv-body').textContent) && /před \\d+ min/.test(document.getElementById('agv-body').textContent) && !!document.querySelector('#agvp-map .leaflet-container, #agvp-map .leaflet-pane')", 40),
+       await page.evaluate("() => document.getElementById('agv-body').textContent.slice(0, 300)"))
+    await page.evaluate("() => AGVlastnik.jdi('denik')")
+    ok('F4 Denik vlastnika vypise akce lidsky (Zapnuto Pro — K7QM3XP2 Jan Novak, 14 dni)', await pockej(page, "() => /Zapnuto Pro/.test(document.getElementById('agv-body').textContent) && /14 dní/.test(document.getElementById('agv-body').textContent) && /Vzkaz/.test(document.getElementById('agv-body').textContent)"))
+    await page.evaluate("() => AGVlastnik.jdi('kalendar')")
+    ok('F5 Kalendar: Petra Mala do 7 dni, tlacitka + mesic / + rok', await pockej(page, "() => /Do 7 dní/.test(document.getElementById('agv-body').textContent) && /Petra Malá/.test(document.getElementById('agv-body').textContent) && !!document.querySelector('#agv-body [data-pro=acc2][data-dni=\"365\"]')"))
+    await page.evaluate("() => document.querySelector('#agv-body [data-pro=acc2][data-dni=\"365\"]').click()")
+    ok('F6 + rok posle /owner/tarif {acc2, pro, 365}', await pockej(page, "() => true") and any(l == ('POST', '/owner/tarif') for l in srv.log), srv.log[-4:])
+    # zaloha: soubor se stahne (download event)
+    await page.evaluate("() => AGVlastnik.jdi('zaloha')")
+    await pockej(page, "() => !!document.getElementById('agvp-zal')")
+    async with page.expect_download(timeout=15000) as dl:
+        await page.evaluate("() => document.getElementById('agvp-zal').click()")
+    d = await dl.value
+    ok('F7 Zaloha serveru stahne qtrig-zaloha-*.json', d.suggested_filename.startswith('qtrig-zaloha-') and d.suggested_filename.endswith('.json'), d.suggested_filename)
+    ok('F7b po stazeni napise velikost a pocty', await pockej(page, "() => /kB/.test((document.getElementById('agvp-zal-st')||{}).textContent||'') && /accounts 1/.test(document.getElementById('agvp-zal-st').textContent)"))
+    # Lide: poznamka, vzkaz, ocima uctu, 14 dni zkusebne
+    await page.evaluate("() => { AGVlastnik.close(); if (window.AGProdej) AGProdej.open('lide'); else AGLazy.need('js/prodej-konzole.js', function () { AGProdej.open('lide'); }); }")
+    ok('F8 Lide: radek uctu', await pockej(page, "() => !!document.querySelector('#ag-pd-modal .pd-row[data-u=acc1]')"))
+    await page.evaluate("() => document.querySelector('#ag-pd-modal .pd-row[data-u=acc1]').click()")
+    ok('F9 detail: poznamka predvyplnena ze serveru + tlacitka Vzkaz a Ocima uctu', await pockej(page, "() => { var i=document.querySelector('#ag-pd-modal [data-pozn=acc1]'); return !!i && i.value === 'volat v pátek' && !!document.querySelector('#ag-pd-modal [data-vzkaz=acc1]') && !!document.querySelector('#ag-pd-modal [data-ocima=acc1]'); }"))
+    await page.fill('#ag-pd-modal [data-pozn=acc1]', 'volat v pondělí')
+    await page.evaluate("() => document.querySelector('#ag-pd-modal [data-poznulozit=acc1]').click()")
+    ok('F10 Ulozit poznamku posle POST /owner/ucty/acc1/pozn', await pockej(page, "() => document.querySelector('#ag-pd-modal [data-poznulozit=acc1]').textContent === 'Uloženo'") and ('POST', '/owner/ucty/acc1/pozn') in srv.log, srv.log[-3:])
+    await page.evaluate("() => document.querySelector('#ag-pd-modal [data-vzkaz=acc1]').click()")
+    ok('F11 Vzkaz do appky posle POST /owner/vzkaz', await pockej(page, "() => true") and ('POST', '/owner/vzkaz') in srv.log, srv.log[-3:])
+    await page.evaluate("() => { document.querySelectorAll('.ag-dlg-overlay.open .ag-dlg-ok').forEach(b => b.click()); }")
+    await page.evaluate("() => document.querySelector('#ag-pd-modal [data-ocima=acc1]').click()")
+    ok('F12 Ocima uctu: karta s tarifem, clenstvim, nastroji a chybami', await pockej(page, "() => { var t=(document.getElementById('agv-body')||{}).textContent||''; return /Očima účtu: Jan Novák/.test(t) && /Geo s.r.o./.test(t) && /TypeError/.test(t) && /iPhone 15/.test(t); }", 40),
+       await page.evaluate("() => ((document.getElementById('agv-body')||{}).textContent||'').slice(0,200)"))
+    await page.evaluate("() => { AGVlastnik.close(); AGProdej.open('zad'); }")
+    ok('F13 Zadosti: tlacitko „na 14 dni zkusebne"', await pockej(page, "() => !!document.querySelector('#ag-pd-modal [data-zpro][data-dni=\"14\"]')"))
+    await page.evaluate("() => AGProdej.close()")
+    # Vsechny firmy: CSV + vzkaz firme
+    await page.evaluate("() => { if (window.AGSprava) AGSprava.open(); }")
+    await pockej(page, "() => !!document.querySelector('#ag-sa-modal [data-f=f1]')")
+    await page.evaluate("() => document.querySelector('#ag-sa-modal [data-f=f1]').click()")
+    ok('F14 detail firmy: Vzkaz firme do appky', await pockej(page, "() => !!document.querySelector('#ag-sa-modal [data-vzkazf=f1]')"))
+    await page.evaluate("() => document.querySelector('#ag-sa-modal [data-data=f1]').click()")
+    await pockej(page, "() => !!document.getElementById('ag-sa-jobs-csv')")
+    async with page.expect_download(timeout=15000) as dl2:
+        await page.evaluate("() => document.getElementById('ag-sa-jobs-csv').click()")
+    d2 = await dl2.value
+    cesta = await d2.path()
+    obsah = io.open(cesta, encoding='utf-8-sig').read() if cesta else ''
+    ok('F15 CSV bodu firmy: hlavicka + 4 radky, Y/X v S-JTSK', d2.suggested_filename.endswith('.csv') and obsah.count('\n') >= 4 and obsah.startswith('zakazka;cislo;kod;Y;X') and ';obruba;' in obsah and '742' in obsah, obsah[:200])
+    ok('F16 zadna chyba v konzoli', not [c for c in chyby if 'vlastnik' in c or 'prodej' in c or 'sprava' in c], chyby[:3])
+    await ctx.close()
+
+    # ---- G) UZIVATEL: vzkaz od vlastnika se ukaze a po krizku odejde /vzkaz/precteno --------
+    srv = Server()
+    async def cfg(route):
+        await route.fulfill(status=200, content_type='application/json', headers={'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*'},
+                            body=json.dumps({'firm': {'id': 'f1', 'code': 'ABC123', 'name': 'Moje firma s.r.o.', 'perms': {}}, 'users': [{'id': 'test-user-1', 'name': 'Tester', 'role': 'admin'}],
+                                             'me': {'id': 'test-user-1', 'name': 'Tester', 'role': 'admin', 'ucet': 'test-acc-1', 'tarif': 'zaklad'},
+                                             'vzkazy': [{'id': 7, 'ts': NOW, 'txt': 'Pro máš na 14 dní zkušebně.', 'komu': 'ty'}]}))
+    ctx = await br.new_context(locale='cs-CZ', viewport={'width': 390, 'height': 844}, has_touch=True, is_mobile=True, geolocation={'latitude': 50.0875, 'longitude': 14.4213}, permissions=['geolocation'])
+    # ⚠ Playwright bere routy od POSLEDNÍ registrované — obecná musí jít první
+    await ctx.route(API + '/**', srv.handle)
+    await ctx.route(API + '/config*', cfg)
+    page = await ctx.new_page()
+    await page.add_init_script(BOOT_PLAIN + "localStorage.setItem('agFirmaTok_v1', JSON.stringify({ token: 'x.y', userId: 'test-user-1' })); var f = JSON.parse(localStorage.getItem('agFirma_v1')); f.cloud = true; f.code = 'ABC123'; localStorage.setItem('agFirma_v1', JSON.stringify(f));" + KOMPAS)
+    await page.goto(url, wait_until='domcontentloaded', timeout=45000)
+    ok('G1 vzkaz od vlastnika se ukaze v upozorneni', await pockej(page, "() => !!(window.AGNotify && AGNotify.has('ag-vzkaz-7'))", 60),
+       await page.evaluate("() => ({ has: !!(window.AGNotify && AGNotify.has && AGNotify.has('ag-vzkaz-7')), firma: (JSON.parse(localStorage.getItem('agFirma_v1')||'{}').vzkazy) })"))
+    await page.evaluate("() => { try { AGNotify.dismiss('ag-vzkaz-7'); } catch (e) {} }")
+    ok('G2 krizek posle POST /vzkaz/precteno {id:7}', await pockej(page, "() => true") and ('POST', '/vzkaz/precteno') in srv.log, srv.log[-3:])
+    await ctx.close()
+
+
 async def main():
     from playwright.async_api import async_playwright
     srv, url = server(PORT)
@@ -291,6 +399,7 @@ async def main():
             br = await pw.chromium.launch()
             await beh(br, url)
             await beh2(br, url)
+            await beh3(br, url)
             await br.close()
     finally:
         srv.terminate()

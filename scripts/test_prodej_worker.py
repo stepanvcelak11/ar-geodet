@@ -14,7 +14,7 @@
 # ⚠ Vsechno musi byt na Promise/microtaskach — py_mini_racer nema smycku udalosti,
 #   takze setTimeout uvnitr workeru by test tise zasekl (OUT zustane null).
 #
-#   A) /health hlasi v:14, prodej:true a stav klice vlastnika (ownerKey)
+#   A) /health hlasi v:15, prodej:true a stav klice vlastnika (ownerKey)
 #   B) POST /objednavky bez PRODEJ_IBAN -> 503 (prodej vypnuty), s IBAN -> 8mistny
 #      VS, SPAYD s castkou a VS, cenik se dvema produkty, zkouska 3 dny
 #   C) jiny produkt zrusi starou otevrenou objednavku a zalozi novou (jina castka)
@@ -218,7 +218,7 @@ def main():
     # ---- A) health -------------------------------------------------------------
     base_rules()
     h = call('GET', '/health')
-    ok('A1 /health v:14', h['data'].get('v') == 14, h['data'].get('v'))
+    ok('A1 /health v:15', h['data'].get('v') == 15, h['data'].get('v'))
     ok('A2 /health prodej:true', h['data'].get('prodej') is True)
     # 12. 9. 2026: /health rika, v jakem stavu je OWNER_KEY ('ok' | 'chybi' | 'kratky') —
     # uzivatel klic „nastavoval nekolikrat" a appka hlasila jen obecnou 503.
@@ -248,6 +248,65 @@ def main():
        and jobs['pole']['name'] == 'Pole u lesa' and len(jobs['pole']['points']) == 1 and jobs['pole']['points'][0]['id'] == 'cp_1'
        and jobs['pole']['points'][0]['uname'] == 'Jan' and jobs['bezjmena']['name'] == 'bezjmena', fd)
     ok('A10 /owner/firms/neznama/data -> 404', call('GET', '/owner/firms/neni/data', headers=OWN)['status'] == 404)
+
+    # ---- V) VLASTNIK PLUS (12. 9. 2026, 13 schvalenych navrhu) ------------------
+    rule(r'/COUNT\(\*\) AS n FROM feedback WHERE done=0 AND kind=\'pro\'/', 'function(){ return { first: { n: 2 } }; }')
+    rule(r'/COUNT\(\*\) AS n FROM feedback WHERE done=0 AND kind!=\'pro\'/', 'function(){ return { first: { n: 3 } }; }')
+    rule(r'/COUNT\(DISTINCT uid\) AS n FROM usage/', 'function(){ return { first: { n: 4 } }; }')
+    rule(r'/COUNT\(\*\) AS n FROM sync_points WHERE srv>=/', 'function(){ return { first: { n: 40 } }; }')
+    rule(r'/SELECT data FROM sync_points WHERE srv>=/', 'function(){ return { all: [{ data: JSON.stringify({ lat: 50.011, lng: 14.402 }) }, { data: JSON.stringify({ lat: 50.012, lng: 14.403 }) }, { data: JSON.stringify({ lat: 49.2, lng: 16.6 }) }, { data: "{x" }] }; }')
+    rule(r'/FROM usage u LEFT JOIN firms f/', 'function(){ return { all: [{ uid: "u1", uname: "Jan", firm_id: "f1", ts: Date.now() - 60000, n: 5, firma: "Geo s.r.o." }] }; }')
+    rule(r'/FROM accounts WHERE tarif=\'pro\' AND tarif_do>\? AND tarif_do<=\?/', 'function(){ return { all: [{ id: "acc9", code: "AAAA9999", name: "Eva", tarif_do: Date.now() + 3 * 864e5 }] }; }')
+    lite = call('GET', '/owner/prehled?lite=1', headers=OWN)
+    ok('V1 /owner/prehled?lite=1 = jen zadosti a zpravy (tecka na vstupech)', lite['status'] == 200 and lite['data'].get('zadosti') == 2 and lite['data'].get('zpravy') == 3 and 'lidi24' not in lite['data'], lite)
+    pr = call('GET', '/owner/prehled', headers=OWN)
+    ok('V2 /owner/prehled: souhrn 24 h, kdo je v terenu, shluky (rozbity JSON preskocen), vyprsi',
+       pr['status'] == 200 and pr['data'].get('lidi24') == 4 and pr['data'].get('body24') == 40 and len(pr['data'].get('online') or []) == 1
+       and len(pr['data'].get('shluky') or []) == 2 and sum(x['n'] for x in pr['data']['shluky']) == 3 and (pr['data'].get('vyprsi') or [{}])[0].get('code') == 'AAAA9999', pr)
+    # denik: tarif zapise radek do owner_log
+    r.eval('LOG.length = 0')
+    call('POST', '/owner/tarif', body={'id': 'acc1', 'tarif': 'pro', 'dni': 14}, headers=OWN)
+    logs = [l for l in log() if l.get('op') == 'run' and 'INSERT INTO owner_log' in (l.get('sql') or '')]
+    ok('V3 zapnuti Pro zapise do deniku vlastnika (akce pro-zapnout, 14 dni)', logs and logs[-1]['args'][1] == 'pro-zapnout' and '14' in str(logs[-1]['args'][3]), logs[-1:] if logs else log()[-3:])
+    rule(r'/FROM owner_log ORDER BY id DESC/', 'function(){ return { all: [{ id: 5, ts: 1, akce: "pro-zapnout", cil: "K7QM3XP2 Jan", detail: "14 dní" }] }; }')
+    lg = call('GET', '/owner/log', headers=OWN)
+    ok('V4 GET /owner/log vraci radky deniku', lg['status'] == 200 and (lg['data'].get('rows') or [{}])[0].get('akce') == 'pro-zapnout', lg)
+    # vzkaz
+    r.eval('LOG.length = 0')
+    vz = call('POST', '/owner/vzkaz', body={'acc_id': 'acc1', 'txt': 'Pro máš na 14 dní.'}, headers=OWN)
+    ins = [l for l in log() if l.get('op') == 'run' and 'INSERT INTO vzkazy' in (l.get('sql') or '')]
+    ok('V5 POST /owner/vzkaz ulozi vzkaz uctu', vz['status'] == 200 and ins and ins[-1]['args'][1] == 'acc1' and ins[-1]['args'][3] == 'Pro máš na 14 dní.', (vz, ins[-1:] if ins else None))
+    ok('V6 vzkaz bez prijemce -> 400', call('POST', '/owner/vzkaz', body={'txt': 'x'}, headers=OWN)['status'] == 400)
+    # /config nese nepřečtené vzkazy prihlaseneho; precteno je oznaci
+    rule(r'/FROM vzkazy WHERE read_ts IS NULL/', 'function(a){ return { all: a[0] === "acc1" ? [{ id: 7, ts: 1, txt: "Ahoj", acc_id: "acc1", firm_id: null }] : [] }; }')
+    cfg = call('GET', '/config', headers=AUTH)
+    ok('V7 /config prinese vzkazy pro ucet (komu: ty)', cfg['status'] == 200 and (cfg['data'].get('vzkazy') or [{}])[0].get('txt') == 'Ahoj' and cfg['data']['vzkazy'][0].get('komu') == 'ty', cfg['data'].get('vzkazy'))
+    r.eval('LOG.length = 0')
+    pc = call('POST', '/vzkaz/precteno', body={'id': 7}, headers=AUTH)
+    upd = [l for l in log() if l.get('op') == 'run' and 'UPDATE vzkazy SET read_ts' in (l.get('sql') or '')]
+    ok('V8 POST /vzkaz/precteno oznaci JEN svuj vzkaz (acc_id/firm_id v dotazu)', pc['status'] == 200 and upd and upd[-1]['args'][1] == 7 and upd[-1]['args'][2] == 'acc1', upd[-1:] if upd else log()[-2:])
+    # poznamka
+    r.eval('LOG.length = 0')
+    pz = call('POST', '/owner/ucty/acc1/pozn', body={'note': 'volat v pátek'}, headers=OWN)
+    up2 = [l for l in log() if l.get('op') == 'run' and 'UPDATE accounts SET note' in (l.get('sql') or '')]
+    ok('V9 POST /owner/ucty/:id/pozn ulozi poznamku', pz['status'] == 200 and pz['data'].get('note') == 'volat v pátek' and up2 and up2[-1]['args'] == ['volat v pátek', 'acc1'], (pz, up2[-1:] if up2 else None))
+    # pohled ocima uctu
+    rule(r'/SELECT id, code, name, tarif, tarif_do, disabled, created, last_login, note FROM accounts WHERE id=\?/', 'function(a){ return { first: a[0] === "acc1" ? { id: "acc1", code: "K7QM3XP2", name: "Jan", tarif: "zaklad", tarif_do: null, disabled: 0, created: 1, last_login: 2, note: "volat" } : null }; }')
+    rule(r'/FROM users u JOIN firms f ON f\.id=u\.firm_id WHERE u\.acc_id=\?/', 'function(){ return { all: [{ uid: "u1", role: "admin", own: 0, left_ts: null, disabled: 0, last_login: 2, firm_id: "f1", name: "Geo s.r.o.", code: "ABCDEF", perms: "{}", frozen: 0 }] }; }')
+    rule(r'/FROM usage WHERE uid IN/', 'function(){ return { all: [{ k: "openMeasureModal", n: 9, last: 5 }] }; }')
+    po = call('GET', '/owner/ucty/acc1/pohled', headers=OWN)
+    ok('V10 GET /owner/ucty/:id/pohled: ucet, clenstvi, nastroje', po['status'] == 200 and po['data']['ucet']['code'] == 'K7QM3XP2' and po['data']['clenstvi'][0]['nazev'] == 'Geo s.r.o.' and po['data']['nastroje'][0]['k'] == 'openMeasureModal', po)
+    ok('V11 pohled neznameho uctu -> 404', call('GET', '/owner/ucty/nikdo/pohled', headers=OWN)['status'] == 404)
+    # zaloha: tabulky bez hesel
+    rule(r'/FROM accounts$/', 'function(){ return { all: [{ id: "acc1", code: "K7QM3XP2", name: "Jan", tarif: "zaklad" }] }; }')
+    ex = call('GET', '/owner/export', headers=OWN)
+    tb = (ex['data'] or {}).get('tabulky') or {}
+    ok('V12 GET /owner/export vraci vsechny tabulky, ucty bez hesel', ex['status'] == 200 and set(['firms', 'users', 'accounts', 'jobs', 'sync_points', 'feedback', 'orders', 'vzkazy', 'owner_log', 'meta']) <= set(tb) and all('pass_hash' not in x for x in tb.get('accounts', [])), sorted(tb))
+    ok('V13 /owner/prehled bez klice -> 403', call('GET', '/owner/prehled', headers={'X-Owner-Key': 'spatny-klic-aspon-24-znaku-xx'})['status'] == 403)
+    # errors: souhrn podle verze
+    rule(r'/FROM errors WHERE ts>=\? GROUP BY ver/', 'function(){ return { all: [{ ver: "v290", n: 12, sigs: 3, firms: 2 }] }; }')
+    er = call('GET', '/owner/errors', headers=OWN)
+    ok('V14 /owner/errors nese souhrn podle verze appky', er['status'] == 200 and (er['data'].get('verze') or [{}])[0].get('ver') == 'v290', er['data'])
 
     # ---- B) objednavka ---------------------------------------------------------
     base_rules()

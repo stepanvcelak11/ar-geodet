@@ -834,6 +834,50 @@ async function ownerGate(req, env, co) {
     try { await guardClear(env, kl); } catch (e) {}
     return null;
 }
+// ---------------------------------------------------------------------------
+// VLASTNÍK PLUS (12. 9. 2026, 13 schválených návrhů z artefaktu „Návrhy pro vlastníka")
+// ---------------------------------------------------------------------------
+//   owner_log  — deník vlastníka: co kdy zapnul/vypnul/smazal a komu (návrh „audit")
+//   vzkazy     — vzkaz KONKRÉTNÍMU účtu nebo firmě (návrh „vzkaz"); chodí s /config
+//                jako `vzkazy`, přečtení potvrzuje POST /vzkaz/precteno
+//   accounts.note — poznámka vlastníka u účtu (návrh „pozn-ucet")
+let _ownerPlusMig = false;
+async function ensureOwnerPlusSchema(env) {
+    if (_ownerPlusMig) return;
+    const sqls = [
+        'CREATE TABLE IF NOT EXISTS owner_log (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, '
+        + 'akce TEXT NOT NULL, cil TEXT, detail TEXT)',
+        'CREATE INDEX IF NOT EXISTS idx_ownerlog_ts ON owner_log(ts)',
+        'CREATE TABLE IF NOT EXISTS vzkazy (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, '
+        + 'acc_id TEXT, firm_id TEXT, txt TEXT NOT NULL, read_ts INTEGER)',
+        'CREATE INDEX IF NOT EXISTS idx_vzkazy_acc ON vzkazy(acc_id, read_ts)',
+        'CREATE INDEX IF NOT EXISTS idx_vzkazy_firm ON vzkazy(firm_id, read_ts)',
+        'ALTER TABLE accounts ADD COLUMN note TEXT'
+    ];
+    for (const q of sqls) { try { await env.DB.prepare(q).run(); } catch (e) {} }
+    _ownerPlusMig = true;
+}
+// Zápis do deníku NIKDY nesmí shodit akci, kvůli které vznikl — proto try/catch a
+// ctx.waitUntil, kde je k dispozici (jinak se počká, D1 zápis je levný).
+async function ownerLog(env, akce, cil, detail) {
+    try {
+        await ensureOwnerPlusSchema(env);
+        await env.DB.prepare('INSERT INTO owner_log(ts,akce,cil,detail) VALUES(?,?,?,?)')
+            .bind(Date.now(), String(akce).slice(0, 40), cil == null ? null : String(cil).slice(0, 120),
+                detail == null ? null : (typeof detail === 'string' ? detail : JSON.stringify(detail)).slice(0, 500)).run();
+    } catch (e) {}
+}
+// Nepřečtené vzkazy pro přihlášeného člověka (účet NEBO jeho firma). Chodí s /config.
+async function vzkazyPro(env, me) {
+    try {
+        await ensureOwnerPlusSchema(env);
+        const rows = await dbAll(env,
+            'SELECT id, ts, txt, acc_id, firm_id FROM vzkazy WHERE read_ts IS NULL AND ((acc_id IS NOT NULL AND acc_id=?) OR (firm_id IS NOT NULL AND firm_id=?)) ORDER BY ts DESC LIMIT 10',
+            me.accId || '', me.firm_id || '');
+        return (rows || []).map(r => ({ id: r.id, ts: r.ts, txt: r.txt, komu: r.acc_id ? 'ty' : 'firma' }));
+    } catch (e) { return []; }
+}
+
 // otisk zakladatele — podepsaná IP, ne IP sama (v databázi tak neleží adresa)
 async function founderId(env, req) {
     const ip = req.headers.get('CF-Connecting-IP') || '0';
@@ -1259,7 +1303,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 14, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 15, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
 
             // ---------------- ČHMÚ: měření z nejbližší stanice ---------------
             // veřejné (bez tokenu) — počasí není firemní údaj
@@ -1396,6 +1440,7 @@ export default {
                 if (!id) return err(400, 'Chybí id.');
                 if (b.smazat) await env.DB.prepare('DELETE FROM feedback WHERE id=?').bind(id).run();
                 else await env.DB.prepare('UPDATE feedback SET done=? WHERE id=?').bind(b.done ? 1 : 0, id).run();
+                await ownerLog(env, b.smazat ? 'zprava-smazat' : (b.done ? 'zprava-vyrizeno' : 'zprava-zpet'), String(id));
                 return json({ ok: true });
             }
 
@@ -1699,6 +1744,134 @@ export default {
                 const gate = await ownerGate(req, env, 'Konzole');
                 if (gate) return gate;
                 await ensureOwnerSchema(env);
+                await ensureOwnerPlusSchema(env);
+
+                // ===== VLASTNÍK PLUS =====================================================
+                // Souhrn dne (návrh „dnes") + tečka „něco čeká" (?lite=1, návrh „badge")
+                // + kdo je v terénu (návrh „online") + komu vyprší Pro (návrh „kalendar").
+                // Okno je 24 h zpět, ne kalendářní den — server neví, jaké je u uživatele
+                // ráno, a „za posledních 24 hodin" je stejně čitelné.
+                if (req.method === 'GET' && path === '/owner/prehled') {
+                    const ted = Date.now(), od = ted - 864e5;
+                    const cnt = async (sql, ...b) => { try { const r = await env.DB.prepare(sql).bind(...b).first(); return (r && (r.n || 0)) || 0; } catch (e) { return 0; } };
+                    const zadosti = await cnt("SELECT COUNT(*) AS n FROM feedback WHERE done=0 AND kind='pro'");
+                    const zpravy = await cnt("SELECT COUNT(*) AS n FROM feedback WHERE done=0 AND kind!='pro'");
+                    if (url.searchParams.get('lite') === '1') return json({ zadosti, zpravy, serverTime: ted });
+                    const lidi24 = await cnt('SELECT COUNT(DISTINCT uid) AS n FROM usage WHERE ts>=?', od);
+                    const body24 = await cnt('SELECT COUNT(*) AS n FROM sync_points WHERE srv>=? AND deleted=0', od);
+                    const ucty24 = await cnt('SELECT COUNT(*) AS n FROM accounts WHERE created>=?', od);
+                    const chyby24 = await cnt('SELECT SUM(n) AS n FROM errors WHERE ts>=?', od);
+                    const uctyCelkem = await cnt('SELECT COUNT(*) AS n FROM accounts');
+                    const proCelkem = await cnt("SELECT COUNT(*) AS n FROM accounts WHERE tarif='pro' AND (tarif_do IS NULL OR tarif_do=0 OR tarif_do>?)", ted);
+                    let vyprsi = [];
+                    try {
+                        vyprsi = await dbAll(env, "SELECT id, code, name, tarif_do FROM accounts WHERE tarif='pro' AND tarif_do>? AND tarif_do<=? ORDER BY tarif_do LIMIT 50", ted, ted + 60 * 864e5) || [];
+                    } catch (e) { vyprsi = []; }
+                    // kdo je v terénu: aktivita za 10 minut (usage) + živé polohy (pos)
+                    let online = [];
+                    try {
+                        const rows = await dbAll(env,
+                            'SELECT u.uid, MAX(u.uname) AS uname, u.firm_id, MAX(u.ts) AS ts, COUNT(*) AS n, f.name AS firma '
+                            + 'FROM usage u LEFT JOIN firms f ON f.id=u.firm_id WHERE u.ts>=? GROUP BY u.uid, u.firm_id ORDER BY ts DESC LIMIT 40', ted - 10 * 60e3);
+                        online = (rows || []).map(r => ({ uid: r.uid, jmeno: r.uname, firma: r.firma, ts: r.ts, n: r.n }));
+                    } catch (e) { online = []; }
+                    try {
+                        const rows = await dbAll(env, 'SELECT p.uid, p.uname, p.firm_id, p.ts, p.job, f.name AS firma FROM pos p LEFT JOIN firms f ON f.id=p.firm_id WHERE p.ts>=? ORDER BY p.ts DESC LIMIT 40', ted - 10 * 60e3);
+                        (rows || []).forEach(r => { if (!online.some(o => o.uid === r.uid)) online.push({ uid: r.uid, jmeno: r.uname, firma: r.firma, ts: r.ts, n: 0, job: r.job }); });
+                    } catch (e) {}
+                    // kde se dnes měřilo — shluky bodů na ~2 km (0,02°), bez konkrétních souřadnic
+                    const shluky = {};
+                    try {
+                        const rows = await dbAll(env, 'SELECT data FROM sync_points WHERE srv>=? AND deleted=0 LIMIT 3000', od);
+                        (rows || []).forEach(r => {
+                            let d = null; try { d = JSON.parse(r.data || 'null'); } catch (e) { d = null; }
+                            if (!d || typeof d.lat !== 'number' || typeof d.lng !== 'number') return;
+                            const k = (Math.round(d.lat / 0.02) * 0.02).toFixed(2) + ',' + (Math.round(d.lng / 0.02) * 0.02).toFixed(2);
+                            shluky[k] = (shluky[k] || 0) + 1;
+                        });
+                    } catch (e) {}
+                    return json({
+                        serverTime: ted, lidi24, body24, ucty24, chyby24, zadosti, zpravy, uctyCelkem, proCelkem,
+                        vyprsi, online,
+                        shluky: Object.keys(shluky).map(k => { const p = k.split(','); return { lat: +p[0], lng: +p[1], n: shluky[k] }; })
+                    });
+                }
+                // Deník vlastníka (návrh „audit")
+                if (req.method === 'GET' && path === '/owner/log') {
+                    const before = parseInt(url.searchParams.get('before'), 10) || 0;
+                    let rows = [];
+                    try {
+                        rows = before
+                            ? await dbAll(env, 'SELECT id, ts, akce, cil, detail FROM owner_log WHERE id<? ORDER BY id DESC LIMIT 100', before)
+                            : await dbAll(env, 'SELECT id, ts, akce, cil, detail FROM owner_log ORDER BY id DESC LIMIT 100');
+                    } catch (e) { rows = []; }
+                    return json({ rows: rows || [], more: (rows || []).length === 100 });
+                }
+                // Vzkaz konkrétnímu účtu nebo firmě (návrh „vzkaz")
+                if (req.method === 'POST' && path === '/owner/vzkaz') {
+                    const b = await req.json().catch(() => null) || {};
+                    const txt = String(b.txt || '').trim().slice(0, 500);
+                    const acc = b.acc_id ? String(b.acc_id).slice(0, 40) : null;
+                    const firm = b.firm_id ? String(b.firm_id).slice(0, 40) : null;
+                    if (!txt) return err(400, 'Prázdný vzkaz.');
+                    if (!acc && !firm) return err(400, 'Chybí komu (acc_id nebo firm_id).');
+                    await env.DB.prepare('INSERT INTO vzkazy(ts,acc_id,firm_id,txt,read_ts) VALUES(?,?,?,?,NULL)').bind(Date.now(), acc, firm, txt).run();
+                    await ownerLog(env, 'vzkaz', acc || firm, txt.slice(0, 120));
+                    return json({ ok: true });
+                }
+                // Poznámka u účtu (návrh „pozn-ucet")
+                const pm = /^\/owner\/ucty\/([\w-]+)\/pozn$/.exec(path);
+                if (pm && req.method === 'POST') {
+                    const b = await req.json().catch(() => null) || {};
+                    const note = String(b.note || '').trim().slice(0, 500);
+                    await env.DB.prepare('UPDATE accounts SET note=? WHERE id=?').bind(note || null, pm[1]).run();
+                    await ownerLog(env, 'poznamka', pm[1], note.slice(0, 120));
+                    return json({ ok: true, note: note || null });
+                }
+                // Pohled očima účtu (návrh „ocima"): co ten člověk má a vidí — tarif, role
+                // v každém prostoru, poslední aktivita, jeho chyby, které nástroje používá.
+                const vm = /^\/owner\/ucty\/([\w-]+)\/pohled$/.exec(path);
+                if (vm && req.method === 'GET') {
+                    await ensureUctySchema(env);
+                    const acc = await dbFirst(env, 'SELECT id, code, name, tarif, tarif_do, disabled, created, last_login, note FROM accounts WHERE id=?', vm[1]);
+                    if (!acc) return err(404, 'Účet nenalezen.');
+                    let clenstvi = [], chyby = [], nastroje = [], zarizeni = [];
+                    try {
+                        clenstvi = await dbAll(env, 'SELECT u.id AS uid, u.role, u.own, u.left_ts, u.disabled, u.last_login, f.id AS firm_id, f.name, f.code, f.perms, f.frozen FROM users u JOIN firms f ON f.id=u.firm_id WHERE u.acc_id=? ORDER BY u.own DESC', vm[1]) || [];
+                    } catch (e) {}
+                    const uids = clenstvi.map(c => c.uid);
+                    if (uids.length) {
+                        const ph = uids.map(() => '?').join(',');
+                        try { chyby = await dbAll(env, 'SELECT ts, msg, src, line, n, ver, dev FROM errors WHERE uname IN (SELECT name FROM users WHERE id IN (' + ph + ')) ORDER BY ts DESC LIMIT 15', ...uids) || []; } catch (e) {}
+                        try { nastroje = await dbAll(env, "SELECT k, COUNT(*) AS n, MAX(ts) AS last FROM usage WHERE uid IN (" + ph + ") AND t='tool' AND ts>=? GROUP BY k ORDER BY n DESC LIMIT 30", ...uids, Date.now() - 30 * 864e5) || []; } catch (e) {}
+                        try { zarizeni = await dbAll(env, 'SELECT dev, MAX(ts) AS last, COUNT(*) AS n FROM usage WHERE uid IN (' + ph + ') AND dev IS NOT NULL GROUP BY dev ORDER BY last DESC LIMIT 5', ...uids) || []; } catch (e) {}
+                    }
+                    return json({
+                        ucet: Object.assign({}, acc, { tarifPlati: tarifUctu(acc) === 'pro' }),
+                        clenstvi: clenstvi.map(c => ({ firm_id: c.firm_id, nazev: c.own ? null : c.name, kod: c.own ? null : c.code, role: c.role, vlastni: !!c.own, archiv: !!c.left_ts, blokovan: !!c.disabled, lastLogin: c.last_login, frozen: c.frozen || 0,
+                            perms: (() => { try { return JSON.parse(c.perms || 'null'); } catch (e) { return null; } })() })),
+                        chyby, nastroje, zarizeni,
+                        vzkazy: await (async () => { try { return await dbAll(env, 'SELECT id, ts, txt, read_ts FROM vzkazy WHERE acc_id=? ORDER BY ts DESC LIMIT 10', vm[1]) || []; } catch (e) { return []; } })()
+                    });
+                }
+                // Záloha celého serveru (návrh „zaloha"): všechny tabulky jako jeden JSON.
+                // Hesla ven nejdou (pass_hash/salt se vynechávají), body max 20 000 řádků.
+                if (req.method === 'GET' && path === '/owner/export') {
+                    const dump = { ts: Date.now(), verze: 14, tabulky: {} };
+                    const tab = async (nazev, sql) => { try { dump.tabulky[nazev] = await dbAll(env, sql) || []; } catch (e) { dump.tabulky[nazev] = []; } };
+                    await tab('firms', 'SELECT id, code, name, perms, auto_lock, max_users, frozen, note, created, founder FROM firms');
+                    await tab('users', 'SELECT id, firm_id, name, role, disabled, created, last_login, acc_id, left_ts, own FROM users');
+                    await tab('accounts', 'SELECT id, code, name, tarif, tarif_do, disabled, created, last_login, trial_ts, note FROM accounts');
+                    await tab('jobs', 'SELECT firm_id, job_key, name, acl, ts, srv, deleted, uname FROM jobs');
+                    await tab('sync_points', 'SELECT firm_id, job_key, point_id, data, ts, srv, deleted, uname FROM sync_points WHERE deleted=0 LIMIT 20000');
+                    await tab('feedback', 'SELECT id, ts, kind, txt, contact, meta, who, done FROM feedback');
+                    await tab('orders', 'SELECT vs, acc_id, code, amount, dni, created, paid_ts, paid_by, cancelled FROM orders');
+                    await tab('vzkazy', 'SELECT id, ts, acc_id, firm_id, txt, read_ts FROM vzkazy');
+                    await tab('owner_log', 'SELECT id, ts, akce, cil, detail FROM owner_log ORDER BY id DESC LIMIT 2000');
+                    await tab('meta', 'SELECT k, v FROM meta WHERE k IN (\'flags\',\'notice\')');
+                    await ownerLog(env, 'zaloha', null, Object.keys(dump.tabulky).map(k => k + ':' + dump.tabulky[k].length).join(' '));
+                    return json(dump);
+                }
 
                 // JEDNA ODPOVĚĎ = CELÁ OBRAZOVKA konzole. Záměrně: firem jsou
                 // desítky, ne tisíce, a druhý dotaz na detail by znamenal další
@@ -1812,6 +1985,7 @@ export default {
                     if (b.maxUsers != null)
                         await env.DB.prepare('UPDATE firms SET max_users=? WHERE id=?')
                             .bind(Math.max(1, Math.min(1000, parseInt(b.maxUsers, 10) || FIRM_MAX_DEFAULT)), fid).run();
+                    if (b.frozen != null) await ownerLog(env, 'firma-zmrazit', fid, String(b.frozen));
                     if (b.frozen != null)
                         await env.DB.prepare('UPDATE firms SET frozen=? WHERE id=?')
                             .bind(Math.max(0, Math.min(2, parseInt(b.frozen, 10) || 0)), fid).run();
@@ -1827,6 +2001,7 @@ export default {
                 // ať se překlepem v seznamu nesmaže živá firma místo mrtvé.
                 if (fm && req.method === 'DELETE') {
                     const fid = fm[1];
+                    await ownerLog(env, 'firma-smazat', fid);
                     const f0 = await env.DB.prepare('SELECT id, code FROM firms WHERE id=?').bind(fid).first();
                     if (!f0) return err(404, 'Firma nenalezena.');
                     if ((url.searchParams.get('kod') || '').toUpperCase() !== String(f0.code).toUpperCase())
@@ -1878,6 +2053,7 @@ export default {
                         await env.DB.prepare("DELETE FROM meta WHERE k='notice'").run();
                         return json({ ok: true, notice: null });
                     }
+                    await ownerLog(env, 'hlaska-vsem', null, txt);
                     const days2 = Math.max(1, Math.min(60, parseInt(b.dni, 10) || 7));
                     const n = { txt: txt, ts: Date.now(), until: Date.now() + days2 * 864e5 };
                     await env.DB.prepare("INSERT OR REPLACE INTO meta(k,v) VALUES('notice',?)").bind(JSON.stringify(n)).run();
@@ -1890,6 +2066,7 @@ export default {
                 if (path === '/owner/flags' && (req.method === 'PUT' || req.method === 'POST')) {
                     const b = await req.json().catch(() => null) || {};
                     const off = Array.isArray(b.off) ? b.off : [];
+                    await ownerLog(env, 'vypinac', null, (off || []).join(', ').slice(0, 400) || 'vše zapnuto');
                     const clean = [];
                     for (const x of off) {
                         const v = String(x || '').trim().slice(0, 60);
@@ -1924,7 +2101,12 @@ export default {
                         const t = await env.DB.prepare('SELECT SUM(n) AS n FROM errors WHERE ts>=?').bind(odE).first();
                         totalE = (t && t.n) || 0;
                     } catch (e) { totalE = 0; }
-                    return json({ dni: dniE, total: totalE, rows: rowsE });
+                    // podle verze appky (návrh „zdravi"): která verze pada nejvíc
+                    let verze = [];
+                    try {
+                        verze = (await env.DB.prepare('SELECT ver, SUM(n) AS n, COUNT(DISTINCT sig) AS sigs, COUNT(DISTINCT firm_id) AS firms FROM errors WHERE ts>=? GROUP BY ver ORDER BY n DESC LIMIT 12').bind(odE).all()).results || [];
+                    } catch (e) { verze = []; }
+                    return json({ dni: dniE, total: totalE, rows: rowsE, verze });
                 }
                 if (req.method === 'DELETE' && path === '/owner/errors') {
                     try { await env.DB.prepare('DELETE FROM errors').run(); } catch (e) {}
@@ -2031,6 +2213,7 @@ export default {
                     // půlrokem zbývajícím, mu ho nesmí zkrátit.
                     if (tarif === 'pro') await zapniPro(env, acc, b.dni | 0);
                     else await vypniPro(env, acc);
+                    await ownerLog(env, tarif === 'pro' ? 'pro-zapnout' : 'pro-vypnout', acc.code + ' ' + acc.name, tarif === 'pro' ? ((b.dni | 0) ? (b.dni | 0) + ' dní' : 'navždy') : '');
                     return json({ ok: true, ucet: await dbFirst(env, 'SELECT id, code, name, tarif, tarif_do FROM accounts WHERE id=?', acc.id) });
                 }
 
@@ -2048,6 +2231,7 @@ export default {
                     await env.DB.prepare('UPDATE accounts SET disabled=? WHERE id=?').bind(dis, acc.id).run();
                     // i členství — starší appky se hlásí starou cestou přes users.disabled
                     await dbRunSoft(env, 'UPDATE users SET disabled=? WHERE acc_id=?', dis, acc.id);
+                    await ownerLog(env, b.disabled ? 'blokace' : 'odblokovat', (acc && (acc.code + ' ' + acc.name)) || String(b.id));
                     return json({ ok: true, ucet: await dbFirst(env, 'SELECT id, code, name, tarif, tarif_do, disabled FROM accounts WHERE id=?', acc.id) });
                 }
 
@@ -2196,8 +2380,19 @@ export default {
                         ucet: me.accId || null, tarif: me.tarif,
                         vlastni: !!me.own, archiv: !!me.leftTs, odesel: me.leftTs || 0
                     },
-                    prostory: me.accId ? await prostoryUctu(env, me.accId) : []
+                    prostory: me.accId ? await prostoryUctu(env, me.accId) : [],
+                    vzkazy: await vzkazyPro(env, me)
                 }, cfg));
+            }
+            // vzkaz od vlastníka přečten (návrh „vzkaz"): jen svůj (účet nebo firma)
+            if (req.method === 'POST' && path === '/vzkaz/precteno') {
+                const b = await req.json().catch(() => null) || {};
+                const id = parseInt(b.id, 10);
+                if (!id) return err(400, 'Chybí id.');
+                await ensureOwnerPlusSchema(env);
+                await env.DB.prepare('UPDATE vzkazy SET read_ts=? WHERE id=? AND read_ts IS NULL AND ((acc_id IS NOT NULL AND acc_id=?) OR (firm_id IS NOT NULL AND firm_id=?))')
+                    .bind(Date.now(), id, me.accId || '', me.firm_id || '').run();
+                return json({ ok: true });
             }
 
             // ---------------- objednávky Pro (koupě z appky) ------------------

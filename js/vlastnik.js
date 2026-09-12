@@ -514,9 +514,16 @@
     // Co konzole nabízí. `run` se volá až po klepnutí; `lazy` říká, který modul se
     // musí předtím donačíst (js/lazy-load.js) — jinak by tlačítko nic neudělalo.
     function polozky() {
+        var P = window.AGVlastnikPlus;
+        var plus = (P && P.items) ? P.items() : [];
         return [
             {
                 sec: 'Celá aplikace',
+                ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>',
+                t: 'Souhrn dne a kdo je v terénu', d: 'Za 24 h: lidé, body, nové účty, žádosti, chyby; kdo teď měří a kde; komu vyprší Pro',
+                lazy: 'js/vlastnik-plus.js', keep: true, run: function () { jdi('prehled'); }
+            },
+            {
                 ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-6h6v6"/></svg>',
                 t: 'Všechny firmy', d: 'Kdo aplikaci používá, kolik má míst, žádosti o navýšení, zmrazení a úklid',
                 lazy: 'js/sprava-appky.js', run: function () { if (window.AGSprava) AGSprava.open(); else chybi('js/sprava-appky.js'); }
@@ -571,6 +578,22 @@
                 ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><path d="M23 21v-2a4 4 0 0 0-3-3.9"/></svg>',
                 t: 'Administrace firmy', d: 'Uživatelé, role a oprávnění firmy uložené na tomhle zařízení',
                 lazy: 'js/ucty-admin.js', run: function () { if (window.AGUctyAdmin) AGUctyAdmin.open(); else chybi('js/ucty-admin.js'); }
+            },
+            {
+                sec: 'Vlastník plus',
+                ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>',
+                t: 'Deník vlastníka', d: 'Co jsi kdy zapnul, vypnul, smazal a komu — s časem',
+                lazy: 'js/vlastnik-plus.js', keep: true, run: function () { jdi('denik'); }
+            },
+            {
+                ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+                t: 'Kalendář vypršení Pro', d: 'Komu Pro končí tento a příští měsíc, s tlačítkem prodloužit',
+                lazy: 'js/vlastnik-plus.js', keep: true, run: function () { jdi('kalendar'); }
+            },
+            {
+                ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M6 11l6 6 6-6"/><path d="M4 21h16"/></svg>',
+                t: 'Záloha celého serveru', d: 'Všechny firmy, účty a body jako jeden soubor (bez hesel)',
+                lazy: 'js/vlastnik-plus.js', keep: true, run: function () { jdi('zaloha'); }
             },
             {
                 sec: 'Klíč a režim',
@@ -737,6 +760,12 @@
                 return '<button type="button" class="agv-b' + (x === _dni ? ' on' : '') + '" data-dni="' + x + '">' + x + ' dní</button>';
             }).join('') + '</div>');
         h.push('<div class="agv-st" style="margin:8px 0 12px;">Celkem <b>' + (d.total || 0) + '</b> výskytů v <b>' + rows.length + '</b> různých chybách</div>');
+        // podle verze appky (návrh „zdravi", 12. 9. 2026): stará verze v telefonech
+        // hlásí chyby, které v nové už nejsou — bez tohohle se to nepozná
+        if (d.verze && d.verze.length) {
+            h.push('<div class="agv-sec">Podle verze appky</div><div class="agv-p" style="margin-bottom:10px;">' +
+                d.verze.map(function (v) { return '<b>' + esc(v.ver || '?') + '</b> ' + (v.n || 0) + '× (' + (v.sigs || 0) + ' chyb, ' + (v.firms || 0) + ' firem)'; }).join(' · ') + '</div>');
+        }
         if (!rows.length) {
             h.push('<div class="agv-p" style="padding:22px 4px;text-align:center;">Nic nespadlo. Buď je klid, nebo ještě nikdo nemá verzi, která chyby posílá.</div>');
         }
@@ -747,7 +776,11 @@
                 '<span class="dt">' + esc(kdy(r.last)) + '</span></div>' +
                 '<div class="ms">' + esc(r.msg || '') + '</div>' +
                 '<div class="sr">' + esc((r.src || '').split('/').pop() || 'neznámý soubor') +
-                (r.line ? ':' + r.line : '') + (r.ver ? ' · ' + esc(r.ver) : '') + '</div>' +
+                (r.line ? ':' + r.line : '') + (r.ver ? ' · ' + esc(r.ver) : '') +
+                // Vypnout modul rovnou od chyby (návrh „zdravi") — jen u souborů js/*.js
+                (/\.js$/.test((r.src || '').split('/').pop() || '') && !/^(logika|grafika|ucty|vlastnik|licence|pro-zamky)\.js$/.test((r.src || '').split('/').pop())
+                    ? ' <button type="button" class="agv-b" data-vyp="js/' + esc((r.src || '').split('/').pop()) + '" style="margin-left:6px;">Vypnout modul</button>' : '') +
+                '</div>' +
                 '</div>');
         });
         h.push('<button type="button" class="btn btn-secondary" id="agv-err-clr" style="margin-top:16px;">Smazat nasbírané chyby</button>');
@@ -755,6 +788,22 @@
         wireZpet(b);
         Array.prototype.forEach.call(b.querySelectorAll('[data-dni]'), function (el) {
             el.addEventListener('click', function () { _dni = parseInt(el.getAttribute('data-dni'), 10) || 14; _load = null; render(); });
+        });
+        Array.prototype.forEach.call(b.querySelectorAll('[data-vyp]'), function (el) {
+            el.addEventListener('click', function () {
+                var id = el.getAttribute('data-vyp');
+                ask('Vypnout modul ' + id + ' všem lidem? Appka ho při příštím /config zhasne; zapneš ho zase ve Vypínači modulů.').then(function (ok) {
+                    if (!ok) return;
+                    api('/owner/firms').then(function (r) {
+                        var off = (r.ok && r.data && r.data.flags && r.data.flags.off) || [];
+                        if (off.indexOf(id) === -1) off.push(id);
+                        return api('/owner/flags', null, 15000, { method: 'PUT', body: { off: off } });
+                    }).then(function (r2) {
+                        if (!r2 || !r2.ok) { sayFail(r2 || { status: 0 }, 'vypínač'); return; }
+                        el.textContent = 'Vypnuto'; el.disabled = true;
+                    });
+                });
+            });
         });
         b.querySelector('#agv-err-clr').addEventListener('click', function () {
             ask('Smazat všechny nasbírané chyby ze serveru?').then(function (ok) {
@@ -782,19 +831,21 @@
             return;
         }
         var d = _load, rows = d.rows || [];
+        // jen Pro nástroje (návrh „statistika"): podklad, co v Pro drží a co je mrtvé
+        if (_jenPro) rows = rows.filter(function (r) { try { return !!(window.AGReg && AGReg.isPro(r.k)); } catch (e) { return false; } });
         var max = rows.length ? (rows[0].n || 1) : 1;
         var videl = {};
         rows.forEach(function (r) { videl[r.k] = 1; });
         var reg = [];
         try { if (window.AGReg && AGReg.all) reg = AGReg.all(); } catch (e) { swallow(e, 'reg2'); }
-        var nikdo = reg.filter(function (t) { return t.k && !videl[t.k]; });
+        var nikdo = reg.filter(function (t) { return t.k && !videl[t.k] && (!_jenPro || t.pro); });
 
         var h = [hlava('Co lidi doopravdy používají',
             'Ze záznamů užívání ze všech firem. Ukazuje, co má cenu dolaďovat — a co je mrtvé.')];
         h.push('<div class="agv-filtr">' +
             [7, 30, 90, 365].map(function (x) {
                 return '<button type="button" class="agv-b' + (x === _dni ? ' on' : '') + '" data-dni="' + x + '">' + (x === 365 ? 'rok' : x + ' dní') + '</button>';
-            }).join('') + '</div>');
+            }).join('') + '<button type="button" class="agv-b' + (_jenPro ? ' on' : '') + '" id="agv-jenpro">jen Pro</button></div>');
         h.push('<div class="agv-st" style="margin:8px 0 12px;">' + rows.length + ' nástrojů · ' +
             (d.firms || 0) + ' firem · ' + (d.lidi || 0) + ' lidí</div>');
         rows.forEach(function (r) {
@@ -813,7 +864,10 @@
         Array.prototype.forEach.call(b.querySelectorAll('[data-dni]'), function (el) {
             el.addEventListener('click', function () { _dni = parseInt(el.getAttribute('data-dni'), 10) || 30; _load = null; render(); });
         });
+        var jp = b.querySelector('#agv-jenpro');
+        if (jp) jp.addEventListener('click', function () { _jenPro = !_jenPro; render(); });
     }
+    var _jenPro = false;
 
     function kdy(ts) {
         if (!ts) return '—';
@@ -836,6 +890,8 @@
         if (_view === 'flags') return viewFlags(b);
         if (_view === 'errors') return viewErrors(b);
         if (_view === 'usage') return viewUsage(b);
+        // pohledy z js/vlastnik-plus.js (souhrn, deník, kalendář, záloha, pohled očima účtu)
+        if (_view && window.AGVlastnikPlus && AGVlastnikPlus.view && AGVlastnikPlus.view(_view, b)) return;
         var h = ['<div class="agv-hd"><div style="flex:none;width:22px;height:22px;color:var(--accent);">' + ICON + '</div>' +
             '<div><b>Máš odemčeno všechno</b><small>Oprávnění firem a rolí se na tenhle telefon nevztahují.</small></div></div>'];
         var items = polozky();
@@ -850,6 +906,8 @@
         h.push('<div class="agv-st" id="agv-stav">Zjišťuji…</div>');
         h.push('<button type="button" class="btn btn-secondary" id="agv-close" style="margin-top:16px;">Zavřít</button>');
         b.innerHTML = h.join('');
+        // dlaždice souhrnu nahoře (js/vlastnik-plus.js) — vloží se, až modul dojede
+        try { if (window.AGVlastnikPlus && AGVlastnikPlus.dashboard) AGVlastnikPlus.dashboard(b); } catch (e) { swallow(e, 'dashboard'); }
 
         Array.prototype.forEach.call(b.querySelectorAll('.agv-it'), function (el) {
             el.addEventListener('click', function () {
@@ -1195,6 +1253,8 @@
     window.agOpenKonzole = open;
     window.AGVlastnik = {
         isOn: isOn, open: open, close: close, login: login, leave: leave,
-        key: key, setKey: setKey, promptKey: promptKey
+        key: key, setKey: setKey, promptKey: promptKey,
+        // pro js/vlastnik-plus.js (souhrn, deník, kalendář, záloha, pohled očima účtu)
+        jdi: jdi, ext: { hlava: hlava, wireZpet: wireZpet, cekam: cekam, api: api, esc: esc, kdy: kdy, sayFail: sayFail, ask: ask, agAlert: agAlert, render: render, view: function () { return _view; } }
     };
 })();
