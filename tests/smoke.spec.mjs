@@ -199,7 +199,11 @@ test('appka nastartuje bez chyb a má klíčové prvky', async ({ page, context 
     // 2) stavová bublina (js/stavovy-pruh.js) je vidět a má obsah
     const bubble = page.locator('#ag-sp');
     await expect(bubble).toBeVisible();
-    await expect(bubble).toContainText('m');
+    // ⚠ Dřív se chtělo „m" — v CI bez přesnosti GPS je to ale „—" a písmeno „m" dodávalo
+    //   jen náhodou slovo „může" v hlášce („poloha může být posunutá"). Po zkrácení
+    //   hlášky (12. 9. 2026, „poloha nejistá") test spadl, ač bublina byla v pořádku.
+    //   Obsah = přesnost v metrech NEBO azimut ve stupních — jedno z toho tam musí být.
+    await expect(bubble).toContainText(/\d\s*m|°/);
 
     // 3) dok a mapa
     await expect(page.locator('#dock .dock-primary')).toBeVisible();
