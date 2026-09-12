@@ -253,6 +253,15 @@ test('otáčení mapy: sever nahoře zamkne rotaci', async ({ page, context }) =
 test('sbalitelný nástroj: vytyčení přímky běží dál v proužku', async ({ page, context }) => {
     await bootApp(page, context);
 
+    // ⚠⚠ OSA JE OD 11. 9. 2026 PLACENÝ NÁSTROJ (`pro: 1` u 'stakeout-line' v
+    // js/tools-registry.js) a zámky Pro drží i na PŘÍMÉ volání globálu (v283).
+    // Bez odemčení se agOpenStakeLine() tiše nedostane dál, #agsl-modal nenaskočí
+    // a tenhle test padal na „element(s) not found" — a s ním zastavil nasazení
+    // v287 na Pages (8e399cc), přestože appka byla v pořádku. Stejný vzor má níž
+    // test DGPS. Ve vydání ZÁKLAD js/stakeout-line.js v balíčku není, globál
+    // chybí a test se přeskočí (to je správně, nic se tam sbalit nedá).
+    await page.evaluate(() => { try { AGLic.uloz(AGLic.vyrob(1, 0)); } catch (e) {} });
+
     // nástroj otevřeme jeho vlastním globálem (test nezávisí na rozložení dlaždic)
     const opened = await page.evaluate(() => {
         if (typeof window.agOpenStakeLine === 'function') { window.agOpenStakeLine(); return true; }

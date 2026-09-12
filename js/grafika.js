@@ -2018,12 +2018,20 @@
         // Razitkuje se cas PRIJETI udalosti, ne cas vykresleni — kdyby se merilo az po rAF,
         // odectel by se i cas cekani na vsync a stropem by proslo jen ~20 snimku/s.
         const AR_MIN_FRAME_MS = 30;
-        let _orientPending = false, _lastOrientEvent = null, _lastArFrameTs = 0;
+        let _orientPending = false, _lastOrientEvent = null, _lastArFrameTs = 0, _lastHeadingTs = 0;
         function handleOrientation(event) {
             // absolutní zdroj funguje? (viz _absSeen u startCompass — rozhoduje o tom,
             // jestli se vůbec musí navěsit i relativní 'deviceorientation')
             if (!_absSeen && event && event.absolute === true && event.alpha != null) _absSeen = true;
             _lastOrientEvent = event; if (_calibActive) trackCalibMotion(event);
+            // ⚠⚠ ŽIVÝ KOMPAS SE POZNÁ TADY, NE AŽ V renderAR (12. 9. 2026). Hlídač
+            //   „Kompas mlčí" dřív stál na _lastGoodEvent, který zapisuje až renderAR —
+            //   a ten se vrací dřív hned z několika důvodů (bez GPS fixu, relativní
+            //   událost při absolutním zdroji, zahozený snímek). Události přitom chodily
+            //   a MAPA SE PODLE NICH OTÁČELA; uživatel: „kompas mi funguje, jenom mi
+            //   vyskakuje upozornění, že nefunguje." Proto se razítko bere z každé
+            //   události, která nese směr, ať už se z ní kreslilo, nebo ne.
+            if ((typeof event.webkitCompassHeading === 'number' && !isNaN(event.webkitCompassHeading)) || event.alpha != null) _lastHeadingTs = performance.now();
             if (_orientPending) return;
             // Zahozeny snimek nic neztrati: _lastOrientEvent je uz prepsany, takze dalsi
             // propusteny snimek kresli z NEJCERSTVEJSI udalosti. Kdyby udalosti prestaly
@@ -2402,7 +2410,9 @@
             // nenavěsil), nebo události chodí, ale žádná nenese směr — a to POUZE když už je
             // GPS fix: renderAR se bez polohy vrací hned na začátku, takže bez téhle podmínky
             // by se čekání na GPS tvářilo jako mrtvý kompas. 8 s je s rezervou nad rozběhem senzoru.
-            const _compassMute = !_lastOrientEvent || (!_lastGoodEvent && userLat && userLng);
+            // Mlčí = za posledních 8 s nepřišla ANI JEDNA událost se směrem (viz razítko
+            // v handleOrientation). Co s ní udělal renderAR, je pro tuhle otázku jedno.
+            const _compassMute = !_lastHeadingTs || (performance.now() - _lastHeadingTs > 8000);
             // ⚠⚠ ČEKÁNÍ NA PRVNÍ DOTEK NENÍ MLČENÍ (11. 9. 2026). Na iOS se kompas smí
             //   zapnout až v gestu (viz kompasAzPoDoteku), takže od startu do prvního
             //   klepnutí nemá odkud přijít jediná událost. Hlídač to počítal jako

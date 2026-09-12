@@ -99,6 +99,16 @@ def main():
     print('  /health:             v%s  %s' % (mam, json.dumps(
         {k: v for k, v in h.items() if k not in ('ts',)}, ensure_ascii=False)))
 
+    # Stav klice vlastnika (worker v13+): 'ok' | 'chybi' | 'kratky'. Bez nej se
+    # vlastnik neprihlasi a appka hlasi 503 — tady se to dozvi i ten, kdo na
+    # Cloudflare nevidi (a v souhrnu behu Actions).
+    ok_stav = h.get('ownerKey')
+    if ok_stav == 'ok':
+        print('  OWNER_KEY:           ok (konzole vlastnika pojede)')
+    elif ok_stav == 'kratky':
+        print('  OWNER_KEY:           KRATKY (< 24 znaku) - worker ho odmita, konzole vraci 503')
+    elif ok_stav == 'chybi':
+        print('  OWNER_KEY:           CHYBI - nastav secret OWNER_KEY (repozitar nebo Cloudflare), konzole vraci 503')
     if mam == chci:
         print('\nOK - nasazeny worker odpovida tomu, co je v repu.')
         return 0

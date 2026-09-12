@@ -8,6 +8,11 @@
 //          Zprávy (schránka od lidí).
 //   OBJEDNÁVKY — co lidi objednali a zaplatili, stav automatu z banky (Fio),
 //          tlačítko Zaplaceno pro ruční potvrzení, nezařazené platby k přiřazení.
+//   ŽÁDOSTI (12. 9. 2026) — Pro se neprodává samo: člověk o ně z karty Verze Pro
+//          POŽÁDÁ (js/pro-karta.js → POST /feedback, kind 'pro', kód účtu v meta)
+//          a tady se žádost vyřídí: Zapnout Pro (navždy / rok / měsíc) najde účet
+//          podle kódu a zprávu označí jako vyřízenou. Rozhodnutí uživatele:
+//          „Pro nechám uzavřené, ale musí mě požádat, abych jim to otevřel."
 //
 // ⚠ O PŘÍSTUPU ROZHODUJE SERVER, NE SKRYTÍ V UI. Všechno jde přes /owner/* s
 //   hlavičkou X-Owner-Key (tentýž klíč jako Správa aplikace, localStorage
@@ -35,7 +40,7 @@
     var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
         '<circle cx="9" cy="8" r="4"/><path d="M2 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2"/><path d="M17 3.5a3 3 0 0 1 0 6"/><path d="M19 13.5a5 5 0 0 1 3 4.5v3"/></svg>';
 
-    var _tab = 'lide', _lide = null, _obj = null, _q = '', _open = '', _busy = false;
+    var _tab = 'lide', _lide = null, _obj = null, _zad = null, _q = '', _open = '', _busy = false;
 
     function swallow(e, kde) { try { window.AG && AG.swallow && AG.swallow(e, 'prodej-konzole:' + kde); } catch (x) { } }
     function esc(s) {
@@ -186,12 +191,16 @@
     }
     function load() {
         _busy = true;
-        var a = api('/owner/ucty'), b = api('/owner/objednavky');
-        Promise.all([a, b]).then(function (rr) {
+        // Žádosti o Pro jdou schránkou zpětné vazby (GET /feedback?stav=open, jen
+        // vlastník) — filtruje se kind 'pro'. Starší worker vrátí i ostatní druhy,
+        // ty se tu nezobrazují.
+        var a = api('/owner/ucty'), b = api('/owner/objednavky'), c = api('/feedback?stav=open');
+        Promise.all([a, b, c]).then(function (rr) {
             _busy = false;
             if (!rr[0].ok) { _lide = null; render(); sayFail(rr[0], 'lidé'); return; }
             _lide = rr[0].data || null;
             _obj = rr[1].ok ? (rr[1].data || null) : null;
+            _zad = rr[2].ok ? ((rr[2].data || {}).messages || []).filter(function (m) { return m.kind === 'pro'; }) : null;
             render();
         });
     }
@@ -206,11 +215,13 @@
         var h = [];
         h.push('<div class="pd-tabs">' +
             '<button type="button" data-tab="lide"' + (_tab === 'lide' ? ' class="on"' : '') + '>Lidé' + (_lide ? ' (' + (_lide.ucty || []).length + ')' : '') + '</button>' +
+            '<button type="button" data-tab="zad"' + (_tab === 'zad' ? ' class="on"' : '') + '>Žádosti' + (_zad && _zad.length ? ' · ' + _zad.length : '') + '</button>' +
             '<button type="button" data-tab="obj"' + (_tab === 'obj' ? ' class="on"' : '') + '>Objednávky' + cekaBadge() + '</button>' +
             '</div>');
         if (!_lide) {
             h.push('<div class="pd-empty">Přehled se nenačetl.</div>');
         } else if (_tab === 'lide') h.push(renderLide());
+        else if (_tab === 'zad') h.push(renderZadosti());
         else h.push(renderObj());
         h.push('<button type="button" class="btn btn-secondary" id="pd-again" style="margin-top:14px;">Načíst znovu</button>');
         h.push('<button type="button" class="btn btn-secondary" id="pd-close" style="margin-top:8px;">Zavřít</button>');
@@ -290,6 +301,59 @@
         h.push('<div class="pd-note">Zablokování nemaže nic — člověk se jen nepřihlásí a na telefonu se do minuty odhlásí. Odblokovat jde kdykoli.</div>');
         h.push('</div>');
         return h.join('');
+    }
+
+    // ---- žádosti o Pro ---------------------------------------------------------------
+    function metaZ(m) { try { return JSON.parse(m.meta || 'null') || {}; } catch (e) { return {}; } }
+    function ucetPodleKodu(kod) {
+        var r = null; kod = String(kod || '').toUpperCase();
+        if (!kod) return null;
+        ((_lide || {}).ucty || []).forEach(function (u) { if (String(u.code || '').toUpperCase() === kod) r = u; });
+        return r;
+    }
+    function renderZadosti() {
+        var h = [];
+        if (_zad === null) return '<div class="pd-empty">Žádosti se nenačetly (schránka chce OWNER_KEY — viz Stav serveru v Konzoli vlastníka).</div>';
+        h.push('<div class="pd-note" style="margin:0 0 10px;">Tohle poslali lidé tlačítkem <b>Požádat o Pro</b> v appce. Zapnutím Pro se žádost sama označí jako vyřízená; člověku se Pro rozsvítí do minuty (s připojením).</div>');
+        if (!_zad.length) { h.push('<div class="pd-empty">Žádná nevyřízená žádost.</div>'); return h.join(''); }
+        _zad.forEach(function (m) {
+            var mt = metaZ(m), u = ucetPodleKodu(mt.ucet);
+            var kdo = m.who || 'bez jména';
+            if (mt.ucet && kdo.indexOf(mt.ucet) === -1) kdo += ' · účet ' + mt.ucet;
+            if (!mt.ucet) kdo += ' · bez účtu';
+            var nastroj = mt.nastroj ? (function (k) { try { var r = AGReg.get(k); return (r && r.help && r.help.t) || k; } catch (e) { return k; } })(mt.nastroj) : '';
+            h.push('<div class="pd-nez" data-zad="' + esc(m.id) + '">' +
+                '<h4>' + esc(kdo) + '</h4>' +
+                '<p>' + datum(m.ts) + (m.contact ? ' · <b>' + esc(m.contact) + '</b>' : ' · bez kontaktu') +
+                (nastroj ? ' · chtěl: ' + esc(nastroj) : '') + (mt.vydani ? ' · vydání ' + esc(mt.vydani) : '') + '</p>' +
+                '<p style="white-space:pre-wrap;">' + esc(m.txt) + '</p>' +
+                (u ? ('<p>Účet v seznamu: <b>' + esc(u.name) + '</b> · teď ' + esc(tarifText(u)) + '</p>' +
+                      '<div class="pd-tools">' +
+                      '<button type="button" class="pd-b on" data-zpro="' + esc(u.id) + '" data-zid="' + esc(m.id) + '" data-dni="0">Zapnout Pro navždy</button>' +
+                      '<button type="button" class="pd-b" data-zpro="' + esc(u.id) + '" data-zid="' + esc(m.id) + '" data-dni="365">na rok</button>' +
+                      '<button type="button" class="pd-b" data-zpro="' + esc(u.id) + '" data-zid="' + esc(m.id) + '" data-dni="30">na měsíc</button>' +
+                      '<button type="button" class="pd-b cv" data-zhotovo="' + esc(m.id) + '">Jen vyřídit (nezapínat)</button>' +
+                      '</div>')
+                   : ('<p><b>Účet se nenašel</b>' + (mt.ucet ? ' (kód ' + esc(mt.ucet) + ' v seznamu není — člověk ho možná smazal nebo píše ze staršího workeru)' : ' — žádost přišla bez kódu účtu') +
+                      '. Zapni Pro ručně v záložce Lidé podle jména, pak žádost vyřiď.</p>' +
+                      '<div class="pd-tools"><button type="button" class="pd-b" data-clovek="' + esc(m.who || '') + '">Hledat v Lidech</button>' +
+                      '<button type="button" class="pd-b cv" data-zhotovo="' + esc(m.id) + '">Vyřízeno</button></div>')) +
+                '</div>');
+        });
+        return h.join('');
+    }
+    function zadostPro(id, zid, dni) {
+        var u = najdi(id); if (!u) return;
+        ask('Zapnout Pro účtu ' + u.name + ' (' + u.code + ') ' + (dni ? 'na ' + dniText(dni) : 'NAVŽDY') + ' a žádost vyřídit?').then(function (ok) {
+            if (!ok) return;
+            api('/owner/tarif', { method: 'POST', body: { id: id, tarif: 'pro', dni: dni } }).then(function (r) {
+                if (!r.ok) { sayFail(r, 'tarif'); return; }
+                return api('/feedback/done', { method: 'POST', body: { id: zid, done: true } }).then(function () { load(); });
+            });
+        });
+    }
+    function zadostHotovo(zid) {
+        api('/feedback/done', { method: 'POST', body: { id: zid, done: true } }).then(function (r) { hotovo(r, 'žádost'); });
     }
 
     function renderObj() {
@@ -376,6 +440,8 @@
             var id = 'o' + el.getAttribute('data-o'); _open = (_open === id) ? '' : id; render();
         });
         each(b, '[data-pro]', 'click', function (el) { zapniPro(el.getAttribute('data-pro'), parseInt(el.getAttribute('data-dni'), 10) || 0); });
+        each(b, '[data-zpro]', 'click', function (el) { zadostPro(el.getAttribute('data-zpro'), parseInt(el.getAttribute('data-zid'), 10), parseInt(el.getAttribute('data-dni'), 10) || 0); });
+        each(b, '[data-zhotovo]', 'click', function (el) { zadostHotovo(parseInt(el.getAttribute('data-zhotovo'), 10)); });
         each(b, '[data-propryc]', 'click', function (el) { vypniPro(el.getAttribute('data-propryc')); });
         each(b, '[data-blok]', 'click', function (el) { blokace(el.getAttribute('data-blok'), el.getAttribute('data-on') === '1'); });
         each(b, '[data-zpravy]', 'click', function () {

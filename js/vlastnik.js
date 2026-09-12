@@ -129,7 +129,21 @@
         // kratší než 24 znaků — pak ho cloud/worker.js:263 (ownerOk) bere, jako by tam
         // nebyl. Kdo měl dosud klíč kratší, dostane po nasazení tuhle hlášku a bez té
         // druhé věty by marně přepisoval hodnotu, která „přece je nastavená".
-        if (r.status === 503) return 'Na serveru žádný použitelný klíč není. Buď <b>OWNER_KEY</b> nastavený vůbec není, nebo je <b>kratší než 24 znaků</b> — takový server odmítá, protože se dá vystřílet. Nastav ho na dash.cloudflare.com → Workers &amp; Pages → <b>ar-geodet-api</b> → Settings → Variables and Secrets → secret <b>OWNER_KEY</b> (aspoň 24 znaků). Pak sem napiš tutéž hodnotu.';
+        if (r.status === 503) {
+            // Worker v13+ říká, KTERÝ z obou stavů to je (`ownerKey` v těle odpovědi:
+            // 'chybi' | 'kratky'). Starší worker pole nemá → obecná hláška zůstává.
+            // ⚠⚠ „NASTAVOVAL JSEM HO NĚKOLIKRÁT" (12. 9. 2026): uživatel klíč ukládal
+            //   na dash.cloudflare.com jako proměnnou typu TEXT — a každé nasazení
+            //   workeru z GitHubu (`wrangler deploy`) takové proměnné přepíše, takže
+            //   byl zase pryč. Odteď to drží `keep_vars` ve wrangler.toml a klíč jde
+            //   dát i do secretů repozitáře (deploy-worker.yml ho sám zapíše). Ale
+            //   hláška to musí říct, jinak bude klíč ukládat počtvrté stejně.
+            var st = r.data && r.data.ownerKey;
+            var cesta = 'dash.cloudflare.com → Workers &amp; Pages → <b>ar-geodet-api</b> → Settings → Variables and Secrets';
+            if (st === 'kratky') return 'Klíč <b>OWNER_KEY</b> na serveru JE, ale má <b>míň než 24 znaků</b> — tak krátký worker odmítá (dal by se vystřílet). Nastav delší: ' + cesta + ' → OWNER_KEY, typ <b>Secret</b>, a klepni na <b>Deploy</b>. Pak sem napiš tutéž hodnotu.';
+            if (st === 'chybi') return 'Na serveru teď <b>žádný OWNER_KEY není</b>. Jestli jsi ho už ukládal: uložený jako typ <b>Text</b> ho každé nasazení z GitHubu smazalo. Ulož ho znovu jako typ <b>Secret</b> (' + cesta + ', pak <b>Deploy</b>) — nebo jednou provždy jako secret <b>OWNER_KEY</b> v GitHubu (repozitář → Settings → Secrets and variables → Actions), odkud si ho nasazení samo zapíše. Aspoň 24 znaků, jen a–z, číslice, pomlčky.';
+            return 'Na serveru žádný použitelný klíč není. Buď <b>OWNER_KEY</b> nastavený vůbec není, nebo je <b>kratší než 24 znaků</b> — takový server odmítá, protože se dá vystřílet. Nastav ho na ' + cesta + ' → secret <b>OWNER_KEY</b> (aspoň 24 znaků, typ Secret, pak Deploy). Pak sem napiš tutéž hodnotu.';
+        }
         if (r.status === 403) return 'Tenhle klíč serveru nesedí. Musí to být PŘESNĚ hodnota, která je na Cloudflare uložená jako secret <b>OWNER_KEY</b> — rozlišuje velká a malá písmena a vadí i mezera na konci.';
         // 429 = brzda proti hádání klíče v cloud/worker.js (ownerGate: deset pokusů
         // z adresy za hodinu). Bez téhle větve by se to schovalo pod obecné „Server

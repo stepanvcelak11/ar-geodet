@@ -213,13 +213,25 @@ async def za_behu(url):
           el.click();
           var m = document.getElementById('ag-pro-modal');
           if (!m) return { chybi: true };
-          var r = m.querySelector('.agp-prechod');
-          return { chybi: false, karta: m.classList.contains('on'),
-                   prechod: !!(r && !r.hidden),
-                   cil: (m.querySelector('.agp-otevri') ? 'ano' : 'ne') };
+          return { chybi: false, karta: m.classList.contains('on') };
         }""")
+        # 12. 9. 2026: karta je v ODLOZENEM js/pro-karta.js (skorapka z pro-zamky.js
+        # stoji hned, telo dojede) a „Otevrit verzi Pro" nabizi v Zakladu jen tomu,
+        # kdo Pro MA (klic / tarif) — bez Pro je hlavni tlacitko „Pozadat o Pro".
+        # Test tedy: pockat na telo, odemknout klicem, otevrit prehled, pak tlacitko.
+        for _ in range(40):
+            if await page.evaluate("() => !!window.AGProKarta && !!document.querySelector('#ag-pro-modal .agp-title')"):
+                break
+            await page.evaluate("() => window.AGLazy && AGLazy.need && AGLazy.need('js/pro-karta.js')")
+            await page.wait_for_timeout(300)
+        karta['zadost'] = await page.evaluate("() => !!document.querySelector('#ag-pro-modal .agp-zadost') && !document.querySelector('#ag-pro-modal .agp-otevri')")
+        await page.evaluate("() => { try { AGLic.uloz(AGLic.vyrob(1, 0)); } catch (e) {} AGProZamky.zavri(); AGProZamky.prehled(); }")
+        await page.wait_for_timeout(600)
+        karta['prechod'] = await page.evaluate("() => !!document.querySelector('#ag-pro-modal.on .agp-otevri')")
+        await page.evaluate("() => { try { AGLic.zrus && AGLic.zrus(); } catch (e) {} }")
         ok('R5 klepnuti na zamceny nastroj otevre kartu', karta.get('karta') is True, karta)
-        ok('R6 karta v Zakladu nabizi prechod na /pro/', karta.get('prechod') is True, karta)
+        ok('R5b bez Pro karta nabizi „Pozadat o Pro" a NE prechod', karta.get('zadost') is True, karta)
+        ok('R6 s klicem karta v Zakladu nabizi prechod na /pro/', karta.get('prechod') is True, karta)
         await page.evaluate("() => { var m=document.getElementById('ag-pro-modal'); if(m) m.classList.remove('on'); }")
 
         # Nastroj ZE ZAKLADU se musi otevrit normalne - kdyby delene sestaveni

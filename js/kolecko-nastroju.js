@@ -85,6 +85,11 @@
     var GRACE = 260;        // po přepnutí kruhu se chvíli nenačítá (viz openLevel2)
 
     var BACK = { back: true, l: 'Zpět' };
+    // PRÁZDNÝ LÍSTEK (12. 9. 2026). Uživatel: „někde jsou jen čtyři lístky a vypadá to
+    // zvláštně — ať je všude stejný počet a některé budou prázdné." Květ má proto
+    // na obou kruzích TÝŽ počet lístků (viz pocetListku), a kde nástroj není, stojí
+    // tichý lístek bez nápisu, který nejde vybrat ani na něj namířit.
+    var EMPTY = { empty: true, l: '' };
 
     // Krátké popisky do kolečka. Plné názvy ze seznamu úkonů se do výseče
     // nevejdou („Vzdálenost a převýšení mezi body" je na 31 znaků). Klíčováno
@@ -315,11 +320,32 @@
     // („ať je to furt kytka, kolem dokola") — teď se položky rozprostřou rovnoměrně
     // a při lichém celkovém počtu je „Zpět" o půl výseče vedle svislice. To je menší
     // zlo než chybějící lístek.
-    function layout(items, withBack) {
-        if (!withBack) return items.slice();
-        var arr = items.slice();
-        arr.splice(Math.round(arr.length / 2), 0, BACK);
+    // ⚠ OD 12. 9. 2026 SE DOPLŇUJE NA PEVNÝ POČET `n` (viz pocetListku): položky
+    //   stojí soustředěné kolem dvanácté hodiny, prázdné lístky vyplní zbytek dolů
+    //   kolem „Zpět". Počet je SUDÝ, takže „Zpět" vychází přesně kolmo dolů
+    //   (index n/2) — jako v původním návrhu, jen teď bez díry v kytce.
+    function layout(items, withBack, n) {
+        var m = items.length, min = m + (withBack ? 1 : 0);
+        if (!n || n < min) n = min;
+        var arr = [], i;
+        for (i = 0; i < n; i++) arr.push(EMPTY);
+        if (withBack) arr[Math.round(n / 2) % n] = BACK;
+        // položky se rozprostřou SYMETRICKY kolem dvanácté hodiny (index 0): první
+        // začíná o polovinu jejich počtu proti směru; „Zpět" stojí dole a s položkami
+        // se nepotká, dokud jich je nejvýš n − 1 (což pocetListku zaručuje)
+        // (plný kruh bez prázdných lístků zůstává, jak byl — první položka nahoře,
+        // dál po směru hodin; centrovat je co, jen když je kolem co zbylo)
+        var start = (min >= n) ? 0 : -Math.floor((m - 1) / 2);
+        for (i = 0; i < m; i++) arr[((start + i) % n + n) % n] = items[i];
         return arr;
+    }
+    // Kolik lístků má květ — jeden počet pro oba kruhy: největší z „počet skupin"
+    // a „nejpočetnější skupina + Zpět", zaokrouhleno nahoru na sudé, nejméně 6.
+    function pocetListku(groups) {
+        var n = groups.length;
+        for (var i = 0; i < groups.length; i++) n = Math.max(n, groups[i].items.length + 1);
+        n = Math.max(6, n);
+        return n % 2 ? n + 1 : n;
     }
 
     // ---- TVAR LÍSTKU ----------------------------------------------------------
@@ -388,7 +414,7 @@
     function build(items, lvl) {
         ring.querySelectorAll('.kn-seg').forEach(function (e) { e.remove(); });
         segs = []; petals = []; grow = [];
-        slots = layout(items, lvl === 2);
+        slots = layout(items, lvl === 2, st ? st.n : 0);
         var n = slots.length;
         // KYTKA SE ROZTÁHNE PODLE OBRAZOVKY (9. 8. 2026). Dřív byl průměr natvrdo
         // zastropovaný na 300 px, takže na větším displeji zůstal květ malý uprostřed
@@ -473,8 +499,8 @@
             petals.push(p);
 
             var el = document.createElement('div');
-            el.className = 'kn-seg' + (slots[i].back ? ' back' : '');
-            var txt = slots[i].back ? slots[i].l : (slots[i].t || SHORT[slots[i].k] || slots[i].l);
+            el.className = 'kn-seg' + (slots[i].back ? ' back' : '') + (slots[i].empty ? ' empty' : '');
+            var txt = slots[i].back ? slots[i].l : (slots[i].empty ? '' : (slots[i].t || SHORT[slots[i].k] || slots[i].l));
             el.textContent = txt;
             el.style.fontSize = fitFont(txt, knw, K) + 'px';
             // natočení do osy lístku; v dolní polovině překlopit, ať se to nečte vzhůru nohama
@@ -543,9 +569,19 @@
                      IN + (OUT - IN) * (0.34 + 0.66 * bl) + g * 12 * SC);
             var w = (PW + g * 12 * SC) * (0.42 + 0.58 * bl);
             petals[j].setAttribute('d', petal(rin, ro, w));
-            petals[j].setAttribute('fill', act ? soft : 'rgba(255,255,255,0.085)');
-            petals[j].setAttribute('stroke', act ? A : 'rgba(255,255,255,0.22)');
-            petals[j].setAttribute('stroke-width', act ? 1.5 : 1);
+            if (slots[j] && slots[j].empty) {
+                // prázdný lístek: jen obrys, čárkovaně a tišeji — je vidět, že tam
+                // místo JE, ale nic v něm nebydlí
+                petals[j].setAttribute('fill', 'rgba(255,255,255,0.03)');
+                petals[j].setAttribute('stroke', 'rgba(255,255,255,0.13)');
+                petals[j].setAttribute('stroke-width', 1);
+                petals[j].setAttribute('stroke-dasharray', '3 4');
+            } else {
+                petals[j].setAttribute('fill', act ? soft : 'rgba(255,255,255,0.085)');
+                petals[j].setAttribute('stroke', act ? A : 'rgba(255,255,255,0.22)');
+                petals[j].setAttribute('stroke-width', act ? 1.5 : 1);
+                petals[j].removeAttribute('stroke-dasharray');
+            }
             if (segs[j]) segs[j].style.opacity = bl.toFixed(2);
         }
     }
@@ -724,7 +760,9 @@
         var it = slots[dwellIdx];
         if (!it) { lastHot = -1; resetDwell(-1); kick(); return; }
         if (it.back) { backToLevel1(); return; }
-        if (st.level === 1) openLevel2(dwellIdx);
+        // ⚠ index LÍSTKU není index SKUPINY: od 12. 9. 2026 leží mezi lístky i prázdné
+        //   a položky jsou centrované — skupina se hledá podle položky, ne podle úhlu
+        if (st.level === 1) openLevel2(st.groups.indexOf(it));
         else finish(it);
     }
 
@@ -739,7 +777,7 @@
         wrap.classList.toggle('pro', pro);
         setEdice(pro);
         st = { ox: x, oy: y, px: x, py: y, level: 1, group: -1, moved: false, groups: g,
-               graceTo: 0, gr: 1, gl: 1, gu: 1, gd: 1 };
+               graceTo: 0, gr: 1, gl: 1, gu: 1, gd: 1, n: pocetListku(g) };
         measureGain();
         bloomFrom = Date.now();
         build(g, 1);
@@ -767,6 +805,7 @@
         var dx = x - st.ox, dy = y - st.oy;
         if (Math.hypot(dx, dy) > 6) st.moved = true;
         var a = aimAt(dx, dy);
+        if (a.i >= 0 && slots[a.i] && slots[a.i].empty) a.i = -1;   // prázdný lístek = nic
         paintRet(a.ang, a.dist, a.read);
         hi(a.i);
         // POJISTKA PROTI ZASEKNUTÉMU NAČÍTÁNÍ. Smyčka odpočtu se restartuje jen v hi(),

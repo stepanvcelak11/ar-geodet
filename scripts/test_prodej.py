@@ -156,6 +156,16 @@ class Server(object):
                 'fio': {'nastaveno': True, 'posledniOk': int(time.time() * 1000)}, 'prodej': self.prodej}
         elif path in ('/owner/tarif', '/owner/blokace') or path.endswith('/zaplaceno') or path.endswith('/priradit') or path == '/owner/fio/zkontrolovat':
             st, data = 200, {'ok': True}
+        elif path == '/feedback' and req.method == 'POST':
+            st, data = 200, {'ok': True, 'ts': 1}
+        elif path == '/feedback' and req.method == 'GET':
+            st, data = 200, {'messages': [
+                {'id': 7, 'ts': 1, 'kind': 'pro', 'txt': 'Chci Pro na protokoly.', 'contact': 'jan@example.cz',
+                 'meta': json.dumps({'ucet': 'K7QM3XP2', 'zadost': 'pro'}), 'who': 'Jan Novák · K7QM3XP2', 'done': 0},
+                {'id': 8, 'ts': 1, 'kind': 'chyba', 'txt': 'neco jineho', 'contact': None, 'meta': None, 'who': None, 'done': 0}
+            ], 'open': 2}
+        elif path == '/feedback/done' and req.method == 'POST':
+            st, data = 200, {'ok': True}
         elif path == '/config':
             st, data = 503, {'error': 'test'}
         await route.fulfill(status=st, content_type='application/json',
@@ -206,13 +216,20 @@ async def nova(ctx, srv, boot_js):
 
 async def bezi(ctx):
     # ---- A) tlacitko Koupit v karte ------------------------------------------------
+    # 12. 9. 2026: karta je v odlozenem js/pro-karta.js a Koupit se ukaze AZ KDYZ server
+    # rekne prodej.zapnuto (tiche GET /objednavky/moje po otevreni karty). Do te doby
+    # je hlavni tlacitko „Pozadat o Pro" — Pro se neprodava samo, vlastnik ho zapina
+    # na zadost (rozhodnuti uzivatele 12. 9. 2026).
     srv = Server()
     page, chyby = await nova(ctx, srv, BOOT)
     await page.evaluate("() => AGProZamky.prehled()")
-    await page.wait_for_timeout(300)
-    vid = await page.evaluate("() => { var r=document.querySelector('#ag-pro-modal .agp-koupe'); return r && !r.hidden; }")
+    ok('A0 karta se otevre a nacte (js/pro-karta.js) s tlacitkem Pozadat o Pro',
+       await pockej(page, "() => !!window.AGProKarta && !!document.querySelector('#ag-pro-modal.on .agp-zadost')"))
+    vid = await pockej(page, "() => !!document.querySelector('#ag-pro-modal .agp-koupit')")
     txt = await page.evaluate("() => (document.querySelector('#ag-pro-modal .agp-koupit')||{}).textContent || ''")
-    ok('A1 karta Verze Pro v Zakladu ma tlacitko Koupit', vid and 'Koupit' in txt, txt)
+    ok('A1 se zapnutym prodejem na serveru karta ukaze i Koupit', vid and 'koupit' in txt.lower(), txt)
+    ok('A1b cenik se pri tom ulozil (agProdej_v1.prodej.zapnuto)', await page.evaluate("() => { var c=JSON.parse(localStorage.getItem('agProdej_v1')||'null'); return !!(c && c.prodej && c.prodej.zapnuto); }"))
+    ok('A1c karta ma krizek a JE pres celou obrazovku', await page.evaluate("() => { var m=document.getElementById('ag-pro-modal'); var r=m.getBoundingClientRect(); return !!m.querySelector('.agp-x') && r.width >= innerWidth - 1 && r.height >= innerHeight - 1; }"))
 
     # ---- B) cenik po klepnuti -----------------------------------------------------
     await page.click('#ag-pro-modal .agp-koupit')
@@ -259,8 +276,38 @@ async def bezi(ctx):
     page, _ = await nova(ctx, srv, BOOT_TWA)
     await page.evaluate("() => AGProZamky.prehled()")
     await page.wait_for_timeout(300)
-    ok('A2 v appce z Google Play (TWA) tlacitko Koupit NENI', await page.evaluate("() => { var r=document.querySelector('#ag-pro-modal .agp-koupe'); return !r || r.hidden; }"))
+    await pockej(page, "() => !!window.AGProKarta && !!document.querySelector('#ag-pro-modal.on .agp-zadost')")
+    await page.wait_for_timeout(600)
+    ok('A2 v appce z Google Play (TWA) tlacitko Koupit NENI', await page.evaluate("() => !document.querySelector('#ag-pro-modal .agp-koupit')"))
     ok('A3 pole na klic v TWA zustava', await page.evaluate("() => !!document.querySelector('#ag-pro-modal #agp-klic')"))
+    await page.close()
+
+    # ---- Z) zadost o Pro ------------------------------------------------------------
+    srv = Server(dict(PRODEJ, zapnuto=False, iban=''))
+    page, chyby_z = await nova(ctx, srv, BOOT)
+    await page.evaluate("() => AGProZamky.karta('dronview')")
+    ok('Z1 zamceny nastroj: karta ma Pozadat o Pro a NE Koupit (prodej vypnuty)',
+       await pockej(page, "() => !!document.querySelector('#ag-pro-modal.on .agp-zadost') && !document.querySelector('#ag-pro-modal .agp-koupit')"))
+    await page.click('#ag-pro-modal .agp-zadost')
+    ok('Z2 formular zadosti (jmeno predvyplnene z uctu, kontakt, zprava)',
+       await pockej(page, "() => document.querySelector('#agp-z-jm') && document.querySelector('#agp-z-jm').value === 'Tester' && !!document.querySelector('#agp-z-kon') && !!document.querySelector('#agp-z-tx')"))
+    await page.click('#ag-pro-modal .agp-z-poslat')
+    await page.wait_for_timeout(200)
+    ok('Z3 bez kontaktu se neposle a rekne proc', await page.evaluate("() => /kontakt/i.test(document.getElementById('agp-z-hl').textContent)") and not [l for l in srv.log if l[1] == '/feedback'])
+    await page.fill('#agp-z-kon', 'jan@example.cz')
+    await page.fill('#agp-z-tx', 'Potrebuju dronove zony.')
+    await page.click('#ag-pro-modal .agp-z-poslat')
+    posl = await pockej(page, "() => !!document.querySelector('#ag-pro-modal .agp-done')")
+    fb = [l for l in srv.log if l[1] == '/feedback']
+    ok('Z4 POST /feedback kind=pro, kontakt, kod uctu v meta a v who', posl and fb and fb[-1][2].get('kind') == 'pro' and fb[-1][2].get('contact') == 'jan@example.cz'
+       and (fb[-1][2].get('meta') or {}).get('ucet') == 'TESTACC1' and 'TESTACC1' in (fb[-1][2].get('who') or ''), fb[-1:] if fb else srv.log[-3:])
+    ok('Z5 po odeslani si appka pamatuje datum zadosti', await page.evaluate("() => !!localStorage.getItem('agProZadost_v1')"))
+    await page.click('#ag-pro-modal .agp-z-ok')
+    await page.evaluate("() => AGProZamky.prehled()")
+    ok('Z6 karta priste rika, ze zadost uz odesla', await pockej(page, "() => /odešla/.test((document.querySelector('#ag-pro-modal .agp-zadost')||{}).textContent||'')"))
+    await page.click('#ag-pro-modal .agp-x')
+    ok('Z7 krizek kartu zavre', await pockej(page, "() => !document.getElementById('ag-pro-modal').classList.contains('on')"))
+    ok('Z8 zadna chyba v konzoli', not [c for c in chyby_z if 'pro-karta' in c or 'pro-zamky' in c], chyby_z[:3])
     await page.close()
 
     # ---- D) zkouska zdarma --------------------------------------------------------
@@ -326,6 +373,15 @@ async def bezi(ctx):
     pri = [l for l in srv.log if l[1].endswith('/priradit')]
     ok('F9 prirazeni nezarazene platby posle kod uctu velkymi', pri and pri[-1][2] == {'code': 'K7QM3XP2'}, pri)
     nase = [c for c in (chyby + chyby_d + chyby_f) if 'pro-koupe' in c or 'prodej-konzole' in c or 'AGProKoupe' in c or 'AGProdej' in c]
+    # zalozka Zadosti (12. 9. 2026): zadost s kodem uctu -> Zapnout Pro navzdy -> /owner/tarif + /feedback/done
+    await page.click('#ag-pd-modal [data-tab="zad"]')
+    ok('F11 zalozka Zadosti ukaze jen zadosti o Pro (ne chyby) s uctem ze seznamu',
+       await pockej(page, "() => document.querySelectorAll('#ag-pd-modal .pd-nez[data-zad]').length === 1 && /Jan Novák/.test(document.querySelector('#ag-pd-modal .pd-nez[data-zad]').textContent)"))
+    await page.click('#ag-pd-modal [data-zpro][data-dni="0"]')
+    await page.wait_for_timeout(600)
+    tarZ = [l for l in srv.log if l[1] == '/owner/tarif']
+    doneZ = [l for l in srv.log if l[1] == '/feedback/done']
+    ok('F12 Zapnout Pro navzdy posle /owner/tarif {acc1, pro, 0} a zadost vyridi', tarZ and tarZ[-1][2] == {'id': 'acc1', 'tarif': 'pro', 'dni': 0} and doneZ and doneZ[-1][2].get('id') == 7, (tarZ[-1:], doneZ[-1:]))
     ok('F10 zadna chyba z novych modulu v konzoli', not nase, nase[:3])
     await page.close()
 

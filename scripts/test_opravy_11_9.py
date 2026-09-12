@@ -13,7 +13,7 @@ Co se hlásilo (mluvené, iPhone) a co tu drží:
   E  „Kompas mlčí" vyskakovalo, i když se jen čekalo na první dotek (iOS) —
      hlídač nesmí počítat ticho, dokud kompas čeká na gesto
   F  Základ je výrazně menší (dělicí čára), zámky drží v seznamu úkonů
-  G  panel Vrstvy: Mapa/Ortofoto/Na mě zdarma, ostatní zamčené; Terén DMR 5G pryč
+  G  panel Vrstvy: jen Mapa/Ortofoto (+ otáčení) zdarma, ostatní zamčené; Terén DMR 5G pryč
   H  přehled „Co je v Pro" ve „Více" + znak Pro (body.ag-pro)
   I  kolečko nástrojů: v Základu bez Pro nástrojů
 
@@ -187,7 +187,8 @@ async def beh(url):
         }""")
         ok('G1 řádek Terén (DMR 5G) zmizel', vr and vr['teren'] is False, vr)
         ok('G2 Katastrální mapa je v Základu zamčená', vr and vr['katastr'] is True, vr)
-        ok('G3 Mapa / Ortofoto / Na mě zdarma', vr and not vr['orto'] and not vr['osm'] and vr['naMe'] is False, vr)
+        # 12. 9. 2026: v panelu zůstává zdarma JEN podklad a otáčení — „Na mě" je zamčené
+        ok('G3 Mapa / Ortofoto zdarma, Na mě zamčené', vr and not vr['orto'] and not vr['osm'] and vr['naMe'] is True, vr)
         await page.tap('#btn-katastr')
         await page.wait_for_timeout(700)
         kat = await page.evaluate("""() => ({ aktivni: document.getElementById('btn-katastr').classList.contains('ctrl-active'),

@@ -123,9 +123,10 @@
         var a = sh.querySelectorAll('[data-ms-pro]');
         for (i = 0; i < a.length; i++) out.push(a[i]);
         var stack = $('map-ctrl-stack');
-        // „Ukázat cíl" (#ms-cil, js/cil-navigace.js) je jen srovnání mapy na cíl,
-        // ke kterému uživatel právě jde — Pro funkce to není, zůstává zdarma.
-        if (stack) for (i = 0; i < stack.children.length; i++) { if (stack.children[i].id !== 'ms-cil') out.push(stack.children[i]); }
+        // Všechno injektované je zamčené — i „Ukázat cíl" (#ms-cil). Do 12. 9. 2026
+        // měl výjimku; uživatel pak upřesnil, že v panelu zůstává zdarma JEN podklad
+        // a otáčení mapy, nic víc.
+        if (stack) for (i = 0; i < stack.children.length; i++) out.push(stack.children[i]);
         return out;
     }
     function syncPro() {

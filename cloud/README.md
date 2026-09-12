@@ -55,6 +55,35 @@ je v repu nově `v: 6`. Po prvním `wrangler deploy` bude odpověď jednoznačn�
 Alternativně jde `worker.js` vložit přes webový editor v dashboardu
 (Workers & Pages → ar-geodet-api → Edit code) — jen musí zůstat D1 binding `DB`.
 
+## Klíč vlastníka `OWNER_KEY` (konzole, schránka, žádosti o Pro)
+
+**⚠ Proč „nastavený" klíč mizel (12. 9. 2026):** `wrangler deploy` (běží sám
+z GitHubu po každém pushi do `cloud/`) přepisuje proměnné typu **Text** z
+dashboardu tím, co je v `[vars]` — tedy ničím. Klíč uložený jako Text byl po
+každém nasazení pryč a `/owner/*` vracelo 503. Od v13 drží `keep_vars = true`
+ve `wrangler.toml` a nasazení umí klíč sázet ze secretu repozitáře.
+
+Dvě cesty (stačí jedna):
+1. **GitHub → Settings → Secrets and variables → Actions → `OWNER_KEY`** —
+   `deploy-worker.yml` ho po nasazení zapíše jako secret workeru (a v souhrnu
+   běhu napíše, že ano; kratší než 24 znaků nebo s jinými znaky než `a-z0-9_-`
+   odmítne a řekne proč).
+2. dash.cloudflare.com → Workers & Pages → ar-geodet-api → Settings →
+   Variables and Secrets → typ **Secret** → `OWNER_KEY` → **Deploy**.
+
+Ověření bez appky: `GET /health` → `"ownerKey":"ok"` (`"chybi"` = není,
+`"kratky"` = pod 24 znaků). Odpověď 503 z `/owner/*` nese totéž pole.
+
+V appce: „Přihlásit jiné jméno" → jméno `VLASTNIK`, heslo = klíč.
+
+## Žádosti o Pro (12. 9. 2026)
+
+Pro se neprodává samo: karta Verze Pro (`js/pro-karta.js`) pošle
+`POST /feedback` s `kind: "pro"`, kontaktem a `meta.ucet` (kód účtu). Vlastník
+je vyřídí v Lidé a prodej → Žádosti (`GET /feedback?stav=open`, pak
+`POST /owner/tarif` + `POST /feedback/done`). Koupě se v appce ukáže sama, až
+bude nastavený `PRODEJ_IBAN` (viz níž).
+
 ## API (vše JSON; autentizace `Authorization: Bearer <token>`)
 
 - `GET /health` — test běhu

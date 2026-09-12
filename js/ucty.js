@@ -1606,6 +1606,7 @@
             '  box-shadow:0 0 9px var(--accent,#2f9e74);animation:aglpulse 2s infinite;}',
             '@keyframes aglpulse{50%{opacity:.35}}',
             '#ag-login .agl-firmchip .lock{color:var(--warn,#d4a02c);}',
+            '#ag-login .agl-swfirm{margin:-4px 0 6px;padding:8px 12px;font-size:calc(13px * var(--ag-font-scale,1));color:var(--accent,#2f9e74);}',
             '#ag-login .agl-proj{font:500 12px/1.3 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);text-align:center;}',
             '#ag-login .agl-proj b{color:var(--text-color,#e6e8eb);font-weight:700;}',
             // dlaždice uživatelů
@@ -2118,6 +2119,15 @@
             brandHtml() +
             '<div class="agl-firmchip"><span class="dot"></span>' + esc(f.firmName || 'Firemní režim') +
             (cloud && f.code ? ' · ' + esc(f.code) : '') + (lockMode ? ' <span class="lock">· zamčeno</span>' : '') + '</div>' +
+            // PŘEPNUTÍ FIRMY ROVNOU NA ÚVODU (12. 9. 2026, přání uživatele: „pokud jsem
+            // ve více firmách, tak možnost si to přepnout"). Přepínač prostorů existoval
+            // jen ve „Více" UVNITŘ appky — kdo stál na přihlašovací obrazovce cizí firmy,
+            // musel se nejdřív do ní přihlásit. Ukazuje se jen tomu, kdo má víc než jeden
+            // prostor A v telefonu je token účtu (přepnutí = POST /spaces/switch, bez
+            // tokenu by server odpověděl 401). Vlastní prostor je v seznamu vždycky.
+            (getProstory().length > 1 && getTok()
+                ? '<button type="button" class="agl-ghost agl-swfirm" id="agl-swfirm">Přepnout firmu / prostor ›</button>'
+                : '') +
             projInfoHtml() +
             // Duvod ANO (jinak by ťuknuti na heslo z niceho nic vypadalo jako chyba),
             // ale bez cisla „po 20 spustenich" — to uzivatel na uvodni obrazovce nechce.
@@ -2366,6 +2376,8 @@
             if (e.target.classList.contains('agl-btn')) submit();
         });
         pinInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
+        var swBtn = ov.querySelector('#agl-swfirm');
+        if (swBtn) swBtn.addEventListener('click', function () { showProstory(); });
         // „Přihlásit jiné jméno" (cloud): nový zaměstnanec, kterého tahle cache ještě nezná
         var otherBtn = ov.querySelector('#agl-other');
         if (otherBtn) otherBtn.addEventListener('click', function () {
@@ -2892,6 +2904,12 @@
             applyPerms();
             try { window.dispatchEvent(new CustomEvent('agucty:prostor', { detail: r.data.prostor || null })); }
             catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:prepniProstor'); }
+            // Přepnutí z PŘIHLAŠOVACÍ OBRAZOVKY (tlačítko „Přepnout firmu / prostor"):
+            // adoptLogin už sezení založil, takže obrazovka nemá co chtít — pryč s ní
+            // a do appky, jako po přihlášení. Uvnitř appky (přepínač ve „Více") tu
+            // žádné #ag-login není a nic se neděje.
+            var lg = document.getElementById('ag-login');
+            if (lg) { lg.remove(); _touchActivity(); applyProjPerms(); enterApp(); }
             done(null);
         });
     }

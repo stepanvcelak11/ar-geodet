@@ -30,6 +30,9 @@
 //   sám nepřihlásil, VYROBÍ ZÁSTUPNÝ ŘÁDEK z registru — registr se posílá v obou
 //   balíčcích celý právě kvůli tomuhle.
 //
+// ⚠ KARTA „VERZE PRO" (co to umí, klíč, žádost o Pro) je od 12. 9. 2026 v ODLOŽENÉM
+//   js/pro-karta.js — tady zůstává jen skořápka okna (viz karta()). Rozpočet startu.
+//
 // Odstranění: smaž tenhle soubor + řádek <script> v index.html + './js/pro-zamky.js'
 // v sw.js. Bez něj se Pro nástroje chovají jako dřív (bez zámku).
 // ================================================================================
@@ -82,29 +85,6 @@
         } catch (e) { swallow(e, 'jeTwa'); }
         return false;
     }
-    function cenaText() {
-        try {
-            var c = JSON.parse(localStorage.getItem('agProdej_v1') || 'null');
-            var p = c && c.prodej, m = p && p.produkty && p.produkty[0];
-            if (!m || !m.cena) return '';
-            return ' — od ' + m.cena + ' Kč / měsíc';
-        } catch (e) { return ''; }
-    }
-    function koupeRadek(m) {
-        var r = m.querySelector('.agp-koupe'), b = m.querySelector('.agp-koupit');
-        if (!r || !b) return;
-        // Bez Pro: koupit. S předplatným z účtu (má konec): prodloužit. Klíč
-        // a režim vlastníka nemají co prodlužovat.
-        var s = (window.AGLic && AGLic.stav && AGLic.stav()) || { pro: false };
-        var ukaz = !jeTwa() && (!s.pro || (s.zdroj === 'ucet' && !!s.do));
-        r.hidden = !ukaz;
-        if (ukaz) {
-            var z = null;
-            try { z = (JSON.parse(localStorage.getItem('agProdej_v1') || 'null') || {}).prodej; z = z && z.zkouska; } catch (e) { z = null; }
-            b.textContent = s.pro ? 'Prodloužit Pro'
-                : ((z && z.dni && !z.pouzita) ? ('Vyzkoušet ' + z.dni + ' dny zdarma / koupit') : ('Koupit Pro' + cenaText()));
-        }
-    }
     function otevriKoupi() {
         var jdi = function () { if (window.AGProKoupe) AGProKoupe.open(); else alert('Nákup se nenačetl — zkus to znovu, až bude signál.'); };
         if (window.AGProKoupe) return jdi();
@@ -141,39 +121,18 @@
                 '#tools-modal .tool-tile[data-agpro="1"] > *{opacity:.55;}',
                 '.ag-uk-i[data-agpro="1"] .ag-uk-ico,.ag-uk-i[data-agpro="1"] .ag-uk-tx{opacity:.6;}',
                 '.ag-uk-i[data-agpro="1"]::after{top:50%;right:11px;transform:translateY(-50%);}',
-                // karta
-                '#' + MODAL_ID + '{position:fixed;inset:0;z-index:100060;display:none;align-items:center;',
-                '  justify-content:center;padding:16px;background:rgba(0,0,0,.62);}',
-                '#' + MODAL_ID + '.on{display:flex;}',
-                '#' + MODAL_ID + ' .agp-box{width:min(430px,94vw);max-height:88vh;overflow:auto;border-radius:16px;',
-                '  padding:18px 18px 16px;background:var(--modal-bg,#141a26);color:var(--text-color,#e9eef7);',
-                '  border:1px solid var(--glass-border,rgba(255,255,255,.12));box-shadow:0 18px 50px rgba(0,0,0,.5);}',
-                'body.light-mode #' + MODAL_ID + ' .agp-box{background:#fff;color:#16202e;}',
-                '#' + MODAL_ID + ' h2{margin:0 0 4px;font-size:calc(18px * var(--ag-font-scale,1));display:flex;align-items:center;gap:9px;}',
-                '#' + MODAL_ID + ' h2 span{flex:0 0 auto;width:21px;height:21px;color:var(--accent,#2f9e74);}',
-                '#' + MODAL_ID + ' h2 span svg{width:21px;height:21px;}',
-                '#' + MODAL_ID + ' .agp-pod{margin:0 0 13px;opacity:.75;font-size:calc(13px * var(--ag-font-scale,1));line-height:1.45;}',
-                '#' + MODAL_ID + ' .agp-co{margin:0 0 14px;padding:11px 13px;border-radius:11px;',
-                '  background:var(--accent-soft,rgba(47,158,116,.13));font-size:calc(13px * var(--ag-font-scale,1));line-height:1.5;}',
-                '#' + MODAL_ID + ' .agp-co b{display:block;margin-bottom:5px;}',
-                '#' + MODAL_ID + ' .agp-co ul{margin:0;padding-left:18px;}',
-                '#' + MODAL_ID + ' .agp-co li{margin:2px 0;}',
-                '#' + MODAL_ID + ' label{display:block;margin:0 0 5px;font-size:calc(12.5px * var(--ag-font-scale,1));opacity:.8;}',
-                '#' + MODAL_ID + ' input{width:100%;box-sizing:border-box;padding:11px 12px;border-radius:10px;',
-                '  border:1px solid var(--glass-border,rgba(255,255,255,.16));background:rgba(0,0,0,.18);',
-                '  color:inherit;font:inherit;font-size:calc(15px * var(--ag-font-scale,1));',
-                '  letter-spacing:.08em;text-transform:uppercase;}',
-                'body.light-mode #' + MODAL_ID + ' input{background:#f4f6fa;}',
-                '#' + MODAL_ID + ' .agp-hl{margin:8px 0 0;min-height:17px;font-size:calc(12.5px * var(--ag-font-scale,1));}',
-                '#' + MODAL_ID + ' .agp-hl.bad{color:#e2685f;}',
-                '#' + MODAL_ID + ' .agp-hl.ok{color:var(--accent,#2f9e74);}',
-                '#' + MODAL_ID + ' .agp-rada{display:flex;gap:9px;margin-top:14px;}',
-                '#' + MODAL_ID + ' .agp-rada button{flex:1 1 0;padding:12px;border-radius:11px;font:inherit;',
-                '  font-weight:600;cursor:pointer;border:1px solid var(--glass-border,rgba(255,255,255,.16));',
-                '  background:transparent;color:inherit;}',
-                '#' + MODAL_ID + ' .agp-rada button.hlavni{background:var(--accent,#2f9e74);border-color:transparent;color:#fff;}',
-                '#' + MODAL_ID + ' .agp-pozn{margin:9px 0 0;opacity:.7;line-height:1.45;',
-                '  font-size:calc(12px * var(--ag-font-scale,1));}'
+                // SKOŘÁPKA KARTY. Celý vzhled (celá obrazovka, hero, skupiny, tlačítka)
+                // je v odloženém js/pro-karta.js — tady jen tolik, aby okno s názvem
+                // a křížkem stálo hned po klepnutí, i než ten soubor dojede.
+                '#' + MODAL_ID + '{position:fixed;inset:0;z-index:100060;display:none;background:var(--bg,#0d1117);color:var(--text-color,#e9eef7);}',
+                '#' + MODAL_ID + '.on{display:flex;flex-direction:column;}',
+                'body.light-mode #' + MODAL_ID + '{background:#f5f7fa;color:#16202e;}',
+                '#' + MODAL_ID + ' .agp-box{flex:1 1 auto;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top,0px)) 18px 18px;overflow:hidden;}',
+                '#' + MODAL_ID + ' .agp-top{display:flex;align-items:center;justify-content:flex-end;}',
+                '#' + MODAL_ID + ' .agp-x{width:44px;height:44px;border-radius:50%;border:1px solid var(--glass-border,rgba(255,255,255,.14));',
+                '  background:var(--glass-bg,rgba(255,255,255,.06));color:inherit;font:400 26px/1 var(--font-ui,system-ui);cursor:pointer;padding:0;}',
+                '#' + MODAL_ID + ' .agp-nazev{margin:18px 0 6px;text-align:center;font:700 calc(22px * var(--ag-font-scale,1))/1.25 var(--font-ui,system-ui);}',
+                '#' + MODAL_ID + ' .agp-pod{margin:0;text-align:center;opacity:.7;font-size:calc(13px * var(--ag-font-scale,1));}'
             ].join('\n');
             (document.head || document.documentElement).appendChild(st);
             // Zámek jako maska, ať se obarví podle motivu (v CSS nejde vložit SVG přímo).
@@ -463,6 +422,11 @@
     }
 
     // ---- karta „co to umí" --------------------------------------------------------
+    // ⚠ OD 12. 9. 2026 JE KARTA V ODLOŽENÉM js/pro-karta.js (celá obrazovka, křížek,
+    //   žádost o Pro). Tady vzniká jen SKOŘÁPKA: #ag-pro-modal s názvem v .agp-nazev
+    //   a křížkem — stojí hned po klepnutí (testy i člověk vidí odezvu okamžitě),
+    //   obsah dokreslí AGProKarta.render(), jakmile je načtený. Rozpočet startu
+    //   (scripts/check_start_budget.py) měl 2 kB rezervy; karta by se nevešla.
     function karta() {
         var m = document.getElementById(MODAL_ID);
         if (m) return m;
@@ -471,38 +435,12 @@
         m.id = MODAL_ID;
         m.innerHTML =
             '<div class="agp-box" role="dialog" aria-modal="true">' +
-            '  <h2><span>' + ZAMEK + '</span><span class="agp-nazev"></span></h2>' +
-            '  <p class="agp-pod"></p>' +
-            '  <div class="agp-co"></div>' +
-            '  <div class="agp-rada agp-koupe" hidden>' +
-            '    <button type="button" class="hlavni agp-koupit">Koupit Pro</button>' +
-            '  </div>' +
-            '  <label for="agp-klic">Máš klíč Pro? Opiš ho sem — funguje i bez signálu.</label>' +
-            '  <input id="agp-klic" type="text" autocomplete="off" autocapitalize="characters"' +
-            '         spellcheck="false" placeholder="ARG-0000-0000-0000-0000">' +
-            '  <p class="agp-hl"></p>' +
-            '  <div class="agp-rada">' +
-            '    <button type="button" class="agp-zpet">Zpět</button>' +
-            '    <button type="button" class="hlavni agp-ok">Odemknout</button>' +
-            '  </div>' +
-            '  <div class="agp-rada agp-prechod" hidden>' +
-            '    <button type="button" class="hlavni agp-otevri">Otevřít verzi Pro</button>' +
-            '  </div>' +
-            '  <p class="agp-pozn" hidden>Pro bydlí na téže adrese pod <b>/pro/</b>. Zakázky, body' +
-            ' i klíč tam máš rovnou — appka je pro prohlížeč pořád táž stránka, takže se nic' +
-            ' nepřenáší ručně.</p>' +
+            '  <div class="agp-top"><button type="button" class="agp-x" aria-label="Zavřít">&times;</button></div>' +
+            '  <h2 class="agp-nazev"></h2>' +
+            '  <p class="agp-pod">Načítám…</p>' +
             '</div>';
         document.body.appendChild(m);
-        m.addEventListener('click', function (e) { if (e.target === m) zavri(); });
-        m.querySelector('.agp-zpet').addEventListener('click', zavri);
-        m.querySelector('.agp-ok').addEventListener('click', odemkni);
-        m.querySelector('.agp-koupit').addEventListener('click', otevriKoupi);
-        m.querySelector('.agp-otevri').addEventListener('click', function () {
-            try { window.location.href = ADRESA_PRO; } catch (e) { swallow(e, 'prechod'); }
-        });
-        m.querySelector('#agp-klic').addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') { e.preventDefault(); odemkni(); }
-        });
+        m.querySelector('.agp-x').addEventListener('click', zavri);
         return m;
     }
 
@@ -511,72 +449,26 @@
         if (m) m.classList.remove('on');
     }
 
-    function odemkni() {
-        var m = karta(), hl = m.querySelector('.agp-hl'), inp = m.querySelector('#agp-klic');
-        hl.className = 'agp-hl';
-        if (!window.AGLic) { hl.className = 'agp-hl bad'; hl.textContent = 'Licence v téhle verzi appky není.'; return; }
-        var r = AGLic.uloz(inp.value);
-        if (r && r.ok) {
-            hl.className = 'agp-hl ok';
-            hl.textContent = 'Hotovo — Pro je odemčené.';
-            // Zástupné dlaždice ze Základu je potřeba nahradit skutečnými moduly,
-            // které v tomhle balíčku vůbec nejsou. Říct to rovnou je poctivější
-            // než nechat člověka klepat na dlaždice, které se neotevřou.
-            if (jeZaklad()) {
-                hl.textContent = 'Klíč platí. Pro nástroje jsou ale ve vydání Pro — otevři ho, klíč tam už bude.';
-                prechod(true);
-                oznac();
-                return;         // kartu nezavíráme: ať je na co klepnout
-            }
-            oznac();
-            setTimeout(zavri, 1400);
-            return;
-        }
-        hl.className = 'agp-hl bad';
-        hl.textContent = ({
-            tvar: 'Klíč má mít 16 znaků ve tvaru ARG-0000-0000-0000-0000.',
-            verze: 'Tenhle klíč je pro jinou verzi aplikace.',
-            podpis: 'Klíč nesedí — zkontroluj, jestli není překlep.',
-            vyprsel: 'Klíči vypršela platnost.'
-        })[r && r.duvod] || 'Klíč nesedí.';
-    }
-
-    // Přepnutí karty do stavu „tady to nekoupíš, Pro je vedle".
-    // V balíčku ZÁKLAD Pro moduly fyzicky nejsou (scripts/vydani.py je vynechá),
-    // takže odemknutí klíčem tady nemá co odemknout — jediná smysluplná akce je
-    // přejít na /pro/. Ve vydání PRO se řádek neukazuje vůbec.
-    function prechod(zapni) {
-        var m = document.getElementById(MODAL_ID);
-        if (!m) return;
-        var r = m.querySelector('.agp-prechod'), p = m.querySelector('.agp-pozn');
-        if (r) r.hidden = !zapni;
-        if (p) p.hidden = !zapni;
-    }
-
-    function otevriKartu(k) {
+    // Otevření: název synchronně (podle registru), tělo z odložené vrstvy.
+    // `opts` = { k: klíč nástroje } (klepnutí na zámek) nebo {} (přehled z Více).
+    function ukaz(opts) {
         var m = karta();
-        prechod(jeZaklad());
-        var r = (window.AGReg && AGReg.get(k)) || {};
-        var nazev = (r.help && r.help.t) || r.vl || k;
-        m.querySelector('.agp-nazev').textContent = nazev;
-        var pod = r.vl || '';
-        if (r.vh) pod += (pod ? ' — ' : '') + r.vh;
-        m.querySelector('.agp-pod').textContent = pod || 'Nástroj z placené verze.';
-        m.querySelector('.agp-co').innerHTML =
-            '<b>Tohle je ve verzi Pro</b>' +
-            '<ul>' +
-            '<li>protokoly a papíry — vytyčení, kvalita bodu, deník</li>' +
-            '<li>objemy a vrstvy — kubatury, DMT, kontrola pokládky</li>' +
-            '<li>přesné určení bodu — protínání, resekce, volné stanovisko, Helmert</li>' +
-            '<li>katastr do mapy i do AR, dělení parcel, podklady</li>' +
-            '<li>firma — účty, docházka, chat, vysílačka, kniha jízd</li>' +
-            '</ul>';
-        m.querySelector('.agp-hl').textContent = '';
-        m.querySelector('.agp-hl').className = 'agp-hl';
-        koupeRadek(m);
+        m._agOpts = opts;
+        var nazev;
+        if (opts.k) {
+            var r = (window.AGReg && AGReg.get(opts.k)) || {};
+            nazev = (r.help && r.help.t) || r.vl || opts.k;
+        } else nazev = maPro() ? 'Verze Pro — odemčeno' : 'Verze Pro';
+        var nz = m.querySelector('.agp-nazev');
+        if (nz) nz.textContent = nazev;
         m.classList.add('on');
-        try { m.querySelector('#agp-klic').focus(); } catch (e) { swallow(e, 'focus'); }
+        var go = function () { try { if (window.AGProKarta) AGProKarta.render(m, opts); } catch (e) { swallow(e, 'karta'); } };
+        if (window.AGProKarta) go();
+        else if (window.AGLazy && typeof AGLazy.need === 'function') AGLazy.need('js/pro-karta.js', go);
+        // (když soubor teprve běží, dokreslí se sám — viz konec js/pro-karta.js)
     }
+
+    function otevriKartu(k) { ukaz({ k: k }); }
 
     // ---- vstup do „Více" ----------------------------------------------------------
     // ⚠ SCHVÁLNĚ MIMO ZÁLOŽKY NASTAVENÍ I MIMO .tool-grid: obojí umí schovat
@@ -599,35 +491,7 @@
         else host.appendChild(btn);
     }
 
-    function otevriPrehled() {
-        var m = karta();
-        prechod(jeZaklad());
-        var s = (window.AGLic && AGLic.stav()) || { pro: false };
-        m.querySelector('.agp-nazev').textContent = s.pro ? 'Verze Pro — odemčeno' : 'Verze Pro';
-        // Pro se dá mít z KLÍČE (opsaného z papíru) nebo z TARIFU ÚČTU. Pro toho,
-        // kdo si Pro pořídil účtem, by „Klíč č. 0" byla nesmyslná odpověď na otázku,
-        // proč to má odemčené.
-        m.querySelector('.agp-pod').textContent = !s.pro
-            ? 'Základ umí celý den v terénu. Pro přidává navrch tohle:'
-            : (s.zdroj === 'vlastnik'
-                ? 'Máš zapnutý režim vlastníka aplikace — Pro je tím odemčené.'
-                : (s.zdroj === 'ucet'
-                    ? ('Máš to v účtu' + (s.do ? (' — platí ještě ' + s.dniDoKonce + ' dní.') : ', platí natrvalo.'))
-                    : ('Klíč č. ' + s.cislo + (s.do ? (', platí ještě ' + s.dniDoKonce + ' dní.') : ', platí natrvalo.'))));
-        m.querySelector('.agp-co').innerHTML =
-            '<b>' + (s.pro ? 'Máš odemčeno' : 'Ve verzi Pro') + '</b>' +
-            '<ul>' +
-            '<li>protokoly a papíry — vytyčení, kvalita bodu, deník</li>' +
-            '<li>objemy a vrstvy — kubatury, DMT, kontrola pokládky</li>' +
-            '<li>přesné určení bodu — protínání, resekce, volné stanovisko, Helmert</li>' +
-            '<li>katastr do mapy i do AR, dělení parcel, podklady</li>' +
-            '<li>firma — účty, docházka, chat, vysílačka, kniha jízd</li>' +
-            '</ul>';
-        m.querySelector('.agp-hl').textContent = '';
-        m.querySelector('.agp-hl').className = 'agp-hl';
-        koupeRadek(m);
-        m.classList.add('on');
-    }
+    function otevriPrehled() { ukaz({}); }
 
     // ---- rozjezd -------------------------------------------------------------------
     obalRegistraci();

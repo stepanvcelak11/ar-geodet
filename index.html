@@ -95,8 +95,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=287">
-    <link rel="stylesheet" href="css/style.css?v=287">
+    <link rel="stylesheet" href="css/tokens.css?v=288">
+    <link rel="stylesheet" href="css/style.css?v=288">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -227,7 +227,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=287">
+    <link rel="stylesheet" href="css/vylepseni.css?v=288">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
          render-blokující: prohlížeč nevykreslí ani pixel, dokud nedorazí VŠECHNY.
          Jedenáct z nich (69 kB) přitom patřilo oknům, která se při startu vůbec
@@ -974,9 +974,11 @@
          licence Pro ZAMČENÝ — js/map-tools.js mu dá data-agpro="1" (zámek jako
          u dlaždic Nástrojů) a klik místo akce otevře kartu Pro. Hodnota atributu
          je klíč z js/tools-registry.js pro kartu s popisem (cadastre-vector),
-         nebo "1" pro obecnou kartu „Vrstvy a nástroje mapy". Zdarma zůstává:
-         Podklad, Otáčení mapy (vkládá js/map-rotate.js), Na mě, Měřit plochu
-         (startAreaMode je v registru `base: 1` — zamknout ho tu by byl rozpor). -->
+         nebo "1" pro obecnou kartu „Vrstvy a nástroje mapy". ZDARMA ZŮSTÁVÁ JEN
+         Podklad (Mapa/Ortofoto) a Otáčení mapy (vkládá js/map-rotate.js) — 12. 9.
+         2026 uživatel upřesnil: „jediný, co zůstane, je mapa nebo ortofoto a otáčení,
+         nic víc". Na mě, Měřit plochu, Uložit offline i Ukázat cíl jsou v panelu
+         zamčené (Měřit plochu je v Nástrojích dál zdarma — tam ho Základ najde). -->
     <div id="map-controls">
         <!-- NAVRAT NA MOU POLOHU. Objevi se, teprve kdyz uzivatel mapou posune —
              dokud mapa polohu sleduje, je schovane. Drive se mapa vracela sama
@@ -1022,11 +1024,11 @@
 
                 <div class="ms-lbl">Nástroje mapy</div>
                 <div class="ms-grid" id="ms-actions">
-                    <button type="button" class="ms-tile" onclick="recenterOnUser()"><svg class="icon"><use href="#i-crosshair"/></svg><span>Na mě</span></button>
+                    <button type="button" class="ms-tile" onclick="recenterOnUser()" data-ms-pro="1"><svg class="icon"><use href="#i-crosshair"/></svg><span>Na mě</span></button>
                     <button type="button" class="ms-tile" onclick="openNearbyModal()" data-ms-pro="1"><svg class="icon"><use href="#i-list"/></svg><span>Body v okolí</span></button>
                     <button type="button" class="ms-tile" id="btn-connect" onclick="toggleConnectMode()" data-ms-pro="1"><svg class="icon"><use href="#i-line"/></svg><span>Spojit body</span></button>
-                    <button type="button" class="ms-tile" onclick="startAreaMode()"><svg class="icon"><use href="#i-area"/></svg><span>Měřit plochu</span></button>
-                    <button type="button" class="ms-tile" onclick="saveForOffline()"><svg class="icon"><use href="#i-download"/></svg><span>Uložit offline</span></button>
+                    <button type="button" class="ms-tile" onclick="startAreaMode()" data-ms-pro="1"><svg class="icon"><use href="#i-area"/></svg><span>Měřit plochu</span></button>
+                    <button type="button" class="ms-tile" onclick="saveForOffline()" data-ms-pro="1"><svg class="icon"><use href="#i-download"/></svg><span>Uložit offline</span></button>
                     <!-- sem injektují tlačítka jiné moduly (js/poloha-z-mapy.js, js/cil-navigace.js…);
                          kontejner je display:contents, takže padnou přímo do mřížky a map-tools.js
                          jim dodá popisek z aria-label. Všechno injektované je bez Pro zamčené. -->
@@ -1370,6 +1372,12 @@
          kolecko i hledani naraz. V balicku Zaklad navic vyrobi zastupne
          radky za moduly, ktere v nem vubec nejsou. -->
     <script defer src="js/pro-zamky.js"></script>
+    <!-- KARTA VERZE PRO (odpojitelne: smaz radek, js/pro-karta.js a zaznam v sw.js)
+         — cela obrazovka po klepnuti na zamceny nastroj / „Verze Pro" ve Vice:
+         co je v Pro, klic, ZADOST O PRO (jde do schranky zpetne vazby, vlastnik
+         ji vyridi v Lide a prodej → Zadosti). ODLOZENE kvuli rozpoctu startu;
+         skorapku okna s nazvem a krizkem stavi hned js/pro-zamky.js. -->
+    <script type="ag/lazy" data-src="js/pro-karta.js"></script>
     <!-- CO JE V PRO (odpojitelne: smaz radek, js/pro-prehled.js a zaznam v sw.js)
          — prehled Zaklad × Pro slozeny z registru („Vice" → „Co je v Pro")
          + znak Pro (body.ag-pro: pilulka PRO v Nastrojich a Vice, zlaty obrys

@@ -39,7 +39,7 @@ function json(data, status) {
         headers: Object.assign({ 'Content-Type': 'application/json;charset=utf-8' }, CORS)
     });
 }
-function err(status, msg) { return json({ error: msg }, status); }
+function err(status, msg, extra) { return json(Object.assign({ error: msg }, extra || {}), status); }
 
 function hexToBuf(hex) {
     const a = new Uint8Array(hex.length / 2);
@@ -276,13 +276,26 @@ async function ensureFeedbackTable(env) {
 }
 // Vlastník = ten, kdo pošle správné OWNER_KEY. Porovnává se timingSafeEq (stejně
 // jako hesla), aby se klíč nedal uhodnout po znacích podle doby odpovědi.
+// Stav klíče na serveru — TŘI slova, ne jedno true/false. /health ho hlásí,
+// aby šlo zvenčí poznat, PROČ konzole vrací 503, bez přístupu na Cloudflare:
+//   'chybi'  = env.OWNER_KEY vůbec není (nikdy nenastaven, NEBO ho smazal
+//              `wrangler deploy` — dashboardové proměnné typu „Text" nasazení
+//              z GitHubu přepisuje; proto má wrangler.toml `keep_vars = true`
+//              a deploy-worker.yml umí klíč sázet ze secretu repozitáře),
+//   'kratky' = je tam, ale pod 24 znaků (worker ho záměrně nebere, viz níž),
+//   'ok'     = použitelný. Délka ani hodnota se ven neposílá.
+function ownerKeyStav(env) {
+    const want = env && env.OWNER_KEY;
+    if (!want) return 'chybi';
+    if (String(want).length < 24) return 'kratky';
+    return 'ok';
+}
 function ownerOk(req, env) {
     const want = env && env.OWNER_KEY;
-    if (!want) return null;                 // tajemství není nastavené → 503
     // Krátký klíč je totéž co žádný: za těmihle dveřmi se mažou celé firmy
     // i s body a docházkou. Radši ať konzole hlásí „není nastavená", než aby
     // ji hlídalo heslo, které se dá vystřílet dřív, než brzda stihne zabrat.
-    if (String(want).length < 24) return null;
+    if (ownerKeyStav(env) !== 'ok') return null;   // tajemství není použitelné → 503
     const got = req.headers.get('X-Owner-Key') || '';
     return timingSafeEq(String(got), String(want));
 }
@@ -803,7 +816,15 @@ async function ownerGate(req, env, co) {
     // konzole by prestal chodit i navod, kvuli kteremu ta 503 vznikla, a misto nej by
     // prisla hlaska "Moc pokusu o klic". Pocitadlo je navic spolecne pro konzoli
     // i schranku zpetne vazby ('own:' + ip), takze se ty marne pokusy jeste scitaly.
-    if (ok === null) return err(503, kdo + ' není nastavená: na serveru chybí tajemství OWNER_KEY, nebo je kratší než 24 znaků (wrangler secret put OWNER_KEY).');
+    if (ok === null) {
+        // Říct rovnou, KTERÝ z obou stavů to je — uživatel klíč 11. 9. 2026 „nastavoval
+        // několikrát" a appka mu pořád tvrdila obojí najednou. Hodnota ven nejde.
+        const st = ownerKeyStav(env);
+        return err(503, kdo + ' není nastavená: ' + (st === 'kratky'
+            ? 'OWNER_KEY na serveru JE, ale má míň než 24 znaků — worker tak krátký klíč odmítá.'
+            : 'na serveru žádný OWNER_KEY není (secret chybí, nebo ho smazalo nasazení z GitHubu — ulož ho jako typ Secret, ne Text).')
+            + ' (wrangler secret put OWNER_KEY)', { ownerKey: st });
+    }
     let pusti = true;
     // brzda nesmí konzoli shodit (tabulka guard nemusí být v cizí databázi);
     // klíč se ověřuje dál i tehdy, když se počítadlo nepodaří přečíst
@@ -1238,7 +1259,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 12, wx: true, watch: true, fb: true, owner: true, seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 13, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
 
             // ---------------- ČHMÚ: měření z nejbližší stanice ---------------
             // veřejné (bez tokenu) — počasí není firemní údaj
@@ -1331,7 +1352,11 @@ export default {
                 const b = await req.json().catch(() => null);
                 const txt = b && typeof b.txt === 'string' ? b.txt.trim().slice(0, 4000) : '';
                 if (!txt) return err(400, 'Prázdná zpráva.');
-                const kind = ['chyba', 'napad', 'pochvala', 'jine'].indexOf(String(b.kind || '')) >= 0 ? String(b.kind) : 'jine';
+                // 'pro' = ŽÁDOST O VERZI PRO (12. 9. 2026). Pro se neprodává samo — člověk
+                // o ni z karty Verze Pro POŽÁDÁ a vlastník mu ji zapne v konzoli Lidé
+                // a prodej (záložka Žádosti). Kód účtu jde v `meta.ucet`, ať vlastník
+                // nemusí hledat, komu Pro zapnout.
+                const kind = ['chyba', 'napad', 'pochvala', 'jine', 'pro'].indexOf(String(b.kind || '')) >= 0 ? String(b.kind) : 'jine';
                 const contact = b.contact ? String(b.contact).trim().slice(0, 120) : null;
                 // meta = dobrovolné údaje o zařízení (verze appky, telefon, prohlížeč).
                 // Ukládá se jako řetězec, ne rozparsované — ať se schéma nemusí měnit

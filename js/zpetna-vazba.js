@@ -602,6 +602,10 @@
                 var d = new Date(r.ts);
                 var kindL = 'jiné';
                 for (var i = 0; i < KINDS.length; i++) if (KINDS[i].k === r.kind) kindL = KINDS[i].l;
+                // Žádost o Pro (js/pro-karta.js) se posílá toutéž schránkou, ale ve
+                // formuláři jako volba není — jen štítek pro čtení. Vyřizuje se
+                // v konzoli Lidé a prodej → Žádosti (js/prodej-konzole.js).
+                if (r.kind === 'pro') kindL = 'Žádost o Pro';
                 return '<div class="ag-fb-msg' + (r.done ? ' done' : '') + '" data-id="' + r.id + '">' +
                     '<div class="ag-fb-h"><span class="ag-fb-tag ' + esc(r.kind || 'jine') + '">' + esc(kindL) + '</span>' +
                     '<span>' + esc(d.toLocaleString('cs-CZ')) + '</span>' +

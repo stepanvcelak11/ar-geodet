@@ -3,6 +3,12 @@
 name = "ar-geodet-api"
 main = "worker.js"
 compatibility_date = "2026-07-01"
+# ⚠⚠ PROMĚNNÉ Z DASHBOARDU MUSÍ PŘEŽÍT NASAZENÍ Z GITHUBU (12. 9. 2026).
+# `wrangler deploy` bez tohohle PŘEPÍŠE všechny proměnné typu „Text" nastavené
+# ručně na dash.cloudflare.com tím, co je v [vars] tady — a tady není nic.
+# Uživatel si OWNER_KEY „nastavoval několikrát" a po každém nasazení z CI byl
+# zase pryč (/owner/* → 503). Secrety to nemaže, Text ano; keep_vars nechá obojí.
+keep_vars = true
 
 [[d1_databases]]
 binding = "DB"

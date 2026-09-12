@@ -192,6 +192,11 @@
             // venkovní režim má modály neprůhledné — hlavička musí mít stejné pozadí,
             // jinak by pod ní při rolování prosvítal text položek
             'body.outdoor-mode .ag-uk-h{background:#0a0e1a;}',
+            // sekce zamčených (Pro): oddělená čarou a zlatým nadpisem, ať je na první pohled hranice
+            '.ag-uk-pro{margin-top:18px;padding-top:12px;border-top:1px dashed var(--glass-border,rgba(255,255,255,0.18));}',
+            '.ag-uk-pro > .ag-uk-h > span:first-child{color:#e6bd76;}',
+            '.ag-uk-pro > .ag-uk-h > span:first-child::before{content:"";display:inline-block;width:12px;height:12px;margin-right:6px;vertical-align:-1px;',
+            '  background:#e6bd76;-webkit-mask:var(--ag-pro-mask) center/12px 12px no-repeat;mask:var(--ag-pro-mask) center/12px 12px no-repeat;}',
             'body.light-mode.outdoor-mode .ag-uk-h{background:#fff;}',
             '.ag-uk-i{display:flex;align-items:center;gap:11px;width:100%;box-sizing:border-box;',
             '  margin:0 0 6px;padding:12px 13px;border-radius:12px;text-align:left;cursor:pointer;',
@@ -392,7 +397,10 @@
         out.sort();
         // do otisku patří i personalizace — po změně oblíbených nebo typu práce
         // se seznam musí přestavět, jinak by volba nahoře zdánlivě nic nedělala
-        return out.join(',') + '|f:' + favKeys().join(',') + '|p:' + profileKeys().join(',');
+        // …a licence: po odemčení Pro se zamčené položky stěhují zpátky ke slovesům
+        var pro = '0';
+        try { pro = (window.AGLic && AGLic.isPro && AGLic.isPro()) ? '1' : '0'; } catch (e) { pro = '0'; }
+        return out.join(',') + '|f:' + favKeys().join(',') + '|p:' + profileKeys().join(',') + '|pro:' + pro;
     }
     function iconOf(key) {
         var t = findTile(key); if (!t) return '';
@@ -454,13 +462,25 @@
         if (pl) shortcutGroup('◆ Pro tuto práci · ' + pl, profileKeys());
 
         var used = {};
+        // ⚠ ZAMČENÉ (PRO BEZ LICENCE) AŽ DOLŮ (12. 9. 2026, přání uživatele: „všechny
+        //   zamčené nástroje se přesunou dolů a odemčené budou nahoře — ať to není, že
+        //   skroluješ a něco tam je uzavřený, něco otevřený"). Slovesné skupiny nahoře
+        //   obsahují jen to, co jde spustit; co je za peníze, se sesype do jediné
+        //   sekce „Ve verzi Pro" na konci — se slovesem v popisku, ať se dá najít.
+        //   Zámek samotný (data-agpro, karta po klepnutí) věší dál js/pro-zamky.js.
+        var zamcene = [];
         GROUPS.forEach(function (grp) {
             var live = grp.items.filter(function (it) {
                 return !HIDDEN[it.k] && !vHubu(it.k) && !!findTile(it.k);
             });
             if (!live.length) return;                       // celá skupina chybí (role/odpojený modul)
-            var sec = section(grp.t, live.length);
-            live.forEach(function (it) {
+            var volne = live.filter(function (it) {
+                if (zamceno(it.k)) { used[it.k] = 1; zamcene.push({ it: it, verb: grp.t }); return false; }
+                return true;
+            });
+            if (!volne.length) return;                      // celé sloveso je za peníze → jen dole
+            var sec = section(grp.t, volne.length);
+            volne.forEach(function (it) {
                 used[it.k] = 1;
                 sec.appendChild(item(it, function () { run(it.k); }, iconOf(it.k), it.k));
             });
@@ -482,6 +502,11 @@
             if (tiles[i].id === 'ag-sm-allbtn') continue;
             rest.push({ k: k, l: tileLabel(tiles[i]) });
         }
+        // Pojistka respektuje totéž rozdělení: zamčené bez slovesa jdou taky dolů.
+        rest = rest.filter(function (r) {
+            if (zamceno(r.k)) { zamcene.push({ it: { k: r.k, l: r.l }, verb: '' }); return false; }
+            return true;
+        });
         if (rest.length) {
             var rsec = section('Další nástroje', rest.length);
             rest.forEach(function (r) {
@@ -505,9 +530,27 @@
                 }
             } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:shortcutGroup'); }
         }
+        if (zamcene.length) {
+            var zsec = section(PRO_SEKCE, zamcene.length);
+            zsec.classList.add('ag-uk-pro');
+            zamcene.forEach(function (z) {
+                var def = { l: z.it.l, h: z.verb ? (z.verb + (z.it.h ? ' · ' + z.it.h : '')) : z.it.h };
+                zsec.appendChild(item(def, function () { run(z.it.k); }, iconOf(z.it.k), z.it.k));
+            });
+        }
         host.appendChild(footBlock());
         adoptFavBtn();
         host.setAttribute('data-sig', gridSig());
+    }
+    // Sekce zamčených — jméno je i klíčem sbalení (CLOSED_KEY), tak ať je jedno.
+    var PRO_SEKCE = 'Ve verzi Pro';
+    // Táž dvojice podmínek jako zamceno() v js/pro-zamky.js — bez atributu
+    // data-agpro z dlaždice, ten věší pro-zamky.js až po svém tiku.
+    function zamceno(k) {
+        try {
+            if (window.AGProZamky && typeof AGProZamky.zamceno === 'function') return !!AGProZamky.zamceno(k);
+            return !!(k && window.AGReg && AGReg.isPro && AGReg.isPro(k) && !(window.AGLic && AGLic.isPro()));
+        } catch (e) { return false; }
     }
 
     // ---- hlavní sync -------------------------------------------------------------------------

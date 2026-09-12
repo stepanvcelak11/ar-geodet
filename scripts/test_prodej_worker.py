@@ -14,7 +14,7 @@
 # ⚠ Vsechno musi byt na Promise/microtaskach — py_mini_racer nema smycku udalosti,
 #   takze setTimeout uvnitr workeru by test tise zasekl (OUT zustane null).
 #
-#   A) /health hlasi v:12 a prodej:true
+#   A) /health hlasi v:13, prodej:true a stav klice vlastnika (ownerKey)
 #   B) POST /objednavky bez PRODEJ_IBAN -> 503 (prodej vypnuty), s IBAN -> 8mistny
 #      VS, SPAYD s castkou a VS, cenik se dvema produkty, zkouska 3 dny
 #   C) jiny produkt zrusi starou otevrenou objednavku a zalozi novou (jina castka)
@@ -218,8 +218,25 @@ def main():
     # ---- A) health -------------------------------------------------------------
     base_rules()
     h = call('GET', '/health')
-    ok('A1 /health v:12', h['data'].get('v') == 12, h['data'].get('v'))
+    ok('A1 /health v:13', h['data'].get('v') == 13, h['data'].get('v'))
     ok('A2 /health prodej:true', h['data'].get('prodej') is True)
+    # 12. 9. 2026: /health rika, v jakem stavu je OWNER_KEY ('ok' | 'chybi' | 'kratky') —
+    # uzivatel klic „nastavoval nekolikrat" a appka hlasila jen obecnou 503.
+    ok('A3 /health ownerKey:ok s klicem >= 24 znaku', h['data'].get('ownerKey') == 'ok', h['data'].get('ownerKey'))
+    h2 = call('GET', '/health', env='Object.assign(ENV(), { OWNER_KEY: "kratky" })')
+    ok('A4 /health ownerKey:kratky pod 24 znaku', h2['data'].get('ownerKey') == 'kratky', h2['data'].get('ownerKey'))
+    h3 = call('GET', '/health', env='Object.assign(ENV(), { OWNER_KEY: undefined })')
+    ok('A5 /health ownerKey:chybi bez klice', h3['data'].get('ownerKey') == 'chybi', h3['data'].get('ownerKey'))
+    o3 = call('GET', '/owner/ucty', headers=OWN, env='Object.assign(ENV(), { OWNER_KEY: undefined })')
+    ok('A6 /owner/* bez klice: 503 + ownerKey:chybi v tele (appka z toho sklada presnou hlasku)',
+       o3['status'] == 503 and o3['data'].get('ownerKey') == 'chybi' and 'Secret' in (o3['data'].get('error') or ''), o3)
+    o4 = call('GET', '/owner/ucty', headers=OWN, env='Object.assign(ENV(), { OWNER_KEY: "kratky" })')
+    ok('A7 /owner/* s kratkym klicem: 503 + ownerKey:kratky', o4['status'] == 503 and o4['data'].get('ownerKey') == 'kratky', o4)
+    # zadost o Pro: kind 'pro' projde whitelistem schranky
+    rule('/INSERT INTO feedback/', 'function(a){ LOG.push({ fb: a }); return { run: 1 }; }')
+    fb = call('POST', '/feedback', body={'kind': 'pro', 'txt': 'Chci Pro.', 'contact': 'x@y.cz', 'who': 'Jan · K7QM3XP2', 'meta': {'ucet': 'K7QM3XP2'}})
+    fbl = [l for l in log() if l.get('fb')]
+    ok('A8 POST /feedback kind=pro se ulozi jako pro (ne jine)', fb['status'] == 200 and fbl and fbl[-1]['fb'][1] == 'pro', (fb, fbl[-1:] if fbl else None))
 
     # ---- B) objednavka ---------------------------------------------------------
     base_rules()
