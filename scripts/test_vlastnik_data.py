@@ -165,6 +165,16 @@ async def nova(br, url, seed, srv):
     return ctx, page, chyby
 
 
+# ⚠ CI (12. 9. 2026): klepnutí → potvrzovací dialog → fetch je asynchronní; na pomalém runneru
+#   POST v protokolu ještě nebyl, když se sada ptala hned. Proto se na požadavek ČEKÁ.
+async def cekejLog(page, srv, method, path, n=30, krok=300):
+    for _ in range(n):
+        if (method, path) in srv.log:
+            return True
+        await page.wait_for_timeout(krok)
+    return False
+
+
 async def pockej(page, js, n=30, krok=300):
     for _ in range(n):
         try:
@@ -201,7 +211,7 @@ async def beh(br, url):
     # ⚠ vychozi zakazka zije jen v pameti (`projects`), 'arProjectsList' je do prvniho zapisu prazdny
     pred = await page.evaluate("() => (typeof projects !== 'undefined' && Array.isArray(projects)) ? projects.length : JSON.parse(localStorage.getItem('arProjectsList')||'[]').length")
     await page.evaluate("() => document.querySelector('#ag-sa-modal [data-data=f1]').click()")
-    ok('C3 volani GET /owner/firms/f1/data a vyber zakazek (2)', await pockej(page, "() => document.querySelectorAll('#ag-sa-jobs [data-job]').length === 2") and ('GET', '/owner/firms/f1/data') in srv.log, srv.log[-3:])
+    ok('C3 volani GET /owner/firms/f1/data a vyber zakazek (2)', await pockej(page, "() => document.querySelectorAll('#ag-sa-jobs [data-job]').length === 2") and await cekejLog(page, srv, 'GET', '/owner/firms/f1/data'), srv.log[-3:])
     await page.evaluate("() => document.getElementById('ag-sa-jobs-all').click()")
     ok('C4 „Ulozit vsechny" dobehne', await pockej(page, "() => document.getElementById('ag-sa-jobs-all').textContent === 'Uloženo'"))
     proj = await page.evaluate("() => JSON.parse(localStorage.getItem('arProjectsList')||'[]').map(p => p.name)")
@@ -326,7 +336,7 @@ async def beh3(br, url):
     await page.evaluate("() => AGVlastnik.jdi('kalendar')")
     ok('F5 Kalendar: Petra Mala do 7 dni, tlacitka + mesic / + rok', await pockej(page, "() => /Do 7 dní/.test(document.getElementById('agv-body').textContent) && /Petra Malá/.test(document.getElementById('agv-body').textContent) && !!document.querySelector('#agv-body [data-pro=acc2][data-dni=\"365\"]')"))
     await page.evaluate("() => document.querySelector('#agv-body [data-pro=acc2][data-dni=\"365\"]').click()")
-    ok('F6 + rok posle /owner/tarif {acc2, pro, 365}', await pockej(page, "() => true") and any(l == ('POST', '/owner/tarif') for l in srv.log), srv.log[-4:])
+    ok('F6 + rok posle /owner/tarif {acc2, pro, 365}', await cekejLog(page, srv, 'POST', '/owner/tarif'), srv.log[-4:])
     # zaloha: soubor se stahne (download event)
     await page.evaluate("() => AGVlastnik.jdi('zaloha')")
     await pockej(page, "() => !!document.getElementById('agvp-zal')")
@@ -342,9 +352,9 @@ async def beh3(br, url):
     ok('F9 detail: poznamka predvyplnena ze serveru + tlacitka Vzkaz a Ocima uctu', await pockej(page, "() => { var i=document.querySelector('#ag-pd-modal [data-pozn=acc1]'); return !!i && i.value === 'volat v pátek' && !!document.querySelector('#ag-pd-modal [data-vzkaz=acc1]') && !!document.querySelector('#ag-pd-modal [data-ocima=acc1]'); }"))
     await page.fill('#ag-pd-modal [data-pozn=acc1]', 'volat v pondělí')
     await page.evaluate("() => document.querySelector('#ag-pd-modal [data-poznulozit=acc1]').click()")
-    ok('F10 Ulozit poznamku posle POST /owner/ucty/acc1/pozn', await pockej(page, "() => document.querySelector('#ag-pd-modal [data-poznulozit=acc1]').textContent === 'Uloženo'") and ('POST', '/owner/ucty/acc1/pozn') in srv.log, srv.log[-3:])
+    ok('F10 Ulozit poznamku posle POST /owner/ucty/acc1/pozn', await cekejLog(page, srv, 'POST', '/owner/ucty/acc1/pozn') and await pockej(page, "() => document.querySelector('#ag-pd-modal [data-poznulozit=acc1]').textContent === 'Uloženo'"), srv.log[-3:])
     await page.evaluate("() => document.querySelector('#ag-pd-modal [data-vzkaz=acc1]').click()")
-    ok('F11 Vzkaz do appky posle POST /owner/vzkaz', await pockej(page, "() => true") and ('POST', '/owner/vzkaz') in srv.log, srv.log[-3:])
+    ok('F11 Vzkaz do appky posle POST /owner/vzkaz', await cekejLog(page, srv, 'POST', '/owner/vzkaz'), srv.log[-3:])
     await page.evaluate("() => { document.querySelectorAll('.ag-dlg-overlay.open .ag-dlg-ok').forEach(b => b.click()); }")
     await page.evaluate("() => document.querySelector('#ag-pd-modal [data-ocima=acc1]').click()")
     ok('F12 Ocima uctu: karta s tarifem, clenstvim, nastroji a chybami', await pockej(page, "() => { var t=(document.getElementById('agv-body')||{}).textContent||''; return /Očima účtu: Jan Novák/.test(t) && /Geo s.r.o./.test(t) && /TypeError/.test(t) && /iPhone 15/.test(t); }", 40),
@@ -385,7 +395,7 @@ async def beh3(br, url):
     ok('G1 vzkaz od vlastnika se ukaze v upozorneni', await pockej(page, "() => !!(window.AGNotify && AGNotify.has('ag-vzkaz-7'))", 60),
        await page.evaluate("() => ({ has: !!(window.AGNotify && AGNotify.has && AGNotify.has('ag-vzkaz-7')), firma: (JSON.parse(localStorage.getItem('agFirma_v1')||'{}').vzkazy) })"))
     await page.evaluate("() => { try { AGNotify.dismiss('ag-vzkaz-7'); } catch (e) {} }")
-    ok('G2 krizek posle POST /vzkaz/precteno {id:7}', await pockej(page, "() => true") and ('POST', '/vzkaz/precteno') in srv.log, srv.log[-3:])
+    ok('G2 krizek posle POST /vzkaz/precteno {id:7}', await cekejLog(page, srv, 'POST', '/vzkaz/precteno'), srv.log[-3:])
     await ctx.close()
 
 
