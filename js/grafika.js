@@ -785,7 +785,11 @@
                 const ptLatLng = L.latLng(pt.lat, pt.lng); const ptPoint = map.latLngToContainerPoint(ptLatLng); const pixelDist = clickPoint.distanceTo(ptPoint);
                 if (pixelDist <= 25) { nearbyPoints.push(pt); }
             });
-            if (nearbyPoints.length === 1) { highlightPoint(nearbyPoints[0]); } 
+            // ⚠ KLEPNUTÍ NA BOD = KARTA, NE NAVIGACE (12. 9. 2026, uživatel: „chci jen kliknout na
+            //   bod a vyskočí tabulka s informacemi; navádět až tlačítkem"). Dřív klepnutí v mapě,
+            //   v seznamu shluku i v Bodech v okolí rovnou nastavilo cíl. Cíl teď nastaví jen
+            //   „Doveď mě" v kartě (a „Navést" v seznamu Body, kde je to řečeno jménem).
+            if (nearbyPoints.length === 1) { showDetails(nearbyPoints[0], getDistance(userLat, userLng, nearbyPoints[0].lat, nearbyPoints[0].lng)); }
             else if (nearbyPoints.length > 1) { showClusterList(nearbyPoints); }
             // Nabídka „Stáhnout okolí" na klik do prázdné mapy byla SCHOVÁNA (na přání uživatele).
             // Kód + návod na obnovu: _archiv/map-click-stahnout-oblast.md . Klik do prázdna teď nic nedělá.
@@ -799,12 +803,12 @@
                 const dist = getDistance(userLat, userLng, pt.lat, pt.lng); const item = document.createElement('div'); item.className = 'cluster-list-item';
                 let col = agBarvaBodu(pt);
                 item.innerHTML = `<div><div class="cluster-item-title" style="color: ${col};">#${_escHtml(pt.name)}</div><div class="cluster-item-subtitle">${typBodu}</div></div><div style="font-weight: 600; font-size: calc(14px * var(--ag-font-scale, 1));">${dist.toFixed(1)} m</div>`;
-                item.addEventListener('click', () => { document.getElementById('cluster-modal').style.display = 'none'; highlightPoint(pt); }); listDiv.appendChild(item);
+                item.addEventListener('click', () => { document.getElementById('cluster-modal').style.display = 'none'; showDetails(pt, dist); }); listDiv.appendChild(item);
             });
             document.getElementById('cluster-modal').style.display = 'flex';
         }
 
-        // Seznam bodu v okoli serazeny podle vzdalenosti; klepnuti = navigace (highlightPoint)
+        // Seznam bodu v okoli serazeny podle vzdalenosti; klepnuti = karta bodu (navigace az tlacitkem Doved me)
         function openNearbyModal() { if (userLat == null) { agInfo("Čekám na GPS pozici..."); return; } renderNearbyList(); document.getElementById('nearby-modal').style.display = 'flex'; }
         function renderNearbyList() {
             const listDiv = document.getElementById('nearby-list'); listDiv.innerHTML = '';
@@ -823,7 +827,7 @@
                 let col = agBarvaBodu(pt);
                 const item = document.createElement('div'); item.className = 'cluster-list-item';
                 item.innerHTML = `<div><div class="cluster-item-title" style="color:${col};">#${_escHtml(pt.name)}</div><div class="cluster-item-subtitle">${typBodu}</div></div><div style="font-weight:600; font-size:calc(14px * var(--ag-font-scale, 1));">${d.toFixed(1)} m</div>`;
-                item.addEventListener('click', () => { document.getElementById('nearby-modal').style.display = 'none'; highlightPoint(pt); });
+                item.addEventListener('click', () => { document.getElementById('nearby-modal').style.display = 'none'; showDetails(pt, d); });
                 listDiv.appendChild(item);
             });
         }

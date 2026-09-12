@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v293';   // Vlastnik: jednotny zlaty motiv vsech oken konzole; registrace: jasnejsi nazev prostoru + krok v tutorialu
+const SHELL_CACHE = 'argeodet-shell-v294';   // Karta bodu: klepnuti na bod v seznamu/mape uz NEnavadi, jen otevre kartu; karta vizualne obnovena (stitky, mrizka dat)
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -47,9 +47,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=293',
-    './css/style.css?v=293',
-    './css/vylepseni.css?v=293',
+    './css/tokens.css?v=294',
+    './css/style.css?v=294',
+    './css/vylepseni.css?v=294',
     './css/gps-warn.css',
     './css/compass-stability.css',
     './css/cadastre-area.css',

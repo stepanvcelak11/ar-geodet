@@ -136,7 +136,29 @@
             '  color:var(--text-color,#eceef2);font:600 11px/1.15 var(--font-ui,system-ui);text-align:center;}',
             '#ag-kb-acts button .icon{width:19px;height:19px;}',
             '#ag-kb-acts button.on{background:var(--accent,#2f9e74);border-color:transparent;color:#fff;}',
-            'body.ag-glove #ag-kb-acts button{padding:14px 4px;font-size:calc(12px * var(--ag-font-scale, 1));}'
+            'body.ag-glove #ag-kb-acts button{padding:14px 4px;font-size:calc(12px * var(--ag-font-scale, 1));}',
+            // ===== OBNOVA KARTY 12. 9. 2026 („dlouho jsme to neměnili, jen vizuálně obnovit") =====
+            // Hlavička: číslo velké, druh a kód jako štítky. Data bodu jako mřížka dlaždic
+            // (Y, X, Z, přesnost, kdy, zdroj) místo dlouhého sloupce řádků. Rádius hledání
+            // jedním řádkem pod daty. Původní řádky z grafika.js se jen schovají (nic se nemaže).
+            '#bottom-sheet #det-title{font:800 calc(26px * var(--ag-font-scale,1))/1.1 var(--font-display,system-ui);letter-spacing:-.01em;margin:0 0 6px !important;}',
+            '#bottom-sheet #det-subtitle{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px !important;font-size:calc(11px * var(--ag-font-scale,1)) !important;}',
+            '#bottom-sheet #det-subtitle .ag-kb-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;font:600 11px/1 var(--font-ui,system-ui);',
+            '  background:var(--surface-2,rgba(255,255,255,.07));border:1px solid var(--glass-border,rgba(255,255,255,.12));color:var(--text-muted,#9aa1ac);}',
+            '#bottom-sheet #det-subtitle .ag-kb-chip.kod{color:var(--accent,#2f9e74);border-color:var(--accent-line,rgba(47,158,116,.4));background:var(--accent-soft,rgba(47,158,116,.12));}',
+            '#bottom-sheet #det-subtitle .ag-kb-chip.ok{color:#3fbc8c;}',
+            '#det-body > .geo-data-row,#det-body > div[style*="border-left:4px solid #fbbf24"],#det-body > div[style*="font-style:italic"]{display:none;}',
+            '.ag-kb-lbl{margin:2px 0 7px;font:700 10.5px/1 var(--font-ui,system-ui);letter-spacing:.09em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
+            '.ag-kb-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:0 0 10px;}',
+            '.ag-kb-cell{padding:9px 11px;border-radius:12px;background:var(--surface-1,rgba(255,255,255,.05));border:1px solid var(--glass-border,rgba(255,255,255,.09));min-width:0;}',
+            '.ag-kb-cell.w{grid-column:1/-1;}',
+            '.ag-kb-cell small{display:block;font:600 10px/1.2 var(--font-ui,system-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);margin-bottom:3px;}',
+            '.ag-kb-cell b{display:block;font:600 calc(15px * var(--ag-font-scale,1))/1.2 var(--font-mono,ui-monospace,Menlo,monospace);font-variant-numeric:tabular-nums;color:var(--text-color,#e6e8eb);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+            '.ag-kb-cell b.t{font-family:var(--font-ui,system-ui);font-weight:600;white-space:normal;}',
+            '.ag-kb-radius{display:flex;align-items:center;gap:8px;margin:0 0 12px;padding:8px 11px;border-radius:10px;font:500 calc(12px * var(--ag-font-scale,1))/1.4 var(--font-ui,system-ui);',
+            '  color:var(--text-muted,#9aa1ac);background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.25);}',
+            '.ag-kb-radius b{color:#fbbf24;font-family:var(--font-mono,ui-monospace,monospace);}',
+            '#bottom-sheet .sheet-actions .btn{border-radius:12px;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
@@ -266,7 +288,63 @@
         var acts2 = document.getElementById('ag-kb-acts');
         if (acts2) acts2.innerHTML = actsHtml(pt);
         fillNav(pt); fillDev(pt);
+        try { hlavicka(pt); mrizka(pt, body, acts2); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:mrizka'); }
         start();
+    }
+
+    // ---- hlavička: číslo + štítky (druh, kód, vytyčeno) ------------------------------------
+    function hlavicka(pt) {
+        var sub = document.getElementById('det-subtitle');
+        if (!sub || sub.getAttribute('data-kb') === String(pt.id)) return;
+        var druh = (sub.textContent || '').trim();
+        var h = '<span class="ag-kb-chip">' + esc(druh) + '</span>';
+        if (pt.kod) h += '<span class="ag-kb-chip kod">' + esc(pt.kod) + '</span>';
+        try { if (window.isStaked && isStaked(pt.id)) h += '<span class="ag-kb-chip ok">✓ vytyčeno</span>'; } catch (e) { }
+        try { if (typeof agZHodinek === 'function' && agZHodinek(pt)) h += '<span class="ag-kb-chip">⌚ z hodinek</span>'; } catch (e) { }
+        sub.innerHTML = h;
+        sub.setAttribute('data-kb', String(pt.id));
+    }
+    // ---- data bodu jako mřížka ---------------------------------------------------------------
+    // Hodnoty se berou z řádků, které grafika.js už vykreslila (Y/X i pro úřední body z
+    // rawData), plus přesnost, kdy a odkud bod je (prov) — to dřív karta neukazovala vůbec.
+    function mrizka(pt, body, acts) {
+        var old = document.getElementById('ag-kb-grid'); if (old) old.remove();
+        var oldR = document.getElementById('ag-kb-radius'); if (oldR) oldR.remove();
+        var rows = body.querySelectorAll(':scope > .geo-data-row');
+        var m = {};
+        for (var i = 0; i < rows.length; i++) {
+            var l = rows[i].querySelector('.geo-label'), v = rows[i].querySelector('.geo-value');
+            if (l && v) m[(l.textContent || '').trim()] = (v.textContent || '').trim();
+        }
+        var cells = [];
+        function cell(lbl, val, cls) { if (val == null || val === '' || val === 'Neznámé') return; cells.push('<div class="ag-kb-cell' + (cls ? ' ' + cls : '') + '"><small>' + esc(lbl) + '</small><b' + (cls === 't' || cls === 'w t' ? ' class="t"' : '') + '>' + esc(val) + '</b></div>'); }
+        function sour(v) { var f = parseFloat(String(v || '').replace(',', '.')); return isFinite(f) ? f.toFixed(2) : v; }
+        cell('S-JTSK Y', sour(m['S-JTSK Y'])); cell('S-JTSK X', sour(m['S-JTSK X']));
+        var z = ptElev(pt);
+        cell('Výška Bpv', z != null ? n2(z) + ' m' : null);
+        // úřední bod: výšku už máme v mřížce, v zeleném rámečku (stabilizace…) by byla dvakrát
+        if (z != null) { var dup = body.querySelectorAll('.geo-highlight .geo-data-row'); for (var d = 0; d < dup.length; d++) { var dl = dup[d].querySelector('.geo-label'); if (dl && /^Nadmořská/.test(dl.textContent || '')) dup[d].remove(); } }
+        cell('Přesnost bodu', (pt.acc != null && isFinite(pt.acc)) ? '±' + n2(pt.acc) + ' m' : null);
+        var kdy = (pt.prov && pt.prov.ts) || pt.mts || null;
+        if (kdy) { try { cell('Změřeno', new Date(kdy).toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }), 't'); } catch (e) { } }
+        var ZDROJ = { 'gps-avg': 'průměr GPS', gps: 'GPS', import: 'import ze souboru', firma: 'z firmy', foto: 'z fotky', map: 'z mapy', resekce: 'resekce', protinani: 'protínání', argeo: 'přenos zakázky', watch: 'hodinky' };
+        var o = pt.prov && pt.prov.origin;
+        if (o) cell('Zdroj', ZDROJ[o] || o, 't');
+        if (pt.prov && pt.prov.kdo) cell('Změřil', pt.prov.kdo, 't');
+        if (pt.type !== 'custom' && !o) cell('Zdroj', 'bodové pole ČÚZK', 't');
+        if (!cells.length) return;
+        var box = document.createElement('div'); box.id = 'ag-kb-grid';
+        box.innerHTML = '<div class="ag-kb-lbl">Data bodu</div><div class="ag-kb-grid">' + cells.join('') + '</div>';
+        var kotva = acts || document.getElementById('ag-kb-acts');
+        if (kotva && kotva.parentNode === body) kotva.insertAdjacentElement('afterend', box); else body.insertBefore(box, body.firstChild);
+        // rádius hledání jedním řádkem (přesnost telefonu teď)
+        var acc = null;
+        try { acc = g('currentGpsAccuracy'); } catch (e) { acc = null; }
+        if (acc != null && isFinite(acc)) {
+            var r = document.createElement('div'); r.id = 'ag-kb-radius'; r.className = 'ag-kb-radius';
+            r.innerHTML = '<span>⌖</span><span>Značka v AR má rozptyl <b>±' + n1(acc) + ' m</b> (přesnost GPS teď) — bod hledej v tomhle okruhu, ne na centimetr.</span>';
+            box.insertAdjacentElement('afterend', r);
+        }
     }
 
     // živé hodnoty, dokud je karta otevřená (2×/s stačí — čísla se čtou očima)
