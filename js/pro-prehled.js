@@ -259,7 +259,7 @@
             b.textContent = 'Otevřít verzi Pro';
             b.addEventListener('click', function () { try { window.location.href = ADRESA_PRO; } catch (e) { swallow(e, 'prechod'); } });
         } else {
-            b.textContent = 'Mám klíč / koupit';
+            b.textContent = 'Požádat o Pro / mám klíč';
             b.addEventListener('click', function () {
                 close();
                 try {

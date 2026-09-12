@@ -168,7 +168,8 @@
         var acc = (typeof currentGpsAccuracy !== 'undefined' && currentGpsAccuracy) ? currentGpsAccuracy : null;
         var live = acc ? accTxt(acc) : '—';
         var a = avgInfo();
-        if (a && a.txt) return live + '<span class="ag-sp-sep"> · </span><span class="ag-sp-avg">' + a.txt + '</span>';
+        // bez živé přesnosti jen rozptyl — pomlčka před ním nic neříká a bere místo hlášce
+        if (a && a.txt) return (acc ? live + '<span class="ag-sp-sep"> · </span>' : '') + '<span class="ag-sp-avg">' + a.txt + '</span>';
         return live;
     }
     // co je nejhorší a jak to pojmenovat jednou větou
@@ -284,6 +285,8 @@
             '  background:var(--surface-3,rgba(255,255,255,0.14));color:inherit;',
             '  font:700 12px/18px var(--font-ui,system-ui);cursor:pointer;-webkit-tap-highlight-color:transparent;}',
             '.ag-sp-x:focus-visible{outline:2px solid var(--accent,#2f9e74);outline-offset:1px;}',
+            // terč prstu 34 px, kresba zůstává 18 px (12. 9. 2026: křížek se netrefil)
+            '.ag-sp-x{position:relative;}.ag-sp-x::before{content:"";position:absolute;inset:-8px;border-radius:50%;}',
             'body.ag-glove .ag-sp-x{width:24px;height:24px;margin:-6px 0;line-height:24px;}',
             // řádek v rozbaleném detailu, který vede na kartu se všemi hláškami
             '.ag-sp-note{display:flex;align-items:center;gap:8px;width:100%;margin:0 0 8px;padding:9px 10px;',

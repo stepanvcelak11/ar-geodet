@@ -357,7 +357,8 @@
             '#ag-rp-head .hint{display:none;font:600 10.5px/1.2 var(--font-ui,system-ui),sans-serif;',
             '  color:var(--accent,#2f9e74);opacity:.9;}',
             '#ag-rp-wrap.scrollable #ag-rp-head .hint{display:inline;}',
-            '#ag-rp-head .x{margin-left:auto;background:none;border:none;padding:2px 0;cursor:pointer;',
+            // terč aspoň 28 px na výšku (12. 9. 2026: tlačítko mělo 15 px a prstem se netrefilo)
+            '#ag-rp-head .x{margin-left:auto;background:none;border:none;padding:8px 0 8px 10px;margin-top:-8px;margin-bottom:-8px;cursor:pointer;',
             '  color:var(--text-muted,#9aa1ac);font:500 11px/1 var(--font-ui,system-ui),sans-serif;text-decoration:underline;}',
             // pás voleb — vodorovný scroll, ať karta neroste do výšky
             // POZOR (kontrola 27.7., přepsáno 31. 8. 2026 po přesunu do Nástrojů):

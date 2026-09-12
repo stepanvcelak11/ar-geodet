@@ -771,9 +771,15 @@ body.ag-glove .grabber { width: 44px; height: 4px; }
    uprostřed tmavého motivu. `-webkit-appearance:none` musí zůstat, jinak si
    Safari kreslí vlastní rámeček a křížek navzdory pozadí.
    Kdyby přibyl další typ vstupu (email, tel, date…), přidat ho SEM. */
+/* ⚠ 12. 9. 2026: e-mail / telefon / heslo / url NEBYLY v seznamu — pole „Kontakt"
+   v Napsat autorovi bylo holé 18px šedé políčko vedle stylované textarey. */
 .modal-content input[type="text"],
 .modal-content input[type="number"],
 .modal-content input[type="search"],
+.modal-content input[type="email"],
+.modal-content input[type="tel"],
+.modal-content input[type="password"],
+.modal-content input[type="url"],
 .modal-content textarea,
 .modal-content select {
     width: 100%;
@@ -793,6 +799,10 @@ body.ag-glove .grabber { width: 44px; height: 4px; }
 .modal-content input[type="text"]:focus,
 .modal-content input[type="number"]:focus,
 .modal-content input[type="search"]:focus,
+.modal-content input[type="email"]:focus,
+.modal-content input[type="tel"]:focus,
+.modal-content input[type="password"]:focus,
+.modal-content input[type="url"]:focus,
 .modal-content textarea:focus,
 .modal-content select:focus {
     border-color: var(--accent);
@@ -1564,15 +1574,21 @@ body.outdoor-mode .ar-marker-dist { opacity: 1; }
 .line-len-label { color: #fbbf24 !important; font-size: calc(11px * var(--ag-font-scale, 1)) !important; }
 
 /* Mereni plochy: panel nad spodnim dokem */
+/* ⚠ 12. 9. 2026: panel měření plochy sahal až k pravému kraji a ležel PŘES svislý dok
+   (Vrstvy/Nastavení pod ním). Dok stojí vpravo (v levorukém režimu vlevo), panel mu
+   proto uhýbá o jeho šířku. */
 #area-panel {
-    position: fixed; left: max(10px, env(safe-area-inset-left)); right: max(10px, env(safe-area-inset-right)); margin: 0 auto;
+    position: fixed; left: max(10px, env(safe-area-inset-left)); right: calc(max(10px, env(safe-area-inset-right)) + 74px); margin: 0 auto;
     bottom: calc(env(safe-area-inset-bottom, 0px) + 100px);
-    z-index: 999997; display: none; flex-direction: column; gap: 9px;
+    /* nad HUD (9000), ale POD okny (--z-modal 19999): dřív 999997 → panel prosvítal
+       i přes Průměrování GPS a každé další okno otevřené uprostřed měření */
+    z-index: 12000; display: none; flex-direction: column; gap: 9px;
     width: auto; max-width: 420px; padding: 12px 14px; border-radius: var(--r-lg);
     background: rgba(8, 11, 15, 0.92); border: 1px solid var(--accent-line);
     box-shadow: var(--shadow-2); color: #fff;
     animation: menu-pop 0.3s var(--ease-out) both;
 }
+body.left-hand #area-panel { left: calc(max(10px, env(safe-area-inset-left)) + 74px); right: max(10px, env(safe-area-inset-right)); }
 #area-panel .ap-stats { display: flex; gap: 8px; }
 #area-panel .ap-stats > div { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 6px 4px; background: rgba(255, 255, 255, 0.06); border-radius: var(--r-sm); }
 #area-panel .ap-stats span { font-size: calc(10.5px * var(--ag-font-scale, 1)); text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }

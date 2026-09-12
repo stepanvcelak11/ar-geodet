@@ -177,8 +177,10 @@
                 shortTxt = 'Poloha je zakázaná — klepni pro návod';
                 action = explainDenied;
             }
-            else if (started && st.state === 'lost') { key = 'lost'; txt = 'GPS ztracena ' + (st.ageMs != null ? fmtAge(st.ageMs) : '') + ' — poloha i AR ukazují POSLEDNÍ známé místo'; shortTxt = 'GPS ztracena ' + (st.ageMs != null ? fmtAge(st.ageMs) : '') + ' — klepni pro nový pokus'; action = retryGps; }
-            else if (started && st.state === 'stale') { key = 'stale'; txt = 'GPS bez čerstvého fixu ' + fmtAge(st.ageMs) + ' — poloha může být posunutá'; shortTxt = 'GPS bez fixu ' + fmtAge(st.ageMs) + ' — poloha může být posunutá'; }
+            else if (started && st.state === 'lost') { key = 'lost'; txt = 'GPS ztracena ' + (st.ageMs != null ? fmtAge(st.ageMs) : '') + ' — poloha i AR ukazují POSLEDNÍ známé místo'; shortTxt = 'GPS ztracena ' + (st.ageMs != null ? fmtAge(st.ageMs) : '') + ' · klepni'; action = retryGps; }
+            // ⚠ shortTxt musí vyjít na JEDEN řádek bubliny na 390 px vedle azimutu (12. 9. 2026:
+            //   „GPS bez fixu 14 s — poloha může být posu…" se řezalo výpustkou uprostřed slova)
+            else if (started && st.state === 'stale') { key = 'stale'; txt = 'GPS bez čerstvého fixu ' + fmtAge(st.ageMs) + ' — poloha může být posunutá'; shortTxt = 'GPS bez fixu ' + fmtAge(st.ageMs) + ' · poloha nejistá'; }
             else if (started && off) { key = 'off'; txt = 'Offline — mapa a katastr jen z uložených dat, měření GPS funguje'; shortTxt = 'Offline — jen uložená data, měření funguje'; }
             // krizek zavre pruh pro AKTUALNI stav; kdyz vse pomine, dismiss se resetuje,
             // aby se pristi problem zase ukazal (jina zavada nez zavrena se ukaze hned)

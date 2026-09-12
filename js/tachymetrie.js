@@ -107,7 +107,10 @@
             #tachy-top .tt-title .icon{width:20px;height:20px;color:var(--accent,#2f9e74);}
             #tachy-x{flex:none;width:36px;height:36px;border:none;border-radius:10px;background:rgba(255,255,255,0.08);color:#fff;font-size:calc(20px * var(--ag-font-scale, 1));line-height:1;cursor:pointer;}
             #tachy-x:active{transform:scale(0.95);}
-            #tachy-modes{display:flex;gap:4px;padding:8px 12px;background:#11161d;border-bottom:1px solid rgba(255,255,255,0.06);}
+            #tachy-modes{display:flex;gap:4px;padding:8px 12px;background:#11161d;border-bottom:1px solid rgba(255,255,255,0.06);overflow-x:auto;-webkit-overflow-scrolling:touch;}
+            /* ⚠ 12. 9. 2026: čtyři režimy se na 390 px nevešly (Popisek uříznutý) — dělí si šířku rovným dílem */
+            @media (max-width:440px){ #tachy-modes .tm-btn .icon{display:none;} #tachy-modes .tm-btn{padding:0 4px;} }
+            #tachy-modes::-webkit-scrollbar{height:0;}
             .tm-btn{flex:1 1 0;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:5px;height:38px;padding:0 4px;border-radius:10px;border:1px solid transparent;background:rgba(255,255,255,0.05);color:#cbd5e1;font-size:calc(12.5px * var(--ag-font-scale, 1));font-weight:600;cursor:pointer;white-space:nowrap;}
             .tm-btn .icon{width:16px;height:16px;}
             .tm-btn:active{transform:scale(0.97);}

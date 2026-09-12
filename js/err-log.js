@@ -285,11 +285,13 @@
                 + '<div class="modal-body" id="errlog-list" style="font-size:calc(12px * var(--ag-font-scale, 1));"></div>'
                 + '<button class="btn btn-primary" style="width:100%; margin-top:12px;" id="errlog-autor">Poslat autorovi appky</button>'
                 + '<p style="margin:6px 2px 0; opacity:0.65; font-size:calc(11px * var(--ag-font-scale, 1));">Přibalí verzi appky, typ telefonu, stav sítě a GPS a nenačtené moduly. Souřadnice, jména zakázek ani bodů se neposílají. Bez signálu zpráva počká a odejde sama.</p>'
-                + '<div style="display:flex; gap:8px; margin-top:10px;">'
-                + '<button class="btn btn-secondary" style="flex:1;" id="errlog-send">Sdílet</button>'
-                + '<button class="btn btn-secondary" style="flex:1;" id="errlog-copy">Kopírovat</button>'
-                + '<button class="btn btn-secondary" style="flex:1;" id="errlog-clear">Vymazat</button>'
-                + '<button class="btn btn-secondary" style="flex:1;" onclick="document.getElementById(\'errlog-modal\').style.display=\'none\'">Zavřít</button>'
+                // ⚠ 2×2, ne 4 v řadě (12. 9. 2026): čtyři tlačítka vedle sebe se na 390 px
+                //   nevešla — „Zavřít" trčelo za pravý okraj a nešlo na něj klepnout
+                + '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">'
+                + '<button class="btn btn-secondary" style="margin:0;" id="errlog-send">Sdílet</button>'
+                + '<button class="btn btn-secondary" style="margin:0;" id="errlog-copy">Kopírovat</button>'
+                + '<button class="btn btn-secondary" style="margin:0;" id="errlog-clear">Vymazat</button>'
+                + '<button class="btn btn-secondary" style="margin:0;" onclick="document.getElementById(\'errlog-modal\').style.display=\'none\'">Zavřít</button>'
                 + '</div></div>';
             document.body.appendChild(el);
             el.querySelector('#errlog-autor').addEventListener('click', autorovi);

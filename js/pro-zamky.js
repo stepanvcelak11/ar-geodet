@@ -481,7 +481,7 @@
         var btn = document.createElement('button');
         btn.id = 'ag-pro-menu-btn'; btn.className = 'menu-btn'; btn.type = 'button';
         btn.innerHTML = '<span style="display:inline-block;width:18px;height:18px;vertical-align:-3px;">' + ZAMEK + '</span> ' +
-            (maPro() ? 'Verze Pro — odemčeno' : 'Verze Pro a klíč');
+            (maPro() ? 'Verze Pro — odemčeno' : 'Verze Pro — požádat');
         btn.addEventListener('click', function () {
             try { if (typeof toggleMenu === 'function' && menu.classList.contains('open')) toggleMenu(); } catch (e) { swallow(e, 'injectMenu'); }
             otevriPrehled();

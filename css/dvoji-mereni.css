@@ -11,10 +11,9 @@
 #agdm-modal .agdm-content,
 .agdm-pick .agdm-pick-content,
 .agdm-res .agdm-res-content {
-    max-width: 520px;
     display: flex;
     flex-direction: column;
-    max-height: 88vh;
+    /* 12. 9. 2026: bez max-width/max-height — okna appky jedou přes celou obrazovku */
 }
 
 .agdm-title {

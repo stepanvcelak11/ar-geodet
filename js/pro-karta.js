@@ -192,6 +192,14 @@
             M + ' .agp-form p{margin:0 0 8px;opacity:.8;line-height:1.5;font-size:calc(14px * var(--ag-font-scale,1));}',
             M + ' textarea{min-height:110px;resize:vertical;}',
             M + ' .agp-done{text-align:center;padding:26px 8px;}',
+            // světlý motiv: zlatá #e6bd76 na světlém podkladu nemá kontrast — tmavší odstín
+            'body.light-mode ' + M + ' .agp-kicker,body.light-mode ' + M + ' .agp-kicker::before{color:#9a6d18;background-color:#9a6d18;}',
+            'body.light-mode ' + M + ' .agp-kicker{background:none;}',
+            'body.light-mode ' + M + ' .agp-badge{color:#9a6d18;border-color:rgba(154,109,24,.45);background:linear-gradient(150deg,rgba(230,189,118,.45),rgba(230,189,118,.12));}',
+            'body.light-mode ' + M + ' .agp-stav{color:#8a5f12;background:rgba(230,189,118,.28);border-color:rgba(154,109,24,.4);}',
+            'body.light-mode ' + M + ' .agp-f .ic{color:#9a6d18;background:rgba(230,189,118,.28);}',
+            'body.light-mode ' + M + ' .agp-badge.open{color:#1f8c66;}',
+            'body.light-mode ' + M + ' .agp-stav.open{color:#1f8c66;}',
             M + ' .agp-done .agp-badge{margin-bottom:16px;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);

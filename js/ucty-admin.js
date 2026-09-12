@@ -209,8 +209,10 @@
             '  color:var(--accent,#2f9e74);background:var(--glass-bg,rgba(255,255,255,0.06));}',
             '#agfa-modal .agfa-fb-ico svg{width:16px;height:16px;}',
             '#agfa-modal .agfa-fb-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}',
-            '#agfa-modal .agfa-fb-txt b{font:700 13.5px/1.25 var(--font-ui,system-ui);color:var(--text-color,#e6e8eb);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
-            '#agfa-modal .agfa-fb-txt span{font:500 11px/1.25 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+            // ⚠ dva řádky místo výpustky (12. 9. 2026): „Nejsi přihlášen k žádné fi…" a
+            //   „omezený režim — jen základní m…" se na 390 px uřízly uprostřed slova
+            '#agfa-modal .agfa-fb-txt b{font:700 13.5px/1.25 var(--font-ui,system-ui);color:var(--text-color,#e6e8eb);overflow-wrap:anywhere;}',
+            '#agfa-modal .agfa-fb-txt span{font:500 11px/1.3 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);overflow-wrap:anywhere;}',
             // řádek uživatele: identita nahoře, akce pod tím zprava (urovnané)
             '#agfa-modal .agfa-urow{padding:11px 6px;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.07));}',
             '#agfa-modal .agfa-urow:last-child{border-bottom:none;}',

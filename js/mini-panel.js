@@ -521,7 +521,16 @@
         var z = parseInt(st.zIndex, 10);
         if (!(z >= 1000)) return false;
         var r = el.getBoundingClientRect();
-        return r.width >= window.innerWidth * 0.9 && r.height >= window.innerHeight * 0.6;
+        if (!(r.width >= window.innerWidth * 0.9 && r.height >= window.innerHeight * 0.6)) return false;
+        // ⚠ KARTA UPROSTŘED NENÍ OKNO (12. 9. 2026): rozcestník („Usadit AR") = průhledný
+        //   překryv + malá karta; kolečko se věšelo přes HUD. Okna jedou přes celou šířku.
+        var kids = el.children, bestH = 0, bestW = 0;
+        for (var i = 0; i < kids.length; i++) {
+            if (kids[i].classList && kids[i].classList.contains('ag-mini-fab')) continue;
+            var k = kids[i].getBoundingClientRect(); if (k.height > bestH) bestH = k.height; if (k.width > bestW) bestW = k.width;
+        }
+        if (kids.length && (bestH < window.innerHeight * 0.6 || bestW < window.innerWidth * 0.97)) return false;
+        return true;
     }
     function skipped(el) {
         if (el.id && SKIP[el.id]) return true;
@@ -645,12 +654,13 @@
         for (var i = 0; i < pts.length; i++) hits.push(document.elementFromPoint(pts[i][0], pts[i][1]));
         f.style.pointerEvents = pe;
 
+        // false, nebo PRVEK kolize (ovladač / nadpis s textem) — viz placeFab
         for (var j = 0; j < hits.length; j++) {
             var hit = hits[j];
             if (!hit || hit === modal || !modal.contains(hit)) continue;
             for (var n = hit; n && n !== modal; n = n.parentElement) {
-                if (CTRLS[n.tagName]) return true;
-                if (HEADS[n.tagName]) { if (rectsHit(n, r)) return true; break; }
+                if (CTRLS[n.tagName]) return n;
+                if (HEADS[n.tagName]) { if (rectsHit(n, r)) return n; break; }
             }
         }
         return false;
@@ -660,17 +670,39 @@
         try { leftHand = document.body.classList.contains('left-hand'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'mini-panel:placeFab'); }
         var side = leftHand ? 'left' : 'right';
         var other = leftHand ? 'right' : 'left';
-        // 58 px = vedle křížku z modal-close.js; dál se uhýbá po šířce tlačítka
-        var steps = [58, 110, 162];
+        // ⚠ MĚŘIT BEZ PŘECHODU (12. 9. 2026): rect během CSS transition vrací mezipolohu,
+        //   druhé usazení kolizi neuvidělo a kolečko DOJELO přes „Zavřít" (Zápisníky).
+        var tr = f.style.transition;
+        f.style.transition = 'none';
+        var vysledek = function () { void f.offsetWidth; f.style.transition = tr; };
+        var steps = [58, 110, 162];   // 58 px = vedle křížku z modal-close.js; dál po šířce tlačítka
+        var nadpis = null;
         for (var i = 0; i < steps.length; i++) {
             f.style[other] = 'auto';
             f.style[side] = 'calc(env(safe-area-inset-' + side + ',0px) + ' + steps[i] + 'px)';
-            if (!fabCollides(f, modal)) return;
+            void f.offsetWidth;
+            var kol = fabCollides(f, modal);
+            if (!kol) { vysledek(); return; }
+            if (i === 0 && HEADS[kol.tagName]) nadpis = kol;
+        }
+        // ⚠ DLOUHÝ NADPIS SI UDĚLÁ MÍSTO (12. 9. 2026): překáží-li jen text nadpisu,
+        //   dostane padding a zalomí se — řádek níž kolečko krylo popisek (osa).
+        if (nadpis) {
+            f.style[other] = 'auto';
+            f.style[side] = 'calc(env(safe-area-inset-' + side + ',0px) + ' + steps[0] + 'px)';
+            f.style.top = '';
+            void f.offsetWidth;
+            var fr = f.getBoundingClientRect(), hr = nadpis.getBoundingClientRect();
+            var rezerva = leftHand ? Math.max(0, fr.right - hr.left + 8) : Math.max(0, hr.right - fr.left + 8);
+            nadpis.style[leftHand ? 'paddingLeft' : 'paddingRight'] = Math.round(rezerva) + 'px';
+            nadpis.style.boxSizing = 'border-box';
+            vysledek(); return;
         }
         // v hlavičce není místo nikde → o řádek níž, k okraji
         f.style[other] = 'auto';
         f.style[side] = 'calc(env(safe-area-inset-' + side + ',0px) + 10px)';
         f.style.top = 'calc(env(safe-area-inset-top,0px) + 60px)';
+        vysledek();
     }
 
     // Nástroje si okna staví až při prvním otevření → hlídáme, kdy se objeví.

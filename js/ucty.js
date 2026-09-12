@@ -2119,12 +2119,8 @@
             brandHtml() +
             '<div class="agl-firmchip"><span class="dot"></span>' + esc(f.firmName || 'Firemní režim') +
             (cloud && f.code ? ' · ' + esc(f.code) : '') + (lockMode ? ' <span class="lock">· zamčeno</span>' : '') + '</div>' +
-            // PŘEPNUTÍ FIRMY ROVNOU NA ÚVODU (12. 9. 2026, přání uživatele: „pokud jsem
-            // ve více firmách, tak možnost si to přepnout"). Přepínač prostorů existoval
-            // jen ve „Více" UVNITŘ appky — kdo stál na přihlašovací obrazovce cizí firmy,
-            // musel se nejdřív do ní přihlásit. Ukazuje se jen tomu, kdo má víc než jeden
-            // prostor A v telefonu je token účtu (přepnutí = POST /spaces/switch, bez
-            // tokenu by server odpověděl 401). Vlastní prostor je v seznamu vždycky.
+            // PŘEPNUTÍ FIRMY NA ÚVODU (12. 9. 2026, přání uživatele). Jen s víc než jedním
+            // prostorem A s tokenem (POST /spaces/switch by bez něj vrátil 401).
             (getProstory().length > 1 && getTok()
                 ? '<button type="button" class="agl-ghost agl-swfirm" id="agl-swfirm">Přepnout firmu / prostor ›</button>'
                 : '') +
@@ -2690,6 +2686,9 @@
             var run = function () {
                 if (window.AGUctyAdmin && typeof AGUctyAdmin.wizard === 'function') {
                     ov.remove();
+                    // ⚠ předzámek dolů (12. 9. 2026): splash html.ag-prelock (z 900000) ležel
+                    //   PŘES průvodcem — po „Další možnosti" zůstala jen značka s proužkem
+                    unprelock();
                     AGUctyAdmin.wizard();   // zavření průvodce bez dokončení vrátí bránu (gateCheck)
                 } else {
                     errEl.textContent = 'Modul administrace (ucty-admin.js) není načtený.';

@@ -415,6 +415,8 @@
 
         // změna licence (js/licence.js: klíč opsaný, tarif účtu, režim vlastníka)
         window.addEventListener('aglic:zmena', function () { wireOptionalRows(); syncAll(); });
+        // js/cadastre-vector.js je od 12. 9. 2026 odložený → řádek Parcely napojit, až dojede
+        window.addEventListener('ag:lazy-done', function () { wireOptionalRows(); });
 
         // stav: grafika.js přehazuje .ctrl-active na těchto tlačítkách
         try {

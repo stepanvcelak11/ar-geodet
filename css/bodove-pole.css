@@ -7,11 +7,11 @@
 
 #agbp-modal { z-index: 19999; }
 #agbp-modal .agbp-content {
-    max-width: 520px;
     display: flex;
     flex-direction: column;
-    /* Seznam bývá dlouhý; obsah scrolluje uvnitř, hlavička a patka zůstávají. */
-    max-height: 86vh;
+    /* Seznam bývá dlouhý; obsah scrolluje uvnitř, hlavička a patka zůstávají.
+       ⚠ 12. 9. 2026: bývalo tu max-width 520 px + max-height 86vh — jediné okno v appce,
+       které nejelo přes celou obrazovku; nahoře prosvítala stavová bublina a HUD. */
 }
 
 .agbp-title {

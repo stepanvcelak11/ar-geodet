@@ -343,6 +343,12 @@
         if (ensure()) { bindDrag(); markEdge(); }
     }
     function init() {
+        // styly HNED (12. 9. 2026): jinak horní pruh záložek při 1. otevření probliknul
+        injectStyles();
+        // přepnutí záložky → proužek u okraje hned, ne až za tik
+        document.addEventListener('click', function (e) {
+            if (e.target && e.target.closest && e.target.closest('#settings-modal .tab-btn')) setTimeout(markEdge, 60);
+        }, true);
         // Sdílený UI časovač appky (js/power-save.js) — vlastní observer by kvůli
         // baterii nedával smysl, Nastavení se otevírá zřídka.
         if (!window.__agNlTimer) {

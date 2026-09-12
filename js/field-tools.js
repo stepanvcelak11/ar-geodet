@@ -51,6 +51,8 @@
             // ikona uvnitř injektované dlaždice (moduly dodávají <svg> bez rozměrů)
             '#tools-modal .ag-ft-tile svg{width:24px;height:24px;color:var(--accent,#2f9e74);}',
             '#tools-modal .ag-ft-tile span{display:block;}',
+            // při hledání mlčí oblíbené i pás „Co dnes děláš"
+            'body.ag-ft-searching #ag-tp-editbtn,body.ag-ft-searching #ag-rp-wrap{display:none !important;}',
             // sbalitelné kategorie: nadpis je klikací, šipka ukazuje stav
             '#tools-modal .tool-cat,#tools-modal .ag-ft-head{cursor:pointer;-webkit-user-select:none;user-select:none;}',
             // ⚠ 31. 8. 2026: šipka byla ZNAK (▾ / ▸ při sbalení) — viz .ag-chev
@@ -267,7 +269,9 @@
             //   modulu zůstane skupina bez jediné dlaždice a byl by z ní jen nadpis
             //   nad prázdnem. `headHasAny` počítá dlaždice bez ohledu na hledání.
             if (!headHasAny) { lastHead.style.display = 'none'; return; }
-            lastHead.style.display = (q && !headHasHit) ? 'none' : '';
+            // ⚠ při hledání ŽÁDNÉ nadpisy (12. 9. 2026): `order` řadí napříč kategoriemi,
+            //   nadpisy (order 0) by se sesypaly nahoru a výsledky až pod ně
+            lastHead.style.display = q ? 'none' : '';
         }
         for (var i = 0; i < kids.length; i++) {
             var el = kids[i];
@@ -302,6 +306,7 @@
             }
         }
         flushHead();
+        try { document.body.classList.toggle('ag-ft-searching', !!q); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'field-tools:searching'); }
         var emptyMsg = ensureEmptyMsg(grid);
         emptyMsg.classList.toggle('on', !!q && !anyHit);
     }

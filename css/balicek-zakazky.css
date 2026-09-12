@@ -7,10 +7,9 @@
 
 #agbz-modal { z-index: 19999; }
 #agbz-modal .agbz-content {
-    max-width: 480px;
     display: flex;
     flex-direction: column;
-    max-height: 88vh;
+    /* 12. 9. 2026: bez max-width/max-height — okna appky jedou přes celou obrazovku */
 }
 
 .agbz-title {

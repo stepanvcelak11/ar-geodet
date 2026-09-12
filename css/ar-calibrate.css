@@ -7,7 +7,8 @@
    (dlaždice „Srovnat sever"). FAB_ICON se používá už jen v nadpisu modalu. */
 
 /* ---- modal výběru bodu ---------------------------------------------------- */
-#agcal-modal .agcal-card { display: block; max-height: calc(var(--app-vh, 100dvh) * 0.88); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+/* 12. 9. 2026: max-height 88 % nechávalo nahoře i dole průhledný pruh s HUD pod ním — okna appky jedou přes celou obrazovku */
+#agcal-modal .agcal-card { display: block; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 #agcal-modal .agcal-h3 { color: var(--accent,#2f9e74); margin-top: 0; display: flex; align-items: center; gap: 8px; }
 #agcal-modal .agcal-h3 svg { width: 22px; height: 22px; flex: 0 0 22px; }
 #agcal-modal .agcal-lead { font-size: calc(12.5px * var(--ag-font-scale, 1)); opacity: .82; margin: 2px 0 10px; line-height: 1.45; }
