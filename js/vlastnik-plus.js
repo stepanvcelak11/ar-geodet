@@ -55,7 +55,7 @@
             '.agvp-t{padding:10px 8px;border-radius:12px;background:var(--glass-bg,rgba(255,255,255,.05));border:1px solid var(--glass-border,rgba(255,255,255,.12));text-align:center;cursor:pointer;}',
             '.agvp-t b{display:block;font:700 calc(20px * var(--ag-font-scale,1))/1.1 var(--font-mono,ui-monospace,monospace);color:var(--text-color,#e6e8eb);}',
             '.agvp-t small{display:block;margin-top:3px;font:600 10.5px/1.2 var(--font-ui,system-ui);letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
-            '.agvp-t.warn{border-color:#d4a02c;}.agvp-t.warn b{color:#d4a02c;}',
+            '.agvp-t.warn{border-color:var(--agv-gold,#d4a02c);}.agvp-t.warn b{color:var(--agv-gold,#d4a02c);}',
             '.agvp-t.bad{border-color:#e2685f;}.agvp-t.bad b{color:#e2685f;}',
             '.agvp-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:11px;margin:0 0 6px;background:var(--glass-bg,rgba(255,255,255,.04));border:1px solid var(--glass-border,rgba(255,255,255,.1));font-size:calc(13px * var(--ag-font-scale,1));}',
             '.agvp-row .tx{flex:1;min-width:0;}.agvp-row .tx b{display:block;}.agvp-row .tx small{display:block;color:var(--text-muted,#9aa1ac);font-size:calc(11.5px * var(--ag-font-scale,1));}',
@@ -64,7 +64,7 @@
             '.agvp-map{height:220px;border-radius:12px;overflow:hidden;border:1px solid var(--glass-border,rgba(255,255,255,.12));margin:8px 0 12px;background:#0b1015;}',
             '.agvp-log{padding:8px 10px;border-left:2px solid var(--glass-border,rgba(255,255,255,.2));margin:0 0 6px 4px;font-size:calc(12.5px * var(--ag-font-scale,1));}',
             '.agvp-log b{color:var(--accent,#2f9e74);}.agvp-log small{display:block;color:var(--text-muted,#9aa1ac);}',
-            '.agvp-badge{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#d4a02c;color:#1a1408;font:700 11.5px/1 var(--font-ui,system-ui);margin-left:8px;vertical-align:middle;}',
+            '.agvp-badge{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--agv-gold,#d4a02c);color:#fff;font:700 11.5px/1 var(--font-ui,system-ui);margin-left:8px;vertical-align:middle;}',
             '.agvp-m{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px;}',
             '.agvp-m button{font:600 12px var(--font-ui,system-ui);padding:6px 10px;border-radius:999px;border:1px solid var(--glass-border,rgba(255,255,255,.16));background:transparent;color:inherit;cursor:pointer;}',
             '.agvp-m button.on{border-color:var(--accent,#2f9e74);color:var(--accent,#2f9e74);}'
@@ -96,7 +96,7 @@
             box.innerHTML =
                 tile(d.lidi24, 'lidí za 24 h', 'prehled') + tile(d.body24, 'bodů za 24 h', 'prehled') + tile((d.online || []).length, 'v terénu teď', 'prehled', (d.online || []).length ? 'ok' : '') +
                 tile(d.zadosti, 'žádostí o Pro', 'zadosti', d.zadosti ? 'warn' : '') + tile(d.zpravy, 'zpráv čeká', 'zpravy', d.zpravy ? 'warn' : '') + tile(d.chyby24, 'chyb za 24 h', 'errors', d.chyby24 ? 'bad' : '') +
-                (vyp7 ? tile(vyp7, 'Pro vyprší do 7 dní', 'kalendar', 'warn') : '') + (d.ucty24 ? tile(d.ucty24, 'nových účtů', 'lide') : '');
+                (vyp7 ? tile(vyp7, 'Pro končí brzy', 'kalendar', 'warn') : '') + (d.ucty24 ? tile(d.ucty24, 'nových účtů', 'lide') : '');
             Array.prototype.forEach.call(box.querySelectorAll('[data-go]'), function (el) {
                 el.addEventListener('click', function () { otevri(el.getAttribute('data-go')); });
             });

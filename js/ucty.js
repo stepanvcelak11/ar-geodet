@@ -2747,7 +2747,10 @@
             '<div class="agl-firm">Založení účtu — bez e-mailu, za dvě minuty.</div>' +
             '<div class="agg-box on">' +
             '  <input type="text" id="agr-name" maxlength="40" placeholder="Tvoje jméno" autocomplete="name">' +
-            '  <input type="text" id="agr-space" maxlength="60" placeholder="Název místa, kde budeš mít data" autocomplete="off">' +
+            // 12. 9. 2026: „Název místa, kde budeš mít data" byl matoucí (uživatel). Je to jméno
+            // TVÉHO PROSTORU — firma nebo tvoje jméno; pod ním budou zakázky a body.
+            '  <input type="text" id="agr-space" maxlength="60" placeholder="Název firmy nebo tvé jméno (tvůj prostor)" autocomplete="organization">' +
+            '  <div class="agg-note" style="margin:-4px 0 8px;text-align:left;">Tak se bude jmenovat <b>tvůj prostor</b> — místo, kde budou tvoje zakázky a body. Když tě pak někdo pozve do své firmy, přibude vedle jako druhý prostor.</div>' +
             '  <input type="password" id="agr-pass" maxlength="64" placeholder="Heslo (aspoň 8 znaků)" autocomplete="new-password">' +
             '  <input type="password" id="agr-pass2" maxlength="64" placeholder="Heslo ještě jednou" autocomplete="new-password">' +
             '  <div class="agl-err" id="agr-err"></div>' +

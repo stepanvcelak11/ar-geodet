@@ -87,6 +87,8 @@
     // {title, body, target?:selector|fn, before?:fn}  — bez target = vystředí kartu
     var BASIC = [
         { title: 'Vítej v QTRIG', body: 'Krátká prohlídka základního ovládání. Posouvej tlačítkem <b>Další</b>.' },
+        // 12. 9. 2026 (přání uživatele): co znamená název z registrace a k čemu je Základ
+        { title: 'Tvůj prostor a Základ', body: 'Název, který jsi zadal při založení účtu, je <b>tvůj prostor</b> — místo, kde máš zakázky a body. Když tě někdo pozve do firmy, přibude vedle něj druhý a přepínáš mezi nimi.<br><br><b>Základ</b> (zdarma) zvládne celý den v terénu: změřit vzdálenost a plochu, přesnou GPS, vytyčit body podle seznamu, zápisník, závady, kompas, počasí, katastr, kde stojíš. Zamčené nástroje s visacím zámkem jsou ve verzi <b>Pro</b> — klepnutím na ně o Pro požádáš autora appky.' },
         { title: 'Přepínání zobrazení', target: '#ag-view-wheel', body: 'Kolečko vpravo dole přepíná mezi <b>AR</b> kamerou, <b>Split</b> (dělené) a 2D <b>Mapou</b>. <b>Tažením po kolečku</b> skočíš rovnou: <b>nahoru</b> AR, <b>do strany</b> Split, <b>dolů</b> Mapa. Klepnutí posune na další dokola. Appka startuje v <b>Mapě</b> — kamera je zdaleka největší žrout baterie, tak se zapíná, až když ji potřebuješ.' },
         { title: 'Vrstvy v mapě', target: '#map-ctrl-toggle', body: 'Tlačítko <b>Vrstvy</b> vlevo dole v mapě: přepnutí <b>mapa / ortofoto</b>, zapnutí <b>katastru</b> a <b>terénu (DMR 5G)</b> a nástroje mapy (na mě, body v okolí, spojit body, měřit plochu, uložit offline). Odznak ukazuje, kolik vrstev je zapnutých.' },
         {

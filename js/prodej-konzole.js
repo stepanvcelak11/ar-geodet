@@ -283,7 +283,7 @@
         });
         var o = u.objednavky || {};
         if (o.n) h.push('<div class="pd-pl">Objednávky: ' + o.n + ' (zaplaceno ' + o.zaplaceno + ', čeká ' + o.ceka + ')</div>');
-        h.push('<div class="pd-lab">Pro</div>');
+        h.push('<div class="pd-lab">' + (u.tarif === 'pro' ? 'Pro — prodloužit' : 'Zapnout Pro') + '</div>');
         h.push('<div class="pd-tools">' +
             '<button type="button" class="pd-b on" data-pro="' + esc(u.id) + '" data-dni="30">+ měsíc</button>' +
             '<button type="button" class="pd-b on" data-pro="' + esc(u.id) + '" data-dni="365">+ rok</button>' +
@@ -297,7 +297,7 @@
         h.push('<div class="pd-tools">' +
             '<button type="button" class="pd-b" data-vzkaz="' + esc(u.id) + '">Poslat vzkaz do appky</button>' +
             '<button type="button" class="pd-b" data-ocima="' + esc(u.id) + '">Očima účtu</button></div>');
-        h.push('<div class="pd-lab">Účet</div>');
+        h.push('<div class="pd-lab">Přístup a další</div>');
         h.push('<div class="pd-tools">' +
             (u.disabled
                 ? '<button type="button" class="pd-b on" data-blok="' + esc(u.id) + '" data-on="0">Odblokovat</button>'

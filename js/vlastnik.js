@@ -453,10 +453,52 @@
             '.agv-card .agv-note{max-width:300px;text-align:center;font:500 11.5px/1.5 var(--font-ui,system-ui);',
             '  color:var(--text-muted,#9aa1ac);}',
             '.agv-card .agl-err{max-width:320px;}',
+            // ===== SPOLEČNÝ MOTIV OKEN VLASTNÍKA (12. 9. 2026, „ať je to přehledné a hezké") =====
+            // Konzole, Lidé a prodej, Správa aplikace i Zprávy od lidí = jedna rodina: zlatá
+            // linka nahoře + kicker „Vlastník aplikace", stejné dlaždice čísel, stejné řádky
+            // seznamů (karta s okrajem), stejné pilulky tlačítek a stejné nadpisy sekcí.
+            // Barva vlastníka je zlatá (#d4a02c) — zelená zůstává pro „v pořádku / aktivní".
+            ':root{--agv-gold:#d4a02c;--agv-gold-soft:rgba(212,160,44,.13);--agv-gold-line:rgba(212,160,44,.45);}',
+            'body.light-mode{--agv-gold:#9a6d18;--agv-gold-soft:rgba(154,109,24,.12);--agv-gold-line:rgba(154,109,24,.45);}',
+            '#agv-modal .modal-content,#ag-pd-modal .modal-content,#ag-sa-modal .modal-content,#ag-fb-inbox .modal-content{box-shadow:inset 0 3px 0 var(--agv-gold);}',
+            '#agv-modal .modal-content > h2:first-child::before,#ag-pd-modal .modal-content > h2:first-child::before,#ag-sa-modal .modal-content > h2:first-child::before,',
+            '#ag-fb-inbox .modal-content > h2:first-child::before,#ag-fb-inbox .modal-content > h3:first-child::before{content:"Vlastník aplikace";display:block;',
+            '  font:700 10px/1 var(--font-ui,system-ui);letter-spacing:.16em;text-transform:uppercase;color:var(--agv-gold);margin:4px 0 6px;}',
+            '#agv-modal .modal-content > h2:first-child span,#ag-pd-modal .modal-content > h2:first-child span,#ag-sa-modal .modal-content > h2:first-child span{color:var(--agv-gold) !important;}',
+            '#ag-fb-inbox .modal-content > h3:first-child .icon,#ag-fb-inbox .modal-content > h3:first-child span{color:var(--agv-gold) !important;}',
+            // dlaždice čísel: jedna podoba (konzole .agvp-t, Lidé .pd-cell, Firmy .sa-cell)
+            '#ag-pd-modal .pd-top,#ag-sa-modal .sa-top{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 12px;}',
+            '#ag-pd-modal .pd-cell,#ag-sa-modal .sa-cell{padding:10px 6px;border-radius:12px;text-align:center;',
+            '  background:var(--glass-bg,rgba(255,255,255,.05));border:1px solid var(--glass-border,rgba(255,255,255,.12));}',
+            '#ag-pd-modal .pd-cell b,#ag-sa-modal .sa-cell b{display:block;font:700 calc(20px * var(--ag-font-scale,1))/1.1 var(--font-mono,ui-monospace,monospace);color:var(--text-color,#e6e8eb);}',
+            '#ag-pd-modal .pd-cell span,#ag-sa-modal .sa-cell span{display:block;margin-top:3px;font:600 10px/1.2 var(--font-ui,system-ui);letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
+            '#ag-pd-modal .pd-cell.warn,#ag-sa-modal .sa-cell.warn{border-color:var(--agv-gold);}#ag-pd-modal .pd-cell.warn b,#ag-sa-modal .sa-cell.warn b{color:var(--agv-gold);}',
+            '#ag-sa-modal .sa-cell.bad{border-color:#e2685f;}#ag-sa-modal .sa-cell.bad b{color:#e2685f;}',
+            // řádky seznamů: karta s okrajem, ne holý řádek
+            '#ag-pd-modal .pd-row,#ag-sa-modal .sa-row{gap:11px;padding:10px 12px;margin:0 0 6px;border-radius:12px;',
+            '  background:var(--glass-bg,rgba(255,255,255,.04));border:1px solid var(--glass-border,rgba(255,255,255,.1));}',
+            '#ag-pd-modal .pd-row.on,#ag-sa-modal .sa-row.on{border-color:var(--agv-gold-line);background:var(--agv-gold-soft);}',
+            '#ag-pd-modal .pd-dot,#ag-sa-modal .sa-dot{width:10px;height:10px;opacity:1;}',
+            '#ag-pd-modal .pd-dot.pro{background:var(--agv-gold);box-shadow:0 0 8px var(--agv-gold);}',
+            '#ag-pd-modal .pd-dot.blok{background:#e2685f;}#ag-pd-modal .pd-dot.ceka{background:#d4a02c;}',
+            '#ag-pd-modal .pd-det,#ag-sa-modal .sa-det{margin:-2px 0 10px;padding:10px 12px 12px;border:1px solid var(--agv-gold-line);border-top:0;border-radius:0 0 12px 12px;background:var(--agv-gold-soft);}',
+            '#ag-pd-modal .pd-row.on,#ag-sa-modal .sa-row.on{border-bottom-left-radius:0;border-bottom-right-radius:0;margin-bottom:0;}',
+            // nadpisy sekcí a tlačítka: jedno písmo, jedna pilulka
+            '#ag-pd-modal .pd-lab,#ag-sa-modal .sa-lab,#agv-modal .agv-sec{font:700 10.5px/1 var(--font-ui,system-ui);letter-spacing:.09em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);margin:14px 0 7px;}',
+            '#ag-pd-modal .pd-b,#ag-sa-modal .sa-b,#agv-modal .agv-b{border-radius:999px;padding:8px 13px;font:600 12px/1 var(--font-ui,system-ui);}',
+            '#ag-pd-modal .pd-tabs{gap:6px;}#ag-pd-modal .pd-tabs button{border-radius:999px;}',
+            '#ag-pd-modal .pd-nez{border-radius:14px;}',
+            '#ag-pd-modal input[type=search],#ag-sa-modal input[type=search],#ag-pd-modal input[type=text],#ag-sa-modal input[type=text]{border-radius:12px;}',
+            // zprávy od lidí: karty jako všude jinde
+            '#ag-fb-inbox .ag-fb-msg{border-radius:12px;border:1px solid var(--glass-border,rgba(255,255,255,.1));background:var(--glass-bg,rgba(255,255,255,.04));padding:10px 12px;margin:0 0 8px;}',
+            '#ag-fb-inbox .ag-fb-tag.pro{color:var(--agv-gold);}',
             // konzole
-            '#' + MODAL_ID + ' .agv-hd{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:13px;margin:0 0 12px;',
-            '  background:var(--accent-soft,rgba(47,158,116,0.12));border:1px solid var(--accent,#2f9e74);}',
-            '#' + MODAL_ID + ' .agv-hd b{display:block;font:700 13px/1.3 var(--font-ui,system-ui);color:var(--accent,#2f9e74);}',
+            '#' + MODAL_ID + ' .agv-hd{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;margin:0 0 12px;',
+            '  background:var(--agv-gold-soft);border:1px solid var(--agv-gold-line);}',
+            '#' + MODAL_ID + ' .agv-hd small{display:inline !important;margin:0 0 0 6px !important;}',
+            '#' + MODAL_ID + ' .agv-hd b{display:inline !important;}',
+            '#' + MODAL_ID + ' .agv-hd > div:first-child{color:var(--agv-gold,#d4a02c) !important;}',
+            '#' + MODAL_ID + ' .agv-hd b{display:block;font:700 13px/1.3 var(--font-ui,system-ui);color:var(--agv-gold,#d4a02c);}',
             '#' + MODAL_ID + ' .agv-hd small{display:block;margin-top:2px;font:500 11.5px/1.4 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
             '#' + MODAL_ID + ' .agv-sec{font:600 10.5px/1 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);',
             '  text-transform:uppercase;letter-spacing:.06em;margin:16px 0 7px;}',
@@ -464,7 +506,8 @@
             '  background:var(--glass-bg,rgba(255,255,255,0.04));border:1px solid var(--glass-border,rgba(255,255,255,0.1));',
             '  border-radius:12px;padding:11px 12px;margin:0 0 7px;cursor:pointer;color:var(--text-color,#e6e8eb);}',
             '#' + MODAL_ID + ' .agv-it:active{transform:scale(.99);}',
-            '#' + MODAL_ID + ' .agv-it .ic{flex:none;width:22px;height:22px;color:var(--accent,#2f9e74);}',
+            '#' + MODAL_ID + ' .agv-it .ic{flex:none;width:36px;height:36px;padding:8px;box-sizing:border-box;border-radius:11px;',
+            '  background:var(--agv-gold-soft,rgba(212,160,44,.12));color:var(--agv-gold,#d4a02c);}',
             '#' + MODAL_ID + ' .agv-it .ic svg{width:100%;height:100%;display:block;}',
             '#' + MODAL_ID + ' .agv-it .tx{flex:1;min-width:0;}',
             '#' + MODAL_ID + ' .agv-it .tx b{display:block;font:700 13.5px/1.3 var(--font-ui,system-ui);}',
@@ -679,15 +722,19 @@
 
         h.push('<div class="agv-sec">Nástroje z registru</div>');
         if (!reg.length) h.push('<div class="agv-p">Registr nástrojů se nenačetl, použij pole níž.</div>');
+        // ⚠ Seskupení PODLE SLOVESA, ne podle `cat` (12. 9. 2026): registr je seřazený po
+        //   slovesech, takže kategorie se v seznamu střídaly „Ostatní / Měření / Ostatní…"
+        //   a nadpisy lhaly. Sloveso je to, co člověk v seznamu čte.
         var cat = '';
-        reg.forEach(function (t) {
+        reg.slice().sort(function (a, b) { return String(a.verb || '').localeCompare(String(b.verb || ''), 'cs'); }).forEach(function (t) {
             var id = t.k;
             if (!id) return;
-            if (t.cat !== cat) { cat = t.cat; h.push('<div class="agv-sec">' + esc(cat || 'Ostatní') + '</div>'); }
+            var grp = t.verb || 'Ostatní';
+            if (grp !== cat) { cat = grp; h.push('<div class="agv-sec">' + esc(cat) + '</div>'); }
             var on = !!(_pick && _pick[id]);
             h.push('<label class="agv-row' + (on ? ' off' : '') + '">' +
                 '<input type="checkbox" data-flag="' + esc(id) + '"' + (on ? ' checked' : '') + '>' +
-                '<span><b>' + esc((t.verb ? t.verb + ' ' : '') + (t.vl || id)) + '</b><small>' + esc(id) + '</small></span>' +
+                '<span><b>' + esc(t.vl || id) + '</b><small>' + esc(id) + '</small></span>' +
                 '</label>');
         });
 
@@ -892,7 +939,8 @@
         if (_view === 'usage') return viewUsage(b);
         // pohledy z js/vlastnik-plus.js (souhrn, deník, kalendář, záloha, pohled očima účtu)
         if (_view && window.AGVlastnikPlus && AGVlastnikPlus.view && AGVlastnikPlus.view(_view, b)) return;
-        var h = ['<div class="agv-hd"><div style="flex:none;width:22px;height:22px;color:var(--accent);">' + ICON + '</div>' +
+        // jeden tichý řádek místo zeleného boxu — kicker „Vlastník aplikace" už je v nadpisu
+        var h = ['<div class="agv-hd"><div style="flex:none;width:18px;height:18px;">' + ICON + '</div>' +
             '<div><b>Máš odemčeno všechno</b><small>Oprávnění firem a rolí se na tenhle telefon nevztahují.</small></div></div>'];
         var items = polozky();
         items.forEach(function (it, i) {

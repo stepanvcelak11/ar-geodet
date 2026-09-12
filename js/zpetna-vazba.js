@@ -50,6 +50,16 @@
         { k: 'jine', l: 'Jiné' }
     ];
 
+    // meta zprávy (JSON s údaji o zařízení / účtu) → čitelné „klíč: hodnota", ne syrový JSON
+    function metaLidsky(m) {
+        try {
+            var o = typeof m === 'string' ? JSON.parse(m) : m;
+            if (!o || typeof o !== 'object') return String(m);
+            var N = { ucet: 'účet', ucetId: null, zadost: null, nastroj: 'nástroj', vydani: 'vydání', verze: 'verze', app: 'appka', ua: 'prohlížeč', online: 'online', gps: 'GPS', okno: 'okno', nastroj_posledni: 'poslední nástroj', bodu: 'bodů' };
+            return Object.keys(o).filter(function (k) { return N[k] !== null && o[k] != null && o[k] !== ''; })
+                .map(function (k) { return (N[k] || k) + ' ' + (typeof o[k] === 'object' ? JSON.stringify(o[k]) : String(o[k])); }).join(' · ');
+        } catch (e) { return String(m); }
+    }
     var _sending = false, _inbox = null, _inboxState = { stav: 'open', rows: [], konec: false };
 
     function swallow(e, kde) { try { window.AG && AG.swallow && AG.swallow(e, 'zpetna-vazba:' + kde); } catch (x) { } }
@@ -612,8 +622,10 @@
                     (r.who ? '<span>· ' + esc(r.who) + '</span>' : '') +
                     (r.contact ? '<span>· ' + esc(r.contact) + '</span>' : '') + '</div>' +
                     '<div class="ag-fb-t">' + esc(r.txt) + '</div>' +
-                    (r.meta ? '<div class="ag-fb-meta">' + esc(r.meta) + '</div>' : '') +
+                    (r.meta ? '<div class="ag-fb-meta">' + esc(metaLidsky(r.meta)) + '</div>' : '') +
                     '<div class="ag-fb-acts">' +
+                    // žádost o Pro se vyřizuje v Lidech (zapnout Pro = jedno klepnutí)
+                    (r.kind === 'pro' && !r.done ? '  <button type="button" data-a="pro" style="border-color:#d4a02c;color:#d4a02c;">Zapnout Pro (Lidé → Žádosti)</button>' : '') +
                     '  <button type="button" data-a="done">' + (r.done ? 'Zpět mezi nevyřízené' : 'Vyřízeno') + '</button>' +
                     (r.contact ? '  <button type="button" data-a="mail">Odpovědět e-mailem</button>' : '') +
                     '  <button type="button" data-a="del">Smazat</button>' +
@@ -631,6 +643,11 @@
 
     function onInboxClick(e) {
         var b = e.target.closest && e.target.closest('button[data-a]');
+        if (b && b.getAttribute('data-a') === 'pro') {
+            var go = function () { try { var m0 = document.getElementById('ag-fb-inbox'); if (m0) m0.style.display = 'none'; AGProdej.open('zad'); } catch (e2) { swallow(e2, 'pro'); } };
+            if (window.AGProdej) go(); else if (window.AGLazy) AGLazy.need('js/prodej-konzole.js', go);
+            return;
+        }
         if (!b) return;
         var box = b.closest('.ag-fb-msg');
         var id = box && parseInt(box.dataset.id, 10);
