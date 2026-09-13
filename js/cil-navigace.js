@@ -294,8 +294,11 @@
         var stack = document.getElementById('map-ctrl-stack'); if (!stack) return null;
         var b = document.createElement('button');
         b.type = 'button'; b.id = 'ms-cil'; b.className = 'ms-tile'; b.hidden = true;
-        b.setAttribute('aria-label', 'Ukázat cíl');
-        b.innerHTML = '<svg class="icon"><use href="#i-navigation"/></svg><span>Ukázat cíl</span>';
+        // 13. 9. 2026: přejmenováno z „Ukázat cíl" — vlastník nevěděl, co to dělá (dlaždice je
+        // vidět jen při navádění, takže na ni člověk narazí zřídka). Název teď říká, co udělá.
+        b.title = 'Srovná mapu tak, aby v ní byl vidět ty i bod, ke kterému jdeš.';
+        b.setAttribute('aria-label', 'Ukázat mě i cíl v mapě');
+        b.innerHTML = '<svg class="icon"><use href="#i-navigation"/></svg><span>Ukázat mě i cíl</span>';
         b.addEventListener('click', function () { fitTarget(); });
         stack.appendChild(b);
         _tile = b;

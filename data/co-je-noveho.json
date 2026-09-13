@@ -2,12 +2,13 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
-   "v": 313,
+   "v": 314,
    "datum": "2026-09-13",
    "nadpis": "Kytička nástrojů čitelnější a návrat do konzole vlastníka",
    "body": [
     "<b>Kytička nástrojů:</b> všechny lístky mají stejnou velikost písma, popisky jsou širší a nelámou se uprostřed slova; při dvanácti směrech se lístky nepřekrývají. Skupina „Zaznamenat“ má na lístku „Záznam“ (celý název je uprostřed květu).",
-    "<b>Konzole vlastníka:</b> v každém pohledu je nahoře pod nadpisem jedno velké tlačítko „‹ Zpět do konzole“ — vždy na stejném místě, neodroluje. U oken otevřených z konzole (Lidé, Zprávy, Firmy…) je na levém okraji zlatá záložka „‹ Konzole“. Návrat po zavření okna funguje i s běžící kamerou."
+    "<b>Konzole vlastníka:</b> v každém pohledu je nahoře pod nadpisem jedno velké tlačítko „‹ Zpět do konzole“ — vždy na stejném místě, neodroluje. U oken otevřených z konzole (Lidé, Zprávy, Firmy…) je na levém okraji zlatá záložka „‹ Konzole“. Návrat po zavření okna funguje i s běžící kamerou.",
+    "<b>Vrstvy:</b> dlaždice „Ukázat cíl“ se jmenuje „Ukázat mě i cíl“ — srovná mapu tak, aby v ní byl vidět ty i bod, ke kterému jdeš (je tam jen při navádění)."
    ]
   },
   {
