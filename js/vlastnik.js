@@ -571,6 +571,11 @@
             // podpohledy konzole
             '#' + MODAL_ID + ' .agv-back{background:transparent;border:none;color:var(--accent,#2f9e74);',
             '  font:700 13px/1 var(--font-ui,system-ui);padding:2px 0 10px;cursor:pointer;}',
+            '#' + MODAL_ID + ' .agv-nav{flex:none;margin:0 0 10px;}',
+            '#' + MODAL_ID + ' .agv-nav button{width:100%;min-height:44px;padding:10px 14px;border-radius:12px;text-align:left;',
+            '  border:1px solid var(--agv-gold-line);background:var(--agv-gold-soft);color:var(--agv-gold);',
+            '  font:700 15px/1.2 var(--font-ui,system-ui);cursor:pointer;}',
+            '#' + MODAL_ID + ' .agv-nav button:active{transform:scale(.99);}',
             '#' + MODAL_ID + ' .agv-h2{font:800 17px/1.25 var(--font-display,system-ui);color:var(--text-color,#e6e8eb);margin:0 0 6px;}',
             '#' + MODAL_ID + ' .agv-p{font:500 12.5px/1.55 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);margin:0 0 12px;}',
             '#' + MODAL_ID + ' .agv-p code{font-family:var(--font-mono,monospace);}',
@@ -753,9 +758,15 @@
         m.innerHTML =
             '<div class="modal-content">' +
             '  <h2 style="margin-top:0;"><span style="display:inline-block;width:22px;height:22px;vertical-align:-4px;color:var(--accent);">' + ICON + '</span> Konzole vlastníka</h2>' +
+            // JEDNO ZPĚT PRO VŠECHNY POHLEDY (13. 9. 2026, vlastník: „to tlačítko zpět je malé a
+            // pokaždé vypadá jinak a je jinde"). Dřív měl každý pohled malý textový odkaz
+            // „‹ Konzole" v těle, který odroloval s obsahem. Teď je tu jedno velké tlačítko
+            // pod nadpisem, mimo rolovanou část — stejné místo, stejná podoba, vždycky.
+            '  <div class="agv-nav" id="agv-nav" hidden><button type="button" id="agv-hdr-back">‹ Zpět do konzole</button></div>' +
             '  <div class="modal-body" id="agv-body"></div>' +
             '</div>';
         document.body.appendChild(m);
+        m.querySelector('#agv-hdr-back').addEventListener('click', function () { jdi(''); });
         return m;
     }
 
@@ -770,8 +781,8 @@
 
     // Spolecna hlavicka podpohledu (nadpis + zpet na rozcestnik).
     function hlava(nadpis, popis) {
-        return '<button type="button" class="agv-back" id="agv-zpet">‹ Konzole</button>' +
-            '<div class="agv-h2">' + esc(nadpis) + '</div>' +
+        // (odkaz „‹ Konzole" tu už není — Zpět je jedno velké tlačítko v hlavičce, viz build)
+        return '<div class="agv-h2">' + esc(nadpis) + '</div>' +
             (popis ? '<div class="agv-p">' + popis + '</div>' : '');
     }
     function wireZpet(b) {
@@ -1059,6 +1070,8 @@
     function render() {
         var b = document.getElementById('agv-body');
         if (!b) return;
+        var nav = document.getElementById('agv-nav'); if (nav) nav.hidden = !_view;
+        try { b.scrollTop = 0; } catch (e) { swallow(e, 'render:scroll'); }
         if (_view === 'flags') return viewFlags(b);
         if (_view === 'errors') return viewErrors(b);
         if (_view === 'usage') return viewUsage(b);
@@ -1271,8 +1284,8 @@
         // dole jejich tlačítka — jediné místo, kde nic nezakryje. Text jde po výšce.
         p.style.cssText = 'position:fixed;left:0;top:42%;z-index:1000001;' +
             'writing-mode:vertical-rl;transform:rotate(180deg);' +
-            'padding:12px 7px 12px 6px;border-radius:0 10px 10px 0;border:1px solid var(--accent,#2f9e74);border-left:none;' +
-            'background:rgba(10,14,18,0.92);color:var(--accent-bright,#3fbc8c);font:700 12px/1 var(--font-ui,system-ui);letter-spacing:.04em;' +
+            'padding:16px 10px 16px 9px;border-radius:0 12px 12px 0;border:1px solid var(--agv-gold-line,rgba(212,160,44,.45));border-left:none;' +
+            'background:rgba(10,14,18,0.94);color:var(--agv-gold,#d4a02c);font:700 14px/1 var(--font-ui,system-ui);letter-spacing:.04em;' +
             'box-shadow:0 4px 14px rgba(0,0,0,0.45);cursor:pointer;';
         p.addEventListener('click', function () {
             if (_zpetT) { clearInterval(_zpetT); _zpetT = null; }
