@@ -39,7 +39,10 @@
     ["^(\\d+) záznamů; poslední$", "$1 records; latest", "$1 Einträge; zuletzt", "$1 wpisów; ostatnie"],
     ["^GPS bez fixu (\\d+) (s|min) · poloha nejistá$", "GPS no fix $1 $2 · position uncertain", "GPS kein Fix $1 $2 · Position unsicher", "GPS bez fiksu $1 $2 · pozycja niepewna"],
     ["^(.+) · tady jsi$", "$1 · you are here", "$1 · du bist hier", "$1 · jesteś tutaj"],
-    ["^(v\\d+) · Základ$", "$1 · Basic", "$1 · Basis", "$1 · Podstawa"]
+    ["^(v\\d+) · Základ$", "$1 · Basic", "$1 · Basis", "$1 · Podstawa"],
+    ["^Do konce roku (\\d{4}) je Pro zdarma$", "Pro is free until the end of $1", "Pro ist bis Ende $1 kostenlos", "Pro jest bezpłatne do końca $1"],
+    ["^— stačí poslat žádost níž a autor ti ho zapne\\. Od roku (\\d{4}) bude Pro za předplatné \\(měsíc nebo rok\\); kdo ho dostal letos, dozví se to v appce včas\\.$", "— just send the request below and the author will switch it on. From $1 Pro will be a subscription (monthly or yearly); anyone who got it this year will hear about it in the app in time.", "— schick einfach unten die Anfrage, der Autor schaltet es frei. Ab $1 ist Pro ein Abo (Monat oder Jahr); wer es dieses Jahr bekommen hat, erfährt es rechtzeitig in der App.", "— wystarczy wysłać prośbę poniżej, a autor je włączy. Od $1 Pro będzie w abonamencie (miesiąc lub rok); kto dostał je w tym roku, dowie się o tym w aplikacji na czas."],
+    ["^Pro se nezapíná samo — zapne ti ho autor appky\\. Napiš mu, kdo jsi a na co Pro potřebuješ; kód tvého účtu jde s žádostí\\. Do konce roku (\\d{4}) je to zdarma\\.$", "Pro does not switch itself on — the app author does it. Tell him who you are and what you need Pro for; your account code goes with the request. It is free until the end of $1.", "Pro schaltet sich nicht selbst frei — das macht der Autor der App. Schreib ihm, wer du bist und wofür du Pro brauchst; dein Kontocode geht mit der Anfrage. Bis Ende $1 ist es kostenlos.", "Pro nie włącza się samo — robi to autor aplikacji. Napisz mu, kim jesteś i do czego potrzebujesz Pro; kod twojego konta idzie z prośbą. Do końca $1 jest to bezpłatne."]
   ],
   "t": {
     "Body": ["Points", "Punkte", "Punkty"],

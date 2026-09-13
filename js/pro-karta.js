@@ -188,6 +188,12 @@
             M + ' .agp-acts button.zel{background:#3fbc8c;border-color:transparent;color:#fff;}',
             M + ' .agp-acts button[disabled]{opacity:.5;cursor:default;}',
             M + ' .agp-pozn{margin:9px 0 0;opacity:.65;line-height:1.45;font-size:calc(12px * var(--ag-font-scale,1));text-align:center;}',
+            // „do konce roku zdarma" (13. 9. 2026): zlatý rámeček pod hlavičkou, jen dokud Pro nemá
+            M + ' .agp-akce{margin:0 0 14px;padding:11px 13px;border-radius:13px;text-align:center;line-height:1.45;font-size:calc(13.5px * var(--ag-font-scale,1));',
+            '  background:linear-gradient(150deg,rgba(230,189,118,.22),rgba(230,189,118,.06));border:1px solid rgba(230,189,118,.55);color:var(--text-color,#e9eef7);}',
+            M + ' .agp-akce b{color:#e6bd76;}',
+            'body.light-mode ' + M + ' .agp-akce b{color:#9a6d18;}',
+            'body.light-mode ' + M + ' .agp-akce{border-color:rgba(154,109,24,.45);background:linear-gradient(150deg,rgba(230,189,118,.35),rgba(230,189,118,.1));}',
             // formulář žádosti
             M + ' .agp-form p{margin:0 0 8px;opacity:.8;line-height:1.5;font-size:calc(14px * var(--ag-font-scale,1));}',
             M + ' textarea{min-height:110px;resize:vertical;}',
@@ -232,7 +238,16 @@
             '<h2 class="agp-title">' + esc(title) + '</h2>' +
             '<p class="agp-sub">' + esc(sub) + '</p>' +
             '<span class="agp-stav' + (pro ? ' open' : '') + '">' + (pro ? I.check : I.lock) + esc(pill) + '</span>' +
-            '</div>';
+            '</div>' + (pro ? '' : akceBlok());
+    }
+    // ZDARMA DO KONCE ROKU (13. 9. 2026, přání vlastníka: „do budoucna plánuji zpoplatnění —
+    // u nabídky Pro dej zprávu, že do konce roku je Pro zdarma, jen mi musí poslat žádost,
+    // a od příštího roku bude zpoplatněná předplatným"). Rok se bere z data, ať to
+    // s lednem nezestárne samo od sebe; text si pak vlastník stejně upraví.
+    function akceBlok() {
+        var rok = new Date().getFullYear();
+        return '<div class="agp-akce"><b>Do konce roku ' + rok + ' je Pro zdarma</b> — stačí poslat žádost níž a autor ti ho zapne. ' +
+            'Od roku ' + (rok + 1) + ' bude Pro za předplatné (měsíc nebo rok); kdo ho dostal letos, dozví se to v appce včas.</div>';
     }
     function skupiny(pro) {
         return '<div class="agp-lbl">' + (pro ? 'Máš k dispozici' : 'Co je ve verzi Pro') + '</div>' +
@@ -286,7 +301,7 @@
         box.innerHTML =
             '<div class="agp-hero"><div class="agp-badge">' + I.send + '</div>' +
             '<h2 class="agp-title">Požádat o Pro</h2>' +
-            '<p class="agp-sub">Pro se nezapíná samo — zapne ti ho autor appky. Napiš mu, kdo jsi a na co Pro potřebuješ; kód tvého účtu jde s žádostí.</p></div>' +
+            '<p class="agp-sub">Pro se nezapíná samo — zapne ti ho autor appky. Napiš mu, kdo jsi a na co Pro potřebuješ; kód tvého účtu jde s žádostí. Do konce roku ' + new Date().getFullYear() + ' je to zdarma.</p></div>' +
             '<div class="agp-form">' +
             '<label for="agp-z-jm">Jméno / firma</label>' +
             '<input id="agp-z-jm" type="text" maxlength="80" autocomplete="name" value="' + esc(u.name || '') + '">' +
