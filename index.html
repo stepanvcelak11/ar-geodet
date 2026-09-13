@@ -95,8 +95,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=310">
-    <link rel="stylesheet" href="css/style.css?v=310">
+    <link rel="stylesheet" href="css/tokens.css?v=311">
+    <link rel="stylesheet" href="css/style.css?v=311">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -227,7 +227,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=310">
+    <link rel="stylesheet" href="css/vylepseni.css?v=311">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -541,6 +541,9 @@
                     <div class="tool-cat">Příručka a výpočty</div>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openCalcModal();"><svg class="icon"><use href="#i-calc"/></svg><span>Kalkulačka</span></button>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openDictModal();"><svg class="icon"><use href="#i-book"/></svg><span>Slovník</span></button>
+                    <!-- Učit se (v306, studenti): nadpis pro dlaždice registru s verb „Učit se“ —
+                         bez něj padaly do záchytné „Ostatní“ (test_v283 v CI červený od v306). -->
+                    <div class="tool-cat">Učit se</div>
                 </div>
             </div>
             <button class="btn btn-secondary" style="margin-top: 15px;" onclick="document.getElementById('tools-modal').style.display='none'">Zavřít</button>

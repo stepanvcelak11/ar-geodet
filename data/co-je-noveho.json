@@ -2,6 +2,14 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 311,
+   "datum": "2026-09-13",
+   "nadpis": "Drobnost: „Učit se“ má v Nástrojích vlastní sekci",
+   "body": [
+    "Trenažér, Odhadni to, Cvičné úlohy, Poznávačka a Vzorce stojí v mřížce Nástrojů pod nadpisem „Učit se“, ne v „Ostatní“."
+   ]
+  },
+  {
    "v": 310,
    "datum": "2026-09-13",
    "nadpis": "Smazání účtu a upřesněné soukromí — příprava na Google Play",
