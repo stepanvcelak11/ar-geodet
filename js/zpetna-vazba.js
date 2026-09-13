@@ -538,7 +538,7 @@
         try { if (k) localStorage.setItem(LS_KEY, k); else localStorage.removeItem(LS_KEY); } catch (e) { swallow(e, 'setOwnerKey'); }
     }
 
-    function openInbox() {
+    function openInbox(stav) {
         var k = ownerKey();
         if (!k) {
             var v = window.prompt('Klíč schránky (OWNER_KEY ze serveru):', '');
@@ -546,7 +546,7 @@
             setOwnerKey(v.trim());
         }
         close();
-        _inboxState = { stav: 'open', rows: [], konec: false };
+        _inboxState = { stav: (stav === 'vse' || stav === 'all') ? '' : 'open', rows: [], konec: false };   // '' = všechny (i vyřízené)
         buildInbox().style.display = 'flex';
         loadInbox(true);
     }
@@ -644,6 +644,9 @@
                     (r.kind === 'pro' && !r.done ? '  <button type="button" data-a="pro" style="border-color:#d4a02c;color:#d4a02c;">Zapnout Pro (Lidé → Žádosti)</button>' : '') +
                     '  <button type="button" data-a="done">' + (r.done ? 'Zpět mezi nevyřízené' : 'Vyřízeno') + '</button>' +
                     (r.contact ? '  <button type="button" data-a="mail">Odpovědět e-mailem</button>' : '') +
+                    // 13. 9. 2026: odpověď rovnou do appky odesílatele (vzkaz přes /owner/vzkaz podle kódu
+                    // účtu z meta.ucet) — e-mail má jen ten, kdo kontakt uvedl, kód účtu posílá appka vždy
+                    (ucetZMeta(r.meta) && !r.done ? '  <button type="button" data-a="odp" style="border-color:var(--accent,#2f9e74);color:var(--accent,#2f9e74);">Odpovědět do appky</button>' : '') +
                     '  <button type="button" data-a="del">Smazat</button>' +
                     '</div></div>';
             }).join('');
@@ -657,6 +660,46 @@
         }
     }
 
+    function ucetZMeta(meta) {
+        try { var m = typeof meta === 'string' ? JSON.parse(meta) : (meta || {}); return m && m.ucet ? String(m.ucet) : ''; } catch (e) { return ''; }
+    }
+    // Odpověď do appky: tři připravené věty + vlastní; po odeslání se zpráva označí vyřízená.
+    function odpovedDoAppky(rec, box) {
+        var kod = ucetZMeta(rec.meta); if (!kod) return;
+        var verze = '';
+        try { var l = document.querySelector('link[rel="stylesheet"][href*="css/style.css?v="]'); var mm = l && (l.getAttribute('href') || '').match(/\?v=(\d+)/); if (mm) verze = 'v' + mm[1]; } catch (e) { verze = ''; }
+        var vety = [
+            'Díky za zprávu — opraveno' + (verze ? ' ve verzi ' + verze : '') + ', aktualizuj si appku (Nastavení → Údržba).',
+            'Díky, mám to. Podívám se na to a dám vědět.',
+            'Díky za nápad — zapsal jsem si ho, uvidím, kam se vejde.'
+        ];
+        var old = box.querySelector('.ag-fb-odp'); if (old) { old.remove(); return; }
+        var f = document.createElement('div'); f.className = 'ag-fb-odp';
+        f.style.cssText = 'margin:8px 0 2px;padding:10px;border-radius:10px;background:var(--glass-bg,rgba(255,255,255,.05));border:1px solid var(--glass-border,rgba(255,255,255,.12));';
+        f.innerHTML = '<div style="font:600 12px/1.3 var(--font-ui,system-ui);margin-bottom:6px;">Odpověď se ukáže ' + esc(rec.who || kod) + ' při příštím otevření appky:</div>' +
+            vety.map(function (v, i) { return '<button type="button" class="btn btn-secondary" data-v="' + i + '" style="width:100%;margin:0 0 6px;text-align:left;font-size:12.5px;">' + esc(v) + '</button>'; }).join('') +
+            '<textarea rows="2" placeholder="…nebo vlastní věta" style="width:100%;box-sizing:border-box;margin:2px 0 6px;"></textarea>' +
+            '<div style="display:flex;gap:6px;"><button type="button" class="btn btn-primary" data-v="x" style="flex:1;margin:0;">Poslat</button><button type="button" class="btn btn-secondary" data-v="z" style="margin:0;">Zrušit</button></div>';
+        box.appendChild(f);
+        var ta = f.querySelector('textarea');
+        f.addEventListener('click', function (ev) {
+            var bt = ev.target.closest && ev.target.closest('button[data-v]'); if (!bt) return;
+            ev.stopPropagation();
+            var v = bt.getAttribute('data-v');
+            if (v === 'z') { f.remove(); return; }
+            var txt = v === 'x' ? String(ta.value || '').trim() : vety[parseInt(v, 10)];
+            if (!txt) { ta.focus(); return; }
+            bt.disabled = true;
+            api('/owner/vzkaz', { method: 'POST', ownerKey: ownerKey(), body: { code: kod, txt: txt } }).then(function (r) {
+                if (!r.ok) { bt.disabled = false; info('Nepovedlo se: ' + ((r.data && r.data.error) || ('chyba ' + r.status))); return; }
+                return api('/feedback/done', { method: 'POST', ownerKey: ownerKey(), body: { id: rec.id, done: 1 } }).then(function () {
+                    rec.done = 1; renderInbox();
+                    info('Odpověď odeslána — uvidí ji v appce. Zpráva označena jako vyřízená.');
+                });
+            });
+        });
+        ta.focus();
+    }
     function onInboxClick(e) {
         var b = e.target.closest && e.target.closest('button[data-a]');
         if (b && b.getAttribute('data-a') === 'pro') {
@@ -672,6 +715,7 @@
         for (var i = 0; i < _inboxState.rows.length; i++) if (_inboxState.rows[i].id === id) rec = _inboxState.rows[i];
         if (!rec) return;
         var a = b.dataset.a;
+        if (a === 'odp') { odpovedDoAppky(rec, box); return; }
         if (a === 'mail') {
             try {
                 window.location.href = 'mailto:' + encodeURIComponent(rec.contact) +

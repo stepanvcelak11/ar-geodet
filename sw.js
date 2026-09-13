@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v307';   // Hodnoceni pro studenty: Kdo jsi (Student/Geodet/Firma), Ucit se (cvicne ulohy, poznavacka, vzorce), Proc +-4 m, postup + Helmert v kalkulacce, Trenazer a Odhadni to v Zakladu, 12 nastroju stranou, parta misto firmy
+const SHELL_CACHE = 'argeodet-shell-v308';   // Konzole vlastnika 2. kolo: hledani, od minula, hlidac, push, trychtyr, denik cloveka, jako Zaklad, kapacita, uklid, vydani s verzemi, grafy 7/30/90; worker v20
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=307',
-    './css/style.css?v=307',
-    './css/vylepseni.css?v=307',
+    './css/tokens.css?v=308',
+    './css/style.css?v=308',
+    './css/vylepseni.css?v=308',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -409,6 +409,30 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('message', e => { if (e.data === 'SKIP_WAITING') self.skipWaiting(); });
+
+// PUSH PRO VLASTNIKA (13. 9. 2026): odber zaklada jen konzole vlastnika (cloud/worker.js
+// /owner/push), bezni uzivatel zadny push nikdy nedostane — handler je tu ale pro vsechny,
+// protoze service worker je jeden. Payload: {t: nadpis, b: text, go: pohled konzole}.
+// Klepnuti otevre appku s ?konzole=<pohled>; js/vlastnik.js podle toho konzoli otevre.
+self.addEventListener('push', event => {
+    let d = {};
+    try { d = event.data ? event.data.json() : {}; } catch (e) { d = { t: 'QTRIG', b: event.data ? event.data.text() : '' }; }
+    event.waitUntil(self.registration.showNotification(d.t || 'QTRIG', {
+        body: d.b || '', tag: 'qtrig-' + (d.go || 'konzole'), renotify: true,
+        icon: './icon-192.png', badge: './icon-192.png', data: { go: d.go || '' }
+    }));
+});
+self.addEventListener('notificationclick', event => {
+    event.notification.close();
+    const go = (event.notification.data && event.notification.data.go) || '';
+    const cil = './index.html?konzole=' + encodeURIComponent(go || '1');
+    event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+        for (const c of list) {
+            if ('focus' in c) { try { c.postMessage({ agKonzole: go || '1' }); } catch (e) {} return c.focus(); }
+        }
+        return self.clients.openWindow(cil);
+    }));
+});
 
 self.addEventListener('fetch', event => {
     const url = event.request.url;

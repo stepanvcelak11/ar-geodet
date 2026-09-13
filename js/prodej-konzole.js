@@ -177,9 +177,10 @@
         document.body.appendChild(m);
         return m;
     }
-    function open(tab) {
+    function open(tab, id) {
         var m = build();
         if (tab) _tab = tab;
+        if (id) { _open = String(id); _q = ''; }   // z hledání v konzoli (13. 9. 2026): rovnou rozbalený účet
         m.style.display = 'flex';
         m.classList.add('ag-open');
         if (!ownerKey()) { agAlert('Chybí klíč vlastníka', 'Nejdřív se přihlas jako vlastník (Konzole vlastníka → Změnit klíč).'); close(); return; }
@@ -203,6 +204,8 @@
             _busy = false;
             if (!rr[0].ok) { _lide = null; render(); sayFail(rr[0], 'lidé'); return; }
             _lide = rr[0].data || null;
+            // rozbalený účet z hledání: dorolovat k němu, až je seznam vykreslený
+            if (_open) setTimeout(function () { try { var el = document.querySelector('#ag-pd-modal [data-u="' + _open + '"]'); if (el && el.scrollIntoView) el.scrollIntoView({ block: 'start' }); } catch (e) { swallow(e, 'scroll'); } }, 150);
             _obj = rr[1].ok ? (rr[1].data || null) : null;
             _zad = rr[2].ok ? ((rr[2].data || {}).messages || []).filter(function (m) { return m.kind === 'pro'; }) : null;
             render();

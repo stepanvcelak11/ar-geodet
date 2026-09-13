@@ -287,7 +287,7 @@ async def main():
             }""")
             ok('konzole se otevrela', kon['open'])
             # 13 od 11. 9. 2026: pribyla „Lide a prodej Pro" (js/prodej-konzole.js)
-            ok('konzole ma vsechny polozky', kon['polozek'] == 20, kon['polozek'])   # 13 + 4 z Vlastnik plus + Pustit verzi ostatnim (12. 9. 2026) + Grafy + Hlaseni pro vyvoj (13. 9. 2026)
+            ok('konzole ma vsechny polozky', kon['polozek'] == 24, kon['polozek'])   # 20 (v303) + Trychtyr, Upozorneni, Uklid, Ukazat jako Zaklad (2. kolo 13. 9. 2026); Stav serveru = Stav serveru a kapacita
             ok('konzole nabizi vsechny firmy', 'Všechny firmy' in kon['texty'], kon['texty'])
             ok('konzole nabizi lidi a prodej', 'Lidé a prodej Pro' in kon['texty'])
             ok('konzole nabizi schranku', 'Zprávy od lidí' in kon['texty'])
@@ -312,7 +312,7 @@ async def main():
                     #   nez zadne (tatáž uvaha jako u opakovaneho pokusu v tests.yml).
                     if 'na serveru' in sv and 'není' in sv:
                         ok('stav serveru: PRESKOCENO (server nema nastaveny OWNER_KEY)', True, sv[:120])
-                    elif 'chyba 429' in sv:
+                    elif 'chyba 429' in sv or 'zamčeno' in sv:
                         # brzda hadani klice (10 pokusu z adresy za hodinu) — po nekolika
                         # bezich sad z jednoho stroje je to bezny stav, ne vada
                         ok('stav serveru: PRESKOCENO (brzda 429 po opakovanych bezich)', True, sv[:120])

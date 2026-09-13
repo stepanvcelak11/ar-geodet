@@ -14,7 +14,7 @@
 # ⚠ Vsechno musi byt na Promise/microtaskach — py_mini_racer nema smycku udalosti,
 #   takze setTimeout uvnitr workeru by test tise zasekl (OUT zustane null).
 #
-#   A) /health hlasi v:19, prodej:true a stav klice vlastnika (ownerKey)
+#   A) /health hlasi v:20, prodej:true a stav klice vlastnika (ownerKey)
 #   J) brzda vydani: GET /vydano (verejne) null -> POST /owner/vydat 296 -> 296; bez klice 403
 #   B) POST /objednavky bez PRODEJ_IBAN -> 503 (prodej vypnuty), s IBAN -> 8mistny
 #      VS, SPAYD s castkou a VS, cenik se dvema produkty, zkouska 3 dny
@@ -102,7 +102,11 @@ globalThis.crypto = {
   subtle: {
     importKey: function () { return Promise.resolve({}); },
     sign: function (alg, key, data) { return Promise.resolve(FAKE_SIGN(new Uint8Array(data))); },
-    deriveBits: function () { return Promise.resolve(new Uint8Array(32).buffer); }
+    deriveBits: function (alg) { var n = (alg && alg.name === 'ECDH') ? 32 : 32; return Promise.resolve(new Uint8Array(n).buffer); },
+    // Web Push (13. 9. 2026): klice VAPID + ECDH + AES-GCM jen naoko — testuje se tok, ne kryptografie
+    generateKey: function () { return Promise.resolve({ publicKey: { k: 'pub' }, privateKey: { k: 'priv' } }); },
+    exportKey: function (fmt, key) { if (fmt === 'jwk') return Promise.resolve({ kty: 'EC', crv: 'P-256', x: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', y: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', d: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' }); return Promise.resolve(new Uint8Array(65).buffer); },
+    encrypt: function (alg, key, data) { return Promise.resolve(new Uint8Array(new Uint8Array(data).length + 16).buffer); }
   }
 };
 globalThis.Headers = function (init) { this._m = {}; if (init) for (var k in init) this.set(k, init[k]); };
@@ -221,7 +225,7 @@ def main():
     # ---- A) health -------------------------------------------------------------
     base_rules()
     h = call('GET', '/health')
-    ok('A1 /health v:19', h['data'].get('v') == 19, h['data'].get('v'))
+    ok('A1 /health v:20', h['data'].get('v') == 20, h['data'].get('v'))
     ok('A2 /health prodej:true', h['data'].get('prodej') is True)
     # 12. 9. 2026: /health rika, v jakem stavu je OWNER_KEY ('ok' | 'chybi' | 'kratky') —
     # uzivatel klic „nastavoval nekolikrat" a appka hlasila jen obecnou 503.
@@ -444,7 +448,8 @@ def main():
     rule('/SELECT v FROM fio_stav WHERE k=\\?/', 'function(){ return { first: null }; }')
     rule('/SELECT id FROM fio_pohyby WHERE id=\\?/', 'function(){ return { first: null }; }')
     r.eval('CRON(ENV({PRODEJ_IBAN:"CZ6508000000192000145399"}))')
-    ok('G7 bez FIO_TOKEN cron nic nedela', not [l for l in log() if 'fio' in l['sql'].lower()])
+    # (fio_stav cte i hlidac vlny chyb z cronu — 13. 9. 2026 — ten s bankou nesouvisi)
+    ok('G7 bez FIO_TOKEN cron nic nedela', not [l for l in log() if 'fio' in l['sql'].lower() and 'fio_stav' not in l['sql'].lower()])
     # platba bez VS, ale s kodem uctu ve zprave, bez otevrene objednavky -> zalozi a zaplati
     tx2 = {'accountStatement': {'transactionList': {'transaction': [
         {'column22': {'value': 200}, 'column0': {'value': '2026-09-11+0200'}, 'column1': {'value': 149.0}, 'column14': {'value': 'CZK'},
@@ -578,6 +583,85 @@ def main():
     rule('/SELECT n, until FROM guard/', 'function(){ return { first: { n: 10, until: Date.now() - 1000 } }; }')
     m5 = call('GET', '/owner/ucty', headers=OWN)
     ok('M5 prosla hodina: zamek uz neplati', m5['status'] == 200, m5['status'])
+    base_rules()
+    rule('/SELECT n, until FROM guard/', 'function(){ return { first: { n: 10, until: Date.now() + 600e3 } }; }')
+    m6 = call('GET', '/owner/ucty', headers=OWN)
+    ok('M6 429 nese retryAfter (sekundy do vyprseni)', m6['status'] == 429 and 590 <= (m6['data'].get('retryAfter') or 0) <= 600, m6['data'])
+
+    # ---- N) konzole vlastnika, 2. kolo (13. 9. 2026) ---------------------------------
+    base_rules()
+    rule('/SELECT name, code, ver, created FROM accounts WHERE created>=/', 'function(){ return { all: [{ name: "Karel", code: "K1", ver: "v305", created: 5 }] }; }')
+    rule('/SELECT sig, MIN\(ts\) AS m FROM errors GROUP BY sig/', 'function(){ return { first: { n: 2 } }; }')
+    rule('/SELECT uname, SUM\(n\) AS n, MAX\(ver\) AS ver FROM errors/', 'function(){ return { all: [{ uname: "Karel", n: 30, ver: "v305" }] }; }')
+    n1 = call('GET', '/owner/prehled?od=%d' % (1789000000000), headers=OWN)
+    ok('N1 /owner/prehled?od= vraci novinky od casu (noviLide, noveDruhy, chybyUcty, od)', n1['status'] == 200 and n1['data'].get('od') == 1789000000000 and n1['data']['noviLide'][0]['name'] == 'Karel' and n1['data'].get('noveDruhy') == 2 and n1['data']['chybyUcty'][0]['n'] == 30, n1['data'])
+    base_rules()
+    n2 = call('GET', '/owner/grafy?dni=7', headers=OWN)
+    ok('N2 /owner/grafy?dni=7 vraci dni a minule obdobi', n2['status'] == 200 and n2['data'].get('dni') == 7 and isinstance(n2['data'].get('minule'), dict) and 'lide' in n2['data']['minule'], n2['data'])
+    base_rules()
+    rule('/FROM accounts WHERE created>=\? ORDER BY created$/', 'function(){ return { all: [{ id: "a1", code: "K1", name: "Karel", created: 1000 }, { id: "a2", code: "K2", name: "Petr", created: 2000 }] }; }')
+    rule("/g\.t='pt-add'/", 'function(){ return { all: [{ a: "a1", t: 1500 }] }; }')
+    rule('/MAX\(g\.ts\) AS t FROM usage g JOIN users/', 'function(){ return { all: [{ a: "a1", t: 1000 + 3 * 864e5 }] }; }')
+    rule("/kind='hodnoceni' AND ts>=/", 'function(){ return { all: [{ meta: JSON.stringify({ ucet: "k1" }), ts: 9 }] }; }')
+    n3 = call('GET', '/owner/trychtyr', headers=OWN)
+    d3 = n3['data'] or {}
+    ok('N3 /owner/trychtyr: registrace 2, prvni bod 1, 3. den 1, hodnoceni 1', n3['status'] == 200 and d3.get('registrace') == 2 and d3.get('bod') == 1 and d3.get('den3') == 1 and d3.get('hodnoceni') == 1 and d3['lidi'][0]['bod'] == 1500, d3)
+    base_rules()
+    rule('/SELECT COUNT\(\*\) AS n FROM usage$/', 'function(){ return { first: { n: 12345 } }; }')
+    n4 = call('GET', '/owner/kapacita', headers=OWN)
+    ok('N4 /owner/kapacita: tabulky, limity, odhad velikosti', n4['status'] == 200 and n4['data']['tab'].get('usage') == 12345 and n4['data'].get('limitDen') == 100000 and n4['data'].get('bajty', 0) > 0, n4['data'])
+    base_rules()
+    rule('/SELECT COUNT\(\*\) AS n FROM usage WHERE ts</', 'function(){ return { first: { n: 777 } }; }')
+    n5 = call('GET', '/owner/uklid?dni=60', headers=OWN)
+    ok('N5 GET /owner/uklid = nahled (usage 777, dni 60)', n5['status'] == 200 and n5['data']['nahled'].get('usage') == 777 and n5['data'].get('dni') == 60, n5['data'])
+    rule('/DELETE FROM usage WHERE ts</', 'function(){ LOG.push({ del: "usage" }); return { run: { changes: 777 } }; }')
+    n6 = call('POST', '/owner/uklid', body={'co': ['usage', 'guard'], 'dni': 60}, headers=OWN)
+    smazano = [l for l in log() if l.get('del') == 'usage']
+    body_del = [l for l in log() if 'sql' in l and l['sql'].startswith('DELETE FROM sync_points')]
+    ok('N6 POST /owner/uklid maze jen vybrane tabulky, body nikdy, zapis do deniku', n6['status'] == 200 and n6['data']['hotovo'].get('usage') == 777 and 'errors' not in n6['data']['hotovo'] and smazano and not body_del and any('owner_log' in l['sql'] for l in log() if 'sql' in l), n6['data'])
+    base_rules()
+    rule('/FROM accounts WHERE UPPER\(name\) LIKE/', 'function(a){ return { all: a[0] === "%KAREL%" ? [{ id: "a1", code: "K1", name: "Karel" }] : [] }; }')
+    n7 = call('GET', '/owner/hledej?q=karel', headers=OWN)
+    ok('N7 /owner/hledej najde ucet podle jmena (case-insensitive) a vraci vsechny ctyri skupiny', n7['status'] == 200 and n7['data']['ucty'][0]['name'] == 'Karel' and all(k in n7['data'] for k in ('firmy', 'zpravy', 'chyby')), n7['data'])
+    ok('N7b kratky dotaz vrati prazdno bez SQL', call('GET', '/owner/hledej?q=k', headers=OWN)['data'].get('ucty') == [])
+    base_rules()
+    rule('/SELECT id, code, name, created, last_login, ver, ver_ts, dev FROM accounts WHERE id=/', 'function(){ return { first: { id: "acc1", code: "K7QM3XP2", name: "Tester" } }; }')
+    rule('/SELECT id, name FROM users WHERE acc_id=/', 'function(){ return { all: [{ id: "u1", name: "Karel" }] }; }')
+    rule('/FROM usage WHERE uid IN \(\?\) AND ts>=\? GROUP BY day, t, k/', 'function(){ return { all: [{ day: "2026-09-11", t: "pt-add", k: null, n: 14 }, { day: "2026-09-11", t: "tool", k: "openDmtVolume", n: 2 }] }; }')
+    rule('/FROM errors WHERE uname IN \(\?\) AND ts>=\? GROUP BY day/', 'function(){ return { all: [{ day: "2026-09-13", n: 2, msg: "export DXF" }] }; }')
+    n8 = call('GET', '/owner/ucty/acc1/denik', headers=OWN)
+    d8 = n8['data'] or {}
+    ok('N8 /owner/ucty/:id/denik: dny s body, nastroji a chybami', n8['status'] == 200 and len(d8.get('dny') or []) == 2 and d8['dny'][0]['body'] == 14 and d8['dny'][0]['nastroje'] == ['openDmtVolume'] and d8['dny'][1]['chyby'] == 2, d8)
+    base_rules()
+    rule('/SELECT id FROM accounts WHERE code=/', 'function(a){ return { first: a[0] === "K7QM3XP2" ? { id: "acc1" } : null }; }')
+    rule('/INSERT INTO vzkazy/', 'function(a){ LOG.push({ vzkaz: a }); return { run: 1 }; }')
+    n9 = call('POST', '/owner/vzkaz', body={'code': 'k7qm3xp2', 'txt': 'Díky, opraveno.'}, headers=OWN)
+    vz = [l for l in log() if 'vzkaz' in l]
+    ok('N9 /owner/vzkaz podle KODU uctu (odpoved ze schranky) dohleda id', n9['status'] == 200 and vz and vz[0]['vzkaz'][1] == 'acc1', (n9, vz))
+    ok('N9b neznamy kod = 404', call('POST', '/owner/vzkaz', body={'code': 'NIC', 'txt': 'x'}, headers=OWN)['status'] == 404)
+    base_rules()
+    rule("/SELECT v FROM meta WHERE k='vapid'/", 'function(){ return { first: null }; }')
+    rule("/INSERT OR REPLACE INTO meta\(k,v\) VALUES\('vapid'/", 'function(a){ LOG.push({ vapid: a[0] }); return { run: 1 }; }')
+    n10 = call('GET', '/owner/push', headers=OWN)
+    ok('N10 GET /owner/push vyrobi VAPID klic napoprve a vrati verejny', n10['status'] == 200 and n10['data'].get('vapid') and [l for l in log() if 'vapid' in l], n10['data'])
+    rule('/INSERT INTO push_subs/', 'function(a){ LOG.push({ sub: a }); return { run: 1 }; }')
+    n11 = call('POST', '/owner/push', body={'sub': {'endpoint': 'https://web.push.apple.com/abc', 'keys': {'p256dh': 'BAAA', 'auth': 'AAAA'}}, 'co': {'chyby': False}, 'dev': 'iPhone'}, headers=OWN)
+    sb = [l for l in log() if 'sub' in l]
+    ok('N11 POST /owner/push ulozi odber s volbami', n11['status'] == 200 and sb and 'apple' in sb[0]['sub'][0] and '"chyby":false' in sb[0]['sub'][4], (n11, sb))
+    ok('N11b neuplny odber = 400', call('POST', '/owner/push', body={'sub': {'endpoint': 'x'}}, headers=OWN)['status'] == 400)
+    # nova zprava → push (fetch na endpoint); odber ma zapnute zpravy
+    base_rules()
+    rule('/SELECT id, endpoint, p256dh, auth, co FROM push_subs/', 'function(){ return { all: [{ id: 1, endpoint: "https://web.push.apple.com/abc", p256dh: "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", auth: "AAAAAAAAAAAAAAAA", co: JSON.stringify({ zpravy: true }) }] }; }')
+    rule("/SELECT v FROM meta WHERE k='vapid'/", 'function(){ return { first: { v: JSON.stringify({ pub: { kty: "EC", crv: "P-256", x: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", y: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" }, priv: { kty: "EC", crv: "P-256", d: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" } }) } }; }')
+    rule('/INSERT INTO feedback/', 'function(a){ LOG.push({ fb: a }); return { run: 1 }; }')
+    r.eval('FETCH_LOG.length = 0; FETCH_REPLY = { status: 201, body: {} }')
+    n12 = call('POST', '/feedback', body={'kind': 'chyba', 'txt': 'Padá export.', 'who': 'Karel'})
+    fl = json.loads(r.eval('JSON.stringify(FETCH_LOG)'))
+    ok('N12 nova zprava posle push na odber (fetch na push server)', n12['status'] == 200 and any('web.push.apple.com' in u for u in fl), (n12, fl))
+    r.eval('FETCH_LOG.length = 0')
+    n13 = call('POST', '/owner/push/test', headers=OWN)
+    fl = json.loads(r.eval('JSON.stringify(FETCH_LOG)'))
+    ok('N13 /owner/push/test posle zkusebni push', n13['status'] == 200 and any('web.push.apple.com' in u for u in fl), (n13, fl))
 
     return vypis()
 

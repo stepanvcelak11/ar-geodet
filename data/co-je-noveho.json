@@ -2,6 +2,20 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 308,
+   "datum": "2026-09-13",
+   "nadpis": "Konzole vlastníka, druhé kolo: přehled na jeden pohled, hledání, upozornění na telefon a třináct nových věcí",
+   "body": [
+    "<b>Domovská obrazovka konzole</b> je přerovnaná: nahoře hledání, blok „Od tvé poslední návštěvy“, hlídač „tohle není normální“ (jen když něco vybočuje), čísla souhrnu a Grafy; pod tím pět sbalovacích sekcí podle toho, na co se ptáš (Co se děje · Lidé, firmy a zprávy · Vydání a server · Tenhle telefon · Klíč).",
+    "<b>Hledání přes celou konzoli:</b> jméno, kód účtu, firma, slovo ze zprávy nebo chyby — účty, firmy, zprávy a chyby na jedno klepnutí do detailu.",
+    "<b>Upozornění na telefon</b> i při zavřené appce (nová zpráva, žádost o Pro, vlna chyb). Na iPhonu z appky na ploše.",
+    "<b>Grafy</b> 7 / 30 / 90 dní se srovnáním s minulým obdobím a CSV; <b>Trychtýř nováčků</b> (registrace → první bod → 3. den → hodnocení, kdo odpadl).",
+    "<b>Odpovědět člověku rovnou do appky</b> ze schránky; <b>Deník člověka</b> den po dni v „Očima účtu“; <b>Vydání</b> ukazuje, kdo je na které verzi a kdo uvízl na staré.",
+    "<b>„Ukázat mi appku jako Základ“</b> na 15–60 minut; <b>Stav serveru a kapacita</b> (požadavky a databáze proti limitům zdarma, kolik vydrží); <b>Úklid starých dat</b> s náhledem; <b>Souhrn dne</b> 24 h / 3 dny / od minula; Hlášení pro vývoj ke stažení jako .md.",
+    "Drobnosti: zámek klíče říká, za kolik minut zkusit znovu; při výpadku serveru zůstanou poslední známá čísla se štítkem; na počítači je konzole širší se čtyřmi dlaždicemi v řadě."
+   ]
+  },
+  {
    "v": 307,
    "datum": "2026-09-13",
    "nadpis": "Pro studenty: Kdo jsi?, Učit se, Proč ±4 m?, postup výpočtu — a 12 nástrojů stranou",

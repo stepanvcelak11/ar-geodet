@@ -227,10 +227,11 @@
         return m;
     }
 
-    function open() {
+    function open(id) {
         var m = build();
         m.style.display = 'flex';
         m.classList.add('ag-open');
+        if (id) _open = String(id);   // z hledání v konzoli (13. 9. 2026): rovnou rozbalená firma
         if (!ownerKey()) { promptKey(true); return; }
         render(true);
         load();

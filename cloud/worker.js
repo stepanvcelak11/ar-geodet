@@ -860,7 +860,7 @@ async function ownerGate(req, env, co) {
     // brzda nesmí konzoli shodit (tabulka guard nemusí být v cizí databázi);
     // klíč se ověřuje dál i tehdy, když se počítadlo nepodaří přečíst
     try { stav = await guardLocked(env, kl, 10); } catch (e) { stav = { locked: false, row: null }; }
-    if (stav.locked) return err(429, 'Moc pokusů o klíč. Zkus to za čtvrt hodiny.');
+    if (stav.locked) return err(429, 'Moc pokusů o klíč. Zkus to za čtvrt hodiny.', { retryAfter: Math.max(1, Math.ceil((stav.row.until - Date.now()) / 1000)) });
     if (!ok) {
         // chybný klíč = jediné, co počítadlo zvedá
         try { await guardHit(env, kl, 10, 15 * 60e3); } catch (e) {}
@@ -870,6 +870,106 @@ async function ownerGate(req, env, co) {
     if (stav.row) { try { await guardClear(env, kl); } catch (e) {} }
     return null;
 }
+// ---------------------------------------------------------------------------
+// WEB PUSH PRO VLASTNÍKA (13. 9. 2026, „Upozornění na telefon, i když je appka zavřená")
+// ---------------------------------------------------------------------------
+// Vlastník si v konzoli zapne notifikace: telefon pošle svůj odběr (endpoint + klíče),
+// server ho uloží do push_subs a při události (nová zpráva / žádost o Pro / vlna chyb)
+// pošle zašifrovanou zprávu na push server prohlížeče (Apple/Google). Šifrování je
+// RFC 8291 (aes128gcm) a podpis VAPID (RFC 8292, ES256) — obojí čistě přes
+// crypto.subtle, bez knihovny. Klíčový pár VAPID si worker vyrobí sám při prvním
+// použití a drží ho v tabulce meta ('vapid'); nic se nenastavuje na Cloudflare.
+// Jde to JEN vlastníkovi (odběry zakládá jen ownerGate), uživatelům appky nikdy.
+let _pushMig = false;
+async function ensurePushSchema(env) {
+    if (_pushMig) return;
+    try {
+        await env.DB.prepare('CREATE TABLE IF NOT EXISTS push_subs (id INTEGER PRIMARY KEY AUTOINCREMENT, endpoint TEXT UNIQUE NOT NULL, '
+            + 'p256dh TEXT NOT NULL, auth TEXT NOT NULL, ts INTEGER NOT NULL, co TEXT, dev TEXT)').run();
+        _pushMig = true;
+    } catch (e) {}
+}
+function b64uEnc(buf) { let s = ''; const a = new Uint8Array(buf); for (let i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+function b64uDec(str) { let s = String(str || '').replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; const bin = atob(s); const a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return a; }
+function concatBytes() { let n = 0; for (const a of arguments) n += a.length; const out = new Uint8Array(n); let o = 0; for (const a of arguments) { out.set(a, o); o += a.length; } return out; }
+async function vapidKlice(env) {
+    try { const r = await env.DB.prepare("SELECT v FROM meta WHERE k='vapid'").first(); if (r && r.v) return JSON.parse(r.v); } catch (e) {}
+    const kp = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+    const o = { pub: await crypto.subtle.exportKey('jwk', kp.publicKey), priv: await crypto.subtle.exportKey('jwk', kp.privateKey) };
+    await env.DB.prepare("INSERT OR REPLACE INTO meta(k,v) VALUES('vapid',?)").bind(JSON.stringify(o)).run();
+    return o;
+}
+function vapidVerejny(k) { const x = b64uDec(k.pub.x), y = b64uDec(k.pub.y); const out = new Uint8Array(65); out[0] = 4; out.set(x, 1); out.set(y, 33); return out; }
+async function vapidHlavicky(env, endpoint) {
+    const k = await vapidKlice(env);
+    const enc = new TextEncoder();
+    const hdr = b64uEnc(enc.encode(JSON.stringify({ typ: 'JWT', alg: 'ES256' })));
+    const body = b64uEnc(enc.encode(JSON.stringify({ aud: new URL(endpoint).origin, exp: Math.floor(Date.now() / 1000) + 12 * 3600, sub: 'mailto:stepan.vcelak11@gmail.com' })));
+    const key = await crypto.subtle.importKey('jwk', k.priv, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+    // WebCrypto vrací podpis jako r||s (64 B) — přesně tvar, který JWS ES256 chce
+    const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, key, enc.encode(hdr + '.' + body));
+    return { Authorization: 'vapid t=' + hdr + '.' + body + '.' + b64uEnc(sig) + ', k=' + b64uEnc(vapidVerejny(k)) };
+}
+async function pushSifruj(sub, text) {
+    const enc = new TextEncoder();
+    const ua = b64uDec(sub.p256dh), auth = b64uDec(sub.auth);
+    const uaKey = await crypto.subtle.importKey('raw', ua, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
+    const my = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
+    const myPub = new Uint8Array(await crypto.subtle.exportKey('raw', my.publicKey));
+    const shared = new Uint8Array(await crypto.subtle.deriveBits({ name: 'ECDH', public: uaKey }, my.privateKey, 256));
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const hkdf = async (ikm, sl, info, len) => {
+        const k = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits']);
+        return new Uint8Array(await crypto.subtle.deriveBits({ name: 'HKDF', hash: 'SHA-256', salt: sl, info }, k, len * 8));
+    };
+    const ikm = await hkdf(shared, auth, concatBytes(enc.encode('WebPush: info\0'), ua, myPub), 32);
+    const cek = await hkdf(ikm, salt, enc.encode('Content-Encoding: aes128gcm\0'), 16);
+    const nonce = await hkdf(ikm, salt, enc.encode('Content-Encoding: nonce\0'), 12);
+    const aes = await crypto.subtle.importKey('raw', cek, 'AES-GCM', false, ['encrypt']);
+    const plain = concatBytes(enc.encode(text), new Uint8Array([2]));   // 0x02 = poslední záznam
+    const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: nonce }, aes, plain));
+    return concatBytes(salt, new Uint8Array([0, 0, 16, 0]), new Uint8Array([65]), myPub, ct);
+}
+// Pošle jednu zprávu na jeden odběr; 404/410 = odběr zanikl → smazat. Vrací status.
+async function posliPush(env, sub, data) {
+    try {
+        const body = await pushSifruj(sub, JSON.stringify(data));
+        const h = await vapidHlavicky(env, sub.endpoint);
+        const r = await fetch(sub.endpoint, { method: 'POST', body, headers: Object.assign({ 'Content-Encoding': 'aes128gcm', 'Content-Type': 'application/octet-stream', TTL: '86400', Urgency: 'normal' }, h) });
+        if (r.status === 404 || r.status === 410) { try { await env.DB.prepare('DELETE FROM push_subs WHERE id=?').bind(sub.id).run(); } catch (e) {} }
+        return r.status;
+    } catch (e) { return 0; }
+}
+// Všem odběrům vlastníka, které mají zapnutý daný druh (co: 'zpravy' | 'zadosti' | 'chyby' | 'test').
+async function pushVsem(env, druh, data) {
+    await ensurePushSchema(env);
+    let subs = [];
+    try { subs = await dbAll(env, 'SELECT id, endpoint, p256dh, auth, co FROM push_subs') || []; } catch (e) { subs = []; }
+    const out = [];
+    for (const s of subs) {
+        let co = {}; try { co = JSON.parse(s.co || '{}'); } catch (e) { co = {}; }
+        if (druh !== 'test' && co[druh] === false) continue;
+        out.push(await posliPush(env, s, data));
+    }
+    return out;
+}
+// Vlna chyb: cron každých 5 min. Pošle nejvýš jednou za hodinu, když za poslední hodinu
+// spadlo ≥ 15 chyb NEBO víc než 3× hodinový průměr posledních 14 dní.
+async function pushVlnaChyb(env) {
+    try {
+        const ted = Date.now();
+        const posl = parseInt(await fioStav(env, 'push-chyby'), 10) || 0;
+        if (ted - posl < 3600e3) return;
+        const h1 = await dbFirst(env, 'SELECT SUM(n) AS n FROM errors WHERE ts>=?', ted - 3600e3);
+        const d14 = await dbFirst(env, 'SELECT SUM(n) AS n FROM errors WHERE ts>=? AND ts<?', ted - 14 * 864e5, ted - 3600e3);
+        const n = (h1 && h1.n) || 0, prum = ((d14 && d14.n) || 0) / (14 * 24);
+        if (n < 15 && !(prum > 0 && n > 3 * prum && n >= 5)) return;
+        const top = await dbFirst(env, 'SELECT msg, SUM(n) AS n FROM errors WHERE ts>=? GROUP BY sig ORDER BY n DESC LIMIT 1', ted - 3600e3);
+        await fioStavZapis(env, 'push-chyby', String(ted));
+        await pushVsem(env, 'chyby', { t: 'Vlna chyb: ' + n + ' za hodinu', b: (top && top.msg ? String(top.msg).slice(0, 90) : 'podrobnosti v konzoli → Chyby od lidí'), go: 'errors' });
+    } catch (e) {}
+}
+
 // ---------------------------------------------------------------------------
 // VLASTNÍK PLUS (12. 9. 2026, 13 schválených návrhů z artefaktu „Návrhy pro vlastníka")
 // ---------------------------------------------------------------------------
@@ -1356,7 +1456,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 19, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 20, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
 
             // ---------------- BRZDA VYDÁNÍ (12. 9. 2026) ---------------------
             // Vlastník vyvíjí a testuje na svém telefonu, ale lidem venku nesmí
@@ -1476,6 +1576,12 @@ export default {
                 const who = b.who ? String(b.who).trim().slice(0, 80) : null;
                 await env.DB.prepare('INSERT INTO feedback(ts,kind,txt,contact,meta,who,done) VALUES(?,?,?,?,?,?,0)')
                     .bind(Date.now(), kind, txt, contact, meta, who).run();
+                // notifikace vlastníkovi (13. 9. 2026): žádost o Pro zvlášť, ostatní jako zpráva
+                try {
+                    const nadpis = kind === 'pro' ? 'Žádost o Pro' : (kind === 'hodnoceni' ? 'Nové hodnocení' : 'Nová zpráva');
+                    const p = pushVsem(env, kind === 'pro' ? 'zadosti' : 'zpravy', { t: nadpis + (who ? ' — ' + who : ''), b: txt.slice(0, 120), go: kind === 'pro' ? 'zadosti' : 'zpravy' });
+                    if (ctx && ctx.waitUntil) ctx.waitUntil(p); else await p;
+                } catch (e) {}
                 return json({ ok: true, ts: Date.now() });
             }
 
@@ -1835,11 +1941,25 @@ export default {
                 // Okno je 24 h zpět, ne kalendářní den — server neví, jaké je u uživatele
                 // ráno, a „za posledních 24 hodin" je stejně čitelné.
                 if (req.method === 'GET' && path === '/owner/prehled') {
-                    const ted = Date.now(), od = ted - 864e5;
+                    // ?od=<ms> (13. 9. 2026, „Od tvé poslední návštěvy"): okno od zadaného času
+                    // místo pevných 24 h — nejvýš 90 dní zpět. Bez parametru 24 h jako dřív.
+                    const ted = Date.now();
+                    const odQ = parseInt(url.searchParams.get('od'), 10) || 0;
+                    const od = odQ > 0 ? Math.max(odQ, ted - 90 * 864e5) : ted - 864e5;
                     const cnt = async (sql, ...b) => { try { const r = await env.DB.prepare(sql).bind(...b).first(); return (r && (r.n || 0)) || 0; } catch (e) { return 0; } };
                     const zadosti = await cnt("SELECT COUNT(*) AS n FROM feedback WHERE done=0 AND kind='pro'");
                     const zpravy = await cnt("SELECT COUNT(*) AS n FROM feedback WHERE done=0 AND kind!='pro'");
                     if (url.searchParams.get('lite') === '1') return json({ zadosti, zpravy, serverTime: ted });
+                    // co je v okně nového (pro blok „od minula" a hlídač)
+                    const zpravyOd = await cnt('SELECT COUNT(*) AS n FROM feedback WHERE ts>=? AND kind!=?', od, 'pro');
+                    const zadostiOd = await cnt('SELECT COUNT(*) AS n FROM feedback WHERE ts>=? AND kind=?', od, 'pro');
+                    const noveDruhy = await cnt('SELECT COUNT(*) AS n FROM (SELECT sig, MIN(ts) AS m FROM errors GROUP BY sig) WHERE m>=?', od);
+                    let noviLide = [], topChyba = null, chybyUcty = [], poslBod = 0, dotazyDnes = 0;
+                    try { noviLide = (await dbAll(env, 'SELECT name, code, ver, created FROM accounts WHERE created>=? ORDER BY created DESC LIMIT 10', od)) || []; } catch (e) {}
+                    try { topChyba = await dbFirst(env, 'SELECT msg, SUM(n) AS n FROM errors WHERE ts>=? GROUP BY sig ORDER BY n DESC LIMIT 1', od); } catch (e) {}
+                    try { chybyUcty = (await dbAll(env, 'SELECT uname, SUM(n) AS n, MAX(ver) AS ver FROM errors WHERE ts>=? GROUP BY uname ORDER BY n DESC LIMIT 3', od)) || []; } catch (e) {}
+                    try { const r = await dbFirst(env, 'SELECT MAX(srv) AS ts FROM sync_points WHERE deleted=0'); poslBod = (r && r.ts) || 0; } catch (e) {}
+                    try { const r = await dbFirst(env, 'SELECT n FROM stats WHERE day=?', new Date(ted).toISOString().slice(0, 10)); dotazyDnes = (r && r.n) || 0; } catch (e) {}
                     const lidi24 = await cnt('SELECT COUNT(DISTINCT uid) AS n FROM usage WHERE ts>=?', od);
                     const body24 = await cnt('SELECT COUNT(*) AS n FROM sync_points WHERE srv>=? AND deleted=0', od);
                     const ucty24 = await cnt('SELECT COUNT(*) AS n FROM accounts WHERE created>=?', od);
@@ -1874,7 +1994,8 @@ export default {
                         });
                     } catch (e) {}
                     return json({
-                        serverTime: ted, lidi24, body24, ucty24, chyby24, zadosti, zpravy, uctyCelkem, proCelkem,
+                        serverTime: ted, od, lidi24, body24, ucty24, chyby24, zadosti, zpravy, uctyCelkem, proCelkem,
+                        zpravyOd, zadostiOd, noveDruhy, noviLide, topChyba, chybyUcty, poslBod, dotazyDnes,
                         vyprsi, online,
                         shluky: Object.keys(shluky).map(k => { const p = k.split(','); return { lat: +p[0], lng: +p[1], n: shluky[k] }; })
                     });
@@ -1884,9 +2005,21 @@ export default {
                 // a nejpoužívanější nástroje. Jen počty — žádné souřadnice ani jména.
                 if (req.method === 'GET' && path === '/owner/grafy') {
                     await ensureUctySchema(env);
-                    const ted = Date.now(), ts30 = ted - 30 * 864e5;
+                    // ?dni=7|30|90 (13. 9. 2026) + součty za PŘEDCHOZÍ stejně dlouhé období (`minule`)
+                    const dniG = Math.max(1, Math.min(90, parseInt(url.searchParams.get('dni'), 10) || 30));
+                    const ted = Date.now(), ts30 = ted - dniG * 864e5, tsMin = ts30 - dniG * 864e5;
                     const d30 = new Date(ts30).toISOString().slice(0, 10);
                     const rada = async (sql, ...args) => { try { return (await dbAll(env, sql, ...args)) || []; } catch (e) { return []; } };
+                    const cnt1 = async (sql, ...args) => { try { const r = await dbFirst(env, sql, ...args); return (r && r.n) || 0; } catch (e) { return 0; } };
+                    const minule = {
+                        lide: await cnt1('SELECT COUNT(DISTINCT uid) AS n FROM usage WHERE ts>=? AND ts<?', tsMin, ts30),
+                        lideTed: await cnt1('SELECT COUNT(DISTINCT uid) AS n FROM usage WHERE ts>=?', ts30),
+                        akce: await cnt1('SELECT COUNT(*) AS n FROM usage WHERE ts>=? AND ts<?', tsMin, ts30),
+                        ucty: await cnt1('SELECT COUNT(*) AS n FROM accounts WHERE created>=? AND created<?', tsMin, ts30),
+                        body: await cnt1('SELECT COUNT(*) AS n FROM sync_points WHERE srv>=? AND srv<? AND deleted=0', tsMin, ts30),
+                        chyby: await cnt1('SELECT SUM(n) AS n FROM errors WHERE ts>=? AND ts<?', tsMin, ts30),
+                        dotazy: await cnt1('SELECT SUM(n) AS n FROM stats WHERE day>=? AND day<?', new Date(tsMin).toISOString().slice(0, 10), d30)
+                    };
                     const dotazy = await rada('SELECT day, n FROM stats WHERE day>=? ORDER BY day', d30);
                     const lide = await rada("SELECT date(ts/1000,'unixepoch') AS day, COUNT(DISTINCT uid) AS n FROM usage WHERE ts>=? GROUP BY day ORDER BY day", ts30);
                     const akce = await rada("SELECT date(ts/1000,'unixepoch') AS day, COUNT(*) AS n FROM usage WHERE ts>=? GROUP BY day ORDER BY day", ts30);
@@ -1896,7 +2029,123 @@ export default {
                     const verze = await rada('SELECT ver, COUNT(*) AS n FROM accounts GROUP BY ver ORDER BY n DESC LIMIT 12');
                     const nastroje = await rada('SELECT k, COUNT(*) AS n FROM usage WHERE ts>=? AND k IS NOT NULL GROUP BY k ORDER BY n DESC LIMIT 12', ts30);
                     const uctyCelkem = (await dbFirst(env, 'SELECT COUNT(*) AS n FROM accounts').catch(() => null)) || { n: 0 };
-                    return json({ od: d30, do: new Date(ted).toISOString().slice(0, 10), dotazy, lide, akce, ucty, body, chyby, verze, nastroje, uctyCelkem: uctyCelkem.n || 0 });
+                    return json({ od: d30, do: new Date(ted).toISOString().slice(0, 10), dni: dniG, minule, dotazy, lide, akce, ucty, body, chyby, verze, nastroje, uctyCelkem: uctyCelkem.n || 0 });
+                }
+
+                // TRYCHTÝŘ NOVÁČKŮ (13. 9. 2026): registrace → první bod → 3. den → hodnocení.
+                // Účty založené v okně; první bod = usage t='pt-add' přes users.acc_id;
+                // „vrátil se 3. den" = jakákoli aktivita ≥ 2 dny po založení; hodnocení = feedback
+                // kind='hodnoceni' s meta.ucet = kód účtu.
+                if (req.method === 'GET' && path === '/owner/trychtyr') {
+                    await ensureUctySchema(env);
+                    const dniT = Math.max(7, Math.min(180, parseInt(url.searchParams.get('dni'), 10) || 30));
+                    const odT = Date.now() - dniT * 864e5;
+                    const rada = async (sql, ...args) => { try { return (await dbAll(env, sql, ...args)) || []; } catch (e) { return []; } };
+                    const ucty = await rada('SELECT id, code, name, created, ver, last_login FROM accounts WHERE created>=? ORDER BY created', odT);
+                    const prvni = {}, posl = {};
+                    (await rada("SELECT u.acc_id AS a, MIN(g.ts) AS t FROM usage g JOIN users u ON u.id=g.uid WHERE g.t='pt-add' AND g.ts>=? GROUP BY u.acc_id", odT)).forEach(r => { if (r.a) prvni[r.a] = r.t; });
+                    (await rada('SELECT u.acc_id AS a, MAX(g.ts) AS t FROM usage g JOIN users u ON u.id=g.uid WHERE g.ts>=? GROUP BY u.acc_id', odT)).forEach(r => { if (r.a) posl[r.a] = r.t; });
+                    const hodn = {};
+                    (await rada("SELECT meta, ts FROM feedback WHERE kind='hodnoceni' AND ts>=?", odT)).forEach(r => { try { const m = JSON.parse(r.meta || '{}'); if (m.ucet) hodn[String(m.ucet).toUpperCase()] = r.ts; } catch (e) {} });
+                    const lidi = ucty.map(u => ({
+                        id: u.id, name: u.name, code: u.code, created: u.created, ver: u.ver,
+                        bod: prvni[u.id] || 0,
+                        den3: !!(posl[u.id] && posl[u.id] >= u.created + 2 * 864e5),
+                        hodnoceni: hodn[String(u.code || '').toUpperCase()] || 0
+                    }));
+                    return json({ dni: dniT, registrace: lidi.length, bod: lidi.filter(l => l.bod).length, den3: lidi.filter(l => l.den3).length, hodnoceni: lidi.filter(l => l.hodnoceni).length, lidi });
+                }
+
+                // KAPACITA SERVERU (13. 9. 2026): požadavky dnes, řádky tabulek, velikost D1.
+                if (req.method === 'GET' && path === '/owner/kapacita') {
+                    const ted = Date.now(), dnes = new Date(ted).toISOString().slice(0, 10);
+                    const cnt1 = async (sql, ...args) => { try { const r = await dbFirst(env, sql, ...args); return (r && r.n) || 0; } catch (e) { return 0; } };
+                    const tab = {};
+                    for (const t of ['usage', 'errors', 'sync_points', 'accounts', 'users', 'firms', 'feedback', 'owner_log', 'vzkazy', 'guard', 'pos', 'stats', 'jobs', 'orders']) tab[t] = await cnt1('SELECT COUNT(*) AS n FROM ' + t);
+                    const dotazyDnes = await cnt1('SELECT n FROM stats WHERE day=?', dnes) || 0;
+                    const dotazy30 = await cnt1('SELECT SUM(n) AS n FROM stats WHERE day>=?', new Date(ted - 30 * 864e5).toISOString().slice(0, 10));
+                    const usage30 = await cnt1('SELECT COUNT(*) AS n FROM usage WHERE ts>=?', ted - 30 * 864e5);
+                    const errors30 = await cnt1('SELECT COUNT(*) AS n FROM errors WHERE ts>=?', ted - 30 * 864e5);
+                    const body30 = await cnt1('SELECT COUNT(*) AS n FROM sync_points WHERE srv>=?', ted - 30 * 864e5);
+                    let bajty = null;
+                    try { const r = await env.DB.prepare('SELECT page_count * page_size AS b FROM pragma_page_count(), pragma_page_size()').first(); if (r && r.b) bajty = r.b; } catch (e) { bajty = null; }
+                    // odhad, když D1 pragma nepustí: průměrné velikosti řádků z praxe
+                    const odhad = tab.usage * 110 + tab.errors * 420 + tab.sync_points * 600 + tab.accounts * 300 + tab.users * 200 + tab.feedback * 800 + tab.owner_log * 150 + tab.pos * 120 + tab.jobs * 300;
+                    return json({ dnes, dotazyDnes, dotazy30, limitDen: 100000, bajty: bajty || odhad, odhad: !bajty, limitBajty: 500 * 1024 * 1024, tab, rust30: { usage: usage30, errors: errors30, body: body30 } });
+                }
+
+                // ÚKLID STARÝCH DAT (13. 9. 2026): GET = náhled počtů, POST = smazání.
+                // Body a zakázky se NIKDY neuklízí. Účty jen ty, do kterých se nikdo nepřihlásil,
+                // jsou starší než 180 dní a nemají žádné členství (users).
+                if (path === '/owner/uklid' && (req.method === 'GET' || req.method === 'POST')) {
+                    const b = req.method === 'POST' ? (await req.json().catch(() => null) || {}) : {};
+                    const dniU = Math.max(30, Math.min(365, parseInt(req.method === 'POST' ? b.dni : url.searchParams.get('dni'), 10) || 90));
+                    const ted = Date.now(), hr = ted - dniU * 864e5, hrU = ted - 180 * 864e5;
+                    const cnt1 = async (sql, ...args) => { try { const r = await dbFirst(env, sql, ...args); return (r && r.n) || 0; } catch (e) { return 0; } };
+                    const nahled = {
+                        usage: await cnt1('SELECT COUNT(*) AS n FROM usage WHERE ts<?', hr),
+                        errors: await cnt1('SELECT COUNT(*) AS n FROM errors WHERE ts<?', hr),
+                        pos: await cnt1('SELECT COUNT(*) AS n FROM pos WHERE ts<?', hr),
+                        guard: await cnt1('SELECT COUNT(*) AS n FROM guard WHERE until<?', ted),
+                        ucty: await cnt1('SELECT COUNT(*) AS n FROM accounts a WHERE a.created<? AND (a.last_login IS NULL OR a.last_login=0) AND NOT EXISTS (SELECT 1 FROM users u WHERE u.acc_id=a.id)', hrU)
+                    };
+                    if (req.method === 'GET') return json({ dni: dniU, nahled });
+                    const co = Array.isArray(b.co) ? b.co : [];
+                    const hotovo = {};
+                    const run = async (sql, ...args) => { try { const r = await env.DB.prepare(sql).bind(...args).run(); return (r && r.meta && r.meta.changes) || 0; } catch (e) { return 0; } };
+                    if (co.indexOf('usage') >= 0) hotovo.usage = await run('DELETE FROM usage WHERE ts<?', hr);
+                    if (co.indexOf('errors') >= 0) hotovo.errors = await run('DELETE FROM errors WHERE ts<?', hr);
+                    if (co.indexOf('pos') >= 0) hotovo.pos = await run('DELETE FROM pos WHERE ts<?', hr);
+                    if (co.indexOf('guard') >= 0) hotovo.guard = await run('DELETE FROM guard WHERE until<?', ted);
+                    if (co.indexOf('ucty') >= 0) hotovo.ucty = await run('DELETE FROM accounts WHERE created<? AND (last_login IS NULL OR last_login=0) AND NOT EXISTS (SELECT 1 FROM users u WHERE u.acc_id=accounts.id)', hrU);
+                    await ownerLog(env, 'uklid', null, Object.keys(hotovo).map(k => k + ' ' + hotovo[k]).join(', ') + ' (starší než ' + dniU + ' dní)');
+                    return json({ ok: true, hotovo, dni: dniU });
+                }
+
+                // HLEDÁNÍ NAPŘÍČ KONZOLÍ (13. 9. 2026): účty, firmy, zprávy, chyby jedním dotazem.
+                if (req.method === 'GET' && path === '/owner/hledej') {
+                    await ensureUctySchema(env);
+                    const q = String(url.searchParams.get('q') || '').trim().slice(0, 60);
+                    if (q.length < 2) return json({ q, ucty: [], firmy: [], zpravy: [], chyby: [] });
+                    const like = '%' + q.toUpperCase() + '%';
+                    const rada = async (sql, ...args) => { try { return (await dbAll(env, sql, ...args)) || []; } catch (e) { return []; } };
+                    const ucty = await rada("SELECT id, code, name, tarif, tarif_do, last_login, ver, contact, disabled FROM accounts WHERE UPPER(name) LIKE ? OR UPPER(code) LIKE ? OR UPPER(IFNULL(contact,'')) LIKE ? ORDER BY last_login DESC LIMIT 12", like, like, like);
+                    const firmy = await rada('SELECT id, code, name, created, frozen FROM firms WHERE UPPER(name) LIKE ? OR UPPER(code) LIKE ? ORDER BY created DESC LIMIT 8', like, like);
+                    const zpravy = await rada("SELECT id, ts, kind, txt, who, done FROM feedback WHERE UPPER(txt) LIKE ? OR UPPER(IFNULL(who,'')) LIKE ? ORDER BY ts DESC LIMIT 12", like, like);
+                    const chyby = await rada("SELECT sig, MAX(msg) AS msg, SUM(n) AS n, MAX(ts) AS last, MAX(uname) AS uname FROM errors WHERE UPPER(msg) LIKE ? OR UPPER(IFNULL(uname,'')) LIKE ? GROUP BY sig ORDER BY last DESC LIMIT 10", like, like);
+                    return json({ q, ucty, firmy, zpravy: zpravy.map(z => Object.assign({}, z, { txt: String(z.txt || '').slice(0, 200) })), chyby });
+                }
+
+                // PUSH ODBĚRY VLASTNÍKA (13. 9. 2026)
+                if (path === '/owner/push') {
+                    await ensurePushSchema(env);
+                    if (req.method === 'GET') {
+                        const k = await vapidKlice(env);
+                        let subs = []; try { subs = (await dbAll(env, 'SELECT id, endpoint, ts, co, dev FROM push_subs ORDER BY ts DESC')) || []; } catch (e) {}
+                        return json({ vapid: b64uEnc(vapidVerejny(k)), subs: subs.map(s => ({ id: s.id, ts: s.ts, dev: s.dev, host: (() => { try { return new URL(s.endpoint).host; } catch (e) { return '?'; } })(), co: (() => { try { return JSON.parse(s.co || '{}'); } catch (e) { return {}; } })(), endpoint: s.endpoint })) });
+                    }
+                    if (req.method === 'POST') {
+                        const b = await req.json().catch(() => null) || {};
+                        const sub = b.sub || {};
+                        const keys = sub.keys || {};
+                        if (!sub.endpoint || !keys.p256dh || !keys.auth) return err(400, 'Neúplný odběr (endpoint, p256dh, auth).');
+                        const co = JSON.stringify({ zpravy: b.co && b.co.zpravy !== false, zadosti: b.co && b.co.zadosti !== false, chyby: b.co && b.co.chyby !== false });
+                        await env.DB.prepare('INSERT INTO push_subs(endpoint,p256dh,auth,ts,co,dev) VALUES(?,?,?,?,?,?) ON CONFLICT(endpoint) DO UPDATE SET p256dh=excluded.p256dh, auth=excluded.auth, ts=excluded.ts, co=excluded.co, dev=excluded.dev')
+                            .bind(String(sub.endpoint).slice(0, 600), String(keys.p256dh).slice(0, 200), String(keys.auth).slice(0, 100), Date.now(), co, b.dev ? String(b.dev).slice(0, 60) : null).run();
+                        await ownerLog(env, 'push-zapnuto', b.dev ? String(b.dev).slice(0, 60) : null, co);
+                        return json({ ok: true });
+                    }
+                    if (req.method === 'DELETE') {
+                        const b = await req.json().catch(() => null) || {};
+                        if (b.endpoint) await env.DB.prepare('DELETE FROM push_subs WHERE endpoint=?').bind(String(b.endpoint)).run();
+                        else if (b.id) await env.DB.prepare('DELETE FROM push_subs WHERE id=?').bind(parseInt(b.id, 10) || 0).run();
+                        await ownerLog(env, 'push-vypnuto', b.endpoint ? String(b.endpoint).slice(0, 60) : String(b.id || ''), null);
+                        return json({ ok: true });
+                    }
+                }
+                if (req.method === 'POST' && path === '/owner/push/test') {
+                    const st = await pushVsem(env, 'test', { t: 'QTRIG — zkušební upozornění', b: 'Notifikace fungují. Tohle je test z konzole.', go: '' });
+                    return json({ ok: true, stavy: st });
                 }
 
                 if (req.method === 'GET' && path === '/owner/log') {
@@ -1913,9 +2162,12 @@ export default {
                 if (req.method === 'POST' && path === '/owner/vzkaz') {
                     const b = await req.json().catch(() => null) || {};
                     const txt = String(b.txt || '').trim().slice(0, 500);
-                    const acc = b.acc_id ? String(b.acc_id).slice(0, 40) : null;
+                    let acc = b.acc_id ? String(b.acc_id).slice(0, 40) : null;
                     const firm = b.firm_id ? String(b.firm_id).slice(0, 40) : null;
+                    // 13. 9. 2026: odpověď ze schránky zná jen KÓD účtu (meta.ucet) → dohledat id
+                    if (!acc && b.code) { try { const r = await dbFirst(env, 'SELECT id FROM accounts WHERE code=?', String(b.code).toUpperCase().slice(0, 20)); if (r) acc = r.id; } catch (e) {} }
                     if (!txt) return err(400, 'Prázdný vzkaz.');
+                    if (!acc && !firm && b.code) return err(404, 'Účet s tímhle kódem na serveru není.');
                     if (!acc && !firm) return err(400, 'Chybí komu (acc_id nebo firm_id).');
                     await env.DB.prepare('INSERT INTO vzkazy(ts,acc_id,firm_id,txt,read_ts) VALUES(?,?,?,?,NULL)').bind(Date.now(), acc, firm, txt).run();
                     await ownerLog(env, 'vzkaz', acc || firm, txt.slice(0, 120));
@@ -1955,6 +2207,34 @@ export default {
                         chyby, nastroje, zarizeni,
                         vzkazy: await (async () => { try { return await dbAll(env, 'SELECT id, ts, txt, read_ts FROM vzkazy WHERE acc_id=? ORDER BY ts DESC LIMIT 10', vm[1]) || []; } catch (e) { return []; } })()
                     });
+                }
+                // DENÍK ČLOVĚKA (13. 9. 2026): co účet dělal den po dni za 30 dní.
+                const dm = /^\/owner\/ucty\/([\w-]+)\/denik$/.exec(path);
+                if (dm && req.method === 'GET') {
+                    await ensureUctySchema(env);
+                    const acc = await dbFirst(env, 'SELECT id, code, name, created, last_login, ver, ver_ts, dev FROM accounts WHERE id=?', dm[1]);
+                    if (!acc) return err(404, 'Účet nenalezen.');
+                    const odD = Date.now() - 30 * 864e5;
+                    const rada = async (sql, ...args) => { try { return (await dbAll(env, sql, ...args)) || []; } catch (e) { return []; } };
+                    const cl = await rada('SELECT id, name FROM users WHERE acc_id=?', acc.id);
+                    const uids = cl.map(c => c.id), jmena = cl.map(c => c.name).filter(Boolean);
+                    const dny = {};
+                    const den = (d) => (dny[d] = dny[d] || { day: d, akce: 0, body: 0, nastroje: {}, chyby: 0, chybaMsg: null, prihlaseni: 0 });
+                    if (uids.length) {
+                        const ph = uids.map(() => '?').join(',');
+                        (await rada("SELECT date(ts/1000,'unixepoch') AS day, t, k, COUNT(*) AS n FROM usage WHERE uid IN (" + ph + ") AND ts>=? GROUP BY day, t, k", ...uids, odD)).forEach(r => {
+                            const o = den(r.day); o.akce += r.n;
+                            if (r.t === 'pt-add') o.body += r.n;
+                            else if (r.t === 'tool' && r.k) o.nastroje[r.k] = (o.nastroje[r.k] || 0) + r.n;
+                            else if (r.t === 'login') o.prihlaseni += r.n;
+                        });
+                    }
+                    if (jmena.length) {
+                        const ph = jmena.map(() => '?').join(',');
+                        (await rada("SELECT date(ts/1000,'unixepoch') AS day, SUM(n) AS n, MAX(msg) AS msg FROM errors WHERE uname IN (" + ph + ") AND ts>=? GROUP BY day", ...jmena, odD)).forEach(r => { const o = den(r.day); o.chyby += r.n; o.chybaMsg = r.msg; });
+                    }
+                    const out = Object.keys(dny).sort().map(d => { const o = dny[d]; return Object.assign({}, o, { nastroje: Object.keys(o.nastroje).sort((a, b) => o.nastroje[b] - o.nastroje[a]).slice(0, 6) }); });
+                    return json({ ucet: acc, dny: out, od: new Date(odD).toISOString().slice(0, 10) });
                 }
                 // Záloha celého serveru (návrh „zaloha"): všechny tabulky jako jeden JSON.
                 // Hesla ven nejdou (pass_hash/salt se vynechávají), body max 20 000 řádků.
@@ -3429,5 +3709,6 @@ export default {
     // a spárovat, co přišlo. Bez FIO_TOKEN se hned vrátí — běh nic nestojí.
     async scheduled(event, env, ctx) {
         try { await fioZkontroluj(env, 'cron'); } catch (e) {}
+        try { await pushVlnaChyb(env); } catch (e) {}
     }
 };

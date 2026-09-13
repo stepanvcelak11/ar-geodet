@@ -245,7 +245,21 @@
         } catch (e) { return false; }
     }
 
-    function jePro() { return !!_stav.ok || proZTarifu() || proZVlastnika(); }
+    // „UKAŽ MI APPKU JAKO ZÁKLAD" (13. 9. 2026, konzole vlastníka): vlastník má vždycky
+    // všechno odemčené, takže to, co vidí tester bez Pro, ve svém telefonu nikdy neuvidí.
+    // Na omezenou dobu (do času v agLicZaklad_v1) se isPro() tváří jako Základ — zámky,
+    // kytka i karta Pro se ptají právě jí, nic jiného se měnit nemusí. Po vypršení se
+    // samo vrátí. Čte se s 2s pamětí, isPro() volají tiky zámků každou vteřinu a půl.
+    var LS_ZAKLAD = 'agLicZaklad_v1', _zakladDo = -1, _zakladTs = 0;
+    function zakladDo() {
+        var t = Date.now();
+        if (t - _zakladTs > 2000) {
+            _zakladTs = t;
+            try { _zakladDo = parseInt(localStorage.getItem(LS_ZAKLAD), 10) || 0; } catch (e) { _zakladDo = 0; }
+        }
+        return _zakladDo > t ? _zakladDo : 0;
+    }
+    function jePro() { if (zakladDo()) return false; return !!_stav.ok || proZTarifu() || proZVlastnika(); }
 
     function stav() {
         if (!jePro()) return { pro: false, duvod: _stav.duvod || 'nemá' };
@@ -262,6 +276,16 @@
 
     window.AGLic = {
         isPro: jePro,
+        // Předstírat Základ `min` minut (0 = zrušit). Vrací čas, do kdy to platí.
+        zaklad: function (min) {
+            var predtim = jePro();
+            var doKdy = min > 0 ? Date.now() + Math.min(240, min) * 60000 : 0;
+            try { if (doKdy) localStorage.setItem(LS_ZAKLAD, String(doKdy)); else localStorage.removeItem(LS_ZAKLAD); } catch (e) { swallow(e, 'zaklad'); }
+            _zakladTs = 0;
+            if (predtim !== jePro()) { try { window.dispatchEvent(new CustomEvent('aglic:zmena', { detail: stav() })); } catch (e) { swallow(e, 'udalost'); } }
+            return doKdy;
+        },
+        zakladDo: zakladDo,
         // Tarif z účtu — volá js/ucty.js po každém /login a /config.
         // Vrací true, když se stav změnil (aby volající nemusel hlídat sám).
         tarifUctu: function (tarif, doKdy) {
