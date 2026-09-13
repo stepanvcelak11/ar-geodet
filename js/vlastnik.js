@@ -167,7 +167,7 @@
         // 429 = brzda proti hádání klíče v cloud/worker.js (ownerGate: deset pokusů
         // z adresy za hodinu). Bez téhle větve by se to schovalo pod obecné „Server
         // odpověděl chybou 429" a vypadalo by to jako výpadek — přitom stačí počkat.
-        if (r.status === 429) return 'Moc pokusů o klíč, zkus to za hodinu. Server po deseti chybných klíčích z jedné adresy na hodinu zavře — ne kvůli tobě, ale kvůli hádání zvenčí.';
+        if (r.status === 429) return 'Moc pokusů o klíč — server po deseti chybných klíčích z jedné adresy na čtvrt hodiny zavře (kvůli hádání zvenčí). Zámek je na adresu, ne na tebe: <b>přepni Wi-Fi ↔ mobilní data</b> a jsi uvnitř hned, nebo počkej 15 minut.';
         if (r.status === 404) return 'Server tuhle funkci nezná — běží na něm starší verze. Nasaď aktuální cloud/worker.js (wrangler deploy).';
         return 'Server odpověděl chybou ' + r.status + '.';
     }
@@ -587,6 +587,11 @@
         return [
             {
                 sec: 'Celá aplikace',
+                ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15v-4M12 15V7M17 15v-2"/></svg>',
+                t: 'Grafy — vizuální přehled (30 dní)', d: 'Sloupce po dnech: kolik lidí měřilo, akce, body, chyby; kdo jede na které verzi; nejpoužívanější nástroje',
+                lazy: 'js/vlastnik-plus.js', keep: true, run: function () { jdi('grafy'); }
+            },
+            {
                 ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>',
                 t: 'Souhrn dne a kdo je v terénu', d: 'Za 24 h: lidé, body, nové účty, žádosti, chyby; kdo teď měří a kde; komu vyprší Pro',
                 lazy: 'js/vlastnik-plus.js', keep: true, run: function () { jdi('prehled'); }
@@ -595,11 +600,6 @@
                 ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>',
                 t: 'Hlášení pro vývoj — vše na jednom místě', d: 'Zprávy od lidí, hodnocení, chyby z terénu i z tohohle telefonu v jednom textu; zkopíruj a pošli autorovi / AI',
                 lazy: 'js/vlastnik-plus.js', keep: true, run: function () { jdi('hlaseni'); }
-            },
-            {
-                ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15v-4M12 15V7M17 15v-2"/></svg>',
-                t: 'Grafy — 30 dní', d: 'Lidé, akce, body a chyby po dnech; kdo jede na které verzi; nejpoužívanější nástroje',
-                lazy: 'js/vlastnik-plus.js', keep: true, run: function () { jdi('grafy'); }
             },
             {
                 ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-6h6v6"/></svg>',

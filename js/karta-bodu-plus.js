@@ -5,7 +5,9 @@
 //   • náčrt okolí nad ortofotem+KN: sousední body zakázky, oměrné v S-JTSK, parcely
 //     z vektorového katastru, tlačítko Polohopis ČÚZK; pod ním dlaždice oměrných
 //   • odchylka ΔY/ΔX jen když stojíš na bodě (< 3 m) s průměrovanou polohou
-//   • akce dole: Doveď mě · Kontrolní bod · Vytyčeno; karta jde tahat za proužek
+//   • akce NAHOŘE (Doveď mě · Kontrolní bod · Vytyčeno) — do 13. 9. 2026 byly až pod
+//     náčrtem a uživatel k „Doveď mě" musel rolovat („dej navádění někam nahoru");
+//     karta jde tahat za proužek
 // Fail-silent. Odstranění: smaž js/karta-bodu.js + řádek v index.html (a v sw.js).
 // ==========================================================================================
 (function () {
@@ -105,7 +107,7 @@
             '#bottom-sheet .sheet-actions .btn{border-radius:12px;}',
             // ===== KARTA JAKO PŘEHLED (12. 9. 2026): mozaika dat + náčrt okolí ===========
             '#ag-kb-nav{display:none;}',
-            '#ag-kb-acts{margin:12px 0 14px;}',
+            '#ag-kb-acts{margin:0 0 12px;}',
             '.ag-kb-bento{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:minmax(56px,auto);gap:7px;margin:0 0 12px;}',
             '.ag-kb-t{position:relative;min-width:0;overflow:hidden;padding:8px 10px;border-radius:13px;background:var(--surface-1,rgba(255,255,255,.05));border:1px solid var(--glass-border,rgba(255,255,255,.09));}',
             '.ag-kb-t small{display:block;font:600 9.5px/1.2 var(--font-ui,system-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
@@ -233,9 +235,8 @@
         try { hlavicka(pt); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:hlavicka'); }
         try { mozaika(pt, body, dev); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:mozaika'); }
         try { nacrt(pt, body); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:nacrt'); }
-        // akce až pod náčrtem (nebo pod mozaikou, když náčrt není)
-        var kotva = document.getElementById('ag-kb-om') || document.getElementById('ag-kb-sk') || document.getElementById('ag-kb-bento') || dev;
-        kotva.insertAdjacentElement('afterend', acts);
+        // akce hned nahoře, nad odchylkou i mozaikou — „Doveď mě" musí být na dosah bez rolování
+        body.insertBefore(acts, body.firstChild);
         fillDev(pt); fillDist(pt);
         start();
     }

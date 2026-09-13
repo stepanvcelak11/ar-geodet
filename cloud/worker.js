@@ -819,7 +819,8 @@ async function dbFirst(env, sql, ...bind) {
 }
 // brána konzole i schránky zpětné vazby: stejné tajemství, žádný firemní token.
 // BRZDA NA HÁDÁNÍ: OWNER_KEY je ručně zvolené heslo a za dveřmi je mazání celých
-// firem, takže deset CHYBNÝCH pokusů z adresy za hodinu. Zamčený stav se pozná
+// firem, takže deset CHYBNÝCH pokusů z adresy za čtvrt hodiny (do 13. 9. 2026 večer hodinu —
+// zámek z doby, kdy se počítal každý dotaz, držel uživatele venku ještě po opravě). Zamčený stav se pozná
 // pouhým čtením, útok tedy po zamčení databázi nezatěžuje. Počítadlo se maže
 // až po ÚSPĚŠNÉM ověření — jinak by si ho útočník každým pokusem sám čistil.
 //
@@ -859,10 +860,10 @@ async function ownerGate(req, env, co) {
     // brzda nesmí konzoli shodit (tabulka guard nemusí být v cizí databázi);
     // klíč se ověřuje dál i tehdy, když se počítadlo nepodaří přečíst
     try { stav = await guardLocked(env, kl, 10); } catch (e) { stav = { locked: false, row: null }; }
-    if (stav.locked) return err(429, 'Moc pokusů o klíč. Zkus to za hodinu.');
+    if (stav.locked) return err(429, 'Moc pokusů o klíč. Zkus to za čtvrt hodiny.');
     if (!ok) {
         // chybný klíč = jediné, co počítadlo zvedá
-        try { await guardHit(env, kl, 10, 60 * 60e3); } catch (e) {}
+        try { await guardHit(env, kl, 10, 15 * 60e3); } catch (e) {}
         return err(403, 'Špatný klíč.');
     }
     // správný klíč: smazat jen když tam něco je (jinak by každý dotaz konzole psal do D1)
@@ -1355,7 +1356,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 18, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 19, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
 
             // ---------------- BRZDA VYDÁNÍ (12. 9. 2026) ---------------------
             // Vlastník vyvíjí a testuje na svém telefonu, ale lidem venku nesmí

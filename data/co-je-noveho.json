@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 305,
+   "datum": "2026-09-13",
+   "nadpis": "Doveď mě nahoře v kartě bodu, Grafy na dosah v konzoli, zlaté Pro jen tam, kde má být",
+   "body": [
+    "<b>Karta bodu:</b> tlačítka Doveď mě · Kontrolní bod · Vytyčeno jsou hned nahoře, ne až pod náčrtem.",
+    "<b>Konzole vlastníka:</b> Grafy — vizuální přehled jsou první dlaždice a zlaté tlačítko hned pod čísly souhrnu; zámek po chybných klíčích drží čtvrt hodiny místo hodiny a hláška poradí přepnout Wi-Fi ↔ mobilní data.",
+    "<b>Pro na pohled</b> zjemněno: zlatý je jen přepínač Mapa/Split/AR a tlačítko Nástroje se štítkem PRO; Nástroje, nadpisy a Nastavení jsou zase zelené."
+   ]
+  },
+  {
    "v": 304,
    "datum": "2026-09-13",
    "nadpis": "Katastr se Zpět, konzole vlastníka bez falešného zámku, zlaté Pro; vysílačka, docházka a hodinky pryč",

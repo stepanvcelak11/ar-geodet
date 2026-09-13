@@ -1,89 +1,40 @@
 /* ===== QTRIG — VZHLED PRO (ODPOJITELNÁ vrstva) ===================================
    Uživatel 13. 9. 2026: „Líbí se mi, jak má Pro vizuálně upravenou kytičku, udělej
    víc takových úprav v aplikaci pro Pro verzi." Kytička (js/kolecko-nastroju.js)
-   je v Pro zlatá (#e6bd76) místo zelené. Tahle vrstva táhne TUTÉŽ zlatou dál po
-   appce — všude jen pod `body.ag-pro` (třídu dává js/licence.js hned od prvního
-   obrazu, viz znakPro), takže Základ se nemění ani o pixel.
+   je v Pro zlatá (#e6bd76) místo zelené. Tahle vrstva táhne TUTÉŽ zlatou na to,
+   co je na hlavní obrazovce pořád — všechno jen pod `body.ag-pro` (třídu dává
+   js/licence.js hned od prvního obrazu, viz znakPro), Základ se nemění ani o pixel.
 
-   CO SE MĚNÍ (a proč zrovna to):
-     • stavová pilulka nahoře a přepínač Mapa/Split/AR dole — dvě věci, které jsou
-       na obrazovce POŘÁD, takže Pro je vidět i bez otevírání oken,
-     • nadpisy oken (Nástroje, Nastavení, Body, Kompas…) + jejich ikony,
-     • Nástroje: ikony řádků, nadpisy skupin (ZMĚŘIT, VYTYČIT…), pás „Co dnes děláš",
-     • Nastavení: aktivní záložka, zapnuté přepínače, nadpisy sekcí,
-     • Body: titulky karet, panel Vrstvy: ikona titulku, menu Více: ikona hlavičky.
-
-   CO SE SCHVÁLNĚ NEMĚNÍ:
-     • hlavní akční tlačítka (Nový bod, Uložit, Zavřít) — zelená = „udělej to",
-       zlatá je jen ozdoba a nesmí se plést s výzvou k akci,
-     • barvy stavů (červená/žlutá/zelená u GPS, baterie, přesnosti) — nesou význam,
-     • AR značky a mapové body — barva = druh bodu.
+   ⚠ ROZSAH JE SCHVÁLNĚ MALÝ. První verze (13. 9. odpoledne) zlatila i nadpisy oken,
+   ikony a nadpisy v Nástrojích, chipy „Co dnes děláš", záložky a přepínače v
+   Nastavení, titulky karet bodů a pilulku — uživatel: „ten Pro design je trochu
+   přehnaný, Nástroje nech zelené, ale split a tlačítko Nástroje nech zlaté".
+   Takže zůstává JEN:
+     • přepínač pohledu Mapa / Split / AR (#ag-view-wheel, js/view-cycle.js),
+     • tlačítko Nástroje v doku: zlatý obrys (dává js/pro-prehled.js) + štítek PRO,
+   plus zlatá pilulka PRO v nadpisu Nástrojů a menu Více (taky pro-prehled.js) a
+   „v304 · Pro" v O aplikaci (grafika.js openAbout). Nic dalšího sem nepřidávat
+   bez výslovného přání.
 
    SVĚTLÝ MOTIV: #e6bd76 má na bílé jen ~1,8:1, proto tmavší zlatá #9a6d18 (stejná
-   jako karta Pro v js/pro-karta.js). Nadpisy v index.html mají barvu INLINE
-   (style="color:var(--accent)"), odtud `[style*="--accent"]` + !important — jiné
-   nadpisy (červené varování v dialogu) se nesahají.
+   jako karta Pro v js/pro-karta.js).
 
    Odstranění: smaž tenhle soubor + <link> v index.html (a přegeneruj sw.js).
    ============================================================================== */
 :root {
     --ag-pro-gold: #e6bd76;
-    --ag-pro-gold-2: #d8a54a;
     --ag-pro-line: rgba(230, 189, 118, 0.55);
-    --ag-pro-soft: rgba(230, 189, 118, 0.14);
 }
 body.light-mode {
     --ag-pro-gold: #9a6d18;
-    --ag-pro-gold-2: #7d5610;
     --ag-pro-line: rgba(154, 109, 24, 0.5);
-    --ag-pro-soft: rgba(154, 109, 24, 0.11);
 }
 
-/* ---- pořád na obrazovce: pilulka + přepínač pohledu ------------------------- */
-body.ag-pro #ag-sp {
-    border-color: var(--ag-pro-line);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(230, 189, 118, 0.10);
-}
+/* ---- přepínač pohledu Mapa / Split / AR -------------------------------------- */
 body.ag-pro #ag-view-wheel { border-color: var(--ag-pro-line); }
 body.ag-pro #ag-view-wheel .icon { color: var(--ag-pro-gold); }
 
-/* ---- nadpisy oken (inline zelená z index.html) ------------------------------ */
-body.ag-pro .modal-content h2[style*="--accent"],
-body.ag-pro .modal-content h3[style*="--accent"],
-body.ag-pro .modal-content h2 > svg.icon[style*="--accent"],
-body.ag-pro .modal-content h3 > svg.icon[style*="--accent"] { color: var(--ag-pro-gold) !important; }
-body.ag-pro #side-menu .menu-head .icon { color: var(--ag-pro-gold); }
-body.ag-pro #map-sheet .ms-title .icon { color: var(--ag-pro-gold); }
-
-/* ---- Nástroje --------------------------------------------------------------- */
-body.ag-pro .ag-uk-ico { color: var(--ag-pro-gold); }
-body.ag-pro .ag-uk-h > span:first-child { color: var(--ag-pro-gold); }
-body.ag-pro .tool-tile .icon { color: var(--ag-pro-gold); }
-body.ag-pro #ag-rp-head .t { color: var(--ag-pro-gold); }
-body.ag-pro #ag-rp-head .hint { color: var(--ag-pro-gold); }
-body.ag-pro #ag-rp-list button .icon { color: var(--ag-pro-gold); }
-body.ag-pro #ag-rp-list button.on { border-color: var(--ag-pro-line); background: var(--ag-pro-soft); box-shadow: 0 0 0 1px var(--ag-pro-line) inset; }
-body.ag-pro #ag-rp-list button.on b { color: var(--ag-pro-gold); }
-body.ag-pro #ag-rp-list button.add b,
-body.ag-pro #ag-rp-list button.add .icon { color: var(--ag-pro-gold); }
-body.ag-pro .tools-search:focus { border-color: var(--ag-pro-line); }
-
-/* ---- Nastavení -------------------------------------------------------------- */
-body.ag-pro .settings-tiles .tab-btn.active { border-bottom-color: var(--ag-pro-gold); }
-body.ag-pro .settings-tiles .tab-btn.active .icon { color: var(--ag-pro-gold); }
-body.ag-pro .settings-tiles .tab-btn.active .tb-tx b { color: var(--ag-pro-gold); }
-body.ag-pro #settings-modal .st-sw input:checked + .st-sw-face {
-    background: linear-gradient(135deg, var(--ag-pro-gold), var(--ag-pro-gold-2));
-}
-body.ag-pro #settings-modal .st-sw input:focus-visible + .st-sw-face { box-shadow: 0 0 0 3px var(--ag-pro-soft); }
-body.ag-pro #settings-modal .set-h { color: var(--ag-pro-gold); }
-body.ag-pro #settings-modal details.adv > summary .icon { color: var(--ag-pro-gold); }
-
-/* ---- Body ------------------------------------------------------------------- */
-body.ag-pro .cp-title { color: var(--ag-pro-gold); }
-body.ag-pro .exp-menu[open] summary { border-color: var(--ag-pro-line); color: var(--ag-pro-gold); }
-
-/* ---- dok: obrys Nástrojů dává js/pro-prehled.js; tady jen zlatý puntík PRO -- */
+/* ---- dok: obrys Nástrojů dává js/pro-prehled.js; tady jen štítek PRO ---------- */
 body.ag-pro #dock .dock-btn[onclick*="tools-modal"],
 body.ag-pro #dock-nastroje-btn { position: relative; }
 body.ag-pro #dock .dock-btn[onclick*="tools-modal"]::after,

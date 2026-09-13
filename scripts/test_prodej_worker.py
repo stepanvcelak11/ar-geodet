@@ -14,7 +14,7 @@
 # ⚠ Vsechno musi byt na Promise/microtaskach — py_mini_racer nema smycku udalosti,
 #   takze setTimeout uvnitr workeru by test tise zasekl (OUT zustane null).
 #
-#   A) /health hlasi v:18, prodej:true a stav klice vlastnika (ownerKey)
+#   A) /health hlasi v:19, prodej:true a stav klice vlastnika (ownerKey)
 #   J) brzda vydani: GET /vydano (verejne) null -> POST /owner/vydat 296 -> 296; bez klice 403
 #   B) POST /objednavky bez PRODEJ_IBAN -> 503 (prodej vypnuty), s IBAN -> 8mistny
 #      VS, SPAYD s castkou a VS, cenik se dvema produkty, zkouska 3 dny
@@ -221,7 +221,7 @@ def main():
     # ---- A) health -------------------------------------------------------------
     base_rules()
     h = call('GET', '/health')
-    ok('A1 /health v:18', h['data'].get('v') == 18, h['data'].get('v'))
+    ok('A1 /health v:19', h['data'].get('v') == 19, h['data'].get('v'))
     ok('A2 /health prodej:true', h['data'].get('prodej') is True)
     # 12. 9. 2026: /health rika, v jakem stavu je OWNER_KEY ('ok' | 'chybi' | 'kratky') —
     # uzivatel klic „nastavoval nekolikrat" a appka hlasila jen obecnou 503.

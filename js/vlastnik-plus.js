@@ -52,6 +52,14 @@
         var st = document.createElement('style'); st.id = 'ag-vp-style';
         st.textContent = [
             '.agvp-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 14px;}',
+            // tlačítko Grafy pod dlaždicemi (13. 9. 2026: uživatel grafy v konzoli nenašel — byly jen jako
+            // třetí dlaždice v seznamu; teď jsou hned pod čísly souhrnu i v Souhrnu dne)
+            '.agvp-grafy{display:flex;align-items:center;gap:9px;width:100%;box-sizing:border-box;margin:-6px 0 14px;padding:10px 12px;border-radius:12px;cursor:pointer;',
+            '  background:var(--agv-gold-soft,rgba(212,160,44,.12));border:1px solid var(--agv-gold-line,rgba(212,160,44,.4));color:var(--text-color,#e6e8eb);text-align:left;}',
+            '.agvp-grafy svg{flex:none;width:22px;height:22px;stroke:var(--agv-gold,#d4a02c);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}',
+            '.agvp-grafy b{display:block;font:700 13px/1.25 var(--font-ui,system-ui);color:var(--agv-gold,#d4a02c);}',
+            '.agvp-grafy small{display:block;font:500 11px/1.3 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
+            '.agvp-grafy .go{margin-left:auto;color:var(--agv-gold,#d4a02c);font-size:18px;}',
             // grafy (13. 9. 2026): sloupce po dnech ve zlaté konzole; osa = tenká linka, popisek max vlevo nahoře
             '.agvp-g{margin:0 0 14px;padding:10px 12px 8px;border-radius:12px;border:1px solid rgba(230,189,118,.22);background:rgba(0,0,0,.16);}',
             '.agvp-g b{display:block;font:700 13px/1.2 var(--font-ui,system-ui);color:var(--text-color,#e6e8eb);}',
@@ -111,11 +119,16 @@
             box.innerHTML =
                 tile(d.lidi24, 'lidí za 24 h', 'prehled') + tile(d.body24, 'bodů za 24 h', 'prehled') + tile((d.online || []).length, 'v terénu teď', 'prehled', (d.online || []).length ? 'ok' : '') +
                 tile(d.zadosti, 'žádostí o Pro', 'zadosti', d.zadosti ? 'warn' : '') + tile(d.zpravy, 'zpráv čeká', 'zpravy', d.zpravy ? 'warn' : '') + tile(d.chyby24, 'chyb za 24 h', 'errors', d.chyby24 ? 'bad' : '') +
-                (vyp7 ? tile(vyp7, 'Pro končí brzy', 'kalendar', 'warn') : '') + (d.ucty24 ? tile(d.ucty24, 'nových účtů', 'lide') : '');
+                (vyp7 ? tile(vyp7, 'Pro končí brzy', 'kalendar', 'warn') : '') + (d.ucty24 ? tile(d.ucty24, 'nových účtů', 'lide') : '')
+                + grafyBtn('posledních 30 dní po dnech: lidé, akce, body, chyby, verze, nástroje');
             Array.prototype.forEach.call(box.querySelectorAll('[data-go]'), function (el) {
                 el.addEventListener('click', function () { otevri(el.getAttribute('data-go')); });
             });
         });
+    }
+    function grafyBtn(txt) {
+        return '<button type="button" class="agvp-grafy" data-go="grafy"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15v-4M12 15V7M17 15v-6"/></svg>'
+            + '<span><b>Grafy — vizuální přehled</b><small>' + txt + '</small></span><span class="go">›</span></button>';
     }
     function tile(n, popis, go, cls) {
         return '<div class="agvp-t' + (cls ? ' ' + cls : '') + '" data-go="' + go + '"><b>' + (n == null ? '—' : n) + '</b><small>' + popis + '</small></div>';
@@ -145,6 +158,7 @@
             h.push('<div class="agvp-tiles">' + tile(d.lidi24, 'lidí měřilo') + tile(d.body24, 'bodů přibylo') + tile(d.ucty24, 'nových účtů') +
                 tile(d.zadosti, 'žádostí o Pro', 'zadosti', d.zadosti ? 'warn' : '') + tile(d.zpravy, 'zpráv čeká', 'zpravy', d.zpravy ? 'warn' : '') + tile(d.chyby24, 'chyb', 'errors', d.chyby24 ? 'bad' : '') +
                 tile(d.uctyCelkem, 'účtů celkem') + tile(d.proCelkem, 's Pro') + tile((d.shluky || []).length, 'míst měření') + '</div>');
+            h.push(grafyBtn('totéž za 30 dní jako sloupce po dnech'));
             h.push('<div class="agv-sec">Kdo je v terénu teď (aktivita do 10 minut)</div>');
             if (!(d.online || []).length) h.push('<div class="agv-p">Teď nikdo — poslední aktivitu najdeš v Lidech.</div>');
             (d.online || []).forEach(function (o) {
