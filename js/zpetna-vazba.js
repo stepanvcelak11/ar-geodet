@@ -332,7 +332,8 @@
             '.ag-fb-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;',
             '  font:600 11px/1 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);letter-spacing:.04em;text-transform:uppercase;}',
             '.ag-fb-tag{padding:3px 8px;border-radius:999px;border:1px solid currentColor;}',
-            '.ag-fb-tag.chyba{color:#e0574a;}.ag-fb-tag.napad{color:#d4a02c;}.ag-fb-tag.pochvala{color:var(--accent,#2f9e74);}',
+            '.ag-fb-tag.chyba{color:#e0574a;}.ag-fb-tag.napad{color:#d4a02c;}.ag-fb-tag.pochvala{color:var(--accent,#2f9e74);}.ag-fb-tag.hodnoceni{color:#d4a02c;}',
+            '.ag-fb-stars{display:flex;gap:4px;justify-content:center;margin:6px 0 12px;}.ag-fb-stars button{width:48px;height:48px;border:none;background:transparent;font-size:34px;line-height:1;color:var(--text-muted,#9aa1ac);opacity:.55;cursor:pointer;padding:0;}.ag-fb-stars button.on{color:#d4a02c;opacity:1;}.ag-fb-stars button:active{transform:scale(0.92);}',
             '.ag-fb-t{white-space:pre-wrap;word-break:break-word;font:500 14px/1.5 var(--font-ui,system-ui);color:var(--text-color,#e6e8eb);}',
             '.ag-fb-meta{margin-top:7px;font:500 11px/1.4 var(--font-mono,monospace);color:var(--text-muted,#9aa1ac);word-break:break-all;}',
             '.ag-fb-acts{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap;}',
@@ -493,6 +494,8 @@
         var m = build();
         m.style.display = 'flex';
         loadDraft();
+        // kontakt z účtu (Kde pracuju → Kontakt), když si člověk do pole ještě nic nenapsal
+        try { var kc = m.querySelector('#ag-fb-contact'); var kk = localStorage.getItem('agUcetKontakt_v1'); if (kc && kk && !kc.value) kc.value = kk; } catch (e) { swallow(e, 'open:kontakt'); }
         if (opts && opts.txt) {
             var ta = m.querySelector('#ag-fb-txt');
             var stary = (ta.value || '').trim();
@@ -616,6 +619,7 @@
                 // formuláři jako volba není — jen štítek pro čtení. Vyřizuje se
                 // v konzoli Lidé a prodej → Žádosti (js/prodej-konzole.js).
                 if (r.kind === 'pro') kindL = 'Žádost o Pro';
+                if (r.kind === 'hodnoceni') kindL = 'Hodnocení';
                 return '<div class="ag-fb-msg' + (r.done ? ' done' : '') + '" data-id="' + r.id + '">' +
                     '<div class="ag-fb-h"><span class="ag-fb-tag ' + esc(r.kind || 'jine') + '">' + esc(kindL) + '</span>' +
                     '<span>' + esc(d.toLocaleString('cs-CZ')) + '</span>' +
@@ -825,8 +829,93 @@
         } catch (e) { swallow(e, 'injectFooters:tools'); }
     }
 
+    // ---- „Jak ti to sedí?" po třech dnech používání ---------------------------
+    // Lidé, kterým appka „celkem jde", sami nenapíšou. Třetí RŮZNÝ den, kdy appku
+    // otevřeli, dostanou jednu otázku (hvězdičky 1–5 + věta) — jednou, nikdy víc.
+    // Odpověď jde toutéž frontou jako ostatní zprávy (kind 'hodnoceni'), takže
+    // počká na signál a vlastník ji čte ve schránce. Odmítnutí (křížek) = hotovo,
+    // podruhé se neptáme. Schváleno 13. 9. 2026 (návrhy před betou).
+    var LS_DNY = 'agFbDny_v1', LS_HODN = 'agFbHodnoceni_v1', DNY_PTAT = 3;
+    function dnes() { return new Date().toISOString().slice(0, 10); }
+    function zapisDen() {
+        var d = lsGet(LS_DNY, []); if (!Array.isArray(d)) d = [];
+        var t0 = dnes();
+        if (d.indexOf(t0) < 0) { d.push(t0); while (d.length > 30) d.shift(); lsSet(LS_DNY, d); }
+        return d.length;
+    }
+    function hodnoceniHotovo() { try { return !!localStorage.getItem(LS_HODN); } catch (e) { return true; } }
+    function hodnoceniZavri(stav) {
+        try { localStorage.setItem(LS_HODN, stav || '1'); } catch (e) { swallow(e, 'hodnoceni:ls'); }
+        try { window.AGNotify && AGNotify.clear('hodnoceni'); } catch (e) { swallow(e, 'hodnoceni:clear'); }
+        var m = document.getElementById('ag-fb-rate'); if (m) m.remove();
+    }
+    function nabidniHodnoceni() {
+        if (hodnoceniHotovo()) return;
+        if (zapisDen() < DNY_PTAT) return;
+        if (!window.AGNotify || typeof AGNotify.set !== 'function') return;
+        AGNotify.set('hodnoceni', {
+            level: 'info', order: 45,
+            text: t('Třetí den s QTRIG — jak ti to zatím sedí?'),
+            short: t('Jak ti to sedí?'),
+            action: t('Ohodnotit'),
+            onAction: function () { openRate(); },
+            onDismiss: function () { hodnoceniZavri('odmitl'); }
+        });
+    }
+    function openRate() {
+        try { window.AGNotify && AGNotify.clear('hodnoceni'); } catch (e) { swallow(e, 'rate:clear'); }
+        injectStyles();
+        var m = document.getElementById('ag-fb-rate');
+        if (m) m.remove();
+        m = document.createElement('div');
+        m.className = 'modal-overlay'; m.id = 'ag-fb-rate';
+        m.setAttribute('data-no-swipe', '');
+        var stars = '';
+        for (var i = 1; i <= 5; i++) stars += '<button type="button" data-s="' + i + '" aria-label="' + i + ' z 5">★</button>';
+        m.innerHTML =
+            '<div class="modal-content" style="max-width:420px;">' +
+            '  <h2 style="margin-top:0;">' + t('Jak ti to sedí?') + '</h2>' +
+            '  <div class="modal-body">' +
+            '    <p style="margin:0 0 10px;color:var(--text-muted,#9aa1ac);font:500 13px/1.5 var(--font-ui,system-ui);">' +
+            t('Třetí den s appkou. Jedna hvězdička = nepoužitelné, pět = nechal bych si ji. A jedna věta, proč.') + '</p>' +
+            '    <div class="ag-fb-stars" id="ag-fb-stars">' + stars + '</div>' +
+            '    <textarea id="ag-fb-rate-txt" maxlength="600" placeholder="' + t('Co je nejlepší, co nejvíc chybí…') + '"></textarea>' +
+            '  </div>' +
+            '  <button type="button" class="btn" id="ag-fb-rate-ok" disabled style="margin-top:6px;">' + t('Poslat') + '</button>' +
+            '  <button type="button" class="btn btn-secondary" id="ag-fb-rate-no" style="margin-top:10px;">' + t('Teď ne') + '</button>' +
+            '</div>';
+        document.body.appendChild(m);
+        m.style.display = 'flex';
+        var hv = 0;
+        var box = m.querySelector('#ag-fb-stars');
+        box.addEventListener('click', function (ev) {
+            var b = ev.target.closest('button[data-s]'); if (!b) return;
+            hv = +b.getAttribute('data-s');
+            Array.prototype.forEach.call(box.querySelectorAll('button'), function (x) { x.classList.toggle('on', +x.getAttribute('data-s') <= hv); });
+            m.querySelector('#ag-fb-rate-ok').disabled = false;
+        });
+        // „Teď ne" = neptat se znovu; kdo chce, napíše sám přes Napsat autorovi
+        m.querySelector('#ag-fb-rate-no').addEventListener('click', function () { hodnoceniZavri('odmitl'); });
+        m.querySelector('#ag-fb-rate-ok').addEventListener('click', function () {
+            if (!hv) return;
+            var txt = (m.querySelector('#ag-fb-rate-txt').value || '').trim();
+            var rec = { kind: 'hodnoceni', hvezd: hv, txt: hv + '/5 ' + '★★★★★'.slice(0, hv) + (txt ? ' — ' + txt : ''), who: who(), meta: meta() };
+            fit(rec);
+            enqueue(rec);
+            hodnoceniZavri(String(hv));
+            flush().then(function (n) {
+                info(n > 0 ? t('Díky! Hodnocení odešlo.') : t('Díky! Bez signálu — hodnocení počká a odejde samo.'), t('Jak ti to sedí?'));
+            });
+        });
+    }
+    window.agOpenHodnoceni = openRate;   // ruční vyvolání (test, ladění)
+
     function init() {
         sledujKde();
+        // hodnocení: až v klidu, když appka běží (ne na bráně)
+        setTimeout(function () {
+            try { if (document.body.classList.contains('app-started')) nabidniHodnoceni(); } catch (e) { swallow(e, 'hodnoceni'); }
+        }, 15000);
         injectMenu();
         injectSettings();
         injectFooters();

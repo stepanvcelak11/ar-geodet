@@ -26,7 +26,7 @@ const CODE_ABC = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';   // bez O/0, I/1/L
 const CORS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Owner-Key',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Owner-Key,X-AG-Ver,X-AG-Dev',
     'Access-Control-Max-Age': '86400'
 };
 
@@ -440,7 +440,15 @@ async function ensureUctySchema(env) {
         'ALTER TABLE users ADD COLUMN left_ts INTEGER',
         // 1 = vlastní prostor účtu. Ten se nedá opustit ani smazat — je to
         // místo, kde člověku data zůstanou, i když ze všech firem odejde.
-        'ALTER TABLE users ADD COLUMN own INTEGER NOT NULL DEFAULT 0'
+        'ALTER TABLE users ADD COLUMN own INTEGER NOT NULL DEFAULT 0',
+        // verze appky a telefon u účtu (13. 9. 2026): appka je posílá v hlavičkách
+        // X-AG-Ver / X-AG-Dev s každým dotazem, server je zapisuje nejvýš 1× za hodinu.
+        // Konzole vlastníka tak vidí, kdo ještě jede na staré verzi (brzda vydání).
+        'ALTER TABLE accounts ADD COLUMN ver TEXT',
+        'ALTER TABLE accounts ADD COLUMN ver_ts INTEGER',
+        'ALTER TABLE accounts ADD COLUMN dev TEXT',
+        // nepovinný kontakt (telefon/e-mail) pro autora appky — zadává si ho člověk sám
+        'ALTER TABLE accounts ADD COLUMN contact TEXT'
     ];
     for (const s of alters) { try { await env.DB.prepare(s).run(); } catch (e) {} }
     try { await env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_users_acc ON users(acc_id)').run(); } catch (e) {}
@@ -867,6 +875,23 @@ async function ensureOwnerPlusSchema(env) {
 }
 // Zápis do deníku NIKDY nesmí shodit akci, kvůli které vznikl — proto try/catch a
 // ctx.waitUntil, kde je k dispozici (jinak se počká, D1 zápis je levný).
+// Verze appky a telefon z hlaviček → accounts.ver/ver_ts/dev (nejvýš 1× za hodinu,
+// a jen když se něco změnilo). Nikdy nesmí shodit požadavek, kvůli kterému běží.
+function zapisVerzi(env, ctx, req, me) {
+    try {
+        const hv = req.headers.get('X-AG-Ver');
+        if (!hv || !me || !me.accId) return;
+        const ver = String(hv).slice(0, 12);
+        const dev = String(req.headers.get('X-AG-Dev') || '').slice(0, 40) || null;
+        const a = me.acc || {};
+        if (a.ver === ver && a.dev === dev && a.ver_ts && Date.now() - a.ver_ts < 3600e3) return;
+        const p = ensureUctySchema(env)
+            .then(() => env.DB.prepare('UPDATE accounts SET ver=?, ver_ts=?, dev=? WHERE id=?').bind(ver, Date.now(), dev, me.accId).run())
+            .catch(() => {});
+        if (ctx && typeof ctx.waitUntil === 'function') ctx.waitUntil(p);
+    } catch (e) {}
+}
+
 async function ownerLog(env, akce, cil, detail) {
     try {
         await ensureOwnerPlusSchema(env);
@@ -1311,7 +1336,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 16, vydani: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 17, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
 
             // ---------------- BRZDA VYDÁNÍ (12. 9. 2026) ---------------------
             // Vlastník vyvíjí a testuje na svém telefonu, ale lidem venku nesmí
@@ -1419,11 +1444,14 @@ export default {
                 // o ni z karty Verze Pro POŽÁDÁ a vlastník mu ji zapne v konzoli Lidé
                 // a prodej (záložka Žádosti). Kód účtu jde v `meta.ucet`, ať vlastník
                 // nemusí hledat, komu Pro zapnout.
-                const kind = ['chyba', 'napad', 'pochvala', 'jine', 'pro'].indexOf(String(b.kind || '')) >= 0 ? String(b.kind) : 'jine';
+                // 'hodnoceni' = otázka Jak ti to sedí? třetí den používání (13. 9. 2026): 1–5 hvězd
+                // v `hvezd`, ukládá se do meta (schéma feedbacku se nemění).
+                const kind = ['chyba', 'napad', 'pochvala', 'jine', 'pro', 'hodnoceni'].indexOf(String(b.kind || '')) >= 0 ? String(b.kind) : 'jine';
                 const contact = b.contact ? String(b.contact).trim().slice(0, 120) : null;
                 // meta = dobrovolné údaje o zařízení (verze appky, telefon, prohlížeč).
                 // Ukládá se jako řetězec, ne rozparsované — ať se schéma nemusí měnit
                 // pokaždé, když klient přidá další údaj.
+                if (kind === 'hodnoceni' && b.hvezd != null) { b.meta = Object.assign({}, b.meta || {}, { hvezd: Math.max(1, Math.min(5, parseInt(b.hvezd, 10) || 0)) }); }
                 const meta = b.meta ? JSON.stringify(b.meta).slice(0, 1500) : null;
                 const who = b.who ? String(b.who).trim().slice(0, 80) : null;
                 await env.DB.prepare('INSERT INTO feedback(ts,kind,txt,contact,meta,who,done) VALUES(?,?,?,?,?,?,0)')
@@ -2187,9 +2215,9 @@ export default {
                     await ensureProdejSchema(env);
                     const q = String(url.searchParams.get('q') || '').trim().toUpperCase();
                     const rows = q
-                        ? await dbAll(env, 'SELECT id, code, name, tarif, tarif_do, disabled, created, last_login, trial_ts '
+                        ? await dbAll(env, 'SELECT id, code, name, tarif, tarif_do, disabled, created, last_login, trial_ts, ver, ver_ts, dev, contact '
                             + 'FROM accounts WHERE code=? OR UPPER(name) LIKE ? ORDER BY created DESC LIMIT 200', q, '%' + q + '%')
-                        : await dbAll(env, 'SELECT id, code, name, tarif, tarif_do, disabled, created, last_login, trial_ts '
+                        : await dbAll(env, 'SELECT id, code, name, tarif, tarif_do, disabled, created, last_login, trial_ts, ver, ver_ts, dev, contact '
                             + 'FROM accounts ORDER BY created DESC LIMIT 200');
                     const ids = (rows || []).map(r => r.id);
                     const prostory = {}, aktivita = {}, objednavky = {};
@@ -2356,6 +2384,7 @@ export default {
 
             const me = await auth(env, req);
             if (!me) return err(401, 'Neplatné nebo prošlé přihlášení.');
+            zapisVerzi(env, ctx, req, me);
 
             // Token hodinek smi JEN cesty hodinek — viz poznamka v auth().
             if (me.watchJob && !(path === '/watch/points' || path === '/watch/tile'))
@@ -2537,6 +2566,25 @@ export default {
 
             // Vstup do firmy na POZVACÍ KÓD. Kód firmy tím přestává být částí
             // přihlášení a stává se jen pozvánkou — přihlašuje se kódem ÚČTU.
+            // KONTAKT PRO AUTORA (13. 9. 2026): nepovinný telefon/e-mail u účtu. Zadává si
+            // ho člověk sám (Kde pracuju → Kontakt), vidí ho jen vlastník v konzoli a schránka
+            // zpětné vazby si ho předvyplní. Prázdný řetězec = smazat.
+            if (path === '/account/contact') {
+                if (!me.accId) return err(400, 'Účet ještě není založený.');
+                await ensureUctySchema(env);
+                if (req.method === 'GET') {
+                    const r = await dbFirst(env, 'SELECT contact FROM accounts WHERE id=?', me.accId);
+                    return json({ ok: true, contact: (r && r.contact) || '' });
+                }
+                if (req.method === 'POST') {
+                    const b = await req.json().catch(() => null) || {};
+                    const c = String(b.contact == null ? '' : b.contact).trim().slice(0, 120);
+                    await env.DB.prepare('UPDATE accounts SET contact=? WHERE id=?').bind(c || null, me.accId).run();
+                    return json({ ok: true, contact: c });
+                }
+                return err(405, 'Jen GET/POST.');
+            }
+
             if (req.method === 'POST' && path === '/spaces/join') {
                 if (!me.accId) return err(400, 'Účet ještě nemá prostory.');
                 const b = await req.json().catch(() => null) || {};

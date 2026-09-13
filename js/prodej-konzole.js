@@ -265,7 +265,7 @@
                 '<span class="pd-dot ' + dot + '"></span>' +
                 '<span class="pd-nm"><b>' + esc(u.name || '?') + '</b>' +
                 '<small>' + esc(u.code) + ' · ' + esc(firmy.length ? firmy.join(', ') : 'jen vlastní prostor') + '</small></span>' +
-                '<span class="pd-cnt">' + esc(tarifText(u)) + '<small>' + esc(den(u.aktivita)) + '</small></span>' +
+                '<span class="pd-cnt">' + esc(tarifText(u)) + '<small>' + esc(den(u.aktivita)) + (u.ver ? ' · ' + esc(u.ver) : '') + '</small></span>' +
                 '</div>');
             if (_open === u.id) h.push(detailLide(u));
         });
@@ -276,6 +276,9 @@
         h.push('<div class="pd-lab">Účet</div>');
         h.push('<div class="pd-pl">Kód <b>' + esc(u.code) + '</b> · založen ' + datum(u.created) + ' · poslední přihlášení ' + den(u.last_login) +
             ' · za 30 dní ' + (u['akcí30d'] || 0) + ' akcí' + (u.trial_ts ? ' · zkouška zdarma ' + datum(u.trial_ts) : '') + '</div>');
+        // verze appky + telefon (z hlaviček X-AG-Ver/X-AG-Dev) a kontakt, který si člověk zadal sám (13. 9. 2026)
+        h.push('<div class="pd-pl">Appka: ' + (u.ver ? '<b>' + esc(u.ver) + '</b>' + (u.dev ? ' · ' + esc(u.dev) : '') + ' · viděno ' + den(u.ver_ts) : 'verze zatím neznámá (přihlásí se ze staré appky)') +
+            ' · Kontakt: ' + (u.contact ? '<b>' + esc(u.contact) + '</b>' : 'nezadal') + '</div>');
         h.push('<div class="pd-lab">Kde je</div>');
         (u.prostory || []).forEach(function (p) {
             h.push('<div class="pd-pl">' + (p.vlastni ? 'vlastní prostor' : '<b>' + esc(p.nazev || '?') + '</b> (' + esc(p.kod || '') + ')') +

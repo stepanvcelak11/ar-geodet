@@ -396,6 +396,8 @@
         // takže každý rozcestník stojí se slovesem u svých položek výš.
         { k: 'agPosFromMap', notile: 1,
           help: { t: 'Poloha z mapy' } },
+        { k: 'zdravi-appky', cat: 'Pomůcky', keys: 'zdravi funguje mi vsechno kontrola telefonu diagnostika gps kompas kamera uloziste verze test nefunguje', noverb: 1,
+          help: { t: 'Funguje mi všechno?' } },
         { k: 'err-log', keys: 'protokol chyb log chyba diagnostika hlaseni', noverb: 1,
           help: { t: 'Protokol chyb' } }
     ];

@@ -95,8 +95,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=301">
-    <link rel="stylesheet" href="css/style.css?v=301">
+    <link rel="stylesheet" href="css/tokens.css?v=302">
+    <link rel="stylesheet" href="css/style.css?v=302">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -227,7 +227,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=301">
+    <link rel="stylesheet" href="css/vylepseni.css?v=302">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
          render-blokující: prohlížeč nevykreslí ani pixel, dokud nedorazí VŠECHNY.
          Jedenáct z nich (69 kB) přitom patřilo oknům, která se při startu vůbec
@@ -403,7 +403,7 @@
             <div class="menu-head">Více</div>
             <button id="pruv-menu-btn" class="menu-btn" style="background: rgba(47,158,116,0.15); border-color: var(--accent); color: var(--accent);" onclick="openPruvodce(); toggleMenu();"><svg class="icon"><use href="#i-navigation"/></svg> Průvodce úkolem</button>
             <button class="menu-btn" onclick="saveForOffline(); toggleMenu();"><svg class="icon"><use href="#i-download"/></svg> Uložit pro offline</button>
-            <button class="menu-btn" onclick="startTutorial(); toggleMenu();"><svg class="icon"><use href="#i-bulb"/></svg> Návod a prohlídka</button>
+            <button class="menu-btn" onclick="toggleMenu(); if (window.startTutorial) startTutorial(); else if (window.AGLazy) AGLazy.need('js/tutorial-pro.js', function () { startTutorial(); });"><svg class="icon"><use href="#i-bulb"/></svg> Návod a prohlídka</button>
             <button class="menu-btn" onclick="openAbout(); toggleMenu();"><svg class="icon"><use href="#i-file-text"/></svg> O aplikaci</button>
             <button class="menu-btn" onclick="if(window.openShareApp)openShareApp(); toggleMenu();"><svg class="icon"><use href="#i-share"/></svg> Sdílet aplikaci (QR)</button>
             <!-- DronView je zpátky v Nástrojích (registruje js/field-tools.js): je to informace
@@ -1084,11 +1084,19 @@
          — prohlizitelny soupis zmen z nabidky Vice a z Nastaveni → Udrzba. Bere data
          ze STEJNEHO data/co-je-noveho.json jako roletka u listy Nova verze, at
          nevzniknou dva changelogy, ktere se rozejdou. -->
-    <script defer src="js/historie-aktualizaci.js"></script>
+    <script type="ag/lazy" data-src="js/historie-aktualizaci.js"></script>
     <!-- NAPISTE MI (odpojitelne: smaz tento radek, js/zpetna-vazba.js a zaznam v sw.js)
          — schranka na zpetnou vazbu z nabidky Vice a z Nastaveni → Udrzba. Psat muze
          kdokoli i bez prihlaseni; cist schranku jen vlastnik (OWNER_KEY na serveru). -->
     <script type="ag/lazy" data-src="js/zpetna-vazba.js"></script>
+    <!-- FUNGUJE MI VSECHNO? (odpojitelne: smaz tento radek, js/zdravi-appky.js, zaznam v sw.js,
+         radek 'zdravi-appky' v js/tools-registry.js a data/navody.json) — kontrola telefonu
+         (verze, GPS, kompas, kamera, uloziste, ucet, chyby) s tlacitkem Poslat autorovi. -->
+    <script type="ag/lazy" data-src="js/zdravi-appky.js"></script>
+    <!-- PRVNI MERENI (odpojitelne: smaz tento radek, js/prvni-mereni.js, zaznam v sw.js a dve
+         mista v js/tutorial-pro.js oznacena „prvni mereni") — pruvodce peti kroky nad zivou
+         appkou na prvnim spusteni; kroky se odskrtavaji samy. -->
+    <script type="ag/lazy" data-src="js/prvni-mereni.js"></script>
     <!-- SPRAVA APLIKACE (odpojitelne: smaz tento radek, js/sprava-appky.js a zaznam v sw.js)
          — konzole vlastnika: vsechny firmy, stropy mist, zmrazeni, uklid, hlaska vsem.
          Otevre ji jen ten, kdo ma OWNER_KEY (server vraci 403 komukoli jinemu).
@@ -1144,7 +1152,7 @@
     <!-- Roletka „Co je nového" u lišty Nová verze (odpojitelné: smaž tento řádek,
          js/co-je-noveho.js, data/co-je-noveho.json a oba řádky v sw.js) -->
     <script type="ag/lazy" data-src="js/co-je-noveho.js"></script>
-    <script defer src="js/pruvodce.js"></script>
+    <script type="ag/lazy" data-src="js/pruvodce.js"></script>
     <script type="ag/lazy" data-src="js/sdileni.js"></script>
     <script type="ag/lazy" data-src="js/tachymetrie.js"></script>
     <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + js/zpravodaj.js + css/zpravodaj.css + data/zpravodaj.json) -->
@@ -1165,7 +1173,7 @@
     <!-- SEZNAM SOUŘADNIC PRO KANCELÁŘ (odpojitelné: smaž tento řádek + js/seznam-souradnic.js
          + css/seznam-souradnic.css + položku 'exportPointsSeznam' ve výběru formátů níž)
          — nastavitelný textový seznam pro Gromu / Kokeš / Excel vč. Windows-1250 -->
-    <script defer src="js/seznam-souradnic.js"></script>
+    <script type="ag/lazy" data-src="js/seznam-souradnic.js"></script>
     <!-- IMPORT VFK (odpojitelné: smaž tento řádek + js/vfk.js) — načtení bodů z výměnného formátu katastru -->
     <script type="ag/lazy" data-src="js/vfk.js"></script>
     <script defer src="js/compass-stability.js"></script>
@@ -1281,7 +1289,9 @@
          (zástupnou dlaždici vyrobí js/pro-zamky.js z registru). -->
     <script type="ag/lazy" data-src="js/cadastre-vector.js"></script>
     <!-- NOVÝ TUTORIÁL (odpojitelné: smaž tento řádek + js/tutorial-pro.js) — základní + pokročilá prohlídka -->
-    <script defer src="js/tutorial-pro.js"></script>
+    <!-- 13. 9. 2026: tutorial-pro, historie-aktualizaci, seznam-souradnic a pruvodce jsou ve fronte
+         ag/lazy (start -113 kB): nikdo je pri startu nevola, vsechny si init delaji podle readyState. -->
+    <script type="ag/lazy" data-src="js/tutorial-pro.js"></script>
     <!-- NÁSTROJE PLUS (odpojitelné: smaž tento řádek + js/tools-plus.js) — nápověda „?" u dlaždic + oblíbené nahoře -->
     <script type="ag/lazy" data-src="js/tools-plus.js"></script>
     <!-- JEDNODUCHÝ PANEL NÁSTROJŮ + TYP PRÁCE (odpojitelné: smaž tento řádek + js/tools-simple.js) — přepínač v Nastavení → Vzhled -->

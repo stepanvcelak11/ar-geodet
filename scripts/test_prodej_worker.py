@@ -14,7 +14,7 @@
 # ⚠ Vsechno musi byt na Promise/microtaskach — py_mini_racer nema smycku udalosti,
 #   takze setTimeout uvnitr workeru by test tise zasekl (OUT zustane null).
 #
-#   A) /health hlasi v:16, prodej:true a stav klice vlastnika (ownerKey)
+#   A) /health hlasi v:17, prodej:true a stav klice vlastnika (ownerKey)
 #   J) brzda vydani: GET /vydano (verejne) null -> POST /owner/vydat 296 -> 296; bez klice 403
 #   B) POST /objednavky bez PRODEJ_IBAN -> 503 (prodej vypnuty), s IBAN -> 8mistny
 #      VS, SPAYD s castkou a VS, cenik se dvema produkty, zkouska 3 dny
@@ -28,6 +28,8 @@
 #      nepusti (brzda banky)
 #   H) /objednavky NENI placena cesta (kdo Pro nema, musi si ho umet objednat)
 #   I) /owner/ucty vraci k uctu prostory, aktivitu a objednavky
+#   K) X-AG-Ver/X-AG-Dev -> accounts.ver/dev (1x za hodinu); GET/POST /account/contact;
+#      /owner/ucty nese ver, dev, contact (13. 9. 2026)
 #
 # Pouziti (z korene repa):  python scripts/test_prodej_worker.py
 # Navratovy kod: 0 = vse OK, 1 = aspon jedna vada.
@@ -219,7 +221,7 @@ def main():
     # ---- A) health -------------------------------------------------------------
     base_rules()
     h = call('GET', '/health')
-    ok('A1 /health v:16', h['data'].get('v') == 16, h['data'].get('v'))
+    ok('A1 /health v:17', h['data'].get('v') == 17, h['data'].get('v'))
     ok('A2 /health prodej:true', h['data'].get('prodej') is True)
     # 12. 9. 2026: /health rika, v jakem stavu je OWNER_KEY ('ok' | 'chybi' | 'kratky') —
     # uzivatel klic „nastavoval nekolikrat" a appka hlasila jen obecnou 503.
@@ -503,6 +505,44 @@ def main():
     ok('J6 verze:null brzdu vypne', v5['status'] == 200 and v5['data'].get('verze') is None and call('GET', '/vydano')['data'].get('verze') is None, v5)
     lg = [l for l in log() if 'owner_log' in l.get('sql', '') and 'INSERT' in l.get('sql', '')]
     ok('J7 vydani se zapisuje do deniku vlastnika', any(x.get('args', [None, None])[1] == 'vydani' for x in lg), [x.get('args') for x in lg][:3])
+
+    # ---- K) verze appky u uctu + kontakt (13. 9. 2026, navrhy pred betou) --------
+    # Appka posila X-AG-Ver / X-AG-Dev s kazdym dotazem; server je zapise k uctu
+    # (nejvys 1x za hodinu), konzole vlastnika pak vidi, kdo jede na stare verzi.
+    base_rules()
+    r.eval('LOG.length = 0')
+    rule('/UPDATE accounts SET ver=\?, ver_ts=\?, dev=\? WHERE id=\?/', 'function(a){ LOG.push({ ver: a }); return { run: 1 }; }')
+    rule('/SELECT contact FROM accounts WHERE id=\?/', 'function(){ return { first: { contact: null } }; }')
+    k1 = call('GET', '/account/contact', headers=dict(AUTH, **{'X-AG-Ver': 'v301', 'X-AG-Dev': 'iOS 18.6 PWA'}))
+    vl = [l for l in log() if l.get('ver')]
+    ok('K1 hlavicka X-AG-Ver zapise verzi a telefon k uctu', vl and vl[-1]['ver'][0] == 'v301' and vl[-1]['ver'][2] == 'iOS 18.6 PWA' and vl[-1]['ver'][3] == 'acc1', vl[-1:] if vl else log()[-3:])
+    r.eval('LOG.length = 0')
+    base_rules(acc={'ver': 'v301', 'dev': 'iOS 18.6 PWA', 'ver_ts': 10**14})
+    rule('/UPDATE accounts SET ver=\?, ver_ts=\?, dev=\? WHERE id=\?/', 'function(a){ LOG.push({ ver: a }); return { run: 1 }; }')
+    rule('/SELECT contact FROM accounts WHERE id=\?/', 'function(){ return { first: { contact: null } }; }')
+    call('GET', '/account/contact', headers=dict(AUTH, **{'X-AG-Ver': 'v301', 'X-AG-Dev': 'iOS 18.6 PWA'}))
+    ok('K2 stejna verze do hodiny se znovu nezapisuje', not [l for l in log() if l.get('ver')], log()[-2:])
+    call('GET', '/account/contact', headers=AUTH)
+    ok('K3 bez hlavicky se nic nezapisuje', not [l for l in log() if l.get('ver')])
+    base_rules()
+    rule('/SELECT contact FROM accounts WHERE id=\?/', 'function(a){ return { first: a[0] === "acc1" ? { contact: "+420 777 123 456" } : null }; }')
+    rule('/UPDATE accounts SET contact=\? WHERE id=\?/', 'function(a){ LOG.push({ kontakt: a }); return { run: 1 }; }')
+    kc = call('GET', '/account/contact', headers=AUTH)
+    ok('K4 GET /account/contact vraci kontakt uctu', kc['status'] == 200 and kc['data'].get('contact') == '+420 777 123 456', kc)
+    kp = call('POST', '/account/contact', body={'contact': '  jan@firma.cz '}, headers=AUTH)
+    kl = [l for l in log() if l.get('kontakt')]
+    ok('K5 POST /account/contact ulozi orezany kontakt', kp['status'] == 200 and kl and kl[-1]['kontakt'] == ['jan@firma.cz', 'acc1'], (kp, kl[-1:]))
+    kp2 = call('POST', '/account/contact', body={'contact': ''}, headers=AUTH)
+    kl = [l for l in log() if l.get('kontakt')]
+    ok('K6 prazdny kontakt = NULL (smazani)', kp2['status'] == 200 and kl[-1]['kontakt'] == [None, 'acc1'], kl[-1:])
+    ok('K7 bez prihlaseni 401', call('GET', '/account/contact')['status'] == 401)
+    rule('/FROM accounts ORDER BY created DESC LIMIT 200/', 'function(){ return { all: [%s] }; }' % json.dumps(dict(ACC, ver='v299', ver_ts=5, dev='Android 14', contact='jan@firma.cz')))
+    rule('/FROM users u JOIN firms f ON f\.id=u\.firm_id WHERE u\.acc_id IN/', 'function(){ return { all: [] }; }')
+    rule('/FROM usage g JOIN users u ON u\.id=g\.uid/', 'function(){ return { all: [] }; }')
+    rule('/FROM orders WHERE acc_id IN/', 'function(){ return { all: [] }; }')
+    ou = call('GET', '/owner/ucty', None, OWN)
+    row = ((ou['data'] or {}).get('ucty') or [None])[0] or {}
+    ok('K8 /owner/ucty nese ver, dev a kontakt', row.get('ver') == 'v299' and row.get('dev') == 'Android 14' and row.get('contact') == 'jan@firma.cz', row)
 
     return vypis()
 

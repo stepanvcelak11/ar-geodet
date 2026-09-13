@@ -529,7 +529,7 @@
             headEl = el.querySelector('.ag-sp-head');
             bodyEl = null;
         }
-        if (headChanged) headEl.innerHTML = head;
+        if (headChanged) { headEl.innerHTML = head; fitHead(headEl); }
         if (!_open) {
             if (bodyEl) bodyEl.remove();     // sbaleno → detail pryč (animace při dalším otevření je ŽÁDOUCÍ)
         } else {
@@ -544,6 +544,24 @@
             }
         }
         fitBody();
+    }
+    // Když se hláška s čísly do pilulky nevejde, uřízlo se dřív TŘEMI TEČKAMI SLOVO
+    // („GPS bez fixu 6 s · poloha…" — viděno 13. 9. 2026 na 390 px). Hláška je to
+    // hlavní; čísla si člověk přečte po klepnutí. Pořadí obětí: azimut, pak přesnost.
+    function fitHead(headEl) {
+        try {
+            var al = headEl.querySelector('.ag-sp-alert');
+            if (!al) return;
+            var kusy = ['.ag-sp-az', '.ag-sp-acc'];
+            for (var i = 0; i < kusy.length; i++) {
+                if (al.scrollWidth <= al.clientWidth + 1) return;
+                var n = headEl.querySelector(kusy[i]);
+                if (!n) continue;
+                var sep = n.previousElementSibling;
+                if (sep && sep.classList.contains('ag-sp-sep')) sep.remove();
+                n.remove();
+            }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stavovy-pruh:fitHead'); }
     }
     // Strop rozbaleného detailu, aby NIKDY nesahal na svislou lištu ovládání.
     // Počítá se z živého getBoundingClientRect(): lišta si mění polohu podle režimu

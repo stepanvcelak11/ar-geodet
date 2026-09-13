@@ -363,6 +363,11 @@
             + '    <span class="ic"><svg class="icon"><use href="#i-navigation"/></svg></span>'
             + '    <span><h4>Základní prohlídka</h4><p>Ovládání appky: zobrazení, nový bod, body, nástroje, nastavení, přesnost a kompas.</p></span>'
             + '  </button>'
+            // první měření (13. 9. 2026): pět kroků nad živou appkou, samy se odškrtnou
+            + '  <button type="button" class="agtp-pick-b" id="agtp-go-prvni">'
+            + '    <span class="ic"><svg class="icon"><use href="#i-check"/></svg></span>'
+            + '    <span><h4>První měření — udělej to teď</h4><p>Pět kroků nad živou appkou: poloha a kompas, přesnost, první bod, jeho karta, Doveď mě. Odškrtávají se samy.</p></span>'
+            + '  </button>'
             + '  <button type="button" class="agtp-pick-b" id="agtp-go-adv">'
             + '    <span class="ic"><svg class="icon"><use href="#i-ruler"/></svg></span>'
             + '    <span><h4>Pokročilé nástroje</h4><p>Co appka umí navíc: Brutální GPS a DGPS, parcela &amp; dělení, AR resekce a kalibrace, kubatury/vrstevnice, import DXF, katastr v AR i denní pomůcky.</p></span>'
@@ -373,6 +378,12 @@
         document.body.appendChild(el);
         $('#agtp-go-basic', el).addEventListener('click', function () { closePicker(); startTour(BASIC); });
         $('#agtp-go-adv', el).addEventListener('click', function () { closePicker(); startTour(ADV); });
+        $('#agtp-go-prvni', el).addEventListener('click', function () {
+            closePicker(); closeAllModals();
+            var jdi = function () { try { window.AGPrvniMereni && AGPrvniMereni.start(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tutorial-pro:prvni-start'); } };
+            if (window.AGPrvniMereni) jdi();
+            else if (window.AGLazy && typeof AGLazy.need === 'function') AGLazy.need('js/prvni-mereni.js', jdi);
+        });
         $('#agtp-pick-close', el).addEventListener('click', closePicker);
         el.addEventListener('click', function (e) { if (e.target === el) closePicker(); });
     }
@@ -410,8 +421,22 @@
             setTimeout(function () {
                 if (startBlocked()) { maybeStart(); return; }   // mezitím naskočila brána
                 try { localStorage.setItem(SEEN_KEY, '1'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tutorial-pro:attempt'); }
-                autoFirstRun = true;
-                startTour(BASIC);
+                // první měření (13. 9. 2026): místo obrázkové prohlídky pět skutečných kroků nad
+                // živou appkou (js/prvni-mereni.js, odložený modul). Počká se na něj nejdéle 6 s;
+                // když nedorazí (odpojený, výpadek), jede se postaru základní prohlídkou.
+                var cekano = 0;
+                (function pockej() {
+                    if (window.AGPrvniMereni && typeof AGPrvniMereni.autoStart === 'function') {
+                        var slo = false;
+                        try { slo = !!AGPrvniMereni.autoStart(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tutorial-pro:prvni'); }
+                        if (slo) { try { if (typeof window.showCompassCalibHint === 'function') setTimeout(function () { window.showCompassCalibHint(); }, 400); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tutorial-pro:calib'); } return; }
+                        autoFirstRun = true; startTour(BASIC); return;
+                    }
+                    cekano += 300;
+                    if (cekano < 6000) { setTimeout(pockej, 300); return; }
+                    autoFirstRun = true;
+                    startTour(BASIC);
+                })();
             }, 700);
         })();
     }
@@ -431,7 +456,9 @@
 
     // Auto-start po prvním spuštění z úvodní obrazovky — obalíme startAppFromWelcome
     // (stejný princip jako původní tutorial.js, který je teď odpojený).
-    window.addEventListener('load', function () {
+    // 13. 9. 2026: modul je ve frontě ag/lazy a přijde AŽ PO události load — ta už
+    // znovu nepřijde, takže se totéž udělá hned, když je dokument hotový.
+    function poNacteni() {
         var orig = window.startAppFromWelcome;
         if (typeof orig === 'function' && !orig.__agtpWrapped) {
             var wrapped = function () { var r = orig.apply(this, arguments); try { maybeStart(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tutorial-pro:wrapped'); } return r; };
@@ -441,5 +468,7 @@
         // Pojistka: kdyby se do appky vstoupilo jinudy než tlačítkem na úvodní
         // obrazovce, hlídač si stejně počká, až bude na prohlídku vidět.
         setTimeout(maybeStart, 2500);
-    });
+    }
+    if (document.readyState === 'complete') poNacteni();
+    else window.addEventListener('load', poNacteni);
 })();

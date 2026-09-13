@@ -432,11 +432,29 @@
     }
 
     // volání API s tokenem; VŽDY resolve {ok, status, data}; status 0 = síť/offline
+    var _vdCache = null;
+    function verzeADev() {
+        if (_vdCache) return _vdCache;
+        var v = '', d = '';
+        try {
+            var l = document.querySelector('link[rel="stylesheet"][href*="css/style.css?v="]');
+            var m = l && (l.getAttribute('href') || '').match(/\?v=(\d+)/);
+            if (m) v = 'v' + m[1];
+            var ua = String(navigator.userAgent || '');
+            var i = /iPhone OS (\d+)_(\d+)/.exec(ua), a = /Android ([\d.]+)/.exec(ua);
+            d = i ? ('iOS ' + i[1] + '.' + i[2]) : a ? ('Android ' + a[1]) : (/Windows/.test(ua) ? 'Windows' : /Mac/.test(ua) ? 'Mac' : 'jiný');
+            if (window.matchMedia && matchMedia('(display-mode: standalone)').matches) d += ' PWA';
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:verzeADev'); }
+        _vdCache = { v: v, d: d };
+        return _vdCache;
+    }
     function cloudFetch(path, opts) {
         opts = opts || {};
         var headers = { 'Content-Type': 'application/json' };
         var tok = getTok();
         if (tok && tok.token) headers['Authorization'] = 'Bearer ' + tok.token;
+        // verze appky a telefon pro konzoli vlastníka (server zapisuje 1× za hodinu) — 13. 9. 2026
+        try { var _vd = verzeADev(); if (_vd.v) headers['X-AG-Ver'] = _vd.v; if (_vd.d) headers['X-AG-Dev'] = _vd.d; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:cloudFetch:ver'); }
         // BATERIE: bez timeoutu visel dotaz na „mrtvem, ale otevrenem" spoji (typicky slaby
          // signal v terenu) desitky sekund a drzel radio ve vysokem prikonu; pri pollingu
         // se takove dotazy jeste kupily. 12 s je pro toto API dost.
@@ -2847,6 +2865,13 @@
         else host.appendChild(btn);
     }
 
+    // kontakt pro autora: kopie v telefonu, ať ho má Napsat autorovi hned (js/zpetna-vazba.js)
+    function lsKontakt(v) {
+        try {
+            if (v !== undefined) { if (v) localStorage.setItem('agUcetKontakt_v1', v); else localStorage.removeItem('agUcetKontakt_v1'); }
+            return localStorage.getItem('agUcetKontakt_v1') || '';
+        } catch (e) { return ''; }
+    }
     function showProstory() {
         injectStyles();
         var old = document.getElementById('ag-prostory'); if (old) old.remove();
@@ -2875,6 +2900,14 @@
             '  <div class="agl-err" id="agp-err"></div>' +
             '  <button type="button" class="agl-btn" id="agp-join">Připojit se k firmě</button>' +
             '</div>' +
+            // Kontakt pro autora appky (13. 9. 2026): nepovinný, vidí ho jen vlastník v konzoli
+            // a Napsat autorovi si ho předvyplní. Bez něj se k hlášení není koho zeptat.
+            '<div class="agg-box on" id="agp-kontakt-box">' +
+            '  <div class="agg-note" style="margin:0 0 6px;">Kontakt na tebe (nepovinné): telefon nebo e-mail. Uvidí ho jen autor appky, když mu pošleš hlášení.</div>' +
+            '  <input type="text" id="agp-kontakt" maxlength="120" placeholder="+420 … nebo e-mail" autocomplete="tel" value="' + esc(lsKontakt()) + '">' +
+            '  <div class="agl-err" id="agp-kontakt-err"></div>' +
+            '  <button type="button" class="agl-btn" id="agp-kontakt-ok">Uložit kontakt</button>' +
+            '</div>' +
             '<button type="button" class="agl-ghost" id="agp-zpet">Zpět</button>' +
             // Odchod je popsaný přesně tak, jak se chová — člověk se musí předem
             // dozvědět, že mu prostor zůstane, ale zamrzlý.
@@ -2884,6 +2917,24 @@
         document.body.appendChild(ov);
         var err = ov.querySelector('#agp-err');
         ov.querySelector('#agp-zpet').onclick = function () { ov.remove(); };
+        (function () {
+            var kin = ov.querySelector('#agp-kontakt'), kerr = ov.querySelector('#agp-kontakt-err');
+            var naServer = !!getTok();   // bez účtu na serveru zůstane kontakt jen v telefonu (Napsat autorovi ho předvyplní)
+            // serverová hodnota má přednost před tou z telefonu (jiný telefon, nový start)
+            if (naServer) cloudFetch('/account/contact').then(function (r) {
+                if (r.ok && r.data && typeof r.data.contact === 'string' && kin.isConnected && document.activeElement !== kin) { kin.value = r.data.contact; lsKontakt(r.data.contact); }
+            });
+            ov.querySelector('#agp-kontakt-ok').onclick = function () {
+                var c = (kin.value || '').trim().slice(0, 120);
+                kerr.style.color = '';
+                if (!naServer) { lsKontakt(c); kerr.style.color = 'var(--accent,#2f9e74)'; kerr.textContent = c ? 'Uloženo v telefonu.' : 'Kontakt smazán.'; return; }
+                kerr.textContent = 'Ukládám…';
+                cloudFetch('/account/contact', { method: 'POST', body: { contact: c } }).then(function (r) {
+                    if (r.ok) { lsKontakt(c); kerr.style.color = 'var(--accent,#2f9e74)'; kerr.textContent = c ? 'Uloženo.' : 'Kontakt smazán.'; return; }
+                    kerr.textContent = (r.data && r.data.error) || ('Uložení selhalo (' + r.status + ') — zkus to s lepším signálem.');
+                });
+            };
+        })();
         ov.addEventListener('click', function (e) {
             var b = e.target.closest ? e.target.closest('.agg-prof') : null;
             if (!b || b.disabled) return;

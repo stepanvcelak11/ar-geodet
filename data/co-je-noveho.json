@@ -2,6 +2,20 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 302,
+   "datum": "2026-09-13",
+   "nadpis": "Před betou: průvodce prvním měřením, Funguje mi všechno?, lehčí start",
+   "body": [
+    "<b>Průvodce prvním měřením</b> na prvním spuštění: pět kroků nad živou appkou (poloha a kompas, přesnost, první bod, jeho karta, Doveď mě) — odškrtávají se samy. Najdeš ho i v Interaktivním návodu.",
+    "<b>Funguje mi všechno?</b> (Nástroje, Nastavení → Údržba): GPS, kompas, kamera, úložiště, verze a poslední chyby jako zelené/červené řádky, jedním klepnutím k autorovi.",
+    "<b>Kontakt na tebe</b> (Kde pracuju → Kontakt, nepovinné) — autor se má koho zeptat, když pošleš hlášení; Napsat autorovi ho předvyplní.",
+    "<b>Třetí den s appkou</b> se jednou zeptá „Jak ti to sedí?“ (hvězdičky + věta).",
+    "<b>Start je o 113 kB lehčí</b> (návod, historie aktualizací, seznam souřadnic a průvodce úkolem se stahují až po prvním obrazu).",
+    "<b>Stavová pilulka</b> už neuřezává hlášku — dřív ustoupí azimut a přesnost.",
+    "<b>Vlastník:</b> u lidí v konzoli verze appky, telefon a kontakt."
+   ]
+  },
+  {
    "v": 301,
    "datum": "2026-09-13",
    "nadpis": "Kontrola po prohlídce: dvě drobnosti",
