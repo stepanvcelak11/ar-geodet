@@ -1178,6 +1178,7 @@
 
     function open() {
         if (!isOn()) return login();
+        pillPryc();
         _view = ''; _load = null; _pick = null;
         var m = build();
         m.style.display = 'flex';
@@ -1204,6 +1205,7 @@
     //   a další otevření konzole rukou hlídač taky ukončí.
     var _zpetT = null;
     var PAUZA_MAX = 15 * 60 * 1000;
+    var NENI_OKNO = { 'ar-overlay': 1, 'ms-overlay': 1, 'camera-container': 1 };
     function velkeOkno() {
         // „okno nástroje" = viditelný celoobrazovkový překryv, který není konzole.
         // ⚠⚠ NESTAČÍ display: čtyři hlavní modály (Nástroje, Nastavení, Body, Nový bod)
@@ -1211,10 +1213,16 @@
         //   `transform: translateX(100%)` mimo obraz (viz .ag-open v css/style.css).
         //   Test podle display je tedy pořád „true" a hlídač návratu by čekal marně.
         //   Rozhoduje proto SKUTEČNÁ POLOHA obsahu: co je odsunuté za okraj, je zavřené.
+        // ⚠⚠ NE VŠECHNO S „-overlay" V ID JE OKNO (13. 9. 2026, vlastník: „při zavření
+        //   mě to vždy vyhodí úplně pryč"). Selektor chytal i #ar-overlay — vrstvu značek
+        //   nad kamerou, která je na telefonu s běžícím AR pořád vidět a velká přes půl
+        //   displeje. Hlídač ji bral jako otevřené okno a čekal na jeho zavření až do
+        //   PAUZA_MAX, takže se konzole nikdy nevrátila. V headless testu (bez kamery)
+        //   to prošlo, proto to dlouho nikdo neviděl. Tyhle prvky se přeskakují.
         var uzly = document.querySelectorAll('.modal-overlay, .ag-dlg-overlay.open, [id$="-modal"], [id$="-overlay"]');
         for (var i = 0; i < uzly.length; i++) {
             var el = uzly[i];
-            if (el.id === MODAL_ID) continue;
+            if (el.id === MODAL_ID || NENI_OKNO[el.id]) continue;
             var cs;
             try { cs = getComputedStyle(el); } catch (e) { continue; }
             if (cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) < 0.05) continue;
@@ -1226,15 +1234,63 @@
         }
         return false;
     }
+    // PLOVOUCÍ „‹ KONZOLE" (13. 9. 2026, přání vlastníka: „přidal bych do konzole tlačítko
+    // zpět, aby mě to při zavření vždy nevyhodilo úplně pryč a mohl jsem snadněji
+    // překlikávat mezi položkami"). Hlídač výš se vrací sám, ale až po zavření okna a
+    // podle heuristiky; tohle je jistota na jedno klepnutí: schová okno, které je zrovna
+    // nahoře, a otevře konzoli. Zmizí, jakmile je konzole zpět (open) nebo hlídač skončí.
+    var PILL_ID = 'agv-pill';
+    function pillPryc() { var p = document.getElementById(PILL_ID); if (p) p.remove(); }
+    function schovejOkna() {
+        var uzly = document.querySelectorAll('.modal-overlay, .ag-dlg-overlay.open, [id$="-modal"], [id$="-overlay"]');
+        for (var i = 0; i < uzly.length; i++) {
+            var el = uzly[i];
+            if (el.id === MODAL_ID || NENI_OKNO[el.id]) continue;
+            var cs; try { cs = getComputedStyle(el); } catch (e) { continue; }
+            if (cs.display === 'none') continue;
+            var box = el.querySelector('.modal-content') || el, r = box.getBoundingClientRect();
+            if (r.right <= 4 || r.left >= innerWidth - 4 || r.width < innerWidth * 0.5 || r.height < 150) continue;
+            // Čtyři hlavní modály se zavírají třídou (transform), ostatní display:none.
+            // Napřed zkusit jejich vlastní Zavřít — ať si modul uklidí stav (posluchače,
+            // intervaly); až když žádné není, schovat natvrdo.
+            var b = null, bs = el.querySelectorAll('button');
+            for (var j = 0; j < bs.length; j++) {
+                var t = (bs[j].textContent || '').trim();
+                if (/^(zavřít|✕|×)$/i.test(t) || /close|-x$|zavrit/i.test(bs[j].id || '')) { b = bs[j]; break; }
+            }
+            if (b) { try { b.click(); } catch (e) { swallow(e, 'pill:close'); } }
+            try { if (getComputedStyle(el).display !== 'none' && !el.classList.contains('ag-open')) el.style.display = 'none'; el.classList.remove('ag-open'); el.classList.remove('open'); } catch (e) { swallow(e, 'pill:hide'); }
+        }
+    }
+    function ukazPill() {
+        pillPryc();
+        var p = document.createElement('button');
+        p.type = 'button'; p.id = PILL_ID; p.textContent = '‹ Konzole';
+        p.setAttribute('data-no-i18n', '');
+        // Záložka na LEVÉM OKRAJI, svisle uprostřed: nahoře jsou nadpisy a křížky oken,
+        // dole jejich tlačítka — jediné místo, kde nic nezakryje. Text jde po výšce.
+        p.style.cssText = 'position:fixed;left:0;top:42%;z-index:1000001;' +
+            'writing-mode:vertical-rl;transform:rotate(180deg);' +
+            'padding:12px 7px 12px 6px;border-radius:0 10px 10px 0;border:1px solid var(--accent,#2f9e74);border-left:none;' +
+            'background:rgba(10,14,18,0.92);color:var(--accent-bright,#3fbc8c);font:700 12px/1 var(--font-ui,system-ui);letter-spacing:.04em;' +
+            'box-shadow:0 4px 14px rgba(0,0,0,0.45);cursor:pointer;';
+        p.addEventListener('click', function () {
+            if (_zpetT) { clearInterval(_zpetT); _zpetT = null; }
+            schovejOkna();
+            open();
+        });
+        document.body.appendChild(p);
+    }
     function vratSeDoKonzole() {
         if (_zpetT) { clearInterval(_zpetT); _zpetT = null; }
+        ukazPill();
         var start = Date.now(), videno = false;
         _zpetT = setInterval(function () {
             try {
-                if (!isOn() || Date.now() - start > PAUZA_MAX) { clearInterval(_zpetT); _zpetT = null; return; }
+                if (!isOn() || Date.now() - start > PAUZA_MAX) { clearInterval(_zpetT); _zpetT = null; pillPryc(); return; }
                 // brána / přihlášení má přednost — do té se konzole plést nesmí
                 if (document.getElementById('ag-login') || document.getElementById('ag-gate')) {
-                    clearInterval(_zpetT); _zpetT = null; return;
+                    clearInterval(_zpetT); _zpetT = null; pillPryc(); return;
                 }
                 var m = document.getElementById(MODAL_ID);
                 if (m && m.style.display === 'flex') { clearInterval(_zpetT); _zpetT = null; return; }  // otevřel ji sám
@@ -1245,7 +1301,7 @@
                     clearInterval(_zpetT); _zpetT = null;
                     open();
                 }
-            } catch (e) { clearInterval(_zpetT); _zpetT = null; swallow(e, 'vlastnik:zpet'); }
+            } catch (e) { clearInterval(_zpetT); _zpetT = null; pillPryc(); swallow(e, 'vlastnik:zpet'); }
         }, 600);
     }
 

@@ -97,6 +97,10 @@
     // Co tu není, použije svůj plný název.
     var SHORT_G = {
         'Určit nový bod': 'Nový bod',
+        // „Zaznamenat" je nejdelší slovo v květu a určuje velikost písma pro VŠECHNY
+        // lístky (jedna velikost od 13. 9. 2026) — bez zkrácení by srazilo celý květ
+        // na 10 px. Plný název ukáže střed květu, když se na lístek zamíří.
+        'Zaznamenat': 'Záznam',
         'Zjistit podmínky': 'Podmínky',
         'Katastr a podklady': 'Katastr',
         'Firma a papíry': 'Firma',
@@ -232,7 +236,9 @@
             '#' + WRAP_ID + ' .kn-seg{position:absolute;left:50%;top:50%;width:var(--knw,48px);',
             '  text-align:center;',
             '  font:600 calc(8.5px * var(--knfs,1))/1.12 var(--font-ui,system-ui),sans-serif;',
-            '  letter-spacing:-0.01em;color:#cdd5e0;pointer-events:none;overflow-wrap:anywhere;',
+            // ⚠ overflow-wrap:normal — dřív `anywhere`, a slovo se lámalo uprostřed
+            // („Zaznamena-t"). Velikost písma hlídá fitFont, aby se nejdelší slovo vešlo.
+            '  letter-spacing:-0.01em;color:#cdd5e0;pointer-events:none;overflow-wrap:normal;',
             '  text-shadow:0 1px 3px rgba(6,9,12,0.95);transition:color .12s ease;}',
             '#' + WRAP_ID + ' .kn-seg.hot{color:#fff;font-weight:700;text-shadow:none;z-index:3;}',
             '#' + WRAP_ID + ' .kn-seg.back{font-style:italic;}',
@@ -434,7 +440,7 @@
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kolecko-nastroju:fitFont'); }
         if (!w100) w100 = nej.length * 55;         // bez canvasu: ~0,55 em na znak
         var fit = 100 * Math.max(8, boxW - 2) / w100;
-        return Math.round(Math.max(6.4 * K, Math.min(10.6 * K, fit)) * 10) / 10;
+        return Math.round(Math.max(7.6 * K, Math.min(10.6 * K, fit)) * 10) / 10;
     }
 
     function build(items, lvl) {
@@ -489,6 +495,13 @@
         IN = Math.round(52 * K);
         OUT = R + stag + 26 * S;
         PW = PETAL_W * S;
+        // ⚠ PŘI 12 SMĚRECH SE LÍSTKY PŘEKRÝVALY (13. 9. 2026: „texty namačkané, není to
+        // hezké"). Šířka lístku byla pevná, ale výseč při 12 lístcích je užší než lístek
+        // v nejširším místě — sousedé se překrývali a průsvitné plochy dělaly tmavé
+        // čočky. Lístek se proto zúží tak, aby se do výseče (s malým přesahem) vešel.
+        var rrLab = IN + (OUT - IN) * 0.47;
+        var arc = 2 * Math.PI * rrLab / n;
+        PW = PW * Math.min(1, 1.08 * arc / (1.3 * PW));
         // ⚠⚠ KŘÍŽ MUSÍ BÝT CELÝ VIDĚT, A TO URČUJE JEHO DRÁHU — ne velikost květu.
         // Když kytka jde od kraje ke kraji, není kam ji „obkroužit": při plné výchylce
         // by kříž z displeje vyjel a ve čtecí zóně teprve. Proto se dráha (Rret) i
@@ -506,9 +519,12 @@
         // musí růst se šířkou lístku, ne být pevná.
         ROMAX = Math.min(OUT + 12 * S,
                 Math.min(vw, vh) / 2 - 3 - 0.1 * (PW + 12 * S));
-        // Popisek musí zůstat pod skutečnou šířkou lístku (1,3 × w) i po odečtu vzduchu.
-        var pw = PW * Math.min(1, (2 * Math.PI * (IN + (OUT - IN) * 0.47) / n) / (68 * S));
-        var knw = Math.round(Math.min(52 * K, pw * 1.3 - 10 * S));
+        // Popisek smí využít skutečnou šířku lístku (1,3 × w) minus trochu vzduchu.
+        // ⚠ Dřív se šířka krátila ještě jednou podle počtu lístků (54 px při lístku
+        // 74 px široké) a fitFont pak polovinu nápisů zmenšil na 8–9 px, zatímco
+        // krátké zůstaly na 13 px — odtud „různé velikosti". Zúžení lístku podle
+        // výseče je už v PW výš, tady se nic dál nekrátí.
+        var knw = Math.round(Math.min(52 * K, PW * 1.3 - 6 * S));
         ring.style.setProperty('--knw', knw + 'px');
 
         var gfx = ring.querySelector('.kn-gfx');
@@ -528,7 +544,6 @@
             el.className = 'kn-seg' + (slots[i].back ? ' back' : '') + (slots[i].empty ? ' empty' : '');
             var txt = slots[i].back ? slots[i].l : (slots[i].empty ? '' : (slots[i].t || SHORT[slots[i].k] || slots[i].l));
             el.textContent = txt;
-            el.style.fontSize = fitFont(txt, knw, K) + 'px';
             // natočení do osy lístku; v dolní polovině překlopit, ať se to nečte vzhůru nohama
             var deg = i * step * 180 / Math.PI;
             if (deg > 90 && deg < 270) deg -= 180;
@@ -542,6 +557,17 @@
             ring.appendChild(el);
             segs.push(el);
         }
+        // ⚠⚠ JEDNA VELIKOST PÍSMA PRO CELÝ KVĚT. Každý lístek si dřív dopočítal vlastní
+        //    velikost, takže vedle sebe stálo „Změřit" 13 px a „Zaznamenat" 9 px — to
+        //    uživatel viděl jako „texty v různé velikosti". Teď se vezme nejmenší z nich
+        //    (ta, při které se vejde i nejdelší slovo) a dostanou ji všechny.
+        var fsAll = 0;
+        segs.forEach(function (el) {
+            if (!el.textContent) return;
+            var f = fitFont(el.textContent, knw, K);
+            fsAll = fsAll ? Math.min(fsAll, f) : f;
+        });
+        if (fsAll) segs.forEach(function (el) { el.style.fontSize = fsAll + 'px'; });
         buildBud(wrap.classList.contains('pro'));
         wrap.classList.toggle('lvl2', lvl === 2);
         paintPetals();
@@ -1001,5 +1027,6 @@
     window.addEventListener('load', function () { setTimeout(init, 400); });
 
     // groups: živý seznam sloves a nástrojů, jak ho kytka právě nabídne (testy).
-    window.AGKolecko = { open: open, close: close, enabled: on, groups: liveGroups };
+    window.AGKolecko = { open: open, close: close, enabled: on, groups: liveGroups,
+        _lvl2: function (gi) { if (st) openLevel2(gi); } };   // jen pro testy/náhledy (screenshot 2. kruhu)
 })();
