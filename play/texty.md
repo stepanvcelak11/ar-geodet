@@ -88,10 +88,13 @@ https://stepanvcelak11.github.io/ar-geodet/soukromi.html
 > stavový řádek iOS a snímek posadí do rámu 9:16 s nadpisem v písmech appky; logo ve
 > feature graphic je přímo `icon.svg`.
 >
-> ⚠⚠ **Kreslené panely `play/promo/play-1..4.png` (z `play/promo.html`) do obchodu jako
-> screenshoty NEPATŘÍ** — nejsou to snímky obrazovky a Google takový záznam zamítá jako
-> zavádějící. Zůstávají jen jako záloha / inspirace. Totéž starší `play/screenshoty/` a
-> `play/feature-graphic.png` (logo před přejmenováním).
+> **Druhá sada — propagační panely `play/promo/`** (`python scripts/gen_promo.py` z předlohy
+> `play/promo.html`): rám s nadpisem, telefon se **skutečným snímkem** (od 13. 9. 2026, dřív
+> kreslená scéna), dvě vyzdvižené karty s čísly opsanými ze snímku, výhody, patička.
+> Do obchodu jdou obě sady — `play/snimky/` je čistá (jen nadpis + snímek), `play/promo/`
+> hutnější (víc textu, karty). Vyber jednu, nemíchat. `play/promo/feature.png` je druhá
+> varianta feature graphic (logo + text + odznaky, bez telefonu).
+> Starší `play/screenshoty/` a `play/feature-graphic.png` (logo před přejmenováním) jsou zastaralé.
 >
 > Když se appka překreslí, vyfotit znovu (AR pohled jde jen na telefonu — headless nemá
 > kameru) a spustit skript znovu; nadpisy jsou v něm v tabulce `SNIMKY`.

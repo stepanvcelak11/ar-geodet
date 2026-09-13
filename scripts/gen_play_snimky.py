@@ -6,6 +6,8 @@
 #
 #     play/snimky/feature.png         1024 x 500   feature graphic (povinny banner)
 #     play/snimky/01-ar.png ... 05    1080 x 1920  screenshoty telefonu (9:16)
+#     play/snimky/zdroj/*.jpg         orezane snimky bez stavoveho radku — z nich
+#                                     bere obrazovku telefonu i play/promo.html
 #
 # PROC NE SUROVE FOTKY: Play odmitne obrazek, jehoz delsi strana je vic nez 2x
 # delsi nez kratsi (iPhone 1179x2556 = 2,17), a nahore ma iOS stavovy radek
@@ -38,6 +40,7 @@ from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'play', 'snimky')
+ZDROJ = os.path.join(OUT, 'zdroj')                # orezane snimky (JPEG, verzuji se)
 TMP = os.path.join(ROOT, 'tmp', 'play')          # tmp/ je v .gitignore
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8420
 STATUS_BAR = 177                                  # iPhone 15 Pro: 59 pt x 3
@@ -117,10 +120,11 @@ body { font-family: 'Inter', system-ui, sans-serif; color: #e8edf2; }
 
 
 def oriznout(src, dst):
-    """Ustrihne stavovy radek iOS; zbytek necha, spodek prekryje ram."""
+    """Ustrihne stavovy radek iOS; zbytek necha, spodek prekryje ram. JPEG q92:
+    PNG fotky z AR pohledu ma 7 MB, do repa patri neco rozumneho."""
     im = Image.open(src).convert('RGB')
     w, h = im.size
-    im = im.crop((0, STATUS_BAR, w, h)).save(dst, 'PNG', optimize=True)
+    im.crop((0, STATUS_BAR, w, h)).save(dst, 'JPEG', quality=92, optimize=True)
 
 
 def html_snimek(nazev, nadpis, veta, img):
@@ -161,7 +165,7 @@ async def main():
     except ImportError:
         print('Chybi Playwright:  pip install playwright  &&  python -m playwright install chromium')
         return 2
-    os.makedirs(OUT, exist_ok=True)
+    os.makedirs(ZDROJ, exist_ok=True)
     os.makedirs(TMP, exist_ok=True)
 
     with open(os.path.join(ROOT, 'icon.svg'), 'r', encoding='utf-8') as f:
@@ -174,11 +178,11 @@ async def main():
         if not os.path.exists(src):
             print('CHYBI %s — snimek %s se preskoci' % (fotka, nazev), file=sys.stderr)
             continue
-        dst = os.path.join(TMP, nazev + '.png')
-        oriznout(src, dst)
-        casti.append(html_snimek(nazev, nadpis, veta, nazev + '.png'))
+        oriznout(src, os.path.join(ZDROJ, nazev + '.jpg'))
+        img = '../../play/snimky/zdroj/' + nazev + '.jpg'
+        casti.append(html_snimek(nazev, nadpis, veta, img))
         if prvni is None:
-            prvni = nazev + '.png'
+            prvni = img
     if not casti:
         print('Zadna zdrojova fotka (IMG_*.PNG v koreni repa).')
         return 1

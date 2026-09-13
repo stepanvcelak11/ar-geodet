@@ -16,12 +16,10 @@
 # videt v prohlizeci. `play/make-play-graphics.py` (feature graphic z geometrie
 # ikony + prerovnani surovych screenshotu) zustava — dela neco jineho.
 #
-# ⚠⚠ ZADNE FOTKY SE NEDOPLNUJI. Panely jsou samy o sobe hotove: kazdy ma
-# misto snimku KRESLENOU SCENU (inline SVG v play/promo.html) - AR znacky nad
-# terenem, sipku navadeni, parcely katastru, terc vytyceni, koty a vymeru,
-# semafor presnosti, seznam souradnic, tym. Do 31. 8. 2026 tu byl prazdny
-# ramecek na vlastni fotku z terenu; na prani se to zahodilo, protoze obrazky
-# maji fungovat jako informacni letak, ktery na nic neceka.
+# OD 13. 9. 2026 JE V TELEFONU SKUTECNY SNIMEK APPKY (play/snimky/zdroj/*.jpg,
+# vyrabi scripts/gen_play_snimky.py) — kreslene sceny v play/promo.html zustaly
+# jen jako zaloha pro panel bez `foto`. Napred tedy spustit gen_play_snimky.py
+# (kdyz zdroj chybi, panel vyjde s prazdnym telefonem).
 #
 # Pouziti (z korene repa):   python scripts/gen_promo.py [port]
 # ==============================================================================

@@ -12,8 +12,14 @@
       play/promo/feature.png     1024 ×  500   „feature graphic" (povinný banner)
       play/promo/play-1..4.png   1080 × 1920   screenshoty telefonu
 
-  ⚠⚠ ŽÁDNÉ MÍSTO NA FOTKU. Panely jsou SAMY O SOBĚ HOTOVÉ — informační leták
-  propagačním způsobem, který říká, co appka umí, a nečeká na nic dalšího.
+  ⚠⚠ OD 13. 9. 2026 JE V TELEFONU SKUTEČNÝ SNÍMEK APPKY (play/snimky/zdroj/*.jpg,
+  vyrábí je scripts/gen_play_snimky.py z fotek z iPhonu), ne kreslená scéna.
+  Přání: „vytvoř mi aktualizovanou grafiku, jak jsi mi ji vytvářel dříve" —
+  rám, karty, výhody a patička zůstaly, obrazovka je pravá. Tím panely přestaly
+  být „zavádějící záznam": mohou do obchodu i jako screenshoty, protože to, co
+  je v telefonu, appka opravdu ukazuje. Kreslené scény (SCENY níž) zůstávají
+  jako záloha pro panel bez `foto` v JSONu. Čísla na vyzdvižených kartách jsou
+  OPSANÁ ZE SNÍMKU (bod 622 · 268,5 m · 194,8°), ne vymyšlená.
 
   ⚠⚠ ČTYŘI PANELY, JEN PRO ANDROID (přání 31. 8. 2026: „udělej jich méně, jen
   pro Android, a na každou fotku klidně více věcí"). Osm panelů po jedné
@@ -310,30 +316,37 @@
 <!-- ===================== FEATURE GRAPHIC 1024×500 ===================== -->
 <div class="feature" data-promo="feature" data-w="1024" data-h="500">
     <div class="ico">
-        <svg viewBox="98 98 316 316" width="172" height="172">
+        <!-- logo = icon.svg z kořene (Q jako měřický terč, 11. 9. 2026) — při změně ikony sem překopírovat -->
+            <svg viewBox="0 0 512 512" width="172" height="172">
             <defs>
-                <linearGradient id="fg-em" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stop-color="#4ccd99"/><stop offset="1" stop-color="#2a945f"/>
-                </linearGradient>
+            <linearGradient id="d-bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#1c222a"/><stop offset="1" stop-color="#0c1014"/>
+            </linearGradient>
+            <linearGradient id="d-em" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#5ce0a8"/><stop offset="1" stop-color="#2a945f"/>
+            </linearGradient>
             </defs>
-            <g fill="none" stroke="url(#fg-em)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M118 178 L118 140 Q118 118 140 118 L178 118"/>
-                <path d="M334 118 L372 118 Q394 118 394 140 L394 178"/>
-                <path d="M394 334 L394 372 Q394 394 372 394 L334 394"/>
-                <path d="M178 394 L140 394 Q118 394 118 372 L118 334"/>
+            <rect width="512" height="512" rx="116" fill="url(#d-bg)"/>
+            <g fill="none" stroke="url(#d-em)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" opacity="0.55">
+            <path d="M112 172 L112 134 Q112 112 134 112 L172 112"/>
+            <path d="M340 112 L378 112 Q400 112 400 134 L400 172"/>
+            <path d="M400 340 L400 378 Q400 400 378 400 L340 400"/>
+            <path d="M172 400 L134 400 Q112 400 112 378 L112 340"/>
             </g>
-            <circle cx="256" cy="256" r="74" fill="none" stroke="#3eb487" stroke-opacity="0.22" stroke-width="6"/>
-            <circle cx="256" cy="256" r="50" fill="none" stroke="#3eb487" stroke-opacity="0.45" stroke-width="6"/>
-            <g stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.9">
-                <line x1="256" y1="206" x2="256" y2="226"/><line x1="256" y1="286" x2="256" y2="306"/>
-                <line x1="206" y1="256" x2="226" y2="256"/><line x1="286" y1="256" x2="306" y2="256"/>
+            <g transform="translate(8,14)">
+            <g fill="none" stroke="url(#d-em)" stroke-width="32" stroke-linecap="butt">
+            <path d="M293.9 303.1 A78 78 0 0 1 202.1 303.1"/>
+            <path d="M184.9 285.9 A78 78 0 0 1 184.9 194.1"/>
+            <path d="M202.1 176.9 A78 78 0 0 1 293.9 176.9"/>
+            <path d="M311.1 194.1 A78 78 0 0 1 311.1 285.9"/>
             </g>
-            <circle cx="256" cy="256" r="22" fill="url(#fg-em)"/>
-            <circle cx="256" cy="256" r="9" fill="#ffffff"/>
-        </svg>
+            <line x1="271" y1="263" x2="325" y2="317" stroke="url(#d-em)" stroke-width="30" stroke-linecap="round"/>
+            <circle cx="248" cy="240" r="15" fill="#ffffff"/>
+            </g>
+            </svg>
     </div>
     <div class="tx">
-        <h2>AR <span>Geodet</span></h2>
+        <h2><span>Q</span>TRIG</h2>
         <p>Bodové pole v obraze kamery. Mapa, katastr, vytyčování a měření — i tam, kde není signál.</p>
         <!-- ⚠ TŘI ODZNAKY, NE ČTYŘI. Se čtyřmi se poslední zalomil na druhý řádek
              a banner ztratil rovnováhu; Play navíc feature graphic na některých
@@ -350,10 +363,15 @@
     "h1": "Body vidíš v kameře <em>a šipka tě k nim dovede</em>",
     "sub": "Zvedneš telefon a značky sedí tam, kde body doopravdy jsou. Vybereš si jeden a appka tě k němu navede.",
     "art": "teren",
+    "foto": "01-ar.jpg",
+    "karty": [
+      { "x": 2, "y": 20, "stitek": "BODOVÉ POLE ČÚZK", "hodnota": "bod 622 · 268,5 m" },
+      { "x": 74, "y": 79, "stitek": "SMĚR K BODU", "hodnota": "azimut 194,8°" }
+    ],
     "vyhody": [
       "Bodové pole ČÚZK i vlastní body ze zakázky",
-      "U každé značky vzdálenost a azimut",
-      "Navádění šipkou, poslední metry v AR",
+      "U každé značky vzdálenost a směr",
+      "Navádění šipkou, pod kamerou mapa s trasou",
       "Konec papírových náčrtů a hledání v křoví"
     ]
   },
@@ -362,6 +380,11 @@
     "h1": "Katastr, ortofoto <em>a stažené okolí bez signálu</em>",
     "sub": "Okolí zakázky si stáhneš dopředu. V terénu pak appka nepotřebuje ani čárku signálu.",
     "art": "podklady",
+    "foto": "03-katastr.jpg",
+    "karty": [
+      { "x": 2, "y": 62, "stitek": "KATASTR ČÚZK", "hodnota": "parcely a čísla" },
+      { "x": 74, "y": 24, "stitek": "BEZ SIGNÁLU", "hodnota": "okolí v telefonu" }
+    ],
     "vyhody": [
       "Hranice parcel a parcelní čísla z ČÚZK",
       "Ortofoto, základní mapa i vektorový katastr",
@@ -374,8 +397,13 @@
     "h1": "Vytyčování, výměry <em>a přesnost na očích</em>",
     "sub": "Vidíš, o kolik jsi vedle, dokud nejsi na místě — a pořád i to, čemu se dá zrovna věřit.",
     "art": "vypocty",
+    "foto": "02-karta-bodu.jpg",
+    "karty": [
+      { "x": 2, "y": 79, "stitek": "DO BODU", "hodnota": "140,3 m · 37,5°" },
+      { "x": 74, "y": 24, "stitek": "PŘESNOST GPS", "hodnota": "±3,8 m" }
+    ],
     "vyhody": [
-      "Vytyčení bodu i přímky s živou odchylkou",
+      "Vytyčení bodu, přímky i lomené osy se staničením",
       "Oměrné, plochy, profily a kubatury",
       "Rajón, volné stanovisko, protínání vpřed",
       "Stav GPS a odhad přesnosti celou dobu na displeji",
@@ -387,12 +415,17 @@
     "h1": "Z terénu rovnou <em>do kanceláře i celé partě</em>",
     "sub": "Co změříš, odejde ven ve formátu, který kancelář otevře. Kolegům ve firmě se to ukáže samo.",
     "art": "kancelar",
+    "foto": "04-body.jpg",
+    "karty": [
+      { "x": 2, "y": 64, "stitek": "EXPORT", "hodnota": "CSV · DXF · PDF" },
+      { "x": 74, "y": 79, "stitek": "SOUŘADNICE", "hodnota": "S-JTSK · Bpv" }
+    ],
     "vyhody": [
       "Body v zakázkách s poznámkami a fotkami",
       "Seznam souřadnic, výkres DXF i protokol v PDF",
-      "Sdílené zakázky a body pro celý tým",
-      "Účty s rolemi, docházka a přehled, kdo kde byl",
-      "Kdo chce jen měřit, může i bez přihlášení"
+      "Sdílené zakázky a body pro celý tým (Pro)",
+      "Základ zdarma napořád — Pro do konce roku 2026 na žádost",
+      "Pro studenty cvičné úlohy a vzorce"
     ]
   }
 ]
@@ -403,7 +436,7 @@
     'use strict';
     var TYPY = ['play'];      // ⚠ App Store (ios) je pryč — viz hlavička souboru
     var data = JSON.parse(document.getElementById('panely').textContent);
-    var IKONA = document.querySelector('.feature .ico svg').outerHTML.replace(/fg-em/g, 'ft-em');
+    var IKONA = document.querySelector('.feature .ico svg').outerHTML.replace(/d-(bg|em)/g, 'ft-$1');
     var SIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="6"/></svg>';
     var FAJFKA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 6.5"/></svg>';
 
@@ -724,6 +757,21 @@
         '</linearGradient>' +
         '</defs>';
 
+    // Obrazovka = SKUTEČNÝ SNÍMEK (13. 9. 2026), když má panel `foto`; jinak
+    // kreslená scéna ze SCENY (záloha). Snímek 1179×2379 je širší než obrazovka
+    // telefonu v předloze (poměr 0,50 vs 0,43) → `slice` ho ořízne po stranách,
+    // nahoře zůstává stavová pilulka appky. Karty čtou JSON: štítek + hodnota.
+    function scena(d) {
+        if (!d.foto) return SCENY[d.art] || '';
+        var out = telefon('<image href="snimky/zdroj/' + d.foto + '" x="0" y="0" width="' + S + '" height="' + SV + '" preserveAspectRatio="xMidYMin slice"/>');
+        (d.karty || []).forEach(function (k) {
+            out += karta(k.x, k.y, 34, 11,
+                '<text class="t-stitek" x="' + (k.x + 3) + '" y="' + (k.y + 5) + '">' + k.stitek + '</text>' +
+                '<text class="t-nadpis" x="' + (k.x + 3) + '" y="' + (k.y + 9.2) + '">' + k.hodnota + '</text>');
+        });
+        return out;
+    }
+
     function panel(d, i, typ) {
         var el = document.createElement('div');
         el.className = 'panel ' + typ;
@@ -737,7 +785,7 @@
             '  <div class="sub">' + d.sub + '</div>' +
             '</div>' +
             '<div class="art">' +
-            '  <svg viewBox="0 0 110 112" preserveAspectRatio="xMidYMid meet">' + DEFS + (SCENY[d.art] || '') + '</svg>' +
+            '  <svg viewBox="0 0 110 112" preserveAspectRatio="xMidYMid meet">' + DEFS + scena(d) + '</svg>' +
             '</div>' +
             '<div class="vyhody">' +
             d.vyhody.map(function (v) { return '<div>' + FAJFKA + '<span>' + v + '</span></div>'; }).join('') +
