@@ -444,8 +444,9 @@ async def test_rozcestniky(ctx):
             hubuVKolecku: huby.filter(h => kolecko.indexOf(h) >= 0).length,
             polozekVKolecku: polozky.filter(k => kolecko.indexOf(k) >= 0),
             skrytychVKolecku: skryte.filter(k => kolecko.indexOf(k) >= 0),
-            firmaHub: kolecko.indexOf('firma-hub') >= 0,
-            firmaPolozky: (AGReg.hubItems('firma-hub') || []).filter(k => kolecko.indexOf(k) >= 0),
+            // rozcestnik firma-hub ZRUSEN 13. 9. 2026 (Dochazka + Vysilacka pryc) - Firma a ucty stoji v kolecku sama
+            firmaHub: kolecko.indexOf('ucty-firma') >= 0 && !AGReg.get('firma-hub'),
+            firmaPolozky: ['dochazka', 'vysilacka', 'firma-hub'].filter(k => kolecko.indexOf(k) >= 0 || !!AGReg.get(k)),
             seznamRadku: seznam.length,
             polozekVSeznamu: polozky.filter(k => seznam.indexOf(k) >= 0)
         };
@@ -456,13 +457,13 @@ async def test_rozcestniky(ctx):
     ok('E3 polozky rozcestniku uz v kolecku samostatne nestoji',
        not st.get('polozekVKolecku'), st.get('polozekVKolecku'))
     ok('E4 `hidden` nastroje v kolecku nejsou', not st.get('skrytychVKolecku'), st.get('skrytychVKolecku'))
-    ok('E5 "Firma" je v kolecku JEDEN nastroj, ne pet',
+    ok('E5 "Firma a ucty" je v kolecku JEDEN nastroj a Dochazka/Vysilacka uz nejsou nikde',
        st.get('firmaHub') and not st.get('firmaPolozky'),
        {'hub': st.get('firmaHub'), 'polozky': st.get('firmaPolozky')})
     ok('E6 v seznamu ukonu polozky rozcestniku taky nestoji', not st.get('polozekVSeznamu'), st.get('polozekVSeznamu'))
 
     # hledani v mrizce je najit MUSI - jinak by se z nich stal nedostupny kod
-    await page.fill('#tools-modal #tools-search', 'dochazka')
+    await page.fill('#tools-modal #tools-search', 'rocenka')
     await page.wait_for_timeout(1000)
     naslo = await page.evaluate("""() => {
         const vidno = (el) => { const r = el.getBoundingClientRect();
@@ -470,7 +471,7 @@ async def test_rozcestniky(ctx):
         return [...document.querySelectorAll('#tools-modal .tool-tile')].filter(vidno)
                .map(t => (t.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 20));
     }""")
-    print('   hledani "dochazka" ->', naslo[:4])
+    print('   hledani "rocenka" ->', naslo[:4])
     ok('E7 polozku rozcestniku porad najde hledani', len(naslo) > 0, naslo[:4])
     # ⚠ has() MUSI zustat "jde to spustit?" - gesta (js/gesta-zkratky.js) se pta jim
     #   a zkratka na Pocasi musi jet dal, i kdyz je Pocasi polozka rozcestniku.

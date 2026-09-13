@@ -79,7 +79,7 @@
 //         CO ZŮSTÁVÁ V ZÁKLADU, PŘESTOŽE JE TO „firemní“: přihlášení do firmy
 //         (js/ucty.js) a `job-transfer`. Kdo má Pro, může pozvat člověka bez
 //         Pro, aby mu dělal na zakázce — ten se přihlásí a předá data, ale
-//         žádný Pro nástroj tím nedostane. Proto `prenosy-zarizeni` NENÍ `pro`.
+//         žádný Pro nástroj tím nedostane. Proto `job-transfer` NENÍ `pro`.
 //   hub   1 = dlaždici vyrábí jako rozcestník js/tools-hub.js (jen pro kontrolora)
 //   notile 1 = není dlaždice v Nástrojích, návod se otevírá odjinud (jen pro kontrolora)
 //   noverb 1 = záměrně bez slovesa, zůstává v „Dalších nástrojích“ (jen pro kontrolora)
@@ -314,23 +314,18 @@
           help: { t: 'Nejbližší známý bod' } },
         { k: 'parcela', fn: 'agOpenParcela', pro: 1, w: 1, cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Parcela — geometrie a dělení', keys: 'parcela geometrie deleni vymera obvod smerniky dily',
           help: { t: 'Parcela / dělení' } },
-        { k: 'hodinky-parovani', pro: 1, inhub: 'prenosy-zarizeni', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Hodinky Garmin', vh: 'body z hodinek a zpátky', keys: 'hodinky garmin forerunner fenix watch parovani synchronizace body zapesti connect iq', net: 1,
-          help: { t: 'Hodinky Garmin' } },
         { k: 'project-import', fn: 'agOpenProjectImport', pro: 1, w: 1, cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Import projektu', vh: 'DXF, situace', keys: 'import projekt oblast stazeni csv dxf soubor nahrat',
           help: { t: 'Import projektu (DXF)' } },
         { k: 'geo-overlay', fn: 'agOpenGeoOverlay', pro: 1, cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Podložit plán do mapy', vh: 'georeference obrázku', keys: 'podklad georeference obrazek plan situace vykres overlay',
           help: { t: 'Vlastní podklad' } },
         { k: 'utility-networks', fn: 'agOpenUtilityNetworks', pro: 1, hidden: 1, verb: 'Katastr a podklady', vl: 'Podzemní sítě', keys: 'site podzemni vedeni inzenyrske gml kabel plyn voda',
           help: { t: 'Podzemní sítě' } },
-        { k: 'job-transfer', w: 1, inhub: 'prenosy-zarizeni', verb: 'Katastr a podklady', vl: 'Poslat nebo načíst zakázku', keys: 'prenos zakazky export import argeo sdileni telefon', net: 1,
+        { k: 'job-transfer', w: 1, verb: 'Katastr a podklady', vl: 'Poslat nebo načíst zakázku', vh: 'do druhého telefonu i do kanceláře', keys: 'prenos prenosy zakazky export import argeo sdileni telefon zarizeni', net: 1,
           help: { t: 'Poslat/načíst zakázku' } },
         { k: 'hidden-points', pro: 1, verb: 'Katastr a podklady', vl: 'Skryté body', keys: 'skryte body obnovit zobrazit schovane',
           help: { t: 'Skryté body' } },
 
         // ── Před výjezdem ───────────────────────────────────────────────
-        { k: 'prenosy-zarizeni', w: 1, verb: 'Před výjezdem', vl: 'Přenosy a zařízení', vh: 'hodinky Garmin, poslat nebo načíst zakázku', hub: 1, net: 1,
-          keys: 'prenos prenosy zarizeni hodinky garmin fenix forerunner watch parovani synchronizace poslat nacist zakazku export import sdileni telefon rozcestnik',
-          help: { t: 'Přenosy a zařízení' } },
         { k: 'auto-bezpeci', pro: 1, verb: 'Před výjezdem', vl: 'Auto a bezpečí', vh: 'kde co mám, kniha jízd, bezpečnost, co s sebou', hub: 1,
           keys: 'auto bezpeci kde mam auto baze stativ material kniha jizd cestak kilometry bourka vedro mraz vitr tma sos rizika co s sebou balici seznam checklist rozcestnik',
           help: { t: 'Auto a bezpečí' } },
@@ -346,14 +341,9 @@
         // ── Firma a papíry ──────────────────────────────────────────────
         { k: 'zmenit-zakazku', w: 1, cat: 'Pomůcky', verb: 'Firma a papíry', vl: 'Změnit zakázku', vh: 'přepnout se na jinou práci bez restartu', keys: 'zakazka zakazky prepnout zmenit projekt praca stavba jina zakazka prepnuti vybrat zakazku zmena zakazky',
           help: { t: 'Změnit zakázku' } },
-        { k: 'firma-hub', pro: 1, verb: 'Firma a papíry', vl: 'Firma', vh: 'účty a role, docházka, firemní chat, vysílačka', hub: 1, net: 1,
-          keys: 'firma ucty uzivatele role opravneni zamestnanci dochazka prichod odchod smena chat zpravy kolegove vysilacka poloha tym kde jsou rozcestnik',
-          help: { t: 'Firma' } },
-        { k: 'dochazka', pro: 1, inhub: 'firma-hub', verb: 'Firma a papíry', vl: 'Docházka', keys: 'dochazka prichod odchod pracovni doba hodiny smena',
-          help: { t: 'Docházka' } },
-        { k: 'vysilacka', fn: 'agOpenVysilacka', pro: 1, inhub: 'firma-hub', verb: 'Firma a papíry', vl: 'Vysílačka', vh: 'kde je kolega, rychlé zprávy, hlídání pádu', keys: 'vysilacka poloha kolegove tym kde jsou sdileni pozice',
-          help: { t: 'Vysílačka' } },
-        { k: 'ucty-firma', pro: 1, inhub: 'firma-hub', verb: 'Firma a papíry', vl: 'Firma a účty', keys: 'firma ucty uzivatele role opravneni sprava zamestnanci prihlaseni',
+        // Docházka, Vysílačka (a s nimi rozcestník „Firma") ZRUŠENY 13. 9. 2026 na přání uživatele;
+        // Firma a účty stojí od té doby přímo v seznamu.
+        { k: 'ucty-firma', pro: 1, verb: 'Firma a papíry', vl: 'Firma a účty', vh: 'uživatelé, role, přihlašování', keys: 'firma ucty uzivatele role opravneni sprava zamestnanci prihlaseni tym',
           help: { t: 'Firma a účty' } },
         { k: 'kniha-jizd', pro: 1, inhub: 'auto-bezpeci', verb: 'Firma a papíry', vl: 'Kniha jízd', keys: 'kniha jizd cestak kilometry km naklady cestovni nahrady tachometr vozidlo ucetni',
           help: { t: 'Kniha jízd' } },

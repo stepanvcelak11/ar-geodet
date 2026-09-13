@@ -199,8 +199,6 @@
             '#agfa-modal .agfa-meter>i{display:block;height:100%;border-radius:999px;background:var(--accent,#2f9e74);min-width:2px;}',
             '#agfa-modal .agfa-meter>i.warn{background:#d4a02c;}',
             '#agfa-modal .agfa-meter>i.crit{background:var(--danger,#e5534b);}',
-            // rozpis docházky
-            '#agfa-modal .agfa-shift-day{font:700 12px/1 var(--font-ui,system-ui);color:var(--text-color,#e6e8eb);margin:12px 0 2px;}',
             // hlavička: kterou firmu právě spravuju (+ přepnutí)
             '#agfa-modal .agfa-firmbar{display:none;}',
             '#agfa-modal .agfa-firmbar.on{display:flex;align-items:center;gap:10px;margin:0 0 10px;padding:10px 12px;border-radius:13px;',
@@ -327,7 +325,6 @@
         uzivatele: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>',
         opravneni: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>',
         uzivani: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
-        dochazka: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>',
         firma: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-4h6v4"/></svg>',
         firmy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21h20"/><path d="M4 21V9l6-3v15"/><path d="M14 21V6l6 3v12"/><path d="M7 12h0M7 16h0M17 12h0M17 16h0"/></svg>',
         napoveda: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.33c-.8.32-1.4 1-1.4 1.87v.3"/><path d="M12 17h.01"/></svg>',
@@ -388,18 +385,18 @@
         var nav = document.getElementById('agfa-nav');
         var items = [];
         if (admin) {
-            items = [['prehled', 'Přehled'], ['uzivatele', 'Uživatelé'], ['opravneni', 'Oprávnění'], ['uzivani', 'Užívání'], ['dochazka', 'Docházka'], ['firma', 'Firma'], ['napoveda', 'Nápověda']];
+            items = [['prehled', 'Přehled'], ['uzivatele', 'Uživatelé'], ['opravneni', 'Oprávnění'], ['uzivani', 'Užívání'], ['firma', 'Firma'], ['napoveda', 'Nápověda']];
         } else {
             // ⚠ SEKCE „FIRMY" MUSÍ MÍT KAŽDÝ. Přepnutí a připojení další firmy dřív
             //   žilo jen v adminské sekci Firma — zaměstnanec, vedení ani host se
             //   tedy k jiné firmě neměli jak dostat (a host neviděl v panelu vůbec nic).
             // ⚠⚠ PODMÍNKA `!!u.getFirm()` JE NUTNÁ: can() bez firmy vrací TRUE (stav
             //   „před branou", kdy se ještě nemá co zamykat). Bez ní se hostovi
-            //   nabídlo Užívání i Docházka, jenže obě se bez firmy hned vrátí a
+            //   nabídlo Užívání (dřív i Docházka), jenže to se bez firmy hned vrátí a
             //   nechají tělo panelu PRÁZDNÉ — přesně to hlášené „nic tam není".
             var dash = !!u.getFirm() && u.can && u.can('x.dashboard');
             items = [];
-            if (dash) items.push(['uzivani', 'Užívání'], ['dochazka', 'Docházka']);
+            if (dash) items.push(['uzivani', 'Užívání']);
             items.push(['firmy', 'Firmy'], ['napoveda', 'Nápověda']);
             var povolene = items.map(function (it) { return it[0]; });
             if (povolene.indexOf(_section) === -1) _section = povolene[0];
@@ -422,7 +419,6 @@
         else if (_section === 'uzivatele') renderUsers(body);
         else if (_section === 'opravneni') renderPerms(body);
         else if (_section === 'uzivani') renderUsage(body);
-        else if (_section === 'dochazka') renderDochazka(body);
         else if (_section === 'napoveda') renderHelp(body);
         else if (_section === 'firmy') renderFirmy(body);
         else renderFirm(body);
@@ -481,7 +477,6 @@
             html += '<div class="agfa-pg">Rychlé akce</div><div class="agfa-qa">' +
                 qaBtn('add-user', 'uzivatele', 'Přidat uživatele') +
                 qaBtn('opravneni', 'opravneni', 'Oprávnění') +
-                qaBtn('dochazka', 'dochazka', 'Docházka') +
                 qaBtn('uzivani', 'uzivani', 'Užívání a grafy') +
                 (f.cloud ? qaBtn('chat', 'chat', 'Otevřít chat') : '') +
                 qaBtn('firma', 'firma', 'Firma a záloha') +
@@ -578,7 +573,7 @@
         body.innerHTML =
             '<div class="agfa-pg">Administrace patří jedné firmě</div>' +
             '<div class="agfa-note">Nahoře v zeleném pruhu je vidět, <b>kterou firmu právě spravuješ</b> (a jako kdo). Všechno níž — uživatelé, ' +
-            'oprávnění, užívání i docházka — patří jen téhle firmě. Přepínáš je tlačítkem <b>Přihlásit / přepnout</b> v tom pruhu; ' +
+            'oprávnění i užívání — patří jen téhle firmě. Přepínáš je tlačítkem <b>Přihlásit / přepnout</b> v tom pruhu; ' +
             'admin má seznam firem v sekci <b>Firma</b>, ostatní v sekci <b>Firmy</b>. Přepnutí vždy chce heslo/PIN.</div>' +
             '<div class="agfa-pg">Když se data nestáhnou ze serveru</div>' +
             '<div class="agfa-note">Nahoře v sekci se objeví žlutě orámovaná hláška a v ní tlačítko, které to řeší. Rozlišuje čtyři různé věci, ' +
@@ -589,7 +584,7 @@
             'případech ze čtyř nepravda. Dokud se data nestáhnou, ukazují se záznamy z tohoto telefonu — nikdy se nic nemaže.</div>' +
             '<div class="agfa-pg">Kdo co vidí</div>' +
             '<div class="agfa-note"><b>Zaměstnanec</b> používá appku klasicky — jen nástroje pro práci v terénu. ' +
-            '<b>Vedení</b> vidí navíc firemní přehledy (užívání, docházka). <b>Admin</b> má sekci <b>Přehled</b> — ' +
+            '<b>Vedení</b> vidí navíc firemní přehled užívání. <b>Admin</b> má sekci <b>Přehled</b> — ' +
             'admin centrum, kde je všechno pohromadě (dnešní čísla, kdo je v práci a co naposledy dělal, vytížení serveru, ' +
             'poslední zprávy, rychlé akce) — a nikde ho neomezují oprávnění. Administrace je adminovi po ruce i v menu <b>Více</b>.</div>' +
             '<div class="agfa-pg">Zámek při spuštění</div>' +
@@ -617,7 +612,7 @@
             '<div class="agfa-pg">Zablokování účtu</div>' +
             '<div class="agfa-note">Když je s někým problém, admin ho v sekci <b>Uživatelé</b> tlačítkem <b>Zablokovat</b> odstřihne od firmy: ' +
             'účet se nepřihlásí a i na mobilu, kde je právě přihlášený, ho server do minuty odhlásí (platí i offline na tom telefonu). ' +
-            'Nic se nemaže — docházka, body i záznamy užívání zůstávají a blokaci lze kdykoli zrušit tlačítkem <b>Povolit</b>. ' +
+            'Nic se nemaže — body i záznamy užívání zůstávají a blokaci lze kdykoli zrušit tlačítkem <b>Povolit</b>. ' +
             'Posledního aktivního admina ani sám sebe zablokovat nelze. Trvalé odebrání je <b>Smazat</b>.</div>' +
             '<div class="agfa-pg">Přihlašování podle zařízení</div>' +
             '<div class="agfa-note">Na přihlašovací obrazovce se nabízejí <b>jen účty, které se na tom telefonu už přihlásily</b> — ' +
@@ -630,14 +625,6 @@
             '<div class="agfa-note">Appka si počítá přihlášení, přidané/upravené body, otevřené nástroje a hrubou stopu aktivity ' +
             '(max 1 záznam za 20 minut — z ní je odhad odpracovaných hodin). V cloudu se záznamy sbíhají ze všech zařízení firmy' +
             (f.cloud ? '' : ' (tady běží lokální režim — jen toto zařízení)') + '. Nic z toho neodchází mimo firmu.</div>' +
-            '<div class="agfa-pg">Docházka</div>' +
-            '<div class="agfa-note">Každý si značí příchod/odchod dlaždicí <b>Docházka</b> v Nástrojích (Pomůcky) — jedno velké tlačítko, ' +
-            'funguje i bez signálu (záznam se odešle, až je internet). U příchodu jde doplnit <b>stavbu a s kým tam je</b>, u odchodu <b>co se dělalo</b> ' +
-            '(vše nepovinné; admin to vidí v Rozpisu i ve výkazu). Příchod se váže k <b>aktivní zakázce</b> a ukládá i hrubou polohu píchnutí ' +
-            '(v Rozpisu je u času ikona špendlíku — klepnutím se otevře v mapě). ' +
-            'Když někdo zapomene odchod, appka mu ho druhý den nabídne doplnit; zpětně ho umí doplnit i admin v Rozpisu. ' +
-            'Admin a vedení vidí spárovanou docházku všech, hodiny po zakázkách a umí <b>výkaz do CSV nebo tisk/PDF</b> (podklad pro mzdy). ' +
-            'Je to orientační podklad, ne certifikovaný docházkový systém.</div>' +
             '<div class="agfa-pg">Firemní chat</div>' +
             '<div class="agfa-note">Dlaždice <b>Firemní chat</b> v Nástrojích (Pomůcky). Nahoře se vybírá adresát: <b>Všem</b> (vidí celá firma), ' +
             'nebo konkrétní kolega — pak je zpráva <b>soukromá</b> (se zámkem, vidí ji jen on a ty) a chat na to upozorní žlutým pruhem. ' +
@@ -1158,7 +1145,7 @@
         }
         var msg = block
             ? 'Účet <b>' + esc(us.name) + '</b> se nebude moct přihlásit — ani na mobilu, kde je právě přihlášený (odhlásí se do minuty). ' +
-              'Body, docházka ani záznamy užívání se nemažou a blokaci lze kdykoli zrušit.'
+              'Body ani záznamy užívání se nemažou a blokaci lze kdykoli zrušit.'
             : 'Účet <b>' + esc(us.name) + '</b> se bude moct znovu přihlásit stejným heslem.';
         agConfirm({ title: block ? 'Zablokovat účet' : 'Povolit účet', message: msg, okText: block ? 'Zablokovat' : 'Povolit', danger: block }).then(function (ok) {
             if (!ok) return;
@@ -1801,266 +1788,6 @@
         document.body.appendChild(a);
         a.click();
         setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
-    }
-
-    // ------------------------------------------------------------------
-    // Sekce Docházka (admin/vedení s dashboardem): páruje příchody a odchody
-    // ze všech zařízení. Data = události t='shift' (k='in'/'out'), které
-    // zapisuje dlaždice Docházka (js/dochazka.js) stejnou cestou jako užívání
-    // (IndexedDB fronta -> server), takže fungují i offline.
-    // ------------------------------------------------------------------
-    var _doRange = 7;
-    function pad2(n) { return (n < 10 ? '0' : '') + n; }
-    function fmtDur(ms) {
-        var m = Math.round(ms / 60000);
-        return Math.floor(m / 60) + ':' + pad2(m % 60);
-    }
-    function renderDochazka(body) {
-        var u = U(), f = u.getFirm(); if (!f) return;
-        body.innerHTML = '<div class="agfa-note">Načítám…</div>';
-        var from = new Date();
-        from.setHours(0, 0, 0, 0);
-        if (_doRange > 1) from.setDate(from.getDate() - (_doRange - 1));
-        var cloudNote = '', neuplne = false;
-        var getEvents = (f.cloud
-            ? u.syncUsage().then(function () {
-                return u.cloudFetch('/usage?from=' + from.getTime()).then(function (r) {
-                    if (r.ok && r.data && Array.isArray(r.data.events)) {
-                        cloudNote = '<div class="agfa-note">Docházka ze všech zařízení firmy (server).</div>';
-                        return r.data.events;
-                    }
-                    // TÝŽ VZOR jako u seznamu uživatelů a u Užívání — viz CLOUD_TXT
-                    neuplne = true;
-                    cloudNote = cloudNoteHtml(cloudDuvod(r));
-                    return u.usageQuery(from.getTime());
-                });
-            })
-            : u.usageQuery(from.getTime()));
-        getEvents.then(function (all) {
-            // klíč: 'in|poloha|meta' — [1] hrubá poloha píchnutí, [2] detail směny
-            // (URI-encoded JSON {s:stavba, w:[s kým], c:činnost}; píše js/dochazka.js)
-            function kDir(ev) { var s = String(ev.k || '').split('|'); return s[0]; }
-            function kPos(ev) { var s = String(ev.k || '').split('|'); return s[1] || null; }
-            function kMeta(ev) {
-                var seg = String(ev.k || '').split('|')[2];
-                if (!seg) return null;
-                try {
-                    var m = JSON.parse(decodeURIComponent(seg));
-                    if (!m || typeof m !== 'object') return null;
-                    // normalizace (záznam z jiného zařízení/verze): s,c řetězce, w pole řetězců
-                    var out = {};
-                    if (m.s != null && typeof m.s !== 'object') out.s = String(m.s);
-                    if (m.c != null && typeof m.c !== 'object') out.c = String(m.c);
-                    if (Array.isArray(m.w)) out.w = m.w.map(function (x) { return String(x); });
-                    return (out.s || out.c || (out.w && out.w.length)) ? out : null;
-                } catch (e) { return null; }
-            }
-            var PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;vertical-align:-2px;"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>';
-            function posLink(pos) {
-                return pos ? ' <a href="https://mapy.cz/zakladni?q=' + esc(pos) + '" target="_blank" rel="noopener" title="Poloha píchnutí: ' + esc(pos) + '" style="text-decoration:none;color:var(--accent,#2f9e74);">' + PIN + '</a>' : '';
-            }
-            function projName(id) {
-                if (!id || id === 'default') return '';
-                try {
-                    if (typeof projects !== 'undefined' && Array.isArray(projects)) {
-                        for (var i = 0; i < projects.length; i++) if (projects[i] && projects[i].id === id) return projects[i].name || id;
-                    }
-                } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:projName'); }
-                return id;
-            }
-            var shifts = all.filter(function (ev) { return ev.t === 'shift'; })
-                .sort(function (a, b) { return a.ts - b.ts; });
-            // pairs: [{day,name,uid,inTs,outTs|null,ms,proj,inPos,outPos}] + souhrny
-            var pairs = [], sum = {}, byProj = {}, open = {};
-            var todayKey = (function (d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); })(new Date());
-            shifts.forEach(function (ev) {
-                var name = ev.u || '?';
-                var dir = kDir(ev);
-                if (dir === 'in') {
-                    if (open[name]) pairs.push(open[name]);   // dvojí příchod: starý zůstane bez odchodu
-                    var d = new Date(ev.ts);
-                    open[name] = { day: d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()), name: name, uid: ev.uid || null, inTs: ev.ts, outTs: null, ms: 0, proj: ev.proj || null, inPos: kPos(ev), outPos: null, inMeta: kMeta(ev), outMeta: null };
-                } else if (dir === 'out') {
-                    if (open[name]) {
-                        open[name].outTs = ev.ts;
-                        open[name].outPos = kPos(ev);
-                        open[name].outMeta = kMeta(ev);
-                        open[name].ms = Math.max(0, ev.ts - open[name].inTs);
-                        pairs.push(open[name]);
-                        delete open[name];
-                    } else {
-                        var d2 = new Date(ev.ts);   // odchod bez příchodu (např. příchod mimo období)
-                        pairs.push({ day: d2.getFullYear() + '-' + pad2(d2.getMonth() + 1) + '-' + pad2(d2.getDate()), name: name, uid: ev.uid || null, inTs: null, outTs: ev.ts, ms: 0, proj: ev.proj || null, inPos: null, outPos: kPos(ev), inMeta: null, outMeta: kMeta(ev) });
-                    }
-                }
-            });
-            Object.keys(open).forEach(function (n) { if (open[n]) pairs.push(open[n]); });   // stále „v práci"
-            pairs.forEach(function (p) {
-                var s = sum[p.name] = sum[p.name] || { ms: 0, days: {}, open: false };
-                s.days[p.day] = 1;
-                var ms = 0;
-                if (p.outTs && p.inTs) ms = p.ms;
-                else if (p.inTs && p.day === todayKey) { ms = Date.now() - p.inTs; s.open = true; }
-                s.ms += ms;
-                if (ms && p.proj) {
-                    var pr = byProj[p.proj] = byProj[p.proj] || { ms: 0, users: {} };
-                    pr.ms += ms;
-                    pr.users[p.name] = 1;
-                }
-            });
-
-            var html = cloudNote +
-                '<div class="agfa-filters"><div>' +
-                '<label class="agfa-lb">Období</label><select id="agfa-do-range">' +
-                '  <option value="1"' + (_doRange === 1 ? ' selected' : '') + '>Dnes</option>' +
-                '  <option value="7"' + (_doRange === 7 ? ' selected' : '') + '>Posledních 7 dní</option>' +
-                '  <option value="31"' + (_doRange === 31 ? ' selected' : '') + '>Posledních 31 dní</option>' +
-                '</select></div>' +
-                '<div style="display:flex;align-items:flex-end;gap:8px;">' +
-                '  <button class="agfa-mini" id="agfa-do-csv">Export CSV</button>' +
-                '  <button class="agfa-mini" id="agfa-do-print">Tisk / PDF</button>' +
-                '</div></div>';
-
-            var names = Object.keys(sum).sort();
-            if (!names.length) {
-                // ⚠ PRÁZDNÁ DOCHÁZKA MÁ TŘI ÚPLNĚ RŮZNÉ PŘÍČINY a do 31. 8. 2026 vypadaly
-                //   všechny stejně („nic tam není"): (1) opravdu nikdo nepíchl, (2) data
-                //   leží na serveru, ke kterému se telefon nedostal, (3) docházku nikdo
-                //   nezačal používat. Každá se řeší jinak, takže se každá jinak i napíše.
-                html += '<div class="agfa-note">' +
-                    (neuplne
-                        ? '<b>Ze serveru se docházka nestáhla</b> (viz hláška nahoře), a tenhle telefon v období žádné píchnutí nemá. ' +
-                          'Co zapsali kolegové na svých mobilech, se sem dostane až po přihlášení / obnově spojení.'
-                        : '<b>Ve zvoleném období nikdo docházku nezapsal.</b> Zkus delší období přepínačem nahoře.') +
-                    '</div>' +
-                    '<div class="agfa-note">Příchod a odchod si každý značí sám: <b>Nástroje → Pomůcky → Docházka</b> — jedno velké tlačítko, ' +
-                    'funguje i bez signálu (záznam se odešle, až je internet). Dokud to nikdo neudělá, je tahle sekce prázdná i při ' +
-                    'zcela funkčním serveru.</div>';
-            } else {
-                html += '<div class="agfa-pg">Souhrn (' + (_doRange === 1 ? 'dnes' : 'za období') + ')</div>' +
-                    '<table class="agfa-tbl"><tr><th>Uživatel</th><th>Dní</th><th>Hodin</th><th>Teď</th></tr>';
-                names.forEach(function (n) {
-                    var s = sum[n];
-                    html += '<tr><td><b>' + esc(n) + '</b></td><td>' + Object.keys(s.days).length + '</td><td>' + fmtDur(s.ms) + '</td>' +
-                        '<td>' + (s.open ? '<span class="agfa-chip c-accent">v práci</span>' : '') + '</td></tr>';
-                });
-                html += '</table>';
-
-                var projKeys = Object.keys(byProj).sort(function (a, b) { return byProj[b].ms - byProj[a].ms; });
-                if (projKeys.length) {
-                    html += '<div class="agfa-pg">Hodiny podle zakázky</div>' +
-                        '<table class="agfa-tbl"><tr><th>Zakázka</th><th>Hodin</th><th>Lidí</th></tr>';
-                    projKeys.forEach(function (pk) {
-                        html += '<tr><td><b>' + esc(projName(pk)) + '</b></td><td>' + fmtDur(byProj[pk].ms) + '</td><td>' + Object.keys(byProj[pk].users).length + '</td></tr>';
-                    });
-                    html += '</table>';
-                }
-
-                // rozpis po dnech (nejnovější nahoře); ikona špendlíku = poloha píchnutí
-                var byDay = {};
-                pairs.forEach(function (p) { (byDay[p.day] = byDay[p.day] || []).push(p); });
-                html += '<div class="agfa-pg">Rozpis</div>';
-                var rowIdx = 0, rowRef = [];
-                Object.keys(byDay).sort().reverse().forEach(function (dk) {
-                    var parts = dk.split('-');
-                    html += '<div class="agfa-shift-day">' + parseInt(parts[2], 10) + '. ' + parseInt(parts[1], 10) + '. ' + parts[0] + '</div>' +
-                        '<table class="agfa-tbl"><tr><th>Uživatel</th><th>Příchod</th><th>Odchod</th><th>Hodin</th><th>Zakázka</th></tr>';
-                    byDay[dk].sort(function (a, b) { return (a.inTs || a.outTs) - (b.inTs || b.outTs); }).forEach(function (p) {
-                        var tIn = p.inTs ? new Date(p.inTs).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) + posLink(p.inPos) : '<span style="color:var(--text-muted);">?</span>';
-                        var missing = !p.outTs && p.inTs && p.day !== todayKey;
-                        var tOut;
-                        if (p.outTs) tOut = new Date(p.outTs).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) + posLink(p.outPos);
-                        else if (p.inTs && p.day === todayKey) tOut = '<span class="agfa-chip c-accent">v práci</span>';
-                        else if (missing && u.isAdmin()) { rowRef[rowIdx] = p; tOut = '<button class="agfa-mini" data-fix="' + rowIdx + '">Doplnit</button>'; rowIdx++; }
-                        else tOut = '<span style="color:var(--text-muted);">chybí</span>';
-                        var dur = p.outTs && p.inTs ? fmtDur(p.ms) : (p.inTs && p.day === todayKey ? fmtDur(Date.now() - p.inTs) : '—');
-                        html += '<tr><td><b>' + esc(p.name) + '</b></td><td>' + tIn + '</td><td>' + tOut + '</td><td>' + dur + '</td><td>' + esc(String(projName(p.proj)).slice(0, 18)) + '</td></tr>';
-                        // detail směny (stavba / parta / činnost) pod řádkem
-                        var mi = p.inMeta || {}, mo = p.outMeta || {};
-                        var det = [];
-                        if (mi.s) det.push('🏗 ' + esc(mi.s));
-                        if (mi.w && mi.w.length) det.push('👷 s: ' + esc(mi.w.join(', ')));
-                        if (mo.c) det.push('✏ ' + esc(mo.c));
-                        if (det.length) html += '<tr><td colspan="5" style="font-size:calc(11px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);padding-top:2px;">' + det.join(' · ') + '</td></tr>';
-                    });
-                    html += '</table>';
-                });
-                html += '<div class="agfa-note">Docházka je orientační podklad (páruje se příchod→odchod v pořadí záznamů; ikona špendlíku = hrubá poloha píchnutí, klepnutím se otevře v mapě). ' +
-                    'Chybějící odchod z minulých dní se do součtu nepočítá — admin ho může tlačítkem Doplnit zapsat zpětně.</div>';
-            }
-            body.innerHTML = html;
-            body.querySelector('#agfa-do-range').onchange = function () { _doRange = parseInt(this.value, 10) || 7; renderDochazka(body); };
-            wireCloudNote(body, function () { renderDochazka(body); });
-
-            // admin: zpětné doplnění odchodu (zapíše se jako běžná událost a doputuje na server)
-            body.onclick = async function (e) {
-                var btn = e.target.closest ? e.target.closest('button[data-fix]') : null;
-                if (!btn) return;
-                var p = rowRef[parseInt(btn.getAttribute('data-fix'), 10)];
-                if (!p || !u.usageLogRaw) return;
-                // in-app dialog misto nativniho prompt() (na iOS mrazi kameru a vypada cize)
-                agGet('Čas odchodu pro ' + p.name + ' (' + p.day + '), příchod byl ' + new Date(p.inTs).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) + '.\nZadej HH:MM:', { title: 'Doplnit odchod', value: '17:00', placeholder: '17:00', okText: 'Zapsat' }).then(function (v) {
-                if (!v) return;
-                var m = /^(\d{1,2})[:.](\d{2})$/.exec(v.trim());
-                if (!m) { agAlert('Neplatný čas', 'Zadej např. 16:30.'); return; }
-                var parts = p.day.split('-');
-                var out = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), parseInt(m[1], 10), parseInt(m[2], 10), 0, 0);
-                if (out.getTime() <= p.inTs) { agAlert('Neplatný čas', 'Odchod musí být po příchodu.'); return; }
-                u.usageLogRaw({ ts: out.getTime(), t: 'shift', k: 'out', uid: p.uid, u: p.name, proj: p.proj, dev: 'admin-fix' });
-                if (f.cloud) setTimeout(function () { u.syncUsage().then(function () { renderDochazka(body); }); }, 700);
-                else setTimeout(function () { renderDochazka(body); }, 400);
-                });
-            };
-
-            // exporty výkazu (CSV do mezd; Tisk/PDF přes systémový tisk)
-            function exportRows() {
-                var out = [];
-                pairs.sort(function (a, b) { return (a.inTs || a.outTs) - (b.inTs || b.outTs); }).forEach(function (p) {
-                    var mi = p.inMeta || {}, mo = p.outMeta || {};
-                    out.push([p.day, p.name,
-                        p.inTs ? new Date(p.inTs).toLocaleTimeString('cs-CZ') : '',
-                        p.outTs ? new Date(p.outTs).toLocaleTimeString('cs-CZ') : '',
-                        (p.inTs && p.outTs) ? fmtDur(p.ms) : '',
-                        projName(p.proj) || '',
-                        mi.s || '',
-                        (mi.w && mi.w.length) ? mi.w.join(', ') : '',
-                        mo.c || '',
-                        p.inPos || '', p.outPos || '']);
-                });
-                return out;
-            }
-            body.querySelector('#agfa-do-csv').onclick = function () {
-                var lines = ['datum;uzivatel;prichod;odchod;hodin;zakazka;stavba;s_kym;cinnost;poloha_prichod;poloha_odchod'];
-                exportRows().forEach(function (r) {
-                    lines.push(r.map(function (v) { return String(v).replace(/;/g, ','); }).join(';'));
-                });
-                dl(new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }), 'ar-geodet-dochazka.csv');
-            };
-            body.querySelector('#agfa-do-print').onclick = function () {
-                var w = window.open('', '_blank');
-                if (!w) { agAlert('Tisk', 'Prohlížeč zablokoval nové okno — povol vyskakovací okna.'); return; }
-                var rows = exportRows().map(function (r) {
-                    // sloupce: datum..zakázka + stavba + poznámka (s kým / činnost)
-                    var note = [r[7] ? 's: ' + r[7] : '', r[8]].filter(Boolean).join(' — ');
-                    return '<tr><td>' + r.slice(0, 7).concat([note]).map(esc).join('</td><td>') + '</td></tr>';
-                }).join('');
-                var sumRows = names.map(function (n) {
-                    return '<tr><td>' + esc(n) + '</td><td>' + Object.keys(sum[n].days).length + '</td><td>' + fmtDur(sum[n].ms) + '</td></tr>';
-                }).join('');
-                w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Výkaz docházky</title>' +
-                    '<style>body{font:13px/1.5 system-ui;margin:24px;color:#111;}h1{font-size:calc(19px * var(--ag-font-scale, 1));}h2{font-size:calc(14px * var(--ag-font-scale, 1));margin-top:22px;}' +
-                    'table{border-collapse:collapse;width:100%;}th,td{border:1px solid #bbb;padding:5px 8px;text-align:left;font-size:calc(12px * var(--ag-font-scale, 1));}' +
-                    'th{background:#eee;}@media print{button{display:none;}}</style></head><body>' +
-                    '<h1>Výkaz docházky — ' + esc(f.firmName || '') + '</h1>' +
-                    '<div>Období: ' + esc(from.toLocaleDateString('cs-CZ')) + ' – ' + esc(new Date().toLocaleDateString('cs-CZ')) + ' · vytvořeno ' + esc(new Date().toLocaleString('cs-CZ')) + '</div>' +
-                    '<h2>Souhrn</h2><table><tr><th>Uživatel</th><th>Dní</th><th>Hodin</th></tr>' + sumRows + '</table>' +
-                    '<h2>Rozpis</h2><table><tr><th>Datum</th><th>Uživatel</th><th>Příchod</th><th>Odchod</th><th>Hodin</th><th>Zakázka</th><th>Stavba</th><th>Poznámka</th></tr>' + rows + '</table>' +
-                    '<button onclick="window.print()" style="margin-top:16px;padding:8px 14px;">Vytisknout / uložit PDF</button>' +
-                    '</body></html>');
-                w.document.close();
-                setTimeout(function () { try { w.print(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:onclick'); } }, 400);
-            };
-        });
     }
 
     // ---- přihlášení při každém startu (per zařízení; výchozí ANO) --------

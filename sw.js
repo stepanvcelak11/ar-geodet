@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v303';   // Pruvodce s krouzkem, kytka bez rozcestniku, Zaklad x Pro vizualne, konzole: grafy + hlaseni + razeni lidi, preklady, drobnosti z pruchodu; worker v17 (+/owner/grafy)
+const SHELL_CACHE = 'argeodet-shell-v304';   // Vysilacka, dochazka a hodinky Garmin pryc; katastr v okne se Zpet; bublina bez vypinace; zlaty vzhled Pro; worker v18 (brzda konzole pocita jen chybne klice)
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,10 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=303',
-    './css/style.css?v=303',
-    './css/vylepseni.css?v=303',
+    './css/tokens.css?v=304',
+    './css/style.css?v=304',
+    './css/vylepseni.css?v=304',
+    './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
     './css/cadastre-area.css',
@@ -190,14 +191,10 @@ const ASSETS_TO_CACHE = [
     './js/qc-engine.js',
     './js/ucty.js',
     './js/ucty-admin.js',
-    './js/dochazka.js',
     './js/cloud-sync.js',
     './js/zavady.js',
     './js/brifink.js',
     './js/hlasovky.js',
-    './js/hodinky-parovani.js',
-    './js/hodinky-dlazdice.js',
-    './js/vysilacka.js',
     './js/slunce.js',
     './js/bezpecnost.js',
     './js/usadit-ar.js',
@@ -436,7 +433,7 @@ self.addEventListener('fetch', event => {
             event.respondWith(
                 // ignoreSearch: klic cache je cela URL VCETNE query, ale v predcache je
                 // jen './index.html' a './'. Zkratky z plochy (manifest.json: Novy bod,
-                // Pokracovat, Dochazka) i pozvankovy odkaz ?firma=... proto v cache
+                // Pokracovat) i pozvankovy odkaz ?firma=... proto v cache
                 // minuly a offline skoncily jako net::ERR_FAILED — appka se ze zkratky
                 // bez signalu VUBEC neotevrela. Obsah index.html je na query nezavisly
                 // (parametr ctou az js/shortcuts.js a js/ucty.js z location.search).

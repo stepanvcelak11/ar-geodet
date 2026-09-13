@@ -229,7 +229,7 @@
         { i: 'cube', t: 'Objemy a vrstvy', p: 'kubatury, DMT, kontrola pokládky' },
         { i: 'target', t: 'Přesné určení bodu', p: 'rajón, protínání, resekce, volné stanovisko, Helmert' },
         { i: 'map', t: 'Katastr a podklady', p: 'parcely do mapy i do AR, dělení, vlastní podklad, sbalení zakázky' },
-        { i: 'firm', t: 'Firma a lidé', p: 'účty, docházka, vysílačka, kniha jízd, přenosy, ročenka' }
+        { i: 'firm', t: 'Firma a lidé', p: 'účty a role, kniha jízd, cloud zakázek, ročenka' }
     ];
     var IK = {
         doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>',

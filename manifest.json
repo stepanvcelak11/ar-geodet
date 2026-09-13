@@ -70,19 +70,6 @@
           "type": "image/png"
         }
       ]
-    },
-    {
-      "name": "Docházka",
-      "short_name": "Docházka",
-      "description": "Píchnout příchod nebo odchod (firemní režim)",
-      "url": "./index.html?zkratka=dochazka",
-      "icons": [
-        {
-          "src": "icon-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
     }
   ]
 }

@@ -50,7 +50,6 @@
                 'ag-gz-setrow': { s: 'Ovládání', i: 4 },                  // gesta = zkratky na nástroje
                 'ag-kn-setrow': { s: 'Ovládání', i: 5 },                  // kolečko nástrojů (podržení tlačítka Nástroje)
                 's-mapfab': { s: 'Prvky na obrazovce', i: 1 },        // tlačítko vrstev v mapě
-                'ag-sp-row-set': { s: 'Prvky na obrazovce', i: 2 },        // stavová bublina
                 'ag-ns-setrow': { s: 'Zjednodušení', i: 1 },              // krátké nastavení
                 'ag-ts-setrow': { s: 'Zjednodušení', i: 2 },              // jednoduchý panel Nástrojů
                 'ag-ua-simple-row': { s: 'Zjednodušení', i: 3 }               // zjednodušené Nástroje

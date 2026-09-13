@@ -3,14 +3,14 @@
 //   • Nový bod    → ?zkratka=novy-bod    (spustí appku a otevře formulář nového bodu)
 //   • Pokračovat  → ?zkratka=pokracovat  (klikne na tlačítko „Pokračovat" z js/pokracovat.js,
 //                                         případně rovnou otevře poslední nástroj)
-//   • Docházka    → ?zkratka=dochazka    (otevře píchačky z js/dochazka.js; jen firemní režim)
+//   (Docházka → ?zkratka=dochazka ZRUŠENA 13. 9. 2026 s modulem js/dochazka.js)
 //
 // Parametr se HNED po přečtení odstraní z adresy (history.replaceState), aby
 // obnovení stránky akci neopakovalo. Firemní zámek (html.ag-prelock + overlaye
 // #ag-login / #ag-gate z js/ucty.js) se NEOBCHÁZÍ — akce čeká, dokud se uživatel
 // nepřihlásí; když se nepřihlásí do ~2 minut, akce tiše propadne.
 // NEEDITUJE logika.js/grafika.js — jen volá existující globály
-// (startAppFromWelcome, openNewPointModal, AGDochazka.open) a klape na tlačítka.
+// (startAppFromWelcome, openNewPointModal) a klape na tlačítka.
 // Odstranění: smaž js/shortcuts.js + řádek <script> v index.html + blok
 // "shortcuts" v manifest.json (a přegeneruj sw.js).
 // ================================================================================
@@ -36,7 +36,7 @@
             try { window.history.replaceState(null, '', clean); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'shortcuts'); }
         }
     } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'shortcuts'); }
-    if (action !== 'novy-bod' && action !== 'pokracovat' && action !== 'dochazka') return;
+    if (action !== 'novy-bod' && action !== 'pokracovat') return;
 
     // ---- pomocníci --------------------------------------------------------------------
     function toast(msg) {
@@ -137,34 +137,12 @@
         });
     }
 
-    // DOCHÁZKA: otevřít píchačky (bez firemního režimu jen vysvětlit)
-    function runDochazka() {
-        setTimeout(function () {   // ucty.js po odemčení chvilku srovnává stav
-            var U = window.AGUcty;
-            if (!U || typeof U.getFirm !== 'function' || !U.getFirm()) {
-                toast('Docházka funguje jen ve firemním režimu (Nástroje → Firma a účty).');
-                return;
-            }
-            waitFor(function () { return !!(window.AGDochazka && window.AGDochazka.open); }, 5000, function (ok) {
-                if (!ok) { toast('Modul docházky se nepodařilo načíst.'); return; }
-                try { window.AGDochazka.open(); } catch (e) { return; }
-                // úvodní obrazovka má z-index 999999 — když je ještě vidět,
-                // musí modál docházky vystoupit nad ni (píchnout jde i bez startu AR)
-                if (welcomeVisible() && !appStarted()) {
-                    var mdl = document.getElementById('agdo-modal');
-                    if (mdl) mdl.style.zIndex = '1000001';
-                }
-            });
-        }, 400);
-    }
-
     // ---- start: napřed počkat na firemní zámek, pak teprve akce -------------------------
     function boot() {
         waitFor(gateClear, 120000, function (ok) {
             if (!ok) return;   // uživatel se nepřihlásil — zkratka tiše propadá
             if (action === 'novy-bod') runNovyBod();
             else if (action === 'pokracovat') runPokracovat();
-            else if (action === 'dochazka') runDochazka();
         });
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

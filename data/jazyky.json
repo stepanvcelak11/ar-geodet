@@ -38,7 +38,8 @@
     ["^([\\d.,]+ MB) z ([\\d.,]+ MB)$", "$1 of $2", "$1 von $2", "$1 z $2"],
     ["^(\\d+) záznamů; poslední$", "$1 records; latest", "$1 Einträge; zuletzt", "$1 wpisów; ostatnie"],
     ["^GPS bez fixu (\\d+) (s|min) · poloha nejistá$", "GPS no fix $1 $2 · position uncertain", "GPS kein Fix $1 $2 · Position unsicher", "GPS bez fiksu $1 $2 · pozycja niepewna"],
-    ["^(.+) · tady jsi$", "$1 · you are here", "$1 · du bist hier", "$1 · jesteś tutaj"]
+    ["^(.+) · tady jsi$", "$1 · you are here", "$1 · du bist hier", "$1 · jesteś tutaj"],
+    ["^(v\\d+) · Základ$", "$1 · Basic", "$1 · Basis", "$1 · Podstawa"]
   ],
   "t": {
     "Body": ["Points", "Punkte", "Punkty"],
@@ -848,6 +849,16 @@
     "Moje vlastní místo": ["My own space", "Mein eigener Bereich", "Moje własne miejsce"],
     "Zůstává ti navždy — sem se nikdo jiný nedostane.": ["Stays yours forever — nobody else gets in here.", "Bleibt für immer deins — hier kommt sonst niemand rein.", "Zostaje twoje na zawsze — nikt inny tu nie wejdzie."],
     "Připojit se k firmě": ["Join a company", "Einer Firma beitreten", "Dołącz do firmy"],
-    "Když z firmy odejdeš, prostor ti tu zůstane jako archiv jen ke čtení (do dne odchodu). Správce firmy ti ho ale může odebrat.": ["If you leave a company, its space stays here as a read-only archive (up to the day you left). The company admin can remove it, though.", "Wenn du eine Firma verlässt, bleibt ihr Bereich hier als Archiv nur zum Lesen (bis zum Tag des Austritts). Der Firmenadmin kann ihn dir aber entziehen.", "Gdy odejdziesz z firmy, jej przestrzeń zostanie tu jako archiwum tylko do odczytu (do dnia odejścia). Administrator firmy może ci ją jednak odebrać."]
+    "Když z firmy odejdeš, prostor ti tu zůstane jako archiv jen ke čtení (do dne odchodu). Správce firmy ti ho ale může odebrat.": ["If you leave a company, its space stays here as a read-only archive (up to the day you left). The company admin can remove it, though.", "Wenn du eine Firma verlässt, bleibt ihr Bereich hier als Archiv nur zum Lesen (bis zum Tag des Austritts). Der Firmenadmin kann ihn dir aber entziehen.", "Gdy odejdziesz z firmy, jej przestrzeń zostanie tu jako archiwum tylko do odczytu (do dnia odejścia). Administrator firmy może ci ją jednak odebrać."],
+    "Katastr — kde právě stojím": ["Cadastre — where I stand", "Kataster — wo ich gerade stehe", "Kataster — gdzie właśnie stoję"],
+    "V prohlížeči": ["In browser", "Im Browser", "W przeglądarce"],
+    "Otevřít zdroj z Nastavení v prohlížeči": ["Open the source from Settings in the browser", "Quelle aus den Einstellungen im Browser öffnen", "Otwórz źródło z Ustawień w przeglądarce"],
+    "Katastr potřebuje připojení k internetu — teď jsi bez signálu.": ["The cadastre needs an internet connection — you have no signal right now.", "Der Kataster braucht eine Internetverbindung — du hast gerade kein Signal.", "Kataster potrzebuje połączenia z internetem — teraz nie masz zasięgu."],
+    "Hranice parcel do mapy i bez signálu: Nástroje → Podklady a katastr → Sbalit zakázku (před výjezdem).": ["Parcel boundaries in the map even without signal: Tools → Base data and cadastre → Pack the job (before leaving).", "Parzellengrenzen in der Karte auch ohne Signal: Werkzeuge → Grundlagen und Kataster → Auftrag einpacken (vor der Abfahrt).", "Granice działek w mapie nawet bez zasięgu: Narzędzia → Podkłady i kataster → Spakuj zlecenie (przed wyjazdem)."],
+    "v appce se katastr ukazuje z iKatastr.cz; tohle je pro tlačítko „V prohlížeči“": ["in the app the cadastre comes from iKatastr.cz; this sets the “In browser” button", "in der App kommt der Kataster von iKatastr.cz; das hier gilt für die Schaltfläche „Im Browser“", "w aplikacji kataster pochodzi z iKatastr.cz; to ustawienie dotyczy przycisku „W przeglądarce”"],
+    "uživatelé, role, přihlašování": ["users, roles, sign-in", "Benutzer, Rollen, Anmeldung", "użytkownicy, role, logowanie"],
+    "do druhého telefonu i do kanceláře": ["to another phone or to the office", "auf ein anderes Telefon oder ins Büro", "na drugi telefon lub do biura"],
+    "účty a role, kniha jízd, cloud zakázek": ["accounts and roles, mileage log, job cloud", "Konten und Rollen, Fahrtenbuch, Auftrags-Cloud", "konta i role, książka jazd, chmura zleceń"],
+    "účty a role, kniha jízd, cloud zakázek, ročenka": ["accounts and roles, mileage log, job cloud, yearbook", "Konten und Rollen, Fahrtenbuch, Auftrags-Cloud, Jahrbuch", "konta i role, książka jazd, chmura zleceń, rocznik"]
   }
 }

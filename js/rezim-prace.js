@@ -158,9 +158,9 @@
             id: 'dozor', ic: 'alert', t: 'Dozor a přejímka', p: 'Dozor',
             s: 'Závady, deník, papíry',
             d: 'Papíry z terénu: závada s fotkou vázaná na konkrétní bod, hlasová poznámka '
-                + 's georazítkem, deník dne pro kancelář a docházka party.',
+                + 's georazítkem a deník dne pro kancelář.',
             tools: ['zavady', 'protokol-vytyceni', 'denik-dne', 'hlasovky', 'openCheckDist', 'epochy',
-                'dochazka', 'zapisnik']
+                'zapisnik']
         },
         {
             id: 'priprava', ic: 'folder', t: 'Příprava a kancelář', p: 'Příprava',
@@ -195,7 +195,7 @@
         'cadastre-vector': 'Katastr — parcely', 'cadastre-area': 'Body z výřezu mapy',
         'parcela': 'Parcela / dělení', 'utility-networks': 'Podzemní sítě',
         'geo-overlay': 'Vlastní podklad', 'denik-dne': 'Deník dne', 'hlasovky': 'Hlasové poznámky',
-        'dochazka': 'Docházka', 'brifink': 'Dnešek v terénu', 'checklist': 'Co s sebou',
+        'brifink': 'Dnešek v terénu', 'checklist': 'Co s sebou',
         'pocasi': 'Počasí', 'gnss-forecast': 'GNSS předpověď', 'job-transfer': 'Poslat/načíst zakázku',
         'kniha-jizd': 'Kniha jízd', 'pdr-offset': 'Krokový offset', 'dgps': 'Dvoutelefonní DGPS'
     };

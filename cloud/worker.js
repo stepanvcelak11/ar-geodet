@@ -819,9 +819,23 @@ async function dbFirst(env, sql, ...bind) {
 }
 // brána konzole i schránky zpětné vazby: stejné tajemství, žádný firemní token.
 // BRZDA NA HÁDÁNÍ: OWNER_KEY je ručně zvolené heslo a za dveřmi je mazání celých
-// firem, takže deset pokusů z adresy za hodinu. Zamčený stav vrací guardHit ještě
-// PŘED zápisem do D1, útok tedy po zamčení databázi nezatěžuje. Počítadlo se maže
+// firem, takže deset CHYBNÝCH pokusů z adresy za hodinu. Zamčený stav se pozná
+// pouhým čtením, útok tedy po zamčení databázi nezatěžuje. Počítadlo se maže
 // až po ÚSPĚŠNÉM ověření — jinak by si ho útočník každým pokusem sám čistil.
+//
+// ⚠⚠ POČÍTAJÍ SE JEN CHYBNÉ KLÍČE (oprava 13. 9. 2026). Do té doby guardHit()
+// zvedl počítadlo u KAŽDÉHO požadavku a guardClear() ho smazal až po ověření.
+// Konzole vlastníka ale střílí požadavky souběžně (přehled + odznak + grafy +
+// hlášení = 4–6 dotazů naráz, každý pohled další) — deset jich do D1 dorazilo
+// dřív, než první stihl počítadlo smazat, jedenáctý dostal 429 a od té chvíle
+// se se SPRÁVNÝM klíčem nedalo hodinu dělat nic („Moc pokusů o klíč. Zkus to
+// za hodinu." při klepnutí na Grafy, ač klíč seděl). Správný klíč teď počítadlo
+// nezvedá nikdy; čte ho jen pro případ, že by tam z dřívějška něco zbylo.
+async function guardLocked(env, key, maxN) {
+    const row = await env.DB.prepare('SELECT n, until FROM guard WHERE k=?').bind(key).first();
+    if (!row) return { locked: false, row: null };
+    return { locked: row.until > Date.now() && row.n >= maxN, row };
+}
 async function ownerGate(req, env, co) {
     const ip = req.headers.get('CF-Connecting-IP') || '0';
     const kl = 'own:' + ip;
@@ -841,13 +855,18 @@ async function ownerGate(req, env, co) {
             : 'na serveru žádný OWNER_KEY není (secret chybí, nebo ho smazalo nasazení z GitHubu — ulož ho jako typ Secret, ne Text).')
             + ' (wrangler secret put OWNER_KEY)', { ownerKey: st });
     }
-    let pusti = true;
+    let stav = { locked: false, row: null };
     // brzda nesmí konzoli shodit (tabulka guard nemusí být v cizí databázi);
     // klíč se ověřuje dál i tehdy, když se počítadlo nepodaří přečíst
-    try { pusti = await guardHit(env, kl, 10, 60 * 60e3); } catch (e) { pusti = true; }
-    if (!pusti) return err(429, 'Moc pokusů o klíč. Zkus to za hodinu.');
-    if (!ok) return err(403, 'Špatný klíč.');
-    try { await guardClear(env, kl); } catch (e) {}
+    try { stav = await guardLocked(env, kl, 10); } catch (e) { stav = { locked: false, row: null }; }
+    if (stav.locked) return err(429, 'Moc pokusů o klíč. Zkus to za hodinu.');
+    if (!ok) {
+        // chybný klíč = jediné, co počítadlo zvedá
+        try { await guardHit(env, kl, 10, 60 * 60e3); } catch (e) {}
+        return err(403, 'Špatný klíč.');
+    }
+    // správný klíč: smazat jen když tam něco je (jinak by každý dotaz konzole psal do D1)
+    if (stav.row) { try { await guardClear(env, kl); } catch (e) {} }
     return null;
 }
 // ---------------------------------------------------------------------------
@@ -1336,7 +1355,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 17, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 18, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
 
             // ---------------- BRZDA VYDÁNÍ (12. 9. 2026) ---------------------
             // Vlastník vyvíjí a testuje na svém telefonu, ale lidem venku nesmí

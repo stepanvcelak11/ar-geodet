@@ -23,14 +23,16 @@
 // moduly, které na prvky sahají, jedou dál):
 //   #compass-debug (azimut) · #gps-avg (průměrování) · #ag-cstab (stabilita
 //   kompasu) · #info (stavové hlášky — propíšou se do bubliny na 6 s).
-// Vypnutím bubliny (Nastavení → Vzhled) se původní panely zase objeví.
+// ⚠ BUBLINA SE UŽ NEDÁ VYPNOUT (13. 9. 2026, přání uživatele: „Vypnout bublinu a vrátit
+//   původní panely dej pryč"). Tlačítko v detailu i přepínač v Nastavení → Vzhled jsou
+//   pryč, on() vrací vždy true; starý klíč agStatusBar='0' v telefonu se ignoruje.
+//   Původní panely (#compass-debug, #gps-avg, #ag-cstab, #info) zůstávají v DOM schované.
 //
 // Odstranění: smaž js/stavovy-pruh.js + řádek <script> v index.html (a v sw.js).
 // ================================================================================
 (function () {
     'use strict';
 
-    var BAR_KEY = 'agStatusBar';           // '0' = vypnuto (výchozí zapnuto)
     var CAL_KEY = 'agCalibInfo';           // {ts,lat,lng} posledního srovnání severu
     var TILE_CACHE = 'argeodet-offline-v12';   // shodné se sw.js / logika.js
     var CAL_MAX_AGE = 30 * 60 * 1000;      // 30 min
@@ -51,7 +53,7 @@
     var AUTO_CLOSE_MS = 30000;              // po půl minutě klidu se detail sbalí sám
     var _azTs = 0;                          // škrcení přepisů azimutu (viz mirrorAz)
 
-    function on() { try { return localStorage.getItem(BAR_KEY) !== '0'; } catch (e) { return true; } }
+    function on() { return true; }   // bublina jde vždy; vypínač zrušen 13. 9. 2026 (viz hlavička)
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function calInfo() { try { return JSON.parse(localStorage.getItem(CAL_KEY)); } catch (e) { return null; } }
@@ -304,7 +306,7 @@
             // rozbalený detail (na místě, pod hlavičkou)
             // OPRAVA 27. 7. — „rozbalená lišta se překrývá s Nástroji a Body“.
             // PŘÍČINA: detail neměl žádný výškový strop. Se čtyřmi řádky (GPS · Sever ·
-            // Data · Baterie) včetně rad, třemi tlačítky a „Vypnout bublinu“ naroste
+            // Data · Baterie) včetně rad a třemi tlačítky naroste
             // přes 350 px, začíná hned pod výřezem a je široký min(86vw,336px) — spadne
             // tedy přesně do dráhy svislé lišty #dock (ta má střed v 60 % výšky displeje).
             // ŘEŠENÍ: strop --ag-sp-maxh počítá fitBody() z živé polohy #dock; co se
@@ -327,8 +329,6 @@
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:var(--surface-2,rgba(255,255,255,0.07));',
             '  color:inherit;font:600 10.5px/1.15 var(--font-ui,system-ui);}',
             '.ag-sp-acts button.ag-sp-prim{background:var(--accent,#2f9e74);border-color:transparent;color:#fff;}',
-            '.ag-sp-off{width:100%;margin-top:8px;padding:8px;border-radius:10px;cursor:pointer;background:transparent;',
-            '  border:1px solid var(--glass-border,rgba(255,255,255,0.12));color:var(--text-muted,#9aa1ac);font:600 10.5px/1 var(--font-ui,system-ui);}',
             // venku dobře viditelná varianta
             'body.outdoor-mode #ag-sp{background:#0a0e1a;border-color:rgba(255,255,255,0.85);font-size:calc(13px * var(--ag-font-scale, 1));}',
             'body.light-mode.outdoor-mode #ag-sp{background:#fff;border-color:rgba(10,14,26,0.7);}',
@@ -488,8 +488,7 @@
             + row('Sever', ar, arExtra)
             + row('Data', d)
             + row('Baterie', b)
-            + actsHtml()
-            + '<button type="button" class="ag-sp-off" data-act="off">Vypnout bublinu (vrátí původní panely)</button>';
+            + actsHtml();
     }
     function renderBar() {
         var el = ensureBar();
@@ -594,37 +593,7 @@
             else if (act === 'sever') { if (typeof window.agOpenCalibrate === 'function') window.agOpenCalibrate(); else if (typeof window.openCompassModal === 'function') window.openCompassModal(); }
             else if (act === 'gps') { if (typeof window.openGpsAvgModal === 'function') window.openGpsAvgModal(); }
             else if (act === 'skore') { if (window.AGSemafor && AGSemafor.open) AGSemafor.open(); }
-            else if (act === 'off') {
-                try { localStorage.setItem(BAR_KEY, '0'); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'stavovy-pruh:onAct'); }
-                var cb = document.querySelector('#ag-sp-row-set input'); if (cb) cb.checked = false;
-                renderBar();
-                if (typeof quickToast === 'function') quickToast('Bublina vypnuta — původní panely jsou zpět. Zapneš ji v Nastavení → Vzhled.');
-            }
         } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'stavovy-pruh:onAct'); }
-    }
-
-    // ---- přepínač v Nastavení → Vzhled --------------------------------------------------
-    function injectSettingsToggle() {
-        if (document.getElementById('ag-sp-row-set')) return;
-        var tab = document.getElementById('tab-vzhled'); if (!tab) return;
-        var row = document.createElement('div');
-        row.className = 'st-row'; row.id = 'ag-sp-row-set';
-        var lab = document.createElement('span');
-        lab.className = 'st-lab';
-        lab.innerHTML = 'Stavová bublina<small>GPS · sever · data · baterie v jedné bublině nahoře; vypnutím se vrátí původní panely</small>';
-        var sw = document.createElement('label'); sw.className = 'st-sw';
-        var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = on();
-        cb.addEventListener('change', function () {
-            try { localStorage.setItem(BAR_KEY, cb.checked ? '1' : '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stavovy-pruh:injectSettingsToggle'); }
-            _open = false; _lastHead = _lastBody = '';
-            renderBar();
-            // po zapnutí bubliny musí původní panely zmizet, po vypnutí se řídí svými přepínači
-            try { if (typeof toggleHudElements === 'function') toggleHudElements(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stavovy-pruh:injectSettingsToggle'); }
-        });
-        var face = document.createElement('span'); face.className = 'st-sw-face';
-        sw.appendChild(cb); sw.appendChild(face);
-        row.appendChild(lab); row.appendChild(sw);
-        tab.appendChild(row);
     }
 
     // ---- zdroje dat --------------------------------------------------------------------
@@ -723,7 +692,6 @@
         try {
             injectStyles();
             wrapCalib();
-            injectSettingsToggle();
             trackFix();
             // rozbalený detail a půl minuty bez doteku → sbalit, ať nestíní ovládání
             if (_open && _openTs && (Date.now() - _openTs) > AUTO_CLOSE_MS) close();

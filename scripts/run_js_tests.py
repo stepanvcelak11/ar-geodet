@@ -73,7 +73,6 @@ DELEGATING = [
     ('js/dxf-export.js',           'obj', 'y', 'x', -1, True),
     ('js/vylepseni.js',            'arr',   0,   1, -1, True),
     ('js/geo-foto.js',             'obj', 'y', 'x',  1, False),
-    ('js/vysilacka.js',            'obj', 'y', 'x',  1, False),
     ('js/indoor.js',               'obj', 'y', 'x',  1, False),
     ('js/obchuzka.js',             'obj', 'y', 'x',  1, False),
 ]

@@ -1,7 +1,7 @@
 // ===== QTRIG — DENÍK DNE (ODPOJITELNÁ vrstva) ===============================
 // Jeden tap večer = souhrn dne za aktivní zakázku pro kancelář / stavební deník:
 //   • nové / změněné / smazané body (žurnál bodů js/journal.js, fallback prov.ts),
-//   • docházka party (lokální záznamy směn z js/dochazka.js přes AGUcty.usageQuery),
+//   (docházka party ZRUŠENA 13. 9. 2026 spolu s js/dochazka.js),
 //   • závady vč. stavu (localStorage '<pid>_zavady' z js/zavady.js),
 //   • počasí (poslední stažená data js/pocasi.js, klíč 'agWeatherCache_v1'),
 //   • ušlá stopa (js/track-log.js, klíč '<pid>_agTrackLog'),
@@ -129,37 +129,6 @@
             return out;
         })['catch'](function () { return fallback(); });   // ['catch']: JScript parse check neskousne .catch (rezervovane slovo)
     }
-    // DOCHÁZKA: lokální záznamy směn tohoto zařízení (jinde píchnuté tu nejsou)
-    function collectDochazka(r) {
-        var u = window.AGUcty;
-        if (!u || typeof u.usageQuery !== 'function' || !u.getFirm || !u.getFirm()) return Promise.resolve(null);
-        return u.usageQuery(r.from).then(function (evs) {
-            var byUid = {}, order = [];
-            (evs || []).forEach(function (ev) {
-                if (!ev || ev.t !== 'shift' || !inRange(ev.ts, r)) return;
-                var key = ev.uid || ev.u || '?';
-                if (!byUid[key]) { byUid[key] = { name: ev.u || '?', evs: [] }; order.push(key); }
-                byUid[key].evs.push(ev);
-            });
-            var people = [];
-            order.forEach(function (key) {
-                var seg = byUid[key], spans = [], open = null, meta = null;
-                seg.evs.sort(function (a, b) { return a.ts - b.ts; });
-                seg.evs.forEach(function (ev) {
-                    var parts = String(ev.k || '').split('|');
-                    var dir = parts[0];
-                    if (parts[2] && !meta) { try { var mm = JSON.parse(decodeURIComponent(parts[2])); if (mm && typeof mm === 'object') meta = mm; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'denik-dne:collectDochazka'); } }
-                    if (dir === 'in') { if (open) spans.push(open); open = { i: ev.ts, o: null }; }
-                    else if (dir === 'out') { if (open) { open.o = ev.ts; spans.push(open); open = null; } else spans.push({ i: null, o: ev.ts }); }
-                });
-                if (open) spans.push(open);
-                var ms = 0;
-                spans.forEach(function (s) { if (s.i && s.o) ms += Math.max(0, s.o - s.i); });
-                people.push({ name: seg.name, spans: spans, ms: ms, meta: meta });
-            });
-            return { people: people };
-        })['catch'](function () { return null; });
-    }
     // ZÁVADY: nové v den + vyřešené v den + kolik zbývá otevřených
     function collectZavady(r) {
         var arr = null;
@@ -235,8 +204,8 @@
     // model = { header:{...}, sections:[{title, sub, rows:[řetězce], empty}] }
     function buildModel(done) {
         var r = dayRange();
-        Promise.all([collectBody(r), collectDochazka(r), collectHlasovky(r)]).then(function (res) {
-            var body = res[0], doch = res[1], hlas = res[2];
+        Promise.all([collectBody(r), collectHlasovky(r)]).then(function (res) {
+            var body = res[0], hlas = res[1];
             var m = { header: { proj: projName(), day: fmtDay(r.date), gen: new Date() }, sections: [] };
             try {
                 var u = window.AGUcty, f = u && u.getFirm && u.getFirm(), cu = u && u.currentUser && u.currentUser();
@@ -257,20 +226,6 @@
             pushPts(body.add, '+'); pushPts(body.edit, '~'); pushPts(body.del, '−');
             if (body.noTs) sb.rows.push('(' + body.noTs + ' bodů bez časového razítka nelze zařadit ke dni)');
             m.sections.push(sb);
-
-            // DOCHÁZKA
-            if (doch) {
-                var sd = { title: 'Docházka (toto zařízení)', sub: doch.people.length + ' osob', rows: [], empty: 'Žádné píchnutí v tento den.' };
-                doch.people.forEach(function (p) {
-                    var sp = p.spans.map(function (s) { return (s.i ? fmtT(s.i) : '?') + '–' + (s.o ? fmtT(s.o) : '…'); }).join(', ');
-                    var extra = [];
-                    if (p.ms) extra.push(fmtDur(p.ms));
-                    if (p.meta && p.meta.s) extra.push('stavba: ' + p.meta.s);
-                    if (p.meta && p.meta.w && p.meta.w.length) extra.push('s: ' + p.meta.w.join(', '));
-                    sd.rows.push(p.name + ': ' + sp + (extra.length ? ' (' + extra.join(' · ') + ')' : ''));
-                });
-                m.sections.push(sd);
-            }
 
             // ZÁVADY
             var zv = collectZavady(r);

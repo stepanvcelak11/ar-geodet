@@ -47,7 +47,6 @@ from check_tools_registry import registered_ids  # noqa: E402  (sdilime jeden sc
 # Duvod u kazdeho, aby to nikdo pozdeji "neuklidil" do Pro.
 MUSI_ZUSTAT_ZDARMA = {
     'job-transfer': u'pozvany bez Pro musi prevzit zakazku a poslat data zpatky',
-    'prenosy-zarizeni': u'rozcestnik nad job-transfer; kdyby byl pro, pozvany se k prenosu nedostane',
 }
 
 

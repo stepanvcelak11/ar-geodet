@@ -10,11 +10,11 @@
 //   • „Auto a bezpečí"    = Kde co mám + Kniha jízd + Bezpečnost + Co s sebou
 //   • „Moje čísla"        = Moje aktivita + Ročenka
 //   • „Zápis dne"         = Deník dne + Plakát dne
-//   • „Firma"             = Firma a účty + Docházka + Vysílačka
-//                           (Firemní chat ZRUŠEN 11. 9. 2026 na přání uživatele; Vysílačka zůstává)
+//   („Firma" = Firma a účty + Docházka + Vysílačka ZRUŠEN 13. 9. 2026 — Docházka i Vysílačka
+//    šly pryč na přání uživatele, samotné Firma a účty rozcestník nepotřebuje)
 //   • „Podklady a katastr"= Prohlídka okolí + Parcely + Body z výřezu +
 //                           Vektorová mapa offline + Sbalit zakázku
-//   • „Přenosy a zařízení"= Hodinky Garmin + Poslat/načíst zakázku
+//   („Přenosy a zařízení" = Hodinky Garmin + Poslat/načíst zakázku ZRUŠEN 13. 9. 2026 spolu s hodinkami)
 //   • „Srovnat jinak"    = Srovnat na 2 body + podle bodu + podle Slunce +
 //                           Lokalizace (Helmert) + Posun GPS na bod + Zorný úhel
 //
@@ -104,12 +104,6 @@
             sub: 'Uzavření dne — slovy do výkazu, nebo obrázkem do skupiny:'
         },
         {
-            id: 'firma-hub', label: 'Firma', title: 'Firma', cat: 'Pomůcky', order: 11,
-            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M4 21V8l8-5 8 5v13"/><path d="M9.5 21v-6h5v6"/><path d="M9 10h.01M15 10h.01"/></svg>',
-            poradi: ['ucty-firma', 'dochazka', 'vysilacka'],
-            sub: 'Lidé, hodiny a rychlé zprávy — všechno firemní na jednom místě:'
-        },
-        {
             id: 'podklady-katastr', label: 'Podklady<br>a katastr', title: 'Podklady a katastr', cat: 'Katastr a data', order: 5,
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3.5L3 6.5v14l6-3 6 3 6-3v-14l-6 3-6-3z"/><path d="M9 3.5v14M15 6.5v14"/></svg>',
             poradi: ['prohlidka', 'cadastre-vector', 'cadastre-area', 'vektor-mapa', 'balicek-zakazky'],
@@ -127,12 +121,6 @@
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15.2 8.8l-2 4.4-4.4 2 2-4.4z"/><path d="M12 1.8v1.6"/></svg>',
             poradi: ['ar-calib2', 'orient-point', 'sever-slunce', 'ref-calibration', 'localization-helmert', 'fov-kalib'],
             sub: 'Značky v AR nesedí na realitu. Vyber podle toho, CO je špatně a co máš kolem sebe:'
-        },
-        {
-            id: 'prenosy-zarizeni', label: 'Přenosy<br>a zařízení', title: 'Přenosy a zařízení', cat: 'Katastr a data', order: 6,
-            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="6" width="10" height="12" rx="3"/><path d="M9.5 6V3.5h5V6M9.5 18v2.5h5V18"/><path d="M12 9.5V12l1.7 1"/></svg>',
-            poradi: ['hodinky-parovani', 'job-transfer'],
-            sub: 'Data ven z telefonu a zpátky — jiná parketa než měření:'
         }
     ];
 
@@ -158,8 +146,6 @@
         'cadastre-vector': 'Katastr — parcely',
         'cadastre-area': 'Body z výřezu mapy',
         'balicek-zakazky': 'Sbalit zakázku',
-        'job-transfer': 'Poslat / načíst zakázku',
-        'ucty-firma': 'Firma a účty',
         'ar-calib2': 'Srovnat na dva body',
         'orient-point': 'Srovnat sever podle bodu',
         'sever-slunce': 'Srovnat sever podle Slunce',
@@ -193,16 +179,11 @@
         'rocenka': 'Rok a měsíc v číslech, mapa míst, kde jsi byl, odznaky a série.',
         'denik-dne': 'Co jsi dnes dělal, na které zakázce a jak dlouho — psaný záznam do výkazu.',
         'plakat-dne': 'Týž den jako jeden obrázek (mapa stopy, čísla, počasí) k poslání do skupiny.',
-        'ucty-firma': 'Uživatelé, role a oprávnění, přihlašování do firmy.',
-        'dochazka': 'Příchod, odchod, hodiny na směně a měsíční přehled.',
-        'vysilacka': 'Kde je kolega teď, rychlé zprávy a hlídání pádu.',
         'prohlidka': 'Co je kolem mě — hranice, sousední parcely, bez zakládání zakázky.',
         'cadastre-vector': 'Vektorové hranice parcel z KN do mapy i do AR; jdou vytyčovat a exportovat.',
         'cadastre-area': 'Bodové pole z oblasti, kterou máš právě na obrazovce.',
         'vektor-mapa': 'Výřez OSM sbalený v kanceláři — kreslí i úplně bez signálu.',
         'balicek-zakazky': 'Mapa, katastr a body kolem ZAKÁZKY (ne kolem tebe) — dělá se na wi-fi před výjezdem.',
-        'hodinky-parovani': 'Spárování a body z hodinek do appky a zpátky (Forerunner, fenix, Connect IQ).',
-        'job-transfer': 'Předat celou zakázku kolegovi nebo si ji převzít — do druhého telefonu i do kanceláře.',
         // Rozlišení „co je špatně" je tu důležitější než název metody — proto každý
         // popisek začíná situací, ne postupem.
         'ar-calib2': 'Značky jsou posunuté I otočené. Zamiř na dva známé body a srovná se sever i poloha naráz.',
@@ -222,7 +203,6 @@
         'bezpecnost': 'agOpenBezpecnost', 'checklist': 'agOpenChecklist',
         'moje-aktivita': 'agOpenMojeAktivita', 'rocenka': 'openRocenka',
         'denik-dne': 'agOpenDenikDne', 'plakat-dne': 'agOpenPlakatDne',
-        'vysilacka': 'agOpenVysilacka',
         'ar-calib2': 'agOpenCalib2', 'orient-point': 'agOpenOrientTool',
         'sever-slunce': 'agOpenSeverSlunce', 'ref-calibration': 'openRefCalibration',
         'localization-helmert': 'agOpenLocalize', 'fov-kalib': 'agOpenFovKalibrace'

@@ -101,7 +101,7 @@
         { i: 'cube', t: 'Objemy a vrstvy', p: 'kubatury, DMT, kontrola pokládky' },
         { i: 'target', t: 'Přesné určení bodu', p: 'protínání, resekce, volné stanovisko, Helmert' },
         { i: 'map', t: 'Katastr a podklady', p: 'do mapy i do AR, dělení parcel, vlastní podklad' },
-        { i: 'firm', t: 'Firma', p: 'účty, docházka, vysílačka, kniha jízd, přenosy' }
+        { i: 'firm', t: 'Firma', p: 'účty a role, kniha jízd, cloud zakázek' }
     ];
 
     // ---- vzhled ------------------------------------------------------------------------------

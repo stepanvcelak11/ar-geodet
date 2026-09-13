@@ -147,14 +147,87 @@
         // DRONOVÉ ZÓNY: oficiální mapa omezení letového provozu ŘLP ČR (DronView).
         // Info pro létání s dronem na zakázce — otevírá se v prohlížeči (data ŘLP nejde vkládat do mapy).
         function openDronView() { window.open('https://dronview.rlp.cz/', '_blank'); }
-        function openKatastr() {
-            if(!userLat || !userLng) return agInfo("Čekám na GPS pozici..."); 
-            let src = visSettings.katastrSource || 'mapycz';
-            let url = `https://mapy.cz/katastralni?x=${userLng}&y=${userLat}&z=19`;
-            if (src === 'ikatastr') url = `https://www.ikatastr.cz/ikatastr.htm#zoom=19&lat=${userLat}&lon=${userLng}`;
-            else if (src === 'cuzk') url = `https://geoportal.cuzk.cz/geoprohlizec/?lon=${userLng}&lat=${userLat}&zoom=14`;
-            window.open(url, '_blank'); 
+        // KATASTR „KDE PRÁVĚ STOJÍM" — OKNO V APPCE, NE NOVÁ ZÁLOŽKA (13. 9. 2026).
+        // Do té doby `window.open(url, '_blank')`: na iPhonu (PWA) se katastr otevřel
+        // mimo appku a uživatel se neměl jak vrátit („u katastru není zpět"). Teď je to
+        // celoobrazovkové okno s tlačítkem Zpět a mapou iKatastr v <iframe>.
+        // ⚠ PROČ ZROVNA iKATASTR A NE ZDROJ Z NASTAVENÍ: vložit do appky jde jen on.
+        //   Mapy.com sice neposílají X-Frame-Options, ale v rámu se samy zablokují
+        //   („Mapy.com nelze správně načíst" — ověřeno 13. 9. 2026 v Chromiu i s UA
+        //   iPhonu), Geoprohlížeč ČÚZK má X-Frame-Options: SAMEORIGIN. Volba
+        //   „Zdroj mapy (Katastr)" v Nastavení proto řídí jen tlačítko „V prohlížeči"
+        //   v hlavičce okna — kdo chce Mapy.com nebo ČÚZK, má je na jedno klepnutí,
+        //   ale zpátky do appky se pak vrací přepnutím aplikací (to appka neovlivní).
+        function katastrUrl(src) {
+            if (src === 'ikatastr') return 'https://ikatastr.cz/#kde=' + userLat + ',' + userLng + ',19';
+            if (src === 'cuzk') return 'https://ags.cuzk.gov.cz/geoprohlizec/?lon=' + userLng + '&lat=' + userLat + '&zoom=14';
+            // Mapy.com: bez /cs/ přesměrují podle jazyka prohlížeče na /en/ — jazyk dáme napevno.
+            return 'https://mapy.com/cs/katastralni?x=' + userLng + '&y=' + userLat + '&z=19';
         }
+        function katastrOkno() {
+            var m = document.getElementById('ag-katastr-okno');
+            if (m) return m;
+            if (!document.getElementById('ag-katastr-style')) {
+                var st = document.createElement('style'); st.id = 'ag-katastr-style';
+                st.textContent = [
+                    '#ag-katastr-okno{position:fixed;inset:0;z-index:100056;display:none;flex-direction:column;background:var(--modal-bg,rgb(14,18,24));color:var(--text-color,#e9eef7);}',
+                    '#ag-katastr-okno.on{display:flex;}',
+                    'body.light-mode #ag-katastr-okno{background:#fff;color:#16202e;}',
+                    '#ag-katastr-okno .agk-head{display:flex;align-items:center;gap:8px;flex:0 0 auto;padding:calc(env(safe-area-inset-top,0px) + 8px) max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));',
+                    '  border-bottom:1px solid var(--glass-border,rgba(255,255,255,.12));}',
+                    '#ag-katastr-okno .agk-zpet{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px 0 10px;border-radius:999px;',
+                    '  border:1px solid var(--glass-border-strong,rgba(255,255,255,.2));background:rgba(255,255,255,.07);color:inherit;font:600 calc(14px * var(--ag-font-scale,1))/1 var(--font-ui,system-ui,sans-serif);cursor:pointer;}',
+                    '#ag-katastr-okno .agk-zpet svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}',
+                    '#ag-katastr-okno .agk-t{flex:1 1 auto;min-width:0;}',
+                    '#ag-katastr-okno .agk-t b{display:block;font-size:calc(15px * var(--ag-font-scale,1));white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+                    '#ag-katastr-okno .agk-t small{display:block;opacity:.7;font-size:calc(11.5px * var(--ag-font-scale,1));white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+                    '#ag-katastr-okno .agk-ven{flex:0 0 auto;min-height:40px;padding:0 12px;border-radius:999px;border:1px solid var(--glass-border,rgba(255,255,255,.14));background:transparent;color:inherit;',
+                    '  font:500 calc(12.5px * var(--ag-font-scale,1))/1 var(--font-ui,system-ui,sans-serif);cursor:pointer;opacity:.85;white-space:nowrap;}',
+                    '#ag-katastr-okno .agk-body{flex:1 1 auto;min-height:0;position:relative;background:#e8e6df;}',
+                    '#ag-katastr-okno iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#e8e6df;}',
+                    '#ag-katastr-okno .agk-off{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;',
+                    '  background:var(--modal-bg,rgb(14,18,24));color:inherit;font-size:calc(14px * var(--ag-font-scale,1));line-height:1.5;}',
+                    'body.light-mode #ag-katastr-okno .agk-off{background:#fff;}',
+                    '#ag-katastr-okno .agk-off.on{display:flex;}'
+                ].join('\n');
+                document.head.appendChild(st);
+            }
+            m = document.createElement('div'); m.id = 'ag-katastr-okno';
+            m.innerHTML = '<div class="agk-head">'
+                + '<button type="button" class="agk-zpet" id="agk-zpet"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Zpět</button>'
+                + '<div class="agk-t"><b>Katastr — kde právě stojím</b><small id="agk-sub"></small></div>'
+                + '<button type="button" class="agk-ven" id="agk-ven" title="Otevřít zdroj z Nastavení v prohlížeči">V prohlížeči</button>'
+                + '</div>'
+                + '<div class="agk-body"><iframe id="agk-frame" title="Katastr (iKatastr.cz)" referrerpolicy="no-referrer-when-downgrade" allow="geolocation"></iframe>'
+                + '<div class="agk-off" id="agk-off"><div>Katastr potřebuje připojení k internetu — teď jsi bez signálu.</div>'
+                + '<div style="opacity:.7;font-size:.9em;">Hranice parcel do mapy i bez signálu: Nástroje → Podklady a katastr → Sbalit zakázku (před výjezdem).</div></div></div>';
+            document.body.appendChild(m);
+            m.querySelector('#agk-zpet').onclick = closeKatastr;
+            m.querySelector('#agk-ven').onclick = function () { if (m._agUrl) window.open(m._agUrl, '_blank'); };
+            return m;
+        }
+        function closeKatastr() {
+            var m = document.getElementById('ag-katastr-okno'); if (!m) return;
+            m.classList.remove('on');
+            // prázdná stránka místo mapy: vložený web jinak dál běží (dlaždice, GPS) i zavřený
+            var f = document.getElementById('agk-frame'); if (f) f.src = 'about:blank';
+        }
+        function openKatastr() {
+            if(!userLat || !userLng) return agInfo("Čekám na GPS pozici...");
+            var src = visSettings.katastrSource || 'mapycz';
+            var m = katastrOkno();
+            m._agUrl = katastrUrl(src);                 // tlačítko „V prohlížeči" = zdroj z Nastavení
+            var jm = { mapycz: 'Mapy.com', ikatastr: 'iKatastr.cz', cuzk: 'ČÚZK' }[src] || src;
+            var ven = document.getElementById('agk-ven'); if (ven) ven.textContent = jm + ' ↗';
+            var sub = document.getElementById('agk-sub');
+            if (sub) sub.textContent = 'iKatastr.cz · ' + userLat.toFixed(5) + ', ' + userLng.toFixed(5);
+            var f = document.getElementById('agk-frame'), off = document.getElementById('agk-off');
+            var offline = (navigator.onLine === false);
+            off.classList.toggle('on', offline);
+            f.src = offline ? 'about:blank' : katastrUrl('ikatastr');
+            m.classList.add('on');
+        }
+        window.closeKatastr = closeKatastr;
 
         // Kompas je SAMOSTATNÝ modál (#compass-modal) — klik na Azimut v HUD ani dlaždice
         // v Nastavení už neskáčou do záložek Nastavení (na přání uživatele).
@@ -184,7 +257,7 @@
             } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:appVersion'); }
             return '—';
         }
-        function openAbout() { const v = document.getElementById('about-version'); if (v) v.innerText = appVersion(); document.getElementById('about-modal').style.display = 'flex'; }
+        function openAbout() { const v = document.getElementById('about-version'); if (v) { var pro = false; try { pro = !!(window.AGLic && AGLic.isPro()); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:openAbout'); } v.innerText = appVersion() + (pro ? ' · Pro' : ' · Základ'); } document.getElementById('about-modal').style.display = 'flex'; }
         let _calibActive = false, _calibSeen = null, _calibBeta = null, _calibGamma = null;
         function dismissCompassCalib() { _calibActive = false; try { localStorage.setItem('arCompassCalibShown', '1'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:dismissCompassCalib'); } const m = document.getElementById('compass-calib-modal'); if (m) m.style.display = 'none'; }
         // Onboarding kalibrace kompasu: jednorazove pri prvnim startu AR; force=true znovu z nastaveni kompasu.

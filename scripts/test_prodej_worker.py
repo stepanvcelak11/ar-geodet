@@ -14,7 +14,7 @@
 # ⚠ Vsechno musi byt na Promise/microtaskach — py_mini_racer nema smycku udalosti,
 #   takze setTimeout uvnitr workeru by test tise zasekl (OUT zustane null).
 #
-#   A) /health hlasi v:17, prodej:true a stav klice vlastnika (ownerKey)
+#   A) /health hlasi v:18, prodej:true a stav klice vlastnika (ownerKey)
 #   J) brzda vydani: GET /vydano (verejne) null -> POST /owner/vydat 296 -> 296; bez klice 403
 #   B) POST /objednavky bez PRODEJ_IBAN -> 503 (prodej vypnuty), s IBAN -> 8mistny
 #      VS, SPAYD s castkou a VS, cenik se dvema produkty, zkouska 3 dny
@@ -221,7 +221,7 @@ def main():
     # ---- A) health -------------------------------------------------------------
     base_rules()
     h = call('GET', '/health')
-    ok('A1 /health v:17', h['data'].get('v') == 17, h['data'].get('v'))
+    ok('A1 /health v:18', h['data'].get('v') == 18, h['data'].get('v'))
     ok('A2 /health prodej:true', h['data'].get('prodej') is True)
     # 12. 9. 2026: /health rika, v jakem stavu je OWNER_KEY ('ok' | 'chybi' | 'kratky') —
     # uzivatel klic „nastavoval nekolikrat" a appka hlasila jen obecnou 503.
@@ -554,6 +554,30 @@ def main():
     gr = call('GET', '/owner/grafy', headers=OWN)
     ok('L1 GET /owner/grafy vraci denni rady, verze a nastroje', gr['status'] == 200 and gr['data'].get('dotazy') and gr['data']['dotazy'][1]['n'] == 55 and gr['data']['lide'][0]['n'] == 3 and gr['data']['verze'][0]['ver'] == 'v302' and gr['data']['nastroje'][0]['k'] == 'openMeasureModal', gr)
     ok('L2 /owner/grafy bez klice 401/403', call('GET', '/owner/grafy')['status'] in (401, 403))
+
+    # ---- M) brzda na hadani klice pocita JEN chybne klice (13. 9. 2026) -----------
+    # Do te doby zvedl kazdy pozadavek pocitadlo a smazal ho az po overeni; konzole
+    # strili 4-6 dotazu naraz, takze se spravnym klicem prisla po chvili 429 na hodinu.
+    def guard_ops():
+        return [l['sql'][:40] for l in log() if 'guard' in l['sql'] and l['op'] == 'run']
+    base_rules()
+    m1 = call('GET', '/owner/ucty', headers=OWN)
+    ok('M1 spravny klic bez zaznamu v guard: 200 a do guard se NIC nezapsalo', m1['status'] == 200 and not guard_ops(), (m1['status'], guard_ops()))
+    base_rules()
+    m2 = call('GET', '/owner/ucty', headers={'X-Owner-Key': 'spatny-klic-spatny-klic-spatny'})
+    ok('M2 chybny klic: 403 a pocitadlo se zvedlo', m2['status'] == 403 and any('guard' in g for g in guard_ops()), (m2['status'], guard_ops()))
+    base_rules()
+    rule('/SELECT n, until FROM guard/', 'function(){ return { first: { n: 10, until: Date.now() + 3600e3 } }; }')
+    m3 = call('GET', '/owner/ucty', headers=OWN)
+    ok('M3 zamceno po deseti chybnych: 429 i se spravnym klicem (a nic dalsiho se nezapisuje)', m3['status'] == 429 and not guard_ops(), (m3['status'], guard_ops()))
+    base_rules()
+    rule('/SELECT n, until FROM guard/', 'function(){ return { first: { n: 3, until: Date.now() + 3600e3 } }; }')
+    m4 = call('GET', '/owner/ucty', headers=OWN)
+    ok('M4 par chybnych pokusu + spravny klic: 200 a pocitadlo se smaze', m4['status'] == 200 and any(g.startswith('DELETE FROM guard') for g in guard_ops()), (m4['status'], guard_ops()))
+    base_rules()
+    rule('/SELECT n, until FROM guard/', 'function(){ return { first: { n: 10, until: Date.now() - 1000 } }; }')
+    m5 = call('GET', '/owner/ucty', headers=OWN)
+    ok('M5 prosla hodina: zamek uz neplati', m5['status'] == 200, m5['status'])
 
     return vypis()
 

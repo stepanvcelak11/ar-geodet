@@ -46,7 +46,7 @@
     // Co zůstává vidět v krátkém pohledu — id ovládacího prvku uvnitř řádku.
     // Vybráno podle toho, co geodet mění v terénu, ne podle toho, co existuje.
     var KEEP = {
-        'tab-vzhled': ['seg-mode', 'v-theme', 's-outdoor', 'tgl-info', 'tgl-compass', 'tgl-gpsavg'],
+        'tab-vzhled': ['seg-mode', 'v-theme', 's-outdoor'],
         'tab-ar': ['s-ar-radius-slider', 's-max-ar-slider'],
         'tab-data': ['s-project-select', 'f-tb', 's-map-radius-slider'],
         'tab-udrzba': null           // null = nekrátit (jsou tam jen 4 tlačítka)

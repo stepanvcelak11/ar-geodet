@@ -20,7 +20,8 @@
 #   H) Vstup ke koupi je v "Vice" - tedy MIMO zalozky Nastaveni a mimo
 #      .tool-grid, na ktere sahaji opravneni role (tou pasti uz jednou propadlo
 #      "Napsat autorovi", viz scripts/test_napsat_autorovi.py).
-#   I) POZVANKA BEZ PRO: job-transfer a prenosy-zarizeni nesmi byt zamcene -
+#   I) POZVANKA BEZ PRO: job-transfer nesmi byt zamceny (rozcestnik prenosy-zarizeni
+#      zrusen 13. 9. 2026 s hodinkami Garmin) -
 #      kdo ma Pro, muze pozvat cloveka bez Pro, aby mu delal na zakazce, a ten
 #      musi mit cim prevzit zakazku a poslat data zpatky.
 #
@@ -168,13 +169,13 @@ async def bezi(ctx):
     # ---- I) pozvanka bez Pro musi projit --------------------------------------
     prujezd = await page.evaluate("""() => {
       var r = {};
-      ['job-transfer','prenosy-zarizeni'].forEach(function (k) {
+      ['job-transfer'].forEach(function (k) {
         r[k] = window.AGReg ? !!AGReg.isPro(k) : null;
       });
       return r;
     }""")
     ok('I1 job-transfer neni za penize (pozvany preda zakazku)', prujezd['job-transfer'] is False, prujezd)
-    ok('I2 prenosy-zarizeni nejsou za penize', prujezd['prenosy-zarizeni'] is False, prujezd)
+    ok('I2 rozcestnik prenosy-zarizeni uz neexistuje (zrusen s hodinkami)', await page.evaluate("() => !AGReg.get('prenosy-zarizeni') && !AGReg.get('hodinky-parovani')"))
 
     # ---- D) klik zamceny nastroj neotevre --------------------------------------
     klik = await page.evaluate("""() => {

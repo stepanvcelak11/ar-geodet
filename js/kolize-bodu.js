@@ -1,7 +1,7 @@
 // ===== QTRIG — DVA LIDI NA JEDNÉ ZAKÁZCE: kolize bodů (ODPOJITELNÁ vrstva) ===
 // PROBLÉM, KTERÝ TENHLE SOUBOR ŘEŠÍ: appka už umí sdílet zakázku mezi lidmi —
-// js/cloud-sync.js protáhne body oběma směry každých 30 s a js/vysilacka.js
-// ukáže, kde kolega stojí. Co ale NIKDO nepozná: že jste OBA změřili TÝŽ BOD.
+// js/cloud-sync.js protáhne body oběma směry každých 30 s. Co ale NIKDO
+// nepozná: že jste OBA změřili TÝŽ BOD.
 //
 // Stane se to snadno. Dva lidi si rozdělí obvod pozemku, potkají se u rohu a
 // každý si ten roh vezme jako svůj. V seznamu pak leží dva body 40 cm od sebe,

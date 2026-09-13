@@ -2,6 +2,18 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 304,
+   "datum": "2026-09-13",
+   "nadpis": "Katastr se Zpět, konzole vlastníka bez falešného zámku, zlaté Pro; vysílačka, docházka a hodinky pryč",
+   "body": [
+    "<b>Katastr — kde právě stojím</b> se otevírá v okně appky s tlačítkem <b>Zpět</b> (mapa iKatastr.cz). Dřív skočil do prohlížeče a nešlo se vrátit. Volba v Nastavení řídí tlačítko „V prohlížeči“.",
+    "<b>Konzole vlastníka:</b> „Moc pokusů o klíč, zkus to za hodinu“ chodilo i se správným klíčem — server počítal každý dotaz konzole jako pokus o hádání. Teď počítá jen chybné klíče.",
+    "<b>Pro na pohled:</b> zlatá z kytičky jde dál po appce — pilulka nahoře, přepínač Mapa/AR, nadpisy oken, ikony a nadpisy v Nástrojích, přepínače a záložky v Nastavení, štítek PRO na tlačítku Nástroje.",
+    "<b>Stavová bublina</b> už nejde vypnout (tlačítko „Vypnout bublinu“ i přepínač v Nastavení jsou pryč); schované jsou i přepínače starých panelů, které bez ní neměly na co působit.",
+    "<b>Pryč:</b> Vysílačka, Docházka (i zkratka z plochy) a Hodinky Garmin — na přání, do budoucna se k tomu případně vrátíme. Rozcestníky „Firma“ a „Přenosy a zařízení“ tím zmizely; Firma a účty a Poslat/načíst zakázku stojí v seznamu přímo."
+   ]
+  },
+  {
    "v": 303,
    "datum": "2026-09-13",
    "nadpis": "Průvodce ukazuje kam klepnout, kytka bez zbytečných rozcestníků, konzole s grafy a hlášením",
