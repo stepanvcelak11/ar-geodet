@@ -30,7 +30,9 @@
    terč .agmc-x z js/modal-close.js). Do 13. 9. 2026 měl DMT drobný nadpis 16 px a holý
    glyf ✕ bez kolečka — jediné okno v appce, které vypadalo jinak. */
 .dmt-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 4px 0 10px; min-height: 40px; }
-.dmt-title { font-family: var(--font-display, sans-serif); font-weight: 700; letter-spacing: -0.3px; font-size: clamp(calc(18px * var(--ag-font-scale, 1)), 5.2vw, calc(22px * var(--ag-font-scale, 1))); color: var(--accent,#2f9e74); }
+/* flex:1 + min-width:0 = nadpis je blok přes celou šířku jako h2 v .modal-content: kolečko
+   „Sbalit" (js/mini-panel.js) mu pak dá padding a text se zalomí, místo aby zůstal pod ním */
+.dmt-title { flex: 1 1 auto; min-width: 0; font-family: var(--font-display, sans-serif); font-weight: 700; letter-spacing: -0.3px; font-size: clamp(calc(18px * var(--ag-font-scale, 1)), 5.2vw, calc(22px * var(--ag-font-scale, 1))); color: var(--accent,#2f9e74); }
 .dmt-x {
     flex: none; width: 40px; height: 40px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;

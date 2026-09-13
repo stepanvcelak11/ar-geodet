@@ -456,7 +456,7 @@
         overlay.innerHTML =
             '<div class="dmt-sheet">' +
             '  <div class="dmt-head">' +
-            '    <div class="dmt-title">Kubatury a vrstevnice (DMT)</div>' +
+            '    <div class="dmt-title" data-ag-head="1">Kubatury a vrstevnice (DMT)</div>' +
             '    <button class="dmt-x" id="dmt-close" aria-label="Zavřít">✕</button>' +
             '  </div>' +
             '  <div class="dmt-toolbar">' +

@@ -130,13 +130,15 @@
             .ts-chip:active{transform:scale(0.97);}
             .ts-chip.active{background:var(--accent,#2f9e74);border-color:transparent;color:#06231a;}
             .ts-chip .pv{display:inline-block;width:26px;border-top:3px solid currentColor;}
-            #tachy-actions{display:flex;align-items:center;gap:7px;padding:9px 40px 9px 12px;background:#0b0f14;border-bottom:1px solid rgba(255,255,255,0.06);overflow-x:auto;-webkit-overflow-scrolling:touch;}
+            #tachy-actions{display:flex;align-items:center;gap:7px;padding:9px 12px;background:#0b0f14;border-bottom:1px solid rgba(255,255,255,0.06);overflow-x:auto;-webkit-overflow-scrolling:touch;}
             #tachy-actions::-webkit-scrollbar{height:0;}
             /* Lišta roluje vodorovně, ale bez posuvníku to nebylo poznat: na 390 px končila
                tlačítkem „+ Bod (GPS)" a „Z bodů" i další ležely mimo displej (13. 9. 2026).
-               Přilepený přechod u pravého okraje říká „je toho víc"; kryje jen pravé
-               odsazení, takže poslední tlačítko po dorolování zůstává celé. */
-            #tachy-actions::after{content:"";position:sticky;right:0;flex:0 0 28px;margin-left:-28px;align-self:stretch;background:linear-gradient(to right,rgba(11,15,20,0),#0b0f14 70%);pointer-events:none;}
+               Přilepený přechod u pravého okraje říká „je toho víc". Je to VLASTNÍ položka
+               za posledním tlačítkem (žádný záporný margin): při dorolování na konec stojí
+               v prázdném místě za ním, takže poslední tlačítko zůstává celé — se záporným
+               marginem ležel přechod PŘES jeho pravou část a tlačítko vypadalo uříznuté. */
+            #tachy-actions::after{content:"";position:sticky;right:0;flex:0 0 28px;align-self:stretch;background:linear-gradient(to right,rgba(11,15,20,0),#0b0f14 70%);pointer-events:none;}
             .tb-btn{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 13px;border-radius:11px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#e6edf3;font-size:calc(13px * var(--ag-font-scale, 1));font-weight:600;cursor:pointer;white-space:nowrap;}
             .tb-btn .icon{width:17px;height:17px;}
             .tb-btn:active{transform:scale(0.97);}

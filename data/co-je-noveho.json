@@ -2,6 +2,15 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 301,
+   "datum": "2026-09-13",
+   "nadpis": "Kontrola po prohlídce: dvě drobnosti",
+   "body": [
+    "<b>Kubatury a vrstevnice:</b> kolečko „Sbalit“ leželo přímo na křížku okna — teď stojí vedle něj a dlouhý nadpis se zalomí.",
+    "<b>Náčrt / tachymetrie:</b> přechod „je toho víc“ na liště tlačítek zakrýval po dorolování poslední tlačítko (export)."
+   ]
+  },
+  {
    "v": 300,
    "datum": "2026-09-13",
    "nadpis": "Prohlídka appky: appka tyká všude, verze v O aplikaci, drobnosti",

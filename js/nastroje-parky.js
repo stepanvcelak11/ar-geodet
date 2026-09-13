@@ -131,7 +131,11 @@
         // přepnutí metody přepíše celá, takže se proužek zahodí s ní).
         var host = p.host ? m.querySelector(p.host) : null;
         var card = host || m.querySelector('.modal-content') || m.firstElementChild || m;
-        var h = host ? null : card.querySelector('h3');
+        // ⚠ Kubatura (DMT) nemá <h3>, ale vlastní hlavičku .dmt-head: bez ní šel proužek
+        //   NAD hlavičku, kolečko „Sbalit" z js/mini-panel.js pak nemělo v hlavičce místo
+        //   (proužek je <button> přes celou šířku) a spadlo o řádek níž — přímo na křížek
+        //   okna (13. 9. 2026). Proužek patří POD hlavičku, nad lištu tlačítek.
+        var h = host ? null : card.querySelector('h3, .dmt-head');
         var b = document.createElement('button');
         b.type = 'button';
         b.className = 'ag-parky';

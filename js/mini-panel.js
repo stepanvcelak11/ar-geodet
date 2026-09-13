@@ -664,7 +664,8 @@
             if (!hit || hit === modal || !modal.contains(hit)) continue;
             for (var n = hit; n && n !== modal; n = n.parentElement) {
                 if (CTRLS[n.tagName]) return n;
-                if (HEADS[n.tagName]) { if (rectsHit(n, r)) return n; break; }
+                // data-ag-head = nadpis, který není <h1–h4> (Kubatura má .dmt-title jako <div>)
+                if (HEADS[n.tagName] || n.hasAttribute('data-ag-head')) { if (rectsHit(n, r)) return n; break; }
             }
         }
         return false;
@@ -687,7 +688,7 @@
             void f.offsetWidth;
             var kol = fabCollides(f, modal);
             if (!kol) { vysledek(); return; }
-            if (i === 0 && HEADS[kol.tagName]) nadpis = kol;
+            if (i === 0 && (HEADS[kol.tagName] || kol.hasAttribute('data-ag-head'))) nadpis = kol;
         }
         // ⚠ DLOUHÝ NADPIS SI UDĚLÁ MÍSTO (12. 9. 2026): překáží-li jen text nadpisu,
         //   dostane padding a zalomí se — řádek níž kolečko krylo popisek (osa).
